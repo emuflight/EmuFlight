@@ -121,8 +121,8 @@ static long cmsx_menuGpsRescueOnEnter(void)
 {
 
     gpsRescueConfig_angle = gpsRescueConfig()->angle;
-    gpsRescueConfig_initialAltitudeM = gpsRescueConfig()->initialAltitude;
-    gpsRescueConfig_descentDistanceM = gpsRescueConfig()->descentDistance;
+    gpsRescueConfig_initialAltitudeM = gpsRescueConfig()->initialAltitudeM;
+    gpsRescueConfig_descentDistanceM = gpsRescueConfig()->descentDistanceM;
     gpsRescueConfig_rescueGroundspeed = gpsRescueConfig()->rescueGroundspeed;
     gpsRescueConfig_throttleMin = gpsRescueConfig()->throttleMin  ;
     gpsRescueConfig_throttleMax = gpsRescueConfig()->throttleMax;
@@ -140,8 +140,8 @@ static long cmsx_menuGpsRescueOnExit(const OSD_Entry *self)
 
 
     gpsRescueConfigMutable()->angle = gpsRescueConfig_angle;
-    gpsRescueConfigMutable()->initialAltitude = gpsRescueConfig_initialAltitudeM;
-    gpsRescueConfigMutable()->descentDistance = gpsRescueConfig_descentDistanceM;
+    gpsRescueConfigMutable()->initialAltitudeM = gpsRescueConfig_initialAltitudeM;
+    gpsRescueConfigMutable()->descentDistanceM = gpsRescueConfig_descentDistanceM;
     gpsRescueConfigMutable()->rescueGroundspeed = gpsRescueConfig_rescueGroundspeed;
     gpsRescueConfigMutable()->throttleMin = gpsRescueConfig_throttleMin;
     gpsRescueConfigMutable()->throttleMax = gpsRescueConfig_throttleMax;

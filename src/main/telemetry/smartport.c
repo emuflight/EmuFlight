@@ -479,7 +479,7 @@ void processSmartPortTelemetry(smartPortPayload_t *payload, volatile bool *clear
         // Pass only the payload: skip frameId
         uint8_t *frameStart = (uint8_t *)&payload->valueId;
         smartPortMspReplyPending = handleMspFrame(frameStart, SMARTPORT_MSP_PAYLOAD_SIZE, &skipRequests);
-         
+
         // Don't send MSP response after write to eeprom
         // CPU just got out of suspended state after writeEEPROM()
         // We don't know if the receiver is listening again
@@ -647,7 +647,7 @@ void processSmartPortTelemetry(smartPortPayload_t *payload, volatile bool *clear
                 break;
 #endif
             case FSSP_DATAID_ALTITUDE   :
-                smartPortSendPackage(id, getEstimatedAltitude()); // unknown given unit, requested 100 = 1 meter
+                smartPortSendPackage(id, getEstimatedAltitudeCm()); // unknown given unit, requested 100 = 1 meter
                 *clearToSend = false;
                 break;
             case FSSP_DATAID_FUEL       :
@@ -806,7 +806,7 @@ void processSmartPortTelemetry(smartPortPayload_t *payload, volatile bool *clear
                 break;
             case FSSP_DATAID_GPS_ALT    :
                 if (STATE(GPS_FIX)) {
-                    smartPortSendPackage(id, gpsSol.llh.alt); // given in 0.01m
+                    smartPortSendPackage(id, gpsSol.llh.altCm * 10); // given in 0.01m , requested in 10 = 1m (should be in mm, probably a bug in opentx, tested on 2.0.1.7)
                     *clearToSend = false;
                 }
                 break;
@@ -841,7 +841,7 @@ void handleSmartPortTelemetry(void)
             payload = smartPortDataReceive(c, &clearToSend, serialCheckQueueEmpty, true);
         }
 
-        processSmartPortTelemetry(payload, &clearToSend, &requestTimeout);
+            processSmartPortTelemetry(payload, &clearToSend, &requestTimeout);
     }
 }
 #endif

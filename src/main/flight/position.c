@@ -38,7 +38,7 @@
 #include "sensors/sensors.h"
 #include "sensors/barometer.h"
 
-static int32_t estimatedAltitude = 0;                // in cm
+static int32_t estimatedAltitudeCm = 0;                // in cm
 
 #define BARO_UPDATE_FREQUENCY_40HZ (1000 * 25)
 
@@ -77,7 +77,7 @@ void calculateEstimatedAltitude(timeUs_t currentTimeUs)
 
 #ifdef USE_GPS
 if (sensors(SENSOR_GPS) && STATE(GPS_FIX)) {
-    gpsAlt = gpsSol.llh.alt;
+    gpsAlt = gpsSol.llh.altCm;
     haveGpsAlt = true;
 
     if (gpsSol.hdop != 0) {
@@ -99,11 +99,11 @@ if (sensors(SENSOR_GPS) && STATE(GPS_FIX)) {
     gpsAlt -= gpsAltOffset;
 
     if (haveGpsAlt && haveBaroAlt) {
-        estimatedAltitude = gpsAlt * gpsTrust + baroAlt * (1 - gpsTrust);
-    }    else if (haveBaroAlt) {
-          estimatedAltitude = baroAlt;
-      }else if (haveGpsAlt) {
-        estimatedAltitude = gpsAlt;
+        estimatedAltitudeCm = gpsAlt * gpsTrust + baroAlt * (1 - gpsTrust);
+    } else if (haveGpsAlt) {
+        estimatedAltitudeCm = gpsAlt;
+    } else if (haveBaroAlt) {
+        estimatedAltitudeCm = baroAlt;
     }
 
 
@@ -118,9 +118,9 @@ bool isAltitudeOffset(void)
 }
 #endif
 
-int32_t getEstimatedAltitude(void)
+int32_t getEstimatedAltitudeCm(void)
 {
-    return estimatedAltitude;
+    return estimatedAltitudeCm;
 }
 
 // This should be removed or fixed, but it would require changing a lot of other things to get rid of.
