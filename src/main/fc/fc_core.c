@@ -270,7 +270,7 @@ void updateArmingStatus(void)
                          && !(getArmingDisableFlags() & ~(ARMING_DISABLED_ARM_SWITCH | ARMING_DISABLED_CALIBRATING));
 
           /* Ignore ARMING_DISABLED_THROTTLE (once arm switch is on) if we are in 3D mode */
-          bool ignoreThrottle = feature(FEATURE_3D)
+          bool ignoreThrottle = featureConfigured(FEATURE_3D)
                              && !IS_RC_MODE_ACTIVE(BOX3D)
                              && !flight3DConfig()->switched_mode3d
                              && !(getArmingDisableFlags() & ~(ARMING_DISABLED_ARM_SWITCH | ARMING_DISABLED_THROTTLE));
@@ -315,7 +315,7 @@ void disarm(void)
 #endif
         BEEP_OFF;
 #ifdef USE_DSHOT
-        if (isMotorProtocolDshot() && flipOverAfterCrashMode && !feature(FEATURE_3D)) {
+        if (isMotorProtocolDshot() && flipOverAfterCrashMode && !featureConfigured(FEATURE_3D)) {
             pwmWriteDshotCommand(ALL_MOTORS, getMotorCount(), DSHOT_CMD_SPIN_DIRECTION_NORMAL, false);
         }
 #endif
@@ -357,7 +357,7 @@ void tryArm(void)
         if (isMotorProtocolDshot() && isModeActivationConditionPresent(BOXFLIPOVERAFTERCRASH)) {
             if (!(IS_RC_MODE_ACTIVE(BOXFLIPOVERAFTERCRASH) || (tryingToArm == ARMING_DELAYED_CRASHFLIP))) {
                 flipOverAfterCrashMode = false;
-                if (!feature(FEATURE_3D)) {
+                if (!featureConfigured(FEATURE_3D)) {
                     pwmWriteDshotCommand(ALL_MOTORS, getMotorCount(), DSHOT_CMD_SPIN_DIRECTION_NORMAL, false);
                 }
             } else {
@@ -365,7 +365,7 @@ void tryArm(void)
 #ifdef USE_RUNAWAY_TAKEOFF
                 runawayTakeoffCheckDisabled = false;
 #endif
-                if (!feature(FEATURE_3D)) {
+                if (!featureConfigured(FEATURE_3D)) {
                     pwmWriteDshotCommand(ALL_MOTORS, getMotorCount(), DSHOT_CMD_SPIN_DIRECTION_REVERSED, false);
                 }
             }
@@ -390,7 +390,7 @@ void tryArm(void)
 
         //beep to indicate arming
 #ifdef USE_GPS
-        if (feature(FEATURE_GPS) && STATE(GPS_FIX) && gpsSol.numSat >= 5) {
+        if (featureConfigured(FEATURE_GPS) && STATE(GPS_FIX) && gpsSol.numSat >= 5) {
             beeper(BEEPER_ARMING_GPS_FIX);
         } else {
             beeper(BEEPER_ARMING);
@@ -520,7 +520,7 @@ void runawayTakeoffTemporaryDisable(uint8_t disableFlag)
 int8_t calculateThrottlePercent(void)
 {
     uint8_t ret = 0;
-    if (feature(FEATURE_3D)
+    if (featureConfigured(FEATURE_3D)
         && !IS_RC_MODE_ACTIVE(BOX3D)
         && !flight3DConfig()->switched_mode3d) {
 
@@ -568,7 +568,7 @@ bool processRx(timeUs_t currentTimeUs)
     }
 
     // in 3D mode, we need to be able to disarm by switch at any time
-    if (feature(FEATURE_3D)) {
+    if (featureConfigured(FEATURE_3D)) {
         if (!IS_RC_MODE_ACTIVE(BOXARM))
             disarm();
     }
@@ -623,7 +623,7 @@ bool processRx(timeUs_t currentTimeUs)
         //   - sticks are active and have deflection greater than runaway_takeoff_deactivate_stick_percent
         //   - pidSum on all axis is less then runaway_takeoff_deactivate_pidlimit
         bool inStableFlight = false;
-        if (!feature(FEATURE_MOTOR_STOP) || isAirmodeActive() || (throttleStatus != THROTTLE_LOW)) { // are motors running?
+        if (!featureConfigured(FEATURE_MOTOR_STOP) || isAirmodeActive() || (throttleStatus != THROTTLE_LOW)) { // are motors running?
             const uint8_t lowThrottleLimit = pidConfig()->runaway_takeoff_deactivate_throttle;
             const uint8_t midThrottleLimit = constrain(lowThrottleLimit * 2, lowThrottleLimit * 2, RUNAWAY_TAKEOFF_HIGH_THROTTLE_PERCENT);
             if ((((throttlePercent >= lowThrottleLimit) && areSticksActive(RUNAWAY_TAKEOFF_DEACTIVATE_STICK_PERCENT)) || (throttlePercent >= midThrottleLimit))
@@ -676,9 +676,9 @@ bool processRx(timeUs_t currentTimeUs)
     // mixTable constrains motor commands, so checking  throttleStatus is enough
     const timeUs_t autoDisarmDelayUs = armingConfig()->auto_disarm_delay * 1e6;
     if (ARMING_FLAG(ARMED)
-        && feature(FEATURE_MOTOR_STOP)
+        && featureConfigured(FEATURE_MOTOR_STOP)
         && !STATE(FIXED_WING)
-        && !feature(FEATURE_3D)
+        && !featureConfigured(FEATURE_3D)
         && !isAirmodeActive()
         && !FLIGHT_MODE(GPS_RESCUE_MODE)  // disable auto-disarm when GPS Rescue is active
     ) {
@@ -718,7 +718,7 @@ bool processRx(timeUs_t currentTimeUs)
 
     processRcStickPositions();
 
-    if (feature(FEATURE_INFLIGHT_ACC_CAL)) {
+    if (featureConfigured(FEATURE_INFLIGHT_ACC_CAL)) {
         updateInflightCalibrationState();
     }
 
@@ -820,7 +820,7 @@ bool processRx(timeUs_t currentTimeUs)
     }
 
 #ifdef USE_TELEMETRY
-    if (feature(FEATURE_TELEMETRY)) {
+    if (featureConfigured(FEATURE_TELEMETRY)) {
         bool enableSharedPortTelemetry = (!isModeActivationConditionPresent(BOXTELEMETRY) && ARMING_FLAG(ARMED)) || (isModeActivationConditionPresent(BOXTELEMETRY) && IS_RC_MODE_ACTIVE(BOXTELEMETRY));
         if (enableSharedPortTelemetry && !sharedPortTelemetryEnabled) {
             mspSerialReleaseSharedTelemetryPorts();
@@ -871,7 +871,7 @@ static FAST_CODE void subTaskPidController(timeUs_t currentTimeUs)
         && !runawayTakeoffCheckDisabled
         && !flipOverAfterCrashMode
         && !runawayTakeoffTemporarilyDisabled
-        && (!feature(FEATURE_MOTOR_STOP) || isAirmodeActive() || (calculateThrottleStatus() != THROTTLE_LOW))) {
+        && (!featureConfigured(FEATURE_MOTOR_STOP) || isAirmodeActive() || (calculateThrottleStatus() != THROTTLE_LOW))) {
 
         if (((fabsf(pidData[FD_PITCH].Sum) >= RUNAWAY_TAKEOFF_PIDSUM_THRESHOLD)
             || (fabsf(pidData[FD_ROLL].Sum) >= RUNAWAY_TAKEOFF_PIDSUM_THRESHOLD)

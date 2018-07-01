@@ -520,7 +520,7 @@ void accUpdate(timeUs_t currentTimeUs, rollAndPitchTrims_t *rollAndPitchTrims)
 
     if (!accIsCalibrationComplete()) {
         performAccelerationCalibration(rollAndPitchTrims);
-    } else if (feature(FEATURE_INFLIGHT_ACC_CAL)) {
+    } else if (featureConfigured(FEATURE_INFLIGHT_ACC_CAL)) {
         performInflightAccelerationCalibration(rollAndPitchTrims);
     }
 

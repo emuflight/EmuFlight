@@ -128,7 +128,7 @@ void batteryUpdateVoltage(timeUs_t currentTimeUs)
     switch (batteryConfig()->voltageMeterSource) {
 #ifdef USE_ESC_SENSOR
         case VOLTAGE_METER_ESC:
-            if (feature(FEATURE_ESC_SENSOR)) {
+            if (featureConfigured(FEATURE_ESC_SENSOR)) {
                 voltageMeterESCRefresh();
                 voltageMeterESCReadCombined(&voltageMeter);
             }
@@ -427,7 +427,7 @@ void batteryUpdateCurrentMeter(timeUs_t currentTimeUs)
         case CURRENT_METER_VIRTUAL: {
 #ifdef USE_VIRTUAL_CURRENT_METER
             throttleStatus_e throttleStatus = calculateThrottleStatus();
-            bool throttleLowAndMotorStop = (throttleStatus == THROTTLE_LOW && feature(FEATURE_MOTOR_STOP));
+            bool throttleLowAndMotorStop = (throttleStatus == THROTTLE_LOW && featureConfigured(FEATURE_MOTOR_STOP));
             int32_t throttleOffset = (int32_t)rcCommand[THROTTLE] - 1000;
 
             currentMeterVirtualRefresh(lastUpdateAt, ARMING_FLAG(ARMED), throttleLowAndMotorStop, throttleOffset);
@@ -438,7 +438,7 @@ void batteryUpdateCurrentMeter(timeUs_t currentTimeUs)
 
         case CURRENT_METER_ESC:
 #ifdef USE_ESC_SENSOR
-            if (feature(FEATURE_ESC_SENSOR)) {
+            if (featureConfigured(FEATURE_ESC_SENSOR)) {
                 currentMeterESCRefresh(lastUpdateAt);
                 currentMeterESCReadCombined(&currentMeter);
             }

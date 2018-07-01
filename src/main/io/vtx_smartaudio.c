@@ -445,7 +445,7 @@ static void saReceiveFramer(uint8_t c)
 
 bool isLegacySmartAudioEnabled(void)
 {
-	return feature(FEATURE_LEGACY_SA_SUPPORT);
+	return featureConfigured(FEATURE_LEGACY_SA_SUPPORT);
 }
 
 static void saSendFrame(uint8_t *buf, int len)

@@ -394,7 +394,7 @@ void initEscEndpoints(void)
     {
         float outputLimitOffset = (DSHOT_MAX_THROTTLE - DSHOT_MIN_THROTTLE) * (1 - motorOutputLimit);
         disarmMotorOutput = DSHOT_CMD_MOTOR_STOP;
-        if (feature(FEATURE_3D)) {
+        if (featureConfigured(FEATURE_3D)) {
             motorOutputLow = DSHOT_MIN_THROTTLE + ((DSHOT_3D_FORWARD_MIN_THROTTLE - 1 - DSHOT_MIN_THROTTLE) / 100.0f) * CONVERT_PARAMETER_TO_PERCENT(motorConfig()->digitalIdleOffsetValue);
             motorOutputHigh = DSHOT_MAX_THROTTLE - outputLimitOffset / 2;
             deadbandMotor3dHigh = DSHOT_3D_FORWARD_MIN_THROTTLE + ((DSHOT_MAX_THROTTLE - DSHOT_3D_FORWARD_MIN_THROTTLE) / 100.0f) * CONVERT_PARAMETER_TO_PERCENT(motorConfig()->digitalIdleOffsetValue);
@@ -408,7 +408,7 @@ void initEscEndpoints(void)
         break;
 #endif
     default:
-        if (feature(FEATURE_3D)) {
+        if (featureConfigured(FEATURE_3D)) {
             float outputLimitOffset = (flight3DConfig()->limit3d_high - flight3DConfig()->limit3d_low) * (1 - motorOutputLimit) / 2;
             disarmMotorOutput = flight3DConfig()->neutral3d;
             motorOutputLow = flight3DConfig()->limit3d_low + outputLimitOffset;
@@ -545,7 +545,7 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs)
     static timeUs_t reversalTimeUs = 0; // time when motors last reversed in 3D mode
     float currentThrottleInputRange = 0;
 
-    if (feature(FEATURE_3D)) {
+    if (featureConfigured(FEATURE_3D)) {
         uint16_t rcCommand3dDeadBandLow;
         uint16_t rcCommand3dDeadBandHigh;
 
@@ -742,7 +742,7 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
             motorOutput = constrain(motorOutput, motorRangeMin, motorRangeMax);
         }
         // Motor stop handling
-        if (feature(FEATURE_MOTOR_STOP) && ARMING_FLAG(ARMED) && !feature(FEATURE_3D) && !isAirmodeActive()
+        if (featureConfigured(FEATURE_MOTOR_STOP) && ARMING_FLAG(ARMED) && !featureConfigured(FEATURE_3D) && !isAirmodeActive()
             && !FLIGHT_MODE(GPS_RESCUE_MODE)) {   // disable motor_stop while GPS Rescue is active
 
             if (((rcData[THROTTLE]) < rxConfig()->mincheck)) {
@@ -916,7 +916,7 @@ float convertExternalToMotor(uint16_t externalValue)
     case true:
         externalValue = constrain(externalValue, PWM_RANGE_MIN, PWM_RANGE_MAX);
 
-        if (feature(FEATURE_3D)) {
+        if (featureConfigured(FEATURE_3D)) {
             if (externalValue == PWM_RANGE_MID) {
                 motorValue = DSHOT_DISARM_COMMAND;
             } else if (externalValue < PWM_RANGE_MID) {
@@ -945,7 +945,7 @@ uint16_t convertMotorToExternal(float motorValue)
     switch ((int)isMotorProtocolDshot()) {
 #ifdef USE_DSHOT
     case true:
-        if (feature(FEATURE_3D)) {
+        if (featureConfigured(FEATURE_3D)) {
             if (motorValue == DSHOT_DISARM_COMMAND || motorValue < DSHOT_MIN_THROTTLE) {
                 externalValue = PWM_RANGE_MID;
             } else if (motorValue <= DSHOT_3D_DEADBAND_LOW) {
