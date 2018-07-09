@@ -170,6 +170,18 @@ typedef enum {
 
 #define RTC_NOT_SUPPORTED 0xff
 
+static bool featureMaskIsCopied = false;
+static uint32_t featureMaskCopy;
+
+static uint32_t getFeatureMask(void)
+{
+    if (featureMaskIsCopied) {
+        return featureMaskCopy;
+    } else {
+        return featureMask();
+    }
+}
+
 #ifdef USE_SERIAL_4WAY_BLHELI_INTERFACE
 #define ESC_4WAY 0xff
 
@@ -541,7 +553,7 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
         break;
 
     case MSP_FEATURE_CONFIG:
-        sbufWriteU32(dst, featureMask());
+        sbufWriteU32(dst, getFeatureMask());
         break;
 
 #ifdef USE_BEEPER
@@ -1052,7 +1064,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 
 #if defined(USE_ESC_SENSOR)
     case MSP_ESC_SENSOR_DATA:
-        if (featureConfigured(FEATURE_ESC_SENSOR)) {
+        if (featureIsEnabled(FEATURE_ESC_SENSOR)) {
             sbufWriteU8(dst, getMotorCount());
             for (int i = 0; i < getMotorCount(); i++) {
                 const escSensorData_t *escData = getEscSensorData(i);
@@ -1634,7 +1646,11 @@ static mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         readEEPROM();
         break;
     case MSP_EEPROM_WRITE:
-        writeEEPROM();
+        if (featureMaskIsCopied) {
+            writeEEPROMWithFeatures(featureMaskCopy);
+        } else {
+            writeEEPROM();
+        }
         readEEPROM();
         break;
     default:
@@ -2147,7 +2163,12 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         if (ARMING_FLAG(ARMED)) {
             return MSP_RESULT_ERROR;
         }
-        writeEEPROM();
+
+        if (featureMaskIsCopied) {
+            writeEEPROMWithFeatures(featureMaskCopy);
+        } else {
+            writeEEPROM();
+        }
         readEEPROM();
         break;
 
@@ -2272,8 +2293,11 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         break;
 #endif // USE_GPS
     case MSP_SET_FEATURE_CONFIG:
-        featureClearAll();
-        featureSet(sbufReadU32(src)); // features bitmap
+        featureMaskCopy = sbufReadU32(src);
+        if (!featureMaskIsCopied) {
+            featureMaskIsCopied = true;
+        }
+
         break;
 
 #ifdef USE_BEEPER

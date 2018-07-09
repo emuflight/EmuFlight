@@ -153,7 +153,7 @@ static void pwmWriteUnused(uint8_t index, float value)
 
 FAST_CODE static void pwmWriteStandard(uint8_t index, float value)
 {
-  if(featureConfigured(FEATURE_3D)) {
+  if(featureIsEnabled(FEATURE_3D)) {
     if (lrintf(value) - 1500 > 0) {
         pinioSet(0, 0);     // set to forward
         value = (value - 1500) * 2 + 1000;

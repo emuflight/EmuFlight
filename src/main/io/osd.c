@@ -807,7 +807,7 @@ static bool osdDrawSingleElement(uint8_t item)
 
 #ifdef USE_ESC_SENSOR
             // Show warning if we lose motor output, the ESC is overheating or excessive current draw
-            if (featureConfigured(FEATURE_ESC_SENSOR) && osdWarnGetState(OSD_WARNING_ESC_FAIL)) {
+            if (featureIsEnabled(FEATURE_ESC_SENSOR) && osdWarnGetState(OSD_WARNING_ESC_FAIL)) {
                 char escWarningMsg[OSD_FORMAT_MESSAGE_BUFFER_SIZE];
                 unsigned pos = 0;
 
@@ -987,13 +987,13 @@ static bool osdDrawSingleElement(uint8_t item)
 
 #ifdef USE_ESC_SENSOR
     case OSD_ESC_TMP:
-        if (featureConfigured(FEATURE_ESC_SENSOR)) {
+        if (featureIsEnabled(FEATURE_ESC_SENSOR)) {
             tfp_sprintf(buff, "%3d%c", osdConvertTemperatureToSelectedUnit(escDataCombined->temperature * 10) / 10, osdGetTemperatureSymbolForSelectedUnit());
         }
         break;
 
     case OSD_ESC_RPM:
-        if (featureConfigured(FEATURE_ESC_SENSOR)) {
+        if (featureIsEnabled(FEATURE_ESC_SENSOR)) {
             tfp_sprintf(buff, "%5d", escDataCombined == NULL ? 0 : calcEscRpm(escDataCombined->rpm));
         }
         break;
@@ -1071,7 +1071,7 @@ static void osdDrawElements(void)
 #endif // GPS
 
 #ifdef USE_ESC_SENSOR
-    if (featureConfigured(FEATURE_ESC_SENSOR)) {
+    if (featureIsEnabled(FEATURE_ESC_SENSOR)) {
         osdDrawSingleElement(OSD_ESC_TMP);
         osdDrawSingleElement(OSD_ESC_RPM);
     }
@@ -1269,7 +1269,7 @@ void osdUpdateAlarms(void)
 #endif
 
 #ifdef USE_ESC_SENSOR
-    if (featureConfigured(FEATURE_ESC_SENSOR)) {
+    if (featureIsEnabled(FEATURE_ESC_SENSOR)) {
         // This works because the combined ESC data contains the maximum temperature seen amongst all ESCs
         if (osdConfig()->esc_temp_alarm != ESC_TEMP_ALARM_OFF && escDataCombined->temperature >= osdConfig()->esc_temp_alarm) {
             SET_BLINK(OSD_ESC_TMP);
@@ -1592,7 +1592,7 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
     blinkState = (currentTimeUs / 200000) % 2;
 
 #ifdef USE_ESC_SENSOR
-    if (featureConfigured(FEATURE_ESC_SENSOR)) {
+    if (featureIsEnabled(FEATURE_ESC_SENSOR)) {
         escDataCombined = getEscSensorData(ESC_SENSOR_COMBINED);
     }
 #endif

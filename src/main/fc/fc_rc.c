@@ -707,7 +707,7 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
     }
 
     int32_t tmp;
-    if (featureConfigured(FEATURE_3D)) {
+    if (featureIsEnabled(FEATURE_3D)) {
         tmp = constrain(rcData[THROTTLE], PWM_RANGE_MIN, PWM_RANGE_MAX);
         tmp = (uint32_t)(tmp - PWM_RANGE_MIN);
     } else {
@@ -721,7 +721,7 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
 
     rcCommand[THROTTLE] = rcLookupThrottle(tmp);
 
-    if (featureConfigured(FEATURE_3D) && !failsafeIsActive()) {
+    if (featureIsEnabled(FEATURE_3D) && !failsafeIsActive()) {
         if (!flight3DConfig()->switched_mode3d) {
             if (IS_RC_MODE_ACTIVE(BOX3D)) {
                 fix12_t throttleScaler = qConstruct(rcCommand[THROTTLE] - 1000, 1000);

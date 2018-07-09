@@ -112,7 +112,7 @@ void targetConfiguration(void)
 
     pidConfigMutable()->runaway_takeoff_prevention = false;
 
-    featureSet((FEATURE_DYNAMIC_FILTER | FEATURE_AIRMODE) ^ FEATURE_RX_PARALLEL_PWM);
+    featureEnable((FEATURE_DYNAMIC_FILTER | FEATURE_AIRMODE) ^ FEATURE_RX_PARALLEL_PWM);
 
     /* AlienWhoop PIDs tested with 6mm and 7mm motors on most frames */
     for (uint8_t pidProfileIndex = 0; pidProfileIndex < PID_PROFILE_COUNT; pidProfileIndex++) {
