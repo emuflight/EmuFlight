@@ -33,6 +33,7 @@
 #include "fc/config.h"
 #include "fc/controlrate_profile.h"
 #include "fc/rc.h"
+#include "fc/rc_controls.h"
 
 controlRateConfig_t *currentControlRateProfile;
 
@@ -63,6 +64,9 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .rates[FD_YAW] = 70,
             .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
             .throttle_limit_percent = 100,
+            .rate_limit[FD_ROLL] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
+            .rate_limit[FD_PITCH] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
+            .rate_limit[FD_YAW] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
             .vbat_comp_type = VBAT_COMP_TYPE_OFF,
             .vbat_comp_ref = 37,
             .vbat_comp_throttle_level = 75,

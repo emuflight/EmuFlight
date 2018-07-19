@@ -144,6 +144,8 @@ static int16_t rcLookupThrottle(int32_t tmp)
 }
 
 #define SETPOINT_RATE_LIMIT 1998.0f
+STATIC_ASSERT(CONTROL_RATE_CONFIG_RATE_LIMIT_MAX <= SETPOINT_RATE_LIMIT, CONTROL_RATE_CONFIG_RATE_LIMIT_MAX_too_large);
+
 #define RC_RATE_INCREMENTAL 14.54f
 
 float applyBetaflightRates(const int axis, float rcCommandf, const float rcCommandfAbs)
@@ -205,7 +207,8 @@ static void calculateSetpointRate(int axis)
 
         angleRate = applyRates(axis, rcCommandf, rcCommandfAbs);
     }
-    setpointRate[axis] = constrainf(angleRate, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT); // Rate limit protection (deg/sec)
+    // Rate limit from profile (deg/sec)
+    setpointRate[axis] = constrainf(angleRate, -1.0f * currentControlRateProfile->rate_limit[axis], 1.0f * currentControlRateProfile->rate_limit[axis]);
 
     memcpy((uint32_t*)&setpointRateInt[axis], (uint32_t*)&setpointRate[axis], sizeof(float));
     DEBUG_SET(DEBUG_ANGLERATE, axis, angleRate);
