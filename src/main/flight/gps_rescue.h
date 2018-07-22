@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Betaflight. If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include "common/axis.h"
 
 #include "pg/pg.h"
@@ -37,6 +37,7 @@ typedef struct gpsRescue_s {
     uint16_t throttleHover;
     uint16_t velP, velI, velD;
     uint8_t minSats;
+    uint16_t minRescueDth; //meters
     gpsRescueSanity_e sanityChecks;
 } gpsRescueConfig_t;
 
