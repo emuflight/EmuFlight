@@ -374,6 +374,7 @@ bool accInit(void)
     }
     acc.dev.acc_1G = 256; // set default
     acc.dev.initFn(&acc.dev); // driver initialisation
+    acc.dev.acc_1G_rec = 1 / acc.dev.acc_1G;
     // set the acc sampling interval according to the gyro sampling interval
     if (accLpfCutHz)
     {

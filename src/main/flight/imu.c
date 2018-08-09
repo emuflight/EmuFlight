@@ -131,7 +131,7 @@ void imuConfigure(uint16_t throttle_correction_angle)
 void imuInit(void)
 {
     smallAngleCosZ = cos_approx(degreesToRadians(imuRuntimeConfig.small_angle));
-    accVelScale = 9.80665f / acc.dev.acc_1G / 10000.0f;
+    accVelScale = 9.80665f * acc.dev.acc_1G_rec / 10000.0f;
 
 
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
@@ -357,6 +357,7 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
         DISABLE_STATE(SMALL_ANGLE);
     }
 }
+
 static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
 {
     static timeUs_t previousIMUUpdateTime;
