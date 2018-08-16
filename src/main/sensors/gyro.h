@@ -21,6 +21,7 @@
 #pragma once
 
 #include "common/axis.h"
+#include "common/filter.h"
 #include "common/time.h"
 #include "common/maths.h"
 #include "pg/pg.h"
