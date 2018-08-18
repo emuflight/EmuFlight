@@ -222,7 +222,7 @@ static FAST_RAM_ZERO_INIT uint8_t rcSmoothingFilterType;
 
 void pidInitFilters(const pidProfile_t *pidProfile)
 {
-    BUILD_BUG_ON(FD_YAW != 2);                             // ensure yaw axis is 2
+    STATIC_ASSERT(FD_YAW == 2, FD_YAW_incorrect); // ensure yaw axis is 2
     const uint32_t pidFrequencyNyquist = pidFrequency / 2; // No rounding needed
 
     dtermLowpassApplyFn = nullFilterApply;
