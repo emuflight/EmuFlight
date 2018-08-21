@@ -1058,4 +1058,6 @@ extern "C" {
     bool isFlipOverAfterCrashMode(void) {
         return false;
     }
+
+    bool failsafeIsActive(void) { return false; }
 }
