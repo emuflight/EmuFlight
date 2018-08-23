@@ -142,9 +142,7 @@ typedef struct pidProfile_s {
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
 } pidProfile_t;
 
-#ifndef USE_OSD_SLAVE
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
-#endif
 
 typedef struct pidConfig_s {
     uint8_t pid_process_denom;                   // Processing denominator for PID controller vs gyro sampling rate
