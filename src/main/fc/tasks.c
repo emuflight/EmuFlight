@@ -53,9 +53,9 @@
 #endif
 
 #include "fc/config.h"
-#include "fc/fc_core.h"
-#include "fc/fc_rc.h"
-#include "fc/fc_dispatch.h"
+#include "fc/core.h"
+#include "fc/rc.h"
+#include "fc/dispatch.h"
 #include "fc/rc_controls.h"
 #include "fc/runtime_config.h"
 
@@ -122,7 +122,7 @@
 #endif
 #endif
 
-#include "fc_tasks.h"
+#include "tasks.h"
 
 static void taskMain(timeUs_t currentTimeUs)
 {

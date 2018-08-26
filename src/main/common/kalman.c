@@ -22,7 +22,7 @@
 #include "arm_math.h"
 
 #include "kalman.h"
-#include "fc/fc_rc.h"
+#include "fc/rc.h"
 #include "build/debug.h"
 
 kalman_t    kalmanFilterStateRate[XYZ_AXIS_COUNT];

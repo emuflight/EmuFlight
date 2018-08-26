@@ -29,7 +29,7 @@
 #include "common/maths.h"
 #include "common/utils.h"
 
-#include "fc/fc_rc.h"
+#include "fc/rc.h"
 
 #define M_LN2_FLOAT 	0.69314718055994530942f
 #define M_PI_FLOAT  	3.14159265358979323846f

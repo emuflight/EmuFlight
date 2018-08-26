@@ -37,6 +37,7 @@
 #include "io/serial.h"
 
 #include "fc/config.h"
+#include "fc/dispatch.h"
 
 #include "io/spektrum_rssi.h"
 #include "io/spektrum_vtx_control.h"
