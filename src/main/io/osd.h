@@ -96,6 +96,7 @@ typedef enum {
     OSD_CORE_TEMPERATURE,
     OSD_G_FORCE,
     OSD_LOG_STATUS,
+    OSD_FLIP_ARROW,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
