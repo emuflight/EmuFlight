@@ -50,6 +50,7 @@
 #include "io/beeper.h"
 #include "io/ledstrip.h"
 #include "io/serial.h"
+#include "io/gps.h"
 
 #include "pg/beeper.h"
 #include "pg/beeper_dev.h"
@@ -169,9 +170,15 @@ static void validateAndFixConfig(void)
         pgResetFn_serialConfig(serialConfigMutable());
     }
 
+#if defined(USE_GPS)
+    serialPortConfig_t *gpsSerial = findSerialPortConfig(FUNCTION_GPS);
+    if (gpsConfig()->provider == GPS_MSP && gpsSerial) {
+        serialRemovePort(gpsSerial->identifier);
+    }
+#endif
     if (
 #if defined(USE_GPS)
-        !findSerialPortConfig(FUNCTION_GPS) &&
+        gpsConfig()->provider != GPS_MSP && !gpsSerial &&
 #endif
         true) {
         featureDisable(FEATURE_GPS);
