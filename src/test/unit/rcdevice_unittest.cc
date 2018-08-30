@@ -76,7 +76,6 @@ extern "C" {
     int minTimeout = 180;
 
     void rcdeviceSend5KeyOSDCableSimualtionEvent(rcdeviceCamSimulationKeyEvent_e key);
-    rcdeviceResponseParseContext_t* rcdeviceRespCtxQueueShift(rcdeviceWaitingResponseQueue *queue);
 }
 
 #define MAX_RESPONSES_COUNT 10
@@ -129,7 +128,7 @@ static void addResponseData(uint8_t *data, uint8_t dataLen, bool withDataForFlus
 TEST(RCDeviceTest, TestRCSplitInitWithoutPortConfigurated)
 {
     runcamDevice_t device;
-    
+
     resetRCDeviceStatus();
 
     watingResponseQueue.headPos = 0;
@@ -173,7 +172,7 @@ TEST(RCDeviceTest, TestInitDevice)
     testData.isAllowBufferReadWrite = true;
     uint8_t responseData[] = { 0xCC, 0x01, 0x37, 0x00, 0xBD };
     addResponseData(responseData, sizeof(responseData), true);
-    
+
     runcamDeviceInit(&device);
     rcdeviceReceive(millis() * 1000);
     testData.millis += minTimeout;
@@ -501,7 +500,7 @@ TEST(RCDeviceTest, Test5KeyOSDCableSimulationProtocol)
     EXPECT_EQ(true, rcdeviceInMenu);
     clearResponseBuff();
 
-    // open connection with correct response but wrong data length 
+    // open connection with correct response but wrong data length
     uint8_t incorrectResponseDataOfOpenConnection1[] = { 0xCC, 0x11, 0xe7, 0x55 };
     addResponseData(incorrectResponseDataOfOpenConnection1, sizeof(incorrectResponseDataOfOpenConnection1), true);
     rcdeviceSend5KeyOSDCableSimualtionEvent(RCDEVICE_CAM_KEY_CONNECTION_OPEN);
@@ -509,7 +508,7 @@ TEST(RCDeviceTest, Test5KeyOSDCableSimulationProtocol)
     testData.millis += minTimeout;
     EXPECT_EQ(true, rcdeviceInMenu);
     clearResponseBuff();
-    
+
     // open connection with invalid crc
     uint8_t incorrectResponseDataOfOpenConnection2[] = { 0xCC, 0x10, 0x42 };
     addResponseData(incorrectResponseDataOfOpenConnection2, sizeof(incorrectResponseDataOfOpenConnection2), true);
@@ -537,7 +536,7 @@ TEST(RCDeviceTest, Test5KeyOSDCableSimulationProtocol)
     EXPECT_EQ(false, rcdeviceInMenu);
     clearResponseBuff();
 
-    // close connection with correct response but wrong data length 
+    // close connection with correct response but wrong data length
     addResponseData(responseDataOfOpenConnection, sizeof(responseDataOfOpenConnection), true);
     rcdeviceSend5KeyOSDCableSimualtionEvent(RCDEVICE_CAM_KEY_CONNECTION_OPEN); // open menu again
     rcdeviceReceive(millis() * 1000);
@@ -595,7 +594,7 @@ TEST(RCDeviceTest, Test5KeyOSDCableSimulationProtocol)
     EXPECT_EQ(true, isButtonPressed);
     clearResponseBuff();
 
-    // simulate press button with correct response but wrong data length 
+    // simulate press button with correct response but wrong data length
     addResponseData(responseDataOfSimulation4, sizeof(responseDataOfSimulation4), true); // release first
     rcdeviceSend5KeyOSDCableSimualtionEvent(RCDEVICE_CAM_KEY_RELEASE);
     rcdeviceReceive(millis() * 1000);
@@ -657,7 +656,7 @@ TEST(RCDeviceTest, Test5KeyOSDCableSimulationProtocol)
 TEST(RCDeviceTest, Test5KeyOSDCableSimulationWithout5KeyFeatureSupport)
 {
     resetRCDeviceStatus();
-    
+
     // test simulation without device init
     rcData[THROTTLE] = FIVE_KEY_JOYSTICK_MID; // THROTTLE Mid
     rcData[ROLL] = FIVE_KEY_JOYSTICK_MID; // ROLL Mid
@@ -665,7 +664,7 @@ TEST(RCDeviceTest, Test5KeyOSDCableSimulationWithout5KeyFeatureSupport)
     rcData[YAW] = FIVE_KEY_JOYSTICK_MAX; // Yaw High
     rcdeviceUpdate(millis() * 1000);
     EXPECT_EQ(false, rcdeviceInMenu);
-    
+
     // init device that have not 5 key OSD cable simulation feature
     memset(&testData, 0, sizeof(testData));
     testData.isRunCamSplitOpenPortSupported = true;
@@ -743,8 +742,8 @@ extern "C" {
         return NULL;
     }
 
-    uint32_t serialRxBytesWaiting(const serialPort_t *instance) 
-    { 
+    uint32_t serialRxBytesWaiting(const serialPort_t *instance)
+    {
         UNUSED(instance);
 
         uint8_t bufIndex = testData.indexOfCurrentRespBuf;
@@ -762,8 +761,8 @@ extern "C" {
         return 0;
     }
 
-    uint8_t serialRead(serialPort_t *instance) 
-    { 
+    uint8_t serialRead(serialPort_t *instance)
+    {
         UNUSED(instance);
 
         uint8_t bufIndex = testData.indexOfCurrentRespBuf;
@@ -780,41 +779,41 @@ extern "C" {
             return buffer[testData.responseDataReadPos++];
         }
 
-        return 0; 
+        return 0;
     }
 
-    void sbufWriteString(sbuf_t *dst, const char *string) 
-    { 
-        UNUSED(dst); UNUSED(string); 
+    void sbufWriteString(sbuf_t *dst, const char *string)
+    {
+        UNUSED(dst); UNUSED(string);
 
         if (testData.isAllowBufferReadWrite) {
             sbufWriteData(dst, string, strlen(string));
         }
     }
-    void sbufWriteU8(sbuf_t *dst, uint8_t val) 
-    { 
-        UNUSED(dst); UNUSED(val); 
+    void sbufWriteU8(sbuf_t *dst, uint8_t val)
+    {
+        UNUSED(dst); UNUSED(val);
 
         if (testData.isAllowBufferReadWrite) {
             *dst->ptr++ = val;
         }
     }
-    
+
     void sbufWriteData(sbuf_t *dst, const void *data, int len)
     {
-        UNUSED(dst); UNUSED(data); UNUSED(len); 
+        UNUSED(dst); UNUSED(data); UNUSED(len);
 
         if (testData.isAllowBufferReadWrite) {
             memcpy(dst->ptr, data, len);
             dst->ptr += len;
-            
+
         }
     }
 
     // modifies streambuf so that written data are prepared for reading
     void sbufSwitchToReader(sbuf_t *buf, uint8_t *base)
     {
-        UNUSED(buf); UNUSED(base); 
+        UNUSED(buf); UNUSED(base);
 
         if (testData.isAllowBufferReadWrite) {
             buf->end = buf->ptr;
@@ -880,9 +879,9 @@ extern "C" {
 
     bool featureIsEnabled(uint32_t) { return false; }
 
-    void serialWriteBuf(serialPort_t *instance, const uint8_t *data, int count) 
-    { 
-        UNUSED(instance); UNUSED(data); UNUSED(count); 
+    void serialWriteBuf(serialPort_t *instance, const uint8_t *data, int count)
+    {
+        UNUSED(instance); UNUSED(data); UNUSED(count);
 
         // reset the input buffer
         testData.responseDataReadPos = 0;
@@ -919,7 +918,7 @@ extern "C" {
         ret |= sbufReadU8(src) << 24;
         return ret;
     }
-    
+
     uint32_t millis(void) { return testData.millis++; }
     uint32_t micros(void) { return millis() * 1000; }
     void beeper(beeperMode_e mode) { UNUSED(mode); }

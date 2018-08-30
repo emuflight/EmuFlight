@@ -222,6 +222,7 @@ CFLAGS     += $(ARCH_FLAGS) \
               $(addprefix -D,$(OPTIONS)) \
               $(addprefix -I,$(INCLUDE_DIRS)) \
               $(DEBUG_FLAGS) \
+			  			-fno-common \
               -pedantic \
               -save-temps=obj \
               -std=gnu11 \
