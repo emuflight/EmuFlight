@@ -146,7 +146,7 @@
 
 // belows are internal stuff
 
-uint32_t SystemCoreClock;
+extern uint32_t SystemCoreClock;
 
 #ifdef EEPROM_IN_RAM
 extern uint8_t eepromData[EEPROM_SIZE];
