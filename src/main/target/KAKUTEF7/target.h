@@ -26,6 +26,11 @@
 #define USBD_PRODUCT_STRING "KakuteF7-Mini V1"
 #else
 #define TARGET_BOARD_IDENTIFIER "KTF7"
+#endif
+
+#ifdef KAKUTEF7V2
+#define USBD_PRODUCT_STRING "KakuteF7-V2"
+#else
 #define USBD_PRODUCT_STRING "KakuteF7"
 #endif
 
