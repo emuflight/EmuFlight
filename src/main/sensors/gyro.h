@@ -30,6 +30,8 @@
 
 #include "pg/pg.h"
 
+extern float vGyroStdDevModulus;
+
 typedef struct gyro_s {
     uint32_t targetLooptime;
     float gyroADCf[XYZ_AXIS_COUNT];
@@ -122,8 +124,6 @@ void gyroDmaSpiStartRead(void);
 void gyroUpdate(timeUs_t currentTimeUs);
 bool gyroGetAverage(quaternion *vAverage);
 const busDevice_t *gyroSensorBus(void);
-struct mpuConfiguration_s;
-const struct mpuConfiguration_s *gyroMpuConfiguration(void);
 struct mpuDetectionResult_s;
 const struct mpuDetectionResult_s *gyroMpuDetectionResult(void);
 void gyroStartCalibration(bool isFirstArmingCalibration);

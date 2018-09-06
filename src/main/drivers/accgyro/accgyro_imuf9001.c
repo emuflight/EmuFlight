@@ -639,7 +639,6 @@ bool imufSpiGyroDetect(gyroDev_t *gyro)
 
     gyro->initFn = imufSpiGyroInit;
     gyro->scale = 1.0f;
-    gyro->mpuConfiguration.resetFn = resetImuf9001;
     return true;
 }
 

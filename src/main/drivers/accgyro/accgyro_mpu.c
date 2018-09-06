@@ -66,11 +66,11 @@
 #include "fc/runtime_config.h"
 #endif //USE_GYRO_IMUF9001
 
-mpuResetFnPtr mpuResetFn;
 
 #ifdef USE_GYRO_IMUF9001
     imufData_t imufData;
 #endif
+
 #ifndef MPU_I2C_INSTANCE
 #define MPU_I2C_INSTANCE I2C_DEVICE
 #endif
@@ -369,7 +369,6 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro)
     sensor = mpu9250SpiDetect(&gyro->bus);
     if (sensor != MPU_NONE) {
         gyro->mpuDetectionResult.sensor = sensor;
-        gyro->mpuConfiguration.resetFn = mpu9250SpiResetGyro;
         return true;
     }
 #endif
