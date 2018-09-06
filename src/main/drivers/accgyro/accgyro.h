@@ -27,7 +27,7 @@
 #include "drivers/bus.h"
 #include "drivers/sensor.h"
 #include "drivers/accgyro/accgyro_mpu.h"
-#include "sensors/gyro.h"
+
 #pragma GCC diagnostic push
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
 #include <pthread.h>
@@ -38,6 +38,25 @@
 #ifndef MPU_I2C_INSTANCE
 #define MPU_I2C_INSTANCE I2C_DEVICE
 #endif
+
+typedef enum {
+    GYRO_NONE = 0,
+    GYRO_DEFAULT,
+    GYRO_MPU6050,
+    GYRO_L3G4200D,
+    GYRO_MPU3050,
+    GYRO_L3GD20,
+    GYRO_MPU6000,
+    GYRO_MPU6500,
+    GYRO_MPU9250,
+    GYRO_ICM20601,
+    GYRO_ICM20602,
+    GYRO_ICM20608G,
+    GYRO_ICM20649,
+    GYRO_ICM20689,
+    GYRO_BMI160,
+    GYRO_FAKE
+} gyroHardware_e;
 
 typedef enum {
     GYRO_HARDWARE_LPF_NORMAL,
@@ -61,7 +80,7 @@ typedef enum {
 #define GYRO_LPF_5HZ        6
 #define GYRO_LPF_NONE       7
 
-//This optimizes the frequencies instead of calculating them 
+//This optimizes the frequencies instead of calculating them
 //in the case of 1100 and 9000, they would divide as irrational numbers.
 #define GYRO_RATE_1_kHz     1000.0f
 #define GYRO_RATE_1100_Hz   909.09f
@@ -98,8 +117,8 @@ typedef struct gyroDev_s {
     uint8_t mpuDividerDrops;
     ioTag_t mpuIntExtiTag;
     uint8_t gyroHasOverflowProtection;
-    gyroSensor_e gyroHardware;
-}  __attribute__((packed)) gyroDev_t;
+    gyroHardware_e gyroHardware;
+} gyroDev_t;
 
 typedef struct accDev_s {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
