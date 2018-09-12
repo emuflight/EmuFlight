@@ -22,7 +22,6 @@
 
 #include "common/time.h"
 
-void srxlCollectTelemetryNow(void);
 void initSrxlTelemetry(void);
 bool checkSrxlTelemetryState(void);
 void handleSrxlTelemetry(timeUs_t currentTimeUs);
