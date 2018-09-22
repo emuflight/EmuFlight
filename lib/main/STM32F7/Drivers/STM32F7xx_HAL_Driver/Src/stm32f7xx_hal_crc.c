@@ -415,6 +415,8 @@ uint32_t HAL_CRC_Calculate(CRC_HandleTypeDef *hcrc, uint32_t pBuffer[], uint32_t
   * @param  BufferLength: input data buffer length
   * @retval uint32_t CRC (returned value LSBs for CRC shorter than 32 bits)
   */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 static uint32_t CRC_Handle_8(CRC_HandleTypeDef *hcrc, uint8_t pBuffer[], uint32_t BufferLength)
 {
   uint32_t i = 0; /* input data buffer index */
@@ -475,6 +477,7 @@ static uint32_t CRC_Handle_16(CRC_HandleTypeDef *hcrc, uint16_t pBuffer[], uint3
   /* Return the CRC computed value */ 
   return hcrc->Instance->DR;
 }
+#pragma GCC diagnostic pop
 
 /**
   * @}

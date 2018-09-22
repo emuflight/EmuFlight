@@ -54,7 +54,7 @@ bool sensorsAutodetect(void)
     bool gyroDetected = gyroInit();
 
     if (gyroDetected) {
-        accInit(gyro.targetLooptime);
+        accInit();
     }
 
 #ifdef USE_MAG

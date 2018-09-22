@@ -78,6 +78,14 @@
 #include "drivers/usb_msc.h"
 #endif
 
+#ifdef USE_DMA_SPI_DEVICE
+#include "drivers/dma_spi.h"
+#endif //USE_DMA_SPI_DEVICE
+
+#ifdef USE_GYRO_IMUF9001
+#include "drivers/accgyro/accgyro_imuf9001.h"
+#endif //USE_GYRO_IMUF9001
+
 #include "fc/board_info.h"
 #include "fc/config.h"
 #include "fc/fc_init.h"
@@ -224,6 +232,19 @@ void init(void)
 
     systemInit();
 
+    initEEPROM();
+
+    ensureEEPROMStructureIsValid();
+    readEEPROM();
+
+#ifdef USE_GYRO_IMUF9001
+
+    if (isMPUSoftReset()) {
+        // reset imuf before befhal mucks with the pins
+        initImuf9001();
+    }
+#endif
+
     // initialize IO (needed for all IO operations)
     IOInitGlobal();
 
@@ -235,17 +256,8 @@ void init(void)
     detectBrushedESC();
 #endif
 
-    initEEPROM();
-
-    ensureEEPROMStructureIsValid();
-
-    bool readSuccess = readEEPROM();
-
-#if defined(USE_BOARD_INFO)
-    initBoardInformation();
-#endif
-
-    if (!readSuccess || !isEEPROMVersionValid() || strncasecmp(systemConfig()->boardIdentifier, TARGET_BOARD_IDENTIFIER, sizeof(TARGET_BOARD_IDENTIFIER))) {
+    // !!TODO: Check to be removed when moving to generic targets
+    if (strncasecmp(systemConfig()->boardIdentifier, TARGET_BOARD_IDENTIFIER, sizeof(TARGET_BOARD_IDENTIFIER))) {
         resetEEPROM();
     }
 
@@ -391,6 +403,9 @@ void init(void)
 #ifdef USE_SPI_DEVICE_1
     spiInit(SPIDEV_1);
 #endif
+#ifdef USE_DMA_SPI_DEVICE
+    dmaSpiInit();
+#endif
 #ifdef USE_SPI_DEVICE_2
     spiInit(SPIDEV_2);
 #endif
@@ -489,7 +504,9 @@ void init(void)
     // so we are ready to call validateAndFixGyroConfig(), pidInit(), and setAccelerationFilter()
     validateAndFixGyroConfig();
     pidInit(currentPidProfile);
-    accInitFilters();
+    if (sensors(SENSOR_ACC)){
+        accInitFilters();
+    }
 
 #ifdef USE_PID_AUDIO
     pidAudioInit();

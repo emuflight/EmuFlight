@@ -52,6 +52,7 @@ typedef struct laggedMovingAverage_s {
 typedef enum {
     FILTER_PT1 = 0,
     FILTER_BIQUAD,
+    FILTER_KALMAN,
 } lowpassFilterType_e;
 
 typedef enum {
@@ -59,6 +60,15 @@ typedef enum {
     FILTER_NOTCH,
     FILTER_BPF,
 } biquadFilterType_e;
+
+typedef struct fastKalman_s {
+    float q;       // process noise covariance
+    float r;       // measurement noise covariance
+    float p;       // estimation error covariance matrix
+    float k;       // kalman gain
+    float x;       // state
+    float lastX;   // previous state
+} fastKalman_t;
 
 typedef float (*filterApplyFnPtr)(filter_t *filter, float input);
 
@@ -83,3 +93,6 @@ float pt1FilterApply(pt1Filter_t *filter, float input);
 
 void slewFilterInit(slewFilter_t *filter, float slewLimit, float threshold);
 float slewFilterApply(slewFilter_t *filter, float input);
+
+void fastKalmanInit(fastKalman_t *filter, float q, float r);
+float fastKalmanUpdate(fastKalman_t *filter, float input);

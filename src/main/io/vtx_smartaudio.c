@@ -47,6 +47,8 @@
 #include "io/vtx_smartaudio.h"
 #include "io/vtx_string.h"
 
+#include "config/feature.h"
+
 
 // Timing parameters
 // Note that vtxSAProcess() is normally called at 200ms interval
@@ -433,6 +435,11 @@ static void saReceiveFramer(uint8_t c)
     }
 }
 
+bool isLegacySmartAudioEnabled(void)
+{
+	return feature(FEATURE_LEGACY_SA_SUPPORT);
+}
+
 static void saSendFrame(uint8_t *buf, int len)
 {
     switch (smartAudioSerialPort->identifier) {
@@ -447,6 +454,8 @@ static void saSendFrame(uint8_t *buf, int len)
     for (int i = 0 ; i < len ; i++) {
         serialWrite(smartAudioSerialPort, buf[i]);
     }
+
+	serialWrite(smartAudioSerialPort, 0x00); // Re-added for both "Legacy" and "Standard" SA implementations
 
     sa_lastTransmissionMs = millis();
     saStat.pktsent++;
@@ -497,7 +506,10 @@ typedef struct saCmdQueue_s {
 } saCmdQueue_t;
 
 #define SA_QSIZE 6     // 1 heartbeat (GetSettings) + 2 commands + 1 slack
+#define SA_AKK_MACH2_QSIZE 4     
+
 static saCmdQueue_t sa_queue[SA_QSIZE];
+static saCmdQueue_t sa_akk_mach2_queue[SA_AKK_MACH2_QSIZE];
 static uint8_t sa_qhead = 0;
 static uint8_t sa_qtail = 0;
 
@@ -508,7 +520,14 @@ static bool saQueueEmpty(void)
 
 static bool saQueueFull(void)
 {
-    return ((sa_qhead + 1) % SA_QSIZE) == sa_qtail;
+	return ((sa_qhead + 1) % (isLegacySmartAudioEnabled() ? SA_AKK_MACH2_QSIZE : SA_QSIZE)) == sa_qtail;
+}
+
+static void saQueueCmdInner(saCmdQueue_t *queue, uint8_t qSize, uint8_t *buf, int len)
+{
+	queue[sa_qhead].buf = buf;
+	queue[sa_qhead].len = len;
+	sa_qhead = (sa_qhead + 1) % qSize;
 }
 
 static void saQueueCmd(uint8_t *buf, int len)
@@ -517,9 +536,17 @@ static void saQueueCmd(uint8_t *buf, int len)
          return;
     }
 
-    sa_queue[sa_qhead].buf = buf;
-    sa_queue[sa_qhead].len = len;
-    sa_qhead = (sa_qhead + 1) % SA_QSIZE;
+	if (isLegacySmartAudioEnabled()) {
+		saQueueCmdInner(sa_akk_mach2_queue, SA_AKK_MACH2_QSIZE, buf, len);
+	} else {
+		saQueueCmdInner(sa_queue, SA_QSIZE, buf, len);
+	}
+}
+
+static void saSendQueueInner(saCmdQueue_t *queue, uint8_t qSize)
+{
+	saSendCmd(queue[sa_qtail].buf, queue[sa_qtail].len);
+	sa_qtail = (sa_qtail + 1) % qSize;
 }
 
 static void saSendQueue(void)
@@ -528,8 +555,11 @@ static void saSendQueue(void)
          return;
     }
 
-    saSendCmd(sa_queue[sa_qtail].buf, sa_queue[sa_qtail].len);
-    sa_qtail = (sa_qtail + 1) % SA_QSIZE;
+	if (isLegacySmartAudioEnabled()) {
+		saSendQueueInner(sa_akk_mach2_queue, SA_AKK_MACH2_QSIZE);
+	} else {
+		saSendQueueInner(sa_queue, SA_QSIZE);
+	}
 }
 
 // Individual commands
@@ -666,7 +696,8 @@ bool vtxSmartAudioInit(void)
 
     serialPortConfig_t *portConfig = findSerialPortConfig(FUNCTION_VTX_SMARTAUDIO);
     if (portConfig) {
-        portOptions_e portOptions = SERIAL_STOPBITS_2 | SERIAL_BIDIR_NOPULL;
+	    portOptions_e portOptions = (isLegacySmartAudioEnabled() ? SERIAL_STOPBITS_1 : SERIAL_STOPBITS_2) | SERIAL_BIDIR_NOPULL;
+
 #if defined(USE_VTX_COMMON)
         portOptions = portOptions | (vtxConfig()->halfDuplex ? SERIAL_BIDIR | SERIAL_BIDIR_PP : SERIAL_UNIDIR);
 #else

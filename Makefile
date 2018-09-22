@@ -5,7 +5,7 @@
 # this stuff is worth it, you can buy me a beer in return
 ###############################################################################
 #
-# Makefile for building the betaflight firmware.
+# Makefile for building the butterflight firmware.
 #
 # Invoke this with 'make help' to see the list of supported targets.
 #
@@ -45,7 +45,7 @@ FLASH_SIZE ?=
 # Things that need to be maintained as the source changes
 #
 
-FORKNAME      = betaflight
+FORKNAME      = butterflight
 
 # Working directories
 ROOT            := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
@@ -181,10 +181,13 @@ include $(ROOT)/make/source.mk
 
 # Find out if ccache is installed on the system
 CCACHE := ccache
+CCACHE :=
 RESULT = $(shell (which $(CCACHE) > /dev/null 2>&1; echo $$?) )
 ifneq ($(RESULT),0)
 CCACHE :=
 endif
+
+CCACHE :=
 
 # Tool names
 CROSS_CC    := $(CCACHE) $(ARM_SDK_PREFIX)gcc

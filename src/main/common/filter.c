@@ -211,6 +211,17 @@ void laggedMovingAverageInit(laggedMovingAverage_t *filter, uint16_t windowSize,
     filter->primed = false;
 }
 
+// Proper fast two-state Kalman
+void fastKalmanInit(fastKalman_t *filter, float q, float r)
+{
+    filter->q     = q * 0.000001f; // add multiplier to make tuning easier
+    filter->r     = r * 0.001f;    // add multiplier to make tuning easier
+    filter->p     = q * 0.001f;    // add multiplier to make tuning easier
+    filter->x     = 0.0f;          // set initial value, can be zero if unknown
+    filter->lastX = 0.0f;          // set initial value, can be zero if unknown
+    filter->k     = 0.0f;          // kalman gain
+}
+
 FAST_CODE float laggedMovingAverageUpdate(laggedMovingAverage_t *filter, float input)
 {
     filter->movingSum -= filter->buf[filter->movingWindowIndex];
@@ -224,4 +235,23 @@ FAST_CODE float laggedMovingAverageUpdate(laggedMovingAverage_t *filter, float i
 
     const uint16_t denom = filter->primed ? filter->windowSize : filter->movingWindowIndex;
     return filter->movingSum  / denom;
+}
+
+FAST_CODE float fastKalmanUpdate(fastKalman_t *filter, float input)
+{
+    // project the state ahead using acceleration
+    filter->x += (filter->x - filter->lastX);
+
+    // update last state
+    filter->lastX = filter->x;
+
+    // prediction update
+    filter->p = filter->p + filter->q;
+
+    // measurement update
+    filter->k = filter->p / (filter->p + filter->r);
+    filter->x += filter->k * (input - filter->x);
+    filter->p = (1.0f - filter->k) * filter->p;
+
+    return filter->x;
 }

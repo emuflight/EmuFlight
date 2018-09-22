@@ -19,6 +19,7 @@
  */
 
 #include <stdbool.h>
+#include <string.h>
 #include <stdint.h>
 #include <math.h>
 
@@ -45,21 +46,12 @@
 #include "flight/imu.h"
 #include "flight/gps_rescue.h"
 #include "flight/pid.h"
+#include "scheduler/scheduler.h"
 #include "pg/rx.h"
 #include "rx/rx.h"
 
 
 #include "sensors/battery.h"
-
-typedef float (applyRatesFn)(const int axis, float rcCommandf, const float rcCommandfAbs);
-
-static float setpointRate[3], rcDeflection[3], rcDeflectionAbs[3];
-static float throttlePIDAttenuation;
-static bool reverseMotors = false;
-static applyRatesFn *applyRates;
-uint16_t currentRxRefreshRate;
-
-FAST_RAM_ZERO_INIT uint8_t interpolationChannels;
 
 enum {
     ROLL_FLAG = 1 << ROLL,
@@ -67,6 +59,90 @@ enum {
     YAW_FLAG = 1 << YAW,
     THROTTLE_FLAG = 1 << THROTTLE,
 };
+
+#ifdef USE_GYRO_IMUF9001
+    volatile bool isSetpointNew;
+#endif
+
+typedef float (applyRatesFn)(const int axis, float rcCommandf, const float rcCommandfAbs);
+
+static float rcDeflection[3], rcDeflectionAbs[3];
+static volatile float setpointRate[3];
+static volatile uint32_t setpointRateInt[3];
+static float throttlePIDAttenuation;
+static bool reverseMotors = false;
+static applyRatesFn *applyRates;
+
+// static float rcCommandInterp[4] = { 0, 0, 0, 0 };
+// static float rcStepSize[4] = { 0, 0, 0, 0 };
+// static float inverseRcInt;
+
+FAST_RAM_ZERO_INIT uint8_t interpolationChannels;
+volatile bool isRXDataNew;
+volatile uint8_t skipInterpolate;
+volatile int16_t rcInterpolationStepCount;
+volatile uint16_t rxRefreshRate;
+volatile uint16_t currentRxRefreshRate;
+
+#if defined(USE_TPA_CURVES)
+float throttleLookupKp[1024];
+float throttleLookupKi[1024];
+float throttleLookupKd[1024];
+uint16_t currentAdjustedThrottle; // rcData[THROTTLE] shifted to 0-1023 range
+
+static void  BuildTPACurveThrottleLookupTables(void);
+
+static float ApplyAttenuationCurve (float input, uint8_t curve[], uint32_t curveSize);
+
+static void BuildTPACurveThrottleLookupTables(void)
+{
+    for (int x = 0; x <= 1023; x++)
+    {
+        throttleLookupKp[x] = ApplyAttenuationCurve( ((float)x / 1023.0f), currentControlRateProfile->tpaKpCurve, ATTENUATION_CURVE_SIZE );
+        throttleLookupKi[x] = ApplyAttenuationCurve( ((float)x / 1023.0f), currentControlRateProfile->tpaKiCurve, ATTENUATION_CURVE_SIZE );
+        throttleLookupKd[x] = ApplyAttenuationCurve( ((float)x / 1023.0f), currentControlRateProfile->tpaKdCurve, ATTENUATION_CURVE_SIZE );
+    }
+}
+static float ApplyAttenuationCurve (float inputAttn, uint8_t curve[], uint32_t curveSize)
+{
+    // curve needs to be float'd
+    float floatCurve[curveSize];
+    for (uint8_t i = 0; i < curveSize; i++) {
+        floatCurve[i] = (float)curve[i] / 100.0f;
+    }
+
+    float attenuationValue = (inputAttn * (curveSize - 1));
+    float remainder = (float)((float)attenuationValue - (int)attenuationValue);
+    uint32_t position = (int)attenuationValue;
+
+    if (inputAttn == 1)
+        return(floatCurve[curveSize-1]);
+    else
+        return(floatCurve[position] + (((floatCurve[position+1] - floatCurve[position]) * remainder)));
+}
+
+float getThrottlePIDAttenuationKp(void) {
+    if (currentControlRateProfile->tpaCurveType == 0) {
+        return throttlePIDAttenuation;
+    }
+    return throttleLookupKp[currentAdjustedThrottle];
+}
+
+float getThrottlePIDAttenuationKi(void) {
+    if (currentControlRateProfile->tpaCurveType == 0) {
+        return 1.0f;
+    }
+    return throttleLookupKi[currentAdjustedThrottle];
+}
+
+float getThrottlePIDAttenuationKd(void) {
+    if (currentControlRateProfile->tpaCurveType == 0) {
+        return throttlePIDAttenuation;
+    }
+    return throttleLookupKd[currentAdjustedThrottle];
+}
+
+#endif  // USE_TPA_CURVES
 
 #ifdef USE_RC_SMOOTHING_FILTER
 #define RC_SMOOTHING_IDENTITY_FREQUENCY         80    // Used in the formula to convert a BIQUAD cutoff frequency to PT1
@@ -84,6 +160,11 @@ static FAST_RAM_ZERO_INIT rcSmoothingFilter_t rcSmoothingData;
 float getSetpointRate(int axis)
 {
     return setpointRate[axis];
+}
+
+uint32_t getSetpointRateInt(int axis)
+{
+    return setpointRateInt[axis];
 }
 
 float getRcDeflection(int axis)
@@ -147,8 +228,7 @@ float applyRaceFlightRates(const int axis, float rcCommandf, const float rcComma
 
 static void calculateSetpointRate(int axis)
 {
-    float angleRate;
-    
+    static volatile float angleRate;
 #ifdef USE_GPS_RESCUE
     if ((axis == FD_YAW) && FLIGHT_MODE(GPS_RESCUE_MODE)) {
         // If GPS Rescue is active then override the setpointRate used in the
@@ -171,6 +251,7 @@ static void calculateSetpointRate(int axis)
     }
     setpointRate[axis] = constrainf(angleRate, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT); // Rate limit protection (deg/sec)
 
+    memcpy((uint32_t*)&setpointRateInt[axis], (uint32_t*)&setpointRate[axis], sizeof(float));
     DEBUG_SET(DEBUG_ANGLERATE, axis, angleRate);
 }
 
@@ -198,6 +279,8 @@ static void scaleRcCommandToFpvCamAngle(void)
 
 static void checkForThrottleErrorResetState(uint16_t rxRefreshRate)
 {
+    currentRxRefreshRate = constrain(getTaskDeltaTime(TASK_RX),1000,20000);
+
     static int index;
     static int16_t rcCommandThrottlePrevious[THROTTLE_BUFFER_MAX];
 
@@ -310,7 +393,7 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
 {
     const float dT = targetPidLooptime * 1e-6f;
     uint16_t oldCutoff = smoothingData->inputCutoffFrequency;
-    
+
     if (rxConfig()->rc_smoothing_input_cutoff == 0) {
         smoothingData->inputCutoffFrequency = calcRcSmoothingCutoff(smoothingData->averageFrameTimeUs, (rxConfig()->rc_smoothing_input_type == RC_SMOOTHING_INPUT_PT1));
     }
@@ -320,7 +403,7 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
         for (int i = 0; i < PRIMARY_CHANNEL_COUNT; i++) {
             if ((1 << i) & interpolationChannels) {  // only update channels specified by rc_interp_ch
                 switch (rxConfig()->rc_smoothing_input_type) {
-                
+
                     case RC_SMOOTHING_INPUT_PT1:
                         if (!smoothingData->filterInitialized) {
                             pt1FilterInit((pt1Filter_t*) &smoothingData->filter[i], pt1FilterGain(smoothingData->inputCutoffFrequency, dT));
@@ -328,7 +411,7 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                             pt1FilterUpdateCutoff((pt1Filter_t*) &smoothingData->filter[i], pt1FilterGain(smoothingData->inputCutoffFrequency, dT));
                         }
                         break;
-                        
+
                     case RC_SMOOTHING_INPUT_BIQUAD:
                     default:
                         if (!smoothingData->filterInitialized) {
@@ -383,7 +466,7 @@ FAST_CODE bool rcSmoothingAccumulateSample(rcSmoothingFilter_t *smoothingData, i
 }
 
 // Determine if we need to caclulate filter cutoffs. If not then we can avoid
-// examining the rx frame times completely 
+// examining the rx frame times completely
 FAST_CODE_NOINLINE bool rcSmoothingAutoCalculate(void)
 {
     bool ret = false;
@@ -416,13 +499,13 @@ FAST_CODE uint8_t processRcSmoothingFilter(void)
         rcSmoothingData.filterInitialized = false;
         rcSmoothingData.averageFrameTimeUs = 0;
         rcSmoothingResetAccumulation(&rcSmoothingData);
-        
+
         rcSmoothingData.inputCutoffFrequency = rxConfig()->rc_smoothing_input_cutoff;
-        
+
         if (rxConfig()->rc_smoothing_derivative_type != RC_SMOOTHING_DERIVATIVE_OFF) {
             rcSmoothingData.derivativeCutoffFrequency = rxConfig()->rc_smoothing_derivative_cutoff;
         }
-        
+
         calculateCutoffs = rcSmoothingAutoCalculate();
 
         // if we don't need to calculate cutoffs dynamically then the filters can be initialized now
@@ -568,11 +651,36 @@ FAST_CODE void processRcCommand(void)
         }
 
         DEBUG_SET(DEBUG_RC_INTERPOLATION, 3, setpointRate[0]);
+#ifdef USE_GYRO_IMUF9001
+        isSetpointNew = 1;
+#endif
+        if (debugMode == DEBUG_RC_INTERPOLATION) {
+            debug[2] = rcInterpolationStepCount;
+            debug[3] = setpointRate[0];
+        }
 
         // Scaling of AngleRate to camera angle (Mixing Roll and Yaw)
         if (rxConfig()->fpvCamAngleDegrees && IS_RC_MODE_ACTIVE(BOXFPVANGLEMIX) && !FLIGHT_MODE(HEADFREE_MODE)) {
             scaleRcCommandToFpvCamAngle();
         }
+
+        // HEADFREE_MODE in ACRO_MODE
+        // yaw rotation is earthframe bound
+        if (FLIGHT_MODE(HEADFREE_MODE) && (!FLIGHT_MODE(ANGLE_MODE)) && (!FLIGHT_MODE(HORIZON_MODE))) {
+            quaternion  vSetpointRate = VECTOR_INITIALIZE;
+
+            vSetpointRate.x = setpointRate[ROLL];
+            vSetpointRate.y = setpointRate[PITCH];
+            vSetpointRate.z = setpointRate[YAW];
+            quaternionTransformVectorEarthToBody(&vSetpointRate, &qHeadfree);
+            setpointRate[ROLL] = constrainf(vSetpointRate.x, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
+            setpointRate[PITCH] = constrainf(vSetpointRate.y, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
+            setpointRate[YAW] = constrainf(vSetpointRate.z, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
+        }
+
+        DEBUG_SET(DEBUG_ANGLERATE, ROLL, setpointRate[ROLL]);
+        DEBUG_SET(DEBUG_ANGLERATE, PITCH, setpointRate[PITCH]);
+        DEBUG_SET(DEBUG_ANGLERATE, YAW, setpointRate[YAW]);
     }
 
     if (isRXDataNew) {
@@ -582,20 +690,32 @@ FAST_CODE void processRcCommand(void)
 
 FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
 {
+    isRXDataNew = true;
     // PITCH & ROLL only dynamic PID adjustment,  depending on throttle value
     int32_t prop;
-    if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
-        prop = 100;
-        throttlePIDAttenuation = 1.0f;
-    } else {
-        if (rcData[THROTTLE] < 2000) {
-            prop = 100 - (uint16_t)currentControlRateProfile->dynThrPID * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+#if defined(USE_TPA_CURVES)
+    if (currentControlRateProfile->tpaCurveType == 0)
+    {
+#endif
+        if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
+            prop = 100;
+            throttlePIDAttenuation = 1.0f;
         } else {
-            prop = 100 - currentControlRateProfile->dynThrPID;
+            if (rcData[THROTTLE] < 2000) {
+                prop = 100 - (uint16_t)currentControlRateProfile->dynThrPID * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+            } else {
+                prop = 100 - currentControlRateProfile->dynThrPID;
+            }
+            throttlePIDAttenuation = prop / 100.0f;
         }
-        throttlePIDAttenuation = prop / 100.0f;
-    }
 
+#if defined(USE_TPA_CURVES)
+    } else {
+        // rcData is 1000,2000 range, subtract 1000 and clamp between 0 and 1023 (for TPA lookup table indexing)
+        int16_t shift = rcData[THROTTLE] - 1000;
+        currentAdjustedThrottle = (shift <= 0) ? 0 : ((shift >= 1023) ? 1023 : shift );
+    }
+#endif
     for (int axis = 0; axis < 3; axis++) {
         // non coupled PID reduction scaler used in PID controller 1 and PID controller 2.
 
@@ -653,22 +773,17 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
             }
         }
     }
-    if (FLIGHT_MODE(HEADFREE_MODE)) {
-        static t_fp_vector_def  rcCommandBuff;
 
-        rcCommandBuff.X = rcCommand[ROLL];
-        rcCommandBuff.Y = rcCommand[PITCH];
-        if ((!FLIGHT_MODE(ANGLE_MODE) && (!FLIGHT_MODE(HORIZON_MODE)) && (!FLIGHT_MODE(GPS_RESCUE_MODE)))) {
-            rcCommandBuff.Z = rcCommand[YAW];
-        } else {
-            rcCommandBuff.Z = 0;
-        }
-        imuQuaternionHeadfreeTransformVectorEarthToBody(&rcCommandBuff);
-        rcCommand[ROLL] = rcCommandBuff.X;
-        rcCommand[PITCH] = rcCommandBuff.Y;
-        if ((!FLIGHT_MODE(ANGLE_MODE)&&(!FLIGHT_MODE(HORIZON_MODE)) && (!FLIGHT_MODE(GPS_RESCUE_MODE)))) {
-            rcCommand[YAW] = rcCommandBuff.Z;
-        }
+    // HEADFREE_MODE  in ANGLE_MODE HORIZON_MODE
+    // yaw rotation is bodyframe bound
+    if (FLIGHT_MODE(HEADFREE_MODE) && (FLIGHT_MODE(ANGLE_MODE) || (FLIGHT_MODE(HORIZON_MODE)))) {
+        quaternion  vRcCommand = VECTOR_INITIALIZE;
+
+        vRcCommand.x = rcCommand[ROLL];
+        vRcCommand.y = rcCommand[PITCH];
+        quaternionTransformVectorEarthToBody(&vRcCommand, &qHeadfree);
+        rcCommand[ROLL] = vRcCommand.x;
+        rcCommand[PITCH] = vRcCommand.y;
     }
 }
 
@@ -731,6 +846,10 @@ void initRcProcessing(void)
 
         break;
     }
+
+#if defined(USE_TPA_CURVES)
+    BuildTPACurveThrottleLookupTables();
+#endif
 }
 
 bool rcSmoothingIsEnabled(void)

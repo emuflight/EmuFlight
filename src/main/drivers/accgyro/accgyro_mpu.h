@@ -24,6 +24,8 @@
 #include "drivers/exti.h"
 #include "drivers/sensor.h"
 
+#ifdef USE_GYRO_IMUF9001
+#endif
 //#define DEBUG_MPU_DATA_READY_INTERRUPT
 
 #if defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU6000) ||  defined(USE_GYRO_SPI_MPU9250) || defined(USE_GYRO_SPI_ICM20649) \
@@ -146,7 +148,7 @@ extern mpuResetFnPtr mpuResetFn;
 
 typedef struct mpuConfiguration_s {
     mpuResetFnPtr resetFn;
-} mpuConfiguration_t;
+}  __attribute__((packed)) mpuConfiguration_t;
 
 enum gyro_fsr_e {
     INV_FSR_250DPS = 0,
@@ -213,6 +215,7 @@ typedef enum {
     ICM_20649_SPI,
     ICM_20689_SPI,
     BMI_160_SPI,
+    IMUF_9001_SPI,
 } mpuSensor_e;
 
 typedef enum {
@@ -224,7 +227,6 @@ typedef struct mpuDetectionResult_s {
     mpuSensor_e sensor;
     mpu6050Resolution_e resolution;
 } mpuDetectionResult_t;
-
 struct gyroDev_s;
 void mpuGyroInit(struct gyroDev_s *gyro);
 bool mpuGyroRead(struct gyroDev_s *gyro);
@@ -236,3 +238,8 @@ uint8_t mpuGyroReadRegister(const busDevice_t *bus, uint8_t reg);
 
 struct accDev_s;
 bool mpuAccRead(struct accDev_s *acc);
+
+#ifdef USE_DMA_SPI_DEVICE
+extern bool mpuGyroDmaSpiReadStart(struct gyroDev_s *gyro);
+extern void mpuGyroDmaSpiReadFinish(struct gyroDev_s *gyro);
+#endif

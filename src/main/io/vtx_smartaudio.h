@@ -102,6 +102,7 @@ void saSetPowerByIndex(uint8_t index);
 void saSetFreq(uint16_t freq);
 void saSetPitFreq(uint16_t freq);
 bool vtxSmartAudioInit(void);
+bool isLegacySmartAudioEnabled(void);
 
 #ifdef USE_SMARTAUDIO_DPRINTF
 extern serialPort_t *debugSerialPort;

@@ -26,6 +26,10 @@
 
 #define CONTROL_RATE_PROFILE_COUNT  6
 
+#if defined(USE_TPA_CURVES)
+#define ATTENUATION_CURVE_SIZE 9
+#endif
+
 typedef enum {
     RATES_TYPE_BETAFLIGHT = 0,
     RATES_TYPE_RACEFLIGHT,
@@ -48,6 +52,13 @@ typedef struct controlRateConfig_s {
     uint16_t tpa_breakpoint;                // Breakpoint where TPA is activated
     uint8_t throttle_limit_type;            // Sets the throttle limiting type - off, scale or clip
     uint8_t throttle_limit_percent;         // Sets the maximum pilot commanded throttle limit
+
+#if defined(USE_TPA_CURVES)
+    uint8_t    tpaKpCurve[ATTENUATION_CURVE_SIZE];
+    uint8_t    tpaKiCurve[ATTENUATION_CURVE_SIZE];
+    uint8_t    tpaKdCurve[ATTENUATION_CURVE_SIZE];
+    uint8_t    tpaCurveType;
+#endif
 } controlRateConfig_t;
 
 PG_DECLARE_ARRAY(controlRateConfig_t, CONTROL_RATE_PROFILE_COUNT, controlRateProfiles);

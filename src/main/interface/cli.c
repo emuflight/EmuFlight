@@ -59,6 +59,9 @@ extern uint8_t __config_end;
 #include "config/feature.h"
 
 #include "drivers/accgyro/accgyro.h"
+#ifdef USE_GYRO_IMUF9001
+#include "drivers/accgyro/accgyro_imuf9001.h"
+#endif
 #include "drivers/adc.h"
 #include "drivers/buf_writer.h"
 #include "drivers/bus_spi.h"
@@ -66,6 +69,7 @@ extern uint8_t __config_end;
 #include "drivers/compass/compass.h"
 #include "drivers/display.h"
 #include "drivers/dma.h"
+#include "drivers/dma_spi.h"
 #include "drivers/flash.h"
 #include "drivers/inverter.h"
 #include "drivers/io.h"
@@ -106,6 +110,9 @@ extern uint8_t __config_end;
 #include "interface/msp_box.h"
 #include "interface/msp_protocol.h"
 #include "interface/settings.h"
+#ifdef MSP_OVER_CLI
+#include "msp/msp_serial.h"
+#endif
 
 #include "io/asyncfatfs/asyncfatfs.h"
 #include "io/beeper.h"
@@ -186,8 +193,19 @@ static bool signatureUpdated = false;
 #endif
 #endif // USE_BOARD_INFO
 
+#ifdef USE_GYRO_IMUF9001
+#define IMUF_CUSTOM_BUFF_LENGTH 26000
+static   uint8_t  imuf_custom_buff[IMUF_CUSTOM_BUFF_LENGTH];
+static   uint32_t imuf_buff_ptr = 0;
+static   uint32_t imuf_checksum = 0;
+static   int      imuf_bin_safe = 0;
+
+#endif
+
 static const char* const emptyName = "-";
 static const char* const emptyString = "";
+
+int cliSmartMode = 0;
 
 #ifndef USE_QUAD_MIXER_ONLY
 // sync this with mixerMode_e
@@ -208,7 +226,7 @@ static const char * const featureNames[] = {
     "RANGEFINDER", "TELEMETRY", "", "3D", "RX_PARALLEL_PWM",
     "RX_MSP", "RSSI_ADC", "LED_STRIP", "DISPLAY", "OSD",
     "", "CHANNEL_FORWARDING", "TRANSPONDER", "AIRMODE",
-    "", "", "RX_SPI", "SOFTSPI", "ESC_SENSOR", "ANTI_GRAVITY", "DYNAMIC_FILTER", NULL
+    "", "", "RX_SPI", "SOFTSPI", "ESC_SENSOR", "ANTI_GRAVITY", "DYNAMIC_FILTER", "LEGACY_SA_SUPPORT", NULL
 };
 
 // sync this with rxFailsafeChannelMode_e
@@ -271,14 +289,36 @@ static void backupAndResetConfigs(void)
 static void cliPrint(const char *str)
 {
     while (*str) {
-        bufWriterAppend(cliWriter, *str++);
+        if(cliSmartMode)
+        {
+            //no carriage returns. Those are dumb.
+            if(*str == '\r')
+            {
+                (void)(*str++);
+            }
+            else
+            {
+                bufWriterAppend(cliWriter, *str++);
+            }
+        }
+        else
+        {
+            bufWriterAppend(cliWriter, *str++);
+        }
     }
     bufWriterFlush(cliWriter);
 }
 
 static void cliPrintLinefeed(void)
 {
+
     cliPrint("\r\n");
+
+    if(cliSmartMode)
+    {
+        bufWriterFlush(cliWriter);
+    }
+
 }
 
 static void cliPrintLine(const char *str)
@@ -488,8 +528,23 @@ static bool valuePtrEqualsDefault(const clivalue_t *var, const void *ptr, const 
             break;
         }
     }
+    for (int i = 0; i < elementCount; i++) {
+        switch (var->type & VALUE_TYPE_MASK) {
+        case VAR_UINT8:
+            result = result && ((uint8_t *)ptr)[i] == ((uint8_t *)ptrDefault)[i];
+            break;
 
-    return result;
+        case VAR_INT8:
+            result = result && ((int8_t *)ptr)[i] == ((int8_t *)ptrDefault)[i];
+            break;
+
+        case VAR_UINT16:
+        case VAR_INT16:
+            result = result && ((int16_t *)ptr)[i] == ((int16_t *)ptrDefault)[i];
+            break;
+        }
+    }
+    return (result);
 }
 
 static uint8_t getPidProfileIndexToUse()
@@ -1803,6 +1858,122 @@ static void cliServo(char *cmdline)
 }
 #endif
 
+#ifdef USE_TPA_CURVES
+static void printTPACurve(void)
+{
+    cliPrintf("tpakp ");
+    for (int i = 0; i < ATTENUATION_CURVE_SIZE; i++) {
+        if (i == ATTENUATION_CURVE_SIZE - 1) {
+            cliPrintf("%d", currentControlRateProfile->tpaKpCurve[i]);
+        } else {
+            cliPrintf("%d=", currentControlRateProfile->tpaKpCurve[i]);
+        }
+    }
+    cliPrintLinefeed();
+
+    cliPrintf("tpaki ");
+    for (int i = 0; i < ATTENUATION_CURVE_SIZE; i++) {
+        if (i == ATTENUATION_CURVE_SIZE - 1) {
+            cliPrintf("%d", currentControlRateProfile->tpaKiCurve[i]);
+        } else {
+            cliPrintf("%d=", currentControlRateProfile->tpaKiCurve[i]);
+        }
+    }
+    cliPrintLinefeed();
+
+    cliPrintf("tpakd ");
+    for (int i = 0; i < ATTENUATION_CURVE_SIZE; i++) {
+        if (i == ATTENUATION_CURVE_SIZE - 1) {
+            cliPrintf("%d", currentControlRateProfile->tpaKdCurve[i]);
+        } else {
+            cliPrintf("%d=", currentControlRateProfile->tpaKdCurve[i]);
+        }
+    }
+    cliPrintLinefeed();
+}
+static void printTPACurveUsage(void)
+{
+    cliPrintf("Usage: tpacurve [kp|ki|kd] 100=100=100=100=100=100=100=100=100");
+    cliPrintLinefeed();
+}
+
+static void cliTPACurve(char *cmdLine)
+{
+    enum { KP = 0, KI, KD };
+    int type = -1;
+    int len = strlen(cmdLine);
+
+    if (len == 0) {
+        printTPACurve();
+        return;
+    } else {
+        if (strncasecmp(cmdLine, "kp", 2) == 0) {
+            type = KP;
+        }
+        else if (strncasecmp(cmdLine, "ki", 2) == 0) {
+            type = KI;
+        }
+        else if (strncasecmp(cmdLine, "kd", 2) == 0) {
+            type = KD;
+        }
+        else {
+            printTPACurveUsage();
+            return;
+        }
+
+
+        if (type > -1) {
+            // Bump pointer up to start of curve ignoring spaces
+            char* curveStr = cmdLine + 2;
+            int count = 0;
+            while (curveStr[count] == ' ') {
+                count++;
+            }
+            curveStr = curveStr + count;
+
+            // split by token
+            int i = 0;
+            char *p = strtok(curveStr, "=");
+            uint8_t tempCurve[9] = {0.0f,};
+
+            while (p != NULL && i < 9) {
+                tempCurve[i++] = atoi(p);
+                p = strtok (NULL, "=");
+            }
+            if (i < 9) {
+                printTPACurveUsage();
+                return;
+            }
+            else {
+                switch (type) {
+                    case KP:
+                        memcpy(currentControlRateProfile->tpaKpCurve, tempCurve, sizeof(tempCurve));
+                        cliPrintf("New TPA Saved");
+                        cliPrintLinefeed();
+                        printTPACurve();
+                        break;
+                    case KI:
+                        memcpy(currentControlRateProfile->tpaKiCurve, tempCurve, sizeof(tempCurve));
+                        cliPrintf("New TPA Saved");
+                        cliPrintLinefeed();
+                        printTPACurve();
+                        break;
+                    case KD:
+                        memcpy(currentControlRateProfile->tpaKdCurve, tempCurve, sizeof(tempCurve));
+                        cliPrintf("New TPA Saved");
+                        cliPrintLinefeed();
+                        printTPACurve();
+                        break;
+                    default:
+                        printTPACurveUsage();
+                }
+            }
+        }
+    }
+}
+#endif
+
+
 #ifdef USE_SERVOS
 static void printServoMix(uint8_t dumpMask, const servoMixer_t *customServoMixers, const servoMixer_t *defaultCustomServoMixers)
 {
@@ -2647,6 +2818,154 @@ static void cliBootloader(char *cmdLine)
     cliRebootEx(true);
 }
 
+#ifdef USE_GYRO_IMUF9001
+
+
+static void cliImufBootloaderMode(char *cmdline)
+{
+    (void)(cmdline);
+    if(imufBootloader())
+    {
+        cliPrintLine("BOOTLOADER");
+    }
+    else
+    {
+        cliPrintLine("FAIL");
+    }
+}
+
+static void imuf_to_char_from_hex_string(char *string, uint8_t *output)
+{
+    char tempBuff[3];
+    tempBuff[0] = string[0];
+    tempBuff[1] = string[1];
+    tempBuff[2] = 0;
+    *output = (uint8_t)strtol(tempBuff, NULL, 16);
+}
+
+static void cliImufLoadBin(char *cmdline)
+{
+    #define TEMP_BUFF 256
+    uint32_t dataSize;
+    uint8_t output;
+    uint8_t dataBuff[TEMP_BUFF] = {0,};
+    uint32_t x;
+
+    if(cmdline[0] == '!')
+    {
+        imuf_bin_safe = 1;
+        imuf_buff_ptr = 0;
+        imuf_checksum = 0;
+        memset(imuf_custom_buff, 0, IMUF_CUSTOM_BUFF_LENGTH);
+        cliPrintLine("SUCCESS");
+    }
+    else if(cmdline[0] == '.')
+    {
+        cliPrintLinef("%d", imuf_buff_ptr);
+    }
+    else if(cmdline[0] == 'c')
+    {
+        cliPrintLinef("%d", imuf_checksum);
+    }
+    else if(cmdline[0] == 'l')
+    {
+        if (imuf_bin_safe)
+        {
+            //get the datasize
+            imuf_to_char_from_hex_string(&cmdline[1], &output);
+            dataSize  = ((output & 0xff) << 0 );
+            imuf_to_char_from_hex_string(&cmdline[3], &output);
+            dataSize += ((output & 0xff) << 8 );
+            imuf_to_char_from_hex_string(&cmdline[5], &output);
+            dataSize += ((output & 0xff) << 16);
+            imuf_to_char_from_hex_string(&cmdline[7], &output);
+            dataSize += ((output & 0xff) << 24);
+
+            if(dataSize < TEMP_BUFF)
+            {
+                //fill the temp buffer
+                for(x=0; x< dataSize; x++)
+                {
+                    imuf_to_char_from_hex_string(&cmdline[(x*2)+9], &output);
+                    dataBuff[x] = output;
+                    imuf_checksum += output;
+                    //cliPrintLinef("out:%d:%d:%d:%d", dataSize, x, (x*2)+9, output, checksum);
+                }
+                if ( (imuf_buff_ptr+dataSize) < IMUF_CUSTOM_BUFF_LENGTH )
+                {
+                    memcpy(imuf_custom_buff+imuf_buff_ptr, dataBuff, dataSize);
+                    imuf_buff_ptr += dataSize;
+                    cliPrintLine("LOADED");
+                }
+                else
+                {
+                    cliPrintLine("WOAH!");
+                }
+            }
+            else
+            {
+                cliPrintLine("CRAP!");
+            }
+        }
+        else
+        {
+            cliPrintLine("PFFFT!");
+        }
+    }
+}
+
+static void cliImufFlashBin(char *cmdline)
+{
+    (void)(cmdline);
+    if (imufUpdate(imuf_custom_buff, imuf_buff_ptr))
+    {
+        cliPrintLine("SUCCESS");
+        bufWriterFlush(cliWriter);
+        delay(5000);
+
+        *cliBuffer = '\0';
+        bufferIndex = 0;
+        cliMode = 0;
+        // incase a motor was left running during motortest, clear it here
+        mixerResetDisarmedMotors();
+        cliReboot();
+
+        cliWriter = NULL;
+    }
+}
+#endif
+
+#ifdef MSP_OVER_CLI
+sbuf_t buft;
+uint8_t bufPtr[256];
+
+void cliMsp(char *cmdline){
+    int len = strlen(cmdline);
+    if (len == 0) {
+        cliPrintLine("No MSP command present");
+
+        return;
+    } else {
+        uint8_t mspCommand = atoi(cmdline);
+        buft.ptr = buft.end = bufPtr;
+        if (mspCommonProcessOutCommand(mspCommand, &buft, NULL) || mspProcessOutCommand(mspCommand, &buft))
+        {
+
+            bufWriterAppend(cliWriter, '.');                 //"." is success
+            bufWriterAppend(cliWriter, mspCommand);          //msp command sent
+            bufWriterAppend(cliWriter, buft.ptr - buft.end); //number of chars
+
+            while (buft.end <= buft.ptr)
+                bufWriterAppend(cliWriter, *(buft.end)++); //send data
+        }
+        else
+        {
+            bufWriterAppend(cliWriter, '!'); //"!" is failure
+        }
+    }
+}
+#endif
+
 static void cliExit(char *cmdline)
 {
     UNUSED(cmdline);
@@ -3380,7 +3699,7 @@ STATIC_UNIT_TESTED void cliSet(char *cmdline)
                     }
 
                     break;
-                case MODE_LOOKUP: 
+                case MODE_LOOKUP:
                 case MODE_BITSET: {
                         int tableIndex;
                         if ((val->type & VALUE_MODE_MASK) == MODE_BITSET) {
@@ -3513,7 +3832,7 @@ static void cliStatus(char *cmdline)
     cliPrintf(", Vref=%d.%2dV, Core temp=%ddegC", vrefintMv / 1000, (vrefintMv % 1000) / 10, coretemp);
 #endif
 
-#if defined(USE_SENSOR_NAMES)
+#if defined(USE_SENSOR_NAMES) && !defined(USE_GYRO_IMUF9001)
     const uint32_t detectedSensorsMask = sensorsMask();
     for (uint32_t i = 0; ; i++) {
         if (sensorTypeNames[i] == NULL) {
@@ -3529,6 +3848,12 @@ static void cliStatus(char *cmdline)
             }
         }
     }
+#else
+    #if defined(USE_GYRO_IMUF9001)
+    UNUSED(sensorHardwareNames);
+    UNUSED(sensorTypeNames);
+    cliPrintf(" | IMU-F Version: %lu", imufCurrentVersion);
+    #endif
 #endif /* USE_SENSOR_NAMES */
     cliPrintLinefeed();
 
@@ -3601,8 +3926,8 @@ static void cliTasks(char *cmdline)
                 taskFrequency = taskInfo.latestDeltaTime == 0 ? 0 : (int)(1000000.0f / ((float)taskInfo.latestDeltaTime));
                 cliPrintf("%02d - (%15s) ", taskId, taskInfo.taskName);
             }
-            const int maxLoad = taskInfo.maxExecutionTime == 0 ? 0 :(taskInfo.maxExecutionTime * taskFrequency + 5000) / 1000;
-            const int averageLoad = taskInfo.averageExecutionTime == 0 ? 0 : (taskInfo.averageExecutionTime * taskFrequency + 5000) / 1000;
+            const int maxLoad = taskInfo.maxExecutionTime == 0 ? 0 :(taskInfo.maxExecutionTime * taskFrequency) / 1000;
+            const int averageLoad = taskInfo.averageExecutionTime == 0 ? 0 : (taskInfo.averageExecutionTime * taskFrequency) / 1000;
             if (taskId != TASK_SERIAL) {
                 maxLoadSum += maxLoad;
                 averageLoadSum += averageLoad;
@@ -3644,6 +3969,9 @@ static void cliVersion(char *cmdline)
         shortGitRevision,
         MSP_API_VERSION_STRING
     );
+#ifdef USE_GYRO_IMUF9001
+    cliPrintLinef("# IMU-F Version: %lu", imufCurrentVersion);
+#endif
 }
 
 #ifdef USE_RC_SMOOTHING_FILTER
@@ -4053,7 +4381,7 @@ static void printTimer(uint8_t dumpMask)
 
     cliPrint("#");
     cliPrintLinef(format, 'A', 1, 0);
-    
+
     for (unsigned int i = 0; i < MAX_TIMER_PINMAP_COUNT; i++) {
 
         const ioTag_t ioTag = timerIOConfig(i)->ioTag;
@@ -4064,8 +4392,8 @@ static void printTimer(uint8_t dumpMask)
         }
 
         if (timerIndex != 0 && !(dumpMask & HIDE_UNUSED)) {
-            cliDumpPrintLinef(dumpMask, false, format, 
-                IO_GPIOPortIdxByTag(ioTag) + 'A', 
+            cliDumpPrintLinef(dumpMask, false, format,
+                IO_GPIOPortIdxByTag(ioTag) + 'A',
                 IO_GPIOPinIdxByTag(ioTag),
                 timerIndex
                 );
@@ -4084,13 +4412,13 @@ static void cliTimer(char *cmdline)
         printTimer(DUMP_MASTER);
         return;
     }
-    
+
     char *pch = NULL;
     char *saveptr;
     int timerIOIndex = -1;
-    
+
     ioTag_t ioTag = 0;
-    pch = strtok_r(cmdline, " ", &saveptr);    
+    pch = strtok_r(cmdline, " ", &saveptr);
     if (!pch || !(strToPin(pch, &ioTag) && IOGetByTag(ioTag))) {
         goto error;
     }
@@ -4137,7 +4465,7 @@ static void cliTimer(char *cmdline)
         }
     } else {
         goto error;
-    }  
+    }
 
 success:
     timerIOConfigMutable(timerIOIndex)->ioTag = timerIndex == 0 ? IO_TAG_NONE : ioTag;
@@ -4145,7 +4473,7 @@ success:
 
     cliPrintLine("Success");
     return;
-    
+
 error:
     cliShowParseError();
 }
@@ -4170,7 +4498,7 @@ static void printConfig(char *cmdline, bool doDiff)
     if (doDiff) {
         dumpMask = dumpMask | DO_DIFF;
     }
-    
+
     backupAndResetConfigs();
     if (checkCommand(options, "defaults")) {
         dumpMask = dumpMask | SHOW_DEFAULTS;   // add default values as comments for changed values
@@ -4376,6 +4704,10 @@ typedef struct {
 }
 #endif
 
+#ifdef USE_GYRO_IMUF9001
+static void cliReportImufErrors(char *cmdline);
+#endif
+
 static void cliHelp(char *cmdline);
 
 // should be sorted a..z for bsearch()
@@ -4410,6 +4742,14 @@ const clicmd_t cmdTable[] = {
 #ifdef USE_ESCSERIAL
     CLI_COMMAND_DEF("escprog", "passthrough esc to serial", "<mode [sk/bl/ki/cc]> <index>", cliEscPassthrough),
 #endif
+#ifdef USE_GYRO_IMUF9001
+    CLI_COMMAND_DEF("imufbootloader", NULL, NULL, cliImufBootloaderMode),
+    CLI_COMMAND_DEF("imufloadbin", NULL, NULL, cliImufLoadBin),
+    CLI_COMMAND_DEF("imufflashbin", NULL, NULL, cliImufFlashBin),
+#endif
+#ifdef MSP_OVER_CLI
+    CLI_COMMAND_DEF("msp", NULL, NULL, cliMsp),
+#endif
     CLI_COMMAND_DEF("exit", NULL, NULL, cliExit),
     CLI_COMMAND_DEF("feature", "configure features",
         "list\r\n"
@@ -4432,6 +4772,13 @@ const clicmd_t cmdTable[] = {
 #if defined(USE_GYRO_REGISTER_DUMP) && !defined(SIMULATOR_BUILD)
     CLI_COMMAND_DEF("gyroregisters", "dump gyro config registers contents", NULL, cliDumpGyroRegisters),
 #endif
+#ifdef USE_GYRO_IMUF9001
+    CLI_COMMAND_DEF("reportimuferrors", "report imu-f comm errors", NULL, cliReportImufErrors),
+#endif
+#ifdef USE_TPA_CURVES
+    CLI_COMMAND_DEF("tpacurve", "set rf1 tpa", "[kp, ki, kd]", cliTPACurve),
+#endif
+
     CLI_COMMAND_DEF("help", NULL, NULL, cliHelp),
 #ifdef USE_LED_STRIP
     CLI_COMMAND_DEF("led", "configure leds", NULL, cliLed),
@@ -4500,6 +4847,15 @@ const clicmd_t cmdTable[] = {
 #endif
 };
 
+#ifdef USE_GYRO_IMUF9001
+static void cliReportImufErrors(char *cmdline)
+{
+    UNUSED(cmdline);
+    cliPrintf("Current Comm Errors: %lu", crcErrorCount);
+    cliPrintLinefeed();
+}
+#endif
+
 static void cliHelp(char *cmdline)
 {
     UNUSED(cmdline);
@@ -4528,7 +4884,9 @@ void cliProcess(void)
     bufWriterFlush(cliWriter);
 
     while (serialRxBytesWaiting(cliPort)) {
+
         uint8_t c = serialRead(cliPort);
+
         if (c == '\t' || c == '?') {
             // do tab completion
             const clicmd_t *cmd, *pstart = NULL, *pend = NULL;
@@ -4625,6 +4983,7 @@ void cliProcess(void)
             cliBuffer[bufferIndex++] = c;
             cliWrite(c);
         }
+
     }
 }
 

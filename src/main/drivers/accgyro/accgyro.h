@@ -46,14 +46,24 @@
 #define GYRO_32KHZ_HARDWARE_LPF_NORMAL       0
 #define GYRO_32KHZ_HARDWARE_LPF_EXPERIMENTAL 1
 
-typedef enum {
-    GYRO_RATE_1_kHz,
-    GYRO_RATE_1100_Hz,
-    GYRO_RATE_3200_Hz,
-    GYRO_RATE_8_kHz,
-    GYRO_RATE_9_kHz,
-    GYRO_RATE_32_kHz,
-} gyroRateKHz_e;
+#define GYRO_LPF_256HZ      0
+#define GYRO_LPF_188HZ      1
+#define GYRO_LPF_98HZ       2
+#define GYRO_LPF_42HZ       3
+#define GYRO_LPF_20HZ       4
+#define GYRO_LPF_10HZ       5
+#define GYRO_LPF_5HZ        6
+#define GYRO_LPF_NONE       7
+
+//This optimizes the frequencies instead of calculating them 
+//in the case of 1100 and 9000, they would divide as irrational numbers.
+#define GYRO_RATE_1_kHz     1000.0f
+#define GYRO_RATE_1100_Hz   909.09f
+#define GYRO_RATE_3200_Hz   312.5f
+#define GYRO_RATE_8_kHz     125.0f
+#define GYRO_RATE_9_kHz     111.11f
+#define GYRO_RATE_16_kHz    62.5f
+#define GYRO_RATE_32_kHz    31.25f
 
 typedef struct gyroDev_s {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
@@ -74,7 +84,7 @@ typedef struct gyroDev_s {
     mpuConfiguration_t mpuConfiguration;
     mpuDetectionResult_t mpuDetectionResult;
     sensor_align_e gyroAlign;
-    gyroRateKHz_e gyroRateKHz;
+    float gyroRateKHz;
     bool dataReady;
     bool gyro_high_fsr;
     uint8_t hardware_lpf;
@@ -83,7 +93,7 @@ typedef struct gyroDev_s {
     ioTag_t mpuIntExtiTag;
     uint8_t gyroHasOverflowProtection;
     gyroSensor_e gyroHardware;
-} gyroDev_t;
+}  __attribute__((packed)) gyroDev_t;
 
 typedef struct accDev_s {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
@@ -99,8 +109,7 @@ typedef struct accDev_s {
     bool dataReady;
     bool acc_high_fsr;
     char revisionCode;                                      // a revision code for the sensor, if known
-    uint8_t filler[2];
-} accDev_t;
+}  __attribute__((packed)) accDev_t;
 
 static inline void accDevLock(accDev_t *acc)
 {

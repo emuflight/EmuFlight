@@ -57,6 +57,7 @@
 static uint8_t tmpPidProfileIndex;
 static uint8_t pidProfileIndex;
 static char pidProfileIndexString[] = " p";
+static uint8_t buttered_pids;
 static uint8_t tempPid[3][3];
 static uint16_t tempPidF[3];
 
@@ -64,6 +65,11 @@ static uint8_t tmpRateProfileIndex;
 static uint8_t rateProfileIndex;
 static char rateProfileIndexString[] = " p-r";
 static controlRateConfig_t rateProfile;
+
+static const char * const cms_offOnLabels[] = {
+    "OFF", "ON"
+};
+
 
 static long cmsx_menuImu_onEnter(void)
 {
@@ -112,6 +118,7 @@ static long cmsx_PidRead(void)
 {
 
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
+    buttered_pids = pidProfile->buttered_pids;
     for (uint8_t i = 0; i < 3; i++) {
         tempPid[i][0] = pidProfile->pid[i].P;
         tempPid[i][1] = pidProfile->pid[i].I;
@@ -136,6 +143,7 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
 
     pidProfile_t *pidProfile = currentPidProfile;
     for (uint8_t i = 0; i < 3; i++) {
+        pidProfile->buttered_pids = buttered_pids;
         pidProfile->pid[i].P = tempPid[i][0];
         pidProfile->pid[i].I = tempPid[i][1];
         pidProfile->pid[i].D = tempPid[i][2];
@@ -150,6 +158,7 @@ static OSD_Entry cmsx_menuPidEntries[] =
 {
     { "-- PID --", OME_Label, NULL, pidProfileIndexString, 0},
 
+    { "BUTTERED", OME_TAB, NULL, &(OSD_TAB_t){ &buttered_pids, 1, cms_offOnLabels }, 0 },
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
     { "ROLL  D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][2],  0, 200, 1 }, 0 },
@@ -166,6 +175,7 @@ static OSD_Entry cmsx_menuPidEntries[] =
     { "YAW   F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_YAW],   0, 2000, 1 }, 0 },
 
     { "BACK", OME_Back, NULL, NULL, 0 },
+    { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { NULL, OME_END, NULL, NULL, 0 }
 };
 
@@ -256,7 +266,7 @@ static long cmsx_profileOtherOnEnter(void)
     pidProfileIndexString[1] = '0' + tmpPidProfileIndex;
 
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
-    
+
     cmsx_feedForwardTransition  = pidProfile->feedForwardTransition;
 
     cmsx_angleStrength =     pidProfile->pid[PID_LEVEL].P;
@@ -325,6 +335,10 @@ static uint16_t gyroConfig_gyro_soft_notch_hz_1;
 static uint16_t gyroConfig_gyro_soft_notch_cutoff_1;
 static uint16_t gyroConfig_gyro_soft_notch_hz_2;
 static uint16_t gyroConfig_gyro_soft_notch_cutoff_2;
+#ifndef USE_GYRO_IMUF9001
+static uint16_t gyroConfig_gyro_filter_q;
+static uint16_t gyroConfig_gyro_filter_r;
+#endif
 
 static long cmsx_menuGyro_onEnter(void)
 {
@@ -335,6 +349,10 @@ static long cmsx_menuGyro_onEnter(void)
     gyroConfig_gyro_soft_notch_hz_2 = gyroConfig()->gyro_soft_notch_hz_2;
     gyroConfig_gyro_soft_notch_cutoff_2 = gyroConfig()->gyro_soft_notch_cutoff_2;
 
+#ifndef USE_GYRO_IMUF9001
+    gyroConfig_gyro_filter_q = gyroConfig()->gyro_filter_q;
+    gyroConfig_gyro_filter_r = gyroConfig()->gyro_filter_r;
+#endif
     return 0;
 }
 
@@ -349,6 +367,10 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self)
     gyroConfigMutable()->gyro_soft_notch_hz_2 = gyroConfig_gyro_soft_notch_hz_2;
     gyroConfigMutable()->gyro_soft_notch_cutoff_2 = gyroConfig_gyro_soft_notch_cutoff_2;
 
+#ifndef USE_GYRO_IMUF9001
+    gyroConfigMutable()->gyro_filter_q = gyroConfig_gyro_filter_q;
+    gyroConfigMutable()->gyro_filter_r = gyroConfig_gyro_filter_r;
+#endif
     return 0;
 }
 
@@ -364,7 +386,10 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "GYRO NF1C",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_1, 0, 500, 1 }, 0 },
     { "GYRO NF2",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_2,     0, 500, 1 }, 0 },
     { "GYRO NF2C",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_2, 0, 500, 1 }, 0 },
-
+    #ifndef USE_GYRO_IMUF9001
+    { "KALMAN Q",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_filter_q,            0, 16000, 1 }, 0 },
+    { "KALMAN R",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_filter_r,            0, 16000, 1 }, 0 },
+    #endif
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }
 };
@@ -381,6 +406,84 @@ static CMS_Menu cmsx_menuFilterGlobal = {
 
 static uint16_t cmsx_dterm_lowpass_hz;
 static uint16_t cmsx_dterm_lowpass2_hz;
+//
+// SPRING Imuf
+//
+
+#if defined(USE_GYRO_IMUF9001)
+static uint16_t gyroConfig_imuf_roll_q;
+static uint16_t gyroConfig_imuf_pitch_q;
+static uint16_t gyroConfig_imuf_yaw_q;
+static uint16_t gyroConfig_imuf_w;
+static uint16_t gyroConfig_imuf_pitch_lpf_cutoff_hz;
+static uint16_t gyroConfig_imuf_roll_lpf_cutoff_hz;
+static uint16_t gyroConfig_imuf_yaw_lpf_cutoff_hz;
+#endif
+
+#if defined(USE_GYRO_IMUF9001)
+static long cmsx_menuImuf_onEnter(void)
+{
+    gyroConfig_imuf_roll_q = gyroConfig()->imuf_roll_q;
+    gyroConfig_imuf_pitch_q = gyroConfig()->imuf_pitch_q;
+    gyroConfig_imuf_yaw_q = gyroConfig()->imuf_yaw_q;
+    gyroConfig_imuf_w = gyroConfig()->imuf_w;
+    gyroConfig_imuf_pitch_lpf_cutoff_hz = gyroConfig()->imuf_pitch_lpf_cutoff_hz;
+    gyroConfig_imuf_roll_lpf_cutoff_hz = gyroConfig()->imuf_roll_lpf_cutoff_hz;
+    gyroConfig_imuf_yaw_lpf_cutoff_hz = gyroConfig()->imuf_yaw_lpf_cutoff_hz;
+
+    return 0;
+}
+#endif
+
+#if defined(USE_GYRO_IMUF9001)
+static long cmsx_menuImuf_onExit(const OSD_Entry *self)
+{
+    UNUSED(self);
+
+    gyroConfigMutable()->imuf_roll_q = gyroConfig_imuf_roll_q;
+    gyroConfigMutable()->imuf_pitch_q = gyroConfig_imuf_pitch_q;
+    gyroConfigMutable()->imuf_yaw_q = gyroConfig_imuf_yaw_q;
+    gyroConfigMutable()->imuf_w = gyroConfig_imuf_w;
+    gyroConfigMutable()->imuf_pitch_lpf_cutoff_hz = gyroConfig_imuf_pitch_lpf_cutoff_hz;
+    gyroConfigMutable()->imuf_roll_lpf_cutoff_hz = gyroConfig_imuf_roll_lpf_cutoff_hz;
+    gyroConfigMutable()->imuf_yaw_lpf_cutoff_hz = gyroConfig_imuf_yaw_lpf_cutoff_hz;
+
+    return 0;
+}
+#endif
+
+#if defined(USE_GYRO_IMUF9001)
+static OSD_Entry cmsx_menuImufEntries[] =
+{
+    { "-- SPRING IMU-F --", OME_Label, NULL, NULL, 0 },
+    { "-- CHANGES REQUIRE REBOOT --", OME_Label, NULL, NULL, 0 },
+    { "IMUF W",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,                   0, 300,    1 }, 0 },
+    { "ROLL Q",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,              0, 16000, 50 }, 0 },
+    { "PITCH Q",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,             0, 16000, 50 }, 0 },
+    { "YAW Q",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,               0, 16000, 50 }, 0 },
+    { "ROLL LPF",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_lpf_cutoff_hz,  0, 450,    1 }, 0 },
+    { "PITCH LPF", OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_lpf_cutoff_hz, 0, 450,    1 }, 0 },
+    { "YAW LPF",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_lpf_cutoff_hz,   0, 450,    1 }, 0 },
+
+
+    { "BACK",        OME_Back,            NULL,   NULL,             0},
+    { "SAVE&REBOOT", OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVEREBOOT, 0},
+    { NULL, OME_END, NULL, NULL, 0 }
+};
+#endif
+
+#if defined(USE_GYRO_IMUF9001)
+static CMS_Menu cmsx_menuImuf = {
+#ifdef CMS_MENU_DEBUG
+    .GUARD_text = "XIMUF",
+    .GUARD_type = OME_MENU,
+#endif
+    .onEnter = cmsx_menuImuf_onEnter,
+    .onExit = cmsx_menuImuf_onExit,
+    .entries = cmsx_menuImufEntries,
+};
+#endif
+
 static uint16_t cmsx_dterm_notch_hz;
 static uint16_t cmsx_dterm_notch_cutoff;
 static uint16_t cmsx_yaw_lowpass_hz;
@@ -523,7 +626,12 @@ static OSD_Entry cmsx_menuImuEntries[] =
 
     {"FILT GLB",  OME_Submenu, cmsMenuChange,                 &cmsx_menuFilterGlobal,                                        0},
 #ifdef USE_EXTENDED_CMS_MENUS
+#if defined(USE_GYRO_IMUF9001)
+    {"IMUF",      OME_Submenu, cmsMenuChange,                 &cmsx_menuImuf,                                                0},
+#endif
+#ifdef USE_COPY_PROFILE_CMS_MENU
     {"COPY PROF", OME_Submenu, cmsMenuChange,                 &cmsx_menuCopyProfile,                                         0},
+#endif
 #endif /* USE_EXTENDED_CMS_MENUS */
 
     {"BACK", OME_Back, NULL, NULL, 0},

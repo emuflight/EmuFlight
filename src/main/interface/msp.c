@@ -129,7 +129,11 @@
 #include "hardware_revision.h"
 #endif
 
-static const char * const flightControllerIdentifier = BETAFLIGHT_IDENTIFIER; // 4 UPPER CASE alpha numeric characters that identify the flight controller.
+#ifdef USE_GYRO_IMUF9001
+#include "drivers/accgyro/accgyro_imuf9001.h"
+#endif //USE_GYRO_IMUF9001
+
+static const char * const flightControllerIdentifier = BUTTERFLIGHT_IDENTIFIER; // 4 UPPER CASE alpha numeric characters that identify the flight controller.
 
 enum {
     MSP_REBOOT_FIRMWARE = 0,
@@ -248,7 +252,7 @@ static void mspRebootFn(serialPort_t *serialPort)
         break;
 #endif
     default:
-    
+
         break;
     }
 
@@ -326,7 +330,7 @@ static void serializeDataflashSummaryReply(sbuf_t *dst)
         sbufWriteU32(dst, 0);
         sbufWriteU32(dst, 0);
         sbufWriteU32(dst, 0);
-    }    
+    }
 }
 
 #ifdef USE_FLASHFS
@@ -426,7 +430,7 @@ static void serializeDataflashReadReply(sbuf_t *dst, uint32_t address, const uin
  * Returns true if the command was processd, false otherwise.
  * May set mspPostProcessFunc to a function to be called once the command has been processed
  */
-static bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr *mspPostProcessFn)
+bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr *mspPostProcessFn)
 {
     UNUSED(mspPostProcessFn);
 
@@ -754,7 +758,7 @@ static bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProce
 }
 
 #ifdef USE_OSD_SLAVE
-static bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
+bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 {
     switch (cmdMSP) {
     case MSP_STATUS_EX:
@@ -785,7 +789,7 @@ static bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 
 #else
 
-static bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
+bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 {
     bool unsupportedCommand = false;
 
@@ -833,17 +837,16 @@ static bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         {
             // Hack scale due to choice of units for sensor data in multiwii
 
-            uint8_t scale;
-
+            uint8_t scale = 1;
+#ifndef USE_GYRO_IMUF9001
             if (acc.dev.acc_1G > 512*4) {
                 scale = 8;
             } else if (acc.dev.acc_1G > 512*2) {
                 scale = 4;
             } else if (acc.dev.acc_1G >= 512) {
                 scale = 2;
-            } else {
-                scale = 1;
             }
+#endif //USE_GYRO_IMUF901
 
             for (int i = 0; i < 3; i++) {
                 sbufWriteU16(dst, lrintf(acc.accADC[i] / scale));
@@ -1274,6 +1277,27 @@ static bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, currentPidProfile->dterm_lowpass2_hz);
 
         break;
+#ifndef USE_GYRO_IMUF9001
+    case MSP_FAST_KALMAN:
+        sbufWriteU16(dst, gyroConfig()->gyro_filter_q);
+        sbufWriteU16(dst, gyroConfig()->gyro_filter_r);
+        break;
+#else
+    case MSP_IMUF_CONFIG:
+        sbufWriteU16(dst, gyroConfig()->imuf_mode);
+        sbufWriteU16(dst, gyroConfig()->imuf_roll_q);
+        sbufWriteU16(dst, gyroConfig()->imuf_pitch_q);
+        sbufWriteU16(dst, gyroConfig()->imuf_yaw_q);
+        sbufWriteU16(dst, gyroConfig()->imuf_w);
+        sbufWriteU16(dst, gyroConfig()->imuf_roll_lpf_cutoff_hz);
+        sbufWriteU16(dst, gyroConfig()->imuf_pitch_lpf_cutoff_hz);
+        sbufWriteU16(dst, gyroConfig()->imuf_yaw_lpf_cutoff_hz);
+        break;
+    case MSP_IMUF_INFO:
+        sbufWriteU16(dst, imufCurrentVersion);
+        break;
+#endif
+
     case MSP_PID_ADVANCED:
         sbufWriteU16(dst, 0);
         sbufWriteU16(dst, 0);
@@ -1816,11 +1840,31 @@ static mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         }
         // reinitialize the gyro filters with the new values
         validateAndFixGyroConfig();
+#ifndef USE_GYRO_IMUF9001
         gyroInitFilters();
+#endif
         // reinitialize the PID filters with the new values
         pidInitFilters(currentPidProfile);
-
         break;
+#ifndef USE_GYRO_IMUF9001
+    case MSP_SET_FAST_KALMAN:
+        gyroConfigMutable()->gyro_filter_q = sbufReadU16(src);
+        gyroConfigMutable()->gyro_filter_r = sbufReadU16(src);
+        break;
+
+#else
+    case MSP_SET_IMUF_CONFIG :
+        gyroConfigMutable()->imuf_mode = sbufReadU16(src);
+        gyroConfigMutable()->imuf_roll_q = sbufReadU16(src);
+        gyroConfigMutable()->imuf_pitch_q = sbufReadU16(src);
+        gyroConfigMutable()->imuf_yaw_q = sbufReadU16(src);
+        gyroConfigMutable()->imuf_w = sbufReadU16(src);
+        gyroConfigMutable()->imuf_roll_lpf_cutoff_hz = sbufReadU16(src);
+        gyroConfigMutable()->imuf_pitch_lpf_cutoff_hz = sbufReadU16(src);
+        gyroConfigMutable()->imuf_yaw_lpf_cutoff_hz = sbufReadU16(src);
+        break;
+#endif
+
     case MSP_SET_PID_ADVANCED:
         sbufReadU16(src);
         sbufReadU16(src);
@@ -1900,6 +1944,7 @@ static mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
 
     case MSP_ACC_CALIBRATION:
         if (!ARMING_FLAG(ARMED))
+            gyroStartCalibration(false);
             accSetCalibrationCycles(CALIBRATING_ACC_CYCLES);
         break;
 
@@ -2489,6 +2534,12 @@ mspResult_e mspFcProcessCommand(mspPacket_t *cmd, mspPacket_t *reply, mspPostPro
 #ifdef USE_SERIAL_4WAY_BLHELI_INTERFACE
     } else if (cmdMSP == MSP_SET_4WAY_IF) {
         mspFc4waySerialCommand(dst, src, mspPostProcessFn);
+        ret = MSP_RESULT_ACK;
+#endif
+
+#ifdef USE_NAV
+    } else if (cmdMSP == MSP_WP) {
+        mspFcWpCommand(dst, src);
         ret = MSP_RESULT_ACK;
 #endif
 #ifdef USE_FLASHFS

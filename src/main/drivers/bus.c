@@ -29,6 +29,9 @@
 
 bool busWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data)
 {
+#ifdef USE_DMA_SPI_DEVICE
+    return spiBusWriteRegister(busdev, reg & 0x7f, data);
+#else
 #if !defined(USE_SPI) && !defined(USE_I2C)
     UNUSED(reg);
     UNUSED(data);
@@ -45,10 +48,14 @@ bool busWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data)
     default:
         return false;
     }
+#endif
 }
 
 bool busReadRegisterBuffer(const busDevice_t *busdev, uint8_t reg, uint8_t *data, uint8_t length)
 {
+#ifdef USE_DMA_SPI_DEVICE
+    return spiBusReadRegisterBuffer(busdev, reg | 0x80, data, length);
+#else
 #if !defined(USE_SPI) && !defined(USE_I2C)
     UNUSED(reg);
     UNUSED(data);
@@ -66,10 +73,16 @@ bool busReadRegisterBuffer(const busDevice_t *busdev, uint8_t reg, uint8_t *data
     default:
         return false;
     }
+#endif
 }
 
 uint8_t busReadRegister(const busDevice_t *busdev, uint8_t reg)
 {
+#ifdef USE_DMA_SPI_DEVICE
+    uint8_t data;
+    busReadRegisterBuffer(busdev, reg, &data, 1);
+    return data;
+#else
 #if !defined(USE_SPI) && !defined(USE_I2C)
     UNUSED(busdev);
     UNUSED(reg);
@@ -78,5 +91,6 @@ uint8_t busReadRegister(const busDevice_t *busdev, uint8_t reg)
     uint8_t data;
     busReadRegisterBuffer(busdev, reg, &data, 1);
     return data;
+#endif
 #endif
 }

@@ -14,8 +14,6 @@ STDPERIPH_DIR   = $(ROOT)/lib/main/STM32F7/Drivers/STM32F7xx_HAL_Driver
 STDPERIPH_SRC   = $(notdir $(wildcard $(STDPERIPH_DIR)/Src/*.c))
 EXCLUDES        = stm32f7xx_hal_can.c \
                   stm32f7xx_hal_cec.c \
-                  stm32f7xx_hal_crc.c \
-                  stm32f7xx_hal_crc_ex.c \
                   stm32f7xx_hal_cryp.c \
                   stm32f7xx_hal_cryp_ex.c \
                   stm32f7xx_hal_dcmi.c \

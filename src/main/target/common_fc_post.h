@@ -138,7 +138,8 @@
 #undef USE_USB_MSC
 #endif
 
-#if !defined(USE_VCP)
+#if !defined(USE_VCP) || defined(STM32F7)
+#undef USE_USB_MSC
 #undef USE_USB_CDC_HID
 #endif
 
