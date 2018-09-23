@@ -201,10 +201,10 @@
 #define IMUF_DEFAULT_ROLL_Q   3000
 #define IMUF_DEFAULT_YAW_Q    3000
 #define IMUF_DEFAULT_W        32
-#define IMUF_DEFAULT_LPF_HZ   80.0f
+#define IMUF_DEFAULT_LPF_HZ   120.0f
 
 #define USE_BUTTERED_PIDS true
 
-#define DEFAULT_PIDS_ROLL   {50, 40, 20, 60}
-#define DEFAULT_PIDS_PITCH  {50, 40, 22, 60}
-#define DEFAULT_PIDS_YAW    {50, 40, 15, 60}
+#define DEFAULT_PIDS_ROLL   {45, 50, 20, 0}
+#define DEFAULT_PIDS_PITCH  {45, 50, 20, 0}
+#define DEFAULT_PIDS_YAW    {45, 50, 20, 0}
