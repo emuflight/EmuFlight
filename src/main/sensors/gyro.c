@@ -230,6 +230,9 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .imuf_roll_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
     .imuf_pitch_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
     .imuf_yaw_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
+    .imuf_roll_af = IMUF_DEFAULT_ROLL_AF,
+    .imuf_pitch_af = IMUF_DEFAULT_PITCH_AF,
+    .imuf_yaw_af = IMUF_DEFAULT_YAW_AF,
     .gyro_offset_yaw = 0,
 );
 #else //USE_GYRO_IMUF9001
