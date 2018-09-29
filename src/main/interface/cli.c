@@ -3648,6 +3648,256 @@ STATIC_UNIT_TESTED void cliGet(char *cmdline)
     cliPrintErrorLinef("Invalid name");
 }
 
+#ifdef USE_PEGASUS_UI
+static const char * valueSectionMask[] = {
+    "GLOBAL", "PROFILE", "RATE"
+};
+
+static const char * valueTypeMask[] = {
+    "UINT8", "INT8", "UINT16", "INT16"
+};
+
+static const char * valueModeMask[] = {
+    "DIRECT", "LOOKUP", "ARRAY", "BITMASK"
+};
+
+void cliPrintValueJson(int32_t i){
+    const clivalue_t *var = &valueTable[i];
+    cliPrintf("\"%s\":{\"scope\":\"%s\",\"type\":\"%s\",\"mode\":\"%s\",\"current\":\"",
+                var->name,
+                valueSectionMask[((var->type & VALUE_SECTION_MASK) >> VALUE_SECTION_OFFSET)],
+                valueTypeMask[((var->type & VALUE_TYPE_MASK) >> VALUE_TYPE_OFFSET)],
+                valueModeMask[((var->type & VALUE_MODE_MASK) >> VALUE_MODE_OFFSET)]);
+    cliPrintVar(var, false);
+    cliPrint("\",\"default\":\"");
+    const pgRegistry_t *pg = pgFind(var->pgn);
+    const int valueOffset = getValueOffset(var);
+    printValuePointer(var, (uint8_t*)pg->address + valueOffset, false);
+    cliPrint("\"");
+    if ((var->type & VALUE_MODE_MASK) == MODE_LOOKUP)
+    {
+        const lookupTableEntry_t *tableEntry = &lookupTables[var->config.lookup.tableIndex];
+        cliPrint(",\"values\":[");
+        for (int32_t i = 0; i < tableEntry->valueCount ; i++) {
+            if (i > 0)
+            {
+                cliPrintLine(",");
+            }
+            cliPrintf("\"%s\"", tableEntry->values[i]);
+        }
+        cliPrint("]");
+    }
+    if ((var->type & VALUE_MODE_MASK) == MODE_DIRECT) {
+        cliPrintf(",\"min\":\"%d\",\"max\":\"%d\"", var->config.minmax.min, var->config.minmax.max);
+    }
+    // if ((var->type & VALUE_MODE_MASK) == MODE_ARRAY) {
+    //     cliPrintf(",\"min\":\"%d\",\"max\":\"%d\"", var->config.minmax.min, var->config.minmax.max);
+    // }
+    cliPrint("}");
+}
+
+static void printFeatureJson(const featureConfig_t *configCopy)
+{
+    const uint32_t mask = configCopy->enabledFeatures;
+    const uint32_t defaultMask = featureConfig()->enabledFeatures;
+    cliPrintf(",\"features\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"ARRAY\",\"current\":\"%d\",\"values\":[", mask);
+    for (uint32_t i = 0; featureNames[i]; i++) { // disabled features first
+        if (strcmp(featureNames[i], emptyString) != 0) { //Skip unused
+            if (i > 0)
+            {
+                cliPrint(",");
+            }
+            if ((~defaultMask | mask) & (1 << i)) {
+                cliPrintf("\"-%s\"", featureNames[i]);
+            } else {
+                cliPrintf("\"%s\"", featureNames[i]);
+            }
+        }
+    }
+    cliPrintf("]}");
+}
+static void printSerialJson(const serialConfig_t *serialConfig)
+{
+    cliPrint(",\"ports\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
+    for (uint32_t i = 0; i < SERIAL_PORT_COUNT && serialIsPortAvailable(serialConfig->portConfigs[i].identifier); i++) {
+        if (i > 0)
+        {
+            cliPrint(",");
+        }
+        cliPrintf("\"%d|%d|%ld|%ld|%ld|%ld\"",
+            serialConfig->portConfigs[i].identifier,
+            serialConfig->portConfigs[i].functionMask,
+            baudRates[serialConfig->portConfigs[i].msp_baudrateIndex],
+            baudRates[serialConfig->portConfigs[i].gps_baudrateIndex],
+            baudRates[serialConfig->portConfigs[i].telemetry_baudrateIndex],
+            baudRates[serialConfig->portConfigs[i].blackbox_baudrateIndex]);
+    }
+    cliPrintf("]}");
+}
+
+static void printAuxJson(const modeActivationCondition_t *modeActivationConditions)
+{
+    cliPrint(",\"modes\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
+    for (uint32_t i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
+        if (i > 0)
+        {
+            cliPrint(",");
+        }
+        const modeActivationCondition_t *mac = &modeActivationConditions[i];
+        const box_t *box = findBoxByBoxId(mac->modeId);
+        if (box) {
+            cliPrintf("\"%u|%u|%u|%u|%u|%u\"",
+                i,
+                box->permanentId,
+                mac->auxChannelIndex,
+                MODE_STEP_TO_CHANNEL_VALUE(mac->range.startStep),
+                MODE_STEP_TO_CHANNEL_VALUE(mac->range.endStep),
+                mac->modeLogic
+            );
+        }
+    }
+    cliPrintf("]}");
+}
+
+static void printResourceJson() {
+    cliPrint(",\"resources\":{\"scope\":\"GLOBAL\",\"type\":\"string\",\"mode\":\"ARRAY\",\"values\":[");
+    for (int i = 0; i < DEFIO_IO_USED_COUNT; i++) {
+        if (i > 0)
+        {
+            cliPrint(",");
+        }
+        const char* owner;
+        owner = ownerNames[ioRecs[i].owner];
+
+        cliPrintf("\"%c%02d|%s|", IO_GPIOPortIdx(ioRecs + i) + 'A', IO_GPIOPinIdx(ioRecs + i), owner);
+        if (ioRecs[i].index > 0) {
+            cliPrintf("%d", ioRecs[i].index);
+        } else {
+            cliPrintf("0");
+        }
+        cliPrintf("\"");
+        //cliPrintLinefeed();
+    }
+    cliPrintf("]}");
+}
+
+#ifdef USE_TPA_CURVES
+static void printTPACurveJson() {
+    cliPrint(",\"tpa_curves\":{\"kp\":[");
+    for (int i = 0; i < ATTENUATION_CURVE_SIZE; i++) {
+        if (i > 0)
+        {
+            cliPrint(",");
+        }
+        cliPrintf("\"%d\"", currentControlRateProfile->tpaKpCurve[i]);
+    }
+    cliPrint("],\"kd\":[");
+    for (int i = 0; i < ATTENUATION_CURVE_SIZE; i++) {
+        if (i > 0)
+        {
+            cliPrint(",");
+        }
+        cliPrintf("\"%d\"", currentControlRateProfile->tpaKiCurve[i]);
+    }
+    cliPrint("],\"ki\":[");
+    for (int i = 0; i < ATTENUATION_CURVE_SIZE; i++) {
+        if (i > 0)
+        {
+            cliPrint(",");
+        }
+        cliPrintf("\"%d\"", currentControlRateProfile->tpaKdCurve[i]);
+    }
+    cliPrint("]}");
+}
+#endif
+
+
+#define PROFILE_JSON_STRING ",\"%s_profile\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"LOOKUP\",\"current\":\"%d\",\"values\":[{"
+
+static void dumpProfileValueJson(uint16_t valueSection)
+{
+    bool foundFirst = false;
+    for (uint32_t i = 0; i < valueTableEntryCount; i++) {
+        const clivalue_t *value = &valueTable[i];
+        if ((value->type & VALUE_SECTION_MASK) == valueSection) {
+            if (foundFirst)
+            {
+                cliPrint(",");
+            }
+            cliPrintValueJson(i);
+            foundFirst = true;
+        }
+    }
+}
+
+static void cliPidProfilesJson()
+{
+    cliPrintf(PROFILE_JSON_STRING, "pid", getCurrentPidProfileIndex());
+    const uint8_t saved = systemConfig_Copy.pidProfileIndex;
+    for (uint32_t i = 0; i < MAX_PROFILE_COUNT; i++) {
+        changePidProfile(i);
+        if (i > 0)
+        {
+            cliPrint("},{");
+        }
+        dumpProfileValueJson(PROFILE_VALUE);
+    }
+    changePidProfile(saved);
+    cliPrint("}]}");
+}
+
+static void cliRateProfilesJson()
+{
+    cliPrintf(PROFILE_JSON_STRING, "rate", getCurrentControlRateProfileIndex());
+    const uint8_t saved = systemConfig_Copy.activeRateProfile;
+    for (uint32_t i = 0; i < CONTROL_RATE_PROFILE_COUNT; i++) {
+        changeControlRateProfile(i);
+        if (i > 0)
+        {
+            cliPrint("},{");
+        }
+        dumpProfileValueJson(PROFILE_RATE_VALUE);
+    }
+    changeControlRateProfile(saved);
+    cliPrint("}]}");
+}
+
+void cliConfig(char *cmdline)
+{
+
+    UNUSED(cmdline);
+    cliPrintLine("{");
+    for (uint32_t i = 0; i < valueTableEntryCount; i++)
+    {
+        if (i > 0)
+        {
+            cliPrintLine(",");
+        }
+        cliPrintValueJson(i);
+    }
+    cliPidProfilesJson();
+    cliRateProfilesJson();
+    printFeatureJson(&featureConfig_Copy);
+    printSerialJson(serialConfig());
+    printAuxJson(modeActivationConditions(0));
+    printResourceJson();
+#ifdef USE_TPA_CURVES
+    printTPACurveJson();
+#endif
+    cliPrintf(",\"name\":\"%s\"", pilotConfig()->name);
+    cliPrintf(",\"version\":\"%s|%s|%s|%s\"",
+        FC_FIRMWARE_NAME,
+        targetName,
+        systemConfig()->boardIdentifier,
+        FC_VERSION_STRING
+    );
+#ifdef USE_GYRO_IMUF9001
+    cliPrintf(",\"imuf\":\"%lu\"", imufCurrentVersion);
+#endif
+    cliPrintLine("}");
+}
+#endif
+
 static uint8_t getWordLength(char *bufBegin, char *bufEnd)
 {
     while (*(bufEnd - 1) == ' ') {
@@ -4766,6 +5016,10 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("frsky_bind", "initiate binding for FrSky SPI RX", NULL, cliFrSkyBind),
 #endif
     CLI_COMMAND_DEF("get", "get variable value", "[name]", cliGet),
+
+#ifdef USE_PEGASUS_UI
+    CLI_COMMAND_DEF("config", "get all configuration information", NULL, cliConfig),
+#endif
 #ifdef USE_GPS
     CLI_COMMAND_DEF("gpspassthrough", "passthrough gps to serial", NULL, cliGpsPassthrough),
 #endif
