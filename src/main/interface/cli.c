@@ -2818,6 +2818,17 @@ static void cliBootloader(char *cmdLine)
     cliRebootEx(true);
 }
 
+
+#ifdef MSP_OVER_CLI
+static void hex2byte(char *string, uint8_t *output)
+{
+    char tempBuff[3];
+    tempBuff[0] = string[0];
+    tempBuff[1] = string[1];
+    tempBuff[2] = 0;
+    *output = (uint8_t)strtol(tempBuff, NULL, 16);
+}
+#endif
 #ifdef USE_GYRO_IMUF9001
 
 
@@ -2834,14 +2845,6 @@ static void cliImufBootloaderMode(char *cmdline)
     }
 }
 
-static void imuf_to_char_from_hex_string(char *string, uint8_t *output)
-{
-    char tempBuff[3];
-    tempBuff[0] = string[0];
-    tempBuff[1] = string[1];
-    tempBuff[2] = 0;
-    *output = (uint8_t)strtol(tempBuff, NULL, 16);
-}
 
 static void cliImufLoadBin(char *cmdline)
 {
@@ -2872,13 +2875,13 @@ static void cliImufLoadBin(char *cmdline)
         if (imuf_bin_safe)
         {
             //get the datasize
-            imuf_to_char_from_hex_string(&cmdline[1], &output);
+            hex2byte(&cmdline[1], &output);
             dataSize  = ((output & 0xff) << 0 );
-            imuf_to_char_from_hex_string(&cmdline[3], &output);
+            hex2byte(&cmdline[3], &output);
             dataSize += ((output & 0xff) << 8 );
-            imuf_to_char_from_hex_string(&cmdline[5], &output);
+            hex2byte(&cmdline[5], &output);
             dataSize += ((output & 0xff) << 16);
-            imuf_to_char_from_hex_string(&cmdline[7], &output);
+            hex2byte(&cmdline[7], &output);
             dataSize += ((output & 0xff) << 24);
 
             if(dataSize < TEMP_BUFF)
@@ -2886,7 +2889,7 @@ static void cliImufLoadBin(char *cmdline)
                 //fill the temp buffer
                 for(x=0; x< dataSize; x++)
                 {
-                    imuf_to_char_from_hex_string(&cmdline[(x*2)+9], &output);
+                    hex2byte(&cmdline[(x*2)+9], &output);
                     dataBuff[x] = output;
                     imuf_checksum += output;
                     //cliPrintLinef("out:%d:%d:%d:%d", dataSize, x, (x*2)+9, output, checksum);
@@ -2947,12 +2950,29 @@ void cliMsp(char *cmdline){
         return;
     } else {
         uint8_t mspCommand = atoi(cmdline);
+        uint8_t start = 2;
+        if (mspCommand > 99) {
+            start = 4;
+        } else if (mspCommand > 9) {
+            start= 3;
+        }
+        uint8_t inBuff[len];
+        uint8_t output;
+        for (int i = 0; i < len; i++) {
+            hex2byte(&cmdline[(i*2) + start], &output);
+            inBuff[i] = output;
+        }
+        sbuf_t inBuf = {.ptr = inBuff, .end = &inBuff[len-1]};
+        //TODO need to fill inPtr with the rest of the bytes from the command line
+
         buft.ptr = buft.end = bufPtr;
-        if (mspCommonProcessOutCommand(mspCommand, &buft, NULL) || mspProcessOutCommand(mspCommand, &buft))
+        if (mspCommonProcessOutCommand(mspCommand, &buft, NULL) || mspProcessOutCommand(mspCommand, &buft)
+          || mspCommonProcessInCommand(mspCommand, &inBuf, NULL) > -1 || mspProcessInCommand(mspCommand, &inBuf) > -1)
         {
 
             bufWriterAppend(cliWriter, '.');                 //"." is success
             bufWriterAppend(cliWriter, mspCommand);          //msp command sent
+            bufWriterAppend(cliWriter, inBuf.ptr - inBuf.end);                  //msp command sent
             bufWriterAppend(cliWriter, buft.ptr - buft.end); //number of chars
 
             while (buft.end <= buft.ptr)
