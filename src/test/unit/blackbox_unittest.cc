@@ -106,7 +106,7 @@ TEST(BlackboxTest, TestInitIntervals)
     // 16kHz PIDloop
     targetPidLooptime = 62;
     gyro.targetLooptime = gyroSetSampleRate(&gyroDev, GYRO_LPF_256HZ, 2, true);
-    EXPECT_EQ(62, gyro.targetLooptime);
+    EXPECT_EQ(64, gyro.targetLooptime);
     blackboxInit();
     EXPECT_EQ(512, blackboxIInterval); // note rounding
     EXPECT_EQ(16, blackboxPInterval);
@@ -115,7 +115,7 @@ TEST(BlackboxTest, TestInitIntervals)
     // 32kHz PIDloop
     targetPidLooptime = 31;
     gyro.targetLooptime = gyroSetSampleRate(&gyroDev, GYRO_LPF_256HZ, 1, true);
-    EXPECT_EQ(31, gyro.targetLooptime);
+    EXPECT_EQ(32, gyro.targetLooptime);
     blackboxInit();
     EXPECT_EQ(1024, blackboxIInterval); // note rounding
     EXPECT_EQ(32, blackboxPInterval);

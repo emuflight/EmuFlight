@@ -329,7 +329,7 @@ FAST_CODE uint8_t processRcInterpolation(void)
         }
 
         if (isRXDataNew && rxRefreshRate > 0) {
-            rcInterpolationStepCount = rxRefreshRate / targetPidLooptime;
+            rcInterpolationStepCount = rxRefreshRate / constrain(targetPidLooptime, 125, targetPidLooptime);
 
             for (int channel = 0; channel < PRIMARY_CHANNEL_COUNT; channel++) {
                 if ((1 << channel) & interpolationChannels) {

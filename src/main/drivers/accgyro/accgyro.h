@@ -62,8 +62,8 @@
 #define GYRO_RATE_3200_Hz   312.5f
 #define GYRO_RATE_8_kHz     125.0f
 #define GYRO_RATE_9_kHz     111.11f
-#define GYRO_RATE_16_kHz    62.5f
-#define GYRO_RATE_32_kHz    31.25f
+#define GYRO_RATE_16_kHz    64.0f
+#define GYRO_RATE_32_kHz    32.0f
 
 typedef struct gyroDev_s {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)

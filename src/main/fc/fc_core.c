@@ -997,6 +997,7 @@ static FAST_CODE_NOINLINE void subTaskRcCommand(timeUs_t currentTimeUs)
 FAST_CODE void taskMainPidLoop(timeUs_t currentTimeUs)
 {
     static uint32_t pidUpdateCountdown = 0;
+    static uint32_t rcupdateCountdown = 0;
 
 #ifdef USE_DMA_SPI_DEVICE
     dmaSpiDeviceDataReady = false;
@@ -1015,12 +1016,23 @@ FAST_CODE void taskMainPidLoop(timeUs_t currentTimeUs)
     //gyroUpdateSensor in gyro.c is called by gyroUpdate
     gyroUpdate(currentTimeUs);
     DEBUG_SET(DEBUG_PIDLOOP, 0, micros() - currentTimeUs);
-
+    
     if (pidUpdateCountdown) {
         pidUpdateCountdown--;
     } else {
         pidUpdateCountdown = pidConfig()->pid_process_denom - 1;
-        subTaskRcCommand(currentTimeUs);
+        if (rcupdateCountdown) {
+            rcupdateCountdown--;
+        } else {
+            if (gyroConfig()->gyro_use_32khz && gyroConfig()->gyro_sync_denom == 1) {
+                if (pidConfig()->pid_process_denom == 1) {
+                    rcupdateCountdown = 3;
+                } else if (pidConfig()->pid_process_denom == 2) {
+                    rcupdateCountdown = 1;
+                }
+            }
+            subTaskRcCommand(currentTimeUs);
+        }
         subTaskPidController(currentTimeUs);
         subTaskMotorUpdate(currentTimeUs);
         subTaskPidSubprocesses(currentTimeUs);
