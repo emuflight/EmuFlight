@@ -302,6 +302,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
         }
     }
 #endif
+    pt1FilterInit(&antiGravityThrottleLpf, pt1FilterGain(ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF, dT));
 }
 
 #ifdef USE_RC_SMOOTHING_FILTER
@@ -867,6 +868,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 {
     UNUSED(pidProfile);
     UNUSED(iDT);
+    UNUSED(currentPidSetpoint);
     float gyroRateDterm[XYZ_AXIS_COUNT];
     static float previousGyroRateDterm[XYZ_AXIS_COUNT];
 
@@ -882,7 +884,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 
         const float gyroRate = gyro.gyroADCf[axis];
         const float ITerm = pidData[axis].I;
-        float itermErrorRate = currentPidSetpoint - gyroRate;
+        float itermErrorRate = errorRate;
 
 #if defined(USE_ITERM_RELAX)
     if (itermRelax && (axis < FD_YAW || itermRelax == ITERM_RELAX_RPY || itermRelax == ITERM_RELAX_RPY_INC)) {
@@ -893,7 +895,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
         const bool isDecreasingI = ((ITerm > 0) && (itermErrorRate < 0)) || ((ITerm < 0) && (itermErrorRate > 0));
         if ((itermRelax >= ITERM_RELAX_RP_INC) && isDecreasingI) {
             // Do Nothing, use the precalculed itermErrorRate
-        } else if (itermRelaxType == ITERM_RELAX_SETPOINT && setpointHpf < 30) {
+        } else if (itermRelaxType == ITERM_RELAX_SETPOINT && setpointHpf < ITERM_RELAX_SETPOINT_THRESHOLD) {
             itermErrorRate *= itermRelaxFactor;
         } else if (itermRelaxType == ITERM_RELAX_GYRO ) {
             itermErrorRate = fapplyDeadband(setpointLpf - gyroRate, setpointHpf);
@@ -1003,7 +1005,8 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     }
     DEBUG_SET(DEBUG_ANTI_GRAVITY, 0, lrintf(itermAccelerator * 1000));
     // gradually scale back integration when above windup point
-    const float dynCi = MIN((1.0f - getMotorMixRange()) * ITermWindupPointInv, 1.0f) * dT * itermAccelerator;
+    const float dynCi = constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f)
+        * dT * itermAccelerator;
     float errorRate;
     float currentPidSetpoint;
 

@@ -36,6 +36,7 @@
 //#undef USE_GYRO_OVERFLOW_CHECK
 //#undef USE_GYRO_LPF2
 
+#if !(defined(ZCOREF3) || defined(IRCSYNERGYF3))
 //#undef USE_ITERM_RELAX
 //#undef USE_RC_SMOOTHING_FILTER
 
@@ -55,6 +56,8 @@
 
 #undef USE_BOARD_INFO
 #undef USE_EXTENDED_CMS_MENUS
+#endif
+
 #undef USE_RTC_TIME
 #undef USE_RX_MSP
 #undef USE_ESC_SENSOR_INFO
@@ -118,11 +121,11 @@
 #define MPU6500_SPI_INSTANCE    SPI1
 
 #elif defined(IRCSYNERGYF3)
-#define GYRO
+#define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
 #define GYRO_MPU6000_ALIGN      CW270_DEG
 
-#define ACC
+#define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define ACC_MPU6000_ALIGN       CW270_DEG
 

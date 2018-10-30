@@ -134,11 +134,11 @@
 //#define I2C_DEVICE (I2CDEV_2)
 
 #define USE_ADC
-#define BOARD_HAS_VOLTAGE_DIVIDER
+#define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define VBAT_ADC_PIN            PC0
 #define CURRENT_METER_ADC_PIN   PC1
 // Reserved pins, not connected
-//#define RSSI_ADC_GPIO_PIN       PC2
+//#define RSSI_ADC_PIN            PC2
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 

@@ -62,7 +62,7 @@
 #include "platform.h"
 
 
-#ifdef USE_TELEMETRY
+#ifdef USE_TELEMETRY_HOTT
 
 #include "build/build_config.h"
 #include "build/debug.h"
@@ -310,6 +310,11 @@ void freeHoTTTelemetryPort(void)
 void initHoTTTelemetry(void)
 {
     portConfig = findSerialPortConfig(FUNCTION_TELEMETRY_HOTT);
+
+    if (!portConfig) {
+        return;
+    }
+
     hottPortSharing = determinePortSharing(portConfig, FUNCTION_TELEMETRY_HOTT);
 
     initialiseMessages();

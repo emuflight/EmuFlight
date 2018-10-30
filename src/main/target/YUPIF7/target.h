@@ -113,7 +113,9 @@
 #define MAG_I2C_INSTANCE       (I2CDEV_1)
 #define USE_MAG
 #define USE_MAG_HMC5883
+#define MAG_HMC5883_ALIGN CW270_DEG_FLIP
 #define USE_MAG_QMC5883
+#define MAG_QMC5883_ALIGN CW270_DEG_FLIP
 
 // *************** OSD *****************************
 #define USE_MAX7456
@@ -123,7 +125,7 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC1_DMA_STREAM         DMA2_Stream0
-#define RSSI_ADC_GPIO_PIN               PC0
+#define RSSI_ADC_PIN                    PC0
 #define VBAT_ADC_PIN                    PC1
 #define CURRENT_METER_ADC_PIN           PC2
 #define CURRENT_METER_SCALE_DEFAULT     235

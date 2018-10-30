@@ -68,15 +68,6 @@
 #undef USE_SERIALRX_FPORT
 #endif
 
-#if !defined(USE_SERIALRX_CRSF)
-#undef USE_TELEMETRY_CRSF
-#endif
-
-#if !defined(USE_SERIALRX_JETIEXBUS)
-#undef USE_TELEMETRY_JETIEXBUS
-#endif
-
-
 #if !defined(USE_TELEMETRY)
 #undef USE_CRSF_CMS_TELEMETRY
 #undef USE_TELEMETRY_CRSF
@@ -92,10 +83,20 @@
 #undef USE_SERIALRX_FPORT
 #endif
 
-#if defined(USE_MSP_OVER_TELEMETRY)
-#if !defined(USE_TELEMETRY_SMARTPORT) && !defined(USE_TELEMETRY_CRSF)
-#undef USE_MSP_OVER_TELEMETRY
+#if !defined(USE_SERIALRX_CRSF)
+#undef USE_TELEMETRY_CRSF
 #endif
+
+#if !defined(USE_TELEMETRY_CRSF)
+#undef USE_CRSF_CMS_TELEMETRY
+#endif
+
+#if !defined(USE_SERIALRX_JETIEXBUS)
+#undef USE_TELEMETRY_JETIEXBUS
+#endif
+
+#if !defined(USE_TELEMETRY_IBUS)
+#undef USE_TELEMETRY_IBUS_EXTENDED
 #endif
 
 // If USE_SERIALRX_SPEKTRUM was dropped by a target, drop all related options
@@ -109,6 +110,10 @@
 #undef USE_SPEKTRUM_VTX_TELEMETRY
 #undef USE_SPEKTRUM_CMS_TELEMETRY
 #undef USE_TELEMETRY_SRXL
+#endif
+
+#if !defined(USE_TELEMETRY_SMARTPORT) && !defined(USE_TELEMETRY_CRSF)
+#undef USE_MSP_OVER_TELEMETRY
 #endif
 
 /* If either VTX_CONTROL or VTX_COMMON is undefined then remove common code and device drivers */
@@ -167,4 +172,9 @@
 
 #if defined(USE_GPS_RESCUE)
 #define USE_GPS
+#endif
+
+// CX10 is a special case of SPI RX which requires XN297
+#if defined(USE_RX_CX10)
+#define USE_RX_XN297
 #endif

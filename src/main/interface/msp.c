@@ -299,8 +299,13 @@ static void serializeSDCardSummaryReply(sbuf_t *dst)
     sbufWriteU8(dst, state);
     sbufWriteU8(dst, afatfs_getLastError());
     // Write free space and total space in kilobytes
-    sbufWriteU32(dst, afatfs_getContiguousFreeSpace() / 1024);
-    sbufWriteU32(dst, sdcard_getMetadata()->numBlocks / 2); // Block size is half a kilobyte
+    if (state == MSP_SDCARD_STATE_READY) {
+        sbufWriteU32(dst, afatfs_getContiguousFreeSpace() / 1024);
+        sbufWriteU32(dst, sdcard_getMetadata()->numBlocks / 2); // Block size is half a kilobyte
+    } else {
+        sbufWriteU32(dst, 0);
+        sbufWriteU32(dst, 0);
+    }
 #else
     sbufWriteU8(dst, 0);
     sbufWriteU8(dst, 0);
@@ -2153,6 +2158,10 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             sbufReadU8(src);
             sbufReadU8(src);
 #endif
+        }
+        if (sbufBytesRemaining(src) >= 1) {
+            // Added in MSP API 1.40
+            // Kept separate from the section above to work around missing Configurator support in version < 10.4.2
 #if defined(USE_USB_CDC_HID)
             usbDevConfigMutable()->type = sbufReadU8(src);
 #else

@@ -30,7 +30,7 @@
 
 #include "platform.h"
 
-#if defined(USE_TELEMETRY) && defined(USE_TELEMETRY_FRSKY_HUB)
+#if defined(USE_TELEMETRY_FRSKY_HUB)
 
 #include "common/maths.h"
 #include "common/axis.h"

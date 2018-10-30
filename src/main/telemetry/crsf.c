@@ -24,7 +24,7 @@
 
 #include "platform.h"
 
-#ifdef USE_TELEMETRY
+#ifdef USE_TELEMETRY_CRSF
 
 #include "build/atomic.h"
 #include "build/build_config.h"
@@ -427,6 +427,10 @@ void initCrsfTelemetry(void)
     // check if there is a serial port open for CRSF telemetry (ie opened by the CRSF RX)
     // and feature is enabled, if so, set CRSF telemetry enabled
     crsfTelemetryEnabled = crsfRxIsActive();
+
+    if (!crsfTelemetryEnabled) {
+        return;
+    }
 
     deviceInfoReplyPending = false;
 #if defined(USE_MSP_OVER_TELEMETRY)

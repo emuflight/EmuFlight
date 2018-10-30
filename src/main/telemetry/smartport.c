@@ -30,7 +30,7 @@
 
 #include "platform.h"
 
-#if defined(USE_TELEMETRY) && defined(USE_TELEMETRY_SMARTPORT)
+#if defined(USE_TELEMETRY_SMARTPORT)
 
 #include "common/axis.h"
 #include "common/color.h"
@@ -317,9 +317,11 @@ static void smartPortSendPackage(uint16_t id, uint32_t val)
     smartPortWriteFrame(&payload);
 }
 
+#ifdef USE_ESC_SENSOR
 static bool reportExtendedEscSensors(void) {
     return feature(FEATURE_ESC_SENSOR) && telemetryConfig()->smartport_use_extra_sensors;
 }
+#endif
 
 #define ADD_SENSOR(dataId) frSkyDataIdTableInfo.table[frSkyDataIdTableInfo.index++] = dataId
 
