@@ -32,18 +32,13 @@ FAST_CODE static inline void dmaSpiCsHi(void)
     HAL_GPIO_WritePin(DMA_SPI_NSS_PORT, DMA_SPI_NSS_PIN, 1);
 }
 
-
-FAST_CODE void dmaSpicleanupspi(void)
-{
-}
-
-FAST_CODE void DMA_SPI_TX_DMA_HANDLER(void)
+FAST_CODE_NOINLINE void DMA_SPI_TX_DMA_HANDLER(void)
 {
 	HAL_NVIC_ClearPendingIRQ(DMA_SPI_TX_DMA_IRQn);
 	HAL_DMA_IRQHandler(&SpiTxDmaHandle);
 }
 
-FAST_CODE void DMA_SPI_RX_DMA_HANDLER(void)
+FAST_CODE_NOINLINE void DMA_SPI_RX_DMA_HANDLER(void)
 {
 	HAL_NVIC_ClearPendingIRQ(DMA_SPI_RX_DMA_IRQn);
 	HAL_DMA_IRQHandler(&SpiRxDmaHandle);
@@ -61,7 +56,7 @@ FAST_CODE void DMA_SPI_RX_DMA_HANDLER(void)
                 {
                     gyroDmaSpiFinishRead();
                 }
-                dmaSpiDeviceDataReady = true;    
+                dmaSpiDeviceDataReady = true;
             }
             else
             {
@@ -72,19 +67,18 @@ FAST_CODE void DMA_SPI_RX_DMA_HANDLER(void)
                 //error handler
                 crcErrorCount++; //check every so often and cause a failsafe is this number is above a certain ammount
             }
-        #else 
+        #else
             if(dmaSpiReadStatus != DMA_SPI_BLOCKING_READ_IN_PROGRESS)
             {
                 gyroDmaSpiFinishRead();
             }
-            dmaSpiDeviceDataReady = true;    
+            dmaSpiDeviceDataReady = true;
         #endif
     }
 
     dmaSpiCsHi();
-    dmaSpicleanupspi();
-    
-    dmaSpiReadStatus = DMA_SPI_READ_DONE;    
+
+    dmaSpiReadStatus = DMA_SPI_READ_DONE;
 }
 
 FAST_CODE inline bool isDmaSpiDataReady(timeUs_t currentTimeUs, timeDelta_t currentDeltaTimeUs)
@@ -97,7 +91,7 @@ FAST_CODE inline bool isDmaSpiDataReady(timeUs_t currentTimeUs, timeDelta_t curr
 void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi)
 {
     GPIO_InitTypeDef GPIO_InitStruct;
-    
+
     DMA_SPI_CLOCK_INIT_FUNC;
 
     HAL_GPIO_WritePin(DMA_SPI_NSS_PORT, DMA_SPI_NSS_PIN, 1);
@@ -145,9 +139,9 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi)
     SpiRxDmaHandle.Init.Mode                = DMA_NORMAL;
     SpiRxDmaHandle.Init.Priority            = DMA_PRIORITY_HIGH;
     SpiRxDmaHandle.Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
-    
+
     HAL_DMA_UnRegisterCallback(&SpiRxDmaHandle, HAL_DMA_XFER_ALL_CB_ID);
-    
+
     HAL_DMA_Init(&SpiRxDmaHandle);
 
     __HAL_LINKDMA(hspi, hdmarx, SpiRxDmaHandle);
@@ -165,9 +159,9 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi)
     SpiTxDmaHandle.Init.Mode                = DMA_NORMAL;
     SpiTxDmaHandle.Init.Priority            = DMA_PRIORITY_VERY_HIGH;
     SpiTxDmaHandle.Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
-    
+
     HAL_DMA_UnRegisterCallback(&SpiTxDmaHandle, HAL_DMA_XFER_ALL_CB_ID);
-    
+
     HAL_DMA_Init(&SpiTxDmaHandle);
 
     __HAL_LINKDMA(hspi, hdmatx, SpiTxDmaHandle);
@@ -198,7 +192,7 @@ void dmaSpiInit(void)
 
 }
 
-FAST_CODE void dmaSpiTransmitReceive(uint8_t* txBuffer, uint8_t* rxBuffer, uint32_t size, uint32_t blockingRead)
+FAST_CODE_NOINLINE void dmaSpiTransmitReceive(uint8_t* txBuffer, uint8_t* rxBuffer, uint32_t size, uint32_t blockingRead)
 {
 
     if (HAL_SPI_GetState(&dmaSpiHandle) == HAL_SPI_STATE_READY)

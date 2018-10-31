@@ -139,7 +139,6 @@ FAST_CODE bool spiBusTransfer(const busDevice_t *bus, const uint8_t *txData, uin
                 {
                     //GYRO_READ_TIMEOUT ms max, read failed, cleanup spi and return 0
                     IOHi(bus->busdev_u.spi.csnPin);
-                    dmaSpicleanupspi();
                     return false;
                 }
             }
@@ -191,7 +190,6 @@ FAST_CODE bool spiBusWriteRegister(const busDevice_t *bus, uint8_t reg, uint8_t 
                 {
                     //GYRO_READ_TIMEOUT ms max, read failed, cleanup spi and return 0
                     IOHi(bus->busdev_u.spi.csnPin);
-                    dmaSpicleanupspi();
                     return false;
                 }
             }
@@ -227,7 +225,6 @@ FAST_CODE bool spiBusReadRegisterBuffer(const busDevice_t *bus, uint8_t reg, uin
                 {
                     //GYRO_READ_TIMEOUT ms max, read failed, cleanup spi and return 0
                     IOHi(bus->busdev_u.spi.csnPin);
-                    dmaSpicleanupspi();
                     return false;
                 }
             }
@@ -264,7 +261,6 @@ FAST_CODE uint8_t spiBusReadRegister(const busDevice_t *bus, uint8_t reg)
                 {
                     //GYRO_READ_TIMEOUT ms max, read failed, cleanup spi and return 0
                     IOHi(bus->busdev_u.spi.csnPin);
-                    dmaSpicleanupspi();
                     return 0;
                 }
             }
@@ -277,7 +273,7 @@ FAST_CODE uint8_t spiBusReadRegister(const busDevice_t *bus, uint8_t reg)
             spiTransferByte(bus->busdev_u.spi.instance, reg | 0x80); // read transaction
             spiTransfer(bus->busdev_u.spi.instance, NULL, &data, 1);
             IOHi(bus->busdev_u.spi.csnPin);
-            
+
             return data;
         }
     #else

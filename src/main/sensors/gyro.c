@@ -999,7 +999,7 @@ STATIC_UNIT_TESTED void performGyroCalibration(gyroSensor_t *gyroSensor, uint8_t
 }
 
 #if defined(USE_GYRO_SLEW_LIMITER)
-FAST_CODE int32_t gyroSlewLimiter(gyroSensor_t *gyroSensor, int axis)
+FAST_CODE_NOINLINE int32_t gyroSlewLimiter(gyroSensor_t *gyroSensor, int axis)
 {
     int32_t ret = (int32_t)gyroSensor->gyroDev.gyroADCRaw[axis];
     if (gyroConfig()->checkOverflow || gyroHasOverflowProtection) {
@@ -1206,20 +1206,20 @@ static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs
 }
 
 #ifdef USE_DMA_SPI_DEVICE
-FAST_CODE void gyroDmaSpiFinishRead(void)
+FAST_CODE_NOINLINE void gyroDmaSpiFinishRead(void)
 {
     //called by dma callback
     mpuGyroDmaSpiReadFinish(&gyroSensor1.gyroDev);
 }
 
-FAST_CODE void gyroDmaSpiStartRead(void)
+FAST_CODE_NOINLINE void gyroDmaSpiStartRead(void)
 {
     //called by exti
     mpuGyroDmaSpiReadStart(&gyroSensor1.gyroDev);
 }
 #endif
 
-FAST_CODE void gyroUpdate(timeUs_t currentTimeUs)
+FAST_CODE_NOINLINE void gyroUpdate(timeUs_t currentTimeUs)
 {
     const timeDelta_t sampleDeltaUs = currentTimeUs - accumulationLastTimeSampledUs;
     accumulationLastTimeSampledUs = currentTimeUs;

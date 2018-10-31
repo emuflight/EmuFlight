@@ -17,7 +17,6 @@ extern volatile bool dmaSpiDeviceDataReady;
 extern uint8_t dmaTxBuffer[58];
 extern uint8_t dmaRxBuffer[58];
 extern bool isDmaSpiDataReady(timeUs_t currentTimeUs, timeDelta_t currentDeltaTimeUs);
-extern void dmaSpicleanupspi(void);
 extern void dmaSpiInit(void);
 extern void dmaSpiTransmitReceive(uint8_t* txBuffer, uint8_t* rxBuffer, uint32_t size, uint32_t blockingRead);
 

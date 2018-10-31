@@ -222,6 +222,7 @@ void fastKalmanInit(fastKalman_t *filter, float q, float r)
     filter->k     = 0.0f;          // kalman gain
 }
 
+#ifndef STM32F7
 FAST_CODE float laggedMovingAverageUpdate(laggedMovingAverage_t *filter, float input)
 {
     filter->movingSum -= filter->buf[filter->movingWindowIndex];
@@ -236,6 +237,7 @@ FAST_CODE float laggedMovingAverageUpdate(laggedMovingAverage_t *filter, float i
     const uint16_t denom = filter->primed ? filter->windowSize : filter->movingWindowIndex;
     return filter->movingSum  / denom;
 }
+#endif
 
 FAST_CODE float fastKalmanUpdate(fastKalman_t *filter, float input)
 {
