@@ -569,14 +569,11 @@ void setupImufParams(imufCommand_t * data)
         data->param8 = ( (int16_t)boardAlignment()->rollDegrees << 16 )          | imufGyroAlignment();
         data->param9 = ( (int16_t)boardAlignment()->yawDegrees << 16 )           | (int16_t)boardAlignment()->pitchDegrees;
     } else {
-        //Odin contract.
+        //Odin+ contract. 
         data->param2 = ( (uint16_t)(gyroConfig()->imuf_rate+1) << 16)            | (uint16_t)gyroConfig()->imuf_w;
         data->param3 = ( (uint16_t)gyroConfig()->imuf_roll_q << 16)              | (uint16_t)gyroConfig()->imuf_pitch_q;
         data->param4 = ( (uint16_t)gyroConfig()->imuf_yaw_q << 16)               | (uint16_t)gyroConfig()->imuf_roll_lpf_cutoff_hz;
         data->param5 = ( (uint16_t)gyroConfig()->imuf_pitch_lpf_cutoff_hz << 16) | (uint16_t)gyroConfig()->imuf_yaw_lpf_cutoff_hz;
-        data->param6 = ( (uint32_t)((gyroConfig()->imuf_roll_af & 1) | 
-                                    (gyroConfig()->imuf_pitch_af & 1) << 1 | 
-                                    (gyroConfig()->imuf_yaw_af & 1) << 2 ));
         data->param7 = ( (uint16_t)0 << 16)                                      | (uint16_t)0;
         data->param8 = ( (int16_t)boardAlignment()->rollDegrees << 16 )          | imufGyroAlignment();
         data->param9 = ( (int16_t)boardAlignment()->yawDegrees << 16 )           | (int16_t)boardAlignment()->pitchDegrees;
