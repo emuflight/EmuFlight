@@ -718,7 +718,9 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
             motorOutput = constrain(motorOutput, motorRangeMin, motorRangeMax);
         }
         // Motor stop handling
-        if (feature(FEATURE_MOTOR_STOP) && ARMING_FLAG(ARMED) && !feature(FEATURE_3D) && !isAirmodeActive()) {
+        if (feature(FEATURE_MOTOR_STOP) && ARMING_FLAG(ARMED) && !feature(FEATURE_3D) && !isAirmodeActive()
+            && !FLIGHT_MODE(GPS_RESCUE_MODE)) {   // disable motor_stop while GPS Rescue is active
+
             if (((rcData[THROTTLE]) < rxConfig()->mincheck)) {
                 motorOutput = disarmMotorOutput;
             }
@@ -834,8 +836,7 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs, uint8_t vbatPidCompensa
         }
     } else {
         if (isAirmodeActive() || throttle > 0.5f) {  // Only automatically adjust throttle when airmode enabled. Airmode logic is always active on high throttle
-            const float throttleLimitOffset = motorMixRange / 2.0f;
-            throttle = constrainf(throttle, 0.0f + throttleLimitOffset, 1.0f - throttleLimitOffset);
+            throttle = constrainf(throttle, -motorMixMin, 1.0f - motorMixMax);
         }
     }
 

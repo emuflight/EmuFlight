@@ -39,10 +39,6 @@
 #include "cms/cms_types.h"
 
 #include "drivers/accgyro/accgyro.h"
-#include "drivers/camera_control.h"
-#include "drivers/compass/compass.h"
-#include "drivers/pwm_esc_detect.h"
-#include "drivers/pwm_output.h"
 #include "drivers/adc.h"
 #include "drivers/bus.h"
 #include "drivers/bus_i2c.h"

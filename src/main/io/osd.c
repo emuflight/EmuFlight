@@ -564,13 +564,13 @@ static bool osdDrawSingleElement(uint8_t item)
     case OSD_REMAINING_TIME_ESTIMATE:
         {
             const int mAhDrawn = getMAhDrawn();
-            const int remaining_time = (int)((osdConfig()->cap_alarm - mAhDrawn) * ((float)flyTime) / mAhDrawn);
 
-            if (mAhDrawn < 0.1 * osdConfig()->cap_alarm) {
+            if (mAhDrawn <= 0.1 * osdConfig()->cap_alarm) {  // also handles the mAhDrawn == 0 condition
                 tfp_sprintf(buff, "--:--");
             } else if (mAhDrawn > osdConfig()->cap_alarm) {
                 tfp_sprintf(buff, "00:00");
             } else {
+                const int remaining_time = (int)((osdConfig()->cap_alarm - mAhDrawn) * ((float)flyTime) / mAhDrawn);
                 osdFormatTime(buff, OSD_TIMER_PREC_SECOND, remaining_time);
             }
             break;
@@ -672,7 +672,10 @@ static bool osdDrawSingleElement(uint8_t item)
             int pitchAngle = constrain(attitude.values.pitch, -maxPitch, maxPitch);
             // Convert pitchAngle to y compensation value
             // (maxPitch / 25) divisor matches previous settings of fixed divisor of 8 and fixed max AHI pitch angle of 20.0 degrees
-            pitchAngle = ((pitchAngle * 25) / maxPitch) - 41; // 41 = 4 * AH_SYMBOL_COUNT + 5
+            if (maxPitch > 0) {
+                pitchAngle = ((pitchAngle * 25) / maxPitch);
+            }
+            pitchAngle -= 41; // 41 = 4 * AH_SYMBOL_COUNT + 5
 
             for (int x = -4; x <= 4; x++) {
                 const int y = ((-rollAngle * x) / 64) - pitchAngle;

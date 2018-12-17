@@ -1004,6 +1004,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         DEBUG_SET(DEBUG_ANTI_GRAVITY, 1, lrintf(antiGravityThrottleHpf * 1000));
     }
     DEBUG_SET(DEBUG_ANTI_GRAVITY, 0, lrintf(itermAccelerator * 1000));
+
     // gradually scale back integration when above windup point
     const float dynCi = constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f)
         * dT * itermAccelerator;
