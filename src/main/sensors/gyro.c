@@ -117,6 +117,7 @@ static FAST_RAM_ZERO_INIT float gyroPrevious[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t accumulatedMeasurementTimeUs;
 static FAST_RAM_ZERO_INIT timeUs_t accumulationLastTimeSampledUs;
 
+
 float FAST_RAM_ZERO_INIT vGyroStdDevModulus;
 
 static FAST_RAM_ZERO_INIT int16_t gyroSensorTemperature;
@@ -1197,6 +1198,7 @@ static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs
     }
 #endif
 #endif //USE_GYRO_IMUF9001
+
 #if (!defined(USE_GYRO_OVERFLOW_CHECK) && !defined(USE_YAW_SPIN_RECOVERY))
     UNUSED(currentTimeUs);
 #endif
@@ -1307,6 +1309,7 @@ FAST_CODE_NOINLINE void gyroUpdate(timeUs_t currentTimeUs)
     yawSpinDetected = gyroSensor1.yawSpinDetected;
 #endif
 #endif
+
 
     if (!overflowDetected) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
