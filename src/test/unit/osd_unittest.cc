@@ -101,7 +101,7 @@ void setDefualtSimulationState()
 
     simulationBatteryState = BATTERY_OK;
     simulationBatteryCellCount = 4;
-    simulationBatteryVoltage = 168;
+    simulationBatteryVoltage = 1680;
     simulationBatteryAmperage = 0;
     simulationMahDrawn = 0;
     simulationAltitude = 0;
@@ -188,8 +188,8 @@ TEST(OsdTest, TestInit)
 
     // and
     // this battery configuration (used for battery voltage elements)
-    batteryConfigMutable()->vbatmincellvoltage = 33;
-    batteryConfigMutable()->vbatmaxcellvoltage = 43;
+    batteryConfigMutable()->vbatmincellvoltage = 330;
+    batteryConfigMutable()->vbatmaxcellvoltage = 430;
 
     // when
     // OSD is initialised
@@ -341,7 +341,7 @@ TEST(OsdTest, TestStatsImperial)
     rssi = 1024;
     gpsSol.groundSpeed = 500;
     GPS_distanceToHome = 20;
-    simulationBatteryVoltage = 158;
+    simulationBatteryVoltage = 1580;
     simulationAltitude = 100;
     simulationTime += 1e6;
     osdRefresh(simulationTime);
@@ -349,7 +349,7 @@ TEST(OsdTest, TestStatsImperial)
     rssi = 512;
     gpsSol.groundSpeed = 800;
     GPS_distanceToHome = 50;
-    simulationBatteryVoltage = 147;
+    simulationBatteryVoltage = 1470;
     simulationAltitude = 150;
     simulationTime += 1e6;
     osdRefresh(simulationTime);
@@ -357,7 +357,7 @@ TEST(OsdTest, TestStatsImperial)
     rssi = 256;
     gpsSol.groundSpeed = 200;
     GPS_distanceToHome = 100;
-    simulationBatteryVoltage = 152;
+    simulationBatteryVoltage = 1520;
     simulationAltitude = 200;
     simulationTime += 1e6;
     osdRefresh(simulationTime);
@@ -374,8 +374,8 @@ TEST(OsdTest, TestStatsImperial)
     displayPortTestBufferSubstring(2, row++, "LAST ARM          : 00:03");
     displayPortTestBufferSubstring(2, row++, "MAX SPEED         : 17");
     displayPortTestBufferSubstring(2, row++, "MAX DISTANCE      : 328%c", SYM_FT);
-    displayPortTestBufferSubstring(2, row++, "MIN BATTERY       : 14.7%c", SYM_VOLT);
-    displayPortTestBufferSubstring(2, row++, "END BATTERY       : 15.2%c", SYM_VOLT);
+    displayPortTestBufferSubstring(2, row++, "MIN BATTERY       : 14.70%c", SYM_VOLT);
+    displayPortTestBufferSubstring(2, row++, "END BATTERY       : 15.20%c", SYM_VOLT);
     displayPortTestBufferSubstring(2, row++, "MIN RSSI          : 25%%");
     displayPortTestBufferSubstring(2, row++, "MAX ALTITUDE      :    6.5%c", SYM_FT);
 }
@@ -403,13 +403,13 @@ TEST(OsdTest, TestStatsMetric)
     rssi = 256;
     gpsSol.groundSpeed = 800;
     GPS_distanceToHome = 100;
-    simulationBatteryVoltage = 147;
+    simulationBatteryVoltage = 1470;
     simulationAltitude = 200;
     simulationTime += 1e6;
     osdRefresh(simulationTime);
     osdRefresh(simulationTime);
 
-    simulationBatteryVoltage = 152;
+    simulationBatteryVoltage = 1520;
     simulationTime += 1e6;
     osdRefresh(simulationTime);
 
@@ -425,8 +425,8 @@ TEST(OsdTest, TestStatsMetric)
     displayPortTestBufferSubstring(2, row++, "LAST ARM          : 00:02");
     displayPortTestBufferSubstring(2, row++, "MAX SPEED         : 28");
     displayPortTestBufferSubstring(2, row++, "MAX DISTANCE      : 100%c", SYM_M);
-    displayPortTestBufferSubstring(2, row++, "MIN BATTERY       : 14.7%c", SYM_VOLT);
-    displayPortTestBufferSubstring(2, row++, "END BATTERY       : 15.2%c", SYM_VOLT);
+    displayPortTestBufferSubstring(2, row++, "MIN BATTERY       : 14.70%c", SYM_VOLT);
+    displayPortTestBufferSubstring(2, row++, "END BATTERY       : 15.20%c", SYM_VOLT);
     displayPortTestBufferSubstring(2, row++, "MIN RSSI          : 25%%");
     displayPortTestBufferSubstring(2, row++, "MAX ALTITUDE      :    2.0%c", SYM_M);
 }
@@ -489,7 +489,7 @@ TEST(OsdTest, TestAlarms)
         printf("%d\n", i);
 #endif
         displayPortTestBufferSubstring(8,  1, "%c99", SYM_RSSI);
-        displayPortTestBufferSubstring(12, 1, "%c16.8%c", SYM_BATT_FULL, SYM_VOLT);
+        displayPortTestBufferSubstring(12, 1, "%c16.80%c", SYM_BATT_FULL, SYM_VOLT);
         displayPortTestBufferSubstring(1,  1, "%c00:", SYM_FLY_M); // only test the minute part of the timer
         displayPortTestBufferSubstring(20, 1, "%c01:", SYM_ON_M); // only test the minute part of the timer
         displayPortTestBufferSubstring(23, 7, "    .0%c", SYM_M);
@@ -499,7 +499,7 @@ TEST(OsdTest, TestAlarms)
     // all values are out of range
     rssi = 128;
     simulationBatteryState = BATTERY_CRITICAL;
-    simulationBatteryVoltage = 135;
+    simulationBatteryVoltage = 1350;
     simulationAltitude = 12000;
     simulationTime += 60e6;
     osdRefresh(simulationTime);
@@ -518,7 +518,7 @@ TEST(OsdTest, TestAlarms)
 #endif
         if (i % 2 == 0) {
             displayPortTestBufferSubstring(8,  1, "%c12", SYM_RSSI);
-            displayPortTestBufferSubstring(12, 1, "%c13.5%c", SYM_MAIN_BATT, SYM_VOLT);
+            displayPortTestBufferSubstring(12, 1, "%c13.50%c", SYM_MAIN_BATT, SYM_VOLT);
             displayPortTestBufferSubstring(1,  1, "%c01:", SYM_FLY_M); // only test the minute part of the timer
             displayPortTestBufferSubstring(20, 1, "%c02:", SYM_ON_M); // only test the minute part of the timer
             displayPortTestBufferSubstring(23, 7, " 120.0%c", SYM_M);
@@ -653,7 +653,7 @@ TEST(OsdTest, TestElementPower)
     osdConfigMutable()->item_pos[OSD_POWER] = OSD_POS(1, 10)  | VISIBLE_FLAG;
 
     // and
-    simulationBatteryVoltage = 100; // 10V
+    simulationBatteryVoltage = 1000; // 10V
 
     // and
     simulationBatteryAmperage = 0; // 0A
@@ -822,7 +822,7 @@ TEST(OsdTest, TestElementWarningsBattery)
     osdWarnSetState(OSD_WARNING_BATTERY_NOT_FULL, true);
 
     // and
-    batteryConfigMutable()->vbatfullcellvoltage = 41;
+    batteryConfigMutable()->vbatfullcellvoltage = 410;
 
     // and
     // 4S battery
@@ -830,7 +830,7 @@ TEST(OsdTest, TestElementWarningsBattery)
 
     // and
     // full battery
-    simulationBatteryVoltage = 168;
+    simulationBatteryVoltage = 1680;
     simulationBatteryState = BATTERY_OK;
 
     // when
@@ -842,7 +842,7 @@ TEST(OsdTest, TestElementWarningsBattery)
 
     // given
     // low battery
-    simulationBatteryVoltage = 140;
+    simulationBatteryVoltage = 1400;
     simulationBatteryState = BATTERY_WARNING;
 
     // when
@@ -853,8 +853,8 @@ TEST(OsdTest, TestElementWarningsBattery)
     displayPortTestBufferSubstring(9, 10, "LOW BATTERY ");
 
     // given
-    // crtical battery
-    simulationBatteryVoltage = 132;
+    // critical battery
+    simulationBatteryVoltage = 1320;
     simulationBatteryState = BATTERY_CRITICAL;
 
     // when
@@ -866,7 +866,7 @@ TEST(OsdTest, TestElementWarningsBattery)
 
     // given
     // used battery
-    simulationBatteryVoltage = ((batteryConfig()->vbatmaxcellvoltage - 2) * simulationBatteryCellCount) - 1;
+    simulationBatteryVoltage = ((batteryConfig()->vbatmaxcellvoltage - 20) * simulationBatteryCellCount) - 1;
     simulationBatteryState = BATTERY_OK;
 
     // when
@@ -878,7 +878,7 @@ TEST(OsdTest, TestElementWarningsBattery)
 
     // given
     // full battery
-    simulationBatteryVoltage = ((batteryConfig()->vbatmaxcellvoltage - 2) * simulationBatteryCellCount);
+    simulationBatteryVoltage = ((batteryConfig()->vbatmaxcellvoltage - 20) * simulationBatteryCellCount);
     simulationBatteryState = BATTERY_OK;
 
     // when
