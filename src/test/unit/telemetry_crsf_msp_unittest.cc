@@ -259,6 +259,9 @@ extern "C" {
     uint16_t getBatteryVoltage(void) {
         return testBatteryVoltage;
     }
+    uint16_t getLegacyBatteryVoltage(void) {
+        return (testBatteryVoltage + 5) / 10;
+    }
     bool isAmperageConfigured(void) { return true; }
     int32_t getAmperage(void) {
         return testAmperage;

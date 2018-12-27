@@ -322,6 +322,10 @@ uint16_t getBatteryVoltage(void) {
     return testBatteryVoltage;
 }
 
+uint16_t getLegacyBatteryVoltage(void) {
+    return (testBatteryVoltage + 5) / 10;
+}
+
 batteryState_e getBatteryState(void) {
     return BATTERY_OK;
 }
