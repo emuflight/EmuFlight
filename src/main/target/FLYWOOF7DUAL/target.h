@@ -39,7 +39,7 @@
 #define GYRO_2_EXTI_PIN         PC4
 #define MPU_INT_EXTI
 
-#define GYRO_1_CS_PIN                       PA4 
+#define GYRO_1_CS_PIN                       PA4
 #define GYRO_1_SPI_INSTANCE                 SPI1
 #define GYRO_2_CS_PIN                       PB2
 #define GYRO_2_SPI_INSTANCE                 SPI1
@@ -62,7 +62,7 @@
 
 #define ACC_ICM20689_2_ALIGN         CW270_DEG
 #define GYRO_ICM20689_2_ALIGN        CW270_DEG
-#define GYRO_2_ALIGN                GYRO_ICM20689_2_ALIGN 
+#define GYRO_2_ALIGN                GYRO_ICM20689_2_ALIGN
 #define ACC_2_ALIGN                 ACC_ICM20689_2_ALIGN
 
 #define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_2
@@ -160,7 +160,6 @@
 #define USE_LED_STRIP
 
 #define USE_ESCSERIAL
-#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff

@@ -40,9 +40,9 @@
 #undef USE_MSP_OVER_TELEMETRY
 
 #undef USE_HUFFMAN
+#endif
 #undef USE_PINIO
 #undef USE_PINIOBOX
-#endif
 
 #undef USE_VIRTUAL_CURRENT_METER
 
@@ -200,8 +200,6 @@
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_PPM
 #define DEFAULT_FEATURES        (FEATURE_TRANSPONDER  | FEATURE_RSSI_ADC | FEATURE_TELEMETRY)
-
-#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 // IO - stm32f303cc in 48pin package
 #define TARGET_IO_PORTA         0xffff

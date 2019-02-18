@@ -35,7 +35,7 @@
 //#undef USE_TELEMETRY_LTM
 //#undef USE_SERIALRX_XBUS
 
-//#undef USE_BOARD_INFO
+#undef USE_BOARD_INFO
 #undef USE_EXTENDED_CMS_MENUS
 //#undef USE_RTC_TIME
 #undef USE_RX_MSP
@@ -118,8 +118,6 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART2
-
-#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 // IO - stm32f303cc in 48pin package
 #define TARGET_IO_PORTA         0xffff

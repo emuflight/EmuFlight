@@ -49,8 +49,9 @@
 
 //#undef USE_TELEMETRY_HOTT
 //#undef USE_TELEMETRY_MAVLINK
-//#undef USE_TELEMETRY_LTM
-//#undef USE_SERIALRX_XBUS
+
+#undef USE_TELEMETRY_LTM
+#undef USE_SERIALRX_XBUS
 #undef USE_SERIALRX_SUMH
 //#undef USE_PWM
 
@@ -244,8 +245,6 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_PPM
 #define DEFAULT_FEATURES        (FEATURE_RSSI_ADC | FEATURE_TELEMETRY)
 #endif
-
-#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 // IO - stm32f303cc in 48pin package
 #define TARGET_IO_PORTA         0xffff

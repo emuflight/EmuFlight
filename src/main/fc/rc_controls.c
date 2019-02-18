@@ -66,7 +66,9 @@
 #include "flight/pid.h"
 #include "flight/failsafe.h"
 
-static pidProfile_t *pidProfile;
+
+// true if arming is done via the sticks (as opposed to a switch)
+static bool isUsingSticksToArm = true;
 
 float rcCommand[4];           // interval [1000;2000] for THROTTLE and [-500;+500] for ROLL/PITCH/YAW
 
@@ -389,7 +391,7 @@ int32_t getRcStickDeflection(int32_t axis, uint16_t midrc) {
     return MIN(ABS(rcData[axis] - midrc), 500);
 }
 
-void useRcControlsConfig(pidProfile_t *pidProfileToUse)
-{
-    pidProfile = pidProfileToUse;
+void rcControlsInit(void) {
+    isUsingSticksToArm = !isModeActivationConditionPresent(BOXARM);
 }
+

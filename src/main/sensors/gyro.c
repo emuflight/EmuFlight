@@ -120,6 +120,7 @@ static FAST_RAM_ZERO_INIT timeUs_t accumulationLastTimeSampledUs;
 
 float FAST_RAM_ZERO_INIT vGyroStdDevModulus;
 
+
 static FAST_RAM_ZERO_INIT int16_t gyroSensorTemperature;
 
 static bool gyroHasOverflowProtection = true;
@@ -1172,12 +1173,14 @@ static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs
 #endif
 
 #ifndef USE_GYRO_IMUF9001
+
     if (gyroDebugMode == DEBUG_NONE) {
         filterGyro(gyroSensor);
     } else {
         filterGyroDebug(gyroSensor);
     }
 #endif // USE_GYRO_IMUF9001
+
 
 #ifdef USE_GYRO_OVERFLOW_CHECK
     if (gyroConfig()->checkOverflow && !gyroHasOverflowProtection) {
@@ -1199,6 +1202,7 @@ static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs
 #endif
 #endif //USE_GYRO_IMUF9001
 
+
 #if (!defined(USE_GYRO_OVERFLOW_CHECK) && !defined(USE_YAW_SPIN_RECOVERY))
     UNUSED(currentTimeUs);
 #endif
@@ -1209,6 +1213,7 @@ FAST_CODE_NOINLINE void gyroDmaSpiFinishRead(void)
 {
     //called by dma callback
     mpuGyroDmaSpiReadFinish(&gyroSensor1.gyroDev);
+
 }
 
 FAST_CODE_NOINLINE void gyroDmaSpiStartRead(void)
@@ -1309,6 +1314,7 @@ FAST_CODE_NOINLINE void gyroUpdate(timeUs_t currentTimeUs)
     yawSpinDetected = gyroSensor1.yawSpinDetected;
 #endif
 #endif
+
 
 
     if (!overflowDetected) {

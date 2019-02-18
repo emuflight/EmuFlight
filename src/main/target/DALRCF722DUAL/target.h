@@ -26,6 +26,7 @@
 
 #define ENABLE_DSHOT_DMAR       true
 #define LED0_PIN                PC14
+#define CAMERA_CONTROL_PIN      PB1
 
 #define USE_BEEPER
 #define BEEPER_PIN              PC13
@@ -148,9 +149,6 @@
 #define DEFAULT_FEATURES                    FEATURE_OSD
 #define SERIALRX_UART                       SERIAL_PORT_USART1
 #define SERIALRX_PROVIDER                   SERIALRX_SBUS
-
-
-#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 
 #define TARGET_IO_PORTA         0xffff

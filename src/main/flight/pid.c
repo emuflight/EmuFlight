@@ -1005,6 +1005,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     }
     DEBUG_SET(DEBUG_ANTI_GRAVITY, 0, lrintf(itermAccelerator * 1000));
 
+
     // gradually scale back integration when above windup point
     const float dynCi = constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f)
         * dT * itermAccelerator;
@@ -1044,6 +1045,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             &currentPidSetpoint, &errorRate);
 
         float dDelta = activePidController(pidProfile, axis, errorRate, dynCi, iDT, currentPidSetpoint);
+
 
         detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, currentTimeUs, dDelta, errorRate);
 

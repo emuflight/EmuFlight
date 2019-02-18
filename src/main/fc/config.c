@@ -25,6 +25,8 @@
 
 #include "platform.h"
 
+#include "blackbox/blackbox.h"
+
 #include "build/debug.h"
 
 #include "config/config_eeprom.h"
@@ -135,8 +137,8 @@ static void activateConfig(void)
     resetAdjustmentStates();
 
     pidInit(currentPidProfile);
-    useRcControlsConfig(currentPidProfile);
-    useAdjustmentConfig(currentPidProfile);
+
+    rcControlsInit();
 
     failsafeReset();
     setAccelerationTrims(&accelerometerConfigMutable()->accZero);
@@ -550,6 +552,20 @@ void validateAndFixGyroConfig(void)
             pidConfigMutable()->pid_process_denom = MAX(pidConfigMutable()->pid_process_denom, minPidProcessDenom);
         }
     }
+
+#ifdef USE_BLACKBOX
+#ifndef USE_FLASHFS
+    if (blackboxConfig()->device == 1) {  // BLACKBOX_DEVICE_FLASH (but not defined)
+        blackboxConfigMutable()->device = BLACKBOX_DEVICE_NONE;
+    }
+#endif // USE_FLASHFS
+
+#ifndef USE_SDCARD
+    if (blackboxConfig()->device == 2) {  // BLACKBOX_DEVICE_SDCARD (but not defined)
+        blackboxConfigMutable()->device = BLACKBOX_DEVICE_NONE;
+    }
+#endif // USE_SDCARD
+#endif // USE_BLACKBOX
 }
 #endif // USE_OSD_SLAVE
 
@@ -618,6 +634,8 @@ void changePidProfile(uint8_t pidProfileIndex)
     if (pidProfileIndex < MAX_PROFILE_COUNT) {
         systemConfigMutable()->pidProfileIndex = pidProfileIndex;
         loadPidProfile();
+
+        pidInit(currentPidProfile);
     }
 
     beeperConfirmationBeeps(pidProfileIndex + 1);

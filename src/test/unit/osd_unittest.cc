@@ -57,7 +57,7 @@ extern "C" {
     void osdRefresh(timeUs_t currentTimeUs);
     void osdFormatTime(char * buff, osd_timer_precision_e precision, timeUs_t time);
     void osdFormatTimer(char *buff, bool showSymbol, int timerIndex);
-    int osdConvertTemperatureToSelectedUnit(int tempInDeciDegrees);
+    int osdConvertTemperatureToSelectedUnit(int tempInDegreesCelcius);
 
     uint16_t rssi;
     attitudeEulerAngles_t attitude;
@@ -439,6 +439,7 @@ TEST(OsdTest, TestAlarms)
     // given
     // default state is set
     setDefualtSimulationState();
+    sensorsSet(SENSOR_GPS);
 
     // and
     // the following OSD elements are visible
@@ -715,9 +716,18 @@ TEST(OsdTest, TestElementAltitude)
 
     // and
     osdConfigMutable()->units = OSD_UNIT_METRIC;
+    sensorsClear(SENSOR_GPS);
 
     // when
     simulationAltitude = 0;
+    displayClearScreen(&testDisplayPort);
+    osdRefresh(simulationTime);
+
+    // then
+    displayPortTestBufferSubstring(23, 7, "-       ");
+
+    // when
+    sensorsSet(SENSOR_GPS);
     displayClearScreen(&testDisplayPort);
     osdRefresh(simulationTime);
 
@@ -937,11 +947,15 @@ TEST(OsdTest, TestConvertTemperatureUnits)
 {
     /* In Celsius */
     osdConfigMutable()->units = OSD_UNIT_METRIC;
-    EXPECT_EQ(osdConvertTemperatureToSelectedUnit(330), 330);
+    EXPECT_EQ(osdConvertTemperatureToSelectedUnit(40), 40);
 
     /* In Fahrenheit */
     osdConfigMutable()->units = OSD_UNIT_IMPERIAL;
-    EXPECT_EQ(osdConvertTemperatureToSelectedUnit(330), 914);
+    EXPECT_EQ(osdConvertTemperatureToSelectedUnit(40), 104);
+
+    /* In Fahrenheit with rounding */
+    osdConfigMutable()->units = OSD_UNIT_IMPERIAL;
+    EXPECT_EQ(osdConvertTemperatureToSelectedUnit(41), 106);
 }
 
 // STUBS

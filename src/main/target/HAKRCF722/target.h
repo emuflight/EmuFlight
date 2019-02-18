@@ -84,7 +84,7 @@
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
 #define FLASH_CS_PIN           PB12
-#define FLASH_SPI_INSTANCE     SPI2          
+#define FLASH_SPI_INSTANCE     SPI2
 
 #define ENABLE_DSHOT_DMAR       true
 
@@ -134,7 +134,6 @@
 
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN PA3
-#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 
 #define TARGET_IO_PORTA         0xffff

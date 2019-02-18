@@ -280,13 +280,15 @@ void performSanityChecks()
 
     previousTimeUs = currentTimeUs;
 
-     // Stalled movement detection
-    static int8_t gsI = 0;
+    if (rescueState.phase == RESCUE_CROSSTRACK) {
+        // Stalled movement detection
+        static int8_t gsI = 0;
 
-    gsI = constrain(gsI + (rescueState.sensor.groundSpeed < 150) ? 1 : -1, -10, 10);
+        gsI = constrain(gsI + (rescueState.sensor.groundSpeed < 150) ? 1 : -1, -10, 10);
 
-    if (gsI == 10) {
-        rescueState.failure = RESCUE_CRASH_DETECTED;
+        if (gsI == 10) {
+            rescueState.failure = RESCUE_CRASH_DETECTED;
+        }
     }
 
     // Minimum sat detection
@@ -314,6 +316,8 @@ void idleTasks()
 {
     // Do not calculate any of the idle task values when we are not flying
     if (!ARMING_FLAG(ARMED)) {
+	rescueState.sensor.maxAltitude = 0;
+        rescueState.sensor.maxDistanceToHome = 0;
         return;
     }
 

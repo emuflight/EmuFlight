@@ -113,7 +113,16 @@
 #define EXTERNAL1_ADC_PIN       PC3
 
 #undef USE_LED_STRIP
+#undef USE_TELEMETRY_LTM
+#undef USE_RC_SMOOTHING_FILTER
+#undef ITERM_RELAX
 
+#undef USE_MSP_DISPLAYPORT
+#undef USE_MSP_OVER_TELEMETRY
+
+#undef USE_HUFFMAN
+#undef USE_PINIO
+#undef USE_PINIOBOX
 // IO - assuming 303 in 64pin package, TODO
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff

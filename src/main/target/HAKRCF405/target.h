@@ -17,7 +17,7 @@
  *
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #pragma once
 
@@ -55,7 +55,7 @@
 #define USE_GYRO
 #define USE_ACC
 
-#define ICM20689_CS_PIN          PA4 
+#define ICM20689_CS_PIN          PA4
 #define ICM20689_SPI_INSTANCE    SPI1
 
 #define USE_GYRO_SPI_ICM20689
@@ -64,7 +64,7 @@
 #define USE_ACC_SPI_ICM20689
 #define ACC_ICM20689_ALIGN       CW270_DEG
 
-#define MPU6000_CS_PIN           PA4 
+#define MPU6000_CS_PIN           PA4
 #define MPU6000_SPI_INSTANCE     SPI1
 
 #define USE_GYRO_SPI_MPU6000
@@ -93,9 +93,9 @@
 #define UART4_RX_PIN            PA1
 #define UART4_TX_PIN            PA0
 
-#define USE_UART5   
-#define UART5_RX_PIN            PD2  
-#define UART5_TX_PIN            PC12  
+#define USE_UART5
+#define UART5_RX_PIN            PD2
+#define UART5_TX_PIN            PC12
 
 #define USE_SOFTSERIAL1
 #define USE_SOFTSERIAL2
@@ -122,20 +122,20 @@
 
 #define USE_SPI_DEVICE_3
 #define SPI3_SCK_PIN            PC10
-#define SPI3_MISO_PIN           PC11 
+#define SPI3_MISO_PIN           PC11
 #define SPI3_MOSI_PIN           PB5
 
 #define USE_OSD
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI3
-#define MAX7456_SPI_CS_PIN      PA15 
+#define MAX7456_SPI_CS_PIN      PA15
 
 #define USE_ADC
 #define ADC1_DMA_STREAM         DMA2_Stream0
 #define VBAT_ADC_PIN            PC1
 #define CURRENT_METER_ADC_PIN   PC2
-#define RSSI_ADC_PIN            PC0  
- 
+#define RSSI_ADC_PIN            PC0
+
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
@@ -143,9 +143,9 @@
 
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN PA3
-#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
-#define INVERTER_PIN_UART1      PB4 
+
+#define INVERTER_PIN_UART1      PB4
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
