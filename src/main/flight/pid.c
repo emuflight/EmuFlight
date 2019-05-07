@@ -828,25 +828,39 @@ void FAST_CODE applySmartFeedforward(int axis)
 
 static FAST_RAM_ZERO_INIT float previousRateError[3];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
-static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
+//static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
+
+#define SIGN(x) ((x > 0.0f) - (x < 0.0f))
 
 // Butterflight pid controller which uses measurement instead of error rate to calculate D
 FAST_CODE float butteredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float iDT, float currentPidSetpoint)
 {
     (void)(pidProfile);
+    (void) iDT;
     (void)(currentPidSetpoint);
     // -----calculate P component
     pidData[axis].P = (pidCoefficient[axis].Kp * errorRate);
 
     // -----calculate I component
-    float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
+    //float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
+    float iterm    = pidData[axis].I;
+    float ITermNew = pidCoefficient[axis].Ki * errorRate * dynCi;
+    if (ITermNew != 0.0f)
+    {
+        if (SIGN(iterm) != SIGN(ITermNew))
+        {
+            iterm *= 0.8f;
+        }
+    }
+
+    iterm = constrainf(iterm + ITermNew, -itermLimit, itermLimit);
     if (!mixerIsOutputSaturated(axis, errorRate) || ABS(iterm) < ABS(pidData[axis].I)) {
         // Only increase ITerm if output is not saturated
         pidData[axis].I = iterm;
     }
 
     // use measurement and apply filters. mmmm gimme that butter.
-    float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], -((gyro.gyroADCf[axis] - previousRateError[axis]) * iDT));
+    float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], -((gyro.gyroADCf[axis] - previousRateError[axis]) * pidFrequency));
     previousRateError[axis] = gyro.gyroADCf[axis];
     pidData[axis].D = (pidCoefficient[axis].Kd * dDelta);
 
@@ -883,7 +897,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 #endif
 
         const float gyroRate = gyro.gyroADCf[axis];
-        const float ITerm = pidData[axis].I;
+        float ITerm = pidData[axis].I;
         float itermErrorRate = errorRate;
 
 #if defined(USE_ITERM_RELAX)
@@ -954,7 +968,17 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
     pidData[axis].P = (pidCoefficient[axis].Kp * errorRate) * getThrottlePIDAttenuation();
 #endif
     // -----calculate I component
-    const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
+   // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
+    float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
+    if (ITermNew != 0.0f)
+    {
+        if (SIGN(ITerm) != SIGN(ITermNew))
+        {
+            ITerm *= 0.8f;
+        }
+    }
+    ITermNew = constrainf(ITerm + ITermNew, -itermLimit, itermLimit);
+
     const bool outputSaturated = mixerIsOutputSaturated(axis, errorRate);
     if (outputSaturated == false || ABS(ITermNew) < ABS(ITerm)) {
         // Only increase ITerm if output is not saturated
@@ -993,10 +1017,10 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 {
     static float previousPidSetpoint[XYZ_AXIS_COUNT];
 
-    const float deltaT = (currentTimeUs - previousTimeUs) * 0.000001f;
-    previousTimeUs = currentTimeUs;
+//    const float deltaT = (currentTimeUs - previousTimeUs) * 0.000001f;
+//    previousTimeUs = currentTimeUs;
     // calculate actual deltaT in seconds
-    const float iDT = 1.0f/deltaT; //divide once
+//    const float iDT = 1.0f/deltaT; //divide once
     // calculate actual deltaT in seconds
     // Dynamic i component,
     if ((antiGravityMode == ANTI_GRAVITY_SMOOTH) && antiGravityEnabled) {
@@ -1044,7 +1068,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             pidProfile->crash_recovery, angleTrim, axis, currentTimeUs, errorRate,
             &currentPidSetpoint, &errorRate);
 
-        float dDelta = activePidController(pidProfile, axis, errorRate, dynCi, iDT, currentPidSetpoint);
+        float dDelta = activePidController(pidProfile, axis, errorRate, dynCi, 0.0f, currentPidSetpoint);
 
 
         detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, currentTimeUs, dDelta, errorRate);
