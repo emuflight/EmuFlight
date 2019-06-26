@@ -1285,7 +1285,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 #ifndef USE_GYRO_IMUF9001
     case MSP_FAST_KALMAN:
         sbufWriteU16(dst, gyroConfig()->gyro_filter_q);
-        sbufWriteU16(dst, gyroConfig()->gyro_filter_r);
+        sbufWriteU16(dst, gyroConfig()->gyro_filter_w);
         break;
 #else
     case MSP_IMUF_CONFIG:
@@ -1854,7 +1854,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
 #ifndef USE_GYRO_IMUF9001
     case MSP_SET_FAST_KALMAN:
         gyroConfigMutable()->gyro_filter_q = sbufReadU16(src);
-        gyroConfigMutable()->gyro_filter_r = sbufReadU16(src);
+        gyroConfigMutable()->gyro_filter_w = sbufReadU16(src);
         break;
 
 #else

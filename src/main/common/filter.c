@@ -29,9 +29,15 @@
 #include "common/maths.h"
 #include "common/utils.h"
 
-#define M_LN2_FLOAT 0.69314718055994530942f
-#define M_PI_FLOAT  3.14159265358979323846f
-#define BIQUAD_Q 1.0f / sqrtf(2.0f)     /* quality factor - 2nd order butterworth*/
+#include "fc/fc_rc.h"
+
+#define M_LN2_FLOAT 	0.69314718055994530942f
+#define M_PI_FLOAT  	3.14159265358979323846f
+#define BIQUAD_Q 		(1.0f / sqrtf(2.0f))     /* quality factor - 2nd order butterworth*/
+
+#define BASE_LPF_HZ    	70.0f
+
+float r_weight = 0.67f;
 
 // NULL filter
 
@@ -46,7 +52,7 @@ FAST_CODE float nullFilterApply(filter_t *filter, float input)
 
 float pt1FilterGain(uint16_t f_cut, float dT)
 {
-    float RC = 1 / ( 2 * M_PI_FLOAT * f_cut);
+    const float RC = 0.5f / (M_PI_FLOAT * f_cut);
     return dT / (RC + dT);
 }
 
@@ -215,48 +221,101 @@ void laggedMovingAverageInit(laggedMovingAverage_t *filter, uint16_t windowSize,
 }
 
 // Proper fast two-state Kalman
-void fastKalmanInit(fastKalman_t *filter, float q, float r)
+void fastKalmanInit(fastKalman_t *filter, float q, uint32_t w, int axis, float updateRate)
 {
-    filter->q     = q * 0.000001f; // add multiplier to make tuning easier
-    filter->r     = r * 0.001f;    // add multiplier to make tuning easier
-    filter->p     = q * 0.001f;    // add multiplier to make tuning easier
-    filter->x     = 0.0f;          // set initial value, can be zero if unknown
-    filter->lastX = 0.0f;          // set initial value, can be zero if unknown
-    filter->k     = 0.0f;          // kalman gain
-}
-
-#ifndef STM32F7
-FAST_CODE float laggedMovingAverageUpdate(laggedMovingAverage_t *filter, float input)
-{
-    filter->movingSum -= filter->buf[filter->movingWindowIndex];
-    filter->buf[filter->movingWindowIndex] = input;
-    filter->movingSum += input;
-
-    if (++filter->movingWindowIndex == filter->windowSize) {
-        filter->movingWindowIndex = 0;
-        filter->primed = true;
+    if ( w > 64)
+    {
+    	w = 64;
     }
 
-    const uint16_t denom = filter->primed ? filter->windowSize : filter->movingWindowIndex;
-    return filter->movingSum  / denom;
+    memset(filter, 0, sizeof(fastKalman_t));
+    filter->q     = q * 0.000001f; // add multiplier to make tuning easier
+    filter->p     = q * 0.001f;    // add multiplier to make tuning easier
+    filter->w     = w;
+    filter->windowSizeInverse = 1.0f/(w - 1);
+    filter->axis = axis;
+
+    // set cutoff frequency
+    const float k = pt1FilterGain(BASE_LPF_HZ, updateRate);
+   	pt1FilterInit(&filter->lp_filter, k);
+   	filter->lp_filter.state = 1.0f;		// e's default value
+   	filter->updateRate = updateRate;
 }
-#endif
+
+#pragma GCC push_options
+#pragma GCC optimize("O3")
 
 FAST_CODE float fastKalmanUpdate(fastKalman_t *filter, float input)
 {
+	static float e;
+
+	const float setPoint = getSetpointRate(filter->axis);
+	const float filteredValue = filter->x;
+
     // project the state ahead using acceleration
     filter->x += (filter->x - filter->lastX);
 
     // update last state
     filter->lastX = filter->x;
 
+    // figure out how much to boost or reduce our error in the estimate based on setPoint target.
+    // this should be close to 0 as we approach the setPoint and really high the further away we are from the setPoint.
+    if (setPoint != 0.0f && filteredValue != 0.0f)
+    {
+        e = ABS(1.0f - (setPoint/filteredValue));
+    }
+    else
+    {
+        e = 1.0f;
+    }
+    //e = pt1FilterApply(&filter->lp_filter, e);
+
     // prediction update
-    filter->p = filter->p + filter->q;
+    filter->p = filter->p + filter->q * e;
 
     // measurement update
-    filter->k = filter->p / (filter->p + filter->r);
-    filter->x += filter->k * (input - filter->x);
-    filter->p = (1.0f - filter->k) * filter->p;
+    const float k = filter->p / (filter->p + filter->r);
+    filter->x += k * (input - filter->x);
+    filter->p = (1.0f - k) * filter->p;
+
+    filter->x = pt1FilterApply(&filter->lp_filter, filter->x);
+
+    // update variance
+    filter->window[filter->windowIndex] = input;
+
+    filter->meanSum += filter->window[filter->windowIndex];
+    filter->varianceSum = filter->varianceSum + (filter->window[filter->windowIndex] * filter->window[filter->windowIndex]);
+
+    filter->windowIndex++;
+    if (filter->windowIndex >= filter->w)
+    {
+        filter->windowIndex = 0;
+    }
+
+    filter->meanSum -= filter->window[filter->windowIndex];
+    filter->varianceSum = filter->varianceSum - (filter->window[filter->windowIndex] * filter->window[filter->windowIndex]);
+
+    filter->mean = filter->meanSum * filter->windowSizeInverse;
+    filter->variance = ABS(filter->varianceSum * filter->windowSizeInverse - (filter->mean * filter->mean));
+    filter->r = sqrtf(filter->variance) * r_weight;
+
+
+    if (isSetpointNew)
+    {
+    	if (setPoint != 0.0f && filter->oldSetPoint != setPoint)
+    	{
+			const float cutoff_frequency = constrain(BASE_LPF_HZ * e, 10.0f, 500.0f);
+		    const float k = pt1FilterGain(cutoff_frequency, filter->updateRate);
+		    pt1FilterUpdateCutoff(&filter->lp_filter, k);
+		    filter->oldSetPoint = setPoint;
+    	}
+    	if (filter->axis == 2)
+    	{
+    		isSetpointNew = false;
+    	}
+    }
 
     return filter->x;
 }
+
+#pragma GCC pop_options

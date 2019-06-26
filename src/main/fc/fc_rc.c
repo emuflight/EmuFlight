@@ -60,9 +60,7 @@ enum {
     THROTTLE_FLAG = 1 << THROTTLE,
 };
 
-#ifdef USE_GYRO_IMUF9001
-    volatile bool isSetpointNew;
-#endif
+volatile bool isSetpointNew;
 
 typedef float (applyRatesFn)(const int axis, float rcCommandf, const float rcCommandfAbs);
 
@@ -651,9 +649,7 @@ FAST_CODE void processRcCommand(void)
         }
 
         DEBUG_SET(DEBUG_RC_INTERPOLATION, 3, setpointRate[0]);
-#ifdef USE_GYRO_IMUF9001
         isSetpointNew = 1;
-#endif
         if (debugMode == DEBUG_RC_INTERPOLATION) {
             debug[2] = rcInterpolationStepCount;
             debug[3] = setpointRate[0];

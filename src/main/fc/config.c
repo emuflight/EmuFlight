@@ -422,13 +422,13 @@ int getImufRateFromGyroSyncDenom(int gyroSyncDenom){
             return IMUF_RATE_32K;
             break;
         case 2:
-        default:
             return IMUF_RATE_16K;
             break;
         case 4:
             return IMUF_RATE_8K;
             break;
         case 8:
+        default:
             return IMUF_RATE_4K;
             break;
         case 16:

@@ -56,6 +56,8 @@
 #include "sensors/acceleration.h"
 
 
+extern float r_weight;
+
 #define ITERM_RELAX_SETPOINT_THRESHOLD 30.0f
 
 const char pidNames[] =
@@ -96,11 +98,11 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 #endif //USE_BUTTERED_PIDS
 
 #ifndef DEFAULT_PIDS_ROLL
-#define DEFAULT_PIDS_ROLL { 40, 40, 20, 60 }
+#define DEFAULT_PIDS_ROLL { 44, 55, 28, 60 }
 #endif //DEFAULT_PIDS_ROLL
 
 #ifndef DEFAULT_PIDS_PITCH
-#define DEFAULT_PIDS_PITCH { 58, 50, 22, 60 }
+#define DEFAULT_PIDS_PITCH { 58, 60, 30, 60 }
 #endif //DEFAULT_PIDS_PITCH
 
 #ifndef DEFAULT_PIDS_YAW
@@ -131,6 +133,8 @@ PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, MAX_PROFILE_COUNT, pidProfiles, PG
 
 void resetPidProfile(pidProfile_t *pidProfile)
 {
+	r_weight = 0.67;
+
     RESET_CONFIG(pidProfile_t, pidProfile,
         .pid = {
             [PID_ROLL] =  DEFAULT_PIDS_ROLL,
@@ -141,18 +145,20 @@ void resetPidProfile(pidProfile_t *pidProfile)
         },
 
         .pidSumLimit = PIDSUM_LIMIT_MAX,
-        .yaw_lowpass_hz = 0,
+        .yaw_lowpass_hz = 30,
         .dterm_lowpass_hz = 65,    // filtering ON by default
         .dterm_lowpass2_hz = 200,   // second Dterm LPF ON by default
-        .dterm_notch_hz = 260,
-        .dterm_notch_cutoff = 160,
-        .dterm_filter_type = FILTER_BIQUAD,
+        .dterm_notch_hz = 0,
+        .dterm_notch_cutoff = 0,
+        .dterm_filter_type = FILTER_PT1,
         .itermWindupPointPercent = 50,
         .vbatPidCompensation = 0,
         .pidAtMinThrottle = PID_STABILISATION_ON,
         .levelAngleLimit = 55,
         .feedForwardTransition = 0,
         .buttered_pids = USE_BUTTERED_PIDS,
+        .i_decay = 2,
+        .r_weight = 67,
         .yawRateAccelLimit = 100,
         .rateAccelLimit = 0,
         .itermThrottleThreshold = 350,
@@ -193,6 +199,8 @@ void pgResetFn_pidProfiles(pidProfile_t *pidProfiles)
         resetPidProfile(&pidProfiles[i]);
     }
 }
+
+extern void init_pwm_filter(float dT);
 
 static void pidSetTargetLooptime(uint32_t pidLooptime)
 {
@@ -252,6 +260,8 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     dtermNotchApplyFn = nullFilterApply;
     dtermLowpassApplyFn = nullFilterApply;
     const uint32_t pidFrequencyNyquist = pidFrequency / 2; // No rounding needed
+
+    r_weight = (float) pidProfile->r_weight / 100.0f;
 
     uint16_t dTermNotchHz;
     if (pidProfile->dterm_notch_hz <= pidFrequencyNyquist) {
@@ -835,7 +845,6 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 // Butterflight pid controller which uses measurement instead of error rate to calculate D
 FAST_CODE float butteredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float iDT, float currentPidSetpoint)
 {
-    (void)(pidProfile);
     (void) iDT;
     (void)(currentPidSetpoint);
     // -----calculate P component
@@ -849,7 +858,11 @@ FAST_CODE float butteredPids(const pidProfile_t *pidProfile, int axis, float err
     {
         if (SIGN(iterm) != SIGN(ITermNew))
         {
-            iterm *= 0.8f;
+        	const float newVal = ITermNew * (float)pidProfile->i_decay;
+        	if (fabs(iterm) > fabs(newVal))
+        	{
+        		ITermNew = newVal;
+        	}
         }
     }
 
@@ -880,7 +893,6 @@ FAST_CODE float butteredPids(const pidProfile_t *pidProfile, int axis, float err
 
 FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float errorRate, float dynCi, float iDT, float currentPidSetpoint)
 {
-    UNUSED(pidProfile);
     UNUSED(iDT);
     UNUSED(currentPidSetpoint);
     float gyroRateDterm[XYZ_AXIS_COUNT];
@@ -974,7 +986,11 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
     {
         if (SIGN(ITerm) != SIGN(ITermNew))
         {
-            ITerm *= 0.8f;
+        	const float newVal = ITermNew * (float)pidProfile->i_decay;
+        	if (fabs(ITerm) > fabs(newVal))
+        	{
+        		ITermNew = newVal;
+        	}
         }
     }
     ITermNew = constrainf(ITerm + ITermNew, -itermLimit, itermLimit);

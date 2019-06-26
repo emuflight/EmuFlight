@@ -61,13 +61,31 @@ typedef enum {
     FILTER_BPF,
 } biquadFilterType_e;
 
-typedef struct fastKalman_s {
+#if (defined(STM32F7) || defined(STM32F4))
+#define MAX_WINDOW_SIZE 256
+#else
+#define MAX_WINDOW_SIZE 64
+#endif
+
+typedef struct kalman_s {
+    uint32_t w;    // window size
     float q;       // process noise covariance
     float r;       // measurement noise covariance
     float p;       // estimation error covariance matrix
-    float k;       // kalman gain
     float x;       // state
     float lastX;   // previous state
+
+    float window[MAX_WINDOW_SIZE];
+    float variance;
+    float varianceSum;
+    float mean;
+    float meanSum;
+    float windowSizeInverse;
+    uint32_t windowIndex;
+    int axis; // for setPoint not being passed during call time
+    pt1Filter_t lp_filter;
+    float oldSetPoint;
+    float updateRate;
 } fastKalman_t;
 
 typedef float (*filterApplyFnPtr)(filter_t *filter, float input);
@@ -82,10 +100,6 @@ void biquadFilterUpdateLPF(biquadFilter_t *filter, float filterFreq, uint32_t re
 float biquadFilterApplyDF1(biquadFilter_t *filter, float input);
 float biquadFilterApply(biquadFilter_t *filter, float input);
 float filterGetNotchQ(float centerFreq, float cutoffFreq);
-#ifndef STM32F7
-void laggedMovingAverageInit(laggedMovingAverage_t *filter, uint16_t windowSize, float *buf);
-float laggedMovingAverageUpdate(laggedMovingAverage_t *filter, float input);
-#endif
 float pt1FilterGain(uint16_t f_cut, float dT);
 void pt1FilterInit(pt1Filter_t *filter, float k);
 void pt1FilterUpdateCutoff(pt1Filter_t *filter, float k);
@@ -94,5 +108,5 @@ float pt1FilterApply(pt1Filter_t *filter, float input);
 void slewFilterInit(slewFilter_t *filter, float slewLimit, float threshold);
 float slewFilterApply(slewFilter_t *filter, float input);
 
-void fastKalmanInit(fastKalman_t *filter, float q, float r);
+void fastKalmanInit(fastKalman_t *filter, float q, uint32_t w, int axis, float updateRate);
 float fastKalmanUpdate(fastKalman_t *filter, float input);

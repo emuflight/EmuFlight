@@ -232,7 +232,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .yaw_spin_recovery = true,
     .yaw_spin_threshold = 1950,
     .imuf_mode = GTBCM_DEFAULT,
-    .imuf_rate = IMUF_RATE_16K,
+    .imuf_rate = IMUF_RATE_4K,
     .imuf_roll_q = IMUF_DEFAULT_ROLL_Q,
     .imuf_pitch_q = IMUF_DEFAULT_PITCH_Q,
     .imuf_yaw_q = IMUF_DEFAULT_YAW_Q,
@@ -240,6 +240,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .imuf_roll_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
     .imuf_pitch_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
     .imuf_yaw_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
+	.imuf_acc_lpf_cutoff_hz = IMUF_DEFAULT_ACC_LPF_HZ,
     .gyro_offset_yaw = 0,
 );
 #else //USE_GYRO_IMUF9001
@@ -252,7 +253,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .gyro_32khz_hardware_lpf = GYRO_32KHZ_HARDWARE_LPF_NORMAL,
     .gyro_lowpass_type = FILTER_KALMAN,
     .gyro_lowpass_hz = 0,
-    .gyro_lowpass2_type = FILTER_BIQUAD,
+    .gyro_lowpass2_type = FILTER_PT1,
     .gyro_lowpass2_hz = 90,
     .gyro_high_fsr = false,
     .gyro_use_32khz = false,
@@ -263,7 +264,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .gyro_soft_notch_cutoff_2 = 0,
     .checkOverflow = GYRO_OVERFLOW_CHECK_ALL_AXES,
     .gyro_filter_q = 400,
-    .gyro_filter_r = 88,
+    .gyro_filter_w = 32,
     .gyro_offset_yaw = 0,
     .yaw_spin_recovery = true,
     .yaw_spin_threshold = 1950,
@@ -759,7 +760,7 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type, uint
         case FILTER_KALMAN:
             *lowpassFilterApplyFn = (filterApplyFnPtr) fastKalmanUpdate;
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                fastKalmanInit(&lowpassFilter[axis].kalmanFilterState, gyroConfig()->gyro_filter_q, gyroConfig()->gyro_filter_r);
+                fastKalmanInit(&lowpassFilter[axis].kalmanFilterState, gyroConfig()->gyro_filter_q, gyroConfig()->gyro_filter_w, axis, gyroDt);
             }
             break;
         }
@@ -1275,9 +1276,9 @@ FAST_CODE_NOINLINE void gyroUpdate(timeUs_t currentTimeUs)
         gyroUpdateSensor(&gyroSensor1, currentTimeUs);
         gyroUpdateSensor(&gyroSensor2, currentTimeUs);
         if (isGyroSensorCalibrationComplete(&gyroSensor1) && isGyroSensorCalibrationComplete(&gyroSensor2)) {
-            gyro.gyroADCf[X] = (gyroSensor1.gyroDev.gyroADCf[X] + gyroSensor2.gyroDev.gyroADCf[X]) / 2.0f;
-            gyro.gyroADCf[Y] = (gyroSensor1.gyroDev.gyroADCf[Y] + gyroSensor2.gyroDev.gyroADCf[Y]) / 2.0f;
-            gyro.gyroADCf[Z] = (gyroSensor1.gyroDev.gyroADCf[Z] + gyroSensor2.gyroDev.gyroADCf[Z]) / 2.0f;
+            gyro.gyroADCf[X] = (gyroSensor1.gyroDev.gyroADCf[X] + gyroSensor2.gyroDev.gyroADCf[X]) * 0.5f;
+            gyro.gyroADCf[Y] = (gyroSensor1.gyroDev.gyroADCf[Y] + gyroSensor2.gyroDev.gyroADCf[Y]) * 0.5f;
+            gyro.gyroADCf[Z] = (gyroSensor1.gyroDev.gyroADCf[Z] + gyroSensor2.gyroDev.gyroADCf[Z]) * 0.5f;
 #ifdef USE_GYRO_OVERFLOW_CHECK
             overflowDetected = gyroSensor1.overflowDetected || gyroSensor2.overflowDetected;
 #endif
@@ -1314,8 +1315,6 @@ FAST_CODE_NOINLINE void gyroUpdate(timeUs_t currentTimeUs)
     yawSpinDetected = gyroSensor1.yawSpinDetected;
 #endif
 #endif
-
-
 
     if (!overflowDetected) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {

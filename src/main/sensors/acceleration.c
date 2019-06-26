@@ -100,7 +100,7 @@ extern bool AccInflightCalibrationActive;
 static flightDynamicsTrims_t *accelerationTrims;
 
 static uint16_t accLpfCutHz = 0;
-static biquadFilter_t accFilter[XYZ_AXIS_COUNT];
+static pt1Filter_t accFilterPt1[XYZ_AXIS_COUNT];
 
 PG_REGISTER_WITH_RESET_FN(accelerometerConfig_t, accelerometerConfig, PG_ACCELEROMETER_CONFIG, 0);
 
@@ -132,7 +132,7 @@ void accResetFlightDynamicsTrims(void)
 void pgResetFn_accelerometerConfig(accelerometerConfig_t *instance)
 {
     RESET_CONFIG_2(accelerometerConfig_t, instance,
-        .acc_lpf_hz = 10,
+        .acc_lpf_hz = 30,
         .acc_align = ALIGN_DEFAULT,
         .acc_hardware = ACC_DEFAULT,
         .acc_high_fsr = false,
@@ -375,9 +375,12 @@ bool accInit(void)
     acc.dev.acc_1G = 256; // set default
     acc.dev.initFn(&acc.dev); // driver initialisation
     // set the acc sampling interval according to the gyro sampling interval
-    if (accLpfCutHz) {
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            biquadFilterInitLPF(&accFilter[axis], accLpfCutHz, DEFAULT_ACC_SAMPLE_INTERVAL);
+    if (accLpfCutHz)
+    {
+    	const float k = pt1FilterGain(accLpfCutHz, 1.0f / (float)DEFAULT_ACC_SAMPLE_INTERVAL);
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++)
+        {
+        	pt1FilterInit(&accFilterPt1[axis], k);
         }
     }
     #ifndef USE_ACC_IMUF9001
@@ -510,7 +513,7 @@ void accUpdate(timeUs_t currentTimeUs, rollAndPitchTrims_t *rollAndPitchTrims)
 
     if (accLpfCutHz) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            acc.accADC[axis] = biquadFilterApply(&accFilter[axis], (float)acc.accADC[axis]);
+            acc.accADC[axis] = pt1FilterApply(&accFilterPt1[axis], (float)acc.accADC[axis]);
         }
     }
 
@@ -558,8 +561,10 @@ void accInitFilters(void)
 {
     accLpfCutHz = accelerometerConfig()->acc_lpf_hz;
     if (accLpfCutHz) {
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            biquadFilterInitLPF(&accFilter[axis], accLpfCutHz, DEFAULT_ACC_SAMPLE_INTERVAL);
+    	const float k = pt1FilterGain(accLpfCutHz, 1.0f / (float)DEFAULT_ACC_SAMPLE_INTERVAL);
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++)
+        {
+        	pt1FilterInit(&accFilterPt1[axis], k);
         }
     }
 }
