@@ -896,8 +896,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 {
     UNUSED(iDT);
     UNUSED(currentPidSetpoint);
-    float gyroRateDterm[XYZ_AXIS_COUNT];
-    static float previousGyroRateDterm[XYZ_AXIS_COUNT];
+
 
     rotateITermAndAxisError();
     // --------low-level gyro-based PID based on 2DOF PID controller. ----------
@@ -1010,20 +1009,20 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
     float gyroRateFiltered = dtermNotchApplyFn((filter_t *) &dtermNotch[axis], gyroRate);
     if (pidProfile->dterm_filter_style == KD_FILTER_CLASSIC)
         {
-            gyroRateFiltered = dtermLpfApplyFn(dtermFilterLpf[axis], gyroRateFiltered);
+            gyroRateFiltered = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis],gyroRateFiltered);
         }
 
-        float setpointT = flightModeFlags ? 0.0f : dtermSetpointWeight * MIN(getRcDeflectionAbs(axis) * relaxFactor, 1.0f);
+        float setpointT = flightModeFlags ? 0.0f : 0 * MIN(getRcDeflectionAbs(axis) * 1.0f, 1.0f);
         float ornD = setpointT * currentPidSetpoint - gyroRateFiltered;
         float dDelta = 0.0f;
         switch (pidProfile->dterm_filter_style) {
             case KD_FILTER_SP:
                 //filter Kd properly along with sp
-                dDelta = dtermLpfApplyFn(dtermFilterLpf[axis], (ornD - previousRateError[axis]) * iDT );
+                dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * iDT );
                 break;
             case KD_FILTER_NOSP:
                 ornD = setpointT * getSetpointRate(axis) - gyroRateFiltered;    // cr - y
-                dDelta = dtermLpfApplyFn(dtermFilterLpf[axis], (ornD - previousRateError[axis]) * iDT );
+                dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * iDT );
                 //filter Kd properly, no sp
                 break;
             case KD_FILTER_CLASSIC:
@@ -1033,9 +1032,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
         }
         previousRateError[axis] = ornD;
 
-        axisPID_D[axis] = Kd[axis] * dDelta;
-
-
+if (pidCoefficient[axis].Kd > 0) {
         // Divide rate change by dT to get differential (ie dr/dt).
         // dT is fixed and calculated from the target PID loop time
         // This is done to avoid DTerm spikes that occur with dynamically
@@ -1043,15 +1040,14 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
         // loop execution to be delayed.
 
 #ifdef USE_TPA_CURVES
-        pidData[axis].D = pidCoefficient[axis].Kd * delta * getThrottlePIDAttenuationKd();
+        pidData[axis].D = pidCoefficient[axis].Kd * dDelta * getThrottlePIDAttenuationKd();
 #else
-        pidData[axis].D = pidCoefficient[axis].Kd * delta * getThrottlePIDAttenuation();
+        pidData[axis].D = pidCoefficient[axis].Kd * dDelta * getThrottlePIDAttenuation();
 #endif
     } else {
         pidData[axis].D = 0;
     }
-    previousgyroRateFiltered[axis] = gyroRateFiltered[axis];
-    return delta;
+    return dDelta;
 }
 
 void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs)
