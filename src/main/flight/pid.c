@@ -151,6 +151,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_notch_hz = 0,
         .dterm_notch_cutoff = 0,
         .dterm_filter_type = FILTER_PT1,
+        .dterm_filter_style = KD_FILTER_NOSP,
         .itermWindupPointPercent = 50,
         .vbatPidCompensation = 0,
         .pidAtMinThrottle = PID_STABILISATION_ON,
@@ -1006,10 +1007,34 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
     }
 
     // -----calculate D component
-    gyroRateDterm[axis] = dtermNotchApplyFn((filter_t *) &dtermNotch[axis], gyroRate);
-    gyroRateDterm[axis] = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], gyroRateDterm[axis]);
-    const float delta = - (gyroRateDterm[axis] - previousGyroRateDterm[axis]) * pidFrequency;
-    if (pidCoefficient[axis].Kd > 0) {
+    float gyroRateFiltered = dtermNotchApplyFn((filter_t *) &dtermNotch[axis], gyroRate);
+    if (pidProfile->dterm_filter_style == KD_FILTER_CLASSIC)
+        {
+            gyroRateFiltered = dtermLpfApplyFn(dtermFilterLpf[axis], gyroRateFiltered);
+        }
+
+        float setpointT = flightModeFlags ? 0.0f : dtermSetpointWeight * MIN(getRcDeflectionAbs(axis) * relaxFactor, 1.0f);
+        float ornD = setpointT * currentPidSetpoint - gyroRateFiltered;
+        float dDelta = 0.0f;
+        switch (pidProfile->dterm_filter_style) {
+            case KD_FILTER_SP:
+                //filter Kd properly along with sp
+                dDelta = dtermLpfApplyFn(dtermFilterLpf[axis], (ornD - previousRateError[axis]) * iDT );
+                break;
+            case KD_FILTER_NOSP:
+                ornD = setpointT * getSetpointRate(axis) - gyroRateFiltered;    // cr - y
+                dDelta = dtermLpfApplyFn(dtermFilterLpf[axis], (ornD - previousRateError[axis]) * iDT );
+                //filter Kd properly, no sp
+                break;
+            case KD_FILTER_CLASSIC:
+            default:
+                dDelta = (ornD - previousRateError[axis]) * iDT;
+                break;
+        }
+        previousRateError[axis] = ornD;
+
+        axisPID_D[axis] = Kd[axis] * dDelta;
+
 
         // Divide rate change by dT to get differential (ie dr/dt).
         // dT is fixed and calculated from the target PID loop time
@@ -1025,7 +1050,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
     } else {
         pidData[axis].D = 0;
     }
-    previousGyroRateDterm[axis] = gyroRateDterm[axis];
+    previousgyroRateFiltered[axis] = gyroRateFiltered[axis];
     return delta;
 }
 

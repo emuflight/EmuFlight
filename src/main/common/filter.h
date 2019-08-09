@@ -61,6 +61,12 @@ typedef enum {
     FILTER_BPF,
 } biquadFilterType_e;
 
+typedef enum {
+    KD_FILTER_CLASSIC = 0,
+    KD_FILTER_SP,
+    KD_FILTER_NOSP,
+} kdFilterStyle_e;
+
 #if (defined(STM32F7) || defined(STM32F4))
 #define MAX_WINDOW_SIZE 256
 #else
