@@ -71,7 +71,7 @@ typedef struct kalman_s {
     uint32_t w;    // window size
     float q;       // process noise covariance
     float r;       // measurement noise covariance
-    float p;       // estimation error covariance matrix
+    float k;       // gain factor
     float x;       // state
     float lastX;   // previous state
 
