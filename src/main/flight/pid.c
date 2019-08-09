@@ -158,7 +158,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .levelAngleLimit = 55,
         .feedForwardTransition = 0,
         .buttered_pids = USE_BUTTERED_PIDS,
-        .i_decay = 2,
+        .i_decay = 4,
         .r_weight = 67,
         .yawRateAccelLimit = 100,
         .rateAccelLimit = 0,
