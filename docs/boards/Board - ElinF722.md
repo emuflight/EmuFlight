@@ -2,7 +2,7 @@
 
 ## Hardware Features
 * MCU
-    - STM32F405
+    - STM32F722
 * IMU
     - ICM-20602
 * Motor Outputs
@@ -28,4 +28,4 @@
     - Boot
 
 ## Pinouts
-![Elin F405 Pinout](images/ElinF405_pinout.jpg)
+![Elin F722 Pinout](images/ElinF722_pinout.jpg)
