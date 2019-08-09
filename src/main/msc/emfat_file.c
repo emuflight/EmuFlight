@@ -40,7 +40,7 @@
 static const char autorun_file[] =
     "[autorun]\r\n"
     "icon=icon.ico\r\n"
-    "label=ButterFlight Onboard Flash\r\n" ;
+    "label=EmuFlight Onboard Flash\r\n" ;
 #define AUTORUN_SIZE (sizeof(autorun_file) - 1)
 #define EMFAT_INCR_AUTORUN 1
 #else

@@ -39,7 +39,7 @@ addons:
       - $(ls obj/*.hex | tr "\n" ":")
       - $(ls obj/*.bin | tr "\n" ":")
     target_paths:
-      - /$TRAVIS_BUILD_NUMBER/Butterflight/
+      - /$TRAVIS_BUILD_NUMBER/Emuflight/
 
 
 # We use cpp for unit tests, and c for the main project.
