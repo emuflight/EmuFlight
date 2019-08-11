@@ -131,6 +131,12 @@ PG_RESET_TEMPLATE(pidConfig_t, pidConfig,
 
 PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, MAX_PROFILE_COUNT, pidProfiles, PG_PID_PROFILE, 5);
 
+typedef float (*pidControllerFn)(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
+
+float butteredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
+float classicPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
+
+
 void resetPidProfile(pidProfile_t *pidProfile)
 {
 	r_weight = 0.67;
@@ -402,8 +408,6 @@ void pidResetITerm(void)
     }
 }
 
-float butteredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float iDT, float currentPidSetpoint);
-float classicPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float iDT, float currentPidSetpoint);
 
 #ifdef USE_ACRO_TRAINER
 static FAST_RAM_ZERO_INIT float acroTrainerAngleLimit;
@@ -844,9 +848,8 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 #define SIGN(x) ((x > 0.0f) - (x < 0.0f))
 
 // Butterflight pid controller which uses measurement instead of error rate to calculate D
-FAST_CODE float butteredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float iDT, float currentPidSetpoint)
+FAST_CODE float butteredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint)
 {
-    (void) iDT;
     (void)(currentPidSetpoint);
     // -----calculate P component
     pidData[axis].P = (pidCoefficient[axis].Kp * errorRate);
@@ -892,9 +895,8 @@ FAST_CODE float butteredPids(const pidProfile_t *pidProfile, int axis, float err
 // Betaflight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
 // Based on 2DOF reference design (matlab)
 
-FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float errorRate, float dynCi, float iDT, float currentPidSetpoint)
+FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint)
 {
-    UNUSED(iDT);
     UNUSED(currentPidSetpoint);
 
 
@@ -1018,16 +1020,16 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
         switch (pidProfile->dterm_filter_style) {
             case KD_FILTER_SP:
                 //filter Kd properly along with sp
-                dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * iDT );
+                dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * pidFrequency );
                 break;
             case KD_FILTER_NOSP:
                 ornD = setpointT * getSetpointRate(axis) - gyroRateFiltered;    // cr - y
-                dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * iDT );
+                dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * pidFrequency );
                 //filter Kd properly, no sp
                 break;
             case KD_FILTER_CLASSIC:
             default:
-                dDelta = (ornD - previousRateError[axis]) * iDT;
+                dDelta = (ornD - previousRateError[axis]) * pidFrequency;
                 break;
         }
         previousRateError[axis] = ornD;
@@ -1105,7 +1107,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             pidProfile->crash_recovery, angleTrim, axis, currentTimeUs, errorRate,
             &currentPidSetpoint, &errorRate);
 
-        float dDelta = activePidController(pidProfile, axis, errorRate, dynCi, 0.0f, currentPidSetpoint);
+        float dDelta = activePidController(pidProfile, axis, errorRate, dynCi, currentPidSetpoint);
 
 
         detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, currentTimeUs, dDelta, errorRate);

@@ -151,8 +151,6 @@ typedef struct pidProfile_s {
     uint8_t abs_control_error_limit;        // Limit to the accumulated error
 } pidProfile_t;
 
-typedef float (*pidControllerFn)(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float iDT, float currentPidSetpoint);
-
 #ifndef USE_OSD_SLAVE
 PG_DECLARE_ARRAY(pidProfile_t, MAX_PROFILE_COUNT, pidProfiles);
 #endif
