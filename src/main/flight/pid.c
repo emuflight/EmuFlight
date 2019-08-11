@@ -94,19 +94,19 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 #endif
 
 #ifndef USE_BUTTERED_PIDS
-#define USE_BUTTERED_PIDS false
+#define USE_BUTTERED_PIDS true
 #endif //USE_BUTTERED_PIDS
 
 #ifndef DEFAULT_PIDS_ROLL
-#define DEFAULT_PIDS_ROLL { 44, 55, 28, 60 }
+#define DEFAULT_PIDS_ROLL { 44, 55, 28, 0 }
 #endif //DEFAULT_PIDS_ROLL
 
 #ifndef DEFAULT_PIDS_PITCH
-#define DEFAULT_PIDS_PITCH { 58, 60, 30, 60 }
+#define DEFAULT_PIDS_PITCH { 58, 60, 30, 0 }
 #endif //DEFAULT_PIDS_PITCH
 
 #ifndef DEFAULT_PIDS_YAW
-#define DEFAULT_PIDS_YAW { 55, 45, 5, 60 }
+#define DEFAULT_PIDS_YAW { 55, 45, 5, 0 }
 #endif //DEFAULT_PIDS_YAW
 
 #ifdef USE_RUNAWAY_TAKEOFF
@@ -151,12 +151,12 @@ void resetPidProfile(pidProfile_t *pidProfile)
         },
 
         .pidSumLimit = PIDSUM_LIMIT_MAX,
-        .yaw_lowpass_hz = 30,
+        .yaw_lowpass_hz = 0,
         .dterm_lowpass_hz = 65,    // filtering ON by default
         .dterm_lowpass2_hz = 200,   // second Dterm LPF ON by default
         .dterm_notch_hz = 0,
         .dterm_notch_cutoff = 0,
-        .dterm_filter_type = FILTER_PT1,
+        .dterm_filter_type = FILTER_BIQUAD,
         .dterm_filter_style = KD_FILTER_NOSP,
         .itermWindupPointPercent = 50,
         .vbatPidCompensation = 0,
