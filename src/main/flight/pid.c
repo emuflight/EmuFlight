@@ -1014,8 +1014,8 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
             gyroRateFiltered = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis],gyroRateFiltered);
         }
 
-        float setpointT = flightModeFlags ? 0.0f : 0 * MIN(getRcDeflectionAbs(axis) * 1.0f, 1.0f);
-        float ornD = setpointT * currentPidSetpoint - gyroRateFiltered;
+//        float setpointT = flightModeFlags ? 0.0f : 0 * MIN(getRcDeflectionAbs(axis) * 1.0f, 1.0f);
+        float ornD = /*setpointT **/ currentPidSetpoint - gyroRateFiltered;
         float dDelta = 0.0f;
         switch (pidProfile->dterm_filter_style) {
             case KD_FILTER_SP:
@@ -1023,7 +1023,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
                 dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * pidFrequency );
                 break;
             case KD_FILTER_NOSP:
-                ornD = setpointT * getSetpointRate(axis) - gyroRateFiltered;    // cr - y
+                ornD = getSetpointRate(axis) - gyroRateFiltered;    // cr - y
                 dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * pidFrequency );
                 //filter Kd properly, no sp
                 break;
@@ -1056,10 +1056,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 {
     static float previousPidSetpoint[XYZ_AXIS_COUNT];
 
-//    const float deltaT = (currentTimeUs - previousTimeUs) * 0.000001f;
-//    previousTimeUs = currentTimeUs;
-    // calculate actual deltaT in seconds
-//    const float iDT = 1.0f/deltaT; //divide once
     // calculate actual deltaT in seconds
     // Dynamic i component,
     if ((antiGravityMode == ANTI_GRAVITY_SMOOTH) && antiGravityEnabled) {
