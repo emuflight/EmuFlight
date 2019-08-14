@@ -23,9 +23,9 @@
 #include "common/utils.h"
 
 #define FC_FIRMWARE_NAME            "EmuFlight"
-#define FC_VERSION_MAJOR            3  // increment when a major release is made (big new feature, etc)
-#define FC_VERSION_MINOR            6  // increment when a minor release is made (small new feature, change etc)
-#define FC_VERSION_PATCH_LEVEL      8  // increment when a bug is fixed
+#define FC_VERSION_MAJOR            0  // increment when a major release is made (big new feature, etc)
+#define FC_VERSION_MINOR            0  // increment when a minor release is made (small new feature, change etc)
+#define FC_VERSION_PATCH_LEVEL      1  // increment A testing version is out
 
 
 #define FC_VERSION_STRING STR(FC_VERSION_MAJOR) "." STR(FC_VERSION_MINOR) "." STR(FC_VERSION_PATCH_LEVEL)
