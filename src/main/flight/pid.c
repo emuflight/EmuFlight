@@ -157,7 +157,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_notch_hz = 0,
         .dterm_notch_cutoff = 0,
         .dterm_filter_type = FILTER_BIQUAD,
-        .dterm_filter_style = KD_FILTER_NOSP,
         .itermWindupPointPercent = 50,
         .vbatPidCompensation = 0,
         .pidAtMinThrottle = PID_STABILISATION_ON,
@@ -1009,29 +1008,13 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 
     // -----calculate D component
     float gyroRateFiltered = dtermNotchApplyFn((filter_t *) &dtermNotch[axis], gyroRate);
-    if (pidProfile->dterm_filter_style == KD_FILTER_CLASSIC)
-        {
-            gyroRateFiltered = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis],gyroRateFiltered);
-        }
 
 //        float setpointT = flightModeFlags ? 0.0f : 0 * MIN(getRcDeflectionAbs(axis) * 1.0f, 1.0f);
         float ornD = /*setpointT **/ currentPidSetpoint - gyroRateFiltered;
         float dDelta = 0.0f;
-        switch (pidProfile->dterm_filter_style) {
-            case KD_FILTER_SP:
-                //filter Kd properly along with sp
-                dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * pidFrequency );
-                break;
-            case KD_FILTER_NOSP:
-                ornD = getSetpointRate(axis) - gyroRateFiltered;    // cr - y
-                dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * pidFrequency );
-                //filter Kd properly, no sp
-                break;
-            case KD_FILTER_CLASSIC:
-            default:
-                dDelta = (ornD - previousRateError[axis]) * pidFrequency;
-                break;
-        }
+        //filter Kd properly, no sp
+        ornD = getSetpointRate(axis) - gyroRateFiltered;    // cr - y
+        dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * pidFrequency );
         previousRateError[axis] = ornD;
 
 if (pidCoefficient[axis].Kd > 0) {

@@ -277,11 +277,6 @@ static const char * const lookupTableFilterType[] = {
     "KALMAN"
 };
 
-static const char * const lookupTableKdStyle[] = {
-    "KD_FILTER_CLASSIC", "KD_FILTER_SP", "KD_FILTER_NOSP"
-};
-
-
 static const char * const lookupTableAntiGravityMode[] = {
     "SMOOTH",
     "STEP",
@@ -439,7 +434,6 @@ const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableRcInterpolation),
     LOOKUP_TABLE_ENTRY(lookupTableRcInterpolationChannels),
     LOOKUP_TABLE_ENTRY(lookupTableFilterType),
-    LOOKUP_TABLE_ENTRY(lookupTableKdStyle),
     LOOKUP_TABLE_ENTRY(lookupTableAntiGravityMode),
     LOOKUP_TABLE_ENTRY(lookupTableFailsafe),
     LOOKUP_TABLE_ENTRY(lookupTableFailsafeSwitchMode),
@@ -830,7 +824,6 @@ const clivalue_t valueTable[] = {
 
 // PG_PID_PROFILE
     { "dterm_lowpass_type",         VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_FILTER_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter_type) },
-    { "dterm_filter_style",         VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_KD_STYLE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter_style) },
     { "dterm_lowpass_hz",           VAR_INT16  | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lowpass_hz) },
     { "dterm_lowpass2_hz",          VAR_INT16  | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lowpass2_hz) },
     { "dterm_notch_hz",             VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_notch_hz) },
