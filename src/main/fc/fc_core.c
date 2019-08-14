@@ -546,7 +546,8 @@ static bool airmodeIsActivated;
 
 bool isAirmodeActivated()
 {
-    return airmodeIsActivated;
+	return false;
+    //return airmodeIsActivated;
 }
 
 

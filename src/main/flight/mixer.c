@@ -808,6 +808,32 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs, uint8_t vbatPidCompensa
         motorMix[i] = mix;
     }
 
+    static uint32_t _count = 1;
+    static uint32_t _loop  = 0;
+    if (motorMixMin < 0.0f)
+    {
+    	_loop++;
+    	if (_loop %= 100)
+    	{
+    		if (_count < 200)
+    		{
+    			_count++;
+    		}
+    	}
+    	float delta = -motorMixMin * _count;
+    	delta = MIN(delta, 0.1f);
+    	motorMixMax -= motorMixMin;
+    	motorMixMin = 0.0f;
+        for (int i = 0; i < motorCount; i++)
+        {
+             motorMix[i] += delta;
+        }
+    }
+    else
+    {
+    	_count = 1;
+    }
+
         pidUpdateAntiGravityThrottleFilter(throttle);
     
 #if defined(USE_THROTTLE_BOOST)
