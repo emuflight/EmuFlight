@@ -93,9 +93,9 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 #define PID_PROCESS_DENOM_DEFAULT       2
 #endif
 
-#ifndef USE_BUTTERED_PIDS
-#define USE_BUTTERED_PIDS true
-#endif //USE_BUTTERED_PIDS
+#ifndef USE_FEATHERED_PIDS
+#define USE_FEATHERED_PIDS true
+#endif //USE_FEATHERY_PIDS
 
 #ifndef DEFAULT_PIDS_ROLL
 #define DEFAULT_PIDS_ROLL { 44, 55, 28, 0 }
@@ -133,7 +133,7 @@ PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, MAX_PROFILE_COUNT, pidProfiles, PG
 
 typedef float (*pidControllerFn)(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
 
-float butteredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
+float featheredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
 float classicPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
 
 
@@ -162,7 +162,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .pidAtMinThrottle = PID_STABILISATION_ON,
         .levelAngleLimit = 55,
         .feedForwardTransition = 0,
-        .buttered_pids = USE_BUTTERED_PIDS,
+        .feathered_pids = USE_FEATHERED_PIDS,
         .i_decay = 4,
         .r_weight = 67,
         .yawRateAccelLimit = 100,
@@ -483,7 +483,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     itermRelaxCutoff = pidProfile->iterm_relax_cutoff;
 #endif
 
-    activePidController = (pidProfile->buttered_pids ? butteredPids : classicPids);
+    activePidController = (pidProfile->feathered_pids ? featheredPids : classicPids);
 #ifdef USE_ACRO_TRAINER
     acroTrainerAngleLimit = pidProfile->acro_trainer_angle_limit;
     acroTrainerLookaheadTime = (float)pidProfile->acro_trainer_lookahead_ms / 1000.0f;
@@ -846,8 +846,8 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 #define SIGN(x) ((x > 0.0f) - (x < 0.0f))
 
-// Butterflight pid controller which uses measurement instead of error rate to calculate D
-FAST_CODE float butteredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint)
+// EmuFlight pid controller which uses measurement instead of error rate to calculate D
+FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint)
 {
     (void)(currentPidSetpoint);
     // -----calculate P component
@@ -875,7 +875,7 @@ FAST_CODE float butteredPids(const pidProfile_t *pidProfile, int axis, float err
         pidData[axis].I = iterm;
     }
 
-    // use measurement and apply filters. mmmm gimme that butter.
+    // uUse measurement and apply filters for D. Mmmm gimme that feather.
     float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], -((gyro.gyroADCf[axis] - previousRateError[axis]) * pidFrequency));
     previousRateError[axis] = gyro.gyroADCf[axis];
     pidData[axis].D = (pidCoefficient[axis].Kd * dDelta);

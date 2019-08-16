@@ -861,7 +861,7 @@ const clivalue_t valueTable[] = {
     { "acro_trainer_gain",          VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 25, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, acro_trainer_gain) },
 #endif // USE_ACRO_TRAINER
 
-    { "buttered_pids",              VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, buttered_pids) },
+    { "feathered_pids",              VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, feathered_pids) },
     { "i_decay",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 1, 10 },   PG_PID_PROFILE, offsetof(pidProfile_t, i_decay) },
     { "r_weight",                   VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 1, 200 },  PG_PID_PROFILE, offsetof(pidProfile_t, r_weight) },
     { "p_pitch",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].P) },

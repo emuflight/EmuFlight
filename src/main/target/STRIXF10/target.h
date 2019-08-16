@@ -197,7 +197,7 @@
  #define IMUF_DEFAULT_LPF_HZ   120.0f
  #define IMUF_DEFAULT_ACC_LPF_HZ   40.0f
 
- #define USE_BUTTERED_PIDS true
+ #define USE_FEATHERED_PIDS true
 
  #define DEFAULT_PIDS_ROLL   {45, 50, 20, 0}
  #define DEFAULT_PIDS_PITCH  {45, 50, 20, 0}
