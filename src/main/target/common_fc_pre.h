@@ -226,5 +226,4 @@
 #define USE_UNCOMMON_MIXERS
 #define USE_SIGNATURE
 #define USE_ABSOLUTE_CONTROL
-#define USE_TPA_CURVES
 #endif

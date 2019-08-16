@@ -47,9 +47,3 @@ int rcSmoothingGetValue(int whichValue);
 bool rcSmoothingAutoCalculate(void);
 bool rcSmoothingInitializationComplete(void);
 #endif
-
-#if defined(USE_TPA_CURVES)
-float getThrottlePIDAttenuationKp(void);
-float getThrottlePIDAttenuationKi(void);
-float getThrottlePIDAttenuationKd(void);
-#endif

@@ -879,15 +879,8 @@ FAST_CODE float butteredPids(const pidProfile_t *pidProfile, int axis, float err
     float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], -((gyro.gyroADCf[axis] - previousRateError[axis]) * pidFrequency));
     previousRateError[axis] = gyro.gyroADCf[axis];
     pidData[axis].D = (pidCoefficient[axis].Kd * dDelta);
-
-#if defined(USE_TPA_CURVES)
-    pidData[axis].P = pidData[axis].P * getThrottlePIDAttenuationKp();
-    pidData[axis].I = pidData[axis].I * getThrottlePIDAttenuationKi();
-    pidData[axis].D = pidData[axis].D * getThrottlePIDAttenuationKd();
-#else
     pidData[axis].P = pidData[axis].P * getThrottlePIDAttenuation();
     pidData[axis].D = pidData[axis].D * getThrottlePIDAttenuation();
-#endif
     return dDelta;
 }
 
@@ -975,11 +968,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 #endif
 
         // -----calculate P component and add Dynamic Part based on stick input
-#ifdef USE_TPA_CURVES
-    pidData[axis].P = (pidCoefficient[axis].Kp * errorRate) * getThrottlePIDAttenuationKp();
-#else
     pidData[axis].P = (pidCoefficient[axis].Kp * errorRate) * getThrottlePIDAttenuation();
-#endif
     // -----calculate I component
    // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
     float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
@@ -999,11 +988,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
     const bool outputSaturated = mixerIsOutputSaturated(axis, errorRate);
     if (outputSaturated == false || ABS(ITermNew) < ABS(ITerm)) {
         // Only increase ITerm if output is not saturated
-#ifdef USE_TPA_CURVES
-        pidData[axis].I = ITermNew * getThrottlePIDAttenuationKi();
-#else
         pidData[axis].I = ITermNew;
-#endif
     }
 
     // -----calculate D component
@@ -1023,12 +1008,7 @@ if (pidCoefficient[axis].Kd > 0) {
         // This is done to avoid DTerm spikes that occur with dynamically
         // calculated deltaT whenever another task causes the PID
         // loop execution to be delayed.
-
-#ifdef USE_TPA_CURVES
-        pidData[axis].D = pidCoefficient[axis].Kd * dDelta * getThrottlePIDAttenuationKd();
-#else
         pidData[axis].D = pidCoefficient[axis].Kd * dDelta * getThrottlePIDAttenuation();
-#endif
     } else {
         pidData[axis].D = 0;
     }
