@@ -59,8 +59,7 @@ void rcModeUpdate(boxBitmask_t *newState)
 }
 
 bool isAirmodeActive(void) {
-	return false;
-//    return (IS_RC_MODE_ACTIVE(BOXAIRMODE) || feature(FEATURE_AIRMODE));
+    return (IS_RC_MODE_ACTIVE(BOXAIRMODE) || feature(FEATURE_AIRMODE));
 }
 
 bool isRangeActive(uint8_t auxChannelIndex, const channelRange_t *range) {
