@@ -163,7 +163,6 @@ typedef enum {
     OSD_WARNING_ESC_FAIL,
     OSD_WARNING_CORE_TEMPERATURE,
     OSD_WARNING_RC_SMOOTHING,
-    OSD_WARNING_LAUNCH_CONTROL,
     OSD_WARNING_COUNT // MUST BE LAST
 } osdWarningsFlags_e;
 
@@ -209,3 +208,5 @@ void osdStatSetState(uint8_t statIndex, bool enabled);
 bool osdStatGetState(uint8_t statIndex);
 void osdWarnSetState(uint8_t warningIndex, bool enabled);
 bool osdWarnGetState(uint8_t warningIndex);
+
+
