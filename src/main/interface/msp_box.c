@@ -95,6 +95,7 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT] = {
     { BOXPARALYZE, "PARALYZE", 45 },
     { BOXGPSRESCUE, "GPS RESCUE", 46 },
     { BOXACROTRAINER, "ACRO TRAINER", 47 },
+    { BOXLAUNCHCONTROL, "LAUNCH CONTROL", 48 },
 };
 
 // mask of enabled IDs, calculated on startup based on enabled features. boxId_e is used as bit index
@@ -296,6 +297,10 @@ void initActiveBoxIds(void)
         BME(BOXACROTRAINER);
     }
 #endif // USE_ACRO_TRAINER
+
+#ifdef USE_LAUNCH_CONTROL
+    BME(BOXLAUNCHCONTROL);
+#endif
 
 #undef BME
     // check that all enabled IDs are in boxes array (check may be skipped when using findBoxById() functions)
