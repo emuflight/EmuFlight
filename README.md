@@ -93,9 +93,9 @@ Origins for this fork (Thanks!):
 * **Sambas** (for the original STM32F4 port), and
 * **Marinus** (for forking IMUF thus beginning EmuFlight).
 
-The Betaflight Configurator is forked from Cleanflight Configurator and its origins.
+The EmuFlight Configurator is forked from Betaflight Configurator and its origins.
 
-Origins for Betaflight Configurator:
+Origins for EmuFlight Configurator:
 * **Dominic Clifton** (for Cleanflight configurator), and
 * **ctn** (for the original Configurator).
 
