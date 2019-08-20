@@ -129,7 +129,7 @@ PG_RESET_TEMPLATE(pidConfig_t, pidConfig,
 
 #define ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF 15  // The anti gravity throttle highpass filter cutoff
 
-PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, MAX_PROFILE_COUNT, pidProfiles, PG_PID_PROFILE, 5);
+PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, MAX_PROFILE_COUNT, pidProfiles, PG_PID_PROFILE, 6);
 
 typedef float (*pidControllerFn)(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
 
@@ -196,6 +196,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .abs_control_limit = 90,
         .abs_control_error_limit = 20,
         .antiGravityMode = ANTI_GRAVITY_SMOOTH,
+        .use_integrated_yaw = false,
+        .integrated_yaw_relax = 200,
     );
 }
 
@@ -397,6 +399,11 @@ static FAST_RAM_ZERO_INIT float acLimit;
 static FAST_RAM_ZERO_INIT float acErrorLimit;
 #endif
 
+#ifdef USE_INTEGRATED_YAW_CONTROL
+static FAST_RAM_ZERO_INIT bool useIntegratedYaw;
+static FAST_RAM_ZERO_INIT uint8_t integratedYawRelax;
+#endif
+
 void pidResetITerm(void)
 {
     for (int axis = 0; axis < 3; axis++) {
@@ -495,6 +502,11 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     acGain = (float)pidProfile->abs_control_gain;
     acLimit = (float)pidProfile->abs_control_limit;
     acErrorLimit = (float)pidProfile->abs_control_error_limit;
+#endif
+
+#ifdef USE_INTEGRATED_YAW_CONTROL
+    useIntegratedYaw = pidProfile->use_integrated_yaw;
+    integratedYawRelax = pidProfile->integrated_yaw_relax;
 #endif
 }
 
@@ -1119,7 +1131,16 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             pidData[axis].Sum = 0;
         }
         // calculating the PID sum
-        pidData[axis].Sum = pidData[axis].P + pidData[axis].I + pidData[axis].D + pidData[axis].F;
+        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + pidData[axis].F;
+#ifdef USE_INTEGRATED_YAW_CONTROL
+        if (axis == FD_YAW && useIntegratedYaw) {
+            pidData[axis].Sum += pidSum * dT * 100.0f;
+            pidData[axis].Sum -= pidData[axis].Sum * integratedYawRelax / 100000.0f * dT / 0.000125f;
+        } else
+#endif
+        {
+            pidData[axis].Sum = pidSum;
+        }
     }
 }
 
