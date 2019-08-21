@@ -62,9 +62,9 @@ typedef enum {
 } biquadFilterType_e;
 
 #if (defined(STM32F7) || defined(STM32F4))
-#define MAX_WINDOW_SIZE 256
+#define MAX_WINDOW_SIZE 512
 #else
-#define MAX_WINDOW_SIZE 64
+#define MAX_WINDOW_SIZE 512
 #endif
 
 typedef struct kalman_s {

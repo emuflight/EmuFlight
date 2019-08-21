@@ -514,7 +514,7 @@ typedef struct saCmdQueue_s {
 } saCmdQueue_t;
 
 #define SA_QSIZE 6     // 1 heartbeat (GetSettings) + 2 commands + 1 slack
-#define SA_AKK_MACH2_QSIZE 4     
+#define SA_AKK_MACH2_QSIZE 4
 
 static saCmdQueue_t sa_queue[SA_QSIZE];
 static saCmdQueue_t sa_akk_mach2_queue[SA_AKK_MACH2_QSIZE];
@@ -612,9 +612,6 @@ static void saDoDevSetFreq(uint16_t freq)
         switchBuf[6] = CRC8(switchBuf, 6);
 
         saQueueCmd(switchBuf, 7);
-
-        // need to do a 'get' between the 'set' commands to keep tracking vars in sync
-        saGetSettings();
     }
 
     saQueueCmd(buf, 7);

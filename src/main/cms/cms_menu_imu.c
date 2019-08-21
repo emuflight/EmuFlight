@@ -57,7 +57,7 @@
 static uint8_t tmpPidProfileIndex;
 static uint8_t pidProfileIndex;
 static char pidProfileIndexString[] = " p";
-static uint8_t buttered_pids;
+static uint8_t feathered_pids;
 static uint8_t i_decay;
 static uint8_t r_weight;
 static uint8_t tempPid[3][3];
@@ -120,7 +120,7 @@ static long cmsx_PidRead(void)
 {
 
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
-    buttered_pids = pidProfile->buttered_pids;
+    feathered_pids = pidProfile->feathered_pids;
     i_decay = pidProfile->i_decay;
     r_weight = pidProfile->r_weight;
     for (uint8_t i = 0; i < 3; i++) {
@@ -147,7 +147,7 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
 
     pidProfile_t *pidProfile = currentPidProfile;
     for (uint8_t i = 0; i < 3; i++) {
-        pidProfile->buttered_pids = buttered_pids;
+        pidProfile->feathered_pids = feathered_pids;
         pidProfile->pid[i].P = tempPid[i][0];
         pidProfile->pid[i].I = tempPid[i][1];
         pidProfile->pid[i].D = tempPid[i][2];
@@ -164,7 +164,7 @@ static OSD_Entry cmsx_menuPidEntries[] =
 {
     { "-- PID --", OME_Label, NULL, pidProfileIndexString, 0},
 
-    { "BUTTERED", OME_TAB, NULL, &(OSD_TAB_t){ &buttered_pids, 1, cms_offOnLabels }, 0 },
+    { "FEATHERED", OME_TAB, NULL, &(OSD_TAB_t){ &feathered_pids, 1, cms_offOnLabels }, 0 },
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
     { "ROLL  D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][2],  0, 200, 1 }, 0 },
@@ -245,8 +245,8 @@ static OSD_Entry cmsx_menuRateProfileEntries[] =
 
     { "THR MID",     OME_UINT8,  NULL, &(OSD_UINT8_t) { &rateProfile.thrMid8,           0,  100,  1}, 0 },
     { "THR EXPO",    OME_UINT8,  NULL, &(OSD_UINT8_t) { &rateProfile.thrExpo8,          0,  100,  1}, 0 },
-    { "THRPID ATT",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrPID,         0,  100,  1, 10}, 0 },
-    { "TPA BRKPT",   OME_UINT16, NULL, &(OSD_UINT16_t){ &rateProfile.tpa_breakpoint, 1000, 2000, 10}, 0 },
+    { "TPA RATE",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrPID,         0,  100,  1, 10}, 0 },
+    { "TPA BREAKPOINT",   OME_UINT16, NULL, &(OSD_UINT16_t){ &rateProfile.tpa_breakpoint, 1000, 2000, 10}, 0 },
 
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }
@@ -396,7 +396,7 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "GYRO NF2",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_2,     0, 500, 1 }, 0 },
     { "GYRO NF2C",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_2, 0, 500, 1 }, 0 },
     #ifndef USE_GYRO_IMUF9001
-    { "KALMAN Q",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_filter_q,            0, 16000, 1 }, 0 },
+    { "KALMAN Q",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_filter_q,            0, 160, 1 }, 0 },
     { "KALMAN W",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_filter_w,            3, 64, 1 }, 0 },
     #endif
     { "BACK", OME_Back, NULL, NULL, 0 },
@@ -441,7 +441,7 @@ static long cmsx_menuImuf_onEnter(void)
     gyroConfig_imuf_roll_lpf_cutoff_hz = gyroConfig()->imuf_roll_lpf_cutoff_hz;
     gyroConfig_imuf_yaw_lpf_cutoff_hz = gyroConfig()->imuf_yaw_lpf_cutoff_hz;
     gyroConfig_imuf_acc_lpf_cutoff_hz = gyroConfig()->imuf_acc_lpf_cutoff_hz;
-    
+
     return 0;
 }
 #endif
@@ -476,7 +476,7 @@ static OSD_Entry cmsx_menuImufEntries[] =
     { "PITCH LPF", OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_lpf_cutoff_hz, 0, 450,    1 }, 0 },
     { "YAW LPF",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_lpf_cutoff_hz,   0, 450,    1 }, 0 },
     { "IMUF ACC",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_acc_lpf_cutoff_hz,   0, 450,    1 }, 0 },
-    
+
 	{ "BACK",        OME_Back,            NULL,   NULL,             0},
     { "SAVE&REBOOT", OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVEREBOOT, 0},
     { NULL, OME_END, NULL, NULL, 0 }

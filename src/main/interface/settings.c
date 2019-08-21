@@ -316,12 +316,6 @@ static const char * const lookupTableRatesType[] = {
     "BETAFLIGHT", "RACEFLIGHT"
 };
 
-#ifdef USE_TPA_CURVES
-static const char * const lookupTableTPACurveType[] = {
-    "BREAKPOINT", "POINT_CURVE"
-};
-#endif
-
 #ifdef USE_OVERCLOCK
 static const char * const lookupOverclock[] = {
     "OFF",
@@ -452,9 +446,6 @@ const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableGyroOverflowCheck),
 #endif
     LOOKUP_TABLE_ENTRY(lookupTableRatesType),
-#ifdef USE_TPA_CURVES
-    LOOKUP_TABLE_ENTRY(lookupTableTPACurveType),
-#endif
 #ifdef USE_OVERCLOCK
     LOOKUP_TABLE_ENTRY(lookupOverclock),
 #endif
@@ -523,8 +514,8 @@ const clivalue_t valueTable[] = {
     { "imuf_yaw_lpf_cutoff_hz",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 450   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_yaw_lpf_cutoff_hz) },
     { "imuf_acc_lpf_cutoff_hz",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 180   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_acc_lpf_cutoff_hz) },
 #else
-    { "gyro_filter_q",              VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_filter_q) },
-    { "gyro_filter_w",              VAR_UINT16 | MASTER_VALUE, .config.minmax = { 3, 64 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_filter_w) },
+    { "gyro_filter_q",              VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 160 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_filter_q) },
+    { "gyro_filter_w",              VAR_UINT16 | MASTER_VALUE, .config.minmax = { 3, 512 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_filter_w) },
 #endif
 #ifdef USE_GYRO_OVERFLOW_CHECK
     { "gyro_overflow_detect",       VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO_OVERFLOW_CHECK }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, checkOverflow) },
@@ -759,9 +750,6 @@ const clivalue_t valueTable[] = {
     { "throttle_limit_type",        VAR_UINT8  | PROFILE_RATE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_THROTTLE_LIMIT_TYPE }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, throttle_limit_type) },
     { "throttle_limit_percent",     VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 25, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, throttle_limit_percent) },
 
-#if defined(USE_TPA_CURVES)
-    { "tpa_type",                   VAR_UINT8  | PROFILE_RATE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RATES_TYPE }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, tpaCurveType) },
-#endif
 // PG_SERIAL_CONFIG
     { "reboot_character",           VAR_UINT8  | MASTER_VALUE, .config.minmax = { 48, 126 }, PG_SERIAL_CONFIG, offsetof(serialConfig_t, reboot_character) },
     { "serial_update_rate_hz",      VAR_UINT16 | MASTER_VALUE, .config.minmax = { 100, 2000 }, PG_SERIAL_CONFIG, offsetof(serialConfig_t, serial_update_rate_hz) },
@@ -873,7 +861,7 @@ const clivalue_t valueTable[] = {
     { "acro_trainer_gain",          VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 25, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, acro_trainer_gain) },
 #endif // USE_ACRO_TRAINER
 
-    { "buttered_pids",              VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, buttered_pids) },
+    { "feathered_pids",              VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, feathered_pids) },
     { "i_decay",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 1, 10 },   PG_PID_PROFILE, offsetof(pidProfile_t, i_decay) },
     { "r_weight",                   VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 1, 200 },  PG_PID_PROFILE, offsetof(pidProfile_t, r_weight) },
     { "p_pitch",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].P) },
@@ -902,6 +890,11 @@ const clivalue_t valueTable[] = {
     { "abs_control_gain",           VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { 0, 20 }, PG_PID_PROFILE, offsetof(pidProfile_t, abs_control_gain) },
     { "abs_control_limit",          VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { 10, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, abs_control_limit) },
     { "abs_control_error_limit",    VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { 1, 45 }, PG_PID_PROFILE, offsetof(pidProfile_t, abs_control_error_limit) },
+#endif
+
+#ifdef USE_INTEGRATED_YAW_CONTROL
+    { "use_integrated_yaw",    VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = {TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, use_integrated_yaw) },
+    { "integrated_yaw_relax",    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, integrated_yaw_relax) },
 #endif
 
 
