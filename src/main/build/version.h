@@ -28,6 +28,7 @@
 #define FC_VERSION_PATCH_LEVEL      6  // increment when a bug is fixed
 
 
+
 #define FC_VERSION_STRING STR(FC_VERSION_MAJOR) "." STR(FC_VERSION_MINOR) "." STR(FC_VERSION_PATCH_LEVEL)
 
 extern const char* const targetName;
