@@ -891,8 +891,9 @@ FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float er
     float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], -((gyro.gyroADCf[axis] - previousRateError[axis]) * pidFrequency));
     previousRateError[axis] = gyro.gyroADCf[axis];
     pidData[axis].D = (pidCoefficient[axis].Kd * dDelta);
-    pidData[axis].P = pidData[axis].P * getThrottlePIDAttenuation();
-    pidData[axis].D = pidData[axis].D * getThrottlePIDAttenuation();
+    pidData[axis].P = pidData[axis].P * getThrottlePAttenuation() * getSetpointPAttenuation(axis);
+    pidData[axis].I = pidData[axis].I * getThrottleIAttenuation() * getSetpointIAttenuation(axis);
+    pidData[axis].D = pidData[axis].D * getThrottleDAttenuation() * getSetpointDAttenuation(axis);
     return dDelta;
 }
 
@@ -980,7 +981,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 #endif
 
         // -----calculate P component and add Dynamic Part based on stick input
-    pidData[axis].P = (pidCoefficient[axis].Kp * errorRate) * getThrottlePIDAttenuation();
+    pidData[axis].P = (pidCoefficient[axis].Kp * errorRate) * getThrottlePAttenuation() * getSetpointPAttenuation(axis);
     // -----calculate I component
    // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
     float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
@@ -1002,6 +1003,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
         // Only increase ITerm if output is not saturated
         pidData[axis].I = ITermNew;
     }
+pidData[axis].I = pidData[axis].I * getThrottleIAttenuation() * getSetpointIAttenuation(axis);
 
     // -----calculate D component
     float gyroRateFiltered = dtermNotchApplyFn((filter_t *) &dtermNotch[axis], gyroRate);
@@ -1020,7 +1022,7 @@ if (pidCoefficient[axis].Kd > 0) {
         // This is done to avoid DTerm spikes that occur with dynamically
         // calculated deltaT whenever another task causes the PID
         // loop execution to be delayed.
-        pidData[axis].D = pidCoefficient[axis].Kd * dDelta * getThrottlePIDAttenuation();
+        pidData[axis].D = pidCoefficient[axis].Kd * dDelta * getThrottleDAttenuation() * getSetpointDAttenuation(axis);
     } else {
         pidData[axis].D = 0;
     }
