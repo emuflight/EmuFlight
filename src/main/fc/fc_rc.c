@@ -195,6 +195,7 @@ float applyRaceFlightRates(const int axis, float rcCommandf, const float rcComma
     return angleRate;
 }
 
+int32_t maxRate(int axis);
 #ifdef RATES_TYPE_BETAFLIGHT // calculate the max rate
     const float expof = currentControlRateProfile->rcExpo[axis] / 100.0f;
     rcCommandf = 500 * power3(500) * expof + 500 * (1 - expof);
@@ -719,40 +720,40 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
         }
 
     int32_t rateP;
-       if (getSetpointRate = 0){
+       if (rcCommand == 0){
           rateP=100;
           setpointPAttenuation = 1.0f;
        } else {
            if (currentControlRateProfile->dynSetpP > 100){
-              rateP = 100 + ((uint16_t)currentControlRateProfile->dynSetpP - 100) * (getSetpointRate / maxRate[axis]);
+              rateP = 100 + ((uint16_t)currentControlRateProfile->dynSetpP - 100) * (getSetpointRateInt / maxRate);
            } else {
-              rateP = 100 - (100 - (uint16_t)currentControlRateProfile->dynSetpP) * (getSetpointRate / maxRate[axis]);
+              rateP = 100 - (100 - (uint16_t)currentControlRateProfile->dynSetpP) * (getSetpointRateInt / maxRate);
            }
                     setpointPAttenuation = rateP / 100.0f;
     }
 
     int32_t rateI;
-       if (getSetpointRate = 0){
+       if (rcCommand == 0){
           rateI=100;
           setpointIAttenuation = 1.0f;
        } else {
            if (currentControlRateProfile->dynSetpI > 100){
-              rateI = 100 + ((uint16_t)currentControlRateProfile->dynSetpI - 100) * (getSetpointRate / maxRate[axis]);
+              rateI = 100 + ((uint16_t)currentControlRateProfile->dynSetpI - 100) * (getSetpointRateInt / maxRate);
            } else {
-              rateI = 100 - (100 - (uint16_t)currentControlRateProfile->dynSetpI) * (getSetpointRate / maxRate[axis]);
+              rateI = 100 - (100 - (uint16_t)currentControlRateProfile->dynSetpI) * (getSetpointRateInt / maxRate);
            }
                     setpointIAttenuation = rateI / 100.0f;
     }
 
     int32_t rateD;
-        if (getSetpointRate = 0){
+        if (rcCommand == 0){
           rateP=100;
           setpointPAttenuation = 1.0f;
        } else {
           if (currentControlRateProfile->dynSetpD > 100){
-              rateD = 100 + ((uint16_t)currentControlRateProfile->dynSetpD - 100) * (getSetpointRate / maxRate[axis]);
+              rateD = 100 + ((uint16_t)currentControlRateProfile->dynSetpD - 100) * (getSetpointRateInt / maxRate);
            } else {
-              rateD = 100 - (100 - (uint16_t)currentControlRateProfile->dynSetpD) * (getSetpointRate / maxRate[axis]);
+              rateD = 100 - (100 - (uint16_t)currentControlRateProfile->dynSetpD) * (getSetpointRateInt / maxRate);
            }
                     setpointDAttenuation = rateD / 100.0f;
     }
