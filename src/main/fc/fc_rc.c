@@ -646,13 +646,40 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
             propP = 100;
             throttlePAttenuation = 1.0f;
         } else {
-            if (currentControlRateProfile->dynThrP < 100) {
-                prop = 100 - (uint16_t)currentControlRateProfile->dynThrP * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+            if ((uint16_t)currentControlRateProfile->dynThrP > 100) {
+                propP = 100 + ((uint16_t)currentControlRateProfile->dynThrP-100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             } else {
-                prop = 100 - currentControlRateProfile->dynThrP;
+                propP = 100 - (100-currentControlRateProfile->dynThrP) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             }
-            throttlePIDAttenuation = prop / 100.0f;
+            throttlePAttenuation = propP / 100.0f;
         }
+
+    int32_t propI;
+        if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
+            propI = 100;
+            throttlePAttenuation = 1.0f;
+        } else {
+            if ((uint16_t)currentControlRateProfile->dynThrI > 100) {
+                propI = 100 + ((uint16_t)currentControlRateProfile->dynThrI-100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+            } else {
+                propI = 100 - (100-currentControlRateProfile->dynThrI) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+            }
+            throttleIAttenuation = propI / 100.0f;
+        }
+
+    int32_t propD;
+        if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
+            propD = 100;
+            throttlePAttenuation = 1.0f;
+        } else {
+            if ((uint16_t)currentControlRateProfile->dynThrD > 100) {
+                propD = 100 + ((uint16_t)currentControlRateProfile->dynThrD-100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+            } else {
+                propD = 100 - (100-currentControlRateProfile->dynThrD) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+            }
+            throttleDAttenuation = propD / 100.0f;
+        }
+
 
     for (int axis = 0; axis < 3; axis++) {
         // non coupled PID reduction scaler used in PID controller 1 and PID controller 2.
