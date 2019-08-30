@@ -67,7 +67,9 @@ typedef float (applyRatesFn)(const int axis, float rcCommandf, const float rcCom
 static float rcDeflection[3], rcDeflectionAbs[3];
 static volatile float setpointRate[3];
 static volatile uint32_t setpointRateInt[3];
-static float throttlePIDAttenuation;
+static float throttlePAttenuation;
+static float throttleIAttenuation;
+static float throttleDAttenuation;
 static bool reverseMotors = false;
 static applyRatesFn *applyRates;
 
@@ -116,9 +118,19 @@ float getRcDeflectionAbs(int axis)
     return rcDeflectionAbs[axis];
 }
 
-float getThrottlePIDAttenuation(void)
+float getThrottlePAttenuation(void)
 {
-    return throttlePIDAttenuation;
+    return throttlePAttenuation;
+}
+
+float getThrottleIAttenuation(void)
+{
+    return throttleIAttenuation;
+}
+
+float getThrottleDAttenuation(void)
+{
+    return throttleDAttenuation;
 }
 
 #define THROTTLE_LOOKUP_LENGTH 12
@@ -629,15 +641,15 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
 {
     isRXDataNew = true;
     // PITCH & ROLL only dynamic PID adjustment,  depending on throttle value
-    int32_t prop;
+    int32_t propP;
         if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
-            prop = 100;
-            throttlePIDAttenuation = 1.0f;
+            propP = 100;
+            throttlePAttenuation = 1.0f;
         } else {
-            if (rcData[THROTTLE] < 2000) {
-                prop = 100 - (uint16_t)currentControlRateProfile->dynThrPID * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+            if (currentControlRateProfile->dynThrP < 100) {
+                prop = 100 - (uint16_t)currentControlRateProfile->dynThrP * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             } else {
-                prop = 100 - currentControlRateProfile->dynThrPID;
+                prop = 100 - currentControlRateProfile->dynThrP;
             }
             throttlePIDAttenuation = prop / 100.0f;
         }

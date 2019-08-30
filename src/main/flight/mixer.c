@@ -407,7 +407,7 @@ void initEscEndpoints(void)
         break;
     }
 
-    rcCommandThrottleRange = PWM_RANGE_MAX - rxConfig()->mincheck;
+    rcCommandThrottleRange = PWM_RANGE_MAX - PWM_RANGE_MIN;
 }
 
 void mixerInit(mixerMode_e mixerMode)
@@ -619,7 +619,7 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs)
             pidResetITerm();
         }
     } else {
-        throttle = rcCommand[THROTTLE] - rxConfig()->mincheck + throttleAngleCorrection;
+        throttle = rcCommand[THROTTLE] - PWM_RANGE_MIN + throttleAngleCorrection;
         currentThrottleInputRange = rcCommandThrottleRange;
         motorRangeMin = motorOutputLow;
         motorRangeMax = motorOutputHigh;
@@ -677,14 +677,14 @@ static void applyFlipOverAfterCrashModeToMotors(void)
                 signPitch*currentMixer[i].pitch +
                 signRoll*currentMixer[i].roll +
                 signYaw*currentMixer[i].yaw;
-                
+
             if (motorOutput < 0) {
                 if (mixerConfig()->crashflip_motor_percent > 0) {
                     motorOutput = -motorOutput * (float)mixerConfig()->crashflip_motor_percent / 100.0f;
                 } else {
                     motorOutput = disarmMotorOutput;
                 }
-            } 
+            }
             motorOutput = MIN(1.0f, flipPower * motorOutput);
             motorOutput = motorOutputMin + motorOutput * motorOutputRange;
 
@@ -785,7 +785,7 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs, uint8_t vbatPidCompensa
     // 50% throttle provides the maximum authority for yaw recovery when airmode is not active.
     // When airmode is active the throttle setting doesn't impact recovery authority.
     if (gyroYawSpinDetected() && !isAirmodeActive()) {
-        throttle = 0.5f;   // 
+        throttle = 0.5f;   //
     }
 #endif // USE_YAW_SPIN_RECOVERY
 
@@ -809,7 +809,7 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs, uint8_t vbatPidCompensa
     }
 
         pidUpdateAntiGravityThrottleFilter(throttle);
-    
+
 #if defined(USE_THROTTLE_BOOST)
     if (throttleBoost > 0.0f) {
         const float throttleHpf = throttle - pt1FilterApply(&throttleLpf, throttle);

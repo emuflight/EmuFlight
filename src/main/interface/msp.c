@@ -960,7 +960,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         for (int i = 0 ; i < 3; i++) {
             sbufWriteU8(dst, currentControlRateProfile->rates[i]); // R,P,Y see flight_dynamics_index_t
         }
-        sbufWriteU8(dst, currentControlRateProfile->dynThrPID);
+        sbufWriteU8(dst, currentControlRateProfile->dynThrP);
+        sbufWriteU8(dst, currentControlRateProfile->dynThrI);
+        sbufWriteU8(dst, currentControlRateProfile->dynThrD);
         sbufWriteU8(dst, currentControlRateProfile->thrMid8);
         sbufWriteU8(dst, currentControlRateProfile->thrExpo8);
         sbufWriteU16(dst, currentControlRateProfile->tpa_breakpoint);
@@ -1673,7 +1675,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             }
 
             value = sbufReadU8(src);
-            currentControlRateProfile->dynThrPID = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
+            currentControlRateProfile->dynThrP = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
+            currentControlRateProfile->dynThrI = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
+            currentControlRateProfile->dynThrD = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
             currentControlRateProfile->thrMid8 = sbufReadU8(src);
             currentControlRateProfile->thrExpo8 = sbufReadU8(src);
             currentControlRateProfile->tpa_breakpoint = sbufReadU16(src);
