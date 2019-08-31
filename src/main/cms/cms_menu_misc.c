@@ -128,6 +128,7 @@ static OSD_Entry menuMiscEntries[]=
     { "DEBUG MODE",   OME_TAB,     NULL,          &(OSD_TAB_t) { &systemConfig_debug_mode, DEBUG_COUNT - 1, debugModeNames },      0 },
     { "RC PREV",      OME_Submenu, cmsMenuChange, &cmsx_menuRcPreview, 0},
 
+    { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0},
     { NULL, OME_END, NULL, NULL, 0}
 };

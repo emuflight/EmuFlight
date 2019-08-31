@@ -26,25 +26,42 @@
 
 #define LED0_PIN                PB0
 #define USE_BEEPER
-#define BEEPER_PIN                  PB4
+#define BEEPER_PIN              PB4
 #define BEEPER_INVERTED
 
 //define camera control
-#define CAMERA_CONTROL_PIN PB3
+#define CAMERA_CONTROL_PIN      PB3
 
+#define USE_DUAL_GYRO
 #define USE_EXTI
 #define MPU_INT_EXTI            PC4
 #define USE_MPU_DATA_READY_SIGNAL
+
+#define GYRO_1_EXTI_PIN         PC4
+#define GYRO_2_EXTI_PIN         PC14
+#define GYRO_1_CS_PIN           PA4
+#define GYRO_1_SPI_INSTANCE     SPI1
+#define GYRO_2_CS_PIN           PC13
+#define GYRO_2_SPI_INSTANCE     SPI1
+
+#define ACC_MPU6000_1_ALIGN         CW0_DEG
+#define GYRO_MPU6000_1_ALIGN        CW0_DEG
+#define GYRO_1_ALIGN                GYRO_MPU6000_1_ALIGN
+#define ACC_1_ALIGN                 ACC_MPU6000_1_ALIGN
+
+#define ACC_MPU6500_2_ALIGN         CW90_DEG
+#define GYRO_MPU6500_2_ALIGN        CW90_DEG
+#define GYRO_2_ALIGN                GYRO_MPU6500_2_ALIGN
+#define ACC_2_ALIGN                 ACC_MPU6500_2_ALIGN
+
+#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
+
 //MPU-6000
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
 
-#define GYRO_MPU6000_ALIGN      CW0_DEG
-#define ACC_MPU6000_ALIGN       CW0_DEG
-#define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
 
 // ICM-20602
 #define USE_ACC_MPU6500
@@ -52,10 +69,6 @@
 #define USE_GYRO_MPU6500
 #define USE_GYRO_SPI_MPU6500
 
-#define ACC_MPU6500_ALIGN       CW0_DEG
-#define GYRO_MPU6500_ALIGN      CW0_DEG
-#define MPU6500_CS_PIN          SPI1_NSS_PIN
-#define MPU6500_SPI_INSTANCE    SPI1
 
 #define USE_MAG
 #define USE_MAG_HMC5883
@@ -149,4 +162,3 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT      6
 #define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(4)  )
-

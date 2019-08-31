@@ -868,7 +868,7 @@ FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float er
     // -----calculate I component
     //float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
     float iterm    = pidData[axis].I;
-    float ITermNew = pidCoefficient[axis].Ki * errorRate * dynCi * getThrottleIAttenuation();
+    float ITermNew = pidCoefficient[axis].Ki * errorRate * dynCi;
     if (ITermNew != 0.0f)
     {
         if (SIGN(iterm) != SIGN(ITermNew))
@@ -891,8 +891,6 @@ FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float er
     float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], -((gyro.gyroADCf[axis] - previousRateError[axis]) * pidFrequency));
     previousRateError[axis] = gyro.gyroADCf[axis];
     pidData[axis].D = (pidCoefficient[axis].Kd * dDelta);
-    pidData[axis].P = pidData[axis].P * getThrottlePAttenuation();
-    pidData[axis].D = pidData[axis].D * getThrottleDAttenuation();
     return dDelta;
 }
 
@@ -980,10 +978,10 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 #endif
 
         // -----calculate P component and add Dynamic Part based on stick input
-    pidData[axis].P = (pidCoefficient[axis].Kp * errorRate) * getThrottlePAttenuation();
+    pidData[axis].P = (pidCoefficient[axis].Kp * errorRate);
     // -----calculate I component
    // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
-    float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi * getThrottleIAttenuation();
+    float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
     if (ITermNew != 0.0f)
     {
         if (SIGN(ITerm) != SIGN(ITermNew))
@@ -1020,7 +1018,7 @@ if (pidCoefficient[axis].Kd > 0) {
         // This is done to avoid DTerm spikes that occur with dynamically
         // calculated deltaT whenever another task causes the PID
         // loop execution to be delayed.
-        pidData[axis].D = pidCoefficient[axis].Kd * dDelta * getThrottleDAttenuation();
+        pidData[axis].D = pidCoefficient[axis].Kd * dDelta;
     } else {
         pidData[axis].D = 0;
     }
@@ -1130,8 +1128,8 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
             pidData[axis].Sum = 0;
         }
-        // calculating the PID sum
-        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + pidData[axis].F;
+        // calculating the PID sum and TPA
+        const float pidSum = (pidData[axis].P * getThrottlePAttenuation()) + (pidData[axis].I * getThrottleIAttenuation()) + (pidData[axis].D * getThrottleDAttenuation()) + pidData[axis].F;
 #ifdef USE_INTEGRATED_YAW_CONTROL
         if (axis == FD_YAW && useIntegratedYaw) {
             pidData[axis].Sum += pidSum * dT * 100.0f;
