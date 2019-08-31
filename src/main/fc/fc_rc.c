@@ -647,7 +647,7 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
             throttlePAttenuation = 1.0f;
         } else {
             if ((uint16_t)currentControlRateProfile->dynThrP > 100) {
-                propP = 100 + ((uint16_t)currentControlRateProfile->dynThrP-100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+                propP = 100 + ((uint16_t)currentControlRateProfile->dynThrP - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             } else {
                 propP = 100 - (100-currentControlRateProfile->dynThrP) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             }
@@ -657,10 +657,10 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
     int32_t propI;
         if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
             propI = 100;
-            throttlePAttenuation = 1.0f;
+            throttleIAttenuation = 1.0f;
         } else {
             if ((uint16_t)currentControlRateProfile->dynThrI > 100) {
-                propI = 100 + ((uint16_t)currentControlRateProfile->dynThrI-100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+                propI = 100 + ((uint16_t)currentControlRateProfile->dynThrI - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             } else {
                 propI = 100 - (100-currentControlRateProfile->dynThrI) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             }
@@ -670,10 +670,10 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
     int32_t propD;
         if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
             propD = 100;
-            throttlePAttenuation = 1.0f;
+            throttleDAttenuation = 1.0f;
         } else {
             if ((uint16_t)currentControlRateProfile->dynThrD > 100) {
-                propD = 100 + ((uint16_t)currentControlRateProfile->dynThrD-100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+                propD = 100 + ((uint16_t)currentControlRateProfile->dynThrD - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             } else {
                 propD = 100 - (100-currentControlRateProfile->dynThrD) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             }

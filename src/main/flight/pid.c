@@ -180,7 +180,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .horizon_tilt_effect = 75,
         .horizon_tilt_expert_mode = false,
         .crash_limit_yaw = 200,
-        .itermLimit = 150,
+        .itermLimit = 400,
         .throttle_boost = 5,
         .throttle_boost_cutoff = 15,
         .iterm_rotation = true,
@@ -868,7 +868,7 @@ FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float er
     // -----calculate I component
     //float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
     float iterm    = pidData[axis].I;
-    float ITermNew = pidCoefficient[axis].Ki * errorRate * dynCi;
+    float ITermNew = pidCoefficient[axis].Ki * errorRate * dynCi * getThrottleIAttenuation();
     if (ITermNew != 0.0f)
     {
         if (SIGN(iterm) != SIGN(ITermNew))
@@ -887,12 +887,11 @@ FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float er
         pidData[axis].I = iterm;
     }
 
-    // uUse measurement and apply filters for D. Mmmm gimme that feather.
+    // uUse measurement and apply filters for D. Mmmm gimme that Emu.
     float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], -((gyro.gyroADCf[axis] - previousRateError[axis]) * pidFrequency));
     previousRateError[axis] = gyro.gyroADCf[axis];
     pidData[axis].D = (pidCoefficient[axis].Kd * dDelta);
     pidData[axis].P = pidData[axis].P * getThrottlePAttenuation();
-    pidData[axis].I = pidData[axis].I * getThrottleIAttenuation();
     pidData[axis].D = pidData[axis].D * getThrottleDAttenuation();
     return dDelta;
 }
@@ -984,7 +983,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
     pidData[axis].P = (pidCoefficient[axis].Kp * errorRate) * getThrottlePAttenuation();
     // -----calculate I component
    // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
-    float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
+    float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi * getThrottleIAttenuation();
     if (ITermNew != 0.0f)
     {
         if (SIGN(ITerm) != SIGN(ITermNew))
@@ -1001,7 +1000,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
     const bool outputSaturated = mixerIsOutputSaturated(axis, errorRate);
     if (outputSaturated == false || ABS(ITermNew) < ABS(ITerm)) {
         // Only increase ITerm if output is not saturated
-        pidData[axis].I = ITermNew* getThrottleIAttenuation();
+        pidData[axis].I = ITermNew;
     }
 
     // -----calculate D component
