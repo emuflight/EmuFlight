@@ -60,6 +60,7 @@ static char pidProfileIndexString[] = " p";
 static uint8_t feathered_pids;
 static uint8_t i_decay;
 static uint8_t r_weight;
+static uint8_t setpointBoost;
 static uint8_t tempPid[3][3];
 static uint16_t tempPidF[3];
 
@@ -123,6 +124,7 @@ static long cmsx_PidRead(void)
     feathered_pids = pidProfile->feathered_pids;
     i_decay = pidProfile->i_decay;
     r_weight = pidProfile->r_weight;
+    setpointBoost = pidProfile->setpointBoost;
     for (uint8_t i = 0; i < 3; i++) {
         tempPid[i][0] = pidProfile->pid[i].P;
         tempPid[i][1] = pidProfile->pid[i].I;
@@ -155,6 +157,7 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
     }
     pidProfile->i_decay = i_decay;
     pidProfile->r_weight = r_weight;
+    pidProfile->setpointBoost = setpointBoost;
     pidInitConfig(currentPidProfile);
 
     return 0;
@@ -165,6 +168,9 @@ static OSD_Entry cmsx_menuPidEntries[] =
     { "-- PID --", OME_Label, NULL, pidProfileIndexString, 0},
 
     { "FEATHERED", OME_TAB, NULL, &(OSD_TAB_t){ &feathered_pids, 1, cms_offOnLabels }, 0 },
+
+    { "Setpoint Boost", OME_UINT8, NULL, &(OSD_UINT8_t){ &setpointBoost,  0,  250,  1}, 0 },
+
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
     { "ROLL  D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][2],  0, 200, 1 }, 0 },
@@ -231,24 +237,24 @@ static OSD_Entry cmsx_menuRateProfileEntries[] =
 {
     { "-- RATE --", OME_Label, NULL, rateProfileIndexString, 0 },
 
-    { "RC R RATE",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcRates[FD_ROLL],    0, 255, 1, 10 }, 0 },
+    { "RC R RATE",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcRates[FD_ROLL],     0, 255, 1, 10 }, 0 },
     { "RC P RATE",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcRates[FD_PITCH],    0, 255, 1, 10 }, 0 },
-    { "RC Y RATE",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcRates[FD_YAW], 0, 255, 1, 10 }, 0 },
+    { "RC Y RATE",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcRates[FD_YAW],      0, 255, 1, 10 }, 0 },
 
-    { "ROLL SUPER",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rates[FD_ROLL],   0, 100, 1, 10 }, 0 },
-    { "PITCH SUPER", OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rates[FD_PITCH],   0, 100, 1, 10 }, 0 },
-    { "YAW SUPER",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rates[FD_YAW],   0, 100, 1, 10 }, 0 },
+    { "ROLL SUPER",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rates[FD_ROLL],       0, 100, 1, 10 }, 0 },
+    { "PITCH SUPER", OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rates[FD_PITCH],      0, 100, 1, 10 }, 0 },
+    { "YAW SUPER",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rates[FD_YAW],        0, 100, 1, 10 }, 0 },
 
-    { "RC R EXPO",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcExpo[FD_ROLL],    0, 100, 1, 10 }, 0 },
-    { "RC P EXPO",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcExpo[FD_PITCH],    0, 100, 1, 10 }, 0 },
-    { "RC Y EXPO",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcExpo[FD_YAW], 0, 100, 1, 10 }, 0 },
+    { "RC R EXPO",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcExpo[FD_ROLL],      0, 100, 1, 10 }, 0 },
+    { "RC P EXPO",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcExpo[FD_PITCH],     0, 100, 1, 10 }, 0 },
+    { "RC Y EXPO",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcExpo[FD_YAW],       0, 100, 1, 10 }, 0 },
 
-    { "THR MID",     OME_UINT8,  NULL, &(OSD_UINT8_t) { &rateProfile.thrMid8,           0,  100,  1}, 0 },
-    { "THR EXPO",    OME_UINT8,  NULL, &(OSD_UINT8_t) { &rateProfile.thrExpo8,          0,  100,  1}, 0 },
-    { "TPA RATE P",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrP,         0,  250,  1, 10}, 0 },
-    { "TPA RATE I",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrI,         0,  250,  1, 10}, 0 },
-    { "TPA RATE D",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrD,         0,  250,  1, 10}, 0 },
-    { "TPA BREAKPOINT",   OME_UINT16, NULL, &(OSD_UINT16_t){ &rateProfile.tpa_breakpoint, 1000, 2000, 10}, 0 },
+    { "THR MID",     OME_UINT8,  NULL, &(OSD_UINT8_t) { &rateProfile.thrMid8,              0,  100,  1}, 0 },
+    { "THR EXPO",    OME_UINT8,  NULL, &(OSD_UINT8_t) { &rateProfile.thrExpo8,             0,  100,  1}, 0 },
+    { "TPA RATE P",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrP,              0,  250,  1, 10}, 0 },
+    { "TPA RATE I",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrI,              0,  250,  1, 10}, 0 },
+    { "TPA RATE D",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrD,              0,  250,  1, 10}, 0 },
+    { "TPA BREAKPOINT",   OME_UINT16, NULL, &(OSD_UINT16_t){ &rateProfile.tpa_breakpoint,  1000, 2000, 10}, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
@@ -481,7 +487,7 @@ static OSD_Entry cmsx_menuImufEntries[] =
     { "YAW LPF",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_lpf_cutoff_hz,   0, 450,    1 }, 0 },
     { "IMUF ACC",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_acc_lpf_cutoff_hz,   0, 450,    1 }, 0 },
 
-    { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
+    {"SAVE&REBOOT", OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVEREBOOT, 0},
 	  { "BACK",        OME_Back,            NULL,   NULL,             0},
     { NULL, OME_END, NULL, NULL, 0 }
 };

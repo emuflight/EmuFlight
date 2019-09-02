@@ -165,6 +165,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .feathered_pids = USE_FEATHERED_PIDS,
         .i_decay = 4,
         .r_weight = 67,
+        .setpointBoost = 50,
         .yawRateAccelLimit = 100,
         .rateAccelLimit = 0,
         .itermThrottleThreshold = 350,
@@ -862,13 +863,16 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint)
 {
     (void)(currentPidSetpoint);
+
+    float boostedErrorRate = errorRate + (float)fabs(cbrt(errorRate * errorRate * (pidProfile->setpointBoost / 100)));
+
     // -----calculate P component
-    pidData[axis].P = (pidCoefficient[axis].Kp * errorRate);
+    pidData[axis].P = (pidCoefficient[axis].Kp * boostedErrorRate);
 
     // -----calculate I component
     //float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
     float iterm    = pidData[axis].I;
-    float ITermNew = pidCoefficient[axis].Ki * errorRate * dynCi;
+    float ITermNew = pidCoefficient[axis].Ki * boostedErrorRate * dynCi;
     if (ITermNew != 0.0f)
     {
         if (SIGN(iterm) != SIGN(ITermNew))
@@ -887,7 +891,7 @@ FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float er
         pidData[axis].I = iterm;
     }
 
-    // uUse measurement and apply filters for D. Mmmm gimme that Emu.
+    // Use measurement and apply filters for D. Mmmm gimme that Emu.
     float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], -((gyro.gyroADCf[axis] - previousRateError[axis]) * pidFrequency));
     previousRateError[axis] = gyro.gyroADCf[axis];
     pidData[axis].D = (pidCoefficient[axis].Kd * dDelta);
@@ -901,6 +905,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 {
     UNUSED(currentPidSetpoint);
 
+    float boostedErrorRate = errorRate + (float)fabs(cbrt(errorRate * errorRate * (pidProfile->setpointBoost / 100)));
 
     rotateITermAndAxisError();
     // --------low-level gyro-based PID based on 2DOF PID controller. ----------
@@ -914,7 +919,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 
         const float gyroRate = gyro.gyroADCf[axis];
         float ITerm = pidData[axis].I;
-        float itermErrorRate = errorRate;
+        float itermErrorRate = boostedErrorRate;
 
 #if defined(USE_ITERM_RELAX)
     if (itermRelax && (axis < FD_YAW || itermRelax == ITERM_RELAX_RPY || itermRelax == ITERM_RELAX_RPY_INC)) {
@@ -978,7 +983,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 #endif
 
         // -----calculate P component and add Dynamic Part based on stick input
-    pidData[axis].P = (pidCoefficient[axis].Kp * errorRate);
+    pidData[axis].P = (pidCoefficient[axis].Kp * boostedErrorRate);
     // -----calculate I component
    // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
     float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;

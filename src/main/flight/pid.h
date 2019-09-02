@@ -113,12 +113,13 @@ typedef struct pidProfile_s {
     uint8_t horizon_tilt_expert_mode;       // OFF or ON
 
     // Betaflight PID controller parameters
-    uint8_t  antiGravityMode;             // type of anti gravity method
+    uint8_t  antiGravityMode;               // type of anti gravity method
     uint16_t itermThrottleThreshold;        // max allowed throttle delta before iterm accelerated in ms
     uint16_t itermAcceleratorGain;          // Iterm Accelerator Gain when itermThrottlethreshold is hit
-    uint8_t feathered_pids;                  // option to use separate pid controller at runtime.
-    uint8_t i_decay;						// i-term decay
-    uint8_t r_weight;						// the weight of the kalman R term calculated out of the std. dev.
+    uint8_t feathered_pids;                 // option to use separate pid controller at runtime.
+    uint8_t i_decay;						            // i-term decay
+    uint8_t r_weight;					            	// the weight of the kalman R term calculated out of the std. dev.
+    uint8_t setpointBoost;                  // the weight of the setpoint boost
     uint16_t yawRateAccelLimit;             // yaw accel limiter for deg/sec/ms
     uint16_t rateAccelLimit;                // accel limiter roll/pitch deg/sec/ms
     uint16_t crash_dthreshold;              // dterm crash value
