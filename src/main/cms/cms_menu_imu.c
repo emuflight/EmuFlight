@@ -60,7 +60,7 @@ static char pidProfileIndexString[] = " p";
 static uint8_t feathered_pids;
 static uint8_t i_decay;
 static uint8_t r_weight;
-static uint8_t setpointBoost;
+static uint16_t setpointBoost;
 static uint8_t tempPid[3][3];
 static uint16_t tempPidF[3];
 
@@ -169,7 +169,7 @@ static OSD_Entry cmsx_menuPidEntries[] =
 
     { "FEATHERED", OME_TAB, NULL, &(OSD_TAB_t){ &feathered_pids, 1, cms_offOnLabels }, 0 },
 
-    { "Setpoint Boost", OME_UINT8, NULL, &(OSD_UINT8_t){ &setpointBoost,  0,  250,  1}, 0 },
+    { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &setpointBoost,  0,  2500,  5}, 0 },
 
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
@@ -188,7 +188,6 @@ static OSD_Entry cmsx_menuPidEntries[] =
 
     { "I_DECAY", OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,  1, 10, 1 }, 0 },
     { "R_WEIGHT", OME_UINT8, NULL, &(OSD_UINT8_t){ &r_weight,  1, 200, 1 }, 0 },
-
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }

@@ -156,7 +156,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_lowpass2_hz = 200,   // second Dterm LPF ON by default
         .dterm_notch_hz = 0,
         .dterm_notch_cutoff = 0,
-        .dterm_filter_type = FILTER_BIQUAD,
+        .dterm_filter_type = FILTER_PT1,
         .itermWindupPointPercent = 50,
         .vbatPidCompensation = 0,
         .pidAtMinThrottle = PID_STABILISATION_ON,
@@ -165,7 +165,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .feathered_pids = USE_FEATHERED_PIDS,
         .i_decay = 4,
         .r_weight = 67,
-        .setpointBoost = 50,
+        .setpointBoost = 500,
         .yawRateAccelLimit = 100,
         .rateAccelLimit = 0,
         .itermThrottleThreshold = 350,
@@ -864,7 +864,7 @@ FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float er
 {
     (void)(currentPidSetpoint);
 
-    float boostedErrorRate = errorRate + (float)fabs(cbrt(errorRate * errorRate * (pidProfile->setpointBoost / 100)));
+    float boostedErrorRate = errorRate + (errorRate * errorRate * errorRate * ((float)pidProfile->setpointBoost * 0.000001));
 
     // -----calculate P component
     pidData[axis].P = (pidCoefficient[axis].Kp * boostedErrorRate);
@@ -905,7 +905,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 {
     UNUSED(currentPidSetpoint);
 
-    float boostedErrorRate = errorRate + (float)fabs(cbrt(errorRate * errorRate * (pidProfile->setpointBoost / 100)));
+    float boostedErrorRate = errorRate + (errorRate * errorRate * errorRate * ((float)pidProfile->setpointBoost * 0.000001));
 
     rotateITermAndAxisError();
     // --------low-level gyro-based PID based on 2DOF PID controller. ----------
