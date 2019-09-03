@@ -1078,8 +1078,8 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
   #ifdef USE_GPS_RESCUE
             case MSP_GPS_RESCUE:
                 sbufWriteU16(dst, gpsRescueConfig()->angle);
-                sbufWriteU16(dst, gpsRescueConfig()->initialAltitudeM);
-                sbufWriteU16(dst, gpsRescueConfig()->descentDistanceM);
+                sbufWriteU16(dst, gpsRescueConfig()->initialAltitude);
+                sbufWriteU16(dst, gpsRescueConfig()->descentDistance);
                 sbufWriteU16(dst, gpsRescueConfig()->rescueGroundspeed);
                 sbufWriteU16(dst, gpsRescueConfig()->throttleMin);
                 sbufWriteU16(dst, gpsRescueConfig()->throttleMax);
@@ -1744,8 +1744,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
 #ifdef USE_GPS_RESCUE
                 case MSP_SET_GPS_RESCUE:
                 gpsRescueConfigMutable()->angle = sbufReadU16(src);
-                gpsRescueConfigMutable()->initialAltitudeM = sbufReadU16(src);
-                gpsRescueConfigMutable()->descentDistanceM = sbufReadU16(src);
+                gpsRescueConfigMutable()->initialAltitude = sbufReadU16(src);
+                gpsRescueConfigMutable()->descentDistance = sbufReadU16(src);
                 gpsRescueConfigMutable()->rescueGroundspeed = sbufReadU16(src);
                 gpsRescueConfigMutable()->throttleMin = sbufReadU16(src);
                 gpsRescueConfigMutable()->throttleMax = sbufReadU16(src);
