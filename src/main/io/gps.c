@@ -1374,7 +1374,7 @@ void onGpsNewData(void)
 
 bool isLimitDistanceReach(void){
 
-  if(gpsRescueConfig()->descentDistance > 0 && GPS_distanceToHome > gpsRescueConfig()->descentDistance){
+  if(gpsConfig()->distanceLimit > 0 && GPS_distanceToHome >= gpsConfig()->distanceLimit){
       return true;
     }else{
       return false;
