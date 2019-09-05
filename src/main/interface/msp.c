@@ -1308,12 +1308,12 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
     case MSP_PID_ADVANCED:
         sbufWriteU16(dst, 0);
         sbufWriteU16(dst, 0);
-        sbufWriteU16(dst, 0); // was pidProfile.yaw_p_limit
+        sbufWriteU16(dst, currentPidProfile->errorBoost);
         sbufWriteU8(dst, currentPidProfile->feathered_pids);
         sbufWriteU8(dst, currentPidProfile->vbatPidCompensation);
         sbufWriteU8(dst, currentPidProfile->feedForwardTransition);
-        sbufWriteU8(dst, 0); // was low byte of currentPidProfile->dtermSetpointWeight
-        sbufWriteU8(dst, 0); // reserved
+        sbufWriteU8(dst, currentPidProfile->errorBoostLimit);
+        sbufWriteU8(dst, currentPidProfile->i_decay);
         sbufWriteU8(dst, 0); // reserved
         sbufWriteU8(dst, 0); // reserved
         sbufWriteU16(dst, currentPidProfile->rateAccelLimit);
