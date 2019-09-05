@@ -121,7 +121,7 @@ static OSD_Entry menuFeaturesEntries[] =
     {"LED STRIP", OME_Submenu, cmsMenuChange, &cmsx_menuLedstrip, 0},
 #endif // LED_STRIP
 #ifdef USE_CMS_FAILSAFE_MENU
-    {"FAILSAFE", OME_Submenu, cmsMenuChange, &cmsx_menuFailsafe, 0},
+   {"FAILSAFE", OME_Submenu, cmsMenuChange, &cmsx_menuFailsafe, 0},
 #endif
     {"POWER", OME_Submenu, cmsMenuChange, &cmsx_menuPower, 0},
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
