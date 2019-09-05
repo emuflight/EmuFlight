@@ -60,7 +60,8 @@ static char pidProfileIndexString[] = " p";
 static uint8_t feathered_pids;
 static uint8_t i_decay;
 static uint8_t r_weight;
-static uint16_t setpointBoost;
+static uint16_t errorBoost;
+static uint8_t errorBoostLimit;
 static uint8_t tempPid[3][3];
 static uint16_t tempPidF[3];
 
@@ -124,7 +125,8 @@ static long cmsx_PidRead(void)
     feathered_pids = pidProfile->feathered_pids;
     i_decay = pidProfile->i_decay;
     r_weight = pidProfile->r_weight;
-    setpointBoost = pidProfile->setpointBoost;
+    errorBoost = pidProfile->errorBoost;
+    errorBoostLimit = pidProfile->errorBoostLimit;
     for (uint8_t i = 0; i < 3; i++) {
         tempPid[i][0] = pidProfile->pid[i].P;
         tempPid[i][1] = pidProfile->pid[i].I;
@@ -157,7 +159,8 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
     }
     pidProfile->i_decay = i_decay;
     pidProfile->r_weight = r_weight;
-    pidProfile->setpointBoost = setpointBoost;
+    pidProfile->errorBoost = errorBoost;
+    pidProfile->errorBoostLimit = errorBoostLimit;
     pidInitConfig(currentPidProfile);
 
     return 0;
@@ -169,7 +172,9 @@ static OSD_Entry cmsx_menuPidEntries[] =
 
     { "FEATHERED", OME_TAB, NULL, &(OSD_TAB_t){ &feathered_pids, 1, cms_offOnLabels }, 0 },
 
-    { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &setpointBoost,  0,  2500,  5}, 0 },
+    { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,  0,  2500,  5}, 0 },
+    { "BOOST LIMIT", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,  0,  250,  1}, 0 },
+
 
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
