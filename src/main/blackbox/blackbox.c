@@ -1249,7 +1249,7 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("thr_expo", "%d",                        currentControlRateProfile->thrExpo8);
         BLACKBOX_PRINT_HEADER_LINE("tpa_rate_p", "%d",                      currentControlRateProfile->dynThrP);
         BLACKBOX_PRINT_HEADER_LINE("tpa_rate_i", "%d",                      currentControlRateProfile->dynThrI);
-        BLACKBOX_PRINT_HEADER_LINE("tpa_rate_d", "%d",                      currentControlRateProfile->dynThrI);
+        BLACKBOX_PRINT_HEADER_LINE("tpa_rate_d", "%d",                      currentControlRateProfile->dynThrD);
         BLACKBOX_PRINT_HEADER_LINE("tpa_breakpoint", "%d",                  currentControlRateProfile->tpa_breakpoint);
         BLACKBOX_PRINT_HEADER_LINE("rc_rates", "%d,%d,%d",                  currentControlRateProfile->rcRates[ROLL],
                                                                             currentControlRateProfile->rcRates[PITCH],
@@ -1283,7 +1283,11 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("vbat_pid_gain", "%d",                   currentPidProfile->vbatPidCompensation);
         BLACKBOX_PRINT_HEADER_LINE("pidAtMinThrottle", "%d",                currentPidProfile->pidAtMinThrottle);
 
-        // Betaflight PID controller parameters
+        // EmuFlight PID controller parameters
+        BLACKBOX_PRINT_HEADER_LINE("feathered_pids", "%d",                  currentPidProfile->feathered_pids);
+        BLACKBOX_PRINT_HEADER_LINE("emu_boost", "%d",                       currentPidProfile->errorBoost);
+        BLACKBOX_PRINT_HEADER_LINE("boost_limit", "%d",                     currentPidProfile->errorBoostLimit);
+        BLACKBOX_PRINT_HEADER_LINE("i_decay", "%d",                         currentPidProfile->i_decay);
         BLACKBOX_PRINT_HEADER_LINE("anti_gravity_mode", "%d",               currentPidProfile->antiGravityMode);
         BLACKBOX_PRINT_HEADER_LINE("anti_gravity_threshold", "%d",          currentPidProfile->itermThrottleThreshold);
         BLACKBOX_PRINT_HEADER_LINE("anti_gravity_gain", "%d",               currentPidProfile->itermAcceleratorGain);
@@ -1296,7 +1300,7 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("acc_limit_yaw", "%d",                   currentPidProfile->yawRateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("acc_limit", "%d",                       currentPidProfile->rateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("pidsum_limit", "%d",                    currentPidProfile->pidSumLimit);
-        // End of Betaflight controller parameters
+        // End of EmuFlight controller parameters
 
         BLACKBOX_PRINT_HEADER_LINE("deadband", "%d",                        rcControlsConfig()->deadband);
         BLACKBOX_PRINT_HEADER_LINE("yaw_deadband", "%d",                    rcControlsConfig()->yaw_deadband);

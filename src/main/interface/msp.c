@@ -1309,7 +1309,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, 0);
         sbufWriteU16(dst, 0);
         sbufWriteU16(dst, 0); // was pidProfile.yaw_p_limit
-        sbufWriteU8(dst, 0); // reserved
+        sbufWriteU8(dst, currentPidProfile->feathered_pids);
         sbufWriteU8(dst, currentPidProfile->vbatPidCompensation);
         sbufWriteU8(dst, currentPidProfile->feedForwardTransition);
         sbufWriteU8(dst, 0); // was low byte of currentPidProfile->dtermSetpointWeight
@@ -1877,12 +1877,12 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
     case MSP_SET_PID_ADVANCED:
         sbufReadU16(src);
         sbufReadU16(src);
-        sbufReadU16(src); // was pidProfile.yaw_p_limit
-        sbufReadU8(src); // reserved
+        currentPidProfile->errorBoost = sbufReadU16(src);
+        currentPidProfile->feathered_pids = sbufReadU8(src);
         currentPidProfile->vbatPidCompensation = sbufReadU8(src);
         currentPidProfile->feedForwardTransition = sbufReadU8(src);
-        sbufReadU8(src); // was low byte of currentPidProfile->dtermSetpointWeight
-        sbufReadU8(src); // reserved
+        currentPidProfile->errorBoostLimit = sbufReadU8(src);
+        currentPidProfile->i_decay = sbufReadU8(src);
         sbufReadU8(src); // reserved
         sbufReadU8(src); // reserved
         currentPidProfile->rateAccelLimit = sbufReadU16(src);
