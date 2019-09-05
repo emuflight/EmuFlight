@@ -72,6 +72,14 @@ PG_RESET_TEMPLATE(failsafeConfig_t, failsafeConfig,
     .failsafe_procedure = FAILSAFE_PROCEDURE_DROP_IT // default full failsafe procedure is 0: auto-landing
 );
 
+const char * const failsafeProcedureNames[FAILSAFE_PROCEDURE_COUNT] = {
+    "AUTO-LAND",
+    "DROP",
+#ifdef USE_GPS_RESCUE
+    "GPS-RESCUE",
+#endif
+};
+
 /*
  * Should called when the failsafe config needs to be changed - e.g. a different profile has been selected.
  */
@@ -126,7 +134,7 @@ static void failsafeActivate(void)
     failsafeState.active = true;
 
     failsafeState.phase = FAILSAFE_LANDING;
-    
+
     ENABLE_FLIGHT_MODE(FAILSAFE_MODE);
     failsafeState.landingShouldBeFinishedAt = millis() + failsafeConfig()->failsafe_off_delay * MILLIS_PER_TENTH_SECOND;
 

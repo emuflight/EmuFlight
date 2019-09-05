@@ -71,6 +71,7 @@ typedef struct
 #define DYNAMIC        0x04  // Value should be updated dynamically
 #define OPTSTRING      0x08  // (Temporary) Flag for OME_Submenu, indicating func should be called to get a string to display.
 
+
 #define IS_PRINTVALUE(p) ((p)->flags & PRINT_VALUE)
 #define SET_PRINTVALUE(p) { (p)->flags |= PRINT_VALUE; }
 #define CLR_PRINTVALUE(p) { (p)->flags &= ~PRINT_VALUE; }
