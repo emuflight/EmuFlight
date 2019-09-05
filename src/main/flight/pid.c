@@ -156,7 +156,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_lowpass2_hz = 200,   // second Dterm LPF ON by default
         .dterm_notch_hz = 0,
         .dterm_notch_cutoff = 0,
-        .dterm_filter_type = FILTER_BIQUAD,
+        .dterm_filter_type = FILTER_PT1,
         .itermWindupPointPercent = 50,
         .vbatPidCompensation = 0,
         .pidAtMinThrottle = PID_STABILISATION_ON,
@@ -165,6 +165,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .feathered_pids = USE_FEATHERED_PIDS,
         .i_decay = 4,
         .r_weight = 67,
+        .errorBoost = 15,
+        .errorBoostLimit = 20,
         .yawRateAccelLimit = 100,
         .rateAccelLimit = 0,
         .itermThrottleThreshold = 350,
@@ -786,7 +788,7 @@ static FAST_CODE_NOINLINE float applyAcroTrainer(int axis, const rollAndPitchTri
         // Not currently over the limit so project the angle based on current angle and
         // gyro angular rate using a sliding window based on gyro rate (faster rotation means larger window.
         // If the projected angle exceeds the limit then apply limiting to minimize overshoot.
-            // Calculate the lookahead window by scaling proportionally with gyro rate from 0-500dps
+        // Calculate the lookahead window by scaling proportionally with gyro rate from 0-500dps
             float checkInterval = constrainf(fabsf(gyro.gyroADCf[axis]) / ACRO_TRAINER_LOOKAHEAD_RATE_LIMIT, 0.0f, 1.0f) * acroTrainerLookaheadTime;
             projectedAngle = (gyro.gyroADCf[axis] * checkInterval) + currentAngle;
             const int projectedAngleSign = acroTrainerSign(projectedAngle);
@@ -862,13 +864,27 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint)
 {
     (void)(currentPidSetpoint);
+
+//Add EmuBoost to the code (non linear boost to errorRate)
+float boostedErrorRate = (errorRate * errorRate) * ((float)pidProfile->errorBoost * 0.000002);
+if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
+  {
+    boostedErrorRate = (errorRate * errorRate) * ((float)pidProfile->errorBoost * 0.000002);
+  } else {
+    if ( errorRate < 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
+  {
+    boostedErrorRate = (0 - errorRate * errorRate) * ((float)pidProfile->errorBoost * 0.000002);
+  } else {
+    boostedErrorRate = errorRate * pidProfile->errorBoostLimit / 100;
+  }
+}
     // -----calculate P component
-    pidData[axis].P = (pidCoefficient[axis].Kp * errorRate);
+    pidData[axis].P = pidCoefficient[axis].Kp * (boostedErrorRate + errorRate);
 
     // -----calculate I component
     //float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
     float iterm    = pidData[axis].I;
-    float ITermNew = pidCoefficient[axis].Ki * errorRate * dynCi;
+    float ITermNew = pidCoefficient[axis].Ki * (boostedErrorRate + errorRate) * dynCi;
     if (ITermNew != 0.0f)
     {
         if (SIGN(iterm) != SIGN(ITermNew))
@@ -887,7 +903,7 @@ FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float er
         pidData[axis].I = iterm;
     }
 
-    // uUse measurement and apply filters for D. Mmmm gimme that Emu.
+    // Use measurement and apply filters for D. Mmmm gimme that Emu.
     float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], -((gyro.gyroADCf[axis] - previousRateError[axis]) * pidFrequency));
     previousRateError[axis] = gyro.gyroADCf[axis];
     pidData[axis].D = (pidCoefficient[axis].Kd * dDelta);
@@ -901,6 +917,18 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 {
     UNUSED(currentPidSetpoint);
 
+    float boostedErrorRate = (errorRate * errorRate) * ((float)pidProfile->errorBoost * 0.000002);
+    if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
+      {
+        boostedErrorRate = (errorRate * errorRate) * ((float)pidProfile->errorBoost * 0.000002);
+      } else {
+        if ( errorRate < 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
+      {
+        boostedErrorRate = (0 - errorRate * errorRate) * ((float)pidProfile->errorBoost * 0.000002);
+      } else {
+        boostedErrorRate = errorRate * pidProfile->errorBoostLimit / 100;
+      }
+    }
 
     rotateITermAndAxisError();
     // --------low-level gyro-based PID based on 2DOF PID controller. ----------
@@ -914,7 +942,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 
         const float gyroRate = gyro.gyroADCf[axis];
         float ITerm = pidData[axis].I;
-        float itermErrorRate = errorRate;
+        float itermErrorRate = boostedErrorRate + errorRate;
 
 #if defined(USE_ITERM_RELAX)
     if (itermRelax && (axis < FD_YAW || itermRelax == ITERM_RELAX_RPY || itermRelax == ITERM_RELAX_RPY_INC)) {
@@ -978,7 +1006,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 #endif
 
         // -----calculate P component and add Dynamic Part based on stick input
-    pidData[axis].P = (pidCoefficient[axis].Kp * errorRate);
+    pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate));
     // -----calculate I component
    // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
     float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
@@ -1008,7 +1036,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
         float ornD = /*setpointT **/ currentPidSetpoint - gyroRateFiltered;
         float dDelta = 0.0f;
         //filter Kd properly, no sp
-        ornD = getSetpointRate(axis) - gyroRateFiltered;    // cr - y
+        ornD = /*setpointT **/ getSetpointRate(axis) - gyroRateFiltered;    // cr - y
         dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * pidFrequency );
         previousRateError[axis] = ornD;
 
