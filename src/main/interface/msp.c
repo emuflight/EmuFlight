@@ -1703,25 +1703,20 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             currentControlRateProfile->thrMid8 = sbufReadU8(src);
             currentControlRateProfile->thrExpo8 = sbufReadU8(src);
             currentControlRateProfile->tpa_breakpoint = sbufReadU16(src);
-            currentControlRateProfile->dynThrI = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
-            currentControlRateProfile->dynThrD = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
-
             if (sbufBytesRemaining(src) >= 1) {
                 currentControlRateProfile->rcExpo[FD_YAW] = sbufReadU8(src);
             }
-
             if (sbufBytesRemaining(src) >= 1) {
                 currentControlRateProfile->rcRates[FD_YAW] = sbufReadU8(src);
             }
-
             if (sbufBytesRemaining(src) >= 1) {
                 currentControlRateProfile->rcRates[FD_PITCH] = sbufReadU8(src);
             }
-
             if (sbufBytesRemaining(src) >= 1) {
                 currentControlRateProfile->rcExpo[FD_PITCH] = sbufReadU8(src);
             }
-
+            currentControlRateProfile->dynThrI = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
+            currentControlRateProfile->dynThrD = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
             initRcProcessing();
         } else {
             return MSP_RESULT_ERROR;
