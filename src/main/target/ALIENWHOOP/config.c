@@ -169,7 +169,9 @@ void targetConfiguration(void)
         controlRateConfig->rates[FD_YAW] = 0;
 
         /* Throttle PID Attenuation (TPA) */
-        controlRateConfig->dynThrPID = 0; // tpa_rate off
+        controlRateConfig->dynThrP = 0; // tpa_rate off
+        controlRateConfig->dynThrI = 0; // tpa_rate off
+        controlRateConfig->dynThrD = 0; // tpa_rate off
         controlRateConfig->tpa_breakpoint = 1600;
 
 	/* Force the clipping mixer at 100% seems better for brushed than default (off) and scaling)? */
