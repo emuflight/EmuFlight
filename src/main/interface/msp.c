@@ -968,6 +968,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentControlRateProfile->rcRates[FD_YAW]);
         sbufWriteU8(dst, currentControlRateProfile->rcRates[FD_PITCH]);
         sbufWriteU8(dst, currentControlRateProfile->rcExpo[FD_PITCH]);
+        break;
+
+    case MSP_EMUF:
         sbufWriteU8(dst, currentControlRateProfile->dynThrI);
         sbufWriteU8(dst, currentControlRateProfile->dynThrD);
         break;
@@ -1691,26 +1694,31 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             if (sbufBytesRemaining(src) >= 1) {
                 currentControlRateProfile->rcExpo[FD_PITCH] = sbufReadU8(src);
             }
-            currentControlRateProfile->dynThrI = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
-            currentControlRateProfile->dynThrD = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
             initRcProcessing();
         } else {
             return MSP_RESULT_ERROR;
         }
         break;
 
-    case MSP_SET_MOTOR_CONFIG:
-        motorConfigMutable()->minthrottle = sbufReadU16(src);
-        motorConfigMutable()->maxthrottle = sbufReadU16(src);
-        motorConfigMutable()->mincommand = sbufReadU16(src);
+        case MSP_SET_EMUF:
+            value = sbufReadU8(src);
+            currentControlRateProfile->dynThrI = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
+            value = sbufReadU8(src);
+            currentControlRateProfile->dynThrD = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
+        break;
+
+        case MSP_SET_MOTOR_CONFIG:
+            motorConfigMutable()->minthrottle = sbufReadU16(src);
+            motorConfigMutable()->maxthrottle = sbufReadU16(src);
+            motorConfigMutable()->mincommand = sbufReadU16(src);
         break;
 
 #ifdef USE_GPS
-    case MSP_SET_GPS_CONFIG:
-        gpsConfigMutable()->provider = sbufReadU8(src);
-        gpsConfigMutable()->sbasMode = sbufReadU8(src);
-        gpsConfigMutable()->autoConfig = sbufReadU8(src);
-        gpsConfigMutable()->autoBaud = sbufReadU8(src);
+        case MSP_SET_GPS_CONFIG:
+            gpsConfigMutable()->provider = sbufReadU8(src);
+            gpsConfigMutable()->sbasMode = sbufReadU8(src);
+            gpsConfigMutable()->autoConfig = sbufReadU8(src);
+            gpsConfigMutable()->autoBaud = sbufReadU8(src);
         break;
 #endif
 

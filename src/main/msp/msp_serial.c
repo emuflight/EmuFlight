@@ -21,23 +21,17 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-
 #include "platform.h"
-
 #include "build/debug.h"
-
 #include "common/streambuf.h"
 #include "common/utils.h"
 #include "common/crc.h"
-
 #include "drivers/system.h"
-
 #include "interface/msp.h"
 #include "interface/cli.h"
-
 #include "io/serial.h"
-
 #include "msp/msp_serial.h"
+
 #ifdef USE_GYRO_IMUF9001
 #include "drivers/light_led.h"
 #include "drivers/accgyro/accgyro.h"
