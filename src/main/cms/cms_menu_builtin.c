@@ -43,6 +43,7 @@
 
 #include "cms/cms_menu_imu.h"
 #include "cms/cms_menu_blackbox.h"
+#include "cms/cms_menu_failsafe.h"
 #include "cms/cms_menu_osd.h"
 #include "cms/cms_menu_ledstrip.h"
 #include "cms/cms_menu_misc.h"
@@ -119,6 +120,9 @@ static OSD_Entry menuFeaturesEntries[] =
 #ifdef USE_LED_STRIP
     {"LED STRIP", OME_Submenu, cmsMenuChange, &cmsx_menuLedstrip, 0},
 #endif // LED_STRIP
+#ifdef USE_CMS_FAILSAFE_MENU
+   {"FAILSAFE", OME_Submenu, cmsMenuChange, &cmsx_menuFailsafe, 0},
+#endif
     {"POWER", OME_Submenu, cmsMenuChange, &cmsx_menuPower, 0},
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     {"BACK", OME_Back, NULL, NULL, 0},
