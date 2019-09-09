@@ -172,7 +172,7 @@ static OSD_Entry cmsx_menuPidEntries[] =
 
     { "FEATHERED", OME_TAB, NULL, &(OSD_TAB_t){ &feathered_pids, 1, cms_offOnLabels }, 0 },
 
-    { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,  0,  2500,  5}, 0 },
+    { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,  0,  1000,  5}, 0 },
     { "BOOST LIMIT", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,  0,  250,  1}, 0 },
 
 

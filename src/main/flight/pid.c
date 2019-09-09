@@ -866,18 +866,20 @@ FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float er
     (void)(currentPidSetpoint);
 
 //Add EmuBoost to the code (non linear boost to errorRate)
-float boostedErrorRate = (errorRate * errorRate) * ((float)pidProfile->errorBoost * 0.000002);
+float errorMultiplier = (pidProfile->errorBoost * pidProfile->errorBoost / 1000000) * 0.003;
+float boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
 if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
   {
-    boostedErrorRate = (errorRate * errorRate) * ((float)pidProfile->errorBoost * 0.000002);
+    boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
   } else {
     if ( errorRate < 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
   {
-    boostedErrorRate = (0 - errorRate * errorRate) * ((float)pidProfile->errorBoost * 0.000002);
+    boostedErrorRate = (0 - errorRate * errorRate) * errorMultiplier;
   } else {
     boostedErrorRate = errorRate * pidProfile->errorBoostLimit / 100;
   }
 }
+
     // -----calculate P component
     pidData[axis].P = pidCoefficient[axis].Kp * (boostedErrorRate + errorRate);
 
@@ -917,14 +919,15 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 {
     UNUSED(currentPidSetpoint);
 
-    float boostedErrorRate = (errorRate * errorRate) * ((float)pidProfile->errorBoost * 0.000002);
+    float errorMultiplier = (pidProfile->errorBoost * pidProfile->errorBoost / 1000000) * 0.003;
+    float boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
     if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
       {
-        boostedErrorRate = (errorRate * errorRate) * ((float)pidProfile->errorBoost * 0.000002);
+        boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
       } else {
         if ( errorRate < 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
       {
-        boostedErrorRate = (0 - errorRate * errorRate) * ((float)pidProfile->errorBoost * 0.000002);
+        boostedErrorRate = (0 - errorRate * errorRate) * errorMultiplier;
       } else {
         boostedErrorRate = errorRate * pidProfile->errorBoostLimit / 100;
       }
