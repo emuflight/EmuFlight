@@ -1384,6 +1384,11 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 
         sbufWriteU8(dst, currentPidProfile->antiGravityMode);
 
+#if defined(USE_ITERM_RELAX)
+        sbufWriteU8(dst, currentPidProfile->iterm_relax_cutoff);
+#else
+        sbufWriteU8(dst, 0);
+#endif
         break;
     case MSP_SENSOR_CONFIG:
         sbufWriteU8(dst, accelerometerConfig()->acc_hardware);
@@ -1988,6 +1993,11 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             currentPidProfile->pid[PID_YAW].F = sbufReadU16(src);
 
             currentPidProfile->antiGravityMode = sbufReadU8(src);
+#if defined(USE_ITERM_RELAX)
+            currentPidProfile->iterm_relax_cutoff = sbufReadU8(src);
+#else
+            sbufReadU8(src);
+#endif
         }
         pidInitConfig(currentPidProfile);
 
