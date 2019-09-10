@@ -238,7 +238,7 @@ void fastKalmanInit(fastKalman_t *filter, float q, uint32_t w, int axis, float u
     }
 
     memset(filter, 0, sizeof(fastKalman_t));
-    filter->q = q * 0.0001f; // add multiplier to make tuning easier
+    filter->q = q * 0.000001f; // add multiplier to make tuning easier
     filter->r = 88.0f;           //seeding R at 88.0f
     filter->k = calculateGain(filter->q, filter->r);
     filter->w = w;
