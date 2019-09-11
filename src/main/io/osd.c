@@ -647,8 +647,8 @@ static bool osdDrawSingleElement(uint8_t item)
                     buff[i] = toupper((unsigned char)pilotConfig()->name[i]);
                 } else {
                     break;
-                }    
-            }    
+                }
+            }
             buff[i] = '\0';
         }
 
@@ -816,7 +816,7 @@ static bool osdDrawSingleElement(uint8_t item)
             if (feature(FEATURE_ESC_SENSOR) && osdWarnGetState(OSD_WARNING_ESC_FAIL)) {
                 char escWarningMsg[OSD_FORMAT_MESSAGE_BUFFER_SIZE];
                 unsigned pos = 0;
-                
+
                 const char *title = "ESC";
 
                 // center justify message
@@ -1125,7 +1125,7 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->esc_rpm_alarm = ESC_RPM_ALARM_OFF; // off by default
     osdConfig->esc_current_alarm = ESC_CURRENT_ALARM_OFF; // off by default
     osdConfig->core_temp_alarm = 70; // a temperature above 70C should produce a warning, lockups have been reported above 80C
-
+    osdConfig->distance_alarm = 0;
     osdConfig->ahMaxPitch = 20; // 20 degrees
     osdConfig->ahMaxRoll = 40; // 40 degrees
 }
@@ -1253,6 +1253,18 @@ void osdUpdateAlarms(void)
     } else {
         CLR_BLINK(OSD_ALTITUDE);
     }
+
+#ifdef USE_GPS
+        if (sensors(SENSOR_GPS) && ARMING_FLAG(ARMED) && STATE(GPS_FIX) && STATE(GPS_FIX_HOME)) {
+            if (osdConfig()->distance_alarm && GPS_distanceToHome >= osdConfig()->distance_alarm) {
+                SET_BLINK(OSD_HOME_DIST);
+            } else {
+                CLR_BLINK(OSD_HOME_DIST);
+            }
+        } else {
+            CLR_BLINK(OSD_HOME_DIST);
+}
+#endif
 
 #ifdef USE_ESC_SENSOR
     if (feature(FEATURE_ESC_SENSOR)) {
