@@ -491,7 +491,7 @@ static OSD_Entry cmsx_menuImufEntries[] =
     { "YAW LPF",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_lpf_cutoff_hz,   0, 450,    1 }, 0 },
     { "IMUF ACC",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_acc_lpf_cutoff_hz,   0, 450,    1 }, 0 },
 
-    { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVEREBOOT, 0},
+    { "SAVE&REBOOT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVEREBOOT, 0},
 	  { "BACK",        OME_Back,            NULL,   NULL,             0},
     { NULL, OME_END, NULL, NULL, 0 }
 };
