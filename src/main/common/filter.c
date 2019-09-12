@@ -232,9 +232,9 @@ FAST_CODE float calculateGain(float q, float r)
 // Proper fast two-state Kalman
 void fastKalmanInit(fastKalman_t *filter, float q, uint32_t w, int axis, float updateRate)
 {
-    if ( w > MAX_WINDOW_SIZE)
+    if ( w > 1024)
     {
-    	w = MAX_WINDOW_SIZE;
+    	w = 1024;
     }
 
     memset(filter, 0, sizeof(fastKalman_t));
