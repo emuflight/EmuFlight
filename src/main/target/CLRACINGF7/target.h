@@ -1,22 +1,23 @@
+
 /*
- * This file is part of Cleanflight and Betaflight.
- *
- * Cleanflight and Betaflight are free software. You can redistribute
- * this software and/or modify this software under the terms of the
- * GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option)
- * any later version.
- *
- * Cleanflight and Betaflight are distributed in the hope that they
- * will be useful, but WITHOUT ANY WARRANTY; without even the implied
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this software.
- *
- * If not, see <http://www.gnu.org/licenses/>.
- */
+* This file is part of Cleanflight and Betaflight.
+*
+* Cleanflight and Betaflight are free software. You can redistribute
+* this software and/or modify this software under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, either version 3 of the License, or (at your option)
+* any later version.
+*
+* Cleanflight and Betaflight are distributed in the hope that they
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied
+* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this software.
+*
+* If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #pragma once
 #define TARGET_BOARD_IDENTIFIER "CLR7"
@@ -26,42 +27,25 @@
 
 #define LED0_PIN                PB0
 #define USE_BEEPER
-#define BEEPER_PIN              PB4
+#define BEEPER_PIN                  PB4
 #define BEEPER_INVERTED
 
 //define camera control
-#define CAMERA_CONTROL_PIN      PB3
+#define CAMERA_CONTROL_PIN PB3
 
-#define USE_DUAL_GYRO
 #define USE_EXTI
 #define MPU_INT_EXTI            PC4
 #define USE_MPU_DATA_READY_SIGNAL
-
-#define GYRO_1_EXTI_PIN         PC4
-#define GYRO_2_EXTI_PIN         PC14
-#define GYRO_1_CS_PIN           PA4
-#define GYRO_1_SPI_INSTANCE     SPI1
-#define GYRO_2_CS_PIN           PC13
-#define GYRO_2_SPI_INSTANCE     SPI1
-
-#define ACC_MPU6000_1_ALIGN         CW0_DEG
-#define GYRO_MPU6000_1_ALIGN        CW0_DEG
-#define GYRO_1_ALIGN                GYRO_MPU6000_1_ALIGN
-#define ACC_1_ALIGN                 ACC_MPU6000_1_ALIGN
-
-#define ACC_MPU6500_2_ALIGN         CW90_DEG
-#define GYRO_MPU6500_2_ALIGN        CW90_DEG
-#define GYRO_2_ALIGN                GYRO_MPU6500_2_ALIGN
-#define ACC_2_ALIGN                 ACC_MPU6500_2_ALIGN
-
-#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
-
 //MPU-6000
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
 
+#define GYRO_MPU6000_ALIGN      CW0_DEG
+#define ACC_MPU6000_ALIGN       CW0_DEG
+#define MPU6000_CS_PIN          PA4
+#define MPU6000_SPI_INSTANCE    SPI1
 
 // ICM-20602
 #define USE_ACC_MPU6500
@@ -69,6 +53,10 @@
 #define USE_GYRO_MPU6500
 #define USE_GYRO_SPI_MPU6500
 
+#define ACC_MPU6500_ALIGN       CW0_DEG
+#define GYRO_MPU6500_ALIGN      CW0_DEG
+#define MPU6500_CS_PIN          SPI1_NSS_PIN
+#define MPU6500_SPI_INSTANCE    SPI1
 
 #define USE_MAG
 #define USE_MAG_HMC5883
