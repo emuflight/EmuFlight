@@ -193,13 +193,8 @@ static const blackboxDeltaFieldDefinition_t blackboxMainFields[] = {
     {"rcCommand",   0, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(PREVIOUS),      .Pencode = ENCODING(TAG8_4S16), CONDITION(ALWAYS)},
     {"rcCommand",   1, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(PREVIOUS),      .Pencode = ENCODING(TAG8_4S16), CONDITION(ALWAYS)},
     {"rcCommand",   2, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(PREVIOUS),      .Pencode = ENCODING(TAG8_4S16), CONDITION(ALWAYS)},
-    {"rcCommand",   3, UNSIGNED, .Ipredict = PREDICT(0),       .Iencode = ENCODING(UNSIGNED_VB), .Ppredict = PREDICT(PREVIOUS),      .Pencode = ENCODING(TAG8_4S16), CONDITION(ALWAYS)},
-
-    // setpoint - define 4 fields like rcCommand to use the same encoding. setpoint[4] contains the mixer throttle
-    {"setpoint",    0, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(PREVIOUS),      .Pencode = ENCODING(TAG8_4S16), CONDITION(ALWAYS)},
-    {"setpoint",    1, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(PREVIOUS),      .Pencode = ENCODING(TAG8_4S16), CONDITION(ALWAYS)},
-    {"setpoint",    2, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(PREVIOUS),      .Pencode = ENCODING(TAG8_4S16), CONDITION(ALWAYS)},
-    {"setpoint",    3, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(PREVIOUS),      .Pencode = ENCODING(TAG8_4S16), CONDITION(ALWAYS)},
+    /* Throttle is always in the range [minthrottle..maxthrottle]: */
+    {"rcCommand",   3, UNSIGNED, .Ipredict = PREDICT(MINTHROTTLE), .Iencode = ENCODING(UNSIGNED_VB), .Ppredict = PREDICT(PREVIOUS),  .Pencode = ENCODING(TAG8_4S16), CONDITION(ALWAYS)},
 
     {"vbatLatest",    -1, UNSIGNED, .Ipredict = PREDICT(VBATREF),  .Iencode = ENCODING(NEG_14BIT),   .Ppredict = PREDICT(PREVIOUS),  .Pencode = ENCODING(TAG8_8SVB), FLIGHT_LOG_FIELD_CONDITION_VBAT},
     {"amperageLatest",-1, SIGNED,   .Ipredict = PREDICT(0),        .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(PREVIOUS),  .Pencode = ENCODING(TAG8_8SVB), FLIGHT_LOG_FIELD_CONDITION_AMPERAGE_ADC},
@@ -300,7 +295,6 @@ typedef struct blackboxMainState_s {
     int32_t axisPID_F[XYZ_AXIS_COUNT];
 
     int16_t rcCommand[4];
-    int16_t setpoint[4];
     int16_t gyroADC[XYZ_AXIS_COUNT];
     int16_t accADC[XYZ_AXIS_COUNT];
     int16_t debug[DEBUG16_VALUE_COUNT];
@@ -550,9 +544,11 @@ static void writeIntraframe(void)
     // Write roll, pitch and yaw first:
     blackboxWriteSigned16VBArray(blackboxCurrent->rcCommand, 3);
 
-
-    blackboxWriteUnsignedVB(blackboxCurrent->rcCommand[THROTTLE]);
-    blackboxWriteSigned16VBArray(blackboxCurrent->setpoint, 4);
+    /*
+     * Write the throttle separately from the rest of the RC data so we can apply a predictor to it.
+     * Throttle lies in range [minthrottle..maxthrottle]:
+     */
+    blackboxWriteUnsignedVB(blackboxCurrent->rcCommand[THROTTLE] - motorConfig()->minthrottle);
 
     if (testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_VBAT)) {
         /*
@@ -656,7 +652,6 @@ static void writeInterframe(void)
     blackboxWriteSignedVB((int32_t) (blackboxHistory[0]->time - 2 * blackboxHistory[1]->time + blackboxHistory[2]->time));
 
     int32_t deltas[8];
-    int32_t setpointDeltas[4];
     arraySubInt32(deltas, blackboxCurrent->axisPID_P, blackboxLast->axisPID_P, XYZ_AXIS_COUNT);
     blackboxWriteSignedVBArray(deltas, XYZ_AXIS_COUNT);
 
@@ -686,11 +681,9 @@ static void writeInterframe(void)
      */
     for (int x = 0; x < 4; x++) {
         deltas[x] = blackboxCurrent->rcCommand[x] - blackboxLast->rcCommand[x];
-        setpointDeltas[x] = blackboxCurrent->setpoint[x] - blackboxLast->setpoint[x];
     }
 
     blackboxWriteTag8_4S16(deltas);
-    blackboxWriteTag8_4S16(setpointDeltas);
 
     //Check for sensors that are updated periodically (so deltas are normally zero)
     int optionalFieldCount = 0;
@@ -988,8 +981,7 @@ static void writeGPSFrame(timeUs_t currentTimeUs)
     blackboxWriteUnsignedVB(gpsSol.numSat);
     blackboxWriteSignedVB(gpsSol.llh.lat - gpsHistory.GPS_home[LAT]);
     blackboxWriteSignedVB(gpsSol.llh.lon - gpsHistory.GPS_home[LON]);
-
-    blackboxWriteUnsignedVB(gpsSol.llh.altCm / 10); // was originally designed to transport meters in int16, but +-3276.7m is a good compromise
+    blackboxWriteUnsignedVB(gpsSol.llh.alt);
     blackboxWriteUnsignedVB(gpsSol.groundSpeed);
     blackboxWriteUnsignedVB(gpsSol.groundCourse);
 
@@ -1026,15 +1018,8 @@ static void loadMainState(timeUs_t currentTimeUs)
     }
 
     for (int i = 0; i < 4; i++) {
-        blackboxCurrent->rcCommand[i] = lrintf(rcCommand[i]);
+        blackboxCurrent->rcCommand[i] = rcCommand[i];
     }
-
-    // log the currentPidSetpoint values applied to the PID controller
-    for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
-        blackboxCurrent->setpoint[i] = lrintf(pidGetPreviousSetpoint(i));
-    }
-    // log the final throttle value used in the mixer
-    blackboxCurrent->setpoint[3] = lrintf(mixerGetLoggingThrottle() * 1000);
 
     for (int i = 0; i < DEBUG16_VALUE_COUNT; i++) {
         blackboxCurrent->debug[i] = debug[i];
@@ -1234,7 +1219,7 @@ static bool blackboxWriteSysinfo(void)
     const controlRateConfig_t *currentControlRateProfile = controlRateProfiles(systemConfig()->activeRateProfile);
     switch (xmitState.headerIndex) {
         BLACKBOX_PRINT_HEADER_LINE("Firmware type", "%s",                   "Cleanflight");
-        BLACKBOX_PRINT_HEADER_LINE("Firmware revision", "%s %s (%s) %s",    FC_FIRMWARE_NAME, 3.7.0, shortGitRevision, targetName);
+        BLACKBOX_PRINT_HEADER_LINE("Firmware revision", "%s %s (%s) %s",    FC_FIRMWARE_NAME, "3.7.0", shortGitRevision, targetName);
         BLACKBOX_PRINT_HEADER_LINE("Firmware date", "%s %s",                buildDate, buildTime);
         BLACKBOX_PRINT_HEADER_LINE("Log start datetime", "%s",              blackboxGetStartDateTime(buf));
         BLACKBOX_PRINT_HEADER_LINE("Craft name", "%s",                      pilotConfig()->name);
@@ -1368,8 +1353,8 @@ static bool blackboxWriteSysinfo(void)
         #ifdef USE_BARO
             BLACKBOX_PRINT_HEADER_LINE("baro_hardware", "%d",               barometerConfig()->baro_hardware);
         #endif
-            
-        #ifdef USE_MAG   
+
+        #ifdef USE_MAG
             BLACKBOX_PRINT_HEADER_LINE("mag_hardware", "%d",                compassConfig()->mag_hardware);
         #endif
 
@@ -1557,7 +1542,7 @@ STATIC_UNIT_TESTED void blackboxLogIteration(timeUs_t currentTimeUs)
             writeInterframe();
         }
 #ifdef USE_GPS
-        if (featureIsEnabled(FEATURE_GPS)) {
+        if (feature(FEATURE_GPS)) {
             if (blackboxShouldLogGpsHomeFrame()) {
                 writeGPSHomeFrame();
                 writeGPSFrame(currentTimeUs);
@@ -1623,7 +1608,7 @@ void blackboxUpdate(timeUs_t currentTimeUs)
         if (!sendFieldDefinition('I', 'P', blackboxMainFields, blackboxMainFields + 1, ARRAYLEN(blackboxMainFields),
                 &blackboxMainFields[0].condition, &blackboxMainFields[1].condition)) {
 #ifdef USE_GPS
-            if (featureIsEnabled(FEATURE_GPS)) {
+            if (feature(FEATURE_GPS)) {
                 blackboxSetState(BLACKBOX_STATE_SEND_GPS_H_HEADER);
             } else
 #endif
