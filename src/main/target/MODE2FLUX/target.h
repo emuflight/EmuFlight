@@ -197,16 +197,16 @@
 
 #define CAMERA_CONTROL_PIN             PB6    // define dedicated camera_osd_control pin
 
-#define IMUF_DEFAULT_PITCH_Q  5000
-#define IMUF_DEFAULT_ROLL_Q   5000
-#define IMUF_DEFAULT_YAW_Q    5000
-#define IMUF_DEFAULT_W        16
-#define IMUF_DEFAULT_LPF_HZ   160.0f
+#define IMUF_DEFAULT_PITCH_Q  3000
+#define IMUF_DEFAULT_ROLL_Q   3000
+#define IMUF_DEFAULT_YAW_Q    3000
+#define IMUF_DEFAULT_W        32
+#define IMUF_DEFAULT_LPF_HZ   120.0f
 
 #define USE_FEATHERED_PIDS true
 
-#define DEFAULT_PIDS_ROLL   {45, 50, 20, 100}
-#define DEFAULT_PIDS_PITCH  {45, 50, 20, 100}
-#define DEFAULT_PIDS_YAW    {45, 50, 20, 100}
+#define DEFAULT_PIDS_ROLL   {45, 70, 20, 0}
+#define DEFAULT_PIDS_PITCH  {45, 70, 20, 0}
+#define DEFAULT_PIDS_YAW    {45, 70, 20, 0}
 
 #define TARGET_MANUFACTURER_IDENTIFIER "MOD2"
