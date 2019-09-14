@@ -1212,10 +1212,6 @@ static bool blackboxWriteSysinfo(void)
 
     char buf[FORMATTED_DATE_TIME_BUFSIZE];
 
-    #ifdef USE_RC_SMOOTHING_FILTER
-        rcSmoothingFilter_t *rcSmoothingData = getRcSmoothingData();
-    #endif
-
     const controlRateConfig_t *currentControlRateProfile = controlRateProfiles(systemConfig()->activeRateProfile);
     switch (xmitState.headerIndex) {
         BLACKBOX_PRINT_HEADER_LINE("Firmware type", "%s",                   "Cleanflight");
