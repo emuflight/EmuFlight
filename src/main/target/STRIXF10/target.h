@@ -199,8 +199,8 @@
 
  #define USE_FEATHERED_PIDS true
 
- #define DEFAULT_PIDS_ROLL   {45, 50, 20, 0}
- #define DEFAULT_PIDS_PITCH  {45, 50, 20, 0}
- #define DEFAULT_PIDS_YAW    {45, 50, 20, 0}
+ #define DEFAULT_PIDS_ROLL   {45, 70, 20, 0}
+ #define DEFAULT_PIDS_PITCH  {45, 70, 20, 0}
+ #define DEFAULT_PIDS_YAW    {45, 70, 20, 0}
 
  // #define USE_QUAD_MIXER_ONLY
