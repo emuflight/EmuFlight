@@ -1007,10 +1007,14 @@ static void loadMainState(timeUs_t currentTimeUs)
         blackboxCurrent->axisPID_D[i] = pidData[i].D;
         blackboxCurrent->axisPID_F[i] = pidData[i].F;
         blackboxCurrent->gyroADC[i] = lrintf(gyro.gyroADCf[i]);
-        blackboxCurrent->accADC[i] = lrintf(acc.accADC[i]);
-#ifdef USE_MAG
-        blackboxCurrent->magADC[i] = lrintf(mag.magADC[i]);
-#endif
+
+        #if defined(USE_ACC)
+            blackboxCurrent->accADC[i] = lrintf(acc.accADC[i]);
+        #endif
+
+        #ifdef USE_MAG
+            blackboxCurrent->magADC[i] = mag.magADC[i];
+        #endif
     }
 
     for (int i = 0; i < 4; i++) {
@@ -1029,24 +1033,25 @@ static void loadMainState(timeUs_t currentTimeUs)
     blackboxCurrent->vbatLatest = getBatteryVoltageLatest();
     blackboxCurrent->amperageLatest = getAmperageLatest();
 
-#ifdef USE_BARO
-    blackboxCurrent->BaroAlt = baro.BaroAlt;
-#endif
+    #ifdef USE_BARO
+        blackboxCurrent->BaroAlt = baro.BaroAlt;
+    #endif
 
-#ifdef USE_RANGEFINDER
-    // Store the raw sonar value without applying tilt correction
-    blackboxCurrent->surfaceRaw = rangefinderGetLatestAltitude();
-#endif
+    #ifdef USE_RANGEFINDER
+        // Store the raw sonar value without applying tilt correction
+        blackboxCurrent->surfaceRaw = rangefinderGetLatestAltitude();
+    #endif
 
     blackboxCurrent->rssi = getRssi();
 
-#ifdef USE_SERVOS
-    //Tail servo for tricopters
-    blackboxCurrent->servo[5] = servo[5];
-#endif
-#else
-    UNUSED(currentTimeUs);
-#endif // UNIT_TEST
+    #ifdef USE_SERVOS
+        //Tail servo for tricopters
+        blackboxCurrent->servo[5] = servo[5];
+    #endif
+
+    #else
+        UNUSED(currentTimeUs);
+    #endif // UNIT_TEST
 }
 
 /**
@@ -1210,7 +1215,7 @@ static bool blackboxWriteSysinfo(void)
     const controlRateConfig_t *currentControlRateProfile = controlRateProfiles(systemConfig()->activeRateProfile);
     switch (xmitState.headerIndex) {
         BLACKBOX_PRINT_HEADER_LINE("Firmware type", "%s",                   "Cleanflight");
-        BLACKBOX_PRINT_HEADER_LINE("Firmware revision", "%s %s (%s) %s",    FC_FIRMWARE_NAME, FC_VERSION_STRING, shortGitRevision, targetName);
+        BLACKBOX_PRINT_HEADER_LINE("Firmware revision", "%s %s (%s) %s",    FC_FIRMWARE_NAME, "3.7.0", shortGitRevision, targetName);
         BLACKBOX_PRINT_HEADER_LINE("Firmware date", "%s %s",                buildDate, buildTime);
         BLACKBOX_PRINT_HEADER_LINE("Log start datetime", "%s",              blackboxGetStartDateTime(buf));
         BLACKBOX_PRINT_HEADER_LINE("Craft name", "%s",                      pilotConfig()->name);
@@ -1221,7 +1226,10 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("maxthrottle", "%d",                     motorConfig()->maxthrottle);
         BLACKBOX_PRINT_HEADER_LINE("gyro_scale","0x%x",                     castFloatBytesToInt(1.0f));
         BLACKBOX_PRINT_HEADER_LINE("motorOutput", "%d,%d",                  motorOutputLowInt,motorOutputHighInt);
-        BLACKBOX_PRINT_HEADER_LINE("acc_1G", "%u",                          acc.dev.acc_1G);
+
+        #if defined(USE_ACC)
+            BLACKBOX_PRINT_HEADER_LINE("acc_1G", "%u",                      acc.dev.acc_1G);
+        #endif
 
         BLACKBOX_PRINT_HEADER_LINE_CUSTOM(
             if (testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_VBAT)) {
@@ -1280,6 +1288,13 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("dterm_notch_hz", "%d",                  currentPidProfile->dterm_notch_hz);
         BLACKBOX_PRINT_HEADER_LINE("dterm_notch_cutoff", "%d",              currentPidProfile->dterm_notch_cutoff);
         BLACKBOX_PRINT_HEADER_LINE("iterm_windup", "%d",                    currentPidProfile->itermWindupPointPercent);
+
+        #if defined(USE_ITERM_RELAX)
+            BLACKBOX_PRINT_HEADER_LINE("iterm_relax", "%d",                 currentPidProfile->iterm_relax);
+            BLACKBOX_PRINT_HEADER_LINE("iterm_relax_type", "%d",            currentPidProfile->iterm_relax_type);
+            BLACKBOX_PRINT_HEADER_LINE("iterm_relax_cutoff", "%d",          currentPidProfile->iterm_relax_cutoff);
+        #endif
+
         BLACKBOX_PRINT_HEADER_LINE("vbat_pid_gain", "%d",                   currentPidProfile->vbatPidCompensation);
         BLACKBOX_PRINT_HEADER_LINE("pidAtMinThrottle", "%d",                currentPidProfile->pidAtMinThrottle);
 
@@ -1296,6 +1311,13 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("feedforward_weight", "%d,%d,%d",        currentPidProfile->pid[PID_ROLL].F,
                                                                             currentPidProfile->pid[PID_PITCH].F,
                                                                             currentPidProfile->pid[PID_YAW].F);
+        #ifdef USE_ABSOLUTE_CONTROL
+            BLACKBOX_PRINT_HEADER_LINE("abs_control_gain", "%d",            currentPidProfile->abs_control_gain);
+        #endif
+
+        #ifdef USE_INTEGRATED_YAW_CONTROL
+            BLACKBOX_PRINT_HEADER_LINE("use_integrated_yaw", "%d",          currentPidProfile->use_integrated_yaw);
+        #endif
 
         BLACKBOX_PRINT_HEADER_LINE("acc_limit_yaw", "%d",                   currentPidProfile->yawRateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("acc_limit", "%d",                       currentPidProfile->rateAccelLimit);
@@ -1306,9 +1328,11 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("yaw_deadband", "%d",                    rcControlsConfig()->yaw_deadband);
 
         BLACKBOX_PRINT_HEADER_LINE("gyro_hardware_lpf", "%d",               gyroConfig()->gyro_hardware_lpf);
-#ifdef USE_32K_CAPABLE_GYRO
-        BLACKBOX_PRINT_HEADER_LINE("gyro_32khz_hardware_lpf", "%d",         gyroConfig()->gyro_32khz_hardware_lpf);
-#endif
+
+        #ifdef USE_32K_CAPABLE_GYRO
+            BLACKBOX_PRINT_HEADER_LINE("gyro_32khz_hardware_lpf", "%d",     gyroConfig()->gyro_32khz_hardware_lpf);
+        #endif
+
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_type", "%d",               gyroConfig()->gyro_lowpass_type);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_hz", "%d",                 gyroConfig()->gyro_lowpass_hz);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass2_type", "%d",              gyroConfig()->gyro_lowpass2_type);
@@ -1317,10 +1341,19 @@ static bool blackboxWriteSysinfo(void)
                                                                             gyroConfig()->gyro_soft_notch_hz_2);
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_cutoff", "%d,%d",            gyroConfig()->gyro_soft_notch_cutoff_1,
                                                                             gyroConfig()->gyro_soft_notch_cutoff_2);
-        BLACKBOX_PRINT_HEADER_LINE("acc_lpf_hz", "%d",                 (int)(accelerometerConfig()->acc_lpf_hz * 100.0f));
-        BLACKBOX_PRINT_HEADER_LINE("acc_hardware", "%d",                    accelerometerConfig()->acc_hardware);
-        BLACKBOX_PRINT_HEADER_LINE("baro_hardware", "%d",                   barometerConfig()->baro_hardware);
-        BLACKBOX_PRINT_HEADER_LINE("mag_hardware", "%d",                    compassConfig()->mag_hardware);
+        #if defined(USE_ACC)
+            BLACKBOX_PRINT_HEADER_LINE("acc_lpf_hz", "%d",                  (int)(accelerometerConfig()->acc_lpf_hz * 100.0f));
+            BLACKBOX_PRINT_HEADER_LINE("acc_hardware", "%d",                accelerometerConfig()->acc_hardware);
+        #endif
+
+        #ifdef USE_BARO
+            BLACKBOX_PRINT_HEADER_LINE("baro_hardware", "%d",               barometerConfig()->baro_hardware);
+        #endif
+
+        #ifdef USE_MAG
+            BLACKBOX_PRINT_HEADER_LINE("mag_hardware", "%d",                compassConfig()->mag_hardware);
+        #endif
+
         BLACKBOX_PRINT_HEADER_LINE("gyro_cal_on_first_arm", "%d",           armingConfig()->gyro_cal_on_first_arm);
         BLACKBOX_PRINT_HEADER_LINE("rc_interpolation", "%d",                rxConfig()->rcInterpolation);
         BLACKBOX_PRINT_HEADER_LINE("rc_interpolation_interval", "%d",       rxConfig()->rcInterpolationInterval);
@@ -1332,27 +1365,29 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("dshot_idle_value", "%d",                motorConfig()->digitalIdleOffsetValue);
         BLACKBOX_PRINT_HEADER_LINE("debug_mode", "%d",                      systemConfig()->debug_mode);
         BLACKBOX_PRINT_HEADER_LINE("features", "%d",                        featureConfig()->enabledFeatures);
-#ifdef USE_RC_SMOOTHING_FILTER
-        BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_type", "%d",               rxConfig()->rc_smoothing_type);
-        BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_debug_axis", "%d",         rxConfig()->rc_smoothing_debug_axis);
-        BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_cutoffs", "%d, %d",        rxConfig()->rc_smoothing_input_cutoff,
-                                                                            rxConfig()->rc_smoothing_derivative_cutoff);
-        BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_filter_type", "%d, %d",    rxConfig()->rc_smoothing_input_type,
-                                                                            rxConfig()->rc_smoothing_derivative_type);
-        BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_active_cutoffs", "%d, %d", rcSmoothingGetValue(RC_SMOOTHING_VALUE_INPUT_ACTIVE),
-                                                                            rcSmoothingGetValue(RC_SMOOTHING_VALUE_DERIVATIVE_ACTIVE));
-        BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_rx_average", "%d",         rcSmoothingGetValue(RC_SMOOTHING_VALUE_AVERAGE_FRAME));
-#endif // USE_RC_SMOOTHING_FILTER
+
+        #ifdef USE_RC_SMOOTHING_FILTER
+            BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_type", "%d",               rxConfig()->rc_smoothing_type);
+            BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_debug_axis", "%d",         rxConfig()->rc_smoothing_debug_axis);
+            BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_cutoffs", "%d, %d",        rxConfig()->rc_smoothing_input_cutoff,
+                                                                                rxConfig()->rc_smoothing_derivative_cutoff);
+            BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_filter_type", "%d, %d",    rxConfig()->rc_smoothing_input_type,
+                                                                                rxConfig()->rc_smoothing_derivative_type);
+            BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_active_cutoffs", "%d, %d", rcSmoothingGetValue(RC_SMOOTHING_VALUE_INPUT_ACTIVE),
+                                                                                rcSmoothingGetValue(RC_SMOOTHING_VALUE_DERIVATIVE_ACTIVE));
+            BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_rx_average", "%d",         rcSmoothingGetValue(RC_SMOOTHING_VALUE_AVERAGE_FRAME));
+        #endif // USE_RC_SMOOTHING_FILTER
 
 
-#ifdef USE_GYRO_IMUF9001
-        BLACKBOX_PRINT_HEADER_LINE("IMUF revision", " %d",                  imufCurrentVersion);
-        BLACKBOX_PRINT_HEADER_LINE("IMUF mode", " %d",                      gyroConfig()->imuf_mode);
-        BLACKBOX_PRINT_HEADER_LINE("IMUF roll q", " %d",                    gyroConfig()->imuf_roll_q);
-        BLACKBOX_PRINT_HEADER_LINE("IMUF pitch q", " %d",                   gyroConfig()->imuf_pitch_q);
-        BLACKBOX_PRINT_HEADER_LINE("IMUF yaw q", " %d",                     gyroConfig()->imuf_yaw_q);
-        BLACKBOX_PRINT_HEADER_LINE("IMUF w", " %d",                         gyroConfig()->imuf_w);
-#endif
+        #ifdef USE_GYRO_IMUF9001
+            BLACKBOX_PRINT_HEADER_LINE("IMUF revision", " %d",              imufCurrentVersion);
+            BLACKBOX_PRINT_HEADER_LINE("IMUF mode", " %d",                  gyroConfig()->imuf_mode);
+            BLACKBOX_PRINT_HEADER_LINE("IMUF roll q", " %d",                gyroConfig()->imuf_roll_q);
+            BLACKBOX_PRINT_HEADER_LINE("IMUF pitch q", " %d",               gyroConfig()->imuf_pitch_q);
+            BLACKBOX_PRINT_HEADER_LINE("IMUF yaw q", " %d",                 gyroConfig()->imuf_yaw_q);
+            BLACKBOX_PRINT_HEADER_LINE("IMUF w", " %d",                     gyroConfig()->imuf_w);
+        #endif
+
         default:
             return true;
     }
@@ -1747,7 +1782,7 @@ void blackboxInit(void)
     // targetPidLooptime is 1000 for 1kHz loop, 500 for 2kHz loop etc, targetPidLooptime is rounded for short looptimes
     if (targetPidLooptime == 31) { // rounded from 31.25us
         blackboxIInterval = 1024;
-    } else if (targetPidLooptime == 62) { // rounded from 62.5us
+    } else if (targetPidLooptime == 63) { // rounded from 62.5us
         blackboxIInterval = 512;
     } else {
         blackboxIInterval = (uint16_t)(32000 / targetPidLooptime);
