@@ -33,7 +33,7 @@ EmuFlight has some of the following features:
 
 ## Installation & Documentation
 
-See: https://github.com/betaflight/betaflight/wiki
+See: https://github.com/emuflight/EmuFlight-Butter-Varient/wiki
 
 ## Support and Developers Channel
 
@@ -47,7 +47,7 @@ Etiquette: Don't ask to ask and please wait around long enough for a reply - som
 
 To configure Betaflight you should use the Betaflight-configurator GUI tool (Windows/OSX/Linux) which can be found here:
 
-https://github.com/emuflight/Configurator/releases
+https://github.com/emuflight/EmuConfigurator
 
 ## Contributing
 
@@ -60,9 +60,9 @@ Contributions are welcome and encouraged. You can contribute in many ways:
 
 The best place to start is the EmuFlight Discord (registration [here](https://discord.gg/gdP9CwE). Next place is the github issue tracker:
 
-https://github.com/emuflight/EmuFlight/issues
+https://github.com/emuflight/EmuFlight-Butter-Varient/issues
 
-https://github.com/emuflight/Configurator/issues
+https://github.com/emuflight/EmuConfigurator/issues
 
 Before creating new issues please check to see if there is an existing one, search first otherwise you waste peoples time when they could be coding instead!
 
@@ -77,7 +77,7 @@ Before starting to write code, please read our [development guidelines](docs/dev
 
 ## EmuFlight Releases
 
-https://github.com/emuflight/EmuFlight/releases
+https://github.com/emuflight/EmuFlight-Butter-Varient/releases
 
 ## Open Source / Contributors
 
