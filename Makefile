@@ -16,7 +16,7 @@
 #
 
 # The target to build, see VALID_TARGETS below
-TARGET    ?= BETAFLIGHTF3
+TARGET    ?= HELIOSPRING
 
 # Compile-time options
 OPTIONS   ?=

@@ -136,10 +136,21 @@ typedef float (*pidControllerFn)(const pidProfile_t *pidProfile, int axis, float
 float featheredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
 float classicPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
 
+float errorBoostLimit = 1.0f;
+float errorMultiplier = 1.0f;
+
+float featheredPIDboost( float errorRate)
+{
+	float boostedErrorFactor = (errorRate * errorRate) * errorMultiplier;
+	boostedErrorFactor += 1.0f;
+	boostedErrorFactor = MIN(boostedErrorFactor, errorBoostLimit);
+
+	return boostedErrorFactor;
+}
 
 void resetPidProfile(pidProfile_t *pidProfile)
 {
-	r_weight = 0.67;
+	r_weight = 0.33;
 
     RESET_CONFIG(pidProfile_t, pidProfile,
         .pid = {
@@ -164,7 +175,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .feedForwardTransition = 0,
         .feathered_pids = USE_FEATHERED_PIDS,
         .i_decay = 4,
-        .r_weight = 67,
+        .r_weight = 33,
         .errorBoost = 15,
         .errorBoostLimit = 20,
         .yawRateAccelLimit = 100,
@@ -272,6 +283,8 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     const uint32_t pidFrequencyNyquist = pidFrequency / 2; // No rounding needed
 
     r_weight = (float) pidProfile->r_weight / 100.0f;
+	errorMultiplier = (float)pidProfile->errorBoost * (float)pidProfile->errorBoost * 1e-9f;
+	errorBoostLimit = (float)pidProfile->errorBoostLimit / 100.0f + 1.0f;
 
     uint16_t dTermNotchHz;
     if (pidProfile->dterm_notch_hz <= pidFrequencyNyquist) {
@@ -865,28 +878,13 @@ FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float er
 {
     (void)(currentPidSetpoint);
 
-//Add EmuBoost to the code (non linear boost to errorRate)
-float errorMultiplier = (pidProfile->errorBoost * pidProfile->errorBoost / 1000000) * 0.003;
-float boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
-if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
-  {
-    boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
-  } else {
-    if ( errorRate < 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
-  {
-    boostedErrorRate = (0 - errorRate * errorRate) * errorMultiplier;
-  } else {
-    boostedErrorRate = errorRate * pidProfile->errorBoostLimit / 100;
-  }
-}
-
     // -----calculate P component
-    pidData[axis].P = pidCoefficient[axis].Kp * (boostedErrorRate + errorRate);
+    pidData[axis].P = pidCoefficient[axis].Kp * errorRate;
 
     // -----calculate I component
     //float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
     float iterm    = pidData[axis].I;
-    float ITermNew = pidCoefficient[axis].Ki * (boostedErrorRate + errorRate) * dynCi;
+    float ITermNew = pidCoefficient[axis].Ki * errorRate * dynCi;
     if (ITermNew != 0.0f)
     {
         if (SIGN(iterm) != SIGN(ITermNew))
@@ -919,20 +917,6 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 {
     UNUSED(currentPidSetpoint);
 
-    float errorMultiplier = (pidProfile->errorBoost * pidProfile->errorBoost / 1000000) * 0.003;
-    float boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
-    if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
-      {
-        boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
-      } else {
-        if ( errorRate < 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
-      {
-        boostedErrorRate = (0 - errorRate * errorRate) * errorMultiplier;
-      } else {
-        boostedErrorRate = errorRate * pidProfile->errorBoostLimit / 100;
-      }
-    }
-
     rotateITermAndAxisError();
     // --------low-level gyro-based PID based on 2DOF PID controller. ----------
     // 2-DOF PID controller with optional filter on derivative term.
@@ -945,7 +929,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 
         const float gyroRate = gyro.gyroADCf[axis];
         float ITerm = pidData[axis].I;
-        float itermErrorRate = boostedErrorRate + errorRate;
+        float itermErrorRate = errorRate;
 
 #if defined(USE_ITERM_RELAX)
     if (itermRelax && (axis < FD_YAW || itermRelax == ITERM_RELAX_RPY || itermRelax == ITERM_RELAX_RPY_INC)) {
@@ -1009,7 +993,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
 #endif
 
         // -----calculate P component and add Dynamic Part based on stick input
-    pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate));
+    pidData[axis].P = pidCoefficient[axis].Kp * errorRate;
     // -----calculate I component
    // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
     float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
@@ -1035,13 +1019,13 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
     // -----calculate D component
     float gyroRateFiltered = dtermNotchApplyFn((filter_t *) &dtermNotch[axis], gyroRate);
 
-//        float setpointT = flightModeFlags ? 0.0f : 0 * MIN(getRcDeflectionAbs(axis) * 1.0f, 1.0f);
-        float ornD = /*setpointT **/ currentPidSetpoint - gyroRateFiltered;
-        float dDelta = 0.0f;
-        //filter Kd properly, no sp
-        ornD = /*setpointT **/ getSetpointRate(axis) - gyroRateFiltered;    // cr - y
-        dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * pidFrequency );
-        previousRateError[axis] = ornD;
+	float ornD = /*setpointT **/currentPidSetpoint - gyroRateFiltered;
+	float dDelta = 0.0f;
+	//filter Kd properly, no sp
+	ornD = /*setpointT **/getSetpointRate(axis) - gyroRateFiltered;    // cr - y
+	dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis],
+			(ornD - previousRateError[axis]) * pidFrequency);
+	previousRateError[axis] = ornD;
 
 if (pidCoefficient[axis].Kd > 0) {
         // Divide rate change by dT to get differential (ie dr/dt).
@@ -1102,6 +1086,10 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
         // -----calculate error rate
         errorRate = currentPidSetpoint - gyro.gyroADCf[axis]; // r - y
+        {
+        	const float nonLinearBoost = featheredPIDboost(errorRate);
+        	errorRate *= nonLinearBoost;
+        }
 
         handleCrashRecovery(
             pidProfile->crash_recovery, angleTrim, axis, currentTimeUs, errorRate,
