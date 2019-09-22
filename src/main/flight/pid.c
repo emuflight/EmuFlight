@@ -150,7 +150,7 @@ float featheredPIDboost( float errorRate)
 
 void resetPidProfile(pidProfile_t *pidProfile)
 {
-	r_weight = 0.33;
+	r_weight = 0.67;
 
     RESET_CONFIG(pidProfile_t, pidProfile,
         .pid = {
@@ -175,7 +175,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .feedForwardTransition = 0,
         .feathered_pids = USE_FEATHERED_PIDS,
         .i_decay = 4,
-        .r_weight = 33,
+        .r_weight = 67,
         .errorBoost = 15,
         .errorBoostLimit = 20,
         .yawRateAccelLimit = 100,
@@ -283,7 +283,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     const uint32_t pidFrequencyNyquist = pidFrequency / 2; // No rounding needed
 
     r_weight = (float) pidProfile->r_weight / 100.0f;
-	errorMultiplier = (float)pidProfile->errorBoost * (float)pidProfile->errorBoost * 1e-9f;
+	errorMultiplier = (float)pidProfile->errorBoost * (float)pidProfile->errorBoost * 3e-9f;
 	errorBoostLimit = (float)pidProfile->errorBoostLimit / 100.0f + 1.0f;
 
     uint16_t dTermNotchHz;
