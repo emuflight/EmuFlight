@@ -182,10 +182,6 @@
 #undef USE_USB_MSC
 #endif
 
-#ifndef USE_GPS_RESCUE
-#undef USE_CMS_GPS_RESCUE_MENU
-#endif
-
 #ifndef USE_CMS
 #undef USE_CMS_FAILSAFE_MENU
 #endif
