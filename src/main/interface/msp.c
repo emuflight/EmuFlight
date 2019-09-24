@@ -1051,7 +1051,6 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, gpsConfig()->sbasMode);
         sbufWriteU8(dst, gpsConfig()->autoConfig);
         sbufWriteU8(dst, gpsConfig()->autoBaud);
-        sbufWriteU16(dst, gpsConfig()->distanceLimit);
         break;
 
     case MSP_RAW_GPS:
@@ -1749,7 +1748,6 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         gpsConfigMutable()->sbasMode = sbufReadU8(src);
         gpsConfigMutable()->autoConfig = sbufReadU8(src);
         gpsConfigMutable()->autoBaud = sbufReadU8(src);
-        gpsConfigMutable()->distanceLimit = sbufReadU16(src);
         break;
 
 #ifdef USE_GPS_RESCUE

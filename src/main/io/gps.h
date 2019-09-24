@@ -73,7 +73,7 @@ typedef struct gpsConfig_s {
     gpsAutoConfig_e autoConfig;
     gpsAutoBaud_e autoBaud;
     uint8_t gps_ublox_use_galileo;
-    uint16_t distanceLimit;
+    int16_t distanceLimit;
 } gpsConfig_t;
 
 PG_DECLARE(gpsConfig_t, gpsConfig);
