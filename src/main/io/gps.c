@@ -240,8 +240,7 @@ PG_RESET_TEMPLATE(gpsConfig_t, gpsConfig,
     .sbasMode = SBAS_AUTO,
     .autoConfig = GPS_AUTOCONFIG_ON,
     .autoBaud = GPS_AUTOBAUD_OFF,
-    .gps_ublox_use_galileo = false,
-    .distanceLimit = 0
+    .gps_ublox_use_galileo = false
 );
 
 static void shiftPacketLog(void)
@@ -1371,15 +1370,5 @@ void onGpsNewData(void)
     rescueNewGpsData();
 #endif
 }
-
-bool isLimitDistanceReach(void){
-
-  if(gpsRescueConfig()->descentDistance > 0 && GPS_distanceToHome > gpsRescueConfig()->descentDistance){
-      return true;
-    }else{
-      return false;
-    }
-}
-
 
 #endif

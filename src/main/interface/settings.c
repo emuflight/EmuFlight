@@ -777,7 +777,6 @@ const clivalue_t valueTable[] = {
     { "gps_auto_config",            VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_GPS_CONFIG, offsetof(gpsConfig_t, autoConfig) },
     { "gps_auto_baud",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_GPS_CONFIG, offsetof(gpsConfig_t, autoBaud) },
     { "gps_ublox_use_galileo",      VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_GPS_CONFIG, offsetof(gpsConfig_t, gps_ublox_use_galileo) },
-    { "gps_distance_limit",              VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 500 }, PG_GPS_CONFIG, offsetof(gpsConfig_t, distanceLimit) },
 
 #ifdef USE_GPS_RESCUE
     // PG_GPS_RESCUE

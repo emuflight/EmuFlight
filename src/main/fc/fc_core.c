@@ -133,7 +133,6 @@ static bool flipOverAfterCrashMode = false;
 
 static timeUs_t disarmAt;     // Time of automatic disarm when "Don't spin the motors when armed" is enabled and auto_disarm_delay is nonzero
 
-bool limitDistanceReach;
 bool isRXDataNew;
 static int lastArmingDisabledReason = 0;
 static timeUs_t lastDisarmTimeUs;
@@ -760,19 +759,12 @@ bool processRx(timeUs_t currentTimeUs)
     }
 
 #ifdef USE_GPS_RESCUE
-if(isLimitDistanceReach()){
-  limitDistanceReach = true;
-  }
-
-    if (IS_RC_MODE_ACTIVE(BOXGPSRESCUE) || (failsafeIsActive() && failsafeConfig()->failsafe_procedure == FAILSAFE_PROCEDURE_GPS_RESCUE) || (!IS_RC_MODE_ACTIVE(BOXGPSRESCUE)  && !FLIGHT_MODE(ANGLE_MODE) && limitDistanceReach) ) {
+    if (IS_RC_MODE_ACTIVE(BOXGPSRESCUE) || (failsafeIsActive() && failsafeConfig()->failsafe_procedure == FAILSAFE_PROCEDURE_GPS_RESCUE)) {
         if (!FLIGHT_MODE(GPS_RESCUE_MODE)) {
             ENABLE_FLIGHT_MODE(GPS_RESCUE_MODE);
         }
     } else {
-      if(!limitDistanceReach || FLIGHT_MODE(ANGLE_MODE)){
         DISABLE_FLIGHT_MODE(GPS_RESCUE_MODE);
-        limitDistanceReach = false;
-      }
     }
 #endif
 
@@ -1026,7 +1018,7 @@ FAST_CODE void taskMainPidLoop(timeUs_t currentTimeUs)
     //gyroUpdateSensor in gyro.c is called by gyroUpdate
     gyroUpdate(currentTimeUs);
     DEBUG_SET(DEBUG_PIDLOOP, 0, micros() - currentTimeUs);
-
+    
     if (pidUpdateCountdown) {
         pidUpdateCountdown--;
     } else {
