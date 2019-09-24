@@ -100,11 +100,10 @@ if (sensors(SENSOR_GPS) && STATE(GPS_FIX)) {
 
     if (haveGpsAlt && haveBaroAlt) {
         estimatedAltitude = gpsAlt * gpsTrust + baroAlt * (1 - gpsTrust);
-    }    else if (haveBaroAlt) {
+    }   } else if (haveBaroAlt) {
           estimatedAltitude = baroAlt;
       }else if (haveGpsAlt) {
         estimatedAltitude = gpsAlt;
-    }
 
 
     DEBUG_SET(DEBUG_ALTITUDE, 0, (int32_t)(100 * gpsTrust));
