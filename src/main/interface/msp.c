@@ -1728,6 +1728,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         break;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 #ifdef USE_GPS_RESCUE
                 case MSP_SET_GPS_RESCUE:
@@ -1757,6 +1758,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
 >>>>>>> parent of 78d0c9d4b... Merge pull request #10 from emuflight/GPS
 =======
 >>>>>>> parent of 78d0c9d4b... Merge pull request #10 from emuflight/GPS
+=======
+>>>>>>> parent of 5ca88faf3... adding gps_recue in msp protocol and interface
 #endif
 
 #ifdef USE_MAG
