@@ -1727,6 +1727,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         gpsConfigMutable()->autoBaud = sbufReadU8(src);
         break;
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 #ifdef USE_GPS_RESCUE
                 case MSP_SET_GPS_RESCUE:
@@ -1752,6 +1753,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
                 break;
         #endif
 
+=======
+>>>>>>> parent of 78d0c9d4b... Merge pull request #10 from emuflight/GPS
 =======
 >>>>>>> parent of 78d0c9d4b... Merge pull request #10 from emuflight/GPS
 #endif

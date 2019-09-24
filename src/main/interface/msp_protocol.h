@@ -332,7 +332,11 @@
 #define MSP_SET_SIGNATURE        249    //in message          Sets the signature of the board and serial number
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Emuflight
+=======
+// ButterFlight
+>>>>>>> parent of 78d0c9d4b... Merge pull request #10 from emuflight/GPS
 =======
 // ButterFlight
 >>>>>>> parent of 78d0c9d4b... Merge pull request #10 from emuflight/GPS
@@ -342,8 +346,11 @@
 #define MSP_SET_IMUF_CONFIG      228    //in message
 #define MSP_IMUF_INFO            229    //out message
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define MSP_EMUF                 231    //out message
 #define MSP_SET_EMUF             232    //in message
 
+=======
+>>>>>>> parent of 78d0c9d4b... Merge pull request #10 from emuflight/GPS
 =======
 >>>>>>> parent of 78d0c9d4b... Merge pull request #10 from emuflight/GPS
