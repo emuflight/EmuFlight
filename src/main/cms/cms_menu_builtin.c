@@ -102,9 +102,6 @@ static OSD_Entry menuFeaturesEntries[] =
 {
     {"--- FEATURES ---", OME_Label, NULL, NULL, 0},
 
-#if defined(USE_BLACKBOX)
-    {"BLACKBOX", OME_Submenu, cmsMenuChange, &cmsx_menuBlackbox, 0},
-#endif
 #if defined(USE_VTX_CONTROL)
 #if defined(USE_VTX_RTC6705)
     {"VTX", OME_Submenu, cmsMenuChange, &cmsx_menuVtxRTC6705, 0},
@@ -120,7 +117,6 @@ static OSD_Entry menuFeaturesEntries[] =
     {"LED STRIP", OME_Submenu, cmsMenuChange, &cmsx_menuLedstrip, 0},
 #endif // LED_STRIP
     {"POWER", OME_Submenu, cmsMenuChange, &cmsx_menuPower, 0},
-    { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     {"BACK", OME_Back, NULL, NULL, 0},
     {NULL, OME_END, NULL, NULL, 0}
 };

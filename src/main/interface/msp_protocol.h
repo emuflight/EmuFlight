@@ -331,33 +331,11 @@
 #define MSP_SET_BOARD_INFO       248    //in message          Sets the board information for this board
 #define MSP_SET_SIGNATURE        249    //in message          Sets the signature of the board and serial number
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-// Emuflight
-=======
-// ButterFlight
->>>>>>> parent of 78d0c9d4b... Merge pull request #10 from emuflight/GPS
-=======
-// ButterFlight
->>>>>>> parent of 78d0c9d4b... Merge pull request #10 from emuflight/GPS
-=======
-// ButterFlight
->>>>>>> parent of 5ca88faf3... adding gps_recue in msp protocol and interface
 #define MSP_FAST_KALMAN          225    //out message
 #define MSP_SET_FAST_KALMAN      226    //in message
 #define MSP_IMUF_CONFIG          227    //out message
 #define MSP_SET_IMUF_CONFIG      228    //in message
 #define MSP_IMUF_INFO            229    //out message
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 #define MSP_EMUF                 231    //out message
 #define MSP_SET_EMUF             232    //in message
-
-=======
->>>>>>> parent of 78d0c9d4b... Merge pull request #10 from emuflight/GPS
-=======
->>>>>>> parent of 78d0c9d4b... Merge pull request #10 from emuflight/GPS
-=======
->>>>>>> parent of 5ca88faf3... adding gps_recue in msp protocol and interface
