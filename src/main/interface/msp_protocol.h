@@ -279,8 +279,6 @@
 #define MSP_GPS_CONFIG           132    //out message         GPS configuration
 #define MSP_COMPASS_CONFIG       133    //out message         Compass configuration
 #define MSP_ESC_SENSOR_DATA      134    //out message         Extra ESC data from 32-Bit ESCs (Temperature, RPM)
-#define MSP_GPS_RESCUE           135    //out message         GPS Rescues's angle, initialAltitude, descentDistance, rescueGroundSpeed, sanityChecks and minSats
-#define MSP_GPS_RESCUE_PIDS      136    //out message         GPS Rescues's throttleP and velocity PIDS + yaw P
 
 #define MSP_SET_RAW_RC           200    //in message          8 rc chan
 #define MSP_SET_RAW_GPS          201    //in message          fix, numsat, lat, lon, alt, speed
@@ -308,15 +306,6 @@
 #define MSP_SET_GPS_CONFIG       223    //out message         GPS configuration
 #define MSP_SET_COMPASS_CONFIG   224    //out message         Compass configuration
 
-// Emuflight
-#define MSP_FAST_KALMAN          225    //out message
-#define MSP_SET_FAST_KALMAN      226    //in message
-#define MSP_IMUF_CONFIG          227    //out message
-#define MSP_SET_IMUF_CONFIG      228    //in message
-#define MSP_IMUF_INFO            229    //out message
-
-#define MSP_SET_GPS_RESCUE       230  // GPS Rescues's angle, initialAltitude, descentDistance, rescueGroundSpeed, sanityChecks and minSats
-#define MSP_SET_GPS_RESCUE_PIDS  231    //in message          GPS Rescues's throttleP and velocity PIDS + yaw P
 // #define MSP_BIND                 240    //in message          no param
 // #define MSP_ALARMS               242
 
@@ -342,12 +331,19 @@
 #define MSP_SET_BOARD_INFO       248    //in message          Sets the board information for this board
 #define MSP_SET_SIGNATURE        249    //in message          Sets the signature of the board and serial number
 
+<<<<<<< HEAD
 // Emuflight
+=======
+// ButterFlight
+>>>>>>> parent of 78d0c9d4b... Merge pull request #10 from emuflight/GPS
 #define MSP_FAST_KALMAN          225    //out message
 #define MSP_SET_FAST_KALMAN      226    //in message
 #define MSP_IMUF_CONFIG          227    //out message
 #define MSP_SET_IMUF_CONFIG      228    //in message
 #define MSP_IMUF_INFO            229    //out message
+<<<<<<< HEAD
 #define MSP_EMUF                 231    //out message
 #define MSP_SET_EMUF             232    //in message
 
+=======
+>>>>>>> parent of 78d0c9d4b... Merge pull request #10 from emuflight/GPS
