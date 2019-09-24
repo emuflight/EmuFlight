@@ -180,7 +180,6 @@ typedef struct osdConfig_s {
     uint16_t cap_alarm;
     uint16_t alt_alarm;
     uint8_t rssi_alarm;
-uint16_t distance_alarm;
 
     osd_unit_e units;
 
@@ -209,3 +208,5 @@ void osdStatSetState(uint8_t statIndex, bool enabled);
 bool osdStatGetState(uint8_t statIndex);
 void osdWarnSetState(uint8_t warningIndex, bool enabled);
 bool osdWarnGetState(uint8_t warningIndex);
+
+

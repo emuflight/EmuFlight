@@ -120,15 +120,12 @@ CMS_Menu menuOsdActiveElems = {
 static uint8_t osdConfig_rssi_alarm;
 static uint16_t osdConfig_cap_alarm;
 static uint16_t osdConfig_alt_alarm;
-static uint16_t osdConfig_distance_alarm;
-
 
 static long menuAlarmsOnEnter(void)
 {
     osdConfig_rssi_alarm = osdConfig()->rssi_alarm;
     osdConfig_cap_alarm = osdConfig()->cap_alarm;
     osdConfig_alt_alarm = osdConfig()->alt_alarm;
-    osdConfig_distance_alarm = osdConfig()->distance_alarm;
 
     return 0;
 }
@@ -140,7 +137,6 @@ static long menuAlarmsOnExit(const OSD_Entry *self)
     osdConfigMutable()->rssi_alarm = osdConfig_rssi_alarm;
     osdConfigMutable()->cap_alarm = osdConfig_cap_alarm;
     osdConfigMutable()->alt_alarm = osdConfig_alt_alarm;
-    osdConfigMutable()->distance_alarm = osdConfig_distance_alarm;
 
     return 0;
 }
@@ -151,7 +147,6 @@ OSD_Entry menuAlarmsEntries[] =
     {"RSSI",     OME_UINT8,  NULL, &(OSD_UINT8_t){&osdConfig_rssi_alarm, 5, 90, 5}, 0},
     {"MAIN BAT", OME_UINT16, NULL, &(OSD_UINT16_t){&osdConfig_cap_alarm, 50, 30000, 50}, 0},
     {"MAX ALT",  OME_UINT16, NULL, &(OSD_UINT16_t){&osdConfig_alt_alarm, 1, 200, 1}, 0},
-    {"MAX DISTANCE", OME_UINT16, NULL, &(OSD_UINT16_t){&osdConfig_distance_alarm, 0, UINT16_MAX, 10}, 0},
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     {"BACK", OME_Back, NULL, NULL, 0},
     {NULL, OME_END, NULL, NULL, 0}
