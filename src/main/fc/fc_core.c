@@ -769,10 +769,10 @@ if(isLimitDistanceReach()){
             ENABLE_FLIGHT_MODE(GPS_RESCUE_MODE);
         }
     } else {
-    //  if(!limitDistanceReach || FLIGHT_MODE(ANGLE_MODE)){
+      if(!limitDistanceReach || FLIGHT_MODE(ANGLE_MODE)){
         DISABLE_FLIGHT_MODE(GPS_RESCUE_MODE);
         limitDistanceReach = false;
-    //  }
+      }
     }
 #endif
 
