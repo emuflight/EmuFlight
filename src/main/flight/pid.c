@@ -542,7 +542,8 @@ void pidAcroTrainerInit(void)
 
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex)
 {
-    if ((dstPidProfileIndex < MAX_PROFILE_COUNT-1 && srcPidProfileIndex < MAX_PROFILE_COUNT-1)
+
+    if (dstPidProfileIndex < MAX_PROFILE_COUNT && srcPidProfileIndex < MAX_PROFILE_COUNT
         && dstPidProfileIndex != srcPidProfileIndex
     ) {
         memcpy(pidProfilesMutable(dstPidProfileIndex), pidProfilesMutable(srcPidProfileIndex), sizeof(pidProfile_t));
