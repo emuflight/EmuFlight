@@ -143,11 +143,7 @@ uint32_t IO_EXTI_Line(IO_t io)
     if (!io) {
         return 0;
     }
-#if defined(STM32F1)
-    return 1 << IO_GPIOPinIdx(io);
-#elif defined(STM32F3)
-    return IO_GPIOPinIdx(io);
-#elif defined(STM32F4)
+#if defined(STM32F4)
     return 1 << IO_GPIOPinIdx(io);
 #elif defined(STM32F7)
     return 1 << IO_GPIOPinIdx(io);
@@ -425,4 +421,3 @@ IO_t IOGetByTag(ioTag_t tag)
     offset += ioDefUsedOffset[portIdx];
     return ioRecs + offset;
 }
-
