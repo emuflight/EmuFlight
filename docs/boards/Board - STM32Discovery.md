@@ -11,7 +11,6 @@ Solid documentation is provided by STMicroelectronics.
 
 | Target               | MCU           | Documentation |
 | ---                  | ---           | --- |
-| `STM32F3DISCOVERY`   | `STM32F303VC` | [User Manual](https://www.st.com/content/ccc/resource/technical/document/user_manual/8a/56/97/63/8d/56/41/73/DM00063382.pdf/files/DM00063382.pdf/jcr:content/translations/en.DM00063382.pdf) \| [MCU Datasheet](www.st.com/resource/en/datasheet/stm32f303vc.pdf) |
 | `STM32F4DISCOVERY`   | `STM32F407VG` | [User Manual](https://www.st.com/content/ccc/resource/technical/document/user_manual/70/fe/4a/3f/e7/e1/4f/7d/DM00039084.pdf/files/DM00039084.pdf/jcr:content/translations/en.DM00039084.pdf) \| [MCU Datasheet](https://www.st.com/resource/en/datasheet/stm32f407vg.pdf) |
 | `STM32F411DISCOVERY` | `STM32F411VE` | [User Manual](https://www.st.com/content/ccc/resource/technical/document/user_manual/e9/d2/00/5e/15/46/44/0e/DM00148985.pdf/files/DM00148985.pdf/jcr:content/translations/en.DM00148985.pdf) \| [MCU Datasheet](https://www.st.com/resource/en/datasheet/stm32f411re.pdf) |
 
@@ -21,30 +20,30 @@ _Note: Not all pin-outs seem to be listed in the User Manual, double-checking in
 
 ### Pins
 
-| Function       | F3   | F4   | F411 |
-| ---            | ---  | ---  | ---  |
-| PPM Receiver   | PB8  | PB9  | PB8  |
-| Motor 1        | PA8  | PB1  | PD12 |
-| Motor 2        | PC6  | PB0  | PB1  |
-| Motor 3        | PC7  | PA2  | PB0  |
-| Motor 4        | PC8  | PA3  | PA2  |
-| Motor 5        | /    | PA10 | PA3  |
-| Motor 6        | /    | PA8  | PA10 |
-| Beeper         | PD12 | /    | PA8  |
-| USART1 TX      | PA9  | PB6  | PA15 |
-| USART1 RX      | PA10 | PB7  | PA10 |
-| USART2 TX      | PD5  | PA2  | PA2  |
-| USART2 RX      | PD6  | PA3  | PA3  |
-| USART3 TX      | PB10 | PB10 | /    |
-| USART3 RX      | PB11 | PB11 | /    |
-| USART4 TX      | PC10 | PA0  | /    |
-| USART4 RX      | PC11 | PA1  | /    |
-| USART5 TX      | PC12 | /    | /    |
-| USART5 RX      | PD2  | /    | /    |
-| USART6 TX      | /    | PC6  | PC6  |
-| USART6 RX      | /    | PC7  | PC7  |
-| HCSR04 Trigger | PB0  | /    | /    |
-| HCSR04 Echo    | PB1  | /    | /    |
+| Function       | F4   | F411 |
+| ---            | ---  | ---  |
+| PPM Receiver   | PB9  | PB8  |
+| Motor 1        | PB1  | PD12 |
+| Motor 2        | PB0  | PB1  |
+| Motor 3        | PA2  | PB0  |
+| Motor 4        | PA3  | PA2  |
+| Motor 5        | PA10 | PA3  |
+| Motor 6        | PA8  | PA10 |
+| Beeper         | /    | PA8  |
+| USART1 TX      | PB6  | PA15 |
+| USART1 RX      | PB7  | PA10 |
+| USART2 TX      | PA2  | PA2  |
+| USART2 RX      | PA3  | PA3  |
+| USART3 TX      | PB10 | /    |
+| USART3 RX      | PB11 | /    |
+| USART4 TX      | PA0  | /    |
+| USART4 RX      | PA1  | /    |
+| USART5 TX      | /    | /    |
+| USART5 RX      | /    | /    |
+| USART6 TX      | PC6  | PC6  |
+| USART6 RX      | PC7  | PC7  |
+| HCSR04 Trigger | /    | /    |
+| HCSR04 Echo    | /    | /    |
 
 _Note: `/` means not supported or configured._
 
