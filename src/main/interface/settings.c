@@ -898,9 +898,12 @@ const clivalue_t valueTable[] = {
 #endif
 
 #ifdef USE_INTEGRATED_YAW_CONTROL
-    { "use_integrated_yaw",    VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = {TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, use_integrated_yaw) },
+    { "use_integrated_yaw",      VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = {TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, use_integrated_yaw) },
     { "integrated_yaw_relax",    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, integrated_yaw_relax) },
 #endif
+
+{ "motor_output_limit",        VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { MOTOR_OUTPUT_LIMIT_PERCENT_MIN, MOTOR_OUTPUT_LIMIT_PERCENT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, motor_output_limit) },
+{ "auto_profile_cell_count",   VAR_INT8  | PROFILE_VALUE,  .config.minmax = { AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT }, PG_PID_PROFILE, offsetof(pidProfile_t, auto_profile_cell_count) },
 
 
 // PG_TELEMETRY_CONFIG
