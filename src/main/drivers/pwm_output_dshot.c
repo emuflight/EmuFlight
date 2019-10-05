@@ -32,6 +32,8 @@
 #include "timer.h"
 #if defined(STM32F4)
 #include "stm32f4xx.h"
+#elif defined(STM32F3)
+#include "stm32f30x.h"
 #endif
 #include "pwm_output.h"
 #include "drivers/nvic.h"

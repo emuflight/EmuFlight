@@ -498,6 +498,9 @@ targets-by-mcu:
 		fi; \
 	done
 
+## targets-f3        : make all F3 targets
+targets-f3:
+	$(V1) $(MAKE) -s targets-by-mcu MCU_TYPE=STM32F3
 
 ## targets-f4        : make all F4 targets
 targets-f4:
