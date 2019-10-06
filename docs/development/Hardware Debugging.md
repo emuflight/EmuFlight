@@ -90,3 +90,5 @@ Run the Launch the J-Link GDB Server program and configure using UI.
 ##### Windows
 
 ##### OSX/Linux
+
+      openocd -f /usr/share/openocd/scripts/board/stm32vldiscovery.cfg
