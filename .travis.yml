@@ -15,7 +15,6 @@ addons:
     packages:
       - build-essential
       - git
-      - jq
       - lcov
       - libblocksruntime-dev # required?
       - libc6-i386
@@ -31,7 +30,7 @@ language: cpp
 compiler: clang
 
 before_install:
-  - pip install --user --upgrade cpp-coveralls # not used for now
+  - pip install --user --upgrade j2cli cpp-coveralls # not used for now
   - gem install coveralls-lcov # not used for now
 
 install:
