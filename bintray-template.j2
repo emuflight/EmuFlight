@@ -2,7 +2,7 @@
     "files": [
         {
             "includePattern": "obj/(.*\\.hex)",
-            "uploadPattern": "$1",
+            "uploadPattern": "{{ env("BINTRAY_VERSION") }}/$1",
             "matrixParams": { "override": 1 }
         }
     ],
