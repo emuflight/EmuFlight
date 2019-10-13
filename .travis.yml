@@ -2,43 +2,49 @@
 
 env:
   global:
-    - GOAL=FURYF4OSD
-    - PATH=$HOME/.local/bin:$PATH
+    - GOAL=all # make $GOAL
+    - PATH=$HOME/.local/bin:$PATH # "user" installs
 
 sudo: false
 
 git:
-  depth: 10
+  depth: 10 # quick clone
 
 addons:
   apt:
     packages:
       - build-essential
       - git
+      - jq
       - lcov
-      - libblocksruntime-dev
+      - libblocksruntime-dev # required?
       - libc6-i386
       - time
 
+cache:
+  directories:
+  - downloads
+  - tools
+
+dist: bionic # ubuntu
 language: cpp
 compiler: clang
-dist: bionic
 
 before_install:
-  - pip install --user --upgrade cpp-coveralls
-  - gem install coveralls-lcov
+  - pip install --user --upgrade cpp-coveralls # not used for now
+  - gem install coveralls-lcov # not used for now
 
 install:
-  - make arm_sdk_install
+  - make arm_sdk_install # toolchain
 
 before_script:
-  - tools/gcc-arm-none-eabi-7-2017-q4-major/bin/arm-none-eabi-gcc --version
+  - tools/gcc-arm-none-eabi-7-2017-q4-major/bin/arm-none-eabi-gcc --version # TODO: this recent? check Makefile
   - clang --version
   - clang++ --version
   - gcc --version
 
 script: 
-  - ./.travis.sh
+  - ./.travis.sh # main
 
 deploy:
   provider: bintray
@@ -46,14 +52,9 @@ deploy:
   user: "$BINTRAY_USER"
   key: "$BINTRAY_API_KEY"
   skip_cleanup: true
-  edge: true
+  edge: true # dpl v2
   on:
-    branch: continous_disintegration
-
-cache:
-  directories:
-  - downloads
-  - tools
+    branch: continous_disintegration # TODO: scope
 
 after_success:
   - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh

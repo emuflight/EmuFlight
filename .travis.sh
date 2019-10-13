@@ -1,15 +1,12 @@
 #!/bin/bash
-
-FC_VER=$(make version)
-REVISION=$(git rev-parse --short HEAD)
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
-REVISION=$(git rev-parse --short HEAD)
-LAST_COMMIT_DATE=$(git log -1 --date=short --format="%cd")
-TARGET_FILE=obj/betaflight_${FC_VER}_${TARGET}
-TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG:=$USER/undefined}
-BUILDNAME=${BUILDNAME:=travis}
+#
+GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+GIT_COMMIT_DATE=$(git log -1 --date=short --format="%cd")
+GIT_REVISION=$(git rev-parse --short HEAD)
 TRAVIS_BUILD_NUMBER=${TRAVIS_BUILD_NUMBER:=undefined}
-
+TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG:=$USER/undefined}
+CODE_VERSION=$(make version)
+#
 MAKE="make EXTRA_FLAGS=-Werror"
 
 if [ $TARGET ] ; then
@@ -22,6 +19,8 @@ elif [ $GOAL ] ; then
     fi
 
     $MAKE $GOAL || exit $?
+    jq --arg version "$TRAVIS_BUILD_NUMBER-$CODE_VERSION" --arg branch "$GIT_BRANCH" \
+'.version.name = $version, .package.name = $branch' bintray-conf.json
 
     if [ $PUBLISHCOV ] ; then
         if [ "test" == "$GOAL" ] ; then
