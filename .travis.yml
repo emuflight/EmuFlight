@@ -33,7 +33,7 @@ compiler: clang
 dist: bionic
 
 before_install:
-  - pip install --user --upgrade awscli cpp-coveralls
+  - pip install --user --upgrade cpp-coveralls
   - gem install coveralls-lcov
 
 install:
@@ -47,7 +47,6 @@ before_script:
 
 script: 
   - ./.travis.sh
-  - aws s3 cp dist s3://${BUCKET_NAME}/${CI_COMMIT_REF_SLUG}/${CI_COMMIT_SHA} --recursive
 
 cache:
   directories:
