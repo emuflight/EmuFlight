@@ -1,14 +1,12 @@
-#!/bin/bash -x
-#
-export GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-#GIT_COMMIT_DATE=$(git log -1 --date=short --format="%cd")
-#GIT_REVISION=$(git rev-parse --short HEAD)
-#TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG:=$USER/undefined}
+#!/bin/bash
 
-export VERSION="$(make version)-${TRAVIS_BUILD_NUMBER}"
+# compose version string
+export BINTRAY_VERSION="$(make version)-${TRAVIS_BUILD_NUMBER}"
 
+# compile code
 make EXTRA_FLAGS=-Werror ${TARGET} || exit $?
 
-j2 bintray-template.j2 > bintray-conf.json
+# process template
+j2 bintray-template.j2 -o bintray-conf.json
 
 cat bintray-conf.json # DEBUG

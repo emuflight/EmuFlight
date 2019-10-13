@@ -20,7 +20,7 @@
         "name": "default_branch",
         "public_download_numbers": false,
         "public_stats": false,
-        "repo": "{{ env("GIT_BRANCH") }}",
+        "repo": "{{ env("TRAVIS_BRANCH") }}",
         "subject": "emuflight",
         "vcs_url": "https://github.com/emuflight/EmuFlight-Butter-Varient.git",
         "website_url": "https://github.com/emuflight/EmuFlight-Butter-Varient"
@@ -28,7 +28,7 @@
     "publish": true,
     "version": {
         "gpgSign": false,
-        "name": "{{ env("VERSION") }}",
-        "desc": "automated development build for testing purposes only"
+        "name": "{{ env("BINTRAY_VERSION") }}",
+        "desc": "{{ env("TRAVIS_COMMIT_MESSAGE") }}"
     }
 }
