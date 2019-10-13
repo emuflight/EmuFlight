@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # compose version string
-export EMU_VERSION="(make version)"
+export EMU_VERSION="$(make version)"
 export BINTRAY_VERSION="${EMU_VERSION}-${TRAVIS_BUILD_NUMBER}"
 
 # compile code
