@@ -18,7 +18,7 @@ addons:
       - libc6-i386
       - time
   artifacts:
-    s3_region: "eu-west-1"
+    s3_region: "eu-central-1"
     paths:
       - $(ls obj/*.hex | tr "\n" ":")
       #- $(ls obj/*.bin | tr "\n" ":")
