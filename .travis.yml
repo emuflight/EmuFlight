@@ -51,7 +51,7 @@ deploy:
   skip_cleanup: true
   edge: true # dpl v2
   on:
-    branch: continous_disintegration # FIXME: scope
+    branch: continous_disintegration # name of this branch
 
 after_success:
   - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
