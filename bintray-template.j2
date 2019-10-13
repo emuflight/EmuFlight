@@ -17,10 +17,10 @@
         "licenses": [
             "MIT"
         ],
-        "name": "default_branch",
+        "name": "{{ env("TRAVIS_BRANCH") }}",
         "public_download_numbers": false,
         "public_stats": false,
-        "repo": "{{ env("TRAVIS_BRANCH") }}",
+        "repo": "dev_hex",
         "subject": "emuflight",
         "vcs_url": "https://github.com/emuflight/EmuFlight-Butter-Varient.git",
         "website_url": "https://github.com/emuflight/EmuFlight-Butter-Varient"
