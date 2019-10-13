@@ -1,22 +1,28 @@
 {
     "files": [
         {
-            "includePattern": "obj/main/(.*\\.bin)",
             "excludePattern": ".*/do-not-deploy/.*",
+            "includePattern": "obj/main/(.*\\.bin)",
             "uploadPattern": "hex/$1"
         }
     ],
     "package": {
+        "desc": "i was pushed around by robots",
         "issue_tracker_url": "https://github.com/emuflight/EmuFlight-Butter-Varient/issues",
         "labels": [
-            "C"
+            "emuflight",
+            "hex"
+        ],
+        "licenses": [
+            "MIT"
         ],
         "name": "emuflight",
         "public_download_numbers": false,
         "public_stats": false,
         "repo": "emuflight-travis",
         "subject": "gretel",
-        "vcs_url": "https://github.com/emuflight/EmuFlight-Butter-Varient.git"
+        "vcs_url": "https://github.com/emuflight/EmuFlight-Butter-Varient.git",
+        "website_url": "https://github.com/emuflight/EmuFlight-Butter-Varient"
     },
     "publish": true,
     "version": {
