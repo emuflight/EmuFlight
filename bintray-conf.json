@@ -2,7 +2,7 @@
     "files": [
         {
             "excludePattern": ".*/do-not-deploy/.*",
-            "includePattern": "obj/main/(.*\\.bin)",
+            "includePattern": "obj/(.*\\.hex)",
             "uploadPattern": "hex/$1"
         }
     ],
