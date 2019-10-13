@@ -2,7 +2,8 @@
     "files": [
         {
             "includePattern": "obj/main/(.*\\.bin)",
-            "uploadPattern": "/$1"
+            "excludePattern": ".*/do-not-deploy/.*",
+            "uploadPattern": "hex/$1"
         }
     ],
     "package": {
@@ -10,16 +11,16 @@
         "labels": [
             "C"
         ],
-        "name": "Emuflight Hex",
+        "name": "emuflight",
         "public_download_numbers": false,
         "public_stats": false,
-        "repo": "Emuflight",
-        "subject": "emuflight",
+        "repo": "emuflight-travis",
+        "subject": "gretel",
         "vcs_url": "https://github.com/emuflight/EmuFlight-Butter-Varient.git"
     },
     "publish": true,
     "version": {
         "gpgSign": false,
-        "name": "@VERSION@"
+        "name": "0.1"
     }
 }

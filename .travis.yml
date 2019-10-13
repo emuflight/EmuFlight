@@ -46,6 +46,7 @@ deploy:
   user: "$BINTRAY_USER"
   key: "$BINTRAY_API_KEY"
   skip_cleanup: true
+  edge: true
   on:
     branch: continous_disintegration
 
