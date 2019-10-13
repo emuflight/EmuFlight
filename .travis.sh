@@ -9,6 +9,6 @@ VERSION="$(make version)-${TRAVIS_BUILD_NUMBER}"
 
 make EXTRA_FLAGS=-Werror ${TARGET} || exit $?
 
-j2 bintray-template.j2 bintray-conf.json
+j2 bintray-template.j2 > bintray-conf.json
 
 cat bintray-conf.json # DEBUG
