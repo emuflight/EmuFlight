@@ -18,13 +18,13 @@ addons:
       - libc6-i386
       - time
   artifacts:
-    s3_region: "eu-central-1"
+    s3_region: "us-west-2"
     paths:
       - $(ls obj/*.hex | tr "\n" ":")
       #- $(ls obj/*.bin | tr "\n" ":")
     target_paths:
       - /$TRAVIS_BUILD_NUMBER/emuflight/
-    debug: true
+    #debug: true 
 
 language: cpp
 compiler: clang
