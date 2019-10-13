@@ -26,9 +26,9 @@ elif [ $GOAL ] ; then
     if [ $PUBLISHCOV ] ; then
         if [ "test" == "$GOAL" ] ; then
             lcov --directory . -b src/test --capture --output-file coverage.info 2>&1 | grep -E ":version '402\*', prefer.*'406\*" --invert-match
-            lcov --remove coverage.info 'lib/test/*' 'src/test/*' '/usr/*' --output-file coverage.info # filter out system and test code
-            lcov --list coverage.info # debug before upload
-            coveralls-lcov coverage.info # uploads to coveralls
+            lcov --remove coverage.info 'lib/test/*' 'src/test/*' '/usr/*' --output-file coverage.info
+            lcov --list coverage.info
+            coveralls-lcov coverage.info
         fi
     fi
 else

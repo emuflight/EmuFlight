@@ -11,12 +11,12 @@ git:
 addons:
   apt:
     packages:
-      - lcov
       - build-essential
       - git
+      - lcov
+      - libblocksruntime-dev
       - libc6-i386
       - time
-      - libblocksruntime-dev
   # artifacts:
   #   s3_region: "us-west-2"
   #   paths:
@@ -48,3 +48,12 @@ cache:
   directories:
   - downloads
   - tools
+
+after_success:
+  - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh success $WEBHOOK_URL
+after_failure:
+  - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh failure $WEBHOOK_URL
