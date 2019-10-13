@@ -3,7 +3,7 @@
         {
             "excludePattern": ".*/do-not-deploy/.*",
             "includePattern": "obj/(.*\\.hex)",
-            "uploadPattern": "hex/$2"
+            "uploadPattern": "hex/$1"
         }
     ],
     "package": {
