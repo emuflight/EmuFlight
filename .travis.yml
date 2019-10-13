@@ -8,7 +8,8 @@ env:
 sudo: false
 
 git:
-  depth: 10 # quick clone
+  depth: 5 # quick clone
+  quiet: true
 
 addons:
   apt:
