@@ -19,14 +19,6 @@ addons:
       - libblocksruntime-dev
       - libc6-i386
       - time
-  artifacts:
-    s3_region: "eu-west-1"
-    paths:
-      - $(ls obj/*.hex | tr "\n" ":")
-      #- $(ls obj/*.bin | tr "\n" ":")
-    target_paths:
-      - /$TRAVIS_BUILD_NUMBER/emuflight/
-    #debug: true 
 
 language: cpp
 compiler: clang
@@ -47,6 +39,13 @@ before_script:
 
 script: 
   - ./.travis.sh
+
+deploy:
+  provider: bintray
+  file: "bintray-conf.json"
+  user: "$BINTRAY_USER"
+  key: "$BINTRAY_API_KEY"
+  skip_cleanup: true
 
 cache:
   directories:

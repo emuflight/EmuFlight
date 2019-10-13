@@ -1,0 +1,24 @@
+{
+  "package": {
+    "name": "Emuflight Hex",
+    "repo": "Emuflight",
+    "subject": "emuflight",
+    "issue_tracker_url": "https://github.com/emuflight/EmuFlight-Butter-Varient/issues",
+    "vcs_url": "https://github.com/emuflight/EmuFlight-Butter-Varient.git",
+    "labels": ["C"],
+    "public_download_numbers": false,
+    "public_stats": false
+  },
+
+  "version": {
+    "name": "@VERSION@",
+    "gpgSign": false
+  },
+
+  "files":
+  [
+    {"includePattern": "(.*\.bin)", "uploadPattern": "@VERSION@/$1"},
+  ],
+
+  "publish": true
+}
