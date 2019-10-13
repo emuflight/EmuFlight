@@ -16,7 +16,7 @@ addons:
       - build-essential
       - git
       #- lcov
-      - libblocksruntime-dev # required?
+      - libblocksruntime-dev # TODO: required?
       - libc6-i386
       - time
 
@@ -45,13 +45,13 @@ script:
 
 deploy:
   provider: bintray
-  file: "bintray-conf.json"
+  file: bintray-conf.json
   user: "$BINTRAY_USER"
   key: "$BINTRAY_API_KEY"
   skip_cleanup: true
   edge: true # dpl v2
   on:
-    branch: continous_disintegration # TODO: scope
+    branch: continous_disintegration # FIXME: scope
 
 after_success:
   - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
