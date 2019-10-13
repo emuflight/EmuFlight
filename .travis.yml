@@ -46,10 +46,6 @@ before_script:
 script: 
   - ./.travis.sh # main
 
-before_deploy:
-  - jq --arg version "0.99" --arg branch xybranch \
-'.version.name = $version, .package.name = $branch' bintray-conf.json
-
 deploy:
   provider: bintray
   file: "bintray-conf.json"
