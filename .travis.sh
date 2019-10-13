@@ -12,7 +12,7 @@ TRAVIS_BUILD_NUMBER=${TRAVIS_BUILD_NUMBER:=undefined}
 
 MAKE="make EXTRA_FLAGS=-Werror"
 
-elif [ $TARGET ] ; then
+if [ $TARGET ] ; then
     $MAKE $TARGET || exit $?
 
 elif [ $GOAL ] ; then
