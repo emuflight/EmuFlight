@@ -1,13 +1,9 @@
 {
     "files": [
         {
-            "excludePattern": ".*/do-not-deploy/.*",
             "includePattern": "obj/(.*\\.hex)",
             "uploadPattern": "$1",
-            "matrixParams":
-            {
-                "override": 1
-            }
+            "matrixParams": { "override": 1 }
         }
     ],
     "package": {
@@ -19,7 +15,7 @@
             "controller"
         ],
         "licenses": [
-            "MIT"
+            "GPL-3.0"
         ],
         "name": "{{ env("TRAVIS_BRANCH") }}",
         "public_download_numbers": false,
@@ -30,7 +26,6 @@
         "website_url": "https://github.com/emuflight/EmuFlight-Butter-Varient"
     },
     "publish": true,
-    "override": true,
     "version": {
         "gpgSign": false,
         "name": "{{ env("BINTRAY_VERSION") }}",
