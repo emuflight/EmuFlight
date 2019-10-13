@@ -16,10 +16,10 @@
         "licenses": [
             "MIT"
         ],
-        "name": "emuflight",
+        "name": "development build",
         "public_download_numbers": false,
         "public_stats": false,
-        "repo": "emuflight-travis",
+        "repo": "dev_hex",
         "subject": "gretel",
         "vcs_url": "https://github.com/emuflight/EmuFlight-Butter-Varient.git",
         "website_url": "https://github.com/emuflight/EmuFlight-Butter-Varient"
