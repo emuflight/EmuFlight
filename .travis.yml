@@ -2,7 +2,7 @@
 
 env:
   global:
-    - GOAL=FURYF4OSD # make $GOAL
+    - TARGET=${TARGET:=all} # make $TARGET
     - PATH=$HOME/.local/bin:$PATH # "user" installs
 
 sudo: false
