@@ -19,7 +19,8 @@ elif [ $GOAL ] ; then
     fi
 
     $MAKE $GOAL || exit $?
-    jq --arg version "$TRAVIS_BUILD_NUMBER-$CODE_VERSION" --arg branch "$GIT_BRANCH" '.version.name = $version, .package.name = $branch' bintray-conf.json > bintray-conf.json
+    jq --arg version "$CODE_VERSION.TRAVIS_BUILD_NUMBER" --arg branch "$GIT_BRANCH" '.version.name = $version, .package.name = $branch' bintray-conf.json > bintray-conf.json
+    cat bintray-conf.json
 
     if [ $PUBLISHCOV ] ; then
         if [ "test" == "$GOAL" ] ; then
