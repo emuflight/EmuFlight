@@ -17,7 +17,7 @@
         "licenses": [
             "MIT"
         ],
-        "name": "development",
+        "name": "default_branch",
         "public_download_numbers": false,
         "public_stats": false,
         "repo": "continous_disintegration",
@@ -28,7 +28,7 @@
     "publish": true,
     "version": {
         "gpgSign": false,
-        "name": "0.1",
+        "name": "0.1-1",
         "desc": "automated development build for testing purposes only"
     }
 }
