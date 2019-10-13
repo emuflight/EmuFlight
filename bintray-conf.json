@@ -16,7 +16,7 @@
         "licenses": [
             "MIT"
         ],
-        "name": "development build",
+        "name": "emuflight",
         "public_download_numbers": false,
         "public_stats": false,
         "repo": "dev_hex",
