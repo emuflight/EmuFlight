@@ -1,24 +1,25 @@
 {
-  "package": {
-    "name": "Emuflight Hex",
-    "repo": "Emuflight",
-    "subject": "emuflight",
-    "issue_tracker_url": "https://github.com/emuflight/EmuFlight-Butter-Varient/issues",
-    "vcs_url": "https://github.com/emuflight/EmuFlight-Butter-Varient.git",
-    "labels": ["C"],
-    "public_download_numbers": false,
-    "public_stats": false
-  },
-
-  "version": {
-    "name": "@VERSION@",
-    "gpgSign": false
-  },
-
-  "files":
-  [
-    {"includePattern": "(.*\.bin)", "uploadPattern": "@VERSION@/$1"},
-  ],
-
-  "publish": true
+    "files": [
+        {
+            "includePattern": "obj/main/(.*\\.bin)",
+            "uploadPattern": "/$1"
+        }
+    ],
+    "package": {
+        "issue_tracker_url": "https://github.com/emuflight/EmuFlight-Butter-Varient/issues",
+        "labels": [
+            "C"
+        ],
+        "name": "Emuflight Hex",
+        "public_download_numbers": false,
+        "public_stats": false,
+        "repo": "Emuflight",
+        "subject": "emuflight",
+        "vcs_url": "https://github.com/emuflight/EmuFlight-Butter-Varient.git"
+    },
+    "publish": true,
+    "version": {
+        "gpgSign": false,
+        "name": "@VERSION@"
+    }
 }
