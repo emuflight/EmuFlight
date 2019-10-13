@@ -7,23 +7,22 @@
         }
     ],
     "package": {
+        "subject": "emuflight",
+        "repo": "dev_hex",
         "desc": "do emus dream of flying?",
         "issue_tracker_url": "https://github.com/emuflight/EmuFlight-Butter-Varient/issues",
-        "labels": [
-            "emuflight",
-            "flight",
-            "controller"
-        ],
+        "website_url": "https://github.com/emuflight/EmuFlight-Butter-Varient"
+        "public_download_numbers": false,
+        "public_stats": false,
         "licenses": [
             "GPL-3.0"
         ],
+        "labels": [
+            "emuflight-{{ env("EMU_VERSION") }}",
+            "emuflight"
+        ],
         "name": "{{ env("TRAVIS_BRANCH") }}",
-        "public_download_numbers": false,
-        "public_stats": false,
-        "repo": "dev_hex",
-        "subject": "emuflight",
         "vcs_url": "{{ env("TRAVIS_BUILD_WEB_URL") }}",
-        "website_url": "https://github.com/emuflight/EmuFlight-Butter-Varient"
     },
     "publish": true,
     "version": {
