@@ -3,7 +3,11 @@
         {
             "excludePattern": ".*/do-not-deploy/.*",
             "includePattern": "obj/(.*\\.hex)",
-            "uploadPattern": "$1"
+            "uploadPattern": "$1",
+            "matrixParams":
+            {
+                "override": 1
+            }
         }
     ],
     "package": {
