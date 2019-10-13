@@ -112,14 +112,14 @@ typedef struct pidProfile_s {
     uint8_t horizon_tilt_effect;            // inclination factor for Horizon mode
     uint8_t horizon_tilt_expert_mode;       // OFF or ON
 
-    // Betaflight PID controller parameters
+    // EmuFlight PID controller parameters
     uint8_t  antiGravityMode;               // type of anti gravity method
     uint16_t itermThrottleThreshold;        // max allowed throttle delta before iterm accelerated in ms
     uint16_t itermAcceleratorGain;          // Iterm Accelerator Gain when itermThrottlethreshold is hit
     uint8_t feathered_pids;                 // option to use separate pid controller at runtime.
     uint8_t i_decay;						            // i-term decay
     uint8_t r_weight;					            	// the weight of the kalman R term calculated out of the std. dev.
-    uint16_t errorBoost;                 // the weight of the setpoint boost
+    uint16_t errorBoost;                    // the weight of the setpoint boost
     uint8_t errorBoostLimit;                // percentage of the error that the emu boost can boost
     uint16_t yawRateAccelLimit;             // yaw accel limiter for deg/sec/ms
     uint16_t rateAccelLimit;                // accel limiter roll/pitch deg/sec/ms
@@ -155,6 +155,8 @@ typedef struct pidProfile_s {
     uint8_t abs_control_error_limit;        // Limit to the accumulated error
     uint8_t use_integrated_yaw;             // Selects whether the yaw pidsum should integrated
     uint8_t integrated_yaw_relax;           // Specifies how much integrated yaw should be reduced to offset the drag based yaw component
+    uint8_t fo_dterm;                       // fractional order approximation for dterm
+    uint8_t fo_iterm;                       // fractional order approximation for iterm
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE

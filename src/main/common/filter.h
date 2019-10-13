@@ -62,7 +62,7 @@ typedef enum {
 } biquadFilterType_e;
 
 #if (defined(STM32F7) || defined(STM32F4))
-#define MAX_WINDOW_SIZE 512
+#define MAX_WINDOW_SIZE 216
 #else
 #define MAX_WINDOW_SIZE 512
 #endif
