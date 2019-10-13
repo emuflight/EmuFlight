@@ -47,7 +47,7 @@ deploy:
   key: "$BINTRAY_API_KEY"
   skip_cleanup: true
   on:
-    repo: emuflight/EmuFlight-Butter-Varient
+    branch: continous_disintegration
 
 cache:
   directories:
