@@ -1,12 +1,17 @@
 #!/bin/bash
+#
+# travis continuous integration build script for
+# Emuflight
 
-# compose version string
+# get version string from 'version.h'
 export EMU_VERSION="$(make version)"
+
+# compose string to reference the artifacts (binaries)
 export BINTRAY_VERSION="${EMU_VERSION}-${TRAVIS_BUILD_NUMBER}"
 
-# compile code
+# compile code to binaries
 make EXTRA_FLAGS=-Werror ${TARGET} || exit $?
 
-# process template
+# process template for pushing to bintray
 j2 bintray-template.j2 -o bintray-conf.json
 #cat bintray-conf.json # DEBUG

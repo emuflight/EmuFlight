@@ -1,23 +1,25 @@
-# wip
+# travis continuous integration declaration for
+# Emuflight
 
 env:
   global:
-    - TARGET=FURYF4OSD # make $TARGET
-    - PATH=$HOME/.local/bin:$PATH # "user" installs
+    #- TARGET=FURYF4OSD # make single target
+    - TARGET= # make all targets
+    #- DEBUG=RELWITHDEBINFO # debug symbols
+    - PATH=$HOME/.local/bin:$PATH # "user" installs (pip and stuff)
 
-sudo: false
+sudo: false # be safe
 
 git:
   depth: 5 # quick clone
-  quiet: true
+  quiet: true # save on logfiles
 
 addons:
   apt:
     packages:
       - build-essential
       - git
-      #- lcov
-      - libblocksruntime-dev # TODO: required?
+      - libblocksruntime-dev # required for linking on tests
       - libc6-i386
       - time
 
@@ -49,10 +51,11 @@ deploy:
   file: bintray-conf.json
   user: "$BINTRAY_USER"
   key: "$BINTRAY_API_KEY"
-  skip_cleanup: true
+  skip_cleanup: true # do not delete what has just been built
   edge: true # dpl v2
   on:
-    branch: continous_disintegration # name of this branch
+    all_branches: true
+    #branch: continous_disintegration # just this specific branch
 
 after_success:
   - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
