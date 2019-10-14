@@ -4,15 +4,15 @@
 env:
   matrix:
     #- GOAL=FURYF4OSD # make single target
-    - GOAL=test # make tests
-    - GOAL=targets-group-1 # make all
+    #- GOAL=test # make test # FIXME: fails
+    - GOAL=targets-group-1 # make all (in parallel)
     - GOAL=targets-group-2
     - GOAL=targets-group-3
     - GOAL=targets-group-4
     - GOAL=targets-group-rest
   global:
     #- DEBUG=RELWITHDEBINFO # debug symbols
-    - PATH=$HOME/.local/bin:/usr/lib/ccache:$PATH # "user" installs (pip and stuff)
+    - PATH=$HOME/.local/bin:$PATH # "user" installs (pip and stuff)
 
 sudo: false # be safe
 
@@ -32,10 +32,10 @@ addons:
       - time
 
 cache:
+  ccache: true
   directories:
   - downloads
   - tools
-  - $HOME/.ccache
 
 dist: bionic # ubuntu
 language: cpp
@@ -61,12 +61,12 @@ deploy:
   user: "$BINTRAY_USER"
   key: "$BINTRAY_API_KEY"
   skip_cleanup: true # do not delete what has just been built
-  edge: true # dpl v2
+  edge: true # "dpl" v2
   on:
     all_branches: true
     #branch: continous_disintegration # just this specific branch
 
-after_success:
+after_deploy:
   - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
   - chmod +x send.sh
   - ./send.sh success $WEBHOOK_URL
