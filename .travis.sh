@@ -7,7 +7,7 @@
 export EMU_VERSION="$(make version)"
 
 # compose string to reference the artifacts (binaries)
-export BINTRAY_VERSION="${EMU_VERSION}-${TRAVIS_BUILD_NUMBER}"
+export PACKAGE_VERSION="${EMU_VERSION}-${TRAVIS_BUILD_NUMBER}"
 
 # compile code to binaries
 make EXTRA_FLAGS=-Werror ${GOAL} || exit $?
