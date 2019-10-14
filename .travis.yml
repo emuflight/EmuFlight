@@ -3,8 +3,8 @@
 
 env:
   global:
-    #- TARGET=FURYF4OSD # make single target
-    - TARGET=all # make all targets
+    #- GOAL=FURYF4OSD # make single target
+    - GOAL=all # make all targets
     #- DEBUG=RELWITHDEBINFO # debug symbols
     - PATH=$HOME/.local/bin:$PATH # "user" installs (pip and stuff)
 
