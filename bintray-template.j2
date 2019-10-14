@@ -2,7 +2,7 @@
     "files": [
         {
             "includePattern": "obj/(.*\\.hex)",
-            "uploadPattern": "{{ env("BINTRAY_VERSION") }}/$1",
+            "uploadPattern": "{{ env("PACKAGE_VERSION") }}/$1",
             "matrixParams": { "override": 1 }
         }
     ],
@@ -27,6 +27,6 @@
     "version": {
         "gpgSign": false,
         "name": "{{ env("PACKAGE_VERSION") }}",
-        "desc": "Emuflight - TESTING - changes in this build ::: {{ env("TRAVIS_COMMIT_MESSAGE") }}"
+        "desc": "Emuflight - TESTING - changes in build #{{ env("PACKAGE_VERSION") }} ::: {{ env("TRAVIS_COMMIT_MESSAGE") }}"
     }
 }
