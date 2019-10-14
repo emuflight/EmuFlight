@@ -162,6 +162,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .pidAtMinThrottle = PID_STABILISATION_ON,
         .levelAngleLimit = 55,
         .feedForwardTransition = 0,
+        .setPointPTransition = 110,
+        .setPointITransition = 75,
+        .setPointDTransition = 125,
         .feathered_pids = USE_FEATHERED_PIDS,
         .i_decay = 4,
         .r_weight = 67,
@@ -372,6 +375,9 @@ typedef struct pidCoefficient_s {
 static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feedForwardTransition;
+static FAST_RAM_ZERO_INIT float setPointPTransition;
+static FAST_RAM_ZERO_INIT float setPointITransition;
+static FAST_RAM_ZERO_INIT float setPointDTransition;
 static FAST_RAM_ZERO_INIT pidControllerFn activePidController;
 static FAST_RAM_ZERO_INIT float levelGain, horizonGain, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
@@ -447,6 +453,9 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidCoefficient[axis].Kf = FEEDFORWARD_SCALE * (pidProfile->pid[axis].F / 100.0f);
     }
 
+    setPointPTransition = pidProfile->setPointPTransition / 100.0f;
+    setPointITransition = pidProfile->setPointITransition / 100.0f;
+    setPointDTransition = pidProfile->setPointDTransition / 100.0f;
     levelGain = pidProfile->pid[PID_LEVEL].P / 10.0f;
     horizonGain = pidProfile->pid[PID_LEVEL].I / 10.0f;
     horizonTransition = (float)pidProfile->pid[PID_LEVEL].D;
@@ -1071,8 +1080,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
 
     // gradually scale back integration when above windup point
-    const float dynCi = constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f)
-        * dT * itermAccelerator;
+    const float dynCi = constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f) * dT * itermAccelerator;
     float errorRate;
     float currentPidSetpoint;
 
@@ -1139,6 +1147,30 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         }
         previousPidSetpoint[axis] = currentPidSetpoint;
 
+           // calculate SPA
+           float setPointPAntenuation;
+           float setPointIAntenuation;
+           float setPointDAntenuation;
+
+           // SPA boost if SPA > 100 SPA cut if SPA < 100
+        if (setPointPTransition >= 1) {
+           setPointPAntenuation = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition - 1));
+        } else {
+           setPointPAntenuation = 1 - (getRcDeflectionAbs(axis) * (1 - setPointPTransition));
+        }
+
+        if (setPointITransition >= 1) {
+           setPointIAntenuation = 1 + (getRcDeflectionAbs(axis) * (setPointITransition - 1));
+        } else {
+           setPointIAntenuation = 1 - (getRcDeflectionAbs(axis) * (1 - setPointITransition));
+        }
+
+        if (setPointDTransition >= 1) {
+           setPointDAntenuation = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition - 1));
+        } else {
+           setPointDAntenuation = 1 - (getRcDeflectionAbs(axis) * (1 - setPointDTransition));
+        }
+
 #ifdef USE_YAW_SPIN_RECOVERY
         if (gyroYawSpinDetected()) {
             pidData[axis].I = 0;  // in yaw spin always disable I
@@ -1160,8 +1192,9 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
             pidData[axis].Sum = 0;
         }
-        // calculating the PID sum and TPA
-        const float pidSum = (pidData[axis].P * getThrottlePAttenuation()) + (pidData[axis].I * getThrottleIAttenuation()) + (pidData[axis].D * getThrottleDAttenuation()) + pidData[axis].F;
+        // calculating the PID sum and TPA and SPA
+        const float pidSum = (pidData[axis].P * getThrottlePAttenuation() * setPointPAntenuation) + (pidData[axis].I * getThrottleIAttenuation() * setPointIAntenuation) + (pidData[axis].D * getThrottleDAttenuation() * setPointDAntenuation) + pidData[axis].F;
+
 #ifdef USE_INTEGRATED_YAW_CONTROL
         if (axis == FD_YAW && useIntegratedYaw) {
             pidData[axis].Sum += pidSum * dT * 100.0f;
