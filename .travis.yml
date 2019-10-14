@@ -2,7 +2,7 @@
 # Emuflight
 
 env:
-  global:
+  matrix:
     #- GOAL=FURYF4OSD # make single target
     - GOAL=test # make tests
     - GOAL=targets-group-1 # make all
@@ -10,6 +10,7 @@ env:
     - GOAL=targets-group-3
     - GOAL=targets-group-4
     - GOAL=targets-group-rest
+  global:
     #- DEBUG=RELWITHDEBINFO # debug symbols
     - PATH=$HOME/.local/bin:/usr/lib/ccache:$PATH # "user" installs (pip and stuff)
 
