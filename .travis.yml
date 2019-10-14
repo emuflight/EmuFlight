@@ -4,7 +4,12 @@
 env:
   global:
     #- GOAL=FURYF4OSD # make single target
-    - GOAL=all # make all targets
+    - GOAL=test # make tests
+    - GOAL=targets-group-1 # make all
+    - GOAL=targets-group-2
+    - GOAL=targets-group-3
+    - GOAL=targets-group-4
+    - GOAL=targets-group-rest
     #- DEBUG=RELWITHDEBINFO # debug symbols
     - PATH=$HOME/.local/bin:/usr/lib/ccache:$PATH # "user" installs (pip and stuff)
 
