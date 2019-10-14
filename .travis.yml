@@ -18,6 +18,7 @@ addons:
   apt:
     packages:
       - build-essential
+      - clang
       - git
       - libblocksruntime-dev # required for linking on tests
       - libc6-i386
