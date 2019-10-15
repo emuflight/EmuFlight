@@ -33,6 +33,7 @@ addons:
 
 cache:
   ccache: true
+  pip: true
   directories:
   - downloads
   - tools

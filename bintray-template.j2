@@ -3,7 +3,8 @@
         {
             "includePattern": "obj/(.*\\.hex)",
             "uploadPattern": "{{ env("PACKAGE_VERSION") }}/$1",
-            "matrixParams": { "override": 1 }
+            "matrixParams": { "override": 1 },
+            "listInDownloads": true
         }
     ],
     "package": {
