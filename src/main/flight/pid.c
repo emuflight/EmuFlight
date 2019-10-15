@@ -95,7 +95,7 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 
 #ifndef USE_FEATHERED_PIDS
 #define USE_FEATHERED_PIDS true
-#endif //USE_FEATHERY_PIDS
+#endif //USE_FEATHERED_PIDS
 
 #ifndef DEFAULT_PIDS_ROLL
 #define DEFAULT_PIDS_ROLL { 50, 65, 28, 0 }
@@ -112,8 +112,8 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 #ifdef USE_RUNAWAY_TAKEOFF
 PG_RESET_TEMPLATE(pidConfig_t, pidConfig,
     .pid_process_denom = PID_PROCESS_DENOM_DEFAULT,
-    .runaway_takeoff_prevention = false,
-    .runaway_takeoff_deactivate_throttle = 25,  // throttle level % needed to accumulate deactivation time
+    .runaway_takeoff_prevention = true,
+    .runaway_takeoff_deactivate_throttle = 20,  // throttle level % needed to accumulate deactivation time
     .runaway_takeoff_deactivate_delay = 500     // Accumulated time (in milliseconds) before deactivation in successful takeoff
 );
 #else
@@ -189,7 +189,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .throttle_boost = 5,
         .throttle_boost_cutoff = 15,
         .iterm_rotation = true,
-        .smart_feedforward = false,
         .iterm_relax = ITERM_RELAX_OFF,
         .iterm_relax_cutoff = 11,
         .iterm_relax_type = ITERM_RELAX_GYRO,
@@ -399,9 +398,6 @@ pt1Filter_t throttleLpf;
 #endif
 static FAST_RAM_ZERO_INIT bool itermRotation;
 
-#if defined(USE_SMART_FEEDFORWARD)
-static FAST_RAM_ZERO_INIT bool smartFeedforward;
-#endif
 #if defined(USE_ABSOLUTE_CONTROL)
 static FAST_RAM_ZERO_INIT float axisError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float acGain;
@@ -494,9 +490,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         antiGravityOsdCutoff += ((itermAcceleratorGain - 1000) / 1000.0f) * 0.25f;
     }
 
-#if defined(USE_SMART_FEEDFORWARD)
-    smartFeedforward = pidProfile->smart_feedforward;
-#endif
+
 #if defined(USE_ITERM_RELAX)
     itermRelax = pidProfile->iterm_relax;
     itermRelaxType = pidProfile->iterm_relax_type;
@@ -851,26 +845,67 @@ float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelt
 #endif // USE_RC_SMOOTHING_FILTER
 
 
-#ifdef USE_SMART_FEEDFORWARD
-void FAST_CODE applySmartFeedforward(int axis)
-{
-    if (smartFeedforward) {
-        if (pidData[axis].P * pidData[axis].F > 0) {
-            if (ABS(pidData[axis].F) > ABS(pidData[axis].P)) {
-                pidData[axis].P = 0;
-            } else {
-                pidData[axis].F = 0;
-            }
-        }
-    }
-}
-#endif // USE_SMART_FEEDFORWARD
-
 static FAST_RAM_ZERO_INIT float previousRateError[3];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 //static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
 #define SIGN(x) ((x > 0.0f) - (x < 0.0f))
+
+//FOPID addition to the pid controller
+FAST_CODE float FOPID(float fopid, uint8_t fo_term)
+{
+  float absFopid = fabs(fopid);
+  float absFopidSquare = absFopid * absFopid;
+  float absFopidCube = absFopidSquare * absFopid;
+  float absFopidQuad = absFopidCube * absFopid;
+  float absFopidQuint = absFopidQuad * absFopid;
+  if (fopid < 1) {
+    fopid = fopid;
+  } else {
+  switch (fo_term) {
+    case 1:
+    fopid = (((1.777 * absFopidQuint) + (123.9 * absFopidQuad) + (873.4 * absFopidCube) + (909.9 * absFopidSquare) + (137.7 * absFopid) + 1.914) /
+    ((absFopidQuint) + (90.81 * absFopidQuad) + (785.4 * absFopidCube) + (985 * absFopidSquare) + (182.9  * absFopid) + 3.335)) * (absFopid / fopid);
+    break;
+    case 2:
+    fopid = (((3.233 * absFopidQuint) + (223  * absFopidQuad) + (1624 * absFopidCube) + (1762 * absFopidSquare) + (275.3 * absFopid) + 3.725) /
+    ((absFopidQuint) + (116.8 * absFopidQuad) + (1279 * absFopidCube) + (2011 * absFopidSquare) + (473 * absFopid) + 11.14)) * (absFopid / fopid);
+    break;
+    case 3:
+    fopid = (((6.048 * absFopidQuint) + (413.7  * absFopidQuad) + (3111 * absFopidCube) + (3513 * absFopidSquare) + (565.4 * absFopid) + 7.36) /
+    ((absFopidQuint) + (151 * absFopidQuad) + (2089 * absFopidCube) + (4115 * absFopidSquare) + (1224 * absFopid) + 37.33)) * (absFopid / fopid);
+    break;
+    case 4:
+    fopid = (((11.7 * absFopidQuint) + (794.7  * absFopidQuad) + (6166 * absFopidCube) + (7236 * absFopidSquare) + (1198 * absFopid) + 14.71) /
+    ((absFopidQuint) + (197.2 * absFopidQuad) + (3438 * absFopidCube) + (8478 * absFopidSquare) + (3181 * absFopid) + 125.9)) * (absFopid / fopid);
+    break;
+    case 5:
+    fopid = (((23.59 * absFopidQuint) + (1594  * absFopidQuad) + (12740 * absFopidCube) + (15520 * absFopidSquare) + (2632 * absFopid) + 29.63) /
+    ((absFopidQuint) + (262.6 * absFopidQuad) + (5753 * absFopidCube) + (17720 * absFopidSquare) + (8368 * absFopid) + 429.6)) * (absFopid / fopid);
+    break;
+    case 6:
+    fopid = (((50.26 * absFopidQuint) + (3381  * absFopidQuad) + (27790 * absFopidCube) + (35050 * absFopidSquare) + (6070 * absFopid) + 59.93) /
+    ((absFopidQuint) + (361.4 * absFopidQuad) + (9918 * absFopidCube) + (38090 * absFopidSquare) + (22550 * absFopid) + 1498)) * (absFopid / fopid);
+    break;
+    case 7:
+    fopid = (((116 * absFopidQuint) + (7769  * absFopidQuad) + (65570 * absFopidCube) + (85390 * absFopidSquare) + (15010 * absFopid) + 121.2) /
+    ((absFopidQuint) + (526.7 * absFopidQuad) + (18060 * absFopidCube) + (86240 * absFopidSquare) + (63740 * absFopid) + 5453)) * (absFopid / fopid);
+    break;
+    case 8:
+    fopid = (((305.7 * absFopidQuint) + (20410  * absFopidQuad) + (176400 * absFopidCube) + (236400 * absFopidSquare) + (41890 * absFopid) + 244.3) /
+    ((absFopidQuint) + (857.9 * absFopidQuad) + (36660 * absFopidCube) + (217000 * absFopidSquare) + (199500 * absFopid) + 21830)) * (absFopid / fopid);
+    break;
+    case 9:
+    fopid = (((1092 * absFopidQuint) + (72700  * absFopidQuad) + (642000 * absFopidCube) + (881700 * absFopidSquare) + (156000 * absFopid) + 489.3) /
+    ((absFopidQuint) + (1852 * absFopidQuad) + (98540 * absFopidCube) + (720500 * absFopidSquare) + (819500 * absFopid) + 113800)) * (absFopid / fopid);
+    break;
+    case 10:
+    fopid = fopid;
+    break;
+  }
+}
+return fopid;
+}
 
 // EmuFlight pid controller which uses measurement instead of error rate to calculate D
 FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint)
@@ -898,52 +933,7 @@ if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs
     // -----calculate I component
     // FOPID approximation switch cases for iterm
     float integral = (boostedErrorRate + errorRate) * dynCi;
-    float absIntegral = fabs(integral);
-    if (integral < 1) {
-      integral = integral;
-    } else {
-    switch (pidProfile->fo_iterm) {
-      case 1:
-      integral = (((1.777 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (123.9 * absIntegral * absIntegral * absIntegral * absIntegral) + (873.4 * absIntegral * absIntegral * absIntegral) + (909.9 * absIntegral * absIntegral) + (137.7 * absIntegral) + 1.914) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (90.81 * absIntegral * absIntegral * absIntegral * absIntegral) + (785.4 * absIntegral * absIntegral * absIntegral) + (985 * absIntegral * absIntegral) + (182.9  * absIntegral) + 3.335)) * (absIntegral/integral);
-      break;
-      case 2:
-      integral = (((3.233 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (223  * absIntegral * absIntegral * absIntegral * absIntegral) + (1624 * absIntegral * absIntegral * absIntegral) + (1762 * absIntegral * absIntegral) + (275.3 * absIntegral) + 3.725) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (116.8 * absIntegral * absIntegral * absIntegral * absIntegral) + (1279 * absIntegral * absIntegral * absIntegral) + (2011 * absIntegral * absIntegral) + (473 * absIntegral) + 11.14)) * (absIntegral/integral);
-      break;
-      case 3:
-      integral = (((6.048 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (413.7  * absIntegral * absIntegral * absIntegral * absIntegral) + (3111 * absIntegral * absIntegral * absIntegral) + (3513 * absIntegral * absIntegral) + (565.4 * absIntegral) + 7.36) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (151 * absIntegral * absIntegral * absIntegral * absIntegral) + (2089 * absIntegral * absIntegral * absIntegral) + (4115 * absIntegral * absIntegral) + (1224 * absIntegral) + 37.33)) * (absIntegral/integral);
-      break;
-      case 4:
-      integral = (((11.7 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (794.7  * absIntegral * absIntegral * absIntegral * absIntegral) + (6166 * absIntegral * absIntegral * absIntegral) + (7236 * absIntegral * absIntegral) + (1198 * absIntegral) + 14.71) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (197.2 * absIntegral * absIntegral * absIntegral * absIntegral) + (3438 * absIntegral * absIntegral * absIntegral) + (8478 * absIntegral * absIntegral) + (3181 * absIntegral) + 125.9)) * (absIntegral/integral);
-      break;
-      case 5:
-      integral = (((23.59 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (1594  * absIntegral * absIntegral * absIntegral * absIntegral) + (12740 * absIntegral * absIntegral * absIntegral) + (15520 * absIntegral * absIntegral) + (2632 * absIntegral) + 29.63) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (262.6 * absIntegral * absIntegral * absIntegral * absIntegral) + (5753 * absIntegral * absIntegral * absIntegral) + (17720 * absIntegral * absIntegral) + (8368 * absIntegral) + 429.6)) * (absIntegral/integral);
-      break;
-      case 6:
-      integral = (((50.26 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (3381  * absIntegral * absIntegral * absIntegral * absIntegral) + (27790 * absIntegral * absIntegral * absIntegral) + (35050 * absIntegral * absIntegral) + (6070 * absIntegral) + 59.93) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (361.4 * absIntegral * absIntegral * absIntegral * absIntegral) + (9918 * absIntegral * absIntegral * absIntegral) + (38090 * absIntegral * absIntegral) + (22550 * absIntegral) + 1498)) * (absIntegral/integral);
-      break;
-      case 7:
-      absIntegral = (((116 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (7769  * absIntegral * absIntegral * absIntegral * absIntegral) + (65570 * absIntegral * absIntegral * absIntegral) + (85390 * absIntegral * absIntegral) + (15010 * absIntegral) + 121.2) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (526.7 * absIntegral * absIntegral * absIntegral * absIntegral) + (18060 * absIntegral * absIntegral * absIntegral) + (86240 * absIntegral * absIntegral) + (63740 * absIntegral) + 5453)) * (absIntegral/integral);
-      break;
-      case 8:
-      integral = (((305.7 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (20410  * absIntegral * absIntegral * absIntegral * absIntegral) + (176400 * absIntegral * absIntegral * absIntegral) + (236400 * absIntegral * absIntegral) + (41890 * absIntegral) + 244.3) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (857.9 * absIntegral * absIntegral * absIntegral * absIntegral) + (36660 * absIntegral * absIntegral * absIntegral) + (217000 * absIntegral * absIntegral) + (199500 * absIntegral) + 21830)) * (absIntegral/integral);
-      break;
-      case 9:
-      absIntegral = (((1092 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (72700  * absIntegral * absIntegral * absIntegral * absIntegral) + (642000 * absIntegral * absIntegral * absIntegral) + (881700 * absIntegral * absIntegral) + (156000 * absIntegral) + 489.3) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (1852 * absIntegral * absIntegral * absIntegral * absIntegral) + (98540 * absIntegral * absIntegral * absIntegral) + (720500 * absIntegral * absIntegral) + (819500 * absIntegral) + 113800)) * (absIntegral/integral);
-      break;
-      case 10:
-      integral = integral;
-      break;
-    }
-  }
+    integral = FOPID(integral, pidProfile->fo_iterm);
     // float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
 
     float iterm    = pidData[axis].I;
@@ -970,52 +960,7 @@ if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs
     float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], -((gyro.gyroADCf[axis] - previousRateError[axis]) * pidFrequency));
     previousRateError[axis] = gyro.gyroADCf[axis];
     // FOPID approximation switch cases for dterm
-    float absDDelta = fabs(dDelta);
-    if (dDelta < 1) {
-      dDelta = dDelta;
-    } else {
-    switch (pidProfile->fo_dterm) {
-      case 1:
-      dDelta = (((1.777 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (123.9 * absDDelta * absDDelta * absDDelta * absDDelta) + (873.4 * absDDelta * absDDelta * absDDelta) + (909.9 * absDDelta * absDDelta) + (137.7 * absDDelta) + 1.914) /
-      ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (90.81 * absDDelta * absDDelta * absDDelta * absDDelta) + (785.4 * absDDelta * absDDelta * absDDelta) + (985 * absDDelta * absDDelta) + (182.9  * absDDelta) + 3.335)) * (absDDelta / dDelta);
-      break;
-      case 2:
-      dDelta = (((3.233 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (223  * absDDelta * absDDelta * absDDelta * absDDelta) + (1624 * absDDelta * absDDelta * absDDelta) + (1762 * absDDelta * absDDelta) + (275.3 * absDDelta) + 3.725) /
-      ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (116.8 * absDDelta * absDDelta * absDDelta * absDDelta) + (1279 * absDDelta * absDDelta * absDDelta) + (2011 * absDDelta * absDDelta) + (473 * absDDelta) + 11.14)) * (absDDelta / dDelta);
-      break;
-      case 3:
-      dDelta = (((6.048 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (413.7  * absDDelta * absDDelta * absDDelta * absDDelta) + (3111 * absDDelta * absDDelta * absDDelta) + (3513 * absDDelta * absDDelta) + (565.4 * absDDelta) + 7.36) /
-      ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (151 * absDDelta * absDDelta * absDDelta * absDDelta) + (2089 * absDDelta * absDDelta * absDDelta) + (4115 * absDDelta * absDDelta) + (1224 * absDDelta) + 37.33)) * (absDDelta / dDelta);
-      break;
-      case 4:
-      dDelta = (((11.7 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (794.7  * absDDelta * absDDelta * absDDelta * absDDelta) + (6166 * absDDelta * absDDelta * absDDelta) + (7236 * absDDelta * absDDelta) + (1198 * absDDelta) + 14.71) /
-      ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (197.2 * absDDelta * absDDelta * absDDelta * absDDelta) + (3438 * absDDelta * absDDelta * absDDelta) + (8478 * absDDelta * absDDelta) + (3181 * absDDelta) + 125.9)) * (absDDelta / dDelta);
-      break;
-      case 5:
-      dDelta = (((23.59 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (1594  * absDDelta * absDDelta * absDDelta * absDDelta) + (12740 * absDDelta * absDDelta * absDDelta) + (15520 * absDDelta * absDDelta) + (2632 * absDDelta) + 29.63) /
-      ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (262.6 * absDDelta * absDDelta * absDDelta * absDDelta) + (5753 * absDDelta * absDDelta * absDDelta) + (17720 * absDDelta * absDDelta) + (8368 * absDDelta) + 429.6)) * (absDDelta / dDelta);
-      break;
-      case 6:
-      dDelta = (((50.26 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (3381  * absDDelta * absDDelta * absDDelta * absDDelta) + (27790 * absDDelta * absDDelta * absDDelta) + (35050 * absDDelta * absDDelta) + (6070 * absDDelta) + 59.93) /
-      ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (361.4 * absDDelta * absDDelta * absDDelta * absDDelta) + (9918 * absDDelta * absDDelta * absDDelta) + (38090 * absDDelta * absDDelta) + (22550 * absDDelta) + 1498)) * (absDDelta / dDelta);
-      break;
-      case 7:
-      dDelta = (((116 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (7769  * absDDelta * absDDelta * absDDelta * absDDelta) + (65570 * absDDelta * absDDelta * absDDelta) + (85390 * absDDelta * absDDelta) + (15010 * absDDelta) + 121.2) /
-      ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (526.7 * absDDelta * absDDelta * absDDelta * absDDelta) + (18060 * absDDelta * absDDelta * absDDelta) + (86240 * absDDelta * absDDelta) + (63740 * absDDelta) + 5453)) * (absDDelta / dDelta);
-      break;
-      case 8:
-      dDelta = (((305.7 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (20410  * absDDelta * absDDelta * absDDelta * absDDelta) + (176400 * absDDelta * absDDelta * absDDelta) + (236400 * absDDelta * absDDelta) + (41890 * absDDelta) + 244.3) /
-      ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (857.9 * absDDelta * absDDelta * absDDelta * absDDelta) + (36660 * absDDelta * absDDelta * absDDelta) + (217000 * absDDelta * absDDelta) + (199500 * absDDelta) + 21830)) * (absDDelta / dDelta);
-      break;
-      case 9:
-      dDelta = (((1092 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (72700  * absDDelta * absDDelta * absDDelta * absDDelta) + (642000 * absDDelta * absDDelta * absDDelta) + (881700 * absDDelta * absDDelta) + (156000 * absDDelta) + 489.3) /
-      ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (1852 * absDDelta * absDDelta * absDDelta * absDDelta) + (98540 * absDDelta * absDDelta * absDDelta) + (720500 * absDDelta * absDDelta) + (819500 * absDDelta) + 113800)) * (absDDelta / dDelta);
-      break;
-      case 10:
-      dDelta = dDelta;
-      break;
-    }
-  }
+    dDelta = FOPID (dDelta, pidProfile->fo_dterm);
     pidData[axis].D = (pidCoefficient[axis].Kd * dDelta);
     return dDelta;
 }
@@ -1121,52 +1066,8 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
     // -----calculate I component
     // FOPID approximation switch cases for iterm
     float integral = itermErrorRate * dynCi;
-    float absIntegral = fabs(integral);
-    if (integral < 1) {
-      integral = integral;
-    } else {
-    switch (pidProfile->fo_iterm) {
-      case 1:
-      integral = (((1.777 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (123.9 * absIntegral * absIntegral * absIntegral * absIntegral) + (873.4 * absIntegral * absIntegral * absIntegral) + (909.9 * absIntegral * absIntegral) + (137.7 * absIntegral) + 1.914) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (90.81 * absIntegral * absIntegral * absIntegral * absIntegral) + (785.4 * absIntegral * absIntegral * absIntegral) + (985 * absIntegral * absIntegral) + (182.9  * absIntegral) + 3.335)) * (absIntegral/integral);
-      break;
-      case 2:
-      integral = (((3.233 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (223  * absIntegral * absIntegral * absIntegral * absIntegral) + (1624 * absIntegral * absIntegral * absIntegral) + (1762 * absIntegral * absIntegral) + (275.3 * absIntegral) + 3.725) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (116.8 * absIntegral * absIntegral * absIntegral * absIntegral) + (1279 * absIntegral * absIntegral * absIntegral) + (2011 * absIntegral * absIntegral) + (473 * absIntegral) + 11.14)) * (absIntegral/integral);
-      break;
-      case 3:
-      integral = (((6.048 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (413.7  * absIntegral * absIntegral * absIntegral * absIntegral) + (3111 * absIntegral * absIntegral * absIntegral) + (3513 * absIntegral * absIntegral) + (565.4 * absIntegral) + 7.36) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (151 * absIntegral * absIntegral * absIntegral * absIntegral) + (2089 * absIntegral * absIntegral * absIntegral) + (4115 * absIntegral * absIntegral) + (1224 * absIntegral) + 37.33)) * (absIntegral/integral);
-      break;
-      case 4:
-      integral = (((11.7 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (794.7  * absIntegral * absIntegral * absIntegral * absIntegral) + (6166 * absIntegral * absIntegral * absIntegral) + (7236 * absIntegral * absIntegral) + (1198 * absIntegral) + 14.71) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (197.2 * absIntegral * absIntegral * absIntegral * absIntegral) + (3438 * absIntegral * absIntegral * absIntegral) + (8478 * absIntegral * absIntegral) + (3181 * absIntegral) + 125.9)) * (absIntegral/integral);
-      break;
-      case 5:
-      integral = (((23.59 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (1594  * absIntegral * absIntegral * absIntegral * absIntegral) + (12740 * absIntegral * absIntegral * absIntegral) + (15520 * absIntegral * absIntegral) + (2632 * absIntegral) + 29.63) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (262.6 * absIntegral * absIntegral * absIntegral * absIntegral) + (5753 * absIntegral * absIntegral * absIntegral) + (17720 * absIntegral * absIntegral) + (8368 * absIntegral) + 429.6)) * (absIntegral/integral);
-      break;
-      case 6:
-      integral = (((50.26 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (3381  * absIntegral * absIntegral * absIntegral * absIntegral) + (27790 * absIntegral * absIntegral * absIntegral) + (35050 * absIntegral * absIntegral) + (6070 * absIntegral) + 59.93) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (361.4 * absIntegral * absIntegral * absIntegral * absIntegral) + (9918 * absIntegral * absIntegral * absIntegral) + (38090 * absIntegral * absIntegral) + (22550 * absIntegral) + 1498)) * (absIntegral/integral);
-      break;
-      case 7:
-      absIntegral = (((116 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (7769  * absIntegral * absIntegral * absIntegral * absIntegral) + (65570 * absIntegral * absIntegral * absIntegral) + (85390 * absIntegral * absIntegral) + (15010 * absIntegral) + 121.2) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (526.7 * absIntegral * absIntegral * absIntegral * absIntegral) + (18060 * absIntegral * absIntegral * absIntegral) + (86240 * absIntegral * absIntegral) + (63740 * absIntegral) + 5453)) * (absIntegral/integral);
-      break;
-      case 8:
-      integral = (((305.7 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (20410  * absIntegral * absIntegral * absIntegral * absIntegral) + (176400 * absIntegral * absIntegral * absIntegral) + (236400 * absIntegral * absIntegral) + (41890 * absIntegral) + 244.3) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (857.9 * absIntegral * absIntegral * absIntegral * absIntegral) + (36660 * absIntegral * absIntegral * absIntegral) + (217000 * absIntegral * absIntegral) + (199500 * absIntegral) + 21830)) * (absIntegral/integral);
-      break;
-      case 9:
-      absIntegral = (((1092 * absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (72700  * absIntegral * absIntegral * absIntegral * absIntegral) + (642000 * absIntegral * absIntegral * absIntegral) + (881700 * absIntegral * absIntegral) + (156000 * absIntegral) + 489.3) /
-      ((absIntegral * absIntegral * absIntegral * absIntegral * absIntegral) + (1852 * absIntegral * absIntegral * absIntegral * absIntegral) + (98540 * absIntegral * absIntegral * absIntegral) + (720500 * absIntegral * absIntegral) + (819500 * absIntegral) + 113800)) * (absIntegral/integral);
-      break;
-      case 10:
-      integral = integral;
-      break;
-    }
-  }    // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
+    integral = FOPID(integral, pidProfile->fo_iterm);
+  // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
     float ITermNew = pidCoefficient[axis].Ki * integral;
     if (ITermNew != 0.0f)
     {
@@ -1196,52 +1097,8 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
         float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * pidFrequency );
         previousRateError[axis] = ornD;
         // FOPID approximation switch cases for dterm
-        float absDDelta = fabs(dDelta);
-        if (dDelta < 1) {
-          dDelta = dDelta;
-        } else {
-        switch (pidProfile->fo_dterm) {
-          case 1:
-          dDelta = (((1.777 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (123.9 * absDDelta * absDDelta * absDDelta * absDDelta) + (873.4 * absDDelta * absDDelta * absDDelta) + (909.9 * absDDelta * absDDelta) + (137.7 * absDDelta) + 1.914) /
-          ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (90.81 * absDDelta * absDDelta * absDDelta * absDDelta) + (785.4 * absDDelta * absDDelta * absDDelta) + (985 * absDDelta * absDDelta) + (182.9  * absDDelta) + 3.335)) * (absDDelta / dDelta);
-          break;
-          case 2:
-          dDelta = (((3.233 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (223  * absDDelta * absDDelta * absDDelta * absDDelta) + (1624 * absDDelta * absDDelta * absDDelta) + (1762 * absDDelta * absDDelta) + (275.3 * absDDelta) + 3.725) /
-          ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (116.8 * absDDelta * absDDelta * absDDelta * absDDelta) + (1279 * absDDelta * absDDelta * absDDelta) + (2011 * absDDelta * absDDelta) + (473 * absDDelta) + 11.14)) * (absDDelta / dDelta);
-          break;
-          case 3:
-          dDelta = (((6.048 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (413.7  * absDDelta * absDDelta * absDDelta * absDDelta) + (3111 * absDDelta * absDDelta * absDDelta) + (3513 * absDDelta * absDDelta) + (565.4 * absDDelta) + 7.36) /
-          ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (151 * absDDelta * absDDelta * absDDelta * absDDelta) + (2089 * absDDelta * absDDelta * absDDelta) + (4115 * absDDelta * absDDelta) + (1224 * absDDelta) + 37.33)) * (absDDelta / dDelta);
-          break;
-          case 4:
-          dDelta = (((11.7 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (794.7  * absDDelta * absDDelta * absDDelta * absDDelta) + (6166 * absDDelta * absDDelta * absDDelta) + (7236 * absDDelta * absDDelta) + (1198 * absDDelta) + 14.71) /
-          ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (197.2 * absDDelta * absDDelta * absDDelta * absDDelta) + (3438 * absDDelta * absDDelta * absDDelta) + (8478 * absDDelta * absDDelta) + (3181 * absDDelta) + 125.9)) * (absDDelta / dDelta);
-          break;
-          case 5:
-          dDelta = (((23.59 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (1594  * absDDelta * absDDelta * absDDelta * absDDelta) + (12740 * absDDelta * absDDelta * absDDelta) + (15520 * absDDelta * absDDelta) + (2632 * absDDelta) + 29.63) /
-          ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (262.6 * absDDelta * absDDelta * absDDelta * absDDelta) + (5753 * absDDelta * absDDelta * absDDelta) + (17720 * absDDelta * absDDelta) + (8368 * absDDelta) + 429.6)) * (absDDelta / dDelta);
-          break;
-          case 6:
-          dDelta = (((50.26 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (3381  * absDDelta * absDDelta * absDDelta * absDDelta) + (27790 * absDDelta * absDDelta * absDDelta) + (35050 * absDDelta * absDDelta) + (6070 * absDDelta) + 59.93) /
-          ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (361.4 * absDDelta * absDDelta * absDDelta * absDDelta) + (9918 * absDDelta * absDDelta * absDDelta) + (38090 * absDDelta * absDDelta) + (22550 * absDDelta) + 1498)) * (absDDelta / dDelta);
-          break;
-          case 7:
-          dDelta = (((116 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (7769  * absDDelta * absDDelta * absDDelta * absDDelta) + (65570 * absDDelta * absDDelta * absDDelta) + (85390 * absDDelta * absDDelta) + (15010 * absDDelta) + 121.2) /
-          ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (526.7 * absDDelta * absDDelta * absDDelta * absDDelta) + (18060 * absDDelta * absDDelta * absDDelta) + (86240 * absDDelta * absDDelta) + (63740 * absDDelta) + 5453)) * (absDDelta / dDelta);
-          break;
-          case 8:
-          dDelta = (((305.7 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (20410  * absDDelta * absDDelta * absDDelta * absDDelta) + (176400 * absDDelta * absDDelta * absDDelta) + (236400 * absDDelta * absDDelta) + (41890 * absDDelta) + 244.3) /
-          ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (857.9 * absDDelta * absDDelta * absDDelta * absDDelta) + (36660 * absDDelta * absDDelta * absDDelta) + (217000 * absDDelta * absDDelta) + (199500 * absDDelta) + 21830)) * (absDDelta / dDelta);
-          break;
-          case 9:
-          dDelta = (((1092 * absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (72700  * absDDelta * absDDelta * absDDelta * absDDelta) + (642000 * absDDelta * absDDelta * absDDelta) + (881700 * absDDelta * absDDelta) + (156000 * absDDelta) + 489.3) /
-          ((absDDelta * absDDelta * absDDelta * absDDelta * absDDelta) + (1852 * absDDelta * absDDelta * absDDelta * absDDelta) + (98540 * absDDelta * absDDelta * absDDelta) + (720500 * absDDelta * absDDelta) + (819500 * absDDelta) + 113800)) * (absDDelta / dDelta);
-          break;
-          case 10:
-          dDelta = dDelta;
-          break;
-        }
-      }
+        dDelta = FOPID (dDelta, pidProfile->fo_dterm);
+
 if (pidCoefficient[axis].Kd > 0) {
         // Divide rate change by dT to get differential (ie dr/dt).
         // dT is fixed and calculated from the target PID loop time
@@ -1328,9 +1185,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
             pidData[axis].F = feedforwardGain * transition * pidSetpointDelta * pidFrequency;
 
-#if defined(USE_SMART_FEEDFORWARD)
-            applySmartFeedforward(axis);
-#endif
         } else {
             pidData[axis].F = 0;
         }
