@@ -202,8 +202,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .antiGravityMode = ANTI_GRAVITY_SMOOTH,
         .use_integrated_yaw = false,
         .integrated_yaw_relax = 200,
-        .fo_dterm = 9,
-        .fo_iterm = 9,
+        .emu_dterm = 9,
+        .emu_iterm = 9,
     );
 }
 
@@ -851,60 +851,60 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 #define SIGN(x) ((x > 0.0f) - (x < 0.0f))
 
-//FOPID addition to the pid controller
-FAST_CODE float FOPID(float fopid, uint8_t fo_term)
+//EMUPID addition to the pid controller
+FAST_CODE float EMUPID(float emupid, uint8_t fo_term)
 {
-  float absFopid = fabs(fopid);
-  float absFopidSquare = absFopid * absFopid;
-  float absFopidCube = absFopidSquare * absFopid;
-  float absFopidQuad = absFopidCube * absFopid;
-  float absFopidQuint = absFopidQuad * absFopid;
-  if (fopid < 1) {
-    fopid = fopid;
+  float absEmupid = fabs(emupid);
+  float absEmupidSquare = absEmupid * absEmupid;
+  float absEmupidCube = absEmupidSquare * absEmupid;
+  float absEmupidQuad = absEmupidCube * absEmupid;
+  float absEmupidQuint = absEmupidQuad * absEmupid;
+  if (emupid < 1) {
+    emupid = emupid;
   } else {
   switch (fo_term) {
     case 1:
-    fopid = (((1.777 * absFopidQuint) + (123.9 * absFopidQuad) + (873.4 * absFopidCube) + (909.9 * absFopidSquare) + (137.7 * absFopid) + 1.914) /
-    ((absFopidQuint) + (90.81 * absFopidQuad) + (785.4 * absFopidCube) + (985 * absFopidSquare) + (182.9  * absFopid) + 3.335)) * (absFopid / fopid);
+    emupid = (((1.777 * absEmupidQuint) + (123.9 * absEmupidQuad) + (873.4 * absEmupidCube) + (909.9 * absEmupidSquare) + (137.7 * absEmupid) + 1.914) /
+    ((absEmupidQuint) + (90.81 * absEmupidQuad) + (785.4 * absEmupidCube) + (985 * absEmupidSquare) + (182.9  * absEmupid) + 3.335)) * (absEmupid / emupid);
     break;
     case 2:
-    fopid = (((3.233 * absFopidQuint) + (223  * absFopidQuad) + (1624 * absFopidCube) + (1762 * absFopidSquare) + (275.3 * absFopid) + 3.725) /
-    ((absFopidQuint) + (116.8 * absFopidQuad) + (1279 * absFopidCube) + (2011 * absFopidSquare) + (473 * absFopid) + 11.14)) * (absFopid / fopid);
+    emupid = (((3.233 * absEmupidQuint) + (223  * absEmupidQuad) + (1624 * absEmupidCube) + (1762 * absEmupidSquare) + (275.3 * absEmupid) + 3.725) /
+    ((absEmupidQuint) + (116.8 * absEmupidQuad) + (1279 * absEmupidCube) + (2011 * absEmupidSquare) + (473 * absEmupid) + 11.14)) * (absEmupid / emupid);
     break;
     case 3:
-    fopid = (((6.048 * absFopidQuint) + (413.7  * absFopidQuad) + (3111 * absFopidCube) + (3513 * absFopidSquare) + (565.4 * absFopid) + 7.36) /
-    ((absFopidQuint) + (151 * absFopidQuad) + (2089 * absFopidCube) + (4115 * absFopidSquare) + (1224 * absFopid) + 37.33)) * (absFopid / fopid);
+    emupid = (((6.048 * absEmupidQuint) + (413.7  * absEmupidQuad) + (3111 * absEmupidCube) + (3513 * absEmupidSquare) + (565.4 * absEmupid) + 7.36) /
+    ((absEmupidQuint) + (151 * absEmupidQuad) + (2089 * absEmupidCube) + (4115 * absEmupidSquare) + (1224 * absEmupid) + 37.33)) * (absEmupid / emupid);
     break;
     case 4:
-    fopid = (((11.7 * absFopidQuint) + (794.7  * absFopidQuad) + (6166 * absFopidCube) + (7236 * absFopidSquare) + (1198 * absFopid) + 14.71) /
-    ((absFopidQuint) + (197.2 * absFopidQuad) + (3438 * absFopidCube) + (8478 * absFopidSquare) + (3181 * absFopid) + 125.9)) * (absFopid / fopid);
+    emupid = (((11.7 * absEmupidQuint) + (794.7  * absEmupidQuad) + (6166 * absEmupidCube) + (7236 * absEmupidSquare) + (1198 * absEmupid) + 14.71) /
+    ((absEmupidQuint) + (197.2 * absEmupidQuad) + (3438 * absEmupidCube) + (8478 * absEmupidSquare) + (3181 * absEmupid) + 125.9)) * (absEmupid / emupid);
     break;
     case 5:
-    fopid = (((23.59 * absFopidQuint) + (1594  * absFopidQuad) + (12740 * absFopidCube) + (15520 * absFopidSquare) + (2632 * absFopid) + 29.63) /
-    ((absFopidQuint) + (262.6 * absFopidQuad) + (5753 * absFopidCube) + (17720 * absFopidSquare) + (8368 * absFopid) + 429.6)) * (absFopid / fopid);
+    emupid = (((23.59 * absEmupidQuint) + (1594  * absEmupidQuad) + (12740 * absEmupidCube) + (15520 * absEmupidSquare) + (2632 * absEmupid) + 29.63) /
+    ((absEmupidQuint) + (262.6 * absEmupidQuad) + (5753 * absEmupidCube) + (17720 * absEmupidSquare) + (8368 * absEmupid) + 429.6)) * (absEmupid / emupid);
     break;
     case 6:
-    fopid = (((50.26 * absFopidQuint) + (3381  * absFopidQuad) + (27790 * absFopidCube) + (35050 * absFopidSquare) + (6070 * absFopid) + 59.93) /
-    ((absFopidQuint) + (361.4 * absFopidQuad) + (9918 * absFopidCube) + (38090 * absFopidSquare) + (22550 * absFopid) + 1498)) * (absFopid / fopid);
+    emupid = (((50.26 * absEmupidQuint) + (3381  * absEmupidQuad) + (27790 * absEmupidCube) + (35050 * absEmupidSquare) + (6070 * absEmupid) + 59.93) /
+    ((absEmupidQuint) + (361.4 * absEmupidQuad) + (9918 * absEmupidCube) + (38090 * absEmupidSquare) + (22550 * absEmupid) + 1498)) * (absEmupid / emupid);
     break;
     case 7:
-    fopid = (((116 * absFopidQuint) + (7769  * absFopidQuad) + (65570 * absFopidCube) + (85390 * absFopidSquare) + (15010 * absFopid) + 121.2) /
-    ((absFopidQuint) + (526.7 * absFopidQuad) + (18060 * absFopidCube) + (86240 * absFopidSquare) + (63740 * absFopid) + 5453)) * (absFopid / fopid);
+    emupid = (((116 * absEmupidQuint) + (7769  * absEmupidQuad) + (65570 * absEmupidCube) + (85390 * absEmupidSquare) + (15010 * absEmupid) + 121.2) /
+    ((absEmupidQuint) + (526.7 * absEmupidQuad) + (18060 * absEmupidCube) + (86240 * absEmupidSquare) + (63740 * absEmupid) + 5453)) * (absEmupid / emupid);
     break;
     case 8:
-    fopid = (((305.7 * absFopidQuint) + (20410  * absFopidQuad) + (176400 * absFopidCube) + (236400 * absFopidSquare) + (41890 * absFopid) + 244.3) /
-    ((absFopidQuint) + (857.9 * absFopidQuad) + (36660 * absFopidCube) + (217000 * absFopidSquare) + (199500 * absFopid) + 21830)) * (absFopid / fopid);
+    emupid = (((305.7 * absEmupidQuint) + (20410  * absEmupidQuad) + (176400 * absEmupidCube) + (236400 * absEmupidSquare) + (41890 * absEmupid) + 244.3) /
+    ((absEmupidQuint) + (857.9 * absEmupidQuad) + (36660 * absEmupidCube) + (217000 * absEmupidSquare) + (199500 * absEmupid) + 21830)) * (absEmupid / emupid);
     break;
     case 9:
-    fopid = (((1092 * absFopidQuint) + (72700  * absFopidQuad) + (642000 * absFopidCube) + (881700 * absFopidSquare) + (156000 * absFopid) + 489.3) /
-    ((absFopidQuint) + (1852 * absFopidQuad) + (98540 * absFopidCube) + (720500 * absFopidSquare) + (819500 * absFopid) + 113800)) * (absFopid / fopid);
+    emupid = (((1092 * absEmupidQuint) + (72700  * absEmupidQuad) + (642000 * absEmupidCube) + (881700 * absEmupidSquare) + (156000 * absEmupid) + 489.3) /
+    ((absEmupidQuint) + (1852 * absEmupidQuad) + (98540 * absEmupidCube) + (720500 * absEmupidSquare) + (819500 * absEmupid) + 113800)) * (absEmupid / emupid);
     break;
     case 10:
-    fopid = fopid;
+    emupid = emupid;
     break;
   }
 }
-return fopid;
+return emupid;
 }
 
 // EmuFlight pid controller which uses measurement instead of error rate to calculate D
@@ -931,9 +931,9 @@ if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs
     pidData[axis].P = pidCoefficient[axis].Kp * (boostedErrorRate + errorRate);
 
     // -----calculate I component
-    // FOPID approximation switch cases for iterm
+    // EMUPID approximation switch cases for iterm
     float integral = (boostedErrorRate + errorRate) * dynCi;
-    integral = FOPID(integral, pidProfile->fo_iterm);
+    integral = EMUPID(integral, pidProfile->emu_iterm);
     // float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
 
     float iterm    = pidData[axis].I;
@@ -959,8 +959,8 @@ if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs
     // Use measurement and apply filters for D. Mmmm gimme that Emu.
     float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], -((gyro.gyroADCf[axis] - previousRateError[axis]) * pidFrequency));
     previousRateError[axis] = gyro.gyroADCf[axis];
-    // FOPID approximation switch cases for dterm
-    dDelta = FOPID (dDelta, pidProfile->fo_dterm);
+    // EMUPID approximation switch cases for dterm
+    dDelta = EMUPID (dDelta, pidProfile->emu_dterm);
     pidData[axis].D = (pidCoefficient[axis].Kd * dDelta);
     return dDelta;
 }
@@ -1064,9 +1064,9 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
         // -----calculate P component and add Dynamic Part based on stick input
     pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate));
     // -----calculate I component
-    // FOPID approximation switch cases for iterm
+    // EMUPID approximation switch cases for iterm
     float integral = itermErrorRate * dynCi;
-    integral = FOPID(integral, pidProfile->fo_iterm);
+    integral = EMUPID(integral, pidProfile->emu_iterm);
   // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
     float ITermNew = pidCoefficient[axis].Ki * integral;
     if (ITermNew != 0.0f)
@@ -1096,8 +1096,8 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
         float ornD = /*setpointT **/ getSetpointRate(axis) - gyroRateFiltered;    // cr - y
         float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * pidFrequency );
         previousRateError[axis] = ornD;
-        // FOPID approximation switch cases for dterm
-        dDelta = FOPID (dDelta, pidProfile->fo_dterm);
+        // EMUPID approximation switch cases for dterm
+        dDelta = EMUPID (dDelta, pidProfile->emu_dterm);
 
 if (pidCoefficient[axis].Kd > 0) {
         // Divide rate change by dT to get differential (ie dr/dt).
