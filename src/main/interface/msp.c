@@ -1356,11 +1356,8 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, currentPidProfile->itermAcceleratorGain);
         sbufWriteU16(dst, 0); // was currentPidProfile->dtermSetpointWeight
         sbufWriteU8(dst, currentPidProfile->iterm_rotation);
-#if defined(USE_SMART_FEEDFORWARD)
-        sbufWriteU8(dst, currentPidProfile->smart_feedforward);
-#else
         sbufWriteU8(dst, 0);
-#endif
+
 #if defined(USE_ITERM_RELAX)
         sbufWriteU8(dst, currentPidProfile->iterm_relax);
         sbufWriteU8(dst, currentPidProfile->iterm_relax_type);
@@ -1952,8 +1949,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         currentPidProfile->feedForwardTransition = sbufReadU8(src);
         currentPidProfile->errorBoostLimit = sbufReadU8(src);
         currentPidProfile->i_decay = sbufReadU8(src);
-        sbufReadU8(src); // reserved
-        sbufReadU8(src); // reserved
+        currentPidProfile->emu_iterm = sbufReadU8(src);
+        currentPidProfile->emu_dterm = sbufReadU8(src);
         currentPidProfile->rateAccelLimit = sbufReadU16(src);
         currentPidProfile->yawRateAccelLimit = sbufReadU16(src);
         if (sbufBytesRemaining(src) >= 2) {
@@ -1970,11 +1967,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         if (sbufBytesRemaining(src) >= 14) {
             // Added in MSP API 1.40
             currentPidProfile->iterm_rotation = sbufReadU8(src);
-#if defined(USE_SMART_FEEDFORWARD)
-            currentPidProfile->smart_feedforward = sbufReadU8(src);
-#else
             sbufReadU8(src);
-#endif
 #if defined(USE_ITERM_RELAX)
             currentPidProfile->iterm_relax = sbufReadU8(src);
             currentPidProfile->iterm_relax_type = sbufReadU8(src);

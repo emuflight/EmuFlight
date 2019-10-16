@@ -142,7 +142,6 @@ typedef struct pidProfile_s {
     uint8_t throttle_boost;                 // how much should throttle be boosted during transient changes 0-100, 100 adds 10x hpf filtered throttle
     uint8_t throttle_boost_cutoff;          // Which cutoff frequency to use for throttle boost. higher cutoffs keep the boost on for shorter. Specified in hz.
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system
-    uint8_t smart_feedforward;              // takes only the larger of P and the D weight feed forward term if they have the same sign.
     uint8_t iterm_relax_type;               // Specifies type of relax algorithm
     uint8_t iterm_relax_cutoff;             // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t iterm_relax;                    // Enable iterm suppression during stick input
@@ -155,8 +154,8 @@ typedef struct pidProfile_s {
     uint8_t abs_control_error_limit;        // Limit to the accumulated error
     uint8_t use_integrated_yaw;             // Selects whether the yaw pidsum should integrated
     uint8_t integrated_yaw_relax;           // Specifies how much integrated yaw should be reduced to offset the drag based yaw component
-    uint8_t fo_dterm;                       // fractional order approximation for dterm
-    uint8_t fo_iterm;                       // fractional order approximation for iterm
+    uint8_t emu_dterm;                       // fractional order approximation for dterm
+    uint8_t emu_iterm;                       // fractional order approximation for iterm
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE

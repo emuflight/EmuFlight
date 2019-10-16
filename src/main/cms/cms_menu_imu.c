@@ -62,8 +62,8 @@ static uint8_t i_decay;
 static uint8_t r_weight;
 static uint16_t errorBoost;
 static uint8_t errorBoostLimit;
-static uint8_t fo_iterm;
-static uint8_t fo_dterm;
+static uint8_t emu_iterm;
+static uint8_t emu_dterm;
 static uint8_t tempPid[3][3];
 static uint16_t tempPidF[3];
 
@@ -129,8 +129,8 @@ static long cmsx_PidRead(void)
     r_weight = pidProfile->r_weight;
     errorBoost = pidProfile->errorBoost;
     errorBoostLimit = pidProfile->errorBoostLimit;
-    fo_iterm = pidProfile->fo_iterm;
-    fo_dterm = pidProfile->fo_dterm;
+    emu_iterm = pidProfile->emu_iterm;
+    emu_dterm = pidProfile->emu_dterm;
     for (uint8_t i = 0; i < 3; i++) {
         tempPid[i][0] = pidProfile->pid[i].P;
         tempPid[i][1] = pidProfile->pid[i].I;
@@ -165,8 +165,8 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
     pidProfile->r_weight = r_weight;
     pidProfile->errorBoost = errorBoost;
     pidProfile->errorBoostLimit = errorBoostLimit;
-    pidProfile->fo_iterm = fo_iterm;
-    pidProfile->fo_dterm = fo_dterm;
+    pidProfile->emu_iterm = emu_iterm;
+    pidProfile->emu_dterm = emu_dterm;
     pidInitConfig(currentPidProfile);
 
     return 0;
@@ -180,8 +180,8 @@ static OSD_Entry cmsx_menuPidEntries[] =
 
     { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,  0,  1000,  5}, 0 },
     { "BOOST LIMIT", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,  0,  250,  1}, 0 },
-    { "FO ITERM", OME_UINT8, NULL, &(OSD_UINT8_t){ &fo_iterm,  1,  10,  1}, 0 },
-    { "FO DTERM", OME_UINT8, NULL, &(OSD_UINT8_t){ &fo_dterm,  1,  10,  1}, 0 },
+    { "EMU PID ITERM", OME_UINT8, NULL, &(OSD_UINT8_t){ &emu_iterm,  1,  10,  1}, 0 },
+    { "EMU PID DTERM", OME_UINT8, NULL, &(OSD_UINT8_t){ &emu_dterm,  1,  10,  1}, 0 },
 
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
