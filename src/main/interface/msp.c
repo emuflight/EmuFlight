@@ -1949,8 +1949,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         currentPidProfile->feedForwardTransition = sbufReadU8(src);
         currentPidProfile->errorBoostLimit = sbufReadU8(src);
         currentPidProfile->i_decay = sbufReadU8(src);
-        currentPidProfile->emu_iterm = sbufReadU8(src);
-        currentPidProfile->emu_dterm = sbufReadU8(src);
+        sbufReadU8(src);
+        sbufReadU8(src);
         currentPidProfile->rateAccelLimit = sbufReadU16(src);
         currentPidProfile->yawRateAccelLimit = sbufReadU16(src);
         if (sbufBytesRemaining(src) >= 2) {

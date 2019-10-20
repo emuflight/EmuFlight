@@ -852,17 +852,15 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 #define SIGN(x) ((x > 0.0f) - (x < 0.0f))
 
 //EMUPID addition to the pid controller
-FAST_CODE float EMUPID(float emupid, uint8_t fo_term)
+FAST_CODE float EMUPID(float emupid, uint8_t emu_term)
 {
   float absEmupid = fabs(emupid);
   float absEmupidSquare = absEmupid * absEmupid;
   float absEmupidCube = absEmupidSquare * absEmupid;
   float absEmupidQuad = absEmupidCube * absEmupid;
   float absEmupidQuint = absEmupidQuad * absEmupid;
-  if (emupid < 1) {
-    emupid = emupid;
-  } else {
-  switch (fo_term) {
+  if (absEmupid > 1) {
+  switch (emu_term) {
     case 1:
     emupid = (((1.777 * absEmupidQuint) + (123.9 * absEmupidQuad) + (873.4 * absEmupidCube) + (909.9 * absEmupidSquare) + (137.7 * absEmupid) + 1.914) /
     ((absEmupidQuint) + (90.81 * absEmupidQuad) + (785.4 * absEmupidCube) + (985 * absEmupidSquare) + (182.9  * absEmupid) + 3.335)) * (absEmupid / emupid);
@@ -899,7 +897,7 @@ FAST_CODE float EMUPID(float emupid, uint8_t fo_term)
     emupid = (((1092 * absEmupidQuint) + (72700  * absEmupidQuad) + (642000 * absEmupidCube) + (881700 * absEmupidSquare) + (156000 * absEmupid) + 489.3) /
     ((absEmupidQuint) + (1852 * absEmupidQuad) + (98540 * absEmupidCube) + (720500 * absEmupidSquare) + (819500 * absEmupid) + 113800)) * (absEmupid / emupid);
     break;
-    case 10:
+    default:
     emupid = emupid;
     break;
   }
