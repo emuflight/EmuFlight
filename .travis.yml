@@ -1,83 +1,77 @@
+# travis continuous integration declaration for
+# Emuflight
 
 env:
-#  - PUBLISHMETA=True
-#  - PUBLISHDOCS=True
-# Specify the main Mafile supported goals.
-  - GOAL=test
-  - GOAL=targets-group-1
-  - GOAL=targets-group-2
-  - GOAL=targets-group-3
-  - GOAL=targets-group-4
-  - GOAL=targets-group-rest
-#  - GOAL=all
-#  - GOAL=AFROMINI
-#  - GOAL=AIORACERF3
-#  - GOAL=...
-# Or specify targets to run.
-#  - TARGET=AFROMINI
-#  - TARGET=AIORACERF3
-#  - TARGET=...
+  matrix:
+    #- GOAL=FURYF4OSD # make single target
+    #- GOAL=test # make test # FIXME: fails
+    - GOAL=targets-group-1 # make all (in parallel)
+    - GOAL=targets-group-2
+    - GOAL=targets-group-3
+    - GOAL=targets-group-4
+    - GOAL=targets-group-rest
+  global:
+    #- DEBUG=RELWITHDEBINFO # debug symbols
+    - PATH=$HOME/.local/bin:$PATH # "user" installs (pip and stuff)
 
-# use new docker environment
-sudo: false
+sudo: false # be safe
 
 git:
-  depth: 5
+  depth: 5 # quick clone
+  quiet: true # save on logfiles
 
 addons:
   apt:
     packages:
-      - lcov
       - build-essential
+      - ccache
+      - clang
       - git
+      - libblocksruntime-dev # required for linking on tests
       - libc6-i386
       - time
-      - libblocksruntime-dev
-  artifacts:
-    s3_region: "us-west-2"
-    paths:
-      - $(ls obj/*.hex | tr "\n" ":")
-      - $(ls obj/*.bin | tr "\n" ":")
-    target_paths:
-      - /$TRAVIS_BUILD_NUMBER/Emuflight/
-
-
-# We use cpp for unit tests, and c for the main project.
-language: cpp
-compiler: clang
-dist: trusty
-
-before_install:
-  - pip install --user cpp-coveralls
-  - gem install coveralls-lcov
-
-install:
-  - make arm_sdk_install
-
-before_script:
-  - tools/gcc-arm-none-eabi-7-2017-q4-major/bin/arm-none-eabi-gcc --version
-  - clang --version
-  - clang++ --version
-  - gcc --version
-
-script: ./.travis.sh
 
 cache:
+  ccache: true
+  pip: true
   directories:
   - downloads
   - tools
 
+dist: bionic # ubuntu
+language: cpp
+compiler: clang
 
-#notifications:
-#  irc: "chat.freenode.net#cleanflight"
-#  use_notice: true
-#  skip_join: true
+before_install:
+  - pip install --user --upgrade j2cli
+install:
+  - make arm_sdk_install # toolchain
 
-#notifications:
-#  slack: betaflightgroup:LQSj02nsBEdefcO5UQcLgB0U
-#  webhooks:
-#    urls:
-#      - https://webhooks.gitter.im/e/0c20f7a1a7e311499a88
-#    on_success: always  # options: [always|never|change] default: always
-#    on_failure: always  # options: [always|never|change] default: always
-#    on_start: always     # options: [always|never|change] default: always
+before_script:
+  - tools/gcc-arm-none-eabi-7-2017-q4-major/bin/arm-none-eabi-gcc --version # TODO: this recent? check Makefile
+  - clang --version
+  - clang++ --version
+  - gcc --version
+
+script: 
+  - ./.travis.sh # main
+
+deploy:
+  provider: bintray
+  file: bintray-conf.json
+  user: "$BINTRAY_USER"
+  key: "$BINTRAY_API_KEY"
+  skip_cleanup: true # do not delete what has just been built
+  edge: true # "dpl" v2
+  on:
+    all_branches: true
+    #branch: continous_disintegration # just this specific branch
+
+after_deploy:
+  - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh success $WEBHOOK_URL
+after_failure:
+  - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh failure $WEBHOOK_URL

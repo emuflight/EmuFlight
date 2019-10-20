@@ -1,0 +1,33 @@
+{
+    "files": [
+        {
+            "includePattern": "obj/(.*\\.hex)",
+            "uploadPattern": "{{ env("PACKAGE_VERSION") }}/$1",
+            "matrixParams": { "override": 1 },
+            "listInDownloads": true
+        }
+    ],
+    "package": {
+        "subject": "emuflight",
+        "repo": "dev_hex",
+        "desc": "do emus dream of flying?",
+        "issue_tracker_url": "https://github.com/emuflight/EmuFlight-Butter-Varient/issues",
+        "website_url": "https://github.com/emuflight/EmuFlight-Butter-Varient",
+        "public_download_numbers": false,
+        "public_stats": false,
+        "licenses": [
+            "GPL-3.0"
+        ],
+        "labels": [
+            "emuflight"
+        ],
+        "name": "{{ env("TRAVIS_BRANCH") }}",
+        "vcs_url": "{{ env("TRAVIS_BUILD_WEB_URL") }}"
+    },
+    "publish": true,
+    "version": {
+        "gpgSign": false,
+        "name": "{{ env("PACKAGE_VERSION") }}",
+        "desc": "Emuflight - Test Release"
+    }
+}
