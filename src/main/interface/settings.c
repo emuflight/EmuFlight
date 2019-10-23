@@ -812,10 +812,11 @@ const clivalue_t valueTable[] = {
     { "runaway_takeoff_deactivate_delay",  VAR_UINT16  | MASTER_VALUE, .config.minmax = { 100, 1000 }, PG_PID_CONFIG, offsetof(pidConfig_t, runaway_takeoff_deactivate_delay) },           // deactivate time in ms
     { "runaway_takeoff_deactivate_throttle_percent",  VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 100 }, PG_PID_CONFIG, offsetof(pidConfig_t, runaway_takeoff_deactivate_throttle) }, // minimum throttle percentage during deactivation phase
 #endif
-
 // PG_PID_PROFILE
     { "dterm_lowpass_type",         VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_FILTER_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter_type) },
     { "dterm_lowpass_hz",           VAR_INT16  | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lowpass_hz) },
+    { "dterm_kalman_w",             VAR_INT16  | PROFILE_VALUE, .config.minmax = { 3, 1024 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_kalman_w) },
+    { "dterm_kalman_q",             VAR_INT16  | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_kalman_q) },
     { "dterm_lowpass2_hz",          VAR_INT16  | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lowpass2_hz) },
     { "dterm_notch_hz",             VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_notch_hz) },
     { "dterm_notch_cutoff",         VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_notch_cutoff) },
