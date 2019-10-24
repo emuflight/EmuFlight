@@ -284,9 +284,6 @@ FAST_CODE float fastKalmanUpdate(fastKalman_t *filter, float input)
     //measurement update
     filter->x += filter->k * (input - filter->x);
 
-    //low pass filter for x
-    filter->x = pt1FilterApply(&filter->lp_filter, filter->x);
-
     // update variance
     filter->window[filter->windowIndex] = input;
 
