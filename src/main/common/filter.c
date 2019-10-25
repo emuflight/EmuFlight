@@ -302,7 +302,7 @@ FAST_CODE float fastKalmanUpdate(fastKalman_t *filter, float input)
     {
     	if (/*setPoint != 0.0f &&*/ filter->oldSetPoint != setPoint)
     	{
-			const float cutoff_frequency = constrain(BASE_LPF_HZ * e, 10.0f, 500.0f);
+			const float cutoff_frequency = constrain(BASE_LPF_HZ * e, 50.0f, 260.0f);
 		    const float k = pt1FilterGain(cutoff_frequency, filter->updateRate);
 		    pt1FilterUpdateCutoff(&filter->lp_filter, k);
 		    filter->oldSetPoint = setPoint;
