@@ -220,15 +220,6 @@ void laggedMovingAverageInit(laggedMovingAverage_t *filter, uint16_t windowSize,
     filter->primed = false;
 }
 
-
-FAST_CODE float calculateGain(float q, float r)
-{
-	const float ratio = q / r;
-	const float k     = -ratio * 0.5f + sqrtf(ratio * ratio * 0.25f + ratio);
-
-	return k;
-}
-
 // Proper fast two-state Kalman
 void fastKalmanInit(fastKalman_t *filter, float q, uint32_t w, int axis, float updateRate)
 {
@@ -238,10 +229,9 @@ void fastKalmanInit(fastKalman_t *filter, float q, uint32_t w, int axis, float u
     }
 
     memset(filter, 0, sizeof(fastKalman_t));
-    filter->q = q * 0.000001f; // add multiplier to make tuning easier
-    filter->r = 88.0f;           //seeding R at 88.0f
-    filter->k = calculateGain(filter->q, filter->r);
-    filter->w = w;
+    filter->q     = q * 0.000001f; // add multiplier to make tuning easier
+    filter->p     = q * 0.001f;    // add multiplier to make tuning easier
+    filter->w     = w;
     filter->windowSizeInverse = 1.0f/(w - 1);
     filter->axis = axis;
 
@@ -261,9 +251,14 @@ FAST_CODE float fastKalmanUpdate(fastKalman_t *filter, float input)
 
 	const float setPoint = getSetpointRate(filter->axis);
 	const float filteredValue = filter->x;
-	bool update = false;
 
-     // figure out how much to boost or reduce our error in the estimate based on setPoint target.
+    // project the state ahead using acceleration
+    filter->x += (filter->x - filter->lastX);
+
+    // update last state
+    filter->lastX = filter->x;
+
+    // figure out how much to boost or reduce our error in the estimate based on setPoint target.
     // this should be close to 0 as we approach the setPoint and really high the further away we are from the setPoint.
     if (setPoint != 0.0f && filteredValue != 0.0f)
     {
@@ -273,16 +268,17 @@ FAST_CODE float fastKalmanUpdate(fastKalman_t *filter, float input)
     {
         e = 1.0f;
     }
+    //e = pt1FilterApply(&filter->lp_filter, e);
 
+    // prediction update
+    filter->p = filter->p + filter->q * e;
 
-    //project the state ahead using acceleration
-    filter->x += (filter->x - filter->lastX);
+    // measurement update
+    const float k = filter->p / (filter->p + filter->r);
+    filter->x += k * (input - filter->x);
+    filter->p = (1.0f - k) * filter->p;
 
-    //update last state
-    filter->lastX = filter->x;
-
-    //measurement update
-    filter->x += filter->k * (input - filter->x);
+    filter->x = pt1FilterApply(&filter->lp_filter, filter->x);
 
     // update variance
     filter->window[filter->windowIndex] = input;
@@ -294,25 +290,21 @@ FAST_CODE float fastKalmanUpdate(fastKalman_t *filter, float input)
     if (filter->windowIndex >= filter->w)
     {
         filter->windowIndex = 0;
-        update = true;
     }
 
     filter->meanSum -= filter->window[filter->windowIndex];
     filter->varianceSum = filter->varianceSum - (filter->window[filter->windowIndex] * filter->window[filter->windowIndex]);
 
-    if (update)
-    {
-        filter->mean = filter->meanSum * filter->windowSizeInverse;
-    	filter->variance = ABS(filter->varianceSum * filter->windowSizeInverse - (filter->mean * filter->mean));
-    	filter->r = sqrtf(filter->variance);
-    	filter->k = calculateGain(filter->q, filter->r);
-    }
+    filter->mean = filter->meanSum * filter->windowSizeInverse;
+    filter->variance = ABS(filter->varianceSum * filter->windowSizeInverse - (filter->mean * filter->mean));
+    filter->r = sqrtf(filter->variance) * r_weight;
+
 
     if (isSetpointNew)
     {
-    	if (/* setPoint != 0.0f && */ filter->oldSetPoint != setPoint)
+    	if (/*setPoint != 0.0f &&*/ filter->oldSetPoint != setPoint)
     	{
-			const float cutoff_frequency = constrain(BASE_LPF_HZ * e, 50.0f, 260.0f);
+			const float cutoff_frequency = constrain(BASE_LPF_HZ * e, 10.0f, 500.0f);
 		    const float k = pt1FilterGain(cutoff_frequency, filter->updateRate);
 		    pt1FilterUpdateCutoff(&filter->lp_filter, k);
 		    filter->oldSetPoint = setPoint;
