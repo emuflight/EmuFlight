@@ -155,7 +155,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_kalman_q = 4000,
         .dterm_kalman_w = 6,
         .dterm_lowpass_hz = 65,     // filtering ON by default
-        .dterm_lowpass2_hz = 0,   // second Dterm LPF ON by default
+        .dterm_lowpass2_hz = 200,   // second Dterm LPF ON by default
         .dterm_notch_hz = 0,
         .dterm_notch_cutoff = 0,
         .dterm_filter_type = FILTER_PT1,
@@ -164,9 +164,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .pidAtMinThrottle = PID_STABILISATION_ON,
         .levelAngleLimit = 55,
         .feedForwardTransition = 0,
-        .setPointPTransition = 110,
-        .setPointITransition = 75,
-        .setPointDTransition = 125,
+        .setPointPTransition = 100,
+        .setPointITransition = 100,
+        .setPointDTransition = 100,
         .feathered_pids = USE_FEATHERED_PIDS,
         .i_decay = 4,
         .r_weight = 67,
@@ -204,8 +204,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .antiGravityMode = ANTI_GRAVITY_SMOOTH,
         .use_integrated_yaw = false,
         .integrated_yaw_relax = 200,
-        .emu_dterm = 9,
-        .emu_iterm = 9,
+        .emu_dterm = 10,
+        .emu_iterm = 10,
     );
 }
 
