@@ -35,7 +35,7 @@
 #define M_PI_FLOAT  	3.14159265358979323846f
 #define BIQUAD_Q 		(1.0f / sqrtf(2.0f))     /* quality factor - 2nd order butterworth*/
 
-#define BASE_LPF_HZ    	70.0f
+#define BASE_LPF_HZ    	90.0f
 
 float r_weight = 0.67f;
 
@@ -238,7 +238,7 @@ void fastKalmanInit(fastKalman_t *filter, float q, uint32_t w, int axis, float u
     }
 
     memset(filter, 0, sizeof(fastKalman_t));
-    filter->q = q * 0.000001f; // add multiplier to make tuning easier
+    filter->q = q * 0.001f; // add multiplier to make tuning easier
     filter->r = 88.0f;           //seeding R at 88.0f
     filter->k = calculateGain(filter->q, filter->r);
     filter->w = w;

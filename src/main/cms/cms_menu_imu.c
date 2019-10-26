@@ -570,7 +570,7 @@ static OSD_Entry cmsx_menuFilterPerProfileEntries[] =
 {
     { "-- FILTER PP  --", OME_Label, NULL, NULL, 0 },
 
-    { "DTERM IMUF Q",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_kalman_q,  0, 1600, 100 }, 0 },
+    { "DTERM IMUF Q",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_kalman_q,  0, 16000, 100 }, 0 },
     { "DTERM IMUF W",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_kalman_w,  3, 1024, 1 }, 0 },
     { "DTERM LPF",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz,     0, 500, 1 }, 0 },
     { "DTERM LPF2", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz,    0, 500, 1 }, 0 },
