@@ -265,14 +265,9 @@ FAST_CODE float fastKalmanUpdate(fastKalman_t *filter, float input)
 
      // figure out how much to boost or reduce our error in the estimate based on setPoint target.
     // this should be close to 0 as we approach the setPoint and really high the further away we are from the setPoint.
-    if (setPoint != 0.0f && filteredValue != 0.0f)
-    {
-        e = ABS(1.0f - (setPoint/filteredValue));
-    }
-    else
-    {
-        e = 1.0f;
-    }
+
+        e = (ABS((setPoint - filteredValue) * 2) + 10 + ABS(filteredValue / 5));
+
 
 
     //project the state ahead using acceleration
@@ -312,7 +307,7 @@ FAST_CODE float fastKalmanUpdate(fastKalman_t *filter, float input)
     {
     	if (/* setPoint != 0.0f && */ filter->oldSetPoint != setPoint)
     	{
-			const float cutoff_frequency = constrain(BASE_LPF_HZ * e, 10.0f, 500.0f);
+			const float cutoff_frequency = constrain(e, 10.0f, 500.0f);
 		    const float k = pt1FilterGain(cutoff_frequency, filter->updateRate);
 		    pt1FilterUpdateCutoff(&filter->lp_filter, k);
 		    filter->oldSetPoint = setPoint;

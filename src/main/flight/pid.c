@@ -1095,11 +1095,10 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
     // -----calculate D component
     float gyroRateFiltered = dtermNotchApplyFn((filter_t *) &dtermNotch[axis], gyroRate);
 
-//        float setpointT = flightModeFlags ? 0.0f : 0 * MIN(getRcDeflectionAbs(axis) * 1.0f, 1.0f);
         //filter Kd properly, no sp
-        float ornD = /*setpointT **/ getSetpointRate(axis) - gyroRateFiltered;    // cr - y
-        float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * pidFrequency );
-        previousRateError[axis] = ornD;
+        const float pureRD = getSetpointRate(axis) - gyroRateFiltered;    // cr - y
+        float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], ((pureRD - previousRateError[axis] - gyro.gyroADCf[axis]) / 2) * pidFrequency );
+        previousRateError[axis] = pureRD - gyro.gyroADCf[axis];
         // EMUPID approximation switch cases for dterm
         dDelta = EMUPID (dDelta, pidProfile->emu_dterm);
 
