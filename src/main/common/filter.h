@@ -71,7 +71,7 @@ typedef struct kalman_s {
     float x;       // state
     float lastX;   // previous state
 
-    float window[1024];
+    float window[512];
     float variance;
     float varianceSum;
     float mean;

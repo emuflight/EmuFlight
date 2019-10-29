@@ -515,7 +515,7 @@ const clivalue_t valueTable[] = {
     { "imuf_acc_lpf_cutoff_hz",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 180   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_acc_lpf_cutoff_hz) },
 #else
     { "gyro_filter_q",              VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_filter_q) },
-    { "gyro_filter_w",              VAR_UINT16 | MASTER_VALUE, .config.minmax = { 3, 1024 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_filter_w) },
+    { "gyro_filter_w",              VAR_UINT16 | MASTER_VALUE, .config.minmax = { 3, 512 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_filter_w) },
 #endif
 #ifdef USE_GYRO_OVERFLOW_CHECK
     { "gyro_overflow_detect",       VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO_OVERFLOW_CHECK }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, checkOverflow) },
