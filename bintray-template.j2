@@ -10,7 +10,7 @@
     "package": {
         "subject": "emuflight",
         "repo": "dev_hex",
-        "desc": "do emus dream of flying?",
+        "desc": "EmuFlight is flight controller software (firmware) used to fly multi-rotor craft.",
         "issue_tracker_url": "https://github.com/emuflight/EmuFlight-Butter-Varient/issues",
         "website_url": "https://github.com/emuflight/EmuFlight-Butter-Varient",
         "public_download_numbers": false,
@@ -19,7 +19,8 @@
             "GPL-3.0"
         ],
         "labels": [
-            "emuflight"
+            "emuflight",
+            "imuf"
         ],
         "name": "{{ env("TRAVIS_BRANCH") }}",
         "vcs_url": "{{ env("TRAVIS_BUILD_WEB_URL") }}"
@@ -28,6 +29,6 @@
     "version": {
         "gpgSign": false,
         "name": "{{ env("PACKAGE_VERSION") }}",
-        "desc": "Emuflight - Test Release"
+        "desc": "EmuFlight"
     }
 }

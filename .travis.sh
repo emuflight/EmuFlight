@@ -14,4 +14,4 @@ make EXTRA_FLAGS=-Werror ${GOAL} || exit $?
 
 # process template for pushing to bintray
 j2 bintray-template.j2 -o bintray-conf.json
-cat bintray-conf.json # DEBUG
+#cat bintray-conf.json # DEBUG
