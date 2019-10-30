@@ -208,11 +208,23 @@ CFLAGS     += $(ARCH_FLAGS) \
               $(addprefix -D,$(OPTIONS)) \
               $(addprefix -I,$(INCLUDE_DIRS)) \
               $(DEBUG_FLAGS) \
-              -std=gnu99 \
-              -Wall -Wextra -Wunsafe-loop-optimizations -Wdouble-promotion \
-              -ffunction-sections \
-              -fdata-sections \
               -pedantic \
+              -save-temps=obj \
+              -std=gnu11 \
+              -Wall \
+              -Wdouble-promotion \
+              -Wduplicated-branches \
+              -Wduplicated-cond \
+              -Wextra \
+              -Wformat-truncation \
+              -Wformat=2 \
+              -Wjump-misses-init \
+              -Wlogical-op \
+              -Wnull-dereference \
+              -Wrestrict \
+              -Wshadow \
+              -Wunknown-pragmas \
+              -Wunsafe-loop-optimizations \
               $(DEVICE_FLAGS) \
               -D_GNU_SOURCE \
               -DUSE_STDPERIPH_DRIVER \
@@ -222,7 +234,8 @@ CFLAGS     += $(ARCH_FLAGS) \
               -D'__TARGET__="$(TARGET)"' \
               -D'__REVISION__="$(REVISION)"' \
               -save-temps=obj \
-              -MMD -MP \
+              -MMD \
+              -MP \
               $(EXTRA_FLAGS)
 
 ASFLAGS     = $(ARCH_FLAGS) \
@@ -240,11 +253,11 @@ LD_FLAGS     = -lm \
               $(LTO_FLAGS) \
               $(DEBUG_FLAGS) \
               -static \
-              -Wl,-gc-sections,-Map,$(TARGET_MAP) \
-              -Wl,-L$(LINKER_DIR) \
               -Wl,--cref \
               -Wl,--no-wchar-size-warning \
               -Wl,--print-memory-usage \
+              -Wl,-gc-sections,-Map,$(TARGET_MAP) \
+              -Wl,-L$(LINKER_DIR) \
               -T$(LD_SCRIPT)
 endif
 
