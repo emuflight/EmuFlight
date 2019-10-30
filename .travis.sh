@@ -10,7 +10,7 @@ export EMU_VERSION="$(make version)"
 export PACKAGE_VERSION="${EMU_VERSION}-${TRAVIS_BUILD_NUMBER}"
 
 # compile code to binaries
-make EXTRA_FLAGS=-Werror ${GOAL} || exit $?
+make ${GOAL} || exit $?
 
 # process template for pushing to bintray
 j2 bintray-template.j2 -o bintray-conf.json
