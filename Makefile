@@ -218,11 +218,9 @@ CFLAGS     += $(ARCH_FLAGS) \
               -Wextra \
               -Wformat-truncation \
               -Wformat=2 \
-              -Wjump-misses-init \
               -Wlogical-op \
               -Wnull-dereference \
               -Wrestrict \
-              -Wshadow \
               -Wunknown-pragmas \
               -Wunsafe-loop-optimizations \
               $(DEVICE_FLAGS) \
