@@ -204,8 +204,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .antiGravityMode = ANTI_GRAVITY_SMOOTH,
         .use_integrated_yaw = false,
         .integrated_yaw_relax = 200,
-        .emu_dterm = 10,
-        .emu_iterm = 10,
     );
 }
 
@@ -305,6 +303,8 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     {
         for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
         {
+          if (pidProfile->dterm_kalman_q != 0)
+          {
             switch (pidProfile->dterm_filter_type)
             {
             case FILTER_PT1:
@@ -318,7 +318,20 @@ void pidInitFilters(const pidProfile_t *pidProfile)
                     fastKalmanInit(&dtermLowpass[axis].kalmanFilterState, pidProfile->dterm_kalman_q, pidProfile->dterm_kalman_w, axis, gyro.targetLooptime * 1e-6f);
                     biquadFilterInitLPF(&dtermLowpass[axis].biquadFilter, pidProfile->dterm_lowpass_hz, targetPidLooptime);
                 break;
-
+                }
+            } else {
+              switch (pidProfile->dterm_filter_type)
+              {
+              case FILTER_PT1:
+                      dtermLowpassApplyFn = (filterApplyFnPtr)pt1FilterApply;
+                      pt1FilterInit(&dtermLowpass[axis].pt1Filter, pt1FilterGain(pidProfile->dterm_lowpass_hz, dT));
+                  break;
+              case FILTER_BIQUAD:
+              default:
+                      dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApply;
+                      biquadFilterInitLPF(&dtermLowpass[axis].biquadFilter, pidProfile->dterm_lowpass_hz, targetPidLooptime);
+                  break;
+                }
             }
         }
     }
@@ -857,59 +870,6 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 #define SIGN(x) ((x > 0.0f) - (x < 0.0f))
 
-//EMUPID addition to the pid controller
-FAST_CODE float EMUPID(float emupid, uint8_t emu_term)
-{
-  float absEmupid = fabs(emupid);
-  float absEmupidSquare = absEmupid * absEmupid;
-  float absEmupidCube = absEmupidSquare * absEmupid;
-  float absEmupidQuad = absEmupidCube * absEmupid;
-  float absEmupidQuint = absEmupidQuad * absEmupid;
-  if (absEmupid > 1) {
-  switch (emu_term) {
-    case 1:
-    emupid = (((1.777 * absEmupidQuint) + (123.9 * absEmupidQuad) + (873.4 * absEmupidCube) + (909.9 * absEmupidSquare) + (137.7 * absEmupid) + 1.914) /
-    ((absEmupidQuint) + (90.81 * absEmupidQuad) + (785.4 * absEmupidCube) + (985 * absEmupidSquare) + (182.9  * absEmupid) + 3.335)) * (absEmupid / emupid);
-    break;
-    case 2:
-    emupid = (((3.233 * absEmupidQuint) + (223  * absEmupidQuad) + (1624 * absEmupidCube) + (1762 * absEmupidSquare) + (275.3 * absEmupid) + 3.725) /
-    ((absEmupidQuint) + (116.8 * absEmupidQuad) + (1279 * absEmupidCube) + (2011 * absEmupidSquare) + (473 * absEmupid) + 11.14)) * (absEmupid / emupid);
-    break;
-    case 3:
-    emupid = (((6.048 * absEmupidQuint) + (413.7  * absEmupidQuad) + (3111 * absEmupidCube) + (3513 * absEmupidSquare) + (565.4 * absEmupid) + 7.36) /
-    ((absEmupidQuint) + (151 * absEmupidQuad) + (2089 * absEmupidCube) + (4115 * absEmupidSquare) + (1224 * absEmupid) + 37.33)) * (absEmupid / emupid);
-    break;
-    case 4:
-    emupid = (((11.7 * absEmupidQuint) + (794.7  * absEmupidQuad) + (6166 * absEmupidCube) + (7236 * absEmupidSquare) + (1198 * absEmupid) + 14.71) /
-    ((absEmupidQuint) + (197.2 * absEmupidQuad) + (3438 * absEmupidCube) + (8478 * absEmupidSquare) + (3181 * absEmupid) + 125.9)) * (absEmupid / emupid);
-    break;
-    case 5:
-    emupid = (((23.59 * absEmupidQuint) + (1594  * absEmupidQuad) + (12740 * absEmupidCube) + (15520 * absEmupidSquare) + (2632 * absEmupid) + 29.63) /
-    ((absEmupidQuint) + (262.6 * absEmupidQuad) + (5753 * absEmupidCube) + (17720 * absEmupidSquare) + (8368 * absEmupid) + 429.6)) * (absEmupid / emupid);
-    break;
-    case 6:
-    emupid = (((50.26 * absEmupidQuint) + (3381  * absEmupidQuad) + (27790 * absEmupidCube) + (35050 * absEmupidSquare) + (6070 * absEmupid) + 59.93) /
-    ((absEmupidQuint) + (361.4 * absEmupidQuad) + (9918 * absEmupidCube) + (38090 * absEmupidSquare) + (22550 * absEmupid) + 1498)) * (absEmupid / emupid);
-    break;
-    case 7:
-    emupid = (((116 * absEmupidQuint) + (7769  * absEmupidQuad) + (65570 * absEmupidCube) + (85390 * absEmupidSquare) + (15010 * absEmupid) + 121.2) /
-    ((absEmupidQuint) + (526.7 * absEmupidQuad) + (18060 * absEmupidCube) + (86240 * absEmupidSquare) + (63740 * absEmupid) + 5453)) * (absEmupid / emupid);
-    break;
-    case 8:
-    emupid = (((305.7 * absEmupidQuint) + (20410  * absEmupidQuad) + (176400 * absEmupidCube) + (236400 * absEmupidSquare) + (41890 * absEmupid) + 244.3) /
-    ((absEmupidQuint) + (857.9 * absEmupidQuad) + (36660 * absEmupidCube) + (217000 * absEmupidSquare) + (199500 * absEmupid) + 21830)) * (absEmupid / emupid);
-    break;
-    case 9:
-    emupid = (((1092 * absEmupidQuint) + (72700  * absEmupidQuad) + (642000 * absEmupidCube) + (881700 * absEmupidSquare) + (156000 * absEmupid) + 489.3) /
-    ((absEmupidQuint) + (1852 * absEmupidQuad) + (98540 * absEmupidCube) + (720500 * absEmupidSquare) + (819500 * absEmupid) + 113800)) * (absEmupid / emupid);
-    break;
-    default:
-    emupid = emupid;
-    break;
-  }
-}
-return emupid;
-}
 
 // EmuFlight pid controller which uses measurement instead of error rate to calculate D
 FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint)
@@ -935,13 +895,10 @@ if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs
     pidData[axis].P = pidCoefficient[axis].Kp * (boostedErrorRate + errorRate);
 
     // -----calculate I component
-    // EMUPID approximation switch cases for iterm
-    float integral = (boostedErrorRate + errorRate) * dynCi;
-    integral = EMUPID(integral, pidProfile->emu_iterm);
     // float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
 
     float iterm    = pidData[axis].I;
-    float ITermNew = pidCoefficient[axis].Ki * integral;
+    float ITermNew = pidCoefficient[axis].Ki * (boostedErrorRate + errorRate) * dynCi;
     if (ITermNew != 0.0f)
     {
         if (SIGN(iterm) != SIGN(ITermNew))
@@ -963,8 +920,6 @@ if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs
     // Use measurement and apply filters for D. Mmmm gimme that Emu.
     float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], -((gyro.gyroADCf[axis] - previousRateError[axis]) * pidFrequency));
     previousRateError[axis] = gyro.gyroADCf[axis];
-    // EMUPID approximation switch cases for dterm
-    dDelta = EMUPID (dDelta, pidProfile->emu_dterm);
     pidData[axis].D = (pidCoefficient[axis].Kd * dDelta);
     return dDelta;
 }
@@ -1068,11 +1023,8 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
         // -----calculate P component and add Dynamic Part based on stick input
     pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate));
     // -----calculate I component
-    // EMUPID approximation switch cases for iterm
-    float integral = itermErrorRate * dynCi;
-    integral = EMUPID(integral, pidProfile->emu_iterm);
-  // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
-    float ITermNew = pidCoefficient[axis].Ki * integral;
+    // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
+    float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
     if (ITermNew != 0.0f)
     {
         if (SIGN(ITerm) != SIGN(ITermNew))
@@ -1099,8 +1051,6 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
         const float pureRD = getSetpointRate(axis) - gyroRateFiltered;    // cr - y
         float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], ((pureRD - previousRateError[axis] - gyro.gyroADCf[axis]) / 2) * pidFrequency );
         previousRateError[axis] = pureRD - gyro.gyroADCf[axis];
-        // EMUPID approximation switch cases for dterm
-        dDelta = EMUPID (dDelta, pidProfile->emu_dterm);
 
 if (pidCoefficient[axis].Kd > 0) {
         // Divide rate change by dT to get differential (ie dr/dt).

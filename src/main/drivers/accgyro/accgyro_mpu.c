@@ -251,12 +251,6 @@ FAST_CODE void mpuGyroDmaSpiReadFinish(gyroDev_t * gyro)
     gyro->gyroADCRaw[X]  = (int16_t)(imufData.gyroX * 16.4f);
     gyro->gyroADCRaw[Y]  = (int16_t)(imufData.gyroY * 16.4f);
     gyro->gyroADCRaw[Z]  = (int16_t)(imufData.gyroZ * 16.4f);
-    if (gyroConfig()->imuf_mode == GTBCM_GYRO_ACC_QUAT_FILTER_F) {
-        imufQuat.w       = imufData.quaternionW;
-        imufQuat.x       = imufData.quaternionX;
-        imufQuat.y       = imufData.quaternionY;
-        imufQuat.z       = imufData.quaternionZ;
-    }
 #else
     acc.dev.ADCRaw[X]   = (int16_t)((dmaRxBuffer[1] << 8)  | dmaRxBuffer[2]);
     acc.dev.ADCRaw[Y]   = (int16_t)((dmaRxBuffer[3] << 8)  | dmaRxBuffer[4]);

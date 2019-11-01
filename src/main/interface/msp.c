@@ -1323,7 +1323,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         break;
 #else
     case MSP_IMUF_CONFIG:
-        sbufWriteU16(dst, gyroConfig()->imuf_mode);
+        sbufWriteU16(dst, 0);
         sbufWriteU16(dst, gyroConfig()->imuf_roll_q);
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_q);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_q);
@@ -1929,7 +1929,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
 
 #else
     case MSP_SET_IMUF_CONFIG :
-        gyroConfigMutable()->imuf_mode = sbufReadU16(src);
+        sbufReadU16(src);
         gyroConfigMutable()->imuf_roll_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_pitch_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_yaw_q = sbufReadU16(src);
