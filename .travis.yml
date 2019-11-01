@@ -64,8 +64,8 @@ deploy:
   skip_cleanup: true # do not delete what has just been built
   edge: true # "dpl" v2
   on:
-    #all_branches: true
-    branch: Main # just this specific branch
+    all_branches: true
+    #branch: Main # just this specific branch
 
 after_deploy:
   - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
