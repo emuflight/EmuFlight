@@ -104,5 +104,5 @@ float pt1FilterApply(pt1Filter_t *filter, float input);
 void slewFilterInit(slewFilter_t *filter, float slewLimit, float threshold);
 float slewFilterApply(slewFilter_t *filter, float input);
 
-void fastKalmanInit(fastKalman_t *filter, float q, uint32_t w, int axis, float updateRate);
-float fastKalmanUpdate(fastKalman_t *filter, float input);
+//void fastKalmanInit(fastKalman_t *filter, float q, uint32_t w, int axis, float updateRate);
+//float fastKalmanUpdate(fastKalman_t *filter, float input);

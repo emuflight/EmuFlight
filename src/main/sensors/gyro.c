@@ -266,7 +266,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .gyro_soft_notch_cutoff_2 = 0,
     .checkOverflow = GYRO_OVERFLOW_CHECK_ALL_AXES,
     .gyro_filter_q = 3000,
-    .gyro_filter_w = 32,
+    .gyro_filter_w = 16,
     .gyro_offset_yaw = 0,
     .yaw_spin_recovery = true,
     .yaw_spin_threshold = 1950,
@@ -757,12 +757,12 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type, uint
                 biquadFilterInitLPF(&lowpassFilter[axis].biquadFilterState, lpfHz, gyro.targetLooptime);
             }
             break;
-        case FILTER_KALMAN:
-            *lowpassFilterApplyFn = (filterApplyFnPtr) fastKalmanUpdate;
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                fastKalmanInit(&lowpassFilter[axis].kalmanFilterState, gyroConfig()->gyro_filter_q, gyroConfig()->gyro_filter_w, axis, gyroDt);
-            }
-            break;
+        // case FILTER_KALMAN:
+        //     *lowpassFilterApplyFn = (filterApplyFnPtr) fastKalmanUpdate;
+        //     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+        //         fastKalmanInit(&lowpassFilter[axis].kalmanFilterState, gyroConfig()->gyro_filter_q, gyroConfig()->gyro_filter_w, axis, gyroDt);
+        //     }
+        //     break;
         }
     }
 }
@@ -848,6 +848,8 @@ static void gyroInitSensorFilters(gyroSensor_t *gyroSensor)
 #if defined(USE_GYRO_SLEW_LIMITER)
     gyroInitSlewLimiter(gyroSensor);
 #endif
+
+    kalman_init();
 
     gyroInitLowpassFilterLpf(
       gyroSensor,
