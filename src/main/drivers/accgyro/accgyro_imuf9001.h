@@ -56,7 +56,7 @@ void imufEndCalibration(void);
 #define IMUF_FIRMWARE_MIN_VERSION  106
 extern volatile uint16_t imufCurrentVersion;
 typedef struct imufVersion
-{   
+{
     uint32_t hardware;
     uint32_t firmware;
     uint32_t bootloader;
@@ -85,7 +85,7 @@ typedef struct imufData
 {
     float gyroX;
     float gyroY;
-    float gyroZ;    
+    float gyroZ;
     float accX;
     float accY;
     float accZ;
@@ -203,13 +203,8 @@ typedef struct imufMode
 
 typedef enum gyroToBoardCommMode
 {
-    GTBCM_SETUP                  = 53, //setup
-    GTBCM_GYRO_ONLY_PASSTHRU     = 6,  //no crc, gyro, 3*2 bytes
-    GTBCM_GYRO_ACC_PASSTHRU      = 14, //no crc, acc, temp, gyro, 3*2, 1*2, 3*2 bytes
-    GTBCM_GYRO_ONLY_FILTER_F     = 20, //gyro filtered, 3*4 bytes, 4 bytes crc
     GTBCM_GYRO_ACC_FILTER_F      = 32, //gyro filtered, acc filtered, temp, crc
-    GTBCM_GYRO_ACC_QUAT_FILTER_F = 48, //gyro filtered, acc filtered, temp, quaternions filtered, crc
-    GTBCM_DEFAULT                = GTBCM_GYRO_ACC_QUAT_FILTER_F, //default mode
+    GTBCM_DEFAULT                = GTBCM_GYRO_ACC_FILTER_F, //default mode
 } gyroToBoardCommMode_t;
 
 typedef enum imufCalibrationSteps

@@ -41,7 +41,7 @@
      rxConfigMutable()->rcInterpolationInterval = 14;
      rxConfigMutable()->rcInterpolationChannels = INTERPOLATION_CHANNELS_RPYT;
      motorConfigMutable()->dev.motorPwmProtocol = PWM_TYPE_MULTISHOT;
-     gyroConfigMutable()->gyro_sync_denom  = 2; // 16KHZ GYRO
+     gyroConfigMutable()->gyro_sync_denom  = 1; // 16KHZ GYRO
      pidConfigMutable()->pid_process_denom = 1; // 16KHZ PID
      systemConfigMutable()->cpu_overclock  = 1; //192MHz makes Multishot run a little better because of maths.
 

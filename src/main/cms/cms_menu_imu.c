@@ -175,7 +175,6 @@ static OSD_Entry cmsx_menuPidEntries[] =
     { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,  0,  1000,  5}, 0 },
     { "BOOST LIMIT", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,  0,  250,  1}, 0 },
 
-
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
     { "ROLL  D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][2],  0, 200, 1 }, 0 },
@@ -276,6 +275,9 @@ static CMS_Menu cmsx_menuRateProfile = {
 };
 
 static uint8_t  cmsx_feedForwardTransition;
+static uint8_t  cmsx_setPointPTransition;
+static uint8_t  cmsx_setPointITransition;
+static uint8_t  cmsx_setPointDTransition;
 static uint8_t  cmsx_angleStrength;
 static uint8_t  cmsx_horizonStrength;
 static uint8_t  cmsx_horizonTransition;
@@ -290,6 +292,9 @@ static long cmsx_profileOtherOnEnter(void)
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
 
     cmsx_feedForwardTransition  = pidProfile->feedForwardTransition;
+    cmsx_setPointPTransition  = pidProfile->setPointPTransition;
+    cmsx_setPointITransition  = pidProfile->setPointITransition;
+    cmsx_setPointDTransition  = pidProfile->setPointDTransition;
 
     cmsx_angleStrength =     pidProfile->pid[PID_LEVEL].P;
     cmsx_horizonStrength =   pidProfile->pid[PID_LEVEL].I;
@@ -309,6 +314,9 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
 
     pidProfile_t *pidProfile = pidProfilesMutable(pidProfileIndex);
     pidProfile->feedForwardTransition = cmsx_feedForwardTransition;
+    pidProfile->setPointPTransition = cmsx_setPointPTransition;
+    pidProfile->setPointITransition = cmsx_setPointITransition;
+    pidProfile->setPointDTransition = cmsx_setPointDTransition;
     pidInitConfig(currentPidProfile);
 
     pidProfile->pid[PID_LEVEL].P = cmsx_angleStrength;
@@ -327,6 +335,9 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "-- OTHER PP --", OME_Label, NULL, pidProfileIndexString, 0 },
 
     { "FF TRANS",    OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_feedForwardTransition,  0,    100,   1, 10 }, 0 },
+    { "SPA RATE P",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransition,    0,    250,   1, 10 }, 0 },
+    { "SPA RATE I",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition,    0,    250,   1, 10 }, 0 },
+    { "SPA RATE D",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransition,    0,    250,   1, 10 }, 0 },
     { "ANGLE STR",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_angleStrength,          0,    200,   1  }   , 0 },
     { "HORZN STR",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonStrength,        0,    200,   1  }   , 0 },
     { "HORZN TRS",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonTransition,      0,    200,   1  }   , 0 },
@@ -427,6 +438,8 @@ static CMS_Menu cmsx_menuFilterGlobal = {
     .entries = cmsx_menuFilterGlobalEntries,
 };
 
+static uint16_t cmsx_dterm_kalman_w;
+static uint16_t cmsx_dterm_kalman_q;
 static uint16_t cmsx_dterm_lowpass_hz;
 static uint16_t cmsx_dterm_lowpass2_hz;
 //
@@ -517,6 +530,8 @@ static long cmsx_FilterPerProfileRead(void)
 {
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
 
+    cmsx_dterm_kalman_w     = pidProfile->dterm_kalman_w;
+    cmsx_dterm_kalman_q     = pidProfile->dterm_kalman_q;
     cmsx_dterm_lowpass_hz   = pidProfile->dterm_lowpass_hz;
     cmsx_dterm_lowpass2_hz  = pidProfile->dterm_lowpass2_hz;
     cmsx_dterm_notch_hz     = pidProfile->dterm_notch_hz;
@@ -532,6 +547,8 @@ static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self)
 
     pidProfile_t *pidProfile = currentPidProfile;
 
+    pidProfile->dterm_kalman_w     = cmsx_dterm_kalman_w;
+    pidProfile->dterm_kalman_q     = cmsx_dterm_kalman_q;
     pidProfile->dterm_lowpass_hz   = cmsx_dterm_lowpass_hz;
     pidProfile->dterm_lowpass2_hz  = cmsx_dterm_lowpass2_hz;
     pidProfile->dterm_notch_hz     = cmsx_dterm_notch_hz;
@@ -545,6 +562,8 @@ static OSD_Entry cmsx_menuFilterPerProfileEntries[] =
 {
     { "-- FILTER PP  --", OME_Label, NULL, NULL, 0 },
 
+    { "DTERM IMUF Q",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_kalman_q,  0, 16000, 100 }, 0 },
+    { "DTERM IMUF W",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_kalman_w,  3, 1024, 1 }, 0 },
     { "DTERM LPF",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz,     0, 500, 1 }, 0 },
     { "DTERM LPF2", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz,    0, 500, 1 }, 0 },
     { "DTERM NF",   OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_notch_hz,       0, 500, 1 }, 0 },
