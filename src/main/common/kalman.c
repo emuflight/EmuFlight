@@ -5,6 +5,7 @@
 #include "fc/fc_rc.h"
 #include "build/debug.h"
 
+#ifndef USE_GYRO_IMUF9001
 #define MAX_KALMAN_WINDOW_SIZE 512
 
 typedef struct variance
@@ -62,7 +63,7 @@ float       setPoint[XYZ_AXIS_COUNT];
 void init_kalman(kalman_t *filter, float q)
 {
     memset(filter, 0, sizeof(kalman_t));
-    filter->q = q * 0.00001f;   //add multiplier to make tuning easier
+    filter->q = q * 0.000001f;   //add multiplier to make tuning easier
     filter->r = 88.0f;           //seeding R at 88.0f
     filter->p = 30.0f;           //seeding P at 30.0f
     filter->e = 1.0f;
@@ -152,7 +153,7 @@ inline float kalman_process(kalman_t* kalmanState, float input, float target)
     //update last state
     kalmanState->lastX = kalmanState->x;
 
-    if (target != 0.0f && input  != 0.0f)
+    /*if (target != 0.0f && input  != 0.0f)
     {
         kalmanState->e = ABS(1.0f - target/input);
     }
@@ -160,7 +161,10 @@ inline float kalman_process(kalman_t* kalmanState, float input, float target)
     {
     //    UNUSED(target);
         kalmanState->e = 1.0f;
-    }
+    }*/
+
+    kalmanState->e = (ABS((target - input) * 2) + 10 + ABS(input / 5));
+
 
     //prediction update
     kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
@@ -198,3 +202,4 @@ void kalman_update(float* input, float* output)
 }
 
 #pragma GCC pop_options
+#endif
