@@ -62,7 +62,7 @@ float       setPoint[XYZ_AXIS_COUNT];
 void init_kalman(kalman_t *filter, float q)
 {
     memset(filter, 0, sizeof(kalman_t));
-    filter->q = q * 0.000001f;   //add multiplier to make tuning easier
+    filter->q = q * 0.00001f;   //add multiplier to make tuning easier
     filter->r = 88.0f;           //seeding R at 88.0f
     filter->p = 30.0f;           //seeding P at 30.0f
     filter->e = 1.0f;
@@ -83,7 +83,7 @@ void kalman_init(void)
     init_kalman(&kalmanFilterStateRate[Y],  gyroConfig()->gyro_filter_q);
     init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->gyro_filter_q);
 
-    varStruct.w = 16;
+    varStruct.w = gyroConfig()->gyro_filter_w;
     varStruct.inverseN = 1.0f/(float)(varStruct.w);
 }
 
@@ -158,6 +158,7 @@ inline float kalman_process(kalman_t* kalmanState, float input, float target)
     //}
     //else
     //{
+        UNUSED(target);
         kalmanState->e = 1.0f;
     //}
 
@@ -189,11 +190,11 @@ void kalman_update(float* input, float* output)
     output[Y] = kalman_process(&kalmanFilterStateRate[Y], input[Y], setPoint[Y] );
     output[Z] = kalman_process(&kalmanFilterStateRate[Z], input[Z], setPoint[Z] );
 
-    DEBUG_SET(DEBUG_KALMAN, 0, input[X]);                               //Gyro input
+    DEBUG_SET(DEBUG_KALMAN, 1, input[X]);                               //Gyro input
 
     int16_t Kgain = (kalmanFilterStateRate[X].k * 1000.0f);
-    DEBUG_SET(DEBUG_KALMAN, 1, Kgain);                                  //Kalman gain
-    DEBUG_SET(DEBUG_KALMAN, 2, output[X]);                              //Kalman output
+    DEBUG_SET(DEBUG_KALMAN, 2, Kgain);                                  //Kalman gain
+    DEBUG_SET(DEBUG_KALMAN, 3, output[X]);                              //Kalman output
 }
 
 #pragma GCC pop_options
