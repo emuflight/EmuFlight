@@ -152,15 +152,15 @@ inline float kalman_process(kalman_t* kalmanState, float input, float target)
     //update last state
     kalmanState->lastX = kalmanState->x;
 
-    //if (target != 0.0f && input  != 0.0f)
-    //{
-    //    kalmanState->e = ABS(1.0f - target/input);
-    //}
-    //else
-    //{
-        UNUSED(target);
+    if (target != 0.0f && input  != 0.0f)
+    {
+        kalmanState->e = ABS(1.0f - target/input);
+    }
+    else
+    {
+    //    UNUSED(target);
         kalmanState->e = 1.0f;
-    //}
+    }
 
     //prediction update
     kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
