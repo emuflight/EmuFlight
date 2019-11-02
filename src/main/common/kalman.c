@@ -5,7 +5,7 @@
 #include "fc/fc_rc.h"
 #include "build/debug.h"
 
-#define MAX_KALMAN_WINDOW_SIZE 256
+#define MAX_KALMAN_WINDOW_SIZE 512
 
 typedef struct variance
 {
@@ -169,7 +169,7 @@ inline float kalman_process(kalman_t* kalmanState, float input, float target)
     kalmanState->k = kalmanState->p / (kalmanState->p + kalmanState->r);
     kalmanState->x += kalmanState->k * (input - kalmanState->x);
     kalmanState->p = (1.0f - kalmanState->k) * kalmanState->p;
-    
+
     return kalmanState->x;
 }
 

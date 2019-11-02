@@ -136,7 +136,6 @@ bool firstArmingCalibrationWasStarted = false;
 typedef union gyroLowpassFilter_u {
     pt1Filter_t pt1FilterState;
     biquadFilter_t biquadFilterState;
-    fastKalman_t kalmanFilterState;
 } gyroLowpassFilter_t;
 
 typedef struct gyroSensor_s {
@@ -255,7 +254,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .gyro_32khz_hardware_lpf = GYRO_32KHZ_HARDWARE_LPF_NORMAL,
     .gyro_lowpass_type = FILTER_PT1,
     .gyro_lowpass_hz = 90,
-    .gyro_lowpass2_type = FILTER_KALMAN,
+    .gyro_lowpass2_type = FILTER_PT1,
     .gyro_lowpass2_hz = 0,
     .gyro_high_fsr = false,
     .gyro_use_32khz = false,
@@ -757,12 +756,6 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type, uint
                 biquadFilterInitLPF(&lowpassFilter[axis].biquadFilterState, lpfHz, gyro.targetLooptime);
             }
             break;
-        // case FILTER_KALMAN:
-        //     *lowpassFilterApplyFn = (filterApplyFnPtr) fastKalmanUpdate;
-        //     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-        //         fastKalmanInit(&lowpassFilter[axis].kalmanFilterState, gyroConfig()->gyro_filter_q, gyroConfig()->gyro_filter_w, axis, gyroDt);
-        //     }
-        //     break;
         }
     }
 }

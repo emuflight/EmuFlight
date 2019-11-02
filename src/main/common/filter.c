@@ -35,8 +35,6 @@
 #define M_PI_FLOAT  	3.14159265358979323846f
 #define BIQUAD_Q 		(1.0f / sqrtf(2.0f))     /* quality factor - 2nd order butterworth*/
 
-#define BASE_LPF_HZ    	90.0f
-
 float r_weight = 0.67f;
 
 // NULL filter
@@ -218,13 +216,4 @@ void laggedMovingAverageInit(laggedMovingAverage_t *filter, uint16_t windowSize,
     filter->windowSize = windowSize;
     filter->buf = buf;
     filter->primed = false;
-}
-
-
-FAST_CODE float calculateGain(float q, float r)
-{
-	const float ratio = q / r;
-	const float k     = -ratio * 0.5f + sqrtf(ratio * ratio * 0.25f + ratio);
-
-	return k;
 }
