@@ -1,9 +1,18 @@
 static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
 {
+    float input[XYZ_AXIS_COUNT];
+    float output[XYZ_AXIS_COUNT];
+
+    input[X] = gyroSensor->gyroDev.gyroADC[X] * gyroSensor->gyroDev.scale;
+    input[Y] = gyroSensor->gyroDev.gyroADC[Y] * gyroSensor->gyroDev.scale;
+    input[Z] = gyroSensor->gyroDev.gyroADC[Z] * gyroSensor->gyroDev.scale;
+    kalman_update(input, output);
+
+
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_RAW, axis, gyroSensor->gyroDev.gyroADCRaw[axis]);
         // scale gyro output to degrees per second
-        float gyroADCf = gyroSensor->gyroDev.gyroADC[axis] * gyroSensor->gyroDev.scale;
+        float gyroADCf = output[axis];//gyroSensor->gyroDev.gyroADC[axis] * gyroSensor->gyroDev.scale;
         // DEBUG_GYRO_SCALED records the unfiltered, scaled gyro output
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_SCALED, axis, lrintf(gyroADCf));
 
@@ -36,5 +45,9 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));
 
         gyroSensor->gyroDev.gyroADCf[axis] = gyroADCf;
+
+        if(axis == X) {
+            DEBUG_SET(DEBUG_KALMAN, 3, gyroADCf);                              //Kalman output
+        }
     }
 }
