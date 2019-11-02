@@ -77,6 +77,8 @@ Before starting to write code, please read our [development guidelines](docs/dev
 
 ## EmuFlight Releases
 
+[![Build Status](https://travis-ci.org/emuflight/EmuFlight-Butter-Varient.svg?branch=Main)](https://travis-ci.org/emuflight/EmuFlight-Butter-Varient) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/eb2d3be37a4247a19814014ee22e1170)](https://www.codacy.com/manual/EmuFlight/EmuFlight-Butter-Varient?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emuflight/EmuFlight-Butter-Varient&amp;utm_campaign=Badge_Grade)
+
 https://github.com/emuflight/EmuFlight-Butter-Varient/releases
 
 ## Open Source / Contributors
