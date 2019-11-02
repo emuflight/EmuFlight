@@ -180,11 +180,11 @@ include $(ROOT)/make/source.mk
 #
 
 # Find out if ccache is installed on the system
-CCACHE := ccache
+
 CCACHE :=
 RESULT = $(shell (which $(CCACHE) > /dev/null 2>&1; echo $$?) )
 ifneq ($(RESULT),0)
-CCACHE :=
+CCACHE := ccache
 endif
 
 CCACHE :=

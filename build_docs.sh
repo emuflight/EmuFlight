@@ -1,5 +1,6 @@
-
 #!/bin/bash
+#
+# TODO: this needs to be revisioned.
 
 filename=Manual
 doc_files=(
