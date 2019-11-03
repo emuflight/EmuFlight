@@ -2,7 +2,7 @@ F405_TARGETS    += $(TARGET)
 ifeq ($(TARGET), FURYF4OSD)
 FEATURES        += VCP ONBOARDFLASH
 else
-FEATURES        += VCP ONBOARDFLASH SDCARD
+FEATURES        += VCP ONBOARDFLASH SDCARD_SPI
 endif
 
 TARGET_SRC = \
@@ -14,7 +14,7 @@ TARGET_SRC = \
 ifeq ($(TARGET), FURYF4OSD)
 TARGET_SRC += \
             drivers/max7456.c
-else
-TARGET_SRC += \
-            drivers/barometer/barometer_ms5611.c
 endif
+TARGET_SRC += \
+            drivers/barometer/barometer_ms5611.c \
+            drivers/barometer/barometer_bmp280.c
