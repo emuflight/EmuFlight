@@ -21,11 +21,11 @@
 #pragma once
 
 #ifdef FURYF4OSD
-    #define TARGET_BOARD_IDENTIFIER "FY4O"
-    #define USBD_PRODUCT_STRING     "FuryF4OSD"
+#define TARGET_BOARD_IDENTIFIER "FY4O"
+#define USBD_PRODUCT_STRING     "FuryF4OSD"
 #else
-    #define TARGET_BOARD_IDENTIFIER "FYF4"
-    #define USBD_PRODUCT_STRING     "FuryF4"
+#define TARGET_BOARD_IDENTIFIER "FYF4"
+#define USBD_PRODUCT_STRING     "FuryF4"
 #endif
 
 #define LED0_PIN                PB5
@@ -39,6 +39,7 @@
 
 // MPU6000 interrupts
 #define USE_EXTI
+#define USE_GYRO_EXTI
 #define MPU_INT_EXTI            PC4
 #define USE_MPU_DATA_READY_SIGNAL
 
@@ -55,18 +56,20 @@
 #define USE_GYRO_SPI_ICM20689
 #define GYRO_ICM20689_ALIGN      CW180_DEG
 
+#define USE_ACC
+#define USE_ACC_SPI_MPU6000
+#define USE_ACC_SPI_MPU6500
+#define USE_ACC_SPI_ICM20689
+
+#define ACC_MPU6000_ALIGN       CW180_DEG
+#define ACC_ICM20689_ALIGN      CW180_DEG
+
 #define USE_GYRO_SPI_MPU6000
 #define GYRO_MPU6000_ALIGN      CW180_DEG
-#define USE_ACC_SPI_MPU6000
-#define ACC_MPU6000_ALIGN       CW180_DEG
 
 #define USE_GYRO_MPU6500
 #define USE_GYRO_SPI_MPU6500
 #define GYRO_MPU6500_ALIGN      CW180_DEG
-
-#define USE_ACC
-#define USE_ACC_SPI_ICM20689
-#define ACC_ICM20689_ALIGN       CW180_DEG
 
 #define USE_ACC_SPI_MPU6000
 #define ACC_MPU6000_ALIGN       CW180_DEG
@@ -76,43 +79,31 @@
 #define ACC_MPU6500_ALIGN       CW180_DEG
 
 #ifdef FURYF4OSD
-    #define USE_MAX7456
-    #define MAX7456_SPI_INSTANCE    SPI2
-    #define MAX7456_SPI_CS_PIN      PB12
-    #define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
-    #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
+#define USE_MAX7456
+#define MAX7456_SPI_INSTANCE    SPI2
+#define MAX7456_SPI_CS_PIN      PB12
+#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
+#define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 
-    #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
-    #define DEFAULT_FEATURES        FEATURE_OSD
+#define DEFAULT_FEATURES        FEATURE_OSD
 
 #else
+#define USE_BARO
+#define USE_BARO_MS5611
+#define MS5611_I2C_INSTANCE     I2CDEV_1
 
-    #define USE_BARO
-    #define USE_BARO_MS5611
-    #define MS5611_I2C_INSTANCE     I2CDEV_1
+#define USE_SDCARD
+#define USE_SDCARD_SPI
+#define SDCARD_DETECT_INVERTED
+#define SDCARD_DETECT_PIN                   PD2
+#define SDCARD_SPI_INSTANCE                 SPI2
+#define SDCARD_SPI_CS_PIN                   PB12
+#define SPI2_TX_DMA_OPT                     0     // DMA 1 Stream 4 Channel 0
+#define SPI2_TX_DMA_OPT                     0     // DMA 1 Stream 4 Channel 0
 
-    #define USE_SDCARD
-
-    #define SDCARD_DETECT_INVERTED
-
-    #define SDCARD_DETECT_PIN                   PD2
-    #define SDCARD_SPI_INSTANCE                 SPI2
-    #define SDCARD_SPI_CS_PIN                   PB12
-
-    // SPI2 is on the APB1 bus whose clock runs at 84MHz. Divide to under 400kHz for init:
-    #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256 // 328kHz
-    // Divide to under 25MHz for normal operation:
-    #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
-
-    //#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream5
-    //#define SDCARD_DMA_CHANNEL                  0
-
-    #define SDCARD_DMA_CHANNEL_TX               DMA1_Stream4
-    #define SDCARD_DMA_CHANNEL                  0
-
-    #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
-
+#define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 #endif
 
 #define USE_FLASHFS
@@ -127,7 +118,6 @@
 #define USE_UART1
 #define UART1_RX_PIN            PA10
 #define UART1_TX_PIN            PA9
-//#define UART1_AHB1_PERIPHERALS  RCC_AHB1Periph_DMA2
 
 #define USE_UART3
 #define UART3_RX_PIN            PB11
