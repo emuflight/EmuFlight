@@ -62,27 +62,6 @@ typedef enum {
 
 
 
-typedef struct kalman_s {
-    uint32_t w;    // window size
-    float q;       // process noise covariance
-    float r;       // measurement noise covariance
-    float k;       // gain factor
-    float x;       // state
-    float lastX;   // previous state
-
-    float window[512];
-    float variance;
-    float varianceSum;
-    float mean;
-    float meanSum;
-    float windowSizeInverse;
-    uint32_t windowIndex;
-    int axis; // for setPoint not being passed during call time
-    pt1Filter_t lp_filter;
-    float oldSetPoint;
-    float updateRate;
-} fastKalman_t;
-
 typedef float (*filterApplyFnPtr)(filter_t *filter, float input);
 
 float nullFilterApply(filter_t *filter, float input);

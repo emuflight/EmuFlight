@@ -163,7 +163,7 @@ inline float kalman_process(kalman_t* kalmanState, float input, float target)
         kalmanState->e = 1.0f;
     }*/
 
-    kalmanState->e = (ABS((target - input) * 2) + 10 + ABS(input / 5));
+    kalmanState->e = (ABS((target - input) * 2) + ABS(input / 5));
 
 
     //prediction update
