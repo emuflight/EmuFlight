@@ -89,10 +89,12 @@
 
 #define DEFAULT_FEATURES        FEATURE_OSD
 
+// FIXME: support broken
+// #define USE_BARO
+// #define USE_BARO_MS5611
+// #define MS5611_I2C_INSTANCE     I2CDEV_1
+
 #else
-#define USE_BARO
-#define USE_BARO_MS5611
-#define MS5611_I2C_INSTANCE     I2CDEV_1
 
 #define USE_SDCARD
 #define USE_SDCARD_SPI
