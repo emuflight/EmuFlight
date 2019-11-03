@@ -54,6 +54,7 @@
 
 #include "sensors/gyro.h"
 #include "sensors/acceleration.h"
+#include "sensors/battery.h"
 
 
 extern float r_weight;
@@ -95,7 +96,7 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 
 #ifndef USE_FEATHERED_PIDS
 #define USE_FEATHERED_PIDS true
-#endif //USE_FEATHERY_PIDS
+#endif //USE_FEATHERED_PIDS
 
 #ifndef DEFAULT_PIDS_ROLL
 #define DEFAULT_PIDS_ROLL { 50, 65, 28, 0 }
@@ -112,8 +113,8 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 #ifdef USE_RUNAWAY_TAKEOFF
 PG_RESET_TEMPLATE(pidConfig_t, pidConfig,
     .pid_process_denom = PID_PROCESS_DENOM_DEFAULT,
-    .runaway_takeoff_prevention = false,
-    .runaway_takeoff_deactivate_throttle = 25,  // throttle level % needed to accumulate deactivation time
+    .runaway_takeoff_prevention = true,
+    .runaway_takeoff_deactivate_throttle = 20,  // throttle level % needed to accumulate deactivation time
     .runaway_takeoff_deactivate_delay = 500     // Accumulated time (in milliseconds) before deactivation in successful takeoff
 );
 #else
@@ -129,7 +130,7 @@ PG_RESET_TEMPLATE(pidConfig_t, pidConfig,
 
 #define ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF 15  // The anti gravity throttle highpass filter cutoff
 
-PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, MAX_PROFILE_COUNT, pidProfiles, PG_PID_PROFILE, 6);
+PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, PID_PROFILE_COUNT, pidProfiles, PG_PID_PROFILE, 7);
 
 typedef float (*pidControllerFn)(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
 
@@ -152,7 +153,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
 
         .pidSumLimit = PIDSUM_LIMIT_MAX,
         .yaw_lowpass_hz = 0,
-        .dterm_lowpass_hz = 65,    // filtering ON by default
+        .dterm_lowpass_hz = 65,     // filtering ON by default
         .dterm_lowpass2_hz = 200,   // second Dterm LPF ON by default
         .dterm_notch_hz = 0,
         .dterm_notch_cutoff = 0,
@@ -162,6 +163,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .pidAtMinThrottle = PID_STABILISATION_ON,
         .levelAngleLimit = 55,
         .feedForwardTransition = 0,
+        .setPointPTransition = 100,
+        .setPointITransition = 100,
+        .setPointDTransition = 100,
         .feathered_pids = USE_FEATHERED_PIDS,
         .i_decay = 4,
         .r_weight = 67,
@@ -186,7 +190,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .throttle_boost = 5,
         .throttle_boost_cutoff = 15,
         .iterm_rotation = true,
-        .smart_feedforward = false,
         .iterm_relax = ITERM_RELAX_OFF,
         .iterm_relax_cutoff = 11,
         .iterm_relax_type = ITERM_RELAX_GYRO,
@@ -200,12 +203,14 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .antiGravityMode = ANTI_GRAVITY_SMOOTH,
         .use_integrated_yaw = false,
         .integrated_yaw_relax = 200,
+        .motor_output_limit = 100,
+        .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
     );
 }
 
 void pgResetFn_pidProfiles(pidProfile_t *pidProfiles)
 {
-    for (int i = 0; i < MAX_PROFILE_COUNT; i++) {
+  for (int i = 0; i < PID_PROFILE_COUNT; i++) {
         resetPidProfile(&pidProfiles[i]);
     }
 }
@@ -312,6 +317,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
             }
         }
     }
+
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, dT));
 #endif
@@ -372,6 +378,9 @@ typedef struct pidCoefficient_s {
 static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feedForwardTransition;
+static FAST_RAM_ZERO_INIT float setPointPTransition;
+static FAST_RAM_ZERO_INIT float setPointITransition;
+static FAST_RAM_ZERO_INIT float setPointDTransition;
 static FAST_RAM_ZERO_INIT pidControllerFn activePidController;
 static FAST_RAM_ZERO_INIT float levelGain, horizonGain, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
@@ -391,9 +400,6 @@ pt1Filter_t throttleLpf;
 #endif
 static FAST_RAM_ZERO_INIT bool itermRotation;
 
-#if defined(USE_SMART_FEEDFORWARD)
-static FAST_RAM_ZERO_INIT bool smartFeedforward;
-#endif
 #if defined(USE_ABSOLUTE_CONTROL)
 static FAST_RAM_ZERO_INIT float axisError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float acGain;
@@ -447,6 +453,9 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidCoefficient[axis].Kf = FEEDFORWARD_SCALE * (pidProfile->pid[axis].F / 100.0f);
     }
 
+    setPointPTransition = pidProfile->setPointPTransition / 100.0f;
+    setPointITransition = pidProfile->setPointITransition / 100.0f;
+    setPointDTransition = pidProfile->setPointDTransition / 100.0f;
     levelGain = pidProfile->pid[PID_LEVEL].P / 10.0f;
     horizonGain = pidProfile->pid[PID_LEVEL].I / 10.0f;
     horizonTransition = (float)pidProfile->pid[PID_LEVEL].D;
@@ -483,9 +492,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         antiGravityOsdCutoff += ((itermAcceleratorGain - 1000) / 1000.0f) * 0.25f;
     }
 
-#if defined(USE_SMART_FEEDFORWARD)
-    smartFeedforward = pidProfile->smart_feedforward;
-#endif
+
 #if defined(USE_ITERM_RELAX)
     itermRelax = pidProfile->iterm_relax;
     itermRelaxType = pidProfile->iterm_relax_type;
@@ -530,7 +537,7 @@ void pidAcroTrainerInit(void)
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex)
 {
 
-    if (dstPidProfileIndex < MAX_PROFILE_COUNT && srcPidProfileIndex < MAX_PROFILE_COUNT
+   if ((dstPidProfileIndex < PID_PROFILE_COUNT-1 && srcPidProfileIndex < PID_PROFILE_COUNT-1)
         && dstPidProfileIndex != srcPidProfileIndex
     ) {
         memcpy(pidProfilesMutable(dstPidProfileIndex), pidProfilesMutable(srcPidProfileIndex), sizeof(pidProfile_t));
@@ -840,33 +847,19 @@ float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelt
 #endif // USE_RC_SMOOTHING_FILTER
 
 
-#ifdef USE_SMART_FEEDFORWARD
-void FAST_CODE applySmartFeedforward(int axis)
-{
-    if (smartFeedforward) {
-        if (pidData[axis].P * pidData[axis].F > 0) {
-            if (ABS(pidData[axis].F) > ABS(pidData[axis].P)) {
-                pidData[axis].P = 0;
-            } else {
-                pidData[axis].F = 0;
-            }
-        }
-    }
-}
-#endif // USE_SMART_FEEDFORWARD
-
 static FAST_RAM_ZERO_INIT float previousRateError[3];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 //static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
 #define SIGN(x) ((x > 0.0f) - (x < 0.0f))
 
+
 // EmuFlight pid controller which uses measurement instead of error rate to calculate D
 FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint)
 {
     (void)(currentPidSetpoint);
 
-//Add EmuBoost to the code (non linear boost to errorRate)
+// Add EmuBoost to the code (non linear boost to errorRate)
 float errorMultiplier = (pidProfile->errorBoost * pidProfile->errorBoost / 1000000) * 0.003;
 float boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
 if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
@@ -885,7 +878,8 @@ if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs
     pidData[axis].P = pidCoefficient[axis].Kp * (boostedErrorRate + errorRate);
 
     // -----calculate I component
-    //float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
+    // float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
+
     float iterm    = pidData[axis].I;
     float ITermNew = pidCoefficient[axis].Ki * (boostedErrorRate + errorRate) * dynCi;
     if (ITermNew != 0.0f)
@@ -1012,7 +1006,7 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
         // -----calculate P component and add Dynamic Part based on stick input
     pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate));
     // -----calculate I component
-   // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
+    // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
     float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
     if (ITermNew != 0.0f)
     {
@@ -1036,13 +1030,10 @@ FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float erro
     // -----calculate D component
     float gyroRateFiltered = dtermNotchApplyFn((filter_t *) &dtermNotch[axis], gyroRate);
 
-//        float setpointT = flightModeFlags ? 0.0f : 0 * MIN(getRcDeflectionAbs(axis) * 1.0f, 1.0f);
-        float ornD = /*setpointT **/ currentPidSetpoint - gyroRateFiltered;
-        float dDelta = 0.0f;
         //filter Kd properly, no sp
-        ornD = /*setpointT **/ getSetpointRate(axis) - gyroRateFiltered;    // cr - y
-        dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], (ornD - previousRateError[axis]) * pidFrequency );
-        previousRateError[axis] = ornD;
+        const float pureRD = getSetpointRate(axis) - gyroRateFiltered;    // cr - y
+        float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], ((pureRD - previousRateError[axis] - gyro.gyroADCf[axis]) / 2) * pidFrequency );
+        previousRateError[axis] = pureRD - gyro.gyroADCf[axis];
 
 if (pidCoefficient[axis].Kd > 0) {
         // Divide rate change by dT to get differential (ie dr/dt).
@@ -1071,8 +1062,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
 
     // gradually scale back integration when above windup point
-    const float dynCi = constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f)
-        * dT * itermAccelerator;
+    const float dynCi = constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f) * dT * itermAccelerator;
     float errorRate;
     float currentPidSetpoint;
 
@@ -1131,13 +1121,34 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
             pidData[axis].F = feedforwardGain * transition * pidSetpointDelta * pidFrequency;
 
-#if defined(USE_SMART_FEEDFORWARD)
-            applySmartFeedforward(axis);
-#endif
         } else {
             pidData[axis].F = 0;
         }
         previousPidSetpoint[axis] = currentPidSetpoint;
+
+           // calculate SPA
+           float setPointPAntenuation;
+           float setPointIAntenuation;
+           float setPointDAntenuation;
+
+           // SPA boost if SPA > 100 SPA cut if SPA < 100
+        if (setPointPTransition >= 1) {
+           setPointPAntenuation = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition - 1));
+        } else {
+           setPointPAntenuation = 1 - (getRcDeflectionAbs(axis) * (1 - setPointPTransition));
+        }
+
+        if (setPointITransition >= 1) {
+           setPointIAntenuation = 1 + (getRcDeflectionAbs(axis) * (setPointITransition - 1));
+        } else {
+           setPointIAntenuation = 1 - (getRcDeflectionAbs(axis) * (1 - setPointITransition));
+        }
+
+        if (setPointDTransition >= 1) {
+           setPointDAntenuation = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition - 1));
+        } else {
+           setPointDAntenuation = 1 - (getRcDeflectionAbs(axis) * (1 - setPointDTransition));
+        }
 
 #ifdef USE_YAW_SPIN_RECOVERY
         if (gyroYawSpinDetected()) {
@@ -1160,8 +1171,9 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
             pidData[axis].Sum = 0;
         }
-        // calculating the PID sum and TPA
-        const float pidSum = (pidData[axis].P * getThrottlePAttenuation()) + (pidData[axis].I * getThrottleIAttenuation()) + (pidData[axis].D * getThrottleDAttenuation()) + pidData[axis].F;
+        // calculating the PID sum and TPA and SPA
+        const float pidSum = (pidData[axis].P * getThrottlePAttenuation() * setPointPAntenuation) + (pidData[axis].I * getThrottleIAttenuation() * setPointIAntenuation) + (pidData[axis].D * getThrottleDAttenuation() * setPointDAntenuation) + pidData[axis].F;
+
 #ifdef USE_INTEGRATED_YAW_CONTROL
         if (axis == FD_YAW && useIntegratedYaw) {
             pidData[axis].Sum += pidSum * dT * 100.0f;

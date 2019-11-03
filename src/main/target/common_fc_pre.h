@@ -137,9 +137,9 @@
 
 
 #if (FLASH_SIZE > 64)
-#define MAX_PROFILE_COUNT 3
+#define PID_PROFILE_COUNT 3
 #else
-#define MAX_PROFILE_COUNT 2
+#define PID_PROFILE_COUNT 2
 #endif
 
 #if (FLASH_SIZE > 64)
@@ -187,7 +187,6 @@
 #define USE_ESC_SENSOR_INFO
 #define USE_CRSF_CMS_TELEMETRY
 #define USE_BOARD_INFO
-#define USE_SMART_FEEDFORWARD
 #define USE_THROTTLE_BOOST
 #define USE_RC_SMOOTHING_FILTER
 #define USE_ITERM_RELAX
@@ -208,7 +207,6 @@
 #if (FLASH_SIZE > 256)
 #define USE_SERVOS
 #define USE_LED_STRIP
-#define USE_PEGASUS_UI
 #define USE_ALT_HOLD
 #define USE_DASHBOARD
 #define USE_GPS

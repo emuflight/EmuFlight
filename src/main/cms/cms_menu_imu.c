@@ -38,6 +38,8 @@
 
 #include "common/utils.h"
 
+#include "drivers/pwm_output.h"
+
 #include "config/feature.h"
 #include "pg/pg.h"
 
@@ -46,8 +48,10 @@
 #include "fc/rc_controls.h"
 #include "fc/runtime_config.h"
 
+#include "flight/mixer.h"
 #include "flight/pid.h"
 
+#include "sensors/battery.h"
 #include "sensors/gyro.h"
 
 
@@ -175,7 +179,6 @@ static OSD_Entry cmsx_menuPidEntries[] =
     { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,  0,  1000,  5}, 0 },
     { "BOOST LIMIT", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,  0,  250,  1}, 0 },
 
-
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
     { "ROLL  D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][2],  0, 200, 1 }, 0 },
@@ -276,12 +279,17 @@ static CMS_Menu cmsx_menuRateProfile = {
 };
 
 static uint8_t  cmsx_feedForwardTransition;
+static uint8_t  cmsx_setPointPTransition;
+static uint8_t  cmsx_setPointITransition;
+static uint8_t  cmsx_setPointDTransition;
 static uint8_t  cmsx_angleStrength;
 static uint8_t  cmsx_horizonStrength;
 static uint8_t  cmsx_horizonTransition;
 static uint8_t  cmsx_throttleBoost;
 static uint16_t cmsx_itermAcceleratorGain;
 static uint16_t cmsx_itermThrottleThreshold;
+static uint8_t  cmsx_motorOutputLimit;
+static int8_t   cmsx_autoProfileCellCount;
 
 static long cmsx_profileOtherOnEnter(void)
 {
@@ -290,6 +298,9 @@ static long cmsx_profileOtherOnEnter(void)
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
 
     cmsx_feedForwardTransition  = pidProfile->feedForwardTransition;
+    cmsx_setPointPTransition  = pidProfile->setPointPTransition;
+    cmsx_setPointITransition  = pidProfile->setPointITransition;
+    cmsx_setPointDTransition  = pidProfile->setPointDTransition;
 
     cmsx_angleStrength =     pidProfile->pid[PID_LEVEL].P;
     cmsx_horizonStrength =   pidProfile->pid[PID_LEVEL].I;
@@ -299,6 +310,8 @@ static long cmsx_profileOtherOnEnter(void)
     cmsx_itermThrottleThreshold = pidProfile->itermThrottleThreshold;
 
     cmsx_throttleBoost = pidProfile->throttle_boost;
+    cmsx_motorOutputLimit = pidProfile->motor_output_limit;
+    cmsx_autoProfileCellCount = pidProfile->auto_profile_cell_count;
 
     return 0;
 }
@@ -309,6 +322,9 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
 
     pidProfile_t *pidProfile = pidProfilesMutable(pidProfileIndex);
     pidProfile->feedForwardTransition = cmsx_feedForwardTransition;
+    pidProfile->setPointPTransition = cmsx_setPointPTransition;
+    pidProfile->setPointITransition = cmsx_setPointITransition;
+    pidProfile->setPointDTransition = cmsx_setPointDTransition;
     pidInitConfig(currentPidProfile);
 
     pidProfile->pid[PID_LEVEL].P = cmsx_angleStrength;
@@ -319,7 +335,10 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
     pidProfile->itermThrottleThreshold = cmsx_itermThrottleThreshold;
 
     pidProfile->throttle_boost = cmsx_throttleBoost;
+    pidProfile->motor_output_limit = cmsx_motorOutputLimit;
+    pidProfile->auto_profile_cell_count = cmsx_autoProfileCellCount;
 
+    initEscEndpoints();
     return 0;
 }
 
@@ -327,6 +346,9 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "-- OTHER PP --", OME_Label, NULL, pidProfileIndexString, 0 },
 
     { "FF TRANS",    OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_feedForwardTransition,  0,    100,   1, 10 }, 0 },
+    { "SPA RATE P",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransition,    0,    250,   1, 10 }, 0 },
+    { "SPA RATE I",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition,    0,    250,   1, 10 }, 0 },
+    { "SPA RATE D",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransition,    0,    250,   1, 10 }, 0 },
     { "ANGLE STR",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_angleStrength,          0,    200,   1  }   , 0 },
     { "HORZN STR",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonStrength,        0,    200,   1  }   , 0 },
     { "HORZN TRS",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonTransition,      0,    200,   1  }   , 0 },
@@ -335,6 +357,9 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
 #ifdef USE_THROTTLE_BOOST
     { "THR BOOST",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_throttleBoost,          0,    100,   1  }   , 0 },
 #endif
+    { "MTR OUT LIM %",OME_UINT8, NULL, &(OSD_UINT8_t) { &cmsx_motorOutputLimit, MOTOR_OUTPUT_LIMIT_PERCENT_MIN,  MOTOR_OUTPUT_LIMIT_PERCENT_MAX,  1}, 0 },
+    { "AUTO CELL CNT", OME_INT8, NULL, &(OSD_INT8_t) { &cmsx_autoProfileCellCount, AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT, 1}, 0 },
+
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }
@@ -410,7 +435,7 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "GYRO NF2C",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_2, 0, 500, 1 }, 0 },
     #ifndef USE_GYRO_IMUF9001
     { "KALMAN Q",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_filter_q,            0, 16000, 100 }, 0 },
-    { "KALMAN W",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_filter_w,            3, 1024, 1 }, 0 },
+    { "KALMAN W",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_filter_w,            2, 512, 1 }, 0 },
     #endif
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
@@ -643,7 +668,7 @@ static OSD_Entry cmsx_menuImuEntries[] =
 {
     { "-- PROFILE --", OME_Label, NULL, NULL, 0},
 
-    {"PID PROF",  OME_UINT8,   cmsx_profileIndexOnChange,     &(OSD_UINT8_t){ &tmpPidProfileIndex, 1, MAX_PROFILE_COUNT, 1},    0},
+    {"PID PROF",  OME_UINT8,   cmsx_profileIndexOnChange,     &(OSD_UINT8_t){ &tmpPidProfileIndex, 1, PID_PROFILE_COUNT, 1},    0},
     {"PID",       OME_Submenu, cmsMenuChange,                 &cmsx_menuPid,                                                 0},
     {"MISC PP",   OME_Submenu, cmsMenuChange,                 &cmsx_menuProfileOther,                                        0},
     {"FILT PP",   OME_Submenu, cmsMenuChange,                 &cmsx_menuFilterPerProfile,                                    0},

@@ -52,7 +52,6 @@ typedef struct laggedMovingAverage_s {
 typedef enum {
     FILTER_PT1 = 0,
     FILTER_BIQUAD,
-    FILTER_KALMAN,
 } lowpassFilterType_e;
 
 typedef enum {
@@ -61,32 +60,7 @@ typedef enum {
     FILTER_BPF,
 } biquadFilterType_e;
 
-#if (defined(STM32F7) || defined(STM32F4))
-#define MAX_WINDOW_SIZE 512
-#else
-#define MAX_WINDOW_SIZE 512
-#endif
 
-typedef struct kalman_s {
-    uint32_t w;    // window size
-    float q;       // process noise covariance
-    float r;       // measurement noise covariance
-    float k;       // gain factor
-    float x;       // state
-    float lastX;   // previous state
-
-    float window[MAX_WINDOW_SIZE];
-    float variance;
-    float varianceSum;
-    float mean;
-    float meanSum;
-    float windowSizeInverse;
-    uint32_t windowIndex;
-    int axis; // for setPoint not being passed during call time
-    pt1Filter_t lp_filter;
-    float oldSetPoint;
-    float updateRate;
-} fastKalman_t;
 
 typedef float (*filterApplyFnPtr)(filter_t *filter, float input);
 
@@ -107,6 +81,3 @@ float pt1FilterApply(pt1Filter_t *filter, float input);
 
 void slewFilterInit(slewFilter_t *filter, float slewLimit, float threshold);
 float slewFilterApply(slewFilter_t *filter, float input);
-
-void fastKalmanInit(fastKalman_t *filter, float q, uint32_t w, int axis, float updateRate);
-float fastKalmanUpdate(fastKalman_t *filter, float input);

@@ -817,7 +817,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
             sbufWriteU8(dst, getCurrentPidProfileIndex());
             sbufWriteU16(dst, constrain(averageSystemLoadPercent, 0, 100));
             if (cmdMSP == MSP_STATUS_EX) {
-                sbufWriteU8(dst, MAX_PROFILE_COUNT);
+                sbufWriteU8(dst, PID_PROFILE_COUNT);
                 sbufWriteU8(dst, getCurrentControlRateProfileIndex());
             } else {  // MSP_STATUS
                 sbufWriteU16(dst, 0); // gyro cycle time
@@ -1323,7 +1323,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         break;
 #else
     case MSP_IMUF_CONFIG:
-        sbufWriteU16(dst, gyroConfig()->imuf_mode);
+        sbufWriteU16(dst, 0);
         sbufWriteU16(dst, gyroConfig()->imuf_roll_q);
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_q);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_q);
@@ -1356,11 +1356,8 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, currentPidProfile->itermAcceleratorGain);
         sbufWriteU16(dst, 0); // was currentPidProfile->dtermSetpointWeight
         sbufWriteU8(dst, currentPidProfile->iterm_rotation);
-#if defined(USE_SMART_FEEDFORWARD)
-        sbufWriteU8(dst, currentPidProfile->smart_feedforward);
-#else
         sbufWriteU8(dst, 0);
-#endif
+
 #if defined(USE_ITERM_RELAX)
         sbufWriteU8(dst, currentPidProfile->iterm_relax);
         sbufWriteU8(dst, currentPidProfile->iterm_relax_type);
@@ -1579,7 +1576,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         value = sbufReadU8(src);
         if ((value & RATEPROFILE_MASK) == 0) {
             if (!ARMING_FLAG(ARMED)) {
-                if (value >= MAX_PROFILE_COUNT) {
+                if (value >= PID_PROFILE_COUNT) {
                     value = 0;
                 }
                 changePidProfile(value);
@@ -1932,7 +1929,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
 
 #else
     case MSP_SET_IMUF_CONFIG :
-        gyroConfigMutable()->imuf_mode = sbufReadU16(src);
+        sbufReadU16(src);
         gyroConfigMutable()->imuf_roll_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_pitch_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_yaw_q = sbufReadU16(src);
@@ -1952,8 +1949,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         currentPidProfile->feedForwardTransition = sbufReadU8(src);
         currentPidProfile->errorBoostLimit = sbufReadU8(src);
         currentPidProfile->i_decay = sbufReadU8(src);
-        sbufReadU8(src); // reserved
-        sbufReadU8(src); // reserved
+        sbufReadU8(src);
+        sbufReadU8(src);
         currentPidProfile->rateAccelLimit = sbufReadU16(src);
         currentPidProfile->yawRateAccelLimit = sbufReadU16(src);
         if (sbufBytesRemaining(src) >= 2) {
@@ -1970,11 +1967,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         if (sbufBytesRemaining(src) >= 14) {
             // Added in MSP API 1.40
             currentPidProfile->iterm_rotation = sbufReadU8(src);
-#if defined(USE_SMART_FEEDFORWARD)
-            currentPidProfile->smart_feedforward = sbufReadU8(src);
-#else
             sbufReadU8(src);
-#endif
 #if defined(USE_ITERM_RELAX)
             currentPidProfile->iterm_relax = sbufReadU8(src);
             currentPidProfile->iterm_relax_type = sbufReadU8(src);
