@@ -101,7 +101,7 @@ FAST_CODE void appendCrcToData(uint32_t* data, uint32_t size)
 
 FAST_CODE static void gpio_write_pin(GPIO_TypeDef * GPIOx, uint16_t GPIO_Pin, gpioState_t pinState)
 {
-    //GPIO manipulation should go into a fast GPIO driver and should be separate from the befhal 
+    //GPIO manipulation should go into a fast GPIO driver and should be separate from the befhal
 
     #ifdef USE_HAL_F7_CRC
         HAL_GPIO_WritePin(GPIOx, GPIO_Pin, pinState);
@@ -188,7 +188,7 @@ void imufDeinitGpio(GPIO_TypeDef * GPIOx, uint16_t GPIO_Pin)
         /* Clear EXTI line configuration */
         EXTI->IMR &= ~((uint32_t)iocurrent);
         EXTI->EMR &= ~((uint32_t)iocurrent);
-        
+
         /* Clear Rising Falling edge configuration */
         EXTI->RTSR &= ~((uint32_t)iocurrent);
         EXTI->FTSR &= ~((uint32_t)iocurrent);
@@ -197,7 +197,7 @@ void imufDeinitGpio(GPIO_TypeDef * GPIOx, uint16_t GPIO_Pin)
   }
 }
 
-void initImuf9001(void) 
+void initImuf9001(void)
 {
     //GPIO manipulation should go into a fast GPIO driver and should be separate from the befhal
     #ifdef USE_HAL_F7_CRC
@@ -302,7 +302,7 @@ FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroComma
 
 int imufBootloader()
 {
-    
+
     imufCommand_t reply;
     imufCommand_t data;
     memset(&data, 0, sizeof(data));
@@ -450,7 +450,7 @@ int imufUpdate(uint8_t *buff, uint32_t bin_length)
             }
         }
     }
-    
+
     return 0;
 }
 
@@ -524,12 +524,7 @@ static gyroToBoardCommMode_t VerifyAllowedCommMode(uint32_t commMode)
 {
     switch (commMode)
     {
-        case GTBCM_SETUP:
-        case GTBCM_GYRO_ONLY_PASSTHRU:
-        case GTBCM_GYRO_ACC_PASSTHRU:
-        case GTBCM_GYRO_ONLY_FILTER_F:
         case GTBCM_GYRO_ACC_FILTER_F:
-        case GTBCM_GYRO_ACC_QUAT_FILTER_F:
             return (gyroToBoardCommMode_t)commMode;
             break;
         default:
@@ -569,7 +564,7 @@ void setupImufParams(imufCommand_t * data)
         data->param8 = ( (int16_t)boardAlignment()->rollDegrees << 16 )          | imufGyroAlignment();
         data->param9 = ( (int16_t)boardAlignment()->yawDegrees << 16 )           | (int16_t)boardAlignment()->pitchDegrees;
     } else {
-        //Odin+ contract. 
+        //Odin+ contract.
         data->param2 = ( (uint16_t)(gyroConfig()->imuf_rate+1) << 16)            | (uint16_t)gyroConfig()->imuf_w;
         data->param3 = ( (uint16_t)gyroConfig()->imuf_roll_q << 16)              | (uint16_t)gyroConfig()->imuf_pitch_q;
         data->param4 = ( (uint16_t)gyroConfig()->imuf_yaw_q << 16)               | (uint16_t)gyroConfig()->imuf_roll_lpf_cutoff_hz;

@@ -33,9 +33,17 @@ static uint32_t activeFeaturesLatch = 0;
 
 PG_REGISTER_WITH_RESET_TEMPLATE(featureConfig_t, featureConfig, PG_FEATURE_CONFIG, 0);
 
+#ifndef USE_GYRO_IMUF9001
 PG_RESET_TEMPLATE(featureConfig_t, featureConfig,
     .enabledFeatures = DEFAULT_FEATURES | DEFAULT_RX_FEATURE | FEATURE_DYNAMIC_FILTER | FEATURE_AIRMODE,
 );
+#endif
+
+#ifdef USE_GYRO_IMUF9001
+PG_RESET_TEMPLATE(featureConfig_t, featureConfig,
+    .enabledFeatures = DEFAULT_FEATURES | DEFAULT_RX_FEATURE | FEATURE_AIRMODE,
+);
+#endif
 
 void intFeatureSet(uint32_t mask, uint32_t *features)
 {
