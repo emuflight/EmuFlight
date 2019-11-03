@@ -112,14 +112,14 @@ typedef struct pidProfile_s {
     uint8_t horizon_tilt_effect;            // inclination factor for Horizon mode
     uint8_t horizon_tilt_expert_mode;       // OFF or ON
 
-    // Betaflight PID controller parameters
+    // EmuFlight PID controller parameters
     uint8_t  antiGravityMode;               // type of anti gravity method
     uint16_t itermThrottleThreshold;        // max allowed throttle delta before iterm accelerated in ms
     uint16_t itermAcceleratorGain;          // Iterm Accelerator Gain when itermThrottlethreshold is hit
     uint8_t feathered_pids;                 // option to use separate pid controller at runtime.
     uint8_t i_decay;						            // i-term decay
     uint8_t r_weight;					            	// the weight of the kalman R term calculated out of the std. dev.
-    uint16_t errorBoost;                 // the weight of the setpoint boost
+    uint16_t errorBoost;                    // the weight of the setpoint boost
     uint8_t errorBoostLimit;                // percentage of the error that the emu boost can boost
     uint16_t yawRateAccelLimit;             // yaw accel limiter for deg/sec/ms
     uint16_t rateAccelLimit;                // accel limiter roll/pitch deg/sec/ms
@@ -132,6 +132,9 @@ typedef struct pidProfile_s {
     uint8_t crash_recovery_rate;            // degree/second
     uint8_t vbatPidCompensation;            // Scale PIDsum to battery voltage
     uint8_t feedForwardTransition;          // Feed forward weight transition
+    uint8_t setPointPTransition;            // SPA p transition
+    uint8_t setPointITransition;            // SPA i transition
+    uint8_t setPointDTransition;            // SPA d transition
     uint16_t crash_limit_yaw;               // limits yaw errorRate, so crashes don't cause huge throttle increase
     uint16_t itermLimit;
     uint16_t dterm_lowpass2_hz;             // Extra PT1 Filter on D in hz
@@ -139,7 +142,6 @@ typedef struct pidProfile_s {
     uint8_t throttle_boost;                 // how much should throttle be boosted during transient changes 0-100, 100 adds 10x hpf filtered throttle
     uint8_t throttle_boost_cutoff;          // Which cutoff frequency to use for throttle boost. higher cutoffs keep the boost on for shorter. Specified in hz.
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system
-    uint8_t smart_feedforward;              // takes only the larger of P and the D weight feed forward term if they have the same sign.
     uint8_t iterm_relax_type;               // Specifies type of relax algorithm
     uint8_t iterm_relax_cutoff;             // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t iterm_relax;                    // Enable iterm suppression during stick input

@@ -1381,7 +1381,6 @@ static bool blackboxWriteSysinfo(void)
 
         #ifdef USE_GYRO_IMUF9001
             BLACKBOX_PRINT_HEADER_LINE("IMUF revision", " %d",              imufCurrentVersion);
-            BLACKBOX_PRINT_HEADER_LINE("IMUF mode", " %d",                  gyroConfig()->imuf_mode);
             BLACKBOX_PRINT_HEADER_LINE("IMUF roll q", " %d",                gyroConfig()->imuf_roll_q);
             BLACKBOX_PRINT_HEADER_LINE("IMUF pitch q", " %d",               gyroConfig()->imuf_pitch_q);
             BLACKBOX_PRINT_HEADER_LINE("IMUF yaw q", " %d",                 gyroConfig()->imuf_yaw_q);
