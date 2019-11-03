@@ -33,7 +33,7 @@ EmuFlight has some of the following features:
 
 ## Installation & Documentation
 
-See: https://github.com/emuflight/EmuFlight-Butter-Varient/wiki
+See: https://github.com/emuflight/EmuFlight/wiki
 
 ## Support and Developers Channel
 
@@ -60,7 +60,7 @@ Contributions are welcome and encouraged. You can contribute in many ways:
 
 The best place to start is the EmuFlight Discord (registration [here](https://discord.gg/gdP9CwE). Next place is the github issue tracker:
 
-https://github.com/emuflight/EmuFlight-Butter-Varient/issues
+https://github.com/emuflight/EmuFlight/issues
 
 https://github.com/emuflight/EmuConfigurator/issues
 
@@ -77,9 +77,9 @@ Before starting to write code, please read our [development guidelines](docs/dev
 
 ## EmuFlight Releases
 
-[![Build Status](https://travis-ci.org/emuflight/EmuFlight-Butter-Varient.svg?branch=Main)](https://travis-ci.org/emuflight/EmuFlight-Butter-Varient) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/eb2d3be37a4247a19814014ee22e1170)](https://www.codacy.com/manual/EmuFlight/EmuFlight-Butter-Varient?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emuflight/EmuFlight-Butter-Varient&amp;utm_campaign=Badge_Grade)
+[![Build Status](https://travis-ci.org/emuflight/EmuFlight.svg?branch=Main)](https://travis-ci.org/emuflight/EmuFlight) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/eb2d3be37a4247a19814014ee22e1170)](https://www.codacy.com/manual/EmuFlight/EmuFlight?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emuflight/EmuFlight&amp;utm_campaign=Badge_Grade)
 
-https://github.com/emuflight/EmuFlight-Butter-Varient/releases
+https://github.com/emuflight/EmuFlight/releases
 
 ## Open Source / Contributors
 
