@@ -54,6 +54,7 @@
 
 #include "sensors/gyro.h"
 #include "sensors/acceleration.h"
+#include "sensors/battery.h"
 
 
 extern float r_weight;
@@ -129,7 +130,7 @@ PG_RESET_TEMPLATE(pidConfig_t, pidConfig,
 
 #define ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF 15  // The anti gravity throttle highpass filter cutoff
 
-PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, MAX_PROFILE_COUNT, pidProfiles, PG_PID_PROFILE, 6);
+PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, PID_PROFILE_COUNT, pidProfiles, PG_PID_PROFILE, 7);
 
 typedef float (*pidControllerFn)(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
 
@@ -202,12 +203,14 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .antiGravityMode = ANTI_GRAVITY_SMOOTH,
         .use_integrated_yaw = false,
         .integrated_yaw_relax = 200,
+        .motor_output_limit = 100,
+        .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
     );
 }
 
 void pgResetFn_pidProfiles(pidProfile_t *pidProfiles)
 {
-    for (int i = 0; i < MAX_PROFILE_COUNT; i++) {
+  for (int i = 0; i < PID_PROFILE_COUNT; i++) {
         resetPidProfile(&pidProfiles[i]);
     }
 }
@@ -534,7 +537,7 @@ void pidAcroTrainerInit(void)
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex)
 {
 
-    if (dstPidProfileIndex < MAX_PROFILE_COUNT && srcPidProfileIndex < MAX_PROFILE_COUNT
+   if ((dstPidProfileIndex < PID_PROFILE_COUNT-1 && srcPidProfileIndex < PID_PROFILE_COUNT-1)
         && dstPidProfileIndex != srcPidProfileIndex
     ) {
         memcpy(pidProfilesMutable(dstPidProfileIndex), pidProfilesMutable(srcPidProfileIndex), sizeof(pidProfile_t));

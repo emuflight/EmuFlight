@@ -3410,11 +3410,11 @@ static void cliProfile(char *cmdline)
         return;
     } else {
         const int i = atoi(cmdline);
-        if (i >= 0 && i < MAX_PROFILE_COUNT) {
+        if (i >= 0 && i < PID_PROFILE_COUNT) {
             changePidProfile(i);
             cliProfile("");
         } else {
-            cliPrintErrorLinef("PROFILE OUTSIDE OF [0..%d]", MAX_PROFILE_COUNT - 1);
+            cliPrintErrorLinef("PROFILE OUTSIDE OF [0..%d]", PID_PROFILE_COUNT - 1);
         }
     }
 }
@@ -3437,7 +3437,7 @@ static void cliRateProfile(char *cmdline)
 
 static void cliDumpPidProfile(uint8_t pidProfileIndex, uint8_t dumpMask)
 {
-    if (pidProfileIndex >= MAX_PROFILE_COUNT) {
+    if (pidProfileIndex >= PID_PROFILE_COUNT) {
         // Faulty values
         return;
     }
@@ -3732,7 +3732,7 @@ static void cliPidProfilesJson()
 {
     cliPrintf(PROFILE_JSON_STRING, "pid", getCurrentPidProfileIndex());
     const uint8_t saved = systemConfig_Copy.pidProfileIndex;
-    for (uint32_t i = 0; i < MAX_PROFILE_COUNT; i++) {
+    for (uint32_t i = 0; i < PID_PROFILE_COUNT; i++) {
         changePidProfile(i);
         if (i > 0)
         {
@@ -4754,7 +4754,7 @@ static void printConfig(char *cmdline, bool doDiff)
         dumpAllValues(MASTER_VALUE, dumpMask);
 
         if (dumpMask & DUMP_ALL) {
-            for (uint32_t pidProfileIndex = 0; pidProfileIndex < MAX_PROFILE_COUNT; pidProfileIndex++) {
+            for (uint32_t pidProfileIndex = 0; pidProfileIndex < PID_PROFILE_COUNT; pidProfileIndex++) {
                 cliDumpPidProfile(pidProfileIndex, dumpMask);
             }
             cliPrintHashLine("restore original profile selection");

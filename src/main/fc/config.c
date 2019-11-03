@@ -189,7 +189,7 @@ static void validateAndFixConfig(void)
     }
     loadControlRateProfile();
 
-    if (systemConfig()->pidProfileIndex >= MAX_PROFILE_COUNT) {
+    if (systemConfig()->pidProfileIndex >= PID_PROFILE_COUNT) {
         systemConfigMutable()->pidProfileIndex = 0;
     }
     loadPidProfile();
@@ -197,6 +197,14 @@ static void validateAndFixConfig(void)
     // Prevent invalid notch cutoff
     if (currentPidProfile->dterm_notch_cutoff >= currentPidProfile->dterm_notch_hz) {
         currentPidProfile->dterm_notch_hz = 0;
+    }
+
+    if (currentPidProfile->motor_output_limit > 100 || currentPidProfile->motor_output_limit == 0) {
+       currentPidProfile->motor_output_limit = 100;
+    }
+
+    if (currentPidProfile->auto_profile_cell_count > MAX_AUTO_DETECT_CELL_COUNT || currentPidProfile->auto_profile_cell_count < AUTO_PROFILE_CELL_COUNT_CHANGE) {
+        currentPidProfile->auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY;
     }
 
     if (motorConfig()->dev.motorPwmProtocol == PWM_TYPE_BRUSHED) {
@@ -270,7 +278,7 @@ static void validateAndFixConfig(void)
     }
 
     if (!rcSmoothingIsEnabled() || rxConfig()->rcInterpolationChannels == INTERPOLATION_CHANNELS_T) {
-        for (unsigned i = 0; i < MAX_PROFILE_COUNT; i++) {
+       for (unsigned i = 0; i < PID_PROFILE_COUNT; i++) {
             pidProfilesMutable(i)->pid[PID_ROLL].F = 0;
             pidProfilesMutable(i)->pid[PID_PITCH].F = 0;
         }
@@ -280,7 +288,7 @@ static void validateAndFixConfig(void)
         (rxConfig()->rcInterpolationChannels != INTERPOLATION_CHANNELS_RPY &&
          rxConfig()->rcInterpolationChannels != INTERPOLATION_CHANNELS_RPYT)) {
 
-        for (unsigned i = 0; i < MAX_PROFILE_COUNT; i++) {
+        for (unsigned i = 0; i < PID_PROFILE_COUNT; i++) {
             pidProfilesMutable(i)->pid[PID_YAW].F = 0;
         }
     }
@@ -290,7 +298,7 @@ static void validateAndFixConfig(void)
         !(rxConfig()->rcInterpolationChannels == INTERPOLATION_CHANNELS_RPYT
         || rxConfig()->rcInterpolationChannels == INTERPOLATION_CHANNELS_T
         || rxConfig()->rcInterpolationChannels == INTERPOLATION_CHANNELS_RPT)) {
-        for (unsigned i = 0; i < MAX_PROFILE_COUNT; i++) {
+        for (unsigned i = 0; i < PID_PROFILE_COUNT; i++) {
             pidProfilesMutable(i)->throttle_boost = 0;
         }
     }
@@ -642,14 +650,40 @@ void saveConfigAndNotify(void)
     beeperConfirmationBeeps(1);
 }
 
+void changePidProfileFromCellCount(uint8_t cellCount)
+{
+    if (currentPidProfile->auto_profile_cell_count == cellCount || currentPidProfile->auto_profile_cell_count == AUTO_PROFILE_CELL_COUNT_STAY) {
+        return;
+    }
+
+    unsigned profileIndex = (systemConfig()->pidProfileIndex + 1) % PID_PROFILE_COUNT;
+    int matchingProfileIndex = -1;
+    while (profileIndex != systemConfig()->pidProfileIndex) {
+        if (pidProfiles(profileIndex)->auto_profile_cell_count == cellCount) {
+            matchingProfileIndex = profileIndex;
+
+            break;
+        } else if (matchingProfileIndex < 0 && pidProfiles(profileIndex)->auto_profile_cell_count == AUTO_PROFILE_CELL_COUNT_STAY) {
+            matchingProfileIndex = profileIndex;
+        }
+
+        profileIndex = (profileIndex + 1) % PID_PROFILE_COUNT;
+    }
+
+    if (matchingProfileIndex >= 0) {
+        changePidProfile(matchingProfileIndex);
+    }
+}
+
 #ifndef USE_OSD_SLAVE
 void changePidProfile(uint8_t pidProfileIndex)
 {
-    if (pidProfileIndex < MAX_PROFILE_COUNT) {
+    if (pidProfileIndex < PID_PROFILE_COUNT) {
         systemConfigMutable()->pidProfileIndex = pidProfileIndex;
         loadPidProfile();
 
         pidInit(currentPidProfile);
+        initEscEndpoints();
     }
 
     beeperConfirmationBeeps(pidProfileIndex + 1);

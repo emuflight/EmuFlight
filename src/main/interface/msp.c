@@ -817,7 +817,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
             sbufWriteU8(dst, getCurrentPidProfileIndex());
             sbufWriteU16(dst, constrain(averageSystemLoadPercent, 0, 100));
             if (cmdMSP == MSP_STATUS_EX) {
-                sbufWriteU8(dst, MAX_PROFILE_COUNT);
+                sbufWriteU8(dst, PID_PROFILE_COUNT);
                 sbufWriteU8(dst, getCurrentControlRateProfileIndex());
             } else {  // MSP_STATUS
                 sbufWriteU16(dst, 0); // gyro cycle time
@@ -1576,7 +1576,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         value = sbufReadU8(src);
         if ((value & RATEPROFILE_MASK) == 0) {
             if (!ARMING_FLAG(ARMED)) {
-                if (value >= MAX_PROFILE_COUNT) {
+                if (value >= PID_PROFILE_COUNT) {
                     value = 0;
                 }
                 changePidProfile(value);
