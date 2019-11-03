@@ -3,8 +3,12 @@
 
 env:
   matrix:
-    # - GOAL=test # make test # FIXME: fails
-    - GOAL=FURYF4OSD # make single target
+    #- GOAL=test # make test # FIXME: fails
+    - GOAL=targets-group-1 # make all (in parallel)
+    - GOAL=targets-group-2
+    - GOAL=targets-group-3
+    - GOAL=targets-group-4
+    - GOAL=targets-group-rest
   global:
     #- DEBUG=RELWITHDEBINFO # debug symbols
     - PATH=$HOME/.local/bin:$PATH # "user" installs (pip and stuff)
