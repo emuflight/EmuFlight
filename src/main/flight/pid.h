@@ -154,10 +154,12 @@ typedef struct pidProfile_s {
     uint8_t abs_control_error_limit;        // Limit to the accumulated error
     uint8_t use_integrated_yaw;             // Selects whether the yaw pidsum should integrated
     uint8_t integrated_yaw_relax;           // Specifies how much integrated yaw should be reduced to offset the drag based yaw component
+    uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
+    int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE
-PG_DECLARE_ARRAY(pidProfile_t, MAX_PROFILE_COUNT, pidProfiles);
+PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
 #endif
 
 typedef struct pidConfig_s {

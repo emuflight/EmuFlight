@@ -31,6 +31,13 @@
 
 #define DSHOT_MAX_COMMAND 47
 
+#define MOTOR_OUTPUT_LIMIT_PERCENT_MIN 1
+#define MOTOR_OUTPUT_LIMIT_PERCENT_MAX 100
+
+#define DSHOT_MIN_THROTTLE       48
+#define DSHOT_MAX_THROTTLE     2047
+#define DSHOT_3D_FORWARD_MIN_THROTTLE 1048
+
 /*
   DshotSettingRequest (KISS24). Spin direction, 3d and save Settings reqire 10 requests.. and the TLM Byte must always be high if 1-47 are used to send settings
 
