@@ -44,9 +44,4 @@
      gyroConfigMutable()->gyro_sync_denom  = 1; // 32KHZ GYRO
      pidConfigMutable()->pid_process_denom = 1; // 32KHZ PID
      systemConfigMutable()->cpu_overclock  = 1; //192MHz makes Multishot run a little better because of maths.
-
-     for (uint8_t pidProfileIndex = 0; pidProfileIndex < PID_PROFILE_COUNT; pidProfileIndex++) {
-         pidProfile_t *pidProfile = pidProfilesMutable(pidProfileIndex);
-         pidProfile->dterm_notch_cutoff = 0;
-     }
  }
