@@ -1331,6 +1331,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, gyroConfig()->imuf_roll_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_lpf_cutoff_hz);
+        sbufWriteU16(dst, gyroConfig()->imuf_acc_lpf_cutoff_hz);
         break;
     case MSP_IMUF_INFO:
         sbufWriteU16(dst, imufCurrentVersion);
@@ -1937,6 +1938,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         gyroConfigMutable()->imuf_roll_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_pitch_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_yaw_lpf_cutoff_hz = sbufReadU16(src);
+        gyroConfigMutable()->imuf_acc_lpf_cutoff_hz = sbufReadU16(src);
         break;
 #endif
 
