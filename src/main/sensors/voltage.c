@@ -151,7 +151,7 @@ STATIC_UNIT_TESTED uint16_t voltageAdcToVoltage(const uint16_t src, const voltag
 
 void voltageMeterADCRefresh(void)
 {
-    for (uint8_t i = 0; i < MAX_VOLTAGE_SENSOR_ADC && i < ARRAYLEN(voltageMeterAdcChannelMap); i++) {
+    for (uint8_t i = 0; i < MAX_VOLTAGE_SENSOR_ADC; i++) {
         voltageMeterADCState_t *state = &voltageMeterADCStates[i];
 #ifdef USE_ADC
         // store the battery voltage with some other recent battery voltage readings
@@ -185,7 +185,7 @@ void voltageMeterADCRead(voltageSensorADC_e adcChannel, voltageMeter_t *voltageM
 
 void voltageMeterADCInit(void)
 {
-    for (uint8_t i = 0; i < MAX_VOLTAGE_SENSOR_ADC && i < ARRAYLEN(voltageMeterAdcChannelMap); i++) {
+    for (uint8_t i = 0; i < MAX_VOLTAGE_SENSOR_ADC; i++) {
         // store the battery voltage with some other recent battery voltage readings
 
         voltageMeterADCState_t *state = &voltageMeterADCStates[i];

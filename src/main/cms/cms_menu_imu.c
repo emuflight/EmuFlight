@@ -74,11 +74,6 @@ static uint8_t rateProfileIndex;
 static char rateProfileIndexString[] = " p-r";
 static controlRateConfig_t rateProfile;
 
-static const char * const cms_offOnLabels[] = {
-    "OFF", "ON"
-};
-
-
 static long cmsx_menuImu_onEnter(void)
 {
     pidProfileIndex = getCurrentPidProfileIndex();
@@ -174,9 +169,9 @@ static OSD_Entry cmsx_menuPidEntries[] =
 {
     { "-- PID --", OME_Label, NULL, pidProfileIndexString, 0},
 
-    { "FEATHERED", OME_TAB, NULL, &(OSD_TAB_t){ &feathered_pids, 1, cms_offOnLabels }, 0 },
+    { "FEATHERED", OME_TAB, NULL, &(OSD_UINT8_t){ &feathered_pids,         0, 100, 1}, 0 },
 
-    { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,  0,  1000,  5}, 0 },
+    { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,       0,  1000,  5}, 0 },
     { "BOOST LIMIT", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,  0,  250,  1}, 0 },
 
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
