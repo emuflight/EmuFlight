@@ -1010,7 +1010,7 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
                 const float pureRD = currentPidSetpoint - gyroRateFiltered;    // cr - y
                 const float pureError = pureRD - previousError[axis];
                 const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
-                float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], ((feathered_pids * pureMeasurement) + (1 - feathered_pids * pureError)) * pidFrequency );
+                float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency );
                 previousMeasurement[axis] = pureRD;
                 previousError[axis] = gyro.gyroADCf[axis];
 
