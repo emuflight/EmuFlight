@@ -361,6 +361,6 @@ void emfat_init_files(void)
     entry->curr_size = (FILESYSTEM_SIZE_MB * 1024 * 1024) - (flashfsIdentifyStartOfFreeSpace() * 2);
     entry->max_size = entry->curr_size;
 
-    emfat_init(&emfat, "BUTTERF", entries);
+    emfat_init(&emfat, "EMUF", entries);
 
 }

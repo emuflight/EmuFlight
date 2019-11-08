@@ -302,6 +302,10 @@ void pidInitFilters(const pidProfile_t *pidProfile)
                     dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApply;
                     biquadFilterInitLPF(&dtermLowpass[axis].biquadFilter, pidProfile->dterm_lowpass_hz, targetPidLooptime);
                 break;
+            case FILTER_DYN_BIQUAD:
+                    dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1;
+                    biquadFilterInitLPF(&dtermLowpass[axis].biquadFilter, pidProfile->dterm_lowpass_hz, targetPidLooptime);
+                break;
             }
         }
     }
@@ -1011,8 +1015,8 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
                 const float pureError = pureRD - previousError[axis];
                 const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
                 float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency );
-                previousMeasurement[axis] = pureRD;
-                previousError[axis] = gyro.gyroADCf[axis];
+                previousMeasurement[axis] = gyro.gyroADCf[axis];
+                previousError[axis] = pureRD;
 
         if (pidCoefficient[axis].Kd > 0) {
                 // Divide rate change by dT to get differential (ie dr/dt).

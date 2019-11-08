@@ -1,6 +1,26 @@
+/*
+ * This file is part of Cleanflight and Betaflight.
+ *
+ * Cleanflight and Betaflight are free software. You can redistribute
+ * this software and/or modify this software under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * Cleanflight and Betaflight are distributed in the hope that they
+ * will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this software.
+ *
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
 {
-
+#ifdef USE_GYRO_IMUF9001
     DEBUG_SET(DEBUG_KALMAN, 0, gyroSensor->gyroDev.gyroADC[X] * gyroSensor->gyroDev.scale);                               //Gyro input
 
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
@@ -54,4 +74,45 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
     gyroSensor->gyroDev.gyroADCf[X] = output[X];
     gyroSensor->gyroDev.gyroADCf[Y] = output[Y];
     gyroSensor->gyroDev.gyroADCf[Z] = output[Z];
+#endif // USE_GYRO_IMUF9001
+
+    //Update Dyn LPF at 100Hz
+    if(UseDynBiquad) {
+        #define BIQUAD_Q 1.0f / sqrtf(2.0f)     /* quality factor - 2nd order butterworth*/
+        float MinFreq = gyroConfig()->gyro_lowpass_hz;
+        MinFreq += ((float)(rcData[THROTTLE] - 1000) * 0.05f) + 10; //Add 0 - 50Hz
+
+            //Update X
+            {
+                int axis = X;
+                float setPoint      = getSetpointRate(axis);
+                float FilterGyro    = gyro.gyroADCf[axis];
+                float lpfHz = constrainf( MinFreq + ABS(setPoint - FilterGyro) + ABS(FilterGyro / 4.0f), MinFreq, 500.0f);
+                biquadFilterUpdate(&gyroSensor->lowpassFilter[axis].biquadFilterState, lpfHz, gyro.targetLooptime, BIQUAD_Q, FILTER_LPF);
+                DEBUG_SET(DEBUG_ALTITUDE, 0, lpfHz);
+            }
+
+            //Update Y
+            {
+                int axis = Y;
+                float setPoint      = getSetpointRate(axis);
+                float FilterGyro    = gyro.gyroADCf[axis];
+                float lpfHz = constrainf( MinFreq + ABS(setPoint - FilterGyro) + ABS(FilterGyro / 4.0f), MinFreq, 500.0f);
+                biquadFilterUpdate(&gyroSensor->lowpassFilter[axis].biquadFilterState, lpfHz, gyro.targetLooptime, BIQUAD_Q, FILTER_LPF);
+                DEBUG_SET(DEBUG_ALTITUDE, 1, lpfHz);
+            }
+
+            //Update Z
+            {
+                int axis = Z;
+                float setPoint      = getSetpointRate(axis);
+                float FilterGyro    = gyro.gyroADCf[axis];
+                float lpfHz = constrainf( MinFreq + ABS(setPoint - FilterGyro) + ABS(FilterGyro / 4.0f), MinFreq, 500.0f);
+                biquadFilterUpdate(&gyroSensor->lowpassFilter[axis].biquadFilterState, lpfHz, gyro.targetLooptime, BIQUAD_Q, FILTER_LPF);
+                DEBUG_SET(DEBUG_ALTITUDE, 2, lpfHz);
+            }
+
+            //Save CPU load
+            DEBUG_SET(DEBUG_ALTITUDE, 3, MinFreq);
+    }
 }

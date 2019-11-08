@@ -115,18 +115,15 @@ typedef struct gyroConfig_s {
 #if defined(USE_GYRO_IMUF9001)
     uint16_t imuf_mode;
     uint16_t imuf_rate;
-    uint16_t imuf_pitch_q;
-    uint16_t imuf_roll_q;
-    uint16_t imuf_yaw_q;
-    uint16_t imuf_w;
     uint16_t imuf_pitch_lpf_cutoff_hz;
     uint16_t imuf_roll_lpf_cutoff_hz;
     uint16_t imuf_yaw_lpf_cutoff_hz;
     uint16_t imuf_acc_lpf_cutoff_hz;
-#else
-    uint16_t gyro_filter_q;
-    uint16_t gyro_filter_w;
 #endif
+    uint16_t imuf_pitch_q;
+    uint16_t imuf_roll_q;
+    uint16_t imuf_yaw_q;
+    uint16_t imuf_w;
     uint8_t r_weight;
 } gyroConfig_t;
 
