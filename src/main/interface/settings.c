@@ -273,7 +273,7 @@ static const char * const lookupTableRcInterpolationChannels[] = {
 };
 static const char * const lookupTableFilterType[] = {
     "PT1",
-    "BIQUAD"
+    "BIQUAD",
     "DYN_BIQUAD"
   };
 

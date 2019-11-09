@@ -257,10 +257,10 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .gyro_sync_denom = GYRO_SYNC_DENOM_DEFAULT,
     .gyro_hardware_lpf = GYRO_HARDWARE_LPF_NORMAL,
     .gyro_32khz_hardware_lpf = GYRO_32KHZ_HARDWARE_LPF_NORMAL,
-    .gyro_lowpass_type = FILTER_PT1,
-    .gyro_lowpass_hz = 150,
-    .gyro_lowpass2_type = FILTER_DYN_BIQUAD,
-    .gyro_lowpass2_hz = 10,
+    .gyro_lowpass_type = FILTER_DYN_BIQUAD,
+    .gyro_lowpass_hz = 80,
+    .gyro_lowpass2_type = FILTER_PT1,
+    .gyro_lowpass2_hz = 150,
     .gyro_high_fsr = false,
     .gyro_use_32khz = false,
     .gyro_to_use = GYRO_CONFIG_USE_GYRO_DEFAULT,
@@ -1182,14 +1182,11 @@ static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs
     }
 #endif
 
-#ifndef USE_GYRO_IMUF9001
-
     if (gyroDebugMode == DEBUG_NONE) {
         filterGyro(gyroSensor);
     } else {
         filterGyroDebug(gyroSensor);
     }
-#endif // USE_GYRO_IMUF9001
 
 
 #ifdef USE_GYRO_OVERFLOW_CHECK
