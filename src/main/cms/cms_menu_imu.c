@@ -150,15 +150,15 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
 
     pidProfile_t *pidProfile = currentPidProfile;
     for (uint8_t i = 0; i < 3; i++) {
-        pidProfile->feathered_pids = feathered_pids;
         pidProfile->pid[i].P = tempPid[i][0];
         pidProfile->pid[i].I = tempPid[i][1];
         pidProfile->pid[i].D = tempPid[i][2];
         pidProfile->pid[i].F = tempPidF[i];
-        pidProfile->errorBoost = errorBoost;
-        pidProfile->errorBoostLimit = errorBoostLimit;
-        pidProfile->i_decay = i_decay;
     }
+    pidProfile->feathered_pids = feathered_pids;
+    pidProfile->errorBoost = errorBoost;
+    pidProfile->errorBoostLimit = errorBoostLimit;
+    pidProfile->i_decay = i_decay;
     pidProfile->r_weight = r_weight;
     pidInitConfig(currentPidProfile);
 
