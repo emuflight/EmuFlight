@@ -155,11 +155,11 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
         pidProfile->pid[i].I = tempPid[i][1];
         pidProfile->pid[i].D = tempPid[i][2];
         pidProfile->pid[i].F = tempPidF[i];
+        pidProfile->errorBoost = errorBoost;
+        pidProfile->errorBoostLimit = errorBoostLimit;
+        pidProfile->i_decay = i_decay;
     }
-    pidProfile->i_decay = i_decay;
     pidProfile->r_weight = r_weight;
-    pidProfile->errorBoost = errorBoost;
-    pidProfile->errorBoostLimit = errorBoostLimit;
     pidInitConfig(currentPidProfile);
 
     return 0;
@@ -169,7 +169,7 @@ static OSD_Entry cmsx_menuPidEntries[] =
 {
     { "-- PID --", OME_Label, NULL, pidProfileIndexString, 0},
 
-    { "FEATHERED", OME_TAB, NULL, &(OSD_UINT8_t){ &feathered_pids,         0, 100, 1}, 0 },
+    { "FEATHERED", OME_UINT8, NULL, &(OSD_UINT8_t){ &feathered_pids,         0, 100, 1}, 0 },
 
     { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,       0,  1000,  5}, 0 },
     { "BOOST LIMIT", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,  0,  250,  1}, 0 },
