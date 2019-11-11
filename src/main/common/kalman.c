@@ -80,11 +80,11 @@ void kalman_init(void)
 
     memset(&varStruct, 0, sizeof(varStruct));
 
-    init_kalman(&kalmanFilterStateRate[X],  gyroConfig()->gyro_filter_q);
-    init_kalman(&kalmanFilterStateRate[Y],  gyroConfig()->gyro_filter_q);
-    init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->gyro_filter_q);
+    init_kalman(&kalmanFilterStateRate[X],  gyroConfig()->imuf_roll_q);
+    init_kalman(&kalmanFilterStateRate[Y],  gyroConfig()->imuf_pitch_q);
+    init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->imuf_yaw_q);
 
-    varStruct.w = gyroConfig()->gyro_filter_w;
+    varStruct.w = gyroConfig()->imuf_w;
     varStruct.inverseN = 1.0f/(float)(varStruct.w);
 }
 

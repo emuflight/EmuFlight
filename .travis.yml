@@ -25,6 +25,7 @@ addons:
       - build-essential
       - ccache
       - clang
+      - g++
       - git
       - libblocksruntime-dev # required for linking on tests - http://mackyle.github.io/blocksruntime/
       - libc6-i386
@@ -52,7 +53,7 @@ before_script:
   - clang++ --version
   - gcc --version
 
-script: 
+script:
   - ./.travis.sh # main
 
 deploy:

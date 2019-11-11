@@ -79,6 +79,10 @@
 
 #include "scheduler/scheduler.h"
 
+#include "fc/fc_rc.h"
+#include "fc/rc_controls.h"
+#include "rx/rx.h"
+
 #include "sensors/boardalignment.h"
 #include "sensors/gyro.h"
 #ifdef USE_GYRO_DATA_ANALYSE
@@ -124,6 +128,7 @@ float FAST_RAM_ZERO_INIT vGyroStdDevModulus;
 static FAST_RAM_ZERO_INIT int16_t gyroSensorTemperature;
 
 static bool gyroHasOverflowProtection = true;
+static bool UseDynBiquad = false;
 
 typedef struct gyroCalibration_s {
     float sum[XYZ_AXIS_COUNT];
@@ -252,10 +257,10 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .gyro_sync_denom = GYRO_SYNC_DENOM_DEFAULT,
     .gyro_hardware_lpf = GYRO_HARDWARE_LPF_NORMAL,
     .gyro_32khz_hardware_lpf = GYRO_32KHZ_HARDWARE_LPF_NORMAL,
-    .gyro_lowpass_type = FILTER_PT1,
-    .gyro_lowpass_hz = 90,
+    .gyro_lowpass_type = FILTER_DYN_BIQUAD,
+    .gyro_lowpass_hz = 80,
     .gyro_lowpass2_type = FILTER_PT1,
-    .gyro_lowpass2_hz = 0,
+    .gyro_lowpass2_hz = 150,
     .gyro_high_fsr = false,
     .gyro_use_32khz = false,
     .gyro_to_use = GYRO_CONFIG_USE_GYRO_DEFAULT,
@@ -264,8 +269,10 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .gyro_soft_notch_hz_2 = 0,
     .gyro_soft_notch_cutoff_2 = 0,
     .checkOverflow = GYRO_OVERFLOW_CHECK_ALL_AXES,
-    .gyro_filter_q = 3000,
-    .gyro_filter_w = 16,
+    .imuf_roll_q = 3000,
+    .imuf_pitch_q = 3000,
+    .imuf_yaw_q = 3000,
+    .imuf_w = 16,
     .gyro_offset_yaw = 0,
     .yaw_spin_recovery = true,
     .yaw_spin_threshold = 1950,
@@ -756,6 +763,13 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type, uint
                 biquadFilterInitLPF(&lowpassFilter[axis].biquadFilterState, lpfHz, gyro.targetLooptime);
             }
             break;
+        case FILTER_DYN_BIQUAD:
+            *lowpassFilterApplyFn = (filterApplyFnPtr) biquadFilterApplyDF1;
+            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+                biquadFilterInitLPF(&lowpassFilter[axis].biquadFilterState, lpfHz, gyro.targetLooptime);
+            }
+            UseDynBiquad = true;
+            break;
         }
     }
 }
@@ -1104,7 +1118,6 @@ static FAST_CODE void checkForYawSpin(gyroSensor_t *gyroSensor, timeUs_t current
 }
 #endif // USE_YAW_SPIN_RECOVERY
 
-#ifndef USE_GYRO_IMUF9001
 #define GYRO_FILTER_FUNCTION_NAME filterGyro
 #define GYRO_FILTER_DEBUG_SET(...)
 #include "gyro_filter_impl.h"
@@ -1116,7 +1129,6 @@ static FAST_CODE void checkForYawSpin(gyroSensor_t *gyroSensor, timeUs_t current
 #include "gyro_filter_impl.h"
 #undef GYRO_FILTER_FUNCTION_NAME
 #undef GYRO_FILTER_DEBUG_SET
-#endif
 
 static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs_t currentTimeUs)
 {
@@ -1170,14 +1182,11 @@ static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs
     }
 #endif
 
-#ifndef USE_GYRO_IMUF9001
-
     if (gyroDebugMode == DEBUG_NONE) {
         filterGyro(gyroSensor);
     } else {
         filterGyroDebug(gyroSensor);
     }
-#endif // USE_GYRO_IMUF9001
 
 
 #ifdef USE_GYRO_OVERFLOW_CHECK

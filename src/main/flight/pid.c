@@ -94,10 +94,6 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 #define PID_PROCESS_DENOM_DEFAULT       2
 #endif
 
-#ifndef USE_FEATHERED_PIDS
-#define USE_FEATHERED_PIDS true
-#endif //USE_FEATHERED_PIDS
-
 #ifndef DEFAULT_PIDS_ROLL
 #define DEFAULT_PIDS_ROLL { 50, 65, 28, 0 }
 #endif //DEFAULT_PIDS_ROLL
@@ -132,12 +128,6 @@ PG_RESET_TEMPLATE(pidConfig_t, pidConfig,
 
 PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, PID_PROFILE_COUNT, pidProfiles, PG_PID_PROFILE, 7);
 
-typedef float (*pidControllerFn)(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
-
-float featheredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
-float classicPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint);
-
-
 void resetPidProfile(pidProfile_t *pidProfile)
 {
 	r_weight = 0.67;
@@ -153,7 +143,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
 
         .pidSumLimit = PIDSUM_LIMIT_MAX,
         .yaw_lowpass_hz = 0,
-        .dterm_lowpass_hz = 65,     // filtering ON by default
+        .dterm_lowpass_hz = 75,     // filtering ON by default
         .dterm_lowpass2_hz = 200,   // second Dterm LPF ON by default
         .dterm_notch_hz = 0,
         .dterm_notch_cutoff = 0,
@@ -166,7 +156,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .setPointPTransition = 100,
         .setPointITransition = 100,
         .setPointDTransition = 100,
-        .feathered_pids = USE_FEATHERED_PIDS,
+        .feathered_pids = 100,
         .i_decay = 4,
         .r_weight = 67,
         .errorBoost = 15,
@@ -297,8 +287,6 @@ void pidInitFilters(const pidProfile_t *pidProfile)
         }
     }
 
-
-
     if (pidProfile->dterm_lowpass_hz && pidProfile->dterm_lowpass_hz <= pidFrequencyNyquist)
     {
         for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
@@ -312,6 +300,10 @@ void pidInitFilters(const pidProfile_t *pidProfile)
             case FILTER_BIQUAD:
             default:
                     dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApply;
+                    biquadFilterInitLPF(&dtermLowpass[axis].biquadFilter, pidProfile->dterm_lowpass_hz, targetPidLooptime);
+                break;
+            case FILTER_DYN_BIQUAD:
+                    dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1;
                     biquadFilterInitLPF(&dtermLowpass[axis].biquadFilter, pidProfile->dterm_lowpass_hz, targetPidLooptime);
                 break;
             }
@@ -378,10 +370,10 @@ typedef struct pidCoefficient_s {
 static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feedForwardTransition;
+static FAST_RAM_ZERO_INIT float feathered_pids;
 static FAST_RAM_ZERO_INIT float setPointPTransition;
 static FAST_RAM_ZERO_INIT float setPointITransition;
 static FAST_RAM_ZERO_INIT float setPointDTransition;
-static FAST_RAM_ZERO_INIT pidControllerFn activePidController;
 static FAST_RAM_ZERO_INIT float levelGain, horizonGain, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
 static FAST_RAM_ZERO_INIT uint8_t horizonTiltExpertMode;
@@ -453,6 +445,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidCoefficient[axis].Kf = FEEDFORWARD_SCALE * (pidProfile->pid[axis].F / 100.0f);
     }
 
+    feathered_pids = pidProfile->feathered_pids / 100.0f;
     setPointPTransition = pidProfile->setPointPTransition / 100.0f;
     setPointITransition = pidProfile->setPointITransition / 100.0f;
     setPointDTransition = pidProfile->setPointDTransition / 100.0f;
@@ -499,7 +492,6 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     itermRelaxCutoff = pidProfile->iterm_relax_cutoff;
 #endif
 
-    activePidController = (pidProfile->feathered_pids ? featheredPids : classicPids);
 #ifdef USE_ACRO_TRAINER
     acroTrainerAngleLimit = pidProfile->acro_trainer_angle_limit;
     acroTrainerLookaheadTime = (float)pidProfile->acro_trainer_lookahead_ms / 1000.0f;
@@ -847,209 +839,15 @@ float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelt
 #endif // USE_RC_SMOOTHING_FILTER
 
 
-static FAST_RAM_ZERO_INIT float previousRateError[3];
+static FAST_RAM_ZERO_INIT float previousError[3];
+static FAST_RAM_ZERO_INIT float previousMeasurement[3];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 //static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
 #define SIGN(x) ((x > 0.0f) - (x < 0.0f))
 
-
-// EmuFlight pid controller which uses measurement instead of error rate to calculate D
-FAST_CODE float featheredPids(const pidProfile_t *pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint)
-{
-    (void)(currentPidSetpoint);
-
-// Add EmuBoost to the code (non linear boost to errorRate)
-float errorMultiplier = (pidProfile->errorBoost * pidProfile->errorBoost / 1000000) * 0.003;
-float boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
-if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
-  {
-    boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
-  } else {
-    if ( errorRate < 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
-  {
-    boostedErrorRate = (0 - errorRate * errorRate) * errorMultiplier;
-  } else {
-    boostedErrorRate = errorRate * pidProfile->errorBoostLimit / 100;
-  }
-}
-
-    // -----calculate P component
-    pidData[axis].P = pidCoefficient[axis].Kp * (boostedErrorRate + errorRate);
-
-    // -----calculate I component
-    // float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
-
-    float iterm    = pidData[axis].I;
-    float ITermNew = pidCoefficient[axis].Ki * (boostedErrorRate + errorRate) * dynCi;
-    if (ITermNew != 0.0f)
+    void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs)
     {
-        if (SIGN(iterm) != SIGN(ITermNew))
-        {
-        	const float newVal = ITermNew * (float)pidProfile->i_decay;
-        	if (fabs(iterm) > fabs(newVal))
-        	{
-        		ITermNew = newVal;
-        	}
-        }
-    }
-
-    iterm = constrainf(iterm + ITermNew, -itermLimit, itermLimit);
-    if (!mixerIsOutputSaturated(axis, errorRate) || ABS(iterm) < ABS(pidData[axis].I)) {
-        // Only increase ITerm if output is not saturated
-        pidData[axis].I = iterm;
-    }
-
-    // Use measurement and apply filters for D. Mmmm gimme that Emu.
-    float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], -((gyro.gyroADCf[axis] - previousRateError[axis]) * pidFrequency));
-    previousRateError[axis] = gyro.gyroADCf[axis];
-    pidData[axis].D = (pidCoefficient[axis].Kd * dDelta);
-    return dDelta;
-}
-
-// Betaflight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
-// Based on 2DOF reference design (matlab)
-
-FAST_CODE float classicPids(const pidProfile_t* pidProfile, int axis, float errorRate, float dynCi, float currentPidSetpoint)
-{
-    UNUSED(currentPidSetpoint);
-
-    float errorMultiplier = (pidProfile->errorBoost * pidProfile->errorBoost / 1000000) * 0.003;
-    float boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
-    if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
-      {
-        boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
-      } else {
-        if ( errorRate < 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
-      {
-        boostedErrorRate = (0 - errorRate * errorRate) * errorMultiplier;
-      } else {
-        boostedErrorRate = errorRate * pidProfile->errorBoostLimit / 100;
-      }
-    }
-
-    rotateITermAndAxisError();
-    // --------low-level gyro-based PID based on 2DOF PID controller. ----------
-    // 2-DOF PID controller with optional filter on derivative term.
-    // b = 1 and only c (feedforward weight) can be tuned (amount derivative on measurement or error).
-
-#ifdef USE_ABSOLUTE_CONTROL
-    float acCorrection = 0;
-    float acErrorRate;
-#endif
-
-        const float gyroRate = gyro.gyroADCf[axis];
-        float ITerm = pidData[axis].I;
-        float itermErrorRate = boostedErrorRate + errorRate;
-
-#if defined(USE_ITERM_RELAX)
-    if (itermRelax && (axis < FD_YAW || itermRelax == ITERM_RELAX_RPY || itermRelax == ITERM_RELAX_RPY_INC)) {
-        const float setpointLpf = pt1FilterApply(&windupLpf[axis], currentPidSetpoint);
-        const float setpointHpf = fabsf(currentPidSetpoint - setpointLpf);
-        const float itermRelaxFactor = 1 - setpointHpf / ITERM_RELAX_SETPOINT_THRESHOLD;
-
-        const bool isDecreasingI = ((ITerm > 0) && (itermErrorRate < 0)) || ((ITerm < 0) && (itermErrorRate > 0));
-        if ((itermRelax >= ITERM_RELAX_RP_INC) && isDecreasingI) {
-            // Do Nothing, use the precalculed itermErrorRate
-        } else if (itermRelaxType == ITERM_RELAX_SETPOINT && setpointHpf < ITERM_RELAX_SETPOINT_THRESHOLD) {
-            itermErrorRate *= itermRelaxFactor;
-        } else if (itermRelaxType == ITERM_RELAX_GYRO ) {
-            itermErrorRate = fapplyDeadband(setpointLpf - gyroRate, setpointHpf);
-        } else {
-            itermErrorRate = 0.0f;
-        }
-
-        if (axis == FD_ROLL) {
-            DEBUG_SET(DEBUG_ITERM_RELAX, 0, lrintf(setpointHpf));
-            DEBUG_SET(DEBUG_ITERM_RELAX, 1, lrintf(itermRelaxFactor * 100.0f));
-            DEBUG_SET(DEBUG_ITERM_RELAX, 2, lrintf(itermErrorRate));
-        }
-
-#if defined(USE_ABSOLUTE_CONTROL)
-        const float gmaxac = setpointLpf + 2 * setpointHpf;
-        const float gminac = setpointLpf - 2 * setpointHpf;
-        if (gyroRate >= gminac && gyroRate <= gmaxac) {
-            float acErrorRate1 = gmaxac - gyroRate;
-            float acErrorRate2 = gminac - gyroRate;
-            if (acErrorRate1 * axisError[axis] < 0) {
-                acErrorRate = acErrorRate1;
-            } else {
-                acErrorRate = acErrorRate2;
-            }
-            if (fabsf(acErrorRate * dT) > fabsf(axisError[axis]) ) {
-                acErrorRate = -axisError[axis] / dT;
-            }
-        } else {
-            acErrorRate = (gyroRate > gmaxac ? gmaxac : gminac ) - gyroRate;
-        }
-#endif // USE_ABSOLUTE_CONTROL
-    } else
-#endif // USE_ITERM_RELAX
-    {
-#if defined(USE_ABSOLUTE_CONTROL)
-        acErrorRate = itermErrorRate;
-#endif // USE_ABSOLUTE_CONTROL
-    }
-
-#if defined(USE_ABSOLUTE_CONTROL)
-    if (acGain > 0 && isAirmodeActivated()) {
-        axisError[axis] = constrainf(axisError[axis] + acErrorRate * dT, -acErrorLimit, acErrorLimit);
-        acCorrection = constrainf(axisError[axis] * acGain, -acLimit, acLimit);
-        currentPidSetpoint += acCorrection;
-        itermErrorRate += acCorrection;
-        if (axis == FD_ROLL) {
-            DEBUG_SET(DEBUG_ITERM_RELAX, 3, lrintf(axisError[axis] * 10));
-        }
-    }
-#endif
-
-        // -----calculate P component and add Dynamic Part based on stick input
-    pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate));
-    // -----calculate I component
-    // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
-    float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
-    if (ITermNew != 0.0f)
-    {
-        if (SIGN(ITerm) != SIGN(ITermNew))
-        {
-        	const float newVal = ITermNew * (float)pidProfile->i_decay;
-        	if (fabs(ITerm) > fabs(newVal))
-        	{
-        		ITermNew = newVal;
-        	}
-        }
-    }
-    ITermNew = constrainf(ITerm + ITermNew, -itermLimit, itermLimit);
-
-    const bool outputSaturated = mixerIsOutputSaturated(axis, errorRate);
-    if (outputSaturated == false || ABS(ITermNew) < ABS(ITerm)) {
-        // Only increase ITerm if output is not saturated
-        pidData[axis].I = ITermNew;
-    }
-
-    // -----calculate D component
-    float gyroRateFiltered = dtermNotchApplyFn((filter_t *) &dtermNotch[axis], gyroRate);
-
-        //filter Kd properly, no sp
-        const float pureRD = getSetpointRate(axis) - gyroRateFiltered;    // cr - y
-        float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], ((pureRD - previousRateError[axis] - gyro.gyroADCf[axis]) / 2) * pidFrequency );
-        previousRateError[axis] = pureRD - gyro.gyroADCf[axis];
-
-if (pidCoefficient[axis].Kd > 0) {
-        // Divide rate change by dT to get differential (ie dr/dt).
-        // dT is fixed and calculated from the target PID loop time
-        // This is done to avoid DTerm spikes that occur with dynamically
-        // calculated deltaT whenever another task causes the PID
-        // loop execution to be delayed.
-        pidData[axis].D = pidCoefficient[axis].Kd * dDelta;
-    } else {
-        pidData[axis].D = 0;
-    }
-    return dDelta;
-}
-
-void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs)
-{
     static float previousPidSetpoint[XYZ_AXIS_COUNT];
 
     // calculate actual deltaT in seconds
@@ -1064,11 +862,10 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     // gradually scale back integration when above windup point
     const float dynCi = constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f) * dT * itermAccelerator;
     float errorRate;
-    float currentPidSetpoint;
 
     // ----------PID controller----------
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-        currentPidSetpoint = getSetpointRate(axis);
+        float currentPidSetpoint = getSetpointRate(axis);
         if (maxVelocity[axis]) {
             currentPidSetpoint = accelerationLimit(axis, currentPidSetpoint);
         }
@@ -1094,14 +891,150 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // -----calculate error rate
         errorRate = currentPidSetpoint - gyro.gyroADCf[axis]; // r - y
 
-        handleCrashRecovery(
-            pidProfile->crash_recovery, angleTrim, axis, currentTimeUs, errorRate,
-            &currentPidSetpoint, &errorRate);
+        // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
+        // Based on 2DOF reference design (matlab)
 
-        float dDelta = activePidController(pidProfile, axis, errorRate, dynCi, currentPidSetpoint);
+            float errorMultiplier = (pidProfile->errorBoost * pidProfile->errorBoost / 1000000) * 0.003;
+            float boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
+            if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
+              {
+                boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
+              } else {
+                if ( errorRate < 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
+              {
+                boostedErrorRate = (0 - errorRate * errorRate) * errorMultiplier;
+              } else {
+                boostedErrorRate = errorRate * pidProfile->errorBoostLimit / 100;
+              }
+            }
+
+            rotateITermAndAxisError();
+            // --------low-level gyro-based PID based on 2DOF PID controller. ----------
+            // 2-DOF PID controller with optional filter on derivative term.
+            // b = 1 and only c (feedforward weight) can be tuned (amount derivative on measurement or error).
+
+        #ifdef USE_ABSOLUTE_CONTROL
+            float acCorrection = 0;
+            float acErrorRate;
+        #endif
+
+                const float gyroRate = gyro.gyroADCf[axis];
+                float ITerm = pidData[axis].I;
+                float itermErrorRate = boostedErrorRate + errorRate;
+
+        #if defined(USE_ITERM_RELAX)
+            if (itermRelax && (axis < FD_YAW || itermRelax == ITERM_RELAX_RPY || itermRelax == ITERM_RELAX_RPY_INC)) {
+                const float setpointLpf = pt1FilterApply(&windupLpf[axis], currentPidSetpoint);
+                const float setpointHpf = fabsf(currentPidSetpoint - setpointLpf);
+                const float itermRelaxFactor = 1 - setpointHpf / ITERM_RELAX_SETPOINT_THRESHOLD;
+
+                const bool isDecreasingI = ((ITerm > 0) && (itermErrorRate < 0)) || ((ITerm < 0) && (itermErrorRate > 0));
+                if ((itermRelax >= ITERM_RELAX_RP_INC) && isDecreasingI) {
+                    // Do Nothing, use the precalculed itermErrorRate
+                } else if (itermRelaxType == ITERM_RELAX_SETPOINT && setpointHpf < ITERM_RELAX_SETPOINT_THRESHOLD) {
+                    itermErrorRate *= itermRelaxFactor;
+                } else if (itermRelaxType == ITERM_RELAX_GYRO ) {
+                    itermErrorRate = fapplyDeadband(setpointLpf - gyroRate, setpointHpf);
+                } else {
+                    itermErrorRate = 0.0f;
+                }
+
+                if (axis == FD_ROLL) {
+                    DEBUG_SET(DEBUG_ITERM_RELAX, 0, lrintf(setpointHpf));
+                    DEBUG_SET(DEBUG_ITERM_RELAX, 1, lrintf(itermRelaxFactor * 100.0f));
+                    DEBUG_SET(DEBUG_ITERM_RELAX, 2, lrintf(itermErrorRate));
+                }
+
+        #if defined(USE_ABSOLUTE_CONTROL)
+                const float gmaxac = setpointLpf + 2 * setpointHpf;
+                const float gminac = setpointLpf - 2 * setpointHpf;
+                if (gyroRate >= gminac && gyroRate <= gmaxac) {
+                    float acErrorRate1 = gmaxac - gyroRate;
+                    float acErrorRate2 = gminac - gyroRate;
+                    if (acErrorRate1 * axisError[axis] < 0) {
+                        acErrorRate = acErrorRate1;
+                    } else {
+                        acErrorRate = acErrorRate2;
+                    }
+                    if (fabsf(acErrorRate * dT) > fabsf(axisError[axis]) ) {
+                        acErrorRate = -axisError[axis] / dT;
+                    }
+                } else {
+                    acErrorRate = (gyroRate > gmaxac ? gmaxac : gminac ) - gyroRate;
+                }
+        #endif // USE_ABSOLUTE_CONTROL
+            } else
+        #endif // USE_ITERM_RELAX
+            {
+        #if defined(USE_ABSOLUTE_CONTROL)
+                acErrorRate = itermErrorRate;
+        #endif // USE_ABSOLUTE_CONTROL
+            }
+
+        #if defined(USE_ABSOLUTE_CONTROL)
+            if (acGain > 0 && isAirmodeActivated()) {
+                axisError[axis] = constrainf(axisError[axis] + acErrorRate * dT, -acErrorLimit, acErrorLimit);
+                acCorrection = constrainf(axisError[axis] * acGain, -acLimit, acLimit);
+                currentPidSetpoint += acCorrection;
+                itermErrorRate += acCorrection;
+                if (axis == FD_ROLL) {
+                    DEBUG_SET(DEBUG_ITERM_RELAX, 3, lrintf(axisError[axis] * 10));
+                }
+            }
+        #endif
+
+                // -----calculate P component and add Dynamic Part based on stick input
+            pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate));
+            // -----calculate I component
+            // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
+            float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
+            if (ITermNew != 0.0f)
+            {
+                if (SIGN(ITerm) != SIGN(ITermNew))
+                {
+                	const float newVal = ITermNew * (float)pidProfile->i_decay;
+                	if (fabs(ITerm) > fabs(newVal))
+                	{
+                		ITermNew = newVal;
+                	}
+                }
+            }
+            ITermNew = constrainf(ITerm + ITermNew, -itermLimit, itermLimit);
+
+            const bool outputSaturated = mixerIsOutputSaturated(axis, errorRate);
+            if (outputSaturated == false || ABS(ITermNew) < ABS(ITerm)) {
+                // Only increase ITerm if output is not saturated
+                pidData[axis].I = ITermNew;
+            }
+
+            // -----calculate D component
+            float gyroRateFiltered = dtermNotchApplyFn((filter_t *) &dtermNotch[axis], gyroRate);
+
+                //filter Kd properly, no sp
+                const float pureRD = currentPidSetpoint - gyroRateFiltered;    // cr - y
+                const float pureError = pureRD - previousError[axis];
+                const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
+                float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency );
+                previousMeasurement[axis] = gyro.gyroADCf[axis];
+                previousError[axis] = pureRD;
+
+        if (pidCoefficient[axis].Kd > 0) {
+                // Divide rate change by dT to get differential (ie dr/dt).
+                // dT is fixed and calculated from the target PID loop time
+                // This is done to avoid DTerm spikes that occur with dynamically
+                // calculated deltaT whenever another task causes the PID
+                // loop execution to be delayed.
+                pidData[axis].D = pidCoefficient[axis].Kd * dDelta;
+            } else {
+                pidData[axis].D = 0;
+            }
+
+            handleCrashRecovery(
+                pidProfile->crash_recovery, angleTrim, axis, currentTimeUs, errorRate,
+                &currentPidSetpoint, &errorRate);
 
 
-        detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, currentTimeUs, dDelta, errorRate);
+            detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, currentTimeUs, dDelta, errorRate);
 
         // -----calculate feedforward component
         // Only enable feedforward for rate mode
@@ -1132,23 +1065,9 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
            float setPointDAntenuation;
 
            // SPA boost if SPA > 100 SPA cut if SPA < 100
-        if (setPointPTransition >= 1) {
            setPointPAntenuation = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition - 1));
-        } else {
-           setPointPAntenuation = 1 - (getRcDeflectionAbs(axis) * (1 - setPointPTransition));
-        }
-
-        if (setPointITransition >= 1) {
            setPointIAntenuation = 1 + (getRcDeflectionAbs(axis) * (setPointITransition - 1));
-        } else {
-           setPointIAntenuation = 1 - (getRcDeflectionAbs(axis) * (1 - setPointITransition));
-        }
-
-        if (setPointDTransition >= 1) {
            setPointDAntenuation = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition - 1));
-        } else {
-           setPointDAntenuation = 1 - (getRcDeflectionAbs(axis) * (1 - setPointDTransition));
-        }
 
 #ifdef USE_YAW_SPIN_RECOVERY
         if (gyroYawSpinDetected()) {
