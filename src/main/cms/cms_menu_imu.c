@@ -377,6 +377,7 @@ static uint16_t gyroConfig_gyro_soft_notch_hz_1;
 static uint16_t gyroConfig_gyro_soft_notch_cutoff_1;
 static uint16_t gyroConfig_gyro_soft_notch_hz_2;
 static uint16_t gyroConfig_gyro_soft_notch_cutoff_2;
+static uint16_t gyroConfig_gyro_dyn_lpf;
 #ifndef USE_GYRO_IMUF9001
 static uint16_t gyroConfig_imuf_roll_q;
 static uint16_t gyroConfig_imuf_pitch_q;
@@ -392,6 +393,7 @@ static long cmsx_menuGyro_onEnter(void)
     gyroConfig_gyro_soft_notch_cutoff_1 = gyroConfig()->gyro_soft_notch_cutoff_1;
     gyroConfig_gyro_soft_notch_hz_2 = gyroConfig()->gyro_soft_notch_hz_2;
     gyroConfig_gyro_soft_notch_cutoff_2 = gyroConfig()->gyro_soft_notch_cutoff_2;
+    gyroConfig_gyro_dyn_lpf = gyroConfig()->gyro_dyn_lpf;
 
 #ifndef USE_GYRO_IMUF9001
     gyroConfig_imuf_roll_q = gyroConfig()->imuf_roll_q;
@@ -412,6 +414,7 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self)
     gyroConfigMutable()->gyro_soft_notch_cutoff_1 = gyroConfig_gyro_soft_notch_cutoff_1;
     gyroConfigMutable()->gyro_soft_notch_hz_2 = gyroConfig_gyro_soft_notch_hz_2;
     gyroConfigMutable()->gyro_soft_notch_cutoff_2 = gyroConfig_gyro_soft_notch_cutoff_2;
+    gyroConfigMutable()->gyro_dyn_lpf = gyroConfig_gyro_dyn_lpf;
 
 #ifndef USE_GYRO_IMUF9001
     gyroConfigMutable()->imuf_roll_q = gyroConfig_imuf_roll_q;
@@ -426,6 +429,7 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] =
 {
     { "-- FILTER GLB  --", OME_Label, NULL, NULL, 0 },
 
+    { "GYRO DYN LPF", OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_dyn_lpf,  0, 16000, 1 }, 0 },
     { "GYRO LPF",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz, 0, 16000, 1 }, 0 },
 #ifdef USE_GYRO_LPF2
     { "GYRO LPF2",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz,  0, 16000, 1 }, 0 },
@@ -457,6 +461,8 @@ static CMS_Menu cmsx_menuFilterGlobal = {
 
 static uint16_t cmsx_dterm_lowpass_hz;
 static uint16_t cmsx_dterm_lowpass2_hz;
+static uint16_t cmsx_dterm_dyn_lpf;
+
 //
 // SPRING Imuf
 //
@@ -549,6 +555,7 @@ static long cmsx_FilterPerProfileRead(void)
     cmsx_dterm_lowpass2_hz  = pidProfile->dterm_lowpass2_hz;
     cmsx_dterm_notch_hz     = pidProfile->dterm_notch_hz;
     cmsx_dterm_notch_cutoff = pidProfile->dterm_notch_cutoff;
+    cmsx_dterm_dyn_lpf      = pidProfile->dterm_dyn_lpf;
     cmsx_yaw_lowpass_hz     = pidProfile->yaw_lowpass_hz;
 
     return 0;
@@ -564,6 +571,7 @@ static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self)
     pidProfile->dterm_lowpass2_hz  = cmsx_dterm_lowpass2_hz;
     pidProfile->dterm_notch_hz     = cmsx_dterm_notch_hz;
     pidProfile->dterm_notch_cutoff = cmsx_dterm_notch_cutoff;
+    pidProfile->dterm_dyn_lpf      = cmsx_dterm_dyn_lpf;
     pidProfile->yaw_lowpass_hz     = cmsx_yaw_lowpass_hz;
 
     return 0;
@@ -573,6 +581,7 @@ static OSD_Entry cmsx_menuFilterPerProfileEntries[] =
 {
     { "-- FILTER PP  --", OME_Label, NULL, NULL, 0 },
 
+    { "DTERM DYN LPF", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_dyn_lpf,        0, 500, 1 }, 0 },
     { "DTERM LPF",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz,     0, 500, 1 }, 0 },
     { "DTERM LPF2", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz,    0, 500, 1 }, 0 },
     { "DTERM NF",   OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_notch_hz,       0, 500, 1 }, 0 },

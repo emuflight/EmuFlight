@@ -99,6 +99,7 @@ typedef struct pidProfile_s {
     uint16_t dterm_lowpass_hz;              // Delta Filter in hz
     uint16_t dterm_notch_hz;                // Biquad dterm notch hz
     uint16_t dterm_notch_cutoff;            // Biquad dterm notch low cutoff
+    uint16_t dterm_dyn_lpf;
 
     pidf_t  pid[PID_ITEM_COUNT];
 

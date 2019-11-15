@@ -52,7 +52,6 @@ typedef struct laggedMovingAverage_s {
 typedef enum {
     FILTER_PT1 = 0,
     FILTER_BIQUAD,
-    FILTER_DYN_BIQUAD,
 } lowpassFilterType_e;
 
 typedef enum {

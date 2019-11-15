@@ -852,7 +852,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
             } else if (acc.dev.acc_1G >= 512) {
                 scale = 2;
             }
-#endif //USE_GYRO_IMUF901
+#endif //USE_GYRO_IMUF9001
 
             for (int i = 0; i < 3; i++) {
                 sbufWriteU16(dst, lrintf(acc.accADC[i] / scale));
@@ -1330,14 +1330,14 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_q);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_q);
         sbufWriteU16(dst, gyroConfig()->imuf_w);
-#ifdef  USE_GYRO_IMUF9001       
+#ifdef  USE_GYRO_IMUF9001
         sbufWriteU16(dst, gyroConfig()->imuf_roll_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_acc_lpf_cutoff_hz);
 #endif
         break;
-#ifdef  USE_GYRO_IMUF9001 
+#ifdef  USE_GYRO_IMUF9001
     case MSP_IMUF_INFO:
         sbufWriteU16(dst, imufCurrentVersion);
         break;

@@ -20,7 +20,6 @@
 
 static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
 {
-#ifndef USE_GYRO_IMUF9001
     DEBUG_SET(DEBUG_KALMAN, 0, gyroSensor->gyroDev.gyroADC[X] * gyroSensor->gyroDev.scale);                               //Gyro input
 
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
@@ -74,45 +73,20 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
     gyroSensor->gyroDev.gyroADCf[X] = output[X];
     gyroSensor->gyroDev.gyroADCf[Y] = output[Y];
     gyroSensor->gyroDev.gyroADCf[Z] = output[Z];
-#endif // USE_GYRO_IMUF9001
 
     //Update Dyn LPF at 100Hz
-    if(UseDynBiquad) {
+    if(gyroConfig()->gyro_dyn_lpf != 0) {
+      float lpfHz;
+
         #define BIQUAD_Q 1.0f / sqrtf(2.0f)     /* quality factor - 2nd order butterworth*/
-        float MinFreq = gyroConfig()->gyro_lowpass_hz;
+        float MinFreq = gyroConfig()->gyro_dyn_lpf;
         MinFreq += ((float)(rcData[THROTTLE] - 1000) * 0.1f) + 10; //Add 0 - 50Hz
 
-            //Update X
-            {
-                int axis = X;
+              for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
                 float setPoint      = getSetpointRate(axis);
                 float FilterGyro    = gyro.gyroADCf[axis];
-                float lpfHz = constrainf( MinFreq + ABS((setPoint - FilterGyro) * 2) + ABS(FilterGyro / 5.0f), MinFreq, 500.0f);
-                biquadFilterUpdate(&gyroSensor->lowpassFilter[axis].biquadFilterState, lpfHz, gyro.targetLooptime, BIQUAD_Q, FILTER_LPF);
-                DEBUG_SET(DEBUG_ALTITUDE, 0, lpfHz);
+                lpfHz = constrainf( MinFreq + ABS((setPoint - FilterGyro) * 2) + ABS(FilterGyro / 5.0f), MinFreq, 500.0f);
+                biquadFilterUpdate(&gyroSensor->gyroDyn[axis], lpfHz, gyro.targetLooptime, BIQUAD_Q, FILTER_LPF);
             }
-
-            //Update Y
-            {
-                int axis = Y;
-                float setPoint      = getSetpointRate(axis);
-                float FilterGyro    = gyro.gyroADCf[axis];
-                float lpfHz = constrainf( MinFreq + ABS((setPoint - FilterGyro) * 2) + ABS(FilterGyro / 5.0f), MinFreq, 500.0f);
-                biquadFilterUpdate(&gyroSensor->lowpassFilter[axis].biquadFilterState, lpfHz, gyro.targetLooptime, BIQUAD_Q, FILTER_LPF);
-                DEBUG_SET(DEBUG_ALTITUDE, 1, lpfHz);
-            }
-
-            //Update Z
-            {
-                int axis = Z;
-                float setPoint      = getSetpointRate(axis);
-                float FilterGyro    = gyro.gyroADCf[axis];
-                float lpfHz = constrainf( MinFreq + ABS((setPoint - FilterGyro) * 2) + ABS(FilterGyro / 5.0f), MinFreq, 500.0f);
-                biquadFilterUpdate(&gyroSensor->lowpassFilter[axis].biquadFilterState, lpfHz, gyro.targetLooptime, BIQUAD_Q, FILTER_LPF);
-                DEBUG_SET(DEBUG_ALTITUDE, 2, lpfHz);
-            }
-
-            //Save CPU load
-            DEBUG_SET(DEBUG_ALTITUDE, 3, MinFreq);
-    }
+      }
 }
