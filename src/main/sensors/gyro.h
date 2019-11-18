@@ -94,9 +94,8 @@ typedef struct gyroConfig_s {
 
     uint16_t gyro_lowpass_hz;
     uint16_t gyro_lowpass2_hz;
-#ifndef USE_GYRO_IMUF9001
+
     uint16_t gyro_dyn_lpf;
-#endif
     uint16_t gyro_soft_notch_hz_1;
     uint16_t gyro_soft_notch_cutoff_1;
     uint16_t gyro_soft_notch_hz_2;
