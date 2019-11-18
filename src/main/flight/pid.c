@@ -309,13 +309,13 @@ void pidInitFilters(const pidProfile_t *pidProfile)
         }
     }
 
-    if (pidProfile->dterm_dyn_lpf && pidProfile->dterm_dyn_lpf <= pidFrequencyNyquist)
+    if (pidProfile->dterm_dyn_lpf != 0)
     {
        float lpfHz;
        float MinFreq = pidProfile->dterm_dyn_lpf;
        for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
        {
-           lpfHz = constrainf( MinFreq + ABS((getSetpointRate(axis) - gyro.gyroADCf[axis]) * 0.75f) + ABS(gyro.gyroADCf[axis] / 6.0f), MinFreq, 500.0f);
+           lpfHz = constrainf( MinFreq + ABS((getSetpointRate(axis) - gyro.gyroADCf[axis]) * 0.75f) + ABS(gyro.gyroADCf[axis] / 6.0f), MinFreq, (MinFreq + 500.0f));
            dtermDynApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1;
            biquadFilterInitLPF(&dtermDyn[axis].biquadFilter, lpfHz, targetPidLooptime);
            biquadFilterUpdateLPF(&dtermDyn[axis].biquadFilter, lpfHz, targetPidLooptime);
