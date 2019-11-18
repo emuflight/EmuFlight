@@ -1378,14 +1378,20 @@ static bool blackboxWriteSysinfo(void)
             BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_rx_average", "%d",         rcSmoothingGetValue(RC_SMOOTHING_VALUE_AVERAGE_FRAME));
         #endif // USE_RC_SMOOTHING_FILTER
 
-
         #ifdef USE_GYRO_IMUF9001
             BLACKBOX_PRINT_HEADER_LINE("IMUF revision", " %d",              imufCurrentVersion);
-            BLACKBOX_PRINT_HEADER_LINE("IMUF roll q", " %d",                gyroConfig()->imuf_roll_q);
-            BLACKBOX_PRINT_HEADER_LINE("IMUF pitch q", " %d",               gyroConfig()->imuf_pitch_q);
-            BLACKBOX_PRINT_HEADER_LINE("IMUF yaw q", " %d",                 gyroConfig()->imuf_yaw_q);
-            BLACKBOX_PRINT_HEADER_LINE("IMUF w", " %d",                     gyroConfig()->imuf_w);
+            BLACKBOX_PRINT_HEADER_LINE("IMUF acc lpf cutoff", " %d",        gyroConfig()->imuf_acc_lpf_cutoff_hz);
+            BLACKBOX_PRINT_HEADER_LINE("IMUF roll lpf cutoff", " %d",       gyroConfig()->imuf_roll_lpf_cutoff_hz);
+            BLACKBOX_PRINT_HEADER_LINE("IMUF pitch lpf cutoff", " %d",      gyroConfig()->imuf_pitch_lpf_cutoff_hz);
+            BLACKBOX_PRINT_HEADER_LINE("IMUF yaw lpf cutoff", " %d",        gyroConfig()->imuf_yaw_lpf_cutoff_hz);
         #endif
+
+        BLACKBOX_PRINT_HEADER_LINE("IMUF roll q", " %d",                gyroConfig()->imuf_roll_q);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF pitch q", " %d",               gyroConfig()->imuf_pitch_q);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF yaw q", " %d",                 gyroConfig()->imuf_yaw_q);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF w", " %d",                     gyroConfig()->imuf_w);
+        BLACKBOX_PRINT_HEADER_LINE("GYRO DYN lpf", "%d",                gyroConfig()->gyro_dyn_lpf);
+        BLACKBOX_PRINT_HEADER_LINE("DTERM DYN lpf", "%d",               currentPidProfile->dterm_dyn_lpf);
 
         default:
             return true;
