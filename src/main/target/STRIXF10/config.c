@@ -43,5 +43,5 @@
      motorConfigMutable()->dev.motorPwmProtocol = PWM_TYPE_MULTISHOT;
      gyroConfigMutable()->gyro_sync_denom  = 1; // 32KHZ GYRO
      pidConfigMutable()->pid_process_denom = 1; // 32KHZ PID
-     systemConfigMutable()->cpu_overclock  = 1; //192MHz makes Multishot run a little better because of maths.
+     systemConfigMutable()->cpu_overclock  = 1; // 192MHz makes Multishot run a little better because of maths.
  }

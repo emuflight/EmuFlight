@@ -871,6 +871,7 @@ const clivalue_t valueTable[] = {
     { "r_weight",                   VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 1, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, r_weight) },
     { "emu_boost",                  VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, errorBoost) },
     { "boost_limit",                VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, errorBoostLimit) },
+    { "nfe_racermode",              VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, nfe_racermode) },
     { "p_pitch",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].P) },
     { "i_pitch",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].I) },
     { "d_pitch",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].D) },

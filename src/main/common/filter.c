@@ -35,8 +35,6 @@
 #define M_PI_FLOAT  	3.14159265358979323846f
 #define BIQUAD_Q 		(1.0f / sqrtf(2.0f))     /* quality factor - 2nd order butterworth*/
 
-float r_weight = 0.67f;
-
 // NULL filter
 
 FAST_CODE float nullFilterApply(filter_t *filter, float input)

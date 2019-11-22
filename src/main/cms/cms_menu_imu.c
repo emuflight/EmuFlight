@@ -66,6 +66,7 @@ static uint8_t i_decay;
 static uint8_t r_weight;
 static uint16_t errorBoost;
 static uint8_t errorBoostLimit;
+static uint8_t nfe_racermode;
 static uint8_t tempPid[3][3];
 static uint16_t tempPidF[3];
 
@@ -73,6 +74,10 @@ static uint8_t tmpRateProfileIndex;
 static uint8_t rateProfileIndex;
 static char rateProfileIndexString[] = " p-r";
 static controlRateConfig_t rateProfile;
+
+static const char * const cms_offOnLabels[] = {
+    "OFF", "ON"
+};
 
 static long cmsx_menuImu_onEnter(void)
 {
@@ -126,6 +131,7 @@ static long cmsx_PidRead(void)
     r_weight = pidProfile->r_weight;
     errorBoost = pidProfile->errorBoost;
     errorBoostLimit = pidProfile->errorBoostLimit;
+    nfe_racermode = pidProfile->nfe_racermode;
     for (uint8_t i = 0; i < 3; i++) {
         tempPid[i][0] = pidProfile->pid[i].P;
         tempPid[i][1] = pidProfile->pid[i].I;
@@ -160,6 +166,7 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
     pidProfile->errorBoostLimit = errorBoostLimit;
     pidProfile->i_decay = i_decay;
     pidProfile->r_weight = r_weight;
+    pidProfile->nfe_racermode = nfe_racermode;
     pidInitConfig(currentPidProfile);
 
     return 0;
@@ -257,6 +264,7 @@ static OSD_Entry cmsx_menuRateProfileEntries[] =
     { "TPA RATE I",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrI,              0,  250,  1, 10}, 0 },
     { "TPA RATE D",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrD,              0,  250,  1, 10}, 0 },
     { "TPA BREAKPOINT",   OME_UINT16, NULL, &(OSD_UINT16_t){ &rateProfile.tpa_breakpoint,  1000, 2000, 10}, 0 },
+    { "FEATHERED", OME_TAB, NULL, &(OSD_TAB_t){ &nfe_racermode, 1, cms_offOnLabels }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },

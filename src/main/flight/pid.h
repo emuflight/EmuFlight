@@ -122,6 +122,7 @@ typedef struct pidProfile_s {
     uint8_t r_weight;					            	// the weight of the kalman R term calculated out of the std. dev.
     uint16_t errorBoost;                    // the weight of the setpoint boost
     uint8_t errorBoostLimit;                // percentage of the error that the emu boost can boost
+    uint8_t nfe_racermode;                  // turn on or off NFE RACERMODE
     uint16_t yawRateAccelLimit;             // yaw accel limiter for deg/sec/ms
     uint16_t rateAccelLimit;                // accel limiter roll/pitch deg/sec/ms
     uint16_t crash_dthreshold;              // dterm crash value

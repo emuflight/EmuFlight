@@ -130,8 +130,6 @@ PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, PID_PROFILE_COUNT, pidProfiles, PG
 
 void resetPidProfile(pidProfile_t *pidProfile)
 {
-	r_weight = 0.67;
-
     RESET_CONFIG(pidProfile_t, pidProfile,
         .pid = {
             [PID_ROLL] =  DEFAULT_PIDS_ROLL,
@@ -151,7 +149,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .itermWindupPointPercent = 50,
         .vbatPidCompensation = 0,
         .pidAtMinThrottle = PID_STABILISATION_ON,
-        .levelAngleLimit = 55,
+        .levelAngleLimit = 65,
         .feedForwardTransition = 0,
         .setPointPTransition = 100,
         .setPointITransition = 100,
@@ -173,8 +171,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .crash_gthreshold = 400,    // degrees/second
         .crash_setpoint_threshold = 350, // degrees/second
         .crash_recovery = PID_CRASH_RECOVERY_OFF, // off by default
-        .horizon_tilt_effect = 75,
+        .horizon_tilt_effect = 130,
         .horizon_tilt_expert_mode = false,
+        .nfe_racermode = 0,
         .crash_limit_yaw = 200,
         .itermLimit = 400,
         .throttle_boost = 5,
@@ -383,6 +382,7 @@ static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feedForwardTransition;
 static FAST_RAM_ZERO_INIT float feathered_pids;
+static FAST_RAM_ZERO_INIT float nfe_racermode;
 static FAST_RAM_ZERO_INIT float setPointPTransition;
 static FAST_RAM_ZERO_INIT float setPointITransition;
 static FAST_RAM_ZERO_INIT float setPointDTransition;
@@ -458,6 +458,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     }
 
     feathered_pids = pidProfile->feathered_pids / 100.0f;
+    nfe_racermode = pidProfile->nfe_racermode;
     setPointPTransition = pidProfile->setPointPTransition / 100.0f;
     setPointITransition = pidProfile->setPointITransition / 100.0f;
     setPointDTransition = pidProfile->setPointDTransition / 100.0f;
@@ -774,7 +775,7 @@ static FAST_CODE_NOINLINE float applyAcroTrainer(int axis, const rollAndPitchTri
 {
     float ret = setPoint;
 
-    if (!FLIGHT_MODE(ANGLE_MODE) && !FLIGHT_MODE(HORIZON_MODE) && !FLIGHT_MODE(GPS_RESCUE_MODE)) {
+    if (!FLIGHT_MODE(ANGLE_MODE) && !FLIGHT_MODE(HORIZON_MODE) && !FLIGHT_MODE(GPS_RESCUE_MODE) && !nfe_racermode) {
         bool resetIterm = false;
         float projectedAngle = 0;
         const int setpointSign = acroTrainerSign(setPoint);
@@ -882,7 +883,11 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
             currentPidSetpoint = accelerationLimit(axis, currentPidSetpoint);
         }
         // Yaw control is GYRO based, direct sticks control is applied to rate PID
-        if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE) || FLIGHT_MODE(GPS_RESCUE_MODE)) && axis != FD_YAW) {
+        if (FLIGHT_MODE(GPS_RESCUE_MODE) && axis != FD_YAW) {
+            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
+        } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && !nfe_racermode && (axis != FD_YAW)) {
+            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
+        } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && nfe_racermode && ((axis != FD_YAW) && (axis != FD_PITCH))) {
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
         }
 

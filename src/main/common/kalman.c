@@ -5,8 +5,9 @@
 #include "fc/fc_rc.h"
 #include "build/debug.h"
 
-#ifndef USE_GYRO_IMUF9001
 #define MAX_KALMAN_WINDOW_SIZE 512
+
+float r_weight = 0.67f;
 
 typedef struct variance
 {
@@ -134,13 +135,13 @@ void update_kalman_covariance(float *gyroRateData)
 
     float squirt;
     arm_sqrt_f32(varStruct.xVar +  varStruct.xyCoVar +  varStruct.xzCoVar, &squirt);
-    kalmanFilterStateRate[X].r = squirt;
+    kalmanFilterStateRate[X].r = squirt * r_weight;
 
     arm_sqrt_f32(varStruct.yVar +  varStruct.xyCoVar +  varStruct.yzCoVar, &squirt);
-    kalmanFilterStateRate[Y].r = squirt;
+    kalmanFilterStateRate[Y].r = squirt * r_weight;
 
     arm_sqrt_f32(varStruct.zVar +  varStruct.yzCoVar +  varStruct.xzCoVar, &squirt);
-    kalmanFilterStateRate[Z].r = squirt;
+    kalmanFilterStateRate[Z].r = squirt * r_weight;
 }
 
 inline float kalman_process(kalman_t* kalmanState, float input, float target)
@@ -202,4 +203,3 @@ void kalman_update(float* input, float* output)
 }
 
 #pragma GCC pop_options
-#endif
