@@ -664,7 +664,7 @@ void max7456DrawScreen(void)
 
 static void max7456DrawScreenSlow(void)
 {
-    bool escapeCharFound;
+    bool escapeCharFound = false;
 
     __spiBusTransactionBegin(busdev);
 
