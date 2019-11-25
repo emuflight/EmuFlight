@@ -144,7 +144,7 @@ void update_kalman_covariance(float *gyroRateData)
     kalmanFilterStateRate[Z].r = squirt * r_weight;
 }
 
-inline float kalman_process(kalman_t* kalmanState, float input, float target)
+FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 {
 	//project the state ahead using acceleration
     kalmanState->x += (kalmanState->x - kalmanState->lastX);

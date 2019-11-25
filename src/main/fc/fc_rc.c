@@ -52,6 +52,7 @@
 
 
 #include "sensors/battery.h"
+#include "sensors/acceleration.h"
 
 enum {
     ROLL_FLAG = 1 << ROLL,
@@ -206,14 +207,18 @@ static void calculateSetpointRate(int axis)
     DEBUG_SET(DEBUG_ANGLERATE, axis, angleRate);
 }
 
-static void scaleRcCommandToFpvCamAngle(void)
+static void scaleRcCommandToFpvCamAngle()
 {
+    const float currentAngle = attitude.values.pitch / 10;
     //recalculate sin/cos only when rxConfig()->fpvCamAngleDegrees changed
     static uint8_t lastFpvCamAngleDegrees = 0;
     static float cosFactor = 1.0;
     static float sinFactor = 0.0;
 
-    if (lastFpvCamAngleDegrees != rxConfig()->fpvCamAngleDegrees) {
+    if (rxConfig()->yawAroundGravity) {
+      cosFactor = cos_approx(currentAngle * RAD);
+      sinFactor = sin_approx(currentAngle * RAD);
+    } else if (lastFpvCamAngleDegrees != rxConfig()->fpvCamAngleDegrees) {
         lastFpvCamAngleDegrees = rxConfig()->fpvCamAngleDegrees;
         cosFactor = cos_approx(rxConfig()->fpvCamAngleDegrees * RAD);
         sinFactor = sin_approx(rxConfig()->fpvCamAngleDegrees * RAD);
@@ -609,7 +614,7 @@ FAST_CODE void processRcCommand(void)
         }
 
         // Scaling of AngleRate to camera angle (Mixing Roll and Yaw)
-        if (rxConfig()->fpvCamAngleDegrees && IS_RC_MODE_ACTIVE(BOXFPVANGLEMIX) && !FLIGHT_MODE(HEADFREE_MODE)) {
+        if ((rxConfig()->fpvCamAngleDegrees || (rxConfig()->yawAroundGravity && !(accelerometerConfig()->acc_hardware == ACC_NONE))) && IS_RC_MODE_ACTIVE(BOXFPVANGLEMIX) && !FLIGHT_MODE(HEADFREE_MODE)) {
             scaleRcCommandToFpvCamAngle();
         }
 
