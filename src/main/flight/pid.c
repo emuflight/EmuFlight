@@ -1027,8 +1027,8 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
             // -----calculate D component
             float gyroRateFiltered = dtermNotchApplyFn((filter_t *) &dtermNotch[axis], gyroRate);
 
-                //filter Kd properly, no sp
-                const float pureRD = currentPidSetpoint - gyroRateFiltered;    // cr - y
+                //filter Kd properly, no setpoint filtering
+                const float pureRD = getSetpointRate(axis) - gyroRateFiltered;    // cr - y
                 const float pureError = pureRD - previousError[axis];
                 const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
                 previousMeasurement[axis] = gyro.gyroADCf[axis];
