@@ -56,7 +56,7 @@
  *
  */
 
-#define VBAT_STABLE_MAX_DELTA 20
+#define VBAT_STABLE_MAX_DELTA 2
 #define LVC_AFFECT_TIME 10000000 //10 secs for the LVC to slowly kick in
 
 // Battery monitoring stuff
@@ -498,11 +498,6 @@ bool isBatteryVoltageConfigured(void)
 uint16_t getBatteryVoltage(void)
 {
     return voltageMeter.filtered;
-}
-
-uint16_t getLegacyBatteryVoltage(void)
-{
-    return (voltageMeter.filtered + 5) / 10;
 }
 
 uint16_t getBatteryVoltageLatest(void)

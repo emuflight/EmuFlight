@@ -215,9 +215,9 @@ static void scaleRcCommandToFpvCamAngle()
     static float cosFactor = 1.0;
     static float sinFactor = 0.0;
 
-    if (rxConfig()->yawAroundGravity) {
-      if (currentPitchAngle >= 90) {
-        currentPitchAngle = 89.9;
+    if (rxConfig()->cinematicYaw) {
+      if (currentPitchAngle >= rxConfig()->fpvCamAngleDegrees) {
+        currentPitchAngle = rxConfig()->fpvCamAngleDegrees;
       }
       cosFactor = cos_approx(currentPitchAngle * RAD);
       sinFactor = sin_approx(currentPitchAngle * RAD);
@@ -617,7 +617,7 @@ FAST_CODE void processRcCommand(void)
         }
 
         // Scaling of AngleRate to camera angle (Mixing Roll and Yaw)
-        if ((rxConfig()->fpvCamAngleDegrees || (rxConfig()->yawAroundGravity && !(accelerometerConfig()->acc_hardware == ACC_NONE))) && IS_RC_MODE_ACTIVE(BOXFPVANGLEMIX) && !FLIGHT_MODE(HEADFREE_MODE)) {
+        if ((rxConfig()->fpvCamAngleDegrees || (rxConfig()->cinematicYaw && !(accelerometerConfig()->acc_hardware == ACC_NONE))) && IS_RC_MODE_ACTIVE(BOXFPVANGLEMIX) && !FLIGHT_MODE(HEADFREE_MODE)) {
             scaleRcCommandToFpvCamAngle();
         }
 
