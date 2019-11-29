@@ -1259,6 +1259,9 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("tpa_rate_i", "%d",                      currentControlRateProfile->dynThrI);
         BLACKBOX_PRINT_HEADER_LINE("tpa_rate_d", "%d",                      currentControlRateProfile->dynThrD);
         BLACKBOX_PRINT_HEADER_LINE("tpa_breakpoint", "%d",                  currentControlRateProfile->tpa_breakpoint);
+        BLACKBOX_PRINT_HEADER_LINE("spa_rate_p", "%d",                      currentPidProfile->setPointPTransition);
+        BLACKBOX_PRINT_HEADER_LINE("spa_rate_i", "%d",                      currentPidProfile->setPointITransition);
+        BLACKBOX_PRINT_HEADER_LINE("spa_rate_d", "%d",                      currentPidProfile->setPointDTransition);
         BLACKBOX_PRINT_HEADER_LINE("rc_rates", "%d,%d,%d",                  currentControlRateProfile->rcRates[ROLL],
                                                                             currentControlRateProfile->rcRates[PITCH],
                                                                             currentControlRateProfile->rcRates[YAW]);
@@ -1287,6 +1290,7 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("yaw_lowpass_hz", "%d",                  currentPidProfile->yaw_lowpass_hz);
         BLACKBOX_PRINT_HEADER_LINE("dterm_notch_hz", "%d",                  currentPidProfile->dterm_notch_hz);
         BLACKBOX_PRINT_HEADER_LINE("dterm_notch_cutoff", "%d",              currentPidProfile->dterm_notch_cutoff);
+        BLACKBOX_PRINT_HEADER_LINE("dterm_dyn_lpf", "%d",                   currentPidProfile->dterm_dyn_lpf);
         BLACKBOX_PRINT_HEADER_LINE("iterm_windup", "%d",                    currentPidProfile->itermWindupPointPercent);
 
         #if defined(USE_ITERM_RELAX)
@@ -1341,6 +1345,8 @@ static bool blackboxWriteSysinfo(void)
                                                                             gyroConfig()->gyro_soft_notch_hz_2);
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_cutoff", "%d,%d",            gyroConfig()->gyro_soft_notch_cutoff_1,
                                                                             gyroConfig()->gyro_soft_notch_cutoff_2);
+        BLACKBOX_PRINT_HEADER_LINE("gyro_dyn_lpf", "%d,%d",                 gyroConfig()->gyro_dyn_lpf);
+
         #if defined(USE_ACC)
             BLACKBOX_PRINT_HEADER_LINE("acc_lpf_hz", "%d",                  (int)(accelerometerConfig()->acc_lpf_hz * 100.0f));
             BLACKBOX_PRINT_HEADER_LINE("acc_hardware", "%d",                accelerometerConfig()->acc_hardware);
@@ -1381,11 +1387,14 @@ static bool blackboxWriteSysinfo(void)
 
         #ifdef USE_GYRO_IMUF9001
             BLACKBOX_PRINT_HEADER_LINE("IMUF revision", " %d",              imufCurrentVersion);
+            BLACKBOX_PRINT_HEADER_LINE("IMUF lowpass roll", " %d",          gyroConfig()->imuf_roll_lpf_cutoff_hz);
+            BLACKBOX_PRINT_HEADER_LINE("IMUF lowpass pitch", " %d",         gyroConfig()->imuf_pitch_lpf_cutoff_hz);
+            BLACKBOX_PRINT_HEADER_LINE("IMUF lowpass yaw", " %d",           gyroConfig()->imuf_yaw_lpf_cutoff_hz);
+        #endif
             BLACKBOX_PRINT_HEADER_LINE("IMUF roll q", " %d",                gyroConfig()->imuf_roll_q);
             BLACKBOX_PRINT_HEADER_LINE("IMUF pitch q", " %d",               gyroConfig()->imuf_pitch_q);
             BLACKBOX_PRINT_HEADER_LINE("IMUF yaw q", " %d",                 gyroConfig()->imuf_yaw_q);
             BLACKBOX_PRINT_HEADER_LINE("IMUF w", " %d",                     gyroConfig()->imuf_w);
-        #endif
 
         BLACKBOX_PRINT_HEADER_LINE("Actual Version Number", "%s %s (%s) %s",    FC_FIRMWARE_NAME, FC_VERSION_STRING, shortGitRevision, targetName);
 
