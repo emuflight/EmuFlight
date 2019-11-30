@@ -54,7 +54,6 @@
 #include "sensors/battery.h"
 #include "sensors/gyro.h"
 
-
 //
 // PID
 //
@@ -66,7 +65,6 @@ static uint8_t i_decay;
 static uint8_t r_weight;
 static uint16_t errorBoost;
 static uint8_t errorBoostLimit;
-static uint8_t nfe_racermode;
 static uint8_t tempPid[3][3];
 static uint16_t tempPidF[3];
 
@@ -131,7 +129,6 @@ static long cmsx_PidRead(void)
     r_weight = pidProfile->r_weight;
     errorBoost = pidProfile->errorBoost;
     errorBoostLimit = pidProfile->errorBoostLimit;
-    nfe_racermode = pidProfile->nfe_racermode;
     for (uint8_t i = 0; i < 3; i++) {
         tempPid[i][0] = pidProfile->pid[i].P;
         tempPid[i][1] = pidProfile->pid[i].I;
@@ -166,7 +163,6 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
     pidProfile->errorBoostLimit = errorBoostLimit;
     pidProfile->i_decay = i_decay;
     pidProfile->r_weight = r_weight;
-    pidProfile->nfe_racermode = nfe_racermode;
     pidInitConfig(currentPidProfile);
 
     return 0;
@@ -264,7 +260,6 @@ static OSD_Entry cmsx_menuRateProfileEntries[] =
     { "TPA RATE I",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrI,              0,  250,  1, 10}, 0 },
     { "TPA RATE D",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrD,              0,  250,  1, 10}, 0 },
     { "TPA BREAKPOINT",   OME_UINT16, NULL, &(OSD_UINT16_t){ &rateProfile.tpa_breakpoint,  1000, 2000, 10}, 0 },
-    { "FEATHERED", OME_TAB, NULL, &(OSD_TAB_t){ &nfe_racermode, 1, cms_offOnLabels }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
@@ -288,6 +283,7 @@ static uint8_t  cmsx_setPointDTransition;
 static uint8_t  cmsx_angleStrength;
 static uint8_t  cmsx_horizonStrength;
 static uint8_t  cmsx_horizonTransition;
+static uint8_t  csmx_nfe_racermode;
 static uint8_t  cmsx_throttleBoost;
 static uint16_t cmsx_itermAcceleratorGain;
 static uint16_t cmsx_itermThrottleThreshold;
@@ -308,6 +304,8 @@ static long cmsx_profileOtherOnEnter(void)
     cmsx_angleStrength =     pidProfile->pid[PID_LEVEL].P;
     cmsx_horizonStrength =   pidProfile->pid[PID_LEVEL].I;
     cmsx_horizonTransition = pidProfile->pid[PID_LEVEL].D;
+
+    csmx_nfe_racermode = pidProfile->nfe_racermode;
 
     cmsx_itermAcceleratorGain   = pidProfile->itermAcceleratorGain;
     cmsx_itermThrottleThreshold = pidProfile->itermThrottleThreshold;
@@ -334,6 +332,8 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
     pidProfile->pid[PID_LEVEL].I = cmsx_horizonStrength;
     pidProfile->pid[PID_LEVEL].D = cmsx_horizonTransition;
 
+    pidProfile->nfe_racermode = csmx_nfe_racermode;
+
     pidProfile->itermAcceleratorGain   = cmsx_itermAcceleratorGain;
     pidProfile->itermThrottleThreshold = cmsx_itermThrottleThreshold;
 
@@ -355,6 +355,7 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "ANGLE STR",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_angleStrength,          0,    200,   1  }   , 0 },
     { "HORZN STR",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonStrength,        0,    200,   1  }   , 0 },
     { "HORZN TRS",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonTransition,      0,    200,   1  }   , 0 },
+    { "NFE RACERMODE",    OME_TAB, NULL, &(OSD_TAB_t)  { &csmx_nfe_racermode, 1, cms_offOnLabels }, 0 },
     { "AG GAIN",     OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_itermAcceleratorGain,   1000, 30000, 10 }   , 0 },
     { "AG THR",      OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_itermThrottleThreshold, 20,   1000,  1  }   , 0 },
 #ifdef USE_THROTTLE_BOOST

@@ -215,12 +215,12 @@ static void scaleRcCommandToFpvCamAngle()
     static float cosFactor = 1.0;
     static float sinFactor = 0.0;
 
-    if (rxConfig()->cinematicYaw) {
-      if (currentPitchAngle >= rxConfig()->fpvCamAngleDegrees) {
+    if (rxConfig()->cinematicYaw && (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE))) {
+      if (currentPitchAngle > rxConfig()->fpvCamAngleDegrees) {
         currentPitchAngle = rxConfig()->fpvCamAngleDegrees;
       }
-      cosFactor = cos_approx(currentPitchAngle * RAD);
-      sinFactor = sin_approx(currentPitchAngle * RAD);
+        cosFactor = cos_approx(currentPitchAngle * RAD);
+        sinFactor = sin_approx(currentPitchAngle * RAD);
     } else if (lastFpvCamAngleDegrees != rxConfig()->fpvCamAngleDegrees) {
         lastFpvCamAngleDegrees = rxConfig()->fpvCamAngleDegrees;
         cosFactor = cos_approx(rxConfig()->fpvCamAngleDegrees * RAD);
