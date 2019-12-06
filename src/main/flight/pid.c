@@ -243,6 +243,7 @@ static FAST_RAM filterApplyFnPtr dtermLowpassApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass[3];
 static FAST_RAM filterApplyFnPtr dtermDynApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermDyn[3];
+static FAST_RAM_ZERO_INIT pt1Filter_t dtermDynHzLpf;
 #if defined(USE_ITERM_RELAX)
 static FAST_RAM_ZERO_INIT pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT uint8_t itermRelax;
@@ -315,6 +316,8 @@ void pidInitFilters(const pidProfile_t *pidProfile)
        for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
        {
            lpfHz = constrainf( MinFreq + ABS((getSetpointRate(axis) - gyro.gyroADCf[axis]) * 0.75f) + ABS(gyro.gyroADCf[axis] / 6.0f), MinFreq, (MinFreq + 500.0f));
+           pt1FilterInit(&dtermDynHzLpf, pt1FilterGain(15, dT));
+           pt1FilterApply(&dtermDynHzLpf, lpfHz);
            dtermDynApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1;
            biquadFilterInitLPF(&dtermDyn[axis].biquadFilter, lpfHz, targetPidLooptime);
            biquadFilterUpdateLPF(&dtermDyn[axis].biquadFilter, lpfHz, targetPidLooptime);
@@ -1031,10 +1034,10 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
                 const float pureRD = getSetpointRate(axis) - gyroRateFiltered;    // cr - y
                 const float pureError = pureRD - previousError[axis];
                 const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
-                previousMeasurement[axis] = gyro.gyroADCf[axis];
-                previousError[axis] = pureRD;
                 float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency);
                 dDelta = dtermDynApplyFn((filter_t *) &dtermDyn[axis], dDelta);
+                previousMeasurement[axis] = gyro.gyroADCf[axis];
+                previousError[axis] = pureRD;
 
 
         if (pidCoefficient[axis].Kd > 0) {

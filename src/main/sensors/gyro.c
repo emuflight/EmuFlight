@@ -127,6 +127,8 @@ float FAST_RAM_ZERO_INIT vGyroStdDevModulus;
 
 static FAST_RAM_ZERO_INIT int16_t gyroSensorTemperature;
 
+static FAST_RAM_ZERO_INIT pt1Filter_t gyroDynHzLpf;
+
 static bool gyroHasOverflowProtection = true;
 
 typedef struct gyroCalibration_s {

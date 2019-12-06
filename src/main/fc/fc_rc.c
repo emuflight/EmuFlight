@@ -207,7 +207,7 @@ static void calculateSetpointRate(int axis)
     DEBUG_SET(DEBUG_ANGLERATE, axis, angleRate);
 }
 
-static void scaleRcCommandToFpvCamAngle()
+static void scaleRcCommandToFpvCamAngle(void)
 {
     float currentPitchAngle = attitude.values.pitch / 10;
     //recalculate sin/cos only when rxConfig()->fpvCamAngleDegrees changed
