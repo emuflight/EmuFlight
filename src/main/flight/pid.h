@@ -211,3 +211,4 @@ bool pidOsdAntiGravityActive(void);
 bool pidOsdAntiGravityMode(void);
 void pidSetAntiGravityState(bool newState);
 bool pidAntiGravityEnabled(void);
+float pidGetPreviousSetpoint(int axis);

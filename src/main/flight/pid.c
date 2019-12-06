@@ -237,6 +237,7 @@ typedef union dtermLowpass_u {
     biquadFilter_t biquadFilter;
 } dtermLowpass_t;
 
+static FAST_RAM_ZERO_INIT float previousPidSetpoint[XYZ_AXIS_COUNT];
 static FAST_RAM filterApplyFnPtr dtermNotchApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT biquadFilter_t dtermNotch[3];
 static FAST_RAM filterApplyFnPtr dtermLowpassApplyFn = nullFilterApply;
@@ -864,8 +865,6 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
     void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs)
     {
-    static float previousPidSetpoint[XYZ_AXIS_COUNT];
-
     // calculate actual deltaT in seconds
     // Dynamic i component,
     if ((antiGravityMode == ANTI_GRAVITY_SMOOTH) && antiGravityEnabled) {
@@ -1156,4 +1155,10 @@ void pidSetAntiGravityState(bool newState)
 bool pidAntiGravityEnabled(void)
 {
     return antiGravityEnabled;
+}
+
+
+float pidGetPreviousSetpoint(int axis)
+{
+    return previousPidSetpoint[axis];
 }

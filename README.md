@@ -58,7 +58,7 @@ Contributions are welcome and encouraged. You can contribute in many ways:
 * Bug reporting & fixes.
 * New feature ideas & suggestions.
 
-The best place to start is the EmuFlight Discord (registration [here](https://discord.gg/gdP9CwE). Next place is the github issue tracker:
+The best place to start is the EmuFlight Discord (registration [here](https://discord.gg/fXPP49e). Next place is the github issue tracker:
 
 https://github.com/emuflight/EmuFlight/issues
 
