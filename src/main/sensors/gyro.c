@@ -127,7 +127,9 @@ float FAST_RAM_ZERO_INIT vGyroStdDevModulus;
 
 static FAST_RAM_ZERO_INIT int16_t gyroSensorTemperature;
 
+#ifndef USE_GYRO_IMUF9001
 static FAST_RAM_ZERO_INIT pt1Filter_t gyroDynHzLpf;
+#endif //USE_GYRO_IMUF9001
 
 static bool gyroHasOverflowProtection = true;
 

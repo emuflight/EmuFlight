@@ -1283,6 +1283,9 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("spa_rate_p", "%d",                      currentPidProfile->setPointPTransition);
         BLACKBOX_PRINT_HEADER_LINE("spa_rate_i", "%d",                      currentPidProfile->setPointITransition);
         BLACKBOX_PRINT_HEADER_LINE("spa_rate_d", "%d",                      currentPidProfile->setPointDTransition);
+        BLACKBOX_PRINT_HEADER_LINE("spa_rate_p_yaw", "%d",                      currentPidProfile->setPointPTransitionYaw);
+        BLACKBOX_PRINT_HEADER_LINE("spa_rate_i_yaw", "%d",                      currentPidProfile->setPointITransitionYaw);
+        BLACKBOX_PRINT_HEADER_LINE("spa_rate_d_yaw", "%d",                      currentPidProfile->setPointDTransitionYaw);
         BLACKBOX_PRINT_HEADER_LINE("rc_rates", "%d,%d,%d",                  currentControlRateProfile->rcRates[ROLL],
                                                                             currentControlRateProfile->rcRates[PITCH],
                                                                             currentControlRateProfile->rcRates[YAW]);
@@ -1327,6 +1330,8 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("feathered_pids", "%d",                  currentPidProfile->feathered_pids);
         BLACKBOX_PRINT_HEADER_LINE("emu_boost", "%d",                       currentPidProfile->errorBoost);
         BLACKBOX_PRINT_HEADER_LINE("boost_limit", "%d",                     currentPidProfile->errorBoostLimit);
+        BLACKBOX_PRINT_HEADER_LINE("emu_boost_yaw", "%d",                   currentPidProfile->errorBoostYaw);
+        BLACKBOX_PRINT_HEADER_LINE("boost_limit_yaw", "%d",                 currentPidProfile->errorBoostLimitYaw);
         BLACKBOX_PRINT_HEADER_LINE("i_decay", "%d",                         currentPidProfile->i_decay);
         BLACKBOX_PRINT_HEADER_LINE("anti_gravity_mode", "%d",               currentPidProfile->antiGravityMode);
         BLACKBOX_PRINT_HEADER_LINE("anti_gravity_threshold", "%d",          currentPidProfile->itermThrottleThreshold);

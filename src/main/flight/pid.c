@@ -154,11 +154,16 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .setPointPTransition = 100,
         .setPointITransition = 100,
         .setPointDTransition = 100,
+        .setPointPTransitionYaw = 100,
+        .setPointITransitionYaw = 100,
+        .setPointDTransitionYaw = 100,
         .feathered_pids = 100,
         .i_decay = 4,
         .r_weight = 67,
         .errorBoost = 15,
+        .errorBoostYaw= 40,
         .errorBoostLimit = 20,
+        .errorBoostLimitYaw = 40,
         .yawRateAccelLimit = 100,
         .rateAccelLimit = 0,
         .itermThrottleThreshold = 350,
@@ -390,6 +395,9 @@ static FAST_RAM_ZERO_INIT float nfe_racermode;
 static FAST_RAM_ZERO_INIT float setPointPTransition;
 static FAST_RAM_ZERO_INIT float setPointITransition;
 static FAST_RAM_ZERO_INIT float setPointDTransition;
+static FAST_RAM_ZERO_INIT float setPointPTransitionYaw;
+static FAST_RAM_ZERO_INIT float setPointITransitionYaw;
+static FAST_RAM_ZERO_INIT float setPointDTransitionYaw;
 static FAST_RAM_ZERO_INIT float levelGain, horizonGain, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
 static FAST_RAM_ZERO_INIT uint8_t horizonTiltExpertMode;
@@ -466,6 +474,9 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     setPointPTransition = pidProfile->setPointPTransition / 100.0f;
     setPointITransition = pidProfile->setPointITransition / 100.0f;
     setPointDTransition = pidProfile->setPointDTransition / 100.0f;
+    setPointPTransitionYaw = pidProfile->setPointPTransitionYaw / 100.0f;
+    setPointITransitionYaw = pidProfile->setPointITransitionYaw / 100.0f;
+    setPointDTransitionYaw = pidProfile->setPointDTransitionYaw / 100.0f;
     levelGain = pidProfile->pid[PID_LEVEL].P / 10.0f;
     horizonGain = pidProfile->pid[PID_LEVEL].I / 10.0f;
     horizonTransition = (float)pidProfile->pid[PID_LEVEL].D;
@@ -913,18 +924,23 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
         // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
         // Based on 2DOF reference design (matlab)
 
-            float errorMultiplier = (pidProfile->errorBoost * pidProfile->errorBoost / 1000000) * 0.003;
-            float boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
-            if (errorRate >= 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
+
+            float errorBoostAxis;
+            float errorLimitAxis;
+
+            if (axis <= FD_PITCH) {
+                errorBoostAxis = pidProfile->errorBoost;
+                errorLimitAxis = pidProfile->errorBoostLimit;
+            } else {
+                errorBoostAxis = pidProfile->errorBoostYaw;
+                errorLimitAxis = pidProfile->errorBoostLimitYaw;
+            }
+
+            float errorMultiplier = (errorBoostAxis * errorBoostAxis / 1000000) * 0.003;
+            float boostedErrorRate = (errorRate * errorRate) * errorMultiplier * (fabsf(errorRate) / errorRate);
+            if (fabsf(errorRate * errorLimitAxis / 100) < fabsf(boostedErrorRate))
               {
-                boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
-              } else {
-                if ( errorRate < 0 && fabs(errorRate * pidProfile->errorBoostLimit / 100) > fabs(boostedErrorRate))
-              {
-                boostedErrorRate = (0 - errorRate * errorRate) * errorMultiplier;
-              } else {
-                boostedErrorRate = errorRate * pidProfile->errorBoostLimit / 100;
-              }
+                boostedErrorRate = errorRate * errorLimitAxis / 100;
             }
 
             rotateITermAndAxisError();
@@ -1012,7 +1028,7 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
                 if (SIGN(ITerm) != SIGN(ITermNew))
                 {
                 	const float newVal = ITermNew * (float)pidProfile->i_decay;
-                	if (fabs(ITerm) > fabs(newVal))
+                	if (fabsf(ITerm) > fabsf(newVal))
                 	{
                 		ITermNew = newVal;
                 	}
@@ -1081,15 +1097,20 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
         previousPidSetpoint[axis] = currentPidSetpoint;
 
            // calculate SPA
-           float setPointPAntenuation;
-           float setPointIAntenuation;
-           float setPointDAntenuation;
+           float setPointPAttenuation;
+           float setPointIAttenuation;
+           float setPointDAttenuation;
 
            // SPA boost if SPA > 100 SPA cut if SPA < 100
-           setPointPAntenuation = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition - 1));
-           setPointIAntenuation = 1 + (getRcDeflectionAbs(axis) * (setPointITransition - 1));
-           setPointDAntenuation = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition - 1));
-
+           if (axis <= FD_PITCH) {
+           setPointPAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition - 1));
+           setPointIAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointITransition - 1));
+           setPointDAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition - 1));
+         } else {
+           setPointPAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointPTransitionYaw - 1));
+           setPointIAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointITransitionYaw - 1));
+           setPointDAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointDTransitionYaw - 1));
+         }
 #ifdef USE_YAW_SPIN_RECOVERY
         if (gyroYawSpinDetected()) {
             pidData[axis].I = 0;  // in yaw spin always disable I
@@ -1112,7 +1133,7 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
             pidData[axis].Sum = 0;
         }
         // calculating the PID sum and TPA and SPA
-        const float pidSum = (pidData[axis].P * getThrottlePAttenuation() * setPointPAntenuation) + (pidData[axis].I * getThrottleIAttenuation() * setPointIAntenuation) + (pidData[axis].D * getThrottleDAttenuation() * setPointDAntenuation) + pidData[axis].F;
+        const float pidSum = (pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation) + (pidData[axis].I * getThrottleIAttenuation() * setPointIAttenuation) + (pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation) + pidData[axis].F;
 
 #ifdef USE_INTEGRATED_YAW_CONTROL
         if (axis == FD_YAW && useIntegratedYaw) {

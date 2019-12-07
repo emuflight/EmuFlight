@@ -121,7 +121,9 @@ typedef struct pidProfile_s {
     uint8_t i_decay;						            // i-term decay
     uint8_t r_weight;					            	// the weight of the kalman R term calculated out of the std. dev.
     uint16_t errorBoost;                    // the weight of the setpoint boost
+    uint16_t errorBoostYaw;                 // the weight of the setpoint boost for yaw
     uint8_t errorBoostLimit;                // percentage of the error that the emu boost can boost
+    uint8_t errorBoostLimitYaw;             // percentage of the error that the emu boost can boost for yaw
     uint8_t nfe_racermode;                  // turn on or off NFE RACERMODE
     uint16_t yawRateAccelLimit;             // yaw accel limiter for deg/sec/ms
     uint16_t rateAccelLimit;                // accel limiter roll/pitch deg/sec/ms
@@ -137,6 +139,9 @@ typedef struct pidProfile_s {
     uint8_t setPointPTransition;            // SPA p transition
     uint8_t setPointITransition;            // SPA i transition
     uint8_t setPointDTransition;            // SPA d transition
+    uint8_t setPointPTransitionYaw;            // SPA p transition for yaw
+    uint8_t setPointITransitionYaw;            // SPA i transition for yaw
+    uint8_t setPointDTransitionYaw;            // SPA d transition for yaw
     uint16_t crash_limit_yaw;               // limits yaw errorRate, so crashes don't cause huge throttle increase
     uint16_t itermLimit;
     uint16_t dterm_lowpass2_hz;             // Extra PT1 Filter on D in hz

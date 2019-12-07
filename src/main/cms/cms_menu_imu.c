@@ -65,6 +65,8 @@ static uint8_t i_decay;
 static uint8_t r_weight;
 static uint16_t errorBoost;
 static uint8_t errorBoostLimit;
+static uint16_t errorBoostYaw;
+static uint8_t errorBoostLimitYaw;
 static uint8_t tempPid[3][3];
 static uint16_t tempPidF[3];
 
@@ -129,6 +131,8 @@ static long cmsx_PidRead(void)
     r_weight = pidProfile->r_weight;
     errorBoost = pidProfile->errorBoost;
     errorBoostLimit = pidProfile->errorBoostLimit;
+    errorBoostYaw = pidProfile->errorBoostYaw;
+    errorBoostLimitYaw = pidProfile->errorBoostLimitYaw;
     for (uint8_t i = 0; i < 3; i++) {
         tempPid[i][0] = pidProfile->pid[i].P;
         tempPid[i][1] = pidProfile->pid[i].I;
@@ -161,6 +165,8 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
     pidProfile->feathered_pids = feathered_pids;
     pidProfile->errorBoost = errorBoost;
     pidProfile->errorBoostLimit = errorBoostLimit;
+    pidProfile->errorBoostYaw = errorBoostYaw;
+    pidProfile->errorBoostLimitYaw = errorBoostLimitYaw;
     pidProfile->i_decay = i_decay;
     pidProfile->r_weight = r_weight;
     pidInitConfig(currentPidProfile);
@@ -170,12 +176,12 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
 
 static OSD_Entry cmsx_menuPidEntries[] =
 {
-    { "-- PID --", OME_Label, NULL, pidProfileIndexString, 0},
+    { "-- EMUFLIGHT PIDS --", OME_Label, NULL, pidProfileIndexString, 0},
 
     { "FEATHERED", OME_UINT8, NULL, &(OSD_UINT8_t){ &feathered_pids,         0, 100, 1}, 0 },
 
-    { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,       0,  1000,  5}, 0 },
-    { "BOOST LIMIT", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,  0,  250,  1}, 0 },
+    { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,        0,  1000,  5}, 0 },
+    { "BOOST LIMIT", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,   0,  250,  1}, 0 },
 
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
@@ -191,6 +197,8 @@ static OSD_Entry cmsx_menuPidEntries[] =
     { "YAW   I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][1],   0, 200, 1 }, 0 },
     { "YAW   D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][2],   0, 200, 1 }, 0 },
     { "YAW   F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_YAW],   0, 2000, 1 }, 0 },
+    { "EMU BOOST YAW", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoostYaw,        0,  1000,  5}, 0 },
+    { "BOOST LIMIT YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimitYaw,   0,  250,  1}, 0 },
 
     { "I_DECAY", OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,  1, 10, 1 }, 0 },
     { "R_WEIGHT", OME_UINT8, NULL, &(OSD_UINT8_t){ &r_weight,  1, 200, 1 }, 0 },
@@ -280,6 +288,9 @@ static uint8_t  cmsx_feedForwardTransition;
 static uint8_t  cmsx_setPointPTransition;
 static uint8_t  cmsx_setPointITransition;
 static uint8_t  cmsx_setPointDTransition;
+static uint8_t  cmsx_setPointPTransitionYaw;
+static uint8_t  cmsx_setPointITransitionYaw;
+static uint8_t  cmsx_setPointDTransitionYaw;
 static uint8_t  cmsx_angleStrength;
 static uint8_t  cmsx_horizonStrength;
 static uint8_t  cmsx_horizonTransition;
@@ -300,6 +311,9 @@ static long cmsx_profileOtherOnEnter(void)
     cmsx_setPointPTransition  = pidProfile->setPointPTransition;
     cmsx_setPointITransition  = pidProfile->setPointITransition;
     cmsx_setPointDTransition  = pidProfile->setPointDTransition;
+    cmsx_setPointPTransitionYaw  = pidProfile->setPointPTransitionYaw;
+    cmsx_setPointITransitionYaw  = pidProfile->setPointITransitionYaw;
+    cmsx_setPointDTransitionYaw  = pidProfile->setPointDTransitionYaw;
 
     cmsx_angleStrength =     pidProfile->pid[PID_LEVEL].P;
     cmsx_horizonStrength =   pidProfile->pid[PID_LEVEL].I;
@@ -326,6 +340,9 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
     pidProfile->setPointPTransition = cmsx_setPointPTransition;
     pidProfile->setPointITransition = cmsx_setPointITransition;
     pidProfile->setPointDTransition = cmsx_setPointDTransition;
+    pidProfile->setPointPTransitionYaw = cmsx_setPointPTransitionYaw;
+    pidProfile->setPointITransitionYaw = cmsx_setPointITransitionYaw;
+    pidProfile->setPointDTransitionYaw = cmsx_setPointDTransitionYaw;
     pidInitConfig(currentPidProfile);
 
     pidProfile->pid[PID_LEVEL].P = cmsx_angleStrength;
@@ -352,6 +369,9 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "SPA RATE P",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransition,    0,    250,   1, 10 }, 0 },
     { "SPA RATE I",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition,    0,    250,   1, 10 }, 0 },
     { "SPA RATE D",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransition,    0,    250,   1, 10 }, 0 },
+    { "SPA RATE P YAW",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransitionYaw,    0,    250,   1, 10 }, 0 },
+    { "SPA RATE I YAW",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransitionYaw,    0,    250,   1, 10 }, 0 },
+    { "SPA RATE D YAW",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransitionYaw,    0,    250,   1, 10 }, 0 },
     { "ANGLE STR",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_angleStrength,          0,    200,   1  }   , 0 },
     { "HORZN STR",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonStrength,        0,    200,   1  }   , 0 },
     { "HORZN TRS",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonTransition,      0,    200,   1  }   , 0 },
