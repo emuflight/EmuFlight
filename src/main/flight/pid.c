@@ -143,6 +143,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .yaw_lowpass_hz = 0,
         .dterm_lowpass_hz = 65,     // filtering ON by default
         .dterm_lowpass2_hz = 200,   // second Dterm LPF ON by default
+        .dterm_dyn_lpf = 0,
         .dterm_notch_hz = 0,
         .dterm_notch_cutoff = 0,
         .dterm_filter_type = FILTER_PT1,
