@@ -801,15 +801,22 @@ void gyroInitSlewLimiter(gyroSensor_t *gyroSensor) {
 static void gyroInitDynFilterLpf(gyroSensor_t *gyroSensor, float lpfHz)
 {
   filterApplyFnPtr *gyroDynApplyFn;
-  biquadFilter_t *gyroDyn = NULL;
   gyroDynApplyFn = &gyroSensor->gyroDynApplyFn;
-  gyroDyn = gyroSensor->gyroDyn;
+  const float dT = gyro.targetLooptime * 1e-6f;
+  #define BIQUAD_Q 1.0f / sqrtf(2.0f)     /* quality factor - 2nd order butterworth*/
+  float MinFreq = gyroConfig()->gyro_dyn_lpf;
+  MinFreq += ((float)(rcData[THROTTLE] - 1000) * 0.1f) + 10; //Add 0 - 50Hz
 
   if (gyroConfig()->gyro_dyn_lpf != 0)
   {
         *gyroDynApplyFn = (filterApplyFnPtr) biquadFilterApplyDF1;
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            biquadFilterInitLPF(&gyroDyn[axis], lpfHz, gyro.targetLooptime);
+        float setPoint      = getSetpointRate(axis);
+        float FilterGyro    = gyro.gyroADCf[axis];
+        lpfHz = constrainf( MinFreq + ABS((setPoint - FilterGyro) * 2) + ABS(FilterGyro / 5.0f), MinFreq, (MinFreq + 500.0f));
+        pt1FilterInit(&gyroDynHzLpf, pt1FilterGain(15, dT));
+        pt1FilterApply(&gyroDynHzLpf, lpfHz);
+        biquadFilterUpdate(&gyroSensor->gyroDyn[axis], lpfHz, gyro.targetLooptime, BIQUAD_Q, FILTER_LPF);
         }
     }
 }

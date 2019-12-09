@@ -139,9 +139,9 @@ typedef struct pidProfile_s {
     uint8_t setPointPTransition;            // SPA p transition
     uint8_t setPointITransition;            // SPA i transition
     uint8_t setPointDTransition;            // SPA d transition
-    uint8_t setPointPTransitionYaw;            // SPA p transition for yaw
-    uint8_t setPointITransitionYaw;            // SPA i transition for yaw
-    uint8_t setPointDTransitionYaw;            // SPA d transition for yaw
+    uint8_t setPointPTransitionYaw;         // SPA p transition for yaw
+    uint8_t setPointITransitionYaw;         // SPA i transition for yaw
+    uint8_t setPointDTransitionYaw;         // SPA d transition for yaw
     uint16_t crash_limit_yaw;               // limits yaw errorRate, so crashes don't cause huge throttle increase
     uint16_t itermLimit;
     uint16_t dterm_lowpass2_hz;             // Extra PT1 Filter on D in hz
