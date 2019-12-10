@@ -1313,16 +1313,11 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass_type);
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass2_type);
         sbufWriteU16(dst, currentPidProfile->dterm_lowpass2_hz);
+          //added in msp 1.43
         sbufWriteU16(dst, currentPidProfile->dterm_dyn_lpf);
         #ifndef USE_GYRO_IMUF9001
         sbufWriteU16(dst, gyroConfig()->gyro_dyn_lpf);
         #endif
-
-        //added in msp 1.43
-#ifndef  USE_GYRO_IMUF9001
-        sbufWriteU16(dst, gyroConfig()->gyro_dyn_lpf);
-#endif //USE_GYRO_IMUF9001
-        sbufWriteU16(dst, currentPidProfile->dterm_dyn_lpf);
 
         break;
 /*#ifndef USE_GYRO_IMUF9001
@@ -1941,17 +1936,15 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             gyroConfigMutable()->gyro_lowpass_type = sbufReadU8(src);
             gyroConfigMutable()->gyro_lowpass2_type = sbufReadU8(src);
             currentPidProfile->dterm_lowpass2_hz = sbufReadU16(src);
+    //added in msp 1.43
             currentPidProfile->dterm_dyn_lpf =  sbufReadU16(src);
             #ifndef USE_GYRO_IMUF9001
             gyroConfigMutable()->gyro_dyn_lpf = sbufReadU16(src);
             #endif
         }
 
-        //added in msp 1.43
-#ifndef  USE_GYRO_IMUF9001
-        gyroConfigMutable()->gyro_dyn_lpf = sbufReadU16(src);
-#endif   //USE_GYRO_IMUF9001
-        currentPidProfile->dterm_dyn_lpf = sbufReadU16(src);
+
+
 
         // reinitialize the gyro filters with the new values
         validateAndFixGyroConfig();
