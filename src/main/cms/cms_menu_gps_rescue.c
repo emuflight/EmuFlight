@@ -52,7 +52,7 @@ static uint8_t gpsRescueConfig_minSats;
 static uint16_t gpsRescueConfig_throttleP, gpsRescueConfig_throttleI, gpsRescueConfig_throttleD;
 static uint16_t gpsRescueConfig_velP, gpsRescueConfig_velI, gpsRescueConfig_velD;
 static uint16_t gpsRescueConfig_yawP;
-static uint16_t gpsConfig_distanceLimit;
+
 
 
 static long cms_menuGpsRescuePidOnEnter(void)
@@ -128,7 +128,7 @@ static long cmsx_menuGpsRescueOnEnter(void)
     gpsRescueConfig_throttleMax = gpsRescueConfig()->throttleMax;
     gpsRescueConfig_throttleHover = gpsRescueConfig()->throttleHover;
     gpsRescueConfig_minSats = gpsRescueConfig()->minSats;
-    gpsConfig_distanceLimit = gpsConfig()->distanceLimit;
+
 
 
     return 0;
@@ -147,7 +147,7 @@ static long cmsx_menuGpsRescueOnExit(const OSD_Entry *self)
     gpsRescueConfigMutable()->throttleMax = gpsRescueConfig_throttleMax;
     gpsRescueConfigMutable()->throttleHover = gpsRescueConfig_throttleHover;
     gpsRescueConfigMutable()->minSats = gpsRescueConfig_minSats;
-    gpsConfigMutable()->distanceLimit = gpsConfig_distanceLimit;
+
 
 
     return 0;
@@ -165,7 +165,6 @@ static OSD_Entry cmsx_menuGpsRescueEntries[] =
     { "THROTTLE MAX",      OME_UINT16, NULL, &(OSD_UINT16_t){ &gpsRescueConfig_throttleMax, 1000, 2000, 1 }, 0 },
     { "THROTTLE HOV",      OME_UINT16, NULL, &(OSD_UINT16_t){ &gpsRescueConfig_throttleHover, 1000, 2000, 1 }, 0 },
     { "MIN SATELITES",     OME_UINT8, NULL, &(OSD_UINT8_t){ &gpsRescueConfig_minSats, 5, 50, 1 }, 0 },
-    { "DISTANCE LIMIT",    OME_UINT16, NULL, &(OSD_UINT16_t){ &gpsConfig_distanceLimit, 0, 500, 10 }, 0 },
     { "GPS RESCUE PID",    OME_Submenu, cmsMenuChange, &cms_menuGpsRescuePid, 0},
 
 { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVEREBOOT, 0},

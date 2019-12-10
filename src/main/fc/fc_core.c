@@ -760,19 +760,14 @@ bool processRx(timeUs_t currentTimeUs)
     }
 
 #ifdef USE_GPS_RESCUE
-if(isLimitDistanceReach()){
-  limitDistanceReach = true;
-  }
 
-    if (IS_RC_MODE_ACTIVE(BOXGPSRESCUE) || (failsafeIsActive() && failsafeConfig()->failsafe_procedure == FAILSAFE_PROCEDURE_GPS_RESCUE) || (!IS_RC_MODE_ACTIVE(BOXGPSRESCUE)  && !FLIGHT_MODE(ANGLE_MODE) && limitDistanceReach) ) {
+
+    if (IS_RC_MODE_ACTIVE(BOXGPSRESCUE) || (failsafeIsActive() && failsafeConfig()->failsafe_procedure == FAILSAFE_PROCEDURE_GPS_RESCUE) ) {
         if (!FLIGHT_MODE(GPS_RESCUE_MODE)) {
             ENABLE_FLIGHT_MODE(GPS_RESCUE_MODE);
         }
     } else {
-    //  if(!limitDistanceReach || FLIGHT_MODE(ANGLE_MODE)){
-        DISABLE_FLIGHT_MODE(GPS_RESCUE_MODE);
-        limitDistanceReach = false;
-    //  }
+          DISABLE_FLIGHT_MODE(GPS_RESCUE_MODE);
     }
 #endif
 

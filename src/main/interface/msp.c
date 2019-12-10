@@ -1056,7 +1056,6 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, gpsConfig()->sbasMode);
         sbufWriteU8(dst, gpsConfig()->autoConfig);
         sbufWriteU8(dst, gpsConfig()->autoBaud);
-        sbufWriteU16(dst, gpsConfig()->distanceLimit);
         break;
 
     case MSP_RAW_GPS:
@@ -1314,6 +1313,10 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass_type);
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass2_type);
         sbufWriteU16(dst, currentPidProfile->dterm_lowpass2_hz);
+        sbufWriteU16(dst, currentPidProfile->dterm_dyn_lpf);
+        #ifndef USE_GYRO_IMUF9001
+        sbufWriteU16(dst, gyroConfig()->gyro_dyn_lpf);
+        #endif
 
         break;
 /*#ifndef USE_GYRO_IMUF9001
@@ -1763,7 +1766,6 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         gpsConfigMutable()->sbasMode = sbufReadU8(src);
         gpsConfigMutable()->autoConfig = sbufReadU8(src);
         gpsConfigMutable()->autoBaud = sbufReadU8(src);
-        gpsConfigMutable()->distanceLimit = sbufReadU16(src);
         break;
 
 #ifdef USE_GPS_RESCUE
@@ -1919,6 +1921,10 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             gyroConfigMutable()->gyro_lowpass_type = sbufReadU8(src);
             gyroConfigMutable()->gyro_lowpass2_type = sbufReadU8(src);
             currentPidProfile->dterm_lowpass2_hz = sbufReadU16(src);
+            currentPidProfile->dterm_dyn_lpf =  sbufReadU16(src);
+            #ifndef USE_GYRO_IMUF9001
+            gyroConfigMutable()->gyro_dyn_lpf = sbufReadU16(src);
+            #endif
         }
         // reinitialize the gyro filters with the new values
         validateAndFixGyroConfig();

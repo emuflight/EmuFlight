@@ -64,7 +64,7 @@
 // API VERSION
 
 #define API_VERSION_MAJOR                   1  // increment when major changes are made
-#define API_VERSION_MINOR                   42 // increment after a release, to set the version for all changes to go into the following release (if no changes to MSP are made between the releases, this can be reverted before the release)
+#define API_VERSION_MINOR                   43 // increment after a release, to set the version for all changes to go into the following release (if no changes to MSP are made between the releases, this can be reverted before the release)
 
 #define API_VERSION_LENGTH                  2
 
@@ -352,4 +352,3 @@
 #define MSP_IMUF_INFO            229    //out message
 #define MSP_EMUF                 231    //out message
 #define MSP_SET_EMUF             232    //in message
-
