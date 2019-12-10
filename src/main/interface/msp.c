@@ -1123,6 +1123,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, rxConfig()->midrc);
         sbufWriteU16(dst, rxConfig()->mincheck);
         sbufWriteU8(dst, rxConfig()->spektrum_sat_bind);
+        sbufWriteU8(dst, rxConfigMutable()->cinematicYaw);
         sbufWriteU16(dst, rxConfig()->rx_min_usec);
         sbufWriteU16(dst, rxConfig()->rx_max_usec);
         sbufWriteU8(dst, rxConfig()->rcInterpolation);
@@ -1299,6 +1300,11 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass_hz);
         sbufWriteU16(dst, currentPidProfile->dterm_lowpass_hz);
         sbufWriteU16(dst, currentPidProfile->yaw_lowpass_hz);
+        //added in msp 1.43
+        sbufWriteU16(dst, currentPidProfile->dterm_dyn_lpf);
+        #ifndef USE_GYRO_IMUF9001
+        sbufWriteU16(dst, gyroConfig()->gyro_dyn_lpf);
+        #endif
         sbufWriteU16(dst, gyroConfig()->gyro_soft_notch_hz_1);
         sbufWriteU16(dst, gyroConfig()->gyro_soft_notch_cutoff_1);
         sbufWriteU16(dst, currentPidProfile->dterm_notch_hz);
@@ -1313,11 +1319,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass_type);
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass2_type);
         sbufWriteU16(dst, currentPidProfile->dterm_lowpass2_hz);
-          //added in msp 1.43
-        sbufWriteU16(dst, currentPidProfile->dterm_dyn_lpf);
-        #ifndef USE_GYRO_IMUF9001
-        sbufWriteU16(dst, gyroConfig()->gyro_dyn_lpf);
-        #endif
+
 
         break;
 /*#ifndef USE_GYRO_IMUF9001
@@ -1406,7 +1408,6 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         //added in msp 1.43
         sbufWriteU16(dst, currentPidProfile->errorBoostYaw);
         sbufWriteU8(dst, currentPidProfile->errorBoostLimitYaw);
-
         sbufWriteU8(dst, currentPidProfile->setPointPTransition);
         sbufWriteU8(dst, currentPidProfile->setPointITransition);
         sbufWriteU8(dst, currentPidProfile->setPointDTransition);
@@ -1414,7 +1415,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentPidProfile->setPointITransitionYaw);
         sbufWriteU8(dst, currentPidProfile->setPointDTransitionYaw);
         sbufWriteU8(dst, currentPidProfile->nfe_racermode);
-        sbufWriteU8(dst, rxConfigMutable()->cinematicYaw);
+
 
         break;
     case MSP_SENSOR_CONFIG:
@@ -1915,6 +1916,11 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         gyroConfigMutable()->gyro_lowpass_hz = sbufReadU8(src);
         currentPidProfile->dterm_lowpass_hz = sbufReadU16(src);
         currentPidProfile->yaw_lowpass_hz = sbufReadU16(src);
+        //added in msp 1.43
+        currentPidProfile->dterm_dyn_lpf =  sbufReadU16(src);
+        #ifndef USE_GYRO_IMUF9001
+        gyroConfigMutable()->gyro_dyn_lpf = sbufReadU16(src);
+        #endif
         if (sbufBytesRemaining(src) >= 8) {
             gyroConfigMutable()->gyro_soft_notch_hz_1 = sbufReadU16(src);
             gyroConfigMutable()->gyro_soft_notch_cutoff_1 = sbufReadU16(src);
@@ -1936,15 +1942,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             gyroConfigMutable()->gyro_lowpass_type = sbufReadU8(src);
             gyroConfigMutable()->gyro_lowpass2_type = sbufReadU8(src);
             currentPidProfile->dterm_lowpass2_hz = sbufReadU16(src);
-    //added in msp 1.43
-            currentPidProfile->dterm_dyn_lpf =  sbufReadU16(src);
-            #ifndef USE_GYRO_IMUF9001
-            gyroConfigMutable()->gyro_dyn_lpf = sbufReadU16(src);
-            #endif
         }
-
-
-
 
         // reinitialize the gyro filters with the new values
         validateAndFixGyroConfig();
@@ -2047,7 +2045,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             currentPidProfile->setPointITransitionYaw = sbufReadU8(src);
             currentPidProfile->setPointDTransitionYaw = sbufReadU8(src);
             currentPidProfile->nfe_racermode = sbufReadU8(src);
-            rxConfigMutable()->cinematicYaw = sbufReadU8(src);
+
 
         }
         pidInitConfig(currentPidProfile);
@@ -2238,6 +2236,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         rxConfigMutable()->midrc = sbufReadU16(src);
         rxConfigMutable()->mincheck = sbufReadU16(src);
         rxConfigMutable()->spektrum_sat_bind = sbufReadU8(src);
+        rxConfigMutable()->cinematicYaw = sbufReadU8(src);
         if (sbufBytesRemaining(src) >= 4) {
             rxConfigMutable()->rx_min_usec = sbufReadU16(src);
             rxConfigMutable()->rx_max_usec = sbufReadU16(src);
