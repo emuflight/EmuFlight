@@ -1316,7 +1316,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, currentPidProfile->dterm_lowpass2_hz);
 
         //added in msp 1.43
+#ifndef  USE_GYRO_IMUF9001
         sbufWriteU16(dst, gyroConfig()->gyro_dyn_lpf);
+#endif //USE_GYRO_IMUF9001
         sbufWriteU16(dst, currentPidProfile->dterm_dyn_lpf);
 
         break;
@@ -1940,7 +1942,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         }
 
         //added in msp 1.43
+#ifndef  USE_GYRO_IMUF9001
         gyroConfigMutable()->gyro_dyn_lpf = sbufReadU16(src);
+#endif   //USE_GYRO_IMUF9001
         currentPidProfile->dterm_dyn_lpf = sbufReadU16(src);
 
         // reinitialize the gyro filters with the new values
