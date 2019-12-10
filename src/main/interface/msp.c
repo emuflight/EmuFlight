@@ -1315,6 +1315,10 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass2_type);
         sbufWriteU16(dst, currentPidProfile->dterm_lowpass2_hz);
 
+        //added in msp 1.43
+        sbufWriteU16(dst, gyroConfig()->gyro_dyn_lpf);
+        sbufWriteU16(dst, currentPidProfile->dterm_dyn_lpf);
+
         break;
 /*#ifndef USE_GYRO_IMUF9001
     case MSP_FAST_KALMAN:
@@ -1398,6 +1402,20 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 #else
         sbufWriteU8(dst, 0);
 #endif
+
+        //added in msp 1.43
+        sbufWriteU16(dst, currentPidProfile->errorBoostYaw);
+        sbufWriteU8(dst, currentPidProfile->errorBoostLimitYaw);
+
+        sbufWriteU8(dst, currentPidProfile->setPointPTransition);
+        sbufWriteU8(dst, currentPidProfile->setPointITransition);
+        sbufWriteU8(dst, currentPidProfile->setPointDTransition);
+        sbufWriteU8(dst, currentPidProfile->setPointPTransitionYaw);
+        sbufWriteU8(dst, currentPidProfile->setPointITransitionYaw);
+        sbufWriteU8(dst, currentPidProfile->setPointDTransitionYaw);
+        sbufWriteU8(dst, currentPidProfile->nfe_racermode);
+        sbufWriteU8(dst, rxConfigMutable()->cinematicYaw);
+
         break;
     case MSP_SENSOR_CONFIG:
         sbufWriteU8(dst, accelerometerConfig()->acc_hardware);
@@ -1920,6 +1938,11 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             gyroConfigMutable()->gyro_lowpass2_type = sbufReadU8(src);
             currentPidProfile->dterm_lowpass2_hz = sbufReadU16(src);
         }
+
+        //added in msp 1.43
+        gyroConfigMutable()->gyro_dyn_lpf = sbufReadU16(src);
+        currentPidProfile->dterm_dyn_lpf = sbufReadU16(src);
+
         // reinitialize the gyro filters with the new values
         validateAndFixGyroConfig();
 #ifndef USE_GYRO_IMUF9001
@@ -2011,6 +2034,18 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
 #else
             sbufReadU8(src);
 #endif
+            //added in msp 1.43
+            currentPidProfile->errorBoostYaw = sbufReadU16(src);
+            currentPidProfile->errorBoostLimitYaw = sbufReadU8(src);
+            currentPidProfile->setPointPTransition = sbufReadU8(src);
+            currentPidProfile->setPointITransition = sbufReadU8(src);
+            currentPidProfile->setPointDTransition = sbufReadU8(src);
+            currentPidProfile->setPointPTransitionYaw = sbufReadU8(src);
+            currentPidProfile->setPointITransitionYaw = sbufReadU8(src);
+            currentPidProfile->setPointDTransitionYaw = sbufReadU8(src);
+            currentPidProfile->nfe_racermode = sbufReadU8(src);
+            rxConfigMutable()->cinematicYaw = sbufReadU8(src);
+
         }
         pidInitConfig(currentPidProfile);
 
