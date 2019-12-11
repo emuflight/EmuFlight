@@ -1319,8 +1319,6 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass_type);
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass2_type);
         sbufWriteU16(dst, currentPidProfile->dterm_lowpass2_hz);
-
-
         break;
 /*#ifndef USE_GYRO_IMUF9001
     case MSP_FAST_KALMAN:
