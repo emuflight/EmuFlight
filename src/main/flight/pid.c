@@ -162,7 +162,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .i_decay = 4,
         .r_weight = 67,
         .errorBoost = 15,
-        .errorBoostYaw= 40,
+        .errorBoostYaw = 40,
         .errorBoostLimit = 20,
         .errorBoostLimitYaw = 40,
         .yawRateAccelLimit = 100,
@@ -937,7 +937,14 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
             }
 
             float errorMultiplier = (errorBoostAxis * errorBoostAxis / 1000000) * 0.003;
-            float boostedErrorRate = (errorRate * errorRate) * errorMultiplier * (fabsf(errorRate) / errorRate);
+            float boostedErrorRate;
+
+            if (errorRate >= 0) {
+            boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
+          } else {
+            boostedErrorRate = -((errorRate * errorRate) * errorMultiplier);
+          }
+
             if (fabsf(errorRate * errorLimitAxis / 100) < fabsf(boostedErrorRate))
               {
                 boostedErrorRate = errorRate * errorLimitAxis / 100;
