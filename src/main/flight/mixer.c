@@ -778,11 +778,20 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs, uint8_t vbatPidCompensa
     const float scaledAxisPidPitch =
         constrainf(pidData[FD_PITCH].Sum, -currentPidProfile->pidSumLimit, currentPidProfile->pidSumLimit) / PID_MIXER_SCALING;
 
-    float scaledAxisPidYaw =
-        constrainf(pidData[FD_YAW].Sum, -currentPidProfile->pidSumLimit, currentPidProfile->pidSumLimit) / PID_MIXER_SCALING;
-    if (!mixerConfig()->yaw_motors_reversed) {
-        scaledAxisPidYaw = -scaledAxisPidYaw;
+uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
+
+#ifdef USE_YAW_SPIN_RECOVERY
+    const bool yawSpinDetected = gyroYawSpinDetected();
+    if (yawSpinDetected) {
+        yawPidSumLimit = PIDSUM_LIMIT_MAX;   // Set to the maximum limit during yaw spin recovery to prevent limiting motor authority
     }
+#endif // USE_YAW_SPIN_RECOVERY
+
+  float scaledAxisPidYaw = constrainf(pidData[FD_YAW].Sum, -yawPidSumLimit, yawPidSumLimit) / PID_MIXER_SCALING;
+
+  if (!mixerConfig()->yaw_motors_reversed) {
+      scaledAxisPidYaw = -scaledAxisPidYaw;
+  }
 
     // Calculate voltage compensation
     const float vbatCompensationFactor = vbatPidCompensation ? calculateVbatPidCompensation() : 1.0f;
@@ -792,13 +801,7 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs, uint8_t vbatPidCompensa
         throttle = applyThrottleLimit(throttle);
     }
 
-#ifdef USE_YAW_SPIN_RECOVERY
-    // 50% throttle provides the maximum authority for yaw recovery when airmode is not active.
-    // When airmode is active the throttle setting doesn't impact recovery authority.
-    if (gyroYawSpinDetected() && !isAirmodeActive()) {
-        throttle = 0.5f;   //
-    }
-#endif // USE_YAW_SPIN_RECOVERY
+
 
     // Find roll/pitch/yaw desired output
     float motorMix[MAX_SUPPORTED_MOTORS];
