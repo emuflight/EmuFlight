@@ -1411,7 +1411,6 @@ static bool blackboxWriteSysinfo(void)
             BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_rx_average", "%d",         rcSmoothingGetValue(RC_SMOOTHING_VALUE_AVERAGE_FRAME));
         #endif // USE_RC_SMOOTHING_FILTER
 
-
         #ifdef USE_GYRO_IMUF9001
             BLACKBOX_PRINT_HEADER_LINE("IMUF revision", " %d",              imufCurrentVersion);
             BLACKBOX_PRINT_HEADER_LINE("IMUF lowpass roll", " %d",          gyroConfig()->imuf_roll_lpf_cutoff_hz);
@@ -1425,6 +1424,7 @@ static bool blackboxWriteSysinfo(void)
             BLACKBOX_PRINT_HEADER_LINE("IMUF w", " %d",                     gyroConfig()->imuf_w);
 
         BLACKBOX_PRINT_HEADER_LINE("Actual Version Number", "%s %s (%s) %s",    FC_FIRMWARE_NAME, FC_VERSION_STRING, shortGitRevision, targetName);
+
 
         default:
             return true;
