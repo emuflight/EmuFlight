@@ -327,6 +327,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
            pt1FilterInit(&dtermDynHzLpf, pt1FilterGain(15, dT));
            pt1FilterApply(&dtermDynHzLpf, lpfHz);
            dtermDynApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1;
+           biquadFilterInitLPF(&dtermDyn[axis].biquadFilter, lpfHz, targetPidLooptime);
            biquadFilterUpdateLPF(&dtermDyn[axis].biquadFilter, lpfHz, targetPidLooptime);
        }
     }
@@ -1043,9 +1044,6 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
                 }
             }
             ITermNew = constrainf(ITerm + ITermNew, -itermLimit, itermLimit);
-            if (fabsf(ITerm - ITermNew) > 25) {
-              ITermNew = ITerm;
-            }
 
             const bool outputSaturated = mixerIsOutputSaturated(axis, errorRate);
             if (outputSaturated == false || ABS(ITermNew) < ABS(ITerm)) {
