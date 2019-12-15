@@ -87,7 +87,7 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
                 float setPoint      = getSetpointRate(axis);
                 float FilterGyro    = gyro.gyroADCf[axis];
                 lpfHz = constrainf( MinFreq + ABS((setPoint - FilterGyro) * 2) + ABS(FilterGyro / 5.0f), MinFreq, (MinFreq + 500.0f));
-                pt1FilterInit(&gyroDynHzLpf, pt1FilterGain(15, dT));
+                lpfHz = pt1FilterInit(&gyroDynHzLpf, pt1FilterGain(15, dT));
                 pt1FilterApply(&gyroDynHzLpf, lpfHz);
                 biquadFilterUpdate(&gyroSensor->gyroDyn[axis], lpfHz, gyro.targetLooptime, BIQUAD_Q, FILTER_LPF);
             }

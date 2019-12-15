@@ -325,7 +325,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
        {
            lpfHz = constrainf( MinFreq + ABS((getSetpointRate(axis) - gyro.gyroADCf[axis]) * 0.75f) + ABS(gyro.gyroADCf[axis] / 6.0f), MinFreq, (MinFreq + 500.0f));
            pt1FilterInit(&dtermDynHzLpf, pt1FilterGain(15, dT));
-           pt1FilterApply(&dtermDynHzLpf, lpfHz);
+           lpfHz = pt1FilterApply(&dtermDynHzLpf, lpfHz);
            dtermDynApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1;
            biquadFilterInitLPF(&dtermDyn[axis].biquadFilter, lpfHz, targetPidLooptime);
            biquadFilterUpdateLPF(&dtermDyn[axis].biquadFilter, lpfHz, targetPidLooptime);
