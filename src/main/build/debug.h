@@ -95,6 +95,7 @@ typedef enum {
     DEBUG_ANTI_GRAVITY,
     DEBUG_IMU,
     DEBUG_KALMAN,
+    DEBUG_DYN_FILTER,
     DEBUG_COUNT
 } debugType_e;
 
