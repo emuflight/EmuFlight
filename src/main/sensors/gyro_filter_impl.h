@@ -91,7 +91,23 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
                 lpfHz = pt1FilterApply(&gyroDynHzLpf, lpfHz);
                 biquadFilterUpdate(&gyroSensor->gyroDyn[axis], lpfHz, gyro.targetLooptime, BIQUAD_Q, FILTER_LPF);
 
-                DEBUG_SET(DEBUG_DYN_FILTER,0, (int16_t) lrintf(lpfhz)));
+                float input, output;
+
+                  //Get signal to filter
+                  input = gyroSensor->gyroDev.gyroADCf[axis];
+
+                  //Apply biquad filter on signal and put result in ouput.
+                  output = biquadFilterApply(&gyroSensor->gyroDyn[axis], input);
+
+                  //Put ouput result in the correct var.
+                  gyroSensor->gyroDev.gyroADCf[axis] = output;
+
+                  if(axis == ROLL) {
+                      DEBUG_SET(DEBUG_DYN_FILTER, 0, (int16_t)(lrintf(input)));       // Debug[0] = input
+                      DEBUG_SET(DEBUG_DYN_FILTER, 1, (int16_t)(lrintf(output)));      // Debug[1] = ouput
+                      DEBUG_SET(DEBUG_DYN_FILTER, 2, (int16_t)(lrintf(lpfHz)));       // Debug[2] = cut off freq of the biquas
+                      DEBUG_SET(DEBUG_DYN_FILTER, 3, (int16_t)(lrintf(setPoint)));    // Debug[3] = setpoint (stick input)
+                  }
 
 
             }
