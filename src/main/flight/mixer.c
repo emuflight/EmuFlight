@@ -824,6 +824,12 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
 
         pidUpdateAntiGravityThrottleFilter(throttle);
 
+#ifndef USE_GYRO_IMUF9001
+        void gyroDynLpfUpdate();
+#endif
+
+        void dtermDynLpfUpdate(const pidProfile_t *pidProfile);
+
 #if defined(USE_THROTTLE_BOOST)
     if (throttleBoost > 0.0f) {
         const float throttleHpf = throttle - pt1FilterApply(&throttleLpf, throttle);

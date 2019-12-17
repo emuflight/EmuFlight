@@ -217,3 +217,4 @@ bool pidOsdAntiGravityMode(void);
 void pidSetAntiGravityState(bool newState);
 bool pidAntiGravityEnabled(void);
 float pidGetPreviousSetpoint(int axis);
+void dtermDynLpfUpdate(const pidProfile_t *pidProfile);

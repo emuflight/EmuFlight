@@ -128,7 +128,7 @@ float FAST_RAM_ZERO_INIT vGyroStdDevModulus;
 static FAST_RAM_ZERO_INIT int16_t gyroSensorTemperature;
 
 #ifndef USE_GYRO_IMUF9001
-static FAST_RAM_ZERO_INIT pt1Filter_t gyroDynHzLpf;
+static FAST_RAM_ZERO_INIT pt1Filter_t gyroDynHzLpf[3];
 #endif //USE_GYRO_IMUF9001
 
 static bool gyroHasOverflowProtection = true;
@@ -800,16 +800,13 @@ void gyroInitSlewLimiter(gyroSensor_t *gyroSensor) {
 
 static void gyroInitDynFilterLpf(gyroSensor_t *gyroSensor, float lpfHz)
 {
-  filterApplyFnPtr *gyroDynApplyFn;
-  biquadFilter_t *gyroDyn = NULL;
-  gyroDynApplyFn = &gyroSensor->gyroDynApplyFn;
-  gyroDyn = gyroSensor->gyroDyn;
+  gyroSensor->gyroDynApplyFn = nullFilterApply;
 
   if (gyroConfig()->gyro_dyn_lpf != 0)
   {
-        *gyroDynApplyFn = (filterApplyFnPtr) biquadFilterApplyDF1;
+        gyroSensor->gyroDynApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1;
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            biquadFilterInitLPF(&gyroDyn[axis], lpfHz, gyro.targetLooptime);
+            biquadFilterInitLPF(&gyroSensor->gyroDyn[axis], lpfHz, gyro.targetLooptime);
         }
     }
 }
@@ -1443,3 +1440,24 @@ uint8_t gyroReadRegister(uint8_t whichSensor, uint8_t reg)
     return mpuGyroReadRegister(gyroSensorBusByDevice(whichSensor), reg);
 }
 #endif // USE_GYRO_REGISTER_DUMP
+
+#ifndef USE_GYRO_IMUF9001
+void gyroDynLpfUpdate()
+{
+  biquadFilter_t *gyroDyn;
+  if(gyroConfig()->gyro_dyn_lpf != 0) {
+    float lpfHz;
+    const float dT = gyro.targetLooptime * 1e-6f;
+    float MinFreq = gyroConfig()->gyro_dyn_lpf;
+
+            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+              float setPoint            = getSetpointRate(axis);
+              float FilterGyro    = gyro.gyroADCf[axis];
+              lpfHz = constrainf( MinFreq + ABS((setPoint - FilterGyro) * 3) + ABS(FilterGyro / 4.0f), MinFreq, (MinFreq + 500.0f));
+              pt1FilterInit(&gyroDynHzLpf[axis], pt1FilterGain(90, dT));
+              lpfHz = pt1FilterApply(&gyroDynHzLpf[axis], lpfHz);
+              biquadFilterUpdateLPF(&gyroDyn[axis], lpfHz, gyro.targetLooptime);
+          }
+    }
+}
+#endif

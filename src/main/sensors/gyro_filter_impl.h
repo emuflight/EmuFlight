@@ -43,6 +43,7 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
         gyroADCf = gyroSensor->lowpassFilterApplyFn((filter_t *)&gyroSensor->lowpassFilter[axis], gyroADCf);
         gyroADCf = gyroSensor->notchFilter1ApplyFn((filter_t *)&gyroSensor->notchFilter1[axis], gyroADCf);
         gyroADCf = gyroSensor->notchFilter2ApplyFn((filter_t *)&gyroSensor->notchFilter2[axis], gyroADCf);
+        gyroADCf = gyroSensor->gyroDynApplyFn((filter_t *)&gyroSensor->gyroDyn[axis], gyroADCf);
 
 #ifdef USE_GYRO_DATA_ANALYSE
         if (isDynamicFilterActive()) {
@@ -73,43 +74,4 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
     gyroSensor->gyroDev.gyroADCf[X] = output[X];
     gyroSensor->gyroDev.gyroADCf[Y] = output[Y];
     gyroSensor->gyroDev.gyroADCf[Z] = output[Z];
-
-    //Update Dyn LPF at 100Hz
-    if(gyroConfig()->gyro_dyn_lpf != 0) {
-      float lpfHz;
-      const float dT = gyro.targetLooptime * 1e-6f;
-
-        #define BIQUAD_Q 1.0f / sqrtf(2.0f)     /* quality factor - 2nd order butterworth*/
-        float MinFreq = gyroConfig()->gyro_dyn_lpf;
-        MinFreq += ((float)(rcData[THROTTLE] - 1000) * 0.1f) + 10; //Add 0 - 50Hz
-
-              for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                float setPoint      = getSetpointRate(axis);
-                float FilterGyro    = gyro.gyroADCf[axis];
-                lpfHz = constrainf( MinFreq + ABS((setPoint - FilterGyro) * 2) + ABS(FilterGyro / 5.0f), MinFreq, (MinFreq + 500.0f));
-                pt1FilterInit(&gyroDynHzLpf, pt1FilterGain(15, dT));
-                lpfHz = pt1FilterApply(&gyroDynHzLpf, lpfHz);
-                biquadFilterUpdate(&gyroSensor->gyroDyn[axis], lpfHz, gyro.targetLooptime, BIQUAD_Q, FILTER_LPF);
-
-                float input, output;
-
-                  //Get signal to filter
-                  input = gyroSensor->gyroDev.gyroADCf[axis];
-
-                  //Apply biquad filter on signal and put result in ouput.
-                  output = biquadFilterApply(&gyroSensor->gyroDyn[axis], input);
-
-                  //Put ouput result in the correct var.
-                  gyroSensor->gyroDev.gyroADCf[axis] = output;
-
-                  if(axis == ROLL) {
-                      DEBUG_SET(DEBUG_DYN_FILTER, 0, (int16_t)(lrintf(input)));       // Debug[0] = input
-                      DEBUG_SET(DEBUG_DYN_FILTER, 1, (int16_t)(lrintf(output)));      // Debug[1] = ouput
-                      DEBUG_SET(DEBUG_DYN_FILTER, 2, (int16_t)(lrintf(lpfHz)));       // Debug[2] = cut off freq of the biquas
-                      DEBUG_SET(DEBUG_DYN_FILTER, 3, (int16_t)(lrintf(setPoint)));    // Debug[3] = setpoint (stick input)
-                  }
-
-
-            }
-      }
 }
