@@ -575,7 +575,7 @@ static CMS_Menu cmsx_menuImuf = {
 static uint16_t cmsx_dterm_notch_hz;
 static uint16_t cmsx_dterm_notch_cutoff;
 static uint16_t cmsx_yaw_lowpass_hz;
-static uint16_t cmsx_smart_dterm_smoothing;
+static uint8_t cmsx_smart_dterm_smoothing;
 
 static long cmsx_FilterPerProfileRead(void)
 {
