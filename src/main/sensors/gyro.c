@@ -1454,7 +1454,7 @@ void gyroDynLpfUpdate()
               float setPoint            = getSetpointRate(axis);
               float FilterGyro    = gyro.gyroADCf[axis];
               lpfHz = constrainf( MinFreq + ABS((setPoint - FilterGyro) * 3) + ABS(FilterGyro / 4.0f), MinFreq, (MinFreq + 500.0f));
-              pt1FilterInit(&gyroDynHzLpf[axis], pt1FilterGain(90, dT));
+              pt1FilterInit(&gyroDynHzLpf[axis], pt1FilterGain(60, dT));
               lpfHz = pt1FilterApply(&gyroDynHzLpf[axis], lpfHz);
               biquadFilterUpdateLPF(&gyroDyn[axis], lpfHz, gyro.targetLooptime);
           }

@@ -575,6 +575,7 @@ static CMS_Menu cmsx_menuImuf = {
 static uint16_t cmsx_dterm_notch_hz;
 static uint16_t cmsx_dterm_notch_cutoff;
 static uint16_t cmsx_yaw_lowpass_hz;
+static uint16_t cmsx_smart_dterm_smoothing;
 
 static long cmsx_FilterPerProfileRead(void)
 {
@@ -586,6 +587,7 @@ static long cmsx_FilterPerProfileRead(void)
     cmsx_dterm_notch_cutoff = pidProfile->dterm_notch_cutoff;
     cmsx_dterm_dyn_lpf      = pidProfile->dterm_dyn_lpf;
     cmsx_yaw_lowpass_hz     = pidProfile->yaw_lowpass_hz;
+    cmsx_smart_dterm_smoothing     = pidProfile->smart_dterm_smoothing;
 
     return 0;
 }
@@ -602,6 +604,7 @@ static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self)
     pidProfile->dterm_notch_cutoff = cmsx_dterm_notch_cutoff;
     pidProfile->dterm_dyn_lpf      = cmsx_dterm_dyn_lpf;
     pidProfile->yaw_lowpass_hz     = cmsx_yaw_lowpass_hz;
+    pidProfile->smart_dterm_smoothing     = cmsx_smart_dterm_smoothing;
 
     return 0;
 }
@@ -616,6 +619,7 @@ static OSD_Entry cmsx_menuFilterPerProfileEntries[] =
     { "DTERM NF",   OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_notch_hz,       0, 500, 1 }, 0 },
     { "DTERM NFCO", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_notch_cutoff,   0, 500, 1 }, 0 },
     { "YAW LPF",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_yaw_lowpass_hz,       0, 500, 1 }, 0 },
+    { "SMART SMOOTHING",    OME_UINT8, NULL, &(OSD_UINT16_t){ &cmsx_smart_dterm_smoothing,       1, 250, 1 }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },

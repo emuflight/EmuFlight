@@ -148,6 +148,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_notch_hz = 0,
         .dterm_notch_cutoff = 0,
         .dterm_filter_type = FILTER_PT1,
+        .smart_dterm_smoothing = 50,
         .itermWindupPointPercent = 50,
         .vbatPidCompensation = 0,
         .pidAtMinThrottle = PID_STABILISATION_ON,
@@ -387,7 +388,8 @@ static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feedForwardTransition;
 static FAST_RAM_ZERO_INIT float feathered_pids;
-static FAST_RAM_ZERO_INIT float nfe_racermode;
+static FAST_RAM_ZERO_INIT uint8_t nfe_racermode;
+static FAST_RAM_ZERO_INIT float smart_dterm_smoothing;
 static FAST_RAM_ZERO_INIT float setPointPTransition;
 static FAST_RAM_ZERO_INIT float setPointITransition;
 static FAST_RAM_ZERO_INIT float setPointDTransition;
@@ -467,6 +469,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 
     feathered_pids = pidProfile->feathered_pids / 100.0f;
     nfe_racermode = pidProfile->nfe_racermode;
+    smart_dterm_smoothing = pidProfile->smart_dterm_smoothing;
     setPointPTransition = pidProfile->setPointPTransition / 100.0f;
     setPointITransition = pidProfile->setPointITransition / 100.0f;
     setPointDTransition = pidProfile->setPointDTransition / 100.0f;
@@ -865,6 +868,7 @@ float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelt
 
 static FAST_RAM_ZERO_INIT float previousError[3];
 static FAST_RAM_ZERO_INIT float previousMeasurement[3];
+static FAST_RAM_ZERO_INIT float previousdDelta;
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 //static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
@@ -1056,7 +1060,9 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
                 previousError[axis] = pureRD;
                 float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency);
                 dDelta = dtermDynApplyFn((filter_t *) &dtermDyn[axis], dDelta);
-
+                float dDeltaMultiplier = constrainf(fabsf(dDelta + previousdDelta) / (2 * smart_dterm_smoothing), 0.0f, 1.0f);
+                dDelta = dDelta * dDeltaMultiplier;
+                previousdDelta = dDelta;
 
         if (pidCoefficient[axis].Kd > 0) {
                 // Divide rate change by dT to get differential (ie dr/dt).
@@ -1196,7 +1202,7 @@ void dtermDynLpfUpdate(const pidProfile_t *pidProfile)
      for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
      {
          lpfHz = constrainf( MinFreq + ABS((getSetpointRate(axis) - gyro.gyroADCf[axis]) * 1.5) + ABS(gyro.gyroADCf[axis] / 5.0f), MinFreq, (MinFreq + 500.0f));
-         pt1FilterInit(&dtermDynHzLpf[axis], pt1FilterGain(90, dT));
+         pt1FilterInit(&dtermDynHzLpf[axis], pt1FilterGain(60, dT));
          lpfHz = pt1FilterApply(&dtermDynHzLpf[axis], lpfHz);
          biquadFilterUpdateLPF(&dtermDyn[axis].biquadFilter, lpfHz, targetPidLooptime);
      }
