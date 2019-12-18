@@ -868,7 +868,7 @@ float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelt
 
 static FAST_RAM_ZERO_INIT float previousError[3];
 static FAST_RAM_ZERO_INIT float previousMeasurement[3];
-static FAST_RAM_ZERO_INIT float previousdDelta;
+static FAST_RAM_ZERO_INIT float previousdDelta[3];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 //static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
@@ -1060,9 +1060,9 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
                 previousError[axis] = pureRD;
                 float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency);
                 dDelta = dtermDynApplyFn((filter_t *) &dtermDyn[axis], dDelta);
-                float dDeltaMultiplier = constrainf(fabsf(dDelta + previousdDelta) / (2 * smart_dterm_smoothing), 0.0f, 1.0f);
+                float dDeltaMultiplier = constrainf(fabsf(dDelta + previousdDelta[axis]) / (2 * smart_dterm_smoothing), 0.0f, 1.0f);
                 dDelta = dDelta * dDeltaMultiplier;
-                previousdDelta = dDelta;
+                previousdDelta[axis] = dDelta;
 
         if (pidCoefficient[axis].Kd > 0) {
                 // Divide rate change by dT to get differential (ie dr/dt).
