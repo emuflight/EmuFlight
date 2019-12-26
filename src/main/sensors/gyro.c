@@ -280,7 +280,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .imuf_roll_q = 3000,
     .imuf_pitch_q = 3000,
     .imuf_yaw_q = 3000,
-    .imuf_w = 16,
+    .imuf_w = 32,
     .gyro_offset_yaw = 0,
     .yaw_spin_recovery = true,
     .yaw_spin_threshold = 1950,
@@ -1457,6 +1457,10 @@ void gyroDynLpfUpdate()
               pt1FilterInit(&gyroDynHzLpf[axis], pt1FilterGain(60, dT));
               lpfHz = pt1FilterApply(&gyroDynHzLpf[axis], lpfHz);
               biquadFilterUpdateLPF(&gyroDyn[axis], lpfHz, gyro.targetLooptime);
+              if(axis == ROLL) {
+                  DEBUG_SET(DEBUG_DYN_FILTER, 2, (int16_t)(lrintf(lpfHz)));       // Debug[2] = cut off freq of the biquad
+                  DEBUG_SET(DEBUG_DYN_FILTER, 3, (int16_t)(lrintf(setPoint)));    // Debug[3] = setpoint (stick input)
+              }
           }
     }
 }

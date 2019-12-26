@@ -149,6 +149,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_notch_cutoff = 0,
         .dterm_filter_type = FILTER_PT1,
         .smart_dterm_smoothing = 50,
+        .witchCraft = 3,
         .itermWindupPointPercent = 50,
         .vbatPidCompensation = 0,
         .pidAtMinThrottle = PID_STABILISATION_ON,
@@ -866,9 +867,12 @@ float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelt
 #endif // USE_RC_SMOOTHING_FILTER
 
 
-static FAST_RAM_ZERO_INIT float previousError[3];
-static FAST_RAM_ZERO_INIT float previousMeasurement[3];
-static FAST_RAM_ZERO_INIT float previousdDelta[3];
+static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float previousdDelta[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float kdRingBuffer[XYZ_AXIS_COUNT][KD_RING_BUFFER_SIZE];
+static FAST_RAM_ZERO_INIT float kdRingBufferSum[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT uint16_t kdRingBufferPoint[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 //static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
@@ -924,31 +928,30 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
         // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
         // Based on 2DOF reference design (matlab)
 
+        float errorBoostAxis;
+        float errorLimitAxis;
 
-            float errorBoostAxis;
-            float errorLimitAxis;
+        if (axis <= FD_PITCH) {
+            errorBoostAxis = pidProfile->errorBoost;
+            errorLimitAxis = pidProfile->errorBoostLimit;
+        } else {
+            errorBoostAxis = pidProfile->errorBoostYaw;
+            errorLimitAxis = pidProfile->errorBoostLimitYaw;
+        }
+        errorLimitAxis = errorLimitAxis / 100;
+        float errorMultiplier = (errorBoostAxis * errorBoostAxis / 1000000) * 0.003;
+        float boostedErrorRate;
 
-            if (axis <= FD_PITCH) {
-                errorBoostAxis = pidProfile->errorBoost;
-                errorLimitAxis = pidProfile->errorBoostLimit;
-            } else {
-                errorBoostAxis = pidProfile->errorBoostYaw;
-                errorLimitAxis = pidProfile->errorBoostLimitYaw;
-            }
+        if (errorRate >= 0) {
+        boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
+      } else {
+        boostedErrorRate = -((errorRate * errorRate) * errorMultiplier);
+      }
 
-            float errorMultiplier = (errorBoostAxis * errorBoostAxis / 1000000) * 0.003;
-            float boostedErrorRate;
-
-            if (errorRate >= 0) {
-            boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
-          } else {
-            boostedErrorRate = -((errorRate * errorRate) * errorMultiplier);
-          }
-
-            if (fabsf(errorRate * errorLimitAxis / 100) < fabsf(boostedErrorRate))
-              {
-                boostedErrorRate = errorRate * errorLimitAxis / 100;
-            }
+        if (fabsf(errorRate * errorLimitAxis) < fabsf(boostedErrorRate))
+          {
+            boostedErrorRate = errorRate * errorLimitAxis;
+        }
 
             rotateITermAndAxisError();
             // --------low-level gyro-based PID based on 2DOF PID controller. ----------
@@ -1058,11 +1061,26 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
                 const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
                 previousMeasurement[axis] = gyro.gyroADCf[axis];
                 previousError[axis] = pureRD;
-                float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency);
+                float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm
+                //filter the dterm
+                dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], dDelta);
                 dDelta = dtermDynApplyFn((filter_t *) &dtermDyn[axis], dDelta);
                 float dDeltaMultiplier = constrainf(fabsf(dDelta + previousdDelta[axis]) / (2 * smart_dterm_smoothing), 0.0f, 1.0f);
                 dDelta = dDelta * dDeltaMultiplier;
                 previousdDelta[axis] = dDelta;
+
+            if (pidProfile->witchCraft > 1)
+              {
+                kdRingBuffer[axis][kdRingBufferPoint[axis]++] = dDelta;
+                kdRingBufferSum[axis] += dDelta;
+
+                if (kdRingBufferPoint[axis] == pidProfile->witchCraft) {
+                kdRingBufferPoint[axis] = 0;
+                }
+
+                dDelta = (float)(kdRingBufferSum[axis] / (float) (pidProfile->witchCraft));
+                kdRingBufferSum[axis] -= kdRingBuffer[axis][kdRingBufferPoint[axis]];
+              }
 
         if (pidCoefficient[axis].Kd > 0) {
                 // Divide rate change by dT to get differential (ie dr/dt).

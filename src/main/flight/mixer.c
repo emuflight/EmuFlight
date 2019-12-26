@@ -828,7 +828,7 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
         void gyroDynLpfUpdate();
 #endif
 
-        void dtermDynLpfUpdate(const pidProfile_t *pidProfile);
+        dtermDynLpfUpdate(currentPidProfile);
 
 #if defined(USE_THROTTLE_BOOST)
     if (throttleBoost > 0.0f) {

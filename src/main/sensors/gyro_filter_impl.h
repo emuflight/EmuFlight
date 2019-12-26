@@ -38,12 +38,21 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
         }
 #endif
 
+        float input, output;
+
         // apply static notch filters and software lowpass filters
         gyroADCf = gyroSensor->lowpass2FilterApplyFn((filter_t *)&gyroSensor->lowpass2Filter[axis], gyroADCf);
         gyroADCf = gyroSensor->lowpassFilterApplyFn((filter_t *)&gyroSensor->lowpassFilter[axis], gyroADCf);
         gyroADCf = gyroSensor->notchFilter1ApplyFn((filter_t *)&gyroSensor->notchFilter1[axis], gyroADCf);
         gyroADCf = gyroSensor->notchFilter2ApplyFn((filter_t *)&gyroSensor->notchFilter2[axis], gyroADCf);
+        input = gyroADCf;
         gyroADCf = gyroSensor->gyroDynApplyFn((filter_t *)&gyroSensor->gyroDyn[axis], gyroADCf);
+        output = gyroADCf;
+
+          if(axis == ROLL) {
+              DEBUG_SET(DEBUG_DYN_FILTER, 0, (int16_t)(lrintf(input)));       // Debug[2] = cut off freq of the biquad
+              DEBUG_SET(DEBUG_DYN_FILTER, 1, (int16_t)(lrintf(output)));    // Debug[3] = setpoint (stick input)
+          }
 
 #ifdef USE_GYRO_DATA_ANALYSE
         if (isDynamicFilterActive()) {
