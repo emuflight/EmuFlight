@@ -645,7 +645,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     }
 }
     i_term[axis] += i_new;
-    float d_term = -(attitude.raw[axis] - attitudePrevious[axis]) * 0.1f;
+    float d_term = -(attitude.raw[axis] - attitudePrevious[axis]) * 0.1f * pidFrequency;
     attitudePrevious[axis] = attitude.raw[axis];
 
     if (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(GPS_RESCUE_MODE)) {
