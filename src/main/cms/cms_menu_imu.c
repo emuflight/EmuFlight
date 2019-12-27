@@ -291,7 +291,9 @@ static uint8_t  cmsx_setPointDTransition;
 static uint8_t  cmsx_setPointPTransitionYaw;
 static uint8_t  cmsx_setPointITransitionYaw;
 static uint8_t  cmsx_setPointDTransitionYaw;
-static uint8_t  cmsx_angleStrength;
+static uint8_t  cmsx_P_angle;
+static uint8_t  cmsx_I_angle;
+static uint8_t  cmsx_D_angle;
 static uint8_t  cmsx_horizonStrength;
 static uint8_t  cmsx_horizonTransition;
 static uint8_t  cmsx_nfe_racermode;
@@ -315,9 +317,11 @@ static long cmsx_profileOtherOnEnter(void)
     cmsx_setPointITransitionYaw  = pidProfile->setPointITransitionYaw;
     cmsx_setPointDTransitionYaw  = pidProfile->setPointDTransitionYaw;
 
-    cmsx_angleStrength =     pidProfile->pid[PID_LEVEL].P;
-    cmsx_horizonStrength =   pidProfile->pid[PID_LEVEL].I;
-    cmsx_horizonTransition = pidProfile->pid[PID_LEVEL].D;
+    cmsx_P_angle =           pidProfile->pid[PID_LEVEL].P;
+    cmsx_I_angle =           pidProfile->pid[PID_LEVEL].I;
+    cmsx_D_angle =           pidProfile->pid[PID_LEVEL].D;
+    cmsx_horizonStrength =   pidProfile->horizonStrength;
+    cmsx_horizonTransition = pidProfile->horizonTransition;
 
     cmsx_nfe_racermode = pidProfile->nfe_racermode;
 
@@ -345,9 +349,11 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
     pidProfile->setPointDTransitionYaw = cmsx_setPointDTransitionYaw;
     pidInitConfig(currentPidProfile);
 
-    pidProfile->pid[PID_LEVEL].P = cmsx_angleStrength;
-    pidProfile->pid[PID_LEVEL].I = cmsx_horizonStrength;
-    pidProfile->pid[PID_LEVEL].D = cmsx_horizonTransition;
+    pidProfile->pid[PID_LEVEL].P = cmsx_P_angle;
+    pidProfile->pid[PID_LEVEL].I = cmsx_I_angle;
+    pidProfile->pid[PID_LEVEL].D = cmsx_D_angle;
+    pidProfile->horizonStrength  = cmsx_horizonStrength;
+    pidProfile->horizonTransition = cmsx_horizonTransition;
 
     pidProfile->nfe_racermode = cmsx_nfe_racermode;
 
@@ -372,7 +378,9 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "SPA RATE P YAW",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransitionYaw,    0,    250,   1, 10 }, 0 },
     { "SPA RATE I YAW",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransitionYaw,    0,    250,   1, 10 }, 0 },
     { "SPA RATE D YAW",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransitionYaw,    0,    250,   1, 10 }, 0 },
-    { "ANGLE STR",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_angleStrength,          0,    200,   1  }   , 0 },
+    { "ANGLE P",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_P_angle,                0,    200,   1  }   , 0 },
+    { "ANGLE I",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_I_angle,                0,    200,   1  }   , 0 },
+    { "ANGLE D",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_D_angle,                0,    200,   1  }   , 0 },
     { "HORZN STR",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonStrength,        0,    200,   1  }   , 0 },
     { "HORZN TRS",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonTransition,      0,    200,   1  }   , 0 },
     { "NFE RACERMODE",    OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_nfe_racermode, 1, cms_offOnLabels }, 0 },
