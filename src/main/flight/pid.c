@@ -135,7 +135,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
             [PID_ROLL] =  DEFAULT_PIDS_ROLL,
             [PID_PITCH] = DEFAULT_PIDS_PITCH,
             [PID_YAW] =   DEFAULT_PIDS_YAW,
-            [PID_LEVEL] = { 70, 40, 10, 0, 0},
+            [PID_LEVEL_LOW] = { 70, 40, 10, 0, 0},
+            [PID_LEVEL_HIGH] = { 35, 0, 1, 0, 0},
             [PID_MAG] =   { 40, 0, 0, 0, 0},
         },
 
@@ -398,7 +399,7 @@ static FAST_RAM_ZERO_INIT float setPointDTransition;
 static FAST_RAM_ZERO_INIT float setPointPTransitionYaw;
 static FAST_RAM_ZERO_INIT float setPointITransitionYaw;
 static FAST_RAM_ZERO_INIT float setPointDTransitionYaw;
-static FAST_RAM_ZERO_INIT float P_angle, I_angle, D_angle, horizonStrength, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
+static FAST_RAM_ZERO_INIT float P_angle_low, I_angle_low, D_angle_low, P_angle_high, I_angle_high, D_angle_high, horizonStrength, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
 static FAST_RAM_ZERO_INIT uint8_t horizonTiltExpertMode;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeLimitUs;
@@ -478,9 +479,12 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     setPointPTransitionYaw = pidProfile->setPointPTransitionYaw / 100.0f;
     setPointITransitionYaw = pidProfile->setPointITransitionYaw / 100.0f;
     setPointDTransitionYaw = pidProfile->setPointDTransitionYaw / 100.0f;
-    P_angle = pidProfile->pid[PID_LEVEL].P * 0.1f;
-    I_angle = pidProfile->pid[PID_LEVEL].I * 0.76f;
-    D_angle = pidProfile->pid[PID_LEVEL].D * 0.0017f;
+    P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
+    I_angle_low = pidProfile->pid[PID_LEVEL_LOW].I * 0.76f;
+    D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
+    P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
+    I_angle_high = pidProfile->pid[PID_LEVEL_HIGH].I * 0.76f;
+    D_angle_high = pidProfile->pid[PID_LEVEL_HIGH].D * 0.00017f;
     horizonStrength = pidProfile->horizonStrength / 10.0f;
     horizonTransition = (float)pidProfile->horizonTransition;
     horizonTiltExpertMode = pidProfile->horizon_tilt_expert_mode;
@@ -629,35 +633,45 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
     float i_term[2], attitudePrevious[2];
+    float p_term_low, p_term_high, d_term_low, d_term_high;
     float angle = pidProfile->levelAngleLimit * getRcDeflection(axis);
 #ifdef USE_GPS_RESCUE
     angle += gpsRescueAngle[axis] / 100; // ANGLE IS IN CENTIDEGREES
 #endif
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
-    const float errorAngle = angle - ((attitude.raw[axis] - angleTrim->raw[axis]) * 0.1f);
-    float i_new = errorAngle * dT * I_angle;
-    if (i_new != 0.0f)
-{
-    if (SIGN(i_term[axis]) != SIGN(i_new))
-    {
-      i_new = i_new * (float)pidProfile->i_decay;
-    }
-}
-    i_term[axis] += i_new;
-    float d_term = -(attitude.raw[axis] - attitudePrevious[axis]) * 0.1f;
-    attitudePrevious[axis] = attitude.raw[axis];
+    float errorAngle = angle - ((attitude.raw[axis] - angleTrim->raw[axis]) * 0.1f);
+    errorAngle = constrainf(errorAngle, -90, 90);
+    const float errorAnglePercent = errorAngle / 90;
 
     if (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(GPS_RESCUE_MODE)) {
         // ANGLE mode - control is angle based
-        currentPidSetpoint = errorAngle * P_angle;
+        p_term_low = (1-fabsf(errorAnglePercent)) * errorAngle * P_angle_low;
+        p_term_high = fabsf(errorAnglePercent) * errorAngle * P_angle_high;
     } else {
         // HORIZON mode - mix of ANGLE and ACRO modes
         // mix in errorAngle to currentPidSetpoint to add a little auto-level feel
         const float horizonLevelStrength = calcHorizonLevelStrength();
         currentPidSetpoint = currentPidSetpoint + (errorAngle * horizonStrength * horizonLevelStrength);
     }
+
+    float i_new_low = (1-fabsf(errorAnglePercent)) * errorAngle * dT * I_angle_low;
+    float i_new_high = fabsf(errorAnglePercent) * errorAngle * dT * I_angle_high;
+    if (i_new_low != 0.0f)
+{
+    if (SIGN(i_term[axis]) != SIGN(i_new_low))
+    {
+      i_new_low = i_new_low * (float)pidProfile->i_decay;
+      i_new_high = i_new_high * (float)pidProfile->i_decay;
+    }
+}
+    i_term[axis] += i_new_low + i_new_high;
+    d_term_low = (1-fabsf(errorAnglePercent)) * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_low;
+    d_term_high = fabsf(errorAnglePercent) * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_high;
+    attitudePrevious[axis] = attitude.raw[axis];
+
+    currentPidSetpoint += p_term_low + p_term_high;
     currentPidSetpoint += i_term[axis];
-    currentPidSetpoint += d_term;
+    currentPidSetpoint += d_term_low + d_term_high;
     return currentPidSetpoint;
 }
 
@@ -691,7 +705,7 @@ static void handleCrashRecovery(
             if (sensors(SENSOR_ACC)) {
                 // errorAngle is deviation from horizontal
                 const float errorAngle =  -(attitude.raw[axis] - angleTrim->raw[axis]) / 10.0f;
-                *currentPidSetpoint = errorAngle * P_angle;
+                *currentPidSetpoint = errorAngle * P_angle_low;
                 *errorRate = *currentPidSetpoint - gyroRate;
             }
         }

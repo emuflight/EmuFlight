@@ -1304,9 +1304,12 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("yawPID", "%d,%d,%d",                    currentPidProfile->pid[PID_YAW].P,
                                                                             currentPidProfile->pid[PID_YAW].I,
                                                                             currentPidProfile->pid[PID_YAW].D);
-        BLACKBOX_PRINT_HEADER_LINE("levelPID", "%d,%d,%d",                  currentPidProfile->pid[PID_LEVEL].P,
-                                                                            currentPidProfile->pid[PID_LEVEL].I,
-                                                                            currentPidProfile->pid[PID_LEVEL].D);
+        BLACKBOX_PRINT_HEADER_LINE("levelPIDLOW", "%d,%d,%d",               currentPidProfile->pid[PID_LEVEL_LOW].P,
+                                                                            currentPidProfile->pid[PID_LEVEL_LOW].I,
+                                                                            currentPidProfile->pid[PID_LEVEL_LOW].D);
+        BLACKBOX_PRINT_HEADER_LINE("levelPIDHIGH", "%d,%d,%d",              currentPidProfile->pid[PID_LEVEL_HIGH].P,
+                                                                            currentPidProfile->pid[PID_LEVEL_HIGH].I,
+                                                                            currentPidProfile->pid[PID_LEVEL_HIGH].D);                                                                            
         BLACKBOX_PRINT_HEADER_LINE("magPID", "%d",                          currentPidProfile->pid[PID_MAG].P);
         BLACKBOX_PRINT_HEADER_LINE("dterm_filter_type", "%d",               currentPidProfile->dterm_filter_type);
         BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass_hz", "%d",                currentPidProfile->dterm_lowpass_hz);
