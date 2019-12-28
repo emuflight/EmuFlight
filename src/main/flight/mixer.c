@@ -847,7 +847,7 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
 
     loggingThrottle = throttle;
     motorMixRange = motorMixMax - motorMixMin;
-    if (motorMixRange > 1.0f) {
+    if (motorMixRange > 1.0f && (hardwareMotorType != MOTOR_BRUSHED)) {
         for (int i = 0; i < motorCount; i++) {
             motorMix[i] /= motorMixRange;
         }
