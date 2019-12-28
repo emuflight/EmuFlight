@@ -75,6 +75,8 @@ typedef struct pidf_s {
     uint8_t I;
     uint8_t D;
     uint16_t F;
+    uint8_t Wc; //adding witchCraft so it can be set per axis :) might put future dterm filters in here to set them per axis :) go emu!
+
 } pidf_t;
 
 typedef enum {
@@ -149,7 +151,6 @@ typedef struct pidProfile_s {
     uint16_t itermLimit;
     uint16_t dterm_lowpass2_hz;             // Extra PT1 Filter on D in hz
     uint8_t smart_dterm_smoothing;          // value that your dterm must go past to act normal
-    uint8_t witchCraft;                     // witchCraft from RACEFLIGHT
     uint8_t crash_recovery;                 // off, on, on and beeps when it is in crash recovery mode
     uint8_t throttle_boost;                 // how much should throttle be boosted during transient changes 0-100, 100 adds 10x hpf filtered throttle
     uint8_t throttle_boost_cutoff;          // Which cutoff frequency to use for throttle boost. higher cutoffs keep the boost on for shorter. Specified in hz.
@@ -175,7 +176,7 @@ PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
 #endif
 
 typedef struct pidConfig_s {
-    uint8_t pid_process_denom;              // Processing denominator for PID controller vs gyro sampling rate
+    uint8_t pid_process_denom;                   // Processing denominator for PID controller vs gyro sampling rate
     uint8_t runaway_takeoff_prevention;          // off, on - enables pidsum runaway disarm logic
     uint16_t runaway_takeoff_deactivate_delay;   // delay in ms for "in-flight" conditions before deactivation (successful flight)
     uint8_t runaway_takeoff_deactivate_throttle; // minimum throttle percent required during deactivation phase

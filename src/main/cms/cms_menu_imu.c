@@ -69,6 +69,8 @@ static uint16_t errorBoostYaw;
 static uint8_t errorBoostLimitYaw;
 static uint8_t tempPid[3][3];
 static uint16_t tempPidF[3];
+static uint8_t tempPidWc[3];
+
 
 static uint8_t tmpRateProfileIndex;
 static uint8_t rateProfileIndex;
@@ -584,12 +586,13 @@ static uint16_t cmsx_dterm_notch_hz;
 static uint16_t cmsx_dterm_notch_cutoff;
 static uint16_t cmsx_yaw_lowpass_hz;
 static uint8_t cmsx_smart_dterm_smoothing;
-static uint8_t cmsx_witchCraft;
 
 static long cmsx_FilterPerProfileRead(void)
 {
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
-
+    for (uint8_t i = 0; i < 3; i++) {
+        tempPidWc[i] = pidProfile->pid[i].Wc;
+    }
     cmsx_dterm_lowpass_hz   = pidProfile->dterm_lowpass_hz;
     cmsx_dterm_lowpass2_hz  = pidProfile->dterm_lowpass2_hz;
     cmsx_dterm_notch_hz     = pidProfile->dterm_notch_hz;
@@ -597,8 +600,6 @@ static long cmsx_FilterPerProfileRead(void)
     cmsx_dterm_dyn_lpf      = pidProfile->dterm_dyn_lpf;
     cmsx_yaw_lowpass_hz     = pidProfile->yaw_lowpass_hz;
     cmsx_smart_dterm_smoothing     = pidProfile->smart_dterm_smoothing;
-    cmsx_witchCraft         = pidProfile->witchCraft;
-
     return 0;
 }
 
@@ -608,6 +609,10 @@ static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self)
 
     pidProfile_t *pidProfile = currentPidProfile;
 
+    for (uint8_t i = 0; i < 3; i++) {
+        pidProfile->pid[i].Wc = tempPidWc[i];
+    }
+
     pidProfile->dterm_lowpass_hz   = cmsx_dterm_lowpass_hz;
     pidProfile->dterm_lowpass2_hz  = cmsx_dterm_lowpass2_hz;
     pidProfile->dterm_notch_hz     = cmsx_dterm_notch_hz;
@@ -615,7 +620,6 @@ static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self)
     pidProfile->dterm_dyn_lpf      = cmsx_dterm_dyn_lpf;
     pidProfile->yaw_lowpass_hz     = cmsx_yaw_lowpass_hz;
     pidProfile->smart_dterm_smoothing     = cmsx_smart_dterm_smoothing;
-    pidProfile->witchCraft         = cmsx_witchCraft;
     return 0;
 }
 
@@ -630,7 +634,9 @@ static OSD_Entry cmsx_menuFilterPerProfileEntries[] =
     { "DTERM NFCO", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_notch_cutoff,   0, 500, 1 }, 0 },
     { "YAW LPF",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_yaw_lowpass_hz,       0, 500, 1 }, 0 },
     { "SMART SMOOTHING",    OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_smart_dterm_smoothing,       1, 250, 1 }, 0 },
-    { "WITCH CRAFT",    OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_witchCraft,       1, 30, 1 }, 0 },
+    { "ROLL WITCHCRAFT",    OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[PID_ROLL], 0, 10, 1 }, 0 },
+    { "PITCH WITCHCRAFT",   OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[PID_PITCH], 0, 10, 1 }, 0 },
+    { "YAW WITCHCRAFT",     OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[PID_YAW], 0, 10, 1 }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },

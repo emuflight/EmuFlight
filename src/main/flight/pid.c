@@ -95,15 +95,15 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 #endif
 
 #ifndef DEFAULT_PIDS_ROLL
-#define DEFAULT_PIDS_ROLL { 50, 65, 28, 0 }
+#define DEFAULT_PIDS_ROLL { 50, 65, 28, 0, 3 }
 #endif //DEFAULT_PIDS_ROLL
 
 #ifndef DEFAULT_PIDS_PITCH
-#define DEFAULT_PIDS_PITCH { 58, 65, 30, 0 }
+#define DEFAULT_PIDS_PITCH { 58, 65, 30, 0, 3 }
 #endif //DEFAULT_PIDS_PITCH
 
 #ifndef DEFAULT_PIDS_YAW
-#define DEFAULT_PIDS_YAW { 55, 65, 5, 0 }
+#define DEFAULT_PIDS_YAW { 55, 65, 5, 0, 3 }
 #endif //DEFAULT_PIDS_YAW
 
 #ifdef USE_RUNAWAY_TAKEOFF
@@ -135,8 +135,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
             [PID_ROLL] =  DEFAULT_PIDS_ROLL,
             [PID_PITCH] = DEFAULT_PIDS_PITCH,
             [PID_YAW] =   DEFAULT_PIDS_YAW,
-            [PID_LEVEL] = { 70, 40, 10, 0},
-            [PID_MAG] =   { 40, 0, 0, 0},
+            [PID_LEVEL] = { 70, 40, 10, 0, 0},
+            [PID_MAG] =   { 40, 0, 0, 0, 0},
         },
 
         .pidSumLimit = PIDSUM_LIMIT_MAX,
@@ -149,7 +149,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_notch_cutoff = 0,
         .dterm_filter_type = FILTER_PT1,
         .smart_dterm_smoothing = 50,
-        .witchCraft = 3,
         .itermWindupPointPercent = 50,
         .vbatPidCompensation = 0,
         .pidAtMinThrottle = PID_STABILISATION_ON,
@@ -645,7 +644,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     }
 }
     i_term[axis] += i_new;
-    float d_term = -(attitude.raw[axis] - attitudePrevious[axis]) * 0.1f * pidFrequency;
+    float d_term = -(attitude.raw[axis] - attitudePrevious[axis]) * 0.1f;
     attitudePrevious[axis] = attitude.raw[axis];
 
     if (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(GPS_RESCUE_MODE)) {
@@ -1088,16 +1087,16 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
                 dDelta = dDelta * dDeltaMultiplier;
                 previousdDelta[axis] = dDelta;
 
-            if (pidProfile->witchCraft > 1)
+            if (pidProfile->pid[axis].Wc > 1)
               {
                 kdRingBuffer[axis][kdRingBufferPoint[axis]++] = dDelta;
                 kdRingBufferSum[axis] += dDelta;
 
-                if (kdRingBufferPoint[axis] == pidProfile->witchCraft) {
+                if (kdRingBufferPoint[axis] == pidProfile->pid[axis].Wc) {
                 kdRingBufferPoint[axis] = 0;
                 }
 
-                dDelta = (float)(kdRingBufferSum[axis] / (float) (pidProfile->witchCraft));
+                dDelta = (float)(kdRingBufferSum[axis] / (float) (pidProfile->pid[axis].Wc));
                 kdRingBufferSum[axis] -= kdRingBuffer[axis][kdRingBufferPoint[axis]];
               }
 
@@ -1179,12 +1178,7 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
             pidData[axis].Sum = 0;
         }
         // calculating the PID sum and TPA and SPA
-        pidData[axis].P = pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation;
-        pidData[axis].I = pidData[axis].I * getThrottleIAttenuation() * setPointIAttenuation;
-        pidData[axis].D = pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation;
-
-        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + pidData[axis].F;
-
+        const float pidSum = (pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation) + (pidData[axis].I * getThrottleIAttenuation() * setPointIAttenuation) + (pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation) + pidData[axis].F;
 #ifdef USE_INTEGRATED_YAW_CONTROL
         if (axis == FD_YAW && useIntegratedYaw) {
             pidData[axis].Sum += pidSum * dT * 100.0f;
