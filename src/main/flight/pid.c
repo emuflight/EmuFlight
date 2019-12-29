@@ -135,7 +135,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
             [PID_ROLL] =  DEFAULT_PIDS_ROLL,
             [PID_PITCH] = DEFAULT_PIDS_PITCH,
             [PID_YAW] =   DEFAULT_PIDS_YAW,
-            [PID_LEVEL_LOW] = { 70, 40, 10, 0, 0},
+            [PID_LEVEL_LOW] = { 70, 40, 10, 10, 0},
             [PID_LEVEL_HIGH] = { 35, 0, 1, 0, 0},
             [PID_MAG] =   { 40, 0, 0, 0, 0},
         },
@@ -399,7 +399,7 @@ static FAST_RAM_ZERO_INIT float setPointDTransition;
 static FAST_RAM_ZERO_INIT float setPointPTransitionYaw;
 static FAST_RAM_ZERO_INIT float setPointITransitionYaw;
 static FAST_RAM_ZERO_INIT float setPointDTransitionYaw;
-static FAST_RAM_ZERO_INIT float P_angle_low, I_angle_low, D_angle_low, P_angle_high, I_angle_high, D_angle_high, horizonStrength, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
+static FAST_RAM_ZERO_INIT float P_angle_low, I_angle_low, D_angle_low, P_angle_high, I_angle_high, D_angle_high, F_angle, horizonStrength, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
 static FAST_RAM_ZERO_INIT uint8_t horizonTiltExpertMode;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeLimitUs;
@@ -485,6 +485,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
     I_angle_high = pidProfile->pid[PID_LEVEL_HIGH].I * 0.76f;
     D_angle_high = pidProfile->pid[PID_LEVEL_HIGH].D * 0.00017f;
+    F_angle = pidProfile->pid[PID_LEVEL_LOW].F * 0.0005f;
     horizonStrength = pidProfile->horizonStrength / 10.0f;
     horizonTransition = (float)pidProfile->horizonTransition;
     horizonTiltExpertMode = pidProfile->horizon_tilt_expert_mode;
@@ -632,12 +633,18 @@ static float calcHorizonLevelStrength(void)
 static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint) {
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
-    float i_term[2], attitudePrevious[2];
-    float p_term_low, p_term_high, d_term_low, d_term_high;
+    float i_term[2], attitudePrevious[2], previousAngle[2];
+    float p_term_low, p_term_high, d_term_low, d_term_high, f_term;
+
     float angle = pidProfile->levelAngleLimit * getRcDeflection(axis);
+
 #ifdef USE_GPS_RESCUE
     angle += gpsRescueAngle[axis] / 100; // ANGLE IS IN CENTIDEGREES
 #endif
+
+    f_term = (angle - previousAngle[axis]) * F_angle * pidFrequency;
+    previousAngle[axis] = angle;
+
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
     float errorAngle = angle - ((attitude.raw[axis] - angleTrim->raw[axis]) * 0.1f);
     errorAngle = constrainf(errorAngle, -90, 90);
@@ -665,6 +672,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     }
 }
     i_term[axis] += i_new_low + i_new_high;
+
     d_term_low = (1-fabsf(errorAnglePercent)) * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_low;
     d_term_high = fabsf(errorAnglePercent) * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_high;
     attitudePrevious[axis] = attitude.raw[axis];
@@ -672,6 +680,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     currentPidSetpoint += p_term_low + p_term_high;
     currentPidSetpoint += i_term[axis];
     currentPidSetpoint += d_term_low + d_term_high;
+    currentPidSetpoint += f_term;
     return currentPidSetpoint;
 }
 

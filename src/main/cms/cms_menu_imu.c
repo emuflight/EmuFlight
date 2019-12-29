@@ -299,6 +299,7 @@ static uint8_t  cmsx_D_angle_low;
 static uint8_t  cmsx_P_angle_high;
 static uint8_t  cmsx_I_angle_high;
 static uint8_t  cmsx_D_angle_high;
+static uint16_t cmsx_F_angle;
 static uint8_t  cmsx_horizonStrength;
 static uint8_t  cmsx_horizonTransition;
 static uint8_t  cmsx_nfe_racermode;
@@ -328,6 +329,7 @@ static long cmsx_profileOtherOnEnter(void)
     cmsx_P_angle_high =      pidProfile->pid[PID_LEVEL_HIGH].P;
     cmsx_I_angle_high =      pidProfile->pid[PID_LEVEL_HIGH].I;
     cmsx_D_angle_high =      pidProfile->pid[PID_LEVEL_HIGH].D;
+    cmsx_F_angle =           pidProfile->pid[PID_LEVEL_LOW].F;
     cmsx_horizonStrength =   pidProfile->horizonStrength;
     cmsx_horizonTransition = pidProfile->horizonTransition;
 
@@ -363,6 +365,7 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
     pidProfile->pid[PID_LEVEL_HIGH].P = cmsx_P_angle_high;
     pidProfile->pid[PID_LEVEL_HIGH].I = cmsx_I_angle_high;
     pidProfile->pid[PID_LEVEL_HIGH].D = cmsx_D_angle_high;
+    pidProfile->pid[PID_LEVEL_LOW].F = cmsx_F_angle;
     pidProfile->horizonStrength  = cmsx_horizonStrength;
     pidProfile->horizonTransition = cmsx_horizonTransition;
 
@@ -395,6 +398,7 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "ANGLE P HIGH",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_P_angle_high,              0,    200,   1  }   , 0 },
     { "ANGLE I HIGH",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_I_angle_high,              0,    200,   1  }   , 0 },
     { "ANGLE D HIGH",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_D_angle_high,              0,    200,   1  }   , 0 },
+    { "ANGLE F",         OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_F_angle,                   0,    2000,  1  }   , 0 },
     { "HORZN STR",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonStrength,           0,    200,   1  }   , 0 },
     { "HORZN TRS",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonTransition,         0,    200,   1  }   , 0 },
     { "NFE RACERMODE",   OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_nfe_racermode, 1, cms_offOnLabels }, 0 },
