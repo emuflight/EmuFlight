@@ -824,11 +824,6 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
 
         pidUpdateAntiGravityThrottleFilter(throttle);
 
-#ifndef USE_GYRO_IMUF9001
-        void gyroDynLpfUpdate();
-#endif
-
-        dtermDynLpfUpdate(currentPidProfile);
 
 #if defined(USE_THROTTLE_BOOST)
     if (throttleBoost > 0.0f) {

@@ -68,6 +68,7 @@ typedef enum {
     DEBUG_FFT_TIME,
     DEBUG_FFT_FREQ,
     DEBUG_RX_FRSKY_SPI,
+    DEBUG_RX_SFHSS_SPI,
     DEBUG_GYRO_RAW,
     DEBUG_DUAL_GYRO,
     DEBUG_DUAL_GYRO_RAW,
@@ -95,7 +96,6 @@ typedef enum {
     DEBUG_ANTI_GRAVITY,
     DEBUG_IMU,
     DEBUG_KALMAN,
-    DEBUG_DYN_FILTER,
     DEBUG_COUNT
 } debugType_e;
 
