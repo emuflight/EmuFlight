@@ -642,20 +642,12 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     errorAngle = constrainf(errorAngle, -90, 90);
     const float errorAnglePercent = errorAngle / 90;
 
-    if (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(GPS_RESCUE_MODE)) {
-        // ANGLE mode - control is angle based
-        p_term_low = (1-fabsf(errorAnglePercent)) * errorAngle * P_angle_low;
-        p_term_high = fabsf(errorAnglePercent) * errorAngle * P_angle_high;
-        currentPidSetpoint = p_term_low + p_term_high;
-    }
-    if (FLIGHT_MODE(HORIZON_MODE)) {
-        // HORIZON mode - mix of ANGLE and ACRO modes
-        // mix in errorAngle to currentPidSetpoint to add a little auto-level feel
-        const float horizonLevelStrength = calcHorizonLevelStrength();
-        currentPidSetpoint = currentPidSetpoint * horizonLevelStrength;
-    }
+    // ANGLE mode - control is angle based
+    p_term_low = (1 - fabsf(errorAnglePercent)) * errorAngle * P_angle_low;
+    p_term_high = fabsf(errorAnglePercent) * errorAngle * P_angle_high;
+    currentPidSetpoint = p_term_low + p_term_high;
 
-    float i_new_low = (1-fabsf(errorAnglePercent)) * errorAngle * dT * I_angle_low;
+    float i_new_low = (1 - fabsf(errorAnglePercent)) * errorAngle * dT * I_angle_low;
     float i_new_high = fabsf(errorAnglePercent) * errorAngle * dT * I_angle_high;
     if (i_new_low != 0.0f)
 {
@@ -667,13 +659,21 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
 }
     i_term[axis] += i_new_low + i_new_high;
 
-    d_term_low = (1-fabsf(errorAnglePercent)) * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_low;
+    d_term_low = (1 - fabsf(errorAnglePercent)) * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_low;
     d_term_high = fabsf(errorAnglePercent) * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_high;
     attitudePrevious[axis] = attitude.raw[axis];
 
     currentPidSetpoint += i_term[axis];
     currentPidSetpoint += d_term_low + d_term_high;
     currentPidSetpoint += f_term_low;
+
+if (FLIGHT_MODE(HORIZON_MODE)) {
+    // HORIZON mode - mix of ANGLE and ACRO modes
+    // mix in errorAngle to currentPidSetpoint to add a little auto-level feel
+    const float horizonLevelStrength = calcHorizonLevelStrength();
+    currentPidSetpoint = currentPidSetpoint * horizonLevelStrength;
+    }
+
     return currentPidSetpoint;
 }
 
