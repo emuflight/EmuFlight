@@ -113,8 +113,8 @@ typedef struct pidProfile_s {
     uint16_t pidSumLimitYaw;
     uint8_t pidAtMinThrottle;               // Disable/Enable pids on zero throttle. Normally even without airmode P and D would be active.
     uint8_t levelAngleLimit;                // Max angle in degrees in level mode
+    uint8_t angleExpo;                      // How much expo to add to the
 
-    uint8_t horizonStrength;                // horizonStrength
     uint8_t horizonTransition;              // horizonTransition
     uint8_t horizon_tilt_effect;            // inclination factor for Horizon mode
     uint8_t horizon_tilt_expert_mode;       // OFF or ON
@@ -124,7 +124,7 @@ typedef struct pidProfile_s {
     uint16_t itermThrottleThreshold;        // max allowed throttle delta before iterm accelerated in ms
     uint16_t itermAcceleratorGain;          // Iterm Accelerator Gain when itermThrottlethreshold is hit
     uint8_t feathered_pids;                 // determine how feathered your pids are
-    uint8_t i_decay;						            // i-term decay
+    uint8_t i_decay;						            // i-term decay (increases how quickly iterm shrinks in value)
     uint8_t r_weight;					            	// the weight of the kalman R term calculated out of the std. dev.
     uint16_t errorBoost;                    // the weight of the setpoint boost
     uint16_t errorBoostYaw;                 // the weight of the setpoint boost for yaw
