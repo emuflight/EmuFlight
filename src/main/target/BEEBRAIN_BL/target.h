@@ -20,13 +20,10 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER         "BBL" // BeeBrain Lite
-#define USBD_PRODUCT_STRING             "BeeBrain Lite"
+#define TARGET_BOARD_IDENTIFIER         "BBBL" // BeeBrain BL
+#define USBD_PRODUCT_STRING             "BeeBrain BL"
 
 #define USE_TARGET_CONFIG
-#define TARGET_PREINIT
-
-#define BRUSHED_MOTORS
 
 // *************** SPI *****************************
 #define USE_SPI
@@ -60,49 +57,23 @@
 // *************** Gyro & ACC **********************
 #define GYRO
 #define ACC
-#define USE_GYRO_SPI_MPU6500
-#define USE_ACC_SPI_MPU6500
+#define USE_GYRO_SPI_MPU6000
+#define USE_ACC_SPI_MPU6000
 
-#define MPU6500_CS_PIN                  PA4
-#define MPU6500_SPI_INSTANCE            SPI3
+#define MPU6000_CS_PIN                  PA4
+#define MPU6000_SPI_INSTANCE            SPI3
 
 #define USE_EXTI
 #define MPU_INT_EXTI                    PB0
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define GYRO_MPU6500_ALIGN              CW90_DEG
-#define ACC_MPU6500_ALIGN               CW90_DEG
+#define GYRO_MPU6000_ALIGN              CW90_DEG
+#define ACC_MPU6000_ALIGN               CW90_DEG
 
 // *************** RX ******************************
-#if defined(BEEBRAIN_LITED)
-    #define SERIALRX_PROVIDER           SERIALRX_SPEKTRUM2048
-    #undef  USE_SPEKTRUM_REAL_RSSI
-    #undef  USE_SPEKTRUM_FAKE_RSSI
-    #define DEFAULT_RX_FEATURE          FEATURE_RX_SERIAL
-    #define SERIALRX_UART               SERIAL_PORT_USART2
-    #define RX_CHANNELS_TAER
-#else
-    #define USE_RX_SPI
-    #define RX_SPI_INSTANCE             SPI2
-    #define RX_SCK_PIN                  SPI2_SCK_PIN
-    #define RX_MISO_PIN                 SPI2_MISO_PIN
-    #define RX_MOSI_PIN                 SPI2_MOSI_PIN
-    #define RX_NSS_PIN                  SPI2_NSS_PIN
-    #define RX_CC2500_SPI_GDO_0_PIN      PB2
-    #define RX_CC2500_SPI_LED_PIN        PA13
-    #define RX_CC2500_SPI_LED_PIN_INVERTED
-    #define RX_CC2500_SPI_TX_EN_PIN      PB10
-    #define RX_CC2500_SPI_ANT_SEL_PIN    PA7
-    #define BINDPLUG_PIN                PC15
-    #define RX_CC2500_SPI_LNA_EN_PIN     NONE
-    #define DEFAULT_RX_FEATURE          FEATURE_RX_SPI
-    #define RX_SPI_DEFAULT_PROTOCOL     RX_SPI_FRSKY_D
-    #define USE_RX_FRSKY_SPI_TELEMETRY
-    #define USE_RX_CC2500_SPI_DIVERSITY
-    #define USE_RX_CC2500_SPI_PA_LNA
-    #define USE_RX_FRSKY_SPI_D
-    #define USE_RX_FRSKY_SPI_X
-#endif
+#define DEFAULT_RX_FEATURE              FEATURE_RX_SERIAL
+#define SERIALRX_UART                   SERIAL_PORT_USART2
+#define SERIALRX_PROVIDER               SERIALRX_SBUS
 
 // *************** OSD *****************************
 #define USE_MAX7456
@@ -118,17 +89,8 @@
 #define RTC6705_SPI_MOSI_PIN            SPI3_MOSI_PIN
 #define RTC6705_SPICLK_PIN              SPI3_SCK_PIN
 #define USE_RTC6705_SOFTSPI_ON_HW_SPI
-#define RTC6705_POWER_PIN               PA6
+#define RTC6705_POWER_PIN               PA8
 #define RTC6705_POWER_PIN_HIGH_ENABLE
-#define USE_RTC6705_PITMODE_CTRL
-
-// *************** BARO ****************************
-#define USE_BARO
-#define USE_BARO_BMP280
-#define USE_BARO_SPI_BMP280
-#define DEFAULT_BARO_SPI_BMP280
-#define BMP280_SPI_INSTANCE             SPI3
-#define BMP280_CS_PIN                   PA1
 
 // *************** ADC *****************************
 #define USE_ADC
@@ -140,23 +102,19 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_NONE
 
 // *************** FLASH ***************************
-#if defined(BEEBRAIN_LITED)
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
 #define FLASH_CS_PIN                    SPI2_NSS_PIN
 #define FLASH_SPI_INSTANCE              SPI2
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-#endif
+
 // *************** OTHERS **************************
 #define LED0_PIN                        PC13
 #define LED1_PIN                        PC14
 
 #define USE_BEEPER
-#define BEEPER_PIN                      PC0
+#define BEEPER_PIN                      PB10
 #define BEEPER_INVERTED
-
-#define USE_USB_DETECT
-#define USB_DETECT_PIN                  PA5
 
 #define USE_ESCSERIAL
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE

@@ -1,0 +1,1 @@
+## BEEBRAIN_PRO_DSM_INTL is a variant of BEEBRAIN_PRO with DSM receiver and vtx not lock

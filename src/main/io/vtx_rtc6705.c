@@ -142,6 +142,7 @@ static void vtxRTC6705SetPowerByIndex(vtxDevice_t *vtxDevice, uint8_t index)
             // on, power it off
             vtxDevice->powerIndex = index;
             rtc6705Disable();
+            rtc6705SetRFPower(2);  // set 6705 rf power to high
             return;
         } else {
             // already off

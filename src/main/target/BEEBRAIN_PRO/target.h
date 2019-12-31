@@ -20,8 +20,8 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER         "BBL" // BeeBrain Lite
-#define USBD_PRODUCT_STRING             "BeeBrain Lite"
+#define TARGET_BOARD_IDENTIFIER         "BBPRO" // BeeBrain Pro
+#define USBD_PRODUCT_STRING             "BeeBrain PRO"
 
 #define USE_TARGET_CONFIG
 #define TARGET_PREINIT
@@ -60,21 +60,21 @@
 // *************** Gyro & ACC **********************
 #define GYRO
 #define ACC
-#define USE_GYRO_SPI_MPU6500
-#define USE_ACC_SPI_MPU6500
+#define USE_GYRO_SPI_MPU6000
+#define USE_ACC_SPI_MPU6000
 
-#define MPU6500_CS_PIN                  PA4
-#define MPU6500_SPI_INSTANCE            SPI3
+#define MPU6000_CS_PIN                  PA4
+#define MPU6000_SPI_INSTANCE            SPI3
 
 #define USE_EXTI
 #define MPU_INT_EXTI                    PB0
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define GYRO_MPU6500_ALIGN              CW90_DEG
-#define ACC_MPU6500_ALIGN               CW90_DEG
+#define GYRO_MPU6000_ALIGN              CW90_DEG
+#define ACC_MPU6000_ALIGN               CW90_DEG
 
 // *************** RX ******************************
-#if defined(BEEBRAIN_LITED)
+#if (defined(BEEBRAIN_PRO_DSM_US) || defined(BEEBRAIN_PRO_DSM_INTL))
     #define SERIALRX_PROVIDER           SERIALRX_SPEKTRUM2048
     #undef  USE_SPEKTRUM_REAL_RSSI
     #undef  USE_SPEKTRUM_FAKE_RSSI
@@ -102,6 +102,7 @@
     #define USE_RX_CC2500_SPI_PA_LNA
     #define USE_RX_FRSKY_SPI_D
     #define USE_RX_FRSKY_SPI_X
+    #define USE_RX_SFHSS_SPI
 #endif
 
 // *************** OSD *****************************
@@ -121,14 +122,17 @@
 #define RTC6705_POWER_PIN               PA6
 #define RTC6705_POWER_PIN_HIGH_ENABLE
 #define USE_RTC6705_PITMODE_CTRL
+#if (defined(BEEBRAIN_PRO_DSM_US) || defined(BEEBRAIN_PRO_FRSKY_US) || defined(BEEBRAIN_PRO))
+#define USE_VTX_LOCK_FREQ
+#endif
 
 // *************** BARO ****************************
-#define USE_BARO
-#define USE_BARO_BMP280
-#define USE_BARO_SPI_BMP280
-#define DEFAULT_BARO_SPI_BMP280
-#define BMP280_SPI_INSTANCE             SPI3
-#define BMP280_CS_PIN                   PA1
+// #define USE_BARO
+// #define USE_BARO_BMP280
+// #define USE_BARO_SPI_BMP280
+// #define DEFAULT_BARO_SPI_BMP280
+// #define BARO_SPI_INSTANCE               SPI3
+// #define BARO_CS_PIN                     PA1
 
 // *************** ADC *****************************
 #define USE_ADC
@@ -140,13 +144,13 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_NONE
 
 // *************** FLASH ***************************
-#if defined(BEEBRAIN_LITED)
-#define USE_FLASHFS
-#define USE_FLASH_M25P16
-#define FLASH_CS_PIN                    SPI2_NSS_PIN
-#define FLASH_SPI_INSTANCE              SPI2
-#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-#endif
+// #if defined(BEEBRAIN_LITED)
+// #define USE_FLASHFS
+// #define USE_FLASH_M25P16
+// #define FLASH_CS_PIN         SPI2_NSS_PIN
+// #define FLASH_SPI_INSTANCE   SPI2
+// #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+// #endif
 // *************** OTHERS **************************
 #define LED0_PIN                        PC13
 #define LED1_PIN                        PC14
@@ -154,6 +158,11 @@
 #define USE_BEEPER
 #define BEEPER_PIN                      PC0
 #define BEEPER_INVERTED
+
+/*---------- turtle SWITCH---------*/
+#define USE_PINIO
+#define PINIO1_PIN              PA8 // turtle switcher
+#define USE_PINIOBOX
 
 #define USE_USB_DETECT
 #define USB_DETECT_PIN                  PA5

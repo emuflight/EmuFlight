@@ -29,6 +29,7 @@
 #include "common/time.h"
 
 #include "drivers/vtx_common.h"
+#include "drivers/usb_io.h"
 
 #include "fc/config.h"
 #include "fc/rc_modes.h"
@@ -221,6 +222,7 @@ static bool vtxProcessStateUpdate(vtxDevice_t *vtxDevice)
 void vtxUpdate(timeUs_t currentTimeUs)
 {
     static uint8_t currentSchedule = 0;
+    static uint8_t vtxPwrSaved = 1;
 
     if (cliMode) {
         return;
@@ -228,8 +230,18 @@ void vtxUpdate(timeUs_t currentTimeUs)
 
     vtxDevice_t *vtxDevice = vtxCommonDevice();
     if (vtxDevice) {
+        uint8_t vtxCurrentPwr = vtxGetSettings().power;
+        bool isUsbInserted = usbCableIsInserted();
+        bool isPitModeValid = IS_RC_MODE_ACTIVE(BOXVTXPITMODE) && isModeActivationConditionPresent(BOXVTXPITMODE);
         // Check input sources for config updates
         vtxControlInputPoll();
+
+        if (isUsbInserted || isPitModeValid) {
+            vtxPwrSaved = (vtxCurrentPwr > 0) ? vtxCurrentPwr : 1;
+            vtxSettingsConfigMutable()->power = 0;
+        } else {
+            vtxSettingsConfigMutable()->power = vtxPwrSaved;
+        }
 
         const uint8_t startingSchedule = currentSchedule;
         bool vtxUpdatePending = false;
