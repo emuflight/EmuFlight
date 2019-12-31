@@ -303,6 +303,7 @@ static uint16_t cmsx_F_angle_low;
 static uint16_t cmsx_F_angle_high;
 static uint8_t  cmsx_horizonTransition;
 static uint8_t  cmsx_nfe_racermode;
+static uint8_t  cmsx_cinematic_setpoint;
 static uint8_t  cmsx_throttleBoost;
 static uint16_t cmsx_itermAcceleratorGain;
 static uint16_t cmsx_itermThrottleThreshold;
@@ -334,6 +335,7 @@ static long cmsx_profileOtherOnEnter(void)
     cmsx_horizonTransition = pidProfile->horizonTransition;
 
     cmsx_nfe_racermode = pidProfile->nfe_racermode;
+    cmsx_cinematic_setpoint = pidProfile->cinematic_setpoint;
 
     cmsx_itermAcceleratorGain   = pidProfile->itermAcceleratorGain;
     cmsx_itermThrottleThreshold = pidProfile->itermThrottleThreshold;
@@ -370,6 +372,7 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
     pidProfile->horizonTransition = cmsx_horizonTransition;
 
     pidProfile->nfe_racermode = cmsx_nfe_racermode;
+    pidProfile->cinematic_setpoint = cmsx_cinematic_setpoint;
 
     pidProfile->itermAcceleratorGain   = cmsx_itermAcceleratorGain;
     pidProfile->itermThrottleThreshold = cmsx_itermThrottleThreshold;
@@ -402,6 +405,7 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "ANGLE F HIGH",    OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_F_angle_high,              0,    2000,  1  }   , 0 },
     { "HORZN TRS",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonTransition,         0,    200,   1  }   , 0 },
     { "NFE RACERMODE",   OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_nfe_racermode, 1, cms_offOnLabels }, 0 },
+    { "CINEMATIC SETPOINT",    OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_cinematic_setpoint, 1, cms_offOnLabels }, 0 },
     { "AG GAIN",         OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_itermAcceleratorGain,      1000, 30000, 10 }   , 0 },
     { "AG THR",          OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_itermThrottleThreshold,    20,   1000,  1  }   , 0 },
 #ifdef USE_THROTTLE_BOOST

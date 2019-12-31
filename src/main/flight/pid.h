@@ -130,6 +130,7 @@ typedef struct pidProfile_s {
     uint8_t errorBoostLimit;                // percentage of the error that the emu boost can boost
     uint8_t errorBoostLimitYaw;             // percentage of the error that the emu boost can boost for yaw
     uint8_t nfe_racermode;                  // turn on or off NFE RACERMODE
+    uint8_t cinematic_setpoint;             // turn on or off cinematic_setpoint
     uint16_t yawRateAccelLimit;             // yaw accel limiter for deg/sec/ms
     uint16_t rateAccelLimit;                // accel limiter roll/pitch deg/sec/ms
     uint16_t crash_dthreshold;              // dterm crash value
@@ -140,7 +141,7 @@ typedef struct pidProfile_s {
     uint8_t crash_recovery_angle;           // degrees
     uint8_t crash_recovery_rate;            // degree/second
     uint8_t vbatPidCompensation;            // Scale PIDsum to battery voltage
-    uint8_t feedForwardTransition;          // Feed forward weight transition
+    uint8_t feedForwardTransition;          // Feed forward weight transition/cinematic_setpoint weight transition
     uint8_t setPointPTransition;            // SPA p transition
     uint8_t setPointITransition;            // SPA i transition
     uint8_t setPointDTransition;            // SPA d transition
@@ -148,7 +149,7 @@ typedef struct pidProfile_s {
     uint8_t setPointITransitionYaw;         // SPA i transition for yaw
     uint8_t setPointDTransitionYaw;         // SPA d transition for yaw
     uint16_t crash_limit_yaw;               // limits yaw errorRate, so crashes don't cause huge throttle increase
-    uint16_t itermLimit;
+    uint16_t itermLimit;                    // Maximum value that the iterm can accumulate to
     uint16_t dterm_lowpass2_hz;             // Extra PT1 Filter on D in hz
     uint8_t smart_dterm_smoothing;          // value that your dterm must go past to act normal
     uint8_t crash_recovery;                 // off, on, on and beeps when it is in crash recovery mode
