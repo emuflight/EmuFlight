@@ -1304,9 +1304,13 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("yawPID", "%d,%d,%d",                    currentPidProfile->pid[PID_YAW].P,
                                                                             currentPidProfile->pid[PID_YAW].I,
                                                                             currentPidProfile->pid[PID_YAW].D);
-        BLACKBOX_PRINT_HEADER_LINE("levelPID", "%d,%d,%d",                  currentPidProfile->pid[PID_LEVEL].P,
-                                                                            currentPidProfile->pid[PID_LEVEL].I,
-                                                                            currentPidProfile->pid[PID_LEVEL].D);
+        BLACKBOX_PRINT_HEADER_LINE("levelPIDLOW", "%d,%d,%d",               currentPidProfile->pid[PID_LEVEL_LOW].P,
+                                                                            currentPidProfile->pid[PID_LEVEL_LOW].I,
+                                                                            currentPidProfile->pid[PID_LEVEL_LOW].D,
+                                                                            currentPidProfile->pid[PID_LEVEL_LOW].F);
+        BLACKBOX_PRINT_HEADER_LINE("levelPIDHIGH", "%d,%d,%d",              currentPidProfile->pid[PID_LEVEL_HIGH].P,
+                                                                            currentPidProfile->pid[PID_LEVEL_HIGH].I,
+                                                                            currentPidProfile->pid[PID_LEVEL_HIGH].D);
         BLACKBOX_PRINT_HEADER_LINE("magPID", "%d",                          currentPidProfile->pid[PID_MAG].P);
         BLACKBOX_PRINT_HEADER_LINE("dterm_filter_type", "%d",               currentPidProfile->dterm_filter_type);
         BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass_hz", "%d",                currentPidProfile->dterm_lowpass_hz);
@@ -1314,7 +1318,6 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("yaw_lowpass_hz", "%d",                  currentPidProfile->yaw_lowpass_hz);
         BLACKBOX_PRINT_HEADER_LINE("dterm_notch_hz", "%d",                  currentPidProfile->dterm_notch_hz);
         BLACKBOX_PRINT_HEADER_LINE("dterm_notch_cutoff", "%d",              currentPidProfile->dterm_notch_cutoff);
-        BLACKBOX_PRINT_HEADER_LINE("dterm_dyn_lpf", "%d",                   currentPidProfile->dterm_dyn_lpf);
         BLACKBOX_PRINT_HEADER_LINE("iterm_windup", "%d",                    currentPidProfile->itermWindupPointPercent);
 
         #if defined(USE_ITERM_RELAX)
@@ -1372,9 +1375,7 @@ static bool blackboxWriteSysinfo(void)
                                                                             gyroConfig()->gyro_soft_notch_hz_2);
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_cutoff", "%d,%d",            gyroConfig()->gyro_soft_notch_cutoff_1,
                                                                             gyroConfig()->gyro_soft_notch_cutoff_2);
-#ifndef USE_GYRO_IMUF9001
-        BLACKBOX_PRINT_HEADER_LINE("gyro_dyn_lpf", "%d,%d",                 gyroConfig()->gyro_dyn_lpf);
-#endif //USE_GYRO_IMUF9001
+
         #if defined(USE_ACC)
             BLACKBOX_PRINT_HEADER_LINE("acc_lpf_hz", "%d",                  (int)(accelerometerConfig()->acc_lpf_hz * 100.0f));
             BLACKBOX_PRINT_HEADER_LINE("acc_hardware", "%d",                accelerometerConfig()->acc_hardware);

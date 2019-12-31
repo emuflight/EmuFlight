@@ -95,15 +95,15 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 #endif
 
 #ifndef DEFAULT_PIDS_ROLL
-#define DEFAULT_PIDS_ROLL { 50, 65, 28, 0 }
+#define DEFAULT_PIDS_ROLL { 50, 65, 28, 0, 3 }
 #endif //DEFAULT_PIDS_ROLL
 
 #ifndef DEFAULT_PIDS_PITCH
-#define DEFAULT_PIDS_PITCH { 58, 65, 30, 0 }
+#define DEFAULT_PIDS_PITCH { 58, 65, 30, 0, 3 }
 #endif //DEFAULT_PIDS_PITCH
 
 #ifndef DEFAULT_PIDS_YAW
-#define DEFAULT_PIDS_YAW { 55, 65, 5, 0 }
+#define DEFAULT_PIDS_YAW { 55, 65, 5, 0, 3 }
 #endif //DEFAULT_PIDS_YAW
 
 #ifdef USE_RUNAWAY_TAKEOFF
@@ -135,8 +135,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
             [PID_ROLL] =  DEFAULT_PIDS_ROLL,
             [PID_PITCH] = DEFAULT_PIDS_PITCH,
             [PID_YAW] =   DEFAULT_PIDS_YAW,
-            [PID_LEVEL] = { 50, 50, 75, 0},
-            [PID_MAG] =   { 40, 0, 0, 0},
+            [PID_LEVEL_LOW] = { 100, 50, 10, 10, 0},
+            [PID_LEVEL_HIGH] = { 35, 0, 1, 80, 0},
+            [PID_MAG] =   { 40, 0, 0, 0, 0},
         },
 
         .pidSumLimit = PIDSUM_LIMIT_MAX,
@@ -144,14 +145,15 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .yaw_lowpass_hz = 0,
         .dterm_lowpass_hz = 65,     // filtering ON by default
         .dterm_lowpass2_hz = 200,   // second Dterm LPF ON by default
-        .dterm_dyn_lpf = 0,
         .dterm_notch_hz = 0,
         .dterm_notch_cutoff = 0,
         .dterm_filter_type = FILTER_PT1,
+        .smart_dterm_smoothing = 50,
         .itermWindupPointPercent = 50,
         .vbatPidCompensation = 0,
         .pidAtMinThrottle = PID_STABILISATION_ON,
         .levelAngleLimit = 65,
+        .angleExpo = 30,
         .feedForwardTransition = 0,
         .setPointPTransition = 100,
         .setPointITransition = 100,
@@ -201,6 +203,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .integrated_yaw_relax = 200,
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
+        .horizonTransition = 75,
     );
 }
 
@@ -249,9 +252,7 @@ static FAST_RAM filterApplyFnPtr dtermNotchApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT biquadFilter_t dtermNotch[3];
 static FAST_RAM filterApplyFnPtr dtermLowpassApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass[3];
-static FAST_RAM filterApplyFnPtr dtermDynApplyFn = nullFilterApply;
-static FAST_RAM_ZERO_INIT dtermLowpass_t dtermDyn[3];
-static FAST_RAM_ZERO_INIT pt1Filter_t dtermDynHzLpf;
+
 #if defined(USE_ITERM_RELAX)
 static FAST_RAM_ZERO_INIT pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT uint8_t itermRelax;
@@ -274,7 +275,6 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     BUILD_BUG_ON(FD_YAW != 2); // ensure yaw axis is 2
     dtermNotchApplyFn = nullFilterApply;
     dtermLowpassApplyFn = nullFilterApply;
-    dtermDynApplyFn = nullFilterApply;
     const uint32_t pidFrequencyNyquist = pidFrequency / 2; // No rounding needed
 
     r_weight = (float) pidProfile->r_weight / 100.0f;
@@ -317,19 +317,6 @@ void pidInitFilters(const pidProfile_t *pidProfile)
         }
     }
 
-    if (pidProfile->dterm_dyn_lpf != 0)
-    {
-       float lpfHz;
-       float MinFreq = pidProfile->dterm_dyn_lpf;
-       for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
-       {
-           lpfHz = constrainf( MinFreq + ABS((getSetpointRate(axis) - gyro.gyroADCf[axis]) * 0.75f) + ABS(gyro.gyroADCf[axis] / 6.0f), MinFreq, (MinFreq + 500.0f));
-           pt1FilterInit(&dtermDynHzLpf, pt1FilterGain(15, dT));
-           pt1FilterApply(&dtermDynHzLpf, lpfHz);
-           dtermDynApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1;
-           biquadFilterUpdateLPF(&dtermDyn[axis].biquadFilter, lpfHz, targetPidLooptime);
-       }
-    }
 
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, dT));
@@ -392,14 +379,15 @@ static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feedForwardTransition;
 static FAST_RAM_ZERO_INIT float feathered_pids;
-static FAST_RAM_ZERO_INIT float nfe_racermode;
+static FAST_RAM_ZERO_INIT uint8_t nfe_racermode;
+static FAST_RAM_ZERO_INIT float smart_dterm_smoothing;
 static FAST_RAM_ZERO_INIT float setPointPTransition;
 static FAST_RAM_ZERO_INIT float setPointITransition;
 static FAST_RAM_ZERO_INIT float setPointDTransition;
 static FAST_RAM_ZERO_INIT float setPointPTransitionYaw;
 static FAST_RAM_ZERO_INIT float setPointITransitionYaw;
 static FAST_RAM_ZERO_INIT float setPointDTransitionYaw;
-static FAST_RAM_ZERO_INIT float levelGain, horizonGain, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
+static FAST_RAM_ZERO_INIT float P_angle_low, I_angle_low, D_angle_low, P_angle_high, I_angle_high, D_angle_high, F_angle_low, F_angle_high, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
 static FAST_RAM_ZERO_INIT uint8_t horizonTiltExpertMode;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeLimitUs;
@@ -472,15 +460,22 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 
     feathered_pids = pidProfile->feathered_pids / 100.0f;
     nfe_racermode = pidProfile->nfe_racermode;
+    smart_dterm_smoothing = pidProfile->smart_dterm_smoothing;
     setPointPTransition = pidProfile->setPointPTransition / 100.0f;
     setPointITransition = pidProfile->setPointITransition / 100.0f;
     setPointDTransition = pidProfile->setPointDTransition / 100.0f;
     setPointPTransitionYaw = pidProfile->setPointPTransitionYaw / 100.0f;
     setPointITransitionYaw = pidProfile->setPointITransitionYaw / 100.0f;
     setPointDTransitionYaw = pidProfile->setPointDTransitionYaw / 100.0f;
-    levelGain = pidProfile->pid[PID_LEVEL].P / 10.0f;
-    horizonGain = pidProfile->pid[PID_LEVEL].I / 10.0f;
-    horizonTransition = (float)pidProfile->pid[PID_LEVEL].D;
+    P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
+    I_angle_low = pidProfile->pid[PID_LEVEL_LOW].I * 0.76f;
+    D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
+    P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
+    I_angle_high = pidProfile->pid[PID_LEVEL_HIGH].I * 0.76f;
+    D_angle_high = pidProfile->pid[PID_LEVEL_HIGH].D * 0.00017f;
+    F_angle_low = pidProfile->pid[PID_LEVEL_LOW].F * 0.0005f;
+    F_angle_high = pidProfile->pid[PID_LEVEL_HIGH].F * FEEDFORWARD_SCALE;
+    horizonTransition = (float)pidProfile->horizonTransition;
     horizonTiltExpertMode = pidProfile->horizon_tilt_expert_mode;
     horizonCutoffDegrees = (175 - pidProfile->horizon_tilt_effect) * 1.8f;
     horizonFactorRatio = (100 - pidProfile->horizon_tilt_effect) * 0.01f;
@@ -621,24 +616,64 @@ static float calcHorizonLevelStrength(void)
     return constrainf(horizonLevelStrength, 0, 1);
 }
 
+#define SIGN(x) ((x > 0.0f) - (x < 0.0f))
+
 static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint) {
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
+    float i_term[2], attitudePrevious[2], previousAngle[2];
+    float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low;
+
     float angle = pidProfile->levelAngleLimit * getRcDeflection(axis);
+    if (pidProfile->angleExpo > 0) {
+      const float expof = pidProfile->angleExpo / 100.0f;
+      angle = pidProfile->levelAngleLimit * (getRcDeflection(axis) * power3(fabsf(getRcDeflection(axis))) * expof + getRcDeflection(axis) * (1 - expof));
+    }
+
 #ifdef USE_GPS_RESCUE
     angle += gpsRescueAngle[axis] / 100; // ANGLE IS IN CENTIDEGREES
 #endif
+
+    f_term_low = (angle - previousAngle[axis]) * F_angle_low * pidFrequency;
+    previousAngle[axis] = angle;
+
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
-    const float errorAngle = angle - ((attitude.raw[axis] - angleTrim->raw[axis]) / 10.0f);
-    if (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(GPS_RESCUE_MODE)) {
-        // ANGLE mode - control is angle based
-        currentPidSetpoint = errorAngle * levelGain;
-    } else {
-        // HORIZON mode - mix of ANGLE and ACRO modes
-        // mix in errorAngle to currentPidSetpoint to add a little auto-level feel
-        const float horizonLevelStrength = calcHorizonLevelStrength();
-        currentPidSetpoint = currentPidSetpoint + (errorAngle * horizonGain * horizonLevelStrength);
+    float errorAngle = angle - ((attitude.raw[axis] - angleTrim->raw[axis]) * 0.1f);
+    errorAngle = constrainf(errorAngle, -90, 90);
+    const float errorAnglePercent = errorAngle / 90;
+
+    // ANGLE mode - control is angle based
+    p_term_low = (1 - fabsf(errorAnglePercent)) * errorAngle * P_angle_low;
+    p_term_high = fabsf(errorAnglePercent) * errorAngle * P_angle_high;
+    currentPidSetpoint = p_term_low + p_term_high;
+
+    float i_new_low = (1 - fabsf(errorAnglePercent)) * errorAngle * dT * I_angle_low;
+    float i_new_high = fabsf(errorAnglePercent) * errorAngle * dT * I_angle_high;
+    if (i_new_low != 0.0f)
+{
+    if (SIGN(i_term[axis]) != SIGN(i_new_low))
+    {
+      i_new_low = i_new_low * (float)pidProfile->i_decay;
+      i_new_high = i_new_high * (float)pidProfile->i_decay;
     }
+}
+    i_term[axis] += i_new_low + i_new_high;
+
+    d_term_low = (1 - fabsf(errorAnglePercent)) * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_low;
+    d_term_high = fabsf(errorAnglePercent) * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_high;
+    attitudePrevious[axis] = attitude.raw[axis];
+
+    currentPidSetpoint += i_term[axis];
+    currentPidSetpoint += d_term_low + d_term_high;
+    currentPidSetpoint += f_term_low;
+
+if (FLIGHT_MODE(HORIZON_MODE)) {
+    // HORIZON mode - mix of ANGLE and ACRO modes
+    // mix in errorAngle to currentPidSetpoint to add a little auto-level feel
+    const float horizonLevelStrength = calcHorizonLevelStrength();
+    currentPidSetpoint = currentPidSetpoint * horizonLevelStrength;
+    }
+
     return currentPidSetpoint;
 }
 
@@ -672,7 +707,7 @@ static void handleCrashRecovery(
             if (sensors(SENSOR_ACC)) {
                 // errorAngle is deviation from horizontal
                 const float errorAngle =  -(attitude.raw[axis] - angleTrim->raw[axis]) / 10.0f;
-                *currentPidSetpoint = errorAngle * levelGain;
+                *currentPidSetpoint = errorAngle * P_angle_low;
                 *errorRate = *currentPidSetpoint - gyroRate;
             }
         }
@@ -868,12 +903,14 @@ float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelt
 #endif // USE_RC_SMOOTHING_FILTER
 
 
-static FAST_RAM_ZERO_INIT float previousError[3];
-static FAST_RAM_ZERO_INIT float previousMeasurement[3];
+static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float previousdDelta[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float kdRingBuffer[XYZ_AXIS_COUNT][KD_RING_BUFFER_SIZE];
+static FAST_RAM_ZERO_INIT float kdRingBufferSum[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT uint16_t kdRingBufferPoint[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 //static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
-
-#define SIGN(x) ((x > 0.0f) - (x < 0.0f))
 
     void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs)
     {
@@ -925,31 +962,30 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
         // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
         // Based on 2DOF reference design (matlab)
 
+        float errorBoostAxis;
+        float errorLimitAxis;
 
-            float errorBoostAxis;
-            float errorLimitAxis;
+        if (axis <= FD_PITCH) {
+            errorBoostAxis = pidProfile->errorBoost;
+            errorLimitAxis = pidProfile->errorBoostLimit;
+        } else {
+            errorBoostAxis = pidProfile->errorBoostYaw;
+            errorLimitAxis = pidProfile->errorBoostLimitYaw;
+        }
+        errorLimitAxis = errorLimitAxis / 100;
+        float errorMultiplier = (errorBoostAxis * errorBoostAxis / 1000000) * 0.003;
+        float boostedErrorRate;
 
-            if (axis <= FD_PITCH) {
-                errorBoostAxis = pidProfile->errorBoost;
-                errorLimitAxis = pidProfile->errorBoostLimit;
-            } else {
-                errorBoostAxis = pidProfile->errorBoostYaw;
-                errorLimitAxis = pidProfile->errorBoostLimitYaw;
-            }
+        if (errorRate >= 0) {
+        boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
+      } else {
+        boostedErrorRate = -((errorRate * errorRate) * errorMultiplier);
+      }
 
-            float errorMultiplier = (errorBoostAxis * errorBoostAxis / 1000000) * 0.003;
-            float boostedErrorRate;
-
-            if (errorRate >= 0) {
-            boostedErrorRate = (errorRate * errorRate) * errorMultiplier;
-          } else {
-            boostedErrorRate = -((errorRate * errorRate) * errorMultiplier);
-          }
-
-            if (fabsf(errorRate * errorLimitAxis / 100) < fabsf(boostedErrorRate))
-              {
-                boostedErrorRate = errorRate * errorLimitAxis / 100;
-            }
+        if (fabsf(errorRate * errorLimitAxis) < fabsf(boostedErrorRate))
+          {
+            boostedErrorRate = errorRate * errorLimitAxis;
+        }
 
             rotateITermAndAxisError();
             // --------low-level gyro-based PID based on 2DOF PID controller. ----------
@@ -1043,9 +1079,6 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
                 }
             }
             ITermNew = constrainf(ITerm + ITermNew, -itermLimit, itermLimit);
-            if (fabsf(ITerm - ITermNew) > 25) {
-              ITermNew = ITerm;
-            }
 
             const bool outputSaturated = mixerIsOutputSaturated(axis, errorRate);
             if (outputSaturated == false || ABS(ITermNew) < ABS(ITerm)) {
@@ -1060,11 +1093,28 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
                 const float pureRD = getSetpointRate(axis) - gyroRateFiltered;    // cr - y
                 const float pureError = pureRD - previousError[axis];
                 const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
-                float dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency);
-                dDelta = dtermDynApplyFn((filter_t *) &dtermDyn[axis], dDelta);
                 previousMeasurement[axis] = gyro.gyroADCf[axis];
                 previousError[axis] = pureRD;
+                float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm
+                //filter the dterm
+                dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], dDelta);
 
+                float dDeltaMultiplier = constrainf(fabsf(dDelta + previousdDelta[axis]) / (2 * smart_dterm_smoothing), 0.0f, 1.0f);
+                dDelta = dDelta * dDeltaMultiplier;
+                previousdDelta[axis] = dDelta;
+
+            if (pidProfile->pid[axis].Wc > 1)
+              {
+                kdRingBuffer[axis][kdRingBufferPoint[axis]++] = dDelta;
+                kdRingBufferSum[axis] += dDelta;
+
+                if (kdRingBufferPoint[axis] == pidProfile->pid[axis].Wc) {
+                kdRingBufferPoint[axis] = 0;
+                }
+
+                dDelta = (float)(kdRingBufferSum[axis] / (float) (pidProfile->pid[axis].Wc));
+                kdRingBufferSum[axis] -= kdRingBuffer[axis][kdRingBufferPoint[axis]];
+              }
 
         if (pidCoefficient[axis].Kd > 0) {
                 // Divide rate change by dT to get differential (ie dr/dt).
@@ -1085,8 +1135,18 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
             detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, currentTimeUs, dDelta, errorRate);
 
         // -----calculate feedforward component
-        // Only enable feedforward for rate mode
-        const float feedforwardGain = flightModeFlags ? 0.0f : pidCoefficient[axis].Kf;
+        // Use angle feedforward for angle mode and level feedforward for pitch/roll or roll if in nfe_racermode
+        float feedforwardGain;
+
+        if (!FLIGHT_MODE(GPS_RESCUE_MODE)) {
+        feedforwardGain = pidCoefficient[axis].Kf;
+      } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && !nfe_racermode && (axis != FD_YAW)) {
+          feedforwardGain = F_angle_high;
+      } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && nfe_racermode && ((axis != FD_YAW) && (axis != FD_PITCH))) {
+          feedforwardGain = F_angle_high;
+      } else {
+        feedforwardGain = 0;
+      }
 
         if (feedforwardGain > 0) {
 
@@ -1145,7 +1205,6 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
         }
         // calculating the PID sum and TPA and SPA
         const float pidSum = (pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation) + (pidData[axis].I * getThrottleIAttenuation() * setPointIAttenuation) + (pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation) + pidData[axis].F;
-
 #ifdef USE_INTEGRATED_YAW_CONTROL
         if (axis == FD_YAW && useIntegratedYaw) {
             pidData[axis].Sum += pidSum * dT * 100.0f;

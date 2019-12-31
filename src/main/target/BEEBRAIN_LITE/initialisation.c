@@ -18,23 +18,27 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include <stdbool.h>
+#include <stdint.h>
 
-#include "pg/pg.h"
+#include "platform.h"
 
-#include "rx/rx_spi.h"
+#include "config/feature.h"
 
-typedef struct rxFrSkySpiConfig_s {
-    uint8_t autoBind;
-    uint8_t bindTxId[2];
-    int8_t  bindOffset;
-    uint8_t bindHopData[50];
-    uint8_t rxNum;
-    uint8_t useExternalAdc;
-} rxFrSkySpiConfig_t;
+#include "drivers/bus_i2c.h"
+#include "drivers/bus_spi.h"
+#include "drivers/io.h"
 
-PG_DECLARE(rxFrSkySpiConfig_t, rxFrSkySpiConfig);
+#include "fc/config.h"
 
-bool frSkySpiInit(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeConfig);
-rx_spi_received_e frSkySpiDataReceived(uint8_t *packet);
-void frSkySpiSetRcData(uint16_t *rcData, const uint8_t *payload);
+void targetPreInit(void)
+{
+    IO_t mcoPin = IOGetByTag(IO_TAG(PA8));
+    IOInit(mcoPin, OWNER_SYSTEM, 1);
+    IOConfigGPIOAF(mcoPin, IO_CONFIG(GPIO_Mode_AF,  GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_NOPULL), GPIO_AF_MCO);
+    RCC_MCO1Config(RCC_MCO1Source_HSE, RCC_MCO1Div_5);
+
+    spiPreinitCsByTag(IO_TAG(MPU6500_CS_PIN));
+    // spiPreinitCsByTag(IO_TAG(RTC6705_CS_PIN));
+    spiPreinitCsByTag(IO_TAG(BMP280_CS_PIN));
+}

@@ -824,6 +824,7 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
 
         pidUpdateAntiGravityThrottleFilter(throttle);
 
+
 #if defined(USE_THROTTLE_BOOST)
     if (throttleBoost > 0.0f) {
         const float throttleHpf = throttle - pt1FilterApply(&throttleLpf, throttle);
@@ -841,7 +842,7 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
 
     loggingThrottle = throttle;
     motorMixRange = motorMixMax - motorMixMin;
-    if (motorMixRange > 1.0f) {
+    if (motorMixRange > 1.0f && (hardwareMotorType != MOTOR_BRUSHED)) {
         for (int i = 0; i < motorCount; i++) {
             motorMix[i] /= motorMixRange;
         }

@@ -33,6 +33,7 @@
 #define PIDSUM_LIMIT_YAW            400
 #define PIDSUM_LIMIT_MIN            100
 #define PIDSUM_LIMIT_MAX            1000
+#define KD_RING_BUFFER_SIZE 256
 
 // Scaling factors for Pids for better tunable range in configurator for betaflight pid controller. The scaling is based on legacy pid controller or previous float
 #define PTERM_SCALE 0.032029f
@@ -47,7 +48,8 @@ typedef enum {
     PID_ROLL,
     PID_PITCH,
     PID_YAW,
-    PID_LEVEL,
+    PID_LEVEL_LOW, //pid controller for low errorAngle
+    PID_LEVEL_HIGH, //pid controller for high errorAngle
     PID_MAG,
     PID_ITEM_COUNT
 } pidIndex_e;
@@ -74,6 +76,8 @@ typedef struct pidf_s {
     uint8_t I;
     uint8_t D;
     uint16_t F;
+    uint8_t Wc; //adding witchCraft so it can be set per axis :) might put future dterm filters in here to set them per axis :) go emu!
+
 } pidf_t;
 
 typedef enum {
@@ -99,7 +103,6 @@ typedef struct pidProfile_s {
     uint16_t dterm_lowpass_hz;              // Delta Filter in hz
     uint16_t dterm_notch_hz;                // Biquad dterm notch hz
     uint16_t dterm_notch_cutoff;            // Biquad dterm notch low cutoff
-    uint16_t dterm_dyn_lpf;
 
     pidf_t  pid[PID_ITEM_COUNT];
 
@@ -109,7 +112,9 @@ typedef struct pidProfile_s {
     uint16_t pidSumLimitYaw;
     uint8_t pidAtMinThrottle;               // Disable/Enable pids on zero throttle. Normally even without airmode P and D would be active.
     uint8_t levelAngleLimit;                // Max angle in degrees in level mode
+    uint8_t angleExpo;                      // How much expo to add to the
 
+    uint8_t horizonTransition;              // horizonTransition
     uint8_t horizon_tilt_effect;            // inclination factor for Horizon mode
     uint8_t horizon_tilt_expert_mode;       // OFF or ON
 
@@ -118,7 +123,7 @@ typedef struct pidProfile_s {
     uint16_t itermThrottleThreshold;        // max allowed throttle delta before iterm accelerated in ms
     uint16_t itermAcceleratorGain;          // Iterm Accelerator Gain when itermThrottlethreshold is hit
     uint8_t feathered_pids;                 // determine how feathered your pids are
-    uint8_t i_decay;						            // i-term decay
+    uint8_t i_decay;						            // i-term decay (increases how quickly iterm shrinks in value)
     uint8_t r_weight;					            	// the weight of the kalman R term calculated out of the std. dev.
     uint16_t errorBoost;                    // the weight of the setpoint boost
     uint16_t errorBoostYaw;                 // the weight of the setpoint boost for yaw
@@ -145,6 +150,7 @@ typedef struct pidProfile_s {
     uint16_t crash_limit_yaw;               // limits yaw errorRate, so crashes don't cause huge throttle increase
     uint16_t itermLimit;
     uint16_t dterm_lowpass2_hz;             // Extra PT1 Filter on D in hz
+    uint8_t smart_dterm_smoothing;          // value that your dterm must go past to act normal
     uint8_t crash_recovery;                 // off, on, on and beeps when it is in crash recovery mode
     uint8_t throttle_boost;                 // how much should throttle be boosted during transient changes 0-100, 100 adds 10x hpf filtered throttle
     uint8_t throttle_boost_cutoff;          // Which cutoff frequency to use for throttle boost. higher cutoffs keep the boost on for shorter. Specified in hz.
@@ -170,7 +176,7 @@ PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
 #endif
 
 typedef struct pidConfig_s {
-    uint8_t pid_process_denom;              // Processing denominator for PID controller vs gyro sampling rate
+    uint8_t pid_process_denom;                   // Processing denominator for PID controller vs gyro sampling rate
     uint8_t runaway_takeoff_prevention;          // off, on - enables pidsum runaway disarm logic
     uint16_t runaway_takeoff_deactivate_delay;   // delay in ms for "in-flight" conditions before deactivation (successful flight)
     uint8_t runaway_takeoff_deactivate_throttle; // minimum throttle percent required during deactivation phase

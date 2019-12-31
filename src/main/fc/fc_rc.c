@@ -209,13 +209,13 @@ static void calculateSetpointRate(int axis)
 
 static void scaleRcCommandToFpvCamAngle(void)
 {
-    float currentPitchAngle = attitude.values.pitch / 10;
+    float currentPitchAngle = attitude.raw[FD_PITCH] * 0.1f;
     //recalculate sin/cos only when rxConfig()->fpvCamAngleDegrees changed
     static uint8_t lastFpvCamAngleDegrees = 0;
     static float cosFactor = 1.0;
     static float sinFactor = 0.0;
 
-    if (rxConfig()->cinematicYaw && (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE))) {
+    if (rxConfig()->cinematicYaw) {
       if (currentPitchAngle > rxConfig()->fpvCamAngleDegrees) {
         currentPitchAngle = rxConfig()->fpvCamAngleDegrees;
       }

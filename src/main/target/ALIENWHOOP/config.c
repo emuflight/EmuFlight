@@ -132,9 +132,9 @@ void targetConfiguration(void)
         pidProfile->pid[PID_YAW].P = 220;
         pidProfile->pid[PID_YAW].I = 75;
         pidProfile->pid[PID_YAW].D = 20;
-        pidProfile->pid[PID_LEVEL].P = 65;
-        pidProfile->pid[PID_LEVEL].I = 65;
-        pidProfile->pid[PID_LEVEL].D = 55;
+        pidProfile->pid[PID_LEVEL_LOW].P = 65;
+        pidProfile->pid[PID_LEVEL_LOW].I = 65;
+        pidProfile->pid[PID_LEVEL_LOW].D = 55;
 
         /* Setpoints */
         pidProfile->dterm_filter_type = FILTER_BIQUAD;

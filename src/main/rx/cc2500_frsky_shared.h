@@ -1,22 +1,23 @@
+
 /*
- * This file is part of Cleanflight and Betaflight.
- *
- * Cleanflight and Betaflight are free software. You can redistribute
- * this software and/or modify this software under the terms of the
- * GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option)
- * any later version.
- *
- * Cleanflight and Betaflight are distributed in the hope that they
- * will be useful, but WITHOUT ANY WARRANTY; without even the implied
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this software.
- *
- * If not, see <http://www.gnu.org/licenses/>.
- */
+* This file is part of Cleanflight and Betaflight.
+*
+* Cleanflight and Betaflight are free software. You can redistribute
+* this software and/or modify this software under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, either version 3 of the License, or (at your option)
+* any later version.
+*
+* Cleanflight and Betaflight are distributed in the hope that they
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied
+* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this software.
+*
+* If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #pragma once
 
@@ -34,38 +35,23 @@
 #define MAX_MISSING_PKT 100
 
 enum {
-    STATE_INIT = 0,
-    STATE_BIND,
-    STATE_BIND_TUNING,
-    STATE_BIND_BINDING1,
-    STATE_BIND_BINDING2,
-    STATE_BIND_COMPLETE,
-    STATE_STARTING,
-    STATE_UPDATE,
-    STATE_DATA,
-    STATE_TELEMETRY,
-    STATE_RESUME,
+  STATE_INIT = 0,
+  STATE_BIND,
+  STATE_BIND_TUNING,
+  STATE_BIND_BINDING1,
+  STATE_BIND_BINDING2,
+  STATE_BIND_COMPLETE,
+  STATE_STARTING,
+  STATE_UPDATE,
+  STATE_DATA,
+  STATE_TELEMETRY,
+  STATE_RESUME,
 };
 
 extern uint8_t listLength;
 extern uint32_t missingPackets;
 extern timeDelta_t timeoutUs;
-extern int16_t rssiDbm;
-
-extern IO_t gdoPin;
-
-void setRssiDbm(uint8_t value);
-
-void TxEnable(void);
-void TxDisable(void);
-
-void LedOn(void);
-void LedOff(void);
-
-void switchAntennae(void);
 
 void initialiseData(uint8_t adr);
-
-bool checkBindRequested(bool reset);
 
 void nextChannel(uint8_t skip);

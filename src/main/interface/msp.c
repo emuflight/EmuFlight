@@ -1301,9 +1301,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, currentPidProfile->dterm_lowpass_hz);
         sbufWriteU16(dst, currentPidProfile->yaw_lowpass_hz);
         //added in msp 1.43
-        sbufWriteU16(dst, currentPidProfile->dterm_dyn_lpf);
+        sbufWriteU16(dst, 0); //old dterm dyn
         #ifndef USE_GYRO_IMUF9001
-        sbufWriteU16(dst, gyroConfig()->gyro_dyn_lpf);
+        sbufWriteU16(dst, 0); //old gyro dyn
         #endif
         sbufWriteU16(dst, gyroConfig()->gyro_soft_notch_hz_1);
         sbufWriteU16(dst, gyroConfig()->gyro_soft_notch_cutoff_1);
@@ -1915,9 +1915,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         currentPidProfile->dterm_lowpass_hz = sbufReadU16(src);
         currentPidProfile->yaw_lowpass_hz = sbufReadU16(src);
         //added in msp 1.43
-        currentPidProfile->dterm_dyn_lpf =  sbufReadU16(src);
+        sbufReadU16(src); //old dyn dterm
         #ifndef USE_GYRO_IMUF9001
-        gyroConfigMutable()->gyro_dyn_lpf = sbufReadU16(src);
+        sbufReadU16(src); //old dyn gyro
         #endif
         if (sbufBytesRemaining(src) >= 8) {
             gyroConfigMutable()->gyro_soft_notch_hz_1 = sbufReadU16(src);

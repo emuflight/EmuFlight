@@ -127,9 +127,6 @@ float FAST_RAM_ZERO_INIT vGyroStdDevModulus;
 
 static FAST_RAM_ZERO_INIT int16_t gyroSensorTemperature;
 
-#ifndef USE_GYRO_IMUF9001
-static FAST_RAM_ZERO_INIT pt1Filter_t gyroDynHzLpf;
-#endif //USE_GYRO_IMUF9001
 
 static bool gyroHasOverflowProtection = true;
 
@@ -268,7 +265,6 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .gyro_lowpass_hz = 90,
     .gyro_lowpass2_type = FILTER_PT1,
     .gyro_lowpass2_hz = 0,
-    .gyro_dyn_lpf = 0,
     .gyro_high_fsr = false,
     .gyro_use_32khz = false,
     .gyro_to_use = GYRO_CONFIG_USE_GYRO_DEFAULT,
@@ -280,7 +276,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .imuf_roll_q = 3000,
     .imuf_pitch_q = 3000,
     .imuf_yaw_q = 3000,
-    .imuf_w = 16,
+    .imuf_w = 32,
     .gyro_offset_yaw = 0,
     .yaw_spin_recovery = true,
     .yaw_spin_threshold = 1950,
@@ -798,29 +794,6 @@ void gyroInitSlewLimiter(gyroSensor_t *gyroSensor) {
 }
 #endif
 
-static void gyroInitDynFilterLpf(gyroSensor_t *gyroSensor, float lpfHz)
-{
-  filterApplyFnPtr *gyroDynApplyFn;
-  gyroDynApplyFn = &gyroSensor->gyroDynApplyFn;
-  const float dT = gyro.targetLooptime * 1e-6f;
-  #define BIQUAD_Q 1.0f / sqrtf(2.0f)     /* quality factor - 2nd order butterworth*/
-  float MinFreq = gyroConfig()->gyro_dyn_lpf;
-  MinFreq += ((float)(rcData[THROTTLE] - 1000) * 0.1f) + 10; //Add 0 - 50Hz
-
-  if (gyroConfig()->gyro_dyn_lpf != 0)
-  {
-        *gyroDynApplyFn = (filterApplyFnPtr) biquadFilterApplyDF1;
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-        float setPoint      = getSetpointRate(axis);
-        float FilterGyro    = gyro.gyroADCf[axis];
-        lpfHz = constrainf( MinFreq + ABS((setPoint - FilterGyro) * 2) + ABS(FilterGyro / 5.0f), MinFreq, (MinFreq + 500.0f));
-        pt1FilterInit(&gyroDynHzLpf, pt1FilterGain(15, dT));
-        pt1FilterApply(&gyroDynHzLpf, lpfHz);
-        biquadFilterUpdate(&gyroSensor->gyroDyn[axis], lpfHz, gyro.targetLooptime, BIQUAD_Q, FILTER_LPF);
-        }
-    }
-}
-
 static void gyroInitFilterNotch1(gyroSensor_t *gyroSensor, uint16_t notchHz, uint16_t notchCutoffHz)
 {
     gyroSensor->notchFilter1ApplyFn = nullFilterApply;
@@ -898,7 +871,6 @@ static void gyroInitSensorFilters(gyroSensor_t *gyroSensor)
 
     gyroInitFilterNotch1(gyroSensor, gyroConfig()->gyro_soft_notch_hz_1, gyroConfig()->gyro_soft_notch_cutoff_1);
     gyroInitFilterNotch2(gyroSensor, gyroConfig()->gyro_soft_notch_hz_2, gyroConfig()->gyro_soft_notch_cutoff_2);
-    gyroInitDynFilterLpf(gyroSensor, gyroConfig()->gyro_dyn_lpf);
     #endif //USE_GYRO_IMUF9001
 #ifdef USE_GYRO_DATA_ANALYSE
     gyroInitFilterDynamicNotch(gyroSensor);
