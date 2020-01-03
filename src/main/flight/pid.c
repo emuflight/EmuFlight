@@ -135,8 +135,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
             [PID_ROLL] =  DEFAULT_PIDS_ROLL,
             [PID_PITCH] = DEFAULT_PIDS_PITCH,
             [PID_YAW] =   DEFAULT_PIDS_YAW,
-            [PID_LEVEL_LOW] = { 100, 50, 10, 10, 0},
-            [PID_LEVEL_HIGH] = { 35, 0, 1, 80, 0},
+            [PID_LEVEL_LOW] = { 100, 50, 10, 40, 0},
+            [PID_LEVEL_HIGH] = { 35, 0, 1, 0, 0},
             [PID_MAG] =   { 40, 0, 0, 0, 0},
         },
 
@@ -183,6 +183,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .horizon_tilt_effect = 130,
         .horizon_tilt_expert_mode = false,
         .nfe_racermode = 0,
+        .cinematic_setpoint = 0,
+        .cinematic_center_boost = 15,
         .crash_limit_yaw = 200,
         .itermLimit = 400,
         .throttle_boost = 5,
@@ -380,7 +382,7 @@ static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feedForwardTransition;
 static FAST_RAM_ZERO_INIT float feathered_pids;
 static FAST_RAM_ZERO_INIT uint8_t nfe_racermode;
-static FAST_RAM_ZERO_INIT uint8_t cinematic_setpoint;
+static FAST_RAM_ZERO_INIT uint8_t cinematic_setpoint, cinematic_center_boost;
 static FAST_RAM_ZERO_INIT float smart_dterm_smoothing;
 static FAST_RAM_ZERO_INIT float setPointPTransition;
 static FAST_RAM_ZERO_INIT float setPointITransition;
@@ -388,7 +390,7 @@ static FAST_RAM_ZERO_INIT float setPointDTransition;
 static FAST_RAM_ZERO_INIT float setPointPTransitionYaw;
 static FAST_RAM_ZERO_INIT float setPointITransitionYaw;
 static FAST_RAM_ZERO_INIT float setPointDTransitionYaw;
-static FAST_RAM_ZERO_INIT float P_angle_low, I_angle_low, D_angle_low, P_angle_high, I_angle_high, D_angle_high, F_angle_low, F_angle_high, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
+static FAST_RAM_ZERO_INIT float P_angle_low, I_angle_low, D_angle_low, P_angle_high, I_angle_high, D_angle_high, F_angle, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
 static FAST_RAM_ZERO_INIT uint8_t horizonTiltExpertMode;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeLimitUs;
@@ -463,6 +465,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     feathered_pids = pidProfile->feathered_pids / 100.0f;
     nfe_racermode = pidProfile->nfe_racermode;
     cinematic_setpoint = pidProfile->cinematic_setpoint;
+    cinematic_center_boost = pidProfile->cinematic_center_boost / 10.0f;
     smart_dterm_smoothing = pidProfile->smart_dterm_smoothing;
     setPointPTransition = pidProfile->setPointPTransition / 100.0f;
     setPointITransition = pidProfile->setPointITransition / 100.0f;
@@ -476,8 +479,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
     I_angle_high = pidProfile->pid[PID_LEVEL_HIGH].I * 0.76f;
     D_angle_high = pidProfile->pid[PID_LEVEL_HIGH].D * 0.00017f;
-    F_angle_low = pidProfile->pid[PID_LEVEL_LOW].F * 0.000005f;
-    F_angle_high = pidProfile->pid[PID_LEVEL_HIGH].F * (FEEDFORWARD_SCALE / 100);
+    F_angle = pidProfile->pid[PID_LEVEL_LOW].F * 0.00000125f;
     horizonTransition = (float)pidProfile->horizonTransition;
     horizonTiltExpertMode = pidProfile->horizon_tilt_expert_mode;
     horizonCutoffDegrees = (175 - pidProfile->horizon_tilt_effect) * 1.8f;
@@ -637,7 +639,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     angle += gpsRescueAngle[axis] / 100; // ANGLE IS IN CENTIDEGREES
 #endif
 
-    f_term_low = (angle - previousAngle[axis]) * F_angle_low * pidFrequency;
+    f_term_low = (angle - previousAngle[axis]) * F_angle * pidFrequency;
     previousAngle[axis] = angle;
 
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
@@ -655,8 +657,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
 {
     if (SIGN(i_term[axis]) != SIGN(i_new_low))
     {
-      i_new_low = i_new_low * (float)pidProfile->i_decay;
-      i_new_high = i_new_high * (float)pidProfile->i_decay;
+      i_term[axis] *= 0.5f;
     }
 }
     i_term[axis] += i_new_low + i_new_high;
@@ -943,10 +944,6 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
         if (!FLIGHT_MODE(GPS_RESCUE_MODE) || !cinematic_setpoint) {
         feedforwardGain = pidCoefficient[axis].Kf;
-      } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && !nfe_racermode && (axis != FD_YAW)) {
-          feedforwardGain = F_angle_high;
-      } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && nfe_racermode && ((axis != FD_YAW) && (axis != FD_PITCH))) {
-          feedforwardGain = F_angle_high;
       } else {
         feedforwardGain = 0;
       }
@@ -962,15 +959,13 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
         if (flightModeFlags) {
             //calculate the cinematic_setpoint code and apply change to the setPoint
-        if ((cinematic_setpoint > 0) && (feedForwardTransition > 0)) {
-           transition = MIN(1.0f, (feedForwardTransition - (getRcDeflectionAbs(axis) * feedForwardTransition)));
-        }
         if (cinematic_setpoint > 0) {
-           float setpointMultiplier = MIN(1.0f,((pidSetpointDelta * pidCoefficient[axis].Kf) / 1000.0f));
-           currentPidSetpoint = currentPidSetpoint - (pidSetpointDelta * setpointMultiplier * transition);
+           transition = MAX(cinematic_center_boost - (cinematic_center_boost * (currentPidSetpoint / 1000.0f)), 1.0f);
+           float setpointSmoother = MIN(.95f,((pidSetpointDelta * pidCoefficient[axis].Kf) / 1000.0f) * transition);
+           currentPidSetpoint = currentPidSetpoint - (pidSetpointDelta * setpointSmoother);
         }
       }
-        if ((cinematic_setpoint == 0) || (feedForwardTransition > 0)) {
+        if ((cinematic_setpoint == 0) && (feedForwardTransition > 0)) {
             // no transition if feedForwardTransition == 0 or cinematic_setpoint is enabled
             transition = MIN(1.0f, getRcDeflectionAbs(axis) * feedForwardTransition);
           }
