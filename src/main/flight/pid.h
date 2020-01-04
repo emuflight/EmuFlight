@@ -131,7 +131,6 @@ typedef struct pidProfile_s {
     uint8_t errorBoostLimitYaw;             // percentage of the error that the emu boost can boost for yaw
     uint8_t nfe_racermode;                  // turn on or off NFE RACERMODE
     uint8_t cinematic_setpoint;             // turn on or off cinematic_setpoint
-    uint8_t cinematic_center_boost;         // how much more powerful the cinematic_setpoint is at it approaches center
     uint16_t yawRateAccelLimit;             // yaw accel limiter for deg/sec/ms
     uint16_t rateAccelLimit;                // accel limiter roll/pitch deg/sec/ms
     uint16_t crash_dthreshold;              // dterm crash value
