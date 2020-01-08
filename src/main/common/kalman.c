@@ -39,7 +39,7 @@ typedef struct variance
     float yzSumCoVar;
 
     float inverseN;
-    uint32_t w;
+    uint16_t w;
 } variance_t;
 
 
@@ -64,7 +64,7 @@ float       setPoint[XYZ_AXIS_COUNT];
 void init_kalman(kalman_t *filter, float q)
 {
     memset(filter, 0, sizeof(kalman_t));
-    filter->q = q * 0.000001f;   //add multiplier to make tuning easier
+    filter->q = q * 0.001f;      //add multiplier to make tuning easier
     filter->r = 88.0f;           //seeding R at 88.0f
     filter->p = 30.0f;           //seeding P at 30.0f
     filter->e = 1.0f;
@@ -75,12 +75,7 @@ void kalman_init(void)
 {
     isSetpointNew = 0;
 
-    setPoint[X]= 0.0f;
-    setPoint[Y] = 0.0f;
-    setPoint[Z] = 0.0f;
-
     memset(&varStruct, 0, sizeof(varStruct));
-
     init_kalman(&kalmanFilterStateRate[X],  gyroConfig()->imuf_roll_q);
     init_kalman(&kalmanFilterStateRate[Y],  gyroConfig()->imuf_pitch_q);
     init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->imuf_yaw_q);
@@ -146,51 +141,36 @@ void update_kalman_covariance(float *gyroRateData)
 
 FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 {
-	//project the state ahead using acceleration
-    kalmanState->x += (kalmanState->x - kalmanState->lastX);
+  //project the state ahead using acceleration
+  kalmanState->x += (kalmanState->x - kalmanState->lastX);
 
-    //figure out how much to boost or reduce our error in the estimate based on setpoint target.
-    //this should be close to 0 as we approach the setpoint and really high the further away we are from the setpoint.
-    //update last state
-    kalmanState->lastX = kalmanState->x;
+  //figure out how much to boost or reduce our error in the estimate based on setpoint target.
+  //this should be close to 0 as we approach the sepoint and really high the futher away we are from the setpoint.
+  //update last state
+  kalmanState->lastX = kalmanState->x;
 
-    /*if (target != 0.0f && input  != 0.0f)
-    {
-        kalmanState->e = ABS(1.0f - target/input);
-    }
-    else
-    {
-    //    UNUSED(target);
-        kalmanState->e = 1.0f;
-    }*/
+  if (target != 0.0f) {
+      kalmanState->e = ABS(1.0f - (target / kalmanState->lastX));
+  } else {
+      kalmanState->e = 1.0f;
+  }
 
-    kalmanState->e = (ABS((target - input) * 2) + ABS(input / 4));
+  //kalmanState->e = ABS((target - input) * 3) + ABS(input/4);
 
+  //prediction update
+  kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
 
-    //prediction update
-    kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
-
-    //measurement update
-    kalmanState->k = kalmanState->p / (kalmanState->p + kalmanState->r);
-    kalmanState->x += kalmanState->k * (input - kalmanState->x);
-    kalmanState->p = (1.0f - kalmanState->k) * kalmanState->p;
-
-    return kalmanState->x;
+  //measurement update
+  kalmanState->k = kalmanState->p / (kalmanState->p + kalmanState->r);
+  kalmanState->x += kalmanState->k * (input - kalmanState->x);
+  kalmanState->p = (1.0f - kalmanState->k) * kalmanState->p;
+  return kalmanState->x;
 }
 
 
 void kalman_update(float* input, float* output)
 {
-    if(isSetpointNew) {
-        setPoint[X] = getSetpointRate(X);
-        setPoint[Y] = getSetpointRate(Y);
-        setPoint[Z] = getSetpointRate(Z);
-
-        isSetpointNew = 0;
-    }
-
     update_kalman_covariance(input);
-
     output[X] = kalman_process(&kalmanFilterStateRate[X], input[X], setPoint[X] );
     output[Y] = kalman_process(&kalmanFilterStateRate[Y], input[Y], setPoint[Y] );
     output[Z] = kalman_process(&kalmanFilterStateRate[Z], input[Z], setPoint[Z] );

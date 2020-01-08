@@ -467,7 +467,7 @@ FAST_RAM cfTask_t cfTasks[TASK_COUNT] = {
         .taskName = "ACC",
         .taskFunc = taskUpdateAccelerometer,
         .desiredPeriod = TASK_PERIOD_HZ(DEFAULT_ACC_SAMPLE_INTERVAL),      // 1000Hz, every 1ms
-        .staticPriority = TASK_PRIORITY_MEDIUM,
+        .staticPriority = TASK_PRIORITY_HIGH,
     },
 
     [TASK_ATTITUDE] = {
