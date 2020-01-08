@@ -932,13 +932,12 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
             float transition = 1.0f;
 
                 //calculate the cinematic_setpoint code and apply change to the setPoint
-            if (cinematic_setpoint > 0) {
+            if (cinematic_setpoint) {
                transition = MAX(4 - (4 * (currentPidSetpoint / 1000.0f)), 1.0f);
                float setpointSmoother = MIN(.95f,((pidSetpointDelta * 0.041262f) / 1000.0f) * transition);
                currentPidSetpoint = currentPidSetpoint - (pidSetpointDelta * setpointSmoother);
                pidData[axis].F = 0;
-            }
-            if ((cinematic_setpoint == 0) && (feedforwardGain > 0)) {
+            } else if (feedforwardGain > 0) {
             // no transition if feedForwardTransition == 0 or cinematic_setpoint is enabled
             transition = MIN(1.0f, getRcDeflectionAbs(axis) * feedForwardTransition);
             pidData[axis].F = feedforwardGain * transition * pidSetpointDelta * pidFrequency;
