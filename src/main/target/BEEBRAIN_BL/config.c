@@ -206,6 +206,7 @@ void targetConfiguration(void)
 //    pidProfilesMutable(0)->pid[PID_LEVEL].D = 80;
     pidProfilesMutable(0)->levelAngleLimit  = 70;
     pidProfilesMutable(0)->horizon_tilt_effect = 80;
+    pidProfilesMutable(0)->horizon_tilt_expert_mode = true;
 
     controlRateProfilesMutable(0)->rcRates[FD_YAW] = 207;
     controlRateProfilesMutable(0)->rates[FD_ROLL] = 80;

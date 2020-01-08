@@ -181,6 +181,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .crash_setpoint_threshold = 350, // degrees/second
         .crash_recovery = PID_CRASH_RECOVERY_OFF, // off by default
         .horizon_tilt_effect = 130,
+        .horizon_tilt_expert_mode = false,
         .nfe_racermode = 0,
         .cinematic_setpoint = 0,
         .crash_limit_yaw = 200,
@@ -203,7 +204,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .integrated_yaw_relax = 200,
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
-        .horizonTransition = 0,
+        .horizonTransition = 75,
     );
 }
 
@@ -390,6 +391,7 @@ static FAST_RAM_ZERO_INIT float setPointITransitionYaw;
 static FAST_RAM_ZERO_INIT float setPointDTransitionYaw;
 static FAST_RAM_ZERO_INIT float P_angle_low, I_angle_low, D_angle_low, P_angle_high, I_angle_high, D_angle_high, F_angle, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
+static FAST_RAM_ZERO_INIT uint8_t horizonTiltExpertMode;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeLimitUs;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeDelayUs;
 static FAST_RAM_ZERO_INIT int32_t crashRecoveryAngleDeciDegrees;
@@ -477,7 +479,8 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     D_angle_high = pidProfile->pid[PID_LEVEL_HIGH].D * 0.00017f;
     F_angle = pidProfile->pid[PID_LEVEL_LOW].F * 0.00000125f;
     horizonTransition = (float)pidProfile->horizonTransition;
-    horizonCutoffDegrees = pidProfile->horizon_tilt_effect;
+    horizonTiltExpertMode = pidProfile->horizon_tilt_expert_mode;
+    horizonCutoffDegrees = (175 - pidProfile->horizon_tilt_effect) * 1.8f;
     horizonFactorRatio = (100 - pidProfile->horizon_tilt_effect) * 0.01f;
     maxVelocity[FD_ROLL] = maxVelocity[FD_PITCH] = pidProfile->rateAccelLimit * 100 * dT;
     maxVelocity[FD_YAW] = pidProfile->yawRateAccelLimit * 100 * dT;
@@ -563,27 +566,57 @@ void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex)
 // calculates strength of horizon leveling; 0 = none, 1.0 = most leveling
 static float calcHorizonLevelStrength(void)
 {
-  float horizonLevelStrength;
-  // 0 at level, 90 at vertical, 180 at inverted (degrees):
-  const float currentInclination = MAX(ABS(attitude.values.roll), ABS(attitude.values.pitch)) / 10.0f;
-  // Used as a factor in the numerator of inclinationLevelRatio - this will cause the entry point of the fade of leveling strength to be adjustable via horizon transition in configurator for RACEMODEhorizon
-  const float racemodeHorizonTransitionFactor = horizonCutoffDegrees / (horizonCutoffDegrees - horizonTransition);
-  // Used as a factor in the numerator of inclinationLevelRatio - this will cause the fade of leveling strength to start at levelAngleLimit for RACEMODEangle
-  // horizonTiltExpertMode:  0 = RACEMODEangle - ANGLE LIMIT BEHAVIOUR ON ROLL AXIS
-  //                         1 = RACEMODEhorizon - HORIZON TYPE BEHAVIOUR ON ROLL AXIS
+    // start with 1.0 at center stick, 0.0 at max stick deflection:
+    float horizonLevelStrength = 1.0f - MAX(getRcDeflectionAbs(FD_ROLL), getRcDeflectionAbs(FD_PITCH));
 
-  //determines the leveling strength of RACEMODEhorizon
+    // 0 at level, 90 at vertical, 180 at inverted (degrees):
+    const float currentInclination = MAX(ABS(attitude.values.roll), ABS(attitude.values.pitch)) / 10.0f;
 
-      if (horizonCutoffDegrees > 0 && horizonTransition < horizonCutoffDegrees) { //if racemode_tilt_effect>0 and if horizonTransition<racemode_tilt_effect
+    // horizonTiltExpertMode:  0 = leveling always active when sticks centered,
+    //                         1 = leveling can be totally off when inverted
+    if (horizonTiltExpertMode) {
+        if (horizonTransition > 0 && horizonCutoffDegrees > 0) {
+                    // if d_level > 0 and horizonTiltEffect < 175
+            // horizonCutoffDegrees: 0 to 125 => 270 to 90 (represents where leveling goes to zero)
+            // inclinationLevelRatio (0.0 to 1.0) is smaller (less leveling)
+            //  for larger inclinations; 0.0 at horizonCutoffDegrees value:
+            const float inclinationLevelRatio = constrainf((horizonCutoffDegrees-currentInclination) / horizonCutoffDegrees, 0, 1);
+            // apply configured horizon sensitivity:
+                // when stick is near center (horizonLevelStrength ~= 1.0)
+                //  H_sensitivity value has little effect,
+                // when stick is deflected (horizonLevelStrength near 0.0)
+                //  H_sensitivity value has more effect:
+            horizonLevelStrength = (horizonLevelStrength - 1) * 100 / horizonTransition + 1;
+            // apply inclination ratio, which may lower leveling
+            //  to zero regardless of stick position:
+            horizonLevelStrength *= inclinationLevelRatio;
+        } else  { // d_level=0 or horizon_tilt_effect>=175 means no leveling
+          horizonLevelStrength = 0;
+        }
+    } else { // horizon_tilt_expert_mode = 0 (leveling always active when sticks centered)
+        float sensitFact;
+        if (horizonFactorRatio < 1.01f) { // if horizonTiltEffect > 0
+            // horizonFactorRatio: 1.0 to 0.0 (larger means more leveling)
+            // inclinationLevelRatio (0.0 to 1.0) is smaller (less leveling)
+            //  for larger inclinations, goes to 1.0 at inclination==level:
+            const float inclinationLevelRatio = (180-currentInclination)/180 * (1.0f-horizonFactorRatio) + horizonFactorRatio;
+            // apply ratio to configured horizon sensitivity:
+            sensitFact = horizonTransition * inclinationLevelRatio;
+        } else { // horizonTiltEffect=0 for "old" functionality
+            sensitFact = horizonTransition;
+        }
 
-  //causes leveling to fade from horizonTransition angle to horizonCutoffDegrees	where leveling goes to zero
-        const float inclinationLevelRatio = constrainf(((horizonCutoffDegrees - currentInclination) * racemodeHorizonTransitionFactor) / horizonCutoffDegrees, 0, 1);
-        // apply inclination ratio to horizonLevelStrength which lowers leveling to zero as a function of angle and regardless of stick position
-        horizonLevelStrength = inclinationLevelRatio;
-      } else  { // if racemode_tilt_effect = 0 or horizonTransition>racemode_tilt_effect means no leveling
-        horizonLevelStrength = 0;
-      }
-return constrainf(horizonLevelStrength, 0, 1);
+        if (sensitFact <= 0) {           // zero means no leveling
+            horizonLevelStrength = 0;
+        } else {
+            // when stick is near center (horizonLevelStrength ~= 1.0)
+            //  sensitFact value has little effect,
+            // when stick is deflected (horizonLevelStrength near 0.0)
+            //  sensitFact value has more effect:
+            horizonLevelStrength = ((horizonLevelStrength - 1) * (100 / sensitFact)) + 1;
+        }
+    }
+    return constrainf(horizonLevelStrength, 0, 1);
 }
 
 #define SIGN(x) ((x > 0.0f) - (x < 0.0f))
@@ -609,8 +642,8 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
 
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
     float errorAngle = angle - ((attitude.raw[axis] - angleTrim->raw[axis]) * 0.1f);
-    errorAngle = constrainf(errorAngle, -90.0f, 90.0f);
-    const float errorAnglePercent = errorAngle / 90.0f;
+    errorAngle = constrainf(errorAngle, -90, 90);
+    const float errorAnglePercent = errorAngle / 90;
 
     // ANGLE mode - control is angle based
     p_term_low = (1 - fabsf(errorAnglePercent)) * errorAngle * P_angle_low;
@@ -640,8 +673,9 @@ if (FLIGHT_MODE(HORIZON_MODE)) {
     // HORIZON mode - mix of ANGLE and ACRO modes
     // mix in errorAngle to currentPidSetpoint to add a little auto-level feel
     const float horizonLevelStrength = calcHorizonLevelStrength();
-    currentPidSetpoint = (((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f) + (currentPidSetpoint * horizonLevelStrength);
+    currentPidSetpoint = getSetpointRate(axis) + currentPidSetpoint * horizonLevelStrength;
     }
+
     return currentPidSetpoint;
 }
 
@@ -916,7 +950,7 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
         // Use angle feedforward for angle mode and level feedforward for pitch/roll or roll if in nfe_racermode
         float feedforwardGain;
 
-        if (!FLIGHT_MODE(GPS_RESCUE_MODE) || !cinematic_setpoint) {
+        if (!FLIGHT_MODE(GPS_RESCUE_MODE)) {
         feedforwardGain = pidCoefficient[axis].Kf;
       } else {
         feedforwardGain = 0;
@@ -931,12 +965,13 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
             float transition = 1.0f;
 
                 //calculate the cinematic_setpoint code and apply change to the setPoint
-            if (cinematic_setpoint) {
+            if (cinematic_setpoint > 0) {
                transition = MAX(4 - (4 * (currentPidSetpoint / 1000.0f)), 1.0f);
-               float setpointSmoother = MIN(.95f, (pidSetpointDelta * 0.001f) * transition);
+               float setpointSmoother = MIN(.95f,((pidSetpointDelta * 0.041262f) / 1000.0f) * transition);
                currentPidSetpoint = currentPidSetpoint - (pidSetpointDelta * setpointSmoother);
                pidData[axis].F = 0;
-            } else if (feedforwardGain > 0) {
+            }
+            if ((cinematic_setpoint == 0) && (feedforwardGain > 0)) {
             // no transition if feedForwardTransition == 0 or cinematic_setpoint is enabled
             transition = MIN(1.0f, getRcDeflectionAbs(axis) * feedForwardTransition);
             pidData[axis].F = feedforwardGain * transition * pidSetpointDelta * pidFrequency;
