@@ -132,7 +132,7 @@ void accResetFlightDynamicsTrims(void)
 void pgResetFn_accelerometerConfig(accelerometerConfig_t *instance)
 {
     RESET_CONFIG_2(accelerometerConfig_t, instance,
-        .acc_lpf_hz = 30,
+        .acc_lpf_hz = 40,
         .acc_align = ALIGN_DEFAULT,
         .acc_hardware = ACC_DEFAULT,
         .acc_high_fsr = false,
