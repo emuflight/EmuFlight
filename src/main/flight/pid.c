@@ -204,6 +204,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .horizonTransition = 0,
+        .combineAcc1khz = 0,
     );
 }
 
@@ -591,7 +592,7 @@ return constrainf(horizonLevelStrength, 0, 1);
 static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint) {
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
-    float i_term[2], attitudePrevious[2], previousAngle[2];
+    static float i_term[2], attitudePrevious[2], previousAngle[2];
     float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low;
 
     float angle = pidProfile->levelAngleLimit * getRcDeflection(axis);
@@ -644,6 +645,16 @@ if (FLIGHT_MODE(HORIZON_MODE)) {
     }
 
     return currentPidSetpoint;
+}
+
+static float calculateErrorUsingACC(int axis) { //combine the acc and gyro data
+  static float anglePrevious[2];
+  float angleToSetpoint;
+  angleToSetpoint = (attitude.raw[axis] - anglePrevious[axis]) * 0.1f / pidFrequency;
+  gyro.gyroADCf[axis] = (angleToSetpoint * 0.05f) + (gyro.gyroADCf[axis] * 0.95f);
+  anglePrevious[axis] = attitude.raw[axis];
+
+  return gyro.gyroADCf[axis];
 }
 
 static float accelerationLimit(int axis, float currentPidSetpoint)
@@ -961,6 +972,10 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 #endif // USE_YAW_SPIN_RECOVERY
 
         // -----calculate error rate
+        if (axis != FD_YAW && pidProfile->combineAcc1khz) {
+        gyro.gyroADCf[axis] = calculateErrorUsingACC(axis); // r - p
+        }
+
         errorRate = currentPidSetpoint - gyro.gyroADCf[axis]; // r - y
 
         // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
