@@ -303,7 +303,6 @@ static uint16_t cmsx_F_angle;
 static uint8_t  cmsx_horizonTransition;
 static uint8_t  cmsx_nfe_racermode;
 static uint8_t  cmsx_cinematic_setpoint;
-static uint8_t  cmsx_combine_acc_and_gyro;
 static uint8_t  cmsx_throttleBoost;
 static uint16_t cmsx_itermAcceleratorGain;
 static uint16_t cmsx_itermThrottleThreshold;
@@ -335,7 +334,6 @@ static long cmsx_profileOtherOnEnter(void)
 
     cmsx_nfe_racermode = pidProfile->nfe_racermode;
     cmsx_cinematic_setpoint = pidProfile->cinematic_setpoint;
-    cmsx_combine_acc_and_gyro = pidProfile->combineAcc1khz;
 
     cmsx_itermAcceleratorGain   = pidProfile->itermAcceleratorGain;
     cmsx_itermThrottleThreshold = pidProfile->itermThrottleThreshold;
@@ -372,7 +370,6 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
 
     pidProfile->nfe_racermode = cmsx_nfe_racermode;
     pidProfile->cinematic_setpoint = cmsx_cinematic_setpoint;
-    pidProfile->combineAcc1khz = cmsx_combine_acc_and_gyro;
 
     pidProfile->itermAcceleratorGain   = cmsx_itermAcceleratorGain;
     pidProfile->itermThrottleThreshold = cmsx_itermThrottleThreshold;
@@ -388,7 +385,6 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
 static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "-- OTHER PP --", OME_Label, NULL, pidProfileIndexString, 0 },
 
-    { "COMBINE ACC-GYRO",OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_combine_acc_and_gyro, 1, cms_offOnLabels }, 0 },
     { "FF TRANS",        OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_feedForwardTransition,     0,    100,   1, 10 }, 0 },
     { "SPA RATE P",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransition,       0,    250,   1, 10 }, 0 },
     { "SPA RATE I",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition,       0,    250,   1, 10 }, 0 },
