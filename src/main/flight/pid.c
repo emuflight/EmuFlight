@@ -588,7 +588,7 @@ return constrainf(horizonLevelStrength, 0, 1);
 
 #define SIGN(x) ((x > 0.0f) - (x < 0.0f))
 
-static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint) {
+static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint, const float deltaT) {
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
     static float i_term[2], attitudePrevious[2], previousAngle[2];
@@ -616,8 +616,8 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     p_term_low = (1 - fabsf(errorAnglePercent)) * errorAngle * P_angle_low;
     p_term_high = fabsf(errorAnglePercent) * errorAngle * P_angle_high;
 
-    float i_new_low = (1 - fabsf(errorAnglePercent)) * errorAngle * dT * I_angle_low;
-    float i_new_high = fabsf(errorAnglePercent) * errorAngle * dT * I_angle_high;
+    float i_new_low = (1 - fabsf(errorAnglePercent)) * errorAngle * deltaT * I_angle_low;
+    float i_new_high = fabsf(errorAnglePercent) * errorAngle * deltaT * I_angle_high;
     if (i_new_low != 0.0f)
 {
     if (SIGN(i_term[axis]) != SIGN(i_new_low))
@@ -879,10 +879,14 @@ static FAST_RAM_ZERO_INIT float kdRingBuffer[XYZ_AXIS_COUNT][KD_RING_BUFFER_SIZE
 static FAST_RAM_ZERO_INIT float kdRingBufferSum[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT uint16_t kdRingBufferPoint[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
-//static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
+static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
     void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs)
     {
+    const float deltaT = (currentTimeUs - previousTimeUs) * 1e-6f;
+    previousTimeUs = currentTimeUs;
+    // calculate actual deltaT in seconds
+    const float iDT = 1.0f/deltaT; //divide once
     // calculate actual deltaT in seconds
     // Dynamic i component,
     if ((antiGravityMode == ANTI_GRAVITY_SMOOTH) && antiGravityEnabled) {
@@ -893,7 +897,7 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 
     // gradually scale back integration when above windup point
-    const float dynCi = constrainf((1.1f - getMotorMixRange()) * ITermWindupPointInv, 0.1f, 1.0f) * dT * itermAccelerator;
+    const float dynCi = constrainf((1.1f - getMotorMixRange()) * ITermWindupPointInv, 0.1f, 1.0f) * deltaT * itermAccelerator;
     float errorRate;
 
     // ----------PID controller----------
@@ -906,11 +910,11 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
         // Yaw control is GYRO based, direct sticks control is applied to rate PID
         // NFE racermode applies angle only to the roll axis
         if (FLIGHT_MODE(GPS_RESCUE_MODE) && axis != FD_YAW) {
-            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
+            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint, deltaT);
         } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && !nfe_racermode && (axis != FD_YAW)) {
-            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
+            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint, deltaT);
         } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && nfe_racermode && ((axis != FD_YAW) && (axis != FD_PITCH))) {
-            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
+            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint, deltaT);
         }
 
         // -----calculate feedforward component
@@ -1065,7 +1069,6 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
                 // -----calculate P component and add Dynamic Part based on stick input
             pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate));
             // -----calculate I component
-            // const float ITermNew = constrainf(ITerm + pidCoefficient[axis].Ki * itermErrorRate * dynCi, -itermLimit, itermLimit);
             float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
             if (ITermNew != 0.0f)
             {
@@ -1095,7 +1098,7 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
                 const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
                 previousMeasurement[axis] = gyro.gyroADCf[axis];
                 previousError[axis] = pureRD;
-                float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm
+                float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * iDT; //calculating the dterm
                 //filter the dterm
                 dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], dDelta);
 
