@@ -944,7 +944,7 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
             } else if (feedforwardGain > 0) {
             // no transition if feedForwardTransition == 0 or cinematic_setpoint is enabled
             transition = MIN(1.0f, getRcDeflectionAbs(axis) * feedForwardTransition);
-            pidData[axis].F = feedforwardGain * transition * pidSetpointDelta * pidFrequency;
+            pidData[axis].F = feedforwardGain * transition * pidSetpointDelta * iDT;
           }
 
         previousPidSetpoint[axis] = currentPidSetpoint;
