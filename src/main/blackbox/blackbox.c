@@ -1280,12 +1280,15 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("tpa_rate_i", "%d",                      currentControlRateProfile->dynThrI);
         BLACKBOX_PRINT_HEADER_LINE("tpa_rate_d", "%d",                      currentControlRateProfile->dynThrD);
         BLACKBOX_PRINT_HEADER_LINE("tpa_breakpoint", "%d",                  currentControlRateProfile->tpa_breakpoint);
-        BLACKBOX_PRINT_HEADER_LINE("spa_rate_p", "%d",                      currentPidProfile->setPointPTransition);
-        BLACKBOX_PRINT_HEADER_LINE("spa_rate_i", "%d",                      currentPidProfile->setPointITransition);
-        BLACKBOX_PRINT_HEADER_LINE("spa_rate_d", "%d",                      currentPidProfile->setPointDTransition);
-        BLACKBOX_PRINT_HEADER_LINE("spa_rate_p_yaw", "%d",                      currentPidProfile->setPointPTransitionYaw);
-        BLACKBOX_PRINT_HEADER_LINE("spa_rate_i_yaw", "%d",                      currentPidProfile->setPointITransitionYaw);
-        BLACKBOX_PRINT_HEADER_LINE("spa_rate_d_yaw", "%d",                      currentPidProfile->setPointDTransitionYaw);
+        BLACKBOX_PRINT_HEADER_LINE("spa_roll_p", "%d",                      currentPidProfile->setPointPTransition[ROLL]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_roll_i", "%d",                      currentPidProfile->setPointITransition[ROLL]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_roll_d", "%d",                      currentPidProfile->setPointDTransition[ROLL]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_pitch_p", "%d",                     currentPidProfile->setPointPTransition[PITCH]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_pitch_i", "%d",                     currentPidProfile->setPointITransition[PITCH]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_pitch_d", "%d",                     currentPidProfile->setPointDTransition[PITCH]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_yaw_p", "%d",                       currentPidProfile->setPointPTransition[YAW]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_yaw_i", "%d",                       currentPidProfile->setPointITransition[YAW]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_yaw_d", "%d",                       currentPidProfile->setPointDTransition[YAW]);
         BLACKBOX_PRINT_HEADER_LINE("rc_rates", "%d,%d,%d",                  currentControlRateProfile->rcRates[ROLL],
                                                                             currentControlRateProfile->rcRates[PITCH],
                                                                             currentControlRateProfile->rcRates[YAW]);

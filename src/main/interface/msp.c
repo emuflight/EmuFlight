@@ -1386,11 +1386,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 #else
         sbufWriteU8(dst, 0);
 #endif
-#if defined(USE_ACRO_TRAINER)
-        sbufWriteU8(dst, currentPidProfile->acro_trainer_angle_limit);
-#else
         sbufWriteU8(dst, 0);
-#endif
         sbufWriteU16(dst, currentPidProfile->pid[PID_ROLL].F);
         sbufWriteU16(dst, currentPidProfile->pid[PID_PITCH].F);
         sbufWriteU16(dst, currentPidProfile->pid[PID_YAW].F);
@@ -1406,12 +1402,12 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         //added in msp 1.43
         sbufWriteU16(dst, currentPidProfile->errorBoostYaw);
         sbufWriteU8(dst, currentPidProfile->errorBoostLimitYaw);
-        sbufWriteU8(dst, currentPidProfile->setPointPTransition);
-        sbufWriteU8(dst, currentPidProfile->setPointITransition);
-        sbufWriteU8(dst, currentPidProfile->setPointDTransition);
-        sbufWriteU8(dst, currentPidProfile->setPointPTransitionYaw);
-        sbufWriteU8(dst, currentPidProfile->setPointITransitionYaw);
-        sbufWriteU8(dst, currentPidProfile->setPointDTransitionYaw);
+        sbufWriteU8(dst, currentPidProfile->setPointPTransition[ROLL]);
+        sbufWriteU8(dst, currentPidProfile->setPointITransition[ROLL]);
+        sbufWriteU8(dst, currentPidProfile->setPointDTransition[ROLL]);
+        sbufWriteU8(dst, currentPidProfile->setPointPTransition[YAW]);
+        sbufWriteU8(dst, currentPidProfile->setPointITransition[YAW]);
+        sbufWriteU8(dst, currentPidProfile->setPointDTransition[YAW]);
         sbufWriteU8(dst, currentPidProfile->nfe_racermode);
 
 
@@ -2017,11 +2013,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
 #else
             sbufReadU8(src);
 #endif
-#if defined(USE_ACRO_TRAINER)
-            currentPidProfile->acro_trainer_angle_limit = sbufReadU8(src);
-#else
             sbufReadU8(src);
-#endif
             // PID controller feedforward terms
             currentPidProfile->pid[PID_ROLL].F = sbufReadU16(src);
             currentPidProfile->pid[PID_PITCH].F = sbufReadU16(src);
@@ -2036,12 +2028,12 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             //added in msp 1.43
             currentPidProfile->errorBoostYaw = sbufReadU16(src);
             currentPidProfile->errorBoostLimitYaw = sbufReadU8(src);
-            currentPidProfile->setPointPTransition = sbufReadU8(src);
-            currentPidProfile->setPointITransition = sbufReadU8(src);
-            currentPidProfile->setPointDTransition = sbufReadU8(src);
-            currentPidProfile->setPointPTransitionYaw = sbufReadU8(src);
-            currentPidProfile->setPointITransitionYaw = sbufReadU8(src);
-            currentPidProfile->setPointDTransitionYaw = sbufReadU8(src);
+            currentPidProfile->setPointPTransition[ROLL] = sbufReadU8(src);
+            currentPidProfile->setPointITransition[ROLL] = sbufReadU8(src);
+            currentPidProfile->setPointDTransition[ROLL] = sbufReadU8(src);
+            currentPidProfile->setPointPTransition[YAW] = sbufReadU8(src);
+            currentPidProfile->setPointITransition[YAW] = sbufReadU8(src);
+            currentPidProfile->setPointDTransition[YAW] = sbufReadU8(src);
             currentPidProfile->nfe_racermode = sbufReadU8(src);
 
 

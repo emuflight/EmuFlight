@@ -287,12 +287,9 @@ static CMS_Menu cmsx_menuRateProfile = {
 };
 
 static uint8_t  cmsx_feedForwardTransition;
-static uint8_t  cmsx_setPointPTransition;
-static uint8_t  cmsx_setPointITransition;
-static uint8_t  cmsx_setPointDTransition;
-static uint8_t  cmsx_setPointPTransitionYaw;
-static uint8_t  cmsx_setPointITransitionYaw;
-static uint8_t  cmsx_setPointDTransitionYaw;
+static uint8_t  cmsx_setPointPTransition[3];
+static uint8_t  cmsx_setPointITransition[3];
+static uint8_t  cmsx_setPointDTransition[3];
 static uint8_t  cmsx_P_angle_low;
 static uint8_t  cmsx_I_angle_low;
 static uint8_t  cmsx_D_angle_low;
@@ -316,12 +313,15 @@ static long cmsx_profileOtherOnEnter(void)
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
 
     cmsx_feedForwardTransition  =  pidProfile->feedForwardTransition;
-    cmsx_setPointPTransition  =    pidProfile->setPointPTransition;
-    cmsx_setPointITransition  =    pidProfile->setPointITransition;
-    cmsx_setPointDTransition  =    pidProfile->setPointDTransition;
-    cmsx_setPointPTransitionYaw  = pidProfile->setPointPTransitionYaw;
-    cmsx_setPointITransitionYaw  = pidProfile->setPointITransitionYaw;
-    cmsx_setPointDTransitionYaw  = pidProfile->setPointDTransitionYaw;
+    cmsx_setPointPTransition[ROLL]  =    pidProfile->setPointPTransition[ROLL];
+    cmsx_setPointITransition[ROLL]  =    pidProfile->setPointITransition[ROLL];
+    cmsx_setPointDTransition[ROLL]  =    pidProfile->setPointDTransition[ROLL];
+    cmsx_setPointPTransition[PITCH]  =   pidProfile->setPointPTransition[PITCH];
+    cmsx_setPointITransition[PITCH]  =   pidProfile->setPointITransition[PITCH];
+    cmsx_setPointDTransition[PITCH]  =   pidProfile->setPointDTransition[PITCH];
+    cmsx_setPointPTransition[YAW]  =     pidProfile->setPointPTransition[YAW];
+    cmsx_setPointITransition[YAW]  =     pidProfile->setPointITransition[YAW];
+    cmsx_setPointDTransition[YAW]  =     pidProfile->setPointDTransition[YAW];
 
     cmsx_P_angle_low =       pidProfile->pid[PID_LEVEL_LOW].P;
     cmsx_I_angle_low =       pidProfile->pid[PID_LEVEL_LOW].I;
@@ -351,12 +351,15 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
 
     pidProfile_t *pidProfile = pidProfilesMutable(pidProfileIndex);
     pidProfile->feedForwardTransition = cmsx_feedForwardTransition;
-    pidProfile->setPointPTransition = cmsx_setPointPTransition;
-    pidProfile->setPointITransition = cmsx_setPointITransition;
-    pidProfile->setPointDTransition = cmsx_setPointDTransition;
-    pidProfile->setPointPTransitionYaw = cmsx_setPointPTransitionYaw;
-    pidProfile->setPointITransitionYaw = cmsx_setPointITransitionYaw;
-    pidProfile->setPointDTransitionYaw = cmsx_setPointDTransitionYaw;
+    pidProfile->setPointPTransition[ROLL] = cmsx_setPointPTransition[ROLL];
+    pidProfile->setPointITransition[ROLL] = cmsx_setPointITransition[ROLL];
+    pidProfile->setPointDTransition[ROLL] = cmsx_setPointDTransition[ROLL];
+    pidProfile->setPointPTransition[PITCH] = cmsx_setPointPTransition[PITCH];
+    pidProfile->setPointITransition[PITCH] = cmsx_setPointITransition[PITCH];
+    pidProfile->setPointDTransition[PITCH] = cmsx_setPointDTransition[PITCH];
+    pidProfile->setPointPTransition[YAW] = cmsx_setPointPTransition[YAW];
+    pidProfile->setPointITransition[YAW] = cmsx_setPointITransition[YAW];
+    pidProfile->setPointDTransition[YAW] = cmsx_setPointDTransition[YAW];
     pidInitConfig(currentPidProfile);
 
     pidProfile->pid[PID_LEVEL_LOW].P = cmsx_P_angle_low;
@@ -386,12 +389,15 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "-- OTHER PP --", OME_Label, NULL, pidProfileIndexString, 0 },
 
     { "FF TRANS",        OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_feedForwardTransition,     0,    100,   1, 10 }, 0 },
-    { "SPA RATE P",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransition,       0,    250,   1, 10 }, 0 },
-    { "SPA RATE I",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition,       0,    250,   1, 10 }, 0 },
-    { "SPA RATE D",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransition,       0,    250,   1, 10 }, 0 },
-    { "SPA RATE P YAW",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransitionYaw,    0,    250,   1, 10 }, 0 },
-    { "SPA RATE I YAW",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransitionYaw,    0,    250,   1, 10 }, 0 },
-    { "SPA RATE D YAW",  OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransitionYaw,    0,    250,   1, 10 }, 0 },
+    { "SPA ROLL P",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransition[ROLL], 0,    250,   1, 10 }, 0 },
+    { "SPA ROLL I",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition[ROLL], 0,    250,   1, 10 }, 0 },
+    { "SPA ROLL D",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransition[ROLL], 0,    250,   1, 10 }, 0 },
+    { "SPA PITCH P",     OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransition[PITCH],0,    250,   1, 10 }, 0 },
+    { "SPA PITCH I",     OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition[PITCH],0,    250,   1, 10 }, 0 },
+    { "SPA PITCH D",     OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransition[PITCH],0,    250,   1, 10 }, 0 },
+    { "SPA YAW P",       OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransition[YAW],  0,    250,   1, 10 }, 0 },
+    { "SPA YAW I",       OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition[YAW],  0,    250,   1, 10 }, 0 },
+    { "SPA YAW D",       OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransition[YAW],  0,    250,   1, 10 }, 0 },
     { "ANGLE P LOW",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_P_angle_low,               0,    200,   1  }   , 0 },
     { "ANGLE I LOW",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_I_angle_low,               0,    200,   1  }   , 0 },
     { "ANGLE D LOW",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_D_angle_low,               0,    200,   1  }   , 0 },

@@ -119,11 +119,6 @@ PG_RESET_TEMPLATE(pidConfig_t, pidConfig,
 );
 #endif
 
-#ifdef USE_ACRO_TRAINER
-#define ACRO_TRAINER_LOOKAHEAD_RATE_LIMIT 500.0f  // Max gyro rate for lookahead time scaling
-#define ACRO_TRAINER_SETPOINT_LIMIT       1000.0f // Limit the correcting setpoint
-#endif // USE_ACRO_TRAINER
-
 #define ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF 15  // The anti gravity throttle highpass filter cutoff
 
 PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, PID_PROFILE_COUNT, pidProfiles, PG_PID_PROFILE, 7);
@@ -155,12 +150,15 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .levelAngleLimit = 65,
         .angleExpo = 30,
         .feedForwardTransition = 0,
-        .setPointPTransition = 100,
-        .setPointITransition = 100,
-        .setPointDTransition = 100,
-        .setPointPTransitionYaw = 100,
-        .setPointITransitionYaw = 100,
-        .setPointDTransitionYaw = 100,
+        .setPointPTransition[ROLL] = 110,
+        .setPointPTransition[PITCH] = 110,
+        .setPointPTransition[YAW] = 130,
+        .setPointITransition[ROLL] = 75,
+        .setPointITransition[PITCH] = 75,
+        .setPointITransition[YAW] = 45,
+        .setPointDTransition[ROLL] = 110,
+        .setPointDTransition[PITCH] = 110,
+        .setPointDTransition[YAW] = 130,
         .feathered_pids = 100,
         .i_decay = 4,
         .r_weight = 67,
@@ -382,12 +380,9 @@ static FAST_RAM_ZERO_INIT float feathered_pids;
 static FAST_RAM_ZERO_INIT uint8_t nfe_racermode;
 static FAST_RAM_ZERO_INIT uint8_t cinematic_setpoint;
 static FAST_RAM_ZERO_INIT float smart_dterm_smoothing;
-static FAST_RAM_ZERO_INIT float setPointPTransition;
-static FAST_RAM_ZERO_INIT float setPointITransition;
-static FAST_RAM_ZERO_INIT float setPointDTransition;
-static FAST_RAM_ZERO_INIT float setPointPTransitionYaw;
-static FAST_RAM_ZERO_INIT float setPointITransitionYaw;
-static FAST_RAM_ZERO_INIT float setPointDTransitionYaw;
+static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float setPointDTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float P_angle_low, I_angle_low, D_angle_low, P_angle_high, I_angle_high, D_angle_high, F_angle, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeLimitUs;
@@ -427,16 +422,6 @@ void pidResetITerm(void)
     }
 }
 
-
-#ifdef USE_ACRO_TRAINER
-static FAST_RAM_ZERO_INIT float acroTrainerAngleLimit;
-static FAST_RAM_ZERO_INIT float acroTrainerLookaheadTime;
-static FAST_RAM_ZERO_INIT uint8_t acroTrainerDebugAxis;
-static FAST_RAM_ZERO_INIT bool acroTrainerActive;
-static FAST_RAM_ZERO_INIT int acroTrainerAxisState[2];  // only need roll and pitch
-static FAST_RAM_ZERO_INIT float acroTrainerGain;
-#endif // USE_ACRO_TRAINER
-
 void pidUpdateAntiGravityThrottleFilter(float throttle)
 {
     if (antiGravityMode == ANTI_GRAVITY_SMOOTH) {
@@ -463,12 +448,13 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     nfe_racermode = pidProfile->nfe_racermode;
     cinematic_setpoint = pidProfile->cinematic_setpoint;
     smart_dterm_smoothing = pidProfile->smart_dterm_smoothing;
-    setPointPTransition = pidProfile->setPointPTransition / 100.0f;
-    setPointITransition = pidProfile->setPointITransition / 100.0f;
-    setPointDTransition = pidProfile->setPointDTransition / 100.0f;
-    setPointPTransitionYaw = pidProfile->setPointPTransitionYaw / 100.0f;
-    setPointITransitionYaw = pidProfile->setPointITransitionYaw / 100.0f;
-    setPointDTransitionYaw = pidProfile->setPointDTransitionYaw / 100.0f;
+
+    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
+      setPointPTransition[axis] = pidProfile->setPointPTransition[axis] / 100.0f;
+      setPointITransition[axis] = pidProfile->setPointITransition[axis] / 100.0f;
+      setPointDTransition[axis] = pidProfile->setPointDTransition[axis] / 100.0f;
+    }
+
     P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
     I_angle_low = pidProfile->pid[PID_LEVEL_LOW].I * 0.76f;
     D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
@@ -516,13 +502,6 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     itermRelaxCutoff = pidProfile->iterm_relax_cutoff;
 #endif
 
-#ifdef USE_ACRO_TRAINER
-    acroTrainerAngleLimit = pidProfile->acro_trainer_angle_limit;
-    acroTrainerLookaheadTime = (float)pidProfile->acro_trainer_lookahead_ms / 1000.0f;
-    acroTrainerDebugAxis = pidProfile->acro_trainer_debug_axis;
-    acroTrainerGain = (float)pidProfile->acro_trainer_gain / 10.0f;
-#endif // USE_ACRO_TRAINER
-
 #if defined(USE_ABSOLUTE_CONTROL)
     acGain = (float)pidProfile->abs_control_gain;
     acLimit = (float)pidProfile->abs_control_limit;
@@ -541,14 +520,6 @@ void pidInit(const pidProfile_t *pidProfile)
     pidInitFilters(pidProfile);
     pidInitConfig(pidProfile);
 }
-
-#ifdef USE_ACRO_TRAINER
-void pidAcroTrainerInit(void)
-{
-    acroTrainerAxisState[FD_ROLL] = 0;
-    acroTrainerAxisState[FD_PITCH] = 0;
-}
-#endif // USE_ACRO_TRAINER
 
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex)
 {
@@ -604,7 +575,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     angle += gpsRescueAngle[axis] / 100; // ANGLE IS IN CENTIDEGREES
 #endif
 
-    f_term_low = (angle - previousAngle[axis]) * F_angle * pidFrequency;
+    f_term_low = (angle - previousAngle[axis]) * F_angle / deltaT;
     previousAngle[axis] = angle;
 
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
@@ -773,80 +744,6 @@ static void rotateITermAndAxisError()
     }
 }
 
-#ifdef USE_ACRO_TRAINER
-
-int acroTrainerSign(float x)
-{
-    return x > 0 ? 1 : -1;
-}
-
-// Acro Trainer - Manipulate the setPoint to limit axis angle while in acro mode
-// There are three states:
-// 1. Current angle has exceeded limit
-//    Apply correction to return to limit (similar to pidLevel)
-// 2. Future overflow has been projected based on current angle and gyro rate
-//    Manage the setPoint to control the gyro rate as the actual angle  approaches the limit (try to prevent overshoot)
-// 3. If no potential overflow is detected, then return the original setPoint
-
-// Use the FAST_CODE_NOINLINE directive to avoid this code from being inlined into ITCM RAM. We accept the
-// performance decrease when Acro Trainer mode is active under the assumption that user is unlikely to be
-// expecting ultimate flight performance at very high loop rates when in this mode.
-static FAST_CODE_NOINLINE float applyAcroTrainer(int axis, const rollAndPitchTrims_t *angleTrim, float setPoint)
-{
-    float ret = setPoint;
-
-    if (!FLIGHT_MODE(ANGLE_MODE) && !FLIGHT_MODE(HORIZON_MODE) && !FLIGHT_MODE(GPS_RESCUE_MODE)) {
-        bool resetIterm = false;
-        float projectedAngle = 0;
-        const int setpointSign = acroTrainerSign(setPoint);
-        const float currentAngle = (attitude.raw[axis] - angleTrim->raw[axis]) / 10.0f;
-        const int angleSign = acroTrainerSign(currentAngle);
-
-        if ((acroTrainerAxisState[axis] != 0) && (acroTrainerAxisState[axis] != setpointSign)) {  // stick has reversed - stop limiting
-            acroTrainerAxisState[axis] = 0;
-        }
-
-        // Limit and correct the angle when it exceeds the limit
-        if ((fabsf(currentAngle) > acroTrainerAngleLimit) && (acroTrainerAxisState[axis] == 0)) {
-            if (angleSign == setpointSign) {
-                acroTrainerAxisState[axis] = angleSign;
-                resetIterm = true;
-            }
-        }
-
-        if (acroTrainerAxisState[axis] != 0) {
-            ret = constrainf(((acroTrainerAngleLimit * angleSign) - currentAngle) * acroTrainerGain, -ACRO_TRAINER_SETPOINT_LIMIT, ACRO_TRAINER_SETPOINT_LIMIT);
-        } else {
-
-        // Not currently over the limit so project the angle based on current angle and
-        // gyro angular rate using a sliding window based on gyro rate (faster rotation means larger window.
-        // If the projected angle exceeds the limit then apply limiting to minimize overshoot.
-        // Calculate the lookahead window by scaling proportionally with gyro rate from 0-500dps
-            float checkInterval = constrainf(fabsf(gyro.gyroADCf[axis]) / ACRO_TRAINER_LOOKAHEAD_RATE_LIMIT, 0.0f, 1.0f) * acroTrainerLookaheadTime;
-            projectedAngle = (gyro.gyroADCf[axis] * checkInterval) + currentAngle;
-            const int projectedAngleSign = acroTrainerSign(projectedAngle);
-            if ((fabsf(projectedAngle) > acroTrainerAngleLimit) && (projectedAngleSign == setpointSign)) {
-                ret = ((acroTrainerAngleLimit * projectedAngleSign) - projectedAngle) * acroTrainerGain;
-                resetIterm = true;
-            }
-        }
-
-        if (resetIterm) {
-            pidData[axis].I = 0;
-        }
-
-        if (axis == acroTrainerDebugAxis) {
-            DEBUG_SET(DEBUG_ACRO_TRAINER, 0, lrintf(currentAngle * 10.0f));
-            DEBUG_SET(DEBUG_ACRO_TRAINER, 1, acroTrainerAxisState[axis]);
-            DEBUG_SET(DEBUG_ACRO_TRAINER, 2, lrintf(ret));
-            DEBUG_SET(DEBUG_ACRO_TRAINER, 3, lrintf(projectedAngle * 10.0f));
-        }
-    }
-
-    return ret;
-}
-#endif // USE_ACRO_TRAINER
-
 #ifdef USE_RC_SMOOTHING_FILTER
 float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelta)
 {
@@ -878,6 +775,9 @@ static FAST_RAM_ZERO_INIT float previousdDelta[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float kdRingBuffer[XYZ_AXIS_COUNT][KD_RING_BUFFER_SIZE];
 static FAST_RAM_ZERO_INIT float kdRingBufferSum[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT uint16_t kdRingBufferPoint[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float setPointPAttenuation[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float setPointIAttenuation[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float setPointDAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
@@ -895,6 +795,12 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
     }
     DEBUG_SET(DEBUG_ANTI_GRAVITY, 0, lrintf(itermAccelerator * 1000));
 
+    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
+    // SPA boost if SPA > 100 SPA cut if SPA < 100
+      setPointPAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition[axis] - 1));
+      setPointIAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointITransition[axis] - 1));
+      setPointDAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition[axis] - 1));
+    }
 
     // gradually scale back integration when above windup point
     const float dynCi = constrainf((1.1f - getMotorMixRange()) * ITermWindupPointInv, 0.1f, 1.0f) * deltaT * itermAccelerator;
@@ -948,13 +854,6 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
           }
 
         previousPidSetpoint[axis] = currentPidSetpoint;
-
-
-#ifdef USE_ACRO_TRAINER
-        if ((axis != FD_YAW) && acroTrainerActive && !inCrashRecoveryMode) {
-            currentPidSetpoint = applyAcroTrainer(axis, angleTrim, currentPidSetpoint);
-        }
-#endif // USE_ACRO_TRAINER
 
         // Handle yaw spin recovery - zero the setpoint on yaw to aid in recovery
         // It's not necessary to zero the set points for R/P because the PIDs will be zeroed below
@@ -1090,7 +989,8 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
             }
 
             // -----calculate D component
-            float gyroRateFiltered = dtermNotchApplyFn((filter_t *) &dtermNotch[axis], gyroRate);
+            if (pidCoefficient[axis].Kd > 0) {
+                float gyroRateFiltered = dtermNotchApplyFn((filter_t *) &dtermNotch[axis], gyroRate);
 
                 //filter Kd properly, no setpoint filtering
                 const float pureRD = getSetpointRate(axis) - gyroRateFiltered;    // cr - y
@@ -1118,8 +1018,6 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
                 dDelta = (float)(kdRingBufferSum[axis] / (float) (pidProfile->pid[axis].Wc));
                 kdRingBufferSum[axis] -= kdRingBuffer[axis][kdRingBufferPoint[axis]];
               }
-
-        if (pidCoefficient[axis].Kd > 0) {
                 // Divide rate change by dT to get differential (ie dr/dt).
                 // dT is fixed and calculated from the target PID loop time
                 // This is done to avoid DTerm spikes that occur with dynamically
@@ -1135,23 +1033,8 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
                 &currentPidSetpoint, &errorRate);
 
 
-            detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, currentTimeUs, dDelta, errorRate);
+            detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, currentTimeUs, pidData[axis].D, errorRate);
 
-           // calculate SPA
-           float setPointPAttenuation;
-           float setPointIAttenuation;
-           float setPointDAttenuation;
-
-           // SPA boost if SPA > 100 SPA cut if SPA < 100
-           if (axis <= FD_PITCH) {
-           setPointPAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition - 1));
-           setPointIAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointITransition - 1));
-           setPointDAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition - 1));
-         } else {
-           setPointPAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointPTransitionYaw - 1));
-           setPointIAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointITransitionYaw - 1));
-           setPointDAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointDTransitionYaw - 1));
-         }
 #ifdef USE_YAW_SPIN_RECOVERY
         if (gyroYawSpinDetected()) {
             pidData[axis].I = 0;  // in yaw spin always disable I
@@ -1174,7 +1057,7 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
             pidData[axis].Sum = 0;
         }
         // calculating the PID sum and TPA and SPA
-        const float pidSum = (pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation) + (pidData[axis].I * getThrottleIAttenuation() * setPointIAttenuation) + (pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation) + pidData[axis].F;
+        const float pidSum = (pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation[axis]) + (pidData[axis].I * getThrottleIAttenuation() * setPointIAttenuation[axis]) + (pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation[axis]) + pidData[axis].F;
 #ifdef USE_INTEGRATED_YAW_CONTROL
         if (axis == FD_YAW && useIntegratedYaw) {
             pidData[axis].Sum += pidSum * dT * 100.0f;
@@ -1191,18 +1074,6 @@ bool crashRecoveryModeActive(void)
 {
     return inCrashRecoveryMode;
 }
-
-#ifdef USE_ACRO_TRAINER
-void pidSetAcroTrainerState(bool newState)
-{
-    if (acroTrainerActive != newState) {
-        if (newState) {
-            pidAcroTrainerInit();
-        }
-        acroTrainerActive = newState;
-    }
-}
-#endif // USE_ACRO_TRAINER
 
 void pidSetAntiGravityState(bool newState)
 {
