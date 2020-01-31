@@ -407,11 +407,6 @@ static FAST_RAM_ZERO_INIT float acLimit;
 static FAST_RAM_ZERO_INIT float acErrorLimit;
 #endif
 
-#ifdef USE_INTEGRATED_YAW_CONTROL
-static FAST_RAM_ZERO_INIT bool useIntegratedYaw;
-static FAST_RAM_ZERO_INIT uint8_t integratedYawRelax;
-#endif
-
 void pidResetITerm(void)
 {
     for (int axis = 0; axis < 3; axis++) {
@@ -506,11 +501,6 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     acGain = (float)pidProfile->abs_control_gain;
     acLimit = (float)pidProfile->abs_control_limit;
     acErrorLimit = (float)pidProfile->abs_control_error_limit;
-#endif
-
-#ifdef USE_INTEGRATED_YAW_CONTROL
-    useIntegratedYaw = pidProfile->use_integrated_yaw;
-    integratedYawRelax = pidProfile->integrated_yaw_relax;
 #endif
 }
 
@@ -928,6 +918,7 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
                 }
 
         #if defined(USE_ABSOLUTE_CONTROL)
+            if (acGain > 0) {
                 const float gmaxac = setpointLpf + 2 * setpointHpf;
                 const float gminac = setpointLpf - 2 * setpointHpf;
                 if (gyroRate >= gminac && gyroRate <= gmaxac) {
@@ -944,12 +935,15 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
                 } else {
                     acErrorRate = (gyroRate > gmaxac ? gmaxac : gminac ) - gyroRate;
                 }
+              }
         #endif // USE_ABSOLUTE_CONTROL
             } else
         #endif // USE_ITERM_RELAX
             {
         #if defined(USE_ABSOLUTE_CONTROL)
+            if (acGain > 0) {
                 acErrorRate = itermErrorRate;
+              }
         #endif // USE_ABSOLUTE_CONTROL
             }
 
@@ -1058,12 +1052,6 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
         }
         // calculating the PID sum and TPA and SPA
         const float pidSum = (pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation[axis]) + (pidData[axis].I * getThrottleIAttenuation() * setPointIAttenuation[axis]) + (pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation[axis]) + pidData[axis].F;
-#ifdef USE_INTEGRATED_YAW_CONTROL
-        if (axis == FD_YAW && useIntegratedYaw) {
-            pidData[axis].Sum += pidSum * dT * 100.0f;
-            pidData[axis].Sum -= pidData[axis].Sum * integratedYawRelax / 100000.0f * dT / 0.000125f;
-        } else
-#endif
         {
             pidData[axis].Sum = pidSum;
         }

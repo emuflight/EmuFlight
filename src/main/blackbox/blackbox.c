@@ -1351,10 +1351,6 @@ static bool blackboxWriteSysinfo(void)
             BLACKBOX_PRINT_HEADER_LINE("abs_control_gain", "%d",            currentPidProfile->abs_control_gain);
         #endif
 
-        #ifdef USE_INTEGRATED_YAW_CONTROL
-            BLACKBOX_PRINT_HEADER_LINE("use_integrated_yaw", "%d",          currentPidProfile->use_integrated_yaw);
-        #endif
-
         BLACKBOX_PRINT_HEADER_LINE("acc_limit_yaw", "%d",                   currentPidProfile->yawRateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("acc_limit", "%d",                       currentPidProfile->rateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("pidsum_limit", "%d",                    currentPidProfile->pidSumLimit);

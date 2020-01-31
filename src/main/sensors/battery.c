@@ -114,7 +114,7 @@ PG_RESET_TEMPLATE(batteryConfig_t, batteryConfig,
 
     .vbatfullcellvoltage = 41,
 
-    .vbatLpfPeriod = 15,
+    .vbatLpfPeriod = 10,
     .ibatLpfPeriod = 40,
     .vbatDurationForWarning = 0,
     .vbatDurationForCritical = 0,
