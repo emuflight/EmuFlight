@@ -95,15 +95,15 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 #endif
 
 #ifndef DEFAULT_PIDS_ROLL
-#define DEFAULT_PIDS_ROLL { 50, 65, 28, 0, 3 }
+#define DEFAULT_PIDS_ROLL { 50, 70, 28, 0, 3 }
 #endif //DEFAULT_PIDS_ROLL
 
 #ifndef DEFAULT_PIDS_PITCH
-#define DEFAULT_PIDS_PITCH { 58, 65, 30, 0, 3 }
+#define DEFAULT_PIDS_PITCH { 58, 70, 30, 0, 3 }
 #endif //DEFAULT_PIDS_PITCH
 
 #ifndef DEFAULT_PIDS_YAW
-#define DEFAULT_PIDS_YAW { 55, 65, 5, 0, 3 }
+#define DEFAULT_PIDS_YAW { 55, 70, 5, 0, 3 }
 #endif //DEFAULT_PIDS_YAW
 
 #ifdef USE_RUNAWAY_TAKEOFF
@@ -793,7 +793,7 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
     }
 
     // gradually scale back integration when above windup point
-    const float dynCi = constrainf((1.1f - getMotorMixRange()) * ITermWindupPointInv, 0.1f, 1.0f) * deltaT * itermAccelerator;
+    const float dynCi = constrainf((1.1f - getMotorMixRange()) * ITermWindupPointInv, 0.1f, 1.0f) * itermAccelerator;
     float errorRate;
 
     // ----------PID controller----------
@@ -962,7 +962,7 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
                 // -----calculate P component and add Dynamic Part based on stick input
             pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate));
             // -----calculate I component
-            float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
+            float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi * dynCi *deltaT;
             if (ITermNew != 0.0f)
             {
                 if (SIGN(ITerm) != SIGN(ITermNew))
