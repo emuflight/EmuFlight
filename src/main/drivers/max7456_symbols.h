@@ -127,13 +127,12 @@
 // Not available: #define SYM_MAG11   0xB6
 
 // AH Center screen Graphics
-#define SYM_AH_CENTER_LINE        0x26
-#define SYM_AH_CENTER_LINE_RIGHT  0x27
-#define SYM_AH_CENTER             0x7E
-#define SYM_AH_RIGHT              0x02
-#define SYM_AH_LEFT               0x03
-#define SYM_AH_DECORATION_UP      0xC9
-#define SYM_AH_DECORATION_DOWN    0xCF
+#define SYM_AH_CENTER_LINE          0x72
+#define SYM_AH_CENTER               0x73
+#define SYM_AH_CENTER_LINE_RIGHT    0x74
+#define SYM_AH_RIGHT                0x02
+#define SYM_AH_LEFT                 0x03
+#define SYM_AH_DECORATION           0x13
 
 // AH Bars
 #define SYM_AH_BAR9_0 0x80
@@ -198,7 +197,7 @@
 // Note, these change with scrolling enabled (scrolling is TODO)
 //#define SYM_AH_DECORATION_LEFT 0x13
 //#define SYM_AH_DECORATION_RIGHT 0x13
-#define SYM_AH_DECORATION 0x13
+//#define SYM_AH_DECORATION 0x13
 
 // Time
 #define SYM_ON_M  0x9B
