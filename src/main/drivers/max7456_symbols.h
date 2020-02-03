@@ -82,7 +82,7 @@
 
 // Map mode
 #define SYM_HOME       0x05
-#define SYM_AIRCRAFT   0x2A
+#define SYM_AIRCRAFT   0x40 //old school dungeon crawler @self
 #define SYM_RANGE_100  0x21
 #define SYM_RANGE_500  0x22
 #define SYM_RANGE_2500 0x23
@@ -225,6 +225,8 @@
 
 //Misc
 #define SYM_COLON 0x3A
+#define SYM_EXCL  0x21
+#define SYM_QUES  0x3F
 // Not available: #define SYM_ZERO_HALF_TRAILING_DOT 0xC0
 // Not available: #define SYM_ZERO_HALF_LEADING_DOT 0xD0
 #define SYM_ROLL  0x14

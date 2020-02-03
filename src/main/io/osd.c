@@ -522,7 +522,7 @@ static bool osdDrawSingleElement(uint8_t item)
 
         } else {
             // We use this symbol when we don't have a FIX
-            buff[0] = SYM_COLON;
+            buff[0] = SYM_QUES;
         }
 
         buff[1] = 0;
@@ -535,7 +535,7 @@ static bool osdDrawSingleElement(uint8_t item)
             tfp_sprintf(buff, "%d%c", distance, osdGetMetersToSelectedUnitSymbol());
         } else {
             // We use this symbol when we don't have a FIX
-            buff[0] = SYM_COLON;
+            buff[0] = SYM_QUES;
             // overwrite any previous distance with blanks
             memset(buff + 1, SYM_BLANK, 6);
             buff[7] = '\0';
@@ -563,7 +563,7 @@ static bool osdDrawSingleElement(uint8_t item)
                 osdFormatAltitudeString(buff, getEstimatedAltitude());
             } else {
                 // We use this symbol when we don't have a valid measure
-                buff[0] = SYM_COLON;
+                buff[0] = SYM_QUES;
                 // overwrite any previous altitude with blanks
                 memset(buff + 1, SYM_BLANK, 6);
                 buff[7] = '\0';
@@ -980,7 +980,7 @@ static bool osdDrawSingleElement(uint8_t item)
                 tfp_sprintf(buff, "%c%01d.%01d", directionSymbol, abs(verticalSpeed / 100), abs((verticalSpeed % 100) / 10));
             } else {
                 // We use this symbol when we don't have a valid measure
-                buff[0] = SYM_COLON;
+                buff[0] = SYM_QUES;
                 // overwrite any previous vertical speed with blanks
                 memset(buff + 1, SYM_BLANK, 6);
                 buff[7] = '\0';
