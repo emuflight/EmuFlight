@@ -760,16 +760,16 @@ looptimeAccounter = gyro.targetLooptime * pidConfig()->pid_process_denom;
   }
   else
   {
-    if (difference > (looptimeAccounter * motorOutputRange * 0.00025f))
+    if (difference > (looptimeAccounter * motorOutputRange * 0.00040f))
     {
       if (motor[motorNum] > previousMotor[motorNum])
       {
-        motor[motorNum] = previousMotor[motorNum] + (looptimeAccounter * motorOutputRange * 0.00025f); /* increase by max 5% every ms */
+        motor[motorNum] = previousMotor[motorNum] + (looptimeAccounter * motorOutputRange * 0.00040f); /* increase by max 5% every ms */
         previousMotor[motorNum] = motor[motorNum];
       }
       else
       {
-        //motor[motorNum] = previousMotor[motorNum] - (looptimeAccounter * motorOutputRange * 0.00025f); /* decrease by max 5% every ms */
+        motor[motorNum] = previousMotor[motorNum] - (looptimeAccounter * motorOutputRange * 0.00040f); /* decrease by max 5% every ms */
         previousMotor[motorNum] = motor[motorNum];
       }
     }
