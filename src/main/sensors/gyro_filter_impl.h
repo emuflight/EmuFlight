@@ -23,7 +23,7 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
     DEBUG_SET(DEBUG_KALMAN, 0, gyroSensor->gyroDev.gyroADC[X] * gyroSensor->gyroDev.scale);                               //Gyro input
 
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-        GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_RAW, axis, gyroSensor->gyroDev.gyroADCRaw[axis]);
+        GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_RAW, axis, gyroSensor->gyroDev.gyroADCRaw[axis] * gyroSensor->gyroDev.scale);
         // scale gyro output to degrees per second
         float gyroADCf = gyroSensor->gyroDev.gyroADC[axis] * gyroSensor->gyroDev.scale;
         // DEBUG_GYRO_SCALED records the unfiltered, scaled gyro output
@@ -44,6 +44,18 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
         gyroADCf = gyroSensor->notchFilter1ApplyFn((filter_t *)&gyroSensor->notchFilter1[axis], gyroADCf);
         gyroADCf = gyroSensor->notchFilter2ApplyFn((filter_t *)&gyroSensor->notchFilter2[axis], gyroADCf);
 
+        if (gyroConfig()->averagedGyro[axis] > 1)
+        {
+          averagedGyroData[axis][averagedGyroDataPointer[axis]++] = gyroADCf;
+          averagedGyroDataSum[axis] += gyroADCf;
+
+          if (averagedGyroDataPointer[axis] == gyroConfig()->averagedGyro[axis]){
+          averagedGyroDataPointer[axis] = 0;
+          }
+
+          gyroADCf = (float)averagedGyroDataSum[axis] / (float)gyroConfig()->averagedGyro[axis];
+          averagedGyroDataSum[axis] -= averagedGyroData[axis][averagedGyroDataPointer[axis]];
+        }
 
 #ifdef USE_GYRO_DATA_ANALYSE
         if (isDynamicFilterActive()) {

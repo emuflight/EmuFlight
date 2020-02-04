@@ -764,7 +764,7 @@ static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousdDelta[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float kdRingBuffer[XYZ_AXIS_COUNT][KD_RING_BUFFER_SIZE];
 static FAST_RAM_ZERO_INIT float kdRingBufferSum[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT uint16_t kdRingBufferPoint[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT uint8_t kdRingBufferPoint[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointPAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointIAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointDAttenuation[XYZ_AXIS_COUNT];
@@ -793,7 +793,7 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
     }
 
     // gradually scale back integration when above windup point
-    const float dynCi = constrainf((1.1f - getMotorMixRange()) * ITermWindupPointInv, 0.1f, 1.0f) * itermAccelerator;
+    const float dynCi = constrainf((1.1f - getMotorMixRange()) * ITermWindupPointInv, 0.1f, 1.0f) * itermAccelerator * deltaT;
     float errorRate;
 
     // ----------PID controller----------
@@ -962,7 +962,7 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
                 // -----calculate P component and add Dynamic Part based on stick input
             pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate));
             // -----calculate I component
-            float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi * dynCi *deltaT;
+            float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
             if (ITermNew != 0.0f)
             {
                 if (SIGN(ITerm) != SIGN(ITermNew))
@@ -1009,7 +1009,7 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
                 kdRingBufferPoint[axis] = 0;
                 }
 
-                dDelta = (float)(kdRingBufferSum[axis] / (float) (pidProfile->pid[axis].Wc));
+                dDelta = (float)(kdRingBufferSum[axis] / (float)(pidProfile->pid[axis].Wc));
                 kdRingBufferSum[axis] -= kdRingBuffer[axis][kdRingBufferPoint[axis]];
               }
                 // Divide rate change by dT to get differential (ie dr/dt).

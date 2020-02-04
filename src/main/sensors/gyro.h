@@ -68,6 +68,8 @@ typedef enum {
 #define GYRO_CONFIG_USE_GYRO_2      1
 #define GYRO_CONFIG_USE_GYRO_BOTH   2
 
+#define AVERAGED_GYRO_DATA_BUFFER_SIZE 10
+
 typedef enum {
     FILTER_LOWPASS = 0,
     FILTER_LOWPASS2
@@ -127,6 +129,8 @@ typedef struct gyroConfig_s {
     uint16_t imuf_yaw_q;
     uint16_t imuf_w;
     uint8_t r_weight;
+
+    uint8_t averagedGyro[XYZ_AXIS_COUNT];
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);
