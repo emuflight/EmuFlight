@@ -74,6 +74,8 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
 
     }
 
+#ifndef USE_GYRO_IMUF9001
+
     float input[XYZ_AXIS_COUNT];
     float output[XYZ_AXIS_COUNT];
 
@@ -86,4 +88,5 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
     gyroSensor->gyroDev.gyroADCf[X] = output[X];
     gyroSensor->gyroDev.gyroADCf[Y] = output[Y];
     gyroSensor->gyroDev.gyroADCf[Z] = output[Z];
+#endif //USE_GYRO_IMUF9001
 }

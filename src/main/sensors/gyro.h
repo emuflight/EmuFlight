@@ -139,10 +139,6 @@ bool gyroInit(void);
 
 void gyroInitFilters(void);
 
-#ifndef USE_GYRO_IMUF9001
-void gyroDynLpfUpdate(void);
-#endif
-
 #ifdef USE_DMA_SPI_DEVICE
 void gyroDmaSpiFinishRead(void);
 void gyroDmaSpiStartRead(void);
