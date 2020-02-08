@@ -136,9 +136,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         },
 
         .dFilter = {
-            [PID_ROLL] = { 3, 100, 200, 50 },
-            [PID_PITCH] = { 3, 100, 200, 50 },
-            [PID_YAW] = { 2, 100, 200, 50 },
+            [PID_ROLL] = { 3, 100, 250, 50 },
+            [PID_PITCH] = { 3, 100, 250, 50 },
+            [PID_YAW] = { 2, 100, 250, 50 },
         },
 
         .pidSumLimit = PIDSUM_LIMIT_MAX,
@@ -246,9 +246,9 @@ typedef union dtermLowpass_u {
 } dtermLowpass_t;
 
 static FAST_RAM_ZERO_INIT float previousPidSetpoint[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT filterApplyFnPtr dtermLowpassApplyFn;
+static FAST_RAM filterApplyFnPtr dtermLowpassApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT filterApplyFnPtr dtermLowpass2ApplyFn;
+static FAST_RAM filterApplyFnPtr dtermLowpass2ApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
 
 #if defined(USE_ITERM_RELAX)
@@ -272,6 +272,9 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 {
     BUILD_BUG_ON(FD_YAW != 2); // ensure yaw axis is 2
     const uint32_t pidFrequencyNyquist = pidFrequency / 2; // No rounding needed
+
+    dtermLowpassApplyFn = nullFilterApply;
+    dtermLowpass2ApplyFn = nullFilterApply;
 
     r_weight = (float) pidProfile->r_weight / 100.0f;
 
@@ -298,12 +301,12 @@ void pidInitFilters(const pidProfile_t *pidProfile)
             {
             case FILTER_PT1:
                     dtermLowpass2ApplyFn = (filterApplyFnPtr)pt1FilterApply;
-                    pt1FilterInit(&dtermLowpass[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf2, dT));
+                    pt1FilterInit(&dtermLowpass2[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf2, dT));
                 break;
             case FILTER_BIQUAD:
             default:
                     dtermLowpass2ApplyFn = (filterApplyFnPtr)biquadFilterApply;
-                    biquadFilterInitLPF(&dtermLowpass[axis].biquadFilter, pidProfile->dFilter[axis].dLpf2, targetPidLooptime);
+                    biquadFilterInitLPF(&dtermLowpass2[axis].biquadFilter, pidProfile->dFilter[axis].dLpf2, targetPidLooptime);
                 break;
             }
         }
@@ -431,20 +434,15 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidCoefficient[axis].Ki = ITERM_SCALE * pidProfile->pid[axis].I;
         pidCoefficient[axis].Kd = DTERM_SCALE * pidProfile->pid[axis].D;
         pidCoefficient[axis].Kf = FEEDFORWARD_SCALE * (pidProfile->pid[axis].F / 100.0f);
+        setPointPTransition[axis] = pidProfile->setPointPTransition[axis] / 100.0f;
+        setPointITransition[axis] = pidProfile->setPointITransition[axis] / 100.0f;
+        setPointDTransition[axis] = pidProfile->setPointDTransition[axis] / 100.0f;
+        smart_dterm_smoothing[axis] = pidProfile->dFilter[axis].smartSmoothing;
     }
 
     feathered_pids = pidProfile->feathered_pids / 100.0f;
     nfe_racermode = pidProfile->nfe_racermode;
     cinematic_setpoint = pidProfile->cinematic_setpoint;
-    smart_dterm_smoothing[ROLL] = pidProfile->dFilter[ROLL].smartSmoothing;
-    smart_dterm_smoothing[PITCH] = pidProfile->dFilter[PITCH].smartSmoothing;
-    smart_dterm_smoothing[YAW] = pidProfile->dFilter[YAW].smartSmoothing;
-
-    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-      setPointPTransition[axis] = pidProfile->setPointPTransition[axis] / 100.0f;
-      setPointITransition[axis] = pidProfile->setPointITransition[axis] / 100.0f;
-      setPointDTransition[axis] = pidProfile->setPointDTransition[axis] / 100.0f;
-    }
 
     P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
     I_angle_low = pidProfile->pid[PID_LEVEL_LOW].I * 0.76f;
@@ -995,16 +993,16 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
                 dDelta = dDelta * dDeltaMultiplier;
                 previousdDelta[axis] = dDelta;
 
-            if (pidProfile->dFilter[axis].dLpf2 > 1)
+            if (pidProfile->dFilter[axis].Wc > 1)
               {
                 kdRingBuffer[axis][kdRingBufferPoint[axis]++] = dDelta;
                 kdRingBufferSum[axis] += dDelta;
 
-                if (kdRingBufferPoint[axis] == pidProfile->dFilter[axis].dLpf2) {
+                if (kdRingBufferPoint[axis] == pidProfile->dFilter[axis].Wc) {
                 kdRingBufferPoint[axis] = 0;
                 }
 
-                dDelta = (float)(kdRingBufferSum[axis] / (float)(pidProfile->dFilter[axis].dLpf2));
+                dDelta = (float)(kdRingBufferSum[axis] / (float)(pidProfile->dFilter[axis].Wc));
                 kdRingBufferSum[axis] -= kdRingBuffer[axis][kdRingBufferPoint[axis]];
               }
                 // Divide rate change by dT to get differential (ie dr/dt).

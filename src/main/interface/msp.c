@@ -1298,7 +1298,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         break;
     case MSP_FILTER_CONFIG :
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass_hz[ROLL]);
-        sbufWriteU16(dst, currentPidProfile->dFilter[ROLL].dLpf);
+        sbufWriteU16(dst, 0);
         sbufWriteU16(dst, 0);
         //added in msp 1.43
         sbufWriteU16(dst, 0); //old dterm dyn
@@ -1318,7 +1318,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass2_hz[ROLL]);
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass_type);
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass2_type);
-        sbufWriteU16(dst, currentPidProfile->dFilter[ROLL].dLpf);
+        sbufWriteU16(dst, 0);
         break;
 /*#ifndef USE_GYRO_IMUF9001
     case MSP_FAST_KALMAN:
@@ -1908,7 +1908,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         break;
     case MSP_SET_FILTER_CONFIG:
         gyroConfigMutable()->gyro_lowpass_hz[ROLL] = sbufReadU8(src);
-        currentPidProfile->dFilter[ROLL].dLpf = sbufReadU16(src);
+        sbufReadU16(src);
         sbufReadU16(src);
         //added in msp 1.43
         sbufReadU16(src); //old dyn dterm
@@ -1935,7 +1935,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             gyroConfigMutable()->gyro_lowpass2_hz[ROLL] = sbufReadU16(src);
             gyroConfigMutable()->gyro_lowpass_type = sbufReadU8(src);
             gyroConfigMutable()->gyro_lowpass2_type = sbufReadU8(src);
-            currentPidProfile->dFilter[ROLL].dLpf2 = sbufReadU16(src);
+            sbufReadU16(src);
         }
 
         // reinitialize the gyro filters with the new values
