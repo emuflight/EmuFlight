@@ -127,9 +127,9 @@
 // Not available: #define SYM_MAG11   0xB6
 
 // AH Center screen Graphics
-#define SYM_AH_CENTER_LINE        0x26
-#define SYM_AH_CENTER_LINE_RIGHT  0x27
-#define SYM_AH_CENTER             0x7E
+#define SYM_AH_CENTER_LINE        0x72
+#define SYM_AH_CENTER_LINE_RIGHT  0x74
+#define SYM_AH_CENTER             0x73
 #define SYM_AH_RIGHT              0x02
 #define SYM_AH_LEFT               0x03
 #define SYM_AH_DECORATION_UP      0xC9
