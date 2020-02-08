@@ -76,9 +76,15 @@ typedef struct pidf_s {
     uint8_t I;
     uint8_t D;
     uint16_t F;
-    uint8_t Wc; //adding witchCraft so it can be set per axis :) might put future dterm filters in here to set them per axis :) go emu!
 
 } pidf_t;
+
+typedef struct dFilter_s {
+    uint8_t Wc;
+    uint16_t dLpf;
+    uint16_t dLpf2;
+    uint8_t smartSmoothing;
+} dFilter_t;
 
 typedef enum {
     ANTI_GRAVITY_SMOOTH,
@@ -99,12 +105,8 @@ typedef enum {
 } itermRelaxType_e;
 
 typedef struct pidProfile_s {
-    uint16_t yaw_lowpass_hz;                // Additional yaw filter when yaw axis too noisy
-    uint16_t dterm_lowpass_hz;              // Delta Filter in hz
-    uint16_t dterm_notch_hz;                // Biquad dterm notch hz
-    uint16_t dterm_notch_cutoff;            // Biquad dterm notch low cutoff
-
     pidf_t  pid[PID_ITEM_COUNT];
+    dFilter_t dFilter[3];
 
     uint8_t dterm_filter_type;              // Filter selection for dterm
     uint8_t itermWindupPointPercent;        // Experimental ITerm windup threshold, percent motor saturation
@@ -141,13 +143,11 @@ typedef struct pidProfile_s {
     uint8_t crash_recovery_rate;            // degree/second
     uint8_t vbatPidCompensation;            // Scale PIDsum to battery voltage
     uint8_t feedForwardTransition;          // Feed forward weight transition
-    uint8_t setPointPTransition[3];            // SPA p transition
-    uint8_t setPointITransition[3];            // SPA i transition
-    uint8_t setPointDTransition[3];            // SPA d transition
+    uint8_t setPointPTransition[3];         // SPA p transition
+    uint8_t setPointITransition[3];         // SPA i transition
+    uint8_t setPointDTransition[3];         // SPA d transition
     uint16_t crash_limit_yaw;               // limits yaw errorRate, so crashes don't cause huge throttle increase
     uint16_t itermLimit;                    // Maximum value that the iterm can accumulate to
-    uint16_t dterm_lowpass2_hz;             // Extra PT1 Filter on D in hz
-    uint8_t smart_dterm_smoothing;          // value that your dterm must go past to act normal
     uint8_t crash_recovery;                 // off, on, on and beeps when it is in crash recovery mode
     uint8_t throttle_boost;                 // how much should throttle be boosted during transient changes 0-100, 100 adds 10x hpf filtered throttle
     uint8_t throttle_boost_cutoff;          // Which cutoff frequency to use for throttle boost. higher cutoffs keep the boost on for shorter. Specified in hz.

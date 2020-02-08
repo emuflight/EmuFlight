@@ -432,8 +432,15 @@ static CMS_Menu cmsx_menuProfileOther = {
 };
 
 
-static uint16_t gyroConfig_gyro_lowpass_hz;
-static uint16_t gyroConfig_gyro_lowpass2_hz;
+static uint16_t gyroConfig_gyro_lowpass_hz_roll;
+static uint16_t gyroConfig_gyro_lowpass_hz_pitch;
+static uint16_t gyroConfig_gyro_lowpass_hz_yaw;
+static uint16_t gyroConfig_gyro_lowpass2_hz_roll;
+static uint16_t gyroConfig_gyro_lowpass2_hz_pitch;
+static uint16_t gyroConfig_gyro_lowpass2_hz_yaw;
+static uint8_t  gyroConfig_gyro_average_roll;
+static uint8_t  gyroConfig_gyro_average_pitch;
+static uint8_t  gyroConfig_gyro_average_yaw;
 static uint16_t gyroConfig_gyro_soft_notch_hz_1;
 static uint16_t gyroConfig_gyro_soft_notch_cutoff_1;
 static uint16_t gyroConfig_gyro_soft_notch_hz_2;
@@ -447,8 +454,15 @@ static uint16_t gyroConfig_imuf_w;
 
 static long cmsx_menuGyro_onEnter(void)
 {
-    gyroConfig_gyro_lowpass_hz =  gyroConfig()->gyro_lowpass_hz;
-    gyroConfig_gyro_lowpass2_hz =  gyroConfig()->gyro_lowpass2_hz;
+    gyroConfig_gyro_lowpass_hz_roll =  gyroConfig()->gyro_lowpass_hz[ROLL];
+    gyroConfig_gyro_lowpass_hz_pitch =  gyroConfig()->gyro_lowpass_hz[PITCH];
+    gyroConfig_gyro_lowpass_hz_yaw =  gyroConfig()->gyro_lowpass_hz[YAW];
+    gyroConfig_gyro_lowpass2_hz_roll =  gyroConfig()->gyro_lowpass2_hz[ROLL];
+    gyroConfig_gyro_lowpass2_hz_pitch =  gyroConfig()->gyro_lowpass2_hz[PITCH];
+    gyroConfig_gyro_lowpass2_hz_yaw =  gyroConfig()->gyro_lowpass2_hz[YAW];
+    gyroConfig_gyro_average_roll = gyroConfig()->averagedGyro[ROLL];
+    gyroConfig_gyro_average_pitch = gyroConfig()->averagedGyro[PITCH];
+    gyroConfig_gyro_average_yaw = gyroConfig()->averagedGyro[YAW];
     gyroConfig_gyro_soft_notch_hz_1 = gyroConfig()->gyro_soft_notch_hz_1;
     gyroConfig_gyro_soft_notch_cutoff_1 = gyroConfig()->gyro_soft_notch_cutoff_1;
     gyroConfig_gyro_soft_notch_hz_2 = gyroConfig()->gyro_soft_notch_hz_2;
@@ -467,8 +481,15 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self)
 {
     UNUSED(self);
 
-    gyroConfigMutable()->gyro_lowpass_hz =  gyroConfig_gyro_lowpass_hz;
-    gyroConfigMutable()->gyro_lowpass2_hz =  gyroConfig_gyro_lowpass2_hz;
+    gyroConfigMutable()->gyro_lowpass_hz[ROLL] =  gyroConfig_gyro_lowpass_hz_roll;
+    gyroConfigMutable()->gyro_lowpass_hz[PITCH] =  gyroConfig_gyro_lowpass_hz_pitch;
+    gyroConfigMutable()->gyro_lowpass_hz[YAW] =  gyroConfig_gyro_lowpass_hz_yaw;
+    gyroConfigMutable()->gyro_lowpass2_hz[ROLL] =  gyroConfig_gyro_lowpass2_hz_roll;
+    gyroConfigMutable()->gyro_lowpass2_hz[PITCH] =  gyroConfig_gyro_lowpass2_hz_pitch;
+    gyroConfigMutable()->gyro_lowpass2_hz[YAW] =  gyroConfig_gyro_lowpass2_hz_pitch;
+    gyroConfigMutable()->averagedGyro[ROLL] = gyroConfig_gyro_average_roll;
+    gyroConfigMutable()->averagedGyro[PITCH] = gyroConfig_gyro_average_pitch;
+    gyroConfigMutable()->averagedGyro[YAW] = gyroConfig_gyro_average_yaw;
     gyroConfigMutable()->gyro_soft_notch_hz_1 = gyroConfig_gyro_soft_notch_hz_1;
     gyroConfigMutable()->gyro_soft_notch_cutoff_1 = gyroConfig_gyro_soft_notch_cutoff_1;
     gyroConfigMutable()->gyro_soft_notch_hz_2 = gyroConfig_gyro_soft_notch_hz_2;
@@ -487,19 +508,26 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] =
 {
     { "-- FILTER GLB  --", OME_Label, NULL, NULL, 0 },
 
-    { "GYRO LPF",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz, 0, 16000, 1 }, 0 },
+    { "GYRO LPF ROLL",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_roll, 0, 16000, 1 }, 0 },
+    { "GYRO LPF PITCH",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_pitch, 0, 16000, 1 }, 0 },
+    { "GYRO LPF YAW",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_yaw, 0, 16000, 1 }, 0 },
 #ifdef USE_GYRO_LPF2
-    { "GYRO LPF2",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz,  0, 16000, 1 }, 0 },
+    { "GYRO LPF2 ROLL",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_roll,  0, 16000, 1 }, 0 },
+    { "GYRO LPF2 PITCH",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_pitch,  0, 16000, 1 }, 0 },
+    { "GYRO LPF2 YAW",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_yaw,  0, 16000, 1 }, 0 },
 #endif
-    { "GYRO NF1",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_1,     0, 500, 1 }, 0 },
-    { "GYRO NF1C",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_1, 0, 500, 1 }, 0 },
-    { "GYRO NF2",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_2,     0, 500, 1 }, 0 },
-    { "GYRO NF2C",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_2, 0, 500, 1 }, 0 },
+    { "GYRO AVG ROLL",  OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_average_roll,        0, 10, 1 }, 0 },
+    { "GYRO AVG PITCH", OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_average_pitch,        0, 10, 1 }, 0 },
+    { "GYRO AVG YAW",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_average_yaw,        0, 10, 1 }, 0 },
+    { "GYRO NF1",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_1,     0, 500, 1 }, 0 },
+    { "GYRO NF1C",      OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_1, 0, 500, 1 }, 0 },
+    { "GYRO NF2",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_2,     0, 500, 1 }, 0 },
+    { "GYRO NF2C",      OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_2, 0, 500, 1 }, 0 },
     #ifndef USE_GYRO_IMUF9001
-    { "IMUF W",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,                   3, 512,    1 }, 0 },
-    { "ROLL Q",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,              0, 16000, 100 }, 0 },
-    { "PITCH Q",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,             0, 16000, 100 }, 0 },
-    { "YAW Q",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,               0, 16000, 100 }, 0 },
+    { "IMUF W",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,                   3, 512,    1 }, 0 },
+    { "ROLL Q",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,              0, 16000, 100 }, 0 },
+    { "PITCH Q",        OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,             0, 16000, 100 }, 0 },
+    { "YAW Q",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,               0, 16000, 100 }, 0 },
     #endif
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
@@ -516,8 +544,12 @@ static CMS_Menu cmsx_menuFilterGlobal = {
     .entries = cmsx_menuFilterGlobalEntries,
 };
 
-static uint16_t cmsx_dterm_lowpass_hz;
-static uint16_t cmsx_dterm_lowpass2_hz;
+static uint16_t cmsx_dterm_lowpass_hz_roll;
+static uint16_t cmsx_dterm_lowpass_hz_pitch;
+static uint16_t cmsx_dterm_lowpass_hz_yaw;
+static uint16_t cmsx_dterm_lowpass2_hz_roll;
+static uint16_t cmsx_dterm_lowpass2_hz_pitch;
+static uint16_t cmsx_dterm_lowpass2_hz_yaw;
 
 //
 // SPRING Imuf
@@ -599,23 +631,27 @@ static CMS_Menu cmsx_menuImuf = {
 };
 #endif
 
-static uint16_t cmsx_dterm_notch_hz;
-static uint16_t cmsx_dterm_notch_cutoff;
-static uint16_t cmsx_yaw_lowpass_hz;
-static uint8_t cmsx_smart_dterm_smoothing;
+
+static uint8_t cmsx_smart_dterm_smoothing_roll;
+static uint8_t cmsx_smart_dterm_smoothing_pitch;
+static uint8_t cmsx_smart_dterm_smoothing_yaw;
 
 static long cmsx_FilterPerProfileRead(void)
 {
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
     for (uint8_t i = 0; i < 3; i++) {
-        tempPidWc[i] = pidProfile->pid[i].Wc;
+        tempPidWc[i] = pidProfile->dFilter[i].Wc;
     }
-    cmsx_dterm_lowpass_hz   = pidProfile->dterm_lowpass_hz;
-    cmsx_dterm_lowpass2_hz  = pidProfile->dterm_lowpass2_hz;
-    cmsx_dterm_notch_hz     = pidProfile->dterm_notch_hz;
-    cmsx_dterm_notch_cutoff = pidProfile->dterm_notch_cutoff;
-    cmsx_yaw_lowpass_hz     = pidProfile->yaw_lowpass_hz;
-    cmsx_smart_dterm_smoothing     = pidProfile->smart_dterm_smoothing;
+    cmsx_dterm_lowpass_hz_roll   = pidProfile->dFilter[ROLL].dLpf;
+    cmsx_dterm_lowpass_hz_pitch  = pidProfile->dFilter[PITCH].dLpf;
+    cmsx_dterm_lowpass_hz_yaw    = pidProfile->dFilter[YAW].dLpf;
+    cmsx_dterm_lowpass2_hz_roll  = pidProfile->dFilter[ROLL].dLpf2;
+    cmsx_dterm_lowpass2_hz_pitch = pidProfile->dFilter[PITCH].dLpf2;
+    cmsx_dterm_lowpass2_hz_yaw   = pidProfile->dFilter[YAW].dLpf2;
+
+    cmsx_smart_dterm_smoothing_roll   = pidProfile->dFilter[ROLL].smartSmoothing;
+    cmsx_smart_dterm_smoothing_pitch  = pidProfile->dFilter[PITCH].smartSmoothing;
+    cmsx_smart_dterm_smoothing_yaw    = pidProfile->dFilter[YAW].smartSmoothing;
     return 0;
 }
 
@@ -626,15 +662,19 @@ static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self)
     pidProfile_t *pidProfile = currentPidProfile;
 
     for (uint8_t i = 0; i < 3; i++) {
-        pidProfile->pid[i].Wc = tempPidWc[i];
+        pidProfile->dFilter[i].Wc = tempPidWc[i];
     }
 
-    pidProfile->dterm_lowpass_hz   = cmsx_dterm_lowpass_hz;
-    pidProfile->dterm_lowpass2_hz  = cmsx_dterm_lowpass2_hz;
-    pidProfile->dterm_notch_hz     = cmsx_dterm_notch_hz;
-    pidProfile->dterm_notch_cutoff = cmsx_dterm_notch_cutoff;
-    pidProfile->yaw_lowpass_hz     = cmsx_yaw_lowpass_hz;
-    pidProfile->smart_dterm_smoothing     = cmsx_smart_dterm_smoothing;
+    pidProfile->dFilter[ROLL].dLpf   = cmsx_dterm_lowpass_hz_roll;
+    pidProfile->dFilter[PITCH].dLpf  = cmsx_dterm_lowpass_hz_pitch;
+    pidProfile->dFilter[YAW].dLpf    = cmsx_dterm_lowpass_hz_yaw;
+    pidProfile->dFilter[ROLL].dLpf2  = cmsx_dterm_lowpass2_hz_roll;
+    pidProfile->dFilter[PITCH].dLpf2 = cmsx_dterm_lowpass2_hz_pitch;
+    pidProfile->dFilter[YAW].dLpf2   = cmsx_dterm_lowpass2_hz_yaw;
+
+    pidProfile->dFilter[ROLL].smartSmoothing   = cmsx_smart_dterm_smoothing_roll;
+    pidProfile->dFilter[PITCH].smartSmoothing  = cmsx_smart_dterm_smoothing_pitch;
+    pidProfile->dFilter[YAW].smartSmoothing    = cmsx_smart_dterm_smoothing_yaw;
     return 0;
 }
 
@@ -642,15 +682,19 @@ static OSD_Entry cmsx_menuFilterPerProfileEntries[] =
 {
     { "-- FILTER PP  --", OME_Label, NULL, NULL, 0 },
 
-    { "DTERM LPF",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz,     0, 500, 1 }, 0 },
-    { "DTERM LPF2", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz,    0, 500, 1 }, 0 },
-    { "DTERM NF",   OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_notch_hz,       0, 500, 1 }, 0 },
-    { "DTERM NFCO", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_notch_cutoff,   0, 500, 1 }, 0 },
-    { "YAW LPF",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_yaw_lowpass_hz,       0, 500, 1 }, 0 },
-    { "SMART SMOOTHING",    OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_smart_dterm_smoothing,       1, 250, 1 }, 0 },
-    { "ROLL WITCHCRAFT",    OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[PID_ROLL], 0, 10, 1 }, 0 },
-    { "PITCH WITCHCRAFT",   OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[PID_PITCH], 0, 10, 1 }, 0 },
-    { "YAW WITCHCRAFT",     OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[PID_YAW], 0, 10, 1 }, 0 },
+    { "DTERM LPF ROLL",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz_roll,     0, 500, 1 }, 0 },
+    { "DTERM LPF PITCH",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz_pitch,     0, 500, 1 }, 0 },
+    { "DTERM LPF YAW",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz_yaw,     0, 500, 1 }, 0 },
+    { "DTERM LPF2 ROLL", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_roll,    0, 500, 1 }, 0 },
+    { "DTERM LPF2 PITCH", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_pitch,    0, 500, 1 }, 0 },
+    { "DTERM LPF2 YAW", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_yaw,    0, 500, 1 }, 0 },
+
+    { "SMART SMOOTHING ROLL",    OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_smart_dterm_smoothing_roll,       1, 250, 1 }, 0 },
+    { "SMART SMOOTHING PITCH",    OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_smart_dterm_smoothing_pitch,       1, 250, 1 }, 0 },
+    { "SMART SMOOTHING YAW",    OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_smart_dterm_smoothing_yaw,       1, 250, 1 }, 0 },
+    { "ROLL WITCHCRAFT",    OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[ROLL], 0, 10, 1 }, 0 },
+    { "PITCH WITCHCRAFT",   OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[PITCH], 0, 10, 1 }, 0 },
+    { "YAW WITCHCRAFT",     OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[YAW], 0, 10, 1 }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },

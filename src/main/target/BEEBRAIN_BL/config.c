@@ -157,8 +157,9 @@ void targetConfiguration(void)
     // }
 
     gyroConfigMutable()->gyro_lowpass_type = FILTER_BIQUAD;
-    gyroConfigMutable()->gyro_lowpass_hz = 150;
-    gyroConfigMutable()->gyro_lowpass2_hz = 0;
+    gyroConfigMutable()->gyro_lowpass_hz[ROLL] = 150;
+    gyroConfigMutable()->gyro_lowpass_hz[PITCH] = 150;
+    gyroConfigMutable()->gyro_lowpass_hz[YAW] = 150;
     gyroConfigMutable()->yaw_spin_threshold = 1400;
     rxConfigMutable()->mincheck = 1004;
     rxConfigMutable()->maxcheck = 2000;
@@ -180,9 +181,8 @@ void targetConfiguration(void)
     osdConfigMutable()->cap_alarm = 255;
 
     pidProfilesMutable(0)->dterm_filter_type = FILTER_BIQUAD;
-    pidProfilesMutable(0)->dterm_lowpass_hz = 200;
-    pidProfilesMutable(0)->dterm_lowpass2_hz = 0;
-    pidProfilesMutable(0)->dterm_notch_cutoff = 0;
+    pidProfilesMutable(0)->dFilter[ROLL].dLpf = 200;
+//    pidProfilesMutable(0)->dterm_notch_cutoff = 0;
     pidProfilesMutable(0)->vbatPidCompensation = true;
     pidProfilesMutable(0)->itermThrottleThreshold = 200;
     pidProfilesMutable(0)->yawRateAccelLimit = 0;

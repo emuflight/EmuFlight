@@ -25,7 +25,11 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_RAW, axis, gyroSensor->gyroDev.gyroADCRaw[axis] * gyroSensor->gyroDev.scale);
         // scale gyro output to degrees per second
+#ifdef USE_GYRO_IMUF9001
+        float gyroADCf = gyroSensor->gyroDev.gyroADC[axis];
+#else
         float gyroADCf = gyroSensor->gyroDev.gyroADC[axis] * gyroSensor->gyroDev.scale;
+#endif
         // DEBUG_GYRO_SCALED records the unfiltered, scaled gyro output
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_SCALED, axis, lrintf(gyroADCf));
 

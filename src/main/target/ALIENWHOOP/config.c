@@ -109,7 +109,6 @@ void targetConfiguration(void)
     gyroConfigMutable()->gyroMovementCalibrationThreshold = 200; // aka moron_threshold
     gyroConfigMutable()->gyro_sync_denom = 2;  // 16kHz gyro
     pidConfigMutable()->pid_process_denom = 1; // 16kHz PID
-    gyroConfigMutable()->gyro_lowpass2_hz = 751;
 
     pidConfigMutable()->runaway_takeoff_prevention = false;
 
