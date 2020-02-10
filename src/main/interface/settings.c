@@ -30,6 +30,7 @@
 #include "cms/cms.h"
 
 #include "common/utils.h"
+#include "common/time.h"
 
 #include "drivers/adc.h"
 #include "drivers/bus_i2c.h"
@@ -68,6 +69,7 @@
 #include "pg/adc.h"
 #include "pg/beeper.h"
 #include "pg/beeper_dev.h"
+#include "pg/bus_i2c.h"
 #include "pg/dashboard.h"
 #include "pg/flash.h"
 #include "pg/max7456.h"
@@ -1048,6 +1050,24 @@ const clivalue_t valueTable[] = {
     { "osd_stat_bb_no",             VAR_UINT32  | MASTER_VALUE | MODE_BITSET, .config.bitpos = OSD_STAT_BLACKBOX_NUMBER, PG_OSD_CONFIG, offsetof(osdConfig_t, enabled_stats)},
 
 #endif
+#ifdef I2C_FULL_RECONFIGURABILITY
+#ifdef USE_I2C_DEVICE_1
+    { "i2c1_pullup",    VAR_UINT8  | HARDWARE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_I2C_CONFIG, PG_ARRAY_ELEMENT_OFFSET(i2cConfig_t, 0, pullUp) },
+    { "i2c1_overclock", VAR_UINT8  | HARDWARE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_I2C_CONFIG, PG_ARRAY_ELEMENT_OFFSET(i2cConfig_t, 0, overClock) },
+#endif
+#ifdef USE_I2C_DEVICE_2
+    { "i2c2_pullup",    VAR_UINT8  | HARDWARE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_I2C_CONFIG, PG_ARRAY_ELEMENT_OFFSET(i2cConfig_t, 1, pullUp) },
+    { "i2c2_overclock", VAR_UINT8  | HARDWARE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_I2C_CONFIG, PG_ARRAY_ELEMENT_OFFSET(i2cConfig_t, 1, overClock) },
+#endif
+#ifdef USE_I2C_DEVICE_3
+    { "i2c3_pullup",    VAR_UINT8  | HARDWARE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_I2C_CONFIG, PG_ARRAY_ELEMENT_OFFSET(i2cConfig_t, 2, pullUp) },
+    { "i2c3_overclock", VAR_UINT8  | HARDWARE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_I2C_CONFIG, PG_ARRAY_ELEMENT_OFFSET(i2cConfig_t, 2, overClock) },
+#endif
+#ifdef USE_I2C_DEVICE_4
+    { "i2c4_pullup",    VAR_UINT8  | HARDWARE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_I2C_CONFIG, PG_ARRAY_ELEMENT_OFFSET(i2cConfig_t, 3, pullUp) },
+    { "i2c4_overclock", VAR_UINT8  | HARDWARE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_I2C_CONFIG, PG_ARRAY_ELEMENT_OFFSET(i2cConfig_t, 3, overClock) },
+#endif
+#endif
 
 // PG_SYSTEM_CONFIG
 #ifndef SKIP_TASK_STATISTICS
@@ -1162,6 +1182,8 @@ const clivalue_t valueTable[] = {
     { "rcdevice_init_dev_attempts", VAR_UINT8 | MASTER_VALUE, .config.minmax = { 0, 10 }, PG_RCDEVICE_CONFIG, offsetof(rcdeviceConfig_t, initDeviceAttempts) },
     { "rcdevice_init_dev_attempt_interval", VAR_UINT32 | MASTER_VALUE, .config.minmax = { 500, 5000 }, PG_RCDEVICE_CONFIG, offsetof(rcdeviceConfig_t, initDeviceAttemptInterval) }
 #endif
+//i2c I2C_FULL_RECONFIGURABILITY
+
 };
 
 const uint16_t valueTableEntryCount = ARRAYLEN(valueTable);
