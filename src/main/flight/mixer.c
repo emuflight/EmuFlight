@@ -641,7 +641,7 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs)
         motorRangeMax = motorOutputHigh;
         motorOutputMin = motorOutputLow;
         motorOutputRange = motorOutputHigh - motorOutputLow;
-        if (getBoxIdState(BOXUSER1)) {
+        if (getBoxIdState(BOXUSER4)) {
             motorOutputMixSign = -1;
         } else {
             motorOutputMixSign = 1;
