@@ -266,9 +266,9 @@ static char osdGetTemperatureSymbolForSelectedUnit(void)
 {
     switch (osdConfig()->units) {
     case OSD_UNIT_IMPERIAL:
-        return 'F';
+        return SYM_TEMP_F;
     default:
-        return 'C';
+        return SYM_TEMP_C;
     }
 }
 #endif
@@ -277,7 +277,7 @@ static void osdFormatAltitudeString(char * buff, int altitude)
 {
     const int alt = osdGetMetersToSelectedUnit(altitude) / 10;
 
-    tfp_sprintf(buff, "%5d %c", alt, osdGetMetersToSelectedUnitSymbol());
+    tfp_sprintf(buff, "%c%5d %c", SYM_ALT, alt, osdGetMetersToSelectedUnitSymbol());
     buff[5] = buff[4];
     buff[4] = '.';
 }
@@ -495,22 +495,20 @@ static bool osdDrawSingleElement(uint8_t item)
         // FIXME ideally we want to use SYM_KMH symbol but it's not in the font any more, so we use K (M for MPH)
         switch (osdConfig()->units) {
         case OSD_UNIT_IMPERIAL:
-            tfp_sprintf(buff, "%3dM", CM_S_TO_MPH(gpsSol.groundSpeed));
+            tfp_sprintf(buff, "%c%3d%c", SYM_SPEED, CM_S_TO_MPH(gpsSol.groundSpeed), SYM_MPH);
             break;
         default:
-            tfp_sprintf(buff, "%3dK", CM_S_TO_KM_H(gpsSol.groundSpeed));
+            tfp_sprintf(buff, "%c%3d%c", SYM_SPEED, CM_S_TO_KM_H(gpsSol.groundSpeed), SYM_KMH);
             break;
         }
         break;
 
     case OSD_GPS_LAT:
-        // The SYM_LAT symbol in the actual font contains only blank, so we use the SYM_ARROW_NORTH
-        osdFormatCoordinate(buff, SYM_ARROW_NORTH, gpsSol.llh.lat);
+        osdFormatCoordinate(buff, SYM_LAT, gpsSol.llh.lat);
         break;
 
     case OSD_GPS_LON:
-        // The SYM_LON symbol in the actual font contains only blank, so we use the SYM_ARROW_EAST
-        osdFormatCoordinate(buff, SYM_ARROW_EAST, gpsSol.llh.lon);
+        osdFormatCoordinate(buff, SYM_LON, gpsSol.llh.lon);
         break;
 
     case OSD_HOME_DIR:
@@ -519,13 +517,12 @@ static bool osdDrawSingleElement(uint8_t item)
                 const int h = GPS_directionToHome - DECIDEGREES_TO_DEGREES(attitude.values.yaw);
                 buff[0] = osdGetDirectionSymbolFromHeading(h);
             } else {
-                // We don't have a HOME symbol in the font, by now we use this
-                buff[0] = SYM_THR1;
+                buff[0] = SYM_HOMEFLAG;
             }
 
         } else {
             // We use this symbol when we don't have a FIX
-            buff[0] = SYM_COLON;
+            buff[0] = SYM_QUES;
         }
 
         buff[1] = 0;
@@ -538,7 +535,7 @@ static bool osdDrawSingleElement(uint8_t item)
             tfp_sprintf(buff, "%d%c", distance, osdGetMetersToSelectedUnitSymbol());
         } else {
             // We use this symbol when we don't have a FIX
-            buff[0] = SYM_COLON;
+            buff[0] = SYM_QUES;
             // overwrite any previous distance with blanks
             memset(buff + 1, SYM_BLANK, 6);
             buff[7] = '\0';
@@ -566,7 +563,7 @@ static bool osdDrawSingleElement(uint8_t item)
                 osdFormatAltitudeString(buff, getEstimatedAltitude());
             } else {
                 // We use this symbol when we don't have a valid measure
-                buff[0] = SYM_COLON;
+                buff[0] = SYM_QUES;
                 // overwrite any previous altitude with blanks
                 memset(buff + 1, SYM_BLANK, 6);
                 buff[7] = '\0';
@@ -919,8 +916,10 @@ static bool osdDrawSingleElement(uint8_t item)
     case OSD_PITCH_ANGLE:
     case OSD_ROLL_ANGLE:
         {
+            const char symbol = (item == OSD_PITCH_ANGLE) ? SYM_PITCH : SYM_ROLL ;
             const int angle = (item == OSD_PITCH_ANGLE) ? attitude.values.pitch : attitude.values.roll;
-            tfp_sprintf(buff, "%c%02d.%01d", angle < 0 ? '-' : ' ', abs(angle / 10), abs(angle % 10));
+            //tfp_sprintf(buff, "%c", symbol);
+            tfp_sprintf(buff, "%c%c%02d.%01d", symbol, angle < 0 ? '-' : ' ', abs(angle / 10), abs(angle % 10));
             break;
         }
 
@@ -981,7 +980,7 @@ static bool osdDrawSingleElement(uint8_t item)
                 tfp_sprintf(buff, "%c%01d.%01d", directionSymbol, abs(verticalSpeed / 100), abs((verticalSpeed % 100) / 10));
             } else {
                 // We use this symbol when we don't have a valid measure
-                buff[0] = SYM_COLON;
+                buff[0] = SYM_QUES;
                 // overwrite any previous vertical speed with blanks
                 memset(buff + 1, SYM_BLANK, 6);
                 buff[7] = '\0';
@@ -992,7 +991,7 @@ static bool osdDrawSingleElement(uint8_t item)
 #ifdef USE_ESC_SENSOR
     case OSD_ESC_TMP:
         if (feature(FEATURE_ESC_SENSOR)) {
-            tfp_sprintf(buff, "%3d%c", osdConvertTemperatureToSelectedUnit(escDataCombined->temperature), osdGetTemperatureSymbolForSelectedUnit());
+            tfp_sprintf(buff, "%c%3d%c", SYM_TEMPERATURE, osdConvertTemperatureToSelectedUnit(escDataCombined->temperature), osdGetTemperatureSymbolForSelectedUnit());
         }
         break;
 
@@ -1019,7 +1018,7 @@ static bool osdDrawSingleElement(uint8_t item)
 
 #ifdef USE_ADC_INTERNAL
     case OSD_CORE_TEMPERATURE:
-        tfp_sprintf(buff, "%3d%c", osdConvertTemperatureToSelectedUnit(getCoreTemperatureCelsius()), osdGetTemperatureSymbolForSelectedUnit());
+        tfp_sprintf(buff, "%c%3d%c", SYM_TEMPERATURE, osdConvertTemperatureToSelectedUnit(getCoreTemperatureCelsius()), osdGetTemperatureSymbolForSelectedUnit());
         break;
 #endif
 
