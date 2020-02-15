@@ -1,13 +1,29 @@
+/*
+ * This file is part of Cleanflight and Betaflight.
+ *
+ * Cleanflight and Betaflight are free software. You can redistribute
+ * this software and/or modify this software under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * Cleanflight and Betaflight are distributed in the hope that they
+ * will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this software.
+ *
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
 #include <string.h>
 #include "arm_math.h"
 
 #include "kalman.h"
 #include "fc/fc_rc.h"
 #include "build/debug.h"
-
-#define MAX_KALMAN_WINDOW_SIZE 512
-
-float r_weight = 0.67f;
 
 typedef struct variance
 {
@@ -130,13 +146,13 @@ void update_kalman_covariance(float *gyroRateData)
 
     float squirt;
     arm_sqrt_f32(varStruct.xVar +  varStruct.xyCoVar +  varStruct.xzCoVar, &squirt);
-    kalmanFilterStateRate[X].r = squirt * r_weight;
+    kalmanFilterStateRate[X].r = squirt * VARIANCE_SCALE;
 
     arm_sqrt_f32(varStruct.yVar +  varStruct.xyCoVar +  varStruct.yzCoVar, &squirt);
-    kalmanFilterStateRate[Y].r = squirt * r_weight;
+    kalmanFilterStateRate[Y].r = squirt * VARIANCE_SCALE;
 
     arm_sqrt_f32(varStruct.zVar +  varStruct.yzCoVar +  varStruct.xzCoVar, &squirt);
-    kalmanFilterStateRate[Z].r = squirt * r_weight;
+    kalmanFilterStateRate[Z].r = squirt * VARIANCE_SCALE;
 }
 
 FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)

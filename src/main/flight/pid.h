@@ -125,7 +125,6 @@ typedef struct pidProfile_s {
     uint16_t itermAcceleratorGain;          // Iterm Accelerator Gain when itermThrottlethreshold is hit
     uint8_t feathered_pids;                 // determine how feathered your pids are
     uint8_t i_decay;						            // i-term decay (increases how quickly iterm shrinks in value)
-    uint8_t r_weight;					            	// the weight of the kalman R term calculated out of the std. dev.
     uint16_t errorBoost;                    // the weight of the setpoint boost
     uint16_t errorBoostYaw;                 // the weight of the setpoint boost for yaw
     uint8_t errorBoostLimit;                // percentage of the error that the emu boost can boost

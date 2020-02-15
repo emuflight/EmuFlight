@@ -98,6 +98,10 @@
 #include "hardware_revision.h"
 #endif
 
+#ifndef USE_GYRO_IMUF9001
+#include "common/kalman.h"
+#endif
+
 #if ((FLASH_SIZE > 128) && (defined(USE_GYRO_SPI_ICM20601) || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_SPI_MPU6500)))
 #define USE_GYRO_SLEW_LIMITER
 #endif
@@ -252,6 +256,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .imuf_pitch_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
     .imuf_yaw_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
    	.imuf_acc_lpf_cutoff_hz = IMUF_DEFAULT_ACC_LPF_HZ,
+    .imuf_sharpness = 35,
     .gyro_offset_yaw = 0,
     .averagedGyro[ROLL] = 3,
     .averagedGyro[PITCH] = 3,

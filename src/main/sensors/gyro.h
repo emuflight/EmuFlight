@@ -23,9 +23,6 @@
 #include "common/axis.h"
 #include "common/time.h"
 #include "common/maths.h"
-#ifndef USE_GYRO_IMUF9001
-#include "common/kalman.h"
-#endif
 #include "pg/pg.h"
 #include "drivers/bus.h"
 #include "drivers/sensor.h"
@@ -123,12 +120,12 @@ typedef struct gyroConfig_s {
     uint16_t imuf_roll_lpf_cutoff_hz;
     uint16_t imuf_yaw_lpf_cutoff_hz;
     uint16_t imuf_acc_lpf_cutoff_hz;
+    uint16_t imuf_sharpness;
 #endif
     uint16_t imuf_pitch_q;
     uint16_t imuf_roll_q;
     uint16_t imuf_yaw_q;
     uint16_t imuf_w;
-    uint8_t r_weight;
 
     uint8_t averagedGyro[XYZ_AXIS_COUNT];
 } gyroConfig_t;

@@ -33,15 +33,6 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
         // DEBUG_GYRO_SCALED records the unfiltered, scaled gyro output
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_SCALED, axis, lrintf(gyroADCf));
 
-#ifdef USE_GYRO_DATA_ANALYSE
-        if (isDynamicFilterActive()) {
-            if (axis == X) {
-                GYRO_FILTER_DEBUG_SET(DEBUG_FFT, 0, lrintf(gyroADCf)); // store raw data
-                GYRO_FILTER_DEBUG_SET(DEBUG_FFT_FREQ, 3, lrintf(gyroADCf)); // store raw data
-            }
-        }
-#endif
-
         // apply static notch filters and software lowpass filters
         gyroADCf = gyroSensor->lowpass2FilterApplyFn((filter_t *)&gyroSensor->lowpass2Filter[axis], gyroADCf);
         gyroADCf = gyroSensor->lowpassFilterApplyFn((filter_t *)&gyroSensor->lowpassFilter[axis], gyroADCf);
@@ -63,6 +54,15 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
 
 #ifdef USE_GYRO_DATA_ANALYSE
         if (isDynamicFilterActive()) {
+            if (axis == X) {
+                GYRO_FILTER_DEBUG_SET(DEBUG_FFT, 0, lrintf(gyroADCf)); // store raw data
+                GYRO_FILTER_DEBUG_SET(DEBUG_FFT_FREQ, 3, lrintf(gyroADCf)); // store raw data
+            }
+        }
+#endif
+
+#ifdef USE_GYRO_DATA_ANALYSE
+        if (isDynamicFilterActive()) {
             gyroDataAnalysePush(&gyroSensor->gyroAnalyseState, axis, gyroADCf);
             gyroADCf = gyroSensor->notchFilterDynApplyFn((filter_t *)&gyroSensor->notchFilterDyn[axis], gyroADCf);
             if (axis == X) {
@@ -71,8 +71,10 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
         }
 #endif
 
+#ifdef USE_GYRO_IMUF9001
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));
+#endif //USE_GYRO_IMUF9001
 
         gyroSensor->gyroDev.gyroADCf[axis] = gyroADCf;
 
@@ -92,5 +94,11 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
     gyroSensor->gyroDev.gyroADCf[X] = output[X];
     gyroSensor->gyroDev.gyroADCf[Y] = output[Y];
     gyroSensor->gyroDev.gyroADCf[Z] = output[Z];
+
+  for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+    // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
+    GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroSensor->gyroDev.gyroADCf[axis]));
+  }
+
 #endif //USE_GYRO_IMUF9001
 }

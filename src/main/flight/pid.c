@@ -56,9 +56,6 @@
 #include "sensors/acceleration.h"
 #include "sensors/battery.h"
 
-
-extern float r_weight;
-
 #define ITERM_RELAX_SETPOINT_THRESHOLD 30.0f
 
 const char pidNames[] =
@@ -89,7 +86,7 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 #ifdef STM32F10X
 #define PID_PROCESS_DENOM_DEFAULT       1
 #elif defined(USE_GYRO_SPI_MPU6000) || defined(USE_GYRO_SPI_MPU6500)  || defined(USE_GYRO_SPI_ICM20689)
-#define PID_PROCESS_DENOM_DEFAULT       4
+#define PID_PROCESS_DENOM_DEFAULT       1
 #else
 #define PID_PROCESS_DENOM_DEFAULT       2
 #endif
@@ -161,7 +158,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .setPointDTransition[YAW] = 130,
         .feathered_pids = 100,
         .i_decay = 4,
-        .r_weight = 67,
         .errorBoost = 15,
         .errorBoostYaw = 40,
         .errorBoostLimit = 20,
@@ -275,8 +271,6 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 
     dtermLowpassApplyFn = nullFilterApply;
     dtermLowpass2ApplyFn = nullFilterApply;
-
-    r_weight = (float) pidProfile->r_weight / 100.0f;
 
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
     {
@@ -989,12 +983,7 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
                 dDelta = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], dDelta);
                 dDelta = dtermLowpass2ApplyFn((filter_t *) &dtermLowpass2[axis], dDelta);
 
-                float dDeltaMultiplier = constrainf(fabsf(dDelta + previousdDelta[axis]) / (2 * smart_dterm_smoothing[axis]), 0.0f, 1.0f);
-                dDelta = dDelta * dDeltaMultiplier;
-                previousdDelta[axis] = dDelta;
-
-            if (pidProfile->dFilter[axis].Wc > 1)
-              {
+            if (pidProfile->dFilter[axis].Wc > 1) {
                 kdRingBuffer[axis][kdRingBufferPoint[axis]++] = dDelta;
                 kdRingBufferSum[axis] += dDelta;
 
@@ -1004,6 +993,13 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
                 dDelta = (float)(kdRingBufferSum[axis] / (float)(pidProfile->dFilter[axis].Wc));
                 kdRingBufferSum[axis] -= kdRingBuffer[axis][kdRingBufferPoint[axis]];
+              }
+              float dDeltaMultiplier;
+
+              if (smart_dterm_smoothing[axis] > 0) {
+                  dDeltaMultiplier = constrainf(fabsf(dDelta + previousdDelta[axis]) / (2 * smart_dterm_smoothing[axis]), 0.0f, 1.0f);
+                  dDelta = dDelta * dDeltaMultiplier;
+                  previousdDelta[axis] = dDelta;
               }
                 // Divide rate change by dT to get differential (ie dr/dt).
                 // dT is fixed and calculated from the target PID loop time
