@@ -258,9 +258,9 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
    	.imuf_acc_lpf_cutoff_hz = IMUF_DEFAULT_ACC_LPF_HZ,
     .imuf_sharpness = 35,
     .gyro_offset_yaw = 0,
-    .averagedGyro[ROLL] = 3,
-    .averagedGyro[PITCH] = 3,
-    .averagedGyro[YAW] = 3,
+    .averagedGyro[ROLL] = 0,
+    .averagedGyro[PITCH] = 0,
+    .averagedGyro[YAW] = 0,
 );
 #else //USE_GYRO_IMUF9001
 PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
@@ -295,9 +295,9 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .yaw_spin_threshold = 1950,
     .dyn_notch_quality = 70,
     .dyn_notch_width_percent = 50,
-    .averagedGyro[ROLL] = 3,
-    .averagedGyro[PITCH] = 3,
-    .averagedGyro[YAW] = 3,
+    .averagedGyro[ROLL] = 0,
+    .averagedGyro[PITCH] = 0,
+    .averagedGyro[YAW] = 0,
 );
 #endif //USE_GYRO_IMUF9001
 

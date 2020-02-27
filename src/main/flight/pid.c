@@ -118,7 +118,7 @@ PG_RESET_TEMPLATE(pidConfig_t, pidConfig,
 
 #define ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF 15  // The anti gravity throttle highpass filter cutoff
 
-PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, PID_PROFILE_COUNT, pidProfiles, PG_PID_PROFILE, 7);
+PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, PID_PROFILE_COUNT, pidProfiles, PG_PID_PROFILE, 8);
 
 void resetPidProfile(pidProfile_t *pidProfile)
 {
@@ -133,9 +133,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         },
 
         .dFilter = {
-            [PID_ROLL] = { 3, 100, 250, 50 },
-            [PID_PITCH] = { 3, 100, 250, 50 },
-            [PID_YAW] = { 2, 100, 250, 50 },
+            [PID_ROLL] = { 2, 100, 250, 50 },
+            [PID_PITCH] = { 2, 100, 250, 50 },
+            [PID_YAW] = { 0, 100, 250, 0 },
         },
 
         .pidSumLimit = PIDSUM_LIMIT_MAX,
