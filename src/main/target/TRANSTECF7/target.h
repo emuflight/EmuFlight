@@ -20,8 +20,13 @@
 
 #pragma once
 
+<<<<<<< Updated upstream
 #define TARGET_BOARD_IDENTIFIER         "TTF7"
 #define USBD_PRODUCT_STRING             "TransTECF7"
+=======
+#define TARGET_BOARD_IDENTIFIER         "S7X2"
+#define USBD_PRODUCT_STRING             "TRANSTECF7"
+>>>>>>> Stashed changes
 #define TARGET_MANUFACTURER_IDENTIFIER  "TTRH"
 #define USE_TARGET_CONFIG
 
@@ -41,17 +46,26 @@
 
 // *************** Gyro & ACC ***************
 #define USE_ACC
+<<<<<<< Updated upstream
 //#define USE_ACC_MPU6000
+=======
+>>>>>>> Stashed changes
 #define USE_ACC_SPI_MPU6000
 
 
 #define USE_EXTI
+<<<<<<< Updated upstream
 //#define USE_GYRO_EXTI
+=======
+>>>>>>> Stashed changes
 #define MPU_INT_EXTI                    PC3
 #define USE_MPU_DATA_READY_SIGNAL
 
 #define USE_GYRO
+<<<<<<< Updated upstream
 //#define USE_GYRO_MPU6000
+=======
+>>>>>>> Stashed changes
 #define USE_GYRO_SPI_MPU6000
 #define GYRO_MPU6000_ALIGN                    CW180_DEG_FLIP
 #define MPU6000_CS_PIN                  PC2
@@ -70,7 +84,11 @@
 #define I2C_DEVICE                      (I2CDEV_1)
 #define I2C1_SCL                        PB6         // SCL pad
 #define I2C1_SDA                        PB7         // SDA pad
+<<<<<<< Updated upstream
 //#define USE_I2C_PULLUP
+=======
+#define USE_I2C_PULLUP
+>>>>>>> Stashed changes
 
 // *************** OSD ***************
 #define USE_SPI_DEVICE_2

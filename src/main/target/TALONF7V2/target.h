@@ -19,8 +19,13 @@
  */
 
 #pragma once
+<<<<<<< Updated upstream
 #define TARGET_BOARD_IDENTIFIER                          "TLN7"
 #define USBD_PRODUCT_STRING                              "TALONF7 V2"
+=======
+#define TARGET_BOARD_IDENTIFIER                          "S7X2"
+#define USBD_PRODUCT_STRING                              "TALONF7V2"
+>>>>>>> Stashed changes
 #define TARGET_MANUFACTURER_IDENTIFIER                   "HENA"
 #define USE_TARGET_CONFIG
 
@@ -55,6 +60,7 @@
 #define GYRO_MPU6000_ALIGN                               CW0_DEG
 #define ACC_MPU6000_ALIGN                                CW0_DEG
 
+<<<<<<< Updated upstream
 /* ICM-20602
 #define USE_ACC_MPU6500
 #define USE_ACC_SPI_MPU6500
@@ -73,6 +79,8 @@
 #define USE_MAG_QMC5883
 #define MAG_I2C_INSTANCE                                 (I2CDEV_2)
 
+=======
+>>>>>>> Stashed changes
 // OSD
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE                             SPI3
@@ -126,11 +134,14 @@
 #define RSSI_ADC_PIN                                     PC3
 #define CURRENT_METER_SCALE_DEFAULT                      250                    // 3.3/120A  = 25mv/A
 
+<<<<<<< Updated upstream
 // I2c devices
 #define USE_I2C
 #define USE_I2C_DEVICE_2                                                        // External I2C
 #define I2C_DEVICE                                      (I2CDEV_2)
 
+=======
+>>>>>>> Stashed changes
 // SPI devices
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -156,7 +167,12 @@
 #define USE_VCP
 #define BINDPLUG_PIN                                    PB2
 #define DEFAULT_RX_FEATURE                              FEATURE_RX_SERIAL
+<<<<<<< Updated upstream
 #define SERIALRX_UART                                   SERIAL_PORT_UART5
+=======
+#define SERIALRX_PROVIDER                               SERIALRX_SBUS
+#define SERIALRX_UART                                   SERIAL_PORT_USART3
+>>>>>>> Stashed changes
 
 // IO Ports
 #define TARGET_IO_PORTA                                 0xffff
