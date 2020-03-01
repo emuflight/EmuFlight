@@ -247,10 +247,7 @@ void i2cInit(I2CDevice device)
 #ifdef STM32F7
     IOConfigGPIOAF(scl, pDev->pullUp ? IOCFG_I2C_PU : IOCFG_I2C, GPIO_AF4_I2C);
     IOConfigGPIOAF(sda, pDev->pullUp ? IOCFG_I2C_PU : IOCFG_I2C, GPIO_AF4_I2C);
-    #elif defined(STM32H7)
-        IOConfigGPIOAF(scl, pDev->pullUp ? IOCFG_I2C_PU : IOCFG_I2C, pDev->sclAF);
-        IOConfigGPIOAF(sda, pDev->pullUp ? IOCFG_I2C_PU : IOCFG_I2C, pDev->sdaAF);
-    #else
+#else
     IOConfigGPIO(scl, IOCFG_AF_OD);
     IOConfigGPIO(sda, IOCFG_AF_OD);
 #endif

@@ -1297,28 +1297,35 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 
         break;
     case MSP_FILTER_CONFIG :
-        sbufWriteU8(dst, gyroConfig()->gyro_lowpass_hz);
-        sbufWriteU16(dst, currentPidProfile->dterm_lowpass_hz);
-        sbufWriteU16(dst, currentPidProfile->yaw_lowpass_hz);
-        //added in msp 1.43
-        sbufWriteU16(dst, 0); //old dterm dyn
-        #ifndef USE_GYRO_IMUF9001
-        sbufWriteU16(dst, 0); //old gyro dyn
-        #endif
+        sbufWriteU16(dst, currentPidProfile->dFilter[ROLL].dLpf);
+        sbufWriteU16(dst, currentPidProfile->dFilter[PITCH].dLpf);
+        sbufWriteU16(dst, currentPidProfile->dFilter[YAW].dLpf);
+
         sbufWriteU16(dst, gyroConfig()->gyro_soft_notch_hz_1);
         sbufWriteU16(dst, gyroConfig()->gyro_soft_notch_cutoff_1);
-        sbufWriteU16(dst, currentPidProfile->dterm_notch_hz);
-        sbufWriteU16(dst, currentPidProfile->dterm_notch_cutoff);
         sbufWriteU16(dst, gyroConfig()->gyro_soft_notch_hz_2);
         sbufWriteU16(dst, gyroConfig()->gyro_soft_notch_cutoff_2);
         sbufWriteU8(dst, currentPidProfile->dterm_filter_type);
         sbufWriteU8(dst, gyroConfig()->gyro_hardware_lpf);
         sbufWriteU8(dst, gyroConfig()->gyro_32khz_hardware_lpf);
-        sbufWriteU16(dst, gyroConfig()->gyro_lowpass_hz);
-        sbufWriteU16(dst, gyroConfig()->gyro_lowpass2_hz);
+        sbufWriteU16(dst, gyroConfig()->gyro_lowpass_hz[ROLL]);
+        sbufWriteU16(dst, gyroConfig()->gyro_lowpass_hz[PITCH]);
+        sbufWriteU16(dst, gyroConfig()->gyro_lowpass_hz[YAW]);
+        sbufWriteU16(dst, gyroConfig()->gyro_lowpass2_hz[ROLL]);
+        sbufWriteU16(dst, gyroConfig()->gyro_lowpass2_hz[PITCH]);
+        sbufWriteU16(dst, gyroConfig()->gyro_lowpass2_hz[YAW]);
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass_type);
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass2_type);
-        sbufWriteU16(dst, currentPidProfile->dterm_lowpass2_hz);
+        sbufWriteU16(dst, currentPidProfile->dFilter[ROLL].dLpf2);
+        sbufWriteU16(dst, currentPidProfile->dFilter[PITCH].dLpf2);
+        sbufWriteU16(dst, currentPidProfile->dFilter[YAW].dLpf2);
+        sbufWriteU8(dst, currentPidProfile->dFilter[ROLL].smartSmoothing);
+        sbufWriteU8(dst, currentPidProfile->dFilter[PITCH].smartSmoothing);
+        sbufWriteU8(dst, currentPidProfile->dFilter[YAW].smartSmoothing);
+        sbufWriteU8(dst, currentPidProfile->dFilter[ROLL].Wc);
+        sbufWriteU8(dst, currentPidProfile->dFilter[PITCH].Wc);
+        sbufWriteU8(dst, currentPidProfile->dFilter[YAW].Wc);
+
         break;
 /*#ifndef USE_GYRO_IMUF9001
     case MSP_FAST_KALMAN:
@@ -1402,9 +1409,13 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         //added in msp 1.43
         sbufWriteU16(dst, currentPidProfile->errorBoostYaw);
         sbufWriteU8(dst, currentPidProfile->errorBoostLimitYaw);
+
         sbufWriteU8(dst, currentPidProfile->setPointPTransition[ROLL]);
         sbufWriteU8(dst, currentPidProfile->setPointITransition[ROLL]);
         sbufWriteU8(dst, currentPidProfile->setPointDTransition[ROLL]);
+        sbufWriteU8(dst, currentPidProfile->setPointPTransition[PITCH]);
+        sbufWriteU8(dst, currentPidProfile->setPointITransition[PITCH]);
+        sbufWriteU8(dst, currentPidProfile->setPointDTransition[PITCH]);
         sbufWriteU8(dst, currentPidProfile->setPointPTransition[YAW]);
         sbufWriteU8(dst, currentPidProfile->setPointITransition[YAW]);
         sbufWriteU8(dst, currentPidProfile->setPointDTransition[YAW]);
@@ -1907,19 +1918,13 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
 
         break;
     case MSP_SET_FILTER_CONFIG:
-        gyroConfigMutable()->gyro_lowpass_hz = sbufReadU8(src);
-        currentPidProfile->dterm_lowpass_hz = sbufReadU16(src);
-        currentPidProfile->yaw_lowpass_hz = sbufReadU16(src);
-        //added in msp 1.43
-        sbufReadU16(src); //old dyn dterm
-        #ifndef USE_GYRO_IMUF9001
-        sbufReadU16(src); //old dyn gyro
-        #endif
+        currentPidProfile->dFilter[ROLL].dLpf = sbufReadU16(src);
+        currentPidProfile->dFilter[PITCH].dLpf = sbufReadU16(src);
+        currentPidProfile->dFilter[YAW].dLpf = sbufReadU16(src);
+
         if (sbufBytesRemaining(src) >= 8) {
             gyroConfigMutable()->gyro_soft_notch_hz_1 = sbufReadU16(src);
             gyroConfigMutable()->gyro_soft_notch_cutoff_1 = sbufReadU16(src);
-            currentPidProfile->dterm_notch_hz = sbufReadU16(src);
-            currentPidProfile->dterm_notch_cutoff = sbufReadU16(src);
         }
         if (sbufBytesRemaining(src) >= 4) {
             gyroConfigMutable()->gyro_soft_notch_hz_2 = sbufReadU16(src);
@@ -1931,11 +1936,23 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         if (sbufBytesRemaining(src) >= 10) {
             gyroConfigMutable()->gyro_hardware_lpf = sbufReadU8(src);
             gyroConfigMutable()->gyro_32khz_hardware_lpf = sbufReadU8(src);
-            gyroConfigMutable()->gyro_lowpass_hz = sbufReadU16(src);
-            gyroConfigMutable()->gyro_lowpass2_hz = sbufReadU16(src);
+            gyroConfigMutable()->gyro_lowpass_hz[ROLL] = sbufReadU16(src);
+            gyroConfigMutable()->gyro_lowpass_hz[PITCH] = sbufReadU16(src);
+            gyroConfigMutable()->gyro_lowpass_hz[YAW] = sbufReadU16(src);
+            gyroConfigMutable()->gyro_lowpass2_hz[ROLL] = sbufReadU16(src);
+            gyroConfigMutable()->gyro_lowpass2_hz[PITCH] = sbufReadU16(src);
+            gyroConfigMutable()->gyro_lowpass2_hz[YAW] = sbufReadU16(src);
             gyroConfigMutable()->gyro_lowpass_type = sbufReadU8(src);
             gyroConfigMutable()->gyro_lowpass2_type = sbufReadU8(src);
-            currentPidProfile->dterm_lowpass2_hz = sbufReadU16(src);
+            currentPidProfile->dFilter[ROLL].dLpf2 = sbufReadU16(src);
+            currentPidProfile->dFilter[PITCH].dLpf2 = sbufReadU16(src);
+            currentPidProfile->dFilter[YAW].dLpf2 = sbufReadU16(src);
+            currentPidProfile->dFilter[ROLL].smartSmoothing = sbufReadU8(src);
+            currentPidProfile->dFilter[PITCH].smartSmoothing = sbufReadU8(src);
+            currentPidProfile->dFilter[YAW].smartSmoothing = sbufReadU8(src);
+            currentPidProfile->dFilter[ROLL].Wc = sbufReadU8(src);
+            currentPidProfile->dFilter[PITCH].Wc = sbufReadU8(src);
+            currentPidProfile->dFilter[YAW].Wc = sbufReadU8(src);
         }
 
         // reinitialize the gyro filters with the new values
@@ -2031,6 +2048,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             currentPidProfile->setPointPTransition[ROLL] = sbufReadU8(src);
             currentPidProfile->setPointITransition[ROLL] = sbufReadU8(src);
             currentPidProfile->setPointDTransition[ROLL] = sbufReadU8(src);
+            currentPidProfile->setPointPTransition[PITCH] = sbufReadU8(src);
+            currentPidProfile->setPointITransition[PITCH] = sbufReadU8(src);
+            currentPidProfile->setPointDTransition[PITCH] = sbufReadU8(src);
             currentPidProfile->setPointPTransition[YAW] = sbufReadU8(src);
             currentPidProfile->setPointITransition[YAW] = sbufReadU8(src);
             currentPidProfile->setPointDTransition[YAW] = sbufReadU8(src);

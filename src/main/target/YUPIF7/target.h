@@ -19,22 +19,6 @@
  */
 
 #pragma once
-
-#define USE_BEEPER
-
-// MPU interrupt
-#define USE_MAG
-#define USE_MAG_DATA_READY_SIGNAL
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-#define USE_MAG_LIS3MDL
-
-#define USE_BARO
-#define USE_BARO_MS5611
-#define USE_BARO_BMP280
-#define USE_BARO_LPS
-
-// START OLD
 #define TARGET_BOARD_IDENTIFIER "YPF7"
 
 #define USBD_PRODUCT_STRING     "YUPIF7"
@@ -42,13 +26,13 @@
 #define ENABLE_DSHOT_DMAR       true
 
 #define LED0_PIN                PB4
-#define LED_STRIP               PB1
+
+//define camera control
+#define CAMERA_CONTROL_PIN      PB7
 
 #define USE_BEEPER
 #define BEEPER_PIN              PB14
 #define BEEPER_PWM_HZ           3150
-
-#define CAMERA_CONTROL          B07
 
 // *************** Gyro & ACC **********************
 #define USE_SPI
@@ -58,27 +42,25 @@
 #define SPI1_MISO_PIN           PA6
 #define SPI1_MOSI_PIN           PA7
 
+#define ICM20689_CS_PIN         PA4
+#define ICM20689_SPI_INSTANCE   SPI1
+
 #define USE_EXTI
-#define USE_GYRO_EXTI
-#define MPU_INT_EXTI         PC4
-
+#define MPU_INT_EXTI            PC4
 #define USE_MPU_DATA_READY_SIGNAL
-
-// ICM 20689
-#define ICM20689_CS_PIN           PA4
-#define ICM20689_SPI_INSTANCE    SPI1
-
-#define USE_ACC
-#define USE_ACC_SPI_ICM20689
 
 #define USE_GYRO
 #define USE_GYRO_SPI_ICM20689
-#define GYRO_ICM20689_ALIGN            CW90_DEG
+#define GYRO_ICM20689_ALIGN     CW90_DEG
 
-// Serial ports
+#define USE_ACC
+#define USE_ACC_SPI_ICM20689
+#define ACC_ICM20689_ALIGN      CW90_DEG
+
+// *************** UART ****************************
 #define USE_VCP
 #define USE_USB_DETECT
-#define BINDPLUG_PIN          PA8
+#define USB_DETECT_PIN          PA8
 
 #define USE_UART1
 #define UART1_RX_PIN            PA10
@@ -118,26 +100,22 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define USE_I2C_PULLUP
-#define I2C_DEVICE              (I2CDEV_1)
 #define I2C1_SCL                PB8
 #define I2C1_SDA                PB9
+#define I2C_DEVICE              (I2CDEV_1)
 
-//#define BARO_I2C_INSTANCE       (I2CDEV_1)
+#define BARO_I2C_INSTANCE       (I2CDEV_1)
 #define USE_BARO
 #define USE_BARO_BMP280
 #define USE_BARO_MS5611
 
-#define I2C1_PULLUP true
-#define BARO_I2C_INSTANCE       I2C_DEVICE
-
 //*********** Magnetometer / Compass *************
-#define MAG_I2C_INSTANCE       I2C_DEVICE
+#define MAG_I2C_INSTANCE       (I2CDEV_1)
 #define USE_MAG
 #define USE_MAG_HMC5883
 #define MAG_HMC5883_ALIGN CW270_DEG_FLIP
 #define USE_MAG_QMC5883
 #define MAG_QMC5883_ALIGN CW270_DEG_FLIP
-#define USE_MAG_LIS3MDL
 
 // *************** OSD *****************************
 #define USE_MAX7456
@@ -146,9 +124,7 @@
 
 // *************** ADC *****************************
 #define USE_ADC
-#define ADC_INSTANCE         ADC1  // Default added
-#define ADC1_DMA_OPT            0  // DMA 2 Stream 0 Channel 0
-
+#define ADC1_DMA_STREAM         DMA2_Stream0
 #define RSSI_ADC_PIN                    PC0
 #define VBAT_ADC_PIN                    PC1
 #define CURRENT_METER_ADC_PIN           PC2
@@ -171,4 +147,4 @@
 #define TARGET_IO_PORTD         (BIT(2))
 
 #define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS             (TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(12))
+#define USED_TIMERS             (TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(12))

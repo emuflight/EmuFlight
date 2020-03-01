@@ -118,7 +118,7 @@ PG_RESET_TEMPLATE(pidConfig_t, pidConfig,
 
 #define ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF 15  // The anti gravity throttle highpass filter cutoff
 
-PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, PID_PROFILE_COUNT, pidProfiles, PG_PID_PROFILE, 7);
+PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, PID_PROFILE_COUNT, pidProfiles, PG_PID_PROFILE, 8);
 
 void resetPidProfile(pidProfile_t *pidProfile)
 {
@@ -133,9 +133,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         },
 
         .dFilter = {
-            [PID_ROLL] = { 3, 100, 250, 50 },
-            [PID_PITCH] = { 3, 100, 250, 50 },
-            [PID_YAW] = { 2, 100, 250, 50 },
+            [PID_ROLL] = { 2, 100, 250, 50 }, // wc, dtermlpf, dtermlpf2, smartSmoothing
+            [PID_PITCH] = { 2, 100, 250, 50 }, // wc, dtermlpf, dtermlpf2, smartSmoothing
+            [PID_YAW] = { 0, 100, 250, 0 }, // wc, dtermlpf, dtermlpf2, smartSmoothing
         },
 
         .pidSumLimit = PIDSUM_LIMIT_MAX,
@@ -759,7 +759,7 @@ static FAST_RAM_ZERO_INIT float setPointDAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
-    void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs)
+    void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs, uint8_t vbatPidCompensation)
     {
     const float deltaT = (currentTimeUs - previousTimeUs) * 1e-6f;
     previousTimeUs = currentTimeUs;
@@ -773,12 +773,15 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
     }
     DEBUG_SET(DEBUG_ANTI_GRAVITY, 0, lrintf(itermAccelerator * 1000));
 
-    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
+    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) { // calculate spa
     // SPA boost if SPA > 100 SPA cut if SPA < 100
       setPointPAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition[axis] - 1));
       setPointIAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointITransition[axis] - 1));
       setPointDAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition[axis] - 1));
     }
+
+    //vbat pid compensation on just the p term :) thanks NFE
+    const float vbatCompensationFactor = vbatPidCompensation ? calculateVbatPidCompensation() : 1.0f;
 
     // gradually scale back integration when above windup point
     const float dynCi = constrainf((1.1f - getMotorMixRange()) * ITermWindupPointInv, 0.1f, 1.0f) * itermAccelerator * deltaT;
@@ -948,7 +951,7 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
         #endif
 
                 // -----calculate P component and add Dynamic Part based on stick input
-            pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate));
+            pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate)) * vbatCompensationFactor;
             // -----calculate I component
             float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
             if (ITermNew != 0.0f)
@@ -991,11 +994,7 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
                 kdRingBufferPoint[axis] = 0;
                 }
 
-<<<<<<< Updated upstream
-                dDelta = (float)(kdRingBufferSum[axis] / (float)(pidProfile->pid[axis].Wc));
-=======
                 dDelta = (float)(kdRingBufferSum[axis] / (float)(pidProfile->dFilter[axis].Wc));
->>>>>>> Stashed changes
                 kdRingBufferSum[axis] -= kdRingBuffer[axis][kdRingBufferPoint[axis]];
               }
               float dDeltaMultiplier;

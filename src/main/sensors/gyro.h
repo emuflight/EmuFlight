@@ -126,10 +126,6 @@ typedef struct gyroConfig_s {
     uint16_t imuf_roll_q;
     uint16_t imuf_yaw_q;
     uint16_t imuf_w;
-<<<<<<< Updated upstream
-    uint8_t r_weight;
-=======
->>>>>>> Stashed changes
 
     uint8_t averagedGyro[XYZ_AXIS_COUNT];
 } gyroConfig_t;

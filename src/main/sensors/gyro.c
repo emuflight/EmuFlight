@@ -125,17 +125,9 @@ static FAST_RAM_ZERO_INIT float gyroPrevious[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t accumulatedMeasurementTimeUs;
 static FAST_RAM_ZERO_INIT timeUs_t accumulationLastTimeSampledUs;
 
-<<<<<<< Updated upstream
-#ifndef USE_GYRO_IMUF9001
 static FAST_RAM_ZERO_INIT float averagedGyroData[XYZ_AXIS_COUNT][AVERAGED_GYRO_DATA_BUFFER_SIZE];
 static FAST_RAM_ZERO_INIT float averagedGyroDataSum[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT uint8_t averagedGyroDataPointer[XYZ_AXIS_COUNT];
-#endif
-=======
-static FAST_RAM_ZERO_INIT float averagedGyroData[XYZ_AXIS_COUNT][AVERAGED_GYRO_DATA_BUFFER_SIZE];
-static FAST_RAM_ZERO_INIT float averagedGyroDataSum[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT uint8_t averagedGyroDataPointer[XYZ_AXIS_COUNT];
->>>>>>> Stashed changes
 
 float FAST_RAM_ZERO_INIT vGyroStdDevModulus;
 
@@ -264,11 +256,11 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .imuf_pitch_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
     .imuf_yaw_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
    	.imuf_acc_lpf_cutoff_hz = IMUF_DEFAULT_ACC_LPF_HZ,
-    .imuf_sharpness = 35,
+    .imuf_sharpness = 1000,
     .gyro_offset_yaw = 0,
-    .averagedGyro[ROLL] = 3,
-    .averagedGyro[PITCH] = 3,
-    .averagedGyro[YAW] = 3,
+    .averagedGyro[ROLL] = 0,
+    .averagedGyro[PITCH] = 0,
+    .averagedGyro[YAW] = 0,
 );
 #else //USE_GYRO_IMUF9001
 PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
@@ -303,9 +295,9 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .yaw_spin_threshold = 1950,
     .dyn_notch_quality = 70,
     .dyn_notch_width_percent = 50,
-    .averagedGyro[ROLL] = 3,
-    .averagedGyro[PITCH] = 3,
-    .averagedGyro[YAW] = 3,
+    .averagedGyro[ROLL] = 0,
+    .averagedGyro[PITCH] = 0,
+    .averagedGyro[YAW] = 0,
 );
 #endif //USE_GYRO_IMUF9001
 
