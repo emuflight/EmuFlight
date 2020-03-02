@@ -144,7 +144,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
         .dterm_filter_type = FILTER_PT1,
         .itermWindupPointPercent = 50,
-        .vbatPidCompensation = 0,
         .pidAtMinThrottle = PID_STABILISATION_ON,
         .levelAngleLimit = 45,
         .angleExpo = 10,
