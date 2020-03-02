@@ -834,6 +834,10 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
       scaledAxisPidYaw = -scaledAxisPidYaw;
   }
 
+    float vbatCompensation = calculateVbatCompensation(currentControlRateProfile->vbat_comp_type, currentControlRateProfile->vbat_comp_ref);
+
+    throttle *= scaleRangef(currentControlRateProfile->vbat_comp_throttle_level, 0.0f, 100.0f, 1.0f, vbatCompensation);
+
     // Apply the throttle_limit_percent to scale or limit the throttle based on throttle_limit_type
     if (currentControlRateProfile->throttle_limit_type != THROTTLE_LIMIT_TYPE_OFF) {
         throttle = applyThrottleLimit(throttle);
