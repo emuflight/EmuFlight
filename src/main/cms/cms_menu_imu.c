@@ -287,10 +287,8 @@ static uint8_t  cmsx_setPointPTransition[3];
 static uint8_t  cmsx_setPointITransition[3];
 static uint8_t  cmsx_setPointDTransition[3];
 static uint8_t  cmsx_P_angle_low;
-static uint8_t  cmsx_I_angle_low;
 static uint8_t  cmsx_D_angle_low;
 static uint8_t  cmsx_P_angle_high;
-static uint8_t  cmsx_I_angle_high;
 static uint8_t  cmsx_D_angle_high;
 static uint16_t cmsx_F_angle;
 static uint8_t  cmsx_horizonTransition;
@@ -320,10 +318,8 @@ static long cmsx_profileOtherOnEnter(void)
     cmsx_setPointDTransition[YAW]  =     pidProfile->setPointDTransition[YAW];
 
     cmsx_P_angle_low =       pidProfile->pid[PID_LEVEL_LOW].P;
-    cmsx_I_angle_low =       pidProfile->pid[PID_LEVEL_LOW].I;
     cmsx_D_angle_low =       pidProfile->pid[PID_LEVEL_LOW].D;
     cmsx_P_angle_high =      pidProfile->pid[PID_LEVEL_HIGH].P;
-    cmsx_I_angle_high =      pidProfile->pid[PID_LEVEL_HIGH].I;
     cmsx_D_angle_high =      pidProfile->pid[PID_LEVEL_HIGH].D;
     cmsx_F_angle =       pidProfile->pid[PID_LEVEL_LOW].F;
     cmsx_horizonTransition = pidProfile->horizonTransition;
@@ -359,10 +355,8 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
     pidInitConfig(currentPidProfile);
 
     pidProfile->pid[PID_LEVEL_LOW].P = cmsx_P_angle_low;
-    pidProfile->pid[PID_LEVEL_LOW].I = cmsx_I_angle_low;
     pidProfile->pid[PID_LEVEL_LOW].D = cmsx_D_angle_low;
     pidProfile->pid[PID_LEVEL_HIGH].P = cmsx_P_angle_high;
-    pidProfile->pid[PID_LEVEL_HIGH].I = cmsx_I_angle_high;
     pidProfile->pid[PID_LEVEL_HIGH].D = cmsx_D_angle_high;
     pidProfile->pid[PID_LEVEL_LOW].F = cmsx_F_angle;
     pidProfile->horizonTransition = cmsx_horizonTransition;
@@ -395,10 +389,8 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "SPA YAW I",       OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition[YAW],  0,    250,   1, 10 }, 0 },
     { "SPA YAW D",       OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransition[YAW],  0,    250,   1, 10 }, 0 },
     { "ANGLE P LOW",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_P_angle_low,               0,    200,   1  }   , 0 },
-    { "ANGLE I LOW",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_I_angle_low,               0,    200,   1  }   , 0 },
     { "ANGLE D LOW",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_D_angle_low,               0,    200,   1  }   , 0 },
     { "ANGLE P HIGH",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_P_angle_high,              0,    200,   1  }   , 0 },
-    { "ANGLE I HIGH",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_I_angle_high,              0,    200,   1  }   , 0 },
     { "ANGLE D HIGH",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_D_angle_high,              0,    200,   1  }   , 0 },
     { "ANGLE F",         OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_F_angle,                   0,    2000,  1  }   , 0 },
     { "HORZN TRS",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonTransition,         0,    200,   1  }   , 0 },
