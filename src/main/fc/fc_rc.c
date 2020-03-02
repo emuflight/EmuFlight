@@ -194,6 +194,11 @@ static void calculateSetpointRate(int axis)
 #endif
     {
         // scale rcCommandf to range [-1.0, 1.0]
+
+        //
+        // TODO modify rcCommand in order to make for a smoother/snappier flight feel
+        //
+
         float rcCommandf = rcCommand[axis] / 500.0f;
         rcDeflection[axis] = rcCommandf;
         const float rcCommandfAbs = ABS(rcCommandf);
