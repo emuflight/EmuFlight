@@ -93,8 +93,11 @@ void setDefaultTestSettings(void) {
 
     pidProfile->pidSumLimit = PIDSUM_LIMIT;
     pidProfile->pidSumLimitYaw = PIDSUM_LIMIT_YAW;
-    pidProfile->dFilter[ROLL].dLpf = 100;
-    pidProfile->dFilter[ROLL].dLpf2 = 0;
+    pidProfile->yaw_lowpass_hz = 0;
+    pidProfile->dterm_lowpass_hz = 100;
+    pidProfile->dterm_lowpass2_hz = 0;
+    pidProfile->dterm_notch_hz = 260;
+    pidProfile->dterm_notch_cutoff = 160;
     pidProfile->dterm_filter_type = FILTER_BIQUAD;
     pidProfile->itermWindupPointPercent = 50;
     pidProfile->vbatPidCompensation = 0;

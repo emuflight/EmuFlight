@@ -33,7 +33,7 @@
 #define PIDSUM_LIMIT_YAW            400
 #define PIDSUM_LIMIT_MIN            100
 #define PIDSUM_LIMIT_MAX            1000
-#define KD_RING_BUFFER_SIZE 10
+#define KD_RING_BUFFER_SIZE 256
 
 // Scaling factors for Pids for better tunable range in configurator for betaflight pid controller. The scaling is based on legacy pid controller or previous float
 #define PTERM_SCALE 0.032029f
@@ -76,15 +76,9 @@ typedef struct pidf_s {
     uint8_t I;
     uint8_t D;
     uint16_t F;
+    uint8_t Wc; //adding witchCraft so it can be set per axis :) might put future dterm filters in here to set them per axis :) go emu!
 
 } pidf_t;
-
-typedef struct dFilter_s {
-    uint8_t Wc;
-    uint16_t dLpf;
-    uint16_t dLpf2;
-    uint8_t smartSmoothing;
-} dFilter_t;
 
 typedef enum {
     ANTI_GRAVITY_SMOOTH,
@@ -105,8 +99,12 @@ typedef enum {
 } itermRelaxType_e;
 
 typedef struct pidProfile_s {
+    uint16_t yaw_lowpass_hz;                // Additional yaw filter when yaw axis too noisy
+    uint16_t dterm_lowpass_hz;              // Delta Filter in hz
+    uint16_t dterm_notch_hz;                // Biquad dterm notch hz
+    uint16_t dterm_notch_cutoff;            // Biquad dterm notch low cutoff
+
     pidf_t  pid[PID_ITEM_COUNT];
-    dFilter_t dFilter[3];
 
     uint8_t dterm_filter_type;              // Filter selection for dterm
     uint8_t itermWindupPointPercent;        // Experimental ITerm windup threshold, percent motor saturation
@@ -118,6 +116,7 @@ typedef struct pidProfile_s {
 
     uint8_t horizonTransition;              // horizonTransition
     uint8_t horizon_tilt_effect;            // inclination factor for Horizon mode
+    uint8_t horizon_tilt_expert_mode;       // OFF or ON
 
     // EmuFlight PID controller parameters
     uint8_t  antiGravityMode;               // type of anti gravity method
@@ -125,12 +124,12 @@ typedef struct pidProfile_s {
     uint16_t itermAcceleratorGain;          // Iterm Accelerator Gain when itermThrottlethreshold is hit
     uint8_t feathered_pids;                 // determine how feathered your pids are
     uint8_t i_decay;						            // i-term decay (increases how quickly iterm shrinks in value)
+    uint8_t r_weight;					            	// the weight of the kalman R term calculated out of the std. dev.
     uint16_t errorBoost;                    // the weight of the setpoint boost
     uint16_t errorBoostYaw;                 // the weight of the setpoint boost for yaw
     uint8_t errorBoostLimit;                // percentage of the error that the emu boost can boost
     uint8_t errorBoostLimitYaw;             // percentage of the error that the emu boost can boost for yaw
     uint8_t nfe_racermode;                  // turn on or off NFE RACERMODE
-    uint8_t cinematic_setpoint;             // turn on or off cinematic_setpoint
     uint16_t yawRateAccelLimit;             // yaw accel limiter for deg/sec/ms
     uint16_t rateAccelLimit;                // accel limiter roll/pitch deg/sec/ms
     uint16_t crash_dthreshold;              // dterm crash value
@@ -142,11 +141,16 @@ typedef struct pidProfile_s {
     uint8_t crash_recovery_rate;            // degree/second
     uint8_t vbatPidCompensation;            // Scale PIDsum to battery voltage
     uint8_t feedForwardTransition;          // Feed forward weight transition
-    uint8_t setPointPTransition[3];         // SPA p transition
-    uint8_t setPointITransition[3];         // SPA i transition
-    uint8_t setPointDTransition[3];         // SPA d transition
+    uint8_t setPointPTransition;            // SPA p transition
+    uint8_t setPointITransition;            // SPA i transition
+    uint8_t setPointDTransition;            // SPA d transition
+    uint8_t setPointPTransitionYaw;         // SPA p transition for yaw
+    uint8_t setPointITransitionYaw;         // SPA i transition for yaw
+    uint8_t setPointDTransitionYaw;         // SPA d transition for yaw
     uint16_t crash_limit_yaw;               // limits yaw errorRate, so crashes don't cause huge throttle increase
-    uint16_t itermLimit;                    // Maximum value that the iterm can accumulate to
+    uint16_t itermLimit;
+    uint16_t dterm_lowpass2_hz;             // Extra PT1 Filter on D in hz
+    uint8_t smart_dterm_smoothing;          // value that your dterm must go past to act normal
     uint8_t crash_recovery;                 // off, on, on and beeps when it is in crash recovery mode
     uint8_t throttle_boost;                 // how much should throttle be boosted during transient changes 0-100, 100 adds 10x hpf filtered throttle
     uint8_t throttle_boost_cutoff;          // Which cutoff frequency to use for throttle boost. higher cutoffs keep the boost on for shorter. Specified in hz.
@@ -181,7 +185,7 @@ typedef struct pidConfig_s {
 PG_DECLARE(pidConfig_t, pidConfig);
 
 union rollAndPitchTrims_u;
-void pidController(const pidProfile_t *pidProfile, const union rollAndPitchTrims_u *angleTrim, timeUs_t currentTimeUs, uint8_t vbatPidCompensation);
+void pidController(const pidProfile_t *pidProfile, const union rollAndPitchTrims_u *angleTrim, timeUs_t currentTimeUs);
 
 typedef struct pidAxisData_s {
     float P;
@@ -209,6 +213,8 @@ void pidInitConfig(const pidProfile_t *pidProfile);
 void pidInit(const pidProfile_t *pidProfile);
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex);
 bool crashRecoveryModeActive(void);
+void pidAcroTrainerInit(void);
+void pidSetAcroTrainerState(bool newState);
 void pidInitSetpointDerivativeLpf(uint16_t filterCutoff, uint8_t debugAxis, uint8_t filterType);
 void pidUpdateSetpointDerivativeLpf(uint16_t filterCutoff);
 void pidUpdateAntiGravityThrottleFilter(float throttle);

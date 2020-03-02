@@ -81,8 +81,8 @@
 // Not available: #define SYM_CELLF      0xC3
 
 // Map mode
-#define SYM_HOME       0x04
-#define SYM_AIRCRAFT   0x05
+#define SYM_HOME       0x05
+#define SYM_AIRCRAFT   0x40 //old school dungeon crawler @self
 #define SYM_RANGE_100  0x21
 #define SYM_RANGE_500  0x22
 #define SYM_RANGE_2500 0x23
@@ -90,16 +90,19 @@
 #define SYM_DIRECTION  0x72
 
 // GPS Coordinates and Altitude
-// Not available: #define SYM_LAT 0xCA
-// Not available: #define SYM_LON 0xCB
-// Not available: #define SYM_ALT 0xCC
+#define SYM_LAT    0x89
+#define SYM_LON    0x98
+#define SYM_ALT    0x7F
+#define SYM_HOMEFLAG   0x11
+//#define SYM_TOTAL_DIST 0x71
+#define SYM_SPEED      0x70
 
 // GPS Mode and Autopilot
 // Not available: #define SYM_3DFIX     0xDF
 // Not available: #define SYM_HOLD      0xEF
 // Not available: #define SYM_G_HOME    0xFF
-#define SYM_GHOME     0x9D
-#define SYM_GHOME1    0x9E
+//#define SYM_GHOME     0x9D
+//#define SYM_GHOME1    0x9E
 // Not available: #define SYM_GHOLD     0xCD
 // Not available: #define SYM_GHOLD1    0xCE
 // Not available: #define SYM_GMISSION  0xB5
@@ -127,20 +130,20 @@
 // Not available: #define SYM_MAG11   0xB6
 
 // AH Center screen Graphics
-#define SYM_AH_CENTER_LINE        0x26
-#define SYM_AH_CENTER_LINE_RIGHT  0x27
-#define SYM_AH_CENTER             0x7E
-#define SYM_AH_RIGHT              0x02
-#define SYM_AH_LEFT               0x03
-#define SYM_AH_DECORATION_UP      0xC9
-#define SYM_AH_DECORATION_DOWN    0xCF
+#define SYM_AH_CENTER_LINE          0x72
+#define SYM_AH_CENTER               0x73
+#define SYM_AH_CENTER_LINE_RIGHT    0x74
+#define SYM_AH_RIGHT                0x02
+#define SYM_AH_LEFT                 0x03
+#define SYM_AH_DECORATION           0x13
 
 // AH Bars
 #define SYM_AH_BAR9_0 0x80
 
 // Temperature
-#define SYM_TEMP_F 0x0D
-#define SYM_TEMP_C 0x0E
+#define SYM_TEMP_F      0x0D
+#define SYM_TEMP_C      0x0E
+#define SYM_TEMPERATURE 0x7A
 
 // Batt evolution
 #define SYM_BATT_FULL   0x90
@@ -163,17 +166,19 @@
 
 // Unit Icon´s (Metric)
 #define SYM_MS          0x9F
-// Not available: #define SYM_KMH         0xA5
+#define SYM_KMH         0x9E
 // Not available: #define SYM_ALTM        0xA7
 // Not available: #define SYM_DISTHOME_M  0xBB
 #define SYM_M           0x0C
+#define SYM_KM          0x7D
 
 // Unit Icon´s (Imperial)
 #define SYM_FTS         0x99
-// Not available: #define SYM_MPH         0xA6
+#define SYM_MPH         0x9D
 // Not available: #define SYM_ALTFT       0xA8
 // Not available: #define SYM_DISTHOME_FT 0xB9
 #define SYM_FT          0x0F
+#define SYM_MILES       0x7E
 
 // Voltage and amperage
 #define SYM_VOLT  0x06
@@ -183,7 +188,7 @@
 
 // Flying Mode
 // Not available: #define SYM_ACRO      0xAE
-#define SYM_ACROGY    0x98
+//#define SYM_ACROGY    0x98
 // Not available: #define SYM_ACRO1     0xAF
 // Not available: #define SYM_STABLE    0xAC
 // Not available: #define SYM_STABLE1   0xAD
@@ -193,34 +198,39 @@
 // Not available: #define SYM_PASS1     0xAB
 // Not available: #define SYM_AIR       0xEA
 // Not available: #define SYM_AIR1      0xEB
-#define SYM_PLUS      0x89
+#define SYM_PLUS      0x2B
 
 // Note, these change with scrolling enabled (scrolling is TODO)
 //#define SYM_AH_DECORATION_LEFT 0x13
 //#define SYM_AH_DECORATION_RIGHT 0x13
-#define SYM_AH_DECORATION 0x13
+//#define SYM_AH_DECORATION 0x13
 
 // Time
 #define SYM_ON_M  0x9B
 #define SYM_FLY_M 0x9C
-#define SYM_ON_H  0x70
-#define SYM_FLY_H 0x71
+//#define SYM_ON_H  0x70
+//#define SYM_FLY_H 0x71
 // Not available: #define SYM_CLOCK 0xBC
 
 // Throttle Position (%)
 #define SYM_THR   0x04
-#define SYM_THR1  0x05
+#define SYM_THR1  0x04
 
 // RSSI
 #define SYM_RSSI 0x01
+#define LINK_QUALITY 0x7B
 
-// Menu cursor
+// Menu cursor //0x03
 #define SYM_CURSOR SYM_AH_LEFT
 
 //Misc
-#define SYM_COLON 0x2D
+#define SYM_COLON 0x3A
+#define SYM_EXCL  0x21
+#define SYM_QUES  0x3F
 // Not available: #define SYM_ZERO_HALF_TRAILING_DOT 0xC0
 // Not available: #define SYM_ZERO_HALF_LEADING_DOT 0xD0
+#define SYM_ROLL  0x14
+#define SYM_PITCH 0x15
 
 //sport
 // Not available: #define SYM_MIN 0xB3
