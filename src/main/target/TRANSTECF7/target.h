@@ -30,9 +30,11 @@
 
 //Aux
 #define LED0_PIN                        PA14
+
 #define USE_PINIO
 #define PINIO1_PIN                      PB12        //VTX Power Switch
 #define USE_PINIOBOX
+
 #define USE_BEEPER
 // XXX CAMERA_CONTROL_PIN is deprecated.
 // XXX Target maintainer must create a valid timerHardware[] array entry for PB8 with TIM_USE_CAMERA_CONTROL
@@ -50,7 +52,7 @@
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
-#define GYRO_MPU6000_ALIGN                    CW180_DEG_FLIP
+#define GYRO_MPU6000_ALIGN              CW180_DEG_FLIP
 #define MPU6000_CS_PIN                  PC2
 #define MPU6000_SPI_INSTANCE            SPI1
 
