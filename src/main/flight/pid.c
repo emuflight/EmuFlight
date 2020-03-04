@@ -142,7 +142,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
         .dterm_filter_type = FILTER_PT1,
         .itermWindupPointPercent = 50,
-        .vbatPidCompensation = 0,
+        .vbatPidCompensation = false,
         .pidAtMinThrottle = PID_STABILISATION_ON,
         .levelAngleLimit = 45,
         .angleExpo = 10,
@@ -175,8 +175,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .crash_setpoint_threshold = 350, // degrees/second
         .crash_recovery = PID_CRASH_RECOVERY_OFF, // off by default
         .horizon_tilt_effect = 130,
-        .nfe_racermode = 0,
-        .cinematic_setpoint = 0,
+        .nfe_racermode = false,
+        .cinematic_setpoint = false,
         .crash_limit_yaw = 200,
         .itermLimit = 400,
         .throttle_boost = 5,
