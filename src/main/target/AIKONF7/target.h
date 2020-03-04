@@ -19,21 +19,24 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER "CLR7"
-#define USBD_PRODUCT_STRING "CLRACINGF7"
+#define TARGET_BOARD_IDENTIFIER "AIKO"
+#define USBD_PRODUCT_STRING "AIKONF7"
 
 #define ENABLE_DSHOT_DMAR       true
 
-#define LED0_PIN                PB0
+#define LED0_PIN                  PB0
 #define USE_BEEPER
-#define BEEPER_PIN                  PB4
+#define BEEPER_PIN                PC15
 #define BEEPER_INVERTED
+#define USE_PINIO
+#define PINIO1_PIN                PC14
+#define USE_PINIOBOX
 
 //define camera control
-#define CAMERA_CONTROL_PIN PB3
+#define CAMERA_CONTROL_PIN        PB14
 
 #define USE_EXTI
-#define MPU_INT_EXTI            PC4
+#define MPU_INT_EXTI              PC4
 #define USE_MPU_DATA_READY_SIGNAL
 //MPU-6000
 #define USE_ACC
@@ -63,15 +66,15 @@
 #define MAG_I2C_INSTANCE         (I2CDEV_2)
 
 #define USE_MAX7456
-#define MAX7456_SPI_INSTANCE    SPI3
-#define MAX7456_SPI_CS_PIN      PA15
+#define MAX7456_SPI_INSTANCE    SPI2
+#define MAX7456_SPI_CS_PIN      PB12
 #define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
 #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
-#define FLASH_CS_PIN            PB12
+#define FLASH_CS_PIN            PB0
 #define FLASH_SPI_INSTANCE      SPI2
 
 #define USE_VCP
@@ -85,8 +88,8 @@
 #define UART2_TX_PIN            PA2
 
 #define USE_UART3
-#define UART3_RX_PIN            PB11
-#define UART3_TX_PIN            PB10
+#define UART3_RX_PIN            PC11
+#define UART3_TX_PIN            PC10
 
 #define USE_UART4
 #define UART4_RX_PIN            PA1
@@ -107,8 +110,14 @@
 #define ESCSERIAL_TIMER_TX_PIN  PB8 // (Hardware=0, PPM)
 
 #define USE_I2C
-#define USE_I2C_DEVICE_2       // External I2C
-#define I2C_DEVICE               (I2CDEV_2)
+#define I2C_DEVICE_2               (I2CDEV_2)
+#define USE_I2C_DEVICE_2
+#define I2C2_SCL                PB0
+#define I2C2_SDA                PB11
+
+#define USE_BARO
+#define BMP280_SPI_INSTANCE     SPI3
+#define BMP280_CS_PIN           PB2
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -122,19 +131,19 @@
 
 #define SPI2_NSS_PIN             PB12
 #define SPI2_SCK_PIN             PB13
-#define SPI2_MISO_PIN            PB14
+#define SPI2_MISO_PIN            PC2
 #define SPI2_MOSI_PIN            PB15
 
 #define SPI3_NSS_PIN             PA15
-#define SPI3_SCK_PIN             PC10
-#define SPI3_MISO_PIN            PC11
+#define SPI3_SCK_PIN             PB3
+#define SPI3_MISO_PIN            PB4
 #define SPI3_MOSI_PIN            PB5
 
 #define USE_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN   PC1
-#define VBAT_ADC_PIN            PC2
+#define VBAT_ADC_PIN            PC0
 #define RSSI_ADC_PIN            PC3
 #define CURRENT_METER_SCALE_DEFAULT 250                     // 3.3/120A  = 25mv/A
 
@@ -147,5 +156,5 @@
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT                      9                       //updated timer count to compensate for Nf Motor 4
-#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5)  | TIM_N(8)   ) 
+#define USABLE_TIMER_CHANNEL_COUNT      9
+#define USED_TIMERS ( TIM_N(2) | TIM_N(4) | TIM_N(8) | TIM_N(9) | TIM_N(12)   ) //update based on update CLRACINGF7 Target BF4.1+
