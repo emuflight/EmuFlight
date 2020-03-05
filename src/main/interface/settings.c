@@ -515,6 +515,7 @@ const clivalue_t valueTable[] = {
     { "imuf_pitch_q",               VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_pitch_q) },
     { "imuf_yaw_q",                 VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_yaw_q) },
     { "imuf_w",                     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 3, 512   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_w) },
+    { "imuf_sharpness",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 5000  }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_sharpness) },
 #endif
     { "gyro_average_roll",          VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 10    }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, averagedGyro[ROLL]) },
     { "gyro_average_pitch",         VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 10    }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, averagedGyro[PITCH]) },

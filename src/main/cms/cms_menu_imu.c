@@ -438,6 +438,7 @@ static uint16_t gyroConfig_imuf_roll_q;
 static uint16_t gyroConfig_imuf_pitch_q;
 static uint16_t gyroConfig_imuf_yaw_q;
 static uint16_t gyroConfig_imuf_w;
+static uint16_t gyroConfig_imuf_sharpness;
 #endif
 
 static long cmsx_menuGyro_onEnter(void)
@@ -461,6 +462,7 @@ static long cmsx_menuGyro_onEnter(void)
     gyroConfig_imuf_pitch_q = gyroConfig()->imuf_pitch_q;
     gyroConfig_imuf_yaw_q = gyroConfig()->imuf_yaw_q;
     gyroConfig_imuf_w = gyroConfig()->imuf_w;
+    gyroConfig_imuf_sharpness = gyroConfig()->imuf_sharpness;
 #endif
     return 0;
 }
@@ -488,6 +490,7 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self)
     gyroConfigMutable()->imuf_pitch_q = gyroConfig_imuf_pitch_q;
     gyroConfigMutable()->imuf_yaw_q = gyroConfig_imuf_yaw_q;
     gyroConfigMutable()->imuf_w = gyroConfig_imuf_w;
+    gyroConfigMutable()->imuf_sharpness = gyroConfig_imuf_sharpness;
 #endif
     return 0;
 }
@@ -516,6 +519,7 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "ROLL Q",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,              0, 16000, 100 }, 0 },
     { "PITCH Q",        OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,             0, 16000, 100 }, 0 },
     { "YAW Q",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,               0, 16000, 100 }, 0 },
+    { "IMUF SHARPNESS", OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness,           1, 5000,    5 }, 0 },
     #endif
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
