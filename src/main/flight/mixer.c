@@ -47,6 +47,7 @@
 #include "drivers/io.h"
 
 #include "io/motors.h"
+#include "io/gps.h"
 
 #include "fc/config.h"
 #include "fc/controlrate_profile.h"
@@ -62,9 +63,11 @@
 #include "flight/mixer.h"
 #include "flight/mixer_tricopter.h"
 #include "flight/pid.h"
+#include "flight/position.h"
 
 #include "rx/rx.h"
 
+#include "sensors/barometer.h"
 #include "sensors/battery.h"
 #include "sensors/gyro.h"
 
@@ -77,6 +80,8 @@ PG_RESET_TEMPLATE(mixerConfig_t, mixerConfig,
     .mixerMode = TARGET_DEFAULT_MIXER,
     .yaw_motors_reversed = false,
     .crashflip_motor_percent = 0,
+    .alti_cutoff = 50,
+    .alti_start_lim = 40,
 );
 
 PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 1);
@@ -129,6 +134,8 @@ float motor_disarmed[MAX_SUPPORTED_MOTORS];
 
 mixerMode_e currentMixerMode;
 static motorMixer_t currentMixer[MAX_SUPPORTED_MOTORS];
+
+static uint8_t altiLimStatus = 0;
 
 static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
 
@@ -849,6 +856,23 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
 #endif
 
     loggingThrottle = throttle;
+
+    if ( (gpsIsHealthy() && gpsSol.numSat > 7) || isBaroReady()) {
+            if (getEstimatedAltitude() > (mixerConfig()->alti_cutoff*100)){
+                throttle = 0.0f;
+                altiLimStatus = 1;
+            } else if(getEstimatedAltitude() > (mixerConfig()->alti_start_lim*100)){
+                float limitingRatio = 0.4f * ((mixerConfig()->alti_cutoff*100) - getEstimatedAltitude()) / ((mixerConfig()->alti_cutoff*100) - (mixerConfig()->alti_start_lim*100));
+                limitingRatio = constrainf(limitingRatio, 0.0f, 1.0f);
+                throttle = constrainf(limitingRatio, 0.0f, throttle);
+                altiLimStatus = 1;
+            } else {
+                altiLimStatus = 0;
+            }
+        } else {
+            altiLimStatus = 2;
+        }
+
     motorMixRange = motorMixMax - motorMixMin;
     if (motorMixRange > 1.0f && (hardwareMotorType != MOTOR_BRUSHED)) {
         for (int i = 0; i < motorCount; i++) {
@@ -935,4 +959,9 @@ void mixerSetThrottleAngleCorrection(int correctionValue)
 float mixerGetLoggingThrottle(void)
 {
     return loggingThrottle;
+}
+
+uint8_t getThrottleLimitationStatus(void)
+{
+    return altiLimStatus;
 }

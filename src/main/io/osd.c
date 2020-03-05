@@ -69,9 +69,9 @@
 
 #include "flight/position.h"
 #include "flight/imu.h"
-#ifdef USE_ESC_SENSOR
+//#ifdef USE_ESC_SENSOR
 #include "flight/mixer.h"
-#endif
+//#endif
 #include "flight/pid.h"
 
 #include "io/asyncfatfs/asyncfatfs.h"
@@ -764,6 +764,19 @@ static bool osdDrawSingleElement(uint8_t item)
             STATIC_ASSERT(OSD_FORMAT_MESSAGE_BUFFER_SIZE <= sizeof(buff), osd_warnings_size_exceeds_buffer_size);
 
             const batteryState_e batteryState = getBatteryState();
+
+            // Show warning if no altitude limitation applicable
+            if (getThrottleLimitationStatus() == 2) {
+                tfp_sprintf(buff,"NO ALTI LIM");
+                SET_BLINK(OSD_WARNINGS);
+            } else if(getThrottleLimitationStatus() == 1) {
+                tfp_sprintf(buff, "ALTI LIM");
+                SET_BLINK(OSD_WARNINGS);
+
+            } else {
+              CLR_BLINK(OSD_WARNINGS);
+            }
+
 
 #ifdef USE_DSHOT
             if (isTryingToArm() && !ARMING_FLAG(ARMED)) {
