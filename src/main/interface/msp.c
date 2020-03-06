@@ -978,6 +978,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentControlRateProfile->vbat_comp_ref);
         sbufWriteU8(dst, currentControlRateProfile->vbat_comp_throttle_level);
         sbufWriteU8(dst, currentControlRateProfile->vbat_comp_pid_level);
+        sbufWriteU8(dst, currentControlRateProfile->vbat_comp_motor_output);
 
         break;
 
@@ -1766,11 +1767,12 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
                 currentControlRateProfile->throttle_limit_type = sbufReadU8(src);
                 currentControlRateProfile->throttle_limit_percent = sbufReadU8(src);
             }
-            if (sbufBytesRemaining(src) >= 4) {
+            if (sbufBytesRemaining(src) >= 5) {
                 currentControlRateProfile->vbat_comp_type = sbufReadU8(src);
                 currentControlRateProfile->vbat_comp_ref = sbufReadU8(src);
                 currentControlRateProfile->vbat_comp_throttle_level = sbufReadU8(src);
                 currentControlRateProfile->vbat_comp_pid_level = sbufReadU8(src);
+                currentControlRateProfile->vbat_comp_motor_output = sbufReadU8(src);
             }
             initRcProcessing();
         } else {

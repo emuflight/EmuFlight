@@ -763,11 +763,11 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
       setPointDAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition[axis] - 1));
     }
 
-    //vbat pid compensation on just the p term :) thanks NFE
-    float vbatCompensationFactor = calculateVbatCompensation(currentControlRateProfile->vbat_comp_type, currentControlRateProfile->vbat_comp_ref);
-
-    vbatCompensationFactor = scaleRangef(currentControlRateProfile->vbat_comp_pid_level, 0.0f, 100.0f, 1.0f, vbatCompensationFactor);
-
+    float vbatPIDCompensationFactor = 1.0f;
+        if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF && !currentControlRateProfile->vbat_comp_motor_output) {
+        vbatPIDCompensationFactor = applyVbatCompensation(1.0f, currentControlRateProfile->vbat_comp_pid_level);
+    }
+    
     // gradually scale back integration when above windup point
     const float dynCi = constrainf((1.1f - getMotorMixRange()) * ITermWindupPointInv, 0.1f, 1.0f) * itermAccelerator * deltaT;
     float errorRate;
@@ -935,8 +935,9 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
             }
         #endif
 
-                // -----calculate P component and add Dynamic Part based on stick input
-            pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate)) * vbatCompensationFactor;
+        // -----calculate P component and add Dynamic Part based on stick input
+        //vbat pid compensation on just the p term :) thanks NFE
+        pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate)) * vbatPIDCompensationFactor;
             // -----calculate I component
             float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
             if (ITermNew != 0.0f)
