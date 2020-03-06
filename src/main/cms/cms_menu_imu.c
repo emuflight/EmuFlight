@@ -80,6 +80,10 @@ static const char * const cms_offOnLabels[] = {
     "OFF", "ON"
 };
 
+static const char * const cms_throttleVbatCompTypeLabels[] = {
+    "OFF", "BOOST", "LIMIT", "BOTH"
+};
+
 static long cmsx_menuImu_onEnter(void)
 {
     pidProfileIndex = getCurrentPidProfileIndex();
@@ -266,6 +270,11 @@ static OSD_Entry cmsx_menuRateProfileEntries[] =
     { "TPA RATE I",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrI,              0,  250,  1, 10}, 0 },
     { "TPA RATE D",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrD,              0,  250,  1, 10}, 0 },
     { "TPA BREAKPOINT",   OME_UINT16, NULL, &(OSD_UINT16_t){ &rateProfile.tpa_breakpoint,  1000, 2000, 10}, 0 },
+
+    { "VBAT COMP TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)    { &rateProfile.vbat_comp_type, VBAT_COMP_TYPE_COUNT - 1, cms_throttleVbatCompTypeLabels}, 0 },
+    { "VBAT COMP REF",   OME_UINT8, NULL, &(OSD_UINT8_t)  { &rateProfile.vbat_comp_ref, VBAT_CELL_VOTAGE_RANGE_MIN, VBAT_CELL_VOTAGE_RANGE_MAX,  1}, 0 },
+    { "VBAT COMP THR %", OME_UINT8, NULL, &(OSD_UINT8_t)  { &rateProfile.vbat_comp_throttle_level, 0,  100,  1}, 0 },
+    { "VBAT COMP PID %", OME_UINT8, NULL, &(OSD_UINT8_t)  { &rateProfile.vbat_comp_pid_level, 0,  100,  1}, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },

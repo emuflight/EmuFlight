@@ -37,6 +37,7 @@
 
 #include "fc/runtime_config.h"
 #include "fc/config.h"
+#include "fc/controlrate_profile.h"
 #include "fc/rc_controls.h"
 
 #include "io/beeper.h"
@@ -457,13 +458,25 @@ void batteryUpdateCurrentMeter(timeUs_t currentTimeUs)
     }
 }
 
-float calculateVbatPidCompensation(void) {
-    float batteryScaler =  1.0f;
-    if (batteryConfig()->voltageMeterSource != VOLTAGE_METER_NONE && batteryCellCount > 0) {
-        // Up to 33% PID gain. Should be fine for 4,2to 3,3 difference
-        batteryScaler =  constrainf((( (float)batteryConfig()->vbatmaxcellvoltage * batteryCellCount ) / (float) voltageMeter.filtered), 1.0f, 1.33f);
+float calculateVbatCompensation(uint8_t vbatCompType, uint8_t vbatCompRef)
+{
+    float factor =  1.0f;
+    if (vbatCompType != VBAT_COMP_TYPE_OFF && batteryConfig()->voltageMeterSource != VOLTAGE_METER_NONE && batteryCellCount > 0) {
+        float vbat = (float) voltageMeter.filtered / batteryCellCount;
+        if (vbat) {
+            factor = vbatCompRef / vbat;
+            factor *= factor;
+            switch (vbatCompType) {
+                case VBAT_COMP_TYPE_BOOST:
+                    factor = MAX(factor, 1.0f);
+                    break;
+                case VBAT_COMP_TYPE_LIMIT:
+                    factor = MIN(factor, 1.0f);
+                    break;
+            };
+        }
     }
-    return batteryScaler;
+    return factor;
 }
 
 uint8_t calculateBatteryPercentageRemaining(void)
