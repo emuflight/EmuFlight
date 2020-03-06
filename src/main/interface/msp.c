@@ -1330,6 +1330,10 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentPidProfile->dFilter[ROLL].Wc);
         sbufWriteU8(dst, currentPidProfile->dFilter[PITCH].Wc);
         sbufWriteU8(dst, currentPidProfile->dFilter[YAW].Wc);
+        sbufWriteU8(dst, gyroConfig()->averagedGyro[ROLL]);
+        sbufWriteU8(dst, gyroConfig()->averagedGyro[PITCH]);
+        sbufWriteU8(dst, gyroConfig()->averagedGyro[YAW]);
+
 
         break;
 /*#ifndef USE_GYRO_IMUF9001
@@ -1964,6 +1968,10 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             currentPidProfile->dFilter[ROLL].Wc = sbufReadU8(src);
             currentPidProfile->dFilter[PITCH].Wc = sbufReadU8(src);
             currentPidProfile->dFilter[YAW].Wc = sbufReadU8(src);
+            gyroConfigMutable()->averagedGyro[ROLL] = sbufReadU8(src);
+            gyroConfigMutable()->averagedGyro[PITCH] = sbufReadU8(src);
+            gyroConfigMutable()->averagedGyro[YAW] = sbufReadU8(src);
+
         }
 
         // reinitialize the gyro filters with the new values
