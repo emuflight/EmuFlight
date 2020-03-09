@@ -23,9 +23,6 @@
 #include "common/axis.h"
 #include "common/time.h"
 #include "common/maths.h"
-#ifndef USE_GYRO_IMUF9001
-#include "common/kalman.h"
-#endif
 #include "pg/pg.h"
 #include "drivers/bus.h"
 #include "drivers/sensor.h"
@@ -68,6 +65,8 @@ typedef enum {
 #define GYRO_CONFIG_USE_GYRO_2      1
 #define GYRO_CONFIG_USE_GYRO_BOTH   2
 
+#define AVERAGED_GYRO_DATA_BUFFER_SIZE 10
+
 typedef enum {
     FILTER_LOWPASS = 0,
     FILTER_LOWPASS2
@@ -94,8 +93,8 @@ typedef struct gyroConfig_s {
     uint8_t  gyro_use_32khz;
     uint8_t  gyro_to_use;
 
-    uint16_t gyro_lowpass_hz;
-    uint16_t gyro_lowpass2_hz;
+    uint16_t gyro_lowpass_hz[XYZ_AXIS_COUNT];
+    uint16_t gyro_lowpass2_hz[XYZ_AXIS_COUNT];
 
     uint16_t gyro_soft_notch_hz_1;
     uint16_t gyro_soft_notch_cutoff_1;
@@ -121,12 +120,14 @@ typedef struct gyroConfig_s {
     uint16_t imuf_roll_lpf_cutoff_hz;
     uint16_t imuf_yaw_lpf_cutoff_hz;
     uint16_t imuf_acc_lpf_cutoff_hz;
+    uint16_t imuf_sharpness;
 #endif
     uint16_t imuf_pitch_q;
     uint16_t imuf_roll_q;
     uint16_t imuf_yaw_q;
     uint16_t imuf_w;
-    uint8_t r_weight;
+
+    uint8_t averagedGyro[XYZ_AXIS_COUNT];
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);
@@ -134,10 +135,6 @@ PG_DECLARE(gyroConfig_t, gyroConfig);
 bool gyroInit(void);
 
 void gyroInitFilters(void);
-
-#ifndef USE_GYRO_IMUF9001
-void gyroDynLpfUpdate(void);
-#endif
 
 #ifdef USE_DMA_SPI_DEVICE
 void gyroDmaSpiFinishRead(void);
