@@ -92,6 +92,14 @@ FEATURES        =
 
 include $(ROOT)/make/targets.mk
 
+# building locally build number does not increment
+BUILDNO := local
+# if building on travis we have a build number set
+ifneq ($(TRAVIS_BUILD_NUMBER),)
+# so use it
+BUILDNO := $(TRAVIS_BUILD_NUMBER)
+endif
+
 REVISION := $(shell git log -1 --format="%h")
 
 FC_VER_MAJOR := $(shell grep " FC_VERSION_MAJOR" src/main/build/version.h | awk '{print $$3}' )
@@ -227,6 +235,7 @@ CFLAGS     += $(ARCH_FLAGS) \
               -D$(TARGET) \
               $(TARGET_FLAGS) \
               -D'__FORKNAME__="$(FORKNAME)"' \
+              -D'__BUILDNO__="$(BUILDNO)"' \
               -D'__TARGET__="$(TARGET)"' \
               -D'__REVISION__="$(REVISION)"' \
               -save-temps=obj \
@@ -266,17 +275,18 @@ CPPCHECK        = cppcheck $(CSOURCES) --enable=all --platform=unix64 \
                   $(addprefix -I,$(INCLUDE_DIRS)) \
                   -I/usr/include -I/usr/include/linux
 
+TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(TARGET)_$(FC_VER)_$(REVISION)_$(BUILDNO)
+
 #
 # Things we will build
 #
-TARGET_BIN      = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET).bin
-TARGET_HEX      = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET).hex
+TARGET_BIN      = $(TARGET_BASENAME).bin
+TARGET_HEX      = $(TARGET_BASENAME).hex
 TARGET_ELF      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).elf
 TARGET_LST      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).lst
 TARGET_OBJS     = $(addsuffix .o,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $(SRC))))
 TARGET_DEPS     = $(addsuffix .d,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $(SRC))))
 TARGET_MAP      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).map
-
 
 CLEAN_ARTIFACTS := $(TARGET_BIN)
 CLEAN_ARTIFACTS += $(TARGET_HEX)
