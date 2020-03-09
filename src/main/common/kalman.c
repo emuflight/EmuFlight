@@ -17,7 +17,7 @@
  *
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include <string.h>
 #include "arm_math.h"
 
@@ -68,6 +68,7 @@ typedef struct kalman
     float x;     //state
     float lastX; //previous state
     float e;
+    float s;
 } kalman_t;
 
 
@@ -80,10 +81,11 @@ float       setPoint[XYZ_AXIS_COUNT];
 void init_kalman(kalman_t *filter, float q)
 {
     memset(filter, 0, sizeof(kalman_t));
-    filter->q = q * 0.001f;      //add multiplier to make tuning easier
-    filter->r = 88.0f;           //seeding R at 88.0f
-    filter->p = 30.0f;           //seeding P at 30.0f
+    filter->q = q * 0.001f;             //add multiplier to make tuning easier
+    filter->r = 88.0f;                  //seeding R at 88.0f
+    filter->p = 30.0f;                  //seeding P at 30.0f
     filter->e = 1.0f;
+    filter->s = gyroConfig()->imuf_sharpness / 250.0f;     //adding the new sharpness :) time to overfilter :O
 }
 
 
@@ -165,8 +167,15 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
   //update last state
   kalmanState->lastX = kalmanState->x;
 
+  // calculate the error
+  	float errorMultiplier = fabsf(target - kalmanState->x) * kalmanState->s;
+
+  // give a boost to the setpoint, used to caluclate the filter cutoff, based on the error and setpoint/gyrodata
+
+  	errorMultiplier = constrainf(errorMultiplier * fabsf(1.0f - (target / kalmanState->lastX)) + 1.0f, 1.0f, 50.0f);
+
   if (target != 0.0f) {
-      kalmanState->e = ABS(1.0f - (target / kalmanState->lastX));
+      kalmanState->e = fabsf(1.0f - ((target * errorMultiplier) / kalmanState->lastX));
   } else {
       kalmanState->e = 1.0f;
   }

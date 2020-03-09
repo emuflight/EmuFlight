@@ -107,9 +107,9 @@ if (sensors(SENSOR_GPS) && STATE(GPS_FIX)) {
     }
 
 
-//    DEBUG_SET(DEBUG_ALTITUDE, 0, (int32_t)(100 * gpsTrust));
-//    DEBUG_SET(DEBUG_ALTITUDE, 1, baroAlt);
-//    DEBUG_SET(DEBUG_ALTITUDE, 2, gpsAlt);
+   DEBUG_SET(DEBUG_ALTITUDE, 0, (int32_t)(100 * gpsTrust));
+   DEBUG_SET(DEBUG_ALTITUDE, 1, baroAlt);
+   DEBUG_SET(DEBUG_ALTITUDE, 2, gpsAlt);
 }
 
 bool isAltitudeOffset(void)
