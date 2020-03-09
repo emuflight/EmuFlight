@@ -56,7 +56,7 @@
  *
  */
 
-#define VBAT_STABLE_MAX_DELTA 2
+#define VBAT_STABLE_MAX_DELTA 20
 #define LVC_AFFECT_TIME 10000000 //10 secs for the LVC to slowly kick in
 
 // Battery monitoring stuff
@@ -195,7 +195,7 @@ void batteryUpdatePresence(void)
         if (batteryConfig()->forceBatteryCellCount != 0) {
             batteryCellCount = batteryConfig()->forceBatteryCellCount;
         } else {
-            unsigned cells = (voltageMeter.filtered / batteryConfig()->vbatmaxcellvoltage) + 1;
+            uint8_t cells = (voltageMeter.filtered / batteryConfig()->vbatmaxcellvoltage) + 1;
             if (cells > MAX_AUTO_DETECT_CELL_COUNT) {
                 // something is wrong, we expect MAX_CELL_COUNT cells maximum (and autodetection will be problematic at 6+ cells)
                 cells = MAX_AUTO_DETECT_CELL_COUNT;
