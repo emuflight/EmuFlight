@@ -92,6 +92,17 @@ FEATURES        =
 
 include $(ROOT)/make/targets.mk
 
+# if building on travis the branch name is set
+ifneq ($(TRAVIS_BRANCH),)
+# so use it
+BRANCH := $(TRAVIS_BRANCH)
+else
+# otherwise, call git
+BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+endif
+
+BRANCH := $(shell echo $(BRANCH))
+
 # building locally build number does not increment
 BUILDNO := local
 # if building on travis we have a build number set
@@ -275,7 +286,7 @@ CPPCHECK        = cppcheck $(CSOURCES) --enable=all --platform=unix64 \
                   $(addprefix -I,$(INCLUDE_DIRS)) \
                   -I/usr/include -I/usr/include/linux
 
-TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(TARGET)_$(FC_VER)_$(REVISION)_$(BUILDNO)
+TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(TARGET)_$(FC_VER)_$(BUILDNO)_$(REVISION)_$(BRANCH)
 
 #
 # Things we will build
