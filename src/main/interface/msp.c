@@ -974,6 +974,11 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentControlRateProfile->throttle_limit_type);
         sbufWriteU8(dst, currentControlRateProfile->throttle_limit_percent);
 
+        sbufWriteU8(dst, currentControlRateProfile->vbat_comp_type);
+        sbufWriteU8(dst, currentControlRateProfile->vbat_comp_ref);
+        sbufWriteU8(dst, currentControlRateProfile->vbat_comp_throttle_level);
+        sbufWriteU8(dst, currentControlRateProfile->vbat_comp_pid_level);
+
         break;
 
     case MSP_EMUF:
@@ -1325,6 +1330,10 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentPidProfile->dFilter[ROLL].Wc);
         sbufWriteU8(dst, currentPidProfile->dFilter[PITCH].Wc);
         sbufWriteU8(dst, currentPidProfile->dFilter[YAW].Wc);
+        sbufWriteU8(dst, gyroConfig()->averagedGyro[ROLL]);
+        sbufWriteU8(dst, gyroConfig()->averagedGyro[PITCH]);
+        sbufWriteU8(dst, gyroConfig()->averagedGyro[YAW]);
+
 
         break;
 /*#ifndef USE_GYRO_IMUF9001
@@ -1360,7 +1369,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, 0);
         sbufWriteU16(dst, currentPidProfile->errorBoost);
         sbufWriteU8(dst, currentPidProfile->feathered_pids);
-        sbufWriteU8(dst, currentPidProfile->vbatPidCompensation);
+        sbufWriteU8(dst, 0);
         sbufWriteU8(dst, currentPidProfile->feedForwardTransition);
         sbufWriteU8(dst, currentPidProfile->errorBoostLimit);
         sbufWriteU8(dst, currentPidProfile->i_decay);
@@ -1761,6 +1770,12 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
                 currentControlRateProfile->throttle_limit_type = sbufReadU8(src);
                 currentControlRateProfile->throttle_limit_percent = sbufReadU8(src);
             }
+            if (sbufBytesRemaining(src) >= 4) {
+                currentControlRateProfile->vbat_comp_type = sbufReadU8(src);
+                currentControlRateProfile->vbat_comp_ref = sbufReadU8(src);
+                currentControlRateProfile->vbat_comp_throttle_level = sbufReadU8(src);
+                currentControlRateProfile->vbat_comp_pid_level = sbufReadU8(src);
+            }
             initRcProcessing();
         } else {
             return MSP_RESULT_ERROR;
@@ -1953,6 +1968,10 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             currentPidProfile->dFilter[ROLL].Wc = sbufReadU8(src);
             currentPidProfile->dFilter[PITCH].Wc = sbufReadU8(src);
             currentPidProfile->dFilter[YAW].Wc = sbufReadU8(src);
+            gyroConfigMutable()->averagedGyro[ROLL] = sbufReadU8(src);
+            gyroConfigMutable()->averagedGyro[PITCH] = sbufReadU8(src);
+            gyroConfigMutable()->averagedGyro[YAW] = sbufReadU8(src);
+
         }
 
         // reinitialize the gyro filters with the new values
@@ -1990,7 +2009,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         sbufReadU16(src);
         currentPidProfile->errorBoost = sbufReadU16(src);
         currentPidProfile->feathered_pids = sbufReadU8(src);
-        currentPidProfile->vbatPidCompensation = sbufReadU8(src);
+        sbufReadU8(src);
         currentPidProfile->feedForwardTransition = sbufReadU8(src);
         currentPidProfile->errorBoostLimit = sbufReadU8(src);
         currentPidProfile->i_decay = sbufReadU8(src);

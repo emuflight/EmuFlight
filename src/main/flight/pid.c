@@ -39,6 +39,8 @@
 #include "drivers/sound_beeper.h"
 #include "drivers/time.h"
 
+#include "fc/controlrate_profile.h"
+
 #include "fc/fc_core.h"
 #include "fc/fc_rc.h"
 
@@ -142,7 +144,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
         .dterm_filter_type = FILTER_PT1,
         .itermWindupPointPercent = 50,
-        .vbatPidCompensation = false,
         .pidAtMinThrottle = PID_STABILISATION_ON,
         .levelAngleLimit = 45,
         .angleExpo = 10,
@@ -741,7 +742,7 @@ static FAST_RAM_ZERO_INIT float setPointDAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
-    void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs, uint8_t vbatPidCompensation)
+    void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs)
     {
     const float deltaT = (currentTimeUs - previousTimeUs) * 1e-6f;
     previousTimeUs = currentTimeUs;
@@ -763,7 +764,9 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
     }
 
     //vbat pid compensation on just the p term :) thanks NFE
-    const float vbatCompensationFactor = vbatPidCompensation ? calculateVbatPidCompensation() : 1.0f;
+    float vbatCompensationFactor = calculateVbatCompensation(currentControlRateProfile->vbat_comp_type, currentControlRateProfile->vbat_comp_ref);
+
+    vbatCompensationFactor = scaleRangef(currentControlRateProfile->vbat_comp_pid_level, 0.0f, 100.0f, 1.0f, vbatCompensationFactor);
 
     // gradually scale back integration when above windup point
     const float dynCi = constrainf((1.1f - getMotorMixRange()) * ITermWindupPointInv, 0.1f, 1.0f) * itermAccelerator * deltaT;
