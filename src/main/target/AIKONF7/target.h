@@ -20,7 +20,7 @@
 
 #pragma once
 #define TARGET_BOARD_IDENTIFIER "AIKO"
-#define USBD_PRODUCT_STRING "AIKONF7"
+#define USBD_PRODUCT_STRING     "AIKONF7"
 
 #define ENABLE_DSHOT_DMAR       true
 
