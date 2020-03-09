@@ -195,7 +195,7 @@ void batteryUpdatePresence(void)
         if (batteryConfig()->forceBatteryCellCount != 0) {
             batteryCellCount = batteryConfig()->forceBatteryCellCount;
         } else {
-            unsigned cells = (voltageMeter.filtered / batteryConfig()->vbatmaxcellvoltage) + 1;
+            uint8_t cells = (voltageMeter.filtered / batteryConfig()->vbatmaxcellvoltage) + 1;
             if (cells > MAX_AUTO_DETECT_CELL_COUNT) {
                 // something is wrong, we expect MAX_CELL_COUNT cells maximum (and autodetection will be problematic at 6+ cells)
                 cells = MAX_AUTO_DETECT_CELL_COUNT;
