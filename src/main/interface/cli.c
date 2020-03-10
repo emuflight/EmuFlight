@@ -59,6 +59,9 @@ extern uint8_t __config_end;
 #include "config/feature.h"
 
 #include "drivers/accgyro/accgyro.h"
+#ifdef USE_GYRO_IMUF9001
+#include "drivers/accgyro/accgyro_imuf9001.h"
+#endif
 #include "drivers/adc.h"
 #include "drivers/buf_writer.h"
 #include "drivers/bus_spi.h"
@@ -66,6 +69,7 @@ extern uint8_t __config_end;
 #include "drivers/compass/compass.h"
 #include "drivers/display.h"
 #include "drivers/dma.h"
+#include "drivers/dma_spi.h"
 #include "drivers/flash.h"
 #include "drivers/inverter.h"
 #include "drivers/io.h"
@@ -106,6 +110,9 @@ extern uint8_t __config_end;
 #include "interface/msp_box.h"
 #include "interface/msp_protocol.h"
 #include "interface/settings.h"
+#ifdef MSP_OVER_CLI
+#include "msp/msp_serial.h"
+#endif
 
 #include "io/asyncfatfs/asyncfatfs.h"
 #include "io/beeper.h"
@@ -140,6 +147,7 @@ extern uint8_t __config_end;
 #include "rx/spektrum.h"
 #include "rx/cc2500_frsky_common.h"
 #include "rx/cc2500_frsky_x.h"
+#include "rx/cc2500_common.h"
 
 #include "scheduler/scheduler.h"
 
@@ -186,8 +194,19 @@ static bool signatureUpdated = false;
 #endif
 #endif // USE_BOARD_INFO
 
+#ifdef USE_GYRO_IMUF9001
+#define IMUF_CUSTOM_BUFF_LENGTH 26000
+static   uint8_t  imuf_custom_buff[IMUF_CUSTOM_BUFF_LENGTH];
+static   uint32_t imuf_buff_ptr = 0;
+static   uint32_t imuf_checksum = 0;
+static   int      imuf_bin_safe = 0;
+
+#endif
+
 static const char* const emptyName = "-";
 static const char* const emptyString = "";
+
+int cliSmartMode = 0;
 
 #ifndef USE_QUAD_MIXER_ONLY
 // sync this with mixerMode_e
@@ -208,7 +227,7 @@ static const char * const featureNames[] = {
     "RANGEFINDER", "TELEMETRY", "", "3D", "RX_PARALLEL_PWM",
     "RX_MSP", "RSSI_ADC", "LED_STRIP", "DISPLAY", "OSD",
     "", "CHANNEL_FORWARDING", "TRANSPONDER", "AIRMODE",
-    "", "", "RX_SPI", "SOFTSPI", "ESC_SENSOR", "ANTI_GRAVITY", "DYNAMIC_FILTER", NULL
+    "", "", "RX_SPI", "SOFTSPI", "ESC_SENSOR", "ANTI_GRAVITY", "DYNAMIC_FILTER", "LEGACY_SA_SUPPORT", NULL
 };
 
 // sync this with rxFailsafeChannelMode_e
@@ -271,14 +290,36 @@ static void backupAndResetConfigs(void)
 static void cliPrint(const char *str)
 {
     while (*str) {
-        bufWriterAppend(cliWriter, *str++);
+        if(cliSmartMode)
+        {
+            //no carriage returns. Those are dumb.
+            if(*str == '\r')
+            {
+                (void)(*str++);
+            }
+            else
+            {
+                bufWriterAppend(cliWriter, *str++);
+            }
+        }
+        else
+        {
+            bufWriterAppend(cliWriter, *str++);
+        }
     }
     bufWriterFlush(cliWriter);
 }
 
 static void cliPrintLinefeed(void)
 {
+
     cliPrint("\r\n");
+
+    if(cliSmartMode)
+    {
+        bufWriterFlush(cliWriter);
+    }
+
 }
 
 static void cliPrintLine(const char *str)
@@ -488,8 +529,23 @@ static bool valuePtrEqualsDefault(const clivalue_t *var, const void *ptr, const 
             break;
         }
     }
+    for (int i = 0; i < elementCount; i++) {
+        switch (var->type & VALUE_TYPE_MASK) {
+        case VAR_UINT8:
+            result = result && ((uint8_t *)ptr)[i] == ((uint8_t *)ptrDefault)[i];
+            break;
 
-    return result;
+        case VAR_INT8:
+            result = result && ((int8_t *)ptr)[i] == ((int8_t *)ptrDefault)[i];
+            break;
+
+        case VAR_UINT16:
+        case VAR_INT16:
+            result = result && ((int16_t *)ptr)[i] == ((int16_t *)ptrDefault)[i];
+            break;
+        }
+    }
+    return (result);
 }
 
 static uint8_t getPidProfileIndexToUse()
@@ -2544,17 +2600,21 @@ static void cliBeeper(char *cmdline)
 }
 #endif
 
-#ifdef USE_RX_FRSKY_SPI
-void cliFrSkyBind(char *cmdline){
+#ifdef USE_RX_SPI
+    void cliRxBind(char *cmdline){
     UNUSED(cmdline);
     switch (rxSpiConfig()->rx_spi_protocol) {
+#ifdef USE_RX_CC2500_BIND
     case RX_SPI_FRSKY_D:
     case RX_SPI_FRSKY_X:
-        frSkySpiBind();
+    case RX_SPI_SFHSS:
+        cc2500SpiBind();
+
 
         cliPrint("Binding...");
 
         break;
+#endif
     default:
         cliPrint("Not supported.");
 
@@ -2582,7 +2642,7 @@ static void printMap(uint8_t dumpMask, const rxConfig_t *rxConfig, const rxConfi
     if (defaultRxConfig) {
         bufDefault[i] = '\0';
         cliDefaultPrintLinef(dumpMask, equalsDefault, formatMap, bufDefault);
-    }   
+    }
     cliDumpPrintLinef(dumpMask, equalsDefault, formatMap, buf);
 }
 
@@ -2667,6 +2727,174 @@ static void cliBootloader(char *cmdLine)
     cliPrintHashLine("restarting in bootloader mode");
     cliRebootEx(true);
 }
+
+
+#ifdef MSP_OVER_CLI
+static void hex2byte(char *string, uint8_t *output)
+{
+    char tempBuff[3];
+    tempBuff[0] = string[0];
+    tempBuff[1] = string[1];
+    tempBuff[2] = 0;
+    *output = (uint8_t)strtol(tempBuff, NULL, 16);
+}
+#endif
+#ifdef USE_GYRO_IMUF9001
+
+
+static void cliImufBootloaderMode(char *cmdline)
+{
+    (void)(cmdline);
+    if(imufBootloader())
+    {
+        cliPrintLine("BOOTLOADER");
+    }
+    else
+    {
+        cliPrintLine("FAIL");
+    }
+}
+
+
+static void cliImufLoadBin(char *cmdline)
+{
+    #define TEMP_BUFF 256
+    uint32_t dataSize;
+    uint8_t output;
+    uint8_t dataBuff[TEMP_BUFF] = {0,};
+    uint32_t x;
+
+    if(cmdline[0] == '!')
+    {
+        imuf_bin_safe = 1;
+        imuf_buff_ptr = 0;
+        imuf_checksum = 0;
+        memset(imuf_custom_buff, 0, IMUF_CUSTOM_BUFF_LENGTH);
+        cliPrintLine("SUCCESS");
+    }
+    else if(cmdline[0] == '.')
+    {
+        cliPrintLinef("%d", imuf_buff_ptr);
+    }
+    else if(cmdline[0] == 'c')
+    {
+        cliPrintLinef("%d", imuf_checksum);
+    }
+    else if(cmdline[0] == 'l')
+    {
+        if (imuf_bin_safe)
+        {
+            //get the datasize
+            hex2byte(&cmdline[1], &output);
+            dataSize  = ((output & 0xff) << 0 );
+            hex2byte(&cmdline[3], &output);
+            dataSize += ((output & 0xff) << 8 );
+            hex2byte(&cmdline[5], &output);
+            dataSize += ((output & 0xff) << 16);
+            hex2byte(&cmdline[7], &output);
+            dataSize += ((output & 0xff) << 24);
+
+            if(dataSize < TEMP_BUFF)
+            {
+                //fill the temp buffer
+                for(x=0; x< dataSize; x++)
+                {
+                    hex2byte(&cmdline[(x*2)+9], &output);
+                    dataBuff[x] = output;
+                    imuf_checksum += output;
+                    //cliPrintLinef("out:%d:%d:%d:%d", dataSize, x, (x*2)+9, output, checksum);
+                }
+                if ( (imuf_buff_ptr+dataSize) < IMUF_CUSTOM_BUFF_LENGTH )
+                {
+                    memcpy(imuf_custom_buff+imuf_buff_ptr, dataBuff, dataSize);
+                    imuf_buff_ptr += dataSize;
+                    cliPrintLine("LOADED");
+                }
+                else
+                {
+                    cliPrintLine("WOAH!");
+                }
+            }
+            else
+            {
+                cliPrintLine("CRAP!");
+            }
+        }
+        else
+        {
+            cliPrintLine("PFFFT!");
+        }
+    }
+}
+
+static void cliImufFlashBin(char *cmdline)
+{
+    (void)(cmdline);
+    if (imufUpdate(imuf_custom_buff, imuf_buff_ptr))
+    {
+        cliPrintLine("SUCCESS");
+        bufWriterFlush(cliWriter);
+        delay(5000);
+
+        *cliBuffer = '\0';
+        bufferIndex = 0;
+        cliMode = 0;
+        // incase a motor was left running during motortest, clear it here
+        mixerResetDisarmedMotors();
+        cliReboot();
+
+        cliWriter = NULL;
+    }
+}
+#endif
+
+#ifdef MSP_OVER_CLI
+sbuf_t buft;
+uint8_t bufPtr[256];
+
+void cliMsp(char *cmdline){
+    int len = strlen(cmdline);
+    if (len == 0) {
+        cliPrintLine("No MSP command present");
+
+        return;
+    } else {
+        uint8_t mspCommand = atoi(cmdline);
+        uint8_t start = 2;
+        if (mspCommand > 99) {
+            start = 4;
+        } else if (mspCommand > 9) {
+            start= 3;
+        }
+        uint8_t inBuff[len];
+        uint8_t output;
+        for (int i = 0; i < len; i++) {
+            hex2byte(&cmdline[(i*2) + start], &output);
+            inBuff[i] = output;
+        }
+        sbuf_t inBuf = {.ptr = inBuff, .end = &inBuff[len-1]};
+        //TODO need to fill inPtr with the rest of the bytes from the command line
+
+        buft.ptr = buft.end = bufPtr;
+        if (mspCommonProcessOutCommand(mspCommand, &buft, NULL) || mspProcessOutCommand(mspCommand, &buft)
+          || mspCommonProcessInCommand(mspCommand, &inBuf, NULL) > -1 || mspProcessInCommand(mspCommand, &inBuf) > -1)
+        {
+
+            bufWriterAppend(cliWriter, '.');                 //"." is success
+            bufWriterAppend(cliWriter, mspCommand);          //msp command sent
+            bufWriterAppend(cliWriter, inBuf.ptr - inBuf.end);                  //msp command sent
+            bufWriterAppend(cliWriter, buft.ptr - buft.end); //number of chars
+
+            while (buft.end <= buft.ptr)
+                bufWriterAppend(cliWriter, *(buft.end)++); //send data
+        }
+        else
+        {
+            bufWriterAppend(cliWriter, '!'); //"!" is failure
+        }
+    }
+}
+#endif
 
 static void cliExit(char *cmdline)
 {
@@ -3187,11 +3415,11 @@ static void cliProfile(char *cmdline)
         return;
     } else {
         const int i = atoi(cmdline);
-        if (i >= 0 && i < MAX_PROFILE_COUNT) {
+        if (i >= 0 && i < PID_PROFILE_COUNT) {
             changePidProfile(i);
             cliProfile("");
         } else {
-            cliPrintErrorLinef("PROFILE OUTSIDE OF [0..%d]", MAX_PROFILE_COUNT - 1);
+            cliPrintErrorLinef("PROFILE OUTSIDE OF [0..%d]", PID_PROFILE_COUNT - 1);
         }
     }
 }
@@ -3214,7 +3442,7 @@ static void cliRateProfile(char *cmdline)
 
 static void cliDumpPidProfile(uint8_t pidProfileIndex, uint8_t dumpMask)
 {
-    if (pidProfileIndex >= MAX_PROFILE_COUNT) {
+    if (pidProfileIndex >= PID_PROFILE_COUNT) {
         // Faulty values
         return;
     }
@@ -3354,6 +3582,222 @@ STATIC_UNIT_TESTED void cliGet(char *cmdline)
     cliPrintErrorLinef("Invalid name");
 }
 
+#ifdef USE_PEGASUS_UI
+static const char * valueSectionMask[] = {
+    "GLOBAL", "PROFILE", "RATE"
+};
+
+static const char * valueTypeMask[] = {
+    "UINT8", "INT8", "UINT16", "INT16"
+};
+
+static const char * valueModeMask[] = {
+    "DIRECT", "LOOKUP", "ARRAY", "BITMASK"
+};
+
+void cliPrintValueJson(int32_t i){
+    const clivalue_t *var = &valueTable[i];
+    cliPrintf("\"%s\":{\"scope\":\"%s\",\"type\":\"%s\",\"mode\":\"%s\",\"current\":\"",
+                var->name,
+                valueSectionMask[((var->type & VALUE_SECTION_MASK) >> VALUE_SECTION_OFFSET)],
+                valueTypeMask[((var->type & VALUE_TYPE_MASK) >> VALUE_TYPE_OFFSET)],
+                valueModeMask[((var->type & VALUE_MODE_MASK) >> VALUE_MODE_OFFSET)]);
+    cliPrintVar(var, false);
+    cliPrint("\",\"default\":\"");
+    const pgRegistry_t *pg = pgFind(var->pgn);
+    const int valueOffset = getValueOffset(var);
+    printValuePointer(var, (uint8_t*)pg->address + valueOffset, false);
+    cliPrint("\"");
+    if ((var->type & VALUE_MODE_MASK) == MODE_LOOKUP)
+    {
+        const lookupTableEntry_t *tableEntry = &lookupTables[var->config.lookup.tableIndex];
+        cliPrint(",\"values\":[");
+        for (int32_t i = 0; i < tableEntry->valueCount ; i++) {
+            if (i > 0)
+            {
+                cliPrintLine(",");
+            }
+            cliPrintf("\"%s\"", tableEntry->values[i]);
+        }
+        cliPrint("]");
+    }
+    if ((var->type & VALUE_MODE_MASK) == MODE_DIRECT) {
+        cliPrintf(",\"min\":\"%d\",\"max\":\"%d\"", var->config.minmax.min, var->config.minmax.max);
+    }
+    // if ((var->type & VALUE_MODE_MASK) == MODE_ARRAY) {
+    //     cliPrintf(",\"min\":\"%d\",\"max\":\"%d\"", var->config.minmax.min, var->config.minmax.max);
+    // }
+    cliPrint("}");
+}
+
+static void printFeatureJson(const featureConfig_t *configCopy)
+{
+    const uint32_t mask = configCopy->enabledFeatures;
+    const uint32_t defaultMask = featureConfig()->enabledFeatures;
+    cliPrintf(",\"features\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"ARRAY\",\"current\":\"%d\",\"values\":[", mask);
+    for (uint32_t i = 0; featureNames[i]; i++) { // disabled features first
+        if (strcmp(featureNames[i], emptyString) != 0) { //Skip unused
+            if (i > 0)
+            {
+                cliPrint(",");
+            }
+            if ((~defaultMask | mask) & (1 << i)) {
+                cliPrintf("\"-%s\"", featureNames[i]);
+            } else {
+                cliPrintf("\"%s\"", featureNames[i]);
+            }
+        }
+    }
+    cliPrintf("]}");
+}
+static void printSerialJson(const serialConfig_t *serialConfig)
+{
+    cliPrint(",\"ports\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
+    for (uint32_t i = 0; i < SERIAL_PORT_COUNT && serialIsPortAvailable(serialConfig->portConfigs[i].identifier); i++) {
+        if (i > 0)
+        {
+            cliPrint(",");
+        }
+        cliPrintf("\"%d|%d|%ld|%ld|%ld|%ld\"",
+            serialConfig->portConfigs[i].identifier,
+            serialConfig->portConfigs[i].functionMask,
+            baudRates[serialConfig->portConfigs[i].msp_baudrateIndex],
+            baudRates[serialConfig->portConfigs[i].gps_baudrateIndex],
+            baudRates[serialConfig->portConfigs[i].telemetry_baudrateIndex],
+            baudRates[serialConfig->portConfigs[i].blackbox_baudrateIndex]);
+    }
+    cliPrintf("]}");
+}
+
+static void printAuxJson(const modeActivationCondition_t *modeActivationConditions)
+{
+    cliPrint(",\"modes\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
+    for (uint32_t i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
+        if (i > 0)
+        {
+            cliPrint(",");
+        }
+        const modeActivationCondition_t *mac = &modeActivationConditions[i];
+        const box_t *box = findBoxByBoxId(mac->modeId);
+        if (box) {
+            cliPrintf("\"%u|%u|%u|%u|%u|%u\"",
+                i,
+                box->permanentId,
+                mac->auxChannelIndex,
+                MODE_STEP_TO_CHANNEL_VALUE(mac->range.startStep),
+                MODE_STEP_TO_CHANNEL_VALUE(mac->range.endStep),
+                mac->modeLogic
+            );
+        }
+    }
+    cliPrintf("]}");
+}
+
+static void printResourceJson() {
+    cliPrint(",\"resources\":{\"scope\":\"GLOBAL\",\"type\":\"string\",\"mode\":\"ARRAY\",\"values\":[");
+    for (int i = 0; i < DEFIO_IO_USED_COUNT; i++) {
+        if (i > 0)
+        {
+            cliPrint(",");
+        }
+        const char* owner;
+        owner = ownerNames[ioRecs[i].owner];
+
+        cliPrintf("\"%c%02d|%s|", IO_GPIOPortIdx(ioRecs + i) + 'A', IO_GPIOPinIdx(ioRecs + i), owner);
+        if (ioRecs[i].index > 0) {
+            cliPrintf("%d", ioRecs[i].index);
+        } else {
+            cliPrintf("0");
+        }
+        cliPrintf("\"");
+        //cliPrintLinefeed();
+    }
+    cliPrintf("]}");
+}
+
+#define PROFILE_JSON_STRING ",\"%s_profile\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"LOOKUP\",\"current\":\"%d\",\"values\":[{"
+
+static void dumpProfileValueJson(uint16_t valueSection)
+{
+    bool foundFirst = false;
+    for (uint32_t i = 0; i < valueTableEntryCount; i++) {
+        const clivalue_t *value = &valueTable[i];
+        if ((value->type & VALUE_SECTION_MASK) == valueSection) {
+            if (foundFirst)
+            {
+                cliPrint(",");
+            }
+            cliPrintValueJson(i);
+            foundFirst = true;
+        }
+    }
+}
+
+static void cliPidProfilesJson()
+{
+    cliPrintf(PROFILE_JSON_STRING, "pid", getCurrentPidProfileIndex());
+    const uint8_t saved = systemConfig_Copy.pidProfileIndex;
+    for (uint32_t i = 0; i < PID_PROFILE_COUNT; i++) {
+        changePidProfile(i);
+        if (i > 0)
+        {
+            cliPrint("},{");
+        }
+        dumpProfileValueJson(PROFILE_VALUE);
+    }
+    changePidProfile(saved);
+    cliPrint("}]}");
+}
+
+static void cliRateProfilesJson()
+{
+    cliPrintf(PROFILE_JSON_STRING, "rate", getCurrentControlRateProfileIndex());
+    const uint8_t saved = systemConfig_Copy.activeRateProfile;
+    for (uint32_t i = 0; i < CONTROL_RATE_PROFILE_COUNT; i++) {
+        changeControlRateProfile(i);
+        if (i > 0)
+        {
+            cliPrint("},{");
+        }
+        dumpProfileValueJson(PROFILE_RATE_VALUE);
+    }
+    changeControlRateProfile(saved);
+    cliPrint("}]}");
+}
+
+void cliConfig(char *cmdline)
+{
+
+    UNUSED(cmdline);
+    cliPrintLine("{");
+    for (uint32_t i = 0; i < valueTableEntryCount; i++)
+    {
+        if (i > 0)
+        {
+            cliPrintLine(",");
+        }
+        cliPrintValueJson(i);
+    }
+    cliPidProfilesJson();
+    cliRateProfilesJson();
+    printFeatureJson(&featureConfig_Copy);
+    printSerialJson(serialConfig());
+    printAuxJson(modeActivationConditions(0));
+    printResourceJson();
+    cliPrintf(",\"name\":\"%s\"", pilotConfig()->name);
+    cliPrintf(",\"version\":\"%s|%s|%s|%s\"",
+        FC_FIRMWARE_NAME,
+        targetName,
+        systemConfig()->boardIdentifier,
+        FC_VERSION_STRING
+    );
+#ifdef USE_GYRO_IMUF9001
+    cliPrintf(",\"imuf\":\"%lu\"", imufCurrentVersion);
+#endif
+    cliPrintLine("}");
+}
+#endif
+
 static uint8_t getWordLength(char *bufBegin, char *bufEnd)
 {
     while (*(bufEnd - 1) == ' ') {
@@ -3405,7 +3849,7 @@ STATIC_UNIT_TESTED void cliSet(char *cmdline)
                     }
 
                     break;
-                case MODE_LOOKUP: 
+                case MODE_LOOKUP:
                 case MODE_BITSET: {
                         int tableIndex;
                         if ((val->type & VALUE_MODE_MASK) == MODE_BITSET) {
@@ -3538,7 +3982,7 @@ static void cliStatus(char *cmdline)
     cliPrintf(", Vref=%d.%2dV, Core temp=%ddegC", vrefintMv / 1000, (vrefintMv % 1000) / 10, coretemp);
 #endif
 
-#if defined(USE_SENSOR_NAMES)
+#if defined(USE_SENSOR_NAMES) && !defined(USE_GYRO_IMUF9001)
     const uint32_t detectedSensorsMask = sensorsMask();
     for (uint32_t i = 0; ; i++) {
         if (sensorTypeNames[i] == NULL) {
@@ -3554,6 +3998,12 @@ static void cliStatus(char *cmdline)
             }
         }
     }
+#else
+    #if defined(USE_GYRO_IMUF9001)
+    UNUSED(sensorHardwareNames);
+    UNUSED(sensorTypeNames);
+    cliPrintf(" | IMU-F Version: %lu", imufCurrentVersion);
+    #endif
 #endif /* USE_SENSOR_NAMES */
     cliPrintLinefeed();
 
@@ -3594,29 +4044,6 @@ static void cliStatus(char *cmdline)
 }
 
 #ifndef SKIP_TASK_STATISTICS
-
-#if defined(USE_CHIBIOS)
-#include "ch.h"
-
-uint32_t ChibiGetTaskStackUsage(thread_t *threadp)
-{
-#if CH_DBG_FILL_THREADS
-    uint32_t *stack = (uint32_t*)((size_t)threadp + sizeof(*threadp));
-    uint32_t *stklimit = stack;
-    while (*stack ==
-            ((CH_DBG_STACK_FILL_VALUE << 24) |
-            (CH_DBG_STACK_FILL_VALUE << 16) |
-            (CH_DBG_STACK_FILL_VALUE << 8) |
-            (CH_DBG_STACK_FILL_VALUE << 0)))
-        ++stack;
-    return (stack - stklimit) * 4;
-#else
-    return 0;
-#endif /* CH_DBG_FILL_THREADS */
-}
-#endif /* defined(USE_CHIBIOS) */
-
-
 static void cliTasks(char *cmdline)
 {
     UNUSED(cmdline);
@@ -3649,8 +4076,8 @@ static void cliTasks(char *cmdline)
                 taskFrequency = taskInfo.latestDeltaTime == 0 ? 0 : (int)(1000000.0f / ((float)taskInfo.latestDeltaTime));
                 cliPrintf("%02d - (%15s) ", taskId, taskInfo.taskName);
             }
-            const int maxLoad = taskInfo.maxExecutionTime == 0 ? 0 :(taskInfo.maxExecutionTime * taskFrequency + 5000) / 1000;
-            const int averageLoad = taskInfo.averageExecutionTime == 0 ? 0 : (taskInfo.averageExecutionTime * taskFrequency + 5000) / 1000;
+            const int maxLoad = taskInfo.maxExecutionTime == 0 ? 0 :(taskInfo.maxExecutionTime * taskFrequency) / 1000;
+            const int averageLoad = taskInfo.averageExecutionTime == 0 ? 0 : (taskInfo.averageExecutionTime * taskFrequency) / 1000;
             if (taskId != TASK_SERIAL) {
                 maxLoadSum += maxLoad;
                 averageLoadSum += averageLoad;
@@ -3675,15 +4102,6 @@ static void cliTasks(char *cmdline)
         cliPrintLinef("RX Check Function %19d %7d %25d", checkFuncInfo.maxExecutionTime, checkFuncInfo.averageExecutionTime, checkFuncInfo.totalExecutionTime / 1000);
         cliPrintLinef("Total (excluding SERIAL) %25d.%1d%% %4d.%1d%%", maxLoadSum/10, maxLoadSum%10, averageLoadSum/10, averageLoadSum%10);
     }
-#if defined(USE_CHIBIOS)
-    cliPrintLinef("BrainFPV tasks remaining stacks:");
-    thread_t *threadp = chRegFirstThread();
-    while (threadp != NULL) {
-        uint32_t rem = ChibiGetTaskStackUsage(threadp);
-        cliPrintLinef("%s: %d Bytes free", chRegGetThreadNameX(threadp), rem);
-        threadp = chRegNextThread(threadp);
-    }
-#endif /* defined(USE_CHIBIOS) */
 }
 #endif
 
@@ -3701,6 +4119,9 @@ static void cliVersion(char *cmdline)
         shortGitRevision,
         MSP_API_VERSION_STRING
     );
+#ifdef USE_GYRO_IMUF9001
+    cliPrintLinef("# IMU-F Version: %lu", imufCurrentVersion);
+#endif
 }
 
 #ifdef USE_RC_SMOOTHING_FILTER
@@ -4111,7 +4532,7 @@ static void printTimer(uint8_t dumpMask)
 
     cliPrint("#");
     cliPrintLinef(format, 'A', 1, 0);
-    
+
     for (unsigned int i = 0; i < MAX_TIMER_PINMAP_COUNT; i++) {
 
         const ioTag_t ioTag = timerIOConfig(i)->ioTag;
@@ -4122,8 +4543,8 @@ static void printTimer(uint8_t dumpMask)
         }
 
         if (timerIndex != 0 && !(dumpMask & HIDE_UNUSED)) {
-            cliDumpPrintLinef(dumpMask, false, format, 
-                IO_GPIOPortIdxByTag(ioTag) + 'A', 
+            cliDumpPrintLinef(dumpMask, false, format,
+                IO_GPIOPortIdxByTag(ioTag) + 'A',
                 IO_GPIOPinIdxByTag(ioTag),
                 timerIndex
                 );
@@ -4142,13 +4563,13 @@ static void cliTimer(char *cmdline)
         printTimer(DUMP_MASTER);
         return;
     }
-    
+
     char *pch = NULL;
     char *saveptr;
     int timerIOIndex = -1;
-    
+
     ioTag_t ioTag = 0;
-    pch = strtok_r(cmdline, " ", &saveptr);    
+    pch = strtok_r(cmdline, " ", &saveptr);
     if (!pch || !(strToPin(pch, &ioTag) && IOGetByTag(ioTag))) {
         goto error;
     }
@@ -4195,7 +4616,7 @@ static void cliTimer(char *cmdline)
         }
     } else {
         goto error;
-    }  
+    }
 
 success:
     timerIOConfigMutable(timerIOIndex)->ioTag = timerIndex == 0 ? IO_TAG_NONE : ioTag;
@@ -4203,7 +4624,7 @@ success:
 
     cliPrintLine("Success");
     return;
-    
+
 error:
     cliShowParseError();
 }
@@ -4228,7 +4649,7 @@ static void printConfig(char *cmdline, bool doDiff)
     if (doDiff) {
         dumpMask = dumpMask | DO_DIFF;
     }
-    
+
     backupAndResetConfigs();
     if (checkCommand(options, "defaults")) {
         dumpMask = dumpMask | SHOW_DEFAULTS;   // add default values as comments for changed values
@@ -4338,7 +4759,7 @@ static void printConfig(char *cmdline, bool doDiff)
         dumpAllValues(MASTER_VALUE, dumpMask);
 
         if (dumpMask & DUMP_ALL) {
-            for (uint32_t pidProfileIndex = 0; pidProfileIndex < MAX_PROFILE_COUNT; pidProfileIndex++) {
+            for (uint32_t pidProfileIndex = 0; pidProfileIndex < PID_PROFILE_COUNT; pidProfileIndex++) {
                 cliDumpPidProfile(pidProfileIndex, dumpMask);
             }
             cliPrintHashLine("restore original profile selection");
@@ -4434,6 +4855,10 @@ typedef struct {
 }
 #endif
 
+#ifdef USE_GYRO_IMUF9001
+static void cliReportImufErrors(char *cmdline);
+#endif
+
 static void cliHelp(char *cmdline);
 
 // should be sorted a..z for bsearch()
@@ -4468,6 +4893,14 @@ const clicmd_t cmdTable[] = {
 #ifdef USE_ESCSERIAL
     CLI_COMMAND_DEF("escprog", "passthrough esc to serial", "<mode [sk/bl/ki/cc]> <index>", cliEscPassthrough),
 #endif
+#ifdef USE_GYRO_IMUF9001
+    CLI_COMMAND_DEF("imufbootloader", NULL, NULL, cliImufBootloaderMode),
+    CLI_COMMAND_DEF("imufloadbin", NULL, NULL, cliImufLoadBin),
+    CLI_COMMAND_DEF("imufflashbin", NULL, NULL, cliImufFlashBin),
+#endif
+#ifdef MSP_OVER_CLI
+    CLI_COMMAND_DEF("msp", NULL, NULL, cliMsp),
+#endif
     CLI_COMMAND_DEF("exit", NULL, NULL, cliExit),
     CLI_COMMAND_DEF("feature", "configure features",
         "list\r\n"
@@ -4480,16 +4913,24 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("flash_write", NULL, "<address> <message>", cliFlashWrite),
 #endif
 #endif
-#ifdef USE_RX_FRSKY_SPI
-    CLI_COMMAND_DEF("frsky_bind", "initiate binding for FrSky SPI RX", NULL, cliFrSkyBind),
+#ifdef USE_RX_CC2500_BIND
+    CLI_COMMAND_DEF("bind", "initiate binding for RX", NULL, cliRxBind),
 #endif
     CLI_COMMAND_DEF("get", "get variable value", "[name]", cliGet),
+
+#ifdef USE_PEGASUS_UI
+    CLI_COMMAND_DEF("config", "get all configuration information", NULL, cliConfig),
+#endif
 #ifdef USE_GPS
     CLI_COMMAND_DEF("gpspassthrough", "passthrough gps to serial", NULL, cliGpsPassthrough),
 #endif
 #if defined(USE_GYRO_REGISTER_DUMP) && !defined(SIMULATOR_BUILD)
     CLI_COMMAND_DEF("gyroregisters", "dump gyro config registers contents", NULL, cliDumpGyroRegisters),
 #endif
+#ifdef USE_GYRO_IMUF9001
+    CLI_COMMAND_DEF("reportimuferrors", "report imu-f comm errors", NULL, cliReportImufErrors),
+#endif
+
     CLI_COMMAND_DEF("help", NULL, NULL, cliHelp),
 #ifdef USE_LED_STRIP
     CLI_COMMAND_DEF("led", "configure leds", NULL, cliLed),
@@ -4558,6 +4999,15 @@ const clicmd_t cmdTable[] = {
 #endif
 };
 
+#ifdef USE_GYRO_IMUF9001
+static void cliReportImufErrors(char *cmdline)
+{
+    UNUSED(cmdline);
+    cliPrintf("Current Comm Errors: %lu", crcErrorCount);
+    cliPrintLinefeed();
+}
+#endif
+
 static void cliHelp(char *cmdline)
 {
     UNUSED(cmdline);
@@ -4586,7 +5036,9 @@ void cliProcess(void)
     bufWriterFlush(cliWriter);
 
     while (serialRxBytesWaiting(cliPort)) {
+
         uint8_t c = serialRead(cliPort);
+
         if (c == '\t' || c == '?') {
             // do tab completion
             const clicmd_t *cmd, *pstart = NULL, *pend = NULL;
@@ -4683,6 +5135,7 @@ void cliProcess(void)
             cliBuffer[bufferIndex++] = c;
             cliWrite(c);
         }
+
     }
 }
 
