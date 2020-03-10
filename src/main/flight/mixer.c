@@ -100,7 +100,7 @@ void pgResetFn_motorConfig(motorConfig_t *motorConfig)
     {
         motorConfig->minthrottle = 1070;
         motorConfig->dev.motorPwmRate = BRUSHLESS_MOTORS_PWM_RATE;
-        motorConfig->dev.motorPwmProtocol = PWM_TYPE_MULTISHOT;
+        motorConfig->dev.motorPwmProtocol = PWM_TYPE_DSHOT600;
     }
 #endif
     motorConfig->maxthrottle = 2000;
@@ -125,6 +125,7 @@ static FAST_RAM_ZERO_INIT uint8_t motorCount;
 static FAST_RAM_ZERO_INIT float motorMixRange;
 
 float FAST_RAM_ZERO_INIT motor[MAX_SUPPORTED_MOTORS];
+//float FAST_RAM_ZERO_INIT previousMotor[MAX_SUPPORTED_MOTORS];
 float motor_disarmed[MAX_SUPPORTED_MOTORS];
 
 mixerMode_e currentMixerMode;
@@ -640,7 +641,7 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs)
         motorRangeMax = motorOutputHigh;
         motorOutputMin = motorOutputLow;
         motorOutputRange = motorOutputHigh - motorOutputLow;
-        if (getBoxIdState(BOXUSER1)) {
+        if (getBoxIdState(BOXUSER4)) {
             motorOutputMixSign = -1;
         } else {
             motorOutputMixSign = 1;
@@ -747,12 +748,51 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
         motor[i] = motorOutput;
     }
 
+// float difference;
+// float looptimeAccounter;
+// looptimeAccounter = gyro.targetLooptime * pidConfig()->pid_process_denom;
+//     for (int motorNum = 0; motorNum < motorCount; motorNum++)
+// {
+//   difference = fabsf(motor[motorNum] - previousMotor[motorNum]);
+//   if (difference <= (looptimeAccounter * motorOutputRange * 0.00002f))
+//   {
+//     motor[motorNum] = previousMotor[motorNum];
+//   }
+//   else
+//   {
+//     if (difference > (looptimeAccounter * motorOutputRange * 0.00040f))
+//     {
+//       if (motor[motorNum] > previousMotor[motorNum])
+//       {
+//         motor[motorNum] = previousMotor[motorNum] + (looptimeAccounter * motorOutputRange * 0.00040f); /* increase by max 5% every ms */
+//         previousMotor[motorNum] = motor[motorNum];
+//       }
+//       else
+//       {
+//         motor[motorNum] = previousMotor[motorNum] - (looptimeAccounter * motorOutputRange * 0.00040f); /* decrease by max 5% every ms */
+//         previousMotor[motorNum] = motor[motorNum];
+//       }
+//     }
+//     else
+//     {
+//       previousMotor[motorNum] = motor[motorNum];
+//     }
+//   }
+// }
+
     // Disarmed mode
     if (!ARMING_FLAG(ARMED)) {
         for (int i = 0; i < motorCount; i++) {
             motor[i] = motor_disarmed[i];
         }
     }
+}
+
+float applyThrottleVbatCompensation(float throttle)
+{
+    float vbatCompensation = calculateVbatCompensation(currentControlRateProfile->vbat_comp_type, currentControlRateProfile->vbat_comp_ref);
+    float throttleVbatCompensation = scaleRangef(currentControlRateProfile->vbat_comp_throttle_level, 0.0f, 100.0f, 1.0f, vbatCompensation);
+    return constrainf(throttle * throttleVbatCompensation, 0.0f, 1.0f);
 }
 
 float applyThrottleLimit(float throttle)
@@ -770,7 +810,7 @@ float applyThrottleLimit(float throttle)
     return throttle;
 }
 
-FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs, uint8_t vbatPidCompensation)
+FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs)
 {
     if (isFlipOverAfterCrashMode()) {
         applyFlipOverAfterCrashModeToMotors();
@@ -801,8 +841,9 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
       scaledAxisPidYaw = -scaledAxisPidYaw;
   }
 
-    // Calculate voltage compensation
-    const float vbatCompensationFactor = vbatPidCompensation ? calculateVbatPidCompensation() : 1.0f;
+    if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF) {
+        throttle = applyThrottleVbatCompensation(throttle);
+    }
 
     // Apply the throttle_limit_percent to scale or limit the throttle based on throttle_limit_type
     if (currentControlRateProfile->throttle_limit_type != THROTTLE_LIMIT_TYPE_OFF) {
@@ -819,8 +860,6 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
             scaledAxisPidRoll  * currentMixer[i].roll +
             scaledAxisPidPitch * currentMixer[i].pitch +
             scaledAxisPidYaw   * currentMixer[i].yaw;
-
-        mix *= vbatCompensationFactor;  // Add voltage compensation
 
         if (mix > motorMixMax) {
             motorMixMax = mix;

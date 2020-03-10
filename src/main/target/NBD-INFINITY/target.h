@@ -21,7 +21,7 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER "S405"
-#define USBD_PRODUCT_STRING "NBDINFINITY"
+#define USBD_PRODUCT_STRING		"NBDINFINITY"
 
 #define LED0_PIN                  PB5
 

@@ -87,7 +87,6 @@ void targetConfiguration(void)
         pidProfile->pid[PID_YAW].P   = 120;
         pidProfile->pid[PID_YAW].I   = 75;
         pidProfile->pid[PID_YAW].D   = 20;
-        pidProfile->dterm_notch_cutoff = 0;
     }
 
     for (uint8_t rateProfileIndex = 0; rateProfileIndex < CONTROL_RATE_PROFILE_COUNT; rateProfileIndex++) {

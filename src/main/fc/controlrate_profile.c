@@ -44,10 +44,10 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
         RESET_CONFIG(controlRateConfig_t, &controlRateConfig[i],
             .thrMid8 = 50,
             .thrExpo8 = 0,
-            .dynThrP = 65,
+            .dynThrP = 75,
             .dynThrI = 125,
-            .dynThrD = 50,
-            .tpa_breakpoint = 1350,
+            .dynThrD = 65,
+            .tpa_breakpoint = 1600,
             .rates_type = RATES_TYPE_BETAFLIGHT,
             .rcRates[FD_ROLL] = 100,
             .rcRates[FD_PITCH] = 100,
@@ -59,7 +59,11 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .rates[FD_PITCH] = 70,
             .rates[FD_YAW] = 70,
             .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
-            .throttle_limit_percent = 100
+            .throttle_limit_percent = 100,
+            .vbat_comp_type = VBAT_COMP_TYPE_OFF,
+            .vbat_comp_ref = 37,
+            .vbat_comp_throttle_level = 75,
+            .vbat_comp_pid_level = 75,
         );
     }
 }

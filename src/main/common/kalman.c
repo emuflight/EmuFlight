@@ -1,13 +1,29 @@
+/*
+ * This file is part of Cleanflight and Betaflight.
+ *
+ * Cleanflight and Betaflight are free software. You can redistribute
+ * this software and/or modify this software under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * Cleanflight and Betaflight are distributed in the hope that they
+ * will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this software.
+ *
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <string.h>
 #include "arm_math.h"
 
 #include "kalman.h"
 #include "fc/fc_rc.h"
 #include "build/debug.h"
-
-#define MAX_KALMAN_WINDOW_SIZE 512
-
-float r_weight = 0.67f;
 
 typedef struct variance
 {
@@ -39,7 +55,7 @@ typedef struct variance
     float yzSumCoVar;
 
     float inverseN;
-    uint32_t w;
+    uint16_t w;
 } variance_t;
 
 
@@ -52,6 +68,7 @@ typedef struct kalman
     float x;     //state
     float lastX; //previous state
     float e;
+    float s;
 } kalman_t;
 
 
@@ -64,10 +81,11 @@ float       setPoint[XYZ_AXIS_COUNT];
 void init_kalman(kalman_t *filter, float q)
 {
     memset(filter, 0, sizeof(kalman_t));
-    filter->q = q * 0.000001f;   //add multiplier to make tuning easier
-    filter->r = 88.0f;           //seeding R at 88.0f
-    filter->p = 30.0f;           //seeding P at 30.0f
+    filter->q = q * 0.001f;             //add multiplier to make tuning easier
+    filter->r = 88.0f;                  //seeding R at 88.0f
+    filter->p = 30.0f;                  //seeding P at 30.0f
     filter->e = 1.0f;
+    filter->s = gyroConfig()->imuf_sharpness / 250.0f;     //adding the new sharpness :) time to overfilter :O
 }
 
 
@@ -75,12 +93,7 @@ void kalman_init(void)
 {
     isSetpointNew = 0;
 
-    setPoint[X]= 0.0f;
-    setPoint[Y] = 0.0f;
-    setPoint[Z] = 0.0f;
-
     memset(&varStruct, 0, sizeof(varStruct));
-
     init_kalman(&kalmanFilterStateRate[X],  gyroConfig()->imuf_roll_q);
     init_kalman(&kalmanFilterStateRate[Y],  gyroConfig()->imuf_pitch_q);
     init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->imuf_yaw_q);
@@ -132,62 +145,54 @@ void update_kalman_covariance(float *gyroRateData)
 
     float squirt;
     arm_sqrt_f32(varStruct.xVar +  varStruct.xyCoVar +  varStruct.xzCoVar, &squirt);
-    kalmanFilterStateRate[X].r = squirt * r_weight;
+    kalmanFilterStateRate[X].r = squirt * VARIANCE_SCALE;
 
     arm_sqrt_f32(varStruct.yVar +  varStruct.xyCoVar +  varStruct.yzCoVar, &squirt);
-    kalmanFilterStateRate[Y].r = squirt * r_weight;
+    kalmanFilterStateRate[Y].r = squirt * VARIANCE_SCALE;
 
     arm_sqrt_f32(varStruct.zVar +  varStruct.yzCoVar +  varStruct.xzCoVar, &squirt);
-    kalmanFilterStateRate[Z].r = squirt * r_weight;
+    kalmanFilterStateRate[Z].r = squirt * VARIANCE_SCALE;
 }
 
 FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 {
-	//project the state ahead using acceleration
-    kalmanState->x += (kalmanState->x - kalmanState->lastX);
+  //project the state ahead using acceleration
+  kalmanState->x += (kalmanState->x - kalmanState->lastX);
 
-    //figure out how much to boost or reduce our error in the estimate based on setpoint target.
-    //this should be close to 0 as we approach the setpoint and really high the further away we are from the setpoint.
-    //update last state
-    kalmanState->lastX = kalmanState->x;
+  //figure out how much to boost or reduce our error in the estimate based on setpoint target.
+  //this should be close to 0 as we approach the sepoint and really high the futher away we are from the setpoint.
+  //update last state
+  kalmanState->lastX = kalmanState->x;
 
-    /*if (target != 0.0f && input  != 0.0f)
-    {
-        kalmanState->e = ABS(1.0f - target/input);
-    }
-    else
-    {
-    //    UNUSED(target);
-        kalmanState->e = 1.0f;
-    }*/
+  // calculate the error
+  	float errorMultiplier = fabsf(target - kalmanState->x) * kalmanState->s;
 
-    kalmanState->e = (ABS((target - input) * 2) + ABS(input / 4));
+  // give a boost to the setpoint, used to caluclate the filter cutoff, based on the error and setpoint/gyrodata
 
+  	errorMultiplier = constrainf(errorMultiplier * fabsf(1.0f - (target / kalmanState->lastX)) + 1.0f, 1.0f, 50.0f);
 
-    //prediction update
-    kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
+  if (target != 0.0f) {
+      kalmanState->e = fabsf(1.0f - ((target * errorMultiplier) / kalmanState->lastX));
+  } else {
+      kalmanState->e = 1.0f;
+  }
 
-    //measurement update
-    kalmanState->k = kalmanState->p / (kalmanState->p + kalmanState->r);
-    kalmanState->x += kalmanState->k * (input - kalmanState->x);
-    kalmanState->p = (1.0f - kalmanState->k) * kalmanState->p;
+  //kalmanState->e = ABS((target - input) * 3) + ABS(input/4);
 
-    return kalmanState->x;
+  //prediction update
+  kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
+
+  //measurement update
+  kalmanState->k = kalmanState->p / (kalmanState->p + kalmanState->r);
+  kalmanState->x += kalmanState->k * (input - kalmanState->x);
+  kalmanState->p = (1.0f - kalmanState->k) * kalmanState->p;
+  return kalmanState->x;
 }
 
 
 void FAST_CODE kalman_update(float* input, float* output)
 {
-    if(isSetpointNew) {
-        setPoint[X] = getSetpointRate(X);
-        setPoint[Y] = getSetpointRate(Y);
-        setPoint[Z] = getSetpointRate(Z);
-
-        isSetpointNew = 0;
-    }
-
     update_kalman_covariance(input);
-
     output[X] = kalman_process(&kalmanFilterStateRate[X], input[X], setPoint[X] );
     output[Y] = kalman_process(&kalmanFilterStateRate[Y], input[Y], setPoint[Y] );
     output[Z] = kalman_process(&kalmanFilterStateRate[Z], input[Z], setPoint[Z] );
