@@ -77,7 +77,7 @@ Before starting to write code, please read our [development guidelines](docs/dev
 
 ## EmuFlight Releases
 
-[![Build Status](https://travis-ci.org/emuflight/EmuFlight.svg?branch=Main)](https://travis-ci.org/emuflight/EmuFlight) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/eb2d3be37a4247a19814014ee22e1170)](https://www.codacy.com/manual/EmuFlight/EmuFlight?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emuflight/EmuFlight&amp;utm_campaign=Badge_Grade)
+[![Build Status](https://travis-ci.org/emuflight/EmuFlight.svg?branch=master)](https://travis-ci.org/emuflight/EmuFlight) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/eb2d3be37a4247a19814014ee22e1170)](https://www.codacy.com/manual/EmuFlight/EmuFlight?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emuflight/EmuFlight&amp;utm_campaign=Badge_Grade)
 
 https://github.com/emuflight/EmuFlight/releases
 
