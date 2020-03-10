@@ -25,7 +25,6 @@
 #pragma once
 
 #include "drivers/bus.h"
-#include "drivers/flash.h"
 
 struct flashVTable_s;
 
