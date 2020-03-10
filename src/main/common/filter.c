@@ -204,11 +204,3 @@ FAST_CODE float biquadFilterApply(biquadFilter_t *filter, float input)
     filter->x2 = filter->b2 * input - filter->a2 * result;
     return result;
 }
-
-void laggedMovingAverageInit(laggedMovingAverage_t *filter, uint16_t windowSize, float *buf)
-{
-    filter->movingWindowIndex = 0;
-    filter->windowSize = windowSize;
-    filter->buf = buf;
-    filter->primed = false;
-}
