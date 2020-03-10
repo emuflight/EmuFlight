@@ -229,6 +229,7 @@ CFLAGS     += $(ARCH_FLAGS) \
               -D'__FORKNAME__="$(FORKNAME)"' \
               -D'__TARGET__="$(TARGET)"' \
               -D'__REVISION__="$(REVISION)"' \
+							-D'__GIT_TAG__="$(GIT_TAG)"' \
               -save-temps=obj \
               -MMD \
               -MP \
