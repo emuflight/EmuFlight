@@ -39,6 +39,17 @@
 
 #include "drivers/time.h"
 
+
+#if defined(USE_CHIBIOS)
+#include <math.h>
+#include "ch.h"
+
+uint32_t last_check = 0;
+extern binary_semaphore_t gyroSem;
+extern bool idleCounterClear;
+extern uint32_t idleCounter;
+#endif
+
 // DEBUG_SCHEDULER, timings for:
 // 0 - gyroUpdate()
 // 1 - pidController()
@@ -125,6 +136,23 @@ FAST_CODE cfTask_t *queueNext(void)
 
 void taskSystemLoad(timeUs_t currentTimeUs)
 {
+#if defined(USE_CHIBIOS)
+    UNUSED(currentTimeUs);
+    uint32_t now = millis();
+    if ((idleCounterClear == 0) && (now - last_check > 1e3)) {
+        float dT = (now - last_check) / 1e3;
+        float idle = ((float)idleCounter / dT) / (float)IDLE_COUNTS_PER_SEC_AT_NO_LOAD;
+        if (idle > 1)
+            averageSystemLoadPercent = 0;
+        else
+            averageSystemLoadPercent = 100 - roundf(100.0f * idle);
+        totalWaitingTasksSamples = 0;
+        totalWaitingTasks = 0;
+        last_check = now;
+        idleCounterClear = 1;
+    }
+#else
+    /* Calculate system load */
     UNUSED(currentTimeUs);
 
     // Calculate system load
@@ -133,8 +161,10 @@ void taskSystemLoad(timeUs_t currentTimeUs)
         totalWaitingTasksSamples = 0;
         totalWaitingTasks = 0;
     }
+
 #if defined(SIMULATOR_BUILD)
     averageSystemLoadPercent = 0;
+#endif
 #endif
 }
 
@@ -248,7 +278,7 @@ FAST_CODE void scheduler(void)
 
     // Check for realtime tasks
     bool outsideRealtimeGuardInterval = true;
-    for (const cfTask_t *task = queueFirst(); task != NULL && task->staticPriority == TASK_PRIORITY_REALTIME; task = queueNext()) {
+    for (const cfTask_t *task = queueFirst(); task != NULL && task->staticPriority >= TASK_PRIORITY_REALTIME; task = queueNext()) {
         const timeUs_t nextExecuteAt = task->lastExecutedAt + task->desiredPeriod;
         if ((timeDelta_t)(currentTimeUs - nextExecuteAt) >= 0) {
             outsideRealtimeGuardInterval = false;
@@ -271,22 +301,7 @@ FAST_CODE void scheduler(void)
             const timeUs_t currentTimeBeforeCheckFuncCall = currentTimeUs;
 #endif
             // Increase priority for event driven tasks
-            if (task->staticPriority == TASK_PRIORITY_TRIGGER)
-            {
-                if (task->checkFunc(currentTimeBeforeCheckFuncCall, currentTimeBeforeCheckFuncCall - task->lastExecutedAt)) {
-                    task->taskAgeCycles = ((currentTimeUs - task->lastExecutedAt) / task->desiredPeriod);
-                    if (task->taskAgeCycles > 0) {
-                        task->dynamicPriority = 1 + task->staticPriority * task->taskAgeCycles;
-                        waitingTasks++;
-                    }
-                }
-                else
-                {
-                    task->taskAgeCycles = 0;
-                }
-            }
-            else if (task->dynamicPriority > 0) 
-            {
+            if (task->dynamicPriority > 0) {
                 task->taskAgeCycles = 1 + ((currentTimeUs - task->lastSignaledAt) / task->desiredPeriod);
                 task->dynamicPriority = 1 + task->staticPriority * task->taskAgeCycles;
                 waitingTasks++;
@@ -364,6 +379,22 @@ FAST_CODE void scheduler(void)
         DEBUG_SET(DEBUG_SCHEDULER, 2, micros() - currentTimeUs);
 #endif
     }
+
+#if defined(USE_CHIBIOS)
+    else {
+#ifdef BRAINFPV
+        extern bool brainfpv_settings_updated;
+        if (brainfpv_settings_updated) {
+            brainFPVUpdateSettings();
+            brainfpv_settings_updated = false;
+        }
+#endif
+        // wait for gyro if no tasks are ready
+        if (selectedTask == NULL) {
+            chBSemWaitTimeout(&gyroSem, MS2ST(2));
+        }
+    }
+#endif
 
     GET_SCHEDULER_LOCALS();
 }

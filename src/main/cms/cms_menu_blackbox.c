@@ -33,6 +33,11 @@
 
 #include "build/version.h"
 
+#if defined(USE_CHIBIOS)
+#include "ch.h"
+#endif
+
+#include "drivers/system.h"
 #include "blackbox/blackbox.h"
 #include "blackbox/blackbox_io.h"
 
@@ -158,10 +163,19 @@ static long cmsx_EraseFlash(displayPort_t *pDisplay, const void *ptr)
     displayWrite(pDisplay, 5, 3, "ERASING FLASH...");
     displayResync(pDisplay); // Was max7456RefreshAll(); Why at this timing?
 
+#ifdef USE_CHIBIOS
+    // makes sure we have exclusive access to SPI
+    chSysLock();
+#endif
+
     flashfsEraseCompletely();
     while (!flashfsIsReady()) {
         delay(100);
     }
+
+#ifdef USE_CHIBIOS
+    chSysUnlock();
+#endif
 
     beeper(BEEPER_BLACKBOX_ERASE);
     displayClearScreen(pDisplay);
@@ -208,7 +222,6 @@ static OSD_Entry cmsx_menuBlackboxEntries[] =
     { "ERASE FLASH", OME_Funcall, cmsx_EraseFlash, NULL,                                                      0 },
 #endif // USE_FLASHFS
 
-    { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }
 };

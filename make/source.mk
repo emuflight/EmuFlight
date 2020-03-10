@@ -117,8 +117,6 @@ COMMON_SRC = \
             cms/cms.c \
             cms/cms_menu_blackbox.c \
             cms/cms_menu_builtin.c \
-						cms/cms_menu_failsafe.c \
-            cms/cms_menu_gps_rescue.c\
             cms/cms_menu_imu.c \
             cms/cms_menu_ledstrip.c \
             cms/cms_menu_misc.c \
@@ -321,7 +319,7 @@ endif #!F3
 endif #!F1
 
 # check if target.mk supplied
-SRC := $(STARTUP_SRC) $(MCU_COMMON_SRC) $(TARGET_SRC) $(VARIANT_SRC)
+SRC := $(STARTUP_SRC) $(MCU_COMMON_SRC) $(SRC) $(VARIANT_SRC)
 
 ifneq ($(DSP_LIB),)
 
@@ -376,6 +374,59 @@ endif
 
 ifneq ($(filter VCP,$(FEATURES)),)
 SRC += $(VCP_SRC)
+endif
+
+ifneq ($(filter CHIBIOS,$(FEATURES)),)
+CHIBIOS := $(ROOT)/lib/main/ChibiOS
+
+#include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f4xx.mk
+include $(CHIBIOS)/os/hal/hal.mk
+include $(CHIBIOS)/os/hal/ports/STM32/STM32F4xx/platform.mk
+include $(CHIBIOS)/os/hal/osal/rt/osal.mk
+include $(CHIBIOS)/os/rt/rt.mk
+include $(CHIBIOS)/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
+
+DEVICE_FLAGS += -DUSE_CHIBIOS -DCORTEX_USE_FPU=TRUE -DCORTEX_SIMPLIFIED_PRIORITY=TRUE $(DDEFS)
+
+
+SRC += $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/crt1.c
+SRC += $(STARTUPSRC)
+SRC += $(PLATFORMSRC)
+SRC += $(HALSRC)
+SRC += $(PORTSRC)
+SRC += $(KERNSRC)
+SRC += $(STARTUPASM)
+SRC += $(PORTASM)
+SRC += $(OSALASM)
+
+
+INCLUDE_DIRS += $(CHIBIOS)/os/ext/CMSIS/ST/STM32F4xx/
+INCLUDE_DIRS += $(CHIBIOS)/os/common/ports/ARMCMx/devices/STM32F4xx
+INCLUDE_DIRS += $(STARTUPINC)
+INCLUDE_DIRS += $(KERNINC)
+INCLUDE_DIRS += $(PORTINC)
+INCLUDE_DIRS += $(OSALINC)
+INCLUDE_DIRS += $(HALINC)
+INCLUDE_DIRS += $(PLATFORMINC)
+endif
+
+ifneq ($(filter BRAINFPV,$(FEATURES)),)
+SRC += brainfpv/spectrograph.c \
+       brainfpv/brainfpv_osd.c \
+       brainfpv/video_quadspi.c \
+       brainfpv/osd_utils.c \
+       brainfpv/fonts.c \
+       brainfpv/images.c \
+       brainfpv/video_quadspi.c \
+       brainfpv/ir_transponder.c \
+       io/displayport_max7456.c \
+       cms/cms_menu_brainfpv.c
+
+SRC += $(TARGET_SRC)
+endif
+
+ifneq ($(filter SPECTROGRAPH,$(FEATURES)),)
+SRC += brainfpv/spectrograph.c
 endif
 
 ifneq ($(filter MSC,$(FEATURES)),)
