@@ -462,13 +462,13 @@ cppcheck-result.xml: $(CSOURCES)
 
 # mkdirs
 $(DL_DIR):
-	mkdir -p $@
+	$(V1) mkdir -p $@
 
 $(TOOLS_DIR):
-	mkdir -p $@
+	$(V1) mkdir -p $@
 
 $(BUILD_DIR):
-	mkdir -p $@
+	$(V1) mkdir -p $@
 
 ## version           : print firmware version
 version:
