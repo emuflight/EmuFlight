@@ -25,57 +25,9 @@
 #include "fc/fc_rc.h"
 #include "build/debug.h"
 
-typedef struct variance
-{
-    float xVar;
-    float yVar;
-    float zVar;
-    float xyCoVar;
-    float xzCoVar;
-    float yzCoVar;
-
-    uint32_t windex;
-    float xWindow[MAX_KALMAN_WINDOW_SIZE];
-    float yWindow[MAX_KALMAN_WINDOW_SIZE];
-    float zWindow[MAX_KALMAN_WINDOW_SIZE];
-
-    float xSumMean;
-    float ySumMean;
-    float zSumMean;
-
-    float xMean;
-    float yMean;
-    float zMean;
-
-    float xSumVar;
-    float ySumVar;
-    float zSumVar;
-    float xySumCoVar;
-    float xzSumCoVar;
-    float yzSumCoVar;
-
-    float inverseN;
-    uint16_t w;
-} variance_t;
-
-
-typedef struct kalman
-{
-    float q;     //process noise covariance
-    float r;     //measurement noise covariance
-    float p;     //estimation error covariance matrix
-    float k;     //kalman gain
-    float x;     //state
-    float lastX; //previous state
-    float e;
-    float s;
-} kalman_t;
-
-
 kalman_t    kalmanFilterStateRate[XYZ_AXIS_COUNT];
 variance_t  varStruct;
 float       setPoint[XYZ_AXIS_COUNT];
-
 
 
 void init_kalman(kalman_t *filter, float q)
@@ -102,9 +54,6 @@ void kalman_init(void)
     varStruct.inverseN = 1.0f/(float)(varStruct.w);
 }
 
-
-#pragma GCC push_options
-#pragma GCC optimize("O3")
 void update_kalman_covariance(float *gyroRateData)
 {
      varStruct.xWindow[ varStruct.windex] = gyroRateData[X];
@@ -139,12 +88,12 @@ void update_kalman_covariance(float *gyroRateData)
      varStruct.yMean =  varStruct.ySumMean *  varStruct.inverseN;
      varStruct.zMean =  varStruct.zSumMean *  varStruct.inverseN;
 
-     varStruct.xVar =  ABS(varStruct.xSumVar *  varStruct.inverseN - ( varStruct.xMean *  varStruct.xMean));
-     varStruct.yVar =  ABS(varStruct.ySumVar *  varStruct.inverseN - ( varStruct.yMean *  varStruct.yMean));
-     varStruct.zVar =  ABS(varStruct.zSumVar *  varStruct.inverseN - ( varStruct.zMean *  varStruct.zMean));
-     varStruct.xyCoVar =  ABS(varStruct.xySumCoVar *  varStruct.inverseN - ( varStruct.xMean *  varStruct.yMean));
-     varStruct.xzCoVar =  ABS(varStruct.xzSumCoVar *  varStruct.inverseN - ( varStruct.xMean *  varStruct.zMean));
-     varStruct.yzCoVar =  ABS(varStruct.yzSumCoVar *  varStruct.inverseN - ( varStruct.yMean *  varStruct.zMean));
+     varStruct.xVar =  fabsf(varStruct.xSumVar *  varStruct.inverseN - ( varStruct.xMean *  varStruct.xMean));
+     varStruct.yVar =  fabsf(varStruct.ySumVar *  varStruct.inverseN - ( varStruct.yMean *  varStruct.yMean));
+     varStruct.zVar =  fabsf(varStruct.zSumVar *  varStruct.inverseN - ( varStruct.zMean *  varStruct.zMean));
+     varStruct.xyCoVar =  fabsf(varStruct.xySumCoVar *  varStruct.inverseN - ( varStruct.xMean *  varStruct.yMean));
+     varStruct.xzCoVar =  fabsf(varStruct.xzSumCoVar *  varStruct.inverseN - ( varStruct.xMean *  varStruct.zMean));
+     varStruct.yzCoVar =  fabsf(varStruct.yzSumCoVar *  varStruct.inverseN - ( varStruct.yMean *  varStruct.zMean));
 
     float squirt;
     arm_sqrt_f32(varStruct.xVar +  varStruct.xyCoVar +  varStruct.xzCoVar, &squirt);
@@ -193,7 +142,7 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 }
 
 
-void kalman_update(float* input, float* output)
+void FAST_CODE kalman_update(float* input, float* output)
 {
     update_kalman_covariance(input);
     output[X] = kalman_process(&kalmanFilterStateRate[X], input[X], setPoint[X] );
@@ -206,5 +155,3 @@ void kalman_update(float* input, float* output)
     DEBUG_SET(DEBUG_KALMAN, 2, Kgain);                                  //Kalman gain
     DEBUG_SET(DEBUG_KALMAN, 3, output[X]);                              //Kalman output
 }
-
-#pragma GCC pop_options
