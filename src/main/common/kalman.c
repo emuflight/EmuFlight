@@ -102,9 +102,6 @@ void kalman_init(void)
     varStruct.inverseN = 1.0f/(float)(varStruct.w);
 }
 
-
-#pragma GCC push_options
-#pragma GCC optimize("O3")
 void update_kalman_covariance(float *gyroRateData)
 {
      varStruct.xWindow[ varStruct.windex] = gyroRateData[X];
@@ -193,7 +190,7 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 }
 
 
-void kalman_update(float* input, float* output)
+void FAST_CODE kalman_update(float* input, float* output)
 {
     update_kalman_covariance(input);
     output[X] = kalman_process(&kalmanFilterStateRate[X], input[X], setPoint[X] );
@@ -206,5 +203,3 @@ void kalman_update(float* input, float* output)
     DEBUG_SET(DEBUG_KALMAN, 2, Kgain);                                  //Kalman gain
     DEBUG_SET(DEBUG_KALMAN, 3, output[X]);                              //Kalman output
 }
-
-#pragma GCC pop_options
