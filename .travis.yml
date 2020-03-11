@@ -49,7 +49,7 @@ compiler: clang
 before_install:
   - pip install --user --upgrade j2cli
 install:
-  - make arm_sdk_install # toolchain
+  - make arm_sdk_download arm_sdk_install # toolchain
 
 before_script:
   - clang --version
