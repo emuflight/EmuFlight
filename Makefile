@@ -205,6 +205,9 @@ ifeq ($(CCACHE_CHECK),0)
 	CCACHE := ccache
 endif
 
+# suit ccache
+CROSS_COMPILE := $(ARM_SDK_PREFIX)
+
 # Tool names
 CROSS_CC    := $(CCACHE) $(ARM_SDK_PREFIX)gcc
 CROSS_CXX   := $(CCACHE) $(ARM_SDK_PREFIX)g++
