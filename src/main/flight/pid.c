@@ -778,7 +778,7 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
 static void processIterm(
     uint8_t axis,
-    float previousIterm, 
+    float currentIntegral, 
     float errorRate,
     float itermErrorRate, 
     float dynCi
@@ -789,10 +789,10 @@ static void processIterm(
      * allow for the new I to be boosted by multiplying by i_decay
      */
     float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
-    if (SIGN(previousIterm) != SIGN(ITermNew))
+    if (SIGN(currentIntegral) != SIGN(ITermNew))
     {
         const float newVal = ITermNew * iDecay;
-        if (fabsf(previousIterm) > fabsf(newVal))
+        if (fabsf(currentIntegral) > fabsf(newVal))
         {
             ITermNew = newVal;
         }
@@ -801,12 +801,12 @@ static void processIterm(
     /*
      * Accumulate and limit
      */
-    ITermNew = constrainf(previousIterm + ITermNew, -itermLimit, itermLimit);
+    ITermNew = constrainf(currentIntegral + ITermNew, -itermLimit, itermLimit);
 
     /*
      * allow growing of Iterm only if motor output is not saturated or Iterm is starting to shrink
      */
-    if (mixerIsOutputSaturated(axis, errorRate) == false || ABS(ITermNew) < ABS(previousIterm))
+    if (mixerIsOutputSaturated(axis, errorRate) == false || ABS(ITermNew) < ABS(currentIntegral))
     {
         // Only increase ITerm if output is not saturated
         pidData[axis].I = ITermNew;
