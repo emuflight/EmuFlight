@@ -10,8 +10,6 @@ env:
   global:
     #- DEBUG=RELWITHDEBINFO # debug symbols
     - PATH="$HOME/.local/bin:$PATH" # "user" installs (pip and stuff)
-    #- MAKEFLAGS="-j 2"
-    - CCACHE_HARDLINK="true"
     - CCACHE_SLOPPINESS="file_macro,time_macros,include_file_mtime,include_file_ctime,file_stat_matches"
 
 sudo: false # be safe
