@@ -97,10 +97,7 @@ FAST_CODE float slewFilterApply(slewFilter_t *filter, float input)
 // get notch filter Q given center frequency (f0) and lower cutoff frequency (f1)
 // Q = f0 / (f2 - f1) ; f2 = f0^2 / f1
 float filterGetNotchQ(float centerFreq, float cutoffFreq) {
-	(void) centerFreq;
-	(void) cutoffFreq;
-//    return centerFreq * cutoffFreq / (centerFreq * centerFreq - cutoffFreq * cutoffFreq);
-	return 0.707f; // Butterworth response
+    return centerFreq * cutoffFreq / (centerFreq * centerFreq - cutoffFreq * cutoffFreq);
 }
 
 /* sets up a biquad Filter */
@@ -206,12 +203,4 @@ FAST_CODE float biquadFilterApply(biquadFilter_t *filter, float input)
     filter->x1 = filter->b1 * input - filter->a1 * result + filter->x2;
     filter->x2 = filter->b2 * input - filter->a2 * result;
     return result;
-}
-
-void laggedMovingAverageInit(laggedMovingAverage_t *filter, uint16_t windowSize, float *buf)
-{
-    filter->movingWindowIndex = 0;
-    filter->windowSize = windowSize;
-    filter->buf = buf;
-    filter->primed = false;
 }
