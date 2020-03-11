@@ -170,7 +170,7 @@ typedef struct gyroSensor_s {
     biquadFilter_t notchFilter2[XYZ_AXIS_COUNT];
 
     filterApplyFnPtr notchFilterDynApplyFn;
-    biquadFilter_t notchFilterDyn[XYZ_AXIS_COUNT];
+    biquadFilter_t notchFilterDyn[XYZ_AXIS_COUNT][XYZ_AXIS_COUNT];
 
     // overflow and recovery
     timeUs_t overflowTimeUs;
@@ -182,6 +182,7 @@ typedef struct gyroSensor_s {
 
 #ifdef USE_GYRO_DATA_ANALYSE
     gyroAnalyseState_t gyroAnalyseState;
+    float dynNotchQ;
 #endif
 } gyroSensor_t;
 
@@ -212,7 +213,7 @@ static void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int typ
 #define GYRO_OVERFLOW_TRIGGER_THRESHOLD 31980  // 97.5% full scale (1950dps for 2000dps gyro)
 #define GYRO_OVERFLOW_RESET_THRESHOLD 30340    // 92.5% full scale (1850dps for 2000dps gyro)
 
-PG_REGISTER_WITH_RESET_TEMPLATE(gyroConfig_t, gyroConfig, PG_GYRO_CONFIG, 4);
+PG_REGISTER_WITH_RESET_TEMPLATE(gyroConfig_t, gyroConfig, PG_GYRO_CONFIG, 5);
 
 #ifndef GYRO_CONFIG_USE_GYRO_DEFAULT
 #define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
@@ -245,7 +246,8 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .yaw_spin_recovery = true,
     .yaw_spin_threshold = 1950,
     .dyn_notch_quality = 70,
-    .dyn_notch_width_percent = 25,
+    .dyn_notch_q_factor = 150,
+    .dyn_notch_min_hz = 150,
     .imuf_mode = GTBCM_GYRO_ACC_FILTER_F,
     .imuf_rate = IMUF_RATE_16K,
     .imuf_roll_q = IMUF_DEFAULT_ROLL_Q,
@@ -295,7 +297,8 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .yaw_spin_recovery = true,
     .yaw_spin_threshold = 1950,
     .dyn_notch_quality = 70,
-    .dyn_notch_width_percent = 50,
+    .dyn_notch_q_factor = 150,
+    .dyn_notch_min_hz = 150,
     .averagedGyro[ROLL] = 0,
     .averagedGyro[PITCH] = 0,
     .averagedGyro[YAW] = 0,
@@ -541,6 +544,10 @@ STATIC_UNIT_TESTED gyroSensor_e gyroDetect(gyroDev_t *dev)
 
 static bool gyroInitSensor(gyroSensor_t *gyroSensor)
 {
+#ifdef USE_GYRO_DATA_ANALYSE
+    gyroSensor->dynNotchQ = gyroConfig()->dyn_notch_q_factor / 100.0f;
+#endif
+
     gyroSensor->gyroDev.gyro_high_fsr = gyroConfig()->gyro_high_fsr;
 
 #if defined(USE_GYRO_MPU6050) || defined(USE_GYRO_MPU3050) || defined(USE_GYRO_MPU6500) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU6000) \
@@ -856,9 +863,10 @@ static void gyroInitFilterDynamicNotch(gyroSensor_t *gyroSensor)
 
     if (isDynamicFilterActive()) {
         gyroSensor->notchFilterDynApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1; // must be this function, not DF2
-        const float notchQ = filterGetNotchQ(400, 390); //just any init value
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            biquadFilterInit(&gyroSensor->notchFilterDyn[axis], 400, gyro.targetLooptime, notchQ, FILTER_NOTCH);
+            for (int axis2 = 0; axis2 < XYZ_AXIS_COUNT; axis2++) {
+                biquadFilterInit(&gyroSensor->notchFilterDyn[axis][axis2], 400, gyro.targetLooptime, gyroSensor->dynNotchQ, FILTER_NOTCH);
+            }
         }
     }
 }
@@ -1143,6 +1151,16 @@ static FAST_CODE void checkForYawSpin(gyroSensor_t *gyroSensor, timeUs_t current
 #undef GYRO_FILTER_FUNCTION_NAME
 #undef GYRO_FILTER_DEBUG_SET
 
+static FAST_CODE void dynamicGyroNotchFiltersUpdate(gyroSensor_t* gyroSensor) {
+    if (gyroSensor->gyroAnalyseState.filterUpdateExecute) {
+        const uint8_t axis = gyroSensor->gyroAnalyseState.filterUpdateAxis;
+        const uint16_t frequency = gyroSensor->gyroAnalyseState.filterUpdateFrequency;
+
+        biquadFilterUpdate(&gyroSensor->notchFilterDyn[0][axis], frequency, gyro.targetLooptime, gyroSensor->dynNotchQ, FILTER_NOTCH);
+        biquadFilterUpdate(&gyroSensor->notchFilterDyn[1][axis], frequency, gyro.targetLooptime, gyroSensor->dynNotchQ, FILTER_NOTCH);
+        biquadFilterUpdate(&gyroSensor->notchFilterDyn[2][axis], frequency, gyro.targetLooptime, gyroSensor->dynNotchQ, FILTER_NOTCH);
+    }
+}
 
 static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs_t currentTimeUs)
 {
@@ -1216,7 +1234,8 @@ static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs
 
 #ifdef USE_GYRO_DATA_ANALYSE
     if (isDynamicFilterActive()) {
-        gyroDataAnalyse(&gyroSensor->gyroAnalyseState, gyroSensor->notchFilterDyn);
+        gyroDataAnalyse(&gyroSensor->gyroAnalyseState);
+        dynamicGyroNotchFiltersUpdate(gyroSensor);
     }
 #endif
 
