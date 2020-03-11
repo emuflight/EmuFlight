@@ -85,34 +85,21 @@
     #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
     #define DEFAULT_FEATURES        FEATURE_OSD
-
 #else
-
-    #define USE_BARO
-    #define USE_BARO_MS5611
-    #define MS5611_I2C_INSTANCE     I2CDEV_1
-
     #define USE_SDCARD
 
     #define SDCARD_DETECT_INVERTED
-
     #define SDCARD_DETECT_PIN                   PD2
     #define SDCARD_SPI_INSTANCE                 SPI2
     #define SDCARD_SPI_CS_PIN                   PB12
-
     // SPI2 is on the APB1 bus whose clock runs at 84MHz. Divide to under 400kHz for init:
     #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256 // 328kHz
     // Divide to under 25MHz for normal operation:
     #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
-
-    //#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream5
-    //#define SDCARD_DMA_CHANNEL                  0
-
     #define SDCARD_DMA_CHANNEL_TX               DMA1_Stream4
     #define SDCARD_DMA_CHANNEL                  0
 
     #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
-
 #endif
 
 #define USE_FLASHFS
@@ -165,14 +152,20 @@
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE              (I2CDEV_1)
 #define USE_I2C_PULLUP
-#define I2C1_SCL                PB6
-#define I2C1_SDA                PB7
+#define I2C1_SCL                PB6        // SCL pad
+#define I2C1_SDA                PB7        // SDA pad
+#define BARO_I2C_INSTANCE       (I2CDEV_1)
 
 #define USE_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define VBAT_ADC_PIN            PC1
 #define RSSI_ADC_PIN            PC2
 #define CURRENT_METER_ADC_PIN   PC3
+
+#define USE_BARO
+#define USE_BARO_MS5611
+#define USE_BARO_BMP280
+#define MS5611_I2C_INSTANCE     I2CDEV_1
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_UART           SERIAL_PORT_USART1
