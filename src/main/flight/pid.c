@@ -630,7 +630,14 @@ static void handleCrashRecovery(
         // reset ITerm, since accumulated error before crash is now meaningless
         // and ITerm windup during crash recovery can be extreme, especially on yaw axis
         pidData[axis].I = 0.0f;
-        if (cmpTimeUs(currentTimeUs, crashDetectedAtUs) > crashTimeLimitUs || (getMotorMixRange() < 1.0f && ABS(gyro.gyroADCf[FD_ROLL]) < crashRecoveryRate && ABS(gyro.gyroADCf[FD_PITCH]) < crashRecoveryRate && ABS(gyro.gyroADCf[FD_YAW]) < crashRecoveryRate))
+        if (
+            cmpTimeUs(currentTimeUs, crashDetectedAtUs) > crashTimeLimitUs || 
+            (getMotorMixRange() < 1.0f && 
+                ABS(gyro.gyroADCf[FD_ROLL]) < crashRecoveryRate && 
+                ABS(gyro.gyroADCf[FD_PITCH]) < crashRecoveryRate && 
+                ABS(gyro.gyroADCf[FD_YAW]) < crashRecoveryRate
+            )
+        )
         {
             if (sensors(SENSOR_ACC))
             {
