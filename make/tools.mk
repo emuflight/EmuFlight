@@ -1,7 +1,5 @@
 # Emuflight
 
-ARM_SDK_URL_BASE  := https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/9-2019q4/gcc-arm-none-eabi-9-2019-q4-major
-
 ###############################################################
 #
 # Installers for tools
@@ -10,12 +8,6 @@ ARM_SDK_URL_BASE  := https://armkeil.blob.core.windows.net/developer/Files/downl
 #       and must be invoked manually
 #
 ###############################################################
-
-##############################
-#
-# Check that environmental variables are sane
-#
-##############################
 
 # Set up ARM (STM32) SDK
 ARM_SDK_DIR ?= $(TOOLS_DIR)/gcc-arm-none-eabi-9-2019-q4-major
@@ -46,6 +38,15 @@ ifdef WINDOWS
 endif
 
 ARM_SDK_FILE := $(notdir $(ARM_SDK_URL))
+
+# Set up ARM (STM32) SDK
+ARM_SDK_DIR ?= $(TOOLS_DIR)/gcc-arm-none-eabi-9-2019-q4-major
+
+# add toolchain binaries to PATH
+export PATH := $(ARM_SDK_DIR)/bin:$(PATH)
+
+# Checked below, Should match the output of $(shell arm-none-eabi-gcc -dumpversion)
+GCC_REQUIRED_VERSION ?= 9.2.1
 
 SDK_INSTALL_MARKER := $(ARM_SDK_DIR)/bin/arm-none-eabi-gcc-$(GCC_REQUIRED_VERSION)
 
