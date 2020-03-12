@@ -13,6 +13,7 @@ env:
     - CCACHE_SLOPPINESS="file_macro,time_macros,include_file_mtime,include_file_ctime,file_stat_matches"
     - MAKEFLAGS="-j 2" # each travis vm has 2 cpu cores
     - PATH="$HOME/.local/bin:$PATH" # "user" installs (pip and stuff)
+
 git:
   depth: 5 # quick clone
   quiet: true # save on logfiles
@@ -61,6 +62,7 @@ deploy:
     token: "${GITHUB_TOKEN}"
     on:
       tags: true
+    edge: true
   - provider: bintray
     file: bintray-conf.json
     user: "${BINTRAY_USER}"
