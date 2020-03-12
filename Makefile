@@ -205,6 +205,9 @@ ifeq ($(CCACHE_CHECK),0)
 	CCACHE := ccache
 endif
 
+# suit ccache
+CROSS_COMPILE := $(ARM_SDK_PREFIX)
+
 # Tool names
 CROSS_CC    := $(CCACHE) $(ARM_SDK_PREFIX)gcc
 CROSS_CXX   := $(CCACHE) $(ARM_SDK_PREFIX)g++
@@ -255,6 +258,7 @@ CFLAGS     += $(ARCH_FLAGS) \
               $(EXTRA_FLAGS)
 
 ASFLAGS     = $(ARCH_FLAGS) \
+			  $(DEBUG_FLAGS) \
               -x assembler-with-cpp \
               $(addprefix -I,$(INCLUDE_DIRS)) \
               -MMD -MP
@@ -375,12 +379,6 @@ targets-group-1: $(GROUP_1_TARGETS)
 ## targets-group-2   : build some targets
 targets-group-2: $(GROUP_2_TARGETS)
 
-## targets-group-3   : build some targets
-targets-group-3: $(GROUP_3_TARGETS)
-
-## targets-group-3   : build some targets
-targets-group-4: $(GROUP_4_TARGETS)
-
 ## targets-group-rest: build the rest of the targets (not listed in group 1, 2 or 3)
 targets-group-rest: $(GROUP_OTHER_TARGETS)
 
@@ -462,13 +460,13 @@ cppcheck-result.xml: $(CSOURCES)
 
 # mkdirs
 $(DL_DIR):
-	mkdir -p $@
+	$(V1) mkdir -p $@
 
 $(TOOLS_DIR):
-	mkdir -p $@
+	$(V1) mkdir -p $@
 
 $(BUILD_DIR):
-	mkdir -p $@
+	$(V1) mkdir -p $@
 
 ## version           : print firmware version
 version:
@@ -497,14 +495,10 @@ targets:
 	@echo "Base target:         $(BASE_TARGET)"
 	@echo "targets-group-1:     $(GROUP_1_TARGETS)"
 	@echo "targets-group-2:     $(GROUP_2_TARGETS)"
-	@echo "targets-group-3:     $(GROUP_3_TARGETS)"
-	@echo "targets-group-4:     $(GROUP_4_TARGETS)"
 	@echo "targets-group-rest:  $(GROUP_OTHER_TARGETS)"
 
 	@echo "targets-group-1:     $(words $(GROUP_1_TARGETS)) targets"
 	@echo "targets-group-2:     $(words $(GROUP_2_TARGETS)) targets"
-	@echo "targets-group-3:     $(words $(GROUP_3_TARGETS)) targets"
-	@echo "targets-group-4:     $(words $(GROUP_4_TARGETS)) targets"
 	@echo "targets-group-rest:  $(words $(GROUP_OTHER_TARGETS)) targets"
 	@echo "total in all groups  $(words $(SUPPORTED_TARGETS)) targets"
 

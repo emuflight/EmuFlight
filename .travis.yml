@@ -6,12 +6,11 @@ env:
     #- GOAL=test # make test # FIXME: fails
     - GOAL=targets-group-1 # make all (in parallel)
     - GOAL=targets-group-2
-    - GOAL=targets-group-3
-    - GOAL=targets-group-4
     - GOAL=targets-group-rest
   global:
     #- DEBUG=RELWITHDEBINFO # debug symbols
-    - PATH=$HOME/.local/bin:$PATH # "user" installs (pip and stuff)
+    - PATH="$HOME/.local/bin:$PATH" # "user" installs (pip and stuff)
+    - CCACHE_SLOPPINESS="file_macro,time_macros,include_file_mtime,include_file_ctime,file_stat_matches"
 
 sudo: false # be safe
 
@@ -55,6 +54,7 @@ before_script:
 
 script:
   - ./.travis.sh # main
+  - ccache --show-stats
 
 deploy:
   provider: bintray
