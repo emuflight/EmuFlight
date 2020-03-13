@@ -302,7 +302,6 @@ static uint8_t  cmsx_D_angle_high;
 static uint16_t cmsx_F_angle;
 static uint8_t  cmsx_horizonTransition;
 static uint8_t  cmsx_nfe_racermode;
-static uint8_t  cmsx_cinematic_setpoint;
 static uint8_t  cmsx_throttleBoost;
 static uint16_t cmsx_itermAcceleratorGain;
 static uint16_t cmsx_itermThrottleThreshold;
@@ -334,7 +333,6 @@ static long cmsx_profileOtherOnEnter(void)
     cmsx_horizonTransition = pidProfile->horizonTransition;
 
     cmsx_nfe_racermode = pidProfile->nfe_racermode;
-    cmsx_cinematic_setpoint = pidProfile->cinematic_setpoint;
 
     cmsx_itermAcceleratorGain   = pidProfile->itermAcceleratorGain;
     cmsx_itermThrottleThreshold = pidProfile->itermThrottleThreshold;
@@ -371,7 +369,6 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
     pidProfile->horizonTransition = cmsx_horizonTransition;
 
     pidProfile->nfe_racermode = cmsx_nfe_racermode;
-    pidProfile->cinematic_setpoint = cmsx_cinematic_setpoint;
 
     pidProfile->itermAcceleratorGain   = cmsx_itermAcceleratorGain;
     pidProfile->itermThrottleThreshold = cmsx_itermThrottleThreshold;
@@ -404,7 +401,6 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "ANGLE F",         OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_F_angle,                   0,    2000,  1  }   , 0 },
     { "HORZN TRS",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonTransition,         0,    200,   1  }   , 0 },
     { "NFE RACERMODE",   OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_nfe_racermode, 1, cms_offOnLabels }, 0 },
-    { "CINE SETPOINT",   OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_cinematic_setpoint, 1, cms_offOnLabels }, 0 },
     { "AG GAIN",         OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_itermAcceleratorGain,      1000, 30000, 10 }   , 0 },
     { "AG THR",          OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_itermThrottleThreshold,    20,   1000,  1  }   , 0 },
 #ifdef USE_THROTTLE_BOOST
@@ -435,9 +431,6 @@ static uint16_t gyroConfig_gyro_lowpass_hz_yaw;
 static uint16_t gyroConfig_gyro_lowpass2_hz_roll;
 static uint16_t gyroConfig_gyro_lowpass2_hz_pitch;
 static uint16_t gyroConfig_gyro_lowpass2_hz_yaw;
-static uint8_t  gyroConfig_gyro_average_roll;
-static uint8_t  gyroConfig_gyro_average_pitch;
-static uint8_t  gyroConfig_gyro_average_yaw;
 static uint16_t gyroConfig_gyro_soft_notch_hz_1;
 static uint16_t gyroConfig_gyro_soft_notch_cutoff_1;
 static uint16_t gyroConfig_gyro_soft_notch_hz_2;
@@ -458,9 +451,6 @@ static long cmsx_menuGyro_onEnter(void)
     gyroConfig_gyro_lowpass2_hz_roll =  gyroConfig()->gyro_lowpass2_hz[ROLL];
     gyroConfig_gyro_lowpass2_hz_pitch =  gyroConfig()->gyro_lowpass2_hz[PITCH];
     gyroConfig_gyro_lowpass2_hz_yaw =  gyroConfig()->gyro_lowpass2_hz[YAW];
-    gyroConfig_gyro_average_roll = gyroConfig()->averagedGyro[ROLL];
-    gyroConfig_gyro_average_pitch = gyroConfig()->averagedGyro[PITCH];
-    gyroConfig_gyro_average_yaw = gyroConfig()->averagedGyro[YAW];
     gyroConfig_gyro_soft_notch_hz_1 = gyroConfig()->gyro_soft_notch_hz_1;
     gyroConfig_gyro_soft_notch_cutoff_1 = gyroConfig()->gyro_soft_notch_cutoff_1;
     gyroConfig_gyro_soft_notch_hz_2 = gyroConfig()->gyro_soft_notch_hz_2;
@@ -486,9 +476,6 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self)
     gyroConfigMutable()->gyro_lowpass2_hz[ROLL] =  gyroConfig_gyro_lowpass2_hz_roll;
     gyroConfigMutable()->gyro_lowpass2_hz[PITCH] =  gyroConfig_gyro_lowpass2_hz_pitch;
     gyroConfigMutable()->gyro_lowpass2_hz[YAW] =  gyroConfig_gyro_lowpass2_hz_pitch;
-    gyroConfigMutable()->averagedGyro[ROLL] = gyroConfig_gyro_average_roll;
-    gyroConfigMutable()->averagedGyro[PITCH] = gyroConfig_gyro_average_pitch;
-    gyroConfigMutable()->averagedGyro[YAW] = gyroConfig_gyro_average_yaw;
     gyroConfigMutable()->gyro_soft_notch_hz_1 = gyroConfig_gyro_soft_notch_hz_1;
     gyroConfigMutable()->gyro_soft_notch_cutoff_1 = gyroConfig_gyro_soft_notch_cutoff_1;
     gyroConfigMutable()->gyro_soft_notch_hz_2 = gyroConfig_gyro_soft_notch_hz_2;
@@ -516,9 +503,6 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "GYRO LPF2 PITCH",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_pitch,  0, 16000, 1 }, 0 },
     { "GYRO LPF2 YAW",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_yaw,  0, 16000, 1 }, 0 },
 #endif
-    { "GYRO AVG ROLL",  OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_average_roll,        0, 10, 1 }, 0 },
-    { "GYRO AVG PITCH", OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_average_pitch,        0, 10, 1 }, 0 },
-    { "GYRO AVG YAW",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_average_yaw,        0, 10, 1 }, 0 },
     { "GYRO NF1",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_1,     0, 500, 1 }, 0 },
     { "GYRO NF1C",      OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_1, 0, 500, 1 }, 0 },
     { "GYRO NF2",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_2,     0, 500, 1 }, 0 },
