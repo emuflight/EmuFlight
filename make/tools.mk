@@ -1,319 +1,571 @@
-# Emuflight
-
-.PHONY: arm_sdk_version
-arm_sdk_version:
-	$(V1) $(ARM_SDK_PREFIX)gcc --version
-
-.PHONY: arm_sdk_version
-
-arm_sdk_version:
-	$(V1) $(ARM_SDK_PREFIX)gcc --version
-
-## arm_sdk_install   : Install Arm SDK
-.NOTPARALLEL .PHONY: arm_sdk_install
-
-# Checked below, Should match the output of $(shell arm-none-eabi-gcc -dumpversion)
-GCC_REQUIRED_VERSION ?= 9.2.1
-
-ARM_SDK_URL_BASE  := https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/9-2019q4/gcc-arm-none-eabi-9-2019-q4-major
-
-# source: https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads
-ifdef LINUX
-  ARM_SDK_URL  := $(ARM_SDK_URL_BASE)-x86_64-linux.tar.bz2
-endif
-
-ifdef MACOSX
-  ARM_SDK_URL  := $(ARM_SDK_URL_BASE)-mac.tar.bz2
-endif
-
-ifdef WINDOWS
-  ARM_SDK_URL  := $(ARM_SDK_URL_BASE)-win32.zip.bz2
-endif
-
-# Set up ARM (STM32) SDK
-ARM_SDK_FILE := $(notdir $(ARM_SDK_URL))
-
-# Set up ARM (STM32) SDK
-ARM_SDK_DIR ?= $(TOOLS_DIR)/gcc-arm-none-eabi-9-2019-q4-major
-
-# add toolchain binaries to PATH
-export PATH := $(ARM_SDK_DIR)/bin:$(PATH)
-
-SDK_INSTALL_MARKER := $(ARM_SDK_DIR)/bin/arm-none-eabi-gcc-$(GCC_REQUIRED_VERSION)
-
-# order-only prereq on directory existance:
-arm_sdk_install: | $(TOOLS_DIR)
-arm_sdk_install: arm_sdk_download $(SDK_INSTALL_MARKER)
-
-$(SDK_INSTALL_MARKER):
-ifneq ($(OSFAMILY), windows)
-	-$(V1) tar -C $(TOOLS_DIR) -xjf "$(DL_DIR)/$(ARM_SDK_FILE)"
-else
-	-$(V1) unzip -q -d $(ARM_SDK_DIR) "$(DL_DIR)/$(ARM_SDK_FILE)"
-endif
-
-.NOTPARALLEL .PHONY: arm_sdk_download
-arm_sdk_download: | $(DL_DIR)
-arm_sdk_download: $(DL_DIR)/$(ARM_SDK_FILE)
-$(DL_DIR)/$(ARM_SDK_FILE):
-	$(V1) curl -L -sS -o "$(DL_DIR)/$(ARM_SDK_FILE)" -z "$(DL_DIR)/$(ARM_SDK_FILE)" "$(ARM_SDK_URL)"
-
-## arm_sdk_clean     : Uninstall Arm SDK
-.PHONY: arm_sdk_clean
-arm_sdk_clean:
-	$(V1) [ ! -d "$(ARM_SDK_DIR)" ] || $(RM) -r $(ARM_SDK_DIR)
-	$(V1) [ ! -d "$(DL_DIR)" ] || $(RM) -r $(DL_DIR)
-
-.PHONY: openocd_win_install
-
-openocd_win_install: | $(DL_DIR) $(TOOLS_DIR)
-openocd_win_install: OPENOCD_URL  := git://git.code.sf.net/p/openocd/code
-openocd_win_install: OPENOCD_REV  := cf1418e9a85013bbf8dbcc2d2e9985695993d9f4
-openocd_win_install: OPENOCD_OPTIONS :=
-
-ifeq ($(OPENOCD_FTDI), yes)
-openocd_win_install: OPENOCD_OPTIONS := $(OPENOCD_OPTIONS) --enable-ft2232_ftd2xx --with-ftd2xx-win32-zipdir=$(FTD2XX_DIR)
-endif
-
-openocd_win_install: openocd_win_clean libusb_win_install ftd2xx_install
-	@echo " DOWNLOAD     $(OPENOCD_URL) @ $(OPENOCD_REV)"
-	$(V1) [ ! -d "$(OPENOCD_BUILD_DIR)" ] || $(RM) -rf "$(OPENOCD_BUILD_DIR)"
-	$(V1) mkdir -p "$(OPENOCD_BUILD_DIR)"
-	$(V1) git clone --no-checkout $(OPENOCD_URL) "$(DL_DIR)/openocd-build"
-	$(V1) ( \
-	  cd $(OPENOCD_BUILD_DIR) ; \
-	  git checkout -q $(OPENOCD_REV) ; \
-	)
-	@echo " PATCH        $(OPENOCD_BUILD_DIR)"
-	$(V1) ( \
-	  cd $(OPENOCD_BUILD_DIR) ; \
-	  git apply < $(ROOT_DIR)/flight/Project/OpenOCD/0003-freertos-cm4f-fpu-support.patch ; \
-	  git apply < $(ROOT_DIR)/flight/Project/OpenOCD/0004-st-icdi-disable.patch ; \
-	)
-	@echo " BUILD        $(OPENOCD_WIN_DIR)"
-	$(V1) mkdir -p "$(OPENOCD_WIN_DIR)"
-	$(V1) ( \
-	  cd $(OPENOCD_BUILD_DIR) ; \
-	  ./bootstrap ; \
-	  ./configure --enable-maintainer-mode --prefix="$(OPENOCD_WIN_DIR)" \
-		--build=i686-pc-linux-gnu --host=i586-mingw32msvc \
-		CPPFLAGS=-I$(LIBUSB_WIN_DIR)/include \
-		LDFLAGS=-L$(LIBUSB_WIN_DIR)/lib/gcc \
-		$(OPENOCD_OPTIONS) \
-		--disable-werror \
-		--enable-stlink ; \
-	  $(MAKE) ; \
-	  $(MAKE) install ; \
-	)
-	$(V1) [ ! -d "$(OPENOCD_BUILD_DIR)" ] || $(RM) -rf "$(OPENOCD_BUILD_DIR)"
-
-.PHONY: openocd_win_clean
-openocd_win_clean:
-	@echo " CLEAN        $(OPENOCD_WIN_DIR)"
-	$(V1) [ ! -d "$(OPENOCD_WIN_DIR)" ] || $(RM) -r "$(OPENOCD_WIN_DIR)"
-
-# Set up openocd tools
-OPENOCD_DIR       := $(TOOLS_DIR)/openocd
-OPENOCD_WIN_DIR   := $(TOOLS_DIR)/openocd_win
-OPENOCD_BUILD_DIR := $(DL_DIR)/openocd-build
-
-.PHONY: openocd_install
-
-openocd_install: | $(DL_DIR) $(TOOLS_DIR)
-openocd_install: OPENOCD_URL     := git://git.code.sf.net/p/openocd/code
-openocd_install: OPENOCD_TAG     := v0.9.0
-openocd_install: OPENOCD_OPTIONS := --enable-maintainer-mode --prefix="$(OPENOCD_DIR)" --enable-buspirate --enable-stlink
-
-ifeq ($(OPENOCD_FTDI), yes)
-openocd_install: OPENOCD_OPTIONS := $(OPENOCD_OPTIONS) --enable-ftdi
-endif
-
-ifeq ($(UNAME), Darwin)
-openocd_install: OPENOCD_OPTIONS := $(OPENOCD_OPTIONS) --disable-option-checking
-endif
-
-openocd_install: openocd_clean
-        # download the source
-	@echo " DOWNLOAD     $(OPENOCD_URL) @ $(OPENOCD_TAG)"
-	$(V1) [ ! -d "$(OPENOCD_BUILD_DIR)" ] || $(RM) -rf "$(OPENOCD_BUILD_DIR)"
-	$(V1) mkdir -p "$(OPENOCD_BUILD_DIR)"
-	$(V1) git clone --no-checkout $(OPENOCD_URL) "$(OPENOCD_BUILD_DIR)"
-	$(V1) ( \
-	  cd $(OPENOCD_BUILD_DIR) ; \
-	  git checkout -q tags/$(OPENOCD_TAG) ; \
-	)
-	echo " BUILD        $(OPENOCD_DIR)"
-	$(V1) mkdir -p "$(OPENOCD_DIR)"
-	$(V1) ( \
-	  cd $(OPENOCD_BUILD_DIR) ; \
-	  ./bootstrap ; \
-	  ./configure  $(OPENOCD_OPTIONS) ; \
-	  $(MAKE) ; \
-	  $(MAKE) install ; \
-	)
-	$(V1) [ ! -d "$(OPENOCD_BUILD_DIR)" ] || $(RM) -rf "$(OPENOCD_BUILD_DIR)"
-
-.PHONY: openocd_clean
-openocd_clean:
-	@echo " CLEAN        $(OPENOCD_DIR)"
-	$(V1) [ ! -d "$(OPENOCD_DIR)" ] || $(RM) -r "$(OPENOCD_DIR)"
-
-STM32FLASH_DIR := $(TOOLS_DIR)/stm32flash
-
-.PHONY: stm32flash_install
-stm32flash_install: STM32FLASH_URL := http://stm32flash.googlecode.com/svn/trunk
-stm32flash_install: STM32FLASH_REV := 61
-stm32flash_install: stm32flash_clean
-	@echo " DOWNLOAD     $(STM32FLASH_URL) @ r$(STM32FLASH_REV)"
-	$(V1) svn export -q -r "$(STM32FLASH_REV)" "$(STM32FLASH_URL)" "$(STM32FLASH_DIR)"
-	@echo " BUILD        $(STM32FLASH_DIR)"
-	$(V1) $(MAKE) --silent -C $(STM32FLASH_DIR) all
-
-.PHONY: stm32flash_clean
-stm32flash_clean:
-	@echo " CLEAN        $(STM32FLASH_DIR)"
-	$(V1) [ ! -d "$(STM32FLASH_DIR)" ] || $(RM) -r "$(STM32FLASH_DIR)"
-
-DFUUTIL_DIR := $(TOOLS_DIR)/dfu-util
-
-.PHONY: dfuutil_install
-dfuutil_install: DFUUTIL_URL  := http://dfu-util.sourceforge.net/releases/dfu-util-0.8.tar.gz
-dfuutil_install: DFUUTIL_FILE := $(notdir $(DFUUTIL_URL))
-dfuutil_install: | $(DL_DIR) $(TOOLS_DIR)
-dfuutil_install: dfuutil_clean
-	@echo " DOWNLOAD     $(DFUUTIL_URL)"
-	$(V1) curl -L -k -o "$(DL_DIR)/$(DFUUTIL_FILE)" "$(DFUUTIL_URL)"
-	@echo " EXTRACT      $(DFUUTIL_FILE)"
-	$(V1) [ ! -d "$(DL_DIR)/dfuutil-build" ] || $(RM) -r "$(DL_DIR)/dfuutil-build"
-	$(V1) mkdir -p "$(DL_DIR)/dfuutil-build"
-	$(V1) tar -C $(DL_DIR)/dfuutil-build -xf "$(DL_DIR)/$(DFUUTIL_FILE)"
-	@echo " BUILD        $(DFUUTIL_DIR)"
-	$(V1) mkdir -p "$(DFUUTIL_DIR)"
-	$(V1) ( \
-	  cd $(DL_DIR)/dfuutil-build/dfu-util-0.8 ; \
-	  ./configure --prefix="$(DFUUTIL_DIR)" ; \
-	  $(MAKE) ; \
-	  $(MAKE) install ; \
-	)
-
-.PHONY: dfuutil_clean
-dfuutil_clean:
-	@echo " CLEAN        $(DFUUTIL_DIR)"
-	$(V1) [ ! -d "$(DFUUTIL_DIR)" ] || $(RM) -r "$(DFUUTIL_DIR)"
-
-# Set up uncrustify tools
-UNCRUSTIFY_DIR := $(TOOLS_DIR)/uncrustify-0.61
-UNCRUSTIFY_BUILD_DIR := $(DL_DIR)/uncrustify
-
-.PHONY: uncrustify_install
-uncrustify_install: | $(DL_DIR) $(TOOLS_DIR)
-uncrustify_install: UNCRUSTIFY_URL := http://downloads.sourceforge.net/project/uncrustify/uncrustify/uncrustify-0.61/uncrustify-0.61.tar.gz
-uncrustify_install: UNCRUSTIFY_FILE := uncrustify-0.61.tar.gz
-uncrustify_install: UNCRUSTIFY_OPTIONS := prefix=$(UNCRUSTIFY_DIR)
-uncrustify_install: uncrustify_clean
-ifneq ($(OSFAMILY), windows)
-	@echo " DOWNLOAD     $(UNCRUSTIFY_URL)"
-	$(V1) curl -L -k -o "$(DL_DIR)/$(UNCRUSTIFY_FILE)" "$(UNCRUSTIFY_URL)"
-endif
-	@echo " EXTRACT      $(UNCRUSTIFY_FILE)"
-	$(V1) tar -C $(TOOLS_DIR) -xf "$(DL_DIR)/$(UNCRUSTIFY_FILE)"
-	@echo " BUILD        $(UNCRUSTIFY_DIR)"
-	$(V1) ( \
-	  cd $(UNCRUSTIFY_DIR) ; \
-	  ./configure --prefix="$(UNCRUSTIFY_DIR)" ; \
-	  $(MAKE) ; \
-	  $(MAKE) install ; \
-	)
-	$(V1) [ ! -d "$(UNCRUSTIFY_BUILD_DIR)" ] || $(RM) -r "$(UNCRUSTIFY_BUILD_DIR)"
-
-.PHONY: uncrustify_clean
-uncrustify_clean:
-	@echo " CLEAN        $(UNCRUSTIFY_DIR)"
-	$(V1) [ ! -d "$(UNCRUSTIFY_DIR)" ] || $(RM) -r "$(UNCRUSTIFY_DIR)"
-	@echo " CLEAN        $(UNCRUSTIFY_BUILD_DIR)"
-	$(V1) [ ! -d "$(UNCRUSTIFY_BUILD_DIR)" ] || $(RM) -r "$(UNCRUSTIFY_BUILD_DIR)"
-
-# ZIP download URL
-zip_install: ZIP_URL  := http://pkgs.fedoraproject.org/repo/pkgs/zip/zip30.tar.gz/7b74551e63f8ee6aab6fbc86676c0d37/zip30.tar.gz
-zip_install: ZIP_FILE := $(notdir $(ZIP_URL))
-
-ZIP_DIR = $(TOOLS_DIR)/zip30
-
-# order-only prereq on directory existance:
-zip_install : | $(DL_DIR) $(TOOLS_DIR)
-zip_install: zip_clean
-	$(V1) curl -L -k -o "$(DL_DIR)/$(ZIP_FILE)" "$(ZIP_URL)"
-	$(V1) tar --force-local -C $(TOOLS_DIR) -xzf "$(DL_DIR)/$(ZIP_FILE)"
-ifneq ($(OSFAMILY), windows)
-	$(V1) cd "$(ZIP_DIR)" && $(MAKE) -f unix/Makefile generic_gcc
-else
-	$(V1) cd "$(ZIP_DIR)" && $(MAKE) -f win32/makefile.gcc
-endif
-
-.PHONY: zip_clean
-zip_clean:
-	$(V1) [ ! -d "$(ZIP_DIR)" ] || $(RM) -rf $(ZIP_DIR)
-
-##############################
+###############################################################################
+# "THE BEER-WARE LICENSE" (Revision 42):
+# <msmith@FreeBSD.ORG> wrote this file. As long as you retain this notice you
+# can do whatever you want with this stuff. If we meet some day, and you think
+# this stuff is worth it, you can buy me a beer in return
+###############################################################################
 #
-# Set up paths to tools
+# Makefile for building the EmuFlight firmware.
 #
-##############################
+# Invoke this with 'make help' to see the list of supported targets.
+#
+###############################################################################
 
-ifeq ($(shell [ -d "$(ARM_SDK_DIR)" ] && echo "exists"), exists)
-  ARM_SDK_PREFIX := $(ARM_SDK_DIR)/bin/arm-none-eabi-
-else ifeq (,$(findstring _install,$(MAKECMDGOALS)))
-  GCC_VERSION = $(shell arm-none-eabi-gcc -dumpversion)
-  ifeq ($(GCC_VERSION),)
-    $(error **ERROR** arm-none-eabi-gcc not in the PATH. Run 'make arm_sdk_install' to install automatically in the tools folder of this repo)
-  else ifneq ($(GCC_VERSION), $(GCC_REQUIRED_VERSION))
-    $(error **ERROR** your arm-none-eabi-gcc is '$(GCC_VERSION)', but '$(GCC_REQUIRED_VERSION)' is expected. Override with 'GCC_REQUIRED_VERSION' in make/local.mk or run 'make arm_sdk_install' to install the right version automatically in the tools folder of this repo)
-  endif
-  # ARM tookchain is in the path, and the version is what's required.
-  ARM_SDK_PREFIX ?= arm-none-eabi-
+
+# Things that the user might override on the commandline
+#
+
+# The target to build, see VALID_TARGETS below
+TARGET    ?= HELIOSPRING
+
+# Compile-time options
+OPTIONS   ?=
+
+# compile for OpenPilot BootLoader support
+OPBL      ?= no
+
+# Debugger optons:
+#   empty           - ordinary build with all optimizations enabled
+#   RELWITHDEBINFO  - ordinary build with debug symbols and all optimizations enabled
+#   GDB             - debug build with minimum number of optimizations
+DEBUG     ?=
+
+# Insert the debugging hardfault debugger
+# releases should not be built with this flag as it does not disable pwm output
+DEBUG_HARDFAULTS ?=
+
+# Serial port/Device for flashing
+SERIAL_DEVICE   ?= $(firstword $(wildcard /dev/ttyUSB*) no-port-found)
+
+# Flash size (KB).  Some low-end chips actually have more flash than advertised, use this to override.
+FLASH_SIZE ?=
+
+
+###############################################################################
+# Things that need to be maintained as the source changes
+#
+
+FORKNAME      = EmuFlight
+
+# Working directories
+ROOT            := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
+SRC_DIR         := $(ROOT)/src/main
+OBJECT_DIR      := $(ROOT)/obj/main
+BIN_DIR         := $(ROOT)/obj
+CMSIS_DIR       := $(ROOT)/lib/main/CMSIS
+INCLUDE_DIRS    := $(SRC_DIR) \
+                   $(ROOT)/src/main/target
+LINKER_DIR      := $(ROOT)/src/main/target/link
+
+## V                 : Set verbosity level based on the V= parameter
+##                     V=0 Low
+##                     V=1 High
+include $(ROOT)/make/build_verbosity.mk
+
+# Build tools, so we all share the same versions
+# import macros common to all supported build systems
+include $(ROOT)/make/system-id.mk
+
+# developer preferences, edit these at will, they'll be gitignored
+-include $(ROOT)/make/local.mk
+
+# configure some directories that are relative to wherever ROOT_DIR is located
+ifndef TOOLS_DIR
+TOOLS_DIR := $(ROOT)/tools
 endif
+BUILD_DIR := $(ROOT)/build
+DL_DIR    := $(ROOT)/downloads
 
-ifeq ($(shell [ -d "$(ZIP_DIR)" ] && echo "exists"), exists)
-  export ZIPBIN := $(ZIP_DIR)/zip
+export RM := rm
+
+# import macros that are OS specific
+include $(ROOT)/make/$(OSFAMILY).mk
+
+# include the tools makefile
+include $(ROOT)/make/tools.mk
+
+# default xtal value for F4 targets
+HSE_VALUE       ?= 8000000
+
+# used for turning on features like VCP and SDCARD
+FEATURES        =
+
+include $(ROOT)/make/targets.mk
+
+# if building on travis the branch name is set
+ifneq ($(TRAVIS_BRANCH),)
+# so use it
+BRANCH := $(TRAVIS_BRANCH)
 else
-  export ZIPBIN := zip
+# otherwise, call git
+BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 endif
 
-ifeq ($(shell [ -d "$(OPENOCD_DIR)" ] && echo "exists"), exists)
-  OPENOCD := $(OPENOCD_DIR)/bin/openocd
+BRANCH := $(shell echo $(BRANCH))
+
+# building locally build number does not increment
+BUILDNO := local
+# if building on travis we have a build number set
+ifneq ($(TRAVIS_BUILD_NUMBER),)
+# so use it
+BUILDNO := $(TRAVIS_BUILD_NUMBER)
+endif
+
+REVISION := $(shell git log -1 --format="%h")
+
+FC_VER_MAJOR := $(shell grep " FC_VERSION_MAJOR" src/main/build/version.h | awk '{print $$3}' )
+FC_VER_MINOR := $(shell grep " FC_VERSION_MINOR" src/main/build/version.h | awk '{print $$3}' )
+FC_VER_PATCH := $(shell grep " FC_VERSION_PATCH" src/main/build/version.h | awk '{print $$3}' )
+
+FC_VER := $(FC_VER_MAJOR).$(FC_VER_MINOR).$(FC_VER_PATCH)
+
+# Search path for sources
+VPATH           := $(SRC_DIR):$(SRC_DIR)/startup
+USBFS_DIR       = $(ROOT)/lib/main/STM32_USB-FS-Device_Driver
+USBPERIPH_SRC   = $(notdir $(wildcard $(USBFS_DIR)/src/*.c))
+FATFS_DIR       = $(ROOT)/lib/main/FatFS
+FATFS_SRC       = $(notdir $(wildcard $(FATFS_DIR)/*.c))
+
+CSOURCES        := $(shell find $(SRC_DIR) -name '*.c')
+
+LD_FLAGS         :=
+
+#
+# Default Tool options - can be overridden in {mcu}.mk files.
+#
+ifeq ($(DEBUG),GDB)
+OPTIMISE_DEFAULT      := -Og
+
+LTO_FLAGS             := $(OPTIMISE_DEFAULT)
+DEBUG_FLAGS            = -ggdb3 -DDEBUG
 else
-  # not installed, hope it's in the path...
-  OPENOCD ?= openocd
+ifeq ($(DEBUG),INFO)
+DEBUG_FLAGS            = -ggdb3
+endif
+OPTIMISATION_BASE     := -flto -fuse-linker-plugin -ffast-math
+OPTIMISE_DEFAULT      := -O2
+OPTIMISE_SPEED        := -Ofast
+OPTIMISE_SIZE         := -Os
+
+LTO_FLAGS             := $(OPTIMISATION_BASE) $(OPTIMISE_SPEED)
 endif
 
-ifeq ($(shell [ -d "$(UNCRUSTIFY_DIR)" ] && echo "exists"), exists)
-  UNCRUSTIFY := $(UNCRUSTIFY_DIR)/bin/uncrustify
+VPATH 			:= $(VPATH):$(ROOT)/make/mcu
+VPATH 			:= $(VPATH):$(ROOT)/make
+
+# start specific includes
+include $(ROOT)/make/mcu/$(TARGET_MCU).mk
+
+# openocd specific includes
+include $(ROOT)/make/openocd.mk
+
+# Configure default flash sizes for the targets (largest size specified gets hit first) if flash not specified already.
+ifeq ($(FLASH_SIZE),)
+ifneq ($(TARGET_FLASH),)
+FLASH_SIZE := $(TARGET_FLASH)
 else
-  # not installed, hope it's in the path...
-  UNCRUSTIFY ?= uncrustify
+$(error FLASH_SIZE not configured for target $(TARGET))
+endif
 endif
 
-# Google Breakpad
-DUMP_SYMBOLS_TOOL := $(TOOLS_DIR)/breakpad/$(OSFAMILY)-$(ARCHFAMILY)/dump_syms
-BREAKPAD_URL := http://dronin.tracer.nz/tools/breakpad.zip
-BREAKPAD_DL_FILE := $(DL_DIR)/$(notdir $(BREAKPAD_URL))
-BREAKPAD_DIR := $(TOOLS_DIR)/breakpad
+DEVICE_FLAGS  := $(DEVICE_FLAGS) -DFLASH_SIZE=$(FLASH_SIZE)
 
-.PHONY: breakpad_install
-breakpad_install: | $(DL_DIR) $(TOOLS_DIR)
-breakpad_install: breakpad_clean
-	@echo " DOWNLOAD     $(BREAKPAD_URL)"
-	$(V1) $(V1) curl -L -k -z "$(BREAKPAD_DL_FILE)" -o "$(BREAKPAD_DL_FILE)" "$(BREAKPAD_URL)"
-	@echo " EXTRACT      $(notdir $(BREAKPAD_DL_FILE))"
-	$(V1) mkdir -p "$(BREAKPAD_DIR)"
-	$(V1) unzip -q -d $(BREAKPAD_DIR) "$(BREAKPAD_DL_FILE)"
-ifeq ($(OSFAMILY), windows)
-	$(V1) ln -s "$(TOOLS_DIR)/breakpad/$(OSFAMILY)-i686" "$(TOOLS_DIR)/breakpad/$(OSFAMILY)-x86_64"
+ifneq ($(HSE_VALUE),)
+DEVICE_FLAGS  := $(DEVICE_FLAGS) -DHSE_VALUE=$(HSE_VALUE)
 endif
 
-.PHONY: breakpad_clean
-breakpad_clean:
-	@echo " CLEAN        $(BREAKPAD_DIR)"
-	$(V1) [ ! -d "$(BREAKPAD_DIR)" ] || $(RM) -rf $(BREAKPAD_DIR)
-	@echo " CLEAN        $(BREAKPAD_DL_FILE)"
-	$(V1) $(RM) -f $(BREAKPAD_DL_FILE)
+TARGET_DIR     = $(ROOT)/src/main/target/$(BASE_TARGET)
+TARGET_DIR_SRC = $(notdir $(wildcard $(TARGET_DIR)/*.c))
+
+ifeq ($(OPBL),yes)
+TARGET_FLAGS := -DOPBL $(TARGET_FLAGS)
+.DEFAULT_GOAL := binary
+else
+.DEFAULT_GOAL := hex
+endif
+
+INCLUDE_DIRS    := $(INCLUDE_DIRS) \
+                   $(ROOT)/lib/main/MAVLink
+
+INCLUDE_DIRS    := $(INCLUDE_DIRS) \
+                   $(TARGET_DIR)
+
+VPATH           := $(VPATH):$(TARGET_DIR)
+
+include $(ROOT)/make/source.mk
+
+###############################################################################
+# Things that might need changing to use different tools
+#
+
+# Find out if ccache is installed on the system
+CCACHE :=
+CCACHE_CHECK = $(shell (command -v ccache) > /dev/null 2>&1; echo $$?)
+ifeq ($(CCACHE_CHECK),0)
+	CCACHE := ccache
+endif
+
+# suit ccache
+CROSS_COMPILE := $(ARM_SDK_PREFIX)
+
+# Tool names
+CROSS_CC    := $(CCACHE) $(ARM_SDK_PREFIX)gcc
+CROSS_CXX   := $(CCACHE) $(ARM_SDK_PREFIX)g++
+CROSS_GDB   := $(ARM_SDK_PREFIX)gdb
+OBJCOPY     := $(ARM_SDK_PREFIX)objcopy
+OBJDUMP     := $(ARM_SDK_PREFIX)objdump
+SIZE        := $(ARM_SDK_PREFIX)size
+
+#
+# Tool options.
+#
+CC_DEBUG_OPTIMISATION   := $(OPTIMISE_DEFAULT)
+CC_DEFAULT_OPTIMISATION := $(OPTIMISATION_BASE) $(OPTIMISE_DEFAULT)
+CC_SPEED_OPTIMISATION   := $(OPTIMISATION_BASE) $(OPTIMISE_SPEED)
+CC_SIZE_OPTIMISATION    := $(OPTIMISATION_BASE) $(OPTIMISE_SIZE)
+
+CFLAGS     += $(ARCH_FLAGS) \
+              $(addprefix -D,$(OPTIONS)) \
+              $(addprefix -I,$(INCLUDE_DIRS)) \
+              $(DEBUG_FLAGS) \
+              -pedantic \
+              -save-temps=obj \
+              -std=gnu11 \
+              -Wall \
+              -Wdouble-promotion \
+              -Wduplicated-branches \
+              -Wduplicated-cond \
+              -Wextra \
+              -Wformat-truncation \
+              -Wformat=2 \
+              -Wlogical-op \
+              -Wnull-dereference \
+              -Wrestrict \
+              -Wunknown-pragmas \
+              -Wunsafe-loop-optimizations \
+              $(DEVICE_FLAGS) \
+              -D_GNU_SOURCE \
+              -DUSE_STDPERIPH_DRIVER \
+              -D$(TARGET) \
+              $(TARGET_FLAGS) \
+              -D'__FORKNAME__="$(FORKNAME)"' \
+              -D'__BUILDNO__="$(BUILDNO)"' \
+              -D'__TARGET__="$(TARGET)"' \
+              -D'__REVISION__="$(REVISION)"' \
+              -save-temps=obj \
+              -MMD \
+              -MP \
+              $(EXTRA_FLAGS)
+
+ASFLAGS     = $(ARCH_FLAGS) \
+			  $(DEBUG_FLAGS) \
+              -x assembler-with-cpp \
+              $(addprefix -I,$(INCLUDE_DIRS)) \
+              -MMD -MP
+
+ifeq ($(LD_FLAGS),)
+LD_FLAGS     = -lm \
+              -nostartfiles \
+              --specs=nano.specs \
+              -lc \
+              -lnosys \
+              $(ARCH_FLAGS) \
+              $(LTO_FLAGS) \
+              $(DEBUG_FLAGS) \
+              -static \
+              -Wl,--cref \
+              -Wl,--no-wchar-size-warning \
+              -Wl,--print-memory-usage \
+              -Wl,-gc-sections,-Map,$(TARGET_MAP) \
+              -Wl,-L$(LINKER_DIR) \
+              -T$(LD_SCRIPT)
+endif
+
+###############################################################################
+# No user-serviceable parts below
+###############################################################################
+
+CPPCHECK        = cppcheck $(CSOURCES) --enable=all --platform=unix64 \
+                  --std=c99 --inline-suppr --quiet --force \
+                  $(addprefix -I,$(INCLUDE_DIRS)) \
+                  -I/usr/include -I/usr/include/linux
+
+TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(TARGET)_$(FC_VER)
+
+#
+# Things we will build
+#
+TARGET_BIN      = $(TARGET_BASENAME).bin
+TARGET_HEX      = $(TARGET_BASENAME).hex
+TARGET_ELF      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).elf
+TARGET_LST      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).lst
+TARGET_OBJS     = $(addsuffix .o,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $(SRC))))
+TARGET_DEPS     = $(addsuffix .d,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $(SRC))))
+TARGET_MAP      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).map
+
+CLEAN_ARTIFACTS := $(TARGET_BIN)
+CLEAN_ARTIFACTS += $(TARGET_HEX)
+CLEAN_ARTIFACTS += $(TARGET_ELF) $(TARGET_OBJS) $(TARGET_MAP)
+CLEAN_ARTIFACTS += $(TARGET_LST)
+
+# Make sure build date and revision is updated on every incremental build
+$(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC)
+
+# List of buildable ELF files and their object dependencies.
+# It would be nice to compute these lists, but that seems to be just beyond make.
+
+$(TARGET_LST): $(TARGET_ELF)
+	$(V0) $(OBJDUMP) -S --disassemble $< > $@
+
+$(TARGET_HEX): $(TARGET_ELF)
+	@echo "Creating HEX $(TARGET_HEX)" "$(STDOUT)"
+	$(V1) $(OBJCOPY) -O ihex --set-start 0x8000000 $< $@
+
+$(TARGET_BIN): $(TARGET_ELF)
+	@echo "Creating BIN $(TARGET_BIN)" "$(STDOUT)"
+	$(V1) $(OBJCOPY) -O binary $< $@
+
+$(TARGET_ELF):  $(TARGET_OBJS)
+	@echo "Linking $(TARGET)" "$(STDOUT)"
+	$(V1) $(CROSS_CC) -o $@ $^ $(LD_FLAGS)
+	$(V1) $(SIZE) $(TARGET_ELF)
+
+# Compile
+ifeq ($(DEBUG),GDB)
+$(OBJECT_DIR)/$(TARGET)/%.o: %.c
+	$(V1) mkdir -p $(dir $@)
+	$(V1) echo "%% (debug) $(notdir $<)" "$(STDOUT)" && \
+	$(CROSS_CC) -c -o $@ $(CFLAGS) $(CC_DEBUG_OPTIMISATION) $<
+else
+$(OBJECT_DIR)/$(TARGET)/%.o: %.c
+	$(V1) mkdir -p $(dir $@)
+	$(V1) $(if $(findstring $(subst ./src/main/,,$<),$(SPEED_OPTIMISED_SRC)), \
+	echo "%% (speed optimised) $(notdir $<)" "$(STDOUT)" && \
+	$(CROSS_CC) -c -o $@ $(CFLAGS) $(CC_SPEED_OPTIMISATION) $<, \
+	$(if $(findstring $(subst ./src/main/,,$<),$(SIZE_OPTIMISED_SRC)), \
+	echo "%% (size optimised) $(notdir $<)" "$(STDOUT)" && \
+	$(CROSS_CC) -c -o $@ $(CFLAGS) $(CC_SIZE_OPTIMISATION) $<, \
+	echo "%% $(notdir $<)" "$(STDOUT)" && \
+	$(CROSS_CC) -c -o $@ $(CFLAGS) $(CC_DEFAULT_OPTIMISATION) $<))
+endif
+
+# Assemble
+$(OBJECT_DIR)/$(TARGET)/%.o: %.s
+	$(V1) mkdir -p $(dir $@)
+	@echo "%% $(notdir $<)" "$(STDOUT)"
+	$(V1) $(CROSS_CC) -c -o $@ $(ASFLAGS) $<
+
+$(OBJECT_DIR)/$(TARGET)/%.o: %.S
+	$(V1) mkdir -p $(dir $@)
+	@echo "%% $(notdir $<)" "$(STDOUT)"
+	$(V1) $(CROSS_CC) -c -o $@ $(ASFLAGS) $<
+
+
+## all               : Build all targets (excluding unsupported)
+all supported: $(SUPPORTED_TARGETS)
+
+## all_with_unsupported : Build all targets (including unsupported)
+all_with_unsupported: $(VALID_TARGETS)
+
+## unsupported : Build unsupported targets
+unsupported: $(UNSUPPORTED_TARGETS)
+
+## official          : Build all official (travis) targets
+official: $(OFFICIAL_TARGETS)
+
+## targets-group-1   : build some targets
+targets-group-1: $(GROUP_1_TARGETS)
+
+## targets-group-2   : build some targets
+targets-group-2: $(GROUP_2_TARGETS)
+
+## targets-group-rest: build the rest of the targets (not listed in group 1, 2 or 3)
+targets-group-rest: $(GROUP_OTHER_TARGETS)
+
+$(VALID_TARGETS):
+	$(V0) @echo "Building $@" && \
+	$(MAKE) binary hex TARGET=$@ && \
+	echo "Building $@ succeeded."
+
+$(NOBUILD_TARGETS):
+	$(MAKE) TARGET=$@
+
+CLEAN_TARGETS = $(addprefix clean_,$(VALID_TARGETS) )
+TARGETS_CLEAN = $(addsuffix _clean,$(VALID_TARGETS) )
+
+## clean             : clean up temporary / machine-generated files
+clean:
+	@echo "Cleaning $(TARGET)"
+	$(V0) rm -f $(CLEAN_ARTIFACTS)
+	$(V0) rm -rf $(OBJECT_DIR)/$(TARGET)
+	@echo "Cleaning $(TARGET) succeeded."
+
+## clean_test        : clean up temporary / machine-generated files (tests)
+clean_test:
+	$(V0) cd src/test && $(MAKE) clean || true
+
+## clean_<TARGET>    : clean up one specific target
+$(CLEAN_TARGETS):
+	$(V0) $(MAKE) -j TARGET=$(subst clean_,,$@) clean
+
+## <TARGET>_clean    : clean up one specific target (alias for above)
+$(TARGETS_CLEAN):
+	$(V0) $(MAKE) -j TARGET=$(subst _clean,,$@) clean
+
+## clean_all         : clean all valid targets
+clean_all: $(CLEAN_TARGETS)
+
+## all_clean         : clean all valid targets (alias for above)
+all_clean: $(TARGETS_CLEAN)
+
+
+flash_$(TARGET): $(TARGET_HEX)
+	$(V0) stty -F $(SERIAL_DEVICE) raw speed 115200 -crtscts cs8 -parenb -cstopb -ixon
+	$(V0) echo -n 'R' >$(SERIAL_DEVICE)
+	$(V0) stm32flash -w $(TARGET_HEX) -v -g 0x0 -b 115200 $(SERIAL_DEVICE)
+
+## flash             : flash firmware (.hex) onto flight controller
+flash: flash_$(TARGET)
+
+st-flash_$(TARGET): $(TARGET_BIN)
+	$(V0) st-flash --reset write $< 0x08000000
+
+## st-flash          : flash firmware (.bin) onto flight controller
+st-flash: st-flash_$(TARGET)
+
+ifneq ($(OPENOCD_COMMAND),)
+openocd-gdb: $(TARGET_ELF)
+	$(V0) $(OPENOCD_COMMAND) & $(CROSS_GDB) $(TARGET_ELF) -ex "target remote localhost:3333" -ex "load"
+endif
+
+binary:
+	$(V0) $(MAKE) -j $(TARGET_BIN)
+
+hex:
+	$(V0) $(MAKE) -j $(TARGET_HEX)
+
+unbrick_$(TARGET): $(TARGET_HEX)
+	$(V0) stty -F $(SERIAL_DEVICE) raw speed 115200 -crtscts cs8 -parenb -cstopb -ixon
+	$(V0) stm32flash -w $(TARGET_HEX) -v -g 0x0 -b 115200 $(SERIAL_DEVICE)
+
+## unbrick           : unbrick flight controller
+unbrick: unbrick_$(TARGET)
+
+## cppcheck          : run static analysis on C source code
+cppcheck: $(CSOURCES)
+	$(V0) $(CPPCHECK)
+
+cppcheck-result.xml: $(CSOURCES)
+	$(V0) $(CPPCHECK) --xml-version=2 2> cppcheck-result.xml
+
+# mkdirs
+$(DL_DIR):
+	$(V1) mkdir -p $@
+
+$(TOOLS_DIR):
+	$(V1) mkdir -p $@
+
+$(BUILD_DIR):
+	$(V1) mkdir -p $@
+
+## version           : print firmware version
+version:
+	@echo $(FC_VER)
+
+## help              : print this help message and exit
+help: Makefile make/tools.mk
+	@echo ""
+	@echo "Makefile for the $(FORKNAME) firmware"
+	@echo ""
+	@echo "Usage:"
+	@echo "        make [V=<verbosity>] [TARGET=<target>] [OPTIONS=\"<options>\"]"
+	@echo "Or:"
+	@echo "        make <target> [V=<verbosity>] [OPTIONS=\"<options>\"]"
+	@echo ""
+	@echo "Valid TARGET values are: $(VALID_TARGETS)"
+	@echo ""
+	@sed -n 's/^## //p' $?
+
+## targets           : print a list of all valid target platforms (for consumption by scripts)
+targets:
+	@echo "Valid targets:       $(VALID_TARGETS)"
+	@echo "Supported targets:   $(SUPPORTED_TARGETS)"
+	@echo "Unsupported targets: $(UNSUPPORTED_TARGETS)"
+	@echo "Target:              $(TARGET)"
+	@echo "Base target:         $(BASE_TARGET)"
+	@echo "targets-group-1:     $(GROUP_1_TARGETS)"
+	@echo "targets-group-2:     $(GROUP_2_TARGETS)"
+	@echo "targets-group-rest:  $(GROUP_OTHER_TARGETS)"
+
+	@echo "targets-group-1:     $(words $(GROUP_1_TARGETS)) targets"
+	@echo "targets-group-2:     $(words $(GROUP_2_TARGETS)) targets"
+	@echo "targets-group-rest:  $(words $(GROUP_OTHER_TARGETS)) targets"
+	@echo "total in all groups  $(words $(SUPPORTED_TARGETS)) targets"
+
+## target-mcu        : print the MCU type of the target
+target-mcu:
+	@echo $(TARGET_MCU)
+
+## targets-by-mcu    : make all targets that have a MCU_TYPE mcu
+targets-by-mcu:
+	@echo "Building all $(MCU_TYPE) targets..."
+	$(V1) for target in $(VALID_TARGETS); do \
+		TARGET_MCU_TYPE=$$($(MAKE) -s TARGET=$${target} target-mcu); \
+		if [ "$${TARGET_MCU_TYPE}" = "$${MCU_TYPE}" ]; then \
+			echo "Building target $${target}..."; \
+			$(MAKE) TARGET=$${target}; \
+			if [ $$? -ne 0 ]; then \
+				echo "Building target $${target} failed, aborting."; \
+				exit 1; \
+			fi; \
+		fi; \
+	done
+
+## targets-f3        : make all F3 targets
+targets-f3:
+	$(V1) $(MAKE) -s targets-by-mcu MCU_TYPE=STM32F3
+
+## targets-f4        : make all F4 targets
+targets-f4:
+	$(V1) $(MAKE) -s targets-by-mcu MCU_TYPE=STM32F4
+
+## targets-f7        : make all F7 targets
+targets-f7:
+	$(V1) $(MAKE) -s targets-by-mcu MCU_TYPE=STM32F7
+
+## test              : run the cleanflight test suite
+## junittest         : run the cleanflight test suite, producing Junit XML result files.
+test junittest:
+	$(V0) cd src/test && $(MAKE) $@
+
+
+check-target-independence:
+	$(V1) for test_target in $(VALID_TARGETS); do \
+		FOUND=$$(grep -rE "\W$${test_target}\W?" src/main | grep -vE "(//)|(/\*).*\W$${test_target}\W?" | grep -vE "^src/main/target"); \
+		if [ "$${FOUND}" != "" ]; then \
+			echo "Target dependencies found:"; \
+			echo "$${FOUND}"; \
+			exit 1; \
+		fi; \
+	done
+
+check-fastram-usage-correctness:
+	$(V1) NON_TRIVIALLY_INITIALIZED=$$(grep -Ern "\W?FAST_RAM_ZERO_INIT\W.*=.*" src/main/ | grep -Ev "=\s*(false|NULL|0(\.0*f?)?)\s*[,;]"); \
+	if [ "$${NON_TRIVIALLY_INITIALIZED}" != "" ]; then \
+		echo "Non-trivially initialized FAST_RAM_ZERO_INIT variables found, use FAST_RAM instead:"; \
+		echo "$${NON_TRIVIALLY_INITIALIZED}"; \
+		exit 1; \
+	fi; \
+	TRIVIALLY_INITIALIZED=$$(grep -Ern "\W?FAST_RAM\W.*;" src/main/ | grep -v "="); \
+	EXPLICITLY_TRIVIALLY_INITIALIZED=$$(grep -Ern "\W?FAST_RAM\W.*;" src/main/ | grep -E "=\s*(false|NULL|0(\.0*f?)?)\s*[,;]"); \
+	if [ "$${TRIVIALLY_INITIALIZED}$${EXPLICITLY_TRIVIALLY_INITIALIZED}" != "" ]; then \
+		echo "Trivially initialized FAST_RAM variables found, use FAST_RAM_ZERO_INIT instead to save FLASH:"; \
+		echo "$${TRIVIALLY_INITIALIZED}\n$${EXPLICITLY_TRIVIALLY_INITIALIZED}"; \
+		exit 1; \
+	fi;
+
+# rebuild everything when makefile changes
+$(TARGET_OBJS) : Makefile
+
+# include auto-generated dependencies
+-include $(TARGET_DEPS)
