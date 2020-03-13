@@ -57,13 +57,13 @@ deploy:
     target_commitish: "${TRAVIS_COMMIT}"
     body: "${TRAVIS_COMMIT_MESSAGE}"
     file: obj/*.hex
+    file_glob: true
     draft: true
     prerelease: true
     overwrite: true
     token: "${GITHUB_TOKEN}"
     on:
       tags: true
-    edge: true
   - provider: bintray
     file: bintray-conf.json
     user: "${BINTRAY_USER}"
