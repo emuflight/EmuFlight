@@ -98,10 +98,11 @@
 
 #define SERIAL_PORT_COUNT         7 //VCP, USART1, USART3,USART4, USART6, SOFT_SERIAL1
 
-#define USE_ESCSERIAL 
+#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN    PD2
 
 #define USE_SPI
+#define USE_SPI_DEVICE_1
 #define SPI1_NSS_PIN              PA4
 #define SPI1_SCK_PIN              PA5
 #define SPI1_MISO_PIN             PA6
