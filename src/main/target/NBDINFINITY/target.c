@@ -40,4 +40,4 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
 
     DEF_TIM(TIM4,  CH3,   PB8, TIM_USE_MOTOR | TIM_USE_LED,  0, 0)
 
-};
+  };

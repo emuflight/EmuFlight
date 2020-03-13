@@ -20,37 +20,37 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "S405"
-#define USBD_PRODUCT_STRING "NBDINFINITY"
+#define TARGET_BOARD_IDENTIFIER "SF405"
+#define USBD_PRODUCT_STRING "NBD_INFINITY"
 
-#define LED0_PIN                  PB5
+#define LED0_PIN                    PC0
+#define LED1_PIN                    PC0
 
 #define USE_BEEPER
-#define BEEPER_PIN                PB6
+#define BEEPER_PIN                  PB6
 #define BEEPER_INVERTED
 
 #define USE_PINIO
-#define PINIO1_PIN                PC5
+#define PINIO1_PIN                  PC5
 #define USE_PINIOBOX
 
-#define ENABLE_DSHOT_DMAR        true
+#define ENABLE_DSHOT_DMAR           true
 
-#define CAMERA_CONTROL_PIN        PB9
-#define INVERTER_PIN_UART1        PA10
-
+#define CAMERA_CONTROL_PIN          PB9
 
 #define USE_EXTI
-#define MPU_INT_EXTI              PC13
+#define MPU_INT_EXTI                PC13
 #define USE_MPU_DATA_READY_SIGNAL
 
 //  MPU 6000
-
 #define MPU6000_CS_PIN            PB12
 #define MPU6000_SPI_INSTANCE      SPI2
+
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
+
 #define GYRO_MPU6000_ALIGN        CW90_DEG
 #define ACC_MPU6000_ALIGN         CW90_DEG
 
@@ -87,21 +87,25 @@
 #define UART4_TX_PIN              PA0
 
 #define USE_UART5
-#define UART5_RX_PIN              PC12
-#define UART5_TX_PIN              PD2
+#define UART5_RX_PIN              PD2
+#define UART5_TX_PIN              PC12
 
 #define USE_UART6
 #define UART6_RX_PIN              PC7
 #define UART6_TX_PIN              PC6
 
+#define INVERTER_PIN_UART1        PA10
+
 #define USE_SOFTSERIAL1
 
-#define SERIAL_PORT_COUNT         7 //VCP, USART1, USART3,USART4, USART6, SOFT_SERIAL1
+#define SERIAL_PORT_COUNT         6 //VCP, USART1, USART3,USART4, USART6, SOFT_SERIAL1
 
-#define USE_ESCSERIAL 
+#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN    PD2
 
 #define USE_SPI
+
+#define USE_SPI_DEVICE_1
 #define SPI1_NSS_PIN              PA4
 #define SPI1_SCK_PIN              PA5
 #define SPI1_MISO_PIN             PA6
@@ -122,12 +126,11 @@
 #define USE_ADC
 #define CURRENT_METER_ADC_PIN     PC3
 #define VBAT_ADC_PIN              PC4
-#define RSSI_ADC_PIN              PC5
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
 #define DEFAULT_RX_FEATURE        FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES          ( FEATURE_OSD  )
+#define DEFAULT_FEATURES          FEATURE_OSD
 #define CURRENT_METER_SCALE_DEFAULT 250
 
 #define TARGET_IO_PORTA         0xffff

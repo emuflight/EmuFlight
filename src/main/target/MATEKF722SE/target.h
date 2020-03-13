@@ -114,6 +114,7 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
 #define USE_SPI_DEVICE_3
+#define SPI3_NSS_PIN            PD2
 #define SPI3_SCK_PIN            PC10
 #define SPI3_MISO_PIN           PC11
 #define SPI3_MOSI_PIN           PC12
@@ -130,10 +131,6 @@
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
 
 
-#define USE_FLASHFS
-#define USE_FLASH_M25P16
-#define FLASH_SPI_INSTANCE      SPI3
-#define FLASH_CS_PIN            PD2
 
 // *************** UART *****************************
 
