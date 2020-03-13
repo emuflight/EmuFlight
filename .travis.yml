@@ -50,8 +50,7 @@ script:
 
 deploy:
   - provider: releases
-    edge: true
-    cleanup: false # do not delete what has just been built
+    skip_cleanup: true # do not delete what has just been built
     name: "${TRAVIS_TAG}"
     tag_name: "${TRAVIS_TAG}"
     target_commitish: "${TRAVIS_COMMIT}"
