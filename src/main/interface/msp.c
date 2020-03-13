@@ -1330,9 +1330,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentPidProfile->dFilter[ROLL].Wc);
         sbufWriteU8(dst, currentPidProfile->dFilter[PITCH].Wc);
         sbufWriteU8(dst, currentPidProfile->dFilter[YAW].Wc);
-        sbufWriteU8(dst, gyroConfig()->averagedGyro[ROLL]);
-        sbufWriteU8(dst, gyroConfig()->averagedGyro[PITCH]);
-        sbufWriteU8(dst, gyroConfig()->averagedGyro[YAW]);
+        sbufWriteU8(dst, 0);
+        sbufWriteU8(dst, 0);
+        sbufWriteU8(dst, 0);
 
 
         break;
@@ -1968,9 +1968,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             currentPidProfile->dFilter[ROLL].Wc = sbufReadU8(src);
             currentPidProfile->dFilter[PITCH].Wc = sbufReadU8(src);
             currentPidProfile->dFilter[YAW].Wc = sbufReadU8(src);
-            gyroConfigMutable()->averagedGyro[ROLL] = sbufReadU8(src);
-            gyroConfigMutable()->averagedGyro[PITCH] = sbufReadU8(src);
-            gyroConfigMutable()->averagedGyro[YAW] = sbufReadU8(src);
+            sbufReadU8(src);
+            sbufReadU8(src);
+            sbufReadU8(src);
 
         }
 
@@ -1996,10 +1996,10 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         gyroConfigMutable()->imuf_yaw_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_w = sbufReadU16(src);
 #ifdef USE_GYRO_IMUF9001
-        gyroConfigMutable()->imuf_roll_lpf_cutoff_hz = sbufReadU16(src);
-        gyroConfigMutable()->imuf_pitch_lpf_cutoff_hz = sbufReadU16(src);
-        gyroConfigMutable()->imuf_yaw_lpf_cutoff_hz = sbufReadU16(src);
-        gyroConfigMutable()->imuf_acc_lpf_cutoff_hz = sbufReadU16(src);
+        sbufReadU16(src);
+        sbufReadU16(src);
+        sbufReadU16(src);
+        sbufReadU16(src);
 #endif
         break;
 //#endif
