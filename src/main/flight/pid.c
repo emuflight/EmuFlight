@@ -148,32 +148,32 @@ void resetPidProfile(pidProfile_t *pidProfile)
                      [PID_YAW] = {0, 100, 250, 0},    // wc, dtermlpf, dtermlpf2, smartSmoothing
                  },
 
-                 .pidSumLimit = PIDSUM_LIMIT_MAX, 
-                 .pidSumLimitYaw = PIDSUM_LIMIT_YAW, 
-                 .dterm_filter_type = FILTER_PT1, 
-                 .itermWindupPointPercent = 50, 
-                 .pidAtMinThrottle = PID_STABILISATION_ON, 
-                 .levelAngleLimit = 45, 
-                 .angleExpo = 10, 
-                 .feedForwardTransition = 0, 
-                 .setPointPTransition[ROLL] = 110, 
-                 .setPointPTransition[PITCH] = 110, 
-                 .setPointPTransition[YAW] = 130, 
-                 .setPointITransition[ROLL] = 75, 
-                 .setPointITransition[PITCH] = 75, 
-                 .setPointITransition[YAW] = 45, 
-                 .setPointDTransition[ROLL] = 110, 
-                 .setPointDTransition[PITCH] = 110, 
-                 .setPointDTransition[YAW] = 130, 
-                 .feathered_pids = 100, 
-                 .i_decay = 4, 
-                 .errorBoost = 15, 
-                 .errorBoostYaw = 40, 
-                 .errorBoostLimit = 20, 
-                 .errorBoostLimitYaw = 40, 
-                 .yawRateAccelLimit = 0, 
-                 .rateAccelLimit = 0, 
-                 .itermThrottleThreshold = 350, 
+                 .pidSumLimit = PIDSUM_LIMIT_MAX,
+                 .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
+                 .dterm_filter_type = FILTER_PT1,
+                 .itermWindupPointPercent = 50,
+                 .pidAtMinThrottle = PID_STABILISATION_ON,
+                 .levelAngleLimit = 45,
+                 .angleExpo = 10,
+                 .feedForwardTransition = 0,
+                 .setPointPTransition[ROLL] = 110,
+                 .setPointPTransition[PITCH] = 110,
+                 .setPointPTransition[YAW] = 130,
+                 .setPointITransition[ROLL] = 75,
+                 .setPointITransition[PITCH] = 75,
+                 .setPointITransition[YAW] = 45,
+                 .setPointDTransition[ROLL] = 110,
+                 .setPointDTransition[PITCH] = 110,
+                 .setPointDTransition[YAW] = 130,
+                 .feathered_pids = 100,
+                 .i_decay = 4,
+                 .errorBoost = 15,
+                 .errorBoostYaw = 40,
+                 .errorBoostLimit = 20,
+                 .errorBoostLimitYaw = 40,
+                 .yawRateAccelLimit = 0,
+                 .rateAccelLimit = 0,
+                 .itermThrottleThreshold = 350,
                  .itermAcceleratorGain = 1000,
                  .crash_time = 500,                        // ms
                  .crash_delay = 0,                         // ms
@@ -183,7 +183,26 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  .crash_gthreshold = 400,                  // degrees/second
                  .crash_setpoint_threshold = 350,          // degrees/second
                  .crash_recovery = PID_CRASH_RECOVERY_OFF, // off by default
-                 .horizon_tilt_effect = 130, .nfe_racermode = false, .cinematic_setpoint = false, .crash_limit_yaw = 200, .itermLimit = 400, .throttle_boost = 5, .throttle_boost_cutoff = 15, .iterm_rotation = true, .iterm_relax = ITERM_RELAX_OFF, .iterm_relax_cutoff = 11, .iterm_relax_type = ITERM_RELAX_GYRO, .abs_control_gain = 0, .abs_control_limit = 90, .abs_control_error_limit = 20, .antiGravityMode = ANTI_GRAVITY_SMOOTH, .use_integrated_yaw = false, .integrated_yaw_relax = 200, .motor_output_limit = 100, .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY, .horizonTransition = 0, );
+                 .horizon_tilt_effect = 130,
+                 .nfe_racermode = false,
+                 .crash_limit_yaw = 200,
+                 .itermLimit = 400,
+                 .throttle_boost = 5,
+                 .throttle_boost_cutoff = 15,
+                 .iterm_rotation = true,
+                 .iterm_relax = ITERM_RELAX_OFF,
+                 .iterm_relax_cutoff = 11,
+                 .iterm_relax_type = ITERM_RELAX_GYRO,
+                 .abs_control_gain = 0,
+                 .abs_control_limit = 90,
+                 .abs_control_error_limit = 20,
+                 .antiGravityMode = ANTI_GRAVITY_SMOOTH,
+                 .use_integrated_yaw = false,
+                 .integrated_yaw_relax = 200,
+                 .motor_output_limit = 100,
+                 .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
+                 .horizonTransition = 0,
+               );
 }
 
 void pgResetFn_pidProfiles(pidProfile_t *pidProfiles)
@@ -362,7 +381,6 @@ static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feedForwardTransition;
 static FAST_RAM_ZERO_INIT float feathered_pids;
 static FAST_RAM_ZERO_INIT uint8_t nfe_racermode;
-static FAST_RAM_ZERO_INIT uint8_t cinematic_setpoint;
 static FAST_RAM_ZERO_INIT float smart_dterm_smoothing[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
@@ -435,7 +453,6 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 
     feathered_pids = pidProfile->feathered_pids / 100.0f;
     nfe_racermode = pidProfile->nfe_racermode;
-    cinematic_setpoint = pidProfile->cinematic_setpoint;
 
     P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
     D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
@@ -631,10 +648,10 @@ static void handleCrashRecovery(
         // and ITerm windup during crash recovery can be extreme, especially on yaw axis
         pidData[axis].I = 0.0f;
         if (
-            cmpTimeUs(currentTimeUs, crashDetectedAtUs) > crashTimeLimitUs || 
-            (getMotorMixRange() < 1.0f && 
-                ABS(gyro.gyroADCf[FD_ROLL]) < crashRecoveryRate && 
-                ABS(gyro.gyroADCf[FD_PITCH]) < crashRecoveryRate && 
+            cmpTimeUs(currentTimeUs, crashDetectedAtUs) > crashTimeLimitUs ||
+            (getMotorMixRange() < 1.0f &&
+                ABS(gyro.gyroADCf[FD_ROLL]) < crashRecoveryRate &&
+                ABS(gyro.gyroADCf[FD_PITCH]) < crashRecoveryRate &&
                 ABS(gyro.gyroADCf[FD_YAW]) < crashRecoveryRate
             )
         )
@@ -778,9 +795,9 @@ static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
 static void processIterm(
     uint8_t axis,
-    float currentIntegral, 
+    float currentIntegral,
     float errorRate,
-    float itermErrorRate, 
+    float itermErrorRate,
     float dynCi
 ) {
 
@@ -869,43 +886,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         {
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint, deltaT);
         }
-
-        // -----calculate feedforward component
-        // Use angle feedforward for angle mode and level feedforward for pitch/roll or roll if in nfe_racermode
-        float feedforwardGain;
-
-        if (!FLIGHT_MODE(GPS_RESCUE_MODE))
-        {
-            feedforwardGain = pidCoefficient[axis].Kf;
-        }
-        else
-        {
-            feedforwardGain = 0;
-        }
-
-        float pidSetpointDelta = currentPidSetpoint - previousPidSetpoint[axis];
-
-#ifdef USE_RC_SMOOTHING_FILTER
-        pidSetpointDelta = applyRcSmoothingDerivativeFilter(axis, pidSetpointDelta);
-#endif // USE_RC_SMOOTHING_FILTER
-        float transition = 1.0f;
-
-        //calculate the cinematic_setpoint code and apply change to the setPoint
-        if (cinematic_setpoint)
-        {
-            transition = MAX(4 - (4 * (currentPidSetpoint / 1000.0f)), 1.0f);
-            float setpointSmoother = MIN(.95f, ((pidSetpointDelta * 0.041262f) / 1000.0f) * transition);
-            currentPidSetpoint = currentPidSetpoint - (pidSetpointDelta * setpointSmoother);
-            pidData[axis].F = 0;
-        }
-        else if (feedforwardGain > 0)
-        {
-            // no transition if feedForwardTransition == 0 or cinematic_setpoint is enabled
-            transition = MIN(1.0f, getRcDeflectionAbs(axis) * feedForwardTransition);
-            pidData[axis].F = feedforwardGain * transition * pidSetpointDelta * iDT;
-        }
-
-        previousPidSetpoint[axis] = currentPidSetpoint;
 
         // Handle yaw spin recovery - zero the setpoint on yaw to aid in recovery
         // It's not necessary to zero the set points for R/P because the PIDs will be zeroed below
@@ -1055,10 +1035,10 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
          */
         processIterm(
             axis,
-            ITerm, 
+            ITerm,
             errorRate,
-            itermErrorRate, 
-            dynCi 
+            itermErrorRate,
+            dynCi
         );
 
         // -----calculate D component
@@ -1113,6 +1093,34 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             &currentPidSetpoint, &errorRate);
 
         detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, currentTimeUs, pidData[axis].D, errorRate);
+        // -----calculate feedforward component
+        // Use angle feedforward for angle mode and level feedforward for pitch/roll or roll if in nfe_racermode
+        float feedforwardGain;
+
+        if (!FLIGHT_MODE(GPS_RESCUE_MODE))
+        {
+            feedforwardGain = pidCoefficient[axis].Kf;
+        }
+        else
+        {
+            feedforwardGain = 0;
+        }
+
+        if (feedforwardGain > 0) {
+
+        // no transition if feedForwardTransition == 0
+            float transition = feedForwardTransition > 0 ? MIN(1.f, getRcDeflectionAbs(axis) * feedForwardTransition) : 1;
+            float pidSetpointDelta = currentPidSetpoint - previousPidSetpoint[axis];
+
+#ifdef USE_RC_SMOOTHING_FILTER
+        pidSetpointDelta = applyRcSmoothingDerivativeFilter(axis, pidSetpointDelta);
+#endif // USE_RC_SMOOTHING_FILTER
+
+            pidData[axis].F = feedforwardGain * transition * pidSetpointDelta * pidFrequency;
+        } else {
+            pidData[axis].F = 0;
+        }
+        previousPidSetpoint[axis] = currentPidSetpoint;
 
 #ifdef USE_YAW_SPIN_RECOVERY
         if (gyroYawSpinDetected())
