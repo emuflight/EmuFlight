@@ -67,7 +67,8 @@ deploy:
     key: "${BINTRAY_API_KEY}"
     skip_cleanup: true # do not delete what has just been built
     on:
-      tags: true
+      all_branches: true
+      #tags: true
   
 after_deploy:
   - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
