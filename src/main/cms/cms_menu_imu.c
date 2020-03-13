@@ -431,9 +431,6 @@ static uint16_t gyroConfig_gyro_lowpass_hz_yaw;
 static uint16_t gyroConfig_gyro_lowpass2_hz_roll;
 static uint16_t gyroConfig_gyro_lowpass2_hz_pitch;
 static uint16_t gyroConfig_gyro_lowpass2_hz_yaw;
-static uint8_t  gyroConfig_gyro_average_roll;
-static uint8_t  gyroConfig_gyro_average_pitch;
-static uint8_t  gyroConfig_gyro_average_yaw;
 static uint16_t gyroConfig_gyro_soft_notch_hz_1;
 static uint16_t gyroConfig_gyro_soft_notch_cutoff_1;
 static uint16_t gyroConfig_gyro_soft_notch_hz_2;
@@ -454,9 +451,6 @@ static long cmsx_menuGyro_onEnter(void)
     gyroConfig_gyro_lowpass2_hz_roll =  gyroConfig()->gyro_lowpass2_hz[ROLL];
     gyroConfig_gyro_lowpass2_hz_pitch =  gyroConfig()->gyro_lowpass2_hz[PITCH];
     gyroConfig_gyro_lowpass2_hz_yaw =  gyroConfig()->gyro_lowpass2_hz[YAW];
-    gyroConfig_gyro_average_roll = gyroConfig()->averagedGyro[ROLL];
-    gyroConfig_gyro_average_pitch = gyroConfig()->averagedGyro[PITCH];
-    gyroConfig_gyro_average_yaw = gyroConfig()->averagedGyro[YAW];
     gyroConfig_gyro_soft_notch_hz_1 = gyroConfig()->gyro_soft_notch_hz_1;
     gyroConfig_gyro_soft_notch_cutoff_1 = gyroConfig()->gyro_soft_notch_cutoff_1;
     gyroConfig_gyro_soft_notch_hz_2 = gyroConfig()->gyro_soft_notch_hz_2;
@@ -482,9 +476,6 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self)
     gyroConfigMutable()->gyro_lowpass2_hz[ROLL] =  gyroConfig_gyro_lowpass2_hz_roll;
     gyroConfigMutable()->gyro_lowpass2_hz[PITCH] =  gyroConfig_gyro_lowpass2_hz_pitch;
     gyroConfigMutable()->gyro_lowpass2_hz[YAW] =  gyroConfig_gyro_lowpass2_hz_pitch;
-    gyroConfigMutable()->averagedGyro[ROLL] = gyroConfig_gyro_average_roll;
-    gyroConfigMutable()->averagedGyro[PITCH] = gyroConfig_gyro_average_pitch;
-    gyroConfigMutable()->averagedGyro[YAW] = gyroConfig_gyro_average_yaw;
     gyroConfigMutable()->gyro_soft_notch_hz_1 = gyroConfig_gyro_soft_notch_hz_1;
     gyroConfigMutable()->gyro_soft_notch_cutoff_1 = gyroConfig_gyro_soft_notch_cutoff_1;
     gyroConfigMutable()->gyro_soft_notch_hz_2 = gyroConfig_gyro_soft_notch_hz_2;
@@ -512,9 +503,6 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "GYRO LPF2 PITCH",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_pitch,  0, 16000, 1 }, 0 },
     { "GYRO LPF2 YAW",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_yaw,  0, 16000, 1 }, 0 },
 #endif
-    { "GYRO AVG ROLL",  OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_average_roll,        0, 10, 1 }, 0 },
-    { "GYRO AVG PITCH", OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_average_pitch,        0, 10, 1 }, 0 },
-    { "GYRO AVG YAW",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_average_yaw,        0, 10, 1 }, 0 },
     { "GYRO NF1",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_1,     0, 500, 1 }, 0 },
     { "GYRO NF1C",      OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_1, 0, 500, 1 }, 0 },
     { "GYRO NF2",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_2,     0, 500, 1 }, 0 },
