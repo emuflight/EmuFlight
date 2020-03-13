@@ -11,7 +11,7 @@ env:
   global:
     # - DEBUG=RELWITHDEBINFO # debug symbols
     - CCACHE_SLOPPINESS="file_macro,time_macros,include_file_mtime,include_file_ctime,file_stat_matches"
-    - MAKEFLAGS="-j 2"
+    - MAKEFLAGS="-j 2" # each travis vm has 2 cpu cores
     - PATH="$HOME/.local/bin:$PATH" # "user" installs (pip and stuff)
 git:
   depth: 5 # quick clone
@@ -43,13 +43,6 @@ compiler: clang
 
 before_install:
   - pip install --user --upgrade j2cli
-install:
-  - make arm_sdk_install # toolchain
-
-before_script:
-  - clang --version
-  - clang++ --version
-  - gcc --version
 
 script:
   - ./.travis.sh # main
