@@ -125,10 +125,6 @@ static FAST_RAM_ZERO_INIT float gyroPrevious[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t accumulatedMeasurementTimeUs;
 static FAST_RAM_ZERO_INIT timeUs_t accumulationLastTimeSampledUs;
 
-static FAST_RAM_ZERO_INIT float averagedGyroData[XYZ_AXIS_COUNT][AVERAGED_GYRO_DATA_BUFFER_SIZE];
-static FAST_RAM_ZERO_INIT float averagedGyroDataSum[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT uint8_t averagedGyroDataPointer[XYZ_AXIS_COUNT];
-
 float FAST_RAM_ZERO_INIT vGyroStdDevModulus;
 
 
@@ -258,9 +254,6 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
    	.imuf_acc_lpf_cutoff_hz = IMUF_DEFAULT_ACC_LPF_HZ,
     .imuf_sharpness = 1000,
     .gyro_offset_yaw = 0,
-    .averagedGyro[ROLL] = 0,
-    .averagedGyro[PITCH] = 0,
-    .averagedGyro[YAW] = 0,
 );
 #else //USE_GYRO_IMUF9001
 PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
@@ -296,9 +289,6 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .yaw_spin_threshold = 1950,
     .dyn_notch_quality = 70,
     .dyn_notch_width_percent = 50,
-    .averagedGyro[ROLL] = 0,
-    .averagedGyro[PITCH] = 0,
-    .averagedGyro[YAW] = 0,
 );
 #endif //USE_GYRO_IMUF9001
 
