@@ -3,12 +3,11 @@
         {
             "includePattern": "obj/(.*\\.hex)",
             "uploadPattern": "{{ env("PACKAGE_VERSION") }}/$1",
-            "matrixParams": { "override": 1 },
-            "listInDownloads": true
+            "matrixParams": { "override": 1 }
         },
         {
             "includePattern": "CHANGELOG.md",
-            "uploadPattern": "{{ env("PACKAGE_VERSION") }}/$1",
+            "uploadPattern": "{{ env("PACKAGE_VERSION") }}/CHANGELOG.md.txt",
             "matrixParams": { "override": 1 }
         }
     ],
@@ -24,8 +23,7 @@
             "GPL-3.0"
         ],
         "labels": [
-            "emuflight",
-            "imuf"
+            "emuflight", "imuf"
         ],
         "name": "{{ env("TRAVIS_BRANCH") }}",
         "vcs_url": "{{ env("TRAVIS_BUILD_WEB_URL") }}"
