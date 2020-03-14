@@ -12,7 +12,7 @@ env:
     # - DEBUG=RELWITHDEBINFO # debug symbols
     - CCACHE_SLOPPINESS="file_macro,time_macros,include_file_mtime,include_file_ctime,file_stat_matches"
     - CHANGELOG="$(git log --format='%h %s (@%an, %cr)' --tags --date-order $TRAVIS_COMMIT_RANGE)"
-    - MAKEFLAGS="-j 2" # each travis vm has 2 cpu cores
+    # - MAKEFLAGS="-j 2" # each travis vm has 2 cpu cores
     - PATH="$HOME/.local/bin:$PATH" # "user" installs (pip and stuff)
 
 git:
@@ -36,8 +36,8 @@ cache:
   ccache: true
   pip: true
   directories:
-  - downloads
-  - tools
+    - downloads
+    - tools
 
 dist: bionic # ubuntu
 language: cpp
