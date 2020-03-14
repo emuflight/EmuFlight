@@ -54,7 +54,7 @@ script:
 
 deploy:
   - provider: releases
-    edge: true
+    #edge: true
     token: "${GITHUB_TOKEN}"
     name: "${TRAVIS_TAG}"
     body: "${CHANGELOG}"
