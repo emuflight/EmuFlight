@@ -54,10 +54,10 @@ script:
 
 deploy:
   - provider: releases
-    #edge: true
+    edge: true
     token: "${GITHUB_TOKEN}"
     name: "${TRAVIS_TAG}"
-    body: "${CHANGELOG}"
+    #body: "${CHANGELOG}" # broken as of 14.03.2020
     tag_name: "${TRAVIS_TAG}"
     target_commitish: "${TRAVIS_COMMIT}"
     file_glob: true
