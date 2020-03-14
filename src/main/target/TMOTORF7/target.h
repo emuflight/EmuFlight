@@ -30,7 +30,14 @@
 #define BEEPER_PIN              PC13
 #define BEEPER_INVERTED
 
-#define ENABLE_DSHOT_DMAR       false
+#define CAMERA_CONTROL_PIN        PB9
+
+#define USE_PINIO
+#define PINIO1_PIN                PC14
+#define USE_PINIOBOX
+
+
+#define ENABLE_DSHOT_DMAR       true
 
 #define USE_EXTI
 #define MPU_INT_EXTI         PC4
@@ -38,7 +45,7 @@
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
-#define MPU6000_CS_PIN          SPI1_NSS_PIN
+#define MPU6000_CS_PIN          PA4
 #define MPU6000_SPI_INSTANCE    SPI1
 #define ACC_MPU6000_ALIGN           CW0_DEG
 #define GYRO_MPU6000_ALIGN           CW0_DEG
@@ -60,14 +67,14 @@
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
-#define MAX7456_SPI_CS_PIN      SPI2_NSS_PIN
+#define MAX7456_SPI_CS_PIN      PB12
 #define MAX7456_SPI_CLK         ( SPI_CLOCK_STANDARD )
 #define MAX7456_RESTORE_CLK     ( SPI_CLOCK_FAST )
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
 #define FLASH_SPI_INSTANCE      SPI3
-#define FLASH_CS_PIN            SPI3_NSS_PIN
+#define FLASH_CS_PIN            PC8
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
 #define USE_VCP
@@ -134,7 +141,7 @@
 //#define SBUS_TELEMETRY_UART     SERIAL_PORT_USART1
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES        ( FEATURE_OSD | FEATURE_TELEMETRY )
+#define DEFAULT_FEATURES        ( FEATURE_OSD  )
 
 #define TARGET_IO_PORTA         ( 0xffff )
 #define TARGET_IO_PORTB         ( 0xffff )
