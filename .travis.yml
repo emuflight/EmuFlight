@@ -11,6 +11,7 @@ env:
   global:
     # - DEBUG=RELWITHDEBINFO # debug symbols
     - CCACHE_SLOPPINESS="file_macro,time_macros,include_file_mtime,include_file_ctime,file_stat_matches"
+    - CHANGELOG="$(git log --format='%h %s (@%an, %cr)' --tags --date-order $TRAVIS_COMMIT_RANGE)"
     - MAKEFLAGS="-j 2" # each travis vm has 2 cpu cores
     - PATH="$HOME/.local/bin:$PATH" # "user" installs (pip and stuff)
 
@@ -46,33 +47,37 @@ before_install:
   - pip install --user --upgrade j2cli
 
 script:
+  - echo "${CHANGELOG}" > CHANGELOG.md
+  - cat CHANGELOG.md
   - ./.travis.sh # main
   - ccache --show-stats
 
 deploy:
   - provider: releases
-    skip_cleanup: true # do not delete what has just been built
+    edge: true
+    token: "${GITHUB_TOKEN}"
     name: "${TRAVIS_TAG}"
+    body: "${CHANGELOG}"
     tag_name: "${TRAVIS_TAG}"
     target_commitish: "${TRAVIS_COMMIT}"
-    body: "${TRAVIS_COMMIT_MESSAGE}"
-    file: obj/*.hex
-    file_glob: true
+    file:
+      - obj/*.hex
+      - CHANGELOG.md
+    cleanup: false # do not delete what has just been built
     draft: true
     prerelease: true
     overwrite: true
-    token: "${GITHUB_TOKEN}"
     on:
       tags: true
   - provider: bintray
-    file: bintray-conf.json
     user: "${BINTRAY_USER}"
     key: "${BINTRAY_API_KEY}"
+    file: bintray-conf.json
     skip_cleanup: true # do not delete what has just been built
     on:
       all_branches: true
       #tags: true
-  
+
 after_deploy:
   - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
   - chmod +x send.sh

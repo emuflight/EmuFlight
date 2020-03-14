@@ -5,6 +5,11 @@
             "uploadPattern": "{{ env("PACKAGE_VERSION") }}/$1",
             "matrixParams": { "override": 1 },
             "listInDownloads": true
+        },
+        {
+            "includePattern": "CHANGELOG.md",
+            "uploadPattern": "{{ env("PACKAGE_VERSION") }}/$1",
+            "matrixParams": { "override": 1 }
         }
     ],
     "package": {
