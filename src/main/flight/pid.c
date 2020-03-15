@@ -565,7 +565,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     if (pidProfile->angleExpo > 0)
     {
         const float expof = pidProfile->angleExpo / 100.0f;
-        angle = pidProfile->levelAngleLimit * (getRcDeflection(axis) * power3(fabsf(getRcDeflection(axis))) * expof + getRcDeflection(axis) * (1 - expof));
+        angle = pidProfile->levelAngleLimit * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
     }
 
 #ifdef USE_GPS_RESCUE
