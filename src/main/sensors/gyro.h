@@ -109,7 +109,8 @@ typedef struct gyroConfig_s {
     int16_t  yaw_spin_threshold;
 
     uint16_t gyroCalibrationDuration;  // Gyro calibration duration in 1/100 second
-    uint8_t dyn_notch_width_percent;
+    uint16_t dyn_notch_q_factor;
+    uint16_t dyn_notch_min_hz;
 #if defined(USE_GYRO_IMUF9001)
     uint16_t imuf_mode;
     uint16_t imuf_rate;

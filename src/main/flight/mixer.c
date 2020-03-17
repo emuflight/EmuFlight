@@ -77,6 +77,7 @@ PG_RESET_TEMPLATE(mixerConfig_t, mixerConfig,
     .mixerMode = TARGET_DEFAULT_MIXER,
     .yaw_motors_reversed = false,
     .crashflip_motor_percent = 0,
+    .crashflip_power_percent = 70,
 );
 
 PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 1);
@@ -664,16 +665,19 @@ static void applyFlipOverAfterCrashModeToMotors(void)
         float signRoll = getRcDeflection(FD_ROLL) < 0 ? 1 : -1;
         float signYaw = (getRcDeflection(FD_YAW) < 0 ? 1 : -1) * (mixerConfig()->yaw_motors_reversed ? 1 : -1);
 
+        float stickDeflectionMax;
         float stickDeflectionLength = sqrtf(stickDeflectionPitchAbs*stickDeflectionPitchAbs + stickDeflectionRollAbs*stickDeflectionRollAbs);
-
-        if (stickDeflectionYawAbs > MAX(stickDeflectionPitchAbs, stickDeflectionRollAbs)) {
-            // If yaw is the dominant, disable pitch and roll
-            stickDeflectionLength = stickDeflectionYawAbs;
-            signRoll = 0;
-            signPitch = 0;
+        if (stickDeflectionPitchAbs > MAX(stickDeflectionRollAbs,stickDeflectionYawAbs))
+        {
+           stickDeflectionMax = stickDeflectionPitchAbs;
+           signYaw = 0;
+        } else if (stickDeflectionRollAbs > stickDeflectionYawAbs) {
+           stickDeflectionMax = stickDeflectionRollAbs;
+           signYaw = 0;
         } else {
-            // If pitch/roll dominant, disable yaw
-            signYaw = 0;
+          stickDeflectionMax = stickDeflectionYawAbs;
+          signRoll = 0;
+          signPitch = 0;
         }
 
         float cosPhi = (stickDeflectionPitchAbs + stickDeflectionRollAbs) / (sqrtf(2.0f) * stickDeflectionLength);
@@ -690,7 +694,7 @@ static void applyFlipOverAfterCrashModeToMotors(void)
 
         // Apply a reasonable amount of stick deadband
         const float flipStickRange = 1.0f - CRASH_FLIP_STICK_MINF;
-        float flipPower = MAX(0.0f, stickDeflectionLength - CRASH_FLIP_STICK_MINF) / flipStickRange;
+        float flipPower = MAX(0.0f, stickDeflectionMax - CRASH_FLIP_STICK_MINF) / flipStickRange;
 
         for (int i = 0; i < motorCount; ++i) {
             float motorOutput =
@@ -705,7 +709,7 @@ static void applyFlipOverAfterCrashModeToMotors(void)
                     motorOutput = disarmMotorOutput;
                 }
             }
-            motorOutput = MIN(1.0f, flipPower * motorOutput);
+            motorOutput = MIN(1.0f, flipPower * motorOutput * mixerConfig()->crashflip_power_percent / 100.0f);
             motorOutput = motorOutputMin + motorOutput * motorOutputRange;
 
             // Add a little bit to the motorOutputMin so props aren't spinning when sticks are centered
