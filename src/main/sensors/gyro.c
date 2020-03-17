@@ -208,7 +208,7 @@ static void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int typ
 #define GYRO_OVERFLOW_TRIGGER_THRESHOLD 31980  // 97.5% full scale (1950dps for 2000dps gyro)
 #define GYRO_OVERFLOW_RESET_THRESHOLD 30340    // 92.5% full scale (1850dps for 2000dps gyro)
 
-PG_REGISTER_WITH_RESET_TEMPLATE(gyroConfig_t, gyroConfig, PG_GYRO_CONFIG, 4);
+PG_REGISTER_WITH_RESET_TEMPLATE(gyroConfig_t, gyroConfig, PG_GYRO_CONFIG, 6);
 
 #ifndef GYRO_CONFIG_USE_GYRO_DEFAULT
 #define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
@@ -240,7 +240,6 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .checkOverflow = GYRO_OVERFLOW_CHECK_ALL_AXES,
     .yaw_spin_recovery = true,
     .yaw_spin_threshold = 1950,
-    .dyn_notch_quality = 70,
     .dyn_notch_width_percent = 25,
     .imuf_mode = GTBCM_GYRO_ACC_FILTER_F,
     .imuf_rate = IMUF_RATE_16K,
@@ -287,7 +286,6 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .gyro_offset_yaw = 0,
     .yaw_spin_recovery = true,
     .yaw_spin_threshold = 1950,
-    .dyn_notch_quality = 70,
     .dyn_notch_width_percent = 50,
 );
 #endif //USE_GYRO_IMUF9001
