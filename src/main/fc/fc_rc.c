@@ -862,26 +862,27 @@ FAST_CODE float stickFeels(float rcCommand, int axis)
   float pterm_low, pterm_high, pterm, iterm_low, iterm_high, iterm, dterm_low, dterm_high, dterm;
   float rcCommandPercent;
   float rcCommandError;
-  rcCommandPercent = rcCommand / 500.0f; // make rcCommandPercent go from -1 to 1
+  rcCommandPercent = fabsf(rcCommand) / 500.0f; // make rcCommandPercent go from 0 to 1
 
   if (((currentControlRateProfile->stickPids[axis].PLow != 100) || (currentControlRateProfile->stickPids[axis].PHigh != 100)) || ((currentControlRateProfile->stickPids[axis].DLow > 0) || (currentControlRateProfile->stickPids[axis].DHigh > 0)))
   {
-    pterm_low = (1.0f - fabsf(rcCommandPercent)) * rcCommand * (currentControlRateProfile->stickPids[axis].PLow / 100.0f); // valid pterm values are between 50-150
-    pterm_high = fabsf(rcCommandPercent) * rcCommand * (currentControlRateProfile->stickPids[axis].PHigh / 100.0f);
+    pterm_low = (1.0f - rcCommandPercent) * rcCommand * (currentControlRateProfile->stickPids[axis].PLow / 100.0f); // valid pterm values are between 50-150
+    pterm_high = rcCommandPercent * rcCommand * (currentControlRateProfile->stickPids[axis].PHigh / 100.0f);
     pterm = pterm_low + pterm_high;
     rcCommandError = rcCommand - pterm;
     rcCommand = pterm; // add this fake pterm to the rcCommand
 
-    iterm_low = (1.0f - fabsf(rcCommandPercent)) * rcCommandError * (currentControlRateProfile->stickPids[axis].ILow / 100.0f); // valid iterm values are between 0-95
-    iterm_high = fabsf(rcCommandPercent) * rcCommandError * (currentControlRateProfile->stickPids[axis].ILow / 100.0f);
+    iterm_low = (1.0f - rcCommandPercent) * rcCommandError * (currentControlRateProfile->stickPids[axis].ILow / 100.0f); // valid iterm values are between 0-95
+    iterm_high = rcCommandPercent * rcCommandError * (currentControlRateProfile->stickPids[axis].IHigh / 100.0f);
     iterm = iterm_low + iterm_high;
     rcCommand = rcCommand + iterm; // add the fake iterm to the rcCommand
 
-    dterm_low = (1.0f - fabsf(rcCommandPercent)) * (lastRcCommandData[axis] - rcCommand) * (currentControlRateProfile->stickPids[axis].DLow / 100.0f); // valid dterm values are between 0-95
-    dterm_high = fabsf(rcCommandPercent) * (lastRcCommandData[axis] - rcCommand) * (currentControlRateProfile->stickPids[axis].DHigh / 100.0f);
+    dterm_low = (1.0f - rcCommandPercent) * (lastRcCommandData[axis] - rcCommand) * (currentControlRateProfile->stickPids[axis].DLow / 100.0f); // valid dterm values are between 0-95
+    dterm_high = rcCommandPercent * (lastRcCommandData[axis] - rcCommand) * (currentControlRateProfile->stickPids[axis].DHigh / 100.0f);
     dterm = dterm_low + dterm_high;
 
     rcCommand = rcCommand + dterm; // add dterm to the rcCommand (this is real dterm)
+    lastRcCommandData[axis] = rcCommand;
   }
     return rcCommand;
 }
