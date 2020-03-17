@@ -716,7 +716,7 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
         if (rcData[axis] < rxConfig()->midrc) {
             rcCommand[axis] = -rcCommand[axis];
         }
-      stickFeels(rcCommand[axis], axis);
+      rcCommand[axis] = stickFeels(rcCommand[axis], axis);
     }
 
     int32_t tmp;
