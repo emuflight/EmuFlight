@@ -859,13 +859,14 @@ bool rcSmoothingInitializationComplete(void) {
 FAST_CODE float stickFeels(float rcCommand, int axis)
 {
   static FAST_RAM_ZERO_INIT float lastRcCommandData[3];
-  float pterm_low, pterm_high, pterm, iterm_low, iterm_high, iterm, dterm_low, dterm_high, dterm;
-  float rcCommandPercent;
-  float rcCommandError;
-  rcCommandPercent = fabsf(rcCommand) / 500.0f; // make rcCommandPercent go from 0 to 1
 
   if (((currentControlRateProfile->stickPids[axis].PLow != 100) || (currentControlRateProfile->stickPids[axis].PHigh != 100)) || ((currentControlRateProfile->stickPids[axis].DLow > 0) || (currentControlRateProfile->stickPids[axis].DHigh > 0)))
   {
+    float pterm_low, pterm_high, pterm, iterm_low, iterm_high, iterm, dterm_low, dterm_high, dterm;
+    float rcCommandPercent;
+    float rcCommandError;
+    rcCommandPercent = fabsf(rcCommand) / 500.0f; // make rcCommandPercent go from 0 to 1
+
     pterm_low = (1.0f - rcCommandPercent) * rcCommand * (currentControlRateProfile->stickPids[axis].PLow / 100.0f); // valid pterm values are between 50-150
     pterm_high = rcCommandPercent * rcCommand * (currentControlRateProfile->stickPids[axis].PHigh / 100.0f);
     pterm = pterm_low + pterm_high;
