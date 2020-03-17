@@ -62,6 +62,8 @@
 #define DYN_NOTCH_CALC_TICKS      (XYZ_AXIS_COUNT * 4)
 
 static uint16_t FAST_RAM_ZERO_INIT fftSamplingRateHz;
+// centre frequency of bandpass that constrains input to FFT
+static uint16_t FAST_RAM_ZERO_INIT fftBpfHz;
 // Hz per bin
 static float FAST_RAM_ZERO_INIT    fftResolution;
 // maximum notch centre frequency limited by Nyquist
@@ -87,6 +89,7 @@ void gyroDataAnalyseInit(uint32_t targetLooptimeUs)
     // otherwise we need to calculate a FFT sample frequency to ensure we get 3 samples (gyro loops < 4K)
     fftSamplingRateHz = MIN((gyroLoopRateHz / 3), FFT_SAMPLING_RATE_HZ);
 
+    fftBpfHz = fftSamplingRateHz / 4;
     fftResolution = (float)fftSamplingRateHz / FFT_WINDOW_SIZE;
     dynNotchMaxCentreHz = fftSamplingRateHz / 2;
 
@@ -118,6 +121,7 @@ void gyroDataAnalyseStateInit(gyroAnalyseState_t *state, uint32_t targetLooptime
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
         // any init value
         state->centerFreq[axis] = 200;
+        biquadFilterInit(&state->gyroBandpassFilter[axis], fftBpfHz, 1000000 / fftSamplingRateHz, 0.01f * gyroConfig()->dyn_notch_quality, FILTER_BPF);
         biquadFilterInitLPF(&state->detectedFrequencyFilter[axis], DYN_NOTCH_SMOOTH_FREQ_HZ, looptime);
     }
 }
@@ -147,6 +151,7 @@ void gyroDataAnalyse(gyroAnalyseState_t *state)
         // calculate mean value of accumulated samples
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
             float sample = state->oversampledGyroAccumulator[axis] * state->maxSampleCountRcp;
+            sample = biquadFilterApply(&state->gyroBandpassFilter[axis], sample);
 
             state->downsampledGyroData[axis][state->circularBufferIdx] = sample;
             if (axis == 0) {
