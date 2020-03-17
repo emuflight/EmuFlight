@@ -45,6 +45,15 @@ typedef enum {
     VBAT_COMP_TYPE_COUNT   // must be the last entry
 } throttleVbatCompType_e;
 
+typedef struct pidAxisStick_s { // here for stick pids :)
+    uint8_t PLow;
+    uint8_t PHigh;
+    uint8_t ILow;
+    uint8_t IHigh;
+    uint8_t DLow;
+    uint8_t DHigh;
+} pidAxisStick_t;
+
 typedef struct controlRateConfig_s {
     uint8_t thrMid8;
     uint8_t thrExpo8;
@@ -52,6 +61,9 @@ typedef struct controlRateConfig_s {
     uint8_t rcRates[3];
     uint8_t rcExpo[3];
     uint8_t rates[3];
+
+    pidAxisStick_t stickPids[3];
+
     uint8_t dynThrP;                        // TPA seperated into PID components
     uint8_t dynThrI;
     uint8_t dynThrD;

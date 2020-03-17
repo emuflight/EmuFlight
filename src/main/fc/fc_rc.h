@@ -49,3 +49,4 @@ int rcSmoothingGetValue(int whichValue);
 bool rcSmoothingAutoCalculate(void);
 bool rcSmoothingInitializationComplete(void);
 #endif
+float stickFeels(float rcCommand, int axis);

@@ -42,6 +42,11 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
 {
     for (int i = 0; i < CONTROL_RATE_PROFILE_COUNT; i++) {
         RESET_CONFIG(controlRateConfig_t, &controlRateConfig[i],
+          .stickPids = { // defaults do nothing to effect stick feels
+              [FD_ROLL] = {100, 100, 0, 0, 0, 0},   // PLow, PHigh, ILow, IHigh, Dlow, Dhigh
+              [FD_PITCH] = {100, 100, 0, 0, 0, 0},  // PLow, PHigh, ILow, IHigh, Dlow, Dhigh
+              [FD_YAW] = {100, 100, 0, 0, 0 , 0},   // PLow, PHigh, ILow, IHigh, Dlow, Dhigh
+          },
             .thrMid8 = 50,
             .thrExpo8 = 0,
             .dynThrP = 75,

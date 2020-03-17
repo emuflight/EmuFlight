@@ -662,7 +662,7 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
             if ((uint16_t)currentControlRateProfile->dynThrP > 100) {
                 propP = 100 + ((uint16_t)currentControlRateProfile->dynThrP - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             } else {
-                propP = 100 - (100-currentControlRateProfile->dynThrP) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+                propP = 100 - (100 - currentControlRateProfile->dynThrP) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             }
             throttlePAttenuation = propP / 100.0f;
         }
@@ -675,7 +675,7 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
             if ((uint16_t)currentControlRateProfile->dynThrI > 100) {
                 propI = 100 + ((uint16_t)currentControlRateProfile->dynThrI - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             } else {
-                propI = 100 - (100-currentControlRateProfile->dynThrI) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+                propI = 100 - (100 - currentControlRateProfile->dynThrI) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             }
             throttleIAttenuation = propI / 100.0f;
         }
@@ -688,7 +688,7 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
             if ((uint16_t)currentControlRateProfile->dynThrD > 100) {
                 propD = 100 + ((uint16_t)currentControlRateProfile->dynThrD - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             } else {
-                propD = 100 - (100-currentControlRateProfile->dynThrD) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+                propD = 100 - (100 - currentControlRateProfile->dynThrD) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
             }
             throttleDAttenuation = propD / 100.0f;
         }
@@ -716,6 +716,7 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
         if (rcData[axis] < rxConfig()->midrc) {
             rcCommand[axis] = -rcCommand[axis];
         }
+      stickFeels(rcCommand[axis], axis);
     }
 
     int32_t tmp;
@@ -854,3 +855,33 @@ bool rcSmoothingInitializationComplete(void) {
     return (rxConfig()->rc_smoothing_type != RC_SMOOTHING_TYPE_FILTER) || rcSmoothingData.filterInitialized;
 }
 #endif // USE_RC_SMOOTHING_FILTER
+
+FAST_CODE float stickFeels(float rcCommand, int axis)
+{
+  static FAST_RAM_ZERO_INIT float lastRcCommandData[3];
+  float pterm_low, pterm_high, pterm, iterm_low, iterm_high, iterm, dterm_low, dterm_high, dterm;
+  float rcCommandPercent;
+  float rcCommandError;
+  rcCommandPercent = rcCommand / 500.0f; // make rcCommandPercent go from -1 to 1
+
+  if (((currentControlRateProfile->stickPids[axis].PLow != 100) || (currentControlRateProfile->stickPids[axis].PHigh != 100)) || ((currentControlRateProfile->stickPids[axis].DLow > 0) || (currentControlRateProfile->stickPids[axis].DHigh > 0)))
+  {
+    pterm_low = (1.0f - fabsf(rcCommandPercent)) * rcCommand * (currentControlRateProfile->stickPids[axis].PLow / 100.0f); // valid pterm values are between 50-150
+    pterm_high = fabsf(rcCommandPercent) * rcCommand * (currentControlRateProfile->stickPids[axis].PHigh / 100.0f);
+    pterm = pterm_low + pterm_high;
+    rcCommandError = rcCommand - pterm;
+    rcCommand = pterm; // add this fake pterm to the rcCommand
+
+    iterm_low = (1.0f - fabsf(rcCommandPercent)) * rcCommandError * (currentControlRateProfile->stickPids[axis].ILow / 100.0f); // valid iterm values are between 0-95
+    iterm_high = fabsf(rcCommandPercent) * rcCommandError * (currentControlRateProfile->stickPids[axis].ILow / 100.0f);
+    iterm = iterm_low + iterm_high;
+    rcCommand = rcCommand + iterm; // add the fake iterm to the rcCommand
+
+    dterm_low = (1.0f - fabsf(rcCommandPercent)) * (lastRcCommandData[axis] - rcCommand) * (currentControlRateProfile->stickPids[axis].DLow / 100.0f); // valid dterm values are between 0-95
+    dterm_high = fabsf(rcCommandPercent) * (lastRcCommandData[axis] - rcCommand) * (currentControlRateProfile->stickPids[axis].DHigh / 100.0f);
+    dterm = dterm_low + dterm_high;
+
+    rcCommand = rcCommand + dterm; // add dterm to the rcCommand (this is real dterm)
+  }
+    return rcCommand;
+}
