@@ -25,6 +25,8 @@
 
 #if defined(USE_MAX7456) || defined(USE_BRAINFPV_OSD)
 
+#ifdef USE_MAX7456
+
 #include "common/utils.h"
 
 #include "drivers/display.h"

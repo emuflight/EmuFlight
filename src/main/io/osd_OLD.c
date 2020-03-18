@@ -102,15 +102,6 @@
 #define VIDEO_BUFFER_CHARS_PAL    480
 #define FULL_CIRCLE 360
 
-#ifdef CMS
-#include "cms/cms.h"
-#endif
-
-#if defined(USE_BRAINFPV_OSD)
-extern bool osd_arming_or_stats;
-extern bool brainfpv_user_avatar_set;
-#endif
-
 const char * const osdTimerSourceNames[] = {
     "ON TIME  ",
     "TOTAL ARM",
@@ -521,19 +512,6 @@ static bool osdDrawSingleElement(uint8_t item)
         break;
 
     case OSD_HOME_DIR:
-    #if defined(USE_BRAINFPV_OSD)
-        {
-            bool valid = false;
-            if (STATE(GPS_FIX) && STATE(GPS_FIX_HOME) && (GPS_distanceToHome > 0)) {
-                valid = true;
-            }
-            int home_dir = GPS_directionToHome - DECIDEGREES_TO_DEGREES(attitude.values.yaw);
-            if (valid || !blinkState) {
-                brainFfpvOsdHomeArrow(home_dir, elemPosX, elemPosY);
-            }
-            brainfpv_item = true;
-        }
-#else
         if (STATE(GPS_FIX) && STATE(GPS_FIX_HOME)) {
             if (GPS_distanceToHome > 0) {
                 const int h = GPS_directionToHome - DECIDEGREES_TO_DEGREES(attitude.values.yaw);
@@ -654,11 +632,6 @@ static bool osdDrawSingleElement(uint8_t item)
         }
 
     case OSD_CRAFT_NAME:
-        if (brainfpv_user_avatar_set && bfOsdConfig()->show_pilot_logo) {
-            brainFpvOsdUserLogo(elemPosX + 4, elemPosY);
-            brainfpv_item = true;
-        }
-        else {
         // This does not strictly support iterative updating if the craft name changes at run time. But since the craft name is not supposed to be changing this should not matter, and blanking the entire length of the craft name string on update will make it impossible to configure elements to be displayed on the right hand side of the craft name.
         //TODO: When iterative updating is implemented, change this so the craft name is only printed once whenever the OSD 'flight' screen is entered.
 
@@ -700,49 +673,35 @@ static bool osdDrawSingleElement(uint8_t item)
 #endif
 
     case OSD_CROSSHAIRS:
-    #if !defined(USE_BRAINFPV_OSD)
-                buff[0] = SYM_AH_CENTER_LINE;
-                buff[1] = SYM_AH_CENTER;
-                buff[2] = SYM_AH_CENTER_LINE_RIGHT;
-                buff[3] = 0;
-                break;
-    #else
-                brainFpvOsdCenterMark();
-                brainfpv_item = true;
-                break;
-    #endif
+        buff[0] = SYM_AH_CENTER_LINE;
+        buff[1] = SYM_AH_CENTER;
+        buff[2] = SYM_AH_CENTER_LINE_RIGHT;
+        buff[3] = 0;
+        break;
 
     case OSD_ARTIFICIAL_HORIZON:
-    #if !defined(USE_BRAINFPV_OSD)
-          {
-              // Get pitch and roll limits in tenths of degrees
-              const int maxPitch = osdConfig()->ahMaxPitch * 10;
-              const int maxRoll = osdConfig()->ahMaxRoll * 10;
-              const int rollAngle = constrain(attitude.values.roll, -maxRoll, maxRoll);
-              int pitchAngle = constrain(attitude.values.pitch, -maxPitch, maxPitch);
-              // Convert pitchAngle to y compensation value
-              // (maxPitch / 25) divisor matches previous settings of fixed divisor of 8 and fixed max AHI pitch angle of 20.0 degrees
-              if (maxPitch > 0) {
-                  pitchAngle = ((pitchAngle * 25) / maxPitch);
-              }
-              pitchAngle -= 41; // 41 = 4 * AH_SYMBOL_COUNT + 5
+        {
+            // Get pitch and roll limits in tenths of degrees
+            const int maxPitch = osdConfig()->ahMaxPitch * 10;
+            const int maxRoll = osdConfig()->ahMaxRoll * 10;
+            const int rollAngle = constrain(attitude.values.roll, -maxRoll, maxRoll);
+            int pitchAngle = constrain(attitude.values.pitch, -maxPitch, maxPitch);
+            // Convert pitchAngle to y compensation value
+            // (maxPitch / 25) divisor matches previous settings of fixed divisor of 8 and fixed max AHI pitch angle of 20.0 degrees
+            if (maxPitch > 0) {
+                pitchAngle = ((pitchAngle * 25) / maxPitch);
+            }
+            pitchAngle -= 41; // 41 = 4 * AH_SYMBOL_COUNT + 5
 
-              for (int x = -4; x <= 4; x++) {
-                  const int y = ((-rollAngle * x) / 64) - pitchAngle;
-                  if (y >= 0 && y <= 81) {
-                      displayWriteChar(osdDisplayPort, elemPosX + x, elemPosY + (y / AH_SYMBOL_COUNT), (SYM_AH_BAR9_0 + (y % AH_SYMBOL_COUNT)));
-                  }
-              }
+            for (int x = -4; x <= 4; x++) {
+                const int y = ((-rollAngle * x) / 64) - pitchAngle;
+                if (y >= 0 && y <= 81) {
+                    displayWriteChar(osdDisplayPort, elemPosX + x, elemPosY + (y / AH_SYMBOL_COUNT), (SYM_AH_BAR9_0 + (y % AH_SYMBOL_COUNT)));
+                }
+            }
 
-              osdDrawSingleElement(OSD_HORIZON_SIDEBARS);
-              break;
-  #else
-              brainFpvOsdArtificialHorizon();
-              brainfpv_item = true;
-              break;
-  #endif
-
-  #if !defined(USE_BRAINFPV_OSD)
+            return true;
+        }
 
     case OSD_HORIZON_SIDEBARS:
         {
@@ -1184,27 +1143,28 @@ static void osdDrawLogo(int x, int y)
 
 void osdInit(displayPort_t *osdDisplayPortToUse)
 {
-#ifndef USE_BRAINFPV_OSD
-      if (!osdDisplayPortToUse) {
-          return;
-      }
-      BUILD_BUG_ON(OSD_POS_MAX != OSD_POS(31,31));
-      osdDisplayPort = osdDisplayPortToUse;
-  #ifdef USE_CMS
-      cmsDisplayPortRegister(osdDisplayPort);
-  #endif
+    if (!osdDisplayPortToUse) {
+        return;
+    }
 
-      armState = ARMING_FLAG(ARMED);
+    BUILD_BUG_ON(OSD_POS_MAX != OSD_POS(31,31));
 
-      memset(blinkBits, 0, sizeof(blinkBits));
+    osdDisplayPort = osdDisplayPortToUse;
+#ifdef USE_CMS
+    cmsDisplayPortRegister(osdDisplayPort);
+#endif
 
-      displayClearScreen(osdDisplayPort);
+    armState = ARMING_FLAG(ARMED);
 
-      osdDrawLogo(3, 1);
+    memset(blinkBits, 0, sizeof(blinkBits));
 
-      char string_buffer[30];
-      tfp_sprintf(string_buffer, "V%s", FC_VERSION_STRING);
-      displayWrite(osdDisplayPort, 20, 6, string_buffer);
+    displayClearScreen(osdDisplayPort);
+
+    osdDrawLogo(3, 1);
+
+    char string_buffer[30];
+    tfp_sprintf(string_buffer, "V%s", FC_VERSION_STRING);
+    displayWrite(osdDisplayPort, 20, 6, string_buffer);
 #ifdef USE_CMS
     displayWrite(osdDisplayPort, 7, 8,  CMS_STARTUP_HELP_TEXT1);
     displayWrite(osdDisplayPort, 11, 9, CMS_STARTUP_HELP_TEXT2);
@@ -1552,12 +1512,7 @@ static void osdShowStats(uint16_t endBatteryVoltage)
 static void osdShowArmed(void)
 {
     displayClearScreen(osdDisplayPort);
-    if (bfOsdConfig()->show_logo_on_arm) {
-        #define GY (GRAPHICS_BOTTOM / 2 - 30)
-        brainFpvOsdMainLogo(GRAPHICS_X_MIDDLE, GY);
-    }
-
-    displayWrite(osdDisplayPort, 12, 11, "ARMED");
+    displayWrite(osdDisplayPort, 12, 7, "ARMED");
 }
 
 STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
@@ -1565,9 +1520,6 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
     static timeUs_t lastTimeUs = 0;
     static bool osdStatsEnabled = false;
     static bool osdStatsVisible = false;
-#ifdef USE_BRAINFPV_OSD
-    static bool osdShowArmScreen = false;
-#endif
     static timeUs_t osdStatsRefreshTimeUs;
     static uint16_t endBatteryVoltage;
 
@@ -1578,9 +1530,6 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
             osdStatsVisible = false;
             osdResetStats();
             osdShowArmed();
-#ifdef USE_BRAINFPV_OSD
-            osdShowArmScreen = true;
-#endif
             resumeRefreshAt = currentTimeUs + (REFRESH_1S / 2);
         } else if (isSomeStatEnabled()
                    && (!(getArmingDisableFlags() & ARMING_DISABLED_RUNAWAY_TAKEOFF)
@@ -1629,27 +1578,12 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
                 resumeRefreshAt = currentTimeUs;
             }
             displayHeartbeat(osdDisplayPort);
-#ifdef USE_BRAINFPV_OSD
-            if (osdStatsVisible) {
-                osdShowStats(endBatteryVoltage);
-                osd_arming_or_stats = true;
-            }
-            if (osdShowArmScreen) {
-                osdShowArmed();
-                osd_arming_or_stats = true;
-            }
-#endif
             return;
         } else {
             displayClearScreen(osdDisplayPort);
             resumeRefreshAt = 0;
             osdStatsEnabled = false;
             stats.armed_time = 0;
-#ifdef USE_BRAINFPV_OSD
-                        osdShowArmScreen = false;
-                        osdStatsVisible = false;
-                        osd_arming_or_stats = false;
-#endif
         }
     }
 
@@ -1679,7 +1613,6 @@ void osdUpdate(timeUs_t currentTimeUs)
 {
     static uint32_t counter = 0;
 
-#ifndef USE_BRAINFPV_OSD
     if (isBeeperOn()) {
         showVisualBeeper = true;
     }
