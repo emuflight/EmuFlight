@@ -252,12 +252,12 @@ static OSD_Entry cmsx_menuRateProfileEntries[] =
 {
     { "-- RATE --", OME_Label, NULL, rateProfileIndexString, 0 },
 
-    { "RC P ROLL LOW",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids[FD_ROLL].PLow,     50, 150, 1, 10 }, 0 },
-    { "RC P ROLL HIGH",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids[FD_ROLL].PHigh,    50, 150, 1, 10 }, 0 },
-    { "RC I ROLL LOW",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids[FD_ROLL].ILow,     0,   95, 1, 10 }, 0 },
-    { "RC I ROLL HIGH",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids[FD_ROLL].IHigh,    0,   95, 1, 10 }, 0 },
-    { "RC D ROLL LOW",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids[FD_ROLL].DLow,     0,   95, 1, 10 }, 0 },
-    { "RC D ROLL HIGH",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids[FD_ROLL].DHigh,    0,   95, 1, 10 }, 0 },
+    { "RC P ROLL LOW",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.PLow,     50, 150, 1, 10 }, 0 },
+    { "RC P ROLL HIGH",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.PHigh,    50, 150, 1, 10 }, 0 },
+    { "RC I ROLL LOW",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.ILow,     0,   95, 1, 10 }, 0 },
+    { "RC I ROLL HIGH",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.IHigh,    0,   95, 1, 10 }, 0 },
+    { "RC D ROLL LOW",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.DLow,     0,   95, 1, 10 }, 0 },
+    { "RC D ROLL HIGH",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.DHigh,    0,   95, 1, 10 }, 0 },
 
     { "RC R RATE",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcRates[FD_ROLL],     0, 255, 1, 10 }, 0 },
     { "RC P RATE",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcRates[FD_PITCH],    0, 255, 1, 10 }, 0 },
