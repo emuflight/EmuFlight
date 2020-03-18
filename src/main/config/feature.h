@@ -23,11 +23,7 @@
 #include "pg/pg.h"
 
 #ifndef DEFAULT_FEATURES
-#if !defined(USE_GYRO_IMUF9001) && defined(USE_GYRO_DATA_ANALYSE)
-#define DEFAULT_FEATURES FEATURE_DYNAMIC_FILTER
-#else
 #define DEFAULT_FEATURES 0
-#endif
 #endif
 
 #ifndef DEFAULT_RX_FEATURE
