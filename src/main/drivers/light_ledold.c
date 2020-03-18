@@ -27,10 +27,6 @@
 
 #include "light_led.h"
 
-#if defined(USE_BRAINFPV_FPGA)
-#include "fpga_drv.h"
-#endif
-
 PG_REGISTER_WITH_RESET_FN(statusLedConfig_t, statusLedConfig, PG_STATUS_LED_CONFIG, 0);
 
 static IO_t leds[STATUS_LED_NUMBER];
@@ -87,28 +83,11 @@ void ledInit(const statusLedConfig_t *statusLedConfig)
 
 void ledToggle(int led)
 {
-#if defined(USE_BRAINFPV_FPGA) && defined(RADIX)
-    if (led == 0)
-        IOToggle(leds[led]);
-    if (led == 1)
-        BRAINFPVFPGA_AlarmLEDToggle();
-#else
     IOToggle(leds[led]);
-#endif
 }
 
 void ledSet(int led, bool on)
 {
-#if defined(USE_BRAINFPV_FPGA) && defined(RADIX)
-    if (led == 0) {
-        const bool inverted = (1 << (led)) & ledInversion;
-        IOWrite(leds[led], on ? inverted : !inverted);
-    }
-    if (led == 1) {
-        BRAINFPVFPGA_AlarmLED(on);
-    }
-#else
     const bool inverted = (1 << (led)) & ledInversion;
     IOWrite(leds[led], on ? inverted : !inverted);
-#endif
 }

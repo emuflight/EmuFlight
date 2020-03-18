@@ -1193,7 +1193,7 @@ void osdInit(displayPort_t *osdDisplayPortToUse)
   #ifdef USE_CMS
       cmsDisplayPortRegister(osdDisplayPort);
   #endif
-
+  
       armState = ARMING_FLAG(ARMED);
 
       memset(blinkBits, 0, sizeof(blinkBits));
