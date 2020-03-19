@@ -25,6 +25,10 @@
 
 #include "pg/pg.h"
 
+#if defined(USE_BRAINFPV_OSD)
+#include "brainfpv/brainfpv_osd.h"
+#endif
+
 #define MAX_NAME_LENGTH 16u
 
 typedef struct pilotConfig_s {

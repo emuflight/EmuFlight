@@ -71,6 +71,10 @@
 pidProfile_t *currentPidProfile;
 #endif
 
+#ifdef USE_BRAINFPV_OSD
+#include "brainfpv/brainfpv_osd.h"
+#endif
+
 #ifndef RX_SPI_DEFAULT_PROTOCOL
 #define RX_SPI_DEFAULT_PROTOCOL 0
 #endif
