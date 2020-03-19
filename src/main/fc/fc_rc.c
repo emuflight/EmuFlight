@@ -859,10 +859,11 @@ bool rcSmoothingInitializationComplete(void) {
 FAST_CODE float stickFeels(float rcCommand, int axis)
 {
   static FAST_RAM_ZERO_INIT float lastRcCommandData[3];
+  static FAST_RAM_ZERO_INIT float iterm[3];
 
   if (((currentControlRateProfile->stickPids.PLow != 100) || (currentControlRateProfile->stickPids.PHigh != 100)) || ((currentControlRateProfile->stickPids.DLow > 0) || (currentControlRateProfile->stickPids.DHigh > 0)))
   {
-    float pterm_low, pterm_high, pterm, iterm_low, iterm_high, iterm, dterm_low, dterm_high, dterm;
+    float pterm_low, pterm_high, pterm, iterm_low, iterm_high, dterm_low, dterm_high, dterm;
     float rcCommandPercent;
     float rcCommandError;
     rcCommandPercent = fabsf(rcCommand) / 500.0f; // make rcCommandPercent go from 0 to 1
@@ -870,13 +871,13 @@ FAST_CODE float stickFeels(float rcCommand, int axis)
     pterm_low = (1.0f - rcCommandPercent) * rcCommand * (currentControlRateProfile->stickPids.PLow / 100.0f); // valid pterm values are between 50-150
     pterm_high = rcCommandPercent * rcCommand * (currentControlRateProfile->stickPids.PHigh / 100.0f);
     pterm = pterm_low + pterm_high;
-    rcCommandError = rcCommand - pterm;
+    rcCommandError = rcCommand - (pterm + iterm[axis]);
     rcCommand = pterm; // add this fake pterm to the rcCommand
 
     iterm_low = (1.0f - rcCommandPercent) * rcCommandError * (currentControlRateProfile->stickPids.ILow / 100.0f); // valid iterm values are between 0-95
     iterm_high = rcCommandPercent * rcCommandError * (currentControlRateProfile->stickPids.IHigh / 100.0f);
-    iterm = iterm_low + iterm_high;
-    rcCommand = rcCommand + iterm; // add the fake iterm to the rcCommand
+    iterm[axis] += iterm_low + iterm_high;
+    rcCommand = rcCommand + iterm[axis]; // add the iterm to the rcCommand
 
     dterm_low = (1.0f - rcCommandPercent) * (lastRcCommandData[axis] - rcCommand) * (currentControlRateProfile->stickPids.DLow / 100.0f); // valid dterm values are between 0-95
     dterm_high = rcCommandPercent * (lastRcCommandData[axis] - rcCommand) * (currentControlRateProfile->stickPids.DHigh / 100.0f);
