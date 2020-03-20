@@ -145,6 +145,11 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 void FAST_CODE kalman_update(float* input, float* output)
 {
     update_kalman_covariance(input);
+
+    setPoint[X] = getSetpointRate(X);
+    setPoint[Y] = getSetpointRate(Y);
+    setPoint[Z] = getSetpointRate(Z);
+
     output[X] = kalman_process(&kalmanFilterStateRate[X], input[X], setPoint[X] );
     output[Y] = kalman_process(&kalmanFilterStateRate[Y], input[Y], setPoint[Y] );
     output[Z] = kalman_process(&kalmanFilterStateRate[Z], input[Z], setPoint[Z] );
