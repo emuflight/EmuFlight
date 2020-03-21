@@ -21,7 +21,6 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER "S7X2"
-
 #define USBD_PRODUCT_STRING     "IFF7_TWIN_G"
 
 #define USE_DUAL_GYRO
@@ -44,9 +43,8 @@
 #define BEEPER_INVERTED
 
 #define USE_EXTI
-#define MPU_INT_EXTI
 #define USE_GYRO_EXTI
-#define GYRO_1_EXTI_PIN         PA8
+#define MPU_INT_EXTI         PA8
 #define GYRO_2_EXTI_PIN         PC13
 
 #define USE_MPU_DATA_READY_SIGNAL

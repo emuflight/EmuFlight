@@ -41,24 +41,24 @@
 // ICM-20689
 #define USE_ACC_SPI_MPU6000
 #define USE_GYRO_SPI_MPU6000
-#define GYRO_MPU6000_ALIGN      CW270_DEG
-#define ACC_MPU6000_ALIGN       CW270_DEG
-#define MPU_INT_EXTI               PE1
+#define GYRO_MPU6000_ALIGN        CW270_DEG
+#define ACC_MPU6000_ALIGN         CW270_DEG
+#define MPU_INT_EXTI              PE1
 
-#define MPU6000_CS_PIN          SPI4_NSS_PIN
-#define MPU6000_SPI_INSTANCE    SPI4
-#define GYRO_1_CS_PIN            MPU6000_CS_PIN
-#define GYRO_1_SPI_INSTANCE      MPU6000_SPI_INSTANCE
+#define MPU6000_CS_PIN            SPI4_NSS_PIN
+#define MPU6000_SPI_INSTANCE      SPI4
+#define GYRO_1_CS_PIN             MPU6000_CS_PIN
+#define GYRO_1_SPI_INSTANCE       MPU6000_SPI_INSTANCE
 
-#define ACC_1_ALIGN              ACC_MPU6000_ALIGN
-#define GYRO_1_ALIGN             GYRO_MPU6000_ALIGN
+#define ACC_1_ALIGN               ACC_MPU6000_ALIGN
+#define GYRO_1_ALIGN              GYRO_MPU6000_ALIGN
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define USE_EXTI
 
 #define USE_VCP
 #define USE_USB_DETECT
-#define USB_DETECT_PIN          PA8
+#define USB_DETECT_PIN            PA8
 
 #define USE_UART1
 #define UART1_TX_PIN            PA9

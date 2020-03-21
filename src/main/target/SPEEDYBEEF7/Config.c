@@ -25,7 +25,7 @@
 #ifdef USE_TARGET_CONFIG
 
 #include "flight/mixer.h"
-#include "cms/osd.h"
+#include "io/osd.h"
 #include "io/serial.h"
 #include "pg/pinio.h"
 #include "pg/piniobox.h"

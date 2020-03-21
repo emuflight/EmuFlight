@@ -50,7 +50,7 @@
 #define USE_EXTI
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define MPU_INT_EXTI                                     PC4                    //GYRO_1_EXTI_PIN
+#define MPU_INT_EXTI                                     PC4                    //MPU_INT_EXTI
 #define MPU6000_CS_PIN                                   PA4                    //GYRO_1_CS_PIN
 #define MPU6000_SPI_INSTANCE                             SPI1                   //GYRO_1_SPI_INSTANCE
 #define GYRO_MPU6000_ALIGN                               CW0_DEG
