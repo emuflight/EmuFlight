@@ -22,29 +22,30 @@
 
 #define TARGET_BOARD_IDENTIFIER "SBF7"
 #define USBD_PRODUCT_STRING  "SpeedyBeeF7"
+#define USE_TARGET_CONFIG
 
-#define LED0_PIN                  PC14
+#define LED0_PIN                PC14
 
 #define USE_BEEPER
-#define BEEPER_PIN                PC13
+#define BEEPER_PIN              PC13
 #define BEEPER_INVERTED
 
-#define ENABLE_DSHOT_DMAR         true
+#define ENABLE_DSHOT_DMAR                                true
 
 // *************** Gyro & ACC **********************
 #define USE_SPI
 #define USE_SPI_DEVICE_1
-#define SPI1_NSS_PIN              PA4
-#define SPI1_SCK_PIN              PA5
-#define SPI1_MISO_PIN             PA6
-#define SPI1_MOSI_PIN             PA7
 
-#define ICM20689_CS_PIN           PA4
-#define ICM20689_SPI_INSTANCE     SPI1
+#define SPI1_SCK_PIN            PA5
+#define SPI1_MISO_PIN           PA6
+#define SPI1_MOSI_PIN           PA7
+
+#define ICM20689_CS_PIN          PA4
+#define ICM20689_SPI_INSTANCE    SPI1
 
 //#define USE_EXTI
 #define USE_EXTI
-#define MPU_INT_EXTI              PC4
+#define MPU_INT_EXTI         PC4
 #define USE_MPU_DATA_READY_SIGNAL
 
 //#define USE_GYRO
@@ -62,16 +63,14 @@
 #define USE_I2C
 
 #define USE_I2C_DEVICE_1
-#define I2C_DEVICE_1              I2CDEV_1
 #define I2C1_SCL                PB8
 #define I2C1_SDA                PB9
-#define BARO_I2C_INSTANCE       I2CDEV_1
+#define BARO_I2C_INSTANCE       (I2CDEV_1)
 
 #define USE_I2C_DEVICE_2
-#define I2C_DEVICE_2              I2CDEV_2
+#define I2C_DEVICE              (I2CDEV_2)
 #define I2C2_SCL                PB10
 #define I2C2_SDA                PB11
-#define MAG_I2C_INSTANCE        I2CDEV_2
 
 #define USE_BARO
 #define USE_BARO_BMP280
@@ -79,7 +78,6 @@
 
 // *************** Flash **************************
 #define USE_SPI_DEVICE_3
-#define SPI3_NSS_PIN            PC0
 #define SPI3_SCK_PIN            PB3
 #define SPI3_MISO_PIN           PB4
 #define SPI3_MOSI_PIN           PB5
@@ -92,7 +90,6 @@
 
 // *************** OSD *****************************
 #define USE_SPI_DEVICE_2
-#define SPI2_NSS_PIN            PB12
 #define SPI2_SCK_PIN            PB13
 #define SPI2_MISO_PIN           PB14
 #define SPI2_MOSI_PIN           PB15

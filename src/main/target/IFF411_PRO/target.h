@@ -19,119 +19,114 @@
  */
 
 #pragma once
+#define TARGET_BOARD_IDENTIFIER                          "S411"
+#define USBD_PRODUCT_STRING                              "IFF411_PRO"
+#define TARGET_MANUFACTURER_IDENTIFIER                   "IFFL"
 
-#define TARGET_BOARD_IDENTIFIER "IFRC"
-#define USBD_PRODUCT_STRING     "IFF411_PRO"
+#define ENABLE_DSHOT_DMAR                                true
 
-#define LED0_PIN                PC13
-#define LED1_PIN                PC14
-
-#define CAMERA_CONTROL_PIN      PB10
+//Aux
+#define USE_LED_STRIP
 
 #define USE_BEEPER
-#define BEEPER_PIN              PB2
+#define BEEPER_PIN                                       PB2
 #define BEEPER_INVERTED
 
-// *************** Gyro & ACC **********************
-#define USE_SPI
-#define USE_SPI_DEVICE_1
-#define SPI1_NSS_PIN            PA4
-#define SPI1_SCK_PIN            PA5
-#define SPI1_MISO_PIN           PA6
-#define SPI1_MOSI_PIN           PA7
-
-#define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
-
-#define USE_EXTI
-#define MPU_INT_EXTI            PA1
-
-#define USE_MPU_DATA_READY_SIGNAL
-#define ENSURE_MPU_DATA_READY_IS_LOW
-
+//MPU-6000
 #define USE_GYRO
-#define USE_GYRO_SPI_MPU6000
-#define GYRO_MPU6000_ALIGN      CW0_DEG
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
-#define ACC_MPU6000_ALIGN       CW0_DEG
+#define USE_GYRO_SPI_MPU6000
+#define USE_EXTI
+#define USE_MPU_DATA_READY_SIGNAL
+
+#define MPU_INT_EXTI                                     PA1                    //MPU_INT_EXTI
+#define MPU6000_CS_PIN                                   PA4                    //GYRO_1_CS_PIN
+#define MPU6000_SPI_INSTANCE                             SPI1                   //GYRO_1_SPI_INSTANCE
+#define GYRO_MPU6000_ALIGN                               CW0_DEG
+#define ACC_MPU6000_ALIGN                                CW0_DEG
+
 
 // *************** Baro **************************
 #define USE_I2C
 
 #define USE_I2C_DEVICE_1
-#define I2C_DEVICE              (I2CDEV_1)
-#define I2C1_SCL                PB8        // SCL pad
-#define I2C1_SDA                PB9        // SDA pad
-#define BARO_I2C_INSTANCE       (I2CDEV_1)
+#define I2C_DEVICE                                      (I2CDEV_1)
+#define I2C1_SCL                                        PB8        // SCL pad
+#define I2C1_SDA                                        PB9        // SDA pad
+#define BARO_I2C_INSTANCE                               (I2CDEV_1)
 
-#define USE_BARO                          //External, connect to I2C1
+#define USE_BARO
 #define USE_BARO_BMP280
 #define USE_BARO_MS5611
 #define USE_BARO_BMP085
 
-// *************** UART *****************************
-#define USE_VCP
-#define USB_DETECT_PIN          PC15
-#define USE_USB_DETECT
-
-#define USE_UART1
-#define UART1_RX_PIN            PA10
-#define UART1_TX_PIN            PA9
-
-#define USE_UART2
-#define UART2_RX_PIN            PA3
-#define UART2_TX_PIN            PA2
-
-#define SERIAL_PORT_COUNT       3
-
-#define DEFAULT_FEATURES        ( FEATURE_OSD | FEATURE_LED_STRIP | FEATURE_TELEMETRY )
-#define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
-#define SERIALRX_PROVIDER       SERIALRX_SBUS
-#define SERIALRX_UART           SERIAL_PORT_USART1
-
-// *************** OSD/FLASH *****************************
-#define USE_SPI_DEVICE_2
-#define SPI2_NSS_PIN            PB12
-#define SPI2_SCK_PIN            PB13
-#define SPI2_MISO_PIN           PB14
-#define SPI2_MOSI_PIN           PB15
-
-#define USE_OSD
+// *************** OSD ***************************
 #define USE_MAX7456
-#define MAX7456_SPI_INSTANCE    SPI2
-#define MAX7456_SPI_CS_PIN      PB12
+#define MAX7456_SPI_INSTANCE                             SPI2
+#define MAX7456_SPI_CS_PIN                               PB12
+#define MAX7456_SPI_CLK                                  (SPI_CLOCK_STANDARD)   // 10MHz
+#define MAX7456_RESTORE_CLK                              (SPI_CLOCK_FAST)
 
-#define USE_SPI_DEVICE_3
-#define SPI3_NSS_PIN            PA15
-#define SPI3_SCK_PIN            PB13
-#define SPI3_MISO_PIN           PB14
-#define SPI3_MOSI_PIN           PB5
-
+// Blackbox
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
-#define FLASH_CS_PIN            PA15
-#define FLASH_SPI_INSTANCE      SPI3
+#define FLASH_CS_PIN                                     PA15
+#define FLASH_SPI_INSTANCE                               SPI3
 
-// *************** ADC *****************************
+// Uarts
+#define USE_UART1
+#define UART1_RX_PIN                                     PA10
+#define UART1_TX_PIN                                     PA9
+
+#define USE_UART2
+#define UART2_RX_PIN                                     PA3
+#define UART2_TX_PIN                                     PA2
+//#define USE_SOFTSERIAL1
+#define SERIAL_PORT_COUNT                                3                      //VCP, USART1, USART2,USART3,USART4,USART5,USART6
+
+// ESC
 #define USE_ADC
-#define ADC_INSTANCE         ADC1
-#define ADC1_DMA_OPT            0  // DMA 2 Stream 0 Channel 0
+#define DEFAULT_VOLTAGE_METER_SOURCE                     VOLTAGE_METER_ADC
+#define DEFAULT_CURRENT_METER_SOURCE                     CURRENT_METER_ADC
+#define CURRENT_METER_ADC_PIN                            PB1
+#define VBAT_ADC_PIN                                     PB0
+#define CURRENT_METER_SCALE_DEFAULT                      170                    // 3.3/120A  = 25mv/A
 
-#define VBAT_ADC_PIN            PB0
-#define CURRENT_METER_ADC_PIN   PB1
+// SPI devices
+#define USE_SPI
+#define USE_SPI_DEVICE_1
+#define USE_SPI_DEVICE_2
+#define USE_SPI_DEVICE_3
 
-#define USE_LED_STRIP
+#define SPI1_NSS_PIN                                    PA4
+#define SPI1_SCK_PIN                                    PA5
+#define SPI1_MISO_PIN                                   PA6
+#define SPI1_MOSI_PIN                                   PA7
 
-#define CURRENT_METER_SCALE_DEFAULT         170
-#define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
-#define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
+#define SPI2_NSS_PIN                                    PB12
+#define SPI2_SCK_PIN                                    PB13
+#define SPI2_MISO_PIN                                   PB14
+#define SPI2_MOSI_PIN                                   PB15
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
+#define SPI3_NSS_PIN                                    PA15
+#define SPI3_SCK_PIN                                    PB3
+#define SPI3_MISO_PIN                                   PB4
+#define SPI3_MOSI_PIN                                   PB5
+// USB
+#define USE_VCP
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USED_TIMERS             ( TIM_N(1)|TIM_N(2)|TIM_N(4)|TIM_N(9) )
+#define DEFAULT_RX_FEATURE                              FEATURE_RX_SERIAL
+#define SERIALRX_PROVIDER                               SERIALRX_SBUS
+#define SERIALRX_UART                                   SERIAL_PORT_USART2
+
+// IO Ports
+#define TARGET_IO_PORTA                                 0xffff
+#define TARGET_IO_PORTB                                 0xffff
+#define TARGET_IO_PORTC                                 (BIT(2))
+#define TARGET_IO_PORTD                                 (BIT(2))
+
+// timers
+#define USABLE_TIMER_CHANNEL_COUNT                      6                       //updated timer count to compensate for Nf Motor 4
+#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(4)  | TIM_N(9)   ) //update based on update CLRACINGF7 Target BF4.1+
