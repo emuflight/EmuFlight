@@ -42,13 +42,16 @@
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6500
 
-#define GYRO_1_CS_PIN           PD2
-#define GYRO_1_SPI_INSTANCE     SPI3
+#define MPU6500_CS_PIN          PD2
+#define MPU6500_SPI_INSTANCE    SPI3
+#define GYRO_1_CS_PIN           MPU6500_CS_PIN
+#define GYRO_1_SPI_INSTANCE     MPU6500_SPI_INSTANCE
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6500
 
 #define GYRO_1_ALIGN            CW0_DEG
+#define ACC_1_ALIGN             CW0_DEG
 
 // *************** OSD **************************
 
@@ -116,7 +119,7 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define I2C1_SCL                PB8
-#define I2C1_SDA                PB9 
+#define I2C1_SDA                PB9
 
 // *************** ADC *****************************
 #define USE_ADC
