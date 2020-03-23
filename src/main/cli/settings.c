@@ -941,7 +941,7 @@ const clivalue_t valueTable[] = {
 #ifdef USE_GPS
     { "gps_provider",               VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GPS_PROVIDER }, PG_GPS_CONFIG, offsetof(gpsConfig_t, provider) },
     { "gps_sbas_mode",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GPS_SBAS_MODE }, PG_GPS_CONFIG, offsetof(gpsConfig_t, sbasMode) },
-    { "gps_sbas_integrity",         VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_GPS_CONFIG, offsetof(gpsConfig_t, sbas_integrity) }, 
+    { "gps_sbas_integrity",         VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_GPS_CONFIG, offsetof(gpsConfig_t, sbas_integrity) },
     { "gps_auto_config",            VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_GPS_CONFIG, offsetof(gpsConfig_t, autoConfig) },
     { "gps_auto_baud",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_GPS_CONFIG, offsetof(gpsConfig_t, autoBaud) },
     { "gps_ublox_use_galileo",      VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_GPS_CONFIG, offsetof(gpsConfig_t, gps_ublox_use_galileo) },
@@ -1008,7 +1008,6 @@ const clivalue_t valueTable[] = {
     { "dterm_lowpass2_hz",          VAR_INT16  | PROFILE_VALUE, .config.minmax = { 0, FILTER_FREQUENCY_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lowpass2_hz) },
     { "dterm_notch_hz",             VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, FILTER_FREQUENCY_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_notch_hz) },
     { "dterm_notch_cutoff",         VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, FILTER_FREQUENCY_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_notch_cutoff) },
-    { "vbat_pid_gain",              VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, vbatPidCompensation) },
 #if defined(USE_BATTERY_VOLTAGE_SAG_COMPENSATION)
     { "vbat_sag_compensation",      VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 150 }, PG_PID_PROFILE, offsetof(pidProfile_t, vbat_sag_compensation) },
 #endif

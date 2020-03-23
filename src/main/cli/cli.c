@@ -449,7 +449,7 @@ void cliPrintLinef(const char *format, ...)
 static void cliPrintErrorVa(const char *cmdName, const char *format, va_list va)
 {
     if (cliErrorWriter) {
-        cliPrintInternal(cliErrorWriter, "###ERROR: ");
+        cliPrintInternal(cliErrorWriter, "###ERROR IN ");
         cliPrintInternal(cliErrorWriter, cmdName);
         cliPrintInternal(cliErrorWriter, ": ");
 
