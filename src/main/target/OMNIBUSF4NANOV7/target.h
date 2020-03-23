@@ -19,108 +19,88 @@
  */
 
 #pragma once
-
 #define TARGET_BOARD_IDENTIFIER "O4V7"
 #define USBD_PRODUCT_STRING     "OmnibusF4 Nano V7"
 
-#define LED0_PIN                PB12
+#define USE_DSHOT_DMAR
+#define ENABLE_DSHOT_DMAR       true
 
+#define LED0_PIN                PB12
 #define USE_BEEPER
 #define BEEPER_PIN              PC5
 #define BEEPER_INVERTED
 
-#define ENABLE_DSHOT_DMAR       true
-
 // *************** Gyro & ACC **********************
-#define USE_SPI
-#define USE_SPI_DEVICE_3
-
-#define SPI3_SCK_PIN            PB3
-#define SPI3_MISO_PIN           PB4
-#define SPI3_MOSI_PIN           PB5
-
-#define GYRO_1_CS_PIN                       PD2
-#define GYRO_1_SPI_INSTANCE                 SPI3
-#define GYRO_2_CS_PIN                       PC4
-#define GYRO_2_SPI_INSTANCE                 SPI1
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
 #define USE_GYRO
-#define USE_GYRO_SPI_MPU6000
 #define USE_GYRO_SPI_MPU6500
-
 #define USE_ACC
-#define USE_ACC_SPI_MPU6000
 #define USE_ACC_SPI_MPU6500
 
-#define ACC_MPU6000_1_ALIGN           CW0_DEG
-#define GYRO_MPU6000_1_ALIGN          CW0_DEG
-#define GYRO_1_ALIGN                GYRO_MPU6000_1_ALIGN
-#define ACC_1_ALIGN                 ACC_MPU6000_1_ALIGN
+#define MPU6500_CS_PIN                      PD2
+#define MPU6500_SPI_INSTANCE                SPI3
+#define GYRO_1_CS_PIN                       MPU6500_CS_PIN
+#define GYRO_1_SPI_INSTANCE                 MPU6500_SPI_INSTANCE
+#define GYRO_2_CS_PIN                       PC4
+#define GYRO_2_SPI_INSTANCE                 SPI1
 
-#define ACC_MPU6500_2_ALIGN         CW0_DEG
-#define GYRO_MPU6500_2_ALIGN        CW0_DEG
-#define GYRO_2_ALIGN                GYRO_MPU6500_2_ALIGN
-#define ACC_2_ALIGN                 ACC_MPU6500_2_ALIGN
-
+#define ACC_MPU6500_1_ALIGN          CW0_DEG
+#define GYRO_MPU6500_1_ALIGN         CW0_DEG
+#define GYRO_1_ALIGN                 GYRO_MPU6500_1_ALIGN
+#define GYRO_2_ALIGN                 GYRO_MPU6500_1_ALIGN
+#define ACC_1_ALIGN                  ACC_MPU6500_1_ALIGN
+#define ACC_2_ALIGN                  ACC_MPU6500_1_ALIGN
 // *************** OSD **************************
-
-#define USE_SPI_DEVICE_2
-#define SPI2_SCK_PIN            PB13
-#define SPI2_MISO_PIN           PB14
-#define SPI2_MOSI_PIN           PB15
-
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      PC15
-
-
 // *************** FLASH *****************************
-#define USE_SPI_DEVICE_1
-#define SPI1_SCK_PIN            PA5
-#define SPI1_MISO_PIN           PA6
-#define SPI1_MOSI_PIN           PA7
-
-
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
 #define FLASH_CS_PIN            PA2
 #define FLASH_SPI_INSTANCE      SPI1
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-
 // *************** UART *****************************
 #define USE_VCP
 #define USE_USB_DETECT
-
-
 #define USE_UART1
 #define UART1_RX_PIN            PA10
 #define UART1_TX_PIN            PA9
-
 #define USE_UART2
 #define UART2_RX_PIN            PA3
-
 #define USE_UART3
 #define UART3_RX_PIN            PC11
 #define UART3_TX_PIN            PC10
-
 #define USE_UART4
 #define UART4_RX_PIN            PA1
 #define UART4_TX_PIN            PA0
-
 #define USE_UART5
 #define UART5_TX_PIN            PC12
-
 #define USE_UART6
 #define UART6_RX_PIN            PC7
 #define UART6_TX_PIN            PC6
-
-
 #define USE_SOFTSERIAL1
-
 #define SERIAL_PORT_COUNT       8
+// *************** SPI *****************************
+#define USE_SPI
+#define USE_SPI_DEVICE_1
+#define USE_SPI_DEVICE_2
+#define USE_SPI_DEVICE_3
+
+#define SPI1_SCK_PIN            PA5
+#define SPI1_MISO_PIN           PA6
+#define SPI1_MOSI_PIN           PA7
+
+#define SPI2_SCK_PIN            PB13
+#define SPI2_MISO_PIN           PB14
+#define SPI2_MOSI_PIN           PB15
+
+#define SPI3_SCK_PIN            PB3
+#define SPI3_MISO_PIN           PB4
+#define SPI3_MOSI_PIN           PB5
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
