@@ -155,7 +155,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  .pidAtMinThrottle = PID_STABILISATION_ON,
                  .levelAngleLimit = 45,
                  .angleExpo = 10,
-                 .feedForwardTransition = 0,
                  .setPointPTransition[ROLL] = 110,
                  .setPointPTransition[PITCH] = 110,
                  .setPointPTransition[YAW] = 130,
@@ -378,7 +377,6 @@ typedef struct pidCoefficient_s
 
 static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float feedForwardTransition;
 static FAST_RAM_ZERO_INIT float feathered_pids;
 static FAST_RAM_ZERO_INIT uint8_t nfe_racermode;
 static FAST_RAM_ZERO_INIT float smart_dterm_smoothing[XYZ_AXIS_COUNT];
@@ -430,21 +428,12 @@ void pidUpdateAntiGravityThrottleFilter(float throttle)
 
 void pidInitConfig(const pidProfile_t *pidProfile)
 {
-    if (pidProfile->feedForwardTransition == 0)
-    {
-        feedForwardTransition = 0;
-    }
-    else
-    {
-        feedForwardTransition = 100.0f / pidProfile->feedForwardTransition;
-    }
 
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
     {
         pidCoefficient[axis].Kp = PTERM_SCALE * pidProfile->pid[axis].P;
         pidCoefficient[axis].Ki = ITERM_SCALE * pidProfile->pid[axis].I;
         pidCoefficient[axis].Kd = DTERM_SCALE * pidProfile->pid[axis].D;
-        pidCoefficient[axis].Kf = FEEDFORWARD_SCALE * (pidProfile->pid[axis].F / 100.0f);
         setPointPTransition[axis] = pidProfile->setPointPTransition[axis] / 100.0f;
         setPointITransition[axis] = pidProfile->setPointITransition[axis] / 100.0f;
         setPointDTransition[axis] = pidProfile->setPointDTransition[axis] / 100.0f;
@@ -929,7 +918,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         rotateITermAndAxisError();
         // --------low-level gyro-based PID based on 2DOF PID controller. ----------
         // 2-DOF PID controller with optional filter on derivative term.
-        // b = 1 and only c (feedforward weight) can be tuned (amount derivative on measurement or error).
 
 #ifdef USE_ABSOLUTE_CONTROL
         float acCorrection = 0;
@@ -1092,34 +1080,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             &currentPidSetpoint, &errorRate);
 
         detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, currentTimeUs, pidData[axis].D, errorRate);
-        // -----calculate feedforward component
-        // Use angle feedforward for angle mode and level feedforward for pitch/roll or roll if in nfe_racermode
-        float feedforwardGain;
-
-        if (!FLIGHT_MODE(GPS_RESCUE_MODE))
-        {
-            feedforwardGain = pidCoefficient[axis].Kf;
-        }
-        else
-        {
-            feedforwardGain = 0;
-        }
-
-        if (feedforwardGain > 0) {
-
-        // no transition if feedForwardTransition == 0
-            float transition = feedForwardTransition > 0 ? MIN(1.f, getRcDeflectionAbs(axis) * feedForwardTransition) : 1;
-            float pidSetpointDelta = currentPidSetpoint - previousPidSetpoint[axis];
-
-#ifdef USE_RC_SMOOTHING_FILTER
-        pidSetpointDelta = applyRcSmoothingDerivativeFilter(axis, pidSetpointDelta);
-#endif // USE_RC_SMOOTHING_FILTER
-
-            pidData[axis].F = feedforwardGain * transition * pidSetpointDelta * pidFrequency;
-        } else {
-            pidData[axis].F = 0;
-        }
-        previousPidSetpoint[axis] = currentPidSetpoint;
 
 #ifdef USE_YAW_SPIN_RECOVERY
         if (gyroYawSpinDetected())
@@ -1130,7 +1090,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
                 // zero PIDs on pitch and roll leaving yaw P to correct spin
                 pidData[axis].P = 0;
                 pidData[axis].D = 0;
-                pidData[axis].F = 0;
             }
         }
 #endif // USE_YAW_SPIN_RECOVERY
@@ -1142,12 +1101,11 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             pidData[axis].P = 0;
             pidData[axis].I = 0;
             pidData[axis].D = 0;
-            pidData[axis].F = 0;
 
             pidData[axis].Sum = 0;
         }
         // calculating the PID sum and TPA and SPA
-        const float pidSum = (pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation[axis]) + (pidData[axis].I * getThrottleIAttenuation() * setPointIAttenuation[axis]) + (pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation[axis]) + pidData[axis].F;
+        const float pidSum = (pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation[axis]) + (pidData[axis].I * getThrottleIAttenuation() * setPointIAttenuation[axis]) + (pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation[axis]);
         {
             pidData[axis].Sum = pidSum;
         }

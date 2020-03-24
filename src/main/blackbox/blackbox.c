@@ -1019,7 +1019,6 @@ static void loadMainState(timeUs_t currentTimeUs)
         blackboxCurrent->axisPID_P[i] = pidData[i].P;
         blackboxCurrent->axisPID_I[i] = pidData[i].I;
         blackboxCurrent->axisPID_D[i] = pidData[i].D;
-        blackboxCurrent->axisPID_F[i] = pidData[i].F;
         blackboxCurrent->gyroADC[i] = lrintf(gyro.gyroADCf[i]);
 
         #if defined(USE_ACC)
@@ -1341,10 +1340,6 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("anti_gravity_threshold", "%d",          currentPidProfile->itermThrottleThreshold);
         BLACKBOX_PRINT_HEADER_LINE("anti_gravity_gain", "%d",               currentPidProfile->itermAcceleratorGain);
 
-        BLACKBOX_PRINT_HEADER_LINE("feedforward_transition", "%d",          currentPidProfile->feedForwardTransition);
-        BLACKBOX_PRINT_HEADER_LINE("feedforward_weight", "%d,%d,%d",        currentPidProfile->pid[PID_ROLL].F,
-                                                                            currentPidProfile->pid[PID_PITCH].F,
-                                                                            currentPidProfile->pid[PID_YAW].F);
         #ifdef USE_ABSOLUTE_CONTROL
             BLACKBOX_PRINT_HEADER_LINE("abs_control_gain", "%d",            currentPidProfile->abs_control_gain);
         #endif

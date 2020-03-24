@@ -1370,7 +1370,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, currentPidProfile->errorBoost);
         sbufWriteU8(dst, currentPidProfile->feathered_pids);
         sbufWriteU8(dst, 0);
-        sbufWriteU8(dst, currentPidProfile->feedForwardTransition);
+        sbufWriteU8(dst, 0);
         sbufWriteU8(dst, currentPidProfile->errorBoostLimit);
         sbufWriteU8(dst, currentPidProfile->i_decay);
         sbufWriteU8(dst, 0); // reserved
@@ -1403,9 +1403,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, 0);
 #endif
         sbufWriteU8(dst, 0);
-        sbufWriteU16(dst, currentPidProfile->pid[PID_ROLL].F);
-        sbufWriteU16(dst, currentPidProfile->pid[PID_PITCH].F);
-        sbufWriteU16(dst, currentPidProfile->pid[PID_YAW].F);
+        sbufWriteU16(dst, 0);
+        sbufWriteU16(dst, 0);
+        sbufWriteU16(dst, 0);
 
         sbufWriteU8(dst, currentPidProfile->antiGravityMode);
 
@@ -2010,7 +2010,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         currentPidProfile->errorBoost = sbufReadU16(src);
         currentPidProfile->feathered_pids = sbufReadU8(src);
         sbufReadU8(src);
-        currentPidProfile->feedForwardTransition = sbufReadU8(src);
+        sbufReadU8(src);
         currentPidProfile->errorBoostLimit = sbufReadU8(src);
         currentPidProfile->i_decay = sbufReadU8(src);
         sbufReadU8(src);
@@ -2051,9 +2051,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
 #endif
             sbufReadU8(src);
             // PID controller feedforward terms
-            currentPidProfile->pid[PID_ROLL].F = sbufReadU16(src);
-            currentPidProfile->pid[PID_PITCH].F = sbufReadU16(src);
-            currentPidProfile->pid[PID_YAW].F = sbufReadU16(src);
+            sbufReadU16(src);
+            bufReadU16(src);
+            sbufReadU16(src);
 
             currentPidProfile->antiGravityMode = sbufReadU8(src);
 #if defined(USE_ITERM_RELAX)
