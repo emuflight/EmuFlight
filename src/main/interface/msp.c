@@ -2052,7 +2052,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             sbufReadU8(src);
             // PID controller feedforward terms
             sbufReadU16(src);
-            bufReadU16(src);
+            sbufReadU16(src);
             sbufReadU16(src);
 
             currentPidProfile->antiGravityMode = sbufReadU8(src);
