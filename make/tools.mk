@@ -9,18 +9,12 @@
 #
 ###############################################################
 
-# Set up ARM (STM32) SDK
-ARM_SDK_DIR ?= $(TOOLS_DIR)/gcc-arm-none-eabi-9-2019-q4-major
-# Checked below, Should match the output of $(shell arm-none-eabi-gcc -dumpversion)
-GCC_REQUIRED_VERSION ?= 9.2.1
-
 .PHONY: arm_sdk_version
-
 arm_sdk_version:
 	$(V1) $(ARM_SDK_PREFIX)gcc --version
 
 ## arm_sdk_install   : Install Arm SDK
-.PHONY: arm_sdk_install
+.NOTPARALLEL .PHONY: arm_sdk_install
 
 ARM_SDK_URL_BASE  := https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/9-2019q4/gcc-arm-none-eabi-9-2019-q4-major
 
@@ -61,7 +55,7 @@ else
 	-$(V1) unzip -q -d $(ARM_SDK_DIR) "$(DL_DIR)/$(ARM_SDK_FILE)"
 endif
 
-.PHONY: arm_sdk_download
+.NOTPARALLEL .PHONY: arm_sdk_download
 arm_sdk_download: | $(DL_DIR)
 arm_sdk_download: $(DL_DIR)/$(ARM_SDK_FILE)
 $(DL_DIR)/$(ARM_SDK_FILE):

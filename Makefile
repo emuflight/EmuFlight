@@ -290,7 +290,7 @@ CPPCHECK        = cppcheck $(CSOURCES) --enable=all --platform=unix64 \
                   $(addprefix -I,$(INCLUDE_DIRS)) \
                   -I/usr/include -I/usr/include/linux
 
-TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(TARGET)_$(FC_VER)_$(BUILDNO)_$(REVISION)_$(BRANCH)
+TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(TARGET)_$(FC_VER)
 
 #
 # Things we will build
@@ -362,7 +362,7 @@ $(OBJECT_DIR)/$(TARGET)/%.o: %.S
 
 
 ## all               : Build all targets (excluding unsupported)
-all: $(SUPPORTED_TARGETS)
+all supported: $(SUPPORTED_TARGETS)
 
 ## all_with_unsupported : Build all targets (including unsupported)
 all_with_unsupported: $(VALID_TARGETS)
