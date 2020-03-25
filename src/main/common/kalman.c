@@ -146,7 +146,6 @@ void FAST_CODE kalman_update(float* input, float* output)
 {
     update_kalman_covariance(input);
 
-
     setPoint[X] = getSetpointRate(X);
     setPoint[Y] = getSetpointRate(Y);
     setPoint[Z] = getSetpointRate(Z);
