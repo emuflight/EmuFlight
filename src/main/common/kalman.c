@@ -116,7 +116,7 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
   //update last state
   kalmanState->lastX = kalmanState->x;
 
-  if ((target != 0.0f) && (kalmanState->lastX != 0.0f)) {
+  if (kalmanState->lastX != 0.0f) {
   // calculate the error
   	float errorMultiplier = fabsf(target - kalmanState->x) * kalmanState->s;
 
@@ -124,9 +124,7 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 
   	errorMultiplier = constrainf(errorMultiplier * fabsf(1.0f - (target / kalmanState->lastX)) + 1.0f, 1.0f, 50.0f);
 
-    kalmanState->e = fabsf(1.0f - ((target * errorMultiplier) / kalmanState->lastX));
-  } else {
-      kalmanState->e = 1.0f;
+    kalmanState->e = fabsf(1.0f - (((target + 1.0f) * errorMultiplier) / kalmanState->lastX));
   }
 
   //kalmanState->e = ABS((target - input) * 3) + ABS(input/4);
