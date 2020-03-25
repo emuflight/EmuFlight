@@ -46,12 +46,10 @@ typedef enum {
 } throttleVbatCompType_e;
 
 typedef struct pidAxisStick_s { // here for stick pids :)
-    uint8_t PLow;
-    uint8_t PHigh;
-    uint8_t ILow;
-    uint8_t IHigh;
-    uint8_t DLow;
-    uint8_t DHigh;
+    uint8_t PCenterStick;
+    uint8_t PEndStick;
+    uint8_t DCenterStick;
+    uint8_t DEndStick;
 } pidAxisStick_t;
 
 typedef struct controlRateConfig_s {

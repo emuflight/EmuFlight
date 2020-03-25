@@ -246,12 +246,10 @@ static OSD_Entry cmsx_menuRateProfileEntries[] =
 {
     { "-- RATE --", OME_Label, NULL, rateProfileIndexString, 0 },
 
-    { "RC P LOW",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.PLow,     50, 150, 1, 10 }, 0 },
-    { "RC P HIGH",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.PHigh,    50, 150, 1, 10 }, 0 },
-    { "RC I LOW",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.ILow,     0,   95, 1, 10 }, 0 },
-    { "RC I HIGH",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.IHigh,    0,   95, 1, 10 }, 0 },
-    { "RC D LOW",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.DLow,     0,   95, 1, 10 }, 0 },
-    { "RC D HIGH",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.DHigh,    0,   95, 1, 10 }, 0 },
+    { "STICK CENTER P",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.PCenterStick,  50, 150, 1, 10 }, 0 },
+    { "STICK END P",      OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.PEndStick,      50, 150, 1, 10 }, 0 },
+    { "STICK CENTER D",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.DCenterStick,  0,   95, 1, 10 }, 0 },
+    { "STICK END D",      OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.DEndStick,      0,   95, 1, 10 }, 0 },
 
     { "RC R RATE",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcRates[FD_ROLL],     0, 255, 1, 10 }, 0 },
     { "RC P RATE",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcRates[FD_PITCH],    0, 255, 1, 10 }, 0 },

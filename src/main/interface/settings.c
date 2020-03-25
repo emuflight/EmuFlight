@@ -756,12 +756,10 @@ const clivalue_t valueTable[] = {
     { "pitch_srate",                VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, CONTROL_RATE_CONFIG_RATE_MAX }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rates[FD_PITCH]) },
     { "yaw_srate",                  VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, CONTROL_RATE_CONFIG_RATE_MAX }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rates[FD_YAW]) },
 // stickPids
-    { "stick_p_low",                VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 50, 150 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, stickPids.PLow) },
-    { "stick_p_high",               VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 50, 150 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, stickPids.PHigh) },
-    { "stick_i_low",                VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, stickPids.ILow) },
-    { "stick_i_high",               VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, stickPids.IHigh) },
-    { "stick_d_low",                VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, stickPids.DLow) },
-    { "stick_d_high",               VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, stickPids.DHigh) },
+    { "stick_center_p",             VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 50, 150 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, stickPids.PCenterStick) },
+    { "stick_end_p",                VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 50, 150 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, stickPids.PEndStick) },
+    { "stick_center_d",             VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, stickPids.DCenterStick) },
+    { "stick_end_d",                VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, stickPids.DEndStick) },
 
     { "tpa_rate_p",                 VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, CONTROL_RATE_CONFIG_TPA_MAX}, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, dynThrP) },
     { "tpa_rate_i",                 VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, CONTROL_RATE_CONFIG_TPA_MAX}, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, dynThrI) },
