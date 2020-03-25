@@ -247,7 +247,7 @@ static OSD_Entry cmsx_menuRateProfileEntries[] =
     { "-- RATE --", OME_Label, NULL, rateProfileIndexString, 0 },
 
     { "STICK CENTER P",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.PCenterStick,  25, 175, 1, 10 }, 0 },
-    { "STICK END P",      OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.PEndStick,     25, 175 1, 10 }, 0 },
+    { "STICK END P",      OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.PEndStick,     25, 175, 1, 10 }, 0 },
     { "STICK CENTER D",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.DCenterStick,  0,   95, 1, 10 }, 0 },
     { "STICK END D",      OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.stickPids.DEndStick,     0,   95, 1, 10 }, 0 },
 
