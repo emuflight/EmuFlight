@@ -70,10 +70,7 @@ typedef struct kalman
     float lastX; //previous state
     float e;
     float s;
-
-    pt1Filter_t lp_filter;
-    float updateRate;
 } kalman_t;
 
-extern void kalman_init(float updateRate);
+extern void kalman_init(void);
 extern void kalman_update(float* input, float* output);
