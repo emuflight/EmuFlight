@@ -30,7 +30,7 @@ variance_t  varStruct;
 float       setPoint[XYZ_AXIS_COUNT];
 
 
-void init_kalman(kalman_t *filter, float q)
+void init_kalman(kalman_t *filter, float q, float updateRate)
 {
     memset(filter, 0, sizeof(kalman_t));
     filter->q = q * 0.001f;             //add multiplier to make tuning easier
@@ -38,17 +38,23 @@ void init_kalman(kalman_t *filter, float q)
     filter->p = 30.0f;                  //seeding P at 30.0f
     filter->e = 1.0f;
     filter->s = gyroConfig()->imuf_sharpness / 250.0f;     //adding the new sharpness :) time to overfilter :O
+
+    // set cutoff frequency
+    const float k = pt1FilterGain(10.0f, updateRate);
+    pt1FilterInit(&filter->lp_filter, k);
+    filter->lp_filter.state = 1.0f;		// e's default value
+    filter->updateRate = updateRate;
 }
 
 
-void kalman_init(void)
+void kalman_init(float updateRate)
 {
     isSetpointNew = 0;
 
     memset(&varStruct, 0, sizeof(varStruct));
-    init_kalman(&kalmanFilterStateRate[X],  gyroConfig()->imuf_roll_q);
-    init_kalman(&kalmanFilterStateRate[Y],  gyroConfig()->imuf_pitch_q);
-    init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->imuf_yaw_q);
+    init_kalman(&kalmanFilterStateRate[X],  gyroConfig()->imuf_roll_q, updateRate);
+    init_kalman(&kalmanFilterStateRate[Y],  gyroConfig()->imuf_pitch_q, updateRate);
+    init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->imuf_yaw_q, updateRate);
 
     varStruct.w = gyroConfig()->imuf_w;
     varStruct.inverseN = 1.0f/(float)(varStruct.w);
@@ -125,11 +131,8 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
   	errorMultiplier = constrainf(errorMultiplier * fabsf(1.0f - (target / kalmanState->lastX)) + 1.0f, 1.0f, 50.0f);
 
     kalmanState->e = fabsf(1.0f - ((target * errorMultiplier) / kalmanState->lastX));
-  } else {
-      kalmanState->e = 1.0f;
   }
-
-  //kalmanState->e = ABS((target - input) * 3) + ABS(input/4);
+  kalmanState->e = pt1FilterApply(&kalmanState->lp_filter, kalmanState->e);
 
   //prediction update
   kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
@@ -138,6 +141,15 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
   kalmanState->k = kalmanState->p / (kalmanState->p + kalmanState->r);
   kalmanState->x += kalmanState->k * (input - kalmanState->x);
   kalmanState->p = (1.0f - kalmanState->k) * kalmanState->p;
+
+  //dynamic lowpass filter;
+  const float cutoff_frequency = constrain(50.0f * kalmanState->e, 10.0f, 250.0f);
+  const float k = pt1FilterGain(cutoff_frequency, kalmanState->updateRate);
+  pt1FilterUpdateCutoff(&kalmanState->lp_filter, k);
+
+  kalmanState->x = pt1FilterApply(&kalmanState->lp_filter, kalmanState->x);
+
+
   return kalmanState->x;
 }
 
@@ -150,9 +162,9 @@ void FAST_CODE kalman_update(float* input, float* output)
     setPoint[Y] = getSetpointRate(Y);
     setPoint[Z] = getSetpointRate(Z);
 
-    output[X] = kalman_process(&kalmanFilterStateRate[X], input[X], setPoint[X] );
-    output[Y] = kalman_process(&kalmanFilterStateRate[Y], input[Y], setPoint[Y] );
-    output[Z] = kalman_process(&kalmanFilterStateRate[Z], input[Z], setPoint[Z] );
+    output[X] = kalman_process(&kalmanFilterStateRate[X], input[X], setPoint[X]);
+    output[Y] = kalman_process(&kalmanFilterStateRate[Y], input[Y], setPoint[Y]);
+    output[Z] = kalman_process(&kalmanFilterStateRate[Z], input[Z], setPoint[Z]);
 
     DEBUG_SET(DEBUG_KALMAN, 1, input[X]);                               //Gyro input
 

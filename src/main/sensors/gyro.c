@@ -867,7 +867,7 @@ static void gyroInitSensorFilters(gyroSensor_t *gyroSensor)
 #endif
 
 #ifndef USE_GYRO_IMUF9001
-    kalman_init();
+    kalman_init(gyro.targetLooptime * 1e-6f);
 #endif //USE_GYRO_IMUF9001
 
     gyroInitLowpassFilterLpf(
