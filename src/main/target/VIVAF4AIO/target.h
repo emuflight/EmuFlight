@@ -39,8 +39,8 @@
 #define MPU6500_CS_PIN           PA4
 #define MPU6500_SPI_INSTANCE     SPI1
 
-#define ACC_MPU6500_1_ALIGN         CW180_DEG
-#define GYRO_MPU6500_1_ALIGN        CW180_DEG
+#define ACC_MPU6500_1_ALIGN         CW0_DEG
+#define GYRO_MPU6500_1_ALIGN        CW0_DEG
 #define GYRO_1_ALIGN                GYRO_MPU6500_1_ALIGN
 #define ACC_1_ALIGN                 ACC_MPU6500_1_ALIGN
 
@@ -138,5 +138,5 @@
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT      14
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9) | TIM_N(10)  )
+#define USABLE_TIMER_CHANNEL_COUNT      9
+#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(12) )
