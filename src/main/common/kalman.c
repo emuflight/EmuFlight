@@ -108,6 +108,7 @@ void update_kalman_covariance(float *gyroRateData)
 
 FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 {
+  float targetAbs = fabsf(target);
   //project the state ahead using acceleration
   kalmanState->x += (kalmanState->x - kalmanState->lastX);
 
@@ -116,17 +117,15 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
   //update last state
   kalmanState->lastX = kalmanState->x;
 
-  // calculate the error
+  if (kalmanState->lastX != 0.0f) {
+  // calculate the error and add multiply sharpness boost
   	float errorMultiplier = fabsf(target - kalmanState->x) * kalmanState->s;
 
-  // give a boost to the setpoint, used to caluclate the filter cutoff, based on the error and setpoint/gyrodata
+  // give a boost to the setpoint, used to caluclate the kalman q, based on the error and setpoint/gyrodata
 
   	errorMultiplier = constrainf(errorMultiplier * fabsf(1.0f - (target / kalmanState->lastX)) + 1.0f, 1.0f, 50.0f);
 
-  if (target != 0.0f) {
-      kalmanState->e = fabsf(1.0f - ((target * errorMultiplier) / kalmanState->lastX));
-  } else {
-      kalmanState->e = 1.0f;
+    kalmanState->e = fabsf(1.0f - (((targetAbs + 1.0f) * errorMultiplier) / fabsf(kalmanState->lastX)));
   }
 
   //kalmanState->e = ABS((target - input) * 3) + ABS(input/4);
@@ -144,6 +143,11 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 
 void FAST_CODE kalman_update(float* input, float* output)
 {
+
+    setPoint[X] = getSetpointRate(X);
+    setPoint[Y] = getSetpointRate(Y);
+    setPoint[Z] = getSetpointRate(Z);
+
     update_kalman_covariance(input);
     output[X] = kalman_process(&kalmanFilterStateRate[X], input[X], setPoint[X] );
     output[Y] = kalman_process(&kalmanFilterStateRate[Y], input[Y], setPoint[Y] );
