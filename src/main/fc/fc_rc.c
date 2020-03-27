@@ -874,8 +874,8 @@ FAST_CODE float stickPIDs(float rcCommand, int axis)
     rcCommandError = rcCommand - (pterm + iterm[axis]);
     rcCommand = pterm; // add this fake pterm to the rcCommand
 
-    iterm_centerStick = (1.0f - rcCommandPercent) * rcCommandError * fabsf(1.0f - (currentControlRateProfile->stickPids.PCenterStick / 100.0f)); // valid iterm values are between 0-95
-    iterm_endStick = rcCommandPercent * rcCommandError * fabsf(1.0f - (currentControlRateProfile->stickPids.PEndStick / 100.0f));
+    iterm_centerStick = (1.0f - rcCommandPercent) * rcCommandError * (1.0f - fabsf((100.0f - currentControlRateProfile->stickPids.PCenterStick) / 100.0f)); // valid iterm values are between 0-95
+    iterm_endStick = rcCommandPercent * rcCommandError * (1.0f - fabsf((100.0f - currentControlRateProfile->stickPids.PEndStick) / 100.0f));
     iterm[axis] += iterm_centerStick + iterm_endStick;
     rcCommand = rcCommand + iterm[axis]; // add the iterm to the rcCommand
 
