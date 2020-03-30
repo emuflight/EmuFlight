@@ -651,7 +651,7 @@ static bool osdDrawSingleElement(uint8_t item)
 
     case OSD_THROTTLE_POS:
         buff[0] = SYM_THR;
-        buff[1] = SYM_THR1;
+        // buff[1] = SYM_THR1; //dont need 2 throttle symbols on screen
         tfp_sprintf(buff + 2, "%3d", (constrain(rcData[THROTTLE], PWM_RANGE_MIN, PWM_RANGE_MAX) - PWM_RANGE_MIN) * 100 / (PWM_RANGE_MAX - PWM_RANGE_MIN));
         break;
 
