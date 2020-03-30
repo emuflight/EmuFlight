@@ -96,21 +96,21 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 #ifndef DEFAULT_PIDS_ROLL
 #define DEFAULT_PIDS_ROLL \
     {                     \
-        50, 70, 28, 0     \
+        50, 70, 28        \
     }
 #endif //DEFAULT_PIDS_ROLL
 
 #ifndef DEFAULT_PIDS_PITCH
 #define DEFAULT_PIDS_PITCH \
     {                      \
-        58, 70, 30, 0      \
+        58, 70, 30         \
     }
 #endif //DEFAULT_PIDS_PITCH
 
 #ifndef DEFAULT_PIDS_YAW
 #define DEFAULT_PIDS_YAW \
     {                    \
-        60, 70, 5, 0     \
+        60, 70, 5        \
     }
 #endif //DEFAULT_PIDS_YAW
 
@@ -158,9 +158,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  .setPointPTransition[ROLL] = 110,
                  .setPointPTransition[PITCH] = 110,
                  .setPointPTransition[YAW] = 130,
-                 .setPointITransition[ROLL] = 75,
-                 .setPointITransition[PITCH] = 75,
-                 .setPointITransition[YAW] = 45,
+                 .setPointITransition[ROLL] = 85,
+                 .setPointITransition[PITCH] = 85,
+                 .setPointITransition[YAW] = 70,
                  .setPointDTransition[ROLL] = 110,
                  .setPointDTransition[PITCH] = 110,
                  .setPointDTransition[YAW] = 130,
