@@ -61,6 +61,7 @@ deploy:
     tag_name: "${TRAVIS_TAG}"
     target_commitish: "${TRAVIS_COMMIT}"
     file_glob: true
+    local_dir: $HOME/.travis/functions
     file:
       - obj/*.hex
     cleanup: false # do not delete what has just been built
