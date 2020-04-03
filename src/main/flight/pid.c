@@ -1073,7 +1073,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
             if (smart_dterm_smoothing[axis] > 0)
             {
-                dDeltaMultiplier = constrainf(fabsf(dDelta + previousdDelta[axis]) / (2 * smart_dterm_smoothing[axis]), 0.2f, 1.0f);
+                dDeltaMultiplier = constrainf(fabsf(dDelta + previousdDelta[axis]) / (2 * smart_dterm_smoothing[axis]), 0.5f, 1.0f);
                 dDelta = dDelta * dDeltaMultiplier;
                 previousdDelta[axis] = dDelta;
                 DEBUG_SET(DEBUG_SMART_SMOOTHING, axis, dDeltaMultiplier * 1000.0f);
