@@ -600,7 +600,7 @@ static bool osdDrawSingleElement(uint8_t item)
             //  3. ANGLE, HORIZON, ACRO TRAINER
             //  4. AIR
             //  5. ACRO
-
+         
             if (FLIGHT_MODE(FAILSAFE_MODE)) {
                 strcpy(buff, "!FS!");
             } else if (FLIGHT_MODE(GPS_RESCUE_MODE)) {
@@ -611,8 +611,6 @@ static bool osdDrawSingleElement(uint8_t item)
                 strcpy(buff, "STAB");
             } else if (FLIGHT_MODE(HORIZON_MODE)) {
                 strcpy(buff, "HOR ");
-            } else if (IS_RC_MODE_ACTIVE(BOXACROTRAINER)) {
-                strcpy(buff, "ATRN");
             } else if (isAirmodeActive()) {
                 strcpy(buff, "AIR ");
             } else {
