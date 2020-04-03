@@ -49,4 +49,4 @@ int rcSmoothingGetValue(int whichValue);
 bool rcSmoothingAutoCalculate(void);
 bool rcSmoothingInitializationComplete(void);
 #endif
-float stickPIDs(float rcCommand, int axis);
+float rateFineTuning(float rcCommand, int axis);
