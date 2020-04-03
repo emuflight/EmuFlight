@@ -115,7 +115,7 @@
 #define SPI2_NSS_PIN             PB12
 #define SPI2_SCK_PIN             PB13
 #define SPI2_MISO_PIN            PB14
-#define SPI2_MOSI_PIN            PC13
+#define SPI2_MOSI_PIN            PC3
 
 #define SPI3_NSS_PIN             PA15
 #define SPI3_SCK_PIN             PC10
@@ -131,7 +131,7 @@
 #define CURRENT_METER_SCALE_DEFAULT 250                     // 3.3/120A  = 25mv/A
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
-#define SERIALRX_UART           SERIAL_PORT_UART5
+#define SERIALRX_UART           SERIAL_PORT_USART1
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
