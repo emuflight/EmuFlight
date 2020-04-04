@@ -705,23 +705,24 @@ static void applyFlipOverAfterCrashModeToMotors(void)
         float flipPower = MAX(0.0f, stickDeflectionMax - CRASH_FLIP_STICK_MINF) / flipStickRange;
 
         for (int i = 0; i < motorCount; ++i) {
-            float thrust =
-                signPitch*currentMixer[i].pitch +
-                signRoll*currentMixer[i].roll +
-                signYaw*currentMixer[i].yaw;
+            float motorOutput =
+                    signPitch*currentMixer[i].pitch +
+                    signRoll*currentMixer[i].roll +
+                    signYaw*currentMixer[i].yaw;
 
-            if (thrust < 0) {
+            if (motorOutput < 0) {
                 if (mixerConfig()->crashflip_motor_percent > 0) {
-                    thrust *= (float) mixerConfig()->crashflip_motor_percent / -100.0f;
-                    float motorOutput = thrustToMotorOutput(MIN(1.0f, flipPower * thrust * mixerConfig()->crashflip_power_percent / 100.0f));
-
-                    // Add a little bit to the motorOutputMin so props aren't spinning when sticks are centered
-                    motorOutput = (motorOutput < motorOutputMin + CRASH_FLIP_DEADBAND) ? disarmMotorOutput : (motorOutput - CRASH_FLIP_DEADBAND);
-                    motor[i] = motorOutput;
+                    motorOutput = -motorOutput * (float)mixerConfig()->crashflip_motor_percent / 100.0f;
                 } else {
-                    motor[i] = disarmMotorOutput;
+                    motorOutput = disarmMotorOutput;
                 }
             }
+            motorOutput = MIN(1.0f, flipPower * motorOutput * mixerConfig()->crashflip_power_percent / 100.0f);
+            motorOutput = motorOutputMin + motorOutput * motorOutputRange;
+
+            // Add a little bit to the motorOutputMin so props aren't spinning when sticks are centered
+            motorOutput = (motorOutput < motorOutputMin + CRASH_FLIP_DEADBAND) ? disarmMotorOutput : (motorOutput - CRASH_FLIP_DEADBAND);
+            motor[i] = motorOutput;
         }
     } else {
         // Disarmed mode
@@ -735,10 +736,10 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
 {
     // Now add in the desired throttle, but keep in a range that doesn't clip adjusted
     // roll/pitch/yaw. This could move throttle down, but also up for those low throttle flips.
-    
     for (int i = 0; i < motorCount; i++) {
         float _throttle = throttle;
         if (!currentControlRateProfile->throttle_linearization) {
+            // If throttle is not wanted to be linearized too, we apply a counter compensation
             _throttle = scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, _throttle, sqrtf(_throttle));
         }
         float motorOutput = thrustToMotorOutput(motorOutputMixSign * motorMix[i] + _throttle * currentMixer[i].throttle);
