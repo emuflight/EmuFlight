@@ -20,8 +20,8 @@
 
 #pragma once
 #define TARGET_BOARD_IDENTIFIER                          "S7X2"
-#define USBD_PRODUCT_STRING                              "TALONF7V2"
-#define TARGET_MANUFACTURER_IDENTIFIER                   "HENA"
+#define USBD_PRODUCT_STRING                              "KAIO_CANT_FLY_WITHOUT"
+#define TARGET_MANUFACTURER_IDENTIFIER                   "KAIO"
 
 #define USE_TARGET_CONFIG
 
@@ -131,9 +131,12 @@
 // USB
 #define USE_VCP
 #define BINDPLUG_PIN                                    PB2
-#define DEFAULT_RX_FEATURE                              FEATURE_RX_SERIAL
-#define SERIALRX_PROVIDER                               SERIALRX_SBUS
+#define SERIALRX_PROVIDER                               SERIALRX_CRSF
 #define SERIALRX_UART                                   SERIAL_PORT_USART3
+
+//FEATURE
+#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE)
+#define DEFAULT_RX_FEATURE                              FEATURE_RX_SERIAL
 
 // IO Ports
 #define TARGET_IO_PORTA                                 0xffff

@@ -19,28 +19,18 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER                          "S7X2"
-#define USBD_PRODUCT_STRING                              "TALONF7V2"
-#define TARGET_MANUFACTURER_IDENTIFIER                   "HENA"
-
-#define USE_TARGET_CONFIG
+#define TARGET_BOARD_IDENTIFIER                          "S411"
+#define USBD_PRODUCT_STRING                              "IFF411_PRO"
+#define TARGET_MANUFACTURER_IDENTIFIER                   "IFFL"
 
 #define ENABLE_DSHOT_DMAR                                true
 
 //Aux
-#define LED0_PIN                                         PB0
+#define USE_LED_STRIP
 
 #define USE_BEEPER
-#define BEEPER_PIN                                       PB4
+#define BEEPER_PIN                                       PB2
 #define BEEPER_INVERTED
-
-#define USE_PINIO
-#define PINIO1_PIN                                       PA14                   // VTX power switcher
-#define USE_PINIOBOX
-
-
-//define camera control
-#define CAMERA_CONTROL_PIN                               PB3
 
 //MPU-6000
 #define USE_GYRO
@@ -50,16 +40,31 @@
 #define USE_EXTI
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define MPU_INT_EXTI                                     PC4                    //MPU_INT_EXTI
+#define MPU_INT_EXTI                                     PA1                    //MPU_INT_EXTI
 #define MPU6000_CS_PIN                                   PA4                    //GYRO_1_CS_PIN
 #define MPU6000_SPI_INSTANCE                             SPI1                   //GYRO_1_SPI_INSTANCE
 #define GYRO_MPU6000_ALIGN                               CW0_DEG
 #define ACC_MPU6000_ALIGN                                CW0_DEG
 
-// OSD
+
+// *************** Baro **************************
+#define USE_I2C
+
+#define USE_I2C_DEVICE_1
+#define I2C_DEVICE                                      (I2CDEV_1)
+#define I2C1_SCL                                        PB8        // SCL pad
+#define I2C1_SDA                                        PB9        // SDA pad
+#define BARO_I2C_INSTANCE                               (I2CDEV_1)
+
+#define USE_BARO
+#define USE_BARO_BMP280
+#define USE_BARO_MS5611
+#define USE_BARO_BMP085
+
+// *************** OSD ***************************
 #define USE_MAX7456
-#define MAX7456_SPI_INSTANCE                             SPI3
-#define MAX7456_SPI_CS_PIN                               PA15
+#define MAX7456_SPI_INSTANCE                             SPI2
+#define MAX7456_SPI_CS_PIN                               PB12
 #define MAX7456_SPI_CLK                                  (SPI_CLOCK_STANDARD)   // 10MHz
 #define MAX7456_RESTORE_CLK                              (SPI_CLOCK_FAST)
 
@@ -67,8 +72,8 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
-#define FLASH_CS_PIN                                     PB12
-#define FLASH_SPI_INSTANCE                               SPI2
+#define FLASH_CS_PIN                                     PA15
+#define FLASH_SPI_INSTANCE                               SPI3
 
 // Uarts
 #define USE_UART1
@@ -78,34 +83,16 @@
 #define USE_UART2
 #define UART2_RX_PIN                                     PA3
 #define UART2_TX_PIN                                     PA2
-
-#define USE_UART3
-#define UART3_RX_PIN                                     PB11
-#define UART3_TX_PIN                                     PB10
-
-#define USE_UART4
-#define UART4_RX_PIN                                     PA1
-#define UART4_TX_PIN                                     PA0
-
-#define USE_UART5
-#define UART5_RX_PIN                                     PD2
-#define UART5_TX_PIN                                     PC12
-
-#define USE_UART6
-#define UART6_RX_PIN                                     PC7
-#define UART6_TX_PIN                                     PC6
-
 //#define USE_SOFTSERIAL1
-#define SERIAL_PORT_COUNT                                7                      //VCP, USART1, USART2,USART3,USART4,USART5,USART6
+#define SERIAL_PORT_COUNT                                3                      //VCP, USART1, USART2,USART3,USART4,USART5,USART6
 
 // ESC
 #define USE_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE                     VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE                     CURRENT_METER_ADC
-#define CURRENT_METER_ADC_PIN                            PC1
-#define VBAT_ADC_PIN                                     PC2
-#define RSSI_ADC_PIN                                     PC3
-#define CURRENT_METER_SCALE_DEFAULT                      250                    // 3.3/120A  = 25mv/A
+#define CURRENT_METER_ADC_PIN                            PB1
+#define VBAT_ADC_PIN                                     PB0
+#define CURRENT_METER_SCALE_DEFAULT                      170                    // 3.3/120A  = 25mv/A
 
 // SPI devices
 #define USE_SPI
@@ -124,23 +111,22 @@
 #define SPI2_MOSI_PIN                                   PB15
 
 #define SPI3_NSS_PIN                                    PA15
-#define SPI3_SCK_PIN                                    PC10
-#define SPI3_MISO_PIN                                   PC11
+#define SPI3_SCK_PIN                                    PB3
+#define SPI3_MISO_PIN                                   PB4
 #define SPI3_MOSI_PIN                                   PB5
-
 // USB
 #define USE_VCP
-#define BINDPLUG_PIN                                    PB2
+
 #define DEFAULT_RX_FEATURE                              FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER                               SERIALRX_SBUS
-#define SERIALRX_UART                                   SERIAL_PORT_USART3
+#define SERIALRX_UART                                   SERIAL_PORT_USART2
 
 // IO Ports
 #define TARGET_IO_PORTA                                 0xffff
 #define TARGET_IO_PORTB                                 0xffff
-#define TARGET_IO_PORTC                                 0xffff
+#define TARGET_IO_PORTC                                 (BIT(2))
 #define TARGET_IO_PORTD                                 (BIT(2))
 
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                      9                       //updated timer count to compensate for Nf Motor 4
-#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5)  | TIM_N(8)   ) //update based on update CLRACINGF7 Target BF4.1+
+#define USABLE_TIMER_CHANNEL_COUNT                      6                       //updated timer count to compensate for Nf Motor 4
+#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(4)  | TIM_N(9)   ) //update based on update CLRACINGF7 Target BF4.1+
