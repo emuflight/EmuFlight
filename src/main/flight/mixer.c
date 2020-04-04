@@ -748,7 +748,7 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
             motorOutput += mixerTricopterMotorCorrection(i);
         }
         if (failsafeIsActive()) {
-            motorOutput = disarmMotorOutput;
+            motorOutput = constrain(motorOutput, disarmMotorOutput, motorRangeMax);
         }
         // Motor stop handling
         if (feature(FEATURE_MOTOR_STOP) && ARMING_FLAG(ARMED) && !feature(FEATURE_3D) && !isAirmodeActive()
