@@ -852,11 +852,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         setPointDAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition[axis] - 1));
     }
 
-    float vbatPIDCompensationFactor = 1.0f;
-        if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF && !currentControlRateProfile->vbat_comp_motor_output) {
-        vbatPIDCompensationFactor = applyVbatCompensation(1.0f, currentControlRateProfile->vbat_comp_pid_level);
-    }
-
     // gradually scale back integration when above windup point
     const float dynCi = constrainf((1.1f - getMotorMixRange()) * ITermWindupPointInv, 0.1f, 1.0f) * itermAccelerator * deltaT;
     float errorRate;
@@ -1027,8 +1022,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 #endif
 
         // -----calculate P component and add Dynamic Part based on stick input
-        // vbat pid compensation on just the p term :) thanks NFE
-        pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate)) * vbatPIDCompensationFactor;
+        pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate));
 
         /*
          * Process Iterm with I-decay function

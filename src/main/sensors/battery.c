@@ -458,15 +458,14 @@ void batteryUpdateCurrentMeter(timeUs_t currentTimeUs)
     }
 }
 
-float calculateVbatCompensation(uint8_t vbatCompType, uint8_t vbatCompRef)
+float calculateVbatCompensationFactor()
 {
     float factor =  1.0f;
     if (batteryConfig()->voltageMeterSource != VOLTAGE_METER_NONE && batteryCellCount > 0) {
         float vbat = (float) voltageMeter.filtered / batteryCellCount;
         if (vbat) {
-            factor = vbatCompRef / vbat;
-            factor *= factor;
-            switch (vbatCompType) {
+            factor = currentControlRateProfile->vbat_comp_ref / vbat;
+            switch (currentControlRateProfile->vbat_comp_type) {
                 case VBAT_COMP_TYPE_BOOST:
                     factor = MAX(factor, 1.0f);
                     break;
@@ -477,12 +476,6 @@ float calculateVbatCompensation(uint8_t vbatCompType, uint8_t vbatCompRef)
         }
     }
     return factor;
-}
-
-float applyVbatCompensation(float value, uint8_t compensationLevel)
-{
-    float vbatCompensation = calculateVbatCompensation(currentControlRateProfile->vbat_comp_type, currentControlRateProfile->vbat_comp_ref);
-    return value * scaleRangef(compensationLevel, 0, 100, 1.0f, vbatCompensation);
 }
 
 uint8_t calculateBatteryPercentageRemaining(void)

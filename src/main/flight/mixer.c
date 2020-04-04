@@ -655,6 +655,14 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs)
 #define CRASH_FLIP_DEADBAND 20
 #define CRASH_FLIP_STICK_MINF 0.15f
 
+static float thrustToMotorOutput(float thrust) {
+    float vbatCompMotorOutputRange = motorOutputRange;
+    if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF) {
+        vbatCompMotorOutputRange *= calculateVbatCompensationFactor();
+    }
+    return motorOutputMin + vbatCompMotorOutputRange * thrust * scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, 1.0f, thrust);
+}
+
 static void applyFlipOverAfterCrashModeToMotors(void)
 {
     if (ARMING_FLAG(ARMED)) {
@@ -697,29 +705,23 @@ static void applyFlipOverAfterCrashModeToMotors(void)
         float flipPower = MAX(0.0f, stickDeflectionMax - CRASH_FLIP_STICK_MINF) / flipStickRange;
 
         for (int i = 0; i < motorCount; ++i) {
-            float motorOutput =
+            float thrust =
                 signPitch*currentMixer[i].pitch +
                 signRoll*currentMixer[i].roll +
                 signYaw*currentMixer[i].yaw;
 
-            if (motorOutput < 0) {
+            if (thrust < 0) {
                 if (mixerConfig()->crashflip_motor_percent > 0) {
-                    motorOutput = -motorOutput * (float)mixerConfig()->crashflip_motor_percent / 100.0f;
+                    thrust *= (float) mixerConfig()->crashflip_motor_percent / -100.0f;
+                    float motorOutput = thrustToMotorOutput(MIN(1.0f, flipPower * thrust * mixerConfig()->crashflip_power_percent / 100.0f));
+
+                    // Add a little bit to the motorOutputMin so props aren't spinning when sticks are centered
+                    motorOutput = (motorOutput < motorOutputMin + CRASH_FLIP_DEADBAND) ? disarmMotorOutput : (motorOutput - CRASH_FLIP_DEADBAND);
+                    motor[i] = motorOutput;
                 } else {
-                    motorOutput = disarmMotorOutput;
+                    motor[i] = disarmMotorOutput;
                 }
             }
-
-            float vbatCompMotorOutputRange = motorOutputRange;
-            if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF && currentControlRateProfile->vbat_comp_motor_output) {
-                vbatCompMotorOutputRange = applyVbatCompensation(motorOutputRange, currentControlRateProfile->vbat_comp_throttle_level);
-            }
-            motorOutput = MIN(1.0f, flipPower * motorOutput * mixerConfig()->crashflip_power_percent / 100.0f);
-            motorOutput = motorOutputMin + motorOutput * vbatCompMotorOutputRange;
-
-            // Add a little bit to the motorOutputMin so props aren't spinning when sticks are centered
-            motorOutput = (motorOutput < motorOutputMin + CRASH_FLIP_DEADBAND) ? disarmMotorOutput : (motorOutput - CRASH_FLIP_DEADBAND);
-            motor[i] = motorOutput;
         }
     } else {
         // Disarmed mode
@@ -733,15 +735,13 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
 {
     // Now add in the desired throttle, but keep in a range that doesn't clip adjusted
     // roll/pitch/yaw. This could move throttle down, but also up for those low throttle flips.
-
-    float vbatCompMotorOutputRange = motorOutputRange;
-    if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF && currentControlRateProfile->vbat_comp_motor_output) {
-        // motor output vbat compensation uses the same compensation level of throttle, that is vbat_comp_throttle_level
-        vbatCompMotorOutputRange = applyVbatCompensation(motorOutputRange, currentControlRateProfile->vbat_comp_throttle_level);
-    }
     
     for (int i = 0; i < motorCount; i++) {
-        float motorOutput = motorOutputMin + (vbatCompMotorOutputRange * (motorOutputMixSign * motorMix[i] + throttle * currentMixer[i].throttle));
+        float _throttle = throttle;
+        if (!currentControlRateProfile->throttle_linearization) {
+            _throttle = scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, _throttle, sqrtf(_throttle));
+        }
+        float motorOutput = thrustToMotorOutput(motorOutputMixSign * motorMix[i] + _throttle * currentMixer[i].throttle);
         if (mixerIsTricopter()) {
             motorOutput += mixerTricopterMotorCorrection(i);
         }
@@ -849,10 +849,6 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
   if (!mixerConfig()->yaw_motors_reversed) {
       scaledAxisPidYaw = -scaledAxisPidYaw;
   }
-
-    if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF && !currentControlRateProfile->vbat_comp_motor_output) {
-        throttle = applyVbatCompensation(throttle, currentControlRateProfile->vbat_comp_throttle_level);
-    }
 
     // Apply the throttle_limit_percent to scale or limit the throttle based on throttle_limit_type
     if (currentControlRateProfile->throttle_limit_type != THROTTLE_LIMIT_TYPE_OFF) {
