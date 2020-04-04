@@ -888,10 +888,8 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
         throttle = gpsRescueGetThrottle();
     }
 #endif
-    
-    throttle = constrainf(throttle, 0.0f, 1.0f);
+
     loggingThrottle = throttle;
-    
     motorMixRange = motorMixMax - motorMixMin;
     if (motorMixRange > 1.0f && (hardwareMotorType != MOTOR_BRUSHED)) {
         for (int i = 0; i < motorCount; i++) {
