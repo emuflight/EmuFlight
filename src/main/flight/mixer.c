@@ -585,6 +585,7 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs)
             motorOutputMixSign = -1;
             rcThrottlePrevious = rcCommand[THROTTLE];
             throttle = rcCommand3dDeadBandLow - rcCommand[THROTTLE];
+            currentThrottleInputRange = rcCommandThrottleRange3dLow;
         } else if (rcCommand[THROTTLE] >= rcCommand3dDeadBandHigh) {
             // NORMAL
             motorRangeMin = deadbandMotor3dHigh;
@@ -660,7 +661,7 @@ static float thrustToMotorOutput(float thrust)
     if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF) {
         vbatCompFactor = calculateVbatCompensationFactor();
     }
-    float linearizedThrust = thrust * vbatCompFactor * scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, 1.0f, vbatCompFactor * ABS(thrust));
+    float linearizedThrust = thrust * vbatCompFactor * scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, 1.0f, vbatCompFactor * ABS(thrust)) / 10.0f;
     return motorOutputMin + linearizedThrust * motorOutputRange;
 }
 
