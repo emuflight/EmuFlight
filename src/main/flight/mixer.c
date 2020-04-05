@@ -661,7 +661,7 @@ static float thrustToMotorOutput(float thrust)
     if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF) {
         vbatCompFactor = calculateVbatCompensationFactor();
     }
-    float linearizedThrust = thrust * vbatCompFactor * scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, 1.0f, vbatCompFactor * ABS(thrust));
+    float linearizedThrust = vbatCompFactor * scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, thrust, SIGN(thrust) * vbatCompFactor * sqrtf(ABS(thrust)));
     return motorOutputMin + linearizedThrust * motorOutputRange;
 }
 
@@ -738,7 +738,7 @@ static float applyThrottleCurve(float throttle)
 {
     if (currentControlRateProfile->thrust_linearization_level && !currentControlRateProfile->throttle_linearization) {
         // counter compensating thrust linearization
-        return scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, throttle, sqrtf(throttle));
+        return scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, throttle, throttle * ABS(throttle));
     }
     return throttle;
 }

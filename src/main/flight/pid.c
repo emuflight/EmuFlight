@@ -551,8 +551,6 @@ static float calcHorizonLevelStrength(void)
     return constrainf(horizonLevelStrength, 0, 1);
 }
 
-#define SIGN(x) ((x > 0.0f) - (x < 0.0f))
-
 static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint, const float deltaT)
 {
     // calculate error angle and limit the angle to the max inclination
