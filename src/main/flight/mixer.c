@@ -661,7 +661,7 @@ static float thrustToMotorOutput(float thrust)
     if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF) {
         vbatCompFactor = calculateVbatCompensationFactor();
     }
-    float linearizedThrust = thrust * vbatCompFactor * scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, 1.0f, vbatCompFactor * ABS(thrust)) / 10.0f;
+    float linearizedThrust = thrust * vbatCompFactor * scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, 1.0f, vbatCompFactor * ABS(thrust));
     return motorOutputMin + linearizedThrust * motorOutputRange;
 }
 
