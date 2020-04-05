@@ -654,14 +654,14 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs)
 #define CRASH_FLIP_DEADBAND 20
 #define CRASH_FLIP_STICK_MINF 0.15f
 
-static float thrustToMotorOutput(float thrust) {
-    float vbatCompMotorOutputRange = motorOutputRange;
+static float thrustToMotorOutput(float thrust)
+{
+    float vbatCompFactor = 1.0f;
     if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF) {
-        vbatCompMotorOutputRange *= calculateVbatCompensationFactor();
+        vbatCompFactor = calculateVbatCompensationFactor();
     }
-    float linearizationFactor = scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, 1.0f, ABS(thrust));
-    float motorOutput = motorOutputMin + thrust * linearizationFactor * vbatCompMotorOutputRange;
-    return constrainf(motorOutput, motorRangeMin, motorRangeMax);
+    float linearizedThrust = thrust * vbatCompFactor * scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, 1.0f, vbatCompFactor * ABS(thrust));
+    return motorOutputMin + linearizedThrust * motorOutputRange;
 }
 
 static void applyFlipOverAfterCrashModeToMotors(void)
@@ -733,22 +733,31 @@ static void applyFlipOverAfterCrashModeToMotors(void)
     }
 }
 
+static float applyThrottleCurve(float throttle)
+{
+    if (currentControlRateProfile->thrust_linearization_level && !currentControlRateProfile->throttle_linearization) {
+        // counter compensating thrust linearization
+        return scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, throttle, sqrtf(throttle));
+    }
+    return throttle;
+}
+
 static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
 {
     // Now add in the desired throttle, but keep in a range that doesn't clip adjusted
     // roll/pitch/yaw. This could move throttle down, but also up for those low throttle flips.
     for (int i = 0; i < motorCount; i++) {
-        float _throttle = throttle;
-        if (currentControlRateProfile->thrust_linearization_level && !currentControlRateProfile->throttle_linearization) {
-            // If throttle is not wanted to be linearized too, we apply a counter compensation
-            _throttle = scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, throttle, sqrtf(throttle));
-        }
-        float motorOutput = thrustToMotorOutput(motorOutputMixSign * motorMix[i] + _throttle * currentMixer[i].throttle);
+        float motorOutput = thrustToMotorOutput(motorOutputMixSign * motorMix[i] + applyThrottleCurve(throttle) * currentMixer[i].throttle);
         if (mixerIsTricopter()) {
             motorOutput += mixerTricopterMotorCorrection(i);
         }
         if (failsafeIsActive()) {
+            if (isMotorProtocolDshot()) {
+                motorOutput = (motorOutput < motorRangeMin) ? disarmMotorOutput : motorOutput; // Prevent getting into special reserved range
+            }
             motorOutput = constrain(motorOutput, disarmMotorOutput, motorRangeMax);
+        } else {
+            motorOutput = constrain(motorOutput, motorRangeMin, motorRangeMax);
         }
         // Motor stop handling
         if (feature(FEATURE_MOTOR_STOP) && ARMING_FLAG(ARMED) && !feature(FEATURE_3D) && !isAirmodeActive()
