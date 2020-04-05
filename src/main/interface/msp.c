@@ -1996,10 +1996,10 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         gyroConfigMutable()->imuf_yaw_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_w = sbufReadU16(src);
 #ifdef USE_GYRO_IMUF9001
-        sbufReadU16(src);
-        sbufReadU16(src);
-        sbufReadU16(src);
-        sbufReadU16(src);
+        gyroConfigMutable()->imuf_roll_lpf_cutoff_hz = sbufReadU16(src);
+        gyroConfigMutable()->imuf_pitch_lpf_cutoff_hz = sbufReadU16(src);
+        gyroConfigMutable()->imuf_yaw_lpf_cutoff_hz = sbufReadU16(src);
+        gyroConfigMutable()->imuf_acc_lpf_cutoff_hz = sbufReadU16(src);
 #endif
         break;
 //#endif
