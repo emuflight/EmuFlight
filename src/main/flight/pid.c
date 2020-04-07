@@ -94,24 +94,15 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 #endif
 
 #ifndef DEFAULT_PIDS_ROLL
-#define DEFAULT_PIDS_ROLL \
-    {                     \
-        50, 70, 28        \
-    }
+#define DEFAULT_PIDS_ROLL {50, 70, 28}
 #endif //DEFAULT_PIDS_ROLL
 
 #ifndef DEFAULT_PIDS_PITCH
-#define DEFAULT_PIDS_PITCH \
-    {                      \
-        58, 70, 30         \
-    }
+#define DEFAULT_PIDS_PITCH {58, 70, 30}
 #endif //DEFAULT_PIDS_PITCH
 
 #ifndef DEFAULT_PIDS_YAW
-#define DEFAULT_PIDS_YAW \
-    {                    \
-        60, 70, 5        \
-    }
+#define DEFAULT_PIDS_YAW {60, 70, 5}
 #endif //DEFAULT_PIDS_YAW
 
 #ifdef USE_RUNAWAY_TAKEOFF
