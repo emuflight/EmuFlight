@@ -655,6 +655,16 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs)
 #define CRASH_FLIP_DEADBAND 20
 #define CRASH_FLIP_STICK_MINF 0.15f
 
+static float thrustToMotorOutput(float thrust)
+{
+    float vbatCompFactor = 1.0f;
+    if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF) {
+        vbatCompFactor = calculateVbatCompensationFactor();
+    }
+    float linearizedThrust = vbatCompFactor * scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, thrust, SIGN(thrust) * vbatCompFactor * sqrtf(ABS(thrust)));
+    return motorOutputMin + linearizedThrust * motorOutputRange;
+}
+
 static void applyFlipOverAfterCrashModeToMotors(void)
 {
     if (ARMING_FLAG(ARMED)) {
@@ -724,12 +734,21 @@ static void applyFlipOverAfterCrashModeToMotors(void)
     }
 }
 
+static float applyThrottleCurve(float throttle)
+{
+    if (currentControlRateProfile->thrust_linearization_level && !currentControlRateProfile->throttle_linearization) {
+        // counter compensating thrust linearization
+        return throttle * scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, 1.0f, throttle);
+    }
+    return throttle;
+}
+
 static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
 {
     // Now add in the desired throttle, but keep in a range that doesn't clip adjusted
     // roll/pitch/yaw. This could move throttle down, but also up for those low throttle flips.
     for (int i = 0; i < motorCount; i++) {
-        float motorOutput = motorOutputMin + (motorOutputRange * (motorOutputMixSign * motorMix[i] + throttle * currentMixer[i].throttle));
+        float motorOutput = thrustToMotorOutput(motorOutputMixSign * motorMix[i] + applyThrottleCurve(throttle) * currentMixer[i].throttle);
         if (mixerIsTricopter()) {
             motorOutput += mixerTricopterMotorCorrection(i);
         }
@@ -792,13 +811,6 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
     }
 }
 
-float applyThrottleVbatCompensation(float throttle)
-{
-    float vbatCompensation = calculateVbatCompensation(currentControlRateProfile->vbat_comp_type, currentControlRateProfile->vbat_comp_ref);
-    float throttleVbatCompensation = scaleRangef(currentControlRateProfile->vbat_comp_throttle_level, 0.0f, 100.0f, 1.0f, vbatCompensation);
-    return constrainf(throttle * throttleVbatCompensation, 0.0f, 1.0f);
-}
-
 float applyThrottleLimit(float throttle)
 {
     if (currentControlRateProfile->throttle_limit_percent < 100) {
@@ -844,10 +856,6 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
   if (!mixerConfig()->yaw_motors_reversed) {
       scaledAxisPidYaw = -scaledAxisPidYaw;
   }
-
-    if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF) {
-        throttle = applyThrottleVbatCompensation(throttle);
-    }
 
     // Apply the throttle_limit_percent to scale or limit the throttle based on throttle_limit_type
     if (currentControlRateProfile->throttle_limit_type != THROTTLE_LIMIT_TYPE_OFF) {
