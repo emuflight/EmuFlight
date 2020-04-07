@@ -246,10 +246,12 @@ static OSD_Entry cmsx_menuRateProfileEntries[] =
 {
     { "-- RATE --", OME_Label, NULL, rateProfileIndexString, 0 },
 
-    { "RC CENTER SENS",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateFineTuning.rateSensCenter,  25, 175, 1, 10 }, 0 },
-    { "RC END WEIGHT",      OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateFineTuning.rateSensEnd,     25, 175, 1, 10 }, 0 },
-    { "RC CENTER SENS",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateFineTuning.rateWeightCenter,  0,   95, 1, 10 }, 0 },
-    { "RC END WEIGHT",      OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateFineTuning.rateWeightEnd,     0,   95, 1, 10 }, 0 },
+    { "RC CENTER SENS",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateDynamics.rateSensCenter,        25, 175, 1, 10 }, 0 },
+    { "RC END SENS",      OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateDynamics.rateSensEnd,           25, 175, 1, 10 }, 0 },
+    { "RC CENTER CORR",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateDynamics.rateCorrectionCenter,  0,   95, 1, 10 }, 0 },
+    { "RC END CORR",      OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateDynamics.rateCorrectionEnd,     0,   95, 1, 10 }, 0 },
+    { "RC CENTER WEIGHT", OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateDynamics.rateWeightCenter,      0,   95, 1, 10 }, 0 },
+    { "RC END WEIGHT",    OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateDynamics.rateWeightEnd,         0,   95, 1, 10 }, 0 },
 
     { "RC R RATE",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcRates[FD_ROLL],     0, 255, 1, 10 }, 0 },
     { "RC P RATE",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcRates[FD_PITCH],    0, 255, 1, 10 }, 0 },
