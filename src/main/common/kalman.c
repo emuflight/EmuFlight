@@ -128,8 +128,6 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
     kalmanState->e = fabsf(1.0f - (((targetAbs + 1.0f) * errorMultiplier) / fabsf(kalmanState->lastX)));
   }
 
-  //kalmanState->e = ABS((target - input) * 3) + ABS(input/4);
-
   //prediction update
   kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
 
