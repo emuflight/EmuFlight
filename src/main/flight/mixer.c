@@ -736,9 +736,12 @@ static void applyFlipOverAfterCrashModeToMotors(void)
 
 static float applyThrottleCurve(float throttle)
 {
-    if (currentControlRateProfile->thrust_linearization_level && !currentControlRateProfile->throttle_linearization) {
-        // counter compensating thrust linearization
-        return throttle * scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, 1.0f, throttle);
+    if (currentControlRateProfile->thrust_linearization_level) {
+        if (!currentControlRateProfile->throttle_linearization) {
+            // counter compensating thrust linearization
+            return throttle * scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, 1.0f, throttle);
+        }
+        return throttle - CONVERT_PARAMETER_TO_PERCENT(motorConfig()->digitalIdleOffsetValue) / 100.0f;
     }
     return throttle;
 }
