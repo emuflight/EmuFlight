@@ -275,7 +275,7 @@ static OSD_Entry cmsx_menuRateProfileEntries[] =
     { "VBAT COMP REF",  OME_UINT8, NULL, &(OSD_UINT8_t) { &rateProfile.vbat_comp_ref, VBAT_CELL_VOTAGE_RANGE_MIN, VBAT_CELL_VOTAGE_RANGE_MAX,  1}, 0 },
 
     { "THRUST LINEAR",  OME_UINT8, NULL, &(OSD_UINT8_t) { &rateProfile.thrust_linearization_level, 0,  100,  1}, 0 },
-    { "TROTTLE LINEAR", OME_TAB,   NULL, &(OSD_TAB_t)   { &rateProfile.throttle_linearization, 1, cms_offOnLabels }, 0 },
+    { "THROTTLE LINEAR",OME_TAB,   NULL, &(OSD_TAB_t)   { &rateProfile.throttle_linearization, 1, cms_offOnLabels }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
