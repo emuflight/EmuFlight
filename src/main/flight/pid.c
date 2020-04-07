@@ -64,7 +64,8 @@ const char pidNames[] =
     "ROLL;"
     "PITCH;"
     "YAW;"
-    "LEVEL;"
+    "LEVEL_L;"
+    "LEVEL_H;"
     "MAG;";
 
 FAST_RAM_ZERO_INIT uint32_t targetPidLooptime;
