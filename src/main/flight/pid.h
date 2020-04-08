@@ -75,7 +75,7 @@ typedef struct pidf_s {
     uint8_t P;
     uint8_t I;
     uint8_t D;
-    uint16_t F; // Only keeping this for angle mode
+    uint16_t F; // Only angle mode still uses FF
 
 } pidf_t;
 
