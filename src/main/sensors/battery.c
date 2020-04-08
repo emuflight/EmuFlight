@@ -527,7 +527,7 @@ uint16_t getBatteryVoltageLatest(void)
 
 uint16_t getBatteryRestingVoltage()
 {
-    return voltageMeter.filtered + round(batterySagCompensationFactor * batteryConfig()->vbat_max_voltage_sag);
+    return voltageMeter.filtered + roundf(batterySagCompensationFactor * batteryConfig()->vbat_max_voltage_sag);
 }
 
 void updateBatterySagCompensationFactor(float factor)

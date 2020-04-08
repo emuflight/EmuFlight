@@ -1796,13 +1796,13 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
                 currentControlRateProfile->throttle_linearization = sbufReadU8(src);
             }
            if (sbufBytesRemaining(src) >= 6) {
-             currentControlRateProfile->rateDynamics.rateSensCenter = sbufReadU8(src);
-             currentControlRateProfile->rateDynamics.rateSensEnd = sbufReadU8(src);
-             currentControlRateProfile->rateDynamics.rateCorrectionCenter = sbufReadU8(src);
-             currentControlRateProfile->rateDynamics.rateCorrectionEnd = sbufReadU8(src);
-             currentControlRateProfile->rateDynamics.rateWeightCenter = sbufReadU8(src);
-             currentControlRateProfile->rateDynamics.rateWeightEnd = sbufReadU8(src);
-                     }
+                currentControlRateProfile->rateDynamics.rateSensCenter = sbufReadU8(src);
+                currentControlRateProfile->rateDynamics.rateSensEnd = sbufReadU8(src);
+                currentControlRateProfile->rateDynamics.rateCorrectionCenter = sbufReadU8(src);
+                currentControlRateProfile->rateDynamics.rateCorrectionEnd = sbufReadU8(src);
+                currentControlRateProfile->rateDynamics.rateWeightCenter = sbufReadU8(src);
+                currentControlRateProfile->rateDynamics.rateWeightEnd = sbufReadU8(src);
+            }
             if (sbufBytesRemaining(src) >= 2) {
                 currentControlRateProfile->vbat_comp_ref = sbufReadU16(src);
             }
