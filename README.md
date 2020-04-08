@@ -4,10 +4,10 @@ This is **EgoFlight**. A fork of EgoFight, err [EmuFlight](https://github.com/em
 
 This fork differs from EmuFlight:
 
- * not a bird
- * most features turned off by default (can be enabled)
- * opinionated defaults
- * different branding
+ * not a bird 🦉
+ * most flight control related features disabled (can be enabled) ✂️
+ * opinionated defaults 🧪
+ * different branding ™️
 
 ## Features
 
@@ -29,7 +29,7 @@ Use
 
  * `OSD` - fiddle sticks
  * `LUA` - gives you pain
- * [Betaflight Configurator](https://github.com/betaflight/betaflight-configurator) for `CLI` - **pro** way of having a ego
+ * [Betaflight Configurator](https://github.com/betaflight/betaflight-configurator) for flashing and `CLI` - **pro** way of having a ego
 
 ## Contributing
 
