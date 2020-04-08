@@ -38,6 +38,14 @@ Use
  * `LUA` - gives you pain
  * [Betaflight Configurator](https://github.com/betaflight/betaflight-configurator) for flashing and `CLI` - **pro** way of having a ego
 
+## Releases
+
+![Build EgoFlight](https://github.com/gretel/EgoFlight/workflows/Build%20EgoFlight/badge.svg)
+
+🛫 [EgoFlight Targets](https://github.com/gretel/EgoFlight/releases)
+
+Please fly save.
+
 ## Contributing
 
 Contributions are not welcome. Please contribute to [EmuFlight](https://github.com/emuflight/EmuFlight) instead.
