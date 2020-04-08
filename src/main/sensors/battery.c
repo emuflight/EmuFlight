@@ -20,6 +20,7 @@
 
 #include "stdbool.h"
 #include "stdint.h"
+#include "math.h"
 
 #include "platform.h"
 
@@ -64,6 +65,9 @@
 uint8_t batteryCellCount; // Note: this can be 0 when no battery is detected or when the battery voltage sensor is missing or disabled.
 uint16_t batteryWarningVoltage;
 uint16_t batteryCriticalVoltage;
+float batterySagCompensationFactor;
+biquadFilter_t batterySagCompensationFactorFilter;
+
 static lowVoltageCutoff_t lowVoltageCutoff;
 //
 static currentMeter_t currentMeter;
@@ -98,6 +102,7 @@ PG_RESET_TEMPLATE(batteryConfig_t, batteryConfig,
     .vbatwarningcellvoltage = 350,
     .vbatnotpresentcellvoltage = 300, //A cell below 3 will be ignored
     .voltageMeterSource = DEFAULT_VOLTAGE_METER_SOURCE,
+    .vbat_max_voltage_sag = 2, // 0.2V as default max voltage sag. Too high values could cause over-correction
     .lvcPercentage = 100, //Off by default at 100%
 
     // current
@@ -358,6 +363,9 @@ void batteryInit(void)
     lowVoltageCutoff.startTime = 0;
 
     voltageMeterReset(&voltageMeter);
+
+    biquadFilterInitLPF(&batterySagCompensationFactorFilter, GET_BATTERY_LPF_FREQUENCY(batteryConfig()->vbatLpfPeriod), HZ_TO_INTERVAL_US(50));
+
     switch (batteryConfig()->voltageMeterSource) {
         case VOLTAGE_METER_ESC:
 #ifdef USE_ESC_SENSOR
@@ -462,7 +470,7 @@ float calculateVbatCompensationFactor()
 {
     float factor =  1.0f;
     if (batteryConfig()->voltageMeterSource != VOLTAGE_METER_NONE && batteryCellCount > 0) {
-        float vbat = (float) voltageMeter.filtered / batteryCellCount;
+        float vbat = (float) getBatteryRestingVoltage() / batteryCellCount;
         if (vbat) {
             factor = currentControlRateProfile->vbat_comp_ref / vbat;
             switch (currentControlRateProfile->vbat_comp_type) {
@@ -515,6 +523,16 @@ uint16_t getBatteryVoltage(void)
 uint16_t getBatteryVoltageLatest(void)
 {
     return voltageMeter.unfiltered;
+}
+
+uint16_t getBatteryRestingVoltage()
+{
+    return voltageMeter.filtered + round(batterySagCompensationFactor * batteryConfig()->vbat_max_voltage_sag);
+}
+
+void updateBatterySagCompensationFactor(float factor)
+{
+    batterySagCompensationFactor = biquadFilterApply(&batterySagCompensationFactorFilter, factor);
 }
 
 uint8_t getBatteryCellCount(void)
