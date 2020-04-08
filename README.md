@@ -29,7 +29,7 @@ Use
 
  * `OSD` - fiddle sticks
  * `LUA` - gives you pain
- * [BetaFlight Configurator](https://github.com/betaflight/betaflight-configurator) for `CLI` - **pro** way of having a ego
+ * [Betaflight Configurator](https://github.com/betaflight/betaflight-configurator) for `CLI` - **pro** way of having a ego
 
 ## Contributing
 
