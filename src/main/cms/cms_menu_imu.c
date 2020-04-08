@@ -176,7 +176,7 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
 
 static OSD_Entry cmsx_menuPidEntries[] =
 {
-    { "-- EMUFLIGHT PIDS --", OME_Label, NULL, pidProfileIndexString, 0},
+    { "-- EgoFlight PIDS --", OME_Label, NULL, pidProfileIndexString, 0},
 
     { "FEATHERED", OME_UINT8, NULL, &(OSD_UINT8_t){ &feathered_pids,         0, 100, 1}, 0 },
 

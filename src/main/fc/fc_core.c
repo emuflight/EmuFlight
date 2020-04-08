@@ -934,7 +934,7 @@ void subTaskTelemetryPollSensors(timeUs_t currentTimeUs)
     UNUSED(currentTimeUs);
 
     // Read out gyro temperature if used for telemmetry
-    // https://github.com/emuflight/EmuFlight/issues/42#issuecomment-553383377
+    // https://github.com/gretel/EgoFlight/issues/42#issuecomment-553383377
     // gyroReadTemperature();
 }
 #endif

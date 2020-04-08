@@ -1329,7 +1329,7 @@ static bool blackboxWriteSysinfo(void)
 
         BLACKBOX_PRINT_HEADER_LINE("pidAtMinThrottle", "%d",                currentPidProfile->pidAtMinThrottle);
 
-        // EmuFlight PID controller parameters
+        // EgoFlight PID controller parameters
         BLACKBOX_PRINT_HEADER_LINE("feathered_pids", "%d",                  currentPidProfile->feathered_pids);
         BLACKBOX_PRINT_HEADER_LINE("emu_boost", "%d",                       currentPidProfile->errorBoost);
         BLACKBOX_PRINT_HEADER_LINE("boost_limit", "%d",                     currentPidProfile->errorBoostLimit);
@@ -1348,7 +1348,7 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("acc_limit", "%d",                       currentPidProfile->rateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("pidsum_limit", "%d",                    currentPidProfile->pidSumLimit);
         BLACKBOX_PRINT_HEADER_LINE("pidsum_limit_yaw", "%d",                currentPidProfile->pidSumLimitYaw);
-        // End of EmuFlight controller parameters
+        // End of EgoFlight controller parameters
 
         BLACKBOX_PRINT_HEADER_LINE("deadband", "%d",                        rcControlsConfig()->deadband);
         BLACKBOX_PRINT_HEADER_LINE("yaw_deadband", "%d",                    rcControlsConfig()->yaw_deadband);

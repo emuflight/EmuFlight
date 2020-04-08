@@ -119,7 +119,7 @@ typedef struct pidProfile_s {
     uint8_t horizonTransition;              // horizonTransition
     uint8_t horizon_tilt_effect;            // inclination factor for Horizon mode
 
-    // EmuFlight PID controller parameters
+    // EgoFlight PID controller parameters
     uint8_t  antiGravityMode;               // type of anti gravity method
     uint16_t itermThrottleThreshold;        // max allowed throttle delta before iterm accelerated in ms
     uint16_t itermAcceleratorGain;          // Iterm Accelerator Gain when itermThrottlethreshold is hit

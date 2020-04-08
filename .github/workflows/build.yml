@@ -1,4 +1,4 @@
-name: Build EmuFlight
+name: Build EgoFlight
 on: [push, pull_request]
 jobs:
   build:

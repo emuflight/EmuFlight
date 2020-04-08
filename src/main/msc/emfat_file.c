@@ -40,7 +40,7 @@
 static const char autorun_file[] =
     "[autorun]\r\n"
     "icon=icon.ico\r\n"
-    "label=EmuFlight Onboard Flash\r\n" ;
+    "label=EgoFlight Onboard Flash\r\n" ;
 #define AUTORUN_SIZE (sizeof(autorun_file) - 1)
 #define EMFAT_INCR_AUTORUN 1
 #else
@@ -261,7 +261,7 @@ static const emfat_entry_t entriesPredefined[] =
 #ifdef USE_EMFAT_README
     { "readme.txt",   false, 0,           1,  0,      README_SIZE,     1024*1024,      (long)readme_file,  CMA,  memory_read_proc,  NULL, { 0 } },
 #endif
-    { "EMUF_ALL.BBL", 0,     0,           1,  0,      0,               0,              0,                  CMA,  bblog_read_proc,   NULL, { 0 } },
+    { "EGOF_ALL.BBL", 0,     0,           1,  0,      0,               0,              0,                  CMA,  bblog_read_proc,   NULL, { 0 } },
 
     { "PADDING.TXT",  0,     ATTR_HIDDEN, 1,  0,      0,               0,              0,                  CMA,  NULL,              NULL, { 0 } },
 };
@@ -279,7 +279,7 @@ emfat_t emfat;
 
 static void emfat_add_log(emfat_entry_t *entry, int number, uint32_t offset, uint32_t size)
 {
-    tfp_sprintf(logNames[number], "EMUF_%03d.BBL", number + 1);
+    tfp_sprintf(logNames[number], "EGOF_%03d.BBL", number + 1);
 
     entry->name = logNames[number];
     entry->level = 1;
@@ -361,6 +361,6 @@ void emfat_init_files(void)
     entry->curr_size = (FILESYSTEM_SIZE_MB * 1024 * 1024) - (flashfsIdentifyStartOfFreeSpace() * 2);
     entry->max_size = entry->curr_size;
 
-    emfat_init(&emfat, "EMUF", entries);
+    emfat_init(&emfat, "EGOF", entries);
 
 }

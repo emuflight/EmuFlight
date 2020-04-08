@@ -872,7 +872,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // -----calculate error rate
         errorRate = currentPidSetpoint - gyro.gyroADCf[axis]; // r - y
 
-        // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
+        // EgoFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
         // Based on 2DOF reference design (matlab)
 
         float errorBoostAxis;
