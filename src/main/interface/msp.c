@@ -994,7 +994,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateWeightCenter);
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateWeightEnd);
 
-        sbufWriteU16(dst, currentControlRateProfile->vbat_comp_ref;
+        sbufWriteU16(dst, currentControlRateProfile->vbat_comp_ref);
 
         break;
 
