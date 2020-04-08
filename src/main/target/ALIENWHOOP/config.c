@@ -137,9 +137,6 @@ void targetConfiguration(void)
 
         /* Setpoints */
         pidProfile->dterm_filter_type = FILTER_BIQUAD;
-        pidProfile->pid[PID_PITCH].F = 100;
-        pidProfile->pid[PID_ROLL].F = 100;
-        pidProfile->feedForwardTransition = 0;
 
 	/* Anti-Gravity */
 	pidProfile->itermThrottleThreshold = 500;

@@ -40,9 +40,7 @@
 #define ITERM_SCALE 0.244381f
 #define DTERM_SCALE 0.000529f
 
-// The constant scale factor to replace the Kd component of the feedforward calculation.
 // This value gives the same "feel" as the previous Kd default of 26 (26 * DTERM_SCALE)
-#define FEEDFORWARD_SCALE 0.013754f
 
 #define SIGN(x) ((x > 0.0f) - (x < 0.0f))
 
@@ -77,7 +75,7 @@ typedef struct pidf_s {
     uint8_t P;
     uint8_t I;
     uint8_t D;
-    uint16_t F;
+    uint16_t F; // Only angle mode still uses FF
 
 } pidf_t;
 
@@ -141,7 +139,6 @@ typedef struct pidProfile_s {
     uint16_t crash_delay;                   // ms
     uint8_t crash_recovery_angle;           // degrees
     uint8_t crash_recovery_rate;            // degree/second
-    uint8_t feedForwardTransition;          // Feed forward weight transition
     uint8_t setPointPTransition[3];         // SPA p transition
     uint8_t setPointITransition[3];         // SPA i transition
     uint8_t setPointDTransition[3];         // SPA d transition
@@ -183,7 +180,6 @@ typedef struct pidAxisData_s {
     float P;
     float I;
     float D;
-    float F;
 
     float Sum;
 } pidAxisData_t;

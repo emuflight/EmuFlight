@@ -976,9 +976,18 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 
         sbufWriteU8(dst, currentControlRateProfile->vbat_comp_type);
         sbufWriteU8(dst, currentControlRateProfile->vbat_comp_ref);
-
         sbufWriteU8(dst, currentControlRateProfile->thrust_linearization_level);
         sbufWriteU8(dst, currentControlRateProfile->throttle_linearization);
+
+        // sitckpids added in 1.46
+        sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateSensCenter);
+        sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateSensEnd);
+        sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateCorrectionCenter);
+        sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateCorrectionEnd);
+        sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateWeightCenter);
+        sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateWeightEnd);
+
+
         break;
 
     case MSP_EMUF:
@@ -987,12 +996,12 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         break;
 
     case MSP_PID:
-        for (int i = 0; i < PID_ITEM_COUNT; i++) {
-            sbufWriteU8(dst, currentPidProfile->pid[i].P);
-            sbufWriteU8(dst, currentPidProfile->pid[i].I);
-            sbufWriteU8(dst, currentPidProfile->pid[i].D);
-        }
-        break;
+    for (int i = 0; i < 3; i++) {
+        sbufWriteU8(dst, currentPidProfile->pid[i].P);
+        sbufWriteU8(dst, currentPidProfile->pid[i].I);
+        sbufWriteU8(dst, currentPidProfile->pid[i].D);
+    }
+            break;
 
     case MSP_PIDNAMES:
         for (const char *c = pidNames; *c; c++) {
@@ -1330,9 +1339,6 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentPidProfile->dFilter[ROLL].Wc);
         sbufWriteU8(dst, currentPidProfile->dFilter[PITCH].Wc);
         sbufWriteU8(dst, currentPidProfile->dFilter[YAW].Wc);
-        sbufWriteU8(dst, 0);
-        sbufWriteU8(dst, 0);
-        sbufWriteU8(dst, 0);
 
 
         break;
@@ -1350,11 +1356,13 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_q);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_q);
         sbufWriteU16(dst, gyroConfig()->imuf_w);
+        sbufWriteU16(dst, gyroConfig()->imuf_sharpness);
 #ifdef  USE_GYRO_IMUF9001
         sbufWriteU16(dst, gyroConfig()->imuf_roll_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_acc_lpf_cutoff_hz);
+
 #endif
         break;
 #ifdef  USE_GYRO_IMUF9001
@@ -1370,7 +1378,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, currentPidProfile->errorBoost);
         sbufWriteU8(dst, currentPidProfile->feathered_pids);
         sbufWriteU8(dst, 0);
-        sbufWriteU8(dst, currentPidProfile->feedForwardTransition);
+        sbufWriteU8(dst, 0);
         sbufWriteU8(dst, currentPidProfile->errorBoostLimit);
         sbufWriteU8(dst, currentPidProfile->i_decay);
         sbufWriteU8(dst, 0); // reserved
@@ -1402,10 +1410,13 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 #else
         sbufWriteU8(dst, 0);
 #endif
-        sbufWriteU8(dst, 0);
-        sbufWriteU16(dst, currentPidProfile->pid[PID_ROLL].F);
-        sbufWriteU16(dst, currentPidProfile->pid[PID_PITCH].F);
-        sbufWriteU16(dst, currentPidProfile->pid[PID_YAW].F);
+        // level l and h
+        sbufWriteU8(dst, currentPidProfile->pid[PID_LEVEL_LOW].P);
+        sbufWriteU8(dst, currentPidProfile->pid[PID_LEVEL_LOW].D);
+        sbufWriteU16(dst, currentPidProfile->pid[PID_LEVEL_LOW].F);
+        sbufWriteU8(dst, currentPidProfile->pid[PID_LEVEL_HIGH].P);
+        sbufWriteU8(dst, currentPidProfile->pid[PID_LEVEL_HIGH].D);
+
 
         sbufWriteU8(dst, currentPidProfile->antiGravityMode);
 
@@ -1681,7 +1692,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         break;
 
     case MSP_SET_PID:
-        for (int i = 0; i < PID_ITEM_COUNT; i++) {
+        for (int i = 0; i < 3; i++) {
             currentPidProfile->pid[i].P = sbufReadU8(src);
             currentPidProfile->pid[i].I = sbufReadU8(src);
             currentPidProfile->pid[i].D = sbufReadU8(src);
@@ -1776,6 +1787,15 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
                 currentControlRateProfile->thrust_linearization_level = sbufReadU8(src);
                 currentControlRateProfile->throttle_linearization = sbufReadU8(src);
             }
+           if (sbufBytesRemaining(src) >= 6) {
+             currentControlRateProfile->rateDynamics.rateSensCenter = sbufReadU8(src);
+             currentControlRateProfile->rateDynamics.rateSensEnd = sbufReadU8(src);
+             currentControlRateProfile->rateDynamics.rateCorrectionCenter = sbufReadU8(src);
+             currentControlRateProfile->rateDynamics.rateCorrectionEnd = sbufReadU8(src);
+             currentControlRateProfile->rateDynamics.rateWeightCenter = sbufReadU8(src);
+             currentControlRateProfile->rateDynamics.rateWeightEnd = sbufReadU8(src);
+                     }
+
             initRcProcessing();
         } else {
             return MSP_RESULT_ERROR;
@@ -1968,9 +1988,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             currentPidProfile->dFilter[ROLL].Wc = sbufReadU8(src);
             currentPidProfile->dFilter[PITCH].Wc = sbufReadU8(src);
             currentPidProfile->dFilter[YAW].Wc = sbufReadU8(src);
-            sbufReadU8(src);
-            sbufReadU8(src);
-            sbufReadU8(src);
+
 
         }
 
@@ -1995,11 +2013,15 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         gyroConfigMutable()->imuf_pitch_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_yaw_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_w = sbufReadU16(src);
+        gyroConfigMutable()->imuf_sharpness = sbufReadU16(src);
 #ifdef USE_GYRO_IMUF9001
         gyroConfigMutable()->imuf_roll_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_pitch_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_yaw_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_acc_lpf_cutoff_hz = sbufReadU16(src);
+
+
+
 #endif
         break;
 //#endif
@@ -2010,7 +2032,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         currentPidProfile->errorBoost = sbufReadU16(src);
         currentPidProfile->feathered_pids = sbufReadU8(src);
         sbufReadU8(src);
-        currentPidProfile->feedForwardTransition = sbufReadU8(src);
+        sbufReadU8(src);
         currentPidProfile->errorBoostLimit = sbufReadU8(src);
         currentPidProfile->i_decay = sbufReadU8(src);
         sbufReadU8(src);
@@ -2049,11 +2071,12 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
 #else
             sbufReadU8(src);
 #endif
-            sbufReadU8(src);
-            // PID controller feedforward terms
-            currentPidProfile->pid[PID_ROLL].F = sbufReadU16(src);
-            currentPidProfile->pid[PID_PITCH].F = sbufReadU16(src);
-            currentPidProfile->pid[PID_YAW].F = sbufReadU16(src);
+          // angle L and H
+          currentPidProfile->pid[PID_LEVEL_LOW].P = sbufReadU8(src);
+          currentPidProfile->pid[PID_LEVEL_LOW].D = sbufReadU8(src);
+          currentPidProfile->pid[PID_LEVEL_LOW].F = sbufReadU16(src);
+          currentPidProfile->pid[PID_LEVEL_HIGH].P = sbufReadU8(src);
+          currentPidProfile->pid[PID_LEVEL_HIGH].D = sbufReadU8(src);
 
             currentPidProfile->antiGravityMode = sbufReadU8(src);
 #if defined(USE_ITERM_RELAX)

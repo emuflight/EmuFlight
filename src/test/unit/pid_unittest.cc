@@ -84,11 +84,11 @@ int loopIter = 0;
 void setDefaultTestSettings(void) {
     pgResetAll();
     pidProfile = pidProfilesMutable(1);
-    pidProfile->pid[PID_ROLL]  =  { 40, 40, 30, 65 };
-    pidProfile->pid[PID_PITCH] =  { 58, 50, 35, 60 };
-    pidProfile->pid[PID_YAW]   =  { 70, 45, 20, 60 };
-    pidProfile->pid[PID_LEVEL_LOW] =  { 70, 40, 10, 0 };
-    pidProfile->pid[PID_LEVEL_HIGH] =  { 35, 5, 1, 0 };
+    pidProfile->pid[PID_ROLL]  =  { 40, 40, 30, 0 };
+    pidProfile->pid[PID_PITCH] =  { 58, 50, 35, 0 };
+    pidProfile->pid[PID_YAW]   =  { 70, 45, 20, 0 };
+    pidProfile->pid[PID_LEVEL_LOW] =  { 70, 0, 10, 40 };
+    pidProfile->pid[PID_LEVEL_HIGH] =  { 35, 0, 1, 0 };
 
 
     pidProfile->pidSumLimit = PIDSUM_LIMIT;
@@ -99,7 +99,6 @@ void setDefaultTestSettings(void) {
     pidProfile->itermWindupPointPercent = 50;
     pidProfile->pidAtMinThrottle = PID_STABILISATION_ON;
     pidProfile->levelAngleLimit = 55;
-    pidProfile->feedForwardTransition = 100;
     pidProfile->yawRateAccelLimit = 100;
     pidProfile->rateAccelLimit = 0;
     pidProfile->antiGravityMode = ANTI_GRAVITY_SMOOTH;
