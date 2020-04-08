@@ -82,6 +82,14 @@ PG_RESET_TEMPLATE(mixerConfig_t, mixerConfig,
 
 PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 1);
 
+static FAST_RAM_ZERO_INIT float throttle = 0;
+static FAST_RAM_ZERO_INIT float loggingThrottle = 0;
+static FAST_RAM_ZERO_INIT float motorOutputMin;
+static FAST_RAM_ZERO_INIT float motorRangeMin;
+static FAST_RAM_ZERO_INIT float motorRangeMax;
+static FAST_RAM_ZERO_INIT float motorOutputRange;
+static FAST_RAM_ZERO_INIT int8_t motorOutputMixSign;
+
 void pgResetFn_motorConfig(motorConfig_t *motorConfig)
 {
 #ifdef BRUSHED_MOTORS
@@ -503,10 +511,15 @@ void mixerResetDisarmedMotors(void)
 void writeMotors(void)
 {
     if (pwmAreMotorsEnabled()) {
+        float absMotorOutputSum = 0.0f;
         for (int i = 0; i < motorCount; i++) {
             pwmWriteMotor(i, motor[i]);
+            if (motor[i] >= motorRangeMin && motor[i] <= motorRangeMax) {
+                absMotorOutputSum += ABS(motor[i] - motorOutputMin);
+            }
         }
         pwmCompleteMotorUpdate(motorCount);
+        updateBatterySagCompensationFactor(absMotorOutputSum / (motorOutputRange * motorCount));
     }
 }
 
@@ -530,14 +543,6 @@ void stopPwmAllMotors(void)
     pwmShutdownPulsesForAllMotors(motorCount);
     delayMicroseconds(1500);
 }
-
-static FAST_RAM_ZERO_INIT float throttle = 0;
-static FAST_RAM_ZERO_INIT float loggingThrottle = 0;
-static FAST_RAM_ZERO_INIT float motorOutputMin;
-static FAST_RAM_ZERO_INIT float motorRangeMin;
-static FAST_RAM_ZERO_INIT float motorRangeMax;
-static FAST_RAM_ZERO_INIT float motorOutputRange;
-static FAST_RAM_ZERO_INIT int8_t motorOutputMixSign;
 
 static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs)
 {

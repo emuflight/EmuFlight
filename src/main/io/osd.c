@@ -223,7 +223,7 @@ static char osdGetMetersToSelectedUnitSymbol(void)
  */
 static int osdGetBatteryAverageCellVoltage(void)
 {
-    return (getBatteryVoltage() * 10) / getBatteryCellCount();
+    return (getBatteryRestingVoltage() * 10) / getBatteryCellCount();
 }
 
 static char osdGetBatterySymbol(int cellVoltage)
@@ -472,7 +472,7 @@ static bool osdDrawSingleElement(uint8_t item)
 
     case OSD_MAIN_BATT_VOLTAGE:
         buff[0] = osdGetBatterySymbol(osdGetBatteryAverageCellVoltage());
-        tfp_sprintf(buff + 1, "%2d.%1d%c", getBatteryVoltage() / 10, getBatteryVoltage() % 10, SYM_VOLT);
+        tfp_sprintf(buff + 1, "%2d.%1d%c", getBatteryRestingVoltage() / 10, getBatteryRestingVoltage() % 10, SYM_VOLT);
         break;
 
     case OSD_CURRENT_DRAW:
@@ -743,7 +743,7 @@ static bool osdDrawSingleElement(uint8_t item)
         break;
 
     case OSD_POWER:
-        tfp_sprintf(buff, "%4dW", getAmperage() * getBatteryVoltage() / 1000);
+        tfp_sprintf(buff, "%4dW", getAmperage() * getBatteryRestingVoltage() / 1000);
         break;
 
     case OSD_PIDRATE_PROFILE:
