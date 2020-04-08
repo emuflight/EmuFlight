@@ -110,6 +110,7 @@
 extern bool osd_arming_or_stats;
 extern bool brainfpv_user_avatar_set;
 #endif
+#endif
 
 const char * const osdTimerSourceNames[] = {
     "ON TIME  ",
@@ -564,7 +565,9 @@ static bool osdDrawSingleElement(uint8_t item)
         }
         break;
 
+
 #endif // GPS
+#endif
 
     case OSD_COMPASS_BAR:
         memcpy(buff, compassBar + osdGetHeadingIntoDiscreteDirections(DECIDEGREES_TO_DEGREES(attitude.values.yaw), 16), 9);
@@ -1193,7 +1196,7 @@ void osdInit(displayPort_t *osdDisplayPortToUse)
   #ifdef USE_CMS
       cmsDisplayPortRegister(osdDisplayPort);
   #endif
-  
+
       armState = ARMING_FLAG(ARMED);
 
       memset(blinkBits, 0, sizeof(blinkBits));
