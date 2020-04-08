@@ -39,4 +39,4 @@ Contributions are not welcome. Please contribute to [EmuFlight](https://github.c
 
 EgoFlight is software that is **open source** (supposed to be `GPL`) and is available free of charge **without warranty** to all users.
 
-EgoFlight is forked from [EmuFlight](https://github.com/emuflight/EmuFlight).. Which is a forked bastard itself.
+EgoFlight is forked from [EmuFlight](https://github.com/emuflight/EmuFlight) which is a forked bastard itself.
