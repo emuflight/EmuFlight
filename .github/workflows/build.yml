@@ -19,7 +19,7 @@ jobs:
         docker rmi $(docker image ls -aq)
         df -h
     - name: Make
-      run: make all
+      run: make -j2 all
     - name: Upload
       uses: actions/upload-artifact@v2-preview
       with:
