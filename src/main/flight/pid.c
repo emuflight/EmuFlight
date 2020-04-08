@@ -532,6 +532,8 @@ static float calcHorizonLevelStrength(void)
     return constrainf(horizonLevelStrength, 0, 1);
 }
 
+#define SIGN(x) ((x > 0.0f) - (x < 0.0f))
+
 static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint, const float deltaT)
 {
     // calculate error angle and limit the angle to the max inclination
@@ -831,6 +833,11 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         setPointDAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition[axis] - 1));
     }
 
+    //vbat pid compensation on just the p term :) thanks NFE
+    float vbatCompensationFactor = calculateVbatCompensation(currentControlRateProfile->vbat_comp_type, currentControlRateProfile->vbat_comp_ref);
+
+    vbatCompensationFactor = scaleRangef(currentControlRateProfile->vbat_comp_pid_level, 0.0f, 100.0f, 1.0f, vbatCompensationFactor);
+
     // gradually scale back integration when above windup point
     const float dynCi = constrainf((1.1f - getMotorMixRange()) * ITermWindupPointInv, 0.1f, 1.0f) * itermAccelerator * deltaT;
     float errorRate;
@@ -1000,7 +1007,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 #endif
 
         // -----calculate P component and add Dynamic Part based on stick input
-        pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate));
+        pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate)) * vbatCompensationFactor;
 
         /*
          * Process Iterm with I-decay function
