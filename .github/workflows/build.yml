@@ -16,5 +16,5 @@ jobs:
     - name: Upload
       uses: actions/upload-artifact@v2-preview
       with:
-        name: targets
+        name: EgoFlight-${{ github.ref }}-${{ github.run_number }}
         path: obj/*.hex
