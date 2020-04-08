@@ -54,7 +54,7 @@ int16_t currentSensorVirtualConfig_scale;
 int16_t currentSensorVirtualConfig_offset;
 #endif
 
-uint8_t batteryConfig_vbatmaxvoltagesag;
+uint16_t batteryConfig_vbatmaxvoltagesag;
 
 static long cmsx_Power_onEnter(void)
 {
@@ -121,7 +121,7 @@ static OSD_Entry cmsx_menuPowerEntries[] =
     { "IBAT VIRT OFFSET", OME_INT16, NULL, &(OSD_INT16_t){ &currentSensorVirtualConfig_offset, -16000, 16000, 5 }, 0 },
 #endif
 
-    { "VBAT MOTOR SAG", OME_UINT8, NULL, &(OSD_UINT8_t) { &batteryConfig_vbatmaxvoltagesag, 0, 10, 1 }, 0 },
+    { "VBAT MOTOR SAG", OME_UINT16, NULL, &(OSD_UINT16_t) { &batteryConfig_vbatmaxvoltagesag, 0, 100, 1 }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },

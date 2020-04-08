@@ -102,7 +102,7 @@ PG_RESET_TEMPLATE(batteryConfig_t, batteryConfig,
     .vbatwarningcellvoltage = 350,
     .vbatnotpresentcellvoltage = 300, //A cell below 3 will be ignored
     .voltageMeterSource = DEFAULT_VOLTAGE_METER_SOURCE,
-    .vbat_max_voltage_sag = 2, // 0.2V as default max voltage sag. Too high values could cause over-correction
+    .vbat_max_voltage_sag = 20, // 0.2V as default max voltage sag. Too high values could cause over-correction
     .lvcPercentage = 100, //Off by default at 100%
 
     // current

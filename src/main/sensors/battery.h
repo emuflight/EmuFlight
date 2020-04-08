@@ -47,7 +47,7 @@ typedef struct batteryConfig_s {
     uint16_t vbatnotpresentcellvoltage;     // Between vbatmaxcellvoltage and 2*this is considered to be USB powered. Below this it is notpresent
     uint8_t lvcPercentage;                  // Percentage of throttle when lvc is triggered
     voltageMeterSource_e voltageMeterSource;// source of battery voltage meter used, either ADC or ESC
-    uint8_t vbat_max_voltage_sag;            // expected maximum battery voltage sag caused by motors in 0.1V units
+    uint16_t vbat_max_voltage_sag;            // expected maximum battery voltage sag caused by motors in 0.01V units
 
     // current
     currentMeterSource_e currentMeterSource;// source of battery current meter used, either ADC, Virtual or ESC
