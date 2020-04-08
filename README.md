@@ -9,6 +9,13 @@ This fork differs from EmuFlight:
  * opinionated defaults 🧪
  * different branding ™️
 
+## Motivation
+ 
+ * reduce complexity of flight control
+ * ease of tuning efforts
+ * cherry-pick upstream changes
+ * do not believe the hype
+
 ## Features
 
 EgoFlight has no features. It's all about you.
