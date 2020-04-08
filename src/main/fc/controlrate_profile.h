@@ -71,7 +71,7 @@ typedef struct controlRateConfig_s {
     uint8_t throttle_limit_type;            // Sets the throttle limiting type - off, scale or clip
     uint8_t throttle_limit_percent;         // Sets the maximum pilot commanded throttle limit
     uint8_t vbat_comp_type;                 // Sets the type of battery compensation: off, boost, limit or both
-    uint8_t vbat_comp_ref;                  // Sets the voltage reference to calculate the battery compensation
+    uint16_t vbat_comp_ref;                  // Sets the voltage reference to calculate the battery compensation
     uint8_t thrust_linearization_level;     // Sets the level of thrust linearization
     uint8_t throttle_linearization;         // Tells whether the linearization has to be applied also to the throttle or not
 } controlRateConfig_t;
