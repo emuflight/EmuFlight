@@ -981,7 +981,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentControlRateProfile->throttle_limit_percent);
 
         sbufWriteU8(dst, currentControlRateProfile->vbat_comp_type);
-        sbufWriteU8(dst, currentControlRateProfile->vbat_comp_ref);
+        sbufWriteU8(dst, (currentControlRateProfile->vbat_comp_ref + 5) / 10);
         sbufWriteU8(dst, currentControlRateProfile->thrust_linearization_level);
         sbufWriteU8(dst, currentControlRateProfile->throttle_linearization);
 
@@ -993,6 +993,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateWeightCenter);
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateWeightEnd);
 
+        sbufWriteU16(dst, currentControlRateProfile->vbat_comp_ref;
 
         break;
 
@@ -1789,7 +1790,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             }
             if (sbufBytesRemaining(src) >= 4) {
                 currentControlRateProfile->vbat_comp_type = sbufReadU8(src);
-                currentControlRateProfile->vbat_comp_ref = sbufReadU8(src);
+                currentControlRateProfile->vbat_comp_ref = sbufReadU8(src) * 10;
                 currentControlRateProfile->thrust_linearization_level = sbufReadU8(src);
                 currentControlRateProfile->throttle_linearization = sbufReadU8(src);
             }
@@ -1801,6 +1802,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
              currentControlRateProfile->rateDynamics.rateWeightCenter = sbufReadU8(src);
              currentControlRateProfile->rateDynamics.rateWeightEnd = sbufReadU8(src);
                      }
+            if (sbufBytesRemaining(src) >= 2) {
+                currentControlRateProfile->vbat_comp_ref = sbufReadU16(src);
+            }
 
             initRcProcessing();
         } else {
