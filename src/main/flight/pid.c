@@ -95,15 +95,15 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 #endif
 
 #ifndef DEFAULT_PIDS_ROLL
-#define DEFAULT_PIDS_ROLL {50, 70, 28}
+#define DEFAULT_PIDS_ROLL {50, 45, 28}
 #endif //DEFAULT_PIDS_ROLL
 
 #ifndef DEFAULT_PIDS_PITCH
-#define DEFAULT_PIDS_PITCH {58, 70, 30}
+#define DEFAULT_PIDS_PITCH {58, 50, 30}
 #endif //DEFAULT_PIDS_PITCH
 
 #ifndef DEFAULT_PIDS_YAW
-#define DEFAULT_PIDS_YAW {60, 70, 5}
+#define DEFAULT_PIDS_YAW {60, 50, 5}
 #endif //DEFAULT_PIDS_YAW
 
 #ifdef USE_RUNAWAY_TAKEOFF
@@ -135,8 +135,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  },
 
                  .dFilter = {
-                     [PID_ROLL] = {2, 100, 250, 5},  // wc, dtermlpf, dtermlpf2, smartSmoothing
-                     [PID_PITCH] = {2, 100, 250, 5}, // wc, dtermlpf, dtermlpf2, smartSmoothing
+                     [PID_ROLL] = {2, 100, 250, 0},  // wc, dtermlpf, dtermlpf2, smartSmoothing
+                     [PID_PITCH] = {2, 100, 250, 0}, // wc, dtermlpf, dtermlpf2, smartSmoothing
                      [PID_YAW] = {0, 100, 250, 0},    // wc, dtermlpf, dtermlpf2, smartSmoothing
                  },
 
@@ -145,23 +145,23 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  .dterm_filter_type = FILTER_PT1,
                  .itermWindupPointPercent = 50,
                  .pidAtMinThrottle = PID_STABILISATION_ON,
-                 .levelAngleLimit = 45,
+                 .levelAngleLimit = 40,
                  .angleExpo = 10,
                  .setPointPTransition[ROLL] = 110,
                  .setPointPTransition[PITCH] = 110,
-                 .setPointPTransition[YAW] = 130,
-                 .setPointITransition[ROLL] = 85,
-                 .setPointITransition[PITCH] = 85,
-                 .setPointITransition[YAW] = 70,
+                 .setPointPTransition[YAW] = 110,
+                 .setPointITransition[ROLL] = 90,
+                 .setPointITransition[PITCH] = 90,
+                 .setPointITransition[YAW] = 90,
                  .setPointDTransition[ROLL] = 110,
                  .setPointDTransition[PITCH] = 110,
-                 .setPointDTransition[YAW] = 130,
+                 .setPointDTransition[YAW] = 110,
                  .feathered_pids = 100,
-                 .i_decay = 4,
-                 .errorBoost = 15,
-                 .errorBoostYaw = 40,
-                 .errorBoostLimit = 20,
-                 .errorBoostLimitYaw = 40,
+                 .i_decay = 0,
+                 .errorBoost = 0,
+                 .errorBoostYaw = 0,
+                 .errorBoostLimit = 0,
+                 .errorBoostLimitYaw = 0,
                  .yawRateAccelLimit = 0,
                  .rateAccelLimit = 0,
                  .itermThrottleThreshold = 350,
@@ -177,12 +177,12 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  .horizon_tilt_effect = 130,
                  .nfe_racermode = false,
                  .crash_limit_yaw = 200,
-                 .itermLimit = 400,
-                 .throttle_boost = 5,
+                 .itermLimit = 150,
+                 .throttle_boost = 0,
                  .throttle_boost_cutoff = 15,
-                 .iterm_rotation = true,
+                 .iterm_rotation = false,
                  .iterm_relax = ITERM_RELAX_OFF,
-                 .iterm_relax_cutoff = 11,
+                 .iterm_relax_cutoff = 0,
                  .iterm_relax_type = ITERM_RELAX_GYRO,
                  .abs_control_gain = 0,
                  .abs_control_limit = 90,
