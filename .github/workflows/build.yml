@@ -18,3 +18,11 @@ jobs:
       with:
         name: EgoFlight-${{ github.ref }}-${{ github.run_number }}
         path: obj/*.hex
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        prerelease: true
+        draft: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
