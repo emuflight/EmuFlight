@@ -4,21 +4,21 @@ This is **EgoFlight**. A fork of EgoFight, err [EmuFlight](https://github.com/em
 
 This fork differs from EmuFlight:
 
- * not a bird 🦉
- * most flight control related features disabled (can be enabled) ✂️
- * opinionated defaults 🧪
- * different branding ™️
+ * Not a bird 🦉
+ * Most flight control related features disabled (can be enabled) ✂️
+ * Opinionated defaults 🧪
+ * Different branding ™️
 
 ## Motivation
  
- * reduce complexity of flight control
- * ease of tuning efforts
- * cherry-pick upstream changes
- * do not believe the hype
+ * Reduce complexity of flight control
+ * Ease of tuning efforts
+ * Cherry-pick upstream changes
+ * Do not believe the hype
 
 ## Features
 
-EgoFlight has no features. It's all about you.
+**EgoFlight** has no features. It's all about __you__.
 
 ## Documentation
 
@@ -44,6 +44,6 @@ Contributions are not welcome. Please contribute to [EmuFlight](https://github.c
 
 ## Open Source / Contributors
 
-EgoFlight is software that is **open source** (supposed to be `GPL`) and is available free of charge **without warranty** to all users.
+**EgoFlight** is software that is **open source** (supposed to be `GPL`) and is available free of charge **without warranty** to all users.
 
-EgoFlight is forked from [EmuFlight](https://github.com/emuflight/EmuFlight) which is a forked bastard itself.
+**EgoFlight** is forked from [EmuFlight](https://github.com/emuflight/EmuFlight) which is a forked bastard itself.
