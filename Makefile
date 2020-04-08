@@ -370,9 +370,6 @@ all_with_unsupported: $(VALID_TARGETS)
 ## unsupported : Build unsupported targets
 unsupported: $(UNSUPPORTED_TARGETS)
 
-## official          : Build all official (travis) targets
-official: $(OFFICIAL_TARGETS)
-
 ## targets-group-1   : build some targets
 targets-group-1: $(GROUP_1_TARGETS)
 
