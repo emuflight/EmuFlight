@@ -1,4 +1,4 @@
-![EgoFlight](docs/assets/images/EgoFlight.png)
+![EgoFlight](.github/EgoFlight.png)
 
 This is EgoFlight. A fork of EgoFight, err [EmuFlight](https://github.com/emuflight/EmuFlight).
 
@@ -10,7 +10,7 @@ This fork differs from EmuFlight:
 
 ## Features
 
-EgoFlight has no features.
+EgoFlight has no features. It's all about you.
 
 ## Documentation
 
@@ -38,4 +38,4 @@ Contributions are not welcome. Please contribute to [EmuFlight](https://github.c
 
 EgoFlight is software that is **open source** (supposed to be `GPL`) and is available free of charge without warranty to all users.
 
-EgoFlight is forked from EmuFlight. Which is a forked bastard itself.
+EgoFlight is forked from [EmuFlight](https://github.com/emuflight/EmuFlight).. Which is a forked bastard itself.
