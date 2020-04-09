@@ -31,16 +31,16 @@ void imufStartCalibration(void);
 void imufEndCalibration(void);
 
 #ifndef IMUF_DEFAULT_PITCH_Q
-#define IMUF_DEFAULT_PITCH_Q  3000
+#define IMUF_DEFAULT_PITCH_Q  1000
 #endif
 #ifndef IMUF_DEFAULT_ROLL_Q
-#define IMUF_DEFAULT_ROLL_Q  3000
+#define IMUF_DEFAULT_ROLL_Q  1000
 #endif
 #ifndef IMUF_DEFAULT_YAW_Q
-#define IMUF_DEFAULT_YAW_Q  3000
+#define IMUF_DEFAULT_YAW_Q  1000
 #endif
 #ifndef IMUF_IMUF_W
-#define IMUF_IMUF_W  32
+#define IMUF_IMUF_W  3
 #endif
 #ifndef IMUF_DEFAULT_ROLL_AF
 #define IMUF_DEFAULT_ROLL_AF  0
