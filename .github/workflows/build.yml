@@ -23,6 +23,7 @@ jobs:
         sudo apt clean
         docker rmi $(docker image ls -aq)
         df -h
+      continue-on-error: true
     - name: Version
       id: get_version
       run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
