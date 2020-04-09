@@ -78,7 +78,5 @@ jobs:
         prerelease: true
         draft: true
         files: obj/*.hex
-        body: |
-          ${{ steps.changelog.outputs.changelog }}
       env:
         GITHUB_TOKEN: ${{ secrets.tokkken }}
