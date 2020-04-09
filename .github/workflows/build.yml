@@ -24,7 +24,14 @@ jobs:
 
     - name: Version
       id: get_version
-      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      run: echo "::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}"
+
+    - name: Setup ccache
+      id: ccache
+      run: |
+        mkdir -p bin
+        curl -SsL https://github.com/cristianadam/ccache/releases/download/v$CCACHE_VERSION/${{ runner.os }}.tar.xz -o ccache.tar.xz
+        tar xvf ./ccache.tar.xz -C bin
 
     - name: Setup Python
       uses: actions/setup-python@v1
@@ -34,26 +41,11 @@ jobs:
       with:
         release: '9-2019-q4' # The arm-none-eabi-gcc release to use.
 
-    - name: Setup ccache
-      id: ccache
-      shell: cmake -P {0}
-      run: |
-        set(ccache_url "https://github.com/cristianadam/ccache/releases/download/v$ENV{CCACHE_VERSION}/${{ runner.os }}.tar.xz")
-        file(DOWNLOAD "${ccache_url}" ./ccache.tar.xz SHOW_PROGRESS)
-        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ccache.tar.xz)
-
-    - name: Cache timestamp
-      id: ccache_cache_timestamp
-      shell: cmake -P {0}
-      run: |
-        string(TIMESTAMP current_date "%Y-%m-%d-%H;%M;%S" UTC)
-        message("::set-output name=timestamp::${current_date}")
-
     - name: Cache
       uses: actions/cache@v1
       with:
         path: .ccache
-        key: ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+        key: "ccache-$VERSION"
         restore-keys: |
           ccache-
 
@@ -68,7 +60,7 @@ jobs:
 
     - name: Make
       run: |
-        echo "::add-path::$GITHUB_WORKSPACE"
+        echo "::add-path::$GITHUB_WORKSPACE/bin"
         ccache -p
         ccache -z
         make all
