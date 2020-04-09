@@ -1,14 +1,11 @@
 name: Build EgoFlight
 
-on:
-  push:
-    branches:        
-      - master
-  pull_request:
+on: [push, pull_request]
 
 env:
   CCACHE_VERSION: '3.7.7'
   TOOLCHAIN_VERSION: '9-2019-q4'
+
 jobs:
   build:
     strategy:
