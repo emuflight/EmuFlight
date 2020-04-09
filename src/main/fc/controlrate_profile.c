@@ -50,7 +50,7 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .dynThrP = 75,
             .dynThrI = 125,
             .dynThrD = 65,
-            .tpa_breakpoint = 1600,
+            .tpa_breakpoint = 1300,
             .rates_type = RATES_TYPE_BETAFLIGHT,
             .rcRates[FD_ROLL] = 100,
             .rcRates[FD_PITCH] = 100,
