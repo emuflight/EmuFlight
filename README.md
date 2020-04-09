@@ -1,6 +1,6 @@
-![EgoFlight](.github/EgoFlight.png)
-
 # EgoFlight
+
+![EgoFlight](.github/EgoFlight.png)
 
 A fork of EgoFight, err [EmuFlight](https://github.com/emuflight/EmuFlight). 👩‍✈️👨‍✈️
 
@@ -17,10 +17,10 @@ This one differs from EmuFlight:
 
 ## Changes
  
- * Reduce complexity of flight control
-   * `pid.c` defaults changed
-   * `gyro.c` defaults changed
-   * `rc_controls.c` defaults changed (just "deadband")
+ * Reduce complexity of flight control by changing defaults values in
+   * `pid.c`
+   * `gyro.c`
+   * `rc_controls.c`
  * Ease of tuning efforts
    * Enable features selectively when required, not because some other ego feels like it
  * Cherry-pick upstream changes (new bling)
