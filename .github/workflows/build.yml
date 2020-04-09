@@ -21,7 +21,9 @@ jobs:
         sudo swapoff -a
         sudo rm -f /swapfile
         sudo apt clean
-        docker rmi $(docker image ls -aq)
+        docker rmi -f $(docker image ls -aq)
+        docker system prune -f -a --volumes
+        sync
         df -h
     - name: Version
       id: get_version
