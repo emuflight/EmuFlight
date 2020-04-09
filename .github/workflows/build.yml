@@ -29,10 +29,10 @@ jobs:
     - name: Setup ccache
       id: ccache
       run: |
-        mkdir -p bin
+        mkdir -p ./bin
         curl -SsL https://github.com/cristianadam/ccache/releases/download/v$CCACHE_VERSION/${{ runner.os }}.tar.xz -o ccache.tar.xz
-        tar xvf ./ccache.tar.xz -C bin
-        ls bin
+        tar xvf ./ccache.tar.xz -C ./bin
+        echo "::add-path::./bin"
 
     - name: Setup Python
       uses: actions/setup-python@v1
@@ -46,7 +46,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: .ccache
-        key: "ccache-$VERSION"
+        key: "ccache-${{ hashFiles('**/version.h') }}"
         restore-keys: |
           ccache-
 
@@ -61,7 +61,6 @@ jobs:
 
     - name: Make
       run: |
-        echo "::add-path::./bin"
         make all
 
     - name: Artifacts
