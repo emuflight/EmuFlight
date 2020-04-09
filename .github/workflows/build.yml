@@ -44,13 +44,10 @@ jobs:
     - name: Cache
       uses: actions/cache@v1
       with:
-        path:
-          - .ccache
-          - tools
-          - downloads
-        key: "cache-$VERSION"
+        path: .ccache
+        key: "ccache-$VERSION"
         restore-keys: |
-          cache-
+          ccache-
 
     - name: Cleanup
       run: |
