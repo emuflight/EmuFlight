@@ -9,7 +9,6 @@ env:
   CCACHE_COMPRESS: "true"
   CCACHE_COMPRESSLEVEL: 6
   CCACHE_MAXSIZE: '500M'
-  PATH: "$GITHUB_WORKSPACE:$PATH"
 
 jobs:
   build:
@@ -69,6 +68,7 @@ jobs:
 
     - name: Make
       run: |
+        echo "::add-path::$GITHUB_WORKSPACE"
         ccache -p
         ccache -z
         make all
