@@ -28,7 +28,7 @@ jobs:
     - name: Toolchain
       uses: fiam/arm-none-eabi-gcc@v1
       with:
-        release: $TOOLCHAIN_VERSION # The arm-none-eabi-gcc release to use.
+        release: $ENV{TOOLCHAIN_VERSION} # The arm-none-eabi-gcc release to use.
 
     - name: Setup ccache
       id: ccache
