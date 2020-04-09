@@ -42,7 +42,7 @@
 voltageMeterSource_e batteryConfig_voltageMeterSource;
 currentMeterSource_e batteryConfig_currentMeterSource;
 
-uint8_t batteryConfig_vbatmaxcellvoltage;
+uint16_t batteryConfig_vbatmaxcellvoltage;
 
 uint8_t voltageSensorADCConfig_vbatscale;
 
