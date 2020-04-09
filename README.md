@@ -42,7 +42,7 @@ Use
 
 ![Build EgoFlight](https://github.com/gretel/EgoFlight/workflows/Build%20EgoFlight/badge.svg)
 
-🛫 [EgoFlight Targets](https://github.com/gretel/EgoFlight/releases)
+🛫 [Release Targets](https://github.com/gretel/EgoFlight/releases)
 
 Please fly save.
 
