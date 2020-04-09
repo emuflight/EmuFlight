@@ -9,7 +9,7 @@
 make arm_sdk_install
 
 # increase the limit in order to remove Argument list too long errors
-ulimit -s 65536
+ulimit -s 131072
 
 # compile code to binaries
 make ${GOAL} || exit $?

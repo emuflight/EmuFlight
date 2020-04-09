@@ -564,7 +564,7 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
 
         // battery alerts
         sbufWriteU8(dst, (uint8_t)getBatteryState());
-		
+
         sbufWriteU16(dst, getBatteryVoltage()); // in 0.01V steps
         break;
     }
@@ -1791,8 +1791,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             if (sbufBytesRemaining(src) >= 4) {
                 currentControlRateProfile->vbat_comp_type = sbufReadU8(src);
                 currentControlRateProfile->vbat_comp_ref = sbufReadU8(src) * 10;
-                currentControlRateProfile->thrust_linearization_level = sbufReadU8(src);
-                currentControlRateProfile->throttle_linearization = sbufReadU8(src);
+                currentControlRateProfile->vbat_comp_throttle_level = sbufReadU8(src);
+                currentControlRateProfile->vbat_comp_pid_level = sbufReadU8(src);
             }
            if (sbufBytesRemaining(src) >= 6) {
              currentControlRateProfile->rateDynamics.rateSensCenter = sbufReadU8(src);
