@@ -37,7 +37,7 @@ jobs:
         file(DOWNLOAD "${ccache_url}" ./ccache.tar.xz SHOW_PROGRESS)
         execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ccache.tar.xz)
 
-    - name: Prepare ccache timestamp
+    - name: Cache timestamp
       id: ccache_cache_timestamp
       shell: cmake -P {0}
       run: |
@@ -63,7 +63,7 @@ jobs:
 
     - name: Make
       run: |
-        set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}${path_separator}$ENV{PATH}")
+        set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}:$ENV{PATH}")
         set(ENV{CCACHE_BASEDIR} "${ccache_basedir}")
         set(ENV{CCACHE_DIR} "${ccache_basedir}/.ccache")
         set(ENV{CCACHE_COMPRESS} "true")
