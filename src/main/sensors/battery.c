@@ -93,10 +93,10 @@ PG_REGISTER_WITH_RESET_TEMPLATE(batteryConfig_t, batteryConfig, PG_BATTERY_CONFI
 
 PG_RESET_TEMPLATE(batteryConfig_t, batteryConfig,
     // voltage
-    .vbatmaxcellvoltage = 43,
-    .vbatmincellvoltage = 33,
-    .vbatwarningcellvoltage = 35,
-    .vbatnotpresentcellvoltage = 30, //A cell below 3 will be ignored
+    .vbatmaxcellvoltage = 430,
+    .vbatmincellvoltage = 330,
+    .vbatwarningcellvoltage = 350,
+    .vbatnotpresentcellvoltage = 300, //A cell below 3 will be ignored
     .voltageMeterSource = DEFAULT_VOLTAGE_METER_SOURCE,
     .lvcPercentage = 100, //Off by default at 100%
 
@@ -113,7 +113,7 @@ PG_RESET_TEMPLATE(batteryConfig_t, batteryConfig,
     .consumptionWarningPercentage = 10,
     .vbathysteresis = 1,
 
-    .vbatfullcellvoltage = 41,
+    .vbatfullcellvoltage = 410,
 
     .vbatLpfPeriod = 35,
     .ibatLpfPeriod = 10,
@@ -458,7 +458,7 @@ void batteryUpdateCurrentMeter(timeUs_t currentTimeUs)
     }
 }
 
-float calculateVbatCompensation(uint8_t vbatCompType, uint8_t vbatCompRef)
+float calculateVbatCompensation(uint8_t vbatCompType, uint16_t vbatCompRef)
 {
     float factor =  1.0f;
     if (vbatCompType != VBAT_COMP_TYPE_OFF && batteryConfig()->voltageMeterSource != VOLTAGE_METER_NONE && batteryCellCount > 0) {
@@ -511,6 +511,11 @@ bool isBatteryVoltageConfigured(void)
 uint16_t getBatteryVoltage(void)
 {
     return voltageMeter.filtered;
+}
+
+uint16_t getLegacyBatteryVoltage(void)
+{
+    return (voltageMeter.filtered + 5) / 10;
 }
 
 uint16_t getBatteryVoltageLatest(void)

@@ -227,7 +227,7 @@ int32_t getSensorValue(uint8_t sensor)
 {
     switch(sensor) {
     case EX_VOLTAGE:
-        return getBatteryVoltageLatest();
+        return (getBatteryVoltageLatest() + 5) / 10;
         break;
 
     case EX_CURRENT:
@@ -243,7 +243,7 @@ int32_t getSensorValue(uint8_t sensor)
         break;
 
     case EX_POWER:
-        return (getBatteryVoltageLatest() * getAmperageLatest() / 100);
+        return (getBatteryVoltageLatest() * getAmperageLatest() / 1000);
         break;
 
     case EX_ROLL_ANGLE:
