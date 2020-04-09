@@ -1,21 +1,63 @@
 name: Build EgoFlight
-on: [push, pull_request]
+
+on:
+  push:
+    branches:        
+      - master
+  pull_request:
+    branches:
+      - *
+
+env:
+  CCACHE_VERSION: '3.7.7'
+  TOOLCHAIN_VERSION: '9-2019-q4'
 jobs:
   build:
     strategy:
       max-parallel: 1
     runs-on: ubuntu-latest
     steps:
+
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@latest
       with:
         fetch-depth: 0
+
+    - name: Version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
+    - name: Setup Python
+      uses: actions/setup-python@latest
+
     - name: Toolchain
-      uses: fiam/arm-none-eabi-gcc@v1
+      uses: fiam/arm-none-eabi-gcc@latest
       with:
-        release: '9-2019-q4' # The arm-none-eabi-gcc release to use.
-    - name: Python
-      uses: actions/setup-python@v1
+        release: $TOOLCHAIN_VERSION # The arm-none-eabi-gcc release to use.
+
+    - name: Setup ccache
+      id: ccache
+      shell: cmake -P {0}
+      run: |
+        set(ccache_url "https://github.com/cristianadam/ccache/releases/download/v$ENV{CCACHE_VERSION}/${{ runner.os }}.tar.xz")
+        file(DOWNLOAD "${ccache_url}" ./ccache.tar.xz SHOW_PROGRESS)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ccache.tar.xz)
+
+    - name: Prepare ccache timestamp
+      id: ccache_cache_timestamp
+      shell: cmake -P {0}
+      run: |
+        string(TIMESTAMP current_date "%Y-%m-%d-%H;%M;%S" UTC)
+        message("::set-output name=timestamp::${current_date}")
+
+    - name: Cache
+      uses: actions/cache@latest
+      with:
+        path: .ccache
+        key: ${{ matrix.config.name }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+        restore-keys: |
+          ${{ matrix.config.name }}-ccache-
+
     - name: Cleanup
       run: |
         sudo swapoff -a
@@ -25,24 +67,19 @@ jobs:
         docker system prune -f -a --volumes
         sync
         df -h
-    - name: Version
-      id: get_version
-      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
     - name: Make
-      run: make -j2 all
+      run: make all
+
     - name: Artifacts
-      uses: actions/upload-artifact@v2-preview
+      uses: actions/upload-artifact@latest
       with:
         name: EgoFlight-${{ steps.get_version.outputs.VERSION }}-${{ github.run_number }}
         path: obj/*.hex
       continue-on-error: true
-    - name: Changelog
-      uses: scottbrenner/generate-changelog-action@master
-      id: changelog
-      env:
-        REPO: ${{ github.repository }}
+
     - name: Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@latest
       if: startsWith(github.ref, 'refs/tags/')
       with:
         prerelease: true
