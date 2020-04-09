@@ -98,6 +98,7 @@
 #ifdef USE_HARDWARE_REVISION_DETECTION
 #include "hardware_revision.h"
 #endif
+#endif
 
 #define VIDEO_BUFFER_CHARS_PAL    480
 #define FULL_CIRCLE 360
@@ -109,7 +110,6 @@
 #if defined(USE_BRAINFPV_OSD)
 extern bool osd_arming_or_stats;
 extern bool brainfpv_user_avatar_set;
-#endif
 #endif
 
 const char * const osdTimerSourceNames[] = {
@@ -851,6 +851,7 @@ static bool osdDrawSingleElement(uint8_t item)
                 break;
             }
 #endif
+#endif
 
 #ifdef USE_ESC_SENSOR
             // Show warning if we lose motor output, the ESC is overheating or excessive current draw
@@ -1219,6 +1220,7 @@ void osdInit(displayPort_t *osdDisplayPortToUse)
     if (osdFormatRtcDateTime(&dateTimeBuffer[0])) {
         displayWrite(osdDisplayPort, 5, 12, dateTimeBuffer);
     }
+#endif
 #endif
 
     displayResync(osdDisplayPort);
