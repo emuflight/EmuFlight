@@ -32,6 +32,7 @@ jobs:
         mkdir -p bin
         curl -SsL https://github.com/cristianadam/ccache/releases/download/v$CCACHE_VERSION/${{ runner.os }}.tar.xz -o ccache.tar.xz
         tar xvf ./ccache.tar.xz -C bin
+        ls bin
 
     - name: Setup Python
       uses: actions/setup-python@v1
