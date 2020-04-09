@@ -56,6 +56,14 @@ Please fly save!
 
 Contributions are not welcome. Please contribute to [EmuFlight](https://github.com/emuflight/EmuFlight) instead.
 
+## Sponsors
+
+Thank you!
+
+ * `Pan American World Airways`
+ * `STPAULI FPV CREW`
+ * `ETH6`
+
 ## License
 
 EgoFlight is software that is **open source** (supposed to be `GPL`) and is available free of charge **without warranty** to all users.
