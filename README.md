@@ -2,7 +2,7 @@
 
 # EgoFlight
 
-A fork of EgoFight, err [EmuFlight](https://github.com/emuflight/EmuFlight).
+A fork of EgoFight, err [EmuFlight](https://github.com/emuflight/EmuFlight). 👩‍✈️👨‍✈️
 
 > This is not a joke, but actually a flying fork.
 
@@ -30,7 +30,7 @@ This one differs from EmuFlight:
 
 None.
 
-## Support and Developers Channel
+## Support
 
 Nah.
 
@@ -56,7 +56,7 @@ Please fly save!
 
 Contributions are not welcome. Please contribute to [EmuFlight](https://github.com/emuflight/EmuFlight) instead.
 
-## Open Source / Contributors
+## License
 
 EgoFlight is software that is **open source** (supposed to be `GPL`) and is available free of charge **without warranty** to all users.
 

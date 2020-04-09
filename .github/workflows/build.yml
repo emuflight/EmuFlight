@@ -58,7 +58,6 @@ jobs:
         sudo rm -f /swapfile
         sudo apt clean
         docker rmi -f $(docker image ls -aq)
-        docker system prune -f -a --volumes
         sync
         df -h
 
