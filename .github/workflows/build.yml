@@ -6,11 +6,16 @@ jobs:
       max-parallel: 1
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: fiam/arm-none-eabi-gcc@v1
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Toolchain
+      uses: fiam/arm-none-eabi-gcc@v1
       with:
         release: '9-2019-q4' # The arm-none-eabi-gcc release to use.
-    - uses: actions/setup-python@v1
+    - name: Python
+      uses: actions/setup-python@v1
     - name: Cleanup
       run: |
         sudo swapoff -a
@@ -18,19 +23,30 @@ jobs:
         sudo apt clean
         docker rmi $(docker image ls -aq)
         df -h
+    - name: Version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
     - name: Make
       run: make -j2 all
-    - name: Upload
+    - name: Artifacts
       uses: actions/upload-artifact@v2-preview
       with:
-        name: EgoFlight-${{ github.ref }}-${{ github.run_number }}
+        name: EgoFlight-${{ steps.get_version.outputs.VERSION }}-${{ github.run_number }}
         path: obj/*.hex
       continue-on-error: true
+    - name: Changelog
+      uses: scottbrenner/generate-changelog-action@master
+      id: changelog
+      env:
+        REPO: ${{ github.repository }}
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         prerelease: true
         draft: true
+        files: obj/*.hex
+        body: |
+          ${{ steps.changelog.outputs.changelog }}
       env:
         GITHUB_TOKEN: ${{ secrets.tokkken }}
