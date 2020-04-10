@@ -86,12 +86,10 @@ static FAST_RAM_ZERO_INIT bool antiGravityEnabled;
 
 PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 
-#ifdef STM32F10X
-#define PID_PROCESS_DENOM_DEFAULT 1
-#elif defined(USE_GYRO_SPI_MPU6000) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_ICM20689)
-#define PID_PROCESS_DENOM_DEFAULT 1
+#if defined(STM32F1)
+#define PID_PROCESS_DENOM_DEFAULT       8
 #else
-#define PID_PROCESS_DENOM_DEFAULT 2
+#define PID_PROCESS_DENOM_DEFAULT       4
 #endif
 
 #ifndef DEFAULT_PIDS_ROLL
