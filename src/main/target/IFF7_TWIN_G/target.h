@@ -21,7 +21,7 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER "S7X2"
-#define USBD_PRODUCT_STRING     "IFF7_TWIN_G"
+#define USBD_PRODUCT_STRING     "IFLIGHT_F722_TWING"
 
 #define USE_DUAL_GYRO
 
@@ -44,8 +44,8 @@
 
 #define USE_EXTI
 #define USE_GYRO_EXTI
-#define MPU_INT_EXTI         PA8
-#define GYRO_2_EXTI_PIN         PC13
+#define MPU_INT_EXTI            PA8
+#define GYRO_2_EXTI_PIN         PB2
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
@@ -161,8 +161,6 @@
 
 #define SERIALRX_UART                       SERIAL_PORT_USART2
 #define SERIALRX_PROVIDER                   SERIALRX_SBUS
-
-
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff

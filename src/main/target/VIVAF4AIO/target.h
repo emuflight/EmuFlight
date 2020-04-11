@@ -24,25 +24,26 @@
 
 #define ENABLE_DSHOT_DMAR       true
 
-#define LED0_PIN                PC14
+#define LED0_PIN                  PC14
+
 #define USE_BEEPER
-#define BEEPER_PIN              PC13
+#define BEEPER_PIN                PC13
 #define BEEPER_INVERTED
 
 //define camera control
-#define CAMERA_CONTROL_PIN      PA5
+#define CAMERA_CONTROL_PIN        PA5
 
 #define USE_EXTI
-#define MPU_INT_EXTI            PC4
+#define MPU_INT_EXTI              PC4
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define MPU6500_CS_PIN           PA4
-#define MPU6500_SPI_INSTANCE     SPI1
+#define MPU6500_CS_PIN            PA4
+#define MPU6500_SPI_INSTANCE      SPI1
 
-#define ACC_MPU6500_1_ALIGN         CW0_DEG
-#define GYRO_MPU6500_1_ALIGN        CW0_DEG
-#define GYRO_1_ALIGN                GYRO_MPU6500_1_ALIGN
-#define ACC_1_ALIGN                 ACC_MPU6500_1_ALIGN
+#define ACC_MPU6500_1_ALIGN       CW0_DEG
+#define GYRO_MPU6500_1_ALIGN      CW0_DEG
+#define GYRO_1_ALIGN              GYRO_MPU6500_1_ALIGN
+#define ACC_1_ALIGN               ACC_MPU6500_1_ALIGN
 
 // ICM-20602
 #define USE_ACC_MPU6500
@@ -92,10 +93,10 @@
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1       // External I2C
-#define I2C_DEVICE               I2CDEV_1
-#define I2C_SDA                  PB9
+#define I2C_DEVICE               (I2CDEV_1)
 #define I2C_SCL                  PB8
-#define BARO_I2C_INSTANCE        I2CDEV_1
+#define I2C_SDA                  PB9
+#define BARO_I2C_INSTANCE        (I2CDEV_1)
 
 #define USE_BARO
 #define USE_BARO_BMP280
@@ -127,7 +128,7 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
-#define RSSI_ADC_PIN            PA0
+#define RSSI_ADC_PIN            PC0
 #define CURRENT_METER_SCALE_DEFAULT 250                     // 3.3/120A  = 25mv/A
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
