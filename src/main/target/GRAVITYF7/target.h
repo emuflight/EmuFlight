@@ -29,41 +29,41 @@
 
 // led & beep
 #define LED0_PIN                        PC14
+
 #define USE_BEEPER
 #define BEEPER_PIN                      PC13
 #define BEEPER_INVERTED
 
 // SPIs & Gyro
-#define USE_SPI
 #define USE_EXTI
-#define USE_GYRO_EXTI
-#define GYRO_1_EXTI_PIN                 PB10
+#define MPU_INT_EXTI                    PB10
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
 #define USE_GYRO
-#define USE_GYRO_SPI_MPU6000
-#define MPU6000_SPI_INSTANCE            SPI1
-
 #define USE_ACC
+#define USE_GYRO_SPI_MPU6000
 #define USE_ACC_SPI_MPU6000
+#define MPU6000_CS_PIN                  SPI1_NSS_PIN
+#define MPU6000_SPI_INSTANCE            SPI1
+#define GYRO_MPU6000_ALIGN              CW0_DEG_FLIP
+#define ACC_MPU6000_ALIGN               GYRO_MPU6000_ALIGN
 
+#define GYRO_1_CS_PIN                   MPU6000_CS_PIN
+#define GYRO_1_SPI_INSTANCE             MPU6000_SPI_INSTANCE
 #define GYRO_1_ALIGN                    CW0_DEG_FLIP
 
+#define USE_SPI
 #define USE_SPI_DEVICE_1
+#define SPI1_NSS_PIN                    PB0
 #define SPI1_SCK_PIN                    PA5
 #define SPI1_MISO_PIN                   PA6
 #define SPI1_MOSI_PIN                   PA7
-
-#define GYRO_1_CS_PIN                   PB0
-#define GYRO_1_SPI_INSTANCE             SPI1
-
 
 // Baro
 #define BARO_I2C_INSTANCE               (I2CDEV_1)
 #define USE_BARO
 #define USE_BARO_BMP280
-
 
 // i2c
 #define USE_I2C
@@ -72,7 +72,6 @@
 #define I2C1_SCL                        PB8
 #define I2C1_SDA                        PB9
 
-
 // mag
 #define MAG_I2C_INSTANCE                (I2CDEV_1)
 #define USE_MAG
@@ -80,12 +79,10 @@
 #define USE_MAG_QMC5883
 #define USE_MAG_LIS3MDL
 
-
 // USB
 #define USE_VCP
 #define USB_DETECT_PIN                  PA10
 #define USE_USB_DETECT
-
 
 // UARTs
 #define USE_UART1
@@ -114,12 +111,10 @@
 
 #define SERIAL_PORT_COUNT               7
 
-
 // USER pin
 #define USE_PINIO
 #define PINIO1_PIN                      PC2 // VTX power switcher
 #define USE_PINIOBOX
-
 
 // OSD
 #define USE_OSD
@@ -133,9 +128,9 @@
 #define MAX7456_SPI_INSTANCE            SPI2
 #define MAX7456_SPI_CS_PIN              SPI2_NSS_PIN
 
-
 // BLACKBOX
 #define USE_SPI_DEVICE_3 // FLASH
+#define SPI3_NSS_PIN                    PB2
 #define SPI3_SCK_PIN                    PB3
 #define SPI3_MISO_PIN                   PB4
 #define SPI3_MOSI_PIN                   PB5
@@ -143,10 +138,8 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
-#define FLASH_CS_PIN                    PB2
+#define FLASH_CS_PIN                    SPI3_NSS_PIN
 #define FLASH_SPI_INSTANCE              SPI3
-
-
 
 // ADC
 #define USE_ADC
@@ -162,19 +155,15 @@
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
-
-
 // Telem ESC
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN           PC7  // (HARDWARE=0)
-
 
 // DEFAULT FEATURE
 #define DEFAULT_RX_FEATURE              FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER               SERIALRX_SBUS
 #define SERIALRX_UART                   SERIAL_PORT_USART1
 #define DEFAULT_FEATURES                ( FEATURE_OSD | FEATURE_TELEMETRY )
-
 
 /*--------Camera comtrol-----------*/
 #define USE_CAMERA_CONTROL
@@ -188,5 +177,3 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 7
 #define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) |TIM_N(8) )
-
-
