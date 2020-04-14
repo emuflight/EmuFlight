@@ -814,6 +814,22 @@ float applyThrottleLimit(float throttle)
     return throttle;
 }
 
+void applyAirMode(float *motorMix, float motorMixMax)
+{
+    float absThrottle = ABS(throttle);
+    float normalizationFactor = motorMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? motorMixRange : 1.0f;
+    float motorMixDelta = 0.5f * motorMixRange;
+    for (int i = 0; i < motorCount; ++i) {
+        motorMix[i] += motorMixDelta - motorMixMax; // let's center the values exactly around the zero
+        float result = motorMix[i] + scaleRangef(absThrottle, 0.0f, 1.0f, motorMixDelta, - motorMixDelta); // this is the actual AirMode trick
+        if (absThrottle < 0.5 && !isAirmodeActive()) {
+            // we have to remove the AirMode proportionally with throttle
+            result = scaleRangef(absThrottle, 0.0f, 0.5f, motorMix[i], result);
+        }
+        motorMix[i] = result / normalizationFactor;
+    }
+}
+
 FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs)
 {
     if (isFlipOverAfterCrashMode()) {
@@ -893,17 +909,23 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
 
     loggingThrottle = throttle;
     motorMixRange = motorMixMax - motorMixMin;
-    if (motorMixRange > 1.0f && (hardwareMotorType != MOTOR_BRUSHED)) {
-        for (int i = 0; i < motorCount; i++) {
-            motorMix[i] /= motorMixRange;
-        }
-        // Get the maximum correction by setting offset to center when airmode enabled
-        if (isAirmodeActive()) {
-            throttle = 0.5f;
-        }
+
+    if (IS_RC_MODE_ACTIVE(BOXBLACKBOX)) {
+        applyAirMode(motorMix, motorMixMax);
     } else {
-        if (isAirmodeActive() || throttle > 0.5f) {  // Only automatically adjust throttle when airmode enabled. Airmode logic is always active on high throttle
-            throttle = constrainf(throttle, -motorMixMin, 1.0f - motorMixMax);
+        // TODO: legacy code, to be removed
+        if (motorMixRange > 1.0f && (hardwareMotorType != MOTOR_BRUSHED)) {
+            for (int i = 0; i < motorCount; i++) {
+                motorMix[i] /= motorMixRange;
+            }
+            // Get the maximum correction by setting offset to center when airmode enabled
+            if (isAirmodeActive()) {
+                throttle = 0.5f;
+            }
+        } else {
+            if (isAirmodeActive() || throttle > 0.5f) {  // Only automatically adjust throttle when airmode enabled. Airmode logic is always active on high throttle
+                throttle = constrainf(throttle, -motorMixMin, 1.0f - motorMixMax);
+            }
         }
     }
 
