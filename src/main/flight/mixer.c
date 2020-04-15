@@ -814,18 +814,18 @@ float applyThrottleLimit(float throttle)
     return throttle;
 }
 
-void applyAirMode(float *motorMix, float motorMixMax)
+void applyAirMode(float *motorMix, float motorMixMax, float percent)
 {
     float normalizationFactor = motorMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? motorMixRange : 1.0f;
     float motorMixDelta = 0.5f * motorMixRange;
     for (int i = 0; i < motorCount; ++i) {
         motorMix[i] += motorMixDelta - motorMixMax; // let's center the values exactly around the zero
-        float result = motorMix[i] + scaleRangef(throttle, 0.0f, 1.0f, motorMixDelta, - motorMixDelta); // this is the actual AirMode trick
-        if (throttle < 0.5 && !isAirmodeActive()) {
-            // we have to remove the AirMode proportionally with throttle
-            result = scaleRangef(throttle, 0.0f, 0.5f, motorMix[i], result);
+        if (throttle < 0.5) {
+            motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, percent * (motorMix[i] + motorMixDelta), motorMix[i]);
+        } else {
+            motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, motorMix[i], percent * (motorMix[i] - motorMixDelta));
         }
-        motorMix[i] = result / normalizationFactor;
+        motorMix[i] /= normalizationFactor;
     }
 }
 
@@ -910,7 +910,7 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
     motorMixRange = motorMixMax - motorMixMin;
 
     if (IS_RC_MODE_ACTIVE(BOXBLACKBOX)) {
-        applyAirMode(motorMix, motorMixMax);
+        applyAirMode(motorMix, motorMixMax, isAirmodeActive() ? 1.0f : 0.75f);
     } else {
         // TODO: legacy code, to be removed
         if (motorMixRange > 1.0f && (hardwareMotorType != MOTOR_BRUSHED)) {
