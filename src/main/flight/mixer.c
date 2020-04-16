@@ -827,18 +827,13 @@ float applyThrottleLimit(float throttle)
 void applyAirMode(float *motorMix, float motorMixMax)
 {
     float normalizationFactor = motorMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? motorMixRange : 1.0f;
-    float motorMixDelta = 0.5f * motorMixRange / normalizationFactor;
+    float motorMixDelta = 0.5f * motorMixRange;
     float lowThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixDelta, 0.0f, 0.5f, airmodeMinSlowAuthority, airmodeMinFastAuthority);
     float highThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixDelta, 0.0f, 0.5f, airmodeMaxSlowAuthority, airmodeMaxFastAuthority);
-    motorMixMax /= normalizationFactor;
     for (int i = 0; i < motorCount; ++i) {
         motorMix[i] += motorMixDelta - motorMixMax; // let's center motorMix values around the zero
+        motorMix[i] = scaleRangef(throttle, 0.0f, 1.0f,(motorMix[i] + motorMixDelta) * lowThrAirmodePercent, (motorMix[i] - motorMixDelta) * highThrAirmodePercent);
         motorMix[i] /= normalizationFactor;
-        if (throttle < 0.5) {
-            motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f,(motorMix[i] + motorMixDelta) * lowThrAirmodePercent, motorMix[i]);
-        } else {
-            motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, motorMix[i],  (motorMix[i] - motorMixDelta) * highThrAirmodePercent);
-        }
     }
 }
 
