@@ -156,6 +156,11 @@ typedef struct pidProfile_s {
     uint8_t integrated_yaw_relax;           // Specifies how much integrated yaw should be reduced to offset the drag based yaw component
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
+
+    uint8_t airmode_min_slow_authority;     // the wanted authority for minimum throttle and slow movements
+    uint8_t airmode_min_fast_authority;     // the wanted authority for minimum throttle and fast movements
+    uint8_t airmode_max_slow_authority;     // the wanted authority for maximum throttle and slow movements
+    uint8_t airmode_max_fast_authority;     // the wanted authority for maximum throttle and fast movements
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE

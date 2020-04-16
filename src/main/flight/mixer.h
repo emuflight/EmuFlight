@@ -39,6 +39,8 @@
 #define DSHOT_3D_DEADBAND_LOW  1047
 #define DSHOT_3D_DEADBAND_HIGH 1048
 
+#define AIRMODE_AUTHORITY_MIN 0
+
 // Note: this is called MultiType/MULTITYPE_* in baseflight.
 typedef enum mixerMode
 {

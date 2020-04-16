@@ -132,6 +132,11 @@ float motor_disarmed[MAX_SUPPORTED_MOTORS];
 mixerMode_e currentMixerMode;
 static motorMixer_t currentMixer[MAX_SUPPORTED_MOTORS];
 
+static float airmodeMinSlowAuthority;
+static float airmodeMinFastAuthority;
+static float airmodeMaxSlowAuthority;
+static float airmodeMaxFastAuthority;
+
 static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
 
 
@@ -434,6 +439,11 @@ void mixerInit(mixerMode_e mixerMode)
     if (mixerIsTricopter()) {
         mixerTricopterInit();
     }
+
+    airmodeMinSlowAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_min_slow_authority);
+    airmodeMinFastAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_min_fast_authority);
+    airmodeMaxSlowAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_max_slow_authority);
+    airmodeMaxFastAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_max_fast_authority);
 }
 
 #ifndef USE_QUAD_MIXER_ONLY
@@ -814,18 +824,21 @@ float applyThrottleLimit(float throttle)
     return throttle;
 }
 
-void applyAirMode(float *motorMix, float motorMixMax, float percent)
+void applyAirMode(float *motorMix, float motorMixMax)
 {
     float normalizationFactor = motorMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? motorMixRange : 1.0f;
-    float motorMixDelta = 0.5f * motorMixRange;
+    float motorMixDelta = 0.5f * motorMixRange / normalizationFactor;
+    float lowThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixDelta, 0.0f, 0.5f, airmodeMinSlowAuthority, airmodeMinFastAuthority);
+    float highThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixDelta, 0.0f, 0.5f, airmodeMaxSlowAuthority, airmodeMaxFastAuthority);
+    motorMixMax /= normalizationFactor;
     for (int i = 0; i < motorCount; ++i) {
-        motorMix[i] += motorMixDelta - motorMixMax; // let's center the values exactly around the zero
-        if (throttle < 0.5) {
-            motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, percent * (motorMix[i] + motorMixDelta), motorMix[i]);
-        } else {
-            motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, motorMix[i], percent * (motorMix[i] - motorMixDelta));
-        }
+        motorMix[i] += motorMixDelta - motorMixMax; // let's center motorMix values around the zero
         motorMix[i] /= normalizationFactor;
+        if (throttle < 0.5) {
+            motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f,(motorMix[i] + motorMixDelta) * lowThrAirmodePercent, motorMix[i]);
+        } else {
+            motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, motorMix[i],  (motorMix[i] - motorMixDelta) * highThrAirmodePercent);
+        }
     }
 }
 
@@ -910,7 +923,7 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
     motorMixRange = motorMixMax - motorMixMin;
 
     if (IS_RC_MODE_ACTIVE(BOXBLACKBOX)) {
-        applyAirMode(motorMix, motorMixMax, isAirmodeActive() ? 1.0f : 0.75f);
+        applyAirMode(motorMix, motorMixMax);
     } else {
         // TODO: legacy code, to be removed
         if (motorMixRange > 1.0f && (hardwareMotorType != MOTOR_BRUSHED)) {
