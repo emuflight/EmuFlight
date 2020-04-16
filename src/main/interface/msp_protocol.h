@@ -316,9 +316,11 @@
 #define MSP_IMUF_CONFIG          227    //out message
 #define MSP_SET_IMUF_CONFIG      228    //in message
 #define MSP_IMUF_INFO            229    //out message
+#define MSP_EMUF                 231    //out message
+#define MSP_SET_EMUF             232    //in message
 
-#define MSP_SET_GPS_RESCUE       230  // GPS Rescues's angle, initialAltitude, descentDistance, rescueGroundSpeed, sanityChecks and minSats
-#define MSP_SET_GPS_RESCUE_PIDS  231    //in message          GPS Rescues's throttleP and velocity PIDS + yaw P
+#define MSP_SET_GPS_RESCUE       233  // GPS Rescues's angle, initialAltitude, descentDistance, rescueGroundSpeed, sanityChecks and minSats
+#define MSP_SET_GPS_RESCUE_PIDS  234    //in message          GPS Rescues's throttleP and velocity PIDS + yaw P
 // #define MSP_BIND                 240    //in message          no param
 // #define MSP_ALARMS               242
 
@@ -343,12 +345,3 @@
 #define MSP_RTC                  247    //out message         Gets the RTC clock
 #define MSP_SET_BOARD_INFO       248    //in message          Sets the board information for this board
 #define MSP_SET_SIGNATURE        249    //in message          Sets the signature of the board and serial number
-
-// Emuflight
-#define MSP_FAST_KALMAN          225    //out message
-#define MSP_SET_FAST_KALMAN      226    //in message
-#define MSP_IMUF_CONFIG          227    //out message
-#define MSP_SET_IMUF_CONFIG      228    //in message
-#define MSP_IMUF_INFO            229    //out message
-#define MSP_EMUF                 231    //out message
-#define MSP_SET_EMUF             232    //in message
