@@ -159,6 +159,8 @@ typedef struct pidProfile_s {
 
     uint8_t airmode_min_slow_authority;     // the wanted authority for minimum throttle and slow movements
     uint8_t airmode_min_fast_authority;     // the wanted authority for minimum throttle and fast movements
+    uint8_t airmode_med_slow_authority;     // the wanted authority for medium throttle and slow movements
+    uint8_t airmode_med_fast_authority;     // the wanted authority for medium throttle and fast movements
     uint8_t airmode_max_slow_authority;     // the wanted authority for maximum throttle and slow movements
     uint8_t airmode_max_fast_authority;     // the wanted authority for maximum throttle and fast movements
 } pidProfile_t;

@@ -134,6 +134,8 @@ static motorMixer_t currentMixer[MAX_SUPPORTED_MOTORS];
 
 static float airmodeMinSlowAuthority;
 static float airmodeMinFastAuthority;
+static float airmodeMedSlowAuthority;
+static float airmodeMedFastAuthority;
 static float airmodeMaxSlowAuthority;
 static float airmodeMaxFastAuthority;
 
@@ -442,6 +444,8 @@ void mixerInit(mixerMode_e mixerMode)
 
     airmodeMinSlowAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_min_slow_authority);
     airmodeMinFastAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_min_fast_authority);
+    airmodeMedSlowAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_med_slow_authority);
+    airmodeMedFastAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_med_fast_authority);
     airmodeMaxSlowAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_max_slow_authority);
     airmodeMaxFastAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_max_fast_authority);
 }
@@ -827,12 +831,18 @@ float applyThrottleLimit(float throttle)
 void applyAirMode(float *motorMix, float motorMixMax)
 {
     float normalizationFactor = motorMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? motorMixRange : 1.0f;
-    float motorMixDelta = 0.5f * motorMixRange;
-    float lowThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixDelta, 0.0f, 0.5f, airmodeMinSlowAuthority, airmodeMinFastAuthority);
-    float highThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixDelta, 0.0f, 0.5f, airmodeMaxSlowAuthority, airmodeMaxFastAuthority);
+
+    float minThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixRange, 0.0f, 1.0f, airmodeMinSlowAuthority, airmodeMinFastAuthority);
+    float medThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixRange, 0.0f, 1.0f, airmodeMinSlowAuthority, airmodeMinFastAuthority);
+    float maxThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixRange, 0.0f, 1.0f, airmodeMaxSlowAuthority, airmodeMaxFastAuthority);
+
     for (int i = 0; i < motorCount; ++i) {
-        motorMix[i] += motorMixDelta - motorMixMax; // let's center motorMix values around the zero
-        motorMix[i] = scaleRangef(throttle, 0.0f, 1.0f,(motorMix[i] + motorMixDelta) * lowThrAirmodePercent, (motorMix[i] - motorMixDelta) * highThrAirmodePercent);
+        motorMix[i] += 0.5f * motorMixRange - motorMixMax; // let's center motorMix values around the zero
+        if (throttle < 0.5) {
+            motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, minThrAirmodePercent * MAX(0.0f, motorMix[i] * 2.0f), medThrAirmodePercent * motorMix[i]);
+        } else {
+            motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, medThrAirmodePercent * motorMix[i], maxThrAirmodePercent * MIN(0.0f, motorMix[i] * 2.0f));
+        }
         motorMix[i] /= normalizationFactor;
     }
 }

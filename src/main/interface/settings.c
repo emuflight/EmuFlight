@@ -932,6 +932,8 @@ const clivalue_t valueTable[] = {
 
     { "airmode_min_slow_authority", VAR_UINT8 | PROFILE_VALUE, .config.minmax = { AIRMODE_AUTHORITY_MIN, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, airmode_min_slow_authority) },
     { "airmode_min_fast_authority", VAR_UINT8 | PROFILE_VALUE, .config.minmax = { AIRMODE_AUTHORITY_MIN, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, airmode_min_fast_authority) },
+    { "airmode_med_slow_authority", VAR_UINT8 | PROFILE_VALUE, .config.minmax = { AIRMODE_AUTHORITY_MIN, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, airmode_med_slow_authority) },
+    { "airmode_med_fast_authority", VAR_UINT8 | PROFILE_VALUE, .config.minmax = { AIRMODE_AUTHORITY_MIN, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, airmode_med_fast_authority) },
     { "airmode_max_slow_authority", VAR_UINT8 | PROFILE_VALUE, .config.minmax = { AIRMODE_AUTHORITY_MIN, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, airmode_max_slow_authority) },
     { "airmode_max_fast_authority", VAR_UINT8 | PROFILE_VALUE, .config.minmax = { AIRMODE_AUTHORITY_MIN, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, airmode_max_fast_authority) },
 

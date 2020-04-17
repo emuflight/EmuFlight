@@ -193,10 +193,12 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  .motor_output_limit = 100,
                  .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
                  .horizonTransition = 0,
-                 .airmode_min_slow_authority = 50,
-                 .airmode_min_fast_authority = 50,
-                 .airmode_max_slow_authority = 75,
-                 .airmode_max_fast_authority = 75,
+                 .airmode_min_slow_authority = 60,
+                 .airmode_min_fast_authority = 60,
+                 .airmode_med_slow_authority = 100,
+                 .airmode_med_fast_authority = 100,
+                 .airmode_max_slow_authority = 100,
+                 .airmode_max_fast_authority = 100,
                );
 }
 
