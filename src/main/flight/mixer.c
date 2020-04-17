@@ -833,7 +833,7 @@ void applyAirMode(float *motorMix, float motorMixMax)
     float normalizationFactor = motorMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? motorMixRange : 1.0f;
 
     float minThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixRange, 0.0f, 1.0f, airmodeMinSlowAuthority, airmodeMinFastAuthority);
-    float medThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixRange, 0.0f, 1.0f, airmodeMinSlowAuthority, airmodeMinFastAuthority);
+    float medThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixRange, 0.0f, 1.0f, airmodeMedSlowAuthority, airmodeMedFastAuthority);
     float maxThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixRange, 0.0f, 1.0f, airmodeMaxSlowAuthority, airmodeMaxFastAuthority);
 
     for (int i = 0; i < motorCount; ++i) {
