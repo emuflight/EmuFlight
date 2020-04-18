@@ -1415,7 +1415,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, currentPidProfile->pid[PID_LEVEL_LOW].F);
         sbufWriteU8(dst, currentPidProfile->pid[PID_LEVEL_HIGH].P);
         sbufWriteU8(dst, currentPidProfile->pid[PID_LEVEL_HIGH].D);
-
+        sbufWriteU8(dst, currentPidProfile->horizonTransition);
+        sbufWriteU8(dst, currentPidProfile->horizon_tilt_effect);
+        sbufWriteU8(dst, currentPidProfile->angleExpo);
 
         sbufWriteU8(dst, currentPidProfile->antiGravityMode);
 
@@ -1438,6 +1440,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentPidProfile->setPointPTransition[YAW]);
         sbufWriteU8(dst, currentPidProfile->setPointITransition[YAW]);
         sbufWriteU8(dst, currentPidProfile->setPointDTransition[YAW]);
+
         sbufWriteU8(dst, currentPidProfile->nfe_racermode);
 
 
@@ -2076,7 +2079,10 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
           currentPidProfile->pid[PID_LEVEL_LOW].F = sbufReadU16(src);
           currentPidProfile->pid[PID_LEVEL_HIGH].P = sbufReadU8(src);
           currentPidProfile->pid[PID_LEVEL_HIGH].D = sbufReadU8(src);
-
+          currentPidProfile->horizonTransition = sbufReadU8(src);
+          currentPidProfile->horizon_tilt_effect = sbufReadU8(src);
+          currentPidProfile->angleExpo = sbufReadU8(src);
+          
             currentPidProfile->antiGravityMode = sbufReadU8(src);
 #if defined(USE_ITERM_RELAX)
             currentPidProfile->iterm_relax_cutoff = sbufReadU8(src);
@@ -2095,10 +2101,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             currentPidProfile->setPointPTransition[YAW] = sbufReadU8(src);
             currentPidProfile->setPointITransition[YAW] = sbufReadU8(src);
             currentPidProfile->setPointDTransition[YAW] = sbufReadU8(src);
+
             currentPidProfile->nfe_racermode = sbufReadU8(src);
-
-
-        }
+      }
         pidInitConfig(currentPidProfile);
 
         break;
