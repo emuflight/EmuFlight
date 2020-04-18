@@ -835,13 +835,27 @@ void applyAirMode(float *motorMix, float motorMixMax)
     float minThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixRange, 0.0f, 1.0f, airmodeMinSlowAuthority, airmodeMinFastAuthority);
     float medThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixRange, 0.0f, 1.0f, airmodeMedSlowAuthority, airmodeMedFastAuthority);
     float maxThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixRange, 0.0f, 1.0f, airmodeMaxSlowAuthority, airmodeMaxFastAuthority);
+    float motorMixDelta = 0.5f * motorMixRange;
+
+    bool useAirmode2_0 = false;
+    // this mode needs thrust linearization to work properly, since it doesn't shift ALL the motorMixes of the same amount like the current mode does,
+    // so the lowest ones could be not shifted at all, remaining in a "motorOutput zone" that if not compensated would give an unexpected amount of thrust.
+    // Anyway the results are pretty good even without thrust linearization. Crash handling is much better. The quad will not get crazy at every contact.
 
     for (int i = 0; i < motorCount; ++i) {
-        motorMix[i] += 0.5f * motorMixRange - motorMixMax; // let's center motorMix values around the zero
+        motorMix[i] += motorMixDelta - motorMixMax; // let's center motorMix values around the zero
         if (throttle < 0.5) {
-            motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, minThrAirmodePercent * MAX(0.0f, motorMix[i] * 2.0f), medThrAirmodePercent * motorMix[i]);
+            if (useAirmode2_0) {
+                motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, minThrAirmodePercent * (motorMix[i] + ABS(motorMix[i])), medThrAirmodePercent * motorMix[i]);
+            } else {
+                motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, minThrAirmodePercent * (motorMix[i] + motorMixDelta), medThrAirmodePercent * motorMix[i]);
+            }
         } else {
-            motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, medThrAirmodePercent * motorMix[i], maxThrAirmodePercent * MIN(0.0f, motorMix[i] * 2.0f));
+            if (useAirmode2_0) {
+                motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, medThrAirmodePercent * motorMix[i], maxThrAirmodePercent * (motorMix[i] - ABS(motorMix[i])));
+            } else {
+                motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, medThrAirmodePercent * motorMix[i], maxThrAirmodePercent * (motorMix[i] - motorMixDelta));
+            }
         }
         motorMix[i] /= normalizationFactor;
     }
