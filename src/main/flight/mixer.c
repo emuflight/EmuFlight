@@ -433,6 +433,17 @@ void initEscEndpoints(void)
     rcCommandThrottleRange = PWM_RANGE_MAX - PWM_RANGE_MIN;
 }
 
+// Initialize pidProfile related mixer settings
+void mixerInitProfile(void)
+{
+    airmodeMinSlowAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_min_slow_authority);
+    airmodeMinFastAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_min_fast_authority);
+    airmodeMedSlowAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_med_slow_authority);
+    airmodeMedFastAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_med_fast_authority);
+    airmodeMaxSlowAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_max_slow_authority);
+    airmodeMaxFastAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_max_fast_authority);
+}
+
 void mixerInit(mixerMode_e mixerMode)
 {
     currentMixerMode = mixerMode;
@@ -442,12 +453,7 @@ void mixerInit(mixerMode_e mixerMode)
         mixerTricopterInit();
     }
 
-    airmodeMinSlowAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_min_slow_authority);
-    airmodeMinFastAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_min_fast_authority);
-    airmodeMedSlowAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_med_slow_authority);
-    airmodeMedFastAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_med_fast_authority);
-    airmodeMaxSlowAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_max_slow_authority);
-    airmodeMaxFastAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_max_fast_authority);
+    mixerInitProfile();
 }
 
 #ifndef USE_QUAD_MIXER_ONLY
