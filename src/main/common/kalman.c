@@ -91,18 +91,15 @@ void update_kalman_covariance(float *gyroRateData)
      varStruct.xVar =  fabsf(varStruct.xSumVar *  varStruct.inverseN - ( varStruct.xMean *  varStruct.xMean));
      varStruct.yVar =  fabsf(varStruct.ySumVar *  varStruct.inverseN - ( varStruct.yMean *  varStruct.yMean));
      varStruct.zVar =  fabsf(varStruct.zSumVar *  varStruct.inverseN - ( varStruct.zMean *  varStruct.zMean));
-     varStruct.xyCoVar =  fabsf(varStruct.xySumCoVar *  varStruct.inverseN - ( varStruct.xMean *  varStruct.yMean));
-     varStruct.xzCoVar =  fabsf(varStruct.xzSumCoVar *  varStruct.inverseN - ( varStruct.xMean *  varStruct.zMean));
-     varStruct.yzCoVar =  fabsf(varStruct.yzSumCoVar *  varStruct.inverseN - ( varStruct.yMean *  varStruct.zMean));
 
     float squirt;
-    arm_sqrt_f32(varStruct.xVar +  varStruct.xyCoVar +  varStruct.xzCoVar, &squirt);
+    arm_sqrt_f32(varStruct.xVar, &squirt);
     kalmanFilterStateRate[X].r = squirt * VARIANCE_SCALE;
 
-    arm_sqrt_f32(varStruct.yVar +  varStruct.xyCoVar +  varStruct.yzCoVar, &squirt);
+    arm_sqrt_f32(varStruct.yVar, &squirt);
     kalmanFilterStateRate[Y].r = squirt * VARIANCE_SCALE;
 
-    arm_sqrt_f32(varStruct.zVar +  varStruct.yzCoVar +  varStruct.xzCoVar, &squirt);
+    arm_sqrt_f32(varStruct.zVar, &squirt);
     kalmanFilterStateRate[Z].r = squirt * VARIANCE_SCALE;
 }
 
