@@ -771,7 +771,7 @@ TEST(ArmingPreventionTest, Paralyze)
     // expect
     EXPECT_TRUE(IS_RC_MODE_ACTIVE(BOXVTXPITMODE));
     EXPECT_TRUE(IS_RC_MODE_ACTIVE(BOXBEEPERON));
-    
+
     // given
     // try exiting paralyze mode and ensure arming and pit mode are still disabled
     rcData[AUX2] = 1000;
@@ -811,7 +811,7 @@ extern "C" {
     bool isFirstArmingGyroCalibrationRunning(void) { return false; }
     void pidController(const pidProfile_t *, const rollAndPitchTrims_t *, timeUs_t) {}
     void pidStabilisationState(pidStabilisationState_e) {}
-    void mixTable(timeUs_t , uint8_t) {};
+    void mixTable(timeUs_t , currentTimeUs) {};
     void writeMotors(void) {};
     void writeServos(void) {};
     bool calculateRxChannelsAndUpdateFailsafe(timeUs_t) { return true; }
