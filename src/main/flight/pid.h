@@ -103,7 +103,7 @@ typedef enum {
 } itermRelaxType_e;
 
 typedef struct pidProfile_s {
-    pidf_t  pid[PID_PROFILE_COUNT];
+    pidf_t  pid[PID_ITEM_COUNT];
     dFilter_t dFilter[3];
 
     uint8_t dterm_filter_type;              // Filter selection for dterm
@@ -159,7 +159,7 @@ typedef struct pidProfile_s {
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE
-PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
+PG_DECLARE_ARRAY(pidProfile_t, PID_ITEM_COUNT, pidProfiles);
 #endif
 
 typedef struct pidConfig_s {
