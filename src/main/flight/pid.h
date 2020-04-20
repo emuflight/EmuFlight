@@ -163,6 +163,7 @@ typedef struct pidProfile_s {
     uint8_t airmode_med_fast_authority;     // the wanted authority for medium throttle and fast movements
     uint8_t airmode_max_slow_authority;     // the wanted authority for maximum throttle and slow movements
     uint8_t airmode_max_fast_authority;     // the wanted authority for maximum throttle and fast movements
+    uint8_t predictiveAirMode;              // an airmode that predicts if it needs to increase its strength
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE

@@ -936,6 +936,7 @@ const clivalue_t valueTable[] = {
     { "airmode_med_fast_authority", VAR_UINT8 | PROFILE_VALUE, .config.minmax = { AIRMODE_AUTHORITY_MIN, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, airmode_med_fast_authority) },
     { "airmode_max_slow_authority", VAR_UINT8 | PROFILE_VALUE, .config.minmax = { AIRMODE_AUTHORITY_MIN, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, airmode_max_slow_authority) },
     { "airmode_max_fast_authority", VAR_UINT8 | PROFILE_VALUE, .config.minmax = { AIRMODE_AUTHORITY_MIN, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, airmode_max_fast_authority) },
+    { "predictive_airmode",         VAR_UINT8 | PROFILE_VALUE, .config.minmax = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, predictiveAirMode) },
 
 
 // PG_TELEMETRY_CONFIG

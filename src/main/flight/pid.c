@@ -199,6 +199,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  .airmode_med_fast_authority = 100,
                  .airmode_max_slow_authority = 100,
                  .airmode_max_fast_authority = 100,
+                 .predictiveAirMode = 0,
                );
 }
 

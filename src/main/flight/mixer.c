@@ -138,6 +138,7 @@ static float airmodeMedSlowAuthority;
 static float airmodeMedFastAuthority;
 static float airmodeMaxSlowAuthority;
 static float airmodeMaxFastAuthority;
+static uint8_t predictiveAirMode;
 
 static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
 
@@ -442,6 +443,7 @@ void mixerInitProfile(void)
     airmodeMedFastAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_med_fast_authority);
     airmodeMaxSlowAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_max_slow_authority);
     airmodeMaxFastAuthority = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->airmode_max_fast_authority);
+    predictiveAirMode = currentPidProfile->predictiveAirMode;
 }
 
 void mixerInit(mixerMode_e mixerMode)
@@ -848,16 +850,24 @@ void applyAirMode(float *motorMix, float motorMixMax)
     // so the lowest ones could be not shifted at all, remaining in a "motorOutput zone" that if not compensated would give an unexpected amount of thrust.
     // Anyway the results are pretty good even without thrust linearization. Crash handling is much better. The quad will not get crazy at every contact.
 
+    float maxStickDeflectionLow = MAX(getRcDeflectionAbs(ROLL), MAX(getRcDeflectionAbs(PITCH), getRcDeflectionAbs(YAW))); // makes maxStickDeflection the max r/p/y stick movement
+    float maxStickDeflectionHigh = 0.5f + (maxStickDeflectionLow / 2.0f); // scales the maxStickDeflectionHigh to 0.5f-1.0f perhaps this can be set to the same range as low???
+    maxStickDeflectionLow = 0.2f + (maxStickDeflectionLow / 1.25f); // scales maxStickDeflection between 0.2f-1.0f
+
     for (int i = 0; i < motorCount; ++i) {
         motorMix[i] += motorMixDelta - motorMixMax; // let's center motorMix values around the zero
         if (throttle < 0.5) {
-            if (useAirmode2_0) {
+            if (predictiveAirMode) {
+                motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, maxStickDeflectionLow * (motorMix[i] + motorMixDelta), motorMix[i]);
+            } else if (useAirmode2_0) {
                 motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, minThrAirmodePercent * (motorMix[i] + ABS(motorMix[i])), medThrAirmodePercent * motorMix[i]);
             } else {
                 motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, minThrAirmodePercent * (motorMix[i] + motorMixDelta), medThrAirmodePercent * motorMix[i]);
             }
         } else {
-            if (useAirmode2_0) {
+            if (predictiveAirMode) {
+                motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, motorMix[i], maxStickDeflectionHigh * (motorMix[i] - motorMixDelta));
+            } else if (useAirmode2_0) {
                 motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, medThrAirmodePercent * motorMix[i], maxThrAirmodePercent * (motorMix[i] - ABS(motorMix[i])));
             } else {
                 motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, medThrAirmodePercent * motorMix[i], maxThrAirmodePercent * (motorMix[i] - motorMixDelta));
