@@ -45,7 +45,7 @@ Etiquette: Don't ask to ask and please wait around long enough for a reply - som
 
 ## Configuration Tool
 
-To configure Betaflight you should use the Betaflight-configurator GUI tool (Windows/OSX/Linux) which can be found here:
+To configure EmuFlight you should use the EmuFlight-configurator GUI tool (Windows/OSX/Linux) which can be found here:
 
 https://github.com/emuflight/EmuConfigurator
 
