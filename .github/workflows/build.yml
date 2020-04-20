@@ -1,20 +1,63 @@
 name: Build EmuFlight
-on: [push, pull_request]
+
+on:
+  push:
+    tags:
+    - '*'
+  pull_request:
+    branches:
+    - '*'
+
 jobs:
   build:
     strategy:
       max-parallel: 1
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: fiam/arm-none-eabi-gcc@v1
+
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Version String
+      id: get_version
+      run: echo "::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}"
+
+    - name: Setup Python
+      uses: actions/setup-python@v1
+
+    - name: Setup Toolchain
+      uses: fiam/arm-none-eabi-gcc@v1
       with:
         release: '9-2019-q4' # The arm-none-eabi-gcc release to use.
-    - uses: actions/setup-python@v1
-    - name: Make
-      run: make all
-    - name: Upload
+
+    - name: Take the trash out
+      run: |
+        sudo swapoff -a
+        sudo rm -f /swapfile
+        sudo apt clean
+        docker rmi -f $(docker image ls -aq)
+        sync
+        df -h
+
+    - name: Compile Code
+      run: |
+        make all
+
+    - name: Store Artifacts
       uses: actions/upload-artifact@v2-preview
       with:
-        name: targets
+        name: EmuFlight-${{ steps.get_version.outputs.VERSION }}-${{ github.run_number }}
         path: obj/*.hex
+      continue-on-error: true
+
+    - name: Release Binaries
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        prerelease: true
+        draft: true
+        files: obj/*.hex
+      env:
+        GITHUB_TOKEN: ${{ secrets.release_token }}
