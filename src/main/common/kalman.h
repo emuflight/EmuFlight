@@ -49,9 +49,6 @@ typedef struct variance
     float xSumVar;
     float ySumVar;
     float zSumVar;
-    float xySumCoVar;
-    float xzSumCoVar;
-    float yzSumCoVar;
 
     float inverseN;
     uint16_t w;
