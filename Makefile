@@ -92,22 +92,16 @@ FEATURES        =
 
 include $(ROOT)/make/targets.mk
 
-# if building on travis the branch name is set
-ifneq ($(TRAVIS_BRANCH),)
-# so use it
-BRANCH := $(TRAVIS_BRANCH)
-else
-# otherwise, call git
-BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+# build number - default for local builds
+BUILDNO := local
+
+# github actions build
+ifneq ($(BUILD_NUMBER),)
+BUILDNO := $(BUILD_NUMBER)
 endif
 
-BRANCH := $(shell echo $(BRANCH))
-
-# building locally build number does not increment
-BUILDNO := local
-# if building on travis we have a build number set
+# travis build
 ifneq ($(TRAVIS_BUILD_NUMBER),)
-# so use it
 BUILDNO := $(TRAVIS_BUILD_NUMBER)
 endif
 
@@ -128,7 +122,7 @@ FATFS_SRC       = $(notdir $(wildcard $(FATFS_DIR)/*.c))
 
 CSOURCES        := $(shell find $(SRC_DIR) -name '*.c')
 
-LD_FLAGS         :=
+LD_FLAGS        :=
 
 #
 # Default Tool options - can be overridden in {mcu}.mk files.
@@ -137,10 +131,10 @@ ifeq ($(DEBUG),GDB)
 OPTIMISE_DEFAULT      := -Og
 
 LTO_FLAGS             := $(OPTIMISE_DEFAULT)
-DEBUG_FLAGS            = -ggdb3 -DDEBUG
+DEBUG_FLAGS           = -ggdb3 -DDEBUG
 else
 ifeq ($(DEBUG),INFO)
-DEBUG_FLAGS            = -ggdb3
+DEBUG_FLAGS           = -ggdb3
 endif
 OPTIMISATION_BASE     := -flto -fuse-linker-plugin -ffast-math
 OPTIMISE_DEFAULT      := -O2
@@ -370,7 +364,7 @@ all_with_unsupported: $(VALID_TARGETS)
 ## unsupported : Build unsupported targets
 unsupported: $(UNSUPPORTED_TARGETS)
 
-## official          : Build all official (travis) targets
+## official          : Build all "official" targets
 official: $(OFFICIAL_TARGETS)
 
 ## targets-group-1   : build some targets
