@@ -1,20 +1,78 @@
 name: Build EmuFlight
-on: [push, pull_request]
+
+on:
+  push:
+    tags:
+    - '*'
+  pull_request:
+    branches:
+    - '*'
+
 jobs:
   build:
     strategy:
       max-parallel: 1
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: fiam/arm-none-eabi-gcc@v1
+
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Get build number
+      id: get_buildno
+      run: echo ::set-env name=BUILD_NUMBER::${{ github.run_number }}
+
+    - name: Get pull request number
+      id: get_pullno
+      run: echo ::set-env name=PULL_NUMBER::$(echo "$GITHUB_REF" | awk -F / '{print $3}')
+      if: startsWith(github.ref, 'refs/pull/')
+
+    - name: Get revision tag
+      id: get_revtag
+      run: echo "::set-output name=REVISION_TAG::${GITHUB_REF/refs\/tags\//}"
+      if: startsWith(github.ref, 'refs/tags/')
+
+    - name: Take the trash out
+      run: |
+        sudo swapoff -a
+        sudo rm -f /swapfile
+        sudo apt clean
+        docker rmi -f $(docker image ls -aq)
+        sync
+        df -h
+
+    - name: Setup Python
+      uses: actions/setup-python@v1
+
+    - name: Setup Toolchain
+      uses: fiam/arm-none-eabi-gcc@v1
       with:
         release: '9-2019-q4' # The arm-none-eabi-gcc release to use.
-    - uses: actions/setup-python@v1
-    - name: Make
-      run: make all
-    - name: Upload
+
+    - name: Get code version
+      id: get_version
+      run: echo "::set-output name=VERSION::$(make version)"
+
+    - name: Compile Code
+      run: |
+        make all
+
+    - name: Store Artifacts
       uses: actions/upload-artifact@v2-preview
       with:
-        name: targets
+        name: EmuFlight-${{ steps.get_version.outputs.VERSION }}-${{ steps.get_buildno.outputs.BUILD_NUMBER }}
         path: obj/*.hex
+      continue-on-error: true
+
+    - name: Release Binaries
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        name: EmuFlight-${{ steps.get_version.outputs.VERSION }}
+        prerelease: true
+        draft: true
+        files: obj/*.hex
+      env:
+        GITHUB_TOKEN: ${{ secrets.release_token }}
