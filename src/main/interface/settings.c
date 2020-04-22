@@ -787,6 +787,10 @@ const clivalue_t valueTable[] = {
     { "imu_dcm_kp",                 VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 32000 }, PG_IMU_CONFIG, offsetof(imuConfig_t, dcm_kp) },
     { "imu_dcm_ki",                 VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 32000 }, PG_IMU_CONFIG, offsetof(imuConfig_t, dcm_ki) },
     { "small_angle",                VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 180 }, PG_IMU_CONFIG, offsetof(imuConfig_t, small_angle) },
+    { "silverware_filter",          VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_IMU_CONFIG, offsetof(imuConfig_t, silverware_filter) },
+    { "level_recovery_time",        VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 10000 }, PG_IMU_CONFIG, offsetof(imuConfig_t, level_recovery_time) },
+    { "level_recovery_strength",    VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 100 }, PG_IMU_CONFIG, offsetof(imuConfig_t, level_recovery_strength) },
+    { "level_recovery_threshold",   VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 2000 }, PG_IMU_CONFIG, offsetof(imuConfig_t, level_recovery_threshold) },
 
 // PG_ARMING_CONFIG
     { "auto_disarm_delay",          VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 60 }, PG_ARMING_CONFIG, offsetof(armingConfig_t, auto_disarm_delay) },

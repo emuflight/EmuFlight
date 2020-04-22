@@ -39,6 +39,7 @@
 #include "fc/runtime_config.h"
 
 #include "flight/imu.h"
+#include "flight/imu_silver.h"
 #include "flight/mixer.h"
 #include "flight/pid.h"
 
@@ -75,6 +76,9 @@ static bool imuUpdated = false;
 int32_t accSum[XYZ_AXIS_COUNT];
 float accAverage[XYZ_AXIS_COUNT];
 
+bool levelRecoveryModeState = false;
+int levelRecoveryStrength = 0;
+
 uint32_t accTimeSum = 0;        // keep track for integration of acc
 int accSumCount = 0;
 float accVelScale;
@@ -102,7 +106,11 @@ PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
     .dcm_ki = 7,
     .small_angle = 180,
     .accDeadband = {.xy = 40, .z= 40},
-    .acc_unarmedcal = 1
+    .acc_unarmedcal = 1,
+    .silverware_filter = false,
+    .level_recovery_time = 2000,
+    .level_recovery_strength = 5,
+    .level_recovery_threshold = 1200
 );
 
 
@@ -123,6 +131,10 @@ void imuConfigure(uint16_t throttle_correction_angle)
     imuRuntimeConfig.dcm_ki = imuConfig()->dcm_ki / 10000.0f;
     imuRuntimeConfig.acc_unarmedcal = imuConfig()->acc_unarmedcal;
     imuRuntimeConfig.small_angle = imuConfig()->small_angle;
+    imuRuntimeConfig.silverware_filter = imuConfig()->silverware_filter;
+    imuRuntimeConfig.level_recovery_time = imuConfig()->level_recovery_time;
+    imuRuntimeConfig.level_recovery_strength = imuConfig()->level_recovery_strength;
+    imuRuntimeConfig.level_recovery_threshold = imuConfig()->level_recovery_threshold;
 
     fc_acc = calculateAccZLowPassFilterRCTimeConstant(5.0f); // Set to fix value
     throttleAngleScale = calculateThrottleAngleScale(throttle_correction_angle);
@@ -190,15 +202,18 @@ static void imuCalculateAcceleration(timeDelta_t deltaT)
 #endif // USE_ALT_HOLD
 
 static float imuUseFastGains(void) {
+  float ret = 1.0f;
    if (!ARMING_FLAG(ARMED)) {
         return (17.0f);
-    }
-    else {
+    } else {
         if (isBeeperOn()) {
           // reduce PI scaling (onboard beeper influences vAcc)
           return (0.17f);
         } else {
-          return (1.0f);
+        if (levelRecoveryModeState) {
+          ret = imuRuntimeConfig.dcm_kp * (1.0f + imuRuntimeConfig.level_recovery_strength * levelRecoveryStrength / 1000);
+        }
+          return (ret);
         }
     }
 }
@@ -357,6 +372,43 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
         DISABLE_STATE(SMALL_ANGLE);
     }
 }
+
+static void imuHandleLevelRecovery(timeUs_t currentTimeUs)
+{
+  static timeUs_t previousCrashTime = 0;
+
+  for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+    if (ABS(gyro.gyroADCf[i]) > imuRuntimeConfig.level_recovery_threshold) {
+      previousCrashTime = currentTimeUs;
+    }
+  }
+
+  timeUs_t elapsedSinceCrash = (currentTimeUs - previousCrashTime);
+  if (elapsedSinceCrash < imuRuntimeConfig.level_recovery_time * 1000) {
+      levelRecoveryModeState = true;
+      // 0 min, 1000 max
+      // First half - full, second half - decaying
+      levelRecoveryStrength = (imuRuntimeConfig.level_recovery_time * 1000 - elapsedSinceCrash) / imuRuntimeConfig.level_recovery_time;
+      levelRecoveryStrength *= 2;
+      if (levelRecoveryStrength > 1000)
+          levelRecoveryStrength = 1000;
+  } else {
+      levelRecoveryModeState = false;
+      levelRecoveryStrength = 0;
+  }
+
+  if (!ARMING_FLAG(ARMED)) {
+    levelRecoveryModeState = false;
+    levelRecoveryStrength = 0;
+    previousCrashTime = 0;
+  }
+}
+
+bool isLevelRecoveryMode(void)
+{
+  return levelRecoveryModeState;
+}
+
 static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
 {
     static timeUs_t previousIMUUpdateTime;
@@ -380,9 +432,19 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
     if (accIsHealthy(&vAccAverage)) {
          applyAccError(&vAccAverage, &vError);
     }
+if (imuRuntimeConfig.silverware_filter)
+  {
+   imuSilverCalc(deltaT * 1e-6f,
+                 vGyroAverage.x, vGyroAverage.y, vGyroAverage.z,
+                 vAccAverage.x, vAccAverage.y, vAccAverage.z);
+   UNUSED(imuMahonyAHRSupdate);
+   UNUSED(imuUpdateEulerAngles);
+  } else {
+    imuHandleLevelRecovery(currentTimeUs);
     applySensorCorrection(&vError);
     imuMahonyAHRSupdate(deltaT * 1e-6f, &vGyroAverage, &vError);
     imuUpdateEulerAngles();
+    }
 #endif
 
 #if defined(USE_ALT_HOLD)
