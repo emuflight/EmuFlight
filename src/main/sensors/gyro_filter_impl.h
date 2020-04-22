@@ -65,34 +65,17 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
         }
 #endif
 
+        gyroADCf = kalman_update(gyroADCf, axis);
+        gyroSensor->gyroDev.gyroADCf[axis] = gyroADCf;
+
 #ifdef USE_GYRO_IMUF9001
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));
 #endif //USE_GYRO_IMUF9001
 
-        gyroSensor->gyroDev.gyroADCf[axis] = gyroADCf;
-    }
-
 #ifndef USE_GYRO_IMUF9001
-
-    float input[XYZ_AXIS_COUNT];
-    float output[XYZ_AXIS_COUNT];
-
-    input[X] = gyroSensor->gyroDev.gyroADCf[X];
-    input[Y] = gyroSensor->gyroDev.gyroADCf[Y];
-    input[Z] = gyroSensor->gyroDev.gyroADCf[Z];
-
-    kalman_update(input, output);
-
-    gyroSensor->gyroDev.gyroADCf[X] = output[X];
-    gyroSensor->gyroDev.gyroADCf[Y] = output[Y];
-    gyroSensor->gyroDev.gyroADCf[Z] = output[Z];
-
-    for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++)
-    {
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroSensor->gyroDev.gyroADCf[axis]));
+#endif
     }
-
-#endif //USE_GYRO_IMUF9001
 }

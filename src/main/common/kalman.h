@@ -29,27 +29,12 @@
 
 typedef struct variance
 {
-    float xVar;
-    float yVar;
-    float zVar;
-
+    float axisVar;
     uint32_t windex;
-    float xWindow[MAX_KALMAN_WINDOW_SIZE];
-    float yWindow[MAX_KALMAN_WINDOW_SIZE];
-    float zWindow[MAX_KALMAN_WINDOW_SIZE];
-
-    float xSumMean;
-    float ySumMean;
-    float zSumMean;
-
-    float xMean;
-    float yMean;
-    float zMean;
-
-    float xSumVar;
-    float ySumVar;
-    float zSumVar;
-
+    float axisWindow[MAX_KALMAN_WINDOW_SIZE];
+    float axisSumMean;
+    float axisMean;
+    float axisSumVar;
     float inverseN;
     uint16_t w;
 } variance_t;
@@ -67,4 +52,4 @@ typedef struct kalman
 } kalman_t;
 
 extern void kalman_init(void);
-extern void kalman_update(float* input, float* output);
+extern float kalman_update(float input, int axis);
