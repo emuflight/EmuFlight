@@ -115,4 +115,5 @@ float FAST_CODE kalman_update(float input, int axis)
 
     int16_t Kgain = (kalmanFilterStateRate[axis].k * 1000.0f);
     DEBUG_SET(DEBUG_KALMAN, axis, Kgain);                               //Kalman gain
+    return input;
 }
