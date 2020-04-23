@@ -794,7 +794,7 @@ static bool osdDrawSingleElement(uint8_t item)
                 break;
             }
 
-            if (isLevelRecoveryActive() && osdWarnGetState(OSD_WARNING_LEVEL_RECOVERY)) {
+            if (isLevelRecoveryMode() && osdWarnGetState(OSD_WARNING_LEVEL_RECOVERY)) {
                 osdFormatMessage(buff, OSD_FORMAT_MESSAGE_BUFFER_SIZE, "ACC RECOVERY");
                 break;
             }
