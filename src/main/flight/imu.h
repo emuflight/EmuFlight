@@ -62,7 +62,6 @@ typedef struct imuConfig_s {
     uint8_t small_angle;
     uint8_t acc_unarmedcal;                 // turn automatic acc compensation on/off
     accDeadband_t accDeadband;
-    uint8_t silverware_filter;
     uint16_t level_recovery_time;
     uint16_t level_recovery_strength;
     uint16_t level_recovery_threshold;
@@ -76,7 +75,6 @@ typedef struct imuRuntimeConfig_s {
     uint8_t acc_unarmedcal;
     uint8_t small_angle;
     accDeadband_t accDeadband;
-    uint8_t silverware_filter;
     uint16_t level_recovery_time;
     uint16_t level_recovery_strength;
     uint16_t level_recovery_threshold;

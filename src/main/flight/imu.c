@@ -39,7 +39,6 @@
 #include "fc/runtime_config.h"
 
 #include "flight/imu.h"
-#include "flight/imu_silver.h"
 #include "flight/mixer.h"
 #include "flight/pid.h"
 
@@ -107,7 +106,6 @@ PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
     .small_angle = 180,
     .accDeadband = {.xy = 40, .z= 40},
     .acc_unarmedcal = 1,
-    .silverware_filter = false,
     .level_recovery_time = 2000,
     .level_recovery_strength = 5,
     .level_recovery_threshold = 1200
@@ -131,7 +129,6 @@ void imuConfigure(uint16_t throttle_correction_angle)
     imuRuntimeConfig.dcm_ki = imuConfig()->dcm_ki / 10000.0f;
     imuRuntimeConfig.acc_unarmedcal = imuConfig()->acc_unarmedcal;
     imuRuntimeConfig.small_angle = imuConfig()->small_angle;
-    imuRuntimeConfig.silverware_filter = imuConfig()->silverware_filter;
     imuRuntimeConfig.level_recovery_time = imuConfig()->level_recovery_time;
     imuRuntimeConfig.level_recovery_strength = imuConfig()->level_recovery_strength;
     imuRuntimeConfig.level_recovery_threshold = imuConfig()->level_recovery_threshold;
@@ -432,19 +429,10 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
     if (accIsHealthy(&vAccAverage)) {
          applyAccError(&vAccAverage, &vError);
     }
-if (imuRuntimeConfig.silverware_filter)
-  {
-   imuSilverCalc(deltaT * 1e-6f,
-                 vGyroAverage.x, vGyroAverage.y, vGyroAverage.z,
-                 vAccAverage.x, vAccAverage.y, vAccAverage.z);
-   UNUSED(imuMahonyAHRSupdate);
-   UNUSED(imuUpdateEulerAngles);
-  } else {
     imuHandleLevelRecovery(currentTimeUs);
     applySensorCorrection(&vError);
     imuMahonyAHRSupdate(deltaT * 1e-6f, &vGyroAverage, &vError);
     imuUpdateEulerAngles();
-    }
 #endif
 
 #if defined(USE_ALT_HOLD)
