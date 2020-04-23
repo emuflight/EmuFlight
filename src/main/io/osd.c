@@ -794,6 +794,11 @@ static bool osdDrawSingleElement(uint8_t item)
                 break;
             }
 
+            if (isLevelRecoveryActive() && osdWarnGetState(OSD_WARNING_LEVEL_RECOVERY)) {
+                osdFormatMessage(buff, OSD_FORMAT_MESSAGE_BUFFER_SIZE, "ACC RECOVERY");
+                break;
+            }
+
 #ifdef USE_ADC_INTERNAL
             const int16_t coreTemperature = getCoreTemperatureCelsius();
             if (osdWarnGetState(OSD_WARNING_CORE_TEMPERATURE) && coreTemperature >= osdConfig()->core_temp_alarm) {
