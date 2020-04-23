@@ -79,6 +79,7 @@ COMMON_SRC = \
             flight/failsafe.c \
             flight/gps_rescue.c \
             flight/imu.c \
+						flight/imu_silver.c \
             flight/mixer.c \
             flight/mixer_tricopter.c \
             flight/pid.c \
