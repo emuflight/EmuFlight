@@ -876,6 +876,8 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         }
 #endif // USE_YAW_SPIN_RECOVERY
 
+        previousPidSetpoint[axis] = currentPidSetpoint;
+
         // -----calculate error rate
         errorRate = currentPidSetpoint - gyro.gyroADCf[axis]; // r - y
 
