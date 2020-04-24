@@ -845,33 +845,19 @@ void applyAirMode(float *motorMix, float motorMixMax)
     float maxThrAirmodePercent = isAirmodeActive() ? 1.0f : scaleRangef(motorMixRange, 0.0f, 1.0f, airmodeMaxSlowAuthority, airmodeMaxFastAuthority);
     float motorMixDelta = 0.5f * motorMixRange;
 
-    bool useAirmode2_0 = false;
-    // this mode needs thrust linearization to work properly, since it doesn't shift ALL the motorMixes of the same amount like the current mode does,
-    // so the lowest ones could be not shifted at all, remaining in a "motorOutput zone" that if not compensated would give an unexpected amount of thrust.
-    // Anyway the results are pretty good even without thrust linearization. Crash handling is much better. The quad will not get crazy at every contact.
-
-    float maxStickDeflectionLow = MAX(getRcDeflectionAbs(ROLL), MAX(getRcDeflectionAbs(PITCH), getRcDeflectionAbs(YAW))); // makes maxStickDeflection the max r/p/y stick movement
-    float maxStickDeflectionHigh = 0.5f + (maxStickDeflectionLow / 2.0f); // scales the maxStickDeflectionHigh to 0.5f-1.0f perhaps this can be set to the same range as low???
-    maxStickDeflectionLow = 0.2f + (maxStickDeflectionLow / 1.25f); // scales maxStickDeflection between 0.2f-1.0f
+    if (predictiveAirMode) {
+        float maxStickDeflection = MAX(getRcDeflectionAbs(ROLL), MAX(getRcDeflectionAbs(PITCH), getRcDeflectionAbs(YAW))); // [0, 1], the max r/p/y stick movement
+        minThrAirmodePercent = minThrAirmodePercent + maxStickDeflection * (1.0f - minThrAirmodePercent);
+        medThrAirmodePercent = medThrAirmodePercent + maxStickDeflection * (1.0f - medThrAirmodePercent);
+        maxThrAirmodePercent = maxThrAirmodePercent + maxStickDeflection * (1.0f - maxThrAirmodePercent);
+    }
 
     for (int i = 0; i < motorCount; ++i) {
         motorMix[i] += motorMixDelta - motorMixMax; // let's center motorMix values around the zero
         if (throttle < 0.5) {
-            if (predictiveAirMode) {
-                motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, maxStickDeflectionLow * (motorMix[i] + motorMixDelta), motorMix[i]);
-            } else if (useAirmode2_0) {
-                motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, minThrAirmodePercent * (motorMix[i] + ABS(motorMix[i])), medThrAirmodePercent * motorMix[i]);
-            } else {
-                motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, minThrAirmodePercent * (motorMix[i] + motorMixDelta), medThrAirmodePercent * motorMix[i]);
-            }
+            motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, minThrAirmodePercent * (motorMix[i] + motorMixDelta), medThrAirmodePercent * motorMix[i]);
         } else {
-            if (predictiveAirMode) {
-                motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, motorMix[i], maxStickDeflectionHigh * (motorMix[i] - motorMixDelta));
-            } else if (useAirmode2_0) {
-                motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, medThrAirmodePercent * motorMix[i], maxThrAirmodePercent * (motorMix[i] - ABS(motorMix[i])));
-            } else {
-                motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, medThrAirmodePercent * motorMix[i], maxThrAirmodePercent * (motorMix[i] - motorMixDelta));
-            }
+            motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, medThrAirmodePercent * motorMix[i], maxThrAirmodePercent * (motorMix[i] - motorMixDelta));
         }
         motorMix[i] /= normalizationFactor;
     }
@@ -957,24 +943,7 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
     loggingThrottle = throttle;
     motorMixRange = motorMixMax - motorMixMin;
 
-    if (IS_RC_MODE_ACTIVE(BOXBLACKBOX)) {
-        applyAirMode(motorMix, motorMixMax);
-    } else {
-        // TODO: legacy code, to be removed
-        if (motorMixRange > 1.0f && (hardwareMotorType != MOTOR_BRUSHED)) {
-            for (int i = 0; i < motorCount; i++) {
-                motorMix[i] /= motorMixRange;
-            }
-            // Get the maximum correction by setting offset to center when airmode enabled
-            if (isAirmodeActive()) {
-                throttle = 0.5f;
-            }
-        } else {
-            if (isAirmodeActive() || throttle > 0.5f) {  // Only automatically adjust throttle when airmode enabled. Airmode logic is always active on high throttle
-                throttle = constrainf(throttle, -motorMixMin, 1.0f - motorMixMax);
-            }
-        }
-    }
+    applyAirMode(motorMix, motorMixMax);
 
     // Apply the mix to motor endpoints
     applyMixToMotors(motorMix);
