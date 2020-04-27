@@ -23,6 +23,8 @@
 #define TARGET_BOARD_IDENTIFIER "S405"
 #define USBD_PRODUCT_STRING "NBD INFINITYF4"
 
+#define USE_TARGET_CONFIG
+
 #define LED0_PIN                  PC0
 
 #define USE_BEEPER
