@@ -58,7 +58,7 @@ uint32_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t lpf, uint8_t gyroSyncDenomin
     //20649 is a weird gyro
     if (gyro->mpuDetectionResult.sensor == ICM_20649_SPI) {
         gyro->gyroRateKHz = lpfNoneOr256 ? GYRO_RATE_9_kHz : GYRO_RATE_1100_Hz;
-    } else if (gyro->mpuDetectionResult.sensor == BMI_160_SPI && lpfNoneOr256) { 
+    } else if (gyro->mpuDetectionResult.sensor == BMI_160_SPI && lpfNoneOr256) {
         //brainFPV is also a weird gyro
         gyro->gyroRateKHz = GYRO_RATE_3200_Hz;
     } else if (gyro_use_32khz) {
@@ -68,4 +68,16 @@ uint32_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t lpf, uint8_t gyroSyncDenomin
 
     // return the targetLooptime (expected cycleTime)
     return (uint32_t)(gyroSyncDenominator * gyro->gyroRateKHz);
+}
+
+#if defined(BRAINFPV)
+    gyro->gyroRateKHz = GYRO_RATE_3200_Hz;
+    gyroSamplePeriod = 312.5;
+    gyroSyncDenominator = 1; // Always full Sampling 1khz
+#endif /* defined(BRAINFPV) */
+
+    // calculate gyro divider and targetLooptime (expected cycleTime)
+    gyro->mpuDividerDrops  = gyroSyncDenominator - 1;
+    const uint32_t targetLooptime = (uint32_t)(gyroSyncDenominator * gyroSamplePeriod);
+    return targetLooptime;
 }

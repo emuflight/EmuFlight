@@ -285,7 +285,12 @@ void fcTasksInit(void)
     setTaskEnabled(TASK_OSD_SLAVE, osdSlaveInitialized());
 #else
     if (sensors(SENSOR_GYRO)) {
+#ifdef BRAINFPV
+        // Set the task period below the actual looptime, as the gyro interrupt kicks-off the scheduler
+        rescheduleTask(TASK_GYROPID, gyro.targetLooptime - 10);
+#else
         rescheduleTask(TASK_GYROPID, gyro.targetLooptime);
+#endif
         setTaskEnabled(TASK_GYROPID, true);
     }
 
@@ -350,7 +355,7 @@ void fcTasksInit(void)
 #ifdef USE_PINIOBOX
     setTaskEnabled(TASK_PINIOBOX, true);
 #endif
-#ifdef USE_CMS
+#if defined(CMS) && !defined(BRAINFPV)
 #ifdef USE_MSP_DISPLAYPORT
     setTaskEnabled(TASK_CMS, true);
 #else
@@ -546,7 +551,7 @@ FAST_RAM cfTask_t cfTasks[TASK_COUNT] = {
     },
 #endif
 
-#ifdef USE_OSD
+#if defined(OSD) && !defined(BRAINFPV)
     [TASK_OSD] = {
         .taskName = "OSD",
         .taskFunc = osdUpdate,

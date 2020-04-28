@@ -540,6 +540,10 @@ void validateAndFixGyroConfig(void)
         samplingTime = 0.00003125;
     }
 
+    #if defined(BRAINFPV)
+        samplingTime = 0.0003125f;
+    #endif
+
     // check for looptime restrictions based on motor protocol. Motor times have safety margin
     float motorUpdateRestriction;
     switch (motorConfig()->dev.motorPwmProtocol) {

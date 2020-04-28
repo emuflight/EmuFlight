@@ -465,6 +465,8 @@ static bool osdDrawSingleElement(uint8_t item)
         return false;
     }
 
+    bool brainfpv_item = false;
+
     uint8_t elemPosX = OSD_X(osdConfig()->item_pos[item]);
     uint8_t elemPosY = OSD_Y(osdConfig()->item_pos[item]);
     char buff[OSD_ELEMENT_BUFFER_LENGTH] = "";
@@ -472,6 +474,10 @@ static bool osdDrawSingleElement(uint8_t item)
     switch (item) {
     case OSD_RSSI_VALUE:
         {
+          if (osdElementRssi_BrainFPV(elemPosX, elemPosY)) {
+                brainfpv_item = true;
+            }
+            else {
             uint16_t osdRssi = getRssi() * 100 / 1024; // change range
             if (osdRssi >= 100)
                 osdRssi = 99;
@@ -1071,7 +1077,9 @@ static bool osdDrawSingleElement(uint8_t item)
         return false;
     }
 
-    displayWrite(osdDisplayPort, elemPosX, elemPosY, buff);
+    if (!brainfpv_item) {
+        displayWrite(osdDisplayPort, elemPosX, elemPosY, buff);
+    }
 
     return true;
 }
@@ -1221,10 +1229,14 @@ void osdInit(displayPort_t *osdDisplayPortToUse)
         displayWrite(osdDisplayPort, 5, 12, dateTimeBuffer);
     }
 #endif
-#endif
 
     displayResync(osdDisplayPort);
 
+        refreshTimeout = 4 * REFRESH_1S;
+#else
+    osdDisplayPort = osdDisplayPortToUse;
+    cmsDisplayPortRegister(osdDisplayPortToUse);
+#endif /* USE_BRAINFPV_OSD */
     resumeRefreshAt = micros() + (4 * REFRESH_1S);
 }
 

@@ -89,6 +89,19 @@
 #include "sensors/gyroanalyse.h"
 #endif
 #include "sensors/sensors.h"
+
+#if defined(USE_BRAINFPV_SPECTROGRAPH)
+#include "ch.h"
+#include "brainfpv/spectrograph.h"
+static uint16_t spec_idx = 0;
+extern binary_semaphore_t spectrographDataReadySemaphore;
+extern bool spec_data_processed;
+
+extern float spec_gyro_data_roll[];
+extern float spec_gyro_data_pitch[];
+extern float spec_gyro_data_yaw[];
+#endif /* defined(USE_BRAINFPV_SPECTROGRAPH) */
+
 #ifdef USE_GYRO_IMUF9001
 
 #include "drivers/accgyro/accgyro_imuf9001.h"
@@ -822,6 +835,9 @@ static void gyroInitFilterNotch2(gyroSensor_t *gyroSensor, uint16_t notchHz, uin
             biquadFilterInit(&gyroSensor->notchFilter2[axis], notchHz, gyro.targetLooptime, notchQ, FILTER_NOTCH);
         }
     }
+#if defined(USE_BRAINFPV_SPECTROGRAPH)
+    chBSemObjectInit(&spectrographDataReadySemaphore, FALSE);
+#endif /* defined(USE_BRAINFPV_SPECTROGRAPH) */
 }
 #endif //USE_GYRO_IMUF9001
 
@@ -1208,6 +1224,25 @@ static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs
     }
 #endif
 
+#if defined(USE_BRAINFPV_SPECTROGRAPH)
+    if (spec_data_processed) {
+        if (gyroDebugMode == DEBUG_GYRO_RAW) {
+            spec_gyro_data_roll[spec_idx] = debug[0];
+            spec_gyro_data_pitch[spec_idx] = debug[1];
+            spec_gyro_data_yaw[spec_idx] = debug[2];
+        } else {
+            spec_gyro_data_roll[spec_idx] = gyro.gyroADCf[0];
+            spec_gyro_data_pitch[spec_idx] = gyro.gyroADCf[1];
+            spec_gyro_data_yaw[spec_idx] = gyro.gyroADCf[2];
+        }
+        spec_idx++;
+        if (spec_idx == SPEC_FFT_LENGTH) {
+            spec_data_processed = false;
+            spec_idx = 0;
+            chBSemSignal(&spectrographDataReadySemaphore);
+        }
+    }
+#endif /* defined(USE_BRAINFPV_SPECTROGRAPH) */
 
 #if (!defined(USE_GYRO_OVERFLOW_CHECK) && !defined(USE_YAW_SPIN_RECOVERY))
     UNUSED(currentTimeUs);
