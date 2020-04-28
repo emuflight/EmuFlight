@@ -47,11 +47,9 @@ void NMI_Handler(void)
   * @param  None
   * @retval None
   */
-#if !defined(USE_CHIBIOS)
 void SVC_Handler(void)
 {
 }
-#endif
 
 /**
   * @brief  This function handles Debug Monitor exception.
@@ -67,11 +65,9 @@ void DebugMon_Handler(void)
   * @param  None
   * @retval None
   */
-#if !defined(USE_CHIBIOS)
 void PendSV_Handler(void)
 {
 }
-#endif
 
 /******************************************************************************/
 /*                 STM32F4xx Peripherals Interrupt Handlers                   */
@@ -86,9 +82,7 @@ void OTG_FS_WKUP_IRQHandler(void)
   if (USB_OTG_dev.cfg.low_power)
   {
     *(uint32_t *)(0xE000ED10) &= 0xFFFFFFF9 ;
-#if !defined(USE_CHIBIOS)
     SystemInit();
-#endif
     USB_OTG_UngateClock(&USB_OTG_dev);
   }
   EXTI_ClearITPendingBit(EXTI_Line18);
