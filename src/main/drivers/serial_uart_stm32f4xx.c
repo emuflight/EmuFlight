@@ -93,7 +93,7 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
 #ifdef USE_UART3_TX_DMA
         .txDMAStream = DMA1_Stream3,
 #endif
-        .rxPins = { DEFIO_TAG_E(PB11), DEFIO_TAG_E(PC11), DEFIO_TAG_E(PD9) },
+        .rxPins = { DEFIO_TAG_E(PB11), DEFIO_TAG_E(PC11), DEFIO_TAG_E(PD9), DEFIO_TAG_E(PC5) },
         .txPins = { DEFIO_TAG_E(PB10), DEFIO_TAG_E(PC10), DEFIO_TAG_E(PD8) },
         .af = GPIO_AF_USART3,
         .rcc = RCC_APB1(USART3),
@@ -242,8 +242,26 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
     }
 
     if (options & SERIAL_BIDIR) {
+#ifdef USE_BRAINFPV_FPGA
+        IOInit(txIO, OWNER_SERIAL_TX, RESOURCE_INDEX(device));
+        if ((uart->port.USARTx == USART6)) {
+            IOConfigGPIOAF(txIO, IOCFG_AF_PP_UP, hardware->af);
+        }
+        else {
+            IOConfigGPIOAF(txIO, (options & SERIAL_BIDIR_PP) ? IOCFG_AF_PP : IOCFG_AF_OD, hardware->af);
+        }
+#ifdef BRAINRE1
+        // hack: enable normal serial for UART6
+        if ((uart->port.USARTx == USART6)) {
+            IOConfigGPIOAF(txIO, IOCFG_AF_PP_UP, hardware->af);
+            IOInit(rxIO, OWNER_SERIAL_RX, RESOURCE_INDEX(device));
+            IOConfigGPIOAF(rxIO, IOCFG_AF_PP_UP, hardware->af);
+        }
+#endif
+#else
         IOInit(txIO, OWNER_SERIAL_TX, RESOURCE_INDEX(device));
         IOConfigGPIOAF(txIO, (options & SERIAL_BIDIR_PP) ? IOCFG_AF_PP : IOCFG_AF_OD, hardware->af);
+#endif
     } else {
         if ((mode & MODE_TX) && txIO) {
             IOInit(txIO, OWNER_SERIAL_TX, RESOURCE_INDEX(device));

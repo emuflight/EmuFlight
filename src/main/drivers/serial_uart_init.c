@@ -44,8 +44,12 @@
 #include "drivers/serial_uart.h"
 #include "drivers/serial_uart_impl.h"
 
+#ifdef USE_BRAINFPV_FPGA
+#include "fpga_drv.h"
+#endif
+
 static void usartConfigurePinInversion(uartPort_t *uartPort) {
-#if !defined(USE_INVERTER) && !defined(STM32F303xC)
+#if !defined(USE_INVERTER) && !defined(STM32F303xC) && !defined(USE_BRAINFPV_FPGA)
     UNUSED(uartPort);
 #else
     bool inverted = uartPort->port.options & SERIAL_INVERTED;
@@ -54,6 +58,38 @@ static void usartConfigurePinInversion(uartPort_t *uartPort) {
     if (inverted) {
         // Enable hardware inverter if available.
         enableInverter(uartPort->USARTx, true);
+    }
+#endif
+
+#ifdef USE_BRAINFPV_FPGA
+    if (inverted) {
+        if (uartPort->USARTx == USART3) {
+            BRAINFPVFPGA_SerialRxInvert(true);
+        }
+        if (uartPort->USARTx == USART6) {
+            if (uartPort->port.options & SERIAL_BIDIR) {
+                // inverted bi-directional mode with pull-down
+                BRAINFPVFPGA_MPTxPinMode(true, true);
+                BRAINFPVFPGA_MPTxPinPullUpDown(true, false);
+            }
+            else {
+                BRAINFPVFPGA_MPTxPinMode(false, true);
+            }
+        }
+    }
+    else {
+        if ((uartPort->USARTx == USART6) && (uartPort->port.options & SERIAL_BIDIR)) {
+            // non-inverted bi-directional mode with pullup
+#ifdef BRAINRE1
+            // on RE1, non-inverted b-directional mode is not supported using onlu Tx
+            // pin, so we disable the inveter and user needs to wire Rx and Tx together
+            BRAINFPVFPGA_MPTxPinMode(false, false);
+            BRAINFPVFPGA_MPTxPinPullUpDown(true, true);
+#else
+            BRAINFPVFPGA_MPTxPinMode(true, false);
+            BRAINFPVFPGA_MPTxPinPullUpDown(true, true);
+#endif
+        }
     }
 #endif
 
@@ -106,9 +142,19 @@ void uartReconfigure(uartPort_t *uartPort)
 
     usartConfigurePinInversion(uartPort);
 
-    if (uartPort->port.options & SERIAL_BIDIR)
+    if (uartPort->port.options & SERIAL_BIDIR) {
+#ifdef BRAINRE1
+        if ((uartPort->USARTx == USART6) && ! (uartPort->port.options & SERIAL_INVERTED)) {
+            // non-inverted bi-directional mode is not supported on RE1 UART6
+            USART_HalfDuplexCmd(uartPort->USARTx, DISABLE);
+        }
+        else {
+            USART_HalfDuplexCmd(uartPort->USARTx, ENABLE);
+        }
+#else
         USART_HalfDuplexCmd(uartPort->USARTx, ENABLE);
-    else
+#endif
+    } else
         USART_HalfDuplexCmd(uartPort->USARTx, DISABLE);
 
     USART_Cmd(uartPort->USARTx, ENABLE);

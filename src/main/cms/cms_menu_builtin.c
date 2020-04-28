@@ -43,12 +43,16 @@
 
 #include "cms/cms_menu_imu.h"
 #include "cms/cms_menu_blackbox.h"
-#include "cms/cms_menu_failsafe.h"
 #include "cms/cms_menu_osd.h"
 #include "cms/cms_menu_ledstrip.h"
 #include "cms/cms_menu_misc.h"
 #include "cms/cms_menu_power.h"
 
+
+#ifdef BRAINFPV
+#include "cms/cms_menu_brainfpv.h"
+#endif
+// User supplied menus
 // VTX supplied menus
 
 #include "cms/cms_menu_vtx_rtc6705.h"
@@ -120,11 +124,7 @@ static OSD_Entry menuFeaturesEntries[] =
 #ifdef USE_LED_STRIP
     {"LED STRIP", OME_Submenu, cmsMenuChange, &cmsx_menuLedstrip, 0},
 #endif // LED_STRIP
-#ifdef USE_CMS_FAILSAFE_MENU
-   {"FAILSAFE", OME_Submenu, cmsMenuChange, &cmsx_menuFailsafe, 0},
-#endif
     {"POWER", OME_Submenu, cmsMenuChange, &cmsx_menuPower, 0},
-    { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     {"BACK", OME_Back, NULL, NULL, 0},
     {NULL, OME_END, NULL, NULL, 0}
 };
@@ -144,7 +144,9 @@ static CMS_Menu menuFeatures = {
 static OSD_Entry menuMainEntries[] =
 {
     {"-- MAIN --",  OME_Label, NULL, NULL, 0},
-
+#ifdef BRAINFPV
+    {"BRAINFPV", OME_Submenu, cmsMenuChange, &cmsx_menuBrainFPV, 0},
+#endif
     {"PROFILE",     OME_Submenu,  cmsMenuChange, &cmsx_menuImu, 0},
     {"FEATURES",    OME_Submenu,  cmsMenuChange, &menuFeatures, 0},
 #ifdef USE_OSD

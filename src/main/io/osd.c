@@ -95,12 +95,22 @@
 #include "sensors/esc_sensor.h"
 #include "sensors/sensors.h"
 
+
 #ifdef USE_HARDWARE_REVISION_DETECTION
 #include "hardware_revision.h"
 #endif
 
 #define VIDEO_BUFFER_CHARS_PAL    480
 #define FULL_CIRCLE 360
+
+#ifdef CMS
+#include "cms/cms.h"
+#endif
+
+#if defined(USE_BRAINFPV_OSD)
+extern bool osd_arming_or_stats;
+extern bool brainfpv_user_avatar_set;
+#endif
 
 const char * const osdTimerSourceNames[] = {
     "ON TIME  ",
@@ -109,7 +119,6 @@ const char * const osdTimerSourceNames[] = {
 };
 
 // Blink control
-
 static bool blinkState = true;
 static bool showVisualBeeper = false;
 
@@ -266,9 +275,9 @@ static char osdGetTemperatureSymbolForSelectedUnit(void)
 {
     switch (osdConfig()->units) {
     case OSD_UNIT_IMPERIAL:
-        return SYM_TEMP_F;
+        return 'F';
     default:
-        return SYM_TEMP_C;
+        return 'C';
     }
 }
 #endif
@@ -277,7 +286,7 @@ static void osdFormatAltitudeString(char * buff, int altitude)
 {
     const int alt = osdGetMetersToSelectedUnit(altitude) / 10;
 
-    tfp_sprintf(buff, "%c%5d %c", SYM_ALT, alt, osdGetMetersToSelectedUnitSymbol());
+    tfp_sprintf(buff, "%5d %c", alt, osdGetMetersToSelectedUnitSymbol());
     buff[5] = buff[4];
     buff[4] = '.';
 }
@@ -455,6 +464,8 @@ static bool osdDrawSingleElement(uint8_t item)
         return false;
     }
 
+    bool brainfpv_item = false;
+
     uint8_t elemPosX = OSD_X(osdConfig()->item_pos[item]);
     uint8_t elemPosY = OSD_Y(osdConfig()->item_pos[item]);
     char buff[OSD_ELEMENT_BUFFER_LENGTH] = "";
@@ -462,14 +473,18 @@ static bool osdDrawSingleElement(uint8_t item)
     switch (item) {
     case OSD_RSSI_VALUE:
         {
-            uint16_t osdRssi = getRssi() * 100 / 1024; // change range
-            if (osdRssi >= 100)
-                osdRssi = 99;
+            if (osdElementRssi_BrainFPV(elemPosX, elemPosY)) {
+                brainfpv_item = true;
+            }
+            else {
+                uint16_t osdRssi = getRssi() * 100 / 1024; // change range
+                if (osdRssi >= 100)
+                    osdRssi = 99;
 
-            tfp_sprintf(buff, "%c%2d", SYM_RSSI, osdRssi);
+                tfp_sprintf(buff, "%c%2d", SYM_RSSI, osdRssi);
+            }
             break;
         }
-
     case OSD_MAIN_BATT_VOLTAGE:
         buff[0] = osdGetBatterySymbol(osdGetBatteryAverageCellVoltage());
         tfp_sprintf(buff + 1, "%2d.%1d%c", getBatteryVoltage() / 10, getBatteryVoltage() % 10, SYM_VOLT);
@@ -495,38 +510,54 @@ static bool osdDrawSingleElement(uint8_t item)
         // FIXME ideally we want to use SYM_KMH symbol but it's not in the font any more, so we use K (M for MPH)
         switch (osdConfig()->units) {
         case OSD_UNIT_IMPERIAL:
-            tfp_sprintf(buff, "%c%3d%c", SYM_SPEED, CM_S_TO_MPH(gpsSol.groundSpeed), SYM_MPH);
+            tfp_sprintf(buff, "%3dM", CM_S_TO_MPH(gpsSol.groundSpeed));
             break;
         default:
-            tfp_sprintf(buff, "%c%3d%c", SYM_SPEED, CM_S_TO_KM_H(gpsSol.groundSpeed), SYM_KMH);
+            tfp_sprintf(buff, "%3dK", CM_S_TO_KM_H(gpsSol.groundSpeed));
             break;
         }
         break;
 
     case OSD_GPS_LAT:
-        osdFormatCoordinate(buff, SYM_LAT, gpsSol.llh.lat);
+        // The SYM_LAT symbol in the actual font contains only blank, so we use the SYM_ARROW_NORTH
+        osdFormatCoordinate(buff, SYM_ARROW_NORTH, gpsSol.llh.lat);
         break;
 
     case OSD_GPS_LON:
-        osdFormatCoordinate(buff, SYM_LON, gpsSol.llh.lon);
+        // The SYM_LON symbol in the actual font contains only blank, so we use the SYM_ARROW_EAST
+        osdFormatCoordinate(buff, SYM_ARROW_EAST, gpsSol.llh.lon);
         break;
 
     case OSD_HOME_DIR:
+#if defined(USE_BRAINFPV_OSD)
+        {
+            bool valid = false;
+            if (STATE(GPS_FIX) && STATE(GPS_FIX_HOME) && (GPS_distanceToHome > 0)) {
+                valid = true;
+            }
+            int home_dir = GPS_directionToHome - DECIDEGREES_TO_DEGREES(attitude.values.yaw);
+            if (valid || !blinkState) {
+                brainFfpvOsdHomeArrow(home_dir, elemPosX, elemPosY);
+            }
+            brainfpv_item = true;
+        }
+#else
         if (STATE(GPS_FIX) && STATE(GPS_FIX_HOME)) {
             if (GPS_distanceToHome > 0) {
                 const int h = GPS_directionToHome - DECIDEGREES_TO_DEGREES(attitude.values.yaw);
                 buff[0] = osdGetDirectionSymbolFromHeading(h);
             } else {
-                buff[0] = SYM_HOMEFLAG;
+                // We don't have a HOME symbol in the font, by now we use this
+                buff[0] = SYM_THR1;
             }
 
         } else {
             // We use this symbol when we don't have a FIX
-            buff[0] = SYM_QUES;
+            buff[0] = SYM_COLON;
         }
 
         buff[1] = 0;
-
+#endif
         break;
 
     case OSD_HOME_DIST:
@@ -535,7 +566,7 @@ static bool osdDrawSingleElement(uint8_t item)
             tfp_sprintf(buff, "%d%c", distance, osdGetMetersToSelectedUnitSymbol());
         } else {
             // We use this symbol when we don't have a FIX
-            buff[0] = SYM_QUES;
+            buff[0] = SYM_COLON;
             // overwrite any previous distance with blanks
             memset(buff + 1, SYM_BLANK, 6);
             buff[7] = '\0';
@@ -563,7 +594,7 @@ static bool osdDrawSingleElement(uint8_t item)
                 osdFormatAltitudeString(buff, getEstimatedAltitude());
             } else {
                 // We use this symbol when we don't have a valid measure
-                buff[0] = SYM_QUES;
+                buff[0] = SYM_COLON;
                 // overwrite any previous altitude with blanks
                 memset(buff + 1, SYM_BLANK, 6);
                 buff[7] = '\0';
@@ -630,21 +661,27 @@ static bool osdDrawSingleElement(uint8_t item)
         }
 
     case OSD_CRAFT_NAME:
-        // This does not strictly support iterative updating if the craft name changes at run time. But since the craft name is not supposed to be changing this should not matter, and blanking the entire length of the craft name string on update will make it impossible to configure elements to be displayed on the right hand side of the craft name.
-        //TODO: When iterative updating is implemented, change this so the craft name is only printed once whenever the OSD 'flight' screen is entered.
+        if (brainfpv_user_avatar_set && bfOsdConfig()->show_pilot_logo) {
+            brainFpvOsdUserLogo(elemPosX + 4, elemPosY);
+            brainfpv_item = true;
+        }
+        else {
+            // This does not strictly support iterative updating if the craft name changes at run time. But since the craft name is not supposed to be changing this should not matter, and blanking the entire length of the craft name string on update will make it impossible to configure elements to be displayed on the right hand side of the craft name.
+            //TODO: When iterative updating is implemented, change this so the craft name is only printed once whenever the OSD 'flight' screen is entered.
 
-        if (strlen(pilotConfig()->name) == 0) {
-            strcpy(buff, "CRAFT_NAME");
-        } else {
-            unsigned i;
-            for (i = 0; i < MAX_NAME_LENGTH; i++) {
-                if (pilotConfig()->name[i]) {
-                    buff[i] = toupper((unsigned char)pilotConfig()->name[i]);
-                } else {
-                    break;
+            if (strlen(pilotConfig()->name) == 0) {
+                strcpy(buff, "CRAFT_NAME");
+            } else {
+                unsigned i;
+                for (i = 0; i < MAX_NAME_LENGTH; i++) {
+                    if (pilotConfig()->name[i]) {
+                        buff[i] = toupper((unsigned char)pilotConfig()->name[i]);
+                    } else {
+                        break;
+                    }
                 }
+                buff[i] = '\0';
             }
-            buff[i] = '\0';
         }
 
         break;
@@ -670,14 +707,20 @@ static bool osdDrawSingleElement(uint8_t item)
         }
 #endif
 
-    case OSD_CROSSHAIRS:
-        buff[0] = SYM_AH_CENTER_LINE;
-        buff[1] = SYM_AH_CENTER;
-        buff[2] = SYM_AH_CENTER_LINE_RIGHT;
-        buff[3] = 0;
-        break;
-
-    case OSD_ARTIFICIAL_HORIZON:
+        case OSD_CROSSHAIRS:
+#if !defined(USE_BRAINFPV_OSD)
+            buff[0] = SYM_AH_CENTER_LINE;
+            buff[1] = SYM_AH_CENTER;
+            buff[2] = SYM_AH_CENTER_LINE_RIGHT;
+            buff[3] = 0;
+            break;
+#else
+            brainFpvOsdCenterMark();
+            brainfpv_item = true;
+            break;
+#endif
+        case OSD_ARTIFICIAL_HORIZON:
+#if !defined(USE_BRAINFPV_OSD)
         {
             // Get pitch and roll limits in tenths of degrees
             const int maxPitch = osdConfig()->ahMaxPitch * 10;
@@ -698,9 +741,15 @@ static bool osdDrawSingleElement(uint8_t item)
                 }
             }
 
-            return true;
-        }
+            osdDrawSingleElement(OSD_HORIZON_SIDEBARS);
+            break;
+#else
+            brainFpvOsdArtificialHorizon();
+            brainfpv_item = true;
+            break;
+#endif
 
+#if !defined(USE_BRAINFPV_OSD)
     case OSD_HORIZON_SIDEBARS:
         {
             // Draw AH sides
@@ -717,6 +766,7 @@ static bool osdDrawSingleElement(uint8_t item)
 
             return true;
         }
+#endif
 
     case OSD_G_FORCE:
         {
@@ -914,10 +964,8 @@ static bool osdDrawSingleElement(uint8_t item)
     case OSD_PITCH_ANGLE:
     case OSD_ROLL_ANGLE:
         {
-            const char symbol = (item == OSD_PITCH_ANGLE) ? SYM_PITCH : SYM_ROLL ;
             const int angle = (item == OSD_PITCH_ANGLE) ? attitude.values.pitch : attitude.values.roll;
-            //tfp_sprintf(buff, "%c", symbol);
-            tfp_sprintf(buff, "%c%c%02d.%01d", symbol, angle < 0 ? '-' : ' ', abs(angle / 10), abs(angle % 10));
+            tfp_sprintf(buff, "%c%02d.%01d", angle < 0 ? '-' : ' ', abs(angle / 10), abs(angle % 10));
             break;
         }
 
@@ -978,7 +1026,7 @@ static bool osdDrawSingleElement(uint8_t item)
                 tfp_sprintf(buff, "%c%01d.%01d", directionSymbol, abs(verticalSpeed / 100), abs((verticalSpeed % 100) / 10));
             } else {
                 // We use this symbol when we don't have a valid measure
-                buff[0] = SYM_QUES;
+                buff[0] = SYM_COLON;
                 // overwrite any previous vertical speed with blanks
                 memset(buff + 1, SYM_BLANK, 6);
                 buff[7] = '\0';
@@ -989,7 +1037,7 @@ static bool osdDrawSingleElement(uint8_t item)
 #ifdef USE_ESC_SENSOR
     case OSD_ESC_TMP:
         if (feature(FEATURE_ESC_SENSOR)) {
-            tfp_sprintf(buff, "%c%3d%c", SYM_TEMPERATURE, osdConvertTemperatureToSelectedUnit(escDataCombined->temperature), osdGetTemperatureSymbolForSelectedUnit());
+            tfp_sprintf(buff, "%3d%c", osdConvertTemperatureToSelectedUnit(escDataCombined->temperature), osdGetTemperatureSymbolForSelectedUnit());
         }
         break;
 
@@ -1016,7 +1064,7 @@ static bool osdDrawSingleElement(uint8_t item)
 
 #ifdef USE_ADC_INTERNAL
     case OSD_CORE_TEMPERATURE:
-        tfp_sprintf(buff, "%c%3d%c", SYM_TEMPERATURE, osdConvertTemperatureToSelectedUnit(getCoreTemperatureCelsius()), osdGetTemperatureSymbolForSelectedUnit());
+        tfp_sprintf(buff, "%3d%c", osdConvertTemperatureToSelectedUnit(getCoreTemperatureCelsius()), osdGetTemperatureSymbolForSelectedUnit());
         break;
 #endif
 
@@ -1024,9 +1072,12 @@ static bool osdDrawSingleElement(uint8_t item)
         return false;
     }
 
-    displayWrite(osdDisplayPort, elemPosX, elemPosY, buff);
+    if (!brainfpv_item) {
+        displayWrite(osdDisplayPort, elemPosX, elemPosY, buff);
+    }
 
     return true;
+
 }
 
 static void osdDrawElements(void)
@@ -1086,11 +1137,22 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
         osdConfig->item_pos[i] = OSD_POS(10, 7);
     }
 
+    osdConfig->item_pos[OSD_RSSI_VALUE]         = OSD_POS(8, 1)   | VISIBLE_FLAG;
+    osdConfig->item_pos[OSD_MAIN_BATT_VOLTAGE]  = OSD_POS(12, 1)  | VISIBLE_FLAG;
+    osdConfig->item_pos[OSD_CROSSHAIRS]         = OSD_POS(8, 6)   | VISIBLE_FLAG;
+    osdConfig->item_pos[OSD_ITEM_TIMER_1]       = OSD_POS(22, 1)  | VISIBLE_FLAG;
+    osdConfig->item_pos[OSD_ITEM_TIMER_2]       = OSD_POS(1, 1)   | VISIBLE_FLAG;
+    osdConfig->item_pos[OSD_FLYMODE]            = OSD_POS(1, 2)   | VISIBLE_FLAG;
+    osdConfig->item_pos[OSD_CRAFT_NAME]         = OSD_POS(10, 11) | VISIBLE_FLAG;
+    osdConfig->item_pos[OSD_CURRENT_DRAW]       = OSD_POS(1, 11)  | VISIBLE_FLAG;
+    osdConfig->item_pos[OSD_MAH_DRAWN]          = OSD_POS(1, 10)  | VISIBLE_FLAG;
+    osdConfig->item_pos[OSD_AVG_CELL_VOLTAGE]   = OSD_POS(12, 2)  | VISIBLE_FLAG;
+
     // Always enable warnings elements by default
-    osdConfig->item_pos[OSD_WARNINGS] = OSD_POS(9, 10) | VISIBLE_FLAG;
+    osdConfig->item_pos[OSD_WARNINGS] = OSD_POS(9, 8) | VISIBLE_FLAG;
 
     // Default to old fixed positions for these elements
-    osdConfig->item_pos[OSD_CROSSHAIRS]         = OSD_POS(13, 6);
+    osdConfig->item_pos[OSD_CROSSHAIRS]         = OSD_POS(13, 6)  | VISIBLE_FLAG;
     osdConfig->item_pos[OSD_ARTIFICIAL_HORIZON] = OSD_POS(14, 2);
     osdConfig->item_pos[OSD_HORIZON_SIDEBARS]   = OSD_POS(14, 6);
 
@@ -1122,7 +1184,7 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->esc_rpm_alarm = ESC_RPM_ALARM_OFF; // off by default
     osdConfig->esc_current_alarm = ESC_CURRENT_ALARM_OFF; // off by default
     osdConfig->core_temp_alarm = 70; // a temperature above 70C should produce a warning, lockups have been reported above 80C
-    osdConfig->distance_alarm = 0;
+
     osdConfig->ahMaxPitch = 20; // 20 degrees
     osdConfig->ahMaxRoll = 40; // 40 degrees
 }
@@ -1141,12 +1203,11 @@ static void osdDrawLogo(int x, int y)
 
 void osdInit(displayPort_t *osdDisplayPortToUse)
 {
+#ifndef USE_BRAINFPV_OSD
     if (!osdDisplayPortToUse) {
         return;
     }
-
     BUILD_BUG_ON(OSD_POS_MAX != OSD_POS(31,31));
-
     osdDisplayPort = osdDisplayPortToUse;
 #ifdef USE_CMS
     cmsDisplayPortRegister(osdDisplayPort);
@@ -1178,6 +1239,11 @@ void osdInit(displayPort_t *osdDisplayPortToUse)
 
     displayResync(osdDisplayPort);
 
+    refreshTimeout = 4 * REFRESH_1S;
+#else
+    osdDisplayPort = osdDisplayPortToUse;
+    cmsDisplayPortRegister(osdDisplayPortToUse);
+#endif /* USE_BRAINFPV_OSD */
     resumeRefreshAt = micros() + (4 * REFRESH_1S);
 }
 
@@ -1250,18 +1316,6 @@ void osdUpdateAlarms(void)
     } else {
         CLR_BLINK(OSD_ALTITUDE);
     }
-
-#ifdef USE_GPS
-        if (sensors(SENSOR_GPS) && ARMING_FLAG(ARMED) && STATE(GPS_FIX) && STATE(GPS_FIX_HOME)) {
-            if (osdConfig()->distance_alarm && GPS_distanceToHome >= osdConfig()->distance_alarm) {
-                SET_BLINK(OSD_HOME_DIST);
-            } else {
-                CLR_BLINK(OSD_HOME_DIST);
-            }
-        } else {
-            CLR_BLINK(OSD_HOME_DIST);
-}
-#endif
 
 #ifdef USE_ESC_SENSOR
     if (feature(FEATURE_ESC_SENSOR)) {
@@ -1510,7 +1564,12 @@ static void osdShowStats(uint16_t endBatteryVoltage)
 static void osdShowArmed(void)
 {
     displayClearScreen(osdDisplayPort);
-    displayWrite(osdDisplayPort, 12, 7, "ARMED");
+    if (bfOsdConfig()->show_logo_on_arm) {
+        #define GY (GRAPHICS_BOTTOM / 2 - 30)
+        brainFpvOsdMainLogo(GRAPHICS_X_MIDDLE, GY);
+    }
+
+    displayWrite(osdDisplayPort, 12, 11, "ARMED");
 }
 
 STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
@@ -1518,6 +1577,9 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
     static timeUs_t lastTimeUs = 0;
     static bool osdStatsEnabled = false;
     static bool osdStatsVisible = false;
+#ifdef USE_BRAINFPV_OSD
+    static bool osdShowArmScreen = false;
+#endif
     static timeUs_t osdStatsRefreshTimeUs;
     static uint16_t endBatteryVoltage;
 
@@ -1528,6 +1590,9 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
             osdStatsVisible = false;
             osdResetStats();
             osdShowArmed();
+#ifdef USE_BRAINFPV_OSD
+            osdShowArmScreen = true;
+#endif
             resumeRefreshAt = currentTimeUs + (REFRESH_1S / 2);
         } else if (isSomeStatEnabled()
                    && (!(getArmingDisableFlags() & ARMING_DISABLED_RUNAWAY_TAKEOFF)
@@ -1576,12 +1641,27 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
                 resumeRefreshAt = currentTimeUs;
             }
             displayHeartbeat(osdDisplayPort);
+#ifdef USE_BRAINFPV_OSD
+            if (osdStatsVisible) {
+                osdShowStats(endBatteryVoltage);
+                osd_arming_or_stats = true;
+            }
+            if (osdShowArmScreen) {
+                osdShowArmed();
+                osd_arming_or_stats = true;
+            }
+#endif
             return;
         } else {
             displayClearScreen(osdDisplayPort);
             resumeRefreshAt = 0;
             osdStatsEnabled = false;
             stats.armed_time = 0;
+#ifdef USE_BRAINFPV_OSD
+            osdShowArmScreen = false;
+            osdStatsVisible = false;
+            osd_arming_or_stats = false;
+#endif
         }
     }
 
@@ -1604,6 +1684,7 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
     lastArmState = ARMING_FLAG(ARMED);
 }
 
+
 /*
  * Called periodically by the scheduler
  */
@@ -1611,6 +1692,7 @@ void osdUpdate(timeUs_t currentTimeUs)
 {
     static uint32_t counter = 0;
 
+#ifndef USE_BRAINFPV_OSD
     if (isBeeperOn()) {
         showVisualBeeper = true;
     }
@@ -1621,6 +1703,13 @@ void osdUpdate(timeUs_t currentTimeUs)
         return;
     }
 #endif // MAX7456_DMA_CHANNEL_TX
+
+    // redraw values in buffer
+#ifdef USE_MAX7456
+#define DRAW_FREQ_DENOM 5
+#else
+#define DRAW_FREQ_DENOM 10 // MWOSD @ 115200 baud (
+#endif
 
 #ifdef USE_SLOW_MSP_DISPLAYPORT_RATE_WHEN_UNARMED
     static uint32_t idlecounter = 0;
@@ -1646,9 +1735,17 @@ void osdUpdate(timeUs_t currentTimeUs)
         // rest of time redraw screen 10 chars per idle so it doesn't lock the main idle
         displayDrawScreen(osdDisplayPort);
     }
-    ++counter;
+#else
+    showVisualBeeper = isBeeperOn();
+    osdRefresh(currentTimeUs);
+#endif
 
 #ifdef USE_CMS
+
+#ifdef OSD_CALLS_CMS
+    cmsUpdate(currentTimeUs);
+#endif
+
     // do not allow ARM if we are in menu
     if (displayIsGrabbed(osdDisplayPort)) {
         setArmingDisabled(ARMING_DISABLED_OSD_MENU);

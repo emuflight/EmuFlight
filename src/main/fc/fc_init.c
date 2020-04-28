@@ -39,6 +39,10 @@
 #include "cms/cms_types.h"
 
 #include "drivers/accgyro/accgyro.h"
+#include "drivers/camera_control.h"
+#include "drivers/compass/compass.h"
+#include "drivers/pwm_esc_detect.h"
+#include "drivers/pwm_output.h"
 #include "drivers/adc.h"
 #include "drivers/bus.h"
 #include "drivers/bus_i2c.h"
@@ -73,14 +77,6 @@
 #ifdef USE_USB_MSC
 #include "drivers/usb_msc.h"
 #endif
-
-#ifdef USE_DMA_SPI_DEVICE
-#include "drivers/dma_spi.h"
-#endif //USE_DMA_SPI_DEVICE
-
-#ifdef USE_GYRO_IMUF9001
-#include "drivers/accgyro/accgyro_imuf9001.h"
-#endif //USE_GYRO_IMUF9001
 
 #include "fc/board_info.h"
 #include "fc/config.h"
@@ -162,8 +158,14 @@
 #include "hardware_revision.h"
 #endif
 
+#ifdef USE_BRAINFPV_FPGA
+#include "fpga_drv.h"
+#endif
+
 #include "build/build_config.h"
 #include "build/debug.h"
+
+extern uint8_t safe_boot;
 
 #ifdef TARGET_PREINIT
 void targetPreInit(void);
@@ -228,19 +230,6 @@ void init(void)
 
     systemInit();
 
-    initEEPROM();
-
-    ensureEEPROMStructureIsValid();
-    readEEPROM();
-
-#ifdef USE_GYRO_IMUF9001
-
-    if (isMPUSoftReset()) {
-        // reset imuf before befhal mucks with the pins
-        initImuf9001();
-    }
-#endif
-
     // initialize IO (needed for all IO operations)
     IOInitGlobal();
 
@@ -252,8 +241,18 @@ void init(void)
     detectBrushedESC();
 #endif
 
-    // !!TODO: Check to be removed when moving to generic targets
-    if (strncasecmp(systemConfig()->boardIdentifier, TARGET_BOARD_IDENTIFIER, sizeof(TARGET_BOARD_IDENTIFIER))) {
+    initEEPROM();
+
+    readEEPROM();
+    ensureEEPROMStructureIsValid();
+
+    bool readSuccess = readEEPROM();
+
+#if defined(USE_BOARD_INFO)
+    initBoardInformation();
+#endif
+
+    if (!readSuccess || !isEEPROMVersionValid() || strncasecmp(systemConfig()->boardIdentifier, TARGET_BOARD_IDENTIFIER, sizeof(TARGET_BOARD_IDENTIFIER))) {
         resetEEPROM();
     }
 
@@ -378,7 +377,7 @@ void init(void)
     }
 #endif
 
-#ifdef USE_BEEPER
+#if defined(USE_BEEPER) & !defined(USE_BRAINFPV_FPGA)
     beeperInit(beeperDevConfig());
 #endif
 /* temp until PGs are implemented. */
@@ -398,9 +397,6 @@ void init(void)
 
 #ifdef USE_SPI_DEVICE_1
     spiInit(SPIDEV_1);
-#endif
-#ifdef USE_DMA_SPI_DEVICE
-    dmaSpiInit();
 #endif
 #ifdef USE_SPI_DEVICE_2
     spiInit(SPIDEV_2);
@@ -448,6 +444,10 @@ void init(void)
 
 #endif // TARGET_BUS_INIT
 
+#ifdef USE_BRAINFPV_FPGA
+    BRAINFPVFPGA_Init(true);
+#endif
+
 #ifdef USE_HARDWARE_REVISION_DETECTION
     updateHardwareRevision();
 #endif
@@ -488,6 +488,29 @@ void init(void)
 
     initBoardAlignment(boardAlignment());
 
+#ifdef CMS
+    cmsInit();
+#endif
+
+#ifdef USE_DASHBOARD
+    if (feature(FEATURE_DASHBOARD)) {
+        dashboardInit();
+    }
+#endif
+
+#ifdef USE_RTC6705
+    if (feature(FEATURE_VTX)) {
+        rtc6705_soft_spi_init();
+        current_vtx_channel = masterConfig.vtx_channel;
+        rtc6705_soft_spi_set_channel(vtx_freq[current_vtx_channel]);
+        rtc6705_soft_spi_set_rf_power(masterConfig.vtx_power);
+    }
+#endif
+
+#ifdef SONAR
+    const sonarConfig_t *sonarConfig = sonarConfig();
+#endif
+
     if (!sensorsAutodetect()) {
         // if gyro was not detected due to whatever reason, notify and don't arm.
         indicateFailure(FAILURE_MISSING_ACC, 2);
@@ -500,9 +523,8 @@ void init(void)
     // so we are ready to call validateAndFixGyroConfig(), pidInit(), and setAccelerationFilter()
     validateAndFixGyroConfig();
     pidInit(currentPidProfile);
-    if (sensors(SENSOR_ACC)){
-        accInitFilters();
-    }
+
+    accInitFilters();
 
 #ifdef USE_PID_AUDIO
     pidAudioInit();
@@ -571,7 +593,7 @@ void init(void)
     displayPort_t *osdDisplayPort = NULL;
 #endif
 
-#if defined(USE_OSD) && !defined(USE_OSD_SLAVE)
+#if defined(USE_OSD) && !defined(USE_OSD_SLAVE) && !defined(USE_BRAINFPV_OSD)
     //The OSD need to be initialised after GYRO to avoid GYRO initialisation failure on some targets
 
     if (feature(FEATURE_OSD)) {

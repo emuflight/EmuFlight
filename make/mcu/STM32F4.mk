@@ -31,13 +31,11 @@ EXCLUDES        = stm32f4xx_crc.c \
                   stm32f4xx_flash_ramfunc.c \
                   stm32f4xx_fmpi2c.c \
                   stm32f4xx_lptim.c \
-                  stm32f4xx_qspi.c \
                   stm32f4xx_spdifrx.c \
                   stm32f4xx_cryp.c \
                   stm32f4xx_cryp_aes.c \
                   stm32f4xx_hash_md5.c \
                   stm32f4xx_cryp_des.c \
-                  stm32f4xx_rtc.c \
                   stm32f4xx_hash.c \
                   stm32f4xx_dbgmcu.c \
                   stm32f4xx_cryp_tdes.c \
@@ -156,8 +154,18 @@ LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_f405.ld
 STARTUP_SRC     = startup_stm32f40xx.s
 else ifeq ($(TARGET),$(filter $(TARGET),$(F446_TARGETS)))
 DEVICE_FLAGS    = -DSTM32F446xx
+ifneq ($(filter CHIBIOS,$(FEATURES)),)
+ifneq ($(filter DRONINBL,$(FEATURES)),)
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_f446_chibios_drbl.ld
+STARTUP_SRC     = startup_chibios_stm32F4xx.s
+else
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_f446_chibios.ld
+STARTUP_SRC     = startup_chibios_stm32F4xx.s
+endif
+else
 LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_f446.ld
-STARTUP_SRC     = startup_stm32f446xx.s
+STARTUP_SRC     = startup_chibios_stm32F4xx.s
+endif
 else
 $(error Unknown MCU for F4 target)
 endif

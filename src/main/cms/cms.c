@@ -44,6 +44,14 @@
 #include "cms/cms_menu_builtin.h"
 #include "cms/cms_types.h"
 
+#ifdef BRAINFPV
+#include "brainfpv/video.h"
+#include "brainfpv/osd_utils.h"
+#include "brainfpv/ir_transponder.h"
+#include "cms/cms_menu_brainfpv.h"
+extern bool brainfpv_hd_frame_menu;
+#endif
+
 #include "common/maths.h"
 #include "common/typeconversion.h"
 
@@ -96,10 +104,14 @@ bool cmsDisplayPortRegister(displayPort_t *pDisplay)
     return true;
 }
 
+extern displayPort_t max7456DisplayPort;
+
 static displayPort_t *cmsDisplayPortSelectCurrent(void)
 {
     if (cmsDeviceCount == 0)
         return NULL;
+
+    return &max7456DisplayPort;
 
     if (cmsCurrentDevice < 0)
         cmsCurrentDevice = 0;
@@ -111,6 +123,8 @@ static displayPort_t *cmsDisplayPortSelectNext(void)
 {
     if (cmsDeviceCount == 0)
         return NULL;
+
+    return &max7456DisplayPort;
 
     cmsCurrentDevice = (cmsCurrentDevice + 1) % cmsDeviceCount; // -1 Okay
 
@@ -162,6 +176,7 @@ static uint8_t maxMenuItems;
 static uint8_t linesPerMenuItem;
 
 bool cmsInMenu = false;
+STATIC_UNIT_TESTED const CMS_Menu *currentMenu;    // Points to top entry of the current page
 
 typedef struct cmsCtx_s {
     const CMS_Menu *menu;         // menu for this context
@@ -506,7 +521,7 @@ static void cmsDrawMenu(displayPort_t *pDisplay, uint32_t currentTimeUs)
 
     uint8_t i;
     OSD_Entry *p;
-    uint8_t top = smallScreen ? 1 : (pDisplay->rows - pageMaxRow)/2;
+    uint8_t top = smallScreen ? 1 : (pDisplay->rows - pageMaxRow)/2 - 1;
 
     // Polled (dynamic) value display denominator.
 
@@ -519,6 +534,8 @@ static void cmsDrawMenu(displayPort_t *pDisplay, uint32_t currentTimeUs)
     }
 
     uint32_t room = displayTxBytesFree(pDisplay);
+
+    pDisplay->cleared = true;
 
     if (pDisplay->cleared) {
         for (p = pageTop, i= 0; p->type != OME_END; p++, i++) {
@@ -547,8 +564,9 @@ static void cmsDrawMenu(displayPort_t *pDisplay, uint32_t currentTimeUs)
     if (room < 30)
         return;
 
+    room -= displayWrite(pDisplay, leftMenuColumn, top + currentCtx.cursorRow * linesPerMenuItem, ">");
     if (pDisplay->cursorRow != currentCtx.cursorRow) {
-        room -= displayWrite(pDisplay, leftMenuColumn, top + currentCtx.cursorRow * linesPerMenuItem, ">");
+        //room -= displayWrite(pDisplay, leftMenuColumn, top + currentCtx.cursorRow * linesPerMenuItem, ">");
         pDisplay->cursorRow = currentCtx.cursorRow;
     }
 
@@ -967,6 +985,20 @@ STATIC_UNIT_TESTED uint16_t cmsHandleKey(displayPort_t *pDisplay, uint8_t key)
             }
             break;
 
+        case OME_UINT32:
+            if (p->data) {
+                OSD_UINT32_t *ptr = p->data;
+                if (key == KEY_RIGHT) {
+                    if (*ptr->val < ptr->max)
+                        *ptr->val += ptr->step;
+                }
+                else {
+                    if (*ptr->val > ptr->min)
+                        *ptr->val -= ptr->step;
+                }
+            }
+            break;
+
         case OME_String:
             break;
 
@@ -978,6 +1010,29 @@ STATIC_UNIT_TESTED uint16_t cmsHandleKey(displayPort_t *pDisplay, uint8_t key)
             // Shouldn't happen
             break;
     }
+#ifdef BRAINFPV
+    OSD_UINT16_t *ptr = p->data;
+    if (ptr == &entryIRTrackmate){
+        if (key == KEY_RIGHT) {
+            *ptr->val = ir_next_valid_trackmateid(*ptr->val - 1, 1);
+        }
+        if (key == KEY_LEFT) {
+            *ptr->val = ir_next_valid_trackmateid(*ptr->val + 1, -1);
+        }
+    }
+    if (currentCtx.menu == &cmsx_menuBrainFPVOsd) {
+        if ((key == KEY_RIGHT) || (key == KEY_LEFT)) {
+            brainfpv_settings_updated = true;
+            brainfpv_settings_updated_from_cms = true;
+        }
+    }
+    if (currentCtx.menu == &cmsx_menuBrainFPVHdFrame) {
+        brainfpv_hd_frame_menu = true;
+    }
+    else {
+        brainfpv_hd_frame_menu = false;
+    }
+#endif
     return res;
 }
 

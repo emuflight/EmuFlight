@@ -71,6 +71,10 @@
 pidProfile_t *currentPidProfile;
 #endif
 
+#ifdef USE_BRAINFPV_OSD
+#include "brainfpv/brainfpv_osd.h"
+#endif
+
 #ifndef RX_SPI_DEFAULT_PROTOCOL
 #define RX_SPI_DEFAULT_PROTOCOL 0
 #endif
@@ -530,6 +534,10 @@ void validateAndFixGyroConfig(void)
     if (gyroConfig()->gyro_use_32khz) {
         samplingTime = 0.00003125;
     }
+
+    #if defined(BRAINFPV)
+        samplingTime = 0.0003125f;
+    #endif
 
     // check for looptime restrictions based on motor protocol. Motor times have safety margin
     float motorUpdateRestriction;

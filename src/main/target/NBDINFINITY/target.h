@@ -21,9 +21,13 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER "S405"
+<<<<<<< HEAD
 #define USBD_PRODUCT_STRING "NBD INFINITYF4"
 
 #define USE_TARGET_CONFIG
+=======
+#define USBD_PRODUCT_STRING		"NBDINFINITY"
+>>>>>>> MAD-Radix
 
 #define LED0_PIN                  PC0
 
@@ -69,8 +73,13 @@
 #define FLASH_SPI_INSTANCE        SPI3
 
 #define USE_VCP
+<<<<<<< HEAD
 //#define USE_USB_DETECT
 //#define USB_DETECT_PIN            PC5
+=======
+#define USE_USB_DETECT
+#define USB_DETECT_PIN            PC5
+>>>>>>> MAD-Radix
 
 #define USE_UART1
 #define UART1_RX_PIN              PA10
@@ -98,26 +107,42 @@
 
 #define USE_SOFTSERIAL1
 
+<<<<<<< HEAD
 #define SERIAL_PORT_COUNT        8 //VCP, USART1, USART3,USART4, USART6, SOFT_SERIAL1
+=======
+#define SERIAL_PORT_COUNT         8 //VCP, USART1, USART3,USART4, USART6, SOFT_SERIAL1
+>>>>>>> MAD-Radix
 
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN    PD2
 
 #define USE_SPI
+<<<<<<< HEAD
 #define USE_SPI_DEVICE_1
 //#define SPI1_NSS_PIN              PA4
+=======
+#define SPI1_NSS_PIN              PA4
+>>>>>>> MAD-Radix
 #define SPI1_SCK_PIN              PA5
 #define SPI1_MISO_PIN             PA6
 #define SPI1_MOSI_PIN             PA7
 
 #define USE_SPI_DEVICE_2
+<<<<<<< HEAD
 //#define SPI2_NSS_PIN              PB12
+=======
+#define SPI2_NSS_PIN              PB12
+>>>>>>> MAD-Radix
 #define SPI2_SCK_PIN              PB13
 #define SPI2_MISO_PIN             PB14
 #define SPI2_MOSI_PIN             PB15
 
 #define USE_SPI_DEVICE_3
+<<<<<<< HEAD
 //#define SPI3_NSS_PIN              PA15
+=======
+#define SPI3_NSS_PIN              PA15
+>>>>>>> MAD-Radix
 #define SPI3_SCK_PIN              PB3
 #define SPI3_MISO_PIN             PB4
 #define SPI3_MOSI_PIN             PB5
@@ -125,7 +150,11 @@
 #define USE_ADC
 #define CURRENT_METER_ADC_PIN     PC3
 #define VBAT_ADC_PIN              PC4
+<<<<<<< HEAD
 // #define RSSI_ADC_PIN              PC5  --undefined in resource list
+=======
+#define RSSI_ADC_PIN              PC5
+>>>>>>> MAD-Radix
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 

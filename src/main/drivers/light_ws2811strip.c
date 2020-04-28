@@ -42,12 +42,17 @@
 #include "drivers/io.h"
 #include "light_ws2811strip.h"
 
+
+#ifndef USE_BRAINFPV_FPGA
 #if defined(STM32F1) || defined(STM32F3)
 uint8_t ledStripDMABuffer[WS2811_DMA_BUFFER_SIZE];
 #elif defined(STM32F7)
 FAST_RAM_ZERO_INIT uint32_t ledStripDMABuffer[WS2811_DMA_BUFFER_SIZE];
 #else
 uint32_t ledStripDMABuffer[WS2811_DMA_BUFFER_SIZE];
+#endif
+#else
+#include "fpga_drv.h"
 #endif
 
 volatile uint8_t ws2811LedDataTransferInProgress = 0;
@@ -95,11 +100,15 @@ void setStripColors(const hsvColor_t *colors)
 
 void ws2811LedStripInit(ioTag_t ioTag)
 {
+#ifndef USE_BRAINFPV_FPGA
     memset(ledStripDMABuffer, 0, sizeof(ledStripDMABuffer));
     ws2811LedStripHardwareInit(ioTag);
 
     const hsvColor_t hsv_white = { 0, 255, 255 };
     setStripColor(&hsv_white);
+#else
+    (void)ioTag;
+#endif
     // RGB or GRB ordering doesn't matter for white
     ws2811UpdateStrip(LED_RGB);
 }
@@ -109,6 +118,7 @@ bool isWS2811LedStripReady(void)
     return !ws2811LedDataTransferInProgress;
 }
 
+#ifndef USE_BRAINFPV_FPGA
 STATIC_UNIT_TESTED uint16_t dmaBufferOffset;
 static int16_t ledIndex;
 
@@ -201,5 +211,39 @@ void ws2811UpdateStrip(ledStripFormatRGB_e ledFormat)
     ws2811LedDataTransferInProgress = 1;
     ws2811LedStripDMAEnable();
 }
+#else
+static uint8_t last_active_led = 0;
+static uint8_t led_data[WS2811_LED_STRIP_LENGTH * 3];
+
+void ws2811UpdateStrip(ledStripFormatRGB_e ledFormat)
+{
+    static rgbColor24bpp_t *rgb24;
+    uint8_t pos = 0;
+
+    for (int i=0; i<WS2811_LED_STRIP_LENGTH; i++) {
+        rgb24 = hsvToRgb24(&ledColorBuffer[i]);
+        switch(ledFormat) {
+            case LED_RGB:
+                led_data[pos++] = rgb24->rgb.r;
+                led_data[pos++] = rgb24->rgb.g;
+                led_data[pos++] = rgb24->rgb.b;
+                break;
+            case LED_GRB:
+            default:
+                led_data[pos++] = rgb24->rgb.g;
+                led_data[pos++] = rgb24->rgb.r;
+                led_data[pos++] = rgb24->rgb.b;
+                break;
+        }
+        if ((rgb24->rgb.g != 0) || (rgb24->rgb.r != 0) || (rgb24->rgb.b != 0)) {
+            if (i > last_active_led) {
+                last_active_led = i;
+            }
+        }
+    }
+
+    BRAINFPVFPGA_SetLEDs(led_data, last_active_led + 1);
+}
+#endif /* USE_BRAINFPV_FPGA */
 
 #endif
