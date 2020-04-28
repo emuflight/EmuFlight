@@ -19,25 +19,26 @@
  */
 
 #include <stdint.h>
-
 #include "platform.h"
+
+#ifdef USE_TARGET_CONFIG
+
+
+#include "pg/pinio.h"
+#include "pg/piniobox.h"
+
 #include "drivers/io.h"
+#include "pg/rx.h"
+#include "rx/rx.h"
+#include "io/serial.h"
 
-#include "drivers/dma.h"
-#include "drivers/timer.h"
-#include "drivers/timer_def.h"
+#include "config_helper.h"
+#include "config/feature.h"
 
-const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
+void targetConfiguration(void)
+{
+	pinioConfigMutable()->config[0] = PINIO_CONFIG_MODE_OUT_PP | PINIO_CONFIG_OUT_INVERTED;
+    pinioBoxConfigMutable()->permanentId[0] = 40;
+}
 
-    DEF_TIM(TIM11, CH1,   PB9, TIM_USE_ANY,       0, 0),
-
-    DEF_TIM(TIM3,  CH4,   PB1, TIM_USE_MOTOR,     0, 0),
-    DEF_TIM(TIM8,  CH2N,  PB0, TIM_USE_MOTOR,     0, 0),
-    DEF_TIM(TIM8,  CH4,   PC9, TIM_USE_MOTOR,     0, 0),
-    DEF_TIM(TIM1,  CH1,   PA8, TIM_USE_MOTOR,     0, 0),
-
-    DEF_TIM(TIM4,  CH1,   PB6, TIM_USE_ANY,       0, 0),
-
-    DEF_TIM(TIM4,  CH3,   PB8, TIM_USE_MOTOR | TIM_USE_LED,  0, 0)
-
-};
+#endif

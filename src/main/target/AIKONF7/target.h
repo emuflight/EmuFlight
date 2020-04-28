@@ -24,7 +24,7 @@
 
 #define ENABLE_DSHOT_DMAR       true
 
-#define LED0_PIN                  PB0
+#define LED0_PIN                  PC13
 #define USE_BEEPER
 #define BEEPER_PIN                PC15
 #define BEEPER_INVERTED
@@ -75,7 +75,7 @@
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
 #define FLASH_CS_PIN            PB0
-#define FLASH_SPI_INSTANCE      SPI2
+#define FLASH_SPI_INSTANCE      SPI3
 
 #define USE_VCP
 
@@ -99,12 +99,9 @@
 #define UART5_RX_PIN            PD2
 #define UART5_TX_PIN            PC12
 
-#define USE_UART6
-#define UART6_RX_PIN            PC7
-#define UART6_TX_PIN            PC6
 
 //#define USE_SOFTSERIAL1
-#define SERIAL_PORT_COUNT       7 //VCP, USART1, USART2,USART3,USART4,USART5,USART6
+#define SERIAL_PORT_COUNT       6 //VCP, USART1, USART2,USART3,USART4,USART5,USART6
 
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PB8 // (Hardware=0, PPM)
@@ -112,13 +109,14 @@
 #define USE_I2C
 #define I2C_DEVICE_2               (I2CDEV_2)
 #define USE_I2C_DEVICE_2
-#define I2C2_SCL                PB0
+#define I2C2_SCL                PB10
 #define I2C2_SDA                PB11
 
+/*
 #define USE_BARO
 #define BMP280_SPI_INSTANCE     SPI3
 #define BMP280_CS_PIN           PB2
-
+*/
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 #define USE_SPI_DEVICE_2
@@ -134,7 +132,7 @@
 #define SPI2_MISO_PIN            PC2
 #define SPI2_MOSI_PIN            PB15
 
-#define SPI3_NSS_PIN             PA15
+#define SPI3_NSS_PIN             PB0
 #define SPI3_SCK_PIN             PB3
 #define SPI3_MISO_PIN            PB4
 #define SPI3_MOSI_PIN            PB5

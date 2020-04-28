@@ -642,8 +642,6 @@ static bool osdDrawSingleElement(uint8_t item)
                 strcpy(buff, "STAB");
             } else if (FLIGHT_MODE(HORIZON_MODE)) {
                 strcpy(buff, "HOR ");
-            } else if (IS_RC_MODE_ACTIVE(BOXACROTRAINER)) {
-                strcpy(buff, "ATRN");
             } else if (isAirmodeActive()) {
                 strcpy(buff, "AIR ");
             } else {

@@ -3,12 +3,16 @@
         {
             "includePattern": "obj/(.*\\.hex)",
             "uploadPattern": "{{ env("PACKAGE_VERSION") }}/$1",
-            "matrixParams": { "override": 1 },
-            "listInDownloads": true
+            "matrixParams": { "override": 1 }
+        },
+        {
+            "includePattern": "CHANGELOG.md",
+            "uploadPattern": "{{ env("PACKAGE_VERSION") }}/CHANGELOG.md.txt",
+            "matrixParams": { "override": 1 }
         }
     ],
     "package": {
-        "subject": "emuflight",
+        "subject": "emuflight-dev",
         "repo": "dev_hex",
         "desc": "EmuFlight is flight controller software (firmware) used to fly multi-rotor craft.",
         "issue_tracker_url": "https://github.com/emuflight/EmuFlight/issues",
@@ -19,8 +23,7 @@
             "GPL-3.0"
         ],
         "labels": [
-            "emuflight",
-            "imuf"
+            "emuflight", "imuf"
         ],
         "name": "{{ env("TRAVIS_BRANCH") }}",
         "vcs_url": "{{ env("TRAVIS_BUILD_WEB_URL") }}"

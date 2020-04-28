@@ -198,11 +198,6 @@ static void validateAndFixConfig(void)
     }
     loadPidProfile();
 
-    // Prevent invalid notch cutoff
-    if (currentPidProfile->dterm_notch_cutoff >= currentPidProfile->dterm_notch_hz) {
-        currentPidProfile->dterm_notch_hz = 0;
-    }
-
     if (currentPidProfile->motor_output_limit > 100 || currentPidProfile->motor_output_limit == 0) {
        currentPidProfile->motor_output_limit = 100;
     }

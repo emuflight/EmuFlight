@@ -37,6 +37,23 @@ typedef enum {
     THROTTLE_LIMIT_TYPE_CLIP,
 } throttleLimitType_e;
 
+typedef enum {
+    VBAT_COMP_TYPE_OFF = 0,
+    VBAT_COMP_TYPE_BOOST,
+    VBAT_COMP_TYPE_LIMIT,
+    VBAT_COMP_TYPE_BOTH,
+    VBAT_COMP_TYPE_COUNT   // must be the last entry
+} throttleVbatCompType_e;
+
+typedef struct rateDynamics_s { // here for stick pids :)
+    uint8_t rateSensCenter;
+    uint8_t rateSensEnd;
+    uint8_t rateCorrectionCenter;
+    uint8_t rateCorrectionEnd;
+    uint8_t rateWeightCenter;
+    uint8_t rateWeightEnd;
+} rateDynamics_t;
+
 typedef struct controlRateConfig_s {
     uint8_t thrMid8;
     uint8_t thrExpo8;
@@ -44,13 +61,19 @@ typedef struct controlRateConfig_s {
     uint8_t rcRates[3];
     uint8_t rcExpo[3];
     uint8_t rates[3];
+
+    rateDynamics_t rateDynamics;
+
     uint8_t dynThrP;                        // TPA seperated into PID components
     uint8_t dynThrI;
     uint8_t dynThrD;
     uint16_t tpa_breakpoint;                // Breakpoint where TPA is activated
     uint8_t throttle_limit_type;            // Sets the throttle limiting type - off, scale or clip
     uint8_t throttle_limit_percent;         // Sets the maximum pilot commanded throttle limit
-
+    uint8_t vbat_comp_type;                 // Sets the type of battery compensation: off, boost, limit or both
+    uint8_t vbat_comp_ref;                  // Sets the voltage reference to calculate the battery compensation
+    uint8_t vbat_comp_throttle_level;       // Sets the level of throttle battery compensation
+    uint8_t vbat_comp_pid_level;            // Sets the level of PID battery compensation
 } controlRateConfig_t;
 
 PG_DECLARE_ARRAY(controlRateConfig_t, CONTROL_RATE_PROFILE_COUNT, controlRateProfiles);

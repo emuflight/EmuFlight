@@ -1019,7 +1019,6 @@ static void loadMainState(timeUs_t currentTimeUs)
         blackboxCurrent->axisPID_P[i] = pidData[i].P;
         blackboxCurrent->axisPID_I[i] = pidData[i].I;
         blackboxCurrent->axisPID_D[i] = pidData[i].D;
-        blackboxCurrent->axisPID_F[i] = pidData[i].F;
         blackboxCurrent->gyroADC[i] = lrintf(gyro.gyroADCf[i]);
 
         #if defined(USE_ACC)
@@ -1280,12 +1279,15 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("tpa_rate_i", "%d",                      currentControlRateProfile->dynThrI);
         BLACKBOX_PRINT_HEADER_LINE("tpa_rate_d", "%d",                      currentControlRateProfile->dynThrD);
         BLACKBOX_PRINT_HEADER_LINE("tpa_breakpoint", "%d",                  currentControlRateProfile->tpa_breakpoint);
-        BLACKBOX_PRINT_HEADER_LINE("spa_rate_p", "%d",                      currentPidProfile->setPointPTransition);
-        BLACKBOX_PRINT_HEADER_LINE("spa_rate_i", "%d",                      currentPidProfile->setPointITransition);
-        BLACKBOX_PRINT_HEADER_LINE("spa_rate_d", "%d",                      currentPidProfile->setPointDTransition);
-        BLACKBOX_PRINT_HEADER_LINE("spa_rate_p_yaw", "%d",                      currentPidProfile->setPointPTransitionYaw);
-        BLACKBOX_PRINT_HEADER_LINE("spa_rate_i_yaw", "%d",                      currentPidProfile->setPointITransitionYaw);
-        BLACKBOX_PRINT_HEADER_LINE("spa_rate_d_yaw", "%d",                      currentPidProfile->setPointDTransitionYaw);
+        BLACKBOX_PRINT_HEADER_LINE("spa_roll_p", "%d",                      currentPidProfile->setPointPTransition[ROLL]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_roll_i", "%d",                      currentPidProfile->setPointITransition[ROLL]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_roll_d", "%d",                      currentPidProfile->setPointDTransition[ROLL]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_pitch_p", "%d",                     currentPidProfile->setPointPTransition[PITCH]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_pitch_i", "%d",                     currentPidProfile->setPointITransition[PITCH]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_pitch_d", "%d",                     currentPidProfile->setPointDTransition[PITCH]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_yaw_p", "%d",                       currentPidProfile->setPointPTransition[YAW]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_yaw_i", "%d",                       currentPidProfile->setPointITransition[YAW]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_yaw_d", "%d",                       currentPidProfile->setPointDTransition[YAW]);
         BLACKBOX_PRINT_HEADER_LINE("rc_rates", "%d,%d,%d",                  currentControlRateProfile->rcRates[ROLL],
                                                                             currentControlRateProfile->rcRates[PITCH],
                                                                             currentControlRateProfile->rcRates[YAW]);
@@ -1295,6 +1297,12 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("rates", "%d,%d,%d",                     currentControlRateProfile->rates[ROLL],
                                                                             currentControlRateProfile->rates[PITCH],
                                                                             currentControlRateProfile->rates[YAW]);
+        BLACKBOX_PRINT_HEADER_LINE("rate_sensitivity", "%d,%d",             currentControlRateProfile->rateDynamics.rateSensCenter,
+                                                                            currentControlRateProfile->rateDynamics.rateSensEnd);
+        BLACKBOX_PRINT_HEADER_LINE("rate_correction", "%d,%d",              currentControlRateProfile->rateDynamics.rateCorrectionCenter,
+                                                                            currentControlRateProfile->rateDynamics.rateCorrectionEnd);
+        BLACKBOX_PRINT_HEADER_LINE("rate_weight", "%d,%d",                  currentControlRateProfile->rateDynamics.rateWeightCenter,
+                                                                            currentControlRateProfile->rateDynamics.rateWeightEnd);
         BLACKBOX_PRINT_HEADER_LINE("rollPID", "%d,%d,%d",                   currentPidProfile->pid[PID_ROLL].P,
                                                                             currentPidProfile->pid[PID_ROLL].I,
                                                                             currentPidProfile->pid[PID_ROLL].D);
@@ -1305,19 +1313,26 @@ static bool blackboxWriteSysinfo(void)
                                                                             currentPidProfile->pid[PID_YAW].I,
                                                                             currentPidProfile->pid[PID_YAW].D);
         BLACKBOX_PRINT_HEADER_LINE("levelPIDLOW", "%d,%d,%d",               currentPidProfile->pid[PID_LEVEL_LOW].P,
-                                                                            currentPidProfile->pid[PID_LEVEL_LOW].I,
                                                                             currentPidProfile->pid[PID_LEVEL_LOW].D,
                                                                             currentPidProfile->pid[PID_LEVEL_LOW].F);
-        BLACKBOX_PRINT_HEADER_LINE("levelPIDHIGH", "%d,%d,%d",              currentPidProfile->pid[PID_LEVEL_HIGH].P,
-                                                                            currentPidProfile->pid[PID_LEVEL_HIGH].I,
+        BLACKBOX_PRINT_HEADER_LINE("levelPIDHIGH", "%d,%d",                 currentPidProfile->pid[PID_LEVEL_HIGH].P,
                                                                             currentPidProfile->pid[PID_LEVEL_HIGH].D);
         BLACKBOX_PRINT_HEADER_LINE("magPID", "%d",                          currentPidProfile->pid[PID_MAG].P);
         BLACKBOX_PRINT_HEADER_LINE("dterm_filter_type", "%d",               currentPidProfile->dterm_filter_type);
-        BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass_hz", "%d",                currentPidProfile->dterm_lowpass_hz);
-        BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass2_hz", "%d",               currentPidProfile->dterm_lowpass2_hz);
-        BLACKBOX_PRINT_HEADER_LINE("yaw_lowpass_hz", "%d",                  currentPidProfile->yaw_lowpass_hz);
-        BLACKBOX_PRINT_HEADER_LINE("dterm_notch_hz", "%d",                  currentPidProfile->dterm_notch_hz);
-        BLACKBOX_PRINT_HEADER_LINE("dterm_notch_cutoff", "%d",              currentPidProfile->dterm_notch_cutoff);
+        BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass_hz_roll", "%d",           currentPidProfile->dFilter[ROLL].dLpf);
+        BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass_hz_pitch", "%d",          currentPidProfile->dFilter[PITCH].dLpf);
+        BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass_hz_yaw", "%d",            currentPidProfile->dFilter[YAW].dLpf);
+        BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass2_hz_roll", "%d",          currentPidProfile->dFilter[ROLL].dLpf2);
+        BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass2_hz_pitch", "%d",         currentPidProfile->dFilter[PITCH].dLpf2);
+        BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass2_hz_yaw", "%d",           currentPidProfile->dFilter[YAW].dLpf2);
+        BLACKBOX_PRINT_HEADER_LINE("witchcraft_roll", "%d",                 currentPidProfile->dFilter[ROLL].Wc);
+        BLACKBOX_PRINT_HEADER_LINE("witchcraft_pitch", "%d",                currentPidProfile->dFilter[PITCH].Wc);
+        BLACKBOX_PRINT_HEADER_LINE("witchcraft_yaw", "%d",                  currentPidProfile->dFilter[YAW].Wc);
+        BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_roll", "%d",            currentPidProfile->dFilter[ROLL].smartSmoothing);
+        BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_pitch", "%d",           currentPidProfile->dFilter[PITCH].smartSmoothing);
+        BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_yaw", "%d",             currentPidProfile->dFilter[YAW].smartSmoothing);
+
+
         BLACKBOX_PRINT_HEADER_LINE("iterm_windup", "%d",                    currentPidProfile->itermWindupPointPercent);
 
         #if defined(USE_ITERM_RELAX)
@@ -1326,7 +1341,6 @@ static bool blackboxWriteSysinfo(void)
             BLACKBOX_PRINT_HEADER_LINE("iterm_relax_cutoff", "%d",          currentPidProfile->iterm_relax_cutoff);
         #endif
 
-        BLACKBOX_PRINT_HEADER_LINE("vbat_pid_gain", "%d",                   currentPidProfile->vbatPidCompensation);
         BLACKBOX_PRINT_HEADER_LINE("pidAtMinThrottle", "%d",                currentPidProfile->pidAtMinThrottle);
 
         // EmuFlight PID controller parameters
@@ -1340,22 +1354,17 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("anti_gravity_threshold", "%d",          currentPidProfile->itermThrottleThreshold);
         BLACKBOX_PRINT_HEADER_LINE("anti_gravity_gain", "%d",               currentPidProfile->itermAcceleratorGain);
 
-        BLACKBOX_PRINT_HEADER_LINE("feedforward_transition", "%d",          currentPidProfile->feedForwardTransition);
-        BLACKBOX_PRINT_HEADER_LINE("feedforward_weight", "%d,%d,%d",        currentPidProfile->pid[PID_ROLL].F,
-                                                                            currentPidProfile->pid[PID_PITCH].F,
-                                                                            currentPidProfile->pid[PID_YAW].F);
         #ifdef USE_ABSOLUTE_CONTROL
             BLACKBOX_PRINT_HEADER_LINE("abs_control_gain", "%d",            currentPidProfile->abs_control_gain);
-        #endif
-
-        #ifdef USE_INTEGRATED_YAW_CONTROL
-            BLACKBOX_PRINT_HEADER_LINE("use_integrated_yaw", "%d",          currentPidProfile->use_integrated_yaw);
         #endif
 
         BLACKBOX_PRINT_HEADER_LINE("acc_limit_yaw", "%d",                   currentPidProfile->yawRateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("acc_limit", "%d",                       currentPidProfile->rateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("pidsum_limit", "%d",                    currentPidProfile->pidSumLimit);
         BLACKBOX_PRINT_HEADER_LINE("pidsum_limit_yaw", "%d",                currentPidProfile->pidSumLimitYaw);
+        BLACKBOX_PRINT_HEADER_LINE("nfe_racermode", "%d",                   currentPidProfile->nfe_racermode);
+        BLACKBOX_PRINT_HEADER_LINE("iterm_rotation", "%d",                  currentPidProfile->iterm_rotation);
+        BLACKBOX_PRINT_HEADER_LINE("throttle_boost", "%d",                  currentPidProfile->throttle_boost);
         // End of EmuFlight controller parameters
 
         BLACKBOX_PRINT_HEADER_LINE("deadband", "%d",                        rcControlsConfig()->deadband);
@@ -1368,9 +1377,13 @@ static bool blackboxWriteSysinfo(void)
         #endif
 
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_type", "%d",               gyroConfig()->gyro_lowpass_type);
-        BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_hz", "%d",                 gyroConfig()->gyro_lowpass_hz);
+        BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_hz_roll", "%d",            gyroConfig()->gyro_lowpass_hz[ROLL]);
+        BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_hz_pitch", "%d",           gyroConfig()->gyro_lowpass_hz[PITCH]);
+        BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_hz_yaw", "%d",             gyroConfig()->gyro_lowpass_hz[YAW]);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass2_type", "%d",              gyroConfig()->gyro_lowpass2_type);
-        BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass2_hz", "%d",                gyroConfig()->gyro_lowpass2_hz);
+        BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass2_hz_roll", "%d",           gyroConfig()->gyro_lowpass2_hz[ROLL]);
+        BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass2_hz_pitch", "%d",          gyroConfig()->gyro_lowpass2_hz[PITCH]);
+        BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass2_hz_yaw", "%d",            gyroConfig()->gyro_lowpass2_hz[YAW]);
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_hz", "%d,%d",                gyroConfig()->gyro_soft_notch_hz_1,
                                                                             gyroConfig()->gyro_soft_notch_hz_2);
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_cutoff", "%d,%d",            gyroConfig()->gyro_soft_notch_cutoff_1,
@@ -1424,6 +1437,7 @@ static bool blackboxWriteSysinfo(void)
             BLACKBOX_PRINT_HEADER_LINE("IMUF pitch q", " %d",               gyroConfig()->imuf_pitch_q);
             BLACKBOX_PRINT_HEADER_LINE("IMUF yaw q", " %d",                 gyroConfig()->imuf_yaw_q);
             BLACKBOX_PRINT_HEADER_LINE("IMUF w", " %d",                     gyroConfig()->imuf_w);
+            BLACKBOX_PRINT_HEADER_LINE("IMUF sharpness", " %d",             gyroConfig()->imuf_sharpness);
 
         BLACKBOX_PRINT_HEADER_LINE("Actual Version Number", "%s %s (%s) %s",    FC_FIRMWARE_NAME, FC_VERSION_STRING, shortGitRevision, targetName);
 
