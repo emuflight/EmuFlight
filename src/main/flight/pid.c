@@ -135,8 +135,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  },
 
                  .dFilter = {
-                     [PID_ROLL] = {2, 100, 250, 5},  // wc, dtermlpf, dtermlpf2, smartSmoothing
-                     [PID_PITCH] = {2, 100, 250, 5}, // wc, dtermlpf, dtermlpf2, smartSmoothing
+                     [PID_ROLL] = {2, 100, 250, 0},  // wc, dtermlpf, dtermlpf2, smartSmoothing
+                     [PID_PITCH] = {2, 100, 250, 0}, // wc, dtermlpf, dtermlpf2, smartSmoothing
                      [PID_YAW] = {0, 100, 250, 0},    // wc, dtermlpf, dtermlpf2, smartSmoothing
                  },
 
@@ -876,6 +876,8 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         }
 #endif // USE_YAW_SPIN_RECOVERY
 
+        previousPidSetpoint[axis] = currentPidSetpoint;
+
         // -----calculate error rate
         errorRate = currentPidSetpoint - gyro.gyroADCf[axis]; // r - y
 
@@ -1053,7 +1055,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
             if (smart_dterm_smoothing[axis] > 0)
             {
-                dDeltaMultiplier = constrainf(fabsf(dDelta + previousdDelta[axis]) / (2 * smart_dterm_smoothing[axis]), 0.5f, 1.0f);
+                dDeltaMultiplier = constrainf(fabsf((dDelta + previousdDelta[axis]) / (4 * smart_dterm_smoothing[axis])) + 0.5, 0.5f, 1.0f); //smooth transition from 0.5-1.0f for the multiplier.
                 dDelta = dDelta * dDeltaMultiplier;
                 previousdDelta[axis] = dDelta;
                 DEBUG_SET(DEBUG_SMART_SMOOTHING, axis, dDeltaMultiplier * 1000.0f);
