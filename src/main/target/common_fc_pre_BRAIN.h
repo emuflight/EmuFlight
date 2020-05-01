@@ -131,43 +131,42 @@
 #define USE_SERIALRX_IBUS       // FlySky and Turnigy receivers
 #define USE_SERIALRX_SBUS       // Frsky and Futaba receivers
 #define USE_SERIALRX_SPEKTRUM   // SRXL, DSM2 and DSMX protocol
-//#define USE_SERIALRX_SUMD       // Graupner Hott protocol
+#define USE_SERIALRX_SUMD       // Graupner Hott protocol
+#define USE_SERIALRX_SUMH       // Graupner legacy protocol
 #define USE_SERIALRX_XBUS       // JR
 
 
 
 #if (FLASH_SIZE > 64)
-#define PID_PROFILE_COUNT 3
+#define MAX_PROFILE_COUNT 3
 #else
-#define PID_PROFILE_COUNT 2
+#define MAX_PROFILE_COUNT 2
 #endif
 
 #if (FLASH_SIZE > 64)
+#define USE_ACRO_TRAINER
 #define USE_BLACKBOX
+#define USE_LED_STRIP
 #define USE_RESOURCE_MGMT
-//#define USE_RUNAWAY_TAKEOFF     // Runaway Takeoff Prevention (anti-taz) - Marked for removal
+#define USE_RUNAWAY_TAKEOFF     // Runaway Takeoff Prevention (anti-taz)
+#define USE_SERVOS
 #define USE_TELEMETRY
 #define USE_TELEMETRY_FRSKY_HUB
-//#define USE_TELEMETRY_HOTT
+#define USE_TELEMETRY_HOTT
 #define USE_TELEMETRY_LTM
 #define USE_TELEMETRY_SMARTPORT
 #endif
 
 #if (FLASH_SIZE > 128)
-//#define USE_PEGASUS_UI
-//#define USE_SERIALRX_SUMH       // Graupner legacy protocol
 #define USE_CAMERA_CONTROL
 #define USE_CMS
-//#define USE_EXTENDED_CMS_MENUS
+#define USE_EXTENDED_CMS_MENUS
 #define USE_DSHOT_DMAR
 #define USE_GYRO_OVERFLOW_CHECK
 #define USE_YAW_SPIN_RECOVERY
-//#define USE_HUFFMAN
-//#define USE_MSP_DISPLAYPORT
-//#define USE_MSP_OVER_TELEMETRY
-#define MSP_OVER_CLI
-#define USE_OSD
-//#define USE_OSD_OVER_MSP_DISPLAYPORT
+#define USE_HUFFMAN
+#define USE_MSP_DISPLAYPORT
+#define USE_MSP_OVER_TELEMETRY
 #define USE_PINIO
 #define USE_PINIOBOX
 #define USE_RCDEVICE
@@ -187,43 +186,39 @@
 #define USE_ESC_SENSOR_INFO
 #define USE_CRSF_CMS_TELEMETRY
 #define USE_BOARD_INFO
+#define USE_SMART_FEEDFORWARD
 #define USE_THROTTLE_BOOST
 #define USE_RC_SMOOTHING_FILTER
 #define USE_ITERM_RELAX
 
-//#ifdef USE_SERIALRX_SPEKTRUM
-//#define USE_SPEKTRUM_BIND
-//#define USE_SPEKTRUM_BIND_PLUG
-//#define USE_SPEKTRUM_REAL_RSSI
-//#define USE_SPEKTRUM_FAKE_RSSI
-//#define USE_SPEKTRUM_RSSI_PERCENT_CONVERSION
-//#define USE_SPEKTRUM_VTX_CONTROL
-//#define USE_SPEKTRUM_VTX_TELEMETRY
-//#define USE_SPEKTRUM_CMS_TELEMETRY
-//#endif
+#ifdef USE_SERIALRX_SPEKTRUM
+#define USE_SPEKTRUM_BIND
+#define USE_SPEKTRUM_BIND_PLUG
+#define USE_SPEKTRUM_REAL_RSSI
+#define USE_SPEKTRUM_FAKE_RSSI
+#define USE_SPEKTRUM_RSSI_PERCENT_CONVERSION
+#define USE_SPEKTRUM_VTX_CONTROL
+#define USE_SPEKTRUM_VTX_TELEMETRY
+#define USE_SPEKTRUM_CMS_TELEMETRY
+#endif
 #endif
 
 #if (FLASH_SIZE > 256)
-//#define USE_SERVOS
-#define USE_LED_STRIP
-#define USE_ALT_HOLD
 #define USE_DASHBOARD
 #define USE_GPS
 #define USE_GPS_NMEA
 #define USE_GPS_UBLOX
 #define USE_GPS_RESCUE
 #define USE_OSD
-//#define USE_OSD_OVER_MSP_DISPLAYPORT
+#define USE_OSD_OVER_MSP_DISPLAYPORT
 #define USE_OSD_ADJUSTMENTS
 #define USE_SENSOR_NAMES
-//#define USE_SERIALRX_JETIEXBUS
+#define USE_SERIALRX_JETIEXBUS
 #define USE_TELEMETRY_IBUS
 #define USE_TELEMETRY_IBUS_EXTENDED
-//#define USE_TELEMETRY_JETIEXBUS
-//#define USE_TELEMETRY_MAVLINK
-//#define USE_UNCOMMON_MIXERS
+#define USE_TELEMETRY_JETIEXBUS
+#define USE_TELEMETRY_MAVLINK
+#define USE_UNCOMMON_MIXERS
 #define USE_SIGNATURE
 #define USE_ABSOLUTE_CONTROL
-//#define USE_CMS_FAILSAFE_MENU
-#define USE_CMS_GPS_RESCUE_MENU
 #endif

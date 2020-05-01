@@ -163,7 +163,6 @@ void parseRcChannels(const char *input, struct rxConfig_s *rxConfig);
 void setRssiDirect(uint16_t newRssi, rssiSource_e source);
 void setRssi(uint16_t rssiValue, rssiSource_e source);
 void setRssiMsp(uint8_t newMspRssi);
-void setRssiCrsfLq(uint16_t crsf_lq);
 void updateRSSI(timeUs_t currentTimeUs);
 uint16_t getRssi(void);
 uint8_t getRssiPercent(void);
