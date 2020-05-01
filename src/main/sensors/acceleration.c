@@ -315,6 +315,7 @@ retry:
 #ifdef ACC_BMI160_ALIGN
             dev->accAlign = ACC_BMI160_ALIGN;
 #endif
+            accHardware = ACC_BMI160;
             break;
         }
         FALLTHROUGH;
