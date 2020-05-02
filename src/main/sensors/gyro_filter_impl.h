@@ -65,7 +65,7 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
         }
 #endif
 
-        gyroADCf = kalman_update(gyroADCf, axis);
+        gyroADCf = kalman_update(gyroADCf, axis, kalmanFilterStateRate);
         gyroSensor->gyroDev.gyroADCf[axis] = gyroADCf;
 
 #ifdef USE_GYRO_IMUF9001

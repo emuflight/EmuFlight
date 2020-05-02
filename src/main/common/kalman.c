@@ -25,53 +25,51 @@
 #include "fc/fc_rc.h"
 #include "build/debug.h"
 
-kalman_t    kalmanFilterStateRate[XYZ_AXIS_COUNT];
 variance_t  varStruct;
 float       setPoint[XYZ_AXIS_COUNT];
 
-
-void init_kalman(kalman_t *filter, float q)
+void init_kalman(kalman_t *filter, float q, float sharpness)
 {
     memset(filter, 0, sizeof(kalman_t));
     filter->q = q * 0.001f;             //add multiplier to make tuning easier
     filter->r = 88.0f;                  //seeding R at 88.0f
     filter->p = 30.0f;                  //seeding P at 30.0f
     filter->e = 1.0f;
-    filter->s = gyroConfig()->imuf_sharpness / 250.0f;     //adding the new sharpness :) time to overfilter :O
+    filter->s = sharpness / 250.0f;     //adding the new sharpness :) time to overfilter :O
 }
 
 
-void kalman_init(void)
+void kalman_init(float xAxis, float yAxis, float zAxis, float sharpness, float kalmanW, kalman_t* kalmanState)
 {
     isSetpointNew = 0;
 
     memset(&varStruct, 0, sizeof(varStruct));
-    init_kalman(&kalmanFilterStateRate[X],  gyroConfig()->imuf_roll_q);
-    init_kalman(&kalmanFilterStateRate[Y],  gyroConfig()->imuf_pitch_q);
-    init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->imuf_yaw_q);
+    init_kalman(&kalmanState[X], xAxis, sharpness);
+    init_kalman(&kalmanState[Y], yAxis, sharpness);
+    init_kalman(&kalmanState[Z], zAxis, sharpness);
 
-    varStruct.w = gyroConfig()->imuf_w;
+    varStruct.w = kalmanW;
     varStruct.inverseN = 1.0f/(float)(varStruct.w);
 }
 
-void update_kalman_covariance(float gyroRateData, int axis)
+void update_kalman_covariance(float gyroRateData, kalman_t* kalmanState)
 {
-     varStruct.axisWindow[ varStruct.windex] = gyroRateData;
-     varStruct.axisSumMean +=  varStruct.axisWindow[ varStruct.windex];
-     varStruct.axisSumVar =  varStruct.axisSumVar + ( varStruct.axisWindow[ varStruct.windex] *  varStruct.axisWindow[ varStruct.windex]);
+     varStruct.axisWindow[varStruct.windex] = gyroRateData;
+     varStruct.axisSumMean += varStruct.axisWindow[varStruct.windex];
+     varStruct.axisSumVar = varStruct.axisSumVar + (varStruct.axisWindow[varStruct.windex] * varStruct.axisWindow[varStruct.windex]);
      varStruct.windex++;
     if ( varStruct.windex >= varStruct.w)
     {
          varStruct.windex = 0;
     }
-     varStruct.axisSumMean -=  varStruct.axisWindow[ varStruct.windex];
-     varStruct.axisSumVar =  varStruct.axisSumVar - ( varStruct.axisWindow[ varStruct.windex] *  varStruct.axisWindow[ varStruct.windex]);
-     varStruct.axisMean =  varStruct.axisSumMean *  varStruct.inverseN;
-     varStruct.axisVar =  fabsf(varStruct.axisSumVar *  varStruct.inverseN - ( varStruct.axisMean *  varStruct.axisMean));
+     varStruct.axisSumMean -= varStruct.axisWindow[varStruct.windex];
+     varStruct.axisSumVar = varStruct.axisSumVar - (varStruct.axisWindow[varStruct.windex] * varStruct.axisWindow[varStruct.windex]);
+     varStruct.axisMean = varStruct.axisSumMean * varStruct.inverseN;
+     varStruct.axisVar = fabsf(varStruct.axisSumVar * varStruct.inverseN - (varStruct.axisMean * varStruct.axisMean));
 
     float squirt;
     arm_sqrt_f32(varStruct.axisVar, &squirt);
-    kalmanFilterStateRate[axis].r = squirt * VARIANCE_SCALE;
+    kalmanState->r = squirt * VARIANCE_SCALE;
 }
 
 FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
@@ -107,13 +105,13 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 }
 
 
-float FAST_CODE kalman_update(float input, int axis)
+float FAST_CODE kalman_update(float input, int axis, kalman_t* kalmanState)
 {
+    update_kalman_covariance(input, &kalmanState[axis]);
+    input = kalman_process(&kalmanState[axis], input, getSetpointRate(axis));
 
-    update_kalman_covariance(input, axis);
-    input = kalman_process(&kalmanFilterStateRate[axis], input, getSetpointRate(axis) );
-
-    int16_t Kgain = (kalmanFilterStateRate[axis].k * 1000.0f);
+    int16_t Kgain = (kalmanState[axis].k * 1000.0f);
     DEBUG_SET(DEBUG_KALMAN, axis, Kgain);                               //Kalman gain
+
     return input;
 }
