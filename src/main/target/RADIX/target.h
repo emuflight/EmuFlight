@@ -35,6 +35,8 @@
 #define BEEPER_PIN              NONE
 #define USE_LED_STRIP
 
+#define ENABLE_DSHOT_DMAR       true
+
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
 
