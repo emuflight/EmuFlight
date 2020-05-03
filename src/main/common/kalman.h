@@ -30,7 +30,7 @@
 typedef struct variance
 {
     float axisVar;
-    uint32_t windex;
+    uint16_t windex;
     float axisWindow[MAX_KALMAN_WINDOW_SIZE];
     float axisSumMean;
     float axisMean;
