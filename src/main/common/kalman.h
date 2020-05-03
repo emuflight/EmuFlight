@@ -51,5 +51,5 @@ typedef struct kalman
     float s;
 } kalman_t;
 
-extern void kalman_init(float xAxis, float yAxis, float zAxis, float sharpness, float kalmanW, kalman_t* kalmanState);
-extern float kalman_update(float input, int axis, kalman_t* kalmanState);
+void kalman_init(float xAxis, float yAxis, float zAxis, float sharpness, float kalmanW, kalman_t* kalmanState, variance_t* varStruct);
+float kalman_update(float input, int axis, kalman_t* kalmanState, variance_t* varStruct);
