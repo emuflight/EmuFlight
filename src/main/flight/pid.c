@@ -31,6 +31,7 @@
 #include "common/axis.h"
 #include "common/maths.h"
 #include "common/filter.h"
+#include "common/kalman.h"
 
 #include "config/config_reset.h"
 #include "pg/pg.h"
@@ -135,9 +136,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  },
 
                  .dFilter = {
-                     [PID_ROLL] = {2, 100, 250, 0},  // wc, dtermlpf, dtermlpf2, smartSmoothing
-                     [PID_PITCH] = {2, 100, 250, 0}, // wc, dtermlpf, dtermlpf2, smartSmoothing
-                     [PID_YAW] = {0, 100, 250, 0},    // wc, dtermlpf, dtermlpf2, smartSmoothing
+                     [PID_ROLL] = {2, 100, 250, 0, 10000},  // wc, dtermlpf, dtermlpf2, smartSmoothing, kalman Q
+                     [PID_PITCH] = {2, 100, 250, 0, 10000}, // wc, dtermlpf, dtermlpf2, smartSmoothing, kalman Q
+                     [PID_YAW] = {0, 100, 250, 0, 10000},    // wc, dtermlpf, dtermlpf2, smartSmoothing, kalman Q
                  },
 
                  .pidSumLimit = PIDSUM_LIMIT_MAX,
@@ -193,6 +194,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  .motor_output_limit = 100,
                  .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
                  .horizonTransition = 0,
+                 .W = 8,
+                 .sharpness = 2500,
                );
 }
 
@@ -240,6 +243,8 @@ static FAST_RAM filterApplyFnPtr dtermLowpassApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
 static FAST_RAM filterApplyFnPtr dtermLowpass2ApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT kalman_t kalmanDtermFilterStateRate[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT variance_t varianceDtermStruct[XYZ_AXIS_COUNT];
 
 #if defined(USE_ITERM_RELAX)
 static FAST_RAM_ZERO_INIT pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
@@ -267,6 +272,8 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 
     dtermLowpassApplyFn = nullFilterApply;
     dtermLowpass2ApplyFn = nullFilterApply;
+
+    kalman_init(pidProfile->dFilter[X].Q, pidProfile->dFilter[Y].Q, pidProfile->dFilter[Z].Q, pidProfile->sharpness, pidProfile->W, kalmanDtermFilterStateRate, varianceDtermStruct);
 
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
     {
@@ -1050,6 +1057,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
                 kdRingBufferSum[axis] -= kdRingBuffer[axis][kdRingBufferPoint[axis]];
             }
             dDelta = pidCoefficient[axis].Kd * dDelta;
+            dDelta = kalman_update(dDelta, axis, kalmanDtermFilterStateRate, varianceDtermStruct);
 
             float dDeltaMultiplier;
 

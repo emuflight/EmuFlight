@@ -82,6 +82,7 @@ typedef struct dFilter_s {
     uint16_t dLpf;
     uint16_t dLpf2;
     uint8_t smartSmoothing;
+    uint16_t Q;
 } dFilter_t;
 
 typedef enum {
@@ -107,6 +108,8 @@ typedef struct pidProfile_s {
     dFilter_t dFilter[3];
 
     uint8_t dterm_filter_type;              // Filter selection for dterm
+    uint16_t W;
+    uint16_t sharpness;
     uint8_t itermWindupPointPercent;        // Experimental ITerm windup threshold, percent motor saturation
     uint16_t pidSumLimit;
     uint16_t pidSumLimitYaw;
