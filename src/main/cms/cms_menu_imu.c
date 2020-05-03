@@ -68,7 +68,7 @@ static uint16_t errorBoostYaw;
 static uint8_t errorBoostLimitYaw;
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
-
+static uint16_t tempFilterQ[3];
 
 static uint8_t tmpRateProfileIndex;
 static uint8_t rateProfileIndex;
@@ -622,12 +622,15 @@ static CMS_Menu cmsx_menuImuf = {
 static uint8_t cmsx_smart_dterm_smoothing_roll;
 static uint8_t cmsx_smart_dterm_smoothing_pitch;
 static uint8_t cmsx_smart_dterm_smoothing_yaw;
+static uint16_t cmsx_dTermSharpness;
+static uint16_t cmsx_dTermW;
 
 static long cmsx_FilterPerProfileRead(void)
 {
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
     for (uint8_t i = 0; i < 3; i++) {
         tempPidWc[i] = pidProfile->dFilter[i].Wc;
+        tempFilterQ[i] = pidProfile->dFilter[i].Q;
     }
     cmsx_dterm_lowpass_hz_roll   = pidProfile->dFilter[ROLL].dLpf;
     cmsx_dterm_lowpass_hz_pitch  = pidProfile->dFilter[PITCH].dLpf;
@@ -639,6 +642,8 @@ static long cmsx_FilterPerProfileRead(void)
     cmsx_smart_dterm_smoothing_roll   = pidProfile->dFilter[ROLL].smartSmoothing;
     cmsx_smart_dterm_smoothing_pitch  = pidProfile->dFilter[PITCH].smartSmoothing;
     cmsx_smart_dterm_smoothing_yaw    = pidProfile->dFilter[YAW].smartSmoothing;
+    cmsx_dTermSharpness               = pidProfile->sharpness;
+    cmsx_dTermW                       = pidProfile->W;
     return 0;
 }
 
@@ -650,6 +655,7 @@ static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self)
 
     for (uint8_t i = 0; i < 3; i++) {
         pidProfile->dFilter[i].Wc = tempPidWc[i];
+        pidProfile->dFilter[i].Q  = tempFilterQ[i];
     }
 
     pidProfile->dFilter[ROLL].dLpf   = cmsx_dterm_lowpass_hz_roll;
@@ -662,12 +668,21 @@ static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self)
     pidProfile->dFilter[ROLL].smartSmoothing   = cmsx_smart_dterm_smoothing_roll;
     pidProfile->dFilter[PITCH].smartSmoothing  = cmsx_smart_dterm_smoothing_pitch;
     pidProfile->dFilter[YAW].smartSmoothing    = cmsx_smart_dterm_smoothing_yaw;
+    pidProfile->sharpness                      = cmsx_dTermSharpness;
+    pidProfile->W                              = cmsx_dTermW;
     return 0;
 }
 
 static OSD_Entry cmsx_menuFilterPerProfileEntries[] =
 {
     { "-- FILTER PP  --", OME_Label, NULL, NULL, 0 },
+
+    { "DTERM W",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dTermW,     3, 512, 1 }, 0 },
+    { "DTERM ROLL Q", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempFilterQ[ROLL],    0, 16000, 1 }, 0 },
+    { "DTERM PITCH Q", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempFilterQ[PITCH],    0, 16000, 1 }, 0 },
+    { "DTERM YAW Q", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempFilterQ[YAW],    0, 16000, 1 }, 0 },
+    { "DTERM SHARPNESS",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dTermSharpness,     1, 16000, 1 }, 0 },
+
 
     { "DTERM LPF ROLL",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz_roll,     0, 500, 1 }, 0 },
     { "DTERM LPF PITCH",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz_pitch,     0, 500, 1 }, 0 },

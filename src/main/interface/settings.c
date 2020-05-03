@@ -853,7 +853,7 @@ const clivalue_t valueTable[] = {
     { "dterm_roll_q",               VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[ROLL].Q) },
     { "dterm_pitch_q",              VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].Q) },
     { "dterm_yaw_q",                VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[YAW].Q) },
-    { "dterm_sharpness",            VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, sharpness) },
+    { "dterm_sharpness",            VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, sharpness) },
     { "dterm_w",                    VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 3, 512 }, PG_PID_PROFILE, offsetof(pidProfile_t, W) },
 
     { "pid_at_min_throttle",        VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, pidAtMinThrottle) },
