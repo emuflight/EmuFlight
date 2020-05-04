@@ -31,6 +31,7 @@
 #include "common/axis.h"
 #include "common/maths.h"
 #include "common/filter.h"
+#include "common/dtermkalman.h"
 
 #include "config/config_reset.h"
 #include "pg/pg.h"
@@ -193,6 +194,11 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  .motor_output_limit = 100,
                  .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
                  .horizonTransition = 0,
+                 .imuf_roll_q = 5000,
+                 .imuf_pitch_q = 5000,
+                 .imuf_yaw_q = 5000,
+                 .imuf_w = 12,
+                 .imuf_sharpness = 2500,
                );
 }
 
@@ -267,6 +273,8 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 
     dtermLowpassApplyFn = nullFilterApply;
     dtermLowpass2ApplyFn = nullFilterApply;
+
+    dtermkalman_init(pidProfile);
 
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
     {
@@ -1060,6 +1068,9 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
                 previousdDelta[axis] = dDelta;
                 DEBUG_SET(DEBUG_SMART_SMOOTHING, axis, dDeltaMultiplier * 1000.0f);
             }
+
+            dDelta = dtermkalman_update(dDelta, axis);
+
             // Divide rate change by dT to get differential (ie dr/dt).
             // dT is fixed and calculated from the target PID loop time
             // This is done to avoid DTerm spikes that occur with dynamically

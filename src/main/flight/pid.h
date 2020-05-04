@@ -106,6 +106,12 @@ typedef struct pidProfile_s {
     pidf_t  pid[PID_ITEM_COUNT];
     dFilter_t dFilter[3];
 
+    uint16_t imuf_roll_q;
+    uint16_t imuf_pitch_q;
+    uint16_t imuf_yaw_q;
+    uint16_t imuf_w;
+    uint16_t imuf_sharpness;
+
     uint8_t dterm_filter_type;              // Filter selection for dterm
     uint8_t itermWindupPointPercent;        // Experimental ITerm windup threshold, percent motor saturation
     uint16_t pidSumLimit;
