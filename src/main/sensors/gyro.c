@@ -126,7 +126,7 @@ static FAST_RAM_ZERO_INIT timeUs_t accumulatedMeasurementTimeUs;
 static FAST_RAM_ZERO_INIT timeUs_t accumulationLastTimeSampledUs;
 
 float FAST_RAM_ZERO_INIT vGyroStdDevModulus;
-kalman_t    kalmanFilterStateRate[XYZ_AXIS_COUNT];
+
 
 static FAST_RAM_ZERO_INIT int16_t gyroSensorTemperature;
 
@@ -771,7 +771,7 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type)
     // If lowpass cutoff has been specified and is less than the Nyquist frequency
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
     float gain = pt1FilterGain(lpfHz[axis], gyroDt);
-    if (lpfHz[axis] <= gyroFrequencyNyquist) {
+    if (lpfHz[axis] && lpfHz[axis] <= gyroFrequencyNyquist) {
         switch (type) {
         case FILTER_PT1:
             *lowpassFilterApplyFn = (filterApplyFnPtr) pt1FilterApply;
@@ -867,7 +867,7 @@ static void gyroInitSensorFilters(gyroSensor_t *gyroSensor)
 #endif
 
 #ifndef USE_GYRO_IMUF9001
-    kalman_init(gyroConfig()->imuf_roll_q, gyroConfig()->imuf_pitch_q, gyroConfig()->imuf_yaw_q, gyroConfig()->imuf_sharpness, gyroConfig()->imuf_w, kalmanFilterStateRate);
+    kalman_init();
 #endif //USE_GYRO_IMUF9001
 
     gyroInitLowpassFilterLpf(
