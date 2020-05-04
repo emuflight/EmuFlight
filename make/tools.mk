@@ -28,7 +28,7 @@ ifdef MACOSX
 endif
 
 ifdef WINDOWS
-  ARM_SDK_URL  := $(ARM_SDK_URL_BASE)-win32.zip.bz2
+  ARM_SDK_URL  := $(ARM_SDK_URL_BASE)-win32.zip
 endif
 
 ARM_SDK_FILE := $(notdir $(ARM_SDK_URL))
