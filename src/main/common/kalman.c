@@ -30,9 +30,6 @@ void init_kalman(kalman_t *filter, float q, float sharpness)
     filter->q = q * 0.001f;             //add multiplier to make tuning easier
     filter->r = 88.0f;                  //seeding R at 88.0f
     filter->p = 30.0f;                  //seeding P at 30.0f
-    filter->k = 1.0f;
-    filter->x = 0.0f;
-    filter->lastX = 0.0f;
     filter->e = 1.0f;
     filter->s = sharpness / 250.0f;     //adding the new sharpness :) time to overfilter :O
 }
@@ -41,12 +38,6 @@ void init_variance(variance_t* variance, float kalmanW)
 {
     variance->w = kalmanW;
     variance->inverseN = 1.0f / (float)(variance->w);
-    variance->axisVar = 0.0f;
-    variance->windex = 0;
-    memset(variance->axisWindow, 0, sizeof(variance->axisWindow));
-    variance->axisSumMean = 0.0f;
-    variance->axisMean = 0.0f;
-    variance->axisSumVar = 0.0f;
 }
 
 void kalman_init(float xAxis, float yAxis, float zAxis, float sharpness, float kalmanW, kalman_t* kalmanState, variance_t* varStruct)
