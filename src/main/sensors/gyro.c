@@ -126,9 +126,7 @@ static FAST_RAM_ZERO_INIT timeUs_t accumulatedMeasurementTimeUs;
 static FAST_RAM_ZERO_INIT timeUs_t accumulationLastTimeSampledUs;
 
 float FAST_RAM_ZERO_INIT vGyroStdDevModulus;
-
-static FAST_RAM_ZERO_INIT kalman_t kalmanFilterStateRate[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT variance_t varianceStruct[XYZ_AXIS_COUNT];
+kalman_t    kalmanFilterStateRate[XYZ_AXIS_COUNT];
 
 static FAST_RAM_ZERO_INIT int16_t gyroSensorTemperature;
 
@@ -869,7 +867,7 @@ static void gyroInitSensorFilters(gyroSensor_t *gyroSensor)
 #endif
 
 #ifndef USE_GYRO_IMUF9001
-    kalman_init(gyroConfig()->imuf_roll_q, gyroConfig()->imuf_pitch_q, gyroConfig()->imuf_yaw_q, gyroConfig()->imuf_sharpness, gyroConfig()->imuf_w, kalmanFilterStateRate, varianceStruct);
+    kalman_init(gyroConfig()->imuf_roll_q, gyroConfig()->imuf_pitch_q, gyroConfig()->imuf_yaw_q, gyroConfig()->imuf_sharpness, gyroConfig()->imuf_w, kalmanFilterStateRate);
 #endif //USE_GYRO_IMUF9001
 
     gyroInitLowpassFilterLpf(
