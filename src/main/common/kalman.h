@@ -27,17 +27,6 @@
 
 #define VARIANCE_SCALE 0.67f
 
-typedef struct variance
-{
-    float axisVar;
-    uint32_t windex;
-    float axisWindow[MAX_KALMAN_WINDOW_SIZE];
-    float axisSumMean;
-    float axisMean;
-    float axisSumVar;
-    float inverseN;
-    uint16_t w;
-} variance_t;
 
 typedef struct kalman
 {
@@ -49,6 +38,14 @@ typedef struct kalman
     float lastX; //previous state
     float e;
     float s;
+    float axisVar;
+    uint16_t windex;
+    float axisWindow[MAX_KALMAN_WINDOW_SIZE];
+    float axisSumMean;
+    float axisMean;
+    float axisSumVar;
+    float inverseN;
+    uint16_t w;
 } kalman_t;
 
 extern void kalman_init(void);
