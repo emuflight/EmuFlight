@@ -83,6 +83,7 @@ PG_RESET_TEMPLATE(mixerConfig_t, mixerConfig,
     .crashflip_power_percent = 70,
     .alti_cutoff = 50,
     .alti_start_lim = 40,
+    .altiLimiter = false
 );
 
 PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 1);
@@ -138,6 +139,7 @@ mixerMode_e currentMixerMode;
 static motorMixer_t currentMixer[MAX_SUPPORTED_MOTORS];
 
 static uint8_t altiLimStatus = 0;
+
 
 static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
 
@@ -900,7 +902,9 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
 
     loggingThrottle = throttle;
 
-    if ( (gpsIsHealthy() && gpsSol.numSat > 7) || isBaroReady()) {
+#ifdef USE_BARO
+    if (((gpsIsHealthy() && gpsSol.numSat > 7) || isBaroReady()) && isAltiLimit()
+    && (mixerConfig()->alti_cutoff > 0 && mixerConfig()->alti_start_lim > 0)) {
             if (getEstimatedAltitude() > (mixerConfig()->alti_cutoff*100)){
                 throttle = 0.0f;
                 altiLimStatus = 1;
@@ -915,6 +919,7 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
         } else {
             altiLimStatus = 2;
         }
+#endif
 
     motorMixRange = motorMixMax - motorMixMin;
     if (motorMixRange > 1.0f && (hardwareMotorType != MOTOR_BRUSHED)) {
@@ -1007,4 +1012,9 @@ float mixerGetLoggingThrottle(void)
 uint8_t getThrottleLimitationStatus(void)
 {
     return altiLimStatus;
+}
+
+bool isAltiLimit(void)
+{
+  return mixerConfig()->altiLimiter;
 }

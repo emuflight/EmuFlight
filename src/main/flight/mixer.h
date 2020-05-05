@@ -94,6 +94,7 @@ typedef struct mixerConfig_s {
     uint8_t crashflip_power_percent;
     uint16_t alti_cutoff;
     uint16_t alti_start_lim;
+    bool altiLimiter;
 } mixerConfig_t;
 
 PG_DECLARE(mixerConfig_t, mixerConfig);
@@ -142,3 +143,4 @@ bool mixerIsTricopter(void);
 void mixerSetThrottleAngleCorrection(int correctionValue);
 float mixerGetLoggingThrottle(void);
 uint8_t getThrottleLimitationStatus(void);
+bool isAltiLimit(void);
