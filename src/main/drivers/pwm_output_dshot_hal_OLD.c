@@ -81,7 +81,7 @@ FAST_CODE void pwmWriteDshotInt(uint8_t index, uint16_t value)
         motor->timer->dmaBurstLength = bufferSize * 4;
     } else
 #endif
-    {    
+    {
         bufferSize = loadDmaBuffer(motor->dmaBuffer, 1, packet);
         motor->timer->timerDmaSources |= motor->timerDmaSource;
         LL_EX_DMA_SetDataLength(motor->timerHardware->dmaRef, bufferSize);
@@ -101,7 +101,6 @@ FAST_CODE void pwmCompleteDshotMotorUpdate(uint8_t motorCount)
     }
 
     for (int i = 0; i < dmaMotorTimerCount; i++) {
-
 #ifdef USE_DSHOT_DMAR
         if (useBurstDshot) {
             LL_EX_DMA_SetDataLength(dmaMotorTimers[i].dmaBurstRef, dmaMotorTimers[i].dmaBurstLength);
@@ -123,7 +122,7 @@ FAST_CODE void pwmCompleteDshotMotorUpdate(uint8_t motorCount)
     }
 }
 
-static void motor_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor)
+FAST_CODE static void motor_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor)
 {
     if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_TCIF)) {
         motorDmaOutput_t * const motor = &dmaMotors[descriptor->userParam];
@@ -141,7 +140,6 @@ static void motor_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor)
 
         DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF);
     }
-
 }
 
 void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, motorPwmProtocolTypes_e pwmProtocolType, uint8_t output)
