@@ -31,6 +31,13 @@
 
 #define DSHOT_MAX_COMMAND 47
 
+#define MOTOR_OUTPUT_LIMIT_PERCENT_MIN 1
+#define MOTOR_OUTPUT_LIMIT_PERCENT_MAX 100
+
+#define DSHOT_MIN_THROTTLE       48
+#define DSHOT_MAX_THROTTLE     2047
+#define DSHOT_3D_FORWARD_MIN_THROTTLE 1048
+
 /*
   DshotSettingRequest (KISS24). Spin direction, 3d and save Settings reqire 10 requests.. and the TLM Byte must always be high if 1-47 are used to send settings
 
@@ -91,16 +98,6 @@ typedef enum {
 #ifdef USE_DSHOT
 #define MAX_DMA_TIMERS        8
 
-#if defined(STM32F446xx)
-#define MOTOR_DSHOT1200_HZ   MHZ_TO_HZ(90)
-#define MOTOR_DSHOT600_HZ    MHZ_TO_HZ(45)
-#define MOTOR_DSHOT300_HZ    MHZ_TO_HZ(22.5)
-#define MOTOR_DSHOT150_HZ    MHZ_TO_HZ(11.25)
-
-#define MOTOR_BIT_0     27
-#define MOTOR_BIT_1     55
-#define MOTOR_BITLENGTH 74
-#else
 #define MOTOR_DSHOT1200_HZ    MHZ_TO_HZ(24)
 #define MOTOR_DSHOT600_HZ     MHZ_TO_HZ(12)
 #define MOTOR_DSHOT300_HZ     MHZ_TO_HZ(6)
@@ -109,39 +106,11 @@ typedef enum {
 #define MOTOR_BIT_0           7
 #define MOTOR_BIT_1           14
 #define MOTOR_BITLENGTH       19
-#endif /* defined(STM32F446xx) */
-#endif
 
-#if defined(STM32F40_41xxx) // must be multiples of timer clock
-#define ONESHOT125_TIMER_MHZ  12
-#define ONESHOT42_TIMER_MHZ   21
-#define MULTISHOT_TIMER_MHZ   84
-#define PWM_BRUSHED_TIMER_MHZ 21
-#elif defined(STM32F7) // must be multiples of timer clock
-#define ONESHOT125_TIMER_MHZ  9
-#define ONESHOT42_TIMER_MHZ   27
-#define MULTISHOT_TIMER_MHZ   54
-#define PWM_BRUSHED_TIMER_MHZ 27
-#else
-#if defined(STM32F446xx)
-#define ONESHOT125_TIMER_MHZ  15
-#define ONESHOT42_TIMER_MHZ   30
-#define MULTISHOT_TIMER_MHZ   90
-#define PWM_BRUSHED_TIMER_MHZ 30
-#define MOTOR_PROSHOT1000_HZ         MHZ_TO_HZ(90)
-#define PROSHOT_BASE_SYMBOL          90 // 1uS
-#define PROSHOT_BIT_WIDTH            11
-#define MOTOR_NIBBLE_LENGTH_PROSHOT  360 // 4uS
-#else
-#define ONESHOT125_TIMER_MHZ  8
-#define ONESHOT42_TIMER_MHZ   24
-#define MULTISHOT_TIMER_MHZ   72
-#define PWM_BRUSHED_TIMER_MHZ 24
 #define MOTOR_PROSHOT1000_HZ         MHZ_TO_HZ(24)
 #define PROSHOT_BASE_SYMBOL          24 // 1uS
 #define PROSHOT_BIT_WIDTH            3
 #define MOTOR_NIBBLE_LENGTH_PROSHOT  96 // 4uS
-#endif
 #endif
 
 

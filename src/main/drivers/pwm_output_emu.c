@@ -26,10 +26,16 @@
 #include "platform.h"
 #include "drivers/time.h"
 
+#include "pg/pinio.h"
+#include "pg/piniobox.h"
+
+#include "interface/msp_box.h"
+
 #include "drivers/io.h"
 #include "pwm_output.h"
 #include "timer.h"
 #include "drivers/pwm_output.h"
+#include "config/feature.h"
 
 static FAST_RAM_ZERO_INIT pwmWriteFn *pwmWrite;
 static FAST_RAM_ZERO_INIT pwmOutputPort_t motors[MAX_SUPPORTED_MOTORS];
@@ -145,8 +151,17 @@ static void pwmWriteUnused(uint8_t index, float value)
     UNUSED(value);
 }
 
-static void pwmWriteStandard(uint8_t index, float value)
+FAST_CODE static void pwmWriteStandard(uint8_t index, float value)
 {
+  if(feature(FEATURE_3D)) {
+    if (lrintf(value) - 1500 > 0) {
+        pinioSet(0, 0);     // set to forward
+        value = (value - 1500) * 2 + 1000;
+    } else {
+        pinioSet(0, 1);     // set to backward
+        value = (1500 - value) * 2 + 1000;
+    }
+}
     /* TODO: move value to be a number between 0-1 (i.e. percent throttle from mixer) */
     *motors[index].channel.ccr = lrintf((value * motors[index].pulseScale) + motors[index].pulseOffset);
 }
@@ -167,7 +182,7 @@ static FAST_CODE uint8_t loadDmaBufferDshot(uint32_t *dmaBuffer, int stride, uin
     return DSHOT_DMA_BUFFER_SIZE;
 }
 
-static uint8_t loadDmaBufferProshot(uint32_t *dmaBuffer, int stride, uint16_t packet)
+FAST_CODE static uint8_t loadDmaBufferProshot(uint32_t *dmaBuffer, int stride, uint16_t packet)
 {
     for (int i = 0; i < 4; i++) {
         dmaBuffer[i * stride] = PROSHOT_BASE_SYMBOL + ((packet & 0xF000) >> 12) * PROSHOT_BIT_WIDTH;  // Most significant nibble first
@@ -178,7 +193,7 @@ static uint8_t loadDmaBufferProshot(uint32_t *dmaBuffer, int stride, uint16_t pa
 }
 #endif
 
-void pwmWriteMotor(uint8_t index, float value)
+FAST_CODE void pwmWriteMotor(uint8_t index, float value)
 {
     pwmWrite(index, value);
 }
@@ -467,7 +482,7 @@ void pwmWriteDshotCommand(uint8_t index, uint8_t motorCount, uint8_t command, bo
             if (index == i || index == ALL_MOTORS) {
                 dshotCommandControl.command[i] = command;
             } else {
-                dshotCommandControl.command[i] = command;
+                dshotCommandControl.command[i] = DSHOT_CMD_MOTOR_STOP;
             }
         }
 
@@ -497,8 +512,8 @@ FAST_CODE_NOINLINE bool pwmDshotCommandOutputIsEnabled(uint8_t motorCount)
     if (cmpTimeUs(timeNowUs, dshotCommandControl.nextCommandAtUs) < 0) {
         //Skip motor update because it isn't time yet for a new command
         return false;
-    }   
-  
+    }
+
     //Timed motor update happening with dshot command
     if (dshotCommandControl.repeats > 0) {
         dshotCommandControl.repeats--;
