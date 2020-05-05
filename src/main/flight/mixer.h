@@ -91,6 +91,7 @@ typedef struct mixerConfig_s {
     uint8_t mixerMode;
     bool yaw_motors_reversed;
     uint8_t crashflip_motor_percent;
+    uint8_t crashflip_power_percent;
     uint16_t alti_cutoff;
     uint16_t alti_start_lim;
 } mixerConfig_t;
@@ -128,7 +129,7 @@ void mixerInit(mixerMode_e mixerMode);
 void mixerConfigureOutput(void);
 
 void mixerResetDisarmedMotors(void);
-void mixTable(timeUs_t currentTimeUs, uint8_t vbatPidCompensation);
+void mixTable(timeUs_t currentTimeUs);
 void syncMotors(bool enabled);
 void writeMotors(void);
 void stopMotors(void);

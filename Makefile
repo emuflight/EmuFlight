@@ -92,6 +92,19 @@ FEATURES        =
 
 include $(ROOT)/make/targets.mk
 
+# build number - default for local builds
+BUILDNO := local
+
+# github actions build
+ifneq ($(BUILD_NUMBER),)
+BUILDNO := $(BUILD_NUMBER)
+endif
+
+# travis build
+ifneq ($(TRAVIS_BUILD_NUMBER),)
+BUILDNO := $(TRAVIS_BUILD_NUMBER)
+endif
+
 REVISION := $(shell git log -1 --format="%h")
 
 FC_VER_MAJOR := $(shell grep " FC_VERSION_MAJOR" src/main/build/version.h | awk '{print $$3}' )
@@ -109,7 +122,7 @@ FATFS_SRC       = $(notdir $(wildcard $(FATFS_DIR)/*.c))
 
 CSOURCES        := $(shell find $(SRC_DIR) -name '*.c')
 
-LD_FLAGS         :=
+LD_FLAGS        :=
 
 #
 # Default Tool options - can be overridden in {mcu}.mk files.
@@ -118,10 +131,10 @@ ifeq ($(DEBUG),GDB)
 OPTIMISE_DEFAULT      := -Og
 
 LTO_FLAGS             := $(OPTIMISE_DEFAULT)
-DEBUG_FLAGS            = -ggdb3 -DDEBUG
+DEBUG_FLAGS           = -ggdb3 -DDEBUG
 else
 ifeq ($(DEBUG),INFO)
-DEBUG_FLAGS            = -ggdb3
+DEBUG_FLAGS           = -ggdb3
 endif
 OPTIMISATION_BASE     := -flto -fuse-linker-plugin -ffast-math
 OPTIMISE_DEFAULT      := -O2
@@ -186,6 +199,9 @@ ifeq ($(CCACHE_CHECK),0)
 	CCACHE := ccache
 endif
 
+# suit ccache
+CROSS_COMPILE := $(ARM_SDK_PREFIX)
+
 # Tool names
 CROSS_CC    := $(CCACHE) $(ARM_SDK_PREFIX)gcc
 CROSS_CXX   := $(CCACHE) $(ARM_SDK_PREFIX)g++
@@ -227,6 +243,7 @@ CFLAGS     += $(ARCH_FLAGS) \
               -D$(TARGET) \
               $(TARGET_FLAGS) \
               -D'__FORKNAME__="$(FORKNAME)"' \
+              -D'__BUILDNO__="$(BUILDNO)"' \
               -D'__TARGET__="$(TARGET)"' \
               -D'__REVISION__="$(REVISION)"' \
               -save-temps=obj \
@@ -235,6 +252,7 @@ CFLAGS     += $(ARCH_FLAGS) \
               $(EXTRA_FLAGS)
 
 ASFLAGS     = $(ARCH_FLAGS) \
+			  $(DEBUG_FLAGS) \
               -x assembler-with-cpp \
               $(addprefix -I,$(INCLUDE_DIRS)) \
               -MMD -MP
@@ -266,17 +284,18 @@ CPPCHECK        = cppcheck $(CSOURCES) --enable=all --platform=unix64 \
                   $(addprefix -I,$(INCLUDE_DIRS)) \
                   -I/usr/include -I/usr/include/linux
 
+TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(TARGET)_$(FC_VER)
+
 #
 # Things we will build
 #
-TARGET_BIN      = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET).bin
-TARGET_HEX      = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET).hex
+TARGET_BIN      = $(TARGET_BASENAME).bin
+TARGET_HEX      = $(TARGET_BASENAME).hex
 TARGET_ELF      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).elf
 TARGET_LST      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).lst
 TARGET_OBJS     = $(addsuffix .o,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $(SRC))))
 TARGET_DEPS     = $(addsuffix .d,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $(SRC))))
 TARGET_MAP      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).map
-
 
 CLEAN_ARTIFACTS := $(TARGET_BIN)
 CLEAN_ARTIFACTS += $(TARGET_HEX)
@@ -337,7 +356,7 @@ $(OBJECT_DIR)/$(TARGET)/%.o: %.S
 
 
 ## all               : Build all targets (excluding unsupported)
-all: $(SUPPORTED_TARGETS)
+all supported: $(SUPPORTED_TARGETS)
 
 ## all_with_unsupported : Build all targets (including unsupported)
 all_with_unsupported: $(VALID_TARGETS)
@@ -345,7 +364,7 @@ all_with_unsupported: $(VALID_TARGETS)
 ## unsupported : Build unsupported targets
 unsupported: $(UNSUPPORTED_TARGETS)
 
-## official          : Build all official (travis) targets
+## official          : Build all "official" targets
 official: $(OFFICIAL_TARGETS)
 
 ## targets-group-1   : build some targets
@@ -353,12 +372,6 @@ targets-group-1: $(GROUP_1_TARGETS)
 
 ## targets-group-2   : build some targets
 targets-group-2: $(GROUP_2_TARGETS)
-
-## targets-group-3   : build some targets
-targets-group-3: $(GROUP_3_TARGETS)
-
-## targets-group-3   : build some targets
-targets-group-4: $(GROUP_4_TARGETS)
 
 ## targets-group-rest: build the rest of the targets (not listed in group 1, 2 or 3)
 targets-group-rest: $(GROUP_OTHER_TARGETS)
@@ -441,13 +454,13 @@ cppcheck-result.xml: $(CSOURCES)
 
 # mkdirs
 $(DL_DIR):
-	mkdir -p $@
+	$(V1) mkdir -p $@
 
 $(TOOLS_DIR):
-	mkdir -p $@
+	$(V1) mkdir -p $@
 
 $(BUILD_DIR):
-	mkdir -p $@
+	$(V1) mkdir -p $@
 
 ## version           : print firmware version
 version:
@@ -476,14 +489,10 @@ targets:
 	@echo "Base target:         $(BASE_TARGET)"
 	@echo "targets-group-1:     $(GROUP_1_TARGETS)"
 	@echo "targets-group-2:     $(GROUP_2_TARGETS)"
-	@echo "targets-group-3:     $(GROUP_3_TARGETS)"
-	@echo "targets-group-4:     $(GROUP_4_TARGETS)"
 	@echo "targets-group-rest:  $(GROUP_OTHER_TARGETS)"
 
 	@echo "targets-group-1:     $(words $(GROUP_1_TARGETS)) targets"
 	@echo "targets-group-2:     $(words $(GROUP_2_TARGETS)) targets"
-	@echo "targets-group-3:     $(words $(GROUP_3_TARGETS)) targets"
-	@echo "targets-group-4:     $(words $(GROUP_4_TARGETS)) targets"
 	@echo "targets-group-rest:  $(words $(GROUP_OTHER_TARGETS)) targets"
 	@echo "total in all groups  $(words $(SUPPORTED_TARGETS)) targets"
 

@@ -35,9 +35,6 @@ typedef struct gyroAnalyseState_s {
     float maxSampleCountRcp;
     float oversampledGyroAccumulator[XYZ_AXIS_COUNT];
 
-    // filter for downsampled accumulated gyro
-    biquadFilter_t gyroBandpassFilter[XYZ_AXIS_COUNT];
-
     // downsampled gyro data circular buffer for frequency analysis
     uint8_t circularBufferIdx;
     float downsampledGyroData[XYZ_AXIS_COUNT][FFT_WINDOW_SIZE];
@@ -53,10 +50,13 @@ typedef struct gyroAnalyseState_s {
 
     biquadFilter_t detectedFrequencyFilter[XYZ_AXIS_COUNT];
     uint16_t centerFreq[XYZ_AXIS_COUNT];
+    bool filterUpdateExecute;
+    uint8_t filterUpdateAxis;
+    uint16_t filterUpdateFrequency;
 } gyroAnalyseState_t;
 
 STATIC_ASSERT(FFT_WINDOW_SIZE <= (uint8_t) -1, window_size_greater_than_underlying_type);
 
 void gyroDataAnalyseStateInit(gyroAnalyseState_t *gyroAnalyse, uint32_t targetLooptime);
 void gyroDataAnalysePush(gyroAnalyseState_t *gyroAnalyse, int axis, float sample);
-void gyroDataAnalyse(gyroAnalyseState_t *gyroAnalyse, biquadFilter_t *notchFilterDyn);
+void gyroDataAnalyse(gyroAnalyseState_t *gyroAnalyse);

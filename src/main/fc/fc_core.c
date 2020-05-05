@@ -377,10 +377,6 @@ void tryArm(void)
 
         resetTryingToArm();
 
-#ifdef USE_ACRO_TRAINER
-        pidAcroTrainerInit();
-#endif // USE_ACRO_TRAINER
-
         if (isModeActivationConditionPresent(BOXPREARM)) {
             ENABLE_ARMING_FLAG(WAS_ARMED_WITH_PREARM);
         }
@@ -844,10 +840,6 @@ bool processRx(timeUs_t currentTimeUs)
     }
 #endif
 
-#ifdef USE_ACRO_TRAINER
-    pidSetAcroTrainerState(IS_RC_MODE_ACTIVE(BOXACROTRAINER) && sensors(SENSOR_ACC));
-#endif // USE_ACRO_TRAINER
-
 #ifdef USE_RC_SMOOTHING_FILTER
     if (ARMING_FLAG(ARMED) && !rcSmoothingInitializationComplete()) {
         beeper(BEEPER_RC_SMOOTHING_INIT_FAIL);
@@ -961,7 +953,7 @@ static FAST_CODE void subTaskMotorUpdate(timeUs_t currentTimeUs)
         startTime = micros();
     }
 
-    mixTable(currentTimeUs, currentPidProfile->vbatPidCompensation);
+    mixTable(currentTimeUs);
 
 #ifdef USE_SERVOS
     // motor outputs are used as sources for servo mixing, so motors must be calculated using mixTable() before servos.

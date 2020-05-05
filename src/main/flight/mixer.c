@@ -80,6 +80,7 @@ PG_RESET_TEMPLATE(mixerConfig_t, mixerConfig,
     .mixerMode = TARGET_DEFAULT_MIXER,
     .yaw_motors_reversed = false,
     .crashflip_motor_percent = 0,
+    .crashflip_power_percent = 70,
     .alti_cutoff = 50,
     .alti_start_lim = 40,
 );
@@ -105,7 +106,7 @@ void pgResetFn_motorConfig(motorConfig_t *motorConfig)
     {
         motorConfig->minthrottle = 1070;
         motorConfig->dev.motorPwmRate = BRUSHLESS_MOTORS_PWM_RATE;
-        motorConfig->dev.motorPwmProtocol = PWM_TYPE_MULTISHOT;
+        motorConfig->dev.motorPwmProtocol = PWM_TYPE_DSHOT600;
     }
 #endif
     motorConfig->maxthrottle = 2000;
@@ -130,6 +131,7 @@ static FAST_RAM_ZERO_INIT uint8_t motorCount;
 static FAST_RAM_ZERO_INIT float motorMixRange;
 
 float FAST_RAM_ZERO_INIT motor[MAX_SUPPORTED_MOTORS];
+//float FAST_RAM_ZERO_INIT previousMotor[MAX_SUPPORTED_MOTORS];
 float motor_disarmed[MAX_SUPPORTED_MOTORS];
 
 mixerMode_e currentMixerMode;
@@ -647,7 +649,7 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs)
         motorRangeMax = motorOutputHigh;
         motorOutputMin = motorOutputLow;
         motorOutputRange = motorOutputHigh - motorOutputLow;
-        if (getBoxIdState(BOXUSER1)) {
+        if (getBoxIdState(BOXUSER4)) {
             motorOutputMixSign = -1;
         } else {
             motorOutputMixSign = 1;
@@ -670,16 +672,19 @@ static void applyFlipOverAfterCrashModeToMotors(void)
         float signRoll = getRcDeflection(FD_ROLL) < 0 ? 1 : -1;
         float signYaw = (getRcDeflection(FD_YAW) < 0 ? 1 : -1) * (mixerConfig()->yaw_motors_reversed ? 1 : -1);
 
+        float stickDeflectionMax;
         float stickDeflectionLength = sqrtf(stickDeflectionPitchAbs*stickDeflectionPitchAbs + stickDeflectionRollAbs*stickDeflectionRollAbs);
-
-        if (stickDeflectionYawAbs > MAX(stickDeflectionPitchAbs, stickDeflectionRollAbs)) {
-            // If yaw is the dominant, disable pitch and roll
-            stickDeflectionLength = stickDeflectionYawAbs;
-            signRoll = 0;
-            signPitch = 0;
+        if (stickDeflectionPitchAbs > MAX(stickDeflectionRollAbs,stickDeflectionYawAbs))
+        {
+           stickDeflectionMax = stickDeflectionPitchAbs;
+           signYaw = 0;
+        } else if (stickDeflectionRollAbs > stickDeflectionYawAbs) {
+           stickDeflectionMax = stickDeflectionRollAbs;
+           signYaw = 0;
         } else {
-            // If pitch/roll dominant, disable yaw
-            signYaw = 0;
+          stickDeflectionMax = stickDeflectionYawAbs;
+          signRoll = 0;
+          signPitch = 0;
         }
 
         float cosPhi = (stickDeflectionPitchAbs + stickDeflectionRollAbs) / (sqrtf(2.0f) * stickDeflectionLength);
@@ -696,7 +701,7 @@ static void applyFlipOverAfterCrashModeToMotors(void)
 
         // Apply a reasonable amount of stick deadband
         const float flipStickRange = 1.0f - CRASH_FLIP_STICK_MINF;
-        float flipPower = MAX(0.0f, stickDeflectionLength - CRASH_FLIP_STICK_MINF) / flipStickRange;
+        float flipPower = MAX(0.0f, stickDeflectionMax - CRASH_FLIP_STICK_MINF) / flipStickRange;
 
         for (int i = 0; i < motorCount; ++i) {
             float motorOutput =
@@ -711,7 +716,7 @@ static void applyFlipOverAfterCrashModeToMotors(void)
                     motorOutput = disarmMotorOutput;
                 }
             }
-            motorOutput = MIN(1.0f, flipPower * motorOutput);
+            motorOutput = MIN(1.0f, flipPower * motorOutput * (mixerConfig()->crashflip_power_percent * 1.414f) / 100.0f);
             motorOutput = motorOutputMin + motorOutput * motorOutputRange;
 
             // Add a little bit to the motorOutputMin so props aren't spinning when sticks are centered
@@ -754,12 +759,51 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
         motor[i] = motorOutput;
     }
 
+// float difference;
+// float looptimeAccounter;
+// looptimeAccounter = gyro.targetLooptime * pidConfig()->pid_process_denom;
+//     for (int motorNum = 0; motorNum < motorCount; motorNum++)
+// {
+//   difference = fabsf(motor[motorNum] - previousMotor[motorNum]);
+//   if (difference <= (looptimeAccounter * motorOutputRange * 0.00002f))
+//   {
+//     motor[motorNum] = previousMotor[motorNum];
+//   }
+//   else
+//   {
+//     if (difference > (looptimeAccounter * motorOutputRange * 0.00040f))
+//     {
+//       if (motor[motorNum] > previousMotor[motorNum])
+//       {
+//         motor[motorNum] = previousMotor[motorNum] + (looptimeAccounter * motorOutputRange * 0.00040f); /* increase by max 5% every ms */
+//         previousMotor[motorNum] = motor[motorNum];
+//       }
+//       else
+//       {
+//         motor[motorNum] = previousMotor[motorNum] - (looptimeAccounter * motorOutputRange * 0.00040f); /* decrease by max 5% every ms */
+//         previousMotor[motorNum] = motor[motorNum];
+//       }
+//     }
+//     else
+//     {
+//       previousMotor[motorNum] = motor[motorNum];
+//     }
+//   }
+// }
+
     // Disarmed mode
     if (!ARMING_FLAG(ARMED)) {
         for (int i = 0; i < motorCount; i++) {
             motor[i] = motor_disarmed[i];
         }
     }
+}
+
+float applyThrottleVbatCompensation(float throttle)
+{
+    float vbatCompensation = calculateVbatCompensation(currentControlRateProfile->vbat_comp_type, currentControlRateProfile->vbat_comp_ref);
+    float throttleVbatCompensation = scaleRangef(currentControlRateProfile->vbat_comp_throttle_level, 0.0f, 100.0f, 1.0f, vbatCompensation);
+    return constrainf(throttle * throttleVbatCompensation, 0.0f, 1.0f);
 }
 
 float applyThrottleLimit(float throttle)
@@ -777,7 +821,7 @@ float applyThrottleLimit(float throttle)
     return throttle;
 }
 
-FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs, uint8_t vbatPidCompensation)
+FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs)
 {
     if (isFlipOverAfterCrashMode()) {
         applyFlipOverAfterCrashModeToMotors();
@@ -808,8 +852,9 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
       scaledAxisPidYaw = -scaledAxisPidYaw;
   }
 
-    // Calculate voltage compensation
-    const float vbatCompensationFactor = vbatPidCompensation ? calculateVbatPidCompensation() : 1.0f;
+    if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF) {
+        throttle = applyThrottleVbatCompensation(throttle);
+    }
 
     // Apply the throttle_limit_percent to scale or limit the throttle based on throttle_limit_type
     if (currentControlRateProfile->throttle_limit_type != THROTTLE_LIMIT_TYPE_OFF) {
@@ -826,8 +871,6 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
             scaledAxisPidRoll  * currentMixer[i].roll +
             scaledAxisPidPitch * currentMixer[i].pitch +
             scaledAxisPidYaw   * currentMixer[i].yaw;
-
-        mix *= vbatCompensationFactor;  // Add voltage compensation
 
         if (mix > motorMixMax) {
             motorMixMax = mix;

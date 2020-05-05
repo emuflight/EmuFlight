@@ -23,9 +23,6 @@
 #include "common/axis.h"
 #include "common/time.h"
 #include "common/maths.h"
-#ifndef USE_GYRO_IMUF9001
-#include "common/kalman.h"
-#endif
 #include "pg/pg.h"
 #include "drivers/bus.h"
 #include "drivers/sensor.h"
@@ -94,8 +91,8 @@ typedef struct gyroConfig_s {
     uint8_t  gyro_use_32khz;
     uint8_t  gyro_to_use;
 
-    uint16_t gyro_lowpass_hz;
-    uint16_t gyro_lowpass2_hz;
+    uint16_t gyro_lowpass_hz[XYZ_AXIS_COUNT];
+    uint16_t gyro_lowpass2_hz[XYZ_AXIS_COUNT];
 
     uint16_t gyro_soft_notch_hz_1;
     uint16_t gyro_soft_notch_cutoff_1;
@@ -112,8 +109,8 @@ typedef struct gyroConfig_s {
     int16_t  yaw_spin_threshold;
 
     uint16_t gyroCalibrationDuration;  // Gyro calibration duration in 1/100 second
-    uint8_t dyn_notch_quality; // bandpass quality factor, 100 for steep sided bandpass
-    uint8_t dyn_notch_width_percent;
+    uint16_t dyn_notch_q_factor;
+    uint16_t dyn_notch_min_hz;
 #if defined(USE_GYRO_IMUF9001)
     uint16_t imuf_mode;
     uint16_t imuf_rate;
@@ -126,7 +123,7 @@ typedef struct gyroConfig_s {
     uint16_t imuf_roll_q;
     uint16_t imuf_yaw_q;
     uint16_t imuf_w;
-    uint8_t r_weight;
+    uint16_t imuf_sharpness;
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);
@@ -134,10 +131,6 @@ PG_DECLARE(gyroConfig_t, gyroConfig);
 bool gyroInit(void);
 
 void gyroInitFilters(void);
-
-#ifndef USE_GYRO_IMUF9001
-void gyroDynLpfUpdate(void);
-#endif
 
 #ifdef USE_DMA_SPI_DEVICE
 void gyroDmaSpiFinishRead(void);
