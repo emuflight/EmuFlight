@@ -759,8 +759,8 @@ const clivalue_t valueTable[] = {
 // rateDynamics
     { "rate_center_sensitivity",   VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 25, 175 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateSensCenter) },
     { "rate_end_sensitivity",      VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 25, 175 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateSensEnd) },
-    { "rate_center_correction",    VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateCorrectionCenter) },
-    { "rate_end_correction",       VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateCorrectionEnd) },
+    { "rate_center_correction",    VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 10, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateCorrectionCenter) },
+    { "rate_end_correction",       VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 10, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateCorrectionEnd) },
     { "rate_center_weight",        VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateWeightCenter) },
     { "rate_end_weight",           VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateWeightEnd) },
 
