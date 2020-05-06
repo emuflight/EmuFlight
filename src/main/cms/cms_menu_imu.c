@@ -622,6 +622,11 @@ static CMS_Menu cmsx_menuImuf = {
 static uint8_t cmsx_smart_dterm_smoothing_roll;
 static uint8_t cmsx_smart_dterm_smoothing_pitch;
 static uint8_t cmsx_smart_dterm_smoothing_yaw;
+static uint16_t cmsx_dterm_imuf_roll_q;
+static uint16_t cmsx_dterm_imuf_pitch_q;
+static uint16_t cmsx_dterm_imuf_yaw_q;
+static uint16_t cmsx_dterm_imuf_w;
+static uint16_t cmsx_dterm_imuf_sharpness;
 
 static long cmsx_FilterPerProfileRead(void)
 {
@@ -639,6 +644,12 @@ static long cmsx_FilterPerProfileRead(void)
     cmsx_smart_dterm_smoothing_roll   = pidProfile->dFilter[ROLL].smartSmoothing;
     cmsx_smart_dterm_smoothing_pitch  = pidProfile->dFilter[PITCH].smartSmoothing;
     cmsx_smart_dterm_smoothing_yaw    = pidProfile->dFilter[YAW].smartSmoothing;
+
+    cmsx_dterm_imuf_roll_q            = pidProfile->imuf_roll_q;
+    cmsx_dterm_imuf_pitch_q           = pidProfile->imuf_pitch_q;
+    cmsx_dterm_imuf_yaw_q             = pidProfile->imuf_yaw_q;
+    cmsx_dterm_imuf_w                 = pidProfile->imuf_w;
+    cmsx_dterm_imuf_sharpness         = pidProfile->imuf_sharpness;
     return 0;
 }
 
@@ -662,12 +673,24 @@ static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self)
     pidProfile->dFilter[ROLL].smartSmoothing   = cmsx_smart_dterm_smoothing_roll;
     pidProfile->dFilter[PITCH].smartSmoothing  = cmsx_smart_dterm_smoothing_pitch;
     pidProfile->dFilter[YAW].smartSmoothing    = cmsx_smart_dterm_smoothing_yaw;
+
+    pidProfile->imuf_roll_q                    = cmsx_dterm_imuf_roll_q;
+    pidProfile->imuf_pitch_q                   = cmsx_dterm_imuf_pitch_q;
+    pidProfile->imuf_yaw_q                     = cmsx_dterm_imuf_yaw_q;
+    pidProfile->imuf_w                         = cmsx_dterm_imuf_w;
+    pidProfile->imuf_sharpness                 = cmsx_dterm_imuf_sharpness;
     return 0;
 }
 
 static OSD_Entry cmsx_menuFilterPerProfileEntries[] =
 {
     { "-- FILTER PP  --", OME_Label, NULL, NULL, 0 },
+
+    { "DTERM IMUF ROLL Q",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_imuf_roll_q,     0, 16000, 100 }, 0 },
+    { "DTERM IMUF PITCH Q",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_imuf_pitch_q,     0, 16000, 100 }, 0 },
+    { "DTERM IMUF YAW Q",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_imuf_yaw_q,     0, 16000, 100 }, 0 },
+    { "DTERM IMUF W",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_imuf_w,     3, 512, 1 }, 0 },
+    { "DTERM IMUF SHARPNESS",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_imuf_sharpness,     0, 16000, 100 }, 0 },
 
     { "DTERM LPF ROLL",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz_roll,     0, 500, 1 }, 0 },
     { "DTERM LPF PITCH",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz_pitch,     0, 500, 1 }, 0 },

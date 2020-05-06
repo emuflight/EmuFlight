@@ -194,11 +194,11 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  .motor_output_limit = 100,
                  .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
                  .horizonTransition = 0,
-                 .imuf_roll_q = 5000,
-                 .imuf_pitch_q = 5000,
-                 .imuf_yaw_q = 5000,
-                 .imuf_w = 12,
-                 .imuf_sharpness = 2500,
+                 .imuf_roll_q = 3000,
+                 .imuf_pitch_q = 3000,
+                 .imuf_yaw_q = 3000,
+                 .imuf_w = 32,
+                 .imuf_sharpness = 1000,
                );
 }
 
