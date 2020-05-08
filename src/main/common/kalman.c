@@ -51,18 +51,18 @@ void kalman_init(void)
 
 void update_kalman_covariance(float gyroRateData, int axis)
 {
-     kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex] = gyroRateData;
-     kalmanFilterStateRate[axis].axisSumMean +=  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex];
-     kalmanFilterStateRate[axis].axisSumVar =  kalmanFilterStateRate[axis].axisSumVar + ( kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex] *  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex]);
+     kalmanFilterStateRate[axis].axisWindow[kalmanFilterStateRate[axis].windex] = gyroRateData;
+     kalmanFilterStateRate[axis].axisSumMean += kalmanFilterStateRate[axis].axisWindow[kalmanFilterStateRate[axis].windex];
+     kalmanFilterStateRate[axis].axisSumVar = kalmanFilterStateRate[axis].axisSumVar + (kalmanFilterStateRate[axis].axisWindow[kalmanFilterStateRate[axis].windex] *  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex]);
      kalmanFilterStateRate[axis].windex++;
     if ( kalmanFilterStateRate[axis].windex >= kalmanFilterStateRate[axis].w)
     {
          kalmanFilterStateRate[axis].windex = 0;
     }
-     kalmanFilterStateRate[axis].axisSumMean -=  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex];
-     kalmanFilterStateRate[axis].axisSumVar =  kalmanFilterStateRate[axis].axisSumVar - ( kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex] *  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex]);
-     kalmanFilterStateRate[axis].axisMean =  kalmanFilterStateRate[axis].axisSumMean *  kalmanFilterStateRate[axis].inverseN;
-     kalmanFilterStateRate[axis].axisVar =  fabsf(kalmanFilterStateRate[axis].axisSumVar *  kalmanFilterStateRate[axis].inverseN - ( kalmanFilterStateRate[axis].axisMean *  kalmanFilterStateRate[axis].axisMean));
+     kalmanFilterStateRate[axis].axisSumMean -= kalmanFilterStateRate[axis].axisWindow[kalmanFilterStateRate[axis].windex];
+     kalmanFilterStateRate[axis].axisSumVar = kalmanFilterStateRate[axis].axisSumVar - (kalmanFilterStateRate[axis].axisWindow[kalmanFilterStateRate[axis].windex] * kalmanFilterStateRate[axis].axisWindow[kalmanFilterStateRate[axis].windex]);
+     kalmanFilterStateRate[axis].axisMean = kalmanFilterStateRate[axis].axisSumMean * kalmanFilterStateRate[axis].inverseN;
+     kalmanFilterStateRate[axis].axisVar = fabsf(kalmanFilterStateRate[axis].axisSumVar * kalmanFilterStateRate[axis].inverseN - (kalmanFilterStateRate[axis].axisMean * kalmanFilterStateRate[axis].axisMean));
 
     float squirt;
     arm_sqrt_f32(kalmanFilterStateRate[axis].axisVar, &squirt);
