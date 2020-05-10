@@ -121,9 +121,9 @@ static OSD_Entry menuFeaturesEntries[] =
     {"VTX TR", OME_Submenu, cmsMenuChange, &cmsx_menuVtxTramp, 0},
 #endif
 #endif // VTX_CONTROL
-#ifdef USE_LED_STRIP
-    {"LED STRIP", OME_Submenu, cmsMenuChange, &cmsx_menuLedstrip, 0},
-#endif // LED_STRIP
+//#ifdef USE_LED_STRIP
+//    {"LED STRIP", OME_Submenu, cmsMenuChange, &cmsx_menuLedstrip, 0},
+//#endif // LED_STRIP
     {"POWER", OME_Submenu, cmsMenuChange, &cmsx_menuPower, 0},
     {"BACK", OME_Back, NULL, NULL, 0},
     {NULL, OME_END, NULL, NULL, 0}

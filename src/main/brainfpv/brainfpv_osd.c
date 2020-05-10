@@ -773,16 +773,3 @@ bool osdElementRssi_BrainFPV(uint16_t x_pos, uint16_t y_pos)
 }
 
 #endif /* USE_BRAINFPV_OSD */
-
-
-
-
-
-
-
-
-
-
-
-
-

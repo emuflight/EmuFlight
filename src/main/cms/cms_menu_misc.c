@@ -67,7 +67,7 @@ static long cmsx_menuRcConfirmBack(const OSD_Entry *self)
 //
 // RC preview
 //
-static OSD_Entry cmsx_menuRcEntries[] =
+/*static OSD_Entry cmsx_menuRcEntries[] =
 {
     { "-- RC PREV --", OME_Label, NULL, NULL, 0},
 
@@ -93,7 +93,7 @@ CMS_Menu cmsx_menuRcPreview = {
     .onEnter = NULL,
     .onExit = cmsx_menuRcConfirmBack,
     .entries = cmsx_menuRcEntries
-};
+};*/
 
 static uint16_t motorConfig_minthrottle;
 static uint8_t motorConfig_digitalIdleOffsetValue;
@@ -126,7 +126,7 @@ static OSD_Entry menuMiscEntries[]=
     { "MIN THR",      OME_UINT16,  NULL,          &(OSD_UINT16_t){ &motorConfig_minthrottle,              1000, 2000, 1 },      0 },
     { "DIGITAL IDLE", OME_UINT8,   NULL,          &(OSD_UINT8_t) { &motorConfig_digitalIdleOffsetValue,      0,  200, 1 },      0 },
     { "DEBUG MODE",   OME_TAB,     NULL,          &(OSD_TAB_t) { &systemConfig_debug_mode, DEBUG_COUNT - 1, debugModeNames },      0 },
-    { "RC PREV",      OME_Submenu, cmsMenuChange, &cmsx_menuRcPreview, 0},
+  //  { "RC PREV",      OME_Submenu, cmsMenuChange, &cmsx_menuRcPreview, 0},
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0},

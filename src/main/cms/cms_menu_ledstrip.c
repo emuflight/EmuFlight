@@ -40,7 +40,7 @@
 #include "fc/config.h"
 
 
-#ifdef USE_LED_STRIP
+//#ifdef USE_LED_STRIP
 
 static bool featureRead = false;
 static uint8_t cmsx_FeatureLedstrip;
@@ -87,5 +87,5 @@ CMS_Menu cmsx_menuLedstrip = {
     .onExit = cmsx_Ledstrip_FeatureWriteback,
     .entries = cmsx_menuLedstripEntries
 };
-#endif // LED_STRIP
+//#endif // LED_STRIP
 #endif // CMS
