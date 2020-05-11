@@ -65,9 +65,8 @@ void dtermupdate_kalman_covariance(float gyroRateData, int axis)
      dtermkalmanFilterStateRate[axis].axisMean =  dtermkalmanFilterStateRate[axis].axisSumMean *  dtermkalmanFilterStateRate[axis].inverseN;
      dtermkalmanFilterStateRate[axis].axisVar =  fabsf(dtermkalmanFilterStateRate[axis].axisSumVar *  dtermkalmanFilterStateRate[axis].inverseN - ( dtermkalmanFilterStateRate[axis].axisMean *  dtermkalmanFilterStateRate[axis].axisMean));
 
-    float squirt;
-    arm_sqrt_f32(dtermkalmanFilterStateRate[axis].axisVar, &squirt);
-    dtermkalmanFilterStateRate[axis].r = squirt * VARIANCE_SCALE;
+    dtermkalmanFilterStateRate[axis].r = sqrtf(dtermkalmanFilterStateRate[axis].axisVar) * VARIANCE_SCALE;
+
 }
 
 FAST_CODE float dtermkalman_process(dtermkalman_t* kalmanState, float input, float target)
