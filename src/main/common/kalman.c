@@ -64,9 +64,7 @@ void update_kalman_covariance(float gyroRateData, int axis)
      kalmanFilterStateRate[axis].axisMean =  kalmanFilterStateRate[axis].axisSumMean *  kalmanFilterStateRate[axis].inverseN;
      kalmanFilterStateRate[axis].axisVar =  fabsf(kalmanFilterStateRate[axis].axisSumVar *  kalmanFilterStateRate[axis].inverseN - ( kalmanFilterStateRate[axis].axisMean *  kalmanFilterStateRate[axis].axisMean));
 
-    float squirt;
-    arm_sqrt_f32(kalmanFilterStateRate[axis].axisVar, &squirt);
-    kalmanFilterStateRate[axis].r = squirt * VARIANCE_SCALE;
+    kalmanFilterStateRate[axis].r = sqrtf(kalmanFilterStateRate[axis].axisVar) * VARIANCE_SCALE;
 }
 
 FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
@@ -102,7 +100,7 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 }
 
 
-float FAST_CODE kalman_update(float input, int axis)
+FAST_CODE float kalman_update(float input, int axis)
 {
 
     update_kalman_covariance(input, axis);
