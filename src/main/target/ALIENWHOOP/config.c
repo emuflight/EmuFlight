@@ -138,9 +138,6 @@ void targetConfiguration(void)
         /* Setpoints */
         pidProfile->dterm_filter_type = FILTER_BIQUAD;
 
-	/* Anti-Gravity */
-	pidProfile->itermThrottleThreshold = 500;
-	pidProfile->itermAcceleratorGain = 5000;
 
 	pidProfile->levelAngleLimit = 65;
     }
