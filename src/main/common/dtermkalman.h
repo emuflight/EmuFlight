@@ -24,7 +24,7 @@
 #include "filter.h"
 #include "flight/pid.h"
 
-#define MAX_KALMAN_WINDOW_SIZE 512
+#define MAX_DTERM_KALMAN_WINDOW_SIZE 256
 
 #define VARIANCE_SCALE 0.67f
 
@@ -41,7 +41,7 @@ typedef struct dtermkalman
     float s;
     float axisVar;
     uint16_t windex;
-    float axisWindow[MAX_KALMAN_WINDOW_SIZE];
+    float axisWindow[MAX_DTERM_KALMAN_WINDOW_SIZE];
     float axisSumMean;
     float axisMean;
     float axisSumVar;

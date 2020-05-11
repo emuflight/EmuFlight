@@ -102,7 +102,7 @@ FAST_CODE float dtermkalman_process(dtermkalman_t* kalmanState, float input, flo
 }
 
 
-float FAST_CODE dtermkalman_update(float input, int axis)
+FAST_CODE float dtermkalman_update(float input, int axis)
 {
     dtermupdate_kalman_covariance(input, axis);
     input = dtermkalman_process(&dtermkalmanFilterStateRate[axis], input, getSetpointRate(axis) );

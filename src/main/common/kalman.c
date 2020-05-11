@@ -113,7 +113,7 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 }
 
 
-float FAST_CODE kalman_update(float input, int axis)
+FAST_CODE float kalman_update(float input, int axis)
 {
 
     update_kalman_covariance(input, axis);
