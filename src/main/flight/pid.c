@@ -658,6 +658,7 @@ float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelt
 
 static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float temporaryIterm[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousdDelta[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float kdRingBuffer[XYZ_AXIS_COUNT][KD_RING_BUFFER_SIZE];
 static FAST_RAM_ZERO_INIT float kdRingBufferSum[XYZ_AXIS_COUNT];
@@ -762,7 +763,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
         // -----calculate I component
         //float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
-        float iterm    = pidData[axis].I;
+        float iterm    = temporaryIterm[axis];
         float ITermNew = pidCoefficient[axis].Ki * (boostedErrorRate + errorRate) * dynCi;
         if (ITermNew != 0.0f)
         {
@@ -777,7 +778,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         }
 
         iterm = constrainf(iterm + ITermNew, -itermLimit, itermLimit);
-        pidData[axis].I = iterm;
+        temporaryIterm[axis] = iterm;
 
         // -----calculate D component
         if (pidCoefficient[axis].Kd > 0)
@@ -858,7 +859,11 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         }
 
         // calculating the PID sum and TPA and SPA
-        const float pidSum = (pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation[axis]) + (pidData[axis].I * getThrottleIAttenuation() * setPointIAttenuation[axis]) + (pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation[axis]);
+        // multiply these things to the pidData so that logs shows the pid data correctly
+        pidData[axis].P = pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation[axis];
+        pidData[axis].I = temporaryIterm[axis] * getThrottleIAttenuation() * setPointIAttenuation[axis]; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
+        pidData[axis].D = pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation[axis];
+        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D;
         pidData[axis].Sum = pidSum;
     }
 }
