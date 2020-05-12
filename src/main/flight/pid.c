@@ -95,15 +95,15 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 #endif
 
 #ifndef DEFAULT_PIDS_ROLL
-#define DEFAULT_PIDS_ROLL {50, 70, 28}
+#define DEFAULT_PIDS_ROLL {50, 70, 28, 0}
 #endif //DEFAULT_PIDS_ROLL
 
 #ifndef DEFAULT_PIDS_PITCH
-#define DEFAULT_PIDS_PITCH {58, 70, 30}
+#define DEFAULT_PIDS_PITCH {58, 70, 30, 0}
 #endif //DEFAULT_PIDS_PITCH
 
 #ifndef DEFAULT_PIDS_YAW
-#define DEFAULT_PIDS_YAW {60, 70, 5}
+#define DEFAULT_PIDS_YAW {60, 70, 5, 0}
 #endif //DEFAULT_PIDS_YAW
 
 #ifdef USE_RUNAWAY_TAKEOFF
@@ -534,7 +534,7 @@ static float calcHorizonLevelStrength(void)
 
 #define SIGN(x) ((x > 0.0f) - (x < 0.0f))
 
-static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint, const float deltaT)
+static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint)
 {
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
@@ -552,7 +552,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     angle += gpsRescueAngle[axis] / 100; // ANGLE IS IN CENTIDEGREES
 #endif
 
-    f_term_low = (angle - previousAngle[axis]) * F_angle / deltaT;
+    f_term_low = (angle - previousAngle[axis]) * F_angle / dT;
     previousAngle[axis] = angle;
 
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
@@ -771,7 +771,6 @@ static FAST_RAM_ZERO_INIT float setPointPAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointIAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointDAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
-static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
 static void processIterm(
     uint8_t axis,
@@ -812,12 +811,6 @@ static void processIterm(
 
 void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs)
 {
-    const float deltaT = (currentTimeUs - previousTimeUs) * 1e-6f;
-    previousTimeUs = currentTimeUs;
-    // calculate actual deltaT in seconds
-    const float iDT = 1.0f / deltaT; //divide once
-    // calculate actual deltaT in seconds
-    // Dynamic i component,
     if ((antiGravityMode == ANTI_GRAVITY_SMOOTH) && antiGravityEnabled)
     {
         itermAccelerator = 1 + fabsf(antiGravityThrottleHpf) * 0.01f * (itermAcceleratorGain - 1000);
@@ -839,7 +832,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     vbatCompensationFactor = scaleRangef(currentControlRateProfile->vbat_comp_pid_level, 0.0f, 100.0f, 1.0f, vbatCompensationFactor);
 
     // gradually scale back integration when above windup point
-    const float dynCi = constrainf((1.1f - getMotorMixRange()) * ITermWindupPointInv, 0.1f, 1.0f) * itermAccelerator * deltaT;
+    const float dynCi = constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f) * itermAccelerator * dT;
     float errorRate;
 
     // ----------PID controller----------
@@ -856,15 +849,15 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // NFE racermode applies angle only to the roll axis
         if (FLIGHT_MODE(GPS_RESCUE_MODE) && axis != FD_YAW)
         {
-            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint, deltaT);
+            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
         }
         else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && !nfe_racermode && (axis != FD_YAW))
         {
-            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint, deltaT);
+            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
         }
         else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && nfe_racermode && ((axis != FD_YAW) && (axis != FD_PITCH)))
         {
-            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint, deltaT);
+            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
         }
 
         // Handle yaw spin recovery - zero the setpoint on yaw to aid in recovery
@@ -1031,7 +1024,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
             previousMeasurement[axis] = gyro.gyroADCf[axis];
             previousError[axis] = pureRD;
-            float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * iDT; //calculating the dterm
+            float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm
             //filter the dterm
             dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
             dDelta = dtermLowpass2ApplyFn((filter_t *)&dtermLowpass2[axis], dDelta);
