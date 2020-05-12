@@ -18,21 +18,28 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
 
 #include "platform.h"
+#include "drivers/io.h"
 
-#include "pg/pinio.h"
-#include "pg/piniobox.h"
+#include "drivers/dma.h"
+#include "drivers/timer.h"
+#include "drivers/timer_def.h"
 
-#ifdef USE_TARGET_CONFIG
+const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
+
+    DEF_TIM(TIM3, CH3,  PB0,  TIM_USE_MOTOR,  0, 0),  // MOTOR 1
+    DEF_TIM(TIM3, CH4,  PB1,  TIM_USE_MOTOR,  0, 0),  // MOTOR 2
+    DEF_TIM(TIM2, CH4,  PA3,  TIM_USE_MOTOR,  0, 1),  // MOTOR 1
+    DEF_TIM(TIM2, CH3,  PA2,  TIM_USE_MOTOR,  0, 0),  // MOTOR 3
 
 
-void targetConfiguration(void)
-{
-    pinioBoxConfigMutable()->permanentId[0] = 40;
+    DEF_TIM(TIM3, CH2,  PB5,  TIM_USE_MOTOR,  0, 0),  // MOTOR 5
+    DEF_TIM(TIM4, CH2,  PB7,  TIM_USE_MOTOR,  0, 0),  // MOTOR 6
+    DEF_TIM(TIM8, CH4,  PC9,  TIM_USE_MOTOR,  0, 0),  // MOTOR 7
+    DEF_TIM(TIM3, CH1,  PB4,  TIM_USE_MOTOR,  0, 0),  // MOTOR 8
 
-}
-#endif
+    DEF_TIM(TIM1, CH2,  PA9,  TIM_USE_ANY,    0, 0),  // CAMERA CONTROL
+
+};
