@@ -11,7 +11,9 @@ on:
 jobs:
   build:
     strategy:
-      max-parallel: 1
+      max-parallel: 3
+      matrix:
+        targets: [targets-group-1, targets-group-2, targets-group-rest]
     runs-on: ubuntu-latest
     steps:
 
@@ -53,7 +55,7 @@ jobs:
 
     - name: Compile Code
       run: |
-        make all
+        make ${{ matrix.targets }}
 
     - name: Store Artifacts
       uses: actions/upload-artifact@v2-preview
