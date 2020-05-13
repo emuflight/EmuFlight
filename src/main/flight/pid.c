@@ -605,6 +605,8 @@ static void rotateVector(float v[XYZ_AXIS_COUNT], float rotation[XYZ_AXIS_COUNT]
     }
 }
 
+static FAST_RAM_ZERO_INIT float temporaryIterm[XYZ_AXIS_COUNT];
+
 static void rotateITermAndAxisError()
 {
     if (itermRotation)
@@ -618,12 +620,12 @@ static void rotateITermAndAxisError()
         float v[XYZ_AXIS_COUNT];
         for (int i = 0; i < XYZ_AXIS_COUNT; i++)
         {
-            v[i] = pidData[i].I;
+            v[i] = temporaryIterm[i];
         }
         rotateVector(v, rotationRads);
         for (int i = 0; i < XYZ_AXIS_COUNT; i++)
         {
-            pidData[i].I = v[i];
+            temporaryIterm[i] = v[i];
         }
     }
 }
@@ -658,7 +660,6 @@ float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelt
 
 static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float temporaryIterm[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousdDelta[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float kdRingBuffer[XYZ_AXIS_COUNT][KD_RING_BUFFER_SIZE];
 static FAST_RAM_ZERO_INIT float kdRingBufferSum[XYZ_AXIS_COUNT];
