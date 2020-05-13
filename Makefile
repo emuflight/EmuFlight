@@ -106,6 +106,8 @@ BUILDNO := $(TRAVIS_BUILD_NUMBER)
 endif
 
 REVISION := $(shell git log -1 --format="%h")
+# use branchname in .hex files, insure no spaces, truncate to 30 chars max
+BRANCHNAME := $(shell git rev-parse --abbrev-ref HEAD | sed -e 's/^[[:space:]]*//' | cut -c 1-30)
 
 FC_VER_MAJOR := $(shell grep " FC_VERSION_MAJOR" src/main/build/version.h | awk '{print $$3}' )
 FC_VER_MINOR := $(shell grep " FC_VERSION_MINOR" src/main/build/version.h | awk '{print $$3}' )
@@ -285,9 +287,9 @@ CPPCHECK        = cppcheck $(CSOURCES) --enable=all --platform=unix64 \
                   -I/usr/include -I/usr/include/linux
 
 ifneq ($(BUILDNO),local)
-TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET)_Build_$(BUILDNO)_$(REVISION)
+TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET)_Build_$(BUILDNO)_$(REVISION)_Branch_$(BRANCHNAME)
 else
-TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET)_Build_$(REVISION)
+TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET)_Build_$(REVISION)_Branch_$(BRANCHNAME)
 endif
 
 #
