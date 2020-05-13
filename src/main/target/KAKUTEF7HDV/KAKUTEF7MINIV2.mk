@@ -1,1 +1,1 @@
-#KAKUTEF7MINI.mk file
+#KAKUTEF7MINIV2.mk file
