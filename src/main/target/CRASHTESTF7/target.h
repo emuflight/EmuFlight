@@ -108,7 +108,7 @@
 #define CURRENT_METER_SCALE_DEFAULT                      150                    // 3.3/120A  = 25mv/A
 #define VBAT_SCALE                                       160                    //configurator tab voltage scale
 
-                                       160
+
 
 
 // SPI devices
