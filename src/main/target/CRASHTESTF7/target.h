@@ -20,7 +20,7 @@
 
 #pragma once
 #define TARGET_BOARD_IDENTIFIER                          "S7X2"                 //not sure if this even shows, but defaults on BF as STM used
-#define USBD_PRODUCT_STRING                              "Botafx F7"            //board name on configurator drop down menu, flasher tab
+#define USBD_PRODUCT_STRING                              "BotF7"            //board name on configurator drop down menu, flasher tab
 #define TARGET_MANUFACTURER_IDENTIFIER                   "BQEio"                //Manufacturer abbreviation
 
 #define USE_TARGET_CONFIG
@@ -107,6 +107,13 @@
 #define RSSI_ADC_PIN                                     PC3                    //resource adc_rssi
 #define CURRENT_METER_SCALE_DEFAULT                      150                    // 3.3/120A  = 25mv/A
 #define VBAT_SCALE                                       160                    //configurator tab voltage scale
+=======
+#define CURRENT_METER_ADC_PIN                            PC1
+#define VBAT_ADC_PIN                                     PC2
+#define RSSI_ADC_PIN                                     PC3
+#define CURRENT_METER_SCALE_DEFAULT                      150                    // 3.3/120A  = 25mv/A
+#define VBAT_SCALE                                       160
+
 
 // SPI devices
 #define USE_SPI

@@ -29,6 +29,9 @@
 #define USBD_PRODUCT_STRING "KakuteF7 HD"
 #endif
 
+#define TARGET_BOARD_IDENTIFIER "KTF7"
+#define USBD_PRODUCT_STRING "KakuteF7"
+
 #define LED0_PIN                PA2
 
 #define USE_BEEPER
@@ -139,7 +142,6 @@
 
 #define SDCARD_DMA_STREAM_TX_FULL             DMA2_Stream5
 #define SDCARD_DMA_CHANNEL                    3
-#endif
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1

@@ -18,35 +18,24 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include <stdbool.h>
+#include <stdint.h>
 
-#include "sensors/gyro.h"
-#include "filter.h"
+#include "platform.h"
 
-#define MAX_KALMAN_WINDOW_SIZE 512
+#ifdef USE_TARGET_CONFIG
 
-#define VARIANCE_SCALE 0.67f
+#include "telemetry/telemetry.h"
 
+#include "pg/piniobox.h"
+#include "pg/pinio.h"
 
-typedef struct kalman
+void targetConfiguration(void)
 {
-    float q;     //process noise covariance
-    float r;     //measurement noise covariance
-    float p;     //estimation error covariance matrix
-    float k;     //kalman gain
-    float x;     //state
-    float lastX; //previous state
-    float e;
-    float s;
-    float axisVar;
-    uint16_t windex;
-    float axisWindow[MAX_KALMAN_WINDOW_SIZE];
-    float axisSumMean;
-    float axisMean;
-    float axisSumVar;
-    float inverseN;
-    uint16_t w;
-} kalman_t;
+    telemetryConfigMutable()->halfDuplex = false;
 
-extern void kalman_init(void);
-extern float kalman_update(float input, int axis);
+    pinioBoxConfigMutable()->permanentId[0] = 40;
+    pinioBoxConfigMutable()->permanentId[1] = 41;
+    pinioConfigMutable()->config[1] = 129;
+}
+#endif

@@ -17,36 +17,36 @@
  *
  * If not, see <http://www.gnu.org/licenses/>.
  */
+/*
+#include <stdbool.h>
+#include <stdint.h>
+#include "platform.h"
+#ifdef USE_TARGET_CONFIG
+#include "pg/pinio.h"
+#include "pg/piniobox.h"
 
-#pragma once
-
-#include "sensors/gyro.h"
-#include "filter.h"
-
-#define MAX_KALMAN_WINDOW_SIZE 512
-
-#define VARIANCE_SCALE 0.67f
-
-
-typedef struct kalman
+void targetConfiguration(void)
 {
-    float q;     //process noise covariance
-    float r;     //measurement noise covariance
-    float p;     //estimation error covariance matrix
-    float k;     //kalman gain
-    float x;     //state
-    float lastX; //previous state
-    float e;
-    float s;
-    float axisVar;
-    uint16_t windex;
-    float axisWindow[MAX_KALMAN_WINDOW_SIZE];
-    float axisSumMean;
-    float axisMean;
-    float axisSumVar;
-    float inverseN;
-    uint16_t w;
-} kalman_t;
+    pinioBoxConfigMutable()->permanentId[0] = 40,255,255,255;
+}
+#endif
+*/
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 
-extern void kalman_init(void);
-extern float kalman_update(float input, int axis);
+#include "platform.h"
+
+#include "pg/pinio.h"
+#include "pg/piniobox.h"
+
+#ifdef USE_TARGET_CONFIG
+
+void targetConfiguration(void)
+{
+
+    pinioBoxConfigMutable()->permanentId[0] = 40;
+    pinioBoxConfigMutable()->permanentId[1] = 41;
+    pinioConfigMutable()->config[0] = 1;
+}
+#endif
