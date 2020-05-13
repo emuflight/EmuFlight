@@ -18,19 +18,24 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
- #include <stdbool.h>
- #include <stdint.h>
- #include <string.h>
+#include <stdbool.h>
+#include <stdint.h>
 
- #include "platform.h"
+#include "platform.h"
 
- #include "pg/pinio.h"
- #include "pg/piniobox.h"
+#ifdef USE_TARGET_CONFIG
 
-#define USE_TARGET_CONFIG
+#include "telemetry/telemetry.h"
+
+#include "pg/piniobox.h"
+#include "pg/pinio.h"
 
 void targetConfiguration(void)
 {
+    telemetryConfigMutable()->halfDuplex = false;
+
     pinioBoxConfigMutable()->permanentId[0] = 40;
     pinioBoxConfigMutable()->permanentId[1] = 41;
+    pinioConfigMutable()->config[1] = 129;
 }
+#endif
