@@ -1,9 +1,5 @@
 F7X5XG_TARGETS += $(TARGET)
-ifeq ($(TARGET), KAKUTEF7MINI)
-FEATURES       += VCP ONBOARDFLASH
-else
 FEATURES       += SDCARD VCP
-endif
 
 TARGET_SRC = \
             drivers/accgyro/accgyro_mpu.c \
