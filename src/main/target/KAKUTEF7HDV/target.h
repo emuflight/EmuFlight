@@ -21,7 +21,7 @@
 #pragma once
 
 //#define USE_TARGET_CONFIG
-#if defined(KAKUTEF7MINIV1)
+#if defined(KAKUTEF7MINIV2)
 #define TARGET_BOARD_IDENTIFIER "KF7M"
 #define USBD_PRODUCT_STRING "KakuteF7-Mini V2"
 #else
