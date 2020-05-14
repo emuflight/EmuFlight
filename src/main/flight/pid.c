@@ -777,8 +777,12 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         }
 
         iterm = constrainf(iterm + ITermNew, -itermLimit, itermLimit);
-        temporaryIterm[axis] = iterm;
 
+        if (!mixerIsOutputSaturated(axis, errorRate) || ABS(iterm) < ABS(pidData[axis].I)) {
+        // Only increase ITerm if output is not saturated
+        temporaryIterm[axis] = iterm;
+        }
+    
         // -----calculate D component
         if (pidCoefficient[axis].Kd > 0)
         {
