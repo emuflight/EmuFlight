@@ -102,14 +102,14 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 
 #ifdef USE_RUNAWAY_TAKEOFF
 PG_RESET_TEMPLATE(pidConfig_t, pidConfig,
-                  .pid_process_denom = PID_PROCESS_DENOM_DEFAULT,
-                  .runaway_takeoff_prevention = true,
-                  .runaway_takeoff_deactivate_throttle = 20, // throttle level % needed to accumulate deactivation time
-                  .runaway_takeoff_deactivate_delay = 500    // Accumulated time (in milliseconds) before deactivation in successful takeoff
+    .pid_process_denom = PID_PROCESS_DENOM_DEFAULT,
+    .runaway_takeoff_prevention = true,
+    .runaway_takeoff_deactivate_throttle = 20, // throttle level % needed to accumulate deactivation time
+    .runaway_takeoff_deactivate_delay = 500    // Accumulated time (in milliseconds) before deactivation in successful takeoff
 );
 #else
 PG_RESET_TEMPLATE(pidConfig_t, pidConfig,
-                  .pid_process_denom = PID_PROCESS_DENOM_DEFAULT);
+    .pid_process_denom = PID_PROCESS_DENOM_DEFAULT);
 #endif
 
 PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, PID_PROFILE_COUNT, pidProfiles, PG_PID_PROFILE, 8);
@@ -117,64 +117,64 @@ PG_REGISTER_ARRAY_WITH_RESET_FN(pidProfile_t, PID_PROFILE_COUNT, pidProfiles, PG
 void resetPidProfile(pidProfile_t *pidProfile)
 {
     RESET_CONFIG(pidProfile_t, pidProfile,
-                 .pid = {
-                     [PID_ROLL] = DEFAULT_PIDS_ROLL,
-                     [PID_PITCH] = DEFAULT_PIDS_PITCH,
-                     [PID_YAW] = DEFAULT_PIDS_YAW,
-                     [PID_LEVEL_LOW] = {100, 0, 10, 40},
-                     [PID_LEVEL_HIGH] = {35, 0, 1, 0},
-                     [PID_MAG] = {40, 0, 0, 0},
-                 },
+        .pid = {
+            [PID_ROLL] = DEFAULT_PIDS_ROLL,
+            [PID_PITCH] = DEFAULT_PIDS_PITCH,
+            [PID_YAW] = DEFAULT_PIDS_YAW,
+            [PID_LEVEL_LOW] = {100, 0, 10, 40},
+            [PID_LEVEL_HIGH] = {35, 0, 1, 0},
+            [PID_MAG] = {40, 0, 0, 0},
+        },
 
-                 .dFilter = {
-                     [PID_ROLL] = {2, 100, 250, 0},  // wc, dtermlpf, dtermlpf2, smartSmoothing
-                     [PID_PITCH] = {2, 100, 250, 0}, // wc, dtermlpf, dtermlpf2, smartSmoothing
-                     [PID_YAW] = {0, 100, 250, 0},    // wc, dtermlpf, dtermlpf2, smartSmoothing
-                 },
+        .dFilter = {
+            [PID_ROLL] = {2, 100, 250, 0},  // wc, dtermlpf, dtermlpf2, smartSmoothing
+            [PID_PITCH] = {2, 100, 250, 0}, // wc, dtermlpf, dtermlpf2, smartSmoothing
+            [PID_YAW] = {0, 100, 250, 0},    // wc, dtermlpf, dtermlpf2, smartSmoothing
+        },
 
-                 .pidSumLimit = PIDSUM_LIMIT_MAX,
-                 .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
-                 .dterm_filter_type = FILTER_PT1,
-                 .itermWindupPointPercent = 50,
-                 .pidAtMinThrottle = PID_STABILISATION_ON,
-                 .levelAngleLimit = 45,
-                 .angleExpo = 10,
-                 .setPointPTransition[ROLL] = 110,
-                 .setPointPTransition[PITCH] = 110,
-                 .setPointPTransition[YAW] = 130,
-                 .setPointITransition[ROLL] = 85,
-                 .setPointITransition[PITCH] = 85,
-                 .setPointITransition[YAW] = 70,
-                 .setPointDTransition[ROLL] = 110,
-                 .setPointDTransition[PITCH] = 110,
-                 .setPointDTransition[YAW] = 130,
-                 .feathered_pids = 100,
-                 .i_decay = 4,
-                 .errorBoost = 15,
-                 .errorBoostYaw = 40,
-                 .errorBoostLimit = 20,
-                 .errorBoostLimitYaw = 40,
-                 .yawRateAccelLimit = 0,
-                 .rateAccelLimit = 0,
-                 .crash_time = 500,                        // ms
-                 .crash_delay = 0,                         // ms
-                 .crash_recovery_angle = 10,               // degrees
-                 .crash_recovery_rate = 100,               // degrees/second
-                 .crash_dthreshold = 50,                   // degrees/second/second
-                 .crash_gthreshold = 400,                  // degrees/second
-                 .crash_setpoint_threshold = 350,          // degrees/second
-                 .crash_recovery = PID_CRASH_RECOVERY_OFF, // off by default
-                 .horizon_tilt_effect = 130,
-                 .nfe_racermode = false,
-                 .crash_limit_yaw = 200,
-                 .itermLimit = 400,
-                 .throttle_boost = 5,
-                 .throttle_boost_cutoff = 15,
-                 .iterm_rotation = true,
-                 .motor_output_limit = 100,
-                 .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
-                 .horizonTransition = 0,
-               );
+        .pidSumLimit = PIDSUM_LIMIT_MAX,
+        .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
+        .dterm_filter_type = FILTER_PT1,
+        .itermWindupPointPercent = 50,
+        .pidAtMinThrottle = PID_STABILISATION_ON,
+        .levelAngleLimit = 45,
+        .angleExpo = 10,
+        .setPointPTransition[ROLL] = 110,
+        .setPointPTransition[PITCH] = 110,
+        .setPointPTransition[YAW] = 130,
+        .setPointITransition[ROLL] = 85,
+        .setPointITransition[PITCH] = 85,
+        .setPointITransition[YAW] = 70,
+        .setPointDTransition[ROLL] = 110,
+        .setPointDTransition[PITCH] = 110,
+        .setPointDTransition[YAW] = 130,
+        .feathered_pids = 100,
+        .i_decay = 4,
+        .errorBoost = 15,
+        .errorBoostYaw = 40,
+        .errorBoostLimit = 20,
+        .errorBoostLimitYaw = 40,
+        .yawRateAccelLimit = 0,
+        .rateAccelLimit = 0,
+        .crash_time = 500,                        // ms
+        .crash_delay = 0,                         // ms
+        .crash_recovery_angle = 10,               // degrees
+        .crash_recovery_rate = 100,               // degrees/second
+        .crash_dthreshold = 50,                   // degrees/second/second
+        .crash_gthreshold = 400,                  // degrees/second
+        .crash_setpoint_threshold = 350,          // degrees/second
+        .crash_recovery = PID_CRASH_RECOVERY_OFF, // off by default
+        .horizon_tilt_effect = 130,
+        .nfe_racermode = false,
+        .crash_limit_yaw = 200,
+        .itermLimit = 400,
+        .throttle_boost = 5,
+        .throttle_boost_cutoff = 15,
+        .iterm_rotation = true,
+        .motor_output_limit = 100,
+        .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
+        .horizonTransition = 0,
+    );
 }
 
 void pgResetFn_pidProfiles(pidProfile_t *pidProfiles)
@@ -364,10 +364,8 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         setPointDTransition[axis] = pidProfile->setPointDTransition[axis] / 100.0f;
         smart_dterm_smoothing[axis] = pidProfile->dFilter[axis].smartSmoothing;
     }
-
     feathered_pids = pidProfile->feathered_pids / 100.0f;
     nfe_racermode = pidProfile->nfe_racermode;
-
     P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
     D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
     P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
