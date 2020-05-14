@@ -727,6 +727,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
         // Based on 2DOF reference design (matlab)
 
+        const float gyroRate = gyro.gyroADCf[axis];
         float errorBoostAxis;
         float errorLimitAxis;
 
@@ -778,16 +779,16 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
         iterm = constrainf(iterm + ITermNew, -itermLimit, itermLimit);
 
-        if (!mixerIsOutputSaturated(axis, errorRate) || ABS(iterm) < ABS(pidData[axis].I)) {
+        if (!mixerIsOutputSaturated(axis, errorRate)) {
         // Only increase ITerm if output is not saturated
         temporaryIterm[axis] = iterm;
         }
-    
+
         // -----calculate D component
         if (pidCoefficient[axis].Kd > 0)
         {
             //filter Kd properly, no setpoint filtering
-            const float pureRD = getSetpointRate(axis) - gyro.gyroADCf[axis]; // cr - y
+            const float pureRD = getSetpointRate(axis) - gyroRate; // cr - y
             const float pureError = pureRD - previousError[axis];
             const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
             previousMeasurement[axis] = gyro.gyroADCf[axis];
