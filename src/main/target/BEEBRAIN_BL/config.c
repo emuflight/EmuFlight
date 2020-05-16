@@ -182,11 +182,7 @@ void targetConfiguration(void)
 
     pidProfilesMutable(0)->dterm_filter_type = FILTER_BIQUAD;
     pidProfilesMutable(0)->dFilter[ROLL].dLpf = 200;
-//    pidProfilesMutable(0)->dterm_notch_cutoff = 0;
-    pidProfilesMutable(0)->itermThrottleThreshold = 200;
     pidProfilesMutable(0)->yawRateAccelLimit = 0;
-    pidProfilesMutable(0)->iterm_relax = ITERM_RELAX_RP;
-    pidProfilesMutable(0)->iterm_relax_type = ITERM_RELAX_SETPOINT;
     pidProfilesMutable(0)->pidSumLimit = 1000;
     pidProfilesMutable(0)->pidSumLimitYaw = 1000;
     pidProfilesMutable(0)->pid[PID_PITCH].P = 78;
@@ -200,9 +196,6 @@ void targetConfiguration(void)
     pidProfilesMutable(0)->pid[PID_YAW].P   = 95;
     pidProfilesMutable(0)->pid[PID_YAW].I   = 70;
     pidProfilesMutable(0)->pid[PID_YAW].F   = 100;
-//    pidProfilesMutable(0)->pid[PID_LEVEL].P = 100;
-//    pidProfilesMutable(0)->pid[PID_LEVEL].I = 30;
-//    pidProfilesMutable(0)->pid[PID_LEVEL].D = 80;
     pidProfilesMutable(0)->levelAngleLimit  = 70;
     pidProfilesMutable(0)->horizon_tilt_effect = 80;
 
@@ -210,10 +203,6 @@ void targetConfiguration(void)
     controlRateProfilesMutable(0)->rates[FD_ROLL] = 80;
     controlRateProfilesMutable(0)->rates[FD_PITCH] = 80;
     controlRateProfilesMutable(0)->rates[FD_YAW] = 25;
-    // controlRateProfilesMutable(0)->rcExpo[FD_ROLL] = 0;
-    // controlRateProfilesMutable(0)->rcExpo[FD_PITCH] = 0;
-    // controlRateProfilesMutable(0)->rcExpo[FD_YAW]  = 0;
-    // controlRateProfilesMutable(0)->dynThrPID = 60;
     controlRateProfilesMutable(0)->tpa_breakpoint = 1750;
 }
 #endif

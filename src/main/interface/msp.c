@@ -1386,24 +1386,15 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, currentPidProfile->yawRateAccelLimit);
         sbufWriteU8(dst, currentPidProfile->levelAngleLimit);
         sbufWriteU8(dst, 0); // was pidProfile.levelSensitivity
-        sbufWriteU16(dst, currentPidProfile->itermThrottleThreshold);
-        sbufWriteU16(dst, currentPidProfile->itermAcceleratorGain);
+        sbufWriteU16(dst, 0);
+        sbufWriteU16(dst, 0);
         sbufWriteU16(dst, 0); // was currentPidProfile->dtermSetpointWeight
         sbufWriteU8(dst, currentPidProfile->iterm_rotation);
         sbufWriteU8(dst, 0);
+        sbufWriteU8(dst, 0);
+        sbufWriteU8(dst, 0);
+        sbufWriteU8(dst, 0);
 
-#if defined(USE_ITERM_RELAX)
-        sbufWriteU8(dst, currentPidProfile->iterm_relax);
-        sbufWriteU8(dst, currentPidProfile->iterm_relax_type);
-#else
-        sbufWriteU8(dst, 0);
-        sbufWriteU8(dst, 0);
-#endif
-#if defined(USE_ABSOLUTE_CONTROL)
-        sbufWriteU8(dst, currentPidProfile->abs_control_gain);
-#else
-        sbufWriteU8(dst, 0);
-#endif
 #if defined(USE_THROTTLE_BOOST)
         sbufWriteU8(dst, currentPidProfile->throttle_boost);
 #else
@@ -1419,13 +1410,8 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentPidProfile->horizon_tilt_effect);
         sbufWriteU8(dst, currentPidProfile->angleExpo);
 
-        sbufWriteU8(dst, currentPidProfile->antiGravityMode);
-
-#if defined(USE_ITERM_RELAX)
-        sbufWriteU8(dst, currentPidProfile->iterm_relax_cutoff);
-#else
         sbufWriteU8(dst, 0);
-#endif
+        sbufWriteU8(dst, 0);
 
         //added in msp 1.43
         sbufWriteU16(dst, currentPidProfile->errorBoostYaw);
@@ -2021,9 +2007,6 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         gyroConfigMutable()->imuf_pitch_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_yaw_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_acc_lpf_cutoff_hz = sbufReadU16(src);
-
-
-
 #endif
         break;
 //#endif
@@ -2046,8 +2029,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             sbufReadU8(src); // was pidProfile.levelSensitivity
         }
         if (sbufBytesRemaining(src) >= 4) {
-            currentPidProfile->itermThrottleThreshold = sbufReadU16(src);
-            currentPidProfile->itermAcceleratorGain = sbufReadU16(src);
+            sbufReadU16(src);
+            sbufReadU16(src);
         }
         if (sbufBytesRemaining(src) >= 2) {
             sbufReadU16(src); // was currentPidProfile->dtermSetpointWeight
@@ -2056,18 +2039,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             // Added in MSP API 1.40
             currentPidProfile->iterm_rotation = sbufReadU8(src);
             sbufReadU8(src);
-#if defined(USE_ITERM_RELAX)
-            currentPidProfile->iterm_relax = sbufReadU8(src);
-            currentPidProfile->iterm_relax_type = sbufReadU8(src);
-#else
             sbufReadU8(src);
             sbufReadU8(src);
-#endif
-#if defined(USE_ABSOLUTE_CONTROL)
-            currentPidProfile->abs_control_gain = sbufReadU8(src);
-#else
             sbufReadU8(src);
-#endif
 #if defined(USE_THROTTLE_BOOST)
             currentPidProfile->throttle_boost = sbufReadU8(src);
 #else
@@ -2082,13 +2056,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
           currentPidProfile->horizonTransition = sbufReadU8(src);
           currentPidProfile->horizon_tilt_effect = sbufReadU8(src);
           currentPidProfile->angleExpo = sbufReadU8(src);
-          
-            currentPidProfile->antiGravityMode = sbufReadU8(src);
-#if defined(USE_ITERM_RELAX)
-            currentPidProfile->iterm_relax_cutoff = sbufReadU8(src);
-#else
-            sbufReadU8(src);
-#endif
+
+          sbufReadU8(src);
+          sbufReadU8(src);
             //added in msp 1.43
             currentPidProfile->errorBoostYaw = sbufReadU16(src);
             currentPidProfile->errorBoostLimitYaw = sbufReadU8(src);
