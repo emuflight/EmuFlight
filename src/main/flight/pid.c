@@ -342,12 +342,13 @@ FAST_RAM_ZERO_INIT float throttleBoost;
 pt1Filter_t throttleLpf;
 #endif
 static FAST_RAM_ZERO_INIT bool itermRotation;
+static FAST_RAM_ZERO_INIT float temporaryIterm[XYZ_AXIS_COUNT];
 
 void pidResetITerm(void)
 {
     for (int axis = 0; axis < 3; axis++)
     {
-        pidData[axis].I = 0.0f;
+        temporaryIterm[axis] = 0.0f;
     }
 }
 
@@ -532,7 +533,7 @@ static void handleCrashRecovery(
         }
         // reset ITerm, since accumulated error before crash is now meaningless
         // and ITerm windup during crash recovery can be extreme, especially on yaw axis
-        pidData[axis].I = 0.0f;
+        temporaryIterm[axis] = 0.0f;
         if (
             cmpTimeUs(currentTimeUs, crashDetectedAtUs) > crashTimeLimitUs ||
             (getMotorMixRange() < 1.0f &&
@@ -602,8 +603,6 @@ static void rotateVector(float v[XYZ_AXIS_COUNT], float rotation[XYZ_AXIS_COUNT]
         v[i_1] = newV;
     }
 }
-
-static FAST_RAM_ZERO_INIT float temporaryIterm[XYZ_AXIS_COUNT];
 
 static void rotateITermAndAxisError()
 {
@@ -841,7 +840,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 #ifdef USE_YAW_SPIN_RECOVERY
         if (gyroYawSpinDetected())
         {
-            pidData[axis].I = 0; // in yaw spin always disable I
+            temporaryIterm[axis] = 0; // in yaw spin always disable I
             if (axis <= FD_PITCH)
             {
                 // zero PIDs on pitch and roll leaving yaw P to correct spin
@@ -856,7 +855,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         if (!pidStabilisationEnabled || gyroOverflowDetected())
         {
             pidData[axis].P = 0;
-            pidData[axis].I = 0;
+            temporaryIterm[axis] = 0;
             pidData[axis].D = 0;
 
             pidData[axis].Sum = 0;
