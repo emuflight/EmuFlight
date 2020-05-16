@@ -1335,12 +1335,6 @@ static bool blackboxWriteSysinfo(void)
 
         BLACKBOX_PRINT_HEADER_LINE("iterm_windup", "%d",                    currentPidProfile->itermWindupPointPercent);
 
-        #if defined(USE_ITERM_RELAX)
-            BLACKBOX_PRINT_HEADER_LINE("iterm_relax", "%d",                 currentPidProfile->iterm_relax);
-            BLACKBOX_PRINT_HEADER_LINE("iterm_relax_type", "%d",            currentPidProfile->iterm_relax_type);
-            BLACKBOX_PRINT_HEADER_LINE("iterm_relax_cutoff", "%d",          currentPidProfile->iterm_relax_cutoff);
-        #endif
-
         BLACKBOX_PRINT_HEADER_LINE("pidAtMinThrottle", "%d",                currentPidProfile->pidAtMinThrottle);
 
         // EmuFlight PID controller parameters
@@ -1350,9 +1344,6 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("emu_boost_yaw", "%d",                   currentPidProfile->errorBoostYaw);
         BLACKBOX_PRINT_HEADER_LINE("boost_limit_yaw", "%d",                 currentPidProfile->errorBoostLimitYaw);
         BLACKBOX_PRINT_HEADER_LINE("i_decay", "%d",                         currentPidProfile->i_decay);
-        BLACKBOX_PRINT_HEADER_LINE("anti_gravity_mode", "%d",               currentPidProfile->antiGravityMode);
-        BLACKBOX_PRINT_HEADER_LINE("anti_gravity_threshold", "%d",          currentPidProfile->itermThrottleThreshold);
-        BLACKBOX_PRINT_HEADER_LINE("anti_gravity_gain", "%d",               currentPidProfile->itermAcceleratorGain);
 
         #ifdef USE_ABSOLUTE_CONTROL
             BLACKBOX_PRINT_HEADER_LINE("abs_control_gain", "%d",            currentPidProfile->abs_control_gain);

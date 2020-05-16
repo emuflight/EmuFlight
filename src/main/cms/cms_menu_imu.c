@@ -303,8 +303,6 @@ static uint16_t cmsx_F_angle;
 static uint8_t  cmsx_horizonTransition;
 static uint8_t  cmsx_nfe_racermode;
 static uint8_t  cmsx_throttleBoost;
-static uint16_t cmsx_itermAcceleratorGain;
-static uint16_t cmsx_itermThrottleThreshold;
 static uint8_t  cmsx_motorOutputLimit;
 static int8_t   cmsx_autoProfileCellCount;
 
@@ -332,9 +330,6 @@ static long cmsx_profileOtherOnEnter(void)
     cmsx_horizonTransition = pidProfile->horizonTransition;
 
     cmsx_nfe_racermode = pidProfile->nfe_racermode;
-
-    cmsx_itermAcceleratorGain   = pidProfile->itermAcceleratorGain;
-    cmsx_itermThrottleThreshold = pidProfile->itermThrottleThreshold;
 
     cmsx_throttleBoost = pidProfile->throttle_boost;
     cmsx_motorOutputLimit = pidProfile->motor_output_limit;
@@ -368,9 +363,6 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
 
     pidProfile->nfe_racermode = cmsx_nfe_racermode;
 
-    pidProfile->itermAcceleratorGain   = cmsx_itermAcceleratorGain;
-    pidProfile->itermThrottleThreshold = cmsx_itermThrottleThreshold;
-
     pidProfile->throttle_boost = cmsx_throttleBoost;
     pidProfile->motor_output_limit = cmsx_motorOutputLimit;
     pidProfile->auto_profile_cell_count = cmsx_autoProfileCellCount;
@@ -398,8 +390,6 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "ANGLE F",         OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_F_angle,                   0,    2000,  1  }   , 0 },
     { "HORZN TRS",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonTransition,         0,    200,   1  }   , 0 },
     { "NFE RACERMODE",   OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_nfe_racermode, 1, cms_offOnLabels }, 0 },
-    { "AG GAIN",         OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_itermAcceleratorGain,      1000, 30000, 10 }   , 0 },
-    { "AG THR",          OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_itermThrottleThreshold,    20,   1000,  1  }   , 0 },
 #ifdef USE_THROTTLE_BOOST
     { "THR BOOST",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_throttleBoost,             0,    100,   1  }   , 0 },
 #endif

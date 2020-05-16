@@ -199,8 +199,7 @@ static const uint8_t osdElementDisplayOrder[] = {
     OSD_DISARMED,
     OSD_NUMERICAL_HEADING,
     OSD_NUMERICAL_VARIO,
-    OSD_COMPASS_BAR,
-    OSD_ANTI_GRAVITY
+    OSD_COMPASS_BAR
 };
 
 PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 3);
@@ -615,15 +614,6 @@ static bool osdDrawSingleElement(uint8_t item)
                 strcpy(buff, "AIR ");
             } else {
                 strcpy(buff, "ACRO");
-            }
-
-            break;
-        }
-
-    case OSD_ANTI_GRAVITY:
-        {
-            if (pidOsdAntiGravityActive()) {
-                strcpy(buff, "AG");
             }
 
             break;

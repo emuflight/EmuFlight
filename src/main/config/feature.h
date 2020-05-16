@@ -53,7 +53,6 @@ typedef enum {
     FEATURE_RX_SPI = 1 << 25,
     FEATURE_SOFTSPI = 1 << 26,
     FEATURE_ESC_SENSOR = 1 << 27,
-    FEATURE_ANTI_GRAVITY = 1 << 28,
     FEATURE_DYNAMIC_FILTER = 1 << 29,
     FEATURE_LEGACY_SA_SUPPORT = 1 << 30,
 } features_e;

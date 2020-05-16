@@ -74,7 +74,6 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "RC_SMOOTHING",
     "RX_SIGNAL_LOSS",
     "RC_SMOOTHING_RATE",
-    "ANTI_GRAVITY",
     "IMU",
     "KALMAN",
     "SMART_SMOOTHING",
