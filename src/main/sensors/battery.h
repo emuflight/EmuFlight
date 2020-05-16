@@ -27,8 +27,8 @@
 #include "sensors/current.h"
 #include "sensors/voltage.h"
 
-#define VBAT_CELL_VOTAGE_RANGE_MIN 10
-#define VBAT_CELL_VOTAGE_RANGE_MAX 50
+#define VBAT_CELL_VOTAGE_RANGE_MIN 100
+#define VBAT_CELL_VOTAGE_RANGE_MAX 500
 
 #define MAX_AUTO_DETECT_CELL_COUNT 8
 
@@ -41,10 +41,10 @@ enum {
 
 typedef struct batteryConfig_s {
     // voltage
-    uint8_t vbatmaxcellvoltage;            // maximum voltage per cell, used for auto-detecting battery voltage in 0.01V units, default is 430 (4.30V)
-    uint8_t vbatmincellvoltage;            // minimum voltage per cell, this triggers battery critical alarm, in 0.01V units, default is 330 (3.30V)
-    uint8_t vbatwarningcellvoltage;        // warning voltage per cell, this triggers battery warning alarm, in 0.01V units, default is 350 (3.50V)
-    uint8_t vbatnotpresentcellvoltage;     // Between vbatmaxcellvoltage and 2*this is considered to be USB powered. Below this it is notpresent
+    uint16_t vbatmaxcellvoltage;            // maximum voltage per cell, used for auto-detecting battery voltage in 0.01V units, default is 430 (4.30V)
+    uint16_t vbatmincellvoltage;            // minimum voltage per cell, this triggers battery critical alarm, in 0.01V units, default is 330 (3.30V)
+    uint16_t vbatwarningcellvoltage;        // warning voltage per cell, this triggers battery warning alarm, in 0.01V units, default is 350 (3.50V)
+    uint16_t vbatnotpresentcellvoltage;     // Between vbatmaxcellvoltage and 2*this is considered to be USB powered. Below this it is notpresent
     uint8_t lvcPercentage;                  // Percentage of throttle when lvc is triggered
     voltageMeterSource_e voltageMeterSource;// source of battery voltage meter used, either ADC or ESC
 
@@ -58,7 +58,7 @@ typedef struct batteryConfig_s {
     uint8_t consumptionWarningPercentage;   // Percentage of remaining capacity that should trigger a battery warning
     uint8_t vbathysteresis;                 // hysteresis for alarm, default 1 = 0.1V
 
-    uint8_t vbatfullcellvoltage;           // Cell voltage at which the battery is deemed to be "full" 0.01V units, default is 410 (4.1V)
+    uint16_t vbatfullcellvoltage;           // Cell voltage at which the battery is deemed to be "full" 0.01V units, default is 410 (4.1V)
 
     uint8_t forceBatteryCellCount;          // Number of cells in battery, used for overwriting auto-detected cell count if someone has issues with it.
     uint8_t vbatLpfPeriod;                  // Period of the cutoff frequency for the Vbat filter (in 0.1 s)
@@ -97,10 +97,11 @@ void batteryUpdateAlarms(void);
 
 struct rxConfig_s;
 
-float calculateVbatCompensation(uint8_t vbatCompType, uint8_t vbatCompRef);
+float calculateVbatCompensation(uint8_t vbatCompType, uint16_t vbatCompRef);
 uint8_t calculateBatteryPercentageRemaining(void);
 bool isBatteryVoltageConfigured(void);
 uint16_t getBatteryVoltage(void);
+uint16_t getLegacyBatteryVoltage(void);
 uint16_t getBatteryVoltageLatest(void);
 uint8_t getBatteryCellCount(void);
 uint16_t getBatteryAverageCellVoltage(void);
