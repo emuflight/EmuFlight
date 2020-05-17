@@ -134,6 +134,7 @@ typedef struct pidProfile_s {
     uint8_t setPointDTransition[3];         // SPA d transition
     uint16_t crash_limit_yaw;               // limits yaw errorRate, so crashes don't cause huge throttle increase
     uint16_t itermLimit;                    // Maximum value that the iterm can accumulate to
+    uint8_t itermBounceBackCorrection[3];   // addition to iterm that limits growth change to iterm as error begins to shrink.
     uint8_t crash_recovery;                 // off, on, on and beeps when it is in crash recovery mode
     uint8_t throttle_boost;                 // how much should throttle be boosted during transient changes 0-100, 100 adds 10x hpf filtered throttle
     uint8_t throttle_boost_cutoff;          // Which cutoff frequency to use for throttle boost. higher cutoffs keep the boost on for shorter. Specified in hz.

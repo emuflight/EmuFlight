@@ -58,8 +58,6 @@
 #include "sensors/acceleration.h"
 #include "sensors/battery.h"
 
-#define ITERM_RELAX_SETPOINT_THRESHOLD 30.0f
-
 const char pidNames[] =
     "ROLL;"
     "PITCH;"
@@ -168,6 +166,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .nfe_racermode = false,
         .crash_limit_yaw = 200,
         .itermLimit = 400,
+        .itermBounceBackCorrection[ROLL] = 0,
+        .itermBounceBackCorrection[PITCH] = 0,
+        .itermBounceBackCorrection[YAW] = 0,
         .throttle_boost = 5,
         .throttle_boost_cutoff = 15,
         .iterm_rotation = true,
@@ -315,7 +316,7 @@ typedef struct pidCoefficient_s
     float Kp;
     float Ki;
     float Kd;
-    float Kf;
+    float ItermBouneBack;
 } pidCoefficient_t;
 
 static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
@@ -360,6 +361,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidCoefficient[axis].Kp = PTERM_SCALE * pidProfile->pid[axis].P;
         pidCoefficient[axis].Ki = ITERM_SCALE * pidProfile->pid[axis].I;
         pidCoefficient[axis].Kd = DTERM_SCALE * pidProfile->pid[axis].D;
+        pidCoefficient[axis].ItermBouneBack = ITERM_SCALE * pidProfile->itermBounceBackCorrection[axis];
         setPointPTransition[axis] = pidProfile->setPointPTransition[axis] / 100.0f;
         setPointITransition[axis] = pidProfile->setPointITransition[axis] / 100.0f;
         setPointDTransition[axis] = pidProfile->setPointDTransition[axis] / 100.0f;
@@ -727,6 +729,12 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // Based on 2DOF reference design (matlab)
 
         const float gyroRate = gyro.gyroADCf[axis];
+
+        // precalculate dterm as iterm uses it to handle overshoot
+        const float pureRD = getSetpointRate(axis) - gyroRate; // cr - y
+        const float pureError = pureRD - previousError[axis];
+        const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
+
         float errorBoostAxis;
         float errorLimitAxis;
 
@@ -763,7 +771,15 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // -----calculate I component
         //float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
         float iterm    = temporaryIterm[axis];
-        float ITermNew = pidCoefficient[axis].Ki * (boostedErrorRate + errorRate) * dynCi;
+        float ITermNew = pidCoefficient[axis].Ki * (boostedErrorRate + errorRate)* dynCi;
+
+        // if error is shrinking help slow or even reverse the growth of iterm
+        if (SIGN(pureError) != SIGN(ITermNew))
+        {
+          ITermNew += pidCoefficient[axis].ItermBouneBack * (pureError) * dynCi;
+        }
+
+        // calculating the iDecay
         if (ITermNew != 0.0f)
         {
             if (SIGN(iterm) != SIGN(ITermNew))
@@ -786,7 +802,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // -----calculate D component
         if (pidCoefficient[axis].Kd > 0)
         {
-            //filter Kd properly, no setpoint filtering
             const float pureRD = getSetpointRate(axis) - gyroRate; // cr - y
             const float pureError = pureRD - previousError[axis];
             const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);

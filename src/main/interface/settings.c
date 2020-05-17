@@ -887,14 +887,18 @@ const clivalue_t valueTable[] = {
     { "d_angle_high",               VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_LEVEL_HIGH].D) },
     { "f_angle",                    VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_LEVEL_LOW].F) },
 
+    { "i_bounce_roll",              VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermBounceBackCorrection[ROLL]) },
+    { "i_bounce_pitch",              VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermBounceBackCorrection[PITCH]) },
+    { "i_bounce_yaw",              VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermBounceBackCorrection[YAW]) },
+
     { "level_limit",                VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 10, 90 }, PG_PID_PROFILE, offsetof(pidProfile_t, levelAngleLimit) },
     { "angle_expo",                 VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, angleExpo) },
 
     { "horizon_transition",         VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0,  200 }, PG_PID_PROFILE, offsetof(pidProfile_t, horizonTransition) },
     { "horizon_tilt_effect",        VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0,  180 }, PG_PID_PROFILE, offsetof(pidProfile_t, horizon_tilt_effect) },
 
-    { "motor_output_limit",        VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { MOTOR_OUTPUT_LIMIT_PERCENT_MIN, MOTOR_OUTPUT_LIMIT_PERCENT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, motor_output_limit) },
-    { "auto_profile_cell_count",   VAR_INT8  | PROFILE_VALUE,  .config.minmax = { AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT }, PG_PID_PROFILE, offsetof(pidProfile_t, auto_profile_cell_count) },
+    { "motor_output_limit",         VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { MOTOR_OUTPUT_LIMIT_PERCENT_MIN, MOTOR_OUTPUT_LIMIT_PERCENT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, motor_output_limit) },
+    { "auto_profile_cell_count",    VAR_INT8  | PROFILE_VALUE,  .config.minmax = { AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT }, PG_PID_PROFILE, offsetof(pidProfile_t, auto_profile_cell_count) },
 
 
 // PG_TELEMETRY_CONFIG
