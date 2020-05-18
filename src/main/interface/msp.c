@@ -70,7 +70,6 @@
 
 #include "flight/position.h"
 #include "flight/failsafe.h"
-#include "flight/gps_rescue.h"
 #include "flight/imu.h"
 #include "flight/mixer.h"
 #include "flight/pid.h"
@@ -1097,7 +1096,6 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
            sbufWriteU8(dst, GPS_svinfo_cno[i]);
        }
         break;
-        
   #ifdef USE_GPS_RESCUE
             case MSP_GPS_RESCUE:
                 sbufWriteU16(dst, gpsRescueConfig()->angle);
@@ -2014,7 +2012,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             currentPidProfile->dFilter[YAW].Wc = sbufReadU8(src);
             gyroConfigMutable()->dyn_notch_q_factor = sbufReadU16(src);
             gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
-
+            
         }
 
         // reinitialize the gyro filters with the new values
