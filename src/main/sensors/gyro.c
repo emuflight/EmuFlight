@@ -241,8 +241,9 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .checkOverflow = GYRO_OVERFLOW_CHECK_ALL_AXES,
     .yaw_spin_recovery = true,
     .yaw_spin_threshold = 1950,
-    .dyn_notch_q_factor = 250,
+    .dyn_notch_q_factor = 300,
     .dyn_notch_min_hz = 150,
+    .dyn_notch_max_hz = 600,
     .imuf_mode = GTBCM_GYRO_ACC_FILTER_F,
     .imuf_rate = IMUF_RATE_16K,
     .imuf_roll_q = IMUF_DEFAULT_ROLL_Q,
@@ -290,6 +291,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .yaw_spin_threshold = 1950,
     .dyn_notch_q_factor = 250,
     .dyn_notch_min_hz = 150,
+    .dyn_notch_max_hz = 600,
 );
 #endif //USE_GYRO_IMUF9001
 
