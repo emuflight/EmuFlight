@@ -62,7 +62,7 @@
 #ifdef USE_GYRO_IMUF9001
 #include "drivers/accgyro/accgyro_imuf9001.h"
 #include "rx/rx.h"
-#include "fc/fc_rc.h"
+#include "fc/rc.h"
 #include "fc/runtime_config.h"
 #endif //USE_GYRO_IMUF9001
 
@@ -479,7 +479,7 @@ void mpuGyroInit(gyroDev_t *gyro)
 uint8_t mpuGyroDLPF(gyroDev_t *gyro)
 {
     uint8_t ret = 0;
-    
+
     // If gyro is in 32KHz mode then the DLPF bits aren't used
     if (gyro->gyroRateKHz <= GYRO_RATE_8_kHz) {
         switch (gyro->hardware_lpf) {
@@ -497,7 +497,7 @@ uint8_t mpuGyroDLPF(gyroDev_t *gyro)
             case GYRO_HARDWARE_LPF_1KHZ_SAMPLE:
                 ret = 1;
                 break;
-                
+
             case GYRO_HARDWARE_LPF_NORMAL:
             default:
                 ret = 0;

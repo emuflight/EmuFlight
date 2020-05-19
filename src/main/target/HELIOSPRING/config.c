@@ -29,7 +29,7 @@
 #include "flight/mixer.h"
 #include "flight/pid.h"
 #include "fc/config.h"
-#include "fc/fc_rc.h"
+#include "fc/rc.h"
 #include "fc/rc_controls.h"
 #include "rx/rx.h"
 
