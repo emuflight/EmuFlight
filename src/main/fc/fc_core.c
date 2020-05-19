@@ -517,7 +517,7 @@ void runawayTakeoffTemporaryDisable(uint8_t disableFlag)
 
 
 // calculate the throttle stick percent - integer math is good enough here.
-uint8_t calculateThrottlePercent(void)
+int8_t calculateThrottlePercent(void)
 {
     uint8_t ret = 0;
     if (feature(FEATURE_3D)
@@ -537,6 +537,11 @@ uint8_t calculateThrottlePercent(void)
         ret = constrain(((rcData[THROTTLE] - rxConfig()->mincheck) * 100) / (PWM_RANGE_MAX - rxConfig()->mincheck), 0, 100);
     }
     return ret;
+}
+
+uint8_t calculateThrottlePercentAbs(void)
+{
+    return ABS(calculateThrottlePercent());
 }
 
 static bool airmodeIsActivated;
@@ -576,7 +581,7 @@ bool processRx(timeUs_t currentTimeUs)
     failsafeUpdateState();
 
     const throttleStatus_e throttleStatus = calculateThrottleStatus();
-    const uint8_t throttlePercent = calculateThrottlePercent();
+    const uint8_t throttlePercent = calculateThrottlePercentAbs();
 
     if (isAirmodeActive() && ARMING_FLAG(ARMED)) {
         if (throttlePercent >= rxConfig()->airModeActivateThreshold) {
