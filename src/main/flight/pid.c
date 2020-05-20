@@ -774,7 +774,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         float ITermNew = pidCoefficient[axis].Ki * (boostedErrorRate + errorRate)* dynCi;
 
         // if error is shrinking help slow or even reverse the growth of iterm
-        if (SIGN(pureError) != SIGN(ITermNew))
+        if (SIGN(pureError) != SIGN(ITermNew) && SIGN(pureError) != SIGN(iterm))
         {
           ITermNew += pidCoefficient[axis].ItermBouneBack * (pureError) * dynCi;
         }
@@ -802,8 +802,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // -----calculate D component
         if (pidCoefficient[axis].Kd > 0)
         {
-            const float pureRD = getSetpointRate(axis) - gyroRate; // cr - y
-            const float pureError = pureRD - previousError[axis];
             const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
             previousMeasurement[axis] = gyro.gyroADCf[axis];
             previousError[axis] = pureRD;
