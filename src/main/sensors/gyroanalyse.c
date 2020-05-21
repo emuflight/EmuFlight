@@ -54,10 +54,6 @@
 #define FFT_BIN_OFFSET_DESIRED_HZ 90
 // lowpass frequency for smoothing notch centre point
 #define DYN_NOTCH_SMOOTH_FREQ_HZ  60
-// notch centre point will not go below this, must be greater than cutoff, mid of bottom bin
-#define DYN_NOTCH_MIN_CENTRE_HZ   125
-// lowest allowed notch cutoff frequency
-#define DYN_NOTCH_MIN_CUTOFF_HZ   105
 // we need 4 steps for each axis
 #define DYN_NOTCH_CALC_TICKS      (XYZ_AXIS_COUNT * 4)
 
@@ -67,6 +63,8 @@ static float FAST_RAM_ZERO_INIT    fftResolution;
 // maximum notch centre frequency limited by Nyquist
 static uint16_t FAST_RAM_ZERO_INIT dynNotchMaxCentreHz;
 static uint8_t  FAST_RAM_ZERO_INIT fftBinOffset;
+
+static uint16_t FAST_RAM_ZERO_INIT dynNotchMinHz;
 
 // Hanning window, see https://en.wikipedia.org/wiki/Window_function#Hann_.28Hanning.29_window
 static FAST_RAM_ZERO_INIT float hanningWindow[FFT_WINDOW_SIZE];
@@ -80,6 +78,8 @@ void gyroDataAnalyseInit(uint32_t targetLooptimeUs)
     }
     gyroAnalyseInitialized = true;
 #endif
+
+    dynNotchMinHz = gyroConfig()->dyn_notch_min_hz;
 
     const int gyroLoopRateHz = lrintf((1.0f / targetLooptimeUs) * 1e6f);
 
@@ -281,11 +281,11 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
                 // idx was shifted by 1 to start at 1, not 0
                 fftMeanIndex = (fftWeightedSum / fftSum) - 1;
                 // the index points at the center frequency of each bin so index 0 is actually 16.125Hz
-                centerFreq = constrain(fftMeanIndex * fftResolution, DYN_NOTCH_MIN_CENTRE_HZ, dynNotchMaxCentreHz);
+                centerFreq = constrain(fftMeanIndex * fftResolution, dynNotchMinHz, dynNotchMaxCentreHz);
             }
 
             centerFreq = biquadFilterApply(&state->detectedFrequencyFilter[state->updateAxis], centerFreq);
-            centerFreq = constrain(centerFreq, DYN_NOTCH_MIN_CENTRE_HZ, dynNotchMaxCentreHz);
+            centerFreq = constrain(centerFreq, dynNotchMinHz, dynNotchMaxCentreHz);
             state->centerFreq[state->updateAxis] = centerFreq;
 
             if (state->updateAxis == 0) {
