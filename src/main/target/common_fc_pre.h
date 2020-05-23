@@ -128,11 +128,11 @@
 #define USE_PWM
 #define USE_SERIAL_RX
 #define USE_SERIALRX_CRSF       // Team Black Sheep Crossfire protocol
-//#define USE_SERIALRX_IBUS       // FlySky and Turnigy receivers
+#define USE_SERIALRX_IBUS       // FlySky and Turnigy receivers
 #define USE_SERIALRX_SBUS       // Frsky and Futaba receivers
-//#define USE_SERIALRX_SPEKTRUM   // SRXL, DSM2 and DSMX protocol
-//#define USE_SERIALRX_SUMD       // Graupner Hott protocol
-//#define USE_SERIALRX_XBUS       // JR
+#define USE_SERIALRX_SPEKTRUM   // SRXL, DSM2 and DSMX protocol
+#define USE_SERIALRX_SUMD       // Graupner Hott protocol
+#define USE_SERIALRX_XBUS       // JR
 
 
 
@@ -148,14 +148,14 @@
 #define USE_RUNAWAY_TAKEOFF     // Runaway Takeoff Prevention (anti-taz) - Marked for removal
 #define USE_TELEMETRY
 #define USE_TELEMETRY_FRSKY_HUB
-//#define USE_TELEMETRY_HOTT
-//#define USE_TELEMETRY_LTM
+#define USE_TELEMETRY_HOTT
+#define USE_TELEMETRY_LTM
 #define USE_TELEMETRY_SMARTPORT
 #endif
 
 #if (FLASH_SIZE > 128)
 //#define USE_PEGASUS_UI
-//#define USE_SERIALRX_SUMH       // Graupner legacy protocol
+#define USE_SERIALRX_SUMH       // Graupner legacy protocol
 #define USE_CAMERA_CONTROL
 #define USE_CMS
 #define USE_EXTENDED_CMS_MENUS
@@ -175,7 +175,7 @@
 #define USE_RX_MSP
 #define USE_SERIALRX_FPORT      // FrSky FPort
 #define USE_TELEMETRY_CRSF
-//#define USE_TELEMETRY_SRXL
+#define USE_TELEMETRY_SRXL
 #define USE_VIRTUAL_CURRENT_METER
 #define USE_VTX_COMMON
 #define USE_VTX_CONTROL
@@ -190,7 +190,7 @@
 #define USE_THROTTLE_BOOST
 #define USE_RC_SMOOTHING_FILTER
 
-/*#ifdef USE_SERIALRX_SPEKTRUM
+#ifdef USE_SERIALRX_SPEKTRUM
 #define USE_SPEKTRUM_BIND
 #define USE_SPEKTRUM_BIND_PLUG
 #define USE_SPEKTRUM_REAL_RSSI
@@ -199,11 +199,11 @@
 #define USE_SPEKTRUM_VTX_CONTROL
 #define USE_SPEKTRUM_VTX_TELEMETRY
 #define USE_SPEKTRUM_CMS_TELEMETRY
-#endif*/
+#endif
 #endif
 
 #if (FLASH_SIZE > 256)
-//#define USE_SERVOS
+#define USE_SERVOS
 #define USE_LED_STRIP
 #define USE_ALT_HOLD
 #define USE_DASHBOARD
@@ -216,10 +216,10 @@
 #define USE_OSD_ADJUSTMENTS
 #define USE_SENSOR_NAMES
 //#define USE_SERIALRX_JETIEXBUS
-//#define USE_TELEMETRY_IBUS
-//#define USE_TELEMETRY_IBUS_EXTENDED
+#define USE_TELEMETRY_IBUS
+#define USE_TELEMETRY_IBUS_EXTENDED
 //#define USE_TELEMETRY_JETIEXBUS
-//#define USE_TELEMETRY_MAVLINK
+#define USE_TELEMETRY_MAVLINK
 #define USE_UNCOMMON_MIXERS
 #define USE_SIGNATURE
 #define USE_CMS_FAILSAFE_MENU
