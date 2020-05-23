@@ -203,7 +203,7 @@
 #endif
 
 #if (FLASH_SIZE > 256)
-#define USE_SERVOS
+//#define USE_SERVOS
 #define USE_LED_STRIP
 #define USE_ALT_HOLD
 #define USE_DASHBOARD
