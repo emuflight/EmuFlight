@@ -27,6 +27,8 @@
 
 #define USE_TARGET_CONFIG
 
+#define USE_USB_MSC
+
 #define LED0_PIN                PA4
 #define LED1_PIN                NONE
 #define LED0_INVERTED
