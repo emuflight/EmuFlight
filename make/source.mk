@@ -301,13 +301,16 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             io/vtx_control.c \
             io/spektrum_vtx_control.c \
             pg/pg.h
+
+# Gyro driver files that only contain initialization and configuration code - not runtime code
+SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
 						drivers/accgyro/accgyro_mpu6050.c \
-            drivers/accgyro/accgyro_mpu6500.c \
-						drivers/accgyro/accgyro_spi_icm20689.c \
-            drivers/accgyro/accgyro_spi_mpu6000.c \
-            drivers/accgyro/accgyro_spi_mpu6500.c \
-            drivers/accgyro/accgyro_spi_mpu9250.c \
-						
+						drivers/accgyro/accgyro_mpu6500.c \
+						drivers/accgyro/accgyro_spi_mpu6000.c \
+						drivers/accgyro/accgyro_spi_mpu6500.c \
+						drivers/accgyro/accgyro_spi_mpu9250.c \
+						drivers/accgyro/accgyro_spi_icm20689.c
+
 # F4 and F7 optimizations
 ifneq ($(TARGET),$(filter $(TARGET),$(F3_TARGETS)))
 SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
