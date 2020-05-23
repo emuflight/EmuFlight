@@ -873,9 +873,6 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
         motorMix[i] = mix;
     }
 
-        pidUpdateAntiGravityThrottleFilter(throttle);
-
-
 #if defined(USE_THROTTLE_BOOST)
     if (throttleBoost > 0.0f) {
         const float throttleHpf = throttle - pt1FilterApply(&throttleLpf, throttle);
