@@ -157,8 +157,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  .errorBoostLimitYaw = 40,
                  .yawRateAccelLimit = 0,
                  .rateAccelLimit = 0,
-                 .itermThrottleThreshold = 350,
-                 .itermAcceleratorGain = 1000,
                  .crash_time = 500,                        // ms
                  .crash_delay = 0,                         // ms
                  .crash_recovery_angle = 10,               // degrees
@@ -174,15 +172,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
                  .throttle_boost = 5,
                  .throttle_boost_cutoff = 15,
                  .iterm_rotation = true,
-                 .iterm_relax = ITERM_RELAX_OFF,
-                 .iterm_relax_cutoff = 11,
-                 .iterm_relax_type = ITERM_RELAX_GYRO,
-                 .abs_control_gain = 0,
-                 .abs_control_limit = 90,
-                 .abs_control_error_limit = 20,
-                 .antiGravityMode = ANTI_GRAVITY_SMOOTH,
-                 .use_integrated_yaw = false,
-                 .integrated_yaw_relax = 200,
                  .motor_output_limit = 100,
                  .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
                  .horizonTransition = 0,
