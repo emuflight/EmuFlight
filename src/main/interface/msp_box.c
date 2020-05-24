@@ -51,7 +51,7 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT] = {
     { BOXANGLE, "ANGLE", 1 },
     { BOXHORIZON, "HORIZON", 2 },
     { BOXBARO, "BARO", 3 },
-    { BOXANTIGRAVITY, "ANTI GRAVITY", 4 },
+//    { BOXANTIGRAVITY, "ANTI GRAVITY", 4 },
     { BOXMAG, "MAG", 5 },
     { BOXHEADFREE, "HEADFREE", 6 },
     { BOXHEADADJ, "HEADADJ", 7 },
@@ -167,10 +167,6 @@ void initActiveBoxIds(void)
     BME(BOXPREARM);
     if (!feature(FEATURE_AIRMODE)) {
         BME(BOXAIRMODE);
-    }
-
-    if (!feature(FEATURE_ANTI_GRAVITY)) {
-        BME(BOXANTIGRAVITY);
     }
 
     if (sensors(SENSOR_ACC)) {

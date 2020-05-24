@@ -21,13 +21,16 @@
 #pragma once
 
 //#define USE_TARGET_CONFIG
-#if defined(KAKUTEF7MINI)
+#if defined(KAKUTEF7MINIV2)
 #define TARGET_BOARD_IDENTIFIER "KF7M"
-#define USBD_PRODUCT_STRING "KakuteF7-Mini"
+#define USBD_PRODUCT_STRING "KakuteF7-Mini V2"
 #else
 #define TARGET_BOARD_IDENTIFIER "KTF7"
-#define USBD_PRODUCT_STRING "KakuteF7"
+#define USBD_PRODUCT_STRING "KakuteF7 HD"
 #endif
+
+#define TARGET_BOARD_IDENTIFIER "KTF7"
+#define USBD_PRODUCT_STRING "KakuteF7"
 
 #define LED0_PIN                PA2
 
@@ -38,7 +41,7 @@
 #define USE_ACC
 #define USE_GYRO
 
-// ICM-20689
+// MPU6000
 #define USE_ACC_SPI_MPU6000
 #define USE_GYRO_SPI_MPU6000
 #define GYRO_MPU6000_ALIGN      CW270_DEG
@@ -119,7 +122,7 @@
 #define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
 #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 
-#if defined(KAKUTEF7MINI)
+#if defined(KAKUTEF7MINIV2)
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
@@ -139,6 +142,7 @@
 
 #define SDCARD_DMA_STREAM_TX_FULL             DMA2_Stream5
 #define SDCARD_DMA_CHANNEL                    3
+#define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 #endif
 
 #define USE_I2C
@@ -166,7 +170,7 @@
 #define VBAT_ADC_PIN            PC3
 #define RSSI_ADC_PIN            PC5
 
-#define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
+
 
 #define DEFAULT_FEATURES        (FEATURE_OSD)
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
