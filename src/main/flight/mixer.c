@@ -738,10 +738,10 @@ static float applyThrottleCurve(float throttle)
 {
     if (currentControlRateProfile->thrust_linearization_level) {
         if (!currentControlRateProfile->throttle_linearization) {
-            // counter compensating thrust linearization
+            // counter compensating thrust linearization on throttle
             return throttle * scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, 1.0f, throttle);
         }
-        return throttle - CONVERT_PARAMETER_TO_PERCENT(motorConfig()->digitalIdleOffsetValue) / 100.0f;
+        return throttle - CONVERT_PARAMETER_TO_PERCENT(motorConfig()->minthrottle) / 100.0f;
     }
     return throttle;
 }
@@ -751,7 +751,7 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
     // Now add in the desired throttle, but keep in a range that doesn't clip adjusted
     // roll/pitch/yaw. This could move throttle down, but also up for those low throttle flips.
     for (int i = 0; i < motorCount; i++) {
-        float motorOutput = thrustToMotorOutput(motorOutputMixSign * motorMix[i] + applyThrottleCurve(throttle) * currentMixer[i].throttle);
+        float motorOutput = thrustToMotorOutput(motorOutputMixSign * motorMix[i] + throttle * currentMixer[i].throttle);
         if (mixerIsTricopter()) {
             motorOutput += mixerTricopterMotorCorrection(i);
         }
@@ -759,9 +759,9 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
             if (isMotorProtocolDshot()) {
                 motorOutput = (motorOutput < motorRangeMin) ? disarmMotorOutput : motorOutput; // Prevent getting into special reserved range
             }
-            motorOutput = constrain(motorOutput, disarmMotorOutput, motorRangeMax);
+            motorOutput = constrainf(motorOutput, disarmMotorOutput, motorRangeMax);
         } else {
-            motorOutput = constrain(motorOutput, motorRangeMin, motorRangeMax);
+            motorOutput = constrainf(motorOutput, motorRangeMin, motorRangeMax);
         }
         // Motor stop handling
         if (feature(FEATURE_MOTOR_STOP) && ARMING_FLAG(ARMED) && !feature(FEATURE_3D) && !isAirmodeActive()
@@ -900,6 +900,8 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
 #endif
 
     loggingThrottle = throttle;
+    throttle = applyThrottleCurve(throttle);
+
     motorMixRange = motorMixMax - motorMixMin;
     if (motorMixRange > 1.0f && (hardwareMotorType != MOTOR_BRUSHED)) {
         for (int i = 0; i < motorCount; i++) {
