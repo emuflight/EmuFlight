@@ -976,8 +976,8 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 
         sbufWriteU8(dst, currentControlRateProfile->vbat_comp_type);
         sbufWriteU8(dst, currentControlRateProfile->vbat_comp_ref);
-        sbufWriteU8(dst, currentControlRateProfile->vbat_comp_throttle_level);
-        sbufWriteU8(dst, currentControlRateProfile->vbat_comp_pid_level);
+        sbufWriteU8(dst, 0); // was vbat_comp_throttle_level
+        sbufWriteU8(dst, 0); // was vbat_comp_pid_level
 
         // sitckpids added in 1.46
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateSensCenter);
@@ -1773,8 +1773,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             if (sbufBytesRemaining(src) >= 4) {
                 currentControlRateProfile->vbat_comp_type = sbufReadU8(src);
                 currentControlRateProfile->vbat_comp_ref = sbufReadU8(src);
-                currentControlRateProfile->vbat_comp_throttle_level = sbufReadU8(src);
-                currentControlRateProfile->vbat_comp_pid_level = sbufReadU8(src);
+                sbufReadU8(src); // was vbat_comp_throttle_level
+                sbufReadU8(src); // was vbat_comp_pid_level
             }
            if (sbufBytesRemaining(src) >= 6) {
              currentControlRateProfile->rateDynamics.rateSensCenter = sbufReadU8(src);
@@ -1979,7 +1979,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             currentPidProfile->dFilter[YAW].Wc = sbufReadU8(src);
             gyroConfigMutable()->dyn_notch_q_factor = sbufReadU16(src);
             gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
-            
+
         }
 
         // reinitialize the gyro filters with the new values

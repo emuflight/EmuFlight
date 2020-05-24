@@ -40,6 +40,8 @@
 #define ITERM_SCALE 0.244381f
 #define DTERM_SCALE 0.000529f
 
+#define SIGN(x) ((x > 0.0f) - (x < 0.0f))
+
 // This value gives the same "feel" as the previous Kd default of 26 (26 * DTERM_SCALE)
 
 typedef enum {
