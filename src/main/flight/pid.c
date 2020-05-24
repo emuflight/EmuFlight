@@ -376,8 +376,13 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     horizonCutoffDegrees = pidProfile->horizon_tilt_effect;
     maxVelocity[FD_ROLL] = maxVelocity[FD_PITCH] = pidProfile->rateAccelLimit * 100 * dT;
     maxVelocity[FD_YAW] = pidProfile->yawRateAccelLimit * 100 * dT;
-    const float ITermWindupPoint = (float)pidProfile->itermWindupPointPercent / 100.0f;
-    ITermWindupPointInv = 1.0f / (1.0f - ITermWindupPoint);
+    ITermWindupPointInv = 0.0f;
+    if (pidProfile->itermWindupPointPercent < 100) {
+        float ITermWindupPoint = (float)pidProfile->itermWindupPointPercent / 100.0f;
+        ITermWindupPointInv = 1.0f / (1.0f - ITermWindupPoint);
+    } else {
+        ITermWindupPointInv = 0.0f;
+    }
     crashTimeLimitUs = pidProfile->crash_time * 1000;
     crashTimeDelayUs = pidProfile->crash_delay * 1000;
     crashRecoveryAngleDeciDegrees = pidProfile->crash_recovery_angle * 10;
@@ -681,7 +686,11 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     vbatCompensationFactor = scaleRangef(currentControlRateProfile->vbat_comp_pid_level, 0.0f, 100.0f, 1.0f, vbatCompensationFactor);
 
     // gradually scale back integration when above windup point
-    const float dynCi = constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f) * dT;
+    float dynCi = dT;
+    if (ITermWindupPointInv > 0)
+    {
+        dynCi *= constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f);
+    }
     float errorRate;
 
     // ----------PID controller----------
