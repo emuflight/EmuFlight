@@ -143,7 +143,7 @@ PG_RESET_TEMPLATE(bfOsdConfig_t, bfOsdConfig,
   .crsf_link_stats_snr_threshold = -2
 );
 
-const char * const gitTag = __REVISION__;
+const char * const gitTag = __GIT_TAG__;
 
 void video_qspi_enable(void);
 extern binary_semaphore_t onScreenDisplaySemaphore;

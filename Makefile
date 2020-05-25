@@ -246,7 +246,7 @@ CFLAGS     += $(ARCH_FLAGS) \
               -D'__BUILDNO__="$(BUILDNO)"' \
               -D'__TARGET__="$(TARGET)"' \
               -D'__REVISION__="$(REVISION)"' \
-							-D'__GIT_TAG__="$(GIT_TAG)"' \
+							-D'__GIT_TAG__="$(FC_VER)"' \
               -save-temps=obj \
               -MMD \
               -MP \
