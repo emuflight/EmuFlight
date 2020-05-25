@@ -46,8 +46,6 @@ typedef struct kalman
     float axisSumVar;
     float inverseN;
     uint16_t w;
-    pt1Filter_t lp_filter;
-    float updateRate;
 } kalman_t;
 
 extern void kalman_init(void);

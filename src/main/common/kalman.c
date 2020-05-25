@@ -22,13 +22,12 @@
 #include "arm_math.h"
 
 #include "kalman.h"
-#include "filter.h"
 #include "fc/fc_rc.h"
 #include "build/debug.h"
 
 kalman_t    kalmanFilterStateRate[XYZ_AXIS_COUNT];
 
-void init_kalman(kalman_t *filter, float q, float updateRate)
+void init_kalman(kalman_t *filter, float q)
 {
     memset(filter, 0, sizeof(kalman_t));
     filter->q = q * 0.001f;             //add multiplier to make tuning easier
@@ -38,11 +37,6 @@ void init_kalman(kalman_t *filter, float q, float updateRate)
     filter->s = gyroConfig()->imuf_sharpness / 250.0f;     //adding the new sharpness :) time to overfilter :O
     filter->w = gyroConfig()->imuf_w;
     filter->inverseN = 1.0f/(float)(filter->w);
-    // set cutoff frequency
-    const float k = pt1FilterGain(70, updateRate);
-    pt1FilterInit(&filter->lp_filter, k);
-    filter->lp_filter.state = 1.0f;		// e's default value
-    filter->updateRate = updateRate;
 }
 
 
@@ -50,9 +44,9 @@ void kalman_init(void)
 {
     isSetpointNew = 0;
 
-    init_kalman(&kalmanFilterStateRate[X],  gyroConfig()->imuf_roll_q, gyro.targetLooptime * 1e-6f);
-    init_kalman(&kalmanFilterStateRate[Y],  gyroConfig()->imuf_pitch_q, gyro.targetLooptime * 1e-6f);
-    init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->imuf_yaw_q, gyro.targetLooptime * 1e-6f);
+    init_kalman(&kalmanFilterStateRate[X],  gyroConfig()->imuf_roll_q);
+    init_kalman(&kalmanFilterStateRate[Y],  gyroConfig()->imuf_pitch_q);
+    init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->imuf_yaw_q);
 }
 
 void update_kalman_covariance(float gyroRateData, int axis)
@@ -102,12 +96,6 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
   kalmanState->k = kalmanState->p / (kalmanState->p + kalmanState->r);
   kalmanState->x += kalmanState->k * (input - kalmanState->x);
   kalmanState->p = (1.0f - kalmanState->k) * kalmanState->p;
-
-  const float cutoff_frequency = constrain(70 * kalmanState->e, 10.0f, 500.0f);
-  const float k = pt1FilterGain(cutoff_frequency, kalmanState->updateRate);
-  pt1FilterUpdateCutoff(&kalmanState->lp_filter, k);
-
-  kalmanState->x = pt1FilterApply(&kalmanState->lp_filter, kalmanState->x);
 
   return kalmanState->x;
 }
