@@ -100,10 +100,10 @@ if (sensors(SENSOR_GPS) && STATE(GPS_FIX)) {
 
     if (haveGpsAlt && haveBaroAlt) {
         estimatedAltitude = gpsAlt * gpsTrust + baroAlt * (1 - gpsTrust);
-    }    else if (haveBaroAlt) {
-          estimatedAltitude = baroAlt;
-      }else if (haveGpsAlt) {
+    }else if (haveGpsAlt) {
         estimatedAltitude = gpsAlt;
+    }else if (haveBaroAlt) {
+          estimatedAltitude = baroAlt;
     }
 
 
