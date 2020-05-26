@@ -931,7 +931,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         break;
 
     case MSP_ALTITUDE:
-#if defined(USE_BARO) || defined(USE_RANGEFINDER)
+#if defined(USE_BARO) || defined(USE_RANGEFINDER) || defined(USE_GPS)
         sbufWriteU32(dst, getEstimatedAltitude());
 #else
         sbufWriteU32(dst, 0);
@@ -1983,7 +1983,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             currentPidProfile->dFilter[YAW].Wc = sbufReadU8(src);
             gyroConfigMutable()->dyn_notch_q_factor = sbufReadU16(src);
             gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
-            
+
         }
 
         // reinitialize the gyro filters with the new values
