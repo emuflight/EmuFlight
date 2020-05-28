@@ -109,14 +109,18 @@
 #define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD)
 #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 
-// *************** SPI3 SD BLACKBOX****************
+// *************** SPI3  BLACKBOX****************
 
-// Blackbox
+#define USE_SPI_DEVICE_3
+#define SPI3_SCK_PIN            PC10
+#define SPI3_MISO_PIN           PC11
+#define SPI3_MOSI_PIN           PC12
+
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
 #define FLASH_CS_PIN            PD2
-#define FLASH_SPI_INSTANCE      SPI2
+#define FLASH_SPI_INSTANCE      SPI3
 
 // *************** UART *****************************
 
