@@ -608,10 +608,9 @@ static CMS_Menu cmsx_menuFilterGlobal = {
 #if (defined(USE_GYRO_DATA_ANALYSE) || defined(USE_DYN_LPF)) && defined(USE_EXTENDED_CMS_MENUS)
 
 #ifdef USE_GYRO_DATA_ANALYSE
-static uint16_t dynFiltNotchMaxHz;
-static uint8_t  dynFiltWidthPercent;
-static uint16_t dynFiltNotchQ;
-static uint16_t dynFiltNotchMinHz;
+static uint16_t dynFiltMatrixMaxHz;
+static uint16_t  dynFiltMatrixQ;
+static uint16_t dynFiltMatrixMinHz;
 #endif
 #ifdef USE_DYN_LPF
 static uint16_t dynFiltGyroMin;
@@ -626,10 +625,9 @@ static const void *cmsx_menuDynFilt_onEnter(displayPort_t *pDisp)
     UNUSED(pDisp);
 
 #ifdef USE_GYRO_DATA_ANALYSE
-    dynFiltNotchMaxHz   = gyroConfig()->dyn_notch_max_hz;
-    dynFiltWidthPercent = gyroConfig()->dyn_notch_width_percent;
-    dynFiltNotchQ       = gyroConfig()->dyn_notch_q;
-    dynFiltNotchMinHz   = gyroConfig()->dyn_notch_min_hz;
+    dynFiltMatrixMaxHz   = gyroConfig()->dyn_matrix_max_hz;
+    dynFiltMatrixQ       = gyroConfig()->dyn_matrix_q;
+    dynFiltMatrixMinHz   = gyroConfig()->dyn_matrix_min_hz;
 #endif
 #ifdef USE_DYN_LPF
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
@@ -649,10 +647,9 @@ static const void *cmsx_menuDynFilt_onExit(displayPort_t *pDisp, const OSD_Entry
     UNUSED(self);
 
 #ifdef USE_GYRO_DATA_ANALYSE
-    gyroConfigMutable()->dyn_notch_max_hz        = dynFiltNotchMaxHz;
-    gyroConfigMutable()->dyn_notch_width_percent = dynFiltWidthPercent;
-    gyroConfigMutable()->dyn_notch_q             = dynFiltNotchQ;
-    gyroConfigMutable()->dyn_notch_min_hz        = dynFiltNotchMinHz;
+    gyroConfigMutable()->dyn_matrix_max_hz        = dynFiltMatrixMaxHz;
+    gyroConfigMutable()->dyn_matrix_q             = dynFiltMatrixQ;
+    gyroConfigMutable()->dyn_matrix_min_hz        = dynFiltMatrixMinHz;
 #endif
 #ifdef USE_DYN_LPF
     pidProfile_t *pidProfile = currentPidProfile;
@@ -671,10 +668,9 @@ static const OSD_Entry cmsx_menuDynFiltEntries[] =
     { "-- DYN FILT --", OME_Label, NULL, NULL, 0 },
 
 #ifdef USE_GYRO_DATA_ANALYSE
-    { "NOTCH WIDTH %",  OME_UINT8,  NULL, &(OSD_UINT8_t)  { &dynFiltWidthPercent, 0, 20, 1 }, 0 },
-    { "NOTCH Q",        OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltNotchQ,       0, 1000, 1 }, 0 },
-    { "NOTCH MIN HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltNotchMinHz,   0, 1000, 1 }, 0 },
-    { "NOTCH MAX HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltNotchMaxHz,   0, 1000, 1 }, 0 },
+    { "MATRIX Q",        OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltMatrixQ,       0, 1000, 1 }, 0 },
+    { "MATRIX MIN HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltMatrixMinHz,   0, 1000, 1 }, 0 },
+    { "MATRIX MAX HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltMatrixMaxHz,   0, 1000, 1 }, 0 },
 #endif
 
 #ifdef USE_DYN_LPF
