@@ -10,4 +10,4 @@ Please search for existing issues *before* creating new ones.
 
 # Developers
 
-Please refer to the development section in the [this folder](https://github.com/EmuFlightX/EmuFlightX/tree/master/docs/development).
+Please refer to the development section in the [this folder](https://github.com/EmuFlight/EmuFlight/tree/master/docs/development).

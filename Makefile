@@ -5,7 +5,7 @@
 # this stuff is worth it, you can buy me a beer in return
 ###############################################################################
 #
-# Makefile for building the EmuFlightX firmware.
+# Makefile for building the EmuFlight firmware.
 #
 # Invoke this with 'make help' to see the list of supported targets.
 #
@@ -54,7 +54,7 @@ FLASH_SIZE ?=
 # Things that need to be maintained as the source changes
 #
 
-FORKNAME      = EmuFlightX
+FORKNAME      = EmuFlight
 
 # Working directories
 ROOT            := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
@@ -679,10 +679,10 @@ targets-f7-print:
 targets-ci-f7-print:
 	$(V1) $(MAKE) -s targets-by-mcu MCU_TYPE=STM32F7 TARGETS="$(CI_TARGETS)"
 
-## test              : run the EmuFlightX test suite
-## junittest         : run the EmuFlightX test suite, producing Junit XML result files.
-## test-representative: run a representative subset of the EmuFlightX test suite (i.e. run all tests, but run each expanded test only for one target)
-## test-all: run the EmuFlightX test suite including all per-target expanded tests
+## test              : run the EmuFlight test suite
+## junittest         : run the EmuFlight test suite, producing Junit XML result files.
+## test-representative: run a representative subset of the EmuFlight test suite (i.e. run all tests, but run each expanded test only for one target)
+## test-all: run the EmuFlight test suite including all per-target expanded tests
 test junittest test-all test-representative:
 	$(V0) cd src/test && $(MAKE) $@
 

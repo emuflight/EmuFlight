@@ -1,7 +1,7 @@
 # General
 
 This document overrides the original Baseflight style that was referenced before.
-This document has taken inspiration from that style, from Eclipse defaults and from Linux, as well as from some Cleanflight and EmuFlightX developers and existing code.
+This document has taken inspiration from that style, from Eclipse defaults and from Linux, as well as from some Cleanflight and EmuFlight developers and existing code.
 
 There are not so many changes from the old style, if you managed to find it.
 
@@ -308,7 +308,7 @@ Stay within 120 columns, unless exceeding 120 columns significantly increases re
 
 Take maximum possible advantage of compile time checking, so generally warnings should be as strict as possible.
 
-Don't call or reference "upwards". That is don't call or use anything in a software layer that is above the current layer. The software layers are not that obvious in EmuFlightX, but we can certainly say that device drivers are the bottom layer and so should not call or use anything outside the device drivers.
+Don't call or reference "upwards". That is don't call or use anything in a software layer that is above the current layer. The software layers are not that obvious in EmuFlight, but we can certainly say that device drivers are the bottom layer and so should not call or use anything outside the device drivers.
 
 Target specific code (e.g. #ifdef CC3D) is not permissible outside of the `src/main/target` directory.
 

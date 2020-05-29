@@ -1,6 +1,6 @@
 # Battery Monitoring
 
-EmuFlightX has a battery monitoring feature.  The voltage of the main battery can be measured by the system and used to trigger a low-battery warning [buzzer](Buzzer.md), on-board status LED flashing and LED strip patterns.
+EmuFlight has a battery monitoring feature.  The voltage of the main battery can be measured by the system and used to trigger a low-battery warning [buzzer](Buzzer.md), on-board status LED flashing and LED strip patterns.
 
 Low battery warnings can:
 
@@ -139,7 +139,7 @@ To calibrate your flight controller with a current meter follow these steps.
 2. Hook your ammeter up in series with your drone and a charged battery. I suggest an XT60 extender with one lead cut. Now your ammeter will be displaying the true current draw of your system.
 3. Connect to your flight controller through the configurator and check your current calibrations. Change them in the google sheet if needed.
 4. Use the motor tab to increase the throttle and change the current draw of the drone to around 1 A on the ammeter (it does not matter if it is not exact).
-5. Switch back to the power and battery tab and record current from the ammeter in the measured current column and the current reported by EmuFlightX in the flight controller current column (both in amps, to 2 decimal places).
+5. Switch back to the power and battery tab and record current from the ammeter in the measured current column and the current reported by EmuFlight in the flight controller current column (both in amps, to 2 decimal places).
 6. Repeat this measurement (steps 4 and 5) 3 or more times at various currents from 0 to 5 Amps (make sure not to go over your ammeter rated current).
 7. Once this is done make sure the results are linear on the graph and that the regression value is green. You can now update to the new calibration values and enjoy accurate battery usage information.
 

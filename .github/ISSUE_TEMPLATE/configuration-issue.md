@@ -1,6 +1,6 @@
 ---
 name: Configuration Issue
-about: Find help if you are struggling with configuring EmuFlightX
+about: Find help if you are struggling with configuring EmuFlight
 
 ---
 

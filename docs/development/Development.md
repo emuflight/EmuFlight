@@ -1,7 +1,7 @@
 # Development
 
 This document is primarily for developers.
-If you plan to contribute to EmuFlightX by opening a pull request for a bugfix or feature, please read the following text carefully before you start. This will help you in submitting your contribution in a form that has a good chance of being accepted. Please also read up on the [coding style](/docs/development/CodingStyle.md).
+If you plan to contribute to EmuFlight by opening a pull request for a bugfix or feature, please read the following text carefully before you start. This will help you in submitting your contribution in a form that has a good chance of being accepted. Please also read up on the [coding style](/docs/development/CodingStyle.md).
 
 ## General principles
 
@@ -78,39 +78,39 @@ https://help.github.com/articles/creating-a-pull-request/
 
 The main flow for a contributing is as follows:
 
-1. Login to github, go to the EmuFlightX repository and press `fork`;
+1. Login to github, go to the EmuFlight repository and press `fork`;
 2. Then using the command line/terminal on your computer: `git clone <url to YOUR fork>`;
-3. `cd EmuFlightX`;
+3. `cd EmuFlight`;
 4. `git checkout master`;
 5. `git checkout -b my-new-code`;
 6. Make changes;
 7. `git add <files that have changed>`;
 8. `git commit`;
 9. `git push origin my-new-code`;
-10. Create pull request using github UI to merge your changes from your new branch into `EmuFlightX/master`;
+10. Create pull request using github UI to merge your changes from your new branch into `EmuFlight/master`;
 11. Repeat from step 4 for new other changes.
 
 The primary thing to remember is that separate pull requests should be created for separate branches.  Never create a pull request from your `master` branch.
 
 Once you have created the PR,
-every new commit/push in your branch will propagate from your fork into the PR in the main github/EmuFlightX repo.
+every new commit/push in your branch will propagate from your fork into the PR in the main github/EmuFlight repo.
 Checkout another branch first if you want something else.
 
 Push will often fail if you edit or squash commits in a branch already pushed. Never do such things after creating the PR.
 
-Later, you can get the changes from the EmuFlightX repo into your `master` branch by adding EmuFlightX as a git remote and merging from it as follows:
+Later, you can get the changes from the EmuFlight repo into your `master` branch by adding EmuFlight as a git remote and merging from it as follows:
 
-1. `git remote add EmuFlightX https://github.com/EmuFlightX/EmuFlightX.git`
+1. `git remote add EmuFlight https://github.com/EmuFlight/EmuFlight.git`
 2. `git checkout master`
-3. `git fetch EmuFlightX`
-4. `git merge EmuFlightX/master`
+3. `git fetch EmuFlight`
+4. `git merge EmuFlight/master`
 5. `git push origin master` is an optional step that will update your fork on github
 
 You can also perform the git commands using the git client inside Eclipse.  Refer to the Eclipse git manual.
 
 ### Providing Test Targets for Pull Requests
 
-If you open a pull request for the EmuFlightX repository that contains a change that can be tested by other users, please build a set of test firmware files for all Unified Targets and attach them to the pull request. The required firmware files can be built in zipped form ready for upload to GitHub with `make unified_zip`. When attaching test firmware files, you can point users to this video for instructions on how to install the test firmware: https://youtu.be/I1uN9CN30gw
+If you open a pull request for the EmuFlight repository that contains a change that can be tested by other users, please build a set of test firmware files for all Unified Targets and attach them to the pull request. The required firmware files can be built in zipped form ready for upload to GitHub with `make unified_zip`. When attaching test firmware files, you can point users to this video for instructions on how to install the test firmware: https://youtu.be/I1uN9CN30gw
 
 Example of a pull request with test firmware attached:
 
