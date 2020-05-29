@@ -20,8 +20,7 @@
 
 #pragma once
 #define TARGET_BOARD_IDENTIFIER                          "S411"
-#define USBD_PRODUCT_STRING                              "IFF411_PRO"
-#define TARGET_MANUFACTURER_IDENTIFIER                   "IFFL"
+#define USBD_PRODUCT_STRING                              "IFLIGHT F411 PRO"
 
 #define ENABLE_DSHOT_DMAR                                true
 

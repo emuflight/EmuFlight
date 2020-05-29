@@ -21,7 +21,7 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER "S411"
-#define USBD_PRODUCT_STRING "IFF411_AIO"
+#define USBD_PRODUCT_STRING "IFLIGHT F411 AIO"
 
 #define LED0_PIN                  PB5
 
