@@ -37,12 +37,14 @@
 
 controlRateConfig_t *currentControlRateProfile;
 
-PG_REGISTER_ARRAY_WITH_RESET_FN(controlRateConfig_t, CONTROL_RATE_PROFILE_COUNT, controlRateProfiles, PG_CONTROL_RATE_PROFILES, 2);
+PG_REGISTER_ARRAY_WITH_RESET_FN(controlRateConfig_t, CONTROL_RATE_PROFILE_COUNT, controlRateProfiles, PG_CONTROL_RATE_PROFILES, 1);
 
 void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
 {
     for (int i = 0; i < CONTROL_RATE_PROFILE_COUNT; i++) {
         RESET_CONFIG(controlRateConfig_t, &controlRateConfig[i],
+          // default rate dynamics do nothing to effect stick feels
+            .rateDynamics = {100, 100, 10, 10, 0, 0,}, // SensitivityLow, SensitivityHigh, Correctionlow, CorrectionHigh, Weightlow, WeightHigh
             .thrMid8 = 50,
             .thrExpo8 = 0,
             .dynThrPID = 65,
