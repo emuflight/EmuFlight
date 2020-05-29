@@ -1,6 +1,6 @@
 # Battery Monitoring
 
-Betaflight has a battery monitoring feature.  The voltage of the main battery can be measured by the system and used to trigger a low-battery warning [buzzer](Buzzer.md), on-board status LED flashing and LED strip patterns.
+EmuFlightX has a battery monitoring feature.  The voltage of the main battery can be measured by the system and used to trigger a low-battery warning [buzzer](Buzzer.md), on-board status LED flashing and LED strip patterns.
 
 Low battery warnings can:
 
@@ -10,7 +10,7 @@ Low battery warnings can:
 Minimum and maximum cell voltages can be set, and these voltages are used to auto-detect the number of cells in the battery when it is first connected.
 
 Per-cell monitoring is not supported, as we only use one ADC to read the battery voltage.
-  
+
 ## Supported targets
 
 All targets support battery voltage monitoring unless status.
@@ -31,12 +31,12 @@ The Naze32 has an on-board battery divider circuit; just connect your main batte
 
 ### CC3D
 
-The CC3D has no battery divider.  To use voltage monitoring, you must create a divider that gives a 3.3v 
+The CC3D has no battery divider.  To use voltage monitoring, you must create a divider that gives a 3.3v
 MAXIMUM output when the main battery is fully charged.  Connect the divider output to S5_IN/PA0/RC5.
 
 Notes:
 
-* S5_IN/PA0/RC5 is Pin 7 on the 8 pin connector, second to last pin, on the opposite end from the 
+* S5_IN/PA0/RC5 is Pin 7 on the 8 pin connector, second to last pin, on the opposite end from the
   GND/+5/PPM signal input.
 
 * When battery monitoring is enabled on the CC3D, RC5 can no-longer be used for PWM input.
@@ -96,7 +96,7 @@ feature CURRENT_METER
 Configure the current meter type using the `amperage_meter_type` settings here:
 
 | Value   | Sensor Type            |
-| ------- | ---------------------- | 
+| ------- | ---------------------- |
 | NONE    | None                   |
 | ADC     | ADC/hardware sensor    |
 | VIRTUAL | Virtual sensor         |
@@ -123,7 +123,7 @@ Current(Amps) = ADC (mV) / amperage_meter_scale * 10 + amperage_meter_offset / 1
 Where the calibrations are:
 
 | Setting                       | Description                                              |
-| ----------------------------- | -------------------------------------------------------- | 
+| ----------------------------- | -------------------------------------------------------- |
 | `amperage_meter_scale`     | The scaling factor in mV/10A  |
 | `amperage_meter_offset`    | The offset in mA |
 
@@ -139,7 +139,7 @@ To calibrate your flight controller with a current meter follow these steps.
 2. Hook your ammeter up in series with your drone and a charged battery. I suggest an XT60 extender with one lead cut. Now your ammeter will be displaying the true current draw of your system.
 3. Connect to your flight controller through the configurator and check your current calibrations. Change them in the google sheet if needed.
 4. Use the motor tab to increase the throttle and change the current draw of the drone to around 1 A on the ammeter (it does not matter if it is not exact).
-5. Switch back to the power and battery tab and record current from the ammeter in the measured current column and the current reported by Betaflight in the flight controller current column (both in amps, to 2 decimal places).
+5. Switch back to the power and battery tab and record current from the ammeter in the measured current column and the current reported by EmuFlightX in the flight controller current column (both in amps, to 2 decimal places).
 6. Repeat this measurement (steps 4 and 5) 3 or more times at various currents from 0 to 5 Amps (make sure not to go over your ammeter rated current).
 7. Once this is done make sure the results are linear on the graph and that the regression value is green. You can now update to the new calibration values and enjoy accurate battery usage information.
 
@@ -154,7 +154,7 @@ If you do not want to use google sheets then simply use some other tool that pre
 The virtual sensor uses the throttle position to calculate an estimated current value. This is useful when a real sensor is not available. The following settings adjust the virtual sensor calibration:
 
 | Setting                       | Description                                              |
-| ----------------------------- | -------------------------------------------------------- | 
+| ----------------------------- | -------------------------------------------------------- |
 | `amperage_meter_scale`     | The throttle scaling factor [centiamps, i.e. 1/100th A]  |
 | `amperage_meter_offset`    | The current at zero throttle (while disarmed) [centiamps, i.e. 1/100th A] |
 
@@ -177,12 +177,12 @@ amperage_meter_offset = Imin * 100 = 280
 ```
 #### Tuning Using Battery Charger Measurement
 If you cannot measure current draw directly, you can approximate it indirectly using your battery charger.  
-However, note it may be difficult to adjust `amperage_meter_offset` using this method unless you can 
+However, note it may be difficult to adjust `amperage_meter_offset` using this method unless you can
 measure the actual current draw with the craft disarmed.
 
 Note:
 + This method depends on the accuracy of your battery charger; results may vary.
-+ If you add or replace equipment that changes the in-flight current draw (e.g. video transmitter, 
++ If you add or replace equipment that changes the in-flight current draw (e.g. video transmitter,
   camera, gimbal, motors, prop pitch/sizes, ESCs, etc.), you should recalibrate.
 
 The general method is:
@@ -209,8 +209,3 @@ amperage_meter_scale = old_amperage_meter_scale * (mAh_recharged / cleanflight_r
                      = 400 * (1500 / 2000)
                      = 300
 ```
-
-
-
-
-

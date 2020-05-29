@@ -1,6 +1,6 @@
 # If your issue looks like a hardware fault or a configuration problem please don't raise an issue here.
 
-## Please consider using other user support options such as asking the manufacturer of the hardware you are using, RCGroups: https://rcgroups.com/forums/showthread.php?t=2464844, or Slack (registration at https://slack.betaflight.com/) or other user support forums & groups (e.g. Facebook).
+## Please consider using other user support options such as asking the manufacturer of the hardware you are using, RCGroups: https://rcgroups.com/forums/showthread.php?t=2464844, or Discord or other user support forums & groups (e.g. Facebook).
 
 ## If you believe there is an issue with the firmware itself please follow these steps:
 1. Describe your problem;

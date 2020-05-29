@@ -65,8 +65,8 @@ cache:
   - downloads
   - tools
 
-# Notifications are encrypted to betaflight/betaflight to avoid spam from forks
-# Command: `travis encrypt "<secret>" -r betaflight/betaflight --com`
+# Notifications are encrypted to EmuFlightX/EmuFlightX to avoid spam from forks
+# Command: `travis encrypt "<secret>" -r EmuFlightX/EmuFlightX --com`
 notifications:
   slack:
     rooms:

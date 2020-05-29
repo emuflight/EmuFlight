@@ -1,7 +1,7 @@
 # Parameter Groups
 
 ## Introduction
-'Parameter Groups' is the name of the pattern that is used in Betaflight to store (and at a later point transfer) firmware configuration data.
+'Parameter Groups' is the name of the pattern that is used in EmuFlightX to store (and at a later point transfer) firmware configuration data.
 
 With parameter groups, parameters are combined in logical groups (e.g. all the parameters for one particular device / feature go into one parameter group). These groups are modelled as data structures in the firmware.
 

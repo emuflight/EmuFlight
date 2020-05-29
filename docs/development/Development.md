@@ -1,7 +1,7 @@
 # Development
 
 This document is primarily for developers.
-If you plan to contribute to Betaflight by opening a pull request for a bugfix or feature, please read the following text carefully before you start. This will help you in submitting your contribution in a form that has a good chance of being accepted. Please also read up on the [coding style](/docs/development/CodingStyle.md).
+If you plan to contribute to EmuFlightX by opening a pull request for a bugfix or feature, please read the following text carefully before you start. This will help you in submitting your contribution in a form that has a good chance of being accepted. Please also read up on the [coding style](/docs/development/CodingStyle.md).
 
 ## General principles
 
@@ -31,7 +31,7 @@ Ideally, there should be tests for any new code. However, since this is a legacy
 
 If you want to make changes and want to make sure it's tested then focus on the minimal set of changes required to add a test.
 
-Tests currently live in the `test` folder and they use the google test framework. 
+Tests currently live in the `test` folder and they use the google test framework.
 The tests are compiled and run natively on your development machine and not on the target platform.
 This allows you to develop tests and code and actually execute it to make sure it works without needing a development board or simulator.
 
@@ -58,7 +58,7 @@ make junittest
 This will build a set of executable files in the `obj/test` folder, one for each `*_unittest.cc` file.
 It will stop after first compile/build error. If you want it to continue with the next test module you can use `make -k test`.
 
-After they have been executed by the make invocation, you can still run them on the command line to execute the tests and to see the test report. Test reports will also be produced in form of junit XML files, if tests are built and run with the "junittest" goal. Junit report files are saved in obj/test directory and has the following  naming pattern test\_name\_results.xml, for example: obj/test/battery\_unittest\_results.xml 
+After they have been executed by the make invocation, you can still run them on the command line to execute the tests and to see the test report. Test reports will also be produced in form of junit XML files, if tests are built and run with the "junittest" goal. Junit report files are saved in obj/test directory and has the following  naming pattern test\_name\_results.xml, for example: obj/test/battery\_unittest\_results.xml
 
 You can also step-debug the tests in eclipse and you can use the GoogleTest test runner to make building and re-running the tests simple.
 
@@ -78,39 +78,39 @@ https://help.github.com/articles/creating-a-pull-request/
 
 The main flow for a contributing is as follows:
 
-1. Login to github, go to the betaflight repository and press `fork`;
+1. Login to github, go to the EmuFlightX repository and press `fork`;
 2. Then using the command line/terminal on your computer: `git clone <url to YOUR fork>`;
-3. `cd betaflight`;
+3. `cd EmuFlightX`;
 4. `git checkout master`;
 5. `git checkout -b my-new-code`;
 6. Make changes;
 7. `git add <files that have changed>`;
 8. `git commit`;
 9. `git push origin my-new-code`;
-10. Create pull request using github UI to merge your changes from your new branch into `betaflight/master`;
+10. Create pull request using github UI to merge your changes from your new branch into `EmuFlightX/master`;
 11. Repeat from step 4 for new other changes.
 
 The primary thing to remember is that separate pull requests should be created for separate branches.  Never create a pull request from your `master` branch.
 
 Once you have created the PR,
-every new commit/push in your branch will propagate from your fork into the PR in the main github/betaflight repo.
+every new commit/push in your branch will propagate from your fork into the PR in the main github/EmuFlightX repo.
 Checkout another branch first if you want something else.
 
 Push will often fail if you edit or squash commits in a branch already pushed. Never do such things after creating the PR.
 
-Later, you can get the changes from the betaflight repo into your `master` branch by adding betaflight as a git remote and merging from it as follows:
+Later, you can get the changes from the EmuFlightX repo into your `master` branch by adding EmuFlightX as a git remote and merging from it as follows:
 
-1. `git remote add betaflight https://github.com/betaflight/betaflight.git`
+1. `git remote add EmuFlightX https://github.com/EmuFlightX/EmuFlightX.git`
 2. `git checkout master`
-3. `git fetch betaflight`
-4. `git merge betaflight/master`
+3. `git fetch EmuFlightX`
+4. `git merge EmuFlightX/master`
 5. `git push origin master` is an optional step that will update your fork on github
- 
+
 You can also perform the git commands using the git client inside Eclipse.  Refer to the Eclipse git manual.
 
 ### Providing Test Targets for Pull Requests
 
-If you open a pull request for the betaflight repository that contains a change that can be tested by other users, please build a set of test firmware files for all Unified Targets and attach them to the pull request. The required firmware files can be built in zipped form ready for upload to GitHub with `make unified_zip`. When attaching test firmware files, you can point users to this video for instructions on how to install the test firmware: https://youtu.be/I1uN9CN30gw
+If you open a pull request for the EmuFlightX repository that contains a change that can be tested by other users, please build a set of test firmware files for all Unified Targets and attach them to the pull request. The required firmware files can be built in zipped form ready for upload to GitHub with `make unified_zip`. When attaching test firmware files, you can point users to this video for instructions on how to install the test firmware: https://youtu.be/I1uN9CN30gw
 
 Example of a pull request with test firmware attached:
 

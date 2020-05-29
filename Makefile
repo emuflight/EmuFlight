@@ -5,7 +5,7 @@
 # this stuff is worth it, you can buy me a beer in return
 ###############################################################################
 #
-# Makefile for building the betaflight firmware.
+# Makefile for building the EmuFlightX firmware.
 #
 # Invoke this with 'make help' to see the list of supported targets.
 #
@@ -54,7 +54,7 @@ FLASH_SIZE ?=
 # Things that need to be maintained as the source changes
 #
 
-FORKNAME      = betaflight
+FORKNAME      = EmuFlightX
 
 # Working directories
 ROOT            := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
@@ -237,7 +237,7 @@ CC_DEBUG_OPTIMISATION   := $(OPTIMISE_DEFAULT)
 CC_DEFAULT_OPTIMISATION := $(OPTIMISATION_BASE) $(OPTIMISE_DEFAULT)
 CC_SPEED_OPTIMISATION   := $(OPTIMISATION_BASE) $(OPTIMISE_SPEED)
 CC_SIZE_OPTIMISATION    := $(OPTIMISATION_BASE) $(OPTIMISE_SIZE)
-CC_NO_OPTIMISATION      := 
+CC_NO_OPTIMISATION      :=
 
 #
 # Added after GCC version update, remove once the warnings have been fixed
@@ -346,7 +346,7 @@ ifeq ($(EXST),no)
 $(TARGET_BIN): $(TARGET_ELF)
 	@echo "Creating BIN $(TARGET_BIN)" "$(STDOUT)"
 	$(V1) $(OBJCOPY) -O binary $< $@
-	
+
 $(TARGET_HEX): $(TARGET_ELF)
 	@echo "Creating HEX $(TARGET_HEX)" "$(STDOUT)"
 	$(V1) $(OBJCOPY) -O ihex --set-start 0x8000000 $< $@
@@ -370,8 +370,8 @@ $(TARGET_BIN): $(TARGET_UNPATCHED_BIN)
 	$(V1) dd if=$(TARGET_UNPATCHED_BIN) of=$(TARGET_BIN) conv=notrunc
 
 	@echo "Generating MD5 hash of binary" "$(STDOUT)"
-	$(V1) openssl dgst -md5 $(TARGET_BIN) > $(TARGET_UNPATCHED_BIN).md5 
-	
+	$(V1) openssl dgst -md5 $(TARGET_BIN) > $(TARGET_UNPATCHED_BIN).md5
+
 	@echo "Patching MD5 hash into binary" "$(STDOUT)"
 	$(V1) cat $(TARGET_UNPATCHED_BIN).md5 | awk '{printf("%08x: %s",(1024*$(FIRMWARE_SIZE))-16,$$2);}' | xxd -r - $(TARGET_BIN)
 	$(V1) echo $(FIRMWARE_SIZE) | awk '{printf("-s 0x%08x -l 16 -c 16 %s",(1024*$$1)-16,"$(TARGET_BIN)");}' | xargs xxd
@@ -384,10 +384,10 @@ $(TARGET_BIN): $(TARGET_UNPATCHED_BIN)
 	@echo "Extracting HASH section from unpatched EXST elf $(TARGET_ELF)" "$(STDOUT)"
 	$(OBJCOPY) $(TARGET_ELF) $(TARGET_EXST_ELF).tmp --dump-section .exst_hash=$(TARGET_EXST_HASH_SECTION_FILE)
 	rm $(TARGET_EXST_ELF).tmp
-	
+
 	@echo "Patching MD5 hash into HASH section" "$(STDOUT)"
 	$(V1) cat $(TARGET_UNPATCHED_BIN).md5 | awk '{printf("%08x: %s",64-16,$$2);}' | xxd -r - $(TARGET_EXST_HASH_SECTION_FILE)
-	
+
 	@echo "Patching updated HASH section into $(TARGET_EXST_ELF)" "$(STDOUT)"
 	$(OBJCOPY) $(TARGET_ELF) $(TARGET_EXST_ELF) --update-section .exst_hash=$(TARGET_EXST_HASH_SECTION_FILE)
 
@@ -679,10 +679,10 @@ targets-f7-print:
 targets-ci-f7-print:
 	$(V1) $(MAKE) -s targets-by-mcu MCU_TYPE=STM32F7 TARGETS="$(CI_TARGETS)"
 
-## test              : run the Betaflight test suite
-## junittest         : run the Betaflight test suite, producing Junit XML result files.
-## test-representative: run a representative subset of the Betaflight test suite (i.e. run all tests, but run each expanded test only for one target)
-## test-all: run the Betaflight test suite including all per-target expanded tests
+## test              : run the EmuFlightX test suite
+## junittest         : run the EmuFlightX test suite, producing Junit XML result files.
+## test-representative: run a representative subset of the EmuFlightX test suite (i.e. run all tests, but run each expanded test only for one target)
+## test-all: run the EmuFlightX test suite including all per-target expanded tests
 test junittest test-all test-representative:
 	$(V0) cd src/test && $(MAKE) $@
 

@@ -1,6 +1,6 @@
 ---
 name: Firmware Bug Report
-about: Create a report to help us fix bugs in the Betaflight firmware
+about: Create a report to help us fix bugs in the EmuFlightX firmware
 
 ---
 
