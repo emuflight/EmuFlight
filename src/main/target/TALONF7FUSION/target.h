@@ -142,6 +142,7 @@
 #define BINDPLUG_PIN            PB2
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_UART           SERIAL_PORT_UART5
+#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
