@@ -22,8 +22,13 @@
 #define TARGET_BOARD_IDENTIFIER "TALN"
 #define USBD_PRODUCT_STRING "TALONF7FUSION"
 
-#define USE_DSHOT_DMAR
+#define USE_TARGET_CONFIG
+
 #define ENABLE_DSHOT_DMAR       true
+
+#define USE_PINIO
+#define PINIO1_PIN              PA14
+#define USE_PINIOBOX
 
 #define LED0_PIN                PB0
 #define USE_BEEPER
