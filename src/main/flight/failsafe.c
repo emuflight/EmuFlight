@@ -294,7 +294,7 @@ void failsafeUpdateState(void)
                     failsafeApplyControlInput();
                     beeperMode = BEEPER_RX_LOST_LANDING;
                 }
-                if (failsafeShouldHaveCausedLandingByNow() || crashRecoveryModeActive() || !armed) {
+                if (failsafeShouldHaveCausedLandingByNow() || !armed) {
                     failsafeState.receivingRxDataPeriodPreset = PERIOD_OF_30_SECONDS; // require 30 seconds of valid rxData
                     failsafeState.phase = FAILSAFE_LANDED;
                     reprocessState = true;

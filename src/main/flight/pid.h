@@ -133,18 +133,9 @@ typedef struct pidProfile_s {
     uint16_t itermAcceleratorGain;          // Iterm Accelerator Gain when itermThrottlethreshold is hit
     uint16_t yawRateAccelLimit;             // yaw accel limiter for deg/sec/ms
     uint16_t rateAccelLimit;                // accel limiter roll/pitch deg/sec/ms
-    uint16_t crash_dthreshold;              // dterm crash value
-    uint16_t crash_gthreshold;              // gyro crash value
-    uint16_t crash_setpoint_threshold;      // setpoint must be below this value to detect crash, so flips and rolls are not interpreted as crashes
-    uint16_t crash_time;                    // ms
-    uint16_t crash_delay;                   // ms
-    uint8_t crash_recovery_angle;           // degrees
-    uint8_t crash_recovery_rate;            // degree/second
     uint8_t feedForwardTransition;          // Feed forward weight transition
-    uint16_t crash_limit_yaw;               // limits yaw errorRate, so crashes don't cause huge throttle increase
     uint16_t itermLimit;
     uint16_t dterm_lowpass2_hz;             // Extra PT1 Filter on D in hz
-    uint8_t crash_recovery;                 // off, on, on and beeps when it is in crash recovery mode
     uint8_t throttle_boost;                 // how much should throttle be boosted during transient changes 0-100, 100 adds 10x hpf filtered throttle
     uint8_t throttle_boost_cutoff;          // Which cutoff frequency to use for throttle boost. higher cutoffs keep the boost on for shorter. Specified in hz.
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system
@@ -206,7 +197,7 @@ typedef struct pidConfig_s {
 PG_DECLARE(pidConfig_t, pidConfig);
 
 union rollAndPitchTrims_u;
-void pidController(const pidProfile_t *pidProfile, timeUs_t currentTimeUs);
+void pidController(const pidProfile_t *pidProfile);
 
 typedef struct pidAxisData_s {
     float P;
@@ -233,7 +224,6 @@ void pidInitFilters(const pidProfile_t *pidProfile);
 void pidInitConfig(const pidProfile_t *pidProfile);
 void pidInit(const pidProfile_t *pidProfile);
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex);
-bool crashRecoveryModeActive(void);
 void pidAcroTrainerInit(void);
 void pidSetAcroTrainerState(bool newState);
 void pidInitSetpointDerivativeLpf(uint16_t filterCutoff, uint8_t debugAxis, uint8_t filterType);

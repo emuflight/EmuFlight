@@ -47,7 +47,7 @@ void kalman_init(void)
     init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->imuf_yaw_q);
 }
 
-static void update_kalman_covariance(float gyroRateData, int axis)
+static FAST_CODE void update_kalman_covariance(float gyroRateData, int axis)
 {
      kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex] = gyroRateData;
      kalmanFilterStateRate[axis].axisSumMean +=  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex];
@@ -96,7 +96,6 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
   kalmanState->p = (1.0f - kalmanState->k) * kalmanState->p;
   return kalmanState->x;
 }
-
 
 FAST_CODE float kalman_update(float input, int axis)
 {
