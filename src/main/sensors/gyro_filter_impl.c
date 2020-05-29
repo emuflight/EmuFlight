@@ -19,6 +19,7 @@
  */
 
 #include "platform.h"
+#include "common/kalman.h"
 
 static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
 {
@@ -87,6 +88,8 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
             gyroADCf = gyro.notchFilterDynApplyFn((filter_t *)&gyro.notchFilterDyn[axis][2], gyroADCf);
         }
 #endif
+
+        gyroADCf = kalman_update(gyroADCf, axis);
 
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));

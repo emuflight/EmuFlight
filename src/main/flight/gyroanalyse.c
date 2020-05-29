@@ -107,8 +107,8 @@ void gyroDataAnalyseInit(uint32_t targetLooptimeUs)
     gyroAnalyseInitialized = true;
 #endif
 
-    dynNotchMinHz = gyroConfig()->dyn_matrix_min_hz;
-    dynNotchMaxHz = MAX(2 * dynNotchMinHz, gyroConfig()->dyn_matrix_max_hz);
+    dynNotchMinHz = gyroConfig()->dyn_notch_min_hz;
+    dynNotchMaxHz = MAX(2 * dynNotchMinHz, gyroConfig()->dyn_notch_max_hz);
 
     const int gyroLoopRateHz = lrintf((1.0f / targetLooptimeUs) * 1e6f);
     samples = MAX(1, gyroLoopRateHz / (2 * dynNotchMaxHz)); //600hz, 8k looptime, 13.333

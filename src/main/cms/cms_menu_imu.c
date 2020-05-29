@@ -609,7 +609,7 @@ static CMS_Menu cmsx_menuFilterGlobal = {
 
 #ifdef USE_GYRO_DATA_ANALYSE
 static uint16_t dynFiltMatrixMaxHz;
-static uint16_t  dynFiltMatrixQ;
+static uint16_t dynFiltMatrixQ;
 static uint16_t dynFiltMatrixMinHz;
 #endif
 #ifdef USE_DYN_LPF
@@ -617,7 +617,14 @@ static uint16_t dynFiltGyroMin;
 static uint16_t dynFiltGyroMax;
 static uint16_t dynFiltDtermMin;
 static uint16_t dynFiltDtermMax;
-static uint8_t dynFiltDtermExpo;
+static uint8_t  dynFiltDtermExpo;
+#endif
+#ifndef USE_GYRO_IMUF9001
+static uint16_t gyroConfig_imuf_roll_q;
+static uint16_t gyroConfig_imuf_pitch_q;
+static uint16_t gyroConfig_imuf_yaw_q;
+static uint16_t gyroConfig_imuf_w;
+static uint16_t gyroConfig_imuf_sharpness;
 #endif
 
 static const void *cmsx_menuDynFilt_onEnter(displayPort_t *pDisp)
@@ -625,19 +632,23 @@ static const void *cmsx_menuDynFilt_onEnter(displayPort_t *pDisp)
     UNUSED(pDisp);
 
 #ifdef USE_GYRO_DATA_ANALYSE
-    dynFiltMatrixMaxHz   = gyroConfig()->dyn_matrix_max_hz;
-    dynFiltMatrixQ       = gyroConfig()->dyn_matrix_q;
-    dynFiltMatrixMinHz   = gyroConfig()->dyn_matrix_min_hz;
+    dynFiltMatrixMaxHz   = gyroConfig()->dyn_notch_max_hz;
+    dynFiltMatrixQ       = gyroConfig()->dyn_notch_q;
+    dynFiltMatrixMinHz   = gyroConfig()->dyn_notch_min_hz;
 #endif
 #ifdef USE_DYN_LPF
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
-    dynFiltGyroMin  = gyroConfig()->dyn_lpf_gyro_min_hz;
-    dynFiltGyroMax  = gyroConfig()->dyn_lpf_gyro_max_hz;
-    dynFiltDtermMin = pidProfile->dyn_lpf_dterm_min_hz;
-    dynFiltDtermMax = pidProfile->dyn_lpf_dterm_max_hz;
+    dynFiltGyroMin   = gyroConfig()->dyn_lpf_gyro_min_hz;
+    dynFiltGyroMax   = gyroConfig()->dyn_lpf_gyro_max_hz;
+    dynFiltDtermMin  = pidProfile->dyn_lpf_dterm_min_hz;
+    dynFiltDtermMax  = pidProfile->dyn_lpf_dterm_max_hz;
     dynFiltDtermExpo = pidProfile->dyn_lpf_curve_expo;
 #endif
-
+    gyroConfig_imuf_roll_q    = gyroConfig()->imuf_roll_q;
+    gyroConfig_imuf_pitch_q   = gyroConfig()->imuf_pitch_q;
+    gyroConfig_imuf_yaw_q     = gyroConfig()->imuf_yaw_q;
+    gyroConfig_imuf_w         = gyroConfig()->imuf_w;
+    gyroConfig_imuf_sharpness = gyroConfig()->imuf_sharpness;
     return NULL;
 }
 
@@ -647,9 +658,9 @@ static const void *cmsx_menuDynFilt_onExit(displayPort_t *pDisp, const OSD_Entry
     UNUSED(self);
 
 #ifdef USE_GYRO_DATA_ANALYSE
-    gyroConfigMutable()->dyn_matrix_max_hz        = dynFiltMatrixMaxHz;
-    gyroConfigMutable()->dyn_matrix_q             = dynFiltMatrixQ;
-    gyroConfigMutable()->dyn_matrix_min_hz        = dynFiltMatrixMinHz;
+    gyroConfigMutable()->dyn_notch_max_hz        = dynFiltMatrixMaxHz;
+    gyroConfigMutable()->dyn_notch_q             = dynFiltMatrixQ;
+    gyroConfigMutable()->dyn_notch_min_hz        = dynFiltMatrixMinHz;
 #endif
 #ifdef USE_DYN_LPF
     pidProfile_t *pidProfile = currentPidProfile;
@@ -659,6 +670,11 @@ static const void *cmsx_menuDynFilt_onExit(displayPort_t *pDisp, const OSD_Entry
     pidProfile->dyn_lpf_dterm_max_hz         = dynFiltDtermMax;
     pidProfile->dyn_lpf_curve_expo           = dynFiltDtermExpo;
 #endif
+    gyroConfigMutable()->imuf_roll_q    = gyroConfig_imuf_roll_q;
+    gyroConfigMutable()->imuf_pitch_q   = gyroConfig_imuf_pitch_q;
+    gyroConfigMutable()->imuf_yaw_q     = gyroConfig_imuf_yaw_q;
+    gyroConfigMutable()->imuf_w         = gyroConfig_imuf_w;
+    gyroConfigMutable()->imuf_sharpness = gyroConfig_imuf_sharpness;
 
     return NULL;
 }
@@ -672,12 +688,17 @@ static const OSD_Entry cmsx_menuDynFiltEntries[] =
     { "MATRIX MIN HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltMatrixMinHz,   0, 1000, 1 }, 0 },
     { "MATRIX MAX HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltMatrixMaxHz,   0, 1000, 1 }, 0 },
 #endif
+    { "IMUF W",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,              3, 350, 1 }, 0 },
+    { "IMUF ROLL Q",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,       100, 16000, 100 }, 0 },
+    { "IMUF ROLL Q",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,       100, 16000, 100 }, 0 },
+    { "IMUF ROLL Q",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,       100, 16000, 100 }, 0 },
+    { "IMUF SHARPNESS",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness,    100, 16000, 100 }, 0 },
 
 #ifdef USE_DYN_LPF
-    { "LPF GYRO MIN",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltGyroMin,  0, 1000, 1 }, 0 },
-    { "LPF GYRO MAX",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltGyroMax,  0, 1000, 1 }, 0 },
-    { "DTERM DLPF MIN", OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltDtermMin, 0, 1000, 1 }, 0 },
-    { "DTERM DLPF MAX", OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltDtermMax, 0, 1000, 1 }, 0 },
+    { "LPF GYRO MIN",    OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltGyroMin,  0, 1000, 1 }, 0 },
+    { "LPF GYRO MAX",    OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltGyroMax,  0, 1000, 1 }, 0 },
+    { "DTERM DLPF MIN",  OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltDtermMin, 0, 1000, 1 }, 0 },
+    { "DTERM DLPF MAX",  OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltDtermMax, 0, 1000, 1 }, 0 },
     { "DTERM DLPF EXPO", OME_UINT8, NULL, &(OSD_UINT8_t) { &dynFiltDtermExpo, 0, 10, 1 }, 0 },
 #endif
 

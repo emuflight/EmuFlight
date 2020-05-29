@@ -188,13 +188,28 @@ typedef struct gyroConfig_s {
     uint16_t dyn_lpf_gyro_min_hz;
     uint16_t dyn_lpf_gyro_max_hz;
 
-    uint16_t dyn_matrix_max_hz;
-    uint8_t  dyn_matrix_q;
-    uint16_t dyn_matrix_min_hz;
+    uint16_t dyn_notch_max_hz;
+    uint8_t  dyn_notch_q;
+    uint16_t dyn_notch_min_hz;
+
+    #if defined(USE_GYRO_IMUF9001)
+        uint16_t imuf_mode;
+        uint16_t imuf_rate;
+        uint16_t imuf_pitch_lpf_cutoff_hz;
+        uint16_t imuf_roll_lpf_cutoff_hz;
+        uint16_t imuf_yaw_lpf_cutoff_hz;
+        uint16_t imuf_acc_lpf_cutoff_hz;
+    #endif
+        uint16_t imuf_pitch_q;
+        uint16_t imuf_roll_q;
+        uint16_t imuf_yaw_q;
+        uint16_t imuf_w;
+        uint16_t imuf_sharpness;
 
     uint8_t  gyro_filter_debug_axis;
 
     uint8_t gyrosDetected; // What gyros should detection be attempted for on startup. Automatically set on first startup.
+
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);

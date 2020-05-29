@@ -127,10 +127,15 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->yaw_spin_threshold = 1950;
     gyroConfig->dyn_lpf_gyro_min_hz = 200;
     gyroConfig->dyn_lpf_gyro_max_hz = 500;
-    gyroConfig->dyn_matrix_max_hz = 600;
-    gyroConfig->dyn_matrix_q = 250;
-    gyroConfig->dyn_matrix_min_hz = 150;
+    gyroConfig->dyn_notch_max_hz = 600;
+    gyroConfig->dyn_notch_q = 250;
+    gyroConfig->dyn_notch_min_hz = 150;
     gyroConfig->gyro_filter_debug_axis = FD_ROLL;
+    gyroConfig->imuf_roll_q = 5000;
+    gyroConfig->imuf_pitch_q = 5000;
+    gyroConfig->imuf_yaw_q = 5000;
+    gyroConfig->imuf_w = 32;
+    gyroConfig->imuf_sharpness = 2500;
 }
 
 bool isGyroSensorCalibrationComplete(const gyroSensor_t *gyroSensor)

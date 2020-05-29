@@ -1720,8 +1720,8 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
 #if defined(USE_GYRO_DATA_ANALYSE)
         sbufWriteU8(dst, 0); // DEPRECATED 1.43: dyn_notch_range
         sbufWriteU8(dst, 0); // DEPRECATED, was gyroConfig()->dyn_notch_width_percent
-        sbufWriteU16(dst, gyroConfig()->dyn_matrix_q);
-        sbufWriteU16(dst, gyroConfig()->dyn_matrix_min_hz);
+        sbufWriteU16(dst, gyroConfig()->dyn_notch_q);
+        sbufWriteU16(dst, gyroConfig()->dyn_notch_min_hz);
 #else
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
@@ -1737,7 +1737,7 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
 #endif
 #if defined(USE_GYRO_DATA_ANALYSE)
         // Added in MSP API 1.43
-        sbufWriteU16(dst, gyroConfig()->dyn_matrix_max_hz);
+        sbufWriteU16(dst, gyroConfig()->dyn_notch_max_hz);
 #else
         sbufWriteU16(dst, 0);
 #endif
@@ -2541,8 +2541,8 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
 #if defined(USE_GYRO_DATA_ANALYSE)
             sbufReadU8(src); // DEPRECATED: dyn_notch_range
             sbufReadU8(src); // DEPRECATED: was gyroConfig()->dyn_notch_width_percent
-            gyroConfigMutable()->dyn_matrix_q = sbufReadU16(src);
-            gyroConfigMutable()->dyn_matrix_min_hz = sbufReadU16(src);
+            gyroConfigMutable()->dyn_notch_q = sbufReadU16(src);
+            gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
 #else
             sbufReadU8(src);
             sbufReadU8(src);
@@ -2560,7 +2560,7 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
         if (sbufBytesRemaining(src) >= 1) {
 #if defined(USE_GYRO_DATA_ANALYSE)
             // Added in MSP API 1.43
-            gyroConfigMutable()->dyn_matrix_max_hz = sbufReadU16(src);
+            gyroConfigMutable()->dyn_notch_max_hz = sbufReadU16(src);
 #else
             sbufReadU16(src);
 #endif

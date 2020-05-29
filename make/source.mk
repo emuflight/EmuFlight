@@ -217,6 +217,7 @@ ifneq ($(TARGET),$(filter $(TARGET),$(F1_TARGETS)))
 SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
             common/encoding.c \
             common/filter.c \
+						common/kalman.c \
             common/maths.c \
             common/typeconversion.c \
             drivers/accgyro/accgyro_mpu.c \
