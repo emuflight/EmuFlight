@@ -101,7 +101,8 @@ typedef struct pidProfile_s {
 
     // EmuFlight PID controller parameters
     uint8_t feathered_pids;                 // determine how feathered your pids are
-    uint8_t i_decay;						            // i-term decay (increases how quickly iterm shrinks in value)
+    uint8_t i_decay;						// i-term decay (increases how quickly iterm shrinks in value)
+    uint8_t dterm_filter;                   // Switch what type of filtering to use for FeatheredPids (1=Prefilter Gyro data)
     uint16_t errorBoost;                    // the weight of the setpoint boost
     uint16_t errorBoostYaw;                 // the weight of the setpoint boost for yaw
     uint8_t errorBoostLimit;                // percentage of the error that the emu boost can boost

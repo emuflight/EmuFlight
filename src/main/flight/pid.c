@@ -172,6 +172,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .horizonTransition = 0,
+        .dterm_filter = 0,
     );
 }
 
@@ -209,6 +210,7 @@ static FAST_RAM filterApplyFnPtr dtermLowpass2ApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
 
 static FAST_RAM_ZERO_INIT float iDecay;
+static FAST_RAM_ZERO_INIT float dTermFilterType;
 
 #ifdef USE_RC_SMOOTHING_FILTER
 static FAST_RAM_ZERO_INIT pt1Filter_t setpointDerivativePt1[XYZ_AXIS_COUNT];
@@ -390,6 +392,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 #endif
     itermRotation = pidProfile->iterm_rotation;
     iDecay = (float)pidProfile->i_decay;
+    dTermFilterType = (float)pidProfile->dterm_filter;
 }
 
 void pidInit(const pidProfile_t *pidProfile)
@@ -638,6 +641,9 @@ static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs)
 {
+
+    static float previousGyroRateDtermPrefilter[XYZ_AXIS_COUNT];
+
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
     { // calculate spa
         // SPA boost if SPA > 100 SPA cut if SPA < 100
@@ -653,6 +659,14 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     // gradually scale back integration when above windup point
     const float dynCi = constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f) * dT;
     float errorRate;
+
+    // Precalculate gyro deta for D-term here, this allows loop unrolling
+    float gyroRateDtermPrefilter[XYZ_AXIS_COUNT];
+    for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
+        gyroRateDtermPrefilter[axis] = gyro.gyroADCf[axis];
+        gyroRateDtermPrefilter[axis] = dtermLowpassApplyFn((filter_t *) &dtermLowpass[axis], gyroRateDtermPrefilter[axis]);
+        gyroRateDtermPrefilter[axis] = dtermLowpass2ApplyFn((filter_t *) &dtermLowpass2[axis], gyroRateDtermPrefilter[axis]);
+    }
 
     // ----------PID controller----------
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
@@ -754,19 +768,29 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         }
 
         // -----calculate D component
+        
         if (pidCoefficient[axis].Kd > 0)
-        {
-            //filter Kd properly, no setpoint filtering
-            const float pureRD = getSetpointRate(axis) - gyroRate; // cr - y
-            const float pureError = pureRD - previousError[axis];
-            const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
-            previousMeasurement[axis] = gyro.gyroADCf[axis];
-            previousError[axis] = pureRD;
-            float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
-            //filter the dterm
-            dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
-            dDelta = dtermLowpass2ApplyFn((filter_t *)&dtermLowpass2[axis], dDelta);
+        {   
+            float dDelta;
+            
+            if (dTermFilterType == 0) {
+                //filter Kd properly, no setpoint filtering
+                const float pureRD = getSetpointRate(axis) - gyroRate; // cr - y
+                const float pureError = pureRD - previousError[axis];
+                const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
+                previousMeasurement[axis] = gyro.gyroADCf[axis];
+                previousError[axis] = pureRD;
 
+                dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
+                
+                //filter the dterm
+                dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
+                dDelta = dtermLowpass2ApplyFn((filter_t *)&dtermLowpass2[axis], dDelta);
+            } else {
+                // Use FeatheredPIDs with prefiltered Gyro data (same as BF do)
+                dDelta = - (gyroRateDtermPrefilter[axis] - previousGyroRateDtermPrefilter[axis]) * pidFrequency;
+            }
+            
             if (pidProfile->dFilter[axis].Wc > 1)
             {
                 kdRingBuffer[axis][kdRingBufferPoint[axis]++] = dDelta;
@@ -780,6 +804,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
                 dDelta = (float)(kdRingBufferSum[axis] / (float)(pidProfile->dFilter[axis].Wc));
                 kdRingBufferSum[axis] -= kdRingBuffer[axis][kdRingBufferPoint[axis]];
             }
+
             dDelta = pidCoefficient[axis].Kd * dDelta;
 
             float dDeltaMultiplier;
@@ -803,6 +828,8 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             pidData[axis].D = 0;
         }
 
+        previousGyroRateDtermPrefilter[axis] = gyroRateDtermPrefilter[axis];
+        
         handleCrashRecovery(pidProfile->crash_recovery, angleTrim, axis, currentTimeUs, errorRate, &currentPidSetpoint, &errorRate);
 
         detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, currentTimeUs, pidData[axis].D, errorRate);

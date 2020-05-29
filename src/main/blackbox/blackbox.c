@@ -1424,6 +1424,7 @@ static bool blackboxWriteSysinfo(void)
             BLACKBOX_PRINT_HEADER_LINE("IMUF yaw q", " %d",                 gyroConfig()->imuf_yaw_q);
             BLACKBOX_PRINT_HEADER_LINE("IMUF w", " %d",                     gyroConfig()->imuf_w);
             BLACKBOX_PRINT_HEADER_LINE("IMUF sharpness", " %d",             gyroConfig()->imuf_sharpness);
+            BLACKBOX_PRINT_HEADER_LINE("Dterm filter", " %d",               currentPidProfile->dterm_filter);
 
         BLACKBOX_PRINT_HEADER_LINE("Actual Version Number", "%s %s (%s) %s",    FC_FIRMWARE_NAME, FC_VERSION_STRING, shortGitRevision, targetName);
 
