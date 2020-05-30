@@ -49,3 +49,4 @@ int rcSmoothingGetValue(int whichValue);
 bool rcSmoothingAutoCalculate(void);
 bool rcSmoothingInitializationComplete(void);
 #endif
+float rateDynamics(float rcCommand, int axis);

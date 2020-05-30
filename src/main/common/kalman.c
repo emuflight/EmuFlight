@@ -26,9 +26,6 @@
 #include "build/debug.h"
 
 kalman_t    kalmanFilterStateRate[XYZ_AXIS_COUNT];
-variance_t  varStruct;
-float       setPoint[XYZ_AXIS_COUNT];
-
 
 void init_kalman(kalman_t *filter, float q)
 {
@@ -38,6 +35,8 @@ void init_kalman(kalman_t *filter, float q)
     filter->p = 30.0f;                  //seeding P at 30.0f
     filter->e = 1.0f;
     filter->s = gyroConfig()->imuf_sharpness / 250.0f;     //adding the new sharpness :) time to overfilter :O
+    filter->w = gyroConfig()->imuf_w;
+    filter->inverseN = 1.0f/(float)(filter->w);
 }
 
 
@@ -45,65 +44,27 @@ void kalman_init(void)
 {
     isSetpointNew = 0;
 
-    memset(&varStruct, 0, sizeof(varStruct));
     init_kalman(&kalmanFilterStateRate[X],  gyroConfig()->imuf_roll_q);
     init_kalman(&kalmanFilterStateRate[Y],  gyroConfig()->imuf_pitch_q);
     init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->imuf_yaw_q);
-
-    varStruct.w = gyroConfig()->imuf_w;
-    varStruct.inverseN = 1.0f/(float)(varStruct.w);
 }
 
-void update_kalman_covariance(float *gyroRateData)
+void update_kalman_covariance(float gyroRateData, int axis)
 {
-     varStruct.xWindow[ varStruct.windex] = gyroRateData[X];
-     varStruct.yWindow[ varStruct.windex] = gyroRateData[Y];
-     varStruct.zWindow[ varStruct.windex] = gyroRateData[Z];
-
-     varStruct.xSumMean +=  varStruct.xWindow[ varStruct.windex];
-     varStruct.ySumMean +=  varStruct.yWindow[ varStruct.windex];
-     varStruct.zSumMean +=  varStruct.zWindow[ varStruct.windex];
-     varStruct.xSumVar =  varStruct.xSumVar + ( varStruct.xWindow[ varStruct.windex] *  varStruct.xWindow[ varStruct.windex]);
-     varStruct.ySumVar =  varStruct.ySumVar + ( varStruct.yWindow[ varStruct.windex] *  varStruct.yWindow[ varStruct.windex]);
-     varStruct.zSumVar =  varStruct.zSumVar + ( varStruct.zWindow[ varStruct.windex] *  varStruct.zWindow[ varStruct.windex]);
-     varStruct.xySumCoVar =  varStruct.xySumCoVar + ( varStruct.xWindow[ varStruct.windex] *  varStruct.yWindow[ varStruct.windex]);
-     varStruct.xzSumCoVar =  varStruct.xzSumCoVar + ( varStruct.xWindow[ varStruct.windex] *  varStruct.zWindow[ varStruct.windex]);
-     varStruct.yzSumCoVar =  varStruct.yzSumCoVar + ( varStruct.yWindow[ varStruct.windex] *  varStruct.zWindow[ varStruct.windex]);
-     varStruct.windex++;
-    if ( varStruct.windex >= varStruct.w)
+     kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex] = gyroRateData;
+     kalmanFilterStateRate[axis].axisSumMean +=  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex];
+     kalmanFilterStateRate[axis].axisSumVar =  kalmanFilterStateRate[axis].axisSumVar + ( kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex] *  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex]);
+     kalmanFilterStateRate[axis].windex++;
+    if ( kalmanFilterStateRate[axis].windex >= kalmanFilterStateRate[axis].w)
     {
-         varStruct.windex = 0;
+         kalmanFilterStateRate[axis].windex = 0;
     }
-     varStruct.xSumMean -=  varStruct.xWindow[ varStruct.windex];
-     varStruct.ySumMean -=  varStruct.yWindow[ varStruct.windex];
-     varStruct.zSumMean -=  varStruct.zWindow[ varStruct.windex];
-     varStruct.xSumVar =  varStruct.xSumVar - ( varStruct.xWindow[ varStruct.windex] *  varStruct.xWindow[ varStruct.windex]);
-     varStruct.ySumVar =  varStruct.ySumVar - ( varStruct.yWindow[ varStruct.windex] *  varStruct.yWindow[ varStruct.windex]);
-     varStruct.zSumVar =  varStruct.zSumVar - ( varStruct.zWindow[ varStruct.windex] *  varStruct.zWindow[ varStruct.windex]);
-     varStruct.xySumCoVar =  varStruct.xySumCoVar - ( varStruct.xWindow[ varStruct.windex] *  varStruct.yWindow[ varStruct.windex]);
-     varStruct.xzSumCoVar =  varStruct.xzSumCoVar - ( varStruct.xWindow[ varStruct.windex] *  varStruct.zWindow[ varStruct.windex]);
-     varStruct.yzSumCoVar =  varStruct.yzSumCoVar - ( varStruct.yWindow[ varStruct.windex] *  varStruct.zWindow[ varStruct.windex]);
+     kalmanFilterStateRate[axis].axisSumMean -=  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex];
+     kalmanFilterStateRate[axis].axisSumVar =  kalmanFilterStateRate[axis].axisSumVar - ( kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex] *  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex]);
+     kalmanFilterStateRate[axis].axisMean =  kalmanFilterStateRate[axis].axisSumMean *  kalmanFilterStateRate[axis].inverseN;
+     kalmanFilterStateRate[axis].axisVar =  fabsf(kalmanFilterStateRate[axis].axisSumVar *  kalmanFilterStateRate[axis].inverseN - ( kalmanFilterStateRate[axis].axisMean *  kalmanFilterStateRate[axis].axisMean));
 
-     varStruct.xMean =  varStruct.xSumMean *  varStruct.inverseN;
-     varStruct.yMean =  varStruct.ySumMean *  varStruct.inverseN;
-     varStruct.zMean =  varStruct.zSumMean *  varStruct.inverseN;
-
-     varStruct.xVar =  fabsf(varStruct.xSumVar *  varStruct.inverseN - ( varStruct.xMean *  varStruct.xMean));
-     varStruct.yVar =  fabsf(varStruct.ySumVar *  varStruct.inverseN - ( varStruct.yMean *  varStruct.yMean));
-     varStruct.zVar =  fabsf(varStruct.zSumVar *  varStruct.inverseN - ( varStruct.zMean *  varStruct.zMean));
-     varStruct.xyCoVar =  fabsf(varStruct.xySumCoVar *  varStruct.inverseN - ( varStruct.xMean *  varStruct.yMean));
-     varStruct.xzCoVar =  fabsf(varStruct.xzSumCoVar *  varStruct.inverseN - ( varStruct.xMean *  varStruct.zMean));
-     varStruct.yzCoVar =  fabsf(varStruct.yzSumCoVar *  varStruct.inverseN - ( varStruct.yMean *  varStruct.zMean));
-
-    float squirt;
-    arm_sqrt_f32(varStruct.xVar +  varStruct.xyCoVar +  varStruct.xzCoVar, &squirt);
-    kalmanFilterStateRate[X].r = squirt * VARIANCE_SCALE;
-
-    arm_sqrt_f32(varStruct.yVar +  varStruct.xyCoVar +  varStruct.yzCoVar, &squirt);
-    kalmanFilterStateRate[Y].r = squirt * VARIANCE_SCALE;
-
-    arm_sqrt_f32(varStruct.zVar +  varStruct.yzCoVar +  varStruct.xzCoVar, &squirt);
-    kalmanFilterStateRate[Z].r = squirt * VARIANCE_SCALE;
+    kalmanFilterStateRate[axis].r = sqrtf(kalmanFilterStateRate[axis].axisVar) * VARIANCE_SCALE;
 }
 
 FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
@@ -139,21 +100,13 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 }
 
 
-void FAST_CODE kalman_update(float* input, float* output)
+FAST_CODE float kalman_update(float input, int axis)
 {
 
-    setPoint[X] = getSetpointRate(X);
-    setPoint[Y] = getSetpointRate(Y);
-    setPoint[Z] = getSetpointRate(Z);
+    update_kalman_covariance(input, axis);
+    input = kalman_process(&kalmanFilterStateRate[axis], input, getSetpointRate(axis) );
 
-    update_kalman_covariance(input);
-    output[X] = kalman_process(&kalmanFilterStateRate[X], input[X], setPoint[X] );
-    output[Y] = kalman_process(&kalmanFilterStateRate[Y], input[Y], setPoint[Y] );
-    output[Z] = kalman_process(&kalmanFilterStateRate[Z], input[Z], setPoint[Z] );
-
-    DEBUG_SET(DEBUG_KALMAN, 1, input[X]);                               //Gyro input
-
-    int16_t Kgain = (kalmanFilterStateRate[X].k * 1000.0f);
-    DEBUG_SET(DEBUG_KALMAN, 2, Kgain);                                  //Kalman gain
-    DEBUG_SET(DEBUG_KALMAN, 3, output[X]);                              //Kalman output
+    int16_t Kgain = (kalmanFilterStateRate[axis].k * 1000.0f);
+    DEBUG_SET(DEBUG_KALMAN, axis, Kgain);                               //Kalman gain
+    return input;
 }
