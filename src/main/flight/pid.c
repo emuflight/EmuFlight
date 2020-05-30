@@ -619,6 +619,9 @@ static FAST_RAM_ZERO_INIT float dMinSetpointGain;
 static FAST_RAM_ZERO_INIT ffInterpolationType_t ffFromInterpolatedSetpoint;
 #endif
 
+static FAST_RAM_ZERO_INIT float attitudePrevious[2];
+static FAST_RAM_ZERO_INIT float previousAngle[2];
+
 void pidInitConfig(const pidProfile_t *pidProfile)
 {
     if (pidProfile->feedForwardTransition == 0) {
@@ -864,7 +867,6 @@ if (horizonTiltExpertMode) { //determines the leveling strength of RACEMODEhorio
 STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint) {
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
-    static float attitudePrevious[2], previousAngle[2];
     float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low;
 
     float angle = pidProfile->levelAngleLimit * getRcDeflection(axis);
