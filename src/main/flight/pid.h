@@ -57,7 +57,8 @@ typedef enum {
     PID_ROLL,
     PID_PITCH,
     PID_YAW,
-    PID_LEVEL,
+    PID_LEVEL_LOW, //pid controller for low errorAngle
+    PID_LEVEL_HIGH, //pid controller for high errorAngle
     PID_MAG,
     PID_ITEM_COUNT
 } pidIndex_e;
@@ -124,11 +125,14 @@ typedef struct pidProfile_s {
     uint8_t pidAtMinThrottle;               // Disable/Enable pids on zero throttle. Normally even without airmode P and D would be active.
     uint8_t levelAngleLimit;                // Max angle in degrees in level mode
 
-    uint8_t horizon_tilt_effect;            // inclination factor for Horizon mode
-    uint8_t horizon_tilt_expert_mode;       // OFF or ON
+    uint8_t angleExpo;                      // How much expo to add to angle mode
+    uint8_t horizonTransition;              // horizonTransition
+    uint8_t horizonGain;                    // gain for horizon
+    uint8_t racemode_tilt_effect;           // inclination factor for Horizon mode
+    uint8_t racemode_horizon;               // OFF or ON
 
-    // Betaflight PID controller parameters
-    uint8_t  antiGravityMode;             // type of anti gravity method
+    // EmuFlight PID controller parameters
+    uint8_t  antiGravityMode;               // type of anti gravity method
     uint16_t itermThrottleThreshold;        // max allowed throttle delta before iterm accelerated in ms
     uint16_t itermAcceleratorGain;          // Iterm Accelerator Gain when itermThrottlethreshold is hit
     uint16_t yawRateAccelLimit;             // yaw accel limiter for deg/sec/ms
@@ -190,7 +194,7 @@ typedef struct pidProfile_s {
     uint8_t ff_spike_limit;                 // FF stick extrapolation lookahead period in ms
     uint8_t ff_smooth_factor;               // Amount of smoothing for interpolated FF steps
     uint8_t dyn_lpf_curve_expo;             // set the curve for dynamic dterm lowpass filter
-    uint8_t level_race_mode;                // NFE race mode - when true pitch setpoint calcualtion is gyro based in level mode
+    uint8_t nfe_racemode;                // NFE race mode - when true pitch setpoint calcualtion is gyro based in level mode
     uint8_t vbat_sag_compensation;          // Reduce motor output by this percentage of the maximum compensation amount
 } pidProfile_t;
 
@@ -261,7 +265,7 @@ void applyAbsoluteControl(const int axis, const float gyroRate, float *currentPi
 void rotateItermAndAxisError();
 float pidLevel(int axis, const pidProfile_t *pidProfile,
     const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint);
-float calcHorizonLevelStrength(void);
+float calcHorizonLevelStrength(const pidProfile_t *pidProfile);
 #endif
 void dynLpfDTermUpdate(float throttle);
 void pidSetItermReset(bool enabled);

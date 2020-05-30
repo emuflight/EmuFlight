@@ -197,10 +197,6 @@ static const adjustmentConfig_t defaultAdjustmentConfigs[ADJUSTMENT_FUNCTION_COU
         .mode = ADJUSTMENT_MODE_STEP,
         .data = { .step = 1 }
     }, {
-        .adjustmentFunction = ADJUSTMENT_HORIZON_STRENGTH,
-        .mode = ADJUSTMENT_MODE_SELECT,
-        .data = { .switchPositions = 255 }
-    }, {
         .adjustmentFunction = ADJUSTMENT_PID_AUDIO,
         .mode = ADJUSTMENT_MODE_SELECT,
         .data = { .switchPositions = ARRAYLEN(pidAudioPositionToModeMap) }
@@ -601,16 +597,6 @@ static uint8_t applySelectAdjustment(adjustmentFunction_e adjustmentFunction, ui
             blackboxLogInflightAdjustmentEvent(ADJUSTMENT_RATE_PROFILE, position);
 
             beeps = position + 1;
-        }
-        break;
-    case ADJUSTMENT_HORIZON_STRENGTH:
-        {
-            uint8_t newValue = constrain(position, 0, 200); // FIXME magic numbers repeated in serial_cli.c
-            if (currentPidProfile->pid[PID_LEVEL].D != newValue) {
-                beeps = ((newValue - currentPidProfile->pid[PID_LEVEL].D) / 8) + 1;
-                currentPidProfile->pid[PID_LEVEL].D = newValue;
-                blackboxLogInflightAdjustmentEvent(ADJUSTMENT_HORIZON_STRENGTH, position);
-            }
         }
         break;
     case ADJUSTMENT_PID_AUDIO:

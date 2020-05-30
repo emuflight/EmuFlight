@@ -142,7 +142,7 @@ void setDefaultTestSettings(void) {
     pidProfile->abs_control_gain = 0,
     pidProfile->launchControlMode = LAUNCH_CONTROL_MODE_NORMAL,
     pidProfile->launchControlGain = 40,
-    pidProfile->level_race_mode = false,
+    pidProfile->nfe_racemode = false,
 
     gyro.targetLooptime = 8000;
 }
@@ -390,18 +390,18 @@ TEST(pidControllerTest, testPidHorizon) {
     // Test full stick response
     setStickPosition(FD_ROLL, 1.0f);
     setStickPosition(FD_PITCH, -1.0f);
-    EXPECT_FLOAT_EQ(0, calcHorizonLevelStrength());
+    EXPECT_FLOAT_EQ(0, calcHorizonLevelStrength(pidProfile));
 
     // Expect full rate output on full stick
     // Test zero stick response
     setStickPosition(FD_ROLL, 0);
     setStickPosition(FD_PITCH, 0);
-    EXPECT_FLOAT_EQ(1, calcHorizonLevelStrength());
+    EXPECT_FLOAT_EQ(1, calcHorizonLevelStrength(pidProfile));
 
     // Test small stick response
     setStickPosition(FD_ROLL, 0.1f);
     setStickPosition(FD_PITCH, -0.1f);
-    EXPECT_NEAR(0.82, calcHorizonLevelStrength(), calculateTolerance(0.82));
+    EXPECT_NEAR(0.82, calcHorizonLevelStrength(pidProfile), calculateTolerance(0.82));
 }
 
 TEST(pidControllerTest, testMixerSaturation) {
