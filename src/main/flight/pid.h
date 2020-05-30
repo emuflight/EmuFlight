@@ -75,8 +75,6 @@ typedef enum {
 
 typedef enum {
     PID_CRASH_RECOVERY_OFF = 0,
-    PID_CRASH_RECOVERY_ON,
-    PID_CRASH_RECOVERY_BEEP,
     PID_CRASH_RECOVERY_DISARM,
 } pidCrashRecovery_e;
 
@@ -133,6 +131,10 @@ typedef struct pidProfile_s {
     uint16_t itermAcceleratorGain;          // Iterm Accelerator Gain when itermThrottlethreshold is hit
     uint16_t yawRateAccelLimit;             // yaw accel limiter for deg/sec/ms
     uint16_t rateAccelLimit;                // accel limiter roll/pitch deg/sec/ms
+    uint16_t crash_dthreshold;              // dterm crash value
+    uint16_t crash_gthreshold;              // gyro crash value
+    uint16_t crash_setpoint_threshold;      // setpoint must be below this value to detect crash, so flips and rolls are not interpreted as crashes
+    uint8_t crash_recovery;                 // off, disarm, only works in gps mode
     uint8_t feedForwardTransition;          // Feed forward weight transition
     uint16_t itermLimit;
     uint16_t dterm_lowpass2_hz;             // Extra PT1 Filter on D in hz

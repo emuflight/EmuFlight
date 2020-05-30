@@ -162,6 +162,10 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .rateAccelLimit = 0,
         .itermThrottleThreshold = 250,
         .itermAcceleratorGain = 3500,
+        .crash_dthreshold = 50,     // degrees/second/second
+        .crash_gthreshold = 400,    // degrees/second
+        .crash_setpoint_threshold = 350, // degrees/second
+        .crash_recovery = PID_CRASH_RECOVERY_DISARM, // disarm by default for gps
         .horizon_tilt_effect = 75,
         .horizon_tilt_expert_mode = false,
         .itermLimit = 400,
@@ -525,6 +529,9 @@ static FAST_RAM_ZERO_INIT float feedForwardTransition;
 static FAST_RAM_ZERO_INIT float levelGain, horizonGain, horizonTransition, horizonCutoffDegrees, horizonFactorRatio;
 static FAST_RAM_ZERO_INIT float itermWindupPointInv;
 static FAST_RAM_ZERO_INIT uint8_t horizonTiltExpertMode;
+static FAST_RAM_ZERO_INIT float crashDtermThreshold;
+static FAST_RAM_ZERO_INIT float crashGyroThreshold;
+static FAST_RAM_ZERO_INIT float crashSetpointThreshold;
 static FAST_RAM_ZERO_INIT float itermLimit;
 #if defined(USE_THROTTLE_BOOST)
 FAST_RAM_ZERO_INIT float throttleBoost;
@@ -628,6 +635,9 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         itermWindupPointInv = 1.0f / (1.0f - itermWindupPoint);
     }
     itermAcceleratorGain = pidProfile->itermAcceleratorGain;
+    crashGyroThreshold = pidProfile->crash_gthreshold;
+    crashDtermThreshold = pidProfile->crash_dthreshold;
+    crashSetpointThreshold = pidProfile->crash_setpoint_threshold;
     itermLimit = pidProfile->itermLimit;
 #if defined(USE_THROTTLE_BOOST)
     throttleBoost = pidProfile->throttle_boost * 0.1f;
@@ -863,6 +873,24 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
         currentPidSetpoint = currentPidSetpoint + (errorAngle * horizonGain * horizonLevelStrength);
     }
     return currentPidSetpoint;
+}
+
+static void detectAndSetCrashRecovery(
+    const pidCrashRecovery_e crash_recovery, const int axis,
+    const float delta, const float errorRate)
+{
+    // if crash recovery is on and gps rescue on, then check for a crash
+    if (FLIGHT_MODE(GPS_RESCUE_MODE) && crash_recovery == PID_CRASH_RECOVERY_DISARM) {
+        if (ARMING_FLAG(ARMED)) {
+            if (getMotorMixRange() >= 1.0f
+                && fabsf(delta) > crashDtermThreshold
+                && fabsf(errorRate) > crashGyroThreshold
+                && fabsf(getSetpointRate(axis)) < crashSetpointThreshold) {
+                    setArmingDisabled(ARMING_DISABLED_CRASH_DETECTED);
+                    disarm(DISARM_REASON_CRASH_PROTECTION);
+            }
+        }
+    }
 }
 #endif // USE_ACC
 
@@ -1164,7 +1192,7 @@ static FAST_CODE_NOINLINE float applyLaunchControl(int axis, const rollAndPitchT
 }
 #endif
 
-// Betaflight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
+// EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
 // Based on 2DOF reference design (matlab)
 void FAST_CODE pidController(const pidProfile_t *pidProfile)
 {
@@ -1375,6 +1403,10 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             // loop execution to be delayed.
             const float delta =
                 - (gyroRateDterm[axis] - previousGyroRateDterm[axis]) * pidFrequency;
+
+#if defined(USE_ACC)
+            detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, delta, errorRate);
+#endif
 
             float dMinFactor = 1.0f;
 #if defined(USE_D_MIN)
