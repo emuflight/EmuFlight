@@ -627,9 +627,6 @@ void validateAndFixGyroConfig(void)
         case PWM_TYPE_STANDARD:
                 motorUpdateRestriction = 1.0f / BRUSHLESS_MOTORS_PWM_RATE;
                 break;
-        case PWM_TYPE_ONESHOT125:
-                motorUpdateRestriction = 0.0005f;
-                break;
 #ifdef USE_DSHOT
         case PWM_TYPE_DSHOT150:
                 motorUpdateRestriction = 0.000250f;
