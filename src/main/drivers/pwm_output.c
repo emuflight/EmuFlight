@@ -189,6 +189,10 @@ motorDevice_t *motorPwmDevInit(const motorDevConfig_t *motorConfig, uint16_t idl
     float sLen = 0;
     switch (motorConfig->motorPwmProtocol) {
     default:
+    case PWM_TYPE_ONESHOT125:
+        sMin = 125e-6f;
+        sLen = 125e-6f;
+        break;
     case PWM_TYPE_MULTISHOT:
         sMin = 5e-6f;
         sLen = 20e-6f;
