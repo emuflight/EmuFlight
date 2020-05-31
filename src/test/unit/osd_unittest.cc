@@ -892,6 +892,67 @@ TEST(OsdTest, TestElementWarningsBattery)
 }
 
 /*
+ * Tests the warnings are not showing for DJI OSD.
+ */
+TEST(OsdTest, TestElementWarningDisbaledForDJI)
+{
+    // given
+    osdConfigMutable()->item_pos[OSD_CRAFT_NAME] = OSD_POS(9, 9) | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_WARNINGS] = OSD_POS(9, 10) | VISIBLE_FLAG;
+    osdConfigMutable()->enabledWarnings = 0;
+    osdWarnSetState(OSD_WARNING_BATTERY_WARNING, true);
+
+    // when
+    displayClearScreen(&testDisplayPort);
+    osdRefresh(simulationTime);
+
+    // then
+    displayPortTestBufferSubstring(9, 9, "CRAFT_NAME");
+    displayPortTestBufferSubstring(9, 10, "             ");
+    EXPECT_EQ(0, pilotConfig()->warning[0]);
+}
+
+/*
+ * Tests the warnings are shown for DJI OSD.
+ */
+TEST(OsdTest, TestElementWarningEnabledForDJI)
+{
+    // given
+    osdConfigMutable()->enabledWarnings = 0;
+    osdWarnSetState(OSD_WARNING_BATTERY_WARNING, true);
+    osdWarnSetState(OSD_WARNING_DJI, true);
+
+    // low battery
+    simulationBatteryVoltage = 140;
+    simulationBatteryState = BATTERY_WARNING;
+
+    // when
+    displayClearScreen(&testDisplayPort);
+    osdRefresh(simulationTime);
+
+    // then
+    char stringLow[12] = "LOW BATTERY";
+    for (int i = 0; i < 12; i++) {
+        EXPECT_EQ(stringLow[i], pilotConfig()->warning[i]);
+    }
+
+    // given
+    // full battery
+    simulationBatteryVoltage = ((batteryConfig()->vbatmaxcellvoltage - 2) * simulationBatteryCellCount);
+    simulationBatteryState = BATTERY_OK;
+
+    // when
+    displayClearScreen(&testDisplayPort);
+    osdRefresh(simulationTime);
+
+    // then
+    const char stringEmpty[12] = " ";
+    for (int i = 0; i < 12; i++) {
+        EXPECT_EQ(stringEmpty[i], pilotConfig()->warning[i]);
+    }
+}
+
+/*
  * Tests the time string formatting function with a series of precision settings and time values.
  */
 TEST(OsdTest, TestFormatTimeString)

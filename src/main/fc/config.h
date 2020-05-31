@@ -29,6 +29,7 @@
 
 typedef struct pilotConfig_s {
     char name[MAX_NAME_LENGTH + 1];
+    char warning[12]; // used to display warnings for DJI
 } pilotConfig_t;
 
 PG_DECLARE(pilotConfig_t, pilotConfig);

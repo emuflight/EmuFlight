@@ -57,6 +57,7 @@
 #include "drivers/display.h"
 #include "drivers/flash.h"
 #include "drivers/max7456_symbols.h"
+#include "drivers/serial_usb_vcp.h"
 #include "drivers/sdcard.h"
 #include "drivers/time.h"
 
@@ -98,6 +99,9 @@
 #ifdef USE_HARDWARE_REVISION_DETECTION
 #include "hardware_revision.h"
 #endif
+
+#define OSD_WARNINGS_MAX_SIZE 11
+#define OSD_FORMAT_MESSAGE_BUFFER_SIZE (OSD_WARNINGS_MAX_SIZE + 1)
 
 #define VIDEO_BUFFER_CHARS_PAL    480
 #define FULL_CIRCLE 360
@@ -400,6 +404,17 @@ static void osdFormatMessage(char *buff, size_t size, const char *message)
     if (message) {
         memcpy(buff, message, strlen(message));
     }
+
+    // Save warning into pilotConfig->warning, used for DJI OSD
+    // stored into another field for saving original pilot name
+    if (osdWarnGetState(OSD_WARNING_DJI)) {
+        osdConfigMutable()->item_pos[OSD_CRAFT_NAME] = osdConfig()->item_pos[OSD_WARNINGS]; // Change position of craft name
+        strncpy(pilotConfigMutable()->warning, " ", OSD_FORMAT_MESSAGE_BUFFER_SIZE); // Clear previous messages
+        if (message) {
+            strcpy(pilotConfigMutable()->warning, message);
+        }
+    }
+
     // Ensure buff is zero terminated
     buff[size - 1] = '\0';
 }
@@ -742,10 +757,6 @@ static bool osdDrawSingleElement(uint8_t item)
 
     case OSD_WARNINGS:
         {
-
-#define OSD_WARNINGS_MAX_SIZE 11
-#define OSD_FORMAT_MESSAGE_BUFFER_SIZE (OSD_WARNINGS_MAX_SIZE + 1)
-
             STATIC_ASSERT(OSD_FORMAT_MESSAGE_BUFFER_SIZE <= sizeof(buff), osd_warnings_size_exceeds_buffer_size);
 
             const batteryState_e batteryState = getBatteryState();
@@ -1115,6 +1126,9 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->distance_alarm = 0;
     osdConfig->ahMaxPitch = 20; // 20 degrees
     osdConfig->ahMaxRoll = 40; // 40 degrees
+
+    // Turn off replacing craft name for DJI OSD
+    osdWarnSetState(OSD_WARNING_DJI, false);
 }
 
 static void osdDrawLogo(int x, int y)

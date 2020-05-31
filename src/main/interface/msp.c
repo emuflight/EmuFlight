@@ -23,6 +23,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "platform.h"
 
@@ -53,6 +54,7 @@
 #include "drivers/sdcard.h"
 #include "drivers/serial.h"
 #include "drivers/serial_escserial.h"
+#include "drivers/serial_usb_vcp.h"
 #include "drivers/system.h"
 #include "drivers/transponder_ir.h"
 #include "drivers/usb_msc.h"
@@ -868,9 +870,25 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 
     case MSP_NAME:
         {
-            const int nameLen = strlen(pilotConfig()->name);
-            for (int i = 0; i < nameLen; i++) {
-                sbufWriteU8(dst, pilotConfig()->name[i]);
+            // Show warning for DJI OSD instead of pilot name if osd_warning_enabled and usb not connected
+            if (!usbVcpIsConnected() && osdWarnGetState(OSD_WARNING_DJI)) {
+                const char *warning = pilotConfig()->warning;
+                const int len = strlen(warning);
+                for (int i = 0; i < len; i++) {
+                	// skip non printable chars
+                    if (isprint(warning[i])) {
+                        sbufWriteU8(dst, warning[i]);
+                    } else {
+                        sbufWriteU8(dst, 0);
+                    }
+                }
+            } else {
+                // Show current pilot name
+                const char *name = pilotConfig()->name;
+                const int len = strlen(name);
+                for (int i = 0; i < len; i++) {
+                    sbufWriteU8(dst, name[i]);
+                }
             }
         }
         break;
