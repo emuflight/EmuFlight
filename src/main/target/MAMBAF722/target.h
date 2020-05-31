@@ -60,6 +60,25 @@
 #define USE_ACC_SPI_MPU6000
 #define ACC_MPU6000_ALIGN       CW180_DEG
 
+// *************** Baro ************************
+#define USE_BARO
+#define USE_BARO_MS5611
+#define USE_BARO_BMP280
+#define USE_BARO_BMP085
+
+#define USE_I2C
+#define USE_I2C_DEVICE_2
+#define I2C_DEVICE              (I2CDEV_2)
+#define I2C2_SCL                NONE        // SCL pad  PB10, shared with UART3TX
+#define I2C2_SDA                NONE        // SDA pad  PB11, shared with UART3RX
+#define BARO_I2C_INSTANCE       (I2CDEV_2)
+
+
+//*********** Magnetometer / Compass *************
+#define USE_MAG
+#define USE_MAG_HMC5883
+#define USE_MAG_QMC5883
+
 // ******* SERIAL ********
 
 #define USE_VCP

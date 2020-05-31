@@ -21,11 +21,11 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER "S7X2"
-#define USBD_PRODUCT_STRING     "IFLIGHT_F722_TWING"
+
+#define USBD_PRODUCT_STRING     "IFLIGHT F7 TWIN G"
 
 #define USE_DUAL_GYRO
 
-#define USE_DSHOT_DMAR
 #define ENABLE_DSHOT_DMAR       true
 
 #define CAMERA_CONTROL_PIN      PA0
@@ -43,9 +43,10 @@
 #define BEEPER_INVERTED
 
 #define USE_EXTI
+#define MPU_INT_EXTI
 #define USE_GYRO_EXTI
-#define MPU_INT_EXTI            PA8
-#define GYRO_2_EXTI_PIN         PB2
+#define GYRO_1_EXTI_PIN         PA8
+#define GYRO_2_EXTI_PIN         PC13
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
@@ -93,23 +94,6 @@
 #define UART5_TX_PIN            PC12
 #define UART5_RX_PIN            PD2
 
-#define USE_I2C
-
-#define USE_I2C_DEVICE_2
-#define I2C_DEVICE              (I2CDEV_2)
-#define I2C2_SCL                PB10        // SCL pad
-#define I2C2_SDA                PB11       // SDA pad
-#define BARO_I2C_INSTANCE       (I2CDEV_2)
-
-#define USE_BARO
-#define USE_BARO_BMP280
-#define USE_BARO_MS5611
-#define USE_BARO_BMP085
-
-#define USE_MAG
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-#define MAG_I2C_INSTANCE      I2C_DEVICE
 
 #define USE_SPI
 
@@ -161,6 +145,8 @@
 
 #define SERIALRX_UART                       SERIAL_PORT_USART2
 #define SERIALRX_PROVIDER                   SERIALRX_SBUS
+
+#define SENSORS_SET             (SENSOR_ACC | SENSOR_BARO)
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff

@@ -1344,11 +1344,6 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("emu_boost_yaw", "%d",                   currentPidProfile->errorBoostYaw);
         BLACKBOX_PRINT_HEADER_LINE("boost_limit_yaw", "%d",                 currentPidProfile->errorBoostLimitYaw);
         BLACKBOX_PRINT_HEADER_LINE("i_decay", "%d",                         currentPidProfile->i_decay);
-
-        #ifdef USE_ABSOLUTE_CONTROL
-            BLACKBOX_PRINT_HEADER_LINE("abs_control_gain", "%d",            currentPidProfile->abs_control_gain);
-        #endif
-
         BLACKBOX_PRINT_HEADER_LINE("acc_limit_yaw", "%d",                   currentPidProfile->yawRateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("acc_limit", "%d",                       currentPidProfile->rateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("pidsum_limit", "%d",                    currentPidProfile->pidSumLimit);
