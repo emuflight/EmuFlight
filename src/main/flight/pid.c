@@ -1404,10 +1404,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             const float delta =
                 - (gyroRateDterm[axis] - previousGyroRateDterm[axis]) * pidFrequency;
 
-#if defined(USE_ACC)
-            detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, delta, errorRate);
-#endif
-
             float dMinFactor = 1.0f;
 #if defined(USE_D_MIN)
             if (dMinPercent[axis] > 0) {
@@ -1433,6 +1429,9 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         }
         previousGyroRateDterm[axis] = gyroRateDterm[axis];
 
+#if defined(USE_ACC)
+            detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, pidData[axis].D, errorRate);
+#endif
         // -----calculate feedforward component
 #ifdef USE_ABSOLUTE_CONTROL
         // include abs control correction in FF
