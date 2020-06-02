@@ -55,6 +55,8 @@
   __extension__ ({ __typeof__ (x) _x = (x); \
   _x > 0 ? _x : -_x; })
 
+#define SIGN(x) ((x > 0.0f) - (x < 0.0f))
+
 #define Q12 (1 << 12)
 
 #define HZ_TO_INTERVAL(x) (1.0f / (x))
