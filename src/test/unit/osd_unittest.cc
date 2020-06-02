@@ -894,7 +894,7 @@ TEST(OsdTest, TestElementWarningsBattery)
 /*
  * Tests the warnings are not showing for DJI OSD.
  */
-TEST(OsdTest, TestElementWarningDisbaledForDJI)
+TEST(OsdTest, TestElementWarningDJIDisabled)
 {
     // given
     osdConfigMutable()->item_pos[OSD_CRAFT_NAME] = OSD_POS(9, 9) | VISIBLE_FLAG;
@@ -915,7 +915,7 @@ TEST(OsdTest, TestElementWarningDisbaledForDJI)
 /*
  * Tests the warnings are shown for DJI OSD.
  */
-TEST(OsdTest, TestElementWarningEnabledForDJI)
+TEST(OsdTest, TestElementWarningDJIEnabled)
 {
     // given
     osdConfigMutable()->enabledWarnings = 0;

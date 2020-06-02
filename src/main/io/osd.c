@@ -57,7 +57,6 @@
 #include "drivers/display.h"
 #include "drivers/flash.h"
 #include "drivers/max7456_symbols.h"
-#include "drivers/serial_usb_vcp.h"
 #include "drivers/sdcard.h"
 #include "drivers/time.h"
 
@@ -408,11 +407,12 @@ static void osdFormatMessage(char *buff, size_t size, const char *message)
     // Save warning into pilotConfig->warning, used for DJI OSD
     // stored into another field for saving original pilot name
     if (osdWarnGetState(OSD_WARNING_DJI)) {
+        char warning[OSD_FORMAT_MESSAGE_BUFFER_SIZE] = " ";
         osdConfigMutable()->item_pos[OSD_CRAFT_NAME] = osdConfig()->item_pos[OSD_WARNINGS]; // Change position of craft name
-        strncpy(pilotConfigMutable()->warning, " ", OSD_FORMAT_MESSAGE_BUFFER_SIZE); // Clear previous messages
         if (message) {
-            strcpy(pilotConfigMutable()->warning, message);
+            memcpy(warning, message, OSD_WARNINGS_MAX_SIZE);
         }
+        memcpy(pilotConfigMutable()->warning, warning, OSD_WARNINGS_MAX_SIZE);
     }
 
     // Ensure buff is zero terminated
