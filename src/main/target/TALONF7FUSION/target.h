@@ -22,8 +22,13 @@
 #define TARGET_BOARD_IDENTIFIER "TALN"
 #define USBD_PRODUCT_STRING "TALONF7FUSION"
 
-#define USE_DSHOT_DMAR
+#define USE_TARGET_CONFIG
+
 #define ENABLE_DSHOT_DMAR       true
+
+#define USE_PINIO
+#define PINIO1_PIN              PA14
+#define USE_PINIOBOX
 
 #define LED0_PIN                PB0
 #define USE_BEEPER
@@ -137,6 +142,7 @@
 #define BINDPLUG_PIN            PB2
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_UART           SERIAL_PORT_UART5
+#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff

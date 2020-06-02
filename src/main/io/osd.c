@@ -199,8 +199,7 @@ static const uint8_t osdElementDisplayOrder[] = {
     OSD_DISARMED,
     OSD_NUMERICAL_HEADING,
     OSD_NUMERICAL_VARIO,
-    OSD_COMPASS_BAR,
-    OSD_ANTI_GRAVITY
+    OSD_COMPASS_BAR
 };
 
 PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 3);
@@ -278,8 +277,8 @@ static void osdFormatAltitudeString(char * buff, int altitude)
     const int alt = osdGetMetersToSelectedUnit(altitude) / 10;
 
     tfp_sprintf(buff, "%c%5d %c", SYM_ALT, alt, osdGetMetersToSelectedUnitSymbol());
-    buff[5] = buff[4];
-    buff[4] = '.';
+    buff[6] = buff[5];
+    buff[5] = '.';
 }
 
 static void osdFormatPID(char * buff, const char * label, const pidf_t * pid)
@@ -615,15 +614,6 @@ static bool osdDrawSingleElement(uint8_t item)
                 strcpy(buff, "AIR ");
             } else {
                 strcpy(buff, "ACRO");
-            }
-
-            break;
-        }
-
-    case OSD_ANTI_GRAVITY:
-        {
-            if (pidOsdAntiGravityActive()) {
-                strcpy(buff, "AG");
             }
 
             break;
