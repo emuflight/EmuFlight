@@ -900,22 +900,26 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
     loggingThrottle = throttle;
 
 #ifdef USE_BARO
-    if (((gpsIsHealthy() && gpsSol.numSat > 7) || isBaroReady()) && isAltiLimit()
-    && (mixerConfig()->alti_cutoff > 0 && mixerConfig()->alti_start_lim > 0)) {
+  if(isAltiLimit()){
+      if(((gpsIsHealthy() && gpsSol.numSat > 7) || isBaroReady())
+        && (mixerConfig()->alti_cutoff > 0 && mixerConfig()->alti_start_lim > 0)){
             if (getEstimatedAltitude() > (mixerConfig()->alti_cutoff*100)){
                 throttle = 0.0f;
                 altiLimStatus = 1;
-            } else if(getEstimatedAltitude() > (mixerConfig()->alti_start_lim*100)){
+            }else if(getEstimatedAltitude() > (mixerConfig()->alti_start_lim*100)){
                 float limitingRatio = 0.4f * ((mixerConfig()->alti_cutoff*100) - getEstimatedAltitude()) / ((mixerConfig()->alti_cutoff*100) - (mixerConfig()->alti_start_lim*100));
                 limitingRatio = constrainf(limitingRatio, 0.0f, 1.0f);
                 throttle = constrainf(limitingRatio, 0.0f, throttle);
                 altiLimStatus = 1;
-            } else {
+            }else {
                 altiLimStatus = 0;
             }
-        } else {
-            altiLimStatus = 2;
-        }
+      }else{
+        altiLimStatus = 2;
+      }
+  }else{
+        altiLimStatus = 0;
+  }
 #endif
 
     motorMixRange = motorMixMax - motorMixMin;
