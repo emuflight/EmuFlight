@@ -60,6 +60,7 @@ void pgResetFn_rxConfig(rxConfig_t *rxConfig)
         .rcInterpolationChannels = INTERPOLATION_CHANNELS_RPYT,
         .rcInterpolationInterval = 19,
         .fpvCamAngleDegrees = 0,
+        .yawAroundGravity = 0,
         .airModeActivateThreshold = 25,
         .max_aux_channel = DEFAULT_AUX_CHANNEL_COUNT,
         .rc_smoothing_type = RC_SMOOTHING_TYPE_FILTER,

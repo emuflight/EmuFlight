@@ -46,6 +46,7 @@ typedef struct rxConfig_s {
     uint8_t rcInterpolationChannels;
     uint8_t rcInterpolationInterval;
     uint8_t fpvCamAngleDegrees;             // Camera angle to be scaled into rc commands
+    uint8_t yawAroundGravity;               // Makes yaw act around the gravity vector, more similar to silverware
     uint8_t airModeActivateThreshold;       // Throttle setpoint percent where airmode gets activated
 
     uint16_t rx_min_usec;

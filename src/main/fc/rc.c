@@ -268,12 +268,16 @@ static void calculateSetpointRate(int axis)
 
 static void scaleRcCommandToFpvCamAngle(void)
 {
+    float currentPitchAngle = constrainf(attitude.raw[FD_PITCH] * 0.1f,-rxConfig()->fpvCamAngleDegrees,rxConfig()->fpvCamAngleDegrees);
     //recalculate sin/cos only when rxConfig()->fpvCamAngleDegrees changed
     static uint8_t lastFpvCamAngleDegrees = 0;
     static float cosFactor = 1.0;
     static float sinFactor = 0.0;
 
-    if (lastFpvCamAngleDegrees != rxConfig()->fpvCamAngleDegrees) {
+    if (rxConfig()->yawAroundGravity) {
+        cosFactor = cos_approx(currentPitchAngle * RAD);
+        sinFactor = sin_approx(currentPitchAngle * RAD);
+    } else if (lastFpvCamAngleDegrees != rxConfig()->fpvCamAngleDegrees) {
         lastFpvCamAngleDegrees = rxConfig()->fpvCamAngleDegrees;
         cosFactor = cos_approx(rxConfig()->fpvCamAngleDegrees * RAD);
         sinFactor = sin_approx(rxConfig()->fpvCamAngleDegrees * RAD);
@@ -281,8 +285,8 @@ static void scaleRcCommandToFpvCamAngle(void)
 
     float roll = setpointRate[ROLL];
     float yaw = setpointRate[YAW];
-    setpointRate[ROLL] = constrainf(roll * cosFactor -  yaw * sinFactor, -SETPOINT_RATE_LIMIT * 1.0f, SETPOINT_RATE_LIMIT * 1.0f);
-    setpointRate[YAW]  = constrainf(yaw  * cosFactor + roll * sinFactor, -SETPOINT_RATE_LIMIT * 1.0f, SETPOINT_RATE_LIMIT * 1.0f);
+    setpointRate[ROLL] = constrainf(roll * cosFactor -  yaw * sinFactor, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
+    setpointRate[YAW]  = constrainf(yaw  * cosFactor + roll * sinFactor, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
 }
 
 #define THROTTLE_BUFFER_MAX 20
