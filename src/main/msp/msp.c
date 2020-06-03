@@ -1190,11 +1190,7 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         break;
 
     case MSP_ALTITUDE:
-#if defined(USE_BARO) || defined(USE_RANGEFINDER)
         sbufWriteU32(dst, getEstimatedAltitudeCm());
-#else
-        sbufWriteU32(dst, 0);
-#endif
 #ifdef USE_VARIO
         sbufWriteU16(dst, getEstimatedVario());
 #else
@@ -3601,5 +3597,4 @@ void mspFcProcessReply(mspPacket_t *reply)
 
 void mspInit(void)
 {
-    initActiveBoxIds();
 }
