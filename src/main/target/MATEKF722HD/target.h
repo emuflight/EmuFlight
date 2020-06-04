@@ -22,10 +22,12 @@
 
 #define USE_TARGET_CONFIG
 
-#define TARGET_BOARD_IDENTIFIER "S7X2"
-#define USBD_PRODUCT_STRING  "HGLRCF722"
+#define TARGET_BOARD_IDENTIFIER "MTKS"
+#define USBD_PRODUCT_STRING  "MATEKF722HD"
 
 #define ENABLE_DSHOT_DMAR       true
+
+#define USE_LEDSTRIP
 
 #define LED0_PIN                PA14  //Blue   SWCLK
 #define LED1_PIN                PA13  //Green  SWDIO
@@ -33,6 +35,8 @@
 #define USE_BEEPER
 #define BEEPER_PIN              PC13
 #define BEEPER_INVERTED
+
+#define CAMERA_CONTROL_PIN      PB15
 
 // *************** SPI1 Gyro & ACC *******************
 
@@ -42,38 +46,23 @@
 #define SPI1_MISO_PIN           PA6
 #define SPI1_MOSI_PIN           PA7
 
-#define USE_DUAL_GYRO
 #define USE_EXTI
-#define GYRO_1_EXTI_PIN         PC4
-#define GYRO_2_EXTI_PIN         PC3
-#define MPU_INT_EXTI
+#define MPU_INT_EXTI            PC4
 
-#define GYRO_1_CS_PIN           PB2
-#define GYRO_1_SPI_INSTANCE     SPI1
-#define GYRO_2_CS_PIN           PC15
-#define GYRO_2_SPI_INSTANCE     SPI1
+#define MPU6000_CS_PIN          PB2
+#define MPU6000_SPI_INSTANCE    SPI1
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
-#define USE_GYRO_SPI_MPU6500
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
-#define USE_ACC_SPI_MPU6500
 
-#define GYRO_MPU6000_1_ALIGN    CW180_DEG_FLIP
-#define ACC_MPU6000_1_ALIGN     CW180_DEG_FLIP
-#define GYRO_1_ALIGN            GYRO_MPU6000_1_ALIGN
-#define ACC_1_ALIGN             ACC_MPU6000_1_ALIGN
-
-#define GYRO_MPU6500_2_ALIGN    CW90_DEG
-#define ACC_MPU6500_2_ALIGN     CW90_DEG
-#define GYRO_2_ALIGN            GYRO_MPU6500_2_ALIGN
-#define ACC_2_ALIGN             ACC_MPU6500_2_ALIGN
+#define GYRO_MPU6000_ALIGN    CW180_DEG_FLIP
+#define ACC_MPU6000_ALIGN     CW180_DEG_FLIP
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
-#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
 
 // *************** I2C /Baro/Mag *********************
 
@@ -89,7 +78,6 @@
 #define USE_BARO_BMP280
 #define USE_BARO_MS5611
 #define USE_BARO_BMP085
-#define BARO_CS_PIN             PA4
 
 #define MAG_I2C_INSTANCE        (I2CDEV_1)
 #define USE_MAG
@@ -103,24 +91,14 @@
 #define SPI2_MISO_PIN           PB14
 #define SPI2_MOSI_PIN           PB15
 
-#define USE_MAX7456
-#define MAX7456_SPI_INSTANCE    SPI2
-#define MAX7456_SPI_CS_PIN      PB12
-#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD)
-#define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 
 // *************** SPI3  BLACKBOX****************
-
-#define USE_SPI_DEVICE_3
-#define SPI3_SCK_PIN            PC10
-#define SPI3_MISO_PIN           PC11
-#define SPI3_MOSI_PIN           PC12
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
-#define FLASH_CS_PIN            PD2
-#define FLASH_SPI_INSTANCE      SPI3
+#define FLASH_CS_PIN            PB12
+#define FLASH_SPI_INSTANCE      SPI2
 
 // *************** UART *****************************
 
@@ -137,20 +115,28 @@
 #define UART2_RX_PIN            PA3
 
 #define USE_UART3
-#define UART3_TX_PIN            PB10
-#define UART3_RX_PIN            PB11
+#define UART3_TX_PIN            PC10
+#define UART3_RX_PIN            PC11
 
 #define USE_UART4
 #define UART4_TX_PIN            PA0
 #define UART4_RX_PIN            PA1
 
+#define USE_UART5
+#define UART5_TX_PIN            PC12
+#define UART5_RX_PIN            PD2
+
 #define USE_UART6
 #define UART6_TX_PIN            PC6
 #define UART6_RX_PIN            PC7
 
+#define USE_UART10
+#define UART10_TX_PIN           PA2
+
+
 #define USE_SOFTSERIAL1
 
-#define SERIAL_PORT_COUNT       7
+#define SERIAL_PORT_COUNT       9
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
@@ -158,16 +144,17 @@
 
 // *************** ADC *****************************
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+//#define ADC1_DMA_STREAM         DMA2_Stream0
 #define VBAT_ADC_PIN            PC2
 #define CURRENT_METER_ADC_PIN   PC1
 #define RSSI_ADC_PIN            PC0
+#define EXTERNAL1_ADC_PIN       PA4
 
 // *************** Others ***************************
 
 #define USE_PINIO
-#define PINIO1_PIN              PC8 // VTX power switcher
-#define PINIO2_PIN              PC9 // 2xCamera switcher
+#define PINIO1_PIN              PA15
+#define PINIO2_PIN              PB3
 #define USE_PINIOBOX
 
 #define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
@@ -182,5 +169,5 @@
 #define TARGET_IO_PORTC 0xffff
 #define TARGET_IO_PORTD 0xffff
 
-#define USABLE_TIMER_CHANNEL_COUNT 13
-#define USED_TIMERS    (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(9))
+#define USABLE_TIMER_CHANNEL_COUNT 14
+#define USED_TIMERS    (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(8)|TIM_N(9)|TIM_N(12))
