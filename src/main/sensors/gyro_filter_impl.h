@@ -70,10 +70,9 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor)
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));
 #else //USE_GYRO_IMUF9001
         gyroADCf = kalman_update(gyroADCf, axis);
-        gyroSensor->gyroDev.gyroADCf[axis] = gyroADCf;
-
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroSensor->gyroDev.gyroADCf[axis]));
 #endif //USE_GYRO_IMUF9001
+        gyroSensor->gyroDev.gyroADCf[axis] = gyroADCf;
     }
 }
