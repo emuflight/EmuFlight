@@ -873,12 +873,11 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
     case MSP_NAME:
         {
             // Show warning for DJI OSD instead of pilot name if osd_warning_enabled
-            if (osdWarnGetState(OSD_WARNING_DJI)) {
-                bool isUsbConnected = false;
+            if (osdWarnGetState(OSD_WARNING_DJI)
 #ifdef USE_VCP
-                isUsbConnected = usbVcpIsConnected();
+                && !usbVcpIsConnected()
 #endif
-                if (!isUsbConnected) {
+                ) {
                     unsigned int len = sizeof(pilotConfig()->warning);
                     for (unsigned int i = 0; i < len; i++) {
                         // skip non printable chars
@@ -889,7 +888,6 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
                         }
                     }
                     break;
-                }
             }
 
             // Show current pilot name
