@@ -17,6 +17,8 @@ jobs:
         targets: [targets-group-1, targets-group-2, targets-group-rest]
     runs-on: ubuntu-latest
     steps:
+    - name: curl fix
+      run: function curl () { command curl --connect-timeout 30 --retry 10 "$@" ; }
 
     - name: Checkout
       uses: actions/checkout@v2

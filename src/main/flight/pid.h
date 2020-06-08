@@ -84,19 +84,6 @@ typedef struct dFilter_s {
     uint8_t smartSmoothing;
 } dFilter_t;
 
-typedef enum {
-    ITERM_RELAX_OFF,
-    ITERM_RELAX_RP,
-    ITERM_RELAX_RPY,
-    ITERM_RELAX_RP_INC,
-    ITERM_RELAX_RPY_INC
-} itermRelax_e;
-
-typedef enum {
-    ITERM_RELAX_GYRO,
-    ITERM_RELAX_SETPOINT
-} itermRelaxType_e;
-
 typedef struct pidProfile_s {
     pidf_t  pid[PID_ITEM_COUNT];
     dFilter_t dFilter[3];

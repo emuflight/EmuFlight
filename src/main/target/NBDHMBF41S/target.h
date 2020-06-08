@@ -81,7 +81,7 @@
 #define RX_CC2500_SPI_LED_PIN       PA13
 #define RX_CC2500_SPI_TX_EN_PIN     PB10
 #define RX_CC2500_SPI_ANT_SEL_PIN   PA7
-#define RX_SPI_BIND_PIN             PC15
+#define BINDPLUG_PIN                PC15
 #define RX_CC2500_SPI_LNA_EN_PIN    NONE
 #define DEFAULT_RX_FEATURE          FEATURE_RX_SPI
 #define RX_SPI_DEFAULT_PROTOCOL     RX_SPI_FRSKY_D
