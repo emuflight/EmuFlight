@@ -929,7 +929,7 @@ static void osdElementEfficiency(osdElementParms_t *element)
     int efficiency = 0;
     if (sensors(SENSOR_GPS) && ARMING_FLAG(ARMED) && STATE(GPS_FIX) && gpsSol.groundSpeed >= EFFICIENCY_MINIMUM_SPEED_CM_S) {
         const int speedX100 = osdGetSpeedToSelectedUnit(gpsSol.groundSpeed * 100); // speed * 100 for improved resolution at slow speeds
-        
+
         if (speedX100 > 0) {
             const int mAmperage = getAmperage() * 10; // Current in mA
             efficiency = mAmperage * 100 / speedX100; // mAmperage * 100 to cancel out speed * 100 from above
@@ -1428,6 +1428,12 @@ static void osdElementWarnings(osdElementParms_t *element)
         tfp_sprintf(element->buff, "HEADFREE");
         element->attr = DISPLAYPORT_ATTR_WARNING;
         SET_BLINK(OSD_WARNINGS);
+        return;
+    }
+
+    if (isLevelRecoveryActive() && osdWarnGetState(OSD_WARNING_LEVEL_RECOVERY)) {
+        tfp_sprintf(element->buff, "ACC RECOVERY");
+        element->attr = DISPLAYPORT_ATTR_WARNING;
         return;
     }
 
