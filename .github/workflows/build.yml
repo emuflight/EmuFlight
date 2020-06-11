@@ -90,7 +90,7 @@ jobs:
 
     # Upload to Bintray before .hex renames / only for tag
     - name: Upload to Bintray
-      uses: reznikmm/upload-bintray-action@v1
+      uses: hpcsc/upload-bintray-docker-action@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         username: emuflight-dev
