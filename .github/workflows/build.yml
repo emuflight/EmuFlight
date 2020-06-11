@@ -16,7 +16,7 @@ jobs:
     strategy:
       max-parallel: 3
       matrix:
-        targets: [targets-group-1, targets-group-2, targets-group-rest]
+        targets: [HELIOSPRING, STRIXF10, FOXEeRF405]
     runs-on: ubuntu-latest
     steps:
 
@@ -87,6 +87,18 @@ jobs:
       with:
         name: EmuFlight-${{ steps.get_version.outputs.VERSION }}-${{ github.run_number }}
         path: obj/*.hex
+
+    # Upload to Bintray before .hex renames / only for tag
+    - name: Upload to Bintray
+      uses: reznikmm/upload-bintray-action@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        username: emuflight-dev
+        repository: dev_hex
+        package: ${{ steps.get_revtag.outputs.REVISION_TAG}}
+        version: ${{ github.run_number }}-${{ steps.get_version.outputs.VERSION }}-${{ steps.get_revtag.outputs.REVISION_TAG}}
+        sourcePath: 'obj/*.hex'
+        apiKey: ${{ secrets.BINTRAYAPIKEY }} # An API key obtained from the user profile page.
 
     # Rename .hex for Releases
     - name: Rename Artifacts
