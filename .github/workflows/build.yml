@@ -16,7 +16,7 @@ jobs:
     strategy:
       max-parallel: 3
       matrix:
-        targets: [HELIOSPRING, STRIXF10, FOXEeRF405]
+        targets: [HELIOSPRING, STRIXF10, FOXEERF405]
     runs-on: ubuntu-latest
     steps:
 
