@@ -90,11 +90,11 @@ jobs:
 
     # Upload to Bintray before .hex renames / only for tag
     - name: Upload to Bintray
-      uses: hpcsc/upload-bintray-docker-action@v1
+      uses:       uses: reznikmm/upload-bintray-action@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        username: emuflight-dev
-        repository: dev_hex
+        username: ${{ secrets.BINTRAYUSERNAME }}
+        repository: emuflight-dev/dev_hex
         package: ${{ steps.get_revtag.outputs.REVISION_TAG}}
         version: ${{ github.run_number }}-${{ steps.get_version.outputs.VERSION }}-${{ steps.get_revtag.outputs.REVISION_TAG}}
         sourcePath: 'obj/*.hex'
