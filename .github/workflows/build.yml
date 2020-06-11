@@ -93,8 +93,10 @@ jobs:
       uses: reznikmm/upload-bintray-action@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        username: ${{ secrets.BINTRAYUSERNAME }}
-        repository: emuflight-dev/dev_hex
+        #username: ${{ secrets.BINTRAYUSERNAME }} # username from user profile page.
+        username: emuflight-dev
+        #repository: emuflight-dev/dev_hex
+        repository: dev_hex
         package: ${{ steps.get_revtag.outputs.REVISION_TAG}}
         version: ${{ github.run_number }}-${{ steps.get_version.outputs.VERSION }}-${{ steps.get_revtag.outputs.REVISION_TAG}}
         sourcePath: 'obj/*.hex'
