@@ -152,8 +152,6 @@ void targetConfiguration(void)
     pidProfilesMutable(0)->iterm_rotation = true;
     pidProfilesMutable(0)->itermThrottleThreshold = 250;
     pidProfilesMutable(0)->yawRateAccelLimit = 0;
-    pidProfilesMutable(0)->iterm_relax = ITERM_RELAX_RPY;
-    pidProfilesMutable(0)->iterm_relax_type = ITERM_RELAX_GYRO;
     pidProfilesMutable(0)->pidSumLimit = 500;
     pidProfilesMutable(0)->pidSumLimitYaw = 400;
     pidProfilesMutable(0)->pid[PID_PITCH].P = 55;

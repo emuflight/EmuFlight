@@ -58,8 +58,6 @@
 #include "sensors/acceleration.h"
 #include "sensors/battery.h"
 
-#define ITERM_RELAX_SETPOINT_THRESHOLD 30.0f
-
 const char pidNames[] =
     "ROLL;"
     "PITCH;"
@@ -626,34 +624,6 @@ static void rotateITermAndAxisError()
         }
     }
 }
-
-#ifdef USE_RC_SMOOTHING_FILTER
-float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelta)
-{
-    float ret = pidSetpointDelta;
-    if (axis == rcSmoothingDebugAxis)
-    {
-        DEBUG_SET(DEBUG_RC_SMOOTHING, 1, lrintf(pidSetpointDelta * 100.0f));
-    }
-    if (setpointDerivativeLpfInitialized)
-    {
-        switch (rcSmoothingFilterType)
-        {
-        case RC_SMOOTHING_DERIVATIVE_PT1:
-            ret = pt1FilterApply(&setpointDerivativePt1[axis], pidSetpointDelta);
-            break;
-        case RC_SMOOTHING_DERIVATIVE_BIQUAD:
-            ret = biquadFilterApplyDF1(&setpointDerivativeBiquad[axis], pidSetpointDelta);
-            break;
-        }
-        if (axis == rcSmoothingDebugAxis)
-        {
-            DEBUG_SET(DEBUG_RC_SMOOTHING, 2, lrintf(ret * 100.0f));
-        }
-    }
-    return ret;
-}
-#endif // USE_RC_SMOOTHING_FILTER
 
 static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
