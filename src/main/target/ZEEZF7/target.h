@@ -131,6 +131,12 @@
 // USB
 #define USE_VCP
 
+// BARO
+#define USE_BARO
+#define USE_BARO_BMP280
+#define USE_BARO_MS5611
+#define USE_BARO_BMP085
+
 // #define BINDPLUG_PIN                                    // NEED RESOURCE
 #define SERIALRX_PROVIDER                               SERIALRX_CRSF
 #define SERIALRX_UART                                   SERIAL_PORT_USART3
