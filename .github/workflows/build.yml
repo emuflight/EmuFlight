@@ -10,19 +10,20 @@ on:
 
 jobs:
   build:
+    timeout-minutes: 75
     strategy:
-      max-parallel: 1
+      max-parallel: 3
+      matrix:
+        targets: [targets-group-1, targets-group-2, targets-group-rest]
     runs-on: ubuntu-latest
     steps:
+    - name: curl fix
+      run: function curl () { command curl --connect-timeout 30 --retry 10 "$@" ; }
 
     - name: Checkout
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-
-    - name: Get build number
-      id: get_buildno
-      run: echo ::set-env name=BUILD_NUMBER::${{ github.run_number }}
 
     - name: Get pull request number
       id: get_pullno
@@ -57,12 +58,12 @@ jobs:
 
     - name: Compile Code
       run: |
-        make all
+        make ${{ matrix.targets }}
 
     - name: Store Artifacts
       uses: actions/upload-artifact@v2-preview
       with:
-        name: EmuFlight-${{ steps.get_version.outputs.VERSION }}-${{ steps.get_buildno.outputs.BUILD_NUMBER }}
+        name: EmuFlight-${{ steps.get_version.outputs.VERSION }}-${{ github.run_number }}
         path: obj/*.hex
       continue-on-error: true
 

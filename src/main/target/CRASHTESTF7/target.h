@@ -19,20 +19,20 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER                          "S7X2"
-#define USBD_PRODUCT_STRING                              "KAIO_CANT_FLY_WITHOUT"
-#define TARGET_MANUFACTURER_IDENTIFIER                   "KAIO"
+#define TARGET_BOARD_IDENTIFIER                          "S7X2"                 //not sure if this even shows, but defaults on BF as STM used
+#define USBD_PRODUCT_STRING                              "BotF7"            //board name on configurator drop down menu, flasher tab
+#define TARGET_MANUFACTURER_IDENTIFIER                   "BQEio"                //Manufacturer abbreviation
 
 #define USE_TARGET_CONFIG
 
-#define ENABLE_DSHOT_DMAR                                true
+#define ENABLE_DSHOT_DMAR                                true                   //Dshot default
 
 //Aux
-#define LED0_PIN                                         PB0
+#define LED0_PIN                                         PB0                    //resource led 1
 
 #define USE_BEEPER
-#define BEEPER_PIN                                       PB4
-#define BEEPER_INVERTED
+#define BEEPER_PIN                                       PB4                    //resource beeper 1
+#define BEEPER_INVERTED                                                         //set beeper_inversion = on
 
 #define USE_PINIO
 #define PINIO1_PIN                                       PA14                   // VTX power switcher
@@ -40,40 +40,40 @@
 
 
 //define camera control
-#define CAMERA_CONTROL_PIN                               PB3
+#define CAMERA_CONTROL_PIN                               PB3                    // resource camera_control 1
 
 //MPU-6000
-#define USE_GYRO
+#define USE_GYRO                                                                //declaring usage of gyro accelerometer and Spi access
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define USE_GYRO_SPI_MPU6000
 #define USE_EXTI
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define MPU_INT_EXTI                                     PC4                    //MPU_INT_EXTI
+#define MPU_INT_EXTI                                     PC4                    //gyro_1_exti_pin for mpu6000
 #define MPU6000_CS_PIN                                   PA4                    //GYRO_1_CS_PIN
 #define MPU6000_SPI_INSTANCE                             SPI1                   //GYRO_1_SPI_INSTANCE
-#define GYRO_MPU6000_ALIGN                               CW0_DEG
-#define ACC_MPU6000_ALIGN                                CW0_DEG
+#define GYRO_MPU6000_ALIGN                               CW0_DEG                //set gyro_1_align
+#define ACC_MPU6000_ALIGN                                CW0_DEG                //set accel_1_align (normally same as gyro 1)
 
 // OSD
-#define USE_MAX7456
-#define MAX7456_SPI_INSTANCE                             SPI3
-#define MAX7456_SPI_CS_PIN                               PA15
+#define USE_MAX7456                                                             //osd driver
+#define MAX7456_SPI_INSTANCE                             SPI3                   // set max7456
+#define MAX7456_SPI_CS_PIN                               PA15                   // resource osd_cs 1
 #define MAX7456_SPI_CLK                                  (SPI_CLOCK_STANDARD)   // 10MHz
 #define MAX7456_RESTORE_CLK                              (SPI_CLOCK_FAST)
 
 // Blackbox
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-#define USE_FLASHFS
-#define USE_FLASH_M25P16
-#define FLASH_CS_PIN                                     PB12
-#define FLASH_SPI_INSTANCE                               SPI2
+#define USE_FLASHFS                                                             // enable flash blackbox
+#define USE_FLASH_M25P16                                                        //defines which driver type
+#define FLASH_CS_PIN                                     PB12                   //resource flash_cs
+#define FLASH_SPI_INSTANCE                               SPI2                   //set flash spi bus
 
 // Uarts
-#define USE_UART1
-#define UART1_RX_PIN                                     PA10
-#define UART1_TX_PIN                                     PA9
+#define USE_UART1                                                               //enable corresponding UARTS
+#define UART1_RX_PIN                                     PA10                   //resource serial_rx 1
+#define UART1_TX_PIN                                     PA9                    //resource serial_tx 1
 
 #define USE_UART2
 #define UART2_RX_PIN                                     PA3
@@ -99,13 +99,17 @@
 #define SERIAL_PORT_COUNT                                7                      //VCP, USART1, USART2,USART3,USART4,USART5,USART6
 
 // ESC
-#define USE_ADC
-#define DEFAULT_VOLTAGE_METER_SOURCE                     VOLTAGE_METER_ADC
+#define USE_ADC                                                                 // enable adc
+#define DEFAULT_VOLTAGE_METER_SOURCE                     VOLTAGE_METER_ADC      //define source.. same as battery tab in configurator
 #define DEFAULT_CURRENT_METER_SOURCE                     CURRENT_METER_ADC
-#define CURRENT_METER_ADC_PIN                            PC1
-#define VBAT_ADC_PIN                                     PC2
-#define RSSI_ADC_PIN                                     PC3
-#define CURRENT_METER_SCALE_DEFAULT                      250                    // 3.3/120A  = 25mv/A
+#define CURRENT_METER_ADC_PIN                            PC1                    //resource adc_curr
+#define VBAT_ADC_PIN                                     PC2                    //resource adc_batt
+#define RSSI_ADC_PIN                                     PC3                    //resource adc_rssi
+#define CURRENT_METER_SCALE_DEFAULT                      150                    // 3.3/120A  = 25mv/A
+#define VBAT_SCALE                                       160                    //configurator tab voltage scale
+
+
+
 
 // SPI devices
 #define USE_SPI
@@ -113,10 +117,10 @@
 #define USE_SPI_DEVICE_2
 #define USE_SPI_DEVICE_3
 
-#define SPI1_NSS_PIN                                    PA4
-#define SPI1_SCK_PIN                                    PA5
-#define SPI1_MISO_PIN                                   PA6
-#define SPI1_MOSI_PIN                                   PA7
+#define SPI1_NSS_PIN                                    PA4                     //resource usually matches cs pin of device that calls for it
+#define SPI1_SCK_PIN                                    PA5                     // resource spi_sck 1
+#define SPI1_MISO_PIN                                   PA6                     //resource spi_miso 1
+#define SPI1_MOSI_PIN                                   PA7                     //resource spi_mosi
 
 #define SPI2_NSS_PIN                                    PB12
 #define SPI2_SCK_PIN                                    PB13
@@ -145,5 +149,5 @@
 #define TARGET_IO_PORTD                                 (BIT(2))
 
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                      9                       //updated timer count to compensate for Nf Motor 4
-#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5)  | TIM_N(8)   ) //update based on update CLRACINGF7 Target BF4.1+
+#define USABLE_TIMER_CHANNEL_COUNT                      9                       //updated timer count to compensate for Nf Motor 4, total timers defined in target.c
+#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5)  | TIM_N(8)   ) //update based on update CLRACINGF7 Target BF4.1+   timers defined, enumerated as per use

@@ -1049,6 +1049,4 @@ extern "C" {
     bool isFlipOverAfterCrashMode(void) {
         return false;
     }
-
-    bool pidOsdAntiGravityActive(void) { return false; }
 }

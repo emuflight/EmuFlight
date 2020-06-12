@@ -709,7 +709,7 @@ static void applyFlipOverAfterCrashModeToMotors(void)
                     motorOutput = disarmMotorOutput;
                 }
             }
-            motorOutput = MIN(1.0f, flipPower * motorOutput * mixerConfig()->crashflip_power_percent / 100.0f);
+            motorOutput = MIN(1.0f, flipPower * motorOutput * (mixerConfig()->crashflip_power_percent * 1.414f) / 100.0f);
             motorOutput = motorOutputMin + motorOutput * motorOutputRange;
 
             // Add a little bit to the motorOutputMin so props aren't spinning when sticks are centered
@@ -872,9 +872,6 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
         }
         motorMix[i] = mix;
     }
-
-        pidUpdateAntiGravityThrottleFilter(throttle);
-
 
 #if defined(USE_THROTTLE_BOOST)
     if (throttleBoost > 0.0f) {
