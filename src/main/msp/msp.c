@@ -82,6 +82,7 @@
 #include "flight/imu.h"
 #include "flight/mixer.h"
 #include "flight/pid.h"
+#include "flight/pid_init.h"
 #include "flight/position.h"
 #include "flight/rpm_filter.h"
 #include "flight/servos.h"
@@ -1189,11 +1190,7 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         break;
 
     case MSP_ALTITUDE:
-#if defined(USE_BARO) || defined(USE_RANGEFINDER)
         sbufWriteU32(dst, getEstimatedAltitudeCm());
-#else
-        sbufWriteU32(dst, 0);
-#endif
 #ifdef USE_VARIO
         sbufWriteU16(dst, getEstimatedVario());
 #else
