@@ -41,6 +41,7 @@
 #include "drivers/motor.h"
 #include "drivers/time.h"
 #include "drivers/io.h"
+#include "drivers/pwm_esc_detect.h"
 
 #include "io/motors.h"
 
@@ -944,7 +945,7 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs)
     mixerThrottle = throttle;
 
     motorMixRange = motorMixMax - motorMixMin;
-    if (motorMixRange > 1.0f) {
+    if (motorMixRange > 1.0f && (getDetectedMotorType() != MOTOR_BRUSHED)) {
         for (int i = 0; i < motorCount; i++) {
             motorMix[i] /= motorMixRange;
         }
