@@ -1720,6 +1720,121 @@ static void cliModeColor(char *cmdline)
 }
 #endif
 
+// RF TPA
+static void printTPACurve(void)
+{
+    cliPrintf("tpakp ");
+    for (int i = 0; i < ATTENUATION_CURVE_SIZE; i++) {
+        if (i == ATTENUATION_CURVE_SIZE - 1) {
+            cliPrintf("%d", currentControlRateProfile->raceflightTPA.kpAttenuationCurve[i]);
+        } else {
+            cliPrintf("%d=", currentControlRateProfile->raceflightTPA.kpAttenuationCurve[i]);
+        }
+    }
+    cliPrintLinefeed();
+
+    cliPrintf("tpaki ");
+    for (int i = 0; i < ATTENUATION_CURVE_SIZE; i++) {
+        if (i == ATTENUATION_CURVE_SIZE - 1) {
+            cliPrintf("%d", currentControlRateProfile->raceflightTPA.kiAttenuationCurve[i]);
+        } else {
+            cliPrintf("%d=", currentControlRateProfile->raceflightTPA.kiAttenuationCurve[i]);
+        }
+    }
+    cliPrintLinefeed();
+
+    cliPrintf("tpakd ");
+    for (int i = 0; i < ATTENUATION_CURVE_SIZE; i++) {
+        if (i == ATTENUATION_CURVE_SIZE - 1) {
+            cliPrintf("%d", currentControlRateProfile->raceflightTPA.kdAttenuationCurve[i]);
+        } else {
+            cliPrintf("%d=", currentControlRateProfile->raceflightTPA.kdAttenuationCurve[i]);
+        }
+    }
+    cliPrintLinefeed();
+}
+static void printTPACurveUsage(void)
+{
+    cliPrintf("Usage: tpacurve [kp|ki|kd] 100=100=100=100=100=100=100=100=100");
+    cliPrintLinefeed();
+}
+
+static void cliTPACurve(char *cmdLine)
+{
+    enum { KP = 0, KI, KD };
+    int type = -1;
+    int len = strlen(cmdLine);
+
+    if (len == 0) {
+        printTPACurve();
+        return;
+    } else {
+        if (strncasecmp(cmdLine, "kp", 2) == 0) {
+            type = KP;
+        }
+        else if (strncasecmp(cmdLine, "ki", 2) == 0) {
+            type = KI;
+        }
+        else if (strncasecmp(cmdLine, "kd", 2) == 0) {
+            type = KD;
+        }
+        else {
+            printTPACurveUsage();
+            return;
+        }
+
+
+        if (type > -1) {
+            // Bump pointer up to start of curve ignoring spaces
+            char* curveStr = cmdLine + 2;
+            int count = 0;
+            while (curveStr[count] == ' ') {
+                count++;
+            }
+            curveStr = curveStr + count;
+
+            // split by token
+            int i = 0;
+            char *p = strtok(curveStr, "=");
+            uint8_t tempCurve[9] = {0.0f,};
+
+            while (p != NULL && i < 9) {
+                tempCurve[i++] = atoi(p);
+                p = strtok (NULL, "=");
+            }
+            if (i < 9) {
+                printTPACurveUsage();
+                return;
+            }
+            else {
+                switch (type) {
+                    case KP:
+                        memcpy(currentControlRateProfile->raceflightTPA.kpAttenuationCurve, tempCurve, sizeof(tempCurve));
+                        cliPrintf("New TPA Saved");
+                        cliPrintLinefeed();
+                        printTPACurve();
+                        break;
+                    case KI:
+                        memcpy(currentControlRateProfile->raceflightTPA.kiAttenuationCurve, tempCurve, sizeof(tempCurve));
+                        cliPrintf("New TPA Saved");
+                        cliPrintLinefeed();
+                        printTPACurve();
+                        break;
+                    case KD:
+                        memcpy(currentControlRateProfile->raceflightTPA.kdAttenuationCurve, tempCurve, sizeof(tempCurve));
+                        cliPrintf("New TPA Saved");
+                        cliPrintLinefeed();
+                        printTPACurve();
+                        break;
+                    default:
+                        printTPACurveUsage();
+                }
+            }
+        }
+    }
+}
+// RF TPA
+
 #ifdef USE_SERVOS
 static void printServo(uint8_t dumpMask, const servoParam_t *servoParams, const servoParam_t *defaultServoParams)
 {
@@ -3715,6 +3830,37 @@ static void printResourceJson() {
     cliPrintf("]}");
 }
 
+// RF TPA
+static void printTPACurveJson() {
+    cliPrint(",\"tpa_curves\":{\"kp\":[");
+    for (int i = 0; i < ATTENUATION_CURVE_SIZE; i++) {
+        if (i > 0)
+        {
+            cliPrint(",");
+        }
+        cliPrintf("\"%d\"", currentControlRateProfile->raceflightTPA.kpAttenuationCurve[i]);
+    }
+    cliPrint("],\"kd\":[");
+    for (int i = 0; i < ATTENUATION_CURVE_SIZE; i++) {
+        if (i > 0)
+        {
+            cliPrint(",");
+        }
+        cliPrintf("\"%d\"", currentControlRateProfile->raceflightTPA.kdAttenuationCurve[i]);
+    }
+    cliPrint("],\"ki\":[");
+    for (int i = 0; i < ATTENUATION_CURVE_SIZE; i++) {
+        if (i > 0)
+        {
+            cliPrint(",");
+        }
+        cliPrintf("\"%d\"", currentControlRateProfile->raceflightTPA.kiAttenuationCurve[i]);
+    }
+    cliPrint("]}");
+
+}
+// RF TPA
+
 #define PROFILE_JSON_STRING ",\"%s_profile\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"LOOKUP\",\"current\":\"%d\",\"values\":[{"
 
 static void dumpProfileValueJson(uint16_t valueSection)
@@ -3784,6 +3930,7 @@ void cliConfig(char *cmdline)
     printSerialJson(serialConfig());
     printAuxJson(modeActivationConditions(0));
     printResourceJson();
+    printTPACurveJson();
     cliPrintf(",\"name\":\"%s\"", pilotConfig()->name);
     cliPrintf(",\"version\":\"%s|%s|%s|%s\"",
         FC_FIRMWARE_NAME,
@@ -4930,7 +5077,7 @@ const clicmd_t cmdTable[] = {
 #ifdef USE_GYRO_IMUF9001
     CLI_COMMAND_DEF("reportimuferrors", "report imu-f comm errors", NULL, cliReportImufErrors),
 #endif
-
+    CLI_COMMAND_DEF("tpacurve", "set rf1 tpa", "[kp, ki, kd]", cliTPACurve),
     CLI_COMMAND_DEF("help", NULL, NULL, cliHelp),
 #ifdef USE_LED_STRIP
     CLI_COMMAND_DEF("led", "configure leds", NULL, cliLed),

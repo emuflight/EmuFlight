@@ -59,13 +59,6 @@ void targetConfiguration(void)
     //rcControlsConfigMutable()->yaw_deadband = 10;
     compassConfigMutable()->mag_hardware = 1;
 
-    for (uint8_t rateProfileIndex = 0; rateProfileIndex < CONTROL_RATE_PROFILE_COUNT; rateProfileIndex++) {
-        controlRateConfig_t *controlRateConfig = controlRateProfilesMutable(rateProfileIndex);
-
-        controlRateConfig->dynThrP = 45;
-        controlRateConfig->tpa_breakpoint = 1700;
-    }
-
     serialConfigMutable()->portConfigs[2].functionMask = FUNCTION_RX_SERIAL;
 }
 #endif

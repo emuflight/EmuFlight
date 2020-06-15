@@ -965,10 +965,10 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         for (int i = 0 ; i < 3; i++) {
             sbufWriteU8(dst, currentControlRateProfile->rates[i]); // R,P,Y see flight_dynamics_index_t
         }
-        sbufWriteU8(dst, currentControlRateProfile->dynThrP);
+        sbufWriteU8(dst, 0);
         sbufWriteU8(dst, currentControlRateProfile->thrMid8);
         sbufWriteU8(dst, currentControlRateProfile->thrExpo8);
-        sbufWriteU16(dst, currentControlRateProfile->tpa_breakpoint);
+        sbufWriteU16(dst, 0);
         sbufWriteU8(dst, currentControlRateProfile->rcExpo[FD_YAW]);
         sbufWriteU8(dst, currentControlRateProfile->rcRates[FD_YAW]);
         sbufWriteU8(dst, currentControlRateProfile->rcRates[FD_PITCH]);
@@ -994,8 +994,8 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         break;
 
     case MSP_EMUF:
-        sbufWriteU8(dst, currentControlRateProfile->dynThrI);
-        sbufWriteU8(dst, currentControlRateProfile->dynThrD);
+        sbufWriteU8(dst, 0);
+        sbufWriteU8(dst, 0);
         break;
 
     case MSP_PID:
@@ -1752,11 +1752,10 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
                 currentControlRateProfile->rates[i] = sbufReadU8(src);
             }
 
-            value = sbufReadU8(src);
-            currentControlRateProfile->dynThrP = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
+            sbufReadU8(src);
             currentControlRateProfile->thrMid8 = sbufReadU8(src);
             currentControlRateProfile->thrExpo8 = sbufReadU8(src);
-            currentControlRateProfile->tpa_breakpoint = sbufReadU16(src);
+            sbufReadU16(src);
             if (sbufBytesRemaining(src) >= 1) {
                 currentControlRateProfile->rcExpo[FD_YAW] = sbufReadU8(src);
             }
@@ -1796,10 +1795,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         break;
 
         case MSP_SET_EMUF:
-            value = sbufReadU8(src);
-            currentControlRateProfile->dynThrI = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
-            value = sbufReadU8(src);
-            currentControlRateProfile->dynThrD = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
+            sbufReadU8(src);
+            sbufReadU8(src);
         break;
 
         case MSP_SET_MOTOR_CONFIG:
@@ -2062,9 +2059,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
           currentPidProfile->horizonTransition = sbufReadU8(src);
           currentPidProfile->horizon_tilt_effect = sbufReadU8(src);
           currentPidProfile->angleExpo = sbufReadU8(src);
+          sbufReadU8(src);
+          sbufReadU8(src);
 
-          sbufReadU8(src);
-          sbufReadU8(src);
             //added in msp 1.43
             currentPidProfile->errorBoostYaw = sbufReadU16(src);
             currentPidProfile->errorBoostLimitYaw = sbufReadU8(src);

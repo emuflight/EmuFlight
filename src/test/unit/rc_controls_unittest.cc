@@ -284,11 +284,6 @@ protected:
         controlRateConfig.rates[0] = 0;
         controlRateConfig.rates[1] = 0;
         controlRateConfig.rates[2] = 0;
-        controlRateConfig.dynThrP = 0;
-        controlRateConfig.dynThrI = 0;
-        controlRateConfig.dynThrD = 0;
-        controlRateConfig.tpa_breakpoint = 0;
-
     }
 };
 

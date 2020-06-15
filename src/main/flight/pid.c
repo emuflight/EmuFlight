@@ -832,12 +832,14 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         }
 
         // calculating the PID sum and TPA and SPA
+
         // multiply these things to the pidData so that logs shows the pid data correctly
-        pidData[axis].P = pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation[axis];
-        pidData[axis].I = temporaryIterm[axis] * getThrottleIAttenuation() * setPointIAttenuation[axis]; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
-        pidData[axis].D = pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation[axis];
+        pidData[axis].P = pidData[axis].P * getThrottlePIDAttenuationKp() * setPointPAttenuation[axis];
+        pidData[axis].I = temporaryIterm[axis] * getThrottlePIDAttenuationKi() * setPointIAttenuation[axis]; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
+        pidData[axis].D = pidData[axis].D * getThrottlePIDAttenuationKd() * setPointDAttenuation[axis];
         const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D;
         pidData[axis].Sum = pidSum;
+
     }
 }
 

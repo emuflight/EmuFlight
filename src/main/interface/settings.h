@@ -87,6 +87,8 @@ typedef enum {
     TABLE_GYRO_OVERFLOW_CHECK,
 #endif
     TABLE_RATES_TYPE,
+    // RF TPA
+    TABLE_TPA_TYPE,
 #ifdef USE_OVERCLOCK
     TABLE_OVERCLOCK,
 #endif

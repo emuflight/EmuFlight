@@ -68,15 +68,8 @@ typedef float (applyRatesFn)(const int axis, float rcCommandf, const float rcCom
 static float rcDeflection[3], rcDeflectionAbs[3];
 static volatile float setpointRate[3];
 static volatile uint32_t setpointRateInt[3];
-static float throttlePAttenuation;
-static float throttleIAttenuation;
-static float throttleDAttenuation;
 static bool reverseMotors = false;
 static applyRatesFn *applyRates;
-
-// static float rcCommandInterp[4] = { 0, 0, 0, 0 };
-// static float rcStepSize[4] = { 0, 0, 0, 0 };
-// static float inverseRcInt;
 
 FAST_RAM_ZERO_INIT uint8_t interpolationChannels;
 volatile bool isRXDataNew;
@@ -85,6 +78,56 @@ volatile int16_t rcInterpolationStepCount;
 volatile uint16_t rxRefreshRate;
 volatile uint16_t currentRxRefreshRate;
 
+// RF TPA
+static float throttleLookupKp[1000];
+static float throttleLookupKi[1000];
+static float throttleLookupKd[1000];
+uint16_t currentAdjustedThrottle; // rcData[THROTTLE] shifted to 0-1000 range
+
+static void  BuildTPACurveThrottleLookupTables(void);
+
+static float ApplyAttenuationCurve (float input, uint8_t curve[], uint8_t curveSize);
+
+static void BuildTPACurveThrottleLookupTables(void)
+{
+    for (int x = 0; x <= 999; x++)
+    {
+        throttleLookupKp[x] = ApplyAttenuationCurve(((float)x / 999.0f), currentControlRateProfile->raceflightTPA.kpAttenuationCurve, ATTENUATION_CURVE_SIZE);
+        throttleLookupKi[x] = ApplyAttenuationCurve(((float)x / 999.0f), currentControlRateProfile->raceflightTPA.kiAttenuationCurve, ATTENUATION_CURVE_SIZE);
+        throttleLookupKd[x] = ApplyAttenuationCurve(((float)x / 999.0f), currentControlRateProfile->raceflightTPA.kdAttenuationCurve, ATTENUATION_CURVE_SIZE);
+    }
+}
+
+static float ApplyAttenuationCurve (float inputAttn, uint8_t curve[], uint8_t curveSize)
+{
+    // curve needs to be float'd
+    float floatCurve[curveSize];
+    for (uint8_t i = 0; i < curveSize; i++) {
+        floatCurve[i] = (float)curve[i] / 100.0f;
+    }
+
+    float attenuationValue = (inputAttn * (curveSize - 1));
+    float remainder = (float)((float)attenuationValue - (int)attenuationValue);
+    uint32_t position = (int)attenuationValue;
+
+    if (inputAttn == 1)
+        return(floatCurve[curveSize-1]);
+    else
+        return(floatCurve[position] + (((floatCurve[position+1] - floatCurve[position]) * remainder)));
+}
+
+float getThrottlePIDAttenuationKp(void) {
+    return throttleLookupKp[currentAdjustedThrottle];
+}
+
+float getThrottlePIDAttenuationKi(void) {
+    return throttleLookupKi[currentAdjustedThrottle];
+}
+
+float getThrottlePIDAttenuationKd(void) {
+    return throttleLookupKd[currentAdjustedThrottle];
+}
+// RF TPA
 
 #ifdef USE_RC_SMOOTHING_FILTER
 #define RC_SMOOTHING_IDENTITY_FREQUENCY         80    // Used in the formula to convert a BIQUAD cutoff frequency to PT1
@@ -117,21 +160,6 @@ float getRcDeflection(int axis)
 float getRcDeflectionAbs(int axis)
 {
     return rcDeflectionAbs[axis];
-}
-
-float getThrottlePAttenuation(void)
-{
-    return throttlePAttenuation;
-}
-
-float getThrottleIAttenuation(void)
-{
-    return throttleIAttenuation;
-}
-
-float getThrottleDAttenuation(void)
-{
-    return throttleDAttenuation;
 }
 
 #define THROTTLE_LOOKUP_LENGTH 12
@@ -640,47 +668,11 @@ FAST_CODE void processRcCommand(void)
 FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
 {
     isRXDataNew = true;
-    // PITCH & ROLL only dynamic PID adjustment,  depending on throttle value
-    int32_t propP;
-        if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
-            propP = 100;
-            throttlePAttenuation = 1.0f;
-        } else {
-            if ((uint16_t)currentControlRateProfile->dynThrP > 100) {
-                propP = 100 + ((uint16_t)currentControlRateProfile->dynThrP - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
-            } else {
-                propP = 100 - (100 - currentControlRateProfile->dynThrP) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
-            }
-            throttlePAttenuation = propP / 100.0f;
-        }
-
-    int32_t propI;
-        if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
-            propI = 100;
-            throttleIAttenuation = 1.0f;
-        } else {
-            if ((uint16_t)currentControlRateProfile->dynThrI > 100) {
-                propI = 100 + ((uint16_t)currentControlRateProfile->dynThrI - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
-            } else {
-                propI = 100 - (100 - currentControlRateProfile->dynThrI) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
-            }
-            throttleIAttenuation = propI / 100.0f;
-        }
-
-    int32_t propD;
-        if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
-            propD = 100;
-            throttleDAttenuation = 1.0f;
-        } else {
-            if ((uint16_t)currentControlRateProfile->dynThrD > 100) {
-                propD = 100 + ((uint16_t)currentControlRateProfile->dynThrD - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
-            } else {
-                propD = 100 - (100 - currentControlRateProfile->dynThrD) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
-            }
-            throttleDAttenuation = propD / 100.0f;
-        }
-
-
+    // RF TPA
+    // rcData is 1000,2000 range, subtract 1000 and clamp between 0 and 1000 (for TPA lookup table indexing)
+    int16_t shift = rcData[THROTTLE] - 1000;
+    currentAdjustedThrottle = (shift <= 0) ? 0 : ((shift >= 1000) ? 1000 : shift );
+    // RF TPA
     for (int axis = 0; axis < 3; axis++) {
         // non coupled PID reduction scaler used in PID controller 1 and PID controller 2.
 
@@ -812,6 +804,9 @@ void initRcProcessing(void)
 
         break;
     }
+    // RF TPA
+    BuildTPACurveThrottleLookupTables();
+    // RF TPA
 }
 
 bool rcSmoothingIsEnabled(void)
