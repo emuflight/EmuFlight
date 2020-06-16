@@ -203,6 +203,5 @@ void targetConfiguration(void)
     controlRateProfilesMutable(0)->rates[FD_ROLL] = 80;
     controlRateProfilesMutable(0)->rates[FD_PITCH] = 80;
     controlRateProfilesMutable(0)->rates[FD_YAW] = 25;
-    controlRateProfilesMutable(0)->tpa_breakpoint = 1750;
 }
 #endif
