@@ -348,7 +348,7 @@ static OSD_Entry cmsx_menuRFTPAEntries[] =
     { "87.5", OME_UINT8, NULL,                  &(OSD_UINT8_t)  { &rateProfile.raceflightTPA.kdAttenuationCurve[7], 0,  250,  1}, 0 },
     { "100", OME_UINT8, NULL,                   &(OSD_UINT8_t)  { &rateProfile.raceflightTPA.kdAttenuationCurve[8], 0,  250,  1}, 0 },
 
-    { "SAVE&REBOOT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVEREBOOT, 0},
+    { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
 	  { "BACK",        OME_Back,            NULL,   NULL,             0},
     { NULL, OME_END, NULL, NULL, 0 }
 };
