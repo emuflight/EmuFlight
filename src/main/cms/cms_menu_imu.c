@@ -377,6 +377,7 @@ static uint8_t  cmsx_nfe_racermode;
 static uint8_t  cmsx_throttleBoost;
 static uint8_t  cmsx_motorOutputLimit;
 static int8_t   cmsx_autoProfileCellCount;
+static uint8_t  cmsx_tpa_on_yaw;
 
 static long cmsx_profileOtherOnEnter(void)
 {
@@ -406,6 +407,7 @@ static long cmsx_profileOtherOnEnter(void)
     cmsx_throttleBoost = pidProfile->throttle_boost;
     cmsx_motorOutputLimit = pidProfile->motor_output_limit;
     cmsx_autoProfileCellCount = pidProfile->auto_profile_cell_count;
+    cmsx_tpa_on_yaw = pidProfile->tpa_on_yaw;
 
     return 0;
 }
@@ -425,20 +427,17 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
     pidProfile->setPointITransition[YAW] = cmsx_setPointITransition[YAW];
     pidProfile->setPointDTransition[YAW] = cmsx_setPointDTransition[YAW];
     pidInitConfig(currentPidProfile);
-
     pidProfile->pid[PID_LEVEL_LOW].P = cmsx_P_angle_low;
     pidProfile->pid[PID_LEVEL_LOW].D = cmsx_D_angle_low;
     pidProfile->pid[PID_LEVEL_HIGH].P = cmsx_P_angle_high;
     pidProfile->pid[PID_LEVEL_HIGH].D = cmsx_D_angle_high;
     pidProfile->pid[PID_LEVEL_LOW].F = cmsx_F_angle;
     pidProfile->horizonTransition = cmsx_horizonTransition;
-
     pidProfile->nfe_racermode = cmsx_nfe_racermode;
-
     pidProfile->throttle_boost = cmsx_throttleBoost;
     pidProfile->motor_output_limit = cmsx_motorOutputLimit;
     pidProfile->auto_profile_cell_count = cmsx_autoProfileCellCount;
-
+    pidProfile->tpa_on_yaw = cmsx_tpa_on_yaw;
     initEscEndpoints();
     return 0;
 }
@@ -467,7 +466,7 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
 #endif
     { "MTR OUT LIM %",   OME_UINT8, NULL, &(OSD_UINT8_t) { &cmsx_motorOutputLimit, MOTOR_OUTPUT_LIMIT_PERCENT_MIN,  MOTOR_OUTPUT_LIMIT_PERCENT_MAX,  1}, 0 },
     { "AUTO CELL CNT",   OME_INT8, NULL, &(OSD_INT8_t) { &cmsx_autoProfileCellCount, AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT, 1}, 0 },
-
+    { "USE TPA ON YAW",   OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_tpa_on_yaw, 1, cms_offOnLabels }, 0 },
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }

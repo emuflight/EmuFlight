@@ -172,6 +172,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .horizonTransition = 0,
+        .tpa_on_yaw = true,
     );
 }
 
@@ -341,6 +342,7 @@ pt1Filter_t throttleLpf;
 #endif
 static FAST_RAM_ZERO_INIT bool itermRotation;
 static FAST_RAM_ZERO_INIT float temporaryIterm[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT uint8_t tpaOnYaw;
 
 void pidResetITerm(void)
 {
@@ -390,6 +392,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 #endif
     itermRotation = pidProfile->iterm_rotation;
     iDecay = (float)pidProfile->i_decay;
+    tpaOnYaw = pidProfile->tpa_on_yaw;
 }
 
 void pidInit(const pidProfile_t *pidProfile)
@@ -834,9 +837,17 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // calculating the PID sum and TPA and SPA
 
         // multiply these things to the pidData so that logs shows the pid data correctly
-        pidData[axis].P = pidData[axis].P * getThrottlePIDAttenuationKp() * setPointPAttenuation[axis];
-        pidData[axis].I = temporaryIterm[axis] * getThrottlePIDAttenuationKi() * setPointIAttenuation[axis]; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
-        pidData[axis].D = pidData[axis].D * getThrottlePIDAttenuationKd() * setPointDAttenuation[axis];
+
+        if (axis == FD_YAW && tpaOnYaw == false) {
+            pidData[axis].P = pidData[axis].P * setPointPAttenuation[axis];
+            pidData[axis].I = temporaryIterm[axis]  * setPointIAttenuation[axis]; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
+            pidData[axis].D = pidData[axis].D  * setPointDAttenuation[axis];
+        } else {
+            pidData[axis].P = pidData[axis].P * getThrottlePIDAttenuationKp() * setPointPAttenuation[axis];
+            pidData[axis].I = temporaryIterm[axis] * getThrottlePIDAttenuationKi() * setPointIAttenuation[axis]; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
+            pidData[axis].D = pidData[axis].D * getThrottlePIDAttenuationKd() * setPointDAttenuation[axis];
+        }
+
         const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D;
         pidData[axis].Sum = pidSum;
 
