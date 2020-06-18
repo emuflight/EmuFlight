@@ -1347,7 +1347,7 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("nfe_racermode", "%d",                   currentPidProfile->nfe_racermode);
         BLACKBOX_PRINT_HEADER_LINE("iterm_rotation", "%d",                  currentPidProfile->iterm_rotation);
         BLACKBOX_PRINT_HEADER_LINE("throttle_boost", "%d",                  currentPidProfile->throttle_boost);
-        BLACKBOX_PRINT_HEADER_LINE("tpa_on_yaw", "%d",                  currentPidProfile->tpa_on_yaw);
+        BLACKBOX_PRINT_HEADER_LINE("tpa_on_yaw", "%d",                      currentControlRateProfile->tpaOnYaw);
         // End of EmuFlight controller parameters
 
         BLACKBOX_PRINT_HEADER_LINE("deadband", "%d",                        rcControlsConfig()->deadband);

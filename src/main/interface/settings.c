@@ -519,7 +519,7 @@ const clivalue_t valueTable[] = {
     { "yaw_spin_threshold",         VAR_UINT16 | MASTER_VALUE, .config.minmax = { 500,  1950 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, yaw_spin_threshold) },
 #endif
 
-#if defined(GYRO_USES_SPI) && defined(USE_32K_CAPABLE_GYRO) || defined(USE_GYRO_IMUF9001)  
+#if defined(GYRO_USES_SPI) && defined(USE_32K_CAPABLE_GYRO) || defined(USE_GYRO_IMUF9001)
     { "gyro_use_32khz",             VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_use_32khz) },
 #endif
 #ifdef USE_DUAL_GYRO
@@ -784,6 +784,9 @@ const clivalue_t valueTable[] = {
     { "tpa_d_8",                    VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 250 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, raceflightTPA.kdAttenuationCurve[7]) },
     { "tpa_d_9",                    VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 250 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, raceflightTPA.kdAttenuationCurve[8]) },
 
+    { "tpa_on_yaw",                 VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(controlRateConfig_t, tpaOnYaw) },
+
+
     { "throttle_limit_type",        VAR_UINT8  | PROFILE_RATE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_THROTTLE_LIMIT_TYPE }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, throttle_limit_type) },
     { "throttle_limit_percent",     VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 25, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, throttle_limit_percent) },
 
@@ -932,7 +935,6 @@ const clivalue_t valueTable[] = {
 
     { "motor_output_limit",        VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { MOTOR_OUTPUT_LIMIT_PERCENT_MIN, MOTOR_OUTPUT_LIMIT_PERCENT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, motor_output_limit) },
     { "auto_profile_cell_count",   VAR_INT8  | PROFILE_VALUE,  .config.minmax = { AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT }, PG_PID_PROFILE, offsetof(pidProfile_t, auto_profile_cell_count) },
-    { "tpa_on_yaw",             VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, tpa_on_yaw) },
 
 // PG_TELEMETRY_CONFIG
 #ifdef USE_TELEMETRY

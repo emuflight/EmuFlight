@@ -51,4 +51,5 @@ float rateDynamics(float rcCommand, int axis);
 float getThrottlePIDAttenuationKp(void);
 float getThrottlePIDAttenuationKi(void);
 float getThrottlePIDAttenuationKd(void);
+float getTPAOnYaw(void);
 // RF TPA

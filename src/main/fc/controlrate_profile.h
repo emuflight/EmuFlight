@@ -78,6 +78,7 @@ typedef struct controlRateConfig_s {
     uint8_t vbat_comp_ref;                  // Sets the voltage reference to calculate the battery compensation
     uint8_t vbat_comp_throttle_level;       // Sets the level of throttle battery compensation
     uint8_t vbat_comp_pid_level;            // Sets the level of PID battery compensation
+    uint8_t tpaOnYaw;                       // does tpa effect yaw?
 } controlRateConfig_t;
 
 PG_DECLARE_ARRAY(controlRateConfig_t, CONTROL_RATE_PROFILE_COUNT, controlRateProfiles);

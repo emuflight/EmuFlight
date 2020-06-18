@@ -127,8 +127,11 @@ float getThrottlePIDAttenuationKi(void) {
 float getThrottlePIDAttenuationKd(void) {
     return throttleLookupKd[currentAdjustedThrottle];
 }
-// RF TPA
 
+float getTPAOnYaw(void) {
+    return currentControlRateProfile->tpaOnYaw;
+}
+// RF TPA
 #ifdef USE_RC_SMOOTHING_FILTER
 #define RC_SMOOTHING_IDENTITY_FREQUENCY         80    // Used in the formula to convert a BIQUAD cutoff frequency to PT1
 #define RC_SMOOTHING_FILTER_STARTUP_DELAY_MS    5000  // Time to wait after power to let the PID loop stabilize before starting average frame rate calculation
@@ -268,24 +271,6 @@ static void scaleRcCommandToFpvCamAngle(void)
 
 #define THROTTLE_BUFFER_MAX 20
 #define THROTTLE_DELTA_MS 100
-
-static void checkForThrottleErrorResetState(uint16_t rxRefreshRate)
-{
-    currentRxRefreshRate = constrain(getTaskDeltaTime(TASK_RX),1000,20000);
-
-    static int index;
-    static int16_t rcCommandThrottlePrevious[THROTTLE_BUFFER_MAX];
-
-    const int rxRefreshRateMs = rxRefreshRate / 1000;
-    const int indexMax = constrain(THROTTLE_DELTA_MS / rxRefreshRateMs, 1, THROTTLE_BUFFER_MAX);
-
-    rcCommandThrottlePrevious[index++] = rcCommand[THROTTLE];
-    if (index >= indexMax) {
-        index = 0;
-    }
-
-    const int16_t rcCommandSpeed = rcCommand[THROTTLE] - rcCommandThrottlePrevious[index];
-}
 
 FAST_CODE uint8_t processRcInterpolation(void)
 {

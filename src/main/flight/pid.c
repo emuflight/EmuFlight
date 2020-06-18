@@ -172,7 +172,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .horizonTransition = 0,
-        .tpa_on_yaw = true,
     );
 }
 
@@ -392,7 +391,6 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 #endif
     itermRotation = pidProfile->iterm_rotation;
     iDecay = (float)pidProfile->i_decay;
-    tpaOnYaw = pidProfile->tpa_on_yaw;
 }
 
 void pidInit(const pidProfile_t *pidProfile)
@@ -838,7 +836,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
         // multiply these things to the pidData so that logs shows the pid data correctly
 
-        if (axis == FD_YAW && tpaOnYaw == false) {
+        if (axis == FD_YAW && getTPAOnYaw() == false) {
             pidData[axis].P = pidData[axis].P * setPointPAttenuation[axis];
             pidData[axis].I = temporaryIterm[axis]  * setPointIAttenuation[axis]; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
             pidData[axis].D = pidData[axis].D  * setPointDAttenuation[axis];
