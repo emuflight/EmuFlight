@@ -43,9 +43,9 @@ jobs:
       uses: actions/setup-python@v1
 
     - name: Setup Toolchain
-      uses: fiam/arm-none-eabi-gcc@v1
+      uses: fiam/arm-none-eabi-gcc@v1.0.2
       with:
-        release: '9-2019-q4' # The arm-none-eabi-gcc release to use.
+        release: '9-2020-q2' # The arm-none-eabi-gcc release to use.
 
     - name: Get code version
       id: get_version
