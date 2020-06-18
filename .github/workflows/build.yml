@@ -88,30 +88,15 @@ jobs:
         name: EmuFlight-${{ steps.get_version.outputs.VERSION }}-${{ github.run_number }}
         path: obj/*.hex
 
-    - name: Create Bintray Package
-      uses: benjefferies/create-bintray-package@master
-      with:
-        bintray-user: ${{ secrets.BINTRAYUSERNAME }}
-        bintray-token: ${{ secrets.BINTRAYAPIKEY }}
-        owner: emuflight-dev
-        repo: dev-hex
-        package-name: ${{ steps.get_revtag.outputs.REVISION_TAG}}
-        package-description: ${{ steps.get_revtag.outputs.REVISION_TAG}}
-        package-url: https://github.com/EmuFlight/EmuFlight
-        package-license: GPL-3.0
-
     # Upload to Bintray before .hex renames / only for tag
     - name: Upload to Bintray
-      uses: reznikmm/upload-bintray-action@master
       if: startsWith(github.ref, 'refs/tags/')
-      with:
-        subject: emuflight-dev
-        repository: dev_hex
-        package: ${{ steps.get_revtag.outputs.REVISION_TAG}}
-        version: ${{ github.run_number }}-${{ steps.get_version.outputs.VERSION }}-${{ steps.get_revtag.outputs.REVISION_TAG}}
-        sourcePath: obj/*.hex
-        username: ${{ secrets.BINTRAYUSERNAME }} # username from user profile page.
-        apiKey: ${{ secrets.BINTRAYAPIKEY }} # An API key obtained from the user profile page.
+      run: |
+        curl -fL https://getcli.jfrog.io | sh
+        export JFROG_CLI_OFFER_CONFIG=false
+        ~/.local/bin/jfrog bt c --user=${{secrets.BINTRAYUSERNAME}} --key=${{secrets.BINTRAYAPIKEY}} --licenses=GPL-3.0
+        ./jfrog bt pc --pub-dn=true --vcs-url="https://github.com/emuflight" emuflight-dev/dev_hex/${{steps.get_revtag.outputs.REVISION_TAG}}
+        ./jfrog bt u --publish=true "obj/*.hex" emuflight-dev/dev_hex/${{steps.get_revtag.outputs.REVISION_TAG}}/${{github.run_number}}-${{steps.get_version.outputs.VERSION}}-${{steps.get_revtag.outputs.REVISION_TAG}}
 
     # Rename .hex for Releases
     - name: Rename Artifacts
