@@ -94,7 +94,7 @@ jobs:
       run: |
         curl -fL https://getcli.jfrog.io | sh
         export JFROG_CLI_OFFER_CONFIG=false
-        ~/.local/bin/jfrog bt c --user=${{secrets.BINTRAYUSERNAME}} --key=${{secrets.BINTRAYAPIKEY}} --licenses=GPL-3.0
+        ./jfrog bt c --user=${{secrets.BINTRAYUSERNAME}} --key=${{secrets.BINTRAYAPIKEY}} --licenses=GPL-3.0
         ./jfrog bt pc --pub-dn=true --vcs-url="https://github.com/emuflight" emuflight-dev/dev_hex/${{steps.get_revtag.outputs.REVISION_TAG}}
         ./jfrog bt u --publish=true "obj/*.hex" emuflight-dev/dev_hex/${{steps.get_revtag.outputs.REVISION_TAG}}/${{github.run_number}}-${{steps.get_version.outputs.VERSION}}-${{steps.get_revtag.outputs.REVISION_TAG}}
 
