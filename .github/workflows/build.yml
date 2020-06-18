@@ -88,6 +88,18 @@ jobs:
         name: EmuFlight-${{ steps.get_version.outputs.VERSION }}-${{ github.run_number }}
         path: obj/*.hex
 
+    - name: Create Bintray Package
+      uses: benjefferies/create-bintray-package@master
+      with:
+        bintray-user: ${{ secrets.BINTRAYUSERNAME }}
+        bintray-token: ${{ secrets.BINTRAYAPIKEY }}
+        owner: emuflight-dev
+        repo: dev-hex
+        package-name: ${{ steps.get_revtag.outputs.REVISION_TAG}}
+        package-description: ${{ steps.get_revtag.outputs.REVISION_TAG}}
+        package-url: https://github.com/EmuFlight/EmuFlight
+        package-license: GPL-3.0
+
     # Upload to Bintray before .hex renames / only for tag
     - name: Upload to Bintray
       uses: reznikmm/upload-bintray-action@master
