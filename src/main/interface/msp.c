@@ -23,7 +23,6 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
-#include <ctype.h>
 
 #include "platform.h"
 
@@ -54,9 +53,6 @@
 #include "drivers/sdcard.h"
 #include "drivers/serial.h"
 #include "drivers/serial_escserial.h"
-#ifdef USE_VCP
-#include "drivers/serial_usb_vcp.h"
-#endif
 #include "drivers/system.h"
 #include "drivers/transponder_ir.h"
 #include "drivers/usb_msc.h"
@@ -876,27 +872,15 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 
     case MSP_NAME:
         {
-            // Show warning for DJI OSD instead of pilot name if osd_warning_enabled
-            if (osdWarnGetState(OSD_WARNING_DJI)
-#ifdef USE_VCP
-                && !usbVcpIsConnected()
-#endif
-                ) {
-                    unsigned int len = sizeof(pilotConfig()->warning);
-                    for (unsigned int i = 0; i < len; i++) {
-                        // skip non printable chars
-                        if (isprint(pilotConfig()->warning[i])) {
-                            sbufWriteU8(dst, pilotConfig()->warning[i]);
-                        } else {
-                            sbufWriteU8(dst, 0);
-                        }
-                    }
-                    break;
+            // Show warning for DJI OSD instead of pilot name
+            // works if osd_warning_enabled is on, osd warnings is enabled and usb is not connected
+            if (osdWarnDjiEnabled()) {
+                sbufWriteString(dst, pilotConfig()->warning);
+                break;
             }
 
-            // Show current pilot name
-            unsigned int len = sizeof(pilotConfig()->name);
-            for (unsigned int i = 0; i < len; i++) {
+            const int nameLen = strlen(pilotConfig()->name);
+            for (int i = 0; i < nameLen; i++) {
                 sbufWriteU8(dst, pilotConfig()->name[i]);
             }
         }
