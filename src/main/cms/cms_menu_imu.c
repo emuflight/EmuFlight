@@ -66,6 +66,8 @@ static uint16_t errorBoost;
 static uint8_t errorBoostLimit;
 static uint16_t errorBoostYaw;
 static uint8_t errorBoostLimitYaw;
+static uint16_t dtermBoost;
+static uint8_t dtermBoostLimit;
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
 
@@ -136,6 +138,8 @@ static long cmsx_PidRead(void)
     errorBoostLimit = pidProfile->errorBoostLimit;
     errorBoostYaw = pidProfile->errorBoostYaw;
     errorBoostLimitYaw = pidProfile->errorBoostLimitYaw;
+    dtermBoost = pidProfile->dtermBoost;
+    dtermBoostLimit = pidProfile->dtermBoostLimit;
     for (uint8_t i = 0; i < 3; i++) {
         tempPid[i][0] = pidProfile->pid[i].P;
         tempPid[i][1] = pidProfile->pid[i].I;
@@ -168,6 +172,8 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
     pidProfile->errorBoostLimit = errorBoostLimit;
     pidProfile->errorBoostYaw = errorBoostYaw;
     pidProfile->errorBoostLimitYaw = errorBoostLimitYaw;
+    pidProfile->dtermBoost = dtermBoost;
+    pidProfile->dtermBoostLimit = dtermBoostLimit;
     pidProfile->i_decay = i_decay;
     pidInitConfig(currentPidProfile);
 
@@ -180,8 +186,10 @@ static OSD_Entry cmsx_menuPidEntries[] =
 
     { "FEATHERED", OME_UINT8, NULL, &(OSD_UINT8_t){ &feathered_pids,         0, 100, 1}, 0 },
 
-    { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,        0,  1000,  5}, 0 },
+    { "EMU BOOST",   OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,      0,  2000,  5}, 0 },
     { "BOOST LIMIT", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,   0,  250,  1}, 0 },
+    { "DTERM BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &dtermBoost,      0,  2000,  5}, 0 },
+    { "DTERM LIMIT", OME_UINT8, NULL, &(OSD_UINT8_t){ &dtermBoostLimit,   0,  250,  1}, 0 },
 
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
@@ -194,7 +202,7 @@ static OSD_Entry cmsx_menuPidEntries[] =
     { "YAW   P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][0],   0, 200, 1 }, 0 },
     { "YAW   I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][1],   0, 200, 1 }, 0 },
     { "YAW   D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][2],   0, 200, 1 }, 0 },
-    { "EMU BOOST YAW", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoostYaw,        0,  1000,  5}, 0 },
+    { "EMU BOOST YAW", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoostYaw,        0,  2000,  5}, 0 },
     { "BOOST LIMIT YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimitYaw,   0,  250,  1}, 0 },
 
     { "I_DECAY", OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,  1, 10, 1 }, 0 },
