@@ -341,7 +341,6 @@ pt1Filter_t throttleLpf;
 #endif
 static FAST_RAM_ZERO_INIT bool itermRotation;
 static FAST_RAM_ZERO_INIT float temporaryIterm[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT uint8_t tpaOnYaw;
 
 void pidResetITerm(void)
 {
