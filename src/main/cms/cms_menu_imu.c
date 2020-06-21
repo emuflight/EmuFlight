@@ -205,7 +205,7 @@ static OSD_Entry cmsx_menuPidEntries[] =
     { "EMU BOOST YAW", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoostYaw,        0,  2000,  5}, 0 },
     { "BOOST LIMIT YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimitYaw,   0,  250,  1}, 0 },
 
-    { "I_DECAY", OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,  1, 10, 1 }, 0 },
+    { "I_DECAY", OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,  1, 100, 1 }, 0 },
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }
