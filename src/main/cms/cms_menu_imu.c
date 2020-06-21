@@ -213,6 +213,80 @@ static CMS_Menu cmsx_menuPid = {
     .entries = cmsx_menuPidEntries
 };
 
+static uint8_t tempSlider[3][3];
+static uint8_t cmsx_use_sliders;
+
+static long cmsx_SliderRead(void)
+{
+
+    const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
+    cmsx_use_sliders = pidProfile->useSliders;
+    for (uint8_t i = 0; i < 3; i++) {
+        tempSlider[i][0] = pidProfile->slider[i].pidGain;
+        tempSlider[i][1] = pidProfile->slider[i].iRatio;
+        tempSlider[i][2] = pidProfile->slider[i].dRatio;
+    }
+
+    return 0;
+}
+
+static long cmsx_SliderOnEnter(void)
+{
+    pidProfileIndexString[1] = '0' + tmpPidProfileIndex;
+    cmsx_SliderRead();
+
+    return 0;
+}
+
+static long cmsx_SliderWriteback(const OSD_Entry *self)
+{
+    UNUSED(self);
+
+    pidProfile_t *pidProfile = currentPidProfile;
+    pidProfile->useSliders = cmsx_use_sliders;
+    for (uint8_t i = 0; i < 3; i++) {
+        pidProfile->slider[i].pidGain = tempSlider[i][0];
+        pidProfile->slider[i].iRatio = tempSlider[i][1];
+        pidProfile->slider[i].dRatio = tempSlider[i][2];
+    }
+    pidInitConfig(currentPidProfile);
+
+    return 0;
+}
+
+static OSD_Entry cmsx_menuSliderEntries[] =
+{
+    { "-- PID SLIDERS --", OME_Label, NULL, pidProfileIndexString, 0},
+
+    { "USE SLIDERS",    OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_use_sliders, 1, cms_offOnLabels }, 0 },
+
+    { "ROLL PID GAIN",  OME_UINT8, NULL, &(OSD_UINT8_t){ &tempSlider[PID_ROLL][0],  0, 250, 1 }, 0 },
+    { "ROLL I RATIO",   OME_UINT8, NULL, &(OSD_UINT8_t){ &tempSlider[PID_ROLL][1],  0, 250, 1 }, 0 },
+    { "ROLL D RATIO",   OME_UINT8, NULL, &(OSD_UINT8_t){ &tempSlider[PID_ROLL][2],  0, 250, 1 }, 0 },
+
+    { "PITCH PID GAIN", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempSlider[PID_PITCH][0], 0, 250, 1 }, 0 },
+    { "PITCH I RATIO",  OME_UINT8, NULL, &(OSD_UINT8_t){ &tempSlider[PID_PITCH][1], 0, 250, 1 }, 0 },
+    { "PITCH D RATIO",  OME_UINT8, NULL, &(OSD_UINT8_t){ &tempSlider[PID_PITCH][2], 0, 250, 1 }, 0 },
+
+    { "YAW PID GAIN",   OME_UINT8, NULL, &(OSD_UINT8_t){ &tempSlider[PID_YAW][0],   0, 250, 1 }, 0 },
+    { "YAW I RATIO",    OME_UINT8, NULL, &(OSD_UINT8_t){ &tempSlider[PID_YAW][1],   0, 250, 1 }, 0 },
+    { "YAW D RATIO",    OME_UINT8, NULL, &(OSD_UINT8_t){ &tempSlider[PID_YAW][2],   0, 250, 1 }, 0 },
+
+    { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
+    { "BACK", OME_Back, NULL, NULL, 0 },
+    { NULL, OME_END, NULL, NULL, 0 }
+};
+
+static CMS_Menu cmsx_menuSlider = {
+#ifdef CMS_MENU_DEBUG
+    .GUARD_text = "XSLIDER",
+    .GUARD_type = OME_MENU,
+#endif
+    .onEnter = cmsx_SliderOnEnter,
+    .onExit = cmsx_SliderWriteback,
+    .entries = cmsx_menuSliderEntries
+};
+
 //
 // Rate & Expo
 //
@@ -778,6 +852,7 @@ static OSD_Entry cmsx_menuImuEntries[] =
 
     {"PID PROF",  OME_UINT8,   cmsx_profileIndexOnChange,     &(OSD_UINT8_t){ &tmpPidProfileIndex, 1, PID_PROFILE_COUNT, 1},    0},
     {"PID",       OME_Submenu, cmsMenuChange,                 &cmsx_menuPid,                                                 0},
+    {"SLIDER",    OME_Submenu, cmsMenuChange,                 &cmsx_menuSlider,                                              0},
     {"MISC PP",   OME_Submenu, cmsMenuChange,                 &cmsx_menuProfileOther,                                        0},
     {"FILT PP",   OME_Submenu, cmsMenuChange,                 &cmsx_menuFilterPerProfile,                                    0},
 

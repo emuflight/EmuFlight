@@ -74,8 +74,13 @@ typedef struct pidf_s {
     uint8_t I;
     uint8_t D;
     uint16_t F; // Only angle mode still uses FF
-
 } pidf_t;
+
+typedef struct slider_s {
+    uint8_t pidGain;
+    uint8_t iRatio;
+    uint8_t dRatio;
+} slider_t;
 
 typedef struct dFilter_s {
     uint8_t Wc;
@@ -86,6 +91,10 @@ typedef struct dFilter_s {
 
 typedef struct pidProfile_s {
     pidf_t  pid[PID_ITEM_COUNT];
+
+    slider_t slider[3];
+    uint8_t useSliders;
+
     dFilter_t dFilter[3];
 
     uint8_t dterm_filter_type;              // Filter selection for dterm
@@ -165,7 +174,7 @@ extern pt1Filter_t throttleLpf;
 void pidResetITerm(void);
 void pidStabilisationState(pidStabilisationState_e pidControllerState);
 void pidInitFilters(const pidProfile_t *pidProfile);
-void pidInitConfig(const pidProfile_t *pidProfile);
+void pidInitConfig(pidProfile_t *pidProfile);
 void pidInit(const pidProfile_t *pidProfile);
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex);
 bool crashRecoveryModeActive(void);
