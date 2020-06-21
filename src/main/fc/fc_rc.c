@@ -656,7 +656,7 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
     // RF TPA
     // rcData is 1000,2000 range, subtract 1000 and clamp between 0 and 1000 (for TPA lookup table indexing)
     int16_t shift = rcData[THROTTLE] - 1000;
-    currentAdjustedThrottle = (shift <= 0) ? 0 : ((shift >= 1000) ? 1000 : shift );
+    currentAdjustedThrottle = (shift <= 0) ? 0 : ((shift >= 999) ? 999 : shift );
     // RF TPA
     for (int axis = 0; axis < 3; axis++) {
         // non coupled PID reduction scaler used in PID controller 1 and PID controller 2.
