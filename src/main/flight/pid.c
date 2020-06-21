@@ -152,6 +152,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .errorBoostYaw = 40,
         .errorBoostLimit = 20,
         .errorBoostLimitYaw = 40,
+        .dtermBoost = 0,
+        .dtermBoostLimit = 0,
         .yawRateAccelLimit = 0,
         .rateAccelLimit = 0,
         .crash_time = 500,                        // ms
@@ -324,6 +326,7 @@ static FAST_RAM_ZERO_INIT float smart_dterm_smoothing[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointDTransition[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float dtermBoostMultiplier, dtermBoostLimitPercent;
 static FAST_RAM_ZERO_INIT float P_angle_low, D_angle_low, P_angle_high, D_angle_high, F_angle, horizonTransition, horizonCutoffDegrees;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeLimitUs;
@@ -365,6 +368,8 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     }
     feathered_pids = pidProfile->feathered_pids / 100.0f;
     nfe_racermode = pidProfile->nfe_racermode;
+    dtermBoostMultiplier = (pidProfile->dtermBoost * pidProfile->dtermBoost / 1000000) * 0.003;
+    dtermBoostLimitPercent = pidProfile->dtermBoostLimit / 100.0f;
     P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
     D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
     P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
@@ -780,6 +785,16 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
                 dDelta = (float)(kdRingBufferSum[axis] / (float)(pidProfile->dFilter[axis].Wc));
                 kdRingBufferSum[axis] -= kdRingBuffer[axis][kdRingBufferPoint[axis]];
             }
+
+            //dterm boost, similar to emuboost
+            float boostedDtermRate;
+            boostedDtermRate = (dDelta * fabsf(dDelta)) * dtermBoostMultiplier;
+            if (fabsf(dDelta * dtermBoostLimitPercent) < fabsf(boostedDtermRate))
+            {
+                boostedDtermRate = dDelta * dtermBoostLimitPercent;
+            }
+            dDelta += boostedDtermRate;
+
             dDelta = pidCoefficient[axis].Kd * dDelta;
 
             float dDeltaMultiplier;
