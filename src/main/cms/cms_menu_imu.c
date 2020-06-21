@@ -317,7 +317,7 @@ static long cmsx_RFTPAOnEnter(void)
 static OSD_Entry cmsx_menuRFTPAEntries[] =
 {
     { "-- RF1 TPA --", OME_Label, NULL, NULL, 0 },
-    { "NFE RACERMODE", OME_TAB, NULL,           &(OSD_TAB_t)    { &rateProfile.tpaOnYaw, 1, cms_offOnLabels }, 0 },
+    { "TPA ON YAW", OME_TAB, NULL,           &(OSD_TAB_t)    { &rateProfile.tpaOnYaw, 1, cms_offOnLabels }, 0 },
     { "-- KP --", OME_Label, NULL, NULL, 0 },
     { "0", OME_UINT8, NULL,                     &(OSD_UINT8_t)  { &rateProfile.raceflightTPA.kpAttenuationCurve[0], 0,  250,  1}, 0 },
     { "12.5", OME_UINT8, NULL,                  &(OSD_UINT8_t)  { &rateProfile.raceflightTPA.kpAttenuationCurve[1], 0,  250,  1}, 0 },
