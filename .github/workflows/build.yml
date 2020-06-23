@@ -101,6 +101,7 @@ jobs:
         ./jfrog bt package-create --pub-dn=true --vcs-url="https://github.com/emuflight" "${repo}/${package}"
         ./jfrog bt version-create "${repo}/${package}/${version}"
         ./jfrog bt upload --publish=true "obj/*.hex" "${repo}/${package}/${version}"
+      continue-on-error: true
 
     # Rename .hex for Releases
     - name: Rename Artifacts
