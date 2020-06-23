@@ -94,9 +94,13 @@ jobs:
       run: |
         curl -fL https://getcli.jfrog.io | sh
         export JFROG_CLI_OFFER_CONFIG=false
-        ./jfrog bt c --user=${{secrets.BINTRAYUSERNAME}} --key=${{secrets.BINTRAYAPIKEY}} --licenses=GPL-3.0
-        ./jfrog bt pc --pub-dn=true --vcs-url="https://github.com/emuflight" emuflight-dev/dev_hex/${{steps.get_revtag.outputs.REVISION_TAG}}
-        ./jfrog bt u --publish=true "obj/*.hex" emuflight-dev/dev_hex/${{steps.get_revtag.outputs.REVISION_TAG}}/${{github.run_number}}-${{steps.get_version.outputs.VERSION}}-${{steps.get_revtag.outputs.REVISION_TAG}}
+        ./jfrog bt config --user=${{secrets.BINTRAYUSERNAME}} --key=${{secrets.BINTRAYAPIKEY}} --licenses=GPL-3.0
+        export repo="emuflight-dev/dev_hex"
+        export package="${{steps.get_revtag.outputs.REVISION_TAG}}"
+        export version="${{github.run_number}}-${{steps.get_version.outputs.VERSION}}-${{steps.get_revtag.outputs.REVISION_TAG}}"
+        ./jfrog bt package-create --pub-dn=true --vcs-url="https://github.com/emuflight" "${repo}/${package}"
+        ./jfrog bt version-create "${repo}/${package}/${version}"
+        ./jfrog bt upload --publish=true "obj/*.hex" "${repo}/${package}/${version}"
 
     # Rename .hex for Releases
     - name: Rename Artifacts
