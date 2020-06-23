@@ -102,7 +102,7 @@ jobs:
         export version="${{github.run_number}}-${{steps.get_version.outputs.VERSION}}-${{steps.get_revtag.outputs.REVISION_TAG}}"
         ./jfrog bt package-create --pub-dn=true --vcs-url="https://github.com/emuflight" "${repo}/${package}" || true
         ./jfrog bt version-create "${repo}/${package}/${version}"  || true
-        ./jfrog bt upload --publish=true "obj/*.hex" "${repo}/${package}/${version}"
+        ./jfrog bt upload --publish=true "obj/*.hex" "${repo}/${package}/${version}" "GitHub_Build_${version}/"
       continue-on-error: true
 
     # Rename .hex for Releases
