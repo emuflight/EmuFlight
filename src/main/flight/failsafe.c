@@ -299,6 +299,7 @@ void failsafeUpdateState(void)
                     reprocessState = true;
                 }
                 break;
+#ifdef USE_GPS_RESCUE
             case FAILSAFE_GPS_RESCUE:
                 if (receivingRxData) {
                     failsafeState.phase = FAILSAFE_RX_LOSS_RECOVERED;
@@ -313,6 +314,7 @@ void failsafeUpdateState(void)
                     reprocessState = true;
                 }
                 break;
+#endif
             case FAILSAFE_LANDED:
                 setArmingDisabled(ARMING_DISABLED_FAILSAFE); // To prevent accidently rearming by an intermittent rx link
                 disarm();
