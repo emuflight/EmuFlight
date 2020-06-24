@@ -912,6 +912,9 @@ const clivalue_t valueTable[] = {
     { "dterm_boost",                VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermBoost) },
     { "dterm_boost_limit",          VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermBoostLimit) },
     { "nfe_racermode",              VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, nfe_racermode) },
+    { "anti_propwash_gain",         VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, propwashGain) },
+    { "propwash_bpf_max_cutoff",    VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 10, 50 },  PG_PID_PROFILE, offsetof(pidProfile_t, propwashBPFMaxFrequency) },
+    { "propwash_bpf_min_cutoff",    VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 10, 30 },  PG_PID_PROFILE, offsetof(pidProfile_t, propwashBPFMinFrequency) },
 
     { "p_pitch",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].P) },
     { "i_pitch",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].I) },
