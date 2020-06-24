@@ -110,7 +110,7 @@ void setDefaultTestSettings(void) {
     pidProfile->crash_setpoint_threshold = 350;
     pidProfile->crash_recovery = PID_CRASH_RECOVERY_OFF;
     pidProfile->horizon_tilt_effect = 75;
-    pidProfile->horizon_tilt_expert_mode = false;
+    //pidProfile->horizon_tilt_expert_mode = false;
     pidProfile->crash_limit_yaw = 200;
     pidProfile->itermLimit = 150;
     pidProfile->throttle_boost = 0;
