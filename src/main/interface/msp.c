@@ -525,6 +525,7 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
         sbufWriteU16(dst, getRssi());
 #endif
         sbufWriteU16(dst, (int16_t)constrain(getAmperage(), -0x8000, 0x7FFF)); // send current in 0.01 A steps, range is -320A to 320A
+        sbufWriteU16(dst, getBatteryVoltage() * 10);
         break;
 
     case MSP_DEBUG:
@@ -563,6 +564,9 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
 
         // battery alerts
         sbufWriteU8(dst, (uint8_t)getBatteryState());
+
+        // Additional battery voltage field (DJI osd etc) (in 0.01V steps)
+        sbufWriteU16(dst, getBatteryVoltage() * 10);
         break;
     }
 
@@ -927,7 +931,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         break;
 
     case MSP_ALTITUDE:
-#if defined(USE_BARO) || defined(USE_RANGEFINDER)
+#if defined(USE_BARO) || defined(USE_RANGEFINDER) || defined(USE_GPS)
         sbufWriteU32(dst, getEstimatedAltitude());
 #else
         sbufWriteU32(dst, 0);
@@ -1979,7 +1983,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             currentPidProfile->dFilter[YAW].Wc = sbufReadU8(src);
             gyroConfigMutable()->dyn_notch_q_factor = sbufReadU16(src);
             gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
-            
+
         }
 
         // reinitialize the gyro filters with the new values
