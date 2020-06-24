@@ -153,7 +153,7 @@
 
 #define BINDPLUG_PIN            PB2
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
-#define SERIALRX_UART           SERIAL_PORT_UART1
+#define SERIALRX_UART           SERIAL_PORT_UART5
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
