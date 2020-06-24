@@ -512,7 +512,7 @@ const clivalue_t valueTable[] = {
     { "yaw_spin_threshold",         VAR_UINT16 | MASTER_VALUE, .config.minmax = { 500,  1950 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, yaw_spin_threshold) },
 #endif
 
-#if defined(GYRO_USES_SPI) && defined(USE_32K_CAPABLE_GYRO) || defined(USE_GYRO_IMUF9001)  
+#if defined(GYRO_USES_SPI) && defined(USE_32K_CAPABLE_GYRO) || defined(USE_GYRO_IMUF9001)
     { "gyro_use_32khz",             VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_use_32khz) },
 #endif
 #ifdef USE_DUAL_GYRO
@@ -870,6 +870,9 @@ const clivalue_t valueTable[] = {
     { "emu_boost_limit",            VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, errorBoostLimit) },
     { "emu_boost_limit_yaw",        VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, errorBoostLimitYaw) },
     { "nfe_racermode",              VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, nfe_racermode) },
+    { "anti_propwash_gain",         VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, propwashGain) },
+    { "propwash_bpf_max_cutoff",    VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 10, 50 },  PG_PID_PROFILE, offsetof(pidProfile_t, propwashBPFMaxFrequency) },
+    { "propwash_bpf_min_cutoff",    VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 10, 30 },  PG_PID_PROFILE, offsetof(pidProfile_t, propwashBPFMinFrequency) },
 
     { "p_pitch",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].P) },
     { "i_pitch",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].I) },

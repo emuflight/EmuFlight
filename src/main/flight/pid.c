@@ -172,6 +172,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .horizonTransition = 0,
+        .propwashBPFMaxFrequency = 24,
+        .propwashBPFMinFrequency = 17,
+        .propwashGain = 5,
     );
 }
 
@@ -207,6 +210,8 @@ static FAST_RAM filterApplyFnPtr dtermLowpassApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
 static FAST_RAM filterApplyFnPtr dtermLowpass2ApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
+
+static FAST_RAM_ZERO_INIT biquadFilter_t propwashBandpassFilter[XYZ_AXIS_COUNT];
 
 static FAST_RAM_ZERO_INIT float iDecay;
 
@@ -257,6 +262,12 @@ void pidInitFilters(const pidProfile_t *pidProfile)
                 biquadFilterInitLPF(&dtermLowpass2[axis].biquadFilter, pidProfile->dFilter[axis].dLpf2, targetPidLooptime);
                 break;
             }
+        }
+        if (pidProfile->propwashGain > 0)
+        {
+          const uint16_t propwashCenterHz = (uint16_t)((pidProfile->propwashBPFMinFrequency + pidProfile->propwashBPFMaxFrequency) / 2);
+          const float notchQ = filterGetNotchQ(propwashCenterHz, pidProfile->propwashBPFMinFrequency);
+          biquadFilterInit(&propwashBandpassFilter[axis], propwashCenterHz, targetPidLooptime, notchQ, FILTER_BPF);
         }
     }
 
@@ -320,6 +331,7 @@ static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feathered_pids;
 static FAST_RAM_ZERO_INIT uint8_t nfe_racermode;
+static FAST_RAM_ZERO_INIT uint8_t propwashGain;
 static FAST_RAM_ZERO_INIT float smart_dterm_smoothing[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
@@ -365,6 +377,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     }
     feathered_pids = pidProfile->feathered_pids / 100.0f;
     nfe_racermode = pidProfile->nfe_racermode;
+    propwashGain = pidProfile->propwashGain / 100.0f;
     P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
     D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
     P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
@@ -754,14 +767,15 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         }
 
         // -----calculate D component
+        //filter Kd properly, no setpoint filtering
+        const float pureRD = getSetpointRate(axis) - gyroRate; // cr - y
+        const float pureError = pureRD - previousError[axis];
+        const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
+        previousMeasurement[axis] = gyro.gyroADCf[axis];
+        previousError[axis] = pureRD;
+
         if (pidCoefficient[axis].Kd > 0)
         {
-            //filter Kd properly, no setpoint filtering
-            const float pureRD = getSetpointRate(axis) - gyroRate; // cr - y
-            const float pureError = pureRD - previousError[axis];
-            const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
-            previousMeasurement[axis] = gyro.gyroADCf[axis];
-            previousError[axis] = pureRD;
             float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
             //filter the dterm
             dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
@@ -807,6 +821,18 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
         detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, currentTimeUs, pidData[axis].D, errorRate);
 
+
+        const float propwashBandpass = biquadFilterApply(&propwashBandpassFilter[axis], pureMeasurement);
+        float antiPropwash;
+        if (propwashGain > 0.0f)
+        {
+            const float setpointCorrection = MAX(1.0f - fabsf(currentPidSetpoint / 500.0f), 0.0f);
+
+          	antiPropwash = (propwashBandpass * propwashGain * setpointCorrection);
+        } else {
+          antiPropwash = 0.0f;
+        }
+
 #ifdef USE_YAW_SPIN_RECOVERY
         if (gyroYawSpinDetected())
         {
@@ -836,7 +862,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         pidData[axis].P = pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation[axis];
         pidData[axis].I = temporaryIterm[axis] * getThrottleIAttenuation() * setPointIAttenuation[axis]; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
         pidData[axis].D = pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation[axis];
-        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D;
+        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + antiPropwash;
         pidData[axis].Sum = pidSum;
     }
 }

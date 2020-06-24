@@ -127,6 +127,10 @@ typedef struct pidProfile_s {
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
+
+    uint16_t propwashBPFMaxFrequency;       // upper cutoff for the propwash bandpass filter
+    uint16_t propwashBPFMinFrequency;       // lower cutoff for the propwash bandpass filter
+    uint8_t propwashGain;                   // gain for the antipropwash effect
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE
