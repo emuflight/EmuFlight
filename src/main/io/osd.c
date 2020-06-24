@@ -276,9 +276,12 @@ static void osdFormatAltitudeString(char * buff, int altitude)
 {
     const int alt = osdGetMetersToSelectedUnit(altitude) / 10;
 
-    tfp_sprintf(buff, "%c%5d %c", SYM_ALT, alt, osdGetMetersToSelectedUnitSymbol());
-    buff[6] = buff[5];
-    buff[5] = '.';
+    int pos = 0;
+    buff[pos++] = SYM_ALT;
+    if (alt < 0) {
+        buff[pos++] = '-';
+    }
+    tfp_sprintf(buff + pos, "%01d.%01d%c", abs(alt) / 10 , abs(alt) % 10, osdGetMetersToSelectedUnitSymbol());
 }
 
 static void osdFormatPID(char * buff, const char * label, const pidf_t * pid)
@@ -1480,7 +1483,8 @@ static void osdShowStats(uint16_t endBatteryVoltage)
     }
 
     if (osdStatGetState(OSD_STAT_MAX_ALTITUDE)) {
-        osdFormatAltitudeString(buff, stats.max_altitude);
+        const int alt = osdGetMetersToSelectedUnit(stats.max_altitude) / 10;
+        tfp_sprintf(buff, "%d.%d%c", abs(alt) / 10, abs(alt) % 10, osdGetMetersToSelectedUnitSymbol());
         osdDisplayStatisticLabel(top++, "MAX ALTITUDE", buff);
     }
 
