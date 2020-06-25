@@ -88,6 +88,23 @@ jobs:
         name: EmuFlight-${{ steps.get_version.outputs.VERSION }}-${{ github.run_number }}
         path: obj/*.hex
 
+    # Upload to Bintray before .hex renames / only for tag
+    - name: Upload to Bintray
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        curl -fL https://getcli.jfrog.io | sh
+        export JFROG_CLI_OFFER_CONFIG=false
+        export CI=true
+        export JFROG_CLI_LOG_LEVEL=DEBUG
+        ./jfrog bt config --user=${{secrets.BINTRAYUSERNAME}} --key=${{secrets.BINTRAYAPIKEY}} --licenses=GPL-3.0
+        export repo="emuflight-dev/dev_hex"
+        export package="${{steps.get_revtag.outputs.REVISION_TAG}}"
+        export version="${{github.run_number}}-${{steps.get_version.outputs.VERSION}}-${{steps.get_revtag.outputs.REVISION_TAG}}"
+        ./jfrog bt package-create --pub-dn=true --vcs-url="https://github.com/emuflight" "${repo}/${package}" || true
+        ./jfrog bt version-create "${repo}/${package}/${version}"  || true
+        ./jfrog bt upload --publish=true "obj/*.hex" "${repo}/${package}/${version}" "GitHub_Build_${version}/" || true
+      continue-on-error: true
+
     # Rename .hex for Releases
     - name: Rename Artifacts
       if: startsWith(github.ref, 'refs/tags/')
