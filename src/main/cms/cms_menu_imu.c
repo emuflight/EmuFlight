@@ -595,7 +595,7 @@ static OSD_Entry cmsx_menuImufEntries[] =
 {
     { "-- SPRING IMU-F --", OME_Label, NULL, NULL, 0 },
     { "-- CHANGES REQUIRE REBOOT --", OME_Label, NULL, NULL, 0 },
-    { "IMUF W",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,                   3, 1024,    1 }, 0 },
+    { "IMUF W",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,                   3, 512,     1 }, 0 },
     { "ROLL Q",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,              0, 16000, 100 }, 0 },
     { "PITCH Q",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,             0, 16000, 100 }, 0 },
     { "YAW Q",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,               0, 16000, 100 }, 0 },
