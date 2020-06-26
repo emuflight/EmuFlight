@@ -96,8 +96,8 @@ include $(ROOT)/make/targets.mk
 BUILDNO := local
 
 # github actions build
-ifneq ($(BUILD_NUMBER),)
-BUILDNO := $(BUILD_NUMBER)
+ifneq ($(GITHUBBUILDNUMBER),)
+BUILDNO := $(GITHUBBUILDNUMBER)
 endif
 
 # travis build

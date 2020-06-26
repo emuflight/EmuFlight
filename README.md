@@ -49,6 +49,10 @@ To configure EmuFlight you should use the EmuFlight-configurator GUI tool (Windo
 
 https://github.com/emuflight/EmuConfigurator
 
+## DJI OSD [In]Compatibility
+
+Setting PIDs and Rates (except for Feed Forward) is supported with the DJI OSD. The filtering menus (MISC PP, FILT PP, FILT GLB) are not currently supported and may result in unintended filtering settings.
+
 ## Contributing
 
 Contributions are welcome and encouraged. You can contribute in many ways:
