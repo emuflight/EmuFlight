@@ -1384,7 +1384,7 @@ void gyroReadTemperature(void)
         gyroSensorTemperature = gyroReadSensorTemperature(gyroSensor1);
         break;
 
-#ifdef USE_MULTI_GYRO
+#ifdef USE_DUAL_GYRO
     case GYRO_CONFIG_USE_GYRO_2:
         gyroSensorTemperature = gyroReadSensorTemperature(gyroSensor2);
         break;
@@ -1392,7 +1392,7 @@ void gyroReadTemperature(void)
     case GYRO_CONFIG_USE_GYRO_BOTH:
         gyroSensorTemperature = MAX(gyroReadSensorTemperature(gyroSensor1), gyroReadSensorTemperature(gyroSensor2));
         break;
-#endif // USE_MULTI_GYRO
+#endif // USE_DUAL_GYRO
     }
 }
 

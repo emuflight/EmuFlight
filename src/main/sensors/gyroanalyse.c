@@ -99,7 +99,7 @@ static FAST_RAM_ZERO_INIT float hanningWindow[FFT_WINDOW_SIZE];
 
 void gyroDataAnalyseInit(uint32_t targetLooptimeUs)
 {
-#ifdef USE_MULTI_GYRO
+#ifdef USE_DUAL_GYRO
     static bool gyroAnalyseInitialized;
     if (gyroAnalyseInitialized) {
         return;
