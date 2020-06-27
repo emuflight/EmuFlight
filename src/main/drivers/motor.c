@@ -113,6 +113,7 @@ bool checkMotorProtocolEnabled(const motorDevConfig_t *motorDevConfig, bool *isP
     case PWM_TYPE_DSHOT600:
     case PWM_TYPE_DSHOT1200:
     case PWM_TYPE_DSHOT2400:
+    case PWM_TYPE_DSHOT4800:
     case PWM_TYPE_PROSHOT1000:
         enabled = true;
         isDshot = true;

@@ -84,6 +84,8 @@ uint32_t getDshotHz(motorPwmProtocolTypes_e pwmProtocolType)
     switch (pwmProtocolType) {
     case(PWM_TYPE_PROSHOT1000):
         return MOTOR_PROSHOT1000_HZ;
+    case(PWM_TYPE_DSHOT4800):
+        return MOTOR_DSHOT4800_HZ;
     case(PWM_TYPE_DSHOT2400):
         return MOTOR_DSHOT2400_HZ;
     case(PWM_TYPE_DSHOT1200):
@@ -171,6 +173,7 @@ motorDevice_t *dshotPwmDevInit(const motorDevConfig_t *motorConfig, uint16_t idl
     case PWM_TYPE_PROSHOT1000:
         loadDmaBuffer = loadDmaBufferProshot;
         break;
+    case PWM_TYPE_DSHOT4800:
     case PWM_TYPE_DSHOT2400:
     case PWM_TYPE_DSHOT1200:
     case PWM_TYPE_DSHOT600:
