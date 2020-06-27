@@ -66,6 +66,11 @@ static uint16_t errorBoost;
 static uint8_t errorBoostLimit;
 static uint16_t errorBoostYaw;
 static uint8_t errorBoostLimitYaw;
+static uint8_t integralHalfLife;
+static uint8_t integralHalfLifeYaw;
+static uint8_t integralMultiplier;
+static uint8_t integralMultiplierYaw;
+
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
 
@@ -136,6 +141,10 @@ static long cmsx_PidRead(void)
     errorBoostLimit = pidProfile->errorBoostLimit;
     errorBoostYaw = pidProfile->errorBoostYaw;
     errorBoostLimitYaw = pidProfile->errorBoostLimitYaw;
+    integralHalfLife = pidProfile->integral_half_life;
+    integralHalfLifeYaw = pidProfile->integral_half_life_yaw;
+    integralMultiplier = pidProfile->integral_multiplier;
+    integralMultiplierYaw = pidProfile->integral_multiplier_yaw;
     for (uint8_t i = 0; i < 3; i++) {
         tempPid[i][0] = pidProfile->pid[i].P;
         tempPid[i][1] = pidProfile->pid[i].I;
@@ -169,6 +178,10 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
     pidProfile->errorBoostYaw = errorBoostYaw;
     pidProfile->errorBoostLimitYaw = errorBoostLimitYaw;
     pidProfile->i_decay = i_decay;
+    pidProfile->integral_half_life = integralHalfLife;
+    pidProfile->integral_half_life_yaw = integralHalfLifeYaw;
+    pidProfile->integral_multiplier = integralMultiplier;
+    pidProfile->integral_multiplier_yaw = integralMultiplierYaw;
     pidInitConfig(currentPidProfile);
 
     return 0;
@@ -197,7 +210,13 @@ static OSD_Entry cmsx_menuPidEntries[] =
     { "EMU BOOST YAW", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoostYaw,        0,  1000,  5}, 0 },
     { "BOOST LIMIT YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimitYaw,   0,  250,  1}, 0 },
 
-    { "I_DECAY", OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,  1, 10, 1 }, 0 },
+    { "I DECAY", OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,  1, 10, 1 }, 0 },
+
+    { "I HALF LIFE", OME_UINT8, NULL, &(OSD_UINT8_t){ &integralHalfLife,  1, 250, 1 }, 0 },
+    { "I HALF LIFE YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &integralHalfLifeYaw,  1, 250, 1 }, 0 },
+    { "I MULTIPLIER", OME_UINT8, NULL, &(OSD_UINT8_t){ &integralMultiplier,  1, 250, 1 }, 0 },
+    { "I MULTIPLIER YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &integralMultiplierYaw,  1, 250, 1 }, 0 },
+    
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }

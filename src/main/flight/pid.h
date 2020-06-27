@@ -89,7 +89,6 @@ typedef struct pidProfile_s {
     dFilter_t dFilter[3];
 
     uint8_t dterm_filter_type;              // Filter selection for dterm
-    uint8_t itermWindupPointPercent;        // Experimental ITerm windup threshold, percent motor saturation
     uint16_t pidSumLimit;
     uint16_t pidSumLimitYaw;
     uint8_t pidAtMinThrottle;               // Disable/Enable pids on zero throttle. Normally even without airmode P and D would be active.
@@ -127,6 +126,10 @@ typedef struct pidProfile_s {
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
+    uint8_t integral_half_life;             // Integral half-life in tenths of second
+    uint8_t integral_half_life_yaw;         // Integral half-life for yaw in tenths of second
+    uint8_t integral_multiplier;            // additional multiplier your set I gain measured as a percentage
+    uint8_t integral_multiplier_yaw;        // additional multiplier your set I gain for yaw measured as a percentage
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE
