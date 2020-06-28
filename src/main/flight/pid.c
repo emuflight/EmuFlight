@@ -288,7 +288,6 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, dT));
 #endif
-}
 #if defined(USE_ITERM_RELAX)
     if (itermRelax) {
         for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
@@ -296,6 +295,8 @@ void pidInitFilters(const pidProfile_t *pidProfile)
         }
     }
 #endif
+}
+
 #ifdef USE_RC_SMOOTHING_FILTER
 void pidInitSetpointDerivativeLpf(uint16_t filterCutoff, uint8_t debugAxis, uint8_t filterType)
 {
@@ -768,14 +769,14 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // 2-DOF PID controller with optional filter on derivative term.
         // derivative term can be based on measurement or error using a sliding value from 0-100
         float itermErrorRate = boostedErrorRate + errorRate;
-
+        float iterm    = temporaryIterm[axis];
 #if defined(USE_ITERM_RELAX)
         if (itermRelax && (axis < FD_YAW || itermRelax == ITERM_RELAX_RPY || itermRelax == ITERM_RELAX_RPY_INC)) {
             const float setpointLpf = pt1FilterApply(&windupLpf[axis], currentPidSetpoint);
             const float setpointHpf = fabsf(currentPidSetpoint - setpointLpf);
             const float itermRelaxFactor = 1 - setpointHpf / ITERM_RELAX_SETPOINT_THRESHOLD;
 
-            const bool isDecreasingI = ((ITerm > 0) && (itermErrorRate < 0)) || ((ITerm < 0) && (itermErrorRate > 0));
+            const bool isDecreasingI = ((iterm > 0) && (itermErrorRate < 0)) || ((iterm < 0) && (itermErrorRate > 0));
             if ((itermRelax >= ITERM_RELAX_RP_INC) && isDecreasingI) {
                 // Do Nothing, use the precalculed itermErrorRate
             } else if (itermRelaxType == ITERM_RELAX_SETPOINT && setpointHpf < ITERM_RELAX_SETPOINT_THRESHOLD) {
@@ -799,7 +800,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
         // -----calculate I component
         //float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
-        float iterm    = temporaryIterm[axis];
+        
         float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
         if (ITermNew != 0.0f)
         {
