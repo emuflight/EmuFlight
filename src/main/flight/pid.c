@@ -125,9 +125,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         },
 
         .dFilter = {
-            [PID_ROLL] = {2, 100, 250, 0},  // wc, dtermlpf, dtermlpf2, smartSmoothing
-            [PID_PITCH] = {2, 100, 250, 0}, // wc, dtermlpf, dtermlpf2, smartSmoothing
-            [PID_YAW] = {0, 100, 250, 0},    // wc, dtermlpf, dtermlpf2, smartSmoothing
+            [PID_ROLL] = {2, 65, 200, 0},  // wc, dtermlpf, dtermlpf2, smartSmoothing
+            [PID_PITCH] = {2, 65, 200, 0}, // wc, dtermlpf, dtermlpf2, smartSmoothing
+            [PID_YAW] = {0, 65, 200, 0},    // wc, dtermlpf, dtermlpf2, smartSmoothing
         },
 
         .pidSumLimit = PIDSUM_LIMIT_MAX,
@@ -320,10 +320,6 @@ static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feathered_pids;
 static FAST_RAM_ZERO_INIT uint8_t nfe_racermode;
-static FAST_RAM_ZERO_INIT uint16_t emuBoost;
-static FAST_RAM_ZERO_INIT uint8_t emuBoostLimit;
-static FAST_RAM_ZERO_INIT uint16_t emuBoostYaw;
-static FAST_RAM_ZERO_INIT uint8_t emuBoostLimitYaw;
 static FAST_RAM_ZERO_INIT float smart_dterm_smoothing[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
@@ -379,10 +375,6 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     }
     feathered_pids = pidProfile->feathered_pids / 100.0f;
     nfe_racermode = pidProfile->nfe_racermode;
-    emuBoost = pidProfile->errorBoost * pidProfile->errorBoost * 3e-9f;;
-    emuBoostLimit = pidProfile->errorBoostLimit / 100.0f;
-    emuBoostYaw = pidProfile->errorBoostYaw * pidProfile->errorBoostYaw * 3e-9f;;
-    emuBoostLimitYaw = pidProfile->errorBoostLimitYaw / 100.0f;
     P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
     D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
     P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
@@ -407,9 +399,9 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     itermRotation = pidProfile->iterm_rotation;
     iDecay = (float)pidProfile->i_decay;
     integralHalfLifeFactor = pidProfile->integral_half_life != 0 ?
-            powf(0.5f, dT / pidProfile->integral_half_life / 10.0f): 1.0f;
+        powf(0.5f, dT / pidProfile->integral_half_life / 10.0f): 1.0f;
     integralHalfLifeFactorYaw = pidProfile->integral_half_life_yaw != 0 ?
-            powf(0.5f, dT / pidProfile->integral_half_life / 10.0f): 1.0f;
+        powf(0.5f, dT / pidProfile->integral_half_life_yaw / 10.0f): 1.0f;
 }
 
 void pidInit(const pidProfile_t *pidProfile)
@@ -645,13 +637,6 @@ static void rotateITermAndAxisError()
     }
 }
 
-static float applyEmuBoost(float errorRate, float errorMultiplier, float errorBoostLimit)
-{
-	const float boost = (errorRate * errorRate) * errorMultiplier;
-
-	return 1.0f + MIN(boost, errorBoostLimit);
-}
-
 static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousdDelta[XYZ_AXIS_COUNT];
@@ -678,6 +663,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     vbatCompensationFactor = scaleRangef(currentControlRateProfile->vbat_comp_pid_level, 0.0f, 100.0f, 1.0f, vbatCompensationFactor);
 
     // gradually scale back integration when above windup point
+    const float dynCi = dT;
     float errorRate;
 
     // ----------PID controller----------
@@ -723,15 +709,29 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // Based on 2DOF reference design (matlab)
 
         const float gyroRate = gyro.gyroADCf[axis];
-        float emuBoostMultiplier;
+        float errorBoostAxis;
+        float errorLimitAxis;
 
         if (axis <= FD_PITCH)
         {
-            emuBoostMultiplier = applyEmuBoost(errorRate, emuBoost, emuBoostLimit);
+            errorBoostAxis = pidProfile->errorBoost;
+            errorLimitAxis = pidProfile->errorBoostLimit;
         }
         else
         {
-            emuBoostMultiplier = applyEmuBoost(errorRate, emuBoostYaw, emuBoostLimitYaw);
+            errorBoostAxis = pidProfile->errorBoostYaw;
+            errorLimitAxis = pidProfile->errorBoostLimitYaw;
+        }
+
+        errorLimitAxis = errorLimitAxis / 100;
+        float errorMultiplier = (errorBoostAxis * errorBoostAxis / 1000000) * 0.003;
+        float boostedErrorRate;
+
+        boostedErrorRate = (errorRate * fabsf(errorRate)) * errorMultiplier;
+
+        if (fabsf(errorRate * errorLimitAxis) < fabsf(boostedErrorRate))
+        {
+            boostedErrorRate = errorRate * errorLimitAxis;
         }
 
         rotateITermAndAxisError();
@@ -740,11 +740,11 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // derivative term can be based on measurement or error using a sliding value from 0-100
 
         // -----calculate P component
-        pidData[axis].P = pidCoefficient[axis].Kp * emuBoostMultiplier * vbatCompensationFactor;
+        pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate)) * vbatCompensationFactor;
 
         // -----calculate I component
         float iterm    = temporaryIterm[axis];
-        float ITermNew = pidCoefficient[axis].Ki * emuBoostMultiplier * dT;
+        float ITermNew = pidCoefficient[axis].Ki * (boostedErrorRate + errorRate) * dynCi;
         if (ITermNew != 0.0f)
         {
             if (SIGN(iterm) != SIGN(ITermNew))
@@ -757,14 +757,12 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             }
         }
 
-        if (axis != FD_YAW) {
-          iterm *= integralHalfLifeFactor;
-        } else {
-          iterm *= integralHalfLifeFactorYaw;
-        }
         iterm = constrainf(iterm + ITermNew, -itermLimit, itermLimit);
 
+        if (!mixerIsOutputSaturated(axis, errorRate) || ABS(iterm) < ABS(temporaryIterm[axis])) {
+        // Only increase ITerm if output is not saturated
         temporaryIterm[axis] = iterm;
+        }
 
         // -----calculate D component
         if (pidCoefficient[axis].Kd > 0)
@@ -775,8 +773,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
             previousMeasurement[axis] = gyro.gyroADCf[axis];
             previousError[axis] = pureRD;
-            //calculating the dterm determine how much is calculated using measurement vs error
-            float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency;
+            float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
             //filter the dterm
             dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
             dDelta = dtermLowpass2ApplyFn((filter_t *)&dtermLowpass2[axis], dDelta);
@@ -848,8 +845,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // calculating the PID sum and TPA and SPA
         // multiply these things to the pidData so that logs shows the pid data correctly
         pidData[axis].P = pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation[axis];
-        // you can't use pidData[axis].I to calculate SPA or TPA on iterm or accumulated iterm will grow to max or shrink to 0
-        pidData[axis].I = temporaryIterm[axis] * getThrottleIAttenuation() * setPointIAttenuation[axis];
+        pidData[axis].I = temporaryIterm[axis] * getThrottleIAttenuation() * setPointIAttenuation[axis]; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
         pidData[axis].D = pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation[axis];
         const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D;
         pidData[axis].Sum = pidSum;
