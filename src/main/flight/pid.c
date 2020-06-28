@@ -757,12 +757,14 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             }
         }
 
+        if (axis != FD_YAW) {
+          iterm *= integralHalfLifeFactor;
+        } else {
+          iterm *= integralHalfLifeFactorYaw;
+        }
         iterm = constrainf(iterm + ITermNew, -itermLimit, itermLimit);
 
-        if (!mixerIsOutputSaturated(axis, errorRate) || ABS(iterm) < ABS(temporaryIterm[axis])) {
-        // Only increase ITerm if output is not saturated
         temporaryIterm[axis] = iterm;
-        }
 
         // -----calculate D component
         if (pidCoefficient[axis].Kd > 0)
