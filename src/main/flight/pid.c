@@ -743,8 +743,12 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             	  if (fabs(iterm) > fabs(newVal))
             	  {
                 		ITermNew = newVal;
+                        int16_t i_calc = (ITermNew * 1000.0f);
+                        DEBUG_SET(DEBUG_I_DECAY_CALC, axis, i_calc);
             	  }
             }
+        } else {
+            DEBUG_SET(DEBUG_I_DECAY_CALC, axis, 0);
         }
 
         if (axis != FD_YAW) {
