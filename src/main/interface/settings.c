@@ -888,8 +888,6 @@ const clivalue_t valueTable[] = {
 
     { "integral_half_life",         VAR_UINT8  | PROFILE_VALUE,  .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, integral_half_life) },
     { "integral_half_life_yaw",     VAR_UINT8  | PROFILE_VALUE,  .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, integral_half_life_yaw) },
-    { "integral_multiplier",        VAR_UINT8  | PROFILE_VALUE,  .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, integral_multiplier) },
-    { "integral_multiplier_yaw",    VAR_UINT8  | PROFILE_VALUE,  .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, integral_multiplier_yaw) },
 
     { "level_limit",                VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 10, 90 }, PG_PID_PROFILE, offsetof(pidProfile_t, levelAngleLimit) },
     { "angle_expo",                 VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, angleExpo) },

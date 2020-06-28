@@ -172,9 +172,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .horizonTransition = 0,
         .integral_half_life = 250,
-        .integral_multiplier = 0,
         .integral_half_life_yaw = 250,
-        .integral_multiplier_yaw = 0,
     );
 }
 
@@ -337,8 +335,6 @@ static FAST_RAM_ZERO_INIT float itermLimit;
 static FAST_RAM_ZERO_INIT float iDecay;
 static FAST_RAM_ZERO_INIT float integralHalfLifeFactor;
 static FAST_RAM_ZERO_INIT float integralHalfLifeFactorYaw;
-static FAST_RAM_ZERO_INIT float integralMultiplier;
-static FAST_RAM_ZERO_INIT float integralMultiplierYaw;
 #if defined(USE_THROTTLE_BOOST)
 FAST_RAM_ZERO_INIT float throttleBoost;
 pt1Filter_t throttleLpf;
@@ -356,17 +352,11 @@ void pidResetITerm(void)
 
 void pidInitConfig(const pidProfile_t *pidProfile)
 {
-    integralMultiplier = 1.0f + (pidProfile->integral_multiplier / 100.0f);
-    integralMultiplierYaw = 1.0f + (pidProfile->integral_multiplier_yaw / 100.0f);
 
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
     {
         pidCoefficient[axis].Kp = PTERM_SCALE * pidProfile->pid[axis].P;
-        if (axis != FD_YAW) {
-          pidCoefficient[axis].Ki = ITERM_SCALE * pidProfile->pid[axis].I * integralMultiplier;
-        } else {
-          pidCoefficient[axis].Ki = ITERM_SCALE * pidProfile->pid[axis].I * integralMultiplierYaw;
-        }
+        pidCoefficient[axis].Ki = ITERM_SCALE * pidProfile->pid[axis].I;
         pidCoefficient[axis].Kd = DTERM_SCALE * pidProfile->pid[axis].D;
         setPointPTransition[axis] = pidProfile->setPointPTransition[axis] / 100.0f;
         setPointITransition[axis] = pidProfile->setPointITransition[axis] / 100.0f;
