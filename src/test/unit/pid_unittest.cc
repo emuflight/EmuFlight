@@ -96,7 +96,6 @@ void setDefaultTestSettings(void) {
     pidProfile->dFilter[ROLL].dLpf = 100;
     pidProfile->dFilter[ROLL].dLpf2 = 0;
     pidProfile->dterm_filter_type = FILTER_BIQUAD;
-    pidProfile->itermWindupPointPercent = 50;
     pidProfile->pidAtMinThrottle = PID_STABILISATION_ON;
     pidProfile->levelAngleLimit = 55;
     pidProfile->yawRateAccelLimit = 100;

@@ -131,9 +131,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         },
 
         .pidSumLimit = PIDSUM_LIMIT_MAX,
-        .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
+        .pidSumLimitYaw = PIDSUM_LIMIT_MAX,
         .dterm_filter_type = FILTER_PT1,
-        .itermWindupPointPercent = 50,
         .pidAtMinThrottle = PID_STABILISATION_ON,
         .levelAngleLimit = 45,
         .angleExpo = 10,
@@ -165,13 +164,15 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .horizon_tilt_effect = 130,
         .nfe_racermode = false,
         .crash_limit_yaw = 200,
-        .itermLimit = 400,
+        .itermLimit = 1000,
         .throttle_boost = 5,
         .throttle_boost_cutoff = 15,
         .iterm_rotation = true,
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .horizonTransition = 0,
+        .integral_half_life = 250,
+        .integral_half_life_yaw = 250,
     );
 }
 
@@ -207,9 +208,6 @@ static FAST_RAM filterApplyFnPtr dtermLowpassApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
 static FAST_RAM filterApplyFnPtr dtermLowpass2ApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
-
-static FAST_RAM_ZERO_INIT float iDecay;
-
 #ifdef USE_RC_SMOOTHING_FILTER
 static FAST_RAM_ZERO_INIT pt1Filter_t setpointDerivativePt1[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT biquadFilter_t setpointDerivativeBiquad[XYZ_AXIS_COUNT];
@@ -325,7 +323,6 @@ static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointDTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float P_angle_low, D_angle_low, P_angle_high, D_angle_high, F_angle, horizonTransition, horizonCutoffDegrees;
-static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeLimitUs;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeDelayUs;
 static FAST_RAM_ZERO_INIT int32_t crashRecoveryAngleDeciDegrees;
@@ -335,6 +332,9 @@ static FAST_RAM_ZERO_INIT float crashGyroThreshold;
 static FAST_RAM_ZERO_INIT float crashSetpointThreshold;
 static FAST_RAM_ZERO_INIT float crashLimitYaw;
 static FAST_RAM_ZERO_INIT float itermLimit;
+static FAST_RAM_ZERO_INIT float iDecay;
+static FAST_RAM_ZERO_INIT float integralHalfLifeFactor;
+static FAST_RAM_ZERO_INIT float integralHalfLifeFactorYaw;
 #if defined(USE_THROTTLE_BOOST)
 FAST_RAM_ZERO_INIT float throttleBoost;
 pt1Filter_t throttleLpf;
@@ -374,8 +374,6 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     horizonCutoffDegrees = pidProfile->horizon_tilt_effect;
     maxVelocity[FD_ROLL] = maxVelocity[FD_PITCH] = pidProfile->rateAccelLimit * 100 * dT;
     maxVelocity[FD_YAW] = pidProfile->yawRateAccelLimit * 100 * dT;
-    const float ITermWindupPoint = (float)pidProfile->itermWindupPointPercent / 100.0f;
-    ITermWindupPointInv = 1.0f / (1.0f - ITermWindupPoint);
     crashTimeLimitUs = pidProfile->crash_time * 1000;
     crashTimeDelayUs = pidProfile->crash_delay * 1000;
     crashRecoveryAngleDeciDegrees = pidProfile->crash_recovery_angle * 10;
@@ -390,6 +388,10 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 #endif
     itermRotation = pidProfile->iterm_rotation;
     iDecay = (float)pidProfile->i_decay;
+    integralHalfLifeFactor = pidProfile->integral_half_life != 0 ?
+        powf(0.5f, dT / pidProfile->integral_half_life / 10.0f): 1.0f;
+    integralHalfLifeFactorYaw = pidProfile->integral_half_life_yaw != 0 ?
+        powf(0.5f, dT / pidProfile->integral_half_life_yaw / 10.0f): 1.0f;
 }
 
 void pidInit(const pidProfile_t *pidProfile)
@@ -651,7 +653,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     vbatCompensationFactor = scaleRangef(currentControlRateProfile->vbat_comp_pid_level, 0.0f, 100.0f, 1.0f, vbatCompensationFactor);
 
     // gradually scale back integration when above windup point
-    const float dynCi = constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f) * dT;
+    const float dynCi = dT;
     float errorRate;
 
     // ----------PID controller----------
@@ -731,7 +733,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate)) * vbatCompensationFactor;
 
         // -----calculate I component
-        //float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
         float iterm    = temporaryIterm[axis];
         float ITermNew = pidCoefficient[axis].Ki * (boostedErrorRate + errorRate) * dynCi;
         if (ITermNew != 0.0f)
@@ -746,12 +747,14 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             }
         }
 
+        if (axis != FD_YAW) {
+          iterm *= integralHalfLifeFactor;
+        } else {
+          iterm *= integralHalfLifeFactorYaw;
+        }
         iterm = constrainf(iterm + ITermNew, -itermLimit, itermLimit);
 
-        if (!mixerIsOutputSaturated(axis, errorRate) || ABS(iterm) < ABS(temporaryIterm[axis])) {
-        // Only increase ITerm if output is not saturated
         temporaryIterm[axis] = iterm;
-        }
 
         // -----calculate D component
         if (pidCoefficient[axis].Kd > 0)
