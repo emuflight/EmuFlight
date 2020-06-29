@@ -225,8 +225,8 @@ static OSD_Entry cmsx_menuPidEntries[] =
     { "I HALF LIFE", OME_UINT8, NULL, &(OSD_UINT8_t){ &integralHalfLife,  0, 100, 1 }, 0 },
     { "I HALF LIFE YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &integralHalfLifeYaw,  0, 100, 1 }, 0 },
 
-    { "I RELAX", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelax,  1, 100, 1 }, 0 },
-    { "I RELAX YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelaxYaw,  1, 100, 1 }, 0 },
+    { "I RELAX", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelax,  10, 100, 1 }, 0 },
+    { "I RELAX YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelaxYaw,  10, 100, 1 }, 0 },
     { "I RELAX CUTOFF", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelaxCutoff,  1, 100, 1 }, 0 },
     { "I RELAX TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)    { &rateProfile.vbat_comp_type, QUICKFLASH_COUNT - 1, cms_QuickFlashRelax}, 0 },
 
