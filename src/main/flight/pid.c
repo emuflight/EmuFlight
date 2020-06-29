@@ -173,6 +173,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .horizonTransition = 0,
         .integral_half_life = 250,
         .integral_half_life_yaw = 250,
+        .QuickFlashRelax = 30,
+        .QuickFlashRelaxYaw = 30,
+        .QuickFlashRelaxCutoff = 11,
     );
 }
 
@@ -208,6 +211,7 @@ static FAST_RAM filterApplyFnPtr dtermLowpassApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
 static FAST_RAM filterApplyFnPtr dtermLowpass2ApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT pt1Filter_t errorRelax[XYZ_AXIS_COUNT];
 #ifdef USE_RC_SMOOTHING_FILTER
 static FAST_RAM_ZERO_INIT pt1Filter_t setpointDerivativePt1[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT biquadFilter_t setpointDerivativeBiquad[XYZ_AXIS_COUNT];
@@ -261,6 +265,11 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, dT));
 #endif
+
+    for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+        pt1FilterInit(&errorRelax[i], pt1FilterGain(pidProfile->QuickFlashRelaxCutoff, dT));
+    }
+
 }
 
 #ifdef USE_RC_SMOOTHING_FILTER
@@ -653,7 +662,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     vbatCompensationFactor = scaleRangef(currentControlRateProfile->vbat_comp_pid_level, 0.0f, 100.0f, 1.0f, vbatCompensationFactor);
 
     // gradually scale back integration when above windup point
-    const float dynCi = dT;
     float errorRate;
 
     // ----------PID controller----------
@@ -724,17 +732,36 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             boostedErrorRate = errorRate * errorLimitAxis;
         }
 
+        const float errorRateBoosted = errorRate + boostedErrorRate;
+
         rotateITermAndAxisError();
+
+        float iterm = temporaryIterm[axis];
+        float itermErrorRate = errorRateBoosted;
+        const float errorLpf = pt1FilterApply(&errorRelax[axis], errorRate);
+        const float errorHpf = fabsf(errorRate - errorLpf);
+        const float QuickFlashFactor = 1 - errorHpf / pidProfile->QuickFlashRelax;
+        const float QuickFlashFactorYaw = 1 - errorHpf / pidProfile->QuickFlashRelaxYaw;
+
+        if (SIGN(iterm) != SIGN(itermErrorRate)) {
+        // Do Nothing, use the precalculed itermErrorRate
+        } else if (axis != FD_YAW && QuickFlashFactor > 0.0f) {
+            itermErrorRate *= QuickFlashFactor;
+        } else if (axis == FD_YAW && QuickFlashFactorYaw > 0.0f) {
+            itermErrorRate *= QuickFlashFactorYaw;
+        } else {
+            itermErrorRate = 0.0f;
+        }
+
         // --------low-level gyro-based PID based on 2DOF PID controller. ----------
         // 2-DOF PID controller with optional filter on derivative term.
         // derivative term can be based on measurement or error using a sliding value from 0-100
 
         // -----calculate P component
-        pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate)) * vbatCompensationFactor;
+        pidData[axis].P = (pidCoefficient[axis].Kp * (errorRateBoosted)) * vbatCompensationFactor;
 
         // -----calculate I component
-        float iterm    = temporaryIterm[axis];
-        float ITermNew = pidCoefficient[axis].Ki * (boostedErrorRate + errorRate) * dynCi;
+        float ITermNew = pidCoefficient[axis].Ki * (itermErrorRate) * dT;
         if (ITermNew != 0.0f)
         {
             if (SIGN(iterm) != SIGN(ITermNew))

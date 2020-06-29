@@ -128,8 +128,9 @@ typedef struct pidProfile_s {
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
     uint8_t integral_half_life;             // Integral half-life in tenths of second
     uint8_t integral_half_life_yaw;         // Integral half-life for yaw in tenths of second
-    uint8_t integral_multiplier;            // additional multiplier your set I gain measured as a percentage
-    uint8_t integral_multiplier_yaw;        // additional multiplier your set I gain for yaw measured as a percentage
+    uint8_t QuickFlashRelax;                // Enable iterm suppression during error input
+    uint8_t QuickFlashRelaxYaw;             // Enable iterm suppression during error input
+    uint8_t QuickFlashRelaxCutoff;          // This cutoff frequency specifies a low pass filter which predicts average response of the quad to error
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE
