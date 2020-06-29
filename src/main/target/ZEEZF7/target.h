@@ -98,7 +98,7 @@
 #define UART6_TX_PIN                                     PC6
 
 //#define USE_SOFTSERIAL1
-#define SERIAL_PORT_COUNT                                8                     //VCP, USART1, USART2,USART3,USART4,USART5,USART6
+#define SERIAL_PORT_COUNT                                7                     //VCP, USART1, USART2,USART3,USART4,USART5,USART6
 
 // ESC
 #define USE_ESCSERIAL
