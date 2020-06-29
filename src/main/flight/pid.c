@@ -171,11 +171,12 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .horizonTransition = 0,
-        .integral_half_life = 250,
-        .integral_half_life_yaw = 250,
+        .integral_half_life = 10,
+        .integral_half_life_yaw = 100,
         .QuickFlashRelax = 30,
-        .QuickFlashRelaxYaw = 30,
+        .QuickFlashRelaxYaw = 50,
         .QuickFlashRelaxCutoff = 11,
+        .QuickFlashRelaxType = HARDFLEX,
     );
 }
 
@@ -211,7 +212,7 @@ static FAST_RAM filterApplyFnPtr dtermLowpassApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
 static FAST_RAM filterApplyFnPtr dtermLowpass2ApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT pt1Filter_t errorRelax[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT pt1Filter_t QuickFlashRelax[XYZ_AXIS_COUNT];
 #ifdef USE_RC_SMOOTHING_FILTER
 static FAST_RAM_ZERO_INIT pt1Filter_t setpointDerivativePt1[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT biquadFilter_t setpointDerivativeBiquad[XYZ_AXIS_COUNT];
@@ -266,10 +267,13 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, dT));
 #endif
 
-    for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
-        pt1FilterInit(&errorRelax[i], pt1FilterGain(pidProfile->QuickFlashRelaxCutoff, dT));
+    if (pidProfile->QuickFlashRelaxType != OFF)
+    {
+      for (int i = 0; i < XYZ_AXIS_COUNT; i++)
+      {
+        pt1FilterInit(&QuickFlashRelax[i], pt1FilterGain(pidProfile->QuickFlashRelaxCutoff, dT));
+      }
     }
-
 }
 
 #ifdef USE_RC_SMOOTHING_FILTER
@@ -327,6 +331,7 @@ static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feathered_pids;
 static FAST_RAM_ZERO_INIT uint8_t nfe_racermode;
+static FAST_RAM_ZERO_INIT uint8_t QuickFlashRelaxType;
 static FAST_RAM_ZERO_INIT float smart_dterm_smoothing[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
@@ -374,6 +379,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     }
     feathered_pids = pidProfile->feathered_pids / 100.0f;
     nfe_racermode = pidProfile->nfe_racermode;
+    QuickFlashRelaxType = pidProfile->QuickFlashRelaxType;
     P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
     D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
     P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
@@ -738,20 +744,38 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
         float iterm = temporaryIterm[axis];
         float itermErrorRate = errorRateBoosted;
-        const float errorLpf = pt1FilterApply(&errorRelax[axis], errorRate);
-        const float errorHpf = fabsf(errorRate - errorLpf);
-        const float QuickFlashFactor = 1 - errorHpf / pidProfile->QuickFlashRelax;
-        const float QuickFlashFactorYaw = 1 - errorHpf / pidProfile->QuickFlashRelaxYaw;
+
+        if (QuickFlashRelaxType != OFF) {
+        float QuickFlashLpf, QuickFlashHpf;
+        if (QuickFlashRelaxType == HARDFLEX)
+        {
+        QuickFlashLpf = pt1FilterApply(&QuickFlashRelax[axis], errorRate);
+        QuickFlashHpf = fabsf(errorRate - QuickFlashLpf);
+        } else {
+        QuickFlashLpf = pt1FilterApply(&QuickFlashRelax[axis], currentPidSetpoint);
+        QuickFlashHpf = fabsf(currentPidSetpoint - QuickFlashLpf);
+        }
+        const float QuickFlashFactor = MAX(1 - QuickFlashHpf / pidProfile->QuickFlashRelax, 0.0f);
+        const float QuickFlashFactorYaw = MAX(1 - QuickFlashHpf / pidProfile->QuickFlashRelaxYaw, 0.0f);
 
         if (SIGN(iterm) != SIGN(itermErrorRate)) {
         // Do Nothing, use the precalculed itermErrorRate
-        } else if (axis != FD_YAW && QuickFlashFactor > 0.0f) {
+        switch (QuickFlashRelaxType)
+        {
+          case HARDFLEX:
+          case UNICORN:
+        if (axis != FD_YAW) {
             itermErrorRate *= QuickFlashFactor;
-        } else if (axis == FD_YAW && QuickFlashFactorYaw > 0.0f) {
+        } else if (axis == FD_YAW) {
             itermErrorRate *= QuickFlashFactorYaw;
-        } else {
-            itermErrorRate = 0.0f;
         }
+          break;
+          case JUICY:
+            itermErrorRate = fapplyDeadband(QuickFlashLpf - gyroRate, QuickFlashHpf);
+          break;
+        }
+      }
+    }
 
         // --------low-level gyro-based PID based on 2DOF PID controller. ----------
         // 2-DOF PID controller with optional filter on derivative term.

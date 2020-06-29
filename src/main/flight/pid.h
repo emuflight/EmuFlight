@@ -53,12 +53,6 @@ typedef enum {
 } pidIndex_e;
 
 typedef enum {
-    SUPEREXPO_YAW_OFF = 0,
-    SUPEREXPO_YAW_ON,
-    SUPEREXPO_YAW_ALWAYS
-} pidSuperExpoYaw_e;
-
-typedef enum {
     PID_STABILISATION_OFF = 0,
     PID_STABILISATION_ON
 } pidStabilisationState_e;
@@ -68,6 +62,14 @@ typedef enum {
     PID_CRASH_RECOVERY_ON,
     PID_CRASH_RECOVERY_BEEP
 } pidCrashRecovery_e;
+
+typedef enum {
+    HARDFLEX = 0, //error
+    UNICORN, //setpoint
+    JUICY, //gyro
+    OFF,
+    QUICKFLASH_COUNT
+} QuickFlashRelaxType_e;
 
 typedef struct pidf_s {
     uint8_t P;
@@ -131,6 +133,7 @@ typedef struct pidProfile_s {
     uint8_t QuickFlashRelax;                // Enable iterm suppression during error input
     uint8_t QuickFlashRelaxYaw;             // Enable iterm suppression during error input
     uint8_t QuickFlashRelaxCutoff;          // This cutoff frequency specifies a low pass filter which predicts average response of the quad to error
+    uint8_t QuickFlashRelaxType;            // Specifies type of relax algorithm
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE

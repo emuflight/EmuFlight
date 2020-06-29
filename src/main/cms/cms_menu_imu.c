@@ -68,6 +68,10 @@ static uint16_t errorBoostYaw;
 static uint8_t errorBoostLimitYaw;
 static uint8_t integralHalfLife;
 static uint8_t integralHalfLifeYaw;
+static uint8_t QuickFlashRelax;
+static uint8_t QuickFlashRelaxYaw;
+static uint8_t QuickFlashRelaxCutoff;
+static uint8_t QuickFlashRelaxType;
 
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
@@ -84,6 +88,10 @@ static const char * const cms_offOnLabels[] = {
 
 static const char * const cms_throttleVbatCompTypeLabels[] = {
     "OFF", "BOOST", "LIMIT", "BOTH"
+};
+
+static const char * const cms_QuickFlashRelax[] = {
+    "HARDFLEX", "UNICORN", "JUICY", "OFF"
 };
 
 static long cmsx_menuImu_onEnter(void)
@@ -141,6 +149,10 @@ static long cmsx_PidRead(void)
     errorBoostLimitYaw = pidProfile->errorBoostLimitYaw;
     integralHalfLife = pidProfile->integral_half_life;
     integralHalfLifeYaw = pidProfile->integral_half_life_yaw;
+    QuickFlashRelax = pidProfile->QuickFlashRelax;
+    QuickFlashRelaxYaw = pidProfile->QuickFlashRelaxYaw;
+    QuickFlashRelaxCutoff = pidProfile->QuickFlashRelaxCutoff;
+    QuickFlashRelaxType = pidProfile->QuickFlashRelaxType;
     for (uint8_t i = 0; i < 3; i++) {
         tempPid[i][0] = pidProfile->pid[i].P;
         tempPid[i][1] = pidProfile->pid[i].I;
@@ -176,6 +188,10 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
     pidProfile->i_decay = i_decay;
     pidProfile->integral_half_life = integralHalfLife;
     pidProfile->integral_half_life_yaw = integralHalfLifeYaw;
+    pidProfile->QuickFlashRelax = QuickFlashRelax;
+    pidProfile->QuickFlashRelaxYaw = QuickFlashRelaxYaw;
+    pidProfile->QuickFlashRelaxCutoff = QuickFlashRelaxCutoff;
+    pidProfile->QuickFlashRelaxType = QuickFlashRelaxType;
     pidInitConfig(currentPidProfile);
 
     return 0;
@@ -206,8 +222,14 @@ static OSD_Entry cmsx_menuPidEntries[] =
 
     { "I DECAY", OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,  1, 10, 1 }, 0 },
 
-    { "I HALF LIFE", OME_UINT8, NULL, &(OSD_UINT8_t){ &integralHalfLife,  0, 250, 1 }, 0 },
-    { "I HALF LIFE YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &integralHalfLifeYaw,  0, 250, 1 }, 0 },
+    { "I HALF LIFE", OME_UINT8, NULL, &(OSD_UINT8_t){ &integralHalfLife,  0, 100, 1 }, 0 },
+    { "I HALF LIFE YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &integralHalfLifeYaw,  0, 100, 1 }, 0 },
+
+    { "I RELAX", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelax,  1, 100, 1 }, 0 },
+    { "I RELAX YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelaxYaw,  1, 100, 1 }, 0 },
+    { "I RELAX CUTOFF", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelaxCutoff,  1, 100, 1 }, 0 },
+    { "I RELAX TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)    { &rateProfile.vbat_comp_type, QUICKFLASH_COUNT - 1, cms_QuickFlashRelax}, 0 },
+
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
