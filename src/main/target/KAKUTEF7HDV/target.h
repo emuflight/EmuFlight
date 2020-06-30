@@ -21,16 +21,26 @@
 #pragma once
 
 //#define USE_TARGET_CONFIG
-#if defined(KAKUTEF7MINIV2)
+#if defined(KAKUTEF7V2)
+#define TARGET_BOARD_IDENTIFIER "KT76"
+#define USBD_PRODUCT_STRING     "KakuteF7 V2"
+#elif defined(KAKUTEF7MINIV2)
 #define TARGET_BOARD_IDENTIFIER "KF7M"
-#define USBD_PRODUCT_STRING "KakuteF7 Mini V2"
-#else
+#define USBD_PRODUCT_STRING     "KakuteF7 Mini V2"
+#else //defined(KAKUTEF7HDV)
 #define TARGET_BOARD_IDENTIFIER "KTF7"
-#define USBD_PRODUCT_STRING "KakuteF7 HD"
+#define USBD_PRODUCT_STRING     "KakuteF7 HD"
 #endif
 
-#define TARGET_BOARD_IDENTIFIER "KTF7"
-#define USBD_PRODUCT_STRING "KakuteF7"
+#if defined(KAKUTEF7V2)
+#define CAMERA_CONTROL_PIN      PE13
+#define CURRENT_METER_SCALE     400
+#define MAX7456_SPI_INSTANCE    SPI3
+#define MAX7456_SPI_CS_PIN      SPI1_NSS_PIN
+#else
+#define MAX7456_SPI_INSTANCE    SPI2
+#define MAX7456_SPI_CS_PIN      SPI2_NSS_PIN
+#endif
 
 #define LED0_PIN                PA2
 
@@ -117,8 +127,6 @@
 #define SPI4_MOSI_PIN           PE6
 
 #define USE_MAX7456
-#define MAX7456_SPI_INSTANCE    SPI2
-#define MAX7456_SPI_CS_PIN      SPI2_NSS_PIN
 #define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
 #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 
@@ -152,7 +160,9 @@
 #define I2C1_SDA                PB7
 
 #define USE_BARO
+#if !defined(KAKUTEF7V2)
 #define USE_BARO_BMP280
+#endif
 #define BARO_I2C_INSTANCE     I2C_DEVICE
 
 #define USE_MAG
