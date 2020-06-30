@@ -4128,33 +4128,37 @@ static void cliVersion(char *cmdline)
 static void cliRcSmoothing(char *cmdline)
 {
     UNUSED(cmdline);
+    rcSmoothingFilter_t *rcSmoothingData = getRcSmoothingData();
     cliPrint("# RC Smoothing Type: ");
     if (rxConfig()->rc_smoothing_type == RC_SMOOTHING_TYPE_FILTER) {
         cliPrintLine("FILTER");
-        uint16_t avgRxFrameMs = rcSmoothingGetValue(RC_SMOOTHING_VALUE_AVERAGE_FRAME);
         if (rcSmoothingAutoCalculate()) {
+            const uint16_t avgRxFrameUs = rcSmoothingData->averageFrameTimeUs;
             cliPrint("# Detected RX frame rate: ");
-            if (avgRxFrameMs == 0) {
+            if (avgRxFrameUs == 0) {
                 cliPrintLine("NO SIGNAL");
             } else {
-                cliPrintLinef("%d.%dms", avgRxFrameMs / 1000, avgRxFrameMs % 1000);
+                cliPrintLinef("%d.%03dms", avgRxFrameUs / 1000, avgRxFrameUs % 1000);
             }
         }
-        cliPrint("# Input filter type: ");
-        cliPrintLinef(lookupTables[TABLE_RC_SMOOTHING_INPUT_TYPE].values[rxConfig()->rc_smoothing_input_type]);
-        cliPrintf("# Active input cutoff: %dhz ", rcSmoothingGetValue(RC_SMOOTHING_VALUE_INPUT_ACTIVE));
-        if (rxConfig()->rc_smoothing_input_cutoff == 0) {
+        cliPrintLinef("# Input filter type: %s", lookupTables[TABLE_RC_SMOOTHING_INPUT_TYPE].values[rcSmoothingData->inputFilterType]);
+        cliPrintf("# Active input cutoff: %dhz ", rcSmoothingData->inputCutoffFrequency);
+        if (rcSmoothingData->inputCutoffSetting == 0) {
             cliPrintLine("(auto)");
         } else {
             cliPrintLine("(manual)");
         }
-        cliPrint("# Derivative filter type: ");
-        cliPrintLinef(lookupTables[TABLE_RC_SMOOTHING_DERIVATIVE_TYPE].values[rxConfig()->rc_smoothing_derivative_type]);
-        cliPrintf("# Active derivative cutoff: %dhz (", rcSmoothingGetValue(RC_SMOOTHING_VALUE_DERIVATIVE_ACTIVE));
-        if (rxConfig()->rc_smoothing_derivative_type == RC_SMOOTHING_DERIVATIVE_OFF) {
+        cliPrintf("# Derivative filter type: %s", lookupTables[TABLE_RC_SMOOTHING_DERIVATIVE_TYPE].values[rcSmoothingData->derivativeFilterType]);
+        if (rcSmoothingData->derivativeFilterTypeSetting == RC_SMOOTHING_DERIVATIVE_AUTO) {
+            cliPrintLine(" (auto)");
+        } else {
+            cliPrintLinefeed();
+        }
+        cliPrintf("# Active derivative cutoff: %dhz (", rcSmoothingData->derivativeCutoffFrequency);
+        if (rcSmoothingData->derivativeFilterType == RC_SMOOTHING_DERIVATIVE_OFF) {
             cliPrintLine("off)");
         } else {
-            if (rxConfig()->rc_smoothing_derivative_cutoff == 0) {
+            if (rcSmoothingData->derivativeCutoffSetting == 0) {
                 cliPrintLine("auto)");
             } else {
                 cliPrintLine("manual)");

@@ -1175,7 +1175,11 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 #else
         sbufWriteU8(dst, 0);
 #endif
-
+#if defined(USE_RC_SMOOTHING_FILTER)
+        sbufWriteU8(dst, rxConfig()->rc_smoothing_auto_factor);
+#else
+        sbufWriteU8(dst, 0);
+#endif
         break;
     case MSP_FAILSAFE_CONFIG:
         sbufWriteU8(dst, failsafeConfig()->failsafe_delay);
@@ -2318,7 +2322,18 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
             sbufReadU8(src);
 #endif
         }
-
+        if (sbufBytesRemaining(src) >= 1) {
+            // Added in MSP API 1.42
+#if defined(USE_RC_SMOOTHING_FILTER)
+            // Added extra validation/range constraint for rc_smoothing_auto_factor as a workaround for a bug in
+            // the 10.6 configurator where it was possible to submit an invalid out-of-range value. We might be
+            // able to remove the constraint at some point in the future once the affected versions are deprecated
+            // enough that the risk is low.
+            rxConfigMutable()->rc_smoothing_auto_factor, constrain(sbufReadU8(src), RC_SMOOTHING_AUTO_FACTOR_MIN, RC_SMOOTHING_AUTO_FACTOR_MAX);
+#else
+            sbufReadU8(src);
+#endif
+        }
         break;
     case MSP_SET_FAILSAFE_CONFIG:
         failsafeConfigMutable()->failsafe_delay = sbufReadU8(src);

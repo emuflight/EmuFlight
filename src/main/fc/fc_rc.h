@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "fc/rc_controls.h"
+
 typedef enum {
     INTERPOLATION_CHANNELS_RP,
     INTERPOLATION_CHANNELS_RPY,
@@ -27,6 +29,11 @@ typedef enum {
     INTERPOLATION_CHANNELS_T,
     INTERPOLATION_CHANNELS_RPT,
 } interpolationChannels_e;
+
+#ifdef USE_RC_SMOOTHING_FILTER
+#define RC_SMOOTHING_AUTO_FACTOR_MIN 0
+#define RC_SMOOTHING_AUTO_FACTOR_MAX 50
+#endif
 
 extern volatile bool 		isSetpointNew;
 extern volatile uint16_t 	currentRxRefreshRate;
@@ -44,9 +51,7 @@ void resetYawAxis(void);
 void initRcProcessing(void);
 bool isMotorsReversed(void);
 bool rcSmoothingIsEnabled(void);
-#ifdef USE_RC_SMOOTHING_FILTER
-int rcSmoothingGetValue(int whichValue);
+rcSmoothingFilter_t *getRcSmoothingData(void);
 bool rcSmoothingAutoCalculate(void);
 bool rcSmoothingInitializationComplete(void);
-#endif
 float rateDynamics(float rcCommand, int axis);
