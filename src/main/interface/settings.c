@@ -262,7 +262,7 @@ static const char * const lookupTableCameraControlMode[] = {
 static const char * const lookupTablePwmProtocol[] = {
     "OFF", "ONESHOT125", "ONESHOT42", "MULTISHOT", "BRUSHED",
 #ifdef USE_DSHOT
-    "DSHOT150", "DSHOT300", "DSHOT600", "DSHOT1200", "PROSHOT1000"
+    "DSHOT150", "DSHOT300", "DSHOT600", "DSHOT1200", "DSHOT2400", "DSHOT4800", "PROSHOT1000"
 #endif
 };
 
@@ -497,7 +497,7 @@ const clivalue_t valueTable[] = {
     { "imuf_roll_q",                VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_roll_q) },
     { "imuf_pitch_q",               VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_pitch_q) },
     { "imuf_yaw_q",                 VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_yaw_q) },
-    { "imuf_w",                     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 3, 1024  }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_w) },
+    { "imuf_w",                     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 3, 512   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_w) },
     { "imuf_pitch_lpf_cutoff_hz",   VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 450   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_pitch_lpf_cutoff_hz) },
     { "imuf_roll_lpf_cutoff_hz",    VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 450   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_roll_lpf_cutoff_hz) },
     { "imuf_yaw_lpf_cutoff_hz",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 450   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_yaw_lpf_cutoff_hz) },

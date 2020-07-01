@@ -18,36 +18,23 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include <stdint.h>
 
-#include "sensors/gyro.h"
-#include "filter.h"
+#include "platform.h"
 
-#define MAX_KALMAN_WINDOW_SIZE 350
+#include "drivers/io.h"
+#include "drivers/timer.h"
+#include "drivers/timer_def.h"
+#include "drivers/dma.h"
 
-#define VARIANCE_SCALE 0.67f
-
-
-typedef struct kalman
+const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] =
 {
-    float q;     //process noise covariance
-    float r;     //measurement noise covariance
-    float p;     //estimation error covariance matrix
-    float k;     //kalman gain
-    float x;     //state
-    float lastX; //previous state
-    float e;
-    float s;
-    float axisVar;
-    uint16_t windex;
-    float axisWindow[MAX_KALMAN_WINDOW_SIZE];
-    float varianceWindow[MAX_KALMAN_WINDOW_SIZE];
-    float axisSumMean;
-    float axisMean;
-    float axisSumVar;
-    float inverseN;
-    uint16_t w;
-} kalman_t;
-
-extern void kalman_init(void);
-extern float kalman_update(float input, int axis);
+    // TIM8_UP, DMA2_CH1
+    DEF_TIM(TIM8, CH2, PB8, TIM_USE_MOTOR, 0),
+    DEF_TIM(TIM8, CH3, PB9, TIM_USE_MOTOR, 0),
+    // TIM2_UP, DMA1_CH2
+    DEF_TIM(TIM2, CH4, PA3, TIM_USE_MOTOR, 0),
+    DEF_TIM(TIM2, CH3, PA2, TIM_USE_MOTOR, 0),
+    DEF_TIM(TIM4, CH1, PB6, TIM_USE_MOTOR, 0), //PB6 for servo
+    DEF_TIM(TIM3, CH1, PB4, TIM_USE_LED,   0), //LED_STRIP
+};
