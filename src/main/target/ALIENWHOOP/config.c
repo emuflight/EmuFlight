@@ -82,8 +82,8 @@ void targetConfiguration(void)
     rxConfigMutable()->spektrum_sat_bind = 5; // DSM2 11ms
     rxConfigMutable()->spektrum_sat_bind_autoreset = 1;
     rxConfigMutable()->mincheck = 1025;
-    rxConfigMutable()->rcInterpolation = RC_SMOOTHING_MANUAL;
-    rxConfigMutable()->rcInterpolationInterval = 14;
+    //rxConfigMutable()->rcInterpolation = RC_SMOOTHING_MANUAL;
+    //rxConfigMutable()->rcInterpolationInterval = 21;
     parseRcChannels("TAER1234", rxConfigMutable());
 
     mixerConfigMutable()->yaw_motors_reversed = true;

@@ -127,9 +127,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         },
 
         .dFilter = {
-            [PID_ROLL] = {2, 100, 250, 0},  // wc, dtermlpf, dtermlpf2, smartSmoothing
-            [PID_PITCH] = {2, 100, 250, 0}, // wc, dtermlpf, dtermlpf2, smartSmoothing
-            [PID_YAW] = {0, 100, 250, 0},    // wc, dtermlpf, dtermlpf2, smartSmoothing
+            [PID_ROLL] = {2, 65, 200, 0},  // wc, dtermlpf, dtermlpf2, smartSmoothing
+            [PID_PITCH] = {2, 65, 200, 0}, // wc, dtermlpf, dtermlpf2, smartSmoothing
+            [PID_YAW] = {0, 65, 200, 0},    // wc, dtermlpf, dtermlpf2, smartSmoothing
         },
 
         .pidSumLimit = PIDSUM_LIMIT_MAX,
