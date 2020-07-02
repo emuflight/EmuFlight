@@ -177,6 +177,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .QuickFlashRelaxYaw = 50,
         .QuickFlashRelaxCutoff = 11,
         .QuickFlashRelaxType = HARDFLEX,
+        .itermWindupPointPercent = 70,
     );
 }
 
@@ -349,6 +350,7 @@ static FAST_RAM_ZERO_INIT float itermLimit;
 static FAST_RAM_ZERO_INIT float iDecay;
 static FAST_RAM_ZERO_INIT float integralHalfLifeFactor;
 static FAST_RAM_ZERO_INIT float integralHalfLifeFactorYaw;
+static FAST_RAM_ZERO_INIT float itermWindupPointInv;
 #if defined(USE_THROTTLE_BOOST)
 FAST_RAM_ZERO_INIT float throttleBoost;
 pt1Filter_t throttleLpf;
@@ -376,6 +378,11 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         setPointITransition[axis] = pidProfile->setPointITransition[axis] / 100.0f;
         setPointDTransition[axis] = pidProfile->setPointDTransition[axis] / 100.0f;
         smart_dterm_smoothing[axis] = pidProfile->dFilter[axis].smartSmoothing;
+    }
+    itermWindupPointInv = 0.0f;
+    if (pidProfile->itermWindupPointPercent != 0) {
+      const float itermWindupPoint = pidProfile->itermWindupPointPercent / 100.0f;
+      itermWindupPointInv = 1.0f / itermWindupPoint;
     }
     feathered_pids = pidProfile->feathered_pids / 100.0f;
     nfe_racermode = pidProfile->nfe_racermode;
@@ -669,6 +676,10 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
     // gradually scale back integration when above windup point
     float errorRate;
+    float dynCi = dT;
+    if (itermWindupPointInv != 0.0f) {
+      dynCi *= constrainf((1.0f - getMotorMixRange()) * itermWindupPointInv, 0.0f, 1.0f);
+    }
 
     // ----------PID controller----------
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
@@ -785,7 +796,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         pidData[axis].P = (pidCoefficient[axis].Kp * (errorRateBoosted)) * vbatCompensationFactor;
 
         // -----calculate I component
-        float ITermNew = pidCoefficient[axis].Ki * (itermErrorRate) * dT;
+        float ITermNew = pidCoefficient[axis].Ki * (itermErrorRate) * dynCi;
         if (ITermNew != 0.0f)
         {
             if (SIGN(iterm) != SIGN(ITermNew))

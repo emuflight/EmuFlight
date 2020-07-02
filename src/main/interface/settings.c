@@ -863,6 +863,7 @@ const clivalue_t valueTable[] = {
     { "quickflash_relax_yaw",       VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 10, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, QuickFlashRelaxYaw) },
     { "quickflash_cutoff",          VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 1, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, QuickFlashRelaxCutoff) },
     { "quickflash_relax_type",      VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ITERM_RELAX_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, QuickFlashRelaxType) },
+    { "iterm_windup",               VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermWindupPointPercent) },
     { "pidsum_limit",               VAR_UINT16 | PROFILE_VALUE, .config.minmax = { PIDSUM_LIMIT_MIN, PIDSUM_LIMIT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, pidSumLimit) },
     { "pidsum_limit_yaw",           VAR_UINT16 | PROFILE_VALUE, .config.minmax = { PIDSUM_LIMIT_MIN, PIDSUM_LIMIT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, pidSumLimitYaw) },
 

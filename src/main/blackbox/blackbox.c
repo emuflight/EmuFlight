@@ -1332,6 +1332,8 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_pitch", "%d",           currentPidProfile->dFilter[PITCH].smartSmoothing);
         BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_yaw", "%d",             currentPidProfile->dFilter[YAW].smartSmoothing);
 
+        BLACKBOX_PRINT_HEADER_LINE("iterm_windup", "%d",                    currentPidProfile->itermWindupPointPercent);
+
         BLACKBOX_PRINT_HEADER_LINE("pidAtMinThrottle", "%d",                currentPidProfile->pidAtMinThrottle);
 
         // EmuFlight PID controller parameters

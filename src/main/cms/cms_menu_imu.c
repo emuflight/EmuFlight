@@ -72,6 +72,7 @@ static uint8_t QuickFlashRelax;
 static uint8_t QuickFlashRelaxYaw;
 static uint8_t QuickFlashRelaxCutoff;
 static uint8_t QuickFlashRelaxType;
+static uint8_t itermWindup;
 
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
@@ -153,6 +154,7 @@ static long cmsx_PidRead(void)
     QuickFlashRelaxYaw = pidProfile->QuickFlashRelaxYaw;
     QuickFlashRelaxCutoff = pidProfile->QuickFlashRelaxCutoff;
     QuickFlashRelaxType = pidProfile->QuickFlashRelaxType;
+    itermWindup = pidProfile->itermWindupPointPercent;
     for (uint8_t i = 0; i < 3; i++) {
         tempPid[i][0] = pidProfile->pid[i].P;
         tempPid[i][1] = pidProfile->pid[i].I;
@@ -192,6 +194,7 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
     pidProfile->QuickFlashRelaxYaw = QuickFlashRelaxYaw;
     pidProfile->QuickFlashRelaxCutoff = QuickFlashRelaxCutoff;
     pidProfile->QuickFlashRelaxType = QuickFlashRelaxType;
+    pidProfile->itermWindupPointPercent = itermWindup;
     pidInitConfig(currentPidProfile);
 
     return 0;
@@ -229,7 +232,7 @@ static OSD_Entry cmsx_menuPidEntries[] =
     { "I RELAX YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelaxYaw,  10, 100, 1 }, 0 },
     { "I RELAX CUTOFF", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelaxCutoff,  1, 100, 1 }, 0 },
     { "I RELAX TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)    { &QuickFlashRelaxType, QUICKFLASH_COUNT - 1, cms_QuickFlashRelax}, 0 },
-
+    { "I WINDUP", OME_UINT8, NULL, &(OSD_UINT8_t){ &itermWindup, 0, 100, 1}, 0},
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
