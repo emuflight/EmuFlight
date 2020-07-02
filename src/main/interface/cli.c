@@ -1720,7 +1720,7 @@ static void cliModeColor(char *cmdline)
 }
 #endif
 
-// RF TPA
+#ifdef USE_TPA_CURVES
 static void printTPACurve(void)
 {
     cliPrintf("tpakp ");
@@ -1833,7 +1833,7 @@ static void cliTPACurve(char *cmdLine)
         }
     }
 }
-// RF TPA
+#endif
 
 #ifdef USE_SERVOS
 static void printServo(uint8_t dumpMask, const servoParam_t *servoParams, const servoParam_t *defaultServoParams)
@@ -3830,7 +3830,7 @@ static void printResourceJson() {
     cliPrintf("]}");
 }
 
-// RF TPA
+#ifdef USE_TPA_CURVES
 static void printTPACurveJson() {
     cliPrint(",\"tpa_curves\":{\"kp\":[");
     for (int i = 0; i < ATTENUATION_CURVE_SIZE; i++) {
@@ -3859,7 +3859,7 @@ static void printTPACurveJson() {
     cliPrint("]}");
 
 }
-// RF TPA
+#endif
 
 #define PROFILE_JSON_STRING ",\"%s_profile\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"LOOKUP\",\"current\":\"%d\",\"values\":[{"
 
@@ -3930,7 +3930,9 @@ void cliConfig(char *cmdline)
     printSerialJson(serialConfig());
     printAuxJson(modeActivationConditions(0));
     printResourceJson();
+#ifdef USE_TPA_CURVES
     printTPACurveJson();
+#endif
     cliPrintf(",\"name\":\"%s\"", pilotConfig()->name);
     cliPrintf(",\"version\":\"%s|%s|%s|%s\"",
         FC_FIRMWARE_NAME,
@@ -5077,7 +5079,9 @@ const clicmd_t cmdTable[] = {
 #ifdef USE_GYRO_IMUF9001
     CLI_COMMAND_DEF("reportimuferrors", "report imu-f comm errors", NULL, cliReportImufErrors),
 #endif
+#ifdef USE_TPA_CURVES
     CLI_COMMAND_DEF("tpacurve", "set rf1 tpa", "[kp, ki, kd]", cliTPACurve),
+#endif
     CLI_COMMAND_DEF("help", NULL, NULL, cliHelp),
 #ifdef USE_LED_STRIP
     CLI_COMMAND_DEF("led", "configure leds", NULL, cliLed),

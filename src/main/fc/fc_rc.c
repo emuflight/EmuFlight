@@ -68,6 +68,11 @@ typedef float (applyRatesFn)(const int axis, float rcCommandf, const float rcCom
 static float rcDeflection[3], rcDeflectionAbs[3];
 static volatile float setpointRate[3];
 static volatile uint32_t setpointRateInt[3];
+// TPA BREAKPOINT
+static float throttlePAttenuation;
+static float throttleIAttenuation;
+static float throttleDAttenuation;
+// TPA BREAKPOINT
 static bool reverseMotors = false;
 static applyRatesFn *applyRates;
 
@@ -78,7 +83,7 @@ volatile int16_t rcInterpolationStepCount;
 volatile uint16_t rxRefreshRate;
 volatile uint16_t currentRxRefreshRate;
 
-// RF TPA
+#if defined(USE_TPA_CURVES)
 static float throttleLookupKp[1000];
 static float throttleLookupKi[1000];
 static float throttleLookupKd[1000];
@@ -131,7 +136,8 @@ float getThrottlePIDAttenuationKd(void) {
 float getTPAOnYaw(void) {
     return currentControlRateProfile->tpaOnYaw;
 }
-// RF TPA
+#endif  // USE_TPA_CURVES
+
 #ifdef USE_RC_SMOOTHING_FILTER
 #define RC_SMOOTHING_IDENTITY_FREQUENCY         80    // Used in the formula to convert a BIQUAD cutoff frequency to PT1
 #define RC_SMOOTHING_FILTER_STARTUP_DELAY_MS    5000  // Time to wait after power to let the PID loop stabilize before starting average frame rate calculation
@@ -164,7 +170,22 @@ float getRcDeflectionAbs(int axis)
 {
     return rcDeflectionAbs[axis];
 }
+// TPA BREAKPOINT
+float getThrottlePAttenuation(void)
+{
+    return throttlePAttenuation;
+}
 
+float getThrottleIAttenuation(void)
+{
+    return throttleIAttenuation;
+}
+
+float getThrottleDAttenuation(void)
+{
+    return throttleDAttenuation;
+}
+// TPA BREAKPOINT
 #define THROTTLE_LOOKUP_LENGTH 12
 static int16_t lookupThrottleRC[THROTTLE_LOOKUP_LENGTH];    // lookup table for expo & mid THROTTLE
 
@@ -653,11 +674,59 @@ FAST_CODE void processRcCommand(void)
 FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
 {
     isRXDataNew = true;
-    // RF TPA
-    // rcData is 1000,2000 range, subtract 1000 and clamp between 0 and 1000 (for TPA lookup table indexing)
-    int16_t shift = rcData[THROTTLE] - 1000;
-    currentAdjustedThrottle = (shift <= 0) ? 0 : ((shift >= 999) ? 999 : shift );
-    // RF TPA
+    // PITCH & ROLL only dynamic PID adjustment,  depending on throttle value
+#ifdef USE_TPA_CURVES
+    if (currentControlRateProfile->tpaCurveType == 0)
+    {
+#endif
+    // TPA BREAKPOINT
+    // PITCH & ROLL only dynamic PID adjustment,  depending on throttle value
+    int32_t propP;
+    if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
+        propP = 100;
+        throttlePAttenuation = 1.0f;
+    } else {
+        if ((uint16_t)currentControlRateProfile->dynThrP > 100) {
+            propP = 100 + ((uint16_t)currentControlRateProfile->dynThrP - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+        } else {
+            propP = 100 - (100 - currentControlRateProfile->dynThrP) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+        }
+        throttlePAttenuation = propP / 100.0f;
+    }
+
+    int32_t propI;
+    if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
+        propI = 100;
+        throttleIAttenuation = 1.0f;
+    } else {
+        if ((uint16_t)currentControlRateProfile->dynThrI > 100) {
+            propI = 100 + ((uint16_t)currentControlRateProfile->dynThrI - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+        } else {
+            propI = 100 - (100 - currentControlRateProfile->dynThrI) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+        }
+        throttleIAttenuation = propI / 100.0f;
+    }
+
+    int32_t propD;
+    if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
+        propD = 100;
+        throttleDAttenuation = 1.0f;
+    } else {
+        if ((uint16_t)currentControlRateProfile->dynThrD > 100) {
+            propD = 100 + ((uint16_t)currentControlRateProfile->dynThrD - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+        } else {
+            propD = 100 - (100 - currentControlRateProfile->dynThrD) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+        }
+        throttleDAttenuation = propD / 100.0f;
+    }
+    // TPA BREAKPOINT
+#ifdef USE_TPA_CURVES
+    } else {
+        // rcData is 1000,2000 range, subtract 1000 and clamp between 0 and 1000 (for TPA lookup table indexing)
+        int16_t shift = rcData[THROTTLE] - 1000;
+        currentAdjustedThrottle = (shift <= 0) ? 0 : ((shift >= 999) ? 999 : shift );
+    }
+#endif
     for (int axis = 0; axis < 3; axis++) {
         // non coupled PID reduction scaler used in PID controller 1 and PID controller 2.
 
@@ -789,9 +858,9 @@ void initRcProcessing(void)
 
         break;
     }
-    // RF TPA
+#if defined(USE_TPA_CURVES)
     BuildTPACurveThrottleLookupTables();
-    // RF TPA
+#endif
 }
 
 bool rcSmoothingIsEnabled(void)

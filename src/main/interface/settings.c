@@ -311,11 +311,11 @@ static const char * const lookupTableGyroOverflowCheck[] = {
 static const char * const lookupTableRatesType[] = {
     "BETAFLIGHT", "RACEFLIGHT"
 };
-// RF TPA
+#ifdef USE_TPA_CURVES
 static const char * const lookupTableTPACurveType[] = {
     "BREAKPOINT", "POINT_CURVE"
 };
-// RF TPA
+#endif
 #ifdef USE_OVERCLOCK
 static const char * const lookupOverclock[] = {
     "OFF",
@@ -435,9 +435,9 @@ const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableGyroOverflowCheck),
 #endif
     LOOKUP_TABLE_ENTRY(lookupTableRatesType),
-    // RF TPA
+#ifdef USE_TPA_CURVES
     LOOKUP_TABLE_ENTRY(lookupTableTPACurveType),
-    // RF TPA
+#endif
 #ifdef USE_OVERCLOCK
     LOOKUP_TABLE_ENTRY(lookupOverclock),
 #endif
@@ -752,8 +752,8 @@ const clivalue_t valueTable[] = {
     { "rate_center_weight",        VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateWeightCenter) },
     { "rate_end_weight",           VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateWeightEnd) },
 
+#ifdef USE_TPA_CURVES   
 // RaceFlightOne TPA, a nine point TPA curve
-
     { "tpa_p_1",                    VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 250 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, raceflightTPA.kpAttenuationCurve[0]) },
     { "tpa_p_2",                    VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 250 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, raceflightTPA.kpAttenuationCurve[1]) },
     { "tpa_p_3",                    VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 250 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, raceflightTPA.kpAttenuationCurve[2]) },
@@ -785,13 +785,20 @@ const clivalue_t valueTable[] = {
     { "tpa_d_9",                    VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 250 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, raceflightTPA.kdAttenuationCurve[8]) },
 
     { "tpa_on_yaw",                 VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(controlRateConfig_t, tpaOnYaw) },
-
+#else
+// TPA BREAKPOINT
+    { "tpa_rate_p",                 VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, CONTROL_RATE_CONFIG_TPA_MAX}, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, dynThrP) },
+    { "tpa_rate_i",                 VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, CONTROL_RATE_CONFIG_TPA_MAX}, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, dynThrI) },
+    { "tpa_rate_d",                 VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, CONTROL_RATE_CONFIG_TPA_MAX}, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, dynThrD) },
+    { "tpa_breakpoint",             VAR_UINT16 | PROFILE_RATE_VALUE, .config.minmax = { PWM_PULSE_MIN, PWM_PULSE_MAX }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, tpa_breakpoint) },
+// TPA BREAKPOINT
+#endif
 
     { "throttle_limit_type",        VAR_UINT8  | PROFILE_RATE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_THROTTLE_LIMIT_TYPE }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, throttle_limit_type) },
     { "throttle_limit_percent",     VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 25, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, throttle_limit_percent) },
-
+#ifdef USE_TPA_CURVES
     { "tpa_type",                   VAR_UINT8  | PROFILE_RATE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RATES_TYPE }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, tpaCurveType) },
-
+#endif
     { "vbat_comp_type",             VAR_UINT8  | PROFILE_RATE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_VBAT_COMP_TYPE }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, vbat_comp_type) },
     { "vbat_comp_ref"         ,     VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { VBAT_CELL_VOTAGE_RANGE_MIN, VBAT_CELL_VOTAGE_RANGE_MAX }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, vbat_comp_ref) },
     { "vbat_comp_throttle_level",   VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, vbat_comp_throttle_level) },

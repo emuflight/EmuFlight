@@ -267,6 +267,10 @@ static OSD_Entry cmsx_menuRateProfileEntries[] =
 
     { "THR MID",     OME_UINT8,  NULL, &(OSD_UINT8_t) { &rateProfile.thrMid8,              0,  100,  1}, 0 },
     { "THR EXPO",    OME_UINT8,  NULL, &(OSD_UINT8_t) { &rateProfile.thrExpo8,             0,  100,  1}, 0 },
+    { "TPA RATE P",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrP,              0,  250,  1, 10}, 0 },
+    { "TPA RATE I",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrI,              0,  250,  1, 10}, 0 },
+    { "TPA RATE D",  OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrD,              0,  250,  1, 10}, 0 },
+    { "TPA BREAKPOINT",   OME_UINT16, NULL, &(OSD_UINT16_t){ &rateProfile.tpa_breakpoint,  1000, 2000, 10}, 0 },
 
     { "VBAT COMP TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)    { &rateProfile.vbat_comp_type, VBAT_COMP_TYPE_COUNT - 1, cms_throttleVbatCompTypeLabels}, 0 },
     { "VBAT COMP REF",   OME_UINT8, NULL, &(OSD_UINT8_t)  { &rateProfile.vbat_comp_ref, VBAT_CELL_VOTAGE_RANGE_MIN, VBAT_CELL_VOTAGE_RANGE_MAX,  1}, 0 },
@@ -288,7 +292,7 @@ static CMS_Menu cmsx_menuRateProfile = {
     .onExit = cmsx_RateProfileWriteback,
     .entries = cmsx_menuRateProfileEntries
 };
-
+#ifdef USE_TPA_CURVES
 static long cmsx_RFTPARead(void)
 {
     memcpy(&rateProfile, controlRateProfiles(rateProfileIndex), sizeof(controlRateConfig_t));
@@ -364,7 +368,7 @@ static CMS_Menu cmsx_RaceFlightTPA = {
     .onExit = cmsx_RFTPAWriteback,
     .entries = cmsx_menuRFTPAEntries,
 };
-
+#endif
 static uint8_t  cmsx_setPointPTransition[3];
 static uint8_t  cmsx_setPointITransition[3];
 static uint8_t  cmsx_setPointDTransition[3];
@@ -850,8 +854,9 @@ static OSD_Entry cmsx_menuImuEntries[] =
 
     {"RATE PROF", OME_UINT8,   cmsx_rateProfileIndexOnChange, &(OSD_UINT8_t){ &tmpRateProfileIndex, 1, CONTROL_RATE_PROFILE_COUNT, 1}, 0},
     {"RATE",      OME_Submenu, cmsMenuChange,                 &cmsx_menuRateProfile,                                         0},
+#ifdef USE_TPA_CURVES
     {"RF TPA",    OME_Submenu, cmsMenuChange,                 &cmsx_RaceFlightTPA,                                           0},
-
+#endif
     {"FILT GLB",  OME_Submenu, cmsMenuChange,                 &cmsx_menuFilterGlobal,                                        0},
 #ifdef USE_EXTENDED_CMS_MENUS
 #if defined(USE_GYRO_IMUF9001)
