@@ -1279,6 +1279,10 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("tpa_rate_i", "%d",                      currentControlRateProfile->dynThrI);
         BLACKBOX_PRINT_HEADER_LINE("tpa_rate_d", "%d",                      currentControlRateProfile->dynThrD);
         BLACKBOX_PRINT_HEADER_LINE("tpa_breakpoint", "%d",                  currentControlRateProfile->tpa_breakpoint);
+#ifdef USE_TPA_CURVES
+        BLACKBOX_PRINT_HEADER_LINE("tpa_type", "%d",                        currentControlRateProfile->tpaCurveType);
+        BLACKBOX_PRINT_HEADER_LINE("tpa_on_yaw", "%d",                      currentControlRateProfile->tpaOnYaw);
+#endif
         BLACKBOX_PRINT_HEADER_LINE("spa_roll_p", "%d",                      currentPidProfile->setPointPTransition[ROLL]);
         BLACKBOX_PRINT_HEADER_LINE("spa_roll_i", "%d",                      currentPidProfile->setPointITransition[ROLL]);
         BLACKBOX_PRINT_HEADER_LINE("spa_roll_d", "%d",                      currentPidProfile->setPointDTransition[ROLL]);
@@ -1331,7 +1335,6 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_roll", "%d",            currentPidProfile->dFilter[ROLL].smartSmoothing);
         BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_pitch", "%d",           currentPidProfile->dFilter[PITCH].smartSmoothing);
         BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_yaw", "%d",             currentPidProfile->dFilter[YAW].smartSmoothing);
-
 
         BLACKBOX_PRINT_HEADER_LINE("iterm_windup", "%d",                    currentPidProfile->itermWindupPointPercent);
 
