@@ -19,8 +19,14 @@
  */
 
 #pragma once
+
+#if defined(IFF4_TWIN_G_M)
 #define TARGET_BOARD_IDENTIFIER "S405"
-#define USBD_PRODUCT_STRING "IFF4_TWIN_G"
+#define USBD_PRODUCT_STRING "IFLIGHTF4TWIN_G_mpu6000"
+#else
+#define TARGET_BOARD_IDENTIFIER "S405"
+#define USBD_PRODUCT_STRING "IFLIGHTF4TWIN_G"
+#endif
 
 #define USE_DSHOT_DMAR
 #define ENABLE_DSHOT_DMAR       true
@@ -41,6 +47,26 @@
 #define PINIO1_PIN              PC14
 #define PINIO2_PIN              PC15
 
+#if defined(IFF4_TWIN_G_M)
+#define USE_MPU_DATA_READY_SIGNAL
+
+#define USE_EXTI
+#define MPU_INT_EXTI            PA8
+#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_CS_PIN          PA4
+
+#define USE_GYRO
+#define USE_GYRO_SPI_MPU6000
+#define USE_ACC
+#define USE_ACC_SPI_MPU6000
+
+#define GYRO_MPU6000_ALIGN      CW0_DEG
+#define ACC_MPU6000_ALIGN       CW0_DEG
+
+#define I2C1_SCL                PB10
+#define I2C1_SDA                PB11
+
+#else
 #define USE_DUAL_GYRO
 
 #define USE_EXTI
@@ -68,6 +94,11 @@
 
 #define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_BOTH
 
+#define I2C1_SCL                PB8
+#define I2C1_SDA                PB9
+
+#endif
+
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      PB12
@@ -79,6 +110,12 @@
 #define USE_FLASH_M25P16
 #define FLASH_CS_PIN            PA15
 #define FLASH_SPI_INSTANCE      SPI3
+
+#define USE_I2C
+#define USE_I2C_DEVICE_1
+#define I2C_DEVICE              (I2CDEV_1)
+#define BARO_I2C_INSTANCE       I2CDEV_1
+#define MAG_I2C_INSTANCE        I2CDEV_1
 
 #define USE_VCP
 
@@ -104,14 +141,6 @@
 
 //#define USE_SOFTSERIAL1
 #define SERIAL_PORT_COUNT       6 //VCP, USART1, USART2,USART3,USART4,USART5,USART6
-
-#define USE_I2C
-#define USE_I2C_DEVICE_1
-#define I2C_DEVICE              (I2CDEV_1)
-#define I2C1_SCL                PB8
-#define I2C1_SDA                PB9
-#define BARO_I2C_INSTANCE       I2CDEV_1
-#define MAG_I2C_INSTANCE        I2CDEV_1
 
 #define USE_BARO
 #define USE_BARO_BMP280
