@@ -84,24 +84,6 @@ typedef struct dFilter_s {
     uint8_t smartSmoothing;
 } dFilter_t;
 
-typedef enum {
-    ANTI_GRAVITY_SMOOTH,
-    ANTI_GRAVITY_STEP
-} antiGravityMode_e;
-
-typedef enum {
-    ITERM_RELAX_OFF,
-    ITERM_RELAX_RP,
-    ITERM_RELAX_RPY,
-    ITERM_RELAX_RP_INC,
-    ITERM_RELAX_RPY_INC
-} itermRelax_e;
-
-typedef enum {
-    ITERM_RELAX_GYRO,
-    ITERM_RELAX_SETPOINT
-} itermRelaxType_e;
-
 typedef struct pidProfile_s {
     pidf_t  pid[PID_ITEM_COUNT];
     dFilter_t dFilter[3];
@@ -118,9 +100,6 @@ typedef struct pidProfile_s {
     uint8_t horizon_tilt_effect;            // inclination factor for Horizon mode
 
     // EmuFlight PID controller parameters
-    uint8_t  antiGravityMode;               // type of anti gravity method
-    uint16_t itermThrottleThreshold;        // max allowed throttle delta before iterm accelerated in ms
-    uint16_t itermAcceleratorGain;          // Iterm Accelerator Gain when itermThrottlethreshold is hit
     uint8_t feathered_pids;                 // determine how feathered your pids are
     uint8_t i_decay;						            // i-term decay (increases how quickly iterm shrinks in value)
     uint16_t errorBoost;                    // the weight of the setpoint boost
@@ -146,14 +125,6 @@ typedef struct pidProfile_s {
     uint8_t throttle_boost;                 // how much should throttle be boosted during transient changes 0-100, 100 adds 10x hpf filtered throttle
     uint8_t throttle_boost_cutoff;          // Which cutoff frequency to use for throttle boost. higher cutoffs keep the boost on for shorter. Specified in hz.
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system
-    uint8_t iterm_relax_type;               // Specifies type of relax algorithm
-    uint8_t iterm_relax_cutoff;             // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
-    uint8_t iterm_relax;                    // Enable iterm suppression during stick input
-    uint8_t abs_control_gain;               // How strongly should the absolute accumulated error be corrected for
-    uint8_t abs_control_limit;              // Limit to the correction
-    uint8_t abs_control_error_limit;        // Limit to the accumulated error
-    uint8_t use_integrated_yaw;             // Selects whether the yaw pidsum should integrated
-    uint8_t integrated_yaw_relax;           // Specifies how much integrated yaw should be reduced to offset the drag based yaw component
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
 } pidProfile_t;
@@ -193,7 +164,6 @@ extern pt1Filter_t throttleLpf;
 
 void pidResetITerm(void);
 void pidStabilisationState(pidStabilisationState_e pidControllerState);
-void pidSetItermAccelerator(float newItermAccelerator);
 void pidInitFilters(const pidProfile_t *pidProfile);
 void pidInitConfig(const pidProfile_t *pidProfile);
 void pidInit(const pidProfile_t *pidProfile);
@@ -201,9 +171,4 @@ void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex);
 bool crashRecoveryModeActive(void);
 void pidInitSetpointDerivativeLpf(uint16_t filterCutoff, uint8_t debugAxis, uint8_t filterType);
 void pidUpdateSetpointDerivativeLpf(uint16_t filterCutoff);
-void pidUpdateAntiGravityThrottleFilter(float throttle);
-bool pidOsdAntiGravityActive(void);
-bool pidOsdAntiGravityMode(void);
-void pidSetAntiGravityState(bool newState);
-bool pidAntiGravityEnabled(void);
 float pidGetPreviousSetpoint(int axis);

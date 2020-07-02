@@ -387,6 +387,8 @@ void initEscEndpoints(void)
     switch (motorConfig()->dev.motorPwmProtocol) {
 #ifdef USE_DSHOT
     case PWM_TYPE_PROSHOT1000:
+    case PWM_TYPE_DSHOT4800:
+    case PWM_TYPE_DSHOT2400:
     case PWM_TYPE_DSHOT1200:
     case PWM_TYPE_DSHOT600:
     case PWM_TYPE_DSHOT300:
@@ -872,9 +874,6 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
         }
         motorMix[i] = mix;
     }
-
-        pidUpdateAntiGravityThrottleFilter(throttle);
-
 
 #if defined(USE_THROTTLE_BOOST)
     if (throttleBoost > 0.0f) {

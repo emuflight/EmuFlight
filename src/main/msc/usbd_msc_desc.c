@@ -69,8 +69,6 @@
 #define USBD_PRODUCT_FS_STRING        "Mass Storage in FS Mode"
 #define USBD_CONFIGURATION_HS_STRING  "MSC Config"
 #define USBD_INTERFACE_HS_STRING      "MSC Interface"
-#define USBD_CONFIGURATION_FS_STRING  "MSC Config"
-#define USBD_INTERFACE_FS_STRING      "MSC Interface"
 /**
   * @}
   */
@@ -283,14 +281,9 @@ uint8_t *  USBD_MSC_SerialStrDescriptor( uint8_t speed , uint16_t *length)
 */
 uint8_t *  USBD_MSC_ConfigStrDescriptor( uint8_t speed , uint16_t *length)
 {
-  if(speed  == USB_OTG_SPEED_HIGH)
-  {
-    USBD_GetString((uint8_t *)(uint8_t *)USBD_CONFIGURATION_HS_STRING, USBD_StrDesc_MSC, length);
-  }
-  else
-  {
-    USBD_GetString((uint8_t *)(uint8_t *)USBD_CONFIGURATION_FS_STRING, USBD_StrDesc_MSC, length);
-  }
+  (void)speed;
+  USBD_GetString((uint8_t *)(uint8_t *)USBD_CONFIGURATION_HS_STRING, USBD_StrDesc_MSC, length);
+
   return USBD_StrDesc_MSC;
 }
 
@@ -304,14 +297,9 @@ uint8_t *  USBD_MSC_ConfigStrDescriptor( uint8_t speed , uint16_t *length)
 */
 uint8_t *  USBD_MSC_InterfaceStrDescriptor( uint8_t speed , uint16_t *length)
 {
-  if(speed == 0)
-  {
-    USBD_GetString((uint8_t *)(uint8_t *)USBD_INTERFACE_HS_STRING, USBD_StrDesc_MSC, length);
-  }
-  else
-  {
-    USBD_GetString((uint8_t *)(uint8_t *)USBD_INTERFACE_FS_STRING, USBD_StrDesc_MSC, length);
-  }
+  (void)speed;
+  USBD_GetString((uint8_t *)(uint8_t *)USBD_INTERFACE_HS_STRING, USBD_StrDesc_MSC, length);
+
   return USBD_StrDesc_MSC;
 }
 
@@ -381,4 +369,3 @@ static void IntToUnicode (uint32_t value , uint8_t *pbuf , uint8_t len)
   */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
-

@@ -66,6 +66,7 @@ extern "C" {
     uint16_t testBatteryVoltage = 0;
     int32_t testAmperage = 0;
     int32_t testmAhDrawn = 0;
+    uint32_t getEstimatedAltitude() { return 0; }
 
     serialPort_t *telemetrySharedPort;
     PG_REGISTER(batteryConfig_t, batteryConfig, PG_BATTERY_CONFIG, 0);
@@ -125,7 +126,7 @@ TEST(TelemetryCrsfTest, TestGPS)
     gpsSol.llh.lon = 163 * GPS_DEGREES_DIVIDER;
     ENABLE_STATE(GPS_FIX);
     gpsSol.llh.alt = 2345 * 100;              // altitude in cm
-    gpsSol.groundSpeed = 163;                 // speed in 0.1m/s, 16.3 m/s = 58.68 km/h, so CRSF (km/h *10) value is 587
+    gpsSol.groundSpeed = 1630;                 // speed in cm/s, 16.3 m/s = 58.68 km/h, so CRSF (km/h *10) value is 587
     gpsSol.numSat = 9;
     gpsSol.groundCourse = 1479;     // degrees * 10
     frameLen = getCrsfFrame(frame, CRSF_FRAMETYPE_GPS);

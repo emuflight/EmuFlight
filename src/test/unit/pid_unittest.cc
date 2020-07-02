@@ -101,9 +101,6 @@ void setDefaultTestSettings(void) {
     pidProfile->levelAngleLimit = 55;
     pidProfile->yawRateAccelLimit = 100;
     pidProfile->rateAccelLimit = 0;
-    pidProfile->antiGravityMode = ANTI_GRAVITY_SMOOTH;
-    pidProfile->itermThrottleThreshold = 250;
-    pidProfile->itermAcceleratorGain = 1000;
     pidProfile->crash_time = 500;
     pidProfile->crash_delay = 0;
     pidProfile->crash_recovery_angle = 10;
@@ -113,7 +110,7 @@ void setDefaultTestSettings(void) {
     pidProfile->crash_setpoint_threshold = 350;
     pidProfile->crash_recovery = PID_CRASH_RECOVERY_OFF;
     pidProfile->horizon_tilt_effect = 75;
-    pidProfile->horizon_tilt_expert_mode = false;
+    //pidProfile->horizon_tilt_expert_mode = false;
     pidProfile->crash_limit_yaw = 200;
     pidProfile->itermLimit = 150;
     pidProfile->throttle_boost = 0;
