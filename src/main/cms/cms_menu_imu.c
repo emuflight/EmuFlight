@@ -228,7 +228,7 @@ static OSD_Entry cmsx_menuPidEntries[] =
     { "I RELAX", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelax,  10, 100, 1 }, 0 },
     { "I RELAX YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelaxYaw,  10, 100, 1 }, 0 },
     { "I RELAX CUTOFF", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelaxCutoff,  1, 100, 1 }, 0 },
-    { "I RELAX TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)    { &rateProfile.vbat_comp_type, QUICKFLASH_COUNT - 1, cms_QuickFlashRelax}, 0 },
+    { "I RELAX TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)    { &QuickFlashRelaxType, QUICKFLASH_COUNT - 1, cms_QuickFlashRelax}, 0 },
 
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
