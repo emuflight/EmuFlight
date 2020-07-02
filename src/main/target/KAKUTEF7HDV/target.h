@@ -95,9 +95,9 @@
 
 #define SERIAL_PORT_COUNT 9 //VCP,UART1,UART2,UART3,UAER4,UART6,UART7
 
-#define USE_ESCSERIAL
+/*#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PE13 // ( Hardware=0)
-
+*/
 #define USE_SPI
 #define USE_SPI_DEVICE_1   //SD Card
 #define USE_SPI_DEVICE_2   //OSD
