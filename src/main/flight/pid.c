@@ -149,7 +149,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .setPointDTransition[PITCH] = 110,
         .setPointDTransition[YAW] = 130,
         .feathered_pids = 100,
-        .i_decay = 40,
+        .i_decay = 4,
         .errorBoost = 15,
         .errorBoostYaw = 40,
         .errorBoostLimit = 20,
@@ -426,12 +426,14 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     throttleBoost = pidProfile->throttle_boost * 0.1f;
 #endif
     itermRotation = pidProfile->iterm_rotation;
+
 #if defined(USE_ITERM_RELAX)
     itermRelax = pidProfile->iterm_relax;
     itermRelaxType = pidProfile->iterm_relax_type;
     itermRelaxCutoff = pidProfile->iterm_relax_cutoff;
 #endif
     iDecay = (float)pidProfile->i_decay / 10.0f;
+
 }
 
 void pidInit(const pidProfile_t *pidProfile)
