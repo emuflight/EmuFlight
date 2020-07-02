@@ -1331,9 +1331,14 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_roll", "%d",            currentPidProfile->dFilter[ROLL].smartSmoothing);
         BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_pitch", "%d",           currentPidProfile->dFilter[PITCH].smartSmoothing);
         BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_yaw", "%d",             currentPidProfile->dFilter[YAW].smartSmoothing);
-
         BLACKBOX_PRINT_HEADER_LINE("iterm_windup", "%d",                    currentPidProfile->itermWindupPointPercent);
-
+        BLACKBOX_PRINT_HEADER_LINE("quickflash_relax", "%d",                currentPidProfile->QuickFlashRelax);
+        BLACKBOX_PRINT_HEADER_LINE("quickflash_relax_yaw", "%d",            currentPidProfile->QuickFlashRelaxYaw);
+        BLACKBOX_PRINT_HEADER_LINE("quickflash_cutoff", "%d",               currentPidProfile->QuickFlashRelaxCutoff);
+        BLACKBOX_PRINT_HEADER_LINE("quickflash_relax_type", "%d",           currentPidProfile->QuickFlashRelaxType);
+        BLACKBOX_PRINT_HEADER_LINE("integral_half_life", "%d",              currentPidProfile->integral_half_life);
+        BLACKBOX_PRINT_HEADER_LINE("integral_half_life_yaw", "%d",          currentPidProfile->integral_half_life_yaw);
+ 
         BLACKBOX_PRINT_HEADER_LINE("pidAtMinThrottle", "%d",                currentPidProfile->pidAtMinThrottle);
 
         // EmuFlight PID controller parameters
