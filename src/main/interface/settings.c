@@ -352,6 +352,15 @@ static const char * const lookupTableVideoSystem[] = {
 };
 #endif // USE_MAX7456
 
+#if defined(USE_ITERM_RELAX)
+static const char * const lookupTableItermRelax[] = {
+    "OFF", "RP", "RPY", "RP_INC", "RPY_INC"
+};
+static const char * const lookupTableItermRelaxType[] = {
+    "GYRO", "SETPOINT"
+};
+#endif
+
 #ifdef USE_RC_SMOOTHING_FILTER
 static const char * const lookupTableRcSmoothingType[] = {
     "INTERPOLATION", "FILTER"
@@ -444,6 +453,10 @@ const lookupTableEntry_t lookupTables[] = {
 #ifdef USE_MAX7456
     LOOKUP_TABLE_ENTRY(lookupTableVideoSystem),
 #endif // USE_MAX7456
+#if defined(USE_ITERM_RELAX)
+    LOOKUP_TABLE_ENTRY(lookupTableItermRelax),
+    LOOKUP_TABLE_ENTRY(lookupTableItermRelaxType),
+#endif
 #ifdef USE_RC_SMOOTHING_FILTER
     LOOKUP_TABLE_ENTRY(lookupTableRcSmoothingType),
     LOOKUP_TABLE_ENTRY(lookupTableRcSmoothingDebug),
@@ -853,6 +866,11 @@ const clivalue_t valueTable[] = {
     { "crash_limit_yaw",            VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, crash_limit_yaw) },
     { "crash_recovery",             VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_CRASH_RECOVERY }, PG_PID_PROFILE, offsetof(pidProfile_t, crash_recovery) },
     { "iterm_rotation",             VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_rotation) },
+#if defined(USE_ITERM_RELAX)
+    { "iterm_relax",                VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ITERM_RELAX }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax) },
+    { "iterm_relax_type",           VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ITERM_RELAX_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_type) },
+    { "iterm_relax_cutoff",         VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 1, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_cutoff) },
+#endif
     { "iterm_windup",               VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 30, 99 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermWindupPointPercent) },
     { "iterm_limit",                VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 500 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermLimit) },
     { "pidsum_limit",               VAR_UINT16 | PROFILE_VALUE, .config.minmax = { PIDSUM_LIMIT_MIN, PIDSUM_LIMIT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, pidSumLimit) },
