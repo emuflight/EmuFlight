@@ -48,6 +48,8 @@ void updateArmingStatus(void);
 
 void taskMainPidLoop(timeUs_t currentTimeUs);
 bool isFlipOverAfterCrashMode(void);
+int8_t calculateThrottlePercent(void);
+uint8_t calculateThrottlePercentAbs(void);
 
 void runawayTakeoffTemporaryDisable(uint8_t disableFlag);
 bool isAirmodeActivated();
