@@ -322,7 +322,7 @@ static void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
             }
 
             // get centerFreq in Hz from weighted bins
-            float centerFreq = dynNotchMaxHz;
+            float centerFreq;
             float fftMeanIndex = 0;
             if (fftSum > 0) {
                 fftMeanIndex = (fftWeightedSum / fftSum);
