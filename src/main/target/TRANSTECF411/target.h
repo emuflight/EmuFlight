@@ -45,7 +45,7 @@
 #define BEEPER_PIN                          PB5
 #define BEEPER_INVERTED
 
-#define ENABLE_DSHOT_DMAR                   DSHOT_DMAR_ON
+#define ENABLE_DSHOT_DMAR                                true
 
 #define USE_PINIO
 #define PINIO1_PIN                          PB6         //VTX Power Switch
@@ -59,17 +59,16 @@
 #define SPI1_MISO_PIN                       PA6
 #define SPI1_MOSI_PIN                       PA7
 
-#define GYRO_1_CS_PIN                       PA4
-#define GYRO_1_SPI_INSTANCE                 SPI1
+#define MPU6000_CS_PIN                      PA4
+#define MPU6000_SPI_INSTANCE                SPI1
 
 #define USE_EXTI
-#define USE_GYRO_EXTI
-#define GYRO_1_EXTI_PIN                     PA1
+#define MPU_INT_EXTI                        PA1
 #define USE_MPU_DATA_READY_SIGNAL
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
-#define GYRO_1_ALIGN                        CW90_DEG
+#define GYRO_MPU6000_ALIGN                  CW90_DEG
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
@@ -94,8 +93,6 @@
 #define SERIALRX_UART                       SERIAL_PORT_USART1
 
 #define INVERTER_PIN_UART1                  PC13
-
-
 
 // *************** ADC *****************************
 #define USE_ADC
