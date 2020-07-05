@@ -164,6 +164,7 @@ typedef struct gyroConfig_s {
     uint8_t  gyro_hardware_lpf;                // gyro DLPF setting
 
     uint8_t  gyro_high_fsr;
+    uint8_t  gyro_use_32khz;
     uint8_t  gyro_to_use;
 
     uint16_t gyro_lowpass_hz;
@@ -192,19 +193,19 @@ typedef struct gyroConfig_s {
     uint8_t  dyn_notch_q;
     uint16_t dyn_notch_min_hz;
 
-    #if defined(USE_GYRO_IMUF9001)
-        uint16_t imuf_mode;
-        uint16_t imuf_rate;
-        uint16_t imuf_pitch_lpf_cutoff_hz;
-        uint16_t imuf_roll_lpf_cutoff_hz;
-        uint16_t imuf_yaw_lpf_cutoff_hz;
-        uint16_t imuf_acc_lpf_cutoff_hz;
-    #endif
-        uint16_t imuf_pitch_q;
-        uint16_t imuf_roll_q;
-        uint16_t imuf_yaw_q;
-        uint16_t imuf_w;
-        uint16_t imuf_sharpness;
+#if defined(USE_GYRO_IMUF9001)
+    uint16_t imuf_mode;
+    uint16_t imuf_rate;
+    uint16_t imuf_pitch_lpf_cutoff_hz;
+    uint16_t imuf_roll_lpf_cutoff_hz;
+    uint16_t imuf_yaw_lpf_cutoff_hz;
+    uint16_t imuf_acc_lpf_cutoff_hz;
+#endif
+    uint16_t imuf_pitch_q;
+    uint16_t imuf_roll_q;
+    uint16_t imuf_yaw_q;
+    uint16_t imuf_w;
+    uint16_t imuf_sharpness;
 
     uint8_t  gyro_filter_debug_axis;
 

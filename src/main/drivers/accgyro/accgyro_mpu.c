@@ -363,6 +363,15 @@ uint8_t mpuGyroDLPF(gyroDev_t *gyro)
     return ret;
 }
 
+uint8_t mpuGyroFCHOICE(gyroDev_t *gyro)
+{
+    if (gyro->gyroRateKHz == GYRO_RATE_32_kHz) {
+        return FCB_3600_32;
+    } else {
+        return FCB_DISABLED;  // Not in 32KHz mode, set FCHOICE to select 8KHz sampling
+    }
+}
+
 #ifdef USE_GYRO_REGISTER_DUMP
 uint8_t mpuGyroReadRegister(const busDevice_t *bus, uint8_t reg)
 {

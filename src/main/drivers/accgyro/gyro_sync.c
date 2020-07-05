@@ -47,11 +47,16 @@ bool gyroSyncCheckUpdate(gyroDev_t *gyro)
     return ret;
 }
 
-uint16_t gyroSetSampleRate(gyroDev_t *gyro)
+uint16_t gyroSetSampleRate(gyroDev_t *gyro, bool gyro_use_32kHz)
 {
     uint16_t gyroSampleRateHz;
     uint16_t accSampleRateHz;
 
+    if (gyro_use_32kHz) {
+               gyro->gyroRateKHz = GYRO_RATE_32_kHz;
+               gyroSampleRateHz = 32000;
+               accSampleRateHz = 1000;
+           } else {
     switch (gyro->mpuDetectionResult.sensor) {
         case BMI_160_SPI:
             gyro->gyroRateKHz = GYRO_RATE_3200_Hz;
@@ -82,6 +87,7 @@ uint16_t gyroSetSampleRate(gyroDev_t *gyro)
             gyroSampleRateHz = 8000;
             accSampleRateHz = 1000;
             break;
+       }
     }
 
     gyro->mpuDividerDrops  = 0; // we no longer use the gyro's sample divider

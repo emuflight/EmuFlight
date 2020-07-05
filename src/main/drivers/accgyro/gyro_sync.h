@@ -30,4 +30,4 @@
 #include "drivers/accgyro/accgyro.h"
 
 bool gyroSyncCheckUpdate(gyroDev_t *gyro);
-uint16_t gyroSetSampleRate(gyroDev_t *gyro);
+uint16_t gyroSetSampleRate(gyroDev_t *gyro, bool gyro_use_32kHz);
