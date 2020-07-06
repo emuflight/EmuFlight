@@ -433,6 +433,7 @@ static uint16_t gyroConfig_gyro_soft_notch_hz_2;
 static uint16_t gyroConfig_gyro_soft_notch_cutoff_2;
 static uint16_t gyroConfig_gyro_matrix_q;
 static uint16_t gyroConfig_gyro_matrix_min_hz;
+static uint16_t gyroConfig_gyro_matrix_max_hz;
 #ifndef USE_GYRO_IMUF9001
 static uint16_t gyroConfig_imuf_roll_q;
 static uint16_t gyroConfig_imuf_pitch_q;
@@ -455,6 +456,7 @@ static long cmsx_menuGyro_onEnter(void)
     gyroConfig_gyro_soft_notch_cutoff_2 = gyroConfig()->gyro_soft_notch_cutoff_2;
     gyroConfig_gyro_matrix_q = gyroConfig()->dyn_notch_q_factor;
     gyroConfig_gyro_matrix_min_hz = gyroConfig()->dyn_notch_min_hz;
+    gyroConfig_gyro_matrix_max_hz = gyroConfig()->dyn_notch_max_hz;
 
 #ifndef USE_GYRO_IMUF9001
     gyroConfig_imuf_roll_q = gyroConfig()->imuf_roll_q;
@@ -482,6 +484,7 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self)
     gyroConfigMutable()->gyro_soft_notch_cutoff_2 = gyroConfig_gyro_soft_notch_cutoff_2;
     gyroConfigMutable()->dyn_notch_q_factor = gyroConfig_gyro_matrix_q;
     gyroConfigMutable()->dyn_notch_min_hz = gyroConfig_gyro_matrix_min_hz;
+    gyroConfigMutable()->dyn_notch_max_hz = gyroConfig_gyro_matrix_max_hz;
 
 #ifndef USE_GYRO_IMUF9001
     gyroConfigMutable()->imuf_roll_q = gyroConfig_imuf_roll_q;
@@ -507,6 +510,7 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] =
 #endif
     { "MATRIX Q",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_matrix_q,            0, 1000, 1 }, 0 },
     { "MATRIX MIN HZ",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_matrix_min_hz,       30, 1000, 1 }, 0 },
+    { "MATRIX MAX HZ",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_matrix_max_hz,       200, 1000, 1 }, 0 },
     #ifndef USE_GYRO_IMUF9001
     { "IMUF W",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,                   3, 512,     1 }, 0 },
     { "ROLL Q",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,              0, 16000, 100 }, 0 },
@@ -599,7 +603,7 @@ static OSD_Entry cmsx_menuImufEntries[] =
 {
     { "-- SPRING IMU-F --", OME_Label, NULL, NULL, 0 },
     { "-- CHANGES REQUIRE REBOOT --", OME_Label, NULL, NULL, 0 },
-    { "IMUF W",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,                   3, 1024,    1 }, 0 },
+    { "IMUF W",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,                   3, 512,     1 }, 0 },
     { "ROLL Q",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,              0, 16000, 100 }, 0 },
     { "PITCH Q",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,             0, 16000, 100 }, 0 },
     { "YAW Q",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,               0, 16000, 100 }, 0 },

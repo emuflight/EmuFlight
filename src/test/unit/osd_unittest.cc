@@ -27,6 +27,8 @@ extern "C" {
 
     #include "blackbox/blackbox.h"
 
+    #include "config/feature.h"
+
     #include "pg/pg.h"
     #include "pg/pg_ids.h"
     #include "pg/rx.h"
@@ -89,6 +91,8 @@ extern "C" {
     uint16_t simulationCoreTemperature;
 }
 
+uint32_t simulationFeatureFlags = FEATURE_GPS;
+
 /* #define DEBUG_OSD */
 
 #include "unittest_macros.h"
@@ -107,6 +111,8 @@ void setDefualtSimulationState()
     simulationAltitude = 0;
     simulationVerticalSpeed = 0;
     simulationCoreTemperature = 0;
+
+    simulationTime = 0;
 }
 
 /*
@@ -171,6 +177,64 @@ void doTestDisarm()
     if (isSomeStatEnabled()) {
         displayPortTestBufferSubstring(2, 2, "  --- STATS ---");
     }
+}
+
+void setupStats(void)
+{
+    // this set of enabled post flight statistics
+    osdStatSetState(OSD_STAT_MAX_SPEED, true);
+    osdStatSetState(OSD_STAT_MIN_BATTERY, true);
+    osdStatSetState(OSD_STAT_MIN_RSSI, true);
+    osdStatSetState(OSD_STAT_MAX_CURRENT, false);
+    osdStatSetState(OSD_STAT_USED_MAH, false);
+    osdStatSetState(OSD_STAT_MAX_ALTITUDE, true);
+    osdStatSetState(OSD_STAT_BLACKBOX, false);
+    osdStatSetState(OSD_STAT_END_BATTERY, true);
+    osdStatSetState(OSD_STAT_TIMER_1, true);
+    osdStatSetState(OSD_STAT_TIMER_2, true);
+    osdStatSetState(OSD_STAT_RTC_DATE_TIME, true);
+    osdStatSetState(OSD_STAT_MAX_DISTANCE, true);
+    osdStatSetState(OSD_STAT_BLACKBOX_NUMBER, false);
+}
+
+void simulateFlight(void)
+{
+    // these conditions occur during flight
+
+    // this RTC time
+    dateTime_t dateTime;
+    dateTime.year = 2017;
+    dateTime.month = 11;
+    dateTime.day = 19;
+    dateTime.hours = 10;
+    dateTime.minutes = 12;
+    dateTime.seconds = 0;
+    dateTime.millis = 0;
+    rtcSetDateTime(&dateTime);
+
+    rssi = 1024;
+    gpsSol.groundSpeed = 500;
+    GPS_distanceToHome = 20;
+    simulationBatteryVoltage = 158;
+    simulationAltitude = 100;
+    simulationTime += 1e6;
+    osdRefresh(simulationTime);
+
+    rssi = 512;
+    gpsSol.groundSpeed = 800;
+    GPS_distanceToHome = 50;
+    simulationBatteryVoltage = 147;
+    simulationAltitude = 150;
+    simulationTime += 1e6;
+    osdRefresh(simulationTime);
+
+    rssi = 256;
+    gpsSol.groundSpeed = 200;
+    GPS_distanceToHome = 100;
+    simulationBatteryVoltage = 152;
+    simulationAltitude = 200;
+    simulationTime += 1e6;
+    osdRefresh(simulationTime);
 }
 
 /*
@@ -289,20 +353,7 @@ TEST(OsdTest, TestDisarmWithDismissStats)
 TEST(OsdTest, TestStatsImperial)
 {
     // given
-    // this set of enabled post flight statistics
-    osdStatSetState(OSD_STAT_MAX_SPEED, true);
-    osdStatSetState(OSD_STAT_MIN_BATTERY, true);
-    osdStatSetState(OSD_STAT_MIN_RSSI, true);
-    osdStatSetState(OSD_STAT_MAX_CURRENT, false);
-    osdStatSetState(OSD_STAT_USED_MAH, false);
-    osdStatSetState(OSD_STAT_MAX_ALTITUDE, true);
-    osdStatSetState(OSD_STAT_BLACKBOX, false);
-    osdStatSetState(OSD_STAT_END_BATTERY, true);
-    osdStatSetState(OSD_STAT_TIMER_1, true);
-    osdStatSetState(OSD_STAT_TIMER_2, true);
-    osdStatSetState(OSD_STAT_RTC_DATE_TIME, true);
-    osdStatSetState(OSD_STAT_MAX_DISTANCE, true);
-    osdStatSetState(OSD_STAT_BLACKBOX_NUMBER, false);
+    setupStats();
 
     // and
     // using imperial unit system
@@ -320,47 +371,12 @@ TEST(OsdTest, TestStatsImperial)
     // a GPS fix is present
     stateFlags |= GPS_FIX | GPS_FIX_HOME;
 
-    // and
-    // this RTC time
-    dateTime_t dateTime;
-    dateTime.year = 2017;
-    dateTime.month = 11;
-    dateTime.day = 19;
-    dateTime.hours = 10;
-    dateTime.minutes = 12;
-    dateTime.seconds = 0;
-    dateTime.millis = 0;
-    rtcSetDateTime(&dateTime);
-
     // when
     // the craft is armed
     doTestArm();
 
     // and
-    // these conditions occur during flight
-    rssi = 1024;
-    gpsSol.groundSpeed = 500;
-    GPS_distanceToHome = 20;
-    simulationBatteryVoltage = 158;
-    simulationAltitude = 100;
-    simulationTime += 1e6;
-    osdRefresh(simulationTime);
-
-    rssi = 512;
-    gpsSol.groundSpeed = 800;
-    GPS_distanceToHome = 50;
-    simulationBatteryVoltage = 147;
-    simulationAltitude = 150;
-    simulationTime += 1e6;
-    osdRefresh(simulationTime);
-
-    rssi = 256;
-    gpsSol.groundSpeed = 200;
-    GPS_distanceToHome = 100;
-    simulationBatteryVoltage = 152;
-    simulationAltitude = 200;
-    simulationTime += 1e6;
-    osdRefresh(simulationTime);
+    simulateFlight();
 
     // and
     // the craft is disarmed
@@ -377,7 +393,7 @@ TEST(OsdTest, TestStatsImperial)
     displayPortTestBufferSubstring(2, row++, "MIN BATTERY       : 14.7%c", SYM_VOLT);
     displayPortTestBufferSubstring(2, row++, "END BATTERY       : 15.2%c", SYM_VOLT);
     displayPortTestBufferSubstring(2, row++, "MIN RSSI          : 25%%");
-    displayPortTestBufferSubstring(2, row++, "MAX ALTITUDE      :    6.5%c", SYM_FT);
+    displayPortTestBufferSubstring(2, row++, "MAX ALTITUDE      : 6.5%c", SYM_FT);
 }
 
 /*
@@ -387,31 +403,30 @@ TEST(OsdTest, TestStatsImperial)
 TEST(OsdTest, TestStatsMetric)
 {
     // given
+    setupStats();
+
+    // and
     // using metric unit system
     osdConfigMutable()->units = OSD_UNIT_METRIC;
 
     // and
-    // default state values are set
-    setDefualtSimulationState();
+    // this timer 1 configuration
+    osdConfigMutable()->timers[OSD_TIMER_1] = OSD_TIMER(OSD_TIMER_SRC_TOTAL_ARMED, OSD_TIMER_PREC_HUNDREDTHS, 0);
+
+    // and
+    // this timer 2 configuration
+    osdConfigMutable()->timers[OSD_TIMER_2] = OSD_TIMER(OSD_TIMER_SRC_LAST_ARMED, OSD_TIMER_PREC_SECOND, 0);
+
+    // and
+    // a GPS fix is present
+    stateFlags |= GPS_FIX | GPS_FIX_HOME;
 
     // when
     // the craft is armed
     doTestArm();
 
     // and
-    // these conditions occur during flight (simplified to less assignments than previous test)
-    rssi = 256;
-    gpsSol.groundSpeed = 800;
-    GPS_distanceToHome = 100;
-    simulationBatteryVoltage = 147;
-    simulationAltitude = 200;
-    simulationTime += 1e6;
-    osdRefresh(simulationTime);
-    osdRefresh(simulationTime);
-
-    simulationBatteryVoltage = 152;
-    simulationTime += 1e6;
-    osdRefresh(simulationTime);
+    simulateFlight();
 
     // and
     // the craft is disarmed
@@ -421,14 +436,14 @@ TEST(OsdTest, TestStatsMetric)
     // statistics screen should display the following
     int row = 3;
     displayPortTestBufferSubstring(2, row++, "2017-11-19 10:12:");
-    displayPortTestBufferSubstring(2, row++, "TOTAL ARM         : 00:07.50");
-    displayPortTestBufferSubstring(2, row++, "LAST ARM          : 00:02");
+    displayPortTestBufferSubstring(2, row++, "TOTAL ARM         : 00:08.50");
+    displayPortTestBufferSubstring(2, row++, "LAST ARM          : 00:03");
     displayPortTestBufferSubstring(2, row++, "MAX SPEED         : 28");
     displayPortTestBufferSubstring(2, row++, "MAX DISTANCE      : 100%c", SYM_M);
     displayPortTestBufferSubstring(2, row++, "MIN BATTERY       : 14.7%c", SYM_VOLT);
     displayPortTestBufferSubstring(2, row++, "END BATTERY       : 15.2%c", SYM_VOLT);
     displayPortTestBufferSubstring(2, row++, "MIN RSSI          : 25%%");
-    displayPortTestBufferSubstring(2, row++, "MAX ALTITUDE      :    2.0%c", SYM_M);
+    displayPortTestBufferSubstring(2, row++, "MAX ALTITUDE      : 2.0%c", SYM_M);
 }
 
 /*
@@ -475,6 +490,11 @@ TEST(OsdTest, TestAlarms)
     osdConfigMutable()->units = OSD_UNIT_METRIC;
 
     // when
+    // time is passing by
+    simulationTime += 60e6;
+    osdRefresh(simulationTime);
+
+    // when
     // the craft is armed
     doTestArm(false);
 
@@ -492,7 +512,7 @@ TEST(OsdTest, TestAlarms)
         displayPortTestBufferSubstring(12, 1, "%c16.8%c", SYM_BATT_FULL, SYM_VOLT);
         displayPortTestBufferSubstring(1,  1, "%c00:", SYM_FLY_M); // only test the minute part of the timer
         displayPortTestBufferSubstring(20, 1, "%c01:", SYM_ON_M); // only test the minute part of the timer
-        displayPortTestBufferSubstring(23, 7, "    .0%c", SYM_M);
+        displayPortTestBufferSubstring(23, 7, "%c0.0%c", SYM_ALT, SYM_M);
     }
 
     // when
@@ -521,7 +541,7 @@ TEST(OsdTest, TestAlarms)
             displayPortTestBufferSubstring(12, 1, "%c13.5%c", SYM_MAIN_BATT, SYM_VOLT);
             displayPortTestBufferSubstring(1,  1, "%c01:", SYM_FLY_M); // only test the minute part of the timer
             displayPortTestBufferSubstring(20, 1, "%c02:", SYM_ON_M); // only test the minute part of the timer
-            displayPortTestBufferSubstring(23, 7, " 120.0%c", SYM_M);
+            displayPortTestBufferSubstring(23, 7, "%c120.0%c", SYM_ALT, SYM_M);
         } else {
             displayPortTestBufferIsEmpty();
         }
@@ -724,7 +744,7 @@ TEST(OsdTest, TestElementAltitude)
     osdRefresh(simulationTime);
 
     // then
-    displayPortTestBufferSubstring(23, 7, "-       ");
+    displayPortTestBufferSubstring(23, 7, "%c", SYM_QUES);
 
     // when
     sensorsSet(SENSOR_GPS);
@@ -732,7 +752,7 @@ TEST(OsdTest, TestElementAltitude)
     osdRefresh(simulationTime);
 
     // then
-    displayPortTestBufferSubstring(23, 7, "    .0%c", SYM_M);
+    displayPortTestBufferSubstring(23, 7, "%c0.0%c", SYM_ALT, SYM_M);
 
     // when
     simulationAltitude = 247;
@@ -740,7 +760,7 @@ TEST(OsdTest, TestElementAltitude)
     osdRefresh(simulationTime);
 
     // then
-    displayPortTestBufferSubstring(23, 7, "   2.4%c", SYM_M);
+    displayPortTestBufferSubstring(23, 7, "%c2.4%c", SYM_ALT, SYM_M);
 
     // when
     simulationAltitude = 4247;
@@ -748,7 +768,7 @@ TEST(OsdTest, TestElementAltitude)
     osdRefresh(simulationTime);
 
     // then
-    displayPortTestBufferSubstring(23, 7, "  42.4%c", SYM_M);
+    displayPortTestBufferSubstring(23, 7, "%c42.4%c", SYM_ALT, SYM_M);
 
     // when
     simulationAltitude = -247;
@@ -756,7 +776,7 @@ TEST(OsdTest, TestElementAltitude)
     osdRefresh(simulationTime);
 
     // then
-    displayPortTestBufferSubstring(23, 7, "  -2.4%c", SYM_M);
+    displayPortTestBufferSubstring(23, 7, "%c-2.4%c", SYM_ALT, SYM_M);
 
     // when
     simulationAltitude = -70;
@@ -764,7 +784,7 @@ TEST(OsdTest, TestElementAltitude)
     osdRefresh(simulationTime);
 
     // then
-    displayPortTestBufferSubstring(23, 7, "   -.7%c", SYM_M);
+    displayPortTestBufferSubstring(23, 7, "%c-0.7%c", SYM_ALT, SYM_M);
 }
 
 /*
@@ -786,7 +806,7 @@ TEST(OsdTest, TestElementCoreTemperature)
     osdRefresh(simulationTime);
 
     // then
-    displayPortTestBufferSubstring(1, 8, "  0C");
+    displayPortTestBufferSubstring(1, 8, "%c  0", SYM_TEMPERATURE);
 
     // given
     simulationCoreTemperature = 33;
@@ -796,7 +816,7 @@ TEST(OsdTest, TestElementCoreTemperature)
     osdRefresh(simulationTime);
 
     // then
-    displayPortTestBufferSubstring(1, 8, " 33C");
+    displayPortTestBufferSubstring(1, 8, "%c 33", SYM_TEMPERATURE);
 
     // given
     osdConfigMutable()->units = OSD_UNIT_IMPERIAL;
@@ -806,7 +826,7 @@ TEST(OsdTest, TestElementCoreTemperature)
     osdRefresh(simulationTime);
 
     // then
-    displayPortTestBufferSubstring(1, 8, " 91F");
+    displayPortTestBufferSubstring(1, 8, "%c 91", SYM_TEMPERATURE);
 }
 
 /*
@@ -960,6 +980,8 @@ TEST(OsdTest, TestConvertTemperatureUnits)
 
 // STUBS
 extern "C" {
+    bool featureIsEnabled(uint32_t f) { return simulationFeatureFlags & f; }
+
     void beeperConfirmationBeeps(uint8_t) {}
 
     bool isModeActivationConditionPresent(boxId_e) {
