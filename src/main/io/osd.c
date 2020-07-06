@@ -145,6 +145,8 @@ static statistic_t stats;
 timeUs_t resumeRefreshAt = 0;
 #define REFRESH_1S    1000 * 1000
 
+char djiWarningBuffer[12];
+
 static uint8_t armState;
 static bool lastArmState;
 
@@ -407,14 +409,13 @@ static void osdFormatMessage(char *buff, size_t size, const char *message)
         memcpy(buff, message, strlen(message));
     }
 
-    // Save warning into pilotConfig->warning, used for DJI OSD
-    // stored into another field for saving original pilot name
-    // works if osd_warning_enabled is on, osd warnings is enabled and usb is not connected
+    // Write warning for DJI
     if (osdWarnDjiEnabled()) {
         if (message) {
-            tfp_sprintf(pilotConfigMutable()->warning, message);
+            tfp_sprintf(djiWarningBuffer, message);
         } else {
-            tfp_sprintf(pilotConfigMutable()->warning, " ");
+            // Set an empty string, because if the warning is NULL, DJI will display CRAFT_NAME
+            tfp_sprintf(djiWarningBuffer, "           ");
         }
     }
 

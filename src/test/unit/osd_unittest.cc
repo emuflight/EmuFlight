@@ -60,6 +60,8 @@ extern "C" {
     void osdFormatTime(char * buff, osd_timer_precision_e precision, timeUs_t time);
     void osdFormatTimer(char *buff, bool showSymbol, int timerIndex);
     int osdConvertTemperatureToSelectedUnit(int tempInDegreesCelcius);
+    bool usbCableIsInserted(void) { return false; }
+    bool usbVcpIsConnected(void) { return false; }
 
     uint16_t rssi;
     attitudeEulerAngles_t attitude;
@@ -929,7 +931,7 @@ TEST(OsdTest, TestElementWarningDJIDisabled)
     // then
     displayPortTestBufferSubstring(9, 9, "CRAFT_NAME");
     displayPortTestBufferSubstring(9, 10, "             ");
-    EXPECT_EQ(0, pilotConfig()->warning[0]);
+    EXPECT_EQ(0, djiWarningBuffer[0]);
 }
 
 /*
@@ -953,7 +955,7 @@ TEST(OsdTest, TestElementWarningDJIEnabled)
     // then
     char stringLow[12] = "LOW BATTERY";
     for (int i = 0; i < 12; i++) {
-        EXPECT_EQ(stringLow[i], pilotConfig()->warning[i]);
+        EXPECT_EQ(stringLow[i], djiWarningBuffer[i]);
     }
 
     // given
@@ -966,9 +968,9 @@ TEST(OsdTest, TestElementWarningDJIEnabled)
     osdRefresh(simulationTime);
 
     // then
-    const char stringEmpty[12] = " ";
+    const char stringEmpty[12] = "           ";
     for (int i = 0; i < 12; i++) {
-        EXPECT_EQ(stringEmpty[i], pilotConfig()->warning[i]);
+        EXPECT_EQ(stringEmpty[i], djiWarningBuffer[i]);
     }
 }
 
