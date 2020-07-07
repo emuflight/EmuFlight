@@ -377,6 +377,9 @@ targets-group-1: $(GROUP_1_TARGETS)
 ## targets-group-2   : build some targets
 targets-group-2: $(GROUP_2_TARGETS)
 
+## targets-group-3   : build some targets
+targets-group-3: $(GROUP_3_TARGETS)
+
 ## targets-group-rest: build the rest of the targets (not listed in group 1, 2 or 3)
 targets-group-rest: $(GROUP_OTHER_TARGETS)
 
