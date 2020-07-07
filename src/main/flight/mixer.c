@@ -78,6 +78,7 @@ PG_RESET_TEMPLATE(mixerConfig_t, mixerConfig,
     .yaw_motors_reversed = false,
     .crashflip_motor_percent = 0,
     .crashflip_power_percent = 70,
+    .motor_mix_change_limit = 100,
 );
 
 PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 1);
@@ -540,6 +541,8 @@ static FAST_RAM_ZERO_INIT float motorRangeMin;
 static FAST_RAM_ZERO_INIT float motorRangeMax;
 static FAST_RAM_ZERO_INIT float motorOutputRange;
 static FAST_RAM_ZERO_INIT int8_t motorOutputMixSign;
+static FAST_RAM_ZERO_INIT float motor_limited[MAX_SUPPORTED_MOTORS];
+
 
 static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs)
 {
@@ -751,40 +754,21 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
                 motorOutput = disarmMotorOutput;
             }
         }
-        motor[i] = motorOutput;
-    }
 
-// float difference;
-// float looptimeAccounter;
-// looptimeAccounter = gyro.targetLooptime * pidConfig()->pid_process_denom;
-//     for (int motorNum = 0; motorNum < motorCount; motorNum++)
-// {
-//   difference = fabsf(motor[motorNum] - previousMotor[motorNum]);
-//   if (difference <= (looptimeAccounter * motorOutputRange * 0.00002f))
-//   {
-//     motor[motorNum] = previousMotor[motorNum];
-//   }
-//   else
-//   {
-//     if (difference > (looptimeAccounter * motorOutputRange * 0.00040f))
-//     {
-//       if (motor[motorNum] > previousMotor[motorNum])
-//       {
-//         motor[motorNum] = previousMotor[motorNum] + (looptimeAccounter * motorOutputRange * 0.00040f); /* increase by max 5% every ms */
-//         previousMotor[motorNum] = motor[motorNum];
-//       }
-//       else
-//       {
-//         motor[motorNum] = previousMotor[motorNum] - (looptimeAccounter * motorOutputRange * 0.00040f); /* decrease by max 5% every ms */
-//         previousMotor[motorNum] = motor[motorNum];
-//       }
-//     }
-//     else
-//     {
-//       previousMotor[motorNum] = motor[motorNum];
-//     }
-//   }
-// }
+        if (mixerConfig()->motor_mix_change_limit != 0) {
+            const float motor_delta_limit = (1.0f + fabsf(motor_limited[i])) * (float)mixerConfig()->motor_mix_change_limit * targetPidLooptime * 1e-6f;
+            float motor_abs_delta = fabsf(motorOutput - motor_limited[i]);
+            if (motor_abs_delta > motor_delta_limit) {
+                motor_abs_delta = motor_delta_limit;
+            }
+            if (motorOutput > motor_limited[i]) {
+                motor_limited[i] += motor_abs_delta;
+            } else {
+                motor_limited[i] -= motor_abs_delta;
+            }
+          motor[i] = motor_limited[i];
+        }
+    }
 
     // Disarmed mode
     if (!ARMING_FLAG(ARMED)) {
