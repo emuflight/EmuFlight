@@ -104,7 +104,7 @@
 #define SERIAL_PORT_COUNT 9 //VCP,UART1,UART2,UART3,UAER4,UART6,UART7
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_PIN  PE13 // ( Hardware=0)
+//#define ESCSERIAL_TIMER_TX_PIN  PE13 // ( Hardware=0)
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1   //SD Card
@@ -160,9 +160,7 @@
 #define I2C1_SDA                PB7
 
 #define USE_BARO
-#if !defined(KAKUTEF7V2)
 #define USE_BARO_BMP280
-#endif
 #define BARO_I2C_INSTANCE     I2C_DEVICE
 
 #define USE_MAG
