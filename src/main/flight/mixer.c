@@ -78,7 +78,7 @@ PG_RESET_TEMPLATE(mixerConfig_t, mixerConfig,
     .yaw_motors_reversed = false,
     .crashflip_motor_percent = 0,
     .crashflip_power_percent = 70,
-    .motor_mix_change_limit = 100,
+    .motor_mix_change_limit = 150,
 );
 
 PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 1);
