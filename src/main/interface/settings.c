@@ -186,7 +186,7 @@ static const char * const lookupTableGPSSBASMode[] = {
 
 #ifdef USE_SERVOS
 static const char * const lookupTableGimbalMode[] = {
-    "NORMAL", "MIXTILT"
+    "NORMAL", "MIXTILT", "CINEMATIC"
 };
 #endif
 

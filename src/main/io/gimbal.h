@@ -24,10 +24,11 @@
 
 typedef enum {
     GIMBAL_MODE_NORMAL = 0,
-    GIMBAL_MODE_MIXTILT = 1
+    GIMBAL_MODE_MIXTILT = 1,
+    GIMBAL_MODE_CINEMATIC = 2
 } gimbalMode_e;
 
-#define GIMBAL_MODE_MAX (GIMBAL_MODE_MIXTILT)
+#define GIMBAL_MODE_MAX (GIMBAL_MODE_CINEMATIC)
 
 typedef struct gimbalConfig_s {
     uint8_t mode;
