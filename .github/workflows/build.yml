@@ -14,9 +14,9 @@ jobs:
   build:
     timeout-minutes: 75
     strategy:
-      max-parallel: 3
+      max-parallel: 4
       matrix:
-        targets: [targets-group-1, targets-group-2, targets-group-rest]
+        targets: [targets-group-1, targets-group-2, targets-group-3, targets-group-rest]
     runs-on: ubuntu-latest
     steps:
 
