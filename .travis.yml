@@ -5,9 +5,8 @@ env:
   matrix:
     - GOAL=targets-group-1 # make all (in parallel)
     - GOAL=targets-group-2
+    - GOAL=targets-group-3
     - GOAL=targets-group-rest
-    # - GOAL=FURYF4OSD
-    # - GOAL=MATEKF411
   global:
     # - DEBUG=RELWITHDEBINFO # debug symbols
     - CCACHE_SLOPPINESS="file_macro,time_macros,include_file_mtime,include_file_ctime,file_stat_matches"
@@ -16,7 +15,7 @@ env:
     - PATH="$HOME/.local/bin:$PATH" # "user" installs (pip and stuff)
 
 git:
-  depth: 5 # quick clone
+  depth: 20 # semi-quick clone
   quiet: true # save on logfiles
 
 addons:
