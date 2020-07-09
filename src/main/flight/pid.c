@@ -178,6 +178,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .QuickFlashRelaxCutoff = 11,
         .QuickFlashRelaxType = HARDFLEX,
         .itermWindupPointPercent = 70,
+        .iDecayV2 = true,
+        .iDecayCutoff = 100,
     );
 }
 
@@ -713,8 +715,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             const float QuickFlashFactor = MAX(1 - QuickFlashHpf / pidProfile->QuickFlashRelax, 0.0f);
             const float QuickFlashFactorYaw = MAX(1 - QuickFlashHpf / pidProfile->QuickFlashRelaxYaw, 0.0f);
 
-            if (SIGN(iterm) != SIGN(itermErrorRate)) {
-                // Do Nothing, use the precalculed itermErrorRate
+            if (SIGN(iterm) == SIGN(itermErrorRate)) {
                 switch (QuickFlashRelaxType) {
                 case HARDFLEX:
                 case UNICORN:
@@ -739,10 +740,15 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         pidData[axis].P = (pidCoefficient[axis].Kp * (errorRateBoosted)) * vbatCompensationFactor;
 
         // -----calculate I component
+        float iDecayMultiplier = iDecay;
         float ITermNew = pidCoefficient[axis].Ki * (itermErrorRate) * dynCi;
         if (ITermNew != 0.0f) {
             if (SIGN(iterm) != SIGN(ITermNew)) {
-            	  const float newVal = ITermNew * iDecay;
+                if (pidProfile->iDecayV2 == true) {
+                    // at low iterm iDecayMultiplier will be 1 and at high iterm it will be equivilant to iDecay
+                    iDecayMultiplier = 1.0f + (iDecay - 1.0f) * constrainf(iterm / pidProfile->iDecayCutoff, 0.0f, 1.0f);
+                }
+            	  const float newVal = ITermNew * iDecayMultiplier;
             	  if (fabs(iterm) > fabs(newVal)) {
                 		ITermNew = newVal;
             	  }

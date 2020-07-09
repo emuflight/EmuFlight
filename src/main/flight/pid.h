@@ -134,7 +134,9 @@ typedef struct pidProfile_s {
     uint8_t QuickFlashRelaxYaw;             // Enable iterm suppression during error input
     uint8_t QuickFlashRelaxCutoff;          // This cutoff frequency specifies a low pass filter which predicts average response of the quad to error
     uint8_t QuickFlashRelaxType;            // Specifies type of relax algorithm
-    uint8_t itermWindupPointPercent;
+    uint8_t itermWindupPointPercent;        // What value of motor saturation will iterm be clamped?
+    uint8_t iDecayV2;                       // What version of idecay will you use?
+    uint8_t iDecayCutoff;                   // Iterm value above which iDecayV2 has full effect
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE

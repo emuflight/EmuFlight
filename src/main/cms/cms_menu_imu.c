@@ -73,6 +73,8 @@ static uint8_t QuickFlashRelaxYaw;
 static uint8_t QuickFlashRelaxCutoff;
 static uint8_t QuickFlashRelaxType;
 static uint8_t itermWindup;
+static uint8_t iDecayV2;
+static uint8_t iDecayCutoff;
 
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
@@ -138,10 +140,11 @@ static long cmsx_rateProfileIndexOnChange(displayPort_t *displayPort, const void
     return 0;
 }
 
-static long cmsx_PidRead(void)
+static long cmsx_PidAdvancedRead(void)
 {
 
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
+
     feathered_pids = pidProfile->feathered_pids;
     i_decay = pidProfile->i_decay;
     errorBoost = pidProfile->errorBoost;
@@ -155,6 +158,90 @@ static long cmsx_PidRead(void)
     QuickFlashRelaxCutoff = pidProfile->QuickFlashRelaxCutoff;
     QuickFlashRelaxType = pidProfile->QuickFlashRelaxType;
     itermWindup = pidProfile->itermWindupPointPercent;
+    iDecayV2 = pidProfile->iDecayV2;
+    iDecayCutoff = pidProfile->iDecayCutoff;
+
+    return 0;
+}
+
+static long cmsx_PidAdvancedOnEnter(void)
+{
+    pidProfileIndexString[1] = '0' + tmpPidProfileIndex;
+    cmsx_PidAdvancedRead();
+
+    return 0;
+}
+
+static long cmsx_PidAdvancedWriteback(const OSD_Entry *self)
+{
+    UNUSED(self);
+
+    pidProfile_t *pidProfile = currentPidProfile;
+
+    pidProfile->feathered_pids = feathered_pids;
+    pidProfile->errorBoost = errorBoost;
+    pidProfile->errorBoostLimit = errorBoostLimit;
+    pidProfile->errorBoostYaw = errorBoostYaw;
+    pidProfile->errorBoostLimitYaw = errorBoostLimitYaw;
+    pidProfile->i_decay = i_decay;
+    pidProfile->integral_half_life = integralHalfLife;
+    pidProfile->integral_half_life_yaw = integralHalfLifeYaw;
+    pidProfile->QuickFlashRelax = QuickFlashRelax;
+    pidProfile->QuickFlashRelaxYaw = QuickFlashRelaxYaw;
+    pidProfile->QuickFlashRelaxCutoff = QuickFlashRelaxCutoff;
+    pidProfile->QuickFlashRelaxType = QuickFlashRelaxType;
+    pidProfile->itermWindupPointPercent = itermWindup;
+    pidProfile->iDecayV2 = iDecayV2;
+    pidProfile->iDecayCutoff = iDecayCutoff;
+    pidInitConfig(currentPidProfile);
+
+    return 0;
+}
+
+static OSD_Entry cmsx_menuPidAdvancedEntries[] =
+{
+    { "-- ADVANCED PIDS --", OME_Label, NULL, pidProfileIndexString, 0},
+
+    { "FEATHERED",         OME_UINT8,  NULL, &(OSD_UINT8_t){ &feathered_pids,           0, 100, 1}, 0 },
+
+    { "EMU BOOST",         OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,              0,  2000,  5}, 0 },
+    { "BOOST LIMIT",       OME_UINT8,  NULL, &(OSD_UINT8_t) { &errorBoostLimit,         0,  250,  1}, 0 },
+    { "EMU BOOST YAW",     OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoostYaw,           0,  2000,  5}, 0 },
+    { "BOOST LIMIT YAW",   OME_UINT8,  NULL, &(OSD_UINT8_t) { &errorBoostLimitYaw,      0,  250,  1}, 0 },
+
+    { "I DECAY",           OME_UINT8,  NULL, &(OSD_UINT8_t) { &i_decay,                 1, 50, 1 }, 0 },
+    { "I DECAY CUTOFF",    OME_UINT8,  NULL, &(OSD_UINT8_t) { &iDecayCutoff,            10, 250, 1 }, 0 },
+    { "IDECAY V2",         OME_TAB,    NULL, &(OSD_TAB_t)   { &iDecayV2,                1, cms_offOnLabels }, 0 },
+
+    { "I HALF LIFE",       OME_UINT8,  NULL, &(OSD_UINT8_t) { &integralHalfLife,        0, 100, 1 }, 0 },
+    { "I HALF LIFE YAW",   OME_UINT8,  NULL, &(OSD_UINT8_t) { &integralHalfLifeYaw,     0, 100, 1 }, 0 },
+
+    { "I RELAX",           OME_UINT8,  NULL, &(OSD_UINT8_t) { &QuickFlashRelax,         10, 100, 1 }, 0 },
+    { "I RELAX YAW",       OME_UINT8,  NULL, &(OSD_UINT8_t) { &QuickFlashRelaxYaw,      10, 100, 1 }, 0 },
+    { "I RELAX CUTOFF",    OME_UINT8,  NULL, &(OSD_UINT8_t) { &QuickFlashRelaxCutoff,   1, 100, 1 }, 0 },
+    { "I RELAX TYPE",      OME_TAB,    NULL, &(OSD_TAB_t)   { &QuickFlashRelaxType,     QUICKFLASH_COUNT - 1, cms_QuickFlashRelax}, 0 },
+
+    { "I WINDUP",          OME_UINT8,  NULL, &(OSD_UINT8_t) { &itermWindup,             0, 100, 1}, 0},
+
+    { "SAVE&EXIT",         OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
+    { "BACK",              OME_Back, NULL, NULL, 0 },
+    { NULL,                OME_END, NULL, NULL, 0 }
+};
+
+static CMS_Menu cmsx_menuPidAdvanced = {
+#ifdef CMS_MENU_DEBUG
+    .GUARD_text = "XPIDADVANCED",
+    .GUARD_type = OME_MENU,
+#endif
+    .onEnter = cmsx_PidAdvancedOnEnter,
+    .onExit = cmsx_PidAdvancedWriteback,
+    .entries = cmsx_menuPidAdvancedEntries
+};
+
+static long cmsx_PidRead(void)
+{
+
+    const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
     for (uint8_t i = 0; i < 3; i++) {
         tempPid[i][0] = pidProfile->pid[i].P;
         tempPid[i][1] = pidProfile->pid[i].I;
@@ -182,19 +269,6 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
         pidProfile->pid[i].I = tempPid[i][1];
         pidProfile->pid[i].D = tempPid[i][2];
     }
-    pidProfile->feathered_pids = feathered_pids;
-    pidProfile->errorBoost = errorBoost;
-    pidProfile->errorBoostLimit = errorBoostLimit;
-    pidProfile->errorBoostYaw = errorBoostYaw;
-    pidProfile->errorBoostLimitYaw = errorBoostLimitYaw;
-    pidProfile->i_decay = i_decay;
-    pidProfile->integral_half_life = integralHalfLife;
-    pidProfile->integral_half_life_yaw = integralHalfLifeYaw;
-    pidProfile->QuickFlashRelax = QuickFlashRelax;
-    pidProfile->QuickFlashRelaxYaw = QuickFlashRelaxYaw;
-    pidProfile->QuickFlashRelaxCutoff = QuickFlashRelaxCutoff;
-    pidProfile->QuickFlashRelaxType = QuickFlashRelaxType;
-    pidProfile->itermWindupPointPercent = itermWindup;
     pidInitConfig(currentPidProfile);
 
     return 0;
@@ -204,10 +278,7 @@ static OSD_Entry cmsx_menuPidEntries[] =
 {
     { "-- EMUFLIGHT PIDS --", OME_Label, NULL, pidProfileIndexString, 0},
 
-    { "FEATHERED", OME_UINT8, NULL, &(OSD_UINT8_t){ &feathered_pids,         0, 100, 1}, 0 },
-
-    { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,        0,  1000,  5}, 0 },
-    { "BOOST LIMIT", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,   0,  250,  1}, 0 },
+    {"PID ADVANCED", OME_Submenu, cmsMenuChange, &cmsx_menuPidAdvanced, 0},
 
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
@@ -220,19 +291,6 @@ static OSD_Entry cmsx_menuPidEntries[] =
     { "YAW   P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][0],   0, 200, 1 }, 0 },
     { "YAW   I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][1],   0, 200, 1 }, 0 },
     { "YAW   D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][2],   0, 200, 1 }, 0 },
-    { "EMU BOOST YAW", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoostYaw,        0,  1000,  5}, 0 },
-    { "BOOST LIMIT YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimitYaw,   0,  250,  1}, 0 },
-
-    { "I DECAY", OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,  1, 10, 1 }, 0 },
-
-    { "I HALF LIFE", OME_UINT8, NULL, &(OSD_UINT8_t){ &integralHalfLife,  0, 100, 1 }, 0 },
-    { "I HALF LIFE YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &integralHalfLifeYaw,  0, 100, 1 }, 0 },
-
-    { "I RELAX", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelax,  10, 100, 1 }, 0 },
-    { "I RELAX YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelaxYaw,  10, 100, 1 }, 0 },
-    { "I RELAX CUTOFF", OME_UINT8, NULL, &(OSD_UINT8_t){ &QuickFlashRelaxCutoff,  1, 100, 1 }, 0 },
-    { "I RELAX TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)    { &QuickFlashRelaxType, QUICKFLASH_COUNT - 1, cms_QuickFlashRelax}, 0 },
-    { "I WINDUP", OME_UINT8, NULL, &(OSD_UINT8_t){ &itermWindup, 0, 100, 1}, 0},
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
@@ -426,7 +484,7 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "ANGLE D HIGH",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_D_angle_high,              0,    200,   1  }   , 0 },
     { "ANGLE F",         OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_F_angle,                   0,    2000,  1  }   , 0 },
     { "HORZN TRS",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonTransition,         0,    200,   1  }   , 0 },
-    { "NFE RACERMODE",   OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_nfe_racermode, 1, cms_offOnLabels }, 0 },
+    { "NFE RACERMODE",   OME_TAB,    NULL, &(OSD_TAB_t)    { &cmsx_nfe_racermode, 1, cms_offOnLabels }, 0 },
 #ifdef USE_THROTTLE_BOOST
     { "THR BOOST",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_throttleBoost,             0,    100,   1  }   , 0 },
 #endif
