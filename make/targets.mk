@@ -81,7 +81,7 @@ UNSUPPORTED_TARGETS := \
 SUPPORTED_TARGETS := $(filter-out $(UNSUPPORTED_TARGETS), $(VALID_TARGETS))
 
 TARGETS_TOTAL := $(words $(SUPPORTED_TARGETS))
-TARGET_GROUPS := 3
+TARGET_GROUPS := 4
 TARGETS_PER_GROUP := $(shell expr $(TARGETS_TOTAL) / $(TARGET_GROUPS) )
 
 ST := 1
@@ -92,7 +92,11 @@ ST := $(shell expr $(ET) + 1)
 ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
 GROUP_2_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
 
-GROUP_OTHER_TARGETS := $(filter-out $(GROUP_1_TARGETS) $(GROUP_2_TARGETS), $(SUPPORTED_TARGETS))
+ST := $(shell expr $(ET) + 1)
+ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
+GROUP_3_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
+
+GROUP_OTHER_TARGETS := $(filter-out $(GROUP_1_TARGETS) $(GROUP_2_TARGETS) $(GROUP_3_TARGETS), $(SUPPORTED_TARGETS))
 
 ifeq ($(filter $(TARGET),$(ALT_TARGETS)), $(TARGET))
 BASE_TARGET    := $(firstword $(subst /,, $(subst ./src/main/target/,, $(dir $(wildcard $(ROOT)/src/main/target/*/$(TARGET).mk)))))
