@@ -137,7 +137,7 @@ static void mpu9250AccAndGyroInit(gyroDev_t *gyro) {
         return;
     }
 
-    spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_INITIALIZATON); //low speed for writing to slow registers
+    spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed for writing to slow registers
 
     mpu9250SpiWriteRegister(&gyro->bus, MPU_RA_PWR_MGMT_1, MPU9250_BIT_RESET);
     delay(50);
@@ -170,7 +170,7 @@ uint8_t mpu9250SpiDetect(const busDevice_t *bus)
     IOHi(bus->busdev_u.spi.csnPin);
 #endif
 
-    spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_INITIALIZATON); //low speed
+    spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed
     mpu9250SpiWriteRegister(bus, MPU_RA_PWR_MGMT_1, MPU9250_BIT_RESET);
 
     uint8_t attemptsRemaining = 20;
