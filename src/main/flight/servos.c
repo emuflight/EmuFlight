@@ -504,7 +504,8 @@ static void servoTable(void)
                     break;
                 case GIMBAL_MODE_CINEMATIC:
                     // TODO: rework this crude hack
-                    servo[SERVO_GIMBAL_ROLL] = servo[SERVO_GIMBAL_PITCH] += (-(int32_t)servoParams(SERVO_GIMBAL_PITCH)->rate) * attitude.values.pitch / 50 + (int32_t)servoParams(SERVO_GIMBAL_ROLL)->rate * attitude.values.roll / 50;
+                    // just use roll axis for both servos
+                    servo[SERVO_GIMBAL_ROLL] = servo[SERVO_GIMBAL_PITCH] += (int32_t)servoParams(SERVO_GIMBAL_ROLL)->rate * attitude.values.roll / 50;
                     break;
                 default:
                     servo[SERVO_GIMBAL_PITCH] += (int32_t)servoParams(SERVO_GIMBAL_PITCH)->rate * attitude.values.pitch / 50;
