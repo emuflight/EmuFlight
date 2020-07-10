@@ -706,6 +706,8 @@ const clivalue_t valueTable[] = {
     { "crashflip_motor_percent",    VAR_UINT8 |  MASTER_VALUE,  .config.minmax = { 0, 100 }, PG_MIXER_CONFIG, offsetof(mixerConfig_t, crashflip_motor_percent) },
     { "crashflip_power_percent",    VAR_UINT8 |  MASTER_VALUE,  .config.minmax = { 25, 100 }, PG_MIXER_CONFIG, offsetof(mixerConfig_t, crashflip_power_percent) },
     { "motor_change_limit",         VAR_UINT8 |  MASTER_VALUE,  .config.minmax = { 0, 250 }, PG_MIXER_CONFIG, offsetof(mixerConfig_t, motor_mix_change_limit) },
+    { "motor_change_type",          VAR_UINT8 |  MASTER_VALUE,  .config.minmax = { 0, 1 }, PG_MIXER_CONFIG, offsetof(mixerConfig_t, motor_mix_change_type) },
+    { "motor_change_full_throttle", VAR_UINT8 |  MASTER_VALUE,  .config.minmax = { 0, 250 }, PG_MIXER_CONFIG, offsetof(mixerConfig_t, fullThrottleChangeMultiplier) },
 
 // PG_MOTOR_3D_CONFIG
     { "3d_deadband_low",            VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_PULSE_MIN, PWM_RANGE_MIDDLE }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, deadband3d_low) },

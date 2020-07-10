@@ -413,6 +413,8 @@ static CMS_Menu cmsx_menuProfileOther = {
 };
 
 static uint8_t mixerConfig_motor_mix_change_limit;
+static uint8_t mixerConfig_motor_mix_change_type;
+static uint8_t mixerConfig_full_throttle_motor_change;
 static uint16_t gyroConfig_gyro_lowpass_hz_roll;
 static uint16_t gyroConfig_gyro_lowpass_hz_pitch;
 static uint16_t gyroConfig_gyro_lowpass_hz_yaw;
@@ -437,6 +439,8 @@ static uint16_t gyroConfig_imuf_sharpness;
 static long cmsx_menuGyro_onEnter(void)
 {
     mixerConfig_motor_mix_change_limit = mixerConfig()->motor_mix_change_limit;
+    mixerConfig_motor_mix_change_type = mixerConfig()->motor_mix_change_type;
+    mixerConfig_full_throttle_motor_change = mixerConfig()->fullThrottleChangeMultiplier;
     gyroConfig_gyro_lowpass_hz_roll =  gyroConfig()->gyro_lowpass_hz[ROLL];
     gyroConfig_gyro_lowpass_hz_pitch =  gyroConfig()->gyro_lowpass_hz[PITCH];
     gyroConfig_gyro_lowpass_hz_yaw =  gyroConfig()->gyro_lowpass_hz[YAW];
@@ -466,6 +470,8 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self)
     UNUSED(self);
 
     mixerConfigMutable()->motor_mix_change_limit = mixerConfig_motor_mix_change_limit;
+    mixerConfigMutable()->motor_mix_change_type = mixerConfig_motor_mix_change_type;
+    mixerConfigMutable()->fullThrottleChangeMultiplier = mixerConfig_full_throttle_motor_change;
     gyroConfigMutable()->gyro_lowpass_hz[ROLL] = gyroConfig_gyro_lowpass_hz_roll;
     gyroConfigMutable()->gyro_lowpass_hz[PITCH] = gyroConfig_gyro_lowpass_hz_pitch;
     gyroConfigMutable()->gyro_lowpass_hz[YAW] = gyroConfig_gyro_lowpass_hz_yaw;
@@ -495,6 +501,8 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "-- FILTER GLB  --", OME_Label, NULL, NULL, 0 },
 
     { "MOTOR CHANGE LIMIT",    OME_UINT8, NULL, &(OSD_UINT8_t) { &mixerConfig_motor_mix_change_limit,     0, 250, 1 }, 0 },
+    { "FULL THROTTLE CHANGE",  OME_UINT8, NULL, &(OSD_UINT8_t) { &mixerConfig_full_throttle_motor_change, 0, 250, 1 }, 0 },
+    { "MOTOR CHANGE TYPE",     OME_UINT8, NULL, &(OSD_UINT8_t) { &mixerConfig_motor_mix_change_type,     0, 1, 1 }, 0 },
 
     { "GYRO LPF ROLL",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_roll,     0, 16000, 1 }, 0 },
     { "GYRO LPF PITCH",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_pitch,    0, 16000, 1 }, 0 },

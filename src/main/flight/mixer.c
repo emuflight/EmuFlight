@@ -79,6 +79,8 @@ PG_RESET_TEMPLATE(mixerConfig_t, mixerConfig,
     .crashflip_motor_percent = 0,
     .crashflip_power_percent = 70,
     .motor_mix_change_limit = 150,
+    .motor_mix_change_type = 0,
+    .fullThrottleChangeMultiplier = 10,
 );
 
 PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 1);
@@ -755,8 +757,8 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
             }
         }
 
-        if (mixerConfig()->motor_mix_change_limit != 0) {
-            const float motor_delta_limit = (1.0f + fabsf(motor_limited[i])) * (float)mixerConfig()->motor_mix_change_limit * targetPidLooptime * 1e-6f;
+        if (mixerConfig()->motor_mix_change_limit != 0 && motorOutput != disarmMotorOutput) {
+            const float motor_delta_limit = (1.0f + fabsf((mixerConfig()->fullThrottleChangeMultiplier / 10.0f) * motor_limited[i])) * (float)mixerConfig()->motor_mix_change_limit * targetPidLooptime * 1e-6f;
             float motor_abs_delta = fabsf(motorOutput - motor_limited[i]);
             if (motor_abs_delta > motor_delta_limit) {
                 motor_abs_delta = motor_delta_limit;
@@ -764,10 +766,15 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
             if (motorOutput > motor_limited[i]) {
                 motor_limited[i] += motor_abs_delta;
             } else {
-                motor_limited[i] -= motor_abs_delta;
+                if (mixerConfig()->motor_mix_change_type == 1) {
+                    motor_limited[i] = motorOutput;
+                } else {
+                    motor_limited[i] -= motor_abs_delta;
+                }
             }
-          motor[i] = motor_limited[i];
+          motorOutput = motor_limited[i];
         }
+      motor[i] = motorOutput;
     }
 
     // Disarmed mode
