@@ -758,11 +758,10 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         if (pidCoefficient[axis].Kd > 0)
         {
             //filter Kd properly, no setpoint filtering
-            const float pureRD = getSetpointRate(axis) - gyroRate; // cr - y
-            const float pureError = pureRD - previousError[axis];
+            const float pureError = errorRate - previousError[axis];
             const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
             previousMeasurement[axis] = gyro.gyroADCf[axis];
-            previousError[axis] = pureRD;
+            previousError[axis] = errorRate;
             float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
             //filter the dterm
             dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
