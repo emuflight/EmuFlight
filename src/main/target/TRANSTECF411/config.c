@@ -20,13 +20,17 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+
 #include "platform.h"
+
 #ifdef USE_TARGET_CONFIG
+
 #include "pg/pinio.h"
 #include "pg/piniobox.h"
 
 void targetConfiguration(void)
-{
-    pinioBoxConfigMutable()->permanentId[0] = 39;
+{	
+    pinioConfigMutable()->config[1] = PINIO_CONFIG_OUT_INVERTED | PINIO_CONFIG_MODE_OUT_PP;
+    pinioBoxConfigMutable()->permanentId[0] = 40;
 }
 #endif
