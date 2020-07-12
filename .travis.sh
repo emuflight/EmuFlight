@@ -20,7 +20,7 @@ make ${GOAL} || exit $?
 export EMU_VERSION="$(make version)"
 
 # compose string to reference the artifacts (binaries)
-export PACKAGE_VERSION="${TRAVIS_BUILD_NUMBER}-${EMU_VERSION}-${TRAVIS_BRANCH}"
+export PACKAGE_VERSION="Travis_Build_${TRAVIS_BUILD_NUMBER}_${EMU_VERSION}_${TRAVIS_BRANCH}"
 
 # process template for pushing to bintray
 j2 bintray-template.j2 -o bintray-conf.json

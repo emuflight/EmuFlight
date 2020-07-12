@@ -37,11 +37,11 @@
  void targetConfiguration(void) {
      telemetryConfigMutable()->halfDuplex = false;
      voltageSensorADCConfigMutable(VOLTAGE_SENSOR_ADC_VBAT)->vbatscale = VBAT_SCALE;
-     rxConfigMutable()->rcInterpolation         = RC_SMOOTHING_MANUAL;
-     rxConfigMutable()->rcInterpolationInterval = 14;
-     rxConfigMutable()->rcInterpolationChannels = INTERPOLATION_CHANNELS_RPYT;
-     motorConfigMutable()->dev.motorPwmProtocol = PWM_TYPE_DSHOT1200;
+     //rxConfigMutable()->rcInterpolation         = RC_SMOOTHING_MANUAL;
+     //rxConfigMutable()->rcInterpolationInterval = 14;
+     //rxConfigMutable()->rcInterpolationChannels = INTERPOLATION_CHANNELS_RPYT;
+     motorConfigMutable()->dev.motorPwmProtocol = PWM_TYPE_DSHOT2400;
      gyroConfigMutable()->gyro_sync_denom  = 1; // 32KHZ GYRO
      pidConfigMutable()->pid_process_denom = 1; // 32KHZ PID
-     systemConfigMutable()->cpu_overclock  = 1; // 192MHz makes Multishot run a little better because of maths.
+     systemConfigMutable()->cpu_overclock  = 1; // 240MHz makes Multishot run a little better because of maths.
  }
