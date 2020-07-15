@@ -24,6 +24,8 @@
 #if defined(KAKUTEF7V2)
 #define TARGET_BOARD_IDENTIFIER "KT76"
 #define USBD_PRODUCT_STRING     "KakuteF7 V2"
+#define CAMERA_CONTROL_PIN      PE13
+#define CURRENT_METER_SCALE     400
 #elif defined(KAKUTEF7MINIV2)
 #define TARGET_BOARD_IDENTIFIER "KF7M"
 #define USBD_PRODUCT_STRING     "KakuteF7 Mini V2"
@@ -32,12 +34,7 @@
 #define USBD_PRODUCT_STRING     "KakuteF7 HD"
 #endif
 
-#if defined(KAKUTEF7V2)
-#define CAMERA_CONTROL_PIN      PE13
-#define CURRENT_METER_SCALE     400
-#define MAX7456_SPI_INSTANCE    SPI3
-#define MAX7456_SPI_CS_PIN      SPI1_NSS_PIN
-#else
+#if defined(KAKUTEF7V2) || defined(KAKUTEF7MINIV2)
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      SPI2_NSS_PIN
 #endif
