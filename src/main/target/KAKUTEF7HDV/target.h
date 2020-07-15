@@ -34,11 +34,6 @@
 #define USBD_PRODUCT_STRING     "KakuteF7 HD"
 #endif
 
-#if defined(KAKUTEF7V2) || defined(KAKUTEF7MINIV2)
-#define MAX7456_SPI_INSTANCE    SPI2
-#define MAX7456_SPI_CS_PIN      SPI2_NSS_PIN
-#endif
-
 #define LED0_PIN                PA2
 
 #define USE_BEEPER
@@ -124,6 +119,10 @@
 #define SPI4_MOSI_PIN           PE6
 
 #define USE_MAX7456
+#if defined(KAKUTEF7V2) || defined(KAKUTEF7MINIV2)
+#define MAX7456_SPI_INSTANCE    SPI2
+#define MAX7456_SPI_CS_PIN      SPI2_NSS_PIN
+#endif
 #define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
 #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 
