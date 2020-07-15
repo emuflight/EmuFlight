@@ -89,7 +89,6 @@
 #define UART7_TX_PIN            NONE
 #define UART7_RX_PIN            PE7
 
-
 #define USE_SOFTSERIAL1
 #define USE_SOFTSERIAL2
 
@@ -136,14 +135,10 @@
 #define USE_SDCARD
 #define SDCARD_DETECT_INVERTED
 #define SDCARD_DETECT_PIN                   PD8
-
 #define SDCARD_SPI_INSTANCE                 SPI1
 #define SDCARD_SPI_CS_PIN                   SPI1_NSS_PIN
-
 #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256 // 422kHz
-
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER      8 // 27MHz
-
 #define SDCARD_DMA_STREAM_TX_FULL             DMA2_Stream5
 #define SDCARD_DMA_CHANNEL                    3
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
@@ -173,8 +168,6 @@
 #define CURRENT_METER_ADC_PIN   PC2
 #define VBAT_ADC_PIN            PC3
 #define RSSI_ADC_PIN            PC5
-
-
 
 #define DEFAULT_FEATURES        (FEATURE_OSD)
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
