@@ -24,13 +24,15 @@
 
 #define ENABLE_DSHOT_DMAR       true
 
-#define LED0_PIN                PB0
+#define USE_LEDSTRIP
+#define LED0_PIN                PB3
+
 #define USE_BEEPER
 #define BEEPER_PIN                  PB4
 #define BEEPER_INVERTED
 
 //define camera control
-#define CAMERA_CONTROL_PIN PB3
+//#define CAMERA_CONTROL_PIN PB3
 
 #define USE_EXTI
 #define MPU_INT_EXTI            PC4
@@ -148,4 +150,4 @@
 #define TARGET_IO_PORTD         (BIT(2))
 
 #define USABLE_TIMER_CHANNEL_COUNT                      9                       //updated timer count to compensate for Nf Motor 4
-#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5)  | TIM_N(8)   ) 
+#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5)  | TIM_N(8)   )
