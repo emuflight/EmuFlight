@@ -186,7 +186,7 @@ static OSD_Entry cmsx_menuPidAdvancedEntries[] =
     { "DTERM BOOST",       OME_UINT16, NULL, &(OSD_UINT16_t){ &dtermBoost,             0,  2000,  5}, 0 },
     { "DTERM LIMIT",       OME_UINT8, NULL, &(OSD_UINT8_t){ &dtermBoostLimit,          0,  250,  1}, 0 },
 
-    { "I_DECAY",           OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,                  1, 10, 1 }, 0 },
+    { "I DECAY",           OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,                  1, 10, 1 }, 0 },
     { "SAVE&EXIT",         OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK",              OME_Back, NULL, NULL, 0 },
     { NULL,                OME_END, NULL, NULL, 0 }
