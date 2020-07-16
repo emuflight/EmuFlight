@@ -21,9 +21,9 @@
 #pragma once
 
 //#define USE_TARGET_CONFIG
-#if defined(KAKUTEF7V2)
+#if defined(KAKUTEF7V15)
 #define TARGET_BOARD_IDENTIFIER "KT76"
-#define USBD_PRODUCT_STRING     "KakuteF7 V2"
+#define USBD_PRODUCT_STRING     "KakuteF7 V1.5"
 #define CAMERA_CONTROL_PIN      PE13
 #define CURRENT_METER_SCALE     400
 #elif defined(KAKUTEF7MINIV2)
@@ -31,7 +31,7 @@
 #define USBD_PRODUCT_STRING     "KakuteF7 Mini V2"
 #else //defined(KAKUTEF7HDV)
 #define TARGET_BOARD_IDENTIFIER "KTF7"
-#define USBD_PRODUCT_STRING     "KakuteF7 HD"
+#define USBD_PRODUCT_STRING     "KakuteF7 HDV"
 #endif
 
 #define LED0_PIN                PA2
