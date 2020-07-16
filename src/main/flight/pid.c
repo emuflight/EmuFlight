@@ -148,6 +148,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .setPointDTransition[YAW] = 130,
         .feathered_pids = 100,
         .i_decay = 4,
+        .i_decay_cutoff = 200,                   // value of 0 mimicks old i_decay behaviour
         .errorBoost = 15,
         .errorBoostYaw = 40,
         .errorBoostLimit = 20,
@@ -689,14 +690,14 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 #endif // USE_YAW_SPIN_RECOVERY
 
         previousPidSetpoint[axis] = currentPidSetpoint;
+        const float gyroRate = gyro.gyroADCf[axis];
 
         // -----calculate error rate
-        errorRate = currentPidSetpoint - gyro.gyroADCf[axis]; // r - y
+        errorRate = currentPidSetpoint - gyroRate; // r - y
 
         // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
         // Based on 2DOF reference design (matlab)
 
-        const float gyroRate = gyro.gyroADCf[axis];
         float errorBoostAxis;
         float errorLimitAxis;
 
@@ -733,12 +734,16 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // -----calculate I component
         //float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
         float iterm    = temporaryIterm[axis];
+        float iDecayMultiplier = iDecay;
         float ITermNew = pidCoefficient[axis].Ki * (boostedErrorRate + errorRate) * dynCi;
         if (ITermNew != 0.0f)
         {
             if (SIGN(iterm) != SIGN(ITermNew))
             {
-            	  const float newVal = ITermNew * iDecay;
+                // at low iterm iDecayMultiplier will be 1 and at high iterm it will be equivilant to iDecay
+                iDecayMultiplier = 1.0f + (iDecay - 1.0f) * constrainf(iterm / pidProfile->i_decay_cutoff, 0.0f, 1.0f);
+                const float newVal = ITermNew * iDecayMultiplier;
+
             	  if (fabs(iterm) > fabs(newVal))
             	  {
                 		ITermNew = newVal;
@@ -758,8 +763,8 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         {
             //filter Kd properly, no setpoint filtering
             const float pureError = errorRate - previousError[axis];
-            const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
-            previousMeasurement[axis] = gyro.gyroADCf[axis];
+            const float pureMeasurement = -(gyroRate - previousMeasurement[axis]);
+            previousMeasurement[axis] = gyroRate;
             previousError[axis] = errorRate;
             float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
             //filter the dterm
