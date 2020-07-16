@@ -37,10 +37,14 @@ void targetConfiguration(void)
 
 #include "platform.h"
 
+#ifdef USE_TARGET_CONFIG
+
 #include "pg/pinio.h"
 #include "pg/piniobox.h"
 
-#ifdef USE_TARGET_CONFIG
+#include "fc/rc_controls.h"
+#include "rx/rx.h"
+#include "flight/imu.h"
 
 void targetConfiguration(void)
 {
@@ -48,5 +52,11 @@ void targetConfiguration(void)
     pinioBoxConfigMutable()->permanentId[0] = 40;
     pinioBoxConfigMutable()->permanentId[1] = 41;
     pinioConfigMutable()->config[0] = 1;
+
+    modeActivationConditionsMutable(0)->modeId           = BOXVTXPITMODE;
+    modeActivationConditionsMutable(0)->auxChannelIndex  = AUX1 - NON_AUX_CHANNEL_COUNT;
+    modeActivationConditionsMutable(0)->range.startStep  = CHANNEL_VALUE_TO_STEP(900);
+    modeActivationConditionsMutable(0)->range.endStep    = CHANNEL_VALUE_TO_STEP(2100);
+
 }
 #endif

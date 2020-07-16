@@ -26,7 +26,7 @@
 #include "pg/piniobox.h"
 
 void targetConfiguration(void)
-{	
-    pinioBoxConfigMutable()->permanentId[0] = 40;
+{
+    pinioBoxConfigMutable()->permanentId[0] = 39;
 }
 #endif
