@@ -242,8 +242,7 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
 static OSD_Entry cmsx_menuPidEntries[] =
 {
     { "-- EMUFLIGHT PIDS --", OME_Label, NULL, pidProfileIndexString, 0},
-
-    {"PID ADVANCED", OME_Submenu, cmsMenuChange, &cmsx_menuPidAdvanced, 0},
+    { "PID ADVANCED", OME_Submenu, cmsMenuChange, &cmsx_menuPidAdvanced, 0},
 
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
