@@ -136,7 +136,7 @@ static long cmsx_PidAdvancedRead(void)
 
     feathered_pids = pidProfile->feathered_pids;
     i_decay = pidProfile->i_decay;
-    i_decay = pidProfile->i_decay_cutoff;
+    i_decay_cutoff = pidProfile->i_decay_cutoff;
     errorBoost = pidProfile->errorBoost;
     errorBoostLimit = pidProfile->errorBoostLimit;
     errorBoostYaw = pidProfile->errorBoostYaw;
