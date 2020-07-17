@@ -34,6 +34,8 @@
 #define PIDSUM_LIMIT_MIN            100
 #define PIDSUM_LIMIT_MAX            1000
 #define KD_RING_BUFFER_SIZE 10
+#define EMU_GRAVITY_THROTTLE_FILTER_CUTOFF 15  // The emu gravity throttle highpass filter cutoff
+
 
 // Scaling factors for Pids for better tunable range in configurator for betaflight pid controller. The scaling is based on legacy pid controller or previous float
 #define PTERM_SCALE 0.032029f
@@ -130,6 +132,7 @@ typedef struct pidProfile_s {
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
+    uint16_t emuGravityGain;                // Gain for the EmuGravity
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE
@@ -175,3 +178,4 @@ bool crashRecoveryModeActive(void);
 void pidInitSetpointDerivativeLpf(uint16_t filterCutoff, uint8_t debugAxis, uint8_t filterType);
 void pidUpdateSetpointDerivativeLpf(uint16_t filterCutoff);
 float pidGetPreviousSetpoint(int axis);
+void pidUpdateEmuGravityThrottleFilter(float throttle);

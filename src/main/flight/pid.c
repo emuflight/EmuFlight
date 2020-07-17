@@ -175,6 +175,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .horizonTransition = 0,
+        .emuGravityGain = 4000,
     );
 }
 
@@ -221,6 +222,8 @@ static FAST_RAM_ZERO_INIT uint8_t rcSmoothingDebugAxis;
 static FAST_RAM_ZERO_INIT uint8_t rcSmoothingFilterType;
 #endif // USE_RC_SMOOTHING_FILTER
 
+static FAST_RAM_ZERO_INIT pt1Filter_t emuGravityThrottleLpf;
+
 void pidInitFilters(const pidProfile_t *pidProfile)
 {
     BUILD_BUG_ON(FD_YAW != 2);                             // ensure yaw axis is 2
@@ -266,6 +269,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, dT));
 #endif
+pt1FilterInit(&emuGravityThrottleLpf, pt1FilterGain(EMU_GRAVITY_THROTTLE_FILTER_CUTOFF, dT));
 }
 
 #ifdef USE_RC_SMOOTHING_FILTER
@@ -345,6 +349,7 @@ pt1Filter_t throttleLpf;
 #endif
 static FAST_RAM_ZERO_INIT bool itermRotation;
 static FAST_RAM_ZERO_INIT float temporaryIterm[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float emuGravityThrottleHpf;
 
 void pidResetITerm(void)
 {
@@ -352,6 +357,11 @@ void pidResetITerm(void)
     {
         temporaryIterm[axis] = 0.0f;
     }
+}
+
+void pidUpdateEmuGravityThrottleFilter(float throttle)
+{
+      emuGravityThrottleHpf = throttle - pt1FilterApply(&emuGravityThrottleLpf, throttle);
 }
 
 void pidInitConfig(const pidProfile_t *pidProfile)
@@ -663,6 +673,12 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     // ----------PID controller----------
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
     {
+        // emugravity, the different hopefully better version of antiGravity no effect on yaw
+        float errorAccelerator = 1.0f;
+        if (pidProfile->emuGravityGain != 0 && axis != FD_YAW) {
+            errorAccelerator = 1.0f + fabsf(emuGravityThrottleHpf) * 0.01f * (pidProfile->emuGravityGain);
+        }
+
         float currentPidSetpoint = getSetpointRate(axis);
 
         if (maxVelocity[axis])
@@ -699,6 +715,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
         // -----calculate error rate
         errorRate = currentPidSetpoint - gyroRate; // r - y
+        errorRate *= errorAccelerator; // increase the error as throttle moves, = much more agressive antiGravity
 
         // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
         // Based on 2DOF reference design (matlab)
