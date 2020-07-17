@@ -76,11 +76,11 @@ typedef struct pidf_s {
     uint16_t F; // Only angle mode still uses FF
 } pidf_t;
 
-typedef struct slider_s {
+typedef struct ratio_s {
     uint8_t pidGain;
     uint8_t iRatio;
     uint8_t dRatio;
-} slider_t;
+} ratio_t;
 
 typedef struct dFilter_s {
     uint8_t Wc;
@@ -92,8 +92,8 @@ typedef struct dFilter_s {
 typedef struct pidProfile_s {
     pidf_t  pid[PID_ITEM_COUNT];
 
-    slider_t slider[3];
-    uint8_t useSliders;
+    ratio_t ratio[3];
+    uint8_t useRatios;
 
     dFilter_t dFilter[3];
 

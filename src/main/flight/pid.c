@@ -175,7 +175,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .horizonTransition = 0,
-        .useSliders = false,
+        .useRatios = false,
     );
 }
 
@@ -358,21 +358,21 @@ void pidResetITerm(void)
 void pidInitConfig(pidProfile_t *pidProfile)
 {
 
-  if (pidProfile->useSliders == true)
+  if (pidProfile->useRatios == true)
   {
-    pidProfile->useSliders = false;
+    pidProfile->useRatios = false;
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
     {
-      pidProfile->pid[axis].P = pidProfile->slider[axis].pidGain;
-      pidProfile->pid[axis].I = (int)(pidProfile->pid[axis].P * pidProfile->slider[axis].iRatio / 100);
-      pidProfile->pid[axis].D = (int)(pidProfile->pid[axis].P * pidProfile->slider[axis].dRatio / 100);
+      pidProfile->pid[axis].P = pidProfile->ratio[axis].pidGain;
+      pidProfile->pid[axis].I = (int)(pidProfile->pid[axis].P * pidProfile->ratio[axis].iRatio / 100);
+      pidProfile->pid[axis].D = (int)(pidProfile->pid[axis].P * pidProfile->ratio[axis].dRatio / 100);
     }
   } else {
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++)
     {
-      pidProfile->slider[axis].pidGain = pidProfile->pid[axis].P;
-      pidProfile->slider[axis].iRatio = (int)(pidProfile->pid[axis].I * 100 / pidProfile->pid[axis].P);
-      pidProfile->slider[axis].dRatio = (int)(pidProfile->pid[axis].D * 100 / pidProfile->pid[axis].P);
+      pidProfile->ratio[axis].pidGain = pidProfile->pid[axis].P;
+      pidProfile->ratio[axis].iRatio = (int)(pidProfile->pid[axis].I * 100 / pidProfile->pid[axis].P);
+      pidProfile->ratio[axis].dRatio = (int)(pidProfile->pid[axis].D * 100 / pidProfile->pid[axis].P);
     }
   }
 
