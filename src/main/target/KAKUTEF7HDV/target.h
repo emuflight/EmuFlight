@@ -117,7 +117,7 @@
 #define SPI4_MISO_PIN           PE5
 #define SPI4_MOSI_PIN           PE6
 
-#if defined(KAKUTEF7V2) || defined(KAKUTEF7MINIV2)
+#if defined(KAKUTEF7V15) || defined(KAKUTEF7MINIV2)
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      SPI2_NSS_PIN
