@@ -66,6 +66,8 @@ static uint16_t errorBoost;
 static uint8_t errorBoostLimit;
 static uint16_t errorBoostYaw;
 static uint8_t errorBoostLimitYaw;
+static uint8_t itermRelaxCutoff;
+static uint8_t itermRelaxCutoffYaw;
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
 
@@ -136,6 +138,8 @@ static long cmsx_PidRead(void)
     errorBoostLimit = pidProfile->errorBoostLimit;
     errorBoostYaw = pidProfile->errorBoostYaw;
     errorBoostLimitYaw = pidProfile->errorBoostLimitYaw;
+    itermRelaxCutoff = pidProfile->itermRelaxCutoff;
+    itermRelaxCutoffYaw = pidProfile->itermRelaxCutoffYaw;
     for (uint8_t i = 0; i < 3; i++) {
         tempPid[i][0] = pidProfile->pid[i].P;
         tempPid[i][1] = pidProfile->pid[i].I;
@@ -169,6 +173,8 @@ static long cmsx_PidWriteback(const OSD_Entry *self)
     pidProfile->errorBoostYaw = errorBoostYaw;
     pidProfile->errorBoostLimitYaw = errorBoostLimitYaw;
     pidProfile->i_decay = i_decay;
+    pidProfile->itermRelaxCutoff = itermRelaxCutoff;
+    pidProfile->itermRelaxCutoffYaw = itermRelaxCutoffYaw;
     pidInitConfig(currentPidProfile);
 
     return 0;

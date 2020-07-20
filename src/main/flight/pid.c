@@ -171,9 +171,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .throttle_boost = 5,
         .throttle_boost_cutoff = 15,
         .iterm_rotation = true,
-        .iterm_relax = ITERM_RELAX_OFF,
         .iterm_relax_cutoff = 11,
-        .iterm_relax_type = ITERM_RELAX_GYRO,
+        .iterm_relax_cutoff_yaw = 25,
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .horizonTransition = 0,
@@ -215,9 +214,8 @@ static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
 
 #if defined(USE_ITERM_RELAX)
 static FAST_RAM_ZERO_INIT pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT uint8_t itermRelax;
-static FAST_RAM_ZERO_INIT uint8_t itermRelaxType;
 static FAST_RAM_ZERO_INIT uint8_t itermRelaxCutoff;
+static FAST_RAM_ZERO_INIT uint8_t itermRelaxCutoffYaw;
 #endif
 
 static FAST_RAM_ZERO_INIT float iDecay;
@@ -276,9 +274,11 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, dT));
 #endif
 #if defined(USE_ITERM_RELAX)
-    if (itermRelax) {
-        for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+    for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+        if (i != FD_YAW) {
             pt1FilterInit(&windupLpf[i], pt1FilterGain(itermRelaxCutoff, dT));
+        } else {
+            pt1FilterInit(&windupLpf[i], pt1FilterGain(itermRelaxCutoffYaw, dT));
         }
     }
 #endif
@@ -411,9 +411,8 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 #endif
     itermRotation = pidProfile->iterm_rotation;
 #if defined(USE_ITERM_RELAX)
-    itermRelax = pidProfile->iterm_relax;
-    itermRelaxType = pidProfile->iterm_relax_type;
     itermRelaxCutoff = pidProfile->iterm_relax_cutoff;
+    itermRelaxCutoffYaw = pidProfile->iterm_relax_cutoff_yaw;
 #endif
     iDecay = (float)pidProfile->i_decay;
 }
@@ -717,12 +716,12 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         previousPidSetpoint[axis] = currentPidSetpoint;
 
         // -----calculate error rate
-        errorRate = currentPidSetpoint - gyro.gyroADCf[axis]; // r - y
+        const float gyroRate = gyro.gyroADCf[axis];
+        errorRate = currentPidSetpoint - gyroRate; // r - y
 
         // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
         // Based on 2DOF reference design (matlab)
 
-        const float gyroRate = gyro.gyroADCf[axis];
         float errorBoostAxis;
         float errorLimitAxis;
 
@@ -755,28 +754,20 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         float itermErrorRate = boostedErrorRate + errorRate;
         float iterm    = temporaryIterm[axis];
 #if defined(USE_ITERM_RELAX)
-        if (itermRelax && (axis < FD_YAW || itermRelax == ITERM_RELAX_RPY || itermRelax == ITERM_RELAX_RPY_INC)) {
+        if ((itermRelaxCutoff && axis != FD_YAW) || (itermRelaxCutoffYaw && axis == FD_YAW)) {
             const float setpointLpf = pt1FilterApply(&windupLpf[axis], currentPidSetpoint);
             const float setpointHpf = fabsf(currentPidSetpoint - setpointLpf);
             const float itermRelaxFactor = 1 - setpointHpf / ITERM_RELAX_SETPOINT_THRESHOLD;
 
-            const bool isDecreasingI = ((iterm > 0) && (itermErrorRate < 0)) || ((iterm < 0) && (itermErrorRate > 0));
-            if ((itermRelax >= ITERM_RELAX_RP_INC) && isDecreasingI) {
-                // Do Nothing, use the precalculed itermErrorRate
-            } else if (itermRelaxType == ITERM_RELAX_SETPOINT && setpointHpf < ITERM_RELAX_SETPOINT_THRESHOLD) {
+            if (SIGN(iterm) == SIGN(itermErrorRate)) {
                 itermErrorRate *= itermRelaxFactor;
-            } else if (itermRelaxType == ITERM_RELAX_GYRO ) {
-                itermErrorRate = fapplyDeadband(setpointLpf - gyroRate, setpointHpf);
-            } else {
-                itermErrorRate = 0.0f;
             }
-
             if (axis == FD_ROLL) {
                 DEBUG_SET(DEBUG_ITERM_RELAX, 0, lrintf(setpointHpf));
                 DEBUG_SET(DEBUG_ITERM_RELAX, 1, lrintf(itermRelaxFactor * 100.0f));
                 DEBUG_SET(DEBUG_ITERM_RELAX, 2, lrintf(itermErrorRate));
             }
-        } 
+        }
 #endif // USE_ITERM_RELAX
 
         // -----calculate P component
@@ -810,8 +801,8 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         {
             //filter Kd properly, no setpoint filtering
             const float pureError = errorRate - previousError[axis];
-            const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
-            previousMeasurement[axis] = gyro.gyroADCf[axis];
+            const float pureMeasurement = -(gyroRate - previousMeasurement[axis]);
+            previousMeasurement[axis] = gyroRate;
             previousError[axis] = errorRate;
             float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
             //filter the dterm
