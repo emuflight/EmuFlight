@@ -765,7 +765,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         if ((itermRelaxCutoff && axis != FD_YAW) || (itermRelaxCutoffYaw && axis == FD_YAW)) {
             const float setpointLpf = pt1FilterApply(&windupLpf[axis], currentPidSetpoint);
             const float setpointHpf = fabsf(currentPidSetpoint - setpointLpf);
-            const float itermRelaxFactor = 1 - setpointHpf / ITERM_RELAX_SETPOINT_THRESHOLD;
+            const float itermRelaxFactor = MAX(1 - setpointHpf / ITERM_RELAX_SETPOINT_THRESHOLD, 0.0f);
 
             if (SIGN(iterm) == SIGN(itermErrorRate)) {
                 itermErrorRate *= itermRelaxFactor;
