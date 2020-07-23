@@ -255,6 +255,10 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .imuf_yaw_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
    	.imuf_acc_lpf_cutoff_hz = IMUF_DEFAULT_ACC_LPF_HZ,
     .imuf_sharpness = 2500,
+    .imuf_ptX = 2,
+    .imuf_dynamicType = 1,
+    .imuf_dynamicMin = 10,
+    .imuf_dynamicMax = 500,
     .gyro_offset_yaw = 0,
 );
 #else //USE_GYRO_IMUF9001
