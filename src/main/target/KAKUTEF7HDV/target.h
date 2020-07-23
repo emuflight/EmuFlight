@@ -119,7 +119,7 @@
 #define SPI4_MISO_PIN           PE5
 #define SPI4_MOSI_PIN           PE6
 
-#if defined(KAKUTEF7V15) | defined(KAKUTEF7MINIV2)
+#if defined(KAKUTEF7V15) || defined(KAKUTEF7MINIV2)
 #define CAMERA_CONTROL_PIN      PB3
 
 #define USE_MAX7456
