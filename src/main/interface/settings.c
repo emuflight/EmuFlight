@@ -859,8 +859,8 @@ const clivalue_t valueTable[] = {
     { "crash_recovery",             VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_CRASH_RECOVERY }, PG_PID_PROFILE, offsetof(pidProfile_t, crash_recovery) },
     { "iterm_rotation",             VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_rotation) },
 #if defined(USE_ITERM_RELAX)
-    { "iterm_relax_cutoff",         VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_frequency) },
-    { "iterm_relax_cutoff_yaw",     VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_frequency_yaw) },
+    { "iterm_relax_frequency",      VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_frequency) },
+    { "iterm_relax_frequency_yaw",  VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_frequency_yaw) },
     { "iterm_relax_cutoff",         VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 10, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_cutoff) },
     { "iterm_relax_cutoff_yaw",     VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 10, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_cutoff_yaw) },
 #endif
