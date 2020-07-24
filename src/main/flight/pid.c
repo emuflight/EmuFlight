@@ -172,10 +172,10 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .throttle_boost = 5,
         .throttle_boost_cutoff = 15,
         .iterm_rotation = true,
-        .iterm_relax_frequency = 11,
-        .iterm_relax_frequency_yaw = 25,
-        .iterm_relax_cutoff = 35,
-        .iterm_relax_cutoff_yaw = 35,
+        .iterm_relax_cutoff = 11,
+        .iterm_relax_cutoff_yaw = 25,
+        .iterm_relax_threshold = 35,
+        .iterm_relax_threshold_yaw = 35,
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .horizonTransition = 0,
@@ -217,8 +217,8 @@ static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
 
 #if defined(USE_ITERM_RELAX)
 static FAST_RAM_ZERO_INIT pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT uint8_t itermRelaxFrequency;
-static FAST_RAM_ZERO_INIT uint8_t itermRelaxFrequencyYaw;
+static FAST_RAM_ZERO_INIT uint8_t itermRelaxCutoff;
+static FAST_RAM_ZERO_INIT uint8_t itermRelaxCutoffYaw;
 #endif
 
 static FAST_RAM_ZERO_INIT float iDecay;
@@ -279,9 +279,9 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 #if defined(USE_ITERM_RELAX)
     for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
         if (i != FD_YAW) {
-            pt1FilterInit(&windupLpf[i], pt1FilterGain(itermRelaxFrequency, dT));
+            pt1FilterInit(&windupLpf[i], pt1FilterGain(itermRelaxCutoff, dT));
         } else {
-            pt1FilterInit(&windupLpf[i], pt1FilterGain(itermRelaxFrequencyYaw, dT));
+            pt1FilterInit(&windupLpf[i], pt1FilterGain(itermRelaxCutoffYaw, dT));
         }
     }
 #endif
@@ -420,8 +420,8 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 #endif
     itermRotation = pidProfile->iterm_rotation;
 #if defined(USE_ITERM_RELAX)
-    itermRelaxFrequency = pidProfile->iterm_relax_frequency;
-    itermRelaxFrequencyYaw = pidProfile->iterm_relax_frequency_yaw;
+    itermRelaxCutoff = pidProfile->iterm_relax_cutoff;
+    itermRelaxCutoffYaw = pidProfile->iterm_relax_cutoff_yaw;
 #endif
     iDecay = (float)pidProfile->i_decay;
 }
@@ -769,14 +769,14 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         float iterm          = temporaryIterm[axis];
 #if defined(USE_ITERM_RELAX)
         float itermRelaxFactor;
-        if ((itermRelaxFrequency && axis != FD_YAW) || (itermRelaxFrequencyYaw && axis == FD_YAW)) {
+        if ((itermRelaxCutoff && axis != FD_YAW) || (itermRelaxCutoffYaw && axis == FD_YAW)) {
             const float setpointLpf = pt1FilterApply(&windupLpf[axis], currentPidSetpoint);
             const float setpointHpf = fabsf(currentPidSetpoint - setpointLpf);
             if (axis != FD_YAW)
             {
-                itermRelaxFactor = MAX(1 - setpointHpf / pidProfile->iterm_relax_cutoff, 0.0f);
+                itermRelaxFactor = MAX(1 - setpointHpf / pidProfile->iterm_relax_threshold, 0.0f);
             } else {
-                itermRelaxFactor = MAX(1 - setpointHpf / pidProfile->iterm_relax_cutoff_yaw, 0.0f);
+                itermRelaxFactor = MAX(1 - setpointHpf / pidProfile->iterm_relax_threshold_yaw, 0.0f);
             }
             if (SIGN(iterm) == SIGN(itermErrorRate)) {
                 itermErrorRate *= itermRelaxFactor;
