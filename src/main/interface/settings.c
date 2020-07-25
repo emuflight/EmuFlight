@@ -497,9 +497,9 @@ const clivalue_t valueTable[] = {
     { "imuf_acc_lpf_cutoff_hz",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 180  }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_acc_lpf_cutoff_hz) },
     { "imuf_sharpness",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_sharpness) },
     { "imuf_ptx_order",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 4 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_ptX) },
-    { "imuf_dynamicType",           VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 5 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_dynamicType) },
-    { "imuf_dynamicMin",            VAR_UINT16 | MASTER_VALUE, .config.minmax = { 10, 500 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_dynamicMin) },
-    { "imuf_dynamicMax",            VAR_UINT16 | MASTER_VALUE, .config.minmax = { 10, 500 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_dynamicMax) },
+    { "imuf_dynamic_type",          VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 5 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_dynamicType) },
+    { "imuf_dynamic_min",           VAR_UINT16 | MASTER_VALUE, .config.minmax = { 10, 2000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_dynamicMin) },
+    { "imuf_dynamic_max",           VAR_UINT16 | MASTER_VALUE, .config.minmax = { 10, 2000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_dynamicMax) },
 #else
     { "imuf_roll_q",                VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_roll_q) },
     { "imuf_pitch_q",               VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_pitch_q) },
