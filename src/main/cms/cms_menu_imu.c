@@ -674,7 +674,7 @@ static OSD_Entry cmsx_menuImufEntries[] =
     { "ROLL Q",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,              0, 16000, 100 }, 0 },
     { "PITCH Q",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,             0, 16000, 100 }, 0 },
     { "YAW Q",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,               0, 16000, 100 }, 0 },
-    { "IMUF SHARPNESS",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness,           1, 16000,   5 }, 0 },
+    { "IMUF SHARPNESS",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness,           0, 16000,   5 }, 0 },
     { "PTX FILTER ORDER",OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_ptX,                 1, 4,       1 }, 0 },
     { "DYNAMIC FILTER TYPE",OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_dynamicType,      0, 5,       1 }, 0 },
     { "DYNAMIC FILTER MIN",OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_dynamicMin,        10, 2000,   1 }, 0 },
