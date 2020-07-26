@@ -247,7 +247,7 @@ void gyroInitFilters(void)
       gyro.targetLooptime
     );
 
-    gyro.downsampleFilterEnabled = gyroInitLowpassFilterLpf(
+    gyroInitLowpassFilterLpf(
       FILTER_LOWPASS2,
       gyroConfig()->gyro_lowpass2_type,
       gyroConfig()->gyro_lowpass2_hz,
@@ -559,7 +559,6 @@ bool gyroInit(void)
     case DEBUG_GYRO_SCALED:
     case DEBUG_GYRO_FILTERED:
     case DEBUG_DYN_LPF:
-    case DEBUG_GYRO_SAMPLE:
         gyro.gyroDebugMode = debugMode;
         break;
     case DEBUG_DUAL_GYRO_DIFF:

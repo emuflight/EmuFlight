@@ -436,19 +436,6 @@ FAST_CODE void gyroUpdate(void)
         break;
 #endif
     }
-
-    if (gyro.downsampleFilterEnabled) {
-        // using gyro lowpass 2 filter for downsampling
-        gyro.sampleSum[X] = gyro.lowpass2FilterApplyFn((filter_t *)&gyro.lowpass2Filter[X], gyro.gyroADC[X]);
-        gyro.sampleSum[Y] = gyro.lowpass2FilterApplyFn((filter_t *)&gyro.lowpass2Filter[Y], gyro.gyroADC[Y]);
-        gyro.sampleSum[Z] = gyro.lowpass2FilterApplyFn((filter_t *)&gyro.lowpass2Filter[Z], gyro.gyroADC[Z]);
-    } else {
-        // using simple averaging for downsampling
-        gyro.sampleSum[X] += gyro.gyroADC[X];
-        gyro.sampleSum[Y] += gyro.gyroADC[Y];
-        gyro.sampleSum[Z] += gyro.gyroADC[Z];
-        gyro.sampleCount++;
-    }
 }
 
 #define GYRO_FILTER_FUNCTION_NAME filterGyro
