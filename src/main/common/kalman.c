@@ -99,9 +99,9 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 
 FAST_CODE float kalman_update(float input, int axis)
 {
-
+ if (gyroConfig->imuf_w >= 3) {
     update_kalman_covariance(input, axis);
     input = kalman_process(&kalmanFilterStateRate[axis], input, getSetpointRate(axis));
-
+ }
     return input;
 }
