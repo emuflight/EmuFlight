@@ -270,7 +270,32 @@ void pidResetIterm(void)
 void pidUpdateAntiGravityThrottleFilter(float throttle)
 {
     if (pidRuntime.antiGravityMode == ANTI_GRAVITY_SMOOTH) {
-        pidRuntime.antiGravityThrottleHpf = throttle - pt1FilterApply(&pidRuntime.antiGravityThrottleLpf, throttle);
+        // focus on low throttle range
+        // P boost 0.5 at zero throttle falling to 0 by half
+        if (throttle < 0.5f) {
+            pidRuntime.antiGravityPBoost = 0.5f - throttle;
+        } else {
+            pidRuntime.antiGravityPBoost = 0.0f;
+        }
+        // D boost 1.0 reducing with throttle value
+        pidRuntime.antiGravityDBoost = 1.0f - throttle;
+        // get the low-pass of throttle, to determine if throttle increasing or falling
+        pidRuntime.antiGravityThrottleHpf = pt1FilterApply(&pidRuntime.antiGravityThrottleLpf, throttle);
+        // set how much P and I boost when adding throttle
+        if (throttle > pidRuntime.antiGravityThrottleHpf) {
+            pidRuntime.antiGravityPBoost *= 0.5f;
+            pidRuntime.antiGravityDBoost *= pidRuntime.antiGravityThrottleHpf;
+        } else {
+            pidRuntime.antiGravityDBoost = 0.0f;
+        }
+        // calculate throttle high-pass as before, for use in AG code
+        pidRuntime.antiGravityThrottleHpf = fabsf(throttle - pidRuntime.antiGravityThrottleHpf);
+        // Modulate boost by how fast throttle is moving
+        pidRuntime.antiGravityPBoost *= pidRuntime.antiGravityThrottleHpf;
+        pidRuntime.antiGravityDBoost *= pidRuntime.antiGravityThrottleHpf;
+        // smooth the boost to remove the jagged edges
+        pidRuntime.antiGravityPBoost = pt1FilterApply(&pidRuntime.antiGravityPSmoothLpf, pidRuntime.antiGravityPBoost);
+        pidRuntime.antiGravityDBoost = pt1FilterApply(&pidRuntime.antiGravityDSmoothLpf, pidRuntime.antiGravityDBoost);
     }
 }
 
@@ -749,10 +774,25 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
     // Dynamic i component,
     if ((pidRuntime.antiGravityMode == ANTI_GRAVITY_SMOOTH) && pidRuntime.antiGravityEnabled) {
-        pidRuntime.itermAccelerator = fabsf(pidRuntime.antiGravityThrottleHpf) * 0.01f * (pidRuntime.itermAcceleratorGain - 1000);
-        DEBUG_SET(DEBUG_ANTI_GRAVITY, 1, lrintf(pidRuntime.antiGravityThrottleHpf * 1000));
+        // unchanged basic iTerm based itermAccelerator calculation
+        pidRuntime.itermAccelerator = pidRuntime.antiGravityThrottleHpf * 0.01f * pidRuntime.itermAcceleratorGain;
+        DEBUG_SET(DEBUG_ANTI_GRAVITY, 0, lrintf(pidRuntime.itermAccelerator * 1000));
+        // users AG Gain changes P and D boost
+        pidRuntime.antiGravityPBoost *= pidRuntime.itermAcceleratorGain;
+        pidRuntime.antiGravityDBoost *= pidRuntime.itermAcceleratorGain;
+        // add some percentage of the P boost factor to iTerm, to prolong AG effect on iTerm
+        pidRuntime.itermAccelerator += pidRuntime.antiGravityPBoost * 0.05f;
+        // set percentage of that boost factor to use to boost P and D
+        pidRuntime.antiGravityPBoost *= 0.02f;
+        pidRuntime.antiGravityDBoost *= 0.02f;
+        pidRuntime.antiGravityDBoost = fminf(0.4f, pidRuntime.antiGravityDBoost);
+    } else {
+        // no boost if no AG
+        pidRuntime.antiGravityPBoost = 0.0f;
+        pidRuntime.antiGravityDBoost = 0.0f;
     }
-    DEBUG_SET(DEBUG_ANTI_GRAVITY, 0, lrintf(pidRuntime.itermAccelerator * 1000));
+    // Debug 1 is the multiplier P
+    DEBUG_SET(DEBUG_ANTI_GRAVITY, 1, lrintf(pidRuntime.itermAccelerator * 1000));
 
     float agGain = pidRuntime.dT * pidRuntime.itermAccelerator * AG_KI;
 
@@ -1035,6 +1075,23 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         }
 #endif
         // calculating the PID sum
+
+        // P boost at the end of throttle chop
+        // attenuate effect if turning more than 50 deg/s, half at 100 deg/s
+        float agBoostAttenuator = fabsf(currentPidSetpoint) / 50.0f;
+        if (agBoostAttenuator < 1.0f) {
+            agBoostAttenuator = 1.0f;
+        }
+        const float agPBoost = 1.0f + (pidRuntime.antiGravityPBoost / agBoostAttenuator);
+        pidData[axis].P *= agPBoost;
+        const float agDBoost = 1.0f + (pidRuntime.antiGravityDBoost / agBoostAttenuator);
+        pidData[axis].D *= agDBoost;
+
+        if (axis == FD_ROLL){
+            DEBUG_SET(DEBUG_ANTI_GRAVITY, 2, lrintf(agPBoost * 1000));
+            DEBUG_SET(DEBUG_ANTI_GRAVITY, 3, lrintf(agDBoost * 1000));
+        }
+
         const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + pidData[axis].F;
 #ifdef USE_INTEGRATED_YAW_CONTROL
         if (axis == FD_YAW && pidRuntime.useIntegratedYaw) {
