@@ -41,7 +41,6 @@ FAST_CODE float nullFilterApply(filter_t *filter, float input)
     return input;
 }
 
-
 // PT1 Low Pass filter
 
 float pt1FilterGain(float f_cut, float dT)

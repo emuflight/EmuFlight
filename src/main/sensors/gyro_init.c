@@ -268,6 +268,9 @@ void gyroInitFilters(void)
     fftDataAnalyseStateInit(&gyro.fftAnalyseState, gyro.targetLooptime, gyroConfig()->dyn_notch_min_hz, gyroConfig()->dyn_notch_max_hz);
 #endif
     kalman_init();
+#ifdef USE_DYN_LPF2
+    init_dynLpf2();
+#endif
 }
 
 #if defined(USE_GYRO_SLEW_LIMITER)

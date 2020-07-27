@@ -189,19 +189,30 @@ typedef struct gyroConfig_s {
     uint8_t  dyn_notch_q;
     uint16_t dyn_notch_min_hz;
 
-    #if defined(USE_GYRO_IMUF9001)
-        uint16_t imuf_mode;
-        uint16_t imuf_rate;
-        uint16_t imuf_pitch_lpf_cutoff_hz;
-        uint16_t imuf_roll_lpf_cutoff_hz;
-        uint16_t imuf_yaw_lpf_cutoff_hz;
-        uint16_t imuf_acc_lpf_cutoff_hz;
-    #endif
-        uint16_t imuf_pitch_q;
-        uint16_t imuf_roll_q;
-        uint16_t imuf_yaw_q;
-        uint16_t imuf_w;
-        uint16_t imuf_sharpness;
+#if defined(USE_GYRO_IMUF9001)
+    uint16_t imuf_mode;
+    uint16_t imuf_rate;
+    uint16_t imuf_pitch_lpf_cutoff_hz;
+    uint16_t imuf_roll_lpf_cutoff_hz;
+    uint16_t imuf_yaw_lpf_cutoff_hz;
+    uint16_t imuf_acc_lpf_cutoff_hz;
+#endif
+    uint16_t imuf_pitch_q;
+    uint16_t imuf_roll_q;
+    uint16_t imuf_yaw_q;
+    uint16_t imuf_w;
+    uint16_t imuf_sharpness;
+#ifdef USE_DYN_LPF2
+    uint16_t dynlpf2_fmin;
+    uint16_t dynlpf2_fmax;
+    uint16_t dynlpf2_gain;
+    uint16_t dynlpf2_fc_fc;
+    uint16_t dynlpf2_center_threshold;
+    uint16_t dynlpf2_throttle_threshold;
+    uint16_t dynlpf2_throttle_gain;
+    uint8_t  dynlpf2_enable;
+    uint8_t  dynlpf2_type;
+#endif
 
     uint8_t  gyro_filter_debug_axis;
 
