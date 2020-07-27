@@ -32,6 +32,7 @@
 #include "common/maths.h"
 #include "common/filter.h"
 #include "common/kalman.h"
+#include "common/dynLpf2.h"
 #include "config/feature.h"
 
 #include "config/config.h"
