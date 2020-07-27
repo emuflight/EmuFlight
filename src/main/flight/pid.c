@@ -203,6 +203,10 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dyn_lpf_curve_expo = 5,
         .level_race_mode = false,
         .vbat_sag_compensation = 0,
+        .dtermDynNotchQ = 250,
+        .dterm_dyn_notch_min_hz = 150,
+        .dterm_dyn_notch_max_hz = 600,
+        .dterm_dyn_notch_location = 0,
     );
 }
 
@@ -728,11 +732,11 @@ static FAST_CODE_NOINLINE float applyLaunchControl(int axis, const rollAndPitchT
 // Based on 2DOF reference design (matlab)
 void FAST_CODE pidController(const pidProfile_t *pidProfile)
 {
-    static float previousGyroRateDterm[XYZ_AXIS_COUNT];
+    static float previousGyroRate[XYZ_AXIS_COUNT];
 #ifdef USE_INTERPOLATED_SP
     static FAST_RAM_ZERO_INIT uint32_t lastFrameNumber;
 #endif
-    static float previousRawGyroRateDterm[XYZ_AXIS_COUNT];
+    static float previousRawGyroRate[XYZ_AXIS_COUNT];
 
     const float tpaFactor = getThrottlePIDAttenuation();
 
@@ -798,10 +802,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         dynCi *= constrainf((1.0f - getMotorMixRange()) * pidRuntime.itermWindupPointInv, 0.0f, 1.0f);
     }
 
-    // Precalculate gyro deta for D-term here, this allows loop unrolling
-    float gyroRateDterm[XYZ_AXIS_COUNT];
     for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
-        gyroRateDterm[axis] = gyro.gyroADCf[axis];
         // -----calculate raw, unfiltered D component
 
         // Divide rate change by dT to get differential (ie dr/dt).
@@ -810,8 +811,8 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         // calculated deltaT whenever another task causes the PID
         // loop execution to be delayed.
         const float delta =
-            - (gyroRateDterm[axis] - previousRawGyroRateDterm[axis]) * pidRuntime.pidFrequency / D_LPF_RAW_SCALE;
-        previousRawGyroRateDterm[axis] = gyroRateDterm[axis];
+            - (gyro.gyroADCf[axis] - previousRawGyroRate[axis]) * pidRuntime.pidFrequency / D_LPF_RAW_SCALE;
+        previousRawGyroRate[axis] = gyro.gyroADCf[axis];
 
         // Log the unfiltered D
         if (axis == FD_ROLL) {
@@ -819,10 +820,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         } else if (axis == FD_PITCH) {
             DEBUG_SET(DEBUG_D_LPF, 1, lrintf(delta));
         }
-
-        gyroRateDterm[axis] = pidRuntime.dtermNotchApplyFn((filter_t *) &pidRuntime.dtermNotch[axis], gyroRateDterm[axis]);
-        gyroRateDterm[axis] = pidRuntime.dtermLowpassApplyFn((filter_t *) &pidRuntime.dtermLowpass[axis], gyroRateDterm[axis]);
-        gyroRateDterm[axis] = pidRuntime.dtermLowpass2ApplyFn((filter_t *) &pidRuntime.dtermLowpass2[axis], gyroRateDterm[axis]);
     }
 
     rotateItermAndAxisError();
@@ -965,8 +962,20 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             // This is done to avoid DTerm spikes that occur with dynamically
             // calculated deltaT whenever another task causes the PID
             // loop execution to be delayed.
-            const float delta =
-                - (gyroRateDterm[axis] - previousGyroRateDterm[axis]) * pidRuntime.pidFrequency;
+            float delta = -(gyro.gyroADCf[axis] - previousGyroRate[axis]) * pidRuntime.pidFrequency;
+
+            if (pidProfile->dtermDynNotchQ > 0 && pidProfile->dterm_dyn_notch_location == 0) {
+                fftDataAnalysePush(&pidRuntime.dtermFFTAnalyseState, axis, delta);
+                delta = pidRuntime.dtermDynNotchApplyFn((filter_t *)&pidRuntime.dtermNotchFilterDyn[axis], delta);
+            }
+            delta = pidRuntime.dtermNotchApplyFn((filter_t *) &pidRuntime.dtermNotch[axis], delta);
+            delta = pidRuntime.dtermLowpassApplyFn((filter_t *) &pidRuntime.dtermLowpass[axis], delta);
+            delta = pidRuntime.dtermLowpass2ApplyFn((filter_t *) &pidRuntime.dtermLowpass2[axis], delta);
+
+            if (pidProfile->dtermDynNotchQ > 0 && pidProfile->dterm_dyn_notch_location == 1) {
+                fftDataAnalysePush(&pidRuntime.dtermFFTAnalyseState, axis, delta);
+                delta = pidRuntime.dtermDynNotchApplyFn((filter_t *)&pidRuntime.dtermNotchFilterDyn[axis], delta);
+            }
             float preTpaData = pidRuntime.pidCoefficient[axis].Kd * delta;
 
 #if defined(USE_D_MIN)
@@ -1011,7 +1020,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             }
         }
 
-        previousGyroRateDterm[axis] = gyroRateDterm[axis];
+        previousGyroRate[axis] = gyro.gyroADCf[axis];
 
 #if defined(USE_ACC)
             detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, pidData[axis].D, errorRate);
@@ -1091,6 +1100,17 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + pidData[axis].F;
         {
             pidData[axis].Sum = pidSum;
+        }
+    }
+
+    if (pidProfile->dtermDynNotchQ > 0) {
+        fftDataAnalyse(&pidRuntime.dtermFFTAnalyseState);
+
+        if (pidRuntime.dtermFFTAnalyseState.filterUpdateExecute) {
+            const uint8_t axis = pidRuntime.dtermFFTAnalyseState.filterUpdateAxis;
+            const uint16_t frequency = pidRuntime.dtermFFTAnalyseState.filterUpdateFrequency;
+
+            biquadFilterUpdate(&pidRuntime.dtermNotchFilterDyn[axis], frequency, targetPidLooptime, pidProfile->dtermDynNotchQ / 100.0f, FILTER_NOTCH);
         }
     }
 

@@ -1817,7 +1817,6 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
 #endif
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
-#endif
 #if defined(USE_ITERM_RELAX)
         // Added in MSP API 1.42
         sbufWriteU8(dst, currentPidProfile->iterm_relax_cutoff);
@@ -2674,7 +2673,6 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
 #endif
             sbufReadU8(src);
             sbufReadU8(src);
-#endif
         }
         if(sbufBytesRemaining(src) >= 1) {
             // Added in MSP API 1.42

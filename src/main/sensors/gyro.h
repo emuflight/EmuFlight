@@ -103,7 +103,7 @@ typedef struct gyro_s {
     biquadFilter_t notchFilterDyn[XYZ_AXIS_COUNT][XYZ_AXIS_COUNT];
 
 #ifdef USE_GYRO_DATA_ANALYSE
-    gyroAnalyseState_t gyroAnalyseState;
+    fftAnalyseState_t fftAnalyseState;
     float dynNotchQ;
 #endif
 
