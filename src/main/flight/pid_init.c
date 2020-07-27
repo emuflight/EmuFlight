@@ -288,14 +288,9 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidRuntime.itermWindupPointInv = 1.0f / (1.0f - itermWindupPoint);
     }
     pidRuntime.itermAcceleratorGain = pidProfile->itermAcceleratorGain;
-    pidRuntime.crashTimeLimitUs = pidProfile->crash_time * 1000;
-    pidRuntime.crashTimeDelayUs = pidProfile->crash_delay * 1000;
-    pidRuntime.crashRecoveryAngleDeciDegrees = pidProfile->crash_recovery_angle * 10;
-    pidRuntime.crashRecoveryRate = pidProfile->crash_recovery_rate;
     pidRuntime.crashGyroThreshold = pidProfile->crash_gthreshold;
     pidRuntime.crashDtermThreshold = pidProfile->crash_dthreshold;
     pidRuntime.crashSetpointThreshold = pidProfile->crash_setpoint_threshold;
-    pidRuntime.crashLimitYaw = pidProfile->crash_limit_yaw;
     pidRuntime.itermLimit = pidProfile->itermLimit;
 #if defined(USE_THROTTLE_BOOST)
     throttleBoost = pidProfile->throttle_boost * 0.1f;

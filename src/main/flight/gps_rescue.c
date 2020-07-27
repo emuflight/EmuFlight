@@ -409,11 +409,6 @@ static void performSanityChecks()
         }
     }
 
-    // Check if crash recovery mode is active, disarm if so.
-    if (crashRecoveryModeActive()) {
-        rescueState.failure = RESCUE_CRASH_FLIP_DETECTED;
-    }
-
     // Check if GPS comms are healthy
     if (!rescueState.sensor.healthy) {
         rescueState.failure = RESCUE_GPSLOST;
