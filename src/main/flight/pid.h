@@ -334,11 +334,6 @@ typedef struct pidRuntime_s {
     float launchControlKi;
 #endif
 
-#ifdef USE_INTEGRATED_YAW_CONTROL
-    bool useIntegratedYaw;
-    uint8_t integratedYawRelax;
-#endif
-
 #ifdef USE_THRUST_LINEARIZATION
     float thrustLinearization;
     float throttleCompensateAmount;
