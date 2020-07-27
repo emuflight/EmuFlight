@@ -61,6 +61,7 @@ bool cliMode = false;
 #include "drivers/accgyro/accgyro.h"
 #include "drivers/adc.h"
 #include "drivers/buf_writer.h"
+#include "drivers/bus_i2c.h"
 #include "drivers/bus_spi.h"
 #include "drivers/dma.h"
 #include "drivers/dma_reqmap.h"
@@ -305,6 +306,8 @@ static const char *mcuTypeNames[] = {
     "H743 (Rev.X)",
     "H743 (Rev.V)",
 };
+
+static const char *configurationStates[] = { "UNCONFIGURED", "CUSTOM DEFAULTS", "CONFIGURED" };
 
 typedef enum dumpFlags_e {
     DUMP_MASTER = (1 << 0),
@@ -4697,12 +4700,27 @@ static void cliStatus(const char *cmdName, char *cmdline)
     // Stack and config sizes and usages
 
     cliPrintf("Stack size: %d, Stack address: 0x%x", stackTotalSize(), stackHighMem());
-#ifdef STACK_CHECK
+#ifdef USE_STACK_CHECK
     cliPrintf(", Stack used: %d", stackUsedSize());
 #endif
     cliPrintLinefeed();
 
-    cliPrintLinef("Config size: %d, Max available config: %d", getEEPROMConfigSize(), getEEPROMStorageSize());
+    cliPrintLinef("Configuration: %s, size: %d, max available: %d", configurationStates[systemConfigMutable()->configurationState], getEEPROMConfigSize(), getEEPROMStorageSize());
+
+    // Devices
+#if defined(USE_SPI) || defined(USE_I2C)
+    cliPrint("Devices detected:");
+#if defined(USE_SPI)
+    cliPrintf(" SPI:%d", spiGetRegisteredDeviceCount());
+#if defined(USE_I2C)
+    cliPrint(",");
+#endif
+#endif
+#if defined(USE_I2C)
+    cliPrintf(" I2C:%d", i2cGetRegisteredDeviceCount());
+#endif
+    cliPrintLinefeed();
+#endif
 
     // Sensors
     cliPrint("Gyros detected:");
@@ -6158,6 +6176,10 @@ static void printConfig(const char *cmdName, char *cmdline, bool doDiff)
 #endif
 #endif
 
+        printFeature(dumpMask, featureConfig_Copy.enabledFeatures, featureConfig()->enabledFeatures, "feature");
+
+        printSerial(dumpMask, &serialConfig_Copy, serialConfig(), "serial");
+
         if (!(dumpMask & HARDWARE_ONLY)) {
 #ifndef USE_QUAD_MIXER_ONLY
             const char *mixerHeadingStr = "mixer";
@@ -6184,8 +6206,6 @@ static void printConfig(const char *cmdName, char *cmdline, bool doDiff)
 #endif
 #endif
 
-            printFeature(dumpMask, featureConfig_Copy.enabledFeatures, featureConfig()->enabledFeatures, "feature");
-
 #if defined(USE_BEEPER)
             printBeeper(dumpMask, beeperConfig_Copy.beeper_off_flags, beeperConfig()->beeper_off_flags, "beeper", BEEPER_ALLOWED_MODES, "beeper");
 
@@ -6195,8 +6215,6 @@ static void printConfig(const char *cmdName, char *cmdline, bool doDiff)
 #endif // USE_BEEPER
 
             printMap(dumpMask, &rxConfig_Copy, rxConfig(), "map");
-
-            printSerial(dumpMask, &serialConfig_Copy, serialConfig(), "serial");
 
 #ifdef USE_LED_STRIP_STATUS_MODE
             printLed(dumpMask, ledStripStatusModeConfig_Copy.ledConfigs, ledStripStatusModeConfig()->ledConfigs, "led");

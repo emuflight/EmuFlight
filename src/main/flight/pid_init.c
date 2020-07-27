@@ -375,10 +375,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 
 #ifdef USE_THRUST_LINEARIZATION
     pidRuntime.thrustLinearization = pidProfile->thrustLinearization / 100.0f;
-    if (pidRuntime.thrustLinearization != 0.0f) {
-        pidRuntime.thrustLinearizationReciprocal = 1.0f / pidRuntime.thrustLinearization;
-        pidRuntime.thrustLinearizationB = (1.0f - pidRuntime.thrustLinearization) / (2.0f * pidRuntime.thrustLinearization);
-    }
+    pidRuntime.throttleCompensateAmount = pidRuntime.thrustLinearization - 0.5f * powerf(pidRuntime.thrustLinearization, 2);
 #endif
 #if defined(USE_D_MIN)
     for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
@@ -412,4 +409,3 @@ void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex)
         memcpy(pidProfilesMutable(dstPidProfileIndex), pidProfilesMutable(srcPidProfileIndex), sizeof(pidProfile_t));
     }
 }
-

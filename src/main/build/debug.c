@@ -96,4 +96,6 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "BLACKBOX_OUTPUT",
     "RX_TIMING",
     "MATRIX_FILTER",
+    "D_LPF",
+    "VTX_TRAMP",
 };

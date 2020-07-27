@@ -50,6 +50,7 @@
 
 #include "drivers/accgyro/accgyro.h"
 #include "drivers/bus_i2c.h"
+#include "drivers/bus_spi.h"
 #include "drivers/camera_control.h"
 #include "drivers/compass/compass.h"
 #include "drivers/display.h"
@@ -93,7 +94,6 @@
 #include "io/gimbal.h"
 #include "io/gps.h"
 #include "io/ledstrip.h"
-#include "io/motors.h"
 #include "io/serial.h"
 #include "io/serial_4way.h"
 #include "io/servos.h"
@@ -687,6 +687,18 @@ static bool mspCommonProcessOutCommand(int16_t cmdMSP, sbuf_t *dst, mspPostProce
 
         sbufWriteU32(dst, configurationProblems);
 
+        // Added in MSP API 1.44
+#if defined(USE_SPI)
+        sbufWriteU8(dst, spiGetRegisteredDeviceCount());
+#else
+        sbufWriteU8(dst, 0);
+#endif
+#if defined(USE_I2C)
+        sbufWriteU8(dst, i2cGetRegisteredDeviceCount());
+#else
+        sbufWriteU8(dst, 0);
+#endif
+
         break;
     }
 
@@ -889,17 +901,18 @@ static bool mspCommonProcessOutCommand(int16_t cmdMSP, sbuf_t *dst, mspPostProce
 
         osdDisplayPortDevice_e deviceType;
         displayPort_t *osdDisplayPort = osdGetDisplayPort(&deviceType);
+        bool displayIsReady = osdDisplayPort && displayCheckReady(osdDisplayPort, true);
         switch (deviceType) {
         case OSD_DISPLAYPORT_DEVICE_MAX7456:
             osdFlags |= OSD_FLAGS_OSD_HARDWARE_MAX_7456;
-            if (osdDisplayPort && displayIsReady(osdDisplayPort)) {
+            if (displayIsReady) {
                 osdFlags |= OSD_FLAGS_OSD_DEVICE_DETECTED;
             }
 
             break;
         case OSD_DISPLAYPORT_DEVICE_FRSKYOSD:
             osdFlags |= OSD_FLAGS_OSD_HARDWARE_FRSKYOSD;
-            if (osdDisplayPort && displayIsReady(osdDisplayPort)) {
+            if (displayIsReady) {
                 osdFlags |= OSD_FLAGS_OSD_DEVICE_DETECTED;
             }
 
@@ -1322,12 +1335,6 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
 #endif
         break;
 
-#ifdef USE_MAG
-    case MSP_COMPASS_CONFIG:
-        sbufWriteU16(dst, compassConfig()->mag_declination / 10);
-        break;
-#endif
-
 #if defined(USE_ESC_SENSOR)
     // Deprecated in favor of MSP_MOTOR_TELEMETY as of API version 1.42
     case MSP_ESC_SENSOR_DATA:
@@ -1596,13 +1603,15 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, blackboxConfig()->device);
         sbufWriteU8(dst, 1); // Rate numerator, not used anymore
         sbufWriteU8(dst, blackboxGetRateDenom());
-        sbufWriteU16(dst, blackboxConfig()->p_ratio);
+        sbufWriteU16(dst, blackboxGetPRatio());
+        sbufWriteU8(dst, blackboxConfig()->sample_rate);
 #else
         sbufWriteU8(dst, 0); // Blackbox not supported
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
         sbufWriteU16(dst, 0);
+        sbufWriteU8(dst, 0);
 #endif
         break;
 
@@ -1738,6 +1747,12 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
 #else
         sbufWriteU16(dst, 0);
 #endif
+#if defined(USE_DYN_LPF)
+        // Added in MSP API 1.44
+        sbufWriteU8(dst, currentPidProfile->dyn_lpf_curve_expo);
+#else
+        sbufWriteU8(dst, 0);
+#endif
 
         break;
     case MSP_PID_ADVANCED:
@@ -1816,8 +1831,25 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         // Added in MSP API 1.43
         sbufWriteU8(dst, currentPidProfile->motor_output_limit);
         sbufWriteU8(dst, currentPidProfile->auto_profile_cell_count);
+#if defined(USE_DYN_IDLE)
         sbufWriteU8(dst, currentPidProfile->idle_min_rpm);
-
+#else
+        sbufWriteU8(dst, 0);
+#endif
+        // Added in MSP API 1.44
+#if defined(USE_INTERPOLATED_SP)
+        sbufWriteU8(dst, currentPidProfile->ff_interpolate_sp);
+        sbufWriteU8(dst, currentPidProfile->ff_smooth_factor);
+#else
+        sbufWriteU8(dst, 0);
+        sbufWriteU8(dst, 0);
+#endif
+        sbufWriteU8(dst, currentPidProfile->ff_boost);
+#if defined(USE_BATTERY_VOLTAGE_SAG_COMPENSATION)
+        sbufWriteU8(dst, currentPidProfile->vbat_sag_compensation);
+#else
+        sbufWriteU8(dst, 0);
+#endif
         break;
     case MSP_SENSOR_CONFIG:
 #if defined(USE_ACC)
@@ -2353,12 +2385,6 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
 #endif
 #endif
 
-#ifdef USE_MAG
-    case MSP_SET_COMPASS_CONFIG:
-        compassConfigMutable()->mag_declination = sbufReadU16(src) * 10;
-        break;
-#endif
-
     case MSP_SET_MOTOR:
         for (int i = 0; i < getMotorCount(); i++) {
             motor_disarmed[i] = motorConvertFromExternal(sbufReadU16(src));
@@ -2562,7 +2588,14 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
             sbufReadU16(src);
 #endif
         }
-
+        if (sbufBytesRemaining(src) >= 1) {
+            // Added in MSP API 1.44
+#if defined(USE_DYN_LPF)
+            currentPidProfile->dyn_lpf_curve_expo = sbufReadU8(src);
+#else
+            sbufReadU8(src);
+#endif
+        }
 
         // reinitialize the gyro filters with the new values
         validateAndFixGyroConfig();
@@ -2659,11 +2692,31 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
             sbufReadU8(src);
 #endif
         }
-        if(sbufBytesRemaining(src) >= 3) {
+        if (sbufBytesRemaining(src) >= 3) {
             // Added in MSP API 1.43
             currentPidProfile->motor_output_limit = sbufReadU8(src);
             currentPidProfile->auto_profile_cell_count = sbufReadU8(src);
+#if defined(USE_DYN_IDLE)
             currentPidProfile->idle_min_rpm = sbufReadU8(src);
+#else
+            sbufReadU8(src);
+#endif
+        }
+        if (sbufBytesRemaining(src) >= 4) {
+            // Added in MSP API 1.44
+#if defined(USE_INTERPOLATED_SP)
+            currentPidProfile->ff_interpolate_sp = sbufReadU8(src);
+            currentPidProfile->ff_smooth_factor = sbufReadU8(src);
+#else
+            sbufReadU8(src);
+            sbufReadU8(src);
+#endif
+            currentPidProfile->ff_boost = sbufReadU8(src);
+#if defined(USE_BATTERY_VOLTAGE_SAG_COMPENSATION)
+            currentPidProfile->vbat_sag_compensation = sbufReadU8(src);
+#else
+            sbufReadU8(src);
+#endif
         }
         pidInitConfig(currentPidProfile);
 
@@ -2725,12 +2778,21 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
             blackboxConfigMutable()->device = sbufReadU8(src);
             const int rateNum = sbufReadU8(src); // was rate_num
             const int rateDenom = sbufReadU8(src); // was rate_denom
+            uint16_t pRatio = 0;
             if (sbufBytesRemaining(src) >= 2) {
                 // p_ratio specified, so use it directly
-                blackboxConfigMutable()->p_ratio = sbufReadU16(src);
+                pRatio = sbufReadU16(src);
             } else {
                 // p_ratio not specified in MSP, so calculate it from old rateNum and rateDenom
-                blackboxConfigMutable()->p_ratio = blackboxCalculatePDenom(rateNum, rateDenom);
+                pRatio = blackboxCalculatePDenom(rateNum, rateDenom);
+            }
+
+            if (sbufBytesRemaining(src) >= 1) {
+                // sample_rate specified, so use it directly
+                blackboxConfigMutable()->sample_rate = sbufReadU8(src);
+            } else {
+                // sample_rate not specified in MSP, so calculate it from old p_ratio
+                blackboxConfigMutable()->sample_rate = blackboxCalculateSampleRate(pRatio);
             }
         }
         break;
@@ -3212,6 +3274,9 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
         for (unsigned int i = 0; i < MIN(MAX_NAME_LENGTH, dataSize); i++) {
             pilotConfigMutable()->name[i] = sbufReadU8(src);
         }
+#ifdef USE_OSD
+        osdAnalyzeActiveElements();
+#endif
         break;
 
 #ifdef USE_RTC_TIME

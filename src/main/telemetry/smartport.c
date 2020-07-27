@@ -59,7 +59,6 @@
 
 #include "io/beeper.h"
 #include "io/gps.h"
-#include "io/motors.h"
 #include "io/serial.h"
 
 #include "msp/msp.h"
@@ -705,10 +704,12 @@ void processSmartPortTelemetry(smartPortPayload_t *payload, volatile bool *clear
                 smartPortSendPackage(id, getMAhDrawn()); // given in mAh, should be in percent according to SmartPort spec
                 *clearToSend = false;
                 break;
+#if defined(USE_VARIO)
             case FSSP_DATAID_VARIO      :
                 smartPortSendPackage(id, getEstimatedVario()); // in cm/s according to SmartPort spec
                 *clearToSend = false;
                 break;
+#endif
             case FSSP_DATAID_HEADING    :
                 smartPortSendPackage(id, attitude.values.yaw * 10); // in degrees * 100 according to SmartPort spec
                 *clearToSend = false;

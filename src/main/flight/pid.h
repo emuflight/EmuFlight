@@ -351,8 +351,7 @@ typedef struct pidRuntime_s {
 
 #ifdef USE_THRUST_LINEARIZATION
     float thrustLinearization;
-    float thrustLinearizationReciprocal;
-    float thrustLinearizationB;
+    float throttleCompensateAmount;
 #endif
 
 #ifdef USE_AIRMODE_LPF
