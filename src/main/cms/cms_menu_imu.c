@@ -690,11 +690,11 @@ static const OSD_Entry cmsx_menuDynFiltEntries[] =
     { "MATRIX MAX HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltMatrixMaxHz,   0, 1000, 1 }, 0 },
 #endif
 #ifndef USE_GYRO_IMUF9001
-    { "IMUF W",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,                   3,   350,   1 }, 0 },
+    { "IMUF W",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,              3,   300,   1 }, 0 },
     { "IMUF ROLL Q",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,       100, 16000, 100 }, 0 },
     { "IMUF PITCH Q",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,      100, 16000, 100 }, 0 },
     { "IMUF YAW Q",      OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,        100, 16000, 100 }, 0 },
-    { "IMUF SHARPNESS",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness,    100, 16000, 100 }, 0 },
+    { "IMUF SHARPNESS",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness,      0, 16000, 100 }, 0 },
 #endif
 #ifdef USE_DYN_LPF
     { "LPF GYRO MIN",    OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltGyroMin,  0, 1000, 1 }, 0 },

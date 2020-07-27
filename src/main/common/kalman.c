@@ -80,7 +80,7 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
   // calculate the error and add multiply sharpness boost
   	float errorMultiplier = fabsf(target - kalmanState->x) * kalmanState->s;
 
-  // give a boost to the setpoint, used to caluclate the kalman q, based on the error and setpoint/gyrodata
+  // give a boost to the setpoint, used to calculate the kalman q, based on the error and setpoint/gyrodata
 
   	errorMultiplier = constrainf(errorMultiplier * fabsf(1.0f - (target / kalmanState->lastX)) + 1.0f, 1.0f, 50.0f);
 
