@@ -183,7 +183,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .use_integrated_yaw = false,
         .integrated_yaw_relax = 200,
         .thrustLinearization = 0,
-        .d_min = { 23, 25, 0 },      // roll, pitch, yaw
+        .d_min = { 0, 0, 0 },      // roll, pitch, yaw
         .d_min_gain = 37,
         .d_min_advance = 20,
         .motor_output_limit = 100,
@@ -204,10 +204,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .level_race_mode = false,
         .vbat_sag_compensation = 0,
     );
-#ifndef USE_D_MIN
-    pidProfile->pid[PID_ROLL].D = 30;
-    pidProfile->pid[PID_PITCH].D = 32;
-#endif
 }
 
 void pgResetFn_pidProfiles(pidProfile_t *pidProfiles)
