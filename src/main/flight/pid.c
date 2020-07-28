@@ -205,6 +205,16 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_dyn_notch_min_hz = 150,
         .dterm_dyn_notch_max_hz = 600,
         .dterm_dyn_notch_location = 0,
+        .dterm_dynlpf2_fmin = 60,
+        .dterm_dynlpf2_fmax = 300,
+        .dterm_dynlpf2_gain = 70,
+        .dterm_dynlpf2_fc_fc = 10,
+        .dterm_dynlpf2_center_threshold = 10,
+        .dterm_dynlpf2_throttle_threshold = 25,
+        .dterm_dynlpf2_throttle_gain = 12,
+        .dterm_dynlpf2_enable = 1,
+        .dterm_dynlpf2_type = 0,
+        .dterm_dynlpf2_debug = 0,
     );
 }
 
@@ -969,6 +979,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             delta = pidRuntime.dtermNotchApplyFn((filter_t *) &pidRuntime.dtermNotch[axis], delta);
             delta = pidRuntime.dtermLowpassApplyFn((filter_t *) &pidRuntime.dtermLowpass[axis], delta);
             delta = pidRuntime.dtermLowpass2ApplyFn((filter_t *) &pidRuntime.dtermLowpass2[axis], delta);
+            delta = dynLpf2Apply(&pidRuntime.dynLpfDterm[axis], axis, delta);
 
             if (pidProfile->dtermDynNotchQ > 0 && pidProfile->dterm_dyn_notch_location == 1) {
                 fftDataAnalysePush(&pidRuntime.dtermFFTAnalyseState, axis, delta);

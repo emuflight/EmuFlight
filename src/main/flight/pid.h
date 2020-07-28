@@ -24,6 +24,8 @@
 #include "common/time.h"
 #include "common/filter.h"
 #include "common/axis.h"
+#include "common/dynlpf2.h"
+
 #include "flight/gyroanalyse.h"
 
 #include "pg/pg.h"
@@ -198,6 +200,17 @@ typedef struct pidProfile_s {
     uint16_t dterm_dyn_notch_min_hz;        // min hz for the dynamic dterm notch
     uint16_t dterm_dyn_notch_max_hz;        // max hz for the dynamic dterm notch
     uint8_t dterm_dyn_notch_location;       // location of the dyn dterm notch
+
+    uint16_t dterm_dynlpf2_fmin;
+    uint16_t dterm_dynlpf2_fmax;
+    uint16_t dterm_dynlpf2_gain;
+    uint16_t dterm_dynlpf2_fc_fc;
+    uint16_t dterm_dynlpf2_center_threshold;
+    uint16_t dterm_dynlpf2_throttle_threshold;
+    uint16_t dterm_dynlpf2_throttle_gain;
+    uint8_t  dterm_dynlpf2_enable;
+    uint8_t  dterm_dynlpf2_type;
+    uint8_t  dterm_dynlpf2_debug;
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
@@ -251,6 +264,7 @@ typedef struct pidRuntime_s {
     filterApplyFnPtr dtermDynNotchApplyFn;
     biquadFilter_t dtermNotchFilterDyn[XYZ_AXIS_COUNT];
     fftAnalyseState_t dtermFFTAnalyseState;
+    dynlpf2_t dynLpfDterm[XYZ_AXIS_COUNT];
     bool antiGravityEnabled;
     uint8_t antiGravityMode;
     pt1Filter_t antiGravityThrottleLpf;

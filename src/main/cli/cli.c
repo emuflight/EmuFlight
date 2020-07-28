@@ -538,7 +538,7 @@ static void printValuePointer(const char *cmdName, const clivalue_t *var, const 
                 break;
 
             case VAR_UINT32:
-                // uin32_t array
+                // uint32_t array
                 cliPrintf("%u", ((uint32_t *)valuePointer)[i]);
                 break;
             }

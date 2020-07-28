@@ -23,6 +23,7 @@
 #include "common/axis.h"
 #include "common/filter.h"
 #include "common/time.h"
+#include "common/dynlpf2.h"
 
 #include "drivers/accgyro/accgyro.h"
 #include "drivers/bus.h"
@@ -102,6 +103,7 @@ typedef struct gyro_s {
     filterApplyFnPtr notchFilterDynApplyFn;
     biquadFilter_t notchFilterDyn[XYZ_AXIS_COUNT][XYZ_AXIS_COUNT];
 
+    dynlpf2_t dynLpfGyro[XYZ_AXIS_COUNT];
 #ifdef USE_GYRO_DATA_ANALYSE
     fftAnalyseState_t fftAnalyseState;
     float dynNotchQ;
@@ -212,6 +214,7 @@ typedef struct gyroConfig_s {
     uint16_t dynlpf2_throttle_gain;
     uint8_t  dynlpf2_enable;
     uint8_t  dynlpf2_type;
+    uint8_t  dynlpf2_debug;
 #endif
 
     uint8_t  gyro_filter_debug_axis;

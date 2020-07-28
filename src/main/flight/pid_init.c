@@ -178,6 +178,17 @@ void pidInitFilters(const pidProfile_t *pidProfile)
         }
     }
 
+    init_dynLpf2(&pidRuntime.dynLpfDterm[0], targetPidLooptime, pidProfile->dterm_dynlpf2_fmin, pidProfile->dterm_dynlpf2_fmax, pidProfile->dterm_dynlpf2_fc_fc,
+    pidProfile->dterm_dynlpf2_throttle_threshold, pidProfile->dterm_dynlpf2_throttle_gain, pidProfile->dterm_dynlpf2_center_threshold, pidProfile->dterm_dynlpf2_gain,
+    gyroConfig()->gyro_filter_debug_axis, pidProfile->dterm_dynlpf2_type, pidProfile->dterm_dynlpf2_enable, pidProfile->dterm_dynlpf2_debug);
+
+    init_dynLpf2(&pidRuntime.dynLpfDterm[1], targetPidLooptime, pidProfile->dterm_dynlpf2_fmin, pidProfile->dterm_dynlpf2_fmax, pidProfile->dterm_dynlpf2_fc_fc,
+    pidProfile->dterm_dynlpf2_throttle_threshold, pidProfile->dterm_dynlpf2_throttle_gain, pidProfile->dterm_dynlpf2_center_threshold, pidProfile->dterm_dynlpf2_gain,
+    gyroConfig()->gyro_filter_debug_axis, pidProfile->dterm_dynlpf2_type, pidProfile->dterm_dynlpf2_enable, pidProfile->dterm_dynlpf2_debug);
+
+    init_dynLpf2(&pidRuntime.dynLpfDterm[2], targetPidLooptime, pidProfile->dterm_dynlpf2_fmin, pidProfile->dterm_dynlpf2_fmax, pidProfile->dterm_dynlpf2_fc_fc,
+    pidProfile->dterm_dynlpf2_throttle_threshold, pidProfile->dterm_dynlpf2_throttle_gain, pidProfile->dterm_dynlpf2_center_threshold, pidProfile->dterm_dynlpf2_gain,
+    gyroConfig()->gyro_filter_debug_axis, pidProfile->dterm_dynlpf2_type, pidProfile->dterm_dynlpf2_enable, pidProfile->dterm_dynlpf2_debug);
 
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, pidRuntime.dT));

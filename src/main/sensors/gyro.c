@@ -147,6 +147,7 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->dynlpf2_throttle_gain = DEFAULT_DYNLPF2_THROTTLE_GAIN;
     gyroConfig->dynlpf2_enable = DEFAULT_DYNLPF2_ENABLE;
     gyroConfig->dynlpf2_type = DEFAULT_DYNLPF2_TYPE;
+    gyroConfig->dynlpf2_debug = 0;
 #endif
 }
 

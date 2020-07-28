@@ -69,7 +69,7 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
         }
 #endif
 #ifdef USE_DYN_LPF2
-        gyroADCf = dynLpf2Apply(axis, gyroADCf);
+        gyroADCf = dynLpf2Apply(&gyro.dynLpfGyro[axis], axis, gyroADCf);
 #endif
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));
