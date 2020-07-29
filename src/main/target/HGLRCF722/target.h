@@ -56,9 +56,6 @@
 #define GYRO_MPU6000_ALIGN        CW180_DEG_FLIP
 #define ACC_MPU6000_ALIGN         CW180_DEG_FLIP
 
-#define USE_MPU_DATA_READY_SIGNAL
-#define ENSURE_MPU_DATA_READY_IS_LOW
-
 // *************** I2C /Baro/Mag *********************
 
 #define USE_I2C
