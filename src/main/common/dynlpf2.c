@@ -1,6 +1,3 @@
-#pragma GCC push_options
-#pragma GCC optimize("O3")
-
 #include <stdbool.h>
 
 #include "platform.h"
@@ -182,5 +179,3 @@ float target = getSetpointRate(axis);
 
 return output;
 }
-
-#pragma GCC pop_options
