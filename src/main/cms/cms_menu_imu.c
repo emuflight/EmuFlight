@@ -779,7 +779,7 @@ static const OSD_Entry cmsx_menuDynFiltEntries[] =
     { "DLPF2 FMIN",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_dynlpf2_fmin, 0, 1000, 1 }, 0 },
     { "DLPF2 TYPE",   OME_UINT8, NULL, &(OSD_UINT8_t) { &gyroConfig_dynlpf2_dynlpf2_type, 0, 1, 1 }, 0 },
     { "DLPF2 FMAX",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_dynlpf2_fmax, 0, 1000, 1 }, 0 },
-    { "DLPF2 FCFC",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_dynlpf2_gain, 0,   50, 1 }, 0 },
+    { "DLPF2 FCFC",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_dynlpf2_fc_fc, 0,   50, 1 }, 0 },
 #endif
     { "D DLPF2 ENABLE",   OME_UINT8, NULL, &(OSD_UINT8_t) { &dynlpf2_dynlpf2_enable, 0, 1, 1 }, 0 },
     { "D DLPF2 THRO_BRKPT",  OME_UINT16, NULL, &(OSD_UINT16_t) { &dynlpf2_throttle_threshold, 0,   100, 1 }, 0 },
@@ -788,7 +788,7 @@ static const OSD_Entry cmsx_menuDynFiltEntries[] =
     { "D DLPF2 FMIN",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynlpf2_fmin, 0, 1000, 1 }, 0 },
     { "D DLPF2 TYPE",   OME_UINT8, NULL, &(OSD_UINT8_t) { &dynlpf2_dynlpf2_type, 0, 1, 1 }, 0 },
     { "D DLPF2 FMAX",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynlpf2_fmax, 0, 1000, 1 }, 0 },
-    { "D DLPF2 FCFC",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynlpf2_gain, 0,   50, 1 }, 0 },
+    { "D DLPF2 FCFC",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynlpf2_fc_fc, 0,   50, 1 }, 0 },
 #ifdef USE_DYN_LPF
     { "LPF GYRO MIN",    OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltGyroMin,  0, 1000, 1 }, 0 },
     { "LPF GYRO MAX",    OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltGyroMax,  0, 1000, 1 }, 0 },
