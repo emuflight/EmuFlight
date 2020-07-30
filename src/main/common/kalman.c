@@ -67,7 +67,6 @@ static FAST_CODE void update_kalman_covariance(float gyroRateData, int axis)
 
 FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 {
-  float targetAbs = fabsf(target);
   //project the state ahead using acceleration
   kalmanState->x += (kalmanState->x - kalmanState->lastX);
 
@@ -76,16 +75,11 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
   //update last state
   kalmanState->lastX = kalmanState->x;
 
-  if (kalmanState->lastX != 0.0f) {
-  // calculate the error and add multiply sharpness boost
-  	float errorMultiplier = fabsf(target - kalmanState->x) * kalmanState->s;
-
-  // give a boost to the setpoint, used to calculate the kalman q, based on the error and setpoint/gyrodata
-
-  	errorMultiplier = constrainf(errorMultiplier * fabsf(1.0f - (target / kalmanState->lastX)) + 1.0f, 1.0f, 50.0f);
-
-    kalmanState->e = fabsf(1.0f - (((targetAbs + 1.0f) * errorMultiplier) / fabsf(kalmanState->lastX)));
-  }
+  target = target; // unused for now
+  // mess with this later
+  // if (kalmanState->lastX != 0.0f) {
+  //     kalmanState->e = fabsf(1.0f - (target / kalmanState->lastX));
+  // }
 
   //prediction update
   kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
