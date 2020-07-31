@@ -39,6 +39,7 @@
 #include "cms/cms_types.h"
 
 #include "drivers/accgyro/accgyro.h"
+#include "drivers/beesign.h"
 #include "drivers/adc.h"
 #include "drivers/bus.h"
 #include "drivers/bus_i2c.h"
@@ -135,6 +136,7 @@
 #include "io/vtx_control.h"
 #include "io/vtx_smartaudio.h"
 #include "io/vtx_tramp.h"
+#include "io/vtx_beesign.h"
 
 #include "scheduler/scheduler.h"
 
@@ -560,6 +562,10 @@ void init(void)
 
     rxInit();
 
+#ifdef USE_VTX_BEESIGN
+    beesignInit();
+#endif
+
 /*
  * CMS, display devices and OSD
  */
@@ -575,7 +581,10 @@ void init(void)
     //The OSD need to be initialised after GYRO to avoid GYRO initialisation failure on some targets
 
     if (feature(FEATURE_OSD)) {
-#if defined(USE_MAX7456)
+#if defined(USE_OSD_BEESIGN)
+        // If there is a beesign for the OSD then use it
+        osdDisplayPort = beesignDisplayPortInit(vcdProfile());
+#elif defined(USE_MAX7456)
         // If there is a max7456 chip for the OSD then use it
         osdDisplayPort = max7456DisplayPortInit(vcdProfile());
 #elif defined(USE_CMS) && defined(USE_MSP_DISPLAYPORT) && defined(USE_OSD_OVER_MSP_DISPLAYPORT) // OSD over MSP; not supported (yet)
@@ -695,6 +704,10 @@ void init(void)
 
 #ifdef USE_VTX_TRAMP
     vtxTrampInit();
+#endif
+
+#ifdef USE_VTX_BEESIGN
+    beesignVtxInit();
 #endif
 
 #ifdef USE_VTX_RTC6705

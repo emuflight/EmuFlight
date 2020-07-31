@@ -230,6 +230,7 @@ static void max7456DrawScreenSlow(void);
 static uint8_t max7456Send(uint8_t add, uint8_t data)
 {
     spiTransferByte(busdev->busdev_u.spi.instance, add);
+    delayMicroseconds(10);
     return spiTransferByte(busdev->busdev_u.spi.instance, data);
 }
 
@@ -629,7 +630,7 @@ void max7456DrawScreen(void)
 
         max7456Lock = true;
 
-        max7456ReInitIfRequired();
+        // max7456ReInitIfRequired();
 
         int buff_len = 0;
         for (int k = 0; k < MAX_CHARS2UPDATE; k++) {
@@ -653,8 +654,14 @@ void max7456DrawScreen(void)
 #ifdef MAX7456_DMA_CHANNEL_TX
             max7456SendDma(spiBuff, NULL, buff_len);
 #else
+            // __spiBusTransactionBegin(busdev);
+            // spiTransfer(busdev->busdev_u.spi.instance, spiBuff, NULL, buff_len);
+            // __spiBusTransactionEnd(busdev);
             __spiBusTransactionBegin(busdev);
-            spiTransfer(busdev->busdev_u.spi.instance, spiBuff, NULL, buff_len);
+            for(int k = 0; k < buff_len; k++) {
+                delayMicroseconds(5);
+                spiTransferByte(busdev->busdev_u.spi.instance, spiBuff[k]);
+            }
             __spiBusTransactionEnd(busdev);
 #endif // MAX7456_DMA_CHANNEL_TX
         }
@@ -750,7 +757,7 @@ void max7456WriteNvm(uint8_t char_address, const uint8_t *font_data)
 
     // Wait until bit 5 in the status register returns to 0 (12ms)
 
-    while ((max7456Send(MAX7456ADD_STAT, 0x00) & STAT_NVR_BUSY) != 0x00);
+    while ((max7456Send(MAX7456ADD_STAT, 0x00) & STAT_NVR_BUSY) != 0x00) {delay(10);}
 
     __spiBusTransactionEnd(busdev);
 
