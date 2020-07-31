@@ -230,8 +230,11 @@ static void max7456DrawScreenSlow(void);
 static uint8_t max7456Send(uint8_t add, uint8_t data)
 {
     spiTransferByte(busdev->busdev_u.spi.instance, add);
+#ifdef USE_NBD7456
     delayMicroseconds(10);
+#endif
     return spiTransferByte(busdev->busdev_u.spi.instance, data);
+
 }
 
 #ifdef MAX7456_DMA_CHANNEL_TX
@@ -629,8 +632,9 @@ void max7456DrawScreen(void)
         // (Re)Initialize MAX7456 at startup or stall is detected.
 
         max7456Lock = true;
-
-        // max7456ReInitIfRequired();
+#ifndef USE_NBD7456
+        max7456ReInitIfRequired();
+#endif
 
         int buff_len = 0;
         for (int k = 0; k < MAX_CHARS2UPDATE; k++) {
@@ -654,15 +658,16 @@ void max7456DrawScreen(void)
 #ifdef MAX7456_DMA_CHANNEL_TX
             max7456SendDma(spiBuff, NULL, buff_len);
 #else
-            // __spiBusTransactionBegin(busdev);
-            // spiTransfer(busdev->busdev_u.spi.instance, spiBuff, NULL, buff_len);
-            // __spiBusTransactionEnd(busdev);
-            __spiBusTransactionBegin(busdev);
-            for(int k = 0; k < buff_len; k++) {
-                delayMicroseconds(5);
-                spiTransferByte(busdev->busdev_u.spi.instance, spiBuff[k]);
-            }
-            __spiBusTransactionEnd(busdev);
+    __spiBusTransactionBegin(busdev);
+#ifdef USE_NBD7456
+    for(int k = 0; k < buff_len; k++) {
+        delayMicroseconds(5);
+        spiTransferByte(busdev->busdev_u.spi.instance, spiBuff[k]);
+    }
+#else // USE_NBD7456
+    spiTransfer(busdev->busdev_u.spi.instance, spiBuff, NULL, buff_len);
+#endif
+    __spiBusTransactionEnd(busdev);
 #endif // MAX7456_DMA_CHANNEL_TX
         }
         max7456Lock = false;
@@ -756,8 +761,11 @@ void max7456WriteNvm(uint8_t char_address, const uint8_t *font_data)
     max7456Send(MAX7456ADD_CMM, WRITE_NVR);
 
     // Wait until bit 5 in the status register returns to 0 (12ms)
-
-    while ((max7456Send(MAX7456ADD_STAT, 0x00) & STAT_NVR_BUSY) != 0x00) {delay(10);}
+    while ((max7456Send(MAX7456ADD_STAT, 0x00) & STAT_NVR_BUSY) != 0x00) {
+#ifdef USE_NBD7456
+        delay(10);
+#endif
+    }
 
     __spiBusTransactionEnd(busdev);
 
