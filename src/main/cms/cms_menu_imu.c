@@ -709,10 +709,9 @@ static uint16_t gyroConfig_imuf_roll_lpf_cutoff_hz;
 static uint16_t gyroConfig_imuf_yaw_lpf_cutoff_hz;
 static uint16_t gyroConfig_imuf_acc_lpf_cutoff_hz;
 static uint16_t gyroConfig_imuf_sharpness;
-static uint16_t gyroConfig_imuf_ptX;
-static uint16_t gyroConfig_imuf_dynamicType;
-static uint16_t gyroConfig_imuf_dynamicMin;
-static uint16_t gyroConfig_imuf_dynamicMax;
+static uint16_t gyroConfig_imuf_dynamicQ;
+static uint16_t gyroConfig_imuf_minQ;
+static uint16_t gyroConfig_imuf_maxQ;
 #endif
 
 #if defined(USE_GYRO_IMUF9001)
@@ -727,10 +726,9 @@ static long cmsx_menuImuf_onEnter(void)
     gyroConfig_imuf_yaw_lpf_cutoff_hz = gyroConfig()->imuf_yaw_lpf_cutoff_hz;
     gyroConfig_imuf_acc_lpf_cutoff_hz = gyroConfig()->imuf_acc_lpf_cutoff_hz;
     gyroConfig_imuf_sharpness = gyroConfig()->imuf_sharpness;
-    gyroConfig_imuf_ptX = gyroConfig()->imuf_ptX;
-    gyroConfig_imuf_dynamicType = gyroConfig()->imuf_dynamicType;
-    gyroConfig_imuf_dynamicMin = gyroConfig()->imuf_dynamicMin;
-    gyroConfig_imuf_dynamicMax = gyroConfig()->imuf_dynamicMax;
+    gyroConfig_imuf_dynamicQ = gyroConfig()->imuf_dynamicQ;
+    gyroConfig_imuf_minQ = gyroConfig()->imuf_minQ;
+    gyroConfig_imuf_maxQ = gyroConfig()->imuf_maxQ;
 
     return 0;
 }
@@ -750,10 +748,9 @@ static long cmsx_menuImuf_onExit(const OSD_Entry *self)
     gyroConfigMutable()->imuf_yaw_lpf_cutoff_hz = gyroConfig_imuf_yaw_lpf_cutoff_hz;
     gyroConfigMutable()->imuf_acc_lpf_cutoff_hz = gyroConfig_imuf_acc_lpf_cutoff_hz;
     gyroConfigMutable()->imuf_sharpness = gyroConfig_imuf_sharpness;
-    gyroConfigMutable()->imuf_ptX = gyroConfig_imuf_ptX;
-    gyroConfigMutable()->imuf_dynamicType = gyroConfig_imuf_dynamicType;
-    gyroConfigMutable()->imuf_dynamicMin = gyroConfig_imuf_dynamicMin;
-    gyroConfigMutable()->imuf_dynamicMax = gyroConfig_imuf_dynamicMax;
+    gyroConfigMutable()->imuf_dynamicQ = gyroConfig_imuf_dynamicQ;
+    gyroConfigMutable()->imuf_minQ = gyroConfig_imuf_minQ;
+    gyroConfigMutable()->imuf_maxQ = gyroConfig_imuf_maxQ;
     return 0;
 }
 #endif
@@ -768,10 +765,9 @@ static OSD_Entry cmsx_menuImufEntries[] =
     { "PITCH Q",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,             0, 16000, 100 }, 0 },
     { "YAW Q",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,               0, 16000, 100 }, 0 },
     { "IMUF SHARPNESS",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness,           1, 16000,   5 }, 0 },
-    { "PTX FILTER ORDER",OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_ptX,                 1, 4,       1 }, 0 },
-    { "DYNAMIC FILTER TYPE",OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_dynamicType,      0, 5,       1 }, 0 },
-    { "DYNAMIC FILTER MIN",OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_dynamicMin,        10, 500,    1 }, 0 },
-    { "DYNAMIC FILTER MAX",OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_dynamicMax,        10, 500,    1 }, 0 },
+    { "DYNAMIC Q OFF/ON",OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_dynamicQ,            0, 2,       1 }, 0 },
+    { "DYNAMIC MIN Q",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_minQ,                1, 16000, 100 }, 0 },
+    { "DYNAMIC MAX Q",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_maxQ,                1, 16000, 100 }, 0 },
     { "ROLL LPF",        OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_lpf_cutoff_hz,  0, 450,     1 }, 0 },
     { "PITCH LPF",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_lpf_cutoff_hz, 0, 450,     1 }, 0 },
     { "YAW LPF",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_lpf_cutoff_hz,   0, 450,     1 }, 0 },

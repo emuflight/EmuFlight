@@ -119,10 +119,9 @@ typedef struct gyroConfig_s {
     uint16_t imuf_roll_lpf_cutoff_hz;
     uint16_t imuf_yaw_lpf_cutoff_hz;
     uint16_t imuf_acc_lpf_cutoff_hz;
-    uint16_t imuf_ptX;
-    uint16_t imuf_dynamicType;
-    uint16_t imuf_dynamicMin;
-    uint16_t imuf_dynamicMax;
+    uint16_t imuf_dynamicQ;
+    uint16_t imuf_minQ;
+    uint16_t imuf_maxQ;
 #endif
     uint16_t imuf_pitch_q;
     uint16_t imuf_roll_q;
