@@ -27,6 +27,10 @@
 #define BEEPER_PIN              PB4
 #define BEEPER_INVERTED
 
+#define USE_SONAR
+#define SONAR_TRIGGER_PIN       PC9
+#define SONAR_ECHO_PIN          PA8
+
 #define USE_VCP
 #define USE_USB_DETECT
 #define USB_DETECT_PIN          PC5
@@ -58,7 +62,7 @@
 #define INVERTER_PIN_UART3      PC9
 #define INVERTER_PIN_UART6      PC8
 
-#define LED0_PIN                PB6
+#define LED0_PIN                PB5
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -80,11 +84,12 @@
 #define ESCSERIAL_TIMER_TX_PIN  PB8 // (Hardware=0, PPM)
 
 #define USE_ADC
+#define ADC1_DMA_STREAM         DMA2_Stream3
 #define RSSI_ADC_PIN            PC0
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
 
-#define BARO_CS_PIN             PA4
+#define BARO_CS_PIN             PB3
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI3
@@ -115,13 +120,22 @@
 #define USE_MAG
 #define USE_MAG_HMC5883
 #define USE_MAG_QMC5883
-/*
+
+#define USE_SDCARD
+#define SDCARD_DETECT_PIN             PB7
+#define SDCARD_SPI_INSTANCE           SPI2
+#define SDCARD_SPI_CS_PIN             PB12
+#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER  256 // 328kHz
+#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER  4 // 21MHz
+#define SDCARD_DMA_CHANNEL_TX                DMA1_Stream4
+#define SDCARD_DMA_CHANNEL                   0
+
 #define FLASH_CS_PIN            PB12
 #define FLASH_SPI_INSTANCE      SPI2
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-*/
+
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART6
