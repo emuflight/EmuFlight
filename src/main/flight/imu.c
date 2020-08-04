@@ -92,6 +92,9 @@ uint32_t accTimeSum = 0;        // keep track for integration of acc
 int accSumCount = 0;
 bool canUseGPSHeading = true;
 
+bool levelRecoveryActive = false;
+int levelRecoveryStrength = 0;
+
 static float throttleAngleScale;
 static int throttleAngleValue;
 static float fc_acc;
@@ -117,8 +120,12 @@ PG_REGISTER_WITH_RESET_TEMPLATE(imuConfig_t, imuConfig, PG_IMU_CONFIG, 1);
 
 PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
     .dcm_kp = 2500,                // 1.0 * 10000
-    .dcm_ki = 0,                   // 0.003 * 10000
-    .small_angle = 25,
+    .dcm_ki = 7,                   // 0.003 * 10000
+    .small_angle = 180,
+    .level_recovery = 1,
+    .level_recovery_time = 2500,
+    .level_recovery_coef = 5,
+    .level_recovery_threshold = 1900,
 );
 
 static void imuQuaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd)
@@ -173,6 +180,11 @@ void imuConfigure(uint16_t throttle_correction_angle, uint8_t throttle_correctio
 {
     imuRuntimeConfig.dcm_kp = imuConfig()->dcm_kp / 10000.0f;
     imuRuntimeConfig.dcm_ki = imuConfig()->dcm_ki / 10000.0f;
+
+    imuRuntimeConfig.level_recovery = imuConfig()->level_recovery;
+    imuRuntimeConfig.level_recovery_time = imuConfig()->level_recovery_time;
+    imuRuntimeConfig.level_recovery_coef = imuConfig()->level_recovery_coef;
+    imuRuntimeConfig.level_recovery_threshold = imuConfig()->level_recovery_threshold;
 
     smallAngleCosZ = cos_approx(degreesToRadians(imuConfig()->small_angle));
 
@@ -437,7 +449,46 @@ static float imuCalcKpGain(timeUs_t currentTimeUs, bool useAcc, float *gyroAvera
        }
     }
 
+    if (levelRecoveryActive) {
+        ret = imuRuntimeConfig.dcm_kp * (1.0f + imuRuntimeConfig.level_recovery_coef * levelRecoveryStrength / 1000);
+    }
+
     return ret;
+}
+
+static void imuHandleLevelRecovery(timeUs_t currentTimeUs)
+{
+    static timeUs_t previousCrashTime = 0;
+
+    for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+        if (ABS(gyro.gyroADCf[i]) > imuRuntimeConfig.level_recovery_threshold) {
+            previousCrashTime = currentTimeUs;
+        }
+    }
+
+    timeUs_t elapsedSinceCrash = (currentTimeUs - previousCrashTime);
+    if (elapsedSinceCrash < imuRuntimeConfig.level_recovery_time * 1000) {
+        levelRecoveryActive = true;
+        // 0 min, 1000 max
+        // First half - full, second half - decaying
+        levelRecoveryStrength = (imuRuntimeConfig.level_recovery_time * 1000 - elapsedSinceCrash) / imuRuntimeConfig.level_recovery_time;
+        levelRecoveryStrength *= 2;
+        if (levelRecoveryStrength > 1000)
+            levelRecoveryStrength = 1000;
+    } else {
+        levelRecoveryActive = false;
+        levelRecoveryStrength = 0;
+    }
+
+    if (!ARMING_FLAG(ARMED)) {
+        levelRecoveryActive = false;
+        levelRecoveryStrength = 0;
+    }
+}
+
+bool isLevelRecoveryActive(void)
+{
+  return levelRecoveryActive;
 }
 
 #if defined(USE_GPS)
@@ -550,6 +601,9 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
 
     if (accGetAccumulationAverage(accAverage)) {
         useAcc = imuIsAccelerometerHealthy(accAverage);
+    }
+    if (imuRuntimeConfig.level_recovery) {
+        imuHandleLevelRecovery(currentTimeUs);
     }
 
     imuMahonyAHRSupdate(deltaT * 1e-6f,
