@@ -300,12 +300,16 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.dtermMeasurementSlider = pidProfile->dtermMeasurementSlider / 100;
     pidRuntime.dtermMeasurementSliderInverse = 1 - (pidProfile->dtermMeasurementSlider / 100);
 
-    pidRuntime.levelGain = pidProfile->pid[PID_LEVEL].P / 10.0f;
-    pidRuntime.horizonGain = pidProfile->pid[PID_LEVEL].I / 10.0f;
-    pidRuntime.horizonTransition = (float)pidProfile->pid[PID_LEVEL].D;
-    pidRuntime.horizonTiltExpertMode = pidProfile->horizon_tilt_expert_mode;
-    pidRuntime.horizonCutoffDegrees = (175 - pidProfile->horizon_tilt_effect) * 1.8f;
-    pidRuntime.horizonFactorRatio = (100 - pidProfile->horizon_tilt_effect) * 0.01f;
+    pidRuntime.P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
+    pidRuntime.D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
+    pidRuntime.P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
+    pidRuntime.D_angle_high = pidProfile->pid[PID_LEVEL_HIGH].D * 0.00017f;
+    pidRuntime.F_angle = pidProfile->pid[PID_LEVEL_LOW].F * 0.00000125f;
+    pidRuntime.horizonTransition = (float)pidProfile->horizonTransition;
+    pidRuntime.horizonCutoffDegrees = pidProfile->racemode_tilt_effect;
+    pidRuntime.horizonGain = pidProfile->horizonGain / 10.0f;
+    pidRuntime.horizonTiltExpertMode = pidProfile->racemode_horizon;
+    pidRuntime.horizonFactorRatio = (100 - pidProfile->racemode_tilt_effect) * 0.01f;
     pidRuntime.maxVelocity[FD_ROLL] = pidRuntime.maxVelocity[FD_PITCH] = pidProfile->rateAccelLimit * 100 * pidRuntime.dT;
     pidRuntime.maxVelocity[FD_YAW] = pidProfile->yawRateAccelLimit * 100 * pidRuntime.dT;
     pidRuntime.itermWindupPointInv = 1.0f;
@@ -415,7 +419,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     interpolatedSpInit(pidProfile);
 #endif
 
-    pidRuntime.levelRaceMode = pidProfile->level_race_mode;
+    pidRuntime.nfeRaceMode = pidProfile->nfe_racemode;
 }
 
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex)
