@@ -127,9 +127,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .pid = {
             [PID_ROLL] =  { 42, 85, 35, 90 },
             [PID_PITCH] = { 46, 90, 38, 95 },
-            [PID_YAW] =   { 60, 90, 0, 90 },
-            [PID_LEVEL] = { 50, 50, 75, 0 },
-            [PID_MAG] =   { 40, 0, 0, 0 },
+            [PID_YAW] =   { 60, 90, 0,  90 },
+            [PID_LEVEL] = { 50, 50, 75, 0  },
+            [PID_MAG] =   { 40, 0,  0,  0  },
         },
         .pidSumLimit = PIDSUM_LIMIT,
         .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
@@ -215,6 +215,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_dynlpf2_enable = 1,
         .dterm_dynlpf2_type = 0,
         .dterm_dynlpf2_debug = 0,
+        .dtermMeasurementSlider = 100,
     );
 }
 
@@ -741,6 +742,7 @@ static FAST_CODE_NOINLINE float applyLaunchControl(int axis, const rollAndPitchT
 void FAST_CODE pidController(const pidProfile_t *pidProfile)
 {
     static float previousGyroRate[XYZ_AXIS_COUNT];
+    static float previousErrorRate[XYZ_AXIS_COUNT];
 #ifdef USE_INTERPOLATED_SP
     static FAST_RAM_ZERO_INIT uint32_t lastFrameNumber;
 #endif
@@ -970,7 +972,11 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             // This is done to avoid DTerm spikes that occur with dynamically
             // calculated deltaT whenever another task causes the PID
             // loop execution to be delayed.
-            float delta = -(gyro.gyroADCf[axis] - previousGyroRate[axis]) * pidRuntime.pidFrequency;
+            float dtermFromMeasurement = -(gyro.gyroADCf[axis] - previousGyroRate[axis]) * pidRuntime.pidFrequency;
+            float dtermFromError = errorRate - previousErrorRate[axis];
+            previousGyroRate[axis] = gyro.gyroADCf[axis];
+            previousErrorRate[axis] = errorRate;
+            float delta = ((dtermFromMeasurement * pidRuntime.dtermMeasurementSlider) + (dtermFromError * pidRuntime.dtermMeasurementSliderInverse)) * pidRuntime.pidFrequency;
 
             if (pidProfile->dtermDynNotchQ > 0 && pidProfile->dterm_dyn_notch_location == 0) {
                 fftDataAnalysePush(&pidRuntime.dtermFFTAnalyseState, axis, delta);
@@ -1028,8 +1034,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
                 DEBUG_SET(DEBUG_D_LPF, 3, 0);
             }
         }
-
-        previousGyroRate[axis] = gyro.gyroADCf[axis];
 
 #if defined(USE_ACC)
             detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, pidData[axis].D, errorRate);

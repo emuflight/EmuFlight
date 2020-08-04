@@ -211,6 +211,8 @@ typedef struct pidProfile_s {
     uint8_t  dterm_dynlpf2_enable;
     uint8_t  dterm_dynlpf2_type;
     uint8_t  dterm_dynlpf2_debug;
+
+    uint8_t  dtermMeasurementSlider;
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
@@ -295,6 +297,8 @@ typedef struct pidRuntime_s {
     bool itermRotation;
     bool zeroThrottleItermReset;
     bool levelRaceMode;
+    float dtermMeasurementSlider;
+    float dtermMeasurementSliderInverse;
 
 #ifdef USE_ITERM_RELAX
     pt1Filter_t windupLpf[XYZ_AXIS_COUNT];

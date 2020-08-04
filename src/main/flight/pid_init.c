@@ -297,6 +297,9 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidRuntime.pidCoefficient[FD_YAW].Ki *= 2.5f;
     }
 
+    pidRuntime.dtermMeasurementSlider = pidProfile->dtermMeasurementSlider / 100;
+    pidRuntime.dtermMeasurementSliderInverse = 1 - (pidProfile->dtermMeasurementSlider / 100);
+
     pidRuntime.levelGain = pidProfile->pid[PID_LEVEL].P / 10.0f;
     pidRuntime.horizonGain = pidProfile->pid[PID_LEVEL].I / 10.0f;
     pidRuntime.horizonTransition = (float)pidProfile->pid[PID_LEVEL].D;

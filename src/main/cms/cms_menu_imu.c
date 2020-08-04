@@ -68,6 +68,7 @@ static uint8_t pidProfileIndex;
 static char pidProfileIndexString[MAX_PROFILE_NAME_LENGTH + 5];
 static uint8_t tempPid[3][3];
 static uint16_t tempPidF[3];
+static uint8_t dtermMeasurementSlider;
 
 static uint8_t tmpRateProfileIndex;
 static uint8_t rateProfileIndex;
@@ -163,6 +164,7 @@ static const void *cmsx_PidRead(void)
         tempPid[i][2] = pidProfile->pid[i].D;
         tempPidF[i] = pidProfile->pid[i].F;
     }
+    dtermMeasurementSlider = pidProfile->dtermMeasurementSlider;
 
     return NULL;
 }
@@ -189,6 +191,7 @@ static const void *cmsx_PidWriteback(displayPort_t *pDisp, const OSD_Entry *self
         pidProfile->pid[i].D = tempPid[i][2];
         pidProfile->pid[i].F = tempPidF[i];
     }
+    dtermMeasurementSlider = pidProfile->dtermMeasurementSlider;
     pidInitConfig(currentPidProfile);
 
     return NULL;
@@ -197,6 +200,7 @@ static const void *cmsx_PidWriteback(displayPort_t *pDisp, const OSD_Entry *self
 static const OSD_Entry cmsx_menuPidEntries[] =
 {
     { "-- PID --", OME_Label, NULL, pidProfileIndexString, 0},
+    { "D MEASUREMENT", OME_UINT8, NULL, &(OSD_UINT8_t){ &dtermMeasurementSlider,  0, 100, 1 }, 0 },
 
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
