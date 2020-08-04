@@ -3,7 +3,7 @@
 #include "platform.h"
 #include "math.h"
 
-#include "dynLpf2.h"
+#include "dynlpf2.h"
 
 #include "fc/rc.h"
 

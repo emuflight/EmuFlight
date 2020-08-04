@@ -31,6 +31,7 @@
 #include "common/axis.h"
 #include "common/filter.h"
 #include "common/maths.h"
+#include "common/dynlpf2.h"
 
 #include "config/config_reset.h"
 
