@@ -995,7 +995,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             // This is done to avoid DTerm spikes that occur with dynamically
             // calculated deltaT whenever another task causes the PID
             // loop execution to be delayed.
-            float dtermFromMeasurement = -(gyro.gyroADCf[axis] - previousGyroRate[axis]) * pidRuntime.pidFrequency;
+            float dtermFromMeasurement = -(gyro.gyroADCf[axis] - previousGyroRate[axis]);
             float dtermFromError = errorRate - previousErrorRate[axis];
             previousGyroRate[axis] = gyro.gyroADCf[axis];
             previousErrorRate[axis] = errorRate;
