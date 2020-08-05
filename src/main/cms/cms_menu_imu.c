@@ -514,6 +514,7 @@ static uint16_t gyroConfig_imuf_pitch_q;
 static uint16_t gyroConfig_imuf_yaw_q;
 static uint16_t gyroConfig_imuf_w;
 static uint16_t gyroConfig_imuf_sharpness;
+static uint16_t gyroConfig_imuf_sharpness_on_off;
 #endif
 
 static long cmsx_menuGyro_onEnter(void)
@@ -538,6 +539,7 @@ static long cmsx_menuGyro_onEnter(void)
     gyroConfig_imuf_yaw_q = gyroConfig()->imuf_yaw_q;
     gyroConfig_imuf_w = gyroConfig()->imuf_w;
     gyroConfig_imuf_sharpness = gyroConfig()->imuf_sharpness;
+    gyroConfig_imuf_sharpness_on_off = gyroConfig()->imuf_sharpness_on_off;
 #endif
     return 0;
 }
@@ -566,6 +568,7 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self)
     gyroConfigMutable()->imuf_yaw_q = gyroConfig_imuf_yaw_q;
     gyroConfigMutable()->imuf_w = gyroConfig_imuf_w;
     gyroConfigMutable()->imuf_sharpness = gyroConfig_imuf_sharpness;
+    gyroConfigMutable()->imuf_sharpness_on_off = gyroConfig_imuf_sharpness_on_off;
 #endif
     return 0;
 }
@@ -591,7 +594,7 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "PITCH Q",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,             0, 16000, 100 }, 0 },
     { "YAW Q",            OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,               0, 16000, 100 }, 0 },
     { "IMUF SHARPNESS",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness,           1, 16000,   5 }, 0 },
-
+    { "IMUF SHARPNESS ON/OFF",OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness_on_off,0, 1,       1 }, 0 },
     #endif
     { "GYRO NF1",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_1,     0, 500, 1 }, 0 },
     { "GYRO NF1C",        OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_1, 0, 500, 1 }, 0 },
@@ -648,7 +651,6 @@ static long cmsx_menuImuf_onEnter(void)
     gyroConfig_imuf_yaw_lpf_cutoff_hz = gyroConfig()->imuf_yaw_lpf_cutoff_hz;
     gyroConfig_imuf_acc_lpf_cutoff_hz = gyroConfig()->imuf_acc_lpf_cutoff_hz;
     gyroConfig_imuf_sharpness = gyroConfig()->imuf_sharpness;
-
 
     return 0;
 }
