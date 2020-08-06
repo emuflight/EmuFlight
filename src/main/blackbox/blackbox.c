@@ -1330,24 +1330,28 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("witchcraft_yaw", "%d",                  currentPidProfile->dFilter[YAW].Wc);
         BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_roll", "%d",            currentPidProfile->dFilter[ROLL].smartSmoothing);
         BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_pitch", "%d",           currentPidProfile->dFilter[PITCH].smartSmoothing);
-        BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_yaw", "%d",             currentPidProfile->dFilter[YAW].smartSmoothing);
-
+        BLACKBOX_PRINT_HEADER_LINE("dterm_boost", "%d",                     currentPidProfile->dtermBoost);
+        BLACKBOX_PRINT_HEADER_LINE("dterm_boost_limit", "%d",               currentPidProfile->dtermBoostLimit);
 
         BLACKBOX_PRINT_HEADER_LINE("iterm_windup", "%d",                    currentPidProfile->itermWindupPointPercent);
 
         #if defined(USE_ITERM_RELAX)
-            BLACKBOX_PRINT_HEADER_LINE("iterm_relax_threshold", "%d",          currentPidProfile->iterm_relax_threshold);
-            BLACKBOX_PRINT_HEADER_LINE("iterm_relax_threshold_yaw", "%d",      currentPidProfile->iterm_relax_threshold_yaw);
+            BLACKBOX_PRINT_HEADER_LINE("iterm_relax_cutoff", "%d",          currentPidProfile->iterm_relax_cutoff);
+            BLACKBOX_PRINT_HEADER_LINE("iterm_relax_cutoff_yaw", "%d",      currentPidProfile->iterm_relax_cutoff_yaw);
+            BLACKBOX_PRINT_HEADER_LINE("iterm_relax_threshold", "%d",       currentPidProfile->iterm_relax_threshold);
+            BLACKBOX_PRINT_HEADER_LINE("iterm_relax_threshold_yaw", "%d",   currentPidProfile->iterm_relax_threshold_yaw);
         #endif
+
         BLACKBOX_PRINT_HEADER_LINE("pidAtMinThrottle", "%d",                currentPidProfile->pidAtMinThrottle);
 
         // EmuFlight PID controller parameters
         BLACKBOX_PRINT_HEADER_LINE("feathered_pids", "%d",                  currentPidProfile->feathered_pids);
         BLACKBOX_PRINT_HEADER_LINE("emu_boost", "%d",                       currentPidProfile->errorBoost);
-        BLACKBOX_PRINT_HEADER_LINE("boost_limit", "%d",                     currentPidProfile->errorBoostLimit);
+        BLACKBOX_PRINT_HEADER_LINE("emu_boost_limit", "%d",                 currentPidProfile->errorBoostLimit);
         BLACKBOX_PRINT_HEADER_LINE("emu_boost_yaw", "%d",                   currentPidProfile->errorBoostYaw);
-        BLACKBOX_PRINT_HEADER_LINE("boost_limit_yaw", "%d",                 currentPidProfile->errorBoostLimitYaw);
+        BLACKBOX_PRINT_HEADER_LINE("emu_boost_limit_yaw", "%d",             currentPidProfile->errorBoostLimitYaw);
         BLACKBOX_PRINT_HEADER_LINE("i_decay", "%d",                         currentPidProfile->i_decay);
+        BLACKBOX_PRINT_HEADER_LINE("i_decay_cutoff", "%d",                  currentPidProfile->i_decay_cutoff);
         BLACKBOX_PRINT_HEADER_LINE("acc_limit_yaw", "%d",                   currentPidProfile->yawRateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("acc_limit", "%d",                       currentPidProfile->rateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("pidsum_limit", "%d",                    currentPidProfile->pidSumLimit);
@@ -1378,7 +1382,6 @@ static bool blackboxWriteSysinfo(void)
                                                                             gyroConfig()->gyro_soft_notch_hz_2);
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_cutoff", "%d,%d",            gyroConfig()->gyro_soft_notch_cutoff_1,
                                                                             gyroConfig()->gyro_soft_notch_cutoff_2);
-
         #if defined(USE_ACC)
             BLACKBOX_PRINT_HEADER_LINE("acc_lpf_hz", "%d",                  (int)(accelerometerConfig()->acc_lpf_hz * 100.0f));
             BLACKBOX_PRINT_HEADER_LINE("acc_hardware", "%d",                accelerometerConfig()->acc_hardware);
@@ -1418,19 +1421,19 @@ static bool blackboxWriteSysinfo(void)
 
         #ifdef USE_GYRO_IMUF9001
             BLACKBOX_PRINT_HEADER_LINE("IMUF revision", " %d",              imufCurrentVersion);
+            BLACKBOX_PRINT_HEADER_LINE("imuf_rate", " %d",                  gyroConfig()->imuf_rate);
             BLACKBOX_PRINT_HEADER_LINE("IMUF lowpass roll", " %d",          gyroConfig()->imuf_roll_lpf_cutoff_hz);
             BLACKBOX_PRINT_HEADER_LINE("IMUF lowpass pitch", " %d",         gyroConfig()->imuf_pitch_lpf_cutoff_hz);
             BLACKBOX_PRINT_HEADER_LINE("IMUF lowpass yaw", " %d",           gyroConfig()->imuf_yaw_lpf_cutoff_hz);
             BLACKBOX_PRINT_HEADER_LINE("IMUF acc lpf cutoff", " %d",        gyroConfig()->imuf_acc_lpf_cutoff_hz);
         #endif
-            BLACKBOX_PRINT_HEADER_LINE("IMUF roll q", " %d",                gyroConfig()->imuf_roll_q);
-            BLACKBOX_PRINT_HEADER_LINE("IMUF pitch q", " %d",               gyroConfig()->imuf_pitch_q);
-            BLACKBOX_PRINT_HEADER_LINE("IMUF yaw q", " %d",                 gyroConfig()->imuf_yaw_q);
-            BLACKBOX_PRINT_HEADER_LINE("IMUF w", " %d",                     gyroConfig()->imuf_w);
-            BLACKBOX_PRINT_HEADER_LINE("IMUF sharpness", " %d",             gyroConfig()->imuf_sharpness);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF roll q", " %d",                gyroConfig()->imuf_roll_q);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF pitch q", " %d",               gyroConfig()->imuf_pitch_q);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF yaw q", " %d",                 gyroConfig()->imuf_yaw_q);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF w", " %d",                     gyroConfig()->imuf_w);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF sharpness", " %d",             gyroConfig()->imuf_sharpness);
 
         BLACKBOX_PRINT_HEADER_LINE("Actual Version Number", "%s %s (%s) %s",    FC_FIRMWARE_NAME, FC_VERSION_STRING, shortGitRevision, targetName);
-
 
         default:
             return true;
