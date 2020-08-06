@@ -67,6 +67,11 @@ static uint16_t errorBoost;
 static uint8_t errorBoostLimit;
 static uint16_t errorBoostYaw;
 static uint8_t errorBoostLimitYaw;
+static uint8_t itermRelaxCutoff;
+static uint8_t itermRelaxCutoffYaw;
+static uint8_t itermRelaxThreshold;
+static uint8_t itermRelaxThresholdYaw;
+static uint8_t itermWindup;
 static uint16_t dtermBoost;
 static uint8_t dtermBoostLimit;
 static uint8_t tempPid[3][3];
@@ -143,7 +148,11 @@ static long cmsx_PidAdvancedRead(void)
     errorBoostLimitYaw = pidProfile->errorBoostLimitYaw;
     dtermBoost = pidProfile->dtermBoost;
     dtermBoostLimit = pidProfile->dtermBoostLimit;
-
+    itermRelaxCutoff = pidProfile->iterm_relax_cutoff;
+    itermRelaxCutoffYaw = pidProfile->iterm_relax_cutoff_yaw;
+    itermRelaxThreshold = pidProfile->iterm_relax_threshold;
+    itermRelaxThresholdYaw = pidProfile->iterm_relax_threshold_yaw;
+    itermWindup = pidProfile->itermWindupPointPercent;
     return 0;
 }
 
@@ -170,7 +179,11 @@ static long cmsx_PidAdvancedWriteback(const OSD_Entry *self)
     pidProfile->dtermBoostLimit = dtermBoostLimit;
     pidProfile->i_decay = i_decay;
     pidProfile->i_decay_cutoff = i_decay_cutoff;
-
+    pidProfile->iterm_relax_cutoff = itermRelaxCutoff;
+    pidProfile->iterm_relax_cutoff_yaw = itermRelaxCutoffYaw;
+    pidProfile->iterm_relax_threshold = itermRelaxThreshold;
+    pidProfile->iterm_relax_threshold_yaw = itermRelaxThresholdYaw;
+    pidProfile->itermWindupPointPercent = itermWindup;
     pidInitConfig(currentPidProfile);
 
     return 0;
@@ -180,18 +193,23 @@ static OSD_Entry cmsx_menuPidAdvancedEntries[] =
 {
     { "-- ADVANCED PIDS --", OME_Label, NULL, pidProfileIndexString, 0},
 
-    { "FEATHERED",         OME_UINT8, NULL, &(OSD_UINT8_t){ &feathered_pids,           0, 100, 1}, 0 },
+    { "FEATHERED",         OME_UINT8, NULL, &(OSD_UINT8_t){ &feathered_pids,           0, 100,   1}, 0 },
 
-    { "EMU BOOST",         OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,             0,  2000,  5}, 0 },
+    { "EMU BOOST",         OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,             0,  2000, 5}, 0 },
     { "BOOST LIMIT",       OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,          0,  250,  1}, 0 },
-    { "EMU BOOST YAW",     OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoostYaw,          0,  2000,  5}, 0 },
+    { "EMU BOOST YAW",     OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoostYaw,          0,  2000, 5}, 0 },
     { "BOOST LIMIT YAW",   OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimitYaw,       0,  250,  1}, 0 },
 
-    { "DTERM BOOST",       OME_UINT16, NULL, &(OSD_UINT16_t){ &dtermBoost,             0,  2000,  5}, 0 },
+    { "DTERM BOOST",       OME_UINT16, NULL, &(OSD_UINT16_t){ &dtermBoost,             0,  2000, 5}, 0 },
     { "DTERM LIMIT",       OME_UINT8, NULL, &(OSD_UINT8_t){ &dtermBoostLimit,          0,  250,  1}, 0 },
 
-    { "I DECAY",           OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,                  1, 10, 1 }, 0 },
+    { "I DECAY",           OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,                  1, 10,  1 }, 0 },
     { "I DECAY CUTOFF",    OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay_cutoff,           1, 250, 1 }, 0 },
+    { "I RELAX CUTOFF",    OME_UINT8, NULL, &(OSD_UINT8_t){ &itermRelaxCutoff,         10, 100,1 }, 0 },
+    { "I RELAX CUTOFF YAW",OME_UINT8, NULL, &(OSD_UINT8_t){ &itermRelaxCutoffYaw,      10, 100,1 }, 0 },
+    { "I RELAX THRESH",    OME_UINT8, NULL, &(OSD_UINT8_t){ &itermRelaxThreshold,      0, 100, 1 }, 0 },
+    { "I RELAX THRESH YAW",OME_UINT8, NULL, &(OSD_UINT8_t){ &itermRelaxThresholdYaw,   0, 100, 1 }, 0 },
+    { "I WINDUP",          OME_UINT8, NULL, &(OSD_UINT8_t){ &itermWindup,              0, 100, 1 }, 0 },
 
     { "SAVE&EXIT",         OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK",              OME_Back, NULL, NULL, 0 },
