@@ -123,7 +123,7 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE         ADC1
-#define ADC1_DMA_STREAM         DMA2_Stream0
+//#define ADC1_DMA_STREAM         DMA2_Stream0
 #define ADC1_DMA_OPT            0  // DMA 2 Stream 0 Channel 0
 
 #define VBAT_ADC_PIN            PA0
