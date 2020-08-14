@@ -113,23 +113,23 @@ static baroState_t  baroState;
 #define busWrite   busWriteRegister
 
 // Helper functions
-static uint8_t registerRead(busDevice_t * busDev, uint8_t reg)
+static uint8_t registerRead(extDevice_t *dev, uint8_t reg)
 {
-    return busReadRegister(busDev, reg);
+    return busReadRegister(dev, reg);
 }
 
-static void registerWrite(busDevice_t * busDev, uint8_t reg, uint8_t value)
+static void registerWrite(extDevice_t *dev, uint8_t reg, uint8_t value)
 {
-    busWrite(busDev, reg, value);
+    busWrite(dev, reg, value);
 }
 
-static void registerSetBits(busDevice_t * busDev, uint8_t reg, uint8_t setbits)
+static void registerSetBits(extDevice_t *dev, uint8_t reg, uint8_t setbits)
 {
-    uint8_t val = registerRead(busDev, reg);
+    uint8_t val = registerRead(dev, reg);
 
     if ((val & setbits) != setbits) {
         val |= setbits;
-        registerWrite(busDev, reg, val);
+        registerWrite(dev, reg, val);
     }
 }
 
@@ -143,15 +143,15 @@ static int32_t getTwosComplement(uint32_t raw, uint8_t length)
     }
 }
 
-static bool deviceConfigure(busDevice_t * busDev)
+static bool deviceConfigure(extDevice_t *dev)
 {
     // Trigger a chip reset
-    registerSetBits(busDev, DPS310_REG_RESET, DPS310_RESET_BIT_SOFT_RST);
+    registerSetBits(dev, DPS310_REG_RESET, DPS310_RESET_BIT_SOFT_RST);
 
     // Sleep 40ms
     delay(40);
 
-    uint8_t status = registerRead(busDev, DPS310_REG_MEAS_CFG);
+    uint8_t status = registerRead(dev, DPS310_REG_MEAS_CFG);
 
     // Check if coefficients are available
     if ((status & DPS310_MEAS_CFG_COEF_RDY) == 0) {
@@ -166,7 +166,7 @@ static bool deviceConfigure(busDevice_t * busDev)
     // 1. Read the pressure calibration coefficients (c00, c10, c20, c30, c01, c11, and c21) from the Calibration Coefficient register.
     //   Note: The coefficients read from the coefficient register are 2's complement numbers.
     uint8_t coef[18];
-    if (!busReadBuf(busDev, DPS310_REG_COEF, coef, sizeof(coef))) {
+    if (!busReadBuf(dev, DPS310_REG_COEF, coef, sizeof(coef))) {
         return false;
     }
 
@@ -198,17 +198,17 @@ static bool deviceConfigure(busDevice_t * busDev)
     baroState.calib.c30 = getTwosComplement(((uint32_t)coef[16] << 8) | (uint32_t)coef[17], 16);
 
     // PRS_CFG: pressure measurement rate (32 Hz) and oversampling (16 time standard)
-    registerSetBits(busDev, DPS310_REG_PRS_CFG, DPS310_PRS_CFG_BIT_PM_RATE_32HZ | DPS310_PRS_CFG_BIT_PM_PRC_16);
+    registerSetBits(dev, DPS310_REG_PRS_CFG, DPS310_PRS_CFG_BIT_PM_RATE_32HZ | DPS310_PRS_CFG_BIT_PM_PRC_16);
 
     // TMP_CFG: temperature measurement rate (32 Hz) and oversampling (16 times)
-    const uint8_t TMP_COEF_SRCE = registerRead(busDev, DPS310_REG_COEF_SRCE) & DPS310_COEF_SRCE_BIT_TMP_COEF_SRCE;
-    registerSetBits(busDev, DPS310_REG_TMP_CFG, DPS310_TMP_CFG_BIT_TMP_RATE_32HZ | DPS310_TMP_CFG_BIT_TMP_PRC_16 | TMP_COEF_SRCE);
+    const uint8_t TMP_COEF_SRCE = registerRead(dev, DPS310_REG_COEF_SRCE) & DPS310_COEF_SRCE_BIT_TMP_COEF_SRCE;
+    registerSetBits(dev, DPS310_REG_TMP_CFG, DPS310_TMP_CFG_BIT_TMP_RATE_32HZ | DPS310_TMP_CFG_BIT_TMP_PRC_16 | TMP_COEF_SRCE);
 
     // CFG_REG: set pressure and temperature result bit-shift (required when the oversampling rate is >8 times)
-    registerSetBits(busDev, DPS310_REG_CFG_REG, DPS310_CFG_REG_BIT_T_SHIFT | DPS310_CFG_REG_BIT_P_SHIFT);
+    registerSetBits(dev, DPS310_REG_CFG_REG, DPS310_CFG_REG_BIT_T_SHIFT | DPS310_CFG_REG_BIT_P_SHIFT);
 
     // MEAS_CFG: Continuous pressure and temperature measurement
-    registerSetBits(busDev, DPS310_REG_MEAS_CFG, DPS310_MEAS_CFG_MEAS_CTRL_CONT);
+    registerSetBits(dev, DPS310_REG_MEAS_CFG, DPS310_MEAS_CFG_MEAS_CTRL_CONT);
 
     return true;
 }
@@ -216,7 +216,7 @@ static bool deviceConfigure(busDevice_t * busDev)
 static bool deviceReadMeasurement(baroDev_t *baro)
 {
     // 1. Check if pressure is ready
-    bool pressure_ready = registerRead(&baro->busdev, DPS310_REG_MEAS_CFG) & DPS310_MEAS_CFG_PRS_RDY;
+    bool pressure_ready = registerRead(&baro->dev, DPS310_REG_MEAS_CFG) & DPS310_MEAS_CFG_PRS_RDY;
     if (!pressure_ready) {
         return false;
     }
@@ -229,7 +229,7 @@ static bool deviceReadMeasurement(baroDev_t *baro)
     // 3. Read the pressure and temperature result from the registers
     // Read PSR_B2, PSR_B1, PSR_B0, TMP_B2, TMP_B1, TMP_B0
     uint8_t buf[6];
-    if (!busReadBuf(&baro->busdev, DPS310_REG_PSR_B2, buf, 6)) {
+    if (!busReadBuf(&baro->dev, DPS310_REG_PSR_B2, buf, 6)) {
         return false;
     }
 
@@ -272,14 +272,14 @@ static void deviceCalculate(int32_t *pressure, int32_t *temperature)
 
 
 #define DETECTION_MAX_RETRY_COUNT   5
-static bool deviceDetect(busDevice_t * busDev)
+static bool deviceDetect(extDevice_t *dev)
 {
     for (int retry = 0; retry < DETECTION_MAX_RETRY_COUNT; retry++) {
         uint8_t chipId[1];
 
         delay(100);
 
-        bool ack = busReadBuf(busDev, DPS310_REG_ID, chipId, 1);
+        bool ack = busReadBuf(dev, DPS310_REG_ID, chipId, 1);
 
         if (ack && chipId[0] == DPS310_ID_REV_AND_PROD_ID) {
             return true;
@@ -320,63 +320,59 @@ static bool dps310ReadUP(baroDev_t *baro)
     return true;
 }
 
-static void busDeviceInit(busDevice_t *busdev, resourceOwner_e owner)
+static void deviceInit(extDevice_t *dev, resourceOwner_e owner)
 {
 #ifdef USE_BARO_SPI_DPS310
-    if (busdev->bustype == BUSTYPE_SPI) {
-        IOHi(busdev->busdev_u.spi.csnPin); // Disable
-        IOInit(busdev->busdev_u.spi.csnPin, owner, 0);
-        IOConfigGPIO(busdev->busdev_u.spi.csnPin, IOCFG_OUT_PP);
-#ifdef USE_SPI_TRANSACTION
-        spiBusTransactionInit(busdev, SPI_MODE0_POL_LOW_EDGE_1ST, spiCalculateDivider(DPS310_MAX_SPI_CLK_HZ)); // DPS310 supports Mode 0 or 3
-#else
-        spiBusSetDivisor(busdev, spiCalculateDivider(DPS310_MAX_SPI_CLK_HZ));
-#endif
+    if (dev->bus->busType == BUSTYPE_SPI) {
+        IOHi(dev->busType_u.spi.csnPin); // Disable
+        IOInit(dev->busType_u.spi.csnPin, owner, 0);
+        IOConfigGPIO(dev->busType_u.spi.csnPin, IOCFG_OUT_PP);
+        spiSetClkDivisor(dev, spiCalculateDivider(DPS310_MAX_SPI_CLK_HZ));
     }
 #else
-    UNUSED(busdev);
+    UNUSED(dev);
     UNUSED(owner);
 #endif
 }
 
-static void busDeviceDeInit(busDevice_t *busdev)
+static void deviceDeInit(extDevice_t *dev)
 {
 #ifdef USE_BARO_SPI_DPS310
-    if (busdev->bustype == BUSTYPE_SPI) {
-        spiPreinitByIO(busdev->busdev_u.spi.csnPin);
+    if (dev->bus->busType == BUSTYPE_SPI) {
+        spiPreinitByIO(dev->busType_u.spi.csnPin);
     }
 #else
-    UNUSED(busdev);
+    UNUSED(dev);
 #endif
 }
 
 bool baroDPS310Detect(baroDev_t *baro)
 {
-    busDevice_t *busdev = &baro->busdev;
+    extDevice_t *dev = &baro->dev;
     bool defaultAddressApplied = false;
 
-    busDeviceInit(&baro->busdev, OWNER_BARO_CS);
+    deviceInit(&baro->dev, OWNER_BARO_CS);
 
-    if ((busdev->bustype == BUSTYPE_I2C) && (busdev->busdev_u.i2c.address == 0)) {
+    if ((dev->bus->busType == BUSTYPE_I2C) && (dev->busType_u.i2c.address == 0)) {
         // Default address for BMP280
-        busdev->busdev_u.i2c.address = DPS310_I2C_ADDR;
+        dev->busType_u.i2c.address = DPS310_I2C_ADDR;
         defaultAddressApplied = true;
     }
 
-    if (!deviceDetect(busdev)) {
-        busDeviceDeInit(busdev);
+    if (!deviceDetect(dev)) {
+        deviceDeInit(dev);
         if (defaultAddressApplied) {
-            busdev->busdev_u.i2c.address = 0;
+            dev->busType_u.i2c.address = 0;
         }
         return false;
     }
 
-    if (!deviceConfigure(busdev)) {
-        busDeviceDeInit(busdev);
+    if (!deviceConfigure(dev)) {
+        deviceDeInit(dev);
         return false;
     }
 
-    busDeviceRegister(busdev);
+    busDeviceRegister(dev);
 
     const uint32_t baroDelay = 1000000 / 32 / 2;      // twice the sample rate to capture all new data
 

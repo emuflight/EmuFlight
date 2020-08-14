@@ -78,7 +78,7 @@
 #define DISPLAY_UPDATE_FREQUENCY (MICROSECONDS_IN_A_SECOND / 5)
 #define PAGE_CYCLE_FREQUENCY (MICROSECONDS_IN_A_SECOND * 5)
 
-static busDevice_t *bus;
+static extDevice_t *dev;
 
 static uint32_t nextDisplayUpdateAt = 0;
 static bool dashboardPresent = false;
@@ -125,12 +125,12 @@ static pageState_t pageState;
 
 static void resetDisplay(void)
 {
-    dashboardPresent = ug2864hsweg01InitI2C(bus);
+    dashboardPresent = ug2864hsweg01InitI2C(dev);
 }
 
 void LCDprint(uint8_t i)
 {
-   i2c_OLED_send_char(bus, i);
+   i2c_OLED_send_char(dev, i);
 }
 
 static void padLineBuffer(void)
@@ -179,8 +179,8 @@ static void fillScreenWithCharacters(void)
 {
     for (uint8_t row = 0; row < SCREEN_CHARACTER_ROW_COUNT; row++) {
         for (uint8_t column = 0; column < SCREEN_CHARACTER_COLUMN_COUNT; column++) {
-            i2c_OLED_set_xy(bus, column, row);
-            i2c_OLED_send_char(bus, 'A' + column);
+            i2c_OLED_set_xy(dev, column, row);
+            i2c_OLED_send_char(dev, 'A' + column);
         }
     }
 }
@@ -190,22 +190,22 @@ static void fillScreenWithCharacters(void)
 static void updateTicker(void)
 {
     static uint8_t tickerIndex = 0;
-    i2c_OLED_set_xy(bus, SCREEN_CHARACTER_COLUMN_COUNT - 1, 0);
-    i2c_OLED_send_char(bus, tickerCharacters[tickerIndex]);
+    i2c_OLED_set_xy(dev, SCREEN_CHARACTER_COLUMN_COUNT - 1, 0);
+    i2c_OLED_send_char(dev, tickerCharacters[tickerIndex]);
     tickerIndex++;
     tickerIndex = tickerIndex % TICKER_CHARACTER_COUNT;
 }
 
 static void updateRxStatus(void)
 {
-    i2c_OLED_set_xy(bus, SCREEN_CHARACTER_COLUMN_COUNT - 2, 0);
+    i2c_OLED_set_xy(dev, SCREEN_CHARACTER_COLUMN_COUNT - 2, 0);
     char rxStatus = '!';
     if (rxIsReceivingSignal()) {
         rxStatus = 'r';
     } if (rxAreFlightChannelsValid()) {
         rxStatus = 'R';
     }
-    i2c_OLED_send_char(bus, rxStatus);
+    i2c_OLED_send_char(dev, rxStatus);
 }
 
 static void updateFailsafeStatus(void)
@@ -234,19 +234,19 @@ static void updateFailsafeStatus(void)
         failsafeIndicator = 'G';
         break;
     }
-    i2c_OLED_set_xy(bus, SCREEN_CHARACTER_COLUMN_COUNT - 3, 0);
-    i2c_OLED_send_char(bus, failsafeIndicator);
+    i2c_OLED_set_xy(dev, SCREEN_CHARACTER_COLUMN_COUNT - 3, 0);
+    i2c_OLED_send_char(dev, failsafeIndicator);
 }
 
 static void showTitle(void)
 {
-    i2c_OLED_set_line(bus, 0);
-    i2c_OLED_send_string(bus, pageState.page->title);
+    i2c_OLED_set_line(dev, 0);
+    i2c_OLED_send_string(dev, pageState.page->title);
 }
 
 static void handlePageChange(void)
 {
-    i2c_OLED_clear_display_quick(bus);
+    i2c_OLED_clear_display_quick(dev);
     showTitle();
 }
 
@@ -262,7 +262,7 @@ static void drawRxChannel(uint8_t channelIndex, uint8_t width)
 static void showRxPage(void)
 {
     for (int channelIndex = 0; channelIndex < rxRuntimeState.channelCount && channelIndex < RX_CHANNELS_PER_PAGE_COUNT; channelIndex += 2) {
-        i2c_OLED_set_line(bus, (channelIndex / 2) + PAGE_TITLE_LINE_COUNT);
+        i2c_OLED_set_line(dev, (channelIndex / 2) + PAGE_TITLE_LINE_COUNT);
 
         drawRxChannel(channelIndex, HALF_SCREEN_CHARACTER_COLUMN_COUNT);
 
@@ -283,11 +283,11 @@ static void showWelcomePage(void)
     uint8_t rowIndex = PAGE_TITLE_LINE_COUNT;
 
     tfp_sprintf(lineBuffer, "v%s (%s)", FC_VERSION_STRING, shortGitRevision);
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, targetName);
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, targetName);
 }
 
 static void showArmedPage(void)
@@ -299,8 +299,8 @@ static void showProfilePage(void)
     uint8_t rowIndex = PAGE_TITLE_LINE_COUNT;
 
     tfp_sprintf(lineBuffer, "Profile: %d", getCurrentPidProfileIndex());
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     static const char* const axisTitles[3] = {"ROL", "PIT", "YAW"};
     const pidProfile_t *pidProfile = currentPidProfile;
@@ -312,8 +312,8 @@ static void showProfilePage(void)
             pidProfile->pid[axis].D
         );
         padLineBuffer();
-        i2c_OLED_set_line(bus, rowIndex++);
-        i2c_OLED_send_string(bus, lineBuffer);
+        i2c_OLED_set_line(dev, rowIndex++);
+        i2c_OLED_send_string(dev, lineBuffer);
     }
 }
 
@@ -323,15 +323,15 @@ static void showRateProfilePage(void)
 
     const uint8_t currentRateProfileIndex = getCurrentControlRateProfileIndex();
     tfp_sprintf(lineBuffer, "Rate profile: %d", currentRateProfileIndex);
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     const controlRateConfig_t *controlRateConfig = controlRateProfiles(currentRateProfileIndex);
 
     tfp_sprintf(lineBuffer, "         R   P   Y");
     padLineBuffer();
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     tfp_sprintf(lineBuffer, "RcRate %3d %3d %3d",
         controlRateConfig->rcRates[FD_ROLL],
@@ -339,8 +339,8 @@ static void showRateProfilePage(void)
         controlRateConfig->rcRates[FD_YAW]
     );
     padLineBuffer();
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     tfp_sprintf(lineBuffer, "Super  %3d %3d %3d",
         controlRateConfig->rates[FD_ROLL],
@@ -348,8 +348,8 @@ static void showRateProfilePage(void)
         controlRateConfig->rates[FD_YAW]
     );
     padLineBuffer();
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     tfp_sprintf(lineBuffer, "Expo   %3d %3d %3d",
         controlRateConfig->rcExpo[FD_ROLL],
@@ -357,8 +357,8 @@ static void showRateProfilePage(void)
         controlRateConfig->rcExpo[FD_YAW]
     );
     padLineBuffer();
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 }
 
 #define SATELLITE_COUNT (sizeof(GPS_svinfo_cno) / sizeof(GPS_svinfo_cno[0]))
@@ -382,64 +382,64 @@ static void showGpsPage(void)
         gpsTicker = gpsTicker % TICKER_CHARACTER_COUNT;
     }
 
-    i2c_OLED_set_xy(bus, 0, rowIndex);
-    i2c_OLED_send_char(bus, tickerCharacters[gpsTicker]);
+    i2c_OLED_set_xy(dev, 0, rowIndex);
+    i2c_OLED_send_char(dev, tickerCharacters[gpsTicker]);
 
-    i2c_OLED_set_xy(bus, MAX(0, (uint8_t)SATELLITE_GRAPH_LEFT_OFFSET), rowIndex++);
+    i2c_OLED_set_xy(dev, MAX(0, (uint8_t)SATELLITE_GRAPH_LEFT_OFFSET), rowIndex++);
 
     uint32_t index;
     for (index = 0; index < SATELLITE_COUNT && index < SCREEN_CHARACTER_COLUMN_COUNT; index++) {
         uint8_t bargraphOffset = ((uint16_t) GPS_svinfo_cno[index] * VERTICAL_BARGRAPH_CHARACTER_COUNT) / (GPS_DBHZ_MAX - 1);
         bargraphOffset = MIN(bargraphOffset, VERTICAL_BARGRAPH_CHARACTER_COUNT - 1);
-        i2c_OLED_send_char(bus, VERTICAL_BARGRAPH_ZERO_CHARACTER + bargraphOffset);
+        i2c_OLED_send_char(dev, VERTICAL_BARGRAPH_ZERO_CHARACTER + bargraphOffset);
     }
 
 
     char fixChar = STATE(GPS_FIX) ? 'Y' : 'N';
     tfp_sprintf(lineBuffer, "Sats: %d Fix: %c", gpsSol.numSat, fixChar);
     padLineBuffer();
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     tfp_sprintf(lineBuffer, "La/Lo: %d/%d", gpsSol.llh.lat / GPS_DEGREES_DIVIDER, gpsSol.llh.lon / GPS_DEGREES_DIVIDER);
     padLineBuffer();
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     tfp_sprintf(lineBuffer, "Spd: %d", gpsSol.groundSpeed);
     padHalfLineBuffer();
-    i2c_OLED_set_line(bus, rowIndex);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     tfp_sprintf(lineBuffer, "GC: %d", gpsSol.groundCourse);
     padHalfLineBuffer();
-    i2c_OLED_set_xy(bus, HALF_SCREEN_CHARACTER_COLUMN_COUNT, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_xy(dev, HALF_SCREEN_CHARACTER_COLUMN_COUNT, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     tfp_sprintf(lineBuffer, "RX: %d", GPS_packetCount);
     padHalfLineBuffer();
-    i2c_OLED_set_line(bus, rowIndex);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     tfp_sprintf(lineBuffer, "ERRs: %d", gpsData.errors);
     padHalfLineBuffer();
-    i2c_OLED_set_xy(bus, HALF_SCREEN_CHARACTER_COLUMN_COUNT, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_xy(dev, HALF_SCREEN_CHARACTER_COLUMN_COUNT, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     tfp_sprintf(lineBuffer, "Dt: %d", gpsData.lastMessage - gpsData.lastLastMessage);
     padHalfLineBuffer();
-    i2c_OLED_set_line(bus, rowIndex);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     tfp_sprintf(lineBuffer, "TOs: %d", gpsData.timeouts);
     padHalfLineBuffer();
-    i2c_OLED_set_xy(bus, HALF_SCREEN_CHARACTER_COLUMN_COUNT, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_xy(dev, HALF_SCREEN_CHARACTER_COLUMN_COUNT, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     strncpy(lineBuffer, gpsPacketLog, GPS_PACKET_LOG_ENTRY_COUNT);
     padHalfLineBuffer();
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 }
 #endif
 
@@ -450,11 +450,11 @@ static void showBatteryPage(void)
     if (batteryConfig()->voltageMeterSource != VOLTAGE_METER_NONE) {
         tfp_sprintf(lineBuffer, "Volts: %d.%02d Cells: %d", getBatteryVoltage() / 100, getBatteryVoltage() % 100, getBatteryCellCount());
         padLineBuffer();
-        i2c_OLED_set_line(bus, rowIndex++);
-        i2c_OLED_send_string(bus, lineBuffer);
+        i2c_OLED_set_line(dev, rowIndex++);
+        i2c_OLED_send_string(dev, lineBuffer);
 
         uint8_t batteryPercentage = calculateBatteryPercentageRemaining();
-        i2c_OLED_set_line(bus, rowIndex++);
+        i2c_OLED_set_line(dev, rowIndex++);
         drawHorizonalPercentageBar(SCREEN_CHARACTER_COLUMN_COUNT, batteryPercentage);
     }
 
@@ -465,11 +465,11 @@ static void showBatteryPage(void)
         // Amp: DDD.D mAh: DDDDD
         tfp_sprintf(lineBuffer, "Amp: %d.%d mAh: %d", amperage / 100, (amperage % 100) / 10, getMAhDrawn());
         padLineBuffer();
-        i2c_OLED_set_line(bus, rowIndex++);
-        i2c_OLED_send_string(bus, lineBuffer);
+        i2c_OLED_set_line(dev, rowIndex++);
+        i2c_OLED_send_string(dev, lineBuffer);
 
         uint8_t capacityPercentage = calculateBatteryPercentageRemaining();
-        i2c_OLED_set_line(bus, rowIndex++);
+        i2c_OLED_set_line(dev, rowIndex++);
         drawHorizonalPercentageBar(SCREEN_CHARACTER_COLUMN_COUNT, capacityPercentage);
     }
 }
@@ -479,38 +479,38 @@ static void showSensorsPage(void)
     uint8_t rowIndex = PAGE_TITLE_LINE_COUNT;
     static const char *format = "%s %5d %5d %5d";
 
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, "        X     Y     Z");
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, "        X     Y     Z");
 
 #if defined(USE_ACC)
     if (sensors(SENSOR_ACC)) {
         tfp_sprintf(lineBuffer, format, "ACC", lrintf(acc.accADC[X]), lrintf(acc.accADC[Y]), lrintf(acc.accADC[Z]));
         padLineBuffer();
-        i2c_OLED_set_line(bus, rowIndex++);
-        i2c_OLED_send_string(bus, lineBuffer);
+        i2c_OLED_set_line(dev, rowIndex++);
+        i2c_OLED_send_string(dev, lineBuffer);
     }
 #endif
 
     if (sensors(SENSOR_GYRO)) {
         tfp_sprintf(lineBuffer, format, "GYR", lrintf(gyro.gyroADCf[X]), lrintf(gyro.gyroADCf[Y]), lrintf(gyro.gyroADCf[Z]));
         padLineBuffer();
-        i2c_OLED_set_line(bus, rowIndex++);
-        i2c_OLED_send_string(bus, lineBuffer);
+        i2c_OLED_set_line(dev, rowIndex++);
+        i2c_OLED_send_string(dev, lineBuffer);
     }
 
 #ifdef USE_MAG
     if (sensors(SENSOR_MAG)) {
         tfp_sprintf(lineBuffer, format, "MAG", lrintf(mag.magADC[X]), lrintf(mag.magADC[Y]), lrintf(mag.magADC[Z]));
         padLineBuffer();
-        i2c_OLED_set_line(bus, rowIndex++);
-        i2c_OLED_send_string(bus, lineBuffer);
+        i2c_OLED_set_line(dev, rowIndex++);
+        i2c_OLED_send_string(dev, lineBuffer);
     }
 #endif
 
     tfp_sprintf(lineBuffer, format, "I&H", attitude.values.roll, attitude.values.pitch, DECIDEGREES_TO_DEGREES(attitude.values.yaw));
     padLineBuffer();
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     /*
     uint8_t length;
@@ -523,8 +523,8 @@ static void showSensorsPage(void)
     }
     ftoa(EstG.A[Y], lineBuffer + length);
     padLineBuffer();
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
 
     ftoa(EstG.A[Z], lineBuffer);
     length = strlen(lineBuffer);
@@ -534,8 +534,8 @@ static void showSensorsPage(void)
     }
     ftoa(smallAngle, lineBuffer + length);
     padLineBuffer();
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, lineBuffer);
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, lineBuffer);
     */
 
 }
@@ -546,8 +546,8 @@ static void showTasksPage(void)
     uint8_t rowIndex = PAGE_TITLE_LINE_COUNT;
     static const char *format = "%2d%6d%5d%4d%4d";
 
-    i2c_OLED_set_line(bus, rowIndex++);
-    i2c_OLED_send_string(bus, "Task max  avg mx% av%");
+    i2c_OLED_set_line(dev, rowIndex++);
+    i2c_OLED_send_string(dev, "Task max  avg mx% av%");
     taskInfo_t taskInfo;
     for (taskId_e taskId = 0; taskId < TASK_COUNT; ++taskId) {
         getTaskInfo(taskId, &taskInfo);
@@ -557,8 +557,8 @@ static void showTasksPage(void)
             const int averageLoad = (taskInfo.averageExecutionTimeUs * taskFrequency + 5000) / 10000;
             tfp_sprintf(lineBuffer, format, taskId, taskInfo.maxExecutionTimeUs, taskInfo.averageExecutionTimeUs, maxLoad, averageLoad);
             padLineBuffer();
-            i2c_OLED_set_line(bus, rowIndex++);
-            i2c_OLED_send_string(bus, lineBuffer);
+            i2c_OLED_set_line(dev, rowIndex++);
+            i2c_OLED_send_string(dev, lineBuffer);
             if (rowIndex > SCREEN_CHARACTER_ROW_COUNT) {
                 break;
             }
@@ -567,6 +567,35 @@ static void showTasksPage(void)
 }
 #endif
 
+// #ifdef USE_BLACKBOX
+// static void showBBPage(void)
+// {
+//     uint8_t rowIndex = PAGE_TITLE_LINE_COUNT;
+//     int8_t fileNo;
+//     if (isBlackboxDeviceWorking()) {
+//         switch (blackboxConfig()->device) {
+//         case BLACKBOX_DEVICE_SDCARD:
+//             fileNo = blackboxGetLogFileNo();
+//             if( fileNo > 0) {
+//                 tfp_sprintf(lineBuffer, "File no: %d", fileNo);
+//             } else {
+//                 tfp_sprintf(lineBuffer, "Not ready yet");
+//             }
+//             break;
+//         default:
+//             tfp_sprintf(lineBuffer, "Not supp. dev.");
+//             break;
+//         }
+//     } else {
+//         tfp_sprintf(lineBuffer, "BB not working");
+//     }
+//
+//     padLineBuffer();
+//     i2c_OLED_set_line(dev, rowIndex++);
+//     i2c_OLED_send_string(dev, lineBuffer);
+// }
+// #endif
+
 #ifdef ENABLE_DEBUG_DASHBOARD_PAGE
 
 static void showDebugPage(void)
@@ -574,8 +603,8 @@ static void showDebugPage(void)
     for (int rowIndex = 0; rowIndex < 4; rowIndex++) {
         tfp_sprintf(lineBuffer, "%d = %5d", rowIndex, debug[rowIndex]);
         padLineBuffer();
-        i2c_OLED_set_line(bus, rowIndex + PAGE_TITLE_LINE_COUNT);
-        i2c_OLED_send_string(bus, lineBuffer);
+        i2c_OLED_set_line(dev, rowIndex + PAGE_TITLE_LINE_COUNT);
+        i2c_OLED_send_string(dev, lineBuffer);
     }
 }
 #endif
@@ -686,16 +715,21 @@ void dashboardUpdate(timeUs_t currentTimeUs)
 
 void dashboardInit(void)
 {
+    static extDevice_t dashBoardDev;
+    // TODO Use bus singleton
     static busDevice_t dashBoardBus;
-    dashBoardBus.busdev_u.i2c.device = I2C_CFG_TO_DEV(dashboardConfig()->device);
-    dashBoardBus.busdev_u.i2c.address = dashboardConfig()->address;
-    bus = &dashBoardBus;
+
+    dashBoardDev.bus = &dashBoardBus;
+
+    dashBoardBus.busType_u.i2c.device = I2C_CFG_TO_DEV(dashboardConfig()->device);
+    dashBoardDev.busType_u.i2c.address = dashboardConfig()->address;
+    dev = &dashBoardDev;
 
     delay(200);
     resetDisplay();
     delay(200);
 
-    displayPort = displayPortOledInit(bus);
+    displayPort = displayPortOledInit(dev);
 #if defined(USE_CMS)
     if (dashboardPresent) {
         cmsDisplayPortRegister(displayPort);

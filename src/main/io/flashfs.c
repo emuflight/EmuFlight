@@ -47,7 +47,7 @@ static const flashPartition_t *flashPartition = NULL;
 static const flashGeometry_t *flashGeometry = NULL;
 static uint32_t flashfsSize = 0;
 
-static uint8_t flashWriteBuffer[FLASHFS_WRITE_BUFFER_SIZE];
+static DMA_DATA_ZERO_INIT uint8_t flashWriteBuffer[FLASHFS_WRITE_BUFFER_SIZE];
 
 /* The position of our head and tail in the circular flash write buffer.
  *
@@ -55,8 +55,20 @@ static uint8_t flashWriteBuffer[FLASHFS_WRITE_BUFFER_SIZE];
  * oldest byte that has yet to be written to flash.
  *
  * When the circular buffer is empty, head == tail
+ *
+ * The tail is advanced once a write is complete up to the location behind head. The tail is advanced
+ * by a callback from the FLASH write routine. This prevents data being overwritten whilst a write is in progress.
  */
 static uint8_t bufferHead = 0, bufferTail = 0;
+
+/* Track if there is new data to write. Until the contents of the buffer have been completely
+ * written flashfsFlushAsync() will be repeatedly called. The tail pointer is only updated
+ * once an asynchronous write has completed. To do so any earlier could result in data being
+ * overwritten in the ring buffer. This routine checks that flashfsFlushAsync() should attempt
+ * to write new data and avoids it writing old data during the race condition that occurs if
+ * its called again before the previous write to FLASH has completed.
+  */
+static volatile bool dataWritten = true;
 
 // The position of the buffer's tail in the overall flash address space:
 static uint32_t tailAddress = 0;
@@ -192,89 +204,69 @@ uint32_t flashfsGetWriteBufferFreeSpace(void)
  *
  * Returns the number of bytes written
  */
+void flashfsWriteCallback(uint32_t arg)
+{
+    // Advance the cursor in the file system to match the bytes we wrote
+    flashfsSetTailAddress(tailAddress + arg);
+
+    // Mark that data has been written from the buffer
+    dataWritten = true;
+}
+
 static uint32_t flashfsWriteBuffers(uint8_t const **buffers, uint32_t *bufferSizes, int bufferCount, bool sync)
 {
-    uint32_t bytesTotal = 0;
+    uint32_t bytesWritten;
 
-    int i;
+    // It's OK to overwrite the buffer addresses/lengths being passed in
 
-    for (i = 0; i < bufferCount; i++) {
-        bytesTotal += bufferSizes[i];
+    // If sync is true, block until the FLASH device is ready, otherwise return 0 if the device isn't ready
+    if (sync) {
+        while (!flashIsReady());
+    } else {
+        if (!flashIsReady()) {
+            return 0;
+        }
     }
 
-    if (!sync && !flashIsReady()) {
+    // Are we at EOF already? Abort.
+    if (flashfsIsEOF()) {
+        // May as well throw away any buffered data
+        flashfsClearBuffer();
+
         return 0;
     }
 
-    uint32_t bytesTotalRemaining = bytesTotal;
-
+    /*
+     * Each page needs to be saved in a separate program operation, so
+     * if we would cross a page boundary, only write up to the boundary in this iteration:
+     */
     uint16_t pageSize = flashGeometry->pageSize;
+    uint32_t bytesToWrite = 0;
+    uint16_t pageOffset = tailAddress % pageSize;
 
-    while (bytesTotalRemaining > 0) {
-        uint32_t bytesTotalThisIteration;
-        uint32_t bytesRemainThisIteration;
-
-        /*
-         * Each page needs to be saved in a separate program operation, so
-         * if we would cross a page boundary, only write up to the boundary in this iteration:
-         */
-        if (tailAddress % pageSize + bytesTotalRemaining > pageSize) {
-            bytesTotalThisIteration = pageSize - tailAddress % pageSize;
-        } else {
-            bytesTotalThisIteration = bytesTotalRemaining;
-        }
-
-        // Are we at EOF already? Abort.
-        if (flashfsIsEOF()) {
-            // May as well throw away any buffered data
-            flashfsClearBuffer();
-
+    for (int i = 0; i < bufferCount; i++) {
+        if (pageOffset + bufferSizes[i] >= pageSize) {
+            bufferSizes[i] = pageSize - pageOffset;
+            bytesToWrite += bufferSizes[i];
+            bufferCount = i + 1;
             break;
         }
-
-        flashPageProgramBegin(tailAddress);
-
-        bytesRemainThisIteration = bytesTotalThisIteration;
-
-        for (i = 0; i < bufferCount; i++) {
-            if (bufferSizes[i] > 0) {
-                // Is buffer larger than our write limit? Write our limit out of it
-                if (bufferSizes[i] >= bytesRemainThisIteration) {
-                    flashPageProgramContinue(buffers[i], bytesRemainThisIteration);
-
-                    buffers[i] += bytesRemainThisIteration;
-                    bufferSizes[i] -= bytesRemainThisIteration;
-
-                    bytesRemainThisIteration = 0;
-                    break;
-                } else {
-                    // We'll still have more to write after finishing this buffer off
-                    flashPageProgramContinue(buffers[i], bufferSizes[i]);
-
-                    bytesRemainThisIteration -= bufferSizes[i];
-
-                    buffers[i] += bufferSizes[i];
-                    bufferSizes[i] = 0;
-                }
-            }
-        }
-
-        flashPageProgramFinish();
-
-        bytesTotalRemaining -= bytesTotalThisIteration;
-
-        // Advance the cursor in the file system to match the bytes we wrote
-        flashfsSetTailAddress(tailAddress + bytesTotalThisIteration);
-
-        /*
-         * We'll have to wait for that write to complete before we can issue the next one, so if
-         * the user requested asynchronous writes, break now.
-         */
-        if (!sync)
-            break;
+        pageOffset += bufferSizes[i];
+        bytesToWrite += bufferSizes[i];
     }
 
-    return bytesTotal - bytesTotalRemaining;
+    flashPageProgramBegin(tailAddress, flashfsWriteCallback);
+
+    /* Mark that data has yet to be written. There is no race condition as the DMA engine is known
+     * to be idle at this point
+     */
+    dataWritten = false;
+
+    bytesWritten = flashPageProgramContinue(buffers, bufferSizes, bufferCount);
+
+    flashPageProgramFinish();
+
+    return bytesWritten;
 }
 
 /*
@@ -296,6 +288,13 @@ static void flashfsGetDirtyDataBuffers(uint8_t const *buffers[], uint32_t buffer
         bufferSizes[1] = bufferHead;
     }
 }
+
+
+static bool flashfsNewData()
+{
+    return dataWritten;
+}
+
 
 /**
  * Get the current offset of the file pointer within the volume.
@@ -323,10 +322,6 @@ static void flashfsAdvanceTailInBuffer(uint32_t delta)
     if (bufferTail >= FLASHFS_WRITE_BUFFER_SIZE) {
         bufferTail -= FLASHFS_WRITE_BUFFER_SIZE;
     }
-
-    if (flashfsBufferIsEmpty()) {
-        flashfsClearBuffer(); // Bring buffer pointers back to the start to be tidier
-    }
 }
 
 /**
@@ -339,6 +334,11 @@ bool flashfsFlushAsync(void)
 {
     if (flashfsBufferIsEmpty()) {
         return true; // Nothing to flush
+    }
+
+    if (!flashfsNewData()) {
+        // The previous write has yet to complete
+        return false;
     }
 
     uint8_t const * buffers[2];
@@ -538,7 +538,7 @@ int flashfsIdentifyStartOfFreeSpace(void)
 
     STATIC_ASSERT(FREE_BLOCK_SIZE >= FLASH_MAX_PAGE_SIZE, FREE_BLOCK_SIZE_too_small);
 
-    union {
+    DMA_DATA_AUTO union {
         uint8_t bytes[FREE_BLOCK_TEST_SIZE_BYTES];
         uint32_t ints[FREE_BLOCK_TEST_SIZE_INTS];
     } testBuffer;
