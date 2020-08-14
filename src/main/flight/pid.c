@@ -133,7 +133,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .pidSumLimit = PIDSUM_LIMIT_MAX,
         .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
         .dterm_filter_type = FILTER_PT1,
-        .itermWindupPointPercent = 50,
+        .itermWindupPointPercent = 70,
         .pidAtMinThrottle = PID_STABILISATION_ON,
         .levelAngleLimit = 45,
         .angleExpo = 10,
@@ -148,10 +148,13 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .setPointDTransition[YAW] = 130,
         .feathered_pids = 100,
         .i_decay = 4,
+        .i_decay_cutoff = 200,                   // value of 0 mimicks old i_decay behaviour
         .errorBoost = 15,
         .errorBoostYaw = 40,
         .errorBoostLimit = 20,
         .errorBoostLimitYaw = 40,
+        .dtermBoost = 0,
+        .dtermBoostLimit = 0,
         .yawRateAccelLimit = 0,
         .rateAccelLimit = 0,
         .crash_time = 500,                        // ms
@@ -169,6 +172,10 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .throttle_boost = 5,
         .throttle_boost_cutoff = 15,
         .iterm_rotation = true,
+        .iterm_relax_cutoff = 11,
+        .iterm_relax_cutoff_yaw = 25,
+        .iterm_relax_threshold = 35,
+        .iterm_relax_threshold_yaw = 35,
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .horizonTransition = 0,
@@ -207,6 +214,12 @@ static FAST_RAM filterApplyFnPtr dtermLowpassApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
 static FAST_RAM filterApplyFnPtr dtermLowpass2ApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
+
+#if defined(USE_ITERM_RELAX)
+static FAST_RAM_ZERO_INIT pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT uint8_t itermRelaxCutoff;
+static FAST_RAM_ZERO_INIT uint8_t itermRelaxCutoffYaw;
+#endif
 
 static FAST_RAM_ZERO_INIT float iDecay;
 
@@ -263,7 +276,18 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, dT));
 #endif
+#if defined(USE_ITERM_RELAX)
+    for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+        if (i != FD_YAW) {
+            pt1FilterInit(&windupLpf[i], pt1FilterGain(itermRelaxCutoff, dT));
+        } else {
+            pt1FilterInit(&windupLpf[i], pt1FilterGain(itermRelaxCutoffYaw, dT));
+        }
+    }
+#endif
 }
+
+
 
 #ifdef USE_RC_SMOOTHING_FILTER
 void pidInitSetpointDerivativeLpf(uint16_t filterCutoff, uint8_t debugAxis, uint8_t filterType)
@@ -324,6 +348,7 @@ static FAST_RAM_ZERO_INIT float smart_dterm_smoothing[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointDTransition[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float dtermBoostMultiplier, dtermBoostLimitPercent;
 static FAST_RAM_ZERO_INIT float P_angle_low, D_angle_low, P_angle_high, D_angle_high, F_angle, horizonTransition, horizonCutoffDegrees;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeLimitUs;
@@ -365,6 +390,8 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     }
     feathered_pids = pidProfile->feathered_pids / 100.0f;
     nfe_racermode = pidProfile->nfe_racermode;
+    dtermBoostMultiplier = (pidProfile->dtermBoost * pidProfile->dtermBoost / 1000000) * 0.003;
+    dtermBoostLimitPercent = pidProfile->dtermBoostLimit / 100.0f;
     P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
     D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
     P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
@@ -374,8 +401,11 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     horizonCutoffDegrees = pidProfile->horizon_tilt_effect;
     maxVelocity[FD_ROLL] = maxVelocity[FD_PITCH] = pidProfile->rateAccelLimit * 100 * dT;
     maxVelocity[FD_YAW] = pidProfile->yawRateAccelLimit * 100 * dT;
-    const float ITermWindupPoint = (float)pidProfile->itermWindupPointPercent / 100.0f;
-    ITermWindupPointInv = 1.0f / (1.0f - ITermWindupPoint);
+    ITermWindupPointInv = 0.0f;
+    if (pidProfile->itermWindupPointPercent != 0) {
+      const float itermWindupPoint = pidProfile->itermWindupPointPercent / 100.0f;
+      ITermWindupPointInv = 1.0f / itermWindupPoint;
+    }
     crashTimeLimitUs = pidProfile->crash_time * 1000;
     crashTimeDelayUs = pidProfile->crash_delay * 1000;
     crashRecoveryAngleDeciDegrees = pidProfile->crash_recovery_angle * 10;
@@ -389,6 +419,10 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     throttleBoost = pidProfile->throttle_boost * 0.1f;
 #endif
     itermRotation = pidProfile->iterm_rotation;
+#if defined(USE_ITERM_RELAX)
+    itermRelaxCutoff = pidProfile->iterm_relax_cutoff;
+    itermRelaxCutoffYaw = pidProfile->iterm_relax_cutoff_yaw;
+#endif
     iDecay = (float)pidProfile->i_decay;
 }
 
@@ -651,7 +685,11 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     vbatCompensationFactor = scaleRangef(currentControlRateProfile->vbat_comp_pid_level, 0.0f, 100.0f, 1.0f, vbatCompensationFactor);
 
     // gradually scale back integration when above windup point
-    const float dynCi = constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f) * dT;
+    float dynCi = dT;
+    if (ITermWindupPointInv != 0.0f)
+    {
+      dynCi *= constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f);
+    }
     float errorRate;
 
     // ----------PID controller----------
@@ -689,14 +727,14 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 #endif // USE_YAW_SPIN_RECOVERY
 
         previousPidSetpoint[axis] = currentPidSetpoint;
+        const float gyroRate = gyro.gyroADCf[axis];
 
         // -----calculate error rate
-        errorRate = currentPidSetpoint - gyro.gyroADCf[axis]; // r - y
+        errorRate = currentPidSetpoint - gyroRate; // r - y
 
         // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
         // Based on 2DOF reference design (matlab)
 
-        const float gyroRate = gyro.gyroADCf[axis];
         float errorBoostAxis;
         float errorLimitAxis;
 
@@ -727,18 +765,45 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // 2-DOF PID controller with optional filter on derivative term.
         // derivative term can be based on measurement or error using a sliding value from 0-100
 
+        float itermErrorRate = boostedErrorRate + errorRate;
+        float iterm          = temporaryIterm[axis];
+#if defined(USE_ITERM_RELAX)
+        float itermRelaxFactor;
+        if ((itermRelaxCutoff && axis != FD_YAW) || (itermRelaxCutoffYaw && axis == FD_YAW)) {
+            const float setpointLpf = pt1FilterApply(&windupLpf[axis], currentPidSetpoint);
+            const float setpointHpf = fabsf(currentPidSetpoint - setpointLpf);
+            if (axis != FD_YAW)
+            {
+                itermRelaxFactor = MAX(1 - setpointHpf / pidProfile->iterm_relax_threshold, 0.0f);
+            } else {
+                itermRelaxFactor = MAX(1 - setpointHpf / pidProfile->iterm_relax_threshold_yaw, 0.0f);
+            }
+            if (SIGN(iterm) == SIGN(itermErrorRate)) {
+                itermErrorRate *= itermRelaxFactor;
+            }
+            if (axis == FD_ROLL) {
+                DEBUG_SET(DEBUG_ITERM_RELAX, 0, lrintf(setpointHpf));
+                DEBUG_SET(DEBUG_ITERM_RELAX, 1, lrintf(itermRelaxFactor * 100.0f));
+                DEBUG_SET(DEBUG_ITERM_RELAX, 2, lrintf(itermErrorRate));
+            }
+        }
+#endif // USE_ITERM_RELAX
+
         // -----calculate P component
         pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate)) * vbatCompensationFactor;
 
         // -----calculate I component
         //float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
-        float iterm    = temporaryIterm[axis];
-        float ITermNew = pidCoefficient[axis].Ki * (boostedErrorRate + errorRate) * dynCi;
+        float iDecayMultiplier = iDecay;
+        float ITermNew = pidCoefficient[axis].Ki * itermErrorRate * dynCi;
         if (ITermNew != 0.0f)
         {
             if (SIGN(iterm) != SIGN(ITermNew))
             {
-            	  const float newVal = ITermNew * iDecay;
+                // at low iterm iDecayMultiplier will be 1 and at high iterm it will be equivilant to iDecay
+                iDecayMultiplier = 1.0f + (iDecay - 1.0f) * constrainf(iterm / pidProfile->i_decay_cutoff, 0.0f, 1.0f);
+                const float newVal = ITermNew * iDecayMultiplier;
+
             	  if (fabs(iterm) > fabs(newVal))
             	  {
                 		ITermNew = newVal;
@@ -758,8 +823,8 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         {
             //filter Kd properly, no setpoint filtering
             const float pureError = errorRate - previousError[axis];
-            const float pureMeasurement = -(gyro.gyroADCf[axis] - previousMeasurement[axis]);
-            previousMeasurement[axis] = gyro.gyroADCf[axis];
+            const float pureMeasurement = -(gyroRate - previousMeasurement[axis]);
+            previousMeasurement[axis] = gyroRate;
             previousError[axis] = errorRate;
             float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
             //filter the dterm
@@ -779,6 +844,16 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
                 dDelta = (float)(kdRingBufferSum[axis] / (float)(pidProfile->dFilter[axis].Wc));
                 kdRingBufferSum[axis] -= kdRingBuffer[axis][kdRingBufferPoint[axis]];
             }
+
+            //dterm boost, similar to emuboost
+            float boostedDtermRate;
+            boostedDtermRate = (dDelta * fabsf(dDelta)) * dtermBoostMultiplier;
+            if (fabsf(dDelta * dtermBoostLimitPercent) < fabsf(boostedDtermRate))
+            {
+                boostedDtermRate = dDelta * dtermBoostLimitPercent;
+            }
+            dDelta += boostedDtermRate;
+
             dDelta = pidCoefficient[axis].Kd * dDelta;
 
             float dDeltaMultiplier;
