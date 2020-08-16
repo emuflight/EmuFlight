@@ -27,8 +27,6 @@
 
 #define LED0_PIN                PC13
 
-#define CAMERA_CONTROL_PIN      PB10
-
 #define USE_BEEPER
 #define BEEPER_PIN              PC14
 #define BEEPER_INVERTED
@@ -62,7 +60,6 @@
 #define ACC_MPU6000_ALIGN       CW180_DEG
 #define USE_ACC_SPI_ICM20689
 #define ACC_ICM20689_ALIGN       CW180_DEG
-
 // *************** Baro **************************
 #define USE_I2C
 
@@ -122,7 +119,7 @@
 
 // *************** ADC *****************************
 #define USE_ADC
-#define ADC_INSTANCE            ADC1
+#define ADC_INSTANCE         ADC1
 #define ADC1_DMA_OPT            0  // DMA 2 Stream 0 Channel 0
 
 #define VBAT_ADC_PIN            PA0
