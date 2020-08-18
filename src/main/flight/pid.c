@@ -766,7 +766,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // 2-DOF PID controller with optional filter on derivative term.
         // derivative term can be based on measurement or error using a sliding value from 0-100
 
-        float itermErrorRate = boostedErrorRate + errorRate;
+        float itermErrorRate = errorRate;
         float iterm          = temporaryIterm[axis];
 #if defined(USE_ITERM_RELAX)
         float itermRelaxFactor;
