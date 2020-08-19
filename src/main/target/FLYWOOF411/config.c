@@ -18,14 +18,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
- #include <stdbool.h>
- #include <stdint.h>
- #include <string.h>
+#include <stdint.h>
 
- #include "platform.h"
-
- #include "pg/pinio.h"
- #include "pg/piniobox.h"
+#include "platform.h"
+#include "io/serial.h"
+#include "pg/piniobox.h"
+#include "target.h"
 
 #define USE_TARGET_CONFIG
 
