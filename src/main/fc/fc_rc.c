@@ -30,6 +30,7 @@
 #include "common/axis.h"
 #include "common/maths.h"
 #include "common/utils.h"
+#include "common/time.h"
 
 #include "config/feature.h"
 
@@ -297,6 +298,15 @@ FAST_CODE uint8_t processRcInterpolation(void)
 
     return updatedChannel;
 
+}
+
+void updateRcRefreshRate(timeUs_t currentTimeUs)
+{
+    static timeUs_t lastRxTimeUs;
+
+    timeDelta_t refreshRateUs = cmpTimeUs(currentTimeUs, lastRxTimeUs); // calculate a delta here if not supplied by the protocol
+    lastRxTimeUs = currentTimeUs;
+    currentRxRefreshRate = constrain(refreshRateUs, 1000, 30000);
 }
 
 #ifdef USE_RC_SMOOTHING_FILTER
@@ -685,7 +695,7 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
         if (rcData[axis] < rxConfig()->midrc) {
             rcCommand[axis] = -rcCommand[axis];
         }
-      rcCommand[axis] = rateDynamics(rcCommand[axis], axis);
+      rcCommand[axis] = rateDynamics(rcCommand[axis], axis, currentRxRefreshRate);
     }
 
     int32_t tmp;
@@ -825,31 +835,33 @@ bool rcSmoothingInitializationComplete(void) {
 }
 #endif // USE_RC_SMOOTHING_FILTER
 
-FAST_CODE float rateDynamics(float rcCommand, int axis)
+FAST_CODE float rateDynamics(float rcCommand, int axis, int currentRxRefreshRate)
 {
   static FAST_RAM_ZERO_INIT float lastRcCommandData[3];
   static FAST_RAM_ZERO_INIT float iterm[3];
+  float updateRateCorrection = powf(2, currentRxRefreshRate / 6666.66666f);
 
-  if (((currentControlRateProfile->rateDynamics.rateSensCenter != 100) || (currentControlRateProfile->rateDynamics.rateSensEnd != 100)) || ((currentControlRateProfile->rateDynamics.rateWeightCenter > 0) || (currentControlRateProfile->rateDynamics.rateWeightEnd > 0)))
+  if (((currentControlRateProfile->rateDynamics.rateSensCenter != 100) || (currentControlRateProfile->rateDynamics.rateSensEnd != 100))
+  || ((currentControlRateProfile->rateDynamics.rateWeightCenter > 0) || (currentControlRateProfile->rateDynamics.rateWeightEnd > 0)))
   {
     float pterm_centerStick, pterm_endStick, pterm, iterm_centerStick, iterm_endStick, dterm_centerStick, dterm_endStick, dterm;
     float rcCommandPercent;
     float rcCommandError;
     rcCommandPercent = fabsf(rcCommand) / 500.0f; // make rcCommandPercent go from 0 to 1
 
-    pterm_centerStick = (1.0f - rcCommandPercent) * rcCommand * (currentControlRateProfile->rateDynamics.rateSensCenter / 100.0f); // valid pterm values are between 50-150
-    pterm_endStick = rcCommandPercent * rcCommand * (currentControlRateProfile->rateDynamics.rateSensEnd / 100.0f);
+    pterm_centerStick = (1.0f - rcCommandPercent) * rcCommand * updateRateCorrection * (currentControlRateProfile->rateDynamics.rateSensCenter / 100.0f); // valid pterm values are between 50-150
+    pterm_endStick = rcCommandPercent * rcCommand * updateRateCorrection *(currentControlRateProfile->rateDynamics.rateSensEnd / 100.0f);
     pterm = pterm_centerStick + pterm_endStick;
     rcCommandError = rcCommand - (pterm + iterm[axis]);
     rcCommand = pterm; // add this fake pterm to the rcCommand
 
-    iterm_centerStick = (1.0f - rcCommandPercent) * rcCommandError * (currentControlRateProfile->rateDynamics.rateCorrectionCenter / 100.0f); // valid iterm values are between 0-95
-    iterm_endStick = rcCommandPercent * rcCommandError * (currentControlRateProfile->rateDynamics.rateCorrectionEnd / 100.0f);
+    iterm_centerStick = (1.0f - rcCommandPercent) * rcCommandError * updateRateCorrection * (currentControlRateProfile->rateDynamics.rateCorrectionCenter / 100.0f); // valid iterm values are between 0-95
+    iterm_endStick = rcCommandPercent * rcCommandError * updateRateCorrection * (currentControlRateProfile->rateDynamics.rateCorrectionEnd / 100.0f);
     iterm[axis] += iterm_centerStick + iterm_endStick;
     rcCommand = rcCommand + iterm[axis]; // add the iterm to the rcCommand
 
-    dterm_centerStick = (1.0f - rcCommandPercent) * (lastRcCommandData[axis] - rcCommand) * (currentControlRateProfile->rateDynamics.rateWeightCenter / 100.0f); // valid dterm values are between 0-95
-    dterm_endStick = rcCommandPercent * (lastRcCommandData[axis] - rcCommand) * (currentControlRateProfile->rateDynamics.rateWeightEnd / 100.0f);
+    dterm_centerStick = (1.0f - rcCommandPercent) * (lastRcCommandData[axis] - rcCommand) * updateRateCorrection * (currentControlRateProfile->rateDynamics.rateWeightCenter / 100.0f); // valid dterm values are between 0-95
+    dterm_endStick = rcCommandPercent * (lastRcCommandData[axis] - rcCommand) * updateRateCorrection * (currentControlRateProfile->rateDynamics.rateWeightEnd / 100.0f);
     dterm = dterm_centerStick + dterm_endStick;
 
     rcCommand = rcCommand + dterm; // add dterm to the rcCommand (this is real dterm)
