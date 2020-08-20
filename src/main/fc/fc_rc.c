@@ -846,11 +846,11 @@ FAST_CODE float rateDynamics(float rcCommand, int axis, int currentRxRefreshRate
     float pterm_centerStick, pterm_endStick, pterm, iterm_centerStick, iterm_endStick, dterm_centerStick, dterm_endStick, dterm;
     float rcCommandPercent;
     float rcCommandError;
-    float updateRateCorrection = powf(2, currentRxRefreshRate / 6666.66666f);
+    float updateRateCorrection = 1 / powf(2, (currentRxRefreshRate / 6666.66666f) - 1);
     rcCommandPercent = fabsf(rcCommand) / 500.0f; // make rcCommandPercent go from 0 to 1
 
     pterm_centerStick = (1.0f - rcCommandPercent) * rcCommand * updateRateCorrection * (currentControlRateProfile->rateDynamics.rateSensCenter / 100.0f); // valid pterm values are between 50-150
-    pterm_endStick = rcCommandPercent * rcCommand * updateRateCorrection *(currentControlRateProfile->rateDynamics.rateSensEnd / 100.0f);
+    pterm_endStick = rcCommandPercent * rcCommand * updateRateCorrection * (currentControlRateProfile->rateDynamics.rateSensEnd / 100.0f);
     pterm = pterm_centerStick + pterm_endStick;
     rcCommandError = rcCommand - (pterm + iterm[axis]);
     rcCommand = pterm; // add this fake pterm to the rcCommand
