@@ -109,13 +109,13 @@ const float gyroDt = filter->targetLooptime * 1e-6f;
             //Compute e factor
                 float Error, e;
                 Error = (float)fabsf(target - input);
-                e = Error / Average;                           //Compute ratio between Error and average. e is image of noise in % of signal
+                e = fabsf(Error / Average);                           //Compute ratio between Error and average. e is image of noise in % of signal
 
             //New freq
                 newFc = Fmin + filter->dynGainOnError * 100.0f  * powf(e, 3.0f);  //"e" power 3 and multiply by a gain
 
         } else {
-                newFc  = Fmin;
+                newFc = Fmin;
         }
 
     //Limit & Filter newFc
