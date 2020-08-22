@@ -700,7 +700,12 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void)
       rcCommand[axis] = rateDynamics(rcCommand[axis], axis, currentRxRefreshRate);
       if (rxConfig()->showRateDynamics != 0)
       {
-          rcData[axis] = rcCommand[axis] + rxConfig()->midrc;
+          if (axis == ROLL || axis == PITCH)
+          {
+              rcData[axis] = rcCommand[axis] + rxConfig()->midrc;
+          } else {
+              rcData[axis] = (rcCommand[axis] * -GET_DIRECTION(rcControlsConfig()->yaw_control_reversed)) + rxConfig()->midrc;
+          }
       }
     }
 
