@@ -85,12 +85,12 @@ const float gyroDt = filter->targetLooptime * 1e-6f;
     //Check if setpoint or gyro are high enought to compute "e" ratio
     //---------------------------------------------------------------
         if (filter->Dyn_Fc) {
-            if ((float)(fabs(Average)) < (filter->dynFcThreshold - DYNLPF2_HYTEREIS)) {
+            if ((float)(fabsf(Average)) < (filter->dynFcThreshold - DYNLPF2_HYTEREIS)) {
                 filter->Dyn_Fc = false;
             }
         } else {
             //Enable Dyn_Fc when stick or Quad move
-            if ((float)(fabs(Average)) > (filter->dynFcThreshold + DYNLPF2_HYTEREIS)) {
+            if ((float)(fabsf(Average)) > (filter->dynFcThreshold + DYNLPF2_HYTEREIS)) {
                 filter->Dyn_Fc = true;
             }
         }
@@ -108,7 +108,7 @@ const float gyroDt = filter->targetLooptime * 1e-6f;
 
             //Compute e factor
                 float Error, e;
-                Error = (float)fabs(target - input);
+                Error = (float)fabsf(target - input);
                 e = Error / Average;                           //Compute ratio between Error and average. e is image of noise in % of signal
 
             //New freq
