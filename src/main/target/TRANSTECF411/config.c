@@ -18,17 +18,19 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "platform.h"
-#include "io/serial.h"
-#include "pg/piniobox.h"
-#include "target.h"
 
-#define USE_TARGET_CONFIG
+#ifdef USE_TARGET_CONFIG
+
+#include "pg/pinio.h"
+#include "pg/piniobox.h"
 
 void targetConfiguration(void)
-{
+{	
+    pinioConfigMutable()->config[1] = PINIO_CONFIG_OUT_INVERTED | PINIO_CONFIG_MODE_OUT_PP;
     pinioBoxConfigMutable()->permanentId[0] = 40;
-    pinioBoxConfigMutable()->permanentId[1] = 41;
 }
+#endif

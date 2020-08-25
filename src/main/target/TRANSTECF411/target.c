@@ -18,17 +18,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdint.h>
+ #include <stdint.h>
 
-#include "platform.h"
-#include "io/serial.h"
-#include "pg/piniobox.h"
-#include "target.h"
+ #include "platform.h"
+ #include "drivers/io.h"
 
-#define USE_TARGET_CONFIG
+ #include "drivers/dma.h"
+ #include "drivers/timer.h"
+ #include "drivers/timer_def.h"
 
-void targetConfiguration(void)
-{
-    pinioBoxConfigMutable()->permanentId[0] = 40;
-    pinioBoxConfigMutable()->permanentId[1] = 41;
-}
+const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
+    DEF_TIM(TIM3, CH3, PB0,   TIM_USE_MOTOR,  0, 0),    // S1_OUT
+    DEF_TIM(TIM3, CH4, PB1,   TIM_USE_MOTOR,  0, 0),    // S2_OUT
+    DEF_TIM(TIM2, CH3, PB10,  TIM_USE_MOTOR,  0, 0),    // S3_OUT
+    DEF_TIM(TIM4, CH4, PB9,   TIM_USE_MOTOR,  0, 0),    // S4_OUT
+
+    DEF_TIM(TIM1, CH1, PA8,   TIM_USE_LED,    0, 0),    // LED_Strip
+};

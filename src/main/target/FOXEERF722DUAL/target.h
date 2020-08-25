@@ -21,16 +21,22 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER "FXF7"
-#define USBD_PRODUCT_STRING  "FOXEER722DUAL"
+#if defined (FOXEERF722V2)
+#define USBD_PRODUCT_STRING  "FOXEERF722V2"
 
-#define ENABLE_DSHOT_DMAR       true
-#define LED0_PIN                PC15
+#define USE_GYRO
+#define USE_ACC
+#define USE_EXTI
+#define USE_GYRO_SPI_MPU6000
+#define USE_ACC_SPI_MPU6000
 
-#define USE_BEEPER
-#define BEEPER_PIN              PA4
-#define BEEPER_INVERTED
-
-#define CAMERA_CONTROL_PIN      PB3
+#define MPU_INT_EXTI                PC4
+#define MPU6000_CS_PIN              PB2
+#define MPU6000_SPI_INSTANCE        SPI1
+#define GYRO_MPU6000_ALIGN          CW270_DEG
+#define ACC_MPU6000_ALIGN           CW270_DEG
+#else
+#define USBD_PRODUCT_STRING  "FOXEERF722DUAL"
 
 #define USE_DUAL_GYRO
 #define USE_EXTI
@@ -65,6 +71,18 @@
 #define ACC_2_ALIGN                 ACC_MPU6500_2_ALIGN
 
 #define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
+
+
+#endif
+
+#define ENABLE_DSHOT_DMAR       true
+#define LED0_PIN                PC15
+
+#define USE_BEEPER
+#define BEEPER_PIN              PA4
+#define BEEPER_INVERTED
+
+#define CAMERA_CONTROL_PIN      PB3
 
 #define USE_BARO
 #define USE_BARO_MS5611
@@ -155,5 +173,3 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 9
 #define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(4) |TIM_N(8) )
-
-
