@@ -106,7 +106,7 @@
 #define USE_PINIO
 #define PINIO1_PIN              PC13
 #define PINIO2_PIN              PC14
-#define PINIO3_PIN              PCB8
+#define PINIO3_PIN              PB8
 #define USE_PINIOBOX
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
