@@ -93,7 +93,7 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
     {
         float error = fabsf(target - kalmanState->lastX);
         float ratio = error / average;
-        kalmanState->e = kalmanState->s * powf(ratio, 3.0f);  //"e" power 3 and multiply by a gain
+        kalmanState->e = kalmanState->s * powf(ratio, 3.0f);  //"ratio" power 3 and multiply by a gain
     }
     //prediction update
     kalmanState->p = kalmanState->p + (kalmanState->q + kalmanState->e);
