@@ -18,25 +18,22 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdbool.h>
 #include <stdint.h>
-
 #include "platform.h"
-#include "drivers/io.h"
 
-#include "drivers/dma.h"
-#include "drivers/timer.h"
-#include "drivers/timer_def.h"
+#ifdef USE_TARGET_CONFIG
 
-const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
+#include "pg/pinio.h"
+#include "pg/piniobox.h"
 
-    DEF_TIM(TIM4,  CH3,   PB8, TIM_USE_ANY,       0, 0),
+#include "fc/rc_controls.h"
+#include "rx/rx.h"
+#include "flight/imu.h"
 
-    DEF_TIM(TIM1,  CH2,   PA9, TIM_USE_MOTOR,     0, 0),
-    DEF_TIM(TIM1,  CH1,   PA8, TIM_USE_MOTOR,     0, 0),
-    DEF_TIM(TIM8,  CH4,   PC9, TIM_USE_MOTOR,     0, 0),
-    DEF_TIM(TIM8,  CH3,   PC8, TIM_USE_MOTOR,     0, 0),
-
-    DEF_TIM(TIM2,  CH2,   PB3, TIM_USE_LED,       0, 0),
-    DEF_TIM(TIM11, CH1,   PB9, TIM_USE_PPM,       0, 0)
-
-};
+void targetConfiguration(void)
+{
+    pinioBoxConfigMutable()->permanentId[0] = 0;
+    pinioConfigMutable()->config[0] = 129;
+}
+#endif
