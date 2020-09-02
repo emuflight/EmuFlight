@@ -78,8 +78,6 @@ extern "C" {
     int32_t GPS_coord[2];
     gpsSolutionData_t gpsSol;
     float motor[8];
-    float motorOutputHigh = 2047;
-    float motorOutputLow = 1000;
 
     linkQualitySource_e linkQualitySource;
 
@@ -480,7 +478,7 @@ TEST_F(OsdTest, TestStatsImperial)
 
     // and
     // using imperial unit system
-    osdConfigMutable()->units = OSD_UNIT_IMPERIAL;
+    osdConfigMutable()->units = UNIT_IMPERIAL;
 
     // and
     // a GPS fix is present
@@ -520,7 +518,7 @@ TEST_F(OsdTest, TestStatsMetric)
 
     // and
     // using metric unit system
-    osdConfigMutable()->units = OSD_UNIT_METRIC;
+    osdConfigMutable()->units = UNIT_METRIC;
 
     // when
     // the craft is armed
@@ -556,7 +554,7 @@ TEST_F(OsdTest, TestStatsMetricDistanceUnits)
 
     // and
     // using metric unit system
-    osdConfigMutable()->units = OSD_UNIT_METRIC;
+    osdConfigMutable()->units = UNIT_METRIC;
 
     // when
     // the craft is armed
@@ -622,7 +620,7 @@ TEST_F(OsdTest, TestAlarms)
 
     // and
     // using the metric unit system
-    osdConfigMutable()->units = OSD_UNIT_METRIC;
+    osdConfigMutable()->units = UNIT_METRIC;
 
     // when
     // time is passing by
@@ -884,7 +882,7 @@ TEST_F(OsdTest, TestElementAltitude)
     osdAnalyzeActiveElements();
 
     // and
-    osdConfigMutable()->units = OSD_UNIT_METRIC;
+    osdConfigMutable()->units = UNIT_METRIC;
     sensorsClear(SENSOR_GPS);
 
     // when
@@ -948,7 +946,7 @@ TEST_F(OsdTest, TestElementCoreTemperature)
     osdAnalyzeActiveElements();
 
     // and
-    osdConfigMutable()->units = OSD_UNIT_METRIC;
+    osdConfigMutable()->units = UNIT_METRIC;
 
     // and
     simulationCoreTemperature = 0;
@@ -971,7 +969,7 @@ TEST_F(OsdTest, TestElementCoreTemperature)
     displayPortTestBufferSubstring(1, 8, "C%c 33%c", SYM_TEMPERATURE, SYM_C);
 
     // given
-    osdConfigMutable()->units = OSD_UNIT_IMPERIAL;
+    osdConfigMutable()->units = UNIT_IMPERIAL;
 
     // when
     displayClearScreen(&testDisplayPort);
@@ -1120,15 +1118,15 @@ TEST_F(OsdTest, TestFormatTimeString)
 TEST_F(OsdTest, TestConvertTemperatureUnits)
 {
     /* In Celsius */
-    osdConfigMutable()->units = OSD_UNIT_METRIC;
+    osdConfigMutable()->units = UNIT_METRIC;
     EXPECT_EQ(osdConvertTemperatureToSelectedUnit(40), 40);
 
     /* In Fahrenheit */
-    osdConfigMutable()->units = OSD_UNIT_IMPERIAL;
+    osdConfigMutable()->units = UNIT_IMPERIAL;
     EXPECT_EQ(osdConvertTemperatureToSelectedUnit(40), 104);
 
     /* In Fahrenheit with rounding */
-    osdConfigMutable()->units = OSD_UNIT_IMPERIAL;
+    osdConfigMutable()->units = UNIT_IMPERIAL;
     EXPECT_EQ(osdConvertTemperatureToSelectedUnit(41), 106);
 }
 
@@ -1244,4 +1242,6 @@ extern "C" {
     uint32_t persistentObjectRead(persistentObjectId_e) { return 0; }
     void persistentObjectWrite(persistentObjectId_e, uint32_t) {}
     bool isUpright(void) { return true; }
+    float getMotorOutputLow(void) { return 1000.0; }
+    float getMotorOutputHigh(void) { return 2047.0; }
 }

@@ -63,27 +63,27 @@
 #define USE_GYRO_SLEW_LIMITER
 #endif
 
-FAST_RAM_ZERO_INIT gyro_t gyro;
+FAST_DATA_ZERO_INIT gyro_t gyro;
 
-static FAST_RAM_ZERO_INIT bool overflowDetected;
+static FAST_DATA_ZERO_INIT bool overflowDetected;
 #ifdef USE_GYRO_OVERFLOW_CHECK
-static FAST_RAM_ZERO_INIT timeUs_t overflowTimeUs;
+static FAST_DATA_ZERO_INIT timeUs_t overflowTimeUs;
 #endif
 
 #ifdef USE_YAW_SPIN_RECOVERY
-static FAST_RAM_ZERO_INIT bool yawSpinRecoveryEnabled;
-static FAST_RAM_ZERO_INIT int yawSpinRecoveryThreshold;
-static FAST_RAM_ZERO_INIT bool yawSpinDetected;
-static FAST_RAM_ZERO_INIT timeUs_t yawSpinTimeUs;
+static FAST_DATA_ZERO_INIT bool yawSpinRecoveryEnabled;
+static FAST_DATA_ZERO_INIT int yawSpinRecoveryThreshold;
+static FAST_DATA_ZERO_INIT bool yawSpinDetected;
+static FAST_DATA_ZERO_INIT timeUs_t yawSpinTimeUs;
 #endif
 
-static FAST_RAM_ZERO_INIT float accumulatedMeasurements[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float gyroPrevious[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT int accumulatedMeasurementCount;
+static FAST_DATA_ZERO_INIT float accumulatedMeasurements[XYZ_AXIS_COUNT];
+static FAST_DATA_ZERO_INIT float gyroPrevious[XYZ_AXIS_COUNT];
+static FAST_DATA_ZERO_INIT int accumulatedMeasurementCount;
 
-static FAST_RAM_ZERO_INIT int16_t gyroSensorTemperature;
+static FAST_DATA_ZERO_INIT int16_t gyroSensorTemperature;
 
-FAST_RAM uint8_t activePidLoopDenom = 1;
+FAST_DATA uint8_t activePidLoopDenom = 1;
 
 static bool firstArmingCalibrationWasStarted = false;
 
@@ -149,6 +149,8 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->dynlpf2_type = DEFAULT_DYNLPF2_TYPE;
     gyroConfig->dynlpf2_debug = 0;
 #endif
+    gyroConfig->dyn_lpf_curve_expo = 0;
+
 }
 
 bool isGyroSensorCalibrationComplete(const gyroSensor_t *gyroSensor)
@@ -638,8 +640,12 @@ float dynThrottle(float throttle) {
 void dynLpfGyroUpdate(float throttle)
 {
     if (gyro.dynLpfFilter != DYN_LPF_NONE) {
-        const unsigned int cutoffFreq = fmax(dynThrottle(throttle) * gyro.dynLpfMax, gyro.dynLpfMin);
-
+        unsigned int cutoffFreq;
+        if (gyro.dynLpfCurveExpo > 0) {
+            cutoffFreq = dynLpfCutoffFreq(throttle, gyro.dynLpfMin, gyro.dynLpfMax, gyro.dynLpfCurveExpo);
+        } else {
+            cutoffFreq = fmax(dynThrottle(throttle) * gyro.dynLpfMax, gyro.dynLpfMin);
+        }
         if (gyro.dynLpfFilter == DYN_LPF_PT1) {
             DEBUG_SET(DEBUG_DYN_LPF, 2, cutoffFreq);
             const float gyroDt = gyro.targetLooptime * 1e-6f;

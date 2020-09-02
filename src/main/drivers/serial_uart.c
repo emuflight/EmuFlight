@@ -52,8 +52,8 @@
 #define UART_TX_BUFFER_ATTRIBUTE DMA_RAM_W          // SRAM MPU NOT_BUFFERABLE
 #define UART_RX_BUFFER_ATTRIBUTE DMA_RAM_R          // SRAM MPU NOT CACHABLE
 #elif defined(STM32F7)
-#define UART_TX_BUFFER_ATTRIBUTE FAST_RAM_ZERO_INIT // DTCM RAM
-#define UART_RX_BUFFER_ATTRIBUTE FAST_RAM_ZERO_INIT // DTCM RAM
+#define UART_TX_BUFFER_ATTRIBUTE FAST_DATA_ZERO_INIT // DTCM RAM
+#define UART_RX_BUFFER_ATTRIBUTE FAST_DATA_ZERO_INIT // DTCM RAM
 #elif defined(STM32F4) || defined(STM32F3) || defined(STM32F1)
 #define UART_TX_BUFFER_ATTRIBUTE                    // NONE
 #define UART_RX_BUFFER_ATTRIBUTE                    // NONE
@@ -156,10 +156,12 @@ static uint32_t uartTotalRxBytesWaiting(const serialPort_t *instance)
         uint32_t rxDMAHead = xDMA_GetCurrDataCounter(s->rxDMAResource);
 #endif
 
-        if (rxDMAHead >= s->rxDMAPos) {
-            return rxDMAHead - s->rxDMAPos;
+        // s->rxDMAPos and rxDMAHead represent distances from the end
+        // of the buffer.  They count DOWN as they advance.
+        if (s->rxDMAPos >= rxDMAHead) {
+            return s->rxDMAPos - rxDMAHead;
         } else {
-            return s->port.rxBufferSize + rxDMAHead - s->rxDMAPos;
+            return s->port.rxBufferSize + s->rxDMAPos - rxDMAHead;
         }
     }
 #endif
