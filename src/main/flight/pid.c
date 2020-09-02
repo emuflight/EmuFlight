@@ -287,22 +287,22 @@ void pidUpdateAntiGravityThrottleFilter(float throttle)
     if (pidRuntime.antiGravityMode == ANTI_GRAVITY_SMOOTH) {
         // focus on low throttle range
         // P boost 0.5 at zero throttle falling to 0 by half
-        if (throttle < 0.5f) {
-            pidRuntime.antiGravityPBoost = 0.5f - throttle;
-        } else {
-            pidRuntime.antiGravityPBoost = 0.0f;
-        }
+//        if (throttle < 0.5f) {
+            pidRuntime.antiGravityPBoost = 0.5f /*- throttle*/;
+//        } else {
+//            pidRuntime.antiGravityPBoost = 0.0f;
+//        }
         // D boost 1.0 reducing with throttle value
-        pidRuntime.antiGravityDBoost = 1.0f - throttle;
+        pidRuntime.antiGravityDBoost = 1.0f /*- throttle*/;
         // get the low-pass of throttle, to determine if throttle increasing or falling
         pidRuntime.antiGravityThrottleHpf = pt1FilterApply(&pidRuntime.antiGravityThrottleLpf, throttle);
         // set how much P and I boost when adding throttle
-        if (throttle > pidRuntime.antiGravityThrottleHpf) {
-            pidRuntime.antiGravityPBoost *= 0.5f;
+//        if (throttle > pidRuntime.antiGravityThrottleHpf) {
+//            pidRuntime.antiGravityPBoost *= 0.5f;
             pidRuntime.antiGravityDBoost *= pidRuntime.antiGravityThrottleHpf;
-        } else {
-            pidRuntime.antiGravityDBoost = 0.0f;
-        }
+//        } else {
+//            pidRuntime.antiGravityDBoost = 0.0f;
+//        }
         // calculate throttle high-pass as before, for use in AG code
         pidRuntime.antiGravityThrottleHpf = fabsf(throttle - pidRuntime.antiGravityThrottleHpf);
         // Modulate boost by how fast throttle is moving
@@ -760,6 +760,18 @@ static FAST_CODE_NOINLINE float applyLaunchControl(int axis, const rollAndPitchT
 }
 #endif
 
+float emuboost(float input, float boostMultiplier, float boostLimit)
+{
+    float boostedRate = (input * fabsf(input)) * boostMultiplier;
+    if (fabsf(input * boostLimit) < fabsf(boostedRate))
+    {
+        boostedRate = input * boostLimit;
+    }
+
+    input += boostedRate;
+    return input;
+}
+
 // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
 // Based on 2DOF reference design (matlab)
 void FAST_CODE pidController(const pidProfile_t *pidProfile)
@@ -925,8 +937,17 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         const float gyroRate = gyro.gyroADCf[axis]; // Process variable from gyro output in deg/sec
         float errorRate = currentPidSetpoint - gyroRate; // r - y
 
+        //Emuboost
+        float boostedErrorRate;
+        if (axis == FD_YAW)
+        {
+            boostedErrorRate = emuboost(errorRate, pidRuntime.emuBoostY, pidRuntime.emuBoostLimitY);
+        } else {
+            boostedErrorRate = emuboost(errorRate, pidRuntime.emuBoostPR, pidRuntime.emuBoostLimitPR);
+        }
+
         const float previousIterm = pidData[axis].I;
-        float itermErrorRate = errorRate;
+        float itermErrorRate = boostedErrorRate;
 #ifdef USE_ABSOLUTE_CONTROL
         float uncorrectedSetpoint = currentPidSetpoint;
 #endif
@@ -946,7 +967,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         // b = 1 and only c (feedforward weight) can be tuned (amount derivative on measurement or error).
 
         // -----calculate P component
-        pidData[axis].P = pidRuntime.pidCoefficient[axis].Kp * errorRate * tpaFactorKp;
+        pidData[axis].P = pidRuntime.pidCoefficient[axis].Kp * boostedErrorRate * tpaFactorKp;
         if (axis == FD_YAW) {
             pidData[axis].P = pidRuntime.ptermYawLowpassApplyFn((filter_t *) &pidRuntime.ptermYawLowpass, pidData[axis].P);
         }
@@ -1014,6 +1035,9 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
                 fftDataAnalysePush(&pidRuntime.dtermFFTAnalyseState, axis, delta);
                 delta = pidRuntime.dtermDynNotchApplyFn((filter_t *)&pidRuntime.dtermNotchFilterDyn[axis], delta);
             }
+            //dterm boost
+            delta = emuboost(delta, pidRuntime.dtermBoost, pidRuntime.dtermBoostLimit);
+
             float preTpaData = pidRuntime.pidCoefficient[axis].Kd * delta;
 
 #if defined(USE_D_MIN)

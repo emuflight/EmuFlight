@@ -85,7 +85,7 @@
 #define FFT_BIN_COUNT             (FFT_WINDOW_SIZE / 2) // 16
 #define DYN_NOTCH_CALC_TICKS      (XYZ_AXIS_COUNT * 4) // 4 steps per axis
 
-static uint16_t FAST_RAM_ZERO_INIT   dynNotchMaxFFT;
+static uint16_t FAST_DATA_ZERO_INIT dynNotchMaxFFT;
 
 // Hanning window, see https://en.wikipedia.org/wiki/Window_function#Hann_.28Hanning.29_window
 

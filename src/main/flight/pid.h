@@ -217,6 +217,13 @@ typedef struct pidProfile_s {
     uint8_t  dterm_dynlpf2_debug;
 
     uint8_t  dtermMeasurementSlider;
+
+    uint16_t emuBoostPR;
+    uint16_t emuBoostY;
+    uint8_t emuBoostLimitPR;
+    uint8_t emuBoostLimitY;
+    uint16_t dtermBoost;
+    uint8_t dtermBoostLimit;
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
@@ -311,6 +318,13 @@ typedef struct pidRuntime_s {
     bool nfeRaceMode;
     float dtermMeasurementSlider;
     float dtermMeasurementSliderInverse;
+
+    float emuBoostPR;
+    float emuBoostY;
+    float emuBoostLimitPR;
+    float emuBoostLimitY;
+    float dtermBoost;
+    float dtermBoostLimit;
 
 #ifdef USE_ITERM_RELAX
     pt1Filter_t windupLpf[XYZ_AXIS_COUNT];

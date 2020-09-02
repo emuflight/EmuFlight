@@ -939,8 +939,8 @@ bool rcSmoothingInitializationComplete(void) {
 
 FAST_CODE float rateDynamics(float rcCommand, int axis)
 {
-  static FAST_RAM_ZERO_INIT float lastRcCommandData[3];
-  static FAST_RAM_ZERO_INIT float iterm[3];
+  static FAST_DATA_ZERO_INIT float lastRcCommandData[3];
+  static FAST_DATA_ZERO_INIT float iterm[3];
 
 if (((currentControlRateProfile->rateDynamics.rateSensCenter != 100) || (currentControlRateProfile->rateDynamics.rateSensEnd != 100))
   || ((currentControlRateProfile->rateDynamics.rateWeightCenter > 0) || (currentControlRateProfile->rateDynamics.rateWeightEnd > 0)))

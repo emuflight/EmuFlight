@@ -300,6 +300,13 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.dtermMeasurementSlider = pidProfile->dtermMeasurementSlider / 100;
     pidRuntime.dtermMeasurementSliderInverse = 1 - (pidProfile->dtermMeasurementSlider / 100);
 
+    pidRuntime.emuBoostPR = (pidProfile->emuBoostPR * pidProfile->dtermBoost / 1000000) * 0.003;
+    pidRuntime.emuBoostY = (pidProfile->emuBoostY * pidProfile->dtermBoost / 1000000) * 0.003;
+    pidRuntime.emuBoostLimitPR = pidProfile->emuBoostLimitPR / 100.0f;
+    pidRuntime.emuBoostLimitY = pidProfile->emuBoostLimitY / 100.0f;
+    pidRuntime.dtermBoost = (pidProfile->dtermBoost * pidProfile->dtermBoost / 1000000) * 0.003;
+    pidRuntime.dtermBoostLimit = pidProfile->dtermBoostLimit / 100.0f;
+
     pidRuntime.P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
     pidRuntime.D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
     pidRuntime.P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
