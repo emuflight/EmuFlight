@@ -118,6 +118,7 @@ typedef struct gyro_s {
     uint8_t dynLpfFilter;
     uint16_t dynLpfMin;
     uint16_t dynLpfMax;
+    uint8_t dynLpfCurveExpo;
 #endif
 
 #ifdef USE_GYRO_OVERFLOW_CHECK
@@ -189,24 +190,24 @@ typedef struct gyroConfig_s {
     uint8_t  dyn_notch_q;
     uint16_t dyn_notch_min_hz;
 
-    #if defined(USE_GYRO_IMUF9001)
-        uint16_t imuf_mode;
-        uint16_t imuf_rate;
-        uint16_t imuf_pitch_lpf_cutoff_hz;
-        uint16_t imuf_roll_lpf_cutoff_hz;
-        uint16_t imuf_yaw_lpf_cutoff_hz;
-        uint16_t imuf_acc_lpf_cutoff_hz;
-    #endif
-        uint16_t imuf_pitch_q;
-        uint16_t imuf_roll_q;
-        uint16_t imuf_yaw_q;
-        uint16_t imuf_w;
-        uint16_t imuf_sharpness;
+#if defined(USE_GYRO_IMUF9001)
+    uint16_t imuf_mode;
+    uint16_t imuf_rate;
+    uint16_t imuf_pitch_lpf_cutoff_hz;
+    uint16_t imuf_roll_lpf_cutoff_hz;
+    uint16_t imuf_yaw_lpf_cutoff_hz;
+    uint16_t imuf_acc_lpf_cutoff_hz;
+#endif
+    uint16_t imuf_pitch_q;
+    uint16_t imuf_roll_q;
+    uint16_t imuf_yaw_q;
+    uint16_t imuf_w;
+    uint16_t imuf_sharpness;
 
     uint8_t  gyro_filter_debug_axis;
 
     uint8_t gyrosDetected; // What gyros should detection be attempted for on startup. Automatically set on first startup.
-
+    uint8_t dyn_lpf_curve_expo; // set the curve for dynamic gyro lowpass filter
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);
