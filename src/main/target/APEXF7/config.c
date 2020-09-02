@@ -18,17 +18,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdbool.h>
 #include <stdint.h>
-
 #include "platform.h"
-#include "io/serial.h"
+#ifdef USE_TARGET_CONFIG
+#include "pg/pinio.h"
 #include "pg/piniobox.h"
-#include "target.h"
-
-#define USE_TARGET_CONFIG
 
 void targetConfiguration(void)
 {
-    pinioBoxConfigMutable()->permanentId[0] = 40;
-    pinioBoxConfigMutable()->permanentId[1] = 41;
+  pinioBoxConfigMutable()->permanentId[0] = 0;
+  pinioBoxConfigMutable()->permanentId[1] = 40;
+  pinioBoxConfigMutable()->permanentId[2] = 255;
+  pinioBoxConfigMutable()->permanentId[3] = 255;
+  pinioConfigMutable()->config[0] = 129;
+
 }
+#endif

@@ -60,6 +60,8 @@ extern "C" {
     void osdFormatTime(char * buff, osd_timer_precision_e precision, timeUs_t time);
     void osdFormatTimer(char *buff, bool showSymbol, int timerIndex);
     int osdConvertTemperatureToSelectedUnit(int tempInDegreesCelcius);
+    bool usbCableIsInserted(void) { return false; }
+    bool usbVcpIsConnected(void) { return false; }
 
     uint16_t rssi;
     attitudeEulerAngles_t attitude;
@@ -909,6 +911,67 @@ TEST(OsdTest, TestElementWarningsBattery)
     displayPortTestBufferSubstring(9, 10, "             ");
 
     // TODO
+}
+
+/*
+ * Tests the warnings are not showing for DJI OSD.
+ */
+TEST(OsdTest, TestElementWarningDJIDisabled)
+{
+    // given
+    osdConfigMutable()->item_pos[OSD_CRAFT_NAME] = OSD_POS(9, 9) | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_WARNINGS] = OSD_POS(9, 10) | VISIBLE_FLAG;
+    osdConfigMutable()->enabledWarnings = 0;
+    osdWarnSetState(OSD_WARNING_BATTERY_WARNING, true);
+
+    // when
+    displayClearScreen(&testDisplayPort);
+    osdRefresh(simulationTime);
+
+    // then
+    displayPortTestBufferSubstring(9, 9, "CRAFT_NAME");
+    displayPortTestBufferSubstring(9, 10, "             ");
+    EXPECT_EQ(0, djiWarningBuffer[0]);
+}
+
+/*
+ * Tests the warnings are shown for DJI OSD.
+ */
+TEST(OsdTest, TestElementWarningDJIEnabled)
+{
+    // given
+    osdConfigMutable()->enabledWarnings = 0;
+    osdWarnSetState(OSD_WARNING_BATTERY_WARNING, true);
+    osdWarnSetState(OSD_WARNING_DJI, true);
+
+    // low battery
+    simulationBatteryVoltage = 140;
+    simulationBatteryState = BATTERY_WARNING;
+
+    // when
+    displayClearScreen(&testDisplayPort);
+    osdRefresh(simulationTime);
+
+    // then
+    char stringLow[12] = "LOW BATTERY";
+    for (int i = 0; i < 12; i++) {
+        EXPECT_EQ(stringLow[i], djiWarningBuffer[i]);
+    }
+
+    // given
+    // full battery
+    simulationBatteryVoltage = ((batteryConfig()->vbatmaxcellvoltage - 2) * simulationBatteryCellCount);
+    simulationBatteryState = BATTERY_OK;
+
+    // when
+    displayClearScreen(&testDisplayPort);
+    osdRefresh(simulationTime);
+
+    // then
+    const char stringEmpty[12] = "           ";
+    for (int i = 0; i < 12; i++) {
+        EXPECT_EQ(stringEmpty[i], djiWarningBuffer[i]);
+    }
 }
 
 /*
