@@ -75,15 +75,23 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
   //update last state
   kalmanState->lastX = kalmanState->x;
 
-  target = target; // unused for now
-  // mess with this later
-  // if (kalmanState->lastX != 0.0f) {
-  //     kalmanState->e = fabsf(1.0f - (target / kalmanState->lastX));
-  // }
+  if ((kalmanState->lastX != 0.0f) && (kalmanState->s != 0.0f)) {
+    float average = fabsf(target + kalmanState->lastX) * 0.5f;
 
-  //prediction update
-  kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
+    if (average > 10.0f)
+    {
+        float error = fabsf(target - kalmanState->lastX);
+        float ratio = error / average;
+        kalmanState->e = kalmanState->s * powf(ratio, 3.0f);  //"ratio" power 3 and multiply by a gain
+    }
+    //prediction update
+    kalmanState->p = kalmanState->p + (kalmanState->q + kalmanState->e);
+  } else if (kalmanState->lastX != 0.0f) {
+    kalmanState->e = fabsf(1.0f - (target / kalmanState->lastX));
 
+    //prediction update
+    kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
+  }
   //measurement update
   kalmanState->k = kalmanState->p / (kalmanState->p + kalmanState->r);
   kalmanState->x += kalmanState->k * (input - kalmanState->x);
