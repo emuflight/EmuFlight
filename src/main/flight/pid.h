@@ -102,10 +102,13 @@ typedef struct pidProfile_s {
     // EmuFlight PID controller parameters
     uint8_t feathered_pids;                 // determine how feathered your pids are
     uint8_t i_decay;						            // i-term decay (increases how quickly iterm shrinks in value)
-    uint16_t errorBoost;                    // the weight of the setpoint boost
-    uint16_t errorBoostYaw;                 // the weight of the setpoint boost for yaw
+    uint8_t i_decay_cutoff;                 // iterm values above which i_decay has full effect
+    uint16_t errorBoost;                    // the weight of the error boost
+    uint16_t errorBoostYaw;                 // the weight of the error boost for yaw
     uint8_t errorBoostLimit;                // percentage of the error that the emu boost can boost
     uint8_t errorBoostLimitYaw;             // percentage of the error that the emu boost can boost for yaw
+    uint16_t dtermBoost;                     // Dterm boost similar to EmuBoost
+    uint8_t dtermBoostLimit;                // Max value allowed for the dterm boost
     uint8_t nfe_racermode;                  // turn on or off NFE RACERMODE
     uint16_t yawRateAccelLimit;             // yaw accel limiter for deg/sec/ms
     uint16_t rateAccelLimit;                // accel limiter roll/pitch deg/sec/ms
@@ -125,6 +128,10 @@ typedef struct pidProfile_s {
     uint8_t throttle_boost;                 // how much should throttle be boosted during transient changes 0-100, 100 adds 10x hpf filtered throttle
     uint8_t throttle_boost_cutoff;          // Which cutoff frequency to use for throttle boost. higher cutoffs keep the boost on for shorter. Specified in hz.
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system
+    uint8_t iterm_relax_cutoff;
+    uint8_t iterm_relax_cutoff_yaw;
+    uint8_t iterm_relax_threshold;             // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
+    uint8_t iterm_relax_threshold_yaw;         // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
 } pidProfile_t;
