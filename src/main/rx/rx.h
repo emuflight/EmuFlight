@@ -173,4 +173,9 @@ void resetAllRxChannelRangeConfigurations(rxChannelRangeConfig_t *rxChannelRange
 void suspendRxPwmPpmSignal(void);
 void resumeRxPwmPpmSignal(void);
 
+void setLinkQualityDirect(uint16_t linkqualityValue);
+void rxSetRfMode(uint8_t rfModeValue);
+uint16_t rxGetLinkQuality(void);
+uint8_t rxGetRfMode(void);
+
 uint16_t rxGetRefreshRate(void);

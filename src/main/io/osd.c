@@ -115,6 +115,7 @@ const char * const osdTimerSourceNames[] = {
 
 static bool blinkState = true;
 static bool showVisualBeeper = false;
+static bool crsfRssi = false;
 
 static uint32_t blinkBits[(OSD_ITEM_COUNT + 31)/32];
 #define SET_BLINK(item) (blinkBits[(item) / 32] |= (1 << ((item) % 32)))
@@ -489,14 +490,22 @@ static bool osdDrawSingleElement(uint8_t item)
     switch (item) {
     case OSD_RSSI_VALUE:
         {
-            uint16_t osdRssi = getRssi() * 100 / 1024; // change range
-            if (osdRssi >= 100)
-                osdRssi = 99;
+            if(crsfRssi){
+				uint16_t osdLQ = rxGetLinkQuality();
+				if (osdLQ >= 100)
+					osdLQ = 99;
+				uint8_t osdRfMode = rxGetRfMode();
+				tfp_sprintf(buff, "%c%1d:%2d", SYM_RSSI, osdRfMode, osdLQ);
+			} else {
+				uint16_t osdRssi = getRssi() * 100 / 1024; // change range
+				if (osdRssi >= 100)
+					osdRssi = 99;
 
-            tfp_sprintf(buff, "%c%2d", SYM_RSSI, osdRssi);
+				tfp_sprintf(buff, "%c%2d", SYM_RSSI, osdRssi);
+			}
             break;
         }
-
+	
     case OSD_MAIN_BATT_VOLTAGE:
         buff[0] = osdGetBatterySymbol(osdGetBatteryAverageCellVoltage());
         tfp_sprintf(buff + 1, "%2d.%1d%c", getBatteryVoltage() / 10, getBatteryVoltage() % 10, SYM_VOLT);
@@ -1678,6 +1687,10 @@ void osdUpdate(timeUs_t currentTimeUs)
         unsetArmingDisabled(ARMING_DISABLED_OSD_MENU);
     }
 #endif
+}
+
+void setCrsfRssi(bool b){
+	crsfRssi = b;
 }
 
 #endif // USE_OSD

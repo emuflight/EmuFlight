@@ -47,6 +47,7 @@
 #include "flight/failsafe.h"
 
 #include "io/serial.h"
+#include "io/osd.h"
 
 #include "pg/pg.h"
 #include "pg/pg_ids.h"
@@ -72,6 +73,11 @@ const char rcChannelLetters[] = "AERT12345678abcdefgh";
 
 static uint16_t rssi = 0;                  // range: [0;1023]
 static timeUs_t lastMspRssiUpdateUs = 0;
+
+
+static uint16_t linkQuality = 0;
+static uint8_t rfMode = 0;
+
 
 #define MSP_RSSI_TIMEOUT_US 1500000   // 1.5 sec
 
@@ -215,6 +221,7 @@ bool serialRxInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig
 #ifdef USE_SERIALRX_CRSF
     case SERIALRX_CRSF:
         enabled = crsfRxInit(rxConfig, rxRuntimeConfig);
+		setCrsfRssi(true);
         break;
 #endif
 #ifdef USE_SERIALRX_TARGET_CUSTOM
@@ -694,6 +701,26 @@ uint16_t getRssi(void)
 uint8_t getRssiPercent(void)
 {
     return scaleRange(getRssi(), 0, RSSI_MAX_VALUE, 0, 100);
+}
+
+void setLinkQualityDirect(uint16_t linkqualityValue)
+{
+    linkQuality = linkqualityValue;
+}
+
+void rxSetRfMode(uint8_t rfModeValue)
+{
+    rfMode = rfModeValue;
+}
+
+uint16_t rxGetLinkQuality(void)
+{
+    return linkQuality;
+}
+
+uint8_t rxGetRfMode(void)
+{
+    return rfMode;
 }
 
 uint16_t rxGetRefreshRate(void)
