@@ -23,6 +23,8 @@
 #define TARGET_BOARD_IDENTIFIER "S405"
 #define USBD_PRODUCT_STRING "DIAT_MAMBA_F405US"
 
+#define USE_TARGET_CONFIG
+
 #define LED0_PIN                  PC15
 #define LED1_PIN                  PC14
 
@@ -39,12 +41,9 @@
 #define CAMERA_CONTROL_PIN        PB8
 #define INVERTER_PIN_UART1        PC0
 
-
 #define USE_EXTI
 #define MPU_INT_EXTI              PC4
 #define USE_MPU_DATA_READY_SIGNAL
-
-//  MPU 6000
 
 #define MPU6000_CS_PIN            PA4
 #define MPU6000_SPI_INSTANCE      SPI1
