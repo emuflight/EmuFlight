@@ -68,6 +68,8 @@ typedef struct rxConfig_s {
     uint8_t crsf_use_rx_snr; // Use RX SNR (in dB) instead of RSSI dBm for CRSF
 
     uint32_t msp_override_channels_mask; // Channels to override when the MSP override mode is enabled
+
+    uint8_t showRateDynamics;               // allow you to see rate dynamics in the configurator
 } rxConfig_t;
 
 PG_DECLARE(rxConfig_t, rxConfig);
