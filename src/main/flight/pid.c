@@ -293,22 +293,22 @@ void pidUpdateAntiGravityThrottleFilter(float throttle)
     if (pidRuntime.antiGravityMode == ANTI_GRAVITY_SMOOTH) {
         // focus on low throttle range
         // P boost 0.5 at zero throttle falling to 0 by half
-//        if (throttle < 0.5f) {
-            pidRuntime.antiGravityPBoost = 0.5f /*- throttle*/;
-//        } else {
-//            pidRuntime.antiGravityPBoost = 0.0f;
-//        }
+        if (throttle < 0.5f) {
+            pidRuntime.antiGravityPBoost = 0.5f - throttle;
+        } else {
+            pidRuntime.antiGravityPBoost = 0.0f;
+        }
         // D boost 1.0 reducing with throttle value
-        pidRuntime.antiGravityDBoost = 1.0f /*- throttle*/;
+        pidRuntime.antiGravityDBoost = 1.0f - throttle;
         // get the low-pass of throttle, to determine if throttle increasing or falling
         pidRuntime.antiGravityThrottleHpf = pt1FilterApply(&pidRuntime.antiGravityThrottleLpf, throttle);
         // set how much P and I boost when adding throttle
-//        if (throttle > pidRuntime.antiGravityThrottleHpf) {
-//            pidRuntime.antiGravityPBoost *= 0.5f;
+        if (throttle > pidRuntime.antiGravityThrottleHpf) {
+            pidRuntime.antiGravityPBoost *= 0.5f;
             pidRuntime.antiGravityDBoost *= pidRuntime.antiGravityThrottleHpf;
-//        } else {
-//            pidRuntime.antiGravityDBoost = 0.0f;
-//        }
+        } else {
+            pidRuntime.antiGravityDBoost = 0.0f;
+        }
         // calculate throttle high-pass as before, for use in AG code
         pidRuntime.antiGravityThrottleHpf = fabsf(throttle - pidRuntime.antiGravityThrottleHpf);
         // Modulate boost by how fast throttle is moving
