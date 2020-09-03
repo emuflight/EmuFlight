@@ -63,12 +63,12 @@
 //
 // PID
 //
+
 static uint8_t tmpPidProfileIndex;
 static uint8_t pidProfileIndex;
 static char pidProfileIndexString[MAX_PROFILE_NAME_LENGTH + 5];
 static uint8_t tempPid[3][3];
 static uint16_t tempPidF[3];
-static uint8_t dtermMeasurementSlider;
 
 static uint8_t tmpRateProfileIndex;
 static uint8_t rateProfileIndex;
@@ -158,6 +158,79 @@ static const void *cmsx_rateProfileIndexOnChange(displayPort_t *displayPort, con
     return NULL;
 }
 
+static uint8_t  cmsx_dterm_measurement_slider;
+static uint16_t cmsx_emuboost_pr;
+static uint16_t cmsx_emuboost_y;
+static uint8_t  cmsx_emuboost_limit_pr;
+static uint8_t  cmsx_emuboost_limit_y;
+static uint16_t cmsx_dboost;
+static uint8_t  cmsx_dboost_limit;
+
+
+static const void *cmsx_PidAdvancedOnEnter(displayPort_t *pDisp)
+{
+    UNUSED(pDisp);
+
+    const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
+
+    cmsx_dterm_measurement_slider = pidProfile->dtermMeasurementSlider;
+    cmsx_emuboost_pr =              pidProfile->emuBoostPR;
+    cmsx_emuboost_y =               pidProfile->emuBoostY;
+    cmsx_emuboost_limit_pr =        pidProfile->emuBoostLimitPR;
+    cmsx_emuboost_limit_y =         pidProfile->emuBoostLimitY;
+    cmsx_dboost =                   pidProfile->dtermBoost;
+    cmsx_dboost_limit =             pidProfile->dtermBoostLimit;
+
+    return NULL;
+}
+
+static const void *cmsx_PidAdvancedWriteback(displayPort_t *pDisp, const OSD_Entry *self)
+{
+    UNUSED(pDisp);
+    UNUSED(self);
+
+    pidProfile_t *pidProfile = pidProfilesMutable(pidProfileIndex);
+
+    pidProfile->dtermMeasurementSlider = cmsx_dterm_measurement_slider;
+    pidProfile->emuBoostPR =             cmsx_emuboost_pr;
+    pidProfile->emuBoostY =              cmsx_emuboost_y;
+    pidProfile->emuBoostLimitPR =        cmsx_emuboost_limit_pr;
+    pidProfile->emuBoostLimitY =         cmsx_emuboost_limit_y;
+    pidProfile->dtermBoost =             cmsx_dboost;
+    pidProfile->dtermBoostLimit =        cmsx_dboost_limit;
+
+    return NULL;
+}
+
+static const OSD_Entry cmsx_menuPidAdvancedEntries[] =
+{
+    { "-- PID ADVANCED --", OME_Label, NULL, pidProfileIndexString, 0},
+
+    { "D MEASUREMENT",   OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_dterm_measurement_slider,  0, 100, 1 }, 0 },
+
+    { "EMUBOOST",        OME_UINT16, NULL, &(OSD_UINT16_t){&cmsx_emuboost_pr,       0, 1000, 5 }, 0 },
+    { "BOOST LIMIT",     OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_emuboost_limit_pr, 0, 250,  1 }, 0 },
+    { "EMUBOOST YAW",    OME_UINT16, NULL, &(OSD_UINT16_t){&cmsx_emuboost_y,        0, 1000, 5 }, 0 },
+    { "BOOST YAW LIMIT", OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_emuboost_limit_y,  0, 250,  1 }, 0 },
+
+    { "DBOOST",          OME_UINT16, NULL, &(OSD_UINT16_t){&cmsx_dboost,            0, 1000, 5 }, 0 },
+    { "DBOOST LIMIT",    OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_dboost_limit,      0, 250,  1 }, 0 },
+
+    { "BACK", OME_Back, NULL, NULL, 0 },
+    { NULL, OME_END, NULL, NULL, 0 }
+};
+
+static CMS_Menu cmsx_menuPidAdvanced = {
+#ifdef CMS_MENU_DEBUG
+    .GUARD_text = "XPIDADV",
+    .GUARD_type = OME_MENU,
+#endif
+    .onEnter = cmsx_PidAdvancedOnEnter,
+    .onExit = cmsx_PidAdvancedWriteback,
+    .onDisplayUpdate = NULL,
+    .entries = cmsx_menuPidAdvancedEntries
+};
+
 static const void *cmsx_PidRead(void)
 {
 
@@ -168,7 +241,6 @@ static const void *cmsx_PidRead(void)
         tempPid[i][2] = pidProfile->pid[i].D;
         tempPidF[i] = pidProfile->pid[i].F;
     }
-    dtermMeasurementSlider = pidProfile->dtermMeasurementSlider;
 
     return NULL;
 }
@@ -195,7 +267,6 @@ static const void *cmsx_PidWriteback(displayPort_t *pDisp, const OSD_Entry *self
         pidProfile->pid[i].D = tempPid[i][2];
         pidProfile->pid[i].F = tempPidF[i];
     }
-    dtermMeasurementSlider = pidProfile->dtermMeasurementSlider;
     pidInitConfig(currentPidProfile);
 
     return NULL;
@@ -204,7 +275,7 @@ static const void *cmsx_PidWriteback(displayPort_t *pDisp, const OSD_Entry *self
 static const OSD_Entry cmsx_menuPidEntries[] =
 {
     { "-- PID --", OME_Label, NULL, pidProfileIndexString, 0},
-    { "D MEASUREMENT", OME_UINT8, NULL, &(OSD_UINT8_t){ &dtermMeasurementSlider,  0, 100, 1 }, 0 },
+    { "PID ADVANCED", OME_Submenu, cmsMenuChange, &cmsx_menuPidAdvanced, 0 },
 
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },

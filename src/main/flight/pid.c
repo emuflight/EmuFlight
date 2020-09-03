@@ -222,6 +222,12 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_dynlpf2_debug = 0,
         .dtermMeasurementSlider = 100,
         .nfe_racemode = false,
+        .emuBoostPR = 0,
+        .emuBoostY = 0,
+        .emuBoostLimitY = 0,
+        .emuBoostLimitPR = 0,
+        .dtermBoost = 0,
+        .dtermBoostLimit = 0,
     );
 }
 
