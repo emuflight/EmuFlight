@@ -75,8 +75,10 @@ static uint16_t rssi = 0;                  // range: [0;1023]
 static timeUs_t lastMspRssiUpdateUs = 0;
 
 
-static uint16_t linkQuality = 0;
-static uint8_t rfMode = 0;
+static uint16_t crsflq = 0;
+static uint8_t crsfrfmode = 0;
+static uint16_t crsfsnr = 0;
+static uint8_t crsftxpower = 0;
 
 
 #define MSP_RSSI_TIMEOUT_US 1500000   // 1.5 sec
@@ -703,24 +705,71 @@ uint8_t getRssiPercent(void)
     return scaleRange(getRssi(), 0, RSSI_MAX_VALUE, 0, 100);
 }
 
-void setLinkQualityDirect(uint16_t linkqualityValue)
+void CRSFsetLQ(uint16_t crsflqValue)
 {
-    linkQuality = linkqualityValue;
+    crsflq = crsflqValue; //linkQuality
 }
 
-void rxSetRfMode(uint8_t rfModeValue)
+void CRSFsetRFMode(uint8_t crsfrfValue)
 {
-    rfMode = rfModeValue;
+    crsfrfmode = crsfrfValue; //rfmode
 }
 
-uint16_t rxGetLinkQuality(void)
+void CRSFsetTXPower(uint8_t crsftxpValue)
 {
-    return linkQuality;
+    switch (crsftxpValue) {
+        case 0:
+            crsftxpower = 0;
+            break;
+        case 1:
+            crsftxpower = 10;
+            break;
+        case 2:
+            crsftxpower = 25;
+            break;
+        case 3:
+            crsftxpower = 100;
+            break;
+        case 4:
+            crsftxpower = 500;
+            break;
+        case 5:
+            crsftxpower = 1000;
+            break;
+        case 6:
+            crsftxpower = 2000;
+            break;
+        case 7:
+            crsftxpower = 250;
+            break;
+        default:
+            crsftxpower = 0;
+            break;
 }
 
-uint8_t rxGetRfMode(void)
+void CRSFsetSnR(uint16_t crsfsnrValue)
 {
-    return rfMode;
+    crsfsnr = crsfsnrValue;
+}
+
+uint16_t CRSFgetLQ(void)
+{
+    return crsflq;
+}
+
+uint8_t CRSFgetRFMode(void)
+{
+    return crsfrfmode;
+}
+
+uint16_t CRSFgetSnR(void)
+{
+    return crsfsnr;
+}
+
+uint8_t CRSFgetTXPower(void)
+{
+    return crsftxpower;
 }
 
 uint16_t rxGetRefreshRate(void)
