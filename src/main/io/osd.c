@@ -115,6 +115,7 @@ const char * const osdTimerSourceNames[] = {
 
 static bool blinkState = true;
 static bool showVisualBeeper = false;
+static bool crsfRssi = false;
 
 static uint32_t blinkBits[(OSD_ITEM_COUNT + 31)/32];
 #define SET_BLINK(item) (blinkBits[(item) / 32] |= (1 << ((item) % 32)))
@@ -489,11 +490,39 @@ static bool osdDrawSingleElement(uint8_t item)
     switch (item) {
     case OSD_RSSI_VALUE:
         {
-            uint16_t osdRssi = getRssi() * 100 / 1024; // change range
-            if (osdRssi >= 100)
-                osdRssi = 99;
+            if(crsfRssi)
+            {
+				          uint16_t osdLQ = CRSFgetLQ();
+                  uint8_t osdRfMode = CRSFgetRFMode();
+                  uint16_t osdLQfinal = 0;
+                  switch (osdRfMode)
+                  {
+                          case 0:
+                              osdLQfinal = osdLQ;
+                              break;
+                          case 1:
+                              osdLQfinal = osdLQ + 100;
+                              break;
+                          case 2:
+                              osdLQfinal = osdLQ + 200;
+                              break;
+                  }
 
-            tfp_sprintf(buff, "%c%2d", SYM_RSSI, osdRssi);
+                  if (osdLQfinal >= 300)
+					             osdLQfinal = 300;
+
+				          tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
+
+
+            }
+            else
+            {
+				          uint16_t osdRssi = getRssi() * 100 / 1024; // change range
+				          if (osdRssi >= 100)
+					             osdRssi = 99;
+
+				          tfp_sprintf(buff, "%c%2d", SYM_RSSI, osdRssi);
+			      }
             break;
         }
 
@@ -1678,6 +1707,10 @@ void osdUpdate(timeUs_t currentTimeUs)
         unsetArmingDisabled(ARMING_DISABLED_OSD_MENU);
     }
 #endif
+}
+
+void setCrsfRssi(bool b){
+	crsfRssi = b;
 }
 
 #endif // USE_OSD

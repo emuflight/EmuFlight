@@ -47,6 +47,7 @@
 #include "flight/failsafe.h"
 
 #include "io/serial.h"
+#include "io/osd.h"
 
 #include "pg/pg.h"
 #include "pg/pg_ids.h"
@@ -72,6 +73,13 @@ const char rcChannelLetters[] = "AERT12345678abcdefgh";
 
 static uint16_t rssi = 0;                  // range: [0;1023]
 static timeUs_t lastMspRssiUpdateUs = 0;
+
+
+static uint16_t crsflq = 0;
+static uint8_t crsfrfmode = 0;
+static uint16_t crsfsnr = 0;
+static uint16_t crsftxpower = 0;
+
 
 #define MSP_RSSI_TIMEOUT_US 1500000   // 1.5 sec
 
@@ -215,6 +223,7 @@ bool serialRxInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig
 #ifdef USE_SERIALRX_CRSF
     case SERIALRX_CRSF:
         enabled = crsfRxInit(rxConfig, rxRuntimeConfig);
+		setCrsfRssi(true);
         break;
 #endif
 #ifdef USE_SERIALRX_TARGET_CUSTOM
@@ -694,6 +703,46 @@ uint16_t getRssi(void)
 uint8_t getRssiPercent(void)
 {
     return scaleRange(getRssi(), 0, RSSI_MAX_VALUE, 0, 100);
+}
+
+void CRSFsetLQ(uint16_t crsflqValue)
+{
+    crsflq = crsflqValue; //linkQuality
+}
+
+void CRSFsetRFMode(uint8_t crsfrfValue)
+{
+    crsfrfmode = crsfrfValue; //rfmode
+}
+
+void CRSFsetTXPower(uint16_t crsftxpValue)
+{
+    crsftxpower=crsftxpValue;
+}
+
+void CRSFsetSnR(uint16_t crsfsnrValue)
+{
+    crsfsnr = crsfsnrValue;
+}
+
+uint16_t CRSFgetLQ(void)
+{
+    return crsflq;
+}
+
+uint8_t CRSFgetRFMode(void)
+{
+    return crsfrfmode;
+}
+
+uint16_t CRSFgetSnR(void)
+{
+    return crsfsnr;
+}
+
+uint16_t CRSFgetTXPower(void)
+{
+    return crsftxpower;
 }
 
 uint16_t rxGetRefreshRate(void)
