@@ -177,10 +177,10 @@ void resumeRxPwmPpmSignal(void);
 void CRSFsetLQ(uint16_t crsflqValue);
 void CRSFsetSnR(uint16_t crsfsnrValue);
 void CRSFsetRFMode(uint8_t crsfrfValue);
-void CRSFsetTXPower(uint16_t crsftxpValue);
+void CRSFsetTXPower(uint8_t crsftxpValue);
 uint16_t CRSFgetLQ(void);
 uint8_t CRSFgetRFMode(void);
 uint16_t CRSFgetSnR(void);
-uint16_t CRSFgetTXPower(void);
+uint8_t CRSFgetTXPower(void);
 
 uint16_t rxGetRefreshRate(void);

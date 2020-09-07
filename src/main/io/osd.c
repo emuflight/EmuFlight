@@ -494,28 +494,24 @@ static bool osdDrawSingleElement(uint8_t item)
             {
 				          uint16_t osdLQ = CRSFgetLQ();
                   uint8_t osdRfMode = CRSFgetRFMode();
-
-
-                  uint16_t osdLQfinal = 0;
-                  switch (osdRfMode)
-                  {
+                  uint16_t osdSnR = CRSFgetSnR();
+                  uint8_t osdTXPower = CRSFgetTXPower();
+                  switch (osdRfMode) {
                           case 0:
-                              osdLQfinal = osdLQ;
+                              uint16_t osdLQfinal = osdLQ;
                               break;
                           case 1:
-                              osdLQfinal = osdLQ + 100;
+                              uint16_t osdLQfinal = osdLQ + 100;
                               break;
                           case 2:
-                              osdLQfinal = osdLQ + 200;
+                              uint16_t osdLQfinal = osdLQ + 200;
                               break;
-                  }
-
-                  if (osdLQfinal >= 300)
-					             osdLQfinal = 300;
+                      if (osdLQfinal >= 300)
+					                 osdLQfinal = 300;
 
 				          tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
-
-
+                  tfp_sprintf(buff, "%3d", osdTXPower);
+                  tfp_sprintf(buff, "%3d", osdSnR);
             }
             else
             {

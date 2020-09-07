@@ -78,7 +78,7 @@ static timeUs_t lastMspRssiUpdateUs = 0;
 static uint16_t crsflq = 0;
 static uint8_t crsfrfmode = 0;
 static uint16_t crsfsnr = 0;
-static uint16_t crsftxpower = 0;
+static uint8_t crsftxpower = 0;
 
 
 #define MSP_RSSI_TIMEOUT_US 1500000   // 1.5 sec
@@ -715,9 +715,36 @@ void CRSFsetRFMode(uint8_t crsfrfValue)
     crsfrfmode = crsfrfValue; //rfmode
 }
 
-void CRSFsetTXPower(uint16_t crsftxpValue)
+void CRSFsetTXPower(uint8_t crsftxpValue)
 {
-    crsftxpower=crsftxpValue;
+    switch (crsftxpValue) {
+        case 0:
+            crsftxpower = 0;
+            break;
+        case 1:
+            crsftxpower = 10;
+            break;
+        case 2:
+            crsftxpower = 25;
+            break;
+        case 3:
+            crsftxpower = 100;
+            break;
+        case 4:
+            crsftxpower = 500;
+            break;
+        case 5:
+            crsftxpower = 1000;
+            break;
+        case 6:
+            crsftxpower = 2000;
+            break;
+        case 7:
+            crsftxpower = 250;
+            break;
+        default:
+            crsftxpower = 0;
+            break;
 }
 
 void CRSFsetSnR(uint16_t crsfsnrValue)
@@ -740,7 +767,7 @@ uint16_t CRSFgetSnR(void)
     return crsfsnr;
 }
 
-uint16_t CRSFgetTXPower(void)
+uint8_t CRSFgetTXPower(void)
 {
     return crsftxpower;
 }
