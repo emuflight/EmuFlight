@@ -34,6 +34,23 @@
 
 #include "pg/vtx_table.h"
 #include "drivers/vtx_common.h"
+#endif
+
+
+#if defined(USE_VTX_TABLE)
+int            vtxTableBandCount;
+int            vtxTableChannelCount;
+uint16_t       vtxTableFrequency[VTX_TABLE_MAX_BANDS][VTX_TABLE_MAX_CHANNELS];
+const char *   vtxTableBandNames[VTX_TABLE_MAX_BANDS + 1];
+char           vtxTableBandLetters[VTX_TABLE_MAX_BANDS + 1];
+const char *   vtxTableChannelNames[VTX_TABLE_MAX_CHANNELS + 1];
+bool           vtxTableIsFactoryBand[VTX_TABLE_MAX_BANDS];
+
+int            vtxTablePowerLevels;
+uint16_t       vtxTablePowerValues[VTX_TABLE_MAX_POWER_LEVELS];
+const char *   vtxTablePowerLabels[VTX_TABLE_MAX_POWER_LEVELS + 1];
+
+#else
 
 int            vtxTableBandCount = VTX_TABLE_MAX_BANDS;
 int            vtxTableChannelCount = VTX_TABLE_MAX_CHANNELS;
@@ -60,6 +77,7 @@ bool           vtxTableIsFactoryBand[VTX_TABLE_MAX_BANDS];
 int            vtxTablePowerLevels;
 uint16_t       vtxTablePowerValues[VTX_TABLE_MAX_POWER_LEVELS];
 const char *   vtxTablePowerLabels[VTX_TABLE_MAX_POWER_LEVELS + 1];
+#endif
 
 void vtxTableInit(void)
 {
