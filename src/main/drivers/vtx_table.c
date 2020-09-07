@@ -34,6 +34,7 @@
 
 #include "pg/vtx_table.h"
 #include "drivers/vtx_common.h"
+#endif
 
 int            vtxTableBandCount = VTX_TABLE_MAX_BANDS;
 int            vtxTableChannelCount = VTX_TABLE_MAX_CHANNELS;
