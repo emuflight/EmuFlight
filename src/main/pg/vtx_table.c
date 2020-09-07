@@ -36,8 +36,12 @@ PG_REGISTER_WITH_RESET_FN(vtxTableConfig_t, vtxTableConfig, PG_VTX_TABLE_CONFIG,
 
 void pgResetFn_vtxTableConfig(vtxTableConfig_t *vtxTableConfig)
 {
-      vtxTableConfig->bands = VTX_TABLE_MAX_BANDS;
-      vtxTableConfig->channels = VTX_TABLE_MAX_CHANNELS;
+      vtxTableConfig->bands = 5;
+      vtxTableConfig->channels = 8;
+      for (int band = 0; band < VTX_TABLE_MAX_BANDS; band++) {
+          vtxTableConfigClearBand(vtxTableConfig, band);
+      }
+      // clear the vtx tables so that no non defaults slip through
       vtxTableConfig->frequency[0][0] = 5865;
       vtxTableConfig->frequency[0][1] = 5845;
       vtxTableConfig->frequency[0][2] = 5825;
@@ -122,6 +126,10 @@ void pgResetFn_vtxTableConfig(vtxTableConfig_t *vtxTableConfig)
         //         7 = "7",
         //         8 = "8",
 
+        vtxTableConfig->powerLevels = 4;
+        vtxTableConfigClearPowerValues(vtxTableConfig, 0);
+        vtxTableConfigClearPowerLabels(vtxTableConfig, 0);
+        // clear the power and labels so that no non defaults slip through
         vtxTableConfig->powerValues[0] = 0;
         vtxTableConfig->powerValues[1] = 1;
         vtxTableConfig->powerValues[2] = 2;
