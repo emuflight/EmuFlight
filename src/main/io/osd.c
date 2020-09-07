@@ -490,40 +490,22 @@ static bool osdDrawSingleElement(uint8_t item)
     switch (item) {
     case OSD_RSSI_VALUE:
         {
-            if(crsfRssi)
-            {
-				          uint16_t osdLQ = CRSFgetLQ();
-                  uint8_t osdRfMode = CRSFgetRFMode();
-                  uint16_t osdSnR = CRSFgetSnR();
-                  uint8_t osdTXPower = CRSFgetTXPower();
-                  switch (osdRfMode) {
-                          case 0:
-                              uint16_t osdLQfinal = osdLQ;
-                              break;
-                          case 1:
-                              uint16_t osdLQfinal = osdLQ + 100;
-                              break;
-                          case 2:
-                              uint16_t osdLQfinal = osdLQ + 200;
-                              break;
-                      if (osdLQfinal >= 300)
-					                 osdLQfinal = 300;
+            if(crsfRssi){
+				uint16_t osdLQ = rxGetLinkQuality();
+				if (osdLQ >= 100)
+					osdLQ = 99;
+				uint8_t osdRfMode = rxGetRfMode();
+				tfp_sprintf(buff, "%c%1d:%2d", SYM_RSSI, osdRfMode, osdLQ);
+			} else {
+				uint16_t osdRssi = getRssi() * 100 / 1024; // change range
+				if (osdRssi >= 100)
+					osdRssi = 99;
 
-				          tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
-                  tfp_sprintf(buff, "%3d", osdTXPower);
-                  tfp_sprintf(buff, "%3d", osdSnR);
-            }
-            else
-            {
-				          uint16_t osdRssi = getRssi() * 100 / 1024; // change range
-				          if (osdRssi >= 100)
-					             osdRssi = 99;
-
-				          tfp_sprintf(buff, "%c%2d", SYM_RSSI, osdRssi);
-			      }
+				tfp_sprintf(buff, "%c%2d", SYM_RSSI, osdRssi);
+			}
             break;
         }
-
+	
     case OSD_MAIN_BATT_VOLTAGE:
         buff[0] = osdGetBatterySymbol(osdGetBatteryAverageCellVoltage());
         tfp_sprintf(buff + 1, "%2d.%1d%c", getBatteryVoltage() / 10, getBatteryVoltage() % 10, SYM_VOLT);
