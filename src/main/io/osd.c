@@ -525,7 +525,54 @@ static bool osdDrawSingleElement(uint8_t item)
 			      }
             break;
         }
-
+/*
+    case OSD_CRSF_SNR:
+      {
+        if(crsfRssi)
+        {
+          uint16_t osdSNR = CRSFgetSnR();
+          tfp_sprintf(buff, "%c%3d.%02d" , SYM_BLANK, osdSNR );
+        }
+      }
+    case OSD_CRSF_TX_POWER:
+      {
+        if(crsfRssi)
+        {
+          uint16_t osdtxpower = CRSFgetTXPower();
+          switch (osdtxpower)
+          {
+            case 0:
+              osdtxpower = 0;
+              break;
+            case 1:
+              osdtxpower = 10;
+              break;
+            case 2:
+              osdtxpower = 25;
+              break;
+            case 3:
+              osdtxpower = 100;
+              break;
+            case 4:
+              osdtxpower = 500;
+              break;
+            case 5:
+              osdtxpower = 1000;
+              break;
+            case 6:
+              osdtxpower = 2000;
+              break;
+            case 7:
+              osdtxpower = 250;
+              break;
+            default:
+              osdtxpower = 0;
+              break;
+          }
+          tfp_sprintf(buff, "%c%4d" , SYM_BLANK, osdtxpower );
+        }
+      }
+*/
     case OSD_MAIN_BATT_VOLTAGE:
         buff[0] = osdGetBatterySymbol(osdGetBatteryAverageCellVoltage());
         tfp_sprintf(buff + 1, "%2d.%1d%c", getBatteryVoltage() / 10, getBatteryVoltage() % 10, SYM_VOLT);
@@ -1162,7 +1209,10 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->timers[OSD_TIMER_1] = OSD_TIMER(OSD_TIMER_SRC_ON, OSD_TIMER_PREC_SECOND, 10);
     osdConfig->timers[OSD_TIMER_2] = OSD_TIMER(OSD_TIMER_SRC_TOTAL_ARMED, OSD_TIMER_PREC_SECOND, 10);
 
-    osdConfig->rssi_alarm = 20;
+    if(crsfRssi)
+        osdConfig->rssi_alarm = 160;
+    else
+        osdConfig->rssi_alarm = 20;
     osdConfig->cap_alarm  = 2200;
     osdConfig->alt_alarm  = 100; // meters or feet depend on configuration
     osdConfig->esc_temp_alarm = ESC_TEMP_ALARM_OFF; // off by default
@@ -1241,11 +1291,40 @@ void osdUpdateAlarms(void)
     // This is overdone?
 
     int32_t alt = osdGetMetersToSelectedUnit(getEstimatedAltitude()) / 100;
+    if(crsfRssi)
+    {
+      uint16_t osdLQ = CRSFgetLQ();
+      uint8_t osdRfMode = CRSFgetRFMode();
+      uint16_t osdLQfinal = 0;
+      switch (osdRfMode)
+      {
+              case 0:
+                  osdLQfinal = osdLQ;
+                  break;
+              case 1:
+                  osdLQfinal = osdLQ + 100;
+                  break;
+              case 2:
+                  osdLQfinal = osdLQ + 200;
+                  break;
+      }
 
-    if (getRssiPercent() < osdConfig()->rssi_alarm) {
+      if (osdLQfinal <= 160)  //CRSF RSSI_alarm = set to 160 (Mode1 : 60)
         SET_BLINK(OSD_RSSI_VALUE);
-    } else {
+      else
         CLR_BLINK(OSD_RSSI_VALUE);
+
+    }
+    else
+    {
+      if (getRssiPercent() < osdConfig()->rssi_alarm)
+      {
+        SET_BLINK(OSD_RSSI_VALUE);
+      }
+      else
+      {
+        CLR_BLINK(OSD_RSSI_VALUE);
+      }
     }
 
     // Determine if the OSD_WARNINGS should blink

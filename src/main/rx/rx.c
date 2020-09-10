@@ -74,12 +74,10 @@ const char rcChannelLetters[] = "AERT12345678abcdefgh";
 static uint16_t rssi = 0;                  // range: [0;1023]
 static timeUs_t lastMspRssiUpdateUs = 0;
 
-
 static uint16_t crsflq = 0;
 static uint8_t crsfrfmode = 0;
 static uint16_t crsfsnr = 0;
 static uint16_t crsftxpower = 0;
-
 
 #define MSP_RSSI_TIMEOUT_US 1500000   // 1.5 sec
 
