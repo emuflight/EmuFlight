@@ -224,7 +224,6 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     pt1FilterInit(&pidRuntime.antiGravityDSmoothLpf, pt1FilterGain(ANTI_GRAVITY_SMOOTH_FILTER_CUTOFF, pidRuntime.dT));
 
     pidRuntime.ffBoostFactor = (float)pidProfile->ff_boost / 10.0f;
-    pidRuntime.ffSpikeLimitInverse = pidProfile->ff_spike_limit ? 1.0f / ((float)pidProfile->ff_spike_limit / 10.0f) : 0.0f;
 }
 
 void pidInit(const pidProfile_t *pidProfile)

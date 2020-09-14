@@ -194,7 +194,6 @@ typedef struct pidProfile_s {
 
     uint8_t ff_interpolate_sp;              // Calculate FF from interpolated setpoint
     uint8_t ff_max_rate_limit;              // Maximum setpoint rate percentage for FF
-    uint8_t ff_spike_limit;                 // FF stick extrapolation lookahead period in ms
     uint8_t ff_smooth_factor;               // Amount of smoothing for interpolated FF steps
     uint8_t dyn_lpf_curve_expo;             // set the curve for dynamic dterm lowpass filter
     uint8_t nfe_racemode;                // NFE race mode - when true pitch setpoint calcualtion is gyro based in level mode
@@ -288,7 +287,6 @@ typedef struct pidRuntime_s {
     float antiGravityPBoost;
     float antiGravityDBoost;
     float ffBoostFactor;
-    float ffSpikeLimitInverse;
     float itermAccelerator;
     uint16_t itermAcceleratorGain;
     float feedForwardTransition;
@@ -448,5 +446,4 @@ float pidGetDT();
 float pidGetPidFrequency();
 float pidGetFfBoostFactor();
 float pidGetFfSmoothFactor();
-float pidGetSpikeLimitInverse();
 float dynLpfCutoffFreq(float throttle, uint16_t dynLpfMin, uint16_t dynLpfMax, uint8_t expo);
