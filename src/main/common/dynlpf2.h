@@ -51,4 +51,4 @@ typedef struct {
 
 extern void init_dynLpf2(dynlpf2_t* dynLpf, uint32_t targetLooptime, uint16_t min, uint16_t max, uint16_t fc_fc,
   uint16_t threshold, uint16_t throttle_gain, uint16_t center, uint16_t gain, uint8_t axis, uint8_t type, uint8_t enable, uint8_t debug);
-extern float dynLpf2Apply(dynlpf2_t* filter, int axis, float input);
+extern float dynLpf2Apply(dynlpf2_t* filter, int axis, float input, float gyro);

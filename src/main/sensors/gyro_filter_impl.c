@@ -66,7 +66,7 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
         }
 #endif
 #ifdef USE_DYN_LPF2
-        gyroADCf = dynLpf2Apply(&gyro.dynLpfGyro[axis], axis, gyroADCf);
+        gyroADCf = dynLpf2Apply(&gyro.dynLpfGyro[axis], axis, gyroADCf, gyroADCf);
 #endif
         // we want kalman last, gives better results
         gyroADCf = kalman_update(gyroADCf, axis);

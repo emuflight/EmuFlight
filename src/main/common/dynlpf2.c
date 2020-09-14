@@ -68,7 +68,7 @@ void init_dynLpf2(dynlpf2_t* dynLpf, uint32_t targetLooptime, uint16_t min, uint
 //                          //
 //////////////////////////////
 
-FAST_CODE float dynlpf2_process_type1(dynlpf2_t* filter, float input, float target)
+FAST_CODE float dynlpf2_process_type1(dynlpf2_t* filter, float input, float target, float gyro)
 {
 float newFc, Fmin;
 float throttle;
@@ -80,7 +80,7 @@ const float gyroDt = filter->targetLooptime * 1e-6f;
 
     //Compute average between setpoint and Gyro
     //-----------------------------------------
-        Average = (target + input) * 0.5f;
+        Average = (target + gyro) * 0.5f;
 
     //Check if setpoint or gyro are high enought to compute "e" ratio
     //---------------------------------------------------------------
@@ -108,7 +108,7 @@ const float gyroDt = filter->targetLooptime * 1e-6f;
 
             //Compute e factor
                 float Error, e;
-                Error = (float)fabsf(target - input);
+                Error = (float)fabsf(target - gyro);
                 e = fabsf(Error / Average);                           //Compute ratio between Error and average. e is image of noise in % of signal
 
             //New freq
@@ -132,7 +132,6 @@ const float gyroDt = filter->targetLooptime * 1e-6f;
     } else {
         biquadFilterUpdateLPF(&filter->biquad, newFc, filter->targetLooptime);
     }
-        pt1FilterUpdateCutoff(&filter->pt1, pt1FilterGain(newFc, gyroDt));
         filter->Fc = newFc;
 
     //Apply filter
@@ -154,7 +153,7 @@ const float gyroDt = filter->targetLooptime * 1e-6f;
 //                          //
 //////////////////////////////
 
-FAST_CODE float dynLpf2Apply(dynlpf2_t* filter, int axis, float input) {
+FAST_CODE float dynLpf2Apply(dynlpf2_t* filter, int axis, float input, float gyro) {
 
 float output;
 float target = getSetpointRate(axis);
@@ -162,7 +161,7 @@ float target = getSetpointRate(axis);
 
   //Apply filter if filter is enable.
     if (filter->dynlpf2_enable != 0) {
-        output = dynlpf2_process_type1(filter, input, target);
+        output = dynlpf2_process_type1(filter, input, target, gyro);
     } else {
       output = input;
       filter->Fc = 0;  //To show filter is disable in blackbox.

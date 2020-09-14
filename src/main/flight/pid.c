@@ -1035,7 +1035,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             delta = pidRuntime.dtermNotchApplyFn((filter_t *) &pidRuntime.dtermNotch[axis], delta);
             delta = pidRuntime.dtermLowpassApplyFn((filter_t *) &pidRuntime.dtermLowpass[axis], delta);
             delta = pidRuntime.dtermLowpass2ApplyFn((filter_t *) &pidRuntime.dtermLowpass2[axis], delta);
-            delta = dynLpf2Apply(&pidRuntime.dynLpfDterm[axis], axis, delta);
+            delta = dynLpf2Apply(&pidRuntime.dynLpfDterm[axis], axis, delta, gyro.gyroADCf[axis]);
 
             if (pidProfile->dtermDynNotchQ > 0 && pidProfile->dterm_dyn_notch_location == 1) {
                 fftDataAnalysePush(&pidRuntime.dtermFFTAnalyseState, axis, delta);
