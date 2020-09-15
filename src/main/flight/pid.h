@@ -223,6 +223,9 @@ typedef struct pidProfile_s {
     uint8_t emuBoostLimitY;
     uint16_t dtermBoost;
     uint8_t dtermBoostLimit;
+
+    uint8_t i_decay;
+    uint8_t i_decay_cutoff;
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);

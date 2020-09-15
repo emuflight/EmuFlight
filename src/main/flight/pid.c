@@ -227,6 +227,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .emuBoostLimitPR = 0,
         .dtermBoost = 0,
         .dtermBoostLimit = 0,
+        .i_decay = 4,
+        .i_decay_cutoff = 200,
     );
 }
 
@@ -786,8 +788,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
 #if defined(USE_ACC)
     const rollAndPitchTrims_t *angleTrim = &accelerometerConfig()->accelerometerTrims;
-#else
-    UNUSED(pidProfile);
 #endif
 
 #ifdef USE_TPA_MODE
@@ -945,7 +945,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             boostedErrorRate = emuboost(errorRate, pidRuntime.emuBoostPR, pidRuntime.emuBoostLimitPR);
         }
 
-        const float previousIterm = pidData[axis].I;
+        float iterm = pidData[axis].I;
         float itermErrorRate = boostedErrorRate;
 #ifdef USE_ABSOLUTE_CONTROL
         float uncorrectedSetpoint = currentPidSetpoint;
@@ -953,7 +953,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
 #if defined(USE_ITERM_RELAX)
         if (!launchControlActive) {
-            applyItermRelax(axis, previousIterm, gyroRate, &itermErrorRate, &currentPidSetpoint);
+            applyItermRelax(axis, iterm, gyroRate, &itermErrorRate, &currentPidSetpoint);
             errorRate = currentPidSetpoint - gyroRate;
         }
 #endif
@@ -986,7 +986,21 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             axisDynCi = (axis == FD_YAW) ? dynCi : pidRuntime.dT; // only apply windup protection to yaw
         }
 
-        pidData[axis].I = constrainf(previousIterm + (Ki * axisDynCi + agGain) * itermErrorRate, -pidRuntime.itermLimit, pidRuntime.itermLimit);
+        float iTermNew = (Ki * axisDynCi + agGain) * itermErrorRate;
+
+        if (SIGN(iterm) != SIGN(iTermNew))
+        {
+            // at low iterm iDecayMultiplier will be 1 and at high iterm it will be equivilant to iDecay
+            const float iDecayMultiplier = 1.0f + (pidProfile->i_decay - 1.0f) * constrainf(iterm / pidProfile->i_decay_cutoff, 0.0f, 1.0f);
+            const float newVal = iTermNew * iDecayMultiplier;
+
+        	  if (fabs(iterm) > fabs(newVal))
+        	  {
+            		iTermNew = newVal;
+        	  }
+        }
+
+        iterm = constrainf(iterm + iTermNew, -pidRuntime.itermLimit, pidRuntime.itermLimit);
 
         // -----calculate pidSetpointDelta
         float pidSetpointDelta = 0;

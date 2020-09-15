@@ -165,6 +165,7 @@ static uint8_t  cmsx_emuboost_limit_pr;
 static uint8_t  cmsx_emuboost_limit_y;
 static uint16_t cmsx_dboost;
 static uint8_t  cmsx_dboost_limit;
+static uint8_t  cmsx_i_decay;
 
 
 static const void *cmsx_PidAdvancedOnEnter(displayPort_t *pDisp)
@@ -180,6 +181,7 @@ static const void *cmsx_PidAdvancedOnEnter(displayPort_t *pDisp)
     cmsx_emuboost_limit_y =         pidProfile->emuBoostLimitY;
     cmsx_dboost =                   pidProfile->dtermBoost;
     cmsx_dboost_limit =             pidProfile->dtermBoostLimit;
+    cmsx_i_decay =                  pidProfile->i_decay;
 
     return NULL;
 }
@@ -198,6 +200,7 @@ static const void *cmsx_PidAdvancedWriteback(displayPort_t *pDisp, const OSD_Ent
     pidProfile->emuBoostLimitY =         cmsx_emuboost_limit_y;
     pidProfile->dtermBoost =             cmsx_dboost;
     pidProfile->dtermBoostLimit =        cmsx_dboost_limit;
+    pidProfile->i_decay =                cmsx_i_decay;
 
     return NULL;
 }
@@ -215,6 +218,8 @@ static const OSD_Entry cmsx_menuPidAdvancedEntries[] =
 
     { "DBOOST",          OME_UINT16, NULL, &(OSD_UINT16_t){&cmsx_dboost,            0, 1000, 5 }, 0 },
     { "DBOOST LIMIT",    OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_dboost_limit,      0, 250,  1 }, 0 },
+
+    { "I DECAY",         OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_i_decay,           1, 10,   1 }, 0 },
 
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }
