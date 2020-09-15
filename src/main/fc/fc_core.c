@@ -567,8 +567,6 @@ bool processRx(timeUs_t currentTimeUs)
         return false;
     }
 
-    updateRcRefreshRate(currentTimeUs);
-
     // in 3D mode, we need to be able to disarm by switch at any time
     if (feature(FEATURE_3D)) {
         if (!IS_RC_MODE_ACTIVE(BOXARM))
