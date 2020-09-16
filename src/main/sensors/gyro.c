@@ -132,9 +132,9 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->dyn_notch_q = 250;
     gyroConfig->dyn_notch_min_hz = 150;
     gyroConfig->gyro_filter_debug_axis = FD_ROLL;
-    gyroConfig->imuf_roll_q = 5000;
-    gyroConfig->imuf_pitch_q = 5000;
-    gyroConfig->imuf_yaw_q = 5000;
+    gyroConfig->imuf_roll_q = 2000;
+    gyroConfig->imuf_pitch_q = 2000;
+    gyroConfig->imuf_yaw_q = 2000;
     gyroConfig->imuf_w = 32;
     gyroConfig->imuf_sharpness = 2500;
 #ifdef USE_DYN_LPF2
