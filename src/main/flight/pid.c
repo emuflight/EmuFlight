@@ -1000,7 +1000,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         	  }
         }
 
-        iterm = constrainf(iterm + iTermNew, -pidRuntime.itermLimit, pidRuntime.itermLimit);
+        pidData[axis].I = constrainf(iterm + iTermNew, -pidRuntime.itermLimit, pidRuntime.itermLimit);
 
         // -----calculate pidSetpointDelta
         float pidSetpointDelta = 0;
