@@ -203,7 +203,7 @@ static void validateAndFixConfig(void)
     }
 
     if (motorConfig()->dev.motorPwmProtocol == PWM_TYPE_BRUSHED) {
-      //  featureClear(FEATURE_3D);
+        featureClear(FEATURE_3D);
 
         if (motorConfig()->mincommand < 1000) {
             motorConfigMutable()->mincommand = 1000;
