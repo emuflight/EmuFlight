@@ -41,9 +41,6 @@
 #define MPU6000_CS_PIN          PA4
 #define MPU6000_SPI_INSTANCE    SPI1
 
-#define MPU6500_CS_PIN          PA4
-#define MPU6500_SPI_INSTANCE    SPI1
-
 #define USE_EXTI
 #define MPU_INT_EXTI            PA1
 #define USE_MPU_DATA_READY_SIGNAL
@@ -54,11 +51,6 @@
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define ACC_MPU6000_ALIGN       CW180_DEG
-
-#define USE_GYRO_SPI_MPU6500
-#define GYRO_MPU6500_ALIGN      CW180_DEG
-#define USE_ACC_SPI_MPU6500
-#define ACC_MPU6500_ALIGN       CW180_DEG
 
 // *************** Baro **************************
 #define USE_I2C
@@ -95,8 +87,8 @@
 #define UART2_TX_PIN            PA2
 
 #define USE_UART6
-#define UART6_RX_PIN           PB3
-#define UART6_TX_PIN           PB3
+#define UART11_RX_PIN           PB3
+#define UART11_TX_PIN           PB3
 
 #define USE_SOFTSERIAL1
 #define USE_SOFTSERIAL2
@@ -124,7 +116,7 @@
 #define CURRENT_METER_ADC_PIN   PB1
 //#define RSSI_ADC_PIN            PA0
 
-#define USE_ESCSERIAL
+//#define USE_ESCSERIAL
 
 #define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
