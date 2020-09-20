@@ -32,6 +32,7 @@
 #include "common/maths.h"
 #include "common/filter.h"
 #include "common/dynlpf2.h"
+#include "common/kalman.h"
 
 #include "config/feature.h"
 
@@ -451,7 +452,12 @@ FAST_CODE void gyroUpdate(void)
         break;
 #endif
     }
+    gyro.gyroADCf[X] = kalman_update(gyro.gyroADC[X], X);
+    gyro.gyroADCf[Y] = kalman_update(gyro.gyroADC[Y], Y);
+    gyro.gyroADCf[Z] = kalman_update(gyro.gyroADC[Z], Z);
+
 }
+
 
 #define GYRO_FILTER_FUNCTION_NAME filterGyro
 #define GYRO_FILTER_DEBUG_SET(mode, index, value) do { UNUSED(mode); UNUSED(index); UNUSED(value); } while (0)
