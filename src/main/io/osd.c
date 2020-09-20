@@ -1210,7 +1210,7 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->timers[OSD_TIMER_2] = OSD_TIMER(OSD_TIMER_SRC_TOTAL_ARMED, OSD_TIMER_PREC_SECOND, 10);
 
     if(crsfRssi)
-        osdConfig->rssi_alarm = 160;
+        osdConfig->rssi_alarm = 170;
     else
         osdConfig->rssi_alarm = 20;
     osdConfig->cap_alarm  = 2200;
@@ -1309,7 +1309,7 @@ void osdUpdateAlarms(void)
                   break;
       }
 
-      if (osdLQfinal <= 160)  //CRSF RSSI_alarm = set to 160 (Mode1 : 60)
+      if (osdLQfinal <= 170)  //CRSF RSSI_alarm = set to 160 (Mode1 : 60)
         SET_BLINK(OSD_RSSI_VALUE);
       else
         CLR_BLINK(OSD_RSSI_VALUE);
