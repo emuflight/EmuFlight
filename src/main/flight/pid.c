@@ -127,9 +127,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
 {
     RESET_CONFIG(pidProfile_t, pidProfile,
         .pid = {
-            [PID_ROLL] =       { 42, 85, 35, 90 },
-            [PID_PITCH] =      { 46, 90, 38, 95 },
-            [PID_YAW] =        { 45, 90, 0,  90 },
+            [PID_ROLL] =       { 60, 85, 40, 90 },
+            [PID_PITCH] =      { 65, 90, 42, 95 },
+            [PID_YAW] =        { 70, 95, 0,  90 },
             [PID_LEVEL_LOW] =  {100, 0,  10, 40 },
             [PID_LEVEL_HIGH] = { 35, 0,  1,   0 },
             [PID_MAG] =        { 40, 0,  0,   0 },
@@ -172,14 +172,12 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .abs_control_error_limit = 20,
         .abs_control_cutoff = 11,
         .antiGravityMode = ANTI_GRAVITY_SMOOTH,
-        .dterm_lowpass_hz = 150,    // NOTE: dynamic lpf is enabled by default so this setting is actually
-                                    // overridden and the static lowpass 1 is disabled. We can't set this
-                                    // value to 0 otherwise Configurator versions 10.4 and earlier will also
-                                    // reset the lowpass filter type to PT1 overriding the desired BIQUAD setting.
-        .dterm_lowpass2_hz = 150,   // second Dterm LPF ON by default
+        .dterm_lowpass_hz = 0,      // NOTE: dynamic lpf is enabled by default so this setting is actually
+                                    // overridden and the static lowpass 1 is disabled.
+        .dterm_lowpass2_hz = 0,   // second Dterm LPF OFF by default
         .dterm_filter_type = FILTER_PT1,
         .dterm_filter2_type = FILTER_PT1,
-        .dyn_lpf_dterm_min_hz = 70,
+        .dyn_lpf_dterm_min_hz = 0,
         .dyn_lpf_dterm_max_hz = 170,
         .launchControlMode = LAUNCH_CONTROL_MODE_NORMAL,
         .launchControlThrottlePercent = 20,
@@ -209,15 +207,15 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_dyn_notch_min_hz = 150,
         .dterm_dyn_notch_max_hz = 600,
         .dterm_dyn_notch_location = 0,
-        .dterm_dynlpf2_fmin = 60,
+        .dterm_dynlpf2_fmin = 70,
         .dterm_dynlpf2_fmax = 300,
-        .dterm_dynlpf2_gain = 70,
+        .dterm_dynlpf2_gain = 20,
         .dterm_dynlpf2_fc_fc = 10,
         .dterm_dynlpf2_center_threshold = 10,
         .dterm_dynlpf2_throttle_threshold = 25,
-        .dterm_dynlpf2_throttle_gain = 12,
+        .dterm_dynlpf2_throttle_gain = 3,
         .dterm_dynlpf2_enable = 1,
-        .dterm_dynlpf2_type = 0,
+        .dterm_dynlpf2_type = 1,
         .dterm_dynlpf2_debug = 0,
         .dtermMeasurementSlider = 100,
         .nfe_racemode = false,

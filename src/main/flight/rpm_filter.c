@@ -84,9 +84,9 @@ PG_REGISTER_WITH_RESET_FN(rpmFilterConfig_t, rpmFilterConfig, PG_RPM_FILTER_CONF
 
 void pgResetFn_rpmFilterConfig(rpmFilterConfig_t *config)
 {
-    config->gyro_rpm_notch_harmonics = 3;
-    config->gyro_rpm_notch_min = 100;
-    config->gyro_rpm_notch_q = 500;
+    config->gyro_rpm_notch_harmonics = 2;
+    config->gyro_rpm_notch_min = 150;
+    config->gyro_rpm_notch_q = 1000;
 
     config->rpm_lpf = 150;
 }
