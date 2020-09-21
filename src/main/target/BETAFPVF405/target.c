@@ -21,14 +21,29 @@
 #include <stdint.h>
 
 #include "platform.h"
-#include "io/serial.h"
-#include "pg/piniobox.h"
-#include "target.h"
+#include "drivers/io.h"
 
-#define USE_TARGET_CONFIG
+#include "drivers/dma.h"
+#include "drivers/timer.h"
+#include "drivers/timer_def.h"
 
-void targetConfiguration(void)
-{
-    pinioBoxConfigMutable()->permanentId[0] = 40;
-    pinioBoxConfigMutable()->permanentId[1] = 41;
-}
+const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
+
+    DEF_TIM(TIM10, CH1, PB8,  TIM_USE_PPM,    0, 0),
+
+    // Motors
+    DEF_TIM(TIM3,  CH3, PB0,  TIM_USE_MOTOR,  0, 0),
+    DEF_TIM(TIM3,  CH4, PB1,  TIM_USE_MOTOR,  0, 0),
+    DEF_TIM(TIM2,  CH4, PA3,  TIM_USE_MOTOR,  0, 1),
+    DEF_TIM(TIM2,  CH3, PA2,  TIM_USE_MOTOR,  0, 0),
+
+    DEF_TIM(TIM8,  CH3, PC8,  TIM_USE_MOTOR | TIM_USE_ANY,  0, 0),
+    DEF_TIM(TIM1,  CH1, PA8,  TIM_USE_MOTOR | TIM_USE_ANY,  0, 0),
+
+    // LED strip
+    DEF_TIM(TIM4,  CH1, PB6,  TIM_USE_LED,    0, 0),
+
+
+    DEF_TIM(TIM1,  CH2, PA9,  TIM_USE_ANY,    0, 0),
+    DEF_TIM(TIM1,  CH3, PA10, TIM_USE_ANY,    0, 0),
+};

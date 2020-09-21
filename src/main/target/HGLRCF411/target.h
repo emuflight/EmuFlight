@@ -63,8 +63,8 @@
 #define USE_UART2
 #define UART2_RX_PIN                                     PA3
 #define UART2_TX_PIN                                     PA2
-//#define USE_SOFTSERIAL1
-#define SERIAL_PORT_COUNT                                3                      //VCP, USART1, USART2,USART3,USART4,USART5,USART6
+#define USE_SOFTSERIAL1
+#define SERIAL_PORT_COUNT                                4                      //VCP, USART1, USART2,USART3,USART4,USART5,USART6
 
 // ESC
 #define USE_ESCSERIAL
