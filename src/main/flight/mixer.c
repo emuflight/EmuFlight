@@ -85,6 +85,9 @@ void pgResetFn_motorConfig(motorConfig_t *motorConfig)
     motorConfig->dev.motorPwmRate = BRUSHED_MOTORS_PWM_RATE;
     motorConfig->dev.motorPwmProtocol = PWM_TYPE_BRUSHED;
     motorConfig->dev.useUnsyncedPwm = true;
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+    motorConfig->dev.reverseTag = IO_TAG(BRUSHED_REVERSE_PIN);
+#endif
 #else
 #ifdef USE_BRUSHED_ESC_AUTODETECT
     if (hardwareMotorType == MOTOR_BRUSHED) {

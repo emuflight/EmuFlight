@@ -62,6 +62,10 @@ static pwmOutputPort_t beeperPwm;
 static uint16_t freqBeep = 0;
 #endif
 
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+IO_t ioBrushedReverse;
+#endif
+
 static bool pwmMotorsEnabled = false;
 static bool isDshot = false;
 #ifdef USE_DSHOT_DMAR
@@ -294,6 +298,12 @@ void motorDevInit(const motorDevConfig_t *motorConfig, uint16_t idlePulse, uint8
     if (!isDshot) {
         pwmWrite = &pwmWriteStandard;
         pwmCompleteWrite = useUnsyncedPwm ? &pwmCompleteWriteUnused : &pwmCompleteOneshotMotorUpdate;
+
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+        ioBrushedReverse = IOGetByTag(motorConfig->reverseTag);
+        IOInit(ioBrushedReverse, OWNER_BRUSHED_REVERSE, 0);
+        IOConfigGPIO(ioBrushedReverse, IOCFG_OUT_PP);
+#endif
     }
 
     for (int motorIndex = 0; motorIndex < MAX_SUPPORTED_MOTORS && motorIndex < motorCount; motorIndex++) {
@@ -621,6 +631,17 @@ void beeperPwmInit(const ioTag_t tag, uint16_t frequency)
 
         *beeperPwm.channel.ccr = 0;
         beeperPwm.enabled = false;
+    }
+}
+#endif
+
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+void pwmWriteBrushedMotorReverse(bool onoffReverse)
+{
+    if (onoffReverse == true) {
+        IOHi(ioBrushedReverse);
+    } else {
+        IOLo(ioBrushedReverse);
     }
 }
 #endif

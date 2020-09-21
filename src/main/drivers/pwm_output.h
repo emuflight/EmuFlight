@@ -180,6 +180,9 @@ typedef struct motorDevConfig_s {
     uint8_t  useUnsyncedPwm;
     uint8_t  useBurstDshot;
     ioTag_t  ioTags[MAX_SUPPORTED_MOTORS];
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+    ioTag_t  reverseTag;
+#endif
 } motorDevConfig_t;
 
 extern bool useBurstDshot;
@@ -225,6 +228,11 @@ void pwmWriteBeeper(bool onoffBeep);
 void pwmToggleBeeper(void);
 void beeperPwmInit(const ioTag_t tag, uint16_t frequency);
 #endif
+
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+void pwmWriteBrushedMotorReverse(bool onoffReverse);
+#endif
+
 void pwmOutConfig(timerChannel_t *channel, const timerHardware_t *timerHardware, uint32_t hz, uint16_t period, uint16_t value, uint8_t inversion);
 
 void pwmWriteMotor(uint8_t index, float value);

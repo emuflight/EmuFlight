@@ -17,6 +17,7 @@
  *
  * If not, see <http://www.gnu.org/licenses/>.
  */
+#include "platform.h"
 
 #pragma once
 
@@ -25,6 +26,9 @@ typedef enum {
     OWNER_PWMINPUT,
     OWNER_PPMINPUT,
     OWNER_MOTOR,
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+    OWNER_BRUSHED_REVERSE,
+#endif
     OWNER_SERVO,
     OWNER_LED,
     OWNER_ADC,
