@@ -81,7 +81,8 @@
 #define ESCSERIAL_TIMER_TX_PIN  PB8 // (Hardware=0, PPM)
 
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream3
+#define ADC_INSTANCE            ADC2 //test 1 for ADC1
+#define ADC2_DMA_STREAM         DMA2_Stream3
 #define RSSI_ADC_PIN            PC0
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
