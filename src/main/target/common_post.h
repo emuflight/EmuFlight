@@ -301,7 +301,6 @@
 
 #if !defined(USE_ACC)
 #undef USE_GPS_RESCUE
-#undef USE_ACRO_TRAINER
 #endif
 
 #if (!defined(USE_GPS_RESCUE) || !defined(USE_CMS_FAILSAFE_MENU))
@@ -368,10 +367,6 @@ extern uint8_t __config_end;
 
 #if !defined(USE_RPM_FILTER)
 #undef USE_DYN_IDLE
-#endif
-
-#ifndef USE_ITERM_RELAX
-#undef USE_ABSOLUTE_CONTROL
 #endif
 
 #if defined(USE_CUSTOM_DEFAULTS)
