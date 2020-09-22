@@ -703,10 +703,12 @@ static CMS_Menu cmsx_menuProfileOther = {
     .entries = cmsx_menuProfileOtherEntries,
 };
 
+
 #ifdef USE_GYRO_DATA_ANALYSE
-static uint16_t dynFiltMatrixMaxHz;
-static uint16_t dynFiltMatrixQ;
-static uint16_t dynFiltMatrixMinHz;
+static uint16_t dynFiltNotchMaxHz;
+static uint8_t  dynFiltCount;
+static uint16_t dynFiltBandwidthHz;
+static uint16_t dynFiltNotchMinHz;
 #endif
 #ifdef USE_DYN_LPF
 static uint16_t dynFiltGyroMin;
@@ -737,9 +739,10 @@ static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
     dynFiltGyroGain  = gyroConfig()->dyn_lpf_gyro_gain;
 #endif
 #ifdef USE_GYRO_DATA_ANALYSE
-    dynFiltMatrixMaxHz   = gyroConfig()->dyn_notch_max_hz;
-    dynFiltMatrixQ       = gyroConfig()->dyn_notch_q;
-    dynFiltMatrixMinHz   = gyroConfig()->dyn_notch_min_hz;
+    dynFiltNotchMaxHz   = gyroConfig()->dyn_notch_max_hz;
+    dynFiltCount        = gyroConfig()->dyn_notch_count;
+    dynFiltBandwidthHz  = gyroConfig()->dyn_notch_bandwidth_hz;
+    dynFiltNotchMinHz   = gyroConfig()->dyn_notch_min_hz;
 #endif
 #ifndef USE_GYRO_IMUF9001
     gyroConfig_imuf_roll_q    = gyroConfig()->imuf_roll_q;
@@ -767,9 +770,10 @@ static const void *cmsx_menuGyro_onExit(displayPort_t *pDisp, const OSD_Entry *s
     gyroConfigMutable()->dyn_lpf_gyro_gain = dynFiltGyroGain;
 #endif
 #ifdef USE_GYRO_DATA_ANALYSE
-    gyroConfigMutable()->dyn_notch_max_hz        = dynFiltMatrixMaxHz;
-    gyroConfigMutable()->dyn_notch_q             = dynFiltMatrixQ;
-    gyroConfigMutable()->dyn_notch_min_hz        = dynFiltMatrixMinHz;
+    gyroConfigMutable()->dyn_notch_max_hz        = dynFiltNotchMaxHz;
+    gyroConfigMutable()->dyn_notch_count         = dynFiltCount;
+    gyroConfigMutable()->dyn_notch_bandwidth_hz  = dynFiltBandwidthHz;
+    gyroConfigMutable()->dyn_notch_min_hz        = dynFiltNotchMinHz;
 #endif
 #ifndef USE_GYRO_IMUF9001
     gyroConfigMutable()->imuf_roll_q    = gyroConfig_imuf_roll_q;
@@ -798,9 +802,10 @@ static const OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "LPF TYPE",   OME_TAB,   NULL, &(OSD_TAB_t)   { &gyroConfig_lpf_type,     3, osdTableLpfType}, 0 },
 #endif
 #ifdef USE_GYRO_DATA_ANALYSE
-    { "MATRIX Q",        OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltMatrixQ,       0, 1000, 1 }, 0 },
-    { "MATRIX MIN HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltMatrixMinHz,   0, 1000, 1 }, 0 },
-    { "MATRIX MAX HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltMatrixMaxHz,   0, 1000, 1 }, 0 },
+    { "NOTCH COUNT",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &dynFiltCount,        1, DYN_NOTCH_COUNT_MAX, 1 }, 0 },
+    { "NOTCH WIDTH HZ", OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltBandwidthHz,  1, 1000, 1 }, 0 },
+    { "NOTCH MIN HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltNotchMinHz,   0, 1000, 1 }, 0 },
+    { "NOTCH MAX HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltNotchMaxHz,   0, 1000, 1 }, 0 },
 #endif
 #ifndef USE_GYRO_IMUF9001
     { "IMUF W",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,              0,   300,   1 }, 0 },

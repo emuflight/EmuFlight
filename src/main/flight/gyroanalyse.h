@@ -18,44 +18,32 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
- #pragma once
+#pragma once
 
- #include "arm_math.h"
+#define DYN_NOTCH_COUNT_MAX 5
 
- #include "common/filter.h"
+typedef struct gyroAnalyseState_s {
 
- #define FFT_WINDOW_SIZE 32
+    // accumulator for oversampled data => no aliasing and less noise
+    uint8_t sampleCount;
+    uint8_t maxSampleCount;
+    float maxSampleCountRcp;
+    float oversampledGyroAccumulator[XYZ_AXIS_COUNT];
 
- typedef struct gyroAnalyseState_s {
-     // accumulator for oversampled data => no aliasing and less noise
-     uint8_t sampleCount;
-     uint8_t maxSampleCount;
-     float maxSampleCountRcp;
-     float oversampledGyroAccumulator[XYZ_AXIS_COUNT];
+    // downsampled gyro data for frequency analysis
+    float downsampledGyroData[XYZ_AXIS_COUNT];
 
-     // downsampled gyro data circular buffer for frequency analysis
-     uint8_t circularBufferIdx;
-     float downsampledGyroData[XYZ_AXIS_COUNT][FFT_WINDOW_SIZE];
+    // update state machine step information
+    uint8_t updateTicks;
+    uint8_t updateStep;
+    uint8_t updateAxis;
 
-     // update state machine step information
-     uint8_t updateTicks;
-     uint8_t updateStep;
-     uint8_t updateAxis;
+    float centerFreq[XYZ_AXIS_COUNT][DYN_NOTCH_COUNT_MAX];
 
-     arm_rfft_fast_instance_f32 fftInstance;
-     float fftData[FFT_WINDOW_SIZE];
-     float rfftData[FFT_WINDOW_SIZE];
+} gyroAnalyseState_t;
 
-     float centerFreq[XYZ_AXIS_COUNT];
-     bool filterUpdateExecute;
-     uint8_t filterUpdateAxis;
-     float filterUpdateFrequency;
- } gyroAnalyseState_t;
-
- STATIC_ASSERT(FFT_WINDOW_SIZE <= (uint8_t) -1, window_size_greater_than_underlying_type);
-
- void gyroDataAnalyseStateInit(gyroAnalyseState_t *gyroAnalyse, uint32_t targetLooptime);
- void gyroDataAnalysePush(gyroAnalyseState_t *gyroAnalyse, int axis, float sample);
- void gyroDataAnalyse(gyroAnalyseState_t *gyroAnalyse);
- uint16_t getMaxFFT(void);
- void resetMaxFFT(void);
+void gyroDataAnalyseStateInit(gyroAnalyseState_t *state, uint32_t targetLooptimeUs);
+void gyroDataAnalysePush(gyroAnalyseState_t *state, const uint8_t axis, const float sample);
+void gyroDataAnalyse(gyroAnalyseState_t *state);
+uint16_t getMaxFFT(void);
+void resetMaxFFT(void);
