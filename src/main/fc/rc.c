@@ -66,7 +66,7 @@ static float rawDeflection[XYZ_AXIS_COUNT];
 static float oldRcCommand[XYZ_AXIS_COUNT];
 #endif
 static float setpointRate[3], rcDeflection[3], rcDeflectionAbs[3];
-static float throttlePIDAttenuation;
+static float throttlePAttenuation, throttleIAttenuation, throttleDAttenuation;
 static bool reverseMotors = false;
 static applyRatesFn *applyRates;
 static uint16_t currentRxRefreshRate;
@@ -119,9 +119,19 @@ float getRcDeflectionAbs(int axis)
     return rcDeflectionAbs[axis];
 }
 
-float getThrottlePIDAttenuation(void)
+float getThrottlePAttenuation(void)
 {
-    return throttlePIDAttenuation;
+    return throttlePAttenuation;
+}
+
+float getThrottleIAttenuation(void)
+{
+    return throttleIAttenuation;
+}
+
+float getThrottleDAttenuation(void)
+{
+    return throttleDAttenuation;
 }
 
 #ifdef USE_INTERPOLATED_SP
@@ -746,17 +756,21 @@ FAST_CODE_NOINLINE void updateRcCommands(void)
     isRxDataNew = true;
 
     // PITCH & ROLL only dynamic PID adjustment,  depending on throttle value
-    int32_t prop;
+    int32_t propP, propI, propD;
     if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
-        prop = 100;
-        throttlePIDAttenuation = 1.0f;
+        propP = 100;
+        propI = 100;
+        propD = 100;
+        throttlePAttenuation = 1.0f;
+        throttleIAttenuation = 1.0f;
+        throttleDAttenuation = 1.0f;
     } else {
-        if (rcData[THROTTLE] < 2000) {
-            prop = 100 - (uint16_t)currentControlRateProfile->dynThrPID * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
-        } else {
-            prop = 100 - currentControlRateProfile->dynThrPID;
-        }
-        throttlePIDAttenuation = prop / 100.0f;
+        propP = 100 + ((uint16_t)currentControlRateProfile->dynThrP - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+        propI = 100 + ((uint16_t)currentControlRateProfile->dynThrI - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+        propD = 100 + ((uint16_t)currentControlRateProfile->dynThrD - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+        throttlePAttenuation = propP / 100.0f;
+        throttleIAttenuation = propI / 100.0f;
+        throttleDAttenuation = propD / 100.0f;
     }
 
     for (int axis = 0; axis < 3; axis++) {

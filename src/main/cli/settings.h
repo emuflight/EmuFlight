@@ -125,9 +125,6 @@ typedef enum {
 #ifdef USE_LAUNCH_CONTROL
     TABLE_LAUNCH_CONTROL_MODE,
 #endif
-#ifdef USE_TPA_MODE
-    TABLE_TPA_MODE,
-#endif
 #ifdef USE_LED_STRIP
     TABLE_LED_PROFILE,
     TABLE_LEDSTRIP_COLOR,

@@ -1321,7 +1321,9 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("pid_process_denom", "%d",               activePidLoopDenom);
         BLACKBOX_PRINT_HEADER_LINE("thr_mid", "%d",                         currentControlRateProfile->thrMid8);
         BLACKBOX_PRINT_HEADER_LINE("thr_expo", "%d",                        currentControlRateProfile->thrExpo8);
-        BLACKBOX_PRINT_HEADER_LINE("tpa_rate", "%d",                        currentControlRateProfile->dynThrPID);
+        BLACKBOX_PRINT_HEADER_LINE("tpa_rate_p", "%d",                      currentControlRateProfile->dynThrP);
+        BLACKBOX_PRINT_HEADER_LINE("tpa_rate_i", "%d",                      currentControlRateProfile->dynThrI);
+        BLACKBOX_PRINT_HEADER_LINE("tpa_rate_d", "%d",                      currentControlRateProfile->dynThrD);
         BLACKBOX_PRINT_HEADER_LINE("tpa_breakpoint", "%d",                  currentControlRateProfile->tpa_breakpoint);
         BLACKBOX_PRINT_HEADER_LINE("rc_rates", "%d,%d,%d",                  currentControlRateProfile->rcRates[ROLL],
                                                                             currentControlRateProfile->rcRates[PITCH],

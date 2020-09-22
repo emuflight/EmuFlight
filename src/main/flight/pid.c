@@ -782,16 +782,8 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 #endif
     static float previousRawGyroRate[XYZ_AXIS_COUNT];
 
-    const float tpaFactor = getThrottlePIDAttenuation();
-
 #if defined(USE_ACC)
     const rollAndPitchTrims_t *angleTrim = &accelerometerConfig()->accelerometerTrims;
-#endif
-
-#ifdef USE_TPA_MODE
-    const float tpaFactorKp = (currentControlRateProfile->tpaMode == TPA_MODE_PD) ? tpaFactor : 1.0f;
-#else
-    const float tpaFactorKp = tpaFactor;
 #endif
 
 #ifdef USE_YAW_SPIN_RECOVERY
@@ -964,7 +956,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         // b = 1 and only c (feedforward weight) can be tuned (amount derivative on measurement or error).
 
         // -----calculate P component
-        pidData[axis].P = pidRuntime.pidCoefficient[axis].Kp * boostedErrorRate * tpaFactorKp;
+        pidData[axis].P = pidRuntime.pidCoefficient[axis].Kp * boostedErrorRate * getThrottlePAttenuation();
         if (axis == FD_YAW) {
             pidData[axis].P = pidRuntime.ptermYawLowpassApplyFn((filter_t *) &pidRuntime.ptermYawLowpass, pidData[axis].P);
         }
@@ -984,7 +976,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             axisDynCi = (axis == FD_YAW) ? dynCi : pidRuntime.dT; // only apply windup protection to yaw
         }
 
-        float iTermNew = (Ki * axisDynCi + agGain) * itermErrorRate;
+        float iTermNew = (Ki * axisDynCi + agGain) * itermErrorRate * getThrottleIAttenuation();
 
         if (SIGN(iterm) != SIGN(iTermNew))
         {
@@ -1073,7 +1065,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             // Apply the dMinFactor
             preTpaData *= dMinFactor;
 #endif
-            pidData[axis].D = preTpaData * tpaFactor;
+            pidData[axis].D = preTpaData * getThrottleDAttenuation();
 
             // Log the value of D pre application of TPA
             preTpaData *= D_LPF_FILT_SCALE;

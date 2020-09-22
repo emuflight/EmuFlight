@@ -1247,7 +1247,7 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         for (int i = 0 ; i < 3; i++) {
             sbufWriteU8(dst, currentControlRateProfile->rates[i]); // R,P,Y see flight_dynamics_index_t
         }
-        sbufWriteU8(dst, currentControlRateProfile->dynThrPID);
+        sbufWriteU8(dst, currentControlRateProfile->dynThrD);
         sbufWriteU8(dst, currentControlRateProfile->thrMid8);
         sbufWriteU8(dst, currentControlRateProfile->thrExpo8);
         sbufWriteU16(dst, currentControlRateProfile->tpa_breakpoint);
@@ -1381,7 +1381,7 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, (uint16_t)constrain(gpsSol.llh.altCm / 100, 0, UINT16_MAX)); // alt changed from 1m to 0.01m per lsb since MSP API 1.39 by RTH. To maintain backwards compatibility compensate to 1m per lsb in MSP again.
         sbufWriteU16(dst, gpsSol.groundSpeed);
         sbufWriteU16(dst, gpsSol.groundCourse);
-        // Added in API version 1.44    
+        // Added in API version 1.44
         sbufWriteU16(dst, gpsSol.hdop);
         break;
 
@@ -2286,7 +2286,7 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
             }
 
             value = sbufReadU8(src);
-            currentControlRateProfile->dynThrPID = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
+            currentControlRateProfile->dynThrD = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
             currentControlRateProfile->thrMid8 = sbufReadU8(src);
             currentControlRateProfile->thrExpo8 = sbufReadU8(src);
             currentControlRateProfile->tpa_breakpoint = sbufReadU16(src);

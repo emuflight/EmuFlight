@@ -47,7 +47,9 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .rateDynamics = {100, 100, 10, 10, 0, 0,}, // SensitivityLow, SensitivityHigh, Correctionlow, CorrectionHigh, Weightlow, WeightHigh
             .thrMid8 = 50,
             .thrExpo8 = 0,
-            .dynThrPID = 65,
+            .dynThrP = 75,
+            .dynThrI = 125,
+            .dynThrD = 65,
             .tpa_breakpoint = 1350,
             .rates_type = RATES_TYPE_BETAFLIGHT,
             .rcRates[FD_ROLL] = 100,
@@ -64,7 +66,6 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .rate_limit[FD_ROLL] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
             .rate_limit[FD_PITCH] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
             .rate_limit[FD_YAW] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
-            .tpaMode = TPA_MODE_D,
             .profileName = { 0 },
         );
     }

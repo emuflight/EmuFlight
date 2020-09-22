@@ -27,7 +27,7 @@
 bool simulatedAirmodeEnabled = true;
 float simulatedSetpointRate[3] = { 0,0,0 };
 float simulatedRcDeflection[3] = { 0,0,0 };
-float simulatedThrottlePIDAttenuation = 1.0f;
+float simulatedThrottlePAttenuation = 1.0f;
 float simulatedMotorMixRange = 0.0f;
 
 int16_t debug[DEBUG16_VALUE_COUNT];
@@ -70,7 +70,7 @@ extern "C" {
     bool unitLaunchControlActive = false;
     launchControlMode_e unitLaunchControlMode = LAUNCH_CONTROL_MODE_NORMAL;
 
-    float getThrottlePIDAttenuation(void) { return simulatedThrottlePIDAttenuation; }
+    float getThrottlePAttenuation(void) { return simulatedThrottlePAttenuation; }
     float getMotorMixRange(void) { return simulatedMotorMixRange; }
     float getSetpointRate(int axis) { return simulatedSetpointRate[axis]; }
     bool isAirmodeActivated() { return simulatedAirmodeEnabled; }
@@ -154,7 +154,7 @@ timeUs_t currentTestTime(void) {
 
 void resetTest(void) {
     loopIter = 0;
-    simulatedThrottlePIDAttenuation = 1.0f;
+    simulatedThrottlePAttenuation = 1.0f;
     simulatedMotorMixRange = 0.0f;
 
     pidStabilisationState(PID_STABILISATION_OFF);
