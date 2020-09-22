@@ -29,8 +29,6 @@
 #include "common/maths.h"
 #include "common/utils.h"
 
-#define M_LN2_FLOAT 0.69314718055994530942f
-#define M_PI_FLOAT  3.14159265358979323846f
 #define BIQUAD_Q 1.0f / sqrtf(2.0f)     /* quality factor - 2nd order butterworth*/
 
 // NULL filter
@@ -144,7 +142,7 @@ void biquadFilterLpfCascadeInit(butterworthFilter_t *filter, int order, float fi
 FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate, float Q, biquadFilterType_e filterType)
 {
     // setup variables
-    const float omega = 2.0f * M_PI_FLOAT * filterFreq * refreshRate * 0.000001f;
+    const float omega = 2.0f * M_PIf * filterFreq * refreshRate * 0.000001f;
     const float sn = sin_approx(omega);
     const float cs = cos_approx(omega);
     const float alpha = sn / (2.0f * Q);
@@ -371,12 +369,12 @@ FAST_CODE void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut,
 
 	  float Adj_f_cut = f_cut * filter->scaler;
 
-	  filter->k = dT / ((1.0f / (2.0f * M_PI_FLOAT * Adj_f_cut)) + dT);
+	  filter->k = dT / ((1.0f / (2.0f * M_PIf * Adj_f_cut)) + dT);
 } // ptnFilterInit
 
 FAST_CODE void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float dT) {
     float Adj_f_cut = f_cut * filter->scaler;
-    filter->k = dT / ((1.0f / (2.0f * M_PI_FLOAT * Adj_f_cut)) + dT);
+    filter->k = dT / ((1.0f / (2.0f * M_PIf * Adj_f_cut)) + dT);
 }
 
 FAST_CODE float ptnFilterApply(ptnFilter_t *filter, float input) {

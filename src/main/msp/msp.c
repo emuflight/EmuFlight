@@ -1769,9 +1769,9 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
 #endif
         // Added in MSP API 1.42
 #if defined(USE_GYRO_DATA_ANALYSE)
-        sbufWriteU8(dst, 0); // DEPRECATED 1.43: dyn_notch_range
-        sbufWriteU8(dst, 0); // DEPRECATED, was gyroConfig()->dyn_notch_width_percent
-        sbufWriteU16(dst, gyroConfig()->dyn_notch_q);
+        sbufWriteU8(dst, 0);  // DEPRECATED 1.43: dyn_notch_range
+        sbufWriteU8(dst, 0);  // DEPRECATED 1.44: dyn_notch_width_percent
+        sbufWriteU16(dst, 0); // DEPRECATED 1.44: dyn_notch_q
         sbufWriteU16(dst, gyroConfig()->dyn_notch_min_hz);
 #else
         sbufWriteU8(dst, 0);
@@ -1797,6 +1797,13 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentPidProfile->dyn_lpf_curve_expo);
 #else
         sbufWriteU8(dst, 0);
+#endif
+#if defined(USE_GYRO_DATA_ANALYSE)
+        sbufWriteU8(dst, gyroConfig()->dyn_notch_count);
+        sbufWriteU16(dst, gyroConfig()->dyn_notch_bandwidth_hz);
+#else
+        sbufWriteU8(dst, 0);
+        sbufWriteU16(dst, 0);
 #endif
 
         break;
@@ -2591,9 +2598,9 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
         if (sbufBytesRemaining(src) >= 8) {
             // Added in MSP API 1.42
 #if defined(USE_GYRO_DATA_ANALYSE)
-            sbufReadU8(src); // DEPRECATED: dyn_notch_range
-            sbufReadU8(src); // DEPRECATED: was gyroConfig()->dyn_notch_width_percent
-            gyroConfigMutable()->dyn_notch_q = sbufReadU16(src);
+            sbufReadU8(src); // DEPRECATED 1.43: dyn_notch_range
+            sbufReadU8(src); // DEPRECATED 1.44: dyn_notch_width_percent
+            sbufReadU16(src); // DEPRECATED 1.44: dyn_notch_q
             gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
 #else
             sbufReadU8(src);
@@ -2617,12 +2624,19 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
             sbufReadU16(src);
 #endif
         }
-        if (sbufBytesRemaining(src) >= 1) {
+        if (sbufBytesRemaining(src) >= 4) {
             // Added in MSP API 1.44
 #if defined(USE_DYN_LPF)
             currentPidProfile->dyn_lpf_curve_expo = sbufReadU8(src);
 #else
             sbufReadU8(src);
+#endif
+#if defined(USE_GYRO_DATA_ANALYSE)
+            gyroConfigMutable()->dyn_notch_count = sbufReadU8(src);
+            gyroConfigMutable()->dyn_notch_bandwidth_hz = sbufReadU16(src);
+#else
+            sbufReadU8(src);
+            sbufReadU16(src);
 #endif
         }
 

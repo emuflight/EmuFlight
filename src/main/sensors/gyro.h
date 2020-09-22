@@ -110,15 +110,16 @@ typedef struct gyro_s {
     filterApplyFnPtr notchFilter1ApplyFn;
     biquadFilter_t notchFilter1[XYZ_AXIS_COUNT];
 
-    filterApplyFnPtr notchFilterDynApplyFn;
-    biquadFilter_t notchFilterDyn[XYZ_AXIS_COUNT][XYZ_AXIS_COUNT];
-
     filterApplyFnPtr alphaBetaGammaApplyFn;
     alphaBetaGammaFilter_t alphaBetaGamma[XYZ_AXIS_COUNT];
 
     kalman_t kalmanFilterStateRate[XYZ_AXIS_COUNT];
 
 #ifdef USE_GYRO_DATA_ANALYSE
+    filterApplyFnPtr notchFilterDynApplyFn;
+    biquadFilter_t notchFilterDyn[XYZ_AXIS_COUNT][DYN_NOTCH_COUNT_MAX];
+    uint8_t notchFilterDynCount;
+
     gyroAnalyseState_t gyroAnalyseState;
     float dynNotchQ;
 #endif
@@ -204,7 +205,8 @@ typedef struct gyroConfig_s {
     uint8_t  dyn_lpf_gyro_gain;
 
     uint16_t dyn_notch_max_hz;
-    uint16_t dyn_notch_q;
+    uint8_t  dyn_notch_count;
+    uint16_t dyn_notch_bandwidth_hz;
     uint16_t dyn_notch_min_hz;
 
 #if defined(USE_GYRO_IMUF9001)
@@ -251,4 +253,7 @@ float dynLpfGyroCutoff(uint16_t throttle, float dynlpf2_cutoff);
 #endif
 #ifdef USE_YAW_SPIN_RECOVERY
 void initYawSpinRecovery(int maxYawRate);
+#endif
+#ifdef USE_GYRO_DATA_ANALYSE
+bool isDynamicFilterActive(void);
 #endif
