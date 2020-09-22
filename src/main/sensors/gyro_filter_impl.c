@@ -68,6 +68,8 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
 #ifdef USE_DYN_LPF2
         gyroADCf = dynLpf2Apply(&gyro.dynLpfGyro[axis], axis, gyroADCf, gyroADCf);
 #endif
+        // we want kalman last, gives better results
+        gyroADCf = kalman_update(gyroADCf, axis);
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));
 
