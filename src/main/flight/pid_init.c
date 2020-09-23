@@ -220,8 +220,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 #endif
 
     pt1FilterInit(&pidRuntime.antiGravityThrottleLpf, pt1FilterGain(ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF, pidRuntime.dT));
-    pt1FilterInit(&pidRuntime.antiGravityPSmoothLpf, pt1FilterGain(ANTI_GRAVITY_SMOOTH_FILTER_CUTOFF, pidRuntime.dT));
-    pt1FilterInit(&pidRuntime.antiGravityDSmoothLpf, pt1FilterGain(ANTI_GRAVITY_SMOOTH_FILTER_CUTOFF, pidRuntime.dT));
+    pt1FilterInit(&pidRuntime.antiGravitySmoothLpf, pt1FilterGain(ANTI_GRAVITY_SMOOTH_FILTER_CUTOFF, pidRuntime.dT));
 
     pidRuntime.ffBoostFactor = (float)pidProfile->ff_boost / 10.0f;
 }

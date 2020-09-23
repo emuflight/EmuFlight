@@ -283,12 +283,10 @@ typedef struct pidRuntime_s {
     bool antiGravityEnabled;
     uint8_t antiGravityMode;
     pt1Filter_t antiGravityThrottleLpf;
-    pt1Filter_t antiGravityPSmoothLpf;
-    pt1Filter_t antiGravityDSmoothLpf;
+    pt1Filter_t antiGravitySmoothLpf;
     float antiGravityOsdCutoff;
     float antiGravityThrottleHpf;
     float antiGravityPBoost;
-    float antiGravityDBoost;
     float ffBoostFactor;
     float itermAccelerator;
     uint16_t itermAcceleratorGain;
