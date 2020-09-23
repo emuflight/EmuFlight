@@ -201,7 +201,7 @@
 #define USE_TASK_STATISTICS
 #define USE_GYRO_REGISTER_DUMP  // Adds gyroregisters command to cli to dump configured register values
 #define USE_IMU_CALC
-#define USE_PPM
+//#define USE_PPM
 #define USE_SERIAL_RX
 #define USE_SERIALRX_CRSF       // Team Black Sheep Crossfire protocol
 #define USE_SERIALRX_IBUS       // FlySky and Turnigy receivers
@@ -218,7 +218,7 @@
 #endif
 
 #if (TARGET_FLASH_SIZE > 64)
-#define USE_ACRO_TRAINER
+//#define USE_ACRO_TRAINER
 #define USE_BLACKBOX
 #define USE_CLI_BATCH
 #define USE_RESOURCE_MGMT
@@ -242,7 +242,7 @@
 #define USE_MSP_DISPLAYPORT
 #define USE_MSP_OVER_TELEMETRY
 #define USE_OSD_OVER_MSP_DISPLAYPORT
-#define USE_LED_STRIP
+//#define USE_LED_STRIP
 #endif
 
 #if ((TARGET_FLASH_SIZE > 256) || (FEATURE_CUT_LEVEL < 11))
@@ -347,9 +347,9 @@
 #define USE_TELEMETRY_MAVLINK
 #define USE_UNCOMMON_MIXERS
 #define USE_SIGNATURE
-#define USE_ABSOLUTE_CONTROL
-#define USE_HOTT_TEXTMODE
-#define USE_LED_STRIP_STATUS_MODE
+//#define USE_ABSOLUTE_CONTROL
+//#define USE_HOTT_TEXTMODE
+//#define USE_LED_STRIP_STATUS_MODE
 #define USE_VARIO
 #define USE_RX_LINK_QUALITY_INFO
 #define USE_ESC_SENSOR_TELEMETRY
