@@ -160,6 +160,14 @@ typedef struct pidProfile_s {
     uint8_t iterm_relax_type;               // Specifies type of relax algorithm
     uint8_t iterm_relax_cutoff;             // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t iterm_relax;                    // Enable iterm suppression during stick input
+    uint8_t acro_trainer_angle_limit;       // Acro trainer roll/pitch angle limit in degrees
+    uint8_t acro_trainer_debug_axis;        // The axis for which record debugging values are captured 0=roll, 1=pitch
+    uint8_t acro_trainer_gain;              // The strength of the limiting. Raising may reduce overshoot but also lead to oscillation around the angle limit
+    uint16_t acro_trainer_lookahead_ms;     // The lookahead window in milliseconds used to reduce overshoot
+    uint8_t abs_control_gain;               // How strongly should the absolute accumulated error be corrected for
+    uint8_t abs_control_limit;              // Limit to the correction
+    uint8_t abs_control_error_limit;        // Limit to the accumulated error
+    uint8_t abs_control_cutoff;             // Cutoff frequency for path estimation in abs control
     uint8_t dterm_filter2_type;             // Filter selection for 2nd dterm
     uint16_t dyn_lpf_dterm_min_hz;
     uint16_t dyn_lpf_dterm_max_hz;
@@ -326,6 +334,15 @@ typedef struct pidRuntime_s {
     uint8_t itermRelaxCutoff;
 #endif
 
+#ifdef USE_ABSOLUTE_CONTROL
+    float acCutoff;
+    float acGain;
+    float acLimit;
+    float acErrorLimit;
+    pt1Filter_t acLpf[XYZ_AXIS_COUNT];
+    float oldSetpointCorrection[XYZ_AXIS_COUNT];
+#endif
+
 #ifdef USE_D_MIN
     biquadFilter_t dMinRange[XYZ_AXIS_COUNT];
     pt1Filter_t dMinLowpass[XYZ_AXIS_COUNT];
@@ -346,6 +363,15 @@ typedef struct pidRuntime_s {
     uint8_t rcSmoothingDebugAxis;
     uint8_t rcSmoothingFilterType;
 #endif // USE_RC_SMOOTHING_FILTER
+
+#ifdef USE_ACRO_TRAINER
+    float acroTrainerAngleLimit;
+    float acroTrainerLookaheadTime;
+    uint8_t acroTrainerDebugAxis;
+    float acroTrainerGain;
+    bool acroTrainerActive;
+    int acroTrainerAxisState[2];  // only need roll and pitch
+#endif
 
 #ifdef USE_DYN_LPF
     uint8_t dynLpfFilter;

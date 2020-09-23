@@ -94,7 +94,7 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT] = {
     { BOXPIDAUDIO, "PID AUDIO", 44 },
     { BOXPARALYZE, "PARALYZE", 45 },
     { BOXGPSRESCUE, "GPS RESCUE", 46 },
-//    { BOXACROTRAINER, "ACRO TRAINER", 47 }, (removed)
+    { BOXACROTRAINER, "ACRO TRAINER", 47 },
     { BOXVTXCONTROLDISABLE, "DISABLE VTX CONTROL", 48},
     { BOXLAUNCHCONTROL, "LAUNCH CONTROL", 49 },
     { BOXMSPOVERRIDE, "MSP OVERRIDE", 50},
@@ -319,6 +319,12 @@ void initActiveBoxIds(void)
 #if defined(USE_PID_AUDIO)
     BME(BOXPIDAUDIO);
 #endif
+
+#if defined(USE_ACRO_TRAINER) && defined(USE_ACC)
+    if (sensors(SENSOR_ACC)) {
+        BME(BOXACROTRAINER);
+    }
+#endif // USE_ACRO_TRAINER
 
 #ifdef USE_LAUNCH_CONTROL
     BME(BOXLAUNCHCONTROL);
