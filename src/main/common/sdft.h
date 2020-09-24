@@ -46,5 +46,6 @@ STATIC_ASSERT(SDFT_SAMPLE_SIZE <= (uint8_t)-1, window_size_greater_than_underlyi
 void sdftInit(sdft_t *sdft, const uint8_t startBin, const uint8_t endBin);
 void sdftPush(sdft_t *sdft, const float sample);
 void sdftMagSq(const sdft_t *dsft, float *output);
-void sdftWindow(const sdft_t *sdft, complex_t *output);
-void sdftWindowf(const sdft_t *sdft, float *output);
+void sdftMagnitude(const sdft_t *dsft, float *output);
+void sdftWinSq(const sdft_t *sdft, float *output);
+void sdftWindow(const sdft_t *sdft, float *output);

@@ -104,6 +104,57 @@ float acos_approx(float x)
     else
         return result;
 }
+
+// https://dsp.stackexchange.com/a/17276
+// Original implementation by Robert Bristow-Johnson (rbj@audioimagination.com)
+float sqrt_approx(float x)
+{
+    #define sqrtPowSeriesCoef1  0.49959804148061f
+    #define sqrtPowSeriesCoef2 -0.12047308243453f
+    #define sqrtPowSeriesCoef3  0.04585425015501f
+    #define sqrtPowSeriesCoef4 -0.01076564682800f
+
+    if (x > 5.877471754e-39)
+    {
+		float sum;
+        float powr;
+        long intPart;
+        
+		union { 
+			float f; 
+			long i; 
+		} bits;
+
+        bits.f = x;
+
+        intPart = ((bits.i) >> 23);                // get biased exponent
+        intPart -= 127;                            // unbias it
+
+        x = (float)(bits.i & 0x007FFFFF);          // mask off exponent leaving 0x800000*(mantissa - 1)
+        x *= 1.192092895507812e-07;                // divide by 0x800000
+
+        sum = sqrtPowSeriesCoef1 * x + 1.0f;
+        powr = x * x;
+        sum += sqrtPowSeriesCoef2 * powr;
+        powr *= x;
+        sum += sqrtPowSeriesCoef3 * powr;
+        powr *= x;
+        sum += sqrtPowSeriesCoef4 * powr;
+
+        if (intPart & 0x00000001) {
+            sum *= M_SQRT2f;                       // an odd input exponent means an extra sqrt(2) in the output
+        }
+
+        bits.i = intPart >> 1;                     // divide exponent by 2, lose LSB
+        bits.i += 127;                             // rebias exponent
+        bits.i <<= 23;                             // move biased exponent into exponent bits
+
+        return sum * bits.f;
+    } 
+    else {
+        return 0.0;
+    }
+}
 #endif
 
 int gcd(int num, int denom)

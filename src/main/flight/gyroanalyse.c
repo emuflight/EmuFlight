@@ -164,7 +164,7 @@ FAST_CODE void gyroDataAnalyse(gyroAnalyseState_t *state, biquadFilter_t *notchF
 
         // calculate mean value of accumulated samples
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            float sample = state->oversampledGyroAccumulator[axis] * state->maxSampleCountRcp;
+            const float sample = state->oversampledGyroAccumulator[axis] * state->maxSampleCountRcp;
             state->downsampledGyroData[axis] = sample;
             if (axis == 0) {
                 DEBUG_SET(DEBUG_FFT, 2, lrintf(sample));
@@ -217,7 +217,7 @@ FAST_CODE void gyroDataAnalyse(gyroAnalyseState_t *state, biquadFilter_t *notchF
         }
 		case STEP_WINDOW:
 		{
-			sdftWindowf(&sdft[state->updateAxis], sdftData);
+			sdftWinSq(&sdft[state->updateAxis], sdftData);
 
 			DEBUG_SET(DEBUG_FFT_TIME, 1, micros() - startTime);
 
@@ -230,68 +230,77 @@ FAST_CODE void gyroDataAnalyse(gyroAnalyseState_t *state, biquadFilter_t *notchF
 			float dataMin = 1.0f;
 			uint8_t binMax = 0;
 			float dataMinHi = 1.0f;
-			for (int i = sdftStartBin; i < sdftEndBin; i++) {
-				if (sdftData[i] > sdftData[i - 1]) { // bin height increased
-					if (sdftData[i] > dataMax) {
-						dataMax = sdftData[i];
-						binMax = i;  // tallest bin so far
+
+			// Search for peaks
+			for (uint8_t bin = sdftStartBin + 1; bin < sdftEndBin; bin++) {
+				// Check if bin is a peak
+				if ((sdftData[bin] > sdftData[bin - 1]) && (sdftData[bin] > sdftData[bin + 1])) {
+					// Check if peak is biggest peak so far
+					if (sdftData[bin] > binMax) {
+						dataMax = sdftData[bin];
+						binMax = bin;
 					}
+					bin++; // If bin is peak, next bin can't be peak => jump it
 				}
 			}
 			if (binMax == 0) { // no bin increase, hold prev max bin, dataMin = 1 dataMax = 0, ie move slow
 				binMax = lrintf(state->centerFreq[state->updateAxis] / sdftResolution);
 			} else { // there was a max, find min
-				for (int i = binMax - 1; i > 1; i--) { // look for min below max
-					dataMin = sdftData[i];
-					if (sdftData[i - 1] > sdftData[i]) { // up step below this one
+				for (uint8_t bin = binMax - 1; bin > 1; bin--) { // look for min below max
+					if (sdftData[bin - 1] > sdftData[bin]) {
+						dataMin = sdftData[bin];
 						break;
 					}
 				}
-				for (int i = binMax + 1; i < (sdftEndBin - 1); i++) { // // look for min above max
-					dataMinHi = sdftData[i];
-					if (sdftData[i] < sdftData[i + 1]) { // up step above this one
+				for (uint8_t bin = binMax + 1; bin < SDFT_BIN_COUNT - 1; bin++) { // look for min above max
+					if (sdftData[bin + 1] > sdftData[bin]) {
+						dataMinHi = sdftData[bin];
 						break;
 					}
 				}
 			}
 			dataMin = fminf(dataMin, dataMinHi);
 
-            // accumulate sdftSum and sdftWeightedSum from peak bin, and shoulder bins either side of peak
-            float sdftSum = sdftData[binMax];
-            float sdftWeightedSum = sdftData[binMax] * binMax;
+			// accumulate sdftSum and sdftWeightedSum from peak bin, and shoulder bins either side of peak
+			float squaredData = sdftData[binMax]; // sdftData already squared (see sdftWinSq)
+			float sdftSum = squaredData;
+			float sdftWeightedSum = squaredData * binMax;
 
-            // accumulate upper shoulder unless it would be sdftEndBin
-            uint8_t shoulderBin = binMax + 1;
-            if (shoulderBin < sdftEndBin) {
-                sdftSum += sdftData[shoulderBin];
-                sdftWeightedSum += sdftData[shoulderBin] * shoulderBin;
-            }
+			// accumulate upper shoulder unless it would be sdftEndBin
+			uint8_t shoulderBin = binMax + 1;
+			if (shoulderBin < sdftEndBin) {
+				squaredData = sdftData[shoulderBin]; // sdftData already squared (see sdftWinSq)
+				sdftSum += squaredData;
+				sdftWeightedSum += squaredData * shoulderBin;
+			}
 
-            // accumulate lower shoulder unless lower shoulder would be bin 0 (DC)
-            if (binMax > 1) {
-                shoulderBin = binMax - 1;
-                sdftSum += sdftData[shoulderBin];
-                sdftWeightedSum += sdftData[shoulderBin] * shoulderBin;
-            }
+			// accumulate lower shoulder unless lower shoulder would be bin 0 (DC)
+			if (binMax > 1) {
+				shoulderBin = binMax - 1;
+				squaredData = sdftData[shoulderBin]; // sdftData already squared (see sdftWinSq)
+				sdftSum += squaredData;
+				sdftWeightedSum += squaredData * shoulderBin;
+			}
 
             // get centerFreq in Hz from weighted bins
             float centerFreq = dynNotchMaxHz;
             float sdftMeanBin = 0;
+
             if (sdftSum > 0) {
                 sdftMeanBin = (sdftWeightedSum / sdftSum);
                 centerFreq = sdftMeanBin * sdftResolution;
                 // In theory, the index points to the centre frequency of the bin.
-                // at 1333hz, bin widths are 13.3Hz, so bin 2 has the range 26.7Hz to 40.0Hz
+                // at 1333hz, bin widths are 13.3Hz, so bin 2 (26.7Hz) has the range 20Hz to 33.3Hz
                 // Rav feels that maybe centerFreq = (sdftMeanBin + 0.5) * sdftResolution is better
                 // empirical checking shows that not adding 0.5 works better
             } else {
                 centerFreq = state->centerFreq[state->updateAxis];
             }
-            //centerFreq = constrainf(centerFreq, dynNotchMinHz, dynNotchMaxHz);
+            centerFreq = constrainf(centerFreq, dynNotchMinHz, dynNotchMaxHz);
 
             // PT1 style dynamic smoothing moves rapidly towards big peaks and slowly away, up to 8x faster
-            float dynamicFactor = constrainf(dataMax / dataMin, 1.0f, 8.0f);
-            state->centerFreq[state->updateAxis] += smoothFactor * (centerFreq - state->centerFreq[state->updateAxis]);
+            const float dynamicFactor = constrainf(sqrt_approx(dataMax / dataMin), 1.0f, 8.0f);
+            state->centerFreq[state->updateAxis] += smoothFactor * dynamicFactor * (centerFreq - state->centerFreq[state->updateAxis]);
 
             if(calculateThrottlePercentAbs() > DYN_NOTCH_OSD_MIN_THROTTLE) {
                 dynNotchMaxFFT = MAX(dynNotchMaxFFT, state->centerFreq[state->updateAxis]);
