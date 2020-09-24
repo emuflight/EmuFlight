@@ -116,14 +116,14 @@ float sqrt_approx(float x)
 
     if (x > 5.877471754e-39)
     {
-		float sum;
+        float sum;
         float powr;
         long intPart;
         
-		union { 
-			float f; 
-			long i; 
-		} bits;
+        union { 
+            float f; 
+            long i; 
+        } bits;
 
         bits.f = x;
 

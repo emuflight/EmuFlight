@@ -33,11 +33,11 @@ typedef float complex complex_t; // Better readability for type "float complex"
 
 typedef struct sdft_s {
 
-	uint8_t idx;			           // circular buffer index
-	uint8_t startBin;
-	uint8_t endBin;
-	float samples[SDFT_SAMPLE_SIZE];   // circular buffer
-	complex_t data[SDFT_BIN_COUNT];    // complex frequency spectrum
+    uint8_t idx;                       // circular buffer index
+    uint8_t startBin;
+    uint8_t endBin;
+    float samples[SDFT_SAMPLE_SIZE];   // circular buffer
+    complex_t data[SDFT_BIN_COUNT];    // complex frequency spectrum
 
 } sdft_t;
 

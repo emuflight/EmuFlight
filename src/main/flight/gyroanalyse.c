@@ -122,13 +122,13 @@ void gyroDataAnalyseInit(uint32_t targetLooptimeUs)
     // the upper limit of DN is always going to be Nyquist
 
     sdftResolution = (float)sdftSampleRateHz / SDFT_SAMPLE_SIZE; // 13.3hz per bin at 8k
-    sdftStartBin = MAX(2, dynNotchMinHz / lrintf(sdftResolution)); // can't use bin 0 because it is DC.
-	sdftEndBin = lrintf(dynNotchMaxHz / sdftResolution);
-	smoothFactor = 2 * M_PIf * DYN_NOTCH_SMOOTH_HZ / (gyroLoopRateHz / 12); // minimum PT1 k value
+    sdftStartBin = MAX(2, lrintf(dynNotchMinHz / sdftResolution + 0.5f)); // can't use bin 0 because it is DC.
+    sdftEndBin = lrintf(dynNotchMaxHz / sdftResolution + 0.5f);
+    smoothFactor = 2 * M_PIf * DYN_NOTCH_SMOOTH_HZ / (gyroLoopRateHz / 12); // minimum PT1 k value
 
-	for (uint8_t i = 0; i < XYZ_AXIS_COUNT; i++) {
-		sdftInit(&sdft[i], sdftStartBin, sdftEndBin);
-	}
+    for (uint8_t i = 0; i < XYZ_AXIS_COUNT; i++) {
+        sdftInit(&sdft[i], sdftStartBin, sdftEndBin);
+    }
 }
 
 void gyroDataAnalyseStateInit(gyroAnalyseState_t *state, uint32_t targetLooptimeUs)
@@ -193,8 +193,8 @@ FAST_CODE void gyroDataAnalyse(gyroAnalyseState_t *state, biquadFilter_t *notchF
  static void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
 {
     enum {
-		STEP_SDFT,
-		STEP_WINDOW,
+        STEP_SDFT,
+        STEP_WINDOW,
         STEP_CALC_FREQUENCIES,
         STEP_UPDATE_FILTERS,
         STEP_COUNT
@@ -209,78 +209,78 @@ FAST_CODE void gyroDataAnalyse(gyroAnalyseState_t *state, biquadFilter_t *notchF
     switch (state->updateStep) {
         case STEP_SDFT:
         {
-			sdftPush(&sdft[state->updateAxis], state->downsampledGyroData[state->updateAxis]);
+            sdftPush(&sdft[state->updateAxis], state->downsampledGyroData[state->updateAxis]);
 
-			DEBUG_SET(DEBUG_FFT_TIME, 1, micros() - startTime);
+            DEBUG_SET(DEBUG_FFT_TIME, 1, micros() - startTime);
 
-			break;
+            break;
         }
-		case STEP_WINDOW:
-		{
-			sdftWinSq(&sdft[state->updateAxis], sdftData);
+        case STEP_WINDOW:
+        {
+            sdftWinSq(&sdft[state->updateAxis], sdftData);
 
-			DEBUG_SET(DEBUG_FFT_TIME, 1, micros() - startTime);
+            DEBUG_SET(DEBUG_FFT_TIME, 1, micros() - startTime);
 
-			break;
-		}
+            break;
+        }
         case STEP_CALC_FREQUENCIES:
         {
-			// identify max bin and max/min heights
-			float dataMax = 0.0f;
-			float dataMin = 1.0f;
-			uint8_t binMax = 0;
-			float dataMinHi = 1.0f;
+            // identify max bin and max/min heights
+            float dataMax = 0.0f;
+            float dataMin = 1.0f;
+            uint8_t binMax = 0;
+            float dataMinHi = 1.0f;
 
-			// Search for peaks
-			for (uint8_t bin = sdftStartBin + 1; bin < sdftEndBin; bin++) {
-				// Check if bin is a peak
-				if ((sdftData[bin] > sdftData[bin - 1]) && (sdftData[bin] > sdftData[bin + 1])) {
-					// Check if peak is biggest peak so far
-					if (sdftData[bin] > binMax) {
-						dataMax = sdftData[bin];
-						binMax = bin;
-					}
-					bin++; // If bin is peak, next bin can't be peak => jump it
-				}
-			}
-			if (binMax == 0) { // no bin increase, hold prev max bin, dataMin = 1 dataMax = 0, ie move slow
-				binMax = lrintf(state->centerFreq[state->updateAxis] / sdftResolution);
-			} else { // there was a max, find min
-				for (uint8_t bin = binMax - 1; bin > 1; bin--) { // look for min below max
-					if (sdftData[bin - 1] > sdftData[bin]) {
-						dataMin = sdftData[bin];
-						break;
-					}
-				}
-				for (uint8_t bin = binMax + 1; bin < SDFT_BIN_COUNT - 1; bin++) { // look for min above max
-					if (sdftData[bin + 1] > sdftData[bin]) {
-						dataMinHi = sdftData[bin];
-						break;
-					}
-				}
-			}
-			dataMin = fminf(dataMin, dataMinHi);
+            // Search for peaks
+            for (uint8_t bin = sdftStartBin + 1; bin < sdftEndBin; bin++) {
+                // Check if bin is a peak
+                if ((sdftData[bin] > sdftData[bin - 1]) && (sdftData[bin] > sdftData[bin + 1])) {
+                    // Check if peak is biggest peak so far
+                    if (sdftData[bin] > binMax) {
+                        dataMax = sdftData[bin];
+                        binMax = bin;
+                    }
+                    bin++; // If bin is peak, next bin can't be peak => jump it
+                }
+            }
+            if (binMax == 0) { // no bin increase, hold prev max bin, dataMin = 1 dataMax = 0, ie move slow
+                binMax = lrintf(state->centerFreq[state->updateAxis] / sdftResolution + 0.5f);
+            } else { // there was a max, find min
+                for (uint8_t bin = binMax - 1; bin > 1; bin--) { // look for min below max
+                    if (sdftData[bin] < sdftData[bin - 1]) {
+                        dataMin = sdftData[bin];
+                        break;
+                    }
+                }
+                for (uint8_t bin = binMax + 1; bin < SDFT_BIN_COUNT - 1; bin++) { // look for min above max
+                    if (sdftData[bin] < sdftData[bin + 1]) {
+                        dataMinHi = sdftData[bin];
+                        break;
+                    }
+                }
+            }
+            dataMin = fminf(dataMin, dataMinHi);
 
-			// accumulate sdftSum and sdftWeightedSum from peak bin, and shoulder bins either side of peak
-			float squaredData = sdftData[binMax]; // sdftData already squared (see sdftWinSq)
-			float sdftSum = squaredData;
-			float sdftWeightedSum = squaredData * binMax;
+            // accumulate sdftSum and sdftWeightedSum from peak bin, and shoulder bins either side of peak
+            float squaredData = sdftData[binMax]; // sdftData already squared (see sdftWinSq)
+            float sdftSum = squaredData;
+            float sdftWeightedSum = squaredData * binMax;
 
-			// accumulate upper shoulder unless it would be sdftEndBin
-			uint8_t shoulderBin = binMax + 1;
-			if (shoulderBin < sdftEndBin) {
-				squaredData = sdftData[shoulderBin]; // sdftData already squared (see sdftWinSq)
-				sdftSum += squaredData;
-				sdftWeightedSum += squaredData * shoulderBin;
-			}
+            // accumulate upper shoulder unless it would be sdftEndBin
+            uint8_t shoulderBin = binMax + 1;
+            if (shoulderBin < sdftEndBin) {
+                squaredData = sdftData[shoulderBin]; // sdftData already squared (see sdftWinSq)
+                sdftSum += squaredData;
+                sdftWeightedSum += squaredData * shoulderBin;
+            }
 
-			// accumulate lower shoulder unless lower shoulder would be bin 0 (DC)
-			if (binMax > 1) {
-				shoulderBin = binMax - 1;
-				squaredData = sdftData[shoulderBin]; // sdftData already squared (see sdftWinSq)
-				sdftSum += squaredData;
-				sdftWeightedSum += squaredData * shoulderBin;
-			}
+            // accumulate lower shoulder unless lower shoulder would be bin 0 (DC)
+            if (binMax > 1) {
+                shoulderBin = binMax - 1;
+                squaredData = sdftData[shoulderBin]; // sdftData already squared (see sdftWinSq)
+                sdftSum += squaredData;
+                sdftWeightedSum += squaredData * shoulderBin;
+            }
 
             // get centerFreq in Hz from weighted bins
             float centerFreq = dynNotchMaxHz;

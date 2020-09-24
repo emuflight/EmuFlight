@@ -29,7 +29,7 @@
 
 // Undefine this for use libc sinf/cosf. Keep this defined to use fast sin/cos approximations
 #define FAST_MATH             // order 9 approximation
-#define VERY_FAST_MATH      // order 7 approximation
+#define VERY_FAST_MATH        // order 7 approximation
 
 // Use floating point M_PI instead explicitly.
 #define M_PIf       3.14159265358979323846f
