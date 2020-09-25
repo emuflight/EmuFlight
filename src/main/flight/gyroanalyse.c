@@ -50,7 +50,7 @@
 // SDFT_SAMPLE_SIZE defaults to 100 (gyroanalyse.h)
 // We get 50 frequency bins from 100 consecutive data values
 // Bin 0 is DC and can't be used.
-// Only bins 1 to 100 are usable.
+// Only bins 1 to 99 are usable.
 
 // A gyro sample is collected every gyro loop
 // maxSampleCount recent gyro values are accumulated and averaged
@@ -123,7 +123,7 @@ void gyroDataAnalyseInit(uint32_t targetLooptimeUs)
 
     sdftResolution = (float)sdftSampleRateHz / SDFT_SAMPLE_SIZE; // 13.3hz per bin at 8k
     sdftStartBin = MAX(2, lrintf(dynNotchMinHz / sdftResolution + 0.5f)); // can't use bin 0 because it is DC.
-    sdftEndBin = lrintf(dynNotchMaxHz / sdftResolution + 0.5f);
+    sdftEndBin = MIN(SDFT_BIN_COUNT - 1, lrintf(dynNotchMaxHz / sdftResolution + 0.5f)); // can't use more than SDFT_BIN_COUNT bins.
     smoothFactor = 2 * M_PIf * DYN_NOTCH_SMOOTH_HZ / (gyroLoopRateHz / 12); // minimum PT1 k value
 
     for (uint8_t i = 0; i < XYZ_AXIS_COUNT; i++) {
@@ -236,7 +236,7 @@ FAST_CODE void gyroDataAnalyse(gyroAnalyseState_t *state, biquadFilter_t *notchF
                 // Check if bin is a peak
                 if ((sdftData[bin] > sdftData[bin - 1]) && (sdftData[bin] > sdftData[bin + 1])) {
                     // Check if peak is biggest peak so far
-                    if (sdftData[bin] > binMax) {
+                    if (sdftData[bin] > dataMax) {
                         dataMax = sdftData[bin];
                         binMax = bin;
                     }

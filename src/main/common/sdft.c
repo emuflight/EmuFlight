@@ -26,7 +26,7 @@
 #include "common/maths.h"
 #include "common/sdft.h"
 
-static FAST_DATA_ZERO_INIT bool      constsInitialized;
+static FAST_DATA_ZERO_INIT bool      isInitialized;
 static FAST_DATA_ZERO_INIT float     dampingFactor;
 static FAST_DATA_ZERO_INIT float     r_to_n;
 static FAST_DATA_ZERO_INIT complex_t twiddle[SDFT_BIN_COUNT];
@@ -36,7 +36,7 @@ static void applySqrt(const sdft_t *sdft, float *data);
 
 void sdftInit(sdft_t *sdft, const uint8_t startBin, const uint8_t endBin)
 {
-    if (!constsInitialized) {
+    if (!isInitialized) {
         dampingFactor = nexttowardf(1.0f, 0.0f);
         r_to_n = powf(dampingFactor, SDFT_SAMPLE_SIZE);
         const float c = 2.0f * M_PIf / (float)SDFT_SAMPLE_SIZE;
@@ -45,7 +45,7 @@ void sdftInit(sdft_t *sdft, const uint8_t startBin, const uint8_t endBin)
             phi = c*i;
             twiddle[i] = cos_approx(phi) + _Complex_I * sin_approx(phi);
         }
-        constsInitialized = true;
+        isInitialized = true;
     }
 
     sdft->idx = 0;
@@ -60,6 +60,7 @@ void sdftInit(sdft_t *sdft, const uint8_t startBin, const uint8_t endBin)
         sdft->data[i] = 0.0f;
     }
 }
+
 
 // Add new sample to frequency spectrum
 FAST_CODE void sdftPush(sdft_t *sdft, const float sample)
@@ -80,6 +81,7 @@ FAST_CODE void sdftMagSq(const sdft_t *sdft, float *output)
 {
     float re;
     float im;
+
     for (uint8_t i = sdft->startBin; i < sdft->endBin; i++) {
         re = crealf(sdft->data[i]);
         im = cimagf(sdft->data[i]);
@@ -96,7 +98,7 @@ FAST_CODE void sdftMagnitude(const sdft_t *sdft, float *output)
 }
 
 
-// Get quared magnitude of frequency spectrum with Hann window applied
+// Get squared magnitude of frequency spectrum with Hann window applied
 FAST_CODE void sdftWinSq(const sdft_t *sdft, float *output)
 {
     complex_t val;
@@ -132,7 +134,7 @@ FAST_CODE void sdftWindow(const sdft_t *sdft, float *output)
 
 static FAST_CODE void applySqrt(const sdft_t *sdft, float *data)
 {
-    for (uint8_t i = sdft->startBin; i > sdft->endBin; i++) {
+    for (uint8_t i = sdft->startBin; i <= sdft->endBin; i++) {
         data[i] = sqrt_approx(data[i]);
     }
 }
