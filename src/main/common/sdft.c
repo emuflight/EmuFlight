@@ -105,22 +105,12 @@ FAST_CODE void sdftWinSq(const sdft_t *sdft, float *output)
     float re;
     float im;
 
-    val = 0.5f * sdft->data[sdft->startBin] - 0.25f * sdft->data[sdft->endBin] + sdft->data[(sdft->startBin + 1)];
-    re = crealf(val);
-    im = cimagf(val);
-    output[sdft->startBin] = re * re + im * im;
-
     for (uint8_t i = (sdft->startBin + 1); i < sdft->endBin; i++) {
-        val = 0.5f * sdft->data[i] - 0.25f * sdft->data[i - 1] + sdft->data[i + 1];
+        val = 0.5f * sdft->data[i] - 0.25f * sdft->data[i - 1] - 0.25f * sdft->data[i + 1];
         re = crealf(val);
         im = cimagf(val);
         output[i] = re * re + im * im;
     }
-
-    val = 0.5f * sdft->data[sdft->endBin] - 0.25f * sdft->data[sdft->endBin - 1] + sdft->data[(sdft->startBin)];
-    re = crealf(val);
-    im = cimagf(val);
-    output[sdft->endBin] = re * re + im * im;
 }
 
 
@@ -132,6 +122,7 @@ FAST_CODE void sdftWindow(const sdft_t *sdft, float *output)
 }
 
 
+// Apply fast square root approximation to the whole sdft range
 static FAST_CODE void applySqrt(const sdft_t *sdft, float *data)
 {
     for (uint8_t i = sdft->startBin; i <= sdft->endBin; i++) {
