@@ -1331,9 +1331,6 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_roll", "%d",            currentPidProfile->dFilter[ROLL].smartSmoothing);
         BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_pitch", "%d",           currentPidProfile->dFilter[PITCH].smartSmoothing);
         BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_yaw", "%d",             currentPidProfile->dFilter[YAW].smartSmoothing);
-        BLACKBOX_PRINT_HEADER_LINE("dterm_boost", "%d",                     currentPidProfile->dtermBoost);
-        BLACKBOX_PRINT_HEADER_LINE("dterm_boost_limit", "%d",               currentPidProfile->dtermBoostLimit);
-
         BLACKBOX_PRINT_HEADER_LINE("iterm_windup", "%d",                    currentPidProfile->itermWindupPointPercent);
 
         #if defined(USE_ITERM_RELAX)
@@ -1343,6 +1340,9 @@ static bool blackboxWriteSysinfo(void)
             BLACKBOX_PRINT_HEADER_LINE("iterm_relax_threshold_yaw", "%d",   currentPidProfile->iterm_relax_threshold_yaw);
         #endif
 
+        BLACKBOX_PRINT_HEADER_LINE("i_decay", "%d",                         currentPidProfile->i_decay);
+        BLACKBOX_PRINT_HEADER_LINE("i_decay_cutoff", "%d",                  currentPidProfile->i_decay_cutoff);
+
         BLACKBOX_PRINT_HEADER_LINE("pidAtMinThrottle", "%d",                currentPidProfile->pidAtMinThrottle);
 
         // EmuFlight PID controller parameters
@@ -1351,8 +1351,8 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("emu_boost_limit", "%d",                 currentPidProfile->errorBoostLimit);
         BLACKBOX_PRINT_HEADER_LINE("emu_boost_yaw", "%d",                   currentPidProfile->errorBoostYaw);
         BLACKBOX_PRINT_HEADER_LINE("emu_boost_limit_yaw", "%d",             currentPidProfile->errorBoostLimitYaw);
-        BLACKBOX_PRINT_HEADER_LINE("i_decay", "%d",                         currentPidProfile->i_decay);
-        BLACKBOX_PRINT_HEADER_LINE("i_decay_cutoff", "%d",                  currentPidProfile->i_decay_cutoff);
+        BLACKBOX_PRINT_HEADER_LINE("dterm_boost", "%d",                     currentPidProfile->dtermBoost);
+        BLACKBOX_PRINT_HEADER_LINE("dterm_boost_limit", "%d",               currentPidProfile->dtermBoostLimit);
         BLACKBOX_PRINT_HEADER_LINE("acc_limit_yaw", "%d",                   currentPidProfile->yawRateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("acc_limit", "%d",                       currentPidProfile->rateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("pidsum_limit", "%d",                    currentPidProfile->pidSumLimit);
