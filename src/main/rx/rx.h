@@ -173,4 +173,14 @@ void resetAllRxChannelRangeConfigurations(rxChannelRangeConfig_t *rxChannelRange
 void suspendRxPwmPpmSignal(void);
 void resumeRxPwmPpmSignal(void);
 
+//set and get CRSF stats
+void CRSFsetLQ(uint16_t crsflqValue);
+void CRSFsetSnR(uint16_t crsfsnrValue);
+void CRSFsetRFMode(uint8_t crsfrfValue);
+void CRSFsetTXPower(uint16_t crsftxpValue);
+uint16_t CRSFgetLQ(void);
+uint8_t CRSFgetRFMode(void);
+uint16_t CRSFgetSnR(void);
+uint16_t CRSFgetTXPower(void);
+
 uint16_t rxGetRefreshRate(void);

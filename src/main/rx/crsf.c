@@ -114,6 +114,29 @@ struct crsfPayloadRcChannelsPacked_s {
 
 typedef struct crsfPayloadRcChannelsPacked_s crsfPayloadRcChannelsPacked_t;
 
+
+typedef struct crsfPayloadLinkstatistics_s {
+    uint8_t uplink_RSSI_1;
+    uint8_t uplink_RSSI_2;
+    uint8_t uplink_Link_quality;
+    int8_t uplink_SNR;
+    uint8_t active_antenna;
+    uint8_t rf_Mode;
+    uint8_t uplink_TX_Power;
+    uint8_t downlink_RSSI;
+    uint8_t downlink_Link_quality;
+    int8_t downlink_SNR;
+} crsfLinkStatistics_t;
+
+static void handleCrsfLinkStatisticsFrame(const crsfLinkStatistics_t* statsPtr, timeUs_t currentTimeUs)
+{
+    const crsfLinkStatistics_t stats = *statsPtr;
+    CRSFsetLQ(stats.uplink_Link_quality);
+    CRSFsetRFMode(stats.rf_Mode);
+    CRSFsetSnR(stats.downlink_SNR);
+    CRSFsetTXPower(stats.uplink_TX_Power);
+}
+
 STATIC_UNIT_TESTED uint8_t crsfFrameCRC(void)
 {
     // CRC includes type and payload
@@ -179,6 +202,15 @@ STATIC_UNIT_TESTED void crsfDataReceive(uint16_t c, void *data)
                             break;
                         }
 #endif
+						case CRSF_FRAMETYPE_LINK_STATISTICS: {
+							 // if to FC and 10 bytes + CRSF_FRAME_ORIGIN_DEST_SIZE
+							 if ((crsfFrame.frame.deviceAddress == CRSF_ADDRESS_FLIGHT_CONTROLLER) &&
+								 (crsfFrame.frame.frameLength == CRSF_FRAME_ORIGIN_DEST_SIZE + CRSF_FRAME_LINK_STATISTICS_PAYLOAD_SIZE)) {
+								 const crsfLinkStatistics_t* statsFrame = (const crsfLinkStatistics_t*)&crsfFrame.frame.payload;
+								 handleCrsfLinkStatisticsFrame(statsFrame, currentTimeUs);
+							 }
+							break;
+						}
                         default:
                             break;
                     }
