@@ -501,10 +501,14 @@ static bool osdDrawSingleElement(uint8_t item)
                               osdLQfinal = osdLQ;
                               break;
                           case 1:
-                              osdLQfinal = osdLQ + 100;
+                              osdLQfinal = osdLQ * 2;
+                              if (osdLQfinal<100)
+                                osdLQfinal=100;
                               break;
                           case 2:
-                              osdLQfinal = osdLQ + 200;
+                              osdLQfinal = osdLQ * 3;
+                              if (osdLQfinal<200)
+                                osdLQfinal=200;
                               break;
                   }
 
@@ -1307,7 +1311,7 @@ void osdUpdateAlarms(void)
                   break;
       }
 
-      if (osdLQfinal <= osdConfig()->lq_alarm)  //CRSF RSSI_alarm = set to 170 (Mode1 : 60)
+      if (osdLQfinal < osdConfig()->lq_alarm)  //CRSF RSSI_alarm = set to 170 (Mode1 : 60)
         SET_BLINK(OSD_RSSI_VALUE);
       else
         CLR_BLINK(OSD_RSSI_VALUE);
