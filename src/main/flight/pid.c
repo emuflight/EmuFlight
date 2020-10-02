@@ -211,7 +211,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_dynlpf2_fmax = 300,
         .dterm_dynlpf2_gain = 20,
         .dterm_dynlpf2_fc_fc = 10,
-        .dterm_dynlpf2_center_threshold = 10,
         .dterm_dynlpf2_throttle_threshold = 25,
         .dterm_dynlpf2_throttle_gain = 3,
         .dterm_dynlpf2_enable = 1,

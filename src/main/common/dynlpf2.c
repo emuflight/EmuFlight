@@ -26,7 +26,7 @@
 //////////////////////////////
 
 void init_dynLpf2(dynlpf2_t* dynLpf, uint32_t targetLooptime, uint16_t min, uint16_t max, uint16_t fc_fc,
-  uint16_t threshold, uint16_t throttle_gain, uint16_t center, uint16_t gain, uint8_t axis, uint8_t type, uint8_t enable, uint8_t debug)
+  uint16_t threshold, uint16_t throttle_gain, uint16_t gain, uint8_t axis, uint8_t type, uint8_t enable, uint8_t debug)
 {
     const float gyroDt = targetLooptime * 1e-6f;
 
@@ -43,15 +43,12 @@ void init_dynLpf2(dynlpf2_t* dynLpf, uint32_t targetLooptime, uint16_t min, uint
 
     dynLpf->Fc                   = min;
 
-    dynLpf->Dyn_Fc               = false;
-
     dynLpf->Fmax                 = max;         //PT1 maxFc in Hz
     dynLpf->Fmin_init            = min;         //PT1 min Fc in Hz
 
     dynLpf->throttleThreshold    = threshold;
     dynLpf->throttleGain         = throttle_gain;
 
-    dynLpf->dynFcThreshold       = center;   //Min Setpoint & Gyro value to rise PT1 Fc
     dynLpf->dynGainOnError       = gain;
 
     dynLpf->gyroDebugAxis        = axis;
@@ -80,21 +77,10 @@ const float gyroDt = filter->targetLooptime * 1e-6f;
 
     //Compute average between setpoint and Gyro
     //-----------------------------------------
-        Average = (target + gyro) * 0.5f;
-
-    //Check if setpoint or gyro are high enought to compute "e" ratio
-    //---------------------------------------------------------------
-        if (filter->Dyn_Fc) {
-            if ((float)(fabsf(Average)) < (filter->dynFcThreshold - DYNLPF2_HYTEREIS)) {
-                filter->Dyn_Fc = false;
-            }
-        } else {
-            //Enable Dyn_Fc when stick or Quad move
-            if ((float)(fabsf(Average)) > (filter->dynFcThreshold + DYNLPF2_HYTEREIS)) {
-                filter->Dyn_Fc = true;
-            }
-        }
-
+    //take the absolute value of target and gyro
+    //to guard against situations where the sign of target and gyro are not the same
+        Average = (fabsf(target) + fabsf(gyro)) * 0.5f;
+        Average = MAX(Average, 15.0f);
     //Rise Fmin according to Throttle;
     //--------------------------------
         if(throttle > filter->throttleThreshold) {
@@ -104,20 +90,14 @@ const float gyroDt = filter->targetLooptime * 1e-6f;
 
     //Compute e & Fc
     //--------------
-        if (filter->Dyn_Fc) {
 
-            //Compute e factor
-                float Error, e;
-                Error = (float)fabsf(target - gyro);
-                e = fabsf(Error / Average);                           //Compute ratio between Error and average. e is image of noise in % of signal
+    //Compute e factor
+        float Error, e;
+        Error = fabsf(target - gyro);
+        e = Error / Average;                           //Compute ratio between Error and average. e is image of noise in % of signal
 
-            //New freq
-                newFc = Fmin + filter->dynGainOnError * 100.0f  * powf(e, 3.0f);  //"e" power 3 and multiply by a gain
-
-        } else {
-                newFc = Fmin;
-        }
-
+        //New freq
+        newFc = Fmin + filter->dynGainOnError * 100.0f  * powf(e, 3.0f);  //"e" power 3 and multiply by a gain
     //Limit & Filter newFc
     //---------------------
 

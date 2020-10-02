@@ -210,7 +210,6 @@ typedef struct gyroConfig_s {
     uint16_t dynlpf2_fmax;
     uint16_t dynlpf2_gain;
     uint16_t dynlpf2_fc_fc;
-    uint16_t dynlpf2_center_threshold;
     uint16_t dynlpf2_throttle_threshold;
     uint16_t dynlpf2_throttle_gain;
     uint8_t  dynlpf2_enable;

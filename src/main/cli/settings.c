@@ -301,11 +301,6 @@ static const char * const lookupTableLowpassType[] = {
     "BIQUAD",
 };
 
-static const char * const lookupTableDtermLowpassType[] = {
-    "PT1",
-    "BIQUAD",
-};
-
 static const char * const lookupTableAntiGravityMode[] = {
     "SMOOTH",
     "STEP",
@@ -538,7 +533,6 @@ const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableRcInterpolation),
     LOOKUP_TABLE_ENTRY(lookupTableRcInterpolationChannels),
     LOOKUP_TABLE_ENTRY(lookupTableLowpassType),
-    LOOKUP_TABLE_ENTRY(lookupTableDtermLowpassType),
     LOOKUP_TABLE_ENTRY(lookupTableAntiGravityMode),
     LOOKUP_TABLE_ENTRY(lookupTableFailsafe),
     LOOKUP_TABLE_ENTRY(lookupTableFailsafeSwitchMode),
@@ -1054,9 +1048,9 @@ const clivalue_t valueTable[] = {
     { "dyn_lpf_dterm_max_hz",       VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dyn_lpf_dterm_max_hz) },
     { "dyn_lpf_dterm_curve_expo",   VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, dyn_lpf_curve_expo) },
 #endif
-    { "dterm_lowpass_type",         VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_DTERM_LOWPASS_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter_type) },
+    { "dterm_lowpass_type",         VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_LOWPASS_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter_type) },
     { "dterm_lowpass_hz",           VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, FILTER_FREQUENCY_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lowpass_hz) },
-    { "dterm_lowpass2_type",        VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_DTERM_LOWPASS_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter2_type) },
+    { "dterm_lowpass2_type",        VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_LOWPASS_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter2_type) },
     { "dterm_lowpass2_hz",          VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, FILTER_FREQUENCY_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lowpass2_hz) },
     { "dterm_notch_hz",             VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, FILTER_FREQUENCY_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_notch_hz) },
     { "dterm_notch_cutoff",         VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, FILTER_FREQUENCY_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_notch_cutoff) },
@@ -1069,7 +1063,6 @@ const clivalue_t valueTable[] = {
     { "dynlpf2_fmax",                VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 1000 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, dynlpf2_fmax) },
     { "dynlpf2_gain",                VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0,  200 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, dynlpf2_gain) },
     { "dynlpf2_fc_fc",               VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0,   50 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, dynlpf2_fc_fc) },
-    { "dynlpf2_center_threshold",    VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0,  100 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, dynlpf2_center_threshold) },
     { "dynlpf2_throttle_threshold",  VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0,  100 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, dynlpf2_throttle_threshold) },
     { "dynlpf2_throttle_gain",       VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0,  200 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, dynlpf2_throttle_gain) },
     { "dynlpf2_enable",              VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0,    1 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, dynlpf2_enable) },
@@ -1080,7 +1073,6 @@ const clivalue_t valueTable[] = {
     { "dterm_dynlpf2_fmax",                VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 1000 },    PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dynlpf2_fmax) },
     { "dterm_dynlpf2_gain",                VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0,  200 },    PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dynlpf2_gain) },
     { "dterm_dynlpf2_fc_fc",               VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0,   50 },    PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dynlpf2_fc_fc) },
-    { "dterm_dynlpf2_center_threshold",    VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0,  100 },    PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dynlpf2_center_threshold) },
     { "dterm_dynlpf2_throttle_threshold",  VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0,  100 },    PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dynlpf2_throttle_threshold) },
     { "dterm_dynlpf2_throttle_gain",       VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0,  200 },    PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dynlpf2_throttle_gain) },
     { "dterm_dynlpf2_enable",              VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0,    1 },    PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dynlpf2_enable) },

@@ -20,7 +20,6 @@ typedef struct {
       uint16_t throttleThreshold;
       uint16_t throttleGain;
 
-      uint16_t dynFcThreshold;
       uint16_t dynGainOnError;
 
       uint32_t targetLooptime;
@@ -33,8 +32,6 @@ typedef struct {
   } dynlpf2_t;
 
 #define DEFAULT_DYNLPF2_ENABLE              1       //Enable DYN_LPF2 by default
-
-#define DEFAULT_DYNLPF2_CENTER_THRESHOLD    10   //Value in �/s
 
 #define DEFAULT_DYNLPF2_FMIN                50   //Fmin in Hz
 #define DEFAULT_DYNLPF2_FMAX               600   //user Fmax in Hz
@@ -50,5 +47,5 @@ typedef struct {
 
 
 extern void init_dynLpf2(dynlpf2_t* dynLpf, uint32_t targetLooptime, uint16_t min, uint16_t max, uint16_t fc_fc,
-  uint16_t threshold, uint16_t throttle_gain, uint16_t center, uint16_t gain, uint8_t axis, uint8_t type, uint8_t enable, uint8_t debug);
+  uint16_t threshold, uint16_t throttle_gain, uint16_t gain, uint8_t axis, uint8_t type, uint8_t enable, uint8_t debug);
 extern float dynLpf2Apply(dynlpf2_t* filter, int axis, float input, float gyro);

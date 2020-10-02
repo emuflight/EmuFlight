@@ -180,7 +180,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         init_dynLpf2(&pidRuntime.dynLpfDterm[axis], targetPidLooptime, pidProfile->dterm_dynlpf2_fmin, pidProfile->dterm_dynlpf2_fmax, pidProfile->dterm_dynlpf2_fc_fc,
-        pidProfile->dterm_dynlpf2_throttle_threshold, pidProfile->dterm_dynlpf2_throttle_gain, pidProfile->dterm_dynlpf2_center_threshold, pidProfile->dterm_dynlpf2_gain,
+        pidProfile->dterm_dynlpf2_throttle_threshold, pidProfile->dterm_dynlpf2_throttle_gain, pidProfile->dterm_dynlpf2_gain,
         gyroConfig()->gyro_filter_debug_axis, pidProfile->dterm_dynlpf2_type, pidProfile->dterm_dynlpf2_enable, pidProfile->dterm_dynlpf2_debug);
     }
 

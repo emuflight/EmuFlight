@@ -273,7 +273,7 @@ void gyroInitFilters(void)
 #ifdef USE_DYN_LPF2
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         init_dynLpf2(&gyro.dynLpfGyro[axis], gyro.targetLooptime, gyroConfig()->dynlpf2_fmin, gyroConfig()->dynlpf2_fmax, gyroConfig()->dynlpf2_fc_fc,
-        gyroConfig()->dynlpf2_throttle_threshold, gyroConfig()->dynlpf2_throttle_gain, gyroConfig()->dynlpf2_center_threshold, gyroConfig()->dynlpf2_gain,
+        gyroConfig()->dynlpf2_throttle_threshold, gyroConfig()->dynlpf2_throttle_gain, gyroConfig()->dynlpf2_gain,
         gyroConfig()->gyro_filter_debug_axis, gyroConfig()->dynlpf2_type, gyroConfig()->dynlpf2_enable, gyroConfig()->dynlpf2_debug);
     }
 #endif

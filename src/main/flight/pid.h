@@ -208,7 +208,6 @@ typedef struct pidProfile_s {
     uint16_t dterm_dynlpf2_fmax;
     uint16_t dterm_dynlpf2_gain;
     uint16_t dterm_dynlpf2_fc_fc;
-    uint16_t dterm_dynlpf2_center_threshold;
     uint16_t dterm_dynlpf2_throttle_threshold;
     uint16_t dterm_dynlpf2_throttle_gain;
     uint8_t  dterm_dynlpf2_enable;

@@ -250,7 +250,7 @@ static void validateAndFixConfig(void)
 #ifdef USE_DYN_LPF
         //Prevent invalid dynamic lowpass
         if (pidProfilesMutable(i)->dyn_lpf_dterm_min_hz > pidProfilesMutable(i)->dyn_lpf_dterm_max_hz) {
-            pidProfilesMutable(i)->dyn_lpf_dterm_min_hz = 0;
+            pidProfilesMutable(i)->dyn_lpf_dterm_max_hz = pidProfilesMutable(i)->dyn_lpf_dterm_min_hz;
         }
 #endif
 
