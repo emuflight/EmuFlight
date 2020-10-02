@@ -150,7 +150,7 @@ char djiWarningBuffer[12];
 
 static uint8_t armState;
 static bool lastArmState;
-
+uint16_t osdLQfinal;
 static displayPort_t *osdDisplayPort;
 
 #ifdef USE_ESC_SENSOR
@@ -494,7 +494,6 @@ static bool osdDrawSingleElement(uint8_t item)
             {
 				          uint16_t osdLQ = CRSFgetLQ();
                   uint8_t osdRfMode = CRSFgetRFMode();
-                  uint16_t osdLQfinal = 0;
                   switch (osdRfMode)
                   {
                           case 0:
@@ -1294,7 +1293,7 @@ void osdUpdateAlarms(void)
 
     int32_t alt = osdGetMetersToSelectedUnit(getEstimatedAltitude()) / 100;
     if(crsfRssi)
-    {
+    { /*
       uint16_t osdLQ = CRSFgetLQ();
       uint8_t osdRfMode = CRSFgetRFMode();
       uint16_t osdLQfinal = 0;
@@ -1310,12 +1309,15 @@ void osdUpdateAlarms(void)
                   osdLQfinal = osdLQ + 200;
                   break;
       }
-
+*/
       if (osdLQfinal < osdConfig()->lq_alarm)  //CRSF RSSI_alarm = set to 170 (Mode1 : 60)
-        SET_BLINK(OSD_RSSI_VALUE);
+        {
+          SET_BLINK(OSD_RSSI_VALUE);
+        }
       else
-        CLR_BLINK(OSD_RSSI_VALUE);
-
+        {
+          CLR_BLINK(OSD_RSSI_VALUE);
+        }
     }
     else
     {
