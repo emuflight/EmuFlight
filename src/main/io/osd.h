@@ -179,7 +179,7 @@ typedef struct osdConfig_s {
     // Alarms
     uint16_t cap_alarm;
     uint16_t alt_alarm;
-    uint8_t lq_alarm;
+    uint16_t lq_alarm;
     uint8_t rssi_alarm;
     uint16_t distance_alarm;
     osd_unit_e units;
