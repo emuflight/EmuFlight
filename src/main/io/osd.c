@@ -501,7 +501,12 @@ static bool osdDrawSingleElement(uint8_t item)
                           case 1:
                           case 2:
                               osdLQfinal = osdLQ * 3;
+                              if (osdLQfinal<200)
+                                osdLQfinal=200;
                               break;
+                          case 5:
+                          default:
+                            osdLQfinal = osdLQ;
                             break;
                   }
 
