@@ -176,8 +176,10 @@ void resumeRxPwmPpmSignal(void);
 //set and get CRSF stats
 void CRSFsetLQ(uint16_t crsflqValue);
 void CRSFsetSnR(uint16_t crsfsnrValue);
+void CRSFsetRSSI(uint16_t crsfrssiValue);
 void CRSFsetRFMode(uint8_t crsfrfValue);
 void CRSFsetTXPower(uint16_t crsftxpValue);
+uint16_t CRSFgetRSSI(void);
 uint16_t CRSFgetLQ(void);
 uint8_t CRSFgetRFMode(void);
 uint16_t CRSFgetSnR(void);

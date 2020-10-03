@@ -135,6 +135,10 @@ static void handleCrsfLinkStatisticsFrame(const crsfLinkStatistics_t* statsPtr, 
     CRSFsetRFMode(stats.rf_Mode);
     CRSFsetSnR(stats.downlink_SNR);
     CRSFsetTXPower(stats.uplink_TX_Power);
+    if(stats.active_antenna == 0)
+    CRSFsetRSSI(stats.uplink_RSSI_1);
+    else
+    CRSFsetRSSI(stats.uplink_RSSI_2);
 }
 
 STATIC_UNIT_TESTED uint8_t crsfFrameCRC(void)
