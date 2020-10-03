@@ -496,8 +496,6 @@ static bool osdDrawSingleElement(uint8_t item)
                   uint8_t osdRfMode = CRSFgetRFMode();
                   switch (osdRfMode)
                   {
-                          case 0:
-                          case 1:
                           case 2:
                               osdLQfinal = osdLQ * 3;
                               if (osdLQfinal <= 200)
