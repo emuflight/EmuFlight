@@ -1209,10 +1209,8 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->timers[OSD_TIMER_1] = OSD_TIMER(OSD_TIMER_SRC_ON, OSD_TIMER_PREC_SECOND, 10);
     osdConfig->timers[OSD_TIMER_2] = OSD_TIMER(OSD_TIMER_SRC_TOTAL_ARMED, OSD_TIMER_PREC_SECOND, 10);
 
-    if(crsfRssi)
-        osdConfig->rssi_alarm = 170;
-    else
-        osdConfig->rssi_alarm = 20;
+    osdConfig->lq_alarm = 170;
+    osdConfig->rssi_alarm = 20;
     osdConfig->cap_alarm  = 2200;
     osdConfig->alt_alarm  = 100; // meters or feet depend on configuration
     osdConfig->esc_temp_alarm = ESC_TEMP_ALARM_OFF; // off by default
@@ -1309,7 +1307,7 @@ void osdUpdateAlarms(void)
                   break;
       }
 
-      if (osdLQfinal <= 170)  //CRSF RSSI_alarm = set to 160 (Mode1 : 60)
+      if (osdLQfinal <= osdConfig()->lq_alarm)  //CRSF RSSI_alarm = set to 170 (Mode1 : 60)
         SET_BLINK(OSD_RSSI_VALUE);
       else
         CLR_BLINK(OSD_RSSI_VALUE);
