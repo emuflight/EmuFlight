@@ -150,6 +150,7 @@ char djiWarningBuffer[12];
 
 static uint8_t armState;
 static bool lastArmState;
+static uint16_t osdLQfinal;
 
 static displayPort_t *osdDisplayPort;
 
@@ -497,14 +498,11 @@ static bool osdDrawSingleElement(uint8_t item)
                   uint16_t osdLQfinal = 0;
                   switch (osdRfMode)
                   {
-                          case 0:
-                          case 1:
                           case 2:
                               osdLQfinal = osdLQ * 3;
                               if (osdLQfinal<200)
                                 osdLQfinal=200;
                               break;
-                          case 5:
                           default:
                             osdLQfinal = osdLQ;
                             break;
@@ -577,7 +575,7 @@ static bool osdDrawSingleElement(uint8_t item)
       }
       break;
 
-      case OSD_CRSF_RSSI: //crsf noise level
+    case OSD_CRSF_RSSI: //crsf noise level
       {
         uint16_t osdcrsfrssi = -1 * CRSFgetRSSI();
         tfp_sprintf(buff, "%ddBm" , osdcrsfrssi );
