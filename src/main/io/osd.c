@@ -150,7 +150,7 @@ char djiWarningBuffer[12];
 
 static uint8_t armState;
 static bool lastArmState;
-
+uint16_t osdLQfinal;
 static displayPort_t *osdDisplayPort;
 
 #ifdef USE_ESC_SENSOR
@@ -494,17 +494,15 @@ static bool osdDrawSingleElement(uint8_t item)
             {
 				          uint16_t osdLQ = CRSFgetLQ();
                   uint8_t osdRfMode = CRSFgetRFMode();
-                  uint16_t osdLQfinal = 0;
                   switch (osdRfMode)
                   {
-                          case 0:
-                              osdLQfinal = osdLQ;
-                              break;
-                          case 1:
-                              osdLQfinal = osdLQ + 100;
-                              break;
                           case 2:
-                              osdLQfinal = osdLQ + 200;
+                              osdLQfinal = osdLQ * 3;
+                              if (osdLQfinal <= 200)
+                                osdLQfinal = 200;
+                              break;
+                          default:
+                              osdLQfinal = osdLQ;
                               break;
                   }
 
@@ -512,8 +510,6 @@ static bool osdDrawSingleElement(uint8_t item)
 					             osdLQfinal = 300;
 
 				          tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
-
-
             }
             else
             {
@@ -525,6 +521,7 @@ static bool osdDrawSingleElement(uint8_t item)
 			      }
             break;
         }
+        break;
 /*
     case OSD_CRSF_SNR:
       {
@@ -1290,7 +1287,7 @@ void osdUpdateAlarms(void)
 
     int32_t alt = osdGetMetersToSelectedUnit(getEstimatedAltitude()) / 100;
     if(crsfRssi)
-    {
+    { /*
       uint16_t osdLQ = CRSFgetLQ();
       uint8_t osdRfMode = CRSFgetRFMode();
       uint16_t osdLQfinal = 0;
@@ -1306,12 +1303,15 @@ void osdUpdateAlarms(void)
                   osdLQfinal = osdLQ + 200;
                   break;
       }
-
-      if (osdLQfinal <= osdConfig()->lq_alarm)  //CRSF RSSI_alarm = set to 170 (Mode1 : 60)
-        SET_BLINK(OSD_RSSI_VALUE);
+*/
+      if (osdLQfinal < osdConfig()->lq_alarm)  //CRSF RSSI_alarm = set to 170 (Mode1 : 60)
+        {
+          SET_BLINK(OSD_RSSI_VALUE);
+        }
       else
-        CLR_BLINK(OSD_RSSI_VALUE);
-
+        {
+          CLR_BLINK(OSD_RSSI_VALUE);
+        }
     }
     else
     {
