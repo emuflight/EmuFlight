@@ -497,13 +497,7 @@ static bool osdDrawSingleElement(uint8_t item)
                   switch (osdRfMode)
                   {
                           case 0:
-                              osdLQfinal = osdLQ;
-                              break;
                           case 1:
-                              osdLQfinal = osdLQ * 2;
-                              if (osdLQfinal <= 100)
-                                osdLQfinal = 100;
-                              break;
                           case 2:
                               osdLQfinal = osdLQ * 3;
                               if (osdLQfinal <= 200)
@@ -528,6 +522,7 @@ static bool osdDrawSingleElement(uint8_t item)
 			      }
             break;
         }
+        break;
 /*
     case OSD_CRSF_SNR:
       {
