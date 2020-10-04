@@ -528,15 +528,16 @@ static bool osdDrawSingleElement(uint8_t item)
 			      }
             break;
         }
-        break;
 
     case OSD_CRSF_SNR: //crsf signal to noise ratio
+      {
         if(crsfRssi)
         {
-          uint16_t osdSNR = CRSFgetSnR();
-          tfp_sprintf(buff, "SN %ddB", osdSNR );
+          uint8_t osdSNR = CRSFgetSnR();
+          tfp_sprintf(buff, "SN %2dDB", osdSNR );
         }
       break;
+      }
 
     case OSD_CRSF_TX: //crsf tx output power
       {
@@ -573,17 +574,17 @@ static bool osdDrawSingleElement(uint8_t item)
               osdtxpower = 0;
               break;
           }
-          tfp_sprintf(buff, "%dmW", osdtxpower );
+          tfp_sprintf(buff, "%dMW", osdtxpower );
         }
+        break;
       }
-      break;
 
       case OSD_CRSF_RSSI: //crsf noise level
       {
-        uint16_t osdcrsfrssi = -1 * CRSFgetRSSI();
-        tfp_sprintf(buff, "%ddBm" , osdcrsfrssi );
+        uint8_t osdcrsfrssi = CRSFgetRSSI();
+        tfp_sprintf(buff, "-%2dDBM" , osdcrsfrssi );
+        break;
       }
-      break;
 
     case OSD_MAIN_BATT_VOLTAGE:
         buff[0] = osdGetBatterySymbol(osdGetBatteryAverageCellVoltage());
@@ -1222,7 +1223,10 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->timers[OSD_TIMER_2] = OSD_TIMER(OSD_TIMER_SRC_TOTAL_ARMED, OSD_TIMER_PREC_SECOND, 10);
 
     if(crsfRssi)
-        osdConfig->rssi_alarm = 170;
+      {
+        osdConfig->lq_alarm = 70;
+        osdConfig->rssi_alarm = 0;
+      }
     else
         osdConfig->rssi_alarm = 20;
     osdConfig->cap_alarm  = 2200;

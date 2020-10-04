@@ -724,12 +724,12 @@ void CRSFsetSnR(uint16_t crsfsnrValue)
     crsfsnr = crsfsnrValue;
 }
 
-void CRSFsetRSSI(uint16_t crsfrssiValue)
+void CRSFsetRSSI(uint8_t crsfrssiValue)
 {
   crsfrssi = crsfrssiValue;
 }
 
-uint16_t CRSFgetRSSI(void)
+uint8_t CRSFgetRSSI(void)
 {
     return crsfrssi;
 }
@@ -743,7 +743,7 @@ uint8_t CRSFgetRFMode(void)
     return crsfrfmode;
 }
 
-uint16_t CRSFgetSnR(void)
+uint8_t CRSFgetSnR(void)
 {
     return crsfsnr;
 }
