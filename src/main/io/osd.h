@@ -95,6 +95,10 @@ typedef enum {
     OSD_ADJUSTMENT_RANGE,
     OSD_CORE_TEMPERATURE,
     OSD_G_FORCE,
+    OSD_CRSF_SNR,
+    OSD_CRSF_TX,
+    OSD_CRSF_RSSI,
+
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
@@ -181,8 +185,10 @@ typedef struct osdConfig_s {
     uint16_t alt_alarm;
     uint16_t lq_alarm;
     uint8_t rssi_alarm;
-    uint16_t distance_alarm;
+uint16_t distance_alarm;
+
     osd_unit_e units;
+
     uint16_t timers[OSD_TIMER_COUNT];
     uint16_t enabledWarnings;
 
