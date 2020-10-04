@@ -19,33 +19,25 @@
  */
 
 #pragma once
-
-#if defined (POCKETF7)
-#define TARGET_BOARD_IDENTIFIER "CLBQE"
-#define USBD_PRODUCT_STRING "BQE PickPocket F7"
-
-#define USE_UART3
-#define UART3_RX_PIN            PB11
-
-#else
 #define TARGET_BOARD_IDENTIFIER "CLR7"
 #define USBD_PRODUCT_STRING "CLRACINGF7"
 
-#define USE_UART3
-#define UART3_RX_PIN            PB11
-#define UART3_TX_PIN            PB10
-
-#endif
-
 #define ENABLE_DSHOT_DMAR       true
 
-#define LED0_PIN                PB0
+#define USE_LEDSTRIP
+#define LED0_PIN                PB3
+
 #define USE_BEEPER
-#define BEEPER_PIN              PB4
+#define BEEPER_PIN                  PB4
 #define BEEPER_INVERTED
 
+#define USE_PINIO
+#define PINIO1_PIN               PA14                   // VTX power switcher
+#define USE_PINIOBOX
+
+
 //define camera control
-#define CAMERA_CONTROL_PIN      PB3
+//#define CAMERA_CONTROL_PIN PB3
 
 #define USE_EXTI
 #define MPU_INT_EXTI            PC4
@@ -98,6 +90,10 @@
 #define USE_UART2
 #define UART2_RX_PIN            PA3
 #define UART2_TX_PIN            PA2
+
+#define USE_UART3
+#define UART3_RX_PIN            PB11
+#define UART3_TX_PIN            PB10
 
 #define USE_UART4
 #define UART4_RX_PIN            PA1
