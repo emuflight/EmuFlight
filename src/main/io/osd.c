@@ -180,6 +180,9 @@ static const char compassBar[] = {
 static const uint8_t osdElementDisplayOrder[] = {
     OSD_MAIN_BATT_VOLTAGE,
     OSD_RSSI_VALUE,
+    OSD_CRSF_TX,
+    OSD_CRSF_SNR,
+    OSD_CRSF_RSSI,
     OSD_CROSSHAIRS,
     OSD_HORIZON_SIDEBARS,
     OSD_ITEM_TIMER_1,
@@ -531,7 +534,7 @@ static bool osdDrawSingleElement(uint8_t item)
         if(crsfRssi)
         {
           uint16_t osdSNR = CRSFgetSnR();
-          tfp_sprintf(buff, "SN %ddB" , SYM_BLANK, osdSNR );
+          tfp_sprintf(buff, "SN %ddB", osdSNR );
         }
       break;
 
@@ -570,12 +573,12 @@ static bool osdDrawSingleElement(uint8_t item)
               osdtxpower = 0;
               break;
           }
-          tfp_sprintf(buff, "%dmW" , SYM_BLANK, osdtxpower );
+          tfp_sprintf(buff, "%dmW", osdtxpower );
         }
       }
       break;
 
-    case OSD_CRSF_RSSI: //crsf noise level
+      case OSD_CRSF_RSSI: //crsf noise level
       {
         uint16_t osdcrsfrssi = -1 * CRSFgetRSSI();
         tfp_sprintf(buff, "%ddBm" , osdcrsfrssi );
