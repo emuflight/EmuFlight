@@ -963,6 +963,7 @@ const clivalue_t valueTable[] = {
 #endif
     { "osd_warn_rc_smoothing",      VAR_UINT16  | MASTER_VALUE | MODE_BITSET, .config.bitpos = OSD_WARNING_RC_SMOOTHING,     PG_OSD_CONFIG, offsetof(osdConfig_t, enabledWarnings)},
     { "osd_warn_dji",               VAR_UINT16  | MASTER_VALUE | MODE_BITSET, .config.bitpos = OSD_WARNING_DJI,              PG_OSD_CONFIG, offsetof(osdConfig_t, enabledWarnings)},
+    { "osd_lq_format",               VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, 3 }, PG_OSD_CONFIG, offsetof(osdConfig_t, lq_format) },
     { "osd_lq_alarm",               VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, 300 }, PG_OSD_CONFIG, offsetof(osdConfig_t, lq_alarm) },
     { "osd_rssi_alarm",             VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 100 }, PG_OSD_CONFIG, offsetof(osdConfig_t, rssi_alarm) },
     { "osd_cap_alarm",              VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 20000 }, PG_OSD_CONFIG, offsetof(osdConfig_t, cap_alarm) },

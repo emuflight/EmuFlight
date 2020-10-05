@@ -498,24 +498,51 @@ static bool osdDrawSingleElement(uint8_t item)
             {
 				          uint16_t osdLQ = CRSFgetLQ();
                   uint8_t osdRfMode = CRSFgetRFMode();
-                  switch (osdRfMode)
+
+                switch (osdConfig()->lq_format)
                   {
-                          case 2:
+                  case 3:
+                    switch (osdRfMode)
+                    {
+                            case 2:
                               osdLQfinal = osdLQ * 3;
                               if (osdLQfinal<200)
                                 osdLQfinal=200;
                               break;
-                          default:
-                            osdLQfinal = osdLQ;
-                            break;
+                            default:
+                              osdLQfinal = osdLQ;
+                              break;
+                        }
+                    if (osdLQfinal >= 300)
+                      osdLQfinal = 300;
+
+  				          tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
+                    break;
+
+                  case 2:
+                    if (osdLQ >=100)
+                      osdLQ = 100;
+                    tfp_sprintf(buff, "%1d:%d", osdRfMode, osdLQ);
+                    break;
+
+                  case 1:
+                    switch(osdRfMode)
+                      {
+                        case 0:
+                          osdRfMode = 4;
+                          break;
+                        case 1:
+                          osdRfMode = 50;
+                          break;
+                        case 2:
+                          osdRfMode = 150;
+                          break;
+                      }
+                    tfp_sprintf(buff, "%3dHZ:%d", osdRfMode, osdLQ);
+                    break;
+
+
                   }
-
-                  if (osdLQfinal >= 300)
-					             osdLQfinal = 300;
-
-				          tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
-
-
             }
             else
             {
@@ -1220,7 +1247,7 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
 
     osdConfig->timers[OSD_TIMER_1] = OSD_TIMER(OSD_TIMER_SRC_ON, OSD_TIMER_PREC_SECOND, 10);
     osdConfig->timers[OSD_TIMER_2] = OSD_TIMER(OSD_TIMER_SRC_TOTAL_ARMED, OSD_TIMER_PREC_SECOND, 10);
-
+    osdConfig->lq_format = 3;
     osdConfig->lq_alarm = 70;
     osdConfig->rssi_alarm = 20;
     osdConfig->cap_alarm  = 2200;
