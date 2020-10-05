@@ -498,7 +498,6 @@ static bool osdDrawSingleElement(uint8_t item)
             {
 				          uint16_t osdLQ = CRSFgetLQ();
                   uint8_t osdRfMode = CRSFgetRFMode();
-                  uint16_t osdLQfinal = 0;
                   switch (osdRfMode)
                   {
                           case 2:
@@ -579,7 +578,7 @@ static bool osdDrawSingleElement(uint8_t item)
         break;
       }
 
-      case OSD_CRSF_RSSI: //crsf noise level
+      case OSD_CRSF_RSSI: //crsf rssi
       {
         uint8_t osdcrsfrssi = CRSFgetRSSI();
         tfp_sprintf(buff, "-%2dDBM" , osdcrsfrssi );
