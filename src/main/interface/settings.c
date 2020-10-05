@@ -302,8 +302,8 @@ static const char * const lookupTableMax7456Clock[] = {
 };
 #endif
 
-static const char * const lookupTableLqFormat[] = {
-    "300", "MODE", "FREQ"
+static const char * const lookupTableCrsfLqFormat[] = {
+    "300", "MODE", "EMU"
 };
 
 #ifdef USE_GYRO_OVERFLOW_CHECK
@@ -413,7 +413,7 @@ const lookupTableEntry_t lookupTables[] = {
 #if defined(USE_GYRO_IMUF9001)
     LOOKUP_TABLE_ENTRY(lookupTableImufRate),
 #endif
-    LOOKUP_TABLE_ENTRY(lookupTableLqFormat),
+    LOOKUP_TABLE_ENTRY(lookupTableCrsfLqFormat),
     LOOKUP_TABLE_ENTRY(debugModeNames),
     LOOKUP_TABLE_ENTRY(lookupTablePwmProtocol),
     LOOKUP_TABLE_ENTRY(lookupTableRcInterpolation),
@@ -968,7 +968,7 @@ const clivalue_t valueTable[] = {
 #endif
     { "osd_warn_rc_smoothing",      VAR_UINT16  | MASTER_VALUE | MODE_BITSET, .config.bitpos = OSD_WARNING_RC_SMOOTHING,     PG_OSD_CONFIG, offsetof(osdConfig_t, enabledWarnings)},
     { "osd_warn_dji",               VAR_UINT16  | MASTER_VALUE | MODE_BITSET, .config.bitpos = OSD_WARNING_DJI,              PG_OSD_CONFIG, offsetof(osdConfig_t, enabledWarnings)},
-    { "osd_lq_format",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_LQ_FORMAT }, PG_OSD_CONFIG, offsetof(osdConfig_t, lq_format) },
+    { "osd_lq_format",               VAR_UINT8  | MASTER_VALUE,| MODE_LOOKUP, .config.lookup = { TABLE_CRSF_LQ_FORMAT }, PG_OSD_CONFIG, offsetof(osdConfig_t, lq_format) },
     { "osd_lq_alarm",               VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, 300 }, PG_OSD_CONFIG, offsetof(osdConfig_t, lq_alarm) },
     { "osd_rssi_alarm",             VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 100 }, PG_OSD_CONFIG, offsetof(osdConfig_t, rssi_alarm) },
     { "osd_cap_alarm",              VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 20000 }, PG_OSD_CONFIG, offsetof(osdConfig_t, cap_alarm) },
