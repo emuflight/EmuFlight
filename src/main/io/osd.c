@@ -501,10 +501,10 @@ static bool osdDrawSingleElement(uint8_t item)
 
                 switch (osdConfig()->lq_format)
                   {
-                  case 0:
+                  case 3:
                     switch (osdRfMode)
                     {
-                            case 2:
+                            case 300:
                               osdLQfinal = osdLQ * 3;
                               if (osdLQfinal<200)
                                 osdLQfinal=200;
@@ -519,13 +519,13 @@ static bool osdDrawSingleElement(uint8_t item)
   				          tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
                     break;
 
-                  case 1:
+                  case MODE:
                     if (osdLQ >=100)
                       osdLQ = 100;
                     tfp_sprintf(buff, "%1-d:%+d", osdRfMode, osdLQ);
                     break;
 
-                  case 2:
+                  case FREQ:
                     switch(osdRfMode)
                       {
                         case 0:
