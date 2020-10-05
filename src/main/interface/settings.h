@@ -80,6 +80,7 @@ typedef enum {
 #ifdef USE_MAX7456
     TABLE_MAX7456_CLOCK,
 #endif
+  TABLE_LQ_FORMAT,
 #ifdef USE_RANGEFINDER
     TABLE_RANGEFINDER_HARDWARE,
 #endif
