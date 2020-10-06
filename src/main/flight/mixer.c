@@ -47,7 +47,10 @@
 #include "drivers/io.h"
 
 #include "io/motors.h"
+
+#ifdef USE_BARO
 #include "io/gps.h"
+#endif
 
 #include "fc/config.h"
 #include "fc/controlrate_profile.h"
@@ -66,8 +69,9 @@
 #include "flight/position.h"
 
 #include "rx/rx.h"
-
+#ifdef USE_BARO
 #include "sensors/barometer.h"
+#endif
 #include "sensors/battery.h"
 #include "sensors/gyro.h"
 
@@ -901,7 +905,7 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
 
     loggingThrottle = throttle;
 
-#ifdef USE_BARO
+#ifdef(USE_BARO || USE_GPS)
   if(isAltiLimit()){
       if(((gpsIsHealthy() && gpsSol.numSat > 7) || isBaroReady())
         && (mixerConfig()->alti_cutoff > 0 && mixerConfig()->alti_start_lim > 0)){
