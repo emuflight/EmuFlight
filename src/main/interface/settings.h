@@ -28,6 +28,7 @@
 typedef enum {
     TABLE_OFF_ON = 0,
     TABLE_UNIT,
+    TABLE_CRSF_FORMAT,
     TABLE_ALIGNMENT,
 #ifdef USE_GPS
     TABLE_GPS_PROVIDER,

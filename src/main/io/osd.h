@@ -102,6 +102,12 @@ typedef enum {
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
+typedef enum {
+    TBS = 0,
+    MODE,
+    FREQ
+} crsfformat;
+
 // *** IMPORTANT ***
 // The order of the OSD stats enumeration *must* match the order they're displayed on-screen
 // This is because the fields are presented in the configurator in the order of the enumeration
