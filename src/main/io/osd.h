@@ -103,7 +103,7 @@ typedef enum {
 } osd_items_e;
 
 typedef enum {
-    TBS = 0,
+    TBS,
     MODE,
     FREQ
 } crsfformat_e;
@@ -176,12 +176,6 @@ typedef enum {
     OSD_WARNING_COUNT // MUST BE LAST
 } osdWarningsFlags_e;
 
-typedef enum {
-    OSD_LQ_FORMAT_300 = 0,
-    OSD_LQ_FORMAT_MODE,
-    OSD_LQ_FORMAT_FREQ,
-    OSD_LQ_FORMAT_COUNT
-} lq_format_e;
 
 // Make sure the number of warnings do not exceed the available 16bit storage
 STATIC_ASSERT(OSD_WARNING_COUNT <= 16, osdwarnings_overflow);
@@ -196,7 +190,6 @@ typedef struct osdConfig_s {
     // Alarms
     uint16_t cap_alarm;
     uint16_t alt_alarm;
-    crsfformat_e lq_format;
     uint16_t lq_alarm;
     uint8_t rssi_alarm;
     uint16_t distance_alarm;
@@ -213,6 +206,8 @@ typedef struct osdConfig_s {
     int16_t esc_rpm_alarm;
     int16_t esc_current_alarm;
     uint8_t core_temp_alarm;
+
+    crsfformat_e lq_format;
 } osdConfig_t;
 
 PG_DECLARE(osdConfig_t, osdConfig);

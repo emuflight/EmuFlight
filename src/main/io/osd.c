@@ -498,7 +498,7 @@ static bool osdDrawSingleElement(uint8_t item)
             {
 				          uint16_t osdLQ = CRSFgetLQ();
                   uint8_t osdRfMode = CRSFgetRFMode();
-
+                  osdLQfinal = osdLQ;
                 switch (osdConfig()->lq_format)
                   {
 
@@ -523,14 +523,12 @@ static bool osdDrawSingleElement(uint8_t item)
 
 
                   case MODE:
-                    osdLQfinal = osdLQ;
-                    if (osdLQ >=100)
+                      if (osdLQ >=100)
                       osdLQfinal = 100;
                     tfp_sprintf(buff, "%1d:%d", osdRfMode, osdLQfinal);
                     break;
 
                   case FREQ:
-                    osdLQfinal = osdLQ;
                     switch(osdRfMode)
                       {
                         case 0:
@@ -1252,7 +1250,7 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
 
     osdConfig->timers[OSD_TIMER_1] = OSD_TIMER(OSD_TIMER_SRC_ON, OSD_TIMER_PREC_SECOND, 10);
     osdConfig->timers[OSD_TIMER_2] = OSD_TIMER(OSD_TIMER_SRC_TOTAL_ARMED, OSD_TIMER_PREC_SECOND, 10);
-    osdConfig->lq_format = 3;
+    osdConfig->lq_format = TBS;
     osdConfig->lq_alarm = 70;
     osdConfig->rssi_alarm = 20;
     osdConfig->cap_alarm  = 2200;
