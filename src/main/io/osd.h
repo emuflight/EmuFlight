@@ -106,7 +106,7 @@ typedef enum {
     TBS = 0,
     MODE,
     FREQ
-} crsfformat;
+} crsfformat_e;
 
 // *** IMPORTANT ***
 // The order of the OSD stats enumeration *must* match the order they're displayed on-screen
@@ -177,10 +177,10 @@ typedef enum {
 } osdWarningsFlags_e;
 
 typedef enum {
-    LQ_FORMAT_300,
-    LQ_FORMAT_MODE,
-    LQ_FORMAT_FREQ,
-    LQ_FORMAT_COUNT
+    OSD_LQ_FORMAT_300 = 0,
+    OSD_LQ_FORMAT_MODE,
+    OSD_LQ_FORMAT_FREQ,
+    OSD_LQ_FORMAT_COUNT
 } lq_format_e;
 
 // Make sure the number of warnings do not exceed the available 16bit storage
@@ -196,7 +196,7 @@ typedef struct osdConfig_s {
     // Alarms
     uint16_t cap_alarm;
     uint16_t alt_alarm;
-    uint8_t lq_format;
+    crsfformat_e lq_format;
     uint16_t lq_alarm;
     uint8_t rssi_alarm;
     uint16_t distance_alarm;
