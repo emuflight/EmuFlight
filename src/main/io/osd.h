@@ -179,11 +179,10 @@ typedef struct osdConfig_s {
     // Alarms
     uint16_t cap_alarm;
     uint16_t alt_alarm;
+    uint16_t lq_alarm;
     uint8_t rssi_alarm;
-uint16_t distance_alarm;
-
+    uint16_t distance_alarm;
     osd_unit_e units;
-
     uint16_t timers[OSD_TIMER_COUNT];
     uint16_t enabledWarnings;
 
@@ -211,3 +210,4 @@ bool osdStatGetState(uint8_t statIndex);
 void osdWarnSetState(uint8_t warningIndex, bool enabled);
 bool osdWarnGetState(uint8_t warningIndex);
 bool osdWarnDjiEnabled(void);
+void setCrsfRssi(bool b);

@@ -2,13 +2,15 @@
 
 EmuFlight is flight controller software (firmware) used to fly multi-rotor craft.
 
-This fork differs from Baseflight, Cleanflight and Betaflight in that it focuses on flight performance, innovative filtering, leading-edge feature additions, and wide target support.
+This fork differs from Baseflight, Cleanflight and Betaflight in that it focuses on flight performance, innovative filtering, and leading-edge features.
+
+## WARNING
+
+**DJI components bypass Configurator safety-checks. Do not attempt arming while connected to Configurator with LiPo plugged.  Always remove propellers and use a smoke-stopper for extra safety.**
 
 ## News
 
-Currently working on the first official release of EmuFlight. The Pegasus configurator will also be our official configurator in the coming months.
-
-
+Currently working on the first official release of EmuFlight.
 To get the latest updates as well as support from us, you can join our discord at <https://discord.gg/gdP9CwE>.
 
 ## Features
@@ -16,9 +18,9 @@ To get the latest updates as well as support from us, you can join our discord a
 EmuFlight has some of the following features:
 
 * Multi-color RGB LED strip support (each LED can be a different color using variable length WS2811 Addressable RGB strips - use for Orientation Indicators, Low Battery Warning, Flight Mode Status, Initialization Troubleshooting, etc)
-* DShot (150, 300, 600 and 1200), Multishot, and Oneshot (125 and 42) motor protocol support
+* DShot (150, 300, 600, 1200, 2400, 4800), Multishot, and Oneshot (125 and 42) motor protocol support
 * Blackbox flight recorder logging (to onboard flash or external microSD card where equipped)
-* Support for targets that use the STM32 F7, F4 and F3 processors
+* Support for targets that use the STM32 F7 and F4 processors. F3 Support removed after version 0.1.0
 * PWM, PPM, and Serial (SBus, SumH, SumD, Spektrum 1024/2048, XBus, etc) RX connection with failsafe detection
 * Multiple telemetry protocols (CSRF, FrSky, HoTT smart-port, MSP, etc)
 * RSSI via ADC - Uses ADC to read PWM RSSI signals, tested with FrSky D4R-II, X8R, X4R-SB, & XSR
