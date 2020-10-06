@@ -176,6 +176,13 @@ typedef enum {
     OSD_WARNING_COUNT // MUST BE LAST
 } osdWarningsFlags_e;
 
+typedef enum {
+    LQ_FORMAT_300,
+    LQ_FORMAT_MODE,
+    LQ_FORMAT_FREQ,
+    LQ_FORMAT_COUNT
+} lq_format_e;
+
 // Make sure the number of warnings do not exceed the available 16bit storage
 STATIC_ASSERT(OSD_WARNING_COUNT <= 16, osdwarnings_overflow);
 
