@@ -181,6 +181,20 @@ float applyRaceFlightRates(const int axis, float rcCommandf, const float rcComma
     return angleRate;
 }
 
+static float applyRollYawMix(float rcCommand, float roll, int axis)
+{
+    float rcCommandOutput;
+    if (axis == FD_YAW)
+    {
+        float rollAddition = roll * currentControlRateProfile->rollYawMix;
+        rcCommandOutput = constrainf((rcCommand + rollAddition) / 500.0f, -1.0f,1.0f);
+    } else {
+        rcCommandOutput = rcCommand / 500.0f;
+    }
+
+    return rcCommandOutput;
+}
+
 static void calculateSetpointRate(int axis)
 {
     static volatile float angleRate;
@@ -202,7 +216,7 @@ static void calculateSetpointRate(int axis)
         // TODO modify rcCommand in order to make for a smoother/snappier flight feel
         //
 
-        float rcCommandf = rcCommand[axis] / 500.0f;
+        float rcCommandf = applyRollYawMix(rcCommand[axis], rcCommand[FD_ROLL], axis);
         rcDeflection[axis] = rcCommandf;
         const float rcCommandfAbs = ABS(rcCommandf);
         rcDeflectionAbs[axis] = rcCommandfAbs;
