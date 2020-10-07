@@ -135,7 +135,17 @@ static void handleCrsfLinkStatisticsFrame(const crsfLinkStatistics_t* statsPtr, 
     CRSFsetRFMode(stats.rf_Mode);
     CRSFsetSnR(stats.downlink_SNR);
     CRSFsetTXPower(stats.uplink_TX_Power);
+    if(stats.uplink_RSSI_1 == 0)
+    CRSFsetRSSI(stats.uplink_RSSI_2);
+    else if(stats.uplink_RSSI_2 == 0)
+    CRSFsetRSSI(stats.uplink_RSSI_1);
+    else
+    {
+      uint8_t rssimin=MIN(stats.uplink_RSSI_1, stats.uplink_RSSI_2) *-1;
+      CRSFsetRSSI(rssimin);
+    }
 }
+
 
 STATIC_UNIT_TESTED uint8_t crsfFrameCRC(void)
 {
