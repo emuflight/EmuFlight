@@ -44,17 +44,23 @@
 
 #ifdef USE_EXTENDED_CMS_MENUS
 static uint16_t osdConfig_item_pos[OSD_ITEM_COUNT];
-
+static uint8_t osdConfig_one;
 static long menuOsdActiveElemsOnEnter(void)
 {
+    memcpy(&osdConfig_one, &osdConfig()->lq_format, sizeof(uint8_t));
     memcpy(&osdConfig_item_pos[0], &osdConfig()->item_pos[0], sizeof(uint16_t) * OSD_ITEM_COUNT);
     return 0;
 }
+
+static const char * const cms_osdcrsfformat[] = {
+    "TBS", "MODE", "FREQ"
+};
 
 static long menuOsdActiveElemsOnExit(const OSD_Entry *self)
 {
     UNUSED(self);
 
+    memcpy(&osdConfigMutable()->lq_format, &osdConfig_one, sizeof(uint8_t));
     memcpy(&osdConfigMutable()->item_pos[0], &osdConfig_item_pos[0], sizeof(uint16_t) * OSD_ITEM_COUNT);
     return 0;
 }
@@ -62,10 +68,11 @@ static long menuOsdActiveElemsOnExit(const OSD_Entry *self)
 OSD_Entry menuOsdActiveElemsEntries[] =
 {
     {"--- ACTIV ELEM ---", OME_Label,   NULL, NULL, 0},
-    {"RSSI / LQ",               OME_VISIBLE, NULL, &osdConfig_item_pos[OSD_RSSI_VALUE], 0},
+    {"RSSI / LQ",          OME_VISIBLE, NULL, &osdConfig_item_pos[OSD_RSSI_VALUE], 0},
+    {"LQ FORMAT",          OME_TAB,     NULL, &(OSD_TAB_t){ &osdConfig_one, FORMAT_COUNT - 1, cms_osdcrsfformat}, 0 },
     {"CRSF TX POWER",      OME_VISIBLE, NULL, &osdConfig_item_pos[OSD_CRSF_TX], 0},
     {"CRSF SNR",           OME_VISIBLE, NULL, &osdConfig_item_pos[OSD_CRSF_SNR], 0},
-    {"CRSF RSSI",     OME_VISIBLE, NULL, &osdConfig_item_pos[OSD_CRSF_RSSI], 0},
+    {"CRSF RSSI",          OME_VISIBLE, NULL, &osdConfig_item_pos[OSD_CRSF_RSSI], 0},
     {"BATTERY VOLTAGE",    OME_VISIBLE, NULL, &osdConfig_item_pos[OSD_MAIN_BATT_VOLTAGE], 0},
     {"BATTERY USAGE",      OME_VISIBLE, NULL, &osdConfig_item_pos[OSD_MAIN_BATT_USAGE], 0},
     {"AVG CELL VOLTAGE",   OME_VISIBLE, NULL, &osdConfig_item_pos[OSD_AVG_CELL_VOLTAGE], 0},
@@ -124,7 +131,6 @@ static uint8_t osdConfig_rssi_alarm;
 static uint16_t osdConfig_cap_alarm;
 static uint16_t osdConfig_alt_alarm;
 static uint16_t osdConfig_distance_alarm;
-
 
 static long menuAlarmsOnEnter(void)
 {
