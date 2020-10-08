@@ -45,9 +45,10 @@
 #ifdef USE_EXTENDED_CMS_MENUS
 static uint16_t osdConfig_item_pos[OSD_ITEM_COUNT];
 static uint8_t osdConfig_one;
+
 static long menuOsdActiveElemsOnEnter(void)
 {
-    memcpy(&osdConfig_one, &osdConfig()->lq_format, sizeof(uint8_t));
+    memcpy(&osdConfig_one, &osdConfig()->lq_format, sizeof(osdConfig_t));
     memcpy(&osdConfig_item_pos[0], &osdConfig()->item_pos[0], sizeof(uint16_t) * OSD_ITEM_COUNT);
     return 0;
 }
@@ -60,7 +61,7 @@ static long menuOsdActiveElemsOnExit(const OSD_Entry *self)
 {
     UNUSED(self);
 
-    memcpy(&osdConfigMutable()->lq_format, &osdConfig_one, sizeof(uint8_t));
+    memcpy(&osdConfigMutable()->lq_format, &osdConfig_one, sizeof(osdConfig_t));
     memcpy(&osdConfigMutable()->item_pos[0], &osdConfig_item_pos[0], sizeof(uint16_t) * OSD_ITEM_COUNT);
     return 0;
 }
@@ -69,7 +70,7 @@ OSD_Entry menuOsdActiveElemsEntries[] =
 {
     {"--- ACTIV ELEM ---", OME_Label,   NULL, NULL, 0},
     {"RSSI / LQ",          OME_VISIBLE, NULL, &osdConfig_item_pos[OSD_RSSI_VALUE], 0},
-    {"LQ FORMAT",          OME_TAB,     NULL, &(OSD_TAB_t){ &osdConfig_one, FORMAT_COUNT - 1, cms_osdcrsfformat}, 0 },
+    {"LQ FORMAT",          OME_TAB,     NULL, &(OSD_TAB_t){ &osdConfig_one, FORMAT_COUNT, cms_osdcrsfformat}, 0 },
     {"CRSF TX POWER",      OME_VISIBLE, NULL, &osdConfig_item_pos[OSD_CRSF_TX], 0},
     {"CRSF SNR",           OME_VISIBLE, NULL, &osdConfig_item_pos[OSD_CRSF_SNR], 0},
     {"CRSF RSSI",          OME_VISIBLE, NULL, &osdConfig_item_pos[OSD_CRSF_RSSI], 0},
