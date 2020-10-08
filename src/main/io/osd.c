@@ -150,6 +150,7 @@ char djiWarningBuffer[12];
 
 static uint8_t armState;
 static bool lastArmState;
+static uint16_t osdLQfinal;
 
 static displayPort_t *osdDisplayPort;
 
@@ -179,6 +180,9 @@ static const char compassBar[] = {
 static const uint8_t osdElementDisplayOrder[] = {
     OSD_MAIN_BATT_VOLTAGE,
     OSD_RSSI_VALUE,
+    OSD_CRSF_TX,
+    OSD_CRSF_SNR,
+    OSD_CRSF_RSSI,
     OSD_CROSSHAIRS,
     OSD_HORIZON_SIDEBARS,
     OSD_ITEM_TIMER_1,
@@ -488,32 +492,60 @@ static bool osdDrawSingleElement(uint8_t item)
     char buff[OSD_ELEMENT_BUFFER_LENGTH] = "";
 
     switch (item) {
-    case OSD_RSSI_VALUE:
+    case OSD_RSSI_VALUE: //standard RSSI and CRSF LQ
         {
             if(crsfRssi)
             {
 				          uint16_t osdLQ = CRSFgetLQ();
                   uint8_t osdRfMode = CRSFgetRFMode();
-                  uint16_t osdLQfinal = 0;
-                  switch (osdRfMode)
+                  osdLQfinal = osdLQ;
+                switch (osdConfig()->lq_format)
                   {
-                          case 0:
+
+                  case TBS:
+
+                    switch (osdRfMode)
+                    {
+                            case 2:
+                              osdLQfinal = osdLQ * 3;
+                              if (osdLQfinal<200)
+                                osdLQfinal=200;
+                              break;
+                            default:
                               osdLQfinal = osdLQ;
                               break;
-                          case 1:
-                              osdLQfinal = osdLQ + 100;
-                              break;
-                          case 2:
-                              osdLQfinal = osdLQ + 200;
-                              break;
+                        }
+                    if (osdLQfinal >= 300)
+                      osdLQfinal = 300;
+
+  				          tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
+                    break;
+
+
+                  case MODE:
+                      if (osdLQ >=100)
+                      osdLQfinal = 100;
+                    tfp_sprintf(buff, "%1d:%d", osdRfMode, osdLQfinal);
+                    break;
+
+                  case FREQ:
+                    switch(osdRfMode)
+                      {
+                        case 0:
+                          osdRfMode = 4;
+                          break;
+                        case 1:
+                          osdRfMode = 50;
+                          break;
+                        case 2:
+                          osdRfMode = 150;
+                          break;
+                      }
+                    tfp_sprintf(buff, "%3dHZ:%d", osdRfMode, osdLQfinal);
+                    break;
+
+
                   }
-
-                  if (osdLQfinal >= 300)
-					             osdLQfinal = 300;
-
-				          tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
-
-
             }
             else
             {
@@ -525,16 +557,18 @@ static bool osdDrawSingleElement(uint8_t item)
 			      }
             break;
         }
-/*
-    case OSD_CRSF_SNR:
+
+    case OSD_CRSF_SNR: //crsf signal to noise ratio
       {
         if(crsfRssi)
         {
-          uint16_t osdSNR = CRSFgetSnR();
-          tfp_sprintf(buff, "%c%3d.%02d" , SYM_BLANK, osdSNR );
+          uint8_t osdSNR = CRSFgetSnR();
+          tfp_sprintf(buff, "SN %2dDB", osdSNR );
         }
+      break;
       }
-    case OSD_CRSF_TX_POWER:
+
+    case OSD_CRSF_TX: //crsf tx output power
       {
         if(crsfRssi)
         {
@@ -569,10 +603,18 @@ static bool osdDrawSingleElement(uint8_t item)
               osdtxpower = 0;
               break;
           }
-          tfp_sprintf(buff, "%c%4d" , SYM_BLANK, osdtxpower );
+          tfp_sprintf(buff, "%dMW", osdtxpower );
         }
+        break;
       }
-*/
+
+      case OSD_CRSF_RSSI: //crsf rssi
+      {
+        uint8_t osdcrsfrssi = CRSFgetRSSI();
+        tfp_sprintf(buff, "-%2dDBM" , osdcrsfrssi );
+        break;
+      }
+
     case OSD_MAIN_BATT_VOLTAGE:
         buff[0] = osdGetBatterySymbol(osdGetBatteryAverageCellVoltage());
         tfp_sprintf(buff + 1, "%2d.%1d%c", getBatteryVoltage() / 10, getBatteryVoltage() % 10, SYM_VOLT);
@@ -1208,8 +1250,8 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
 
     osdConfig->timers[OSD_TIMER_1] = OSD_TIMER(OSD_TIMER_SRC_ON, OSD_TIMER_PREC_SECOND, 10);
     osdConfig->timers[OSD_TIMER_2] = OSD_TIMER(OSD_TIMER_SRC_TOTAL_ARMED, OSD_TIMER_PREC_SECOND, 10);
-
-    osdConfig->lq_alarm = 170;
+    osdConfig->lq_format = TBS;
+    osdConfig->lq_alarm = 70;
     osdConfig->rssi_alarm = 20;
     osdConfig->cap_alarm  = 2200;
     osdConfig->alt_alarm  = 100; // meters or feet depend on configuration
@@ -1291,24 +1333,10 @@ void osdUpdateAlarms(void)
     int32_t alt = osdGetMetersToSelectedUnit(getEstimatedAltitude()) / 100;
     if(crsfRssi)
     {
-      uint16_t osdLQ = CRSFgetLQ();
-      uint8_t osdRfMode = CRSFgetRFMode();
-      uint16_t osdLQfinal = 0;
-      switch (osdRfMode)
-      {
-              case 0:
-                  osdLQfinal = osdLQ;
-                  break;
-              case 1:
-                  osdLQfinal = osdLQ + 100;
-                  break;
-              case 2:
-                  osdLQfinal = osdLQ + 200;
-                  break;
-      }
-
-      if (osdLQfinal <= osdConfig()->lq_alarm)  //CRSF RSSI_alarm = set to 170 (Mode1 : 60)
-        SET_BLINK(OSD_RSSI_VALUE);
+      if (osdLQfinal < osdConfig()->lq_alarm)  //CRSF RSSI_alarm = set to 170 (Mode1 : 60)
+        {
+          SET_BLINK(OSD_RSSI_VALUE);
+        }
       else
         CLR_BLINK(OSD_RSSI_VALUE);
 
