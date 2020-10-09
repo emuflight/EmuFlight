@@ -1080,6 +1080,7 @@ const clivalue_t valueTable[] = {
 // PG_VTX_CONFIG
 #if defined(USE_VTX_CONTROL) && defined(USE_VTX_COMMON)
     { "vtx_halfduplex",             VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_VTX_CONFIG, offsetof(vtxConfig_t, halfDuplex) },
+    { "vtx_tramp_norx",             VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_VTX_CONFIG, offsetof(vtxConfig_t, trampNoRx) },
 #endif
 
 // PG_VCD_CONFIG
