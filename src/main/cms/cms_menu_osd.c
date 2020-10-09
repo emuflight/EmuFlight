@@ -44,7 +44,6 @@
 
 #ifdef USE_EXTENDED_CMS_MENUS
 static uint16_t osdConfig_item_pos[OSD_ITEM_COUNT];
-//static uint8_t osdConfig_one;
 static osdConfig_t osdConfig_one;
 
 static long menuOsdActiveElemsOnEnter(void)

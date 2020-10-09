@@ -521,7 +521,6 @@ static bool osdDrawSingleElement(uint8_t item)
   				          tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
                     break;
 
-
                   case MODE:
                       if (osdLQ >=100)
                       osdLQfinal = 100;
@@ -541,10 +540,26 @@ static bool osdDrawSingleElement(uint8_t item)
                           osdRfMode = 150;
                           break;
                       }
-                    tfp_sprintf(buff, "%c %3d", osdRfMode, osdLQfinal);
+                    tfp_sprintf(buff, "%3dHZ:%3d", osdRfMode, osdLQfinal);
                     break;
 
+                  default:
+                    switch (osdRfMode)
+                    {
+                          case 2:
+                            osdLQfinal = osdLQ * 3;
+                            if (osdLQfinal<200)
+                              osdLQfinal=200;
+                            break;
+                          default:
+                            osdLQfinal = osdLQ;
+                            break;
+                      }
+                  if (osdLQfinal >= 300)
+                    osdLQfinal = 300;
 
+                  tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
+                  break;
                   }
             }
             else
