@@ -385,10 +385,6 @@ static void validateAndFixConfig(void)
     featureClear(FEATURE_ESC_SENSOR);
 #endif
 
-#ifndef USE_GYRO_DATA_ANALYSE
-    featureClear(FEATURE_DYNAMIC_FILTER);
-#endif
-
 #if !defined(USE_ADC)
     featureClear(FEATURE_RSSI_ADC);
 #endif
@@ -469,7 +465,7 @@ void validateAndFixGyroConfig(void)
 #ifdef USE_GYRO_DATA_ANALYSE
     // Disable dynamic filter if gyro loop is less than 2KHz
     if (gyro.targetLooptime > DYNAMIC_FILTER_MAX_SUPPORTED_LOOP_TIME) {
-        featureClear(FEATURE_DYNAMIC_FILTER);
+        gyroConfigMutable()->dynamic_filter = 0;
     }
 #endif
 

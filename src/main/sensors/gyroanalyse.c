@@ -132,7 +132,7 @@ void gyroDataAnalyseInit(uint32_t targetLooptimeUs)
 
 void gyroDataAnalyseStateInit(gyroAnalyseState_t *state, uint32_t targetLooptimeUs)
 {
-    // initialise even if FEATURE_DYNAMIC_FILTER not set, since it may be set later
+    // initialise even if disabled now, since it may be set later
     gyroDataAnalyseInit(targetLooptimeUs);
     state->maxSampleCount = samples;
     state->maxSampleCountRcp = 1.0f / state->maxSampleCount;

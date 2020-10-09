@@ -112,6 +112,8 @@ typedef struct gyroConfig_s {
     uint16_t dyn_notch_q_factor;
     uint16_t dyn_notch_min_hz;
     uint16_t dyn_notch_max_hz;
+
+    uint8_t  dynamic_filter;
 #if defined(USE_GYRO_IMUF9001)
     uint16_t imuf_mode;
     uint16_t imuf_rate;
