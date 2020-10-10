@@ -540,6 +540,7 @@ static bool osdDrawSingleElement(uint8_t item)
                           osdRfMode = 150;
                           break;
                       }
+
                     tfp_sprintf(buff, "%3dHZ:%3d", osdRfMode, osdLQfinal);
                     break;
 
@@ -560,6 +561,7 @@ static bool osdDrawSingleElement(uint8_t item)
 
                   tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
                   break;
+
                   }
             }
             else
