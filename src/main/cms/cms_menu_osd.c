@@ -60,7 +60,7 @@ static long menuOsdActiveElemsOnExit(const OSD_Entry *self)
 {
     UNUSED(self);
 
-    memcpy(&osdConfigMutable()->item_pos[0], &osdConfig_item_pos[0], sizeof(uint16_t) * OSD_ITEM_COUNT);
+    memcpy(&osdConfigMutable()->item_pos[0], &osdConfig_item_pos[0] , sizeof(uint16_t) * OSD_ITEM_COUNT);
     osdConfigMutable()->lq_format = osdConfig_one.lq_format;
 
     return 0;
