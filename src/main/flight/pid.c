@@ -173,7 +173,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .d_min_advance = 20,
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
-        .transient_throttle_limit = 15,
         .profileName = { 0 },
         .idle_min_rpm = 0,
         .idle_adjustment_speed = 50,
@@ -527,30 +526,6 @@ STATIC_UNIT_TESTED void applyItermRelax(const int axis, const float iterm,
 }
 #endif
 
-#ifdef USE_AIRMODE_LPF
-void pidUpdateAirmodeLpf(float currentOffset)
-{
-    if (pidRuntime.airmodeThrottleOffsetLimit == 0.0f) {
-        return;
-    }
-
-    float offsetHpf = currentOffset * 2.5f;
-    offsetHpf = offsetHpf - pt1FilterApply(&pidRuntime.airmodeThrottleLpf2, offsetHpf);
-
-    // During high frequency oscillation 2 * currentOffset averages to the offset required to avoid mirroring of the waveform
-    pt1FilterApply(&pidRuntime.airmodeThrottleLpf1, offsetHpf);
-    // Bring offset up immediately so the filter only applies to the decline
-    if (currentOffset * pidRuntime.airmodeThrottleLpf1.state >= 0 && fabsf(currentOffset) > pidRuntime.airmodeThrottleLpf1.state) {
-        pidRuntime.airmodeThrottleLpf1.state = currentOffset;
-    }
-    pidRuntime.airmodeThrottleLpf1.state = constrainf(pidRuntime.airmodeThrottleLpf1.state, -pidRuntime.airmodeThrottleOffsetLimit, pidRuntime.airmodeThrottleOffsetLimit);
-}
-
-float pidGetAirmodeThrottleOffset()
-{
-    return pidRuntime.airmodeThrottleLpf1.state;
-}
-#endif
 
 #ifdef USE_LAUNCH_CONTROL
 #define LAUNCH_CONTROL_MAX_RATE 100.0f

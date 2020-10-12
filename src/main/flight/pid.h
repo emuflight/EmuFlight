@@ -174,7 +174,6 @@ typedef struct pidProfile_s {
     uint8_t d_min_advance;                  // Percentage multiplier for setpoint input to boost algorithm
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
-    uint8_t transient_throttle_limit;       // Maximum DC component of throttle change to mix into throttle to prevent airmode mirroring noise
     uint8_t ff_boost;                       // amount of high-pass filtered FF to add to FF, 100 means 100% added
     char profileName[MAX_PROFILE_NAME_LENGTH + 1]; // Descriptive name for profile
 
@@ -332,11 +331,6 @@ typedef struct pidRuntime_s {
     float dMinSetpointGain;
 #endif
 
-#ifdef USE_AIRMODE_LPF
-    pt1Filter_t airmodeThrottleLpf1;
-    pt1Filter_t airmodeThrottleLpf2;
-#endif
-
 #ifdef USE_RC_SMOOTHING_FILTER
     pt1Filter_t setpointDerivativePt1[XYZ_AXIS_COUNT];
     biquadFilter_t setpointDerivativeBiquad[XYZ_AXIS_COUNT];
@@ -361,10 +355,6 @@ typedef struct pidRuntime_s {
 #ifdef USE_THRUST_LINEARIZATION
     float thrustLinearization;
     float throttleCompensateAmount;
-#endif
-
-#ifdef USE_AIRMODE_LPF
-    float airmodeThrottleOffsetLimit;
 #endif
 
 #ifdef USE_INTERPOLATED_SP
@@ -398,10 +388,7 @@ bool pidAntiGravityEnabled(void);
 float pidApplyThrustLinearization(float motorValue);
 float pidCompensateThrustLinearization(float throttle);
 #endif
-#ifdef USE_AIRMODE_LPF
-void pidUpdateAirmodeLpf(float currentOffset);
-float pidGetAirmodeThrottleOffset();
-#endif
+
 
 #ifdef UNIT_TEST
 #include "sensors/acceleration.h"
