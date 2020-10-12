@@ -61,42 +61,34 @@ extern char _Min_Stack_Size; // declared in .LD file
 
 static uint32_t usedStackSize;
 
-void taskStackCheck(timeUs_t currentTimeUs)
-{
+void taskStackCheck(timeUs_t currentTimeUs) {
     UNUSED(currentTimeUs);
-
     char * const stackHighMem = &_estack;
     const uint32_t stackSize = (uint32_t)&_Min_Stack_Size;
     char * const stackLowMem = stackHighMem - stackSize;
     const char * const stackCurrent = (char *)&stackLowMem;
-
     char *p;
     for (p = stackLowMem; p < stackCurrent; ++p) {
         if (*p != STACK_FILL_CHAR) {
             break;
         }
     }
-
     usedStackSize = (uint32_t)stackHighMem - (uint32_t)p;
-
     DEBUG_SET(DEBUG_STACK, 0, (uint32_t)stackHighMem & 0xffff);
     DEBUG_SET(DEBUG_STACK, 1, (uint32_t)stackLowMem & 0xffff);
     DEBUG_SET(DEBUG_STACK, 2, (uint32_t)stackCurrent & 0xffff);
     DEBUG_SET(DEBUG_STACK, 3, (uint32_t)p & 0xffff);
 }
 
-uint32_t stackUsedSize(void)
-{
+uint32_t stackUsedSize(void) {
     return usedStackSize;
 }
 #endif
 
-uint32_t stackTotalSize(void)
-{
+uint32_t stackTotalSize(void) {
     return (uint32_t)(intptr_t)&_Min_Stack_Size;
 }
 
-uint32_t stackHighMem(void)
-{
+uint32_t stackHighMem(void) {
     return (uint32_t)(intptr_t)&_estack;
 }

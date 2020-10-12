@@ -43,46 +43,38 @@ void warningLedResetTimer(void) {
     warningLedTimer = now + 500000;
 }
 
-void warningLedEnable(void)
-{
+void warningLedEnable(void) {
     warningLedState = WARNING_LED_ON;
 }
 
-void warningLedDisable(void)
-{
+void warningLedDisable(void) {
     warningLedState = WARNING_LED_OFF;
 }
 
-void warningLedFlash(void)
-{
+void warningLedFlash(void) {
     warningLedState = WARNING_LED_FLASH;
 }
 
-void warningLedRefresh(void)
-{
+void warningLedRefresh(void) {
     switch (warningLedState) {
-        case WARNING_LED_OFF:
-            LED0_OFF;
-            break;
-        case WARNING_LED_ON:
-            LED0_ON;
-            break;
-        case WARNING_LED_FLASH:
-            LED0_TOGGLE;
-            break;
+    case WARNING_LED_OFF:
+        LED0_OFF;
+        break;
+    case WARNING_LED_ON:
+        LED0_ON;
+        break;
+    case WARNING_LED_FLASH:
+        LED0_TOGGLE;
+        break;
     }
-
     uint32_t now = micros();
     warningLedTimer = now + 500000;
 }
 
-void warningLedUpdate(void)
-{
+void warningLedUpdate(void) {
     uint32_t now = micros();
-
     if ((int32_t)(now - warningLedTimer) < 0) {
         return;
     }
-
     warningLedRefresh();
 }

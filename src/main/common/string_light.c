@@ -24,53 +24,42 @@
 
 #include "typeconversion.h"
 
-int isalnum(int c)
-{
+int isalnum(int c) {
     return isdigit(c) || isupper(c) || islower(c);
 }
 
-int isdigit(int c)
-{
+int isdigit(int c) {
     return (c >= '0' && c <= '9');
 }
 
-int isupper(int c)
-{
+int isupper(int c) {
     return (c >= 'A' && c <= 'Z');
 }
 
-int islower(int c)
-{
+int islower(int c) {
     return (c >= 'a' && c <= 'z');
 }
 
-int isspace(int c)
-{
+int isspace(int c) {
     return (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v');
 }
 
-int tolower(int c)
-{
+int tolower(int c) {
     return isupper(c) ? (c) - 'A' + 'a' : c;
 }
 
-int toupper(int c)
-{
+int toupper(int c) {
     return islower(c) ? (c) - 'a' + 'A' : c;
 }
 
-int strcasecmp(const char * s1, const char * s2)
-{
+int strcasecmp(const char * s1, const char * s2) {
     return strncasecmp(s1, s2, (size_t)INT_MAX);
 }
 
-int strncasecmp(const char * s1, const char * s2, size_t n)
-{
+int strncasecmp(const char * s1, const char * s2, size_t n) {
     const unsigned char * ucs1 = (const unsigned char *) s1;
     const unsigned char * ucs2 = (const unsigned char *) s2;
-
     int d = 0;
-
     for ( ; n != 0; n--) {
         const int c1 = tolower(*ucs1++);
         const int c2 = tolower(*ucs2++);
@@ -78,12 +67,10 @@ int strncasecmp(const char * s1, const char * s2, size_t n)
             break;
         }
     }
-
     return d;
 }
 
-char *strcasestr(const char *haystack, const char *needle)
-{
+char *strcasestr(const char *haystack, const char *needle) {
     int nLen = strlen(needle);
     do {
         if (!strncasecmp(haystack, needle, nLen)) {

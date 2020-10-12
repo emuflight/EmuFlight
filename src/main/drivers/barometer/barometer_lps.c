@@ -189,18 +189,15 @@
 static uint32_t rawP = 0;
 static uint16_t rawT = 0;
 
-bool lpsWriteCommand(busDevice_t *busdev, uint8_t cmd, uint8_t byte)
-{
+bool lpsWriteCommand(busDevice_t *busdev, uint8_t cmd, uint8_t byte) {
     return spiBusWriteRegister(busdev, cmd, byte);
 }
 
-bool lpsReadCommand(busDevice_t *busdev, uint8_t cmd, uint8_t *data, uint8_t len)
-{
+bool lpsReadCommand(busDevice_t *busdev, uint8_t cmd, uint8_t *data, uint8_t len) {
     return spiBusReadRegisterBuffer(busdev, cmd | 0x80 | 0x40, data, len);
 }
 
-bool lpsWriteVerify(busDevice_t *busdev, uint8_t cmd, uint8_t byte)
-{
+bool lpsWriteVerify(busDevice_t *busdev, uint8_t cmd, uint8_t byte) {
     uint8_t temp = 0xff;
     spiBusWriteRegister(busdev, cmd, byte);
     spiBusReadRegisterBuffer(busdev, cmd, &temp, 1);
@@ -208,31 +205,26 @@ bool lpsWriteVerify(busDevice_t *busdev, uint8_t cmd, uint8_t byte)
     return false;
 }
 
-static void lpsOn(busDevice_t *busdev, uint8_t CTRL1_val)
-{
+static void lpsOn(busDevice_t *busdev, uint8_t CTRL1_val) {
     lpsWriteCommand(busdev, LPS_CTRL1, CTRL1_val | 0x80);
     //Instead of delay let's ready status reg
 }
 
-static void lpsOff(busDevice_t *busdev)
-{
+static void lpsOff(busDevice_t *busdev) {
     lpsWriteCommand(busdev, LPS_CTRL1, 0x00 | (0x01 << 2));
 }
 
-static void lps_nothing(baroDev_t *baro)
-{
+static void lps_nothing(baroDev_t *baro) {
     UNUSED(baro);
     return;
 }
 
-static void lps_read(baroDev_t *baro)
-{
+static void lps_read(baroDev_t *baro) {
     uint8_t status = 0x00;
     lpsReadCommand(&baro->busdev, LPS_STATUS, &status, 1);
     if (status & 0x03) {
         uint8_t temp[5];
         lpsReadCommand(&baro->busdev, LPS_OUT_XL, temp, 5);
-
         /* Build the raw data */
         rawP = temp[0] | (temp[1] << 8) | (temp[2] << 16) | ((temp[2] & 0x80) ? 0xff000000 : 0);
         rawT = (temp[4] << 8) | temp[3];
@@ -242,37 +234,34 @@ static void lps_read(baroDev_t *baro)
     }
 }
 
-static void lps_calculate(int32_t *pressure, int32_t *temperature)
-{
+static void lps_calculate(int32_t *pressure, int32_t *temperature) {
     *pressure = (int32_t)rawP * 100 / 4096;
     *temperature = (int32_t)rawT * 10 / 48 + 4250;
 }
 
-bool lpsDetect(baroDev_t *baro)
-{
+bool lpsDetect(baroDev_t *baro) {
     //Detect
     busDevice_t *busdev = &baro->busdev;
     IOInit(busdev->busdev_u.spi.csnPin, OWNER_BARO_CS, 0);
     IOConfigGPIO(busdev->busdev_u.spi.csnPin, IOCFG_OUT_PP);
     IOHi(busdev->busdev_u.spi.csnPin); // Disable
     spiSetDivisor(busdev->busdev_u.spi.instance, SPI_CLOCK_STANDARD); // Baro can work only on up to 10Mhz SPI bus
-
     uint8_t temp = 0x00;
     lpsReadCommand(&baro->busdev, LPS_WHO_AM_I, &temp, 1);
     if (temp != LPS25_ID && temp != LPS22_ID && temp != LPS33_ID && temp != LPS35_ID) {
         return false;
     }
-
     //Init, if writeVerify is false fallback to false on detect
     bool ret = false;
     lpsOff(busdev);
-    ret = lpsWriteVerify(busdev, LPS_CTRL2, (0x00 << 1)); if (ret != true) return false;
-    ret = lpsWriteVerify(busdev, LPS_RES_CONF, (LPS_AVT_64 | LPS_AVP_512)); if (ret != true) return false;
-    ret = lpsWriteVerify(busdev, LPS_CTRL4, 0x01); if (ret != true) return false;
+    ret = lpsWriteVerify(busdev, LPS_CTRL2, (0x00 << 1));
+    if (ret != true) return false;
+    ret = lpsWriteVerify(busdev, LPS_RES_CONF, (LPS_AVT_64 | LPS_AVP_512));
+    if (ret != true) return false;
+    ret = lpsWriteVerify(busdev, LPS_CTRL4, 0x01);
+    if (ret != true) return false;
     lpsOn(busdev, (0x04 << 4) | (0x01 << 1) | (0x01 << 2) | (0x01 << 3));
-
     lpsReadCommand(busdev, LPS_CTRL1, &temp, 1);
-
     baro->ut_delay = 1;
     baro->up_delay = 1000000 / 24;
     baro->start_ut = lps_nothing;

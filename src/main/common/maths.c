@@ -43,8 +43,7 @@
 #define sinPolyCoef7 -1.980661520e-4f                                          // Double: -1.980661520135080504411629636078917643846e-4
 #define sinPolyCoef9  2.600054768e-6f                                          // Double:  2.600054767890361277123254766503271638682e-6
 #endif
-float sin_approx(float x)
-{
+float sin_approx(float x) {
     int32_t xint = x;
     if (xint < -32 || xint > 32) return 0.0f;                               // Stop here on error input (5 * 360 Deg)
     while (x >  M_PIf) x -= (2.0f * M_PIf);                                 // always wrap input angle to -PI..PI
@@ -55,8 +54,7 @@ float sin_approx(float x)
     return x + x * x2 * (sinPolyCoef3 + x2 * (sinPolyCoef5 + x2 * (sinPolyCoef7 + x2 * sinPolyCoef9)));
 }
 
-float cos_approx(float x)
-{
+float cos_approx(float x) {
     return sin_approx(x + (0.5f * M_PIf));
 }
 
@@ -64,16 +62,14 @@ float cos_approx(float x)
 // Polynomial coefficients by Andor (http://www.dsprelated.com/showthread/comp.dsp/21872-1.php) optimized by Ledvinap to save one multiplication
 // Max absolute error 0,000027 degree
 // atan2_approx maximum absolute error = 7.152557e-07 rads (4.098114e-05 degree)
-float atan2_approx(float y, float x)
-{
-    #define atanPolyCoef1  3.14551665884836e-07f
-    #define atanPolyCoef2  0.99997356613987f
-    #define atanPolyCoef3  0.14744007058297684f
-    #define atanPolyCoef4  0.3099814292351353f
-    #define atanPolyCoef5  0.05030176425872175f
-    #define atanPolyCoef6  0.1471039133652469f
-    #define atanPolyCoef7  0.6444640676891548f
-
+float atan2_approx(float y, float x) {
+#define atanPolyCoef1  3.14551665884836e-07f
+#define atanPolyCoef2  0.99997356613987f
+#define atanPolyCoef3  0.14744007058297684f
+#define atanPolyCoef4  0.3099814292351353f
+#define atanPolyCoef5  0.05030176425872175f
+#define atanPolyCoef6  0.1471039133652469f
+#define atanPolyCoef7  0.6444640676891548f
     float res, absX, absY;
     absX = fabsf(x);
     absY = fabsf(y);
@@ -91,8 +87,7 @@ float atan2_approx(float y, float x)
 // Handbook of Mathematical Functions
 // M. Abramowitz and I.A. Stegun, Ed.
 // acos_approx maximum absolute error = 6.760856e-05 rads (3.873685e-03 degree)
-float acos_approx(float x)
-{
+float acos_approx(float x) {
     float xa = fabsf(x);
     float result = sqrtf(1.0f - xa) * (1.5707288f + xa * (-0.2121144f + xa * (0.0742610f + (-0.0187293f * xa))));
     if (x < 0.0f)
@@ -102,47 +97,38 @@ float acos_approx(float x)
 }
 #endif
 
-int gcd(int num, int denom)
-{
+int gcd(int num, int denom) {
     if (denom == 0) {
         return num;
     }
-
     return gcd(denom, num % denom);
 }
 
 float powerf(float base, int exp) {
     float result = base;
     for (int count = 1; count < exp; count++) result *= base;
-
     return result;
 }
 
-int32_t applyDeadband(const int32_t value, const int32_t deadband)
-{
+int32_t applyDeadband(const int32_t value, const int32_t deadband) {
     if (ABS(value) < deadband) {
         return 0;
     }
-
     return value >= 0 ? value - deadband : value + deadband;
 }
 
-float fapplyDeadband(const float value, const float deadband)
-{
+float fapplyDeadband(const float value, const float deadband) {
     if (fabsf(value) < deadband) {
         return 0;
     }
-
     return value >= 0 ? value - deadband : value + deadband;
 }
 
-void devClear(stdev_t *dev)
-{
+void devClear(stdev_t *dev) {
     dev->m_n = 0;
 }
 
-void devPush(stdev_t *dev, float x)
-{
+void devPush(stdev_t *dev, float x) {
     dev->m_n++;
     if (dev->m_n == 1) {
         dev->m_oldM = dev->m_newM = x;
@@ -155,18 +141,15 @@ void devPush(stdev_t *dev, float x)
     }
 }
 
-float devVariance(stdev_t *dev)
-{
+float devVariance(stdev_t *dev) {
     return ((dev->m_n > 1) ? dev->m_newS / (dev->m_n - 1) : 0.0f);
 }
 
-float devStandardDeviation(stdev_t *dev)
-{
+float devStandardDeviation(stdev_t *dev) {
     return sqrtf(devVariance(dev));
 }
 
-float degreesToRadians(int16_t degrees)
-{
+float degreesToRadians(int16_t degrees) {
     return degrees * RAD;
 }
 
@@ -183,10 +166,8 @@ float scaleRangef(float x, float srcFrom, float srcTo, float destFrom, float des
 }
 
 // Normalize a vector
-void normalizeV(struct fp_vector *src, struct fp_vector *dest)
-{
+void normalizeV(struct fp_vector *src, struct fp_vector *dest) {
     float length;
-
     length = sqrtf(src->X * src->X + src->Y * src->Y + src->Z * src->Z);
     if (length != 0) {
         dest->X = src->X / length;
@@ -195,23 +176,19 @@ void normalizeV(struct fp_vector *src, struct fp_vector *dest)
     }
 }
 
-void buildRotationMatrix(fp_angles_t *delta, float matrix[3][3])
-{
+void buildRotationMatrix(fp_angles_t *delta, float matrix[3][3]) {
     float cosx, sinx, cosy, siny, cosz, sinz;
     float coszcosx, sinzcosx, coszsinx, sinzsinx;
-
     cosx = cos_approx(delta->angles.roll);
     sinx = sin_approx(delta->angles.roll);
     cosy = cos_approx(delta->angles.pitch);
     siny = sin_approx(delta->angles.pitch);
     cosz = cos_approx(delta->angles.yaw);
     sinz = sin_approx(delta->angles.yaw);
-
     coszcosx = cosz * cosx;
     sinzcosx = sinz * cosx;
     coszsinx = sinx * cosz;
     sinzsinx = sinx * sinz;
-
     matrix[0][X] = cosz * cosy;
     matrix[0][Y] = -cosy * sinz;
     matrix[0][Z] = siny;
@@ -224,14 +201,10 @@ void buildRotationMatrix(fp_angles_t *delta, float matrix[3][3])
 }
 
 // Rotate a vector *v by the euler angles defined by the 3-vector *delta.
-void rotateV(struct fp_vector *v, fp_angles_t *delta)
-{
+void rotateV(struct fp_vector *v, fp_angles_t *delta) {
     struct fp_vector v_tmp = *v;
-
     float matrix[3][3];
-
     buildRotationMatrix(delta, matrix);
-
     v->X = v_tmp.X * matrix[0][X] + v_tmp.Y * matrix[1][X] + v_tmp.Z * matrix[2][X];
     v->Y = v_tmp.X * matrix[0][Y] + v_tmp.Y * matrix[1][Y] + v_tmp.Z * matrix[2][Y];
     v->Z = v_tmp.X * matrix[0][Z] + v_tmp.Y * matrix[1][Z] + v_tmp.Z * matrix[2][Z];
@@ -246,104 +219,139 @@ void rotateV(struct fp_vector *v, fp_angles_t *delta)
 #define QMF_SORTF(a,b) { if ((a)>(b)) QMF_SWAPF((a),(b)); }
 #define QMF_SWAPF(a,b) { float temp=(a);(a)=(b);(b)=temp; }
 
-int32_t quickMedianFilter3(int32_t * v)
-{
+int32_t quickMedianFilter3(int32_t * v) {
     int32_t p[3];
     QMF_COPY(p, v, 3);
-
-    QMF_SORT(p[0], p[1]); QMF_SORT(p[1], p[2]); QMF_SORT(p[0], p[1]) ;
+    QMF_SORT(p[0], p[1]);
+    QMF_SORT(p[1], p[2]);
+    QMF_SORT(p[0], p[1]) ;
     return p[1];
 }
 
-int32_t quickMedianFilter5(int32_t * v)
-{
+int32_t quickMedianFilter5(int32_t * v) {
     int32_t p[5];
     QMF_COPY(p, v, 5);
-
-    QMF_SORT(p[0], p[1]); QMF_SORT(p[3], p[4]); QMF_SORT(p[0], p[3]);
-    QMF_SORT(p[1], p[4]); QMF_SORT(p[1], p[2]); QMF_SORT(p[2], p[3]);
+    QMF_SORT(p[0], p[1]);
+    QMF_SORT(p[3], p[4]);
+    QMF_SORT(p[0], p[3]);
+    QMF_SORT(p[1], p[4]);
+    QMF_SORT(p[1], p[2]);
+    QMF_SORT(p[2], p[3]);
     QMF_SORT(p[1], p[2]);
     return p[2];
 }
 
-int32_t quickMedianFilter7(int32_t * v)
-{
+int32_t quickMedianFilter7(int32_t * v) {
     int32_t p[7];
     QMF_COPY(p, v, 7);
-
-    QMF_SORT(p[0], p[5]); QMF_SORT(p[0], p[3]); QMF_SORT(p[1], p[6]);
-    QMF_SORT(p[2], p[4]); QMF_SORT(p[0], p[1]); QMF_SORT(p[3], p[5]);
-    QMF_SORT(p[2], p[6]); QMF_SORT(p[2], p[3]); QMF_SORT(p[3], p[6]);
-    QMF_SORT(p[4], p[5]); QMF_SORT(p[1], p[4]); QMF_SORT(p[1], p[3]);
+    QMF_SORT(p[0], p[5]);
+    QMF_SORT(p[0], p[3]);
+    QMF_SORT(p[1], p[6]);
+    QMF_SORT(p[2], p[4]);
+    QMF_SORT(p[0], p[1]);
+    QMF_SORT(p[3], p[5]);
+    QMF_SORT(p[2], p[6]);
+    QMF_SORT(p[2], p[3]);
+    QMF_SORT(p[3], p[6]);
+    QMF_SORT(p[4], p[5]);
+    QMF_SORT(p[1], p[4]);
+    QMF_SORT(p[1], p[3]);
     QMF_SORT(p[3], p[4]);
     return p[3];
 }
 
-int32_t quickMedianFilter9(int32_t * v)
-{
+int32_t quickMedianFilter9(int32_t * v) {
     int32_t p[9];
     QMF_COPY(p, v, 9);
-
-    QMF_SORT(p[1], p[2]); QMF_SORT(p[4], p[5]); QMF_SORT(p[7], p[8]);
-    QMF_SORT(p[0], p[1]); QMF_SORT(p[3], p[4]); QMF_SORT(p[6], p[7]);
-    QMF_SORT(p[1], p[2]); QMF_SORT(p[4], p[5]); QMF_SORT(p[7], p[8]);
-    QMF_SORT(p[0], p[3]); QMF_SORT(p[5], p[8]); QMF_SORT(p[4], p[7]);
-    QMF_SORT(p[3], p[6]); QMF_SORT(p[1], p[4]); QMF_SORT(p[2], p[5]);
-    QMF_SORT(p[4], p[7]); QMF_SORT(p[4], p[2]); QMF_SORT(p[6], p[4]);
+    QMF_SORT(p[1], p[2]);
+    QMF_SORT(p[4], p[5]);
+    QMF_SORT(p[7], p[8]);
+    QMF_SORT(p[0], p[1]);
+    QMF_SORT(p[3], p[4]);
+    QMF_SORT(p[6], p[7]);
+    QMF_SORT(p[1], p[2]);
+    QMF_SORT(p[4], p[5]);
+    QMF_SORT(p[7], p[8]);
+    QMF_SORT(p[0], p[3]);
+    QMF_SORT(p[5], p[8]);
+    QMF_SORT(p[4], p[7]);
+    QMF_SORT(p[3], p[6]);
+    QMF_SORT(p[1], p[4]);
+    QMF_SORT(p[2], p[5]);
+    QMF_SORT(p[4], p[7]);
+    QMF_SORT(p[4], p[2]);
+    QMF_SORT(p[6], p[4]);
     QMF_SORT(p[4], p[2]);
     return p[4];
 }
 
-float quickMedianFilter3f(float * v)
-{
+float quickMedianFilter3f(float * v) {
     float p[3];
     QMF_COPY(p, v, 3);
-
-    QMF_SORTF(p[0], p[1]); QMF_SORTF(p[1], p[2]); QMF_SORTF(p[0], p[1]) ;
+    QMF_SORTF(p[0], p[1]);
+    QMF_SORTF(p[1], p[2]);
+    QMF_SORTF(p[0], p[1]) ;
     return p[1];
 }
 
-float quickMedianFilter5f(float * v)
-{
+float quickMedianFilter5f(float * v) {
     float p[5];
     QMF_COPY(p, v, 5);
-
-    QMF_SORTF(p[0], p[1]); QMF_SORTF(p[3], p[4]); QMF_SORTF(p[0], p[3]);
-    QMF_SORTF(p[1], p[4]); QMF_SORTF(p[1], p[2]); QMF_SORTF(p[2], p[3]);
+    QMF_SORTF(p[0], p[1]);
+    QMF_SORTF(p[3], p[4]);
+    QMF_SORTF(p[0], p[3]);
+    QMF_SORTF(p[1], p[4]);
+    QMF_SORTF(p[1], p[2]);
+    QMF_SORTF(p[2], p[3]);
     QMF_SORTF(p[1], p[2]);
     return p[2];
 }
 
-float quickMedianFilter7f(float * v)
-{
+float quickMedianFilter7f(float * v) {
     float p[7];
     QMF_COPY(p, v, 7);
-
-    QMF_SORTF(p[0], p[5]); QMF_SORTF(p[0], p[3]); QMF_SORTF(p[1], p[6]);
-    QMF_SORTF(p[2], p[4]); QMF_SORTF(p[0], p[1]); QMF_SORTF(p[3], p[5]);
-    QMF_SORTF(p[2], p[6]); QMF_SORTF(p[2], p[3]); QMF_SORTF(p[3], p[6]);
-    QMF_SORTF(p[4], p[5]); QMF_SORTF(p[1], p[4]); QMF_SORTF(p[1], p[3]);
+    QMF_SORTF(p[0], p[5]);
+    QMF_SORTF(p[0], p[3]);
+    QMF_SORTF(p[1], p[6]);
+    QMF_SORTF(p[2], p[4]);
+    QMF_SORTF(p[0], p[1]);
+    QMF_SORTF(p[3], p[5]);
+    QMF_SORTF(p[2], p[6]);
+    QMF_SORTF(p[2], p[3]);
+    QMF_SORTF(p[3], p[6]);
+    QMF_SORTF(p[4], p[5]);
+    QMF_SORTF(p[1], p[4]);
+    QMF_SORTF(p[1], p[3]);
     QMF_SORTF(p[3], p[4]);
     return p[3];
 }
 
-float quickMedianFilter9f(float * v)
-{
+float quickMedianFilter9f(float * v) {
     float p[9];
     QMF_COPY(p, v, 9);
-
-    QMF_SORTF(p[1], p[2]); QMF_SORTF(p[4], p[5]); QMF_SORTF(p[7], p[8]);
-    QMF_SORTF(p[0], p[1]); QMF_SORTF(p[3], p[4]); QMF_SORTF(p[6], p[7]);
-    QMF_SORTF(p[1], p[2]); QMF_SORTF(p[4], p[5]); QMF_SORTF(p[7], p[8]);
-    QMF_SORTF(p[0], p[3]); QMF_SORTF(p[5], p[8]); QMF_SORTF(p[4], p[7]);
-    QMF_SORTF(p[3], p[6]); QMF_SORTF(p[1], p[4]); QMF_SORTF(p[2], p[5]);
-    QMF_SORTF(p[4], p[7]); QMF_SORTF(p[4], p[2]); QMF_SORTF(p[6], p[4]);
+    QMF_SORTF(p[1], p[2]);
+    QMF_SORTF(p[4], p[5]);
+    QMF_SORTF(p[7], p[8]);
+    QMF_SORTF(p[0], p[1]);
+    QMF_SORTF(p[3], p[4]);
+    QMF_SORTF(p[6], p[7]);
+    QMF_SORTF(p[1], p[2]);
+    QMF_SORTF(p[4], p[5]);
+    QMF_SORTF(p[7], p[8]);
+    QMF_SORTF(p[0], p[3]);
+    QMF_SORTF(p[5], p[8]);
+    QMF_SORTF(p[4], p[7]);
+    QMF_SORTF(p[3], p[6]);
+    QMF_SORTF(p[1], p[4]);
+    QMF_SORTF(p[2], p[5]);
+    QMF_SORTF(p[4], p[7]);
+    QMF_SORTF(p[4], p[2]);
+    QMF_SORTF(p[6], p[4]);
     QMF_SORTF(p[4], p[2]);
     return p[4];
 }
 
-void arraySubInt32(int32_t *dest, int32_t *array1, int32_t *array2, int count)
-{
+void arraySubInt32(int32_t *dest, int32_t *array1, int32_t *array2, int count) {
     for (int i = 0; i < count; i++) {
         dest[i] = array1[i] - array2[i];
     }
@@ -365,7 +373,6 @@ fix12_t  qConstruct(int16_t num, int16_t den) {
 void quaternionTransformVectorBodyToEarth(quaternion *qVector, quaternion *qReference) {
     quaternion qVectorBuffer, qReferenceConjugate;
     qVector->w = 0;
-
     quaternionCopy(qVector, &qVectorBuffer);
     quaternionConjugate(qReference, &qReferenceConjugate);
     quaternionMultiply(qReference, &qVectorBuffer, &qVectorBuffer);
@@ -375,7 +382,6 @@ void quaternionTransformVectorBodyToEarth(quaternion *qVector, quaternion *qRefe
 void quaternionTransformVectorEarthToBody(quaternion *qVector, quaternion *qReference) {
     quaternion qVectorBuffer, qReferenceConjugate;
     qVector->w = 0;
-
     quaternionCopy(qVector, &qVectorBuffer);
     quaternionConjugate(qReference, &qReferenceConjugate);
     quaternionMultiply(&qReferenceConjugate, &qVectorBuffer, &qVectorBuffer);

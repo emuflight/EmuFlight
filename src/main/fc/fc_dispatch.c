@@ -33,18 +33,15 @@
 static dispatchEntry_t *head = NULL;
 static bool dispatchEnabled = false;
 
-bool dispatchIsEnabled(void)
-{
+bool dispatchIsEnabled(void) {
     return dispatchEnabled;
 }
 
-void dispatchEnable(void)
-{
+void dispatchEnable(void) {
     dispatchEnabled = true;
 }
 
-void dispatchProcess(uint32_t currentTime)
-{
+void dispatchProcess(uint32_t currentTime) {
     for (dispatchEntry_t **p = &head; *p; ) {
         if (cmp32(currentTime, (*p)->delayedUntil) < 0)
             break;
@@ -56,18 +53,14 @@ void dispatchProcess(uint32_t currentTime)
     }
 }
 
-void dispatchAdd(dispatchEntry_t *entry, int delayUs)
-{
+void dispatchAdd(dispatchEntry_t *entry, int delayUs) {
     uint32_t delayedUntil = micros() + delayUs;
     dispatchEntry_t **p = &head;
-
     if (entry->inQue) {
-      return;    // Allready in Queue, abort
+        return;    // Allready in Queue, abort
     }
-
     while (*p && cmp32((*p)->delayedUntil, delayedUntil) < 0)
         p = &(*p)->next;
-
     entry->next = *p;
     entry->delayedUntil = delayedUntil;
     entry->inQue = true;

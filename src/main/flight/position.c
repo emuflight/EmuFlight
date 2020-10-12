@@ -46,20 +46,16 @@ static int32_t estimatedAltitude = 0;                // in cm
 #if defined(USE_BARO) || defined(USE_GPS)
 static bool altitudeOffsetSet = false;
 
-void calculateEstimatedAltitude(timeUs_t currentTimeUs)
-{
+void calculateEstimatedAltitude(timeUs_t currentTimeUs) {
     static timeUs_t previousTimeUs = 0;
     static int32_t baroAltOffset = 0;
     static int32_t gpsAltOffset = 0;
-
     const uint32_t dTime = currentTimeUs - previousTimeUs;
     if (dTime < BARO_UPDATE_FREQUENCY_40HZ) {
         return;
     }
     previousTimeUs = currentTimeUs;
-
     int32_t baroAlt = 0;
-
     int32_t gpsAlt = 0;
     float gpsTrust = 0.3; //conservative default
     bool haveBaroAlt = false;
@@ -74,20 +70,17 @@ void calculateEstimatedAltitude(timeUs_t currentTimeUs)
         }
     }
 #endif
-
 #ifdef USE_GPS
-if (sensors(SENSOR_GPS) && STATE(GPS_FIX)) {
-    gpsAlt = gpsSol.llh.alt;
-    haveGpsAlt = true;
-
-    if (gpsSol.hdop != 0) {
-        gpsTrust = 100.0 / gpsSol.hdop;
+    if (sensors(SENSOR_GPS) && STATE(GPS_FIX)) {
+        gpsAlt = gpsSol.llh.alt;
+        haveGpsAlt = true;
+        if (gpsSol.hdop != 0) {
+            gpsTrust = 100.0 / gpsSol.hdop;
+        }
+        // always use at least 10% of other sources besides gps if available
+        gpsTrust = MIN(gpsTrust, 0.9f);
     }
-    // always use at least 10% of other sources besides gps if available
-    gpsTrust = MIN(gpsTrust, 0.9f);
-}
 #endif
-
     if (ARMING_FLAG(ARMED) && !altitudeOffsetSet) {
         baroAltOffset = baroAlt;
         gpsAltOffset = gpsAlt;
@@ -97,34 +90,28 @@ if (sensors(SENSOR_GPS) && STATE(GPS_FIX)) {
     }
     baroAlt -= baroAltOffset;
     gpsAlt -= gpsAltOffset;
-
     if (haveGpsAlt && haveBaroAlt) {
         estimatedAltitude = gpsAlt * gpsTrust + baroAlt * (1 - gpsTrust);
-    }else if (haveGpsAlt) {
+    } else if (haveGpsAlt) {
         estimatedAltitude = gpsAlt;
-    }else if (haveBaroAlt) {
-          estimatedAltitude = baroAlt;
+    } else if (haveBaroAlt) {
+        estimatedAltitude = baroAlt;
     }
-
-
-   DEBUG_SET(DEBUG_ALTITUDE, 0, (int32_t)(100 * gpsTrust));
-   DEBUG_SET(DEBUG_ALTITUDE, 1, baroAlt);
-   DEBUG_SET(DEBUG_ALTITUDE, 2, gpsAlt);
+    DEBUG_SET(DEBUG_ALTITUDE, 0, (int32_t)(100 * gpsTrust));
+    DEBUG_SET(DEBUG_ALTITUDE, 1, baroAlt);
+    DEBUG_SET(DEBUG_ALTITUDE, 2, gpsAlt);
 }
 
-bool isAltitudeOffset(void)
-{
+bool isAltitudeOffset(void) {
     return altitudeOffsetSet;
 }
 #endif
 
-int32_t getEstimatedAltitude(void)
-{
+int32_t getEstimatedAltitude(void) {
     return estimatedAltitude;
 }
 
 // This should be removed or fixed, but it would require changing a lot of other things to get rid of.
-int16_t getEstimatedVario(void)
-{
+int16_t getEstimatedVario(void) {
     return 0;
 }

@@ -38,20 +38,20 @@ const struct ioPortDef_s ioPortDefs[] = {
     { RCC_APB2(IOPC) },
     { RCC_APB2(IOPD) },
     { RCC_APB2(IOPE) },
-{
+    {
 #if defined (STM32F10X_HD) || defined (STM32F10X_XL) || defined (STM32F10X_HD_VL)
-    RCC_APB2(IOPF),
+        RCC_APB2(IOPF),
 #else
-    0,
+        0,
 #endif
-},
-{
+    },
+    {
 #if defined (STM32F10X_HD) || defined (STM32F10X_XL) || defined (STM32F10X_HD_VL)
-    RCC_APB2(IOPG),
+        RCC_APB2(IOPG),
 #else
-    0,
+        0,
 #endif
-},
+    },
 };
 #elif defined(STM32F3)
 const struct ioPortDef_s ioPortDefs[] = {
@@ -82,64 +82,54 @@ const struct ioPortDef_s ioPortDefs[] = {
 };
 #endif
 
-ioRec_t* IO_Rec(IO_t io)
-{
+ioRec_t* IO_Rec(IO_t io) {
     return io;
 }
 
-GPIO_TypeDef* IO_GPIO(IO_t io)
-{
+GPIO_TypeDef* IO_GPIO(IO_t io) {
     const ioRec_t *ioRec = IO_Rec(io);
     return ioRec->gpio;
 }
 
-uint16_t IO_Pin(IO_t io)
-{
+uint16_t IO_Pin(IO_t io) {
     const ioRec_t *ioRec = IO_Rec(io);
     return ioRec->pin;
 }
 
 // port index, GPIOA == 0
-int IO_GPIOPortIdx(IO_t io)
-{
+int IO_GPIOPortIdx(IO_t io) {
     if (!io) {
         return -1;
     }
     return (((size_t)IO_GPIO(io) - GPIOA_BASE) >> 10);     // ports are 0x400 apart
 }
 
-int IO_EXTI_PortSourceGPIO(IO_t io)
-{
+int IO_EXTI_PortSourceGPIO(IO_t io) {
     return IO_GPIOPortIdx(io);
 }
 
-int IO_GPIO_PortSource(IO_t io)
-{
+int IO_GPIO_PortSource(IO_t io) {
     return IO_GPIOPortIdx(io);
 }
 
 // zero based pin index
-int IO_GPIOPinIdx(IO_t io)
-{
+int IO_GPIOPinIdx(IO_t io) {
     if (!io) {
         return -1;
     }
     return 31 - __builtin_clz(IO_Pin(io));  // CLZ is a bit faster than FFS
 }
 
-int IO_EXTI_PinSource(IO_t io)
-{
+int IO_EXTI_PinSource(IO_t io) {
     return IO_GPIOPinIdx(io);
 }
 
-int IO_GPIO_PinSource(IO_t io)
-{
+int IO_GPIO_PinSource(IO_t io) {
     return IO_GPIOPinIdx(io);
 }
 
 // mask on stm32f103, bit index on stm32f303
-uint32_t IO_EXTI_Line(IO_t io)
-{
+uint32_t IO_EXTI_Line(IO_t io) {
     if (!io) {
         return 0;
     }
@@ -158,8 +148,7 @@ uint32_t IO_EXTI_Line(IO_t io)
 #endif
 }
 
-bool IORead(IO_t io)
-{
+bool IORead(IO_t io) {
     if (!io) {
         return false;
     }
@@ -170,8 +159,7 @@ bool IORead(IO_t io)
 #endif
 }
 
-void IOWrite(IO_t io, bool hi)
-{
+void IOWrite(IO_t io, bool hi) {
     if (!io) {
         return;
     }
@@ -180,8 +168,7 @@ void IOWrite(IO_t io, bool hi)
 #elif defined(STM32F4)
     if (hi) {
         IO_GPIO(io)->BSRRL = IO_Pin(io);
-    }
-    else {
+    } else {
         IO_GPIO(io)->BSRRH = IO_Pin(io);
     }
 #else
@@ -189,8 +176,7 @@ void IOWrite(IO_t io, bool hi)
 #endif
 }
 
-void IOHi(IO_t io)
-{
+void IOHi(IO_t io) {
     if (!io) {
         return;
     }
@@ -203,8 +189,7 @@ void IOHi(IO_t io)
 #endif
 }
 
-void IOLo(IO_t io)
-{
+void IOLo(IO_t io) {
     if (!io) {
         return;
     }
@@ -217,12 +202,10 @@ void IOLo(IO_t io)
 #endif
 }
 
-void IOToggle(IO_t io)
-{
+void IOToggle(IO_t io) {
     if (!io) {
         return;
     }
-
     uint32_t mask = IO_Pin(io);
     // Read pin state from ODR but write to BSRR because it only changes the pins
     // high in the mask value rather than all pins. XORing ODR directly risks
@@ -241,14 +224,12 @@ void IOToggle(IO_t io)
 #else
     if (IO_GPIO(io)->ODR & mask)
         mask <<= 16;   // bit is set, shift mask to reset half
-
     IO_GPIO(io)->BSRR = mask;
 #endif
 }
 
 // claim IO pin, set owner and resources
-void IOInit(IO_t io, resourceOwner_e owner, uint8_t index)
-{
+void IOInit(IO_t io, resourceOwner_e owner, uint8_t index) {
     if (!io) {
         return;
     }
@@ -257,8 +238,7 @@ void IOInit(IO_t io, resourceOwner_e owner, uint8_t index)
     ioRec->index = index;
 }
 
-void IORelease(IO_t io)
-{
+void IORelease(IO_t io) {
     if (!io) {
         return;
     }
@@ -266,8 +246,7 @@ void IORelease(IO_t io)
     ioRec->owner = OWNER_FREE;
 }
 
-resourceOwner_e IOGetOwner(IO_t io)
-{
+resourceOwner_e IOGetOwner(IO_t io) {
     if (!io) {
         return OWNER_FREE;
     }
@@ -275,28 +254,22 @@ resourceOwner_e IOGetOwner(IO_t io)
     return ioRec->owner;
 }
 
-bool IOIsFreeOrPreinit(IO_t io)
-{
+bool IOIsFreeOrPreinit(IO_t io) {
     resourceOwner_e owner = IOGetOwner(io);
-
     if (owner == OWNER_FREE || owner == OWNER_SPI_PREINIT_IPU || owner == OWNER_SPI_PREINIT_OPU) {
         return true;
     }
-
     return false;
 }
 
 #if defined(STM32F1)
 
-void IOConfigGPIO(IO_t io, ioConfig_t cfg)
-{
+void IOConfigGPIO(IO_t io, ioConfig_t cfg) {
     if (!io) {
         return;
     }
-
     const rccPeriphTag_t rcc = ioPortDefs[IO_GPIOPortIdx(io)].rcc;
     RCC_ClockCmd(rcc, ENABLE);
-
     GPIO_InitTypeDef init = {
         .GPIO_Pin = IO_Pin(io),
         .GPIO_Speed = cfg & 0x03,
@@ -307,20 +280,16 @@ void IOConfigGPIO(IO_t io, ioConfig_t cfg)
 
 #elif defined(STM32F7)
 
-void IOConfigGPIO(IO_t io, ioConfig_t cfg)
-{
+void IOConfigGPIO(IO_t io, ioConfig_t cfg) {
     IOConfigGPIOAF(io, cfg, 0);
 }
 
-void IOConfigGPIOAF(IO_t io, ioConfig_t cfg, uint8_t af)
-{
+void IOConfigGPIOAF(IO_t io, ioConfig_t cfg, uint8_t af) {
     if (!io) {
         return;
     }
-
     const rccPeriphTag_t rcc = ioPortDefs[IO_GPIOPortIdx(io)].rcc;
     RCC_ClockCmd(rcc, ENABLE);
-
     LL_GPIO_InitTypeDef init = {
         .Pin = IO_Pin(io),
         .Mode = (cfg >> 0) & 0x03,
@@ -329,21 +298,17 @@ void IOConfigGPIOAF(IO_t io, ioConfig_t cfg, uint8_t af)
         .Pull = (cfg >> 5) & 0x03,
         .Alternate = af
     };
-
     LL_GPIO_Init(IO_GPIO(io), &init);
 }
 
 #elif defined(STM32F3) || defined(STM32F4)
 
-void IOConfigGPIO(IO_t io, ioConfig_t cfg)
-{
+void IOConfigGPIO(IO_t io, ioConfig_t cfg) {
     if (!io) {
         return;
     }
-
     const rccPeriphTag_t rcc = ioPortDefs[IO_GPIOPortIdx(io)].rcc;
     RCC_ClockCmd(rcc, ENABLE);
-
     GPIO_InitTypeDef init = {
         .GPIO_Pin = IO_Pin(io),
         .GPIO_Mode = (cfg >> 0) & 0x03,
@@ -354,16 +319,13 @@ void IOConfigGPIO(IO_t io, ioConfig_t cfg)
     GPIO_Init(IO_GPIO(io), &init);
 }
 
-void IOConfigGPIOAF(IO_t io, ioConfig_t cfg, uint8_t af)
-{
+void IOConfigGPIOAF(IO_t io, ioConfig_t cfg, uint8_t af) {
     if (!io) {
         return;
     }
-
     const rccPeriphTag_t rcc = ioPortDefs[IO_GPIOPortIdx(io)].rcc;
     RCC_ClockCmd(rcc, ENABLE);
     GPIO_PinAFConfig(IO_GPIO(io), IO_GPIO_PinSource(io), af);
-
     GPIO_InitTypeDef init = {
         .GPIO_Pin = IO_Pin(io),
         .GPIO_Mode = (cfg >> 0) & 0x03,
@@ -392,10 +354,8 @@ ioRec_t ioRecs[1];
 
 // initialize all ioRec_t structures from ROM
 // currently only bitmask is used, this may change in future
-void IOInitGlobal(void)
-{
+void IOInitGlobal(void) {
     ioRec_t *ioRec = ioRecs;
-
     for (unsigned port = 0; port < ARRAYLEN(ioDefUsedMask); port++) {
         for (unsigned pin = 0; pin < sizeof(ioDefUsedMask[0]) * 8; pin++) {
             if (ioDefUsedMask[port] & (1 << pin)) {
@@ -407,11 +367,9 @@ void IOInitGlobal(void)
     }
 }
 
-IO_t IOGetByTag(ioTag_t tag)
-{
+IO_t IOGetByTag(ioTag_t tag) {
     const int portIdx = DEFIO_TAG_GPIOID(tag);
     const int pinIdx = DEFIO_TAG_PIN(tag);
-
     if (portIdx < 0 || portIdx >= DEFIO_PORT_USED_COUNT) {
         return NULL;
     }
