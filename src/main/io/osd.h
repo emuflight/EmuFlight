@@ -95,8 +95,19 @@ typedef enum {
     OSD_ADJUSTMENT_RANGE,
     OSD_CORE_TEMPERATURE,
     OSD_G_FORCE,
+    OSD_CRSF_SNR,
+    OSD_CRSF_TX,
+    OSD_CRSF_RSSI,
+
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
+
+typedef enum {
+    TBS = 0,
+    MODE,
+    FREQ,
+    FORMAT_COUNT
+} crsfformat_e;
 
 // *** IMPORTANT ***
 // The order of the OSD stats enumeration *must* match the order they're displayed on-screen
@@ -166,6 +177,7 @@ typedef enum {
     OSD_WARNING_COUNT // MUST BE LAST
 } osdWarningsFlags_e;
 
+
 // Make sure the number of warnings do not exceed the available 16bit storage
 STATIC_ASSERT(OSD_WARNING_COUNT <= 16, osdwarnings_overflow);
 
@@ -179,8 +191,9 @@ typedef struct osdConfig_s {
     // Alarms
     uint16_t cap_alarm;
     uint16_t alt_alarm;
+    uint16_t lq_alarm;
     uint8_t rssi_alarm;
-uint16_t distance_alarm;
+    uint16_t distance_alarm;
 
     osd_unit_e units;
 
@@ -194,6 +207,8 @@ uint16_t distance_alarm;
     int16_t esc_rpm_alarm;
     int16_t esc_current_alarm;
     uint8_t core_temp_alarm;
+
+    crsfformat_e lq_format;
 } osdConfig_t;
 
 PG_DECLARE(osdConfig_t, osdConfig);
@@ -211,3 +226,4 @@ bool osdStatGetState(uint8_t statIndex);
 void osdWarnSetState(uint8_t warningIndex, bool enabled);
 bool osdWarnGetState(uint8_t warningIndex);
 bool osdWarnDjiEnabled(void);
+void setCrsfRssi(bool b);
