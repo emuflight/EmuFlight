@@ -167,7 +167,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .launchControlAngleLimit = 0,
         .launchControlGain = 40,
         .launchControlAllowTriggerReset = true,
-        .thrustLinearization = 15,
+        .thrustLinearization = 40,
         .d_min = { 0, 0, 0 },      // roll, pitch, yaw
         .d_min_gain = 37,
         .d_min_advance = 20,
