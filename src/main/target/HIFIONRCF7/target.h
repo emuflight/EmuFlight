@@ -61,7 +61,7 @@
 #define GYRO_2_ALIGN                      CW90_DEG
 #define ACC_2_ALIGN                       CW90_DEG
 
-#define GYRO_CONFIG_USE_GYRO_DEFAULT      GYRO_CONFIG_USE_GYRO_1
+#define GYRO_CONFIG_USE_GYRO_DEFAULT      GYRO_CONFIG_USE_GYRO_2
 
 #define USE_ACC
 #define USE_GYRO

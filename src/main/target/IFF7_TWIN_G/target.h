@@ -94,6 +94,21 @@
 #define UART5_TX_PIN            PC12
 #define UART5_RX_PIN            PD2
 
+#define USE_I2C
+#define USE_I2C_DEVICE_2
+#define I2C_DEVICE_2            (I2CDEV_2)
+#define I2C2_SCL                PB10
+#define I2C2_SDA                PB11
+
+#define BARO_I2C_INSTANCE       (I2CDEV_2)
+#define USE_BARO
+#define USE_BARO_BMP280
+#define USE_BARO_MS5611
+
+#define MAG_I2C_INSTANCE        (I2CDEV_2)
+#define USE_MAG
+#define USE_MAG_HMC5883
+#define USE_MAG_QMC5883
 
 #define USE_SPI
 
