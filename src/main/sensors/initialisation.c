@@ -46,32 +46,23 @@
 uint8_t requestedSensors[SENSOR_INDEX_COUNT] = { GYRO_NONE, ACC_NONE, BARO_NONE, MAG_NONE, RANGEFINDER_NONE };
 uint8_t detectedSensors[SENSOR_INDEX_COUNT] = { GYRO_NONE, ACC_NONE, BARO_NONE, MAG_NONE, RANGEFINDER_NONE };
 
-bool sensorsAutodetect(void)
-{
-
+bool sensorsAutodetect(void) {
     // gyro must be initialised before accelerometer
-
     bool gyroDetected = gyroInit();
-
     if (gyroDetected) {
         accInit();
     }
-
 #ifdef USE_MAG
     compassInit();
 #endif
-
 #ifdef USE_BARO
     baroDetect(&baro.dev, barometerConfig()->baro_hardware);
 #endif
-
 #ifdef USE_RANGEFINDER
     rangefinderInit();
 #endif
-
 #ifdef USE_ADC_INTERNAL
     adcInternalInit();
 #endif
-
     return gyroDetected;
 }

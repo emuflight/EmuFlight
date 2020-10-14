@@ -37,14 +37,11 @@ static targetSerialPortFunction_t targetSerialPortFunction[] = {
     { TELEMETRY_UART, FUNCTION_TELEMETRY_SMARTPORT },
 };
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     targetSerialPortFunctionConfig(targetSerialPortFunction, ARRAYLEN(targetSerialPortFunction));
     telemetryConfigMutable()->halfDuplex = 0;
     telemetryConfigMutable()->telemetry_inverted = true;
-
     // Register MAX7456 CS pin as OPU
-
     // Invalidate IPU entry first
     for (int i = 0 ; i < SPI_PREINIT_IPU_COUNT ; i++) {
         if (spiPreinitIPUConfig(i)->csnTag == IO_TAG(MAX7456_SPI_CS_PIN)) {
@@ -52,7 +49,6 @@ void targetConfiguration(void)
             break;
         }
     }
-
     // Add as OPU entry
     for (int i = 0 ; i < SPI_PREINIT_OPU_COUNT ; i++) {
         if (spiPreinitOPUConfig(i)->csnTag == IO_TAG(NONE)) {

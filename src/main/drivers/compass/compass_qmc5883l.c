@@ -72,66 +72,48 @@
 #define QMC5883L_REG_ID 0x0D
 #define QMC5883_ID_VAL 0xFF
 
-static bool qmc5883lInit(magDev_t *magDev)
-{
+static bool qmc5883lInit(magDev_t *magDev) {
     UNUSED(magDev);
-
     bool ack = true;
     busDevice_t *busdev = &magDev->busdev;
-
     ack = ack && busWriteRegister(busdev, 0x0B, 0x01);
     ack = ack && busWriteRegister(busdev, QMC5883L_REG_CONF1, QMC5883L_MODE_CONTINUOUS | QMC5883L_ODR_200HZ | QMC5883L_OSR_512 | QMC5883L_RNG_8G);
-
     if (!ack) {
         return false;
     }
-
     return true;
 }
 
-static bool qmc5883lRead(magDev_t *magDev, int16_t *magData)
-{
+static bool qmc5883lRead(magDev_t *magDev, int16_t *magData) {
     uint8_t status;
     uint8_t buf[6];
-
     // set magData to zero for case of failed read
     magData[X] = 0;
     magData[Y] = 0;
     magData[Z] = 0;
-
     busDevice_t *busdev = &magDev->busdev;
-
     bool ack = busReadRegisterBuffer(busdev, QMC5883L_REG_STATUS, &status, 1);
-
     if (!ack || (status & 0x04) == 0) {
         return false;
     }
-
     ack = busReadRegisterBuffer(busdev, QMC5883L_REG_DATA_OUTPUT_X, buf, 6);
     if (!ack) {
         return false;
     }
-
     magData[X] = (int16_t)(buf[1] << 8 | buf[0]);
     magData[Y] = (int16_t)(buf[3] << 8 | buf[2]);
     magData[Z] = (int16_t)(buf[5] << 8 | buf[4]);
-
     return true;
 }
 
-bool qmc5883lDetect(magDev_t *magDev)
-{
-
+bool qmc5883lDetect(magDev_t *magDev) {
     busDevice_t *busdev = &magDev->busdev;
-
     if (busdev->bustype == BUSTYPE_I2C && busdev->busdev_u.i2c.address == 0) {
         busdev->busdev_u.i2c.address = QMC5883L_MAG_I2C_ADDRESS;
     }
-
     // Must write reset first  - don't care about the result
     busWriteRegister(busdev, QMC5883L_REG_CONF2, QMC5883L_RST);
     delay(20);
-
     uint8_t sig = 0;
     bool ack = busReadRegisterBuffer(busdev, QMC5883L_REG_ID, &sig, 1);
     if (ack && sig == QMC5883_ID_VAL) {
@@ -145,7 +127,6 @@ bool qmc5883lDetect(magDev_t *magDev)
         magDev->read = qmc5883lRead;
         return true;
     }
-
     return false;
 }
 #endif

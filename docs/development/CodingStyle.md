@@ -12,12 +12,12 @@ K&R indent style with 4 space indent, NO hard tabs (all tabs replaced by spaces)
 ##Tool support
 Any of these tools can get you pretty close:
 
-Eclipse built in "K&R" style, after changing the indent to 4 spaces and change Braces after function declarations to Next line.
+Eclipse built in "K&R" style, after changing the indent to 4 spaces ~~and change Braces after function declarations to Next line.~~
 ```
-astyle --style=kr --indent=spaces=4 --min-conditional-indent=0 --max-instatement-indent=80 --pad-header --pad-oper --align-pointer=name --align-reference=name --max-code-length=120 --convert-tabs --preserve-date --suffix=none --mode=c
+astyle --style=attach --indent=spaces=4 --pad-oper --convert-tabs --preserve-date --suffix=none --mode=c --delete-empty-lines <sourcefile>
 ```
 ```
-indent -kr -i4 -nut
+indent -brs -brf -br -ce -cdw -nbbo -pcs -i4 -nut <sourcefile>
 ```
 (the options for these commands can be tuned more to comply even better)
 
@@ -27,7 +27,7 @@ Sometimes, for example, you may want other columns and line breaks so it looks l
 Note2: The Astyle settings have been tested and will produce a nice result. Many files will be changed, mostly to the better but maybe not always, so use with care. 
 
 ##Curly Braces
-Functions shall have the opening brace at the beginning of the next line.
+Functions shall have the opening brace on the same line.
 
 All non-function statement blocks (if, switch, for) shall have the opening brace last on the same line, with the following statement on the next line.
 

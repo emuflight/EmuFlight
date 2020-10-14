@@ -42,21 +42,16 @@ typedef struct pinioBoxRuntimeConfig_s {
 
 static pinioBoxRuntimeConfig_t pinioBoxRuntimeConfig;
 
-void pinioBoxInit(const pinioBoxConfig_t *pinioBoxConfig)
-{
+void pinioBoxInit(const pinioBoxConfig_t *pinioBoxConfig) {
     // Convert permanentId to boxId_e
-
     for (int i = 0; i < PINIO_COUNT; i++) {
         const box_t *box = findBoxByPermanentId(pinioBoxConfig->permanentId[i]);
-
         pinioBoxRuntimeConfig.boxId[i] = box ? box->boxId : BOXID_NONE;
     }
 }
 
-void pinioBoxUpdate(timeUs_t currentTimeUs)
-{
+void pinioBoxUpdate(timeUs_t currentTimeUs) {
     UNUSED(currentTimeUs);
-
     for (int i = 0; i < PINIO_COUNT; i++) {
         if (pinioBoxRuntimeConfig.boxId[i] != BOXID_NONE) {
             pinioSet(i, getBoxIdState(pinioBoxRuntimeConfig.boxId[i]));

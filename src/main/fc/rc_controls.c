@@ -75,44 +75,41 @@ float rcCommand[4];           // interval [1000;2000] for THROTTLE and [-500;+50
 PG_REGISTER_WITH_RESET_TEMPLATE(rcControlsConfig_t, rcControlsConfig, PG_RC_CONTROLS_CONFIG, 0);
 
 PG_RESET_TEMPLATE(rcControlsConfig_t, rcControlsConfig,
-    .deadband = 0,
-    .yaw_deadband = 0,
-    .alt_hold_deadband = 40,
-    .alt_hold_fast_change = 1,
-    .yaw_control_reversed = false
-);
+                  .deadband = 0,
+                  .yaw_deadband = 0,
+                  .alt_hold_deadband = 40,
+                  .alt_hold_fast_change = 1,
+                  .yaw_control_reversed = false
+                 );
 
 PG_REGISTER_WITH_RESET_TEMPLATE(armingConfig_t, armingConfig, PG_ARMING_CONFIG, 1);
 
 PG_RESET_TEMPLATE(armingConfig_t, armingConfig,
-    .gyro_cal_on_first_arm = 0,  // TODO - Cleanup retarded arm support
-    .auto_disarm_delay = 5,
-    .isUsingSticksForArming = false
-);
+                  .gyro_cal_on_first_arm = 0,  // TODO - Cleanup retarded arm support
+                  .auto_disarm_delay = 5,
+                  .isUsingSticksForArming = false
+                 );
 
 PG_REGISTER_WITH_RESET_TEMPLATE(flight3DConfig_t, flight3DConfig, PG_MOTOR_3D_CONFIG, 0);
 PG_RESET_TEMPLATE(flight3DConfig_t, flight3DConfig,
-    .deadband3d_low = 1406,
-    .deadband3d_high = 1514,
-    .neutral3d = 1460,
-    .deadband3d_throttle = 3,
-    .limit3d_low = 1000,
-    .limit3d_high = 2000,
-    .switched_mode3d = false
-);
+                  .deadband3d_low = 1406,
+                  .deadband3d_high = 1514,
+                  .neutral3d = 1460,
+                  .deadband3d_throttle = 3,
+                  .limit3d_low = 1000,
+                  .limit3d_high = 2000,
+                  .switched_mode3d = false
+                 );
 
-bool isUsingSticksForArming(void)
-{
+bool isUsingSticksForArming(void) {
     return armingConfig()->isUsingSticksForArming;
 }
 
-bool areSticksInApModePosition(uint16_t ap_mode)
-{
+bool areSticksInApModePosition(uint16_t ap_mode) {
     return ABS(rcCommand[ROLL]) < ap_mode && ABS(rcCommand[PITCH]) < ap_mode;
 }
 
-throttleStatus_e calculateThrottleStatus(void)
-{
+throttleStatus_e calculateThrottleStatus(void) {
     if (feature(FEATURE_3D)) {
         if (IS_RC_MODE_ACTIVE(BOX3D) || flight3DConfig()->switched_mode3d) {
             if (rcData[THROTTLE] < rxConfig()->mincheck) {
@@ -124,7 +121,6 @@ throttleStatus_e calculateThrottleStatus(void)
     } else if (rcData[THROTTLE] < rxConfig()->mincheck) {
         return THROTTLE_LOW;
     }
-
     return THROTTLE_HIGH;
 }
 
@@ -135,8 +131,7 @@ throttleStatus_e calculateThrottleStatus(void)
     rcDelayMs -= (t); \
     doNotRepeat = false; \
 }
-void processRcStickPositions()
-{
+void processRcStickPositions() {
     // time the sticks are maintained
     static int16_t rcDelayMs;
     // hold sticks position for command combos
@@ -144,13 +139,11 @@ void processRcStickPositions()
     // an extra guard for disarming through switch to prevent that one frame can disarm it
     static uint8_t rcDisarmTicks;
     static bool doNotRepeat;
-
 #ifdef USE_CMS
     if (cmsInMenu) {
         return;
     }
 #endif
-
     // checking sticks positions
     uint8_t stTmp = 0;
     for (int i = 0; i < 4; i++) {
@@ -171,7 +164,6 @@ void processRcStickPositions()
         doNotRepeat = false;
     }
     rcSticks = stTmp;
-
     // perform actions
     if (!isUsingSticksForArming()) {
         if (IS_RC_MODE_ACTIVE(BOXARM)) {
@@ -199,7 +191,6 @@ void processRcStickPositions()
             else {
                 beeper(BEEPER_DISARM_REPEAT);     // sound tone while stick held
                 repeatAfter(STICK_AUTOREPEAT_MS); // disarm tone will repeat
-
 #ifdef USE_RUNAWAY_TAKEOFF
                 // Unset the ARMING_DISABLED_RUNAWAY_TAKEOFF arming disabled flag that might have been set
                 // by a runaway pidSum detection auto-disarm.
@@ -227,38 +218,30 @@ void processRcStickPositions()
     } else {
         resetTryingToArm();
     }
-
     if (ARMING_FLAG(ARMED) || doNotRepeat || rcDelayMs <= STICK_DELAY_MS || (getArmingDisableFlags() & ARMING_DISABLED_RUNAWAY_TAKEOFF)) {
         return;
     }
     doNotRepeat = true;
-
     // actions during not armed
-
     if (rcSticks == THR_LO + YAW_LO + PIT_LO + ROL_CE) {
         // GYRO calibration
         gyroStartCalibration(false);
-
 #ifdef USE_GPS
         if (feature(FEATURE_GPS)) {
             GPS_reset_home_position();
         }
 #endif
-
 #ifdef USE_BARO
         if (sensors(SENSOR_BARO))
             baroSetCalibrationCycles(10); // calibrate baro to new ground level (10 * 25 ms = ~250 ms non blocking)
 #endif
-
         return;
     }
-
     if (feature(FEATURE_INFLIGHT_ACC_CAL) && (rcSticks == THR_LO + YAW_LO + PIT_HI + ROL_HI)) {
         // Inflight ACC Calibration
         handleInflightCalibrationStickPosition();
         return;
     }
-
     // Change PID profile
     switch (rcSticks) {
     case THR_LO + YAW_LO + PIT_CE + ROL_LO:
@@ -274,30 +257,23 @@ void processRcStickPositions()
         changePidProfile(2);
         return;
     }
-
     if (rcSticks == THR_LO + YAW_LO + PIT_LO + ROL_HI) {
         saveConfigAndNotify();
     }
-
     if (rcSticks == THR_HI + YAW_LO + PIT_LO + ROL_CE) {
         // Calibrating Acc
         accSetCalibrationCycles(CALIBRATING_ACC_CYCLES);
         return;
     }
-
-
     if (rcSticks == THR_HI + YAW_HI + PIT_LO + ROL_CE) {
         // Calibrating Mag
         ENABLE_STATE(CALIBRATE_MAG);
         return;
     }
-
-
-    if (FLIGHT_MODE(ANGLE_MODE|HORIZON_MODE)) {
+    if (FLIGHT_MODE(ANGLE_MODE | HORIZON_MODE)) {
         // in ANGLE or HORIZON mode, so use sticks to apply accelerometer trims
         rollAndPitchTrims_t accelerometerTrimsDelta;
         memset(&accelerometerTrimsDelta, 0, sizeof(accelerometerTrimsDelta));
-
         bool shouldApplyRollAndPitchTrimDelta = false;
         switch (rcSticks) {
         case THR_HI + YAW_CE + PIT_HI + ROL_CE:
@@ -339,17 +315,14 @@ void processRcStickPositions()
             return;
         }
     }
-
 #ifdef USE_DASHBOARD
     if (rcSticks == THR_LO + YAW_CE + PIT_HI + ROL_LO) {
         dashboardDisablePageCycling();
     }
-
     if (rcSticks == THR_LO + YAW_CE + PIT_HI + ROL_HI) {
         dashboardEnablePageCycling();
     }
 #endif
-
 #ifdef USE_VTX_CONTROL
     if (rcSticks ==  THR_HI + YAW_LO + PIT_CE + ROL_HI) {
         vtxIncrementBand();
@@ -364,7 +337,6 @@ void processRcStickPositions()
         vtxDecrementChannel();
     }
 #endif
-
 #ifdef USE_CAMERA_CONTROL
     if (rcSticks == THR_CE + YAW_HI + PIT_CE + ROL_CE) {
         cameraControlKeyPress(CAMERA_CONTROL_KEY_ENTER, 0);
