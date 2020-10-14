@@ -35,10 +35,8 @@
 
 spiDevice_t spiDevice[SPIDEV_COUNT];
 
-void spiInitDevice(SPIDevice device)
-{
+void spiInitDevice(SPIDevice device) {
     spiDevice_t *spi = &(spiDevice[device]);
-
 #ifdef SDCARD_SPI_INSTANCE
     if (spi->dev == SDCARD_SPI_INSTANCE) {
         spi->leadingEdge = true;
@@ -49,15 +47,12 @@ void spiInitDevice(SPIDevice device)
         spi->leadingEdge = true;
     }
 #endif
-
     // Enable SPI clock
     RCC_ClockCmd(spi->rcc, ENABLE);
     RCC_ResetCmd(spi->rcc, ENABLE);
-
     IOInit(IOGetByTag(spi->sck),  OWNER_SPI_SCK,  RESOURCE_INDEX(device));
     IOInit(IOGetByTag(spi->miso), OWNER_SPI_MISO, RESOURCE_INDEX(device));
     IOInit(IOGetByTag(spi->mosi), OWNER_SPI_MOSI, RESOURCE_INDEX(device));
-
 #if defined(STM32F3) || defined(STM32F4)
     IOConfigGPIOAF(IOGetByTag(spi->sck),  SPI_IO_AF_CFG, spi->af);
     IOConfigGPIOAF(IOGetByTag(spi->miso), SPI_IO_AF_CFG, spi->af);
@@ -69,10 +64,8 @@ void spiInitDevice(SPIDevice device)
 #else
 #error Undefined MCU architecture
 #endif
-
     // Init SPI hardware
     SPI_I2S_DeInit(spi->dev);
-
     SPI_InitTypeDef spiInit;
     spiInit.SPI_Mode = SPI_Mode_Master;
     spiInit.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
@@ -81,7 +74,6 @@ void spiInitDevice(SPIDevice device)
     spiInit.SPI_FirstBit = SPI_FirstBit_MSB;
     spiInit.SPI_CRCPolynomial = 7;
     spiInit.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;
-
     if (spi->leadingEdge) {
         spiInit.SPI_CPOL = SPI_CPOL_Low;
         spiInit.SPI_CPHA = SPI_CPHA_1Edge;
@@ -89,25 +81,20 @@ void spiInitDevice(SPIDevice device)
         spiInit.SPI_CPOL = SPI_CPOL_High;
         spiInit.SPI_CPHA = SPI_CPHA_2Edge;
     }
-
 #ifdef STM32F303xC
     // Configure for 8-bit reads.
     SPI_RxFIFOThresholdConfig(spi->dev, SPI_RxFIFOThreshold_QF);
 #endif
-
     SPI_Init(spi->dev, &spiInit);
     SPI_Cmd(spi->dev, ENABLE);
 }
 
 // return uint8_t value or -1 when failure
-uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t txByte)
-{
+uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t txByte) {
     uint16_t spiTimeout = 1000;
-
     while (SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_TXE) == RESET)
         if ((spiTimeout--) == 0)
             return spiTimeoutUserCallback(instance);
-
 #ifdef STM32F303xC
     SPI_SendData8(instance, txByte);
 #else
@@ -117,7 +104,6 @@ uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t txByte)
     while (SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_RXNE) == RESET)
         if ((spiTimeout--) == 0)
             return spiTimeoutUserCallback(instance);
-
 #ifdef STM32F303xC
     return ((uint8_t)SPI_ReceiveData8(instance));
 #else
@@ -128,20 +114,16 @@ uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t txByte)
 /**
  * Return true if the bus is currently in the middle of a transmission.
  */
-bool spiIsBusBusy(SPI_TypeDef *instance)
-{
+bool spiIsBusBusy(SPI_TypeDef *instance) {
 #ifdef STM32F303xC
     return SPI_GetTransmissionFIFOStatus(instance) != SPI_TransmissionFIFOStatus_Empty || SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_BSY) == SET;
 #else
     return SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_TXE) == RESET || SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_BSY) == SET;
 #endif
-
 }
 
-bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, int len)
-{
+bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, int len) {
     uint16_t spiTimeout = 1000;
-
     uint8_t b;
     instance->DR;
     while (len--) {
@@ -168,29 +150,21 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
         if (rxData)
             *(rxData++) = b;
     }
-
     return true;
 }
 
-void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor)
-{
+void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {
 #define BR_BITS ((BIT(5) | BIT(4) | BIT(3)))
-
 #if !(defined(STM32F1) || defined(STM32F3))
     // SPI2 and SPI3 are on APB1/AHB1 which PCLK is half that of APB2/AHB2.
-
     if (instance == SPI2 || instance == SPI3) {
         divisor /= 2; // Safe for divisor == 0 or 1
     }
 #endif
-
     SPI_Cmd(instance, DISABLE);
-
     const uint16_t tempRegister = (instance->CR1 & ~BR_BITS);
     instance->CR1 = tempRegister | (divisor ? ((ffs(divisor | 0x100) - 2) << 3) : 0);
-
     SPI_Cmd(instance, ENABLE);
-
 #undef BR_BITS
 }
 #endif

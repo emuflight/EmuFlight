@@ -27,8 +27,7 @@
 #include "drivers/timer_def.h"
 #include "drivers/dma.h"
 
-const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] =
-{
+const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     // TIM8_UP, DMA2_CH1
     DEF_TIM(TIM8, CH2, PB8, TIM_USE_MOTOR, 0),
     DEF_TIM(TIM8, CH3, PB9, TIM_USE_MOTOR, 0),

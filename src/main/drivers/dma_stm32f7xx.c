@@ -74,8 +74,7 @@ DEFINE_DMA_IRQ_HANDLER(2, 5, DMA2_ST5_HANDLER)
 DEFINE_DMA_IRQ_HANDLER(2, 6, DMA2_ST6_HANDLER)
 DEFINE_DMA_IRQ_HANDLER(2, 7, DMA2_ST7_HANDLER)
 
-static void enableDmaClock(int index)
-{
+static void enableDmaClock(int index) {
     const uint32_t rcc = dmaDescriptors[index].dma == DMA1 ? RCC_AHB1ENR_DMA1EN : RCC_AHB1ENR_DMA2EN;
     do {
         __IO uint32_t tmpreg;
@@ -86,39 +85,31 @@ static void enableDmaClock(int index)
     } while (0);
 }
 
-void dmaInit(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex)
-{
+void dmaInit(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex) {
     const int index = DMA_IDENTIFIER_TO_INDEX(identifier);
-
     enableDmaClock(index);
     dmaDescriptors[index].owner = owner;
     dmaDescriptors[index].resourceIndex = resourceIndex;
 }
 
-void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback, uint32_t priority, uint32_t userParam)
-{
+void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback, uint32_t priority, uint32_t userParam) {
     const int index = DMA_IDENTIFIER_TO_INDEX(identifier);
-
     enableDmaClock(index);
     dmaDescriptors[index].irqHandlerCallback = callback;
     dmaDescriptors[index].userParam = userParam;
-
     HAL_NVIC_SetPriority(dmaDescriptors[index].irqN, NVIC_PRIORITY_BASE(priority), NVIC_PRIORITY_SUB(priority));
     HAL_NVIC_EnableIRQ(dmaDescriptors[index].irqN);
 }
 
-resourceOwner_e dmaGetOwner(dmaIdentifier_e identifier)
-{
+resourceOwner_e dmaGetOwner(dmaIdentifier_e identifier) {
     return dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].owner;
 }
 
-uint8_t dmaGetResourceIndex(dmaIdentifier_e identifier)
-{
+uint8_t dmaGetResourceIndex(dmaIdentifier_e identifier) {
     return dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].resourceIndex;
 }
 
-dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef* stream)
-{
+dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef* stream) {
     for (int i = 0; i < DMA_LAST_HANDLER; i++) {
         if (dmaDescriptors[i].ref == stream) {
             return i + 1;
@@ -127,17 +118,14 @@ dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef* stream)
     return 0;
 }
 
-DMA_Stream_TypeDef* dmaGetRefByIdentifier(const dmaIdentifier_e identifier)
-{
+DMA_Stream_TypeDef* dmaGetRefByIdentifier(const dmaIdentifier_e identifier) {
     return dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].ref;
 }
 
-dmaChannelDescriptor_t* dmaGetDescriptorByIdentifier(const dmaIdentifier_e identifier)
-{
+dmaChannelDescriptor_t* dmaGetDescriptorByIdentifier(const dmaIdentifier_e identifier) {
     return &dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)];
 }
 
-uint32_t dmaGetChannel(const uint8_t channel)
-{
-    return ((uint32_t)channel*2)<<24;
+uint32_t dmaGetChannel(const uint8_t channel) {
+    return ((uint32_t)channel * 2) << 24;
 }
