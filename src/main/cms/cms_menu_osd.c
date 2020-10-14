@@ -46,8 +46,7 @@
 static uint16_t osdConfig_item_pos[OSD_ITEM_COUNT];
 static osdConfig_t osdConfig_one;
 
-static long menuOsdActiveElemsOnEnter(void)
-{
+static long menuOsdActiveElemsOnEnter(void) {
     memcpy(&osdConfig_item_pos[0], &osdConfig()->item_pos[0], sizeof(uint16_t) * OSD_ITEM_COUNT);
     return 0;
 }
@@ -56,18 +55,14 @@ static const char * const cms_osdcrsfformat[] = {
     "TBS", "MODE", "FREQ"
 };
 
-static long menuOsdActiveElemsOnExit(const OSD_Entry *self)
-{
+static long menuOsdActiveElemsOnExit(const OSD_Entry *self) {
     UNUSED(self);
-
-    memcpy(&osdConfigMutable()->item_pos[0], &osdConfig_item_pos[0] , sizeof(uint16_t) * OSD_ITEM_COUNT);
+    memcpy(&osdConfigMutable()->item_pos[0], &osdConfig_item_pos[0], sizeof(uint16_t) * OSD_ITEM_COUNT);
     osdConfigMutable()->lq_format = osdConfig_one.lq_format;
-
     return 0;
 }
 
-OSD_Entry menuOsdActiveElemsEntries[] =
-{
+OSD_Entry menuOsdActiveElemsEntries[] = {
     {"--- ACTIV ELEM ---", OME_Label,   NULL, NULL, 0},
     {"RSSI / LQ",          OME_VISIBLE, NULL, &osdConfig_item_pos[OSD_RSSI_VALUE], 0},
     {"LQ FORMAT",          OME_TAB,     NULL, &(OSD_TAB_t){&osdConfig_one.lq_format, FORMAT_COUNT, cms_osdcrsfformat}, 0 },
@@ -133,30 +128,24 @@ static uint16_t osdConfig_cap_alarm;
 static uint16_t osdConfig_alt_alarm;
 static uint16_t osdConfig_distance_alarm;
 
-static long menuAlarmsOnEnter(void)
-{
+static long menuAlarmsOnEnter(void) {
     osdConfig_rssi_alarm = osdConfig()->rssi_alarm;
     osdConfig_cap_alarm = osdConfig()->cap_alarm;
     osdConfig_alt_alarm = osdConfig()->alt_alarm;
     osdConfig_distance_alarm = osdConfig()->distance_alarm;
-
     return 0;
 }
 
-static long menuAlarmsOnExit(const OSD_Entry *self)
-{
+static long menuAlarmsOnExit(const OSD_Entry *self) {
     UNUSED(self);
-
     osdConfigMutable()->rssi_alarm = osdConfig_rssi_alarm;
     osdConfigMutable()->cap_alarm = osdConfig_cap_alarm;
     osdConfigMutable()->alt_alarm = osdConfig_alt_alarm;
     osdConfigMutable()->distance_alarm = osdConfig_distance_alarm;
-
     return 0;
 }
 
-OSD_Entry menuAlarmsEntries[] =
-{
+OSD_Entry menuAlarmsEntries[] = {
     {"--- ALARMS ---", OME_Label, NULL, NULL, 0},
     {"RSSI",     OME_UINT8,  NULL, &(OSD_UINT8_t){&osdConfig_rssi_alarm, 5, 90, 5}, 0},
     {"MAIN BAT", OME_UINT16, NULL, &(OSD_UINT16_t){&osdConfig_cap_alarm, 50, 30000, 50}, 0},
@@ -181,33 +170,27 @@ osd_timer_source_e timerSource[OSD_TIMER_COUNT];
 osd_timer_precision_e timerPrecision[OSD_TIMER_COUNT];
 uint8_t timerAlarm[OSD_TIMER_COUNT];
 
-static long menuTimersOnEnter(void)
-{
+static long menuTimersOnEnter(void) {
     for (int i = 0; i < OSD_TIMER_COUNT; i++) {
         const uint16_t timer = osdConfig()->timers[i];
         timerSource[i] = OSD_TIMER_SRC(timer);
         timerPrecision[i] = OSD_TIMER_PRECISION(timer);
         timerAlarm[i] = OSD_TIMER_ALARM(timer);
     }
-
     return 0;
 }
 
-static long menuTimersOnExit(const OSD_Entry *self)
-{
+static long menuTimersOnExit(const OSD_Entry *self) {
     UNUSED(self);
-
     for (int i = 0; i < OSD_TIMER_COUNT; i++) {
         osdConfigMutable()->timers[i] = OSD_TIMER(timerSource[i], timerPrecision[i], timerAlarm[i]);
     }
-
     return 0;
 }
 
 static const char * osdTimerPrecisionNames[] = {"SCND", "HDTH"};
 
-OSD_Entry menuTimersEntries[] =
-{
+OSD_Entry menuTimersEntries[] = {
     {"--- TIMERS ---", OME_Label, NULL, NULL, 0},
     {"1 SRC",          OME_TAB,   NULL, &(OSD_TAB_t){&timerSource[OSD_TIMER_1], OSD_TIMER_SRC_COUNT - 1, osdTimerSourceNames}, 0 },
     {"1 PREC",         OME_TAB,   NULL, &(OSD_TAB_t){&timerPrecision[OSD_TIMER_1], OSD_TIMER_PREC_COUNT - 1, osdTimerPrecisionNames}, 0},
@@ -237,32 +220,26 @@ static uint8_t displayPortProfileMax7456_blackBrightness;
 static uint8_t displayPortProfileMax7456_whiteBrightness;
 #endif
 
-static long cmsx_menuOsdOnEnter(void)
-{
+static long cmsx_menuOsdOnEnter(void) {
 #ifdef USE_MAX7456
     displayPortProfileMax7456_invert = displayPortProfileMax7456()->invert;
     displayPortProfileMax7456_blackBrightness = displayPortProfileMax7456()->blackBrightness;
     displayPortProfileMax7456_whiteBrightness = displayPortProfileMax7456()->whiteBrightness;
 #endif
-
     return 0;
 }
 
-static long cmsx_menuOsdOnExit(const OSD_Entry *self)
-{
+static long cmsx_menuOsdOnExit(const OSD_Entry *self) {
     UNUSED(self);
-
 #ifdef USE_MAX7456
     displayPortProfileMax7456Mutable()->invert = displayPortProfileMax7456_invert;
     displayPortProfileMax7456Mutable()->blackBrightness = displayPortProfileMax7456_blackBrightness;
     displayPortProfileMax7456Mutable()->whiteBrightness = displayPortProfileMax7456_whiteBrightness;
 #endif
-
-  return 0;
+    return 0;
 }
 
-OSD_Entry cmsx_menuOsdEntries[] =
-{
+OSD_Entry cmsx_menuOsdEntries[] = {
     {"---OSD---",   OME_Label,   NULL,          NULL,                0},
 #ifdef USE_EXTENDED_CMS_MENUS
     {"ACTIVE ELEM", OME_Submenu, cmsMenuChange, &menuOsdActiveElems, 0},

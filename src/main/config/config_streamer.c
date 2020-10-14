@@ -66,13 +66,11 @@ extern uint8_t __config_end;
 # endif
 #endif
 
-void config_streamer_init(config_streamer_t *c)
-{
+void config_streamer_init(config_streamer_t *c) {
     memset(c, 0, sizeof(*c));
 }
 
-void config_streamer_start(config_streamer_t *c, uintptr_t base, int size)
-{
+void config_streamer_start(config_streamer_t *c, uintptr_t base, int size) {
     // base must start at FLASH_PAGE_SIZE boundary
     c->address = base;
     c->size = size;
@@ -84,7 +82,6 @@ void config_streamer_start(config_streamer_t *c, uintptr_t base, int size)
 #endif
         c->unlocked = true;
     }
-
 #if defined(STM32F10X)
     FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPRTERR);
 #elif defined(STM32F303)
@@ -113,8 +110,7 @@ Sector 6    0x08080000 - 0x080BFFFF 256 Kbytes
 Sector 7    0x080C0000 - 0x080FFFFF 256 Kbytes
 */
 
-static uint32_t getFLASHSectorForEEPROM(void)
-{
+static uint32_t getFLASHSectorForEEPROM(void) {
     if ((uint32_t)&__config_start <= 0x08007FFF)
         return FLASH_SECTOR_0;
     if ((uint32_t)&__config_start <= 0x0800FFFF)
@@ -131,7 +127,6 @@ static uint32_t getFLASHSectorForEEPROM(void)
         return FLASH_SECTOR_6;
     if ((uint32_t)&__config_start <= 0x080FFFFF)
         return FLASH_SECTOR_7;
-
     // Not good
     while (1) {
         failureMode(FAILURE_FLASH_WRITE_FAILED);
@@ -150,8 +145,7 @@ Sector 6    0x08040000 - 0x0805FFFF 128 Kbytes
 Sector 7    0x08060000 - 0x0807FFFF 128 Kbytes
 */
 
-static uint32_t getFLASHSectorForEEPROM(void)
-{
+static uint32_t getFLASHSectorForEEPROM(void) {
     if ((uint32_t)&__config_start <= 0x08003FFF)
         return FLASH_SECTOR_0;
     if ((uint32_t)&__config_start <= 0x08007FFF)
@@ -168,7 +162,6 @@ static uint32_t getFLASHSectorForEEPROM(void)
         return FLASH_SECTOR_6;
     if ((uint32_t)&__config_start <= 0x0807FFFF)
         return FLASH_SECTOR_7;
-
     // Not good
     while (1) {
         failureMode(FAILURE_FLASH_WRITE_FAILED);
@@ -191,8 +184,7 @@ Sector 10   0x080C0000 - 0x080DFFFF 128 Kbytes
 Sector 11   0x080E0000 - 0x080FFFFF 128 Kbytes
 */
 
-static uint32_t getFLASHSectorForEEPROM(void)
-{
+static uint32_t getFLASHSectorForEEPROM(void) {
     if ((uint32_t)&__config_start <= 0x08003FFF)
         return FLASH_Sector_0;
     if ((uint32_t)&__config_start <= 0x08007FFF)
@@ -217,7 +209,6 @@ static uint32_t getFLASHSectorForEEPROM(void)
         return FLASH_Sector_10;
     if ((uint32_t)&__config_start <= 0x080FFFFF)
         return FLASH_Sector_11;
-
     // Not good
     while (1) {
         failureMode(FAILURE_FLASH_WRITE_FAILED);
@@ -225,8 +216,7 @@ static uint32_t getFLASHSectorForEEPROM(void)
 }
 #endif
 
-static int write_word(config_streamer_t *c, uint32_t value)
-{
+static int write_word(config_streamer_t *c, uint32_t value) {
     if (c->err != 0) {
         return c->err;
     }
@@ -268,11 +258,9 @@ static int write_word(config_streamer_t *c, uint32_t value)
     return 0;
 }
 
-int config_streamer_write(config_streamer_t *c, const uint8_t *p, uint32_t size)
-{
+int config_streamer_write(config_streamer_t *c, const uint8_t *p, uint32_t size) {
     for (const uint8_t *pat = p; pat != (uint8_t*)p + size; pat++) {
         c->buffer.b[c->at++] = *pat;
-
         if (c->at == sizeof(c->buffer)) {
             c->err = write_word(c, c->buffer.w);
             c->at = 0;
@@ -281,13 +269,11 @@ int config_streamer_write(config_streamer_t *c, const uint8_t *p, uint32_t size)
     return c->err;
 }
 
-int config_streamer_status(config_streamer_t *c)
-{
+int config_streamer_status(config_streamer_t *c) {
     return c->err;
 }
 
-int config_streamer_flush(config_streamer_t *c)
-{
+int config_streamer_flush(config_streamer_t *c) {
     if (c->at != 0) {
         memset(c->buffer.b + c->at, 0, sizeof(c->buffer) - c->at);
         c->err = write_word(c, c->buffer.w);
@@ -296,8 +282,7 @@ int config_streamer_flush(config_streamer_t *c)
     return c-> err;
 }
 
-int config_streamer_finish(config_streamer_t *c)
-{
+int config_streamer_finish(config_streamer_t *c) {
     if (c->unlocked) {
 #if defined(STM32F7)
         HAL_FLASH_Lock();

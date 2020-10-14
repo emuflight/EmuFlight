@@ -28,9 +28,7 @@
 
 #define  USE_TARGET_CONFIG
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     pinioBoxConfigMutable()->permanentId[0] = 40;
     pinioBoxConfigMutable()->permanentId[1] = 41;
-
 }

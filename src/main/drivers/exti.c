@@ -67,8 +67,7 @@ static const uint8_t extiGroupIRQn[EXTI_IRQ_GROUPS] = {
 #endif
 
 
-void EXTIInit(void)
-{
+void EXTIInit(void) {
 #if defined(STM32F1)
     // enable AFIO for EXTI support
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
@@ -87,14 +86,12 @@ void EXTIInit(void)
     memset(extiGroupPriority, 0xff, sizeof(extiGroupPriority));
 }
 
-void EXTIHandlerInit(extiCallbackRec_t *self, extiHandlerCallback *fn)
-{
+void EXTIHandlerInit(extiCallbackRec_t *self, extiHandlerCallback *fn) {
     self->fn = fn;
 }
 
 #if defined(STM32F7)
-void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, ioConfig_t config)
-{
+void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, ioConfig_t config) {
     (void)config;
     int chIdx;
     chIdx = IO_GPIOPinIdx(io);
@@ -102,7 +99,6 @@ void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, ioConfig_t conf
         return;
     extiChannelRec_t *rec = &extiChannelRecs[chIdx];
     int group = extiGroups[chIdx];
-
     GPIO_InitTypeDef init = {
         .Pin = IO_Pin(io),
         .Mode = GPIO_MODE_IT_RISING,
@@ -110,12 +106,9 @@ void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, ioConfig_t conf
         .Pull = GPIO_NOPULL,
     };
     HAL_GPIO_Init(IO_GPIO(io), &init);
-
     rec->handler = cb;
     //uint32_t extiLine = IO_EXTI_Line(io);
-
     //EXTI_ClearITPendingBit(extiLine);
-
     if (extiGroupPriority[group] > irqPriority) {
         extiGroupPriority[group] = irqPriority;
         HAL_NVIC_SetPriority(extiGroupIRQn[group], NVIC_PRIORITY_BASE(irqPriority), NVIC_PRIORITY_SUB(irqPriority));
@@ -124,15 +117,13 @@ void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, ioConfig_t conf
 }
 #else
 
-void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, EXTITrigger_TypeDef trigger)
-{
+void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, EXTITrigger_TypeDef trigger) {
     int chIdx;
     chIdx = IO_GPIOPinIdx(io);
     if (chIdx < 0)
         return;
     extiChannelRec_t *rec = &extiChannelRecs[chIdx];
     int group = extiGroups[chIdx];
-
     rec->handler = cb;
 #if defined(STM32F10X)
     GPIO_EXTILineConfig(IO_GPIO_PortSource(io), IO_GPIO_PinSource(io));
@@ -144,19 +135,15 @@ void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, EXTITrigger_Typ
 # warning "Unknown CPU"
 #endif
     uint32_t extiLine = IO_EXTI_Line(io);
-
     EXTI_ClearITPendingBit(extiLine);
-
     EXTI_InitTypeDef EXTIInit;
     EXTIInit.EXTI_Line = extiLine;
     EXTIInit.EXTI_Mode = EXTI_Mode_Interrupt;
     EXTIInit.EXTI_Trigger = trigger;
     EXTIInit.EXTI_LineCmd = ENABLE;
     EXTI_Init(&EXTIInit);
-
     if (extiGroupPriority[group] > irqPriority) {
         extiGroupPriority[group] = irqPriority;
-
         NVIC_InitTypeDef NVIC_InitStructure;
         NVIC_InitStructure.NVIC_IRQChannel = extiGroupIRQn[group];
         NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(irqPriority);
@@ -167,11 +154,9 @@ void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, EXTITrigger_Typ
 }
 #endif
 
-void EXTIRelease(IO_t io)
-{
+void EXTIRelease(IO_t io) {
     // don't forget to match cleanup with config
     EXTIEnable(io, false);
-
     int chIdx;
     chIdx = IO_GPIOPinIdx(io);
     if (chIdx < 0)
@@ -180,8 +165,7 @@ void EXTIRelease(IO_t io)
     rec->handler = NULL;
 }
 
-void EXTIEnable(IO_t io, bool enable)
-{
+void EXTIEnable(IO_t io, bool enable) {
 #if defined(STM32F1) || defined(STM32F4) || defined(STM32F7)
     uint32_t extiLine = IO_EXTI_Line(io);
     if (!extiLine)
@@ -204,10 +188,8 @@ void EXTIEnable(IO_t io, bool enable)
 #endif
 }
 
-void EXTI_IRQHandler(void)
-{
+void EXTI_IRQHandler(void) {
     uint32_t exti_active = EXTI->IMR & EXTI->PR;
-
     while (exti_active) {
         unsigned idx = 31 - __builtin_clz(exti_active);
         uint32_t mask = 1 << idx;

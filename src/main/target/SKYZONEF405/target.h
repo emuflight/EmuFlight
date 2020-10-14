@@ -78,7 +78,7 @@
 #define USE_BARO_MS5611
 
 #define USE_MAG
-#define MAG_I2C_INSTANCE        (I2CDEV_1) 
+#define MAG_I2C_INSTANCE        (I2CDEV_1)
 #define USE_MAG_HMC5883
 
 #define USE_SPI_DEVICE_2

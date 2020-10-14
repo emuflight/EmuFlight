@@ -36,7 +36,8 @@ typedef struct __attribute__ ((packed)) {
     uint8_t format;
     uint8_t paritytype;
     uint8_t datatype;
-} LINE_CODING;
+}
+LINE_CODING;
 
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/

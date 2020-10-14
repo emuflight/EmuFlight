@@ -36,97 +36,77 @@
 
 static const serialPinConfig_t *pSerialPinConfig;
 
-static void inverterSet(int identifier, bool on)
-{
+static void inverterSet(int identifier, bool on) {
     IO_t pin = IOGetByTag(pSerialPinConfig->ioTagInverter[SERIAL_PORT_IDENTIFIER_TO_INDEX(identifier)]);
-
     if (pin) {
         IOWrite(pin, on);
     }
 }
 
-static void initInverter(int identifier)
-{
+static void initInverter(int identifier) {
     int uartIndex = SERIAL_PORT_IDENTIFIER_TO_INDEX(identifier);
     IO_t pin = IOGetByTag(pSerialPinConfig->ioTagInverter[uartIndex]);
-
     if (pin) {
         IOInit(pin, OWNER_INVERTER, RESOURCE_INDEX(uartIndex));
         IOConfigGPIO(pin, IOCFG_OUT_PP);
-
         inverterSet(identifier, false);
     }
 }
 
-void initInverters(const serialPinConfig_t *serialPinConfigToUse)
-{
+void initInverters(const serialPinConfig_t *serialPinConfigToUse) {
     pSerialPinConfig = serialPinConfigToUse;
-
 #ifdef USE_UART1
     initInverter(SERIAL_PORT_USART1);
 #endif
-
 #ifdef USE_UART2
     initInverter(SERIAL_PORT_USART2);
 #endif
-
 #ifdef USE_UART3
     initInverter(SERIAL_PORT_USART3);
 #endif
-
 #ifdef USE_UART4
     initInverter(SERIAL_PORT_UART4);
 #endif
-
 #ifdef USE_UART5
     initInverter(SERIAL_PORT_UART5);
 #endif
-
 #ifdef USE_UART6
     initInverter(SERIAL_PORT_USART6);
 #endif
 }
 
-void enableInverter(USART_TypeDef *USARTx, bool on)
-{
+void enableInverter(USART_TypeDef *USARTx, bool on) {
     int identifier = SERIAL_PORT_NONE;
-
 #ifdef USE_UART1
     if (USARTx == USART1) {
         identifier = SERIAL_PORT_USART1;
     }
 #endif
-
 #ifdef USE_UART2
     if (USARTx == USART2) {
         identifier = SERIAL_PORT_USART2;
     }
 #endif
-
 #ifdef USE_UART3
     if (USARTx == USART3) {
         identifier = SERIAL_PORT_USART3;
     }
 #endif
-
 #ifdef USE_UART4
     if (USARTx == UART4) {
         identifier = SERIAL_PORT_UART4;
     }
 #endif
-
 #ifdef USE_UART5
     if (USARTx == UART5) {
         identifier = SERIAL_PORT_UART5;
     }
 #endif
-
 #ifdef USE_UART6
     if (USARTx == USART6) {
         identifier = SERIAL_PORT_USART6;
     }
 #endif
-
     if (identifier != SERIAL_PORT_NONE) {
         inverterSet(identifier, on);
     }
