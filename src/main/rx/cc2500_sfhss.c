@@ -83,10 +83,8 @@ static timeMs_t timeTunedMs;
 static int8_t bindOffset_max = 0;
 static int8_t bindOffset_min = 0;
 
-static void initialise()
-{
+static void initialise() {
     cc2500Reset();
-
     cc2500WriteReg(CC2500_02_IOCFG0,   0x01);
     cc2500WriteReg(CC2500_03_FIFOTHR,  0x07);
     cc2500WriteReg(CC2500_04_SYNC1,    0xD3);
@@ -124,7 +122,6 @@ static void initialise()
     cc2500WriteReg(CC2500_2D_TEST1,    0x31);
     cc2500WriteReg(CC2500_2E_TEST0,    0x0B);
     cc2500WriteReg(CC2500_3E_PATABLE,  0xFF);
-
     for (unsigned c = 0; c < 30; c++) {
         //calibrate all channels
         cc2500Strobe(CC2500_SIDLE);
@@ -137,10 +134,8 @@ static void initialise()
     }
 }
 
-static bool sfhssRecv(uint8_t *packet)
-{
+static bool sfhssRecv(uint8_t *packet) {
     uint8_t ccLen;
-
     if (!(cc2500getGdo())) {
         return false;
     }
@@ -148,13 +143,11 @@ static bool sfhssRecv(uint8_t *packet)
     if (ccLen < SFHSS_PACKET_LEN) {
         return false;
     }
-
     cc2500ReadFifo(packet, SFHSS_PACKET_LEN);
     return true;
 }
 
-static bool sfhssPacketParse(uint8_t *packet, bool check_txid)
-{
+static bool sfhssPacketParse(uint8_t *packet, bool check_txid) {
     if (!(packet[SFHSS_PACKET_LEN - 1] & 0x80)) {
         return false;      /* crc fail */
     }
@@ -164,22 +157,18 @@ static bool sfhssPacketParse(uint8_t *packet, bool check_txid)
     if (GET_CHAN(packet) != sfhss_channel) {
         return false;           /* channel fail */
     }
-
     if (check_txid) {
         if ((rxFrSkySpiConfigMutable()->bindTxId[0] != GET_TXID1(packet)) ||
-            (rxFrSkySpiConfigMutable()->bindTxId[1] != GET_TXID2(packet))) {
+                (rxFrSkySpiConfigMutable()->bindTxId[1] != GET_TXID2(packet))) {
             return false;           /* txid fail */
         }
     }
-
     cc2500setRssiDbm(packet[SFHSS_PACKET_LEN - 2]);
     sfhss_code = GET_CODE(packet);
-
     return true;
 }
 
-void sfhssRx(void)
-{
+void sfhssRx(void) {
     cc2500Strobe(CC2500_SIDLE);
     cc2500WriteReg(CC2500_23_FSCAL3, calData[sfhss_channel][0]);
     cc2500WriteReg(CC2500_24_FSCAL2, calData[sfhss_channel][1]);
@@ -189,8 +178,7 @@ void sfhssRx(void)
     cc2500Strobe(CC2500_SRX);
 }
 
-static void initTuneRx(void)
-{
+static void initTuneRx(void) {
     timeTunedMs = millis();
     bindOffset_min = -64;
     DEBUG_SET(DEBUG_RX_SFHSS_SPI, DEBUG_DATA_OFFSET_MIN, bindOffset_min);
@@ -199,8 +187,7 @@ static void initTuneRx(void)
     sfhssRx();
 }
 
-static bool tune1Rx(uint8_t *packet)
-{
+static bool tune1Rx(uint8_t *packet) {
     if (bindOffset_min >= 126) {
         bindOffset_min = -126;
         DEBUG_SET(DEBUG_RX_SFHSS_SPI, DEBUG_DATA_OFFSET_MIN, bindOffset_min);
@@ -229,8 +216,7 @@ static bool tune1Rx(uint8_t *packet)
     return false;
 }
 
-static bool tune2Rx(uint8_t *packet)
-{
+static bool tune2Rx(uint8_t *packet) {
     cc2500LedBlink(100);
     if (((millis() - timeTunedMs) > 880) || bindOffset_max > (126 - BIND_TUNE_STEP)) {   // 220ms *4
         timeTunedMs = millis();
@@ -250,8 +236,7 @@ static bool tune2Rx(uint8_t *packet)
     return false;
 }
 
-static bool tune3Rx(uint8_t *packet)
-{
+static bool tune3Rx(uint8_t *packet) {
     cc2500LedBlink(100);
     if (((millis() - timeTunedMs) > 880) || bindOffset_min < (-126 + BIND_TUNE_STEP)) {   // 220ms *4
         return true;
@@ -268,20 +253,17 @@ static bool tune3Rx(uint8_t *packet)
     return false;
 }
 
-void sfhssnextChannel(void)
-{
+void sfhssnextChannel(void) {
     do {
         sfhss_channel += sfhss_code + 2;
         if (sfhss_channel > 29) {
             sfhss_channel -= 31;
         }
     } while ( sfhss_channel < 0);
-
     sfhssRx();
 }
 
-void sfhssSpiSetRcData(uint16_t *rcData, const uint8_t *payload)
-{
+void sfhssSpiSetRcData(uint16_t *rcData, const uint8_t *payload) {
     if ( GET_COMMAND(payload) & 0x8 ) {
         rcData[4] = GET_CH1(payload);
         rcData[5] = GET_CH2(payload);
@@ -295,148 +277,140 @@ void sfhssSpiSetRcData(uint16_t *rcData, const uint8_t *payload)
     }
 }
 
-rx_spi_received_e sfhssSpiDataReceived(uint8_t *packet)
-{
+rx_spi_received_e sfhssSpiDataReceived(uint8_t *packet) {
     static uint16_t dataMissingFrame = 0;
     static timeUs_t nextFrameReceiveStartTime = 0;
     static uint8_t frame_recvd = 0;
     timeUs_t currentPacketReceivedTime;
     rx_spi_received_e ret = RX_SPI_RECEIVED_NONE;
-
     currentPacketReceivedTime = micros();
     switch (protocolState) {
-        case STATE_INIT:
-            if ((millis() - start_time) > 10) {
-                cc2500LedOff();
-                dataMissingFrame = 0;
-                initialise();
-                SET_STATE(STATE_BIND);
-                DEBUG_SET(DEBUG_RX_SFHSS_SPI, DEBUG_DATA_MISSING_FRAME, dataMissingFrame);
-            }
-            break;
-        case STATE_BIND:
-            if (cc2500checkBindRequested(true)) {
-                cc2500LedOn();
+    case STATE_INIT:
+        if ((millis() - start_time) > 10) {
+            cc2500LedOff();
+            dataMissingFrame = 0;
+            initialise();
+            SET_STATE(STATE_BIND);
+            DEBUG_SET(DEBUG_RX_SFHSS_SPI, DEBUG_DATA_MISSING_FRAME, dataMissingFrame);
+        }
+        break;
+    case STATE_BIND:
+        if (cc2500checkBindRequested(true)) {
+            cc2500LedOn();
+            initTuneRx();
+            SET_STATE(STATE_BIND_TUNING1);
+        } else {
+            SET_STATE(STATE_HUNT);
+            sfhssnextChannel();
+            setRssiDirect(0, RSSI_SOURCE_RX_PROTOCOL);
+            nextFrameReceiveStartTime = currentPacketReceivedTime + NEXT_CH_TIME_HUNT;
+        }
+        break;
+    case STATE_BIND_TUNING1:
+        if (tune1Rx(packet)) {
+            SET_STATE(STATE_BIND_TUNING2);
+        }
+        break;
+    case STATE_BIND_TUNING2:
+        if (tune2Rx(packet)) {
+            SET_STATE(STATE_BIND_TUNING3);
+        }
+        break;
+    case STATE_BIND_TUNING3:
+        if (tune3Rx(packet)) {
+            if (((int16_t)bindOffset_max - (int16_t)bindOffset_min) <= 2) {
                 initTuneRx();
-                SET_STATE(STATE_BIND_TUNING1);
+                SET_STATE(STATE_BIND_TUNING1);    // retry
             } else {
-                SET_STATE(STATE_HUNT);
-                sfhssnextChannel();
-                setRssiDirect(0, RSSI_SOURCE_RX_PROTOCOL);
-                nextFrameReceiveStartTime = currentPacketReceivedTime + NEXT_CH_TIME_HUNT;
+                rxFrSkySpiConfigMutable()->bindOffset = ((int16_t)bindOffset_max + (int16_t)bindOffset_min) / 2 ;
+                SET_STATE(STATE_BIND_COMPLETE);
             }
-            break;
-        case STATE_BIND_TUNING1:
-            if (tune1Rx(packet)) {
-                SET_STATE(STATE_BIND_TUNING2);
-            }
-            break;
-        case STATE_BIND_TUNING2:
-            if (tune2Rx(packet)) {
-                SET_STATE(STATE_BIND_TUNING3);
-            }
-            break;
-        case STATE_BIND_TUNING3:
-            if (tune3Rx(packet)) {
-                if (((int16_t)bindOffset_max - (int16_t)bindOffset_min) <= 2) {
-                    initTuneRx();
-                    SET_STATE(STATE_BIND_TUNING1);    // retry
-                } else {
-                    rxFrSkySpiConfigMutable()->bindOffset = ((int16_t)bindOffset_max + (int16_t)bindOffset_min) / 2 ;
-                    SET_STATE(STATE_BIND_COMPLETE);
+        }
+        break;
+    case STATE_BIND_COMPLETE:
+        writeEEPROM();
+        ret = RX_SPI_RECEIVED_BIND;
+        SET_STATE(STATE_INIT);
+        break;
+    case STATE_HUNT:
+        if (sfhssRecv(packet)) {
+            if (sfhssPacketParse(packet, true)) {
+                if (GET_COMMAND(packet) & 0x8) {       /* ch=5-8 */
+                    missingPackets = 0;
+                    cc2500LedOn();
+                    frame_recvd = 0x3;
+                    SET_STATE(STATE_SYNC);
+                    nextFrameReceiveStartTime = currentPacketReceivedTime + NEXT_CH_TIME_SYNC2;
+                    return RX_SPI_RECEIVED_NONE;
                 }
             }
-            break;
-        case STATE_BIND_COMPLETE:
-            writeEEPROM();
-            ret = RX_SPI_RECEIVED_BIND;
+            cc2500Strobe(CC2500_SRX);
+        } else if (cmpTimeUs(currentPacketReceivedTime, nextFrameReceiveStartTime) > 0) {
+            cc2500LedBlink(500);
+#if defined(USE_RX_CC2500_SPI_PA_LNA) && defined(USE_RX_CC2500_SPI_DIVERSITY) // SE4311 chip
+            cc2500switchAntennae();
+#endif
+            sfhssnextChannel();
+            nextFrameReceiveStartTime += NEXT_CH_TIME_HUNT;
+        } else if (cc2500checkBindRequested(false)) {
             SET_STATE(STATE_INIT);
             break;
-        case STATE_HUNT:
-            if (sfhssRecv(packet)) {
-                if (sfhssPacketParse(packet, true)) {
-                    if (GET_COMMAND(packet) & 0x8) {       /* ch=5-8 */
-                        missingPackets = 0;
-                        cc2500LedOn();
-                        frame_recvd = 0x3;
-                        SET_STATE(STATE_SYNC);
-                        nextFrameReceiveStartTime = currentPacketReceivedTime + NEXT_CH_TIME_SYNC2;
-                        return RX_SPI_RECEIVED_NONE;
-                    }
+        }
+        break;
+    case STATE_SYNC:
+        if (sfhssRecv(packet)) {
+            if (sfhssPacketParse(packet, true)) {
+                missingPackets = 0;
+                if ( GET_COMMAND(packet) & 0x8 ) {
+                    nextFrameReceiveStartTime = currentPacketReceivedTime + NEXT_CH_TIME_SYNC2;
+                    frame_recvd |= 0x2;     /* ch5-8 */
+                } else {
+                    nextFrameReceiveStartTime = currentPacketReceivedTime + NEXT_CH_TIME_SYNC1;
+                    cc2500Strobe(CC2500_SRX);
+                    frame_recvd |= 0x1;     /* ch1-4 */
                 }
-                cc2500Strobe(CC2500_SRX);
-            } else if (cmpTimeUs(currentPacketReceivedTime, nextFrameReceiveStartTime) > 0) {
-                cc2500LedBlink(500);
-#if defined(USE_RX_CC2500_SPI_PA_LNA) && defined(USE_RX_CC2500_SPI_DIVERSITY) // SE4311 chip
-                cc2500switchAntennae();
-#endif
-                sfhssnextChannel();
-                nextFrameReceiveStartTime += NEXT_CH_TIME_HUNT;
-            } else if (cc2500checkBindRequested(false)) {
-                SET_STATE(STATE_INIT);
-                break;
+                if (GET_COMMAND(packet) & 0x4) {
+                    return RX_SPI_RECEIVED_NONE; /* failsafe data */
+                }
+                return RX_SPI_RECEIVED_DATA;
             }
-            break;
-        case STATE_SYNC:
-            if (sfhssRecv(packet)) {
-                if (sfhssPacketParse(packet, true)) {
-                    missingPackets = 0;
-                    if ( GET_COMMAND(packet) & 0x8 ) {
-                        nextFrameReceiveStartTime = currentPacketReceivedTime + NEXT_CH_TIME_SYNC2;
-                        frame_recvd |= 0x2;     /* ch5-8 */
-                    } else {
-                        nextFrameReceiveStartTime = currentPacketReceivedTime + NEXT_CH_TIME_SYNC1;
-                        cc2500Strobe(CC2500_SRX);
-                        frame_recvd |= 0x1;     /* ch1-4 */
-                    }
-                    if (GET_COMMAND(packet) & 0x4) {
-                        return RX_SPI_RECEIVED_NONE; /* failsafe data */
-                    }
-                    return RX_SPI_RECEIVED_DATA;
-                }
-                cc2500Strobe(CC2500_SRX);
-            } else if (cmpTimeUs(currentPacketReceivedTime, nextFrameReceiveStartTime) > 0) {
-                nextFrameReceiveStartTime += NEXT_CH_TIME_SYNC0;
-                if (frame_recvd != 0x3) {
-                    DEBUG_SET(DEBUG_RX_SFHSS_SPI, DEBUG_DATA_MISSING_FRAME, ++dataMissingFrame);
-                }
-                if (frame_recvd == 0) {
-                    if (++missingPackets > MAX_MISSING_PKT) {
-                        SET_STATE(STATE_HUNT);
-                        sfhssnextChannel();
-                        setRssiDirect(0, RSSI_SOURCE_RX_PROTOCOL);
-                        nextFrameReceiveStartTime = currentPacketReceivedTime + NEXT_CH_TIME_HUNT;
-                        break;
-                    }
-#if defined(USE_RX_CC2500_SPI_PA_LNA) && defined(USE_RX_CC2500_SPI_DIVERSITY) // SE4311 chip
-                    if (missingPackets >= 2) {
-                        cc2500switchAntennae();
-                    }
-#endif
-                }
-                frame_recvd = 0;
-                sfhssnextChannel();
-            } else if (cc2500checkBindRequested(false)) {
-                SET_STATE(STATE_INIT);
-                break;
+            cc2500Strobe(CC2500_SRX);
+        } else if (cmpTimeUs(currentPacketReceivedTime, nextFrameReceiveStartTime) > 0) {
+            nextFrameReceiveStartTime += NEXT_CH_TIME_SYNC0;
+            if (frame_recvd != 0x3) {
+                DEBUG_SET(DEBUG_RX_SFHSS_SPI, DEBUG_DATA_MISSING_FRAME, ++dataMissingFrame);
             }
+            if (frame_recvd == 0) {
+                if (++missingPackets > MAX_MISSING_PKT) {
+                    SET_STATE(STATE_HUNT);
+                    sfhssnextChannel();
+                    setRssiDirect(0, RSSI_SOURCE_RX_PROTOCOL);
+                    nextFrameReceiveStartTime = currentPacketReceivedTime + NEXT_CH_TIME_HUNT;
+                    break;
+                }
+#if defined(USE_RX_CC2500_SPI_PA_LNA) && defined(USE_RX_CC2500_SPI_DIVERSITY) // SE4311 chip
+                if (missingPackets >= 2) {
+                    cc2500switchAntennae();
+                }
+#endif
+            }
+            frame_recvd = 0;
+            sfhssnextChannel();
+        } else if (cc2500checkBindRequested(false)) {
+            SET_STATE(STATE_INIT);
             break;
+        }
+        break;
     }
-
     return ret;
 }
 
-bool sfhssSpiInit(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeConfig)
-{
+bool sfhssSpiInit(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeConfig) {
     UNUSED(rxSpiConfig);
-
     cc2500SpiInit();
-
     rxRuntimeConfig->channelCount = RC_CHANNEL_COUNT_SFHSS;
-
     start_time = millis();
     SET_STATE(STATE_INIT);
-
     return true;
 }
 #endif

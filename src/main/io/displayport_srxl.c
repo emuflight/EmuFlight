@@ -34,41 +34,35 @@
 
 displayPort_t srxlDisplayPort;
 
-static int srxlDrawScreen(displayPort_t *displayPort)
-{
+static int srxlDrawScreen(displayPort_t *displayPort) {
     UNUSED(displayPort);
     return 0;
 }
 
-static int srxlScreenSize(const displayPort_t *displayPort)
-{
+static int srxlScreenSize(const displayPort_t *displayPort) {
     return displayPort->rows * displayPort->cols;
 }
 
-static int srxlWriteChar(displayPort_t *displayPort, uint8_t col, uint8_t row, uint8_t c)
-{
+static int srxlWriteChar(displayPort_t *displayPort, uint8_t col, uint8_t row, uint8_t c) {
     return (spektrumTmTextGenPutChar(col, row, c));
     UNUSED(displayPort);
 }
 
 
-static int srxlWriteString(displayPort_t *displayPort, uint8_t col, uint8_t row, const char *s)
-{
+static int srxlWriteString(displayPort_t *displayPort, uint8_t col, uint8_t row, const char *s) {
     while (*s) {
         srxlWriteChar(displayPort,  col++, row, *(s++));
     }
     return 0;
 }
 
-static int srxlClearScreen(displayPort_t *displayPort)
-{
+static int srxlClearScreen(displayPort_t *displayPort) {
     for (int row = 0;  row < SPEKTRUM_SRXL_TEXTGEN_BUFFER_ROWS; row++) {
-        for (int col= 0; col < SPEKTRUM_SRXL_TEXTGEN_BUFFER_COLS; col++) {
+        for (int col = 0; col < SPEKTRUM_SRXL_TEXTGEN_BUFFER_COLS; col++) {
             srxlWriteChar(displayPort, col, row, ' ');
         }
     }
     srxlWriteString(displayPort, 1, 0,  "BETAFLIGHT");
-
     if ( displayPort->grabCount == 0 ) {
         srxlWriteString(displayPort, 0, 2,  CMS_STARTUP_HELP_TEXT1);
         srxlWriteString(displayPort, 2, 3,  CMS_STARTUP_HELP_TEXT2);
@@ -77,42 +71,35 @@ static int srxlClearScreen(displayPort_t *displayPort)
     return 0;
 }
 
-static bool srxlIsTransferInProgress(const displayPort_t *displayPort)
-{
+static bool srxlIsTransferInProgress(const displayPort_t *displayPort) {
     UNUSED(displayPort);
     return false;
 }
 
-static bool srxlIsSynced(const displayPort_t *displayPort)
-{
+static bool srxlIsSynced(const displayPort_t *displayPort) {
     UNUSED(displayPort);
     return true;
 }
 
-static int srxlHeartbeat(displayPort_t *displayPort)
-{
+static int srxlHeartbeat(displayPort_t *displayPort) {
     UNUSED(displayPort);
     return 0;
 }
 
-static void srxlResync(displayPort_t *displayPort)
-{
+static void srxlResync(displayPort_t *displayPort) {
     UNUSED(displayPort);
 }
 
-static uint32_t srxlTxBytesFree(const displayPort_t *displayPort)
-{
+static uint32_t srxlTxBytesFree(const displayPort_t *displayPort) {
     UNUSED(displayPort);
     return UINT32_MAX;
 }
 
-static int srxlGrab(displayPort_t *displayPort)
-{
+static int srxlGrab(displayPort_t *displayPort) {
     return displayPort->grabCount = 1;
 }
 
-static int srxlRelease(displayPort_t *displayPort)
-{
+static int srxlRelease(displayPort_t *displayPort) {
     int cnt = displayPort->grabCount = 0;
     srxlClearScreen(displayPort);
     return cnt;
@@ -133,8 +120,7 @@ static const displayPortVTable_t srxlVTable = {
     .txBytesFree = srxlTxBytesFree
 };
 
-displayPort_t *displayPortSrxlInit()
-{
+displayPort_t *displayPortSrxlInit() {
     srxlDisplayPort.device = NULL;
     displayInit(&srxlDisplayPort, &srxlVTable);
     srxlDisplayPort.rows = SPEKTRUM_SRXL_TEXTGEN_BUFFER_ROWS;

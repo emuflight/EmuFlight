@@ -34,8 +34,7 @@
 #define VBAT_SCALE       113
 
 #ifdef USE_TARGET_CONFIG
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     voltageSensorADCConfigMutable(VOLTAGE_SENSOR_ADC_VBAT)->vbatscale = VBAT_SCALE;
     barometerConfigMutable()->baro_hardware = 0;
     compassConfigMutable()->mag_hardware = 0;

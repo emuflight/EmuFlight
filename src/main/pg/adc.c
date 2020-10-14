@@ -36,29 +36,23 @@
 
 PG_REGISTER_WITH_RESET_FN(adcConfig_t, adcConfig, PG_ADC_CONFIG, 0);
 
-void pgResetFn_adcConfig(adcConfig_t *adcConfig)
-{
+void pgResetFn_adcConfig(adcConfig_t *adcConfig) {
     adcConfig->device = ADC_DEV_TO_CFG(adcDeviceByInstance(ADC_INSTANCE));
-
 #ifdef VBAT_ADC_PIN
     adcConfig->vbat.enabled = true;
     adcConfig->vbat.ioTag = IO_TAG(VBAT_ADC_PIN);
 #endif
-
 #ifdef EXTERNAL1_ADC_PIN
     adcConfig->external1.enabled = true;
     adcConfig->external1.ioTag = IO_TAG(EXTERNAL1_ADC_PIN);
 #endif
-
 #ifdef CURRENT_METER_ADC_PIN
     adcConfig->current.enabled = true;
     adcConfig->current.ioTag = IO_TAG(CURRENT_METER_ADC_PIN);
 #endif
-
 #ifdef RSSI_ADC_PIN
     adcConfig->rssi.enabled = true;
     adcConfig->rssi.ioTag = IO_TAG(RSSI_ADC_PIN);
 #endif
-
 }
 #endif // USE_ADC

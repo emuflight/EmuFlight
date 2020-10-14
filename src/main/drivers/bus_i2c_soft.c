@@ -50,16 +50,14 @@ static volatile uint16_t i2cErrorCount = 0;
 #error "Must define the software i2c pins (SOFT_I2C_SCL and SOFT_I2C_SDA) in target.h"
 #endif
 
-static void I2C_delay(void)
-{
+static void I2C_delay(void) {
     volatile int i = 7;
     while (i) {
         i--;
     }
 }
 
-static bool I2C_Start(void)
-{
+static bool I2C_Start(void) {
     SDA_H;
     SCL_H;
     I2C_delay();
@@ -76,8 +74,7 @@ static bool I2C_Start(void)
     return true;
 }
 
-static void I2C_Stop(void)
-{
+static void I2C_Stop(void) {
     SCL_L;
     I2C_delay();
     SDA_L;
@@ -88,8 +85,7 @@ static void I2C_Stop(void)
     I2C_delay();
 }
 
-static void I2C_Ack(void)
-{
+static void I2C_Ack(void) {
     SCL_L;
     I2C_delay();
     SDA_L;
@@ -100,8 +96,7 @@ static void I2C_Ack(void)
     I2C_delay();
 }
 
-static void I2C_NoAck(void)
-{
+static void I2C_NoAck(void) {
     SCL_L;
     I2C_delay();
     SDA_H;
@@ -112,8 +107,7 @@ static void I2C_NoAck(void)
     I2C_delay();
 }
 
-static bool I2C_WaitAck(void)
-{
+static bool I2C_WaitAck(void) {
     SCL_L;
     I2C_delay();
     SDA_H;
@@ -128,16 +122,14 @@ static bool I2C_WaitAck(void)
     return true;
 }
 
-static void I2C_SendByte(uint8_t byte)
-{
+static void I2C_SendByte(uint8_t byte) {
     uint8_t i = 8;
     while (i--) {
         SCL_L;
         I2C_delay();
         if (byte & 0x80) {
             SDA_H;
-        }
-        else {
+        } else {
             SDA_L;
         }
         byte <<= 1;
@@ -148,11 +140,9 @@ static void I2C_SendByte(uint8_t byte)
     SCL_L;
 }
 
-static uint8_t I2C_ReceiveByte(void)
-{
+static uint8_t I2C_ReceiveByte(void) {
     uint8_t i = 8;
     uint8_t byte = 0;
-
     SDA_H;
     while (i--) {
         byte <<= 1;
@@ -168,21 +158,16 @@ static uint8_t I2C_ReceiveByte(void)
     return byte;
 }
 
-void i2cInit(I2CDevice device)
-{
+void i2cInit(I2CDevice device) {
     UNUSED(device);
-
     scl = IOGetByTag(IO_TAG(SOFT_I2C_SCL));
     sda = IOGetByTag(IO_TAG(SOFT_I2C_SDA));
-
     IOConfigGPIO(scl, IOCFG_OUT_OD);
     IOConfigGPIO(sda, IOCFG_OUT_OD);
 }
 
-bool i2cWriteBuffer(I2CDevice device, uint8_t addr, uint8_t reg, uint8_t len, uint8_t * data)
-{
+bool i2cWriteBuffer(I2CDevice device, uint8_t addr, uint8_t reg, uint8_t len, uint8_t * data) {
     UNUSED(device);
-
     int i;
     if (!I2C_Start()) {
         i2cErrorCount++;
@@ -207,10 +192,8 @@ bool i2cWriteBuffer(I2CDevice device, uint8_t addr, uint8_t reg, uint8_t len, ui
     return true;
 }
 
-bool i2cWrite(I2CDevice device, uint8_t addr, uint8_t reg, uint8_t data)
-{
+bool i2cWrite(I2CDevice device, uint8_t addr, uint8_t reg, uint8_t data) {
     UNUSED(device);
-
     if (!I2C_Start()) {
         return false;
     }
@@ -228,10 +211,8 @@ bool i2cWrite(I2CDevice device, uint8_t addr, uint8_t reg, uint8_t data)
     return true;
 }
 
-bool i2cRead(I2CDevice device, uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
-{
+bool i2cRead(I2CDevice device, uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf) {
     UNUSED(device);
-
     if (!I2C_Start()) {
         return false;
     }
@@ -250,8 +231,7 @@ bool i2cRead(I2CDevice device, uint8_t addr, uint8_t reg, uint8_t len, uint8_t *
         *buf = I2C_ReceiveByte();
         if (len == 1) {
             I2C_NoAck();
-        }
-        else {
+        } else {
             I2C_Ack();
         }
         buf++;
@@ -261,8 +241,7 @@ bool i2cRead(I2CDevice device, uint8_t addr, uint8_t reg, uint8_t len, uint8_t *
     return true;
 }
 
-uint16_t i2cGetErrorCounter(void)
-{
+uint16_t i2cGetErrorCounter(void) {
     return i2cErrorCount;
 }
 

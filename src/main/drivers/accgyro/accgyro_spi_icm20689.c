@@ -37,33 +37,24 @@
 #include "drivers/time.h"
 
 
-static void icm20689SpiInit(const busDevice_t *bus)
-{
+static void icm20689SpiInit(const busDevice_t *bus) {
     static bool hardwareInitialised = false;
-
     if (hardwareInitialised) {
         return;
     }
-
 #ifndef USE_DUAL_GYRO
     IOInit(bus->busdev_u.spi.csnPin, OWNER_MPU_CS, 0);
     IOConfigGPIO(bus->busdev_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(bus->busdev_u.spi.csnPin);
 #endif
-
     spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_STANDARD);
-
     hardwareInitialised = true;
 }
 
-uint8_t icm20689SpiDetect(const busDevice_t *bus)
-{
+uint8_t icm20689SpiDetect(const busDevice_t *bus) {
     icm20689SpiInit(bus);
-
     spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed
-
     spiBusWriteRegister(bus, MPU_RA_PWR_MGMT_1, ICM20689_BIT_RESET);
-
     uint8_t icmDetected = MPU_NONE;
     uint8_t attemptsRemaining = 20;
     do {
@@ -93,19 +84,15 @@ uint8_t icm20689SpiDetect(const busDevice_t *bus)
             return MPU_NONE;
         }
     } while (attemptsRemaining--);
-
     spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_STANDARD);
-
     return icmDetected;
 }
 
-void icm20689AccInit(accDev_t *acc)
-{
+void icm20689AccInit(accDev_t *acc) {
     acc->acc_1G = 512 * 4;
 }
 
-bool icm20689SpiAccDetect(accDev_t *acc)
-{
+bool icm20689SpiAccDetect(accDev_t *acc) {
     switch (acc->mpuDetectionResult.sensor) {
     case ICM_20602_SPI:
     case ICM_20689_SPI:
@@ -113,19 +100,14 @@ bool icm20689SpiAccDetect(accDev_t *acc)
     default:
         return false;
     }
-
     acc->initFn = icm20689AccInit;
     acc->readFn = mpuAccRead;
-
     return true;
 }
 
-void icm20689GyroInit(gyroDev_t *gyro)
-{
+void icm20689GyroInit(gyroDev_t *gyro) {
     mpuGyroInit(gyro);
-
     spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_INITIALIZATION);
-
     spiBusWriteRegister(&gyro->bus, MPU_RA_PWR_MGMT_1, ICM20689_BIT_RESET);
     delay(100);
     spiBusWriteRegister(&gyro->bus, MPU_RA_SIGNAL_PATH_RESET, 0x03);
@@ -142,22 +124,17 @@ void icm20689GyroInit(gyroDev_t *gyro)
     delay(15);
     spiBusWriteRegister(&gyro->bus, MPU_RA_SMPLRT_DIV, gyro->mpuDividerDrops); // Get Divider Drops
     delay(100);
-
     // Data ready interrupt configuration
 //    spiBusWriteRegister(&gyro->bus, MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 0 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR, BYPASS_EN
     spiBusWriteRegister(&gyro->bus, MPU_RA_INT_PIN_CFG, 0x10);  // INT_ANYRD_2CLEAR, BYPASS_EN
-
     delay(15);
-
 #ifdef USE_MPU_DATA_READY_SIGNAL
     spiBusWriteRegister(&gyro->bus, MPU_RA_INT_ENABLE, 0x01); // RAW_RDY_EN interrupt enable
 #endif
-
     spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_STANDARD);
 }
 
-bool icm20689SpiGyroDetect(gyroDev_t *gyro)
-{
+bool icm20689SpiGyroDetect(gyroDev_t *gyro) {
     switch (gyro->mpuDetectionResult.sensor) {
     case ICM_20601_SPI:
     case ICM_20602_SPI:
@@ -167,12 +144,9 @@ bool icm20689SpiGyroDetect(gyroDev_t *gyro)
     default:
         return false;
     }
-
     gyro->initFn = icm20689GyroInit;
     gyro->readFn = mpuGyroReadSPI;
-
     // 16.4 dps/lsb scalefactor
     gyro->scale = 1.0f / 16.4f;
-
     return true;
 }

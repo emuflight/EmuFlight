@@ -31,8 +31,7 @@ static targetSerialPortFunction_t targetSerialPortFunction[] = {
     { SERIAL_PORT_USART2, FUNCTION_MSP },
 };
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     targetSerialPortFunctionConfig(targetSerialPortFunction, ARRAYLEN(targetSerialPortFunction));
 }
 #endif
