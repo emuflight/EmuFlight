@@ -58,6 +58,9 @@
 #include "drivers/flash.h"
 #include "drivers/max7456_symbols.h"
 #include "drivers/sdcard.h"
+#ifdef USE_VCP
+#include "drivers/serial_usb_vcp.h"
+#endif
 #include "drivers/time.h"
 
 #include "fc/config.h"
@@ -112,6 +115,7 @@ const char * const osdTimerSourceNames[] = {
 
 static bool blinkState = true;
 static bool showVisualBeeper = false;
+static bool crsfRssi = false;
 
 static uint32_t blinkBits[(OSD_ITEM_COUNT + 31)/32];
 #define SET_BLINK(item) (blinkBits[(item) / 32] |= (1 << ((item) % 32)))
@@ -142,8 +146,11 @@ static statistic_t stats;
 timeUs_t resumeRefreshAt = 0;
 #define REFRESH_1S    1000 * 1000
 
+char djiWarningBuffer[12];
+
 static uint8_t armState;
 static bool lastArmState;
+static uint16_t osdLQfinal;
 
 static displayPort_t *osdDisplayPort;
 
@@ -173,6 +180,9 @@ static const char compassBar[] = {
 static const uint8_t osdElementDisplayOrder[] = {
     OSD_MAIN_BATT_VOLTAGE,
     OSD_RSSI_VALUE,
+    OSD_CRSF_TX,
+    OSD_CRSF_SNR,
+    OSD_CRSF_RSSI,
     OSD_CROSSHAIRS,
     OSD_HORIZON_SIDEBARS,
     OSD_ITEM_TIMER_1,
@@ -199,8 +209,7 @@ static const uint8_t osdElementDisplayOrder[] = {
     OSD_DISARMED,
     OSD_NUMERICAL_HEADING,
     OSD_NUMERICAL_VARIO,
-    OSD_COMPASS_BAR,
-    OSD_ANTI_GRAVITY
+    OSD_COMPASS_BAR
 };
 
 PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 3);
@@ -277,9 +286,12 @@ static void osdFormatAltitudeString(char * buff, int altitude)
 {
     const int alt = osdGetMetersToSelectedUnit(altitude) / 10;
 
-    tfp_sprintf(buff, "%c%5d %c", SYM_ALT, alt, osdGetMetersToSelectedUnitSymbol());
-    buff[5] = buff[4];
-    buff[4] = '.';
+    int pos = 0;
+    buff[pos++] = SYM_ALT;
+    if (alt < 0) {
+        buff[pos++] = '-';
+    }
+    tfp_sprintf(buff + pos, "%01d.%01d%c", abs(alt) / 10 , abs(alt) % 10, osdGetMetersToSelectedUnitSymbol());
 }
 
 static void osdFormatPID(char * buff, const char * label, const pidf_t * pid)
@@ -401,6 +413,17 @@ static void osdFormatMessage(char *buff, size_t size, const char *message)
     if (message) {
         memcpy(buff, message, strlen(message));
     }
+
+    // Write warning for DJI
+    if (osdWarnDjiEnabled()) {
+        if (message) {
+            tfp_sprintf(djiWarningBuffer, message);
+        } else {
+            // Set an empty string, because if the warning is NULL, DJI will display CRAFT_NAME
+            tfp_sprintf(djiWarningBuffer, "           ");
+        }
+    }
+
     // Ensure buff is zero terminated
     buff[size - 1] = '\0';
 }
@@ -449,6 +472,15 @@ bool osdWarnGetState(uint8_t warningIndex)
     return osdConfig()->enabledWarnings & (1 << warningIndex);
 }
 
+bool osdWarnDjiEnabled(void)
+{
+    return osdWarnGetState(OSD_WARNING_DJI)
+#ifdef USE_VCP
+                && !usbVcpIsConnected()
+#endif
+    ;
+}
+
 static bool osdDrawSingleElement(uint8_t item)
 {
     if (!VISIBLE(osdConfig()->item_pos[item]) || BLINK(item)) {
@@ -460,15 +492,145 @@ static bool osdDrawSingleElement(uint8_t item)
     char buff[OSD_ELEMENT_BUFFER_LENGTH] = "";
 
     switch (item) {
-    case OSD_RSSI_VALUE:
+    case OSD_RSSI_VALUE: //standard RSSI and CRSF LQ
         {
-            uint16_t osdRssi = getRssi() * 100 / 1024; // change range
-            if (osdRssi >= 100)
-                osdRssi = 99;
+            if(crsfRssi)
+            {
+				          uint16_t osdLQ = CRSFgetLQ();
+                  uint8_t osdRfMode = CRSFgetRFMode();
+                  osdLQfinal = osdLQ;
+                switch (osdConfig()->lq_format)
+                  {
 
-            tfp_sprintf(buff, "%c%2d", SYM_RSSI, osdRssi);
+                  case TBS:
+
+                    switch (osdRfMode)
+                    {
+                            case 2:
+                              osdLQfinal = osdLQ * 3;
+                              if (osdLQfinal<200)
+                                osdLQfinal=200;
+                              break;
+                            default:
+                              osdLQfinal = osdLQ;
+                              break;
+                        }
+                    if (osdLQfinal >= 300)
+                      osdLQfinal = 300;
+
+  				          tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
+                    break;
+
+                  case MODE:
+                      if (osdLQ >=100)
+                      osdLQfinal = 100;
+                    tfp_sprintf(buff, "%1d:%d", osdRfMode, osdLQfinal);
+                    break;
+
+                  case FREQ:
+                    switch(osdRfMode)
+                      {
+                        case 0:
+                          osdRfMode = 4;
+                          break;
+                        case 1:
+                          osdRfMode = 50;
+                          break;
+                        case 2:
+                          osdRfMode = 150;
+                          break;
+                      }
+
+                    tfp_sprintf(buff, "%3dHZ:%3d", osdRfMode, osdLQfinal);
+                    break;
+
+                  default:
+                    switch (osdRfMode)
+                    {
+                          case 2:
+                            osdLQfinal = osdLQ * 3;
+                            if (osdLQfinal<200)
+                              osdLQfinal=200;
+                            break;
+                          default:
+                            osdLQfinal = osdLQ;
+                            break;
+                      }
+                  if (osdLQfinal >= 300)
+                    osdLQfinal = 300;
+
+                  tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
+                  break;
+
+                  }
+            }
+            else
+            {
+				          uint16_t osdRssi = getRssi() * 100 / 1024; // change range
+				          if (osdRssi >= 100)
+					             osdRssi = 99;
+
+				          tfp_sprintf(buff, "%c%2d", SYM_RSSI, osdRssi);
+			      }
             break;
         }
+
+    case OSD_CRSF_SNR: //crsf signal to noise ratio
+      {
+        if(crsfRssi)
+        {
+          uint8_t osdSNR = CRSFgetSnR();
+          tfp_sprintf(buff, "SN %2dDB", osdSNR );
+        }
+      break;
+      }
+
+    case OSD_CRSF_TX: //crsf tx output power
+      {
+        if(crsfRssi)
+        {
+          uint16_t osdtxpower = CRSFgetTXPower();
+          switch (osdtxpower)
+          {
+            case 0:
+              osdtxpower = 0;
+              break;
+            case 1:
+              osdtxpower = 10;
+              break;
+            case 2:
+              osdtxpower = 25;
+              break;
+            case 3:
+              osdtxpower = 100;
+              break;
+            case 4:
+              osdtxpower = 500;
+              break;
+            case 5:
+              osdtxpower = 1000;
+              break;
+            case 6:
+              osdtxpower = 2000;
+              break;
+            case 7:
+              osdtxpower = 250;
+              break;
+            default:
+              osdtxpower = 0;
+              break;
+          }
+          tfp_sprintf(buff, "%dMW", osdtxpower );
+        }
+        break;
+      }
+
+      case OSD_CRSF_RSSI: //crsf rssi
+      {
+        uint8_t osdcrsfrssi = CRSFgetRSSI();
+        tfp_sprintf(buff, "-%2dDBM" , osdcrsfrssi );
+        break;
+      }
 
     case OSD_MAIN_BATT_VOLTAGE:
         buff[0] = osdGetBatterySymbol(osdGetBatteryAverageCellVoltage());
@@ -615,15 +777,6 @@ static bool osdDrawSingleElement(uint8_t item)
                 strcpy(buff, "AIR ");
             } else {
                 strcpy(buff, "ACRO");
-            }
-
-            break;
-        }
-
-    case OSD_ANTI_GRAVITY:
-        {
-            if (pidOsdAntiGravityActive()) {
-                strcpy(buff, "AG");
             }
 
             break;
@@ -1114,7 +1267,8 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
 
     osdConfig->timers[OSD_TIMER_1] = OSD_TIMER(OSD_TIMER_SRC_ON, OSD_TIMER_PREC_SECOND, 10);
     osdConfig->timers[OSD_TIMER_2] = OSD_TIMER(OSD_TIMER_SRC_TOTAL_ARMED, OSD_TIMER_PREC_SECOND, 10);
-
+    osdConfig->lq_format = TBS;
+    osdConfig->lq_alarm = 70;
     osdConfig->rssi_alarm = 20;
     osdConfig->cap_alarm  = 2200;
     osdConfig->alt_alarm  = 100; // meters or feet depend on configuration
@@ -1125,6 +1279,9 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->distance_alarm = 0;
     osdConfig->ahMaxPitch = 20; // 20 degrees
     osdConfig->ahMaxRoll = 40; // 40 degrees
+
+    // Turn off replacing craft name for DJI OSD
+    osdWarnSetState(OSD_WARNING_DJI, false);
 }
 
 static void osdDrawLogo(int x, int y)
@@ -1191,11 +1348,26 @@ void osdUpdateAlarms(void)
     // This is overdone?
 
     int32_t alt = osdGetMetersToSelectedUnit(getEstimatedAltitude()) / 100;
-
-    if (getRssiPercent() < osdConfig()->rssi_alarm) {
-        SET_BLINK(OSD_RSSI_VALUE);
-    } else {
+    if(crsfRssi)
+    {
+      if (osdLQfinal < osdConfig()->lq_alarm)  //CRSF RSSI_alarm = set to 170 (Mode1 : 60)
+        {
+          SET_BLINK(OSD_RSSI_VALUE);
+        }
+      else
         CLR_BLINK(OSD_RSSI_VALUE);
+
+    }
+    else
+    {
+      if (getRssiPercent() < osdConfig()->rssi_alarm)
+      {
+        SET_BLINK(OSD_RSSI_VALUE);
+      }
+      else
+      {
+        CLR_BLINK(OSD_RSSI_VALUE);
+      }
     }
 
     // Determine if the OSD_WARNINGS should blink
@@ -1490,7 +1662,8 @@ static void osdShowStats(uint16_t endBatteryVoltage)
     }
 
     if (osdStatGetState(OSD_STAT_MAX_ALTITUDE)) {
-        osdFormatAltitudeString(buff, stats.max_altitude);
+        const int alt = osdGetMetersToSelectedUnit(stats.max_altitude) / 10;
+        tfp_sprintf(buff, "%d.%d%c", abs(alt) / 10, abs(alt) % 10, osdGetMetersToSelectedUnitSymbol());
         osdDisplayStatisticLabel(top++, "MAX ALTITUDE", buff);
     }
 
@@ -1656,6 +1829,10 @@ void osdUpdate(timeUs_t currentTimeUs)
         unsetArmingDisabled(ARMING_DISABLED_OSD_MENU);
     }
 #endif
+}
+
+void setCrsfRssi(bool b){
+	crsfRssi = b;
 }
 
 #endif // USE_OSD

@@ -287,6 +287,8 @@ void motorDevInit(const motorDevConfig_t *motorConfig, uint16_t idlePulse, uint8
         pwmCompleteWrite = &pwmCompleteDshotMotorUpdate;
         isDshot = true;
         break;
+    case PWM_TYPE_DSHOT4800:
+    case PWM_TYPE_DSHOT2400:
     case PWM_TYPE_DSHOT1200:
     case PWM_TYPE_DSHOT600:
     case PWM_TYPE_DSHOT300:
@@ -391,6 +393,10 @@ uint32_t getDshotHz(motorPwmProtocolTypes_e pwmProtocolType)
     switch (pwmProtocolType) {
     case(PWM_TYPE_PROSHOT1000):
         return MOTOR_PROSHOT1000_HZ;
+    case(PWM_TYPE_DSHOT4800):
+        return MOTOR_DSHOT4800_HZ;
+    case(PWM_TYPE_DSHOT2400):
+        return MOTOR_DSHOT2400_HZ;
     case(PWM_TYPE_DSHOT1200):
         return MOTOR_DSHOT1200_HZ;
     case(PWM_TYPE_DSHOT600):

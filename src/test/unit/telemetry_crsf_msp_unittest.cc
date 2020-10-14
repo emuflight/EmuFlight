@@ -76,6 +76,7 @@ extern "C" {
     uint8_t payloadOutput[64];
     sbuf_t payloadOutputBuf;
     int32_t testmAhDrawn = 0;
+    uint32_t getEstimatedAltitude() { return 0; }
 
     PG_REGISTER(batteryConfig_t, batteryConfig, PG_BATTERY_CONFIG, 0);
     PG_REGISTER(telemetryConfig_t, telemetryConfig, PG_TELEMETRY_CONFIG, 0);

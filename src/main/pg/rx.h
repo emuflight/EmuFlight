@@ -57,6 +57,8 @@ typedef struct rxConfig_s {
     uint8_t rc_smoothing_debug_axis;        // Axis to log as debug values when debug_mode = RC_SMOOTHING
     uint8_t rc_smoothing_input_type;        // Input filter type (0 = PT1, 1 = BIQUAD)
     uint8_t rc_smoothing_derivative_type;   // Derivative filter type (0 = OFF, 1 = PT1, 2 = BIQUAD)
+
+    uint8_t showRateDynamics;               // allow you to see rate dynamics in the configurator
 } rxConfig_t;
 
 PG_DECLARE(rxConfig_t, rxConfig);

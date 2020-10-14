@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "common/time.h"
+
 typedef enum {
     INTERPOLATION_CHANNELS_RP,
     INTERPOLATION_CHANNELS_RPY,
@@ -49,4 +51,5 @@ int rcSmoothingGetValue(int whichValue);
 bool rcSmoothingAutoCalculate(void);
 bool rcSmoothingInitializationComplete(void);
 #endif
-float rateDynamics(float rcCommand, int axis);
+void updateRcRefreshRate(timeUs_t currentTimeUs);
+float rateDynamics(float rcCommand, int axis, int currentRxRefreshRate);
