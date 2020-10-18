@@ -58,7 +58,7 @@
 #define ACC_1_ALIGN             CW90_DEG
 
 #define GYRO_2_SPI_INSTANCE     SPI1
-#define GYRO_2_CS_PIN           PC4        
+#define GYRO_2_CS_PIN           PC4
 #define GYRO_2_EXTI_PIN         NONE
 #define GYRO_2_ALIGN            CW0_DEG
 #define ACC_2_ALIGN             CW0_DEG
@@ -136,7 +136,7 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define I2C1_SCL                PB8
-#define I2C1_SDA                PB9 
+#define I2C1_SDA                PB9
 
 // *************** ADC *****************************
 #define USE_ADC

@@ -74,8 +74,7 @@ DEFINE_DMA_IRQ_HANDLER(2, 6, DMA2_ST6_HANDLER)
 DEFINE_DMA_IRQ_HANDLER(2, 7, DMA2_ST7_HANDLER)
 
 #define DMA_RCC(x) ((x) == DMA1 ? RCC_AHB1Periph_DMA1 : RCC_AHB1Periph_DMA2)
-void dmaInit(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex)
-{
+void dmaInit(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex) {
     const int index = DMA_IDENTIFIER_TO_INDEX(identifier);
     RCC_AHB1PeriphClockCmd(DMA_RCC(dmaDescriptors[index].dma), ENABLE);
     dmaDescriptors[index].owner = owner;
@@ -84,8 +83,7 @@ void dmaInit(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resource
 
 #define RETURN_TCIF_FLAG(s, n) if (s == DMA1_Stream ## n || s == DMA2_Stream ## n) return DMA_IT_TCIF ## n
 
-uint32_t dmaFlag_IT_TCIF(const DMA_Stream_TypeDef *stream)
-{
+uint32_t dmaFlag_IT_TCIF(const DMA_Stream_TypeDef *stream) {
     RETURN_TCIF_FLAG(stream, 0);
     RETURN_TCIF_FLAG(stream, 1);
     RETURN_TCIF_FLAG(stream, 2);
@@ -97,17 +95,13 @@ uint32_t dmaFlag_IT_TCIF(const DMA_Stream_TypeDef *stream)
     return 0;
 }
 
-void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback, uint32_t priority, uint32_t userParam)
-{
+void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback, uint32_t priority, uint32_t userParam) {
     NVIC_InitTypeDef NVIC_InitStructure;
-
     const int index = DMA_IDENTIFIER_TO_INDEX(identifier);
-
     RCC_AHB1PeriphClockCmd(DMA_RCC(dmaDescriptors[index].dma), ENABLE);
     dmaDescriptors[index].irqHandlerCallback = callback;
     dmaDescriptors[index].userParam = userParam;
     dmaDescriptors[index].completeFlag = dmaFlag_IT_TCIF(dmaDescriptors[index].ref);
-
     NVIC_InitStructure.NVIC_IRQChannel = dmaDescriptors[index].irqN;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(priority);
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_SUB(priority);
@@ -115,18 +109,15 @@ void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callbac
     NVIC_Init(&NVIC_InitStructure);
 }
 
-resourceOwner_e dmaGetOwner(dmaIdentifier_e identifier)
-{
+resourceOwner_e dmaGetOwner(dmaIdentifier_e identifier) {
     return dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].owner;
 }
 
-uint8_t dmaGetResourceIndex(dmaIdentifier_e identifier)
-{
+uint8_t dmaGetResourceIndex(dmaIdentifier_e identifier) {
     return dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].resourceIndex;
 }
 
-dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef* stream)
-{
+dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef* stream) {
     for (int i = 0; i < DMA_LAST_HANDLER; i++) {
         if (dmaDescriptors[i].ref == stream) {
             return i + 1;
@@ -135,8 +126,7 @@ dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef* stream)
     return 0;
 }
 
-dmaChannelDescriptor_t* dmaGetDescriptor(const DMA_Stream_TypeDef* stream)
-{
+dmaChannelDescriptor_t* dmaGetDescriptor(const DMA_Stream_TypeDef* stream) {
     for (int i = 0; i < DMA_LAST_HANDLER; i++) {
         if (dmaDescriptors[i].ref == stream) {
             return &dmaDescriptors[i];
@@ -145,17 +135,14 @@ dmaChannelDescriptor_t* dmaGetDescriptor(const DMA_Stream_TypeDef* stream)
     return NULL;
 }
 
-DMA_Stream_TypeDef* dmaGetRefByIdentifier(const dmaIdentifier_e identifier)
-{
+DMA_Stream_TypeDef* dmaGetRefByIdentifier(const dmaIdentifier_e identifier) {
     return dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].ref;
 }
 
-dmaChannelDescriptor_t* dmaGetDescriptorByIdentifier(const dmaIdentifier_e identifier)
-{
+dmaChannelDescriptor_t* dmaGetDescriptorByIdentifier(const dmaIdentifier_e identifier) {
     return &dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)];
 }
 
-uint32_t dmaGetChannel(const uint8_t channel)
-{
-    return ((uint32_t)channel*2)<<24;
+uint32_t dmaGetChannel(const uint8_t channel) {
+    return ((uint32_t)channel * 2) << 24;
 }

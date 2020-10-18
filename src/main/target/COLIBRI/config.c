@@ -46,26 +46,20 @@
 
 
 // alternative defaults settings for Colibri/Gemini targets
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     mixerConfigMutable()->mixerMode = MIXER_HEX6X;
     rxConfigMutable()->serialrx_provider = 2;
-
     motorConfigMutable()->minthrottle = 1070;
     motorConfigMutable()->maxthrottle = 2000;
-
     boardAlignmentMutable()->pitchDegrees = 10;
     //rcControlsConfigMutable()->deadband = 10;
     //rcControlsConfigMutable()->yaw_deadband = 10;
     compassConfigMutable()->mag_hardware = 1;
-
     for (uint8_t rateProfileIndex = 0; rateProfileIndex < CONTROL_RATE_PROFILE_COUNT; rateProfileIndex++) {
         controlRateConfig_t *controlRateConfig = controlRateProfilesMutable(rateProfileIndex);
-
         controlRateConfig->dynThrP = 45;
         controlRateConfig->tpa_breakpoint = 1700;
     }
-
     serialConfigMutable()->portConfigs[2].functionMask = FUNCTION_RX_SERIAL;
 }
 #endif

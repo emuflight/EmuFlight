@@ -103,9 +103,10 @@ typedef enum {
 } osd_items_e;
 
 typedef enum {
-    TBS,
+    TBS = 0,
     MODE,
-    FREQ
+    FREQ,
+    FORMAT_COUNT
 } crsfformat_e;
 
 // *** IMPORTANT ***
