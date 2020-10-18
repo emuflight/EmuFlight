@@ -29,8 +29,7 @@
 
 #include "telemetry/telemetry.h"
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     sdcardConfigMutable()->useDma = true;
     telemetryConfigMutable()->halfDuplex = 0;
 }

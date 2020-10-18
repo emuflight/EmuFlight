@@ -51,14 +51,16 @@ typedef struct __attribute__((packed)) {
     uint8_t number;
     uint8_t valueL;
     uint8_t valueH;
-} flySky2ASens_t;
+}
+flySky2ASens_t;
 
 typedef struct __attribute__((packed)) {
     uint8_t type;
     uint32_t txId;
     uint32_t rxId;
     flySky2ASens_t sens[7];
-} flySky2ATelemetryPkt_t;
+}
+flySky2ATelemetryPkt_t;
 
 typedef struct __attribute__((packed)) {
     uint8_t type;
@@ -68,20 +70,23 @@ typedef struct __attribute__((packed)) {
     uint8_t reserved1;
     uint8_t rfChannelMap[16];
     uint8_t reserved2[10];
-} flySky2ABindPkt_t;
+}
+flySky2ABindPkt_t;
 
 typedef struct __attribute__((packed)) {
     uint8_t type;
     uint32_t txId;
     uint32_t rxId;
     uint8_t data[28];
-} flySky2ARcDataPkt_t;
+}
+flySky2ARcDataPkt_t;
 
 typedef struct __attribute__((packed)) {
     uint8_t type;
     uint32_t txId;
     uint8_t data[16];
-} flySkyRcDataPkt_t;
+}
+flySkyRcDataPkt_t;
 
 typedef struct {
     uint32_t packet;

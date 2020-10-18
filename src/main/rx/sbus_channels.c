@@ -41,8 +41,7 @@
 #define SBUS_DIGITAL_CHANNEL_MIN 173
 #define SBUS_DIGITAL_CHANNEL_MAX 1812
 
-uint8_t sbusChannelsDecode(rxRuntimeConfig_t *rxRuntimeConfig, const sbusChannels_t *channels)
-{
+uint8_t sbusChannelsDecode(rxRuntimeConfig_t *rxRuntimeConfig, const sbusChannels_t *channels) {
     uint16_t *sbusChannelData = rxRuntimeConfig->channelData;
     sbusChannelData[0] = channels->chan0;
     sbusChannelData[1] = channels->chan1;
@@ -60,42 +59,35 @@ uint8_t sbusChannelsDecode(rxRuntimeConfig_t *rxRuntimeConfig, const sbusChannel
     sbusChannelData[13] = channels->chan13;
     sbusChannelData[14] = channels->chan14;
     sbusChannelData[15] = channels->chan15;
-
     if (channels->flags & SBUS_FLAG_CHANNEL_17) {
         sbusChannelData[16] = SBUS_DIGITAL_CHANNEL_MAX;
     } else {
         sbusChannelData[16] = SBUS_DIGITAL_CHANNEL_MIN;
     }
-
     if (channels->flags & SBUS_FLAG_CHANNEL_18) {
         sbusChannelData[17] = SBUS_DIGITAL_CHANNEL_MAX;
     } else {
         sbusChannelData[17] = SBUS_DIGITAL_CHANNEL_MIN;
     }
-
     if (channels->flags & SBUS_FLAG_FAILSAFE_ACTIVE) {
         // internal failsafe enabled and rx failsafe flag set
         // RX *should* still be sending valid channel data (repeated), so use it.
         return RX_FRAME_COMPLETE | RX_FRAME_FAILSAFE;
     }
-
     if (channels->flags & SBUS_FLAG_SIGNAL_LOSS) {
         // The received data is a repeat of the last valid data so can be considered complete.
         return RX_FRAME_COMPLETE | RX_FRAME_DROPPED;
     }
-
     return RX_FRAME_COMPLETE;
 }
 
-static uint16_t sbusChannelsReadRawRC(const rxRuntimeConfig_t *rxRuntimeConfig, uint8_t chan)
-{
+static uint16_t sbusChannelsReadRawRC(const rxRuntimeConfig_t *rxRuntimeConfig, uint8_t chan) {
     // Linear fitting values read from OpenTX-ppmus and comparing with values received by X4R
     // http://www.wolframalpha.com/input/?i=linear+fit+%7B173%2C+988%7D%2C+%7B1812%2C+2012%7D%2C+%7B993%2C+1500%7D
     return (5 * rxRuntimeConfig->channelData[chan] / 8) + 880;
 }
 
-void sbusChannelsInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig)
-{
+void sbusChannelsInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig) {
     rxRuntimeConfig->rcReadRawFn = sbusChannelsReadRawRC;
     for (int b = 0; b < SBUS_MAX_CHANNEL; b++) {
         rxRuntimeConfig->channelData[b] = (16 * rxConfig->midrc) / 10 - 1408;

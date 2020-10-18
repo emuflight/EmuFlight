@@ -61,21 +61,17 @@ static serialPort_t *sumhPort;
 
 
 // Receive ISR callback
-static void sumhDataReceive(uint16_t c, void *data)
-{
+static void sumhDataReceive(uint16_t c, void *data) {
     UNUSED(data);
-
     uint32_t sumhTime;
     static uint32_t sumhTimeLast, sumhTimeInterval;
     static uint8_t sumhFramePosition;
-
     sumhTime = micros();
     sumhTimeInterval = sumhTime - sumhTimeLast;
     sumhTimeLast = sumhTime;
     if (sumhTimeInterval > 5000) {
         sumhFramePosition = 0;
     }
-
     sumhFrame[sumhFramePosition] = (uint8_t) c;
     if (sumhFramePosition == SUMH_FRAME_SIZE - 1) {
         // FIXME at this point the value of 'c' is unused and un tested, what should it be, is it important?
@@ -85,69 +81,52 @@ static void sumhDataReceive(uint16_t c, void *data)
     }
 }
 
-static uint8_t sumhFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig)
-{
+static uint8_t sumhFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig) {
     UNUSED(rxRuntimeConfig);
-
     uint8_t channelIndex;
-
     if (!sumhFrameDone) {
         return RX_FRAME_PENDING;
     }
-
     sumhFrameDone = false;
-
     if (!((sumhFrame[0] == 0xA8) && (sumhFrame[SUMH_FRAME_SIZE - 2] == 0))) {
         return RX_FRAME_PENDING;
     }
-
     for (channelIndex = 0; channelIndex < SUMH_MAX_CHANNEL_COUNT; channelIndex++) {
         sumhChannels[channelIndex] = (((uint32_t)(sumhFrame[(channelIndex << 1) + 3]) << 8)
-                + sumhFrame[(channelIndex << 1) + 4]) / 6.4f - 375;
+                                      + sumhFrame[(channelIndex << 1) + 4]) / 6.4f - 375;
     }
     return RX_FRAME_COMPLETE;
 }
 
-static uint16_t sumhReadRawRC(const rxRuntimeConfig_t *rxRuntimeConfig, uint8_t chan)
-{
+static uint16_t sumhReadRawRC(const rxRuntimeConfig_t *rxRuntimeConfig, uint8_t chan) {
     UNUSED(rxRuntimeConfig);
-
     if (chan >= SUMH_MAX_CHANNEL_COUNT) {
         return 0;
     }
-
     return sumhChannels[chan];
 }
 
-bool sumhInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig)
-{
+bool sumhInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig) {
     UNUSED(rxConfig);
-
     rxRuntimeConfig->channelCount = SUMH_MAX_CHANNEL_COUNT;
     rxRuntimeConfig->rxRefreshRate = 11000;
-
     rxRuntimeConfig->rcReadRawFn = sumhReadRawRC;
     rxRuntimeConfig->rcFrameStatusFn = sumhFrameStatus;
-
     const serialPortConfig_t *portConfig = findSerialPortConfig(FUNCTION_RX_SERIAL);
     if (!portConfig) {
         return false;
     }
-
 #ifdef USE_TELEMETRY
     bool portShared = telemetryCheckRxPortShared(portConfig);
 #else
     bool portShared = false;
 #endif
-
     sumhPort = openSerialPort(portConfig->identifier, FUNCTION_RX_SERIAL, sumhDataReceive, NULL, SUMH_BAUDRATE, portShared ? MODE_RXTX : MODE_RX, (rxConfig->serialrx_inverted ? SERIAL_INVERTED : 0));
-
 #ifdef USE_TELEMETRY
     if (portShared) {
         telemetrySharedPort = sumhPort;
     }
 #endif
-
     return sumhPort != NULL;
 }
 #endif

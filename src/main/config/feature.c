@@ -35,62 +35,52 @@ PG_REGISTER_WITH_RESET_TEMPLATE(featureConfig_t, featureConfig, PG_FEATURE_CONFI
 
 #ifndef USE_GYRO_IMUF9001
 PG_RESET_TEMPLATE(featureConfig_t, featureConfig,
-    .enabledFeatures = DEFAULT_FEATURES | DEFAULT_RX_FEATURE | FEATURE_AIRMODE | FEATURE_DYNAMIC_FILTER,
-);
+                  .enabledFeatures = DEFAULT_FEATURES | DEFAULT_RX_FEATURE | FEATURE_AIRMODE | FEATURE_DYNAMIC_FILTER,
+                 );
 #endif
 
 #ifdef USE_GYRO_IMUF9001
 PG_RESET_TEMPLATE(featureConfig_t, featureConfig,
-    .enabledFeatures = DEFAULT_FEATURES | DEFAULT_RX_FEATURE | FEATURE_AIRMODE,
-);
+                  .enabledFeatures = DEFAULT_FEATURES | DEFAULT_RX_FEATURE | FEATURE_AIRMODE,
+                 );
 #endif
 
-void intFeatureSet(uint32_t mask, uint32_t *features)
-{
+void intFeatureSet(uint32_t mask, uint32_t *features) {
     *features |= mask;
 }
 
-void intFeatureClear(uint32_t mask, uint32_t *features)
-{
+void intFeatureClear(uint32_t mask, uint32_t *features) {
     *features &= ~(mask);
 }
 
-void intFeatureClearAll(uint32_t *features)
-{
+void intFeatureClearAll(uint32_t *features) {
     *features = 0;
 }
 
-void latchActiveFeatures(void)
-{
+void latchActiveFeatures(void) {
     activeFeaturesLatch = featureConfig()->enabledFeatures;
 }
 
-bool featureConfigured(uint32_t mask)
-{
+bool featureConfigured(uint32_t mask) {
     return featureConfig()->enabledFeatures & mask;
 }
 
-bool feature(uint32_t mask)
-{
+bool feature(uint32_t mask) {
     return activeFeaturesLatch & mask;
 }
 
-void featureSet(uint32_t mask)
-{
+void featureSet(uint32_t mask) {
     intFeatureSet(mask, &featureConfigMutable()->enabledFeatures);
 }
 
-void featureClear(uint32_t mask)
-{
+void featureClear(uint32_t mask) {
     intFeatureClear(mask, &featureConfigMutable()->enabledFeatures);
 }
 
-void featureClearAll(void)
-{
+void featureClearAll(void) {
     intFeatureClearAll(&featureConfigMutable()->enabledFeatures);
 }
 
-uint32_t featureMask(void)
-{
+uint32_t featureMask(void) {
     return featureConfig()->enabledFeatures;
 }
