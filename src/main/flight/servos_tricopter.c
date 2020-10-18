@@ -30,19 +30,15 @@
 #include "flight/servos.h"
 
 
-bool servosTricopterIsEnabledServoUnarmed(void)
-{
+bool servosTricopterIsEnabledServoUnarmed(void) {
     return servoConfig()->tri_unarmed_servo;
 }
 
-void servosTricopterMixer(void)
-{
+void servosTricopterMixer(void) {
     servoMixer();
 }
 
-void servosTricopterInit(void)
-{
-
+void servosTricopterInit(void) {
 }
 
 #endif // USE_SERVOS

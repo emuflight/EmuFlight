@@ -35,8 +35,7 @@ static targetSerialPortFunction_t targetSerialPortFunction[] = {
     { TELEMETRY_UART, FUNCTION_TELEMETRY_SMARTPORT },
 };
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     targetSerialPortFunctionConfig(targetSerialPortFunction, ARRAYLEN(targetSerialPortFunction));
     rxConfigMutable()->rssi_channel = 8;
 }

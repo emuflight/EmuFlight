@@ -100,8 +100,7 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT] = {
 
 static boxBitmask_t activeBoxIds;
 
-const box_t *findBoxByBoxId(boxId_e boxId)
-{
+const box_t *findBoxByBoxId(boxId_e boxId) {
     for (unsigned i = 0; i < ARRAYLEN(boxes); i++) {
         const box_t *candidate = &boxes[i];
         if (candidate->boxId == boxId)
@@ -110,8 +109,7 @@ const box_t *findBoxByBoxId(boxId_e boxId)
     return NULL;
 }
 
-const box_t *findBoxByPermanentId(uint8_t permanentId)
-{
+const box_t *findBoxByPermanentId(uint8_t permanentId) {
     for (unsigned i = 0; i < ARRAYLEN(boxes); i++) {
         const box_t *candidate = &boxes[i];
         if (candidate->permanentId == permanentId)
@@ -120,28 +118,24 @@ const box_t *findBoxByPermanentId(uint8_t permanentId)
     return NULL;
 }
 
-static bool activeBoxIdGet(boxId_e boxId)
-{
+static bool activeBoxIdGet(boxId_e boxId) {
     if (boxId > sizeof(activeBoxIds) * 8)
         return false;
     return bitArrayGet(&activeBoxIds, boxId);
 }
 
-void serializeBoxNameFn(sbuf_t *dst, const box_t *box)
-{
+void serializeBoxNameFn(sbuf_t *dst, const box_t *box) {
     sbufWriteString(dst, box->boxName);
     sbufWriteU8(dst, ';');
 }
 
-void serializeBoxPermanentIdFn(sbuf_t *dst, const box_t *box)
-{
+void serializeBoxPermanentIdFn(sbuf_t *dst, const box_t *box) {
     sbufWriteU8(dst, box->permanentId);
 }
 
 // serialize 'page' of boxNames.
 // Each page contains at most 32 boxes
-void serializeBoxReply(sbuf_t *dst, int page, serializeBoxFn *serializeBox)
-{
+void serializeBoxReply(sbuf_t *dst, int page, serializeBoxFn *serializeBox) {
     unsigned boxIdx = 0;
     unsigned pageStart = page * 32;
     unsigned pageEnd = pageStart + 32;
@@ -155,12 +149,10 @@ void serializeBoxReply(sbuf_t *dst, int page, serializeBoxFn *serializeBox)
     }
 }
 
-void initActiveBoxIds(void)
-{
+void initActiveBoxIds(void) {
     // calculate used boxes based on features and set corresponding activeBoxIds bits
     boxBitmask_t ena;  // temporary variable to collect result
     memset(&ena, 0, sizeof(ena));
-
     // macro to enable boxId (BoxidMaskEnable). Reference to ena is hidden, local use only
 #define BME(boxId) do { bitArraySet(&ena, boxId); } while (0)
     BME(BOXARM);
@@ -168,20 +160,17 @@ void initActiveBoxIds(void)
     if (!feature(FEATURE_AIRMODE)) {
         BME(BOXAIRMODE);
     }
-
     if (sensors(SENSOR_ACC)) {
         BME(BOXANGLE);
         BME(BOXHORIZON);
         BME(BOXHEADFREE);
         BME(BOXHEADADJ);
     }
-
 #ifdef USE_MAG
     if (sensors(SENSOR_MAG)) {
         BME(BOXMAG);
     }
 #endif
-
 #ifdef USE_GPS
     if (feature(FEATURE_GPS)) {
 #ifdef USE_GPS_RESCUE
@@ -192,54 +181,41 @@ void initActiveBoxIds(void)
         BME(BOXBEEPGPSCOUNT);
     }
 #endif
-
     BME(BOXFAILSAFE);
-
     if (mixerConfig()->mixerMode == MIXER_FLYING_WING || mixerConfig()->mixerMode == MIXER_AIRPLANE || mixerConfig()->mixerMode == MIXER_CUSTOM_AIRPLANE) {
         BME(BOXPASSTHRU);
     }
-
     BME(BOXBEEPERON);
-
 #ifdef USE_LED_STRIP
     if (feature(FEATURE_LED_STRIP)) {
         BME(BOXLEDLOW);
     }
 #endif
-
 #ifdef USE_BLACKBOX
     BME(BOXBLACKBOX);
 #ifdef USE_FLASHFS
     BME(BOXBLACKBOXERASE);
 #endif
 #endif
-
     BME(BOXFPVANGLEMIX);
-
     if (feature(FEATURE_3D)) {
         BME(BOX3D);
     }
-
     if (isMotorProtocolDshot()) {
         BME(BOXFLIPOVERAFTERCRASH);
     }
-
     if (feature(FEATURE_SERVO_TILT)) {
         BME(BOXCAMSTAB);
     }
-
     if (feature(FEATURE_INFLIGHT_ACC_CAL)) {
         BME(BOXCALIB);
     }
-
     BME(BOXOSD);
-
 #ifdef USE_TELEMETRY
     if (feature(FEATURE_TELEMETRY)) {
         BME(BOXTELEMETRY);
     }
 #endif
-
 #ifdef USE_SERVOS
     if (mixerConfig()->mixerMode == MIXER_CUSTOM_AIRPLANE) {
         BME(BOXSERVO1);
@@ -247,19 +223,15 @@ void initActiveBoxIds(void)
         BME(BOXSERVO3);
     }
 #endif
-
 #ifdef USE_RCDEVICE
     BME(BOXCAMERA1);
     BME(BOXCAMERA2);
     BME(BOXCAMERA3);
 #endif
-
 #if defined(USE_VTX_SMARTAUDIO) || defined(USE_VTX_TRAMP)
     BME(BOXVTXPITMODE);
 #endif
-
     BME(BOXPARALYZE);
-
 #ifdef USE_PINIOBOX
     // Turn BOXUSERx only if pinioBox facility monitors them, as the facility is the only BOXUSERx observer.
     // Note that pinioBoxConfig can be set to monitor any box.
@@ -281,29 +253,23 @@ void initActiveBoxIds(void)
         }
     }
 #endif
-
 #if defined(USE_PID_AUDIO)
     BME(BOXPIDAUDIO);
 #endif
-
 #undef BME
     // check that all enabled IDs are in boxes array (check may be skipped when using findBoxById() functions)
     for (boxId_e boxId = 0;  boxId < CHECKBOX_ITEM_COUNT; boxId++)
         if (bitArrayGet(&ena, boxId)
-            && findBoxByBoxId(boxId) == NULL)
+                && findBoxByBoxId(boxId) == NULL)
             bitArrayClr(&ena, boxId);                 // this should not happen, but handle it gracefully
-
     activeBoxIds = ena;                               // set global variable
 }
 
 // return state of given boxId box, handling ARM and FLIGHT_MODE
-bool getBoxIdState(boxId_e boxid)
-{
+bool getBoxIdState(boxId_e boxid) {
     const uint8_t boxIdToFlightModeMap[] = BOXID_TO_FLIGHT_MODE_MAP_INITIALIZER;
-
     // we assume that all boxId below BOXID_FLIGHTMODE_LAST except BOXARM are mapped to flightmode
     STATIC_ASSERT(ARRAYLEN(boxIdToFlightModeMap) == BOXID_FLIGHTMODE_LAST + 1, FLIGHT_MODE_BOXID_MAP_INITIALIZER_does_not_match_boxId_e);
-
     if (boxid == BOXARM) {
         return ARMING_FLAG(ARMED);
     } else if (boxid <= BOXID_FLIGHTMODE_LAST) {
@@ -315,8 +281,7 @@ bool getBoxIdState(boxId_e boxid)
 
 // pack used flightModeFlags into supplied array
 // returns number of bits used
-int packFlightModeFlags(boxBitmask_t *mspFlightModeFlags)
-{
+int packFlightModeFlags(boxBitmask_t *mspFlightModeFlags) {
     // Serialize the flags in the order we delivered them, ignoring BOXNAMES and BOXINDEXES
     memset(mspFlightModeFlags, 0, sizeof(boxBitmask_t));
     // map boxId_e enabled bits to MSP status indexes

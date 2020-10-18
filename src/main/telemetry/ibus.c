@@ -89,37 +89,30 @@ static uint8_t ibusReceiveBuffer[IBUS_RX_BUF_LEN] = { 0x0 };
 
 
 
-static void pushOntoTail(uint8_t buffer[IBUS_MIN_LEN], size_t bufferLength, uint8_t value)
-{
+static void pushOntoTail(uint8_t buffer[IBUS_MIN_LEN], size_t bufferLength, uint8_t value) {
     memmove(buffer, buffer + 1, bufferLength - 1);
     ibusReceiveBuffer[bufferLength - 1] = value;
 }
 
 
-void initIbusTelemetry(void)
-{
+void initIbusTelemetry(void) {
     ibusSerialPortConfig = findSerialPortConfig(FUNCTION_TELEMETRY_IBUS);
     ibusPortSharing = determinePortSharing(ibusSerialPortConfig, FUNCTION_TELEMETRY_IBUS);
     ibusTelemetryEnabled = false;
 }
 
 
-void handleIbusTelemetry(void)
-{
+void handleIbusTelemetry(void) {
     if (!ibusTelemetryEnabled) {
         return;
     }
-
     while (serialRxBytesWaiting(ibusSerialPort) > 0) {
         uint8_t c = serialRead(ibusSerialPort);
-
         if (outboundBytesToIgnoreOnRxCount) {
             outboundBytesToIgnoreOnRxCount--;
             continue;
         }
-
         pushOntoTail(ibusReceiveBuffer, IBUS_RX_BUF_LEN, c);
-
         if (isChecksumOkIa6b(ibusReceiveBuffer, IBUS_RX_BUF_LEN)) {
             outboundBytesToIgnoreOnRxCount += respondToIbusRequest(ibusReceiveBuffer);
         }
@@ -127,50 +120,40 @@ void handleIbusTelemetry(void)
 }
 
 
-bool checkIbusTelemetryState(void)
-{
+bool checkIbusTelemetryState(void) {
     bool newTelemetryEnabledValue = telemetryDetermineEnabledState(ibusPortSharing);
-
     if (newTelemetryEnabledValue == ibusTelemetryEnabled) {
         return false;
     }
-
     if (newTelemetryEnabledValue) {
         rescheduleTask(TASK_TELEMETRY, IBUS_TASK_PERIOD_US);
         configureIbusTelemetryPort();
     } else {
         freeIbusTelemetryPort();
     }
-
     return true;
 }
 
 
-void configureIbusTelemetryPort(void)
-{
+void configureIbusTelemetryPort(void) {
     if (!ibusSerialPortConfig) {
         return;
     }
-
     if (isSerialPortShared(ibusSerialPortConfig, FUNCTION_RX_SERIAL, FUNCTION_TELEMETRY_IBUS)) {
         // serialRx will open port and handle telemetry
         return;
     }
-
     ibusSerialPort = openSerialPort(ibusSerialPortConfig->identifier, FUNCTION_TELEMETRY_IBUS, NULL, NULL, IBUS_BAUDRATE, IBUS_UART_MODE, SERIAL_BIDIR | (telemetryConfig()->telemetry_inverted ? SERIAL_INVERTED : SERIAL_NOT_INVERTED));
-
     if (!ibusSerialPort) {
         return;
     }
-
     initSharedIbusTelemetry(ibusSerialPort);
     ibusTelemetryEnabled = true;
     outboundBytesToIgnoreOnRxCount = 0;
 }
 
 
-void freeIbusTelemetryPort(void)
-{
+void freeIbusTelemetryPort(void) {
     closeSerialPort(ibusSerialPort);
     ibusSerialPort = NULL;
     ibusTelemetryEnabled = false;

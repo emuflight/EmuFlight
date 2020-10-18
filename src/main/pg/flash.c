@@ -35,8 +35,7 @@
 
 PG_REGISTER_WITH_RESET_FN(flashConfig_t, flashConfig, PG_FLASH_CONFIG, 0);
 
-void pgResetFn_flashConfig(flashConfig_t *flashConfig)
-{
+void pgResetFn_flashConfig(flashConfig_t *flashConfig) {
 #ifdef FLASH_CS_PIN
     flashConfig->csTag = IO_TAG(FLASH_CS_PIN);
 #else

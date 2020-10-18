@@ -50,8 +50,7 @@
  * Output         : None
  * Return         : None
  *******************************************************************************/
-void NMI_Handler(void)
-{
+void NMI_Handler(void) {
 }
 
 
@@ -63,8 +62,7 @@ void NMI_Handler(void)
  * Output         : None
  * Return         : None
  *******************************************************************************/
-void MemManage_Handler(void)
-{
+void MemManage_Handler(void) {
     /* Go to infinite loop when Memory Manage exception occurs */
     while (1) {
     }
@@ -77,8 +75,7 @@ void MemManage_Handler(void)
  * Output         : None
  * Return         : None
  *******************************************************************************/
-void BusFault_Handler(void)
-{
+void BusFault_Handler(void) {
     /* Go to infinite loop when Bus Fault exception occurs */
     while (1) {
     }
@@ -91,8 +88,7 @@ void BusFault_Handler(void)
  * Output         : None
  * Return         : None
  *******************************************************************************/
-void UsageFault_Handler(void)
-{
+void UsageFault_Handler(void) {
     /* Go to infinite loop when Usage Fault exception occurs */
     while (1) {
     }
@@ -105,8 +101,7 @@ void UsageFault_Handler(void)
  * Output         : None
  * Return         : None
  *******************************************************************************/
-void SVC_Handler(void)
-{
+void SVC_Handler(void) {
 }
 
 /*******************************************************************************
@@ -116,8 +111,7 @@ void SVC_Handler(void)
  * Output         : None
  * Return         : None
  *******************************************************************************/
-void DebugMon_Handler(void)
-{
+void DebugMon_Handler(void) {
 }
 
 /*******************************************************************************
@@ -127,8 +121,7 @@ void DebugMon_Handler(void)
  * Output         : None
  * Return         : None
  *******************************************************************************/
-void PendSV_Handler(void)
-{
+void PendSV_Handler(void) {
 }
 
 

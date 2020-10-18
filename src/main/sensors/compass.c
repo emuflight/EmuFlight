@@ -66,18 +66,15 @@ mag_t mag;                   // mag access functions
 
 PG_REGISTER_WITH_RESET_FN(compassConfig_t, compassConfig, PG_COMPASS_CONFIG, 1);
 
-void pgResetFn_compassConfig(compassConfig_t *compassConfig)
-{
+void pgResetFn_compassConfig(compassConfig_t *compassConfig) {
     compassConfig->mag_align = ALIGN_DEFAULT;
     compassConfig->mag_declination = 0;
     compassConfig->mag_hardware = MAG_DEFAULT;
-
 // Generate a reasonable default for backward compatibility
 // Strategy is
 // 1. If SPI device is defined, it will take precedence, assuming it's onboard.
 // 2. I2C devices are will be handled by address = 0 (per device default).
 // 3. Slave I2C device on SPI gyro
-
 #if defined(USE_SPI) && (defined(USE_MAG_SPI_HMC5883) || defined(USE_MAG_SPI_AK8963))
     compassConfig->mag_bustype = BUSTYPE_SPI;
 #ifdef USE_MAG_SPI_HMC5883
@@ -118,16 +115,12 @@ static int16_t magADCRaw[XYZ_AXIS_COUNT];
 static uint8_t magInit = 0;
 
 #if !defined(SIMULATOR_BUILD)
-bool compassDetect(magDev_t *dev)
-{
+bool compassDetect(magDev_t *dev) {
     magSensor_e magHardware = MAG_NONE;
-
     busDevice_t *busdev = &dev->busdev;
-
 #ifdef USE_MAG_DATA_READY_SIGNAL
     dev->magIntExtiTag = compassConfig()->interruptTag;
 #endif
-
     switch (compassConfig()->mag_bustype) {
 #ifdef USE_I2C
     case BUSTYPE_I2C:
@@ -136,7 +129,6 @@ bool compassDetect(magDev_t *dev)
         busdev->busdev_u.i2c.address = compassConfig()->mag_i2c_address;
 #endif
         break;
-
 #ifdef USE_SPI
     case BUSTYPE_SPI:
         busdev->bustype = BUSTYPE_SPI;
@@ -144,37 +136,30 @@ bool compassDetect(magDev_t *dev)
         busdev->busdev_u.spi.csnPin = IOGetByTag(compassConfig()->mag_spi_csn);
 #endif
         break;
-
 #if defined(USE_MAG_AK8963) && (defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU9250))
-    case BUSTYPE_MPU_SLAVE:
-        {
-            if (gyroMpuDetectionResult()->sensor == MPU_9250_SPI) {
-                busdev->bustype = BUSTYPE_MPU_SLAVE;
-                busdev->busdev_u.mpuSlave.master = gyroSensorBus();
-                busdev->busdev_u.mpuSlave.address = compassConfig()->mag_i2c_address;
-            } else {
-                return false;
-            }
+    case BUSTYPE_MPU_SLAVE: {
+        if (gyroMpuDetectionResult()->sensor == MPU_9250_SPI) {
+            busdev->bustype = BUSTYPE_MPU_SLAVE;
+            busdev->busdev_u.mpuSlave.master = gyroSensorBus();
+            busdev->busdev_u.mpuSlave.address = compassConfig()->mag_i2c_address;
+        } else {
+            return false;
         }
+    }
 #endif
-        break;
-
+    break;
     default:
         return false;
     }
-
     dev->magAlign = ALIGN_DEFAULT;
-
     switch (compassConfig()->mag_hardware) {
     case MAG_DEFAULT:
         FALLTHROUGH;
-
     case MAG_HMC5883:
 #if defined(USE_MAG_HMC5883) || defined(USE_MAG_SPI_HMC5883)
         if (busdev->bustype == BUSTYPE_I2C) {
-                busdev->busdev_u.i2c.address = compassConfig()->mag_i2c_address;
+            busdev->busdev_u.i2c.address = compassConfig()->mag_i2c_address;
         }
-
         if (hmc5883lDetect(dev)) {
 #ifdef MAG_HMC5883_ALIGN
             dev->magAlign = MAG_HMC5883_ALIGN;
@@ -184,13 +169,11 @@ bool compassDetect(magDev_t *dev)
         }
 #endif
         FALLTHROUGH;
-
     case MAG_QMC5883:
 #ifdef USE_MAG_QMC5883
         if (busdev->bustype == BUSTYPE_I2C) {
-                busdev->busdev_u.i2c.address = compassConfig()->mag_i2c_address;
+            busdev->busdev_u.i2c.address = compassConfig()->mag_i2c_address;
         }
-
         if (qmc5883lDetect(dev)) {
 #ifdef MAG_QMC5883L_ALIGN
             dev->magAlign = MAG_QMC5883L_ALIGN;
@@ -200,13 +183,11 @@ bool compassDetect(magDev_t *dev)
         }
 #endif
         FALLTHROUGH;
-
     case MAG_AK8975:
 #ifdef USE_MAG_AK8975
         if (busdev->bustype == BUSTYPE_I2C) {
-                busdev->busdev_u.i2c.address = compassConfig()->mag_i2c_address;
+            busdev->busdev_u.i2c.address = compassConfig()->mag_i2c_address;
         }
-
         if (ak8975Detect(dev)) {
 #ifdef MAG_AK8975_ALIGN
             dev->magAlign = MAG_AK8975_ALIGN;
@@ -216,7 +197,6 @@ bool compassDetect(magDev_t *dev)
         }
 #endif
         FALLTHROUGH;
-
     case MAG_AK8963:
 #if defined(USE_MAG_AK8963) || defined(USE_MAG_SPI_AK8963)
         if (busdev->bustype == BUSTYPE_I2C) {
@@ -227,7 +207,6 @@ bool compassDetect(magDev_t *dev)
             busdev->busdev_u.mpuSlave.address = compassConfig()->mag_i2c_address;
             dev->busdev.busdev_u.mpuSlave.master = gyroSensorBus();
         }
-
         if (ak8963Detect(dev)) {
 #ifdef MAG_AK8963_ALIGN
             dev->magAlign = MAG_AK8963_ALIGN;
@@ -237,39 +216,31 @@ bool compassDetect(magDev_t *dev)
         }
 #endif
         FALLTHROUGH;
-
     case MAG_NONE:
         magHardware = MAG_NONE;
         break;
     }
-
     if (magHardware == MAG_NONE) {
         return false;
     }
-
     detectedSensors[SENSOR_INDEX_MAG] = magHardware;
     sensorsSet(SENSOR_MAG);
     return true;
 }
 #else
-bool compassDetect(magDev_t *dev)
-{
+bool compassDetect(magDev_t *dev) {
     UNUSED(dev);
-
     return false;
 }
 #endif // !SIMULATOR_BUILD
 
-bool compassInit(void)
-{
+bool compassInit(void) {
     // initialize and calibration. turn on led during mag calibration (calibration routine blinks it)
     // calculate magnetic declination
     mag.magneticDeclination = 0.0f; // TODO investigate if this is actually needed if there is no mag sensor or if the value stored in the config should be used.
-
     if (!compassDetect(&magDev)) {
         return false;
     }
-
     const int16_t deg = compassConfig()->mag_declination / 100;
     const int16_t min = compassConfig()->mag_declination % 100;
     mag.magneticDeclination = (deg + ((float)min * (1.0f / 60.0f))) * 10; // heading is in 0.1deg units
@@ -284,24 +255,20 @@ bool compassInit(void)
 }
 
 bool compassIsHealthy(quaternion *q) {
-  const float magModulus = quaternionModulus(q);
-
-  //todo findout mag healthy limits
-  return ((1 < magModulus) && (magModulus < 10000));
+    const float magModulus = quaternionModulus(q);
+    //todo findout mag healthy limits
+    return ((1 < magModulus) && (magModulus < 10000));
 }
 
-void compassUpdate(timeUs_t currentTimeUs)
-{
+void compassUpdate(timeUs_t currentTimeUs) {
     static timeUs_t tCal = 0;
     static flightDynamicsTrims_t magZeroTempMin;
     static flightDynamicsTrims_t magZeroTempMax;
-
     magDev.read(&magDev, magADCRaw);
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
         mag.magADC[axis] = magADCRaw[axis];
     }
     alignSensors(mag.magADC, magDev.magAlign);
-
     flightDynamicsTrims_t *magZero = &compassConfigMutable()->magZero;
     if (STATE(CALIBRATE_MAG)) {
         tCal = currentTimeUs;
@@ -312,13 +279,11 @@ void compassUpdate(timeUs_t currentTimeUs)
         }
         DISABLE_STATE(CALIBRATE_MAG);
     }
-
     if (magInit) {              // we apply offset only once mag calibration is done
         mag.magADC[X] -= magZero->raw[X];
         mag.magADC[Y] -= magZero->raw[Y];
         mag.magADC[Z] -= magZero->raw[Z];
     }
-
     if (tCal != 0) {
         if ((currentTimeUs - tCal) < 30000000) {    // 30s: you have 30s to turn the multi in all directions
             LED0_TOGGLE;
@@ -333,7 +298,6 @@ void compassUpdate(timeUs_t currentTimeUs)
             for (int axis = 0; axis < 3; axis++) {
                 magZero->raw[axis] = (magZeroTempMin.raw[axis] + magZeroTempMax.raw[axis]) / 2; // Calculate offsets
             }
-
             saveConfigAndNotify();
         }
     }
