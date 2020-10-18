@@ -35,8 +35,7 @@
 
 PG_REGISTER_WITH_RESET_FN(boardConfig_t, boardConfig, PG_BOARD_CONFIG, 0);
 
-void pgResetFn_boardConfig(boardConfig_t *boardConfig)
-{
+void pgResetFn_boardConfig(boardConfig_t *boardConfig) {
     if (boardInformationIsSet()) {
         strncpy(boardConfig->manufacturerId, getManufacturerId(), MAX_MANUFACTURER_ID_LENGTH);
         strncpy(boardConfig->boardName, getBoardName(), MAX_BOARD_NAME_LENGTH);
@@ -44,7 +43,6 @@ void pgResetFn_boardConfig(boardConfig_t *boardConfig)
     } else {
 #if !defined(GENERIC_TARGET)
         strncpy(boardConfig->boardName, targetName, MAX_BOARD_NAME_LENGTH);
-
 #if defined(TARGET_MANUFACTURER_IDENTIFIER)
         strncpy(boardConfig->manufacturerId, TARGET_MANUFACTURER_IDENTIFIER, MAX_MANUFACTURER_ID_LENGTH);
 #endif
@@ -53,7 +51,6 @@ void pgResetFn_boardConfig(boardConfig_t *boardConfig)
         boardConfig->boardInformationSet = false;
 #endif // GENERIC_TARGET
     }
-
 #if defined(USE_SIGNATURE)
     if (signatureIsSet()) {
         memcpy(boardConfig->signature, getSignature(), SIGNATURE_LENGTH);

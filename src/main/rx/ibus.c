@@ -75,23 +75,18 @@ static uint32_t ibusChannelData[IBUS_MAX_CHANNEL];
 static uint8_t ibus[IBUS_BUFFSIZE] = { 0, };
 
 
-static bool isValidIa6bIbusPacketLength(uint8_t length)
-{
+static bool isValidIa6bIbusPacketLength(uint8_t length) {
     return (length == IBUS_TELEMETRY_PACKET_LENGTH) || (length == IBUS_SERIAL_RX_PACKET_LENGTH);
 }
 
 
 // Receive ISR callback
-static void ibusDataReceive(uint16_t c, void *data)
-{
+static void ibusDataReceive(uint16_t c, void *data) {
     UNUSED(data);
-
     uint32_t ibusTime;
     static uint32_t ibusTimeLast;
     static uint8_t ibusFramePosition;
-
     ibusTime = micros();
-
     if ((ibusTime - ibusTimeLast) > IBUS_FRAME_GAP) {
         ibusFramePosition = 0;
         rxBytesToIgnore = 0;
@@ -99,9 +94,7 @@ static void ibusDataReceive(uint16_t c, void *data)
         rxBytesToIgnore--;
         return;
     }
-
     ibusTimeLast = ibusTime;
-
     if (ibusFramePosition == 0) {
         if (isValidIa6bIbusPacketLength(c)) {
             ibusModel = IBUS_MODEL_IA6B;
@@ -119,9 +112,7 @@ static void ibusDataReceive(uint16_t c, void *data)
             return;
         }
     }
-
     ibus[ibusFramePosition] = (uint8_t)c;
-
     if (ibusFramePosition == ibusFrameSize - 1) {
         ibusFrameDone = true;
     } else {
@@ -130,8 +121,7 @@ static void ibusDataReceive(uint16_t c, void *data)
 }
 
 
-static bool isChecksumOkIa6(void)
-{
+static bool isChecksumOkIa6(void) {
     uint8_t offset;
     uint8_t i;
     uint16_t chksum, rxsum;
@@ -156,88 +146,69 @@ static bool checksumIsOk(void) {
 static void updateChannelData(void) {
     uint8_t i;
     uint8_t offset;
-
     for (i = 0, offset = ibusChannelOffset; i < IBUS_MAX_CHANNEL; i++, offset += 2) {
         ibusChannelData[i] = ibus[offset] + (ibus[offset + 1] << 8);
     }
 }
 
-static uint8_t ibusFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig)
-{
+static uint8_t ibusFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig) {
     UNUSED(rxRuntimeConfig);
-
     uint8_t frameStatus = RX_FRAME_PENDING;
-
     if (!ibusFrameDone) {
         return frameStatus;
     }
-
     ibusFrameDone = false;
-
     if (checksumIsOk()) {
         if (ibusModel == IBUS_MODEL_IA6 || ibusSyncByte == 0x20) {
             updateChannelData();
             frameStatus = RX_FRAME_COMPLETE;
-        }
-        else
-        {
+        } else {
 #if defined(USE_TELEMETRY) && defined(USE_TELEMETRY_IBUS)
             rxBytesToIgnore = respondToIbusRequest(ibus);
 #endif
         }
     }
-
     return frameStatus;
 }
 
 
-static uint16_t ibusReadRawRC(const rxRuntimeConfig_t *rxRuntimeConfig, uint8_t chan)
-{
+static uint16_t ibusReadRawRC(const rxRuntimeConfig_t *rxRuntimeConfig, uint8_t chan) {
     UNUSED(rxRuntimeConfig);
     return ibusChannelData[chan];
 }
 
 
-bool ibusInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig)
-{
+bool ibusInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig) {
     UNUSED(rxConfig);
     ibusSyncByte = 0;
-
     rxRuntimeConfig->channelCount = IBUS_MAX_CHANNEL;
     rxRuntimeConfig->rxRefreshRate = 20000; // TODO - Verify speed
-
     rxRuntimeConfig->rcReadRawFn = ibusReadRawRC;
     rxRuntimeConfig->rcFrameStatusFn = ibusFrameStatus;
-
     const serialPortConfig_t *portConfig = findSerialPortConfig(FUNCTION_RX_SERIAL);
     if (!portConfig) {
         return false;
     }
-
 #ifdef USE_TELEMETRY
     // bool portShared = telemetryCheckRxPortShared(portConfig);
     bool portShared = isSerialPortShared(portConfig, FUNCTION_RX_SERIAL, FUNCTION_TELEMETRY_IBUS);
 #else
     bool portShared = false;
 #endif
-
-
     rxBytesToIgnore = 0;
     serialPort_t *ibusPort = openSerialPort(portConfig->identifier,
-        FUNCTION_RX_SERIAL,
-        ibusDataReceive,
-        NULL,
-        IBUS_BAUDRATE,
-        portShared ? MODE_RXTX : MODE_RX,
-        (rxConfig->serialrx_inverted ? SERIAL_INVERTED : 0) | (rxConfig->halfDuplex || portShared ? SERIAL_BIDIR : 0)
-        );
-
+                                            FUNCTION_RX_SERIAL,
+                                            ibusDataReceive,
+                                            NULL,
+                                            IBUS_BAUDRATE,
+                                            portShared ? MODE_RXTX : MODE_RX,
+                                            (rxConfig->serialrx_inverted ? SERIAL_INVERTED : 0) | (rxConfig->halfDuplex || portShared ? SERIAL_BIDIR : 0)
+                                           );
 #if defined(USE_TELEMETRY) && defined(USE_TELEMETRY_IBUS)
     if (portShared) {
         initSharedIbusTelemetry(ibusPort);
     }
 #endif
-
     return ibusPort != NULL;
 }
 

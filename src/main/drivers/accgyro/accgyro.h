@@ -53,7 +53,7 @@
 #define GYRO_LPF_5HZ        6
 #define GYRO_LPF_NONE       7
 
-//This optimizes the frequencies instead of calculating them 
+//This optimizes the frequencies instead of calculating them
 //in the case of 1100 and 9000, they would divide as irrational numbers.
 #define GYRO_RATE_1_kHz     1000.0f
 #define GYRO_RATE_1100_Hz   909.09f
@@ -109,8 +109,7 @@ typedef struct accDev_s {
     char revisionCode;                                      // a revision code for the sensor, if known
 }  __attribute__((packed)) accDev_t;
 
-static inline void accDevLock(accDev_t *acc)
-{
+static inline void accDevLock(accDev_t *acc) {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
     pthread_mutex_lock(&acc->lock);
 #else
@@ -118,8 +117,7 @@ static inline void accDevLock(accDev_t *acc)
 #endif
 }
 
-static inline void accDevUnLock(accDev_t *acc)
-{
+static inline void accDevUnLock(accDev_t *acc) {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
     pthread_mutex_unlock(&acc->lock);
 #else
@@ -127,8 +125,7 @@ static inline void accDevUnLock(accDev_t *acc)
 #endif
 }
 
-static inline void gyroDevLock(gyroDev_t *gyro)
-{
+static inline void gyroDevLock(gyroDev_t *gyro) {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
     pthread_mutex_lock(&gyro->lock);
 #else
@@ -136,8 +133,7 @@ static inline void gyroDevLock(gyroDev_t *gyro)
 #endif
 }
 
-static inline void gyroDevUnLock(gyroDev_t *gyro)
-{
+static inline void gyroDevUnLock(gyroDev_t *gyro) {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
     pthread_mutex_unlock(&gyro->lock);
 #else

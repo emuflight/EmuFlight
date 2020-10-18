@@ -35,9 +35,8 @@
 #include "config_helper.h"
 #include "config/feature.h"
 
-void targetConfiguration(void)
-{
-	pinioConfigMutable()->config[0] = PINIO_CONFIG_MODE_OUT_PP | PINIO_CONFIG_OUT_INVERTED;
+void targetConfiguration(void) {
+    pinioConfigMutable()->config[0] = PINIO_CONFIG_MODE_OUT_PP | PINIO_CONFIG_OUT_INVERTED;
     pinioBoxConfigMutable()->permanentId[0] = 40;
 }
 

@@ -263,8 +263,7 @@ static const serialDefaultPin_t serialDefaultPin[] = {
 
 PG_REGISTER_WITH_RESET_FN(serialPinConfig_t, serialPinConfig, PG_SERIAL_PIN_CONFIG, 0);
 
-void pgResetFn_serialPinConfig(serialPinConfig_t *serialPinConfig)
-{
+void pgResetFn_serialPinConfig(serialPinConfig_t *serialPinConfig) {
     for (size_t index = 0 ; index < ARRAYLEN(serialDefaultPin) ; index++) {
         const serialDefaultPin_t *defpin = &serialDefaultPin[index];
         serialPinConfig->ioTagRx[SERIAL_PORT_IDENTIFIER_TO_INDEX(defpin->ident)] = defpin->rxIO;

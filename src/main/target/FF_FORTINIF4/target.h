@@ -129,9 +129,9 @@
 #define USE_UART1
 #if defined(FF_FORTINIF4_REV03)
 #define UART1_RX_PIN            PB7
-#else 
+#else
 #define UART1_RX_PIN            PA10
-#endif	
+#endif
 #define UART1_TX_PIN            PA9
 
 #define USE_UART4

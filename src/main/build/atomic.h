@@ -28,15 +28,13 @@
 // missing versions are implemented here
 
 // set BASEPRI register, do not create memory barrier
-__attribute__( ( always_inline ) ) static inline void __set_BASEPRI_nb(uint32_t basePri)
-{
-   __ASM volatile ("\tMSR basepri, %0\n" : : "r" (basePri) );
+__attribute__( ( always_inline ) ) static inline void __set_BASEPRI_nb(uint32_t basePri) {
+    __ASM volatile ("\tMSR basepri, %0\n" : : "r" (basePri) );
 }
 
 // set BASEPRI_MAX register, do not create memory barrier
-__attribute__( ( always_inline ) ) static inline void __set_BASEPRI_MAX_nb(uint32_t basePri)
-{
-   __ASM volatile ("\tMSR basepri_max, %0\n" : : "r" (basePri) );
+__attribute__( ( always_inline ) ) static inline void __set_BASEPRI_MAX_nb(uint32_t basePri) {
+    __ASM volatile ("\tMSR basepri_max, %0\n" : : "r" (basePri) );
 }
 
 #endif
@@ -46,21 +44,18 @@ __attribute__( ( always_inline ) ) static inline void __set_BASEPRI_MAX_nb(uint3
 
 extern uint8_t atomic_BASEPRI;
 
-static inline uint8_t __get_BASEPRI(void)
-{
+static inline uint8_t __get_BASEPRI(void) {
     return atomic_BASEPRI;
 }
 
 // restore BASEPRI (called as cleanup function), with global memory barrier
-static inline void __basepriRestoreMem(uint8_t *val)
-{
+static inline void __basepriRestoreMem(uint8_t *val) {
     atomic_BASEPRI = *val;
     asm volatile ("": : :"memory"); // compiler memory barrier
 }
 
 // increase BASEPRI, with global memory barrier, returns true
-static inline uint8_t __basepriSetMemRetVal(uint8_t prio)
-{
+static inline uint8_t __basepriSetMemRetVal(uint8_t prio) {
     if(prio && (atomic_BASEPRI == 0 || atomic_BASEPRI > prio)) {
         atomic_BASEPRI = prio;
     }
@@ -69,14 +64,12 @@ static inline uint8_t __basepriSetMemRetVal(uint8_t prio)
 }
 
 // restore BASEPRI (called as cleanup function), no memory barrier
-static inline void __basepriRestore(uint8_t *val)
-{
+static inline void __basepriRestore(uint8_t *val) {
     atomic_BASEPRI = *val;
 }
 
 // increase BASEPRI, no memory barrier, returns true
-static inline uint8_t __basepriSetRetVal(uint8_t prio)
-{
+static inline uint8_t __basepriSetRetVal(uint8_t prio) {
     if(prio && (atomic_BASEPRI == 0 || atomic_BASEPRI > prio)) {
         atomic_BASEPRI = prio;
     }
@@ -87,27 +80,23 @@ static inline uint8_t __basepriSetRetVal(uint8_t prio)
 // ARM BASEPRI manipulation
 
 // restore BASEPRI (called as cleanup function), with global memory barrier
-static inline void __basepriRestoreMem(uint8_t *val)
-{
+static inline void __basepriRestoreMem(uint8_t *val) {
     __set_BASEPRI(*val);
 }
 
 // set BASEPRI_MAX, with global memory barrier, returns true
-static inline uint8_t __basepriSetMemRetVal(uint8_t prio)
-{
+static inline uint8_t __basepriSetMemRetVal(uint8_t prio) {
     __set_BASEPRI_MAX(prio);
     return 1;
 }
 
 // restore BASEPRI (called as cleanup function), no memory barrier
-static inline void __basepriRestore(uint8_t *val)
-{
+static inline void __basepriRestore(uint8_t *val) {
     __set_BASEPRI_nb(*val);
 }
 
 // set BASEPRI_MAX, no memory barrier, returns true
-static inline uint8_t __basepriSetRetVal(uint8_t prio)
-{
+static inline uint8_t __basepriSetRetVal(uint8_t prio) {
     __set_BASEPRI_MAX_nb(prio);
     return 1;
 }
@@ -160,7 +149,9 @@ static inline uint8_t __basepriSetRetVal(uint8_t prio)
 // CLang version, using Objective C-style block
 // based on https://stackoverflow.com/questions/24959440/rewrite-gcc-cleanup-macro-with-nested-function-for-clang
 typedef void (^__cleanup_block)(void);
-static inline void __do_cleanup(__cleanup_block * b) { (*b)(); }
+static inline void __do_cleanup(__cleanup_block * b) {
+    (*b)();
+}
 
 #define ATOMIC_BARRIER(data)                                            \
     typeof(data) *__UNIQL(__barrier) = &data;                           \
