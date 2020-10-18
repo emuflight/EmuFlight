@@ -108,47 +108,35 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
 #endif
 };
 
-void uart_tx_dma_IRQHandler(dmaChannelDescriptor_t* descriptor)
-{
+void uart_tx_dma_IRQHandler(dmaChannelDescriptor_t* descriptor) {
     uartPort_t *s = (uartPort_t*)(descriptor->userParam);
     DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF);
     DMA_Cmd(descriptor->ref, DISABLE); // XXX F1 needs this!!!
-
     uartTryStartTxDMA(s);
 }
 
 // XXX Should serialUART be consolidated?
 
-uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, portOptions_e options)
-{
+uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, portOptions_e options) {
     uartDevice_t *uartdev = uartDevmap[device];
     if (!uartdev) {
         return NULL;
     }
-
     uartPort_t *s = &uartdev->port;
-
     s->port.vTable = uartVTable;
-
     s->port.baudRate = baudRate;
-
     s->port.rxBuffer = uartdev->rxBuffer;
     s->port.txBuffer = uartdev->txBuffer;
     s->port.rxBufferSize = ARRAYLEN(uartdev->rxBuffer);
     s->port.txBufferSize = ARRAYLEN(uartdev->txBuffer);
-
     const uartHardware_t *hardware = uartdev->hardware;
-
     s->USARTx = hardware->reg;
-
     RCC_ClockCmd(hardware->rcc, ENABLE);
-
     if (hardware->rxDMAChannel) {
         dmaInit(dmaGetIdentifier(hardware->rxDMAChannel), OWNER_SERIAL_RX, RESOURCE_INDEX(device));
         s->rxDMAChannel = hardware->rxDMAChannel;
         s->rxDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->DR;
     }
-
     if (hardware->txDMAChannel) {
         const dmaIdentifier_e identifier = dmaGetIdentifier(hardware->txDMAChannel);
         dmaInit(identifier, OWNER_SERIAL_TX, RESOURCE_INDEX(device));
@@ -156,10 +144,8 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
         s->txDMAChannel = hardware->txDMAChannel;
         s->txDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->DR;
     }
-
     IO_t rxIO = IOGetByTag(uartdev->rx);
     IO_t txIO = IOGetByTag(uartdev->tx);
-
     if (options & SERIAL_BIDIR) {
         IOInit(txIO, OWNER_SERIAL_TX, RESOURCE_INDEX(device));
         IOConfigGPIO(txIO, (options & SERIAL_BIDIR_PP) ? IOCFG_AF_PP : IOCFG_AF_OD);
@@ -168,31 +154,25 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
             IOInit(txIO, OWNER_SERIAL_TX, RESOURCE_INDEX(device));
             IOConfigGPIO(txIO, IOCFG_AF_PP);
         }
-
         if (mode & MODE_RX) {
             IOInit(rxIO, OWNER_SERIAL_RX, RESOURCE_INDEX(device));
             IOConfigGPIO(rxIO, IOCFG_IPU);
         }
     }
-
     // RX/TX Interrupt
     if (!hardware->rxDMAChannel || !hardware->txDMAChannel) {
         NVIC_InitTypeDef NVIC_InitStructure;
-
         NVIC_InitStructure.NVIC_IRQChannel = hardware->irqn;
         NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(hardware->rxPriority);
         NVIC_InitStructure.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_SUB(hardware->rxPriority);
         NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
         NVIC_Init(&NVIC_InitStructure);
     }
-
     return s;
 }
 
-void uartIrqHandler(uartPort_t *s)
-{
+void uartIrqHandler(uartPort_t *s) {
     uint16_t SR = s->USARTx->SR;
-
     if (SR & USART_FLAG_RXNE && !s->rxDMAChannel) {
         // If we registered a callback, pass crap there
         if (s->port.rxCallback) {

@@ -104,57 +104,47 @@ static pt1Filter_t accFilterPt1[XYZ_AXIS_COUNT];
 
 PG_REGISTER_WITH_RESET_FN(accelerometerConfig_t, accelerometerConfig, PG_ACCELEROMETER_CONFIG, 0);
 
-void resetRollAndPitchTrims(rollAndPitchTrims_t *rollAndPitchTrims)
-{
+void resetRollAndPitchTrims(rollAndPitchTrims_t *rollAndPitchTrims) {
     RESET_CONFIG_2(rollAndPitchTrims_t, rollAndPitchTrims,
-        .values.roll = 0,
-        .values.pitch = 0,
-    );
+                   .values.roll = 0,
+                   .values.pitch = 0,
+                  );
 }
 
-void accResetRollAndPitchTrims(void)
-{
+void accResetRollAndPitchTrims(void) {
     resetRollAndPitchTrims(&accelerometerConfigMutable()->accelerometerTrims);
 }
 
-static void resetFlightDynamicsTrims(flightDynamicsTrims_t *accZero)
-{
+static void resetFlightDynamicsTrims(flightDynamicsTrims_t *accZero) {
     accZero->values.roll = 0;
     accZero->values.pitch = 0;
     accZero->values.yaw = 0;
 }
 
-void accResetFlightDynamicsTrims(void)
-{
+void accResetFlightDynamicsTrims(void) {
     resetFlightDynamicsTrims(&accelerometerConfigMutable()->accZero);
 }
 
-void pgResetFn_accelerometerConfig(accelerometerConfig_t *instance)
-{
+void pgResetFn_accelerometerConfig(accelerometerConfig_t *instance) {
     RESET_CONFIG_2(accelerometerConfig_t, instance,
-        .acc_lpf_hz = 40,
-        .acc_align = ALIGN_DEFAULT,
-        .acc_hardware = ACC_DEFAULT,
-        .acc_high_fsr = false,
-    );
+                   .acc_lpf_hz = 40,
+                   .acc_align = ALIGN_DEFAULT,
+                   .acc_hardware = ACC_DEFAULT,
+                   .acc_high_fsr = false,
+                  );
     resetRollAndPitchTrims(&instance->accelerometerTrims);
     resetFlightDynamicsTrims(&instance->accZero);
 }
 
-bool accDetect(accDev_t *dev, accelerationSensor_e accHardwareToUse)
-{
+bool accDetect(accDev_t *dev, accelerationSensor_e accHardwareToUse) {
     accelerationSensor_e accHardware = ACC_NONE;
-
 #ifdef USE_ACC_ADXL345
     drv_adxl345_config_t acc_params;
 #endif
-
 retry:
-
     switch (accHardwareToUse) {
     case ACC_DEFAULT:
         FALLTHROUGH;
-
 #ifdef USE_ACC_ADXL345
     case ACC_ADXL345: // ADXL345
         acc_params.useFifo = false;
@@ -168,7 +158,6 @@ retry:
         }
         FALLTHROUGH;
 #endif
-
 #ifdef USE_ACC_LSM303DLHC
     case ACC_LSM303DLHC:
         if (lsm303dlhcAccDetect(dev)) {
@@ -180,7 +169,6 @@ retry:
         }
         FALLTHROUGH;
 #endif
-
 #ifdef USE_ACC_MPU6050
     case ACC_MPU6050: // MPU6050
         if (mpu6050AccDetect(dev)) {
@@ -192,7 +180,6 @@ retry:
         }
         FALLTHROUGH;
 #endif
-
 #ifdef USE_ACC_MMA8452
     case ACC_MMA8452: // MMA8452
         if (mma8452Detect(dev)) {
@@ -204,7 +191,6 @@ retry:
         }
         FALLTHROUGH;
 #endif
-
 #ifdef USE_ACC_BMA280
     case ACC_BMA280: // BMA280
         if (bma280Detect(dev)) {
@@ -216,7 +202,6 @@ retry:
         }
         FALLTHROUGH;
 #endif
-
 #ifdef USE_ACC_SPI_MPU6000
     case ACC_MPU6000:
         if (mpu6000SpiAccDetect(dev)) {
@@ -228,7 +213,6 @@ retry:
         }
         FALLTHROUGH;
 #endif
-
 #ifdef USE_ACC_SPI_MPU9250
     case ACC_MPU9250:
         if (mpu9250SpiAccDetect(dev)) {
@@ -240,7 +224,6 @@ retry:
         }
         FALLTHROUGH;
 #endif
-
     case ACC_MPU6500:
     case ACC_ICM20601:
     case ACC_ICM20602:
@@ -274,7 +257,6 @@ retry:
         }
 #endif
         FALLTHROUGH;
-
 #ifdef USE_ACC_SPI_ICM20649
     case ACC_ICM20649:
         if (icm20649SpiAccDetect(dev)) {
@@ -286,7 +268,6 @@ retry:
         }
         FALLTHROUGH;
 #endif
-
 #ifdef USE_ACC_IMUF9001
     case ACC_IMUF9001:
         if (imufSpiAccDetect(dev)) {
@@ -295,7 +276,6 @@ retry:
         }
         FALLTHROUGH;
 #endif
-
 #ifdef USE_ACC_SPI_ICM20689
     case ACC_ICM20689:
         if (icm20689SpiAccDetect(dev)) {
@@ -307,7 +287,6 @@ retry:
         }
         FALLTHROUGH;
 #endif
-
 #ifdef USE_ACCGYRO_BMI160
     case ACC_BMI160:
         if (bmi160SpiAccDetect(dev)) {
@@ -319,7 +298,6 @@ retry:
         }
         FALLTHROUGH;
 #endif
-
 #ifdef USE_FAKE_ACC
     case ACC_FAKE:
         if (fakeAccDetect(dev)) {
@@ -328,37 +306,31 @@ retry:
         }
         FALLTHROUGH;
 #endif
-
     default:
     case ACC_NONE: // disable ACC
         accHardware = ACC_NONE;
         break;
     }
-
     // Found anything? Check if error or ACC is really missing.
     if (accHardware == ACC_NONE && accHardwareToUse != ACC_DEFAULT && accHardwareToUse != ACC_NONE) {
         // Nothing was found and we have a forced sensor that isn't present.
         accHardwareToUse = ACC_DEFAULT;
         goto retry;
     }
-
     if (accHardware == ACC_NONE) {
         return false;
     }
-
     detectedSensors[SENSOR_INDEX_ACC] = accHardware;
     sensorsSet(SENSOR_ACC);
     return true;
 }
 
-bool accInit(void)
-{
+bool accInit(void) {
     memset(&acc, 0, sizeof(acc));
     // copy over the common gyro mpu settings
     acc.dev.bus = *gyroSensorBus();
     acc.dev.mpuDetectionResult = *gyroMpuDetectionResult();
     acc.dev.acc_high_fsr = accelerometerConfig()->acc_high_fsr;
-
 #ifdef USE_DUAL_GYRO
     if (gyroConfig()->gyro_to_use == GYRO_CONFIG_USE_GYRO_2) {
         acc.dev.accAlign = ACC_2_ALIGN;
@@ -368,88 +340,70 @@ bool accInit(void)
 #else
     acc.dev.accAlign = ALIGN_DEFAULT;
 #endif
-
     if (!accDetect(&acc.dev, accelerometerConfig()->acc_hardware)) {
         return false;
     }
     acc.dev.acc_1G = 256; // set default
     acc.dev.initFn(&acc.dev); // driver initialisation
     // set the acc sampling interval according to the gyro sampling interval
-    if (accLpfCutHz)
-    {
-    	const float k = pt1FilterGain(accLpfCutHz, 1.0f / (float)DEFAULT_ACC_SAMPLE_INTERVAL);
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++)
-        {
-        	pt1FilterInit(&accFilterPt1[axis], k);
+    if (accLpfCutHz) {
+        const float k = pt1FilterGain(accLpfCutHz, 1.0f / (float)DEFAULT_ACC_SAMPLE_INTERVAL);
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+            pt1FilterInit(&accFilterPt1[axis], k);
         }
     }
-    #ifndef USE_ACC_IMUF9001
+#ifndef USE_ACC_IMUF9001
     if (accelerometerConfig()->acc_align != ALIGN_DEFAULT) {
         acc.dev.accAlign = accelerometerConfig()->acc_align;
     }
-    #endif //USE_ACC_IMUF9001
+#endif //USE_ACC_IMUF9001
     return true;
 }
 
-void accSetCalibrationCycles(uint16_t calibrationCyclesRequired)
-{
+void accSetCalibrationCycles(uint16_t calibrationCyclesRequired) {
     calibratingA = calibrationCyclesRequired;
 }
 
-bool accIsCalibrationComplete(void)
-{
+bool accIsCalibrationComplete(void) {
     return calibratingA == 0;
 }
 
-static bool isOnFinalAccelerationCalibrationCycle(void)
-{
+static bool isOnFinalAccelerationCalibrationCycle(void) {
     return calibratingA == 1;
 }
 
-static bool isOnFirstAccelerationCalibrationCycle(void)
-{
+static bool isOnFirstAccelerationCalibrationCycle(void) {
     return calibratingA == CALIBRATING_ACC_CYCLES;
 }
 
-static void performAccelerationCalibration(rollAndPitchTrims_t *rollAndPitchTrims)
-{
+static void performAccelerationCalibration(rollAndPitchTrims_t *rollAndPitchTrims) {
     static int32_t a[3];
-
     for (int axis = 0; axis < 3; axis++) {
-
         // Reset a[axis] at start of calibration
         if (isOnFirstAccelerationCalibrationCycle()) {
             a[axis] = 0;
         }
-
         // Sum up CALIBRATING_ACC_CYCLES readings
         a[axis] += acc.accADC[axis];
-
         // Reset global variables to prevent other code from using un-calibrated data
         acc.accADC[axis] = 0;
         accelerationTrims->raw[axis] = 0;
     }
-
     if (isOnFinalAccelerationCalibrationCycle()) {
         // Calculate average, shift Z down by acc_1G and store values in EEPROM at end of calibration
         accelerationTrims->raw[X] = a[X] / CALIBRATING_ACC_CYCLES;
         accelerationTrims->raw[Y] = a[Y] / CALIBRATING_ACC_CYCLES;
         accelerationTrims->raw[Z] = a[Z] / CALIBRATING_ACC_CYCLES - acc.dev.acc_1G;
-
         resetRollAndPitchTrims(rollAndPitchTrims);
-
         saveConfigAndNotify();
     }
-
     calibratingA--;
 }
 
-static void performInflightAccelerationCalibration(rollAndPitchTrims_t *rollAndPitchTrims)
-{
+static void performInflightAccelerationCalibration(rollAndPitchTrims_t *rollAndPitchTrims) {
     static int32_t b[3];
     static int16_t accZero_saved[3] = { 0, 0, 0 };
     static rollAndPitchTrims_t angleTrim_saved = { { 0, 0 } };
-
     // Saving old zeropoints before measurement
     if (InflightcalibratingA == 50) {
         accZero_saved[X] = accelerationTrims->raw[X];
@@ -489,17 +443,13 @@ static void performInflightAccelerationCalibration(rollAndPitchTrims_t *rollAndP
         accelerationTrims->raw[X] = b[X] / 50;
         accelerationTrims->raw[Y] = b[Y] / 50;
         accelerationTrims->raw[Z] = b[Z] / 50 - acc.dev.acc_1G;    // for nunchuck 200=1G
-
         resetRollAndPitchTrims(rollAndPitchTrims);
-
         saveConfigAndNotify();
     }
 }
 
-void accUpdate(timeUs_t currentTimeUs, rollAndPitchTrims_t *rollAndPitchTrims)
-{
+void accUpdate(timeUs_t currentTimeUs, rollAndPitchTrims_t *rollAndPitchTrims) {
     UNUSED(currentTimeUs);
-
     if (!acc.dev.readFn(&acc.dev)) {
         return;
     }
@@ -507,26 +457,22 @@ void accUpdate(timeUs_t currentTimeUs, rollAndPitchTrims_t *rollAndPitchTrims)
         DEBUG_SET(DEBUG_ACCELEROMETER, axis, acc.dev.ADCRaw[axis]);
         acc.accADC[axis] = acc.dev.ADCRaw[axis];
     }
-    #ifndef USE_ACC_IMUF9001
+#ifndef USE_ACC_IMUF9001
     alignSensors(acc.accADC, acc.dev.accAlign);
-    #endif
-
+#endif
     if (accLpfCutHz) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
             acc.accADC[axis] = pt1FilterApply(&accFilterPt1[axis], (float)acc.accADC[axis]);
         }
     }
-
     if (!accIsCalibrationComplete()) {
         performAccelerationCalibration(rollAndPitchTrims);
     } else if (feature(FEATURE_INFLIGHT_ACC_CAL)) {
         performInflightAccelerationCalibration(rollAndPitchTrims);
     }
-
     acc.accADC[X] -= accelerationTrims->raw[X];
     acc.accADC[Y] -= accelerationTrims->raw[Y];
     acc.accADC[Z] -= accelerationTrims->raw[Z];
-
     ++accumulatedMeasurementCount;
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
         accumulatedMeasurements[axis] += acc.accADC[axis];
@@ -535,36 +481,32 @@ void accUpdate(timeUs_t currentTimeUs, rollAndPitchTrims_t *rollAndPitchTrims)
 }
 
 bool accGetAverage(quaternion *vAverage) {
-  if (accumulatedMeasurementCount > 0) {
-    vAverage->w = 0;
-    vAverage->x = accumulatedMeasurements[X] / accumulatedMeasurementCount;
-    vAverage->y = accumulatedMeasurements[Y] / accumulatedMeasurementCount;
-    vAverage->z = accumulatedMeasurements[Z] / accumulatedMeasurementCount;
-
-    for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-      accumulatedMeasurements[axis] = 0.0f;
+    if (accumulatedMeasurementCount > 0) {
+        vAverage->w = 0;
+        vAverage->x = accumulatedMeasurements[X] / accumulatedMeasurementCount;
+        vAverage->y = accumulatedMeasurements[Y] / accumulatedMeasurementCount;
+        vAverage->z = accumulatedMeasurements[Z] / accumulatedMeasurementCount;
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+            accumulatedMeasurements[axis] = 0.0f;
+        }
+        accumulatedMeasurementCount = 0;
+        return true;
+    } else {
+        quaternionInitVector(vAverage);
+        return false;
     }
-    accumulatedMeasurementCount = 0;
-    return true;
-  } else {
-    quaternionInitVector(vAverage);
-    return false;
-  }
 }
 
-void setAccelerationTrims(flightDynamicsTrims_t *accelerationTrimsToUse)
-{
+void setAccelerationTrims(flightDynamicsTrims_t *accelerationTrimsToUse) {
     accelerationTrims = accelerationTrimsToUse;
 }
 
-void accInitFilters(void)
-{
+void accInitFilters(void) {
     accLpfCutHz = accelerometerConfig()->acc_lpf_hz;
     if (accLpfCutHz) {
-    	const float k = pt1FilterGain(accLpfCutHz, 1.0f / (float)DEFAULT_ACC_SAMPLE_INTERVAL);
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++)
-        {
-        	pt1FilterInit(&accFilterPt1[axis], k);
+        const float k = pt1FilterGain(accLpfCutHz, 1.0f / (float)DEFAULT_ACC_SAMPLE_INTERVAL);
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+            pt1FilterInit(&accFilterPt1[axis], k);
         }
     }
 }

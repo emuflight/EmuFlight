@@ -43,13 +43,10 @@ void targetConfiguration(void)
 #ifdef USE_TARGET_CONFIG
 
 
-void targetConfiguration(void)
-{
-
+void targetConfiguration(void) {
     pinioBoxConfigMutable()->permanentId[0] = 40;
     pinioBoxConfigMutable()->permanentId[1] = 41;
     pinioBoxConfigMutable()->permanentId[2] = 255;
     pinioBoxConfigMutable()->permanentId[3] = 255;
-
 }
 #endif

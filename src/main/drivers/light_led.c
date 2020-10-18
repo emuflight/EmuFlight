@@ -44,27 +44,24 @@ static uint8_t ledInversion = 0;
 #define LED2_PIN NONE
 #endif
 
-void pgResetFn_statusLedConfig(statusLedConfig_t *statusLedConfig)
-{
+void pgResetFn_statusLedConfig(statusLedConfig_t *statusLedConfig) {
     statusLedConfig->ioTags[0] = IO_TAG(LED0_PIN);
     statusLedConfig->ioTags[1] = IO_TAG(LED1_PIN);
     statusLedConfig->ioTags[2] = IO_TAG(LED2_PIN);
-
     statusLedConfig->inversion = 0
 #ifdef LED0_INVERTED
-    | BIT(0)
+                                 | BIT(0)
 #endif
 #ifdef LED1_INVERTED
-    | BIT(1)
+                                 | BIT(1)
 #endif
 #ifdef LED2_INVERTED
-    | BIT(2)
+                                 | BIT(2)
 #endif
-    ;
+                                 ;
 }
 
-void ledInit(const statusLedConfig_t *statusLedConfig)
-{
+void ledInit(const statusLedConfig_t *statusLedConfig) {
     ledInversion = statusLedConfig->inversion;
     for (int i = 0; i < STATUS_LED_NUMBER; i++) {
         if (statusLedConfig->ioTags[i]) {
@@ -75,19 +72,16 @@ void ledInit(const statusLedConfig_t *statusLedConfig)
             leds[i] = IO_NONE;
         }
     }
-
     LED0_OFF;
     LED1_OFF;
     LED2_OFF;
 }
 
-void ledToggle(int led)
-{
+void ledToggle(int led) {
     IOToggle(leds[led]);
 }
 
-void ledSet(int led, bool on)
-{
+void ledSet(int led, bool on) {
     const bool inverted = (1 << (led)) & ledInversion;
     IOWrite(leds[led], on ? inverted : !inverted);
 }

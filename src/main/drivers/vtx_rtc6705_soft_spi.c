@@ -82,28 +82,22 @@ static IO_t rtc6705DataPin = IO_NONE;
 static IO_t rtc6705CsnPin = IO_NONE;
 static IO_t rtc6705ClkPin = IO_NONE;
 
-void rtc6705IOInit(void)
-{
+void rtc6705IOInit(void) {
 #ifdef RTC6705_POWER_PIN
     vtxPowerPin = IOGetByTag(IO_TAG(RTC6705_POWER_PIN));
     IOInit(vtxPowerPin, OWNER_VTX, 0);
-
     DISABLE_VTX_POWER();
     IOConfigGPIO(vtxPowerPin, IOCFG_OUT_OD);
 #endif
-
     rtc6705DataPin = IOGetByTag(IO_TAG(RTC6705_SPI_MOSI_PIN));
     rtc6705CsnPin  = IOGetByTag(IO_TAG(RTC6705_CS_PIN));
     rtc6705ClkPin  = IOGetByTag(IO_TAG(RTC6705_SPICLK_PIN));
-
 #if !defined(USE_RTC6705_SOFTSPI_ON_HW_SPI)
     IOInit(rtc6705DataPin, OWNER_SPI_MOSI, RESOURCE_SOFT_OFFSET);
     IOConfigGPIO(rtc6705DataPin, IOCFG_OUT_PP);
-
     IOInit(rtc6705ClkPin, OWNER_SPI_SCK, RESOURCE_SOFT_OFFSET);
     IOConfigGPIO(rtc6705ClkPin, IOCFG_OUT_PP);
 #endif
-
     // Important: The order of GPIO configuration calls are critical to ensure that incorrect signals are not briefly sent to the VTX.
     // GPIO bit is enabled so here so the CS/LE pin output is not pulled low when the GPIO is set in output mode.
     DISABLE_RTC6705;
@@ -111,8 +105,7 @@ void rtc6705IOInit(void)
     IOConfigGPIO(rtc6705CsnPin, IOCFG_OUT_PP);
 }
 
-static void rtc6705_write_register(uint8_t addr, uint32_t data)
-{
+static void rtc6705_write_register(uint8_t addr, uint32_t data) {
     ENABLE_RTC6705;
     delay(1);
     // send address
@@ -122,7 +115,6 @@ static void rtc6705_write_register(uint8_t addr, uint32_t data)
         } else {
             RTC6705_SPIDATA_OFF;
         }
-
         RTC6705_SPICLK_ON;
         delay(1);
         RTC6705_SPICLK_OFF;
@@ -148,8 +140,7 @@ static void rtc6705_write_register(uint8_t addr, uint32_t data)
     DISABLE_RTC6705;
 }
 
-void rtc6705SetFrequency(uint16_t channel_freq)
-{
+void rtc6705SetFrequency(uint16_t channel_freq) {
     uint32_t freq = (uint32_t)channel_freq * 1000;
     freq /= 40;
     const uint32_t N = freq / 64;
@@ -160,22 +151,19 @@ void rtc6705SetFrequency(uint16_t channel_freq)
     ENABLE_HW_SPI();
 }
 
-void rtc6705SetRFPower(uint8_t rf_power)
-{
+void rtc6705SetRFPower(uint8_t rf_power) {
     DISABLE_HW_SPI();
     rtc6705_write_register(7, (rf_power > 1 ? PA_CONTROL_DEFAULT : (PA_CONTROL_DEFAULT | PD_Q5G_MASK) & (~(PA5G_PW_MASK | PA5G_BS_MASK))));
     ENABLE_HW_SPI();
 }
 
-void rtc6705Disable(void)
-{
+void rtc6705Disable(void) {
 #ifdef RTC6705_POWER_PIN
     DISABLE_VTX_POWER();
 #endif
 }
 
-void rtc6705Enable(void)
-{
+void rtc6705Enable(void) {
 #ifdef RTC6705_POWER_PIN
     ENABLE_VTX_POWER();
 #endif

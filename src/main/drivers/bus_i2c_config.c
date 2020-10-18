@@ -56,20 +56,15 @@
 #define I2C4_OVERCLOCK false
 #endif
 
-void i2cHardwareConfigure(const i2cConfig_t *i2cConfig)
-{
+void i2cHardwareConfigure(const i2cConfig_t *i2cConfig) {
     for (int index = 0 ; index < I2CDEV_COUNT ; index++) {
         const i2cHardware_t *hardware = &i2cHardware[index];
-
         if (!hardware->reg) {
             continue;
         }
-
         I2CDevice device = hardware->device;
         i2cDevice_t *pDev = &i2cDevice[device];
-
         memset(pDev, 0, sizeof(*pDev));
-
         for (int pindex = 0 ; pindex < I2C_PIN_SEL_MAX ; pindex++) {
             if (i2cConfig[device].ioTagScl == hardware->sclPins[pindex].ioTag) {
                 pDev->scl = IOGetByTag(i2cConfig[device].ioTagScl);
@@ -84,7 +79,6 @@ void i2cHardwareConfigure(const i2cConfig_t *i2cConfig)
 #endif
             }
         }
-
         if (pDev->scl && pDev->sda) {
             pDev->hardware = hardware;
             pDev->reg = hardware->reg;

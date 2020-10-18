@@ -35,20 +35,18 @@
 #include "drivers/accgyro/gyro_sync.h"
 
 
-bool gyroSyncCheckUpdate(gyroDev_t *gyro)
-{
+bool gyroSyncCheckUpdate(gyroDev_t *gyro) {
     bool ret;
     if (gyro->dataReady) {
         ret = true;
-        gyro->dataReady= false;
+        gyro->dataReady = false;
     } else {
         ret = false;
     }
     return ret;
 }
 
-uint32_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t lpf, uint8_t gyroSyncDenominator, bool gyro_use_32khz)
-{
+uint32_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t lpf, uint8_t gyroSyncDenominator, bool gyro_use_32khz) {
     bool lpfNoneOr256 = (lpf == GYRO_LPF_256HZ || lpf == GYRO_LPF_NONE);
     if (!lpfNoneOr256) {
         gyroSyncDenominator = 1; // Always full Sampling
@@ -58,14 +56,13 @@ uint32_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t lpf, uint8_t gyroSyncDenomin
     //20649 is a weird gyro
     if (gyro->mpuDetectionResult.sensor == ICM_20649_SPI) {
         gyro->gyroRateKHz = lpfNoneOr256 ? GYRO_RATE_9_kHz : GYRO_RATE_1100_Hz;
-    } else if (gyro->mpuDetectionResult.sensor == BMI_160_SPI && lpfNoneOr256) { 
+    } else if (gyro->mpuDetectionResult.sensor == BMI_160_SPI && lpfNoneOr256) {
         //brainFPV is also a weird gyro
         gyro->gyroRateKHz = GYRO_RATE_3200_Hz;
     } else if (gyro_use_32khz) {
         //use full 32k
         gyro->gyroRateKHz = GYRO_RATE_32_kHz;
     }
-
     // return the targetLooptime (expected cycleTime)
     return (uint32_t)(gyroSyncDenominator * gyro->gyroRateKHz);
 }
