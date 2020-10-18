@@ -30,18 +30,14 @@
 #ifdef USE_TARGET_CONFIG
 
 
-void targetConfiguration(void)
-{
-
+void targetConfiguration(void) {
     pinioConfigMutable()->config[0] = 1;
     pinioConfigMutable()->config[1] = 129;
     pinioConfigMutable()->config[2] = 1;
     pinioConfigMutable()->config[3] = 1;
-
     pinioBoxConfigMutable()->permanentId[0] = 40;
     pinioBoxConfigMutable()->permanentId[1] = 255;
     pinioBoxConfigMutable()->permanentId[2] = 255;
     pinioBoxConfigMutable()->permanentId[3] = 255;
-
 }
 #endif

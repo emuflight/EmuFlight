@@ -93,46 +93,35 @@ const adcTagMap_t adcTagMap[] = {
     { DEFIO_TAG_E__PF4,  ADC_DEVICES_1,  ADC_Channel_5  }, // ADC1
 };
 
-void adcInit(const adcConfig_t *config)
-{
+void adcInit(const adcConfig_t *config) {
     ADC_InitTypeDef ADC_InitStructure;
     DMA_InitTypeDef DMA_InitStructure;
-
     uint8_t adcChannelCount = 0;
-
     memset(&adcOperatingConfig, 0, sizeof(adcOperatingConfig));
-
     if (config->vbat.enabled) {
         adcOperatingConfig[ADC_BATTERY].tag = config->vbat.ioTag;
     }
-
     if (config->rssi.enabled) {
         adcOperatingConfig[ADC_RSSI].tag = config->rssi.ioTag;  //RSSI_ADC_CHANNEL;
     }
-
     if (config->external1.enabled) {
         adcOperatingConfig[ADC_EXTERNAL1].tag = config->external1.ioTag; //EXTERNAL1_ADC_CHANNEL;
     }
-
     if (config->current.enabled) {
         adcOperatingConfig[ADC_CURRENT].tag = config->current.ioTag;  //CURRENT_METER_ADC_CHANNEL;
     }
-
     ADCDevice device = adcDeviceByInstance(ADC_INSTANCE);
     if (device == ADCINVALID)
         return;
-
 #ifdef ADC24_DMA_REMAP
     SYSCFG_DMAChannelRemapConfig(SYSCFG_DMARemap_ADC2ADC4, ENABLE);
 #endif
     adcDevice_t adc = adcHardware[device];
-
     bool adcActive = false;
     for (int i = 0; i < ADC_CHANNEL_COUNT; i++) {
         if (!adcVerifyPin(adcOperatingConfig[i].tag, device)) {
             continue;
         }
-
         adcActive = true;
         IOInit(IOGetByTag(adcOperatingConfig[i].tag), OWNER_ADC_BATT + i, 0);
         IOConfigGPIO(IOGetByTag(adcOperatingConfig[i].tag), IO_CONFIG(GPIO_Mode_AN, 0, GPIO_OType_OD, GPIO_PuPd_NOPULL));
@@ -141,11 +130,9 @@ void adcInit(const adcConfig_t *config)
         adcOperatingConfig[i].sampleTime = ADC_SampleTime_601Cycles5;
         adcOperatingConfig[i].enabled = true;
     }
-
     if (!adcActive) {
         return;
     }
-
     if ((device == ADCDEV_1) || (device == ADCDEV_2)) {
         // enable clock for ADC1+2
         RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div256);  // 72 MHz divided by 256 = 281.25 kHz
@@ -153,13 +140,9 @@ void adcInit(const adcConfig_t *config)
         // enable clock for ADC3+4
         RCC_ADCCLKConfig(RCC_ADC34PLLCLK_Div256);  // 72 MHz divided by 256 = 281.25 kHz
     }
-
     RCC_ClockCmd(adc.rccADC, ENABLE);
-
     dmaInit(dmaGetIdentifier(adc.DMAy_Channelx), OWNER_ADC, 0);
-
     DMA_DeInit(adc.DMAy_Channelx);
-
     DMA_StructInit(&DMA_InitStructure);
     DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&adc.ADCx->DR;
     DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)adcValues;
@@ -172,22 +155,16 @@ void adcInit(const adcConfig_t *config)
     DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
     DMA_InitStructure.DMA_Priority = DMA_Priority_High;
     DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
-
     DMA_Init(adc.DMAy_Channelx, &DMA_InitStructure);
-
     DMA_Cmd(adc.DMAy_Channelx, ENABLE);
-
     // calibrate
-
     ADC_VoltageRegulatorCmd(adc.ADCx, ENABLE);
     delay(10);
     ADC_SelectCalibrationMode(adc.ADCx, ADC_CalibrationMode_Single);
     ADC_StartCalibration(adc.ADCx);
     while (ADC_GetCalibrationStatus(adc.ADCx) != RESET);
     ADC_VoltageRegulatorCmd(adc.ADCx, DISABLE);
-
     ADC_CommonInitTypeDef ADC_CommonInitStructure;
-
     ADC_CommonStructInit(&ADC_CommonInitStructure);
     ADC_CommonInitStructure.ADC_Mode = ADC_Mode_Independent;
     ADC_CommonInitStructure.ADC_Clock = ADC_Clock_SynClkModeDiv4;
@@ -195,9 +172,7 @@ void adcInit(const adcConfig_t *config)
     ADC_CommonInitStructure.ADC_DMAMode = ADC_DMAMode_Circular;
     ADC_CommonInitStructure.ADC_TwoSamplingDelay = 0;
     ADC_CommonInit(adc.ADCx, &ADC_CommonInitStructure);
-
     ADC_StructInit(&ADC_InitStructure);
-
     ADC_InitStructure.ADC_ContinuousConvMode    = ADC_ContinuousConvMode_Enable;
     ADC_InitStructure.ADC_Resolution            = ADC_Resolution_12b;
     ADC_InitStructure.ADC_ExternalTrigConvEvent = ADC_ExternalTrigConvEvent_0;
@@ -206,9 +181,7 @@ void adcInit(const adcConfig_t *config)
     ADC_InitStructure.ADC_OverrunMode           = ADC_OverrunMode_Disable;
     ADC_InitStructure.ADC_AutoInjMode           = ADC_AutoInjec_Disable;
     ADC_InitStructure.ADC_NbrOfRegChannel       = adcChannelCount;
-
     ADC_Init(adc.ADCx, &ADC_InitStructure);
-
     uint8_t rank = 1;
     for (int i = 0; i < ADC_CHANNEL_COUNT; i++) {
         if (!adcOperatingConfig[i].enabled) {
@@ -216,15 +189,10 @@ void adcInit(const adcConfig_t *config)
         }
         ADC_RegularChannelConfig(adc.ADCx, adcOperatingConfig[i].adcChannel, rank++, adcOperatingConfig[i].sampleTime);
     }
-
     ADC_Cmd(adc.ADCx, ENABLE);
-
     while (!ADC_GetFlagStatus(adc.ADCx, ADC_FLAG_RDY));
-
     ADC_DMAConfig(adc.ADCx, ADC_DMAMode_Circular);
-
     ADC_DMACmd(adc.ADCx, ENABLE);
-
     ADC_StartConversion(adc.ADCx);
 }
 #endif

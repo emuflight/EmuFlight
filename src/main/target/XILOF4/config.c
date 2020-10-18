@@ -47,9 +47,8 @@ static targetSerialPortFunction_t targetSerialPortFunction[] = {
     { SERIAL_PORT_USART2, FUNCTION_ESC_SENSOR },
 };
 
-void targetConfiguration(void)
-{
-	pinioConfigMutable()->config[0] = PINIO_CONFIG_MODE_OUT_PP | PINIO_CONFIG_OUT_INVERTED;
+void targetConfiguration(void) {
+    pinioConfigMutable()->config[0] = PINIO_CONFIG_MODE_OUT_PP | PINIO_CONFIG_OUT_INVERTED;
     pinioBoxConfigMutable()->permanentId[0] = 40;
     pidConfigMutable()->pid_process_denom = 1;
     currentSensorADCConfigMutable()->scale = CURRENT_SCALE;

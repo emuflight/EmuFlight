@@ -109,25 +109,19 @@ typedef struct sbusFrameData_s {
 
 
 // Receive ISR callback
-static void sbusDataReceive(uint16_t c, void *data)
-{
+static void sbusDataReceive(uint16_t c, void *data) {
     sbusFrameData_t *sbusFrameData = data;
-
     const uint32_t nowUs = micros();
-
     const int32_t sbusFrameTime = nowUs - sbusFrameData->startAtUs;
-
     if (sbusFrameTime > (long)(SBUS_TIME_NEEDED_PER_FRAME + 500)) {
         sbusFrameData->position = 0;
     }
-
     if (sbusFrameData->position == 0) {
         if (c != SBUS_FRAME_BEGIN_BYTE) {
             return;
         }
         sbusFrameData->startAtUs = nowUs;
     }
-
     if (sbusFrameData->position < SBUS_FRAME_SIZE) {
         sbusFrameData->frame.bytes[sbusFrameData->position++] = (uint8_t)c;
         if (sbusFrameData->position < SBUS_FRAME_SIZE) {
@@ -139,16 +133,13 @@ static void sbusDataReceive(uint16_t c, void *data)
     }
 }
 
-static uint8_t sbusFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig)
-{
+static uint8_t sbusFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig) {
     sbusFrameData_t *sbusFrameData = rxRuntimeConfig->frameData;
     if (!sbusFrameData->done) {
         return RX_FRAME_PENDING;
     }
     sbusFrameData->done = false;
-
     DEBUG_SET(DEBUG_SBUS, DEBUG_SBUS_FRAME_FLAGS, sbusFrameData->frame.frame.channels.flags);
-
     if (sbusFrameData->frame.frame.channels.flags & SBUS_FLAG_SIGNAL_LOSS) {
         sbusFrameData->stateFlags |= SBUS_STATE_SIGNALLOSS;
         DEBUG_SET(DEBUG_SBUS, DEBUG_SBUS_STATE_FLAGS, sbusFrameData->stateFlags);
@@ -157,56 +148,44 @@ static uint8_t sbusFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig)
         sbusFrameData->stateFlags |= SBUS_STATE_FAILSAFE;
         DEBUG_SET(DEBUG_SBUS, DEBUG_SBUS_STATE_FLAGS, sbusFrameData->stateFlags);
     }
-
     DEBUG_SET(DEBUG_SBUS, DEBUG_SBUS_STATE_FLAGS, sbusFrameData->stateFlags);
-
     return sbusChannelsDecode(rxRuntimeConfig, &sbusFrameData->frame.frame.channels);
 }
 
-bool sbusInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig)
-{
+bool sbusInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig) {
     static uint16_t sbusChannelData[SBUS_MAX_CHANNEL];
     static sbusFrameData_t sbusFrameData;
-
     rxRuntimeConfig->channelData = sbusChannelData;
     rxRuntimeConfig->frameData = &sbusFrameData;
     sbusChannelsInit(rxConfig, rxRuntimeConfig);
-
     rxRuntimeConfig->channelCount = SBUS_MAX_CHANNEL;
     rxRuntimeConfig->rxRefreshRate = 11000;
-
     rxRuntimeConfig->rcFrameStatusFn = sbusFrameStatus;
-
     const serialPortConfig_t *portConfig = findSerialPortConfig(FUNCTION_RX_SERIAL);
     if (!portConfig) {
         return false;
     }
-
 #ifdef USE_TELEMETRY
     bool portShared = telemetryCheckRxPortShared(portConfig);
 #else
     bool portShared = false;
 #endif
-
     serialPort_t *sBusPort = openSerialPort(portConfig->identifier,
-        FUNCTION_RX_SERIAL,
-        sbusDataReceive,
-        &sbusFrameData,
-        SBUS_BAUDRATE,
-        portShared ? MODE_RXTX : MODE_RX,
-        SBUS_PORT_OPTIONS | (rxConfig->serialrx_inverted ? 0 : SERIAL_INVERTED) | (rxConfig->halfDuplex ? SERIAL_BIDIR : 0)
-        );
-
+                                            FUNCTION_RX_SERIAL,
+                                            sbusDataReceive,
+                                            &sbusFrameData,
+                                            SBUS_BAUDRATE,
+                                            portShared ? MODE_RXTX : MODE_RX,
+                                            SBUS_PORT_OPTIONS | (rxConfig->serialrx_inverted ? 0 : SERIAL_INVERTED) | (rxConfig->halfDuplex ? SERIAL_BIDIR : 0)
+                                           );
     if (rxConfig->rssi_src_frame_errors) {
         rssiSource = RSSI_SOURCE_FRAME_ERRORS;
     }
-
 #ifdef USE_TELEMETRY
     if (portShared) {
         telemetrySharedPort = sBusPort;
     }
 #endif
-
     return sBusPort != NULL;
 }
 #endif

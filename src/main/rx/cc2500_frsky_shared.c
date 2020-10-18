@@ -70,19 +70,19 @@ static setRcDataFn *setRcData;
 PG_REGISTER_WITH_RESET_TEMPLATE(rxFrSkySpiConfig_t, rxFrSkySpiConfig, PG_RX_FRSKY_SPI_CONFIG, 1);
 
 PG_RESET_TEMPLATE(rxFrSkySpiConfig_t, rxFrSkySpiConfig,
-    .autoBind = false,
-    .bindTxId = {0, 0},
-    .bindOffset = 0,
-    .bindHopData = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    .rxNum = 0,
-    .useExternalAdc = false,
-);
+                  .autoBind = false,
+                  .bindTxId = {0, 0},
+                  .bindOffset = 0,
+                  .bindHopData = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+                                 },
+                  .rxNum = 0,
+                  .useExternalAdc = false,
+                 );
 
-void frSkySpiBind(void)
-{
+void frSkySpiBind(void) {
     cc2500SpiBind();
 }
 
@@ -116,7 +116,6 @@ static void initialise() {
     cc2500WriteReg(CC2500_2E_TEST0,    0x0B);
     cc2500WriteReg(CC2500_03_FIFOTHR,  0x07);
     cc2500WriteReg(CC2500_09_ADDR,     0x00);
-
     switch (spiProtocol) {
     case RX_SPI_FRSKY_D:
         cc2500WriteReg(CC2500_06_PKTLEN,   0x19);
@@ -126,7 +125,6 @@ static void initialise() {
         cc2500WriteReg(CC2500_11_MDMCFG3,  0x39);
         cc2500WriteReg(CC2500_12_MDMCFG2,  0x11);
         cc2500WriteReg(CC2500_15_DEVIATN,  0x42);
-
         break;
     case RX_SPI_FRSKY_X:
         cc2500WriteReg(CC2500_06_PKTLEN,   0x1E);
@@ -136,15 +134,12 @@ static void initialise() {
         cc2500WriteReg(CC2500_11_MDMCFG3,  0x61);
         cc2500WriteReg(CC2500_12_MDMCFG2,  0x13);
         cc2500WriteReg(CC2500_15_DEVIATN,  0x51);
-
         break;
     default:
-
         break;
     }
-
-    for(unsigned c = 0;c < 0xFF; c++)
-    { //calibrate all channels
+    for(unsigned c = 0; c < 0xFF; c++) {
+        //calibrate all channels
         cc2500Strobe(CC2500_SIDLE);
         cc2500WriteReg(CC2500_0A_CHANNR, c);
         cc2500Strobe(CC2500_SCAL);
@@ -155,8 +150,7 @@ static void initialise() {
     }
 }
 
-void initialiseData(uint8_t adr)
-{
+void initialiseData(uint8_t adr) {
     cc2500WriteReg(CC2500_0C_FSCTRL0, (uint8_t)rxFrSkySpiConfig()->bindOffset);
     cc2500WriteReg(CC2500_18_MCSM0, 0x8);
     cc2500WriteReg(CC2500_09_ADDR, adr ? 0x03 : rxFrSkySpiConfig()->bindTxId[0]);
@@ -165,15 +159,13 @@ void initialiseData(uint8_t adr)
     delay(10);
 }
 
-static void initTuneRx(void)
-{
+static void initTuneRx(void) {
     cc2500WriteReg(CC2500_19_FOCCFG, 0x14);
     timeTunedMs = millis();
     bindOffset = -126;
     cc2500WriteReg(CC2500_0C_FSCTRL0, (uint8_t)bindOffset);
     cc2500WriteReg(CC2500_07_PKTCTRL1, 0x0C);
     cc2500WriteReg(CC2500_18_MCSM0, 0x8);
-
     cc2500Strobe(CC2500_SIDLE);
     cc2500WriteReg(CC2500_23_FSCAL3, calData[0][0]);
     cc2500WriteReg(CC2500_24_FSCAL2, calData[0][1]);
@@ -183,8 +175,7 @@ static void initTuneRx(void)
     cc2500Strobe(CC2500_SRX);
 }
 
-static bool tuneRx(uint8_t *packet)
-{
+static bool tuneRx(uint8_t *packet) {
     if (bindOffset >= 126) {
         bindOffset = -126;
     }
@@ -209,12 +200,10 @@ static bool tuneRx(uint8_t *packet)
             }
         }
     }
-
     return false;
 }
 
-static void initGetBind(void)
-{
+static void initGetBind(void) {
     cc2500Strobe(CC2500_SIDLE);
     cc2500WriteReg(CC2500_23_FSCAL3, calData[0][0]);
     cc2500WriteReg(CC2500_24_FSCAL2, calData[0][1]);
@@ -222,14 +211,12 @@ static void initGetBind(void)
     cc2500WriteReg(CC2500_0A_CHANNR, 0);
     cc2500Strobe(CC2500_SFRX);
     delayMicroseconds(20); // waiting flush FIFO
-
     cc2500Strobe(CC2500_SRX);
     listLength = 0;
     bindIdx = 0x05;
 }
 
-static bool getBind1(uint8_t *packet)
-{
+static bool getBind1(uint8_t *packet) {
     // len|bind |tx
     // id|03|01|idx|h0|h1|h2|h3|h4|00|00|00|00|00|00|00|00|00|00|00|00|00|00|00|CHK1|CHK2|RSSI|LQI/CRC|
     // Start by getting bind packet 0 and the txid
@@ -246,21 +233,17 @@ static bool getBind1(uint8_t *packet)
                             rxFrSkySpiConfigMutable()->bindHopData[packet[5] + n] =
                                 packet[6 + n];
                         }
-
                         rxFrSkySpiConfigMutable()->rxNum = packet[12];
-
                         return true;
                     }
                 }
             }
         }
     }
-
     return false;
 }
 
-static bool getBind2(uint8_t *packet)
-{
+static bool getBind2(uint8_t *packet) {
     if (bindIdx <= 120) {
         if (cc2500getGdo()) {
             uint8_t ccLen = cc2500ReadReg(CC2500_3B_RXBYTES | CC2500_READ_BURST) & 0x7F;
@@ -269,7 +252,7 @@ static bool getBind2(uint8_t *packet)
                 if (packet[ccLen - 1] & 0x80) {
                     if (packet[2] == 0x01) {
                         if ((packet[3] == rxFrSkySpiConfig()->bindTxId[0]) &&
-                            (packet[4] == rxFrSkySpiConfig()->bindTxId[1])) {
+                                (packet[4] == rxFrSkySpiConfig()->bindTxId[1])) {
                             if (packet[5] == bindIdx) {
 #if defined(DJTS)
                                 if (packet[5] == 0x2D) {
@@ -277,25 +260,19 @@ static bool getBind2(uint8_t *packet)
                                         rxFrSkySpiConfigMutable()->bindHopData[packet[5] + i] = packet[6 + i];
                                     }
                                     listLength = 47;
-
                                     return true;
                                 }
 #endif
-
                                 for (uint8_t n = 0; n < 5; n++) {
                                     if (packet[6 + n] == packet[ccLen - 3] || (packet[6 + n] == 0)) {
                                         if (bindIdx >= 0x2D) {
                                             listLength = packet[5] + n;
-
                                             return true;
                                         }
                                     }
-
                                     rxFrSkySpiConfigMutable()->bindHopData[packet[5] + n] = packet[6 + n];
                                 }
-
                                 bindIdx = bindIdx + 5;
-
                                 return false;
                             }
                         }
@@ -303,25 +280,21 @@ static bool getBind2(uint8_t *packet)
                 }
             }
         }
-
         return false;
     } else {
         return true;
     }
 }
 
-rx_spi_received_e frSkySpiDataReceived(uint8_t *packet)
-{
+rx_spi_received_e frSkySpiDataReceived(uint8_t *packet) {
     rx_spi_received_e ret = RX_SPI_RECEIVED_NONE;
-
     static uint32_t ledBindBlinkTime = 0;
     static bool ledIsOn = 0;
-
     if (protocolState == STATE_INIT ||
-    protocolState == STATE_BIND ||
-    protocolState == STATE_BIND_TUNING ||
-    protocolState == STATE_BIND_BINDING1 ||
-    protocolState == STATE_BIND_BINDING2) {
+            protocolState == STATE_BIND ||
+            protocolState == STATE_BIND_TUNING ||
+            protocolState == STATE_BIND_BINDING1 ||
+            protocolState == STATE_BIND_BINDING2) {
         if (millis() - ledBindBlinkTime > 100) {
             ledBindBlinkTime = millis();
             if (ledIsOn) {
@@ -332,49 +305,39 @@ rx_spi_received_e frSkySpiDataReceived(uint8_t *packet)
             ledIsOn = !ledIsOn;
         }
     }
-
     switch (protocolState) {
     case STATE_INIT:
         if ((millis() - start_time) > 10) {
             initialise();
-
             protocolState = STATE_BIND;
         }
-
         break;
     case STATE_BIND:
         if (cc2500checkBindRequested(true) || rxFrSkySpiConfig()->autoBind) {
             cc2500LedOn();
             initTuneRx();
-
             protocolState = STATE_BIND_TUNING;
         } else {
             protocolState = STATE_STARTING;
         }
-
         break;
     case STATE_BIND_TUNING:
-       if (tuneRx(packet)) {
+        if (tuneRx(packet)) {
             initGetBind();
             initialiseData(1);
-
             protocolState = STATE_BIND_BINDING1;
         }
-
         break;
     case STATE_BIND_BINDING1:
         if (getBind1(packet)) {
             protocolState = STATE_BIND_BINDING2;
         }
-
         break;
     case STATE_BIND_BINDING2:
         if (getBind2(packet)) {
             cc2500Strobe(CC2500_SIDLE);
-
             protocolState = STATE_BIND_COMPLETE;
         }
-
         break;
     case STATE_BIND_COMPLETE:
         if (!rxFrSkySpiConfig()->autoBind) {
@@ -388,86 +351,67 @@ rx_spi_received_e frSkySpiDataReceived(uint8_t *packet)
                 delay(50);
             }
         }
-
         ret = RX_SPI_RECEIVED_BIND;
         protocolState = STATE_STARTING;
-
         break;
     default:
         ret = handlePacket(packet, &protocolState);
-
         break;
     }
-
     return ret;
 }
 
-void frSkySpiSetRcData(uint16_t *rcData, const uint8_t *payload)
-{
+void frSkySpiSetRcData(uint16_t *rcData, const uint8_t *payload) {
     setRcData(rcData, payload);
 }
 
-void nextChannel(uint8_t skip)
-{
+void nextChannel(uint8_t skip) {
     static uint8_t channr = 0;
-
     channr += skip;
     while (channr >= listLength) {
         channr -= listLength;
     }
     cc2500Strobe(CC2500_SIDLE);
     cc2500WriteReg(CC2500_23_FSCAL3,
-                    calData[rxFrSkySpiConfig()->bindHopData[channr]][0]);
+                   calData[rxFrSkySpiConfig()->bindHopData[channr]][0]);
     cc2500WriteReg(CC2500_24_FSCAL2,
-                    calData[rxFrSkySpiConfig()->bindHopData[channr]][1]);
+                   calData[rxFrSkySpiConfig()->bindHopData[channr]][1]);
     cc2500WriteReg(CC2500_25_FSCAL1,
-                    calData[rxFrSkySpiConfig()->bindHopData[channr]][2]);
+                   calData[rxFrSkySpiConfig()->bindHopData[channr]][2]);
     cc2500WriteReg(CC2500_0A_CHANNR, rxFrSkySpiConfig()->bindHopData[channr]);
     if (spiProtocol == RX_SPI_FRSKY_D) {
         cc2500Strobe(CC2500_SFRX);
     }
 }
 
-bool frSkySpiInit(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeConfig)
-{
+bool frSkySpiInit(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeConfig) {
     cc2500SpiInit();
-
     spiProtocol = rxSpiConfig->rx_spi_protocol;
-
     switch (spiProtocol) {
     case RX_SPI_FRSKY_D:
         rxRuntimeConfig->channelCount = RC_CHANNEL_COUNT_FRSKY_D;
-
         handlePacket = frSkyDHandlePacket;
         setRcData = frSkyDSetRcData;
         frSkyDInit();
-
         break;
     case RX_SPI_FRSKY_X:
         rxRuntimeConfig->channelCount = RC_CHANNEL_COUNT_FRSKY_X;
-
         handlePacket = frSkyXHandlePacket;
         setRcData = frSkyXSetRcData;
         frSkyXInit();
-
         break;
     default:
-
         break;
     }
-
 #if defined(USE_RX_FRSKY_SPI_TELEMETRY)
     if (rssiSource == RSSI_SOURCE_NONE) {
         rssiSource = RSSI_SOURCE_RX_PROTOCOL;
     }
 #endif
-
     missingPackets = 0;
     timeoutUs = 50;
-
     start_time = millis();
     protocolState = STATE_INIT;
-
     return true;
 }
 #endif

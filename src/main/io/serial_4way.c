@@ -101,42 +101,34 @@ uint8_32_u DeviceInfo;
 
 #define DeviceInfoSize 4
 
-inline bool isMcuConnected(void)
-{
+inline bool isMcuConnected(void) {
     return (DeviceInfo.bytes[0] > 0);
 }
 
-inline bool isEscHi(uint8_t selEsc)
-{
+inline bool isEscHi(uint8_t selEsc) {
     return (IORead(escHardware[selEsc].io) != Bit_RESET);
 }
-inline bool isEscLo(uint8_t selEsc)
-{
+inline bool isEscLo(uint8_t selEsc) {
     return (IORead(escHardware[selEsc].io) == Bit_RESET);
 }
 
-inline void setEscHi(uint8_t selEsc)
-{
+inline void setEscHi(uint8_t selEsc) {
     IOHi(escHardware[selEsc].io);
 }
 
-inline void setEscLo(uint8_t selEsc)
-{
+inline void setEscLo(uint8_t selEsc) {
     IOLo(escHardware[selEsc].io);
 }
 
-inline void setEscInput(uint8_t selEsc)
-{
+inline void setEscInput(uint8_t selEsc) {
     IOConfigGPIO(escHardware[selEsc].io, IOCFG_IPU);
 }
 
-inline void setEscOutput(uint8_t selEsc)
-{
+inline void setEscOutput(uint8_t selEsc) {
     IOConfigGPIO(escHardware[selEsc].io, IOCFG_OUT_PP);
 }
 
-uint8_t esc4wayInit(void)
-{
+uint8_t esc4wayInit(void) {
     // StopPwmAllMotors();
     pwmDisableMotors();
     escCount = 0;
@@ -155,8 +147,7 @@ uint8_t esc4wayInit(void)
     return escCount;
 }
 
-void esc4wayRelease(void)
-{
+void esc4wayRelease(void) {
     while (escCount > 0) {
         escCount--;
         IOConfigGPIO(escHardware[escCount].io, IOCFG_AF_PP);
@@ -314,16 +305,15 @@ void esc4wayRelease(void)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE. */
 uint16_t _crc_xmodem_update (uint16_t crc, uint8_t data) {
-        int i;
-
-        crc = crc ^ ((uint16_t)data << 8);
-        for (i=0; i < 8; i++) {
-            if (crc & 0x8000)
-                crc = (crc << 1) ^ 0x1021;
-            else
-                crc <<= 1;
-        }
-        return crc;
+    int i;
+    crc = crc ^ ((uint16_t)data << 8);
+    for (i = 0; i < 8; i++) {
+        if (crc & 0x8000)
+            crc = (crc << 1) ^ 0x1021;
+        else
+            crc <<= 1;
+    }
+    return crc;
 }
 // * End copyright
 
@@ -341,8 +331,7 @@ uint16_t _crc_xmodem_update (uint16_t crc, uint8_t data) {
 (pDeviceInfo->words[0] == 0x2B06) || (pDeviceInfo->words[0] == 0x4706))
 static uint8_t CurrentInterfaceMode;
 
-static uint8_t Connect(uint8_32_u *pDeviceInfo)
-{
+static uint8_t Connect(uint8_32_u *pDeviceInfo) {
     for (uint8_t I = 0; I < 3; ++I) {
 #if (defined(USE_SERIAL_4WAY_BLHELI_BOOTLOADER) && defined(USE_SERIAL_4WAY_SK_BOOTLOADER))
         if ((CurrentInterfaceMode != imARM_BLB) && Stk_ConnectEx(pDeviceInfo) && ATMEL_DEVICE_MATCH) {
@@ -351,72 +340,66 @@ static uint8_t Connect(uint8_32_u *pDeviceInfo)
         } else {
             if (BL_ConnectEx(pDeviceInfo)) {
                 if  SILABS_DEVICE_MATCH {
-                    CurrentInterfaceMode = imSIL_BLB;
-                    return 1;
-                } else if ATMEL_DEVICE_MATCH {
-                    CurrentInterfaceMode = imATM_BLB;
-                    return 1;
-                } else if ARM_DEVICE_MATCH {
-                    CurrentInterfaceMode = imARM_BLB;
-                    return 1;
-                }
-            }
-        }
-#elif defined(USE_SERIAL_4WAY_BLHELI_BOOTLOADER)
-        if (BL_ConnectEx(pDeviceInfo)) {
-            if SILABS_DEVICE_MATCH {
                 CurrentInterfaceMode = imSIL_BLB;
                 return 1;
             } else if ATMEL_DEVICE_MATCH {
                 CurrentInterfaceMode = imATM_BLB;
                 return 1;
-            }  else if ARM_DEVICE_MATCH {
+            } else if ARM_DEVICE_MATCH {
                 CurrentInterfaceMode = imARM_BLB;
                 return 1;
             }
         }
+    }
+#elif defined(USE_SERIAL_4WAY_BLHELI_BOOTLOADER)
+        if (BL_ConnectEx(pDeviceInfo)) {
+            if SILABS_DEVICE_MATCH {
+            CurrentInterfaceMode = imSIL_BLB;
+            return 1;
+        } else if ATMEL_DEVICE_MATCH {
+            CurrentInterfaceMode = imATM_BLB;
+            return 1;
+        }  else if ARM_DEVICE_MATCH {
+            CurrentInterfaceMode = imARM_BLB;
+            return 1;
+        }
+    }
 #elif defined(USE_SERIAL_4WAY_SK_BOOTLOADER)
         if (Stk_ConnectEx(pDeviceInfo)) {
             CurrentInterfaceMode = imSK;
             if ATMEL_DEVICE_MATCH return 1;
-        }
-#endif
     }
-    return 0;
+#endif
+}
+return 0;
 }
 
 static serialPort_t *port;
 
-static uint8_t ReadByte(void)
-{
+static uint8_t ReadByte(void) {
     // need timeout?
     while (!serialRxBytesWaiting(port));
     return serialRead(port);
 }
 
 static uint8_16_u CRC_in;
-static uint8_t ReadByteCrc(void)
-{
+static uint8_t ReadByteCrc(void) {
     uint8_t b = ReadByte();
     CRC_in.word = _crc_xmodem_update(CRC_in.word, b);
     return b;
 }
 
-static void WriteByte(uint8_t b)
-{
+static void WriteByte(uint8_t b) {
     serialWrite(port, b);
 }
 
 static uint8_16_u CRCout;
-static void WriteByteCrc(uint8_t b)
-{
+static void WriteByteCrc(uint8_t b) {
     WriteByte(b);
     CRCout.word = _crc_xmodem_update(CRCout.word, b);
 }
 
-void esc4wayProcess(serialPort_t *mspPort)
-{
-
+void esc4wayProcess(serialPort_t *mspPort) {
     uint8_t ParamBuf[256];
     uint8_t ESC;
     uint8_t I_PARAM_LEN;
@@ -428,9 +411,7 @@ void esc4wayProcess(serialPort_t *mspPort)
     uint8_t *O_PARAM;
     uint8_t *InBuff;
     ioMem_t ioMem;
-
     port = mspPort;
-
     // Start here  with UART Main loop
 #ifdef USE_BEEPER
     // fix for buzzer often starts beeping continuously when the ESCs are read
@@ -438,16 +419,13 @@ void esc4wayProcess(serialPort_t *mspPort)
     beeperSilence();
 #endif
     bool isExitScheduled = false;
-
     while (1) {
         // restart looking for new sequence from host
         do {
             CRC_in.word = 0;
             ESC = ReadByteCrc();
         } while (ESC != cmd_Local_Escape);
-
         RX_LED_ON;
-
         Dummy.word = 0;
         O_PARAM = &Dummy.bytes[0];
         O_PARAM_LEN = 1;
@@ -455,460 +433,380 @@ void esc4wayProcess(serialPort_t *mspPort)
         ioMem.D_FLASH_ADDR_H = ReadByteCrc();
         ioMem.D_FLASH_ADDR_L = ReadByteCrc();
         I_PARAM_LEN = ReadByteCrc();
-
         InBuff = ParamBuf;
         uint8_t i = I_PARAM_LEN;
         do {
-          *InBuff = ReadByteCrc();
-          InBuff++;
-          i--;
+            *InBuff = ReadByteCrc();
+            InBuff++;
+            i--;
         } while (i != 0);
-
         CRC_check.bytes[1] = ReadByte();
         CRC_check.bytes[0] = ReadByte();
-
         if (CRC_check.word == CRC_in.word) {
             ACK_OUT = ACK_OK;
         } else {
             ACK_OUT = ACK_I_INVALID_CRC;
         }
-
         TX_LED_ON;
-
-        if (ACK_OUT == ACK_OK)
-        {
+        if (ACK_OUT == ACK_OK) {
             // wtf.D_FLASH_ADDR_H=Adress_H;
             // wtf.D_FLASH_ADDR_L=Adress_L;
             ioMem.D_PTR_I = ParamBuf;
-
-
             switch (CMD) {
-                // ******* Interface related stuff *******
-                case cmd_InterfaceTestAlive:
-                {
-                    if (isMcuConnected()) {
-                        switch (CurrentInterfaceMode)
-                        {
-                            #ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
-                            case imATM_BLB:
-                            case imSIL_BLB:
-                            case imARM_BLB:
-                            {
-                                if (!BL_SendCMDKeepAlive()) { // SetStateDisconnected() included
-                                    ACK_OUT = ACK_D_GENERAL_ERROR;
-                                }
-                                break;
-                            }
-                            #endif
-                            #ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
-                            case imSK:
-                            {
-                                if (!Stk_SignOn()) { // SetStateDisconnected();
-                                    ACK_OUT = ACK_D_GENERAL_ERROR;
-                                }
-                                break;
-                            }
-                            #endif
-                            default:
-                                ACK_OUT = ACK_D_GENERAL_ERROR;
+            // ******* Interface related stuff *******
+            case cmd_InterfaceTestAlive: {
+                if (isMcuConnected()) {
+                    switch (CurrentInterfaceMode) {
+#ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
+                    case imATM_BLB:
+                    case imSIL_BLB:
+                    case imARM_BLB: {
+                        if (!BL_SendCMDKeepAlive()) { // SetStateDisconnected() included
+                            ACK_OUT = ACK_D_GENERAL_ERROR;
                         }
-                        if ( ACK_OUT != ACK_OK) SET_DISCONNECTED;
+                        break;
                     }
-                    break;
-                }
-                case cmd_ProtocolGetVersion:
-                {
-                    // Only interface itself, no matter what Device
-                    Dummy.bytes[0] = SERIAL_4WAY_PROTOCOL_VER;
-                    break;
-                }
-
-                case cmd_InterfaceGetName:
-                {
-                    // Only interface itself, no matter what Device
-                    // O_PARAM_LEN=16;
-                    O_PARAM_LEN = strlen(SERIAL_4WAY_INTERFACE_NAME_STR);
-                    O_PARAM = (uint8_t *)SERIAL_4WAY_INTERFACE_NAME_STR;
-                    break;
-                }
-
-                case cmd_InterfaceGetVersion:
-                {
-                    // Only interface itself, no matter what Device
-                    // Dummy = iUart_res_InterfVersion;
-                    O_PARAM_LEN = 2;
-                    Dummy.bytes[0] = SERIAL_4WAY_VERSION_HI;
-                    Dummy.bytes[1] = SERIAL_4WAY_VERSION_LO;
-                    break;
-                }
-                case cmd_InterfaceExit:
-                {
-                    isExitScheduled = true;
-                    break;
-                }
-                case cmd_InterfaceSetMode:
-                {
-#if defined(USE_SERIAL_4WAY_BLHELI_BOOTLOADER) && defined(USE_SERIAL_4WAY_SK_BOOTLOADER)
-                    if ((ParamBuf[0] <= imARM_BLB) && (ParamBuf[0] >= imSIL_BLB)) {
-#elif defined(USE_SERIAL_4WAY_BLHELI_BOOTLOADER)
-                    if (((ParamBuf[0] <= imATM_BLB)||(ParamBuf[0] == imARM_BLB)) && (ParamBuf[0] >= imSIL_BLB)) {
-#elif defined(USE_SERIAL_4WAY_SK_BOOTLOADER)
-                    if (ParamBuf[0] == imSK) {
 #endif
-                        CurrentInterfaceMode = ParamBuf[0];
-                    } else {
-                        ACK_OUT = ACK_I_INVALID_PARAM;
+#ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
+                    case imSK: {
+                        if (!Stk_SignOn()) { // SetStateDisconnected();
+                            ACK_OUT = ACK_D_GENERAL_ERROR;
+                        }
+                        break;
+                    }
+#endif
+                    default:
+                        ACK_OUT = ACK_D_GENERAL_ERROR;
+                    }
+                    if ( ACK_OUT != ACK_OK) SET_DISCONNECTED;
+                }
+                break;
+            }
+            case cmd_ProtocolGetVersion: {
+                // Only interface itself, no matter what Device
+                Dummy.bytes[0] = SERIAL_4WAY_PROTOCOL_VER;
+                break;
+            }
+            case cmd_InterfaceGetName: {
+                // Only interface itself, no matter what Device
+                // O_PARAM_LEN=16;
+                O_PARAM_LEN = strlen(SERIAL_4WAY_INTERFACE_NAME_STR);
+                O_PARAM = (uint8_t *)SERIAL_4WAY_INTERFACE_NAME_STR;
+                break;
+            }
+            case cmd_InterfaceGetVersion: {
+                // Only interface itself, no matter what Device
+                // Dummy = iUart_res_InterfVersion;
+                O_PARAM_LEN = 2;
+                Dummy.bytes[0] = SERIAL_4WAY_VERSION_HI;
+                Dummy.bytes[1] = SERIAL_4WAY_VERSION_LO;
+                break;
+            }
+            case cmd_InterfaceExit: {
+                isExitScheduled = true;
+                break;
+            }
+            case cmd_InterfaceSetMode: {
+#if defined(USE_SERIAL_4WAY_BLHELI_BOOTLOADER) && defined(USE_SERIAL_4WAY_SK_BOOTLOADER)
+                if ((ParamBuf[0] <= imARM_BLB) && (ParamBuf[0] >= imSIL_BLB)) {
+#elif defined(USE_SERIAL_4WAY_BLHELI_BOOTLOADER)
+                if (((ParamBuf[0] <= imATM_BLB) || (ParamBuf[0] == imARM_BLB)) && (ParamBuf[0] >= imSIL_BLB)) {
+#elif defined(USE_SERIAL_4WAY_SK_BOOTLOADER)
+                if (ParamBuf[0] == imSK) {
+#endif
+                    CurrentInterfaceMode = ParamBuf[0];
+                } else {
+                    ACK_OUT = ACK_I_INVALID_PARAM;
+                }
+                break;
+            }
+            case cmd_DeviceReset: {
+                bool rebootEsc = false;
+                if (ParamBuf[0] < escCount) {
+                    // Channel may change here
+                    selected_esc = ParamBuf[0];
+                    if (ioMem.D_FLASH_ADDR_L == 1) {
+                        rebootEsc = true;
+                    }
+                } else {
+                    ACK_OUT = ACK_I_INVALID_CHANNEL;
+                    break;
+                }
+                switch (CurrentInterfaceMode) {
+                case imSIL_BLB:
+#ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
+                case imATM_BLB:
+                case imARM_BLB: {
+                    BL_SendCMDRunRestartBootloader(&DeviceInfo);
+                    if (rebootEsc) {
+                        ESC_OUTPUT;
+                        setEscLo(selected_esc);
+                        timeMs_t m = millis();
+                        while (millis() - m < 300);
+                        setEscHi(selected_esc);
+                        ESC_INPUT;
                     }
                     break;
                 }
-
-                case cmd_DeviceReset:
-                {
-                  bool rebootEsc = false;
-                    if (ParamBuf[0] < escCount) {
-                        // Channel may change here
-                        selected_esc = ParamBuf[0];
-                        if (ioMem.D_FLASH_ADDR_L == 1) {
-                          rebootEsc = true;
-                        }
-                    }
-                    else {
-                        ACK_OUT = ACK_I_INVALID_CHANNEL;
-                        break;
-                    }
-                    switch (CurrentInterfaceMode)
-                    {
-                        case imSIL_BLB:
-                        #ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
-                        case imATM_BLB:
-                        case imARM_BLB:
-                        {
-                            BL_SendCMDRunRestartBootloader(&DeviceInfo);
-                            if (rebootEsc) {
-                              ESC_OUTPUT;
-                              setEscLo(selected_esc);
-                              timeMs_t m = millis();
-                              while (millis() - m < 300);
-                              setEscHi(selected_esc);
-                              ESC_INPUT;
-                            }
-                            break;
-                        }
-                        #endif
-                        #ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
-                        case imSK:
-                        {
-                            break;
-                        }
-                        #endif
-                    }
-                    SET_DISCONNECTED;
+#endif
+#ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
+                case imSK: {
                     break;
                 }
-                case cmd_DeviceInitFlash:
-                {
+#endif
+                }
+                SET_DISCONNECTED;
+                break;
+            }
+            case cmd_DeviceInitFlash: {
+                SET_DISCONNECTED;
+                if (ParamBuf[0] < escCount) {
+                    //Channel may change here
+                    //ESC_LO or ESC_HI; Halt state for prev channel
+                    selected_esc = ParamBuf[0];
+                } else {
+                    ACK_OUT = ACK_I_INVALID_CHANNEL;
+                    break;
+                }
+                O_PARAM_LEN = DeviceInfoSize; //4
+                O_PARAM = (uint8_t *)&DeviceInfo;
+                if (Connect(&DeviceInfo)) {
+                    DeviceInfo.bytes[INTF_MODE_IDX] = CurrentInterfaceMode;
+                } else {
                     SET_DISCONNECTED;
-                    if (ParamBuf[0] < escCount) {
-                        //Channel may change here
-                        //ESC_LO or ESC_HI; Halt state for prev channel
-                        selected_esc = ParamBuf[0];
+                    ACK_OUT = ACK_D_GENERAL_ERROR;
+                }
+                break;
+            }
+#ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
+            case cmd_DeviceEraseAll: {
+                switch (CurrentInterfaceMode) {
+                case imSK: {
+                    if (!Stk_Chip_Erase()) ACK_OUT = ACK_D_GENERAL_ERROR;
+                    break;
+                }
+                default:
+                    ACK_OUT = ACK_I_INVALID_CMD;
+                }
+                break;
+            }
+#endif
+#ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
+            case cmd_DevicePageErase: {
+                switch (CurrentInterfaceMode) {
+                case imSIL_BLB:
+                case imARM_BLB: {
+                    Dummy.bytes[0] = ParamBuf[0];
+                    if  (CurrentInterfaceMode == imARM_BLB) {
+                        // Address =Page * 1024
+                        ioMem.D_FLASH_ADDR_H = (Dummy.bytes[0] << 2);
                     } else {
-                        ACK_OUT = ACK_I_INVALID_CHANNEL;
-                        break;
+                        // Address =Page * 512
+                        ioMem.D_FLASH_ADDR_H = (Dummy.bytes[0] << 1);
                     }
-                    O_PARAM_LEN = DeviceInfoSize; //4
-                    O_PARAM = (uint8_t *)&DeviceInfo;
-                    if (Connect(&DeviceInfo)) {
-                        DeviceInfo.bytes[INTF_MODE_IDX] = CurrentInterfaceMode;
-                    } else {
-                        SET_DISCONNECTED;
+                    ioMem.D_FLASH_ADDR_L = 0;
+                    if (!BL_PageErase(&ioMem)) ACK_OUT = ACK_D_GENERAL_ERROR;
+                    break;
+                }
+                default:
+                    ACK_OUT = ACK_I_INVALID_CMD;
+                }
+                break;
+            }
+#endif
+        //*** Device Memory Read Ops ***
+            case cmd_DeviceRead: {
+                ioMem.D_NUM_BYTES = ParamBuf[0];
+                /*
+                wtf.D_FLASH_ADDR_H=Adress_H;
+                wtf.D_FLASH_ADDR_L=Adress_L;
+                wtf.D_PTR_I = BUF_I;
+                */
+                switch (CurrentInterfaceMode) {
+#ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
+                case imSIL_BLB:
+                case imATM_BLB:
+                case imARM_BLB: {
+                    if (!BL_ReadFlash(CurrentInterfaceMode, &ioMem)) {
                         ACK_OUT = ACK_D_GENERAL_ERROR;
                     }
                     break;
                 }
-
-                #ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
-                case cmd_DeviceEraseAll:
-                {
-                    switch (CurrentInterfaceMode)
-                    {
-                        case imSK:
-                        {
-                            if (!Stk_Chip_Erase()) ACK_OUT=ACK_D_GENERAL_ERROR;
-                            break;
-                        }
-                        default:
-                            ACK_OUT = ACK_I_INVALID_CMD;
+#endif
+#ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
+                case imSK: {
+                    if (!Stk_ReadFlash(&ioMem)) {
+                        ACK_OUT = ACK_D_GENERAL_ERROR;
                     }
                     break;
                 }
-                #endif
-
-                #ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
-                case cmd_DevicePageErase:
-                {
-                    switch (CurrentInterfaceMode)
-                    {
-                        case imSIL_BLB:
-                        case imARM_BLB:
-                        {
-                            Dummy.bytes[0] = ParamBuf[0];
-                            if  (CurrentInterfaceMode == imARM_BLB) {
-                                // Address =Page * 1024
-                                ioMem.D_FLASH_ADDR_H = (Dummy.bytes[0] << 2);
-                            } else {
-                                // Address =Page * 512
-                                ioMem.D_FLASH_ADDR_H = (Dummy.bytes[0] << 1);
-                            }
-                            ioMem.D_FLASH_ADDR_L = 0;
-                            if (!BL_PageErase(&ioMem)) ACK_OUT = ACK_D_GENERAL_ERROR;
-                            break;
-                        }
-                        default:
-                            ACK_OUT = ACK_I_INVALID_CMD;
-                    }
-                    break;
-                }
-                #endif
-
-                //*** Device Memory Read Ops ***
-                case cmd_DeviceRead:
-                {
-                    ioMem.D_NUM_BYTES = ParamBuf[0];
-                    /*
-                    wtf.D_FLASH_ADDR_H=Adress_H;
-                    wtf.D_FLASH_ADDR_L=Adress_L;
-                    wtf.D_PTR_I = BUF_I;
-                    */
-                    switch (CurrentInterfaceMode)
-                    {
-                        #ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
-                        case imSIL_BLB:
-                        case imATM_BLB:
-                        case imARM_BLB:
-                        {
-                            if (!BL_ReadFlash(CurrentInterfaceMode, &ioMem))
-                            {
-                                ACK_OUT = ACK_D_GENERAL_ERROR;
-                            }
-                            break;
-                        }
-                        #endif
-                        #ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
-                        case imSK:
-                        {
-                            if (!Stk_ReadFlash(&ioMem))
-                            {
-                                ACK_OUT = ACK_D_GENERAL_ERROR;
-                            }
-                            break;
-                        }
-                        #endif
-                        default:
-                            ACK_OUT = ACK_I_INVALID_CMD;
-                    }
-                    if (ACK_OUT == ACK_OK)
-                    {
-                        O_PARAM_LEN = ioMem.D_NUM_BYTES;
-                        O_PARAM = (uint8_t *)&ParamBuf;
-                    }
-                    break;
-                }
-
-                case cmd_DeviceReadEEprom:
-                {
-                    ioMem.D_NUM_BYTES = ParamBuf[0];
-                    /*
-                    wtf.D_FLASH_ADDR_H = Adress_H;
-                    wtf.D_FLASH_ADDR_L = Adress_L;
-                    wtf.D_PTR_I = BUF_I;
-                    */
-                    switch (CurrentInterfaceMode)
-                    {
-                        #ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
-                        case imATM_BLB:
-                        {
-                            if (!BL_ReadEEprom(&ioMem))
-                            {
-                                ACK_OUT = ACK_D_GENERAL_ERROR;
-                            }
-                            break;
-                        }
-                        #endif
-                        #ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
-                        case imSK:
-                        {
-                            if (!Stk_ReadEEprom(&ioMem))
-                            {
-                                ACK_OUT = ACK_D_GENERAL_ERROR;
-                            }
-                            break;
-                        }
-                        #endif
-                        default:
-                            ACK_OUT = ACK_I_INVALID_CMD;
-                    }
-                    if (ACK_OUT == ACK_OK)
-                    {
-                        O_PARAM_LEN = ioMem.D_NUM_BYTES;
-                        O_PARAM = (uint8_t *)&ParamBuf;
-                    }
-                    break;
-                }
-
-                //*** Device Memory Write Ops ***
-                case cmd_DeviceWrite:
-                {
-                    ioMem.D_NUM_BYTES = I_PARAM_LEN;
-                    /*
-                    wtf.D_FLASH_ADDR_H=Adress_H;
-                    wtf.D_FLASH_ADDR_L=Adress_L;
-                    wtf.D_PTR_I = BUF_I;
-                    */
-                    switch (CurrentInterfaceMode)
-                    {
-                        #ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
-                        case imSIL_BLB:
-                        case imATM_BLB:
-                        case imARM_BLB:
-                        {
-                            if (!BL_WriteFlash(&ioMem)) {
-                                ACK_OUT = ACK_D_GENERAL_ERROR;
-                            }
-                            break;
-                        }
-                        #endif
-                        #ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
-                        case imSK:
-                        {
-                            if (!Stk_WriteFlash(&ioMem))
-                            {
-                                ACK_OUT = ACK_D_GENERAL_ERROR;
-                            }
-                            break;
-                        }
-                        #endif
-                    }
-                    break;
-                }
-
-                case cmd_DeviceWriteEEprom:
-                {
-                    ioMem.D_NUM_BYTES = I_PARAM_LEN;
-                    ACK_OUT = ACK_D_GENERAL_ERROR;
-                    /*
-                    wtf.D_FLASH_ADDR_H=Adress_H;
-                    wtf.D_FLASH_ADDR_L=Adress_L;
-                    wtf.D_PTR_I = BUF_I;
-                    */
-                    switch (CurrentInterfaceMode)
-                    {
-                        #ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
-                        case imSIL_BLB:
-                        {
-                            ACK_OUT = ACK_I_INVALID_CMD;
-                            break;
-                        }
-                        case imATM_BLB:
-                        {
-                            if (BL_WriteEEprom(&ioMem))
-                            {
-                                ACK_OUT = ACK_OK;
-                            }
-                            break;
-                        }
-                        #endif
-                        #ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
-                        case imSK:
-                        {
-                            if (Stk_WriteEEprom(&ioMem))
-                            {
-                                ACK_OUT = ACK_OK;
-                            }
-                            break;
-                        }
-                        #endif
-                    }
-                    break;
-                }
-                //*** Device Memory Verify Ops ***
-                #ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
-                case cmd_DeviceVerify:
-                {
-                    switch (CurrentInterfaceMode)
-                    {
-                        case imARM_BLB:
-                        {
-                            ioMem.D_NUM_BYTES = I_PARAM_LEN;
-                            /*
-                            wtf.D_FLASH_ADDR_H=Adress_H;
-                            wtf.D_FLASH_ADDR_L=Adress_L;
-                            wtf.D_PTR_I = BUF_I;
-                            */
-
-                            ACK_OUT = BL_VerifyFlash(&ioMem);
-                            switch (ACK_OUT) {
-                                case brSUCCESS:
-                                    ACK_OUT = ACK_OK;
-                                    break;
-                                case brERRORVERIFY:
-                                    ACK_OUT = ACK_I_VERIFY_ERROR;
-                                    break;
-                                default:
-                                    ACK_OUT = ACK_D_GENERAL_ERROR;
-                                    break;
-                            }
-                            break;
-                        }
-                        default:
-                        {
-                            ACK_OUT = ACK_I_INVALID_CMD;
-                            break;
-                        }
-                    }
-                    break;
-                }
-                #endif
+#endif
                 default:
-                {
                     ACK_OUT = ACK_I_INVALID_CMD;
                 }
+                if (ACK_OUT == ACK_OK) {
+                    O_PARAM_LEN = ioMem.D_NUM_BYTES;
+                    O_PARAM = (uint8_t *)&ParamBuf;
+                }
+                break;
+            }
+            case cmd_DeviceReadEEprom: {
+                ioMem.D_NUM_BYTES = ParamBuf[0];
+                /*
+                wtf.D_FLASH_ADDR_H = Adress_H;
+                wtf.D_FLASH_ADDR_L = Adress_L;
+                wtf.D_PTR_I = BUF_I;
+                */
+                switch (CurrentInterfaceMode) {
+#ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
+                case imATM_BLB: {
+                    if (!BL_ReadEEprom(&ioMem)) {
+                        ACK_OUT = ACK_D_GENERAL_ERROR;
+                    }
+                    break;
+                }
+#endif
+#ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
+                case imSK: {
+                    if (!Stk_ReadEEprom(&ioMem)) {
+                        ACK_OUT = ACK_D_GENERAL_ERROR;
+                    }
+                    break;
+                }
+#endif
+                default:
+                    ACK_OUT = ACK_I_INVALID_CMD;
+                }
+                if (ACK_OUT == ACK_OK) {
+                    O_PARAM_LEN = ioMem.D_NUM_BYTES;
+                    O_PARAM = (uint8_t *)&ParamBuf;
+                }
+                break;
+            }
+        //*** Device Memory Write Ops ***
+            case cmd_DeviceWrite: {
+                ioMem.D_NUM_BYTES = I_PARAM_LEN;
+                /*
+                wtf.D_FLASH_ADDR_H=Adress_H;
+                wtf.D_FLASH_ADDR_L=Adress_L;
+                wtf.D_PTR_I = BUF_I;
+                */
+                switch (CurrentInterfaceMode) {
+#ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
+                case imSIL_BLB:
+                case imATM_BLB:
+                case imARM_BLB: {
+                    if (!BL_WriteFlash(&ioMem)) {
+                        ACK_OUT = ACK_D_GENERAL_ERROR;
+                    }
+                    break;
+                }
+#endif
+#ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
+                case imSK: {
+                    if (!Stk_WriteFlash(&ioMem)) {
+                        ACK_OUT = ACK_D_GENERAL_ERROR;
+                    }
+                    break;
+                }
+#endif
+                }
+                break;
+            }
+            case cmd_DeviceWriteEEprom: {
+                ioMem.D_NUM_BYTES = I_PARAM_LEN;
+                ACK_OUT = ACK_D_GENERAL_ERROR;
+                /*
+                wtf.D_FLASH_ADDR_H=Adress_H;
+                wtf.D_FLASH_ADDR_L=Adress_L;
+                wtf.D_PTR_I = BUF_I;
+                */
+                switch (CurrentInterfaceMode) {
+#ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
+                case imSIL_BLB: {
+                    ACK_OUT = ACK_I_INVALID_CMD;
+                    break;
+                }
+                case imATM_BLB: {
+                    if (BL_WriteEEprom(&ioMem)) {
+                        ACK_OUT = ACK_OK;
+                    }
+                    break;
+                }
+#endif
+#ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
+                case imSK: {
+                    if (Stk_WriteEEprom(&ioMem)) {
+                        ACK_OUT = ACK_OK;
+                    }
+                    break;
+                }
+#endif
+                }
+                break;
+            }
+            //*** Device Memory Verify Ops ***
+#ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
+            case cmd_DeviceVerify: {
+                switch (CurrentInterfaceMode) {
+                case imARM_BLB: {
+                    ioMem.D_NUM_BYTES = I_PARAM_LEN;
+                    /*
+                    wtf.D_FLASH_ADDR_H=Adress_H;
+                    wtf.D_FLASH_ADDR_L=Adress_L;
+                    wtf.D_PTR_I = BUF_I;
+                    */
+                    ACK_OUT = BL_VerifyFlash(&ioMem);
+                    switch (ACK_OUT) {
+                    case brSUCCESS:
+                        ACK_OUT = ACK_OK;
+                        break;
+                    case brERRORVERIFY:
+                        ACK_OUT = ACK_I_VERIFY_ERROR;
+                        break;
+                    default:
+                        ACK_OUT = ACK_D_GENERAL_ERROR;
+                        break;
+                    }
+                    break;
+                }
+                default: {
+                    ACK_OUT = ACK_I_INVALID_CMD;
+                    break;
+                }
+                }
+                break;
+            }
+#endif
+            default: {
+                ACK_OUT = ACK_I_INVALID_CMD;
             }
         }
-
-        CRCout.word = 0;
-
-        RX_LED_OFF;
-
-        serialBeginWrite(port);
-        WriteByteCrc(cmd_Remote_Escape);
-        WriteByteCrc(CMD);
-        WriteByteCrc(ioMem.D_FLASH_ADDR_H);
-        WriteByteCrc(ioMem.D_FLASH_ADDR_L);
-        WriteByteCrc(O_PARAM_LEN);
-
-        i=O_PARAM_LEN;
-        do {
-            while (!serialTxBytesFree(port));
-
-            WriteByteCrc(*O_PARAM);
-            O_PARAM++;
-            i--;
-        } while (i > 0);
-
-        WriteByteCrc(ACK_OUT);
-        WriteByte(CRCout.bytes[1]);
-        WriteByte(CRCout.bytes[0]);
-        serialEndWrite(port);
-
-        TX_LED_OFF;
-        if (isExitScheduled) {
-            esc4wayRelease();
-            return;
-        }
+    }
+    CRCout.word = 0;
+    RX_LED_OFF;
+    serialBeginWrite(port);
+    WriteByteCrc(cmd_Remote_Escape);
+    WriteByteCrc(CMD);
+    WriteByteCrc(ioMem.D_FLASH_ADDR_H);
+    WriteByteCrc(ioMem.D_FLASH_ADDR_L);
+    WriteByteCrc(O_PARAM_LEN);
+    i = O_PARAM_LEN;
+    do {
+        while (!serialTxBytesFree(port));
+        WriteByteCrc(*O_PARAM);
+        O_PARAM++;
+        i--;
+    } while (i > 0);
+    WriteByteCrc(ACK_OUT);
+    WriteByte(CRCout.bytes[1]);
+    WriteByte(CRCout.bytes[0]);
+    serialEndWrite(port);
+    TX_LED_OFF;
+    if (isExitScheduled) {
+        esc4wayRelease();
+        return;
+    }
     };
 }
-
-
-
 #endif

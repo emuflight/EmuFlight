@@ -48,13 +48,11 @@ static boxBitmask_t stickyModesEverDisabled;
 PG_REGISTER_ARRAY(modeActivationCondition_t, MAX_MODE_ACTIVATION_CONDITION_COUNT, modeActivationConditions,
                   PG_MODE_ACTIVATION_PROFILE, 1);
 
-bool IS_RC_MODE_ACTIVE(boxId_e boxId)
-{
+bool IS_RC_MODE_ACTIVE(boxId_e boxId) {
     return bitArrayGet(&rcModeActivationMask, boxId);
 }
 
-void rcModeUpdate(boxBitmask_t *newState)
-{
+void rcModeUpdate(boxBitmask_t *newState) {
     rcModeActivationMask = *newState;
 }
 
@@ -66,14 +64,12 @@ bool isRangeActive(uint8_t auxChannelIndex, const channelRange_t *range) {
     if (!IS_RANGE_USABLE(range)) {
         return false;
     }
-
     const uint16_t channelValue = constrain(rcData[auxChannelIndex + NON_AUX_CHANNEL_COUNT], CHANNEL_RANGE_MIN, CHANNEL_RANGE_MAX - 1);
     return (channelValue >= 900 + (range->startStep * 25) &&
             channelValue < 900 + (range->endStep * 25));
 }
 
-void updateMasksForMac(const modeActivationCondition_t *mac, boxBitmask_t *andMask, boxBitmask_t *newMask)
-{
+void updateMasksForMac(const modeActivationCondition_t *mac, boxBitmask_t *andMask, boxBitmask_t *newMask) {
     bool bAnd = (mac->modeLogic == MODELOGIC_AND) || bitArrayGet(andMask, mac->modeId);
     bool bAct = isRangeActive(mac->auxChannelIndex, &mac->range);
     if (bAnd)
@@ -82,8 +78,7 @@ void updateMasksForMac(const modeActivationCondition_t *mac, boxBitmask_t *andMa
         bitArraySet(newMask, mac->modeId);
 }
 
-void updateMasksForStickyModes(const modeActivationCondition_t *mac, boxBitmask_t *andMask, boxBitmask_t *newMask)
-{
+void updateMasksForStickyModes(const modeActivationCondition_t *mac, boxBitmask_t *andMask, boxBitmask_t *newMask) {
     if (IS_RC_MODE_ACTIVE(mac->modeId)) {
         bitArrayClr(andMask, mac->modeId);
         bitArraySet(newMask, mac->modeId);
@@ -98,74 +93,58 @@ void updateMasksForStickyModes(const modeActivationCondition_t *mac, boxBitmask_
     }
 }
 
-void updateActivatedModes(void)
-{
+void updateActivatedModes(void) {
     boxBitmask_t newMask, andMask, stickyModes;
     memset(&andMask, 0, sizeof(andMask));
     memset(&newMask, 0, sizeof(newMask));
     memset(&stickyModes, 0, sizeof(stickyModes));
     bitArraySet(&stickyModes, BOXPARALYZE);
-
     // determine which conditions set/clear the mode
     for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
         const modeActivationCondition_t *mac = modeActivationConditions(i);
-
         // Skip linked macs for now to fully determine target states
         if (mac->linkedTo) {
             continue;
         }
-
         if (bitArrayGet(&stickyModes, mac->modeId)) {
             updateMasksForStickyModes(mac, &andMask, &newMask);
         } else if (mac->modeId < CHECKBOX_ITEM_COUNT) {
             updateMasksForMac(mac, &andMask, &newMask);
         }
     }
-
     bitArrayXor(&newMask, sizeof(&newMask), &newMask, &andMask);
-
     // Update linked modes
     for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
         const modeActivationCondition_t *mac = modeActivationConditions(i);
-
         if (!mac->linkedTo) {
             continue;
         }
-
         bitArrayCopy(&newMask, mac->linkedTo, mac->modeId);
     }
-
     rcModeUpdate(&newMask);
 }
 
-bool isModeActivationConditionPresent(boxId_e modeId)
-{
+bool isModeActivationConditionPresent(boxId_e modeId) {
     for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
         const modeActivationCondition_t *mac = modeActivationConditions(i);
-
         if (mac->modeId == modeId && (IS_RANGE_USABLE(&mac->range) || mac->linkedTo)) {
             return true;
         }
     }
-
     return false;
 }
 
-void removeModeActivationCondition(const boxId_e modeId)
-{
+void removeModeActivationCondition(const boxId_e modeId) {
     unsigned offset = 0;
     for (unsigned i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
         modeActivationCondition_t *mac = modeActivationConditionsMutable(i);
-
         if (mac->modeId == modeId && !offset) {
             offset++;
         }
-
         if (offset) {
             while (i + offset < MAX_MODE_ACTIVATION_CONDITION_COUNT && modeActivationConditions(i + offset)->modeId == modeId) {
                 offset++;
             }
-
             if (i + offset < MAX_MODE_ACTIVATION_CONDITION_COUNT) {
                 memcpy(mac, modeActivationConditions(i + offset), sizeof(modeActivationCondition_t));
             } else {

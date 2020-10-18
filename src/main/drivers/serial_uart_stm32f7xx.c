@@ -243,13 +243,11 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
 #endif
 };
 
-void uartIrqHandler(uartPort_t *s)
-{
+void uartIrqHandler(uartPort_t *s) {
     UART_HandleTypeDef *huart = &s->Handle;
     /* UART in mode Receiver ---------------------------------------------------*/
     if ((__HAL_UART_GET_IT(huart, UART_IT_RXNE) != RESET)) {
         uint8_t rbyte = (uint8_t)(huart->Instance->RDR & (uint8_t) 0xff);
-
         if (s->port.rxCallback) {
             s->port.rxCallback(rbyte, s->port.rxCallbackData);
         } else {
@@ -257,33 +255,26 @@ void uartIrqHandler(uartPort_t *s)
             s->port.rxBufferHead = (s->port.rxBufferHead + 1) % s->port.rxBufferSize;
         }
         CLEAR_BIT(huart->Instance->CR1, (USART_CR1_PEIE));
-
         /* Disable the UART Error Interrupt: (Frame error, noise error, overrun error) */
         CLEAR_BIT(huart->Instance->CR3, USART_CR3_EIE);
-
         __HAL_UART_SEND_REQ(huart, UART_RXDATA_FLUSH_REQUEST);
     }
-
     /* UART parity error interrupt occurred -------------------------------------*/
     if ((__HAL_UART_GET_IT(huart, UART_IT_PE) != RESET)) {
         __HAL_UART_CLEAR_IT(huart, UART_CLEAR_PEF);
     }
-
     /* UART frame error interrupt occurred --------------------------------------*/
     if ((__HAL_UART_GET_IT(huart, UART_IT_FE) != RESET)) {
         __HAL_UART_CLEAR_IT(huart, UART_CLEAR_FEF);
     }
-
     /* UART noise error interrupt occurred --------------------------------------*/
     if ((__HAL_UART_GET_IT(huart, UART_IT_NE) != RESET)) {
         __HAL_UART_CLEAR_IT(huart, UART_CLEAR_NEF);
     }
-
     /* UART Over-Run interrupt occurred -----------------------------------------*/
     if ((__HAL_UART_GET_IT(huart, UART_IT_ORE) != RESET)) {
         __HAL_UART_CLEAR_IT(huart, UART_CLEAR_OREF);
     }
-
     /* UART in mode Transmitter ------------------------------------------------*/
     if (!s->txDMAStream && (__HAL_UART_GET_IT(huart, UART_IT_TXE) != RESET)) {
         /* Check that a Tx process is ongoing */
@@ -302,7 +293,6 @@ void uartIrqHandler(uartPort_t *s)
             }
         }
     }
-
     /* UART in mode Transmitter (transmission end) -----------------------------*/
     if ((__HAL_UART_GET_IT(huart, UART_IT_TC) != RESET)) {
         HAL_UART_IRQHandler(huart);
@@ -312,95 +302,73 @@ void uartIrqHandler(uartPort_t *s)
     }
 }
 
-static void handleUsartTxDma(uartPort_t *s)
-{
+static void handleUsartTxDma(uartPort_t *s) {
     if (s->port.txBufferHead != s->port.txBufferTail)
         uartStartTxDMA(s);
-    else
-    {
+    else {
         s->txDMAEmpty = true;
     }
 }
 
-void dmaIRQHandler(dmaChannelDescriptor_t* descriptor)
-{
+void dmaIRQHandler(dmaChannelDescriptor_t* descriptor) {
     uartPort_t *s = &(((uartDevice_t*)(descriptor->userParam))->port);
     HAL_DMA_IRQHandler(&s->txDMAHandle);
 }
 
 // XXX Should serialUART be consolidated?
 
-uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, portOptions_e options)
-{
+uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, portOptions_e options) {
     uartDevice_t *uartdev = uartDevmap[device];
     if (!uartdev) {
         return NULL;
     }
-
     uartPort_t *s = &(uartdev->port);
-
     s->port.vTable = uartVTable;
-
     s->port.baudRate = baudRate;
-
     s->port.rxBuffer = uartdev->rxBuffer;
     s->port.txBuffer = uartdev->txBuffer;
     s->port.rxBufferSize = ARRAYLEN(uartdev->rxBuffer);
     s->port.txBufferSize = ARRAYLEN(uartdev->txBuffer);
-
     const uartHardware_t *hardware = uartdev->hardware;
-
     s->USARTx = hardware->reg;
-
     if (hardware->rxDMAStream) {
         s->rxDMAChannel = hardware->DMAChannel;
         s->rxDMAStream = hardware->rxDMAStream;
     }
-
     if (hardware->txDMAStream) {
         s->txDMAChannel = hardware->DMAChannel;
         s->txDMAStream = hardware->txDMAStream;
-
         // DMA TX Interrupt
         dmaInit(hardware->txIrq, OWNER_SERIAL_TX, RESOURCE_INDEX(device));
         dmaSetHandler(hardware->txIrq, dmaIRQHandler, hardware->txPriority, (uint32_t)uartdev);
     }
-
     s->txDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->TDR;
     s->rxDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->RDR;
-
     s->Handle.Instance = hardware->reg;
-
     IO_t txIO = IOGetByTag(uartdev->tx);
     IO_t rxIO = IOGetByTag(uartdev->rx);
-
     if ((options & SERIAL_BIDIR) && txIO) {
         ioConfig_t ioCfg = IO_CONFIG(
-            ((options & SERIAL_INVERTED) || (options & SERIAL_BIDIR_PP)) ? GPIO_MODE_AF_PP : GPIO_MODE_AF_OD,
-            GPIO_SPEED_FREQ_HIGH,
-            ((options & SERIAL_INVERTED) || (options & SERIAL_BIDIR_PP)) ? GPIO_PULLDOWN : GPIO_PULLUP
-        );
-
+                               ((options & SERIAL_INVERTED) || (options & SERIAL_BIDIR_PP)) ? GPIO_MODE_AF_PP : GPIO_MODE_AF_OD,
+                               GPIO_SPEED_FREQ_HIGH,
+                               ((options & SERIAL_INVERTED) || (options & SERIAL_BIDIR_PP)) ? GPIO_PULLDOWN : GPIO_PULLUP
+                           );
         IOInit(txIO, OWNER_SERIAL_TX, RESOURCE_INDEX(device));
         IOConfigGPIOAF(txIO, ioCfg, hardware->af);
-    }
-    else {
+    } else {
         if ((mode & MODE_TX) && txIO) {
             IOInit(txIO, OWNER_SERIAL_TX, RESOURCE_INDEX(device));
             IOConfigGPIOAF(txIO, IOCFG_AF_PP, hardware->af);
         }
-
         if ((mode & MODE_RX) && rxIO) {
             IOInit(rxIO, OWNER_SERIAL_RX, RESOURCE_INDEX(device));
             IOConfigGPIOAF(rxIO, IOCFG_AF_PP, hardware->af);
         }
     }
-
     if (!s->rxDMAChannel) {
         HAL_NVIC_SetPriority(hardware->rxIrq, NVIC_PRIORITY_BASE(hardware->rxPriority), NVIC_PRIORITY_SUB(hardware->rxPriority));
         HAL_NVIC_EnableIRQ(hardware->rxIrq);
     }
-
     return s;
 }
 #endif // USE_UART
