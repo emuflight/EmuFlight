@@ -1776,6 +1776,7 @@ static void printMotorMix(dumpFlags_t dumpMask, const motorMixer_t *customMotorM
 static void cliMotorMix(const char *cmdName, char *cmdline)
 {
 #ifdef USE_QUAD_MIXER_ONLY
+    UNUSED(cmdName);
     UNUSED(cmdline);
 #else
     int check = 0;
@@ -4673,8 +4674,8 @@ static void cliStatus(const char *cmdName, char *cmdline)
 
     cliPrintf("MCU %s Clock=%dMHz", getMcuTypeById(getMcuTypeId()), (SystemCoreClock / 1000000));
 
-#ifdef STM32F4
-    // Only F4 is capable of switching between HSE/HSI (for now)
+#if defined(STM32F4) || defined(STM32G4)
+    // Only F4 and G4 is capable of switching between HSE/HSI (for now)
     int sysclkSource = SystemSYSCLKSource();
 
     const char *SYSCLKSource[] = { "HSI", "HSE", "PLLP", "PLLR" };
@@ -5342,10 +5343,23 @@ static void optToString(int optval, char *buf)
 
 static void printPeripheralDmaoptDetails(dmaoptEntry_t *entry, int index, const dmaoptValue_t dmaopt, const bool equalsDefault, const dumpFlags_t dumpMask, printFn *printValue)
 {
+    // We compute number to display for different peripherals in advance.
+    // This is done to deal with TIMUP which numbered non-contiguously.
+    // Note that using timerGetNumberByIndex is not a generic solution,
+    // but we are lucky that TIMUP is the only peripheral with non-contiguous numbering.
+
+    int uiIndex;
+
+    if (entry->presenceMask) {
+        uiIndex = timerGetNumberByIndex(index);
+    } else {
+        uiIndex = DMA_OPT_UI_INDEX(index);
+    }
+
     if (dmaopt != DMA_OPT_UNUSED) {
         printValue(dumpMask, equalsDefault,
             "dma %s %d %d",
-            entry->device, DMA_OPT_UI_INDEX(index), dmaopt);
+            entry->device, uiIndex, dmaopt);
 
         const dmaChannelSpec_t *dmaChannelSpec = dmaGetChannelSpecByPeripheral(entry->peripheral, index, dmaopt);
         dmaCode_t dmaCode = 0;
@@ -5354,11 +5368,11 @@ static void printPeripheralDmaoptDetails(dmaoptEntry_t *entry, int index, const 
         }
         printValue(dumpMask, equalsDefault,
             "# %s %d: " DMASPEC_FORMAT_STRING,
-            entry->device, DMA_OPT_UI_INDEX(index), DMA_CODE_CONTROLLER(dmaCode), DMA_CODE_STREAM(dmaCode), DMA_CODE_CHANNEL(dmaCode));
+            entry->device, uiIndex, DMA_CODE_CONTROLLER(dmaCode), DMA_CODE_STREAM(dmaCode), DMA_CODE_CHANNEL(dmaCode));
     } else if (!(dumpMask & HIDE_UNUSED)) {
         printValue(dumpMask, equalsDefault,
             "dma %s %d NONE",
-            entry->device, DMA_OPT_UI_INDEX(index));
+            entry->device, uiIndex);
     }
 }
 

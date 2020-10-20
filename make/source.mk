@@ -95,6 +95,7 @@ COMMON_SRC = \
             flight/imu.c \
             flight/interpolated_setpoint.c \
             flight/mixer.c \
+            flight/mixer_init.c \
             flight/mixer_tricopter.c \
             flight/pid.c \
             flight/pid_init.c \
@@ -114,6 +115,7 @@ COMMON_SRC = \
             rx/rx_spi.c \
             rx/rx_spi_common.c \
             rx/crsf.c \
+            rx/ghst.c \
             rx/sbus.c \
             rx/sbus_channels.c \
             rx/spektrum.c \
@@ -126,6 +128,7 @@ COMMON_SRC = \
             rx/fport.c \
             rx/msp_override.c \
             sensors/acceleration.c \
+            sensors/acceleration_init.c \
             sensors/boardalignment.c \
             sensors/compass.c \
             sensors/gyro.c \
@@ -177,6 +180,7 @@ COMMON_SRC = \
             sensors/rangefinder.c \
             telemetry/telemetry.c \
             telemetry/crsf.c \
+            telemetry/ghst.c \
             telemetry/srxl.c \
             telemetry/frsky_hub.c \
             telemetry/hott.c \
@@ -277,6 +281,7 @@ SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
 						common/dynlpf2.c \
 
 SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
+            $(shell find $(SRC_DIR) -name '*_init.c') \
             bus_bst_stm32f30x.c \
             cli/cli.c \
             cli/settings.c \
@@ -304,7 +309,6 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             drivers/serial_escserial.c \
             drivers/serial_pinconfig.c \
             drivers/serial_tcp.c \
-            drivers/serial_uart_init.c \
             drivers/serial_uart_pinconfig.c \
             drivers/serial_usb_vcp.c \
             drivers/transponder_ir_io_hal.c \
@@ -350,9 +354,7 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             io/spektrum_vtx_control.c \
             osd/osd.c \
             osd/osd_elements.c \
-            rx/rx_bind.c \
-            sensors/gyro_init.c\
-            flight/pid_init.c
+            rx/rx_bind.c
 
 # Gyro driver files that only contain initialization and configuration code - not runtime code
 SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \

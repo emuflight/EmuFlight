@@ -58,6 +58,16 @@
 #endif
 #endif
 
+#if !defined(USE_MAG)
+#undef USE_MAG_DATA_READY_SIGNAL
+#undef USE_MAG_HMC5883
+#undef USE_MAG_SPI_HMC5883
+#undef USE_MAG_QMC5883
+#undef USE_MAG_LIS3MDL
+#undef USE_MAG_AK8963
+#undef USE_MAG_SPI_AK8963
+#endif
+
 #if !defined(USE_BARO) && !defined(USE_GPS)
 #undef USE_VARIO
 #endif
@@ -82,6 +92,7 @@
 #if !defined(USE_TELEMETRY)
 #undef USE_CRSF_CMS_TELEMETRY
 #undef USE_TELEMETRY_CRSF
+#undef USE_TELEMETRY_GHST
 #undef USE_TELEMETRY_FRSKY_HUB
 #undef USE_TELEMETRY_HOTT
 #undef USE_TELEMETRY_IBUS
@@ -98,6 +109,10 @@
 #undef USE_TELEMETRY_CRSF
 #undef USE_CRSF_LINK_STATISTICS
 #undef USE_RX_RSSI_DBM
+#endif
+
+#if !defined(USE_SERIALRX_GHST)
+#undef USE_TELEMETRY_GHST
 #endif
 
 #if !defined(USE_TELEMETRY_CRSF) || !defined(USE_CMS)
@@ -190,6 +205,11 @@
 
 #if (!defined(USE_SDCARD) && !defined(USE_FLASHFS)) || !defined(USE_BLACKBOX)
 #undef USE_USB_MSC
+#endif
+
+#if !defined(USE_SDCARD)
+#undef USE_SDCARD_SDIO
+#undef USE_SDCARD_SPI
 #endif
 
 #if !defined(USE_VCP)

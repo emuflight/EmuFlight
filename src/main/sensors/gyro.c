@@ -147,7 +147,7 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->dynlpf2_type = DEFAULT_DYNLPF2_TYPE;
     gyroConfig->dynlpf2_debug = 0;
 #endif
-    gyroConfig->dyn_lpf_curve_expo = 2;
+    gyroConfig->dyn_lpf_curve_expo = 5;
 
 }
 
