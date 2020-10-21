@@ -32,6 +32,9 @@ EmuFlight has some of the following features:
 * VTX support for Unify Pro and IRC Tramp
 * Latest IMUF filtering technology
 * and MUCH, MUCH more.
+* Add beesign.
+* Add support BMI160.
+ add Hummingbird F4 Brushless target.
 
 ## Installation & Documentation
 

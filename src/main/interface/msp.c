@@ -425,7 +425,7 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
 #ifdef USE_OSD_SLAVE
         sbufWriteU8(dst, 1);  // 1 == OSD
 #else
-#if defined(USE_OSD) && defined(USE_MAX7456)
+#if defined(USE_OSD) && (defined(USE_MAX7456) || defined(USE_USE_BEESIGN))
         sbufWriteU8(dst, 2);  // 2 == FC with OSD
 #else
         sbufWriteU8(dst, 0);  // 0 == FC
@@ -621,6 +621,7 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
 #define OSD_FLAGS_RESERVED_1            (1 << 2)
 #define OSD_FLAGS_RESERVED_2            (1 << 3)
 #define OSD_FLAGS_OSD_HARDWARE_MAX_7456 (1 << 4)
+#define OSD_FLAGS_OSD_HARDWARE_BEESIGN  (1 << 5)
         uint8_t osdFlags = 0;
 #if defined(USE_OSD)
         osdFlags |= OSD_FLAGS_OSD_FEATURE;
@@ -631,11 +632,17 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
 #ifdef USE_MAX7456
         osdFlags |= OSD_FLAGS_OSD_HARDWARE_MAX_7456;
 #endif
+#ifdef USE_OSD_BEESIGN
+        osdFlags |= OSD_FLAGS_OSD_HARDWARE_MAX_7456;
+#endif
         sbufWriteU8(dst, osdFlags);
 #ifdef USE_MAX7456
         // send video system (AUTO/PAL/NTSC)
         sbufWriteU8(dst, vcdProfile()->video_system);
+#elif defined(USE_OSD_BEESIGN)
+        sbufWriteU8(dst, vcdProfile()->video_system);
 #else
+
         sbufWriteU8(dst, 0);
 #endif
 #ifdef USE_OSD
@@ -2314,6 +2321,8 @@ mspResult_e mspCommonProcessInCommand(uint8_t cmdMSP, sbuf_t *src, mspPostProces
             /* Set general OSD settings */
 #ifdef USE_MAX7456
             vcdProfileMutable()->video_system = sbufReadU8(src);
+#elif defined(USE_OSD_BEESIGN)
+            vcdProfileMutable()->video_system = sbufReadU8(src);
 #else
             sbufReadU8(src); // Skip video system
 #endif
@@ -2371,6 +2380,17 @@ mspResult_e mspCommonProcessInCommand(uint8_t cmdMSP, sbuf_t *src, mspPostProces
         max7456WriteNvm(addr, font_data);
     }
     break;
+#elif defined(USE_OSD_BEESIGN)
+        {
+            uint8_t font_data[64];
+            const uint8_t addr = sbufReadU8(src);
+            for (int i = 0; i < 54; i++) {
+                font_data[i] = sbufReadU8(src);
+            }
+            // !!TODO - replace this with a device independent implementation
+            // bsUpdateCharacterFont(addr,font_data);
+        }
+        break;
 #else
     return MSP_RESULT_ERROR;
 #endif

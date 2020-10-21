@@ -44,6 +44,7 @@
 #include "drivers/bus_i2c.h"
 #include "drivers/bus_spi.h"
 #include "drivers/buttons.h"
+#include "drivers/beesign.h"
 #include "drivers/camera_control.h"
 #include "drivers/compass/compass.h"
 #include "drivers/dma.h"
@@ -113,6 +114,8 @@
 #include "rx/rx_spi.h"
 #include "rx/spektrum.h"
 
+#include "io/vtx_beesign.h"
+
 #include "io/beeper.h"
 #include "io/displayport_max7456.h"
 #include "io/displayport_srxl.h"
@@ -124,6 +127,7 @@
 #include "io/gimbal.h"
 #include "io/ledstrip.h"
 #include "io/dashboard.h"
+#include "io/displayport_beesign.h"
 #include "io/asyncfatfs/asyncfatfs.h"
 #include "io/transponder_ir.h"
 #include "io/osd.h"
@@ -131,6 +135,7 @@
 #include "io/piniobox.h"
 #include "io/displayport_msp.h"
 #include "io/vtx.h"
+#include "io/vtx_beesign.h"
 #include "io/vtx_rtc6705.h"
 #include "io/vtx_control.h"
 #include "io/vtx_smartaudio.h"
@@ -489,6 +494,11 @@ void init(void) {
 #endif
     failsafeInit();
     rxInit();
+
+#ifdef USE_VTX_BEESIGN
+        bool use_beesign_flg = beesignInit();
+#endif
+
     /*
      * CMS, display devices and OSD
      */
@@ -501,6 +511,14 @@ void init(void) {
 #if defined(USE_OSD) && !defined(USE_OSD_SLAVE)
     //The OSD need to be initialised after GYRO to avoid GYRO initialisation failure on some targets
     if (feature(FEATURE_OSD)) {
+
+#if defined(USE_OSD_BEESIGN)
+    // If there is a beesign for the OSD then use it
+    if (use_beesign_flg) {
+        osdDisplayPort = beesignDisplayPortInit(vcdProfile());
+    } else
+#endif
+
 #if defined(USE_MAX7456)
         // If there is a max7456 chip for the OSD then use it
         osdDisplayPort = max7456DisplayPortInit(vcdProfile());
@@ -604,6 +622,11 @@ void init(void) {
 #ifdef USE_VTX_TRAMP
     vtxTrampInit();
 #endif
+
+#ifdef USE_VTX_BEESIGN
+    beesignVtxInit();
+#endif
+
 #ifdef USE_VTX_RTC6705
 #ifdef VTX_RTC6705_OPTIONAL
     if (!vtxCommonDevice()) // external VTX takes precedence when configured.

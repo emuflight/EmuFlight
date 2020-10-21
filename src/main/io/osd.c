@@ -58,6 +58,7 @@
 #include "drivers/flash.h"
 #include "drivers/max7456_symbols.h"
 #include "drivers/sdcard.h"
+#include "drivers/beesign.h"
 #ifdef USE_VCP
 #include "drivers/serial_usb_vcp.h"
 #endif

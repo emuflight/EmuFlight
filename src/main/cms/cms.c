@@ -632,6 +632,9 @@ long cmsMenuExit(displayPort_t *pDisplay, const void *ptr) {
     cmsInMenu = false;
     displayRelease(pDisplay);
     currentCtx.menu = NULL;
+#ifdef USE_OSD_BEESIGN
+    displayCleanScreen(pDisplay);
+#endif
     if (exitType == CMS_EXIT_SAVEREBOOT) {
         displayClearScreen(pDisplay);
         displayWrite(pDisplay, 5, 3, "REBOOTING...");

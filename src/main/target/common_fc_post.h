@@ -122,6 +122,7 @@
 #undef USE_VTX_CONTROL
 #undef USE_VTX_TRAMP
 #undef USE_VTX_SMARTAUDIO
+#undef USE_VTX_BEESIGN
 #endif
 
 #if defined(USE_RX_FRSKY_SPI_D) || defined(USE_RX_FRSKY_SPI_X)
@@ -172,6 +173,10 @@
 #endif
 
 #if defined(USE_MAX7456)
+#define USE_OSD
+#endif
+
+#if defined(USE_OSD_BEESIGN)
 #define USE_OSD
 #endif
 
