@@ -23,7 +23,7 @@
 #define TARGET_BOARD_IDENTIFIER         "HMBF4 PRO" // Humming Bird
 #define USBD_PRODUCT_STRING             "Humming Bird"
 
-#define USE_TARGET_CONFIG
+//#define USE_TARGET_CONFIG
 
 // *************** SPI *****************************
 #define USE_SPI
