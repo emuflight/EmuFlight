@@ -140,7 +140,7 @@ extern uint8_t __config_end;
 #include "pg/pg.h"
 #include "pg/pg_ids.h"
 #include "pg/rx.h"
-#include "pg/rx_spi_cc2500.h"
+//#include "pg/rx_spi_cc2500.h"
 #include "pg/rx_spi.h"
 #include "pg/rx_pwm.h"
 #include "pg/timerio.h"

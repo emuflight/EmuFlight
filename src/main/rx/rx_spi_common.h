@@ -20,27 +20,20 @@
 
 #pragma once
 
-#include "drivers/io_types.h"
+#include "rx/rx_spi.h"
 
-#include "pg/pg.h"
+#define INTERVAL_RX_LOSS_MS 1000
+#define INTERVAL_RX_BIND_MS 250
+#define RX_LOSS_COUNT 1000
 
-typedef enum {
-  FRSKY_SPI_A1_SOURCE_VBAT = 0,
-  FRSKY_SPI_A1_SOURCE_EXTADC,
-  FRSKY_SPI_A1_SOURCE_CONST
-} frSkySpiA1Source_e;
+void rxSpiCommonIOInit(const rxSpiConfig_t *rxSpiConfig);
 
-typedef struct rxCc2500SpiConfig_s {
-    uint8_t autoBind;
-    uint8_t bindTxId[2];
-    int8_t  bindOffset;
-    uint8_t bindHopData[50];
-    uint8_t rxNum;
-    uint8_t a1Source;
-    uint8_t chipDetectEnabled;
-    ioTag_t txEnIoTag;
-    ioTag_t lnaEnIoTag;
-    ioTag_t antSelIoTag;
-} rxCc2500SpiConfig_t;
+void rxSpiLedOn(void);
+void rxSpiLedOff(void);
+void rxSpiLedToggle(void);
+void rxSpiLedBlink(timeMs_t blinkMs);
+void rxSpiLedBlinkRxLoss(rx_spi_received_e result);
+void rxSpiLedBlinkBind(void);
 
-PG_DECLARE(rxCc2500SpiConfig_t, rxCc2500SpiConfig);
+void rxSpiBind(void);
+bool rxSpiCheckBindRequested(bool reset);

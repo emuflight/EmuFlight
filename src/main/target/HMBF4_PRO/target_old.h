@@ -55,7 +55,7 @@
 #define USE_MSP_UART
 
 // *************** Gyro & ACC **********************
-#define NBD_USE_BMI160
+//#define NBD_USE_BMI160
 #define USE_GYRO
 #define USE_ACC
 #define USE_SPI_GYRO
@@ -66,16 +66,13 @@
 
 #define GYRO_BMI160_ALIGN    CW0_DEG
 #define ACC_BMI160_ALIGN     CW0_DEG
-
 #define BMI160_SPI_INSTANCE  SPI3
 #define BMI160_SPI_DIVISOR   16
 #define BMI160_CS_PIN        PA4
 #define BMI160_INT_EXTI      PB0
-
 #define GYRO_1_EXTI_PIN      BMI160_INT_EXTI
 #define GYRO_1_CS_PIN        BMI160_CS_PIN
 #define GYRO_1_SPI_INSTANCE  BMI160_SPI_INSTANCE
-
 // *************** RX ******************************
 #define DJTS
 #define USE_RX_SPI
@@ -105,7 +102,7 @@
 #undef USE_VTX_SMARTAUDIO
 #define USE_BEESIGN
 #define USE_BEESIGN_UART                SERIAL_PORT_USART1
- 
+
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE                    ADC1
