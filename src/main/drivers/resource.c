@@ -76,4 +76,7 @@ const char * const ownerNames[OWNER_TOTAL_COUNT] = {
     "USB_MSC_PIN",
     "SPI_PREINIT_IPU",
     "SPI_PREINIT_OPU",
+    "RX_SPI_CC2500_TX_EN",
+    "RX_SPI_CC2500_LNA_EN",
+    "RX_SPI_CC2500_ANT_SEL",
 };

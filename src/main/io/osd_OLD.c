@@ -1120,31 +1120,13 @@ void osdInit(displayPort_t *osdDisplayPortToUse) {
 #ifdef USE_CMS
     cmsDisplayPortRegister(osdDisplayPort);
 #endif
-
     armState = ARMING_FLAG(ARMED);
-
-    osdResetAlarms();
-
-    displayCleanScreen(osdDisplayPort);
-#ifdef USE_OSD_BEESIGN
-    if (checkBeesignSerialPort()) {
-        osdDrawLogo(1, 0);
-    } else
-#endif
-    {
-        osdDrawLogo(3, 1);
-    }
-
+    memset(blinkBits, 0, sizeof(blinkBits));
+    displayClearScreen(osdDisplayPort);
+    osdDrawLogo(3, 1);
     char string_buffer[30];
     tfp_sprintf(string_buffer, "V%s", FC_VERSION_STRING);
-#ifdef USE_OSD_BEESIGN
-    if (checkBeesignSerialPort()) {
-        displayWrite(osdDisplayPort, 18, 5, string_buffer);
-    } else
-#endif
-    {
-        displayWrite(osdDisplayPort, 20, 6, string_buffer);
-    }
+    displayWrite(osdDisplayPort, 20, 6, string_buffer);
 #ifdef USE_CMS
 #ifdef USE_OSD_BEESIGN
   if (checkBeesignSerialPort()) {
@@ -1388,11 +1370,6 @@ static void osdShowStats(uint16_t endBatteryVoltage) {
         if (!success) {
             tfp_sprintf(buff, "NO RTC");
         }
-#ifdef USE_OSD_BEESIGN
-        if (checkBeesignSerialPort()){
-            displayWrite(osdDisplayPort, 0, displayRow, buff);
-        } else
-#endif
         displayWrite(osdDisplayPort, 2, top++, buff);
     }
     if (osdStatGetState(OSD_STAT_TIMER_1)) {
@@ -1456,12 +1433,7 @@ static void osdShowStats(uint16_t endBatteryVoltage) {
 #endif
 }
 
-static void osdShowArmed(void)
-{
-#ifdef USE_OSD_BEESIGN
-    displayCleanScreen(osdDisplayPort);
-    displayWrite(osdDisplayPort, 9, 4, "ARMED");
-#else
+static void osdShowArmed(void) {
     displayClearScreen(osdDisplayPort);
     displayWrite(osdDisplayPort, 12, 7, "ARMED");
 }
@@ -1573,11 +1545,6 @@ void osdUpdate(timeUs_t currentTimeUs) {
     // redraw values in buffer
 #ifdef USE_MAX7456
 #define DRAW_FREQ_DENOM 5
-#ifdef USE_OSD_BEESIGN
-    if (checkBeesignSerialPort()) {
-        DRAW_FREQ_DENOM = 10;
-    } else
-#endif
 #else
 #define DRAW_FREQ_DENOM 10 // MWOSD @ 115200 baud (
 #endif

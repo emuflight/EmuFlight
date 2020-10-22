@@ -56,6 +56,7 @@
 
 // *************** Gyro & ACC **********************
 //#define NBD_USE_BMI160
+//#define NBD_USE_BMI160
 #define USE_GYRO
 #define USE_ACC
 #define USE_SPI_GYRO
@@ -73,16 +74,17 @@
 #define GYRO_1_EXTI_PIN      BMI160_INT_EXTI
 #define GYRO_1_CS_PIN        BMI160_CS_PIN
 #define GYRO_1_SPI_INSTANCE  BMI160_SPI_INSTANCE
+
 // *************** RX ******************************
 #define DJTS
 #define USE_RX_SPI
 #define RX_SPI_INSTANCE                 SPI2
 #define RX_NSS_PIN                      SPI2_NSS_PIN
-#define RX_CC2500_SPI_GDO_0_PIN                 PB2
-#define RX_CC2500_SPI_LED_PIN                  PA13
+#define RX_SPI_EXTI_PIN                 PB2
+#define RX_SPI_LED_PIN                  PA13
 #define RX_CC2500_SPI_TX_EN_PIN         PB10
 #define RX_CC2500_SPI_ANT_SEL_PIN       PA7
-#define BINDPLUG_PIN                 PC15
+#define RX_SPI_BIND_PIN                 PC15
 #define RX_CC2500_SPI_LNA_EN_PIN        NONE
 #define DEFAULT_RX_FEATURE              FEATURE_RX_SPI
 #define RX_SPI_DEFAULT_PROTOCOL         RX_SPI_FRSKY_D
