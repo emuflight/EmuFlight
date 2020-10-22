@@ -461,8 +461,6 @@ static bool osdDrawSingleElement(uint8_t item) {
                 switch (osdRfMode) {
                 case 2:
                     osdLQfinal = osdLQ * 3;
-                    if (osdLQfinal < 200)
-                        osdLQfinal = 200;
                     break;
                 default:
                     osdLQfinal = osdLQ;
@@ -490,6 +488,10 @@ static bool osdDrawSingleElement(uint8_t item) {
                     break;
                 }
                 tfp_sprintf(buff, "%3dHZ:%3d", osdRfMode, osdLQfinal);
+                break;
+            case SIMPLE:
+                osdLQfinal=osdLQ;
+                tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
                 break;
             default:
                 switch (osdRfMode) {

@@ -106,6 +106,7 @@ typedef enum {
     TBS = 0,
     MODE,
     FREQ,
+    SIMPLE,
     FORMAT_COUNT
 } crsfformat_e;
 
