@@ -22,7 +22,7 @@
 #include <stdint.h>
 #include <ctype.h>
 #include <string.h>
-#include <drivers/vtx_table.h>
+//#include <drivers/vtx_table.h>
 
 #include "platform.h"
 
@@ -101,7 +101,7 @@ static long bsCmsConfigBandByGvar(displayPort_t *pDisp, const void *self)
     if (bs_vtxChannel == 0) {
         bs_vtxChannel = 1;
     }
-    
+
     if (bs_vtxPower == 0) {
         bs_vtxPower = 1;
     }

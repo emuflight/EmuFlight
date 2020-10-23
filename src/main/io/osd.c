@@ -1145,13 +1145,20 @@ void osdInit(displayPort_t *osdDisplayPortToUse) {
     {
         displayWrite(osdDisplayPort, 20, 6, string_buffer);
     }
-#ifdef USE_CMS
-#ifdef USE_OSD_BEESIGN
-  if (checkBeesignSerialPort()) {
-    displayWrite(osdDisplayPort, 7, 8,  CMS_STARTUP_HELP_TEXT1);
-    displayWrite(osdDisplayPort, 11, 9, CMS_STARTUP_HELP_TEXT2);
-    displayWrite(osdDisplayPort, 11, 10, CMS_STARTUP_HELP_TEXT3);
-#endif
+    #ifdef USE_CMS
+    #ifdef USE_OSD_BEESIGN
+        if (checkBeesignSerialPort()) {
+            displayWrite(osdDisplayPort, 7, 7,  CMS_STARTUP_HELP_TEXT1);
+            displayWrite(osdDisplayPort, 11, 8, CMS_STARTUP_HELP_TEXT2);
+            displayWrite(osdDisplayPort, 11, 9, CMS_STARTUP_HELP_TEXT3);
+        } else
+    #endif
+        {
+            displayWrite(osdDisplayPort, 7, 8,  CMS_STARTUP_HELP_TEXT1);
+            displayWrite(osdDisplayPort, 11, 9, CMS_STARTUP_HELP_TEXT2);
+            displayWrite(osdDisplayPort, 11, 10, CMS_STARTUP_HELP_TEXT3);
+        }
+    #endif
 #ifdef USE_RTC_TIME
     char dateTimeBuffer[FORMATTED_DATE_TIME_BUFSIZE];
     if (osdFormatRtcDateTime(&dateTimeBuffer[0])) {
@@ -1605,3 +1612,4 @@ void setCrsfRssi(bool b) {
 }
 
 #endif // USE_OSD
+#endif

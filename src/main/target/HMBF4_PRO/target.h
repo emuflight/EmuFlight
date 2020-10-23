@@ -56,6 +56,7 @@
 
 // *************** Gyro & ACC **********************
 #define NBD_USE_BMI160
+#define USE_EXTI
 #define USE_GYRO
 #define USE_ACC
 #define USE_SPI_GYRO
@@ -101,11 +102,11 @@
 #define MAX7456_SPI_INSTANCE            SPI3
 #define MAX7456_SPI_CS_PIN              SPI3_NSS_PIN
 
-#undef USE_VTX_TRAMP
+//#undef USE_VTX_TRAMP
 #undef USE_VTX_SMARTAUDIO
 #define USE_BEESIGN
 #define USE_BEESIGN_UART                SERIAL_PORT_USART1
- 
+
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE                    ADC1

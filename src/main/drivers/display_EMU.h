@@ -31,7 +31,6 @@ typedef struct displayPort_s {
     uint8_t posY;
 
     // CMS state
-    bool useFullscreen;
     bool cleared;
     int8_t cursorRow;
     int8_t grabCount;
@@ -69,7 +68,6 @@ void displayRelease(displayPort_t *instance);
 void displayReleaseAll(displayPort_t *instance);
 bool displayIsGrabbed(const displayPort_t *instance);
 void displayClearScreen(displayPort_t *instance);
-void displayCleanScreen(displayPort_t *instance);
 void displayDrawScreen(displayPort_t *instance);
 int displayScreenSize(const displayPort_t *instance);
 void displaySetXY(displayPort_t *instance, uint8_t x, uint8_t y);
