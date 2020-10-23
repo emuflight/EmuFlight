@@ -26,26 +26,21 @@
 
 #ifdef REQUIRE_PRINTF_LONG_SUPPORT
 
-void uli2a(unsigned long int num, unsigned int base, int uc, char *bf)
-{
+void uli2a(unsigned long int num, unsigned int base, int uc, char *bf) {
     unsigned int d = 1;
-
     while (num / d >= base)
         d *= base;
-
     while (d != 0) {
         int dgt = num / d;
-    *bf++ = dgt + (dgt < 10 ? '0' : (uc ? 'A' : 'a') - 10);
-
-    // Next digit
+        *bf++ = dgt + (dgt < 10 ? '0' : (uc ? 'A' : 'a') - 10);
+        // Next digit
         num %= d;
         d /= base;
     }
     *bf = 0;
 }
 
-void li2a(long num, char *bf)
-{
+void li2a(long num, char *bf) {
     if (num < 0) {
         num = -num;
         *bf++ = '-';
@@ -55,26 +50,21 @@ void li2a(long num, char *bf)
 
 #endif
 
-void ui2a(unsigned int num, unsigned int base, int uc, char *bf)
-{
+void ui2a(unsigned int num, unsigned int base, int uc, char *bf) {
     unsigned int d = 1;
-
     while (num / d >= base)
         d *= base;
-
     while (d != 0) {
         int dgt = num / d;
-    *bf++ = dgt + (dgt < 10 ? '0' : (uc ? 'A' : 'a') - 10);
-
-    // Next digit
+        *bf++ = dgt + (dgt < 10 ? '0' : (uc ? 'A' : 'a') - 10);
+        // Next digit
         num %= d;
         d /= base;
     }
     *bf = 0;
 }
 
-void i2a(int num, char *bf)
-{
+void i2a(int num, char *bf) {
     if (num < 0) {
         num = -num;
         *bf++ = '-';
@@ -82,8 +72,7 @@ void i2a(int num, char *bf)
     ui2a(num, 10, 0, bf);
 }
 
-int a2d(char ch)
-{
+int a2d(char ch) {
     if (ch >= '0' && ch <= '9')
         return ch - '0';
     else if (ch >= 'a' && ch <= 'f')
@@ -94,8 +83,7 @@ int a2d(char ch)
         return -1;
 }
 
-char a2i(char ch, const char **src, int base, int *nump)
-{
+char a2i(char ch, const char **src, int base, int *nump) {
     const char *p = *src;
     int num = 0;
     int digit;
@@ -126,16 +114,14 @@ char a2i(char ch, const char **src, int base, int *nump)
  ** Code from http://groups.google.com/group/comp.lang.c/msg/66552ef8b04fe1ab?pli=1
  */
 
-static char *_i2a(unsigned i, char *a, unsigned base)
-{
+static char *_i2a(unsigned i, char *a, unsigned base) {
     if (i / base > 0)
         a = _i2a(i / base, a, base);
     *a = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[i % base];
     return a + 1;
 }
 
-char *itoa(int i, char *a, int base)
-{
+char *itoa(int i, char *a, int base) {
     if ((base < 2) || (base > 36))
         base = 10;
     if (i < 0) {
@@ -148,28 +134,22 @@ char *itoa(int i, char *a, int base)
 
 #endif
 
-char *ftoa(float x, char *floatString)
-{
+char *ftoa(float x, char *floatString) {
     int32_t value;
     char intString1[12];
     char intString2[12] = { 0, };
     char *decimalPoint = ".";
     uint8_t dpLocation;
-
     if (x > 0)                  // Rounding for x.xxx display format
         x += 0.0005f;
     else
         x -= 0.0005f;
-
     value = (int32_t)(x * 1000.0f);    // Convert float * 1000 to an integer
-
     itoa(ABS(value), intString1, 10);   // Create string from abs of integer value
-
     if (value >= 0)
         intString2[0] = ' ';    // Positive number, add a pad space
     else
         intString2[0] = '-';    // Negative number, add a negative sign
-
     if (strlen(intString1) == 1) {
         intString2[1] = '0';
         intString2[2] = '0';
@@ -185,14 +165,11 @@ char *ftoa(float x, char *floatString)
     } else {
         strcat(intString2, intString1);
     }
-
     dpLocation = strlen(intString2) - 3;
-
     memcpy(floatString, intString2, dpLocation);
     floatString[dpLocation] = '\0';
     strcat(floatString, decimalPoint);
     strcat(floatString, intString2 + dpLocation);
-
     return floatString;
 }
 
@@ -207,61 +184,50 @@ char *ftoa(float x, char *floatString)
 // 09-May-2009 Tom Van Baak (tvb) www.LeapSecond.com
 #define white_space(c) ((c) == ' ' || (c) == '\t')
 #define valid_digit(c) ((c) >= '0' && (c) <= '9')
-float fastA2F(const char *p)
-{
+float fastA2F(const char *p) {
     int frac = 0;
     float sign, value, scale;
-
     // Skip leading white space, if any.
     while (white_space(*p)) {
         p += 1;
     }
-
     // Get sign, if any.
     sign = 1.0f;
     if (*p == '-') {
         sign = -1.0f;
         p += 1;
-
     } else if (*p == '+') {
         p += 1;
     }
-
     // Get digits before decimal point or exponent, if any.
     value = 0.0f;
     while (valid_digit(*p)) {
         value = value * 10.0f + (*p - '0');
         p += 1;
     }
-
     // Get digits after decimal point, if any.
     if (*p == '.') {
         float pow10 = 10.0f;
         p += 1;
-
         while (valid_digit(*p)) {
             value += (*p - '0') / pow10;
             pow10 *= 10.0f;
             p += 1;
         }
     }
-
     // Handle exponent, if any.
     scale = 1.0f;
     if ((*p == 'e') || (*p == 'E')) {
         unsigned int expon;
         p += 1;
-
         // Get sign of exponent, if any.
         frac = 0;
         if (*p == '-') {
             frac = 1;
             p += 1;
-
         } else if (*p == '+') {
             p += 1;
         }
-
         // Get digits of exponent, if any.
         expon = 0;
         while (valid_digit(*p)) {
@@ -270,7 +236,6 @@ float fastA2F(const char *p)
         }
         if (expon > 308)
             expon = 308;
-
         // Calculate scaling factor.
         // while (expon >= 50) { scale *= 1E50f; expon -= 50; }
         while (expon >= 8) {
@@ -282,7 +247,6 @@ float fastA2F(const char *p)
             expon -= 1;
         }
     }
-
     // Return signed and scaled floating point result.
     return sign * (frac ? (value / scale) : (value * scale));
 }

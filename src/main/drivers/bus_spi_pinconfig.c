@@ -281,18 +281,14 @@ const spiHardware_t spiHardware[] = {
 #endif
 };
 
-void spiPinConfigure(const spiPinConfig_t *pConfig)
-{
+void spiPinConfigure(const spiPinConfig_t *pConfig) {
     for (size_t hwindex = 0 ; hwindex < ARRAYLEN(spiHardware) ; hwindex++) {
         const spiHardware_t *hw = &spiHardware[hwindex];
-
         if (!hw->reg) {
             continue;
         }
-
         SPIDevice device = hw->device;
         spiDevice_t *pDev = &spiDevice[device];
-
         for (int pindex = 0 ; pindex < MAX_SPI_PIN_SEL ; pindex++) {
             if (pConfig[device].ioTagSck == hw->sckPins[pindex].pin) {
                 pDev->sck = hw->sckPins[pindex].pin;
@@ -313,7 +309,6 @@ void spiPinConfigure(const spiPinConfig_t *pConfig)
 #endif
             }
         }
-
         if (pDev->sck && pDev->miso && pDev->mosi) {
             pDev->dev = hw->reg;
 #ifndef STM32F7

@@ -21,8 +21,7 @@
 #include "platform.h"
 #include "rcc.h"
 
-void RCC_ClockCmd(rccPeriphTag_t periphTag, FunctionalState NewState)
-{
+void RCC_ClockCmd(rccPeriphTag_t periphTag, FunctionalState NewState) {
     int tag = periphTag >> 5;
     uint32_t mask = 1 << (periphTag & 0x1f);
 #if defined(USE_HAL_DRIVER)
@@ -51,8 +50,7 @@ void RCC_ClockCmd(rccPeriphTag_t periphTag, FunctionalState NewState)
 #endif
 }
 
-void RCC_ResetCmd(rccPeriphTag_t periphTag, FunctionalState NewState)
-{
+void RCC_ResetCmd(rccPeriphTag_t periphTag, FunctionalState NewState) {
     int tag = periphTag >> 5;
     uint32_t mask = 1 << (periphTag & 0x1f);
 #if defined(USE_HAL_DRIVER)

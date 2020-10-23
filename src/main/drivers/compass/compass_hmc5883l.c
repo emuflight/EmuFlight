@@ -136,46 +136,38 @@
 
 #ifdef USE_MAG_DATA_READY_SIGNAL
 
-static void hmc5883_extiHandler(extiCallbackRec_t* cb)
-{
+static void hmc5883_extiHandler(extiCallbackRec_t* cb) {
     UNUSED(cb);
 #ifdef DEBUG_MAG_DATA_READY_INTERRUPT
     // Measure the delta between calls to the interrupt handler
     // currently should be around 65/66 milli seconds / 15hz output rate
     static uint32_t lastCalledAt = 0;
     static int32_t callDelta = 0;
-
     uint32_t now = millis();
     callDelta = now - lastCalledAt;
-
     //UNUSED(callDelta);
     debug[0] = callDelta;
-
     lastCalledAt = now;
 #endif
 }
 #endif
 
-static void hmc5883lConfigureDataReadyInterruptHandling(magDev_t* mag)
-{
+static void hmc5883lConfigureDataReadyInterruptHandling(magDev_t* mag) {
 #ifdef USE_MAG_DATA_READY_SIGNAL
     if (mag->magIntExtiTag == IO_TAG_NONE) {
         return;
     }
-
     const IO_t magIntIO = IOGetByTag(mag->magIntExtiTag);
-
 #ifdef ENSURE_MAG_DATA_READY_IS_HIGH
     uint8_t status = IORead(magIntIO);
     if (!status) {
         return;
     }
 #endif
-
 #if defined (STM32F7)
     IOInit(magIntIO, OWNER_COMPASS_EXTI, 0);
     EXTIHandlerInit(&mag->exti, hmc5883_extiHandler);
-    EXTIConfig(magIntIO, &mag->exti, NVIC_PRIO_MPU_INT_EXTI, IO_CONFIG(GPIO_MODE_INPUT,0,GPIO_NOPULL));
+    EXTIConfig(magIntIO, &mag->exti, NVIC_PRIO_MPU_INT_EXTI, IO_CONFIG(GPIO_MODE_INPUT, 0, GPIO_NOPULL));
     EXTIEnable(magIntIO, true);
 #else
     IOInit(magIntIO, OWNER_COMPASS_EXTI, 0);
@@ -190,80 +182,57 @@ static void hmc5883lConfigureDataReadyInterruptHandling(magDev_t* mag)
 }
 
 #ifdef USE_MAG_SPI_HMC5883
-static void hmc5883SpiInit(busDevice_t *busdev)
-{
+static void hmc5883SpiInit(busDevice_t *busdev) {
     IOHi(busdev->busdev_u.spi.csnPin); // Disable
-
     IOInit(busdev->busdev_u.spi.csnPin, OWNER_COMPASS_CS, 0);
     IOConfigGPIO(busdev->busdev_u.spi.csnPin, IOCFG_OUT_PP);
-
     spiSetDivisor(busdev->busdev_u.spi.instance, SPI_CLOCK_STANDARD);
 }
 #endif
 
-static bool hmc5883lRead(magDev_t *mag, int16_t *magData)
-{
+static bool hmc5883lRead(magDev_t *mag, int16_t *magData) {
     uint8_t buf[6];
-
     busDevice_t *busdev = &mag->busdev;
-
     bool ack = busReadRegisterBuffer(busdev, HMC58X3_REG_DATA, buf, 6);
-
     if (!ack) {
         return false;
     }
-
     magData[X] = (int16_t)(buf[0] << 8 | buf[1]);
     magData[Z] = (int16_t)(buf[2] << 8 | buf[3]);
     magData[Y] = (int16_t)(buf[4] << 8 | buf[5]);
-
     return true;
 }
 
-static bool hmc5883lInit(magDev_t *mag)
-{
-
+static bool hmc5883lInit(magDev_t *mag) {
     busDevice_t *busdev = &mag->busdev;
-
-
     // leave test mode
     busWriteRegister(busdev, HMC58X3_REG_CONFA, HMC_CONFA_8_SAMLES | HMC_CONFA_DOR_15HZ | HMC_CONFA_NORMAL);    // Configuration Register A  -- 0 11 100 00  num samples: 8 ; output rate: 15Hz ; normal measurement mode
     busWriteRegister(busdev, HMC58X3_REG_CONFB, HMC_CONFB_GAIN_1_3GA);                                          // Configuration Register B  -- 001 00000    configuration gain 1.3Ga
     busWriteRegister(busdev, HMC58X3_REG_MODE, HMC_MODE_CONTINOUS);                                             // Mode register             -- 000000 00    continuous Conversion Mode
-
     delay(100);
-
     hmc5883lConfigureDataReadyInterruptHandling(mag);
     return true;
 }
 
-bool hmc5883lDetect(magDev_t* mag)
-{
+bool hmc5883lDetect(magDev_t* mag) {
     busDevice_t *busdev = &mag->busdev;
-
     uint8_t sig = 0;
-
 #ifdef USE_MAG_SPI_HMC5883
     if (busdev->bustype == BUSTYPE_SPI) {
         hmc5883SpiInit(&mag->busdev);
     }
 #endif
-
 #ifdef USE_MAG_HMC5883
     if (busdev->bustype == BUSTYPE_I2C && busdev->busdev_u.i2c.address == 0) {
         busdev->busdev_u.i2c.address = HMC5883_MAG_I2C_ADDRESS;
     }
 #endif
-
     bool ack = busReadRegisterBuffer(&mag->busdev, HMC58X3_REG_IDA, &sig, 1);
-
     if (!ack || sig != HMC5883_DEVICE_ID) {
         return false;
     }
-
     mag->init = hmc5883lInit;
     mag->read = hmc5883lRead;
-
     return true;
 }
 #endif

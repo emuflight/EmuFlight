@@ -36,8 +36,7 @@ static targetSerialPortFunction_t targetSerialPortFunction[] = {
     { SERIAL_PORT_UART5,  FUNCTION_ESC_SENSOR },
 };
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     targetSerialPortFunctionConfig(targetSerialPortFunction, ARRAYLEN(targetSerialPortFunction));
 }
 #endif

@@ -31,8 +31,7 @@
 #include "rx/rx.h"
 #include "flight/imu.h"
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     pinioBoxConfigMutable()->permanentId[0] = 0;
     pinioConfigMutable()->config[0] = 129;
 }

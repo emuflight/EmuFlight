@@ -55,29 +55,24 @@ static IO_t antSelPin;
 #endif
 static int16_t rssiDbm;
 
-uint16_t cc2500getRssiDbm(void)
-{
+uint16_t cc2500getRssiDbm(void) {
     return rssiDbm;
 }
 
-void cc2500setRssiDbm(uint8_t value)
-{
+void cc2500setRssiDbm(uint8_t value) {
     if (value >= 128) {
         rssiDbm = ((((uint16_t)value) * 18) >> 5) - 82;
     } else {
         rssiDbm = ((((uint16_t)value) * 18) >> 5) + 65;
     }
-
     setRssi(rssiDbm << 3, RSSI_SOURCE_RX_PROTOCOL);
 }
 
-void cc2500SpiBind(void)
-{
+void cc2500SpiBind(void) {
     bindRequested = true;
 }
 
-bool cc2500checkBindRequested(bool reset)
-{
+bool cc2500checkBindRequested(bool reset) {
     if (bindPin) {
         bool bindPinStatus = IORead(bindPin);
         if (lastBindPinStatus && !bindPinStatus) {
@@ -85,28 +80,23 @@ bool cc2500checkBindRequested(bool reset)
         }
         lastBindPinStatus = bindPinStatus;
     }
-
     if (!bindRequested) {
         return false;
     } else {
         if (reset) {
             bindRequested = false;
         }
-
         return true;
     }
 }
 
-bool cc2500getGdo(void)
-{
+bool cc2500getGdo(void) {
     return IORead(gdoPin);
 }
 
 #if defined(USE_RX_CC2500_SPI_PA_LNA) && defined(USE_RX_CC2500_SPI_DIVERSITY)
-void cc2500switchAntennae(void)
-{
+void cc2500switchAntennae(void) {
     static bool alternativeAntennaSelected = true;
-
     if (alternativeAntennaSelected) {
         IOLo(antSelPin);
     } else {
@@ -116,19 +106,16 @@ void cc2500switchAntennae(void)
 }
 #endif
 #if defined(USE_RX_CC2500_SPI_PA_LNA)
-void cc2500TxEnable(void)
-{
+void cc2500TxEnable(void) {
     IOHi(txEnPin);
 }
 
-void cc2500TxDisable(void)
-{
+void cc2500TxDisable(void) {
     IOLo(txEnPin);
 }
 #endif
 
-void cc2500LedOn(void)
-{
+void cc2500LedOn(void) {
 #if defined(RX_CC2500_SPI_LED_PIN_INVERTED)
     IOLo(cc2500LedPin);
 #else
@@ -136,8 +123,7 @@ void cc2500LedOn(void)
 #endif
 }
 
-void cc2500LedOff(void)
-{
+void cc2500LedOff(void) {
 #if defined(RX_CC2500_SPI_LED_PIN_INVERTED)
     IOHi(cc2500LedPin);
 #else
@@ -145,16 +131,13 @@ void cc2500LedOff(void)
 #endif
 }
 
-void cc2500LedBlink(timeMs_t blinkms)
-{
+void cc2500LedBlink(timeMs_t blinkms) {
     static bool ledIsOn = true;
     static timeMs_t ledBlinkMs = 0;
-
     if ( (ledBlinkMs + blinkms) > millis() ) {
         return;
     }
     ledBlinkMs = millis();
-
     if (ledIsOn) {
         cc2500LedOff();
     } else {
@@ -163,19 +146,16 @@ void cc2500LedBlink(timeMs_t blinkms)
     ledIsOn = !ledIsOn;
 }
 
-static bool cc2500SpiDetect(void)
-{
+static bool cc2500SpiDetect(void) {
     const uint8_t chipPartNum = cc2500ReadReg(CC2500_30_PARTNUM | CC2500_READ_BURST); //CC2500 read registers chip part num
     const uint8_t chipVersion = cc2500ReadReg(CC2500_31_VERSION | CC2500_READ_BURST); //CC2500 read registers chip version
     if (chipPartNum == 0x80 && chipVersion == 0x03) {
         return true;
     }
-
     return false;
 }
 
-bool cc2500SpiInit(void)
-{
+bool cc2500SpiInit(void) {
 #if !defined(RX_CC2500_SPI_DISABLE_CHIP_DETECTION)
     if (!cc2500SpiDetect()) {
         return false;
@@ -183,11 +163,9 @@ bool cc2500SpiInit(void)
 #else
     UNUSED(cc2500SpiDetect);
 #endif
-
     if (rssiSource == RSSI_SOURCE_NONE) {
         rssiSource = RSSI_SOURCE_RX_PROTOCOL;
     }
-
     // gpio init here
     gdoPin = IOGetByTag(IO_TAG(RX_CC2500_SPI_GDO_0_PIN));
     IOInit(gdoPin, OWNER_RX_SPI, 0);
@@ -213,17 +191,14 @@ bool cc2500SpiInit(void)
     bindPin = IOGetByTag(IO_TAG(BINDPLUG_PIN));
     IOInit(bindPin, OWNER_RX_BIND, 0);
     IOConfigGPIO(bindPin, IOCFG_IPU);
-
     lastBindPinStatus = IORead(bindPin);
 #endif
-
 #if defined(USE_RX_CC2500_SPI_PA_LNA)
 #if defined(USE_RX_CC2500_SPI_DIVERSITY)
     IOHi(antSelPin);
 #endif
     cc2500TxDisable();
 #endif // USE_RX_CC2500_SPI_PA_LNA
-
     return true;
 }
 #endif

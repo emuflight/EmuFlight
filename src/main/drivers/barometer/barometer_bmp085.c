@@ -47,8 +47,7 @@ static bool isConversionComplete = false;
 static bool isEOCConnected = true;
 
 // EXTI14 for BMP085 End of Conversion Interrupt
-void bmp085_extiHandler(extiCallbackRec_t* cb)
-{
+void bmp085_extiHandler(extiCallbackRec_t* cb) {
     UNUSED(cb);
     isConversionComplete = true;
 }
@@ -143,8 +142,7 @@ static IO_t xclrIO;
 #endif
 
 
-void bmp085InitXclrIO(const bmp085Config_t *config)
-{
+void bmp085InitXclrIO(const bmp085Config_t *config) {
     if (!xclrIO && config && config->xclrIO) {
         xclrIO = IOGetByTag(config->xclrIO);
         IOInit(xclrIO, OWNER_BARO_CS, 0);
@@ -152,28 +150,22 @@ void bmp085InitXclrIO(const bmp085Config_t *config)
     }
 }
 
-void bmp085Disable(const bmp085Config_t *config)
-{
+void bmp085Disable(const bmp085Config_t *config) {
     bmp085InitXclrIO(config);
     BMP085_OFF;
 }
 
-bool bmp085Detect(const bmp085Config_t *config, baroDev_t *baro)
-{
+bool bmp085Detect(const bmp085Config_t *config, baroDev_t *baro) {
     uint8_t data;
     bool ack;
     bool defaultAddressApplied = false;
-
 #if defined(BARO_EOC_GPIO)
     IO_t eocIO = IO_NONE;
 #endif
-
     if (bmp085InitDone)
         return true;
-
     bmp085InitXclrIO(config);
     BMP085_ON;   // enable baro
-
 #if defined(BARO_EOC_GPIO) && defined(USE_EXTI)
     if (config && config->eocIO) {
         eocIO = IOGetByTag(config->eocIO);
@@ -187,22 +179,17 @@ bool bmp085Detect(const bmp085Config_t *config, baroDev_t *baro)
 #else
     UNUSED(config);
 #endif
-
     delay(20); // datasheet says 10ms, we'll be careful and do 20.
-
     busDevice_t *busdev = &baro->busdev;
-
     if ((busdev->bustype == BUSTYPE_I2C) && (busdev->busdev_u.i2c.address == 0)) {
         // Default address for BMP085
         busdev->busdev_u.i2c.address = BMP085_I2C_ADDR;
         defaultAddressApplied = true;
     }
-
     ack = busReadRegisterBuffer(busdev, BMP085_CHIP_ID__REG, &data, 1); /* read Chip Id */
     if (ack) {
         bmp085.chip_id = BMP085_GET_BITSLICE(data, BMP085_CHIP_ID);
         bmp085.oversampling_setting = 3;
-
         if (bmp085.chip_id == BMP085_CHIP_ID) { /* get bitslice */
             busReadRegisterBuffer(busdev, BMP085_VERSION_REG, &data, 1); /* read Version reg */
             bmp085.ml_version = BMP085_GET_BITSLICE(data, BMP085_ML_VERSION); /* get ML Version */
@@ -222,107 +209,83 @@ bool bmp085Detect(const bmp085Config_t *config, baroDev_t *baro)
             return true;
         }
     }
-
 #if defined(BARO_EOC_GPIO)
     if (eocIO)
         EXTIRelease(eocIO);
 #endif
-
     BMP085_OFF;
-
     if (defaultAddressApplied) {
         busdev->busdev_u.i2c.address = 0;
     }
-
     return false;
 }
 
-static int32_t bmp085_get_temperature(uint32_t ut)
-{
+static int32_t bmp085_get_temperature(uint32_t ut) {
     int32_t temperature;
     int32_t x1, x2;
-
     x1 = (((int32_t) ut - (int32_t) bmp085.cal_param.ac6) * (int32_t) bmp085.cal_param.ac5) >> 15;
     x2 = ((int32_t) bmp085.cal_param.mc << 11) / (x1 + bmp085.cal_param.md);
     bmp085.param_b5 = x1 + x2;
     temperature = ((bmp085.param_b5 * 10 + 8) >> 4);  // temperature in 0.01 C (make same as MS5611)
-
     return temperature;
 }
 
-static int32_t bmp085_get_pressure(uint32_t up)
-{
+static int32_t bmp085_get_pressure(uint32_t up) {
     int32_t pressure, x1, x2, x3, b3, b6;
     uint32_t b4, b7;
-
     b6 = bmp085.param_b5 - 4000;
     // *****calculate B3************
     x1 = (b6 * b6) >> 12;
     x1 *= bmp085.cal_param.b2;
     x1 >>= 11;
-
     x2 = (bmp085.cal_param.ac2 * b6);
     x2 >>= 11;
-
     x3 = x1 + x2;
-
     b3 = (((((int32_t) bmp085.cal_param.ac1) * 4 + x3) << bmp085.oversampling_setting) + 2) >> 2;
-
     // *****calculate B4************
     x1 = (bmp085.cal_param.ac3 * b6) >> 13;
     x2 = (bmp085.cal_param.b1 * ((b6 * b6) >> 12)) >> 16;
     x3 = ((x1 + x2) + 2) >> 2;
     b4 = (bmp085.cal_param.ac4 * (uint32_t)(x3 + 32768)) >> 15;
-
     b7 = ((uint32_t)(up - b3) * (50000 >> bmp085.oversampling_setting));
     if (b7 < 0x80000000) {
         pressure = (b7 << 1) / b4;
     } else {
         pressure = (b7 / b4) << 1;
     }
-
     x1 = pressure >> 8;
     x1 *= x1;
     x1 = (x1 * SMD500_PARAM_MG) >> 16;
     x2 = (pressure * SMD500_PARAM_MH) >> 16;
     pressure += (x1 + x2 + SMD500_PARAM_MI) >> 4;   // pressure in Pa
-
     return pressure;
 }
 
-static void bmp085_start_ut(baroDev_t *baro)
-{
+static void bmp085_start_ut(baroDev_t *baro) {
 #if defined(BARO_EOC_GPIO)
     isConversionComplete = false;
 #endif
     busWriteRegister(&baro->busdev, BMP085_CTRL_MEAS_REG, BMP085_T_MEASURE);
 }
 
-static void bmp085_get_ut(baroDev_t *baro)
-{
+static void bmp085_get_ut(baroDev_t *baro) {
     uint8_t data[2];
-
 #if defined(BARO_EOC_GPIO)
     // return old baro value if conversion time exceeds datasheet max when EOC is connected
     if ((isEOCConnected) && (!isConversionComplete)) {
         return;
     }
 #endif
-
     busReadRegisterBuffer(&baro->busdev, BMP085_ADC_OUT_MSB_REG, data, 2);
     bmp085_ut = (data[0] << 8) | data[1];
 }
 
-static void bmp085_start_up(baroDev_t *baro)
-{
+static void bmp085_start_up(baroDev_t *baro) {
     uint8_t ctrl_reg_data;
-
     ctrl_reg_data = BMP085_P_MEASURE + (bmp085.oversampling_setting << 6);
-
 #if defined(BARO_EOC_GPIO)
     isConversionComplete = false;
 #endif
-
     busWriteRegister(&baro->busdev, BMP085_CTRL_MEAS_REG, ctrl_reg_data);
 }
 
@@ -330,26 +293,21 @@ static void bmp085_start_up(baroDev_t *baro)
  depending on the oversampling ratio setting up can be 16 to 19 bit
  \return up parameter that represents the uncompensated pressure value
  */
-static void bmp085_get_up(baroDev_t *baro)
-{
+static void bmp085_get_up(baroDev_t *baro) {
     uint8_t data[3];
-
 #if defined(BARO_EOC_GPIO)
     // return old baro value if conversion time exceeds datasheet max when EOC is connected
     if ((isEOCConnected) && (!isConversionComplete)) {
         return;
     }
 #endif
-
     busReadRegisterBuffer(&baro->busdev, BMP085_ADC_OUT_MSB_REG, data, 3);
     bmp085_up = (((uint32_t) data[0] << 16) | ((uint32_t) data[1] << 8) | (uint32_t) data[2])
-            >> (8 - bmp085.oversampling_setting);
+                >> (8 - bmp085.oversampling_setting);
 }
 
-STATIC_UNIT_TESTED void bmp085_calculate(int32_t *pressure, int32_t *temperature)
-{
+STATIC_UNIT_TESTED void bmp085_calculate(int32_t *pressure, int32_t *temperature) {
     int32_t temp, press;
-
     temp = bmp085_get_temperature(bmp085_ut);
     press = bmp085_get_pressure(bmp085_up);
     if (pressure)
@@ -358,11 +316,9 @@ STATIC_UNIT_TESTED void bmp085_calculate(int32_t *pressure, int32_t *temperature
         *temperature = temp;
 }
 
-static void bmp085_get_cal_param(busDevice_t *busdev)
-{
+static void bmp085_get_cal_param(busDevice_t *busdev) {
     uint8_t data[22];
     busReadRegisterBuffer(busdev, BMP085_PROM_START__ADDR, data, BMP085_PROM_DATA__LEN);
-
     /*parameters AC1-AC6*/
     bmp085.cal_param.ac1 = (data[0] << 8) | data[1];
     bmp085.cal_param.ac2 = (data[2] << 8) | data[3];
@@ -370,11 +326,9 @@ static void bmp085_get_cal_param(busDevice_t *busdev)
     bmp085.cal_param.ac4 = (data[6] << 8) | data[7];
     bmp085.cal_param.ac5 = (data[8] << 8) | data[9];
     bmp085.cal_param.ac6 = (data[10] << 8) | data[11];
-
     /*parameters B1,B2*/
     bmp085.cal_param.b1 = (data[12] << 8) | data[13];
     bmp085.cal_param.b2 = (data[14] << 8) | data[15];
-
     /*parameters MB,MC,MD*/
     bmp085.cal_param.mb = (data[16] << 8) | data[17];
     bmp085.cal_param.mc = (data[18] << 8) | data[19];
@@ -382,14 +336,11 @@ static void bmp085_get_cal_param(busDevice_t *busdev)
 }
 
 #if defined(BARO_EOC_GPIO)
-bool bmp085TestEOCConnected(const bmp085Config_t *config)
-{
+bool bmp085TestEOCConnected(const bmp085Config_t *config) {
     UNUSED(config);
-
     if (!bmp085InitDone && eocIO) {
         bmp085_start_ut();
         delayMicroseconds(UT_DELAY * 2); // wait twice as long as normal, just to be sure
-
         // conversion should have finished now so check if EOC is high
         uint8_t status = IORead(eocIO);
         if (status) {

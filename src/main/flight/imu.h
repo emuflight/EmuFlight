@@ -26,15 +26,15 @@
 #include "pg/pg.h"
 
 #ifndef DEFAULT_ATTITUDE_UPDATE_INTERVAL
-#define DEFAULT_ATTITUDE_UPDATE_INTERVAL 400		// up from 200
+#define DEFAULT_ATTITUDE_UPDATE_INTERVAL 400        // up from 200
 #endif //DEFAULT_ATTITUDE_UPDATE_INTERVAL 200
 
 // Exported symbols
-extern uint32_t	accTimeSum;
-extern int 		accSumCount;
-extern float 	accVelScale;
-extern int32_t 	accSum[XYZ_AXIS_COUNT];
-extern float 	accAverage[XYZ_AXIS_COUNT];
+extern uint32_t accTimeSum;
+extern int      accSumCount;
+extern float    accVelScale;
+extern int32_t  accSum[XYZ_AXIS_COUNT];
+extern float    accAverage[XYZ_AXIS_COUNT];
 
 typedef union {
     int16_t raw[XYZ_AXIS_COUNT];
