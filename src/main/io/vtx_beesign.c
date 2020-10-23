@@ -74,11 +74,9 @@ static vtxDevice_t vtxBeesign = {
 };
 #endif
 
-void vtxBSProcess(vtxDevice_t *vtxDevice, timeUs_t currentTimeUs)
-{
+void vtxBSProcess(vtxDevice_t *vtxDevice, timeUs_t currentTimeUs) {
     UNUSED(vtxDevice);
     UNUSED(currentTimeUs);
-
     // while (serialRxBytesWaiting(beesignSerialPort) > 0) {
     //     const uint8_t ch = serialRead(beesignSerialPort);
     //     bsReceiveFramer(ch);
@@ -88,27 +86,23 @@ void vtxBSProcess(vtxDevice_t *vtxDevice, timeUs_t currentTimeUs)
 #ifdef USE_VTX_COMMON
 // Interface to common VTX API
 
-vtxDevType_e vtxBSGetDeviceType(const vtxDevice_t *vtxDevice)
-{
+vtxDevType_e vtxBSGetDeviceType(const vtxDevice_t *vtxDevice) {
     UNUSED(vtxDevice);
     return VTXDEV_BEESIGN;
 }
 
-static bool vtxBSIsReady(const vtxDevice_t *vtxDevice)
-{
-    return vtxDevice!=NULL && !(bsDevice.version == 0);
+static bool vtxBSIsReady(const vtxDevice_t *vtxDevice) {
+    return vtxDevice != NULL && !(bsDevice.version == 0);
 }
 
-static void vtxBSSetBandAndChannel(vtxDevice_t *vtxDevice, uint8_t band, uint8_t channel)
-{
+static void vtxBSSetBandAndChannel(vtxDevice_t *vtxDevice, uint8_t band, uint8_t channel) {
     UNUSED(vtxDevice);
     if (bsValidateBandAndChannel(band, channel)) {
         bsSetBandAndChannel(band - 1, channel - 1);
     }
 }
 
-static void vtxBSSetPitMode(vtxDevice_t *vtxDevice, uint8_t onoff)
-{
+static void vtxBSSetPitMode(vtxDevice_t *vtxDevice, uint8_t onoff) {
     UNUSED(vtxDevice);
     if (onoff) {
         bsDevice.lastPower = bsDevice.power;
@@ -119,50 +113,42 @@ static void vtxBSSetPitMode(vtxDevice_t *vtxDevice, uint8_t onoff)
 }
 
 
-static void vtxBSSetPowerIndex(vtxDevice_t *vtxDevice, uint8_t index)
-{
+static void vtxBSSetPowerIndex(vtxDevice_t *vtxDevice, uint8_t index) {
     UNUSED(vtxDevice);
     if (index == 0) {
         // beesign doesn't support power off.
         return;
     }
     bsSetPower(index);
-
 }
 
-static void vtxBSSetFreq(vtxDevice_t *vtxDevice, uint16_t freq)
-{
+static void vtxBSSetFreq(vtxDevice_t *vtxDevice, uint16_t freq) {
     UNUSED(vtxDevice);
     if (bsValidateFreq(freq)) {
         bsSetFreq(freq);
     }
 }
 
-static bool vtxBSGetBandAndChannel(const vtxDevice_t *vtxDevice, uint8_t *pBand, uint8_t *pChannel)
-{
+static bool vtxBSGetBandAndChannel(const vtxDevice_t *vtxDevice, uint8_t *pBand, uint8_t *pChannel) {
     if (!vtxBSIsReady(vtxDevice)) {
         return false;
     }
-
     // if in user-freq mode then report band as zero
     *pBand = (bsDevice.mode == BEESIGN_VTX_MODE_RACE) ?
-        (BS_DEVICE_CHVAL_TO_BAND(bsDevice.channel) + 1) : 0;
+             (BS_DEVICE_CHVAL_TO_BAND(bsDevice.channel) + 1) : 0;
     *pChannel = BS_DEVICE_CHVAL_TO_CHANNEL(bsDevice.channel) + 1;
     return true;
 }
 
-static bool vtxBSGetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex)
-{
+static bool vtxBSGetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex) {
     if (!vtxBSIsReady(vtxDevice)) {
         return false;
     }
-
     *pIndex = bsDevice.power;
     return true;
 }
 
-static bool vtxBSGetPitMode(const vtxDevice_t *vtxDevice, uint8_t *pOnOff)
-{
+static bool vtxBSGetPitMode(const vtxDevice_t *vtxDevice, uint8_t *pOnOff) {
     if (!vtxBSIsReady(vtxDevice)) {
         return false;
     }
@@ -174,12 +160,10 @@ static bool vtxBSGetPitMode(const vtxDevice_t *vtxDevice, uint8_t *pOnOff)
     return true;
 }
 
-static bool vtxBSGetFreq(const vtxDevice_t *vtxDevice, uint16_t *pFreq)
-{
+static bool vtxBSGetFreq(const vtxDevice_t *vtxDevice, uint16_t *pFreq) {
     if (!vtxBSIsReady(vtxDevice)) {
         return false;
     }
-
     // // if not in user-freq mode then convert band/chan to frequency
     *pFreq = bsDevice.freq;
     return true;

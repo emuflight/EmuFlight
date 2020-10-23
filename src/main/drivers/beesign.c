@@ -92,7 +92,6 @@ typedef enum {
 static uint8_t beesignCRC(const beesign_frame_t *pPackage) {
     uint8_t i;
     uint8_t crc = 0;
-
     CALC_CRC(crc, pPackage->hdr);
     CALC_CRC(crc, pPackage->type);
     CALC_CRC(crc, pPackage->len);
@@ -117,28 +116,24 @@ uint8_t beesignReceive(uint8_t **pRcvFrame) {
     return BEESIGN_OK;
 }
 
-static uint8_t BSProcessResponse(uint8_t type ,uint8_t *pRcvFrame)
-{
+static uint8_t BSProcessResponse(uint8_t type, uint8_t *pRcvFrame) {
     if (beesignReceive(&pRcvFrame) != BEESIGN_ERROR) {
         if (BEESIGN_PKT_TYPE(pRcvFrame) == (type | BEESIGN_TYPE_MASK_FM)) {
             switch (BEESIGN_PKT_TYPE(pRcvFrame)) {
-                case BEESIGN_V_GET_STATUS | BEESIGN_TYPE_MASK_FM:
-                    bsDevice.channel = BEESIGN_PKT_DATA(pRcvFrame, 0);
-                    bsDevice.freq = (uint16_t)BEESIGN_PKT_DATA(pRcvFrame, 2) + (BEESIGN_PKT_DATA(pRcvFrame, 1) << 8);
-                    bsDevice.power = BEESIGN_PKT_DATA(pRcvFrame, 3) + 1;
-                    bsDevice.mode = BEESIGN_PKT_DATA(pRcvFrame, 4);
-                    break;
-                case BEESIGN_O_GET_STATUS | BEESIGN_TYPE_MASK_FM:
-
-                    break;
-                case BEESIGN_A_GET_STATUS | BEESIGN_TYPE_MASK_FM:
-
-                    break;
-                case BEESIGN_S_GET_STATUS | BEESIGN_TYPE_MASK_FM:
-
-                    break;
-                default :
-                    break;
+            case BEESIGN_V_GET_STATUS | BEESIGN_TYPE_MASK_FM:
+                bsDevice.channel = BEESIGN_PKT_DATA(pRcvFrame, 0);
+                bsDevice.freq = (uint16_t)BEESIGN_PKT_DATA(pRcvFrame, 2) + (BEESIGN_PKT_DATA(pRcvFrame, 1) << 8);
+                bsDevice.power = BEESIGN_PKT_DATA(pRcvFrame, 3) + 1;
+                bsDevice.mode = BEESIGN_PKT_DATA(pRcvFrame, 4);
+                break;
+            case BEESIGN_O_GET_STATUS | BEESIGN_TYPE_MASK_FM:
+                break;
+            case BEESIGN_A_GET_STATUS | BEESIGN_TYPE_MASK_FM:
+                break;
+            case BEESIGN_S_GET_STATUS | BEESIGN_TYPE_MASK_FM:
+                break;
+            default :
+                break;
             }
             return 0;
         }
@@ -151,50 +146,51 @@ void bsReceiveFrame(uint8_t ch) {
     static uint8_t idx;
     static uint8_t len;
     switch (state) {
-        case BS_STATE_HDR:
-            if (ch == BEESIGN_HDR) {
-                state = BS_STATE_TYPE;
-                idx = 0;
-                receiveBuffer[idx++] = ch;
-            }
-            break;
-        case BS_STATE_TYPE:
-            state = BS_STATE_LEN;
+    case BS_STATE_HDR:
+        if (ch == BEESIGN_HDR) {
+            state = BS_STATE_TYPE;
+            idx = 0;
             receiveBuffer[idx++] = ch;
-            break;
-        case BS_STATE_LEN:
-            if (ch <= BEESIGN_PL_MAX_LEN) {
-                state = BS_STATE_PAYLOAD;
-                len = ch;
-                receiveBuffer[idx++] = ch;
-            } else {
-                state = BS_STATE_HDR;
-            }
-            break;
-        case BS_STATE_PAYLOAD:
+        }
+        break;
+    case BS_STATE_TYPE:
+        state = BS_STATE_LEN;
+        receiveBuffer[idx++] = ch;
+        break;
+    case BS_STATE_LEN:
+        if (ch <= BEESIGN_PL_MAX_LEN) {
+            state = BS_STATE_PAYLOAD;
+            len = ch;
             receiveBuffer[idx++] = ch;
-            if (--len == 0) {
-                state = BS_STATE_CRC;
+        } else {
+            state = BS_STATE_HDR;
+        }
+        break;
+    case BS_STATE_PAYLOAD:
+        receiveBuffer[idx++] = ch;
+        if (--len == 0) {
+            state = BS_STATE_CRC;
+        }
+        break;
+    case BS_STATE_CRC:
+        do {
+            beesign_frame_t package = { .hdr = receiveBuffer[0],
+                                        .type = receiveBuffer[1],
+                                        .len = receiveBuffer[2],
+                                        .payload = &receiveBuffer[3]
+                                      };
+            package.crc = beesignCRC(&package);
+            if (package.crc == ch) {
+                receiveFrameValid = 1;
+                memcpy(receiveFrame, receiveBuffer, receiveBuffer[2] + 3);
+                BSProcessResponse(package.type, receiveFrame);
             }
-            break;
-        case BS_STATE_CRC:
-            do {
-                beesign_frame_t package = { .hdr = receiveBuffer[0],
-                                            .type = receiveBuffer[1],
-                                            .len = receiveBuffer[2],
-                                            .payload = &receiveBuffer[3] };
-                package.crc = beesignCRC(&package);
-                if (package.crc == ch) {
-                    receiveFrameValid = 1;
-                    memcpy(receiveFrame, receiveBuffer, receiveBuffer[2]+3);
-                    BSProcessResponse(package.type, receiveFrame);
-                }
-            } while (0);
-            state = BS_STATE_HDR;
-            break;
-        default:
-            state = BS_STATE_HDR;
-            break;
+        } while (0);
+        state = BS_STATE_HDR;
+        break;
+    default:
+        state = BS_STATE_HDR;
+        break;
     }
 }
 
@@ -220,18 +216,17 @@ static uint8_t beesignAddCmd(uint8_t id, uint8_t len, uint8_t *pData) {
     beesign_frame_t package = { .hdr = BEESIGN_HDR,
                                 .type = id,
                                 .len = len,
-                                .payload = pData };
-
+                                .payload = pData
+                              };
     if ((len >= BEESIGN_PL_MAX_LEN) ||
-        (pData == 0)) {
+            (pData == 0)) {
         return BEESIGN_ERROR;
     }
-    if ((beesignBuffPointer - beesignSendPointer > 0 && beesignSendPointer + BEESIGN_CMD_BUFF_SIZE - beesignBuffPointer < len) || 
-        (beesignSendPointer - beesignBuffPointer > 0 && beesignSendPointer - beesignBuffPointer < len)) {                   // don't have enough buff 
-            return BEESIGN_ERROR;
-        }
+    if ((beesignBuffPointer - beesignSendPointer > 0 && beesignSendPointer + BEESIGN_CMD_BUFF_SIZE - beesignBuffPointer < len) ||
+            (beesignSendPointer - beesignBuffPointer > 0 && beesignSendPointer - beesignBuffPointer < len)) {                   // don't have enough buff
+        return BEESIGN_ERROR;
+    }
     package.crc = beesignCRC(&package);
-    
     beesignCmdCount++;
     beesignCmdGoNextPointer(&beesignBuffPointer, package.hdr);
     beesignCmdGoNextPointer(&beesignBuffPointer, package.type);
@@ -249,7 +244,7 @@ uint8_t beesignSendCmd(void) {
         if (beesignCmdCount > 0) {
             if(*beesignSendPointer == BEESIGN_HDR) {
                 uint8_t crc = 0;
-                uint8_t crcCheck= 0xff;
+                uint8_t crcCheck = 0xff;
                 cmdLen = *beesignCmdAfterPointer(beesignSendPointer, 2);
                 for (uint8_t i = 0; i < cmdLen + 3; i++) {
                     CALC_CRC(crc, *beesignCmdAfterPointer(beesignSendPointer, i));
@@ -274,17 +269,15 @@ static uint8_t beesignSend(uint8_t id, uint8_t len, uint8_t *pData, uint8_t cmd)
         return beesignAddCmd(id, len, pData);
     } else {
         beesign_frame_t package = { .hdr = BEESIGN_HDR,
-                                .type = id,
-                                .len = len,
-                                .payload = pData };
-
+                                    .type = id,
+                                    .len = len,
+                                    .payload = pData
+                                  };
         if ((len >= BEESIGN_PL_MAX_LEN) ||
-            (pData == 0)) {
+                (pData == 0)) {
             return BEESIGN_ERROR;
         }
-
         package.crc = beesignCRC(&package);
-
         serialWrite(beesignSerialPort, package.hdr);
         serialWrite(beesignSerialPort, package.type);
         serialWrite(beesignSerialPort, package.len);
@@ -338,14 +331,12 @@ void bsSetVTxLock(void) {
     beesignSend(BEESIGN_M_SAVE_SETTING, 1, &vtxSaveData, BEESIGN_CMD_ADD_BUFF);
 }
 
-bool bsValidateBandAndChannel(uint8_t band, uint8_t channel)
-{
+bool bsValidateBandAndChannel(uint8_t band, uint8_t channel) {
     return (band >= BEESIGN_MIN_BAND && band <= BEESIGN_MAX_BAND &&
-             channel >= BEESIGN_MIN_CHANNEL && channel <= BEESIGN_MAX_CHANNEL);
+            channel >= BEESIGN_MIN_CHANNEL && channel <= BEESIGN_MAX_CHANNEL);
 }
 
-void bsSetBandAndChannel(uint8_t band, uint8_t channel)
-{
+void bsSetBandAndChannel(uint8_t band, uint8_t channel) {
     uint8_t vtxSaveData = 0;
     uint8_t deviceChannel = BS_BANDCHAN_TO_DEVICE_CHVAL(band, channel);
     // bsDevice.channel = deviceChannel;
@@ -357,8 +348,7 @@ void bsSetBandAndChannel(uint8_t band, uint8_t channel)
     bsGetVtxState();
 }
 
-void bsSetPower(uint8_t index)
-{
+void bsSetPower(uint8_t index) {
     uint8_t vtxSaveData = 0;
     if (index > BEESIGN_POWER_COUNT) {
         return;
@@ -372,8 +362,7 @@ void bsSetPower(uint8_t index)
     bsGetVtxState();
 }
 
-void bsSetVtxMode(uint8_t mode)
-{
+void bsSetVtxMode(uint8_t mode) {
     uint8_t vtxSaveData = 0;
     if (mode > 2) return;
     // bsDevice.mode = mode;
@@ -384,13 +373,11 @@ void bsSetVtxMode(uint8_t mode)
     bsGetVtxState();
 }
 
-bool bsValidateFreq(uint16_t freq)
-{
+bool bsValidateFreq(uint16_t freq) {
     return (freq >= BEESIGN_MIN_FREQUENCY_MHZ && freq <= BEESIGN_MAX_FREQUENCY_MHZ);
 }
 
-void bsSetFreq(uint16_t freq)
-{
+void bsSetFreq(uint16_t freq) {
     uint8_t buf[2];
     uint8_t vtxSaveData = 0;
     buf[0] = (freq >> 8) & 0xff;
@@ -480,7 +467,7 @@ void bsSetDisplayInOneRow(uint8_t x, uint8_t y, uint8_t *data) {
     if (y >= BEESIGN_LINES_PER_SCREEN) {
         return;
     }
-    for (i = 0; *(data+i); i++) {
+    for (i = 0; * (data + i); i++) {
         if (x + i > BEESIGN_CHARS_PER_LINE) {
             break;
         }
@@ -499,28 +486,26 @@ void bsCleanScreen(void) {
     bsClearDisplay();
 }
 
-void bsWriteBuffChar(uint8_t x, uint8_t y, uint8_t c)
-{
+void bsWriteBuffChar(uint8_t x, uint8_t y, uint8_t c) {
     if (y >= BEESIGN_LINES_PER_SCREEN) {
         return;
     }
     if (x >= BEESIGN_CHARS_PER_LINE) {
         return;
     }
-    bsScreenBuffer[y*BEESIGN_CHARS_PER_LINE+x] = c;
+    bsScreenBuffer[y * BEESIGN_CHARS_PER_LINE + x] = c;
 }
 
-void bsWriteBuffRow(uint8_t x, uint8_t y, const char *buff)
-{
+void bsWriteBuffRow(uint8_t x, uint8_t y, const char *buff) {
     if (y >= BEESIGN_LINES_PER_SCREEN) {
         return;
     }
     if (x >= BEESIGN_CHARS_PER_LINE) {
         return;
     }
-    for (int i = 0; *(buff+i); i++) {
-        if (x+i < BEESIGN_CHARS_PER_LINE) {// Do not write over screen
-            bsScreenBuffer[y*BEESIGN_CHARS_PER_LINE+x+i] = *(buff+i);
+    for (int i = 0; * (buff + i); i++) {
+        if (x + i < BEESIGN_CHARS_PER_LINE) { // Do not write over screen
+            bsScreenBuffer[y * BEESIGN_CHARS_PER_LINE + x + i] = *(buff + i);
         }
     }
 }
@@ -551,7 +536,6 @@ void bsDisplay(void) {
                     beesignSend(BEESIGN_O_SET_DISPLAY, buffEndPos - buffStartPos + 2, seriaBuff, BEESIGN_CMD_ADD_BUFF);
                     buffStartPos = 0xFF;
                 }
-                
             }
         }
     }
@@ -563,14 +547,13 @@ void bsDisplay(void) {
 }
 
 void bsDisplayAllScreen(void) {
-    for (int i = 0; i < BEESIGN_LINES_PER_SCREEN;i++) {
+    for (int i = 0; i < BEESIGN_LINES_PER_SCREEN; i++) {
         bsSetDisplayContentOneFrame(i * BEESIGN_CHARS_PER_LINE, &bsScreenBuffer[BEESIGN_CHARS_PER_LINE * i], BEESIGN_CHARS_PER_LINE);
     }
     memcpy(bsShadowBuffer, bsScreenBuffer, BEESIGN_CHARS_PER_SCREEN);
 }
 
-bool bsBuffersSynced(void)
-{
+bool bsBuffersSynced(void) {
     for (int i = 0; i < BEESIGN_CHARS_PER_SCREEN; i++) {
         if (bsScreenBuffer[i] != bsShadowBuffer[i]) {
             return false;
@@ -598,8 +581,7 @@ void bsUpdateCharacterFont(uint8_t id, uint8_t *data) {
 #endif //defined(USE_OSD_BEESIGN)
 /******************************** BEESIGN OSD END ******************************************/
 
-bool beesignInit(void)
-{
+bool beesignInit(void) {
 #if defined(USE_BEESIGN_UART)
     beesignSerialPort = openSerialPort(USE_BEESIGN_UART, FUNCTION_VTX_BEESIGN, NULL, NULL, 115200, MODE_RXTX, SERIAL_BIDIR | SERIAL_BIDIR_PP | SERIAL_BIDIR_NOPULL);
 #else
@@ -636,14 +618,14 @@ void beesignUpdate(timeUs_t currentTimeUs) {
         if (beesignTaskCounter >= beesignSendNextCounterPoint) {
             beesignSendNextCounterPoint += beesignSendCmd() / 8 + 2;       // send command and get next send time
         }
-#else 
-    while (serialRxBytesWaiting(beesignSerialPort) > 0) {
-        const uint8_t ch = serialRead(beesignSerialPort);
-        bsReceiveFrame(ch);
-    }
-        beesignSendCmd(); 
+#else
+        while (serialRxBytesWaiting(beesignSerialPort) > 0) {
+            const uint8_t ch = serialRead(beesignSerialPort);
+            bsReceiveFrame(ch);
+        }
+        beesignSendCmd();
 #endif
-    // send every line to prevent data loss
+        // send every line to prevent data loss
 #ifdef USE_OSD_BEESIGN
         if (beesignTaskCounter >= beesignSendLineNextCounterPoint) {
             beesignSendLineNextCounterPoint += 15;       // send command and get next send time

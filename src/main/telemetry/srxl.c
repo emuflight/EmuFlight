@@ -303,10 +303,10 @@ static void convertVtxPower(spektrumVtx_t * vtx) {
         break;
 #endif
 #if defined(USE_VTX_BEESIGN)
-        case VTXDEV_BEESIGN:
-            powerIndexTable = vtxBsPi;
-            vtx->powerValue = bsPowerTable[vtx->power -1];
-            break;
+    case VTXDEV_BEESIGN:
+        powerIndexTable = vtxBsPi;
+        vtx->powerValue = bsPowerTable[vtx->power - 1];
+        break;
 #endif
 #if defined(USE_VTX_RTC6705)
     case VTXDEV_RTC6705:
