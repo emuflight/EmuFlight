@@ -3027,7 +3027,7 @@ static void beesignSetVTxLock(char *cmdline) {
     bsSetVTxLock();
     cliPrintLine("beesign vtx lock success");
 }
- static void beesignSetVTxUnlock(char *cmdline) {
+static void beesignSetVTxUnlock(char *cmdline) {
     UNUSED(cmdline);
     bsSetVTxUnlock();
     cliPrintLine("beesign vtx unlock success");

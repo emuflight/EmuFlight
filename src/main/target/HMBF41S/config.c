@@ -72,8 +72,7 @@
 
 #include "telemetry/telemetry.h"
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
 #ifdef USE_OSD_BEESIGN
     osdConfigMutable()->item_pos[OSD_CRAFT_NAME]        = OSD_POS(6, 9) | OSD_PROFILE_1_FLAG;
     osdConfigMutable()->item_pos[OSD_MAIN_BATT_VOLTAGE] = OSD_POS(19, 8) | OSD_PROFILE_1_FLAG;
@@ -82,7 +81,7 @@ void targetConfiguration(void)
     osdConfigMutable()->item_pos[OSD_VTX_CHANNEL]       = OSD_POS(7,  8) | OSD_PROFILE_1_FLAG;
     osdConfigMutable()->item_pos[OSD_RSSI_VALUE]        = OSD_POS(0, 9) | OSD_PROFILE_1_FLAG;
     osdConfigMutable()->item_pos[OSD_WARNINGS]          = OSD_POS(7, 9);
-    osdConfigMutable()->item_pos[OSD_CURRENT_DRAW]      = OSD_POS(18,9) | OSD_PROFILE_1_FLAG;
+    osdConfigMutable()->item_pos[OSD_CURRENT_DRAW]      = OSD_POS(18, 9) | OSD_PROFILE_1_FLAG;
 #else
     osdConfigMutable()->item_pos[OSD_CRAFT_NAME]        = OSD_POS(9, 10) | OSD_PROFILE_1_FLAG;
     osdConfigMutable()->item_pos[OSD_MAIN_BATT_VOLTAGE] = OSD_POS(23, 9) | OSD_PROFILE_1_FLAG;
@@ -91,13 +90,11 @@ void targetConfiguration(void)
     osdConfigMutable()->item_pos[OSD_VTX_CHANNEL]       = OSD_POS(9,  9) | OSD_PROFILE_1_FLAG;
     osdConfigMutable()->item_pos[OSD_RSSI_VALUE]        = OSD_POS(2, 10) | OSD_PROFILE_1_FLAG;
     osdConfigMutable()->item_pos[OSD_WARNINGS]          = OSD_POS(9, 10);
-    osdConfigMutable()->item_pos[OSD_CURRENT_DRAW]      = OSD_POS(22,10) | OSD_PROFILE_1_FLAG;
-#endif 
-
+    osdConfigMutable()->item_pos[OSD_CURRENT_DRAW]      = OSD_POS(22, 10) | OSD_PROFILE_1_FLAG;
+#endif
     batteryConfigMutable()->batteryCapacity = 250;
     batteryConfigMutable()->vbatmincellvoltage = 28;
     batteryConfigMutable()->vbatwarningcellvoltage = 32;
-
     vtxSettingsConfigMutable()->band = 5;
     vtxSettingsConfigMutable()->channel = 8;
     vtxSettingsConfigMutable()->power = 2;
@@ -110,7 +107,7 @@ void targetConfiguration(void)
         { 5658, 5695, 5732, 5769, 5806, 5843, 5880, 5917 }, // RaceBand
         { 5732, 5765, 5828, 5840, 5866, 5740,    0,    0 }, // IMD6
     };
-#else 
+#else
     uint16_t vtxTableFrequency[6][8] = {
         { 5865, 5845, 5825, 5805, 5785, 5765, 5745, 5725 }, // Boscam A
         { 5733, 5752, 5771, 5790, 5809, 5828, 5847, 5866 }, // Boscam B
@@ -121,12 +118,12 @@ void targetConfiguration(void)
     };
 #endif
     const char * vtxTableBandNames[6] = {
-            "BOSCAM A",
-            "BOSCAM B",
-            "BOSCAM E",
-            "FATSHARK",
-            "RACEBAND",
-            "IMD6"
+        "BOSCAM A",
+        "BOSCAM B",
+        "BOSCAM E",
+        "FATSHARK",
+        "RACEBAND",
+        "IMD6"
     };
     char vtxTableBandLetters[7] = "ABEFRI";
     vtxTableConfigMutable()->bands = 6;
@@ -153,31 +150,24 @@ void targetConfiguration(void)
     vtxTableConfigMutable()->powerValues[1] = 1;
     strcpy(vtxTableConfigMutable()->powerLabels[0], "5  ");
     strcpy(vtxTableConfigMutable()->powerLabels[1], "25 ");
-
     imuConfigMutable()->small_angle = 180;
-
     modeActivationConditionsMutable(0)->modeId           = BOXARM;
     modeActivationConditionsMutable(0)->auxChannelIndex  = AUX1 - NON_AUX_CHANNEL_COUNT;
     modeActivationConditionsMutable(0)->range.startStep  = CHANNEL_VALUE_TO_STEP(1700);
     modeActivationConditionsMutable(0)->range.endStep    = CHANNEL_VALUE_TO_STEP(2100);
-
     modeActivationConditionsMutable(1)->modeId           = BOXANGLE;
     modeActivationConditionsMutable(1)->auxChannelIndex  = AUX2 - NON_AUX_CHANNEL_COUNT;
     modeActivationConditionsMutable(1)->range.startStep  = CHANNEL_VALUE_TO_STEP(900);
     modeActivationConditionsMutable(1)->range.endStep    = CHANNEL_VALUE_TO_STEP(1300);
-
     modeActivationConditionsMutable(2)->modeId           = BOXHORIZON;
     modeActivationConditionsMutable(2)->auxChannelIndex  = AUX2 - NON_AUX_CHANNEL_COUNT;
     modeActivationConditionsMutable(2)->range.startStep  = CHANNEL_VALUE_TO_STEP(1300);
     modeActivationConditionsMutable(2)->range.endStep    = CHANNEL_VALUE_TO_STEP(1700);
-    
     modeActivationConditionsMutable(4)->modeId           = BOXFLIPOVERAFTERCRASH;
     modeActivationConditionsMutable(4)->auxChannelIndex  = AUX3 - NON_AUX_CHANNEL_COUNT;
     modeActivationConditionsMutable(4)->range.startStep  = CHANNEL_VALUE_TO_STEP(1700);
     modeActivationConditionsMutable(4)->range.endStep    = CHANNEL_VALUE_TO_STEP(2100);
-
     strcpy(pilotConfigMutable()->name, "Humming Bird");
-
     gyroConfigMutable()->gyro_lowpass_type = FILTER_PT1;
     gyroConfigMutable()->gyro_lowpass_hz = 200;
     gyroConfigMutable()->gyro_lowpass2_hz = 200;
@@ -206,7 +196,6 @@ void targetConfiguration(void)
     pidConfigMutable()->runaway_takeoff_prevention = true;
     //osdConfigMutable()->enabledWarnings &= ~(1 << OSD_WARNING_CORE_TEMPERATURE);
     osdConfigMutable()->cap_alarm = 2200;
-
     pidProfilesMutable(0)->dterm_filter_type = FILTER_PT1;
     pidProfilesMutable(0)->dyn_lpf_dterm_min_hz = 56;
     pidProfilesMutable(0)->dyn_lpf_dterm_max_hz = 136;
@@ -243,7 +232,6 @@ void targetConfiguration(void)
     pidProfilesMutable(0)->d_min_gain = 25;
     pidProfilesMutable(0)->d_min_advance = 1;
     pidProfilesMutable(0)->horizon_tilt_expert_mode = false;
-
     controlRateProfilesMutable(0)->rcRates[FD_YAW] = 100;
     controlRateProfilesMutable(0)->rates[FD_ROLL] = 73;
     controlRateProfilesMutable(0)->rates[FD_PITCH] = 73;
@@ -253,12 +241,10 @@ void targetConfiguration(void)
     controlRateProfilesMutable(0)->rcExpo[FD_YAW]  = 15;
     controlRateProfilesMutable(0)->dynThrPID = 65;
     controlRateProfilesMutable(0)->tpa_breakpoint = 1250;
-
     ledStripStatusModeConfigMutable()->ledConfigs[0] = DEFINE_LED(7,  7,  8, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
     ledStripStatusModeConfigMutable()->ledConfigs[1] = DEFINE_LED(8,  7, 13, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
     ledStripStatusModeConfigMutable()->ledConfigs[2] = DEFINE_LED(9,  7, 11, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
     ledStripStatusModeConfigMutable()->ledConfigs[3] = DEFINE_LED(10, 7, 4,  0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
-
     // do {
     //     // T8SG
     //     uint8_t defaultTXHopTable[50] = {0,30,60,91,120,150,180,210,5,35,65,95,125,155,185,215,10,40,70,100,130,160,190,221,15,45,75,105,135,165,195,225,20,50,80,110,140,170,200,230,25,55,85,115,145,175,205,0,0,0};
@@ -273,7 +259,6 @@ void targetConfiguration(void)
     // rxConfigMutable()->rssi_channel = 9;
     // for (uint8_t rxRangeIndex = 0; rxRangeIndex < NON_AUX_CHANNEL_COUNT; rxRangeIndex++) {
     //     rxChannelRangeConfig_t *channelRangeConfig = rxChannelRangeConfigsMutable(rxRangeIndex);
-
     //     channelRangeConfig->min = 1160;
     //     channelRangeConfig->max = 1840;
     // }

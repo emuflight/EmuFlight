@@ -35,36 +35,33 @@
 #include "drivers/accgyro/gyro_sync.h"
 
 
-bool gyroSyncCheckUpdate(gyroDev_t *gyro)
-{
+bool gyroSyncCheckUpdate(gyroDev_t *gyro) {
     bool ret;
     if (gyro->dataReady) {
         ret = true;
-        gyro->dataReady= false;
+        gyro->dataReady = false;
     } else {
         ret = false;
     }
     return ret;
 }
 
-uint32_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t lpf, uint8_t gyroSyncDenominator)
-{
+uint32_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t lpf, uint8_t gyroSyncDenominator) {
     float gyroSamplePeriod;
-
     if (lpf != GYRO_HARDWARE_LPF_1KHZ_SAMPLE) {
         switch (gyro->mpuDetectionResult.sensor) {
-            case BMI_160_SPI:
-                gyro->gyroRateKHz = GYRO_RATE_3200_Hz;
-                gyroSamplePeriod = 312.0f;
-                break;
-            case ICM_20649_SPI:
-                gyro->gyroRateKHz = GYRO_RATE_9_kHz;
-                gyroSamplePeriod = 1000000.0f / 9000.0f;
-                break;
-            default:
-                gyro->gyroRateKHz = GYRO_RATE_8_kHz;
-                gyroSamplePeriod = 125.0f;
-                break;
+        case BMI_160_SPI:
+            gyro->gyroRateKHz = GYRO_RATE_3200_Hz;
+            gyroSamplePeriod = 312.0f;
+            break;
+        case ICM_20649_SPI:
+            gyro->gyroRateKHz = GYRO_RATE_9_kHz;
+            gyroSamplePeriod = 1000000.0f / 9000.0f;
+            break;
+        default:
+            gyro->gyroRateKHz = GYRO_RATE_8_kHz;
+            gyroSamplePeriod = 125.0f;
+            break;
         }
     } else {
         switch (gyro->mpuDetectionResult.sensor) {
@@ -79,13 +76,11 @@ uint32_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t lpf, uint8_t gyroSyncDenomin
         }
         gyroSyncDenominator = 1; // Always full Sampling 1khz
     }
-
 #if defined(NBD_USE_BMI160) // for NewBeeDrone target use BMI160
     gyro->gyroRateKHz = GYRO_RATE_3200_Hz;
     gyroSamplePeriod = 312.5;
     gyroSyncDenominator = 1; // Always full Sampling 1khz
 #endif /* defined(NBD_USE_BMI160)*/
-
     // calculate gyro divider and targetLooptime (expected cycleTime)
     gyro->mpuDividerDrops  = gyroSyncDenominator - 1;
     const uint32_t targetLooptime = (uint32_t)(gyroSyncDenominator * gyroSamplePeriod);

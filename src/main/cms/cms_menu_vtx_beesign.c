@@ -64,16 +64,15 @@ CMS_Menu cmsx_menuVtxBeesign; // Forward
 static long bsCmsConfigMode(const OSD_Entry *self);
 static long bs_Vtx_onEnter(void);
 
-static void bs_Vtx_ConfigRead(void)
-{
+static void bs_Vtx_ConfigRead(void) {
     bs_vtxChannel = vtxSettingsConfig()->channel;
-    if (bs_vtxmode == 0){
+    if (bs_vtxmode == 0) {
         if (vtxSettingsConfig()->band == 0) {
             bs_vtxBand = 0;
         } else {
             bs_vtxBand = vtxSettingsConfig()->band;
         }
-        if (vtxSettingsConfig()->freq == 0){
+        if (vtxSettingsConfig()->freq == 0) {
             vtxSettingsConfigMutable()->freq = vtxCommonLookupFrequency(vtxCommonDevice(), bs_vtxBand, bs_vtxChannel);
         }
         bs_showFreq = vtxSettingsConfig()->freq;
@@ -83,88 +82,71 @@ static void bs_Vtx_ConfigRead(void)
         bs_vtxFreq = vtxSettingsConfig()->freq;
     }
     // if (vtxSettingsConfig()->power > 1) {
-        bs_vtxPower = vtxSettingsConfig()->power;
+    bs_vtxPower = vtxSettingsConfig()->power;
     // } else {
     //     bs_vtxPower = 0;
     // }
-
 }
 
-static long bsCmsConfigBandByGvar(displayPort_t *pDisp, const void *self)
-{
+static long bsCmsConfigBandByGvar(displayPort_t *pDisp, const void *self) {
     UNUSED(pDisp);
     UNUSED(self);
     if (bs_vtxBand == 0) {
         bs_vtxBand = 1;
     }
-
     if (bs_vtxChannel == 0) {
         bs_vtxChannel = 1;
     }
-
     if (bs_vtxPower == 0) {
         bs_vtxPower = 1;
     }
     bs_showFreq =  vtxCommonLookupFrequency(vtxCommonDevice(), bs_vtxBand, bs_vtxChannel);
-
     return 0;
 }
 
-static long bsCmsConfigRaceSave(displayPort_t *pDisp, const void *self)
-{
+static long bsCmsConfigRaceSave(displayPort_t *pDisp, const void *self) {
     UNUSED(pDisp);
     UNUSED(self);
-
     bsSetVtxMode(BEESIGN_VTX_RACE_MODE);
     vtxSettingsConfigMutable()->band = bs_vtxBand;
     vtxSettingsConfigMutable()->channel = bs_vtxChannel;
     vtxSettingsConfigMutable()->power = bs_vtxPower;
     vtxSettingsConfigMutable()->freq = bs_showFreq;
-
     saveConfigAndNotify();
     return 0;
 }
 
-static long bsCmsConfigManualSave(displayPort_t *pDisp, const void *self)
-{
+static long bsCmsConfigManualSave(displayPort_t *pDisp, const void *self) {
     UNUSED(pDisp);
     UNUSED(self);
-
     bsSetVtxMode(BEESIGN_VTX_MANUAL_MODE);
     vtxSettingsConfigMutable()->band = 0;
     vtxSettingsConfigMutable()->channel = bs_vtxChannel;
     vtxSettingsConfigMutable()->power = bs_vtxPower;
     vtxSettingsConfigMutable()->freq = bs_vtxFreq;
-
     saveConfigAndNotify();
     return 0;
 }
 
-static long bsCmsConfigPorSave(displayPort_t *pDisp, const void *self)
-{
+static long bsCmsConfigPorSave(displayPort_t *pDisp, const void *self) {
     UNUSED(pDisp);
     UNUSED(self);
-
     bsSetVtxMode(BEESIGN_VTX_POR_MODE);
     vtxSettingsConfigMutable()->band = 0;
     vtxSettingsConfigMutable()->channel = bs_vtxChannel;
     vtxSettingsConfigMutable()->power = VTX_PWR_PIT;
     vtxSettingsConfigMutable()->freq = BEESIGN_POR_FREQUENCY_MHZ;
-
     saveConfigAndNotify();
     return 0;
 }
 
 
-static long bs_Vtx_onExit(const OSD_Entry *self)
-{
+static long bs_Vtx_onExit(const OSD_Entry *self) {
     UNUSED(self);
-
     return 0;
 }
 
-static OSD_Entry bsCmsMenuModeEntries[] =
-{
+static OSD_Entry bsCmsMenuModeEntries[] = {
     {"--- BEESIGN MODE ---", OME_Label, NULL, NULL, 0},
     {"MODE",        OME_TAB,        NULL,                   &bsEntryVtxMode,         0},
     {"BACK",        OME_Back,       NULL,                   NULL,                   0},
@@ -178,12 +160,11 @@ CMS_Menu cmsx_menuVtxBsMode = {
     .GUARD_type = OME_MENU,
 #endif
     .onEnter = bs_Vtx_onEnter,
-    .onExit= bsCmsConfigMode,
+    .onExit = bsCmsConfigMode,
     .entries = bsCmsMenuModeEntries
 };
 
-static OSD_Entry bsCmsMenuRaceModeEntries[] =
-{
+static OSD_Entry bsCmsMenuRaceModeEntries[] = {
     {"--- BEESIGN RACE---", OME_Label, NULL, NULL, 0},
     {"MODE",        OME_Submenu,    cmsMenuChange,          &cmsx_menuVtxBsMode,    0},
     {"BAND",        OME_TAB,        bsCmsConfigBandByGvar,  &bsEntryVtxBand,        0},
@@ -195,8 +176,7 @@ static OSD_Entry bsCmsMenuRaceModeEntries[] =
     {NULL,          OME_END,        NULL,                   NULL,                   0}
 };
 
-static OSD_Entry bsCmsMenuManualModeEntries[] =
-{
+static OSD_Entry bsCmsMenuManualModeEntries[] = {
     {"--- BEESIGN MAMUAL---", OME_Label, NULL, NULL, 0},
     {"MODE",        OME_Submenu,    cmsMenuChange,          &cmsx_menuVtxBsMode,    0},
     {"FREQ",        OME_UINT16,     NULL,                   &bsEntryVtxFreq,        0},
@@ -207,8 +187,7 @@ static OSD_Entry bsCmsMenuManualModeEntries[] =
 };
 
 
-static OSD_Entry bsCmsMenuPorModeEntries[] =
-{
+static OSD_Entry bsCmsMenuPorModeEntries[] = {
     {"--- BEESIGN POR---", OME_Label, NULL, NULL, 0},
     {"MODE",        OME_Submenu,    cmsMenuChange,          &cmsx_menuVtxBsMode,    0},
     {"(FREQ)",      OME_String,     NULL,                   &porModeFREQStr,        0},
@@ -218,39 +197,35 @@ static OSD_Entry bsCmsMenuPorModeEntries[] =
     {NULL,          OME_END,        NULL,                   NULL,                   0}
 };
 
-static long bsCmsConfigMode(const OSD_Entry *self)
-{
+static long bsCmsConfigMode(const OSD_Entry *self) {
     UNUSED(self);
     bs_Vtx_ConfigRead();
     switch (bs_vtxmode) {
-        case 0:
-            cmsx_menuVtxBeesign.entries = bsCmsMenuRaceModeEntries;
-            break;
-        case 1:
-           cmsx_menuVtxBeesign.entries = bsCmsMenuManualModeEntries;
-            break;
-        case 2:
-            cmsx_menuVtxBeesign.entries = bsCmsMenuPorModeEntries;
-            break;
-        default:
-            cmsx_menuVtxBeesign.entries = bsCmsMenuRaceModeEntries;
-            break;
+    case 0:
+        cmsx_menuVtxBeesign.entries = bsCmsMenuRaceModeEntries;
+        break;
+    case 1:
+        cmsx_menuVtxBeesign.entries = bsCmsMenuManualModeEntries;
+        break;
+    case 2:
+        cmsx_menuVtxBeesign.entries = bsCmsMenuPorModeEntries;
+        break;
+    default:
+        cmsx_menuVtxBeesign.entries = bsCmsMenuRaceModeEntries;
+        break;
     }
     return 0;
 }
 
-static long bs_Vtx_onEnter(void)
-{
+static long bs_Vtx_onEnter(void) {
     bs_vtxmode = bsDevice.mode;
     bsCmsConfigMode(NULL);
     bsEntryVtxBand.val = &bs_vtxBand;
     bsEntryVtxBand.max = vtxTableBandCount;
     bsEntryVtxBand.names = vtxTableBandNames;
-
     bsEntryVtxChannel.val = &bs_vtxChannel;
     bsEntryVtxChannel.max = vtxTableChannelCount;
     bsEntryVtxChannel.names = vtxTableChannelNames;
-
     bsEntryVtxPower.val = &bs_vtxPower;
     bsEntryVtxPower.max = vtxTablePowerLevels;
     bsEntryVtxPower.names = vtxTablePowerLabels;
@@ -263,7 +238,7 @@ CMS_Menu cmsx_menuVtxBeesign = {
     .GUARD_type = OME_MENU,
 #endif
     .onEnter = bs_Vtx_onEnter,
-    .onExit= bs_Vtx_onExit,
+    .onExit = bs_Vtx_onExit,
     .entries = bsCmsMenuRaceModeEntries
 };
 

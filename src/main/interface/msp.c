@@ -642,7 +642,6 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
 #elif defined(USE_OSD_BEESIGN)
         sbufWriteU8(dst, vcdProfile()->video_system);
 #else
-
         sbufWriteU8(dst, 0);
 #endif
 #ifdef USE_OSD
@@ -2381,16 +2380,16 @@ mspResult_e mspCommonProcessInCommand(uint8_t cmdMSP, sbuf_t *src, mspPostProces
     }
     break;
 #elif defined(USE_OSD_BEESIGN)
-        {
-            uint8_t font_data[64];
-            const uint8_t addr = sbufReadU8(src);
-            for (int i = 0; i < 54; i++) {
-                font_data[i] = sbufReadU8(src);
-            }
-            // !!TODO - replace this with a device independent implementation
-            // bsUpdateCharacterFont(addr,font_data);
+    {
+        uint8_t font_data[64];
+        const uint8_t addr = sbufReadU8(src);
+        for (int i = 0; i < 54; i++) {
+            font_data[i] = sbufReadU8(src);
         }
-        break;
+        // !!TODO - replace this with a device independent implementation
+        // bsUpdateCharacterFont(addr,font_data);
+    }
+    break;
 #else
     return MSP_RESULT_ERROR;
 #endif

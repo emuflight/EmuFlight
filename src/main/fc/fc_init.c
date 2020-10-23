@@ -494,11 +494,9 @@ void init(void) {
 #endif
     failsafeInit();
     rxInit();
-
 #ifdef USE_VTX_BEESIGN
-        bool use_beesign_flg = beesignInit();
+    bool use_beesign_flg = beesignInit();
 #endif
-
     /*
      * CMS, display devices and OSD
      */
@@ -511,19 +509,17 @@ void init(void) {
 #if defined(USE_OSD) && !defined(USE_OSD_SLAVE)
     //The OSD need to be initialised after GYRO to avoid GYRO initialisation failure on some targets
     if (feature(FEATURE_OSD)) {
-
 #if defined(USE_OSD_BEESIGN)
-    // If there is a beesign for the OSD then use it
-    if (use_beesign_flg) {
-        osdDisplayPort = beesignDisplayPortInit(vcdProfile());
-    } else
+        // If there is a beesign for the OSD then use it
+        if (use_beesign_flg) {
+            osdDisplayPort = beesignDisplayPortInit(vcdProfile());
+        } else
 #endif
-
 #if defined(USE_MAX7456)
-        // If there is a max7456 chip for the OSD then use it
-        osdDisplayPort = max7456DisplayPortInit(vcdProfile());
+            // If there is a max7456 chip for the OSD then use it
+            osdDisplayPort = max7456DisplayPortInit(vcdProfile());
 #elif defined(USE_CMS) && defined(USE_MSP_DISPLAYPORT) && defined(USE_OSD_OVER_MSP_DISPLAYPORT) // OSD over MSP; not supported (yet)
-        osdDisplayPort = displayPortMspInit();
+            osdDisplayPort = displayPortMspInit();
 #endif
         // osdInit  will register with CMS by itself.
         osdInit(osdDisplayPort);
@@ -622,11 +618,9 @@ void init(void) {
 #ifdef USE_VTX_TRAMP
     vtxTrampInit();
 #endif
-
 #ifdef USE_VTX_BEESIGN
     beesignVtxInit();
 #endif
-
 #ifdef USE_VTX_RTC6705
 #ifdef VTX_RTC6705_OPTIONAL
     if (!vtxCommonDevice()) // external VTX takes precedence when configured.

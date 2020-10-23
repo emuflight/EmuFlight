@@ -1120,11 +1120,8 @@ void osdInit(displayPort_t *osdDisplayPortToUse) {
 #ifdef USE_CMS
     cmsDisplayPortRegister(osdDisplayPort);
 #endif
-
     armState = ARMING_FLAG(ARMED);
-
     osdResetAlarms();
-
     displayCleanScreen(osdDisplayPort);
 #ifdef USE_OSD_BEESIGN
     if (checkBeesignSerialPort()) {
@@ -1134,7 +1131,6 @@ void osdInit(displayPort_t *osdDisplayPortToUse) {
     {
         osdDrawLogo(3, 1);
     }
-
     char string_buffer[30];
     tfp_sprintf(string_buffer, "V%s", FC_VERSION_STRING);
 #ifdef USE_OSD_BEESIGN
@@ -1145,20 +1141,20 @@ void osdInit(displayPort_t *osdDisplayPortToUse) {
     {
         displayWrite(osdDisplayPort, 20, 6, string_buffer);
     }
-    #ifdef USE_CMS
-    #ifdef USE_OSD_BEESIGN
-        if (checkBeesignSerialPort()) {
-            displayWrite(osdDisplayPort, 7, 7,  CMS_STARTUP_HELP_TEXT1);
-            displayWrite(osdDisplayPort, 11, 8, CMS_STARTUP_HELP_TEXT2);
-            displayWrite(osdDisplayPort, 11, 9, CMS_STARTUP_HELP_TEXT3);
-        } else
-    #endif
-        {
-            displayWrite(osdDisplayPort, 7, 8,  CMS_STARTUP_HELP_TEXT1);
-            displayWrite(osdDisplayPort, 11, 9, CMS_STARTUP_HELP_TEXT2);
-            displayWrite(osdDisplayPort, 11, 10, CMS_STARTUP_HELP_TEXT3);
-        }
-    #endif
+#ifdef USE_CMS
+#ifdef USE_OSD_BEESIGN
+    if (checkBeesignSerialPort()) {
+        displayWrite(osdDisplayPort, 7, 7,  CMS_STARTUP_HELP_TEXT1);
+        displayWrite(osdDisplayPort, 11, 8, CMS_STARTUP_HELP_TEXT2);
+        displayWrite(osdDisplayPort, 11, 9, CMS_STARTUP_HELP_TEXT3);
+    } else
+#endif
+    {
+        displayWrite(osdDisplayPort, 7, 8,  CMS_STARTUP_HELP_TEXT1);
+        displayWrite(osdDisplayPort, 11, 9, CMS_STARTUP_HELP_TEXT2);
+        displayWrite(osdDisplayPort, 11, 10, CMS_STARTUP_HELP_TEXT3);
+    }
+#endif
 #ifdef USE_RTC_TIME
     char dateTimeBuffer[FORMATTED_DATE_TIME_BUFSIZE];
     if (osdFormatRtcDateTime(&dateTimeBuffer[0])) {
@@ -1396,11 +1392,11 @@ static void osdShowStats(uint16_t endBatteryVoltage) {
             tfp_sprintf(buff, "NO RTC");
         }
 #ifdef USE_OSD_BEESIGN
-        if (checkBeesignSerialPort()){
+        if (checkBeesignSerialPort()) {
             displayWrite(osdDisplayPort, 0, displayRow, buff);
         } else
 #endif
-        displayWrite(osdDisplayPort, 2, top++, buff);
+            displayWrite(osdDisplayPort, 2, top++, buff);
     }
     if (osdStatGetState(OSD_STAT_TIMER_1)) {
         osdFormatTimer(buff, false, (OSD_TIMER_SRC(osdConfig()->timers[OSD_TIMER_1]) == OSD_TIMER_SRC_ON ? false : true), OSD_TIMER_1);
@@ -1463,8 +1459,7 @@ static void osdShowStats(uint16_t endBatteryVoltage) {
 #endif
 }
 
-static void osdShowArmed(void)
-{
+static void osdShowArmed(void) {
 #ifdef USE_OSD_BEESIGN
     displayCleanScreen(osdDisplayPort);
     displayWrite(osdDisplayPort, 9, 4, "ARMED");
@@ -1589,13 +1584,13 @@ void osdUpdate(timeUs_t currentTimeUs) {
 #define DRAW_FREQ_DENOM 10 // MWOSD @ 115200 baud (
 #endif
 #define STATS_FREQ_DENOM    50
-    if (counter % DRAW_FREQ_DENOM == 0) {
-        osdRefresh(currentTimeUs);
-        showVisualBeeper = false;
-    } else {
-        // rest of time redraw screen 10 chars per idle so it doesn't lock the main idle
-        displayDrawScreen(osdDisplayPort);
-    }
+        if (counter % DRAW_FREQ_DENOM == 0) {
+            osdRefresh(currentTimeUs);
+            showVisualBeeper = false;
+        } else {
+            // rest of time redraw screen 10 chars per idle so it doesn't lock the main idle
+            displayDrawScreen(osdDisplayPort);
+        }
     ++counter;
 #ifdef USE_CMS
     // do not allow ARM if we are in menu

@@ -35,22 +35,19 @@
 #include "drivers/accgyro/gyro_sync.h"
 
 
-bool gyroSyncCheckUpdate(gyroDev_t *gyro)
-{
+bool gyroSyncCheckUpdate(gyroDev_t *gyro) {
     bool ret;
     if (gyro->dataReady) {
         ret = true;
-        gyro->dataReady= false;
+        gyro->dataReady = false;
     } else {
         ret = false;
     }
     return ret;
 }
 
-uint32_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t lpf, uint8_t gyroSyncDenominator, bool gyro_use_32khz)
-{
+uint32_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t lpf, uint8_t gyroSyncDenominator, bool gyro_use_32khz) {
     float gyroSamplePeriod;
-
     if (lpf == GYRO_HARDWARE_LPF_NORMAL || lpf == GYRO_HARDWARE_LPF_EXPERIMENTAL) {
         if (gyro_use_32khz) {
             gyro->gyroRateKHz = GYRO_RATE_32_kHz;
@@ -84,13 +81,11 @@ uint32_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t lpf, uint8_t gyroSyncDenomin
         }
         gyroSyncDenominator = 1; // Always full Sampling 1khz
     }
-
 #if defined(BRAINFPV)
     gyro->gyroRateKHz = GYRO_RATE_3200_Hz;
     gyroSamplePeriod = 312.5;
     gyroSyncDenominator = 1; // Always full Sampling 1khz
 #endif /* defined(BRAINFPV) */
-
     // calculate gyro divider and targetLooptime (expected cycleTime)
     gyro->mpuDividerDrops  = gyroSyncDenominator - 1;
     const uint32_t targetLooptime = (uint32_t)(gyroSyncDenominator * gyroSamplePeriod);

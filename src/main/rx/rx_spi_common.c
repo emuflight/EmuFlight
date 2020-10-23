@@ -37,8 +37,7 @@ static IO_t bindPin;
 static bool bindRequested;
 static bool lastBindPinStatus;
 
-void rxSpiCommonIOInit(const rxSpiConfig_t *rxSpiConfig)
-{
+void rxSpiCommonIOInit(const rxSpiConfig_t *rxSpiConfig) {
     if (rxSpiConfig->ledIoTag) {
         ledPin = IOGetByTag(rxSpiConfig->ledIoTag);
         IOInit(ledPin, OWNER_LED, 0);
@@ -48,7 +47,6 @@ void rxSpiCommonIOInit(const rxSpiConfig_t *rxSpiConfig)
     } else {
         ledPin = IO_NONE;
     }
-
     if (rxSpiConfig->bindIoTag) {
         bindPin = IOGetByTag(rxSpiConfig->bindIoTag);
         IOInit(bindPin, OWNER_RX_SPI_BIND, 0);
@@ -59,43 +57,35 @@ void rxSpiCommonIOInit(const rxSpiConfig_t *rxSpiConfig)
     }
 }
 
-void rxSpiLedOn(void)
-{
+void rxSpiLedOn(void) {
     if (ledPin) {
         ledInversion ? IOLo(ledPin) : IOHi(ledPin);
     }
 }
 
-void rxSpiLedOff(void)
-{
+void rxSpiLedOff(void) {
     if (ledPin) {
         ledInversion ? IOHi(ledPin) : IOLo(ledPin);
     }
 }
 
-void rxSpiLedToggle(void)
-{
+void rxSpiLedToggle(void) {
     if (ledPin) {
         IOToggle(ledPin);
     }
 }
 
-void rxSpiLedBlink(timeMs_t blinkMs)
-{
+void rxSpiLedBlink(timeMs_t blinkMs) {
     static timeMs_t ledBlinkMs = 0;
-
     if ((ledBlinkMs + blinkMs) > millis()) {
         return;
     }
     ledBlinkMs = millis();
-
     rxSpiLedToggle();
 }
 
-void rxSpiLedBlinkRxLoss(rx_spi_received_e result)
-{
+void rxSpiLedBlinkRxLoss(rx_spi_received_e result) {
     static uint16_t rxLossCount = 0;
-
     if (ledPin) {
         if (result == RX_SPI_RECEIVED_DATA) {
             rxLossCount = 0;
@@ -110,18 +100,15 @@ void rxSpiLedBlinkRxLoss(rx_spi_received_e result)
     }
 }
 
-void rxSpiLedBlinkBind(void)
-{
+void rxSpiLedBlinkBind(void) {
     rxSpiLedBlink(INTERVAL_RX_BIND_MS);
 }
 
-void rxSpiBind(void)
-{
+void rxSpiBind(void) {
     bindRequested = true;
 }
 
-bool rxSpiCheckBindRequested(bool reset)
-{
+bool rxSpiCheckBindRequested(bool reset) {
     if (bindPin) {
         bool bindPinStatus = IORead(bindPin);
         if (lastBindPinStatus && !bindPinStatus) {
@@ -129,14 +116,12 @@ bool rxSpiCheckBindRequested(bool reset)
         }
         lastBindPinStatus = bindPinStatus;
     }
-
     if (!bindRequested) {
         return false;
     } else {
         if (reset) {
             bindRequested = false;
         }
-
         return true;
     }
 }
