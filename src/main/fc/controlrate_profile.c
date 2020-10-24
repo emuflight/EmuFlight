@@ -64,9 +64,10 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig) {
         .throttle_limit_percent = 100,
         .vbat_comp_type = VBAT_COMP_TYPE_OFF,
         .vbat_comp_ref = 37,
-        .vbat_comp_throttle_level = 75,
-        .vbat_comp_pid_level = 75,
-                    );
+        .thrust_linearization_level = 0,
+        .use_throttle_linearization = false,
+        .use_airmode_2_0 = false,
+        );
     }
 }
 

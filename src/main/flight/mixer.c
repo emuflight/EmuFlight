@@ -623,6 +623,14 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs) {
 #define CRASH_FLIP_DEADBAND 20
 #define CRASH_FLIP_STICK_MINF 0.15f
 
+static float mapThrustToMotorOutput(float thrust)
+{
+    float vbatCompFactor = currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF ? calculateBatteryCompensationFactor() : 1.0f;
+
+    float linearizedThrust = vbatCompFactor * scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, thrust, SIGN(thrust) * vbatCompFactor * sqrtf(ABS(thrust)));
+    return motorOutputMin + linearizedThrust * motorOutputRange;
+}
+
 static void applyFlipOverAfterCrashModeToMotors(void) {
     if (ARMING_FLAG(ARMED)) {
         float stickDeflectionPitchAbs = getRcDeflectionAbs(FD_PITCH);
@@ -683,11 +691,26 @@ static void applyFlipOverAfterCrashModeToMotors(void) {
     }
 }
 
+static float applyThrottleCurve(float throttle) {
+    if (currentControlRateProfile->thrust_linearization_level) {
+        if (currentControlRateProfile->use_throttle_linearization) {
+            return throttle - CONVERT_PARAMETER_TO_PERCENT(motorConfig()->minthrottle) / 100.0f;
+        } else {
+            // counter compensating thrust linearization on throttle
+            return throttle *
+                   scaleRangef(currentControlRateProfile->thrust_linearization_level, 0, 100, 1.0f, ABS(throttle));
+        }
+    }
+    return throttle;
+}
+
 static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS]) {
     // Now add in the desired throttle, but keep in a range that doesn't clip adjusted
     // roll/pitch/yaw. This could move throttle down, but also up for those low throttle flips.
+    float curvedThrottle = applyThrottleCurve(throttle);
     for (int i = 0; i < motorCount; i++) {
-        float motorOutput = motorOutputMin + (motorOutputRange * (motorOutputMixSign * motorMix[i] + throttle * currentMixer[i].throttle));
+        float motorOutput = mapThrustToMotorOutput(
+                motorOutputMixSign * motorMix[i] + curvedThrottle * currentMixer[i].throttle);
         if (mixerIsTricopter()) {
             motorOutput += mixerTricopterMotorCorrection(i);
         }
@@ -695,9 +718,9 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS]) {
             if (isMotorProtocolDshot()) {
                 motorOutput = (motorOutput < motorRangeMin) ? disarmMotorOutput : motorOutput; // Prevent getting into special reserved range
             }
-            motorOutput = constrain(motorOutput, disarmMotorOutput, motorRangeMax);
+            motorOutput = constrainf(motorOutput, disarmMotorOutput, motorRangeMax);
         } else {
-            motorOutput = constrain(motorOutput, motorRangeMin, motorRangeMax);
+            motorOutput = constrainf(motorOutput, motorRangeMin, motorRangeMax);
         }
         // Motor stop handling
         if (feature(FEATURE_MOTOR_STOP) && ARMING_FLAG(ARMED) && !feature(FEATURE_3D) && !isAirmodeActive()
@@ -747,12 +770,6 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS]) {
     }
 }
 
-float applyThrottleVbatCompensation(float throttle) {
-    float vbatCompensation = calculateVbatCompensation(currentControlRateProfile->vbat_comp_type, currentControlRateProfile->vbat_comp_ref);
-    float throttleVbatCompensation = scaleRangef(currentControlRateProfile->vbat_comp_throttle_level, 0.0f, 100.0f, 1.0f, vbatCompensation);
-    return constrainf(throttle * throttleVbatCompensation, 0.0f, 1.0f);
-}
-
 float applyThrottleLimit(float throttle) {
     if (currentControlRateProfile->throttle_limit_percent < 100) {
         const float throttleLimitFactor = currentControlRateProfile->throttle_limit_percent / 100.0f;
@@ -766,7 +783,34 @@ float applyThrottleLimit(float throttle) {
     return throttle;
 }
 
-FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs) {
+void applyAirMode(float *motorMix, float motorMixMax)
+{
+    float motorMixNormalizationFactor = motorMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? motorMixRange : 1.0f;
+    float minThrAuthorityPercent = isAirmodeActive() ? 1.0f : 0.5f; // half authority on low throttle when airmode is off
+    float motorMixDelta = 0.5f * motorMixRange;
+    bool useAirMode2_0 = currentControlRateProfile->use_airmode_2_0 && currentControlRateProfile->thrust_linearization_level; // 2.0 mode only works (well) with thrust linearization
+
+    for (int i = 0; i < motorCount; ++i) {
+        motorMix[i] += motorMixDelta - motorMixMax; // let's center motorMix values around the zero
+        if (throttle < 0.5) {
+            if (useAirMode2_0) {
+                motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, minThrAuthorityPercent * (motorMix[i] + ABS(motorMix[i])), motorMix[i]);
+            } else {
+                motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, minThrAuthorityPercent * (motorMix[i] + motorMixDelta), motorMix[i]);
+            }
+        } else {
+            if (useAirMode2_0) {
+                motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, motorMix[i], motorMix[i] - ABS(motorMix[i]));
+            } else {
+                motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, motorMix[i], motorMix[i] - motorMixDelta);
+            }
+        }
+        motorMix[i] /= motorMixNormalizationFactor;
+    }
+}
+
+FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs)
+{
     if (isFlipOverAfterCrashMode()) {
         applyFlipOverAfterCrashModeToMotors();
         return;
@@ -789,9 +833,7 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs) {
     if (!mixerConfig()->yaw_motors_reversed) {
         scaledAxisPidYaw = -scaledAxisPidYaw;
     }
-    if (currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF) {
-        throttle = applyThrottleVbatCompensation(throttle);
-    }
+
     // Apply the throttle_limit_percent to scale or limit the throttle based on throttle_limit_type
     if (currentControlRateProfile->throttle_limit_type != THROTTLE_LIMIT_TYPE_OFF) {
         throttle = applyThrottleLimit(throttle);
@@ -826,19 +868,9 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs) {
 #endif
     loggingThrottle = throttle;
     motorMixRange = motorMixMax - motorMixMin;
-    if (motorMixRange > 1.0f && (hardwareMotorType != MOTOR_BRUSHED)) {
-        for (int i = 0; i < motorCount; i++) {
-            motorMix[i] /= motorMixRange;
-        }
-        // Get the maximum correction by setting offset to center when airmode enabled
-        if (isAirmodeActive()) {
-            throttle = 0.5f;
-        }
-    } else {
-        if (isAirmodeActive() || throttle > 0.5f) {  // Only automatically adjust throttle when airmode enabled. Airmode logic is always active on high throttle
-            throttle = constrainf(throttle, -motorMixMin, 1.0f - motorMixMax);
-        }
-    }
+
+    applyAirMode(motorMix, motorMixMax);
+
     // Apply the mix to motor endpoints
     applyMixToMotors(motorMix);
 }

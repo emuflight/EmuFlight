@@ -72,8 +72,9 @@ typedef struct controlRateConfig_s {
     uint8_t throttle_limit_percent;         // Sets the maximum pilot commanded throttle limit
     uint8_t vbat_comp_type;                 // Sets the type of battery compensation: off, boost, limit or both
     uint8_t vbat_comp_ref;                  // Sets the voltage reference to calculate the battery compensation
-    uint8_t vbat_comp_throttle_level;       // Sets the level of throttle battery compensation
-    uint8_t vbat_comp_pid_level;            // Sets the level of PID battery compensation
+    uint8_t thrust_linearization_level;     // Sets the level of thrust linearization
+    bool use_throttle_linearization;        // Used in conjunction with thrust linearization, tells whether the linearization has to be applied also to the throttle or not
+    bool use_airmode_2_0;                   // TODO
 } controlRateConfig_t;
 
 PG_DECLARE_ARRAY(controlRateConfig_t, CONTROL_RATE_PROFILE_COUNT, controlRateProfiles);
