@@ -63,8 +63,7 @@
 
 typedef int32_t fix12_t;
 
-typedef struct stdev_s
-{
+typedef struct stdev_s {
     float m_oldM, m_newM, m_oldS, m_newS;
     int m_n;
 } stdev_t;
@@ -149,8 +148,7 @@ int16_t qPercent(fix12_t q);
 int16_t qMultiply(fix12_t q, int16_t input);
 fix12_t qConstruct(int16_t num, int16_t den);
 
-static inline int constrain(int amt, int low, int high)
-{
+static inline int constrain(int amt, int low, int high) {
     if (amt < low)
         return low;
     else if (amt > high)
@@ -159,8 +157,7 @@ static inline int constrain(int amt, int low, int high)
         return amt;
 }
 
-static inline float constrainf(float amt, float low, float high)
-{
+static inline float constrainf(float amt, float low, float high) {
     if (amt < low)
         return low;
     else if (amt > high)
@@ -171,13 +168,13 @@ static inline float constrainf(float amt, float low, float high)
 
 // quaternions
 typedef struct {
-    float w,x,y,z;
+    float w, x, y, z;
 } quaternion;
 #define QUATERNION_INITIALIZE   {.w=1, .x=0, .y=0,.z=0}
 #define VECTOR_INITIALIZE       {.w=0, .x=0, .y=0,.z=0}
 
 typedef struct {
-    float ww,wx,wy,wz,xx,xy,xz,yy,yz,zz;
+    float ww, wx, wy, wz, xx, xy, xz, yy, yz, zz;
 } quaternionProducts;
 #define QUATERNION_PRODUCTS_INITIALIZE  {.ww=1, .wx=0, .wy=0, .wz=0, .xx=0, .xy=0, .xz=0, .yy=0, .yz=0, .zz=0}
 

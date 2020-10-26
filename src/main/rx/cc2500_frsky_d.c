@@ -68,30 +68,24 @@ static bool telemetryEnabled = false;
 static uint8_t telemetryBytesGenerated;
 static uint8_t serialBuffer[MAX_SERIAL_BYTES]; // buffer for telemetry serial data
 
-static uint8_t appendFrSkyHubData(uint8_t *buf)
-{
+static uint8_t appendFrSkyHubData(uint8_t *buf) {
     static uint8_t telemetryBytesSent = 0;
     static uint8_t telemetryBytesAcknowledged = 0;
     static uint8_t telemetryIdExpected = 0;
-
     if (telemetryId == telemetryIdExpected) {
         telemetryBytesAcknowledged = telemetryBytesSent;
-
         telemetryIdExpected = (telemetryId + 1) & 0x1F;
         if (!telemetryBytesGenerated) {
             telemetryBytesSent = 0;
-
             processFrSkyHubTelemetry(micros());
         }
     } else { // rx re-requests last packet
         telemetryBytesSent = telemetryBytesAcknowledged;
     }
-
     uint8_t index = 0;
     for (uint8_t i = 0; i < 10; i++) {
         if (telemetryBytesSent == telemetryBytesGenerated) {
             telemetryBytesGenerated = 0;
-
             break;
         }
         buf[i] = serialBuffer[telemetryBytesSent];
@@ -101,16 +95,14 @@ static uint8_t appendFrSkyHubData(uint8_t *buf)
     return index;
 }
 
-static void frSkyDTelemetryWriteByte(const char data)
-{
+static void frSkyDTelemetryWriteByte(const char data) {
     if (telemetryBytesGenerated < MAX_SERIAL_BYTES) {
         serialBuffer[telemetryBytesGenerated++] = data;
     }
 }
 #endif
 
-static void buildTelemetryFrame(uint8_t *packet)
-{
+static void buildTelemetryFrame(uint8_t *packet) {
     uint8_t a1Value;
     if (rxFrSkySpiConfig()->useExternalAdc) {
         a1Value = (adcGetChannel(ADC_EXTERNAL1) & 0xff0) >> 4;
@@ -130,7 +122,7 @@ static void buildTelemetryFrame(uint8_t *packet)
     if (telemetryEnabled) {
         bytesUsed = appendFrSkyHubData(&frame[8]);
     }
- #endif
+#endif
     frame[6] = bytesUsed;
     frame[7] = telemetryId;
 }
@@ -143,26 +135,20 @@ static void decodeChannelPair(uint16_t *channels, const uint8_t *packet, const u
     channels[1] = FRSKY_D_CHANNEL_SCALING * (uint16_t)((packet[highNibbleOffset] & 0xf0) << 4 | packet[1]);
 }
 
-void frSkyDSetRcData(uint16_t *rcData, const uint8_t *packet)
-{
+void frSkyDSetRcData(uint16_t *rcData, const uint8_t *packet) {
     static uint16_t dataErrorCount = 0;
-
     uint16_t channels[RC_CHANNEL_COUNT_FRSKY_D];
     bool dataError = false;
-
     decodeChannelPair(channels, packet + 6, 4);
     decodeChannelPair(channels + 2, packet + 8, 3);
     decodeChannelPair(channels + 4, packet + 12, 4);
     decodeChannelPair(channels + 6, packet + 14, 3);
-
     for (int i = 0; i < RC_CHANNEL_COUNT_FRSKY_D; i++) {
         if ((channels[i] < 800) || (channels[i] > 2200)) {
             dataError = true;
-
             break;
         }
     }
-
     if (!dataError) {
         for (int i = 0; i < RC_CHANNEL_COUNT_FRSKY_D; i++) {
             rcData[i] = channels[i];
@@ -172,17 +158,12 @@ void frSkyDSetRcData(uint16_t *rcData, const uint8_t *packet)
     }
 }
 
-rx_spi_received_e frSkyDHandlePacket(uint8_t * const packet, uint8_t * const protocolState)
-{
+rx_spi_received_e frSkyDHandlePacket(uint8_t * const packet, uint8_t * const protocolState) {
     static timeUs_t lastPacketReceivedTime = 0;
     static timeUs_t telemetryTimeUs;
-
     static bool ledIsOn;
-
     rx_spi_received_e ret = RX_SPI_RECEIVED_NONE;
-
     const timeUs_t currentPacketReceivedTime = micros();
-
     switch (*protocolState) {
     case STATE_STARTING:
         listLength = 47;
@@ -190,19 +171,15 @@ rx_spi_received_e frSkyDHandlePacket(uint8_t * const packet, uint8_t * const pro
         *protocolState = STATE_UPDATE;
         nextChannel(1);
         cc2500Strobe(CC2500_SRX);
-
         break;
     case STATE_UPDATE:
         lastPacketReceivedTime = currentPacketReceivedTime;
         *protocolState = STATE_DATA;
-
         if (cc2500checkBindRequested(false)) {
             lastPacketReceivedTime = 0;
             timeoutUs = 50;
             missingPackets = 0;
-
             *protocolState = STATE_INIT;
-
             break;
         }
         FALLTHROUGH; //!!TODO -check this fall through is correct
@@ -217,7 +194,7 @@ rx_spi_received_e frSkyDHandlePacket(uint8_t * const packet, uint8_t * const pro
                     timeoutUs = 1;
                     if (packet[0] == 0x11) {
                         if ((packet[1] == rxFrSkySpiConfig()->bindTxId[0]) &&
-                            (packet[2] == rxFrSkySpiConfig()->bindTxId[1])) {
+                                (packet[2] == rxFrSkySpiConfig()->bindTxId[1])) {
                             cc2500LedOn();
                             nextChannel(1);
                             cc2500setRssiDbm(packet[18]);
@@ -239,7 +216,6 @@ rx_spi_received_e frSkyDHandlePacket(uint8_t * const packet, uint8_t * const pro
                 }
             }
         }
-
         if (cmpTimeUs(currentPacketReceivedTime, lastPacketReceivedTime) > (timeoutUs * SYNC_DELAY_MAX)) {
 #if defined(USE_RX_CC2500_SPI_PA_LNA)
             cc2500TxDisable();
@@ -250,13 +226,10 @@ rx_spi_received_e frSkyDHandlePacket(uint8_t * const packet, uint8_t * const pro
                     cc2500switchAntennae();
                 }
 #endif
-
                 if (missingPackets > MAX_MISSING_PKT) {
                     timeoutUs = 50;
-
                     setRssiDirect(0, RSSI_SOURCE_RX_PROTOCOL);
                 }
-
                 missingPackets++;
                 nextChannel(1);
             } else {
@@ -266,11 +239,9 @@ rx_spi_received_e frSkyDHandlePacket(uint8_t * const packet, uint8_t * const pro
                     cc2500LedOn();
                 }
                 ledIsOn = !ledIsOn;
-
                 setRssi(0, RSSI_SOURCE_RX_PROTOCOL);
                 nextChannel(13);
             }
-
             cc2500Strobe(CC2500_SRX);
             *protocolState = STATE_UPDATE;
         }
@@ -290,17 +261,13 @@ rx_spi_received_e frSkyDHandlePacket(uint8_t * const packet, uint8_t * const pro
             ret = RX_SPI_RECEIVED_DATA;
             lastPacketReceivedTime = currentPacketReceivedTime;
         }
-
         break;
-
 #endif
     }
-
     return ret;
 }
 
-void frSkyDInit(void)
-{
+void frSkyDInit(void) {
 #if defined(USE_RX_FRSKY_SPI_TELEMETRY) && defined(USE_TELEMETRY_FRSKY_HUB)
     if (feature(FEATURE_TELEMETRY)) {
         telemetryEnabled = initFrSkyHubTelemetryExternal(frSkyDTelemetryWriteByte);

@@ -87,9 +87,11 @@
 #define BARO_I2C_INSTANCE       (I2CDEV_1)
 #define USE_BARO
 #define USE_BARO_BMP280
+#define USE_BARO_SPI_BMP280
 #define USE_BARO_MS5611
-#define USE_BARO_BMP085
+#define BMP280_CS_PIN             PA4
 #define BARO_CS_PIN             PA4
+#define BMP280_SPI_INSTANCE   SPI1
 
 #define MAG_I2C_INSTANCE        (I2CDEV_1)
 #define USE_MAG

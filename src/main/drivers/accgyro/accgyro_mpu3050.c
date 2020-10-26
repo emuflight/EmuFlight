@@ -53,8 +53,7 @@
 #define MPU3050_USER_RESET      0x01
 #define MPU3050_CLK_SEL_PLL_GX  0x01
 
-static uint8_t mpu3050GetDLPF(uint8_t lpf)
-{
+static uint8_t mpu3050GetDLPF(uint8_t lpf) {
     uint8_t ret;
     if (lpf == GYRO_HARDWARE_LPF_1KHZ_SAMPLE) {
         ret = MPU3050_DLPF_188HZ;
@@ -64,60 +63,47 @@ static uint8_t mpu3050GetDLPF(uint8_t lpf)
     return ret;
 }
 
-static void mpu3050Init(gyroDev_t *gyro)
-{
+static void mpu3050Init(gyroDev_t *gyro) {
     delay(25); // datasheet page 13 says 20ms. other stuff could have been running meanwhile. but we'll be safe
-
     const bool ack = busWriteRegister(&gyro->bus, MPU3050_SMPLRT_DIV, 0);
     if (!ack) {
         failureMode(FAILURE_ACC_INIT);
     }
-
     busWriteRegister(&gyro->bus, MPU3050_DLPF_FS_SYNC, MPU3050_FS_SEL_2000DPS | mpu3050GetDLPF(gyro->hardware_lpf));
     busWriteRegister(&gyro->bus, MPU3050_INT_CFG, 0);
     busWriteRegister(&gyro->bus, MPU3050_USER_CTRL, MPU3050_USER_RESET);
     busWriteRegister(&gyro->bus, MPU3050_PWR_MGM, MPU3050_CLK_SEL_PLL_GX);
 }
 
-static bool mpu3050GyroRead(gyroDev_t *gyro)
-{
+static bool mpu3050GyroRead(gyroDev_t *gyro) {
     uint8_t data[6];
-
     const bool ack = busReadRegisterBuffer(&gyro->bus, MPU3050_GYRO_OUT, data, 6);
     if (!ack) {
         return false;
     }
-
     gyro->gyroADCRaw[X] = (int16_t)((data[0] << 8) | data[1]);
     gyro->gyroADCRaw[Y] = (int16_t)((data[2] << 8) | data[3]);
     gyro->gyroADCRaw[Z] = (int16_t)((data[4] << 8) | data[5]);
-
     return true;
 }
 
-static bool mpu3050ReadTemperature(gyroDev_t *gyro, int16_t *tempData)
-{
+static bool mpu3050ReadTemperature(gyroDev_t *gyro, int16_t *tempData) {
     uint8_t buf[2];
     if (!busReadRegisterBuffer(&gyro->bus, MPU3050_TEMP_OUT, buf, 2)) {
         return false;
     }
-
     *tempData = 35 + ((int32_t)(buf[0] << 8 | buf[1]) + 13200) / 280;
-
     return true;
 }
 
-bool mpu3050Detect(gyroDev_t *gyro)
-{
+bool mpu3050Detect(gyroDev_t *gyro) {
     if (gyro->mpuDetectionResult.sensor != MPU_3050) {
         return false;
     }
     gyro->initFn = mpu3050Init;
     gyro->readFn = mpu3050GyroRead;
     gyro->temperatureFn = mpu3050ReadTemperature;
-
     // 16.4 dps/lsb scalefactor
     gyro->scale = 1.0f / 16.4f;
-
     return true;
 }

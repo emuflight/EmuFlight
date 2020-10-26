@@ -57,8 +57,7 @@ static const char readme_file[] =
 #endif
 
 #ifdef USE_EMFAT_ICON
-static const char icon_file[] =
-{
+static const char icon_file[] = {
     0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x18, 0x18, 0x00, 0x00, 0x01, 0x00, 0x20, 0x00, 0x88, 0x09,
     0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00, 0x00, 0x30, 0x00,
     0x00, 0x00, 0x01, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -224,32 +223,25 @@ static const char icon_file[] =
 #define CMA_TIME EMFAT_ENCODE_CMA_TIME(1,1,2018, 13,0,0)
 #define CMA { CMA_TIME, CMA_TIME, CMA_TIME }
 
-static void memory_read_proc(uint8_t *dest, int size, uint32_t offset, emfat_entry_t *entry)
-{
+static void memory_read_proc(uint8_t *dest, int size, uint32_t offset, emfat_entry_t *entry) {
     int len;
-
     if (offset > entry->curr_size) {
         return;
     }
-
     if (offset + size > entry->curr_size) {
         len = entry->curr_size - offset;
     } else {
         len = size;
     }
-
     memcpy(dest, &((char *)entry->user_data)[offset], len);
 }
 
-static void bblog_read_proc(uint8_t *dest, int size, uint32_t offset, emfat_entry_t *entry)
-{
+static void bblog_read_proc(uint8_t *dest, int size, uint32_t offset, emfat_entry_t *entry) {
     UNUSED(entry);
-
     flashfsReadAbs(offset, dest, size);
 }
 
-static const emfat_entry_t entriesPredefined[] =
-{
+static const emfat_entry_t entriesPredefined[] = {
     // name           dir    attr         lvl offset  size             max_size        user                time  read               write
     { "",             true,  0,           0,  0,      0,               0,              0,                  CMA,  NULL,              NULL, { 0 } },
 #ifdef USE_EMFAT_AUTORUN
@@ -259,7 +251,7 @@ static const emfat_entry_t entriesPredefined[] =
     { "icon.ico",     false, ATTR_HIDDEN, 1,  0,      ICON_SIZE,       ICON_SIZE,      (long)icon_file,    CMA,  memory_read_proc,  NULL, { 0 } },
 #endif
 #ifdef USE_EMFAT_README
-    { "readme.txt",   false, 0,           1,  0,      README_SIZE,     1024*1024,      (long)readme_file,  CMA,  memory_read_proc,  NULL, { 0 } },
+    { "readme.txt",   false, 0,           1,  0,      README_SIZE,     1024 * 1024,      (long)readme_file,  CMA,  memory_read_proc,  NULL, { 0 } },
 #endif
     { "EMUF_ALL.BBL", 0,     0,           1,  0,      0,               0,              0,                  CMA,  bblog_read_proc,   NULL, { 0 } },
 
@@ -273,14 +265,12 @@ static const emfat_entry_t entriesPredefined[] =
 #define EMFAT_MAX_ENTRY (PREDEFINED_ENTRY_COUNT + EMFAT_MAX_LOG_ENTRY + APPENDED_ENTRY_COUNT)
 
 static emfat_entry_t entries[EMFAT_MAX_ENTRY];
-static char logNames[EMFAT_MAX_LOG_ENTRY][8+3];
+static char logNames[EMFAT_MAX_LOG_ENTRY][8 + 3];
 
 emfat_t emfat;
 
-static void emfat_add_log(emfat_entry_t *entry, int number, uint32_t offset, uint32_t size)
-{
+static void emfat_add_log(emfat_entry_t *entry, int number, uint32_t offset, uint32_t size) {
     tfp_sprintf(logNames[number], "EMUF_%03d.BBL", number + 1);
-
     entry->name = logNames[number];
     entry->level = 1;
     entry->offset = offset;
@@ -292,26 +282,20 @@ static void emfat_add_log(emfat_entry_t *entry, int number, uint32_t offset, uin
     entry->readcb = bblog_read_proc;
 }
 
-static int emfat_find_log(emfat_entry_t *entry, int maxCount)
-{
+static int emfat_find_log(emfat_entry_t *entry, int maxCount) {
     uint32_t limit  = flashfsIdentifyStartOfFreeSpace();
     uint32_t lastOffset = 0;
     uint32_t currOffset = 0;
     int fileNumber = 0;
     uint8_t buffer[18];
     int logCount = 0;
-
     for ( ; currOffset < limit ; currOffset += 2048) { // XXX 2048 = FREE_BLOCK_SIZE in io/flashfs.c
-
         flashfsReadAbs(currOffset, buffer, 18);
-
         if (strncmp((char *)buffer, "H Product:Blackbox", 18)) {
             continue;
         }
-
         if (lastOffset != currOffset) {
             emfat_add_log(entry, fileNumber, lastOffset, currOffset - lastOffset);
-
             ++fileNumber;
             ++logCount;
             if (fileNumber == maxCount) {
@@ -319,10 +303,8 @@ static int emfat_find_log(emfat_entry_t *entry, int maxCount)
             }
             ++entry;
         }
-
         lastOffset = currOffset;
     }
-
     if (fileNumber != maxCount && lastOffset != currOffset) {
         emfat_add_log(entry, fileNumber, lastOffset, currOffset - lastOffset);
         ++logCount;
@@ -330,20 +312,15 @@ static int emfat_find_log(emfat_entry_t *entry, int maxCount)
     return logCount;
 }
 
-void emfat_init_files(void)
-{
+void emfat_init_files(void) {
     emfat_entry_t *entry;
     memset(entries, 0, sizeof(entries));
-
     for (size_t i = 0 ; i < PREDEFINED_ENTRY_COUNT ; i++) {
         entries[i] = entriesPredefined[i];
     }
-
     // Detect and create entries for each individual log
     const int logCount = emfat_find_log(&entries[PREDEFINED_ENTRY_COUNT], EMFAT_MAX_LOG_ENTRY);
-
     int entryIndex = PREDEFINED_ENTRY_COUNT + logCount;
-
     if (logCount > 0) {
         // Create the all logs entry that represents all used flash space to
         // allow downloading the entire log in one file
@@ -353,14 +330,11 @@ void emfat_init_files(void)
         entry->max_size = entry->curr_size;
         ++entryIndex;
     }
-
     // Padding file to fill out the filesystem size to FILESYSTEM_SIZE_MB
     entries[entryIndex] = entriesPredefined[PREDEFINED_ENTRY_COUNT + 1];
     entry = &entries[entryIndex];
     // used space is doubled because of the individual files plus the single complete file
     entry->curr_size = (FILESYSTEM_SIZE_MB * 1024 * 1024) - (flashfsIdentifyStartOfFreeSpace() * 2);
     entry->max_size = entry->curr_size;
-
     emfat_init(&emfat, "EMUF", entries);
-
 }

@@ -37,8 +37,7 @@
 #include "pg/pg.h"
 
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     rxConfigMutable()->halfDuplex = true;
 }
 #endif
