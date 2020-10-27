@@ -497,8 +497,6 @@ static bool osdDrawSingleElement(uint8_t item) {
                 switch (osdRfMode) {
                 case 2:
                     osdLQfinal = osdLQ * 3;
-                    if (osdLQfinal < 200)
-                        osdLQfinal = 200;
                     break;
                 default:
                     osdLQfinal = osdLQ;
