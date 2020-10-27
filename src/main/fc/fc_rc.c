@@ -176,7 +176,7 @@ static float applyRollYawMix(float rcCommand, float roll, float yaw, int axis) {
           rcCommandOutput = constrainf((rcCommand + yawAddition) / 500.0f, -1.0f, 1.0f);
           break;
       case FD_YAW:
-          rollAddition = roll * (currentControlRateProfile->rollYawMix / 100.0f);
+          rollAddition = roll * (currentControlRateProfile->rollYawMix / 100.0f) * -GET_DIRECTION(rcControlsConfig()->yaw_control_reversed);
           rcCommandOutput = constrainf((rcCommand + rollAddition) / 500.0f, -1.0f, 1.0f);
           break;
       default:
