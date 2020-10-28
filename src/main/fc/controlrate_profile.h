@@ -63,6 +63,7 @@ typedef struct controlRateConfig_s {
     uint8_t rates[3];
     uint8_t rollYawMix;
     uint8_t yawRollMix;
+    uint8_t polarExpo;       // expo applied when pitch and roll are both high
 
     rateDynamics_t rateDynamics;
 
