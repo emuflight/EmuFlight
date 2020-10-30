@@ -74,6 +74,10 @@ static uint8_t itermRelaxThresholdYaw;
 static uint8_t itermWindup;
 static uint16_t dtermBoost;
 static uint8_t dtermBoostLimit;
+static uint8_t axis_lock_hz;
+static uint8_t axis_lock_multiplier;
+static uint8_t predictive_airmode_hz;
+static uint8_t predictive_airmode_mult;
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
 
@@ -138,6 +142,10 @@ static long cmsx_PidAdvancedRead(void) {
     itermRelaxThreshold = pidProfile->iterm_relax_threshold;
     itermRelaxThresholdYaw = pidProfile->iterm_relax_threshold_yaw;
     itermWindup = pidProfile->itermWindupPointPercent;
+    axis_lock_hz = pidProfile->axisLockHz;
+    axis_lock_multiplier = pidProfile->axisLockMultiplier;
+    predictive_airmode_hz = pidProfile->predictiveAirModeHz;
+    predictive_airmode_mult = pidProfile->predictiveAirModeMultiplier;
     return 0;
 }
 
@@ -164,6 +172,10 @@ static long cmsx_PidAdvancedWriteback(const OSD_Entry *self) {
     pidProfile->iterm_relax_threshold = itermRelaxThreshold;
     pidProfile->iterm_relax_threshold_yaw = itermRelaxThresholdYaw;
     pidProfile->itermWindupPointPercent = itermWindup;
+    pidProfile->axisLockHz = axis_lock_hz;
+    pidProfile->axisLockMultiplier = axis_lock_multiplier;
+    pidProfile->predictiveAirModeHz = predictive_airmode_hz;
+    pidProfile->predictiveAirModeMultiplier = predictive_airmode_mult;
     pidInitConfig(currentPidProfile);
     return 0;
 }
@@ -172,6 +184,11 @@ static OSD_Entry cmsx_menuPidAdvancedEntries[] = {
     { "-- ADVANCED PIDS --", OME_Label, NULL, pidProfileIndexString, 0},
 
     { "FEATHERED",         OME_UINT8, NULL, &(OSD_UINT8_t){ &feathered_pids,           0, 100,   1}, 0 },
+
+    { "AXIS LOCK HZ",      OME_UINT8, NULL, &(OSD_UINT8_t){ &axis_lock_hz,             1,  50,  1}, 0 },
+    { "AXIS LOCK MULT",    OME_UINT8, NULL, &(OSD_UINT8_t){ &axis_lock_multiplier,     0,  25,  1}, 0 },
+    { "PRDCTV ARMD HZ",    OME_UINT8, NULL, &(OSD_UINT8_t){ &predictive_airmode_hz,    1,  50,  1}, 0 },
+    { "PRDCTV ARMD MULT",  OME_UINT8, NULL, &(OSD_UINT8_t){ &predictive_airmode_mult,  0,  25,  1}, 0 },
 
     { "EMU BOOST",         OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,             0,  2000, 5}, 0 },
     { "BOOST LIMIT",       OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,          0,  250,  1}, 0 },

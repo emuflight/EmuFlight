@@ -82,6 +82,8 @@ PG_RESET_TEMPLATE(mixerConfig_t, mixerConfig,
 
 PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 1);
 
+float calculatePredictiveAirModeAuthorityMultiplier();
+
 void pgResetFn_motorConfig(motorConfig_t *motorConfig) {
 #ifdef BRUSHED_MOTORS
     motorConfig->minthrottle = 1000;
@@ -128,6 +130,11 @@ float motor_disarmed[MAX_SUPPORTED_MOTORS];
 
 mixerMode_e currentMixerMode;
 static motorMixer_t currentMixer[MAX_SUPPORTED_MOTORS];
+
+static float minAuthorityZeroThrottle;
+static float minAuthorityFullThrottle;
+static float predictiveAirModeAuthorityMultiplier;
+static float axisLockMultiplier;
 
 static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
 
@@ -412,12 +419,22 @@ void initEscEndpoints(void) {
     rcCommandThrottleRange = PWM_RANGE_MAX - PWM_RANGE_MIN;
 }
 
+// Initialize pidProfile related mixer settings
+void mixerInitProfile(void)
+{
+    minAuthorityZeroThrottle = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->min_authority_zero_throttle);
+    minAuthorityFullThrottle = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->min_authority_full_throttle);
+    predictiveAirModeAuthorityMultiplier = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->predictiveAirModeMultiplier);
+    axisLockMultiplier = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->axisLockMultiplier);
+}
+
 void mixerInit(mixerMode_e mixerMode) {
     currentMixerMode = mixerMode;
     initEscEndpoints();
     if (mixerIsTricopter()) {
         mixerTricopterInit();
     }
+    mixerInitProfile();
 }
 
 #ifndef USE_QUAD_MIXER_ONLY
@@ -783,31 +800,46 @@ float applyThrottleLimit(float throttle) {
     return throttle;
 }
 
-void applyAirMode(float *motorMix, float motorMixMax)
-{
+FAST_RAM_ZERO_INIT float lastRcDeflection[3], stickMovement[3];
+
+void applyAirMode(float *motorMix, float motorMixMax) {
     float motorMixNormalizationFactor = motorMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? motorMixRange : 1.0f;
-    float minThrAuthorityPercent = isAirmodeActive() ? 1.0f : 0.5f; // half authority on low throttle when airmode is off
     float motorMixDelta = 0.5f * motorMixRange;
-    bool useAirMode2_0 = currentControlRateProfile->use_airmode_2_0 && currentControlRateProfile->thrust_linearization_level; // 2.0 mode only works (well) with thrust linearization
+    float authorityZeroThrottle, authorityFullThrottle;
+
+    if (isAirmodeActive()) {
+        authorityZeroThrottle = authorityFullThrottle = 1.0f;
+    } else {
+        float authorityMultiplier = predictiveAirModeAuthorityMultiplier ? calculatePredictiveAirModeAuthorityMultiplier() : 1.0f;
+        authorityZeroThrottle = MAX(minAuthorityZeroThrottle * authorityMultiplier, 1.0f);
+        authorityFullThrottle = MAX(minAuthorityFullThrottle * authorityMultiplier, 1.0f);
+    }
+
+    DEBUG_SET(DEBUG_AIRMODE_PERCENT, 0, lrintf(authorityZeroThrottle * 100.0f));
+    DEBUG_SET(DEBUG_AIRMODE_PERCENT, 1, lrintf(authorityFullThrottle * 100.0f));
+
+    bool useAirMode2_0 = currentControlRateProfile->use_airmode_2_0 && currentControlRateProfile->thrust_linearization_level; // 2.0 mode works (well) only with thrust linearization
 
     for (int i = 0; i < motorCount; ++i) {
         motorMix[i] += motorMixDelta - motorMixMax; // let's center motorMix values around the zero
-        if (throttle < 0.5) {
-            if (useAirMode2_0) {
-                motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, minThrAuthorityPercent * (motorMix[i] + ABS(motorMix[i])), motorMix[i]);
-            } else {
-                motorMix[i] = scaleRangef(throttle, 0.0f, 0.5f, minThrAuthorityPercent * (motorMix[i] + motorMixDelta), motorMix[i]);
-            }
+        if (useAirMode2_0) {
+            motorMix[i] = scaleRangef(throttle, 0.0f, 1.0f, authorityZeroThrottle * (motorMix[i] + ABS(motorMix[i])), authorityFullThrottle * (motorMix[i] - ABS(motorMix[i])));
         } else {
-            if (useAirMode2_0) {
-                motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, motorMix[i], motorMix[i] - ABS(motorMix[i]));
-            } else {
-                motorMix[i] = scaleRangef(throttle, 0.5f, 1.0f, motorMix[i], motorMix[i] - motorMixDelta);
-            }
+            motorMix[i] = scaleRangef(throttle, 0.0f, 1.0f, authorityZeroThrottle * (motorMix[i] + motorMixDelta), authorityFullThrottle * (motorMix[i] - motorMixDelta));
         }
         motorMix[i] /= motorMixNormalizationFactor;
     }
 }
+
+// Predictive AirMode actually predicts the need of greater authority based on stick movements
+float calculatePredictiveAirModeAuthorityMultiplier() {
+    float maxStickMovement = MAX(stickMovement[ROLL], MAX(stickMovement[PITCH], stickMovement[YAW])); // [0, 1], the max r/p/y stick movement
+    float multiplier = pt1FilterApply(&predictiveAirmodeLpf, maxStickMovement) * predictiveAirModeAuthorityMultiplier;
+    multiplier = MIN(multiplier, 1.0f);
+    return multiplier;
+}
+
+extern float pidFrequency;
 
 FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs)
 {
@@ -818,9 +850,9 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs)
     // Find min and max throttle based on conditions. Throttle has to be known before mixing
     calculateThrottleAndCurrentMotorEndpoints(currentTimeUs);
     // Calculate and Limit the PIDsum
-    const float scaledAxisPidRoll =
+    float scaledAxisPidRoll =
         constrainf(pidData[FD_ROLL].Sum, -currentPidProfile->pidSumLimit, currentPidProfile->pidSumLimit) / PID_MIXER_SCALING;
-    const float scaledAxisPidPitch =
+    float scaledAxisPidPitch =
         constrainf(pidData[FD_PITCH].Sum, -currentPidProfile->pidSumLimit, currentPidProfile->pidSumLimit) / PID_MIXER_SCALING;
     uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
 #ifdef USE_YAW_SPIN_RECOVERY
@@ -833,6 +865,24 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs)
     if (!mixerConfig()->yaw_motors_reversed) {
         scaledAxisPidYaw = -scaledAxisPidYaw;
     }
+
+    //apply axis lock (make a function later)
+    for (int i = 0; i < 3; ++i) {
+        stickMovement[i] = fabsf(getRcDeflectionAbs(i) - lastRcDeflection[i]) * pidFrequency;
+        lastRcDeflection[i] = getRcDeflectionAbs(i);
+    }
+    float rollLock = pt1FilterApply(&axisLockLpf[ROLL], stickMovement[ROLL]) * axisLockMultiplier;
+    float pitchLock = pt1FilterApply(&axisLockLpf[PITCH], stickMovement[PITCH]) * axisLockMultiplier;
+    float yawLock = pt1FilterApply(&axisLockLpf[YAW], stickMovement[YAW]) * axisLockMultiplier;
+    scaledAxisPidRoll = scaledAxisPidRoll * constrainf(1 - pitchLock - yawLock + rollLock, 0.0f, 1.0f);
+    scaledAxisPidPitch = scaledAxisPidPitch * constrainf(1 - rollLock - yawLock + pitchLock, 0.0f, 1.0f);
+    scaledAxisPidYaw = scaledAxisPidYaw * constrainf(1 - rollLock - pitchLock + yawLock, 0.0f, 1.0f);
+
+    DEBUG_SET(DEBUG_AXIS_LOCK, 0, lrintf(scaledAxisPidRoll * 1000.0f));
+    DEBUG_SET(DEBUG_AXIS_LOCK, 1, lrintf(scaledAxisPidPitch * 1000.0f));
+    DEBUG_SET(DEBUG_AXIS_LOCK, 2, lrintf(scaledAxisPidYaw * 1000.0f));
+    DEBUG_SET(DEBUG_AXIS_LOCK, 3, lrintf(rollLock * 100.0f));
+    //finish with the currently gross axis lock
 
     // Apply the throttle_limit_percent to scale or limit the throttle based on throttle_limit_type
     if (currentControlRateProfile->throttle_limit_type != THROTTLE_LIMIT_TYPE_OFF) {

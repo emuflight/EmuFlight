@@ -77,4 +77,6 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "IMU",
     "KALMAN",
     "SMART_SMOOTHING",
+    "AXIS_LOCK",
+    "AIRMODE_PERCENT",
 };

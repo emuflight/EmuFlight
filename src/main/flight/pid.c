@@ -68,13 +68,13 @@ const char pidNames[] =
 
 FAST_RAM_ZERO_INIT uint32_t targetPidLooptime;
 FAST_RAM_ZERO_INIT pidAxisData_t pidData[XYZ_AXIS_COUNT];
+FAST_RAM_ZERO_INIT float pidFrequency;
 
 static FAST_RAM_ZERO_INIT bool pidStabilisationEnabled;
 
 static FAST_RAM_ZERO_INIT bool inCrashRecoveryMode = false;
 
 static FAST_RAM_ZERO_INIT float dT;
-static FAST_RAM_ZERO_INIT float pidFrequency;
 
 PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 
@@ -176,7 +176,13 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .motor_output_limit = 100,
     .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
     .horizonTransition = 0,
-                );
+    .min_authority_zero_throttle = 50,
+    .min_authority_full_throttle = 100,
+    .predictiveAirModeMultiplier = 10,
+    .predictiveAirModeHz = 2,
+    .axisLockMultiplier = 0,
+    .axisLockHz = 2,
+    );
 }
 
 void pgResetFn_pidProfiles(pidProfile_t *pidProfiles) {
@@ -256,10 +262,12 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 break;
             }
         }
+        pt1FilterInit(&axisLockLpf[axis], pt1FilterGain(pidProfile->axisLockHz, dT));
     }
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, dT));
 #endif
+    pt1FilterInit(&predictiveAirmodeLpf, pt1FilterGain(pidProfile->predictiveAirModeHz, dT));
 #if defined(USE_ITERM_RELAX)
     for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
         if (i != FD_YAW) {
@@ -269,6 +277,7 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
         }
     }
 #endif
+
 }
 
 
@@ -339,6 +348,8 @@ static FAST_RAM_ZERO_INIT float itermLimit;
 FAST_RAM_ZERO_INIT float throttleBoost;
 pt1Filter_t throttleLpf;
 #endif
+pt1Filter_t predictiveAirmodeLpf;
+pt1Filter_t axisLockLpf[3];
 static FAST_RAM_ZERO_INIT bool itermRotation;
 static FAST_RAM_ZERO_INIT float temporaryIterm[XYZ_AXIS_COUNT];
 
@@ -588,8 +599,15 @@ static FAST_RAM_ZERO_INIT float setPointPAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointIAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointDAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
+static FAST_RAM_ZERO_INIT timeUs_t previousTimeUs;
 
 void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs) {
+    const float deltaT = (currentTimeUs - previousTimeUs) * 1e-6f;
+    previousTimeUs = currentTimeUs;
+    // calculate actual deltaT in seconds
+    const float iDT = 1.0f / deltaT; //divide once
+    // calculate actual deltaT in seconds
+
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         // calculate spa
         // SPA boost if SPA > 100 SPA cut if SPA < 100
@@ -599,7 +617,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     }
 
     // gradually scale back integration when above windup point
-    float dynCi = dT;
+    float dynCi = deltaT;
     if (ITermWindupPointInv != 0.0f) {
         dynCi *= constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f);
     }
@@ -702,7 +720,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             const float pureMeasurement = -(gyroRate - previousMeasurement[axis]);
             previousMeasurement[axis] = gyroRate;
             previousError[axis] = errorRate;
-            float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
+            float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * iDT; //calculating the dterm determine how much is calculated using measurement vs error
             //filter the dterm
             dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
             dDelta = dtermLowpass2ApplyFn((filter_t *)&dtermLowpass2[axis], dDelta);

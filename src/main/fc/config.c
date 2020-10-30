@@ -585,6 +585,7 @@ void changePidProfile(uint8_t pidProfileIndex) {
         loadPidProfile();
         pidInit(currentPidProfile);
         initEscEndpoints();
+        mixerInitProfile();
     }
     beeperConfirmationBeeps(pidProfileIndex + 1);
 }

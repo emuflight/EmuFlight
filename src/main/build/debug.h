@@ -95,6 +95,8 @@ typedef enum {
     DEBUG_IMU,
     DEBUG_KALMAN,
     DEBUG_SMART_SMOOTHING,
+    DEBUG_AXIS_LOCK,
+    DEBUG_AIRMODE_PERCENT,
     DEBUG_COUNT
 } debugType_e;
 

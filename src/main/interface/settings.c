@@ -910,8 +910,14 @@ const clivalue_t valueTable[] = {
     { "horizon_transition",         VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0,  200 }, PG_PID_PROFILE, offsetof(pidProfile_t, horizonTransition) },
     { "horizon_tilt_effect",        VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0,  180 }, PG_PID_PROFILE, offsetof(pidProfile_t, horizon_tilt_effect) },
 
-    { "motor_output_limit",        VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { MOTOR_OUTPUT_LIMIT_PERCENT_MIN, MOTOR_OUTPUT_LIMIT_PERCENT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, motor_output_limit) },
-    { "auto_profile_cell_count",   VAR_INT8  | PROFILE_VALUE,  .config.minmax = { AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT }, PG_PID_PROFILE, offsetof(pidProfile_t, auto_profile_cell_count) },
+    { "motor_output_limit",          VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { MOTOR_OUTPUT_LIMIT_PERCENT_MIN, MOTOR_OUTPUT_LIMIT_PERCENT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, motor_output_limit) },
+    { "auto_profile_cell_count",     VAR_INT8  | PROFILE_VALUE,  .config.minmax = { AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT }, PG_PID_PROFILE, offsetof(pidProfile_t, auto_profile_cell_count) },
+    { "min_authority_zero_throttle", VAR_UINT8 | PROFILE_VALUE, .config.minmax = { AIRMODE_AUTHORITY_MIN, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, min_authority_zero_throttle) },
+    { "min_authority_full_throttle", VAR_UINT8 | PROFILE_VALUE, .config.minmax = { AIRMODE_AUTHORITY_MIN, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, min_authority_full_throttle) },
+    { "predictive_airmode_mult",     VAR_UINT8 | PROFILE_VALUE, .config.minmax = { 0, 25 }, PG_PID_PROFILE, offsetof(pidProfile_t, predictiveAirModeMultiplier) },
+    { "predictive_airmode_hz",       VAR_UINT8 | PROFILE_VALUE, .config.minmax = { 1, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, predictiveAirModeHz) },
+    { "axis_lock_multiplier",        VAR_UINT8 | PROFILE_VALUE, .config.minmax = { 0, 25 }, PG_PID_PROFILE, offsetof(pidProfile_t, axisLockMultiplier) },
+    { "axis_lock_hz",                VAR_UINT8 | PROFILE_VALUE, .config.minmax = { 1, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, axisLockHz) },
 
 
 // PG_TELEMETRY_CONFIG

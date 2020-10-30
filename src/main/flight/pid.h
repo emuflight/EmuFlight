@@ -132,10 +132,17 @@ typedef struct pidProfile_s {
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system
     uint8_t iterm_relax_cutoff;
     uint8_t iterm_relax_cutoff_yaw;
-    uint8_t iterm_relax_threshold;             // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
-    uint8_t iterm_relax_threshold_yaw;         // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
+    uint8_t iterm_relax_threshold;          // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
+    uint8_t iterm_relax_threshold_yaw;      // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
+
+    uint8_t min_authority_zero_throttle;    // the wanted authority for slow movements at zero throttle
+    uint8_t min_authority_full_throttle;    // the wanted authority for slow movements at full throttle
+    uint8_t predictiveAirModeMultiplier;    // an airmode that predicts if it needs to increase its strength based on stick movement
+    uint8_t predictiveAirModeHz;            // filter on the predictiveAirModeMultiplier
+    uint8_t axisLockMultiplier;             // reduces the pidsum for the other axis while moving your stick
+    uint8_t axisLockHz;                     // filter on the axisLockMultiplier
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE
@@ -170,6 +177,8 @@ extern uint32_t targetPidLooptime;
 
 extern float throttleBoost;
 extern pt1Filter_t throttleLpf;
+extern pt1Filter_t predictiveAirmodeLpf;
+extern pt1Filter_t axisLockLpf[3];
 
 void pidResetITerm(void);
 void pidStabilisationState(pidStabilisationState_e pidControllerState);
