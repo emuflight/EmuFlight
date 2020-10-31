@@ -811,8 +811,8 @@ void applyAirMode(float *motorMix, float motorMixMax) {
         authorityZeroThrottle = authorityFullThrottle = 1.0f;
     } else {
         float authorityMultiplier = predictiveAirModeAuthorityMultiplier ? calculatePredictiveAirModeAuthorityMultiplier() : 1.0f;
-        authorityZeroThrottle = MAX(minAuthorityZeroThrottle * authorityMultiplier, 1.0f);
-        authorityFullThrottle = MAX(minAuthorityFullThrottle * authorityMultiplier, 1.0f);
+        authorityZeroThrottle = MIN(minAuthorityZeroThrottle * authorityMultiplier, 1.0f);
+        authorityFullThrottle = MIN(minAuthorityFullThrottle * authorityMultiplier, 1.0f);
     }
 
     DEBUG_SET(DEBUG_AIRMODE_PERCENT, 0, lrintf(authorityZeroThrottle * 100.0f));
@@ -835,7 +835,7 @@ void applyAirMode(float *motorMix, float motorMixMax) {
 float calculatePredictiveAirModeAuthorityMultiplier() {
     float maxStickMovement = MAX(stickMovement[ROLL], MAX(stickMovement[PITCH], stickMovement[YAW])); // [0, 1], the max r/p/y stick movement
     float multiplier = pt1FilterApply(&predictiveAirmodeLpf, maxStickMovement) * predictiveAirModeAuthorityMultiplier;
-    multiplier = MIN(multiplier, 1.0f);
+    multiplier = MAX(multiplier, 1.0f);
     return multiplier;
 }
 
