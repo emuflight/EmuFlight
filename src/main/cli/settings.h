@@ -140,6 +140,9 @@ typedef enum {
 #ifdef USE_OSD
     TABLE_OSD_LOGO_ON_ARMING,
 #endif
+#if defined(GYRO_USES_SPI) && defined(USE_32K_CAPABLE_GYRO)
+    TABLE_32K,
+#endif
 
     LOOKUP_TABLE_COUNT
 } lookupTableIndex_e;
