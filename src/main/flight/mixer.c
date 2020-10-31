@@ -537,7 +537,7 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs)
 
     motorMixRange = motorMixMax - motorMixMin;
     if (motorMixRange > 1.0f && (getDetectedMotorType() != MOTOR_BRUSHED)) {
-        for (int i = 0; i < motorCount; i++) {
+        for (int i = 0; i < mixerRuntime.motorCount; i++) {
             motorMix[i] /= motorMixRange;
         }
         // Get the maximum correction by setting offset to center when airmode enabled
