@@ -810,7 +810,7 @@ float applyThrottleLimit(float throttle) {
 
 FAST_RAM_ZERO_INIT float lastRcDeflection[3], stickMovement[3];
 
-void applyAirMode(float *motorMix, float motorMixMax) {
+void applyMixerClipAdjustment(float *motorMix, float motorMixMax) {
     float motorMixNormalizationFactor = motorMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? motorMixRange : 1.0f;
     float motorMixDelta = 0.5f * motorMixRange;
     float authorityZeroThrottle, authorityFullThrottle;
@@ -923,7 +923,7 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs)
     loggingThrottle = throttle;
     motorMixRange = motorMixMax - motorMixMin;
 
-    applyAirMode(motorMix, motorMixMax);
+    applyMixerClipAdjustment(motorMix, motorMixMax);
 
     // Apply the mix to motor endpoints
     applyMixToMotors(motorMix);
