@@ -133,6 +133,7 @@ static motorMixer_t currentMixer[MAX_SUPPORTED_MOTORS];
 
 static float minAuthorityZeroThrottle;
 static float minAuthorityFullThrottle;
+static bool usePredictiveAirMode;
 static float predictiveAirModeAuthorityMultiplier;
 static float axisLockMultiplier;
 
@@ -422,8 +423,15 @@ void initEscEndpoints(void) {
 // Initialize pidProfile related mixer settings
 void mixerInitProfile(void)
 {
-    minAuthorityZeroThrottle = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->min_authority_zero_throttle);
-    minAuthorityFullThrottle = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->min_authority_full_throttle);
+    if (isAirmodeActive()) {
+        minAuthorityZeroThrottle = 1.0f;
+        minAuthorityFullThrottle = 1.0f;
+        usePredictiveAirMode = false;
+    } else {
+        usePredictiveAirMode = currentPidProfile->predictiveAirModeMultiplier > 0;
+        minAuthorityZeroThrottle = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->min_authority_zero_throttle);
+        minAuthorityFullThrottle = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->min_authority_full_throttle);
+    }
     predictiveAirModeAuthorityMultiplier = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->predictiveAirModeMultiplier);
     axisLockMultiplier = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->axisLockMultiplier);
 }
@@ -807,13 +815,9 @@ void applyAirMode(float *motorMix, float motorMixMax) {
     float motorMixDelta = 0.5f * motorMixRange;
     float authorityZeroThrottle, authorityFullThrottle;
 
-    if (isAirmodeActive()) {
-        authorityZeroThrottle = authorityFullThrottle = 1.0f;
-    } else {
-        float authorityMultiplier = predictiveAirModeAuthorityMultiplier ? calculatePredictiveAirModeAuthorityMultiplier() : 1.0f;
-        authorityZeroThrottle = MIN(minAuthorityZeroThrottle * authorityMultiplier, 1.0f);
-        authorityFullThrottle = MIN(minAuthorityFullThrottle * authorityMultiplier, 1.0f);
-    }
+    float authorityMultiplier = usePredictiveAirMode ? calculatePredictiveAirModeAuthorityMultiplier() : 1.0f;
+    authorityZeroThrottle = MIN(minAuthorityZeroThrottle * authorityMultiplier, 1.0f);
+    authorityFullThrottle = MIN(minAuthorityFullThrottle * authorityMultiplier, 1.0f);
 
     DEBUG_SET(DEBUG_AIRMODE_PERCENT, 0, lrintf(authorityZeroThrottle * 100.0f));
     DEBUG_SET(DEBUG_AIRMODE_PERCENT, 1, lrintf(authorityFullThrottle * 100.0f));
