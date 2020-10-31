@@ -115,6 +115,7 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->gyro_lowpass2_type = FILTER_PT1;
     gyroConfig->gyro_lowpass2_hz = 0;
     gyroConfig->gyro_high_fsr = false;
+    gyroConfig->gyro_use_32khz = false;
     gyroConfig->gyro_to_use = GYRO_CONFIG_USE_GYRO_DEFAULT;
     gyroConfig->gyro_soft_notch_hz_1 = 0;
     gyroConfig->gyro_soft_notch_cutoff_1 = 0;

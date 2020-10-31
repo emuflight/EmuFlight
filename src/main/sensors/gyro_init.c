@@ -306,7 +306,7 @@ void gyroInitSensor(gyroSensor_t *gyroSensor, const gyroDeviceConfig_t *config)
     gyroSensor->gyroDev.hardware_lpf = gyroConfig()->gyro_hardware_lpf;
 
     // The targetLooptime gets set later based on the active sensor's gyroSampleRateHz and pid_process_denom
-    gyroSensor->gyroDev.gyroSampleRateHz = gyroSetSampleRate(&gyroSensor->gyroDev);
+    gyroSensor->gyroDev.gyroSampleRateHz = gyroSetSampleRate(&gyroSensor->gyroDev, gyroConfig()->gyro_use_32khz);
     gyroSensor->gyroDev.initFn(&gyroSensor->gyroDev);
 
     // As new gyros are supported, be sure to add them below based on whether they are subject to the overflow/inversion bug

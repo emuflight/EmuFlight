@@ -164,6 +164,7 @@ typedef struct gyroConfig_s {
     uint8_t  gyro_hardware_lpf;                // gyro DLPF setting
 
     uint8_t  gyro_high_fsr;
+    uint8_t  gyro_use_32khz;
     uint8_t  gyro_to_use;
 
     uint16_t gyro_lowpass_hz;

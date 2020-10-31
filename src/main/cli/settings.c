@@ -484,8 +484,14 @@ const char * const lookupTableOsdDisplayPortDevice[] = {
 };
 
 #ifdef USE_OSD
-static const char * const lookupTableOsdLogoOnArming[] = {
+static const char* const lookupTableOsdLogoOnArming[] = {
     "OFF", "ON", "FIRST_ARMING",
+};
+#endif
+
+#if defined(GYRO_USES_SPI) && defined(USE_32K_CAPABLE_GYRO)
+static const char* const lookupTable32k[] = {
+  "OFF", "32K", "16K",
 };
 #endif
 
@@ -604,6 +610,10 @@ const lookupTableEntry_t lookupTables[] = {
 #ifdef USE_OSD
     LOOKUP_TABLE_ENTRY(lookupTableOsdLogoOnArming),
 #endif
+
+#if defined(GYRO_USES_SPI) && defined(USE_32K_CAPABLE_GYRO)
+    LOOKUP_TABLE_ENTRY(lookupTable32k),
+#endif
 };
 
 #undef LOOKUP_TABLE_ENTRY
@@ -654,7 +664,9 @@ const clivalue_t valueTable[] = {
     { "yaw_spin_recovery",          VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON_AUTO }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, yaw_spin_recovery) },
     { "yaw_spin_threshold",         VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { YAW_SPIN_RECOVERY_THRESHOLD_MIN,  YAW_SPIN_RECOVERY_THRESHOLD_MAX }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, yaw_spin_threshold) },
 #endif
-
+#if defined(GYRO_USES_SPI) && defined(USE_32K_CAPABLE_GYRO)
+    { "gyro_use_32khz",             VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_32K }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_use_32khz) },
+#endif
 #ifdef USE_MULTI_GYRO
     { "gyro_to_use",                VAR_UINT8  | HARDWARE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_to_use) },
 #endif
