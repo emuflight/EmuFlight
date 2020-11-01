@@ -318,7 +318,7 @@ void fcTasksInit(void) {
     setTaskEnabled(TASK_ADC_INTERNAL, true);
 #endif
 #ifdef USE_PINIOBOX
-    setTaskEnabled(TASK_PINIOBOX, true);
+    pinioBoxTaskControl();
 #endif
 #ifdef USE_CMS
 #ifdef USE_MSP_DISPLAYPORT
