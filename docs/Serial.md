@@ -24,8 +24,8 @@ When selecting a USB to UART converter choose one that has DTR exposed as well a
 
 Examples:
  
- * [FT232RL FTDI USB To TTL Serial Converter Adapter](http://www.banggood.com/FT232RL-FTDI-USB-To-TTL-Serial-Converter-Adapter-Module-For-Arduino-p-917226.html)
- * [USB To TTL / COM Converter Module buildin-in CP2102](http://www.banggood.com/Wholesale-USB-To-TTL-Or-COM-Converter-Module-Buildin-in-CP2102-New-p-27989.html)
+ * [FT232RL FTDI USB To TTL Serial Converter Adapter](https://www.banggood.com/Geekcreit-FT232RL-FTDI-USB-To-TTL-Serial-Converter-Adapter-Module-Geekcreit-for-Arduino-products-that-work-with-official-Arduino-boards-p-917226.html?rmmds=search&cur_warehouse=CN)
+ * [CP2102 USB to TTL Serial Adapter Module USB to UART Converter](https://www.banggood.com/OPEN-SMART-CP2102-USB-to-TTL-Serial-Adapter-Module-USB-to-UART-Converter-Debugger-Programmer-for-Pro-Mini-p-1628566.html?rmmds=search&cur_warehouse=CN)
 
 Both SoftSerial and UART ports can be connected to your computer via USB to UART converter boards. 
 
@@ -57,6 +57,7 @@ e.g. after configuring a port for GPS enable the GPS feature.
 You can use the CLI for configuration but the commands are reserved for developers and advanced users.
 
 The `serial` CLI command takes 6 arguments:
+
 ```
 serial <port identifier> <port function> <msp baudrate> <gps baudrate> <telemetry baudrate> <blackbox baudrate>
 ```
@@ -200,7 +201,9 @@ Emuflight can enter a special passthrough mode whereby it passes serial data thr
 
 To initiate passthrough mode, use the CLI command `serialpassthrough` This command takes four arguments.
 
+```
     serialpassthrough <port1 id> [port1 baud] [port1 mode] [port1 options] [port1 DTR PINIO] [port2 id] [port2 baud] [port2 mode] [port2 options]
+```
 
 `portX id` is the internal identifier of the serial port from Emuflight source code (see serialPortIdentifier_e in the source). For instance UART1-UART4 are 0-3 and SoftSerial1/SoftSerial2 are 30/31 respectively.
 `portX baud` is the desired baud rate
@@ -220,7 +223,7 @@ For example. If you have your MWOSD connected to UART 2, you could enable commun
 
 If a baud rate is not specified, or is set to 0, then `serialpassthrough` supports changing of the baud rate over USB. This allows tools such as the MWOSD GUI to dynamically set the baud rate to, for example 57600 for reflashing the MWOSD firmware and then 115200 for adjusting settings without having to powercycle your flight control board between the two.
 
-_To use a tool such as the MWOSD GUI, it is necessary to disconnect or exit Emuflight configurator._
+To use a tool such as the MWOSD GUI, it is necessary to disconnect or exit Emuflight configurator.
 
 **To exit serial passthrough mode, power cycle your flight control board.**
 
@@ -273,7 +276,9 @@ the last four arguments of `serialpassthrough` are used to the passthrough betwe
 if you want passthrough between UARTs, `[port2 id]` is a required argument, the value range is same with `port1 ID` argument, it is the internal identifier of the serial port. `[port2 baud]`and`[port2 mode]` is optional argument, the default of them are `57600` and `MODE_RXTX`.
 
 For example. If you using a flight controller built-in BLE chip, and the BLE chip was inner connected to a UART, you can use the following command to let the UART to talk with other UART:
+
 ```
 serialpassthrough 0 115200 rxtx 8N1 none 4 19200
 ```
+
 the command will run a serial passthrough between UART1 and UART5, UART1 baud is 115200, mode is MODE_RXTX, parity is none, stop bits is one, DTR is none, UART5 baud is 19200, mode is not specific, it will take default value MODE_RXTX.
