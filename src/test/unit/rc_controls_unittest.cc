@@ -747,3 +747,4 @@ armingDisableFlags_e getArmingDisableFlags(void) {
 }
 bool isTryingToArm(void) { return false; }
 void resetTryingToArm(void) {}
+void pinioBoxTaskControl(void) {}
