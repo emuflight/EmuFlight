@@ -167,64 +167,49 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
 #endif
 };
 
-static void handleUsartTxDma(uartPort_t *s)
-{
+static void handleUsartTxDma(uartPort_t *s) {
     uartTryStartTxDMA(s);
 }
 
-void dmaIRQHandler(dmaChannelDescriptor_t* descriptor)
-{
+void dmaIRQHandler(dmaChannelDescriptor_t* descriptor) {
     uartPort_t *s = &(((uartDevice_t*)(descriptor->userParam))->port);
-    if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_TCIF))
-    {
+    if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_TCIF)) {
         DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF);
         DMA_CLEAR_FLAG(descriptor, DMA_IT_HTIF);
-        if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_FEIF))
-        {
+        if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_FEIF)) {
             DMA_CLEAR_FLAG(descriptor, DMA_IT_FEIF);
         }
         handleUsartTxDma(s);
     }
-    if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_TEIF))
-    {
+    if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_TEIF)) {
         DMA_CLEAR_FLAG(descriptor, DMA_IT_TEIF);
     }
-    if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_DMEIF))
-    {
+    if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_DMEIF)) {
         DMA_CLEAR_FLAG(descriptor, DMA_IT_DMEIF);
     }
 }
 
 // XXX Should serialUART be consolidated?
 
-uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, portOptions_e options)
-{
+uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, portOptions_e options) {
     uartDevice_t *uart = uartDevmap[device];
     if (!uart) return NULL;
-
     const uartHardware_t *hardware = uart->hardware;
-
     if (!hardware) return NULL; // XXX Can't happen !?
-
     uartPort_t *s = &(uart->port);
     s->port.vTable = uartVTable;
-
     s->port.baudRate = baudRate;
-
     s->port.rxBuffer = uart->rxBuffer;
     s->port.txBuffer = uart->txBuffer;
     s->port.rxBufferSize = sizeof(uart->rxBuffer);
     s->port.txBufferSize = sizeof(uart->txBuffer);
-
     s->USARTx = hardware->reg;
-
     if (hardware->rxDMAStream) {
         dmaInit(dmaGetIdentifier(hardware->rxDMAStream), OWNER_SERIAL_RX, RESOURCE_INDEX(device));
         s->rxDMAChannel = hardware->DMAChannel;
         s->rxDMAStream = hardware->rxDMAStream;
         s->rxDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->DR;
     }
-
     if (hardware->txDMAStream) {
         const dmaIdentifier_e identifier = dmaGetIdentifier(hardware->txDMAStream);
         dmaInit(identifier, OWNER_SERIAL_TX, RESOURCE_INDEX(device));
@@ -233,14 +218,11 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
         s->txDMAStream = hardware->txDMAStream;
         s->txDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->DR;
     }
-
     IO_t txIO = IOGetByTag(uart->tx);
     IO_t rxIO = IOGetByTag(uart->rx);
-
     if (hardware->rcc) {
         RCC_ClockCmd(hardware->rcc, ENABLE);
     }
-
     if (options & SERIAL_BIDIR) {
         IOInit(txIO, OWNER_SERIAL_TX, RESOURCE_INDEX(device));
         IOConfigGPIOAF(txIO, (options & SERIAL_BIDIR_PP) ? IOCFG_AF_PP : IOCFG_AF_OD, hardware->af);
@@ -249,28 +231,23 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
             IOInit(txIO, OWNER_SERIAL_TX, RESOURCE_INDEX(device));
             IOConfigGPIOAF(txIO, IOCFG_AF_PP_UP, hardware->af);
         }
-
         if ((mode & MODE_RX) && rxIO) {
             IOInit(rxIO, OWNER_SERIAL_RX, RESOURCE_INDEX(device));
             IOConfigGPIOAF(rxIO, IOCFG_AF_PP_UP, hardware->af);
         }
     }
-
     if (!(s->rxDMAChannel)) {
         NVIC_InitTypeDef NVIC_InitStructure;
-
         NVIC_InitStructure.NVIC_IRQChannel = hardware->irqn;
         NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(hardware->rxPriority);
         NVIC_InitStructure.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_SUB(hardware->rxPriority);
         NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
         NVIC_Init(&NVIC_InitStructure);
     }
-
     return s;
 }
 
-void uartIrqHandler(uartPort_t *s)
-{
+void uartIrqHandler(uartPort_t *s) {
     if (!s->rxDMAStream && (USART_GetITStatus(s->USARTx, USART_IT_RXNE) == SET)) {
         if (s->port.rxCallback) {
             s->port.rxCallback(s->USARTx->DR, s->port.rxCallbackData);
@@ -279,7 +256,6 @@ void uartIrqHandler(uartPort_t *s)
             s->port.rxBufferHead = (s->port.rxBufferHead + 1) % s->port.rxBufferSize;
         }
     }
-
     if (!s->txDMAStream && (USART_GetITStatus(s->USARTx, USART_IT_TXE) == SET)) {
         if (s->port.txBufferTail != s->port.txBufferHead) {
             USART_SendData(s->USARTx, s->port.txBuffer[s->port.txBufferTail]);
@@ -288,9 +264,7 @@ void uartIrqHandler(uartPort_t *s)
             USART_ITConfig(s->USARTx, USART_IT_TXE, DISABLE);
         }
     }
-
-    if (USART_GetITStatus(s->USARTx, USART_IT_ORE) == SET)
-    {
+    if (USART_GetITStatus(s->USARTx, USART_IT_ORE) == SET) {
         USART_ClearITPendingBit (s->USARTx, USART_IT_ORE);
     }
 }

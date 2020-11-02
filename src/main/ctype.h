@@ -45,7 +45,7 @@ int _EXFUN(isprint, (int __c));
 int _EXFUN(ispunct, (int __c));
 int _EXFUN(isspace, (int __c));
 int _EXFUN(isupper, (int __c));
-int _EXFUN(isxdigit,(int __c));
+int _EXFUN(isxdigit, (int __c));
 int _EXFUN(tolower, (int __c));
 int _EXFUN(toupper, (int __c));
 int _EXFUN(isblank, (int __c));

@@ -59,8 +59,7 @@ static void *stdout_putp;
 
 // print bf, padded from left to at least n characters.
 // padding is zero ('0') if z!=0, space (' ') otherwise
-static int putchw(void *putp, putcf putf, int n, char z, char *bf)
-{
+static int putchw(void *putp, putcf putf, int n, char z, char *bf) {
     int written = 0;
     char fc = z ? '0' : ' ';
     char ch;
@@ -68,24 +67,25 @@ static int putchw(void *putp, putcf putf, int n, char z, char *bf)
     while (*p++ && n > 0)
         n--;
     while (n-- > 0) {
-        putf(putp, fc); written++;
+        putf(putp, fc);
+        written++;
     }
     while ((ch = *bf++)) {
-        putf(putp, ch); written++;
+        putf(putp, ch);
+        written++;
     }
     return written;
 }
 
 // retrun number of bytes written
-int tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
-{
+int tfp_format(void *putp, putcf putf, const char *fmt, va_list va) {
     char bf[12];
     int written = 0;
     char ch;
-
     while ((ch = *(fmt++))) {
         if (ch != '%') {
-            putf(putp, ch); written++;
+            putf(putp, ch);
+            written++;
         } else {
             char lz = 0;
 #ifdef  REQUIRE_PRINTF_LONG_SUPPORT
@@ -109,26 +109,26 @@ int tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
             switch (ch) {
             case 0:
                 goto abort;
-            case 'u':{
+            case 'u': {
 #ifdef  REQUIRE_PRINTF_LONG_SUPPORT
-                    if (lng)
-                        uli2a(va_arg(va, unsigned long int), 10, 0, bf);
-                    else
+                if (lng)
+                    uli2a(va_arg(va, unsigned long int), 10, 0, bf);
+                else
 #endif
-                        ui2a(va_arg(va, unsigned int), 10, 0, bf);
-                    written += putchw(putp, putf, w, lz, bf);
-                    break;
-                }
-            case 'd':{
+                    ui2a(va_arg(va, unsigned int), 10, 0, bf);
+                written += putchw(putp, putf, w, lz, bf);
+                break;
+            }
+            case 'd': {
 #ifdef  REQUIRE_PRINTF_LONG_SUPPORT
-                    if (lng)
-                        li2a(va_arg(va, unsigned long int), bf);
-                    else
+                if (lng)
+                    li2a(va_arg(va, unsigned long int), bf);
+                else
 #endif
-                        i2a(va_arg(va, int), bf);
-                    written += putchw(putp, putf, w, lz, bf);
-                    break;
-                }
+                    i2a(va_arg(va, int), bf);
+                written += putchw(putp, putf, w, lz, bf);
+                break;
+            }
             case 'x':
             case 'X':
 #ifdef  REQUIRE_PRINTF_LONG_SUPPORT
@@ -140,13 +140,15 @@ int tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                 written += putchw(putp, putf, w, lz, bf);
                 break;
             case 'c':
-                putf(putp, (char) (va_arg(va, int))); written++;
+                putf(putp, (char) (va_arg(va, int)));
+                written++;
                 break;
             case 's':
                 written += putchw(putp, putf, w, 0, va_arg(va, char *));
                 break;
             case '%':
-                putf(putp, ch); written++;
+                putf(putp, ch);
+                written++;
                 break;
             case 'n':
                 *va_arg(va, int*) = written;
@@ -160,14 +162,12 @@ abort:
     return written;
 }
 
-void init_printf(void *putp, void (*putf) (void *, char))
-{
+void init_printf(void *putp, void (*putf) (void *, char)) {
     stdout_putf = putf;
     stdout_putp = putp;
 }
 
-int tfp_printf(const char *fmt, ...)
-{
+int tfp_printf(const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
     int written = tfp_format(stdout_putp, stdout_putf, fmt, va);
@@ -176,15 +176,12 @@ int tfp_printf(const char *fmt, ...)
     return written;
 }
 
-static void putcp(void *p, char c)
-{
+static void putcp(void *p, char c) {
     *(*((char **) p))++ = c;
 }
 
-int tfp_sprintf(char *s, const char *fmt, ...)
-{
+int tfp_sprintf(char *s, const char *fmt, ...) {
     va_list va;
-
     va_start(va, fmt);
     int written = tfp_format(&s, putcp, fmt, va);
     putcp(&s, 0);
@@ -193,35 +190,30 @@ int tfp_sprintf(char *s, const char *fmt, ...)
 }
 
 
-static void _putc(void *p, char c)
-{
+static void _putc(void *p, char c) {
     UNUSED(p);
     serialWrite(printfSerialPort, c);
 }
 
-void printfSupportInit(void)
-{
+void printfSupportInit(void) {
     init_printf(NULL, _putc);
 }
 
 #else
 
 // keil/armcc version
-int fputc(int c, FILE *f)
-{
+int fputc(int c, FILE *f) {
     // let DMA catch up a bit when using set or dump, we're too fast.
     while (!isSerialTransmitBufferEmpty(printfSerialPort));
     serialWrite(printfSerialPort, c);
     return c;
 }
 
-void printfSupportInit(void)
-{
+void printfSupportInit(void) {
     // Nothing to do
 }
 #endif
 
-void setPrintfSerialPort(serialPort_t *serialPort)
-{
+void setPrintfSerialPort(serialPort_t *serialPort) {
     printfSerialPort = serialPort;
 }

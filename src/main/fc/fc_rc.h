@@ -30,8 +30,8 @@ typedef enum {
     INTERPOLATION_CHANNELS_RPT,
 } interpolationChannels_e;
 
-extern volatile bool 		isSetpointNew;
-extern volatile uint16_t 	currentRxRefreshRate;
+extern volatile bool        isSetpointNew;
+extern volatile uint16_t    currentRxRefreshRate;
 
 void processRcCommand(void);
 float getSetpointRate(int axis);

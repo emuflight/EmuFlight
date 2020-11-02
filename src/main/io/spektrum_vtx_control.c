@@ -35,17 +35,16 @@
 //#define USE_VTX_COMMON_FREQ_API
 
 #ifdef USE_VTX_COMMON_FREQ_API
-const uint16_t SpektrumVtxfrequencyTable[SPEKTRUM_VTX_BAND_COUNT][SPEKTRUM_VTX_CHAN_COUNT] =
-    {
-        { 5740, 5760, 5780, 5800, 5820, 5840, 5860, 5880 }, // FatShark
-        { 5658, 5695, 5732, 5769, 5806, 5843, 5880, 5917 }, // RaceBand
-        { 5705, 5685, 5665, 5645, 5885, 5905, 5925, 5945 }, // Boscam E
-        { 5733, 5752, 5771, 5790, 5809, 5828, 5847, 5866 }, // Boscam B
-        { 5865, 5845, 5825, 5805, 5785, 5765, 5745, 5725 }, // Boscam A
-    };
+const uint16_t SpektrumVtxfrequencyTable[SPEKTRUM_VTX_BAND_COUNT][SPEKTRUM_VTX_CHAN_COUNT] = {
+    { 5740, 5760, 5780, 5800, 5820, 5840, 5860, 5880 }, // FatShark
+    { 5658, 5695, 5732, 5769, 5806, 5843, 5880, 5917 }, // RaceBand
+    { 5705, 5685, 5665, 5645, 5885, 5905, 5925, 5945 }, // Boscam E
+    { 5733, 5752, 5771, 5790, 5809, 5828, 5847, 5866 }, // Boscam B
+    { 5865, 5845, 5825, 5805, 5785, 5765, 5745, 5725 }, // Boscam A
+};
 #else
 // Translation table, Spektrum bands to BF internal vtx_common bands
-const uint8_t spek2commonBand[SPEKTRUM_VTX_BAND_COUNT]= {
+const uint8_t spek2commonBand[SPEKTRUM_VTX_BAND_COUNT] = {
     VTX_COMMON_BAND_FS,
     VTX_COMMON_BAND_RACE,
     VTX_COMMON_BAND_E,
@@ -59,7 +58,7 @@ const uint8_t spek2commonBand[SPEKTRUM_VTX_BAND_COUNT]= {
 #ifdef USE_VTX_TRAMP
 // Tramp "---", 25, 200, 400. 600 mW
 const uint8_t vtxTrampPi[SPEKTRUM_VTX_POWER_COUNT] = {
-                                       // Spektrum Spec    Tx menu  Tx sends   To VTX    Watt
+    // Spektrum Spec    Tx menu  Tx sends   To VTX    Watt
     VTX_TRAMP_POWER_OFF,               //         Off      INHIBIT         0        0     -
     VTX_TRAMP_POWER_OFF,               //   1 -  14mW            -         -        -     -
     VTX_TRAMP_POWER_25,                //  15 -  25mW   15 -  25mW         2        1    25mW
@@ -99,10 +98,8 @@ const uint8_t vtxSaPi[SPEKTRUM_VTX_POWER_COUNT] = {
 };
 #endif // USE_VTX_SMARTAUDIO
 
-uint8_t convertSpektrumVtxPowerIndex(uint8_t sPower)
-{
+uint8_t convertSpektrumVtxPowerIndex(uint8_t sPower) {
     uint8_t devicePower = 0;
-
     const vtxDevice_t *vtxDevice = vtxCommonDevice();
     switch (vtxCommonGetDeviceType(vtxDevice)) {
 #ifdef USE_VTX_RTC6705
@@ -110,24 +107,20 @@ uint8_t convertSpektrumVtxPowerIndex(uint8_t sPower)
         devicePower = vtxRTC6705Pi[sPower];
         break;
 #endif // USE_VTX_RTC6705
-
 #ifdef USE_VTX_SMARTAUDIO
     case VTXDEV_SMARTAUDIO:
         devicePower = vtxSaPi[sPower];
         break;
 #endif // USE_VTX_SMARTAUDIO
-
 #ifdef USE_VTX_TRAMP
     case VTXDEV_TRAMP:
         devicePower = vtxTrampPi[sPower];
         break;
 #endif // USE_VTX_TRAMP
-
     case VTXDEV_UNKNOWN:
     case VTXDEV_UNSUPPORTED:
     default:
         break;
-
     }
     return devicePower;
 }
@@ -142,39 +135,32 @@ uint8_t SpektrumRegion = SPEKTRUM_VTX_REGION_NONE;
 static uint32_t vtxControl_ipc = ~(SPEKTRUM_VTX_CONTROL_FRAME);
 
 // ############ RX task ######################
-void spektrumHandleVtxControl(uint32_t vtxCntrl)
-{
-  vtxControl_ipc = vtxCntrl;
+void spektrumHandleVtxControl(uint32_t vtxCntrl) {
+    vtxControl_ipc = vtxCntrl;
 }
 // ###########################################
 
 
 // ############ VTX_CONTROL task #############
-void spektrumVtxControl(void)
-{
-    static uint32_t prevVtxControl =0;
+void spektrumVtxControl(void) {
+    static uint32_t prevVtxControl = 0;
     uint32_t vtxControl;
-
     // Check for invalid VTX ctrl frames
     if ((vtxControl_ipc & SPEKTRUM_VTX_CONTROL_FRAME_MASK) != SPEKTRUM_VTX_CONTROL_FRAME) return;
-
     vtxControl = vtxControl_ipc;
     vtxControl_ipc = 0;
-
     if (prevVtxControl == vtxControl) return;
     prevVtxControl = vtxControl;
-
     spektrumVtx_t vtx = {
         .pitMode = (vtxControl & SPEKTRUM_VTX_PIT_MODE_MASK) >> SPEKTRUM_VTX_PIT_MODE_SHIFT,
-        .region  = (vtxControl & SPEKTRUM_VTX_REGION_MASK)   >> SPEKTRUM_VTX_REGION_SHIFT,
-        .power   = (vtxControl & SPEKTRUM_VTX_POWER_MASK)    >> SPEKTRUM_VTX_POWER_SHIFT,
-        .band    = (vtxControl & SPEKTRUM_VTX_BAND_MASK)     >> SPEKTRUM_VTX_BAND_SHIFT,
-        .channel = (vtxControl & SPEKTRUM_VTX_CHANNEL_MASK)  >> SPEKTRUM_VTX_CHANNEL_SHIFT,
+                .region  = (vtxControl & SPEKTRUM_VTX_REGION_MASK)   >> SPEKTRUM_VTX_REGION_SHIFT,
+                .power   = (vtxControl & SPEKTRUM_VTX_POWER_MASK)    >> SPEKTRUM_VTX_POWER_SHIFT,
+                .band    = (vtxControl & SPEKTRUM_VTX_BAND_MASK)     >> SPEKTRUM_VTX_BAND_SHIFT,
+                .channel = (vtxControl & SPEKTRUM_VTX_CHANNEL_MASK)  >> SPEKTRUM_VTX_CHANNEL_SHIFT,
 #ifdef USE_SPEKTRUM_REGION_CODES
-        .region  = (vtxControl & SPEKTRUM_VTX_REGION_MASK)   >> SPEKTRUM_VTX_REGION_SHIFT;
+                .region  = (vtxControl & SPEKTRUM_VTX_REGION_MASK)   >> SPEKTRUM_VTX_REGION_SHIFT;
 #endif
     };
-
     const vtxSettingsConfig_t prevSettings = {
         .band    = vtxSettingsConfig()->band,
         .channel = vtxSettingsConfig()->channel,
@@ -183,7 +169,6 @@ void spektrumVtxControl(void)
         .lowPowerDisarm = vtxSettingsConfig()->lowPowerDisarm,
     };
     vtxSettingsConfig_t newSettings = prevSettings;
-
     vtxDevice_t *vtxDevice = vtxCommonDevice();
     if (vtxDevice) {
 #ifdef USE_VTX_COMMON_FREQ_API
@@ -196,7 +181,7 @@ void spektrumVtxControl(void)
 #else
         // Convert to the internal Common Band index
         const uint8_t band    = spek2commonBand[vtx.band];
-        const uint8_t channel = vtx.channel +1; // 0 based to 1 based
+        const uint8_t channel = vtx.channel + 1; // 0 based to 1 based
         if ((prevSettings.band != band) || (prevSettings.channel != channel)) {
             newSettings.band    = band;
             newSettings.channel = channel;
@@ -216,8 +201,7 @@ void spektrumVtxControl(void)
             }
         }
     }
-
-    if (memcmp(&prevSettings,&newSettings,sizeof(vtxSettingsConfig_t))) {
+    if (memcmp(&prevSettings, &newSettings, sizeof(vtxSettingsConfig_t))) {
         vtxSettingsConfigMutable()->band = newSettings.band;
         vtxSettingsConfigMutable()->channel = newSettings.channel;
         vtxSettingsConfigMutable()->power   = newSettings.power;
@@ -228,7 +212,6 @@ void spektrumVtxControl(void)
     // Save region code
     SpektrumRegion = vtx.region;
 #endif
-
 }
 
 #endif // USE_SPEKTRUM_VTX_CONTROL && USE_VTX_COMMON

@@ -27,8 +27,7 @@
 #include "drivers/bus_i2c_busdev.h"
 #include "drivers/bus_spi.h"
 
-bool busWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data)
-{
+bool busWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data) {
 #ifdef USE_DMA_SPI_DEVICE
     return spiBusWriteRegister(busdev, reg & 0x7f, data);
 #else
@@ -51,8 +50,7 @@ bool busWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data)
 #endif
 }
 
-bool busReadRegisterBuffer(const busDevice_t *busdev, uint8_t reg, uint8_t *data, uint8_t length)
-{
+bool busReadRegisterBuffer(const busDevice_t *busdev, uint8_t reg, uint8_t *data, uint8_t length) {
 #ifdef USE_DMA_SPI_DEVICE
     return spiBusReadRegisterBuffer(busdev, reg | 0x80, data, length);
 #else
@@ -76,8 +74,7 @@ bool busReadRegisterBuffer(const busDevice_t *busdev, uint8_t reg, uint8_t *data
 #endif
 }
 
-uint8_t busReadRegister(const busDevice_t *busdev, uint8_t reg)
-{
+uint8_t busReadRegister(const busDevice_t *busdev, uint8_t reg) {
 #ifdef USE_DMA_SPI_DEVICE
     uint8_t data;
     busReadRegisterBuffer(busdev, reg, &data, 1);

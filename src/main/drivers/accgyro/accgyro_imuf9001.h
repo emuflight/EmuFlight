@@ -55,8 +55,7 @@ void imufEndCalibration(void);
 
 #define IMUF_FIRMWARE_MIN_VERSION  106
 extern volatile uint16_t imufCurrentVersion;
-typedef struct imufVersion
-{
+typedef struct imufVersion {
     uint32_t hardware;
     uint32_t firmware;
     uint32_t bootloader;
@@ -66,23 +65,22 @@ typedef struct imufVersion
 } __attribute__((__packed__)) imufVersion_t;
 
 typedef struct imufCommand {
-   uint32_t command;
-   uint32_t param1;
-   uint32_t param2;
-   uint32_t param3;
-   uint32_t param4;
-   uint32_t param5;
-   uint32_t param6;
-   uint32_t param7;
-   uint32_t param8;
-   uint32_t param9;
-   uint32_t param10;
-   uint32_t crc;
-   uint32_t tail;
+    uint32_t command;
+    uint32_t param1;
+    uint32_t param2;
+    uint32_t param3;
+    uint32_t param4;
+    uint32_t param5;
+    uint32_t param6;
+    uint32_t param7;
+    uint32_t param8;
+    uint32_t param9;
+    uint32_t param10;
+    uint32_t crc;
+    uint32_t tail;
 } __attribute__ ((__packed__)) imufCommand_t;
 
-typedef struct imufData
-{
+typedef struct imufData {
     float gyroX;
     float gyroY;
     float gyroZ;
@@ -98,8 +96,7 @@ typedef struct imufData
     uint32_t tail;
 } __attribute__((__packed__)) imufData_t;
 
-typedef enum gyroCommands
-{
+typedef enum gyroCommands {
     BL_ERASE_ALL                 = 22,
     BL_REPORT_INFO               = 24,
     BL_WRITE_FIRMWARES           = 29,
@@ -115,8 +112,7 @@ typedef enum gyroCommands
     IMUF_COMMAND_RESTART         = 127
 } gyroCommands_t;
 
-typedef struct gyroFrame
-{
+typedef struct gyroFrame {
     float gyroX;
     float gyroY;
     float gyroZ;
@@ -126,23 +122,20 @@ typedef struct gyroFrame
     float temp;
 } __attribute__((__packed__)) gyroFrame_t;
 
-typedef struct imuFrame
-{
+typedef struct imuFrame {
     float w;
     float x;
     float y;
     float z;
 } __attribute__((__packed__)) imuFrame_t;
 
-typedef struct imuCommFrame
-{
+typedef struct imuCommFrame {
     gyroFrame_t gyroFrame;
     imuFrame_t  imuFrame;
     uint32_t    tail;
 } __attribute__((__packed__)) imuCommFrame_t;
 
-typedef enum imufLoopHz
-{
+typedef enum imufLoopHz {
     IMUF_32000 = 0,
     IMUF_16000 = 1,
     IMUF_8000  = 2,
@@ -153,16 +146,14 @@ typedef enum imufLoopHz
     IMUF_250   = 7,
 } imufLoopHz_t;
 
-typedef enum imufOutput
-{
+typedef enum imufOutput {
     IMUF_GYRO_OUTPUT = 1 << 0,
     IMUF_TEMP_OUTPUT = 1 << 1,
     IMUF_ACC_OUTPUT  = 1 << 2,
     IMUF_QUAT_OUTPUT = 1 << 3,
 } imufOutput_t;
 
-typedef enum imufOreintation
-{
+typedef enum imufOreintation {
     IMU_CW0       = 0,
     IMU_CW90      = 1,
     IMU_CW180     = 2,
@@ -182,8 +173,7 @@ typedef enum imufOreintation
     IMU_CUSTOM    = 16,
 } imufOrientation_t;
 
-typedef struct imufMode
-{
+typedef struct imufMode {
     uint8_t  command;       //output Hz
     uint8_t  hz;            //output Hz
     uint8_t  dataOut;       //what data to send
@@ -201,22 +191,19 @@ typedef struct imufMode
     uint8_t  param8;         //future parameters
 } __attribute__((__packed__)) imufMode_t;
 
-typedef enum gyroToBoardCommMode
-{
+typedef enum gyroToBoardCommMode {
     GTBCM_GYRO_ACC_FILTER_F      = 32, //gyro filtered, acc filtered, temp, crc
     GTBCM_DEFAULT                = GTBCM_GYRO_ACC_FILTER_F, //default mode
 } gyroToBoardCommMode_t;
 
-typedef enum imufCalibrationSteps
-{
+typedef enum imufCalibrationSteps {
     IMUF_NOT_CALIBRATING    = 0,
     IMUF_IS_CALIBRATING     = 1,
     IMUF_DONE_CALIBRATING   = 2
 
 } imufCalibrationSteps_t;
 
-typedef enum gpioState
-{
+typedef enum gpioState {
     GPIO_LO    = 0,
     GPIO_HI     = 1
 } gpioState_t;
