@@ -1,13 +1,13 @@
 /*
- * This file is part of Cleanflight and Betaflight.
+ * This file is part of Emuflight.
  *
- * Cleanflight and Betaflight are free software. You can redistribute
+ * Betaflight and Emuflight are free software. You can redistribute
  * this software and/or modify this software under the terms of the
  * GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option)
  * any later version.
  *
- * Cleanflight and Betaflight are distributed in the hope that they
+ * Betaflight and Emuflight are distributed in the hope that they
  * will be useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
@@ -330,6 +330,14 @@ typedef enum {
     SHOW_DEFAULTS = (1 << 5),
     HIDE_UNUSED = (1 << 6)
 } dumpFlags_e;
+
+typedef struct serialPassthroughPort_s {
+    int id;
+    uint32_t baud;
+    unsigned mode;
+    unsigned portOptions;
+    serialPort_t *port;
+} serialPassthroughPort_t;
 
 static void cliPrintfva(const char *format, va_list va) {
     tfp_format(cliWriter, cliPutp, format, va);
@@ -675,6 +683,11 @@ static void cliPrompt(void) {
 
 static void cliShowParseError(void) {
     cliPrintErrorLinef("Parse error");
+}
+
+static void cliShowInvalidArgumentCountError()
+{
+    cliPrintErrorLinef("invalid argument count");
 }
 
 static void cliShowArgumentRangeError(char *name, int min, int max) {
@@ -1037,110 +1050,221 @@ static void cbCtrlLine(void *context, uint16_t ctrl) {
 }
 #endif /* USE_PINIO */
 
-static void cliSerialPassthrough(char *cmdline) {
+static int cliParseSerialMode(const char *tok)
+{
+    int mode = 0;
+
+    if (strcasestr(tok, "rx")) {
+        mode |= MODE_RX;
+    }
+    if (strcasestr(tok, "tx")) {
+        mode |= MODE_TX;
+    }
+
+    return mode;
+}
+
+static int cliParseSerialOptions(const char *tok)
+{
+    int options = SERIAL_NOT_INVERTED;
+
+    if (strcasestr(tok, "8N1")) {
+        options |= SERIAL_STOPBITS_1 | SERIAL_PARITY_NO;
+    }
+    if (strcasestr(tok, "8N2")) {
+        options |= SERIAL_STOPBITS_2 | SERIAL_PARITY_NO;
+    }
+    if (strcasestr(tok, "8E1")) {
+        options |= SERIAL_STOPBITS_1 | SERIAL_PARITY_EVEN;
+    }
+    if (strcasestr(tok, "8E2")) {
+        options |= SERIAL_STOPBITS_2 | SERIAL_PARITY_EVEN;
+    }
+
+    return options;
+}
+
+static void cliSerialPassthrough(char *cmdline)
+{
     if (isEmpty(cmdline)) {
-        cliShowParseError();
+        cliShowInvalidArgumentCountError();
         return;
     }
-    int id = -1;
-    uint32_t baud = 0;
+
+    serialPassthroughPort_t ports[2] = { {SERIAL_PORT_NONE, 0, 0, 0, NULL}, {cliPort->identifier, 0, 0, 0, cliPort} };
     bool enableBaudCb = false;
-#ifdef USE_PINIO
-    int pinioDtr = 0;
-#endif /* USE_PINIO */
-    unsigned mode = 0;
+    int port1PinioDtr = 0;
+    bool port1ResetOnDtr = false;
+    bool escSensorPassthrough = false;
     char *saveptr;
     char* tok = strtok_r(cmdline, " ", &saveptr);
     int index = 0;
+
     while (tok != NULL) {
         switch (index) {
         case 0:
-            id = atoi(tok);
+            if (strcasestr(tok, "esc_sensor")) {
+                escSensorPassthrough = true;
+                const serialPortConfig_t *portConfig = findSerialPortConfig(FUNCTION_ESC_SENSOR);
+                ports[0].id = portConfig->identifier;
+            } else {
+                ports[0].id = atoi(tok);
+            }
             break;
         case 1:
-            baud = atoi(tok);
+            ports[0].baud = atoi(tok);
             break;
         case 2:
-            if (strstr(tok, "rx") || strstr(tok, "RX"))
-                mode |= MODE_RX;
-            if (strstr(tok, "tx") || strstr(tok, "TX"))
-                mode |= MODE_TX;
+            ports[0].mode = cliParseSerialMode(tok);
             break;
-#ifdef USE_PINIO
         case 3:
-            pinioDtr = atoi(tok);
+            ports[0].portOptions = cliParseSerialOptions(tok);
             break;
+        case 4:
+            if (strncasecmp(tok, "reset", strlen(tok)) == 0) {
+                port1ResetOnDtr = true;
+#ifdef USE_PINIO
+            } else if (strncasecmp(tok, "none", strlen(tok)) == 0) {
+                port1PinioDtr = 0;
+            } else {
+                port1PinioDtr = atoi(tok);
+                if (port1PinioDtr < 0 || port1PinioDtr > PINIO_COUNT) {
+                    cliPrintLinef("Invalid PinIO number %d", port1PinioDtr);
+                    return ;
+                }
 #endif /* USE_PINIO */
+            }
+            break;
+        case 5:
+            ports[1].id = atoi(tok);
+            ports[1].port = NULL;
+            break;
+        case 6:
+            ports[1].baud = atoi(tok);
+            break;
+        case 7:
+            ports[1].mode = cliParseSerialMode(tok);
+            break;
+        case 8:
+            ports[1].portOptions = cliParseSerialOptions(tok);
+            break;
         }
         index++;
         tok = strtok_r(NULL, " ", &saveptr);
     }
-    if (baud == 0) {
+
+    // Port checks
+    if (ports[0].id == ports[1].id) {
+        cliPrintLinef("Port1 and port2 are same");
+        return ;
+    }
+
+    for (int i = 0; i < 2; i++) {
+        if (findSerialPortIndexByIdentifier(ports[i].id) == -1) {
+            cliPrintLinef("Invalid port%d %d", i + 1, ports[i].id);
+            return ;
+        } else {
+            cliPrintLinef("Port%d: %d ", i + 1, ports[i].id);
+        }
+    }
+
+    if (ports[0].baud == 0 && ports[1].id == SERIAL_PORT_USB_VCP) {
         enableBaudCb = true;
     }
-    cliPrintf("Port %d ", id);
-    serialPort_t *passThroughPort;
-    serialPortUsage_t *passThroughPortUsage = findSerialPortUsageByIdentifier(id);
-    if (!passThroughPortUsage || passThroughPortUsage->serialPort == NULL) {
-        if (enableBaudCb) {
+
+    for (int i = 0; i < 2; i++) {
+        serialPort_t **port = &(ports[i].port);
+        if (*port != NULL) {
+            continue;
+        }
+
+        int portIndex = i + 1;
+        serialPortUsage_t *portUsage = findSerialPortUsageByIdentifier(ports[i].id);
+        if (portUsage && portUsage->serialPort) {
+            cliPrintf("Port%d is already open, reopening with new settings...\r\n", portIndex);
+            *port = portUsage->serialPort;
+            closeSerialPort(*port);
+        }
+
+        bool isUseDefaultBaud = false;
+        if (ports[i].baud == 0) {
             // Set default baud
-            baud = 57600;
+            ports[i].baud = 57600;
+            isUseDefaultBaud = true;
         }
-        if (!mode) {
-            mode = MODE_RXTX;
+
+        if (!ports[i].mode) {
+            ports[i].mode = MODE_RXTX;
         }
-        passThroughPort = openSerialPort(id, FUNCTION_NONE, NULL, NULL,
-                                         baud, mode,
-                                         SERIAL_NOT_INVERTED);
-        if (!passThroughPort) {
-            cliPrintLine("could not be opened.");
+
+        *port = openSerialPort(ports[i].id, FUNCTION_NONE, NULL, NULL,
+                                        ports[i].baud, ports[i].mode,
+                                        ports[i].portOptions);
+        if (!*port) {
+            cliPrintLinef("Port%d could not be opened.", portIndex);
             return;
         }
-        if (enableBaudCb) {
-            cliPrintf("opened, default baud = %d.\r\n", baud);
+
+        if (isUseDefaultBaud) {
+            cliPrintf("Port%d opened, default baud = %d mode = %d options = %d.\r\n", portIndex, ports[i].baud, ports[i].mode, ports[i].portOptions);
         } else {
-            cliPrintf("opened, baud = %d.\r\n", baud);
-        }
-    } else {
-        passThroughPort = passThroughPortUsage->serialPort;
-        // If the user supplied a mode, override the port's mode, otherwise
-        // leave the mode unchanged. serialPassthrough() handles one-way ports.
-        // Set the baud rate if specified
-        if (baud) {
-            cliPrintf("already open, setting baud = %d.\n\r", baud);
-            serialSetBaudRate(passThroughPort, baud);
-        } else {
-            cliPrintf("already open, baud = %d.\n\r", passThroughPort->baudRate);
-        }
-        if (mode && passThroughPort->mode != mode) {
-            cliPrintf("Mode changed from %d to %d.\r\n",
-                      passThroughPort->mode, mode);
-            serialSetMode(passThroughPort, mode);
-        }
-        // If this port has a rx callback associated we need to remove it now.
-        // Otherwise no data will be pushed in the serial port buffer!
-        if (passThroughPort->rxCallback) {
-            passThroughPort->rxCallback = 0;
+            cliPrintf("Port%d opened, baud = %d mode = %d options = %d.\r\n", portIndex, ports[i].baud, ports[i].mode, ports[i].portOptions);
         }
     }
+
     // If no baud rate is specified allow to be set via USB
     if (enableBaudCb) {
-        cliPrintLine("Baud rate change over USB enabled.");
+        cliPrintLine("Port1 baud rate change over USB enabled.");
         // Register the right side baud rate setting routine with the left side which allows setting of the UART
         // baud rate over USB without setting it using the serialpassthrough command
-        serialSetBaudRateCb(cliPort, serialSetBaudRate, passThroughPort);
+        serialSetBaudRateCb(ports[0].port, serialSetBaudRate, ports[1].port);
     }
-    cliPrintLine("Forwarding, power cycle to exit.");
+
+    char *resetMessage = "";
+    if (port1ResetOnDtr && ports[1].id == SERIAL_PORT_USB_VCP) {
+        resetMessage = "or drop DTR ";
+    }
+
+    cliPrintLinef("Forwarding, power cycle %sto exit.", resetMessage);
+
+    if ((ports[1].id == SERIAL_PORT_USB_VCP) && (port1ResetOnDtr
 #ifdef USE_PINIO
-    // Register control line state callback
-    if (pinioDtr) {
-        serialSetCtrlLineStateCb(cliPort, cbCtrlLine, (void *)(intptr_t)(pinioDtr - 1));
-    }
+        || port1PinioDtr
 #endif /* USE_PINIO */
-    serialPassthrough(cliPort, passThroughPort, NULL, NULL);
-}
+        )) {
+        // Register control line state callback
+        serialSetCtrlLineStateCb(ports[0].port, cbCtrlLine, (void *)(intptr_t)(port1PinioDtr));
+    }
+
+// XXX Review ESC pass through under refactored motor handling
+#ifdef USE_PWM_OUTPUT
+    if (escSensorPassthrough) {
+        // pwmDisableMotors();
+        motorDisable();
+        delay(5);
+        unsigned motorsCount = getMotorCount();
+        for (unsigned i = 0; i < motorsCount; i++) {
+            const ioTag_t tag = motorConfig()->dev.ioTags[i];
+            if (tag) {
+                const timerHardware_t *timerHardware = timerGetByTag(tag);
+                if (timerHardware) {
+                    IO_t io = IOGetByTag(tag);
+                    IOInit(io, OWNER_MOTOR, 0);
+                    IOConfigGPIO(io, IOCFG_OUT_PP);
+                    if (timerHardware->output & TIMER_OUTPUT_INVERTED) {
+                        IOLo(io);
+                    } else {
+                        IOHi(io);
+                    }
+                }
+            }
+        }
+    }
 #endif
 
+    serialPassthrough(ports[0].port, ports[1].port, NULL, NULL);
+}
+#endif
 static void printAdjustmentRange(uint8_t dumpMask, const adjustmentRange_t *adjustmentRanges, const adjustmentRange_t *defaultAdjustmentRanges) {
     const char *format = "adjrange %u %u %u %u %u %u %u %u %u";
     // print out adjustment ranges channel settings
