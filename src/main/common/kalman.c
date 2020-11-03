@@ -97,10 +97,11 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
     return kalmanState->x;
 }
 
-
 FAST_CODE float kalman_update(float input, int axis) {
-    update_kalman_covariance(&kalmanFilterStateRate[axis], input);
-    input = kalman_process(&kalmanFilterStateRate[axis], input, getSetpointRate(axis) );
+    if (gyroConfig()->imuf_w >= 3) {
+        update_kalman_covariance(&kalmanFilterStateRate[axis], input);
+        input = kalman_process(&kalmanFilterStateRate[axis], input, getSetpointRate(axis) );
+    }
     int16_t Kgain = (kalmanFilterStateRate[axis].k * 1000.0f);
     DEBUG_SET(DEBUG_KALMAN, axis, Kgain);                               //Kalman gain
     return input;
