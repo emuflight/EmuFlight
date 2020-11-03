@@ -105,6 +105,12 @@
 #define VIDEO_BUFFER_CHARS_PAL    480
 #define FULL_CIRCLE 360
 
+typedef enum {
+    OSD_LOGO_ARMING_OFF,
+    OSD_LOGO_ARMING_ON,
+    OSD_LOGO_ARMING_FIRST
+} osd_logo_on_arming_e;
+
 const char * const osdTimerSourceNames[] = {
     "ON TIME  ",
     "TOTAL ARM",
@@ -1096,6 +1102,8 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig) {
     osdConfig->ahMaxPitch = 20; // 20 degrees
     osdConfig->ahMaxRoll = 40; // 40 degrees
     osdConfig->task_frequency = 60; // at 125 or 150 the refresh rate is exactly 25 (PAL) or 30 (NTSC)
+    osdConfig->logo_on_arming = OSD_LOGO_ARMING_OFF;
+    osdConfig->logo_on_arming_duration = 5;  // 0.5 seconds
     // Turn off replacing craft name for DJI OSD
     osdWarnSetState(OSD_WARNING_DJI, false);
 }
@@ -1431,9 +1439,20 @@ static void osdShowStats(uint16_t endBatteryVoltage) {
 #endif
 }
 
-static void osdShowArmed(void) {
+static timeDelta_t osdShowArmed(void)
+{
+    static bool everArmed = false;
+    timeDelta_t ret;
     displayClearScreen(osdDisplayPort);
+    if ((osdConfig()->logo_on_arming == OSD_LOGO_ARMING_ON) || ((osdConfig()->logo_on_arming == OSD_LOGO_ARMING_FIRST) && !everArmed)) {
+        osdDrawLogo(3, 1);
+        ret = osdConfig()->logo_on_arming_duration * 1e5;
+    } else {
+        ret = (REFRESH_1S / 2);
+    }
     displayWrite(osdDisplayPort, 12, 7, "ARMED");
+    everArmed = true;
+    return ret;
 }
 
 STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs) {
@@ -1448,8 +1467,7 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs) {
             osdStatsEnabled = false;
             osdStatsVisible = false;
             osdResetStats();
-            osdShowArmed();
-            resumeRefreshAt = currentTimeUs + (REFRESH_1S / 2);
+            resumeRefreshAt = osdShowArmed() + currentTimeUs;
         } else if (isSomeStatEnabled()
                    && (!(getArmingDisableFlags() & ARMING_DISABLED_RUNAWAY_TAKEOFF)
                        || !VISIBLE(osdConfig()->item_pos[OSD_WARNINGS]))) { // suppress stats if runaway takeoff triggered disarm and WARNINGS element is visible
