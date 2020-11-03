@@ -206,6 +206,7 @@ static const uint8_t osdElementDisplayOrder[] = {
     OSD_PITCH_ANGLE,
     OSD_ROLL_ANGLE,
     OSD_MAIN_BATT_USAGE,
+    OSD_MAH_PERCENT,
     OSD_DISARMED,
     OSD_NUMERICAL_HEADING,
     OSD_NUMERICAL_VARIO,
@@ -913,6 +914,11 @@ static bool osdDrawSingleElement(uint8_t item) {
         tfp_sprintf(buff + 1, "%d.%02d%c", cellV / 100, cellV % 100, SYM_VOLT);
         break;
     }
+    case OSD_MAH_PERCENT: {
+        const uint16_t mAhUsedPercent = ceilf(getMAhDrawn() / (batteryConfig()->batteryCapacity / 100.0f));
+        tfp_sprintf(buff, "%3d%%", mAhUsedPercent);
+        break;
+    }    
     case OSD_DEBUG:
         tfp_sprintf(buff, "DBG %5d %5d %5d %5d", debug[0], debug[1], debug[2], debug[3]);
         break;
