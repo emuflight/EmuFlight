@@ -970,27 +970,18 @@ bool rcSmoothingInitializationComplete(void) {
 }
 #endif // USE_RC_SMOOTHING_FILTER
 
-FAST_CODE float calculateK(float k, int time)
-{
-  if (k == 0.0f)
-  {
-      return 0;
-  }
-  // base this all off 150hz so that 150hz feels like old dynamic rates
-  // other update rates will need to be updated as feel will change
+FAST_CODE float calculateK(float k, int time) {
+    if (k == 0.0f) {
+        return 0;
+    }
+    // scale so it feels like running at 62.5hz (16ms) regardless of the current rx rate
+    const float dT = time * 1e-6f;
+    const float rxRate = 1.0f / dT;
+    const float rxRateFactor = (rxRate / 62.5f) * rxRate;
+    const float freq = k / ((1.0f / rxRateFactor) * (1.0f - k));
+    const float RC = 1.0f / freq;
 
-  // correction and weight act like lpf filters
-  // correction with no sensitivity acts like weight
-  // first find the frequency for a pt1 filter (basing it off of 150hz update rate)
-  // then using that frequency calculate a new k (or multiplier) for correction and weight
-
-  // did some math to find how to calculate freq if you know k and dt in a pt1
-  // k is our weight/correction value in decimal
-  const float freq = k / (2.0f * M_PIf * 0.00666666666f * (1.0f - k));
-  const float dT = time * 1e-6f;
-  const float RC = 1.0f / (2.0f * M_PIf * freq);
-  return dT / (RC + dT);
-  // no need to apply this on sensitivity its time independent
+    return dT / (RC + dT);
 }
 
 FAST_CODE float rateDynamics(float rcCommand, int axis, int currentRxRefreshRate)
