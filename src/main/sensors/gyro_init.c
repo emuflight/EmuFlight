@@ -230,6 +230,8 @@ static void dynLpfFilterInit()
     gyro.dynLpfMin = gyroConfig()->dyn_lpf_gyro_min_hz;
     gyro.dynLpfMax = gyroConfig()->dyn_lpf_gyro_max_hz;
     gyro.dynLpfCurveExpo = gyroConfig()->dyn_lpf_curve_expo;
+    gyro.dynLpf2Gain = gyroConfig()->dynlpf2_gain;
+    gyro.dynlpf2Max = gyroConfig()->dynlpf2_fmin;
 }
 #endif
 

@@ -304,6 +304,11 @@ static FAST_DATA_ZERO_INIT float vbatFull;
 static FAST_DATA_ZERO_INIT float vbatRangeToCompensate;
 #endif
 
+#ifdef USE_DYN_LPF
+static FAST_DATA_ZERO_INIT pt1Filter_t dynGyroFc[XYZ_AXIS_COUNT];
+static FAST_DATA_ZERO_INIT pt1Filter_t dynDtermFc[XYZ_AXIS_COUNT];
+#endif
+
 uint8_t getMotorCount(void)
 {
     return motorCount;
@@ -375,6 +380,13 @@ void mixerInitProfile(void)
         if (vbatRangeToCompensate > 0) {
             vbatSagCompensationFactor = ((float)currentPidProfile->vbat_sag_compensation) / 100.0f;
         }
+    }
+#endif
+
+#ifdef USE_DYN_LPF
+    for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+        pt1FilterInit(&dynGyroFc[i], pt1FilterGain(10, pidRuntime.dT));
+        pt1FilterInit(&dynDtermFc[i], pt1FilterGain(10, pidRuntime.dT));
     }
 #endif
 }
@@ -810,22 +822,64 @@ static void applyMotorStop(void)
 }
 
 #ifdef USE_DYN_LPF
+static FAST_DATA_ZERO_INIT float dynLpf2Cutoff[XYZ_AXIS_COUNT];
+
+static void updateDynLpf2(int axis) {
+  float gyroFiltered = gyro.gyroADCf[axis];
+  float target = getSetpointRate(axis);
+  float error = fabsf(target - gyroFiltered);
+
+  float average = (fabsf(target) + fabsf(gyroFiltered)) * 0.5f;
+  average = MAX(average, 1.0f);
+  getSetpointRate(axis);
+
+  float e = error / average;                           //Compute ratio between Error and average. e is image of noise in % of signal
+
+  //New freq
+  float ratioRatio = gyroFiltered / 50.0f;
+  ratioRatio = MAX(ratioRatio, 1.0f);
+  float inverseRatioRatio = 1.0f - ratioRatio;
+  dynLpf2Cutoff[axis] = 100.0f * powf(e, 3.0f) * ratioRatio;  //"e" power 3 and multiply by a gain
+  dynLpf2Cutoff[axis] += error * inverseRatioRatio / 20.0f;
+}
+
 static void updateDynLpfCutoffs(timeUs_t currentTimeUs, float throttle)
 {
     static timeUs_t lastDynLpfUpdateUs = 0;
     static int dynLpfPreviousQuantizedThrottle = -1;  // to allow an initial zero throttle to set the filter cutoff
 
+    static float lastGyroCutoff[XYZ_AXIS_COUNT], lastDtermCutoff[XYZ_AXIS_COUNT];
+    static float gyroCutoff[XYZ_AXIS_COUNT], dtermCutoff[XYZ_AXIS_COUNT];
+    static float gyroThrottleCutoff, dtermThrottleCutoff;
+
     if (cmpTimeUs(currentTimeUs, lastDynLpfUpdateUs) >= DYN_LPF_THROTTLE_UPDATE_DELAY_US) {
-        const int quantizedThrottle = lrintf(throttle * DYN_LPF_THROTTLE_STEPS); // quantize the throttle reduce the number of filter updates
-        if (quantizedThrottle != dynLpfPreviousQuantizedThrottle) {
-            // scale the quantized value back to the throttle range so the filter cutoff steps are repeatable
-            const float dynLpfThrottle = (float)quantizedThrottle / DYN_LPF_THROTTLE_STEPS;
-            dynLpfGyroUpdate(dynLpfThrottle);
-            dynLpfDTermUpdate(dynLpfThrottle);
-            dynLpfPreviousQuantizedThrottle = quantizedThrottle;
-            lastDynLpfUpdateUs = currentTimeUs;
+      const int quantizedThrottle = lrintf(throttle * DYN_LPF_THROTTLE_STEPS); // quantize the throttle reduce the number of filter updates
+      if (quantizedThrottle != dynLpfPreviousQuantizedThrottle) {
+        const float dynLpfThrottle = (float)quantizedThrottle / DYN_LPF_THROTTLE_STEPS;
+        gyroThrottleCutoff = dynLpfGyroThrCut(dynLpfThrottle);
+        dtermThrottleCutoff = dynLpfDtermThrCut(dynLpfThrottle);
+
+        for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+            updateDynLpf2(i);
+
+            lastGyroCutoff[i] = dynLpfGyroCutoff(gyroThrottleCutoff, dynLpf2Cutoff[i]);
+            lastDtermCutoff[i] = dynLpfDtermCutoff(dtermThrottleCutoff, dynLpf2Cutoff[i]);
+            gyroCutoff[i] = pt1FilterApply(&dynGyroFc[i], lastGyroCutoff[i]);
+            dtermCutoff[i] = pt1FilterApply(&dynDtermFc[i], lastDtermCutoff[i]);
+
+            dynLpfGyroUpdate(gyroCutoff);
+            dynLpfDTermUpdate(dtermCutoff);
+        }
+
+        dynLpfPreviousQuantizedThrottle = quantizedThrottle;
+        lastDynLpfUpdateUs = currentTimeUs;
+    } else {
+        for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+            pt1FilterApply(&dynGyroFc[i], lastGyroCutoff[i]);
+            pt1FilterApply(&dynDtermFc[i], lastDtermCutoff[i]);
         }
     }
+  }
 }
 #endif
 

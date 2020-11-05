@@ -381,6 +381,8 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.dynLpfMin = pidProfile->dyn_lpf_dterm_min_hz;
     pidRuntime.dynLpfMax = pidProfile->dyn_lpf_dterm_max_hz;
     pidRuntime.dynLpfCurveExpo = pidProfile->dyn_lpf_curve_expo;
+    pidRuntime.dynLpf2Gain = pidProfile->dterm_dynlpf2_gain;
+    pidRuntime.dynlpf2Max = pidProfile->dterm_dynlpf2_fmax;
 #endif
 
 #ifdef USE_LAUNCH_CONTROL

@@ -377,6 +377,8 @@ typedef struct pidRuntime_s {
     uint16_t dynLpfMin;
     uint16_t dynLpfMax;
     uint8_t dynLpfCurveExpo;
+    uint16_t dynLpf2Gain;
+    uint16_t dynlpf2Max;
 #endif
 
 #ifdef USE_LAUNCH_CONTROL
@@ -441,7 +443,9 @@ float pidLevel(int axis, const pidProfile_t *pidProfile,
     const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint);
 float calcHorizonLevelStrength(const pidProfile_t *pidProfile);
 #endif
-void dynLpfDTermUpdate(float throttle);
+void dynLpfDTermUpdate(float cutoff[XYZ_AXIS_COUNT]);
+uint16_t dynLpfDtermThrCut(float throttle);
+float dynLpfDtermCutoff(uint16_t throttle, float dynlpf2_cutoff);
 void pidSetItermReset(bool enabled);
 float pidGetPreviousSetpoint(int axis);
 float pidGetDT();

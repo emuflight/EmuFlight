@@ -80,7 +80,7 @@ const float gyroDt = filter->targetLooptime * 1e-6f;
     //take the absolute value of target and gyro
     //to guard against situations where the sign of target and gyro are not the same
         Average = (fabsf(target) + fabsf(gyro)) * 0.5f;
-        Average = MAX(Average, 15.0f);
+        Average = MAX(Average, 1.0f);
     //Rise Fmin according to Throttle;
     //--------------------------------
         if(throttle > filter->throttleThreshold) {

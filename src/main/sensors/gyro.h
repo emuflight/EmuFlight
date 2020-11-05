@@ -121,6 +121,8 @@ typedef struct gyro_s {
     uint16_t dynLpfMin;
     uint16_t dynLpfMax;
     uint8_t dynLpfCurveExpo;
+    uint16_t dynLpf2Gain;
+    uint16_t dynlpf2Max;
 #endif
 
 #ifdef USE_GYRO_OVERFLOW_CHECK
@@ -238,7 +240,9 @@ bool gyroYawSpinDetected(void);
 uint16_t gyroAbsRateDps(int axis);
 #ifdef USE_DYN_LPF
 float dynThrottle(float throttle);
-void dynLpfGyroUpdate(float throttle);
+void dynLpfGyroUpdate(float cutoff[XYZ_AXIS_COUNT]);
+uint16_t dynLpfGyroThrCut(float throttle);
+float dynLpfGyroCutoff(uint16_t throttle, float dynlpf2_cutoff);
 #endif
 #ifdef USE_YAW_SPIN_RECOVERY
 void initYawSpinRecovery(int maxYawRate);

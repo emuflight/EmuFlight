@@ -1219,26 +1219,32 @@ bool pidAntiGravityEnabled(void)
 }
 
 #ifdef USE_DYN_LPF
-void dynLpfDTermUpdate(float throttle)
+void dynLpfDTermUpdate(float cutoff[XYZ_AXIS_COUNT])
 {
-    unsigned int cutoffFreq;
     if (pidRuntime.dynLpfFilter != DYN_LPF_NONE) {
-        if (pidRuntime.dynLpfCurveExpo > 0) {
-            cutoffFreq = dynLpfCutoffFreq(throttle, pidRuntime.dynLpfMin, pidRuntime.dynLpfMax, pidRuntime.dynLpfCurveExpo);
-        } else {
-            cutoffFreq = fmax(dynThrottle(throttle) * pidRuntime.dynLpfMax, pidRuntime.dynLpfMin);
-        }
-
          if (pidRuntime.dynLpfFilter == DYN_LPF_PT1) {
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                pt1FilterUpdateCutoff(&pidRuntime.dtermLowpass[axis].pt1Filter, pt1FilterGain(cutoffFreq, pidRuntime.dT));
+                pt1FilterUpdateCutoff(&pidRuntime.dtermLowpass[axis].pt1Filter, pt1FilterGain(cutoff[axis], pidRuntime.dT));
             }
         } else if (pidRuntime.dynLpfFilter == DYN_LPF_BIQUAD) {
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                biquadFilterUpdateLPF(&pidRuntime.dtermLowpass[axis].biquadFilter, cutoffFreq, targetPidLooptime);
+                biquadFilterUpdateLPF(&pidRuntime.dtermLowpass[axis].biquadFilter, cutoff[axis], targetPidLooptime);
             }
         }
     }
+}
+
+uint16_t dynLpfDtermThrCut(float throttle) {
+    unsigned int cutoffFreq;
+    cutoffFreq = dynLpfCutoffFreq(throttle, pidRuntime.dynLpfMin, pidRuntime.dynLpfMax, pidRuntime.dynLpfCurveExpo);
+    return cutoffFreq;
+}
+
+float dynLpfDtermCutoff(uint16_t throttle, float dynlpf2_cutoff) {
+    float cutoff;
+    cutoff = MIN(dynlpf2_cutoff * pidRuntime.dynLpf2Gain, pidRuntime.dynlpf2Max);
+    cutoff = throttle + cutoff;
+    return cutoff;
 }
 #endif
 

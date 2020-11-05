@@ -629,33 +629,35 @@ uint16_t gyroAbsRateDps(int axis)
 }
 
 #ifdef USE_DYN_LPF
-
-float dynThrottle(float throttle) {
-    return throttle * (1 - (throttle * throttle) / 3.0f) * 1.5f;
-}
-
-void dynLpfGyroUpdate(float throttle)
+void dynLpfGyroUpdate(float cutoff[XYZ_AXIS_COUNT])
 {
     if (gyro.dynLpfFilter != DYN_LPF_NONE) {
-        unsigned int cutoffFreq;
-        if (gyro.dynLpfCurveExpo > 0) {
-            cutoffFreq = dynLpfCutoffFreq(throttle, gyro.dynLpfMin, gyro.dynLpfMax, gyro.dynLpfCurveExpo);
-        } else {
-            cutoffFreq = fmax(dynThrottle(throttle) * gyro.dynLpfMax, gyro.dynLpfMin);
-        }
         if (gyro.dynLpfFilter == DYN_LPF_PT1) {
-            DEBUG_SET(DEBUG_DYN_LPF, 2, cutoffFreq);
+            DEBUG_SET(DEBUG_DYN_LPF, 2, cutoff[FD_ROLL]);
             const float gyroDt = gyro.targetLooptime * 1e-6f;
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                pt1FilterUpdateCutoff(&gyro.lowpassFilter[axis].pt1FilterState, pt1FilterGain(cutoffFreq, gyroDt));
+                pt1FilterUpdateCutoff(&gyro.lowpassFilter[axis].pt1FilterState, pt1FilterGain(cutoff[axis], gyroDt));
             }
         } else if (gyro.dynLpfFilter == DYN_LPF_BIQUAD) {
-            DEBUG_SET(DEBUG_DYN_LPF, 2, cutoffFreq);
+            DEBUG_SET(DEBUG_DYN_LPF, 2, cutoff[FD_ROLL]);
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                biquadFilterUpdateLPF(&gyro.lowpassFilter[axis].biquadFilterState, cutoffFreq, gyro.targetLooptime);
+                biquadFilterUpdateLPF(&gyro.lowpassFilter[axis].biquadFilterState, cutoff[axis], gyro.targetLooptime);
             }
         }
     }
+}
+
+uint16_t dynLpfGyroThrCut(float throttle) {
+      unsigned int cutoffFreq;
+      cutoffFreq = dynLpfCutoffFreq(throttle, gyro.dynLpfMin, gyro.dynLpfMax, gyro.dynLpfCurveExpo);
+      return cutoffFreq;
+}
+
+float dynLpfGyroCutoff(uint16_t throttle, float dynlpf2_cutoff) {
+    float cutoff;
+    cutoff = MIN(dynlpf2_cutoff * gyro.dynLpf2Gain, gyro.dynlpf2Max);
+    cutoff = throttle + cutoff;
+    return cutoff;
 }
 #endif
 
