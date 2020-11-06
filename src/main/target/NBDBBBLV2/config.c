@@ -33,25 +33,31 @@
 #include "fc/controlrate_profile.h"
 #include "fc/rc_modes.h"
 #include "fc/rc_controls.h"
+#include "fc/controlrate_profile.h"
+#include "fc/config.h"
 
-#include "drivers/vtx_table.h"
+//#include "drivers/vtx_table.h"
 
-#include "pg/vtx_table.h"
-#include "pg/motor.h"
+//#include "pg/vtx_table.h"
+//#include "pg/motor.h"
 
-#include "config/config.h"
+//#include "config/config.h"
 
 #include "sensors/gyro.h"
+#include "sensors/battery.h"
 
+#include "io/osd.h"
 #include "io/vtx.h"
 #include "io/ledstrip.h"
+#include "io/serial.h"
 
-#include "osd/osd.h"
+//#include "osd/osd.h"
 
 #include "rx/rx.h"
 
 void targetConfiguration(void)
 {
+/*
     pidProfilesMutable(0)->pid[PID_ROLL].P = 70;
     pidProfilesMutable(0)->pid[PID_ROLL].I = 49;
     pidProfilesMutable(0)->pid[PID_ROLL].D = 45;
@@ -65,12 +71,12 @@ void targetConfiguration(void)
     pidProfilesMutable(0)->pid[PID_YAW].D = 21;
     pidProfilesMutable(0)->pid[PID_YAW].F = 5;
     pidProfilesMutable(0)->pid[PID_LEVEL].D = 89;
-    pidProfilesMutable(0)->feedForwardTransition = 80;
+//    pidProfilesMutable(0)->feedForwardTransition = 80;
     pidProfilesMutable(0)->iterm_relax = ITERM_RELAX_RPY;
     pidProfilesMutable(0)->iterm_relax_type = ITERM_RELAX_GYRO;
-    pidProfilesMutable(0)->levelAngleLimit = 85;
-    pidProfilesMutable(0)->d_min[FD_ROLL] = 0;
-    pidProfilesMutable(0)->d_min[FD_PITCH] = 0;
+  //  pidProfilesMutable(0)->levelAngleLimit = 85;
+  //  pidProfilesMutable(0)->d_min[FD_ROLL] = 0;
+  //  pidProfilesMutable(0)->d_min[FD_PITCH] = 0;
 
     controlRateProfilesMutable(0)->rcExpo[FD_ROLL] = 15;
     controlRateProfilesMutable(0)->rcExpo[FD_PITCH] = 15;
@@ -146,33 +152,67 @@ void targetConfiguration(void)
         vtxTableConfigMutable()->isFactoryBand[band] = false;
     }
 
-#endif /* USE_VTX_TABLE */
+#endif //USE_VTX_TABLE
+*/
 
-    strcpy(pilotConfigMutable()->name, "BBBL V2");
-
-    gyroConfigMutable()->gyro_lowpass2_hz = 238;
-    gyroConfigMutable()->dyn_lpf_gyro_min_hz = 190;
-    gyroConfigMutable()->dyn_lpf_gyro_max_hz = 475;
+//    gyroConfigMutable()->gyro_lowpass2_hz = 238;
+//    gyroConfigMutable()->dyn_lpf_gyro_min_hz = 190;
+//    gyroConfigMutable()->dyn_lpf_gyro_max_hz = 475;
 
     vtxSettingsConfigMutable()->band = 5;
     vtxSettingsConfigMutable()->channel = 8;
     vtxSettingsConfigMutable()->power = 3;
 
-    imuConfigMutable()->small_angle = 180;
-
-    mixerConfigMutable()->yaw_motors_reversed = true;
-
+    gyroConfigMutable()->gyro_sync_denom = 1; // This looks like 8k in GUI but actually 3.2k
+    gyroConfigMutable()->gyro_lowpass_type = FILTER_PT1;
+    gyroConfigMutable()->gyro_lowpass_hz[ROLL] = 200;
+    gyroConfigMutable()->gyro_lowpass_hz[PITCH] = 200;
+    gyroConfigMutable()->gyro_lowpass_hz[YAW] = 200;
+    gyroConfigMutable()->gyro_lowpass2_hz[ROLL] = 250;
+    gyroConfigMutable()->gyro_lowpass2_hz[PITCH] = 250;
+    gyroConfigMutable()->gyro_lowpass2_hz[YAW] = 250;
+    gyroConfigMutable()->yaw_spin_threshold = 1950;
+    rxConfigMutable()->mincheck = 1075;
+    rxConfigMutable()->maxcheck = 1900;
+    rxConfigMutable()->rc_smoothing_type = RC_SMOOTHING_TYPE_FILTER;
+    rxConfigMutable()->fpvCamAngleDegrees = 0;
+    motorConfigMutable()->digitalIdleOffsetValue = 1000;
+    motorConfigMutable()->dev.useBurstDshot = true;
     motorConfigMutable()->motorPoleCount = 12;
     motorConfigMutable()->dev.motorPwmProtocol = PWM_TYPE_DSHOT600;
+    batteryConfigMutable()->batteryCapacity = 300;
+    batteryConfigMutable()->vbatmaxcellvoltage = 44;
+    batteryConfigMutable()->vbatfullcellvoltage = 42;
+    batteryConfigMutable()->vbatmincellvoltage = 29;
+    batteryConfigMutable()->vbatwarningcellvoltage = 32;
+    voltageSensorADCConfigMutable(0)->vbatscale = 110;
+    mixerConfigMutable()->yaw_motors_reversed = false;
+    mixerConfigMutable()->crashflip_motor_percent = 0;
+    imuConfigMutable()->small_angle = 180;
+    pidConfigMutable()->pid_process_denom = 1;
+    pidConfigMutable()->runaway_takeoff_prevention = true;
+    osdConfigMutable()->cap_alarm = 2200;
+    pidProfilesMutable(0)->dterm_filter_type = FILTER_PT1;
 
-    osdElementConfigMutable()->item_pos[OSD_CRAFT_NAME]         = OSD_POS(9, 10) | OSD_PROFILE_1_FLAG;
-    osdElementConfigMutable()->item_pos[OSD_MAIN_BATT_VOLTAGE]  = OSD_POS(23, 9) | OSD_PROFILE_1_FLAG;
-    osdElementConfigMutable()->item_pos[OSD_ITEM_TIMER_2]       = OSD_POS(2,  9) | OSD_PROFILE_1_FLAG;
-    osdElementConfigMutable()->item_pos[OSD_FLYMODE]            = OSD_POS(17, 9) | OSD_PROFILE_1_FLAG;
-    osdElementConfigMutable()->item_pos[OSD_VTX_CHANNEL]        = OSD_POS(9,  9) | OSD_PROFILE_1_FLAG;
-    osdElementConfigMutable()->item_pos[OSD_RSSI_VALUE]         = OSD_POS(2, 10) | OSD_PROFILE_1_FLAG;
-    osdElementConfigMutable()->item_pos[OSD_WARNINGS]           = OSD_POS(9, 10);
-    osdElementConfigMutable()->item_pos[OSD_CURRENT_DRAW]       = OSD_POS(22,10) | OSD_PROFILE_1_FLAG;
+#ifdef USE_OSD_BEESIGN
+    osdConfigMutable()->item_pos[OSD_CRAFT_NAME]        = OSD_POS(6, 9)  | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_MAIN_BATT_VOLTAGE] = OSD_POS(19, 8) | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_ITEM_TIMER_2]      = OSD_POS(0,  8) | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_FLYMODE]           = OSD_POS(14, 8) | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_VTX_CHANNEL]       = OSD_POS(7,  8) | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_RSSI_VALUE]        = OSD_POS(0, 9)  | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_WARNINGS]          = OSD_POS(7, 9);
+    osdConfigMutable()->item_pos[OSD_CURRENT_DRAW]      = OSD_POS(18, 9)  | VISIBLE_FLAG;
+#else
+    osdConfigMutable()->item_pos[OSD_CRAFT_NAME]        = OSD_POS(9, 10) | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_MAIN_BATT_VOLTAGE] = OSD_POS(23, 9) | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_ITEM_TIMER_2]      = OSD_POS(2,  9) | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_FLYMODE]           = OSD_POS(17, 9) | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_VTX_CHANNEL]       = OSD_POS(9,  9) | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_RSSI_VALUE]        = OSD_POS(2, 10) | VISIBLE_FLAG;
+    osdConfigMutable()->item_pos[OSD_WARNINGS]          = OSD_POS(9, 10);
+    osdConfigMutable()->item_pos[OSD_CURRENT_DRAW]      = OSD_POS(22, 10) | VISIBLE_FLAG;
+#endif
 
     modeActivationConditionsMutable(0)->modeId          = BOXARM;
     modeActivationConditionsMutable(0)->auxChannelIndex = AUX1 - NON_AUX_CHANNEL_COUNT;
@@ -194,8 +234,11 @@ void targetConfiguration(void)
     modeActivationConditionsMutable(4)->range.startStep = CHANNEL_VALUE_TO_STEP(1700);
     modeActivationConditionsMutable(4)->range.endStep   = CHANNEL_VALUE_TO_STEP(2100);
 
-    ledStripStatusModeConfigMutable()->ledConfigs[0] = DEFINE_LED(7, 7,  8, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
-    ledStripStatusModeConfigMutable()->ledConfigs[1] = DEFINE_LED(8, 7, 13, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
-    ledStripStatusModeConfigMutable()->ledConfigs[2] = DEFINE_LED(9, 7, 11, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
+    strcpy(pilotConfigMutable()->name, "BBBL V2");
+
+    ledStripConfigMutable()->ledConfigs[0] = DEFINE_LED(7,  7,  8, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
+    ledStripConfigMutable()->ledConfigs[1] = DEFINE_LED(8,  7, 13, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
+    ledStripConfigMutable()->ledConfigs[2] = DEFINE_LED(9,  7, 11, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
+    ledStripConfigMutable()->ledConfigs[3] = DEFINE_LED(10, 7, 4,  0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
 }
 #endif

@@ -23,7 +23,7 @@
 #define TARGET_BOARD_IDENTIFIER         "BeeBrain BL V2" // BeeBrain BL
 #define USBD_PRODUCT_STRING             "BeeBrain BL V2"
 
-//#define USE_TARGET_CONFIG
+#define USE_TARGET_CONFIG
 
 // *************** SPI *****************************
 #define USE_SPI
@@ -84,12 +84,12 @@
 #define USE_RX_SPI
 #define RX_SPI_INSTANCE                 SPI2
 #define RX_NSS_PIN                      SPI2_NSS_PIN
-#define RX_CC2500_SPI_LED_PIN                  PA13
+#define RX_CC2500_SPI_LED_PIN           PA13
 #define RX_CC2500_SPI_ANT_SEL_PIN       PA7
 #define RX_SPI_BIND_PIN                 PC15
 #define DEFAULT_RX_FEATURE              FEATURE_RX_SPI
 #define RX_SPI_DEFAULT_PROTOCOL         RX_SPI_FRSKY_D
-#define RX_CC2500_SPI_GDO_0_PIN                 PB2
+#define RX_CC2500_SPI_GDO_0_PIN         PB2
 #define RX_CC2500_SPI_TX_EN_PIN         PB10
 #define RX_CC2500_SPI_LNA_EN_PIN        NONE
 #define USE_RX_FRSKY_SPI_TELEMETRY
@@ -100,7 +100,7 @@
 
 // *************** OSD *****************************
 #define USE_MAX7456
-#define NBD_MCU_OSD
+#define USE_NBD7456
 
 #define MAX7456_SPI_INSTANCE            SPI3
 #define MAX7456_SPI_CS_PIN              SPI3_NSS_PIN
@@ -111,6 +111,9 @@
 #undef USE_VTX_TRAMP
 #define RTC6705_SPI_INSTANCE            SPI3
 #define RTC6705_CS_PIN                  PA14
+#define USE_VTX_BEESIGN
+#define USE_BEESIGN
+#define USE_BEESIGN_UART                SERIAL_PORT_USART1
 
 // *************** ADC *****************************
 #define USE_ADC
