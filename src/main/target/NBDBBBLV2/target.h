@@ -111,9 +111,6 @@
 #undef USE_VTX_TRAMP
 #define RTC6705_SPI_INSTANCE            SPI3
 #define RTC6705_CS_PIN                  PA14
-#define USE_VTX_BEESIGN
-#define USE_BEESIGN
-#define USE_BEESIGN_UART                SERIAL_PORT_USART1
 
 // *************** ADC *****************************
 #define USE_ADC

@@ -194,26 +194,6 @@ void targetConfiguration(void)
     osdConfigMutable()->cap_alarm = 2200;
     pidProfilesMutable(0)->dterm_filter_type = FILTER_PT1;
 
-#ifdef USE_OSD_BEESIGN
-    osdConfigMutable()->item_pos[OSD_CRAFT_NAME]        = OSD_POS(6, 9)  | VISIBLE_FLAG;
-    osdConfigMutable()->item_pos[OSD_MAIN_BATT_VOLTAGE] = OSD_POS(19, 8) | VISIBLE_FLAG;
-    osdConfigMutable()->item_pos[OSD_ITEM_TIMER_2]      = OSD_POS(0,  8) | VISIBLE_FLAG;
-    osdConfigMutable()->item_pos[OSD_FLYMODE]           = OSD_POS(14, 8) | VISIBLE_FLAG;
-    osdConfigMutable()->item_pos[OSD_VTX_CHANNEL]       = OSD_POS(7,  8) | VISIBLE_FLAG;
-    osdConfigMutable()->item_pos[OSD_RSSI_VALUE]        = OSD_POS(0, 9)  | VISIBLE_FLAG;
-    osdConfigMutable()->item_pos[OSD_WARNINGS]          = OSD_POS(7, 9);
-    osdConfigMutable()->item_pos[OSD_CURRENT_DRAW]      = OSD_POS(18, 9)  | VISIBLE_FLAG;
-#else
-    osdConfigMutable()->item_pos[OSD_CRAFT_NAME]        = OSD_POS(9, 10) | VISIBLE_FLAG;
-    osdConfigMutable()->item_pos[OSD_MAIN_BATT_VOLTAGE] = OSD_POS(23, 9) | VISIBLE_FLAG;
-    osdConfigMutable()->item_pos[OSD_ITEM_TIMER_2]      = OSD_POS(2,  9) | VISIBLE_FLAG;
-    osdConfigMutable()->item_pos[OSD_FLYMODE]           = OSD_POS(17, 9) | VISIBLE_FLAG;
-    osdConfigMutable()->item_pos[OSD_VTX_CHANNEL]       = OSD_POS(9,  9) | VISIBLE_FLAG;
-    osdConfigMutable()->item_pos[OSD_RSSI_VALUE]        = OSD_POS(2, 10) | VISIBLE_FLAG;
-    osdConfigMutable()->item_pos[OSD_WARNINGS]          = OSD_POS(9, 10);
-    osdConfigMutable()->item_pos[OSD_CURRENT_DRAW]      = OSD_POS(22, 10) | VISIBLE_FLAG;
-#endif
-
     modeActivationConditionsMutable(0)->modeId          = BOXARM;
     modeActivationConditionsMutable(0)->auxChannelIndex = AUX1 - NON_AUX_CHANNEL_COUNT;
     modeActivationConditionsMutable(0)->range.startStep = CHANNEL_VALUE_TO_STEP(1700);
