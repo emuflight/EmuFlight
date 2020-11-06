@@ -43,6 +43,8 @@ typedef struct mixerRuntime_s {
     float idleMinMotorRps;
     float idleP;
     float oldMinRps;
+    pt1Filter_t dynGyroFc[XYZ_AXIS_COUNT];
+    pt1Filter_t dynDtermFc[XYZ_AXIS_COUNT];
 #endif
 #if defined(USE_BATTERY_VOLTAGE_SAG_COMPENSATION)
     float vbatSagCompensationFactor;
