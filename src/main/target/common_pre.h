@@ -231,7 +231,7 @@
 #define USE_TASK_STATISTICS
 #define USE_GYRO_REGISTER_DUMP  // Adds gyroregisters command to cli to dump configured register values
 #define USE_IMU_CALC
-//#define USE_PPM
+#define USE_PPM
 #define USE_SERIAL_RX
 #define USE_SERIALRX_CRSF       // Team Black Sheep Crossfire protocol
 #define USE_SERIALRX_GHST       // ImmersionRC Ghost Protocol
@@ -253,7 +253,7 @@
 #define USE_CLI_BATCH
 #define USE_RESOURCE_MGMT
 #define USE_RUNAWAY_TAKEOFF     // Runaway Takeoff Prevention (anti-taz)
-//#define USE_SERVOS
+#define USE_SERVOS
 #define USE_TELEMETRY
 #define USE_TELEMETRY_FRSKY_HUB
 #define USE_TELEMETRY_SMARTPORT
@@ -273,7 +273,7 @@
 #define USE_MSP_DISPLAYPORT
 #define USE_MSP_OVER_TELEMETRY
 #define USE_OSD_OVER_MSP_DISPLAYPORT
-//#define USE_LED_STRIP
+#define USE_LED_STRIP
 #endif
 
 #if ((TARGET_FLASH_SIZE > 256) || (FEATURE_CUT_LEVEL < 11))
@@ -285,7 +285,7 @@
 
 #if ((TARGET_FLASH_SIZE > 256) || (FEATURE_CUT_LEVEL < 10))
 #define USE_VIRTUAL_CURRENT_METER
-//#define USE_CAMERA_CONTROL
+#define USE_CAMERA_CONTROL
 #define USE_ESC_SENSOR
 #define USE_SERIAL_4WAY_BLHELI_BOOTLOADER
 #define USE_RCDEVICE
@@ -298,7 +298,7 @@
 #if ((TARGET_FLASH_SIZE > 256) || (FEATURE_CUT_LEVEL < 8))
 #define USE_LAUNCH_CONTROL
 #define USE_DYN_LPF
-#define USE_D_MIN
+//#define USE_D_MIN
 #endif
 
 #if ((TARGET_FLASH_SIZE > 256) || (FEATURE_CUT_LEVEL < 7))
@@ -312,7 +312,7 @@
 #endif
 
 #if ((TARGET_FLASH_SIZE > 256) || (FEATURE_CUT_LEVEL < 5))
-//#define USE_PWM
+#define USE_PWM
 #endif
 
 #if ((TARGET_FLASH_SIZE > 256) || (FEATURE_CUT_LEVEL < 4))
@@ -364,7 +364,6 @@
 #define USE_GPS_NMEA
 #define USE_GPS_UBLOX
 #define USE_GPS_RESCUE
-#define USE_GYRO_DLPF_EXPERIMENTAL
 #define USE_OSD
 #define USE_OSD_OVER_MSP_DISPLAYPORT
 #define USE_MULTI_GYRO
@@ -377,8 +376,8 @@
 #define USE_TELEMETRY_MAVLINK
 #define USE_UNCOMMON_MIXERS
 #define USE_SIGNATURE
-//#define USE_HOTT_TEXTMODE
-//#define USE_LED_STRIP_STATUS_MODE
+#define USE_HOTT_TEXTMODE
+#define USE_LED_STRIP_STATUS_MODE
 #define USE_VARIO
 #define USE_RX_LINK_QUALITY_INFO
 #define USE_ESC_SENSOR_TELEMETRY

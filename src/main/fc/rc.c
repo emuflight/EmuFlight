@@ -216,30 +216,6 @@ float applyActualRates(const int axis, float rcCommandf, const float rcCommandfA
     return angleRate;
 }
 
-float applyQuickRates(const int axis, float rcCommandf, const float rcCommandfAbs)
-{
-    const uint16_t rcRate = currentControlRateProfile->rcRates[axis] * 2;
-    const uint16_t maxDPS = MAX(currentControlRateProfile->rates[axis] * 10, rcRate);
-    const float expof = currentControlRateProfile->rcExpo[axis] / 100.0f;
-    const float superFactorConfig = ((float)maxDPS / rcRate - 1) / ((float)maxDPS / rcRate);
-
-    float curve;
-    float superFactor;
-    float angleRate;
-
-    if (currentControlRateProfile->quickRatesRcExpo) {
-        curve = power3(rcCommandf) * expof + rcCommandf * (1 - expof);
-        superFactor = 1.0f / (constrainf(1.0f - (rcCommandfAbs * superFactorConfig), 0.01f, 1.00f));
-        angleRate = constrainf(curve * rcRate * superFactor, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
-    } else {
-        curve = power3(rcCommandfAbs) * expof + rcCommandfAbs * (1 - expof);
-        superFactor = 1.0f / (constrainf(1.0f - (curve * superFactorConfig), 0.01f, 1.00f));
-        angleRate = constrainf(rcCommandf * rcRate * superFactor, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
-    }
-
-    return angleRate;
-}
-
 float applyCurve(int axis, float deflection)
 {
     return applyRates(axis, deflection, fabsf(deflection));
@@ -912,10 +888,6 @@ void initRcProcessing(void)
         break;
     case RATES_TYPE_ACTUAL:
         applyRates = applyActualRates;
-
-        break;
-    case RATES_TYPE_QUICK:
-        applyRates = applyQuickRates;
 
         break;
     }
