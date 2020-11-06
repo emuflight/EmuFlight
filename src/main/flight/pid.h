@@ -24,7 +24,6 @@
 #include "common/time.h"
 #include "common/filter.h"
 #include "common/axis.h"
-#include "common/dynlpf2.h"
 
 #include "flight/gyroanalyse.h"
 
@@ -171,6 +170,8 @@ typedef struct pidProfile_s {
     uint8_t dterm_filter2_type;             // Filter selection for 2nd dterm
     uint16_t dyn_lpf_dterm_min_hz;
     uint16_t dyn_lpf_dterm_max_hz;
+    uint16_t dterm_dynlpf2_fmax;
+    uint16_t dterm_dynlpf2_gain;
     uint8_t launchControlMode;              // Whether launch control is limited to pitch only (launch stand or top-mount) or all axes (on battery)
     uint8_t launchControlThrottlePercent;   // Throttle percentage to trigger launch for launch control
     uint8_t launchControlAngleLimit;        // Optional launch control angle limit (requires ACC)
@@ -203,16 +204,6 @@ typedef struct pidProfile_s {
     uint16_t dterm_dyn_notch_min_hz;        // min hz for the dynamic dterm notch
     uint16_t dterm_dyn_notch_max_hz;        // max hz for the dynamic dterm notch
     uint8_t dterm_dyn_notch_location;       // location of the dyn dterm notch
-
-    uint16_t dterm_dynlpf2_fmin;
-    uint16_t dterm_dynlpf2_fmax;
-    uint16_t dterm_dynlpf2_gain;
-    uint16_t dterm_dynlpf2_fc_fc;
-    uint16_t dterm_dynlpf2_throttle_threshold;
-    uint16_t dterm_dynlpf2_throttle_gain;
-    uint8_t  dterm_dynlpf2_enable;
-    uint8_t  dterm_dynlpf2_type;
-    uint8_t  dterm_dynlpf2_debug;
 
     uint8_t  dtermMeasurementSlider;
 
@@ -278,7 +269,6 @@ typedef struct pidRuntime_s {
     filterApplyFnPtr dtermDynNotchApplyFn;
     biquadFilter_t dtermNotchFilterDyn[XYZ_AXIS_COUNT];
     fftAnalyseState_t dtermFFTAnalyseState;
-    dynlpf2_t dynLpfDterm[XYZ_AXIS_COUNT];
     bool antiGravityEnabled;
     uint8_t antiGravityMode;
     pt1Filter_t antiGravityThrottleLpf;
@@ -378,7 +368,7 @@ typedef struct pidRuntime_s {
     uint16_t dynLpfMax;
     uint8_t dynLpfCurveExpo;
     uint16_t dynLpf2Gain;
-    uint16_t dynlpf2Max;
+    uint16_t dynLpf2Max;
 #endif
 
 #ifdef USE_LAUNCH_CONTROL

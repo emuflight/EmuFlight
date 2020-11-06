@@ -1365,16 +1365,10 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass_dyn_hz", "%d,%d",         currentPidProfile->dyn_lpf_dterm_min_hz,
                                                                             currentPidProfile->dyn_lpf_dterm_max_hz);
 #endif
-#ifdef USE_DYN_LPF2
-        BLACKBOX_PRINT_HEADER_LINE("dynlpf2_enable", "%d",                   gyroConfig()->dynlpf2_enable);
-        BLACKBOX_PRINT_HEADER_LINE("dynlpf2_type", "%d",                     gyroConfig()->dynlpf2_type);
-        BLACKBOX_PRINT_HEADER_LINE("dynlpf2_throttle_threshold", "%d",       gyroConfig()->dynlpf2_throttle_threshold);
-        BLACKBOX_PRINT_HEADER_LINE("dynlpf2_throttle_gain", "%d",            gyroConfig()->dynlpf2_throttle_gain);
+
         BLACKBOX_PRINT_HEADER_LINE("dynlpf2_gain", "%d",                     gyroConfig()->dynlpf2_gain);
-        BLACKBOX_PRINT_HEADER_LINE("dynlpf2_fmin", "%d",                     gyroConfig()->dynlpf2_fmin);
         BLACKBOX_PRINT_HEADER_LINE("dynlpf2_fmax", "%d",                     gyroConfig()->dynlpf2_fmax);
-        BLACKBOX_PRINT_HEADER_LINE("dynlpf2_fc_fc", "%d",                    gyroConfig()->dynlpf2_fc_fc);
-#endif
+
         BLACKBOX_PRINT_HEADER_LINE("dterm_filter2_type", "%d",              currentPidProfile->dterm_filter2_type);
         BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass2_hz", "%d",               currentPidProfile->dterm_lowpass2_hz);
         BLACKBOX_PRINT_HEADER_LINE("yaw_lowpass_hz", "%d",                  currentPidProfile->yaw_lowpass_hz);

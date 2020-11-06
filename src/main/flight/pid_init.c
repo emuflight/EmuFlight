@@ -178,12 +178,6 @@ void pidInitFilters(const pidProfile_t *pidProfile)
         }
     }
 
-    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-        init_dynLpf2(&pidRuntime.dynLpfDterm[axis], targetPidLooptime, pidProfile->dterm_dynlpf2_fmin, pidProfile->dterm_dynlpf2_fmax, pidProfile->dterm_dynlpf2_fc_fc,
-        pidProfile->dterm_dynlpf2_throttle_threshold, pidProfile->dterm_dynlpf2_throttle_gain, pidProfile->dterm_dynlpf2_gain,
-        gyroConfig()->gyro_filter_debug_axis, pidProfile->dterm_dynlpf2_type, pidProfile->dterm_dynlpf2_enable, pidProfile->dterm_dynlpf2_debug);
-    }
-
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, pidRuntime.dT));
 #endif
@@ -382,7 +376,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.dynLpfMax = pidProfile->dyn_lpf_dterm_max_hz;
     pidRuntime.dynLpfCurveExpo = pidProfile->dyn_lpf_curve_expo;
     pidRuntime.dynLpf2Gain = pidProfile->dterm_dynlpf2_gain;
-    pidRuntime.dynlpf2Max = pidProfile->dterm_dynlpf2_fmax;
+    pidRuntime.dynLpf2Max = pidProfile->dterm_dynlpf2_fmax;
 #endif
 
 #ifdef USE_LAUNCH_CONTROL

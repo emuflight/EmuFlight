@@ -274,7 +274,6 @@ SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
             $(CMSIS_SRC) \
             $(DEVICE_STDPERIPH_SRC) \
 						common/kalman.c \
-						common/dynlpf2.c \
 
 SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             bus_bst_stm32f30x.c \

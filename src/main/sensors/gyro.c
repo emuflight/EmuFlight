@@ -31,7 +31,6 @@
 #include "common/axis.h"
 #include "common/maths.h"
 #include "common/filter.h"
-#include "common/dynlpf2.h"
 
 #include "config/feature.h"
 
@@ -124,8 +123,11 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->gyro_offset_yaw = 0;
     gyroConfig->yaw_spin_recovery = YAW_SPIN_RECOVERY_AUTO;
     gyroConfig->yaw_spin_threshold = 1950;
-    gyroConfig->dyn_lpf_gyro_min_hz = 0;
+    gyroConfig->dyn_lpf_gyro_min_hz = 200;
     gyroConfig->dyn_lpf_gyro_max_hz = 500;
+    gyroConfig->dynlpf2_fmax = 300;
+    gyroConfig->dynlpf2_gain = 70;
+    gyroConfig->dyn_lpf_curve_expo = 2;
     gyroConfig->dyn_notch_max_hz = 600;
     gyroConfig->dyn_notch_q = 350;
     gyroConfig->dyn_notch_min_hz = 150;
@@ -135,18 +137,6 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->imuf_yaw_q = 2000;
     gyroConfig->imuf_w = 32;
     gyroConfig->imuf_sharpness = 2500;
-#ifdef USE_DYN_LPF2
-    gyroConfig->dynlpf2_fmin = DEFAULT_DYNLPF2_FMIN;
-    gyroConfig->dynlpf2_fmax = DEFAULT_DYNLPF2_FMAX;
-    gyroConfig->dynlpf2_gain = DEFAULT_DYNLPF2_GAIN;
-    gyroConfig->dynlpf2_fc_fc = DEFAULT_DYNLPF2_FC_FC;
-    gyroConfig->dynlpf2_throttle_threshold = DEFAULT_DYNLPF2_THROTTLE_THRESHOLD;
-    gyroConfig->dynlpf2_throttle_gain = DEFAULT_DYNLPF2_THROTTLE_GAIN;
-    gyroConfig->dynlpf2_enable = DEFAULT_DYNLPF2_ENABLE;
-    gyroConfig->dynlpf2_type = DEFAULT_DYNLPF2_TYPE;
-    gyroConfig->dynlpf2_debug = 0;
-#endif
-    gyroConfig->dyn_lpf_curve_expo = 2;
 
 }
 
@@ -655,7 +645,7 @@ uint16_t dynLpfGyroThrCut(float throttle) {
 
 float dynLpfGyroCutoff(uint16_t throttle, float dynlpf2_cutoff) {
     float cutoff;
-    cutoff = MIN(dynlpf2_cutoff * gyro.dynLpf2Gain, gyro.dynlpf2Max);
+    cutoff = MIN(dynlpf2_cutoff * gyro.dynLpf2Gain, gyro.dynLpf2Max);
     cutoff = throttle + cutoff;
     return cutoff;
 }

@@ -32,7 +32,6 @@
 #include "common/maths.h"
 #include "common/filter.h"
 #include "common/kalman.h"
-#include "common/dynlpf2.h"
 #include "config/feature.h"
 
 #include "config/config.h"
@@ -231,7 +230,7 @@ static void dynLpfFilterInit()
     gyro.dynLpfMax = gyroConfig()->dyn_lpf_gyro_max_hz;
     gyro.dynLpfCurveExpo = gyroConfig()->dyn_lpf_curve_expo;
     gyro.dynLpf2Gain = gyroConfig()->dynlpf2_gain;
-    gyro.dynlpf2Max = gyroConfig()->dynlpf2_fmin;
+    gyro.dynLpf2Max = gyroConfig()->dynlpf2_fmax;
 }
 #endif
 
@@ -272,13 +271,6 @@ void gyroInitFilters(void)
     fftDataAnalyseStateInit(&gyro.fftAnalyseState, gyro.targetLooptime, gyroConfig()->dyn_notch_min_hz, gyroConfig()->dyn_notch_max_hz);
 #endif
     kalman_init();
-#ifdef USE_DYN_LPF2
-    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-        init_dynLpf2(&gyro.dynLpfGyro[axis], gyro.targetLooptime, gyroConfig()->dynlpf2_fmin, gyroConfig()->dynlpf2_fmax, gyroConfig()->dynlpf2_fc_fc,
-        gyroConfig()->dynlpf2_throttle_threshold, gyroConfig()->dynlpf2_throttle_gain, gyroConfig()->dynlpf2_gain,
-        gyroConfig()->gyro_filter_debug_axis, gyroConfig()->dynlpf2_type, gyroConfig()->dynlpf2_enable, gyroConfig()->dynlpf2_debug);
-    }
-#endif
 }
 
 #if defined(USE_GYRO_SLEW_LIMITER)

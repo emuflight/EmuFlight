@@ -31,7 +31,6 @@
 #include "common/axis.h"
 #include "common/filter.h"
 #include "common/maths.h"
-#include "common/dynlpf2.h"
 
 #include "config/config_reset.h"
 
@@ -177,8 +176,10 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_lowpass2_hz = 0,   // second Dterm LPF OFF by default
         .dterm_filter_type = FILTER_PT1,
         .dterm_filter2_type = FILTER_PT1,
-        .dyn_lpf_dterm_min_hz = 0,
+        .dyn_lpf_dterm_min_hz = 65,
         .dyn_lpf_dterm_max_hz = 170,
+        .dterm_dynlpf2_fmax = 125,
+        .dterm_dynlpf2_gain = 20,
         .launchControlMode = LAUNCH_CONTROL_MODE_NORMAL,
         .launchControlThrottlePercent = 20,
         .launchControlAngleLimit = 0,
@@ -207,15 +208,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_dyn_notch_min_hz = 150,
         .dterm_dyn_notch_max_hz = 600,
         .dterm_dyn_notch_location = 0,
-        .dterm_dynlpf2_fmin = 70,
-        .dterm_dynlpf2_fmax = 300,
-        .dterm_dynlpf2_gain = 20,
-        .dterm_dynlpf2_fc_fc = 10,
-        .dterm_dynlpf2_throttle_threshold = 25,
-        .dterm_dynlpf2_throttle_gain = 3,
-        .dterm_dynlpf2_enable = 1,
-        .dterm_dynlpf2_type = 1,
-        .dterm_dynlpf2_debug = 0,
         .dtermMeasurementSlider = 100,
         .nfe_racemode = false,
         .emuBoostPR = 0,
@@ -1031,7 +1023,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             delta = pidRuntime.dtermNotchApplyFn((filter_t *) &pidRuntime.dtermNotch[axis], delta);
             delta = pidRuntime.dtermLowpassApplyFn((filter_t *) &pidRuntime.dtermLowpass[axis], delta);
             delta = pidRuntime.dtermLowpass2ApplyFn((filter_t *) &pidRuntime.dtermLowpass2[axis], delta);
-            delta = dynLpf2Apply(&pidRuntime.dynLpfDterm[axis], axis, delta, gyro.gyroADCf[axis]);
 
             if (pidProfile->dtermDynNotchQ > 0 && pidProfile->dterm_dyn_notch_location == 1) {
                 fftDataAnalysePush(&pidRuntime.dtermFFTAnalyseState, axis, delta);
@@ -1242,7 +1233,7 @@ uint16_t dynLpfDtermThrCut(float throttle) {
 
 float dynLpfDtermCutoff(uint16_t throttle, float dynlpf2_cutoff) {
     float cutoff;
-    cutoff = MIN(dynlpf2_cutoff * pidRuntime.dynLpf2Gain, pidRuntime.dynlpf2Max);
+    cutoff = MIN(dynlpf2_cutoff * pidRuntime.dynLpf2Gain, pidRuntime.dynLpf2Max);
     cutoff = throttle + cutoff;
     return cutoff;
 }
