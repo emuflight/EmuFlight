@@ -402,11 +402,6 @@ static void mixerConfigureOutput(void)
 }
 #endif // USE_QUAD_MIXER_ONLY
 
-float getDynamicIdleOffset(void)
-{
-    return motorConfig()->digitalIdleOffsetValue * 0.0001f * PWM_RANGE;
-}
-
 void mixerInit(mixerMode_e mixerMode)
 {
     currentMixerMode = mixerMode;
@@ -421,7 +416,7 @@ void mixerInit(mixerMode_e mixerMode)
 #endif
 
 #ifdef USE_DYN_IDLE
-    mixerRuntime.idleThrottleOffset = getDynamicIdleOffset();
+    mixerRuntime.idleThrottleOffset = getDigitalIdleOffset(motorConfig()) * PWM_RANGE;
 #endif
 
     mixerConfigureOutput();

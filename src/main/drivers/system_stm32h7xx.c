@@ -77,9 +77,16 @@ void systemInit(void)
 
     //RCC_ClearFlag();
 
+#if defined(STM32H743xx) || defined(STM32H750xx)
     __HAL_RCC_D2SRAM1_CLK_ENABLE();
     __HAL_RCC_D2SRAM2_CLK_ENABLE();
     __HAL_RCC_D2SRAM3_CLK_ENABLE();
+#elif defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
+    __HAL_RCC_AHBSRAM1_CLK_ENABLE();
+    __HAL_RCC_AHBSRAM2_CLK_ENABLE();
+#else
+#error Unknown MCU
+#endif
 
 #ifdef USE_MCO_OUTPUTS
     configureMasterClockOutputs();
@@ -102,7 +109,7 @@ void systemReset(void)
 
 void forcedSystemResetWithoutDisablingCaches(void)
 {
-    persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_FORCED);
+    // Don't overwrite the PERSISTENT_OBJECT_RESET_REASON; just make another attempt
 
     __disable_irq();
     NVIC_SystemReset();
@@ -129,7 +136,13 @@ void systemResetToBootloader(bootloaderRequestType_e requestType)
 }
 
 
+#if defined(STM32H743xx) || defined(STM32H750xx)
 #define SYSMEMBOOT_VECTOR_TABLE ((uint32_t *)0x1ff09800)
+#elif defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
+#define SYSMEMBOOT_VECTOR_TABLE ((uint32_t *)0x1ff0a000)
+#else
+#error Unknown MCU
+#endif
 
 typedef void *(*bootJumpPtr)(void);
 
