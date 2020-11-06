@@ -114,6 +114,7 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->gyro_lowpass2_type = FILTER_PT1;
     gyroConfig->gyro_lowpass2_hz = 0;
     gyroConfig->gyro_high_fsr = false;
+    gyroConfig->gyro_use_32khz = false;
     gyroConfig->gyro_to_use = GYRO_CONFIG_USE_GYRO_DEFAULT;
     gyroConfig->gyro_soft_notch_hz_1 = 0;
     gyroConfig->gyro_soft_notch_cutoff_1 = 0;
@@ -127,7 +128,7 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->dyn_lpf_gyro_max_hz = 500;
     gyroConfig->dynlpf2_fmax = 300;
     gyroConfig->dynlpf2_gain = 70;
-    gyroConfig->dyn_lpf_curve_expo = 2;
+    gyroConfig->dyn_lpf_curve_expo = 5;
     gyroConfig->dyn_notch_max_hz = 600;
     gyroConfig->dyn_notch_q = 350;
     gyroConfig->dyn_notch_min_hz = 150;

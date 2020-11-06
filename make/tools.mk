@@ -14,9 +14,9 @@
 ##############################
 
 # Set up ARM (STM32) SDK
-ARM_SDK_DIR ?= $(TOOLS_DIR)/gcc-arm-none-eabi-9-2019-q4-major
+ARM_SDK_DIR ?= $(TOOLS_DIR)/gcc-arm-none-eabi-9-2020-q2-update
 # Checked below, Should match the output of $(shell arm-none-eabi-gcc -dumpversion)
-GCC_REQUIRED_VERSION ?= 9.2.1
+GCC_REQUIRED_VERSION ?= 9.3.1
 
 .PHONY: arm_sdk_version
 
@@ -26,19 +26,19 @@ arm_sdk_version:
 ## arm_sdk_install   : Install Arm SDK
 .PHONY: arm_sdk_install
 
-ARM_SDK_URL_BASE  := https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2019q4/RC2.1/gcc-arm-none-eabi-9-2019-q4-major
+ARM_SDK_URL_BASE  := https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update
 
 # source: https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads
-ifdef LINUX
+ifeq ($(OSFAMILY), linux)
   ARM_SDK_URL  := $(ARM_SDK_URL_BASE)-x86_64-linux.tar.bz2
 endif
 
-ifdef MACOSX
+ifeq ($(OSFAMILY), macosx)
   ARM_SDK_URL  := $(ARM_SDK_URL_BASE)-mac.tar.bz2
 endif
 
-ifdef WINDOWS
-  ARM_SDK_URL  := $(ARM_SDK_URL_BASE)-win32.zip.bz2
+ifeq ($(OSFAMILY), windows)
+  ARM_SDK_URL  := $(ARM_SDK_URL_BASE)-win32.zip
 endif
 
 ARM_SDK_FILE := $(notdir $(ARM_SDK_URL))
@@ -195,38 +195,6 @@ stm32flash_install: stm32flash_clean
 stm32flash_clean:
 	@echo " CLEAN        $(STM32FLASH_DIR)"
 	$(V1) [ ! -d "$(STM32FLASH_DIR)" ] || $(RM) -r "$(STM32FLASH_DIR)"
-
-DFUUTIL_DIR := $(TOOLS_DIR)/dfu-util
-
-.PHONY: dfuutil_install
-dfuutil_install: DFUUTIL_URL  := http://dfu-util.sourceforge.net/releases/dfu-util-0.8.tar.gz
-dfuutil_install: DFUUTIL_FILE := $(notdir $(DFUUTIL_URL))
-dfuutil_install: | $(DL_DIR) $(TOOLS_DIR)
-dfuutil_install: dfuutil_clean
-        # download the source
-	@echo " DOWNLOAD     $(DFUUTIL_URL)"
-	$(V1) curl -L -k -o "$(DL_DIR)/$(DFUUTIL_FILE)" "$(DFUUTIL_URL)"
-
-        # extract the source
-	@echo " EXTRACT      $(DFUUTIL_FILE)"
-	$(V1) [ ! -d "$(DL_DIR)/dfuutil-build" ] || $(RM) -r "$(DL_DIR)/dfuutil-build"
-	$(V1) mkdir -p "$(DL_DIR)/dfuutil-build"
-	$(V1) tar -C $(DL_DIR)/dfuutil-build -xf "$(DL_DIR)/$(DFUUTIL_FILE)"
-
-        # build
-	@echo " BUILD        $(DFUUTIL_DIR)"
-	$(V1) mkdir -p "$(DFUUTIL_DIR)"
-	$(V1) ( \
-	  cd $(DL_DIR)/dfuutil-build/dfu-util-0.8 ; \
-	  ./configure --prefix="$(DFUUTIL_DIR)" ; \
-	  $(MAKE) ; \
-	  $(MAKE) install ; \
-	)
-
-.PHONY: dfuutil_clean
-dfuutil_clean:
-	@echo " CLEAN        $(DFUUTIL_DIR)"
-	$(V1) [ ! -d "$(DFUUTIL_DIR)" ] || $(RM) -r "$(DFUUTIL_DIR)"
 
 # Set up uncrustify tools
 UNCRUSTIFY_DIR := $(TOOLS_DIR)/uncrustify-0.61

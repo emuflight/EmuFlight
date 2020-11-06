@@ -51,7 +51,6 @@
 #define QUADSPI1_CS_FLAGS       (QUADSPI_BK1_CS_HARDWARE | QUADSPI_BK2_CS_NONE | QUADSPI_CS_MODE_LINKED)
 
 #define USE_FLASH_CHIP
-#define CONFIG_IN_EXTERNAL_FLASH
 
 #define USE_UART
 
@@ -88,7 +87,6 @@
 #define UART8_TX_PIN            PE1
 
 #define USE_VCP
-#define USE_USB_ID
 
 #define SERIAL_PORT_COUNT       9
 

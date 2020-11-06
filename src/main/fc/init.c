@@ -529,8 +529,9 @@ void init(void)
     }
 #endif
 
-#ifdef STM32F4
-    // Only F4 has non-8MHz boards
+#if defined(STM32F4) || defined(STM32G4)
+    // F4 has non-8MHz boards
+    // G4 for Betaflight allow 24 or 27MHz oscillator
     systemClockSetHSEValue(systemConfig()->hseMhz * 1000000U);
 #endif
 
@@ -580,7 +581,6 @@ void init(void)
 #endif
 
     mixerInit(mixerConfig()->mixerMode);
-    mixerConfigureOutput();
 
     uint16_t idlePulse = motorConfig()->mincommand;
     if (featureIsEnabled(FEATURE_3D)) {
@@ -736,13 +736,14 @@ void init(void)
 
     pidInit(currentPidProfile);
 
+    mixerInitProfile();
+
 #ifdef USE_PID_AUDIO
     pidAudioInit();
 #endif
 
 #ifdef USE_SERVOS
     servosInit();
-    servoConfigureOutput();
     if (isMixerUsingServos()) {
         //pwm_params.useChannelForwarding = featureIsEnabled(FEATURE_CHANNEL_FORWARDING);
         servoDevInit(&servoConfig()->dev);

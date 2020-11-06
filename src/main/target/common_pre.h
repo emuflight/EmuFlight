@@ -110,6 +110,7 @@
 #define USE_ITCM_RAM
 #define USE_FAST_DATA
 #define USE_DSHOT
+#define USE_DSHOT_BITBANG
 #define USE_DSHOT_TELEMETRY
 #define USE_DSHOT_TELEMETRY_STATS
 #define USE_RPM_FILTER
@@ -125,7 +126,27 @@
 #define USE_DMA_RAM
 #endif
 
-#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#ifdef STM32G4
+#define USE_FAST_RAM
+#define USE_DSHOT
+#define USE_DSHOT_BITBANG
+#define USE_DSHOT_TELEMETRY
+#define USE_DSHOT_TELEMETRY_STATS
+#define USE_RPM_FILTER
+#define USE_DYN_IDLE
+#define I2C3_OVERCLOCK true
+#define I2C4_OVERCLOCK true
+#define USE_OVERCLOCK
+#define USE_GYRO_DATA_ANALYSE
+#define USE_ADC_INTERNAL
+#define USE_USB_MSC
+#define USE_USB_CDC_HID
+#define USE_MCO
+#define USE_DMA_SPEC
+#define USE_TIMER_MGMT
+#endif
+
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(STM32G4)
 #define TASK_GYROPID_DESIRED_PERIOD     125 // 125us = 8kHz
 #define SCHEDULER_DELAY_LIMIT           10
 #else
@@ -182,11 +203,20 @@
 #endif
 
 #ifdef USE_DMA_RAM
+#if defined(STM32H7)
 #define DMA_RAM __attribute__((section(".DMA_RAM")))
 #define DMA_RW_AXI __attribute__((section(".DMA_RW_AXI")))
+#elif defined(STM32G4)
+#define DMA_RAM_R __attribute__((section(".DMA_RAM_R")))
+#define DMA_RAM_W __attribute__((section(".DMA_RAM_W")))
+#define DMA_RAM_RW __attribute__((section(".DMA_RAM_RW")))
+#endif
 #else
 #define DMA_RAM
 #define DMA_RW_AXI
+#define DMA_RAM_R
+#define DMA_RAM_W
+#define DMA_RAM_RW
 #endif
 
 #define USE_BRUSHED_ESC_AUTODETECT  // Detect if brushed motors are connected and set defaults appropriately to avoid motors spinning on boot
@@ -204,6 +234,7 @@
 //#define USE_PPM
 #define USE_SERIAL_RX
 #define USE_SERIALRX_CRSF       // Team Black Sheep Crossfire protocol
+#define USE_SERIALRX_GHST       // ImmersionRC Ghost Protocol
 #define USE_SERIALRX_IBUS       // FlySky and Turnigy receivers
 #define USE_SERIALRX_SBUS       // Frsky and Futaba receivers
 #define USE_SERIALRX_SPEKTRUM   // SRXL, DSM2 and DSMX protocol
@@ -218,7 +249,6 @@
 #endif
 
 #if (TARGET_FLASH_SIZE > 64)
-//#define USE_ACRO_TRAINER
 #define USE_BLACKBOX
 #define USE_CLI_BATCH
 #define USE_RESOURCE_MGMT
@@ -235,6 +265,7 @@
 #define USE_DSHOT_DMAR
 #define USE_SERIALRX_FPORT      // FrSky FPort
 #define USE_TELEMETRY_CRSF
+#define USE_TELEMETRY_GHST
 #define USE_TELEMETRY_SRXL
 
 #if ((TARGET_FLASH_SIZE > 256) || (FEATURE_CUT_LEVEL < 12))
@@ -346,7 +377,6 @@
 #define USE_TELEMETRY_MAVLINK
 #define USE_UNCOMMON_MIXERS
 #define USE_SIGNATURE
-//#define USE_ABSOLUTE_CONTROL
 //#define USE_HOTT_TEXTMODE
 //#define USE_LED_STRIP_STATUS_MODE
 #define USE_VARIO

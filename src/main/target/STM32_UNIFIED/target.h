@@ -25,8 +25,6 @@
 
 #define USBD_PRODUCT_STRING     "Betaflight STM32F405"
 
-#define USE_ACCGYRO_BMI270
-
 #define USE_I2C_DEVICE_1
 #define USE_I2C_DEVICE_2
 #define USE_I2C_DEVICE_3
@@ -114,8 +112,6 @@
 
 #define USBD_PRODUCT_STRING     "Betaflight STM32F745"
 
-#define USE_ACCGYRO_BMI270
-
 #define USE_I2C_DEVICE_1
 #define USE_I2C_DEVICE_2
 #define USE_I2C_DEVICE_3
@@ -159,8 +155,6 @@
 #define USE_ACC
 #define USE_GYRO
 
-#define USE_ACC_MPU6050
-#define USE_GYRO_MPU6050
 #define USE_ACC_MPU6500
 #define USE_GYRO_MPU6500
 #define USE_ACC_SPI_MPU6000
@@ -178,6 +172,7 @@
 #define USE_MAG_QMC5883
 #define USE_MAG_LIS3MDL
 #define USE_MAG_AK8963
+#define USE_MAG_MPU925X_AK8963
 #define USE_MAG_SPI_AK8963
 
 #define USE_BARO
@@ -253,3 +248,12 @@
 #define USE_RX_SPEKTRUM_TELEMETRY
 
 #define USE_CUSTOM_DEFAULTS
+
+// Additional drivers included for targets with > 512KB of flash
+#if (TARGET_FLASH_SIZE > 512)
+#define USE_ACC_MPU6050
+#define USE_GYRO_MPU6050
+#define USE_ACCGYRO_BMI270
+
+#define USE_BARO_BMP085
+#endif

@@ -54,7 +54,7 @@
 // Anti gravity I constant
 #define AG_KI 21.586988f;
 
-#define ITERM_ACCELERATOR_GAIN_OFF 1000
+#define ITERM_ACCELERATOR_GAIN_OFF 0
 #define ITERM_ACCELERATOR_GAIN_MAX 30000
 typedef enum {
     PID_ROLL,
@@ -159,14 +159,6 @@ typedef struct pidProfile_s {
     uint8_t iterm_relax_type;               // Specifies type of relax algorithm
     uint8_t iterm_relax_cutoff;             // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t iterm_relax;                    // Enable iterm suppression during stick input
-    uint8_t acro_trainer_angle_limit;       // Acro trainer roll/pitch angle limit in degrees
-    uint8_t acro_trainer_debug_axis;        // The axis for which record debugging values are captured 0=roll, 1=pitch
-    uint8_t acro_trainer_gain;              // The strength of the limiting. Raising may reduce overshoot but also lead to oscillation around the angle limit
-    uint16_t acro_trainer_lookahead_ms;     // The lookahead window in milliseconds used to reduce overshoot
-    uint8_t abs_control_gain;               // How strongly should the absolute accumulated error be corrected for
-    uint8_t abs_control_limit;              // Limit to the correction
-    uint8_t abs_control_error_limit;        // Limit to the accumulated error
-    uint8_t abs_control_cutoff;             // Cutoff frequency for path estimation in abs control
     uint8_t dterm_filter2_type;             // Filter selection for 2nd dterm
     uint16_t dyn_lpf_dterm_min_hz;
     uint16_t dyn_lpf_dterm_max_hz;
@@ -183,7 +175,6 @@ typedef struct pidProfile_s {
     uint8_t d_min_advance;                  // Percentage multiplier for setpoint input to boost algorithm
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
-    uint8_t transient_throttle_limit;       // Maximum DC component of throttle change to mix into throttle to prevent airmode mirroring noise
     uint8_t ff_boost;                       // amount of high-pass filtered FF to add to FF, 100 means 100% added
     char profileName[MAX_PROFILE_NAME_LENGTH + 1]; // Descriptive name for profile
 
@@ -272,12 +263,10 @@ typedef struct pidRuntime_s {
     bool antiGravityEnabled;
     uint8_t antiGravityMode;
     pt1Filter_t antiGravityThrottleLpf;
-    pt1Filter_t antiGravityPSmoothLpf;
-    pt1Filter_t antiGravityDSmoothLpf;
+    pt1Filter_t antiGravitySmoothLpf;
     float antiGravityOsdCutoff;
     float antiGravityThrottleHpf;
     float antiGravityPBoost;
-    float antiGravityDBoost;
     float ffBoostFactor;
     float itermAccelerator;
     uint16_t itermAcceleratorGain;
@@ -323,26 +312,12 @@ typedef struct pidRuntime_s {
     uint8_t itermRelaxCutoff;
 #endif
 
-#ifdef USE_ABSOLUTE_CONTROL
-    float acCutoff;
-    float acGain;
-    float acLimit;
-    float acErrorLimit;
-    pt1Filter_t acLpf[XYZ_AXIS_COUNT];
-    float oldSetpointCorrection[XYZ_AXIS_COUNT];
-#endif
-
 #ifdef USE_D_MIN
     biquadFilter_t dMinRange[XYZ_AXIS_COUNT];
     pt1Filter_t dMinLowpass[XYZ_AXIS_COUNT];
     float dMinPercent[XYZ_AXIS_COUNT];
     float dMinGyroGain;
     float dMinSetpointGain;
-#endif
-
-#ifdef USE_AIRMODE_LPF
-    pt1Filter_t airmodeThrottleLpf1;
-    pt1Filter_t airmodeThrottleLpf2;
 #endif
 
 #ifdef USE_RC_SMOOTHING_FILTER
@@ -352,15 +327,6 @@ typedef struct pidRuntime_s {
     uint8_t rcSmoothingDebugAxis;
     uint8_t rcSmoothingFilterType;
 #endif // USE_RC_SMOOTHING_FILTER
-
-#ifdef USE_ACRO_TRAINER
-    float acroTrainerAngleLimit;
-    float acroTrainerLookaheadTime;
-    uint8_t acroTrainerDebugAxis;
-    float acroTrainerGain;
-    bool acroTrainerActive;
-    int acroTrainerAxisState[2];  // only need roll and pitch
-#endif
 
 #ifdef USE_DYN_LPF
     uint8_t dynLpfFilter;
@@ -380,10 +346,6 @@ typedef struct pidRuntime_s {
 #ifdef USE_THRUST_LINEARIZATION
     float thrustLinearization;
     float throttleCompensateAmount;
-#endif
-
-#ifdef USE_AIRMODE_LPF
-    float airmodeThrottleOffsetLimit;
 #endif
 
 #ifdef USE_INTERPOLATED_SP
@@ -417,10 +379,7 @@ bool pidAntiGravityEnabled(void);
 float pidApplyThrustLinearization(float motorValue);
 float pidCompensateThrustLinearization(float throttle);
 #endif
-#ifdef USE_AIRMODE_LPF
-void pidUpdateAirmodeLpf(float currentOffset);
-float pidGetAirmodeThrottleOffset();
-#endif
+
 
 #ifdef UNIT_TEST
 #include "sensors/acceleration.h"

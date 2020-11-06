@@ -102,8 +102,6 @@ void initEscEndpoints(void);
 void mixerInit(mixerMode_e mixerMode);
 void mixerInitProfile(void);
 
-void mixerConfigureOutput(void);
-
 void mixerResetDisarmedMotors(void);
 void mixTable(timeUs_t currentTimeUs);
 void stopMotors(void);
@@ -119,3 +117,4 @@ bool isFixedWing(void);
 
 float getMotorOutputLow(void);
 float getMotorOutputHigh(void);
+float getDynamicIdleOffset(void);

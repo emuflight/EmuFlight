@@ -74,12 +74,17 @@
 
 #ifdef USE_DMA_REGISTER_CACHE
 typedef struct dmaRegCache_s {
-#if defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     uint32_t CR;
     uint32_t FCR;
     uint32_t NDTR;
     uint32_t PAR;
     uint32_t M0AR;
+#elif defined(STM32G4)
+    uint32_t CCR;
+    uint32_t CNDTR;
+    uint32_t CPAR;
+    uint32_t CMAR;
 #else
 #error No MCU dependent code here
 #endif

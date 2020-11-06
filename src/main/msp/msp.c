@@ -1794,21 +1794,13 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
 #endif
-#if defined(USE_ABSOLUTE_CONTROL)
-        sbufWriteU8(dst, currentPidProfile->abs_control_gain);
-#else
-        sbufWriteU8(dst, 0);
-#endif
+        sbufWriteU8(dst, 0); // was absolute control
 #if defined(USE_THROTTLE_BOOST)
         sbufWriteU8(dst, currentPidProfile->throttle_boost);
 #else
         sbufWriteU8(dst, 0);
 #endif
-#if defined(USE_ACRO_TRAINER)
-        sbufWriteU8(dst, currentPidProfile->acro_trainer_angle_limit);
-#else
-        sbufWriteU8(dst, 0);
-#endif
+        sbufWriteU8(dst, 0); // was acro trainer
         sbufWriteU16(dst, currentPidProfile->pid[PID_ROLL].F);
         sbufWriteU16(dst, currentPidProfile->pid[PID_PITCH].F);
         sbufWriteU16(dst, currentPidProfile->pid[PID_YAW].F);
@@ -1854,6 +1846,11 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentPidProfile->ff_boost);
 #if defined(USE_BATTERY_VOLTAGE_SAG_COMPENSATION)
         sbufWriteU8(dst, currentPidProfile->vbat_sag_compensation);
+#else
+        sbufWriteU8(dst, 0);
+#endif
+#if defined(USE_THRUST_LINEARIZATION)
+        sbufWriteU8(dst, currentPidProfile->thrustLinearization);
 #else
         sbufWriteU8(dst, 0);
 #endif
@@ -2646,21 +2643,13 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
             sbufReadU8(src);
             sbufReadU8(src);
 #endif
-#if defined(USE_ABSOLUTE_CONTROL)
-            currentPidProfile->abs_control_gain = sbufReadU8(src);
-#else
-            sbufReadU8(src);
-#endif
+            sbufReadU8(src); // was absolute control
 #if defined(USE_THROTTLE_BOOST)
             currentPidProfile->throttle_boost = sbufReadU8(src);
 #else
             sbufReadU8(src);
 #endif
-#if defined(USE_ACRO_TRAINER)
-            currentPidProfile->acro_trainer_angle_limit = sbufReadU8(src);
-#else
-            sbufReadU8(src);
-#endif
+            sbufReadU8(src); // was acro trainer
             // PID controller feedforward terms
             currentPidProfile->pid[PID_ROLL].F = sbufReadU16(src);
             currentPidProfile->pid[PID_PITCH].F = sbufReadU16(src);
@@ -2704,7 +2693,7 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
             sbufReadU8(src);
 #endif
         }
-        if (sbufBytesRemaining(src) >= 4) {
+        if (sbufBytesRemaining(src) >= 5) {
             // Added in MSP API 1.44
 #if defined(USE_INTERPOLATED_SP)
             currentPidProfile->ff_interpolate_sp = sbufReadU8(src);
@@ -2716,6 +2705,11 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
             currentPidProfile->ff_boost = sbufReadU8(src);
 #if defined(USE_BATTERY_VOLTAGE_SAG_COMPENSATION)
             currentPidProfile->vbat_sag_compensation = sbufReadU8(src);
+#else
+            sbufReadU8(src);
+#endif
+#if defined(USE_THRUST_LINEARIZATION)
+            currentPidProfile->thrustLinearization = sbufReadU8(src);
 #else
             sbufReadU8(src);
 #endif

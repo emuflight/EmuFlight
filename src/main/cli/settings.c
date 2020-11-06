@@ -149,7 +149,7 @@ const char * const lookupTableBaroHardware[] = {
 #if defined(USE_SENSOR_NAMES) || defined(USE_MAG)
 // sync with magSensor_e
 const char * const lookupTableMagHardware[] = {
-    "AUTO", "NONE", "HMC5883", "AK8975", "AK8963", "QMC5883", "LIS3MDL"
+    "AUTO", "NONE", "HMC5883", "AK8975", "AK8963", "QMC5883", "LIS3MDL", "MAG_MPU925X_AK8963"
 };
 #endif
 #if defined(USE_SENSOR_NAMES) || defined(USE_RANGEFINDER)
@@ -239,6 +239,7 @@ static const char * const lookupTableSerialRX[] = {
     "CUSTOM",
     "FPORT",
     "SRXL2",
+    "GHST",
 };
 #endif
 
@@ -346,7 +347,7 @@ static const char * const lookupTableRatesType[] = {
 #ifdef USE_OVERCLOCK
 static const char * const lookupOverclock[] = {
     "OFF",
-#if defined(STM32F40_41xxx)
+#if defined(STM32F40_41xxx) || defined(STM32G4)
     "192MHZ", "216MHZ", "240MHZ"
 #elif defined(STM32F411xE)
     "108MHZ", "120MHZ"
@@ -390,12 +391,6 @@ const char * const lookupTableItermRelaxType[] = {
     "GYRO", "SETPOINT"
 };
 #endif
-
-#ifdef USE_ACRO_TRAINER
-static const char * const lookupTableAcroTrainerDebug[] = {
-    "ROLL", "PITCH"
-};
-#endif // USE_ACRO_TRAINER
 
 #ifdef USE_RC_SMOOTHING_FILTER
 static const char * const lookupTableRcSmoothingType[] = {
@@ -484,8 +479,14 @@ const char * const lookupTableOsdDisplayPortDevice[] = {
 };
 
 #ifdef USE_OSD
-static const char * const lookupTableOsdLogoOnArming[] = {
+static const char* const lookupTableOsdLogoOnArming[] = {
     "OFF", "ON", "FIRST_ARMING",
+};
+#endif
+
+#if defined(GYRO_USES_SPI) && defined(USE_32K_CAPABLE_GYRO)
+static const char* const lookupTable32k[] = {
+  "OFF", "32K", "16K",
 };
 #endif
 
@@ -571,9 +572,6 @@ const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableItermRelax),
     LOOKUP_TABLE_ENTRY(lookupTableItermRelaxType),
 #endif
-#ifdef USE_ACRO_TRAINER
-    LOOKUP_TABLE_ENTRY(lookupTableAcroTrainerDebug),
-#endif // USE_ACRO_TRAINER
 #ifdef USE_RC_SMOOTHING_FILTER
     LOOKUP_TABLE_ENTRY(lookupTableRcSmoothingType),
     LOOKUP_TABLE_ENTRY(lookupTableRcSmoothingDebug),
@@ -605,6 +603,10 @@ const lookupTableEntry_t lookupTables[] = {
 
 #ifdef USE_OSD
     LOOKUP_TABLE_ENTRY(lookupTableOsdLogoOnArming),
+#endif
+
+#if defined(GYRO_USES_SPI) && defined(USE_32K_CAPABLE_GYRO)
+    LOOKUP_TABLE_ENTRY(lookupTable32k),
 #endif
 };
 
@@ -656,7 +658,9 @@ const clivalue_t valueTable[] = {
     { "yaw_spin_recovery",          VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON_AUTO }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, yaw_spin_recovery) },
     { "yaw_spin_threshold",         VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { YAW_SPIN_RECOVERY_THRESHOLD_MIN,  YAW_SPIN_RECOVERY_THRESHOLD_MAX }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, yaw_spin_threshold) },
 #endif
-
+#if defined(GYRO_USES_SPI) && defined(USE_32K_CAPABLE_GYRO)
+    { "gyro_use_32khz",             VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_32K }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_use_32khz) },
+#endif
 #ifdef USE_MULTI_GYRO
     { "gyro_to_use",                VAR_UINT8  | HARDWARE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_to_use) },
 #endif
@@ -937,6 +941,7 @@ const clivalue_t valueTable[] = {
     { "thr_mid",                    VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { 0, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, thrMid8) },
     { "thr_expo",                   VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { 0, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, thrExpo8) },
     { "rates_type",                 VAR_UINT8  | PROFILE_RATE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RATES_TYPE }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rates_type) },
+    { "quickrates_rc_expo",         VAR_UINT8  | PROFILE_RATE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, quickRatesRcExpo) },
     { "roll_rc_rate",               VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { 1, CONTROL_RATE_CONFIG_RC_RATES_MAX }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rcRates[FD_ROLL]) },
     { "pitch_rc_rate",              VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { 1, CONTROL_RATE_CONFIG_RC_RATES_MAX }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rcRates[FD_PITCH]) },
     { "yaw_rc_rate",                VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { 1, CONTROL_RATE_CONFIG_RC_RATES_MAX }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rcRates[FD_YAW]) },
@@ -1093,12 +1098,6 @@ const clivalue_t valueTable[] = {
     { "throttle_boost_cutoff",      VAR_UINT8 | PROFILE_VALUE,  .config.minmaxUnsigned = { 5, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, throttle_boost_cutoff) },
 #endif
 
-#ifdef USE_ACRO_TRAINER
-    { "acro_trainer_angle_limit",   VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 10, 80 }, PG_PID_PROFILE, offsetof(pidProfile_t, acro_trainer_angle_limit) },
-    { "acro_trainer_lookahead_ms",  VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 10, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, acro_trainer_lookahead_ms) },
-    { "acro_trainer_debug_axis",    VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ACRO_TRAINER_DEBUG }, PG_PID_PROFILE, offsetof(pidProfile_t, acro_trainer_debug_axis) },
-    { "acro_trainer_gain",          VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 25, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, acro_trainer_gain) },
-#endif // USE_ACRO_TRAINER
     { "d_measurement_slider",       VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermMeasurementSlider) },
 
     { "emuboost",                   VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 1000 },PG_PID_PROFILE, offsetof(pidProfile_t, emuBoostPR) },
@@ -1138,13 +1137,6 @@ const clivalue_t valueTable[] = {
     { "racemode_tilt_effect",       VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0,  180 }, PG_PID_PROFILE, offsetof(pidProfile_t, racemode_tilt_effect) },
     { "racemode_horizon",           VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, racemode_horizon) },
 
-#if defined(USE_ABSOLUTE_CONTROL)
-    { "abs_control_gain",           VAR_UINT8 | PROFILE_VALUE,  .config.minmaxUnsigned = { 0, 20 }, PG_PID_PROFILE, offsetof(pidProfile_t, abs_control_gain) },
-    { "abs_control_limit",          VAR_UINT8 | PROFILE_VALUE,  .config.minmaxUnsigned = { 10, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, abs_control_limit) },
-    { "abs_control_error_limit",    VAR_UINT8 | PROFILE_VALUE,  .config.minmaxUnsigned = { 1, 45 }, PG_PID_PROFILE, offsetof(pidProfile_t, abs_control_error_limit) },
-    { "abs_control_cutoff",         VAR_UINT8 | PROFILE_VALUE,  .config.minmaxUnsigned = { 1, 45 }, PG_PID_PROFILE, offsetof(pidProfile_t, abs_control_cutoff) },
-#endif
-
 #ifdef USE_D_MIN
     { "d_min_roll",                 VAR_UINT8 | PROFILE_VALUE,  .config.minmaxUnsigned = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, d_min[FD_ROLL]) },
     { "d_min_pitch",                VAR_UINT8 | PROFILE_VALUE,  .config.minmaxUnsigned = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, d_min[FD_PITCH]) },
@@ -1166,9 +1158,6 @@ const clivalue_t valueTable[] = {
 
 #ifdef USE_THRUST_LINEARIZATION
     { "thrust_linear",              VAR_UINT8 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 150 }, PG_PID_PROFILE, offsetof(pidProfile_t, thrustLinearization) },
-#endif
-#ifdef USE_AIRMODE_LPF
-    { "transient_throttle_limit",   VAR_UINT8 | MASTER_VALUE, .config.minmax = { 0, 30 }, PG_PID_PROFILE, offsetof(pidProfile_t, transient_throttle_limit) },
 #endif
 #ifdef USE_INTERPOLATED_SP
     { "ff_interpolate_sp",          VAR_UINT8 | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = {TABLE_INTERPOLATED_SP}, PG_PID_PROFILE, offsetof(pidProfile_t, ff_interpolate_sp) },
@@ -1408,6 +1397,7 @@ const clivalue_t valueTable[] = {
     { "osd_rcchannels_pos",     VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_RC_CHANNELS]) },
     { "osd_camera_frame_pos",   VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CAMERA_FRAME]) },
     { "osd_efficiency_pos",     VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_EFFICIENCY]) },
+    { "osd_total_flights_pos",     VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_TOTAL_FLIGHTS]) },
 
     // OSD stats enabled flags are stored as bitmapped values inside a 32bit parameter
     // It is recommended to keep the settings order the same as the enumeration. This way the settings are displayed in the cli in the same order making it easier on the users
@@ -1454,10 +1444,11 @@ const clivalue_t valueTable[] = {
     { "osd_rcchannels",             VAR_INT8   | MASTER_VALUE | MODE_ARRAY, .config.array.length = OSD_RCCHANNELS_COUNT, PG_OSD_CONFIG, offsetof(osdConfig_t, rcChannels) },
     { "osd_camera_frame_width",     VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { OSD_CAMERA_FRAME_MIN_WIDTH, OSD_CAMERA_FRAME_MAX_WIDTH }, PG_OSD_CONFIG, offsetof(osdConfig_t, camera_frame_width) },
     { "osd_camera_frame_height",    VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { OSD_CAMERA_FRAME_MIN_HEIGHT, OSD_CAMERA_FRAME_MAX_HEIGHT }, PG_OSD_CONFIG, offsetof(osdConfig_t, camera_frame_height) },
+    { "osd_task_frequency",         VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { OSD_TASK_FREQUENCY_MIN, OSD_TASK_FREQUENCY_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, task_frequency) },
 #endif // end of #ifdef USE_OSD
 
 // PG_SYSTEM_CONFIG
-#if defined(STM32F4)
+#if defined(STM32F4) || defined(STM32G4)
     { "system_hse_mhz",             VAR_UINT8  | HARDWARE_VALUE, .config.minmaxUnsigned = { 0, 30 }, PG_SYSTEM_CONFIG, offsetof(systemConfig_t, hseMhz) },
 #endif
 #if defined(USE_TASK_STATISTICS)
