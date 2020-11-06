@@ -43,7 +43,6 @@
 
 #include "sensors/gyro.h"
 #include "sensors/sensors.h"
-#include "flight/gyroanalyse.h"
 
 #include "pid_init.h"
 
@@ -77,7 +76,6 @@ void pidInitFilters(const pidProfile_t *pidProfile)
         pidRuntime.dtermLowpassApplyFn = nullFilterApply;
         pidRuntime.dtermLowpass2ApplyFn = nullFilterApply;
         pidRuntime.ptermYawLowpassApplyFn = nullFilterApply;
-        pidRuntime.dtermDynNotchApplyFn = nullFilterApply;
         return;
     }
 
@@ -167,15 +165,6 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     } else {
         pidRuntime.ptermYawLowpassApplyFn = (filterApplyFnPtr)pt1FilterApply;
         pt1FilterInit(&pidRuntime.ptermYawLowpass, pt1FilterGain(pidProfile->yaw_lowpass_hz, pidRuntime.dT));
-    }
-
-    if (pidProfile->dtermDynNotchQ > 0) {
-        fftDataAnalyseStateInit(&pidRuntime.dtermFFTAnalyseState, targetPidLooptime, pidProfile->dterm_dyn_notch_min_hz, pidProfile->dterm_dyn_notch_max_hz);
-
-        pidRuntime.dtermDynNotchApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1; // must be this function, not DF2
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            biquadFilterInit(&pidRuntime.dtermNotchFilterDyn[axis], 400, targetPidLooptime, pidProfile->dtermDynNotchQ / 100.0f, FILTER_NOTCH);
-        }
     }
 
 #if defined(USE_THROTTLE_BOOST)

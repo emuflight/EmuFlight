@@ -59,7 +59,7 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
                 GYRO_FILTER_DEBUG_SET(DEBUG_FFT_FREQ, 2, lrintf(gyroADCf));
                 GYRO_FILTER_DEBUG_SET(DEBUG_DYN_LPF, 3, lrintf(gyroADCf));
             }
-            fftDataAnalysePush(&gyro.fftAnalyseState, axis, gyroADCf);
+            gyroDataAnalysePush(&gyro.gyroAnalyseState, axis, gyroADCf);
             gyroADCf = gyro.notchFilterDynApplyFn((filter_t *)&gyro.notchFilterDyn[axis][0], gyroADCf);
             gyroADCf = gyro.notchFilterDynApplyFn((filter_t *)&gyro.notchFilterDyn[axis][1], gyroADCf);
             gyroADCf = gyro.notchFilterDynApplyFn((filter_t *)&gyro.notchFilterDyn[axis][2], gyroADCf);

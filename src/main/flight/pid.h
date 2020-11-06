@@ -25,8 +25,6 @@
 #include "common/filter.h"
 #include "common/axis.h"
 
-#include "flight/gyroanalyse.h"
-
 #include "pg/pg.h"
 
 #define MAX_PID_PROCESS_DENOM       16
@@ -191,11 +189,6 @@ typedef struct pidProfile_s {
     uint8_t nfe_racemode;                // NFE race mode - when true pitch setpoint calcualtion is gyro based in level mode
     uint8_t vbat_sag_compensation;          // Reduce motor output by this percentage of the maximum compensation amount
 
-    uint16_t dtermDynNotchQ;                // Q value for the dynamic dterm notch
-    uint16_t dterm_dyn_notch_min_hz;        // min hz for the dynamic dterm notch
-    uint16_t dterm_dyn_notch_max_hz;        // max hz for the dynamic dterm notch
-    uint8_t dterm_dyn_notch_location;       // location of the dyn dterm notch
-
     uint8_t  dtermMeasurementSlider;
 
     uint16_t emuBoostPR;
@@ -257,9 +250,6 @@ typedef struct pidRuntime_s {
     dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
     filterApplyFnPtr ptermYawLowpassApplyFn;
     pt1Filter_t ptermYawLowpass;
-    filterApplyFnPtr dtermDynNotchApplyFn;
-    biquadFilter_t dtermNotchFilterDyn[XYZ_AXIS_COUNT];
-    fftAnalyseState_t dtermFFTAnalyseState;
     bool antiGravityEnabled;
     uint8_t antiGravityMode;
     pt1Filter_t antiGravityThrottleLpf;

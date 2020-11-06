@@ -459,9 +459,9 @@ FAST_CODE void gyroUpdate(void)
 
 #ifdef USE_GYRO_DATA_ANALYSE
 static void dynamicGyroNotchFiltersUpdate(gyro_t *gyro) {
-    if (gyro->fftAnalyseState.filterUpdateExecute) {
-        const uint8_t axis = gyro->fftAnalyseState.filterUpdateAxis;
-        const float frequency = gyro->fftAnalyseState.filterUpdateFrequency;
+    if (gyro->gyroAnalyseState.filterUpdateExecute) {
+        const uint8_t axis = gyro->gyroAnalyseState.filterUpdateAxis;
+        const float frequency = gyro->gyroAnalyseState.filterUpdateFrequency;
 
         DEBUG_SET(DEBUG_MATRIX_FILTER, axis, frequency);
 
@@ -482,7 +482,7 @@ FAST_CODE void gyroFiltering(timeUs_t currentTimeUs)
 
 #ifdef USE_GYRO_DATA_ANALYSE
     if (featureIsEnabled(FEATURE_DYNAMIC_FILTER)) {
-       fftDataAnalyse(&gyro.fftAnalyseState);
+       gyroDataAnalyse(&gyro.gyroAnalyseState);
        dynamicGyroNotchFiltersUpdate(&gyro);
     }
 #endif

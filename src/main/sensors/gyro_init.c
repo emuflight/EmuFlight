@@ -268,7 +268,7 @@ void gyroInitFilters(void)
 #endif
 #ifdef USE_GYRO_DATA_ANALYSE
     gyro.dynNotchQ = gyroConfig()->dyn_notch_q / 100.0f;
-    fftDataAnalyseStateInit(&gyro.fftAnalyseState, gyro.targetLooptime, gyroConfig()->dyn_notch_min_hz, gyroConfig()->dyn_notch_max_hz);
+    gyroDataAnalyseStateInit(&gyro.gyroAnalyseState, gyro.targetLooptime);
 #endif
     kalman_init();
 }

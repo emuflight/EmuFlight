@@ -1061,10 +1061,6 @@ const clivalue_t valueTable[] = {
     { "dterm_lowpass2_hz",          VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, FILTER_FREQUENCY_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lowpass2_hz) },
     { "dterm_notch_hz",             VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, FILTER_FREQUENCY_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_notch_hz) },
     { "dterm_notch_cutoff",         VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, FILTER_FREQUENCY_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_notch_cutoff) },
-    { "dterm_dyn_notch_q",          VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermDynNotchQ) },
-    { "dterm_dyn_notch_min",        VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 60, 400 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dyn_notch_min_hz) },
-    { "dterm_dyn_notch_max",        VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 150, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dyn_notch_max_hz) },
-    { "dterm_dyn_notch_location",   VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 1 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dyn_notch_location) },
     { "dterm_dynlpf2_fmax",                VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 1000 },    PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dynlpf2_fmax) },
     { "dterm_dynlpf2_gain",                VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0,  200 },    PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dynlpf2_gain) },
 #if defined(USE_BATTERY_VOLTAGE_SAG_COMPENSATION)
