@@ -590,12 +590,6 @@ static void validateAndFixConfig(void)
             for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
                 controlRateProfilesMutable(i)->rates[axis] = constrain(controlRateProfilesMutable(i)->rates[axis], 0, ACTUAL_MAX_RATE);
             }
-
-            break;
-        case RATES_TYPE_QUICK:
-            for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-                controlRateProfilesMutable(i)->rates[axis] = constrain(controlRateProfilesMutable(i)->rates[axis], 0, QUICK_MAX_RATE);
-            }
         }
     }
 
@@ -645,6 +639,9 @@ void validateAndFixGyroConfig(void)
                 break;
         case PWM_TYPE_DSHOT300:
                 motorUpdateRestriction = 0.0001f;
+                break;
+        case PWM_TYPE_DSHOT600:
+                motorUpdateRestriction = 0.0000625f;
                 break;
 #endif
         default:
