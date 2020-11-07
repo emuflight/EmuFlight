@@ -619,7 +619,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
     // gradually scale back integration when above windup point
     float dynCi = pidRuntime.dT;
-    if (pidRuntime.itermWindupPointInv > 1.0f) {
+    if (pidRuntime.itermWindupPointInv != 0.0f) {
         dynCi *= constrainf((1.0f - getMotorMixRange()) * pidRuntime.itermWindupPointInv, 0.0f, 1.0f);
     }
 
