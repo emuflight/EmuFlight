@@ -171,9 +171,13 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, pidRuntime.dT));
 #endif
 #if defined(USE_ITERM_RELAX)
-    if (pidRuntime.itermRelax) {
+    if (pidRuntime.itermRelaxCutoff || pidRuntime.itermRelaxCutoffYaw) {
         for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
-            pt1FilterInit(&pidRuntime.windupLpf[i], pt1FilterGain(pidRuntime.itermRelaxCutoff, pidRuntime.dT));
+            if (i != FD_YAW) {
+                pt1FilterInit(&pidRuntime.windupLpf[i], pt1FilterGain(pidRuntime.itermRelaxCutoff, pidRuntime.dT));
+            } else {
+                pt1FilterInit(&pidRuntime.windupLpf[i], pt1FilterGain(pidRuntime.itermRelaxCutoffYaw, pidRuntime.dT));
+            }
         }
     }
 #endif
@@ -308,9 +312,10 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     }
 
 #if defined(USE_ITERM_RELAX)
-    pidRuntime.itermRelax = pidProfile->iterm_relax;
-    pidRuntime.itermRelaxType = pidProfile->iterm_relax_type;
     pidRuntime.itermRelaxCutoff = pidProfile->iterm_relax_cutoff;
+    pidRuntime.itermRelaxCutoffYaw = pidProfile->iterm_relax_cutoff_yaw;
+    pidRuntime.itermRelaxThreshold = pidProfile->iterm_relax_threshold;
+    pidRuntime.itermRelaxThresholdYaw = pidProfile->iterm_relax_threshold_yaw;
 #endif
 
 #ifdef USE_DYN_LPF

@@ -102,7 +102,6 @@ typedef struct fp_rotationMatrix_s {
 int gcd(int num, int denom);
 float powerf(float base, int exp);
 int32_t applyDeadband(int32_t value, int32_t deadband);
-float fapplyDeadband(float value, float deadband);
 
 void devClear(stdev_t *dev);
 void devPush(stdev_t *dev, float x);

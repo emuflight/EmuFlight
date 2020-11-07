@@ -383,15 +383,6 @@ static const char * const lookupTableVideoSystem[] = {
 };
 #endif
 
-#if defined(USE_ITERM_RELAX)
-const char * const lookupTableItermRelax[] = {
-    "OFF", "RP", "RPY", "RP_INC", "RPY_INC"
-};
-const char * const lookupTableItermRelaxType[] = {
-    "GYRO", "SETPOINT"
-};
-#endif
-
 #ifdef USE_RC_SMOOTHING_FILTER
 static const char * const lookupTableRcSmoothingType[] = {
     "INTERPOLATION", "FILTER"
@@ -567,10 +558,6 @@ const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableThrottleLimitType),
 #if defined(USE_MAX7456) || defined(USE_FRSKYOSD)
     LOOKUP_TABLE_ENTRY(lookupTableVideoSystem),
-#endif
-#if defined(USE_ITERM_RELAX)
-    LOOKUP_TABLE_ENTRY(lookupTableItermRelax),
-    LOOKUP_TABLE_ENTRY(lookupTableItermRelaxType),
 #endif
 #ifdef USE_RC_SMOOTHING_FILTER
     LOOKUP_TABLE_ENTRY(lookupTableRcSmoothingType),
@@ -1073,9 +1060,10 @@ const clivalue_t valueTable[] = {
     { "crash_recovery",             VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_CRASH_RECOVERY }, PG_PID_PROFILE, offsetof(pidProfile_t, crash_recovery) },
     { "iterm_rotation",             VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_rotation) },
 #if defined(USE_ITERM_RELAX)
-    { "iterm_relax",                VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ITERM_RELAX }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax) },
-    { "iterm_relax_type",           VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ITERM_RELAX_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_type) },
-    { "iterm_relax_cutoff",         VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_cutoff) },
+    { "iterm_relax_cutoff",         VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_cutoff) },
+    { "iterm_relax_cutoff_yaw",     VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_cutoff_yaw) },
+    { "iterm_relax_threshold",      VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 10, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_threshold) },
+    { "iterm_relax_threshold_yaw",  VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 10, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_threshold_yaw) },
 #endif
     { "iterm_windup",               VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 30, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermWindupPointPercent) },
     { "iterm_limit",                VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 500 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermLimit) },

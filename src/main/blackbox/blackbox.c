@@ -1376,9 +1376,10 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("dterm_notch_cutoff", "%d",              currentPidProfile->dterm_notch_cutoff);
         BLACKBOX_PRINT_HEADER_LINE("iterm_windup", "%d",                    currentPidProfile->itermWindupPointPercent);
 #if defined(USE_ITERM_RELAX)
-        BLACKBOX_PRINT_HEADER_LINE("iterm_relax", "%d",                    currentPidProfile->iterm_relax);
-        BLACKBOX_PRINT_HEADER_LINE("iterm_relax_type", "%d",               currentPidProfile->iterm_relax_type);
-        BLACKBOX_PRINT_HEADER_LINE("iterm_relax_cutoff", "%d",             currentPidProfile->iterm_relax_cutoff);
+        BLACKBOX_PRINT_HEADER_LINE("iterm_relax_cutoff", "%d",              currentPidProfile->iterm_relax_cutoff);
+        BLACKBOX_PRINT_HEADER_LINE("iterm_relax_cutoff_yaw", "%d",          currentPidProfile->iterm_relax_cutoff_yaw);
+        BLACKBOX_PRINT_HEADER_LINE("iterm_relax_threshold", "%d",           currentPidProfile->iterm_relax_threshold);
+        BLACKBOX_PRINT_HEADER_LINE("iterm_relax_threshold_yaw", "%d",       currentPidProfile->iterm_relax_threshold_yaw);
 #endif
         BLACKBOX_PRINT_HEADER_LINE("pidAtMinThrottle", "%d",                currentPidProfile->pidAtMinThrottle);
 

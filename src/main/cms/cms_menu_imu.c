@@ -166,7 +166,8 @@ static uint8_t  cmsx_emuboost_limit_y;
 static uint16_t cmsx_dboost;
 static uint8_t  cmsx_dboost_limit;
 static uint8_t  cmsx_i_decay;
-
+static uint8_t  cmsx_iterm_relax_cutoff;
+static uint8_t  cmsx_iterm_relax_cutoff_yaw;
 
 static const void *cmsx_PidAdvancedOnEnter(displayPort_t *pDisp)
 {
@@ -182,6 +183,11 @@ static const void *cmsx_PidAdvancedOnEnter(displayPort_t *pDisp)
     cmsx_dboost =                   pidProfile->dtermBoost;
     cmsx_dboost_limit =             pidProfile->dtermBoostLimit;
     cmsx_i_decay =                  pidProfile->i_decay;
+
+#ifdef USE_ITERM_RELAX
+    cmsx_iterm_relax_cutoff = pidProfile->iterm_relax_cutoff;
+    cmsx_iterm_relax_cutoff_yaw = pidProfile->iterm_relax_cutoff_yaw;
+#endif
 
     return NULL;
 }
@@ -202,6 +208,11 @@ static const void *cmsx_PidAdvancedWriteback(displayPort_t *pDisp, const OSD_Ent
     pidProfile->dtermBoostLimit =        cmsx_dboost_limit;
     pidProfile->i_decay =                cmsx_i_decay;
 
+#ifdef USE_ITERM_RELAX
+    pidProfile->iterm_relax_cutoff = cmsx_iterm_relax_cutoff;
+    pidProfile->iterm_relax_cutoff_yaw = cmsx_iterm_relax_cutoff_yaw;
+#endif
+
     return NULL;
 }
 
@@ -220,7 +231,10 @@ static const OSD_Entry cmsx_menuPidAdvancedEntries[] =
     { "DBOOST LIMIT",    OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_dboost_limit,      0, 250,  1 }, 0 },
 
     { "I DECAY",         OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_i_decay,           1, 10,   1 }, 0 },
-
+#ifdef USE_ITERM_RELAX
+    { "I RELAX CUTOFF",    OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_iterm_relax_cutoff,      10, 100, 1 }, 0 },
+    { "I RELAX CUTOFF YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_iterm_relax_cutoff_yaw,  10, 100, 1 }, 0 },
+#endif
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }
 };
@@ -565,12 +579,6 @@ static uint8_t  cmsx_d_min_advance;
 static uint8_t  cmsx_vbat_sag_compensation;
 #endif
 
-#ifdef USE_ITERM_RELAX
-static uint8_t cmsx_iterm_relax;
-static uint8_t cmsx_iterm_relax_type;
-static uint8_t cmsx_iterm_relax_cutoff;
-#endif
-
 #ifdef USE_INTERPOLATED_SP
 static uint8_t cmsx_ff_interpolate_sp;
 static uint8_t cmsx_ff_smooth_factor;
@@ -601,12 +609,6 @@ static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
     }
     cmsx_d_min_gain = pidProfile->d_min_gain;
     cmsx_d_min_advance = pidProfile->d_min_advance;
-#endif
-
-#ifdef USE_ITERM_RELAX
-    cmsx_iterm_relax = pidProfile->iterm_relax;
-    cmsx_iterm_relax_type = pidProfile->iterm_relax_type;
-    cmsx_iterm_relax_cutoff = pidProfile->iterm_relax_cutoff;
 #endif
 
 #ifdef USE_INTERPOLATED_SP
@@ -646,12 +648,6 @@ static const void *cmsx_profileOtherOnExit(displayPort_t *pDisp, const OSD_Entry
     pidProfile->d_min_advance = cmsx_d_min_advance;
 #endif
 
-#ifdef USE_ITERM_RELAX
-    pidProfile->iterm_relax = cmsx_iterm_relax;
-    pidProfile->iterm_relax_type = cmsx_iterm_relax_type;
-    pidProfile->iterm_relax_cutoff = cmsx_iterm_relax_cutoff;
-#endif
-
 #ifdef USE_INTERPOLATED_SP
     pidProfile->ff_interpolate_sp = cmsx_ff_interpolate_sp;
     pidProfile->ff_smooth_factor = cmsx_ff_smooth_factor;
@@ -681,11 +677,6 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
 #endif
 #ifdef USE_THRUST_LINEARIZATION
     { "THR LINEAR",  OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_thrustLinearization,    0,    150,   1  }   , 0 },
-#endif
-#ifdef USE_ITERM_RELAX
-    { "I_RELAX",         OME_TAB,    NULL, &(OSD_TAB_t)     { &cmsx_iterm_relax,        ITERM_RELAX_COUNT - 1,      lookupTableItermRelax       }, 0 },
-    { "I_RELAX TYPE",    OME_TAB,    NULL, &(OSD_TAB_t)     { &cmsx_iterm_relax_type,   ITERM_RELAX_TYPE_COUNT - 1, lookupTableItermRelaxType   }, 0 },
-    { "I_RELAX CUTOFF",  OME_UINT8,  NULL, &(OSD_UINT8_t)   { &cmsx_iterm_relax_cutoff, 1, 50, 1 }, 0 },
 #endif
 #ifdef USE_LAUNCH_CONTROL
     {"LAUNCH CONTROL", OME_Submenu, cmsMenuChange, &cmsx_menuLaunchControl, 0 },

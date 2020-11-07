@@ -150,9 +150,10 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .throttle_boost = 5,
         .throttle_boost_cutoff = 15,
         .iterm_rotation = true,
-        .iterm_relax = ITERM_RELAX_RP_INC,
-        .iterm_relax_cutoff = ITERM_RELAX_CUTOFF_DEFAULT,
-        .iterm_relax_type = ITERM_RELAX_SETPOINT,
+        .iterm_relax_cutoff = 15,
+        .iterm_relax_cutoff_yaw = 30,
+        .iterm_relax_threshold = 40,
+        .iterm_relax_threshold_yaw = 40,
         .antiGravityMode = ANTI_GRAVITY_SMOOTH,
         .dterm_lowpass_hz = 0,      // NOTE: dynamic lpf is enabled by default so this setting is actually
                                     // overridden and the static lowpass 1 is disabled.
@@ -483,33 +484,26 @@ float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelt
 
 #if defined(USE_ITERM_RELAX)
 STATIC_UNIT_TESTED void applyItermRelax(const int axis, const float iterm,
-    const float gyroRate, float *itermErrorRate, float *currentPidSetpoint)
+    float *itermErrorRate, float *currentPidSetpoint)
 {
-    const float setpointLpf = pt1FilterApply(&pidRuntime.windupLpf[axis], *currentPidSetpoint);
-    const float setpointHpf = fabsf(*currentPidSetpoint - setpointLpf);
-
-    if (pidRuntime.itermRelax) {
-        if (axis < FD_YAW || pidRuntime.itermRelax == ITERM_RELAX_RPY || pidRuntime.itermRelax == ITERM_RELAX_RPY_INC) {
-            const float itermRelaxFactor = MAX(0, 1 - setpointHpf / ITERM_RELAX_SETPOINT_THRESHOLD);
-            const bool isDecreasingI =
-                ((iterm > 0) && (*itermErrorRate < 0)) || ((iterm < 0) && (*itermErrorRate > 0));
-            if ((pidRuntime.itermRelax >= ITERM_RELAX_RP_INC) && isDecreasingI) {
-                // Do Nothing, use the precalculed itermErrorRate
-            } else if (pidRuntime.itermRelaxType == ITERM_RELAX_SETPOINT) {
-                *itermErrorRate *= itermRelaxFactor;
-            } else if (pidRuntime.itermRelaxType == ITERM_RELAX_GYRO ) {
-                *itermErrorRate = fapplyDeadband(setpointLpf - gyroRate, setpointHpf);
-            } else {
-                *itermErrorRate = 0.0f;
-            }
-
-            if (axis == FD_ROLL) {
-                DEBUG_SET(DEBUG_ITERM_RELAX, 0, lrintf(setpointHpf));
-                DEBUG_SET(DEBUG_ITERM_RELAX, 1, lrintf(itermRelaxFactor * 100.0f));
-                DEBUG_SET(DEBUG_ITERM_RELAX, 2, lrintf(*itermErrorRate));
-            }
-        }
-    }
+  if ((pidRuntime.itermRelaxCutoff && axis != FD_YAW) || (pidRuntime.itermRelaxCutoffYaw && axis == FD_YAW)) {
+      static float itermRelaxFactor;
+      const float setpointLpf = pt1FilterApply(&pidRuntime.windupLpf[axis], *currentPidSetpoint);
+      const float setpointHpf = fabsf(*currentPidSetpoint - setpointLpf);
+      if (axis != FD_YAW) {
+          itermRelaxFactor *= MAX(1 - setpointHpf / pidRuntime.itermRelaxThreshold, 0.0f);
+      } else {
+          itermRelaxFactor *= MAX(1 - setpointHpf / pidRuntime.itermRelaxThresholdYaw, 0.0f);
+      }
+      if (SIGN(iterm) == SIGN(*itermErrorRate)) {
+          *itermErrorRate *= itermRelaxFactor;
+      }
+      if (axis == FD_ROLL) {
+          DEBUG_SET(DEBUG_ITERM_RELAX, 0, lrintf(setpointHpf));
+          DEBUG_SET(DEBUG_ITERM_RELAX, 1, lrintf(itermRelaxFactor * 100.0f));
+          DEBUG_SET(DEBUG_ITERM_RELAX, 2, lrintf(*itermErrorRate));
+      }
+  }
 }
 #endif
 
@@ -734,7 +728,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
 #if defined(USE_ITERM_RELAX)
         if (!launchControlActive) {
-            applyItermRelax(axis, iterm, gyroRate, &itermErrorRate, &currentPidSetpoint);
+            applyItermRelax(axis, iterm, &itermErrorRate, &currentPidSetpoint);
             errorRate = currentPidSetpoint - gyroRate;
         }
 #endif

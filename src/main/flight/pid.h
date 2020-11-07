@@ -45,10 +45,6 @@
 // This value gives the same "feel" as the previous Kd default of 26 (26 * DTERM_SCALE)
 #define FEEDFORWARD_SCALE 0.013754f
 
-// Full iterm suppression in setpoint mode at high-passed setpoint rate > 40deg/sec
-#define ITERM_RELAX_SETPOINT_THRESHOLD 40.0f
-#define ITERM_RELAX_CUTOFF_DEFAULT 15
-
 // Anti gravity I constant
 #define AG_KI 21.586988f;
 
@@ -91,21 +87,6 @@ typedef enum {
     ANTI_GRAVITY_SMOOTH,
     ANTI_GRAVITY_STEP
 } antiGravityMode_e;
-
-typedef enum {
-    ITERM_RELAX_OFF,
-    ITERM_RELAX_RP,
-    ITERM_RELAX_RPY,
-    ITERM_RELAX_RP_INC,
-    ITERM_RELAX_RPY_INC,
-    ITERM_RELAX_COUNT,
-} itermRelax_e;
-
-typedef enum {
-    ITERM_RELAX_GYRO,
-    ITERM_RELAX_SETPOINT,
-    ITERM_RELAX_TYPE_COUNT,
-} itermRelaxType_e;
 
 typedef enum ffInterpolationType_e {
     FF_INTERPOLATE_OFF,
@@ -154,9 +135,10 @@ typedef struct pidProfile_s {
     uint8_t throttle_boost;                 // how much should throttle be boosted during transient changes 0-100, 100 adds 10x hpf filtered throttle
     uint8_t throttle_boost_cutoff;          // Which cutoff frequency to use for throttle boost. higher cutoffs keep the boost on for shorter. Specified in hz.
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system
-    uint8_t iterm_relax_type;               // Specifies type of relax algorithm
-    uint8_t iterm_relax_cutoff;             // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
-    uint8_t iterm_relax;                    // Enable iterm suppression during stick input
+    uint8_t iterm_relax_cutoff;
+    uint8_t iterm_relax_cutoff_yaw;
+    uint8_t iterm_relax_threshold;             // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
+    uint8_t iterm_relax_threshold_yaw;         // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t dterm_filter2_type;             // Filter selection for 2nd dterm
     uint16_t dyn_lpf_dterm_min_hz;
     uint16_t dyn_lpf_dterm_max_hz;
@@ -297,9 +279,10 @@ typedef struct pidRuntime_s {
 
 #ifdef USE_ITERM_RELAX
     pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
-    uint8_t itermRelax;
-    uint8_t itermRelaxType;
     uint8_t itermRelaxCutoff;
+    uint8_t itermRelaxCutoffYaw;
+    uint8_t itermRelaxThreshold;
+    uint8_t itermRelaxThresholdYaw;
 #endif
 
 #ifdef USE_D_MIN
