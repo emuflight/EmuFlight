@@ -129,7 +129,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .yaw_lowpass_hz = 0,
         .dterm_notch_hz = 0,
         .dterm_notch_cutoff = 0,
-        .itermWindupPointPercent = 100,
+        .itermWindupPointPercent = 70,
         .pidAtMinThrottle = PID_STABILISATION_ON,
         .levelAngleLimit = 55,
         .feedForwardTransition = 0,
@@ -572,8 +572,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 #ifdef USE_INTERPOLATED_SP
     static FAST_DATA_ZERO_INIT uint32_t lastFrameNumber;
 #endif
-    static float previousRawGyroRateDterm[XYZ_AXIS_COUNT];
-
 #if defined(USE_ACC)
     const rollAndPitchTrims_t *angleTrim = &accelerometerConfig()->accelerometerTrims;
 #endif
@@ -621,33 +619,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
     float dynCi = pidRuntime.dT;
     if (pidRuntime.itermWindupPointInv != 0.0f) {
         dynCi *= constrainf((1.0f - getMotorMixRange()) * pidRuntime.itermWindupPointInv, 0.0f, 1.0f);
-    }
-
-    // Precalculate gyro deta for D-term here, this allows loop unrolling
-    float gyroRateDterm[XYZ_AXIS_COUNT];
-    for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
-        gyroRateDterm[axis] = gyro.gyroADCf[axis];
-        // -----calculate raw, unfiltered D component
-
-        // Divide rate change by dT to get differential (ie dr/dt).
-        // dT is fixed and calculated from the target PID loop time
-        // This is done to avoid DTerm spikes that occur with dynamically
-        // calculated deltaT whenever another task causes the PID
-        // loop execution to be delayed.
-        const float delta =
-            - (gyroRateDterm[axis] - previousRawGyroRateDterm[axis]) * pidRuntime.pidFrequency / D_LPF_RAW_SCALE;
-        previousRawGyroRateDterm[axis] = gyroRateDterm[axis];
-
-        // Log the unfiltered D
-        if (axis == FD_ROLL) {
-            DEBUG_SET(DEBUG_D_LPF, 0, lrintf(delta));
-        } else if (axis == FD_PITCH) {
-            DEBUG_SET(DEBUG_D_LPF, 1, lrintf(delta));
-        }
-
-        gyroRateDterm[axis] = pidRuntime.dtermNotchApplyFn((filter_t *) &pidRuntime.dtermNotch[axis], gyroRateDterm[axis]);
-        gyroRateDterm[axis] = pidRuntime.dtermLowpassApplyFn((filter_t *) &pidRuntime.dtermLowpass[axis], gyroRateDterm[axis]);
-        gyroRateDterm[axis] = pidRuntime.dtermLowpass2ApplyFn((filter_t *) &pidRuntime.dtermLowpass2[axis], gyroRateDterm[axis]);
     }
 
     rotateItermAndAxisError();
@@ -807,9 +778,22 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             previousErrorRate[axis] = errorRate;
             float delta = ((dtermFromMeasurement * pidRuntime.dtermMeasurementSlider) + (dtermFromError * pidRuntime.dtermMeasurementSliderInverse)) * pidRuntime.pidFrequency;
 
+            // log unfiltered roll and pitch dterm, log filtered later so we can compare without dmin/dboost
+            if (axis == FD_ROLL) {
+                DEBUG_SET(DEBUG_D_LPF, 0, lrintf(delta));
+            } else if (axis == FD_PITCH) {
+                DEBUG_SET(DEBUG_D_LPF, 2, lrintf(delta));
+            }
+
             delta = pidRuntime.dtermNotchApplyFn((filter_t *) &pidRuntime.dtermNotch[axis], delta);
             delta = pidRuntime.dtermLowpassApplyFn((filter_t *) &pidRuntime.dtermLowpass[axis], delta);
             delta = pidRuntime.dtermLowpass2ApplyFn((filter_t *) &pidRuntime.dtermLowpass2[axis], delta);
+
+            if (axis == FD_ROLL) {
+                DEBUG_SET(DEBUG_D_LPF, 1, lrintf(delta));
+            } else if (axis == FD_PITCH) {
+                DEBUG_SET(DEBUG_D_LPF, 3, lrintf(delta));
+            }
 
             //dterm boost
             delta = emuboost(delta, pidRuntime.dtermBoost, pidRuntime.dtermBoostLimit);
