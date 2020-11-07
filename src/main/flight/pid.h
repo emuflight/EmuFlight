@@ -168,7 +168,7 @@ typedef struct pidProfile_s {
     uint8_t ff_max_rate_limit;              // Maximum setpoint rate percentage for FF
     uint8_t ff_smooth_factor;               // Amount of smoothing for interpolated FF steps
     uint8_t dyn_lpf_curve_expo;             // set the curve for dynamic dterm lowpass filter
-    uint8_t nfe_racemode;                // NFE race mode - when true pitch setpoint calcualtion is gyro based in level mode
+    uint8_t nfe_racemode;                   // NFE race mode - when true pitch setpoint calcualtion is gyro based in level mode
     uint8_t vbat_sag_compensation;          // Reduce motor output by this percentage of the maximum compensation amount
 
     uint8_t  dtermMeasurementSlider;
@@ -182,6 +182,8 @@ typedef struct pidProfile_s {
 
     uint8_t i_decay;
     uint8_t i_decay_cutoff;
+
+    uint8_t stickTransition[3][XYZ_AXIS_COUNT];         // SPA p transition
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
@@ -276,6 +278,11 @@ typedef struct pidRuntime_s {
     float emuBoostLimitY;
     float dtermBoost;
     float dtermBoostLimit;
+
+    uint8_t iDecay;
+    uint8_t iDecayCutoff;
+
+    float stickPositionTransition[3][XYZ_AXIS_COUNT];
 
 #ifdef USE_ITERM_RELAX
     pt1Filter_t windupLpf[XYZ_AXIS_COUNT];

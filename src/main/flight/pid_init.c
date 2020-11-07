@@ -258,6 +258,9 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidRuntime.pidCoefficient[axis].Ki = ITERM_SCALE * pidProfile->pid[axis].I;
         pidRuntime.pidCoefficient[axis].Kd = DTERM_SCALE * pidProfile->pid[axis].D;
         pidRuntime.pidCoefficient[axis].Kf = FEEDFORWARD_SCALE * (pidProfile->pid[axis].F / 100.0f);
+        for (int pid = 0; axis <= 2; pid++) {
+            pidRuntime.stickPositionTransition[pid][axis] = pidProfile->stickTransition[pid][axis] - 1.0f;
+        }
     }
     {
         pidRuntime.pidCoefficient[FD_YAW].Ki *= 2.5f;
@@ -272,6 +275,8 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.emuBoostLimitY = pidProfile->emuBoostLimitY / 100.0f;
     pidRuntime.dtermBoost = (pidProfile->dtermBoost * pidProfile->dtermBoost / 1000000) * 0.003;
     pidRuntime.dtermBoostLimit = pidProfile->dtermBoostLimit / 100.0f;
+    pidRuntime.iDecay = pidProfile->i_decay;
+    pidRuntime.iDecayCutoff = pidProfile->i_decay_cutoff;
 
     pidRuntime.P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
     pidRuntime.D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;

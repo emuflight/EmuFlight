@@ -124,6 +124,11 @@ void resetPidProfile(pidProfile_t *pidProfile)
             [PID_LEVEL_HIGH] = { 35, 0,  1,   0 },
             [PID_MAG] =        { 40, 0,  0,   0 },
         },
+        .stickTransition = {
+          { 110, 110, 130 }, // p roll, p pitch, p yaw
+          { 90,  90,  30  }, // i roll, i pitch, i yaw
+          { 110, 110, 130 }, // d roll, d pitch, d yaw
+        },
         .pidSumLimit = PIDSUM_LIMIT,
         .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
         .yaw_lowpass_hz = 0,
@@ -563,6 +568,10 @@ float emuboost(float input, float boostMultiplier, float boostLimit)
     return input;
 }
 
+float stickPositionAttenuation(int axis, int pid) {
+    return 1 + (getRcDeflectionAbs(axis) * pidRuntime.stickPositionTransition[pid][axis]);
+}
+
 // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
 // Based on 2DOF reference design (matlab)
 void FAST_CODE pidController(const pidProfile_t *pidProfile)
@@ -637,13 +646,9 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
     // ----------PID controller----------
     for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
-
-        float currentPidSetpoint = getSetpointRate(axis);
-        if (pidRuntime.maxVelocity[axis]) {
-            currentPidSetpoint = accelerationLimit(axis, currentPidSetpoint);
-        }
         // Yaw control is GYRO based, direct sticks control is applied to rate PID
         // When Race Mode is active PITCH control is also GYRO based in level or horizon mode
+        float currentPidSetpoint = getSetpointRate(axis);
 #if defined(USE_ACC)
         switch (levelMode) {
         case LEVEL_MODE_OFF:
@@ -672,6 +677,9 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 #endif
         }
 #endif
+        if (pidRuntime.maxVelocity[axis]) {
+            currentPidSetpoint = accelerationLimit(axis, currentPidSetpoint);
+        }
 
         // Handle yaw spin recovery - zero the setpoint on yaw to aid in recovery
         // It's not necessary to zero the set points for R/P because the PIDs will be zeroed below
@@ -709,7 +717,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         // b = 1 and only c (feedforward weight) can be tuned (amount derivative on measurement or error).
 
         // -----calculate P component
-        pidData[axis].P = pidRuntime.pidCoefficient[axis].Kp * boostedErrorRate * getThrottlePAttenuation();
+        pidData[axis].P = pidRuntime.pidCoefficient[axis].Kp * boostedErrorRate * getThrottlePAttenuation() * stickPositionAttenuation(axis, 0);
         if (axis == FD_YAW) {
             pidData[axis].P = pidRuntime.ptermYawLowpassApplyFn((filter_t *) &pidRuntime.ptermYawLowpass, pidData[axis].P);
         }
@@ -729,12 +737,12 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             axisDynCi = (axis == FD_YAW) ? dynCi : pidRuntime.dT; // only apply windup protection to yaw
         }
 
-        float iTermNew = (Ki * axisDynCi + agGain) * itermErrorRate * getThrottleIAttenuation();
+        float iTermNew = (Ki * axisDynCi + agGain) * itermErrorRate * getThrottleIAttenuation() * stickPositionAttenuation(axis, 1);
 
         if (SIGN(iterm) != SIGN(iTermNew))
         {
             // at low iterm iDecayMultiplier will be 1 and at high iterm it will be equivilant to iDecay
-            const float iDecayMultiplier = 1.0f + (pidProfile->i_decay - 1.0f) * constrainf(iterm / pidProfile->i_decay_cutoff, 0.0f, 1.0f);
+            const float iDecayMultiplier = 1.0f + (pidRuntime.iDecay - 1.0f) * constrainf(iterm / pidRuntime.iDecayCutoff, 0.0f, 1.0f);
             const float newVal = iTermNew * iDecayMultiplier;
 
         	  if (fabs(iterm) > fabs(newVal))
@@ -822,24 +830,12 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             // Apply the dMinFactor
             preTpaData *= dMinFactor;
 #endif
-            pidData[axis].D = preTpaData * getThrottleDAttenuation();
+            pidData[axis].D = preTpaData * getThrottleDAttenuation() * stickPositionAttenuation(axis, 2);
 
             // Log the value of D pre application of TPA
             preTpaData *= D_LPF_FILT_SCALE;
-
-            if (axis == FD_ROLL) {
-                DEBUG_SET(DEBUG_D_LPF, 2, lrintf(preTpaData));
-            } else if (axis == FD_PITCH) {
-                DEBUG_SET(DEBUG_D_LPF, 3, lrintf(preTpaData));
-            }
         } else {
             pidData[axis].D = 0;
-
-            if (axis == FD_ROLL) {
-                DEBUG_SET(DEBUG_D_LPF, 2, 0);
-            } else if (axis == FD_PITCH) {
-                DEBUG_SET(DEBUG_D_LPF, 3, 0);
-            }
         }
 
 #if defined(USE_ACC)
