@@ -176,12 +176,9 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .motor_output_limit = 100,
     .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
     .horizonTransition = 0,
-    .min_authority_zero_throttle = 50,
-    .min_authority_full_throttle = 100,
-    .predictiveAirModeMultiplier = 10,
-    .predictiveAirModeHz = 2,
-    .axisLockMultiplier = 0,
-    .axisLockHz = 2,
+    .thrust_linearization_level = 0,
+    .use_throttle_linearization = false,
+    .mixer_laziness = false,
     );
 }
 
@@ -262,12 +259,11 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 break;
             }
         }
-        pt1FilterInit(&axisLockLpf[axis], pt1FilterGain(pidProfile->axisLockHz, dT));
     }
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, dT));
 #endif
-    pt1FilterInit(&predictiveAirmodeLpf, pt1FilterGain(pidProfile->predictiveAirModeHz, dT));
+
 #if defined(USE_ITERM_RELAX)
     for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
         if (i != FD_YAW) {
@@ -348,8 +344,6 @@ static FAST_RAM_ZERO_INIT float itermLimit;
 FAST_RAM_ZERO_INIT float throttleBoost;
 pt1Filter_t throttleLpf;
 #endif
-pt1Filter_t predictiveAirmodeLpf;
-pt1Filter_t axisLockLpf[3];
 static FAST_RAM_ZERO_INIT bool itermRotation;
 static FAST_RAM_ZERO_INIT float temporaryIterm[XYZ_AXIS_COUNT];
 

@@ -876,8 +876,6 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateCorrectionEnd);
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateWeightCenter);
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateWeightEnd);
-        sbufWriteU8(dst, currentControlRateProfile->thrust_linearization_level);
-        sbufWriteU8(dst, currentControlRateProfile->use_throttle_linearization);
         break;
     case MSP_EMUF:
         sbufWriteU8(dst, currentControlRateProfile->dynThrI);
@@ -1594,10 +1592,6 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
                 currentControlRateProfile->rateDynamics.rateCorrectionEnd = sbufReadU8(src);
                 currentControlRateProfile->rateDynamics.rateWeightCenter = sbufReadU8(src);
                 currentControlRateProfile->rateDynamics.rateWeightEnd = sbufReadU8(src);
-            }
-            if (sbufBytesRemaining(src) >= 2) {
-                currentControlRateProfile->thrust_linearization_level = sbufReadU8(src);
-                currentControlRateProfile->use_throttle_linearization = sbufReadU8(src);
             }
             initRcProcessing();
         } else {

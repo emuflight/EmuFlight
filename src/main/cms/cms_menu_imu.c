@@ -74,13 +74,11 @@ static uint8_t itermRelaxThresholdYaw;
 static uint8_t itermWindup;
 static uint16_t dtermBoost;
 static uint8_t dtermBoostLimit;
-static uint8_t axis_lock_hz;
-static uint8_t axis_lock_multiplier;
-static uint8_t predictive_airmode_hz;
-static uint8_t predictive_airmode_mult;
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
-
+static uint8_t thrust_linearization_level;
+static bool use_throttle_linearization;
+static bool mixer_laziness;
 
 static uint8_t tmpRateProfileIndex;
 static uint8_t rateProfileIndex;
@@ -142,10 +140,9 @@ static long cmsx_PidAdvancedRead(void) {
     itermRelaxThreshold = pidProfile->iterm_relax_threshold;
     itermRelaxThresholdYaw = pidProfile->iterm_relax_threshold_yaw;
     itermWindup = pidProfile->itermWindupPointPercent;
-    axis_lock_hz = pidProfile->axisLockHz;
-    axis_lock_multiplier = pidProfile->axisLockMultiplier;
-    predictive_airmode_hz = pidProfile->predictiveAirModeHz;
-    predictive_airmode_mult = pidProfile->predictiveAirModeMultiplier;
+    thrust_linearization_level = pidProfile->thrust_linearization_level;
+    use_throttle_linearization = pidProfile->use_throttle_linearization;
+    mixer_laziness = pidProfile->mixer_laziness;
     return 0;
 }
 
@@ -172,10 +169,9 @@ static long cmsx_PidAdvancedWriteback(const OSD_Entry *self) {
     pidProfile->iterm_relax_threshold = itermRelaxThreshold;
     pidProfile->iterm_relax_threshold_yaw = itermRelaxThresholdYaw;
     pidProfile->itermWindupPointPercent = itermWindup;
-    pidProfile->axisLockHz = axis_lock_hz;
-    pidProfile->axisLockMultiplier = axis_lock_multiplier;
-    pidProfile->predictiveAirModeHz = predictive_airmode_hz;
-    pidProfile->predictiveAirModeMultiplier = predictive_airmode_mult;
+    pidProfile->thrust_linearization_level = thrust_linearization_level;
+    pidProfile->use_throttle_linearization = use_throttle_linearization;
+    pidProfile->mixer_laziness = mixer_laziness;
     pidInitConfig(currentPidProfile);
     return 0;
 }
@@ -184,11 +180,6 @@ static OSD_Entry cmsx_menuPidAdvancedEntries[] = {
     { "-- ADVANCED PIDS --", OME_Label, NULL, pidProfileIndexString, 0},
 
     { "FEATHERED",         OME_UINT8, NULL, &(OSD_UINT8_t){ &feathered_pids,           0, 100,   1}, 0 },
-
-    { "AXIS LOCK HZ",      OME_UINT8, NULL, &(OSD_UINT8_t){ &axis_lock_hz,             1,  50,  1}, 0 },
-    { "AXIS LOCK MULT",    OME_UINT8, NULL, &(OSD_UINT8_t){ &axis_lock_multiplier,     0,  25,  1}, 0 },
-    { "PRDCTV ARMD HZ",    OME_UINT8, NULL, &(OSD_UINT8_t){ &predictive_airmode_hz,    1,  50,  1}, 0 },
-    { "PRDCTV ARMD MULT",  OME_UINT8, NULL, &(OSD_UINT8_t){ &predictive_airmode_mult,  0,  25,  1}, 0 },
 
     { "EMU BOOST",         OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,             0,  2000, 5}, 0 },
     { "BOOST LIMIT",       OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,          0,  250,  1}, 0 },
@@ -205,6 +196,10 @@ static OSD_Entry cmsx_menuPidAdvancedEntries[] = {
     { "I RELAX THRESH",    OME_UINT8, NULL, &(OSD_UINT8_t){ &itermRelaxThreshold,      0, 100, 1 }, 0 },
     { "I RELAX THRESH YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &itermRelaxThresholdYaw,   0, 100, 1 }, 0 },
     { "I WINDUP",          OME_UINT8, NULL, &(OSD_UINT8_t){ &itermWindup,              0, 100, 1 }, 0 },
+
+    { "THRUST LINEAR",     OME_UINT8, NULL, &(OSD_UINT8_t) { &thrust_linearization_level, 0,  100,  1}, 0 },
+    { "THROTTLE LINEAR",   OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &use_throttle_linearization, 1, cms_offOnLabels }, 0 },
+    { "LAZY MIXER",        OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &mixer_laziness, 1, cms_offOnLabels }, 0 },
 
     { "SAVE&EXIT",         OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK",              OME_Back, NULL, NULL, 0 },
@@ -334,10 +329,6 @@ static OSD_Entry cmsx_menuRateProfileEntries[] = {
     { "VBAT COMP TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)    { &rateProfile.vbat_comp_type, VBAT_COMP_TYPE_COUNT - 1, cms_throttleVbatCompTypeLabels}, 0 },
     { "VBAT COMP REF",   OME_UINT8, NULL, &(OSD_UINT8_t)  { &rateProfile.vbat_comp_ref, VBAT_CELL_VOTAGE_RANGE_MIN, VBAT_CELL_VOTAGE_RANGE_MAX,  1}, 0 },
     { "THROTTLE LIMIT %", OME_UINT8, NULL, &(OSD_UINT8_t)  { &rateProfile.throttle_limit_percent, 25,  100,  1}, 0 },
-
-    { "THRUST LINEAR",   OME_UINT8, NULL, &(OSD_UINT8_t) { &rateProfile.thrust_linearization_level, 0,  100,  1}, 0 },
-    { "THROTTLE LINEAR", OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &rateProfile.use_throttle_linearization, 1, cms_offOnLabels }, 0 },
-    { "AIRMODE 2.0",     OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &rateProfile.use_airmode_2_0, 1, cms_offOnLabels }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
