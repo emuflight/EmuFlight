@@ -414,11 +414,10 @@ static void updateDynLpf2(int axis) {
   average = MAX(average, 1.0f);
   getSetpointRate(axis);
 
-  float e = error / average;                           //Compute ratio between Error and average. e is image of noise in % of signal
+  float e = MIN(error / average, 1.0f);                           //Compute ratio between Error and average. e is image of noise in % of signal
 
   //New freq
-  float ratioRatio = gyroFiltered / 50.0f;
-  ratioRatio = MAX(ratioRatio, 1.0f);
+  float ratioRatio = MIN(gyroFiltered * gyroFiltered / 200.0f, 1.0f);
   float inverseRatioRatio = 1.0f - ratioRatio;
   dynLpf2Cutoff[axis] = 100.0f * powf(e, 3.0f) * ratioRatio;  //"e" power 3 and multiply by a gain
   dynLpf2Cutoff[axis] += error * inverseRatioRatio / 20.0f;
@@ -429,8 +428,8 @@ static void updateDynLpfCutoffs(timeUs_t currentTimeUs, float throttle)
     static timeUs_t lastDynLpfUpdateUs = 0;
     static int dynLpfPreviousQuantizedThrottle = -1;  // to allow an initial zero throttle to set the filter cutoff
 
-    static float lastGyroCutoff[XYZ_AXIS_COUNT], lastDtermCutoff[XYZ_AXIS_COUNT];
-    static float gyroCutoff[XYZ_AXIS_COUNT], dtermCutoff[XYZ_AXIS_COUNT];
+    static float lastGyroCutoff[XYZ_AXIS_COUNT], lastDtermCutoff[XYZ_AXIS_COUNT] = {0,0,0};
+    static float gyroCutoff[XYZ_AXIS_COUNT], dtermCutoff[XYZ_AXIS_COUNT] = {0,0,0};
     static float gyroThrottleCutoff, dtermThrottleCutoff;
 
     if (cmpTimeUs(currentTimeUs, lastDynLpfUpdateUs) >= DYN_LPF_THROTTLE_UPDATE_DELAY_US) {
