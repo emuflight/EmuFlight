@@ -116,21 +116,6 @@ static void gyroInitFilterNotch1(uint16_t notchHz, uint16_t notchCutoffHz)
     }
 }
 
-static void gyroInitFilterNotch2(uint16_t notchHz, uint16_t notchCutoffHz)
-{
-    gyro.notchFilter2ApplyFn = nullFilterApply;
-
-    notchHz = calculateNyquistAdjustedNotchHz(notchHz, notchCutoffHz);
-
-    if (notchHz != 0 && notchCutoffHz != 0) {
-        gyro.notchFilter2ApplyFn = (filterApplyFnPtr)biquadFilterApply;
-        const float notchQ = filterGetNotchQ(notchHz, notchCutoffHz);
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            biquadFilterInit(&gyro.notchFilter2[axis], notchHz, gyro.targetLooptime, notchQ, FILTER_NOTCH);
-        }
-    }
-}
-
 #ifdef USE_GYRO_DATA_ANALYSE
 static void gyroInitFilterDynamicNotch()
 {
@@ -149,25 +134,13 @@ static void gyroInitFilterDynamicNotch()
 }
 #endif
 
-static bool gyroInitLowpassFilterLpf(int slot, int type, uint16_t lpfHz, uint32_t looptime)
+static bool gyroInitLowpassFilterLpf(int type, uint16_t lpfHz, uint32_t looptime)
 {
     filterApplyFnPtr *lowpassFilterApplyFn;
     gyroLowpassFilter_t *lowpassFilter = NULL;
 
-    switch (slot) {
-    case FILTER_LOWPASS:
-        lowpassFilterApplyFn = &gyro.lowpassFilterApplyFn;
-        lowpassFilter = gyro.lowpassFilter;
-        break;
-
-    case FILTER_LOWPASS2:
-        lowpassFilterApplyFn = &gyro.lowpass2FilterApplyFn;
-        lowpassFilter = gyro.lowpass2Filter;
-        break;
-
-    default:
-        return false;
-    }
+    lowpassFilterApplyFn = &gyro.lowpassFilterApplyFn;
+    lowpassFilter = gyro.lowpassFilter;
 
     bool ret = false;
 
@@ -245,21 +218,12 @@ void gyroInitFilters(void)
 #endif
 
     gyroInitLowpassFilterLpf(
-      FILTER_LOWPASS,
       gyroConfig()->gyro_lowpass_type,
       gyro_lowpass_hz,
       gyro.targetLooptime
     );
 
-    gyroInitLowpassFilterLpf(
-      FILTER_LOWPASS2,
-      gyroConfig()->gyro_lowpass2_type,
-      gyroConfig()->gyro_lowpass2_hz,
-      gyro.sampleLooptime
-    );
-
     gyroInitFilterNotch1(gyroConfig()->gyro_soft_notch_hz_1, gyroConfig()->gyro_soft_notch_cutoff_1);
-    gyroInitFilterNotch2(gyroConfig()->gyro_soft_notch_hz_2, gyroConfig()->gyro_soft_notch_cutoff_2);
 #ifdef USE_GYRO_DATA_ANALYSE
     gyroInitFilterDynamicNotch();
 #endif

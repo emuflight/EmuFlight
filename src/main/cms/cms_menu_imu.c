@@ -723,11 +723,8 @@ static CMS_Menu cmsx_menuProfileOther = {
 
 
 static uint16_t gyroConfig_gyro_lowpass_hz;
-static uint16_t gyroConfig_gyro_lowpass2_hz;
 static uint16_t gyroConfig_gyro_soft_notch_hz_1;
 static uint16_t gyroConfig_gyro_soft_notch_cutoff_1;
-static uint16_t gyroConfig_gyro_soft_notch_hz_2;
-static uint16_t gyroConfig_gyro_soft_notch_cutoff_2;
 static uint8_t  gyroConfig_gyro_to_use;
 
 static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
@@ -735,11 +732,8 @@ static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
     UNUSED(pDisp);
 
     gyroConfig_gyro_lowpass_hz =  gyroConfig()->gyro_lowpass_hz;
-    gyroConfig_gyro_lowpass2_hz =  gyroConfig()->gyro_lowpass2_hz;
     gyroConfig_gyro_soft_notch_hz_1 = gyroConfig()->gyro_soft_notch_hz_1;
     gyroConfig_gyro_soft_notch_cutoff_1 = gyroConfig()->gyro_soft_notch_cutoff_1;
-    gyroConfig_gyro_soft_notch_hz_2 = gyroConfig()->gyro_soft_notch_hz_2;
-    gyroConfig_gyro_soft_notch_cutoff_2 = gyroConfig()->gyro_soft_notch_cutoff_2;
     gyroConfig_gyro_to_use = gyroConfig()->gyro_to_use;
 
     return NULL;
@@ -751,11 +745,8 @@ static const void *cmsx_menuGyro_onExit(displayPort_t *pDisp, const OSD_Entry *s
     UNUSED(self);
 
     gyroConfigMutable()->gyro_lowpass_hz =  gyroConfig_gyro_lowpass_hz;
-    gyroConfigMutable()->gyro_lowpass2_hz =  gyroConfig_gyro_lowpass2_hz;
     gyroConfigMutable()->gyro_soft_notch_hz_1 = gyroConfig_gyro_soft_notch_hz_1;
     gyroConfigMutable()->gyro_soft_notch_cutoff_1 = gyroConfig_gyro_soft_notch_cutoff_1;
-    gyroConfigMutable()->gyro_soft_notch_hz_2 = gyroConfig_gyro_soft_notch_hz_2;
-    gyroConfigMutable()->gyro_soft_notch_cutoff_2 = gyroConfig_gyro_soft_notch_cutoff_2;
     gyroConfigMutable()->gyro_to_use = gyroConfig_gyro_to_use;
 
     return NULL;
@@ -766,13 +757,8 @@ static const OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "-- FILTER GLB  --", OME_Label, NULL, NULL, 0 },
 
     { "GYRO LPF",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz, 0, FILTER_FREQUENCY_MAX, 1 }, 0 },
-#ifdef USE_GYRO_LPF2
-    { "GYRO LPF2",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz,  0, FILTER_FREQUENCY_MAX, 1 }, 0 },
-#endif
     { "GYRO NF1",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_1,     0, 500, 1 }, 0 },
     { "GYRO NF1C",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_1, 0, 500, 1 }, 0 },
-    { "GYRO NF2",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_2,     0, 500, 1 }, 0 },
-    { "GYRO NF2C",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_2, 0, 500, 1 }, 0 },
 #ifdef USE_MULTI_GYRO
     { "GYRO TO USE",  OME_TAB,  NULL, &(OSD_TAB_t)    { &gyroConfig_gyro_to_use,  2, osdTableGyroToUse}, REBOOT_REQUIRED },
 #endif

@@ -65,7 +65,6 @@ void targetConfiguration(void)
 
     gyroConfigMutable()->gyro_soft_lpf_hz = 100;
     gyroConfigMutable()->gyro_soft_notch_hz_1 = 0;
-    gyroConfigMutable()->gyro_soft_notch_hz_2 = 0;
 
     /*for (int channel = 0; channel < NON_AUX_CHANNEL_COUNT; channel++) {
         rxChannelRangeConfigsMutable(channel)->min = 1180;

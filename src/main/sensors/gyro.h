@@ -88,16 +88,9 @@ typedef struct gyro_s {
     filterApplyFnPtr lowpassFilterApplyFn;
     gyroLowpassFilter_t lowpassFilter[XYZ_AXIS_COUNT];
 
-    // lowpass2 gyro soft filter
-    filterApplyFnPtr lowpass2FilterApplyFn;
-    gyroLowpassFilter_t lowpass2Filter[XYZ_AXIS_COUNT];
-
     // notch filters
     filterApplyFnPtr notchFilter1ApplyFn;
     biquadFilter_t notchFilter1[XYZ_AXIS_COUNT];
-
-    filterApplyFnPtr notchFilter2ApplyFn;
-    biquadFilter_t notchFilter2[XYZ_AXIS_COUNT];
 
     filterApplyFnPtr notchFilterDynApplyFn;
     biquadFilter_t notchFilterDyn[XYZ_AXIS_COUNT][XYZ_AXIS_COUNT];
@@ -154,11 +147,6 @@ typedef enum {
 #define GYRO_CONFIG_USE_GYRO_2      1
 #define GYRO_CONFIG_USE_GYRO_BOTH   2
 
-enum {
-    FILTER_LOWPASS = 0,
-    FILTER_LOWPASS2
-};
-
 typedef struct gyroConfig_s {
     uint8_t  gyroMovementCalibrationThreshold; // people keep forgetting that moving model while init results in wrong gyro offsets. and then they never reset gyro. so this is now on by default.
     uint8_t  gyro_hardware_lpf;                // gyro DLPF setting
@@ -168,18 +156,14 @@ typedef struct gyroConfig_s {
     uint8_t  gyro_to_use;
 
     uint16_t gyro_lowpass_hz;
-    uint16_t gyro_lowpass2_hz;
 
     uint16_t gyro_soft_notch_hz_1;
     uint16_t gyro_soft_notch_cutoff_1;
-    uint16_t gyro_soft_notch_hz_2;
-    uint16_t gyro_soft_notch_cutoff_2;
     int16_t  gyro_offset_yaw;
     uint8_t  checkOverflow;
 
     // Lowpass primary/secondary
     uint8_t  gyro_lowpass_type;
-    uint8_t  gyro_lowpass2_type;
 
     uint8_t  yaw_spin_recovery;
     int16_t  yaw_spin_threshold;
