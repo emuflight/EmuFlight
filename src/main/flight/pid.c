@@ -708,7 +708,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 #if defined(USE_ITERM_RELAX)
         if (!launchControlActive) {
             applyItermRelax(axis, iterm, &itermErrorRate, &currentPidSetpoint);
-            errorRate = currentPidSetpoint - gyroRate;
         }
 #endif
 

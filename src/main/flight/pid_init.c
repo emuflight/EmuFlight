@@ -259,7 +259,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidRuntime.pidCoefficient[axis].Kd = DTERM_SCALE * pidProfile->pid[axis].D;
         pidRuntime.pidCoefficient[axis].Kf = FEEDFORWARD_SCALE * (pidProfile->pid[axis].F / 100.0f);
         for (int pid = 0; pid <= 2; pid++) {
-            pidRuntime.stickPositionTransition[pid][axis] = pidProfile->stickTransition[pid][axis] - 1.0f;
+            pidRuntime.stickPositionTransition[pid][axis] = (pidProfile->stickTransition[pid][axis] / 100.0f) - 1.0f;
         }
     }
     {
