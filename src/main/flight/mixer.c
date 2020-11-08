@@ -411,7 +411,7 @@ static void updateDynLpf2(int axis) {
   float error = fabsf(target - gyroFiltered);
 
   float average = (fabsf(target) + fabsf(gyroFiltered)) * 0.5f;
-  average = MAX(average, 1.0f);
+  average = MAX(average, 10.0f);
   getSetpointRate(axis);
 
   float e = MIN(error / average, 1.0f);                           //Compute ratio between Error and average. e is image of noise in % of signal
