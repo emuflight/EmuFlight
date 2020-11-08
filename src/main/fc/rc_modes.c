@@ -24,21 +24,25 @@
 
 #include "platform.h"
 
-#include "rc_modes.h"
-
 #include "common/bitarray.h"
 #include "common/maths.h"
+
 #include "drivers/time.h"
 
 #include "config/feature.h"
-#include "pg/pg.h"
-#include "pg/pg_ids.h"
-#include "pg/rx.h"
 
 #include "fc/config.h"
 #include "fc/rc_controls.h"
 
+#include "io/piniobox.h"
+
+#include "pg/pg.h"
+#include "pg/pg_ids.h"
+#include "pg/rx.h"
+
 #include "rx/rx.h"
+
+#include "rc_modes.h"
 
 #define STICKY_MODE_BOOT_DELAY_US 5e6
 
@@ -54,8 +58,10 @@ bool IS_RC_MODE_ACTIVE(boxId_e boxId) {
 
 void rcModeUpdate(boxBitmask_t *newState) {
     rcModeActivationMask = *newState;
+#ifdef USE_PINIOBOX
+    pinioBoxTaskControl();
+#endif
 }
-
 bool isAirmodeActive(void) {
     return (IS_RC_MODE_ACTIVE(BOXAIRMODE) || feature(FEATURE_AIRMODE));
 }
