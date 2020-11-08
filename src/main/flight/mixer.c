@@ -130,6 +130,7 @@ mixerMode_e currentMixerMode;
 static motorMixer_t currentMixer[MAX_SUPPORTED_MOTORS];
 
 static bool mixerLaziness;
+static float thrust_linearization_level;
 static float thrustLinearizationPIDScaler; // used to avoid or at least limit PID tuning when enabling thrust linearization
 
 static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
@@ -417,9 +418,9 @@ void initEscEndpoints(void) {
 // Initialize pidProfile related mixer settings
 void mixerInitProfile(void)
 {
-    float tll = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->thrust_linearization_level);
-    mixerLaziness = currentPidProfile->mixer_laziness && tll; // lazy mixer works well with thrust linearization
-    thrustLinearizationPIDScaler = ((1.0f - tll) * 0.5f + tll * 0.25f) / 0.5f; // unlinear_thrust / linearized_thrust
+    mixerLaziness = currentPidProfile->mixer_laziness && thrust_linearization_level; // lazy mixer works well with thrust linearization
+    thrust_linearization_level = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->thrust_linearization_level);
+    thrustLinearizationPIDScaler = ((1.0f - thrust_linearization_level) * 0.5f + thrust_linearization_level * 0.25f) / 0.5f; // unlinear_thrust / linearized_thrust at 0.5
 }
 
 void mixerInit(mixerMode_e mixerMode) {
@@ -636,7 +637,7 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs) {
 
 static float mapThrustToMotorOutput(float thrust, float vbatCompFactor)
 {
-    float linearizedThrust = vbatCompFactor * scaleRangef(currentPidProfile->thrust_linearization_level, 0, 100, thrust, SIGN(thrust) * vbatCompFactor * sqrtf(ABS(thrust)));
+    float linearizedThrust = vbatCompFactor * ((1.0f - thrust_linearization_level) * thrust + thrust_linearization_level * SIGN(thrust) * vbatCompFactor * sqrtf(ABS(thrust)));
     return motorOutputMin + linearizedThrust * motorOutputRange;
 }
 
@@ -701,13 +702,12 @@ static void applyFlipOverAfterCrashModeToMotors(void) {
 }
 
 static float applyThrottleCurve(float throttle) {
-    if (currentPidProfile->thrust_linearization_level) {
+    if (thrust_linearization_level) {
         if (currentPidProfile->use_throttle_linearization) {
-            return throttle - CONVERT_PARAMETER_TO_PERCENT(motorConfig()->minthrottle) / 100.0f;
+            return throttle - CONVERT_PARAMETER_TO_PERCENT(motorConfig()->minthrottle);
         } else {
             // counter compensating thrust linearization on throttle
-            return throttle *
-                   scaleRangef(currentPidProfile->thrust_linearization_level, 0, 100, 1.0f, ABS(throttle));
+            return (1.0f - thrust_linearization_level) * throttle + thrust_linearization_level * throttle * throttle;
         }
     }
     return throttle;
