@@ -42,8 +42,6 @@
 
 // This value gives the same "feel" as the previous Kd default of 26 (26 * DTERM_SCALE)
 
-#define SIGN(x) ((x > 0.0f) - (x < 0.0f))
-
 typedef enum {
     PID_ROLL,
     PID_PITCH,

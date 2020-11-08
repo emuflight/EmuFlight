@@ -637,7 +637,7 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs) {
 
 static float mapThrustToMotorOutput(float thrust, float vbatCompFactor)
 {
-    float linearizedThrust = vbatCompFactor * ((1.0f - thrust_linearization_level) * thrust + thrust_linearization_level * SIGN(thrust) * vbatCompFactor * sqrtf(ABS(thrust)));
+    float linearizedThrust = vbatCompFactor * ((1.0f - thrust_linearization_level) * thrust + thrust_linearization_level * vbatCompFactor * sqrtf(thrust));
     return motorOutputMin + linearizedThrust * motorOutputRange;
 }
 
