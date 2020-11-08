@@ -132,7 +132,7 @@ static motorMixer_t currentMixer[MAX_SUPPORTED_MOTORS];
 static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
 
 static bool mixerLaziness;
-static float thrust_linearization_level;
+static float thrustLinearizationLevel;
 static float thrustLinearizationPIDScaler; // used to avoid or at least limit PID tuning when enabling thrust linearization
 
 static const motorMixer_t mixerQuadX[] = {
@@ -418,9 +418,9 @@ void initEscEndpoints(void) {
 // Initialize pidProfile related mixer settings
 void mixerInitProfile(void)
 {
-    mixerLaziness = currentPidProfile->mixer_laziness && thrust_linearization_level; // lazy mixer works well with thrust linearization
-    thrust_linearization_level = CONVERT_PARAMETER_TO_PERCENT(currentPidProfile->thrust_linearization_level);
-    thrustLinearizationPIDScaler = ((1.0f - thrust_linearization_level) * 0.5f + thrust_linearization_level * 0.25f) / 0.5f; // unlinear_thrust / linearized_thrust at 0.5
+    thrustLinearizationLevel = 0.01f * currentPidProfile->thrust_linearization_level;
+    thrustLinearizationPIDScaler = ((1.0f - thrustLinearizationLevel) * 0.5f + thrustLinearizationLevel * 0.25f) / 0.5f; // unlinear_thrust / linearized_thrust at 0.5
+    mixerLaziness = currentPidProfile->mixer_laziness && thrustLinearizationLevel; // lazy mixer needs thrust linearization
 }
 
 void mixerInit(mixerMode_e mixerMode) {
@@ -637,7 +637,8 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs) {
 
 static float mapThrustToMotorOutput(float thrust, float vbatCompFactor)
 {
-    float linearizedThrust = vbatCompFactor * ((1.0f - thrust_linearization_level) * thrust + thrust_linearization_level * vbatCompFactor * sqrtf(thrust));
+    thrust = MAX(thrust, 0.0f); // let's take some precautions from round-off errors
+    float linearizedThrust = vbatCompFactor * ((1.0f - thrustLinearizationLevel) * thrust + thrustLinearizationLevel * vbatCompFactor * sqrtf(thrust));
     return motorOutputMin + linearizedThrust * motorOutputRange;
 }
 
@@ -701,26 +702,20 @@ static void applyFlipOverAfterCrashModeToMotors(void) {
     }
 }
 
-static float applyThrottleCurve(float throttle) {
-    if (thrust_linearization_level) {
-        if (currentPidProfile->use_throttle_linearization) {
-            return MAX(throttle - CONVERT_PARAMETER_TO_PERCENT(motorConfig()->minthrottle), 0.0f);
-        } else {
-            // counter compensating thrust linearization on throttle
-            return (1.0f - thrust_linearization_level) * throttle + thrust_linearization_level * throttle * throttle;
-        }
+static void applyThrottleCurve() {
+    if (thrustLinearizationLevel) {
+        // counter compensating thrust linearization on throttle
+        throttle = (1.0f - thrustLinearizationLevel) * throttle + thrustLinearizationLevel * throttle * throttle;
     }
-    return throttle;
 }
 
 static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS]) {
     // Now add in the desired throttle, but keep in a range that doesn't clip adjusted
     // roll/pitch/yaw. This could move throttle down, but also up for those low throttle flips.
-    float curvedThrottle = applyThrottleCurve(throttle);
     float vbatCompFactor = currentControlRateProfile->vbat_comp_type != VBAT_COMP_TYPE_OFF ? calculateBatteryCompensationFactor() : 1.0f;
     for (int i = 0; i < motorCount; i++) {
         float motorOutput = mapThrustToMotorOutput(
-                motorOutputMixSign * motorMix[i] + curvedThrottle * currentMixer[i].throttle, vbatCompFactor);
+                motorOutputMixSign * motorMix[i] + throttle * currentMixer[i].throttle, vbatCompFactor);
         if (mixerIsTricopter()) {
             motorOutput += mixerTricopterMotorCorrection(i);
         }
@@ -867,6 +862,7 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs) {
     }
 #endif
     loggingThrottle = throttle;
+    applyThrottleCurve();
     motorMixRange = motorMixMax - motorMixMin;
 
     applyMixerClipAdjustment(motorMix, motorMixMax);

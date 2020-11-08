@@ -77,7 +77,6 @@ static uint8_t dtermBoostLimit;
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
 static uint8_t thrust_linearization_level;
-static bool use_throttle_linearization;
 static bool mixer_laziness;
 
 static uint8_t tmpRateProfileIndex;
@@ -141,7 +140,6 @@ static long cmsx_PidAdvancedRead(void) {
     itermRelaxThresholdYaw = pidProfile->iterm_relax_threshold_yaw;
     itermWindup = pidProfile->itermWindupPointPercent;
     thrust_linearization_level = pidProfile->thrust_linearization_level;
-    use_throttle_linearization = pidProfile->use_throttle_linearization;
     mixer_laziness = pidProfile->mixer_laziness;
     return 0;
 }
@@ -170,7 +168,6 @@ static long cmsx_PidAdvancedWriteback(const OSD_Entry *self) {
     pidProfile->iterm_relax_threshold_yaw = itermRelaxThresholdYaw;
     pidProfile->itermWindupPointPercent = itermWindup;
     pidProfile->thrust_linearization_level = thrust_linearization_level;
-    pidProfile->use_throttle_linearization = use_throttle_linearization;
     pidProfile->mixer_laziness = mixer_laziness;
     pidInitConfig(currentPidProfile);
     return 0;
@@ -198,7 +195,6 @@ static OSD_Entry cmsx_menuPidAdvancedEntries[] = {
     { "I WINDUP",          OME_UINT8, NULL, &(OSD_UINT8_t){ &itermWindup,              0, 100, 1 }, 0 },
 
     { "THRUST LINEAR",     OME_UINT8, NULL, &(OSD_UINT8_t) { &thrust_linearization_level, 0,  100,  1}, 0 },
-    { "THROTTLE LINEAR",   OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &use_throttle_linearization, 1, cms_offOnLabels }, 0 },
     { "LAZY MIXER",        OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &mixer_laziness, 1, cms_offOnLabels }, 0 },
 
     { "SAVE&EXIT",         OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
