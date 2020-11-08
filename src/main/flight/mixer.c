@@ -129,11 +129,11 @@ float motor_disarmed[MAX_SUPPORTED_MOTORS];
 mixerMode_e currentMixerMode;
 static motorMixer_t currentMixer[MAX_SUPPORTED_MOTORS];
 
+static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
+
 static bool mixerLaziness;
 static float thrust_linearization_level;
 static float thrustLinearizationPIDScaler; // used to avoid or at least limit PID tuning when enabling thrust linearization
-
-static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
 
 static const motorMixer_t mixerQuadX[] = {
     { 1.0f, -1.0f,  1.0f, -1.0f },          // REAR_R
