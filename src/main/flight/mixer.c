@@ -704,7 +704,7 @@ static void applyFlipOverAfterCrashModeToMotors(void) {
 static float applyThrottleCurve(float throttle) {
     if (thrust_linearization_level) {
         if (currentPidProfile->use_throttle_linearization) {
-            return throttle - CONVERT_PARAMETER_TO_PERCENT(motorConfig()->minthrottle);
+            return MAX(throttle - CONVERT_PARAMETER_TO_PERCENT(motorConfig()->minthrottle), 0.0f);
         } else {
             // counter compensating thrust linearization on throttle
             return (1.0f - thrust_linearization_level) * throttle + thrust_linearization_level * throttle * throttle;
