@@ -813,9 +813,9 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs) {
     calculateThrottleAndCurrentMotorEndpoints(currentTimeUs);
     // Calculate and Limit the PIDsum
     const float scaledAxisPidRoll =
-        constrainf(pidData[FD_ROLL].Sum, -currentPidProfile->pidSumLimit, currentPidProfile->pidSumLimit) / PID_MIXER_SCALING;
+        constrainf(pidData[FD_ROLL].Sum * thrustLinearizationPIDScaler, -currentPidProfile->pidSumLimit, currentPidProfile->pidSumLimit) / PID_MIXER_SCALING;
     const float scaledAxisPidPitch =
-        constrainf(pidData[FD_PITCH].Sum, -currentPidProfile->pidSumLimit, currentPidProfile->pidSumLimit) / PID_MIXER_SCALING;
+        constrainf(pidData[FD_PITCH].Sum * thrustLinearizationPIDScaler, -currentPidProfile->pidSumLimit, currentPidProfile->pidSumLimit) / PID_MIXER_SCALING;
     uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
 #ifdef USE_YAW_SPIN_RECOVERY
     const bool yawSpinDetected = gyroYawSpinDetected();
@@ -823,7 +823,10 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs) {
         yawPidSumLimit = PIDSUM_LIMIT_MAX;   // Set to the maximum limit during yaw spin recovery to prevent limiting motor authority
     }
 #endif // USE_YAW_SPIN_RECOVERY
-    float scaledAxisPidYaw = constrainf(pidData[FD_YAW].Sum, -yawPidSumLimit, yawPidSumLimit) / PID_MIXER_SCALING;
+    float scaledAxisPidYaw = constrainf(pidData[FD_YAW].Sum * thrustLinearizationPIDScaler, -yawPidSumLimit, yawPidSumLimit) / PID_MIXER_SCALING;
+
+    DEBUG_SET(DEBUG_WRONG_PIDSUM_SIGN, 0, (scaledAxisPidRoll + scaledAxisPidPitch + scaledAxisPidYaw) * (pidData[FD_ROLL].Sum + pidData[FD_PITCH].Sum + pidData[FD_YAW].Sum) < 0.0f);
+
     if (!mixerConfig()->yaw_motors_reversed) {
         scaledAxisPidYaw = -scaledAxisPidYaw;
     }
@@ -840,7 +843,6 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs) {
             scaledAxisPidRoll  * currentMixer[i].roll +
             scaledAxisPidPitch * currentMixer[i].pitch +
             scaledAxisPidYaw   * currentMixer[i].yaw;
-        mix *= thrustLinearizationPIDScaler;
         if (mix > motorMixMax) {
             motorMixMax = mix;
         } else if (mix < motorMixMin) {
