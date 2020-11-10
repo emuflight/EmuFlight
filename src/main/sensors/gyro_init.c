@@ -208,6 +208,8 @@ static void dynLpfFilterInit()
 #endif
 
 void gyroInitABG() {
+    gyro.alphaBetaGammaApplyFn = nullFilterApply;
+
     if (gyroConfig()->alpha != 0 || gyroConfig()->alphaYaw != 0) {
         gyro.alphaBetaGammaApplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
