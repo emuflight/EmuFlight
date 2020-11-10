@@ -95,6 +95,9 @@ typedef struct gyro_s {
     filterApplyFnPtr notchFilterDynApplyFn;
     biquadFilter_t notchFilterDyn[XYZ_AXIS_COUNT][XYZ_AXIS_COUNT];
 
+    filterApplyFnPtr alphaBetaGammaApplyFn;
+    alphaBetaGammaFilter_t alphaBetaGamma[XYZ_AXIS_COUNT];
+
 #ifdef USE_GYRO_DATA_ANALYSE
     gyroAnalyseState_t gyroAnalyseState;
     float dynNotchQ;
@@ -156,6 +159,8 @@ typedef struct gyroConfig_s {
     uint8_t  gyro_to_use;
 
     uint16_t gyro_lowpass_hz;
+    uint16_t alpha;
+    uint16_t alphaYaw;
 
     uint16_t gyro_soft_notch_hz_1;
     uint16_t gyro_soft_notch_cutoff_1;

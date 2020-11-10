@@ -65,6 +65,9 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
 #endif
         // we want kalman last, gives better results
         gyroADCf = kalman_update(gyroADCf, axis);
+
+        gyroADCf = gyro.alphaBetaGammaApplyFn((filter_t *)&gyro.alphaBetaGamma[axis], gyroADCf);
+
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));
 

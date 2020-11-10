@@ -207,6 +207,18 @@ static void dynLpfFilterInit()
 }
 #endif
 
+void gyroInitABG() {
+    if (gyroConfig()->alpha != 0 || gyroConfig()->alphaYaw != 0) {
+        gyro.alphaBetaGammaApplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+            if (axis == FD_YAW) {
+                ABGInit(&gyro.alphaBetaGamma[axis], gyroConfig()->alphaYaw, gyro.targetLooptime * 1e-6f);
+            }
+            ABGInit(&gyro.alphaBetaGamma[axis], gyroConfig()->alpha, gyro.targetLooptime * 1e-6f);
+        }
+    }
+}
+
 void gyroInitFilters(void)
 {
     uint16_t gyro_lowpass_hz = gyroConfig()->gyro_lowpass_hz;
@@ -235,6 +247,7 @@ void gyroInitFilters(void)
     gyroDataAnalyseStateInit(&gyro.gyroAnalyseState, gyro.targetLooptime);
 #endif
     kalman_init();
+    gyroInitABG();
 }
 
 #if defined(USE_GYRO_SLEW_LIMITER)

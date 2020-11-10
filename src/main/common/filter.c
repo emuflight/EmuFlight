@@ -226,3 +226,39 @@ FAST_CODE float laggedMovingAverageUpdate(laggedMovingAverage_t *filter, float i
     const uint16_t denom = filter->primed ? filter->windowSize : filter->movingWindowIndex;
     return filter->movingSum  / denom;
 }
+
+// Robert Bouwens AlphaBetaGamma
+
+void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, float dT) {
+	const float Alpha = alpha * 0.001f;
+  const float beta = 0.8f * (2.0f - Alpha * Alpha - 2.0f * sqrtf(1.0f - Alpha * Alpha)) / (Alpha * Alpha);
+  filter->xk = 0;
+	filter->vk = 0;
+  filter->ak = 0;
+	filter->a = Alpha;
+	filter->b = beta;
+  filter->g = beta * beta / (Alpha * 2.0f);
+	filter->dT = dT;
+	filter->dT2 = dT * dT;
+	filter->xk = 0.0f;
+} // ABGInit
+
+
+FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input) {
+	//    float xk;   // current system state (ie: position)
+	//    float vk;   // derivative of system state (ie: velocity)
+	float rk; // residual error
+
+	// update our (estimated) state 'x' from the system (ie pos = pos + vel (last).dT)
+	filter->xk += filter->dT * filter->vk + 0.5f * filter->dT2 * filter->ak;
+	// update (estimated) velocity
+  filter->vk += filter->dT * filter->ak;
+	// what is our residual error (measured - estimated)
+	rk = input - filter->xk;
+	// update our estimates given the residual error.
+	filter->xk += filter->a * rk;
+	filter->vk += filter->b / filter->dT * rk;
+	filter->ak += filter->g / (2.0f * filter->dT2) * rk;
+
+	return filter->xk;
+} // ABGUpdate
