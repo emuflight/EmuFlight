@@ -825,8 +825,6 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs) {
 #endif // USE_YAW_SPIN_RECOVERY
     float scaledAxisPidYaw = constrainf(pidData[FD_YAW].Sum * thrustLinearizationPIDScaler, -yawPidSumLimit, yawPidSumLimit) / PID_MIXER_SCALING;
 
-    DEBUG_SET(DEBUG_WRONG_PIDSUM_SIGN, 0, (scaledAxisPidRoll + scaledAxisPidPitch + scaledAxisPidYaw) * (pidData[FD_ROLL].Sum + pidData[FD_PITCH].Sum + pidData[FD_YAW].Sum) < 0.0f);
-
     if (!mixerConfig()->yaw_motors_reversed) {
         scaledAxisPidYaw = -scaledAxisPidYaw;
     }
