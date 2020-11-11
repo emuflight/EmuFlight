@@ -4483,12 +4483,17 @@ void cliPrintValueJson(const char *cmdName, int32_t i){
         }
         cliPrint("]");
     }
+
+    int min;
+    int max;
+    getMinMax(var, &min, &max);
+
     if ((var->type & VALUE_MODE_MASK) == MODE_DIRECT) {
-        cliPrintf(",\"min\":\"%d\",\"max\":\"%d\"", var->config.minmax.min, var->config.minmax.max);
+        cliPrintf(",\"min\":\"%d\",\"max\":\"%d\"", min, max);
     }
-    // if ((var->type & VALUE_MODE_MASK) == MODE_ARRAY) {
-    //     cliPrintf(",\"min\":\"%d\",\"max\":\"%d\"", var->config.minmax.min, var->config.minmax.max);
-    // }
+    if ((var->type & VALUE_MODE_MASK) == MODE_ARRAY) {
+       cliPrintf(",\"min\":\"%d\",\"max\":\"%d\"", min, max);
+    }
     cliPrint("}");
 }
 
