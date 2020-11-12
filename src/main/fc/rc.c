@@ -158,7 +158,6 @@ static int16_t rcLookupThrottle(int32_t tmp)
 }
 
 #define SETPOINT_RATE_LIMIT 1998
-STATIC_ASSERT(CONTROL_RATE_CONFIG_RATE_LIMIT_MAX <= SETPOINT_RATE_LIMIT, CONTROL_RATE_CONFIG_RATE_LIMIT_MAX_too_large);
 
 #define RC_RATE_INCREMENTAL 14.54f
 
@@ -199,7 +198,7 @@ float applyKissRates(const int axis, float rcCommandf, const float rcCommandfAbs
 
     float kissRpyUseRates = 1.0f / (constrainf(1.0f - (rcCommandfAbs * (currentControlRateProfile->rates[axis] / 100.0f)), 0.01f, 1.00f));
     float kissRcCommandf = (power3(rcCommandf) * rcCurvef + rcCommandf * (1 - rcCurvef)) * (currentControlRateProfile->rcRates[axis] / 1000.0f);
-    float kissAngle = constrainf(((2000.0f * kissRpyUseRates) * kissRcCommandf), -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
+    float kissAngle = ((2000.0f * kissRpyUseRates) * kissRcCommandf);
 
     return kissAngle;
 }
@@ -257,7 +256,7 @@ static void calculateSetpointRate(int axis)
         angleRate = applyRates(axis, rcCommandf, rcCommandfAbs);
     }
     // Rate limit from profile (deg/sec)
-    setpointRate[axis] = constrainf(angleRate, -1.0f * currentControlRateProfile->rate_limit[axis], 1.0f * currentControlRateProfile->rate_limit[axis]);
+    setpointRate[axis] = constrainf(angleRate, -SETPOINT_RATE_LIMIT * 1.0f, SETPOINT_RATE_LIMIT * 1.0f);
 
     DEBUG_SET(DEBUG_ANGLERATE, axis, angleRate);
 }

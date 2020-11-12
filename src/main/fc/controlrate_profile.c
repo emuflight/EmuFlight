@@ -58,9 +58,6 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
         .rates[FD_YAW] = 70,
         .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
         .throttle_limit_percent = 100,
-        .rate_limit[FD_ROLL] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
-        .rate_limit[FD_PITCH] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
-        .rate_limit[FD_YAW] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
         .profileName = { "DEFAULT" },
     );
     if (CONTROL_RATE_PROFILE_COUNT > 1)
@@ -82,9 +79,6 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .rates[FD_YAW] = 4,
             .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
             .throttle_limit_percent = 100,
-            .rate_limit[FD_ROLL] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
-            .rate_limit[FD_PITCH] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
-            .rate_limit[FD_YAW] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
             .profileName = { "QckFlsh" },
         );
     }
@@ -107,9 +101,6 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .rates[FD_YAW] = 70,
             .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
             .throttle_limit_percent = 100,
-            .rate_limit[FD_ROLL] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
-            .rate_limit[FD_PITCH] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
-            .rate_limit[FD_YAW] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
             .profileName = { "DrSchnk" },
         );
     }
@@ -132,9 +123,6 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .rates[FD_YAW] = 71,
             .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
             .throttle_limit_percent = 100,
-            .rate_limit[FD_ROLL] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
-            .rate_limit[FD_PITCH] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
-            .rate_limit[FD_YAW] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
             .profileName = { "Kore" },
         );
     }
@@ -157,9 +145,6 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .rates[FD_YAW] = 77,
             .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
             .throttle_limit_percent = 100,
-            .rate_limit[FD_ROLL] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
-            .rate_limit[FD_PITCH] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
-            .rate_limit[FD_YAW] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
             .profileName = { "NerdCopt" },
         );
     }
@@ -182,9 +167,6 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .rates[FD_YAW] = 68,
             .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
             .throttle_limit_percent = 100,
-            .rate_limit[FD_ROLL] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
-            .rate_limit[FD_PITCH] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
-            .rate_limit[FD_YAW] = CONTROL_RATE_CONFIG_RATE_LIMIT_MAX,
             .profileName = { "Shikijo" },
         );
     }
