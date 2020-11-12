@@ -38,11 +38,6 @@ typedef enum {
     THROTTLE_LIMIT_TYPE_COUNT   // must be the last entry
 } throttleLimitType_e;
 
-typedef enum {
-    TPA_MODE_PD,
-    TPA_MODE_D
-} tpaMode_e;
-
 typedef struct rateDynamics_s {
     uint8_t rateSensCenter;
     uint8_t rateSensEnd;
@@ -62,14 +57,9 @@ typedef struct controlRateConfig_s {
     uint8_t rcExpo[3];
     uint8_t rates[3];
     rateDynamics_t rateDynamics;
-    uint8_t dynThrP;
-    uint8_t dynThrI;
-    uint8_t dynThrD;
-    uint16_t tpa_breakpoint;                // Breakpoint where TPA is activated
     uint8_t throttle_limit_type;            // Sets the throttle limiting type - off, scale or clip
     uint8_t throttle_limit_percent;         // Sets the maximum pilot commanded throttle limit
     uint16_t rate_limit[3];                 // Sets the maximum rate for the axes
-    uint8_t tpaMode;                        // Controls which PID terms TPA effects
     char profileName[MAX_RATE_PROFILE_NAME_LENGTH + 1]; // Descriptive name for rate profile
 } controlRateConfig_t;
 

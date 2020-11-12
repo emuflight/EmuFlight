@@ -743,17 +743,14 @@ FAST_CODE_NOINLINE void updateRcCommands(void)
 
     // PITCH & ROLL only dynamic PID adjustment,  depending on throttle value
     int32_t propP, propI, propD;
-    if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
-        propP = 100;
-        propI = 100;
-        propD = 100;
+    if (rcData[THROTTLE] < pidRuntime.tpaBreakpoint) {
         throttlePAttenuation = 1.0f;
         throttleIAttenuation = 1.0f;
         throttleDAttenuation = 1.0f;
     } else {
-        propP = 100 + ((uint16_t)currentControlRateProfile->dynThrP - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
-        propI = 100 + ((uint16_t)currentControlRateProfile->dynThrI - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
-        propD = 100 + ((uint16_t)currentControlRateProfile->dynThrD - 100) * (rcData[THROTTLE] - currentControlRateProfile->tpa_breakpoint) / (2000 - currentControlRateProfile->tpa_breakpoint);
+        propP = 100 + ((uint16_t)pidRuntime.dynThr[0]) * (rcData[THROTTLE] - pidRuntime.tpaBreakpoint) / (2000 - pidRuntime.tpaBreakpoint);
+        propI = 100 + ((uint16_t)pidRuntime.dynThr[1]) * (rcData[THROTTLE] - pidRuntime.tpaBreakpoint) / (2000 - pidRuntime.tpaBreakpoint);
+        propD = 100 + ((uint16_t)pidRuntime.dynThr[2]) * (rcData[THROTTLE] - pidRuntime.tpaBreakpoint) / (2000 - pidRuntime.tpaBreakpoint);
         throttlePAttenuation = propP / 100.0f;
         throttleIAttenuation = propI / 100.0f;
         throttleDAttenuation = propD / 100.0f;

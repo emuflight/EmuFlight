@@ -475,10 +475,6 @@ static const OSD_Entry cmsx_menuRateProfileEntries[] =
 
     { "THR MID",     OME_UINT8,  NULL, &(OSD_UINT8_t) { &rateProfile.thrMid8,           0,  100,  1}, 0 },
     { "THR EXPO",    OME_UINT8,  NULL, &(OSD_UINT8_t) { &rateProfile.thrExpo8,          0,  100,  1}, 0 },
-    { "TPA P",       OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrP,           0,  200,  1, 10}, 0 },
-    { "TPA I",       OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrI,           0,  200,  1, 10}, 0 },
-    { "TPA D",       OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.dynThrD,           0,  200,  1, 10}, 0 },
-    { "TPA BRKPT",   OME_UINT16, NULL, &(OSD_UINT16_t){ &rateProfile.tpa_breakpoint, 1000, 2000, 10}, 0 },
 
     { "THR LIM TYPE",OME_TAB,    NULL, &(OSD_TAB_t)   { &rateProfile.throttle_limit_type, THROTTLE_LIMIT_TYPE_COUNT - 1, osdTableThrottleLimitType}, 0 },
     { "THR LIM %",   OME_UINT8,  NULL, &(OSD_UINT8_t) { &rateProfile.throttle_limit_percent, 25,  100,  1}, 0 },

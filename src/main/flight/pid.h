@@ -31,8 +31,8 @@
 #define PID_CONTROLLER_BETAFLIGHT   1
 #define PID_MIXER_SCALING           1000.0f
 #define PID_SERVO_MIXER_SCALING     0.7f
-#define PIDSUM_LIMIT                500
-#define PIDSUM_LIMIT_YAW            400
+#define PIDSUM_LIMIT                1000
+#define PIDSUM_LIMIT_YAW            1000
 #define PIDSUM_LIMIT_MIN            100
 #define PIDSUM_LIMIT_MAX            1000
 
@@ -182,6 +182,9 @@ typedef struct pidProfile_s {
     uint8_t i_decay_cutoff;
 
     uint8_t stickTransition[3][XYZ_AXIS_COUNT];         // SPA p transition
+
+    uint8_t dynThr[XYZ_AXIS_COUNT];
+    uint16_t tpa_breakpoint;                // Breakpoint where TPA is activated
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
@@ -280,6 +283,9 @@ typedef struct pidRuntime_s {
     uint8_t iDecayCutoff;
 
     float stickPositionTransition[3][XYZ_AXIS_COUNT];
+
+    int8_t dynThr[XYZ_AXIS_COUNT];
+    uint16_t tpaBreakpoint;                // Breakpoint where TPA is activated
 
 #ifdef USE_ITERM_RELAX
     pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
