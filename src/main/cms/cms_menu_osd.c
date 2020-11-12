@@ -52,7 +52,7 @@ static long menuOsdActiveElemsOnEnter(void) {
 }
 
 static const char * const cms_osdcrsfformat[] = {
-    "TBS", "MODE", "FREQ", "SIMPLE"
+    "SCALED", "MODE", "FREQ", "SIMPLE", "DEFAULT"
 };
 
 static long menuOsdActiveElemsOnExit(const OSD_Entry *self) {

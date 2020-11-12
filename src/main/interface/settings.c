@@ -147,7 +147,7 @@ static const char * const lookupTableUnit[] = {
 };
 
 static const char * const lookupTableCrsfformat[] = {
-    "TBS", "MODE", "FREQ", "SIMPLE"
+    "TBS", "MODE", "FREQ", "SIMPLE", "DEFAULT"
 };
 
 static const char * const lookupTableAlignment[] = {
