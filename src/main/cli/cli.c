@@ -4465,6 +4465,10 @@ void cliPrintValueJson(const char *cmdName, int32_t i){
                 valueTypeMask[((var->type & VALUE_TYPE_MASK) >> VALUE_TYPE_OFFSET)],
                 valueModeMask[((var->type & VALUE_MODE_MASK) >> VALUE_MODE_OFFSET)]);
     cliPrintVar(cmdName, var, 0);
+    if ((var->type & VALUE_MODE_MASK) == MODE_STRING) {
+      cliPrint("\"");
+      // strings have no default
+    } else {
     cliPrint("\",\"default\":\"");
     const pgRegistry_t *pg = pgFind(var->pgn);
     const int valueOffset = getValueOffset(var);
@@ -4494,6 +4498,7 @@ void cliPrintValueJson(const char *cmdName, int32_t i){
     if ((var->type & VALUE_MODE_MASK) == MODE_ARRAY) {
        cliPrintf(",\"min\":\"%d\",\"max\":\"%d\"", min, max);
     }
+  }
     cliPrint("}");
 }
 
