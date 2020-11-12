@@ -4467,7 +4467,7 @@ void cliPrintValueJson(const char *cmdName, int32_t i){
                 valueModeMask[((var->type & VALUE_MODE_MASK) >> VALUE_MODE_OFFSET)]);
     cliPrintVar(cmdName, var, 0);
     if ((var->type & VALUE_MODE_MASK) == MODE_STRING) {
-      cliPrint("\"");
+      cliPrintf("\",\"string min length\":\"%d\",\"string max length\":\"%d\"", var->config.string.minlength, var->config.string.maxlength);
       // strings have no default
     } else {
     cliPrint("\",\"default\":\"");
@@ -4668,7 +4668,7 @@ static void cliConfig(const char *cmdName, char *cmdline)
     printAuxJson(modeActivationConditions(0));
     printResourceJson();
     cliPrintLine(",");
-    cliPrintf("name\":\"%s\"", pilotConfig()->name);
+    cliPrintf("\"name\":\"%s\"", pilotConfig()->name);
     cliPrintf(",\"version\":\"%s|%s|%s|%s\"",
         FC_FIRMWARE_NAME,
         targetName,
