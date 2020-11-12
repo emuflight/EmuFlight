@@ -288,8 +288,6 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.horizonGain = pidProfile->horizonGain / 10.0f;
     pidRuntime.horizonTiltExpertMode = pidProfile->racemode_horizon;
     pidRuntime.horizonFactorRatio = (100 - pidProfile->racemode_tilt_effect) * 0.01f;
-    pidRuntime.maxVelocity[FD_ROLL] = pidRuntime.maxVelocity[FD_PITCH] = pidProfile->rateAccelLimit * 100 * pidRuntime.dT;
-    pidRuntime.maxVelocity[FD_YAW] = pidProfile->yawRateAccelLimit * 100 * pidRuntime.dT;
     pidRuntime.itermWindupPointInv = 0.0f;
     if (pidProfile->itermWindupPointPercent != 0) {
         const float itermWindupPoint = pidProfile->itermWindupPointPercent / 100.0f;

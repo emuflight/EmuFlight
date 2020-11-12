@@ -123,8 +123,6 @@ typedef struct pidProfile_s {
     uint8_t  antiGravityMode;               // type of anti gravity method
     uint16_t itermThrottleThreshold;        // max allowed throttle delta before iterm accelerated in ms
     uint16_t itermAcceleratorGain;          // Iterm Accelerator Gain when itermThrottlethreshold is hit
-    uint16_t yawRateAccelLimit;             // yaw accel limiter for deg/sec/ms
-    uint16_t rateAccelLimit;                // accel limiter roll/pitch deg/sec/ms
     uint16_t crash_dthreshold;              // dterm crash value
     uint16_t crash_gthreshold;              // gyro crash value
     uint16_t crash_setpoint_threshold;      // setpoint must be below this value to detect crash, so flips and rolls are not interpreted as crashes
@@ -260,7 +258,6 @@ typedef struct pidRuntime_s {
     float previousAngle[XYZ_AXIS_COUNT];
     float attitudePrevious[XYZ_AXIS_COUNT];
 
-    float maxVelocity[XYZ_AXIS_COUNT];
     float itermWindupPointInv;
     float crashGyroThreshold;
     float crashDtermThreshold;

@@ -138,8 +138,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .pidAtMinThrottle = PID_STABILISATION_ON,
         .levelAngleLimit = 55,
         .feedForwardTransition = 0,
-        .yawRateAccelLimit = 0,
-        .rateAccelLimit = 0,
         .itermThrottleThreshold = 250,
         .itermAcceleratorGain = 3500,
         .crash_dthreshold = 50,     // degrees/second/second
@@ -416,19 +414,6 @@ static void detectAndSetCrashRecovery(
 }
 #endif // USE_ACC
 
-static float accelerationLimit(int axis, float currentPidSetpoint)
-{
-    static float previousSetpoint[XYZ_AXIS_COUNT];
-    const float currentVelocity = currentPidSetpoint - previousSetpoint[axis];
-
-    if (fabsf(currentVelocity) > pidRuntime.maxVelocity[axis]) {
-        currentPidSetpoint = (currentVelocity > 0) ? previousSetpoint[axis] + pidRuntime.maxVelocity[axis] : previousSetpoint[axis] - pidRuntime.maxVelocity[axis];
-    }
-
-    previousSetpoint[axis] = currentPidSetpoint;
-    return currentPidSetpoint;
-}
-
 static void rotateVector(float v[XYZ_AXIS_COUNT], float rotation[XYZ_AXIS_COUNT])
 {
     // rotate v around rotation vector rotation
@@ -677,10 +662,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 #endif
         }
 #endif
-        if (pidRuntime.maxVelocity[axis]) {
-            currentPidSetpoint = accelerationLimit(axis, currentPidSetpoint);
-        }
-
         // Handle yaw spin recovery - zero the setpoint on yaw to aid in recovery
         // It's not necessary to zero the set points for R/P because the PIDs will be zeroed below
 #ifdef USE_YAW_SPIN_RECOVERY
