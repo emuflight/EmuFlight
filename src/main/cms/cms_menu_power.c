@@ -39,9 +39,6 @@
 
 #include "config/config.h"
 
-voltageMeterSource_e batteryConfig_voltageMeterSource;
-currentMeterSource_e batteryConfig_currentMeterSource;
-
 uint16_t batteryConfig_vbatmincellvoltage;
 uint16_t batteryConfig_vbatmaxcellvoltage;
 uint16_t batteryConfig_vbatwarningcellvoltage;
@@ -59,9 +56,6 @@ uint16_t currentSensorVirtualConfig_offset;
 static const void *cmsx_Power_onEnter(displayPort_t *pDisp)
 {
     UNUSED(pDisp);
-
-    batteryConfig_voltageMeterSource = batteryConfig()->voltageMeterSource;
-    batteryConfig_currentMeterSource = batteryConfig()->currentMeterSource;
 
     batteryConfig_vbatmincellvoltage = batteryConfig()->vbatmincellvoltage;
     batteryConfig_vbatmaxcellvoltage = batteryConfig()->vbatmaxcellvoltage;
@@ -85,9 +79,6 @@ static const void *cmsx_Power_onExit(displayPort_t *pDisp, const OSD_Entry *self
     UNUSED(pDisp);
     UNUSED(self);
 
-    batteryConfigMutable()->voltageMeterSource = batteryConfig_voltageMeterSource;
-    batteryConfigMutable()->currentMeterSource = batteryConfig_currentMeterSource;
-
     batteryConfigMutable()->vbatmincellvoltage = batteryConfig_vbatmincellvoltage;
     batteryConfigMutable()->vbatmaxcellvoltage = batteryConfig_vbatmaxcellvoltage;
     batteryConfigMutable()->vbatwarningcellvoltage = batteryConfig_vbatwarningcellvoltage;
@@ -108,9 +99,6 @@ static const void *cmsx_Power_onExit(displayPort_t *pDisp, const OSD_Entry *self
 static const OSD_Entry cmsx_menuPowerEntries[] =
 {
     { "-- POWER --", OME_Label, NULL, NULL, 0},
-
-    { "V METER", OME_TAB, NULL, &(OSD_TAB_t){ &batteryConfig_voltageMeterSource, VOLTAGE_METER_COUNT - 1, voltageMeterSourceNames }, REBOOT_REQUIRED },
-    { "I METER", OME_TAB, NULL, &(OSD_TAB_t){ &batteryConfig_currentMeterSource, CURRENT_METER_COUNT - 1, currentMeterSourceNames }, REBOOT_REQUIRED },
 
     { "VBAT CLMIN", OME_UINT16, NULL, &(OSD_UINT16_t) { &batteryConfig_vbatmincellvoltage, VBAT_CELL_VOTAGE_RANGE_MIN, VBAT_CELL_VOTAGE_RANGE_MAX, 1 }, 0 },
     { "VBAT CLMAX", OME_UINT16, NULL, &(OSD_UINT16_t) { &batteryConfig_vbatmaxcellvoltage, VBAT_CELL_VOTAGE_RANGE_MIN, VBAT_CELL_VOTAGE_RANGE_MAX, 1 }, 0 },
