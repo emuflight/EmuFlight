@@ -4454,7 +4454,7 @@ static const char * valueTypeMask[] = {
 };
 
 static const char * valueModeMask[] = {
-    "DIRECT", "LOOKUP", "ARRAY", "BITMASK"
+    "DIRECT", "LOOKUP", "ARRAY", "BITMASK", "STRING"
 };
 
 void cliPrintValueJson(const char *cmdName, int32_t i){
@@ -4473,7 +4473,7 @@ void cliPrintValueJson(const char *cmdName, int32_t i){
     if ((var->type & VALUE_MODE_MASK) == MODE_LOOKUP)
     {
         const lookupTableEntry_t *tableEntry = &lookupTables[var->config.lookup.tableIndex];
-        cliPrint(",\"values\":[");
+        cliPrintLine(",\"values\":[");
         for (int32_t i = 0; i < tableEntry->valueCount ; i++) {
             if (i > 0)
             {
@@ -4501,12 +4501,14 @@ static void printFeatureJson(const featureConfig_t *configCopy)
 {
     const uint32_t mask = configCopy->enabledFeatures;
     const uint32_t defaultMask = featureConfig()->enabledFeatures;
-    cliPrintf(",\"features\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"ARRAY\",\"current\":\"%d\",\"values\":[", mask);
+    cliPrintLine(",");
+    cliPrintf("features\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"ARRAY\",\"current\":\"%d\",\"values\":[", mask);
+    cliPrintLine("");
     for (uint32_t i = 0; featureNames[i]; i++) { // disabled features first
         if (strcmp(featureNames[i], emptyString) != 0) { //Skip unused
             if (i > 0)
             {
-                cliPrint(",");
+                cliPrintLine(",");
             }
             if ((~defaultMask | mask) & (1 << i)) {
                 cliPrintf("\"-%s\"", featureNames[i]);
@@ -4519,11 +4521,12 @@ static void printFeatureJson(const featureConfig_t *configCopy)
 }
 static void printSerialJson(const serialConfig_t *serialConfig)
 {
-    cliPrint(",\"ports\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
+    cliPrintLine(",");
+    cliPrintLine("ports\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
     for (uint32_t i = 0; i < SERIAL_PORT_COUNT && serialIsPortAvailable(serialConfig->portConfigs[i].identifier); i++) {
         if (i > 0)
         {
-            cliPrint(",");
+            cliPrintLine(",");
         }
         cliPrintf("\"%d|%d|%ld|%ld|%ld|%ld\"",
             serialConfig->portConfigs[i].identifier,
@@ -4538,11 +4541,12 @@ static void printSerialJson(const serialConfig_t *serialConfig)
 
 static void printAuxJson(const modeActivationCondition_t *modeActivationConditions)
 {
-    cliPrint(",\"modes\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
+    cliPrintLine(",");
+    cliPrintLine("modes\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
     for (uint32_t i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
         if (i > 0)
         {
-            cliPrint(",");
+            cliPrintLine(",");
         }
         const modeActivationCondition_t *mac = &modeActivationConditions[i];
         const box_t *box = findBoxByBoxId(mac->modeId);
@@ -4560,12 +4564,14 @@ static void printAuxJson(const modeActivationCondition_t *modeActivationConditio
     cliPrintf("]}");
 }
 
-static void printResourceJson() {
-    cliPrint(",\"resources\":{\"scope\":\"GLOBAL\",\"type\":\"string\",\"mode\":\"ARRAY\",\"values\":[");
+static void printResourceJson()
+{
+    cliPrintLine(",");
+    cliPrintLine("resources\":{\"scope\":\"GLOBAL\",\"type\":\"string\",\"mode\":\"ARRAY\",\"values\":[");
     for (int i = 0; i < DEFIO_IO_USED_COUNT; i++) {
         if (i > 0)
         {
-            cliPrint(",");
+            cliPrintLine(",");
         }
         const char* owner;
         owner = ownerNames[ioRecs[i].owner];
@@ -4582,7 +4588,7 @@ static void printResourceJson() {
     cliPrintf("]}");
 }
 
-#define PROFILE_JSON_STRING ",\"%s_profile\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"LOOKUP\",\"current\":\"%d\",\"values\":[{"
+#define PROFILE_JSON_STRING "%s_profile\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"LOOKUP\",\"current\":\"%d\",\"values\":[{"
 
 static void dumpProfileValueJson(const char *cmdName, uint16_t valueSection)
 {
@@ -4592,7 +4598,7 @@ static void dumpProfileValueJson(const char *cmdName, uint16_t valueSection)
         if ((value->type & VALUE_SECTION_MASK) == valueSection) {
             if (foundFirst)
             {
-                cliPrint(",");
+                cliPrintLine(",");
             }
             cliPrintValueJson(cmdName, i);
             foundFirst = true;
@@ -4602,13 +4608,15 @@ static void dumpProfileValueJson(const char *cmdName, uint16_t valueSection)
 
 static void cliPidProfilesJson(const char *cmdName)
 {
+    cliPrintLine(",");
     cliPrintf(PROFILE_JSON_STRING, "pid", getCurrentPidProfileIndex());
     const uint8_t saved = systemConfig_Copy.pidProfileIndex;
     for (uint32_t i = 0; i < PID_PROFILE_COUNT; i++) {
         changePidProfile(i);
         if (i > 0)
         {
-            cliPrint("},{");
+            cliPrintLine("},");
+            cliPrint("{");
         }
         dumpProfileValueJson(cmdName, PROFILE_VALUE);
     }
@@ -4618,13 +4626,15 @@ static void cliPidProfilesJson(const char *cmdName)
 
 static void cliRateProfilesJson(const char *cmdName)
 {
+    cliPrintLine(",");
     cliPrintf(PROFILE_JSON_STRING, "rate", getCurrentControlRateProfileIndex());
     const uint8_t saved = systemConfig_Copy.activeRateProfile;
     for (uint32_t i = 0; i < CONTROL_RATE_PROFILE_COUNT; i++) {
         changeControlRateProfile(i);
         if (i > 0)
         {
-            cliPrint("},{");
+            cliPrintLine("},");
+            cliPrint("{");
         }
         dumpProfileValueJson(cmdName, PROFILE_RATE_VALUE);
     }
@@ -4651,7 +4661,8 @@ static void cliConfig(const char *cmdName, char *cmdline)
     printSerialJson(serialConfig());
     printAuxJson(modeActivationConditions(0));
     printResourceJson();
-    cliPrintf(",\"name\":\"%s\"", pilotConfig()->name);
+    cliPrintLine(",");
+    cliPrintf("name\":\"%s\"", pilotConfig()->name);
     cliPrintf(",\"version\":\"%s|%s|%s|%s\"",
         FC_FIRMWARE_NAME,
         targetName,
