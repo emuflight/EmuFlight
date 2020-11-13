@@ -95,4 +95,5 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "MATRIX_FILTER",
     "D_LPF",
     "VTX_TRAMP",
+    "ESTIMATE_D"
 };

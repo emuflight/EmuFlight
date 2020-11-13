@@ -45,7 +45,7 @@
 #include "osd/osd_elements.h"
 #include "sensors/battery.h"
 
-#ifdef USE_EXTENDED_CMS_MENUS
+/* #ifdef USE_EXTENDED_CMS_MENUS
 static uint16_t osdConfig_item_pos[OSD_ITEM_COUNT];
 
 static const void *menuOsdActiveElemsOnEnter(displayPort_t *pDisp)
@@ -294,7 +294,7 @@ static CMS_Menu menuTimers = {
     .onDisplayUpdate = NULL,
     .entries = menuTimersEntries,
 };
-#endif /* USE_EXTENDED_CMS_MENUS */
+#endif */ /* USE_EXTENDED_CMS_MENUS */ 
 
 #ifdef USE_MAX7456
 static bool displayPortProfileMax7456_invert;
@@ -357,9 +357,9 @@ const OSD_Entry cmsx_menuOsdEntries[] =
     {"OSD PROFILE", OME_UINT8, NULL, &(OSD_UINT8_t){&osdConfig_osdProfileIndex, 1, 3, 1}, 0},
 #endif
 #ifdef USE_EXTENDED_CMS_MENUS
-    {"ACTIVE ELEM", OME_Submenu, cmsMenuChange, &menuOsdActiveElems, 0},
-    {"TIMERS",      OME_Submenu, cmsMenuChange, &menuTimers,         0},
-    {"ALARMS",      OME_Submenu, cmsMenuChange, &menuAlarms,         0},
+//    {"ACTIVE ELEM", OME_Submenu, cmsMenuChange, &menuOsdActiveElems, 0},
+//    {"TIMERS",      OME_Submenu, cmsMenuChange, &menuTimers,         0},
+//    {"ALARMS",      OME_Submenu, cmsMenuChange, &menuAlarms,         0},
 #endif
 #ifdef USE_MAX7456
     {"INVERT",    OME_Bool,  cmsx_max7456Update, &displayPortProfileMax7456_invert,                                   0},

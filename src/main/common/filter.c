@@ -243,7 +243,6 @@ void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, float dT) {
 	filter->xk = 0.0f;
 } // ABGInit
 
-
 FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input) {
 	//    float xk;   // current system state (ie: position)
 	//    float vk;   // derivative of system state (ie: velocity)
@@ -251,7 +250,7 @@ FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input)
 
 	// update our (estimated) state 'x' from the system (ie pos = pos + vel (last).dT)
 	filter->xk += filter->dT * filter->vk + 0.5f * filter->dT2 * filter->ak;
-	// update (estimated) velocity
+	// update (estimated) velocity (also estimated dterm from measurement)
   filter->vk += filter->dT * filter->ak;
 	// what is our residual error (measured - estimated)
 	rk = input - filter->xk;
@@ -262,3 +261,7 @@ FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input)
 
 	return filter->xk;
 } // ABGUpdate
+
+FAST_CODE float alphaBetaGammaVelocity(alphaBetaGammaFilter_t *filter) {
+  return filter->vk;
+}

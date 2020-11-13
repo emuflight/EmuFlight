@@ -202,6 +202,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .i_decay_cutoff = 200,
         .dynThr = { 75, 125, 65 },
         .tpa_breakpoint = 1350,
+        .use_estimated_dterm = 0,
     );
 }
 
@@ -767,6 +768,22 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             previousGyroRate[axis] = gyro.gyroADCf[axis];
             previousErrorRate[axis] = errorRate;
             float delta = ((dtermFromMeasurement * pidRuntime.dtermMeasurementSlider) + (dtermFromError * pidRuntime.dtermMeasurementSliderInverse)) * pidRuntime.pidFrequency;
+
+            if (axis == FD_ROLL) {
+                DEBUG_SET(DEBUG_ESTIMATE_D, 0, lrintf(delta));
+            } else if (axis == FD_PITCH) {
+                DEBUG_SET(DEBUG_ESTIMATE_D, 2, lrintf(delta));
+            }
+
+            if (pidRuntime.useEstimatedDterm && ((gyroConfig()->alpha && (axis != FD_YAW)) || (gyroConfig()->alphaYaw && (axis == FD_YAW)))) {
+                delta = -alphaBetaGammaVelocity(&gyro.alphaBetaGamma[axis]);
+            }
+
+            if (axis == FD_ROLL) {
+                DEBUG_SET(DEBUG_ESTIMATE_D, 1, lrintf(delta));
+            } else if (axis == FD_PITCH) {
+                DEBUG_SET(DEBUG_ESTIMATE_D, 3, lrintf(delta));
+            }
 
             // log unfiltered roll and pitch dterm, log filtered later so we can compare without dmin/dboost
             if (axis == FD_ROLL) {

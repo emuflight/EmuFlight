@@ -258,7 +258,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidRuntime.pidCoefficient[axis].Ki = ITERM_SCALE * pidProfile->pid[axis].I;
         pidRuntime.pidCoefficient[axis].Kd = DTERM_SCALE * pidProfile->pid[axis].D;
         pidRuntime.pidCoefficient[axis].Kf = FEEDFORWARD_SCALE * (pidProfile->pid[axis].F / 100.0f);
-        pidRuntime.dynThr[axis] = pidProfile->dynThr[axis] - 100;
+        pidRuntime.dynThr[axis] = pidProfile->dynThr[axis];
         for (int pid = 0; pid <= 2; pid++) {
             pidRuntime.stickPositionTransition[pid][axis] = (pidProfile->stickTransition[pid][axis] / 100.0f) - 1.0f;
         }
@@ -315,6 +315,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidRuntime.antiGravityOsdCutoff += (pidRuntime.itermAcceleratorGain / 1000.0f) * 0.25f;
     }
     pidRuntime.tpaBreakpoint = pidProfile->tpa_breakpoint;
+    pidRuntime.useEstimatedDterm = pidProfile->use_estimated_dterm;
 
 #if defined(USE_ITERM_RELAX)
     pidRuntime.itermRelaxCutoff = pidProfile->iterm_relax_cutoff;

@@ -747,9 +747,9 @@ FAST_CODE_NOINLINE void updateRcCommands(void)
         throttleIAttenuation = 1.0f;
         throttleDAttenuation = 1.0f;
     } else {
-        propP = 100 + ((uint16_t)pidRuntime.dynThr[0]) * (rcData[THROTTLE] - pidRuntime.tpaBreakpoint) / (2000 - pidRuntime.tpaBreakpoint);
-        propI = 100 + ((uint16_t)pidRuntime.dynThr[1]) * (rcData[THROTTLE] - pidRuntime.tpaBreakpoint) / (2000 - pidRuntime.tpaBreakpoint);
-        propD = 100 + ((uint16_t)pidRuntime.dynThr[2]) * (rcData[THROTTLE] - pidRuntime.tpaBreakpoint) / (2000 - pidRuntime.tpaBreakpoint);
+        propP = 100 + ((uint16_t)pidRuntime.dynThr[0] - 100) * (rcData[THROTTLE] - pidRuntime.tpaBreakpoint) / (2000 - pidRuntime.tpaBreakpoint);
+        propI = 100 + ((uint16_t)pidRuntime.dynThr[1] - 100) * (rcData[THROTTLE] - pidRuntime.tpaBreakpoint) / (2000 - pidRuntime.tpaBreakpoint);
+        propD = 100 + ((uint16_t)pidRuntime.dynThr[2] - 100) * (rcData[THROTTLE] - pidRuntime.tpaBreakpoint) / (2000 - pidRuntime.tpaBreakpoint);
         throttlePAttenuation = propP / 100.0f;
         throttleIAttenuation = propI / 100.0f;
         throttleDAttenuation = propD / 100.0f;
