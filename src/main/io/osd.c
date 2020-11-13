@@ -499,7 +499,7 @@ static bool osdDrawSingleElement(uint8_t item) {
                 osdLQfinal=osdLQ;
                 tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
                 break;
-            case DEFAULT:
+            case TBS:
             default:
                 switch (osdRfMode) {
                 case 2:
@@ -1090,7 +1090,7 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig) {
     }
     osdConfig->timers[OSD_TIMER_1] = OSD_TIMER(OSD_TIMER_SRC_ON, OSD_TIMER_PREC_SECOND, 10);
     osdConfig->timers[OSD_TIMER_2] = OSD_TIMER(OSD_TIMER_SRC_TOTAL_ARMED, OSD_TIMER_PREC_SECOND, 10);
-    osdConfig->lq_format = DEFAULT;
+    osdConfig->lq_format = TBS;
     osdConfig->lq_alarm = 70;
     osdConfig->rssi_alarm = 20;
     osdConfig->cap_alarm  = 2200;
