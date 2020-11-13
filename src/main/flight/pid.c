@@ -764,26 +764,15 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             // calculated deltaT whenever another task causes the PID
             // loop execution to be delayed.
             float dtermFromMeasurement = -(gyro.gyroADCf[axis] - previousGyroRate[axis]);
+
+            if (pidRuntime.useEstimatedDterm && ((gyroConfig()->alpha && (axis != FD_YAW)) || (gyroConfig()->alphaYaw && (axis == FD_YAW)))) {
+                dtermFromMeasurement = -alphaBetaGammaVelocity(&gyro.alphaBetaGamma[axis]);
+            }
+
             float dtermFromError = errorRate - previousErrorRate[axis];
             previousGyroRate[axis] = gyro.gyroADCf[axis];
             previousErrorRate[axis] = errorRate;
             float delta = ((dtermFromMeasurement * pidRuntime.dtermMeasurementSlider) + (dtermFromError * pidRuntime.dtermMeasurementSliderInverse)) * pidRuntime.pidFrequency;
-
-            if (axis == FD_ROLL) {
-                DEBUG_SET(DEBUG_ESTIMATE_D, 0, lrintf(delta));
-            } else if (axis == FD_PITCH) {
-                DEBUG_SET(DEBUG_ESTIMATE_D, 2, lrintf(delta));
-            }
-
-            if (pidRuntime.useEstimatedDterm && ((gyroConfig()->alpha && (axis != FD_YAW)) || (gyroConfig()->alphaYaw && (axis == FD_YAW)))) {
-                delta = -alphaBetaGammaVelocity(&gyro.alphaBetaGamma[axis]);
-            }
-
-            if (axis == FD_ROLL) {
-                DEBUG_SET(DEBUG_ESTIMATE_D, 1, lrintf(delta));
-            } else if (axis == FD_PITCH) {
-                DEBUG_SET(DEBUG_ESTIMATE_D, 3, lrintf(delta));
-            }
 
             // log unfiltered roll and pitch dterm, log filtered later so we can compare without dmin/dboost
             if (axis == FD_ROLL) {
