@@ -261,7 +261,3 @@ FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input)
 
 	return filter->xk;
 } // ABGUpdate
-
-FAST_CODE float alphaBetaGammaVelocity(alphaBetaGammaFilter_t *filter) {
-  return filter->vk;
-}

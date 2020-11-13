@@ -315,7 +315,6 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidRuntime.antiGravityOsdCutoff += (pidRuntime.itermAcceleratorGain / 1000.0f) * 0.25f;
     }
     pidRuntime.tpaBreakpoint = pidProfile->tpa_breakpoint;
-    pidRuntime.useEstimatedDterm = pidProfile->use_estimated_dterm;
 
 #if defined(USE_ITERM_RELAX)
     pidRuntime.itermRelaxCutoff = pidProfile->iterm_relax_cutoff;

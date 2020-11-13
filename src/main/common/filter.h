@@ -93,4 +93,3 @@ float slewFilterApply(slewFilter_t *filter, float input);
 
 void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, float dt);
 float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input);
-float alphaBetaGammaVelocity(alphaBetaGammaFilter_t *filter);

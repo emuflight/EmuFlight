@@ -202,7 +202,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .i_decay_cutoff = 200,
         .dynThr = { 75, 125, 65 },
         .tpa_breakpoint = 1350,
-        .use_estimated_dterm = 0,
     );
 }
 
@@ -764,11 +763,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             // calculated deltaT whenever another task causes the PID
             // loop execution to be delayed.
             float dtermFromMeasurement = -(gyro.gyroADCf[axis] - previousGyroRate[axis]);
-
-            if (pidRuntime.useEstimatedDterm && ((gyroConfig()->alpha && (axis != FD_YAW)) || (gyroConfig()->alphaYaw && (axis == FD_YAW)))) {
-                dtermFromMeasurement = -alphaBetaGammaVelocity(&gyro.alphaBetaGamma[axis]);
-            }
-
             float dtermFromError = errorRate - previousErrorRate[axis];
             previousGyroRate[axis] = gyro.gyroADCf[axis];
             previousErrorRate[axis] = errorRate;

@@ -159,7 +159,6 @@ static const void *cmsx_rateProfileIndexOnChange(displayPort_t *displayPort, con
 }
 
 static uint8_t  cmsx_dterm_measurement_slider;
-static uint8_t  cmsx_estimateDterm;
 static uint16_t cmsx_emuboost_pr;
 static uint16_t cmsx_emuboost_y;
 static uint8_t  cmsx_emuboost_limit_pr;
@@ -189,7 +188,6 @@ static const void *cmsx_PidAdvancedOnEnter(displayPort_t *pDisp)
     cmsx_iterm_relax_cutoff = pidProfile->iterm_relax_cutoff;
     cmsx_iterm_relax_cutoff_yaw = pidProfile->iterm_relax_cutoff_yaw;
 #endif
-    cmsx_estimateDterm = pidProfile->use_estimated_dterm;
 
     return NULL;
 }
@@ -214,7 +212,6 @@ static const void *cmsx_PidAdvancedWriteback(displayPort_t *pDisp, const OSD_Ent
     pidProfile->iterm_relax_cutoff = cmsx_iterm_relax_cutoff;
     pidProfile->iterm_relax_cutoff_yaw = cmsx_iterm_relax_cutoff_yaw;
 #endif
-    pidProfile->use_estimated_dterm = cmsx_estimateDterm;
 
     return NULL;
 }
@@ -224,8 +221,6 @@ static const OSD_Entry cmsx_menuPidAdvancedEntries[] =
     { "-- PID ADVANCED --", OME_Label, NULL, pidProfileIndexString, 0},
 
     { "D MEASUREMENT",   OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_dterm_measurement_slider,  0, 100, 1 }, 0 },
-
-    { "ESTIMATE D",      OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_estimateDterm, 1, osdTableOnOFF }, 0 },
 
     { "EMUBOOST",        OME_UINT16, NULL, &(OSD_UINT16_t){&cmsx_emuboost_pr,       0, 1000, 5 }, 0 },
     { "BOOST LIMIT",     OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_emuboost_limit_pr, 0, 250,  1 }, 0 },

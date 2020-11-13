@@ -186,7 +186,6 @@ typedef struct pidProfile_s {
     uint8_t dynThr[XYZ_AXIS_COUNT];
     uint16_t tpa_breakpoint;                // Breakpoint where TPA is activated
 
-    uint8_t use_estimated_dterm;
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
@@ -288,8 +287,6 @@ typedef struct pidRuntime_s {
 
     uint8_t dynThr[XYZ_AXIS_COUNT];
     uint16_t tpaBreakpoint;                // Breakpoint where TPA is activated
-
-    int8_t useEstimatedDterm;
 
 #ifdef USE_ITERM_RELAX
     pt1Filter_t windupLpf[XYZ_AXIS_COUNT];

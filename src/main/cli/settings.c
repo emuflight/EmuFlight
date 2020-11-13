@@ -1075,7 +1075,6 @@ const clivalue_t valueTable[] = {
 #endif
 
     { "d_measurement_slider",       VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermMeasurementSlider) },
-    { "estimated_dterm",            VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, use_estimated_dterm) },
 
     { "emuboost",                   VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 1000 },PG_PID_PROFILE, offsetof(pidProfile_t, emuBoostPR) },
     { "emuboost_limit",             VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, emuBoostLimitPR) },
