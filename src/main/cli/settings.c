@@ -1077,11 +1077,8 @@ const clivalue_t valueTable[] = {
     { "d_measurement_slider",       VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermMeasurementSlider) },
 
     { "emuboost",                   VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 1000 },PG_PID_PROFILE, offsetof(pidProfile_t, emuBoostPR) },
-    { "emuboost_limit",             VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, emuBoostLimitPR) },
     { "emuboost_yaw",               VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 1000 },PG_PID_PROFILE, offsetof(pidProfile_t, emuBoostY) },
-    { "emuboost_limit_yaw",         VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, emuBoostLimitY) },
     { "dterm_boost",                VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 1000 },PG_PID_PROFILE, offsetof(pidProfile_t, dtermBoost) },
-    { "dterm_boost_limit",          VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermBoostLimit) },
 
     { "i_decay",                    VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, i_decay) },
     { "i_decay_cutoff",             VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, i_decay_cutoff) },

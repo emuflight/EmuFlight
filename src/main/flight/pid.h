@@ -173,10 +173,7 @@ typedef struct pidProfile_s {
 
     uint16_t emuBoostPR;
     uint16_t emuBoostY;
-    uint8_t emuBoostLimitPR;
-    uint8_t emuBoostLimitY;
     uint16_t dtermBoost;
-    uint8_t dtermBoostLimit;
 
     uint8_t i_decay;
     uint8_t i_decay_cutoff;

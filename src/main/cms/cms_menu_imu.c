@@ -161,10 +161,7 @@ static const void *cmsx_rateProfileIndexOnChange(displayPort_t *displayPort, con
 static uint8_t  cmsx_dterm_measurement_slider;
 static uint16_t cmsx_emuboost_pr;
 static uint16_t cmsx_emuboost_y;
-static uint8_t  cmsx_emuboost_limit_pr;
-static uint8_t  cmsx_emuboost_limit_y;
 static uint16_t cmsx_dboost;
-static uint8_t  cmsx_dboost_limit;
 static uint8_t  cmsx_i_decay;
 static uint8_t  cmsx_iterm_relax_cutoff;
 static uint8_t  cmsx_iterm_relax_cutoff_yaw;
@@ -178,10 +175,7 @@ static const void *cmsx_PidAdvancedOnEnter(displayPort_t *pDisp)
     cmsx_dterm_measurement_slider = pidProfile->dtermMeasurementSlider;
     cmsx_emuboost_pr =              pidProfile->emuBoostPR;
     cmsx_emuboost_y =               pidProfile->emuBoostY;
-    cmsx_emuboost_limit_pr =        pidProfile->emuBoostLimitPR;
-    cmsx_emuboost_limit_y =         pidProfile->emuBoostLimitY;
     cmsx_dboost =                   pidProfile->dtermBoost;
-    cmsx_dboost_limit =             pidProfile->dtermBoostLimit;
     cmsx_i_decay =                  pidProfile->i_decay;
 
 #ifdef USE_ITERM_RELAX
@@ -202,10 +196,7 @@ static const void *cmsx_PidAdvancedWriteback(displayPort_t *pDisp, const OSD_Ent
     pidProfile->dtermMeasurementSlider = cmsx_dterm_measurement_slider;
     pidProfile->emuBoostPR =             cmsx_emuboost_pr;
     pidProfile->emuBoostY =              cmsx_emuboost_y;
-    pidProfile->emuBoostLimitPR =        cmsx_emuboost_limit_pr;
-    pidProfile->emuBoostLimitY =         cmsx_emuboost_limit_y;
     pidProfile->dtermBoost =             cmsx_dboost;
-    pidProfile->dtermBoostLimit =        cmsx_dboost_limit;
     pidProfile->i_decay =                cmsx_i_decay;
 
 #ifdef USE_ITERM_RELAX
@@ -223,12 +214,9 @@ static const OSD_Entry cmsx_menuPidAdvancedEntries[] =
     { "D MEASUREMENT",   OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_dterm_measurement_slider,  0, 100, 1 }, 0 },
 
     { "EMUBOOST",        OME_UINT16, NULL, &(OSD_UINT16_t){&cmsx_emuboost_pr,       0, 1000, 5 }, 0 },
-    { "BOOST LIMIT",     OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_emuboost_limit_pr, 0, 250,  1 }, 0 },
     { "EMUBOOST YAW",    OME_UINT16, NULL, &(OSD_UINT16_t){&cmsx_emuboost_y,        0, 1000, 5 }, 0 },
-    { "BOOST YAW LIMIT", OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_emuboost_limit_y,  0, 250,  1 }, 0 },
 
     { "DBOOST",          OME_UINT16, NULL, &(OSD_UINT16_t){&cmsx_dboost,            0, 1000, 5 }, 0 },
-    { "DBOOST LIMIT",    OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_dboost_limit,      0, 250,  1 }, 0 },
 
     { "I DECAY",         OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_i_decay,           1, 10,   1 }, 0 },
 #ifdef USE_ITERM_RELAX

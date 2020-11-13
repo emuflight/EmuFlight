@@ -263,19 +263,16 @@ void pidInitConfig(const pidProfile_t *pidProfile)
             pidRuntime.stickPositionTransition[pid][axis] = (pidProfile->stickTransition[pid][axis] / 100.0f) - 1.0f;
         }
     }
-    {
-        pidRuntime.pidCoefficient[FD_YAW].Ki *= 2.5f;
-    }
 
     pidRuntime.dtermMeasurementSlider = pidProfile->dtermMeasurementSlider / 100;
     pidRuntime.dtermMeasurementSliderInverse = 1 - (pidProfile->dtermMeasurementSlider / 100);
 
     pidRuntime.emuBoostPR = (pidProfile->emuBoostPR * pidProfile->emuBoostPR / 1000000) * 0.003;
     pidRuntime.emuBoostY = (pidProfile->emuBoostY * pidProfile->emuBoostY / 1000000) * 0.003;
-    pidRuntime.emuBoostLimitPR = pidProfile->emuBoostLimitPR / 100.0f;
-    pidRuntime.emuBoostLimitY = pidProfile->emuBoostLimitY / 100.0f;
+    pidRuntime.emuBoostLimitPR = powf(pidProfile->emuBoostPR, 0.75f) * 1.4;
+    pidRuntime.emuBoostLimitY = powf(pidProfile->emuBoostY, 0.75f) * 1.4;
     pidRuntime.dtermBoost = (pidProfile->dtermBoost * pidProfile->dtermBoost / 1000000) * 0.003;
-    pidRuntime.dtermBoostLimit = pidProfile->dtermBoostLimit / 100.0f;
+    pidRuntime.dtermBoostLimit = powf(pidProfile->dtermBoost, 0.75f) * 1.4;
     pidRuntime.iDecay = pidProfile->i_decay;
     pidRuntime.iDecayCutoff = pidProfile->i_decay_cutoff;
 
