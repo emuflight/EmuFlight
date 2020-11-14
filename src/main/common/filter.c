@@ -232,15 +232,14 @@ FAST_CODE float laggedMovingAverageUpdate(laggedMovingAverage_t *filter, float i
 void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, float dT) {
 	const float Alpha = alpha * 0.001f;
   const float beta = 0.8f * (2.0f - Alpha * Alpha - 2.0f * sqrtf(1.0f - Alpha * Alpha)) / (Alpha * Alpha);
-  filter->xk = 0;
-	filter->vk = 0;
-  filter->ak = 0;
+  filter->xk = 0.0f;
+	filter->vk = 0.0f;
+  filter->ak = 0.0f;
 	filter->a = Alpha;
 	filter->b = beta;
   filter->g = beta * beta / (Alpha * 2.0f);
 	filter->dT = dT;
 	filter->dT2 = dT * dT;
-	filter->xk = 0.0f;
 } // ABGInit
 
 FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input) {
