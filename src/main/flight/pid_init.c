@@ -76,6 +76,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
         pidRuntime.dtermLowpassApplyFn = nullFilterApply;
         pidRuntime.dtermLowpass2ApplyFn = nullFilterApply;
         pidRuntime.ptermYawLowpassApplyFn = nullFilterApply;
+        pidRuntime.dtermABGApplyFn = nullFilterApply;
         return;
     }
 
@@ -165,6 +166,15 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     } else {
         pidRuntime.ptermYawLowpassApplyFn = (filterApplyFnPtr)pt1FilterApply;
         pt1FilterInit(&pidRuntime.ptermYawLowpass, pt1FilterGain(pidProfile->yaw_lowpass_hz, pidRuntime.dT));
+    }
+
+    if (pidProfile->dtermAlpha == 0) {
+        pidRuntime.dtermABGApplyFn = nullFilterApply;
+    } else {
+        pidRuntime.dtermABGApplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
+        for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
+            ABGInit(&pidRuntime.dtermABG[axis], pidProfile->dtermAlpha, pidRuntime.dT);
+        }
     }
 
 #if defined(USE_THROTTLE_BOOST)

@@ -199,6 +199,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .i_decay_cutoff = 200,
         .dynThr = { 75, 125, 65 },
         .tpa_breakpoint = 1350,
+        .dtermAlpha = 0,
     );
 }
 
@@ -775,6 +776,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             delta = pidRuntime.dtermNotchApplyFn((filter_t *) &pidRuntime.dtermNotch[axis], delta);
             delta = pidRuntime.dtermLowpassApplyFn((filter_t *) &pidRuntime.dtermLowpass[axis], delta);
             delta = pidRuntime.dtermLowpass2ApplyFn((filter_t *) &pidRuntime.dtermLowpass2[axis], delta);
+            delta = pidRuntime.dtermABGApplyFn((filter_t *) &pidRuntime.dtermABG[axis], delta);
 
             if (axis == FD_ROLL) {
                 DEBUG_SET(DEBUG_D_LPF, 1, lrintf(delta));

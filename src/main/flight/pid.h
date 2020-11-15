@@ -183,6 +183,8 @@ typedef struct pidProfile_s {
     uint8_t dynThr[XYZ_AXIS_COUNT];
     uint16_t tpa_breakpoint;                // Breakpoint where TPA is activated
 
+    uint16_t dtermAlpha;
+
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
@@ -231,6 +233,8 @@ typedef struct pidRuntime_s {
     dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
     filterApplyFnPtr dtermLowpass2ApplyFn;
     dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
+    filterApplyFnPtr dtermABGApplyFn;
+    alphaBetaGammaFilter_t dtermABG[XYZ_AXIS_COUNT];
     filterApplyFnPtr ptermYawLowpassApplyFn;
     pt1Filter_t ptermYawLowpass;
     bool antiGravityEnabled;
