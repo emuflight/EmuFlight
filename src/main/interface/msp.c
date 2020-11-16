@@ -1233,11 +1233,13 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, 0); // was pidProfile.levelSensitivity
         sbufWriteU16(dst, 0);
         sbufWriteU16(dst, 0);
-        sbufWriteU16(dst, 0); // was currentPidProfile->dtermSetpointWeight
+        //modded msp 1.49 (next 1)
+        sbufWriteU16(dst, currentPidProfile->dtermBoost); // was currentPidProfile->dtermSetpointWeight
         sbufWriteU8(dst, currentPidProfile->iterm_rotation);
-        sbufWriteU8(dst, 0);
-        sbufWriteU8(dst, 0);
-        sbufWriteU8(dst, 0);
+        //modded msp 1.49 (next 3)
+        sbufWriteU8(dst, currentPidProfile->iterm_relax_cutoff);
+        sbufWriteU8(dst, currentPidProfile->iterm_relax_cutoff_yaw);
+        sbufWriteU8(dst, currentPidProfile->dtermBoostLimit);
         sbufWriteU8(dst, 0);
 #if defined(USE_THROTTLE_BOOST)
         sbufWriteU8(dst, currentPidProfile->throttle_boost);
@@ -1819,9 +1821,10 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         if (sbufBytesRemaining(src) >= 14) {
         // Added in MSP API 1.40
         currentPidProfile->iterm_rotation = sbufReadU8(src);
-        sbufReadU8(src);
-        sbufReadU8(src);
-        sbufReadU8(src);
+        //modded msp 1.49 (next 3)
+        currentPidProfile->iterm_relax_cutoff = sbufReadU8(src);
+        currentPidProfile->iterm_relax_cutoff_yaw = sbufReadU8(src);
+        currentPidProfile->dtermBoostLimit = sbufReadU8(src);
         sbufReadU8(src);
 #if defined(USE_THROTTLE_BOOST)
         currentPidProfile->throttle_boost = sbufReadU8(src);
