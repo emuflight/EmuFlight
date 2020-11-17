@@ -43,28 +43,28 @@ jobs:
       uses: actions/setup-python@v1
 
     - name: Setup Toolchain
-      uses: fiam/arm-none-eabi-gcc@v1.0.2
+      uses: fiam/arm-none-eabi-gcc@master
       with:
         release: '9-2020-q2' # The arm-none-eabi-gcc release to use.
 
     - name: Get code version
       id: get_version
-      run: echo "::set-output name=VERSION::$(make version)"
+      run: echo "VERSION=$(make version)" >> $GITHUB_ENV   #"::set-output name=VERSION::$(make version)"
 
     # for Makefile interaction
     - name: Get GitHub Build Number (ENV)
       id: get_buildno
-      run: echo ::set-env name=GITHUBBUILDNUMBER::${{ github.run_number }}
+      run: echo "GITHUBBUILDNUMBER=${{ github.run_number }}" >> $GITHUB_ENV #::set-env name=GITHUBBUILDNUMBER::${{ github.run_number }}
       continue-on-error: true
 
     - name: Get pull request number
       id: get_pullno
-      run: echo ::set-env name=PULL_NUMBER::$(echo "$GITHUB_REF" | awk -F / '{print $3}')
+      run: echo "PULL_NUMBER=$(echo "$GITHUB_REF" | awk -F / '{print $3}')" >> $GITHUB_ENV #::set-env name=PULL_NUMBER::$(echo "$GITHUB_REF" | awk -F / '{print $3}')
       if: startsWith(github.ref, 'refs/pull/')
 
     - name: Get revision tag
       id: get_revtag
-      run: echo "::set-output name=REVISION_TAG::${GITHUB_REF/refs\/tags\//}"
+      run: echo "REVISION_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV #"::set-output name=REVISION_TAG::${GITHUB_REF/refs\/tags\//}"
       if: startsWith(github.ref, 'refs/tags/')
 
     # for debugging
