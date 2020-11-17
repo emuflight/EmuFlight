@@ -72,9 +72,9 @@ jobs:
       id: show_vars
       run: |
         echo "Build: ${{ github.run_number }}"
-        echo "Firmware ${{ steps.env.VERSION }}"
+        echo "Firmware ${{ env.VERSION }}"
         echo "Commit: ${{ github.sha }}"
-        echo "tag: ${{ steps.env.REVISION_TAG}}"
+        echo "tag: ${{ env.REVISION_TAG}}"
       continue-on-error: true
 
     - name: Compile Code
@@ -85,7 +85,7 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: EmuFlight-${{ steps.env.VERSION }}-${{ github.run_number }}
+        name: EmuFlight-${{ env.VERSION }}-${{ github.run_number }}
         path: obj/*.hex
 
     # Upload to Bintray before .hex renames / only for tag
@@ -98,8 +98,8 @@ jobs:
         export JFROG_CLI_LOG_LEVEL=DEBUG
         ./jfrog bt config --user=${{secrets.BINTRAYUSERNAME}} --key=${{secrets.BINTRAYAPIKEY}} --licenses=GPL-3.0
         export repo="emuflight-dev/dev_hex"
-        export package="${{steps.env.REVISION_TAG}}"
-        export version="${{github.run_number}}-${{steps.env.VERSION}}-${{steps.env.REVISION_TAG}}"
+        export package="${{env.REVISION_TAG}}"
+        export version="${{github.run_number}}-${{env.VERSION}}-${{env.REVISION_TAG}}"
         ./jfrog bt package-create --pub-dn=true --vcs-url="https://github.com/emuflight" "${repo}/${package}" || true
         ./jfrog bt version-create "${repo}/${package}/${version}"  || true
         ./jfrog bt upload --publish=true "obj/*.hex" "${repo}/${package}/${version}" "GitHub_Build_${version}/" || true
@@ -121,10 +121,10 @@ jobs:
         draft: true
         prerelease: true
         tag_name: ${{ github.run_number }}   # use the build Number, but we manually change to version so that it creates a version-tag on release
-        name:  DRAFT / EmuFlight ${{ steps.env.VERSION }} / GitHub Build ${{ github.run_number }}
+        name:  DRAFT / EmuFlight ${{ env.VERSION }} / GitHub Build ${{ github.run_number }}
         body: |
-          # EmuFlight ${{ steps.env.VERSION }}
-          ## BuildTag: ${{ steps.env.REVISION_TAG}}
+          # EmuFlight ${{ senv.VERSION }}
+          ## BuildTag: ${{ env.REVISION_TAG}}
           ## Commit: ${{ github.sha }}
           ## Changes in this Release:
       env:
