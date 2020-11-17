@@ -72,7 +72,7 @@ jobs:
       id: show_vars
       run: |
         echo "Build: ${{ github.run_number }}"
-        echo "Firmware ${{ env.VERSION }}"
+        echo "Firmware: ${{ env.VERSION }}"
         echo "Commit: ${{ github.sha }}"
         echo "tag: ${{ env.REVISION_TAG}}"
       continue-on-error: true
