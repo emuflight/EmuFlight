@@ -108,6 +108,9 @@ typedef enum {
     TABLE_RC_SMOOTHING_DERIVATIVE_TYPE,
 #endif // USE_RC_SMOOTHING_FILTER
     TABLE_VBAT_COMP_TYPE,
+#ifdef USE_OSD
+    TABLE_OSD_LOGO_ON_ARMING,
+#endif
     LOOKUP_TABLE_COUNT
 } lookupTableIndex_e;
 
