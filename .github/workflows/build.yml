@@ -123,7 +123,7 @@ jobs:
         tag_name: ${{ github.run_number }}   # use the build Number, but we manually change to version so that it creates a version-tag on release
         name:  DRAFT / EmuFlight ${{ env.VERSION }} / GitHub Build ${{ github.run_number }}
         body: |
-          # EmuFlight ${{ senv.VERSION }}
+          # EmuFlight ${{ env.VERSION }}
           ## BuildTag: ${{ env.REVISION_TAG}}
           ## Commit: ${{ github.sha }}
           ## Changes in this Release:
