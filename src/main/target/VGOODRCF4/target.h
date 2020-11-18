@@ -47,8 +47,10 @@
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
 
-#define GYRO_1_CS_PIN   					PA15                      
-#define GYRO_1_SPI_INSTANCE                 SPI3
+//#define GYRO_1_CS_PIN   					PA15                      
+//#define GYRO_1_SPI_INSTANCE                 SPI3
+#define MPU6000_CS_PIN          PA15
+#define MPU6000_SPI_INSTANCE    SPI3
 
 //-------------------------------------SPI2 FLASH------------------------------
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
