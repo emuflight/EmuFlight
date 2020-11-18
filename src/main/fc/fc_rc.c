@@ -183,6 +183,7 @@ static void calculateSetpointRate(int axis) {
         //
         // TODO modify rcCommand in order to make for a smoother/snappier flight feel
         //
+
         float rcCommandf = rcCommand[axis] / 500.0f;
         rcDeflection[axis] = rcCommandf;
         const float rcCommandfAbs = ABS(rcCommandf);
@@ -550,6 +551,33 @@ FAST_CODE void processRcCommand(void) {
     }
 }
 
+static void applyRollYawMix(void) {
+    float rollAddition, yawAddition, unchangedRoll;
+
+    unchangedRoll = rcCommand[FD_ROLL];
+    yawAddition = rcCommand[FD_YAW] * (currentControlRateProfile->addYawToRollRc / 100.0f) * -GET_DIRECTION(rcControlsConfig()->yaw_control_reversed);
+    rcCommand[FD_ROLL] = constrainf((rcCommand[FD_ROLL] + yawAddition), -500.0f, 500.0f);
+
+    rollAddition = unchangedRoll * (currentControlRateProfile->addRollToYawRc / 100.0f) * -GET_DIRECTION(rcControlsConfig()->yaw_control_reversed);
+    rcCommand[FD_YAW] = constrainf((rcCommand[FD_YAW] + rollAddition), -500.0f, 500.0f);
+}
+
+static void applyPolarExpo(void) {
+    const float roll_pitch_mag = sqrtf((rcCommand[FD_ROLL] * rcCommand[FD_ROLL] / 250000.0f) + (rcCommand[FD_PITCH] * rcCommand[FD_PITCH] / 250000.0f));
+
+    float roll_pitch_scale;
+    const float rollPitchMagExpo = currentControlRateProfile->rollPitchMagExpo / 100.0f;
+    if (roll_pitch_mag > 1.0f) {
+        roll_pitch_scale = (1.0f / roll_pitch_mag);
+        roll_pitch_scale = ((roll_pitch_scale - 1.0f) * rollPitchMagExpo) + 1.0f;
+    } else {
+        roll_pitch_scale = 1.0f;
+    }
+
+    rcCommand[FD_ROLL] *= roll_pitch_scale;
+    rcCommand[FD_PITCH] *= roll_pitch_scale;
+}
+
 FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void) {
     isRXDataNew = true;
     // PITCH & ROLL only dynamic PID adjustment,  depending on throttle value
@@ -611,7 +639,14 @@ FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void) {
             rcCommand[axis] = -rcCommand[axis];
         }
         rcCommand[axis] = rateDynamics(rcCommand[axis], axis, currentRxRefreshRate);
-        if (rxConfig()->showRateDynamics != 0) {
+    }
+
+      applyPolarExpo();
+
+      applyRollYawMix();
+
+      if (rxConfig()->showAlteredRc != 0) {
+      for (int axis = 0; axis < 3; axis++) {
             if (axis == ROLL || axis == PITCH) {
                 rcData[axis] = rcCommand[axis] + rxConfig()->midrc;
             } else {
@@ -760,21 +795,26 @@ FAST_CODE float rateDynamics(float rcCommand, int axis, int currentRxRefreshRate
         float rcCommandPercent;
         float rcCommandError;
         float inverseRcCommandPercent;
+
         rcCommandPercent = fabsf(rcCommand) / 500.0f; // make rcCommandPercent go from 0 to 1
         inverseRcCommandPercent = 1.0f - rcCommandPercent;
+
         pterm_centerStick = inverseRcCommandPercent * rcCommand * (currentControlRateProfile->rateDynamics.rateSensCenter / 100.0f); // valid pterm values are between 50-150
         pterm_endStick = rcCommandPercent * rcCommand * (currentControlRateProfile->rateDynamics.rateSensEnd / 100.0f);
         pterm = pterm_centerStick + pterm_endStick;
         rcCommandError = rcCommand - (pterm + iterm[axis]);
         rcCommand = pterm; // add this fake pterm to the rcCommand
+
         iterm_centerStick = inverseRcCommandPercent * rcCommandError * calculateK(currentControlRateProfile->rateDynamics.rateCorrectionCenter / 100.0f, currentRxRefreshRate); // valid iterm values are between 0-95
         iterm_endStick = rcCommandPercent * rcCommandError * calculateK(currentControlRateProfile->rateDynamics.rateCorrectionEnd / 100.0f, currentRxRefreshRate);
         iterm[axis] += iterm_centerStick + iterm_endStick;
         rcCommand = rcCommand + iterm[axis]; // add the iterm to the rcCommand
+
         dterm_centerStick = inverseRcCommandPercent * (lastRcCommandData[axis] - rcCommand) * calculateK(currentControlRateProfile->rateDynamics.rateWeightCenter / 100.0f, currentRxRefreshRate); // valid dterm values are between 0-95
         dterm_endStick = rcCommandPercent * (lastRcCommandData[axis] - rcCommand) * calculateK(currentControlRateProfile->rateDynamics.rateWeightEnd / 100.0f, currentRxRefreshRate);
         dterm = dterm_centerStick + dterm_endStick;
         rcCommand = rcCommand + dterm; // add dterm to the rcCommand (this is real dterm)
+
         lastRcCommandData[axis] = rcCommand;
     }
     return rcCommand;

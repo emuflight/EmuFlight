@@ -64,7 +64,10 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig) {
         .throttle_limit_percent = 100,
         .vbat_comp_type = VBAT_COMP_TYPE_OFF,
         .vbat_comp_ref = 37,
-        );
+        .addRollToYawRc = 0,
+        .addYawToRollRc = 0,
+        .rollPitchMagExpo = 0,
+                    );
     }
 }
 
