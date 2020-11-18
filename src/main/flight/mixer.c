@@ -133,6 +133,7 @@ static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
 
 static bool mixerLaziness;
 static float thrustLinearizationLevel;
+static float throttleLevelOnIdle;
 static float thrustLinearizationPIDScaler; // used to avoid or at least limit PID tuning when enabling thrust linearization
 
 static const motorMixer_t mixerQuadX[] = {
@@ -419,7 +420,10 @@ void initEscEndpoints(void) {
 void mixerInitProfile(void)
 {
     thrustLinearizationLevel = 0.01f * currentPidProfile->thrust_linearization_level;
-    thrustLinearizationPIDScaler = ((1.0f - thrustLinearizationLevel) * 0.5f + thrustLinearizationLevel * 0.25f) / 0.5f; // unlinear_thrust / linearized_thrust at 0.5
+    throttleLevelOnIdle = (float) (motorConfig()->minthrottle - motorConfig()->mincommand)
+            / (float) (motorConfig()->maxthrottle - motorConfig()->mincommand); // e.g. (1070 - 1000) / (2000 - 1000) = 0.07
+    thrustLinearizationPIDScaler = ((1.0f - thrustLinearizationLevel) * 0.5f
+            + thrustLinearizationLevel * 0.25f) / 0.5f; // unlinear_thrust / linearized_thrust at 0.5
     mixerLaziness = currentPidProfile->mixer_laziness && thrustLinearizationLevel; // lazy mixer needs thrust linearization
 }
 
@@ -637,9 +641,10 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs) {
 
 static float mapThrustToMotorOutput(float thrust, float vbatCompFactor)
 {
-    thrust = MAX(thrust, 0.0f); // let's take some precautions from round-off errors
-    float linearizedThrust = vbatCompFactor * ((1.0f - thrustLinearizationLevel) * thrust + thrustLinearizationLevel * vbatCompFactor * sqrtf(thrust));
-    return motorOutputMin + linearizedThrust * motorOutputRange;
+    thrust *= vbatCompFactor * scaleRangef(thrustLinearizationLevel, 0.0f, 1.0f, 1.0f, vbatCompFactor);
+    thrust = constrainf(thrust, 0.0f, 1.0f);
+    float normMotorOutput = thrustLinearizationLevel ? THRUST_TO_MOTOR_OUTPUT(thrust, thrustLinearizationLevel) : thrust;
+    return motorOutputMin + normMotorOutput * motorOutputRange;
 }
 
 static void applyFlipOverAfterCrashModeToMotors(void) {
@@ -704,8 +709,13 @@ static void applyFlipOverAfterCrashModeToMotors(void) {
 
 static void applyThrottleCurve() {
     if (thrustLinearizationLevel) {
-        // counter compensating thrust linearization on throttle
-        throttle = (1.0f - thrustLinearizationLevel) * throttle + thrustLinearizationLevel * throttle * throttle;
+        if (currentPidProfile->use_throttle_linearization) {
+            // removing the throttle value on idle to have an actual linear throttle
+            throttle = MAX(throttle - throttleLevelOnIdle, 0.0f);
+        } else {
+            // counter compensating thrust linearization on throttle
+            throttle = MOTOR_OUTPUT_TO_THRUST(throttle, thrustLinearizationLevel);
+        }
     }
 }
 

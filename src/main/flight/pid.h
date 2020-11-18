@@ -136,6 +136,7 @@ typedef struct pidProfile_s {
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
 
     uint8_t thrust_linearization_level;     // Sets the level of thrust linearization
+    bool use_throttle_linearization;        // When thrust_linearization_level is > 0, tells whether the throttle response has to be linear too or counter-compensated for the legacy feedback
     bool mixer_laziness;                    // Makes the mixer's clipping adjustment logic apply the minimum required adjustment instead of applying the same amount of offset to all motors based on motorMixRange
 } pidProfile_t;
 
