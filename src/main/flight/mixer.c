@@ -131,7 +131,7 @@ static motorMixer_t currentMixer[MAX_SUPPORTED_MOTORS];
 
 static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
 
-static bool mixerLaziness;
+static mixerImplType_e mixerImpl;
 static float thrustLinearizationLevel;
 static float throttleLevelOnIdle;
 static float thrustLinearizationPIDScaler; // used to avoid/limit PID tuning when enabling thrust linearization
@@ -423,7 +423,10 @@ void mixerInitProfile(void)
     throttleLevelOnIdle = (float) (motorConfig()->minthrottle - motorConfig()->mincommand)
             / (float) (motorConfig()->maxthrottle - motorConfig()->mincommand); // e.g. (1070 - 1000) / (2000 - 1000) = 0.07
     thrustLinearizationPIDScaler = MOTOR_OUTPUT_TO_THRUST(0.5f, thrustLinearizationLevel) / 0.5f; // trying to keep the same PID effect at 0.5 motor output
-    mixerLaziness = currentPidProfile->mixer_laziness && thrustLinearizationLevel; // lazy mixer needs thrust linearization
+    mixerImpl = currentPidProfile->mixer_impl;
+    if (mixerImpl == LAZY && !thrustLinearizationLevel) {
+        mixerImpl = SMOOTH; // lazy mixer needs thrust linearization
+    }
 }
 
 void mixerInit(mixerMode_e mixerMode) {
@@ -797,14 +800,34 @@ float applyThrottleLimit(float throttle) {
     return throttle;
 }
 
-void applyMixerClipAdjustment(float *motorMix, float motorMixMax) {
+void applyLegacyMixerClipAdjustment(float *motorMix, float motorMixMin, float motorMixMax) {
+    if (motorMixRange > 1.0f && (hardwareMotorType != MOTOR_BRUSHED)) {
+        for (int i = 0; i < motorCount; i++) {
+            motorMix[i] /= motorMixRange;
+        }
+        // Get the maximum correction by setting offset to center when airmode enabled
+        if (isAirmodeActive()) {
+            throttle = 0.5f;
+        }
+    } else {
+        if (isAirmodeActive() || throttle > 0.5f) {  // Only automatically adjust throttle when airmode enabled. Airmode logic is always active on high throttle
+            throttle = constrainf(throttle, -motorMixMin, 1.0f - motorMixMax);
+        }
+    }
+}
+
+void applyMixerClipAdjustment(float *motorMix, float motorMixMin, float motorMixMax) {
+    if (mixerImpl == LEGACY) {
+        applyLegacyMixerClipAdjustment(motorMix, motorMixMin, motorMixMax);
+        return;
+    }
     float motorMixNormalizationFactor = motorMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? motorMixRange : 1.0f;
     float motorMixDelta = 0.5f * motorMixRange;
     float authorityZeroThrottle = isAirmodeActive() ? 1.0f : 0.5f;
 
     for (int i = 0; i < motorCount; ++i) {
         motorMix[i] += motorMixDelta - motorMixMax; // let's center motorMix values around the zero
-        if (mixerLaziness) {
+        if (mixerImpl == LAZY) {
             motorMix[i] = scaleRangef(throttle, 0.0f, 1.0f, authorityZeroThrottle * (motorMix[i] + ABS(motorMix[i])), motorMix[i] - ABS(motorMix[i]));
         } else {
             motorMix[i] = scaleRangef(throttle, 0.0f, 1.0f, authorityZeroThrottle * (motorMix[i] + motorMixDelta), motorMix[i] - motorMixDelta);
@@ -874,7 +897,7 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs) {
     applyThrottleCurve();
     motorMixRange = motorMixMax - motorMixMin;
 
-    applyMixerClipAdjustment(motorMix, motorMixMax);
+    applyMixerClipAdjustment(motorMix, motorMixMin, motorMixMax);
 
     // Apply the mix to motor endpoints
     applyMixToMotors(motorMix);

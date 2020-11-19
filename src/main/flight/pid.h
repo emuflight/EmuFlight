@@ -69,6 +69,12 @@ typedef enum {
     PID_CRASH_RECOVERY_BEEP
 } pidCrashRecovery_e;
 
+typedef enum {
+    LEGACY = 0,
+    SMOOTH,
+    LAZY
+} mixerImplType_e;
+
 typedef struct pidf_s {
     uint8_t P;
     uint8_t I;
@@ -137,7 +143,7 @@ typedef struct pidProfile_s {
 
     uint8_t thrust_linearization_level;     // Sets the level of thrust linearization
     bool use_throttle_linearization;        // When thrust_linearization_level is > 0, tells whether the throttle response has to be linear too or counter-compensated for the legacy feedback
-    bool mixer_laziness;                    // Makes the mixer's clipping adjustment logic apply the minimum required adjustment instead of applying the same amount of offset to all motors based on motorMixRange
+    mixerImplType_e mixer_impl;             // Which mixer implementation use
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE

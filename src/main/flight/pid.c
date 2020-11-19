@@ -178,7 +178,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .horizonTransition = 0,
     .thrust_linearization_level = 0,
     .use_throttle_linearization = false,
-    .mixer_laziness = false,
+    .mixer_impl = LEGACY,
     );
 }
 

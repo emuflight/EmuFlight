@@ -377,6 +377,10 @@ static const char * const lookupTableOsdLogoOnArming[] = {
 };
 #endif
 
+static const char *const lookupTableMixerImplType[] = {
+    "LEGACY", "SMOOTH", "LAZY"
+};
+
 #define LOOKUP_TABLE_ENTRY(name) { name, ARRAYLEN(name) }
 
 const lookupTableEntry_t lookupTables[] = {
@@ -465,6 +469,7 @@ const lookupTableEntry_t lookupTables[] = {
 #ifdef USE_OSD
     LOOKUP_TABLE_ENTRY(lookupTableOsdLogoOnArming),
 #endif
+    LOOKUP_TABLE_ENTRY(lookupTableMixerImplType),
 };
 
 #undef LOOKUP_TABLE_ENTRY
@@ -925,7 +930,7 @@ const clivalue_t valueTable[] = {
 
     { "thrust_linearization_level",  VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, thrust_linearization_level) },
     { "use_throttle_linearization",  VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, use_throttle_linearization) },
-    { "mixer_laziness",              VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_laziness) },
+    { "mixer_impl",                  VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_MIXER_IMPL_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_impl) },
 
 // PG_TELEMETRY_CONFIG
 #ifdef USE_TELEMETRY
