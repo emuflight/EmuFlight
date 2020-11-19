@@ -134,7 +134,7 @@ static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
 static bool mixerLaziness;
 static float thrustLinearizationLevel;
 static float throttleLevelOnIdle;
-static float thrustLinearizationPIDScaler; // used to avoid or at least limit PID tuning when enabling thrust linearization
+static float thrustLinearizationPIDScaler; // used to avoid/limit PID tuning when enabling thrust linearization
 
 static const motorMixer_t mixerQuadX[] = {
     { 1.0f, -1.0f,  1.0f, -1.0f },          // REAR_R
@@ -422,8 +422,7 @@ void mixerInitProfile(void)
     thrustLinearizationLevel = 0.01f * currentPidProfile->thrust_linearization_level;
     throttleLevelOnIdle = (float) (motorConfig()->minthrottle - motorConfig()->mincommand)
             / (float) (motorConfig()->maxthrottle - motorConfig()->mincommand); // e.g. (1070 - 1000) / (2000 - 1000) = 0.07
-    thrustLinearizationPIDScaler = ((1.0f - thrustLinearizationLevel) * 0.5f
-            + thrustLinearizationLevel * 0.25f) / 0.5f; // unlinear_thrust / linearized_thrust at 0.5
+    thrustLinearizationPIDScaler = MOTOR_OUTPUT_TO_THRUST(0.5f, thrustLinearizationLevel) / 0.5f; // trying to keep the same PID effect at 0.5 motor output
     mixerLaziness = currentPidProfile->mixer_laziness && thrustLinearizationLevel; // lazy mixer needs thrust linearization
 }
 
