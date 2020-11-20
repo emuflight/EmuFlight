@@ -27,6 +27,9 @@
 #define LED0_PIN                PC14
 #define LED1_PIN                PC15
 
+//define camera control
+#define CAMERA_CONTROL_PIN      PC9
+
 #define USE_BEEPER
 #define BEEPER_PIN              PC13
 #define BEEPER_INVERTED
