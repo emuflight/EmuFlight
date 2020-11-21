@@ -465,6 +465,9 @@ static bool osdDrawSingleElement(uint8_t item) {
             switch (osdConfig()->lq_format) {
             case SCALED:
                 switch (osdRfMode) {
+                case 5:
+                    osdLQfinal = osdLQ;
+                    break;                    
                 case 2:
                     osdLQfinal = scaleRange(osdLQ, 0, 100, 170, 300);
                     break;
@@ -491,6 +494,9 @@ static bool osdDrawSingleElement(uint8_t item) {
                     break;
                 case 2:
                     osdRfMode = 150;
+                    break;
+                case 5:
+                    osdRfMode = 250;
                     break;
                 }
                 tfp_sprintf(buff, "%3dHZ:%3d", osdRfMode, osdLQfinal);
