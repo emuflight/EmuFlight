@@ -448,7 +448,7 @@ bool osdWarnDjiEnabled(void) {
 #endif
            ;
 }
-
+extern mixerImplType_e mixerImpl;
 static bool osdDrawSingleElement(uint8_t item) {
     if (!VISIBLE(osdConfig()->item_pos[item]) || BLINK(item)) {
         return false;
@@ -676,6 +676,9 @@ static bool osdDrawSingleElement(uint8_t item) {
         //  3. ANGLE, HORIZON, ACRO TRAINER
         //  4. AIR
         //  5. ACRO
+        if (true) { // TODO remove me...
+            strcpy(buff, mixerImpl == MIXER_IMPL_LEGACY ? "LEGACY" : (mixerImpl == MIXER_IMPL_SMOOTH ? "SMOOTH" : "LAZY"));
+        } else
         if (FLIGHT_MODE(FAILSAFE_MODE)) {
             strcpy(buff, "!FS!");
         } else if (FLIGHT_MODE(GPS_RESCUE_MODE)) {

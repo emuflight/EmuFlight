@@ -70,9 +70,10 @@ typedef enum {
 } pidCrashRecovery_e;
 
 typedef enum {
-    LEGACY = 0,
-    SMOOTH,
-    LAZY
+    MIXER_IMPL_LEGACY = 0,
+    MIXER_IMPL_SMOOTH,
+    MIXER_IMPL_LAZY,
+    MIXER_IMPL_COUNT
 } mixerImplType_e;
 
 typedef struct pidf_s {

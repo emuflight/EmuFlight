@@ -203,7 +203,7 @@ static OSD_Entry cmsx_menuPidAdvancedEntries[] = {
 
     { "THRUST LINEAR",     OME_UINT8, NULL, &(OSD_UINT8_t) { &thrust_linearization_level, 0,  100,  1}, 0 },
     { "THROTTLE LINEAR",   OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &use_throttle_linearization, 1, cms_offOnLabels }, 0 },
-    { "MIXER IMPL",        OME_TAB,   NULL, &(OSD_TAB_t)   { &mixer_impl, sizeof(cms_mixerImplTypeLabels) / sizeof(char*), cms_mixerImplTypeLabels }, 0 },
+    { "MIXER IMPL",        OME_TAB,   NULL, &(OSD_TAB_t)   { &mixer_impl, MIXER_IMPL_COUNT - 1, cms_mixerImplTypeLabels }, 0 },
 
     { "SAVE&EXIT",         OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK",              OME_Back, NULL, NULL, 0 },

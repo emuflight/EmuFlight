@@ -1205,6 +1205,9 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("nfe_racermode", "%d",                   currentPidProfile->nfe_racermode);
         BLACKBOX_PRINT_HEADER_LINE("iterm_rotation", "%d",                  currentPidProfile->iterm_rotation);
         BLACKBOX_PRINT_HEADER_LINE("throttle_boost", "%d",                  currentPidProfile->throttle_boost);
+        BLACKBOX_PRINT_HEADER_LINE("mixer_impl", "%d",                      currentPidProfile->mixer_impl);
+        BLACKBOX_PRINT_HEADER_LINE("thrust_linear", "%d",                   currentPidProfile->thrust_linearization_level);
+        BLACKBOX_PRINT_HEADER_LINE("use_throttle_linear", "%d",             currentPidProfile->use_throttle_linearization);
         // End of EmuFlight controller parameters
         BLACKBOX_PRINT_HEADER_LINE("deadband", "%d",                        rcControlsConfig()->deadband);
         BLACKBOX_PRINT_HEADER_LINE("yaw_deadband", "%d",                    rcControlsConfig()->yaw_deadband);
