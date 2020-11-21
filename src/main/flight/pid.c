@@ -509,7 +509,7 @@ static void handleCrashRecovery(
         temporaryIterm[axis] = 0.0f;
         if (
             cmpTimeUs(currentTimeUs, crashDetectedAtUs) > crashTimeLimitUs ||
-            (getMotorMixRange() < 1.0f &&
+            (getControllerMixRange() < 1.0f &&
              ABS(gyro.gyroADCf[FD_ROLL]) < crashRecoveryRate &&
              ABS(gyro.gyroADCf[FD_PITCH]) < crashRecoveryRate &&
              ABS(gyro.gyroADCf[FD_YAW]) < crashRecoveryRate
@@ -536,7 +536,7 @@ static void detectAndSetCrashRecovery(
     // no point in trying to recover if the crash is so severe that the gyro overflows
     if ((crash_recovery || FLIGHT_MODE(GPS_RESCUE_MODE)) && !gyroOverflowDetected()) {
         if (ARMING_FLAG(ARMED)) {
-            if (getMotorMixRange() >= 1.0f && !inCrashRecoveryMode && ABS(delta) > crashDtermThreshold && ABS(errorRate) > crashGyroThreshold && ABS(getSetpointRate(axis)) < crashSetpointThreshold) {
+            if (getControllerMixRange() >= 1.0f && !inCrashRecoveryMode && ABS(delta) > crashDtermThreshold && ABS(errorRate) > crashGyroThreshold && ABS(getSetpointRate(axis)) < crashSetpointThreshold) {
                 inCrashRecoveryMode = true;
                 crashDetectedAtUs = currentTimeUs;
             }
@@ -604,7 +604,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     // gradually scale back integration when above windup point
     float dynCi = dT;
     if (ITermWindupPointInv != 0.0f) {
-        dynCi *= constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f);
+        dynCi *= constrainf((1.0f - getControllerMixRange()) * ITermWindupPointInv, 0.0f, 1.0f);
     }
     float errorRate;
     // ----------PID controller----------

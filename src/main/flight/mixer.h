@@ -117,7 +117,7 @@ extern float motorOutputHigh, motorOutputLow;
 struct rxConfig_s;
 
 uint8_t getMotorCount(void);
-float getMotorMixRange(void);
+float getControllerMixRange(void);
 bool areMotorsRunning(void);
 bool mixerIsOutputSaturated(int axis, float errorRate);
 
@@ -141,3 +141,4 @@ bool mixerIsTricopter(void);
 
 void mixerSetThrottleAngleCorrection(int correctionValue);
 float mixerGetLoggingThrottle(void);
+void mixThingsUp(float scaledAxisPidRoll, float scaledAxisPidPitch, float scaledAxisPidYaw, float *motorMix);
