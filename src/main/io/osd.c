@@ -466,18 +466,18 @@ static bool osdDrawSingleElement(uint8_t item) {
             case SCALED:
                 switch (osdRfMode) {
                 case 2:
-                    osdLQfinal = scaleRangef(osdLQ, 0, 100, 170, 300);
+                    osdLQfinal = scaleRange(osdLQ, 0, 100, 170, 300);
                     break;
                 default:
                     osdLQfinal = osdLQ;
                     break;
                 }
-                if (osdLQfinal >= 300)
+                if (osdLQfinal > 300)
                     osdLQfinal = 300;
                 tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
                 break;
             case MODE:
-                if (osdLQ >= 100)
+                if (osdLQ > 100)
                     osdLQfinal = 100;
                 tfp_sprintf(buff, "%1d:%d", osdRfMode, osdLQfinal);
                 break;
@@ -509,7 +509,7 @@ static bool osdDrawSingleElement(uint8_t item) {
                     osdLQfinal = osdLQ;
                     break;
                 }
-                if (osdLQfinal >= 300)
+                if (osdLQfinal > 300)
                     osdLQfinal = 300;
                 tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
                 break;
