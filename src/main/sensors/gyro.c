@@ -135,8 +135,6 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->imuf_pitch_q = 2000;
     gyroConfig->imuf_yaw_q = 2000;
     gyroConfig->imuf_w = 16;
-    gyroConfig->imuf_sharpness = 0;
-
 }
 
 bool isGyroSensorCalibrationComplete(const gyroSensor_t *gyroSensor)

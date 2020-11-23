@@ -773,7 +773,6 @@ static uint16_t gyroConfig_imuf_roll_q;
 static uint16_t gyroConfig_imuf_pitch_q;
 static uint16_t gyroConfig_imuf_yaw_q;
 static uint16_t gyroConfig_imuf_w;
-static uint16_t gyroConfig_imuf_sharpness;
 #endif
 static uint16_t gyroConfig_alpha;
 static uint16_t gyroConfig_alphaYaw;
@@ -807,7 +806,6 @@ static const void *cmsx_menuDynFilt_onEnter(displayPort_t *pDisp)
     gyroConfig_imuf_pitch_q   = gyroConfig()->imuf_pitch_q;
     gyroConfig_imuf_yaw_q     = gyroConfig()->imuf_yaw_q;
     gyroConfig_imuf_w         = gyroConfig()->imuf_w;
-    gyroConfig_imuf_sharpness = gyroConfig()->imuf_sharpness;
 #endif
     gyroConfig_alpha          = gyroConfig()->alpha;
     gyroConfig_alphaYaw       = gyroConfig()->alphaYaw;
@@ -843,7 +841,6 @@ static const void *cmsx_menuDynFilt_onExit(displayPort_t *pDisp, const OSD_Entry
     gyroConfigMutable()->imuf_pitch_q   = gyroConfig_imuf_pitch_q;
     gyroConfigMutable()->imuf_yaw_q     = gyroConfig_imuf_yaw_q;
     gyroConfigMutable()->imuf_w         = gyroConfig_imuf_w;
-    gyroConfigMutable()->imuf_sharpness = gyroConfig_imuf_sharpness;
 #endif
     gyroConfigMutable()->alpha          = gyroConfig_alpha;
     gyroConfigMutable()->alphaYaw       = gyroConfig_alphaYaw;
@@ -868,7 +865,6 @@ static const OSD_Entry cmsx_menuDynFiltEntries[] =
     { "IMUF ROLL Q",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,       100, 16000, 100 }, 0 },
     { "IMUF PITCH Q",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,      100, 16000, 100 }, 0 },
     { "IMUF YAW Q",      OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,        100, 16000, 100 }, 0 },
-    { "IMUF SHARPNESS",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness,      0, 16000, 100 }, 0 },
 #endif
 #ifdef USE_DYN_LPF
     { "GYRO LPF MIN",    OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltGyroMin,  0, 1000, 1 }, 0 },

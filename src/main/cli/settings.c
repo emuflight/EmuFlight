@@ -628,13 +628,11 @@ const clivalue_t valueTable[] = {
     { "imuf_roll_lpf_cutoff_hz",    VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 450   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_roll_lpf_cutoff_hz) },
     { "imuf_yaw_lpf_cutoff_hz",     VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 450   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_yaw_lpf_cutoff_hz) },
     { "imuf_acc_lpf_cutoff_hz",     VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 30, 180  }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_acc_lpf_cutoff_hz) },
-    { "imuf_sharpness",             VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 1, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_sharpness) },
 #else
     { "imuf_roll_q",                VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_roll_q) },
     { "imuf_pitch_q",               VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_pitch_q) },
     { "imuf_yaw_q",                 VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_yaw_q) },
     { "imuf_w",                     VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 300   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_w) },
-    { "imuf_sharpness",             VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_sharpness) },
 #endif
 #ifdef USE_GYRO_OVERFLOW_CHECK
     { "gyro_overflow_detect",       VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO_OVERFLOW_CHECK }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, checkOverflow) },

@@ -37,7 +37,6 @@ typedef struct kalman
     float x;     //state
     float lastX; //previous state
     float e;
-    float s;
     float axisVar;
     uint16_t windex;
     float axisWindow[MAX_KALMAN_WINDOW_SIZE];
