@@ -66,6 +66,9 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig) {
         .vbat_comp_ref = 37,
         .vbat_comp_throttle_level = 75,
         .vbat_comp_pid_level = 75,
+        .addRollToYawRc = 0,
+        .addYawToRollRc = 0,
+        .rollPitchMagExpo = 0,
                     );
     }
 }
