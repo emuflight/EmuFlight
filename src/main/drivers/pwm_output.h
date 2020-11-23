@@ -29,7 +29,7 @@
 #include "drivers/motor.h"
 #include "drivers/timer.h"
 
-#define BRUSHED_MOTORS_PWM_RATE 16000
+#define BRUSHED_MOTORS_PWM_RATE 25000
 #define BRUSHLESS_MOTORS_PWM_RATE 480
 
 #define ALL_MOTORS 255
