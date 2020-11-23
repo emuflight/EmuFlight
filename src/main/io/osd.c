@@ -464,23 +464,21 @@ static bool osdDrawSingleElement(uint8_t item) {
             uint8_t osdRfMode = CRSFgetRFMode();
             osdLQfinal = osdLQ;
             switch (osdConfig()->lq_format) {
-            case TBS:
+            case SCALED:
                 switch (osdRfMode) {
                 case 2:
-                    osdLQfinal = osdLQ * 3;
-                    if (osdLQfinal < 200)
-                        osdLQfinal = 200;
+                    osdLQfinal = scaleRange(osdLQ, 0, 100, 170, 300);
                     break;
                 default:
                     osdLQfinal = osdLQ;
                     break;
                 }
-                if (osdLQfinal >= 300)
+                if (osdLQfinal > 300)
                     osdLQfinal = 300;
                 tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
                 break;
             case MODE:
-                if (osdLQ >= 100)
+                if (osdLQ > 100)
                     osdLQfinal = 100;
                 tfp_sprintf(buff, "%1d:%d", osdRfMode, osdLQfinal);
                 break;
@@ -498,18 +496,21 @@ static bool osdDrawSingleElement(uint8_t item) {
                 }
                 tfp_sprintf(buff, "%3dHZ:%3d", osdRfMode, osdLQfinal);
                 break;
+            case SIMPLE:
+                osdLQfinal=osdLQ;
+                tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
+                break;
+            case TBS:
             default:
                 switch (osdRfMode) {
                 case 2:
                     osdLQfinal = osdLQ * 3;
-                    if (osdLQfinal < 200)
-                        osdLQfinal = 200;
                     break;
                 default:
                     osdLQfinal = osdLQ;
                     break;
                 }
-                if (osdLQfinal >= 300)
+                if (osdLQfinal > 300)
                     osdLQfinal = 300;
                 tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
                 break;
