@@ -273,6 +273,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
             pidRuntime.stickPositionTransition[pid][axis] = (pidProfile->stickTransition[pid][axis] / 100.0f) - 1.0f;
         }
     }
+    pidRuntime.trueYawFF = YAW_TRUE_FF_SCALE * pidProfile->yaw_true_ff;
 
     pidRuntime.dtermMeasurementSlider = pidProfile->dtermMeasurementSlider / 100;
     pidRuntime.dtermMeasurementSliderInverse = 1 - (pidProfile->dtermMeasurementSlider / 100);

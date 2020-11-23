@@ -65,7 +65,7 @@
 #include "mixer.h"
 
 #define DYN_LPF_THROTTLE_STEPS           100
-#define DYN_LPF_THROTTLE_UPDATE_DELAY_US 5000 // minimum of 5ms between updates
+#define DYN_LPF_THROTTLE_UPDATE_DELAY_US 1000 // 1ms between updates
 
 static FAST_DATA_ZERO_INIT float motorMixRange;
 

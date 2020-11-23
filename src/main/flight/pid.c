@@ -126,9 +126,10 @@ void resetPidProfile(pidProfile_t *pidProfile)
         },
         .stickTransition = {
           { 110, 110, 130 }, // p roll, p pitch, p yaw
-          { 90,  90,  30  }, // i roll, i pitch, i yaw
+          { 90,  90,  70  }, // i roll, i pitch, i yaw
           { 110, 110, 130 }, // d roll, d pitch, d yaw
         },
+        .yaw_true_ff = 0,
         .pidSumLimit = PIDSUM_LIMIT,
         .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
         .yaw_lowpass_hz = 0,
@@ -474,16 +475,16 @@ float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelt
 
 #if defined(USE_ITERM_RELAX)
 STATIC_UNIT_TESTED void applyItermRelax(const int axis, const float iterm,
-    float *itermErrorRate, float *currentPidSetpoint)
+    float *itermErrorRate, float currentPidSetpoint)
 {
   if ((pidRuntime.itermRelaxCutoff && axis != FD_YAW) || (pidRuntime.itermRelaxCutoffYaw && axis == FD_YAW)) {
       static float itermRelaxFactor;
-      const float setpointLpf = pt1FilterApply(&pidRuntime.windupLpf[axis], *currentPidSetpoint);
-      const float setpointHpf = fabsf(*currentPidSetpoint - setpointLpf);
+      const float setpointLpf = pt1FilterApply(&pidRuntime.windupLpf[axis], currentPidSetpoint);
+      const float setpointHpf = fabsf(currentPidSetpoint - setpointLpf);
       if (axis != FD_YAW) {
-          itermRelaxFactor *= MAX(1 - setpointHpf / pidRuntime.itermRelaxThreshold, 0.0f);
+          itermRelaxFactor = MAX(1 - setpointHpf / pidRuntime.itermRelaxThreshold, 0.0f);
       } else {
-          itermRelaxFactor *= MAX(1 - setpointHpf / pidRuntime.itermRelaxThresholdYaw, 0.0f);
+          itermRelaxFactor = MAX(1 - setpointHpf / pidRuntime.itermRelaxThresholdYaw, 0.0f);
       }
       if (SIGN(iterm) == SIGN(*itermErrorRate)) {
           *itermErrorRate *= itermRelaxFactor;
@@ -688,7 +689,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
 #if defined(USE_ITERM_RELAX)
         if (!launchControlActive) {
-            applyItermRelax(axis, iterm, &itermErrorRate, &currentPidSetpoint);
+            applyItermRelax(axis, iterm, &itermErrorRate, currentPidSetpoint);
         }
 #endif
 
@@ -840,6 +841,15 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             pidData[axis].F = 0;
         }
 
+        // -----calculate true yaw feedforward component
+        // feedforward as betaflight calls it is really a setpoint derivative
+        // this feedforward is literally setpoint * feedforward
+        // since yaw acts different this will only work for yaw
+        float yawFeedForward = 0;
+        if (axis == FD_YAW) {
+            yawFeedForward = currentPidSetpoint * pidRuntime.trueYawFF;
+        }
+
 #ifdef USE_YAW_SPIN_RECOVERY
         if (yawSpinActive) {
             pidData[axis].I = 0;  // in yaw spin always disable I
@@ -885,7 +895,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             DEBUG_SET(DEBUG_ANTI_GRAVITY, 3, lrintf(agBoost * 1000));
         }
 
-        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + pidData[axis].F;
+        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + pidData[axis].F + yawFeedForward;
         {
             pidData[axis].Sum = pidSum;
         }

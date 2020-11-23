@@ -44,6 +44,7 @@
 // The constant scale factor to replace the Kd component of the feedforward calculation.
 // This value gives the same "feel" as the previous Kd default of 26 (26 * DTERM_SCALE)
 #define FEEDFORWARD_SCALE 0.013754f
+#define YAW_TRUE_FF_SCALE 0.005f
 
 // Anti gravity I constant
 #define AG_KI 21.586988f;
@@ -105,6 +106,8 @@ typedef struct pidProfile_s {
     uint16_t dterm_notch_cutoff;            // Biquad dterm notch low cutoff
 
     pidf_t  pid[PID_ITEM_COUNT];
+
+    uint8_t yaw_true_ff;                    // a true FF for the yaw
 
     uint8_t dterm_filter_type;              // Filter selection for dterm
     uint8_t itermWindupPointPercent;        // iterm windup threshold, percent motor saturation
@@ -249,6 +252,7 @@ typedef struct pidRuntime_s {
     uint16_t itermAcceleratorGain;
     float feedForwardTransition;
     pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
+    float trueYawFF;
 
     float P_angle_low;
     float D_angle_low;
