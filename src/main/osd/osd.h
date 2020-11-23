@@ -21,6 +21,7 @@
 #pragma once
 
 #include "common/time.h"
+#include "common/unit.h"
 
 #include "drivers/display.h"
 
@@ -47,6 +48,9 @@ extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
 #define OSD_CAMERA_FRAME_MAX_WIDTH  30    // Characters per row supportes by MAX7456
 #define OSD_CAMERA_FRAME_MIN_HEIGHT 2
 #define OSD_CAMERA_FRAME_MAX_HEIGHT 16    // Rows supported by MAX7456 (PAL)
+
+#define OSD_TASK_FREQUENCY_MIN 30
+#define OSD_TASK_FREQUENCY_MAX 300
 
 #define OSD_PROFILE_BITS_POS 11
 #define OSD_PROFILE_MASK    (((1 << OSD_PROFILE_COUNT) - 1) << OSD_PROFILE_BITS_POS)
@@ -144,6 +148,7 @@ typedef enum {
     OSD_RC_CHANNELS,
     OSD_CAMERA_FRAME,
     OSD_EFFICIENCY,
+    OSD_TOTAL_FLIGHTS,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
@@ -190,11 +195,6 @@ typedef enum {
 STATIC_ASSERT(OSD_STAT_COUNT <= 32, osdstats_overflow);
 
 typedef enum {
-    OSD_UNIT_IMPERIAL,
-    OSD_UNIT_METRIC
-} osd_unit_e;
-
-typedef enum {
     OSD_TIMER_1,
     OSD_TIMER_2,
     OSD_TIMER_COUNT
@@ -233,6 +233,7 @@ typedef enum {
     OSD_WARNING_LINK_QUALITY,
     OSD_WARNING_RSSI_DBM,
     OSD_WARNING_OVER_CAP,
+    OSD_WARNING_LEVEL_RECOVERY,
     OSD_WARNING_COUNT // MUST BE LAST
 } osdWarningsFlags_e;
 
@@ -262,7 +263,7 @@ typedef struct osdConfig_s {
     uint16_t alt_alarm;
     uint8_t rssi_alarm;
 
-    osd_unit_e units;
+    uint8_t units;
 
     uint16_t timers[OSD_TIMER_COUNT];
     uint32_t enabledWarnings;
@@ -288,6 +289,7 @@ typedef struct osdConfig_s {
     uint8_t logo_on_arming_duration;          // display duration in 0.1s units
     uint8_t camera_frame_width;               // The width of the box for the camera frame element
     uint8_t camera_frame_height;              // The height of the box for the camera frame element
+    uint16_t task_frequency;
 } osdConfig_t;
 
 PG_DECLARE(osdConfig_t, osdConfig);
@@ -324,19 +326,19 @@ extern escSensorData_t *osdEscDataCombined;
 #endif
 
 void osdInit(displayPort_t *osdDisplayPort, osdDisplayPortDevice_e displayPortDevice);
-bool osdInitialized(void);
 void osdUpdate(timeUs_t currentTimeUs);
+
 void osdStatSetState(uint8_t statIndex, bool enabled);
 bool osdStatGetState(uint8_t statIndex);
+void osdSuppressStats(bool flag);
+void osdAnalyzeActiveElements(void);
+void changeOsdProfileIndex(uint8_t profileIndex);
+uint8_t getCurrentOsdProfileIndex(void);
+displayPort_t *osdGetDisplayPort(osdDisplayPortDevice_e *displayPortDevice);
+
 void osdWarnSetState(uint8_t warningIndex, bool enabled);
 bool osdWarnGetState(uint8_t warningIndex);
-void osdSuppressStats(bool flag);
-
-void osdAnalyzeActiveElements(void);
-uint8_t getCurrentOsdProfileIndex(void);
-void changeOsdProfileIndex(uint8_t profileIndex);
 bool osdElementVisible(uint16_t value);
 bool osdGetVisualBeeperState(void);
 statistic_t *osdGetStats(void);
 bool osdNeedsAccelerometer(void);
-displayPort_t *osdGetDisplayPort(osdDisplayPortDevice_e *displayPortDevice);

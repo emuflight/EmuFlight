@@ -51,6 +51,7 @@ static IO_t rxLnaEnPin;
 static IO_t antSelPin;
 #endif
 #endif
+
 static int16_t rssiDbm;
 
 uint16_t cc2500getRssiDbm(void)
@@ -159,7 +160,6 @@ bool cc2500SpiInit(void)
 
     return true;
 }
-#endif
 
 void cc2500ApplyRegisterConfig(const cc2500RegisterConfigElement_t *configArrayPtr, int configSize)
 {
@@ -169,3 +169,4 @@ void cc2500ApplyRegisterConfig(const cc2500RegisterConfigElement_t *configArrayP
         configArrayPtr++;
     }
 }
+#endif

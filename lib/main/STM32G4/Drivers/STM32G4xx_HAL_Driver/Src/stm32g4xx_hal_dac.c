@@ -942,7 +942,7 @@ HAL_StatusTypeDef HAL_DAC_SetValue(DAC_HandleTypeDef *hdac, uint32_t Channel, ui
   /* Check the parameters */
   assert_param(IS_DAC_CHANNEL(hdac->Instance, Channel));
   assert_param(IS_DAC_ALIGN(Alignment));
-  /* In case DMA Double data mode is activated, DATA range is almost full uin32_t one: no check */
+  /* In case DMA Double data mode is activated, DATA range is almost full uint32_t one: no check */
   if ((hdac->Instance->MCR & (DAC_MCR_DMADOUBLE1 << (Channel & 0x10UL))) == 0UL)
   {
     assert_param(IS_DAC_DATA(Data));

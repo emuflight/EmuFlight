@@ -72,6 +72,10 @@ mcuTypeId_e getMcuTypeId(void)
     default:
         return MCU_TYPE_H743_REV_UNKNOWN;
     }
+#elif defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
+    return MCU_TYPE_H7A3;
+#elif defined(STM32H723xx) || defined(STM32H725xx)
+    return MCU_TYPE_H723_725;
 #else
     return MCU_TYPE_UNKNOWN;
 #endif

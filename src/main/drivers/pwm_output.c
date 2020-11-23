@@ -35,7 +35,7 @@
 
 #include "pg/motor.h"
 
-FAST_RAM_ZERO_INIT pwmOutputPort_t motors[MAX_SUPPORTED_MOTORS];
+FAST_DATA_ZERO_INIT pwmOutputPort_t motors[MAX_SUPPORTED_MOTORS];
 
 static void pwmOCConfig(TIM_TypeDef *tim, uint8_t channel, uint16_t value, uint8_t output)
 {
@@ -108,7 +108,7 @@ void pwmOutConfig(timerChannel_t *channel, const timerHardware_t *timerHardware,
     *channel->ccr = 0;
 }
 
-static FAST_RAM_ZERO_INIT motorDevice_t motorPwmDevice;
+static FAST_DATA_ZERO_INIT motorDevice_t motorPwmDevice;
 
 static void pwmWriteUnused(uint8_t index, float value)
 {
@@ -189,14 +189,6 @@ motorDevice_t *motorPwmDevInit(const motorDevConfig_t *motorConfig, uint16_t idl
     float sLen = 0;
     switch (motorConfig->motorPwmProtocol) {
     default:
-    case PWM_TYPE_ONESHOT125:
-        sMin = 125e-6f;
-        sLen = 125e-6f;
-        break;
-    case PWM_TYPE_ONESHOT42:
-        sMin = 42e-6f;
-        sLen = 42e-6f;
-        break;
     case PWM_TYPE_MULTISHOT:
         sMin = 5e-6f;
         sLen = 20e-6f;
@@ -219,8 +211,9 @@ motorDevice_t *motorPwmDevInit(const motorDevConfig_t *motorConfig, uint16_t idl
     motorPwmDevice.vTable.updateComplete = useUnsyncedPwm ? motorUpdateCompleteNull : pwmCompleteOneshotMotorUpdate;
 
     for (int motorIndex = 0; motorIndex < MAX_SUPPORTED_MOTORS && motorIndex < motorCount; motorIndex++) {
-        const ioTag_t tag = motorConfig->ioTags[motorIndex];
-        const timerHardware_t *timerHardware = timerAllocate(tag, OWNER_MOTOR, RESOURCE_INDEX(motorIndex));
+        const unsigned reorderedMotorIndex = motorConfig->motorOutputReordering[motorIndex];
+        const ioTag_t tag = motorConfig->ioTags[reorderedMotorIndex];
+        const timerHardware_t *timerHardware = timerAllocate(tag, OWNER_MOTOR, RESOURCE_INDEX(reorderedMotorIndex));
 
         if (timerHardware == NULL) {
             /* not enough motors initialised for the mixer or a break in the motors */
@@ -231,7 +224,7 @@ motorDevice_t *motorPwmDevInit(const motorDevConfig_t *motorConfig, uint16_t idl
         }
 
         motors[motorIndex].io = IOGetByTag(tag);
-        IOInit(motors[motorIndex].io, OWNER_MOTOR, RESOURCE_INDEX(motorIndex));
+        IOInit(motors[motorIndex].io, OWNER_MOTOR, RESOURCE_INDEX(reorderedMotorIndex));
 
 #if defined(STM32F1)
         IOConfigGPIO(motors[motorIndex].io, IOCFG_AF_PP);

@@ -90,7 +90,7 @@ SECTIONS
     PROVIDE_HIDDEN (__pg_resetdata_start = .);
     KEEP (*(.pg_resetdata))
     PROVIDE_HIDDEN (__pg_resetdata_end = .);
-  } >FLASH AT >AXIM_FLASH
+  } >FLASH_OVERFLOW
 
   /* Storage for the address for the configuration section so we can grab it out of the hex file */
   .custom_defaults :
@@ -156,7 +156,7 @@ SECTIONS
   /* used during startup to initialized fastram_data */
   _sfastram_idata = LOADADDR(.fastram_data);
 
-  /* Initialized FAST_RAM section for unsuspecting developers */
+  /* Initialized FAST_DATA section for unsuspecting developers */
   .fastram_data :
   {
     . = ALIGN(4);

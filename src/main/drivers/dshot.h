@@ -27,6 +27,7 @@
 #define DSHOT_MIN_THROTTLE       48
 #define DSHOT_MAX_THROTTLE     2047
 #define DSHOT_3D_FORWARD_MIN_THROTTLE 1048
+#define DSHOT_RANGE (DSHOT_MAX_THROTTLE - DSHOT_MIN_THROTTLE)
 
 #define MIN_GCR_EDGES         7
 #define MAX_GCR_EDGES         22
@@ -90,3 +91,5 @@ bool isDshotMotorTelemetryActive(uint8_t motorIndex);
 bool isDshotTelemetryActive(void);
 
 int16_t getDshotTelemetryMotorInvalidPercent(uint8_t motorIndex);
+
+void validateAndfixMotorOutputReordering(uint8_t *array, const unsigned size);

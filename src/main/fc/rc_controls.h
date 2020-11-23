@@ -37,7 +37,11 @@ typedef enum rc_alias {
     AUX5,
     AUX6,
     AUX7,
-    AUX8
+    AUX8,
+    AUX9,
+    AUX10,
+    AUX11,
+    AUX12
 } rc_alias_e;
 
 #define PRIMARY_CHANNEL_COUNT (THROTTLE + 1)
@@ -95,13 +99,10 @@ typedef enum {
 
 #define CONTROL_RATE_CONFIG_RC_RATES_MAX  255
 
-#define CONTROL_RATE_CONFIG_RATE_LIMIT_MIN	200
-#define CONTROL_RATE_CONFIG_RATE_LIMIT_MAX	1998
-
 // (Super) rates are constrained to [0, 100] for Betaflight rates, so values higher than 100 won't make a difference. Range extended for RaceFlight rates.
 #define CONTROL_RATE_CONFIG_RATE_MAX  255
 
-#define CONTROL_RATE_CONFIG_TPA_MAX              100
+#define CONTROL_RATE_CONFIG_TPA_MAX              200
 
 extern float rcCommand[4];
 

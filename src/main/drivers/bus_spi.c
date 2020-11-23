@@ -33,6 +33,8 @@
 #include "drivers/io.h"
 #include "drivers/rcc.h"
 
+static uint8_t spiRegisteredDeviceCount = 0;
+
 spiDevice_t spiDevice[SPIDEV_COUNT];
 
 SPIDevice spiDeviceByInstance(SPI_TypeDef *instance)
@@ -238,6 +240,25 @@ void spiBusSetInstance(busDevice_t *bus, SPI_TypeDef *instance)
     bus->busdev_u.spi.instance = instance;
 }
 
+uint16_t spiCalculateDivider(uint32_t freq)
+{
+#if defined(STM32F4) || defined(STM32G4) || defined(STM32F7)
+    uint32_t spiClk = SystemCoreClock / 2;
+#elif defined(STM32H7)
+    uint32_t spiClk = 100000000;
+#else
+#error "Base SPI clock not defined for this architecture"
+#endif
+
+    uint16_t divisor = 2;
+
+    spiClk >>= 1;
+
+    for (; (spiClk > freq) && (divisor < 256); divisor <<= 1, spiClk >>= 1);
+
+    return divisor;
+}
+
 void spiBusSetDivisor(busDevice_t *bus, uint16_t divisor)
 {
     spiSetDivisor(bus->busdev_u.spi.instance, divisor);
@@ -282,4 +303,16 @@ bool spiBusTransactionReadRegisterBuffer(const busDevice_t *bus, uint8_t reg, ui
     return spiBusReadRegisterBuffer(bus, reg, data, length);
 }
 #endif // USE_SPI_TRANSACTION
+
+void spiBusDeviceRegister(const busDevice_t *bus)
+{
+    UNUSED(bus);
+
+    spiRegisteredDeviceCount++;
+}
+
+uint8_t spiGetRegisteredDeviceCount(void)
+{
+    return spiRegisteredDeviceCount;
+}
 #endif

@@ -51,6 +51,7 @@
 #include "drivers/accgyro/accgyro_spi_icm20649.h"
 #include "drivers/accgyro/accgyro_spi_icm20689.h"
 #include "drivers/accgyro/accgyro_spi_icm42605.h"
+#include "drivers/accgyro/accgyro_spi_lsm6dso.h"
 #include "drivers/accgyro/accgyro_spi_mpu6000.h"
 #include "drivers/accgyro/accgyro_spi_mpu6500.h"
 #include "drivers/accgyro/accgyro_spi_mpu9250.h"
@@ -209,6 +210,9 @@ static gyroSpiDetectFn_t gyroSpiDetectFnTable[] = {
 #ifdef USE_GYRO_SPI_ICM20689
     icm20689SpiDetect,  // icm20689SpiDetect detects ICM20602 and ICM20689
 #endif
+#ifdef USE_ACCGYRO_LSM6DSO
+    lsm6dsoDetect,
+#endif
 #ifdef USE_ACCGYRO_BMI160
     bmi160Detect,
 #endif
@@ -251,6 +255,7 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro, const gyro
         sensor = (gyroSpiDetectFnTable[index])(&gyro->bus);
         if (sensor != MPU_NONE) {
             gyro->mpuDetectionResult.sensor = sensor;
+            busDeviceRegister(&gyro->bus);
 
             return true;
         }
@@ -297,6 +302,7 @@ bool mpuDetect(gyroDev_t *gyro, const gyroDeviceConfig_t *config)
         bool ack = busReadRegisterBuffer(&gyro->bus, MPU_RA_WHO_AM_I, &sig, 1);
 
         if (ack) {
+            busDeviceRegister(&gyro->bus);
             // If an MPU3050 is connected sig will contain 0.
             uint8_t inquiryResult;
             ack = busReadRegisterBuffer(&gyro->bus, MPU_RA_WHO_AM_I_LEGACY, &inquiryResult, 1);
@@ -361,6 +367,15 @@ uint8_t mpuGyroDLPF(gyroDev_t *gyro)
         }
     }
     return ret;
+}
+
+uint8_t mpuGyroFCHOICE(gyroDev_t *gyro)
+{
+    if (gyro->gyroRateKHz == GYRO_RATE_32_kHz) {
+        return FCB_3600_32;
+    } else {
+        return FCB_DISABLED;  // Not in 32KHz mode, set FCHOICE to select 8KHz sampling
+    }
 }
 
 #ifdef USE_GYRO_REGISTER_DUMP

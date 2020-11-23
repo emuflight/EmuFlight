@@ -28,14 +28,14 @@
 
 typedef enum {
     PWM_TYPE_STANDARD = 0,
-    PWM_TYPE_ONESHOT125,
-    PWM_TYPE_ONESHOT42,
     PWM_TYPE_MULTISHOT,
     PWM_TYPE_BRUSHED,
     PWM_TYPE_DSHOT150,
     PWM_TYPE_DSHOT300,
     PWM_TYPE_DSHOT600,
-//    PWM_TYPE_DSHOT1200, removed
+    PWM_TYPE_DSHOT1200,
+    PWM_TYPE_DSHOT2400,
+    PWM_TYPE_DSHOT4800,
     PWM_TYPE_PROSHOT1000,
     PWM_TYPE_DISABLED,
     PWM_TYPE_MAX
@@ -100,3 +100,5 @@ struct motorDevConfig_s;
 typedef struct motorDevConfig_s motorDevConfig_t;
 bool isDshotBitbangActive(const motorDevConfig_t *motorConfig);
 #endif
+
+float getDigitalIdleOffset(const motorConfig_t *motorConfig);

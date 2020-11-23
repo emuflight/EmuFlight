@@ -34,6 +34,11 @@
 #include "drivers/accgyro/accgyro.h"
 #include "drivers/accgyro/gyro_sync.h"
 
+typedef enum {
+    OFF,
+    THIRTY_TWO_K,
+    SIXTEEN_K
+} use_32k_gyro_e;
 
 bool gyroSyncCheckUpdate(gyroDev_t *gyro)
 {
@@ -47,11 +52,20 @@ bool gyroSyncCheckUpdate(gyroDev_t *gyro)
     return ret;
 }
 
-uint16_t gyroSetSampleRate(gyroDev_t *gyro)
+uint16_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t gyro_use_32kHz)
 {
     uint16_t gyroSampleRateHz;
     uint16_t accSampleRateHz;
 
+    if (gyro_use_32kHz == THIRTY_TWO_K) {
+               gyro->gyroRateKHz = GYRO_RATE_32_kHz;
+               gyroSampleRateHz = 32000;
+               accSampleRateHz = 1000;
+           } else if (gyro_use_32kHz == SIXTEEN_K) {
+               gyro->gyroRateKHz = GYRO_RATE_32_kHz;
+               gyroSampleRateHz = 16000;
+               accSampleRateHz = 1000;
+           } else {
     switch (gyro->mpuDetectionResult.sensor) {
         case BMI_160_SPI:
             gyro->gyroRateKHz = GYRO_RATE_3200_Hz;
@@ -77,11 +91,19 @@ uint16_t gyroSetSampleRate(gyroDev_t *gyro)
             gyroSampleRateHz = 9000;
             accSampleRateHz = 1125;
             break;
+#ifdef USE_ACCGYRO_LSM6DSO
+        case LSM6DSO_SPI:
+            gyro->gyroRateKHz = GYRO_RATE_6664_Hz;
+            gyroSampleRateHz = 6664;   // Yes, this is correct per the datasheet. Will effectively round to 150us and 6.67KHz.
+            accSampleRateHz = 833;
+            break;
+#endif
         default:
             gyro->gyroRateKHz = GYRO_RATE_8_kHz;
             gyroSampleRateHz = 8000;
             accSampleRateHz = 1000;
             break;
+       }
     }
 
     gyro->mpuDividerDrops  = 0; // we no longer use the gyro's sample divider

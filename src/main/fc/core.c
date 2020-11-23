@@ -74,7 +74,6 @@
 
 #include "io/beeper.h"
 #include "io/gps.h"
-#include "io/motors.h"
 #include "io/pidaudio.h"
 #include "io/serial.h"
 #include "io/servos.h"
@@ -145,7 +144,7 @@ enum {
 int16_t magHold;
 #endif
 
-static FAST_RAM_ZERO_INIT uint8_t pidUpdateCounter;
+static FAST_DATA_ZERO_INIT uint8_t pidUpdateCounter;
 
 static bool flipOverAfterCrashActive = false;
 
@@ -234,8 +233,7 @@ static bool accNeedsCalibration(void)
             isModeActivationConditionPresent(BOXHORIZON) ||
             isModeActivationConditionPresent(BOXGPSRESCUE) ||
             isModeActivationConditionPresent(BOXCAMSTAB) ||
-            isModeActivationConditionPresent(BOXCALIB) ||
-            isModeActivationConditionPresent(BOXACROTRAINER)) {
+            isModeActivationConditionPresent(BOXCALIB)) {
 
             return true;
         }
@@ -277,7 +275,7 @@ void updateArmingStatus(void)
             // We also need to prevent arming until it's possible to send DSHOT commands.
             // Otherwise if the initial arming is in crash-flip the motor direction commands
             // might not be sent.
-            && (!isMotorProtocolDshot() || dshotCommandsAreEnabled(DSHOT_CMD_TYPE_INLINE))
+            && (!isMotorProtocolDshot() || dshotStreamingCommandsAreEnabled())
 #endif
         ) {
             // If so, unset the grace time arming disable flag
@@ -345,7 +343,7 @@ void updateArmingStatus(void)
 
 #ifdef USE_GPS_RESCUE
         if (gpsRescueIsConfigured()) {
-            if (gpsRescueConfig()->allowArmingWithoutFix || STATE(GPS_FIX) || ARMING_FLAG(WAS_EVER_ARMED)) {
+            if (gpsRescueConfig()->allowArmingWithoutFix || STATE(GPS_FIX) || ARMING_FLAG(WAS_EVER_ARMED) || IS_RC_MODE_ACTIVE(BOXFLIPOVERAFTERCRASH)) {
                 unsetArmingDisabled(ARMING_DISABLED_GPS);
             } else {
                 setArmingDisabled(ARMING_DISABLED_GPS);
@@ -434,7 +432,9 @@ void updateArmingStatus(void)
 void disarm(flightLogDisarmReason_e reason)
 {
     if (ARMING_FLAG(ARMED)) {
-        ENABLE_ARMING_FLAG(WAS_EVER_ARMED);
+        if (!flipOverAfterCrashActive) {
+            ENABLE_ARMING_FLAG(WAS_EVER_ARMED);
+        }
         DISABLE_ARMING_FLAG(ARMED);
         lastDisarmTimeUs = micros();
 
@@ -461,11 +461,13 @@ void disarm(flightLogDisarmReason_e reason)
             dshotCommandWrite(ALL_MOTORS, getMotorCount(), DSHOT_CMD_SPIN_DIRECTION_NORMAL, DSHOT_CMD_TYPE_INLINE);
         }
 #endif
-        flipOverAfterCrashActive = false;
-
 #ifdef USE_PERSISTENT_STATS
-        statsOnDisarm();
+        if (!flipOverAfterCrashActive) {
+            statsOnDisarm();
+        }
 #endif
+
+        flipOverAfterCrashActive = false;
 
         // if ARMING_DISABLED_RUNAWAY_TAKEOFF is set then we want to play it's beep pattern instead
         if (!(getArmingDisableFlags() & (ARMING_DISABLED_RUNAWAY_TAKEOFF | ARMING_DISABLED_CRASH_DETECTED))) {
@@ -537,10 +539,6 @@ void tryArm(void)
         ENABLE_ARMING_FLAG(ARMED);
 
         resetTryingToArm();
-
-#ifdef USE_ACRO_TRAINER
-        pidAcroTrainerInit();
-#endif // USE_ACRO_TRAINER
 
         if (isModeActivationConditionPresent(BOXPREARM)) {
             ENABLE_ARMING_FLAG(WAS_ARMED_WITH_PREARM);
@@ -1017,14 +1015,14 @@ bool processRx(timeUs_t currentTimeUs)
             DISABLE_FLIGHT_MODE(MAG_MODE);
         }
 #endif
-        if (IS_RC_MODE_ACTIVE(BOXHEADFREE)) {
+        if (IS_RC_MODE_ACTIVE(BOXHEADFREE) && !FLIGHT_MODE(GPS_RESCUE_MODE)) {
             if (!FLIGHT_MODE(HEADFREE_MODE)) {
                 ENABLE_FLIGHT_MODE(HEADFREE_MODE);
             }
         } else {
             DISABLE_FLIGHT_MODE(HEADFREE_MODE);
         }
-        if (IS_RC_MODE_ACTIVE(BOXHEADADJ)) {
+        if (IS_RC_MODE_ACTIVE(BOXHEADADJ) && !FLIGHT_MODE(GPS_RESCUE_MODE)) {
             if (imuQuaternionHeadfreeOffsetSet()) {
                beeper(BEEPER_RX_SET);
             }
@@ -1068,10 +1066,6 @@ bool processRx(timeUs_t currentTimeUs)
     }
 #endif
 
-#ifdef USE_ACRO_TRAINER
-    pidSetAcroTrainerState(IS_RC_MODE_ACTIVE(BOXACROTRAINER) && sensors(SENSOR_ACC));
-#endif // USE_ACRO_TRAINER
-
 #ifdef USE_RC_SMOOTHING_FILTER
     if (ARMING_FLAG(ARMED) && !rcSmoothingInitializationComplete()) {
         beeper(BEEPER_RC_SMOOTHING_INIT_FAIL);
@@ -1088,7 +1082,7 @@ static FAST_CODE void subTaskPidController(timeUs_t currentTimeUs)
     uint32_t startTime = 0;
     if (debugMode == DEBUG_PIDLOOP) {startTime = micros();}
     // PID - note this is function pointer set by setPIDController()
-    pidController(currentPidProfile, currentTimeUs);
+    pidController(currentPidProfile);
     DEBUG_SET(DEBUG_PIDLOOP, 1, micros() - startTime);
 
 #ifdef USE_RUNAWAY_TAKEOFF

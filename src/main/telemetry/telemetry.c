@@ -27,6 +27,7 @@
 #ifdef USE_TELEMETRY
 
 #include "common/utils.h"
+#include "common/unit.h"
 
 #include "pg/pg.h"
 #include "pg/pg_ids.h"
@@ -54,11 +55,12 @@
 #include "telemetry/jetiexbus.h"
 #include "telemetry/mavlink.h"
 #include "telemetry/crsf.h"
+#include "telemetry/ghst.h"
 #include "telemetry/srxl.h"
 #include "telemetry/ibus.h"
 #include "telemetry/msp_shared.h"
 
-PG_REGISTER_WITH_RESET_TEMPLATE(telemetryConfig_t, telemetryConfig, PG_TELEMETRY_CONFIG, 3);
+PG_REGISTER_WITH_RESET_TEMPLATE(telemetryConfig_t, telemetryConfig, PG_TELEMETRY_CONFIG, 4);
 
 PG_RESET_TEMPLATE(telemetryConfig_t, telemetryConfig,
     .telemetry_inverted = false,
@@ -66,7 +68,7 @@ PG_RESET_TEMPLATE(telemetryConfig_t, telemetryConfig,
     .gpsNoFixLatitude = 0,
     .gpsNoFixLongitude = 0,
     .frsky_coordinate_format = FRSKY_FORMAT_DMS,
-    .frsky_unit = FRSKY_UNIT_METRICS,
+    .frsky_unit = UNIT_METRIC,
     .frsky_vfas_precision = 0,
     .hottAlarmSoundInterval = 5,
     .pidValuesAsTelemetry = 0,
@@ -99,6 +101,9 @@ void telemetryInit(void)
 #endif
 #ifdef USE_TELEMETRY_MAVLINK
     initMAVLinkTelemetry();
+#endif
+#ifdef USE_TELEMETRY_GHST
+    initGhstTelemetry();
 #endif
 #ifdef USE_TELEMETRY_CRSF
     initCrsfTelemetry();
@@ -183,6 +188,9 @@ void telemetryCheckState(void)
 #ifdef USE_TELEMETRY_CRSF
     checkCrsfTelemetryState();
 #endif
+#ifdef USE_TELEMETRY_GHST
+    checkGhstTelemetryState();
+#endif
 #ifdef USE_TELEMETRY_SRXL
     checkSrxlTelemetryState();
 #endif
@@ -217,6 +225,9 @@ void telemetryProcess(uint32_t currentTime)
 #endif
 #ifdef USE_TELEMETRY_CRSF
     handleCrsfTelemetry(currentTime);
+#endif
+#ifdef USE_TELEMETRY_GHST
+    handleGhstTelemetry(currentTime);
 #endif
 #ifdef USE_TELEMETRY_SRXL
     handleSrxlTelemetry(currentTime);

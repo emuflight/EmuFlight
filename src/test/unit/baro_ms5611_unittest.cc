@@ -151,6 +151,11 @@ bool busRawReadRegisterBuffer(const busDevice_t*, uint8_t, uint8_t*, uint8_t) {r
 bool busRawReadRegisterBufferStart(const busDevice_t*, uint8_t, uint8_t*, uint8_t) {return true;}
 bool busRawWriteRegister(const busDevice_t*, uint8_t, uint8_t) {return true;}
 bool busRawWriteRegisterStart(const busDevice_t*, uint8_t, uint8_t) {return true;}
+void busDeviceRegister(const busDevice_t*) {}
+
+uint16_t spiCalculateDivider() {
+    return 2;
+}
 
 void spiBusSetDivisor() {
 }

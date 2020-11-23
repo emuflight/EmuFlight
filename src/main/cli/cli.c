@@ -61,6 +61,7 @@ bool cliMode = false;
 #include "drivers/accgyro/accgyro.h"
 #include "drivers/adc.h"
 #include "drivers/buf_writer.h"
+#include "drivers/bus_i2c.h"
 #include "drivers/bus_spi.h"
 #include "drivers/dma.h"
 #include "drivers/dma_reqmap.h"
@@ -304,7 +305,11 @@ static const char *mcuTypeNames[] = {
     "H743 (Rev.Y)",
     "H743 (Rev.X)",
     "H743 (Rev.V)",
+    "H7A3",
+    "H723/H725",
 };
+
+static const char *configurationStates[] = { "UNCONFIGURED", "CUSTOM DEFAULTS", "CONFIGURED" };
 
 typedef enum dumpFlags_e {
     DUMP_MASTER = (1 << 0),
@@ -525,7 +530,7 @@ static void printValuePointer(const char *cmdName, const clivalue_t *var, const 
                 break;
 
             case VAR_UINT16:
-                // uin16_t array
+                // uint16_t array
                 cliPrintf("%d", ((uint16_t *)valuePointer)[i]);
                 break;
 
@@ -535,7 +540,7 @@ static void printValuePointer(const char *cmdName, const clivalue_t *var, const 
                 break;
 
             case VAR_UINT32:
-                // uin32_t array
+                // uint32_t array
                 cliPrintf("%u", ((uint32_t *)valuePointer)[i]);
                 break;
             }
@@ -978,7 +983,7 @@ static void cliShowInvalidArgumentCountError(const char *cmdName)
 static void cliShowArgumentRangeError(const char *cmdName, char *name, int min, int max)
 {
     if (name) {
-        cliPrintErrorLinef(cmdName, "%s: %s NOT BETWEEN %d AND %d", name, min, max);
+        cliPrintErrorLinef(cmdName, "%s NOT BETWEEN %d AND %d", name, min, max);
     } else {
         cliPrintErrorLinef(cmdName, "ARGUMENT OUT OF RANGE");
     }
@@ -1773,6 +1778,7 @@ static void printMotorMix(dumpFlags_t dumpMask, const motorMixer_t *customMotorM
 static void cliMotorMix(const char *cmdName, char *cmdline)
 {
 #ifdef USE_QUAD_MIXER_ONLY
+    UNUSED(cmdName);
     UNUSED(cmdline);
 #else
     int check = 0;
@@ -4439,6 +4445,243 @@ STATIC_UNIT_TESTED void cliGet(const char *cmdName, char *cmdline)
     }
 }
 
+#ifdef USE_PEGASUS_UI
+static const char * valueSectionMask[] = {
+    "GLOBAL", "PROFILE", "RATE"
+};
+
+static const char * valueTypeMask[] = {
+    "UINT8", "INT8", "UINT16", "INT16"
+};
+
+static const char * valueModeMask[] = {
+    "DIRECT", "LOOKUP", "ARRAY", "BITMASK", "STRING"
+};
+
+void cliPrintValueJson(const char *cmdName, int32_t i){
+    const clivalue_t *var = &valueTable[i];
+    cliPrintf("\"%s\":{\"scope\":\"%s\",\"type\":\"%s\",\"mode\":\"%s\",\"current\":\"",
+                var->name,
+                valueSectionMask[((var->type & VALUE_SECTION_MASK) >> VALUE_SECTION_OFFSET)],
+                valueTypeMask[((var->type & VALUE_TYPE_MASK) >> VALUE_TYPE_OFFSET)],
+                valueModeMask[((var->type & VALUE_MODE_MASK) >> VALUE_MODE_OFFSET)]);
+    cliPrintVar(cmdName, var, 0);
+    if ((var->type & VALUE_MODE_MASK) == MODE_STRING) {
+      cliPrintf("\",\"string min length\":\"%d\",\"string max length\":\"%d\"", var->config.string.minlength, var->config.string.maxlength);
+      // strings have no default
+    } else {
+    cliPrint("\",\"default\":\"");
+    const pgRegistry_t *pg = pgFind(var->pgn);
+    const int valueOffset = getValueOffset(var);
+    printValuePointer(cmdName, var, (uint8_t*)pg->address + valueOffset, false);
+    cliPrint("\"");
+    if ((var->type & VALUE_MODE_MASK) == MODE_LOOKUP)
+    {
+        const lookupTableEntry_t *tableEntry = &lookupTables[var->config.lookup.tableIndex];
+        cliPrintLine(",\"values\":[");
+        for (int32_t i = 0; i < tableEntry->valueCount ; i++) {
+            if (i > 0)
+            {
+                cliPrintLine(",");
+            }
+            cliPrintf("\"%s\"", tableEntry->values[i]);
+        }
+        cliPrint("]");
+    }
+
+    int min;
+    int max;
+    getMinMax(var, &min, &max);
+
+    if ((var->type & VALUE_MODE_MASK) == MODE_DIRECT) {
+        cliPrintf(",\"min\":\"%d\",\"max\":\"%d\"", min, max);
+    }
+    if ((var->type & VALUE_MODE_MASK) == MODE_ARRAY) {
+       cliPrintf(",\"min\":\"%d\",\"max\":\"%d\"", min, max);
+    }
+  }
+    cliPrint("}");
+}
+
+static void printFeatureJson(const featureConfig_t *configCopy)
+{
+    const uint32_t mask = configCopy->enabledFeatures;
+    const uint32_t defaultMask = featureConfig()->enabledFeatures;
+    cliPrintLine(",");
+    cliPrintf("features\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"ARRAY\",\"current\":\"%d\",\"values\":[", mask);
+    cliPrintLine("");
+    for (uint32_t i = 0; featureNames[i]; i++) { // disabled features first
+        if (strcmp(featureNames[i], emptyString) != 0) { //Skip unused
+            if (i > 0)
+            {
+                cliPrintLine(",");
+            }
+            if ((~defaultMask | mask) & (1 << i)) {
+                cliPrintf("\"-%s\"", featureNames[i]);
+            } else {
+                cliPrintf("\"%s\"", featureNames[i]);
+            }
+        }
+    }
+    cliPrintf("]}");
+}
+static void printSerialJson(const serialConfig_t *serialConfig)
+{
+    cliPrintLine(",");
+    cliPrintLine("ports\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
+    for (uint32_t i = 0; i < SERIAL_PORT_COUNT && serialIsPortAvailable(serialConfig->portConfigs[i].identifier); i++) {
+        if (i > 0)
+        {
+            cliPrintLine(",");
+        }
+        cliPrintf("\"%d|%d|%ld|%ld|%ld|%ld\"",
+            serialConfig->portConfigs[i].identifier,
+            serialConfig->portConfigs[i].functionMask,
+            baudRates[serialConfig->portConfigs[i].msp_baudrateIndex],
+            baudRates[serialConfig->portConfigs[i].gps_baudrateIndex],
+            baudRates[serialConfig->portConfigs[i].telemetry_baudrateIndex],
+            baudRates[serialConfig->portConfigs[i].blackbox_baudrateIndex]);
+    }
+    cliPrintf("]}");
+}
+
+static void printAuxJson(const modeActivationCondition_t *modeActivationConditions)
+{
+    cliPrintLine(",");
+    cliPrintLine("modes\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
+    for (uint32_t i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
+        if (i > 0)
+        {
+            cliPrintLine(",");
+        }
+        const modeActivationCondition_t *mac = &modeActivationConditions[i];
+        const box_t *box = findBoxByBoxId(mac->modeId);
+        if (box) {
+            cliPrintf("\"%u|%u|%u|%u|%u|%u\"",
+                i,
+                box->permanentId,
+                mac->auxChannelIndex,
+                MODE_STEP_TO_CHANNEL_VALUE(mac->range.startStep),
+                MODE_STEP_TO_CHANNEL_VALUE(mac->range.endStep),
+                mac->modeLogic
+            );
+        }
+    }
+    cliPrintf("]}");
+}
+
+static void printResourceJson()
+{
+    cliPrintLine(",");
+    cliPrintLine("resources\":{\"scope\":\"GLOBAL\",\"type\":\"string\",\"mode\":\"ARRAY\",\"values\":[");
+    for (int i = 0; i < DEFIO_IO_USED_COUNT; i++) {
+        if (i > 0)
+        {
+            cliPrintLine(",");
+        }
+        const char* owner;
+        owner = ownerNames[ioRecs[i].owner];
+
+        cliPrintf("\"%c%02d|%s|", IO_GPIOPortIdx(ioRecs + i) + 'A', IO_GPIOPinIdx(ioRecs + i), owner);
+        if (ioRecs[i].index > 0) {
+            cliPrintf("%d", ioRecs[i].index);
+        } else {
+            cliPrintf("0");
+        }
+        cliPrintf("\"");
+        //cliPrintLinefeed();
+    }
+    cliPrintf("]}");
+}
+
+#define PROFILE_JSON_STRING "%s_profile\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"LOOKUP\",\"current\":\"%d\",\"values\":[{"
+
+static void dumpProfileValueJson(const char *cmdName, uint16_t valueSection)
+{
+    bool foundFirst = false;
+    for (uint32_t i = 0; i < valueTableEntryCount; i++) {
+        const clivalue_t *value = &valueTable[i];
+        if ((value->type & VALUE_SECTION_MASK) == valueSection) {
+            if (foundFirst)
+            {
+                cliPrintLine(",");
+            }
+            cliPrintValueJson(cmdName, i);
+            foundFirst = true;
+        }
+    }
+}
+
+static void cliPidProfilesJson(const char *cmdName)
+{
+    cliPrintLine(",");
+    cliPrintf(PROFILE_JSON_STRING, "pid", getCurrentPidProfileIndex());
+    const uint8_t saved = systemConfig_Copy.pidProfileIndex;
+    for (uint32_t i = 0; i < PID_PROFILE_COUNT; i++) {
+        changePidProfile(i);
+        if (i > 0)
+        {
+            cliPrintLine("},");
+            cliPrint("{");
+        }
+        dumpProfileValueJson(cmdName, PROFILE_VALUE);
+    }
+    changePidProfile(saved);
+    cliPrint("}]}");
+}
+
+static void cliRateProfilesJson(const char *cmdName)
+{
+    cliPrintLine(",");
+    cliPrintf(PROFILE_JSON_STRING, "rate", getCurrentControlRateProfileIndex());
+    const uint8_t saved = systemConfig_Copy.activeRateProfile;
+    for (uint32_t i = 0; i < CONTROL_RATE_PROFILE_COUNT; i++) {
+        changeControlRateProfile(i);
+        if (i > 0)
+        {
+            cliPrintLine("},");
+            cliPrint("{");
+        }
+        dumpProfileValueJson(cmdName, PROFILE_RATE_VALUE);
+    }
+    changeControlRateProfile(saved);
+    cliPrint("}]}");
+}
+
+static void cliConfig(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdline);
+
+    cliPrintLine("{");
+    for (uint32_t i = 0; i < valueTableEntryCount; i++)
+    {
+        if (i > 0)
+        {
+            cliPrintLine(",");
+        }
+        cliPrintValueJson(cmdName, i);
+    }
+    cliPidProfilesJson(cmdName);
+    cliRateProfilesJson(cmdName);
+    printFeatureJson(&featureConfig_Copy);
+    printSerialJson(serialConfig());
+    printAuxJson(modeActivationConditions(0));
+    printResourceJson();
+    cliPrintLine(",");
+    cliPrintf("\"name\":\"%s\"", pilotConfig()->name);
+    cliPrintf(",\"version\":\"%s|%s|%s|%s\"",
+        FC_FIRMWARE_NAME,
+        targetName,
+        systemConfig()->boardIdentifier,
+        FC_VERSION_STRING
+    );
+#ifdef USE_GYRO_IMUF9001
+    cliPrintf(",\"imuf\":\"%lu\"", imufCurrentVersion);
+#endif
+    cliPrintLine("}");
+}
+#endif
+
 static uint8_t getWordLength(char *bufBegin, char *bufEnd)
 {
     while (*(bufEnd - 1) == ' ') {
@@ -4670,8 +4913,8 @@ static void cliStatus(const char *cmdName, char *cmdline)
 
     cliPrintf("MCU %s Clock=%dMHz", getMcuTypeById(getMcuTypeId()), (SystemCoreClock / 1000000));
 
-#ifdef STM32F4
-    // Only F4 is capable of switching between HSE/HSI (for now)
+#if defined(STM32F4) || defined(STM32G4)
+    // Only F4 and G4 is capable of switching between HSE/HSI (for now)
     int sysclkSource = SystemSYSCLKSource();
 
     const char *SYSCLKSource[] = { "HSI", "HSE", "PLLP", "PLLR" };
@@ -4697,12 +4940,27 @@ static void cliStatus(const char *cmdName, char *cmdline)
     // Stack and config sizes and usages
 
     cliPrintf("Stack size: %d, Stack address: 0x%x", stackTotalSize(), stackHighMem());
-#ifdef STACK_CHECK
+#ifdef USE_STACK_CHECK
     cliPrintf(", Stack used: %d", stackUsedSize());
 #endif
     cliPrintLinefeed();
 
-    cliPrintLinef("Config size: %d, Max available config: %d", getEEPROMConfigSize(), getEEPROMStorageSize());
+    cliPrintLinef("Configuration: %s, size: %d, max available: %d", configurationStates[systemConfigMutable()->configurationState], getEEPROMConfigSize(), getEEPROMStorageSize());
+
+    // Devices
+#if defined(USE_SPI) || defined(USE_I2C)
+    cliPrint("Devices detected:");
+#if defined(USE_SPI)
+    cliPrintf(" SPI:%d", spiGetRegisteredDeviceCount());
+#if defined(USE_I2C)
+    cliPrint(",");
+#endif
+#endif
+#if defined(USE_I2C)
+    cliPrintf(" I2C:%d", i2cGetRegisteredDeviceCount());
+#endif
+    cliPrintLinefeed();
+#endif
 
     // Sensors
     cliPrint("Gyros detected:");
@@ -5324,10 +5582,23 @@ static void optToString(int optval, char *buf)
 
 static void printPeripheralDmaoptDetails(dmaoptEntry_t *entry, int index, const dmaoptValue_t dmaopt, const bool equalsDefault, const dumpFlags_t dumpMask, printFn *printValue)
 {
+    // We compute number to display for different peripherals in advance.
+    // This is done to deal with TIMUP which numbered non-contiguously.
+    // Note that using timerGetNumberByIndex is not a generic solution,
+    // but we are lucky that TIMUP is the only peripheral with non-contiguous numbering.
+
+    int uiIndex;
+
+    if (entry->presenceMask) {
+        uiIndex = timerGetNumberByIndex(index);
+    } else {
+        uiIndex = DMA_OPT_UI_INDEX(index);
+    }
+
     if (dmaopt != DMA_OPT_UNUSED) {
         printValue(dumpMask, equalsDefault,
             "dma %s %d %d",
-            entry->device, DMA_OPT_UI_INDEX(index), dmaopt);
+            entry->device, uiIndex, dmaopt);
 
         const dmaChannelSpec_t *dmaChannelSpec = dmaGetChannelSpecByPeripheral(entry->peripheral, index, dmaopt);
         dmaCode_t dmaCode = 0;
@@ -5336,11 +5607,11 @@ static void printPeripheralDmaoptDetails(dmaoptEntry_t *entry, int index, const 
         }
         printValue(dumpMask, equalsDefault,
             "# %s %d: " DMASPEC_FORMAT_STRING,
-            entry->device, DMA_OPT_UI_INDEX(index), DMA_CODE_CONTROLLER(dmaCode), DMA_CODE_STREAM(dmaCode), DMA_CODE_CHANNEL(dmaCode));
+            entry->device, uiIndex, DMA_CODE_CONTROLLER(dmaCode), DMA_CODE_STREAM(dmaCode), DMA_CODE_CHANNEL(dmaCode));
     } else if (!(dumpMask & HIDE_UNUSED)) {
         printValue(dumpMask, equalsDefault,
             "dma %s %d NONE",
-            entry->device, DMA_OPT_UI_INDEX(index));
+            entry->device, uiIndex);
     }
 }
 
@@ -6158,6 +6429,10 @@ static void printConfig(const char *cmdName, char *cmdline, bool doDiff)
 #endif
 #endif
 
+        printFeature(dumpMask, featureConfig_Copy.enabledFeatures, featureConfig()->enabledFeatures, "feature");
+
+        printSerial(dumpMask, &serialConfig_Copy, serialConfig(), "serial");
+
         if (!(dumpMask & HARDWARE_ONLY)) {
 #ifndef USE_QUAD_MIXER_ONLY
             const char *mixerHeadingStr = "mixer";
@@ -6184,8 +6459,6 @@ static void printConfig(const char *cmdName, char *cmdline, bool doDiff)
 #endif
 #endif
 
-            printFeature(dumpMask, featureConfig_Copy.enabledFeatures, featureConfig()->enabledFeatures, "feature");
-
 #if defined(USE_BEEPER)
             printBeeper(dumpMask, beeperConfig_Copy.beeper_off_flags, beeperConfig()->beeper_off_flags, "beeper", BEEPER_ALLOWED_MODES, "beeper");
 
@@ -6195,8 +6468,6 @@ static void printConfig(const char *cmdName, char *cmdline, bool doDiff)
 #endif // USE_BEEPER
 
             printMap(dumpMask, &rxConfig_Copy, rxConfig(), "map");
-
-            printSerial(dumpMask, &serialConfig_Copy, serialConfig(), "serial");
 
 #ifdef USE_LED_STRIP_STATUS_MODE
             printLed(dumpMask, ledStripStatusModeConfig_Copy.ledConfigs, ledStripStatusModeConfig()->ledConfigs, "led");
@@ -6425,6 +6696,10 @@ const clicmd_t cmdTable[] = {
 #endif
 #endif
     CLI_COMMAND_DEF("get", "get variable value", "[name]", cliGet),
+
+#ifdef USE_PEGASUS_UI
+    CLI_COMMAND_DEF("config", "get all configuration information", NULL, cliConfig),
+#endif
 #ifdef USE_GPS
     CLI_COMMAND_DEF("gpspassthrough", "passthrough gps to serial", NULL, cliGpsPassthrough),
 #endif

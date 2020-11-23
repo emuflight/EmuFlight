@@ -32,6 +32,7 @@ extern "C" {
 
     #include "fc/rc_controls.h"
     #include "fc/rc_modes.h"
+    #include "flight/imu.h"
 
     #include "drivers/serial.h"
 
@@ -994,4 +995,6 @@ extern "C" {
     bool cmsInMenu;
     uint32_t resumeRefreshAt = 0;
     int getArmingDisableFlags(void) {return 0;}
+    void pinioBoxTaskControl(void) {}
+    attitudeEulerAngles_t attitude = { { 0, 0, 0 } };
 }

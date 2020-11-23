@@ -31,7 +31,7 @@ uint8_t debugMode;
 uint32_t sectionTimes[2][4];
 #endif
 
-// Please ensure that these names are aligned with the enum values defined in 'debug.h'
+// Please ensure that these names are aligned with the enum values defined in 'debug.h' - for OSD be sure the name is unique with 12 chars.
 const char * const debugModeNames[DEBUG_COUNT] = {
     "NONE",
     "CYCLETIME",
@@ -71,7 +71,6 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "SMARTAUDIO",
     "RTH",
     "ITERM_RELAX",
-    "ACRO_TRAINER",
     "RC_SMOOTHING",
     "RX_SIGNAL_LOSS",
     "RC_SMOOTHING_RATE",
@@ -81,8 +80,6 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "DSHOT_RPM_TELEMETRY",
     "RPM_FILTER",
     "D_MIN",
-    "AC_CORRECTION",
-    "AC_ERROR",
     "DUAL_GYRO_SCALED",
     "DSHOT_RPM_ERRORS",
     "CRSF_LINK_STATISTICS_UPLINK",
@@ -94,7 +91,8 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "FF_LIMIT",
     "FF_INTERPOLATED",
     "BLACKBOX_OUTPUT",
-    "GYRO_SAMPLE",
     "RX_TIMING",
     "MATRIX_FILTER",
+    "D_LPF",
+    "VTX_TRAMP"
 };

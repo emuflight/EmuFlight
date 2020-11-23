@@ -47,7 +47,7 @@ void kalman_init(void)
     init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->imuf_yaw_q);
 }
 
-static void update_kalman_covariance(float gyroRateData, int axis)
+static FAST_CODE void update_kalman_covariance(float gyroRateData, int axis)
 {
      kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex] = gyroRateData;
      kalmanFilterStateRate[axis].axisSumMean +=  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex];
@@ -67,7 +67,6 @@ static void update_kalman_covariance(float gyroRateData, int axis)
 
 FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 {
-  float targetAbs = fabsf(target);
   //project the state ahead using acceleration
   kalmanState->x += (kalmanState->x - kalmanState->lastX);
 
@@ -76,20 +75,26 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
   //update last state
   kalmanState->lastX = kalmanState->x;
 
-  if (kalmanState->lastX != 0.0f) {
-  // calculate the error and add multiply sharpness boost
-  	float errorMultiplier = fabsf(target - kalmanState->x) * kalmanState->s;
+  if (kalmanState->s != 0.0f) {
+    float average = fabsf(target + kalmanState->lastX) * 0.5f;
 
-  // give a boost to the setpoint, used to caluclate the kalman q, based on the error and setpoint/gyrodata
+    if (average > 10.0f)
+    {
+        float error = fabsf(target - kalmanState->lastX);
+        float ratio = error / average;
+        kalmanState->e = kalmanState->s * powf(ratio, 3.0f);  //"ratio" power 3 and multiply by a gain
+    }
+    //prediction update
+    kalmanState->p = kalmanState->p + (kalmanState->q + kalmanState->e);
 
-  	errorMultiplier = constrainf(errorMultiplier * fabsf(1.0f - (target / kalmanState->lastX)) + 1.0f, 1.0f, 50.0f);
-
-    kalmanState->e = fabsf(1.0f - (((targetAbs + 1.0f) * errorMultiplier) / fabsf(kalmanState->lastX)));
+  } else {
+    if (kalmanState->lastX != 0.0f)
+    {
+        kalmanState->e = fabsf(1.0f - (target / kalmanState->lastX));
+    }
+    //prediction update
+    kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
   }
-
-  //prediction update
-  kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
-
   //measurement update
   kalmanState->k = kalmanState->p / (kalmanState->p + kalmanState->r);
   kalmanState->x += kalmanState->k * (input - kalmanState->x);
@@ -97,12 +102,11 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
   return kalmanState->x;
 }
 
-
 FAST_CODE float kalman_update(float input, int axis)
 {
-
+ if (gyroConfig()->imuf_w >= 3) {
     update_kalman_covariance(input, axis);
     input = kalman_process(&kalmanFilterStateRate[axis], input, getSetpointRate(axis));
-
+ }
     return input;
 }

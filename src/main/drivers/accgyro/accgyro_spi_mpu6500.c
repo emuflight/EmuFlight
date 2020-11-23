@@ -37,12 +37,17 @@
 #include "accgyro_mpu6500.h"
 #include "accgyro_spi_mpu6500.h"
 
+// 1 MHz max SPI frequency for initialisation
+#define MPU6500_MAX_SPI_INIT_CLK_HZ 1000000
+// 20 MHz max SPI frequency
+#define MPU6500_MAX_SPI_CLK_HZ 20000000
+
 #define BIT_SLEEP                   0x40
 
 static void mpu6500SpiInit(const busDevice_t *bus)
 {
 
-    spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_FAST);
+    spiSetDivisor(bus->busdev_u.spi.instance, spiCalculateDivider(MPU6500_MAX_SPI_CLK_HZ));
 }
 
 uint8_t mpu6500SpiDetect(const busDevice_t *bus)
@@ -85,7 +90,7 @@ void mpu6500SpiAccInit(accDev_t *acc)
 
 void mpu6500SpiGyroInit(gyroDev_t *gyro)
 {
-    spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_SLOW);
+    spiSetDivisor(gyro->bus.busdev_u.spi.instance, spiCalculateDivider(MPU6500_MAX_SPI_INIT_CLK_HZ));
     delayMicroseconds(1);
 
     mpu6500GyroInit(gyro);
@@ -94,7 +99,7 @@ void mpu6500SpiGyroInit(gyroDev_t *gyro)
     spiBusWriteRegister(&gyro->bus, MPU_RA_USER_CTRL, MPU6500_BIT_I2C_IF_DIS);
     delay(100);
 
-    spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_FAST);
+    spiSetDivisor(gyro->bus.busdev_u.spi.instance, spiCalculateDivider(MPU6500_MAX_SPI_CLK_HZ));
     delayMicroseconds(1);
 }
 
@@ -126,11 +131,10 @@ bool mpu6500SpiGyroDetect(gyroDev_t *gyro)
     case MPU_9250_SPI:
     case ICM_20608_SPI:
     case ICM_20602_SPI:
-        // 16.4 dps/lsb scalefactor
-        gyro->scale = 1.0f / 16.4f;
+        gyro->scale = GYRO_SCALE_2000DPS;
         break;
     case ICM_20601_SPI:
-        gyro->scale = 1.0f / (gyro->gyro_high_fsr ? 8.2f : 16.4f);
+        gyro->scale = (gyro->gyro_high_fsr ? GYRO_SCALE_4000DPS : GYRO_SCALE_2000DPS);
         break;
     default:
         return false;

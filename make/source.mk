@@ -95,6 +95,7 @@ COMMON_SRC = \
             flight/imu.c \
             flight/interpolated_setpoint.c \
             flight/mixer.c \
+            flight/mixer_init.c \
             flight/mixer_tricopter.c \
             flight/pid.c \
             flight/pid_init.c \
@@ -114,6 +115,7 @@ COMMON_SRC = \
             rx/rx_spi.c \
             rx/rx_spi_common.c \
             rx/crsf.c \
+            rx/ghst.c \
             rx/sbus.c \
             rx/sbus_channels.c \
             rx/spektrum.c \
@@ -124,7 +126,9 @@ COMMON_SRC = \
             rx/sumh.c \
             rx/xbus.c \
             rx/fport.c \
+            rx/msp_override.c \
             sensors/acceleration.c \
+            sensors/acceleration_init.c \
             sensors/boardalignment.c \
             sensors/compass.c \
             sensors/gyro.c \
@@ -149,6 +153,7 @@ COMMON_SRC = \
             cms/cms_menu_vtx_rtc6705.c \
             cms/cms_menu_vtx_smartaudio.c \
             cms/cms_menu_vtx_tramp.c \
+            cms/cms_menu_persistent_stats.c \
             drivers/display_ug2864hsweg01.c \
             drivers/light_ws2811strip.c \
             drivers/rangefinder/rangefinder_hcsr04.c \
@@ -176,6 +181,7 @@ COMMON_SRC = \
             sensors/rangefinder.c \
             telemetry/telemetry.c \
             telemetry/crsf.c \
+            telemetry/ghst.c \
             telemetry/srxl.c \
             telemetry/frsky_hub.c \
             telemetry/hott.c \
@@ -224,6 +230,7 @@ SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
             drivers/accgyro/accgyro_mpu3050.c \
             drivers/accgyro/accgyro_spi_bmi160.c \
             drivers/accgyro/accgyro_spi_bmi270.c \
+            drivers/accgyro/accgyro_spi_lsm6dso.c \
             drivers/accgyro_legacy/accgyro_adxl345.c \
             drivers/accgyro_legacy/accgyro_bma280.c \
             drivers/accgyro_legacy/accgyro_l3g4200d.c \
@@ -274,6 +281,7 @@ SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
 						common/kalman.c \
 
 SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
+            $(shell find $(SRC_DIR) -name '*_init.c') \
             bus_bst_stm32f30x.c \
             cli/cli.c \
             cli/settings.c \
@@ -301,7 +309,6 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             drivers/serial_escserial.c \
             drivers/serial_pinconfig.c \
             drivers/serial_tcp.c \
-            drivers/serial_uart_init.c \
             drivers/serial_uart_pinconfig.c \
             drivers/serial_usb_vcp.c \
             drivers/transponder_ir_io_hal.c \
@@ -339,6 +346,7 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             cms/cms_menu_vtx_rtc6705.c \
             cms/cms_menu_vtx_smartaudio.c \
             cms/cms_menu_vtx_tramp.c \
+            cms/cms_menu_persistent_stats.c \
             io/vtx.c \
             io/vtx_rtc6705.c \
             io/vtx_smartaudio.c \
@@ -347,9 +355,7 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             io/spektrum_vtx_control.c \
             osd/osd.c \
             osd/osd_elements.c \
-            rx/rx_bind.c \
-            sensors/gyro_init.c\
-            flight/pid_init.c
+            rx/rx_bind.c
 
 # Gyro driver files that only contain initialization and configuration code - not runtime code
 SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
@@ -358,7 +364,8 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             drivers/accgyro/accgyro_spi_mpu6000.c \
             drivers/accgyro/accgyro_spi_mpu6500.c \
             drivers/accgyro/accgyro_spi_mpu9250.c \
-            drivers/accgyro/accgyro_spi_icm20689.c
+            drivers/accgyro/accgyro_spi_icm20689.c \
+            drivers/accgyro/accgyro_spi_lsm6dso_init.c
 
 
 # F4 and F7 optimizations

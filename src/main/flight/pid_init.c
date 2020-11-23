@@ -54,6 +54,7 @@
 #endif
 
 #define ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF 15  // The anti gravity throttle highpass filter cutoff
+#define ANTI_GRAVITY_SMOOTH_FILTER_CUTOFF 3  // The anti gravity P smoothing filter cutoff
 
 static void pidSetTargetLooptime(uint32_t pidLooptime)
 {
@@ -75,6 +76,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
         pidRuntime.dtermLowpassApplyFn = nullFilterApply;
         pidRuntime.dtermLowpass2ApplyFn = nullFilterApply;
         pidRuntime.ptermYawLowpassApplyFn = nullFilterApply;
+        pidRuntime.dtermABGApplyFn = nullFilterApply;
         return;
     }
 
@@ -166,20 +168,26 @@ void pidInitFilters(const pidProfile_t *pidProfile)
         pt1FilterInit(&pidRuntime.ptermYawLowpass, pt1FilterGain(pidProfile->yaw_lowpass_hz, pidRuntime.dT));
     }
 
+    if (pidProfile->dtermAlpha == 0) {
+        pidRuntime.dtermABGApplyFn = nullFilterApply;
+    } else {
+        pidRuntime.dtermABGApplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
+        for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
+            ABGInit(&pidRuntime.dtermABG[axis], pidProfile->dtermAlpha, pidRuntime.dT);
+        }
+    }
+
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, pidRuntime.dT));
 #endif
 #if defined(USE_ITERM_RELAX)
-    if (pidRuntime.itermRelax) {
+    if (pidRuntime.itermRelaxCutoff || pidRuntime.itermRelaxCutoffYaw) {
         for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
-            pt1FilterInit(&pidRuntime.windupLpf[i], pt1FilterGain(pidRuntime.itermRelaxCutoff, pidRuntime.dT));
-        }
-    }
-#endif
-#if defined(USE_ABSOLUTE_CONTROL)
-    if (pidRuntime.itermRelax) {
-        for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
-            pt1FilterInit(&pidRuntime.acLpf[i], pt1FilterGain(pidRuntime.acCutoff, pidRuntime.dT));
+            if (i != FD_YAW) {
+                pt1FilterInit(&pidRuntime.windupLpf[i], pt1FilterGain(pidRuntime.itermRelaxCutoff, pidRuntime.dT));
+            } else {
+                pt1FilterInit(&pidRuntime.windupLpf[i], pt1FilterGain(pidRuntime.itermRelaxCutoffYaw, pidRuntime.dT));
+            }
         }
     }
 #endif
@@ -194,17 +202,11 @@ void pidInitFilters(const pidProfile_t *pidProfile)
         pt1FilterInit(&pidRuntime.dMinLowpass[axis], pt1FilterGain(D_MIN_LOWPASS_HZ, pidRuntime.dT));
      }
 #endif
-#if defined(USE_AIRMODE_LPF)
-    if (pidProfile->transient_throttle_limit) {
-        pt1FilterInit(&pidRuntime.airmodeThrottleLpf1, pt1FilterGain(7.0f, pidRuntime.dT));
-        pt1FilterInit(&pidRuntime.airmodeThrottleLpf2, pt1FilterGain(20.0f, pidRuntime.dT));
-    }
-#endif
 
     pt1FilterInit(&pidRuntime.antiGravityThrottleLpf, pt1FilterGain(ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF, pidRuntime.dT));
+    pt1FilterInit(&pidRuntime.antiGravitySmoothLpf, pt1FilterGain(ANTI_GRAVITY_SMOOTH_FILTER_CUTOFF, pidRuntime.dT));
 
     pidRuntime.ffBoostFactor = (float)pidProfile->ff_boost / 10.0f;
-    pidRuntime.ffSpikeLimitInverse = pidProfile->ff_spike_limit ? 1.0f / ((float)pidProfile->ff_spike_limit / 10.0f) : 0.0f;
 }
 
 void pidInit(const pidProfile_t *pidProfile)
@@ -266,36 +268,44 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidRuntime.pidCoefficient[axis].Ki = ITERM_SCALE * pidProfile->pid[axis].I;
         pidRuntime.pidCoefficient[axis].Kd = DTERM_SCALE * pidProfile->pid[axis].D;
         pidRuntime.pidCoefficient[axis].Kf = FEEDFORWARD_SCALE * (pidProfile->pid[axis].F / 100.0f);
+        pidRuntime.dynThr[axis] = pidProfile->dynThr[axis];
+        for (int pid = 0; pid <= 2; pid++) {
+            pidRuntime.stickPositionTransition[pid][axis] = (pidProfile->stickTransition[pid][axis] / 100.0f) - 1.0f;
+        }
     }
-#ifdef USE_INTEGRATED_YAW_CONTROL
-    if (!pidProfile->use_integrated_yaw)
-#endif
-    {
-        pidRuntime.pidCoefficient[FD_YAW].Ki *= 2.5f;
-    }
+    pidRuntime.trueYawFF = YAW_TRUE_FF_SCALE * pidProfile->yaw_true_ff;
 
-    pidRuntime.levelGain = pidProfile->pid[PID_LEVEL].P / 10.0f;
-    pidRuntime.horizonGain = pidProfile->pid[PID_LEVEL].I / 10.0f;
-    pidRuntime.horizonTransition = (float)pidProfile->pid[PID_LEVEL].D;
-    pidRuntime.horizonTiltExpertMode = pidProfile->horizon_tilt_expert_mode;
-    pidRuntime.horizonCutoffDegrees = (175 - pidProfile->horizon_tilt_effect) * 1.8f;
-    pidRuntime.horizonFactorRatio = (100 - pidProfile->horizon_tilt_effect) * 0.01f;
-    pidRuntime.maxVelocity[FD_ROLL] = pidRuntime.maxVelocity[FD_PITCH] = pidProfile->rateAccelLimit * 100 * pidRuntime.dT;
-    pidRuntime.maxVelocity[FD_YAW] = pidProfile->yawRateAccelLimit * 100 * pidRuntime.dT;
-    pidRuntime.itermWindupPointInv = 1.0f;
-    if (pidProfile->itermWindupPointPercent < 100) {
+    pidRuntime.dtermMeasurementSlider = pidProfile->dtermMeasurementSlider / 100;
+    pidRuntime.dtermMeasurementSliderInverse = 1 - (pidProfile->dtermMeasurementSlider / 100);
+
+    pidRuntime.emuBoostPR = (pidProfile->emuBoostPR * pidProfile->emuBoostPR / 1000000) * 0.003;
+    pidRuntime.emuBoostY = (pidProfile->emuBoostY * pidProfile->emuBoostY / 1000000) * 0.003;
+    pidRuntime.emuBoostLimitPR = powf(pidProfile->emuBoostPR, 0.75f) * 1.4;
+    pidRuntime.emuBoostLimitY = powf(pidProfile->emuBoostY, 0.75f) * 1.4;
+    pidRuntime.dtermBoost = (pidProfile->dtermBoost * pidProfile->dtermBoost / 1000000) * 0.003;
+    pidRuntime.dtermBoostLimit = powf(pidProfile->dtermBoost, 0.75f) * 1.4;
+    pidRuntime.iDecay = pidProfile->i_decay;
+    pidRuntime.iDecayCutoff = pidProfile->i_decay_cutoff;
+
+    pidRuntime.P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
+    pidRuntime.D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
+    pidRuntime.P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
+    pidRuntime.D_angle_high = pidProfile->pid[PID_LEVEL_HIGH].D * 0.00017f;
+    pidRuntime.F_angle = pidProfile->pid[PID_LEVEL_LOW].F * 0.00000125f;
+    pidRuntime.horizonTransition = (float)pidProfile->horizonTransition;
+    pidRuntime.horizonCutoffDegrees = pidProfile->racemode_tilt_effect;
+    pidRuntime.horizonGain = pidProfile->horizonGain / 10.0f;
+    pidRuntime.horizonTiltExpertMode = pidProfile->racemode_horizon;
+    pidRuntime.horizonFactorRatio = (100 - pidProfile->racemode_tilt_effect) * 0.01f;
+    pidRuntime.itermWindupPointInv = 0.0f;
+    if (pidProfile->itermWindupPointPercent != 0) {
         const float itermWindupPoint = pidProfile->itermWindupPointPercent / 100.0f;
-        pidRuntime.itermWindupPointInv = 1.0f / (1.0f - itermWindupPoint);
+        pidRuntime.itermWindupPointInv = 1.0f / itermWindupPoint;
     }
     pidRuntime.itermAcceleratorGain = pidProfile->itermAcceleratorGain;
-    pidRuntime.crashTimeLimitUs = pidProfile->crash_time * 1000;
-    pidRuntime.crashTimeDelayUs = pidProfile->crash_delay * 1000;
-    pidRuntime.crashRecoveryAngleDeciDegrees = pidProfile->crash_recovery_angle * 10;
-    pidRuntime.crashRecoveryRate = pidProfile->crash_recovery_rate;
     pidRuntime.crashGyroThreshold = pidProfile->crash_gthreshold;
     pidRuntime.crashDtermThreshold = pidProfile->crash_dthreshold;
     pidRuntime.crashSetpointThreshold = pidProfile->crash_setpoint_threshold;
-    pidRuntime.crashLimitYaw = pidProfile->crash_limit_yaw;
     pidRuntime.itermLimit = pidProfile->itermLimit;
 #if defined(USE_THROTTLE_BOOST)
     throttleBoost = pidProfile->throttle_boost * 0.1f;
@@ -310,31 +320,15 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     // of AG activity without excessive display.
     pidRuntime.antiGravityOsdCutoff = 0.0f;
     if (pidRuntime.antiGravityMode == ANTI_GRAVITY_SMOOTH) {
-        pidRuntime.antiGravityOsdCutoff += ((pidRuntime.itermAcceleratorGain - 1000) / 1000.0f) * 0.25f;
+        pidRuntime.antiGravityOsdCutoff += (pidRuntime.itermAcceleratorGain / 1000.0f) * 0.25f;
     }
+    pidRuntime.tpaBreakpoint = pidProfile->tpa_breakpoint;
 
 #if defined(USE_ITERM_RELAX)
-    pidRuntime.itermRelax = pidProfile->iterm_relax;
-    pidRuntime.itermRelaxType = pidProfile->iterm_relax_type;
     pidRuntime.itermRelaxCutoff = pidProfile->iterm_relax_cutoff;
-#endif
-
-#ifdef USE_ACRO_TRAINER
-    pidRuntime.acroTrainerAngleLimit = pidProfile->acro_trainer_angle_limit;
-    pidRuntime.acroTrainerLookaheadTime = (float)pidProfile->acro_trainer_lookahead_ms / 1000.0f;
-    pidRuntime.acroTrainerDebugAxis = pidProfile->acro_trainer_debug_axis;
-    pidRuntime.acroTrainerGain = (float)pidProfile->acro_trainer_gain / 10.0f;
-#endif // USE_ACRO_TRAINER
-
-#if defined(USE_ABSOLUTE_CONTROL)
-    pidRuntime.acGain = (float)pidProfile->abs_control_gain;
-    pidRuntime.acLimit = (float)pidProfile->abs_control_limit;
-    pidRuntime.acErrorLimit = (float)pidProfile->abs_control_error_limit;
-    pidRuntime.acCutoff = (float)pidProfile->abs_control_cutoff;
-    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-        float iCorrection = -pidRuntime.acGain * PTERM_SCALE / ITERM_SCALE * pidRuntime.pidCoefficient[axis].Kp;
-        pidRuntime.pidCoefficient[axis].Ki = MAX(0.0f, pidRuntime.pidCoefficient[axis].Ki + iCorrection);
-    }
+    pidRuntime.itermRelaxCutoffYaw = pidProfile->iterm_relax_cutoff_yaw;
+    pidRuntime.itermRelaxThreshold = pidProfile->iterm_relax_threshold;
+    pidRuntime.itermRelaxThresholdYaw = pidProfile->iterm_relax_threshold_yaw;
 #endif
 
 #ifdef USE_DYN_LPF
@@ -356,6 +350,8 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.dynLpfMin = pidProfile->dyn_lpf_dterm_min_hz;
     pidRuntime.dynLpfMax = pidProfile->dyn_lpf_dterm_max_hz;
     pidRuntime.dynLpfCurveExpo = pidProfile->dyn_lpf_curve_expo;
+    pidRuntime.dynLpf2Gain = pidProfile->dterm_dynlpf2_gain;
+    pidRuntime.dynLpf2Max = pidProfile->dterm_dynlpf2_fmax;
 #endif
 
 #ifdef USE_LAUNCH_CONTROL
@@ -368,17 +364,9 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.launchControlKi = ITERM_SCALE * pidProfile->launchControlGain;
 #endif
 
-#ifdef USE_INTEGRATED_YAW_CONTROL
-    pidRuntime.useIntegratedYaw = pidProfile->use_integrated_yaw;
-    pidRuntime.integratedYawRelax = pidProfile->integrated_yaw_relax;
-#endif
-
 #ifdef USE_THRUST_LINEARIZATION
     pidRuntime.thrustLinearization = pidProfile->thrustLinearization / 100.0f;
-    if (pidRuntime.thrustLinearization != 0.0f) {
-        pidRuntime.thrustLinearizationReciprocal = 1.0f / pidRuntime.thrustLinearization;
-        pidRuntime.thrustLinearizationB = (1.0f - pidRuntime.thrustLinearization) / (2.0f * pidRuntime.thrustLinearization);
-    }
+    pidRuntime.throttleCompensateAmount = pidRuntime.thrustLinearization - 0.5f * powerf(pidRuntime.thrustLinearization, 2);
 #endif
 #if defined(USE_D_MIN)
     for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
@@ -393,16 +381,13 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.dMinSetpointGain = pidProfile->d_min_gain * D_MIN_SETPOINT_GAIN_FACTOR * pidProfile->d_min_advance * pidRuntime.pidFrequency / (100 * D_MIN_LOWPASS_HZ);
     // lowpass included inversely in gain since stronger lowpass decreases peak effect
 #endif
-#if defined(USE_AIRMODE_LPF)
-    pidRuntime.airmodeThrottleOffsetLimit = pidProfile->transient_throttle_limit / 100.0f;
-#endif
 #ifdef USE_INTERPOLATED_SP
     pidRuntime.ffFromInterpolatedSetpoint = pidProfile->ff_interpolate_sp;
     pidRuntime.ffSmoothFactor = 1.0f - ((float)pidProfile->ff_smooth_factor) / 100.0f;
     interpolatedSpInit(pidProfile);
 #endif
 
-    pidRuntime.levelRaceMode = pidProfile->level_race_mode;
+    pidRuntime.nfeRaceMode = pidProfile->nfe_racemode;
 }
 
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex)
@@ -412,4 +397,3 @@ void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex)
         memcpy(pidProfilesMutable(dstPidProfileIndex), pidProfilesMutable(srcPidProfileIndex), sizeof(pidProfile_t));
     }
 }
-

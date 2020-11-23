@@ -90,7 +90,7 @@ void targetConfiguration(void)
     mixerConfigMutable()->yaw_motors_reversed = true;
     imuConfigMutable()->small_angle = 180;
 
-    blackboxConfigMutable()->p_ratio = 128;
+    blackboxConfigMutable()->sample_rate = 1; // sample_rate is half of PID loop frequency
 
     /* Breadboard-specific settings for development purposes only
      */
@@ -161,7 +161,6 @@ void targetConfiguration(void)
         controlRateConfig->rates[FD_YAW] = 0;
 
         /* Throttle PID Attenuation (TPA) */
-        controlRateConfig->dynThrPID = 0; // tpa_rate off
         controlRateConfig->tpa_breakpoint = 1600;
 
 	/* Force the clipping mixer at 100% seems better for brushed than default (off) and scaling)? */

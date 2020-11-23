@@ -46,9 +46,9 @@
 #include "flight/failsafe.h"
 
 #include "io/beeper.h"
+#include "io/usb_cdc_hid.h"
 #include "io/dashboard.h"
 #include "io/gps.h"
-#include "io/motors.h"
 #include "io/vtx_control.h"
 
 #include "pg/pg.h"
@@ -205,7 +205,7 @@ void processRcStickPositions()
             }
         }
         return;
-    } else if (rcSticks == THR_LO + YAW_HI + PIT_CE + ROL_CE) {
+    } else if (rcSticks == THR_LO + YAW_HI + PIT_CE + ROL_CE && !IS_RC_MODE_ACTIVE(BOXSTICKCOMMANDDISABLE)) { // disable stick arming if STICK COMMAND DISABLE SW is active
         if (rcDelayMs >= ARM_DELAY_MS && !doNotRepeat) {
             doNotRepeat = true;
             if (!ARMING_FLAG(ARMED)) {
@@ -228,6 +228,13 @@ void processRcStickPositions()
         return;
     }
     doNotRepeat = true;
+
+    #ifdef USE_USB_CDC_HID
+    // If this target is used as a joystick, we should leave here.
+    if (cdcDeviceIsMayBeActive() || IS_RC_MODE_ACTIVE(BOXSTICKCOMMANDDISABLE)) {
+        return;
+    }
+    #endif
 
     // actions during not armed
 

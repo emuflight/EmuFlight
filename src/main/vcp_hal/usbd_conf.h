@@ -57,8 +57,14 @@
 #include "stm32f7xx_hal.h"
 #elif defined(STM32H7)
 #include "stm32h7xx_hal.h"
+#elif defined(STM32G4)
+#include "stm32g4xx_hal.h"
 #else
 #error Unknown MCU
+#endif
+
+#ifdef STM32G4
+#define USB_OTG_MAX_EP0_SIZE USB_MAX_EP0_SIZE
 #endif
 
 #if (USBD_DEBUG_LEVEL > 0)

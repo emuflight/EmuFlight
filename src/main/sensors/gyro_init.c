@@ -48,6 +48,7 @@
 #include "drivers/accgyro/accgyro_spi_icm20689.h"
 #include "drivers/accgyro/accgyro_spi_icm20689.h"
 #include "drivers/accgyro/accgyro_spi_icm42605.h"
+#include "drivers/accgyro/accgyro_spi_lsm6dso.h"
 #include "drivers/accgyro/accgyro_spi_mpu6000.h"
 #include "drivers/accgyro/accgyro_spi_mpu6500.h"
 #include "drivers/accgyro/accgyro_spi_mpu9250.h"
@@ -115,21 +116,6 @@ static void gyroInitFilterNotch1(uint16_t notchHz, uint16_t notchCutoffHz)
     }
 }
 
-static void gyroInitFilterNotch2(uint16_t notchHz, uint16_t notchCutoffHz)
-{
-    gyro.notchFilter2ApplyFn = nullFilterApply;
-
-    notchHz = calculateNyquistAdjustedNotchHz(notchHz, notchCutoffHz);
-
-    if (notchHz != 0 && notchCutoffHz != 0) {
-        gyro.notchFilter2ApplyFn = (filterApplyFnPtr)biquadFilterApply;
-        const float notchQ = filterGetNotchQ(notchHz, notchCutoffHz);
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            biquadFilterInit(&gyro.notchFilter2[axis], notchHz, gyro.targetLooptime, notchQ, FILTER_NOTCH);
-        }
-    }
-}
-
 #ifdef USE_GYRO_DATA_ANALYSE
 static void gyroInitFilterDynamicNotch()
 {
@@ -148,25 +134,13 @@ static void gyroInitFilterDynamicNotch()
 }
 #endif
 
-static bool gyroInitLowpassFilterLpf(int slot, int type, uint16_t lpfHz, uint32_t looptime)
+static bool gyroInitLowpassFilterLpf(int type, uint16_t lpfHz, uint32_t looptime)
 {
     filterApplyFnPtr *lowpassFilterApplyFn;
     gyroLowpassFilter_t *lowpassFilter = NULL;
 
-    switch (slot) {
-    case FILTER_LOWPASS:
-        lowpassFilterApplyFn = &gyro.lowpassFilterApplyFn;
-        lowpassFilter = gyro.lowpassFilter;
-        break;
-
-    case FILTER_LOWPASS2:
-        lowpassFilterApplyFn = &gyro.lowpass2FilterApplyFn;
-        lowpassFilter = gyro.lowpass2Filter;
-        break;
-
-    default:
-        return false;
-    }
+    lowpassFilterApplyFn = &gyro.lowpassFilterApplyFn;
+    lowpassFilter = gyro.lowpassFilter;
 
     bool ret = false;
 
@@ -227,8 +201,25 @@ static void dynLpfFilterInit()
     }
     gyro.dynLpfMin = gyroConfig()->dyn_lpf_gyro_min_hz;
     gyro.dynLpfMax = gyroConfig()->dyn_lpf_gyro_max_hz;
+    gyro.dynLpfCurveExpo = gyroConfig()->dyn_lpf_curve_expo;
+    gyro.dynLpf2Gain = gyroConfig()->dynlpf2_gain;
+    gyro.dynLpf2Max = gyroConfig()->dynlpf2_fmax;
 }
 #endif
+
+void gyroInitABG() {
+    gyro.alphaBetaGammaApplyFn = nullFilterApply;
+
+    if (gyroConfig()->alpha != 0 || gyroConfig()->alphaYaw != 0) {
+        gyro.alphaBetaGammaApplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+            if (axis == FD_YAW) {
+                ABGInit(&gyro.alphaBetaGamma[axis], gyroConfig()->alphaYaw, gyro.targetLooptime * 1e-6f);
+            }
+            ABGInit(&gyro.alphaBetaGamma[axis], gyroConfig()->alpha, gyro.targetLooptime * 1e-6f);
+        }
+    }
+}
 
 void gyroInitFilters(void)
 {
@@ -241,21 +232,12 @@ void gyroInitFilters(void)
 #endif
 
     gyroInitLowpassFilterLpf(
-      FILTER_LOWPASS,
       gyroConfig()->gyro_lowpass_type,
       gyro_lowpass_hz,
       gyro.targetLooptime
     );
 
-    gyro.downsampleFilterEnabled = gyroInitLowpassFilterLpf(
-      FILTER_LOWPASS2,
-      gyroConfig()->gyro_lowpass2_type,
-      gyroConfig()->gyro_lowpass2_hz,
-      gyro.sampleLooptime
-    );
-
     gyroInitFilterNotch1(gyroConfig()->gyro_soft_notch_hz_1, gyroConfig()->gyro_soft_notch_cutoff_1);
-    gyroInitFilterNotch2(gyroConfig()->gyro_soft_notch_hz_2, gyroConfig()->gyro_soft_notch_cutoff_2);
 #ifdef USE_GYRO_DATA_ANALYSE
     gyroInitFilterDynamicNotch();
 #endif
@@ -267,6 +249,7 @@ void gyroInitFilters(void)
     gyroDataAnalyseStateInit(&gyro.gyroAnalyseState, gyro.targetLooptime);
 #endif
     kalman_init();
+    gyroInitABG();
 }
 
 #if defined(USE_GYRO_SLEW_LIMITER)
@@ -296,7 +279,7 @@ void gyroInitSensor(gyroSensor_t *gyroSensor, const gyroDeviceConfig_t *config)
     gyroSensor->gyroDev.hardware_lpf = gyroConfig()->gyro_hardware_lpf;
 
     // The targetLooptime gets set later based on the active sensor's gyroSampleRateHz and pid_process_denom
-    gyroSensor->gyroDev.gyroSampleRateHz = gyroSetSampleRate(&gyroSensor->gyroDev);
+    gyroSensor->gyroDev.gyroSampleRateHz = gyroSetSampleRate(&gyroSensor->gyroDev, gyroConfig()->gyro_use_32khz);
     gyroSensor->gyroDev.initFn(&gyroSensor->gyroDev);
 
     // As new gyros are supported, be sure to add them below based on whether they are subject to the overflow/inversion bug
@@ -314,6 +297,7 @@ void gyroInitSensor(gyroSensor_t *gyroSensor, const gyroDeviceConfig_t *config)
     case GYRO_MPU6000:
     case GYRO_MPU6500:
     case GYRO_MPU9250:
+    case GYRO_LSM6DSO:
         gyroSensor->gyroDev.gyroHasOverflowProtection = true;
         break;
 
@@ -471,6 +455,15 @@ STATIC_UNIT_TESTED gyroHardware_e gyroDetect(gyroDev_t *dev)
         FALLTHROUGH;
 #endif
 
+#ifdef USE_ACCGYRO_LSM6DSO
+    case GYRO_LSM6DSO:
+        if (lsm6dsoSpiGyroDetect(dev)) {
+            gyroHardware = GYRO_LSM6DSO;
+            break;
+        }
+        FALLTHROUGH;
+#endif
+
 #ifdef USE_FAKE_GYRO
     case GYRO_FAKE:
         if (fakeGyroDetect(dev)) {
@@ -496,7 +489,7 @@ static bool gyroDetectSensor(gyroSensor_t *gyroSensor, const gyroDeviceConfig_t 
 {
 #if defined(USE_GYRO_MPU6050) || defined(USE_GYRO_MPU3050) || defined(USE_GYRO_MPU6500) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU6000) \
  || defined(USE_ACC_MPU6050) || defined(USE_GYRO_SPI_MPU9250) || defined(USE_GYRO_SPI_ICM20601) || defined(USE_GYRO_SPI_ICM20649) \
- || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_L3GD20) || defined(USE_ACCGYRO_BMI160) || defined(USE_ACCGYRO_BMI270)
+ || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_L3GD20) || defined(USE_ACCGYRO_BMI160) || defined(USE_ACCGYRO_BMI270) || defined(USE_ACCGYRO_LSM6DSO)
 
     bool gyroFound = mpuDetect(&gyroSensor->gyroDev, config);
 
@@ -521,7 +514,7 @@ static void gyroPreInitSensor(const gyroDeviceConfig_t *config)
 {
 #if defined(USE_GYRO_MPU6050) || defined(USE_GYRO_MPU3050) || defined(USE_GYRO_MPU6500) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU6000) \
  || defined(USE_ACC_MPU6050) || defined(USE_GYRO_SPI_MPU9250) || defined(USE_GYRO_SPI_ICM20601) || defined(USE_GYRO_SPI_ICM20649) \
- || defined(USE_GYRO_SPI_ICM20689) || defined(USE_ACCGYRO_BMI160) || defined(USE_ACCGYRO_BMI270)
+ || defined(USE_GYRO_SPI_ICM20689) || defined(USE_ACCGYRO_BMI160) || defined(USE_ACCGYRO_BMI270) || defined(USE_ACCGRYO_LSM6DSO)
     mpuPreInit(config);
 #else
     UNUSED(config);
@@ -559,7 +552,6 @@ bool gyroInit(void)
     case DEBUG_GYRO_SCALED:
     case DEBUG_GYRO_FILTERED:
     case DEBUG_DYN_LPF:
-    case DEBUG_GYRO_SAMPLE:
         gyro.gyroDebugMode = debugMode;
         break;
     case DEBUG_DUAL_GYRO_DIFF:

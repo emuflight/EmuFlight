@@ -29,7 +29,7 @@
 #include "drivers/motor.h"
 #include "drivers/timer.h"
 
-#define BRUSHED_MOTORS_PWM_RATE 16000
+#define BRUSHED_MOTORS_PWM_RATE 25000
 #define BRUSHLESS_MOTORS_PWM_RATE 480
 
 #define ALL_MOTORS 255
@@ -55,7 +55,7 @@ typedef struct {
     IO_t io;
 } pwmOutputPort_t;
 
-extern FAST_RAM_ZERO_INIT pwmOutputPort_t motors[MAX_SUPPORTED_MOTORS];
+extern FAST_DATA_ZERO_INIT pwmOutputPort_t motors[MAX_SUPPORTED_MOTORS];
 
 struct motorDevConfig_s;
 motorDevice_t *motorPwmDevInit(const struct motorDevConfig_s *motorDevConfig, uint16_t idlePulse, uint8_t motorCount, bool useUnsyncedPwm);

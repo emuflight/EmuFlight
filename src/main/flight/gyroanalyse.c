@@ -86,16 +86,16 @@
 #define DYN_NOTCH_CALC_TICKS      (XYZ_AXIS_COUNT * 4) // 4 steps per axis
 #define DYN_NOTCH_OSD_MIN_THROTTLE 20
 
-static uint16_t FAST_RAM_ZERO_INIT   fftSamplingRateHz;
-static float FAST_RAM_ZERO_INIT      fftResolution;
-static uint8_t FAST_RAM_ZERO_INIT    fftStartBin;
-static uint16_t FAST_RAM_ZERO_INIT   dynNotchMinHz;
-static uint16_t FAST_RAM_ZERO_INIT   dynNotchMaxHz;
-static uint16_t FAST_RAM_ZERO_INIT   dynNotchMaxFFT;
-static float FAST_RAM_ZERO_INIT      smoothFactor;
-static uint8_t FAST_RAM_ZERO_INIT    samples;
+static uint16_t FAST_DATA_ZERO_INIT   fftSamplingRateHz;
+static float FAST_DATA_ZERO_INIT      fftResolution;
+static uint8_t FAST_DATA_ZERO_INIT    fftStartBin;
+static uint16_t FAST_DATA_ZERO_INIT   dynNotchMinHz;
+static uint16_t FAST_DATA_ZERO_INIT   dynNotchMaxHz;
+static uint16_t FAST_DATA_ZERO_INIT   dynNotchMaxFFT;
+static float FAST_DATA_ZERO_INIT      smoothFactor;
+static uint8_t FAST_DATA_ZERO_INIT    samples;
 // Hanning window, see https://en.wikipedia.org/wiki/Window_function#Hann_.28Hanning.29_window
-static FAST_RAM_ZERO_INIT float hanningWindow[FFT_WINDOW_SIZE];
+static FAST_DATA_ZERO_INIT float hanningWindow[FFT_WINDOW_SIZE];
 
 void gyroDataAnalyseInit(uint32_t targetLooptimeUs)
 {

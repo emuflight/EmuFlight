@@ -42,7 +42,7 @@
 
 #include "motor.h"
 
-static FAST_RAM_ZERO_INIT motorDevice_t *motorDevice;
+static FAST_DATA_ZERO_INIT motorDevice_t *motorDevice;
 
 static bool motorProtocolEnabled = false;
 static bool motorProtocolDshot = false;
@@ -101,8 +101,6 @@ bool checkMotorProtocolEnabled(const motorDevConfig_t *motorDevConfig, bool *isP
 
     switch (motorDevConfig->motorPwmProtocol) {
     case PWM_TYPE_STANDARD:
-    case PWM_TYPE_ONESHOT125:
-    case PWM_TYPE_ONESHOT42:
     case PWM_TYPE_MULTISHOT:
     case PWM_TYPE_BRUSHED:
         enabled = true;
@@ -113,6 +111,9 @@ bool checkMotorProtocolEnabled(const motorDevConfig_t *motorDevConfig, bool *isP
     case PWM_TYPE_DSHOT150:
     case PWM_TYPE_DSHOT300:
     case PWM_TYPE_DSHOT600:
+    case PWM_TYPE_DSHOT1200:
+    case PWM_TYPE_DSHOT2400:
+    case PWM_TYPE_DSHOT4800:
     case PWM_TYPE_PROSHOT1000:
         enabled = true;
         isDshot = true;
@@ -321,9 +322,15 @@ timeMs_t motorGetMotorEnableTimeMs(void)
 #endif
 
 #ifdef USE_DSHOT_BITBANG
-bool isDshotBitbangActive(const motorDevConfig_t *motorDevConfig) {
+bool isDshotBitbangActive(const motorDevConfig_t *motorDevConfig)
+{
     return motorDevConfig->useDshotBitbang == DSHOT_BITBANG_ON ||
         (motorDevConfig->useDshotBitbang == DSHOT_BITBANG_AUTO && motorDevConfig->useDshotTelemetry && motorDevConfig->motorPwmProtocol != PWM_TYPE_PROSHOT1000);
 }
 #endif
+
+float getDigitalIdleOffset(const motorConfig_t *motorConfig)
+{
+	return CONVERT_PARAMETER_TO_PERCENT(motorConfig->digitalIdleOffsetValue * 0.01f);
+}
 #endif // USE_MOTOR

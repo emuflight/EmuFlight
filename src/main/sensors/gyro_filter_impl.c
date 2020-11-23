@@ -27,28 +27,11 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
         // DEBUG_GYRO_RAW records the raw value read from the sensor (not zero offset, not scaled)
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_RAW, axis, gyro.rawSensorDev->gyroADCRaw[axis]);
 
+        // scale gyro output to degrees per second
+        float gyroADCf = gyro.gyroADC[axis];
+
         // DEBUG_GYRO_SCALED records the unfiltered, scaled gyro output
-        // If downsampling than the last value in the sample group will be output
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_SCALED, axis, lrintf(gyro.gyroADC[axis]));
-
-        // DEBUG_GYRO_SAMPLE(0) Record the pre-downsample value for the selected debug axis (same as DEBUG_GYRO_SCALED)
-        GYRO_FILTER_AXIS_DEBUG_SET(axis, DEBUG_GYRO_SAMPLE, 0, lrintf(gyro.gyroADC[axis]));
-
-        // downsample the individual gyro samples
-        float gyroADCf = 0;
-        if (gyro.downsampleFilterEnabled) {
-            // using gyro lowpass 2 filter for downsampling
-            gyroADCf = gyro.sampleSum[axis];
-        } else {
-            // using simple average for downsampling
-            if (gyro.sampleCount) {
-                gyroADCf = gyro.sampleSum[axis] / gyro.sampleCount;
-            }
-            gyro.sampleSum[axis] = 0;
-        }
-
-        // DEBUG_GYRO_SAMPLE(1) Record the post-downsample value for the selected debug axis
-        GYRO_FILTER_AXIS_DEBUG_SET(axis, DEBUG_GYRO_SAMPLE, 1, lrintf(gyroADCf));
 
 #ifdef USE_GYRO_DATA_ANALYSE
         if (featureIsEnabled(FEATURE_DYNAMIC_FILTER)) {
@@ -59,21 +42,13 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
             }
         }
 #endif
-
 #ifdef USE_RPM_FILTER
         gyroADCf = rpmFilterGyro(axis, gyroADCf);
 #endif
 
-        // DEBUG_GYRO_SAMPLE(2) Record the post-RPM Filter value for the selected debug axis
-        GYRO_FILTER_AXIS_DEBUG_SET(axis, DEBUG_GYRO_SAMPLE, 2, lrintf(gyroADCf));
-
         // apply static notch filters and software lowpass filters
         gyroADCf = gyro.notchFilter1ApplyFn((filter_t *)&gyro.notchFilter1[axis], gyroADCf);
-        gyroADCf = gyro.notchFilter2ApplyFn((filter_t *)&gyro.notchFilter2[axis], gyroADCf);
         gyroADCf = gyro.lowpassFilterApplyFn((filter_t *)&gyro.lowpassFilter[axis], gyroADCf);
-
-        // DEBUG_GYRO_SAMPLE(3) Record the post-static notch and lowpass filter value for the selected debug axis
-        GYRO_FILTER_AXIS_DEBUG_SET(axis, DEBUG_GYRO_SAMPLE, 3, lrintf(gyroADCf));
 
 #ifdef USE_GYRO_DATA_ANALYSE
         if (featureIsEnabled(FEATURE_DYNAMIC_FILTER)) {
@@ -88,13 +63,14 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
             gyroADCf = gyro.notchFilterDynApplyFn((filter_t *)&gyro.notchFilterDyn[axis][2], gyroADCf);
         }
 #endif
-
+        // we want kalman last, gives better results
         gyroADCf = kalman_update(gyroADCf, axis);
+        // put alpha betaGamma filter last so that we can use it to predict dterm :)
+        gyroADCf = gyro.alphaBetaGammaApplyFn((filter_t *)&gyro.alphaBetaGamma[axis], gyroADCf);
 
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));
 
         gyro.gyroADCf[axis] = gyroADCf;
     }
-    gyro.sampleCount = 0;
 }

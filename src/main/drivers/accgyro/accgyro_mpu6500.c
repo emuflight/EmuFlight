@@ -72,7 +72,7 @@ void mpu6500GyroInit(gyroDev_t *gyro)
     delay(100);
     busWriteRegister(&gyro->bus, MPU_RA_PWR_MGMT_1, INV_CLK_PLL);
     delay(15);
-    busWriteRegister(&gyro->bus, MPU_RA_GYRO_CONFIG, gyro_range << 3);
+    busWriteRegister(&gyro->bus, MPU_RA_GYRO_CONFIG, gyro_range << 3 | mpuGyroFCHOICE(gyro));
     delay(15);
     busWriteRegister(&gyro->bus, MPU_RA_ACCEL_CONFIG, accel_range << 3);
     delay(15);
@@ -104,8 +104,7 @@ bool mpu6500GyroDetect(gyroDev_t *gyro)
     gyro->initFn = mpu6500GyroInit;
     gyro->readFn = mpuGyroRead;
 
-    // 16.4 dps/lsb scalefactor
-    gyro->scale = 1.0f / 16.4f;
+    gyro->scale = GYRO_SCALE_2000DPS;
 
     return true;
 }

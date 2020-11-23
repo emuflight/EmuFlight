@@ -27,7 +27,7 @@
 bool simulatedAirmodeEnabled = true;
 float simulatedSetpointRate[3] = { 0,0,0 };
 float simulatedRcDeflection[3] = { 0,0,0 };
-float simulatedThrottlePIDAttenuation = 1.0f;
+float simulatedThrottlePAttenuation = 1.0f;
 float simulatedMotorMixRange = 0.0f;
 
 int16_t debug[DEBUG16_VALUE_COUNT];
@@ -70,7 +70,7 @@ extern "C" {
     bool unitLaunchControlActive = false;
     launchControlMode_e unitLaunchControlMode = LAUNCH_CONTROL_MODE_NORMAL;
 
-    float getThrottlePIDAttenuation(void) { return simulatedThrottlePIDAttenuation; }
+    float getThrottlePAttenuation(void) { return simulatedThrottlePAttenuation; }
     float getMotorMixRange(void) { return simulatedMotorMixRange; }
     float getSetpointRate(int axis) { return simulatedSetpointRate[axis]; }
     bool isAirmodeActivated() { return simulatedAirmodeEnabled; }
@@ -117,8 +117,6 @@ void setDefaultTestSettings(void) {
     pidProfile->pidAtMinThrottle = PID_STABILISATION_ON;
     pidProfile->levelAngleLimit = 55;
     pidProfile->feedForwardTransition = 100;
-    pidProfile->yawRateAccelLimit = 100;
-    pidProfile->rateAccelLimit = 0;
     pidProfile->antiGravityMode = ANTI_GRAVITY_SMOOTH;
     pidProfile->itermThrottleThreshold = 250;
     pidProfile->itermAcceleratorGain = 1000;
@@ -143,7 +141,7 @@ void setDefaultTestSettings(void) {
     pidProfile->abs_control_gain = 0,
     pidProfile->launchControlMode = LAUNCH_CONTROL_MODE_NORMAL,
     pidProfile->launchControlGain = 40,
-    pidProfile->level_race_mode = false,
+    pidProfile->nfe_racemode = false,
 
     gyro.targetLooptime = 8000;
 }
@@ -154,7 +152,7 @@ timeUs_t currentTestTime(void) {
 
 void resetTest(void) {
     loopIter = 0;
-    simulatedThrottlePIDAttenuation = 1.0f;
+    simulatedThrottlePAttenuation = 1.0f;
     simulatedMotorMixRange = 0.0f;
 
     pidStabilisationState(PID_STABILISATION_OFF);
@@ -391,18 +389,18 @@ TEST(pidControllerTest, testPidHorizon) {
     // Test full stick response
     setStickPosition(FD_ROLL, 1.0f);
     setStickPosition(FD_PITCH, -1.0f);
-    EXPECT_FLOAT_EQ(0, calcHorizonLevelStrength());
+    EXPECT_FLOAT_EQ(0, calcHorizonLevelStrength(pidProfile));
 
     // Expect full rate output on full stick
     // Test zero stick response
     setStickPosition(FD_ROLL, 0);
     setStickPosition(FD_PITCH, 0);
-    EXPECT_FLOAT_EQ(1, calcHorizonLevelStrength());
+    EXPECT_FLOAT_EQ(1, calcHorizonLevelStrength(pidProfile));
 
     // Test small stick response
     setStickPosition(FD_ROLL, 0.1f);
     setStickPosition(FD_PITCH, -0.1f);
-    EXPECT_NEAR(0.82, calcHorizonLevelStrength(), calculateTolerance(0.82));
+    EXPECT_NEAR(0.82, calcHorizonLevelStrength(pidProfile), calculateTolerance(0.82));
 }
 
 TEST(pidControllerTest, testMixerSaturation) {
@@ -459,8 +457,6 @@ TEST(pidControllerTest, testCrashRecoveryMode) {
     pidStabilisationState(PID_STABILISATION_ON);
     sensorsSet(SENSOR_ACC);
 
-    EXPECT_FALSE(crashRecoveryModeActive());
-
     int loopsToCrashTime = (int)((pidProfile->crash_time * 1000) / targetPidLooptime) + 1;
 
     // generate crash detection for roll axis
@@ -471,8 +467,6 @@ TEST(pidControllerTest, testCrashRecoveryMode) {
         // advance the time to avoid initialized state prevention of crash recovery
         pidController(pidProfile, currentTestTime() + 2000000);
     }
-
-    EXPECT_TRUE(crashRecoveryModeActive());
     // Add additional verifications
 }
 
