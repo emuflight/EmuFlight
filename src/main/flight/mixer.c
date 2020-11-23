@@ -760,12 +760,13 @@ float applyThrottleLimit(float throttle) {
 void mixWithThrottleLegacy(float *motorMix, float motorMixMin, float motorMixMax) {
     float motorMixDelta = motorMixRange / 2.0f;
     float zeroThrottleAuthority = isAirmodeActive() ? 1.0f : 0.5f;
+    float normFactor = motorMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? motorMixRange : 1.0f;
 
     if (mixerImpl == MIXER_IMPL_LEGACY) {
-        // clipping adjustment
-        if (motorMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED) {
+        // legacy clipping adjustment
+        if (normFactor > 1.0f) {
             for (int i = 0; i < motorCount; i++) {
-                motorMix[i] /= motorMixRange;
+                motorMix[i] /= normFactor;
             }
             // Get the maximum correction by setting offset to center when airmode enabled
             if (isAirmodeActive()) {
@@ -783,7 +784,7 @@ void mixWithThrottleLegacy(float *motorMix, float motorMixMin, float motorMixMax
         if (mixerImpl == MIXER_IMPL_SMOOTH) {
             motorMix[i] += motorMixDelta - motorMixMax; // let's center values around the zero
             motorMix[i] = scaleRangef(throttle, 0.0f, 1.0f, zeroThrottleAuthority * (motorMix[i] + motorMixDelta), motorMix[i] - motorMixDelta);
-            motorMix[i] /= motorMixRange;
+            motorMix[i] /= normFactor;
         }
         motorMix[i] = motorOutputMixSign * motorMix[i] + throttle * currentMixer[i].throttle;
         motorMix[i] = constrainf(motorMix[i], 0.0f, 1.0f);
@@ -846,9 +847,17 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs) {
     applyMixToMotors(motorMix);
 }
 
-void applyThrustLinearization(float *thrustMix, float *offsets) {
-    for (int i = 0; i < motorCount; i++) {
-        thrustMix[i] = THRUST_TO_MOTOR_OUTPUT(thrustMix[i] + MOTOR_OUTPUT_TO_THRUST(offsets[i], thrustLinearizationLevel), thrustLinearizationLevel) - offsets[i];
+void mixThrustAndMotorMix(float *thrustMix, float *motorMix) {
+    if (!thrustLinearizationLevel) {
+        for (int i = 0; i < motorCount; i++) {
+            motorMix[i] += thrustMix[i];
+        }
+    } else {
+        for (int i = 0; i < motorCount; i++) {
+            motorMix[i] = THRUST_TO_MOTOR_OUTPUT(
+                    thrustMix[i] + MOTOR_OUTPUT_TO_THRUST(motorMix[i], thrustLinearizationLevel),
+                    thrustLinearizationLevel);
+        }
     }
 }
 
@@ -887,14 +896,12 @@ void mixThingsUp(const float scaledAxisPidRoll, const float scaledAxisPidPitch, 
         float thrustMixRange = thrustMixMax - thrustMixMin;
         float normFactor = motorMixRange + thrustMixRange;
         normFactor = normFactor > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? normFactor : 1.0f;
+        float airModeAuthority = isAirmodeActive() ? 1.0f : scaleRangef(throttle, 0.0f, 1.0f, 0.5f, 1.0f);
         for (int i = 0; i < motorCount; i++) {
-            motorMix[i] = (motorMix[i] + motorMixMin) / normFactor;
-            thrustMix[i] = (thrustMix[i] + thrustMixMin) / normFactor;
+            motorMix[i] = airModeAuthority * (motorMix[i] - motorMixMin) / normFactor;
+            thrustMix[i] = airModeAuthority * (thrustMix[i] - thrustMixMin) / normFactor;
         }
-        applyThrustLinearization(thrustMix, motorMix);
-        for (int i = 0; i < motorCount; i++) {
-            motorMix[i] += thrustMix[i];
-        }
+        mixThrustAndMotorMix(thrustMix, motorMix);
     }
 }
 
