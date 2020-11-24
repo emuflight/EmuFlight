@@ -845,9 +845,8 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         // feedforward as betaflight calls it is really a setpoint derivative
         // this feedforward is literally setpoint * feedforward
         // since yaw acts different this will only work for yaw
-        float yawFeedForward = 0;
         if (axis == FD_YAW) {
-            yawFeedForward = currentPidSetpoint * pidRuntime.trueYawFF;
+            pidData[axis].F = currentPidSetpoint * pidRuntime.trueYawFF;
         }
 
 #ifdef USE_YAW_SPIN_RECOVERY
@@ -895,7 +894,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             DEBUG_SET(DEBUG_ANTI_GRAVITY, 3, lrintf(agBoost * 1000));
         }
 
-        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + pidData[axis].F + yawFeedForward;
+        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + pidData[axis].F;
         {
             pidData[axis].Sum = pidSum;
         }
