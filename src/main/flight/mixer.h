@@ -107,8 +107,8 @@ typedef struct motorConfig_s {
 PG_DECLARE(motorConfig_t, motorConfig);
 
 #define CHANNEL_FORWARDING_DISABLED (uint8_t)0xFF
-#define THRUST_TO_MOTOR_OUTPUT(thrust, a) (((a) - 1 + sqrtf(powerf(1.0f - (a), 2) + 4.0f * (a) * (thrust))) / (2.0f * (a)))
-#define MOTOR_OUTPUT_TO_THRUST(motorOutput, a) ((1 - (a)) * (motorOutput) + (a) * powerf((motorOutput), 2))
+#define THRUST_TO_MOTOR(thrust, a) (((a) - 1 + sqrtf(powerf(1.0f - (a), 2) + 4.0f * (a) * constrainf((thrust), 0.0f, 1.0f))) / (2.0f * (a)))
+#define MOTOR_TO_THRUST(motorOutput, a) ((1 - (a)) * (motorOutput) + (a) * powerf(constrainf((motorOutput), 0.0f, 1.0f), 2))
 
 extern const mixer_t mixers[];
 extern float motor[MAX_SUPPORTED_MOTORS];
@@ -117,7 +117,7 @@ extern float motorOutputHigh, motorOutputLow;
 struct rxConfig_s;
 
 uint8_t getMotorCount(void);
-float getMotorMixRange(void);
+float getControllerMixRange(void);
 bool areMotorsRunning(void);
 bool mixerIsOutputSaturated(int axis, float errorRate);
 
