@@ -873,14 +873,13 @@ void mixThingsUp(const float scaledAxisPidRoll, const float scaledAxisPidPitch, 
 
         float controllerMixRange = motorMixRange + (rollPitchMixMax - rollPitchMixMin);
 
-        float controllerAuthority = isAirmodeActive() || mixerImpl != MIXER_IMPL_LAZY ? 1.0f
-                : scaleRangef(throttle, 0.0f, 1.0f, 0.5f, 1.0f);
-        float controllerMixNormFactor = controllerAuthority
-                / (controllerMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? controllerMixRange : 1.0f);
+        float controllerAuthority = isAirmodeActive() ? 1.0f : scaleRangef(throttle, 0.0f, 1.0f, 0.5f, 1.0f);
+        float controllerMixNormFactor = controllerAuthority / controllerMixRange > 1.0f ? controllerMixRange : 1.0f;
 
         // giving room to controller's output
         throttle = scaleRangef(controllerMixRange * controllerMixNormFactor, 0.0f, 1.0f, throttle, 0.0f);
 
+        // filling motorMix with throttle, yaw and roll/pitch
         for (int i = 0; i < motorCount; i++) {
             motorMix[i] = (motorMix[i] - motorMixMin) * controllerMixNormFactor;
             rollPitchMix[i] = (rollPitchMix[i] - rollPitchMixMin) * controllerMixNormFactor;
