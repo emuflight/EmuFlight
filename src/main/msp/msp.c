@@ -1261,9 +1261,9 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentControlRateProfile->throttle_limit_percent);
 
         // added in 1.42
-        sbufWriteU16(dst, currentControlRateProfile->rate_limit[FD_ROLL]);
-        sbufWriteU16(dst, currentControlRateProfile->rate_limit[FD_PITCH]);
-        sbufWriteU16(dst, currentControlRateProfile->rate_limit[FD_YAW]);
+        sbufWriteU16(dst, 0);
+        sbufWriteU16(dst, 0);
+        sbufWriteU16(dst, 0);
 
         // added in 1.43
         sbufWriteU8(dst, currentControlRateProfile->rates_type);
@@ -2312,9 +2312,9 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
 
             // version 1.42
             if (sbufBytesRemaining(src) >= 6) {
-                currentControlRateProfile->rate_limit[FD_ROLL] = sbufReadU16(src);
-                currentControlRateProfile->rate_limit[FD_PITCH] = sbufReadU16(src);
-                currentControlRateProfile->rate_limit[FD_YAW] = sbufReadU16(src);
+                sbufReadU16(src);
+                sbufReadU16(src);
+                sbufReadU16(src);
             }
 
             // version 1.43

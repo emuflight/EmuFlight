@@ -59,7 +59,9 @@ typedef struct controlRateConfig_s {
     rateDynamics_t rateDynamics;
     uint8_t throttle_limit_type;            // Sets the throttle limiting type - off, scale or clip
     uint8_t throttle_limit_percent;         // Sets the maximum pilot commanded throttle limit
-    uint16_t rate_limit[3];                 // Sets the maximum rate for the axes
+    uint8_t addRollToYawRc;
+    uint8_t addYawToRollRc;
+    uint8_t rollPitchMagExpo;       // expo applied when pitch and roll are both high
     char profileName[MAX_RATE_PROFILE_NAME_LENGTH + 1]; // Descriptive name for rate profile
 } controlRateConfig_t;
 

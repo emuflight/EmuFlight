@@ -740,6 +740,33 @@ FAST_CODE void processRcCommand(void)
     isRxDataNew = false;
 }
 
+static void applyRollYawMix(void) {
+    float rollAddition, yawAddition, unchangedRoll;
+
+    unchangedRoll = rcCommand[FD_ROLL];
+    yawAddition = rcCommand[FD_YAW] * (currentControlRateProfile->addYawToRollRc / 100.0f) * -GET_DIRECTION(rcControlsConfig()->yaw_control_reversed);
+    rcCommand[FD_ROLL] = constrainf((rcCommand[FD_ROLL] + yawAddition), -500.0f, 500.0f);
+
+    rollAddition = unchangedRoll * (currentControlRateProfile->addRollToYawRc / 100.0f) * -GET_DIRECTION(rcControlsConfig()->yaw_control_reversed);
+    rcCommand[FD_YAW] = constrainf((rcCommand[FD_YAW] + rollAddition), -500.0f, 500.0f);
+}
+
+static void applyPolarExpo(void) {
+    const float roll_pitch_mag = sqrtf((rcCommand[FD_ROLL] * rcCommand[FD_ROLL] / 250000.0f) + (rcCommand[FD_PITCH] * rcCommand[FD_PITCH] / 250000.0f));
+
+    float roll_pitch_scale;
+    const float rollPitchMagExpo = currentControlRateProfile->rollPitchMagExpo / 100.0f;
+    if (roll_pitch_mag > 1.0f) {
+        roll_pitch_scale = (1.0f / roll_pitch_mag);
+        roll_pitch_scale = ((roll_pitch_scale - 1.0f) * rollPitchMagExpo) + 1.0f;
+    } else {
+        roll_pitch_scale = 1.0f;
+    }
+
+    rcCommand[FD_ROLL] *= roll_pitch_scale;
+    rcCommand[FD_PITCH] *= roll_pitch_scale;
+}
+
 FAST_CODE_NOINLINE void updateRcCommands(void)
 {
     isRxDataNew = true;
@@ -782,15 +809,19 @@ FAST_CODE_NOINLINE void updateRcCommands(void)
             rcCommand[axis] = -rcCommand[axis];
         }
       rcCommand[axis] = rateDynamics(rcCommand[axis], axis, currentRxRefreshRate);
-      if (rxConfig()->showRateDynamics != 0)
-      {
-          if (axis == ROLL || axis == PITCH)
-          {
-              rcData[axis] = rcCommand[axis] + rxConfig()->midrc;
-          } else {
-              rcData[axis] = (rcCommand[axis] * -GET_DIRECTION(rcControlsConfig()->yaw_control_reversed)) + rxConfig()->midrc;
-          }
-      }
+    }
+
+    applyPolarExpo();
+    applyRollYawMix();
+
+    if (rxConfig()->showAlteredRc != 0) {
+        for (int axis = 0; axis < 3; axis++) {
+            if (axis == ROLL || axis == PITCH) {
+                rcData[axis] = rcCommand[axis] + rxConfig()->midrc;
+            } else {
+                rcData[axis] = (rcCommand[axis] * -GET_DIRECTION(rcControlsConfig()->yaw_control_reversed)) + rxConfig()->midrc;
+            }
+        }
     }
 
     int32_t tmp;

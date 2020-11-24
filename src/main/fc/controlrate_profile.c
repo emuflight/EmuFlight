@@ -58,6 +58,9 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
         .rates[FD_YAW] = 70,
         .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
         .throttle_limit_percent = 100,
+        .addRollToYawRc = 0,
+        .addYawToRollRc = 0,
+        .rollPitchMagExpo = 0,
         .profileName = { "DEFAULT" },
     );
     if (CONTROL_RATE_PROFILE_COUNT > 1)
@@ -79,6 +82,9 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .rates[FD_YAW] = 4,
             .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
             .throttle_limit_percent = 100,
+            .addRollToYawRc = 0,
+            .addYawToRollRc = 0,
+            .rollPitchMagExpo = 0,
             .profileName = { "QckFlsh" },
         );
     }
@@ -101,6 +107,9 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .rates[FD_YAW] = 70,
             .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
             .throttle_limit_percent = 100,
+            .addRollToYawRc = 0,
+            .addYawToRollRc = 0,
+            .rollPitchMagExpo = 0,
             .profileName = { "DrSchnk" },
         );
     }
@@ -123,6 +132,9 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .rates[FD_YAW] = 71,
             .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
             .throttle_limit_percent = 100,
+            .addRollToYawRc = 0,
+            .addYawToRollRc = 0,
+            .rollPitchMagExpo = 0,
             .profileName = { "Kore" },
         );
     }
@@ -145,6 +157,9 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .rates[FD_YAW] = 77,
             .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
             .throttle_limit_percent = 100,
+            .addRollToYawRc = 0,
+            .addYawToRollRc = 0,
+            .rollPitchMagExpo = 0,
             .profileName = { "NerdCopt" },
         );
     }
@@ -167,6 +182,9 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .rates[FD_YAW] = 68,
             .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
             .throttle_limit_percent = 100,
+            .addRollToYawRc = 0,
+            .addYawToRollRc = 0,
+            .rollPitchMagExpo = 0,
             .profileName = { "Shikijo" },
         );
     }
