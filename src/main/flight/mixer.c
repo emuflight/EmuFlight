@@ -64,7 +64,6 @@
 
 #include "mixer.h"
 
-#define DYN_LPF_THROTTLE_STEPS           100
 #define DYN_LPF_THROTTLE_UPDATE_DELAY_US 1000 // 1ms between updates
 
 static FAST_DATA_ZERO_INIT float motorMixRange;
@@ -426,18 +425,14 @@ static void updateDynLpf2(int axis) {
 static void updateDynLpfCutoffs(timeUs_t currentTimeUs, float throttle)
 {
     static timeUs_t lastDynLpfUpdateUs = 0;
-    static int dynLpfPreviousQuantizedThrottle = -1;  // to allow an initial zero throttle to set the filter cutoff
-
     static float lastGyroCutoff[XYZ_AXIS_COUNT], lastDtermCutoff[XYZ_AXIS_COUNT] = {0,0,0};
     static float gyroCutoff[XYZ_AXIS_COUNT], dtermCutoff[XYZ_AXIS_COUNT] = {0,0,0};
     static float gyroThrottleCutoff, dtermThrottleCutoff;
 
     if (cmpTimeUs(currentTimeUs, lastDynLpfUpdateUs) >= DYN_LPF_THROTTLE_UPDATE_DELAY_US) {
-      const int quantizedThrottle = lrintf(throttle * DYN_LPF_THROTTLE_STEPS); // quantize the throttle reduce the number of filter updates
-      if (quantizedThrottle != dynLpfPreviousQuantizedThrottle) {
-        const float dynLpfThrottle = (float)quantizedThrottle / DYN_LPF_THROTTLE_STEPS;
-        gyroThrottleCutoff = dynLpfGyroThrCut(dynLpfThrottle);
-        dtermThrottleCutoff = dynLpfDtermThrCut(dynLpfThrottle);
+        const int quantizedThrottle = lrintf(throttle); // quantize the throttle reduce the number of filter updates
+        gyroThrottleCutoff = dynLpfGyroThrCut(quantizedThrottle);
+        dtermThrottleCutoff = dynLpfDtermThrCut(quantizedThrottle);
 
         for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
             updateDynLpf2(i);
@@ -450,8 +445,7 @@ static void updateDynLpfCutoffs(timeUs_t currentTimeUs, float throttle)
             dynLpfGyroUpdate(gyroCutoff);
             dynLpfDTermUpdate(dtermCutoff);
         }
-
-        dynLpfPreviousQuantizedThrottle = quantizedThrottle;
+        
         lastDynLpfUpdateUs = currentTimeUs;
     } else {
         for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
@@ -459,7 +453,6 @@ static void updateDynLpfCutoffs(timeUs_t currentTimeUs, float throttle)
             pt1FilterApply(&mixerRuntime.dynDtermFc[i], lastDtermCutoff[i]);
         }
     }
-  }
 }
 #endif
 
