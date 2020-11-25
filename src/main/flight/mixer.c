@@ -430,7 +430,7 @@ static void updateDynLpfCutoffs(timeUs_t currentTimeUs, float throttle)
     static float gyroThrottleCutoff, dtermThrottleCutoff;
 
     if (cmpTimeUs(currentTimeUs, lastDynLpfUpdateUs) >= DYN_LPF_THROTTLE_UPDATE_DELAY_US) {
-        const int quantizedThrottle = lrintf(throttle); // quantize the throttle reduce the number of filter updates
+        const int quantizedThrottle = throttle; // quantize the throttle reduce the number of filter updates
         gyroThrottleCutoff = dynLpfGyroThrCut(quantizedThrottle);
         dtermThrottleCutoff = dynLpfDtermThrCut(quantizedThrottle);
 
@@ -445,7 +445,7 @@ static void updateDynLpfCutoffs(timeUs_t currentTimeUs, float throttle)
             dynLpfGyroUpdate(gyroCutoff);
             dynLpfDTermUpdate(dtermCutoff);
         }
-        
+
         lastDynLpfUpdateUs = currentTimeUs;
     } else {
         for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
