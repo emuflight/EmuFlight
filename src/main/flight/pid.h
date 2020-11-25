@@ -187,6 +187,7 @@ typedef struct pidProfile_s {
     uint16_t tpa_breakpoint;                // Breakpoint where TPA is activated
 
     uint16_t dtermAlpha;
+    uint8_t abgJerk;
 
 } pidProfile_t;
 

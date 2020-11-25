@@ -210,13 +210,10 @@ static void dynLpfFilterInit()
 void gyroInitABG() {
     gyro.alphaBetaGammaApplyFn = nullFilterApply;
 
-    if (gyroConfig()->alpha != 0 || gyroConfig()->alphaYaw != 0) {
+    if (gyroConfig()->alpha != 0) {
         gyro.alphaBetaGammaApplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            if (axis == FD_YAW) {
-                ABGInit(&gyro.alphaBetaGamma[axis], gyroConfig()->alphaYaw, gyro.targetLooptime * 1e-6f);
-            }
-            ABGInit(&gyro.alphaBetaGamma[axis], gyroConfig()->alpha, gyro.targetLooptime * 1e-6f);
+            ABGInit(&gyro.alphaBetaGamma[axis], gyroConfig()->alpha, gyro.targetLooptime * 1e-6f, gyroConfig()->abgJerk);
         }
     }
 }

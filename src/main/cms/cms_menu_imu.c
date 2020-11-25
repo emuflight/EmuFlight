@@ -775,8 +775,9 @@ static uint16_t gyroConfig_imuf_yaw_q;
 static uint16_t gyroConfig_imuf_w;
 #endif
 static uint16_t gyroConfig_alpha;
-static uint16_t gyroConfig_alphaYaw;
 static uint16_t dterm_alpha;
+static uint8_t gyro_abg_jerk;
+static uint8_t dterm_abg_jerk;
 
 
 static const void *cmsx_menuDynFilt_onEnter(displayPort_t *pDisp)
@@ -808,8 +809,9 @@ static const void *cmsx_menuDynFilt_onEnter(displayPort_t *pDisp)
     gyroConfig_imuf_w         = gyroConfig()->imuf_w;
 #endif
     gyroConfig_alpha          = gyroConfig()->alpha;
-    gyroConfig_alphaYaw       = gyroConfig()->alphaYaw;
     dterm_alpha               = pidProfile->dtermAlpha;
+    gyro_abg_jerk             = gyroConfig()->abgJerk;
+    dterm_abg_jerk            = pidProfile->abgJerk;
     return NULL;
 }
 
@@ -843,8 +845,9 @@ static const void *cmsx_menuDynFilt_onExit(displayPort_t *pDisp, const OSD_Entry
     gyroConfigMutable()->imuf_w         = gyroConfig_imuf_w;
 #endif
     gyroConfigMutable()->alpha          = gyroConfig_alpha;
-    gyroConfigMutable()->alphaYaw       = gyroConfig_alphaYaw;
-    pidProfile->dtermAlpha             = dterm_alpha;
+    pidProfile->dtermAlpha              = dterm_alpha;
+    gyroConfigMutable()->abgJerk        = gyro_abg_jerk;
+    pidProfile->abgJerk                  = dterm_abg_jerk;
     return NULL;
 }
 
@@ -853,8 +856,11 @@ static const OSD_Entry cmsx_menuDynFiltEntries[] =
     { "-- DYN FILT --", OME_Label, NULL, NULL, 0 },
 
     { "ALPHA",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_alpha,       0, 1000, 1 }, 0 },
-    { "ALPHA YAW",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_alphaYaw,    0, 1000, 1 }, 0 },
+    { "ABG JERK",        OME_TAB, NULL, &(OSD_TAB_t)  { &gyro_abg_jerk,         1, osdTableOnOFF }, 0 },
     { "DTERM ALPHA",     OME_UINT16, NULL, &(OSD_UINT16_t) { &dterm_alpha,            0, 1000, 1 }, 0 },
+    { "D ABG JERK",      OME_TAB, NULL, &(OSD_TAB_t)  { &gyro_abg_jerk,         1, osdTableOnOFF }, 0 },
+
+
 #ifdef USE_GYRO_DATA_ANALYSE
     { "MATRIX Q",        OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltMatrixQ,       0, 1000, 1 }, 0 },
     { "MATRIX MIN HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltMatrixMinHz,   0, 1000, 1 }, 0 },
