@@ -410,7 +410,9 @@ void batteryUpdateCurrentMeter(timeUs_t currentTimeUs) {
 
 float calculateBatteryCompensationFactor()
 {
-    if (batteryConfig()->voltageMeterSource == VOLTAGE_METER_NONE || batteryCellCount == 0) {
+    if (currentControlRateProfile->vbat_comp_type == VBAT_COMP_TYPE_OFF
+        || batteryConfig()->voltageMeterSource == VOLTAGE_METER_NONE
+        || batteryCellCount == 0) {
         return 1.0f;
     }
 
