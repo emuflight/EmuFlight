@@ -841,66 +841,72 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs) {
 }
 
 void mixThingsUp(const float scaledAxisPidRoll, const float scaledAxisPidPitch, const float scaledAxisPidYaw, float *motorMix) {
-    float thrustMix[MAX_SUPPORTED_MOTORS];
-    float thrustMixMin = 0, thrustMixMax = 0;
+    float yawMix[MAX_SUPPORTED_MOTORS];
+    float rollPitchMix[MAX_SUPPORTED_MOTORS];
+    float yawMixMin = 0, yawMixMax = 0;
+    float rollPitchMixMin = 0, rollPitchMixMax = 0;
     float motorMixMin = 0, motorMixMax = 0;
-    float thrustMixSum = 0, motorMixSum = 0;
-    for (int i = 0; i < motorCount; i++) {
-        float thrustMixVal = scaledAxisPidRoll * currentMixer[i].roll + scaledAxisPidPitch * currentMixer[i].pitch;
-        if (thrustMixVal > thrustMixMax) {
-            thrustMixMax = thrustMixVal;
-        } else if (thrustMixVal < thrustMixMin) {
-            thrustMixMin = thrustMixVal;
-        }
-        thrustMix[i] = thrustMixVal;
-        thrustMixSum += thrustMixVal;
+    float rollPitchMixSum = 0, yawMixSum = 0;
 
-        float motorMixVal =
-                scaledAxisPidYaw * currentMixer[i].yaw + (mixerImpl == MIXER_IMPL_LAZY ? 0.0f : thrustMixVal);
-        if (motorMixVal > motorMixMax) {
-            motorMixMax = motorMixVal;
-        } else if (motorMixVal < motorMixMin) {
-            motorMixMin = motorMixVal;
+    for (int i = 0; i < motorCount; i++) {
+        float yawMixVal = scaledAxisPidYaw * currentMixer[i].yaw;
+        if (yawMixVal > yawMixMax) {
+            yawMixMax = yawMixVal;
+        } else if (yawMixVal < yawMixMin) {
+            yawMixMin = yawMixVal;
         }
-        motorMix[i] = motorMixVal;
-        motorMixSum += motorMixVal;
+        yawMix[i] = yawMixVal;
+        yawMixSum += yawMixVal;
+
+        float rollPitchMixVal = scaledAxisPidRoll * currentMixer[i].roll + scaledAxisPidPitch * currentMixer[i].pitch;
+        if (rollPitchMixVal > rollPitchMixMax) {
+            rollPitchMixMax = rollPitchMixVal;
+        } else if (rollPitchMixVal < rollPitchMixMin) {
+            rollPitchMixMin = rollPitchMixVal;
+        }
+        rollPitchMix[i] = rollPitchMixVal;
+        rollPitchMixSum += rollPitchMixVal;
+
+        if (mixerImpl == MIXER_IMPL_LAZY) {
+            float motorMixVal = rollPitchMixVal + yawMixVal;
+            if (motorMixVal > motorMixMax) {
+                motorMixMax = motorMixVal;
+            } else if (motorMixVal < motorMixMin) {
+                motorMixMin = motorMixVal;
+            }
+            motorMix[i] = motorMixVal;
+        }
     }
 
     if (mixerImpl != MIXER_IMPL_LAZY) {
         controllerMixRange = motorMixMax - motorMixMin;
-        mixWithThrottleLegacy(motorMix, motorMixMin, motorMixMax);
+        mixWithThrottleLegacy(motorMix, yawMixMin, yawMixMax);
     } else {
-        controllerMixRange = (motorMixMax - motorMixMin) + (thrustMixMax - thrustMixMin); // measures how much the controller is trying to compensate
+        controllerMixRange = (yawMixMax - yawMixMin) + (rollPitchMixMax - rollPitchMixMin); // measures how much the controller is trying to compensate
 
-        float controllerAuthority = isAirmodeActive() ? 1.0f : scaleRangef(throttle, 0.0f, 1.0f, 0.5f, 1.0f);
-        float controllerMixNormFactor = controllerAuthority / controllerMixRange > 1.0f ? controllerMixRange : 1.0f;
+        float authority = isAirmodeActive() ? 1.0f : scaleRangef(throttle, 0.0f, 1.0f, 0.5f, 1.0f);
+        float controllerMixNormFactor = authority / MAX(controllerMixRange, 1.0f);
 
-        float throttleOffset; // common to all motors, can be a motor or thrust value
-        float thrustMixPositiveAvg = (thrustMixSum / motorCount - thrustMixMin) * controllerMixNormFactor;
-        float motorMixPositiveAvg = (motorMixSum / motorCount - motorMixMin) * controllerMixNormFactor;
-        if (currentPidProfile->use_throttle_linearization) {
-            float controllerThrust = thrustMixPositiveAvg + MOTOR_TO_THRUST(motorMixPositiveAvg, thrustLinearizationLevel);
-            throttleOffset = MAX(throttle - controllerThrust, 0.0f);
-        } else {
-            float controllerMotor = motorMixPositiveAvg + THRUST_TO_MOTOR(thrustMixPositiveAvg, thrustLinearizationLevel);
-            throttleOffset = MAX(throttle - controllerMotor, 0.0f);
-        }
+        float rollPitchMixAvg = (rollPitchMixSum / motorCount - rollPitchMixMin) * controllerMixNormFactor;
+        float yawMixAvg = (yawMixSum / motorCount - yawMixMin) * controllerMixNormFactor;
 
-        float vbatCompFactor = calculateBatteryCompensationFactor();
-        float fullMotorThrust = MOTOR_TO_THRUST(vbatCompFactor, thrustLinearizationLevel);
+        float controllerThrust = rollPitchMixAvg + MOTOR_TO_THRUST(yawMixAvg, thrustLinearizationLevel);
+        float throttleThrust = currentPidProfile->use_throttle_linearization ? throttle : MOTOR_TO_THRUST(throttle, thrustLinearizationLevel);
+        throttleThrust = MAX(throttleThrust - controllerThrust, 0.0f);
+
+        float vbatCompFactor = calculateBatteryCompensationFactor(); // acts as a dynamic motor limit
+        // thrust generated at 100% motor with the given battery compensation level
+        float maxMotorThrust = MOTOR_TO_THRUST(vbatCompFactor, thrustLinearizationLevel);
 
         // filling motorMix with throttle, yaw and roll/pitch
         for (int i = 0; i < motorCount; i++) {
-            motorMix[i] = (motorMix[i] - motorMixMin) * controllerMixNormFactor;
-            thrustMix[i] = (thrustMix[i] - thrustMixMin) * controllerMixNormFactor;
-            if (currentPidProfile->use_throttle_linearization) {
-                thrustMix[i] += throttleOffset;
-            } else {
-                motorMix[i] += throttleOffset;
-            }
-            float motorMixThrust = MOTOR_TO_THRUST(motorMix[i] * vbatCompFactor, thrustLinearizationLevel); // battery comp should be applied to RPM-proportional values
-            float thrustVbatCompFactor = (fullMotorThrust - motorMixThrust) / (1.0f - motorMix[i]);
-            motorMix[i] = THRUST_TO_MOTOR(thrustMix[i] * thrustVbatCompFactor + motorMixThrust, thrustLinearizationLevel);
+            float yawMotor = (yawMix[i] - yawMixMin) * controllerMixNormFactor; // RPM-proportional value
+            float thrust = (rollPitchMix[i] - rollPitchMixMin) * controllerMixNormFactor + throttleThrust; // non RPM-proportional value
+
+            float motorThrust = MOTOR_TO_THRUST(yawMotor * vbatCompFactor, thrustLinearizationLevel); // battery comp should be applied to RPM-proportional values
+            float thrustVbatCompFactor = (maxMotorThrust - motorThrust) / (1.0f - yawMotor);
+            thrust = thrust * thrustVbatCompFactor + motorThrust;
+            motorMix[i] = THRUST_TO_MOTOR(thrust, thrustLinearizationLevel);
         }
     }
 }
