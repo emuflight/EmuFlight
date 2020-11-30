@@ -72,7 +72,7 @@ typedef enum {
 typedef enum {
     MIXER_IMPL_LEGACY = 0,
     MIXER_IMPL_SMOOTH,
-    MIXER_IMPL_LAZY,
+    MIXER_IMPL_2PASS,
     MIXER_IMPL_COUNT
 } mixerImplType_e;
 
@@ -143,8 +143,9 @@ typedef struct pidProfile_s {
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
 
     uint8_t thrust_linearization_level;     // Sets the level of thrust linearization
-    bool use_throttle_linearization;        // When thrust_linearization_level is > 0, tells whether the throttle response has to be linear too or counter-compensated for the legacy feedback
+    uint8_t linear_throttle;                // When thrust_linearization_level is > 0, tells whether the throttle response has to be linear too or counter-compensated for the legacy feedback
     mixerImplType_e mixer_impl;             // Which mixer implementation use
+    uint8_t mixer_lazyness;                 // If enabled, mixer clipping strategy will shift values only by the required amount
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE

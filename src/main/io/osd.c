@@ -678,7 +678,7 @@ static bool osdDrawSingleElement(uint8_t item) {
         //  4. AIR
         //  5. ACRO
         if (true) { // TODO remove me...
-            strcpy(buff, mixerImpl == MIXER_IMPL_LEGACY ? "LEGACY" : (mixerImpl == MIXER_IMPL_SMOOTH ? "SMOOTH" : "LAZY"));
+            strcpy(buff, mixerImpl == MIXER_IMPL_LEGACY ? "LEGACY" : (mixerImpl == MIXER_IMPL_SMOOTH ? "SMOOTH" : "2PASS"));
         } else
         if (FLIGHT_MODE(FAILSAFE_MODE)) {
             strcpy(buff, "!FS!");

@@ -177,8 +177,9 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
     .horizonTransition = 0,
     .thrust_linearization_level = 0,
-    .use_throttle_linearization = false,
+    .linear_throttle = false,
     .mixer_impl = MIXER_IMPL_LEGACY,
+    .mixer_lazyness = false,
     );
 }
 
