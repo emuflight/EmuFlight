@@ -122,8 +122,7 @@ static FAST_RAM_ZERO_INIT bool yawSpinDetected;
 
 static FAST_RAM_ZERO_INIT float accumulatedMeasurements[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float gyroPrevious[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT timeUs_t accumulatedMeasurementTimeUs;
-static FAST_RAM_ZERO_INIT timeUs_t accumulationLastTimeSampledUs;
+static FAST_RAM_ZERO_INIT int accumulatedMeasurementCount;
 
 float FAST_RAM_ZERO_INIT vGyroStdDevModulus;
 
@@ -1061,16 +1060,13 @@ static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs
     }
 #endif
     gyroSensor->gyroDev.dataReady = false;
-    const timeDelta_t sampleDeltaUs = currentTimeUs - accumulationLastTimeSampledUs;
-    accumulationLastTimeSampledUs = currentTimeUs;
-    accumulatedMeasurementTimeUs += sampleDeltaUs;
 #ifdef USE_GYRO_IMUF9001
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
         // NOTE: this branch optimized for when there is no gyro debugging, ensure it is kept in step with non-optimized branch
         DEBUG_SET(DEBUG_GYRO_SCALED, axis, lrintf(gyroSensor->gyroDev.gyroADCf[axis]));
         if (!gyroSensor->overflowDetected) {
             // integrate using trapezium rule to avoid bias
-            accumulatedMeasurements[axis] += 0.5f * (gyroPrevious[axis] + gyroSensor->gyroDev.gyroADCf[axis]) * sampleDeltaUs;
+            accumulatedMeasurements[axis] += 0.5f * (gyroPrevious[axis] + gyro.gyroADCf[axis]) * gyro.targetLooptime;
             gyroPrevious[axis] = gyroSensor->gyroDev.gyroADCf[axis];
         }
     }
@@ -1140,9 +1136,6 @@ FAST_CODE_NOINLINE void gyroDmaSpiStartRead(void) {
 #endif
 
 FAST_CODE_NOINLINE void gyroUpdate(timeUs_t currentTimeUs) {
-    const timeDelta_t sampleDeltaUs = currentTimeUs - accumulationLastTimeSampledUs;
-    accumulationLastTimeSampledUs = currentTimeUs;
-    accumulatedMeasurementTimeUs += sampleDeltaUs;
 #ifdef USE_DUAL_GYRO
     switch (gyroToUse) {
     case GYRO_CONFIG_USE_GYRO_1:
@@ -1229,14 +1222,16 @@ FAST_CODE_NOINLINE void gyroUpdate(timeUs_t currentTimeUs) {
     if (!overflowDetected) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
             // integrate using trapezium rule to avoid bias
-            accumulatedMeasurements[axis] += 0.5f * (gyroPrevious[axis] + gyro.gyroADCf[axis]) * sampleDeltaUs;
+            accumulatedMeasurements[axis] += 0.5f * (gyroPrevious[axis] + gyro.gyroADCf[axis]) * gyro.targetLooptime;
             gyroPrevious[axis] = gyro.gyroADCf[axis];
         }
+        accumulatedMeasurementCount++;
     }
 }
 
 bool gyroGetAverage(quaternion *vAverage) {
-    if (accumulatedMeasurementTimeUs > 0) {
+    if (accumulatedMeasurementCount) {
+        const timeUs_t accumulatedMeasurementTimeUs = accumulatedMeasurementCount * gyro.targetLooptime;
         vAverage->w = 0;
         vAverage->x = DEGREES_TO_RADIANS(accumulatedMeasurements[X] / accumulatedMeasurementTimeUs);
         vAverage->y = DEGREES_TO_RADIANS(accumulatedMeasurements[Y] / accumulatedMeasurementTimeUs);
@@ -1244,7 +1239,7 @@ bool gyroGetAverage(quaternion *vAverage) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
             accumulatedMeasurements[axis] = 0.0f;
         }
-        accumulatedMeasurementTimeUs = 0;
+        accumulatedMeasurementCount = 0;
         return true;
     } else {
         quaternionInitVector(vAverage);
