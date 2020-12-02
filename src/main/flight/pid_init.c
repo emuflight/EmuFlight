@@ -180,6 +180,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, pidRuntime.dT));
 #endif
+
 #if defined(USE_ITERM_RELAX)
     if (pidRuntime.itermRelaxCutoff || pidRuntime.itermRelaxCutoffYaw) {
         for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
@@ -191,8 +192,8 @@ void pidInitFilters(const pidProfile_t *pidProfile)
         }
     }
 #endif
-#if defined(USE_D_MIN)
 
+#if defined(USE_D_MIN)
     // Initialize the filters for all axis even if the d_min[axis] value is 0
     // Otherwise if the pidProfile->d_min_xxx parameters are ever added to
     // in-flight adjustments and transition from 0 to > 0 in flight the feature
@@ -368,6 +369,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.thrustLinearization = pidProfile->thrustLinearization / 100.0f;
     pidRuntime.throttleCompensateAmount = pidRuntime.thrustLinearization - 0.5f * powerf(pidRuntime.thrustLinearization, 2);
 #endif
+
 #if defined(USE_D_MIN)
     for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
         const uint8_t dMin = pidProfile->d_min[axis];
