@@ -207,18 +207,6 @@ FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input)
   //    float ak    // derivative of the derivate of system state (ie: acceleration)
 	float rk; // residual error
 
-if (filter->e == 0.0f) {
-	// update our (estimated) state 'x' from the system (ie pos = pos + vel (last).dT)
-	filter->xk += filter->dT * filter->vk + 0.5f * filter->dT2 * filter->ak;
-	// update (estimated) velocity (also estimated dterm from measurement)
-  filter->vk += filter->dT * filter->ak;
-	// what is our residual error (measured - estimated)
-	rk = input - filter->xk;
-	// update our estimates given the residual error.
-	filter->xk += filter->a * rk;
-	filter->vk += filter->b / filter->dT * rk;
-	filter->ak += filter->g / (2.0f * filter->dT2) * rk;
-} else {
   // update our (estimated) state 'x' from the system (ie pos = pos + vel (last).dT)
   filter->xk += filter->dT * filter->vk + (1.0f / 2.0f) * filter->dT2 * filter->ak + (1.0f / 6.0f) * filter->dT3 * filter->jk;
   // update (estimated) velocity (also estimated dterm from measurement)
@@ -231,7 +219,6 @@ if (filter->e == 0.0f) {
   filter->vk += filter->b / filter->dT * rk;
   filter->ak += filter->g / (2.0f * filter->dT2) * rk;
   filter->jk += filter->e / (6.0f * filter->dT3) * rk;
-}
 
 	return filter->xk;
 } // ABGUpdate
