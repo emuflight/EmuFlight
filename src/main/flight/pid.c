@@ -176,8 +176,9 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .motor_output_limit = 100,
     .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
     .horizonTransition = 0,
-    .thrust_linearization_level = 0,
-    .linear_throttle = false,
+    .mixer_thrust_linearization_level_low_rpm = 75,
+    .mixer_thrust_linearization_level = 0,
+    .mixer_linear_throttle = false,
     .mixer_impl = MIXER_IMPL_LEGACY,
     .mixer_lazyness = false,
     );

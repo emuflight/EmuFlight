@@ -1205,8 +1205,8 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("nfe_racermode", "%d",                   currentPidProfile->nfe_racermode);
         BLACKBOX_PRINT_HEADER_LINE("iterm_rotation", "%d",                  currentPidProfile->iterm_rotation);
         BLACKBOX_PRINT_HEADER_LINE("throttle_boost", "%d",                  currentPidProfile->throttle_boost);
-        BLACKBOX_PRINT_HEADER_LINE("thrust_linear", "%d",                   currentPidProfile->thrust_linearization_level);
-        BLACKBOX_PRINT_HEADER_LINE("linear_throttle", "%d",                 currentPidProfile->linear_throttle);
+        BLACKBOX_PRINT_HEADER_LINE("mixer_thrust_linearization_level", "%d", currentPidProfile->mixer_thrust_linearization_level);
+        BLACKBOX_PRINT_HEADER_LINE("mixer_linear_throttle", "%d",           currentPidProfile->mixer_linear_throttle);
         BLACKBOX_PRINT_HEADER_LINE("mixer_impl", "%d",                      currentPidProfile->mixer_impl);
         BLACKBOX_PRINT_HEADER_LINE("mixer_lazyness", "%d",                  currentPidProfile->mixer_lazyness);
         // End of EmuFlight controller parameters

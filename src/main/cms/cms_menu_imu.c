@@ -76,8 +76,9 @@ static uint16_t dtermBoost;
 static uint8_t dtermBoostLimit;
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
-static uint8_t thrust_linearization_level;
-static uint8_t linear_throttle;
+static uint8_t mixer_thrust_linearization_level_low_rpm;
+static uint8_t mixer_thrust_linearization_level;
+static uint8_t mixer_linear_throttle;
 static mixerImplType_e mixer_impl;
 static uint8_t mixer_lazyness;
 
@@ -145,8 +146,9 @@ static long cmsx_PidAdvancedRead(void) {
     itermRelaxThreshold = pidProfile->iterm_relax_threshold;
     itermRelaxThresholdYaw = pidProfile->iterm_relax_threshold_yaw;
     itermWindup = pidProfile->itermWindupPointPercent;
-    thrust_linearization_level = pidProfile->thrust_linearization_level;
-    linear_throttle = pidProfile->linear_throttle;
+    mixer_thrust_linearization_level_low_rpm = pidProfile->mixer_thrust_linearization_level_low_rpm;
+    mixer_thrust_linearization_level = pidProfile->mixer_thrust_linearization_level;
+    mixer_linear_throttle = pidProfile->mixer_linear_throttle;
     mixer_impl = pidProfile->mixer_impl;
     mixer_lazyness = pidProfile->mixer_lazyness;
     return 0;
@@ -175,8 +177,9 @@ static long cmsx_PidAdvancedWriteback(const OSD_Entry *self) {
     pidProfile->iterm_relax_threshold = itermRelaxThreshold;
     pidProfile->iterm_relax_threshold_yaw = itermRelaxThresholdYaw;
     pidProfile->itermWindupPointPercent = itermWindup;
-    pidProfile->thrust_linearization_level = thrust_linearization_level;
-    pidProfile->linear_throttle = linear_throttle;
+    pidProfile->mixer_thrust_linearization_level_low_rpm = mixer_thrust_linearization_level_low_rpm;
+    pidProfile->mixer_thrust_linearization_level = mixer_thrust_linearization_level;
+    pidProfile->mixer_linear_throttle = mixer_linear_throttle;
     pidProfile->mixer_impl = mixer_impl;
     pidProfile->mixer_lazyness = mixer_lazyness;
     pidInitConfig(currentPidProfile);
@@ -204,8 +207,9 @@ static OSD_Entry cmsx_menuPidAdvancedEntries[] = {
     { "I RELAX THRESH YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &itermRelaxThresholdYaw,   0, 100, 1 }, 0 },
     { "I WINDUP",          OME_UINT8, NULL, &(OSD_UINT8_t){ &itermWindup,              0, 100, 1 }, 0 },
 
-    { "LINEAR THRUST",     OME_UINT8, NULL, &(OSD_UINT8_t) { &thrust_linearization_level, 0,  100,  1}, 0 },
-    { "LINEAR THROTTLE",   OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &linear_throttle, 1, cms_offOnLabels }, 0 },
+    { "LINEAR THRUST LOW",     OME_UINT8, NULL, &(OSD_UINT8_t) { &mixer_thrust_linearization_level_low_rpm, 0,  100,  1}, 0 },
+    { "LINEAR THRUST",     OME_UINT8, NULL, &(OSD_UINT8_t) { &mixer_thrust_linearization_level, 0,  100,  1}, 0 },
+    { "LINEAR THROTTLE",   OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &mixer_linear_throttle, 1, cms_offOnLabels }, 0 },
     { "MIXER IMPL",        OME_TAB,   NULL, &(OSD_TAB_t)   { &mixer_impl, MIXER_IMPL_COUNT - 1, cms_mixerImplTypeLabels }, 0 },
     { "MIXER LAZYNESS",    OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &mixer_lazyness, 1, cms_offOnLabels }, 0 },
 

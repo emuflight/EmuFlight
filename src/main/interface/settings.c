@@ -928,8 +928,9 @@ const clivalue_t valueTable[] = {
     { "motor_output_limit",          VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { MOTOR_OUTPUT_LIMIT_PERCENT_MIN, MOTOR_OUTPUT_LIMIT_PERCENT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, motor_output_limit) },
     { "auto_profile_cell_count",     VAR_INT8  | PROFILE_VALUE,  .config.minmax = { AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT }, PG_PID_PROFILE, offsetof(pidProfile_t, auto_profile_cell_count) },
 
-    { "thrust_linearization_level",  VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, thrust_linearization_level) },
-    { "linear_throttle",             VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, linear_throttle) },
+    { "mixer_thrust_linearization_level_low_rpm",  VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_thrust_linearization_level_low_rpm) },
+    { "mixer_thrust_linearization_level",          VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_thrust_linearization_level) },
+    { "mixer_linear_throttle",       VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_linear_throttle) },
     { "mixer_impl",                  VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_MIXER_IMPL_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_impl) },
     { "mixer_lazyness",              VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_lazyness) },
 
