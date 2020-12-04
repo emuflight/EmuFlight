@@ -162,7 +162,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .crash_gthreshold = 400,                  // degrees/second
     .crash_setpoint_threshold = 350,          // degrees/second
     .crash_recovery = PID_CRASH_RECOVERY_OFF, // off by default
-    .horizon_tilt_effect = 130,
+    .horizon_tilt_effect = 90,
     .nfe_racermode = false,
     .crash_limit_yaw = 200,
     .itermLimit = 400,
@@ -432,8 +432,6 @@ static float calcHorizonLevelStrength(void) {
     return constrainf(horizonLevelStrength, 0, 1);
 }
 
-#define SIGN(x) ((x > 0.0f) - (x < 0.0f))
-
 static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint) {
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
@@ -452,12 +450,12 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
     float errorAngle = angle - ((attitude.raw[axis] - angleTrim->raw[axis]) * 0.1f);
     errorAngle = constrainf(errorAngle, -90.0f, 90.0f);
-    const float errorAnglePercent = errorAngle / 90.0f;
+    const float errorAnglePercent = fabsf(errorAngle / 90.0f);
     // ANGLE mode - control is angle based
-    p_term_low = (1 - fabsf(errorAnglePercent)) * errorAngle * P_angle_low;
-    p_term_high = fabsf(errorAnglePercent) * errorAngle * P_angle_high;
-    d_term_low = (1 - fabsf(errorAnglePercent)) * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_low;
-    d_term_high = fabsf(errorAnglePercent) * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_high;
+    p_term_low = (1 - errorAnglePercent) * errorAngle * P_angle_low;
+    p_term_high = errorAnglePercent * errorAngle * P_angle_high;
+    d_term_low = (1 - errorAnglePercent) * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_low;
+    d_term_high = errorAnglePercent * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_high;
     attitudePrevious[axis] = attitude.raw[axis];
     currentPidSetpoint = p_term_low + p_term_high;
     currentPidSetpoint += d_term_low + d_term_high;
@@ -466,7 +464,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
         // HORIZON mode - mix of ANGLE and ACRO modes
         // mix in errorAngle to currentPidSetpoint to add a little auto-level feel
         const float horizonLevelStrength = calcHorizonLevelStrength();
-        currentPidSetpoint = (((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f) + (currentPidSetpoint * horizonLevelStrength);
+        currentPidSetpoint = ((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f + (currentPidSetpoint * horizonLevelStrength);
     }
     return currentPidSetpoint;
 }
