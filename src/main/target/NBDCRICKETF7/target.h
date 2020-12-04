@@ -96,9 +96,11 @@
 
 // *************** ADC *****************************
 #define USE_ADC
-#define ADC1_DMA_STREAM           DMA2_Stream0
-#define CURRENT_METER_ADC_PIN     PC1
+#define ADC_INSTANCE              ADC1    // Default added
 #define VBAT_ADC_PIN              PC0
+#define ADC1_DMA_STREAM           DMA2_Stream0
+#define ADC1_DMA_OPT              0       // DMA 2 Stream 0 Channel 0
+#define CURRENT_METER_ADC_PIN     PC1
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define CURRENT_METER_SCALE_DEFAULT 400
@@ -109,6 +111,9 @@
 
 // *************** OTHERS **************************
 #define DEFAULT_FEATURES          ( FEATURE_OSD  )
+
+#define USE_ESCSERIAL
+#define ESCSERIAL_TIMER_TX_PIN    NONE
 
 #define LED0_PIN                  PA15
 
