@@ -176,7 +176,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
     .horizon_tilt_effect = 80,
     .horizonTransition = 0,
-    .horizonStrength = 50,
+    .horizonStrength = 15,
                 );
 }
 
