@@ -162,7 +162,6 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .crash_gthreshold = 400,                  // degrees/second
     .crash_setpoint_threshold = 350,          // degrees/second
     .crash_recovery = PID_CRASH_RECOVERY_OFF, // off by default
-    .horizon_tilt_effect = 90,
     .nfe_racermode = false,
     .crash_limit_yaw = 200,
     .itermLimit = 400,
@@ -175,7 +174,9 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .iterm_relax_threshold_yaw = 35,
     .motor_output_limit = 100,
     .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
+    .horizon_tilt_effect = 80,
     .horizonTransition = 0,
+    .horizonStrength = 50,
                 );
 }
 
@@ -324,7 +325,7 @@ static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointDTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float dtermBoostMultiplier, dtermBoostLimitPercent;
-static FAST_RAM_ZERO_INIT float P_angle_low, D_angle_low, P_angle_high, D_angle_high, F_angle, horizonTransition, horizonCutoffDegrees;
+static FAST_RAM_ZERO_INIT float P_angle_low, D_angle_low, P_angle_high, D_angle_high, F_angle, horizonTransition, horizonCutoffDegrees, horizonStrength;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeLimitUs;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeDelayUs;
@@ -369,6 +370,7 @@ void pidInitConfig(const pidProfile_t *pidProfile) {
     F_angle = pidProfile->pid[PID_LEVEL_LOW].F * 0.00000125f;
     horizonTransition = (float)pidProfile->horizonTransition;
     horizonCutoffDegrees = pidProfile->horizon_tilt_effect;
+    horizonStrength = pidProfile->horizonStrength / 50.0f;
     maxVelocity[FD_ROLL] = maxVelocity[FD_PITCH] = pidProfile->rateAccelLimit * 100 * dT;
     maxVelocity[FD_YAW] = pidProfile->yawRateAccelLimit * 100 * dT;
     ITermWindupPointInv = 0.0f;
@@ -427,7 +429,7 @@ static float calcHorizonLevelStrength(void) {
         horizonLevelStrength = inclinationLevelRatio;
     } else {
         // if racemode_tilt_effect = 0 or horizonTransition>racemode_tilt_effect means no leveling
-        horizonLevelStrength = 0;
+        horizonLevelStrength = 1;
     }
     return constrainf(horizonLevelStrength, 0, 1);
 }
@@ -464,7 +466,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
         // HORIZON mode - mix of ANGLE and ACRO modes
         // mix in errorAngle to currentPidSetpoint to add a little auto-level feel
         const float horizonLevelStrength = calcHorizonLevelStrength();
-        currentPidSetpoint = ((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f + (currentPidSetpoint * horizonLevelStrength);
+        currentPidSetpoint = ((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f + (currentPidSetpoint * horizonLevelStrength * horizonStrength);
     }
     return currentPidSetpoint;
 }
