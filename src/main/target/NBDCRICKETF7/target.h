@@ -92,7 +92,7 @@
 #define USE_SOFTSERIAL1
 
 #define SERIAL_PORT_COUNT        7 //VCP, USART1, USART3,USART4, USART6, SOFT_SERIAL1
-
+#define USE_MSP_UART
 
 // *************** ADC *****************************
 #define USE_ADC
