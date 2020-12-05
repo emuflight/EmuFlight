@@ -24,6 +24,7 @@
 #define USBD_PRODUCT_STRING "NBD CRICKETF7"
 
 #define USE_TARGET_CONFIG
+#define MSP_OVER_CLI
 
 // *************** SPI *****************************
 #define USE_SPI
@@ -64,6 +65,10 @@
 #define MAX7456_SPI_CS_PIN        PC13
 #define MAX7456_SPI_CLK           (SPI_CLOCK_STANDARD)
 #define MAX7456_RESTORE_CLK       (SPI_CLOCK_FAST)
+#define USE_OSD_OVER_MSP_DISPLAYPORT
+#define USE_MSP_CURRENT_METER
+#define USE_MSP_DISPLAYPORT
+#define USE_MSP_OVER_TELEMETRY
 
 // *************** UART *****************************
 #define USE_VCP

@@ -25,6 +25,11 @@
 #include "pg/pinio.h"
 #include "pg/piniobox.h"
 
+//static targetSerialPortFunction_t targetSerialPortFunction[] = {
+//    { SERIAL_PORT_USART1, FUNCTION_MSP },
+//    { SERIAL_PORT_USART6, FUNCTION_MSP },
+//};
+
  void targetConfiguration(void) {
     pinioBoxConfigMutable()->permanentId[0] = 40;
     pinioConfigMutable()->config[0] = 129;
