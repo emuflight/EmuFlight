@@ -94,5 +94,6 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "RX_TIMING",
     "MATRIX_FILTER",
     "D_LPF",
-    "VTX_TRAMP"
+    "VTX_TRAMP",
+    "KALMAN"
 };

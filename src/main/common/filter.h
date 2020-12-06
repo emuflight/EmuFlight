@@ -91,5 +91,5 @@ float pt1FilterApply(pt1Filter_t *filter, float input);
 void slewFilterInit(slewFilter_t *filter, float slewLimit, float threshold);
 float slewFilterApply(slewFilter_t *filter, float input);
 
-void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, float dt, int jerk);
+void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, float dt);
 float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input);

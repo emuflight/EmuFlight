@@ -200,8 +200,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .i_decay_cutoff = 200,
         .dynThr = { 75, 125, 65 },
         .tpa_breakpoint = 1350,
-        .dtermAlpha = 0,
-        .abgJerk = 0,
+        .dtermAlpha = 750,
     );
 }
 

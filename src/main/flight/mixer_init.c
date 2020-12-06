@@ -320,8 +320,8 @@ void mixerInitProfile(void)
 #endif
 #ifdef USE_DYN_LPF
     for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
-        pt1FilterInit(&mixerRuntime.dynGyroFc[i], pt1FilterGain(10, pidRuntime.dT));
-        pt1FilterInit(&mixerRuntime.dynDtermFc[i], pt1FilterGain(10, pidRuntime.dT));
+        pt1FilterInit(&mixerRuntime.dynGyroFc[i], pt1FilterGain(10, 2500 * 1e-6f));
+        pt1FilterInit(&mixerRuntime.dynDtermFc[i], pt1FilterGain(10, 2500 * 1e-6f));
     }
 #endif
 }

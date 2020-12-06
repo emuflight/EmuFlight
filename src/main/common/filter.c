@@ -229,32 +229,20 @@ FAST_CODE float laggedMovingAverageUpdate(laggedMovingAverage_t *filter, float i
 
 // Robert Bouwens AlphaBetaGamma
 
-void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, float dT, int jerk) {
+void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, float dT) {
 	const float Alpha = alpha * 0.001f;
-  if (jerk == 0) {
-      const float beta = 0.8f * (2.0f - Alpha * Alpha - 2.0f * sqrtf(1.0f - Alpha * Alpha)) / (Alpha * Alpha);
-      filter->xk = 0.0f;
-	    filter->vk = 0.0f;
-      filter->ak = 0.0f;
-      filter->jk = 0.0f;
-	    filter->a = Alpha;
-	    filter->b = beta;
-      filter->g = beta * beta / (Alpha * 2.0f);
-      filter->e = 0.0f;
-  } else {
-      // beta, gamma, and eta gains all derived from
-      // http://yadda.icm.edu.pl/yadda/element/bwmeta1.element.baztech-922ff6cb-e991-417f-93f0-77448f1ef4ec/c/A_Study_Jeong_1_2017.pdf
+  // beta, gamma, and eta gains all derived from
+  // http://yadda.icm.edu.pl/yadda/element/bwmeta1.element.baztech-922ff6cb-e991-417f-93f0-77448f1ef4ec/c/A_Study_Jeong_1_2017.pdf
 
-      const float xi = powf(-Alpha + 1.0f, 0.25); // fourth rool of -a + 1
-      filter->xk = 0.0f;
-      filter->vk = 0.0f;
-      filter->ak = 0.0f;
-      filter->jk = 0.0f;
-      filter->a = Alpha;
-      filter->b = (1.0f / 6.0f) * powf(1.0f - xi, 2) * (11.0f + 14.0f * xi + 11 * xi * xi);
-      filter->g = 2 * powf(1.0f - xi, 3) * (1 + xi);
-      filter->e = (1.0f / 6.0f) * powf(1 - xi, 4);
-  }
+  const float xi = powf(-Alpha + 1.0f, 0.25); // fourth rool of -a + 1
+  filter->xk = 0.0f;
+  filter->vk = 0.0f;
+  filter->ak = 0.0f;
+  filter->jk = 0.0f;
+  filter->a = Alpha;
+  filter->b = (1.0f / 6.0f) * powf(1.0f - xi, 2) * (11.0f + 14.0f * xi + 11 * xi * xi);
+  filter->g = 2 * powf(1.0f - xi, 3) * (1 + xi);
+  filter->e = (1.0f / 6.0f) * powf(1 - xi, 4);
 	filter->dT = dT;
 	filter->dT2 = dT * dT;
   filter->dT3 = dT * dT * dT;
@@ -266,18 +254,6 @@ FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input)
   //    float ak    // derivative of the derivate of system state (ie: acceleration)
 	float rk; // residual error
 
-if (filter->e == 0.0f) {
-	// update our (estimated) state 'x' from the system (ie pos = pos + vel (last).dT)
-	filter->xk += filter->dT * filter->vk + 0.5f * filter->dT2 * filter->ak;
-	// update (estimated) velocity (also estimated dterm from measurement)
-  filter->vk += filter->dT * filter->ak;
-	// what is our residual error (measured - estimated)
-	rk = input - filter->xk;
-	// update our estimates given the residual error.
-	filter->xk += filter->a * rk;
-	filter->vk += filter->b / filter->dT * rk;
-	filter->ak += filter->g / (2.0f * filter->dT2) * rk;
-} else {
   // update our (estimated) state 'x' from the system (ie pos = pos + vel (last).dT)
   filter->xk += filter->dT * filter->vk + (1.0f / 2.0f) * filter->dT2 * filter->ak + (1.0f / 6.0f) * filter->dT3 * filter->jk;
   // update (estimated) velocity (also estimated dterm from measurement)
@@ -290,7 +266,6 @@ if (filter->e == 0.0f) {
   filter->vk += filter->b / filter->dT * rk;
   filter->ak += filter->g / (2.0f * filter->dT2) * rk;
   filter->jk += filter->e / (6.0f * filter->dT3) * rk;
-}
 
 	return filter->xk;
 } // ABGUpdate

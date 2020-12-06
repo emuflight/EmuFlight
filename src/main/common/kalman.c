@@ -64,7 +64,7 @@ static FAST_CODE void update_kalman_covariance(float gyroRateData, int axis)
     kalmanFilterStateRate[axis].r = sqrtf(kalmanFilterStateRate[axis].axisVar) * VARIANCE_SCALE;
 }
 
-FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
+FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target, int axis)
 {
   //project the state ahead using acceleration
   kalmanState->x += (kalmanState->x - kalmanState->lastX);
@@ -78,12 +78,21 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
   {
       kalmanState->e = fabsf(1.0f - (target / kalmanState->lastX));
   }
+  kalmanState->r += fabsf(input - kalmanState->x);
   //prediction update
   kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
   //measurement update
   kalmanState->k = kalmanState->p / (kalmanState->p + kalmanState->r);
   kalmanState->x += kalmanState->k * (input - kalmanState->x);
   kalmanState->p = (1.0f - kalmanState->k) * kalmanState->p;
+
+  if (axis == 0) {
+      DEBUG_SET(DEBUG_KALMAN, 0, lrintf(kalmanState->k * 1000.0f));
+      DEBUG_SET(DEBUG_KALMAN, 1, lrintf(input));
+      DEBUG_SET(DEBUG_KALMAN, 2, lrintf(kalmanState->x));
+      DEBUG_SET(DEBUG_KALMAN, 3, lrintf(kalmanState->r));
+  }
+
   return kalmanState->x;
 }
 
@@ -91,7 +100,7 @@ FAST_CODE float kalman_update(float input, int axis)
 {
  if (gyroConfig()->imuf_w >= 3) {
     update_kalman_covariance(input, axis);
-    input = kalman_process(&kalmanFilterStateRate[axis], input, getSetpointRate(axis));
+    input = kalman_process(&kalmanFilterStateRate[axis], input, getSetpointRate(axis), axis);
  }
     return input;
 }

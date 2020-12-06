@@ -111,6 +111,7 @@ typedef enum {
     DEBUG_MATRIX_FILTER,
     DEBUG_D_LPF,
     DEBUG_VTX_TRAMP,
+    DEBUG_KALMAN,
     DEBUG_COUNT
 } debugType_e;
 

@@ -452,11 +452,6 @@ static void updateDynLpfCutoffs(timeUs_t currentTimeUs, float throttle)
         }
 
         lastDynLpfUpdateUs = currentTimeUs;
-    } else {
-        for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
-            pt1FilterApply(&mixerRuntime.dynGyroFc[i], lastGyroCutoff[i]);
-            pt1FilterApply(&mixerRuntime.dynDtermFc[i], lastDtermCutoff[i]);
-        }
     }
 }
 #endif
