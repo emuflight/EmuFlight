@@ -466,18 +466,18 @@ static bool osdDrawSingleElement(uint8_t item) {
             case SCALED:
                 switch (osdRfMode) {
                 case 2:
-                    osdLQfinal = scaleRangef(osdLQ, 0, 100, 170, 300);
+                    osdLQfinal = scaleRange(osdLQ, 0, 100, 170, 300);
                     break;
                 default:
                     osdLQfinal = osdLQ;
                     break;
                 }
-                if (osdLQfinal >= 300)
+                if (osdLQfinal > 300)
                     osdLQfinal = 300;
                 tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
                 break;
             case MODE:
-                if (osdLQ >= 100)
+                if (osdLQ > 100)
                     osdLQfinal = 100;
                 tfp_sprintf(buff, "%1d:%d", osdRfMode, osdLQfinal);
                 break;
@@ -509,7 +509,7 @@ static bool osdDrawSingleElement(uint8_t item) {
                     osdLQfinal = osdLQ;
                     break;
                 }
-                if (osdLQfinal >= 300)
+                if (osdLQfinal > 300)
                     osdLQfinal = 300;
                 tfp_sprintf(buff, "%c%3d", LINK_QUALITY, osdLQfinal);
                 break;
@@ -1571,6 +1571,18 @@ void osdUpdate(timeUs_t currentTimeUs) {
     } else {
         // rest of time redraw screen 10 chars per idle so it doesn't lock the main idle
         displayDrawScreen(osdDisplayPort);
+
+
+        bool doDrawScreen = true;
+#if defined(USE_CMS) && defined(USE_MSP_DISPLAYPORT) && defined(USE_OSD_OVER_MSP_DISPLAYPORT)
+        // For the MSP displayPort device only do the drawScreen once per
+        // logical OSD cycle as there is no output buffering needing to be flushed.
+        doDrawScreen = (counter % DRAW_FREQ_DENOM == 1);
+#endif
+        // Redraw a portion of the chars per idle to spread out the load and SPI bus utilization
+        if (doDrawScreen) {
+            displayDrawScreen(osdDisplayPort);
+        }
     }
     ++counter;
 #ifdef USE_CMS
