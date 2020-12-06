@@ -162,7 +162,6 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .crash_gthreshold = 400,                  // degrees/second
     .crash_setpoint_threshold = 350,          // degrees/second
     .crash_recovery = PID_CRASH_RECOVERY_OFF, // off by default
-    .nfe_racermode = false,
     .crash_limit_yaw = 200,
     .itermLimit = 400,
     .throttle_boost = 5,
@@ -319,7 +318,6 @@ typedef struct pidCoefficient_s {
 static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feathered_pids;
-static FAST_RAM_ZERO_INIT uint8_t nfe_racermode;
 static FAST_RAM_ZERO_INIT float smart_dterm_smoothing[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
@@ -360,7 +358,6 @@ void pidInitConfig(const pidProfile_t *pidProfile) {
         smart_dterm_smoothing[axis] = pidProfile->dFilter[axis].smartSmoothing;
     }
     feathered_pids = pidProfile->feathered_pids / 100.0f;
-    nfe_racermode = pidProfile->nfe_racermode;
     dtermBoostMultiplier = (pidProfile->dtermBoost * pidProfile->dtermBoost / 1000000) * 0.003;
     dtermBoostLimitPercent = pidProfile->dtermBoostLimit / 100.0f;
     P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
@@ -616,9 +613,9 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // NFE racermode applies angle only to the roll axis
         if (FLIGHT_MODE(GPS_RESCUE_MODE) && axis != FD_YAW) {
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
-        } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && !nfe_racermode && (axis != FD_YAW)) {
+        } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && !FLIGHT_MODE(NFE_RACE_MODE) && (axis != FD_YAW)) {
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
-        } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && nfe_racermode && ((axis != FD_YAW) && (axis != FD_PITCH))) {
+        } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && FLIGHT_MODE(NFE_RACE_MODE) && ((axis != FD_YAW) && (axis != FD_PITCH))) {
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
         }
         // Handle yaw spin recovery - zero the setpoint on yaw to aid in recovery

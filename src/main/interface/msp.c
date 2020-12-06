@@ -1274,7 +1274,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentPidProfile->setPointPTransition[YAW]);
         sbufWriteU8(dst, currentPidProfile->setPointITransition[YAW]);
         sbufWriteU8(dst, currentPidProfile->setPointDTransition[YAW]);
-        sbufWriteU8(dst, currentPidProfile->nfe_racermode);
+        sbufWriteU8(dst, 0); // was NFE_RACE_MODE now made into a flight mode
         break;
         case MSP_SENSOR_CONFIG:
         sbufWriteU8(dst, accelerometerConfig()->acc_hardware);
@@ -1860,7 +1860,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         currentPidProfile->setPointPTransition[YAW] = sbufReadU8(src);
         currentPidProfile->setPointITransition[YAW] = sbufReadU8(src);
         currentPidProfile->setPointDTransition[YAW] = sbufReadU8(src);
-        currentPidProfile->nfe_racermode = sbufReadU8(src);
+        sbufReadU8(src); // was NFE_RACE_MODE now its a flight mode.
         }
         pidInitConfig(currentPidProfile);
         break;
