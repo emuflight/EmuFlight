@@ -112,6 +112,9 @@ typedef enum {
     DEBUG_D_LPF,
     DEBUG_VTX_TRAMP,
     DEBUG_KALMAN,
+    DEBUG_ABG,
+    DEBUG_D_ABG,
+    DEBUG_DBOOST,
     DEBUG_COUNT
 } debugType_e;
 

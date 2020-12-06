@@ -66,7 +66,17 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
         // we want kalman last, gives better results
         gyroADCf = kalman_update(gyroADCf, axis);
         // put alpha betaGamma filter last so that we can use it to predict dterm :)
+        if (axis == FD_ROLL) {
+            DEBUG_SET(DEBUG_ABG, 0, lrintf(gyroADCf));
+        } else if (axis == FD_PITCH) {
+            DEBUG_SET(DEBUG_ABG, 2, lrintf(gyroADCf));
+        }
         gyroADCf = gyro.alphaBetaGammaApplyFn((filter_t *)&gyro.alphaBetaGamma[axis], gyroADCf);
+        if (axis == FD_ROLL) {
+            DEBUG_SET(DEBUG_ABG, 1, lrintf(gyroADCf));
+        } else if (axis == FD_PITCH) {
+            DEBUG_SET(DEBUG_ABG, 3, lrintf(gyroADCf));
+        }
 
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));

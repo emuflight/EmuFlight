@@ -211,10 +211,6 @@ void pgResetFn_pidProfiles(pidProfile_t *pidProfiles)
     }
 }
 
-// Scale factors to make best use of range with D_LPF debugging, aiming for max +/-16K as debug values are 16 bit
-#define D_LPF_RAW_SCALE 25
-#define D_LPF_FILT_SCALE 22
-
 
 void pidSetItermAccelerator(float newItermAccelerator)
 {
@@ -767,6 +763,8 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             previousErrorRate[axis] = errorRate;
             float delta = ((dtermFromMeasurement * pidRuntime.dtermMeasurementSlider) + (dtermFromError * pidRuntime.dtermMeasurementSliderInverse)) * pidRuntime.pidFrequency;
 
+            delta *= pidRuntime.pidCoefficient[axis].Kd;
+
             // log unfiltered roll and pitch dterm, log filtered later so we can compare without dmin/dboost
             if (axis == FD_ROLL) {
                 DEBUG_SET(DEBUG_D_LPF, 0, lrintf(delta));
@@ -777,7 +775,16 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             delta = pidRuntime.dtermNotchApplyFn((filter_t *) &pidRuntime.dtermNotch[axis], delta);
             delta = pidRuntime.dtermLowpassApplyFn((filter_t *) &pidRuntime.dtermLowpass[axis], delta);
             delta = pidRuntime.dtermLowpass2ApplyFn((filter_t *) &pidRuntime.dtermLowpass2[axis], delta);
+
+            if (axis == FD_ROLL) {
+                DEBUG_SET(DEBUG_ABG, 0, lrintf(delta));
+            } else if (axis == FD_PITCH) {
+                DEBUG_SET(DEBUG_ABG, 2, lrintf(delta));
             delta = pidRuntime.dtermABGApplyFn((filter_t *) &pidRuntime.dtermABG[axis], delta);
+            if (axis == FD_ROLL) {
+                DEBUG_SET(DEBUG_ABG, 1, lrintf(delta));
+            } else if (axis == FD_PITCH) {
+                DEBUG_SET(DEBUG_ABG, 3, lrintf(delta));
 
             if (axis == FD_ROLL) {
                 DEBUG_SET(DEBUG_D_LPF, 1, lrintf(delta));
@@ -785,10 +792,18 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
                 DEBUG_SET(DEBUG_D_LPF, 3, lrintf(delta));
             }
 
+            if (axis == FD_ROLL) {
+                DEBUG_SET(DEBUG_DBOOST, 0, lrintf(delta));
+            } else if (axis == FD_PITCH) {
+                DEBUG_SET(DEBUG_DBOOST, 2, lrintf(delta));
+            }
             //dterm boost
             delta = emuboost(delta, pidRuntime.dtermBoost, pidRuntime.dtermBoostLimit);
-
-            float preTpaData = pidRuntime.pidCoefficient[axis].Kd * delta;
+            if (axis == FD_ROLL) {
+                DEBUG_SET(DEBUG_DBOOST, 1, lrintf(delta));
+            } else if (axis == FD_PITCH) {
+                DEBUG_SET(DEBUG_DBOOST, 3, lrintf(delta));
+            }
 
 #if defined(USE_D_MIN)
             float dMinFactor = 1.0f;
@@ -810,12 +825,9 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             }
 
             // Apply the dMinFactor
-            preTpaData *= dMinFactor;
+            delta *= dMinFactor;
 #endif
-            pidData[axis].D = preTpaData * getThrottleDAttenuation() * stickPositionAttenuation(axis, 2);
-
-            // Log the value of D pre application of TPA
-            preTpaData *= D_LPF_FILT_SCALE;
+            pidData[axis].D = delta * getThrottleDAttenuation() * stickPositionAttenuation(axis, 2);
         } else {
             pidData[axis].D = 0;
         }
