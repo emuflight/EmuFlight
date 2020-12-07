@@ -681,7 +681,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         }
 
         if (axis == FD_ROLL) {
-            DEBUG_SET(EBUG_BOOST, 0, lrintf(errorRate - boostedErrorRate));
+            DEBUG_SET(DEBUG_BOOST, 0, lrintf(errorRate - boostedErrorRate));
         } else if (axis == FD_PITCH) {
             DEBUG_SET(DEBUG_BOOST, 1, lrintf(errorRate - boostedErrorRate));
         }
