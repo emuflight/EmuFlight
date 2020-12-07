@@ -114,7 +114,7 @@ typedef enum {
     DEBUG_KALMAN,
     DEBUG_ABG,
     DEBUG_D_ABG,
-    DEBUG_DBOOST,
+    DEBUG_BOOST,
     DEBUG_COUNT
 } debugType_e;
 

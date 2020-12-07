@@ -787,7 +787,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             } else if (axis == FD_PITCH) {
                 DEBUG_SET(DEBUG_ABG, 3, lrintf(delta));
             }
-            
+
             if (axis == FD_ROLL) {
                 DEBUG_SET(DEBUG_D_LPF, 1, lrintf(delta));
             } else if (axis == FD_PITCH) {
@@ -797,14 +797,15 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             if (axis == FD_ROLL) {
                 DEBUG_SET(DEBUG_DBOOST, 0, lrintf(delta));
             } else if (axis == FD_PITCH) {
-                DEBUG_SET(DEBUG_DBOOST, 2, lrintf(delta));
+                DEBUG_SET(DEBUG_BOOST, 2, lrintf(delta));
             }
+            float preDBoost = delta;
             //dterm boost
             delta = emuboost(delta, pidRuntime.dtermBoost, pidRuntime.dtermBoostLimit);
             if (axis == FD_ROLL) {
-                DEBUG_SET(DEBUG_DBOOST, 1, lrintf(delta));
+                DEBUG_SET(DEBUG_BOOST, 2, lrintf(delta - preDBoost));
             } else if (axis == FD_PITCH) {
-                DEBUG_SET(DEBUG_DBOOST, 3, lrintf(delta));
+                DEBUG_SET(DEBUG_BOOST, 3, lrintf(delta - preDBoost));
             }
 
 #if defined(USE_D_MIN)

@@ -97,5 +97,6 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "VTX_TRAMP",
     "KALMAN",
     "ABG",
-    "D_ABG"
+    "D_ABG",
+    "BOOST"
 };
