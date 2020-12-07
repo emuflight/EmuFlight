@@ -789,9 +789,9 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             }
             delta = pidRuntime.dtermABGApplyFn((filter_t *) &pidRuntime.dtermABG[axis], delta);
             if (axis == FD_ROLL) {
-                DEBUG_SET(DEBUG_ABG, 1, lrintf(delta));
+                DEBUG_SET(DEBUG_D_ABG, 1, lrintf(delta));
             } else if (axis == FD_PITCH) {
-                DEBUG_SET(DEBUG_ABG, 3, lrintf(delta));
+                DEBUG_SET(DEBUG_D_ABG, 3, lrintf(delta));
             }
 
             if (axis == FD_ROLL) {
