@@ -680,6 +680,12 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             boostedErrorRate = emuboost(errorRate, pidRuntime.emuBoostPR, pidRuntime.emuBoostLimitPR);
         }
 
+        if (axis == FD_ROLL) {
+            DEBUG_SET(EBUG_DBOOST, 0, lrintf(errorRate - boostedErrorRate));
+        } else if (axis == FD_PITCH) {
+            DEBUG_SET(DEBUG_BOOST, 1, lrintf(errorRate - boostedErrorRate));
+        }
+
         float iterm = pidData[axis].I;
         float itermErrorRate = boostedErrorRate;
 
@@ -794,11 +800,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
                 DEBUG_SET(DEBUG_D_LPF, 3, lrintf(delta));
             }
 
-            if (axis == FD_ROLL) {
-                DEBUG_SET(DEBUG_DBOOST, 0, lrintf(delta));
-            } else if (axis == FD_PITCH) {
-                DEBUG_SET(DEBUG_BOOST, 2, lrintf(delta));
-            }
             float preDBoost = delta;
             //dterm boost
             delta = emuboost(delta, pidRuntime.dtermBoost, pidRuntime.dtermBoostLimit);
