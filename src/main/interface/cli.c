@@ -2075,7 +2075,7 @@ static void cliVtx(char *cmdline) {
                 if (memcmp(cac, &emptyCac, sizeof(emptyCac)) == 0)
                         // FIXME Use VTX API to get min
                 {
-                    cliPrintErrorLinef("Empty vtx line provided. Reseting this vtx option");
+                    cliPrintErrorLinef("Empty vtx line provided. Resetting this vtx option.");
                     parseError = true;
                 }
             }
