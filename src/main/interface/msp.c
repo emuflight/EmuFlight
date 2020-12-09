@@ -766,6 +766,12 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
     }
     break;
     case MSP_NAME: {
+      // Show warning for DJI OSD instead of pilot name
+        // works if osd warnings enabled, osd_warn_dji is on and usb is not connected
+        if (osdWarnDjiEnabled()) {
+            sbufWriteString(dst, djiWarningBuffer);
+            break;
+        }
         const int nameLen = strlen(pilotConfig()->name);
         for (int i = 0; i < nameLen; i++) {
             sbufWriteU8(dst, pilotConfig()->name[i]);
@@ -1816,7 +1822,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         sbufReadU16(src);
         }
         if (sbufBytesRemaining(src) >= 2) {
-        sbufReadU16(src); // was currentPidProfile->dtermSetpointWeight
+        //modded msp 1.49 (next 1)
+        currentPidProfile->dtermBoost = sbufReadU16(src); // was currentPidProfile->dtermSetpointWeight
         }
         if (sbufBytesRemaining(src) >= 14) {
         // Added in MSP API 1.40
