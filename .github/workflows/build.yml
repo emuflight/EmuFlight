@@ -43,7 +43,7 @@ jobs:
       uses: actions/setup-python@v1
 
     - name: Setup Toolchain
-      uses: nerdCopter/arm-none-eabi-gcc@20201207_fiam_20201207_retry_await
+      uses: fiam/arm-none-eabi-gcc@master
       with:
         release: '9-2020-q2' # The arm-none-eabi-gcc release to use.
 
