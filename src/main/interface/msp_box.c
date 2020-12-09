@@ -228,7 +228,7 @@ void initActiveBoxIds(void) {
     BME(BOXCAMERA2);
     BME(BOXCAMERA3);
 #endif
-#if defined(USE_VTX_SMARTAUDIO) || defined(USE_VTX_TRAMP)
+#if defined(USE_VTX_SMARTAUDIO) || defined(USE_VTX_TRAMP) || defined(USE_VTX_BEESIGN)
     BME(BOXVTXPITMODE);
 #endif
     BME(BOXPARALYZE);
