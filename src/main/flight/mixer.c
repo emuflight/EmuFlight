@@ -778,9 +778,8 @@ void mixWithThrottleLegacy(float *motorMix, float controllerMixMin, float contro
 
     for (int i = 0; i < motorCount; i++) {
         if (mixerImpl == MIXER_IMPL_SMOOTH) {
-            motorMix[i] += controllerMixDelta - controllerMixMax; // let's center values around the zero
             float offset = mixerLazyness ? ABS(motorMix[i]) : controllerMixDelta;
-            motorMix[i] = scaleRangef(throttle, 0.0f, 1.0f, zeroThrottleAuthority * (motorMix[i] + offset), motorMix[i] - offset);
+            motorMix[i] = SCALE_UNITARY_RANGE(throttle, zeroThrottleAuthority * (motorMix[i] + offset), motorMix[i] - offset);
             motorMix[i] /= normFactor;
         }
         motorMix[i] = motorOutputMixSign * motorMix[i] + throttle * currentMixer[i].throttle;
@@ -963,22 +962,22 @@ float motorToThrust(float motor) {
 static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPitchMix, float yawMixMin, float yawMixMax,
                 float rollPitchMixMin, float rollPitchMixMax) {
 
-    float authority = isAirmodeActive() ? 1.0f : scaleRangef(throttle, 0.0f, 1.0f, 0.5f, 1.0f);
+    float authority = isAirmodeActive() ? 1.0f : SCALE_UNITARY_RANGE(throttle, 0.5f, 1.0f);
     float controllerMixNormFactor = authority / MAX(controllerMixRange, 1.0f);
 
     float throttleMotor = currentPidProfile->mixer_linear_throttle ? thrustToMotor(throttle) : throttle;
 
     // filling up motorMix with throttle, yaw and roll/pitch
     for (int i = 0; i < motorCount; i++) {
-        float yawOffset = mixerLazyness ? (ABS(yawMix[i]) * scaleRangef(throttleMotor, 0.0f, 1.0f, 1, -1))
-                : scaleRangef(throttleMotor, 0.0f, 1.0f, -yawMixMin, -yawMixMax);
+        float yawOffset = mixerLazyness ? (ABS(yawMix[i]) * SCALE_UNITARY_RANGE(throttleMotor, 1, -1))
+                : SCALE_UNITARY_RANGE(throttleMotor, -yawMixMin, -yawMixMax); // permits to remain in the [0, 1] range
 
         motorMix[i] = throttleMotor + (yawOffset + yawMix[i]) * controllerMixNormFactor; // mixing RPM-proportional values
 
         float motorMixThrust = motorToThrust(motorMix[i]); // translate into thrust value
 
-        float rollPitchOffset = mixerLazyness ? (ABS(rollPitchMix[i]) * scaleRangef(motorMixThrust, 0.0f, 1.0f, 1, -1))
-                : scaleRangef(motorMixThrust, 0.0f, 1.0f, -rollPitchMixMin, -rollPitchMixMax);
+        float rollPitchOffset = mixerLazyness ? (ABS(rollPitchMix[i]) * SCALE_UNITARY_RANGE(motorMixThrust, 1, -1))
+                : SCALE_UNITARY_RANGE(motorMixThrust, -rollPitchMixMin, -rollPitchMixMax);
 
         motorMixThrust += (rollPitchOffset + rollPitchMix[i]) * controllerMixNormFactor; // mixing thrust-proportional values
 
