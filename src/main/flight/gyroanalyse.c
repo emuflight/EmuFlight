@@ -348,11 +348,8 @@ void arm_bitreversal_32(uint32_t *pSrc, const uint16_t bitRevLen, const uint16_t
                 DEBUG_SET(DEBUG_FFT, 3, lrintf(fftMeanIndex * 100));
                 DEBUG_SET(DEBUG_FFT_FREQ, 0, state->centerFreq[state->updateAxis]);
                 DEBUG_SET(DEBUG_FFT_FREQ, 1, lrintf(dynamicFactor * 100));
-                DEBUG_SET(DEBUG_DYN_LPF, 1, state->centerFreq[state->updateAxis]);
             }
-//            if (state->updateAxis == 1) {
-//            DEBUG_SET(DEBUG_FFT_FREQ, 1, state->centerFreq[state->updateAxis]);
-//            }
+
             DEBUG_SET(DEBUG_FFT_TIME, 1, micros() - startTime);
 
             break;

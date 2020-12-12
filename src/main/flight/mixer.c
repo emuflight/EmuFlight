@@ -439,6 +439,7 @@ static void updateDynLpfCutoffs(timeUs_t currentTimeUs, float throttle)
         gyroThrottleCutoff = dynLpfGyroThrCut(quantizedThrottle);
         dtermThrottleCutoff = dynLpfDtermThrCut(quantizedThrottle);
 
+
         for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
             updateDynLpf2(i);
 
@@ -449,6 +450,13 @@ static void updateDynLpfCutoffs(timeUs_t currentTimeUs, float throttle)
 
             dynLpfGyroUpdate(gyroCutoff);
             dynLpfDTermUpdate(dtermCutoff);
+
+            if (i == FD_ROLL) {
+                DEBUG_SET(DEBUG_DYN_LPF, 0, gyroThrottleCutoff);
+                DEBUG_SET(DEBUG_DYN_LPF, 1, gyroCutoff[i]);
+                DEBUG_SET(DEBUG_DYN_LPF, 2, dtermThrottleCutoff);
+                DEBUG_SET(DEBUG_DYN_LPF, 3, dtermCutoff[i]);
+            }
         }
 
         lastDynLpfUpdateUs = currentTimeUs;
