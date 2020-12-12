@@ -4508,7 +4508,7 @@ static void printFeatureJson(const featureConfig_t *configCopy)
     const uint32_t mask = configCopy->enabledFeatures;
     const uint32_t defaultMask = featureConfig()->enabledFeatures;
     cliPrintLine(",");
-    cliPrintf("features\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"ARRAY\",\"current\":\"%d\",\"values\":[", mask);
+    cliPrintf("\"features\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"ARRAY\",\"current\":\"%d\",\"values\":[", mask);
     cliPrintLine("");
     for (uint32_t i = 0; featureNames[i]; i++) { // disabled features first
         if (strcmp(featureNames[i], emptyString) != 0) { //Skip unused
@@ -4528,7 +4528,7 @@ static void printFeatureJson(const featureConfig_t *configCopy)
 static void printSerialJson(const serialConfig_t *serialConfig)
 {
     cliPrintLine(",");
-    cliPrintLine("ports\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
+    cliPrintLine("\"ports\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
     for (uint32_t i = 0; i < SERIAL_PORT_COUNT && serialIsPortAvailable(serialConfig->portConfigs[i].identifier); i++) {
         if (i > 0)
         {
@@ -4548,7 +4548,7 @@ static void printSerialJson(const serialConfig_t *serialConfig)
 static void printAuxJson(const modeActivationCondition_t *modeActivationConditions)
 {
     cliPrintLine(",");
-    cliPrintLine("modes\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
+    cliPrintLine("\"modes\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
     for (uint32_t i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
         if (i > 0)
         {
@@ -4573,7 +4573,7 @@ static void printAuxJson(const modeActivationCondition_t *modeActivationConditio
 static void printResourceJson()
 {
     cliPrintLine(",");
-    cliPrintLine("resources\":{\"scope\":\"GLOBAL\",\"type\":\"string\",\"mode\":\"ARRAY\",\"values\":[");
+    cliPrintLine("\"resources\":{\"scope\":\"GLOBAL\",\"type\":\"string\",\"mode\":\"ARRAY\",\"values\":[");
     for (int i = 0; i < DEFIO_IO_USED_COUNT; i++) {
         if (i > 0)
         {
@@ -4594,7 +4594,7 @@ static void printResourceJson()
     cliPrintf("]}");
 }
 
-#define PROFILE_JSON_STRING "%s_profile\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"LOOKUP\",\"current\":\"%d\",\"values\":[{"
+#define PROFILE_JSON_STRING "\"%s_profile\":{\"scope\":\"GLOBAL\",\"type\":\"UINT8\",\"mode\":\"LOOKUP\",\"current\":\"%d\",\"values\":[{"
 
 static void dumpProfileValueJson(const char *cmdName, uint16_t valueSection)
 {
