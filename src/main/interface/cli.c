@@ -90,6 +90,7 @@ extern uint8_t __config_end;
 #include "drivers/usb_msc.h"
 #include "drivers/vtx_common.h"
 
+
 #include "fc/board_info.h"
 #include "fc/config.h"
 #include "fc/controlrate_profile.h"
@@ -684,6 +685,10 @@ static void cliShowArgumentRangeError(char *name, int min, int max) {
 }
 
 static const char *nextArg(const char *currentArg) {
+    if (!currentArg) {
+        // if currentArg is null or empty, return to avoid segfault
+        return "";
+    }
     const char *ptr = strchr(currentArg, ' ');
     while (ptr && *ptr == ' ') {
         ptr++;
@@ -705,7 +710,7 @@ static const char *processChannelRangeArgs(const char *ptr, channelRange_t *rang
                 }
                 (*validArgumentCount)++;
             }
-        }
+        } 
     }
     return ptr;
 }
@@ -2007,7 +2012,7 @@ static void printVtx(uint8_t dumpMask, const vtxConfig_t *vtxConfig, const vtxCo
     }
 }
 
-static void cliVtx(char *cmdline) {
+STATIC_UNIT_TESTED void cliVtx(char *cmdline) {
     const char *format = "vtx %u %u %u %u %u %u %u";
     int i, val = 0;
     const char *ptr;
@@ -2064,9 +2069,15 @@ static void cliVtx(char *cmdline) {
             // channel range
             ptr = processChannelRangeArgs(ptr, &cac->range, &validArgumentCount);
 
+            // consume last argument and clear it from ptr so we can check remainder is empty
+            ptr = nextArg(ptr);
+
             bool parseError = false;
             if (validArgumentCount != 6) {
-                cliPrintErrorLinef("Invalid argument count, expecting 6, got %d", validArgumentCount);
+                cliPrintErrorLinef("Invalid argument count, expecting exactly 6, got %d", validArgumentCount);
+                parseError = true;
+            } else if (ptr) {
+                cliPrintErrorLinef("Invalid argument count, expecting exactly 6, got more", validArgumentCount);
                 parseError = true;
             } else {
                 // check for an empty activation condition for reset
@@ -2080,6 +2091,7 @@ static void cliVtx(char *cmdline) {
                 }
             }
             if (parseError) {
+                cliPrintErrorLinef("Resettting vtx condition %d", i);
                 memset(cac, 0, sizeof(vtxChannelActivationCondition_t));
                 cliShowParseError();
             } else {
