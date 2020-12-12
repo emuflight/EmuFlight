@@ -899,6 +899,8 @@ const clivalue_t valueTable[] = {
     { "dterm_boost",                VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermBoost) },
     { "dterm_boost_limit",          VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermBoostLimit) },
     { "nfe_racermode",              VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, nfe_racermode) },
+    { "axis_lock_multiplier",       VAR_UINT8 | PROFILE_VALUE, .config.minmax = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, axis_lock_multiplier) },
+    { "axis_lock_hz",               VAR_UINT8 | PROFILE_VALUE, .config.minmax = { 1, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, axis_lock_hz) },
 
     { "p_pitch",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].P) },
     { "i_pitch",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].I) },

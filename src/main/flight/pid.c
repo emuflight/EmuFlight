@@ -176,6 +176,8 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .motor_output_limit = 100,
     .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
     .horizonTransition = 0,
+    .axis_lock_hz = 2,
+    .axis_lock_multiplier = 0,
                 );
 }
 
@@ -213,6 +215,8 @@ static FAST_RAM_ZERO_INIT pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT uint8_t itermRelaxCutoff;
 static FAST_RAM_ZERO_INIT uint8_t itermRelaxCutoffYaw;
 #endif
+
+static FAST_RAM_ZERO_INIT pt1Filter_t axisLockLpf[XYZ_AXIS_COUNT];
 
 static FAST_RAM_ZERO_INIT float iDecay;
 
@@ -260,15 +264,16 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, dT));
 #endif
-#if defined(USE_ITERM_RELAX)
     for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+        pt1FilterInit(&axisLockLpf[i], pt1FilterGain(pidProfile->axis_lock_hz, dT));
+#if defined(USE_ITERM_RELAX)
         if (i != FD_YAW) {
             pt1FilterInit(&windupLpf[i], pt1FilterGain(itermRelaxCutoff, dT));
         } else {
             pt1FilterInit(&windupLpf[i], pt1FilterGain(itermRelaxCutoffYaw, dT));
         }
-    }
 #endif
+    }
 }
 
 
@@ -335,6 +340,7 @@ static FAST_RAM_ZERO_INIT float crashGyroThreshold;
 static FAST_RAM_ZERO_INIT float crashSetpointThreshold;
 static FAST_RAM_ZERO_INIT float crashLimitYaw;
 static FAST_RAM_ZERO_INIT float itermLimit;
+static FAST_RAM_ZERO_INIT float axisLockMultiplier;
 #if defined(USE_THROTTLE_BOOST)
 FAST_RAM_ZERO_INIT float throttleBoost;
 pt1Filter_t throttleLpf;
@@ -394,6 +400,7 @@ void pidInitConfig(const pidProfile_t *pidProfile) {
     itermRelaxCutoffYaw = pidProfile->iterm_relax_cutoff_yaw;
 #endif
     iDecay = (float)pidProfile->i_decay;
+    axisLockMultiplier = pidProfile->axis_lock_multiplier / 100.0f;
 }
 
 void pidInit(const pidProfile_t *pidProfile) {
@@ -578,6 +585,9 @@ static void rotateITermAndAxisError() {
     }
 }
 
+static FAST_RAM_ZERO_INIT float scaledAxisPid[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float stickMovement[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float lastRcDeflectionAbs[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousdDelta[XYZ_AXIS_COUNT];
@@ -587,16 +597,24 @@ static FAST_RAM_ZERO_INIT uint8_t kdRingBufferPoint[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointPAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointIAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointDAttenuation[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float axisLockScaler[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs) {
+    float axisLock[XYZ_AXIS_COUNT];
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         // calculate spa
         // SPA boost if SPA > 100 SPA cut if SPA < 100
         setPointPAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition[axis] - 1));
         setPointIAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointITransition[axis] - 1));
         setPointDAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition[axis] - 1));
+        axisLock[axis] = pt1FilterApply(&axisLockLpf[axis], stickMovement[axis]) * axisLockMultiplier;
     }
+
+    scaledAxisPid[ROLL] = constrainf(1 - axisLock[PITCH] - axisLock[YAW] + axisLock[ROLL], 0.0f, 1.0f);
+    scaledAxisPid[PITCH] = constrainf(1 - axisLock[ROLL] - axisLock[YAW] + axisLock[PITCH], 0.0f, 1.0f);
+    scaledAxisPid[YAW] = constrainf(1 - axisLock[ROLL] - axisLock[PITCH] + axisLock[YAW], 0.0f, 1.0f);
+
     //vbat pid compensation on just the p term :) thanks NFE
     float vbatCompensationFactor = calculateVbatCompensation(currentControlRateProfile->vbat_comp_type, currentControlRateProfile->vbat_comp_ref);
     vbatCompensationFactor = scaleRangef(currentControlRateProfile->vbat_comp_pid_level, 0.0f, 100.0f, 1.0f, vbatCompensationFactor);
@@ -628,7 +646,12 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             currentPidSetpoint = 0.0f;
         }
 #endif // USE_YAW_SPIN_RECOVERY
+
         previousPidSetpoint[axis] = currentPidSetpoint;
+
+        stickMovement[axis] = (getRcDeflectionAbs(axis) - lastRcDeflectionAbs[axis]) * pidFrequency;
+        lastRcDeflectionAbs[axis] = getRcDeflectionAbs(axis);
+
         const float gyroRate = gyro.gyroADCf[axis];
         // -----calculate error rate
         errorRate = currentPidSetpoint - gyroRate; // r - y
@@ -766,7 +789,8 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         pidData[axis].P = pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation[axis];
         pidData[axis].I = temporaryIterm[axis] * getThrottleIAttenuation() * setPointIAttenuation[axis]; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
         pidData[axis].D = pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation[axis];
-        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D;
+        float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D;
+        pidSum = pidSum * scaledAxisPid[axis];
         pidData[axis].Sum = pidSum;
     }
 }
