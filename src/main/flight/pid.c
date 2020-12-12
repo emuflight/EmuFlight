@@ -75,6 +75,7 @@ static FAST_RAM_ZERO_INIT bool inCrashRecoveryMode = false;
 
 static FAST_RAM_ZERO_INIT float dT;
 static FAST_RAM_ZERO_INIT float pidFrequency;
+extern struct pidProfile_s *currentPidProfile;
 
 PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 
@@ -176,7 +177,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .motor_output_limit = 100,
     .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
     .horizonTransition = 0,
-    .mixer_thrust_linearization_level_low_rpm = 75,
+    .mixer_thrust_linearization_level_low_rpm = 65,
     .mixer_thrust_linearization_level = 0,
     .mixer_linear_throttle = false,
     .mixer_impl = MIXER_IMPL_LEGACY,
@@ -589,20 +590,9 @@ static FAST_RAM_ZERO_INIT float previousdDelta[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float kdRingBuffer[XYZ_AXIS_COUNT][KD_RING_BUFFER_SIZE];
 static FAST_RAM_ZERO_INIT float kdRingBufferSum[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT uint8_t kdRingBufferPoint[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float setPointPAttenuation[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float setPointIAttenuation[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float setPointDAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs) {
-    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-        // calculate spa
-        // SPA boost if SPA > 100 SPA cut if SPA < 100
-        setPointPAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition[axis] - 1));
-        setPointIAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointITransition[axis] - 1));
-        setPointDAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition[axis] - 1));
-    }
-
     // gradually scale back integration when above windup point
     float dynCi = dT;
     if (ITermWindupPointInv != 0.0f) {
@@ -764,11 +754,18 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             pidData[axis].D = 0;
             pidData[axis].Sum = 0;
         }
-        // calculating the PID sum and TPA and SPA
-        // multiply these things to the pidData so that logs shows the pid data correctly
-        pidData[axis].P = pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation[axis];
-        pidData[axis].I = temporaryIterm[axis] * getThrottleIAttenuation() * setPointIAttenuation[axis]; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
-        pidData[axis].D = pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation[axis];
+        if (!currentPidProfile->mixer_thrust_linearization_level) { // TPA is not applied when Thrust Linearization is enabled
+            // calculate spa
+            // SPA boost if SPA > 100 SPA cut if SPA < 100
+            float setPointPAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition[axis] - 1));
+            float setPointIAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointITransition[axis] - 1));
+            float setPointDAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition[axis] - 1));
+            // calculating the PID sum and TPA and SPA
+            // multiply these things to the pidData so that logs shows the pid data correctly
+            pidData[axis].P = pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation;
+            pidData[axis].I = temporaryIterm[axis] * getThrottleIAttenuation() * setPointIAttenuation; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
+            pidData[axis].D = pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation;
+        }
         const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D;
         pidData[axis].Sum = pidSum;
     }
