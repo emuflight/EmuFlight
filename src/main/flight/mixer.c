@@ -952,25 +952,29 @@ float mixerGetLoggingThrottle(void) {
 #define mixer_thrust_linearization_level(x) (thrustLinearizationLevelLowRpm * (1.0f - (x)) + thrustLinearizationLevel * (x))
 
 float thrustToMotor(float thrust, bool fromIdleLevelOffset) {
+    thrust = constrainf(thrust, 0.0f, 1.0f);
+
     if (fromIdleLevelOffset) {
-        // for more info see https://www.desmos.com/calculator/mwzzdhxwad
+        // simply applying some shifts to the graph, for more info see https://www.desmos.com/calculator/lgtopxo5mt
         float x = thrustToMotor(thrust * (1.0f - motorThrustIdleLevel) + motorThrustIdleLevel , false);
         return (x - motorOutputIdleLevel) / (1.0f - motorOutputIdleLevel);
     }
-    thrust = constrainf(thrust, 0.0f, 1.0f);
-    float level = mixer_thrust_linearization_level(thrust);
-    return (level - 1 + sqrtf(sq(1.0f - level) + 4.0f * level * thrust)) / (2.0f * level);
+
+    float compLevel = mixer_thrust_linearization_level(thrust);
+    return (compLevel - 1 + sqrtf(sq(1.0f - compLevel) + 4.0f * compLevel * thrust)) / (2.0f * compLevel);
 }
 
 float motorToThrust(float motor, bool fromIdleLevelOffset) {
+    motor = constrainf(motor, 0.0f, 1.0f);
+    
     if (fromIdleLevelOffset) {
-        // for more info see https://www.desmos.com/calculator/mwzzdhxwad
+        // simply applying some shifts to the graph, for more info see https://www.desmos.com/calculator/lgtopxo5mt
         float x = motorToThrust(motor * (1.0f - motorOutputIdleLevel) + motorOutputIdleLevel , false);
         return (x - motorThrustIdleLevel) / (1.0f - motorThrustIdleLevel);
     }
-    motor = constrainf(motor, 0.0f, 1.0f);
-    float level = mixer_thrust_linearization_level(motor);
-    return (1.0f - level) * motor + level * sq(motor);
+
+    float compLevel = mixer_thrust_linearization_level(motor);
+    return (1.0f - compLevel) * motor + compLevel * sq(motor);
 }
 
 static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPitchMix, float yawMixMin, float yawMixMax,
