@@ -63,6 +63,7 @@ extern uint8_t __config_end;
 #include "drivers/accgyro/accgyro_imuf9001.h"
 #endif
 #include "drivers/adc.h"
+#include "drivers/beesign.h"
 #include "drivers/buf_writer.h"
 #include "drivers/bus_spi.h"
 #include "drivers/camera_control.h"
@@ -126,6 +127,7 @@ extern uint8_t __config_end;
 #include "io/usb_msc.h"
 #include "io/vtx_control.h"
 #include "io/vtx.h"
+#include "io/vtx_beesign.h"
 
 #include "pg/adc.h"
 #include "pg/beeper.h"
