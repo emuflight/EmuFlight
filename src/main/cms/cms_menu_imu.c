@@ -373,6 +373,8 @@ static const void *cmsx_AngleWriteback(displayPort_t *pDisp, const OSD_Entry *se
     pidProfile->racemode_horizon =        cmsx_racemode_horizon;
     pidProfile->nfe_racemode =            cmsx_nfe_racemode;
 
+    pidInitConfig(currentPidProfile);
+
     return NULL;
 }
 
@@ -612,7 +614,6 @@ static const void *cmsx_profileOtherOnExit(displayPort_t *pDisp, const OSD_Entry
 
     pidProfile_t *pidProfile = pidProfilesMutable(pidProfileIndex);
     pidProfile->feedForwardTransition = cmsx_feedForwardTransition;
-    pidInitConfig(currentPidProfile);
 
     pidProfile->dynThr[0] = cmsx_dynThrP;
     pidProfile->dynThr[1] = cmsx_dynThrI;
@@ -638,6 +639,7 @@ static const void *cmsx_profileOtherOnExit(displayPort_t *pDisp, const OSD_Entry
     pidProfile->vbat_sag_compensation = cmsx_vbat_sag_compensation;
 #endif
 
+    pidInitConfig(currentPidProfile);
     initEscEndpoints();
     return NULL;
 }
