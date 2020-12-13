@@ -754,18 +754,22 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             pidData[axis].D = 0;
             pidData[axis].Sum = 0;
         }
-        if (!currentPidProfile->mixer_thrust_linearization_level) { // TPA is not applied when Thrust Linearization is enabled
-            // calculate spa
-            // SPA boost if SPA > 100 SPA cut if SPA < 100
-            float setPointPAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition[axis] - 1));
-            float setPointIAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointITransition[axis] - 1));
-            float setPointDAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition[axis] - 1));
-            // calculating the PID sum and TPA and SPA
-            // multiply these things to the pidData so that logs shows the pid data correctly
-            pidData[axis].P = pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation;
-            pidData[axis].I = temporaryIterm[axis] * getThrottleIAttenuation() * setPointIAttenuation; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
-            pidData[axis].D = pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation;
+
+        // applying SetPointAttenuation
+        // SPA boost if SPA > 100 SPA cut if SPA < 100
+        float setPointPAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition[axis] - 1));
+        float setPointIAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointITransition[axis] - 1));
+        float setPointDAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition[axis] - 1));
+        pidData[axis].P *= setPointPAttenuation;
+        pidData[axis].I = temporaryIterm[axis] * setPointIAttenuation; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
+        pidData[axis].D *= setPointDAttenuation;
+
+        if (!currentPidProfile->mixer_thrust_linearization_level) { // TPA is not applied if Thrust Linearization is enabled
+            pidData[axis].P *= getThrottlePAttenuation();
+            pidData[axis].I *= getThrottleIAttenuation();
+            pidData[axis].D *= getThrottleDAttenuation();
         }
+
         const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D;
         pidData[axis].Sum = pidSum;
     }

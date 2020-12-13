@@ -431,7 +431,7 @@ void mixerInitProfile(void) {
     thrustLinearizationLevel = 0.01f * currentPidProfile->mixer_thrust_linearization_level;
     thrustLinearizationPIDScaler = motorToThrust(0.5f, false) / 0.5f; // PID settings retro-compatibility: non-linear thrust / linear thrust
     thrustLinearizationYawPIDScaler = mixerImpl == MIXER_IMPL_2PASS ? 1.0f : thrustLinearizationPIDScaler;
-    motorOutputIdleLevel = motorOutputLow / ABS(motorOutputHigh - disarmMotorOutput);
+    motorOutputIdleLevel = ABS((motorOutputLow - disarmMotorOutput) / (motorOutputHigh - disarmMotorOutput));
     motorThrustIdleLevel = motorToThrust(motorOutputIdleLevel, false);
 }
 
