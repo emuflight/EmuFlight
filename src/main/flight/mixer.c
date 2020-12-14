@@ -966,7 +966,7 @@ float thrustToMotor(float thrust, bool fromIdleLevelOffset) {
 
 float motorToThrust(float motor, bool fromIdleLevelOffset) {
     motor = constrainf(motor, 0.0f, 1.0f);
-    
+
     if (fromIdleLevelOffset) {
         // simply applying some shifts to the graph, for more info see https://www.desmos.com/calculator/lgtopxo5mt
         float x = motorToThrust(motor * (1.0f - motorOutputIdleLevel) + motorOutputIdleLevel , false);
@@ -980,10 +980,10 @@ float motorToThrust(float motor, bool fromIdleLevelOffset) {
 static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPitchMix, float yawMixMin, float yawMixMax,
                 float rollPitchMixMin, float rollPitchMixMax) {
 
-    float authority = isAirmodeActive() ? 1.0f : SCALE_UNITARY_RANGE(throttle, 0.5f, 1.0f);
-    float controllerMixNormFactor = authority / MAX(controllerMixRange, 1.0f);
-
     float throttleMotor = currentPidProfile->mixer_linear_throttle ? thrustToMotor(throttle, true) : throttle;
+    float authority = isAirmodeActive() ? 1.0f : SCALE_UNITARY_RANGE(throttleMotor, 0.5f, 1.0f);
+
+    float controllerMixNormFactor = authority / MAX(controllerMixRange, 1.0f);
 
     // filling up motorMix with throttle, yaw and roll/pitch
     for (int i = 0; i < motorCount; i++) {
