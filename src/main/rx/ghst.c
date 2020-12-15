@@ -74,6 +74,13 @@ STATIC_UNIT_TESTED ghstFrame_t ghstValidatedFrame;  // validated frame, CRC is o
 
 STATIC_UNIT_TESTED uint32_t ghstChannelData[GHST_MAX_NUM_CHANNELS];
 
+enum {
+    DEBUG_GHST_CRC_ERRORS = 0,
+    DEBUG_GHST_UNKNOWN_FRAMES,
+    DEBUG_GHST_RX_RSSI,
+    DEBUG_GHST_RX_LQ,
+};
+
 static serialPort_t *serialPort;
 static timeUs_t ghstRxFrameStartAtUs = 0;
 static timeUs_t ghstRxFrameEndAtUs = 0;
@@ -189,6 +196,10 @@ STATIC_UNIT_TESTED uint8_t ghstFrameStatus(rxRuntimeState_t *rxRuntimeState)
         if (crc == ghstValidatedFrame.bytes[fullFrameLength - 1] && ghstValidatedFrame.frame.addr == GHST_ADDR_FC) {
             ghstValidatedFrameAvailable = true;
             return RX_FRAME_COMPLETE | RX_FRAME_PROCESSING_REQUIRED;            // request callback through ghstProcessFrame to do the decoding  work
+        }
+
+        if (crc != ghstValidatedFrame.bytes[fullFrameLength - 1]) {
+            DEBUG_SET(DEBUG_GHST, DEBUG_GHST_CRC_ERRORS, ++crcErrorCount);
         }
 
         return RX_FRAME_DROPPED;                            // frame was invalid
