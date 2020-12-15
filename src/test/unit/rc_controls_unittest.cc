@@ -327,7 +327,9 @@ TEST_F(RcControlsAdjustmentsTest, processRcAdjustmentsWithRcRateFunctionSwitchUp
             .thrMid8 = 0,
             .thrExpo8 = 0,
             .rates = {0,0,0},
-            .dynThrPID = 0,
+            .dynThrP = 0,
+            .dynThrI = 0,
+            .dynThrD = 0,
             .rcExpo[FD_YAW] = 0,
             .tpa_breakpoint = 0
     };
