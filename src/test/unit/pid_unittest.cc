@@ -28,7 +28,11 @@ bool simulateMixerSaturated = false;
 float simulatedSetpointRate[3] = { 0,0,0 };
 float simulatedRcDeflection[3] = { 0,0,0 };
 float simulatedThrottlePIDAttenuation = 1.0f;
+float simulatedThrottlePAttenuation = 1.0f;
+float simulatedThrottleIAttenuation = 1.0f;
+float simulatedThrottleDAttenuation = 1.0f;
 float simulatedMotorMixRange = 0.0f;
+float simulatedVbatCompensation = 1.0f;
 
 int16_t debug[DEBUG16_VALUE_COUNT];
 uint8_t debugMode;
@@ -51,6 +55,7 @@ extern "C" {
 
     #include "fc/rc_controls.h"
     #include "fc/runtime_config.h"
+    #include "fc/controlrate_profile.h"
 
     #include "flight/pid.h"
     #include "flight/imu.h"
@@ -64,7 +69,12 @@ extern "C" {
     gyro_t gyro;
     attitudeEulerAngles_t attitude;
 
+    /* controlRateConfig_t *currentControlRateProfile; */
     float getThrottlePIDAttenuation(void) { return simulatedThrottlePIDAttenuation; }
+    float getThrottlePAttenuation(void) { return simulatedThrottlePAttenuation; }
+    float getThrottleIAttenuation(void) { return simulatedThrottleIAttenuation; }
+    float getThrottleDAttenuation(void) { return simulatedThrottleDAttenuation; }
+    float calculateVbatCompensation(uint8_t, uint8_t) { return simulatedVbatCompensation; }
     float getMotorMixRange(void) { return simulatedMotorMixRange; }
     float getSetpointRate(int axis) { return simulatedSetpointRate[axis]; }
     bool mixerIsOutputSaturated(int, float) { return simulateMixerSaturated; }
@@ -73,6 +83,8 @@ extern "C" {
     bool gyroOverflowDetected(void) { return false; }
     float getRcDeflection(int axis) { return simulatedRcDeflection[axis]; }
     void beeperConfirmationBeeps(uint8_t) { }
+    controlRateConfig_t *currentControlRateProfile = controlRateProfilesMutable(0);
+
 }
 
 pidProfile_t *pidProfile;
@@ -117,6 +129,7 @@ void setDefaultTestSettings(void) {
     pidProfile->throttle_boost_cutoff = 15;
     pidProfile->iterm_rotation = false;
 
+
     gyro.targetLooptime = 4000;
 }
 
@@ -125,6 +138,7 @@ timeUs_t currentTestTime(void) {
 }
 
 void resetTest(void) {
+    printf("resetTest:begining\n");
     loopIter = 0;
     simulateMixerSaturated = false;
     simulatedThrottlePIDAttenuation = 1.0f;
@@ -132,6 +146,7 @@ void resetTest(void) {
 
     pidStabilisationState(PID_STABILISATION_OFF);
     DISABLE_ARMING_FLAG(ARMED);
+
 
     setDefaultTestSettings();
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
@@ -148,12 +163,13 @@ void resetTest(void) {
     attitude.values.yaw = 0;
 
     flightModeFlags = 0;
-    pidInit(pidProfile);
-
+    printf("initialising profile\n");
     // Run pidloop for a while after reset
+    printf("configuring pid controller\n");
     for (int loop = 0; loop < 20; loop++) {
         pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
     }
+    printf("resetTest: end\n");
 }
 
 void setStickPosition(int axis, float stickRatio) {
@@ -168,7 +184,10 @@ float calculateTolerance(float input) {
 
 TEST(pidControllerTest, testInitialisation)
 {
+    printf("start\n");
     resetTest();
+    printf("test reset\n");
+    fflush(stdout);
 
     // In initial state PIDsums should be 0
     for (int axis = 0; axis <= FD_YAW; axis++) {
