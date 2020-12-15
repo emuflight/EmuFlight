@@ -50,6 +50,7 @@ extern "C" {
     #include "drivers/sound_beeper.h"
     #include "drivers/time.h"
 
+    #include "fc/config.h"
     #include "fc/fc_core.h"
     #include "fc/fc_rc.h"
 
@@ -84,6 +85,10 @@ extern "C" {
     float getRcDeflection(int axis) { return simulatedRcDeflection[axis]; }
     void beeperConfirmationBeeps(uint8_t) { }
     controlRateConfig_t *currentControlRateProfile = controlRateProfilesMutable(0);
+
+    void initRcProcessing(void) {}
+
+    PG_REGISTER(systemConfig_t, systemConfig, PG_SYSTEM_CONFIG, 0);
 
 }
 
