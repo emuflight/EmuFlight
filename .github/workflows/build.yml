@@ -13,6 +13,24 @@ on:
 
 name: Build EmuFlight
 jobs:
+  unittests:
+    runs-on: ubuntu-latest
+    steps: 
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Setup Toolchain
+      uses: fiam/arm-none-eabi-gcc@master
+      with:
+        release: '9-2020-q2' # The arm-none-eabi-gcc release to use.
+        directory: '~/.toolchain'
+    - name: Install prerequisites
+      run: |
+        sudo apt install libblocksruntime-dev
+    - name : Run tests
+      run: |
+        make test
   build:
     timeout-minutes: 75
     strategy:
@@ -20,6 +38,7 @@ jobs:
       matrix:
         targets: [targets-group-1, targets-group-2, targets-group-3, targets-group-rest]
     runs-on: ubuntu-latest
+    needs: unittests
     steps:
 
     # curl, by default, may timeout easily
@@ -93,9 +112,6 @@ jobs:
         echo "Artifact name: ${{ env.ARTIFACT_NAME }}"
       continue-on-error: true
 
-    - name : Run tests
-      run: |
-        make test
 
     - name: Compile Code
       run: |
