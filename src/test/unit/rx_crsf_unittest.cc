@@ -296,4 +296,10 @@ void crsfScheduleMspResponse(void) {};
 bool bufferMspFrame(uint8_t *, int) {return true;}
 bool isBatteryVoltageAvailable(void) { return true; }
 bool isAmperageAvailable(void) { return true; }
+
+void CRSFsetLQ(uint16_t) {}
+void CRSFsetRFMode(uint8_t) {}
+void CRSFsetRSSI(uint8_t) {}
+void CRSFsetSnR(uint16_t) {}
+void CRSFsetTXPower(uint16_t) {}
 }
