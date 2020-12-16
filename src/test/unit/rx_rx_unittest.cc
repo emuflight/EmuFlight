@@ -231,5 +231,6 @@ extern "C" {
     void rxPwmInit(const rxConfig_t *, rxRuntimeConfig_t *) {}
 
     void pinioBoxTaskControl(void) {}
-}
+
+    void setCrsfRssi(bool) {}
 }
