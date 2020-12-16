@@ -400,6 +400,7 @@ void pidInitConfig(const pidProfile_t *pidProfile) {
     itermRelaxCutoffYaw = pidProfile->iterm_relax_cutoff_yaw;
 #endif
     iDecay = (float)pidProfile->i_decay;
+    mixerInitProfile();
 }
 
 void pidInit(const pidProfile_t *pidProfile) {
