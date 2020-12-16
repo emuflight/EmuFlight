@@ -93,6 +93,10 @@ jobs:
         echo "Artifact name: ${{ env.ARTIFACT_NAME }}"
       continue-on-error: true
 
+    - name : Run tests
+      run: |
+        make test
+
     - name: Compile Code
       run: |
         make ${{ matrix.targets }}
