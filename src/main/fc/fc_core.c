@@ -681,6 +681,13 @@ bool processRx(timeUs_t currentTimeUs) {
     } else {
         DISABLE_FLIGHT_MODE(HORIZON_MODE);
     }
+    if (IS_RC_MODE_ACTIVE(BOXNFEMODE) && (FLIGHT_MODE(HORIZON_MODE) || FLIGHT_MODE(ANGLE_MODE))) {
+        if (!FLIGHT_MODE(NFE_RACE_MODE)) {
+            ENABLE_FLIGHT_MODE(NFE_RACE_MODE);
+        }
+    } else {
+        DISABLE_FLIGHT_MODE(NFE_RACE_MODE);
+    }
 #ifdef USE_GPS_RESCUE
     if (IS_RC_MODE_ACTIVE(BOXGPSRESCUE) || (failsafeIsActive() && failsafeConfig()->failsafe_procedure == FAILSAFE_PROCEDURE_GPS_RESCUE) ) {
         if (!FLIGHT_MODE(GPS_RESCUE_MODE)) {
