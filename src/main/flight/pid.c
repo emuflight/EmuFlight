@@ -178,10 +178,10 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
     .horizonTransition = 0,
     .mixer_thrust_linearization_level_low_rpm = 65,
-    .mixer_thrust_linearization_level = 0,
+    .mixer_thrust_linearization_level_high_rpm = 0,
     .mixer_linear_throttle = false,
     .mixer_impl = MIXER_IMPL_LEGACY,
-    .mixer_lazyness = false,
+    .mixer_laziness = false,
     );
 }
 
@@ -765,7 +765,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         pidData[axis].I = temporaryIterm[axis] * setPointIAttenuation; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
         pidData[axis].D *= setPointDAttenuation;
 
-        if (!currentPidProfile->mixer_thrust_linearization_level) { // TPA is not applied if Thrust Linearization is enabled
+        if (!currentPidProfile->mixer_thrust_linearization_level_high_rpm) { // TPA is not applied if Thrust Linearization is enabled
             pidData[axis].P *= getThrottlePAttenuation();
             pidData[axis].I *= getThrottleIAttenuation();
             pidData[axis].D *= getThrottleDAttenuation();
