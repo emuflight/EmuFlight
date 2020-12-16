@@ -297,4 +297,9 @@ extern "C" {
     int32_t getMAhDrawn(void) {
       return testmAhDrawn;
     }
+    void CRSFsetLQ(uint16_t) {}
+    void CRSFsetRFMode(uint8_t) {}
+    void CRSFsetRSSI(uint8_t) {}
+    void CRSFsetSnR(uint16_t) {}
+    void CRSFsetTXPower(uint16_t) {}
 }
