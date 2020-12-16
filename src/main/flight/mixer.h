@@ -139,6 +139,3 @@ bool mixerIsTricopter(void);
 
 void mixerSetThrottleAngleCorrection(int correctionValue);
 float mixerGetLoggingThrottle(void);
-void mixThingsUp(float scaledAxisPidRoll, float scaledAxisPidPitch, float scaledAxisPidYaw, float *motorMix);
-float thrustToMotor(float thrust, bool fromIdleLevelOffset);
-float motorToThrust(float motor, bool fromIdleLevelOffset);

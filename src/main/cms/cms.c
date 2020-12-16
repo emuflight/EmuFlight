@@ -625,6 +625,7 @@ long cmsMenuExit(displayPort_t *pDisplay, const void *ptr) {
         if (currentCtx.menu->onExit)
             currentCtx.menu->onExit((OSD_Entry *)NULL); // Forced exit
         saveConfigAndNotify();
+        mixerInitProfile();
         break;
     case CMS_EXIT:
         break;

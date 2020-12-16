@@ -131,7 +131,7 @@ static motorMixer_t currentMixer[MAX_SUPPORTED_MOTORS];
 
 static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
 
-FAST_RAM_ZERO_INIT mixerImplType_e mixerImpl;
+static FAST_RAM_ZERO_INIT mixerImplType_e mixerImpl;
 static FAST_RAM_ZERO_INIT bool mixerLazyness;
 static FAST_RAM_ZERO_INIT float thrustLinearizationLevelLowRpm; // this could become a constant
 static FAST_RAM_ZERO_INIT float thrustLinearizationLevel;
@@ -335,6 +335,9 @@ static FAST_RAM_ZERO_INIT float rcCommandThrottleRange;
 
 static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPitchMix, float yawMixMin, float yawMixMax,
                        float rollPitchMixMin, float rollPitchMixMax);
+static void mixThingsUp(float scaledAxisPidRoll, float scaledAxisPidPitch, float scaledAxisPidYaw, float *motorMix);
+static float thrustToMotor(float thrust, bool fromIdleLevelOffset);
+static float motorToThrust(float motor, bool fromIdleLevelOffset);
 
 uint8_t getMotorCount(void) {
     return motorCount;
