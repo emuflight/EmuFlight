@@ -66,6 +66,7 @@ typedef enum {
     SERIALRX_SRXL = 10,
     SERIALRX_TARGET_CUSTOM = 11,
     SERIALRX_FPORT = 12,
+    SERIALRX_GHST = 13,
 } SerialRXType;
 
 #define MAX_SUPPORTED_RC_PPM_CHANNEL_COUNT          12
@@ -131,6 +132,7 @@ typedef struct rxRuntimeConfig_s {
     rcReadRawDataFnPtr  rcReadRawFn;
     rcFrameStatusFnPtr  rcFrameStatusFn;
     rcProcessFrameFnPtr rcProcessFrameFn;
+    timeUs_t rcFrameTimeUsFn;
     uint16_t            *channelData;
     void                *frameData;
 } rxRuntimeConfig_t;
