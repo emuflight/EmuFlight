@@ -142,11 +142,11 @@ typedef struct pidProfile_s {
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
 
-    uint8_t mixer_thrust_linearization_level_low_rpm;  // Sets the level of thrust linearization for low RPMs
-    uint8_t mixer_thrust_linearization_level_high_rpm; // Sets the level of thrust linearization for high RPMs
-    uint8_t mixer_linear_throttle;            // When thrust linearization is enabled (mixer_thrust_linearization_level_high_rpm is > 0), tells whether the throttle response has to be linear too or counter-compensated for legacy feedback
-    mixerImplType_e mixer_impl;               // Which mixer implementation use
-    uint8_t mixer_laziness;                   // If enabled, mixer clipping strategy will shift values only by the minimum required amount per motor group
+    uint8_t linear_thrust_low_output;       // Sets the level of thrust linearization for low motor outputs
+    uint8_t linear_thrust_high_output;      // Sets the level of thrust linearization for high motor outputs
+    uint8_t linear_throttle;                // When thrust linearization is enabled, tells whether the throttle has to be linear or counter-compensated for legacy feedback
+    mixerImplType_e mixer_impl;             // Which mixer implementation use
+    uint8_t mixer_laziness;                 // If enabled, mixer clipping strategy will shift values only by the minimum required amount per motor group. Requires linear thrust
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE
