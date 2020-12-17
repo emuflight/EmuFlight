@@ -182,6 +182,14 @@ rx_crsf_unittest_SRC := \
 		$(USER_DIR)/common/streambuf.c \
 		$(USER_DIR)/drivers/serial.c
 
+rx_ghst_unittest_SRC := \
+		$(USER_DIR)/rx/ghst.c \
+		$(USER_DIR)/common/crc.c \
+		$(USER_DIR)/common/printf.c \
+		$(USER_DIR)/common/typeconversion.c \
+		$(USER_DIR)/common/streambuf.c \
+		$(USER_DIR)/drivers/serial.c
+
 
 rx_ibus_unittest_SRC := \
 		$(USER_DIR)/rx/ibus.c
