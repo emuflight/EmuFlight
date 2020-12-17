@@ -1043,7 +1043,9 @@ static FAST_CODE void checkForYawSpin(gyroSensor_t *gyroSensor, timeUs_t current
 #undef GYRO_FILTER_FUNCTION_NAME
 #undef GYRO_FILTER_DEBUG_SET
 
+#ifdef USE_GYRO_DATA_ANALYSE
 static FAST_CODE void dynamicGyroNotchFiltersUpdate(gyroSensor_t* gyroSensor) {
+
     if (gyroSensor->gyroAnalyseState.filterUpdateExecute) {
         const uint8_t axis = gyroSensor->gyroAnalyseState.filterUpdateAxis;
         const uint16_t frequency = gyroSensor->gyroAnalyseState.filterUpdateFrequency;
@@ -1052,6 +1054,7 @@ static FAST_CODE void dynamicGyroNotchFiltersUpdate(gyroSensor_t* gyroSensor) {
         biquadFilterUpdate(&gyroSensor->notchFilterDyn[2][axis], frequency, gyro.targetLooptime, gyroSensor->dynNotchQ, FILTER_NOTCH);
     }
 }
+#endif
 
 static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs_t currentTimeUs) {
 #ifndef USE_DMA_SPI_DEVICE
