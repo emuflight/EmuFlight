@@ -86,10 +86,6 @@ static const char * const osdTableGyroToUse[] = {
 };
 #endif
 
-static const char * const osdTableOnOFF[] = {
-    "OFF", "ON"
-};
-
 static void setProfileIndexString(char *profileString, int profileIndex, char *profileName)
 {
     int charIndex = 0;
@@ -328,8 +324,6 @@ static uint8_t  cmsx_angle_expo;
 static uint8_t  cmsx_horizon_gain;
 static uint8_t  cmsx_horizon_transition;
 static uint8_t  cmsx_racemode_tilt_effect;
-static uint8_t  cmsx_racemode_horizon;
-static uint8_t  cmsx_nfe_racemode;
 
 static const void *cmsx_AngleOnEnter(displayPort_t *pDisp)
 {
@@ -347,8 +341,6 @@ static const void *cmsx_AngleOnEnter(displayPort_t *pDisp)
     cmsx_horizon_gain =          pidProfile->horizonGain;
     cmsx_horizon_transition =    pidProfile->horizonTransition;
     cmsx_racemode_tilt_effect =  pidProfile->racemode_tilt_effect;
-    cmsx_racemode_horizon =      pidProfile->racemode_horizon;
-    cmsx_nfe_racemode =          pidProfile->nfe_racemode;
 
     return NULL;
 }
@@ -370,8 +362,6 @@ static const void *cmsx_AngleWriteback(displayPort_t *pDisp, const OSD_Entry *se
     pidProfile->horizonGain =             cmsx_horizon_gain;
     pidProfile->horizonTransition =       cmsx_horizon_transition;
     pidProfile->racemode_tilt_effect =    cmsx_racemode_tilt_effect;
-    pidProfile->racemode_horizon =        cmsx_racemode_horizon;
-    pidProfile->nfe_racemode =            cmsx_nfe_racemode;
 
     pidInitConfig(currentPidProfile);
 
@@ -395,8 +385,6 @@ static const OSD_Entry cmsx_menuAngleEntries[] =
     { "HORZN TRANS",  OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_horizon_transition,   0, 200, 1 }, 0 },
     { "RACEMODE TILT",OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_racemode_tilt_effect, 0, 180, 1 }, 0 },
 
-    { "NFE RACEMODE",    OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_racemode_horizon, 1, osdTableOnOFF }, 0 },
-    { "RACMODE HORZN",   OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_nfe_racemode,     1, osdTableOnOFF }, 0 },
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }
 };

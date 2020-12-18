@@ -231,6 +231,7 @@ static bool accNeedsCalibration(void)
         // Check for any configured modes that use the ACC
         if (isModeActivationConditionPresent(BOXANGLE) ||
             isModeActivationConditionPresent(BOXHORIZON) ||
+            isModeActivationConditionPresent(BOXNFE) ||
             isModeActivationConditionPresent(BOXGPSRESCUE) ||
             isModeActivationConditionPresent(BOXCAMSTAB) ||
             isModeActivationConditionPresent(BOXCALIB)) {
@@ -957,10 +958,12 @@ bool processRx(timeUs_t currentTimeUs)
     }
 
     bool canUseHorizonMode = true;
+    bool canUseNfeMode = true;
 
     if ((IS_RC_MODE_ACTIVE(BOXANGLE) || failsafeIsActive()) && (sensors(SENSOR_ACC))) {
         // bumpless transfer to Level mode
         canUseHorizonMode = false;
+        canUseNfeMode = false;
 
         if (!FLIGHT_MODE(ANGLE_MODE)) {
             ENABLE_FLIGHT_MODE(ANGLE_MODE);
@@ -980,6 +983,17 @@ bool processRx(timeUs_t currentTimeUs)
         DISABLE_FLIGHT_MODE(HORIZON_MODE);
     }
 
+    if (IS_RC_MODE_ACTIVE(BOXNFE) && canUseNfeMode) {
+
+      DISABLE_FLIGHT_MODE(ANGLE_MODE);
+
+        if (!FLIGHT_MODE(NFE_RACE_MODE)) {
+            ENABLE_FLIGHT_MODE(NFE_RACE_MODE);
+        }
+    } else {
+        DISABLE_FLIGHT_MODE(NFE_RACE_MODE);
+    }
+
 #ifdef USE_GPS_RESCUE
     if (ARMING_FLAG(ARMED) && (IS_RC_MODE_ACTIVE(BOXGPSRESCUE) || (failsafeIsActive() && failsafeConfig()->failsafe_procedure == FAILSAFE_PROCEDURE_GPS_RESCUE))) {
         if (!FLIGHT_MODE(GPS_RESCUE_MODE)) {
@@ -990,7 +1004,7 @@ bool processRx(timeUs_t currentTimeUs)
     }
 #endif
 
-    if (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) {
+    if (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE) || FLIGHT_MODE(NFE_RACE_MODE)) {
         LED1_ON;
         // increase frequency of attitude task to reduce drift when in angle or horizon mode
         rescheduleTask(TASK_ATTITUDE, TASK_PERIOD_HZ(500));

@@ -100,6 +100,7 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT] = {
     { BOXMSPOVERRIDE, "MSP OVERRIDE", 50},
     { BOXSTICKCOMMANDDISABLE, "STICK COMMANDS DISABLE", 51},
     { BOXBEEPERMUTE, "BEEPER MUTE", 52},
+    { BOXNFE, "NFE RACE MODE", 53},
 };
 
 // mask of enabled IDs, calculated on startup based on enabled features. boxId_e is used as bit index
@@ -203,6 +204,7 @@ void initActiveBoxIds(void)
     if (sensors(SENSOR_ACC)) {
         BME(BOXANGLE);
         BME(BOXHORIZON);
+        BME(BOXNFE);
         BME(BOXHEADFREE);
         BME(BOXHEADADJ);
     }

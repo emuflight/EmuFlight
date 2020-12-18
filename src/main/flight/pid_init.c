@@ -388,8 +388,6 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.ffSmoothFactor = 1.0f - ((float)pidProfile->ff_smooth_factor) / 100.0f;
     interpolatedSpInit(pidProfile);
 #endif
-
-    pidRuntime.nfeRaceMode = pidProfile->nfe_racemode;
 }
 
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex)

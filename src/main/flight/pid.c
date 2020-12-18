@@ -192,7 +192,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dyn_lpf_curve_expo = 5,
         .vbat_sag_compensation = 100,
         .dtermMeasurementSlider = 100,
-        .nfe_racemode = false,
         .emuBoostPR = 0,
         .emuBoostY = 0,
         .dtermBoost = 0,
@@ -576,8 +575,8 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 #if defined(USE_ACC)
     const bool gpsRescueIsActive = FLIGHT_MODE(GPS_RESCUE_MODE);
     levelMode_e levelMode;
-    if (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE) || gpsRescueIsActive) {
-        if (pidRuntime.nfeRaceMode && !gpsRescueIsActive) {
+    if (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE) || FLIGHT_MODE(NFE_RACE_MODE) || gpsRescueIsActive) {
+        if (FLIGHT_MODE(NFE_RACE_MODE) && !gpsRescueIsActive) {
             levelMode = LEVEL_MODE_R;
         } else {
             levelMode = LEVEL_MODE_RP;
