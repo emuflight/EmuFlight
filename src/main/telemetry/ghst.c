@@ -99,7 +99,7 @@ void ghstFramePackTelemetry(sbuf_t *dst)
     if (telemetryConfig()->report_cell_voltage) {
         sbufWriteU16(dst, getBatteryAverageCellVoltage());      // units of 10mV
     } else {
-        sbufWriteU16(dst, getBatteryVoltage());
+        sbufWriteU16(dst, getBatteryVoltage() * 10);  // ghst expects mV and voltage is given as 0.1 
     }
     sbufWriteU16(dst, getAmperage());                           // units of 10mA
 
