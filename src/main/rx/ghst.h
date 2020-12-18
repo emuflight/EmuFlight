@@ -28,6 +28,6 @@ void ghstRxWriteTelemetryData(const void *data, int len);
 void ghstRxSendTelemetryData(void);
 
 struct rxConfig_s;
-struct rxRuntimeState_s;
+struct rxRuntimeConfig_s;
 bool ghstRxInit(const struct rxConfig_s *initialRxConfig, struct rxRuntimeConfig_s *rxRuntimeState);
 bool ghstRxIsActive(void);
