@@ -949,8 +949,6 @@ float mixerGetLoggingThrottle(void) {
     return loggingThrottle;
 }
 
-#define mixer_thrust_linearization_level(x) (linearThrustLowOutput * (1.0f - (x)) + linearThrustHighOutput * (x))
-
 float thrustToMotor(float thrust, bool fromIdleLevelOffset) {
     if (!linearThrustEnabled) {
         return thrust;
@@ -964,7 +962,7 @@ float thrustToMotor(float thrust, bool fromIdleLevelOffset) {
         return (x - motorOutputIdleLevel) / (1.0f - motorOutputIdleLevel);
     }
 
-    float compLevel = mixer_thrust_linearization_level(thrust);
+    float compLevel = SCALE_UNITARY_RANGE(thrust, linearThrustLowOutput, linearThrustHighOutput);
     return (compLevel - 1 + sqrtf(sq(1.0f - compLevel) + 4.0f * compLevel * thrust)) / (2.0f * compLevel);
 }
 
@@ -981,7 +979,7 @@ float motorToThrust(float motor, bool fromIdleLevelOffset) {
         return (x - motorThrustIdleLevel) / (1.0f - motorThrustIdleLevel);
     }
 
-    float compLevel = mixer_thrust_linearization_level(motor);
+    float compLevel = SCALE_UNITARY_RANGE(motor, linearThrustLowOutput, linearThrustHighOutput);
     return (1.0f - compLevel) * motor + compLevel * sq(motor);
 }
 
