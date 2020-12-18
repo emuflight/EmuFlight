@@ -81,6 +81,10 @@ static void ghstInitializeFrame(sbuf_t *dst)
     sbufWriteU8(dst, GHST_ADDR_RX);
 }
 
+STATIC_UNIT_TESTED uint8_t *getGhstFrame(){
+    return ghstFrame;
+}
+
 static void ghstFinalize(sbuf_t *dst)
 {
     crc8_dvb_s2_sbuf_append(dst, &ghstFrame[2]); // start at byte 2, since CRC does not include device address and frame length
@@ -94,7 +98,7 @@ void ghstFramePackTelemetry(sbuf_t *dst)
 {
     // use sbufWrite since CRC does not include frame length
     sbufWriteU8(dst, GHST_FRAME_PACK_PAYLOAD_SIZE + GHST_FRAME_LENGTH_CRC + GHST_FRAME_LENGTH_TYPE);
-    sbufWriteU8(dst, 0x23);                     // GHST_DL_PACK_STAT
+    sbufWriteU8(dst, GHST_DL_PACK_STAT);                     // GHST_DL_PACK_STAT
 
     if (telemetryConfig()->report_cell_voltage) {
         sbufWriteU16(dst, getBatteryAverageCellVoltage());      // units of 10mV
@@ -122,7 +126,7 @@ typedef enum {
 static uint8_t ghstScheduleCount;
 static uint8_t ghstSchedule[GHST_SCHEDULE_COUNT_MAX];
 
-static void processGhst(void)
+STATIC_UNIT_TESTED void processGhst(void)
 {
     static uint8_t ghstScheduleIndex = 0;
 
@@ -136,7 +140,9 @@ static void processGhst(void)
         ghstFramePackTelemetry(dst);
         ghstFinalize(dst);
     }
-    ghstScheduleIndex = (ghstScheduleIndex + 1) % ghstScheduleCount;
+    if (ghstScheduleCount != 0)  {
+        ghstScheduleIndex = (ghstScheduleIndex + 1) % ghstScheduleCount;
+    }
 }
 
 void initGhstTelemetry(void)
@@ -144,7 +150,7 @@ void initGhstTelemetry(void)
     // If the GHST Rx driver is active, since tx and rx share the same pin, assume telemetry is enabled.
     ghstTelemetryEnabled = ghstRxIsActive();
 
-    if (!ghstTelemetryEnabled) {
+    if (!checkGhstTelemetryState()) {
         return;
     }
 
@@ -155,10 +161,12 @@ void initGhstTelemetry(void)
     ghstScheduleCount = (uint8_t)index;
  }
 
+#ifndef UNITTEST
 bool checkGhstTelemetryState(void)
 {
     return ghstTelemetryEnabled;
 }
+#endif
 
 // Called periodically by the scheduler
  void handleGhstTelemetry(timeUs_t currentTimeUs)

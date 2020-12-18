@@ -125,6 +125,7 @@ struct rxRuntimeConfig_s;
 typedef uint16_t (*rcReadRawDataFnPtr)(const struct rxRuntimeConfig_s *rxRuntimeConfig, uint8_t chan); // used by receiver driver to return channel data
 typedef uint8_t (*rcFrameStatusFnPtr)(struct rxRuntimeConfig_s *rxRuntimeConfig);
 typedef bool (*rcProcessFrameFnPtr)(const struct rxRuntimeConfig_s *rxRuntimeConfig);
+typedef timeUs_t rcGetFrameTimeUsFn(void);  // used to retrieve the timestamp in microseconds for the last channe     l data frame
 
 typedef struct rxRuntimeConfig_s {
     uint8_t             channelCount; // number of RC channels as reported by current input driver
@@ -132,7 +133,7 @@ typedef struct rxRuntimeConfig_s {
     rcReadRawDataFnPtr  rcReadRawFn;
     rcFrameStatusFnPtr  rcFrameStatusFn;
     rcProcessFrameFnPtr rcProcessFrameFn;
-    timeUs_t rcFrameTimeUsFn;
+    rcGetFrameTimeUsFn *rcFrameTimeUsFn;
     uint16_t            *channelData;
     void                *frameData;
 } rxRuntimeConfig_t;
