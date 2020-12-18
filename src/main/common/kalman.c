@@ -87,9 +87,9 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target,
   kalmanState->p = (1.0f - kalmanState->k) * kalmanState->p;
 
   if (axis == 0) {
-      DEBUG_SET(DEBUG_KALMAN, 0, lrintf(kalmanState->k * 1000.0f));
-      DEBUG_SET(DEBUG_KALMAN, 1, lrintf(input));
-      DEBUG_SET(DEBUG_KALMAN, 2, lrintf(kalmanState->x));
+      DEBUG_SET(DEBUG_KALMAN, 0, lrintf(input));
+      DEBUG_SET(DEBUG_KALMAN, 1, lrintf(kalmanState->x));
+      DEBUG_SET(DEBUG_KALMAN, 2, lrintf(kalmanState->k * 1000.0f));
       DEBUG_SET(DEBUG_KALMAN, 3, lrintf(kalmanState->r));
   }
 

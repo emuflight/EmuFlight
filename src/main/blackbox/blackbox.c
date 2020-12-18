@@ -1321,10 +1321,19 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("pid_process_denom", "%d",               activePidLoopDenom);
         BLACKBOX_PRINT_HEADER_LINE("thr_mid", "%d",                         currentControlRateProfile->thrMid8);
         BLACKBOX_PRINT_HEADER_LINE("thr_expo", "%d",                        currentControlRateProfile->thrExpo8);
-        BLACKBOX_PRINT_HEADER_LINE("tpa_rate_p", "%d",                      currentPidProfile->dynThr[0]);
-        BLACKBOX_PRINT_HEADER_LINE("tpa_rate_i", "%d",                      currentPidProfile->dynThr[1]);
-        BLACKBOX_PRINT_HEADER_LINE("tpa_rate_d", "%d",                      currentPidProfile->dynThr[2]);
+        BLACKBOX_PRINT_HEADER_LINE("tpa_rate", "%d,%d,%d",                  currentPidProfile->dynThr[0],
+                                                                            currentPidProfile->dynThr[1],
+                                                                            currentPidProfile->dynThr[2]);
         BLACKBOX_PRINT_HEADER_LINE("tpa_breakpoint", "%d",                  currentPidProfile->tpa_breakpoint);
+        BLACKBOX_PRINT_HEADER_LINE("spa_roll", "%d,%d,%d",                  currentPidProfile->stickTransition[0][ROLL],
+                                                                            currentPidProfile->stickTransition[1][ROLL],
+                                                                            currentPidProfile->stickTransition[2][ROLL]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_pitch", "%d,%d,%d",                 currentPidProfile->stickTransition[0][PITCH],
+                                                                            currentPidProfile->stickTransition[1][PITCH],
+                                                                            currentPidProfile->stickTransition[2][PITCH]);
+        BLACKBOX_PRINT_HEADER_LINE("spa_yaw", "%d,%d,%d",                   currentPidProfile->stickTransition[0][YAW],
+                                                                            currentPidProfile->stickTransition[1][YAW],
+                                                                            currentPidProfile->stickTransition[2][YAW]);
         BLACKBOX_PRINT_HEADER_LINE("rc_rates", "%d,%d,%d",                  currentControlRateProfile->rcRates[ROLL],
                                                                             currentControlRateProfile->rcRates[PITCH],
                                                                             currentControlRateProfile->rcRates[YAW]);
@@ -1343,6 +1352,7 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("yawPID", "%d,%d,%d",                    currentPidProfile->pid[PID_YAW].P,
                                                                             currentPidProfile->pid[PID_YAW].I,
                                                                             currentPidProfile->pid[PID_YAW].D);
+        BLACKBOX_PRINT_HEADER_LINE("yaw_true_ff", "%d",                     currentPidProfile->yaw_true_ff);
         BLACKBOX_PRINT_HEADER_LINE("levelPIDLOW", "%d,%d,%d",               currentPidProfile->pid[PID_LEVEL_LOW].P,
                                                                             currentPidProfile->pid[PID_LEVEL_LOW].D,
                                                                             currentPidProfile->pid[PID_LEVEL_LOW].F);
@@ -1361,16 +1371,15 @@ static bool blackboxWriteSysinfo(void)
 #ifdef USE_DYN_LPF
         BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass_dyn_hz", "%d,%d",         currentPidProfile->dyn_lpf_dterm_min_hz,
                                                                             currentPidProfile->dyn_lpf_dterm_max_hz);
+        BLACKBOX_PRINT_HEADER_LINE("dterm_dynlpf2_gain", "%d",              currentPidProfile->dterm_dynlpf2_gain);
+        BLACKBOX_PRINT_HEADER_LINE("dterm_dynlpf2_fmax", "%d",              currentPidProfile->dterm_dynlpf2_fmax);
 #endif
-
-        BLACKBOX_PRINT_HEADER_LINE("dynlpf2_gain", "%d",                     gyroConfig()->dynlpf2_gain);
-        BLACKBOX_PRINT_HEADER_LINE("dynlpf2_fmax", "%d",                     gyroConfig()->dynlpf2_fmax);
-
         BLACKBOX_PRINT_HEADER_LINE("dterm_filter2_type", "%d",              currentPidProfile->dterm_filter2_type);
         BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass2_hz", "%d",               currentPidProfile->dterm_lowpass2_hz);
         BLACKBOX_PRINT_HEADER_LINE("yaw_lowpass_hz", "%d",                  currentPidProfile->yaw_lowpass_hz);
         BLACKBOX_PRINT_HEADER_LINE("dterm_notch_hz", "%d",                  currentPidProfile->dterm_notch_hz);
         BLACKBOX_PRINT_HEADER_LINE("dterm_notch_cutoff", "%d",              currentPidProfile->dterm_notch_cutoff);
+        BLACKBOX_PRINT_HEADER_LINE("dterm_abg_alpha", "%d",                 currentPidProfile->dtermAlpha);
         BLACKBOX_PRINT_HEADER_LINE("iterm_windup", "%d",                    currentPidProfile->itermWindupPointPercent);
 #if defined(USE_ITERM_RELAX)
         BLACKBOX_PRINT_HEADER_LINE("iterm_relax_cutoff", "%d",              currentPidProfile->iterm_relax_cutoff);
@@ -1388,6 +1397,10 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("feedforward_weight", "%d,%d,%d",        currentPidProfile->pid[PID_ROLL].F,
                                                                             currentPidProfile->pid[PID_PITCH].F,
                                                                             currentPidProfile->pid[PID_YAW].F);
+        BLACKBOX_PRINT_HEADER_LINE("d_measurement_slider", "%d",            currentPidProfile->dtermMeasurementSlider);
+        BLACKBOX_PRINT_HEADER_LINE("emuBoostPR", "%d",                      currentPidProfile->emuBoostPR);
+        BLACKBOX_PRINT_HEADER_LINE("emuBoostY", "%d",                       currentPidProfile->emuBoostY);
+        BLACKBOX_PRINT_HEADER_LINE("d_boost", "%d",                         currentPidProfile->dtermBoost);
 #ifdef USE_INTERPOLATED_SP
         BLACKBOX_PRINT_HEADER_LINE("ff_interpolate_sp", "%d",               currentPidProfile->ff_interpolate_sp);
         BLACKBOX_PRINT_HEADER_LINE("ff_max_rate_limit", "%d",               currentPidProfile->ff_max_rate_limit);
@@ -1404,9 +1417,16 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("gyro_hardware_lpf", "%d",               gyroConfig()->gyro_hardware_lpf);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_type", "%d",               gyroConfig()->gyro_lowpass_type);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_hz", "%d",                 gyroConfig()->gyro_lowpass_hz);
+        BLACKBOX_PRINT_HEADER_LINE("imuf_w", "%d",                          gyroConfig()->imuf_w);
+        BLACKBOX_PRINT_HEADER_LINE("imuf_q", "%d, %d, %d",                  gyroConfig()->imuf_roll_q,
+                                                                            gyroConfig()->imuf_pitch_q,
+                                                                            gyroConfig()->imuf_yaw_q);
+        BLACKBOX_PRINT_HEADER_LINE("gyro_abg_alpha", "%d",                  gyroConfig()->alpha);
 #ifdef USE_DYN_LPF
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_dyn_hz", "%d,%d",          gyroConfig()->dyn_lpf_gyro_min_hz,
                                                                             gyroConfig()->dyn_lpf_gyro_max_hz);
+        BLACKBOX_PRINT_HEADER_LINE("dynlpf2_gain", "%d",                    gyroConfig()->dynlpf2_gain);
+        BLACKBOX_PRINT_HEADER_LINE("dynlpf2_fmax", "%d",                    gyroConfig()->dynlpf2_fmax);
 #endif
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_hz", "%d",                   gyroConfig()->gyro_soft_notch_hz_1);
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_cutoff", "%d",               gyroConfig()->gyro_soft_notch_cutoff_1);
@@ -1446,6 +1466,7 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("motor_pwm_rate", "%d",                  motorConfig()->dev.motorPwmRate);
         BLACKBOX_PRINT_HEADER_LINE("dshot_idle_value", "%d",                motorConfig()->digitalIdleOffsetValue);
         BLACKBOX_PRINT_HEADER_LINE("debug_mode", "%d",                      debugMode);
+        BLACKBOX_PRINT_HEADER_LINE("debug_mode_number", "%d",                      debugMode);
         BLACKBOX_PRINT_HEADER_LINE("features", "%d",                        featureConfig()->enabledFeatures);
 
 #ifdef USE_RC_SMOOTHING_FILTER
