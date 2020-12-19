@@ -39,6 +39,8 @@ extern "C" {
     #include "io/beeper.h"
     #include "io/gps.h"
     #include "io/vtx.h"
+    #include "io/vtx_control.h"
+    #include "io/vtx_string.h"
     #include "rx/rx.h"
     #include "scheduler/scheduler.h"
     #include "sensors/acceleration.h"
@@ -72,12 +74,24 @@ extern "C" {
     bool cmsInMenu = false;
     float axisPID_P[3], axisPID_I[3], axisPID_D[3], axisPIDSum[3];
     rxRuntimeConfig_t rxRuntimeConfig = {};
+
+    void vtxUpdateActivatedChannel(void);
 }
 
 uint32_t simulationFeatureFlags = 0;
 uint32_t simulationTime = 0;
 bool gyroCalibDone = false;
 bool simulationHaveRx = false;
+
+const char * const powerNames[4] ={ "---", "25", "100", "200"} ;
+static vtxDevice_t testVtxDevice = {
+    .capability.bandCount = 5,
+    .capability.channelCount = 8,
+    .capability.powerCount = 3,
+    .bandNames = (char **)vtx58BandNames,
+    .channelNames = (char **)vtx58ChannelNames,
+    .powerNames = (char **)powerNames
+};
 
 #include "gtest/gtest.h"
 
@@ -108,6 +122,137 @@ TEST(VtxTest, PitMode)
     EXPECT_TRUE(IS_RC_MODE_ACTIVE(BOXVTXPITMODE));
     EXPECT_EQ(5300, vtxGetSettings().freq);
 }
+
+void ResetVtxActivationConditions(void) {
+    for (uint8_t index = 0; index < MAX_CHANNEL_ACTIVATION_CONDITION_COUNT; index++) {
+        const vtxChannelActivationCondition_t *cac = &vtxConfig()->vtxChannelActivationConditions[index];
+        memset(&cac, 0, sizeof(vtxChannelActivationCondition_t));
+    }
+}
+
+void ResetVtxConfig(void) {
+    vtxSettingsConfig_s *vtxConfig = vtxSettingsConfigMutable();
+    vtxConfig->band = 0;
+    vtxConfig->channel = 0;
+    vtxConfig->power = 0;
+}
+
+
+
+TEST(VtxTest, VtxCanUpdateVtxWithActivationCondition)
+{
+    vtxCommonSetDevice(&testVtxDevice);
+    ResetVtxActivationConditions();
+    ResetVtxConfig();
+
+    const vtxSettingsConfig_s *actualVtxConfig = vtxSettingsConfig();
+    vtxUpdateActivatedChannel();
+
+    EXPECT_EQ(0, actualVtxConfig->band);
+    EXPECT_EQ(0, actualVtxConfig->channel);
+    EXPECT_EQ(0, actualVtxConfig->power);
+
+    
+    // let's set condition number 1
+    vtxChannelActivationCondition_t *cac1 = &vtxConfigMutable()->vtxChannelActivationConditions[1];
+    cac1->auxChannelIndex = 0; // zero indexed, 0 is aux1
+    cac1->band = 5;
+    cac1->channel = 2;
+    cac1->power = 3;
+    (&cac1->range)->startStep = CHANNEL_VALUE_TO_STEP(1900);
+    (&cac1->range)->endStep = CHANNEL_VALUE_TO_STEP(2000);
+    // setup condition number 2
+    vtxChannelActivationCondition_t *cac2 = &vtxConfigMutable()->vtxChannelActivationConditions[2];
+    cac2->auxChannelIndex = 0; // zero indexed, 0 is aux1
+    cac2->band = 4;
+    cac2->channel = 1;
+    cac2->power = 1;
+    (&cac2->range)->startStep = CHANNEL_VALUE_TO_STEP(1500);
+    (&cac2->range)->endStep = CHANNEL_VALUE_TO_STEP(1800);
+    
+    // set actual channel to low "inactive" value
+    rcData[AUX1] = 1000;
+    vtxUpdateActivatedChannel(); // band, channel and power should remain at 0 as aux channel not active
+
+    EXPECT_EQ(0, actualVtxConfig->band);
+    EXPECT_EQ(0, actualVtxConfig->channel);
+    EXPECT_EQ(0, actualVtxConfig->power);
+
+    // set AUX1 to match condition 1 
+    rcData[AUX1] = 1950;
+    // actualVtxConfig should be updated 
+    vtxUpdateActivatedChannel();
+
+    EXPECT_EQ(cac1->band, actualVtxConfig->band);
+    EXPECT_EQ(cac1->channel, actualVtxConfig->channel);
+    EXPECT_EQ(cac1->power, actualVtxConfig->power);
+
+    // set AUX1 to match condition 2
+    rcData[AUX1] = 1650;
+    // actualVtxConfig should be updated 
+    vtxUpdateActivatedChannel();
+
+    EXPECT_EQ(cac2->band, actualVtxConfig->band);
+    EXPECT_EQ(cac2->channel, actualVtxConfig->channel);
+    EXPECT_EQ(cac2->power, actualVtxConfig->power);
+}
+
+TEST(VtxTest, VtxShouldNotUpdateBandAndChannelOnceArmed)
+{
+    vtxCommonSetDevice(&testVtxDevice);
+
+    ResetVtxActivationConditions();
+    ResetVtxConfig();
+
+    const vtxSettingsConfig_s *actualVtxConfig = vtxSettingsConfig();
+    vtxUpdateActivatedChannel();
+
+    EXPECT_EQ(0, actualVtxConfig->band);
+    EXPECT_EQ(0, actualVtxConfig->channel);
+    EXPECT_EQ(0, actualVtxConfig->power);
+
+    // let's set condition number 1
+    vtxChannelActivationCondition_t *cac1 = &vtxConfigMutable()->vtxChannelActivationConditions[1];
+
+    cac1->auxChannelIndex = 0;
+    cac1->band = 5;
+    cac1->channel = 2;
+    cac1->power = 3;
+    (&cac1->range)->startStep = CHANNEL_VALUE_TO_STEP(1000);
+    (&cac1->range)->endStep = CHANNEL_VALUE_TO_STEP(1500);
+
+    // setup condition number 2
+    vtxChannelActivationCondition_t *cac2 = &vtxConfigMutable()->vtxChannelActivationConditions[2];
+    cac2->auxChannelIndex = 0; // zero indexed, 0 is aux1
+    cac2->band = 4;
+    cac2->channel = 1;
+    cac2->power = 1;
+    (&cac2->range)->startStep = CHANNEL_VALUE_TO_STEP(1500);
+    (&cac2->range)->endStep = CHANNEL_VALUE_TO_STEP(2000);
+    
+    rcData[AUX1] = 1200;
+    // set actual channel to low "inactive" value
+    vtxUpdateActivatedChannel(); // band, channel and power should remain at 0 as aux channel not active
+
+    EXPECT_EQ(cac1->band, actualVtxConfig->band);
+    EXPECT_EQ(cac1->channel, actualVtxConfig->channel);
+    EXPECT_EQ(cac1->power, actualVtxConfig->power);
+
+    // Arm the quad. this should lock band and channel settings
+    ENABLE_ARMING_FLAG(ARMED);
+
+    // set AUX1 to condition2 state
+    rcData[AUX1] = 1800;
+    vtxUpdateActivatedChannel();
+
+    // band and channel should stay as condition1 because quad has been armed
+    EXPECT_EQ(cac1->band, actualVtxConfig->band);
+    EXPECT_EQ(cac1->channel, actualVtxConfig->channel);
+    // power can change in flight, it should change to condition2
+    EXPECT_EQ(cac2->power, actualVtxConfig->power);
+}
+
+
 
 // STUBS
 extern "C" {
@@ -168,6 +313,7 @@ extern "C" {
     void changeControlRateProfile(uint8_t) {}
     void dashboardEnablePageCycling(void) {}
     void dashboardDisablePageCycling(void) {}
+    void updateRcRefreshRate(timeUs_t) {};
     bool imuQuaternionHeadfreeOffsetSet(void) { return true; }
     void rescheduleTask(cfTaskId_e, uint32_t) {}
     bool usbCableIsInserted(void) { return false; }
