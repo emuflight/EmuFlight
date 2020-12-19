@@ -72,7 +72,7 @@ jobs:
     - name: Make artifact name
       id: make_artifactname
       run: |
-        if ["${{ github.REPOSITORY }}" == "emuflight/EmuFlight"] ; then
+        if [[ "${{ github.REPOSITORY }}" == "emuflight/EmuFlight" ]] ; then
           ARTIFACT_NAME="EmuFlight-${{ env.VERSION }}-${{ github.run_number }}"
         else
           ARTIFACT_NAME="EmuFlight-${{ env.VERSION }}-${{ github.ACTOR }}-${{ github.run_number }}"
