@@ -529,7 +529,7 @@ static FAST_RAM_ZERO_INIT float motorRangeMax;
 static FAST_RAM_ZERO_INIT float motorOutputRange;
 static FAST_RAM_ZERO_INIT float motorOutputIdleLevel; // e.g. 5% idle throttle -> 0.05
 static FAST_RAM_ZERO_INIT float motorThrustIdleLevel; // corresponding thrust level of motorOutputIdleLevel
-static FAST_RAM_ZERO_INIT int8_t motorOutputMixSign;
+static FAST_RAM_ZERO_INIT int8_t controllerMix3DModeSign; // 1 -> normal, -1 -> reversed
 
 static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs) {
     static uint16_t rcThrottlePrevious = 0;   // Store the last throttle direction for deadband transitions
@@ -565,10 +565,10 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs) {
                 motorOutputMin = deadbandMotor3dLow;
                 motorOutputRange = motorOutputLow - deadbandMotor3dLow;
             }
-            if (motorOutputMixSign != -1) {
+            if (controllerMix3DModeSign != -1) {
                 reversalTimeUs = currentTimeUs;
             }
-            motorOutputMixSign = -1;
+            controllerMix3DModeSign = -1;
             rcThrottlePrevious = rcCommand[THROTTLE];
             throttle = rcCommand3dDeadBandLow - rcCommand[THROTTLE];
             currentThrottleInputRange = rcCommandThrottleRange3dLow;
@@ -578,10 +578,10 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs) {
             motorRangeMax = motorOutputHigh;
             motorOutputMin = deadbandMotor3dHigh;
             motorOutputRange = motorOutputHigh - deadbandMotor3dHigh;
-            if (motorOutputMixSign != 1) {
+            if (controllerMix3DModeSign != 1) {
                 reversalTimeUs = currentTimeUs;
             }
-            motorOutputMixSign = 1;
+            controllerMix3DModeSign = 1;
             rcThrottlePrevious = rcCommand[THROTTLE];
             throttle = rcCommand[THROTTLE] - rcCommand3dDeadBandHigh;
             currentThrottleInputRange = rcCommandThrottleRange3dHigh;
@@ -598,10 +598,10 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs) {
                 motorOutputMin = deadbandMotor3dLow;
                 motorOutputRange = motorOutputLow - deadbandMotor3dLow;
             }
-            if (motorOutputMixSign != -1) {
+            if (controllerMix3DModeSign != -1) {
                 reversalTimeUs = currentTimeUs;
             }
-            motorOutputMixSign = -1;
+            controllerMix3DModeSign = -1;
             throttle = 0;
             currentThrottleInputRange = rcCommandThrottleRange3dLow;
         } else {
@@ -610,10 +610,10 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs) {
             motorRangeMax = motorOutputHigh;
             motorOutputMin = deadbandMotor3dHigh;
             motorOutputRange = motorOutputHigh - deadbandMotor3dHigh;
-            if (motorOutputMixSign != 1) {
+            if (controllerMix3DModeSign != 1) {
                 reversalTimeUs = currentTimeUs;
             }
-            motorOutputMixSign = 1;
+            controllerMix3DModeSign = 1;
             throttle = 0;
             currentThrottleInputRange = rcCommandThrottleRange3dHigh;
         }
@@ -629,9 +629,9 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs) {
         motorOutputMin = motorOutputLow;
         motorOutputRange = motorOutputHigh - motorOutputLow;
         if (getBoxIdState(BOXUSER4)) {
-            motorOutputMixSign = -1;
+            controllerMix3DModeSign = -1;
         } else {
-            motorOutputMixSign = 1;
+            controllerMix3DModeSign = 1;
         }
     }
     throttle = constrainf(throttle / currentThrottleInputRange, 0.0f, 1.0f);
@@ -757,37 +757,40 @@ float applyThrottleLimit(float throttle) {
     return throttle;
 }
 
-void mixWithThrottleLegacy(float *motorMix, float controllerMixMin, float controllerMixMax) {
-    float throttleMotor = currentPidProfile->linear_throttle ? thrustToMotor(throttle, true) : throttle;
-    float authority = isAirmodeActive() ? 1.0f : SCALE_UNITARY_RANGE(throttleMotor, 0.5f, 1.0f);
-    float normFactor = authority / (controllerMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? controllerMixRange : 1.0f);
+void mixWithThrottleLegacy(float *motorMix, float *controllerMix, float controllerMixMin, float controllerMixMax) {
+    float throttleThrust = currentPidProfile->linear_throttle ? throttle : motorToThrust(throttle, true);
+    float normFactor = 1 / (controllerMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? controllerMixRange : 1.0f);
 
     if (mixerImpl == MIXER_IMPL_LEGACY) {
-        // legacy clipping prevention
+        // legacy clipping handling
         if (normFactor < 1.0f) {
             for (int i = 0; i < motorCount; i++) {
-                motorMix[i] *= normFactor;
+                controllerMix[i] *= normFactor;
             }
             // Get the maximum correction by setting offset to center when airmode enabled
             if (isAirmodeActive()) {
-                throttleMotor = 0.5f;
+                throttleThrust = 0.5f;
             }
         } else {
-            if (isAirmodeActive() || throttleMotor > 0.5f) {  // Only automatically adjust throttle when airmode enabled. Airmode logic is always active on high throttle
-                throttleMotor = constrainf(throttleMotor, -controllerMixMin, 1.0f - controllerMixMax);
+            if (isAirmodeActive() || throttleThrust > 0.5f) {  // Only automatically adjust throttle when airmode enabled. Airmode logic is always active on high throttle
+                throttleThrust = constrainf(throttleThrust, -controllerMixMin, 1.0f - controllerMixMax);
             }
         }
+    } else {
+        float throttleMotor = currentPidProfile->linear_throttle ? thrustToMotor(throttle, true) : throttle; // used to make authority grow faster
+        float authority = isAirmodeActive() ? 1.0f : SCALE_UNITARY_RANGE(throttleMotor, 0.5f, 1.0f);
+        normFactor *= authority;
     }
 
     for (int i = 0; i < motorCount; i++) {
         if (mixerImpl == MIXER_IMPL_SMOOTH) {
-            // clipping prevention
-            float offset = mixerLaziness ? (ABS(motorMix[i]) * SCALE_UNITARY_RANGE(throttleMotor, 1, -1))
-                                         : SCALE_UNITARY_RANGE(throttleMotor, -controllerMixMin, -controllerMixMax);
-            motorMix[i] = (motorMix[i] + offset) * normFactor;
+            // clipping handling
+            float offset = mixerLaziness ? (ABS(controllerMix[i]) * SCALE_UNITARY_RANGE(throttleThrust, 1, -1))
+                                         : SCALE_UNITARY_RANGE(throttleThrust, -controllerMixMin, -controllerMixMax);
+            controllerMix[i] = (controllerMix[i] + offset) * normFactor;
         }
-        motorMix[i] = motorOutputMixSign * motorMix[i] + throttleMotor * currentMixer[i].throttle;
-        motorMix[i] = thrustToMotor(motorMix[i], true);
+        float thrustMix = controllerMix[i] + throttleThrust * currentMixer[i].throttle;
+        motorMix[i] = thrustToMotor(thrustMix, true);
     }
 }
 
@@ -849,12 +852,13 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs) {
 void mixThingsUp(const float scaledAxisPidRoll, const float scaledAxisPidPitch, const float scaledAxisPidYaw, float *motorMix) {
     float yawMix[MAX_SUPPORTED_MOTORS];
     float rollPitchMix[MAX_SUPPORTED_MOTORS];
+    float controllerMix[MAX_SUPPORTED_MOTORS];
     float yawMixMin = 0, yawMixMax = 0;
     float rollPitchMixMin = 0, rollPitchMixMax = 0;
     float controllerMixMin = 0, controllerMixMax = 0;
 
     for (int i = 0; i < motorCount; i++) {
-        float yawMixVal = scaledAxisPidYaw * currentMixer[i].yaw;
+        float yawMixVal = controllerMix3DModeSign * scaledAxisPidYaw * currentMixer[i].yaw;
         if (yawMixVal > yawMixMax) {
             yawMixMax = yawMixVal;
         } else if (yawMixVal < yawMixMin) {
@@ -870,13 +874,13 @@ void mixThingsUp(const float scaledAxisPidRoll, const float scaledAxisPidPitch, 
         }
         rollPitchMix[i] = rollPitchMixVal;
 
-        float controllerMixVal = rollPitchMixVal + yawMixVal;
+        float controllerMixVal = controllerMix3DModeSign * (rollPitchMixVal + yawMixVal);
         if (controllerMixVal > controllerMixMax) {
             controllerMixMax = controllerMixVal;
         } else if (controllerMixVal < controllerMixMin) {
             controllerMixMin = controllerMixVal;
         }
-        motorMix[i] = controllerMixVal;
+        controllerMix[i] = controllerMixVal;
     }
 
     controllerMixRange = controllerMixMax - controllerMixMin; // measures how much the controller is trying to compensate
@@ -884,7 +888,7 @@ void mixThingsUp(const float scaledAxisPidRoll, const float scaledAxisPidPitch, 
     if (mixerImpl == MIXER_IMPL_2PASS) {
         twoPassMix(motorMix, yawMix, rollPitchMix, yawMixMin, yawMixMax, rollPitchMixMin, rollPitchMixMax);
     } else {
-        mixWithThrottleLegacy(motorMix, controllerMixMin, controllerMixMax);
+        mixWithThrottleLegacy(motorMix, controllerMix, controllerMixMin, controllerMixMax);
     }
 }
 
@@ -995,7 +999,7 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
     for (int i = 0; i < motorCount; i++) {
         motorMix[i] = throttleMotor; // motorMix have to contain output-proportional values
 
-        // clipping prevention
+        // clipping handling
         float yawOffset = mixerLaziness ? (ABS(yawMix[i]) * SCALE_UNITARY_RANGE(throttleMotor, 1, -1))
                                         : SCALE_UNITARY_RANGE(throttleMotor, -yawMixMin, -yawMixMax);
 
@@ -1003,7 +1007,7 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
 
         float motorMixThrust = motorToThrust(motorMix[i], true); // convert into thrust value
 
-        // clipping prevention
+        // clipping handling
         float rollPitchOffset = mixerLaziness ? (ABS(rollPitchMix[i]) * SCALE_UNITARY_RANGE(motorMixThrust, 1, -1))
                                               : SCALE_UNITARY_RANGE(motorMixThrust, -rollPitchMixMin, -rollPitchMixMax);
 
