@@ -341,4 +341,10 @@ void crsfScheduleMspResponse(void) {};
 bool isBatteryVoltageConfigured(void) { return true; }
 bool isAmperageConfigured(void) { return true; }
 
+void CRSFsetLQ(uint16_t) {}
+void CRSFsetRFMode(uint8_t) {}
+void CRSFsetRSSI(uint8_t) {}
+void CRSFsetSnR(uint16_t) {}
+void CRSFsetTXPower(uint16_t) {}
+
 }

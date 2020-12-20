@@ -223,4 +223,6 @@ void failsafeOnValidDataFailed(void)
 {
 }
 
+void setCrsfRssi(void) {}
+
 }

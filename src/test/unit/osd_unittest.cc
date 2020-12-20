@@ -62,6 +62,12 @@ extern "C" {
     int osdConvertTemperatureToSelectedUnit(int tempInDegreesCelcius);
     bool usbCableIsInserted(void) { return false; }
     bool usbVcpIsConnected(void) { return false; }
+    
+    uint16_t CRSFgetLQ(void) { return 0;}
+    uint8_t CRSFgetRSSI(void) { return 0;}
+    uint8_t CRSFgetSnR(void) { return 0;}
+    uint8_t CRSFgetRFMode(void) { return 0;}
+    uint16_t CRSFgetTXPower(void) {return 0;}
 
     uint16_t rssi;
     attitudeEulerAngles_t attitude;

@@ -848,6 +848,7 @@ extern "C" {
     void dashboardDisablePageCycling(void) {}
     bool imuQuaternionHeadfreeOffsetSet(void) { return true; }
     void rescheduleTask(cfTaskId_e, uint32_t) {}
+    void updateRcRefreshRate(timeUs_t) {}
     bool usbCableIsInserted(void) { return false; }
     bool usbVcpIsConnected(void) { return false; }
     void pinioBoxTaskControl(void) {}

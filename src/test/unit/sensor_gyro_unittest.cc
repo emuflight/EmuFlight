@@ -17,6 +17,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "arm_math.h"
 
 #include <limits.h>
 #include <algorithm>
@@ -32,6 +33,7 @@ extern "C" {
     #include "drivers/accgyro/accgyro_fake.h"
     #include "drivers/accgyro/accgyro_mpu.h"
     #include "drivers/sensor.h"
+    #include "fc/rc_controls.h"
     #include "io/beeper.h"
     #include "pg/pg.h"
     #include "pg/pg_ids.h"

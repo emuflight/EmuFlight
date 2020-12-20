@@ -1,6 +1,4 @@
-# A sample Makefile for building Google Test and using it in user
-# tests.  Please tweak it to suit your environment and project.  You
-# may want to move it to your project's root directory.
+# this is the test suite of *Flight
 #
 # SYNOPSIS:
 #
@@ -13,19 +11,30 @@
 USER_DIR = ../main
 TEST_DIR = unit
 ROOT = ../..
+OBJECT_DIR = ../../obj/test
+TARGET_DIR = $(USER_DIR)/target
+
+# Where to find user code.
+USER_DIR = ../main
+TEST_DIR = unit
+ROOT = ../..
 
 include $(ROOT)/make/system-id.mk
+
 
 # specify which files that are included in the test in addition to the unittest file.
 # variables available:
 #   <test_name>_SRC
 #   <test_name>_DEFINES
 #   <test_name>_INCLUDE_DIRS
+#   <test_name>_EXPAND (run for each target, call the above with target as $1)
+#   <test_name>_BLACKLIST (targets to exclude from an expanded test's run)
 
 
 alignsensor_unittest_SRC := \
 		$(USER_DIR)/sensors/boardalignment.c \
 		$(USER_DIR)/common/maths.c
+
 
 arming_prevention_unittest_SRC := \
 		$(USER_DIR)/fc/fc_core.c \
@@ -35,13 +44,10 @@ arming_prevention_unittest_SRC := \
 		$(USER_DIR)/fc/runtime_config.c \
 		$(USER_DIR)/common/bitarray.c
 
+
 atomic_unittest_SRC := \
 		$(USER_DIR)/build/atomic.c \
 		$(TEST_DIR)/atomic_unittest_c.c
-
-baro_bmp085_unittest_SRC := \
-		$(USER_DIR)/drivers/barometer/barometer_bmp085.c \
-		$(USER_DIR)/drivers/io.c
 
 
 baro_bmp280_unittest_SRC := \
@@ -51,16 +57,13 @@ baro_bmp280_unittest_DEFINES := \
                 USE_BARO_BMP280 \
                 USE_BARO_SPI_BMP280
 
+
 baro_ms5611_unittest_SRC := \
 		$(USER_DIR)/drivers/barometer/barometer_ms5611.c
 
 baro_ms5611_unittest_DEFINES := \
                 USE_BARO_MS5611 \
                 USE_BARO_SPI_MS5611
-
-battery_unittest_SRC := \
-		$(USER_DIR)/sensors/battery.c \
-		$(USER_DIR)/common/maths.c
 
 
 blackbox_unittest_SRC :=  \
@@ -79,6 +82,7 @@ blackbox_encoding_unittest_SRC :=  \
 		$(USER_DIR)/common/printf.c \
 		$(USER_DIR)/common/typeconversion.c
 
+
 cli_unittest_SRC := \
 		$(USER_DIR)/interface/cli.c \
 		$(USER_DIR)/config/feature.c \
@@ -86,12 +90,10 @@ cli_unittest_SRC := \
                 $(USER_DIR)/common/typeconversion.c
 
 cli_unittest_DEFINES := \
-		USE_VTX_COMMON \
-		USE_VTX_CONTROL \
-		USE_VTX_SMARTAUDIO \
 		USE_OSD \
 		USE_CLI \
 		SystemCoreClock=1000000
+
 
 cms_unittest_SRC := \
 		$(USER_DIR)/cms/cms.c \
@@ -164,6 +166,26 @@ osd_unittest_DEFINES := \
 		USE_ADC_INTERNAL
 
 
+# TODO: port the test from betaflight
+# link_quality_unittest_SRC := \
+# 		$(USER_DIR)/io/osd.c \
+# 		$(USER_DIR)/common/typeconversion.c \
+# 		$(USER_DIR)/drivers/display.c \
+# 		$(USER_DIR)/drivers/serial.c \
+# 		$(USER_DIR)/common/crc.c \
+# 		$(USER_DIR)/common/maths.c \
+# 		$(USER_DIR)/common/printf.c \
+# 		$(USER_DIR)/common/streambuf.c \
+# 		$(USER_DIR)/common/time.c \
+# 		$(USER_DIR)/fc/runtime_config.c \
+# 		$(USER_DIR)/common/bitarray.c \
+# 		$(USER_DIR)/fc/rc_modes.c \
+# 		$(USER_DIR)/rx/rx.c \
+# 		$(USER_DIR)/pg/pg.c \
+# 		$(USER_DIR)/rx/crsf.c \
+# 		$(USER_DIR)/rx/rx.c
+
+
 pg_unittest_SRC := \
 		$(USER_DIR)/pg/pg.c
 
@@ -223,6 +245,10 @@ sensor_gyro_unittest_SRC := \
 		$(USER_DIR)/drivers/accgyro/gyro_sync.c \
 		$(USER_DIR)/pg/pg.c
 
+sensor_gyro_unittest_DEFINES := \
+	USE_GYRO_DATA_ANALYSE
+
+
 telemetry_crsf_unittest_SRC := \
 		$(USER_DIR)/rx/crsf.c \
 		$(USER_DIR)/telemetry/crsf.c \
@@ -274,12 +300,9 @@ transponder_ir_unittest_SRC := \
 	        $(USER_DIR)/drivers/transponder_ir_arcitimer.c
 
 
-type_conversion_unittest_SRC := \
-		$(USER_DIR)/common/typeconversion.c
-
-
 ws2811_unittest_SRC := \
 		$(USER_DIR)/drivers/light_ws2811strip.c
+
 
 huffman_unittest_SRC := \
 		$(USER_DIR)/common/huffman.c \
@@ -288,12 +311,6 @@ huffman_unittest_SRC := \
 huffman_unittest_DEFINES := \
 		USE_HUFFMAN
 
-rcdevice_unittest_SRC := \
-		$(USER_DIR)/common/crc.c \
-		$(USER_DIR)/common/bitarray.c \
-		$(USER_DIR)/fc/rc_modes.c \
-		$(USER_DIR)/io/rcdevice.c \
-		$(USER_DIR)/io/rcdevice_cam.c \
 
 pid_unittest_SRC :=  \
 		$(USER_DIR)/common/filter.c \
@@ -301,10 +318,20 @@ pid_unittest_SRC :=  \
 		$(USER_DIR)/drivers/accgyro/gyro_sync.c \
 		$(USER_DIR)/flight/pid.c \
 		$(USER_DIR)/pg/pg.c \
-		$(USER_DIR)/fc/runtime_config.c
+		$(USER_DIR)/fc/runtime_config.c \
+		$(USER_DIR)/fc/controlrate_profile.c
+
+
+rcdevice_unittest_SRC := \
+		$(USER_DIR)/common/crc.c \
+		$(USER_DIR)/common/bitarray.c \
+		$(USER_DIR)/fc/rc_modes.c \
+		$(USER_DIR)/io/rcdevice.c \
+		$(USER_DIR)/io/rcdevice_cam.c \
 
 rcdevice_unittest_DEFINES := \
 		USE_RCDEVICE
+
 
 vtx_unittest_SRC := \
 		$(USER_DIR)/fc/fc_core.c \
@@ -336,29 +363,75 @@ USER_INCLUDE_DIR = $(USER_DIR)
 
 OBJECT_DIR = ../../obj/test
 
-# Use clang/clang++ by default
+CC  := clang-10
+CXX := clang++-10
+ifeq ($(shell which $(CC) 2>/dev/null),)
+$(info Falling back to 'clang'.)
 CC  := clang
 CXX := clang++
+endif
+
 #CC  := gcc
 #CXX := g++
+
+# These flags are needed for clang 10 (maybe even clang 9) to make test work
+#	-Wno-c99-extensions \
+#	-Wno-reorder
 
 COMMON_FLAGS = \
 	-g \
 	-Wall \
 	-Wextra \
 	-Werror \
+	-Wno-error=unused-command-line-argument \
 	-ggdb3 \
 	-O0 \
 	-DUNIT_TEST \
 	-isystem $(GTEST_DIR)/inc \
-	-MMD -MP
+	-MMD -MP \
+	-Wno-c99-extensions \
+	-Wno-reorder
+
+CC_VERSION = $(shell $(CC) -dumpversion)
+CXX_VERSION = $(shell $(CXX) -dumpversion)
 
 ifeq ($(shell $(CC) -v 2>&1 | grep -q "clang version" && echo "clang"),clang)
-COMMON_FLAGS += -fblocks
-LDFLAGS	     += -lBlocksRuntime
+
+# FIXME: Please revisit versions when new clang version arrive. Supported versions: { Linux: 7 - 10; OSX: 7- 12 }
+# Travis reports CC_VERSION of 4.2.1
+CC_VERSION_MAJOR := $(firstword $(subst ., ,$(CC_VERSION)))
+CC_VERSION_CHECK_MIN := 7
+CC_VERSION_CHECK_MAX := 10
+ifeq ($(OSFAMILY), macosx)
+# MacOS comes with Apple's own flavour of clang that does not adhere to the official versioning
+CC_VERSION_CHECK_MAX := 12
+endif
+ifeq ($(shell expr $(CC_VERSION_MAJOR) \< $(CC_VERSION_CHECK_MIN) \| $(CC_VERSION_MAJOR) \> $(CC_VERSION_CHECK_MAX)),1)
+$(error $(CC) $(CC_VERSION) is not supported. The officially supported version of clang is 'clang-10'. If this is not found, 'clang' is used as a fallback. The version of the compiler must be between $(CC_VERSION_CHECK_MIN) and $(CC_VERSION_CHECK_MAX).)
 endif
 
-ifndef MACOSX
+COMMON_FLAGS += -fblocks
+ifndef CYGWIN
+ifneq ($(OSFAMILY), macosx)
+LDFLAGS	     += -lBlocksRuntime
+endif
+endif
+endif
+
+$(info CC version: $(shell $(CC) --version))
+$(info CXX version: $(shell $(CXX) --version))
+
+USE_PTHREAD = YES
+USE_COVERAGE = YES
+ifeq ($(OSFAMILY), macosx)
+	USE_PTHREAD =
+endif
+ifdef CYGWIN
+	USE_PTHREAD =
+	USE_COVERAGE =
+endif
+
+ifdef USE_PTHREAD
 COMMON_FLAGS += -pthread
 endif
 
@@ -371,7 +444,9 @@ CXX_FLAGS = $(COMMON_FLAGS) \
 	-std=gnu++11
 
 # Compiler flags for coverage instrumentation
+ifdef USE_COVERAGE
 COVERAGE_FLAGS := --coverage
+endif
 
 C_FLAGS   += $(COVERAGE_FLAGS)
 CXX_FLAGS += $(COVERAGE_FLAGS)
@@ -379,15 +454,23 @@ CXX_FLAGS += $(COVERAGE_FLAGS)
 C_FLAGS   += -D_GNU_SOURCE
 
 # Set up the parameter group linker flags according to OS
-ifdef MACOSX
+ifeq ($(OSFAMILY), macosx)
 LDFLAGS  += -Wl,-map,$(OBJECT_DIR)/$@.map
 else
 LDFLAGS  += -Wl,-T,$(TEST_DIR)/pg.ld -Wl,-Map,$(OBJECT_DIR)/$@.map
 endif
 
 # Gather up all of the tests.
-TEST_SRC = $(sort $(wildcard $(TEST_DIR)/*.cc))
-TESTS = $(TEST_SRC:$(TEST_DIR)/%.cc=%)
+TEST_SRCS = $(sort $(wildcard $(TEST_DIR)/*.cc))
+TEST_BASENAMES = $(TEST_SRCS:$(TEST_DIR)/%.cc=%)
+TESTS_TARGET_SPECIFIC = $(foreach test,$(TEST_BASENAMES),$(if $($(test)_EXPAND),$(test)))
+TESTS_TARGET_SPECIFIC_EXPANDED = $(foreach test,$(TESTS_TARGET_SPECIFIC),$(foreach \
+		target,$(filter-out $($(test)_BLACKLIST),$(VALID_TARGETS)),$(test).$(target)))
+
+TESTS = $(foreach test,$(TEST_BASENAMES),$(if $($(test)_EXPAND),,$(test)))
+TESTS_ALL = $(TESTS) $(TESTS_TARGET_SPECIFIC_EXPANDED)
+TESTS_REPRESENTATIVE = $(TESTS) $(foreach test,$(TESTS_TARGET_SPECIFIC), \
+		$(test).$(word 1,$(filter-out $($(test)_BLACKLIST),$(VALID_TARGETS))))
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -400,14 +483,18 @@ include ../../make/build_verbosity.mk
 
 # House-keeping build targets.
 
-## test        : Build and run the Unit Tests (default goal)
+## test        : Build and run the non target specific Unit Tests (default goal)
 test: $(TESTS:%=test_%)
+
+## test-all : Build and run all Unit Tests
+test-all: $(TESTS_ALL:%=test_%)
+
+## test-representative : Build and run a representative subset of the Unit Tests (i.e. run every expanded test only for the first target)
+test-representative: $(TESTS_REPRESENTATIVE:%=test_%)
 
 ## junittest   : Build and run the Unit Tests, producing Junit XML result files."
 junittest: EXEC_OPTS = "--gtest_output=xml:$<_results.xml"
 junittest: $(TESTS:%=test_%)
-
-
 
 ## help        : print this help message and exit
 ## what        : print this help message and exit
@@ -426,13 +513,17 @@ help what usage: Makefile
 	@echo "Any of the Unit Test programs can be used as goals to build:"
 	@$(foreach test, $(TESTS), echo "    $(OBJECT_DIR)/$(test)/$(test)";)
 	@echo ""
-	@echo "Any of the Unit Test programs can be used as goals to build and run:"
+	@echo "Any of the Unit Test programs (except for target specific unit tests) can be used as goals to build and run:"
 	@$(foreach test, $(TESTS), echo "    test_$(test)";)
+
+
+versions:
+	@echo "C compiler: $(CC): $(CC_VERSION)"
+	@echo "C++ compiler: $(CXX): $(CXX_VERSION)"
 
 ## clean       : Cleanup the UnitTest binaries.
 clean :
 	rm -rf $(OBJECT_DIR)
-
 
 # Builds gtest.a and gtest_main.a.
 
@@ -468,69 +559,126 @@ $(OBJECT_DIR)/gtest_main.a : $(OBJECT_DIR)/gtest-all.o $(OBJECT_DIR)/gtest_main.
          $(OBJECT_DIR)/gtest_main.d
 
 
-# includes in test dir must override includes in user dir
-TEST_INCLUDE_DIRS := $(TEST_DIR) \
-	$(USER_INCLUDE_DIR)
-
-TEST_CFLAGS	 = $(addprefix -I,$(TEST_INCLUDE_DIRS))
-
+# includes in test dir must override includes in user dir, unless the user
+# specifies a list of endorsed directories in ${target}_INCLUDE_DIRS.
+test_include_dirs  = $1 $(TEST_DIR) $(USER_DIR)
+test_cflags	   = $(addprefix -I,$(call test_include_dirs,$1))
 
 
+# target name extractor
+# param $1 = expanded test name in the form of test.target
+target = $(1:$(basename $1).%=%)
 
 # canned recipe for all test builds
-# param $1 = testname
+#
+# variable expansion rules of thumb (number of $'s):
+# * parameters: one $, e.g. $1
+# * statically accessed variables set elsewhere: one $, e.g. $(C_FLAGS)
+# * dynamically accessed variables set elsewhere: one $, e.g. $($1_SRC)
+# * make functions accessing only the above: one $, e.g. $(basename $1)
+# * dynamically set and accessed variables: two $, e.g. $$($1_OBJS)
+# * make functions accessing dynamically set variables: two $,
+#   e.g. $$(call test_cflags,$$($1_INCLUDE_DIRS))
+#
+# param $1 = plain test name for global tests, test.target for per-target tests
 define test-specific-stuff
 
-$$1_OBJS = $$(patsubst $$(TEST_DIR)%,$$(OBJECT_DIR)/$1%, $$(patsubst $$(USER_DIR)%,$$(OBJECT_DIR)/$1%,$$($1_SRC:=.o)))
+ifeq ($1,$(basename $1))
+# standard global test
+$1_OBJS = $(patsubst \
+	$(TEST_DIR)/%,$(OBJECT_DIR)/$1/%,$(patsubst \
+	$(USER_DIR)/%,$(OBJECT_DIR)/$1/%,$($1_SRC:=.o)))
+else
+# test executed for each target, $1 has the form of test.target
+$1_SRC = $(addsuffix .o,$(call $(basename $1)_SRC,$(call target,$1)))
+$1_OBJS = $$(patsubst \
+	$(TEST_DIR)/%,$(OBJECT_DIR)/$1/%,$$(patsubst \
+	$(USER_DIR)/%,$(OBJECT_DIR)/$1/%,$$(patsubst \
+	$(TARGET_DIR)/$(call get_base_target,$(call target,$1))/%,$(OBJECT_DIR)/$1/%,$$($1_SRC))))
+$1_DEFINES = $(call $(basename $1)_DEFINES,$(call target,$1))
+$1_INCLUDE_DIRS = $(call $(basename $1)_INCLUDE_DIRS,$(call target,$1))
+endif
 
 # $$(info $1 -v-v-------)
-# $$(info $1_SRC:  $($1_SRC))
-# $$(info $1_OBJS: $$($$1_OBJS))
+# $$(info $1_SRC:  $$($1_SRC))
+# $$(info $1_OBJS: $$($1_OBJS))
 # $$(info $1 -^-^-------)
 
-
-#include generated dependencies
--include $$($$1_OBJS:.o=.d)
--include $(OBJECT_DIR)/$1/$1.d
-
+# include generated dependencies
+-include $$($1_OBJS:.o=.d)
+-include $(OBJECT_DIR)/$1/$(basename $1).d
 
 $(OBJECT_DIR)/$1/%.c.o: $(USER_DIR)/%.c
 	@echo "compiling $$<" "$(STDOUT)"
 	$(V1) mkdir -p $$(dir $$@)
-	$(V1) $(CC) $(C_FLAGS) $(TEST_CFLAGS) \
-                $(foreach def,$($1_INCLUDE_DIRS),-I $(def)) \
-                $(foreach def,$($1_DEFINES),-D $(def)) \
+	$(V1) $(CC) $(C_FLAGS) $$(call test_cflags,$$($1_INCLUDE_DIRS)) \
+                $$(foreach def,$$($1_DEFINES),-D $$(def)) \
                 -c $$< -o $$@
 
 $(OBJECT_DIR)/$1/%.c.o: $(TEST_DIR)/%.c
 	@echo "compiling test c file: $$<" "$(STDOUT)"
 	$(V1) mkdir -p $$(dir $$@)
-	$(V1) $(CC) $(C_FLAGS) $(TEST_CFLAGS) \
-                $(foreach def,$($1_INCLUDE_DIRS),-I $(def)) \
-                $(foreach def,$($1_DEFINES),-D $(def)) \
+	$(V1) $(CC) $(C_FLAGS) $$(call test_cflags,$$($1_INCLUDE_DIRS)) \
+                $$(foreach def,$$($1_DEFINES),-D $$(def)) \
                 -c $$< -o $$@
 
-$(OBJECT_DIR)/$1/$1.o: $(TEST_DIR)/$1.cc
+ifneq ($1,$(basename $1))
+# per-target tests may compile files from the target directory
+$(OBJECT_DIR)/$1/%.c.o: $(TARGET_DIR)/$(call get_base_target,$(call target,$1))/%.c
+	@echo "compiling target c file: $$<" "$(STDOUT)"
+	$(V1) mkdir -p $$(dir $$@)
+	$(V1) $(CC) $(C_FLAGS) $$(call test_cflags,$$($1_INCLUDE_DIRS)) \
+                $$(foreach def,$$($1_DEFINES),-D $$(def)) \
+                -c $$< -o $$@
+endif
+
+$(OBJECT_DIR)/$1/$(basename $1).o: $(TEST_DIR)/$(basename $1).cc
 	@echo "compiling $$<" "$(STDOUT)"
 	$(V1) mkdir -p $$(dir $$@)
-	$(V1) $(CXX) $(CXX_FLAGS) $(TEST_CFLAGS)  \
-                $(foreach def,$($1_INCLUDE_DIRS),-I $(def)) \
-                $(foreach def,$($1_DEFINES),-D $(def)) \
+	$(V1) $(CXX) $(CXX_FLAGS) $$(call test_cflags,$$($1_INCLUDE_DIRS)) \
+                $$(foreach def,$$($1_DEFINES),-D $$(def)) \
                 -c $$< -o $$@
 
-
-$(OBJECT_DIR)/$1/$1 : $$($$1_OBJS) \
-    $(OBJECT_DIR)/$1/$1.o \
+$(OBJECT_DIR)/$1/$(basename $1): $$($1_OBJS) \
+	$(OBJECT_DIR)/$1/$(basename $1).o \
 	$(OBJECT_DIR)/gtest_main.a
 
 	@echo "linking $$@" "$(STDOUT)"
 	$(V1) mkdir -p $(dir $$@)
 	$(V1) $(CXX) $(CXX_FLAGS) $(LDFLAGS) $$^ -o $$@
 
-test_$1: $(OBJECT_DIR)/$1/$1
+test_$1: $(OBJECT_DIR)/$1/$(basename $1)
 	$(V1) $$< $$(EXEC_OPTS) "$(STDOUT)" && echo "running $$@: PASS"
 
 endef
 
-#apply the canned recipe above to all tests
-$(eval $(foreach test,$(TESTS),$(call test-specific-stuff,$(test))))
+
+ifeq ($(MAKECMDGOALS),test-all)
+    $(eval $(foreach test,$(TESTS_ALL),$(call test-specific-stuff,$(test))))
+else
+    ifeq ($(MAKECMDGOALS),test-representative)
+        $(eval $(foreach test,$(TESTS_REPRESENTATIVE),$(call test-specific-stuff,$(test))))
+    else
+        $(eval $(foreach test,$(TESTS),$(call test-specific-stuff,$(test))))
+    endif
+endif
+
+$(foreach test,$(TESTS_ALL),$(if $($(basename $(test))_SRC),,$(error \
+	Test 'unit/$(basename $(test)).cc' has no '$(basename $(test))_SRC' variable defined)))
+$(foreach var,$(filter-out TARGET_SRC,$(filter %_SRC,$(.VARIABLES))),$(if $(filter $(var:_SRC=)%,$(TESTS_ALL)),,$(error \
+	Variable '$(var)' has no 'unit/$(var:_SRC=).cc' test)))
+
+
+target_list:
+	@echo ========== BASE TARGETS ==========
+	@echo $(BASE_TARGETS)
+	@echo ========== ALT TARGETS ==========
+	@echo $(ALT_TARGETS)
+	@echo ========== VALID_TARGETS ==========
+	@echo $(VALID_TARGETS)
+	@echo ========== BASE/ALT PAIRS ==========
+	@echo $(BASE_ALT_PAIRS)
+	@echo ========== ALT/BASE MAPPING ==========
+	@echo $(foreach target,$(ALT_TARGETS),$(target)\>$(call get_base_target,$(target)))
+	@echo ========== ALT/BASE FULL MAPPING ==========
+	@echo $(foreach target,$(VALID_TARGETS),$(target)\>$(call get_base_target,$(target)))
