@@ -9,11 +9,12 @@ on:
     - '*'
   # repository_dispatch is a newer github-actions feature that will allow building from triggers other than code merge/PR
   repository_dispatch:
-    types: [build]
+    types: [tests, build]
 
 name: Build EmuFlight
 jobs:
-  unittests:
+  test:
+    name: Test EmuFlight
     runs-on: ubuntu-latest
     steps: 
     - name: Checkout
@@ -23,22 +24,22 @@ jobs:
     - name: Setup Toolchain
       uses: fiam/arm-none-eabi-gcc@master
       with:
-        release: '9-2020-q2' # The arm-none-eabi-gcc release to use.
-        directory: '~/.toolchain'
-    - name: Install prerequisites
+        release: '9-2020-q2' # TODO: use 10-2020-q4-major when applicable
+    - name: Install Prerequisites
       run: |
-        sudo apt install libblocksruntime-dev
-    - name : Run tests
+        sudo apt install clang-10 lcov libblocksruntime-dev libc6-i386 
+    - name : Run Tests
       run: |
         make test
   build:
+    name: Build EmuFlight
     timeout-minutes: 75
     strategy:
       max-parallel: 4
       matrix:
         targets: [targets-group-1, targets-group-2, targets-group-3, targets-group-rest]
     runs-on: ubuntu-latest
-    needs: unittests
+    needs: test
     steps:
 
     # curl, by default, may timeout easily
@@ -111,7 +112,6 @@ jobs:
         echo "Tag: ${{ env.REVISION_TAG}}"
         echo "Artifact name: ${{ env.ARTIFACT_NAME }}"
       continue-on-error: true
-
 
     - name: Compile Code
       run: |
