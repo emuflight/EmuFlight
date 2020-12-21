@@ -27,6 +27,8 @@
 #endif
 #define power3(x) ((x)*(x)*(x))
 
+#define SIGN(x) ((x > 0.0f) - (x < 0.0f))
+
 // Undefine this for use libc sinf/cosf. Keep this defined to use fast sin/cos approximations
 #define FAST_MATH             // order 9 approximation
 #define VERY_FAST_MATH      // order 7 approximation

@@ -366,7 +366,6 @@ static uint8_t  cmsx_P_angle_high;
 static uint8_t  cmsx_D_angle_high;
 static uint16_t cmsx_F_angle;
 static uint8_t  cmsx_horizonTransition;
-static uint8_t  cmsx_nfe_racermode;
 static uint8_t  cmsx_throttleBoost;
 static uint8_t  cmsx_motorOutputLimit;
 static int8_t   cmsx_autoProfileCellCount;
@@ -389,7 +388,6 @@ static long cmsx_profileOtherOnEnter(void) {
     cmsx_D_angle_high =      pidProfile->pid[PID_LEVEL_HIGH].D;
     cmsx_F_angle =       pidProfile->pid[PID_LEVEL_LOW].F;
     cmsx_horizonTransition = pidProfile->horizonTransition;
-    cmsx_nfe_racermode = pidProfile->nfe_racermode;
     cmsx_throttleBoost = pidProfile->throttle_boost;
     cmsx_motorOutputLimit = pidProfile->motor_output_limit;
     cmsx_autoProfileCellCount = pidProfile->auto_profile_cell_count;
@@ -415,7 +413,6 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self) {
     pidProfile->pid[PID_LEVEL_HIGH].D = cmsx_D_angle_high;
     pidProfile->pid[PID_LEVEL_LOW].F = cmsx_F_angle;
     pidProfile->horizonTransition = cmsx_horizonTransition;
-    pidProfile->nfe_racermode = cmsx_nfe_racermode;
     pidProfile->throttle_boost = cmsx_throttleBoost;
     pidProfile->motor_output_limit = cmsx_motorOutputLimit;
     pidProfile->auto_profile_cell_count = cmsx_autoProfileCellCount;
@@ -441,7 +438,6 @@ static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "ANGLE D HIGH",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_D_angle_high,              0,    200,   1  }, 0 },
     { "ANGLE F",         OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_F_angle,                   0,    2000,  1  }, 0 },
     { "HORZN TRS",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonTransition,         0,    200,   1  }, 0 },
-    { "NFE RACERMODE",   OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_nfe_racermode, 1, cms_offOnLabels }, 0 },
 #ifdef USE_THROTTLE_BOOST
     { "THR BOOST",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_throttleBoost,             0,    100,   1  }, 0 },
 #endif
