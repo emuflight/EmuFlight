@@ -354,7 +354,7 @@ static const void *cmsx_AngleWriteback(displayPort_t *pDisp, const OSD_Entry *se
 
     pidProfile->pid[PID_LEVEL_LOW].P =    cmsx_P_angle_low;
     pidProfile->pid[PID_LEVEL_LOW].D =    cmsx_D_angle_low;
-    pidProfile->pid[PID_LEVEL_HIGH].P =   cmsx_D_angle_low;
+    pidProfile->pid[PID_LEVEL_HIGH].P =   cmsx_P_angle_high;
     pidProfile->pid[PID_LEVEL_HIGH].D =   cmsx_D_angle_high;
     pidProfile->pid[PID_LEVEL_LOW].F =    cmsx_F_angle;
     pidProfile->levelAngleLimit =         cmsx_angle_limit;
