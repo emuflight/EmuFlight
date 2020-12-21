@@ -47,14 +47,17 @@ extern "C" {
     #include "io/ledstrip.h"
     #include "io/osd.h"
     #include "io/serial.h"
+    #include "io/vtx_control.h"
     #include "io/vtx.h"
     #include "pg/beeper.h"
+    #include "pg/pg.h"
     #include "rx/rx.h"
     #include "scheduler/scheduler.h"
     #include "sensors/battery.h"
 
     void cliSet(char *cmdline);
     void cliGet(char *cmdline);
+    void cliVtx(char *cmdline);
 
     const clivalue_t valueTable[] = {
         { "array_unit_test",             VAR_INT8  | MODE_ARRAY | MASTER_VALUE, .config.array.length = 3, PG_RESERVED_FOR_TESTING_1, 0 }
@@ -80,6 +83,10 @@ extern "C" {
     PG_REGISTER_ARRAY(rxChannelRangeConfig_t, NON_AUX_CHANNEL_COUNT, rxChannelRangeConfigs, PG_RX_CHANNEL_RANGE_CONFIG, 0);
     PG_REGISTER_ARRAY(rxFailsafeChannelConfig_t, MAX_SUPPORTED_RC_CHANNEL_COUNT, rxFailsafeChannelConfigs, PG_RX_FAILSAFE_CHANNEL_CONFIG, 0);
     PG_REGISTER(pidConfig_t, pidConfig, PG_PID_CONFIG, 0);
+    PG_REGISTER_WITH_RESET_TEMPLATE(vtxConfig_t, vtxConfig, PG_VTX_CONFIG, 1);
+    PG_RESET_TEMPLATE(vtxConfig_t, vtxConfig,
+                      .halfDuplex = true
+                     );
 
     PG_REGISTER_WITH_RESET_FN(int8_t, unitTestData, PG_RESERVED_FOR_TESTING_1, 0);
 }
@@ -110,11 +117,92 @@ TEST(CLIUnittest, TestCliSet)
     EXPECT_EQ( -3, data[1]);
     EXPECT_EQ(  1, data[2]);
 
-
     //cliGet((char *)"osd_item_vbat");
     //EXPECT_EQ(false, false);
 }
 
+TEST(CLIUnittest, TestCliVtx)
+{
+    // check condition 6 is empty to start with
+    const vtxChannelActivationCondition_t *cac6 = &vtxConfig()->vtxChannelActivationConditions[6];
+    EXPECT_EQ(0, cac6->auxChannelIndex);
+    EXPECT_EQ(0, cac6->band);
+    EXPECT_EQ(0, cac6->channel);
+    EXPECT_EQ(0, cac6->power);
+    EXPECT_EQ(0, cac6->power);
+    EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac6->range.startStep));
+    EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac6->range.endStep));
+
+    // set condition 6
+    char *str = (char *)"6 6 1 2 3 925 1300"; 
+    cliVtx(str);
+
+    EXPECT_EQ(6, cac6->auxChannelIndex);
+    EXPECT_EQ(1, cac6->band);
+    EXPECT_EQ(2, cac6->channel);
+    EXPECT_EQ(3, cac6->power);
+    EXPECT_EQ(3, cac6->power);
+    EXPECT_EQ(925, MODE_STEP_TO_CHANNEL_VALUE(cac6->range.startStep));
+    EXPECT_EQ(1300, MODE_STEP_TO_CHANNEL_VALUE(cac6->range.endStep));
+
+    // set condition 2
+    char *str2 = (char *)"2 1 2 3 4 1500 2100"; 
+    cliVtx(str2);
+
+    const vtxChannelActivationCondition_t *cac2 = &vtxConfig()->vtxChannelActivationConditions[2];
+    EXPECT_EQ(1, cac2->auxChannelIndex);
+    EXPECT_EQ(2, cac2->band);
+    EXPECT_EQ(3, cac2->channel);
+    EXPECT_EQ(4, cac2->power);
+    EXPECT_EQ(1500, MODE_STEP_TO_CHANNEL_VALUE(cac2->range.startStep));
+    EXPECT_EQ(2100, MODE_STEP_TO_CHANNEL_VALUE(cac2->range.endStep));
+
+
+    // test we can reset existing condition
+    // by providing 0 vaues, the condition should be reset (and error shown to the user)
+    char *str3 = (char *)"2 0 0 0 0 0 0"; 
+    cliVtx(str3);
+
+    EXPECT_EQ(0, cac2->auxChannelIndex);
+    EXPECT_EQ(0, cac2->band);
+    EXPECT_EQ(0, cac2->channel);
+    EXPECT_EQ(0, cac2->power);
+    EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac2->range.startStep));
+    EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac2->range.endStep));
+}
+TEST(CLIUnittest, TestCliVtxInvalidArgumentCount)
+{
+    // cli expects 7 total arguments (condition index + 6 parameters)
+    char *correctCmd = (char *) "1 1 2 3 4 1000 2000";
+    cliVtx(correctCmd);  // load some data into condition 1
+    const vtxChannelActivationCondition_t *cac1 = &vtxConfig()->vtxChannelActivationConditions[1];
+    EXPECT_EQ(1, cac1->auxChannelIndex);
+    EXPECT_EQ(2, cac1->band);
+    EXPECT_EQ(3, cac1->channel);
+    EXPECT_EQ(4, cac1->power);
+    EXPECT_EQ(1000, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.startStep));
+    EXPECT_EQ(2000, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.endStep));
+    char *str = (char *)"1 0 0 0 0";  // 5 arguments, should throw an error and reset the line 1
+    cliVtx(str);
+    EXPECT_EQ(0, cac1->auxChannelIndex);
+    EXPECT_EQ(0, cac1->band);
+    EXPECT_EQ(0, cac1->channel);
+    EXPECT_EQ(0, cac1->power);
+    EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.startStep));
+    EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.endStep));
+
+
+    cliVtx(correctCmd);  // load some more data into condition 1 so we have something to reset
+
+    char *tooManyArgs = (char *)"1 0 0 0 0 100 200 300";  // 7 arguments, expects 6
+    cliVtx(tooManyArgs); //should throw an cli error and reset the line 1
+    EXPECT_EQ(0, cac1->auxChannelIndex);
+    EXPECT_EQ(0, cac1->band);
+    EXPECT_EQ(0, cac1->channel);
+    EXPECT_EQ(0, cac1->power);
+    EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.startStep));
+    EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.endStep));
+}
 // STUBS
 extern "C" {
 
