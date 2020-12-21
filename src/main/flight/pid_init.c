@@ -269,13 +269,12 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidRuntime.pidCoefficient[axis].Ki = ITERM_SCALE * pidProfile->pid[axis].I;
         pidRuntime.pidCoefficient[axis].Kd = DTERM_SCALE * pidProfile->pid[axis].D;
         pidRuntime.pidCoefficient[axis].Kf = FEEDFORWARD_SCALE * (pidProfile->pid[axis].F / 100.0f);
+        pidRuntime.pidCoefficient[axis].Kdf = DIRECT_FF_SCALE * pidProfile->pid[axis].DF;
         pidRuntime.dynThr[axis] = pidProfile->dynThr[axis];
         for (int pid = 0; pid <= 2; pid++) {
             pidRuntime.stickPositionTransition[pid][axis] = (pidProfile->stickTransition[pid][axis] / 100.0f) - 1.0f;
         }
     }
-    pidRuntime.trueYawFF = DIRECT_FF_SCALE * pidProfile->yaw_true_ff;
-
     pidRuntime.dtermMeasurementSlider = pidProfile->dtermMeasurementSlider / 100;
     pidRuntime.dtermMeasurementSliderInverse = 1 - (pidProfile->dtermMeasurementSlider / 100);
 

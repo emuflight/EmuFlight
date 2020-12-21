@@ -69,7 +69,7 @@ static uint8_t pidProfileIndex;
 static char pidProfileIndexString[MAX_PROFILE_NAME_LENGTH + 5];
 static uint8_t tempPid[3][3];
 static uint16_t tempPidF[3];
-static uint8_t trueYawFF;
+static uint8_t tempPidDF[3];
 
 static uint8_t tmpRateProfileIndex;
 static uint8_t rateProfileIndex;
@@ -245,7 +245,6 @@ static const void *cmsx_PidRead(void)
         tempPid[i][2] = pidProfile->pid[i].D;
         tempPidF[i] = pidProfile->pid[i].F;
     }
-    trueYawFF = pidProfile->yaw_true_ff;
 
     return NULL;
 }
@@ -272,7 +271,6 @@ static const void *cmsx_PidWriteback(displayPort_t *pDisp, const OSD_Entry *self
         pidProfile->pid[i].D = tempPid[i][2];
         pidProfile->pid[i].F = tempPidF[i];
     }
-    pidProfile->yaw_true_ff = trueYawFF;
     pidInitConfig(currentPidProfile);
 
     return NULL;
@@ -287,17 +285,19 @@ static const OSD_Entry cmsx_menuPidEntries[] =
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
     { "ROLL  D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][2],  0, 200, 1 }, 0 },
     { "ROLL  F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_ROLL],  0, 2000, 1 }, 0 },
+    { "ROLL DIR F", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidDF[PID_YAW], 0, 200, 1 }, 0 },
 
     { "PITCH P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][0], 0, 200, 1 }, 0 },
     { "PITCH I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][1], 0, 200, 1 }, 0 },
     { "PITCH D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][2], 0, 200, 1 }, 0 },
     { "PITCH F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_PITCH], 0, 2000, 1 }, 0 },
+    { "PITCH DIR F", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidDF[PID_YAW],0, 200, 1 }, 0 },
 
     { "YAW   P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][0],   0, 200, 1 }, 0 },
     { "YAW   I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][1],   0, 200, 1 }, 0 },
     { "YAW   D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][2],   0, 200, 1 }, 0 },
     { "YAW   F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_YAW],   0, 2000, 1 }, 0 },
-    { "TRUE YAW FF", OME_UINT8, NULL, &(OSD_UINT8_t){ &trueYawFF,         0, 200, 1 }, 0 },
+    { "YAW DIR F", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidDF[PID_YAW],  0, 200, 1 }, 0 },
 
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }

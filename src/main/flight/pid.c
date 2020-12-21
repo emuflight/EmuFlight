@@ -119,7 +119,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .pid = {
             [PID_ROLL] =       { 60, 85, 40, 90, 0 },
             [PID_PITCH] =      { 65, 90, 42, 95, 0 },
-            [PID_YAW] =        { 70, 95, 0,  90, 20 },
+            [PID_YAW] =        { 70, 95, 0,  90, 30 },
             [PID_LEVEL_LOW] =  {100, 0,  10, 40, 0 },
             [PID_LEVEL_HIGH] = { 35, 0,  1,   0, 0 },
             [PID_MAG] =        { 40, 0,  0,   0, 0 },
@@ -129,7 +129,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
           { 90,  90,  70  }, // i roll, i pitch, i yaw
           { 110, 110, 130 }, // d roll, d pitch, d yaw
         },
-        .yaw_true_ff = 0,
         .pidSumLimit = PIDSUM_LIMIT,
         .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
         .yaw_lowpass_hz = 0,
@@ -860,9 +859,8 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         // feedforward as betaflight calls it is really a setpoint derivative
         // this feedforward is literally setpoint * feedforward
         // since yaw acts different this will only work for yaw
-        if (axis == FD_YAW) {
-            pidData[axis].F = currentPidSetpoint * pidRuntime.trueYawFF;
-        }
+        // testing this on roll and pitch, useful on roll and pitch, but maybe only in angle mode
+        pidData[axis].F += currentPidSetpoint * pidRuntime.pidCoefficient[axis].Kdf;
 
 #ifdef USE_YAW_SPIN_RECOVERY
         if (yawSpinActive) {

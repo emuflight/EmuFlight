@@ -108,8 +108,6 @@ typedef struct pidProfile_s {
 
     pidf_t  pid[PID_ITEM_COUNT];
 
-    uint8_t yaw_true_ff;                    // a true FF for the yaw
-
     uint8_t dterm_filter_type;              // Filter selection for dterm
     uint8_t itermWindupPointPercent;        // iterm windup threshold, percent motor saturation
     uint16_t pidSumLimit;
@@ -222,6 +220,7 @@ typedef struct pidCoefficient_s {
     float Ki;
     float Kd;
     float Kf;
+    float Kdf;
 } pidCoefficient_t;
 
 typedef struct pidRuntime_s {
@@ -251,7 +250,6 @@ typedef struct pidRuntime_s {
     uint16_t itermAcceleratorGain;
     float feedForwardTransition;
     pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
-    float trueYawFF;
 
     float P_angle_low;
     float D_angle_low;
