@@ -958,11 +958,11 @@ bool processRx(timeUs_t currentTimeUs)
     }
 
     bool canUseHorizonMode = true;
-
+    bool canUseNFEMode = false;
     if ((IS_RC_MODE_ACTIVE(BOXANGLE) || failsafeIsActive()) && (sensors(SENSOR_ACC))) {
         // bumpless transfer to Level mode
         canUseHorizonMode = false;
-
+        canUseNFEMode = true;
         if (!FLIGHT_MODE(ANGLE_MODE)) {
             ENABLE_FLIGHT_MODE(ANGLE_MODE);
         }
@@ -971,7 +971,7 @@ bool processRx(timeUs_t currentTimeUs)
     }
 
     if (IS_RC_MODE_ACTIVE(BOXHORIZON) && canUseHorizonMode) {
-
+        canUseNFEMode = true;
         DISABLE_FLIGHT_MODE(ANGLE_MODE);
 
         if (!FLIGHT_MODE(HORIZON_MODE)) {
@@ -981,7 +981,7 @@ bool processRx(timeUs_t currentTimeUs)
         DISABLE_FLIGHT_MODE(HORIZON_MODE);
     }
 
-    if (IS_RC_MODE_ACTIVE(BOXNFE)) {
+    if (IS_RC_MODE_ACTIVE(BOXNFE) && canUseNFEMode) {
 
         if (!FLIGHT_MODE(NFE_RACE_MODE)) {
             ENABLE_FLIGHT_MODE(NFE_RACE_MODE);
