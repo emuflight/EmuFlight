@@ -210,6 +210,8 @@ typedef struct osdConfig_s {
 
     uint8_t ahMaxPitch;
     uint8_t ahMaxRoll;
+    uint8_t logo_on_arming;                   // show the logo on arming
+    uint8_t logo_on_arming_duration;          // display duration in 0.1s units
     bool stat_show_cell_value;
 } osdConfig_t;
 
