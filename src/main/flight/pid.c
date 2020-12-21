@@ -117,12 +117,12 @@ void resetPidProfile(pidProfile_t *pidProfile)
 {
     RESET_CONFIG(pidProfile_t, pidProfile,
         .pid = {
-            [PID_ROLL] =       { 60, 85, 40, 90 },
-            [PID_PITCH] =      { 65, 90, 42, 95 },
-            [PID_YAW] =        { 70, 95, 0,  90 },
-            [PID_LEVEL_LOW] =  {100, 0,  10, 40 },
-            [PID_LEVEL_HIGH] = { 35, 0,  1,   0 },
-            [PID_MAG] =        { 40, 0,  0,   0 },
+            [PID_ROLL] =       { 60, 85, 40, 90, 0 },
+            [PID_PITCH] =      { 65, 90, 42, 95, 0 },
+            [PID_YAW] =        { 70, 95, 0,  90, 20 },
+            [PID_LEVEL_LOW] =  {100, 0,  10, 40, 0 },
+            [PID_LEVEL_HIGH] = { 35, 0,  1,   0, 0 },
+            [PID_MAG] =        { 40, 0,  0,   0, 0 },
         },
         .stickTransition = {
           { 110, 110, 130 }, // p roll, p pitch, p yaw
@@ -575,7 +575,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 #if defined(USE_ACC)
     const bool gpsRescueIsActive = FLIGHT_MODE(GPS_RESCUE_MODE);
     levelMode_e levelMode;
-    if (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE) || FLIGHT_MODE(NFE_RACE_MODE) || gpsRescueIsActive) {
+    if (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE) || gpsRescueIsActive) {
         if (FLIGHT_MODE(NFE_RACE_MODE) && !gpsRescueIsActive) {
             levelMode = LEVEL_MODE_R;
         } else {

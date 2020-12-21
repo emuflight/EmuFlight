@@ -44,7 +44,7 @@
 // The constant scale factor to replace the Kd component of the feedforward calculation.
 // This value gives the same "feel" as the previous Kd default of 26 (26 * DTERM_SCALE)
 #define FEEDFORWARD_SCALE 0.013754f
-#define YAW_TRUE_FF_SCALE 0.005f
+#define DIRECT_FF_SCALE 0.005f
 
 // Anti gravity I constant
 #define AG_KI 21.586988f;
@@ -82,6 +82,7 @@ typedef struct pidf_s {
     uint8_t I;
     uint8_t D;
     uint16_t F;
+    uint8_t DF;
 } pidf_t;
 
 typedef enum {
