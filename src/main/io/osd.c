@@ -1110,8 +1110,6 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig) {
     osdConfig->ahMaxRoll = 40; // 40 degrees
     osdConfig->logo_on_arming = OSD_LOGO_ARMING_OFF;
     osdConfig->logo_on_arming_duration = 5;  // 0.5 seconds
-    // Turn off replacing craft name for DJI OSD
-    osdWarnSetState(OSD_WARNING_DJI, false);
 }
 
 static void osdDrawLogo(int x, int y) {
