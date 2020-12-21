@@ -200,6 +200,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dynThr = { 75, 125, 65 },
         .tpa_breakpoint = 1350,
         .dtermAlpha = 750,
+        .dterm_abg_vel_hz = 80,
+        .dterm_abg_acc_hz = 80,
+        .dterm_abg_jerk_hz = 80,
     );
 }
 

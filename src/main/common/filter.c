@@ -229,7 +229,7 @@ FAST_CODE float laggedMovingAverageUpdate(laggedMovingAverage_t *filter, float i
 
 // Robert Bouwens AlphaBetaGamma
 
-void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, float dT) {
+void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, int velHz, int accHz, int jerkHz, float dT) {
 	const float Alpha = alpha * 0.001f;
   // beta, gamma, and eta gains all derived from
   // http://yadda.icm.edu.pl/yadda/element/bwmeta1.element.baztech-922ff6cb-e991-417f-93f0-77448f1ef4ec/c/A_Study_Jeong_1_2017.pdf
@@ -246,13 +246,19 @@ void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, float dT) {
 	filter->dT = dT;
 	filter->dT2 = dT * dT;
   filter->dT3 = dT * dT * dT;
+
+  pt1FilterInit(&filter->vel, pt1FilterGain(velHz, dT));
+  pt1FilterInit(&filter->acc, pt1FilterGain(accHz, dT));
+  pt1FilterInit(&filter->jerk, pt1FilterGain(jerkHz, dT));
 } // ABGInit
 
 FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input) {
-	//    float xk;   // current system state (ie: position)
-	//    float vk;   // derivative of system state (ie: velocity)
-  //    float ak    // derivative of the derivate of system state (ie: acceleration)
-	float rk; // residual error
+	// float xk;   // current system state (ie: position)
+	// float vk;   // derivative of system state (ie: velocity)
+  // float ak;   // derivative of system velociy (ie: acceleration)
+  // float jk;   // derivative of system acceleration (ie: jerk)
+  float rk;   // residual error
+
 
   // update our (estimated) state 'x' from the system (ie pos = pos + vel (last).dT)
   filter->xk += filter->dT * filter->vk + (1.0f / 2.0f) * filter->dT2 * filter->ak + (1.0f / 6.0f) * filter->dT3 * filter->jk;
@@ -266,6 +272,10 @@ FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input)
   filter->vk += filter->b / filter->dT * rk;
   filter->ak += filter->g / (2.0f * filter->dT2) * rk;
   filter->jk += filter->e / (6.0f * filter->dT3) * rk;
+
+  filter->vk = pt1FilterApply(&filter->vel, filter->vk);
+  filter->ak = pt1FilterApply(&filter->acc, filter->ak);
+  filter->jk = pt1FilterApply(&filter->jerk, filter->jk);
 
 	return filter->xk;
 } // ABGUpdate

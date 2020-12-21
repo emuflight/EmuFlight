@@ -186,6 +186,9 @@ typedef struct pidProfile_s {
     uint16_t tpa_breakpoint;                // Breakpoint where TPA is activated
 
     uint16_t dtermAlpha;
+    uint16_t dterm_abg_vel_hz;
+    uint16_t dterm_abg_acc_hz;
+    uint16_t dterm_abg_jerk_hz;    
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);

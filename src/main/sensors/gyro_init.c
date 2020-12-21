@@ -213,7 +213,7 @@ void gyroInitABG() {
     if (gyroConfig()->alpha != 0) {
         gyro.alphaBetaGammaApplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            ABGInit(&gyro.alphaBetaGamma[axis], gyroConfig()->alpha, gyro.targetLooptime * 1e-6f);
+            ABGInit(&gyro.alphaBetaGamma[axis], gyroConfig()->alpha, gyroConfig()->abg_vel_hz, gyroConfig()->abg_acc_hz, gyroConfig()->abg_jerk_hz, gyro.targetLooptime * 1e-6f);
         }
     }
 }

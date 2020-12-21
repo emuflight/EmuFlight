@@ -53,6 +53,7 @@ typedef struct alphaBetaGammaFilter_s {
     float a, b, g, e;
     float ak, vk, xk, jk;
     float dT, dT2, dT3;
+    pt1Filter_t vel, acc, jerk;
 } alphaBetaGammaFilter_t;
 
 typedef enum {
@@ -91,5 +92,5 @@ float pt1FilterApply(pt1Filter_t *filter, float input);
 void slewFilterInit(slewFilter_t *filter, float slewLimit, float threshold);
 float slewFilterApply(slewFilter_t *filter, float input);
 
-void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, float dt);
+void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, int velHz, int accHz, int jerkHz, float dT);
 float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input);
