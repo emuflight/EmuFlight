@@ -44,7 +44,7 @@
 // The constant scale factor to replace the Kd component of the feedforward calculation.
 // This value gives the same "feel" as the previous Kd default of 26 (26 * DTERM_SCALE)
 #define FEEDFORWARD_SCALE 0.013754f
-#define YAW_TRUE_FF_SCALE 0.005f
+#define DIRECT_FF_SCALE 0.005f
 
 // Anti gravity I constant
 #define AG_KI 21.586988f;
@@ -82,6 +82,7 @@ typedef struct pidf_s {
     uint8_t I;
     uint8_t D;
     uint16_t F;
+    uint8_t DF;
 } pidf_t;
 
 typedef enum {
@@ -106,8 +107,6 @@ typedef struct pidProfile_s {
     uint16_t dterm_notch_cutoff;            // Biquad dterm notch low cutoff
 
     pidf_t  pid[PID_ITEM_COUNT];
-
-    uint8_t yaw_true_ff;                    // a true FF for the yaw
 
     uint8_t dterm_filter_type;              // Filter selection for dterm
     uint8_t itermWindupPointPercent;        // iterm windup threshold, percent motor saturation
@@ -188,7 +187,9 @@ typedef struct pidProfile_s {
     uint16_t dtermAlpha;
     uint16_t dterm_abg_vel_hz;
     uint16_t dterm_abg_acc_hz;
-    uint16_t dterm_abg_jerk_hz;    
+    uint16_t dterm_abg_jerk_hz;
+    uint8_t axis_lock_hz;                   // filter for the axis lock
+    uint8_t axis_lock_multiplier;           // multplier for the axis lock effect
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
@@ -224,6 +225,7 @@ typedef struct pidCoefficient_s {
     float Ki;
     float Kd;
     float Kf;
+    float Kdf;
 } pidCoefficient_t;
 
 typedef struct pidRuntime_s {
@@ -231,6 +233,9 @@ typedef struct pidRuntime_s {
     float pidFrequency;
     bool pidStabilisationEnabled;
     float previousPidSetpoint[XYZ_AXIS_COUNT];
+    float previousRcDeflection[XYZ_AXIS_COUNT];
+    float filteredStickMovement[XYZ_AXIS_COUNT];
+    pt1Filter_t stickMovementLpf[XYZ_AXIS_COUNT];
     filterApplyFnPtr dtermNotchApplyFn;
     biquadFilter_t dtermNotch[XYZ_AXIS_COUNT];
     filterApplyFnPtr dtermLowpassApplyFn;
@@ -253,7 +258,6 @@ typedef struct pidRuntime_s {
     uint16_t itermAcceleratorGain;
     float feedForwardTransition;
     pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
-    float trueYawFF;
 
     float P_angle_low;
     float D_angle_low;
@@ -341,6 +345,9 @@ typedef struct pidRuntime_s {
     ffInterpolationType_t ffFromInterpolatedSetpoint;
     float ffSmoothFactor;
 #endif
+
+    float axisLockMultiplier;
+    float axisLockScaler[XYZ_AXIS_COUNT];
 } pidRuntime_t;
 
 extern pidRuntime_t pidRuntime;

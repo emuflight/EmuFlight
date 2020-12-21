@@ -1352,7 +1352,6 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("yawPID", "%d,%d,%d",                    currentPidProfile->pid[PID_YAW].P,
                                                                             currentPidProfile->pid[PID_YAW].I,
                                                                             currentPidProfile->pid[PID_YAW].D);
-        BLACKBOX_PRINT_HEADER_LINE("yaw_true_ff", "%d",                     currentPidProfile->yaw_true_ff);
         BLACKBOX_PRINT_HEADER_LINE("levelPIDLOW", "%d,%d,%d",               currentPidProfile->pid[PID_LEVEL_LOW].P,
                                                                             currentPidProfile->pid[PID_LEVEL_LOW].D,
                                                                             currentPidProfile->pid[PID_LEVEL_LOW].F);
@@ -1397,6 +1396,9 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("feedforward_weight", "%d,%d,%d",        currentPidProfile->pid[PID_ROLL].F,
                                                                             currentPidProfile->pid[PID_PITCH].F,
                                                                             currentPidProfile->pid[PID_YAW].F);
+        BLACKBOX_PRINT_HEADER_LINE("direct_FF", "%d,%d,%d",                 currentPidProfile->pid[PID_ROLL].DF,
+                                                                            currentPidProfile->pid[PID_PITCH].DF,
+                                                                            currentPidProfile->pid[PID_YAW].DF);
         BLACKBOX_PRINT_HEADER_LINE("d_measurement_slider", "%d",            currentPidProfile->dtermMeasurementSlider);
         BLACKBOX_PRINT_HEADER_LINE("emuBoostPR", "%d",                      currentPidProfile->emuBoostPR);
         BLACKBOX_PRINT_HEADER_LINE("emuBoostY", "%d",                       currentPidProfile->emuBoostY);
