@@ -185,6 +185,9 @@ typedef struct pidProfile_s {
     uint16_t tpa_breakpoint;                // Breakpoint where TPA is activated
 
     uint16_t dtermAlpha;
+
+    uint8_t axis_lock_hz;                   // filter for the axis lock
+    uint8_t axis_lock_multiplier;           // multplier for the axis lock effect
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
@@ -228,6 +231,9 @@ typedef struct pidRuntime_s {
     float pidFrequency;
     bool pidStabilisationEnabled;
     float previousPidSetpoint[XYZ_AXIS_COUNT];
+    float previousRcDeflection[XYZ_AXIS_COUNT];
+    float filteredStickMovement[XYZ_AXIS_COUNT];
+    pt1Filter_t stickMovementLpf[XYZ_AXIS_COUNT];
     filterApplyFnPtr dtermNotchApplyFn;
     biquadFilter_t dtermNotch[XYZ_AXIS_COUNT];
     filterApplyFnPtr dtermLowpassApplyFn;
@@ -337,6 +343,9 @@ typedef struct pidRuntime_s {
     ffInterpolationType_t ffFromInterpolatedSetpoint;
     float ffSmoothFactor;
 #endif
+
+    float axisLockMultiplier;
+    float axisLockScaler[XYZ_AXIS_COUNT];
 } pidRuntime_t;
 
 extern pidRuntime_t pidRuntime;

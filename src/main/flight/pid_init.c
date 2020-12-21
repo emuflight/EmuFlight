@@ -181,17 +181,18 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, pidRuntime.dT));
 #endif
 
+    for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+        pt1FilterInit(&pidRuntime.stickMovementLpf[i], pt1FilterGain(pidProfile->axis_lock_hz, pidRuntime.dT));
 #if defined(USE_ITERM_RELAX)
-    if (pidRuntime.itermRelaxCutoff || pidRuntime.itermRelaxCutoffYaw) {
-        for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+        if (pidRuntime.itermRelaxCutoff || pidRuntime.itermRelaxCutoffYaw) {
             if (i != FD_YAW) {
                 pt1FilterInit(&pidRuntime.windupLpf[i], pt1FilterGain(pidRuntime.itermRelaxCutoff, pidRuntime.dT));
             } else {
                 pt1FilterInit(&pidRuntime.windupLpf[i], pt1FilterGain(pidRuntime.itermRelaxCutoffYaw, pidRuntime.dT));
             }
         }
-    }
 #endif
+    }
 
 #if defined(USE_D_MIN)
     // Initialize the filters for all axis even if the d_min[axis] value is 0
@@ -330,6 +331,9 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.itermRelaxThreshold = pidProfile->iterm_relax_threshold;
     pidRuntime.itermRelaxThresholdYaw = pidProfile->iterm_relax_threshold_yaw;
 #endif
+
+    pidRuntime.axisLockMultiplier = pidProfile->axis_lock_multiplier / 100.0f;
+
 
 #ifdef USE_DYN_LPF
     if (pidProfile->dyn_lpf_dterm_min_hz > 0) {

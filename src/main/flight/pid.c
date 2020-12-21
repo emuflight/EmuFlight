@@ -199,6 +199,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dynThr = { 75, 125, 65 },
         .tpa_breakpoint = 1350,
         .dtermAlpha = 750,
+        .axis_lock_hz = 2,
+        .axis_lock_multiplier = 0,
     );
 }
 
@@ -536,7 +538,7 @@ static FAST_CODE_NOINLINE float applyLaunchControl(int axis, const rollAndPitchT
 }
 #endif
 
-float emuboost(float input, float boostMultiplier, float boostLimit)
+static FAST_CODE float emuboost(float input, float boostMultiplier, float boostLimit)
 {
     float boostedRate = (input * fabsf(input)) * boostMultiplier;
     if (fabsf(input * boostLimit) < fabsf(boostedRate))
@@ -548,8 +550,26 @@ float emuboost(float input, float boostMultiplier, float boostLimit)
     return input;
 }
 
-float stickPositionAttenuation(int axis, int pid) {
+static FAST_CODE float stickPositionAttenuation(int axis, int pid) {
     return 1 + (getRcDeflectionAbs(axis) * pidRuntime.stickPositionTransition[pid][axis]);
+}
+
+static FAST_CODE void stickMovement(int axis) {
+    pidRuntime.filteredStickMovement[axis] = (getRcDeflectionAbs(axis) - pidRuntime.previousRcDeflection[axis]) * pidRuntime.pidFrequency;
+    pidRuntime.previousRcDeflection[axis] = getRcDeflectionAbs(axis);
+    pidRuntime.filteredStickMovement[axis] = pt1FilterApply(&pidRuntime.stickMovementLpf[axis], pidRuntime.filteredStickMovement[axis]);
+}
+
+static FAST_CODE void axisLockScaling(void) {
+    if (pidRuntime.axisLockMultiplier != 0.0f) {
+        pidRuntime.axisLockScaler[ROLL] = constrainf(1 - (pidRuntime.filteredStickMovement[PITCH] - pidRuntime.filteredStickMovement[YAW] + pidRuntime.filteredStickMovement[ROLL]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
+        pidRuntime.axisLockScaler[PITCH] = constrainf(1 - (pidRuntime.filteredStickMovement[ROLL] - pidRuntime.filteredStickMovement[YAW] + pidRuntime.filteredStickMovement[PITCH]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
+        pidRuntime.axisLockScaler[YAW] = constrainf(1 - (pidRuntime.filteredStickMovement[ROLL] - pidRuntime.filteredStickMovement[PITCH] + pidRuntime.filteredStickMovement[YAW]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
+      } else {
+        pidRuntime.axisLockScaler[ROLL] = 1.0f;
+        pidRuntime.axisLockScaler[PITCH] = 1.0f;
+        pidRuntime.axisLockScaler[YAW] = 1.0f;
+      }
 }
 
 // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
@@ -558,6 +578,9 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 {
     static float previousGyroRate[XYZ_AXIS_COUNT];
     static float previousErrorRate[XYZ_AXIS_COUNT];
+
+    axisLockScaling();
+
 #ifdef USE_INTERPOLATED_SP
     static FAST_DATA_ZERO_INIT uint32_t lastFrameNumber;
 #endif
@@ -628,6 +651,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
     for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
         // Yaw control is GYRO based, direct sticks control is applied to rate PID
         // When Race Mode is active PITCH control is also GYRO based in level or horizon mode
+        stickMovement(axis);
         float currentPidSetpoint = getSetpointRate(axis);
 #if defined(USE_ACC)
         switch (levelMode) {
@@ -908,9 +932,9 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         }
 
         const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + pidData[axis].F;
-        {
-            pidData[axis].Sum = pidSum;
-        }
+
+        pidData[axis].Sum = pidSum * pidRuntime.axisLockScaler[axis];
+
     }
 
     // Disable PID control if at zero throttle or if gyro overflow detected
