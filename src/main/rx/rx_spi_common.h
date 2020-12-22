@@ -20,14 +20,19 @@
 
 #pragma once
 
-#include "rx/rx.h"
 #include "rx/rx_spi.h"
 
-#define RC_CHANNEL_COUNT_REDPINE 16
-#define REDPINE_PACKET_SIZE 11
-#define REDPINE_PACKET_SIZE_W_ADDONS (REDPINE_PACKET_SIZE + 2)
+#define INTERVAL_RX_LOSS_MS 1000
+#define INTERVAL_RX_BIND_MS 250
 
-void redpineSetRcData(uint16_t *rcData, const uint8_t *payload);
-rx_spi_received_e redpineHandlePacket(uint8_t *const packet, uint8_t *const protocolState);
-rx_spi_received_e redpineSpiDataReceived(uint8_t *packet);
-bool redpineSpiInit(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeState);
+void rxSpiCommonIOInit(const rxSpiConfig_t *rxSpiConfig);
+
+void rxSpiLedOn(void);
+void rxSpiLedOff(void);
+void rxSpiLedToggle(void);
+void rxSpiLedBlink(timeMs_t blinkMs);
+void rxSpiLedBlinkRxLoss(rx_spi_received_e result);
+void rxSpiLedBlinkBind(void);
+
+void rxSpiBind(void);
+bool rxSpiCheckBindRequested(bool reset);

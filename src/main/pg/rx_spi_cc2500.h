@@ -20,14 +20,27 @@
 
 #pragma once
 
-#include "rx/rx.h"
-#include "rx/rx_spi.h"
+#include "drivers/io_types.h"
 
-#define RC_CHANNEL_COUNT_REDPINE 16
-#define REDPINE_PACKET_SIZE 11
-#define REDPINE_PACKET_SIZE_W_ADDONS (REDPINE_PACKET_SIZE + 2)
+#include "pg/pg.h"
 
-void redpineSetRcData(uint16_t *rcData, const uint8_t *payload);
-rx_spi_received_e redpineHandlePacket(uint8_t *const packet, uint8_t *const protocolState);
-rx_spi_received_e redpineSpiDataReceived(uint8_t *packet);
-bool redpineSpiInit(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeState);
+typedef enum {
+  FRSKY_SPI_A1_SOURCE_VBAT = 0,
+  FRSKY_SPI_A1_SOURCE_EXTADC,
+  FRSKY_SPI_A1_SOURCE_CONST
+} frSkySpiA1Source_e;
+
+typedef struct rxCc2500SpiConfig_s {
+    uint8_t autoBind;
+    uint8_t bindTxId[3];
+    int8_t  bindOffset;
+    uint8_t bindHopData[50];
+    uint8_t rxNum;
+    uint8_t a1Source;
+    uint8_t chipDetectEnabled;
+    ioTag_t txEnIoTag;
+    ioTag_t lnaEnIoTag;
+    ioTag_t antSelIoTag;
+} rxCc2500SpiConfig_t;
+
+PG_DECLARE(rxCc2500SpiConfig_t, rxCc2500SpiConfig);

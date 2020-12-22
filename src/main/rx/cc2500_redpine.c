@@ -45,9 +45,9 @@
 #include "io/vtx.h"
 #include "pg/rx.h"
 #include "pg/rx_spi.h"
-/* #include "pg/rx_spi_cc2500.h" */
+#include "pg/rx_spi_cc2500.h"
 #include "rx/cc2500_common.h"
-/* #include "rx/rx_spi_common.h" */
+#include "rx/rx_spi_common.h"
 #include "sensors/battery.h"
 
 enum {
@@ -533,9 +533,8 @@ rx_spi_received_e redpineHandlePacket(uint8_t *const packet, uint8_t *const prot
     return ret;
 }
 
-bool redpineSpiInit(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeState, rxSpiExtiConfig_t *extiConfig)
+bool redpineSpiInit(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeState)
 {
-    UNUSED(extiConfig);
 
     rxSpiCommonIOInit(rxSpiConfig);
     if (!cc2500SpiInit()) {
@@ -551,6 +550,15 @@ bool redpineSpiInit(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRunti
     protocolState = STATE_INIT;
 
     return true;
+}
+
+void cc2500ApplyRegisterConfig(const cc2500RegisterConfigElement_t *configArrayPtr, int configSize)
+{
+    const int entryCount = configSize / sizeof(cc2500RegisterConfigElement_t);
+    for (int i = 0; i < entryCount; i++) {
+        cc2500WriteReg(configArrayPtr->registerID, configArrayPtr->registerValue);
+        configArrayPtr++;
+    }
 }
 
 #endif

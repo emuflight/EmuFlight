@@ -137,7 +137,7 @@ STATIC_UNIT_TESTED bool rxSpiSetProtocol(rx_spi_protocol_e protocol) {
 #if defined(USE_RX_REDPINE_SPI)
     case RX_SPI_REDPINE:
         protocolInit = redpineSpiInit;
-        protocolDataRecieved = redpineSpiDataRecieved;
+        protocolDataReceived = redpineSpiDataReceived;
         protocolSetRcDataFromPayload = redpineSetRcData;
         break;
 #endif // USE_RX_REDPINE_SPI
