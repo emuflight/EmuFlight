@@ -25,6 +25,7 @@
 #include "pg/rx_spi.h"
 
 // Used in MSP. Append at end.
+// Ther order MUST match order of protocols in interface/settings.c
 typedef enum {
     RX_SPI_NRF24_V202_250K = 0,
     RX_SPI_NRF24_V202_1M,
@@ -36,11 +37,11 @@ typedef enum {
     RX_SPI_NRF24_INAV,
     RX_SPI_FRSKY_D,
     RX_SPI_FRSKY_X,
-    RX_SPI_REDPINE,
     RX_SPI_A7105_FLYSKY,
     RX_SPI_A7105_FLYSKY_2A,
     RX_SPI_NRF24_KN,
     RX_SPI_SFHSS,
+    RX_SPI_REDPINE,
     RX_SPI_PROTOCOL_COUNT
 } rx_spi_protocol_e;
 
