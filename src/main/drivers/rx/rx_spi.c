@@ -43,9 +43,23 @@
 
 static busDevice_t rxSpiDevice;
 static busDevice_t *busdev = &rxSpiDevice;
+static extiCallbackRec_t rxSpiExtiCallbackRec;
+static IO_t extiPin = IO_NONE;
 
 #define DISABLE_RX()    {IOHi(busdev->busdev_u.spi.csnPin);}
 #define ENABLE_RX()     {IOLo(busdev->busdev_u.spi.csnPin);}
+
+void rxSpiExtiHandler(extiCallbackRec_t* callback)
+{
+    UNUSED(callback);
+
+    const timeUs_t extiTimeUs = microsISR();
+
+    if (IORead(extiPin) == extiLevel) {
+        lastExtiTimeUs = extiTimeUs;
+        extiHasOccurred = true;
+    }
+}
 
 bool rxSpiDeviceInit(const rxSpiConfig_t *rxSpiConfig) {
     if (!rxSpiConfig->spibus) {
@@ -106,5 +120,10 @@ uint8_t rxSpiReadCommandMulti(uint8_t command, uint8_t commandData, uint8_t *ret
     }
     DISABLE_RX();
     return ret;
+}
+
+bool rxSpiGetExtiState(void)
+{
+    return IORead(extiPin);
 }
 #endif

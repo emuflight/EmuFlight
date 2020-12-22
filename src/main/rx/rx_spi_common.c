@@ -37,27 +37,27 @@ static IO_t bindPin;
 static bool bindRequested;
 static bool lastBindPinStatus;
 
-void rxSpiCommonIOInit(const rxSpiConfig_t *rxSpiConfig)
-{
-    if (rxSpiConfig->ledIoTag) {
-        ledPin = IOGetByTag(rxSpiConfig->ledIoTag);
-        IOInit(ledPin, OWNER_LED, 0);
-        IOConfigGPIO(ledPin, IOCFG_OUT_PP);
-        ledInversion = rxSpiConfig->ledInversion;
-        rxSpiLedOff();
-    } else {
-        ledPin = IO_NONE;
-    }
+/* void rxSpiCommonIOInit(const rxSpiConfig_t *rxSpiConfig) */
+/* { */
+/*     /1* if (rxSpiConfig->ledIoTag) { *1/ */
+/*     /1*     ledPin = IOGetByTag(rxSpiConfig->ledIoTag); *1/ */
+/*     /1*     IOInit(ledPin, OWNER_LED, 0); *1/ */
+/*     /1*     IOConfigGPIO(ledPin, IOCFG_OUT_PP); *1/ */
+/*     /1*     ledInversion = rxSpiConfig->ledInversion; *1/ */
+/*     /1*     rxSpiLedOff(); *1/ */
+/*     /1* } else { *1/ */
+/*     ledPin = IO_NONE; */
+/*     /1* } *1/ */
 
-    if (rxSpiConfig->bindIoTag) {
-        bindPin = IOGetByTag(rxSpiConfig->bindIoTag);
-        IOInit(bindPin, OWNER_RX_SPI_BIND, 0);
-        IOConfigGPIO(bindPin, IOCFG_IPU);
-        lastBindPinStatus = IORead(bindPin);
-    } else {
-        bindPin = IO_NONE;
-    }
-}
+/*     if (rxSpiConfig->bindIoTag) { */
+/*         bindPin = IOGetByTag(rxSpiConfig->bindIoTag); */
+/*         IOInit(bindPin, OWNER_RX_SPI_BIND, 0); */
+/*         IOConfigGPIO(bindPin, IOCFG_IPU); */
+/*         lastBindPinStatus = IORead(bindPin); */
+/*     } else { */
+/*         bindPin = IO_NONE; */
+/*     } */
+/* } */
 
 void rxSpiLedOn(void)
 {

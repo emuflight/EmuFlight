@@ -536,7 +536,7 @@ rx_spi_received_e redpineHandlePacket(uint8_t *const packet, uint8_t *const prot
 bool redpineSpiInit(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeState)
 {
 
-    rxSpiCommonIOInit(rxSpiConfig);
+    /* rxSpiCommonIOInit(rxSpiConfig); */
     if (!cc2500SpiInit()) {
         return false;
     }
