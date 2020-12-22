@@ -29,12 +29,15 @@
 
 #ifdef USE_RX_SPI
 
+#include "common/time.h"
 #include "build/build_config.h"
 
 #include "drivers/bus_spi.h"
 #include "drivers/io.h"
 #include "drivers/io_impl.h"
 #include "drivers/rcc.h"
+#include "drivers/exti.h"
+#include "drivers/time.h"
 #include "drivers/system.h"
 
 #include "pg/rx_spi.h"
@@ -43,8 +46,14 @@
 
 static busDevice_t rxSpiDevice;
 static busDevice_t *busdev = &rxSpiDevice;
-static extiCallbackRec_t rxSpiExtiCallbackRec;
+
 static IO_t extiPin = IO_NONE;
+static extiCallbackRec_t rxSpiExtiCallbackRec;
+static bool extiLevel = true;
+
+static volatile bool extiHasOccurred = false;
+static volatile timeUs_t lastExtiTimeUs = 0;
+
 
 #define DISABLE_RX()    {IOHi(busdev->busdev_u.spi.csnPin);}
 #define ENABLE_RX()     {IOLo(busdev->busdev_u.spi.csnPin);}
