@@ -32,3 +32,11 @@ void cliInit(const struct serialConfig_s *serialConfig);
 void cliProcess(void);
 struct serialPort_s;
 void cliEnter(struct serialPort_s *serialPort);
+
+#ifdef USE_CLI_DEBUG_PRINT
+void cliPrint(const char *str);
+void cliPrintLinefeed(void);
+void cliPrintLine(const char *str);
+void cliPrintf(const char *format, ...);
+void cliPrintLinef(const char *format, ...);
+#endif
