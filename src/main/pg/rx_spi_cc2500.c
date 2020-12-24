@@ -49,8 +49,8 @@ PG_RESET_TEMPLATE(rxCc2500SpiConfig_t, rxCc2500SpiConfig,
     .rxNum = 0,
     .a1Source = FRSKY_SPI_A1_SOURCE_VBAT,
     .chipDetectEnabled = CC2500_SPI_CHIP_DETECTION,
-    /* .txEnIoTag = IO_TAG(RX_CC2500_SPI_TX_EN_PIN), */
-    /* .lnaEnIoTag = IO_TAG(RX_CC2500_SPI_LNA_EN_PIN), */
-    /* .antSelIoTag = IO_TAG(RX_CC2500_SPI_ANT_SEL_PIN), */
+    .txEnIoTag = IO_TAG(RX_CC2500_SPI_TX_EN_PIN),
+    .lnaEnIoTag = IO_TAG(RX_CC2500_SPI_LNA_EN_PIN),
+    .antSelIoTag = IO_TAG(RX_CC2500_SPI_ANT_SEL_PIN),
 );
 #endif
