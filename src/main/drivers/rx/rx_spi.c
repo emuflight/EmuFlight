@@ -29,12 +29,15 @@
 
 #ifdef USE_RX_SPI
 
+#include "common/time.h"
 #include "build/build_config.h"
 
 #include "drivers/bus_spi.h"
 #include "drivers/io.h"
 #include "drivers/io_impl.h"
 #include "drivers/rcc.h"
+#include "drivers/exti.h"
+#include "drivers/time.h"
 #include "drivers/system.h"
 
 #include "pg/rx_spi.h"
@@ -44,8 +47,28 @@
 static busDevice_t rxSpiDevice;
 static busDevice_t *busdev = &rxSpiDevice;
 
+static IO_t extiPin = IO_NONE;
+static extiCallbackRec_t rxSpiExtiCallbackRec;
+static bool extiLevel = true;
+
+static volatile bool extiHasOccurred = false;
+static volatile timeUs_t lastExtiTimeUs = 0;
+
+
 #define DISABLE_RX()    {IOHi(busdev->busdev_u.spi.csnPin);}
 #define ENABLE_RX()     {IOLo(busdev->busdev_u.spi.csnPin);}
+
+void rxSpiExtiHandler(extiCallbackRec_t* callback)
+{
+    UNUSED(callback);
+
+    const timeUs_t extiTimeUs = microsISR();
+
+    if (IORead(extiPin) == extiLevel) {
+        lastExtiTimeUs = extiTimeUs;
+        extiHasOccurred = true;
+    }
+}
 
 bool rxSpiDeviceInit(const rxSpiConfig_t *rxSpiConfig) {
     if (!rxSpiConfig->spibus) {
@@ -106,5 +129,10 @@ uint8_t rxSpiReadCommandMulti(uint8_t command, uint8_t commandData, uint8_t *ret
     }
     DISABLE_RX();
     return ret;
+}
+
+bool rxSpiGetExtiState(void)
+{
+    return IORead(extiPin);
 }
 #endif

@@ -20,17 +20,27 @@
 
 #pragma once
 
-#include <stdint.h>
+#include "drivers/io_types.h"
 
-#define RX_SPI_MAX_PAYLOAD_SIZE 32
+#include "pg/pg.h"
 
-struct rxSpiConfig_s;
+typedef enum {
+  FRSKY_SPI_A1_SOURCE_VBAT = 0,
+  FRSKY_SPI_A1_SOURCE_EXTADC,
+  FRSKY_SPI_A1_SOURCE_CONST
+} frSkySpiA1Source_e;
 
-bool rxSpiDeviceInit(const struct rxSpiConfig_s *rxSpiConfig);
-uint8_t rxSpiTransferByte(uint8_t data);
-uint8_t rxSpiWriteByte(uint8_t data);
-uint8_t rxSpiWriteCommand(uint8_t command, uint8_t data);
-uint8_t rxSpiWriteCommandMulti(uint8_t command, const uint8_t *data, uint8_t length);
-uint8_t rxSpiReadCommand(uint8_t command, uint8_t commandData);
-uint8_t rxSpiReadCommandMulti(uint8_t command, uint8_t commandData, uint8_t *retData, uint8_t length);
-bool rxSpiGetExtiState(void);
+typedef struct rxCc2500SpiConfig_s {
+    uint8_t autoBind;
+    uint8_t bindTxId[3];
+    int8_t  bindOffset;
+    uint8_t bindHopData[50];
+    uint8_t rxNum;
+    uint8_t a1Source;
+    uint8_t chipDetectEnabled;
+    ioTag_t txEnIoTag;
+    ioTag_t lnaEnIoTag;
+    ioTag_t antSelIoTag;
+} rxCc2500SpiConfig_t;
+
+PG_DECLARE(rxCc2500SpiConfig_t, rxCc2500SpiConfig);

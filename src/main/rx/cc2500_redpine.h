@@ -20,17 +20,14 @@
 
 #pragma once
 
-#include <stdint.h>
+#include "rx/rx.h"
+#include "rx/rx_spi.h"
 
-#define RX_SPI_MAX_PAYLOAD_SIZE 32
+#define RC_CHANNEL_COUNT_REDPINE 16
+#define REDPINE_PACKET_SIZE 11
+#define REDPINE_PACKET_SIZE_W_ADDONS (REDPINE_PACKET_SIZE + 2)
 
-struct rxSpiConfig_s;
-
-bool rxSpiDeviceInit(const struct rxSpiConfig_s *rxSpiConfig);
-uint8_t rxSpiTransferByte(uint8_t data);
-uint8_t rxSpiWriteByte(uint8_t data);
-uint8_t rxSpiWriteCommand(uint8_t command, uint8_t data);
-uint8_t rxSpiWriteCommandMulti(uint8_t command, const uint8_t *data, uint8_t length);
-uint8_t rxSpiReadCommand(uint8_t command, uint8_t commandData);
-uint8_t rxSpiReadCommandMulti(uint8_t command, uint8_t commandData, uint8_t *retData, uint8_t length);
-bool rxSpiGetExtiState(void);
+void redpineSetRcData(uint16_t *rcData, const uint8_t *payload);
+rx_spi_received_e redpineHandlePacket(uint8_t *const packet, uint8_t *const protocolState);
+rx_spi_received_e redpineSpiDataReceived(uint8_t *packet);
+bool redpineSpiInit(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeState);
