@@ -98,5 +98,6 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "KALMAN",
     "ABG",
     "D_ABG",
-    "BOOST"
+    "BOOST",
+    "GHST",
 };
