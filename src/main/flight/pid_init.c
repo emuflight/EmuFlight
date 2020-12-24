@@ -173,7 +173,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     } else {
         pidRuntime.dtermABGApplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
         for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-            ABGInit(&pidRuntime.dtermABG[axis], pidProfile->dtermAlpha, pidProfile->dterm_abg_vel_hz, pidProfile->dterm_abg_acc_hz, pidProfile->dterm_abg_jerk_hz, pidRuntime.dT);
+            ABGInit(&pidRuntime.dtermABG[axis], pidProfile->dtermAlpha, pidProfile->dterm_abg_boost, pidProfile->dterm_abg_half_life, pidRuntime.dT);
         }
     }
 

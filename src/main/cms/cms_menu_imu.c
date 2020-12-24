@@ -775,8 +775,11 @@ static uint16_t gyroConfig_imuf_yaw_q;
 static uint16_t gyroConfig_imuf_w;
 #endif
 static uint16_t gyroConfig_alpha;
+static uint16_t gyroConfig_abg_boost;
+static uint16_t gyroConfig_abg_half_life;
 static uint16_t dterm_alpha;
-
+static uint16_t dterm_abg_boost;
+static uint16_t dterm_abg_half_life;
 
 static const void *cmsx_menuDynFilt_onEnter(displayPort_t *pDisp)
 {
@@ -807,7 +810,11 @@ static const void *cmsx_menuDynFilt_onEnter(displayPort_t *pDisp)
     gyroConfig_imuf_w         = gyroConfig()->imuf_w;
 #endif
     gyroConfig_alpha          = gyroConfig()->alpha;
+    gyroConfig_abg_boost      = gyroConfig()->abg_boost;
+    gyroConfig_abg_half_life  = gyroConfig()->abg_half_life;
     dterm_alpha               = pidProfile->dtermAlpha;
+    dterm_abg_boost           = pidProfile->dterm_abg_boost;
+    dterm_abg_half_life       = pidProfile->dterm_abg_half_life;
     return NULL;
 }
 
@@ -841,7 +848,12 @@ static const void *cmsx_menuDynFilt_onExit(displayPort_t *pDisp, const OSD_Entry
     gyroConfigMutable()->imuf_w         = gyroConfig_imuf_w;
 #endif
     gyroConfigMutable()->alpha          = gyroConfig_alpha;
+    gyroConfigMutable()->abg_boost      = gyroConfig_abg_boost;
+    gyroConfigMutable()->abg_half_life  = gyroConfig_abg_half_life;
     pidProfile->dtermAlpha              = dterm_alpha;
+    pidProfile->dterm_abg_boost         = dterm_abg_boost;
+    pidProfile->dterm_abg_half_life     = dterm_abg_half_life;
+
     return NULL;
 }
 
@@ -849,9 +861,13 @@ static const OSD_Entry cmsx_menuDynFiltEntries[] =
 {
     { "-- DYN FILT --", OME_Label, NULL, NULL, 0 },
 
-    { "ALPHA",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_alpha,       0, 1000, 1 }, 0 },
-    { "DTERM ALPHA",     OME_UINT16, NULL, &(OSD_UINT16_t) { &dterm_alpha,            0, 1000, 1 }, 0 },
+    { "ALPHA",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_alpha,           0, 1000, 1 }, 0 },
+    { "ABG BOOST",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_abg_boost,       0, 2000, 5 }, 0 },
+    { "ABG HALF LIFE",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_abg_half_life,    0, 1000, 1 }, 0 },
 
+    { "DM ALPHA",        OME_UINT16, NULL, &(OSD_UINT16_t) { &dterm_alpha,            0, 1000, 1 }, 0 },
+    { "D ABG BOOST",     OME_UINT16, NULL, &(OSD_UINT16_t) { &dterm_abg_boost,        0, 2000, 5 }, 0 },
+    { "D ABG HALF LIFE", OME_UINT16, NULL, &(OSD_UINT16_t) { &dterm_abg_half_life,    0, 1000, 1 }, 0 },
 #ifdef USE_GYRO_DATA_ANALYSE
     { "MATRIX Q",        OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltMatrixQ,       0, 1000, 1 }, 0 },
     { "MATRIX MIN HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltMatrixMinHz,   0, 1000, 1 }, 0 },
