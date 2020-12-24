@@ -1104,6 +1104,7 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig) {
     osdConfig->distance_alarm = 0;
     osdConfig->ahMaxPitch = 20; // 20 degrees
     osdConfig->ahMaxRoll = 40; // 40 degrees
+    osdConfig->task_frequency = 60; // at 125 or 150 the refresh rate is exactly 25 (PAL) or 30 (NTSC)
     osdConfig->logo_on_arming = OSD_LOGO_ARMING_OFF;
     osdConfig->logo_on_arming_duration = 5;  // 0.5 seconds
     // Turn off replacing craft name for DJI OSD
