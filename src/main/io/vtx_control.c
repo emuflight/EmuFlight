@@ -98,15 +98,25 @@ void vtxUpdateActivatedChannel(void) {
     if (ARMING_FLAG(ARMED)) {
         locked = 1;
     }
-    if (!locked && vtxCommonDevice()) {
+    if (vtxCommonDevice()) {
         static uint8_t lastIndex = -1;
         for (uint8_t index = 0; index < MAX_CHANNEL_ACTIVATION_CONDITION_COUNT; index++) {
             const vtxChannelActivationCondition_t *vtxChannelActivationCondition = &vtxConfig()->vtxChannelActivationConditions[index];
             if (isRangeActive(vtxChannelActivationCondition->auxChannelIndex, &vtxChannelActivationCondition->range)
                     && index != lastIndex) {
                 lastIndex = index;
-                vtxSettingsConfigMutable()->band = vtxChannelActivationCondition->band;
-                vtxSettingsConfigMutable()->channel = vtxChannelActivationCondition->channel;
+                if (!locked) { // once armed, do not change band or channel
+                    if (vtxChannelActivationCondition->band > 0) {
+                        vtxSettingsConfigMutable()->band = vtxChannelActivationCondition->band;
+                    }
+                    if (vtxChannelActivationCondition->channel > 0) {
+                        vtxSettingsConfigMutable()->channel = vtxChannelActivationCondition->channel;
+                    }
+                }
+                // vtx power can be changed in flight
+                if (vtxChannelActivationCondition->power > 0) {
+                    vtxSettingsConfigMutable()->power = vtxChannelActivationCondition->power;
+                }
                 break;
             }
         }

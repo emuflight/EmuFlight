@@ -86,6 +86,9 @@ cli_unittest_SRC := \
                 $(USER_DIR)/common/typeconversion.c
 
 cli_unittest_DEFINES := \
+		USE_VTX_COMMON \
+		USE_VTX_CONTROL \
+		USE_VTX_SMARTAUDIO \
 		USE_OSD \
 		USE_CLI \
 		SystemCoreClock=1000000

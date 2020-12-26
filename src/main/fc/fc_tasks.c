@@ -307,6 +307,7 @@ void fcTasksInit(void) {
     setTaskEnabled(TASK_TRANSPONDER, feature(FEATURE_TRANSPONDER));
 #endif
 #ifdef USE_OSD
+    rescheduleTask(TASK_OSD, TASK_PERIOD_HZ(osdConfig()->task_frequency));
     setTaskEnabled(TASK_OSD, feature(FEATURE_OSD) && osdInitialized());
 #endif
 #ifdef USE_BST
