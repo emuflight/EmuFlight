@@ -1410,10 +1410,10 @@ static void osdShowStats(uint16_t endBatteryVoltage) {
     }
     if (osdStatGetState(OSD_STAT_BATTERY)) {
         if(osdConfig()->stat_show_cell_value){
-            tfp_sprintf(buff, "%d.%02d%c", getBatteryAverageCellVoltage() / 100, getBatteryAverageCellVoltage() % 100, SYM_VOLT);
+            tfp_sprintf(buff, "%d.%1d%c", getBatteryAverageCellVoltage() / 10, getBatteryAverageCellVoltage() % 10, SYM_VOLT);
         }
         else {
-            tfp_sprintf(buff, "%d.%02d%c", getBatteryVoltage() / 100, getBatteryVoltage() % 100, SYM_VOLT);
+            tfp_sprintf(buff, "%d.%1d%c", getBatteryVoltage() / 10, getBatteryVoltage() % 10, SYM_VOLT);
         }
         osdDisplayStatisticLabel(top++, osdConfig()->stat_show_cell_value ? "BATT (CELL)" : "BATTERY", buff);
     }
