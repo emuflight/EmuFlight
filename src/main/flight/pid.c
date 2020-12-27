@@ -120,7 +120,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
             [PID_ROLL] =       { 60, 85, 40, 90, 0 },
             [PID_PITCH] =      { 65, 90, 42, 95, 0 },
             [PID_YAW] =        { 70, 95, 0,  90, 30 },
-            [PID_LEVEL_LOW] =  {100, 0,  10, 40, 0 },
+            [PID_LEVEL_LOW] =  {100, 0,  10, 40, 70 },
             [PID_LEVEL_HIGH] = { 35, 0,  1,   0, 0 },
             [PID_MAG] =        { 40, 0,  0,   0, 0 },
         },
@@ -370,6 +370,9 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
     d_term_low = inverseErrorAnglePercent * angleDterm * pidRuntime.D_angle_low;
     d_term_high = absErrorAnglePercent * angleDterm * pidRuntime.D_angle_high;
     pidRuntime.attitudePrevious[axis] = attitude.raw[axis];
+
+    pidRuntime.pidCoefficient[axis].Kdf = inverseErrorAnglePercent * pidRuntime.D_angle_low;
+    pidRuntime.pidCoefficient[axis].Kdf += absErrorAnglePercent * pidRuntime.D_angle_high;
 
     currentPidSetpoint = p_term_low + p_term_high;
     currentPidSetpoint += d_term_low + d_term_high;
@@ -658,10 +661,13 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 #if defined(USE_ACC)
         switch (levelMode) {
         case LEVEL_MODE_OFF:
-
+            if (axis == FD_PITCH || axis == FD_ROLL) {
+                pidRuntime.pidCoefficient[axis].Kdf = 0;
+            }
             break;
         case LEVEL_MODE_R:
             if (axis == FD_PITCH) {
+                pidRuntime.pidCoefficient[axis].Kdf = 0;
                 break;
             }
 
@@ -885,7 +891,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         // feedforward as betaflight calls it is really a setpoint derivative
         // this feedforward is literally setpoint * feedforward
         // since yaw acts different this will only work for yaw
-        // testing this on roll and pitch, useful on roll and pitch, but maybe only in angle mode
+        // allowed on roll and pitch, but only in angle mode
         pidData[axis].F += currentPidSetpoint * pidRuntime.pidCoefficient[axis].Kdf;
 
 #ifdef USE_YAW_SPIN_RECOVERY

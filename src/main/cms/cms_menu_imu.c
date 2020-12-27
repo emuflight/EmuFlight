@@ -69,7 +69,7 @@ static uint8_t pidProfileIndex;
 static char pidProfileIndexString[MAX_PROFILE_NAME_LENGTH + 5];
 static uint8_t tempPid[3][3];
 static uint16_t tempPidF[3];
-static uint8_t tempPidDF[3];
+static uint8_t tempPidDF;
 
 static uint8_t tmpRateProfileIndex;
 static uint8_t rateProfileIndex;
@@ -245,6 +245,7 @@ static const void *cmsx_PidRead(void)
         tempPid[i][2] = pidProfile->pid[i].D;
         tempPidF[i] = pidProfile->pid[i].F;
     }
+    tempPidDF = pidProfile->pid[YAW].DF;
 
     return NULL;
 }
@@ -271,6 +272,7 @@ static const void *cmsx_PidWriteback(displayPort_t *pDisp, const OSD_Entry *self
         pidProfile->pid[i].D = tempPid[i][2];
         pidProfile->pid[i].F = tempPidF[i];
     }
+    pidProfile->pid[YAW].DF = tempPidDF;
     pidInitConfig(currentPidProfile);
 
     return NULL;
@@ -285,19 +287,17 @@ static const OSD_Entry cmsx_menuPidEntries[] =
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
     { "ROLL  D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][2],  0, 200, 1 }, 0 },
     { "ROLL  F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_ROLL],  0, 2000, 1 }, 0 },
-    { "ROLL DIR F", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidDF[PID_YAW], 0, 200, 1 }, 0 },
 
     { "PITCH P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][0], 0, 200, 1 }, 0 },
     { "PITCH I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][1], 0, 200, 1 }, 0 },
     { "PITCH D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][2], 0, 200, 1 }, 0 },
     { "PITCH F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_PITCH], 0, 2000, 1 }, 0 },
-    { "PITCH DIR F", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidDF[PID_YAW],0, 200, 1 }, 0 },
 
     { "YAW   P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][0],   0, 200, 1 }, 0 },
     { "YAW   I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][1],   0, 200, 1 }, 0 },
     { "YAW   D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][2],   0, 200, 1 }, 0 },
     { "YAW   F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_YAW],   0, 2000, 1 }, 0 },
-    { "YAW DIR F", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidDF[PID_YAW],  0, 200, 1 }, 0 },
+    { "YAW DIR F", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidDF,  0, 200, 1 }, 0 },
 
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }
@@ -316,8 +316,10 @@ static CMS_Menu cmsx_menuPid = {
 
 static uint8_t  cmsx_P_angle_low;
 static uint8_t  cmsx_D_angle_low;
+static uint8_t  cmsx_DF_angle_low;
 static uint8_t  cmsx_P_angle_high;
 static uint8_t  cmsx_D_angle_high;
+static uint8_t  cmsx_DF_angle_high;
 static uint16_t cmsx_F_angle;
 static uint8_t  cmsx_angle_limit;
 static uint8_t  cmsx_angle_expo;
@@ -333,8 +335,10 @@ static const void *cmsx_AngleOnEnter(displayPort_t *pDisp)
 
     cmsx_P_angle_low =           pidProfile->pid[PID_LEVEL_LOW].P;
     cmsx_D_angle_low =           pidProfile->pid[PID_LEVEL_LOW].D;
+    cmsx_DF_angle_low =          pidProfile->pid[PID_LEVEL_LOW].DF;
     cmsx_P_angle_high =          pidProfile->pid[PID_LEVEL_HIGH].P;
     cmsx_D_angle_high =          pidProfile->pid[PID_LEVEL_HIGH].D;
+    cmsx_DF_angle_high =         pidProfile->pid[PID_LEVEL_HIGH].DF;
     cmsx_F_angle =               pidProfile->pid[PID_LEVEL_LOW].F;
     cmsx_angle_limit =           pidProfile->levelAngleLimit;
     cmsx_angle_expo =            pidProfile->angleExpo;
@@ -354,8 +358,10 @@ static const void *cmsx_AngleWriteback(displayPort_t *pDisp, const OSD_Entry *se
 
     pidProfile->pid[PID_LEVEL_LOW].P =    cmsx_P_angle_low;
     pidProfile->pid[PID_LEVEL_LOW].D =    cmsx_D_angle_low;
+    pidProfile->pid[PID_LEVEL_LOW].DF =   cmsx_DF_angle_low;
     pidProfile->pid[PID_LEVEL_HIGH].P =   cmsx_P_angle_high;
     pidProfile->pid[PID_LEVEL_HIGH].D =   cmsx_D_angle_high;
+    pidProfile->pid[PID_LEVEL_HIGH].DF =  cmsx_DF_angle_high;
     pidProfile->pid[PID_LEVEL_LOW].F =    cmsx_F_angle;
     pidProfile->levelAngleLimit =         cmsx_angle_limit;
     pidProfile->angleExpo =               cmsx_angle_expo;
@@ -372,11 +378,13 @@ static const OSD_Entry cmsx_menuAngleEntries[] =
 {
     { "-- ANGLE PID --", OME_Label, NULL, pidProfileIndexString, 0},
 
-    { "ANGLE P LOW",  OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_P_angle_low,  0, 200, 1 }, 0 },
-    { "ANGLE D LOW",  OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_D_angle_low,  0, 200, 1 }, 0 },
+    { "ANGLE P  LOW", OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_P_angle_low,  0, 200, 1 }, 0 },
+    { "ANGLE D  LOW", OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_D_angle_low,  0, 200, 1 }, 0 },
+    { "ANGLE DF LOW", OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_DF_angle_low,  0, 200, 1 }, 0 },
+    { "ANGLE P  HIGH",OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_P_angle_high, 0, 200, 1 }, 0 },
+    { "ANGLE D  HIGH",OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_D_angle_high, 0, 200, 1 }, 0 },
+    { "ANGLE DF HIGH",OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_DF_angle_high, 0, 200, 1 }, 0 },
     { "ANGLE F",      OME_UINT16, NULL, &(OSD_UINT16_t){&cmsx_F_angle,     0, 2000, 1 }, 0 },
-    { "ANGLE P HIGH", OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_P_angle_high, 0, 200, 1 }, 0 },
-    { "ANGLE D HIGH", OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_D_angle_high, 0, 200, 1 }, 0 },
 
     { "ANGLE LIMIT",  OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_angle_limit, 10,  90, 1 }, 0 },
     { "ANGLE EXPO",   OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_angle_expo,   0, 100, 1 }, 0 },
@@ -865,7 +873,7 @@ static const OSD_Entry cmsx_menuDynFiltEntries[] =
     { "ABG BOOST",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_abg_boost,       0, 2000, 5 }, 0 },
     { "ABG HALF LIFE",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_abg_half_life,    0, 1000, 1 }, 0 },
 
-    { "DM ALPHA",        OME_UINT16, NULL, &(OSD_UINT16_t) { &dterm_alpha,            0, 1000, 1 }, 0 },
+    { "D ALPHA",        OME_UINT16, NULL, &(OSD_UINT16_t) { &dterm_alpha,            0, 1000, 1 }, 0 },
     { "D ABG BOOST",     OME_UINT16, NULL, &(OSD_UINT16_t) { &dterm_abg_boost,        0, 2000, 5 }, 0 },
     { "D ABG HALF LIFE", OME_UINT16, NULL, &(OSD_UINT16_t) { &dterm_abg_half_life,    0, 1000, 1 }, 0 },
 #ifdef USE_GYRO_DATA_ANALYSE

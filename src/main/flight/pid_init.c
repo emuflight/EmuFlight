@@ -270,12 +270,14 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidRuntime.pidCoefficient[axis].Ki = ITERM_SCALE * pidProfile->pid[axis].I;
         pidRuntime.pidCoefficient[axis].Kd = DTERM_SCALE * pidProfile->pid[axis].D;
         pidRuntime.pidCoefficient[axis].Kf = FEEDFORWARD_SCALE * (pidProfile->pid[axis].F / 100.0f);
-        pidRuntime.pidCoefficient[axis].Kdf = DIRECT_FF_SCALE * pidProfile->pid[axis].DF;
+        pidRuntime.pidCoefficient[axis].Kdf = 0;
         pidRuntime.dynThr[axis] = pidProfile->dynThr[axis];
         for (int pid = 0; pid <= 2; pid++) {
             pidRuntime.stickPositionTransition[pid][axis] = (pidProfile->stickTransition[pid][axis] / 100.0f) - 1.0f;
         }
     }
+    pidRuntime.pidCoefficient[FD_YAW].Kdf = DIRECT_FF_SCALE * pidProfile->pid[FD_YAW].DF;
+
     pidRuntime.dtermMeasurementSlider = pidProfile->dtermMeasurementSlider / 100;
     pidRuntime.dtermMeasurementSliderInverse = 1 - (pidProfile->dtermMeasurementSlider / 100);
 
@@ -290,8 +292,10 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 
     pidRuntime.P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
     pidRuntime.D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
+    pidRuntime.DF_angle_low = pidProfile->pid[PID_LEVEL_LOW].DF * DIRECT_FF_SCALE;
     pidRuntime.P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
     pidRuntime.D_angle_high = pidProfile->pid[PID_LEVEL_HIGH].D * 0.00017f;
+    pidRuntime.DF_angle_high = pidProfile->pid[PID_LEVEL_HIGH].DF * DIRECT_FF_SCALE;
     pidRuntime.F_angle = pidProfile->pid[PID_LEVEL_LOW].F * 0.00000125f;
     pidRuntime.horizonTransition = (float)pidProfile->horizonTransition;
     pidRuntime.horizonCutoffDegrees = pidProfile->racemode_tilt_effect;

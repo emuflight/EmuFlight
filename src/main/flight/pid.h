@@ -187,7 +187,7 @@ typedef struct pidProfile_s {
     uint16_t dtermAlpha;
     uint16_t dterm_abg_boost;
     uint16_t dterm_abg_half_life;
-    
+
     uint8_t axis_lock_hz;                   // filter for the axis lock
     uint8_t axis_lock_multiplier;           // multplier for the axis lock effect
 } pidProfile_t;
@@ -261,8 +261,10 @@ typedef struct pidRuntime_s {
 
     float P_angle_low;
     float D_angle_low;
+    float DF_angle_low;
     float P_angle_high;
     float D_angle_high;
+    float DF_angle_high;
     float F_angle;
     float horizonGain;
     float horizonTransition;
