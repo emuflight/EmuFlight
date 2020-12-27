@@ -47,6 +47,9 @@ extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
 #define OSD_TIMER_PRECISION(timer)  ((timer >> 4) & 0x0F)
 #define OSD_TIMER_ALARM(timer)      ((timer >> 8) & 0xFF)
 
+#define OSD_TASK_FREQUENCY_MIN 30
+#define OSD_TASK_FREQUENCY_MAX 300
+
 // NB: to ensure backwards compatibility, new enum values must be appended at the end but before the OSD_XXXX_COUNT entry.
 
 // *** IMPORTANT ***
@@ -190,13 +193,10 @@ STATIC_ASSERT(OSD_WARNING_COUNT <= 16, osdwarnings_overflow);
 typedef struct osdConfig_s {
     uint16_t item_pos[OSD_ITEM_COUNT];
     uint16_t timers[OSD_TIMER_COUNT];
-
     uint16_t enabledWarnings;
     uint32_t enabled_stats;
-
     osd_unit_e units;
     crsfformat_e lq_format;
-
     // Alarms
     int16_t esc_current_alarm;
     int16_t esc_rpm_alarm;
@@ -207,9 +207,9 @@ typedef struct osdConfig_s {
     uint16_t lq_alarm;
     uint8_t core_temp_alarm;
     uint8_t rssi_alarm;
-
     uint8_t ahMaxPitch;
     uint8_t ahMaxRoll;
+    uint16_t task_frequency;
     uint8_t logo_on_arming;                   // show the logo on arming
     uint8_t logo_on_arming_duration;          // display duration in 0.1s units
     bool stat_show_cell_value;
