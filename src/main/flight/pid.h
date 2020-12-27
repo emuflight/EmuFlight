@@ -185,7 +185,9 @@ typedef struct pidProfile_s {
     uint16_t tpa_breakpoint;                // Breakpoint where TPA is activated
 
     uint16_t dtermAlpha;
-
+    uint16_t dterm_abg_boost;
+    uint16_t dterm_abg_half_life;
+    
     uint8_t axis_lock_hz;                   // filter for the axis lock
     uint8_t axis_lock_multiplier;           // multplier for the axis lock effect
 } pidProfile_t;

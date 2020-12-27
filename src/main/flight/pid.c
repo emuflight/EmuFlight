@@ -199,6 +199,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dynThr = { 75, 125, 65 },
         .tpa_breakpoint = 1350,
         .dtermAlpha = 750,
+        .dterm_abg_boost = 50,
+        .dterm_abg_half_life = 100,
         .axis_lock_hz = 2,
         .axis_lock_multiplier = 0,
     );
@@ -756,7 +758,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         	  }
         }
 
-        pidData[axis].I = constrainf(iterm + iTermNew, -pidRuntime.itermLimit, pidRuntime.itermLimit);
+        pidData[axis].I = constrainf(iterm + iTermNew * pidRuntime.axisLockScaler[axis], -pidRuntime.itermLimit, pidRuntime.itermLimit);
 
         // -----calculate pidSetpointDelta
         float pidSetpointDelta = 0;
