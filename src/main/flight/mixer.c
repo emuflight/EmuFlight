@@ -905,7 +905,7 @@ uint16_t yawPidSumLimit = currentPidProfile->pidSumLimitYaw;
 
     loggingThrottle = throttle;
 
-#ifdef(USE_BARO || USE_GPS)
+#if defined(USE_BARO) || defined(USE_GPS)
   if(isAltiLimit()){
       if(((gpsIsHealthy() && gpsSol.numSat > 7) || isBaroReady())
         && (mixerConfig()->alti_cutoff > 0 && mixerConfig()->alti_start_lim > 0)){
