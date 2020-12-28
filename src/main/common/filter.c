@@ -277,7 +277,7 @@ FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input)
   // what is our residual error (measured - estimated)
   rk = input - filter->xk;
   // artificially boost the error to increase the response of the filter
-  rk += rk + (fabsf(rk) * rk * filter->boost);
+  rk += (fabsf(rk) * rk * filter->boost);
   // update our estimates given the residual error.
   filter->xk += filter->a * rk;
   filter->vk += filter->b / filter->dT * rk;
