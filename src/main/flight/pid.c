@@ -375,6 +375,9 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
     currentPidSetpoint += d_term_low + d_term_high;
     currentPidSetpoint += f_term_low;
 
+    pidRuntime.pidCoefficient[axis].Kdf = inverseErrorAnglePercent * pidRuntime.DF_angle_low;
+    pidRuntime.pidCoefficient[axis].Kdf += absErrorAnglePercent * pidRuntime.DF_angle_high;
+
     if (FLIGHT_MODE(HORIZON_MODE))
     { // HORIZON hacked into 2 types of RACEMODE  - Expert Mode On is RACEMODEhoriozon or Off is RACEMODEangle
         const float horizonLevelStrength = calcHorizonLevelStrength(pidProfile);
@@ -390,8 +393,6 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
     			currentPidSetpoint = (((currentPidSetpoint * (1 - horizonLevelStrength)) + currentPidSetpoint) / 2) + (errorAngle * pidRuntime.horizonGain * horizonLevelStrength);
     			}
     }
-    pidRuntime.pidCoefficient[axis].Kdf = inverseErrorAnglePercent * pidRuntime.DF_angle_low * currentPidSetpoint;
-    pidRuntime.pidCoefficient[axis].Kdf += absErrorAnglePercent * pidRuntime.DF_angle_high * currentPidSetpoint;
     return currentPidSetpoint;
 }
 
