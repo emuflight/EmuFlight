@@ -118,7 +118,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
         [PID_ROLL] = DEFAULT_PIDS_ROLL,
         [PID_PITCH] = DEFAULT_PIDS_PITCH,
         [PID_YAW] = DEFAULT_PIDS_YAW,
-        [PID_LEVEL_LOW] = {100, 0, 10, 40},
+        [PID_LEVEL_LOW] = {100, 70, 10, 40},
         [PID_LEVEL_HIGH] = {35, 0, 1, 0},
         [PID_MAG] = {40, 0, 0, 0},
     },
@@ -176,7 +176,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .motor_output_limit = 100,
     .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
     .horizonTransition = 0,
-    .yaw_true_ff = 0,
+    .directFF_yaw = 0,
     );
 }
 
@@ -317,7 +317,7 @@ typedef struct pidCoefficient_s {
 } pidCoefficient_t;
 
 static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float trueYawFF;
+static FAST_RAM_ZERO_INIT float directFF[3];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feathered_pids;
 static FAST_RAM_ZERO_INIT uint8_t nfe_racermode;
@@ -326,7 +326,7 @@ static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointDTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float dtermBoostMultiplier, dtermBoostLimitPercent;
-static FAST_RAM_ZERO_INIT float P_angle_low, D_angle_low, P_angle_high, D_angle_high, F_angle, horizonTransition, horizonCutoffDegrees;
+static FAST_RAM_ZERO_INIT float P_angle_low, D_angle_low, P_angle_high, D_angle_high, F_angle, DF_angle_low, DF_angle_high, horizonTransition, horizonCutoffDegrees;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeLimitUs;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeDelayUs;
@@ -360,7 +360,9 @@ void pidInitConfig(const pidProfile_t *pidProfile) {
         setPointDTransition[axis] = pidProfile->setPointDTransition[axis] / 100.0f;
         smart_dterm_smoothing[axis] = pidProfile->dFilter[axis].smartSmoothing;
     }
-    trueYawFF = YAW_TRUE_FF_SCALE * pidProfile->yaw_true_ff;
+    directFF[0] = DIRECT_FF_SCALE * pidProfile->directFF_yaw;
+    DF_angle_low = DIRECT_FF_SCALE * pidProfile->pid[PID_LEVEL_LOW].I;
+    DF_angle_high = DIRECT_FF_SCALE * pidProfile->pid[PID_LEVEL_HIGH].I;
     feathered_pids = pidProfile->feathered_pids / 100.0f;
     nfe_racermode = pidProfile->nfe_racermode;
     dtermBoostMultiplier = (pidProfile->dtermBoost * pidProfile->dtermBoost / 1000000) * 0.003;
@@ -471,6 +473,8 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
         const float horizonLevelStrength = calcHorizonLevelStrength();
         currentPidSetpoint = (((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f) + (currentPidSetpoint * horizonLevelStrength);
     }
+    directFF[axis] = (1 - fabsf(errorAnglePercent)) * DF_angle_low;
+    directFF[axis] += fabsf(errorAnglePercent) * DF_angle_high;
     return currentPidSetpoint;
 }
 
@@ -617,11 +621,17 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         }
         // Yaw control is GYRO based, direct sticks control is applied to rate PID
         // NFE racermode applies angle only to the roll axis
-        if (FLIGHT_MODE(GPS_RESCUE_MODE) && axis != FD_YAW) {
+        // disable directFF for pitch and roll while not in angle
+        if (axis != FD_YAW) {
+            directFF[axis] = 0.0f;
+        }
+
+        if (axis == FD_YAW) {
+        } else if (FLIGHT_MODE(GPS_RESCUE_MODE)) {
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
-        } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && !nfe_racermode && (axis != FD_YAW)) {
+        } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && !nfe_racermode) {
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
-        } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && nfe_racermode && ((axis != FD_YAW) && (axis != FD_PITCH))) {
+        } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && nfe_racermode && (axis != FD_PITCH)) {
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
         }
         // Handle yaw spin recovery - zero the setpoint on yaw to aid in recovery
@@ -748,14 +758,12 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         handleCrashRecovery(pidProfile->crash_recovery, angleTrim, axis, currentTimeUs, errorRate, &currentPidSetpoint, &errorRate);
         detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, currentTimeUs, pidData[axis].D, errorRate);
 
-        // -----calculate true yaw feedforward component
+        // -----calculate direct yaw feedforward component
         // feedforward as betaflight calls it is really a setpoint derivative
         // this feedforward is literally setpoint * feedforward
         // since yaw acts different this will only work for yaw
-        float yawFeedForward = 0;
-        if (axis == FD_YAW) {
-            yawFeedForward = currentPidSetpoint * trueYawFF;
-        }
+        // actually this also works in angle mode so pitch and roll have angle mode values
+        float directFeedForward = currentPidSetpoint * directFF[axis];
 
 #ifdef USE_YAW_SPIN_RECOVERY
         if (gyroYawSpinDetected()) {
@@ -780,7 +788,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         pidData[axis].P = pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation[axis];
         pidData[axis].I = temporaryIterm[axis] * getThrottleIAttenuation() * setPointIAttenuation[axis]; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
         pidData[axis].D = pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation[axis];
-        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + yawFeedForward;
+        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + directFeedForward;
         pidData[axis].Sum = pidSum;
     }
 }

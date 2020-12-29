@@ -39,7 +39,7 @@
 #define PTERM_SCALE 0.032029f
 #define ITERM_SCALE 0.244381f
 #define DTERM_SCALE 0.000529f
-#define YAW_TRUE_FF_SCALE 0.005f
+#define DIRECT_FF_SCALE 0.005f
 
 typedef enum {
     PID_ROLL,
@@ -85,7 +85,7 @@ typedef struct dFilter_s {
 
 typedef struct pidProfile_s {
     pidf_t  pid[PID_ITEM_COUNT];
-    uint8_t yaw_true_ff;                    // a true FF for the yaw
+    uint8_t directFF_yaw;                    // a true FF for the yaw
     dFilter_t dFilter[3];
 
     uint8_t dterm_filter_type;              // Filter selection for dterm
