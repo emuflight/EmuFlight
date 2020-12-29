@@ -29,8 +29,7 @@
 
 #include "build/debug.h"
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     // SOFTSERIAL1 is ESC telemetry input
     const int index = findSerialPortIndexByIdentifier(SERIAL_PORT_SOFTSERIAL1);
     if (index >= 0) {

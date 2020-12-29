@@ -25,13 +25,11 @@
 #include "pg/pinio.h"
 #include "pg/piniobox.h"
 
-void targetConfiguration(void)
-{
-  pinioBoxConfigMutable()->permanentId[0] = 0;
-  pinioBoxConfigMutable()->permanentId[1] = 40;
-  pinioBoxConfigMutable()->permanentId[2] = 255;
-  pinioBoxConfigMutable()->permanentId[3] = 255;
-  pinioConfigMutable()->config[0] = 129;
-
+void targetConfiguration(void) {
+    pinioBoxConfigMutable()->permanentId[0] = 0;
+    pinioBoxConfigMutable()->permanentId[1] = 40;
+    pinioBoxConfigMutable()->permanentId[2] = 255;
+    pinioBoxConfigMutable()->permanentId[3] = 255;
+    pinioConfigMutable()->config[0] = 129;
 }
 #endif

@@ -69,8 +69,8 @@ Byte 9: 8-bit CRC
 PG_REGISTER_WITH_RESET_TEMPLATE(escSensorConfig_t, escSensorConfig, PG_ESC_SENSOR_CONFIG, 0);
 
 PG_RESET_TEMPLATE(escSensorConfig_t, escSensorConfig,
-        .halfDuplex = 0
-);
+                  .halfDuplex = 0
+                 );
 
 /*
 DEBUG INFORMATION
@@ -124,34 +124,28 @@ static bool combinedDataNeedsUpdate = true;
 static uint16_t totalTimeoutCount = 0;
 static uint16_t totalCrcErrorCount = 0;
 
-void startEscDataRead(uint8_t *frameBuffer, uint8_t frameLength)
-{
+void startEscDataRead(uint8_t *frameBuffer, uint8_t frameLength) {
     buffer = frameBuffer;
     bufferPosition = 0;
     bufferSize = frameLength;
 }
 
-uint8_t getNumberEscBytesRead(void)
-{
+uint8_t getNumberEscBytesRead(void) {
     return bufferPosition;
 }
 
-static bool isFrameComplete(void)
-{
+static bool isFrameComplete(void) {
     return bufferPosition == bufferSize;
 }
 
-bool isEscSensorActive(void)
-{
+bool isEscSensorActive(void) {
     return escSensorPort != NULL;
 }
 
-escSensorData_t *getEscSensorData(uint8_t motorNumber)
-{
+escSensorData_t *getEscSensorData(uint8_t motorNumber) {
     if (!feature(FEATURE_ESC_SENSOR)) {
         return NULL;
     }
-
     if (motorNumber < getMotorCount()) {
         return &escSensorData[motorNumber];
     } else if (motorNumber == ESC_SENSOR_COMBINED) {
@@ -162,7 +156,6 @@ escSensorData_t *getEscSensorData(uint8_t motorNumber)
             combinedEscSensorData.current = 0;
             combinedEscSensorData.consumption = 0;
             combinedEscSensorData.rpm = 0;
-
             for (int i = 0; i < getMotorCount(); i = i + 1) {
                 combinedEscSensorData.dataAge = MAX(combinedEscSensorData.dataAge, escSensorData[i].dataAge);
                 combinedEscSensorData.temperature = MAX(combinedEscSensorData.temperature, escSensorData[i].temperature);
@@ -171,15 +164,11 @@ escSensorData_t *getEscSensorData(uint8_t motorNumber)
                 combinedEscSensorData.consumption += escSensorData[i].consumption;
                 combinedEscSensorData.rpm += escSensorData[i].rpm;
             }
-
             combinedEscSensorData.voltage = combinedEscSensorData.voltage / getMotorCount();
             combinedEscSensorData.rpm = combinedEscSensorData.rpm / getMotorCount();
-
             combinedDataNeedsUpdate = false;
-
             DEBUG_SET(DEBUG_ESC_SENSOR, DEBUG_ESC_DATA_AGE, combinedEscSensorData.dataAge);
         }
-
         return &combinedEscSensorData;
     } else {
         return NULL;
@@ -187,67 +176,51 @@ escSensorData_t *getEscSensorData(uint8_t motorNumber)
 }
 
 // Receive ISR callback
-static void escSensorDataReceive(uint16_t c, void *data)
-{
+static void escSensorDataReceive(uint16_t c, void *data) {
     UNUSED(data);
-
     // KISS ESC sends some data during startup, ignore this for now (maybe future use)
     // startup data could be firmware version and serialnumber
-
     if (isFrameComplete()) {
         return;
     }
-
     buffer[bufferPosition++] = (uint8_t)c;
 }
 
-bool escSensorInit(void)
-{
+bool escSensorInit(void) {
     serialPortConfig_t *portConfig = findSerialPortConfig(FUNCTION_ESC_SENSOR);
     if (!portConfig) {
         return false;
     }
-
     portOptions_e options = SERIAL_NOT_INVERTED  | (escSensorConfig()->halfDuplex ? SERIAL_BIDIR : 0);
-
     // Initialize serial port
     escSensorPort = openSerialPort(portConfig->identifier, FUNCTION_ESC_SENSOR, escSensorDataReceive, NULL, ESC_SENSOR_BAUDRATE, MODE_RX, options);
-
     for (int i = 0; i < MAX_SUPPORTED_MOTORS; i = i + 1) {
         escSensorData[i].dataAge = ESC_DATA_INVALID;
     }
-
     return escSensorPort != NULL;
 }
 
-static uint8_t updateCrc8(uint8_t crc, uint8_t crc_seed)
-{
+static uint8_t updateCrc8(uint8_t crc, uint8_t crc_seed) {
     uint8_t crc_u = crc;
     crc_u ^= crc_seed;
-
-    for (int i=0; i<8; i++) {
+    for (int i = 0; i < 8; i++) {
         crc_u = ( crc_u & 0x80 ) ? 0x7 ^ ( crc_u << 1 ) : ( crc_u << 1 );
     }
-
     return (crc_u);
 }
 
-uint8_t calculateCrc8(const uint8_t *Buf, const uint8_t BufLen)
-{
+uint8_t calculateCrc8(const uint8_t *Buf, const uint8_t BufLen) {
     uint8_t crc = 0;
     for (int i = 0; i < BufLen; i++) {
         crc = updateCrc8(Buf[i], crc);
     }
-
     return crc;
 }
 
-static uint8_t decodeEscFrame(void)
-{
+static uint8_t decodeEscFrame(void) {
     if (!isFrameComplete()) {
         return ESC_SENSOR_FRAME_PENDING;
     }
-
     // Get CRC8 checksum
     uint16_t chksum = calculateCrc8(telemetryBuffer, TELEMETRY_FRAME_SIZE - 1);
     uint16_t tlmsum = telemetryBuffer[TELEMETRY_FRAME_SIZE - 1];     // last byte contains CRC value
@@ -259,100 +232,79 @@ static uint8_t decodeEscFrame(void)
         escSensorData[escSensorMotor].current = telemetryBuffer[3] << 8 | telemetryBuffer[4];
         escSensorData[escSensorMotor].consumption = telemetryBuffer[5] << 8 | telemetryBuffer[6];
         escSensorData[escSensorMotor].rpm = telemetryBuffer[7] << 8 | telemetryBuffer[8];
-
         combinedDataNeedsUpdate = true;
-
         frameStatus = ESC_SENSOR_FRAME_COMPLETE;
-
         DEBUG_SET(DEBUG_ESC_SENSOR_RPM, escSensorMotor, calcEscRpm(escSensorData[escSensorMotor].rpm) / 10); // output actual rpm/10 to fit in 16bit signed.
         DEBUG_SET(DEBUG_ESC_SENSOR_TMP, escSensorMotor, escSensorData[escSensorMotor].temperature);
     } else {
         frameStatus = ESC_SENSOR_FRAME_FAILED;
     }
-
     return frameStatus;
 }
 
-static void increaseDataAge(void)
-{
+static void increaseDataAge(void) {
     if (escSensorData[escSensorMotor].dataAge < ESC_DATA_INVALID) {
         escSensorData[escSensorMotor].dataAge++;
-
         combinedDataNeedsUpdate = true;
     }
 }
 
-static void selectNextMotor(void)
-{
+static void selectNextMotor(void) {
     escSensorMotor++;
     if (escSensorMotor == getMotorCount()) {
         escSensorMotor = 0;
     }
 }
 
-void escSensorProcess(timeUs_t currentTimeUs)
-{
+void escSensorProcess(timeUs_t currentTimeUs) {
     const timeMs_t currentTimeMs = currentTimeUs / 1000;
-
     if (!escSensorPort || !pwmAreMotorsEnabled()) {
         return;
     }
-
     switch (escSensorTriggerState) {
-        case ESC_SENSOR_TRIGGER_STARTUP:
-            // Wait period of time before requesting telemetry (let the system boot first)
-            if (currentTimeMs >= ESC_BOOTTIME) {
-                escSensorTriggerState = ESC_SENSOR_TRIGGER_READY;
-            }
-
-            break;
-        case ESC_SENSOR_TRIGGER_READY:
-            escTriggerTimestamp = currentTimeMs;
-
-            startEscDataRead(telemetryBuffer, TELEMETRY_FRAME_SIZE);
-            motorDmaOutput_t * const motor = getMotorDmaOutput(escSensorMotor);
-            motor->requestTelemetry = true;
-            escSensorTriggerState = ESC_SENSOR_TRIGGER_PENDING;
-
-            DEBUG_SET(DEBUG_ESC_SENSOR, DEBUG_ESC_MOTOR_INDEX, escSensorMotor + 1);
-
-            break;
-        case ESC_SENSOR_TRIGGER_PENDING:
-            if (currentTimeMs < escTriggerTimestamp + ESC_REQUEST_TIMEOUT) {
-                uint8_t state = decodeEscFrame();
-                switch (state) {
-                    case ESC_SENSOR_FRAME_COMPLETE:
-                        selectNextMotor();
-                        escSensorTriggerState = ESC_SENSOR_TRIGGER_READY;
-
-                        break;
-                    case ESC_SENSOR_FRAME_FAILED:
-                        increaseDataAge();
-
-                        selectNextMotor();
-                        escSensorTriggerState = ESC_SENSOR_TRIGGER_READY;
-
-                        DEBUG_SET(DEBUG_ESC_SENSOR, DEBUG_ESC_NUM_CRC_ERRORS, ++totalCrcErrorCount);
-                        break;
-                    case ESC_SENSOR_FRAME_PENDING:
-                        break;
-                }
-            } else {
-                // Move on to next ESC, we'll come back to this one
-                increaseDataAge();
-
+    case ESC_SENSOR_TRIGGER_STARTUP:
+        // Wait period of time before requesting telemetry (let the system boot first)
+        if (currentTimeMs >= ESC_BOOTTIME) {
+            escSensorTriggerState = ESC_SENSOR_TRIGGER_READY;
+        }
+        break;
+    case ESC_SENSOR_TRIGGER_READY:
+        escTriggerTimestamp = currentTimeMs;
+        startEscDataRead(telemetryBuffer, TELEMETRY_FRAME_SIZE);
+        motorDmaOutput_t * const motor = getMotorDmaOutput(escSensorMotor);
+        motor->requestTelemetry = true;
+        escSensorTriggerState = ESC_SENSOR_TRIGGER_PENDING;
+        DEBUG_SET(DEBUG_ESC_SENSOR, DEBUG_ESC_MOTOR_INDEX, escSensorMotor + 1);
+        break;
+    case ESC_SENSOR_TRIGGER_PENDING:
+        if (currentTimeMs < escTriggerTimestamp + ESC_REQUEST_TIMEOUT) {
+            uint8_t state = decodeEscFrame();
+            switch (state) {
+            case ESC_SENSOR_FRAME_COMPLETE:
                 selectNextMotor();
                 escSensorTriggerState = ESC_SENSOR_TRIGGER_READY;
-
-                DEBUG_SET(DEBUG_ESC_SENSOR, DEBUG_ESC_NUM_TIMEOUTS, ++totalTimeoutCount);
+                break;
+            case ESC_SENSOR_FRAME_FAILED:
+                increaseDataAge();
+                selectNextMotor();
+                escSensorTriggerState = ESC_SENSOR_TRIGGER_READY;
+                DEBUG_SET(DEBUG_ESC_SENSOR, DEBUG_ESC_NUM_CRC_ERRORS, ++totalCrcErrorCount);
+                break;
+            case ESC_SENSOR_FRAME_PENDING:
+                break;
             }
-
-            break;
+        } else {
+            // Move on to next ESC, we'll come back to this one
+            increaseDataAge();
+            selectNextMotor();
+            escSensorTriggerState = ESC_SENSOR_TRIGGER_READY;
+            DEBUG_SET(DEBUG_ESC_SENSOR, DEBUG_ESC_NUM_TIMEOUTS, ++totalTimeoutCount);
+        }
+        break;
     }
 }
 
-int calcEscRpm(int erpm)
-{
+int calcEscRpm(int erpm) {
     return (erpm * 100) / (motorConfig()->motorPoleCount / 2);
 }
 #endif

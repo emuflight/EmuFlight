@@ -41,8 +41,7 @@
 #define USE_LED_STRIP
 #define USE_TRANSPONDER
 
-typedef enum
-{
+typedef enum {
     Mode_TEST = 0x0,
     Mode_Out_PP = 0x10
 } GPIO_Mode;
@@ -56,18 +55,15 @@ typedef enum {
     EXTI_Trigger_Rising_Falling = 0x10
 } EXTITrigger_TypeDef;
 
-typedef struct
-{
+typedef struct {
     void *test;
 } GPIO_TypeDef;
 
-typedef struct
-{
+typedef struct {
     void* test;
 } TIM_TypeDef;
 
-typedef struct
-{
+typedef struct {
     void* test;
 } TIM_OCInitTypeDef;
 
@@ -83,23 +79,19 @@ uint8_t DMA_GetFlagStatus(void *);
 void DMA_Cmd(DMA_Channel_TypeDef*, FunctionalState );
 void DMA_ClearFlag(uint32_t);
 
-typedef struct
-{
+typedef struct {
     void* test;
 } SPI_TypeDef;
 
-typedef struct
-{
+typedef struct {
     void* test;
 } USART_TypeDef;
 
-typedef struct
-{
+typedef struct {
     void *test;
 } I2C_TypeDef;
 
-typedef struct
-{
+typedef struct {
     void* test;
 } ADC_TypeDef;
 

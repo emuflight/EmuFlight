@@ -26,13 +26,15 @@
 
 #include "build/debug.h"
 
-#include "common/utils.h"
 #include "common/time.h"
+#include "common/utils.h"
 
 #include "interface/msp_box.h"
 
 #include "pg/pinio.h"
 #include "pg/piniobox.h"
+
+#include "scheduler/scheduler.h"
 
 #include "piniobox.h"
 
@@ -42,21 +44,16 @@ typedef struct pinioBoxRuntimeConfig_s {
 
 static pinioBoxRuntimeConfig_t pinioBoxRuntimeConfig;
 
-void pinioBoxInit(const pinioBoxConfig_t *pinioBoxConfig)
-{
+void pinioBoxInit(const pinioBoxConfig_t *pinioBoxConfig) {
     // Convert permanentId to boxId_e
-
     for (int i = 0; i < PINIO_COUNT; i++) {
         const box_t *box = findBoxByPermanentId(pinioBoxConfig->permanentId[i]);
-
         pinioBoxRuntimeConfig.boxId[i] = box ? box->boxId : BOXID_NONE;
     }
 }
 
-void pinioBoxUpdate(timeUs_t currentTimeUs)
-{
+void pinioBoxUpdate(timeUs_t currentTimeUs) {
     UNUSED(currentTimeUs);
-
     for (int i = 0; i < PINIO_COUNT; i++) {
         if (pinioBoxRuntimeConfig.boxId[i] != BOXID_NONE) {
             pinioSet(i, getBoxIdState(pinioBoxRuntimeConfig.boxId[i]));
@@ -64,4 +61,15 @@ void pinioBoxUpdate(timeUs_t currentTimeUs)
     }
 }
 
+void pinioBoxTaskControl(void)
+{
+    bool enableTask = false;
+    for (int i = 0; i < PINIO_COUNT; i++) {
+        if (pinioBoxRuntimeConfig.boxId[i] != BOXID_NONE && isModeActivationConditionPresent(pinioBoxRuntimeConfig.boxId[i])) {
+            enableTask = true;
+            break;
+        }
+    }
+    setTaskEnabled(TASK_PINIOBOX, enableTask);
+}
 #endif

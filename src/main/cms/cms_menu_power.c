@@ -54,50 +54,36 @@ int16_t currentSensorVirtualConfig_scale;
 int16_t currentSensorVirtualConfig_offset;
 #endif
 
-static long cmsx_Power_onEnter(void)
-{
+static long cmsx_Power_onEnter(void) {
     batteryConfig_voltageMeterSource = batteryConfig()->voltageMeterSource;
     batteryConfig_currentMeterSource = batteryConfig()->currentMeterSource;
-
     batteryConfig_vbatmaxcellvoltage = batteryConfig()->vbatmaxcellvoltage;
-
     voltageSensorADCConfig_vbatscale = voltageSensorADCConfig(0)->vbatscale;
-
     currentSensorADCConfig_scale = currentSensorADCConfig()->scale;
     currentSensorADCConfig_offset = currentSensorADCConfig()->offset;
-
 #ifdef USE_VIRTUAL_CURRENT_METER
     currentSensorVirtualConfig_scale = currentSensorVirtualConfig()->scale;
     currentSensorVirtualConfig_offset = currentSensorVirtualConfig()->offset;
 #endif
-
     return 0;
 }
 
-static long cmsx_Power_onExit(const OSD_Entry *self)
-{
+static long cmsx_Power_onExit(const OSD_Entry *self) {
     UNUSED(self);
-
     batteryConfigMutable()->voltageMeterSource = batteryConfig_voltageMeterSource;
     batteryConfigMutable()->currentMeterSource = batteryConfig_currentMeterSource;
-
     batteryConfigMutable()->vbatmaxcellvoltage = batteryConfig_vbatmaxcellvoltage;
-
     voltageSensorADCConfigMutable(0)->vbatscale = voltageSensorADCConfig_vbatscale;
-
     currentSensorADCConfigMutable()->scale = currentSensorADCConfig_scale;
     currentSensorADCConfigMutable()->offset = currentSensorADCConfig_offset;
-
 #ifdef USE_VIRTUAL_CURRENT_METER
     currentSensorVirtualConfigMutable()->scale = currentSensorVirtualConfig_scale;
     currentSensorVirtualConfigMutable()->offset = currentSensorVirtualConfig_offset;
 #endif
-
     return 0;
 }
 
-static OSD_Entry cmsx_menuPowerEntries[] =
-{
+static OSD_Entry cmsx_menuPowerEntries[] = {
     { "-- POWER --", OME_Label, NULL, NULL, 0},
 
     { "V METER", OME_TAB, NULL, &(OSD_TAB_t){ &batteryConfig_voltageMeterSource, VOLTAGE_METER_COUNT - 1, voltageMeterSourceNames }, 0 },
