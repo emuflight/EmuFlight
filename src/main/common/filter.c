@@ -251,9 +251,6 @@ void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, int boostGain, int hal
   filter->halfLife = halfLife != 0 ?
             powf(0.5f, dT / halfLife / 100.0f): 1.0f;
 
-  // pt1FilterInit(&filter->vel, pt1FilterGain(velHz, dT));
-  // pt1FilterInit(&filter->acc, pt1FilterGain(accHz, dT));
-  // pt1FilterInit(&filter->jerk, pt1FilterGain(jerkHz, dT));
 } // ABGInit
 
 FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input) {
@@ -278,15 +275,25 @@ FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input)
   rk = input - filter->xk;
   // artificially boost the error to increase the response of the filter
   rk += (fabsf(rk) * rk * filter->boost);
+  filter->rk = rk; // for logging
   // update our estimates given the residual error.
   filter->xk += filter->a * rk;
   filter->vk += filter->b / filter->dT * rk;
   filter->ak += filter->g / (2.0f * filter->dT2) * rk;
   filter->jk += filter->e / (6.0f * filter->dT3) * rk;
 
-  // filter->vk = pt1FilterApply(&filter->vel, filter->vk);
-  // filter->ak = pt1FilterApply(&filter->acc, filter->ak);
-  // filter->jk = pt1FilterApply(&filter->jerk, filter->jk);
-
 	return filter->xk;
 } // ABGUpdate
+
+float ABGVelocity(alphaBetaGammaFilter_t *filter) {
+    return filter->vk;
+}
+float ABGAcceleration(alphaBetaGammaFilter_t *filter) {
+    return filter->ak;
+}
+float ABGJerk(alphaBetaGammaFilter_t *filter) {
+    return filter->jk;
+}
+float ABGResidualError(alphaBetaGammaFilter_t *filter) {
+    return filter->rk;
+}

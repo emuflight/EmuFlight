@@ -100,4 +100,6 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "D_ABG",
     "BOOST",
     "GHST",
+    "ABG_STATE",
+    "D_ABG_STATE",
 };

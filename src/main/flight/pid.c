@@ -820,13 +820,13 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             delta = pidRuntime.dtermABGApplyFn((filter_t *) &pidRuntime.dtermABG[axis], delta);
             if (axis == FD_ROLL) {
                 DEBUG_SET(DEBUG_D_ABG, 1, lrintf(delta));
+                DEBUG_SET(DEBUG_D_LPF, 1, lrintf(delta));
+                DEBUG_SET(DEBUG_D_ABG_STATE, 0, lrintf(ABGVelocity(&pidRuntime.dtermABG[axis])));
+                DEBUG_SET(DEBUG_D_ABG_STATE, 1, lrintf(ABGAcceleration(&pidRuntime.dtermABG[axis])));
+                DEBUG_SET(DEBUG_D_ABG_STATE, 2, lrintf(ABGJerk(&pidRuntime.dtermABG[axis])));
+                DEBUG_SET(DEBUG_D_ABG_STATE, 3, lrintf(ABGResidualError(&pidRuntime.dtermABG[axis])));
             } else if (axis == FD_PITCH) {
                 DEBUG_SET(DEBUG_D_ABG, 3, lrintf(delta));
-            }
-
-            if (axis == FD_ROLL) {
-                DEBUG_SET(DEBUG_D_LPF, 1, lrintf(delta));
-            } else if (axis == FD_PITCH) {
                 DEBUG_SET(DEBUG_D_LPF, 3, lrintf(delta));
             }
 

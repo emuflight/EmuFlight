@@ -51,10 +51,9 @@ typedef struct laggedMovingAverage_s {
 
 typedef struct alphaBetaGammaFilter_s {
     float a, b, g, e;
-    float ak, vk, xk, jk;
+    float ak, vk, xk, jk, rk;
     float dT, dT2, dT3;
     float halfLife, boost;
-    // pt1Filter_t vel, acc, jerk;
 } alphaBetaGammaFilter_t;
 
 typedef enum {
@@ -95,3 +94,7 @@ float slewFilterApply(slewFilter_t *filter, float input);
 
 void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, int boostGain, int halfLife, float dT);
 float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input);
+float ABGVelocity(alphaBetaGammaFilter_t *filter);
+float ABGAcceleration(alphaBetaGammaFilter_t *filter);
+float ABGJerk(alphaBetaGammaFilter_t *filter);
+float ABGResidualError(alphaBetaGammaFilter_t *filter);

@@ -72,9 +72,14 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
         gyroADCf = gyro.alphaBetaGammaApplyFn((filter_t *)&gyro.alphaBetaGamma[axis], gyroADCf);
         if (axis == FD_ROLL) {
             DEBUG_SET(DEBUG_ABG, 1, lrintf(gyroADCf));
+            DEBUG_SET(DEBUG_ABG_STATE, 0, lrintf(ABGVelocity(&gyro.alphaBetaGamma[axis])));
+            DEBUG_SET(DEBUG_ABG_STATE, 1, lrintf(ABGAcceleration(&gyro.alphaBetaGamma[axis])));
+            DEBUG_SET(DEBUG_ABG_STATE, 2, lrintf(ABGJerk(&gyro.alphaBetaGamma[axis])));
+            DEBUG_SET(DEBUG_ABG_STATE, 3, lrintf(ABGResidualError(&gyro.alphaBetaGamma[axis])));
         } else if (axis == FD_PITCH) {
             DEBUG_SET(DEBUG_ABG, 3, lrintf(gyroADCf));
         }
+
 
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));

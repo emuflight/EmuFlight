@@ -116,6 +116,8 @@ typedef enum {
     DEBUG_D_ABG,
     DEBUG_BOOST,
     DEBUG_GHST,
+    DEBUG_ABG_STATE,
+    DEBUG_D_ABG_STATE,
     DEBUG_COUNT
 } debugType_e;
 
