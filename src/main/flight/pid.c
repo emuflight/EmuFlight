@@ -371,9 +371,6 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
     d_term_high = absErrorAnglePercent * angleDterm * pidRuntime.D_angle_high;
     pidRuntime.attitudePrevious[axis] = attitude.raw[axis];
 
-    pidRuntime.pidCoefficient[axis].Kdf = inverseErrorAnglePercent * pidRuntime.D_angle_low;
-    pidRuntime.pidCoefficient[axis].Kdf += absErrorAnglePercent * pidRuntime.D_angle_high;
-
     currentPidSetpoint = p_term_low + p_term_high;
     currentPidSetpoint += d_term_low + d_term_high;
     currentPidSetpoint += f_term_low;
@@ -393,7 +390,8 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
     			currentPidSetpoint = (((currentPidSetpoint * (1 - horizonLevelStrength)) + currentPidSetpoint) / 2) + (errorAngle * pidRuntime.horizonGain * horizonLevelStrength);
     			}
     }
-
+    pidRuntime.pidCoefficient[axis].Kdf = inverseErrorAnglePercent * pidRuntime.DF_angle_low * currentPidSetpoint;
+    pidRuntime.pidCoefficient[axis].Kdf += absErrorAnglePercent * pidRuntime.DF_angle_high * currentPidSetpoint;
     return currentPidSetpoint;
 }
 
