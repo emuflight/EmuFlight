@@ -71,6 +71,7 @@
 
 #ifdef USE_MAX7456
 #include "drivers/max7456.h"
+#include "io/displayport_max7456.h"
 #endif
 
 #include "rx/rx.h"
@@ -889,7 +890,9 @@ void cmsMenuOpen(void)
     }
 
 #ifdef USE_MAX7456
-    max7456BackgroundBlack();
+    if (displayPortProfileMax7456()->useBlackBackgroundInMenus) {
+        max7456BackgroundBlack();
+    }
 #endif
 
     cmsMenuChange(pCurrentDisplay, startMenu);
@@ -939,7 +942,9 @@ const void *cmsMenuExit(displayPort_t *pDisplay, const void *ptr)
     cmsInMenu = false;
 
 #ifdef USE_MAX7456
-    max7456BackgroundTransparent();
+    if (displayPortProfileMax7456()->useBlackBackgroundInMenus) {
+        max7456BackgroundTransparent();
+    }
 #endif
 
     displayRelease(pDisplay);
