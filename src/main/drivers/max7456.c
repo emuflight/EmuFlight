@@ -204,6 +204,8 @@ static uint16_t max7456SpiClock;
 
 uint16_t maxScreenSize = VIDEO_BUFFER_CHARS_PAL;
 
+static bool blackBackground = false;
+
 // We write everything to the active layer and then compare
 // it with shadowBuffer to update only changed chars.
 // This solution is faster then redrawing entire screen.
@@ -433,6 +435,20 @@ void max7456ReInit(void)
 
     // Make sure the Max7456 is enabled
     max7456Send(MAX7456ADD_VM0, videoSignalReg);
+    if (blackBackground) {
+    /* VM1 takes 8 bits:
+     *
+     * 7 - Background Mode (0- transparent, 1-gray)
+     * 6,5,4 - Background Mode Brightness (000 - black, 111 49% gray)
+     * 3,2 - Blinking time ( 01 is default)
+     * 1,0 - Blinking duty cycle ( 11 is default)
+     */
+    // 10000111 = 0x87
+    max7456Send(MAX7456ADD_VM1, 0x87);
+    } else {
+        //00000111 = 0x47
+        max7456Send(MAX7456ADD_VM1, 0x47);
+    }
     max7456Send(MAX7456ADD_HOS, hosRegValue);
     max7456Send(MAX7456ADD_VOS, vosRegValue);
 
@@ -609,6 +625,16 @@ void max7456Brightness(uint8_t black, uint8_t white)
         }
         __spiBusTransactionEnd(busdev);
     }
+}
+
+void max7456BackgroundBlack() {
+    blackBackground = true;
+    max7456ReInit();
+}
+
+void max7456BackgroundTransparent() {
+    blackBackground = false;
+    max7456ReInit();
 }
 
 void max7456ClearScreen(void)

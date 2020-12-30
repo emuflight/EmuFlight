@@ -69,6 +69,10 @@
 
 #include "osd/osd.h"
 
+#ifdef USE_MAX7456
+#include "drivers/max7456.h"
+#endif
+
 #include "rx/rx.h"
 
 // DisplayPort management
@@ -658,7 +662,7 @@ static bool rowIsSkippable(const OSD_Entry *row)
     if (row->type == OME_String) {
         return true;
     }
-	
+
     if ((row->type == OME_UINT16 || row->type == OME_INT16) && row->flags == DYNAMIC) {
         return true;
     }
@@ -884,6 +888,10 @@ void cmsMenuOpen(void)
     	maxMenuItems      = pCurrentDisplay->rows;
     }
 
+#ifdef USE_MAX7456
+    max7456BackgroundBlack();
+#endif
+
     cmsMenuChange(pCurrentDisplay, startMenu);
 }
 
@@ -929,6 +937,10 @@ const void *cmsMenuExit(displayPort_t *pDisplay, const void *ptr)
     }
 
     cmsInMenu = false;
+
+#ifdef USE_MAX7456
+    max7456BackgroundTransparent();
+#endif
 
     displayRelease(pDisplay);
     currentCtx.menu = NULL;
