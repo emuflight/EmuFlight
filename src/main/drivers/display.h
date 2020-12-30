@@ -59,6 +59,7 @@ typedef struct displayPortProfile_s {
     bool invert;
     uint8_t blackBrightness;
     uint8_t whiteBrightness;
+    bool useBlackBackgroundInMenus;
 } displayPortProfile_t;
 
 // Note: displayPortProfile_t used as a parameter group for CMS over CRSF (io/displayport_crsf)

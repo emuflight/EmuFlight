@@ -49,6 +49,7 @@ void pgResetFn_displayPortProfileMax7456(displayPortProfile_t *displayPortProfil
     displayPortProfile->rowAdjust = 0;
     // Set defaults as per MAX7456 datasheet
     displayPortProfile->invert = false;
+    displayPortProfile->useBlackBackgroundInMenus = false;
     displayPortProfile->blackBrightness = 0;
     displayPortProfile->whiteBrightness = 2;
 }
@@ -83,11 +84,15 @@ static int drawScreen(displayPort_t *displayPort) {
 }
 
 void setBackgroundBlack() {
-    max7456BackgroundBlack();;
+    if (displayPortProfileMax7456()->useBlackBackgroundInMenus) {
+        max7456BackgroundBlack();;
+    }
 }
 
 void setBackgroundTransparent() {
-    max7456BackgroundTransparent();
+    if (displayPortProfileMax7456()->useBlackBackgroundInMenus) {
+        max7456BackgroundTransparent();
+    }
 }
 
 static int screenSize(const displayPort_t *displayPort) {
