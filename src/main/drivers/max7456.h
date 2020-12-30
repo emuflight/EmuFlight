@@ -44,3 +44,6 @@ void    max7456RefreshAll(void);
 uint8_t* max7456GetScreenBuffer(void);
 bool    max7456DmaInProgress(void);
 bool    max7456BuffersSynced(void);
+void max7456BackgroundBlack(void);
+void max7456BackgroundTransparent(void);
+

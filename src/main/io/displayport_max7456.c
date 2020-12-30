@@ -82,6 +82,14 @@ static int drawScreen(displayPort_t *displayPort) {
     return 0;
 }
 
+void setBackgroundBlack() {
+    max7456BackgroundBlack();;
+}
+
+void setBackgroundTransparent() {
+    max7456BackgroundTransparent();
+}
+
 static int screenSize(const displayPort_t *displayPort) {
     UNUSED(displayPort);
     return maxScreenSize;

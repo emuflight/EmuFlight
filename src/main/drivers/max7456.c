@@ -197,6 +197,8 @@ static uint16_t max7456SpiClock = MAX7456_SPI_CLK;
 
 uint16_t maxScreenSize = VIDEO_BUFFER_CHARS_PAL;
 
+static bool blackBackground = false;
+
 // We write everything in screenBuffer and then compare
 // screenBuffer with shadowBuffer to upgrade only changed chars.
 // This solution is faster then redrawing entire screen.
@@ -333,6 +335,8 @@ uint8_t max7456GetRowsCount(void) {
     return (videoSignalReg & VIDEO_MODE_PAL) ? VIDEO_LINES_PAL : VIDEO_LINES_NTSC;
 }
 
+
+
 void max7456ReInit(void) {
     uint8_t srdata = 0;
     static bool firstInit = true;
@@ -367,6 +371,22 @@ void max7456ReInit(void) {
     __spiBusTransactionBegin(busdev);
     // Make sure the Max7456 is enabled
     max7456Send(MAX7456ADD_VM0, videoSignalReg);
+
+    if (blackBackground) {
+        /* VM1 takes 8 bits:
+         *
+         * 7 - Background Mode (0- transparent, 1-gray)
+         * 6,5,4 - Background Mode Brightness (000 - black, 111 49% gray)
+         * 3,2 - Blinking time ( 01 is default)
+         * 1,0 - Blinking duty cycle ( 11 is default)
+         */
+        // 135 = 10000111
+        max7456Send(MAX7456ADD_VM1, 135);
+    } else {
+        //71 = 00000111
+        max7456Send(MAX7456ADD_VM1, 71);
+    }
+
     max7456Send(MAX7456ADD_HOS, hosRegValue);
     max7456Send(MAX7456ADD_VOS, vosRegValue);
     max7456Send(MAX7456ADD_DMM, displayMemoryModeReg | CLEAR_DISPLAY);
@@ -468,6 +488,16 @@ void max7456Brightness(uint8_t black, uint8_t white) {
         max7456Send(i, reg);
     }
     __spiBusTransactionEnd(busdev);
+}
+
+void max7456BackgroundBlack() {
+    blackBackground = true;
+    max7456ReInit();
+}
+
+void max7456BackgroundTransparent() {
+    blackBackground = false;
+    max7456ReInit();
 }
 
 //just fill with spaces with some tricks

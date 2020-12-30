@@ -66,6 +66,9 @@
 // For VISIBLE*
 #include "io/osd.h"
 #include "io/rcdevice_cam.h"
+#ifdef USE_MAX7456
+#include "io/displayport_max7456.h"
+#endif
 
 #include "rx/rx.h"
 
@@ -588,6 +591,7 @@ void cmsMenuOpen(void) {
         }
     }
     displayGrab(pCurrentDisplay); // grab the display for use by the CMS
+
     if ( pCurrentDisplay->cols < NORMAL_SCREEN_MIN_COLS) {
         smallScreen       = true;
         linesPerMenuItem  = 2;
@@ -605,6 +609,9 @@ void cmsMenuOpen(void) {
 #endif
         maxMenuItems      = pCurrentDisplay->rows - 2;
     }
+#ifdef USE_MAX7456
+    setBackgroundBlack();
+#endif
     cmsMenuChange(pCurrentDisplay, currentCtx.menu);
 }
 
@@ -630,6 +637,9 @@ long cmsMenuExit(displayPort_t *pDisplay, const void *ptr) {
         break;
     }
     cmsInMenu = false;
+#ifdef USE_MAX7456
+    setBackgroundTransparent();
+#endif
     displayRelease(pDisplay);
     currentCtx.menu = NULL;
     if (exitType == CMS_EXIT_SAVEREBOOT) {
