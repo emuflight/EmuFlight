@@ -74,7 +74,6 @@
 #define USE_USB_DETECT
 #define USB_DETECT_PIN          PC5
 
-
 #define USE_UART1
 #define UART1_RX_PIN            PA10
 #define UART1_TX_PIN            PA9
@@ -118,10 +117,10 @@
 #define SPI3_MOSI_PIN           PC12
 
 #define USE_I2C
-#define USE_I2C_DEVICE_2
-#define I2C2_SCL                NONE // PB10, UART3_TX
-#define I2C2_SDA                NONE // PB11, UART3_RX
-#define I2C_DEVICE              (I2CDEV_2)
+#define USE_I2C_DEVICE_1
+#define I2C1_SCL                NONE // PB10, UART3_TX
+#define I2C1_SDA                NONE // PB11, UART3_RX
+#define I2C_DEVICE              (I2CDEV_1)
 
 #define USE_ADC
 #define CURRENT_METER_ADC_PIN   PC1
