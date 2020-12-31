@@ -425,7 +425,7 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
 #ifdef USE_OSD_SLAVE
         sbufWriteU8(dst, 1);  // 1 == OSD
 #else
-#if defined(USE_OSD) && defined(USE_MAX7456)
+#if defined(USE_OSD) && (defined(USE_MAX7456)  || defined(USE_USE_BEESIGN))
         sbufWriteU8(dst, 2);  // 2 == FC with OSD
 #else
         sbufWriteU8(dst, 0);  // 0 == FC
@@ -621,6 +621,7 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
 #define OSD_FLAGS_RESERVED_1            (1 << 2)
 #define OSD_FLAGS_RESERVED_2            (1 << 3)
 #define OSD_FLAGS_OSD_HARDWARE_MAX_7456 (1 << 4)
+#define OSD_FLAGS_OSD_HARDWARE_BEESIGN  (1 << 5)
         uint8_t osdFlags = 0;
 #if defined(USE_OSD)
         osdFlags |= OSD_FLAGS_OSD_FEATURE;
@@ -765,7 +766,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
     }
     break;
     case MSP_NAME: {
-        // Show warning for DJI OSD instead of pilot name
+      // Show warning for DJI OSD instead of pilot name
         // works if osd warnings enabled, osd_warn_dji is on and usb is not connected
         if (osdWarnDjiEnabled()) {
             sbufWriteString(dst, djiWarningBuffer);
@@ -1274,7 +1275,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentPidProfile->setPointPTransition[YAW]);
         sbufWriteU8(dst, currentPidProfile->setPointITransition[YAW]);
         sbufWriteU8(dst, currentPidProfile->setPointDTransition[YAW]);
-        sbufWriteU8(dst, currentPidProfile->nfe_racermode);
+        sbufWriteU8(dst, 0); // was NFE_RACE_MODE now made into a flight mode
         break;
         case MSP_SENSOR_CONFIG:
         sbufWriteU8(dst, accelerometerConfig()->acc_hardware);
@@ -1860,7 +1861,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         currentPidProfile->setPointPTransition[YAW] = sbufReadU8(src);
         currentPidProfile->setPointITransition[YAW] = sbufReadU8(src);
         currentPidProfile->setPointDTransition[YAW] = sbufReadU8(src);
-        currentPidProfile->nfe_racermode = sbufReadU8(src);
+        sbufReadU8(src); // was NFE_RACE_MODE now its a flight mode.
         }
         pidInitConfig(currentPidProfile);
         break;
