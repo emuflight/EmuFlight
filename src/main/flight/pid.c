@@ -198,7 +198,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .i_decay_cutoff = 200,
         .dynThr = { 75, 125, 65 },
         .tpa_breakpoint = 1350,
-        .dtermAlpha = 150,
+        .dtermAlpha = 112,
         .dterm_abg_boost = 375,
         .dterm_abg_half_life = 20,
         .axis_lock_hz = 2,

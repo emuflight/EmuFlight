@@ -111,7 +111,7 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->gyro_lowpass_type = FILTER_PT1;
     gyroConfig->gyro_lowpass_hz = 0;    // NOTE: dynamic lpf is enabled by default so this setting is actually
                                         // overridden and the static lowpass 1 is disabled.
-    gyroConfig->alpha = 275;
+    gyroConfig->alpha = 241;
     gyroConfig->abg_boost = 350;
     gyroConfig->abg_half_life = 20;
     gyroConfig->gyro_high_fsr = false;
