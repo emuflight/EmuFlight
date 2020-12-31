@@ -2,6 +2,8 @@ on:
   push:
     tags:
     - '*'
+    branches:
+    - '*'
   pull_request:
     branches:
     - '*'
@@ -67,14 +69,28 @@ jobs:
       run: echo "REVISION_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
       if: startsWith(github.ref, 'refs/tags/')
 
+    - name: Make artifact name
+      id: make_artifactname
+      run: |
+        if [[ "${{ github.REPOSITORY }}" == "emuflight/EmuFlight" ]] ; then
+          ARTIFACT_NAME="EmuFlight-${{ env.VERSION }}-${{ github.run_number }}"
+        else
+          ARTIFACT_NAME="EmuFlight-${{ env.VERSION }}-${{ github.ACTOR }}-${{ github.run_number }}"
+        fi
+        echo "${ARTIFACT_NAME}"
+        echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
+
     # for debugging
     - name: Show Variables
       id: show_vars
       run: |
+        echo "Actor: ${{ github.ACTOR }}"
+        echo "Repo: ${{ github.REPOSITORY }}"
         echo "Build: ${{ github.run_number }}"
         echo "Firmware: ${{ env.VERSION }}"
         echo "Commit: ${{ github.sha }}"
-        echo "tag: ${{ env.REVISION_TAG}}"
+        echo "Tag: ${{ env.REVISION_TAG}}"
+        echo "Artifact name: ${{ env.ARTIFACT_NAME }}"
       continue-on-error: true
 
     - name: Compile Code
@@ -85,7 +101,7 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: EmuFlight-${{ env.VERSION }}-${{ github.run_number }}
+        name: ${{ env.ARTIFACT_NAME }}
         path: obj/*.hex
 
     # Upload to Bintray before .hex renames / only for tag
