@@ -211,9 +211,13 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs)
             throttle = 0;
             currentThrottleInputRange = rcCommandThrottleRange3dHigh;
         }
-        if (currentTimeUs - reversalTimeUs < 250000) {
-            // keep iterm zero for 250ms after motor reversal
+        if (currentTimeUs - reversalTimeUs < mixerRuntime.reverse3dKickTime) {
+            // keep iterm zero for 250ms aka 250000 after motor reversal
+            // add a motor kick when switching directions
             pidResetIterm();
+
+            float timeFactor = (currentTimeUs - reversalTimeUs) / mixerRuntime.reverse3dKickTime;
+            throttle += currentThrottleInputRange * mixerRuntime.reverse3dKick - timeFactor * currentThrottleInputRange * mixerRuntime.reverse3dKick;
         }
     } else {
         throttle = rcCommand[THROTTLE] - PWM_RANGE_MIN + throttleAngleCorrection;
