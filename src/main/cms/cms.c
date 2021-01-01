@@ -886,7 +886,7 @@ void cmsUpdate(uint32_t currentTimeUs) {
         //
         uint8_t key = KEY_NONE;
         if (IS_MID(THROTTLE) && IS_LO(YAW) && IS_HI(PITCH) && !ARMING_FLAG(ARMED)) {
-            key = KEY_MENU;
+            key = KEY_NONE;
         } else if (IS_HI(PITCH)) {
             key = KEY_UP;
         } else if (IS_LO(PITCH)) {
