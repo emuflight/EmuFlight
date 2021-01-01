@@ -105,7 +105,6 @@ pidProfile_t *currentPidProfile;
 
 #define BETAFLIGHT_MAX_SRATE  100
 #define KISS_MAX_SRATE        99
-#define QUICK_MAX_RATE        200
 #define ACTUAL_MAX_RATE       200
 
 PG_REGISTER_WITH_RESET_TEMPLATE(pilotConfig_t, pilotConfig, PG_PILOT_CONFIG, 1);
