@@ -241,8 +241,8 @@ static const void *cmsx_PidRead(void)
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
     for (uint8_t i = 0; i < 3; i++) {
         tempPid[i][0] = pidProfile->pid[i].P;
-        tempPid[i][1] = pidProfile->pid[i].I;
-        tempPid[i][2] = pidProfile->pid[i].D;
+        tempPid[i][1] = 100.0f / (float)pidProfile->pid[i].P / (float)pidProfile->pid[i].D;
+        tempPid[i][2] = 100.0f / (float)pidProfile->pid[i].P / (float)pidProfile->pid[i].I;
         tempPidF[i] = pidProfile->pid[i].F;
     }
     tempPidDF = pidProfile->pid[YAW].DF;
@@ -268,8 +268,8 @@ static const void *cmsx_PidWriteback(displayPort_t *pDisp, const OSD_Entry *self
     pidProfile_t *pidProfile = currentPidProfile;
     for (uint8_t i = 0; i < 3; i++) {
         pidProfile->pid[i].P = tempPid[i][0];
-        pidProfile->pid[i].I = tempPid[i][1];
-        pidProfile->pid[i].D = tempPid[i][2];
+        pidProfile->pid[i].D = (float)tempPid[i][0] * (float)tempPid[i][1] / 100;
+        pidProfile->pid[i].I = (float)tempPid[i][0] * (float)tempPid[i][2] / 100;
         pidProfile->pid[i].F = tempPidF[i];
     }
     pidProfile->pid[YAW].DF = tempPidDF;
@@ -280,23 +280,23 @@ static const void *cmsx_PidWriteback(displayPort_t *pDisp, const OSD_Entry *self
 
 static const OSD_Entry cmsx_menuPidEntries[] =
 {
-    { "-- PID --", OME_Label, NULL, pidProfileIndexString, 0},
+    { "-- PID RATIO --", OME_Label, NULL, pidProfileIndexString, 0},
     { "PID ADVANCED", OME_Submenu, cmsMenuChange, &cmsx_menuPidAdvanced, 0 },
 
-    { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
-    { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
-    { "ROLL  D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][2],  0, 200, 1 }, 0 },
-    { "ROLL  F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_ROLL],  0, 2000, 1 }, 0 },
+    { "ROLL GAIN", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
+    { "ROLL PD", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
+    { "ROLL PI", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][2],  0, 200, 1 }, 0 },
+    { "ROLL F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_ROLL],  0, 2000, 1 }, 0 },
 
-    { "PITCH P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][0], 0, 200, 1 }, 0 },
-    { "PITCH I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][1], 0, 200, 1 }, 0 },
-    { "PITCH D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][2], 0, 200, 1 }, 0 },
+    { "PITCH GAIN", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][0], 0, 200, 1 }, 0 },
+    { "PITCH PD", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][1], 0, 200, 1 }, 0 },
+    { "PITCH PI", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][2], 0, 200, 1 }, 0 },
     { "PITCH F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_PITCH], 0, 2000, 1 }, 0 },
 
-    { "YAW   P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][0],   0, 200, 1 }, 0 },
-    { "YAW   I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][1],   0, 200, 1 }, 0 },
-    { "YAW   D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][2],   0, 200, 1 }, 0 },
-    { "YAW   F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_YAW],   0, 2000, 1 }, 0 },
+    { "YAW GAIN", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][0],   0, 200, 1 }, 0 },
+    { "YAW PD", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][1],   0, 200, 1 }, 0 },
+    { "YAW PI", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][2],   0, 200, 1 }, 0 },
+    { "YAW F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_YAW],   0, 2000, 1 }, 0 },
     { "YAW DIR F", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidDF,  0, 200, 1 }, 0 },
 
     { "BACK", OME_Back, NULL, NULL, 0 },
@@ -1060,7 +1060,7 @@ static const OSD_Entry cmsx_menuImuEntries[] =
     { "-- PROFILE --", OME_Label, NULL, NULL, 0},
 
     {"PID PROF",    OME_UINT8,   cmsx_profileIndexOnChange,     &(OSD_UINT8_t){ &tmpPidProfileIndex, 1, PID_PROFILE_COUNT, 1},    0},
-    {"PID",         OME_Submenu, cmsMenuChange,                 &cmsx_menuPid,                                                 0},
+    {"PID RATIO",         OME_Submenu, cmsMenuChange,                 &cmsx_menuPid,                                                 0},
     {"ANGLE HORZN", OME_Submenu, cmsMenuChange,                 &cmsx_menuAngle,                                               0},
     {"MISC PP",     OME_Submenu, cmsMenuChange,                 &cmsx_menuProfileOther,                                        0},
     {"FILT PP",     OME_Submenu, cmsMenuChange,                 &cmsx_menuFilterPerProfile,                                    0},
