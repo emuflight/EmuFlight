@@ -240,9 +240,14 @@ static const void *cmsx_PidRead(void)
 
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
     for (uint8_t i = 0; i < 3; i++) {
-        tempPid[i][0] = pidProfile->pid[i].P;
-        tempPid[i][1] = 100.0f / (float)pidProfile->pid[i].P / (float)pidProfile->pid[i].D;
-        tempPid[i][2] = 100.0f / (float)pidProfile->pid[i].P / (float)pidProfile->pid[i].I;
+        float tempP = pidProfile->pid[i].P;
+        float tempI = pidProfile->pid[i].I;
+        float tempD = pidProfile->pid[i].D;
+        tempI = tempI / tempP * 100.0f;
+        tempD = tempD / tempP * 100.0f;
+        tempPid[i][0] = tempP;
+        tempPid[i][1] = tempI;
+        tempPid[i][2] = tempD;
         tempPidF[i] = pidProfile->pid[i].F;
     }
     tempPidDF = pidProfile->pid[YAW].DF;
@@ -267,9 +272,14 @@ static const void *cmsx_PidWriteback(displayPort_t *pDisp, const OSD_Entry *self
 
     pidProfile_t *pidProfile = currentPidProfile;
     for (uint8_t i = 0; i < 3; i++) {
-        pidProfile->pid[i].P = tempPid[i][0];
-        pidProfile->pid[i].D = (float)tempPid[i][0] * (float)tempPid[i][1] / 100;
-        pidProfile->pid[i].I = (float)tempPid[i][0] * (float)tempPid[i][2] / 100;
+        float tempP = tempPid[i][0];
+        float tempI = tempPid[i][1];
+        float tempD = tempPid[i][2];
+        tempI = tempI / 100.0f * tempP;
+        tempD = tempD / 100.0f * tempP;
+        pidProfile->pid[i].P = tempP;
+        pidProfile->pid[i].I = tempI;
+        pidProfile->pid[i].D = tempD;
         pidProfile->pid[i].F = tempPidF[i];
     }
     pidProfile->pid[YAW].DF = tempPidDF;
@@ -284,18 +294,18 @@ static const OSD_Entry cmsx_menuPidEntries[] =
     { "PID ADVANCED", OME_Submenu, cmsMenuChange, &cmsx_menuPidAdvanced, 0 },
 
     { "ROLL GAIN",  OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 255, 1 }, 0 },
-    { "ROLL PD",    OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 255, 1 }, 0 },
-    { "ROLL PI",    OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][2],  0, 255, 1 }, 0 },
+    { "ROLL PD",    OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][2],  0, 255, 1 }, 0 },
+    { "ROLL PI",    OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 255, 1 }, 0 },
     { "ROLL F",     OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_ROLL],  0, 2000, 1 }, 0 },
 
     { "PITCH GAIN", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][0], 0, 255, 1 }, 0 },
-    { "PITCH PD",   OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][1], 0, 255, 1 }, 0 },
-    { "PITCH PI",   OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][2], 0, 255, 1 }, 0 },
+    { "PITCH PD",   OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][2], 0, 255, 1 }, 0 },
+    { "PITCH PI",   OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][1], 0, 255, 1 }, 0 },
     { "PITCH F",    OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_PITCH], 0, 2000, 1 }, 0 },
 
     { "YAW GAIN",   OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][0],   0, 255, 1 }, 0 },
-    { "YAW PD",     OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][1],   0, 255, 1 }, 0 },
-    { "YAW PI",     OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][2],   0, 255, 1 }, 0 },
+    { "YAW PD",     OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][2],   0, 255, 1 }, 0 },
+    { "YAW PI",     OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][1],   0, 255, 1 }, 0 },
     { "YAW F",      OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_YAW],   0, 2000, 1 }, 0 },
     { "YAW DIR F",  OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidDF,             0, 255, 1 }, 0 },
 
