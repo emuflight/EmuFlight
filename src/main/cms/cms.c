@@ -1358,7 +1358,7 @@ static void cmsUpdate(uint32_t currentTimeUs)
             externKey = CMS_KEY_NONE;
         } else {
             if (IS_MID(THROTTLE) && IS_LO(YAW) && IS_HI(PITCH) && !ARMING_FLAG(ARMED)) {
-                key = CMS_KEY_MENU;
+                key = CMS_KEY_NONE;
             } else if (IS_HI(PITCH)) {
                 key = CMS_KEY_UP;
             } else if (IS_LO(PITCH)) {
