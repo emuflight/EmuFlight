@@ -161,10 +161,10 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_lowpass_hz = 0,      // NOTE: dynamic lpf is enabled by default so this setting is actually
                                     // overridden and the static lowpass 1 is disabled.
         .dterm_lowpass2_hz = 0,   // second Dterm LPF OFF by default
-        .dterm_filter_type = FILTER_PT1,
+        .dterm_filter_type = FILTER_BIQUAD,
         .dterm_filter2_type = FILTER_PT1,
-        .dyn_lpf_dterm_min_hz = 325,
-        .dyn_lpf_dterm_max_hz = 425,
+        .dyn_lpf_dterm_min_hz = 150,
+        .dyn_lpf_dterm_max_hz = 250,
         .dterm_dynlpf2_fmax = 125,
         .dterm_dynlpf2_gain = 20,
         .launchControlMode = LAUNCH_CONTROL_MODE_NORMAL,
@@ -200,7 +200,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .tpa_breakpoint = 1350,
         .dtermAlpha = 112,
         .dterm_abg_boost = 375,
-        .dterm_abg_half_life = 20,
+        .dterm_abg_half_life = 50,
         .axis_lock_hz = 2,
         .axis_lock_multiplier = 0,
     );
