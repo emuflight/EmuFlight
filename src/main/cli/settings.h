@@ -134,6 +134,9 @@ typedef enum {
     TABLE_32K,
 #endif
 
+#ifdef USE_OSD
+    TABLE_CMS_BACKGROUND,
+#endif
     LOOKUP_TABLE_COUNT
 } lookupTableIndex_e;
 
@@ -251,3 +254,5 @@ extern const char * const lookupTableItermRelaxType[];
 extern const char * const lookupTableOsdDisplayPortDevice[];
 
 extern const char * const lookupTableInterpolatedSetpoint[];
+
+extern const char * const lookupTableCMSMenuBackgroundType[];
