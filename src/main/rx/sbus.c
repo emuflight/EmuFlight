@@ -61,9 +61,8 @@
 #define SBUS_RX_REFRESH_RATE          11000
 #define SBUS_TIME_NEEDED_PER_FRAME    3000
 
-#define DJI_HDL_BAUDRATE              200000
-#define DJI_HDL_RX_REFRESH_RATE       6000
-#define DJI_HDL_TIME_NEEDED_PER_FRAME 3000
+#define SBUS_FAST_BAUDRATE              200000
+#define SBUS_FAST_RX_REFRESH_RATE       6000
 
 #define SBUS_STATE_FAILSAFE (1 << 0)
 #define SBUS_STATE_SIGNALLOSS (1 << 1)
@@ -121,7 +120,7 @@ static void sbusDataReceive(uint16_t c, void *data) {
     sbusFrameData_t *sbusFrameData = data;
     const uint32_t nowUs = micros();
     const int32_t sbusFrameTime = nowUs - sbusFrameData->startAtUs;
-    if (sbusFrameTime > (long)(sbusTimeNeededPreFrame + 500)) {
+    if (sbusFrameTime > (long)(SBUS_TIME_NEEDED_PER_FRAME + 500)) {
         sbusFrameData->position = 0;
     }
     if (sbusFrameData->position == 0) {
@@ -169,10 +168,9 @@ bool sbusInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig) {
     sbusChannelsInit(rxConfig, rxRuntimeConfig);
     rxRuntimeConfig->channelCount = SBUS_MAX_CHANNEL;
 
-    if (rxConfig->serialrx_provider == SERIALRX_DJI_HDL_7MS) {
-        rxRuntimeConfig->rxRefreshRate = DJI_HDL_RX_REFRESH_RATE;
-        sbusBaudRate  = DJI_HDL_BAUDRATE;
-        sbusTimeNeededPreFrame = DJI_HDL_TIME_NEEDED_PER_FRAME;
+    if (rxConfig->sbus_baud_fast) {
+        rxRuntimeConfig->rxRefreshRate = SBUS_FAST_RX_REFRESH_RATE;
+        sbusBaudRate  = SBUS_FAST_BAUDRATE;
     } else {
         rxRuntimeConfig->rxRefreshRate = SBUS_RX_REFRESH_RATE;
         sbusBaudRate  = SBUS_BAUDRATE;
