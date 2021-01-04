@@ -220,7 +220,6 @@ static const char * const lookupTableSerialRX[] = {
     "CUSTOM",
     "FPORT",
     "GHST"
-    "DJI_HDL",
 };
 #endif
 
