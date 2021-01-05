@@ -230,8 +230,7 @@ FAST_CODE float laggedMovingAverageUpdate(laggedMovingAverage_t *filter, float i
 // Robert Bouwens AlphaBetaGamma
 
 void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, int boostGain, int halfLife, float dT) {
-	// const float Alpha = alpha * 0.001f;
-  const float Alpha = pt1FilterGain(alpha, dT);
+	const float Alpha = alpha * 0.001f;
   // beta, gamma, and eta gains all derived from
   // http://yadda.icm.edu.pl/yadda/element/bwmeta1.element.baztech-922ff6cb-e991-417f-93f0-77448f1ef4ec/c/A_Study_Jeong_1_2017.pdf
 

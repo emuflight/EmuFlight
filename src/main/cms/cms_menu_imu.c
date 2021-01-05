@@ -560,6 +560,10 @@ static CMS_Menu cmsx_menuLaunchControl = {
 static uint8_t  cmsx_axis_lock_hz;
 static uint8_t  cmsx_axis_lock_mult;
 static uint8_t  cmsx_feedForwardTransition;
+static uint8_t  cmsx_ff_boost;
+#ifdef USE_INTERPOLATED_SP
+static uint8_t cmsx_ff_smooth_factor;
+#endif
 static uint8_t  cmsx_dynThrP;
 static uint8_t  cmsx_dynThrI;
 static uint8_t  cmsx_dynThrD;
@@ -590,6 +594,10 @@ static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
     cmsx_axis_lock_mult = pidProfile->axis_lock_multiplier;
 
     cmsx_feedForwardTransition  = pidProfile->feedForwardTransition;
+    cmsx_ff_boost = pidProfile->ff_boost;
+#ifdef USE_INTERPOLATED_SP
+    cmsx_ff_smooth_factor = pidProfile->ff_smooth_factor;
+#endif
 
     cmsx_dynThrP                = pidProfile->dynThr[0];
     cmsx_dynThrI                = pidProfile->dynThr[1];
@@ -627,6 +635,10 @@ static const void *cmsx_profileOtherOnExit(displayPort_t *pDisp, const OSD_Entry
     pidProfile->axis_lock_multiplier = cmsx_axis_lock_mult;
 
     pidProfile->feedForwardTransition = cmsx_feedForwardTransition;
+    pidProfile->ff_boost = cmsx_ff_boost;
+#ifdef USE_INTERPOLATED_SP
+    pidProfile->ff_smooth_factor = cmsx_ff_smooth_factor;
+#endif
 
     pidProfile->dynThr[0] = cmsx_dynThrP;
     pidProfile->dynThr[1] = cmsx_dynThrI;
@@ -669,6 +681,11 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "TPA BRKPT",   OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_tpaBreakpoint,      1000,  2000, 10}, 0 },
 
     { "FF TRANS",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_feedForwardTransition,  0,    100,   1, 10 }, 0 },
+#ifdef USE_INTERPOLATED_SP
+    { "FF SMOOTHNESS", OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_ff_smooth_factor,     0,     75,   1  }   , 0 },
+#endif
+    { "FF BOOST",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_ff_boost,               0,     50,   1  }   , 0 },
+
     { "AG GAIN",     OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_itermAcceleratorGain,   ITERM_ACCELERATOR_GAIN_OFF, ITERM_ACCELERATOR_GAIN_MAX, 10 }   , 0 },
 #ifdef USE_THROTTLE_BOOST
     { "THR BOOST",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_throttleBoost,          0,    100,   1  }   , 0 },
