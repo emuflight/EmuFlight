@@ -63,8 +63,12 @@ typedef float (applyRatesFn)(const int axis, float rcCommandf, const float rcCom
 static float rawSetpoint[XYZ_AXIS_COUNT];
 // Stick deflection [-1.0, 1.0] before RC-Smoothing is applied
 static float rawDeflection[XYZ_AXIS_COUNT];
-static float oldRcCommand[XYZ_AXIS_COUNT];
 #endif
+#ifdef RX_PREDICTOR
+static float rc_velocity[4];
+static float last_good_rc[4];
+static timeUs_t last_good_rc_time;
+#endif //RX_PREDICTOR
 static float setpointRate[3], rcDeflection[3], rcDeflectionAbs[3];
 static float throttlePAttenuation, throttleIAttenuation, throttleDAttenuation;
 static bool reverseMotors = false;
@@ -675,22 +679,46 @@ static FAST_CODE uint8_t processRcSmoothingFilter(void)
 }
 #endif // USE_RC_SMOOTHING_FILTER
 
-FAST_CODE void processRcCommand(void)
+FAST_CODE void processRcCommand(timeUs_t currentTimeUs)
 {
     uint8_t updatedChannel;
-
     if (isRxDataNew) {
         rcFrameNumber++;
+#ifdef RX_PREDICTOR
+        last_good_rc_time = currentTimeUs;
+        for (int i = 0; i < 4; ++i) {
+             rc_velocity[i] = (rcCommand[i] - last_good_rc[i]) * currentRxRefreshRate; // rc_velocity is in rc/us
+             last_good_rc[i] = rcCommand[i];
+        }
+#endif // RX_PREDICTOR
     }
 
     if (isRxDataNew && pidAntiGravityEnabled()) {
         checkForThrottleErrorResetState(currentRxRefreshRate);
     }
 
+#ifdef RX_PREDICTOR
+	if (currentTimeUs >= last_good_rc_time + 100000) // Stop predicting after 100ms of no new rc
+	{
+		for (int i = 0; i < 4; ++i) {
+			// Check for sane stick velocity
+			if (fabsf(rc_velocity[i]) < 0.01f) { // v < 20.0/sec i.e. 0.05 sec from 0.0 to 500.0f
+				rcCommand[i] = last_good_rc[i] + rc_velocity[i] * (currentTimeUs - last_good_rc_time);
+				if ((last_good_rc[i] > 0.0f && rcCommand[i] < 0.0f ) || ( last_good_rc[i] < 0.0f && rcCommand[i] > 0.0f)) {
+					rcCommand[i] = 0.0f;
+				} else if (i != THROTTLE) {
+					rcCommand[i] = constrainf(rcCommand[i], -500.0f, 500.0f);
+				} else {
+					rcCommand[i] = constrainf(rcCommand[i], 0.0f, 1000.0f);
+				}
+			}
+		}
+	}
+#endif // RX_PREDICTOR
+
 #ifdef USE_INTERPOLATED_SP
     if (isRxDataNew) {
         for (int i = FD_ROLL; i <= FD_YAW; i++) {
-            oldRcCommand[i] = rcCommand[i];
             float rcCommandf;
             if (i == FD_YAW) {
                 rcCommandf = rcCommand[i] / rcCommandYawDivider;
