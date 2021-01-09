@@ -4441,7 +4441,7 @@ STATIC_UNIT_TESTED void cliGet(const char *cmdName, char *cmdline)
 
 #ifdef USE_PEGASUS_UI
 static const char * valueSectionMask[] = {
-    "GLOBAL", "PROFILE", "RATE"
+    "GLOBAL", "PROFILE", "RATE", "HARDWARE"
 };
 
 static const char * valueTypeMask[] = {
