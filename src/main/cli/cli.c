@@ -4642,7 +4642,7 @@ static void cliRateProfilesJson(const char *cmdName)
     cliPrint("}]}");
 }
 
-static void cliStatusJson(const char *cmdName, char *cmdline)
+static void cliNemesisStatus(const char *cmdName, char *cmdline)
 {
     UNUSED(cmdName);
     UNUSED(cmdline);
@@ -4662,12 +4662,13 @@ static void cliStatusJson(const char *cmdName, char *cmdline)
     }
     cliPrint("],"); // end arming_disable_flags
     cliPrintLinef("\"arming_disable_flags_count\":%d ,", ARMING_DISABLE_FLAGS_COUNT);
-    cliPrintLinef("\"vbat\":%d", getBatteryVoltage());
+    //mode flags also needed by Nemesis, but not used?
+    cliPrintLinef("\"vbat\":%d", getBatteryVoltage()); // this goes in a different status command
     cliPrintLine("}");
 }
 
-// this could all be in 1 command with a parameter: status, attitude, etc.
-static void cliAttitudeJson(const char *cmdName, char *cmdline) {
+static void cliNemesisAttitude(const char *cmdName, char *cmdline) 
+{
     UNUSED(cmdName);
     UNUSED(cmdline);
     cliPrintLinef("{\"attitude\": [%d , %d , %d ]}", attitude.values.roll, attitude.values.pitch, DECIDEGREES_TO_DEGREES(attitude.values.yaw));
@@ -6725,8 +6726,8 @@ const clicmd_t cmdTable[] = {
 
 #ifdef USE_PEGASUS_UI
     CLI_COMMAND_DEF("config", "get all configuration information", NULL, cliConfig),
-    CLI_COMMAND_DEF("statusJson", "get status information in JSON format", NULL, cliStatusJson),
-    CLI_COMMAND_DEF("attitudeJson", "get attitude information in JSON format", NULL, cliAttitudeJson),
+    CLI_COMMAND_DEF("nemesis_status", "get status information in JSON format", NULL, cliNemesisStatus),
+    CLI_COMMAND_DEF("nemesis_attitude", "get attitude information in JSON format", NULL, cliNemesisAttitude),
 #endif
 #ifdef USE_GPS
     CLI_COMMAND_DEF("gpspassthrough", "passthrough gps to serial", NULL, cliGpsPassthrough),
