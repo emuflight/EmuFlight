@@ -727,7 +727,7 @@ const clivalue_t valueTable[] = {
 #endif // USE_RC_SMOOTHING_FILTER
     { "rc_predictor_percent",       VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 100 }, PG_RX_CONFIG, offsetof(rxConfig_t, predictive_rc_percent) },
     { "rc_predictor_velocity_hz",   VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, predictive_rc_cutoff) },
-    { "rc_predictor_time",          VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, predictive_rc_time) },
+    { "rc_predictor_time",          VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 10, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, predictive_rc_time) },
 
     { "fpv_mix_degrees",            VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 90 }, PG_RX_CONFIG, offsetof(rxConfig_t, fpvCamAngleDegrees) },
     { "yaw_around_gravity",         VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_RX_CONFIG, offsetof(rxConfig_t, yawAroundGravity) },
