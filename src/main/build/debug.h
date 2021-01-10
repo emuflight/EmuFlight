@@ -118,6 +118,7 @@ typedef enum {
     DEBUG_GHST,
     DEBUG_ABG_STATE,
     DEBUG_D_ABG_STATE,
+    DEBUG_RC_PREDICTOR,
     DEBUG_COUNT
 } debugType_e;
 
