@@ -706,7 +706,7 @@ static FAST_CODE void rcPrediction(timeUs_t currentTimeUs) {
         // Check for sane stick velocity
         if (fabsf(smoothed_rc_velocity[i]) < 0.01f) { // v < 20.0/sec i.e. 0.05 sec from 0.0 to 500.0f
           rcCommand[i] = last_good_rc[i] + smoothed_rc_velocity[i] * (currentTimeUs - last_good_rc_time) * rcSmoothingData.predictorPercent;
-          if ((last_good_rc[i] > 0.0f && rcCommand[i] < 0.0f) || ( last_good_rc[i] < 0.0f && rcCommand[i] > 0.0f)) {
+          if ((last_good_rc[i] > 0.0f && rcCommand[i] < 0.0f) || (last_good_rc[i] < 0.0f && rcCommand[i] > 0.0f)) {
             rcCommand[i] = 0.0f;
           } else if (i != THROTTLE) {
             rcCommand[i] = constrainf(rcCommand[i], -500.0f, 500.0f);
