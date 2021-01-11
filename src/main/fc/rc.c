@@ -702,12 +702,15 @@ static FAST_CODE void rcPrediction(timeUs_t currentTimeUs) {
       for (int i = 0; i < PRIMARY_CHANNEL_COUNT; ++i) {
         // filter the stick velocity
         smoothed_rc_velocity[i] = pt1FilterApply(&rcSmoothingData.velocityLpf[i], rc_velocity[i]);
+        if (smoothed_rc_velocity[i] * rc_velocity < 0.0f) {
+            smoothed_rc_velocity[i] = 0.0f;
+        }
         DEBUG_SET(DEBUG_RC_PREDICTOR, 2, rc_velocity[rcSmoothingData.debugAxis] * 10000);
         DEBUG_SET(DEBUG_RC_PREDICTOR, 3, smoothed_rc_velocity[rcSmoothingData.debugAxis] * 10000);
         // Check for sane stick velocity
         if (fabsf(smoothed_rc_velocity[i]) < 0.01f) { // v < 20.0/sec i.e. 0.05 sec from 0.0 to 500.0f
           rcCommand[i] = last_good_rc[i] + smoothed_rc_velocity[i] * (currentTimeUs - last_good_rc_time) * rcSmoothingData.predictorPercent;
-          if ((last_good_rc[i] > 0.0f && rcCommand[i] < 0.0f) || (last_good_rc[i] < 0.0f && rcCommand[i] > 0.0f)) {
+          if ((last_good_rc[i] * rcCommand[i] < 0.0f) {
             rcCommand[i] = 0.0f;
           } else if (i != THROTTLE) {
             rcCommand[i] = constrainf(rcCommand[i], -500.0f, 500.0f);
