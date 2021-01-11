@@ -27,6 +27,8 @@
 #endif
 #define power3(x) ((x)*(x)*(x))
 
+#define SIGN(x) ((x > 0.0f) - (x < 0.0f))
+
 // Undefine this for use libc sinf/cosf. Keep this defined to use fast sin/cos approximations
 #define FAST_MATH             // order 9 approximation
 #define VERY_FAST_MATH      // order 7 approximation
@@ -56,6 +58,7 @@
 #define ABS(x) \
   __extension__ ({ __typeof__ (x) _x = (x); \
   _x > 0 ? _x : -_x; })
+#define SCALE_UNITARY_RANGE(x, from, to) ((1.0f - (x)) * (from) + (x) * (to))
 
 #define Q12 (1 << 12)
 

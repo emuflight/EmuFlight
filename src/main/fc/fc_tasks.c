@@ -44,6 +44,7 @@
 #include "drivers/transponder_ir.h"
 #include "drivers/usb_io.h"
 #include "drivers/vtx_common.h"
+#include "drivers/beesign.h"
 #ifdef USB_CDC_HID
 //TODO: Make it platform independent in the future
 #include "vcpf4/usbd_cdc_vcp.h"
@@ -306,6 +307,7 @@ void fcTasksInit(void) {
     setTaskEnabled(TASK_TRANSPONDER, feature(FEATURE_TRANSPONDER));
 #endif
 #ifdef USE_OSD
+    rescheduleTask(TASK_OSD, TASK_PERIOD_HZ(osdConfig()->task_frequency));
     setTaskEnabled(TASK_OSD, feature(FEATURE_OSD) && osdInitialized());
 #endif
 #ifdef USE_BST
@@ -320,6 +322,9 @@ void fcTasksInit(void) {
 #ifdef USE_PINIOBOX
     pinioBoxTaskControl();
 #endif
+#ifdef USE_BEESIGN
+    setTaskEnabled(TASK_BEESIGN, true);
+#endif
 #ifdef USE_CMS
 #ifdef USE_MSP_DISPLAYPORT
     setTaskEnabled(TASK_CMS, true);
@@ -328,7 +333,7 @@ void fcTasksInit(void) {
 #endif
 #endif
 #ifdef USE_VTX_CONTROL
-#if defined(USE_VTX_RTC6705) || defined(USE_VTX_SMARTAUDIO) || defined(USE_VTX_TRAMP)
+#if defined(USE_VTX_RTC6705) || defined(USE_VTX_SMARTAUDIO) || defined(USE_VTX_TRAMP)  || defined(USE_VTX_BEESIGN)
     setTaskEnabled(TASK_VTXCTRL, true);
 #endif
 #endif
@@ -614,5 +619,15 @@ FAST_RAM cfTask_t cfTasks[TASK_COUNT] = {
         .staticPriority = TASK_PRIORITY_IDLE
     },
 #endif
+
+#ifdef USE_BEESIGN
+    [TASK_BEESIGN] = {
+        .taskName = "BEESIGN",
+        .taskFunc = beesignUpdate,
+        .desiredPeriod = TASK_PERIOD_HZ(60),
+        .staticPriority = TASK_PRIORITY_LOW
+    },
+#endif
+
 #endif
 };

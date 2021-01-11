@@ -236,19 +236,6 @@ static void validateAndFixConfig(void) {
            ) {
             rxConfigMutable()->rssi_src_frame_errors = false;
         }
-    if (!rcSmoothingIsEnabled() || rxConfig()->rcInterpolationChannels == INTERPOLATION_CHANNELS_T) {
-        for (unsigned i = 0; i < PID_PROFILE_COUNT; i++) {
-            pidProfilesMutable(i)->pid[PID_ROLL].F = 0;
-            pidProfilesMutable(i)->pid[PID_PITCH].F = 0;
-        }
-    }
-    if (!rcSmoothingIsEnabled() ||
-            (rxConfig()->rcInterpolationChannels != INTERPOLATION_CHANNELS_RPY &&
-             rxConfig()->rcInterpolationChannels != INTERPOLATION_CHANNELS_RPYT)) {
-        for (unsigned i = 0; i < PID_PROFILE_COUNT; i++) {
-            pidProfilesMutable(i)->pid[PID_YAW].F = 0;
-        }
-    }
 #if defined(USE_THROTTLE_BOOST)
     if (!rcSmoothingIsEnabled() ||
             !(rxConfig()->rcInterpolationChannels == INTERPOLATION_CHANNELS_RPYT
@@ -280,6 +267,10 @@ static void validateAndFixConfig(void) {
         featureClear(FEATURE_ESC_SENSOR);
     }
 #endif
+
+    if (currentPidProfile->horizonTransition >= currentPidProfile->horizon_tilt_effect) {
+        pidProfilesMutable(systemConfig()->pidProfileIndex)->horizonTransition = MAX(currentPidProfile->horizon_tilt_effect - 20, 0);
+    }
 // clear features that are not supported.
 // I have kept them all here in one place, some could be moved to sections of code above.
 #ifndef USE_PPM
@@ -585,6 +576,7 @@ void changePidProfile(uint8_t pidProfileIndex) {
         loadPidProfile();
         pidInit(currentPidProfile);
         initEscEndpoints();
+        mixerInitProfile();
     }
     beeperConfirmationBeeps(pidProfileIndex + 1);
 }

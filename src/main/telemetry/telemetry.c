@@ -1,13 +1,13 @@
 /*
- * This file is part of Cleanflight and Betaflight.
+ * This file is part of Cleanflight, Emuflight and Betaflight.
  *
- * Cleanflight and Betaflight are free software. You can redistribute
+ * Cleanflight, Emuflight and Betaflight are free software. You can redistribute
  * this software and/or modify this software under the terms of the
  * GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option)
  * any later version.
  *
- * Cleanflight and Betaflight are distributed in the hope that they
+ * Cleanflight, Emuflight and Betaflight are distributed in the hope that they
  * will be useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
@@ -54,6 +54,7 @@
 #include "telemetry/jetiexbus.h"
 #include "telemetry/mavlink.h"
 #include "telemetry/crsf.h"
+#include "telemetry/ghst.h"
 #include "telemetry/srxl.h"
 #include "telemetry/ibus.h"
 #include "telemetry/msp_shared.h"
@@ -97,6 +98,9 @@ void telemetryInit(void) {
 #endif
 #ifdef USE_TELEMETRY_MAVLINK
     initMAVLinkTelemetry();
+#endif
+#ifdef USE_TELEMETRY_GHST
+    initGhstTelemetry();
 #endif
 #ifdef USE_TELEMETRY_CRSF
     initCrsfTelemetry();
@@ -171,6 +175,9 @@ void telemetryCheckState(void) {
 #ifdef USE_TELEMETRY_MAVLINK
     checkMAVLinkTelemetryState();
 #endif
+#ifdef USE_TELEMETRY_GHST
+    checkGhstTelemetryState();
+#endif
 #ifdef USE_TELEMETRY_CRSF
     checkCrsfTelemetryState();
 #endif
@@ -204,6 +211,9 @@ void telemetryProcess(uint32_t currentTime) {
 #endif
 #ifdef USE_TELEMETRY_MAVLINK
     handleMAVLinkTelemetry();
+#endif
+#ifdef USE_TELEMETRY_GHST
+    handleGhstTelemetry(currentTime);
 #endif
 #ifdef USE_TELEMETRY_CRSF
     handleCrsfTelemetry(currentTime);

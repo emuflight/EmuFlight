@@ -1202,9 +1202,13 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("acc_limit", "%d",                       currentPidProfile->rateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("pidsum_limit", "%d",                    currentPidProfile->pidSumLimit);
         BLACKBOX_PRINT_HEADER_LINE("pidsum_limit_yaw", "%d",                currentPidProfile->pidSumLimitYaw);
-        BLACKBOX_PRINT_HEADER_LINE("nfe_racermode", "%d",                   currentPidProfile->nfe_racermode);
         BLACKBOX_PRINT_HEADER_LINE("iterm_rotation", "%d",                  currentPidProfile->iterm_rotation);
         BLACKBOX_PRINT_HEADER_LINE("throttle_boost", "%d",                  currentPidProfile->throttle_boost);
+        BLACKBOX_PRINT_HEADER_LINE("linear_thrust_low_output",  "%d",       currentPidProfile->linear_thrust_low_output);
+        BLACKBOX_PRINT_HEADER_LINE("linear_thrust_high_output", "%d",       currentPidProfile->linear_thrust_high_output);
+        BLACKBOX_PRINT_HEADER_LINE("linear_throttle", "%d",                 currentPidProfile->linear_throttle);
+        BLACKBOX_PRINT_HEADER_LINE("mixer_impl", "%d",                      currentPidProfile->mixer_impl);
+        BLACKBOX_PRINT_HEADER_LINE("mixer_laziness", "%d",                  currentPidProfile->mixer_laziness);
         // End of EmuFlight controller parameters
         BLACKBOX_PRINT_HEADER_LINE("deadband", "%d",                        rcControlsConfig()->deadband);
         BLACKBOX_PRINT_HEADER_LINE("yaw_deadband", "%d",                    rcControlsConfig()->yaw_deadband);
