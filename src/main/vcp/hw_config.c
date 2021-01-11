@@ -70,16 +70,13 @@ static void *baudRateCbContext;
  * Input          : None.
  * Return         : None.
  *******************************************************************************/
-void Set_System(void)
-{
+void Set_System(void) {
 #if !defined(STM32L1XX_MD) && !defined(STM32L1XX_HD) && !defined(STM32L1XX_MD_PLUS)
     GPIO_InitTypeDef GPIO_InitStructure;
 #endif /* STM32L1XX_MD && STM32L1XX_XD */
-
 #if defined(USB_USE_EXTERNAL_PULLUP)
     GPIO_InitTypeDef GPIO_InitStructure;
 #endif /* USB_USE_EXTERNAL_PULLUP */
-
     /*!< At this stage the microcontroller clock setting is already configured,
      this is done through SystemInit() function which is called from startup
      file (startup_stm32f10x_xx.s) before to branch to application main.
@@ -90,11 +87,8 @@ void Set_System(void)
     /* Enable the SYSCFG module clock */
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 #endif /* STM32L1XX_XD */
-
     usbGenerateDisconnectPulse();
-
 #if defined(STM32F37X) || defined(STM32F303xC)
-
     /*Set PA11,12 as IN - USB_DM,DP*/
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_12;
@@ -103,11 +97,9 @@ void Set_System(void)
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
-
     /*SET PA11,12 for USB: USB_DM,DP*/
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_14);
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_14);
-
 #endif /* STM32F37X  && STM32F303xC)*/
 #if defined(STM32F10X)
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
@@ -116,11 +108,9 @@ void Set_System(void)
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_OD;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 #endif
-
     // Initialise callbacks
     ctrlLineStateCb = NULL;
     baudRateCb = NULL;
-
     /* Configure the EXTI line 18 connected internally to the USB IP */
     EXTI_ClearITPendingBit(EXTI_Line18);
     EXTI_InitStructure.EXTI_Line = EXTI_Line18;
@@ -135,11 +125,9 @@ void Set_System(void)
  * Input          : None.
  * Return         : None.
  *******************************************************************************/
-void Set_USBClock(void)
-{
+void Set_USBClock(void) {
     /* Select USBCLK source */
     RCC_USBCLKConfig(RCC_USBCLKSource_PLLCLK_1Div5);
-
     /* Enable the USB clock */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USB, ENABLE);
 }
@@ -150,8 +138,7 @@ void Set_USBClock(void)
  * Input          : None.
  * Return         : None.
  *******************************************************************************/
-void Enter_LowPowerMode(void)
-{
+void Enter_LowPowerMode(void) {
     /* Set the device state to suspend */
     bDeviceState = SUSPENDED;
 }
@@ -162,10 +149,8 @@ void Enter_LowPowerMode(void)
  * Input          : None.
  * Return         : None.
  *******************************************************************************/
-void Leave_LowPowerMode(void)
-{
+void Leave_LowPowerMode(void) {
     DEVICE_INFO *pInfo = &Device_Info;
-
     /* Set the device state to the correct state */
     if (pInfo->Current_Configuration != 0) {
         /* Device configured */
@@ -183,20 +168,16 @@ void Leave_LowPowerMode(void)
  * Input          : None.
  * Return         : None.
  *******************************************************************************/
-void USB_Interrupts_Config(void)
-{
+void USB_Interrupts_Config(void) {
     NVIC_InitTypeDef NVIC_InitStructure;
-
     /* 2 bit for pre-emption priority, 2 bits for subpriority */
     NVIC_PriorityGroupConfig(NVIC_PRIORITY_GROUPING);     // is this really neccesary?
-
     /* Enable the USB interrupt */
     NVIC_InitStructure.NVIC_IRQChannel = USB_LP_CAN1_RX0_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_USB);
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_SUB(NVIC_PRIO_USB);
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
-
     /* Enable the USB Wake-up interrupt */
     NVIC_InitStructure.NVIC_IRQChannel = USBWakeUp_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(NVIC_PRIO_USB_WUP);
@@ -212,15 +193,12 @@ void USB_Interrupts_Config(void)
  * Input          : None.
  * Return         : None.
  *******************************************************************************/
-void USB_Interrupts_Disable(void)
-{
+void USB_Interrupts_Disable(void) {
     NVIC_InitTypeDef NVIC_InitStructure;
-
     /* Disable the USB interrupt */
     NVIC_InitStructure.NVIC_IRQChannel    = USB_LP_CAN1_RX0_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE;
     NVIC_Init(&NVIC_InitStructure);
-
     /* Disable the USB Wake-up interrupt */
     NVIC_InitStructure.NVIC_IRQChannel    = USBWakeUp_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE;
@@ -234,8 +212,7 @@ void USB_Interrupts_Disable(void)
  * Input          : None.
  * Return         : Status
  *******************************************************************************/
-void USB_Cable_Config(FunctionalState NewState)
-{
+void USB_Cable_Config(FunctionalState NewState) {
     UNUSED(NewState);
 }
 
@@ -246,16 +223,12 @@ void USB_Cable_Config(FunctionalState NewState)
  * Output         : None.
  * Return         : None.
  *******************************************************************************/
-void Get_SerialNum(void)
-{
+void Get_SerialNum(void) {
     uint32_t Device_Serial0, Device_Serial1, Device_Serial2;
-
     Device_Serial0 = *(uint32_t*)ID1;
     Device_Serial1 = *(uint32_t*)ID2;
     Device_Serial2 = *(uint32_t*)ID3;
-
     Device_Serial0 += Device_Serial2;
-
     if (Device_Serial0 != 0) {
         IntToUnicode(Device_Serial0, &Virtual_Com_Port_StringSerial[2], 8);
         IntToUnicode(Device_Serial1, &Virtual_Com_Port_StringSerial[18], 4);
@@ -269,19 +242,15 @@ void Get_SerialNum(void)
  * Output         : None.
  * Return         : None.
  *******************************************************************************/
-static void IntToUnicode(uint32_t value, uint8_t *pbuf, uint8_t len)
-{
+static void IntToUnicode(uint32_t value, uint8_t *pbuf, uint8_t len) {
     uint8_t idx = 0;
-
     for (idx = 0; idx < len; idx++) {
         if (((value >> 28)) < 0xA) {
             pbuf[2 * idx] = (value >> 28) + '0';
         } else {
             pbuf[2 * idx] = (value >> 28) + 'A' - 10;
         }
-
         value = value << 4;
-
         pbuf[2 * idx + 1] = 0;
     }
 }
@@ -293,18 +262,15 @@ static void IntToUnicode(uint32_t value, uint8_t *pbuf, uint8_t len)
  * Output         : None.
  * Return         : None.
  *******************************************************************************/
-uint32_t CDC_Send_DATA(const uint8_t *ptrBuffer, uint32_t sendLength)
-{
+uint32_t CDC_Send_DATA(const uint8_t *ptrBuffer, uint32_t sendLength) {
     /* Last transmission hasn't finished, abort */
     if (packetSent) {
         return 0;
     }
-
     // We can only put 64 bytes in the buffer
     if (sendLength > 64 / 2) {
         sendLength = 64 / 2;
     }
-
     // Try to load some bytes if we can
     if (sendLength) {
         UserToPMABufferCopy(ptrBuffer, ENDP1_TXADDR, sendLength);
@@ -312,12 +278,10 @@ uint32_t CDC_Send_DATA(const uint8_t *ptrBuffer, uint32_t sendLength)
         packetSent += sendLength;
         SetEPTxValid(ENDP1);
     }
-
     return sendLength;
 }
 
-uint32_t CDC_Send_FreeBytes(void)
-{
+uint32_t CDC_Send_FreeBytes(void) {
     /* this driver is blocking, so the buffer is unlimited */
     return 255;
 }
@@ -329,34 +293,27 @@ uint32_t CDC_Send_FreeBytes(void)
  * Output         : None.
  * Return         : None.
  *******************************************************************************/
-uint32_t CDC_Receive_DATA(uint8_t* recvBuf, uint32_t len)
-{
+uint32_t CDC_Receive_DATA(uint8_t* recvBuf, uint32_t len) {
     static uint8_t offset = 0;
     uint8_t i;
-
     if (len > receiveLength) {
         len = receiveLength;
     }
-
     for (i = 0; i < len; i++) {
         recvBuf[i] = (uint8_t)(receiveBuffer[i + offset]);
     }
-
     receiveLength -= len;
     offset += len;
-
     /* re-enable the rx endpoint which we had set to receive 0 bytes */
     if (receiveLength == 0) {
         SetEPRxCount(ENDP3, 64);
         SetEPRxStatus(ENDP3, EP_RX_VALID);
         offset = 0;
     }
-
     return len;
 }
 
-uint32_t CDC_Receive_BytesAvailable(void)
-{
+uint32_t CDC_Receive_BytesAvailable(void) {
     return receiveLength;
 }
 
@@ -367,8 +324,7 @@ uint32_t CDC_Receive_BytesAvailable(void)
  * Output         : None.
  * Return         : True if configured.
  *******************************************************************************/
-uint8_t usbIsConfigured(void)
-{
+uint8_t usbIsConfigured(void) {
     return (bDeviceState == CONFIGURED);
 }
 
@@ -379,8 +335,7 @@ uint8_t usbIsConfigured(void)
  * Output         : None.
  * Return         : True if connected.
  *******************************************************************************/
-uint8_t usbIsConnected(void)
-{
+uint8_t usbIsConnected(void) {
     return (bDeviceState != UNCONNECTED);
 }
 
@@ -392,8 +347,7 @@ uint8_t usbIsConnected(void)
  * Output         : None.
  * Return         : Baud rate in bps
  *******************************************************************************/
-uint32_t CDC_BaudRate(void)
-{
+uint32_t CDC_BaudRate(void) {
     return Virtual_Com_Port_GetBaudRate();
 }
 
@@ -404,8 +358,7 @@ uint32_t CDC_BaudRate(void)
  * Output         : None.
  * Return         : None.
  *******************************************************************************/
-void CDC_SetBaudRateCb(void (*cb)(void *context, uint32_t baud), void *context)
-{
+void CDC_SetBaudRateCb(void (*cb)(void *context, uint32_t baud), void *context) {
     baudRateCbContext = context;
     baudRateCb = cb;
 }
@@ -417,8 +370,7 @@ void CDC_SetBaudRateCb(void (*cb)(void *context, uint32_t baud), void *context)
  * Output         : None.
  * Return         : None.
  *******************************************************************************/
-void CDC_SetCtrlLineStateCb(void (*cb)(void *context, uint16_t ctrlLineState), void *context)
-{
+void CDC_SetCtrlLineStateCb(void (*cb)(void *context, uint16_t ctrlLineState), void *context) {
     ctrlLineStateCbContext = context;
     ctrlLineStateCb = cb;
 }

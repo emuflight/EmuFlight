@@ -74,10 +74,8 @@ spiDevice_t spiDevice[SPIDEV_COUNT];
 
 #define SPI_DEFAULT_TIMEOUT 10
 
-void spiInitDevice(SPIDevice device)
-{
+void spiInitDevice(SPIDevice device) {
     spiDevice_t *spi = &(spiDevice[device]);
-
 #ifdef SDCARD_SPI_INSTANCE
     if (spi->dev == SDCARD_SPI_INSTANCE) {
         spi->leadingEdge = true;
@@ -88,27 +86,21 @@ void spiInitDevice(SPIDevice device)
         spi->leadingEdge = true;
     }
 #endif
-
     // Enable SPI clock
     RCC_ClockCmd(spi->rcc, ENABLE);
     RCC_ResetCmd(spi->rcc, ENABLE);
-
     IOInit(IOGetByTag(spi->sck),  OWNER_SPI_SCK,  RESOURCE_INDEX(device));
     IOInit(IOGetByTag(spi->miso), OWNER_SPI_MISO, RESOURCE_INDEX(device));
     IOInit(IOGetByTag(spi->mosi), OWNER_SPI_MOSI, RESOURCE_INDEX(device));
-
     if (spi->leadingEdge == true)
         IOConfigGPIOAF(IOGetByTag(spi->sck), SPI_IO_AF_SCK_CFG_LOW, spi->sckAF);
     else
         IOConfigGPIOAF(IOGetByTag(spi->sck), SPI_IO_AF_SCK_CFG_HIGH, spi->sckAF);
     IOConfigGPIOAF(IOGetByTag(spi->miso), SPI_IO_AF_MISO_CFG, spi->misoAF);
     IOConfigGPIOAF(IOGetByTag(spi->mosi), SPI_IO_AF_CFG, spi->mosiAF);
-
     LL_SPI_Disable(spi->dev);
     LL_SPI_DeInit(spi->dev);
-
-    LL_SPI_InitTypeDef init =
-    {
+    LL_SPI_InitTypeDef init = {
         .TransferDirection = SPI_DIRECTION_2LINES,
         .Mode = SPI_MODE_MASTER,
         .DataWidth = SPI_DATASIZE_8BIT,
@@ -121,40 +113,32 @@ void spiInitDevice(SPIDevice device)
         .CRCCalculation = SPI_CRCCALCULATION_DISABLE,
     };
     LL_SPI_SetRxFIFOThreshold(spi->dev, SPI_RXFIFO_THRESHOLD_QF);
-
     LL_SPI_Init(spi->dev, &init);
     LL_SPI_Enable(spi->dev);
 }
 
-uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t txByte)
-{
+uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t txByte) {
     uint16_t spiTimeout = 1000;
-
     while (!LL_SPI_IsActiveFlag_TXE(instance))
         if ((spiTimeout--) == 0)
             return spiTimeoutUserCallback(instance);
-
     LL_SPI_TransmitData8(instance, txByte);
-
     spiTimeout = 1000;
     while (!LL_SPI_IsActiveFlag_RXNE(instance))
         if ((spiTimeout--) == 0)
             return spiTimeoutUserCallback(instance);
-
     return (uint8_t)LL_SPI_ReceiveData8(instance);
 }
 
 /**
  * Return true if the bus is currently in the middle of a transmission.
  */
-bool spiIsBusBusy(SPI_TypeDef *instance)
-{
+bool spiIsBusBusy(SPI_TypeDef *instance) {
     return LL_SPI_GetTxFIFOLevel(instance) != LL_SPI_TX_FIFO_EMPTY
-        || LL_SPI_IsActiveFlag_BSY(instance);
+           || LL_SPI_IsActiveFlag_BSY(instance);
 }
 
-bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, int len)
-{
+bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, int len) {
     // set 16-bit transfer
     CLEAR_BIT(instance->CR2, SPI_RXFIFO_THRESHOLD);
     while (len > 1) {
@@ -172,7 +156,6 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
             w = 0xFFFF;
         }
         LL_SPI_TransmitData16(instance, w);
-
         spiTimeout = 1000;
         while (!LL_SPI_IsActiveFlag_RXNE(instance)) {
             if ((spiTimeout--) == 0) {
@@ -197,7 +180,6 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
         }
         uint8_t b = txData ? *(txData++) : 0xFF;
         LL_SPI_TransmitData8(instance, b);
-
         spiTimeout = 1000;
         while (!LL_SPI_IsActiveFlag_RXNE(instance)) {
             if ((spiTimeout--) == 0) {
@@ -210,20 +192,16 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
         }
         --len;
     }
-
     return true;
 }
 
-void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor)
-{
+void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {
 #if !(defined(STM32F1) || defined(STM32F3))
     // SPI2 and SPI3 are on APB1/AHB1 which PCLK is half that of APB2/AHB2.
-
     if (instance == SPI2 || instance == SPI3) {
         divisor /= 2; // Safe for divisor == 0 or 1
     }
 #endif
-
     LL_SPI_Disable(instance);
     LL_SPI_SetBaudRatePrescaler(instance, divisor ? (ffs(divisor | 0x100) - 2) << SPI_CR1_BR_Pos : 0);
     LL_SPI_Enable(instance);

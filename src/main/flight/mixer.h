@@ -40,8 +40,7 @@
 #define DSHOT_3D_DEADBAND_HIGH 1048
 
 // Note: this is called MultiType/MULTITYPE_* in baseflight.
-typedef enum mixerMode
-{
+typedef enum mixerMode {
     MIXER_TRI = 1,
     MIXER_QUADP = 2,
     MIXER_QUADX = 3,
@@ -116,13 +115,14 @@ extern float motorOutputHigh, motorOutputLow;
 struct rxConfig_s;
 
 uint8_t getMotorCount(void);
-float getMotorMixRange(void);
+float getControllerMixRange(void);
 bool areMotorsRunning(void);
 bool mixerIsOutputSaturated(int axis, float errorRate);
 
 void mixerLoadMix(int index, motorMixer_t *customMixers);
 void initEscEndpoints(void);
 void mixerInit(mixerMode_e mixerMode);
+void mixerInitProfile(void);
 
 void mixerConfigureOutput(void);
 

@@ -38,17 +38,13 @@ typedef struct pinioRuntime_s {
 
 static pinioRuntime_t pinioRuntime[PINIO_COUNT];
 
-void pinioInit(const pinioConfig_t *pinioConfig)
-{
+void pinioInit(const pinioConfig_t *pinioConfig) {
     for (int i = 0; i < PINIO_COUNT; i++) {
         IO_t io = IOGetByTag(pinioConfig->ioTag[i]);
-
         if (!io) {
             continue;
         }
-
         IOInit(io, OWNER_PINIO, RESOURCE_INDEX(i));
-
         switch (pinioConfig->config[i] & PINIO_CONFIG_MODE_MASK) {
         case PINIO_CONFIG_MODE_OUT_PP:
             // Initial state after reset is input, pull-up.
@@ -59,9 +55,7 @@ void pinioInit(const pinioConfig_t *pinioConfig)
             IOConfigGPIO(io, IOCFG_OUT_PP);
             break;
         }
-
-        if (pinioConfig->config[i] & PINIO_CONFIG_OUT_INVERTED)
-        {
+        if (pinioConfig->config[i] & PINIO_CONFIG_OUT_INVERTED) {
             pinioRuntime[i].inverted = true;
             IOHi(io);
             pinioRuntime[i].state = true;
@@ -74,8 +68,7 @@ void pinioInit(const pinioConfig_t *pinioConfig)
     }
 }
 
-void pinioSet(int index, bool on)
-{
+void pinioSet(int index, bool on) {
     bool newState = on ^ pinioRuntime[index].inverted;
     if (newState != pinioRuntime[index].state) {
         IOWrite(pinioRuntime[index].io, newState);

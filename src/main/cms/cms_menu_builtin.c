@@ -54,6 +54,7 @@
 #include "cms/cms_menu_vtx_rtc6705.h"
 #include "cms/cms_menu_vtx_smartaudio.h"
 #include "cms/cms_menu_vtx_tramp.h"
+#include "cms/cms_menu_vtx_beesign.h"
 
 
 // Info
@@ -63,8 +64,7 @@ static char infoTargetName[] = __TARGET__;
 
 #include "interface/msp_protocol.h" // XXX for FC identification... not available elsewhere
 
-static long cmsx_InfoInit(void)
-{
+static long cmsx_InfoInit(void) {
     int i;
     for ( i = 0 ; i < GIT_SHORT_REVISION_LENGTH ; i++) {
         if (shortGitRevision[i] >= 'a' && shortGitRevision[i] <= 'f')
@@ -72,7 +72,6 @@ static long cmsx_InfoInit(void)
         else
             infoGitRev[i] = shortGitRevision[i];
     }
-
     infoGitRev[i] = 0x0; // Terminate string
     return 0;
 }
@@ -99,8 +98,7 @@ static CMS_Menu menuInfo = {
 
 // Features
 
-static OSD_Entry menuFeaturesEntries[] =
-{
+static OSD_Entry menuFeaturesEntries[] = {
     {"--- FEATURES ---", OME_Label, NULL, NULL, 0},
 
 #if defined(USE_BLACKBOX)
@@ -110,6 +108,9 @@ static OSD_Entry menuFeaturesEntries[] =
 #if defined(USE_VTX_RTC6705)
     {"VTX", OME_Submenu, cmsMenuChange, &cmsx_menuVtxRTC6705, 0},
 #endif // VTX_RTC6705
+#if defined(USE_VTX_BEESIGN)
+    {"VTX BS", OME_Submenu, cmsMenuChange, &cmsx_menuVtxBeesign, 0},
+#endif // VTX_BEESIGN
 #if defined(USE_VTX_SMARTAUDIO)
     {"VTX SA", OME_Submenu, cmsMenuChange, &cmsx_menuVtxSmartAudio, 0},
 #endif
@@ -121,7 +122,7 @@ static OSD_Entry menuFeaturesEntries[] =
     {"LED STRIP", OME_Submenu, cmsMenuChange, &cmsx_menuLedstrip, 0},
 #endif // LED_STRIP
 #ifdef USE_CMS_FAILSAFE_MENU
-   {"FAILSAFE", OME_Submenu, cmsMenuChange, &cmsx_menuFailsafe, 0},
+    {"FAILSAFE", OME_Submenu, cmsMenuChange, &cmsx_menuFailsafe, 0},
 #endif
     {"POWER", OME_Submenu, cmsMenuChange, &cmsx_menuPower, 0},
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
@@ -141,8 +142,7 @@ static CMS_Menu menuFeatures = {
 
 // Main
 
-static OSD_Entry menuMainEntries[] =
-{
+static OSD_Entry menuMainEntries[] = {
     {"-- MAIN --",  OME_Label, NULL, NULL, 0},
 
     {"PROFILE",     OME_Submenu,  cmsMenuChange, &cmsx_menuImu, 0},
@@ -159,7 +159,7 @@ static OSD_Entry menuMainEntries[] =
     {"ERR SAMPLE",  OME_Submenu,  cmsMenuChange, &menuInfoEntries[0], 0},
 #endif
 
-    {NULL,OME_END, NULL, NULL, 0}
+    {NULL, OME_END, NULL, NULL, 0}
 };
 
 CMS_Menu menuMain = {
