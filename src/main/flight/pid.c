@@ -75,6 +75,8 @@ static FAST_RAM_ZERO_INIT bool inCrashRecoveryMode = false;
 
 static FAST_RAM_ZERO_INIT float dT;
 static FAST_RAM_ZERO_INIT float pidFrequency;
+extern struct pidProfile_s *currentPidProfile;
+extern bool linearThrustEnabled;
 
 PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 
@@ -175,6 +177,11 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
     .horizon_tilt_effect = 80,
     .horizonTransition = 0,
+    .linear_thrust_low_output = 65,
+    .linear_thrust_high_output = 0,
+    .linear_throttle = false,
+    .mixer_impl = MIXER_IMPL_LEGACY,
+    .mixer_laziness = false,
     .horizonStrength = 15,
     .directFF_yaw = 0,
                 );
@@ -398,6 +405,7 @@ void pidInitConfig(const pidProfile_t *pidProfile) {
     itermRelaxCutoffYaw = pidProfile->iterm_relax_cutoff_yaw;
 #endif
     iDecay = (float)pidProfile->i_decay;
+    mixerInitProfile();
 }
 
 void pidInit(const pidProfile_t *pidProfile) {
@@ -510,7 +518,7 @@ static void handleCrashRecovery(
         temporaryIterm[axis] = 0.0f;
         if (
             cmpTimeUs(currentTimeUs, crashDetectedAtUs) > crashTimeLimitUs ||
-            (getMotorMixRange() < 1.0f &&
+            (getControllerMixRange() < 1.0f &&
              ABS(gyro.gyroADCf[FD_ROLL]) < crashRecoveryRate &&
              ABS(gyro.gyroADCf[FD_PITCH]) < crashRecoveryRate &&
              ABS(gyro.gyroADCf[FD_YAW]) < crashRecoveryRate
@@ -537,7 +545,7 @@ static void detectAndSetCrashRecovery(
     // no point in trying to recover if the crash is so severe that the gyro overflows
     if ((crash_recovery || FLIGHT_MODE(GPS_RESCUE_MODE)) && !gyroOverflowDetected()) {
         if (ARMING_FLAG(ARMED)) {
-            if (getMotorMixRange() >= 1.0f && !inCrashRecoveryMode && ABS(delta) > crashDtermThreshold && ABS(errorRate) > crashGyroThreshold && ABS(getSetpointRate(axis)) < crashSetpointThreshold) {
+            if (getControllerMixRange() >= 1.0f && !inCrashRecoveryMode && ABS(delta) > crashDtermThreshold && ABS(errorRate) > crashGyroThreshold && ABS(getSetpointRate(axis)) < crashSetpointThreshold) {
                 inCrashRecoveryMode = true;
                 crashDetectedAtUs = currentTimeUs;
             }
@@ -588,26 +596,13 @@ static FAST_RAM_ZERO_INIT float previousdDelta[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float kdRingBuffer[XYZ_AXIS_COUNT][KD_RING_BUFFER_SIZE];
 static FAST_RAM_ZERO_INIT float kdRingBufferSum[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT uint8_t kdRingBufferPoint[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float setPointPAttenuation[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float setPointIAttenuation[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float setPointDAttenuation[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs) {
-    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-        // calculate spa
-        // SPA boost if SPA > 100 SPA cut if SPA < 100
-        setPointPAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition[axis] - 1));
-        setPointIAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointITransition[axis] - 1));
-        setPointDAttenuation[axis] = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition[axis] - 1));
-    }
-    //vbat pid compensation on just the p term :) thanks NFE
-    float vbatCompensationFactor = calculateVbatCompensation(currentControlRateProfile->vbat_comp_type, currentControlRateProfile->vbat_comp_ref);
-    vbatCompensationFactor = scaleRangef(currentControlRateProfile->vbat_comp_pid_level, 0.0f, 100.0f, 1.0f, vbatCompensationFactor);
     // gradually scale back integration when above windup point
     float dynCi = dT;
     if (ITermWindupPointInv != 0.0f) {
-        dynCi *= constrainf((1.0f - getMotorMixRange()) * ITermWindupPointInv, 0.0f, 1.0f);
+        dynCi *= constrainf((1.0f - getControllerMixRange()) * ITermWindupPointInv, 0.0f, 1.0f);
     }
     float errorRate;
     // ----------PID controller----------
@@ -687,7 +682,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         }
 #endif // USE_ITERM_RELAX
         // -----calculate P component
-        pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate)) * vbatCompensationFactor;
+        pidData[axis].P = (pidCoefficient[axis].Kp * (boostedErrorRate + errorRate));
         // -----calculate I component
         //float iterm = constrainf(pidData[axis].I + (pidCoefficient[axis].Ki * errorRate) * dynCi, -itermLimit, itermLimit);
         float iDecayMultiplier = iDecay;
@@ -780,11 +775,22 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             pidData[axis].D = 0;
             pidData[axis].Sum = 0;
         }
-        // calculating the PID sum and TPA and SPA
-        // multiply these things to the pidData so that logs shows the pid data correctly
-        pidData[axis].P = pidData[axis].P * getThrottlePAttenuation() * setPointPAttenuation[axis];
-        pidData[axis].I = temporaryIterm[axis] * getThrottleIAttenuation() * setPointIAttenuation[axis]; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
-        pidData[axis].D = pidData[axis].D * getThrottleDAttenuation() * setPointDAttenuation[axis];
+
+        // applying SetPointAttenuation
+        // SPA boost if SPA > 100 SPA cut if SPA < 100
+        float setPointPAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointPTransition[axis] - 1));
+        float setPointIAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointITransition[axis] - 1));
+        float setPointDAttenuation = 1 + (getRcDeflectionAbs(axis) * (setPointDTransition[axis] - 1));
+        pidData[axis].P *= setPointPAttenuation;
+        pidData[axis].I = temporaryIterm[axis] * setPointIAttenuation; // you can't use pidData[axis].I to calculate iterm or with tpa you get issues
+        pidData[axis].D *= setPointDAttenuation;
+
+        if (!linearThrustEnabled) { // thrust linearization already solves high throttle PID problems
+            pidData[axis].P *= getThrottlePAttenuation();
+            pidData[axis].I *= getThrottleIAttenuation();
+            pidData[axis].D *= getThrottleDAttenuation();
+        }
+
         const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + directFeedForward;
         pidData[axis].Sum = pidSum;
     }
