@@ -212,13 +212,14 @@ static const uint8_t osdElementDisplayOrder[] = {
     OSD_PITCH_ANGLE,
     OSD_ROLL_ANGLE,
     OSD_MAIN_BATT_USAGE,
+    OSD_MAH_PERCENT,
     OSD_DISARMED,
     OSD_NUMERICAL_HEADING,
     OSD_NUMERICAL_VARIO,
     OSD_COMPASS_BAR
 };
 
-PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 3);
+PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 4);
 
 /**
  * Gets the correct altitude symbol for the current unit system
@@ -922,6 +923,14 @@ static bool osdDrawSingleElement(uint8_t item) {
         tfp_sprintf(buff + 1, "%d.%02d%c", cellV / 100, cellV % 100, SYM_VOLT);
         break;
     }
+    case OSD_MAH_PERCENT: {
+        // Calculate constrained value of mAh drawn
+        const float value = constrain(getMAhDrawn(), 0, batteryConfig()->batteryCapacity);
+        // Calculate percentage of total mAh used
+        const uint16_t mAhUsedPercent = ceilf(value / (batteryConfig()->batteryCapacity / 100.0f));
+        tfp_sprintf(buff , "%c%3d%%", SYM_MAH, mAhUsedPercent);
+        break;
+    }   
     case OSD_DEBUG:
         tfp_sprintf(buff, "DBG %5d %5d %5d %5d", debug[0], debug[1], debug[2], debug[3]);
         break;
@@ -1090,24 +1099,27 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig) {
     for (int i = 0; i < OSD_WARNING_COUNT; i++) {
         osdWarnSetState(i, true);
     }
-    osdConfig->timers[OSD_TIMER_1] = OSD_TIMER(OSD_TIMER_SRC_ON, OSD_TIMER_PREC_SECOND, 10);
-    osdConfig->timers[OSD_TIMER_2] = OSD_TIMER(OSD_TIMER_SRC_TOTAL_ARMED, OSD_TIMER_PREC_SECOND, 10);
-    osdConfig->lq_format = TBS;
-    osdConfig->lq_alarm = 70;
-    osdConfig->rssi_alarm = 20;
-    osdConfig->cap_alarm  = 2200;
-    osdConfig->alt_alarm  = 100; // meters or feet depend on configuration
-    osdConfig->esc_temp_alarm = ESC_TEMP_ALARM_OFF; // off by default
-    osdConfig->esc_rpm_alarm = ESC_RPM_ALARM_OFF; // off by default
-    osdConfig->esc_current_alarm = ESC_CURRENT_ALARM_OFF; // off by default
-    osdConfig->core_temp_alarm = 70; // a temperature above 70C should produce a warning, lockups have been reported above 80C
-    osdConfig->distance_alarm = 0;
-    osdConfig->ahMaxPitch = 20; // 20 degrees
-    osdConfig->ahMaxRoll = 40; // 40 degrees
-    osdConfig->logo_on_arming = OSD_LOGO_ARMING_OFF;
-    osdConfig->logo_on_arming_duration = 5;  // 0.5 seconds
     // Turn off replacing craft name for DJI OSD
     osdWarnSetState(OSD_WARNING_DJI, false);
+
+    osdConfig->timers[OSD_TIMER_1] = OSD_TIMER(OSD_TIMER_SRC_ON, OSD_TIMER_PREC_SECOND, 10);
+    osdConfig->timers[OSD_TIMER_2] = OSD_TIMER(OSD_TIMER_SRC_TOTAL_ARMED, OSD_TIMER_PREC_SECOND, 10);
+    osdConfig->lq_format      = TBS;
+    osdConfig->lq_alarm       = 70;
+    osdConfig->rssi_alarm     = 20;
+    osdConfig->cap_alarm      = 2200;
+    osdConfig->alt_alarm      = 100; // meters or feet depend on configuration
+    osdConfig->distance_alarm = 0;
+    osdConfig->core_temp_alarm   = 70; // a temperature above 70C should produce a warning, lockups have been reported above 80C
+    osdConfig->esc_temp_alarm    = ESC_TEMP_ALARM_OFF; // off by default
+    osdConfig->esc_rpm_alarm     = ESC_RPM_ALARM_OFF; // off by default
+    osdConfig->esc_current_alarm = ESC_CURRENT_ALARM_OFF; // off by default
+    osdConfig->stat_show_cell_value = false;
+    osdConfig->ahMaxPitch = 20; // 20 degrees
+    osdConfig->ahMaxRoll = 40; // 40 degrees
+    osdConfig->task_frequency = 60; // at 125 or 150 the refresh rate is exactly 25 (PAL) or 30 (NTSC)
+    osdConfig->logo_on_arming = OSD_LOGO_ARMING_OFF;
+    osdConfig->logo_on_arming_duration = 5;  // 0.5 seconds
 }
 
 static void osdDrawLogo(int x, int y) {
@@ -1281,8 +1293,9 @@ static void osdUpdateStats(void) {
     if (stats.max_speed < value) {
         stats.max_speed = value;
     }
-    value = getBatteryVoltage();
-    if (stats.min_voltage > value) {
+    value = osdConfig()->stat_show_cell_value ? getBatteryAverageCellVoltage() : getBatteryVoltage();
+    if (stats.min_voltage > value)
+    {
         stats.min_voltage = value;
     }
     value = getAmperage() / 100;
@@ -1398,15 +1411,20 @@ static void osdShowStats(uint16_t endBatteryVoltage) {
     }
     if (osdStatGetState(OSD_STAT_MIN_BATTERY)) {
         tfp_sprintf(buff, "%d.%1d%c", stats.min_voltage / 10, stats.min_voltage % 10, SYM_VOLT);
-        osdDisplayStatisticLabel(top++, "MIN BATTERY", buff);
+        osdDisplayStatisticLabel(top++, osdConfig()->stat_show_cell_value? "MIN CELL" : "MIN BATTERY", buff);
     }
     if (osdStatGetState(OSD_STAT_END_BATTERY)) {
         tfp_sprintf(buff, "%d.%1d%c", endBatteryVoltage / 10, endBatteryVoltage % 10, SYM_VOLT);
-        osdDisplayStatisticLabel(top++, "END BATTERY", buff);
+        osdDisplayStatisticLabel(top++, osdConfig()->stat_show_cell_value ? "END CELL" : "END BATTERY", buff);
     }
     if (osdStatGetState(OSD_STAT_BATTERY)) {
-        tfp_sprintf(buff, "%d.%1d%c", getBatteryVoltage() / 10, getBatteryVoltage() % 10, SYM_VOLT);
-        osdDisplayStatisticLabel(top++, "BATTERY", buff);
+        if(osdConfig()->stat_show_cell_value){
+            tfp_sprintf(buff, "%d.%1d%c", getBatteryAverageCellVoltage() / 10, getBatteryAverageCellVoltage() % 10, SYM_VOLT);
+        }
+        else {
+            tfp_sprintf(buff, "%d.%1d%c", getBatteryVoltage() / 10, getBatteryVoltage() % 10, SYM_VOLT);
+        }
+        osdDisplayStatisticLabel(top++, osdConfig()->stat_show_cell_value ? "BATT (CELL)" : "BATTERY", buff);
     }
     if (osdStatGetState(OSD_STAT_MIN_RSSI)) {
         itoa(stats.min_rssi, buff, 10);
@@ -1475,7 +1493,7 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs) {
                        || !VISIBLE(osdConfig()->item_pos[OSD_WARNINGS]))) { // suppress stats if runaway takeoff triggered disarm and WARNINGS element is visible
             osdStatsEnabled = true;
             resumeRefreshAt = currentTimeUs + (60 * REFRESH_1S);
-            endBatteryVoltage = getBatteryVoltage();
+            endBatteryVoltage = osdConfig()->stat_show_cell_value ? getBatteryAverageCellVoltage() : getBatteryVoltage();
         }
         armState = ARMING_FLAG(ARMED);
     }

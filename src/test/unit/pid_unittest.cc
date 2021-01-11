@@ -28,7 +28,7 @@ bool simulateMixerSaturated = false;
 float simulatedSetpointRate[3] = { 0,0,0 };
 float simulatedRcDeflection[3] = { 0,0,0 };
 float simulatedThrottlePIDAttenuation = 1.0f;
-float simulatedMotorMixRange = 0.0f;
+float simulatedControllerMixRange = 0.0f;
 
 int16_t debug[DEBUG16_VALUE_COUNT];
 uint8_t debugMode;
@@ -65,7 +65,7 @@ extern "C" {
     attitudeEulerAngles_t attitude;
 
     float getThrottlePIDAttenuation(void) { return simulatedThrottlePIDAttenuation; }
-    float getMotorMixRange(void) { return simulatedMotorMixRange; }
+    float getControllerMixRange(void) { return simulatedControllerMixRange; }
     float getSetpointRate(int axis) { return simulatedSetpointRate[axis]; }
     bool mixerIsOutputSaturated(int, float) { return simulateMixerSaturated; }
     float getRcDeflectionAbs(int axis) { return ABS(simulatedRcDeflection[axis]); }
@@ -128,7 +128,7 @@ void resetTest(void) {
     loopIter = 0;
     simulateMixerSaturated = false;
     simulatedThrottlePIDAttenuation = 1.0f;
-    simulatedMotorMixRange = 0.0f;
+    simulatedControllerMixRange = 0.0f;
 
     pidStabilisationState(PID_STABILISATION_OFF);
     DISABLE_ARMING_FLAG(ARMED);
@@ -263,12 +263,12 @@ TEST(pidControllerTest, testPidLoop) {
     EXPECT_FLOAT_EQ(-132.25, pidData[FD_YAW].D);
 
     // Simulate Iterm behaviour during mixer saturation
-    simulatedMotorMixRange = 1.2f;
+    simulatedControllerMixRange = 1.2f;
     pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
     ASSERT_NEAR(-23.5, pidData[FD_ROLL].I, calculateTolerance(-23.5));
     ASSERT_NEAR(19.6, pidData[FD_PITCH].I, calculateTolerance(19.6));
     ASSERT_NEAR(-8.8, pidData[FD_YAW].I, calculateTolerance(-8.8));
-    simulatedMotorMixRange = 0;
+    simulatedControllerMixRange = 0;
 
     // Match the stick to gyro to stop error
     simulatedSetpointRate[FD_ROLL] = 100;
@@ -449,7 +449,7 @@ TEST(pidControllerTest, testCrashRecoveryMode) {
 
     // generate crash detection for roll axis
     gyro.gyroADCf[FD_ROLL]  = 800;
-    simulatedMotorMixRange = 1.2f;
+    simulatedControllerMixRange = 1.2f;
     for (int loop =0; loop <= loopsToCrashTime; loop++) {
         gyro.gyroADCf[FD_ROLL] += gyro.gyroADCf[FD_ROLL];
         pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
