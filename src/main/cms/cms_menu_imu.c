@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 
 #include "platform.h"
 
@@ -246,8 +247,8 @@ static const void *cmsx_PidRead(void)
         tempI = tempI / tempP * 100.0f;
         tempD = tempD / tempP * 100.0f;
         tempPid[i][0] = tempP;
-        tempPid[i][1] = tempI;
-        tempPid[i][2] = tempD;
+        tempPid[i][1] = round(tempI);
+        tempPid[i][2] = round(tempD);
         tempPidF[i] = pidProfile->pid[i].F;
     }
     tempPidDF = pidProfile->pid[YAW].DF;
@@ -278,8 +279,8 @@ static const void *cmsx_PidWriteback(displayPort_t *pDisp, const OSD_Entry *self
         tempI = tempI / 100.0f * tempP;
         tempD = tempD / 100.0f * tempP;
         pidProfile->pid[i].P = tempP;
-        pidProfile->pid[i].I = tempI;
-        pidProfile->pid[i].D = tempD;
+        pidProfile->pid[i].I = round(tempI);
+        pidProfile->pid[i].D = round(tempD);
         pidProfile->pid[i].F = tempPidF[i];
     }
     pidProfile->pid[YAW].DF = tempPidDF;
