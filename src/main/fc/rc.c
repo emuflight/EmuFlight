@@ -692,6 +692,7 @@ static FAST_CODE void rcPrediction(timeUs_t currentTimeUs) {
         for (int i = 0; i < PRIMARY_CHANNEL_COUNT; ++i) {
             rc_velocity[i] = (rcCommand[i] - last_good_rc[i]) / (currentTimeUs - last_good_rc_time); // rc_velocity is in rc/us
             last_good_rc[i] = rcCommand[i];
+            DEBUG_SET(DEBUG_RC_PREDICTOR, 0, rcCommand[rcSmoothingData.debugAxis]);
         }
         last_good_rc_time = currentTimeUs;
     }
@@ -701,8 +702,8 @@ static FAST_CODE void rcPrediction(timeUs_t currentTimeUs) {
       for (int i = 0; i < PRIMARY_CHANNEL_COUNT; ++i) {
         // filter the stick velocity
         smoothed_rc_velocity[i] = pt1FilterApply(&rcSmoothingData.velocityLpf[i], rc_velocity[i]);
-        DEBUG_SET(DEBUG_RC_PREDICTOR, 0, smoothed_rc_velocity[ROLL] * 10000);
-        DEBUG_SET(DEBUG_RC_PREDICTOR, 2, smoothed_rc_velocity[PITCH] * 10000);
+        DEBUG_SET(DEBUG_RC_PREDICTOR, 2, rc_velocity[rcSmoothingData.debugAxis] * 10000);
+        DEBUG_SET(DEBUG_RC_PREDICTOR, 3, smoothed_rc_velocity[rcSmoothingData.debugAxis] * 10000);
         // Check for sane stick velocity
         if (fabsf(smoothed_rc_velocity[i]) < 0.01f) { // v < 20.0/sec i.e. 0.05 sec from 0.0 to 500.0f
           rcCommand[i] = last_good_rc[i] + smoothed_rc_velocity[i] * (currentTimeUs - last_good_rc_time) * rcSmoothingData.predictorPercent;
@@ -716,8 +717,7 @@ static FAST_CODE void rcPrediction(timeUs_t currentTimeUs) {
         last_predicted_rc[i] = rcCommand[i];
         }
       }
-      DEBUG_SET(DEBUG_RC_PREDICTOR, 1, rcCommand[ROLL]);
-      DEBUG_SET(DEBUG_RC_PREDICTOR, 3, rcCommand[PITCH]);
+      DEBUG_SET(DEBUG_RC_PREDICTOR, 1, rcCommand[rcSmoothingData.debugAxis]);
     }
   }
 }
