@@ -491,6 +491,10 @@ const clivalue_t valueTable[] = {
     { "gyro_lowpass2_hz_pitch",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass2_hz[PITCH]) },
     { "gyro_lowpass2_hz_yaw",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass2_hz[YAW]) },
 
+    { "gyro_abg_alpha",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_ABG_alpha) },
+    { "gyro_abg_boost",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  2000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_ABG_boost) },
+    { "gyro_ABG_half_life",         VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  10000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_ABG_half_life) },
+
     { "gyro_notch1_hz",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_soft_notch_hz_1) },
     { "gyro_notch1_cutoff",         VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_soft_notch_cutoff_1) },
     { "gyro_notch2_hz",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_soft_notch_hz_2) },
@@ -839,6 +843,8 @@ const clivalue_t valueTable[] = {
 #endif
 // PG_PID_PROFILE
     { "dterm_abg_alpha",            VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_ABG_alpha) },
+    { "dterm_abg_boost",            VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_ABG_boost) },
+    { "dterm_abg_half_life",        VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 10000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_ABG_half_life) },
     { "dterm_lowpass_type",         VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_FILTER_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter_type) },
     { "dterm_lowpass_hz_roll",      VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[ROLL].dLpf) },
     { "dterm_lowpass_hz_pitch",     VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].dLpf) },
@@ -847,7 +853,7 @@ const clivalue_t valueTable[] = {
     { "dterm_lowpass2_hz_pitch",    VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].dLpf2) },
     { "dterm_lowpass2_hz_yaw",      VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[YAW].dLpf2) },
     { "smart_dterm_smoothing_roll", VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[ROLL].smartSmoothing) },
-    { "smart_dterm_smoothing_pitch", VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].smartSmoothing) },
+    { "smart_dterm_smoothing_pitch",VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].smartSmoothing) },
     { "smart_dterm_smoothing_yaw",  VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[YAW].smartSmoothing) },
     { "witchcraft_roll",            VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[ROLL].Wc) },
     { "witchcraft_pitch",           VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].Wc) },

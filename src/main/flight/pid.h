@@ -135,6 +135,8 @@ typedef struct pidProfile_s {
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
     uint16_t dterm_ABG_alpha;
+    uint16_t dterm_ABG_boost;
+    uint16_t dterm_ABG_half_life;
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE

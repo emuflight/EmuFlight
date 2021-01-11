@@ -43,8 +43,9 @@ typedef struct biquadFilter_s {
 
 typedef struct alphaBetaGammaFilter_s {
     float a, b, g, e;
-    float ak, vk, xk, jk;
+    float ak, vk, xk, jk, rk;
     float dT, dT2, dT3;
+    float halfLife, boost;
 } alphaBetaGammaFilter_t;
 
 typedef enum {
@@ -79,5 +80,5 @@ float pt1FilterApply(pt1Filter_t *filter, float input);
 void slewFilterInit(slewFilter_t *filter, float slewLimit, float threshold);
 float slewFilterApply(slewFilter_t *filter, float input);
 
-void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, float dt);
+void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, int boostGain, int halfLife, float dT);
 float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input);

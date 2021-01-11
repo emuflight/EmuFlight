@@ -455,6 +455,9 @@ static uint16_t gyroConfig_gyro_soft_notch_cutoff_2;
 static uint16_t gyroConfig_gyro_matrix_q;
 static uint16_t gyroConfig_gyro_matrix_min_hz;
 static uint16_t gyroConfig_gyro_matrix_max_hz;
+static uint16_t gyroConfig_gyro_abg_alpha;
+static uint16_t gyroConfig_gyro_abg_boost;
+static uint16_t gyroConfig_gyro_abg_half_life;
 #ifndef USE_GYRO_IMUF9001
 static uint16_t gyroConfig_imuf_roll_q;
 static uint16_t gyroConfig_imuf_pitch_q;
@@ -477,6 +480,10 @@ static long cmsx_menuGyro_onEnter(void) {
     gyroConfig_gyro_matrix_q = gyroConfig()->dyn_notch_q_factor;
     gyroConfig_gyro_matrix_min_hz = gyroConfig()->dyn_notch_min_hz;
     gyroConfig_gyro_matrix_max_hz = gyroConfig()->dyn_notch_max_hz;
+    gyroConfig_gyro_abg_alpha = gyroConfig()->gyro_ABG_alpha;
+    gyroConfig_gyro_abg_boost = gyroConfig()->gyro_ABG_boost;
+    gyroConfig_gyro_abg_half_life = gyroConfig()->gyro_ABG_half_life;
+
 #ifndef USE_GYRO_IMUF9001
     gyroConfig_imuf_roll_q = gyroConfig()->imuf_roll_q;
     gyroConfig_imuf_pitch_q = gyroConfig()->imuf_pitch_q;
@@ -502,6 +509,9 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self) {
     gyroConfigMutable()->dyn_notch_q_factor = gyroConfig_gyro_matrix_q;
     gyroConfigMutable()->dyn_notch_min_hz = gyroConfig_gyro_matrix_min_hz;
     gyroConfigMutable()->dyn_notch_max_hz = gyroConfig_gyro_matrix_max_hz;
+    gyroConfigMutable()->gyro_ABG_alpha = gyroConfig_gyro_abg_alpha;
+    gyroConfigMutable()->gyro_ABG_boost = gyroConfig_gyro_abg_boost;
+    gyroConfigMutable()->gyro_ABG_half_life = gyroConfig_gyro_abg_half_life;
 #ifndef USE_GYRO_IMUF9001
     gyroConfigMutable()->imuf_roll_q = gyroConfig_imuf_roll_q;
     gyroConfigMutable()->imuf_pitch_q = gyroConfig_imuf_pitch_q;
@@ -539,6 +549,10 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] = {
     { "GYRO NF2",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_2,     0, 500, 1 }, 0 },
     { "GYRO NF2C",        OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_2, 0, 500, 1 }, 0 },
 
+    { "GYRO ABG ALPHA",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_abg_alpha,           0, 1000, 1 }, 0 },
+    { "GYRO ABG BOOST",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_abg_boost,           0, 2000, 1 }, 0 },
+    { "GYRO ABG HL",      OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_abg_half_life,       0, 10000, 1 }, 0 },
+
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }
@@ -553,13 +567,6 @@ static CMS_Menu cmsx_menuFilterGlobal = {
     .onExit = cmsx_menuGyro_onExit,
     .entries = cmsx_menuFilterGlobalEntries,
 };
-
-static uint16_t cmsx_dterm_lowpass_hz_roll;
-static uint16_t cmsx_dterm_lowpass_hz_pitch;
-static uint16_t cmsx_dterm_lowpass_hz_yaw;
-static uint16_t cmsx_dterm_lowpass2_hz_roll;
-static uint16_t cmsx_dterm_lowpass2_hz_pitch;
-static uint16_t cmsx_dterm_lowpass2_hz_yaw;
 
 //
 // SPRING Imuf
@@ -640,10 +647,18 @@ static CMS_Menu cmsx_menuImuf = {
 };
 #endif
 
-
+static uint16_t cmsx_dterm_lowpass_hz_roll;
+static uint16_t cmsx_dterm_lowpass_hz_pitch;
+static uint16_t cmsx_dterm_lowpass_hz_yaw;
+static uint16_t cmsx_dterm_lowpass2_hz_roll;
+static uint16_t cmsx_dterm_lowpass2_hz_pitch;
+static uint16_t cmsx_dterm_lowpass2_hz_yaw;
 static uint8_t cmsx_smart_dterm_smoothing_roll;
 static uint8_t cmsx_smart_dterm_smoothing_pitch;
 static uint8_t cmsx_smart_dterm_smoothing_yaw;
+static uint16_t cmsx_dterm_abg_alpha;
+static uint16_t cmsx_dterm_abg_boost;
+static uint16_t cmsx_dterm_abg_half_life;
 
 static long cmsx_FilterPerProfileRead(void) {
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
@@ -659,6 +674,9 @@ static long cmsx_FilterPerProfileRead(void) {
     cmsx_smart_dterm_smoothing_roll   = pidProfile->dFilter[ROLL].smartSmoothing;
     cmsx_smart_dterm_smoothing_pitch  = pidProfile->dFilter[PITCH].smartSmoothing;
     cmsx_smart_dterm_smoothing_yaw    = pidProfile->dFilter[YAW].smartSmoothing;
+    cmsx_dterm_abg_alpha = pidProfile->dterm_ABG_alpha;
+    cmsx_dterm_abg_boost = pidProfile->dterm_ABG_boost;
+    cmsx_dterm_abg_half_life = pidProfile->dterm_ABG_half_life;
     return 0;
 }
 
@@ -677,6 +695,9 @@ static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self) {
     pidProfile->dFilter[ROLL].smartSmoothing   = cmsx_smart_dterm_smoothing_roll;
     pidProfile->dFilter[PITCH].smartSmoothing  = cmsx_smart_dterm_smoothing_pitch;
     pidProfile->dFilter[YAW].smartSmoothing    = cmsx_smart_dterm_smoothing_yaw;
+    pidProfile->dterm_ABG_alpha = cmsx_dterm_abg_alpha;
+    pidProfile->dterm_ABG_boost = cmsx_dterm_abg_boost;
+    pidProfile->dterm_ABG_half_life = cmsx_dterm_abg_half_life;
     return 0;
 }
 
@@ -696,6 +717,10 @@ static OSD_Entry cmsx_menuFilterPerProfileEntries[] = {
     { "ROLL WITCHCRAFT",    OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[ROLL], 0, 10, 1 }, 0 },
     { "PITCH WITCHCRAFT",   OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[PITCH], 0, 10, 1 }, 0 },
     { "YAW WITCHCRAFT",     OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[YAW], 0, 10, 1 }, 0 },
+
+    { "DTERM ABG ALPHA",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_abg_alpha,       0, 1000, 1 }, 0 },
+    { "DTERM ABG BOOST",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_abg_boost,       0, 2000, 1 }, 0 },
+    { "DTERM ABG HL",       OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_abg_half_life,   0, 10000, 1 }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
