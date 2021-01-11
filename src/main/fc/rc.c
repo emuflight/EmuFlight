@@ -688,7 +688,7 @@ static FAST_CODE void rcPrediction(timeUs_t currentTimeUs) {
         }
     }
 
-    if (isRxDataNew) {
+    if (isRxDataNew && (rcCommand[0] != last_good_rc[0] || rcCommand[1] != last_good_rc[1] || rcCommand[2] != last_good_rc[2] || rcCommand[3] != last_good_rc[3])) {
         for (int i = 0; i < PRIMARY_CHANNEL_COUNT; ++i) {
             rc_velocity[i] = (rcCommand[i] - last_good_rc[i]) / (currentTimeUs - last_good_rc_time); // rc_velocity is in rc/us
             last_good_rc[i] = rcCommand[i];
