@@ -71,6 +71,13 @@ typedef enum {
     PID_CRASH_RECOVERY_BEEP
 } pidCrashRecovery_e;
 
+typedef enum {
+    MIXER_IMPL_LEGACY = 0,
+    MIXER_IMPL_SMOOTH,
+    MIXER_IMPL_2PASS,
+    MIXER_IMPL_COUNT
+} mixerImplType_e;
+
 typedef struct pidf_s {
     uint8_t P;
     uint8_t I;
@@ -132,11 +139,16 @@ typedef struct pidProfile_s {
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system
     uint8_t iterm_relax_cutoff;
     uint8_t iterm_relax_cutoff_yaw;
-    uint8_t iterm_relax_threshold;             // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
-    uint8_t iterm_relax_threshold_yaw;         // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
+    uint8_t iterm_relax_threshold;          // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
+    uint8_t iterm_relax_threshold_yaw;      // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
     uint16_t emuGravityGain;                // Gain for the EmuGravity
+    uint8_t linear_thrust_low_output;       // Sets the level of thrust linearization for low motor outputs
+    uint8_t linear_thrust_high_output;      // Sets the level of thrust linearization for high motor outputs
+    uint8_t linear_throttle;                // When thrust linearization is enabled, tells whether the throttle has to be linear or counter-compensated for legacy feedback
+    mixerImplType_e mixer_impl;             // Which mixer implementation use
+    uint8_t mixer_laziness;                 // If enabled, mixer clipping strategy will shift values only by the minimum required amount per motor group. Requires linear thrust
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE

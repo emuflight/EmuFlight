@@ -77,7 +77,11 @@ static uint8_t dtermBoostLimit;
 static uint16_t emuGravityGain;
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
-
+static uint8_t linear_thrust_low_output;
+static uint8_t linear_thrust_high_output;
+static uint8_t linear_throttle;
+static mixerImplType_e mixer_impl;
+static uint8_t mixer_laziness;
 
 static uint8_t tmpRateProfileIndex;
 static uint8_t rateProfileIndex;
@@ -90,6 +94,10 @@ static const char * const cms_offOnLabels[] = {
 
 static const char * const cms_throttleVbatCompTypeLabels[] = {
     "OFF", "BOOST", "LIMIT", "BOTH"
+};
+
+static const char * const cms_mixerImplTypeLabels[] = {
+    "LEGACY", "SMOOTH", "2PASS"
 };
 
 static long cmsx_menuImu_onEnter(void) {
@@ -140,7 +148,11 @@ static long cmsx_PidAdvancedRead(void) {
     itermRelaxThresholdYaw = pidProfile->iterm_relax_threshold_yaw;
     itermWindup = pidProfile->itermWindupPointPercent;
     emuGravityGain = pidProfile->emuGravityGain;
-
+    linear_thrust_low_output = pidProfile->linear_thrust_low_output;
+    linear_thrust_high_output = pidProfile->linear_thrust_high_output;
+    linear_throttle = pidProfile->linear_throttle;
+    mixer_impl = pidProfile->mixer_impl;
+    mixer_laziness = pidProfile->mixer_laziness;
     return 0;
 }
 
@@ -168,6 +180,11 @@ static long cmsx_PidAdvancedWriteback(const OSD_Entry *self) {
     pidProfile->iterm_relax_threshold_yaw = itermRelaxThresholdYaw;
     pidProfile->itermWindupPointPercent = itermWindup;
     pidProfile->emuGravityGain = emuGravityGain;
+    pidProfile->linear_thrust_low_output = linear_thrust_low_output;
+    pidProfile->linear_thrust_high_output = linear_thrust_high_output;
+    pidProfile->linear_throttle = linear_throttle;
+    pidProfile->mixer_impl = mixer_impl;
+    pidProfile->mixer_laziness = mixer_laziness;
     pidInitConfig(currentPidProfile);
     return 0;
 }
@@ -194,6 +211,12 @@ static OSD_Entry cmsx_menuPidAdvancedEntries[] = {
     { "I WINDUP",          OME_UINT8, NULL, &(OSD_UINT8_t){ &itermWindup,              0, 100, 1 }, 0 },
 
     { "EMU GRAVITY",       OME_UINT16, NULL, &(OSD_UINT16_t){ &emuGravityGain,         0,  16000, 100}, 0 },
+
+    { "LINEAR THRUST LOW",  OME_UINT8, NULL, &(OSD_UINT8_t) { &linear_thrust_low_output, 0, 100,  1}, 0 },
+    { "LINEAR THRUST HIGH", OME_UINT8, NULL, &(OSD_UINT8_t) { &linear_thrust_high_output, 0, 100,  1}, 0 },
+    { "LINEAR THROTTLE",   OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &linear_throttle, 1, cms_offOnLabels }, 0 },
+    { "MIXER IMPL",        OME_TAB,   NULL, &(OSD_TAB_t)   { &mixer_impl, MIXER_IMPL_COUNT - 1, cms_mixerImplTypeLabels }, 0 },
+    { "MIXER LAZINESS",    OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &mixer_laziness, 1, cms_offOnLabels }, 0 },
 
     { "SAVE&EXIT",         OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK",              OME_Back, NULL, NULL, 0 },
@@ -322,8 +345,6 @@ static OSD_Entry cmsx_menuRateProfileEntries[] = {
 
     { "VBAT COMP TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)    { &rateProfile.vbat_comp_type, VBAT_COMP_TYPE_COUNT - 1, cms_throttleVbatCompTypeLabels}, 0 },
     { "VBAT COMP REF",   OME_UINT8, NULL, &(OSD_UINT8_t)  { &rateProfile.vbat_comp_ref, VBAT_CELL_VOTAGE_RANGE_MIN, VBAT_CELL_VOTAGE_RANGE_MAX,  1}, 0 },
-    { "VBAT COMP THR %", OME_UINT8, NULL, &(OSD_UINT8_t)  { &rateProfile.vbat_comp_throttle_level, 0,  100,  1}, 0 },
-    { "VBAT COMP PID %", OME_UINT8, NULL, &(OSD_UINT8_t)  { &rateProfile.vbat_comp_pid_level, 0,  100,  1}, 0 },
     { "THROTTLE LIMIT %", OME_UINT8, NULL, &(OSD_UINT8_t)  { &rateProfile.throttle_limit_percent, 25,  100,  1}, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
