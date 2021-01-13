@@ -117,16 +117,16 @@ void resetPidProfile(pidProfile_t *pidProfile)
 {
     RESET_CONFIG(pidProfile_t, pidProfile,
         .pid = {
-            [PID_ROLL] =       { 60, 85, 40, 90, 0 },
-            [PID_PITCH] =      { 65, 90, 42, 95, 0 },
-            [PID_YAW] =        { 70, 95, 0,  90, 30 },
+            [PID_ROLL] =       { 50, 70, 28, 0,  0 },
+            [PID_PITCH] =      { 58, 70, 30, 0,  0 },
+            [PID_YAW] =        { 60, 70, 5,  0,  30 },
             [PID_LEVEL_LOW] =  {100, 0,  10, 40, 70 },
-            [PID_LEVEL_HIGH] = { 35, 0,  1,   0, 0 },
-            [PID_MAG] =        { 40, 0,  0,   0, 0 },
+            [PID_LEVEL_HIGH] = { 35, 0,  1,  0,  0 },
+            [PID_MAG] =        { 40, 0,  0,  0,  0 },
         },
         .stickTransition = {
           { 110, 110, 130 }, // p roll, p pitch, p yaw
-          { 90,  90,  70  }, // i roll, i pitch, i yaw
+          { 85,  85,  75  }, // i roll, i pitch, i yaw
           { 110, 110, 130 }, // d roll, d pitch, d yaw
         },
         .pidSumLimit = PIDSUM_LIMIT,
@@ -136,7 +136,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_notch_cutoff = 0,
         .itermWindupPointPercent = 70,
         .pidAtMinThrottle = PID_STABILISATION_ON,
-        .levelAngleLimit = 55,
+        .levelAngleLimit = 45,
         .feedForwardTransition = 0,
         .itermThrottleThreshold = 250,
         .itermAcceleratorGain = 3500,
@@ -144,7 +144,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .crash_gthreshold = 400,    // degrees/second
         .crash_setpoint_threshold = 350, // degrees/second
         .crash_recovery = PID_CRASH_RECOVERY_DISARM, // off by default
-        .angleExpo = 30,
+        .angleExpo = 10,
         .horizonTransition = 0,
         .horizonGain = 50,
         .racemode_tilt_effect = 130,
@@ -153,19 +153,19 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .throttle_boost = 5,
         .throttle_boost_cutoff = 15,
         .iterm_rotation = true,
-        .iterm_relax_cutoff = 15,
-        .iterm_relax_cutoff_yaw = 30,
-        .iterm_relax_threshold = 40,
-        .iterm_relax_threshold_yaw = 40,
+        .iterm_relax_cutoff = 11,
+        .iterm_relax_cutoff_yaw = 25,
+        .iterm_relax_threshold = 35,
+        .iterm_relax_threshold_yaw = 35,
         .antiGravityMode = ANTI_GRAVITY_SMOOTH,
-        .dterm_lowpass_hz = 0,      // NOTE: dynamic lpf is enabled by default so this setting is actually
+        .dterm_lowpass_hz = 65,      // NOTE: dynamic lpf is enabled by default so this setting is actually
                                     // overridden and the static lowpass 1 is disabled.
-        .dterm_lowpass2_hz = 0,   // second Dterm LPF OFF by default
-        .dterm_filter_type = FILTER_BIQUAD,
+        .dterm_lowpass2_hz = 200,   // second Dterm LPF OFF by default
+        .dterm_filter_type = FILTER_PT1,
         .dterm_filter2_type = FILTER_PT1,
-        .dyn_lpf_dterm_min_hz = 150,
-        .dyn_lpf_dterm_max_hz = 250,
-        .dterm_dynlpf2_fmax = 125,
+        .dyn_lpf_dterm_min_hz = 0,
+        .dyn_lpf_dterm_max_hz = 0,
+        .dterm_dynlpf2_fmax = 0,
         .dterm_dynlpf2_gain = 20,
         .launchControlMode = LAUNCH_CONTROL_MODE_NORMAL,
         .launchControlThrottlePercent = 20,
@@ -189,16 +189,16 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .ff_smooth_factor = 37,
         .ff_boost = 15,
         .dyn_lpf_curve_expo = 5,
-        .vbat_sag_compensation = 100,
+        .vbat_sag_compensation = 0,
         .dtermMeasurementSlider = 100,
-        .emuBoostPR = 0,
-        .emuBoostY = 0,
+        .emuBoostPR = 15,
+        .emuBoostY = 40,
         .dtermBoost = 0,
         .i_decay = 4,
         .i_decay_cutoff = 200,
         .dynThr = { 75, 125, 65 },
-        .tpa_breakpoint = 1350,
-        .dtermAlpha = 112,
+        .tpa_breakpoint = 1600,
+        .dtermAlpha = 0,
         .dterm_abg_boost = 375,
         .dterm_abg_half_life = 50,
         .axis_lock_hz = 2,
@@ -736,20 +736,17 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
         // -----calculate I component
         float Ki;
-        float axisDynCi;
 #ifdef USE_LAUNCH_CONTROL
         // if launch control is active override the iterm gains and apply iterm windup protection to all axes
         if (launchControlActive) {
             Ki = pidRuntime.launchControlKi;
-            axisDynCi = dynCi;
         } else
 #endif
         {
             Ki = pidRuntime.pidCoefficient[axis].Ki;
-            axisDynCi = (axis == FD_YAW) ? dynCi : pidRuntime.dT; // only apply windup protection to yaw
         }
 
-        float iTermNew = (Ki * axisDynCi + agGain) * itermErrorRate * getThrottleIAttenuation() * stickPositionAttenuation(axis, 1);
+        float iTermNew = (Ki * dynCi + agGain) * itermErrorRate * getThrottleIAttenuation() * stickPositionAttenuation(axis, 1);
 
         if (SIGN(iterm) != SIGN(iTermNew))
         {
