@@ -62,5 +62,3 @@ bool    max7456LayerSupported(displayPortLayer_e layer);
 bool    max7456LayerSelect(displayPortLayer_e layer);
 bool    max7456LayerCopy(displayPortLayer_e destLayer, displayPortLayer_e sourceLayer);
 bool    max7456IsDeviceDetected(void);
-void max7456BackgroundBlack(void);
-void max7456BackgroundTransparent(void);

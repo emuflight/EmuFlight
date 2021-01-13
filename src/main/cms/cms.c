@@ -69,11 +69,6 @@
 
 #include "osd/osd.h"
 
-#ifdef USE_MAX7456
-#include "drivers/max7456.h"
-#include "io/displayport_max7456.h"
-#endif
-
 #include "rx/rx.h"
 
 // DisplayPort management
@@ -889,12 +884,6 @@ void cmsMenuOpen(void)
     	maxMenuItems      = pCurrentDisplay->rows;
     }
 
-#ifdef USE_MAX7456
-    if (displayPortProfileMax7456()->useBlackBackgroundInMenus) {
-        max7456BackgroundBlack();
-    }
-#endif
-
     cmsMenuChange(pCurrentDisplay, startMenu);
 }
 
@@ -940,12 +929,6 @@ const void *cmsMenuExit(displayPort_t *pDisplay, const void *ptr)
     }
 
     cmsInMenu = false;
-
-#ifdef USE_MAX7456
-    if (displayPortProfileMax7456()->useBlackBackgroundInMenus) {
-        max7456BackgroundTransparent();
-    }
-#endif
 
     displayRelease(pDisplay);
     currentCtx.menu = NULL;
