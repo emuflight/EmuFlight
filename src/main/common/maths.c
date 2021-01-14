@@ -114,46 +114,42 @@ float sqrt_approx(float x)
     #define sqrtPowSeriesCoef3  0.04585425015501f
     #define sqrtPowSeriesCoef4 -0.01076564682800f
 
-    if (x > 5.877471754e-39)
-    {
-        float sum;
-        float powr;
-        long intPart;
+    if (x <= 5.877471754e-39f) return 0.0f;
+
+    float acc;
+    float xPower;
+    int32_t intPart;
         
-        union { 
-            float f; 
-            long i; 
-        } bits;
+    union { 
+        float f; 
+        int32_t i; 
+    } xBits;
 
-        bits.f = x;
+    xBits.f = x;
 
-        intPart = ((bits.i) >> 23);                // get biased exponent
-        intPart -= 127;                            // unbias it
+    intPart = ((xBits.i) >> 23);                // get biased exponent
+    intPart -= 127;                             // unbias it
 
-        x = (float)(bits.i & 0x007FFFFF);          // mask off exponent leaving 0x800000*(mantissa - 1)
-        x *= 1.192092895507812e-07;                // divide by 0x800000
+    x = (float)(xBits.i & 0x007FFFFF);          // mask off exponent leaving 0x800000 * (mantissa - 1)
+    x *= 1.192092895507812e-07f;                // divide by 0x800000
 
-        sum = sqrtPowSeriesCoef1 * x + 1.0f;
-        powr = x * x;
-        sum += sqrtPowSeriesCoef2 * powr;
-        powr *= x;
-        sum += sqrtPowSeriesCoef3 * powr;
-        powr *= x;
-        sum += sqrtPowSeriesCoef4 * powr;
+    acc = sqrtPowSeriesCoef1 * x + 1.0f;
+    xPower = x * x;
+    acc += sqrtPowSeriesCoef2 * xPower;
+    xPower *= x;
+    acc += sqrtPowSeriesCoef3 * xPower;
+    xPower *= x;
+    acc += sqrtPowSeriesCoef4 * xPower;
 
-        if (intPart & 0x00000001) {
-            sum *= M_SQRT2f;                       // an odd input exponent means an extra sqrt(2) in the output
-        }
-
-        bits.i = intPart >> 1;                     // divide exponent by 2, lose LSB
-        bits.i += 127;                             // rebias exponent
-        bits.i <<= 23;                             // move biased exponent into exponent bits
-
-        return sum * bits.f;
-    } 
-    else {
-        return 0.0;
+    if (intPart & 0x1) {
+        acc *= M_SQRT2f;                        // an odd input exponent means an extra sqrt(2) in the output
     }
+
+    xBits.i = intPart >> 1;                     // divide exponent by 2, lose LSB
+    xBits.i += 127;                             // rebias exponent
+    xBits.i <<= 23;                             // move biased exponent into exponent bits
+
+    return acc * xBits.f;
 }
 #endif
 
