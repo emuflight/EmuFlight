@@ -76,7 +76,7 @@ static uint16_t dtermBoost;
 static uint8_t dtermBoostLimit;
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
-static uint8_t trueYawFF;
+static uint8_t directYawFF;
 static uint8_t linear_thrust_low_output;
 static uint8_t linear_thrust_high_output;
 static uint8_t linear_throttle;
@@ -235,7 +235,7 @@ static long cmsx_PidRead(void) {
         tempPid[i][1] = pidProfile->pid[i].I;
         tempPid[i][2] = pidProfile->pid[i].D;
     }
-    trueYawFF = pidProfile->directFF_yaw;
+    directYawFF = pidProfile->directFF_yaw;
     return 0;
 }
 
@@ -253,7 +253,7 @@ static long cmsx_PidWriteback(const OSD_Entry *self) {
         pidProfile->pid[i].I = tempPid[i][1];
         pidProfile->pid[i].D = tempPid[i][2];
     }
-    pidProfile->directFF_yaw = trueYawFF;
+    pidProfile->directFF_yaw = directYawFF;
     pidInitConfig(currentPidProfile);
     return 0;
 }
@@ -273,7 +273,7 @@ static OSD_Entry cmsx_menuPidEntries[] = {
     { "YAW   P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][0],   0, 200, 1 }, 0 },
     { "YAW   I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][1],   0, 200, 1 }, 0 },
     { "YAW   D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][2],   0, 200, 1 }, 0 },
-    { "YAW DIR FF", OME_UINT8, NULL, &(OSD_UINT8_t){ &trueYawFF,         0, 200, 1 }, 0 },
+    { "YAW DIR FF", OME_UINT8, NULL, &(OSD_UINT8_t){ &directYawFF,         0, 200, 1 }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
