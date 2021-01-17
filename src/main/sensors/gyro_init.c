@@ -148,9 +148,6 @@ static bool gyroInitLowpassFilterLpf(int type, uint16_t lpfHz, uint32_t looptime
     const uint32_t gyroFrequencyNyquist = 1000000 / 2 / looptime;
     const float gyroDt = looptime * 1e-6f;
 
-    // Gain could be calculated a little later as it is specific to the pt1/bqrcf2/fkf branches
-    const float gain = pt1FilterGain(lpfHz, gyroDt);
-
     // Dereference the pointer to null before checking valid cutoff and filter
     // type. It will be overridden for positive cases.
     *lowpassFilterApplyFn = nullFilterApply;
@@ -159,9 +156,23 @@ static bool gyroInitLowpassFilterLpf(int type, uint16_t lpfHz, uint32_t looptime
     if (lpfHz && lpfHz <= gyroFrequencyNyquist) {
         switch (type) {
         case FILTER_PT1:
-            *lowpassFilterApplyFn = (filterApplyFnPtr) pt1FilterApply;
+            *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                pt1FilterInit(&lowpassFilter[axis].pt1FilterState, gain);
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 1, lpfHz, gyroDt);
+            }
+            ret = true;
+            break;
+        case FILTER_PT3:
+            *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
+            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 3, lpfHz, gyroDt);
+            }
+            ret = true;
+            break;
+        case FILTER_PT4:
+            *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
+            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 4, lpfHz, gyroDt);
             }
             ret = true;
             break;
@@ -191,6 +202,12 @@ static void dynLpfFilterInit()
             break;
         case FILTER_BIQUAD:
             gyro.dynLpfFilter = DYN_LPF_BIQUAD;
+            break;
+        case FILTER_PT3:
+            gyro.dynLpfFilter = DYN_LPF_PT3;
+            break;
+        case FILTER_PT4:
+            gyro.dynLpfFilter = DYN_LPF_PT3;
             break;
         default:
             gyro.dynLpfFilter = DYN_LPF_NONE;

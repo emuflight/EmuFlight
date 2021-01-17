@@ -44,7 +44,7 @@
 #endif
 
 typedef union gyroLowpassFilter_u {
-    pt1Filter_t pt1FilterState;
+    ptnFilter_t ptnFilterState;
     biquadFilter_t biquadFilterState;
 } gyroLowpassFilter_t;
 
@@ -137,7 +137,9 @@ enum {
 enum {
     DYN_LPF_NONE = 0,
     DYN_LPF_PT1,
-    DYN_LPF_BIQUAD
+    DYN_LPF_BIQUAD,
+    DYN_LPF_PT3,
+    DYN_LPF_PT4
 };
 
 typedef enum {

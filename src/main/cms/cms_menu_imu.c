@@ -336,7 +336,6 @@ static uint8_t  cmsx_angle_limit;
 static uint8_t  cmsx_angle_expo;
 static uint8_t  cmsx_horizon_gain;
 static uint8_t  cmsx_horizon_transition;
-static uint8_t  cmsx_racemode_tilt_effect;
 
 static const void *cmsx_AngleOnEnter(displayPort_t *pDisp)
 {
@@ -355,7 +354,6 @@ static const void *cmsx_AngleOnEnter(displayPort_t *pDisp)
     cmsx_angle_expo =            pidProfile->angleExpo;
     cmsx_horizon_gain =          pidProfile->horizonGain;
     cmsx_horizon_transition =    pidProfile->horizonTransition;
-    cmsx_racemode_tilt_effect =  pidProfile->racemode_tilt_effect;
 
     return NULL;
 }
@@ -378,7 +376,6 @@ static const void *cmsx_AngleWriteback(displayPort_t *pDisp, const OSD_Entry *se
     pidProfile->angleExpo =               cmsx_angle_expo;
     pidProfile->horizonGain =             cmsx_horizon_gain;
     pidProfile->horizonTransition =       cmsx_horizon_transition;
-    pidProfile->racemode_tilt_effect =    cmsx_racemode_tilt_effect;
 
     pidInitConfig(currentPidProfile);
 
@@ -402,7 +399,6 @@ static const OSD_Entry cmsx_menuAngleEntries[] =
 
     { "HORZN GAIN",   OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_horizon_gain,         0, 200, 1 }, 0 },
     { "HORZN TRANS",  OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_horizon_transition,   0, 200, 1 }, 0 },
-    { "RACEMODE TILT",OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_racemode_tilt_effect, 0, 180, 1 }, 0 },
 
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }
@@ -730,8 +726,6 @@ static CMS_Menu cmsx_menuProfileOther = {
 
 
 static uint16_t gyroConfig_gyro_lowpass_hz;
-static uint16_t gyroConfig_gyro_soft_notch_hz_1;
-static uint16_t gyroConfig_gyro_soft_notch_cutoff_1;
 static uint8_t  gyroConfig_gyro_to_use;
 
 static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
@@ -739,8 +733,6 @@ static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
     UNUSED(pDisp);
 
     gyroConfig_gyro_lowpass_hz =  gyroConfig()->gyro_lowpass_hz;
-    gyroConfig_gyro_soft_notch_hz_1 = gyroConfig()->gyro_soft_notch_hz_1;
-    gyroConfig_gyro_soft_notch_cutoff_1 = gyroConfig()->gyro_soft_notch_cutoff_1;
     gyroConfig_gyro_to_use = gyroConfig()->gyro_to_use;
 
     return NULL;
@@ -752,8 +744,6 @@ static const void *cmsx_menuGyro_onExit(displayPort_t *pDisp, const OSD_Entry *s
     UNUSED(self);
 
     gyroConfigMutable()->gyro_lowpass_hz =  gyroConfig_gyro_lowpass_hz;
-    gyroConfigMutable()->gyro_soft_notch_hz_1 = gyroConfig_gyro_soft_notch_hz_1;
-    gyroConfigMutable()->gyro_soft_notch_cutoff_1 = gyroConfig_gyro_soft_notch_cutoff_1;
     gyroConfigMutable()->gyro_to_use = gyroConfig_gyro_to_use;
 
     return NULL;
@@ -764,8 +754,6 @@ static const OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "-- FILTER GLB  --", OME_Label, NULL, NULL, 0 },
 
     { "GYRO LPF",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz, 0, FILTER_FREQUENCY_MAX, 1 }, 0 },
-    { "GYRO NF1",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_1,     0, 500, 1 }, 0 },
-    { "GYRO NF1C",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_1, 0, 500, 1 }, 0 },
 #ifdef USE_MULTI_GYRO
     { "GYRO TO USE",  OME_TAB,  NULL, &(OSD_TAB_t)    { &gyroConfig_gyro_to_use,  2, osdTableGyroToUse}, REBOOT_REQUIRED },
 #endif
@@ -948,8 +936,6 @@ static CMS_Menu cmsx_menuDynFilt = {
 
 static uint16_t cmsx_dterm_lowpass_hz;
 static uint16_t cmsx_dterm_lowpass2_hz;
-static uint16_t cmsx_dterm_notch_hz;
-static uint16_t cmsx_dterm_notch_cutoff;
 static uint16_t cmsx_yaw_lowpass_hz;
 
 static const void *cmsx_FilterPerProfileRead(displayPort_t *pDisp)
@@ -960,8 +946,6 @@ static const void *cmsx_FilterPerProfileRead(displayPort_t *pDisp)
 
     cmsx_dterm_lowpass_hz   = pidProfile->dterm_lowpass_hz;
     cmsx_dterm_lowpass2_hz  = pidProfile->dterm_lowpass2_hz;
-    cmsx_dterm_notch_hz     = pidProfile->dterm_notch_hz;
-    cmsx_dterm_notch_cutoff = pidProfile->dterm_notch_cutoff;
     cmsx_yaw_lowpass_hz     = pidProfile->yaw_lowpass_hz;
 
     return NULL;
@@ -976,8 +960,6 @@ static const void *cmsx_FilterPerProfileWriteback(displayPort_t *pDisp, const OS
 
     pidProfile->dterm_lowpass_hz   = cmsx_dterm_lowpass_hz;
     pidProfile->dterm_lowpass2_hz  = cmsx_dterm_lowpass2_hz;
-    pidProfile->dterm_notch_hz     = cmsx_dterm_notch_hz;
-    pidProfile->dterm_notch_cutoff = cmsx_dterm_notch_cutoff;
     pidProfile->yaw_lowpass_hz     = cmsx_yaw_lowpass_hz;
 
     return NULL;
@@ -989,8 +971,6 @@ static const OSD_Entry cmsx_menuFilterPerProfileEntries[] =
 
     { "DTERM LPF",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz,     0, FILTER_FREQUENCY_MAX, 1 }, 0 },
     { "DTERM LPF2", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz,    0, FILTER_FREQUENCY_MAX, 1 }, 0 },
-    { "DTERM NF",   OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_notch_hz,       0, FILTER_FREQUENCY_MAX, 1 }, 0 },
-    { "DTERM NFCO", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_notch_cutoff,   0, FILTER_FREQUENCY_MAX, 1 }, 0 },
     { "YAW LPF",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_yaw_lowpass_hz,       0, 500, 1 }, 0 },
 
     { "BACK", OME_Back, NULL, NULL, 0 },

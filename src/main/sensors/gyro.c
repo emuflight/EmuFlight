@@ -623,11 +623,21 @@ void dynLpfGyroUpdate(float cutoff[XYZ_AXIS_COUNT])
         if (gyro.dynLpfFilter == DYN_LPF_PT1) {
             const float gyroDt = gyro.targetLooptime * 1e-6f;
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                pt1FilterUpdateCutoff(&gyro.lowpassFilter[axis].pt1FilterState, pt1FilterGain(cutoff[axis], gyroDt));
+                ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], 1.0f, gyroDt);
             }
         } else if (gyro.dynLpfFilter == DYN_LPF_BIQUAD) {
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
                 biquadFilterUpdateLPF(&gyro.lowpassFilter[axis].biquadFilterState, cutoff[axis], gyro.targetLooptime);
+            }
+        } else if (gyro.dynLpfFilter == DYN_LPF_PT1) {
+            const float gyroDt = gyro.targetLooptime * 1e-6f;
+            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+                ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], 1.961459177f, gyroDt);
+            }
+        } else if (gyro.dynLpfFilter == DYN_LPF_PT1) {
+            const float gyroDt = gyro.targetLooptime * 1e-6f;
+            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+                ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], 2.298959223f, gyroDt);
             }
         }
     }

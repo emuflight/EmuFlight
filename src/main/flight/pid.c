@@ -974,11 +974,19 @@ void dynLpfDTermUpdate(float cutoff[XYZ_AXIS_COUNT])
     if (pidRuntime.dynLpfFilter != DYN_LPF_NONE) {
          if (pidRuntime.dynLpfFilter == DYN_LPF_PT1) {
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                pt1FilterUpdateCutoff(&pidRuntime.dtermLowpass[axis].pt1Filter, pt1FilterGain(cutoff[axis], pidRuntime.dT));
+                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 1.0f, pidRuntime.dT);
             }
         } else if (pidRuntime.dynLpfFilter == DYN_LPF_BIQUAD) {
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
                 biquadFilterUpdateLPF(&pidRuntime.dtermLowpass[axis].biquadFilter, cutoff[axis], targetPidLooptime);
+            }
+        } else if (pidRuntime.dynLpfFilter == DYN_LPF_PT3) {
+            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 1.961459177f, pidRuntime.dT);
+            }
+        } else if (pidRuntime.dynLpfFilter == DYN_LPF_PT4) {
+            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 2.298959223f, pidRuntime.dT);
             }
         }
     }

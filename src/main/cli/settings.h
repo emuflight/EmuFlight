@@ -133,7 +133,6 @@ typedef enum {
 #if defined(GYRO_USES_SPI) && defined(USE_32K_CAPABLE_GYRO)
     TABLE_32K,
 #endif
-
 #ifdef USE_OSD
     TABLE_CMS_BACKGROUND,
 #endif
