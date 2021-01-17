@@ -499,7 +499,7 @@ const clivalue_t valueTable[] = {
 
     { "gyro_abg_alpha",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_ABG_alpha) },
     { "gyro_abg_boost",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  2000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_ABG_boost) },
-    { "gyro_ABG_half_life",         VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  10000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_ABG_half_life) },
+    { "gyro_abg_half_life",         VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  10000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_ABG_half_life) },
 
     { "gyro_notch1_hz",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_soft_notch_hz_1) },
     { "gyro_notch1_cutoff",         VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_soft_notch_cutoff_1) },
