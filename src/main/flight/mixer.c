@@ -825,22 +825,6 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs) {
         throttle = applyThrottleLimit(throttle);
     }
 
-    // Find roll/pitch/yaw desired output
-    float motorMix[MAX_SUPPORTED_MOTORS];
-    float motorMixMax = 0, motorMixMin = 0;
-    for (int i = 0; i < motorCount; i++) {
-        float mix =
-            scaledAxisPidRoll  * currentMixer[i].roll +
-            scaledAxisPidPitch * currentMixer[i].pitch +
-            scaledAxisPidYaw   * currentMixer[i].yaw;
-        if (mix > motorMixMax) {
-            motorMixMax = mix;
-        } else if (mix < motorMixMin) {
-            motorMixMin = mix;
-        }
-        motorMix[i] = mix;
-    }
-
     pidUpdateEmuGravityThrottleFilter(throttle);
 
 #if defined(USE_THROTTLE_BOOST)
