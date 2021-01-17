@@ -57,9 +57,22 @@
 #include "drivers/accgyro/accgyro_spi_mpu9250.h"
 #include "drivers/accgyro/accgyro_spi_l3gd20.h"
 #include "drivers/accgyro/accgyro_mpu.h"
+#ifdef USE_GYRO_IMUF9001
+#include "drivers/accgyro/accgyro_imuf9001.h"
+#include "rx/rx.h"
+#include "fc/fc_rc.h"
+#include "fc/runtime_config.h"
+#endif //USE_GYRO_IMUF9001
 
 #include "pg/pg.h"
 #include "pg/gyrodev.h"
+
+#ifdef USE_GYRO_IMUF9001
+imufData_t imufData;
+#endif
+#ifndef MPU_I2C_INSTANCE
+#define MPU_I2C_INSTANCE I2C_DEVICE
+#endif
 
 #ifndef MPU_ADDRESS
 #define MPU_ADDRESS             0x68

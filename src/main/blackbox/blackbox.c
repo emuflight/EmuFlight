@@ -80,6 +80,10 @@
 #include "sensors/gyro.h"
 #include "sensors/rangefinder.h"
 
+#ifdef USE_GYRO_IMUF9001
+#include "drivers/accgyro/accgyro_imuf9001.h"
+#endif
+
 #if defined(ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT)
 #define DEFAULT_BLACKBOX_DEVICE     BLACKBOX_DEVICE_FLASH
 #elif defined(ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT)
@@ -1415,7 +1419,13 @@ static bool blackboxWriteSysinfo(void)
 
         BLACKBOX_PRINT_HEADER_LINE("deadband", "%d",                        rcControlsConfig()->deadband);
         BLACKBOX_PRINT_HEADER_LINE("yaw_deadband", "%d",                    rcControlsConfig()->yaw_deadband);
-
+#ifdef USE_GYRO_IMUF9001
+        BLACKBOX_PRINT_HEADER_LINE("IMUF revision", " %d",                  imufCurrentVersion);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF_lowpass_hz", "%d, %d, %d",         gyroConfig()->imuf_roll_lpf_cutoff_hz),
+                                                                            gyroConfig()->imuf_pitch_lpf_cutoff_hz),
+                                                                            gyroConfig()->imuf_yaw_lpf_cutoff_hz);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF acc lpf cutoff", " %d",            gyroConfig()->imuf_acc_lpf_cutoff_hz);
+#endif //USE_GYRO_IMUF9001
         BLACKBOX_PRINT_HEADER_LINE("gyro_hardware_lpf", "%d",               gyroConfig()->gyro_hardware_lpf);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_type", "%d",               gyroConfig()->gyro_lowpass_type);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_hz", "%d",                 gyroConfig()->gyro_lowpass_hz);
