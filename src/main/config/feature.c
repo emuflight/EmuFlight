@@ -37,6 +37,13 @@ PG_RESET_TEMPLATE(featureConfig_t, featureConfig,
                  );
 #endif//USE_GYRO_IMUF9001
 
+#ifdef USE_GYRO_IMUF9001
+PG_RESET_TEMPLATE(featureConfig_t, featureConfig,
+                  .enabledFeatures = DEFAULT_FEATURES | DEFAULT_RX_FEATURE | FEATURE_AIRMODE,
+                 );
+#endif//USE_GYRO_IMUF9001
+
+
 PG_RESET_TEMPLATE(featureConfig_t, featureConfig,
     .enabledFeatures = DEFAULT_FEATURES | DEFAULT_RX_FEATURE | FEATURE_DYNAMIC_FILTER | FEATURE_ANTI_GRAVITY | FEATURE_AIRMODE,
 );
