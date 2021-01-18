@@ -570,11 +570,6 @@ static uint8_t  cmsx_thrustLinearization;
 static uint16_t cmsx_itermAcceleratorGain;
 static uint8_t  cmsx_motorOutputLimit;
 static int8_t   cmsx_autoProfileCellCount;
-#ifdef USE_D_MIN
-static uint8_t  cmsx_d_min[XYZ_AXIS_COUNT];
-static uint8_t  cmsx_d_min_gain;
-static uint8_t  cmsx_d_min_advance;
-#endif
 
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION
 static uint8_t  cmsx_vbat_sag_compensation;
@@ -608,14 +603,6 @@ static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
     cmsx_motorOutputLimit = pidProfile->motor_output_limit;
     cmsx_autoProfileCellCount = pidProfile->auto_profile_cell_count;
 
-#ifdef USE_D_MIN
-    for (unsigned i = 0; i < XYZ_AXIS_COUNT; i++) {
-        cmsx_d_min[i]  = pidProfile->d_min[i];
-    }
-    cmsx_d_min_gain = pidProfile->d_min_gain;
-    cmsx_d_min_advance = pidProfile->d_min_advance;
-#endif
-
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION
     cmsx_vbat_sag_compensation = pidProfile->vbat_sag_compensation;
 #endif
@@ -648,14 +635,6 @@ static const void *cmsx_profileOtherOnExit(displayPort_t *pDisp, const OSD_Entry
     pidProfile->thrustLinearization = cmsx_thrustLinearization;
     pidProfile->motor_output_limit = cmsx_motorOutputLimit;
     pidProfile->auto_profile_cell_count = cmsx_autoProfileCellCount;
-
-#ifdef USE_D_MIN
-    for (unsigned i = 0; i < XYZ_AXIS_COUNT; i++) {
-        pidProfile->d_min[i] = cmsx_d_min[i];
-    }
-    pidProfile->d_min_gain = cmsx_d_min_gain;
-    pidProfile->d_min_advance = cmsx_d_min_advance;
-#endif
 
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION
     pidProfile->vbat_sag_compensation = cmsx_vbat_sag_compensation;
@@ -696,14 +675,6 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "MTR OUT LIM %",OME_UINT8, NULL, &(OSD_UINT8_t) { &cmsx_motorOutputLimit, MOTOR_OUTPUT_LIMIT_PERCENT_MIN,  MOTOR_OUTPUT_LIMIT_PERCENT_MAX,  1}, 0 },
 
     { "AUTO CELL CNT", OME_INT8, NULL, &(OSD_INT8_t) { &cmsx_autoProfileCellCount, AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT, 1}, 0 },
-
-#ifdef USE_D_MIN
-    { "D_MIN ROLL",  OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_d_min[FD_ROLL],      0, 100, 1 }, 0 },
-    { "D_MIN PITCH", OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_d_min[FD_PITCH],     0, 100, 1 }, 0 },
-    { "D_MIN YAW",   OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_d_min[FD_YAW],       0, 100, 1 }, 0 },
-    { "D_MIN GAIN",  OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_d_min_gain,          0, 100, 1 }, 0 },
-    { "D_MIN ADV",   OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_d_min_advance,       0, 200, 1 }, 0 },
-#endif
 
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION
     { "VBAT_SAG_COMP", OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_vbat_sag_compensation, 0, 150, 1 }, 0 },
