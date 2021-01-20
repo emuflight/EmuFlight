@@ -102,7 +102,6 @@ typedef enum ffInterpolationType_e {
 
 typedef struct pidProfile_s {
     uint16_t yaw_lowpass_hz;                // Additional yaw filter when yaw axis too noisy
-    uint16_t dterm_lowpass_hz;              // Delta Filter in hz
     uint16_t dterm_notch_hz;                // Biquad dterm notch hz
     uint16_t dterm_notch_cutoff;            // Biquad dterm notch low cutoff
 
@@ -141,9 +140,8 @@ typedef struct pidProfile_s {
     uint8_t iterm_relax_threshold_yaw;      // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t dterm_filter2_type;             // Filter selection for 2nd dterm
     uint16_t dyn_lpf_dterm_min_hz;
-    uint16_t dyn_lpf_dterm_max_hz;
-    uint16_t dterm_dynlpf2_fmax;
-    uint16_t dterm_dynlpf2_gain;
+    uint8_t dyn_lpf_dterm_width;
+    uint8_t dyn_lpf_dterm_gain;
     uint8_t launchControlMode;              // Whether launch control is limited to pitch only (launch stand or top-mount) or all axes (on battery)
     uint8_t launchControlThrottlePercent;   // Throttle percentage to trigger launch for launch control
     uint8_t launchControlAngleLimit;        // Optional launch control angle limit (requires ACC)

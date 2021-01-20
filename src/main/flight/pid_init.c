@@ -104,13 +104,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     }
 
     //1st Dterm Lowpass Filter
-    uint16_t dterm_lowpass_hz = pidProfile->dterm_lowpass_hz;
-
-#ifdef USE_DYN_LPF
-    if (pidProfile->dyn_lpf_dterm_min_hz) {
-        dterm_lowpass_hz = pidProfile->dyn_lpf_dterm_min_hz;
-    }
-#endif
+    uint16_t dterm_lowpass_hz = pidProfile->dyn_lpf_dterm_min_hz;
 
     if (dterm_lowpass_hz > 0 && dterm_lowpass_hz < pidFrequencyNyquist) {
         switch (pidProfile->dterm_filter_type) {
@@ -364,7 +358,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 
 
 #ifdef USE_DYN_LPF
-    if (pidProfile->dyn_lpf_dterm_min_hz > 0) {
+    if (pidProfile->dyn_lpf_dterm_width > 0) {
         switch (pidProfile->dterm_filter_type) {
         case FILTER_PT1:
             pidRuntime.dynLpfFilter = DYN_LPF_PT1;
@@ -386,10 +380,10 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidRuntime.dynLpfFilter = DYN_LPF_NONE;
     }
     pidRuntime.dynLpfMin = pidProfile->dyn_lpf_dterm_min_hz;
-    pidRuntime.dynLpfMax = pidProfile->dyn_lpf_dterm_max_hz;
+    pidRuntime.dynLpfMax = pidProfile->dyn_lpf_dterm_min_hz + (pidProfile->dyn_lpf_dterm_min_hz * pidProfile->dyn_lpf_dterm_width / 100);
     pidRuntime.dynLpfCurveExpo = pidProfile->dyn_lpf_curve_expo;
-    pidRuntime.dynLpf2Gain = pidProfile->dterm_dynlpf2_gain;
-    pidRuntime.dynLpf2Max = pidProfile->dterm_dynlpf2_fmax;
+    pidRuntime.dynLpf2Gain = pidProfile->dyn_lpf_dterm_gain;
+    pidRuntime.dynLpf2Max = (pidProfile->dyn_lpf_dterm_min_hz * pidProfile->dyn_lpf_dterm_width / 100);
 #endif
 
 #ifdef USE_LAUNCH_CONTROL

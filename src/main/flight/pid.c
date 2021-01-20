@@ -158,21 +158,18 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .iterm_relax_threshold = 35,
         .iterm_relax_threshold_yaw = 35,
         .antiGravityMode = ANTI_GRAVITY_SMOOTH,
-        .dterm_lowpass_hz = 65,      // NOTE: dynamic lpf is enabled by default so this setting is actually
-                                    // overridden and the static lowpass 1 is disabled.
-        .dterm_lowpass2_hz = 200,   // second Dterm LPF OFF by default
         .dterm_filter_type = FILTER_PT1,
         .dterm_filter2_type = FILTER_PT1,
-        .dyn_lpf_dterm_min_hz = 0,
-        .dyn_lpf_dterm_max_hz = 0,
-        .dterm_dynlpf2_fmax = 0,
-        .dterm_dynlpf2_gain = 20,
+        .dyn_lpf_dterm_min_hz = 65, // NOTE: this lpf is static unless dyn_lpf_dterm_width > 0
+        .dyn_lpf_dterm_width = 0,
+        .dyn_lpf_dterm_gain = 20,
+        .dterm_lowpass2_hz = 200,   // second Dterm LPF ON by default
         .launchControlMode = LAUNCH_CONTROL_MODE_NORMAL,
         .launchControlThrottlePercent = 20,
         .launchControlAngleLimit = 0,
         .launchControlGain = 40,
         .launchControlAllowTriggerReset = true,
-        .thrustLinearization = 40,
+        .thrustLinearization = 0,
         .d_min = { 0, 0, 0 },      // roll, pitch, yaw
         .d_min_gain = 37,
         .d_min_advance = 20,

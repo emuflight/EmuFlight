@@ -195,7 +195,7 @@ static bool gyroInitLowpassFilterLpf(int type, uint16_t lpfHz, uint32_t looptime
 #ifdef USE_DYN_LPF
 static void dynLpfFilterInit()
 {
-    if (gyroConfig()->dyn_lpf_gyro_min_hz > 0) {
+    if (gyroConfig()->dyn_lpf_gyro_width > 0) {
         switch (gyroConfig()->gyro_lowpass_type) {
         case FILTER_PT1:
             gyro.dynLpfFilter = DYN_LPF_PT1;
@@ -217,10 +217,10 @@ static void dynLpfFilterInit()
         gyro.dynLpfFilter = DYN_LPF_NONE;
     }
     gyro.dynLpfMin = gyroConfig()->dyn_lpf_gyro_min_hz;
-    gyro.dynLpfMax = gyroConfig()->dyn_lpf_gyro_max_hz;
+    gyro.dynLpfMax = gyroConfig()->dyn_lpf_gyro_min_hz + (gyroConfig()->dyn_lpf_gyro_min_hz * gyroConfig()->dyn_lpf_gyro_width / 100);
     gyro.dynLpfCurveExpo = gyroConfig()->dyn_lpf_curve_expo;
-    gyro.dynLpf2Gain = gyroConfig()->dynlpf2_gain;
-    gyro.dynLpf2Max = gyroConfig()->dynlpf2_fmax;
+    gyro.dynLpf2Gain = gyroConfig()->dyn_lpf_gyro_gain;
+    gyro.dynLpf2Max = gyroConfig()->dyn_lpf_gyro_min_hz * gyroConfig()->dyn_lpf_gyro_width / 100;
 }
 #endif
 
@@ -237,13 +237,7 @@ void gyroInitABG() {
 
 void gyroInitFilters(void)
 {
-    uint16_t gyro_lowpass_hz = gyroConfig()->gyro_lowpass_hz;
-
-#ifdef USE_DYN_LPF
-    if (gyroConfig()->dyn_lpf_gyro_min_hz > 0) {
-        gyro_lowpass_hz = gyroConfig()->dyn_lpf_gyro_min_hz;
-    }
-#endif
+    uint16_t gyro_lowpass_hz = gyroConfig()->dyn_lpf_gyro_min_hz;
 
     gyroInitLowpassFilterLpf(
       gyroConfig()->gyro_lowpass_type,

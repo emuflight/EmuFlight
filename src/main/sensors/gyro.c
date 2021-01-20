@@ -109,8 +109,6 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->gyroMovementCalibrationThreshold = 48;
     gyroConfig->gyro_hardware_lpf = GYRO_HARDWARE_LPF_NORMAL;
     gyroConfig->gyro_lowpass_type = FILTER_PT1;
-    gyroConfig->gyro_lowpass_hz = 115;    // NOTE: dynamic lpf is enabled by default so this setting is actually
-                                        // overridden and the static lowpass 1 is disabled.
     gyroConfig->alpha = 0;
     gyroConfig->abg_boost = 350;
     gyroConfig->abg_half_life = 50;
@@ -123,10 +121,9 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->gyro_offset_yaw = 0;
     gyroConfig->yaw_spin_recovery = YAW_SPIN_RECOVERY_AUTO;
     gyroConfig->yaw_spin_threshold = 1950;
-    gyroConfig->dyn_lpf_gyro_min_hz = 0;
-    gyroConfig->dyn_lpf_gyro_max_hz = 0;
-    gyroConfig->dynlpf2_fmax = 0;
-    gyroConfig->dynlpf2_gain = 70;
+    gyroConfig->dyn_lpf_gyro_min_hz = 115;
+    gyroConfig->dyn_lpf_gyro_width = 0;
+    gyroConfig->dyn_lpf_gyro_gain = 70;
     gyroConfig->dyn_lpf_curve_expo = 5;
     gyroConfig->dyn_notch_max_hz = 600;
     gyroConfig->dyn_notch_q = 250;
