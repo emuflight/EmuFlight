@@ -1376,7 +1376,9 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("yaw_lowpass_hz", "%d",                  currentPidProfile->yaw_lowpass_hz);
         BLACKBOX_PRINT_HEADER_LINE("dterm_notch_hz", "%d",                  currentPidProfile->dterm_notch_hz);
         BLACKBOX_PRINT_HEADER_LINE("dterm_notch_cutoff", "%d",              currentPidProfile->dterm_notch_cutoff);
-        BLACKBOX_PRINT_HEADER_LINE("dterm_abg_alpha", "%d",                 currentPidProfile->dtermAlpha);
+        BLACKBOX_PRINT_HEADER_LINE("dterm_abg_alpha", "%d,%d,%d",           currentPidProfile->dtermAlpha,
+                                                                            currentPidProfile->dterm_abg_boost,
+                                                                            currentPidProfile->dterm_abg_half_life);
         BLACKBOX_PRINT_HEADER_LINE("iterm_windup", "%d",                    currentPidProfile->itermWindupPointPercent);
 #if defined(USE_ITERM_RELAX)
         BLACKBOX_PRINT_HEADER_LINE("iterm_relax_cutoff", "%d",              currentPidProfile->iterm_relax_cutoff);
@@ -1420,7 +1422,9 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("imuf_q", "%d, %d, %d",                  gyroConfig()->imuf_roll_q,
                                                                             gyroConfig()->imuf_pitch_q,
                                                                             gyroConfig()->imuf_yaw_q);
-        BLACKBOX_PRINT_HEADER_LINE("gyro_abg_alpha", "%d",                  gyroConfig()->alpha);
+        BLACKBOX_PRINT_HEADER_LINE("gyro_abg_alpha", "%d,%d,%d",            gyroConfig()->alpha,
+                                                                            gyroConfig()->abg_boost,
+                                                                            gyroConfig()->abg_half_life);
 #ifdef USE_DYN_LPF
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_dyn_hz", "%d,%d",          gyroConfig()->dyn_lpf_gyro_min_hz,
                                                                             gyroConfig()->dyn_lpf_gyro_width);
