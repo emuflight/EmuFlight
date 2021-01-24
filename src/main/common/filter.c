@@ -203,6 +203,8 @@ void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, int boostGain, int hal
 	filter->dT2 = dT * dT;
   filter->dT3 = dT * dT * dT;
 
+  pt1FilterInit(&filter->boostFilter, pt1FilterGain(100, dT));
+
   filter->boost = (boostGain * boostGain / 1000000) * 0.003;
   filter->halfLife = halfLife != 0 ?
             powf(0.5f, dT / halfLife / 100.0f): 1.0f;

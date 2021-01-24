@@ -46,6 +46,7 @@ typedef struct alphaBetaGammaFilter_s {
     float ak, vk, xk, jk, rk;
     float dT, dT2, dT3;
     float halfLife, boost;
+    pt1Filter_t boostFilter;
 } alphaBetaGammaFilter_t;
 
 typedef enum {
