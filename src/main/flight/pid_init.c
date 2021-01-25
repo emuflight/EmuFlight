@@ -316,10 +316,9 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.DF_angle_high = pidProfile->pid[PID_LEVEL_HIGH].DF * DIRECT_FF_SCALE;
     pidRuntime.F_angle = pidProfile->pid[PID_LEVEL_LOW].F * 0.00000125f;
     pidRuntime.horizonTransition = (float)pidProfile->horizonTransition;
-    pidRuntime.horizonCutoffDegrees = pidProfile->racemode_tilt_effect;
-    pidRuntime.horizonGain = pidProfile->horizonGain / 10.0f;
-    pidRuntime.horizonTiltExpertMode = pidProfile->racemode_horizon;
-    pidRuntime.horizonFactorRatio = (100 - pidProfile->racemode_tilt_effect) * 0.01f;
+    pidRuntime.horizonCutoffDegrees = pidProfile->horizon_tilt_effect;
+    pidRuntime.racemodeHorizonTransitionFactor = pidRuntime.horizonCutoffDegrees / (pidRuntime.horizonCutoffDegrees - pidRuntime.horizonTransition);
+    pidRuntime.horizonStrength = pidProfile->horizon_strength / 50.0f;
     pidRuntime.itermWindupPointInv = 0.0f;
     if (pidProfile->itermWindupPointPercent != 0) {
         const float itermWindupPoint = pidProfile->itermWindupPointPercent / 100.0f;

@@ -338,7 +338,7 @@ static uint8_t  cmsx_DF_angle_high;
 static uint16_t cmsx_F_angle;
 static uint8_t  cmsx_angle_limit;
 static uint8_t  cmsx_angle_expo;
-static uint8_t  cmsx_horizon_gain;
+static uint8_t  cmsx_horizon_strength;
 static uint8_t  cmsx_horizon_transition;
 
 static const void *cmsx_AngleOnEnter(displayPort_t *pDisp)
@@ -356,7 +356,7 @@ static const void *cmsx_AngleOnEnter(displayPort_t *pDisp)
     cmsx_F_angle =               pidProfile->pid[PID_LEVEL_LOW].F;
     cmsx_angle_limit =           pidProfile->levelAngleLimit;
     cmsx_angle_expo =            pidProfile->angleExpo;
-    cmsx_horizon_gain =          pidProfile->horizonGain;
+    cmsx_horizon_strength =      pidProfile->horizon_strength;
     cmsx_horizon_transition =    pidProfile->horizonTransition;
 
     return NULL;
@@ -378,7 +378,7 @@ static const void *cmsx_AngleWriteback(displayPort_t *pDisp, const OSD_Entry *se
     pidProfile->pid[PID_LEVEL_LOW].F =    cmsx_F_angle;
     pidProfile->levelAngleLimit =         cmsx_angle_limit;
     pidProfile->angleExpo =               cmsx_angle_expo;
-    pidProfile->horizonGain =             cmsx_horizon_gain;
+    pidProfile->horizon_strength =        cmsx_horizon_strength;
     pidProfile->horizonTransition =       cmsx_horizon_transition;
 
     pidInitConfig(currentPidProfile);
@@ -401,7 +401,7 @@ static const OSD_Entry cmsx_menuAngleEntries[] =
     { "ANGLE LIMIT",  OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_angle_limit, 10,  90, 1 }, 0 },
     { "ANGLE EXPO",   OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_angle_expo,   0, 100, 1 }, 0 },
 
-    { "HORZN GAIN",   OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_horizon_gain,         0, 200, 1 }, 0 },
+    { "HORZN STR",    OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_horizon_strength,     0, 200, 1 }, 0 },
     { "HORZN TRANS",  OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_horizon_transition,   0, 200, 1 }, 0 },
 
     { "BACK", OME_Back, NULL, NULL, 0 },

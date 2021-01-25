@@ -116,9 +116,8 @@ typedef struct pidProfile_s {
 
     uint8_t angleExpo;                      // How much expo to add to angle mode
     uint8_t horizonTransition;              // horizonTransition
-    uint8_t horizonGain;                    // gain for horizon
-    uint8_t racemode_tilt_effect;           // inclination factor for Horizon mode
-    uint8_t racemode_horizon;               // OFF or ON
+    uint8_t horizon_tilt_effect;           // inclination factor for Horizon mode
+    uint8_t horizon_strength;               // multiplier to the angle pids to determine the strength of angle pids in horizon mode
 
     // EmuFlight PID controller parameters
     uint8_t  antiGravityMode;               // type of anti gravity method
@@ -264,11 +263,11 @@ typedef struct pidRuntime_s {
     float D_angle_high;
     float DF_angle_high;
     float F_angle;
-    float horizonGain;
+    float angle_yaw_correction;
     float horizonTransition;
     float horizonCutoffDegrees;
-    float horizonFactorRatio;
-    uint8_t horizonTiltExpertMode;
+    float horizonStrength;
+    float racemodeHorizonTransitionFactor;
     float previousAngle[XYZ_AXIS_COUNT];
     float attitudePrevious[XYZ_AXIS_COUNT];
 
