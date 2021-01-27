@@ -20,8 +20,8 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "MB41"
-#define USBD_PRODUCT_STRING     "MAMBA411"
+#define TARGET_BOARD_IDENTIFIER "VGRC"
+#define USBD_PRODUCT_STRING     "VGOODRCF411_DJI"
 
 // ******* LEDs and BEEPER ********
 
@@ -52,10 +52,10 @@
 #define MPU6000_SPI_INSTANCE     SPI1
 
 #define USE_GYRO_SPI_MPU6000
-#define GYRO_MPU6000_ALIGN      CW180_DEG
+#define GYRO_MPU6000_ALIGN      CW0_DEG
 
 #define USE_ACC_SPI_MPU6000
-#define ACC_MPU6000_ALIGN       CW180_DEG
+#define ACC_MPU6000_ALIGN       CW0_DEG
 
 // ******* OSD ********
 
