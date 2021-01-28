@@ -41,7 +41,8 @@ void targetConfiguration(void) {
     //rxConfigMutable()->rcInterpolationInterval = 14;
     //rxConfigMutable()->rcInterpolationChannels = INTERPOLATION_CHANNELS_RPYT;
     motorConfigMutable()->dev.motorPwmProtocol = PWM_TYPE_DSHOT600;
-    gyroConfigMutable()->gyro_sync_denom  = 2; // 16KHZ GYRO
+    gyroConfigMutable()->gyro_use_32khz = 2; // 16KHZ GYRO
     pidConfigMutable()->pid_process_denom = 1; // 16KHZ PID
-    systemConfigMutable()->cpu_overclock  = 1; //192MHz makes Multishot run a little better because of maths.
+    systemConfigMutable()->cpu_overclock  = 1; //192MHz makes Multishot run a little better because of maths. (QuickFlash note, does it really help mutlishot run better, all the false stuff you guys said i'm scepticle)
+    featureDisableImmediate(FEATURE_DYNAMIC_FILTER);
 }

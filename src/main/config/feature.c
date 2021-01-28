@@ -28,21 +28,7 @@
 #include "pg/pg.h"
 #include "pg/pg_ids.h"
 
-
 PG_REGISTER_WITH_RESET_TEMPLATE(featureConfig_t, featureConfig, PG_FEATURE_CONFIG, 0);
-
-#ifndef USE_GYRO_IMUF9001
-PG_RESET_TEMPLATE(featureConfig_t, featureConfig,
-                  .enabledFeatures = DEFAULT_FEATURES | DEFAULT_RX_FEATURE | FEATURE_AIRMODE | FEATURE_DYNAMIC_FILTER,
-                 );
-#endif//USE_GYRO_IMUF9001
-
-#ifdef USE_GYRO_IMUF9001
-PG_RESET_TEMPLATE(featureConfig_t, featureConfig,
-                  .enabledFeatures = DEFAULT_FEATURES | DEFAULT_RX_FEATURE | FEATURE_AIRMODE,
-                 );
-#endif//USE_GYRO_IMUF9001
-
 
 PG_RESET_TEMPLATE(featureConfig_t, featureConfig,
     .enabledFeatures = DEFAULT_FEATURES | DEFAULT_RX_FEATURE | FEATURE_DYNAMIC_FILTER | FEATURE_ANTI_GRAVITY | FEATURE_AIRMODE,
