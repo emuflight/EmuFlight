@@ -716,7 +716,7 @@ static uint16_t gyroConfig_imuf_pitch_q;
 static uint16_t gyroConfig_imuf_yaw_q;
 static uint16_t gyroConfig_imuf_w;
 static uint16_t gyroConfig_imuf_sharpness;
-#endif
+#endif // USE_GYRO_IMUF9001
 static uint16_t gyroConfig_alpha;
 static uint16_t gyroConfig_abg_boost;
 static uint16_t gyroConfig_abg_half_life;
@@ -743,8 +743,7 @@ static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
     gyroConfig_imuf_pitch_q   = gyroConfig()->imuf_pitch_q;
     gyroConfig_imuf_yaw_q     = gyroConfig()->imuf_yaw_q;
     gyroConfig_imuf_w         = gyroConfig()->imuf_w;
-    gyroConfig_imuf_sharpness = gyroConfig()->imuf_sharpness;
-#endif
+#endif // USE_GYRO_IMUF9001
     gyroConfig_alpha          = gyroConfig()->alpha;
     gyroConfig_abg_boost      = gyroConfig()->abg_boost;
     gyroConfig_abg_half_life  = gyroConfig()->abg_half_life;
@@ -774,8 +773,7 @@ static const void *cmsx_menuGyro_onExit(displayPort_t *pDisp, const OSD_Entry *s
     gyroConfigMutable()->imuf_pitch_q   = gyroConfig_imuf_pitch_q;
     gyroConfigMutable()->imuf_yaw_q     = gyroConfig_imuf_yaw_q;
     gyroConfigMutable()->imuf_w         = gyroConfig_imuf_w;
-    gyroConfigMutable()->imuf_sharpness = gyroConfig_imuf_sharpness;
-#endif
+#endif USE_GYRO_IMUF9001
     gyroConfigMutable()->alpha          = gyroConfig_alpha;
     gyroConfigMutable()->abg_boost      = gyroConfig_abg_boost;
     gyroConfigMutable()->abg_half_life  = gyroConfig_abg_half_life;
@@ -806,7 +804,6 @@ static const OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "IMUF ROLL Q",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,       100, 16000, 100 }, 0 },
     { "IMUF PITCH Q",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,      100, 16000, 100 }, 0 },
     { "IMUF YAW Q",      OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,        100, 16000, 100 }, 0 },
-    { "IMUF SHARPNESS",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness,      0, 16000,   5 }, 0 },
 #endif
     { "ALPHA",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_alpha,           0, 1000, 1 }, 0 },
     { "ABG BOOST",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_abg_boost,       0, 2000, 5 }, 0 },
@@ -1004,7 +1001,6 @@ static const OSD_Entry cmsx_menuImuEntries[] =
     {"GYRO FILT",   OME_Submenu, cmsMenuChange,                 &cmsx_menuFilterGlobal,                                        0},
     {"ANGLE HORZN", OME_Submenu, cmsMenuChange,                 &cmsx_menuAngle,                                               0},
     {"MISC PP",     OME_Submenu, cmsMenuChange,                 &cmsx_menuProfileOther,                                        0},
-
     {"RATE PROF",   OME_UINT8,   cmsx_rateProfileIndexOnChange, &(OSD_UINT8_t){ &tmpRateProfileIndex, 1, CONTROL_RATE_PROFILE_COUNT, 1}, 0},
     {"RATE",        OME_Submenu, cmsMenuChange,                 &cmsx_menuRateProfile,                                         0},
 
