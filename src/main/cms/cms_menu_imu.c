@@ -715,7 +715,6 @@ static uint16_t gyroConfig_imuf_roll_q;
 static uint16_t gyroConfig_imuf_pitch_q;
 static uint16_t gyroConfig_imuf_yaw_q;
 static uint16_t gyroConfig_imuf_w;
-static uint16_t gyroConfig_imuf_sharpness;
 #endif // USE_GYRO_IMUF9001
 static uint16_t gyroConfig_alpha;
 static uint16_t gyroConfig_abg_boost;
@@ -773,7 +772,7 @@ static const void *cmsx_menuGyro_onExit(displayPort_t *pDisp, const OSD_Entry *s
     gyroConfigMutable()->imuf_pitch_q   = gyroConfig_imuf_pitch_q;
     gyroConfigMutable()->imuf_yaw_q     = gyroConfig_imuf_yaw_q;
     gyroConfigMutable()->imuf_w         = gyroConfig_imuf_w;
-#endif USE_GYRO_IMUF9001
+#endif // USE_GYRO_IMUF9001
     gyroConfigMutable()->alpha          = gyroConfig_alpha;
     gyroConfigMutable()->abg_boost      = gyroConfig_abg_boost;
     gyroConfigMutable()->abg_half_life  = gyroConfig_abg_half_life;

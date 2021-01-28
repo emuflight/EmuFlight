@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef USE_GYRO_IMUF9001
+
 #include "platform.h"
 
 #include "sensors/gyro.h"
@@ -50,9 +52,6 @@
 //CRC stuff should really go in a separate CRC driver, but only IMUF uses it
 #include "drivers/system.h"
 #endif
-
-
-#ifdef USE_GYRO_IMUF9001
 
 volatile uint16_t imufCurrentVersion = IMUF_FIRMWARE_MIN_VERSION;
 FAST_RAM_ZERO_INIT volatile uint32_t isImufCalibrating;
