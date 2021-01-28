@@ -132,6 +132,11 @@ typedef struct rcSmoothingFilter_s {
     rcSmoothingFilterTraining_t training;
     uint8_t debugAxis;
     uint8_t autoSmoothnessFactor;
+#ifdef RC_PREDICTOR
+    pt1Filter_t velocityLpf[4];
+    float predictorPercent;
+    float predictorTime;
+#endif
 } rcSmoothingFilter_t;
 
 typedef struct rcControlsConfig_s {
@@ -152,6 +157,8 @@ typedef struct flight3DConfig_s {
     uint16_t limit3d_low;                   // pwm output value for max negative thrust
     uint16_t limit3d_high;                  // pwm output value for max positive thrust
     uint8_t switched_mode3d;                // enable '3D Switched Mode'
+    uint8_t reverse3dKick;                  // how hard the throttle kick is
+    uint8_t reverse3dKickTime;             // how long the throttle kick is
 } flight3DConfig_t;
 
 PG_DECLARE(flight3DConfig_t, flight3DConfig);

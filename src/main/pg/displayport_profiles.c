@@ -45,6 +45,7 @@ void pgResetFn_displayPortProfileMax7456(displayPortProfile_t *displayPortProfil
     displayPortProfile->invert = false;
     displayPortProfile->blackBrightness = 0;
     displayPortProfile->whiteBrightness = 2;
+    displayPortProfile->useBlackBackgroundInMenus = true;
 }
 
 #endif

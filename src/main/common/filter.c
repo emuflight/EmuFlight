@@ -246,6 +246,7 @@ void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, int boostGain, int hal
 	filter->dT = dT;
 	filter->dT2 = dT * dT;
   filter->dT3 = dT * dT * dT;
+  pt1FilterInit(&filter->boostFilter, pt1FilterGain(100, dT));
 
   filter->boost = (boostGain * boostGain / 1000000) * 0.003;
   filter->halfLife = halfLife != 0 ?
@@ -274,7 +275,10 @@ FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input)
   // what is our residual error (measured - estimated)
   rk = input - filter->xk;
   // artificially boost the error to increase the response of the filter
-  rk += (fabsf(rk) * rk * filter->boost);
+  rk += pt1FilterApply(&filter->boostFilter, fabsf(rk) * rk * filter->boost);
+  if (rk > (input - filter->xk)) {
+      rk = input - filter->xk;
+  }
   filter->rk = rk; // for logging
   // update our estimates given the residual error.
   filter->xk += filter->a * rk;
@@ -297,3 +301,36 @@ float ABGJerk(alphaBetaGammaFilter_t *filter) {
 float ABGResidualError(alphaBetaGammaFilter_t *filter) {
     return filter->rk;
 }
+
+FAST_CODE void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT) {
+
+	// AdjCutHz = CutHz /(sqrtf(powf(2, 1/Order) -1))
+	const float ScaleF[] = { 1.0f, 1.553773974f, 1.961459177f, 2.298959223f };
+	int n;
+	float Adj_f_cut;
+
+	filter->order = (order > 4) ? 4 : order;
+	for (n = 1; n <= filter->order; n++)
+		filter->state[n] = 0.0f;
+
+	Adj_f_cut = (float)f_cut * ScaleF[filter->order - 1];
+
+	filter->k = dT / ((1.0f / (2.0f * M_PI_FLOAT * Adj_f_cut)) + dT);
+
+} // ptnFilterInit
+
+FAST_CODE void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float ScaleF, float dT) {
+  float Adj_f_cut;
+  Adj_f_cut = (float)f_cut * ScaleF;
+  filter->k = dT / ((1.0f / (2.0f * M_PI_FLOAT * Adj_f_cut)) + dT);
+}
+
+FAST_CODE float ptnFilterApply(ptnFilter_t *filter, float input) {
+	filter->state[0] = input;
+
+	for (int n = 1; n <= filter->order; n++) {
+		  filter->state[n] += (filter->state[n - 1] - filter->state[n]) * filter->k;
+  }
+
+	return filter->state[filter->order];
+} // ptnFilterApply

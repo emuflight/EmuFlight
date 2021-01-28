@@ -92,7 +92,7 @@ int menuChainBack;
 
 bool cmsDisplayPortRegister(displayPort_t *pDisplay)
 {
-    if (cmsDeviceCount >= CMS_MAX_DEVICE) {
+    if (!pDisplay || cmsDeviceCount >= CMS_MAX_DEVICE) {
         return false;
     }
 
@@ -658,7 +658,7 @@ static bool rowIsSkippable(const OSD_Entry *row)
     if (row->type == OME_String) {
         return true;
     }
-	
+
     if ((row->type == OME_UINT16 || row->type == OME_INT16) && row->flags == DYNAMIC) {
         return true;
     }
@@ -840,6 +840,9 @@ void cmsMenuOpen(void)
         menuStackIdx = 0;
         setArmingDisabled(ARMING_DISABLED_CMS_MENU);
         displayLayerSelect(pCurrentDisplay, DISPLAYPORT_LAYER_FOREGROUND); // make sure the foreground layer is active
+        if (osdConfig()->cms_background_type != DISPLAY_BACKGROUND_TRANSPARENT) {
+            displaySetBackgroundType(pCurrentDisplay, (displayPortBackground_e)osdConfig()->cms_background_type); // set the background type if not transparent
+        }
     } else {
         // Switch display
         displayPort_t *pNextDisplay = cmsDisplayPortSelectNext();
@@ -848,8 +851,10 @@ void cmsMenuOpen(void)
             // DisplayPort has been changed.
             // Convert cursorRow to absolute value
             currentCtx.cursorRow = cmsCursorAbsolute(pCurrentDisplay);
+            displaySetBackgroundType(pCurrentDisplay, DISPLAY_BACKGROUND_TRANSPARENT); // reset previous displayPort to transparent
             displayRelease(pCurrentDisplay);
             pCurrentDisplay = pNextDisplay;
+            displaySetBackgroundType(pCurrentDisplay, (displayPortBackground_e)osdConfig()->cms_background_type); // set the background type if not transparent
         } else {
             return;
         }
@@ -929,6 +934,8 @@ const void *cmsMenuExit(displayPort_t *pDisplay, const void *ptr)
     }
 
     cmsInMenu = false;
+
+    displaySetBackgroundType(pCurrentDisplay, DISPLAY_BACKGROUND_TRANSPARENT); // reset the background to transparent
 
     displayRelease(pDisplay);
     currentCtx.menu = NULL;
@@ -1341,7 +1348,7 @@ static void cmsUpdate(uint32_t currentTimeUs)
             externKey = CMS_KEY_NONE;
         } else {
             if (IS_MID(THROTTLE) && IS_LO(YAW) && IS_HI(PITCH) && !ARMING_FLAG(ARMED)) {
-                key = CMS_KEY_MENU;
+                key = CMS_KEY_NONE;
             } else if (IS_HI(PITCH)) {
                 key = CMS_KEY_UP;
             } else if (IS_LO(PITCH)) {

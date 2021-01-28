@@ -44,7 +44,7 @@
 #endif
 
 typedef union gyroLowpassFilter_u {
-    pt1Filter_t pt1FilterState;
+    ptnFilter_t ptnFilterState;
     biquadFilter_t biquadFilterState;
 } gyroLowpassFilter_t;
 
@@ -137,7 +137,9 @@ enum {
 enum {
     DYN_LPF_NONE = 0,
     DYN_LPF_PT1,
-    DYN_LPF_BIQUAD
+    DYN_LPF_BIQUAD,
+    DYN_LPF_PT3,
+    DYN_LPF_PT4
 };
 
 typedef enum {
@@ -158,7 +160,6 @@ typedef struct gyroConfig_s {
     uint8_t  gyro_use_32khz;
     uint8_t  gyro_to_use;
 
-    uint16_t gyro_lowpass_hz;
     uint16_t alpha;
     uint16_t abg_boost;
     uint16_t abg_half_life;
@@ -177,9 +178,8 @@ typedef struct gyroConfig_s {
     uint16_t gyroCalibrationDuration;   // Gyro calibration duration in 1/100 second
 
     uint16_t dyn_lpf_gyro_min_hz;
-    uint16_t dyn_lpf_gyro_max_hz;
-    uint16_t dynlpf2_fmax;
-    uint16_t dynlpf2_gain;
+    uint8_t  dyn_lpf_gyro_width;
+    uint8_t dyn_lpf_gyro_gain;
 
     uint16_t dyn_notch_max_hz;
     uint16_t dyn_notch_q;

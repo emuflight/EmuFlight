@@ -211,9 +211,13 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs)
             throttle = 0;
             currentThrottleInputRange = rcCommandThrottleRange3dHigh;
         }
-        if (currentTimeUs - reversalTimeUs < 250000) {
-            // keep iterm zero for 250ms after motor reversal
+        if (currentTimeUs - reversalTimeUs < mixerRuntime.reverse3dKickTime) {
+            // keep iterm zero for 250ms aka 250000 after motor reversal
+            // add a motor kick when switching directions
             pidResetIterm();
+
+            float timeFactor = (currentTimeUs - reversalTimeUs) / mixerRuntime.reverse3dKickTime;
+            throttle += currentThrottleInputRange * mixerRuntime.reverse3dKick - timeFactor * currentThrottleInputRange * mixerRuntime.reverse3dKick;
         }
     } else {
         throttle = rcCommand[THROTTLE] - PWM_RANGE_MIN + throttleAngleCorrection;
@@ -254,7 +258,7 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs)
             DEBUG_SET(DEBUG_BATTERY, 2, batteryGoodness * 100);
             DEBUG_SET(DEBUG_BATTERY, 3, motorRangeAttenuationFactor * 1000);
         }
-        motorRangeMax = mixerRuntime.motorOutputHigh - motorRangeAttenuationFactor * (mixerRuntime.motorOutputHigh - mixerRuntime.motorOutputLow);
+        motorRangeMax = isFlipOverAfterCrashActive() ? mixerRuntime.motorOutputHigh : mixerRuntime.motorOutputHigh - motorRangeAttenuationFactor * (mixerRuntime.motorOutputHigh - mixerRuntime.motorOutputLow);
 #else
         motorRangeMax = mixerRuntime.motorOutputHigh;
 #endif
@@ -435,9 +439,8 @@ static void updateDynLpfCutoffs(timeUs_t currentTimeUs, float throttle)
     static float gyroThrottleCutoff, dtermThrottleCutoff;
 
     if (cmpTimeUs(currentTimeUs, lastDynLpfUpdateUs) >= DYN_LPF_THROTTLE_UPDATE_DELAY_US) {
-        const int quantizedThrottle = throttle; // quantize the throttle reduce the number of filter updates
-        gyroThrottleCutoff = dynLpfGyroThrCut(quantizedThrottle);
-        dtermThrottleCutoff = dynLpfDtermThrCut(quantizedThrottle);
+        gyroThrottleCutoff = dynLpfGyroThrCut(throttle);
+        dtermThrottleCutoff = dynLpfDtermThrCut(throttle);
 
 
         for (int i = 0; i < XYZ_AXIS_COUNT; i++) {

@@ -109,11 +109,9 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->gyroMovementCalibrationThreshold = 48;
     gyroConfig->gyro_hardware_lpf = GYRO_HARDWARE_LPF_NORMAL;
     gyroConfig->gyro_lowpass_type = FILTER_PT1;
-    gyroConfig->gyro_lowpass_hz = 0;    // NOTE: dynamic lpf is enabled by default so this setting is actually
-                                        // overridden and the static lowpass 1 is disabled.
-    gyroConfig->alpha = 275;
+    gyroConfig->alpha = 0;
     gyroConfig->abg_boost = 350;
-    gyroConfig->abg_half_life = 20;
+    gyroConfig->abg_half_life = 50;
     gyroConfig->gyro_high_fsr = false;
     gyroConfig->gyro_use_32khz = false;
     gyroConfig->gyro_to_use = GYRO_CONFIG_USE_GYRO_DEFAULT;
@@ -123,19 +121,18 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->gyro_offset_yaw = 0;
     gyroConfig->yaw_spin_recovery = YAW_SPIN_RECOVERY_AUTO;
     gyroConfig->yaw_spin_threshold = 1950;
-    gyroConfig->dyn_lpf_gyro_min_hz = 500;
-    gyroConfig->dyn_lpf_gyro_max_hz = 700;
-    gyroConfig->dynlpf2_fmax = 300;
-    gyroConfig->dynlpf2_gain = 70;
+    gyroConfig->dyn_lpf_gyro_min_hz = 115;
+    gyroConfig->dyn_lpf_gyro_width = 0;
+    gyroConfig->dyn_lpf_gyro_gain = 70;
     gyroConfig->dyn_lpf_curve_expo = 5;
     gyroConfig->dyn_notch_max_hz = 600;
-    gyroConfig->dyn_notch_q = 400;
-    gyroConfig->dyn_notch_min_hz = 125;
+    gyroConfig->dyn_notch_q = 250;
+    gyroConfig->dyn_notch_min_hz = 150;
     gyroConfig->gyro_filter_debug_axis = FD_ROLL;
-    gyroConfig->imuf_roll_q = 6000;
-    gyroConfig->imuf_pitch_q = 6000;
-    gyroConfig->imuf_yaw_q = 6000;
-    gyroConfig->imuf_w = 16;
+    gyroConfig->imuf_roll_q = 3000;
+    gyroConfig->imuf_pitch_q = 3000;
+    gyroConfig->imuf_yaw_q = 3000;
+    gyroConfig->imuf_w = 32;
 }
 
 bool isGyroSensorCalibrationComplete(const gyroSensor_t *gyroSensor)
@@ -623,11 +620,21 @@ void dynLpfGyroUpdate(float cutoff[XYZ_AXIS_COUNT])
         if (gyro.dynLpfFilter == DYN_LPF_PT1) {
             const float gyroDt = gyro.targetLooptime * 1e-6f;
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                pt1FilterUpdateCutoff(&gyro.lowpassFilter[axis].pt1FilterState, pt1FilterGain(cutoff[axis], gyroDt));
+                ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], 1.0f, gyroDt);
             }
         } else if (gyro.dynLpfFilter == DYN_LPF_BIQUAD) {
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
                 biquadFilterUpdateLPF(&gyro.lowpassFilter[axis].biquadFilterState, cutoff[axis], gyro.targetLooptime);
+            }
+        } else if (gyro.dynLpfFilter == DYN_LPF_PT1) {
+            const float gyroDt = gyro.targetLooptime * 1e-6f;
+            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+                ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], 1.961459177f, gyroDt);
+            }
+        } else if (gyro.dynLpfFilter == DYN_LPF_PT1) {
+            const float gyroDt = gyro.targetLooptime * 1e-6f;
+            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+                ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], 2.298959223f, gyroDt);
             }
         }
     }

@@ -94,10 +94,12 @@ PG_RESET_TEMPLATE(flight3DConfig_t, flight3DConfig,
     .deadband3d_low = 1406,
     .deadband3d_high = 1514,
     .neutral3d = 1460,
-    .deadband3d_throttle = 50,
+    .deadband3d_throttle = 5,
     .limit3d_low = 1000,
     .limit3d_high = 2000,
-    .switched_mode3d = false
+    .switched_mode3d = false,
+    .reverse3dKick = 15,
+    .reverse3dKickTime = 200,
 );
 
 bool isUsingSticksForArming(void)

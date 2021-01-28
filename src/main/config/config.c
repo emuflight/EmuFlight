@@ -123,7 +123,7 @@ PG_RESET_TEMPLATE(systemConfig_t, systemConfig,
     .boardIdentifier = TARGET_BOARD_IDENTIFIER,
     .hseMhz = SYSTEM_HSE_VALUE,  // Only used for F4 and G4 targets
     .configurationState = CONFIGURATION_STATE_DEFAULTS_BARE,
-    .schedulerOptimizeRate = SCHEDULER_OPTIMIZE_RATE_AUTO,
+    .schedulerOptimizeRate = SCHEDULER_OPTIMIZE_RATE_ON,
     .enableStickArming = false,
 );
 
@@ -244,7 +244,6 @@ static void validateAndFixConfig(void)
     for (unsigned i = 0; i < PID_PROFILE_COUNT; i++) {
         // Fix filter settings to handle cases where an older configurator was used that
         // allowed higher cutoff limits from previous firmware versions.
-        adjustFilterLimit(&pidProfilesMutable(i)->dterm_lowpass_hz, FILTER_FREQUENCY_MAX);
         adjustFilterLimit(&pidProfilesMutable(i)->dterm_lowpass2_hz, FILTER_FREQUENCY_MAX);
         adjustFilterLimit(&pidProfilesMutable(i)->dterm_notch_hz, FILTER_FREQUENCY_MAX);
         adjustFilterLimit(&pidProfilesMutable(i)->dterm_notch_cutoff, 0);
@@ -253,13 +252,6 @@ static void validateAndFixConfig(void)
         if (pidProfilesMutable(i)->dterm_notch_cutoff >= pidProfilesMutable(i)->dterm_notch_hz) {
             pidProfilesMutable(i)->dterm_notch_hz = 0;
         }
-
-#ifdef USE_DYN_LPF
-        //Prevent invalid dynamic lowpass
-        if (pidProfilesMutable(i)->dyn_lpf_dterm_min_hz > pidProfilesMutable(i)->dyn_lpf_dterm_max_hz) {
-            pidProfilesMutable(i)->dyn_lpf_dterm_max_hz = pidProfilesMutable(i)->dyn_lpf_dterm_min_hz;
-        }
-#endif
 
         if (pidProfilesMutable(i)->motor_output_limit > 100 || pidProfilesMutable(i)->motor_output_limit == 0) {
             pidProfilesMutable(i)->motor_output_limit = 100;
@@ -574,13 +566,13 @@ static void validateAndFixConfig(void)
     }
 #endif
 
-#if defined(TARGET_VALIDATECONFIG)
-    targetValidateConfiguration();
-#endif
-
     validateAndFixRatesSettings();  // constrain the various rates settings to limits imposed by the rates type
 
 #if defined(USE_RX_MSP_OVERRIDE)
+    if (!rxConfig()->msp_override_channels_mask) {
+        removeModeActivationCondition(BOXMSPOVERRIDE);
+    }
+
     for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
         const modeActivationCondition_t *mac = modeActivationConditions(i);
         if (mac->modeId == BOXMSPOVERRIDE && ((1 << (mac->auxChannelIndex) & (rxConfig()->msp_override_channels_mask)))) {
@@ -590,13 +582,24 @@ static void validateAndFixConfig(void)
 #endif
 
     validateAndfixMotorOutputReordering(motorConfigMutable()->dev.motorOutputReordering, MAX_SUPPORTED_MOTORS);
+
+    // validate that the minimum battery cell voltage is less than the maximum cell voltage
+    // reset to defaults if not
+    if (batteryConfig()->vbatmincellvoltage >=  batteryConfig()->vbatmaxcellvoltage) {
+        batteryConfigMutable()->vbatmincellvoltage = VBAT_CELL_VOLTAGE_DEFAULT_MIN;
+        batteryConfigMutable()->vbatmaxcellvoltage = VBAT_CELL_VOLTAGE_DEFAULT_MAX;
+    }
+
+#if defined(TARGET_VALIDATECONFIG)
+    // This should be done at the end of the validation
+    targetValidateConfiguration();
+#endif
 }
 
 void validateAndFixGyroConfig(void)
 {
     // Fix gyro filter settings to handle cases where an older configurator was used that
     // allowed higher cutoff limits from previous firmware versions.
-    adjustFilterLimit(&gyroConfigMutable()->gyro_lowpass_hz, FILTER_FREQUENCY_MAX);
     adjustFilterLimit(&gyroConfigMutable()->gyro_soft_notch_hz_1, FILTER_FREQUENCY_MAX);
     adjustFilterLimit(&gyroConfigMutable()->gyro_soft_notch_cutoff_1, 0);
 
@@ -604,12 +607,6 @@ void validateAndFixGyroConfig(void)
     if (gyroConfig()->gyro_soft_notch_cutoff_1 >= gyroConfig()->gyro_soft_notch_hz_1) {
         gyroConfigMutable()->gyro_soft_notch_hz_1 = 0;
     }
-#ifdef USE_DYN_LPF
-    //Prevent invalid dynamic lowpass filter
-    if (gyroConfig()->dyn_lpf_gyro_min_hz > gyroConfig()->dyn_lpf_gyro_max_hz) {
-        gyroConfigMutable()->dyn_lpf_gyro_min_hz = 0;
-    }
-#endif
 
     if (gyro.sampleRateHz > 0) {
         float samplingTime = 1.0f / gyro.sampleRateHz;
