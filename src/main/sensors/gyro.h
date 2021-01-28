@@ -185,14 +185,14 @@ typedef struct gyroConfig_s {
     uint16_t dyn_notch_q;
     uint16_t dyn_notch_min_hz;
 
-#if defined(USE_GYRO_IMUF9001)
+#ifdef USE_GYRO_IMUF9001
     uint16_t imuf_mode;
     uint16_t imuf_rate;
     uint16_t imuf_pitch_lpf_cutoff_hz;
     uint16_t imuf_roll_lpf_cutoff_hz;
     uint16_t imuf_yaw_lpf_cutoff_hz;
     uint16_t imuf_acc_lpf_cutoff_hz;
-#endif
+#endif // USE_GYRO_IMUF9001
     uint16_t imuf_pitch_q;
     uint16_t imuf_roll_q;
     uint16_t imuf_yaw_q;
