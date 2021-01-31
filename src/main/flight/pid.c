@@ -183,7 +183,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .mixer_impl = MIXER_IMPL_LEGACY,
     .mixer_laziness = false,
     .horizonStrength = 15,
-    .emuGravityGain = 4000,
+    .emuGravityGain = 1000,
                 );
 }
 
