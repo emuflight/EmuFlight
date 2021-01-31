@@ -490,12 +490,12 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
         const float horizonLevelStrength = calcHorizonLevelStrength();
         currentPidSetpoint = ((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f + (currentPidSetpoint * horizonLevelStrength * horizonStrength);
     } else if (axis == FD_PITCH && pidProfile->angle_yaw_correction == 1) {
-        yawAngleCorrection = currentPidSetpoint * fabsf(cos_approx((attitude.raw[FD_ROLL] - angleTrim->raw[FD_ROLL]) * 0.1f));
-        currentPidSetpoint = currentPidSetpoint * fabsf(sin_approx((attitude.raw[FD_ROLL] - angleTrim->raw[FD_ROLL]) * 0.1f));
+        yawAngleCorrection = currentPidSetpoint * fabsf(sin_approx((attitude.raw[FD_ROLL] - angleTrim->raw[FD_ROLL]) * 0.1f));
+        currentPidSetpoint = currentPidSetpoint * fabsf(cos_approx((attitude.raw[FD_ROLL] - angleTrim->raw[FD_ROLL]) * 0.1f));
     } else if (pidProfile->angle_yaw_correction == 1){
-        yawAngleCorrection = yawAngleCorrection + currentPidSetpoint * sin_approx((attitude.raw[FD_PITCH] - angleTrim->raw[FD_PITCH]) * 0.1f);
+        yawAngleCorrection = yawAngleCorrection + currentPidSetpoint * cos_approx((attitude.raw[FD_PITCH] - angleTrim->raw[FD_PITCH]) * 0.1f);
         yawAngleCorrection = yawAngleSetpointFilterApplyFn((filter_t *)&yawAngleSetpointFilter, yawAngleCorrection);
-        currentPidSetpoint = currentPidSetpoint * cos_approx((attitude.raw[FD_PITCH] - angleTrim->raw[FD_PITCH]) * 0.1f);
+        currentPidSetpoint = currentPidSetpoint * sin_approx((attitude.raw[FD_PITCH] - angleTrim->raw[FD_PITCH]) * 0.1f);
     }
     currentPidSetpoint = angleSetpointFilterApplyFn((filter_t *)&angleSetpointFilter[axis], currentPidSetpoint);
     return currentPidSetpoint;
