@@ -27,10 +27,34 @@
 
 #include "pg/pinio.h"
 #include "pg/piniobox.h"
+/*
+#include "blackbox/blackbox.h"
+#include "fc/rc_modes.h"
+#include "common/axis.h"
+#include "common/filter.h"
+#include "config/feature.h"
+#include "drivers/pwm_esc_detect.h"
+#include "fc/config.h"
+#include "fc/controlrate_profile.h"
+#include "fc/rc_controls.h"
+#include "fc/rc_modes.h"
+#include "flight/imu.h"
+#include "flight/mixer.h"
+#include "flight/pid.h"
+#include "io/beeper.h"
+#include "io/serial.h"
+#include "pg/rx.h"
+#include "rx/rx.h"
+*/
+#include "sensors/barometer.h"
+#include "sensors/boardalignment.h"
 
-void targetConfiguration(void)
-{	
+
+void targetConfiguration(void) {
     pinioConfigMutable()->config[1] = PINIO_CONFIG_OUT_INVERTED | PINIO_CONFIG_MODE_OUT_PP;
     pinioBoxConfigMutable()->permanentId[0] = 40;
+#if defined (TRANSTECF411HD)
+    boardAlignmentMutable()->rollDegrees = 180;
+#endif
 }
 #endif

@@ -20,19 +20,16 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
-
 #include "platform.h"
-
+#ifdef USE_TARGET_CONFIG
 #include "pg/pinio.h"
 #include "pg/piniobox.h"
 
-#ifdef USE_TARGET_CONFIG
-
-
-void targetConfiguration(void)
-{
-    pinioBoxConfigMutable()->permanentId[0] = 40;
-
+void targetConfiguration(void) {
+    pinioBoxConfigMutable()->permanentId[0] = 0;
+    pinioBoxConfigMutable()->permanentId[1] = 40;
+    pinioBoxConfigMutable()->permanentId[2] = 255;
+    pinioBoxConfigMutable()->permanentId[3] = 255;
+    pinioConfigMutable()->config[0] = 129;
 }
 #endif
