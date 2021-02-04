@@ -34,14 +34,11 @@ uint8_t hardwareRevision = AFF4_UNKNOWN;
 
 static IO_t HWDetectPin = IO_NONE;
 
-void detectHardwareRevision(void)
-{
+void detectHardwareRevision(void) {
     HWDetectPin = IOGetByTag(IO_TAG(HW_PIN));
     IOInit(HWDetectPin, OWNER_SYSTEM, 0);
     IOConfigGPIO(HWDetectPin, IOCFG_IPU);
-
     delayMicroseconds(40);  // allow configuration to settle
-
     // Check hardware revision
     if (IORead(HWDetectPin)) {
         hardwareRevision = AFF4_REV_1;
@@ -50,6 +47,5 @@ void detectHardwareRevision(void)
     }
 }
 
-void updateHardwareRevision(void)
-{
+void updateHardwareRevision(void) {
 }

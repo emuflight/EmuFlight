@@ -40,5 +40,8 @@ void targetConfiguration(void) {
         bluetoothMspUART->functionMask = FUNCTION_MSP;
         bluetoothMspUART->msp_baudrateIndex = BLUETOOTH_MSP_BAUDRATE;
     }
+
+    pinioBoxConfigMutable()->permanentId[0] = 0;
+    pinioConfigMutable()->config[0] = 129;
 }
 #endif
