@@ -20,8 +20,8 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "MB41"
-#define USBD_PRODUCT_STRING     "MAMBA411"
+#define TARGET_BOARD_IDENTIFIER "IFRC"
+#define USBD_PRODUCT_STRING     "IFLIGHT F411 TWIN G"
 
 // ******* LEDs and BEEPER ********
 
@@ -34,6 +34,8 @@
 #define ENABLE_DSHOT_DMAR       true
 
 // ******* GYRO and ACC ********
+#define USE_DUAL_GYRO
+
 #define USE_EXTI
 #define MPU_INT_EXTI
 #define USE_GYRO_EXTI

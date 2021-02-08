@@ -29,26 +29,20 @@
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
 
-#ifdef FPVM_BETAFLIGHTF7
-    DEF_TIM(TIM8, CH3, PC8, TIM_USE_ANY,   0, 0), // USED FOR CAMERA CONTROL
-#endif
-    DEF_TIM(TIM1, CH3, PE13, TIM_USE_NONE,  0, 1 ), // RC1 / PPM, unusable
+    DEF_TIM(TIM4,  CH1, PD12,  TIM_USE_LED,                 0, 0 ), // S6_IN DMA2_ST7
 
-    DEF_TIM(TIM3, CH3, PB0,  TIM_USE_MOTOR, 0, 0 ), // M1
-    DEF_TIM(TIM3, CH4, PB1,  TIM_USE_MOTOR, 0, 0 ), // M2
-    DEF_TIM(TIM1, CH1, PE9,  TIM_USE_MOTOR, 0, 2 ), // M3
-    DEF_TIM(TIM1, CH2, PE11, TIM_USE_MOTOR, 0, 1 ), // M4
+    DEF_TIM(TIM3,  CH3, PB0,  TIM_USE_MOTOR,               0, 0 ), // S10_OUT 1 DMA1_ST7
+    DEF_TIM(TIM3,  CH4, PB1,  TIM_USE_MOTOR,               0, 0 ), // S6_OUT  2 DMA1_ST0
+    DEF_TIM(TIM1,  CH1, PE9,  TIM_USE_MOTOR,               0, 0 ), // S2_OUT  3 DMA1_ST4
+    DEF_TIM(TIM1,  CH2, PE11,  TIM_USE_MOTOR,               0, 0 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
 
-    DEF_TIM(TIM4, CH1, PD12, TIM_USE_LED,   0, 0 ), // LED
+    DEF_TIM(TIM8,  CH3, PC8,  TIM_USE_ANY,               0, 0 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
+    DEF_TIM(TIM1,  CH3, PE13,  TIM_USE_ANY,               0, 0 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
+    DEF_TIM(TIM2,  CH3, PB10,  TIM_USE_ANY,               0, 0 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
+    DEF_TIM(TIM2,  CH4, PB11,  TIM_USE_ANY,               0, 0 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
+    DEF_TIM(TIM8,  CH1, PC6,  TIM_USE_ANY,               0, 0 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
+    DEF_TIM(TIM8,  CH2, PC7,  TIM_USE_ANY,               0, 0 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
+    DEF_TIM(TIM2,  CH4, PA3,  TIM_USE_ANY,               0, 0 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
+    DEF_TIM(TIM9,  CH1, PA2,  TIM_USE_ANY,               0, 0 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
 
-    // Backdoor timers
-    DEF_TIM(TIM2, CH3, PB10, TIM_USE_NONE,  0, 0 ), // UART3_TX, I2C2_SCL
-    DEF_TIM(TIM2, CH4, PB11, TIM_USE_NONE,  0, 0 ), // UART3_RX, I2C2_SDA
-    DEF_TIM(TIM8, CH1, PC6,  TIM_USE_NONE,  0, 0 ), // UART6_TX
-    DEF_TIM(TIM8, CH2, PC7,  TIM_USE_NONE,  0, 0 ), // UART6_RX
-    DEF_TIM(TIM2, CH4, PA3,  TIM_USE_PPM,   0, 0 ), // UART2_RX, joined with PE13
-
-    // For ESC serial
-    DEF_TIM(TIM9, CH1, PA2,  TIM_USE_NONE,  0, 0 ), // UART2_TX (unwired)
-
-};
+    };
