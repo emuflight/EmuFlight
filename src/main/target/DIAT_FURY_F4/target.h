@@ -20,7 +20,7 @@
 
 #pragma once
 
-#ifdef FURYF4OSD
+#ifdef DIAT_DIAT_FURYF4OSD
 #define TARGET_BOARD_IDENTIFIER "FY4O"
 #define USBD_PRODUCT_STRING     "FuryF4OSD"
 #else
@@ -75,7 +75,7 @@
 #define USE_ACC_SPI_MPU6500
 #define ACC_MPU6500_ALIGN       CW180_DEG
 
-#ifdef FURYF4OSD
+#ifdef DIAT_FURYF4OSD
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      PB12

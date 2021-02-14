@@ -110,7 +110,7 @@
 #define USE_UART6
 #define UART6_TX_PIN            PC6
 #define UART6_RX_PIN            PC7//RX(PPM/SBUS)
-     
+
 #define USE_SOFTSERIAL1
 #define SOFTSERIAL1_RX_PIN      PC5
 #define SOFTSERIAL1_TX_PIN      PB2
@@ -122,7 +122,7 @@
 #define USE_ADC
 #define ADC_INSTANCE			ADC2
 #define ADC2_DMA_OPT            1
-#define CURRENT_METER_ADC_PIN   PC0  
+#define CURRENT_METER_ADC_PIN   PC0
 #define VBAT_ADC_PIN			PC1
 #define RSSI_ADC_PIN			PC2
 
