@@ -137,7 +137,7 @@ void delay(uint32_t ms) {
         delayMicroseconds(1000);
 }
 
-static void indicate(uint8_t count, uint16_t duration) {
+void indicate(uint8_t count, uint16_t duration) {
     if (count) {
         LED1_ON;
         LED0_OFF;

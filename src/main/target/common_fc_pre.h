@@ -45,6 +45,7 @@
 #define MINIMAL_CLI
 #define USE_DSHOT
 #define USE_GYRO_DATA_ANALYSE
+#define USE_QUAD_MIXER_ONLY
 #endif
 
 #ifdef STM32F4
@@ -138,7 +139,7 @@
 
 
 #if (FLASH_SIZE > 64)
-#define PID_PROFILE_COUNT 3
+#define PID_PROFILE_COUNT 2
 #else
 #define PID_PROFILE_COUNT 2
 #endif
@@ -148,15 +149,15 @@
 #define USE_RESOURCE_MGMT
 #define USE_RUNAWAY_TAKEOFF     // Runaway Takeoff Prevention (anti-taz) - Marked for removal
 #define USE_TELEMETRY
-#define USE_TELEMETRY_FRSKY_HUB
-#define USE_TELEMETRY_HOTT
-#define USE_TELEMETRY_LTM
+// #define USE_TELEMETRY_FRSKY_HUB
+// #define USE_TELEMETRY_HOTT
+// #define USE_TELEMETRY_LTM
 #define USE_TELEMETRY_SMARTPORT
 #endif
 
 #if (FLASH_SIZE > 128)
-#define USE_PEGASUS_UI
-#define USE_SERIALRX_SUMH       // Graupner legacy protocol
+// #define USE_PEGASUS_UI
+// #define USE_SERIALRX_SUMH       // Graupner legacy protocol
 #define USE_CAMERA_CONTROL
 #define USE_CMS
 #define USE_EXTENDED_CMS_MENUS
@@ -172,7 +173,7 @@
 #define USE_PINIO
 #define USE_PINIOBOX
 #define USE_RCDEVICE
-#define USE_RTC_TIME
+// #define USE_RTC_TIME
 #define USE_RX_MSP
 #define USE_SERIALRX_FPORT      // FrSky FPort
 #define USE_TELEMETRY_CRSF
@@ -202,28 +203,29 @@
 #define USE_SPEKTRUM_VTX_TELEMETRY
 #define USE_SPEKTRUM_CMS_TELEMETRY
 #endif
+#define USE_OVERCLOCK
 #endif
 
 #if (FLASH_SIZE > 256)
 #define USE_SERVOS
 #define USE_LED_STRIP
-#define USE_ALT_HOLD
+// #define USE_ALT_HOLD
 #define USE_DASHBOARD
-#define USE_GPS
-#define USE_GPS_NMEA
-#define USE_GPS_UBLOX
-#define USE_GPS_RESCUE
+// #define USE_GPS
+// #define USE_GPS_NMEA
+// #define USE_GPS_UBLOX
+// #define USE_GPS_RESCUE
 #define USE_OSD
 #define USE_OSD_OVER_MSP_DISPLAYPORT
 #define USE_OSD_ADJUSTMENTS
 #define USE_SENSOR_NAMES
 #define USE_SERIALRX_JETIEXBUS
 #define USE_TELEMETRY_IBUS
-#define USE_TELEMETRY_IBUS_EXTENDED
-#define USE_TELEMETRY_JETIEXBUS
-#define USE_TELEMETRY_MAVLINK
-#define USE_UNCOMMON_MIXERS
+// #define USE_TELEMETRY_IBUS_EXTENDED
+// #define USE_TELEMETRY_JETIEXBUS
+// #define USE_TELEMETRY_MAVLINK
+// #define USE_UNCOMMON_MIXERS
 #define USE_SIGNATURE
-#define USE_CMS_FAILSAFE_MENU
-#define USE_CMS_GPS_RESCUE_MENU
+// #define USE_CMS_FAILSAFE_MENU
+// #define USE_CMS_GPS_RESCUE_MENU
 #endif

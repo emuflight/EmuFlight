@@ -79,7 +79,8 @@ MCU_COMMON_SRC = \
             drivers/serial_uart_init.c \
             drivers/serial_uart_stm32f30x.c \
             drivers/system_stm32f30x.c \
-            drivers/timer_stm32f30x.c
+						drivers/timer_stm32f30x.c \
+						drivers/persistent.c
 
 DSP_LIB := $(ROOT)/lib/main/CMSIS/DSP
 DEVICE_FLAGS += -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1 -DUNALIGNED_SUPPORT_DISABLE -DARM_MATH_CM4

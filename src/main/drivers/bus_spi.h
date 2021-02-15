@@ -63,8 +63,8 @@ typedef enum {
     SPI_CLOCK_ULTRAFAST     = 2    //54.00000 MHz
 #else
     SPI_CLOCK_SLOW          = 128, //00.56250 MHz
-    SPI_CLOCK_STANDARD      = 4,   //09.00000 MHz
-    SPI_CLOCK_FAST          = 2,   //18.00000 MHz
+    SPI_CLOCK_STANDARD      = 8,   //09.00000 MHz
+    SPI_CLOCK_FAST          = 4,   //18.00000 MHz
     SPI_CLOCK_ULTRAFAST     = 2    //18.00000 MHz
 #endif
 } SPIClockDivider_e;

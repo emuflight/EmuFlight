@@ -77,6 +77,8 @@ Reset_Handler:
   cmp r2, r1                  // HJI 11/9/2012
   beq Reboot_Loader           // HJI 11/9/2012
 
+  bl persistentObjectInit
+
 /* Copy the data segment initializers from flash to SRAM */
   movs  r1, #0
   b  LoopCopyDataInit

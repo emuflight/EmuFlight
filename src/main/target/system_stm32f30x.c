@@ -100,6 +100,7 @@
   */
 
 #include "stm32f30x.h"
+#include "drivers/persistent.h"
 
 uint32_t hse_value = HSE_VALUE;
 
@@ -268,56 +269,86 @@ void SystemCoreClockUpdate (void) {
   * @param  None
   * @retval None
   */
-void SetSysClock(void) {
+  void SetSysClock(void)
+  {
     __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
-    /******************************************************************************/
-    /*            PLL (clocked by HSE) used as System clock source                */
-    /******************************************************************************/
+  /******************************************************************************/
+  /*            PLL (clocked by HSE) used as System clock source                */
+  /******************************************************************************/
+
+    uint32_t overClock = persistentObjectRead(PERSISTENT_OBJECT_OVERCLOCK_LEVEL);
+    if (overClock == OVERCLOCK_120MHZ_VCP) {
+        persistentObjectWrite(PERSISTENT_OBJECT_OVERCLOCK_LEVEL,0);
+    }
+
+
     /* SYSCLK, HCLK, PCLK2 and PCLK1 configuration -----------*/
     /* Enable HSE */
     RCC->CR |= ((uint32_t)RCC_CR_HSEON);
     /* Wait till HSE is ready and if Time out is reached exit */
-    do {
-        HSEStatus = RCC->CR & RCC_CR_HSERDY;
-        StartUpCounter++;
+    do
+    {
+      HSEStatus = RCC->CR & RCC_CR_HSERDY;
+      StartUpCounter++;
     } while ((HSEStatus == 0) && (StartUpCounter != HSE_STARTUP_TIMEOUT));
-    if ((RCC->CR & RCC_CR_HSERDY) != RESET) {
-        HSEStatus = (uint32_t)0x01;
-    } else {
-        HSEStatus = (uint32_t)0x00;
+    if ((RCC->CR & RCC_CR_HSERDY) != RESET)
+    {
+      HSEStatus = (uint32_t)0x01;
     }
-    if (HSEStatus == (uint32_t)0x01) {
-        /* Enable Prefetch Buffer and set Flash Latency */
-        FLASH->ACR = FLASH_ACR_PRFTBE | (uint32_t)FLASH_ACR_LATENCY_1;
-        /* HCLK = SYSCLK / 1 */
-        RCC->CFGR |= (uint32_t)RCC_CFGR_HPRE_DIV1;
-        /* PCLK2 = HCLK / 1 */
-        RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE2_DIV1;
-        /* PCLK1 = HCLK / 2 */
-        RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE1_DIV2;
-        /* PLL configuration */
-        RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMULL));
-        if (HSE_VALUE == 12000000) {
-            RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLMULL6);
-        } else {
-            RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLMULL9);
-        }
-        /* Enable PLL */
-        RCC->CR |= RCC_CR_PLLON;
-        /* Wait till PLL is ready */
-        while ((RCC->CR & RCC_CR_PLLRDY) == 0) {
-        }
-        /* Select PLL as system clock source */
-        RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
-        RCC->CFGR |= (uint32_t)RCC_CFGR_SW_PLL;
-        /* Wait till PLL is used as system clock source */
-        while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)RCC_CFGR_SWS_PLL) {
-        }
-    } else {
-        /* If HSE fails to start-up, the application will have wrong clock
-             configuration. User can add here some code to deal with this error */
+    else
+    {
+      HSEStatus = (uint32_t)0x00;
     }
-}
+    if (HSEStatus == (uint32_t)0x01)
+    {
+      /* Enable Prefetch Buffer and set Flash Latency */
+  //     FLASH->ACR = FLASH_ACR_PRFTBE | (uint32_t)FLASH_ACR_LATENCY_1;
+        FLASH->ACR = FLASH_ACR_PRFTBE | (uint32_t)(FLASH_ACR_LATENCY_1);
+
+       /* HCLK = SYSCLK / 1 */
+       RCC->CFGR |= (uint32_t)RCC_CFGR_HPRE_DIV1;
+  //     RCC->CFGR |= (uint32_t)RCC_CFGR_HPRE_DIV2;
+
+       /* PCLK2 = HCLK / 1 */
+       RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE2_DIV1;
+       /* PCLK1 = HCLK / 2 */
+       RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE1_DIV2;
+      /* PLL configuration */
+      RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMULL));
+      if (HSE_VALUE == 12000000) {
+          RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLMULL6);
+      }
+      else {
+          RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLMULL15);
+          if (overClock) {
+              RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLMULL15);
+          } else {
+              RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLMULL9);
+          }
+      }
+
+      /* Enable PLL */
+      RCC->CR |= RCC_CR_PLLON;
+      /* Wait till PLL is ready */
+      while ((RCC->CR & RCC_CR_PLLRDY) == 0)
+      {
+      }
+      /* Select PLL as system clock source */
+      RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
+      RCC->CFGR |= (uint32_t)RCC_CFGR_SW_PLL;
+      /* Wait till PLL is used as system clock source */
+      while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)RCC_CFGR_SWS_PLL)
+      {
+      }
+      RCC->CFGR2 &= (uint32_t)0xFFFFFFF0;
+
+      SystemCoreClockUpdate();
+    }
+    else
+    { /* If HSE fails to start-up, the application will have wrong clock
+           configuration. User can add here some code to deal with this error */
+    }
+  }
 
 /**
   * @}
@@ -332,3 +363,13 @@ void SetSysClock(void) {
   */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+
+void OverclockRebootIfNecessary(uint32_t level)
+{
+  if (level && (RCC->CFGR & (0xf << 18)) != RCC_CFGR_PLLMULL15 ||
+      !level && (RCC->CFGR & (0xf << 18)) != RCC_CFGR_PLLMULL9) {
+        persistentObjectWrite(PERSISTENT_OBJECT_OVERCLOCK_LEVEL, level);
+        __disable_irq();
+        NVIC_SystemReset();
+    }
+}
