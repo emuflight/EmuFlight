@@ -36,6 +36,8 @@ typedef struct sdft_s {
     uint8_t idx;                       // circular buffer index
     uint8_t startBin;
     uint8_t endBin;
+    uint8_t batchSize;
+    uint8_t numBatches;
     float samples[SDFT_SAMPLE_SIZE];   // circular buffer
     complex_t data[SDFT_BIN_COUNT];    // complex frequency spectrum
 
@@ -43,9 +45,10 @@ typedef struct sdft_s {
 
 STATIC_ASSERT(SDFT_SAMPLE_SIZE <= (uint8_t)-1, window_size_greater_than_underlying_type);
 
-void sdftInit(sdft_t *sdft, const uint8_t startBin, const uint8_t endBin);
-void sdftPush(sdft_t *sdft, const float sample);
-void sdftMagSq(const sdft_t *dsft, float *output);
-void sdftMagnitude(const sdft_t *dsft, float *output);
+void sdftInit(sdft_t *sdft, const uint8_t startBin, const uint8_t endBin, const uint8_t numBatches);
+void sdftPush(sdft_t *sdft, const float *sample);
+void sdftPushBatch(sdft_t *sdft, const float *sample, const uint8_t *batchIdx);
+void sdftMagSq(const sdft_t *sdft, float *output);
+void sdftMagnitude(const sdft_t *sdft, float *output);
 void sdftWinSq(const sdft_t *sdft, float *output);
 void sdftWindow(const sdft_t *sdft, float *output);
