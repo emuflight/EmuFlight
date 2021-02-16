@@ -269,6 +269,18 @@ void SystemCoreClockUpdate (void) {
   * @param  None
   * @retval None
   */
+
+  const uint32_t ocPllMul[] = {
+    RCC_CFGR_PLLMULL9,
+    RCC_CFGR_PLLMULL10,
+    RCC_CFGR_PLLMULL11,
+    RCC_CFGR_PLLMULL12,
+    RCC_CFGR_PLLMULL13,
+    RCC_CFGR_PLLMULL14,
+    RCC_CFGR_PLLMULL15,
+    RCC_CFGR_PLLMULL16 };
+
+
   void SetSysClock(void)
   {
     __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
@@ -277,7 +289,10 @@ void SystemCoreClockUpdate (void) {
   /******************************************************************************/
 
     uint32_t overClock = persistentObjectRead(PERSISTENT_OBJECT_OVERCLOCK_LEVEL);
-    if (overClock == OVERCLOCK_120MHZ_VCP) {
+    uint8_t vcp = overClock > OVERCLOCK_128MHZ;
+    if (vcp) overClock -= OVERCLOCK_128MHZ;
+
+    if (vcp) {
         persistentObjectWrite(PERSISTENT_OBJECT_OVERCLOCK_LEVEL,0);
     }
 
@@ -319,12 +334,11 @@ void SystemCoreClockUpdate (void) {
           RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLMULL6);
       }
       else {
-          RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLMULL15);
-          if (overClock) {
-              RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLMULL15);
-          } else {
-              RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLMULL9);
-          }
+          #ifdef USE_OVERCLOCK
+                  RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLXTPRE_PREDIV1 | ocPllMul[overClock]);
+          #else
+                  RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLMULL9);
+          #endif
       }
 
       /* Enable PLL */
@@ -366,8 +380,10 @@ void SystemCoreClockUpdate (void) {
 
 void OverclockRebootIfNecessary(uint32_t level)
 {
-  if (level && (RCC->CFGR & (0xf << 18)) != RCC_CFGR_PLLMULL15 ||
-      !level && (RCC->CFGR & (0xf << 18)) != RCC_CFGR_PLLMULL9) {
+  uint32_t overClock = level;
+  uint8_t vcp = level >= 8;
+  if (vcp) overClock -= 7;
+  if ((RCC->CFGR & (0xf << 18)) != ocPllMul[overClock]) {
         persistentObjectWrite(PERSISTENT_OBJECT_OVERCLOCK_LEVEL, level);
         __disable_irq();
         NVIC_SystemReset();

@@ -192,10 +192,9 @@ serialPort_t *usbVcpOpen(void) {
   static vcpPort_t *s;
   if (s) return (serialPort_t *)s;
 
-  IOInit(IOGetByTag(IO_TAG(PA11)), OWNER_USB, 0);
-  IOInit(IOGetByTag(IO_TAG(PA12)), OWNER_USB, 0);
-
   #if defined(STM32F4)
+    IOInit(IOGetByTag(IO_TAG(PA11)), OWNER_USB, 0);
+    IOInit(IOGetByTag(IO_TAG(PA12)), OWNER_USB, 0);
     usbGenerateDisconnectPulse();
 #ifdef USE_USB_CDC_HID
     if (usbDevConfig()->type == COMPOSITE) {

@@ -57,7 +57,7 @@ extern void SystemInit(void);
 extern void SystemCoreClockUpdate(void);
 extern void OverclockRebootIfNecessary(uint32_t level);
 
-#define OVERCLOCK_120MHZ_VCP 2
+#define OVERCLOCK_128MHZ 7
 /**
   * @}
   */
