@@ -1340,16 +1340,16 @@ static void osdElementWarnings(osdElementParms_t *element)
             armingDelayTime = 0;
         }
         if (armingDelayTime >= (DSHOT_BEACON_GUARD_DELAY_US / 1e5 - 5)) {
-            tfp_sprintf(element->buff, " BEACON ON"); // Display this message for the first 0.5 seconds
+            tfp_sprintf(element->buff, BEACON_ON); // Display this message for the first 0.5 seconds
         } else {
-            tfp_sprintf(element->buff, "ARM IN %d.%d", armingDelayTime / 10, armingDelayTime % 10);
+            tfp_sprintf(element->buff, ARM_IN, armingDelayTime / 10, armingDelayTime % 10);
         }
         element->attr = DISPLAYPORT_ATTR_INFO;
         return;
     }
 #endif // USE_DSHOT
     if (osdWarnGetState(OSD_WARNING_FAIL_SAFE) && failsafeIsActive()) {
-        tfp_sprintf(element->buff, "FAIL SAFE");
+        tfp_sprintf(element->buff, FAIL_SAFE);
         element->attr = DISPLAYPORT_ATTR_CRITICAL;
         SET_BLINK(OSD_WARNINGS);
         return;
@@ -1357,7 +1357,7 @@ static void osdElementWarnings(osdElementParms_t *element)
 
     // Warn when in flip over after crash mode
     if (osdWarnGetState(OSD_WARNING_CRASH_FLIP) && isFlipOverAfterCrashActive()) {
-        tfp_sprintf(element->buff, "CRASH FLIP");
+        tfp_sprintf(element->buff, CRASH_FLIP);
         element->attr = DISPLAYPORT_ATTR_INFO;
         return;
     }
@@ -1368,11 +1368,11 @@ static void osdElementWarnings(osdElementParms_t *element)
 #ifdef USE_ACC
         if (sensors(SENSOR_ACC)) {
             const int pitchAngle = constrain((attitude.raw[FD_PITCH] - accelerometerConfig()->accelerometerTrims.raw[FD_PITCH]) / 10, -90, 90);
-            tfp_sprintf(element->buff, "LAUNCH %d", pitchAngle);
+            tfp_sprintf(element->buff, LAUNCH_ANGLE, pitchAngle);
         } else
 #endif // USE_ACC
         {
-            tfp_sprintf(element->buff, "LAUNCH");
+            tfp_sprintf(element->buff, LAUNCH);
         }
 
         // Blink the message if the throttle is within 10% of the launch setting
@@ -1387,7 +1387,7 @@ static void osdElementWarnings(osdElementParms_t *element)
 
     // RSSI
     if (osdWarnGetState(OSD_WARNING_RSSI) && (getRssiPercent() < osdConfig()->rssi_alarm)) {
-        tfp_sprintf(element->buff, "RSSI LOW");
+        tfp_sprintf(element->buff, RSSI_LOW);
         element->attr = DISPLAYPORT_ATTR_WARNING;
         SET_BLINK(OSD_WARNINGS);
         return;
@@ -1395,7 +1395,7 @@ static void osdElementWarnings(osdElementParms_t *element)
 #ifdef USE_RX_RSSI_DBM
     // rssi dbm
     if (osdWarnGetState(OSD_WARNING_RSSI_DBM) && (getRssiDbm() < osdConfig()->rssi_dbm_alarm)) {
-        tfp_sprintf(element->buff, "RSSI DBM");
+        tfp_sprintf(element->buff, RSSI_DBM);
         element->attr = DISPLAYPORT_ATTR_WARNING;
         SET_BLINK(OSD_WARNINGS);
         return;
@@ -1405,7 +1405,7 @@ static void osdElementWarnings(osdElementParms_t *element)
 #ifdef USE_RX_LINK_QUALITY_INFO
     // Link Quality
     if (osdWarnGetState(OSD_WARNING_LINK_QUALITY) && (rxGetLinkQualityPercent() < osdConfig()->link_quality_alarm)) {
-        tfp_sprintf(element->buff, "LINK QUALITY");
+        tfp_sprintf(element->buff, LINK_QUALITY);
         element->attr = DISPLAYPORT_ATTR_WARNING;
         SET_BLINK(OSD_WARNINGS);
         return;
@@ -1413,7 +1413,7 @@ static void osdElementWarnings(osdElementParms_t *element)
 #endif // USE_RX_LINK_QUALITY_INFO
 
     if (osdWarnGetState(OSD_WARNING_BATTERY_CRITICAL) && batteryState == BATTERY_CRITICAL) {
-        tfp_sprintf(element->buff, " LAND NOW");
+        tfp_sprintf(element->buff, LAND_NOW);
         element->attr = DISPLAYPORT_ATTR_CRITICAL;
         SET_BLINK(OSD_WARNINGS);
         return;
@@ -1425,7 +1425,7 @@ static void osdElementWarnings(osdElementParms_t *element)
        gpsRescueIsConfigured() &&
        !gpsRescueIsDisabled() &&
        !gpsRescueIsAvailable()) {
-        tfp_sprintf(element->buff, "RESCUE N/A");
+        tfp_sprintf(element->buff, RESCUE_NA);
         element->attr = DISPLAYPORT_ATTR_WARNING;
         SET_BLINK(OSD_WARNINGS);
         return;
@@ -1438,7 +1438,7 @@ static void osdElementWarnings(osdElementParms_t *element)
 
         statistic_t *stats = osdGetStats();
         if (cmpTimeUs(stats->armed_time, OSD_GPS_RESCUE_DISABLED_WARNING_DURATION_US) < 0) {
-            tfp_sprintf(element->buff, "RESCUE OFF");
+            tfp_sprintf(element->buff, RESCUE_OFF);
             element->attr = DISPLAYPORT_ATTR_WARNING;
             SET_BLINK(OSD_WARNINGS);
             return;
@@ -1449,14 +1449,14 @@ static void osdElementWarnings(osdElementParms_t *element)
 
     // Show warning if in HEADFREE flight mode
     if (FLIGHT_MODE(HEADFREE_MODE)) {
-        tfp_sprintf(element->buff, "HEADFREE");
+        tfp_sprintf(element->buff, HEADFREE);
         element->attr = DISPLAYPORT_ATTR_WARNING;
         SET_BLINK(OSD_WARNINGS);
         return;
     }
 
     if (isLevelRecoveryActive() && osdWarnGetState(OSD_WARNING_LEVEL_RECOVERY)) {
-        tfp_sprintf(element->buff, "ACC RECOVERY");
+        tfp_sprintf(element->buff, ACC_RECOVERY);
         element->attr = DISPLAYPORT_ATTR_WARNING;
         return;
     }
@@ -1464,7 +1464,7 @@ static void osdElementWarnings(osdElementParms_t *element)
 #ifdef USE_ADC_INTERNAL
     const int16_t coreTemperature = getCoreTemperatureCelsius();
     if (osdWarnGetState(OSD_WARNING_CORE_TEMPERATURE) && coreTemperature >= osdConfig()->core_temp_alarm) {
-        tfp_sprintf(element->buff, "CORE %c: %3d%c", SYM_TEMPERATURE, osdConvertTemperatureToSelectedUnit(coreTemperature), osdGetTemperatureSymbolForSelectedUnit());
+        tfp_sprintf(element->buff, CORE, SYM_TEMPERATURE, osdConvertTemperatureToSelectedUnit(coreTemperature), osdGetTemperatureSymbolForSelectedUnit());
         element->attr = DISPLAYPORT_ATTR_WARNING;
         SET_BLINK(OSD_WARNINGS);
         return;
@@ -1525,7 +1525,7 @@ static void osdElementWarnings(osdElementParms_t *element)
 #endif // USE_ESC_SENSOR
 
     if (osdWarnGetState(OSD_WARNING_BATTERY_WARNING) && batteryState == BATTERY_WARNING) {
-        tfp_sprintf(element->buff, "LOW BATTERY");
+        tfp_sprintf(element->buff, LOW_BATTERY);
         element->attr = DISPLAYPORT_ATTR_WARNING;
         SET_BLINK(OSD_WARNINGS);
         return;
@@ -1534,7 +1534,7 @@ static void osdElementWarnings(osdElementParms_t *element)
 #ifdef USE_RC_SMOOTHING_FILTER
     // Show warning if rc smoothing hasn't initialized the filters
     if (osdWarnGetState(OSD_WARNING_RC_SMOOTHING) && ARMING_FLAG(ARMED) && !rcSmoothingInitializationComplete()) {
-        tfp_sprintf(element->buff, "RCSMOOTHING");
+        tfp_sprintf(element->buff, RCSMOOTHING);
         element->attr = DISPLAYPORT_ATTR_WARNING;
         SET_BLINK(OSD_WARNINGS);
         return;
@@ -1543,7 +1543,7 @@ static void osdElementWarnings(osdElementParms_t *element)
 
     // Show warning if mah consumed is over the configured limit
     if (osdWarnGetState(OSD_WARNING_OVER_CAP) && ARMING_FLAG(ARMED) && osdConfig()->cap_alarm > 0 && getMAhDrawn() >= osdConfig()->cap_alarm) {
-        tfp_sprintf(element->buff, "OVER CAP");
+        tfp_sprintf(element->buff, OVER_CAP);
         element->attr = DISPLAYPORT_ATTR_WARNING;
         SET_BLINK(OSD_WARNINGS);
         return;
@@ -1552,7 +1552,7 @@ static void osdElementWarnings(osdElementParms_t *element)
     // Show warning if battery is not fresh
     if (osdWarnGetState(OSD_WARNING_BATTERY_NOT_FULL) && !(ARMING_FLAG(ARMED) || ARMING_FLAG(WAS_EVER_ARMED)) && (getBatteryState() == BATTERY_OK)
           && getBatteryAverageCellVoltage() < batteryConfig()->vbatfullcellvoltage) {
-        tfp_sprintf(element->buff, "BATT < FULL");
+        tfp_sprintf(element->buff, BATT_LESS_FULL);
         element->attr = DISPLAYPORT_ATTR_INFO;
         return;
     }
