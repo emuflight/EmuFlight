@@ -1125,7 +1125,7 @@ static void osdElementPidsRoll(osdElementParms_t *element)
 
 static void osdElementPidsYaw(osdElementParms_t *element)
 {
-    osdFormatPID(element->buff, YAW, &currentPidProfile->pid[PID_YAW]);
+    osdFormatPID(element->buff, YA, &currentPidProfile->pid[PID_YAW]);
 }
 
 static void osdElementPower(osdElementParms_t *element)
