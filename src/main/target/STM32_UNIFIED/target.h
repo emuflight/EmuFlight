@@ -94,7 +94,7 @@
 #define USE_UART5
 #define USE_UART6
 
-#define SERIAL_PORT_COUNT       (UNIFIED_SERIAL_PORT_COUNT + 6) 
+#define SERIAL_PORT_COUNT       (UNIFIED_SERIAL_PORT_COUNT + 6)
 
 #define USE_SPI_DEVICE_1
 #define USE_SPI_DEVICE_2
@@ -248,7 +248,7 @@
 #define USE_RX_SPEKTRUM
 #define USE_RX_SPEKTRUM_TELEMETRY
 
-#define USE_CUSTOM_DEFAULTS
+//#define USE_CUSTOM_DEFAULTS
 
 // Additional drivers included for targets with > 512KB of flash
 #if (TARGET_FLASH_SIZE > 512)

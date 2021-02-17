@@ -113,6 +113,7 @@
 
 #include "osd/osd.h"
 #include "osd/osd_elements.h"
+#include "osd/osd_languages.h"
 
 #include "pg/motor.h"
 #include "pg/stats.h"
@@ -572,7 +573,7 @@ static void osdElementAngleRollPitch(osdElementParms_t *element)
 static void osdElementAntiGravity(osdElementParms_t *element)
 {
     if (pidOsdAntiGravityActive()) {
-        strcpy(element->buff, "AG");
+        strcpy(element->buff, AG);
     }
 }
 
@@ -650,7 +651,7 @@ static void osdBackgroundCameraFrame(osdElementParms_t *element)
 static void osdBackgroundCraftName(osdElementParms_t *element)
 {
     if (strlen(pilotConfig()->name) == 0) {
-        strcpy(element->buff, "CRAFT_NAME");
+        strcpy(element->buff, CRAFTNAME);
     } else {
         unsigned i;
         for (i = 0; i < MAX_NAME_LENGTH; i++) {
@@ -724,20 +725,20 @@ static void osdElementCurrentDraw(osdElementParms_t *element)
 
 static void osdElementDebug(osdElementParms_t *element)
 {
-    tfp_sprintf(element->buff, "DBG %5d %5d %5d %5d", debug[0], debug[1], debug[2], debug[3]);
+    tfp_sprintf(element->buff, DBG, debug[0], debug[1], debug[2], debug[3]);
 }
 
 static void osdElementDisarmed(osdElementParms_t *element)
 {
     if (!ARMING_FLAG(ARMED)) {
-        tfp_sprintf(element->buff, "DISARMED");
+        tfp_sprintf(element->buff, DISARMED);
     }
 }
 
 static void osdBackgroundDisplayName(osdElementParms_t *element)
 {
     if (strlen(pilotConfig()->displayName) == 0) {
-        strcpy(element->buff, "DISPLAY_NAME");
+        strcpy(element->buff, DISPLAYNAME);
     } else {
         unsigned i;
         for (i = 0; i < MAX_NAME_LENGTH; i++) {
@@ -763,7 +764,7 @@ static void osdElementTotalFlights(osdElementParms_t *element)
 static void osdElementRateProfileName(osdElementParms_t *element)
 {
     if (strlen(currentControlRateProfile->profileName) == 0) {
-        tfp_sprintf(element->buff, "RATE_%u", getCurrentControlRateProfileIndex() + 1);
+        tfp_sprintf(element->buff, RATE, getCurrentControlRateProfileIndex() + 1);
     } else {
         unsigned i;
         for (i = 0; i < MAX_PROFILE_NAME_LENGTH; i++) {
@@ -847,21 +848,21 @@ static void osdElementFlymode(osdElementParms_t *element)
     //  5. ACRO
 
     if (FLIGHT_MODE(FAILSAFE_MODE)) {
-        strcpy(element->buff, "!FS!");
+        strcpy(element->buff, FS);
     } else if (FLIGHT_MODE(GPS_RESCUE_MODE)) {
-        strcpy(element->buff, "RESC");
+        strcpy(element->buff, RESC);
     } else if (FLIGHT_MODE(HEADFREE_MODE)) {
-        strcpy(element->buff, "HEAD");
+        strcpy(element->buff, HEAD);
     } else if (FLIGHT_MODE(ANGLE_MODE)) {
-        strcpy(element->buff, "ANGL");
+        strcpy(element->buff, ANGL);
     } else if (FLIGHT_MODE(HORIZON_MODE)) {
-        strcpy(element->buff, "HOR ");
+        strcpy(element->buff, HOR);
     } else if (FLIGHT_MODE(NFE_RACE_MODE)) {
-        strcpy(element->buff, "NFE ");
+        strcpy(element->buff, NFE);
     } else if (airmodeIsEnabled()) {
-        strcpy(element->buff, "AIR ");
+        strcpy(element->buff, AIR);
     } else {
-        strcpy(element->buff, "ACRO");
+        strcpy(element->buff, ACRO);
     }
 }
 
@@ -1114,17 +1115,17 @@ static void osdElementPidRateProfile(osdElementParms_t *element)
 
 static void osdElementPidsPitch(osdElementParms_t *element)
 {
-    osdFormatPID(element->buff, "PIT", &currentPidProfile->pid[PID_PITCH]);
+    osdFormatPID(element->buff, PIT, &currentPidProfile->pid[PID_PITCH]);
 }
 
 static void osdElementPidsRoll(osdElementParms_t *element)
 {
-    osdFormatPID(element->buff, "ROL", &currentPidProfile->pid[PID_ROLL]);
+    osdFormatPID(element->buff, ROL, &currentPidProfile->pid[PID_ROLL]);
 }
 
 static void osdElementPidsYaw(osdElementParms_t *element)
 {
-    osdFormatPID(element->buff, "YAW", &currentPidProfile->pid[PID_YAW]);
+    osdFormatPID(element->buff, YAW, &currentPidProfile->pid[PID_YAW]);
 }
 
 static void osdElementPower(osdElementParms_t *element)
@@ -1754,7 +1755,7 @@ const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
     [OSD_EFFICIENCY]              = osdElementEfficiency,
 #endif
 #ifdef USE_PERSISTENT_STATS
-    [OSD_TOTAL_FLIGHTS]   = osdElementTotalFlights,
+    [OSD_TOTAL_FLIGHTS]           = osdElementTotalFlights,
 #endif
 };
 
