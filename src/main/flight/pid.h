@@ -102,7 +102,6 @@ typedef enum ffInterpolationType_e {
 
 typedef struct pidProfile_s {
     uint16_t yaw_lowpass_hz;                // Additional yaw filter when yaw axis too noisy
-    uint16_t dterm_lowpass_hz;              // Delta Filter in hz
     uint16_t dterm_notch_hz;                // Biquad dterm notch hz
     uint16_t dterm_notch_cutoff;            // Biquad dterm notch low cutoff
 
@@ -117,9 +116,8 @@ typedef struct pidProfile_s {
 
     uint8_t angleExpo;                      // How much expo to add to angle mode
     uint8_t horizonTransition;              // horizonTransition
-    uint8_t horizonGain;                    // gain for horizon
-    uint8_t racemode_tilt_effect;           // inclination factor for Horizon mode
-    uint8_t racemode_horizon;               // OFF or ON
+    uint8_t horizon_tilt_effect;           // inclination factor for Horizon mode
+    uint8_t horizon_strength;               // multiplier to the angle pids to determine the strength of angle pids in horizon mode
 
     // EmuFlight PID controller parameters
     uint8_t  antiGravityMode;               // type of anti gravity method
@@ -137,13 +135,12 @@ typedef struct pidProfile_s {
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system
     uint8_t iterm_relax_cutoff;
     uint8_t iterm_relax_cutoff_yaw;
-    uint8_t iterm_relax_threshold;             // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
-    uint8_t iterm_relax_threshold_yaw;         // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
+    uint8_t iterm_relax_threshold;          // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
+    uint8_t iterm_relax_threshold_yaw;      // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t dterm_filter2_type;             // Filter selection for 2nd dterm
     uint16_t dyn_lpf_dterm_min_hz;
-    uint16_t dyn_lpf_dterm_max_hz;
-    uint16_t dterm_dynlpf2_fmax;
-    uint16_t dterm_dynlpf2_gain;
+    uint8_t dyn_lpf_dterm_width;
+    uint8_t dyn_lpf_dterm_gain;
     uint8_t launchControlMode;              // Whether launch control is limited to pitch only (launch stand or top-mount) or all axes (on battery)
     uint8_t launchControlThrottlePercent;   // Throttle percentage to trigger launch for launch control
     uint8_t launchControlAngleLimit;        // Optional launch control angle limit (requires ACC)
@@ -216,7 +213,7 @@ typedef struct pidAxisData_s {
 } pidAxisData_t;
 
 typedef union dtermLowpass_u {
-    pt1Filter_t pt1Filter;
+    ptnFilter_t ptnFilter;
     biquadFilter_t biquadFilter;
 } dtermLowpass_t;
 
@@ -266,11 +263,11 @@ typedef struct pidRuntime_s {
     float D_angle_high;
     float DF_angle_high;
     float F_angle;
-    float horizonGain;
+    float angle_yaw_correction;
     float horizonTransition;
     float horizonCutoffDegrees;
-    float horizonFactorRatio;
-    uint8_t horizonTiltExpertMode;
+    float horizonStrength;
+    float racemodeHorizonTransitionFactor;
     float previousAngle[XYZ_AXIS_COUNT];
     float attitudePrevious[XYZ_AXIS_COUNT];
 

@@ -26,16 +26,13 @@
 #include "pg/pg.h"
 
 // Exported symbols
-extern uint32_t accTimeSum;
-extern int accSumCount;
-extern int32_t accSum[XYZ_AXIS_COUNT];
 extern bool canUseGPSHeading;
 extern float accAverage[XYZ_AXIS_COUNT];
 
 typedef struct {
     float w,x,y,z;
 } quaternion;
-#define QUATERNION_INITIALIZE  {.w=1, .x=0, .y=0,.z=0}
+#define QUATERNION_INITIALIZE  {.w=1, .x=0, .y=0, .z=0}
 
 typedef struct {
     float ww,wx,wy,wz,xx,xy,xz,yy,yz,zz;
@@ -82,7 +79,6 @@ float getCosTiltAngle(void);
 void getQuaternion(quaternion * q);
 void imuUpdateAttitude(timeUs_t currentTimeUs);
 
-void imuResetAccelerationSum(void);
 void imuInit(void);
 
 #ifdef SIMULATOR_BUILD

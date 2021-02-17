@@ -63,8 +63,8 @@ typedef float (applyRatesFn)(const int axis, float rcCommandf, const float rcCom
 static float rawSetpoint[XYZ_AXIS_COUNT];
 // Stick deflection [-1.0, 1.0] before RC-Smoothing is applied
 static float rawDeflection[XYZ_AXIS_COUNT];
-static float oldRcCommand[XYZ_AXIS_COUNT];
 #endif
+static float last_predicted_rc[4];
 static float setpointRate[3], rcDeflection[3], rcDeflectionAbs[3];
 static float throttlePAttenuation, throttleIAttenuation, throttleDAttenuation;
 static bool reverseMotors = false;
@@ -517,7 +517,6 @@ FAST_CODE_NOINLINE bool rcSmoothingAutoCalculate(void)
 static FAST_CODE uint8_t processRcSmoothingFilter(void)
 {
     uint8_t updatedChannel = 0;
-    static FAST_DATA_ZERO_INIT float lastRxData[4];
     static FAST_DATA_ZERO_INIT bool initialized;
     static FAST_DATA_ZERO_INIT timeMs_t validRxFrameTimeMs;
     static FAST_DATA_ZERO_INIT bool calculateCutoffs;
@@ -574,13 +573,6 @@ static FAST_CODE uint8_t processRcSmoothingFilter(void)
     }
 
     if (isRxDataNew) {
-
-        // store the new raw channel values
-        for (int i = 0; i < PRIMARY_CHANNEL_COUNT; i++) {
-            if ((1 << i) & interpolationChannels) {
-                lastRxData[i] = rcCommand[i];
-            }
-        }
 
         // for dynamically calculated filters we need to examine each rx frame interval
         if (calculateCutoffs) {
@@ -646,7 +638,7 @@ static FAST_CODE uint8_t processRcSmoothingFilter(void)
     if (rcSmoothingData.filterInitialized && (debugMode == DEBUG_RC_SMOOTHING)) {
         // after training has completed then log the raw rc channel and the calculated
         // average rx frame rate that was used to calculate the automatic filter cutoffs
-        DEBUG_SET(DEBUG_RC_SMOOTHING, 0, lrintf(lastRxData[rcSmoothingData.debugAxis]));
+        DEBUG_SET(DEBUG_RC_SMOOTHING, 0, lrintf(last_predicted_rc[rcSmoothingData.debugAxis]));
         DEBUG_SET(DEBUG_RC_SMOOTHING, 3, rcSmoothingData.averageFrameTimeUs);
     }
 
@@ -656,17 +648,17 @@ static FAST_CODE uint8_t processRcSmoothingFilter(void)
             if (rcSmoothingData.filterInitialized) {
                 switch (rcSmoothingData.inputFilterType) {
                     case RC_SMOOTHING_INPUT_PT1:
-                        rcCommand[updatedChannel] = pt1FilterApply((pt1Filter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
+                        rcCommand[updatedChannel] = pt1FilterApply((pt1Filter_t*) &rcSmoothingData.filter[updatedChannel], last_predicted_rc[updatedChannel]);
                         break;
 
                     case RC_SMOOTHING_INPUT_BIQUAD:
                     default:
-                        rcCommand[updatedChannel] = biquadFilterApplyDF1((biquadFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
+                        rcCommand[updatedChannel] = biquadFilterApplyDF1((biquadFilter_t*) &rcSmoothingData.filter[updatedChannel], last_predicted_rc[updatedChannel]);
                         break;
                 }
             } else {
                 // If filter isn't initialized yet then use the actual unsmoothed rx channel data
-                rcCommand[updatedChannel] = lastRxData[updatedChannel];
+                rcCommand[updatedChannel] = last_predicted_rc[updatedChannel];
             }
         }
     }
@@ -675,22 +667,87 @@ static FAST_CODE uint8_t processRcSmoothingFilter(void)
 }
 #endif // USE_RC_SMOOTHING_FILTER
 
-FAST_CODE void processRcCommand(void)
+#ifdef RC_PREDICTOR
+static FAST_CODE void rcPrediction(timeUs_t currentTimeUs) {
+
+    static FAST_DATA_ZERO_INIT float rc_velocity[4];
+    static FAST_DATA_ZERO_INIT float smoothed_rc_velocity[4];
+    static FAST_DATA_ZERO_INIT float last_good_rc[4];
+    static FAST_DATA_ZERO_INIT timeUs_t last_good_rc_time;
+    static FAST_DATA_ZERO_INIT bool predictorInitialized;
+    const float dT = targetPidLooptime * 1e-6f;
+
+  if (rxConfig()->predictive_rc_time) {
+
+    if (!predictorInitialized) {
+        predictorInitialized = true;
+        rcSmoothingData.predictorPercent = rxConfig()->predictive_rc_percent / 100.0f;
+        rcSmoothingData.predictorTime = rxConfig()->predictive_rc_time * 1000.0f;
+        for (int i = 0; i < PRIMARY_CHANNEL_COUNT; i++) {
+            pt1FilterInit(&rcSmoothingData.velocityLpf[i], pt1FilterGain(rxConfig()->predictive_rc_cutoff, dT));
+        }
+    }
+
+    if (isRxDataNew && (rcCommand[0] != last_good_rc[0] || rcCommand[1] != last_good_rc[1] || rcCommand[2] != last_good_rc[2] || rcCommand[3] != last_good_rc[3])) {
+        for (int i = 0; i < PRIMARY_CHANNEL_COUNT; ++i) {
+            rc_velocity[i] = (rcCommand[i] - last_good_rc[i]) / (currentTimeUs - last_good_rc_time); // rc_velocity is in rc/us
+            last_good_rc[i] = rcCommand[i];
+            DEBUG_SET(DEBUG_RC_PREDICTOR, 0, rcCommand[rcSmoothingData.debugAxis]);
+        }
+        last_good_rc_time = currentTimeUs;
+    }
+
+    if (currentTimeUs <= last_good_rc_time + rcSmoothingData.predictorTime) // Stop predicting after 100ms of no new rc
+    {
+      for (int i = 0; i < PRIMARY_CHANNEL_COUNT; ++i) {
+        // filter the stick velocity
+        smoothed_rc_velocity[i] = pt1FilterApply(&rcSmoothingData.velocityLpf[i], rc_velocity[i]);
+        // deal with changing directions better.
+        if (smoothed_rc_velocity[i] * rc_velocity[i] < 0.0f) {
+            smoothed_rc_velocity[i] = 0.0f;
+        }
+        DEBUG_SET(DEBUG_RC_PREDICTOR, 2, rc_velocity[rcSmoothingData.debugAxis] * 10000);
+        DEBUG_SET(DEBUG_RC_PREDICTOR, 3, smoothed_rc_velocity[rcSmoothingData.debugAxis] * 10000);
+        // Check for sane stick velocity
+        if (fabsf(smoothed_rc_velocity[i]) < 0.01f) { // v < 20.0/sec i.e. 0.05 sec from 0.0 to 500.0f
+          rcCommand[i] = last_good_rc[i] + smoothed_rc_velocity[i] * (currentTimeUs - last_good_rc_time) * rcSmoothingData.predictorPercent;
+          if (last_good_rc[i] * rcCommand[i] < 0.0f) {
+            rcCommand[i] = 0.0f;
+          } else if (i != THROTTLE) {
+            rcCommand[i] = constrainf(rcCommand[i], -500.0f, 500.0f);
+          } else {
+            rcCommand[i] = constrainf(rcCommand[i], 1000.0f, 2000.0f);
+          }
+        last_predicted_rc[i] = rcCommand[i];
+        }
+      }
+      DEBUG_SET(DEBUG_RC_PREDICTOR, 1, rcCommand[rcSmoothingData.debugAxis]);
+    }
+  }
+}
+#endif //RC_PREDICTOR
+
+FAST_CODE void processRcCommand(timeUs_t currentTimeUs)
 {
     uint8_t updatedChannel;
-
     if (isRxDataNew) {
         rcFrameNumber++;
+        for (int i = 0; i < PRIMARY_CHANNEL_COUNT; ++i) {
+            last_predicted_rc[i] = rcCommand[i];
+        }
     }
 
     if (isRxDataNew && pidAntiGravityEnabled()) {
         checkForThrottleErrorResetState(currentRxRefreshRate);
     }
 
+#ifdef RC_PREDICTOR
+    rcPrediction(currentTimeUs);
+#endif //RC_PREDICTOR
+
 #ifdef USE_INTERPOLATED_SP
     if (isRxDataNew) {
         for (int i = FD_ROLL; i <= FD_YAW; i++) {
-            oldRcCommand[i] = rcCommand[i];
             float rcCommandf;
             if (i == FD_YAW) {
                 rcCommandf = rcCommand[i] / rcCommandYawDivider;

@@ -102,4 +102,5 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "GHST",
     "ABG_STATE",
     "D_ABG_STATE",
+    "RC_PREDICTOR",
 };

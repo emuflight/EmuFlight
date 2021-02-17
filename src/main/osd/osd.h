@@ -84,6 +84,13 @@ extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
 #define OSD_TIMER_PRECISION(timer)  ((timer >> 4) & 0x0F)
 #define OSD_TIMER_ALARM(timer)      ((timer >> 8) & 0xFF)
 
+#ifdef USE_MAX7456
+#define OSD_DRAW_FREQ_DENOM 5
+#else
+// MWOSD @ 115200 baud
+#define OSD_DRAW_FREQ_DENOM 10
+#endif
+
 // NB: to ensure backwards compatibility, new enum values must be appended at the end but before the OSD_XXXX_COUNT entry.
 
 // *** IMPORTANT ***
@@ -291,6 +298,7 @@ typedef struct osdConfig_s {
     uint8_t camera_frame_width;               // The width of the box for the camera frame element
     uint8_t camera_frame_height;              // The height of the box for the camera frame element
     uint16_t task_frequency;
+    uint8_t cms_background_type;              // For supporting devices, determines whether the CMS background is transparent or opaque
 } osdConfig_t;
 
 PG_DECLARE(osdConfig_t, osdConfig);
