@@ -20,7 +20,7 @@
 
  // Ability to use mutlilanguage OSD made by QuickFlash
  // French translation by ...
- // other languages by ...
+ // Spanish translation by Dronotron
 
 #pragma once
 
@@ -28,6 +28,7 @@
 //#define FRENCH_OSD
 //#define GERMAN_OSD
 //#define TAGALOG_OSD
+//#define SPANISH_OSD
 
 #ifdef ENGLISH_OSD
 // text from osd_elements.c
@@ -116,6 +117,95 @@
 // text from cms_menu_vtx_tramp.c
 // text from cms.c
 
+#elif defined(SPANISH_OSD)
+// text from osd_elements.c
+//note by dronotron:
+//some term abbreviations are the same as in spanish ej: bdm = decibel meter -> decibel metro, 
+//flight modes and other "universal" terms are ketp in english 
+#define AG "ag" // anti gravedad
+#define CRAFTNAME "NOMBRE_NAVE"
+#define DBG "DEP %5d %5d %5d %5d" // depurar
+#define DISARMED "DESARMADO"
+#define DISPLAYNAME "NOMBRE"
+#define RATE "VEL _%u" // velocidad
+#define FS "!FS!" // only change the FS part which is short for failsafe, keep 4 characters long which inlcude the ! !
+#define RESC "RESC" // RESC is short for rescue, keep 4 characters long
+#define HEAD "HEAD" // HEAD is short for headfree mode, keep 4 characters long
+#define ANGL "ANGL" // short for angle mode, keep 4 characters long
+#define HOR "HOR " // short for horizon mode, keep 4 characters long
+#define NFE "NFE " // stands for NFE mode, keep 4 characters long
+#define AIR "AIR " // short for airmode, keep 4 characters long
+#define ACRO "ACRO" // short for acro mode, keep 4 characters long
+#define PIT "PIT" // short for pitch, keep 3 characters long
+#define ROL "ROL" // short for roll, keep 3 characters long
+#define YA "YAW" // keep 3 characters long
+#define BEACON_ON " BALIZA ON" // keep the space and try to keep the same length
+#define ARM_IN "ARM EN %d.%d" // only change the ARM IN keep the rest the same.
+#define FAIL_SAFE "FAIL SAFE"
+#define CRASH_FLIP "CRASH FLIP" // also known as turtle mode, keep naming consistent with crash flip
+#define LAUNCH_ANGLE "LANZAR %d" // only change the LAUNCH portion
+#define LAUNCH "LANZAR"
+#define RSSI_LOW "RSSI BAJO"
+#define RSSI_DBM "RSSI DBM" 
+#define LINK_QUALITY "CALIDAD DE ENLACE"
+#define LAND_NOW " ATERRIZE AHORA"
+#define RESCUE_NA "RESCATE N/A"
+#define RESCUE_OFF "RESCATE OFF"
+#define HEADFREE "HEADFREE"
+#define ACC_RECOVERY "ACC RECOVERY"
+#define CORE "NUCLEO %c: %3d%c" // only change the CORE portion
+#define LOW_BATTERY "BATERIA BAJA"
+#define RCSMOOTHING "SUAVIDADRC"
+#define OVER_CAP "CAPA SUPERADA" // short for over capacity, as in your battery capacity
+#define BATT_LESS_FULL "BATT < FULL" // short for battery < full, keep the <
+// text from osd.c
+#define ON_TIME "ON TIME  " // impossible o make sense in spanish keeping the same length
+#define TOTAL_ARM "TOTAL ARM" // keep the length the same
+#define LAST_ARM "ULTI ARM " // keep the length the same
+#define ON_ARM "ON/ARM   " // keep the length the same
+#define FAULT "FALLA"
+#define NO_RTC "NO RTC" // stands for no real time clock
+#define MAX_ALTITUDE "ALTURA MAX"
+#define MAX_SPEED "VELOCIDAD MAX"
+#define MAX_DISTANCE "DISTANCIA MAX"
+#define FLIGHT_DISTANCE "DISTANCIA VUELO"
+#define MIN_BATTERY "BATERIA MIN"
+#define END_BATTERY "BATERIA FINAL"
+#define BATTERY "BATERIA"
+#define MIN_RSSI "MIN RSSI"
+#define MAX_CURRENT "MAX CORRIENTE"
+#define USED_MAH "MAH USADOS"
+#define BLACKBOX "CAJA NEGRA"
+#define BB_LOG_NUM "REG CN" // REGISTRO EN CAJA NEGRA
+#define MAX_G_FORCE "MAX FUERZA-G"
+#define MAX_ESC_TEMP "MAX TEMP ESC"
+#define MAX_ESC_RPM "MAX RPM ESC"
+#define MIN_LINK "ENLACE MIN"
+#define PEAK_FFT "FFT PICO"
+#define THRT_LESS_20 "GAS<20%" // short for throttle less than 20
+#define MIN_RSSI_DBM "RSSI MIN DBM"
+#define TOTAL_FLIGHTS "VUELOS EN TOTAL"
+#define TOTAL_FLIGHT_TIME "TIEMPO DE VUELO TOTAL"
+#define TOTAL_DISTANCE "DISTANCIA TOTAL"
+#define STATS "  --- STATS ---" // keep the length the same
+#define OSD_ARMED "ARMADO"
+// text from cms_menu_blackbox.c
+// text from cms_menu_failsafe.c
+// text from cms_menu_firmware.c
+// text from cms_menu_gps_rescue.c
+// text from cms_menu_imu.c
+// text from cms_menu_ledstrip.c
+// text from cms_menu_main.c
+// text from cms_menu_misc.c
+// text from cms_menu_osd.c
+// text from cms_menu_persistent_stats.c
+// text from cms_menu_power.c
+// text from cms_menu_saveexit.c
+// text from cms_menu_vtx_common.c
+// text from cms_menu_vtx_rtc6705.c
+// text from cms_menu_vtx_smartaudio.c
+// text from cms_menu_vtx_tramp.c
+// text from cms.c
 
 #elif defined(FRENCH_OSD)
 // text from osd_elements.c
