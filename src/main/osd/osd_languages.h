@@ -47,38 +47,6 @@
 #define PIT "PIT" // short for pitch, keep 3 characters long
 #define ROL "ROL" // short for roll, keep 3 characters long
 #define YA "YAW" // keep 3 characters long
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-
 
 #elif defined(FRENCH_OSD)
 // text from osd_elements.c
@@ -99,37 +67,5 @@
 #define PIT "PIT" // short for pitch, keep 3 characters long
 #define ROL "ROL" // short for roll, keep 3 characters long
 #define YA "YAW" // keep 3 characters long
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-// #define
-
 
 #endif
