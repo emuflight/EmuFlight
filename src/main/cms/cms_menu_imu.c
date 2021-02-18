@@ -74,7 +74,7 @@ static uint8_t itermRelaxThresholdYaw;
 static uint8_t itermWindup;
 static uint16_t dtermBoost;
 static uint8_t dtermBoostLimit;
-static uint16_t emuGravityGain;
+static uint8_t emuGravityGain;
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
 static uint8_t linear_thrust_low_output;
@@ -210,7 +210,7 @@ static OSD_Entry cmsx_menuPidAdvancedEntries[] = {
     { "I RELAX THRESH YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &itermRelaxThresholdYaw,   0, 100, 1 }, 0 },
     { "I WINDUP",          OME_UINT8, NULL, &(OSD_UINT8_t){ &itermWindup,              0, 100, 1 }, 0 },
 
-    { "EMU GRAVITY",       OME_UINT16, NULL, &(OSD_UINT16_t){ &emuGravityGain,         0,  255, 1}, 0 },
+    { "EMU GRAVITY",       OME_UINT16, NULL, &(OSD_UINT8_t){ &emuGravityGain,         0,  255, 1}, 0 },
 
     { "LINEAR THRUST LOW",  OME_UINT8, NULL, &(OSD_UINT8_t) { &linear_thrust_low_output, 0, 100,  1}, 0 },
     { "LINEAR THRUST HIGH", OME_UINT8, NULL, &(OSD_UINT8_t) { &linear_thrust_high_output, 0, 100,  1}, 0 },
