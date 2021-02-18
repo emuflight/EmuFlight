@@ -278,8 +278,6 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
 
     pt1FilterInit(&emuGravityThrottleLpf, pt1FilterGain(EMU_GRAVITY_THROTTLE_FILTER_CUTOFF, dT));
 
-#if defined(USE_ITERM_RELAX)
-
     for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
         pt1FilterInit(&axisLockLpf[i], pt1FilterGain(pidProfile->axis_lock_hz, dT));
 #if defined(USE_ITERM_RELAX)
