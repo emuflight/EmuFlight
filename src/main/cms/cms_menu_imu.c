@@ -76,12 +76,12 @@ static uint16_t dtermBoost;
 static uint8_t dtermBoostLimit;
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
+static uint8_t directYawFF;
 static uint8_t linear_thrust_low_output;
 static uint8_t linear_thrust_high_output;
 static uint8_t linear_throttle;
 static mixerImplType_e mixer_impl;
 static uint8_t mixer_laziness;
-
 static uint8_t tmpRateProfileIndex;
 static uint8_t rateProfileIndex;
 static char rateProfileIndexString[] = " p-r";
@@ -235,6 +235,7 @@ static long cmsx_PidRead(void) {
         tempPid[i][1] = pidProfile->pid[i].I;
         tempPid[i][2] = pidProfile->pid[i].D;
     }
+    directYawFF = pidProfile->directFF_yaw;
     return 0;
 }
 
@@ -252,6 +253,7 @@ static long cmsx_PidWriteback(const OSD_Entry *self) {
         pidProfile->pid[i].I = tempPid[i][1];
         pidProfile->pid[i].D = tempPid[i][2];
     }
+    pidProfile->directFF_yaw = directYawFF;
     pidInitConfig(currentPidProfile);
     return 0;
 }
@@ -271,6 +273,7 @@ static OSD_Entry cmsx_menuPidEntries[] = {
     { "YAW   P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][0],   0, 200, 1 }, 0 },
     { "YAW   I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][1],   0, 200, 1 }, 0 },
     { "YAW   D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][2],   0, 200, 1 }, 0 },
+    { "YAW DIR FF", OME_UINT8, NULL, &(OSD_UINT8_t){ &directYawFF,         0, 200, 1 }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
@@ -357,6 +360,8 @@ static CMS_Menu cmsx_menuRateProfile = {
     .entries = cmsx_menuRateProfileEntries
 };
 
+static uint8_t  cmsx_axis_lock_hz;
+static uint8_t  cmsx_axis_lock_mult;
 static uint8_t  cmsx_setPointPTransition[3];
 static uint8_t  cmsx_setPointITransition[3];
 static uint8_t  cmsx_setPointDTransition[3];
@@ -373,6 +378,8 @@ static int8_t   cmsx_autoProfileCellCount;
 static long cmsx_profileOtherOnEnter(void) {
     pidProfileIndexString[1] = '0' + tmpPidProfileIndex;
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
+    cmsx_axis_lock_hz = pidProfile->axis_lock_hz;
+    cmsx_axis_lock_mult = pidProfile->axis_lock_multiplier;
     cmsx_setPointPTransition[ROLL]  =    pidProfile->setPointPTransition[ROLL];
     cmsx_setPointITransition[ROLL]  =    pidProfile->setPointITransition[ROLL];
     cmsx_setPointDTransition[ROLL]  =    pidProfile->setPointDTransition[ROLL];
@@ -397,6 +404,8 @@ static long cmsx_profileOtherOnEnter(void) {
 static long cmsx_profileOtherOnExit(const OSD_Entry *self) {
     UNUSED(self);
     pidProfile_t *pidProfile = pidProfilesMutable(pidProfileIndex);
+    pidProfile->axis_lock_hz = cmsx_axis_lock_hz;
+    pidProfile->axis_lock_multiplier = cmsx_axis_lock_mult;
     pidProfile->setPointPTransition[ROLL] = cmsx_setPointPTransition[ROLL];
     pidProfile->setPointITransition[ROLL] = cmsx_setPointITransition[ROLL];
     pidProfile->setPointDTransition[ROLL] = cmsx_setPointDTransition[ROLL];
@@ -406,7 +415,6 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self) {
     pidProfile->setPointPTransition[YAW] = cmsx_setPointPTransition[YAW];
     pidProfile->setPointITransition[YAW] = cmsx_setPointITransition[YAW];
     pidProfile->setPointDTransition[YAW] = cmsx_setPointDTransition[YAW];
-    pidInitConfig(currentPidProfile);
     pidProfile->pid[PID_LEVEL_LOW].P = cmsx_P_angle_low;
     pidProfile->pid[PID_LEVEL_LOW].D = cmsx_D_angle_low;
     pidProfile->pid[PID_LEVEL_HIGH].P = cmsx_P_angle_high;
@@ -416,12 +424,16 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self) {
     pidProfile->throttle_boost = cmsx_throttleBoost;
     pidProfile->motor_output_limit = cmsx_motorOutputLimit;
     pidProfile->auto_profile_cell_count = cmsx_autoProfileCellCount;
+    pidInitConfig(currentPidProfile);
     initEscEndpoints();
     return 0;
 }
 
 static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "-- OTHER PP --", OME_Label, NULL, pidProfileIndexString, 0 },
+
+    { "AXIS LOCK HZ",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_axis_lock_hz,                 1,    50,   1  }, 0 },
+    { "AXIS LOCK MULT",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_axis_lock_mult,               0,    10,   1  }, 0 },
 
     { "SPA ROLL P",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransition[ROLL], 0,    250,   1, 10 }, 0 },
     { "SPA ROLL I",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition[ROLL], 0,    250,   1, 10 }, 0 },

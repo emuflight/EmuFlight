@@ -39,8 +39,7 @@
 #define PTERM_SCALE 0.032029f
 #define ITERM_SCALE 0.244381f
 #define DTERM_SCALE 0.000529f
-
-// This value gives the same "feel" as the previous Kd default of 26 (26 * DTERM_SCALE)
+#define DIRECT_FF_SCALE 0.005f
 
 typedef enum {
     PID_ROLL,
@@ -93,6 +92,7 @@ typedef struct dFilter_s {
 
 typedef struct pidProfile_s {
     pidf_t  pid[PID_ITEM_COUNT];
+    uint8_t directFF_yaw;                    // a true FF for the yaw
     dFilter_t dFilter[3];
 
     uint8_t dterm_filter_type;              // Filter selection for dterm
@@ -141,7 +141,8 @@ typedef struct pidProfile_s {
     uint8_t iterm_relax_threshold_yaw;      // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
-
+    uint8_t axis_lock_hz;                   // filter for the axis lock
+    uint8_t axis_lock_multiplier;           // multplier for the axis lock effect
     uint8_t linear_thrust_low_output;       // Sets the level of thrust linearization for low motor outputs
     uint8_t linear_thrust_high_output;      // Sets the level of thrust linearization for high motor outputs
     uint8_t linear_throttle;                // When thrust linearization is enabled, tells whether the throttle has to be linear or counter-compensated for legacy feedback
