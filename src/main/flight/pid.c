@@ -183,7 +183,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .mixer_impl = MIXER_IMPL_LEGACY,
     .mixer_laziness = false,
     .horizonStrength = 15,
-    .emuGravityGain = 1000,
+    .emuGravityGain = 100,
                 );
 }
 
@@ -615,7 +615,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // emugravity, the different hopefully better version of antiGravity no effect on yaw
         float errorAccelerator = 1.0f;
         if (pidProfile->emuGravityGain != 0 && axis != FD_YAW) {
-            errorAccelerator = 1.0f + fabsf(emuGravityThrottleHpf) * 0.01f * (pidProfile->emuGravityGain);
+            errorAccelerator = 1.0f + fabsf(emuGravityThrottleHpf) * 0.1f * (pidProfile->emuGravityGain);
         }
         float currentPidSetpoint = getSetpointRate(axis);
         if (maxVelocity[axis]) {
