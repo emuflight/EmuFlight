@@ -96,7 +96,7 @@ typedef struct gyroConfig_s {
 
     uint16_t gyro_ABG_alpha;
     uint16_t gyro_ABG_boost;
-    uint16_t gyro_ABG_half_life;
+    uint8_t gyro_ABG_half_life;
 
     uint16_t gyro_soft_notch_hz_1;
     uint16_t gyro_soft_notch_cutoff_1;

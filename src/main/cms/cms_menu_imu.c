@@ -475,7 +475,7 @@ static uint16_t gyroConfig_gyro_matrix_min_hz;
 static uint16_t gyroConfig_gyro_matrix_max_hz;
 static uint16_t gyroConfig_gyro_abg_alpha;
 static uint16_t gyroConfig_gyro_abg_boost;
-static uint16_t gyroConfig_gyro_abg_half_life;
+static uint8_t gyroConfig_gyro_abg_half_life;
 #ifndef USE_GYRO_IMUF9001
 static uint16_t gyroConfig_imuf_roll_q;
 static uint16_t gyroConfig_imuf_pitch_q;
@@ -569,7 +569,7 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] = {
 
     { "GYRO ABG ALPHA",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_abg_alpha,           0, 1000, 1 }, 0 },
     { "GYRO ABG BOOST",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_abg_boost,           0, 2000, 1 }, 0 },
-    { "GYRO ABG HL",      OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_abg_half_life,       0, 10000, 1 }, 0 },
+    { "GYRO ABG HL",      OME_UINT16, NULL, &(OSD_UINT8_t) { &gyroConfig_gyro_abg_half_life,       0, 250, 1 }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
@@ -676,7 +676,7 @@ static uint8_t cmsx_smart_dterm_smoothing_pitch;
 static uint8_t cmsx_smart_dterm_smoothing_yaw;
 static uint16_t cmsx_dterm_abg_alpha;
 static uint16_t cmsx_dterm_abg_boost;
-static uint16_t cmsx_dterm_abg_half_life;
+static uint8_t cmsx_dterm_abg_half_life;
 
 static long cmsx_FilterPerProfileRead(void) {
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
@@ -738,7 +738,7 @@ static OSD_Entry cmsx_menuFilterPerProfileEntries[] = {
 
     { "DTERM ABG ALPHA",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_abg_alpha,       0, 1000, 1 }, 0 },
     { "DTERM ABG BOOST",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_abg_boost,       0, 2000, 1 }, 0 },
-    { "DTERM ABG HL",       OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_abg_half_life,   0, 10000, 1 }, 0 },
+    { "DTERM ABG HL",       OME_UINT16, NULL, &(OSD_UINT8_t){ &cmsx_dterm_abg_half_life,   0, 250, 1 }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },

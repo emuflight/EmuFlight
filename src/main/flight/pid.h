@@ -149,7 +149,7 @@ typedef struct pidProfile_s {
     uint8_t mixer_laziness;                 // If enabled, mixer clipping strategy will shift values only by the minimum required amount per motor group. Requires linear thrust
     uint16_t dterm_ABG_alpha;
     uint16_t dterm_ABG_boost;
-    uint16_t dterm_ABG_half_life;
+    uint8_t dterm_ABG_half_life;
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE
