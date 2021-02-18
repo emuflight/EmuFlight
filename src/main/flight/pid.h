@@ -141,7 +141,8 @@ typedef struct pidProfile_s {
     uint8_t iterm_relax_threshold_yaw;      // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
-
+    uint8_t axis_lock_hz;                   // filter for the axis lock
+    uint8_t axis_lock_multiplier;           // multplier for the axis lock effect
     uint8_t linear_thrust_low_output;       // Sets the level of thrust linearization for low motor outputs
     uint8_t linear_thrust_high_output;      // Sets the level of thrust linearization for high motor outputs
     uint8_t linear_throttle;                // When thrust linearization is enabled, tells whether the throttle has to be linear or counter-compensated for legacy feedback
