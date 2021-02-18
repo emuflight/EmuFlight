@@ -357,6 +357,8 @@ static CMS_Menu cmsx_menuRateProfile = {
     .entries = cmsx_menuRateProfileEntries
 };
 
+static uint8_t  cmsx_axis_lock_hz;
+static uint8_t  cmsx_axis_lock_mult;
 static uint8_t  cmsx_setPointPTransition[3];
 static uint8_t  cmsx_setPointITransition[3];
 static uint8_t  cmsx_setPointDTransition[3];
@@ -373,6 +375,8 @@ static int8_t   cmsx_autoProfileCellCount;
 static long cmsx_profileOtherOnEnter(void) {
     pidProfileIndexString[1] = '0' + tmpPidProfileIndex;
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
+    cmsx_axis_lock_hz = pidProfile->axis_lock_hz;
+    cmsx_axis_lock_mult = pidProfile->axis_lock_multiplier;
     cmsx_setPointPTransition[ROLL]  =    pidProfile->setPointPTransition[ROLL];
     cmsx_setPointITransition[ROLL]  =    pidProfile->setPointITransition[ROLL];
     cmsx_setPointDTransition[ROLL]  =    pidProfile->setPointDTransition[ROLL];
@@ -397,6 +401,8 @@ static long cmsx_profileOtherOnEnter(void) {
 static long cmsx_profileOtherOnExit(const OSD_Entry *self) {
     UNUSED(self);
     pidProfile_t *pidProfile = pidProfilesMutable(pidProfileIndex);
+    pidProfile->axis_lock_hz = cmsx_axis_lock_hz;
+    pidProfile->axis_lock_multiplier = cmsx_axis_lock_mult;
     pidProfile->setPointPTransition[ROLL] = cmsx_setPointPTransition[ROLL];
     pidProfile->setPointITransition[ROLL] = cmsx_setPointITransition[ROLL];
     pidProfile->setPointDTransition[ROLL] = cmsx_setPointDTransition[ROLL];
@@ -406,7 +412,6 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self) {
     pidProfile->setPointPTransition[YAW] = cmsx_setPointPTransition[YAW];
     pidProfile->setPointITransition[YAW] = cmsx_setPointITransition[YAW];
     pidProfile->setPointDTransition[YAW] = cmsx_setPointDTransition[YAW];
-    pidInitConfig(currentPidProfile);
     pidProfile->pid[PID_LEVEL_LOW].P = cmsx_P_angle_low;
     pidProfile->pid[PID_LEVEL_LOW].D = cmsx_D_angle_low;
     pidProfile->pid[PID_LEVEL_HIGH].P = cmsx_P_angle_high;
@@ -416,12 +421,16 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self) {
     pidProfile->throttle_boost = cmsx_throttleBoost;
     pidProfile->motor_output_limit = cmsx_motorOutputLimit;
     pidProfile->auto_profile_cell_count = cmsx_autoProfileCellCount;
+    pidInitConfig(currentPidProfile);
     initEscEndpoints();
     return 0;
 }
 
 static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "-- OTHER PP --", OME_Label, NULL, pidProfileIndexString, 0 },
+
+    { "AXIS LOCK HZ",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_axis_lock_hz,                 1,    50,   1  }, 0 },
+    { "AXIS LOCK MULT",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_axis_lock_mult,               0,    10,   1  }, 0 },
 
     { "SPA ROLL P",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransition[ROLL], 0,    250,   1, 10 }, 0 },
     { "SPA ROLL I",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition[ROLL], 0,    250,   1, 10 }, 0 },
