@@ -120,7 +120,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
         [PID_ROLL] = DEFAULT_PIDS_ROLL,
         [PID_PITCH] = DEFAULT_PIDS_PITCH,
         [PID_YAW] = DEFAULT_PIDS_YAW,
-        [PID_LEVEL_LOW] = {100, 0, 10, 40},
+        [PID_LEVEL_LOW] = {100, 70, 10, 40},
         [PID_LEVEL_HIGH] = {35, 0, 1, 0},
         [PID_MAG] = {40, 0, 0, 0},
     },
@@ -185,6 +185,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .mixer_impl = MIXER_IMPL_LEGACY,
     .mixer_laziness = false,
     .horizonStrength = 15,
+    .directFF_yaw = 15,
                 );
 }
 
@@ -328,6 +329,7 @@ typedef struct pidCoefficient_s {
 } pidCoefficient_t;
 
 static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float directFF[3];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feathered_pids;
 static FAST_RAM_ZERO_INIT float smart_dterm_smoothing[XYZ_AXIS_COUNT];
@@ -335,7 +337,7 @@ static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointDTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float dtermBoostMultiplier, dtermBoostLimitPercent;
-static FAST_RAM_ZERO_INIT float P_angle_low, D_angle_low, P_angle_high, D_angle_high, F_angle, horizonTransition, horizonCutoffDegrees, horizonStrength;
+static FAST_RAM_ZERO_INIT float P_angle_low, D_angle_low, P_angle_high, D_angle_high, F_angle, DF_angle_low, DF_angle_high, horizonTransition, horizonCutoffDegrees, horizonStrength;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeLimitUs;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeDelayUs;
@@ -370,6 +372,9 @@ void pidInitConfig(const pidProfile_t *pidProfile) {
         setPointDTransition[axis] = pidProfile->setPointDTransition[axis] / 100.0f;
         smart_dterm_smoothing[axis] = pidProfile->dFilter[axis].smartSmoothing;
     }
+    directFF[0] = DIRECT_FF_SCALE * pidProfile->directFF_yaw;
+    DF_angle_low = DIRECT_FF_SCALE * pidProfile->pid[PID_LEVEL_LOW].I;
+    DF_angle_high = DIRECT_FF_SCALE * pidProfile->pid[PID_LEVEL_HIGH].I;
     feathered_pids = pidProfile->feathered_pids / 100.0f;
     dtermBoostMultiplier = (pidProfile->dtermBoost * pidProfile->dtermBoost / 1000000) * 0.003;
     dtermBoostLimitPercent = pidProfile->dtermBoostLimit / 100.0f;
@@ -480,6 +485,8 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
         const float horizonLevelStrength = calcHorizonLevelStrength();
         currentPidSetpoint = ((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f + (currentPidSetpoint * horizonLevelStrength * horizonStrength);
     }
+    directFF[axis] = (1 - fabsf(errorAnglePercent)) * DF_angle_low;
+    directFF[axis] += fabsf(errorAnglePercent) * DF_angle_high;
     return currentPidSetpoint;
 }
 
@@ -625,11 +632,17 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         }
         // Yaw control is GYRO based, direct sticks control is applied to rate PID
         // NFE racermode applies angle only to the roll axis
-        if (FLIGHT_MODE(GPS_RESCUE_MODE) && axis != FD_YAW) {
+        // disable directFF for pitch and roll while not in angle
+        if (axis != FD_YAW) {
+            directFF[axis] = 0.0f;
+        }
+
+        if (axis == FD_YAW) {
+        } else if (FLIGHT_MODE(GPS_RESCUE_MODE)) {
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
-        } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && !FLIGHT_MODE(NFE_RACE_MODE) && (axis != FD_YAW)) {
+        } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && !FLIGHT_MODE(NFE_RACE_MODE)) {
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
-        } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && FLIGHT_MODE(NFE_RACE_MODE) && ((axis != FD_YAW) && (axis != FD_PITCH))) {
+        } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && FLIGHT_MODE(NFE_RACE_MODE) && (axis != FD_PITCH)) {
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
         }
         // Handle yaw spin recovery - zero the setpoint on yaw to aid in recovery
@@ -757,8 +770,17 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         } else {
             pidData[axis].D = 0;
         }
+
         handleCrashRecovery(pidProfile->crash_recovery, angleTrim, axis, currentTimeUs, errorRate, &currentPidSetpoint, &errorRate);
         detectAndSetCrashRecovery(pidProfile->crash_recovery, axis, currentTimeUs, pidData[axis].D, errorRate);
+
+        // -----calculate direct yaw feedforward component
+        // feedforward as betaflight calls it is really a setpoint derivative
+        // this feedforward is literally setpoint * feedforward
+        // since yaw acts different this will only work for yaw
+        // actually this also works in angle mode so pitch and roll have angle mode values
+        float directFeedForward = currentPidSetpoint * directFF[axis];
+
 #ifdef USE_YAW_SPIN_RECOVERY
         if (gyroYawSpinDetected()) {
             temporaryIterm[axis] = 0; // in yaw spin always disable I
@@ -793,7 +815,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             pidData[axis].D *= getThrottleDAttenuation();
         }
 
-        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D;
+        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + directFeedForward;
         pidData[axis].Sum = pidSum * scaledAxisPid[axis];
     }
 }
