@@ -27,16 +27,13 @@
 #define LED0_PIN                PC14
 #define LED1_PIN                PC15
 
-//define camera control
-#define CAMERA_CONTROL_PIN      PC9
-
 #define USE_BEEPER
 #define BEEPER_PIN              PC13
 #define BEEPER_INVERTED
 
 //#define ENABLE_DSHOT_DMAR       true//debug for checking
 
-#define GYRO_MPU6000_ALIGN      CW180_DEG
+#define GYRO_MPU6000_ALIGN      CW270_DEG
 
 #define USE_EXTI
 #define MPU_INT_EXTI            PC3
@@ -115,13 +112,12 @@
 #define SOFTSERIAL1_RX_PIN      PC5
 #define SOFTSERIAL1_TX_PIN      PB2
 
-
 #define SERIAL_PORT_COUNT       8
 
 //-------------------------------------ADC METERE------------------------------
 #define USE_ADC
-#define ADC_INSTANCE			ADC2
-#define ADC2_DMA_OPT            1
+#define ADC_INSTANCE			ADC1
+#define ADC1_DMA_OPT            0
 #define CURRENT_METER_ADC_PIN   PC0
 #define VBAT_ADC_PIN			PC1
 #define RSSI_ADC_PIN			PC2
@@ -179,7 +175,7 @@
 #define TARGET_IO_PORTA 0xffff
 #define TARGET_IO_PORTB 0xffff
 #define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0x0007
+#define TARGET_IO_PORTD 0xffff
 
 #define USABLE_TIMER_CHANNEL_COUNT 8
 #define USED_TIMERS    (TIM_N(1)|TIM_N(3)|TIM_N(8))

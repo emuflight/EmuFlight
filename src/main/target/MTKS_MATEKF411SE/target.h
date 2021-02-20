@@ -47,7 +47,7 @@
 #define MPU6500_SPI_INSTANCE    SPI1
 
 #define USE_EXTI
-#define MPU_INT_EXTI            PA1
+#define MPU_INT_EXTI            PA14
 #define USE_MPU_DATA_READY_SIGNAL
 
 #define USE_GYRO

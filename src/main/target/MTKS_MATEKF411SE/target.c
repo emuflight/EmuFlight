@@ -36,7 +36,7 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM1, CH2, PA9,  TIM_USE_MOTOR,  0, 1), // S4_OUT
     DEF_TIM(TIM1, CH3, PA10,  TIM_USE_MOTOR, 0, 1), // S5
     DEF_TIM(TIM4, CH3, PB8, TIM_USE_MOTOR, 0, 0), // S6
-    
+
     DEF_TIM(TIM5, CH1, PA0,  TIM_USE_ANY,   0, 0), // RSSI ADC pad
     DEF_TIM(TIM9, CH1, PA2,  TIM_USE_ANY,   0, 0), // TX2
     DEF_TIM(TIM11, CH1, PB9,  TIM_USE_ANY,   0, 0), // SOFTSERIAL1

@@ -22,12 +22,12 @@
 
 #define USE_TARGET_CONFIG
 
-#ifdef AG3XF4
+#ifdef AIRB_AG3XF4
 #define TARGET_BOARD_IDENTIFIER "AGX4"
 #define USBD_PRODUCT_STRING "Asgard32 F4"
 #endif
 
-#ifdef AG3XF7
+#ifdef AIRB_AG3XF7
 #define TARGET_BOARD_IDENTIFIER "AGX7"
 #define USBD_PRODUCT_STRING "Asgard32 F7"
 #endif
