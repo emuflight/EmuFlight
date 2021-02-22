@@ -54,12 +54,20 @@ typedef struct alphaBetaGammaFilter_s {
     float ak, vk, xk, jk, rk;
     float dT, dT2, dT3;
     float halfLife, boost;
+    pt1Filter_t boostFilter;
 } alphaBetaGammaFilter_t;
+
+typedef struct ptnFilter_s {
+    float state[5];
+    float k;
+    uint8_t order;
+} ptnFilter_t;
 
 typedef enum {
     FILTER_PT1 = 0,
     FILTER_BIQUAD,
-    FILTER_ABG
+    FILTER_PT3,
+    FILTER_PT4,
 } lowpassFilterType_e;
 
 typedef enum {
@@ -98,3 +106,7 @@ float ABGVelocity(alphaBetaGammaFilter_t *filter);
 float ABGAcceleration(alphaBetaGammaFilter_t *filter);
 float ABGJerk(alphaBetaGammaFilter_t *filter);
 float ABGResidualError(alphaBetaGammaFilter_t *filter);
+
+void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT);
+void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float ScaleF, float dt);
+float ptnFilterApply(ptnFilter_t *filter, float input);

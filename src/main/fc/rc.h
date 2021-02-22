@@ -37,7 +37,7 @@ typedef enum {
 #define RC_SMOOTHING_AUTO_FACTOR_MAX 50
 #endif
 
-void processRcCommand(void);
+void processRcCommand(timeUs_t currentTimeUs);
 float getSetpointRate(int axis);
 float getRcDeflection(int axis);
 float getRcDeflectionAbs(int axis);

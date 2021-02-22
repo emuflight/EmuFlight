@@ -117,16 +117,16 @@ void resetPidProfile(pidProfile_t *pidProfile)
 {
     RESET_CONFIG(pidProfile_t, pidProfile,
         .pid = {
-            [PID_ROLL] =       { 60, 85, 40, 90, 0 },
-            [PID_PITCH] =      { 65, 90, 42, 95, 0 },
-            [PID_YAW] =        { 70, 95, 0,  90, 30 },
+            [PID_ROLL] =       { 50, 70, 28, 0,  0 },
+            [PID_PITCH] =      { 58, 70, 30, 0,  0 },
+            [PID_YAW] =        { 60, 70, 5,  0,  30 },
             [PID_LEVEL_LOW] =  {100, 0,  10, 40, 70 },
-            [PID_LEVEL_HIGH] = { 35, 0,  1,   0, 0 },
-            [PID_MAG] =        { 40, 0,  0,   0, 0 },
+            [PID_LEVEL_HIGH] = { 35, 0,  1,  0,  0 },
+            [PID_MAG] =        { 40, 0,  0,  0,  0 },
         },
         .stickTransition = {
           { 110, 110, 130 }, // p roll, p pitch, p yaw
-          { 90,  90,  70  }, // i roll, i pitch, i yaw
+          { 85,  85,  75  }, // i roll, i pitch, i yaw
           { 110, 110, 130 }, // d roll, d pitch, d yaw
         },
         .pidSumLimit = PIDSUM_LIMIT,
@@ -136,7 +136,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_notch_cutoff = 0,
         .itermWindupPointPercent = 70,
         .pidAtMinThrottle = PID_STABILISATION_ON,
-        .levelAngleLimit = 55,
+        .levelAngleLimit = 45,
         .feedForwardTransition = 0,
         .itermThrottleThreshold = 250,
         .itermAcceleratorGain = 3500,
@@ -144,35 +144,31 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .crash_gthreshold = 400,    // degrees/second
         .crash_setpoint_threshold = 350, // degrees/second
         .crash_recovery = PID_CRASH_RECOVERY_DISARM, // off by default
-        .angleExpo = 30,
+        .angleExpo = 10,
         .horizonTransition = 0,
-        .horizonGain = 50,
-        .racemode_tilt_effect = 130,
-        .racemode_horizon = false,
+        .horizon_tilt_effect = 130,
+        .horizon_strength = 15,
         .itermLimit = 400,
         .throttle_boost = 5,
         .throttle_boost_cutoff = 15,
         .iterm_rotation = true,
-        .iterm_relax_cutoff = 15,
-        .iterm_relax_cutoff_yaw = 30,
-        .iterm_relax_threshold = 40,
-        .iterm_relax_threshold_yaw = 40,
+        .iterm_relax_cutoff = 11,
+        .iterm_relax_cutoff_yaw = 25,
+        .iterm_relax_threshold = 35,
+        .iterm_relax_threshold_yaw = 35,
         .antiGravityMode = ANTI_GRAVITY_SMOOTH,
-        .dterm_lowpass_hz = 0,      // NOTE: dynamic lpf is enabled by default so this setting is actually
-                                    // overridden and the static lowpass 1 is disabled.
-        .dterm_lowpass2_hz = 0,   // second Dterm LPF OFF by default
         .dterm_filter_type = FILTER_PT1,
         .dterm_filter2_type = FILTER_PT1,
-        .dyn_lpf_dterm_min_hz = 325,
-        .dyn_lpf_dterm_max_hz = 425,
-        .dterm_dynlpf2_fmax = 125,
-        .dterm_dynlpf2_gain = 20,
+        .dyn_lpf_dterm_min_hz = 65, // NOTE: this lpf is static unless dyn_lpf_dterm_width > 0
+        .dyn_lpf_dterm_width = 0,
+        .dyn_lpf_dterm_gain = 20,
+        .dterm_lowpass2_hz = 200,   // second Dterm LPF ON by default
         .launchControlMode = LAUNCH_CONTROL_MODE_NORMAL,
         .launchControlThrottlePercent = 20,
         .launchControlAngleLimit = 0,
         .launchControlGain = 40,
         .launchControlAllowTriggerReset = true,
-        .thrustLinearization = 40,
+        .thrustLinearization = 0,
         .d_min = { 0, 0, 0 },      // roll, pitch, yaw
         .d_min_gain = 37,
         .d_min_advance = 20,
@@ -189,18 +185,18 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .ff_smooth_factor = 37,
         .ff_boost = 15,
         .dyn_lpf_curve_expo = 5,
-        .vbat_sag_compensation = 100,
+        .vbat_sag_compensation = 0,
         .dtermMeasurementSlider = 100,
-        .emuBoostPR = 0,
-        .emuBoostY = 0,
+        .emuBoostPR = 15,
+        .emuBoostY = 40,
         .dtermBoost = 0,
         .i_decay = 4,
         .i_decay_cutoff = 200,
         .dynThr = { 75, 125, 65 },
-        .tpa_breakpoint = 1350,
-        .dtermAlpha = 150,
+        .tpa_breakpoint = 1600,
+        .dtermAlpha = 0,
         .dterm_abg_boost = 375,
-        .dterm_abg_half_life = 20,
+        .dterm_abg_half_life = 50,
         .axis_lock_hz = 2,
         .axis_lock_multiplier = 0,
     );
@@ -298,39 +294,19 @@ float pidApplyThrustLinearization(float motorOutput)
 
 #if defined(USE_ACC)
 // calculates strength of horizon leveling; 0 = none, 1.0 = most leveling
-STATIC_UNIT_TESTED float calcHorizonLevelStrength(const pidProfile_t *pidProfile)
-{
-float horizonLevelStrength;
-// 0 at level, 90 at vertical, 180 at inverted (degrees):
-const float currentInclination = MAX(ABS(attitude.values.roll), ABS(attitude.values.pitch)) / 10.0f;
-// Used as a factor in the numerator of inclinationLevelRatio - this will cause the entry point of the fade of leveling strength to be adjustable via horizon transition in configurator for RACEMODEhorizon
-const float racemodeHorizonTransitionFactor = pidRuntime.horizonCutoffDegrees / (pidRuntime.horizonCutoffDegrees - pidRuntime.horizonTransition);
-// Used as a factor in the numerator of inclinationLevelRatio - this will cause the fade of leveling strength to start at levelAngleLimit for RACEMODEangle
-const float racemodeAngleTransitionFactor = pidRuntime.horizonCutoffDegrees / (pidRuntime.horizonCutoffDegrees - (pidProfile->levelAngleLimit));
-
-// horizonTiltExpertMode:  0 = RACEMODEangle - ANGLE LIMIT BEHAVIOUR ON ROLL AXIS
-//                         1 = RACEMODEhoriozon - HORIZON TYPE BEHAVIOUR ON ROLL AXIS
-
-if (pidRuntime.horizonTiltExpertMode) { //determines the leveling strength of RACEMODEhoriozon
-
-    if (pidRuntime.horizonCutoffDegrees > 0 && pidRuntime.horizonTransition < pidRuntime.horizonCutoffDegrees) { //if racemode_tilt_effect>0 and if horizonTransition<racemode_tilt_effect
-
-//causes leveling to fade from horizonTransition angle to horizonCutoffDegrees	where leveling goes to zero
-      const float inclinationLevelRatio = constrainf(((pidRuntime.horizonCutoffDegrees - currentInclination) * racemodeHorizonTransitionFactor) / pidRuntime.horizonCutoffDegrees, 0, 1);
-      // apply inclination ratio to horizonLevelStrength which lowers leveling to zero as a function of angle and regardless of stick position
-      horizonLevelStrength = inclinationLevelRatio;
-    } else { // if racemode_tilt_effect = 0 or horizonTransition>racemode_tilt_effect means no leveling
-      horizonLevelStrength = 0;
+static float calcHorizonLevelStrength(void) {
+    float horizonLevelStrength;
+    // 0 at level, 90 at vertical, 180 at inverted (degrees):
+    const float currentInclination = MAX(ABS(attitude.values.roll), ABS(attitude.values.pitch)) / 10.0f;
+    // Used as a factor in the numerator of inclinationLevelRatio - this will cause the entry point of the fade of leveling strength to be adjustable via horizon transition in configurator for RACEMODEhorizon
+    if (pidRuntime.horizonCutoffDegrees > 0 && pidRuntime.horizonTransition < pidRuntime.horizonCutoffDegrees) {
+        //if horizon_tilt_effect>0 and if horizonTransition<horizon_tilt_effect
+        //causes leveling to fade from horizonTransition angle to horizonCutoffDegrees  where leveling goes to zero
+        const float inclinationLevelRatio = constrainf(((pidRuntime.horizonCutoffDegrees - currentInclination) * pidRuntime.racemodeHorizonTransitionFactor) / pidRuntime.horizonCutoffDegrees, 0, 1);
+        // apply inclination ratio to horizonLevelStrength which lowers leveling to zero as a function of angle and regardless of stick position
+        horizonLevelStrength = inclinationLevelRatio;
     }
-
-} else if (pidRuntime.horizonCutoffDegrees > 0) { // racemode_horizon = 0  determines the leveling strength and moves the leveling region of RACEMODEangle to the edge of levelAngleLimit
- //causes leveling to fade from edge od max angle limit to horizonCutoffDegrees leveling goes to zero
-      const float inclinationLevelRatio = constrainf(((pidRuntime.horizonCutoffDegrees - currentInclination) * racemodeAngleTransitionFactor) / pidRuntime.horizonCutoffDegrees, 0, 1);
-      horizonLevelStrength = inclinationLevelRatio;
-    } else { // if racemode_tilt_effect = 0 means no transition of leveling after max angle and into acro behaviour
-      horizonLevelStrength = 0;
-    }
-  return constrainf(horizonLevelStrength, 0, 1);
+    return constrainf(horizonLevelStrength, 0, 1);
 }
 
 // Use the FAST_CODE_NOINLINE directive to avoid this code from being inlined into ITCM RAM to avoid overflow.
@@ -378,20 +354,11 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
     pidRuntime.pidCoefficient[axis].Kdf = inverseErrorAnglePercent * pidRuntime.DF_angle_low;
     pidRuntime.pidCoefficient[axis].Kdf += absErrorAnglePercent * pidRuntime.DF_angle_high;
 
-    if (FLIGHT_MODE(HORIZON_MODE))
-    { // HORIZON hacked into 2 types of RACEMODE  - Expert Mode On is RACEMODEhoriozon or Off is RACEMODEangle
-        const float horizonLevelStrength = calcHorizonLevelStrength(pidProfile);
-    		const float racemodeInclination = MAX(ABS(attitude.values.roll), ABS(attitude.values.pitch)) / 10.0f;
-    		if (pidRuntime.horizonTiltExpertMode) {//  horizon type racemode behaviour without a level limit - horizonTiltExpertMode is ON
-    			currentPidSetpoint = (((currentPidSetpoint * (1 - horizonLevelStrength)) + currentPidSetpoint) / 2) + (errorAngle * pidRuntime.horizonGain * horizonLevelStrength);
-    		} else if (racemodeInclination < (pidProfile->levelAngleLimit)) {
-    			// if current angle is less than max angle limit
-    			//  This should make roll stick behave like it does in angle mode constraining stick input to max angle just like angle mode
-    			currentPidSetpoint = errorAngle * pidRuntime.horizonGain;
-    			} else {
-    			//  modified horizon expert mode behaviour beyond max angle limit for roll axis that is only reachable by pitching to inverted or returning from inverted via roll axis
-    			currentPidSetpoint = (((currentPidSetpoint * (1 - horizonLevelStrength)) + currentPidSetpoint) / 2) + (errorAngle * pidRuntime.horizonGain * horizonLevelStrength);
-    			}
+    if (FLIGHT_MODE(HORIZON_MODE)) {
+        // HORIZON mode - mix of ANGLE and ACRO modes
+        // mix in errorAngle to currentPidSetpoint to add a little auto-level feel
+        const float horizonLevelStrength = calcHorizonLevelStrength();
+        currentPidSetpoint = ((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f + (currentPidSetpoint * horizonLevelStrength * pidRuntime.horizonStrength);
     }
     return currentPidSetpoint;
 }
@@ -736,20 +703,17 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
         // -----calculate I component
         float Ki;
-        float axisDynCi;
 #ifdef USE_LAUNCH_CONTROL
         // if launch control is active override the iterm gains and apply iterm windup protection to all axes
         if (launchControlActive) {
             Ki = pidRuntime.launchControlKi;
-            axisDynCi = dynCi;
         } else
 #endif
         {
             Ki = pidRuntime.pidCoefficient[axis].Ki;
-            axisDynCi = (axis == FD_YAW) ? dynCi : pidRuntime.dT; // only apply windup protection to yaw
         }
 
-        float iTermNew = (Ki * axisDynCi + agGain) * itermErrorRate * getThrottleIAttenuation() * stickPositionAttenuation(axis, 1);
+        float iTermNew = (Ki * dynCi + agGain) * itermErrorRate * getThrottleIAttenuation() * stickPositionAttenuation(axis, 1);
 
         if (SIGN(iterm) != SIGN(iTermNew))
         {
@@ -977,11 +941,19 @@ void dynLpfDTermUpdate(float cutoff[XYZ_AXIS_COUNT])
     if (pidRuntime.dynLpfFilter != DYN_LPF_NONE) {
          if (pidRuntime.dynLpfFilter == DYN_LPF_PT1) {
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                pt1FilterUpdateCutoff(&pidRuntime.dtermLowpass[axis].pt1Filter, pt1FilterGain(cutoff[axis], pidRuntime.dT));
+                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 1.0f, pidRuntime.dT);
             }
         } else if (pidRuntime.dynLpfFilter == DYN_LPF_BIQUAD) {
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
                 biquadFilterUpdateLPF(&pidRuntime.dtermLowpass[axis].biquadFilter, cutoff[axis], targetPidLooptime);
+            }
+        } else if (pidRuntime.dynLpfFilter == DYN_LPF_PT3) {
+            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 1.961459177f, pidRuntime.dT);
+            }
+        } else if (pidRuntime.dynLpfFilter == DYN_LPF_PT4) {
+            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 2.298959223f, pidRuntime.dT);
             }
         }
     }

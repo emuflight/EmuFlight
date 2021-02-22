@@ -34,6 +34,7 @@
 
 #include "fc/controlrate_profile.h"
 #include "fc/runtime_config.h"
+#include "fc/rc_controls.h" // for flight3DConfig_t
 
 #include "flight/mixer_tricopter.h"
 #include "flight/pid.h"
@@ -410,7 +411,8 @@ void mixerInit(mixerMode_e mixerMode)
     currentMixerMode = mixerMode;
 
     mixerRuntime.feature3dEnabled = featureIsEnabled(FEATURE_3D);
-
+    mixerRuntime.reverse3dKick = flight3DConfig()->reverse3dKick / 100.0f;
+    mixerRuntime.reverse3dKickTime = flight3DConfig()->reverse3dKickTime * 1000.0f;
     initEscEndpoints();
 #ifdef USE_SERVOS
     if (mixerIsTricopter()) {

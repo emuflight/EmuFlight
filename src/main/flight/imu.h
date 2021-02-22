@@ -32,7 +32,7 @@ extern float accAverage[XYZ_AXIS_COUNT];
 typedef struct {
     float w,x,y,z;
 } quaternion;
-#define QUATERNION_INITIALIZE  {.w=1, .x=0, .y=0,.z=0}
+#define QUATERNION_INITIALIZE  {.w=1, .x=0, .y=0, .z=0}
 
 typedef struct {
     float ww,wx,wy,wz,xx,xy,xz,yy,yz,zz;
