@@ -667,7 +667,7 @@ static FAST_CODE uint8_t processRcSmoothingFilter(void)
 }
 #endif // USE_RC_SMOOTHING_FILTER
 
-#ifdef RC_PREDICTOR
+#ifdef USE_RC_PREDICTOR
 static FAST_CODE void rcPrediction(timeUs_t currentTimeUs) {
 
     static FAST_DATA_ZERO_INIT float rc_velocity[4];
@@ -725,7 +725,7 @@ static FAST_CODE void rcPrediction(timeUs_t currentTimeUs) {
     }
   }
 }
-#endif //RC_PREDICTOR
+#endif // USE_RC_PREDICTOR
 
 FAST_CODE void processRcCommand(timeUs_t currentTimeUs)
 {
@@ -741,9 +741,9 @@ FAST_CODE void processRcCommand(timeUs_t currentTimeUs)
         checkForThrottleErrorResetState(currentRxRefreshRate);
     }
 
-#ifdef RC_PREDICTOR
+#ifdef USE_RC_PREDICTOR
     rcPrediction(currentTimeUs);
-#endif //RC_PREDICTOR
+#endif // USE_RC_PREDICTOR
 
 #ifdef USE_INTERPOLATED_SP
     if (isRxDataNew) {
