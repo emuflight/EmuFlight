@@ -36,6 +36,9 @@
 // Use floating point M_PI instead explicitly.
 #define M_PIf       3.14159265358979323846f
 #define M_PI_HALFf  3.14159265358979323846f/2
+#define M_EULERf    2.71828182845904523536f
+#define M_SQRT2f    1.41421356237309504880f
+#define M_LN2f      0.69314718055994530942f
 
 #define RAD    (M_PIf / 180.0f)
 #define DEGREES_TO_DECIDEGREES(angle) ((angle) * 10)
@@ -134,6 +137,7 @@ float acos_approx(float x);
 float exp_approx(float val);
 float log_approx(float val);
 float pow_approx(float a, float b);
+float sqrt_approx(float x);
 #else
 #define sin_approx(x)   sinf(x)
 #define cos_approx(x)   cosf(x)
@@ -143,6 +147,7 @@ float pow_approx(float a, float b);
 #define exp_approx(x)       expf(x)
 #define log_approx(x)       logf(x)
 #define pow_approx(a, b)    powf(b, a)
+#define sqrt_approx(x)      sqrtf(x)
 #endif
 
 void arraySubInt32(int32_t *dest, int32_t *array1, int32_t *array2, int count);
