@@ -102,7 +102,6 @@ typedef struct pidProfile_s {
     uint8_t pidAtMinThrottle;               // Disable/Enable pids on zero throttle. Normally even without airmode P and D would be active.
     uint8_t levelAngleLimit;                // Max angle in degrees in level mode
     uint8_t angleExpo;                      // How much expo to add to the
-    uint8_t angle_yaw_correction;           // if angle mode should use yaw to help correct angles
     uint8_t angle_filter;                   // filter we stick on the rate setpoint angle makes
 
     uint8_t horizonTransition;              // horizonTransition

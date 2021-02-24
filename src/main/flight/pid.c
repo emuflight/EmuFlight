@@ -183,7 +183,6 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .mixer_impl = MIXER_IMPL_LEGACY,
     .mixer_laziness = false,
     .horizonStrength = 15,
-    .angle_yaw_correction = 1,
     .angle_filter = 100,
                 );
 }
@@ -217,9 +216,7 @@ static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
 static FAST_RAM filterApplyFnPtr dtermLowpass2ApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
 static FAST_RAM filterApplyFnPtr angleSetpointFilterApplyFn = nullFilterApply;
-static FAST_RAM_ZERO_INIT dtermLowpass_t angleSetpointFilter[2];
-static FAST_RAM filterApplyFnPtr yawAngleSetpointFilterApplyFn = nullFilterApply;
-static FAST_RAM_ZERO_INIT dtermLowpass_t yawAngleSetpointFilter;
+static FAST_RAM_ZERO_INIT pt1Filter_t angleSetpointFilter[2];
 
 #if defined(USE_ITERM_RELAX)
 static FAST_RAM_ZERO_INIT pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
@@ -243,7 +240,6 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
     dtermLowpassApplyFn = nullFilterApply;
     dtermLowpass2ApplyFn = nullFilterApply;
     angleSetpointFilterApplyFn = nullFilterApply;
-    yawAngleSetpointFilterApplyFn = nullFilterApply;
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         if (pidProfile->dFilter[axis].dLpf && pidProfile->dFilter[axis].dLpf <= pidFrequencyNyquist) {
             switch (pidProfile->dterm_filter_type) {
@@ -271,14 +267,10 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 break;
             }
         }
-    }
-    if (pidProfile->angle_filter) {
-        for (int axis = FD_ROLL; axis <= FD_PITCH; axis++) {
+        if (pidProfile->angle_filter) {
             angleSetpointFilterApplyFn = (filterApplyFnPtr)pt1FilterApply;
-            pt1FilterInit(&angleSetpointFilter[axis].pt1Filter, pt1FilterGain(pidProfile->angle_filter, dT));
+            pt1FilterInit(&angleSetpointFilter[axis], pt1FilterGain(pidProfile->angle_filter, dT));
         }
-        yawAngleSetpointFilterApplyFn = (filterApplyFnPtr)pt1FilterApply;
-        pt1FilterInit(&yawAngleSetpointFilter.pt1Filter, pt1FilterGain(pidProfile->angle_filter, dT));
     }
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, dT));
@@ -347,7 +339,6 @@ static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointDTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float dtermBoostMultiplier, dtermBoostLimitPercent;
 static FAST_RAM_ZERO_INIT float P_angle_low, D_angle_low, P_angle_high, D_angle_high, F_angle, horizonTransition, horizonCutoffDegrees, horizonStrength;
-static FAST_RAM_ZERO_INIT float yawAngleCorrection;
 static FAST_RAM_ZERO_INIT float ITermWindupPointInv;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeLimitUs;
 static FAST_RAM_ZERO_INIT timeDelta_t crashTimeDelayUs;
@@ -489,13 +480,6 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
         // mix in errorAngle to currentPidSetpoint to add a little auto-level feel
         const float horizonLevelStrength = calcHorizonLevelStrength();
         currentPidSetpoint = ((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f + (currentPidSetpoint * horizonLevelStrength * horizonStrength);
-    } else if (axis == FD_PITCH && pidProfile->angle_yaw_correction == 1) {
-        yawAngleCorrection = currentPidSetpoint * fabsf(sin_approx((attitude.raw[FD_ROLL] - angleTrim->raw[FD_ROLL]) * 0.1f));
-        currentPidSetpoint = currentPidSetpoint * fabsf(cos_approx((attitude.raw[FD_ROLL] - angleTrim->raw[FD_ROLL]) * 0.1f));
-    } else if (pidProfile->angle_yaw_correction == 1){
-        yawAngleCorrection = yawAngleCorrection + currentPidSetpoint * cos_approx((attitude.raw[FD_PITCH] - angleTrim->raw[FD_PITCH]) * 0.1f);
-        yawAngleCorrection = yawAngleSetpointFilterApplyFn((filter_t *)&yawAngleSetpointFilter, yawAngleCorrection);
-        currentPidSetpoint = currentPidSetpoint * sin_approx((attitude.raw[FD_PITCH] - angleTrim->raw[FD_PITCH]) * 0.1f);
     }
     currentPidSetpoint = angleSetpointFilterApplyFn((filter_t *)&angleSetpointFilter[axis], currentPidSetpoint);
     return currentPidSetpoint;
@@ -639,10 +623,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
         }
 
-        if (axis == FD_YAW) {
-            currentPidSetpoint += yawAngleCorrection;
-            yawAngleCorrection = 0.0f;
-        }
         // Handle yaw spin recovery - zero the setpoint on yaw to aid in recovery
         // It's not necessary to zero the set points for R/P because the PIDs will be zeroed below
 #ifdef USE_YAW_SPIN_RECOVERY
