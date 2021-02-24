@@ -74,6 +74,7 @@ static uint8_t itermRelaxThresholdYaw;
 static uint8_t itermWindup;
 static uint16_t dtermBoost;
 static uint8_t dtermBoostLimit;
+static uint8_t emuGravityGain;
 static uint8_t tempPid[3][3];
 static uint8_t tempPidWc[3];
 static uint8_t directYawFF;
@@ -146,6 +147,7 @@ static long cmsx_PidAdvancedRead(void) {
     itermRelaxThreshold = pidProfile->iterm_relax_threshold;
     itermRelaxThresholdYaw = pidProfile->iterm_relax_threshold_yaw;
     itermWindup = pidProfile->itermWindupPointPercent;
+    emuGravityGain = pidProfile->emuGravityGain;
     linear_thrust_low_output = pidProfile->linear_thrust_low_output;
     linear_thrust_high_output = pidProfile->linear_thrust_high_output;
     linear_throttle = pidProfile->linear_throttle;
@@ -177,6 +179,7 @@ static long cmsx_PidAdvancedWriteback(const OSD_Entry *self) {
     pidProfile->iterm_relax_threshold = itermRelaxThreshold;
     pidProfile->iterm_relax_threshold_yaw = itermRelaxThresholdYaw;
     pidProfile->itermWindupPointPercent = itermWindup;
+    pidProfile->emuGravityGain = emuGravityGain;
     pidProfile->linear_thrust_low_output = linear_thrust_low_output;
     pidProfile->linear_thrust_high_output = linear_thrust_high_output;
     pidProfile->linear_throttle = linear_throttle;
@@ -206,6 +209,8 @@ static OSD_Entry cmsx_menuPidAdvancedEntries[] = {
     { "I RELAX THRESH",    OME_UINT8, NULL, &(OSD_UINT8_t){ &itermRelaxThreshold,      0, 100, 1 }, 0 },
     { "I RELAX THRESH YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &itermRelaxThresholdYaw,   0, 100, 1 }, 0 },
     { "I WINDUP",          OME_UINT8, NULL, &(OSD_UINT8_t){ &itermWindup,              0, 100, 1 }, 0 },
+
+    { "EMU GRAVITY",       OME_UINT16, NULL, &(OSD_UINT8_t){ &emuGravityGain,         0,  255, 1}, 0 },
 
     { "LINEAR THRUST LOW",  OME_UINT8, NULL, &(OSD_UINT8_t) { &linear_thrust_low_output, 0, 100,  1}, 0 },
     { "LINEAR THRUST HIGH", OME_UINT8, NULL, &(OSD_UINT8_t) { &linear_thrust_high_output, 0, 100,  1}, 0 },
