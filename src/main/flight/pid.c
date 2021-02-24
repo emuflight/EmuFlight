@@ -186,8 +186,10 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .mixer_laziness = false,
     .horizonStrength = 15,
     .directFF_yaw = 15,
+    .dterm_ABG_alpha = 0,
+    .dterm_ABG_boost = 275,
+    .dterm_ABG_half_life = 50,
     .emuGravityGain = 100,
-
                 );
 }
 
@@ -219,6 +221,8 @@ static FAST_RAM filterApplyFnPtr dtermLowpassApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
 static FAST_RAM filterApplyFnPtr dtermLowpass2ApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
+static FAST_RAM filterApplyFnPtr dtermABGapplyFn = nullFilterApply;
+static FAST_RAM_ZERO_INIT alphaBetaGammaFilter_t dtermABG[XYZ_AXIS_COUNT];
 
 #if defined(USE_ITERM_RELAX)
 static FAST_RAM_ZERO_INIT pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
@@ -270,6 +274,10 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 biquadFilterInitLPF(&dtermLowpass2[axis].biquadFilter, pidProfile->dFilter[axis].dLpf2, targetPidLooptime);
                 break;
             }
+        }
+        if (pidProfile->dterm_ABG_alpha) {
+            dtermABGapplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
+            ABGInit(&dtermABG[axis], pidProfile->dterm_ABG_alpha, pidProfile->dterm_ABG_boost, pidProfile->dterm_ABG_half_life, dT);
         }
     }
 #if defined(USE_THROTTLE_BOOST)
@@ -756,6 +764,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             //filter the dterm
             dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
             dDelta = dtermLowpass2ApplyFn((filter_t *)&dtermLowpass2[axis], dDelta);
+            dDelta = dtermABGapplyFn((filter_t *)&dtermABG[axis], dDelta);
             if (pidProfile->dFilter[axis].Wc > 1) {
                 kdRingBuffer[axis][kdRingBufferPoint[axis]++] = dDelta;
                 kdRingBufferSum[axis] += dDelta;
