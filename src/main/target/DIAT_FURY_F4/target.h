@@ -20,7 +20,7 @@
 
 #pragma once
 
-#ifdef DIAT_DIAT_FURYF4OSD
+#ifdef DIAT_FURYF4OSD
 #define TARGET_BOARD_IDENTIFIER "FY4O"
 #define USBD_PRODUCT_STRING     "FuryF4OSD"
 #else
