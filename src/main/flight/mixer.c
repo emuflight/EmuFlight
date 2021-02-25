@@ -134,7 +134,7 @@ static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
 FAST_RAM_ZERO_INIT bool linearThrustEnabled;
 static FAST_RAM_ZERO_INIT float linearThrustLowOutput;
 static FAST_RAM_ZERO_INIT float linearThrustHighOutput;
-static FAST_RAM_ZERO_INIT FAST_RAM_ZERO_INIT float linearThrustPIDScaler; // used to avoid/limit PID tuning when enabling thrust linearization
+static FAST_RAM_ZERO_INIT float linearThrustPIDScaler; // used to avoid/limit PID tuning when enabling thrust linearization
 static FAST_RAM_ZERO_INIT float linearThrustYawPIDScaler; // 2PASS mixer doesn't apply TL to yaw so it don't needs to compensate for that
 
 static FAST_RAM_ZERO_INIT mixerImplType_e mixerImpl;
@@ -997,7 +997,10 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
 
     float controllerMixNormFactor = authority / MAX(controllerMixRange, 1.0f);
 
-    // filling up motorMix with throttle, yaw and roll/pitch
+    float postYawThrottle = 0;
+    float yawThrottleCorrection = 0;
+
+    // filling up motorMix with throttle, and yaw
     for (int i = 0; i < motorCount; i++) {
         motorMix[i] = throttleMotor; // motorMix have to contain output-proportional values
 
@@ -1006,7 +1009,16 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
                                         : SCALE_UNITARY_RANGE(throttleMotor, -yawMixMin, -yawMixMax);
 
         motorMix[i] += (yawMix[i] + yawOffset) * controllerMixNormFactor; // yaw is an output-proportional value (RPM-proportional, actually)
+        postYawThrottle += motorMix[i];
+    }
+    // find the extra thrust that yaw is adding
+    postYawThrottle = postYawThrottle / motorCount;
+    yawThrottleCorrection = postYawThrottle - throttleMotor;
 
+    // correct for the extra thrust yaw adds, then fill up motorMix with pitch and roll
+    for (int i = 0; i < motorCount; i++) {
+
+        motorMix[i] = motorMix[i] - yawThrottleCorrection;
         float motorMixThrust = motorToThrust(motorMix[i], true); // convert into thrust value
 
         // clipping handling
