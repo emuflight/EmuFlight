@@ -17,10 +17,10 @@ arm_sdk_version:
 .NOTPARALLEL .PHONY: arm_sdk_install
 
 # source: https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads
-ARM_SDK_URL_BASE  := https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update
+ARM_SDK_URL_BASE  := https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major
 
 # Set up ARM (STM32) SDK
-ARM_SDK_DIR ?= $(TOOLS_DIR)/gcc-arm-none-eabi-9-2020-q2-update
+ARM_SDK_DIR ?= $(TOOLS_DIR)/gcc-arm-none-eabi-10-2020-q4-major
 
 # source: https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads
 ifdef LINUX
@@ -41,7 +41,7 @@ ARM_SDK_FILE := $(notdir $(ARM_SDK_URL))
 export PATH := $(ARM_SDK_DIR)/bin:$(PATH)
 
 # Checked below, Should match the output of $(shell arm-none-eabi-gcc -dumpversion)
-GCC_REQUIRED_VERSION ?= 9.3.1
+GCC_REQUIRED_VERSION ?= 10.2.1
 
 SDK_INSTALL_MARKER := $(ARM_SDK_DIR)/bin/arm-none-eabi-gcc-$(GCC_REQUIRED_VERSION)
 

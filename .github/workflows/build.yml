@@ -47,7 +47,7 @@ jobs:
     - name: Setup Toolchain
       uses: fiam/arm-none-eabi-gcc@master
       with:
-        release: '9-2020-q2' # The arm-none-eabi-gcc release to use.
+        release: '10-2021-q4' # The arm-none-eabi-gcc release to use.
 
     - name: Get code version
       id: get_version
