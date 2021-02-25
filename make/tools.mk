@@ -17,7 +17,7 @@ arm_sdk_version:
 .NOTPARALLEL .PHONY: arm_sdk_install
 
 # source: https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads
-ARM_SDK_URL_BASE  := https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major
+ARM_SDK_URL_BASE  := https://developer.arm.com/-/media/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major
 
 # Set up ARM (STM32) SDK
 ARM_SDK_DIR ?= $(TOOLS_DIR)/gcc-arm-none-eabi-10-2020-q4-major
