@@ -19,6 +19,7 @@
  */
 
 #include <stdbool.h>
+#include <math.h>
 
 #include "platform.h"
 
@@ -150,6 +151,6 @@ FAST_CODE void sdftWindow(const sdft_t *sdft, float *output)
 static FAST_CODE void applySqrt(const sdft_t *sdft, float *data)
 {
     for (uint8_t i = sdft->startBin; i <= sdft->endBin; i++) {
-        data[i] = sqrt_approx(data[i]);
+        data[i] = sqrtf(data[i]);
     }
 }

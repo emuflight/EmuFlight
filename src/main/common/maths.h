@@ -137,7 +137,6 @@ float acos_approx(float x);
 float exp_approx(float val);
 float log_approx(float val);
 float pow_approx(float a, float b);
-float sqrt_approx(float x);
 #else
 #define sin_approx(x)   sinf(x)
 #define cos_approx(x)   cosf(x)
@@ -147,7 +146,6 @@ float sqrt_approx(float x);
 #define exp_approx(x)       expf(x)
 #define log_approx(x)       logf(x)
 #define pow_approx(a, b)    powf(b, a)
-#define sqrt_approx(x)      sqrtf(x)
 #endif
 
 void arraySubInt32(int32_t *dest, int32_t *array1, int32_t *array2, int count);
