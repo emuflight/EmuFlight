@@ -36,10 +36,10 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM1,   CH1,  PA8,   TIM_USE_MOTOR, 0, 0 ), // S3_OUT – UP2-5
     DEF_TIM(TIM1,   CH2,  PA9,   TIM_USE_MOTOR, 0, 0 ), // S4_OUT – UP2-5
 
-    DEF_TIM(TIM3,   CH3,  PB0,   TIM_USE_MOTOR, 0, 0 ), // S4_OUT – UP2-5
-    DEF_TIM(TIM3,   CH4,  PB1,   TIM_USE_MOTOR, 0, 0 ), // S4_OUT – UP2-5
-    DEF_TIM(TIM1,   CH1,  PA10,   TIM_USE_MOTOR, 0, 0 ), // S4_OUT – UP2-5
-    DEF_TIM(TIM3,   CH1,  PB4,   TIM_USE_MOTOR, 0, 0 ), // S4_OUT – UP2-5
+    DEF_TIM(TIM3,   CH3,  PB0,   TIM_USE_MOTOR, 0, 0 ), // S5_OUT – UP2-5
+    DEF_TIM(TIM3,   CH4,  PB1,   TIM_USE_MOTOR, 0, 0 ), // S6_OUT – UP2-5
+    DEF_TIM(TIM1,   CH3,  PA10,  TIM_USE_MOTOR, 0, 0 ), // S7_OUT – UP2-5
+    DEF_TIM(TIM3,   CH1,  PB4,   TIM_USE_MOTOR, 0, 0 ), // S8_OUT – UP2-5
 
     DEF_TIM(TIM4,   CH3,  PB8,   TIM_USE_ANY,   0, 0 ), // FC CAM – DMA1_ST7
 
