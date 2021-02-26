@@ -999,6 +999,8 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
 
     float postYawThrottle = 0;
     float yawThrottleCorrection = 0;
+    float minMotorYawMix = -1000.0f;
+    float maxMotorYawMix = 1000.0f;
 
     // filling up motorMix with throttle, and yaw
     for (int i = 0; i < motorCount; i++) {
@@ -1010,10 +1012,18 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
 
         motorMix[i] += (yawMix[i] + yawOffset) * controllerMixNormFactor; // yaw is an output-proportional value (RPM-proportional, actually)
         postYawThrottle += motorMix[i];
+
+        if (motorMix[i] > maxMotorYawMix) {
+            maxMotorYawMix = motorMix[i];
+        } else if (motorMix[i] < minMotorYawMix) {
+            minMotorYawMix = motorMix[i];
+        }
     }
     // find the extra thrust that yaw is adding
     postYawThrottle = postYawThrottle / motorCount;
     yawThrottleCorrection = postYawThrottle - throttleMotor;
+    // deal with yaw throttle correction values that would cause motor outputs that are greater or less than 1
+    yawThrottleCorrection = constrainf(yawThrottleCorrection, minMotorYawMix, maxMotorYawMix - 1.0f);
 
     // correct for the extra thrust yaw adds, then fill up motorMix with pitch and roll
     for (int i = 0; i < motorCount; i++) {
