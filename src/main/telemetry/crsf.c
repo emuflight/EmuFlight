@@ -253,8 +253,7 @@ void crsfFrameAttitude(sbuf_t *dst) {
 Payload:
 char[]      Flight mode ( Null terminated string )
 */
-void crsfFrameFlightMode(sbuf_t *dst)
-{
+void crsfFrameFlightMode(sbuf_t *dst) {
     // write zero for frame length, since we don't know it yet
     uint8_t *lengthPtr = sbufPtr(dst);
     sbufWriteU8(dst, 0);
