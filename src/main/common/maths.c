@@ -104,53 +104,6 @@ float acos_approx(float x)
     else
         return result;
 }
-
-// https://dsp.stackexchange.com/a/17276
-// Original implementation by Robert Bristow-Johnson (rbj@audioimagination.com)
-float sqrt_approx(float x)
-{
-    #define sqrtPowSeriesCoef1  0.49959804148061f
-    #define sqrtPowSeriesCoef2 -0.12047308243453f
-    #define sqrtPowSeriesCoef3  0.04585425015501f
-    #define sqrtPowSeriesCoef4 -0.01076564682800f
-
-    if (x <= 5.877471754e-39f) return 0.0f;
-
-    float acc;
-    float xPower;
-    int32_t intPart;
-        
-    union { 
-        float f; 
-        int32_t i; 
-    } xBits;
-
-    xBits.f = x;
-
-    intPart = ((xBits.i) >> 23);                // get biased exponent
-    intPart -= 127;                             // unbias it
-
-    x = (float)(xBits.i & 0x007FFFFF);          // mask off exponent leaving 0x800000 * (mantissa - 1)
-    x *= 1.192092895507812e-07f;                // divide by 0x800000
-
-    acc = sqrtPowSeriesCoef1 * x + 1.0f;
-    xPower = x * x;
-    acc += sqrtPowSeriesCoef2 * xPower;
-    xPower *= x;
-    acc += sqrtPowSeriesCoef3 * xPower;
-    xPower *= x;
-    acc += sqrtPowSeriesCoef4 * xPower;
-
-    if (intPart & 0x1) {
-        acc *= M_SQRT2f;                        // an odd input exponent means an extra sqrt(2) in the output
-    }
-
-    xBits.i = intPart >> 1;                     // divide exponent by 2, lose LSB
-    xBits.i += 127;                             // rebias exponent
-    xBits.i <<= 23;                             // move biased exponent into exponent bits
-
-    return acc * xBits.f;
-}
 #endif
 
 int gcd(int num, int denom)

@@ -28,7 +28,7 @@
 #undef I  // avoid collision of imaginary unit I with variable I in pid.h
 typedef float complex complex_t; // Better readability for type "float complex"
 
-#define SDFT_SAMPLE_SIZE 100
+#define SDFT_SAMPLE_SIZE 72
 #define SDFT_BIN_COUNT   (SDFT_SAMPLE_SIZE / 2)
 
 typedef struct sdft_s {
