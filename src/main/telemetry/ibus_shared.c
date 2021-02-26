@@ -258,9 +258,6 @@ static uint16_t getMode()
     if (FLIGHT_MODE(PASSTHRU_MODE)) {
         flightMode = 3; //Auto
     }
-    if (FLIGHT_MODE(HEADFREE_MODE) || FLIGHT_MODE(MAG_MODE)) {
-        flightMode = 4; //Guided! (there in no HEAD, MAG so use Guided)
-    }
     if (FLIGHT_MODE(HORIZON_MODE)) {
         flightMode = 7; //Circle! (there in no horizon so use Circle)
     }

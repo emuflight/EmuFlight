@@ -8,9 +8,9 @@ There are various modes that can be toggled on or off.  Modes can be enabled/dis
 | 1  | ANGLE                    | Legacy auto-level flight mode                                                        |
 | 2  | HORIZON                  | Auto-level flight mode                                                               |
 | 4  | ANTI GRAVITY             | Prevents dips and rolls on fast throttle changes                                     |
-| 5  | MAG                      | Heading lock                                                                         |
-| 6  | HEADFREE                 | Head Free - When enabled yaw has no effect on pitch/roll inputs                      |
-| 7  | HEADADJ                  | Heading Adjust - Sets a new yaw origin for HEADFREE mode                             |
+| 5  | MAG (removed)            | Heading lock                                                                         |
+| 6  | HEADFREE (removed)       | Head Free - When enabled yaw has no effect on pitch/roll inputs                      |
+| 7  | HEADADJ (removed)        | Heading Adjust - Sets a new yaw origin for HEADFREE mode                             |
 | 8  | CAMSTAB                  | Camera Stabilisation                                                                 |
 | 12 | PASSTHRU                 | Pass roll, yaw, and pitch directly from rx to servos in airplane mix                 |
 | 13 | BEEPERON                 | Enable beeping - useful for locating a crashed aircraft                              |
@@ -65,7 +65,7 @@ This hybrid mode works exactly like the previous ANGLE mode with centered roll a
 
 In this mode, the "head" of the multicopter is always pointing to the same direction as when the feature was activated. This means that when the multicopter rotates around the Z axis (yaw), the controls will always respond according the same "head" direction.
 
-With this mode it is easier to control the multicopter, even fly it with the physical head towards you since the controls always respond the same. This is a friendly mode to new users of multicopters and can prevent losing the control when you don't know the head direction. 
+With this mode it is easier to control the multicopter, even fly it with the physical head towards you since the controls always respond the same. This is a friendly mode to new users of multicopters and can prevent losing the control when you don't know the head direction.
 
 ### Airmode
 
@@ -101,7 +101,7 @@ When a channel is within a specifed range the corresponding mode is enabled.
 
 Use the GUI configuration tool to allow easy configuration when channel.
 
-### CLI 
+### CLI
 
 There is a CLI command, `aux` that allows auxillary configuration.  It takes 5 arguments as follows:
 
@@ -116,7 +116,7 @@ If the low and high position are the same then the values are ignored.
 e.g.
 
 Configure AUX range slot 0 to enable ARM when AUX1 is withing 1700 and 2100.
- 
+
 ```
 aux 0 0 0 1700 2100
 ```

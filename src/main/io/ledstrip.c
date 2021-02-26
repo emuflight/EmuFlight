@@ -156,10 +156,8 @@ STATIC_UNIT_TESTED ledCounts_t ledCounts;
 static const modeColorIndexes_t defaultModeColors[] = {
     //                          NORTH             EAST               SOUTH            WEST             UP          DOWN
     [LED_MODE_ORIENTATION] = {{ COLOR_WHITE,      COLOR_DARK_VIOLET, COLOR_RED,       COLOR_DEEP_PINK, COLOR_BLUE, COLOR_ORANGE }},
-    [LED_MODE_HEADFREE]    = {{ COLOR_LIME_GREEN, COLOR_DARK_VIOLET, COLOR_ORANGE,    COLOR_DEEP_PINK, COLOR_BLUE, COLOR_ORANGE }},
     [LED_MODE_HORIZON]     = {{ COLOR_BLUE,       COLOR_DARK_VIOLET, COLOR_YELLOW,    COLOR_DEEP_PINK, COLOR_BLUE, COLOR_ORANGE }},
     [LED_MODE_ANGLE]       = {{ COLOR_CYAN,       COLOR_DARK_VIOLET, COLOR_YELLOW,    COLOR_DEEP_PINK, COLOR_BLUE, COLOR_ORANGE }},
-    [LED_MODE_MAG]         = {{ COLOR_MINT_GREEN, COLOR_DARK_VIOLET, COLOR_ORANGE,    COLOR_DEEP_PINK, COLOR_BLUE, COLOR_ORANGE }},
 };
 
 static const specialColorIndexes_t defaultSpecialColors[] = {
@@ -455,10 +453,6 @@ static const struct {
     uint16_t flightMode;
     uint8_t ledMode;
 } flightModeToLed[] = {
-    {HEADFREE_MODE, LED_MODE_HEADFREE},
-#ifdef USE_MAG
-    {MAG_MODE,      LED_MODE_MAG},
-#endif
     {HORIZON_MODE,  LED_MODE_HORIZON},
     {ANGLE_MODE,    LED_MODE_ANGLE},
     {0,             LED_MODE_ORIENTATION},

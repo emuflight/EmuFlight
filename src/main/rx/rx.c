@@ -68,7 +68,6 @@
 #include "rx/ghst.h"
 #include "rx/rx_spi.h"
 #include "rx/targetcustomserial.h"
-#include "rx/msp_override.h"
 
 
 const char rcChannelLetters[] = "AERT12345678abcdefgh";
@@ -599,11 +598,6 @@ static void readRxChannelsApplyRanges(void)
 
         // sample the channel
         uint16_t sample;
-#if defined(USE_RX_MSP_OVERRIDE)
-        if (rxConfig()->msp_override_channels_mask) {
-            sample = rxMspOverrideReadRawRc(&rxRuntimeState, rxConfig(), rawChannel);
-        } else
-#endif
         {
             sample = rxRuntimeState.rcReadRawFn(&rxRuntimeState, rawChannel);
         }

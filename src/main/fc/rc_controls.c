@@ -291,16 +291,6 @@ void processRcStickPositions()
     }
 #endif
 
-#if defined(USE_MAG)
-    if (rcSticks == THR_HI + YAW_HI + PIT_LO + ROL_CE) {
-        // Calibrating Mag
-        compassStartCalibration();
-
-        return;
-    }
-#endif
-
-
     if (FLIGHT_MODE(ANGLE_MODE|HORIZON_MODE|NFE_RACE_MODE)) {
         // in ANGLE or HORIZON mode, so use sticks to apply accelerometer trims
         rollAndPitchTrims_t accelerometerTrimsDelta;

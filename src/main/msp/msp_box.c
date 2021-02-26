@@ -52,9 +52,6 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT] = {
     { BOXHORIZON, "HORIZON", 2 },
 //    { BOXBARO, "BARO", 3 },
     { BOXANTIGRAVITY, "ANTI GRAVITY", 4 },
-    { BOXMAG, "MAG", 5 },
-    { BOXHEADFREE, "HEADFREE", 6 },
-    { BOXHEADADJ, "HEADADJ", 7 },
     { BOXCAMSTAB, "CAMSTAB", 8 },
 //    { BOXCAMTRIG, "CAMTRIG", 9 },
 //    { BOXGPSHOME, "GPS HOME", 10 },
@@ -205,15 +202,7 @@ void initActiveBoxIds(void)
         BME(BOXANGLE);
         BME(BOXHORIZON);
         BME(BOXNFE);
-        BME(BOXHEADFREE);
-        BME(BOXHEADADJ);
     }
-
-#ifdef USE_MAG
-    if (sensors(SENSOR_MAG)) {
-        BME(BOXMAG);
-    }
-#endif
 
 #ifdef USE_GPS
     if (featureIsEnabled(FEATURE_GPS)) {

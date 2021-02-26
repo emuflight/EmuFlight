@@ -751,7 +751,6 @@ void processSmartPortTelemetry(smartPortPayload_t *payload, volatile bool *clear
                 if (ARMING_FLAG(ARMED)) {
                     tmpi += 4;
                 }
-
                 if (FLIGHT_MODE(ANGLE_MODE)) {
                     tmpi += 10;
                 }
@@ -761,15 +760,6 @@ void processSmartPortTelemetry(smartPortPayload_t *payload, volatile bool *clear
                 if (FLIGHT_MODE(PASSTHRU_MODE)) {
                     tmpi += 40;
                 }
-
-                if (FLIGHT_MODE(MAG_MODE)) {
-                    tmpi += 100;
-                }
-
-                if (FLIGHT_MODE(HEADFREE_MODE)) {
-                    tmpi += 4000;
-                }
-
                 smartPortSendPackage(id, (uint32_t)tmpi);
                 *clearToSend = false;
                 break;

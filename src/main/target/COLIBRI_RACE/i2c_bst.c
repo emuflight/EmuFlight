@@ -155,9 +155,6 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT + 1] = {
     { BOXANGLE, "ANGLE;", 1 },
     { BOXHORIZON, "HORIZON;", 2 },
     //{ BOXVARIO, "VARIO;", 4 },
-    { BOXMAG, "MAG;", 5 },
-    { BOXHEADFREE, "HEADFREE;", 6 },
-    { BOXHEADADJ, "HEADADJ;", 7 },
     { BOXCAMSTAB, "CAMSTAB;", 8 },
     { BOXPASSTHRU, "PASSTHRU;", 12 },
     { BOXBEEPERON, "BEEPER;", 13 },
@@ -292,9 +289,6 @@ static bool bstSlaveProcessFeedbackCommand(uint8_t bstRequest)
             junk = 0;
             tmp = IS_ENABLED(FLIGHT_MODE(ANGLE_MODE)) << BOXANGLE |
                     IS_ENABLED(FLIGHT_MODE(HORIZON_MODE)) << BOXHORIZON |
-                    IS_ENABLED(FLIGHT_MODE(MAG_MODE)) << BOXMAG |
-                    IS_ENABLED(FLIGHT_MODE(HEADFREE_MODE)) << BOXHEADFREE |
-                    IS_ENABLED(IS_RC_MODE_ACTIVE(BOXHEADADJ)) << BOXHEADADJ |
                     IS_ENABLED(IS_RC_MODE_ACTIVE(BOXCAMSTAB)) << BOXCAMSTAB |
                     IS_ENABLED(FLIGHT_MODE(PASSTHRU_MODE)) << BOXPASSTHRU |
                     IS_ENABLED(IS_RC_MODE_ACTIVE(BOXBEEPERON)) << BOXBEEPERON |
@@ -849,7 +843,6 @@ bool writeFCModeToBST(void)
     tmp = IS_ENABLED(ARMING_FLAG(ARMED)) |
            IS_ENABLED(FLIGHT_MODE(ANGLE_MODE)) << 1 |
            IS_ENABLED(FLIGHT_MODE(HORIZON_MODE)) << 2 |
-           IS_ENABLED(FLIGHT_MODE(MAG_MODE)) << 4 |
            IS_ENABLED(IS_RC_MODE_ACTIVE(BOXAIRMODE)) << 5 |
            IS_ENABLED(FLIGHT_MODE(FAILSAFE_MODE)) << 7;
 

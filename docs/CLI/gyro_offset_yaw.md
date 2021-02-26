@@ -4,8 +4,8 @@
 This parameter allows to manually compensate YAW gyro drift over time.  
 
 ## Audience
- This parameter is intended for LOS flyers who use the HEADFREE feature of EmuFlight.  
- It reduces the usage of on sight realignment HEADADJ  
+ This parameter is intended for LOS flyers who use the HEADFREE (removed) feature of EmuFlight.  
+ It reduces the usage of on sight realignment HEADADJ (removed)  
  from 3-6 times to 0-1 during a flight.  
 
 ## Warnings
