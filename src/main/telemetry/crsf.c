@@ -268,7 +268,7 @@ void crsfFrameFlightMode(sbuf_t *dst) {
     } else
 
 #if defined(USE_GPS)
-    if (!ARMING_FLAG(ARMED) && featureIsEnabled(FEATURE_GPS) && (!STATE(GPS_FIX) || !STATE(GPS_FIX_HOME))) {
+    if (!ARMING_FLAG(ARMED) && feature(FEATURE_GPS) && (!STATE(GPS_FIX) || !STATE(GPS_FIX_HOME))) {
         flightMode = "WAIT"; // Waiting for GPS lock
     } else
 #endif
@@ -284,7 +284,7 @@ void crsfFrameFlightMode(sbuf_t *dst) {
         flightMode = "STAB";
     } else if (FLIGHT_MODE(HORIZON_MODE)) {
         flightMode = "HOR";
-    } else if (airmodeIsEnabled()) {
+    } else if (isAirmodeActive()) {
         flightMode = "AIR";
     }
 
