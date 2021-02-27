@@ -47,36 +47,36 @@
 
 #include "gyroanalyse.h"
 
-// SDFT_SAMPLE_SIZE defaults to 100 (common/sdft.h)
-// We get 50 frequency bins from 100 consecutive data values, called SDFT_BIN_COUNT (common/sdft.h)
+// SDFT_SAMPLE_SIZE defaults to 72 (common/sdft.h).
+// We get 36 frequency bins from 72 consecutive data values, called SDFT_BIN_COUNT (common/sdft.h)
 // Bin 0 is DC and can't be used.
-// Only bins 1 to 49 are usable.
+// Only bins 1 to 35 are usable.
 
-// A gyro sample is collected every gyro loop
+// A gyro sample is collected every PID loop.
 // maxSampleCount recent gyro values are accumulated and averaged
-// to ensure that 100 samples are collected at the right rate for the required SDFT bandwidth
+// to ensure that 72 samples are collected at the right rate for the required SDFT bandwidth.
 
 // For an 8k gyro loop, at default 600hz max, 6 sequential gyro data points are averaged, SDFT runs 1333Hz.
 // Upper limit of SDFT is half that frequency, eg 666Hz by default.
-// At 8k, if user sets a max of 300Hz, int(8000/600) = 13, sdftSampleRateHz = 615Hz, range 307Hz
+// At 8k, if user sets a max of 300Hz, int(8000/600) = 13, sdftSampleRateHz = 615Hz, range 307Hz.
 // Note that lower max requires more samples to be averaged, increasing precision but taking longer to get enough samples.
-// For Bosch at 3200Hz gyro, max of 600, int(3200/1200) = 2, sdftSampleRateHz = 1600, range to 800hz
-// For Bosch on XClass, better to set a max of 300, int(3200/600) = 5, sdftSampleRateHz = 640, range to 320Hz
+// For Bosch at 3200Hz gyro, max of 600, int(3200/1200) = 2, sdftSampleRateHz = 1600, range to 800hz.
+// For Bosch on XClass, better to set a max of 300, int(3200/600) = 5, sdftSampleRateHz = 640, range to 320Hz.
 
 // When sampleCount reaches maxSampleCount, the averaged gyro value is put into the corresponding SDFT.
-// At 8k, with 600Hz max, maxSampleCount = 6, this happens every 6 * 0.125us, or every 0.75ms
-// Hence to completely replace all 100 samples of the SDFT input buffer with clean new data takes 75ms
+// At 8k, with 600Hz max, maxSampleCount = 6, this happens every 6 * 0.125us, or every 0.75ms.
+// Hence to completely replace all 72 samples of the SDFT input buffer with clean new data takes 54ms.
 
 // The SDFT code is split into steps. It takes 4 gyro loops to calculate the SDFT, track peaks and update the filters for one axis.
 // Since there are three axes, it takes 12 gyro loops to completely update all axes.
 // At 8k, any one axis gets updated at 8000 / 12 or 666hz or every 1.5ms
 // In this time, 2 points in the SDFT buffer will have changed.
-// At 4k, it takes twice as long to update an axis, i.e. each axis updates only every 3ms
+// At 4k, it takes twice as long to update an axis, i.e. each axis updates only every 3ms.
 // Four points in the buffer will have changed in that time, and each point will be the average of three samples.
 // Hence output jitter at 4k is about four times worse than at 8k. At 2k output jitter is quite bad.
 
-// Each SDFT output bin has width sdftSampleRateHz/100, ie 13.3Hz per bin at 1333Hz
-// Usable bandwidth is half this, ie 666Hz if sdftSampleRateHz is 1333Hz, i.e. bin 1 is 13.3Hz, bin 2 is 26.7Hz etc
+// Each SDFT output bin has width sdftSampleRateHz/72, ie 18.5Hz per bin at 1333Hz.
+// Usable bandwidth is half this, ie 666Hz if sdftSampleRateHz is 1333Hz, i.e. bin 1 is 18.5Hz, bin 2 is 37.0Hz etc.
 
 #define DYN_NOTCH_SMOOTH_HZ        4
 #define DYN_NOTCH_CALC_TICKS       (XYZ_AXIS_COUNT * 4) // 4 steps per axis
