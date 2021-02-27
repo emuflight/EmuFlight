@@ -338,6 +338,7 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
     const float absErrorAnglePercent = fabsf(errorAnglePercent);
     const float inverseErrorAnglePercent = 1.0f - absErrorAnglePercent;
     const float angleDterm = (pidRuntime.attitudePrevious[axis] - attitude.raw[axis]) * 0.1f;
+    pidRuntime.attitudePrevious[axis] = attitude.raw[axis];
 
     // ANGLE mode - control is angle based
     p_term_low = inverseErrorAnglePercent * errorAngle * pidRuntime.P_angle_low;
@@ -345,7 +346,6 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
 
     d_term_low = inverseErrorAnglePercent * angleDterm * pidRuntime.D_angle_low;
     d_term_high = absErrorAnglePercent * angleDterm * pidRuntime.D_angle_high;
-    pidRuntime.attitudePrevious[axis] = attitude.raw[axis];
 
     currentPidSetpoint = p_term_low + p_term_high;
     currentPidSetpoint += d_term_low + d_term_high;
@@ -533,13 +533,9 @@ static FAST_CODE void stickMovement(int axis) {
 
 static FAST_CODE void axisLockScaling(void) {
     if (pidRuntime.axisLockMultiplier != 0.0f) {
-        pidRuntime.axisLockScaler[ROLL] = constrainf(1 - (pidRuntime.filteredStickMovement[PITCH] - pidRuntime.filteredStickMovement[YAW] + pidRuntime.filteredStickMovement[ROLL]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
-        pidRuntime.axisLockScaler[PITCH] = constrainf(1 - (pidRuntime.filteredStickMovement[ROLL] - pidRuntime.filteredStickMovement[YAW] + pidRuntime.filteredStickMovement[PITCH]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
-        pidRuntime.axisLockScaler[YAW] = constrainf(1 - (pidRuntime.filteredStickMovement[ROLL] - pidRuntime.filteredStickMovement[PITCH] + pidRuntime.filteredStickMovement[YAW]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
-      } else {
-        pidRuntime.axisLockScaler[ROLL] = 1.0f;
-        pidRuntime.axisLockScaler[PITCH] = 1.0f;
-        pidRuntime.axisLockScaler[YAW] = 1.0f;
+        pidRuntime.axisLockScaler[ROLL] = constrainf(1 - (pidRuntime.filteredStickMovement[PITCH] + pidRuntime.filteredStickMovement[YAW] - pidRuntime.filteredStickMovement[ROLL]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
+        pidRuntime.axisLockScaler[PITCH] = constrainf(1 - (pidRuntime.filteredStickMovement[ROLL] + pidRuntime.filteredStickMovement[YAW] - pidRuntime.filteredStickMovement[PITCH]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
+        pidRuntime.axisLockScaler[YAW] = constrainf(1 - (pidRuntime.filteredStickMovement[ROLL] + pidRuntime.filteredStickMovement[PITCH] - pidRuntime.filteredStickMovement[YAW]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
       }
 }
 
@@ -938,24 +934,30 @@ bool pidAntiGravityEnabled(void)
 #ifdef USE_DYN_LPF
 void dynLpfDTermUpdate(float cutoff[XYZ_AXIS_COUNT])
 {
-    if (pidRuntime.dynLpfFilter != DYN_LPF_NONE) {
-         if (pidRuntime.dynLpfFilter == DYN_LPF_PT1) {
+         switch (pidRuntime.dynLpfFilter) {
+         case DYN_LPF_PT1:
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
                 ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 1.0f, pidRuntime.dT);
             }
-        } else if (pidRuntime.dynLpfFilter == DYN_LPF_BIQUAD) {
+            break;
+        case DYN_LPF_BIQUAD:
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
                 biquadFilterUpdateLPF(&pidRuntime.dtermLowpass[axis].biquadFilter, cutoff[axis], targetPidLooptime);
             }
-        } else if (pidRuntime.dynLpfFilter == DYN_LPF_PT3) {
+            break;
+        case DYN_LPF_PT3:
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
                 ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 1.961459177f, pidRuntime.dT);
             }
-        } else if (pidRuntime.dynLpfFilter == DYN_LPF_PT4) {
+            break;
+        case DYN_LPF_PT4:
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
                 ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 2.298959223f, pidRuntime.dT);
             }
-        }
+            break;
+        case DYN_LPF_NONE:
+        default:
+            break;
     }
 }
 
