@@ -20,7 +20,9 @@
 
  #pragma once
 
-#define DYN_NOTCH_COUNT_MAX 5
+ #include "arm_math.h"
+
+ #include "common/filter.h"
 
 typedef struct gyroAnalyseState_s {
 
