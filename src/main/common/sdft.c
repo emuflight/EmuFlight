@@ -37,7 +37,7 @@ static FAST_DATA_ZERO_INIT complex_t twiddle[SDFT_BIN_COUNT];
 static void applySqrt(const sdft_t *sdft, float *data);
 
 
-void sdftInit(sdft_t *sdft, const uint8_t startBin, const uint8_t endBin, const uint8_t numBatches)
+void sdftInit(sdft_t *sdft, const uint8_t startBin, const uint8_t endBin)
 {
     if (!isInitialized) {
         rPowerN = powerf(SDFT_R, SDFT_SAMPLE_SIZE);
@@ -53,8 +53,6 @@ void sdftInit(sdft_t *sdft, const uint8_t startBin, const uint8_t endBin, const 
     sdft->idx = 0;
     sdft->startBin = startBin;
     sdft->endBin = endBin;
-    sdft->numBatches = numBatches;
-    sdft->batchSize = (sdft->endBin - sdft->startBin + 1) / sdft->numBatches + 1;
 
     for (uint8_t i = 0; i < SDFT_SAMPLE_SIZE; i++) {
         sdft->samples[i] = 0.0f;
@@ -67,11 +65,11 @@ void sdftInit(sdft_t *sdft, const uint8_t startBin, const uint8_t endBin, const 
 
 
 // Add new sample to frequency spectrum
-FAST_CODE void sdftPush(sdft_t *sdft, const float *sample)
+FAST_CODE void sdftPush(sdft_t *sdft, const float sample)
 {
-    const float delta = *sample - rPowerN * sdft->samples[sdft->idx];
+    const float delta = sample - rPowerN * sdft->samples[sdft->idx];
 
-    sdft->samples[sdft->idx] = *sample;
+    sdft->samples[sdft->idx] = sample;
     sdft->idx = (sdft->idx + 1) % SDFT_SAMPLE_SIZE;
 
     for (uint8_t i = sdft->startBin; i <= sdft->endBin; i++) {
@@ -81,20 +79,20 @@ FAST_CODE void sdftPush(sdft_t *sdft, const float *sample)
 
 
 // Add new sample to frequency spectrum in parts
-FAST_CODE void sdftPushBatch(sdft_t* sdft, const float *sample, const uint8_t *batchIdx)
+FAST_CODE void sdftPushBatch(sdft_t* sdft, const float sample, const uint8_t numBatches, const uint8_t batchIdx)
 {
-    const uint8_t batchStart = sdft->batchSize * *batchIdx;
-    uint8_t batchEnd = batchStart;
+    uint8_t batchSize = (sdft->endBin - sdft->startBin + 1) / numBatches + 1;
+    const uint8_t batchStart = batchSize * batchIdx;
 
-    const float delta = *sample - rPowerN * sdft->samples[sdft->idx];
+    const float delta = sample - rPowerN * sdft->samples[sdft->idx];
 
-    if (*batchIdx == sdft->numBatches - 1) {
-        sdft->samples[sdft->idx] = *sample;
+    if (batchIdx == numBatches - 1) {
+        batchSize = sdft->endBin - batchStart + 1;
+        sdft->samples[sdft->idx] = sample;
         sdft->idx = (sdft->idx + 1) % SDFT_SAMPLE_SIZE;
-        batchEnd += sdft->endBin - batchStart + 1;
-    } else {
-        batchEnd += sdft->batchSize;
     }
+
+    const uint8_t batchEnd = batchStart + batchSize;
 
     for (uint8_t i = batchStart; i < batchEnd; i++) {
         sdft->data[i] = twiddle[i] * (sdft->data[i] + delta);
@@ -125,7 +123,6 @@ FAST_CODE void sdftMagnitude(const sdft_t *sdft, float *output)
 
 
 // Get squared magnitude of frequency spectrum with Hann window applied
-// Hann window in frequency domain: X[k] = -0.25 * X[k-1] +0.5 * X[k] -0.25 * X[k+1]
 FAST_CODE void sdftWinSq(const sdft_t *sdft, float *output)
 {
     complex_t val;
@@ -133,7 +130,7 @@ FAST_CODE void sdftWinSq(const sdft_t *sdft, float *output)
     float im;
 
     for (uint8_t i = (sdft->startBin + 1); i < sdft->endBin; i++) {
-        val = sdft->data[i] - 0.5f * (sdft->data[i - 1] + sdft->data[i + 1]); // multiply by 2 to save one multiplication
+        val = sdft->data[i] - 0.5f * (sdft->data[i - 1] + sdft->data[i + 1]);
         re = crealf(val);
         im = cimagf(val);
         output[i] = re * re + im * im;
