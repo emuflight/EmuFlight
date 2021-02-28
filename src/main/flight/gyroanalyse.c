@@ -47,10 +47,10 @@
 
 #include "gyroanalyse.h"
 
-// SDFT_SAMPLE_SIZE defaults to 100 (common/sdft.h)
-// We get 50 frequency bins from 100 consecutive data values, called SDFT_BIN_COUNT (common/sdft.h)
+// SDFT_SAMPLE_SIZE defaults to 100 (gyroanalyse.h)
+// We get 50 frequency bins from 100 consecutive data values
 // Bin 0 is DC and can't be used.
-// Only bins 1 to 49 are usable.
+// Only bins 1 to 99 are usable.
 
 // A gyro sample is collected every gyro loop
 // maxSampleCount recent gyro values are accumulated and averaged
@@ -62,12 +62,12 @@
 // Note that lower max requires more samples to be averaged, increasing precision but taking longer to get enough samples.
 // For Bosch at 3200Hz gyro, max of 600, int(3200/1200) = 2, sdftSampleRateHz = 1600, range to 800hz
 // For Bosch on XClass, better to set a max of 300, int(3200/600) = 5, sdftSampleRateHz = 640, range to 320Hz
-
+//
 // When sampleCount reaches maxSampleCount, the averaged gyro value is put into the corresponding SDFT.
 // At 8k, with 600Hz max, maxSampleCount = 6, this happens every 6 * 0.125us, or every 0.75ms
 // Hence to completely replace all 100 samples of the SDFT input buffer with clean new data takes 75ms
 
-// The SDFT code is split into steps. It takes 4 gyro loops to calculate the SDFT, track peaks and update the filters for one axis.
+// The SDFT code is split into steps.  It takes 4 gyro loops to calculate the SDFT for one axis.
 // Since there are three axes, it takes 12 gyro loops to completely update all axes.
 // At 8k, any one axis gets updated at 8000 / 12 or 666hz or every 1.5ms
 // In this time, 2 points in the SDFT buffer will have changed.
@@ -126,8 +126,8 @@ void gyroDataAnalyseInit(uint32_t targetLooptimeUs)
     sdftEndBin = MIN(SDFT_BIN_COUNT - 1, lrintf(dynNotchMaxHz / sdftResolution + 0.5f)); // can't use more than SDFT_BIN_COUNT bins.
     smoothFactor = 2 * M_PIf * DYN_NOTCH_SMOOTH_HZ / (gyroLoopRateHz / 12); // minimum PT1 k value
 
-    for (uint8_t axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-        sdftInit(&sdft[axis], sdftStartBin, sdftEndBin);
+    for (uint8_t i = 0; i < XYZ_AXIS_COUNT; i++) {
+        sdftInit(&sdft[i], sdftStartBin, sdftEndBin);
     }
 }
 
@@ -180,7 +180,7 @@ FAST_CODE void gyroDataAnalyse(gyroAnalyseState_t *state, biquadFilter_t *notchF
         state->updateTicks = DYN_NOTCH_CALC_TICKS;
     }
 
-    // calculate SDFT and update filters
+    // calculate FFT and update filters
     if (state->updateTicks > 0) {
       gyroDataAnalyseUpdate(state);
         --state->updateTicks;
@@ -231,9 +231,9 @@ FAST_CODE void gyroDataAnalyse(gyroAnalyseState_t *state, biquadFilter_t *notchF
             uint8_t binMax = 0;
             float dataMinHi = 1.0f;
 
-            // Search for biggest peak in frequency spectrum
-            for (uint8_t bin = (sdftStartBin + 1); bin < sdftEndBin; bin++) {
-                // Check if bin is peak
+            // Search for peaks
+            for (uint8_t bin = sdftStartBin + 1; bin < sdftEndBin; bin++) {
+                // Check if bin is a peak
                 if ((sdftData[bin] > sdftData[bin - 1]) && (sdftData[bin] > sdftData[bin + 1])) {
                     // Check if peak is biggest peak so far
                     if (sdftData[bin] > dataMax) {
@@ -243,10 +243,9 @@ FAST_CODE void gyroDataAnalyse(gyroAnalyseState_t *state, biquadFilter_t *notchF
                     bin++; // If bin is peak, next bin can't be peak => jump it
                 }
             }
-            // Search for pits on both sides of biggest peak
-            if (binMax == 0) { // no peak found, hold prev max bin, dataMin = 1 dataMax = 0, ie move slow
+            if (binMax == 0) { // no bin increase, hold prev max bin, dataMin = 1 dataMax = 0, ie move slow
                 binMax = lrintf(state->centerFreq[state->updateAxis] / sdftResolution + 0.5f);
-            } else { // there was a peak, find pits
+            } else { // there was a max, find min
                 for (uint8_t bin = binMax - 1; bin > 1; bin--) { // look for min below max
                     if (sdftData[bin] < sdftData[bin - 1]) {
                         dataMin = sdftData[bin];
