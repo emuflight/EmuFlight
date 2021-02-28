@@ -396,7 +396,7 @@ ifneq ($(DSP_LIB),)
 
 INCLUDE_DIRS += $(DSP_LIB)/Include
 
-# ARM DSP libs go here
+SRC += $(DSP_LIB)/Source/StatisticsFunctions/arm_rms_f32.c
 
 SRC += $(wildcard $(DSP_LIB)/Source/*/*.S)
 endif
