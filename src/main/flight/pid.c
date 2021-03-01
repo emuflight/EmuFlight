@@ -169,9 +169,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .launchControlGain = 40,
         .launchControlAllowTriggerReset = true,
         .thrustLinearization = 0,
-        .d_min = { 0, 0, 0 },      // roll, pitch, yaw
-        .d_min_gain = 37,
-        .d_min_advance = 20,
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .profileName = { 0 },
@@ -802,28 +799,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
                 DEBUG_SET(DEBUG_BOOST, 3, lrintf(delta - preDBoost));
             }
 
-#if defined(USE_D_MIN)
-            float dMinFactor = 1.0f;
-            if (pidRuntime.dMinPercent[axis] > 0) {
-                float dMinGyroFactor = biquadFilterApply(&pidRuntime.dMinRange[axis], delta);
-                dMinGyroFactor = fabsf(dMinGyroFactor) * pidRuntime.dMinGyroGain;
-                const float dMinSetpointFactor = (fabsf(pidSetpointDelta)) * pidRuntime.dMinSetpointGain;
-                dMinFactor = MAX(dMinGyroFactor, dMinSetpointFactor);
-                dMinFactor = pidRuntime.dMinPercent[axis] + (1.0f - pidRuntime.dMinPercent[axis]) * dMinFactor;
-                dMinFactor = pt1FilterApply(&pidRuntime.dMinLowpass[axis], dMinFactor);
-                dMinFactor = MIN(dMinFactor, 1.0f);
-                if (axis == FD_ROLL) {
-                    DEBUG_SET(DEBUG_D_MIN, 0, lrintf(dMinGyroFactor * 100));
-                    DEBUG_SET(DEBUG_D_MIN, 1, lrintf(dMinSetpointFactor * 100));
-                    DEBUG_SET(DEBUG_D_MIN, 2, lrintf(pidRuntime.pidCoefficient[axis].Kd * dMinFactor * 10 / DTERM_SCALE));
-                } else if (axis == FD_PITCH) {
-                    DEBUG_SET(DEBUG_D_MIN, 3, lrintf(pidRuntime.pidCoefficient[axis].Kd * dMinFactor * 10 / DTERM_SCALE));
-                }
-            }
-
-            // Apply the dMinFactor
-            delta *= dMinFactor;
-#endif
             pidData[axis].D = delta * getThrottleDAttenuation() * stickPositionAttenuation(axis, 2);
         } else {
             pidData[axis].D = 0;

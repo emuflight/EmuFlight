@@ -46,13 +46,6 @@
 
 #include "pid_init.h"
 
-#if defined(USE_D_MIN)
-#define D_MIN_RANGE_HZ 80    // Biquad lowpass input cutoff to peak D around propwash frequencies
-#define D_MIN_LOWPASS_HZ 10  // PT1 lowpass cutoff to smooth the boost effect
-#define D_MIN_GAIN_FACTOR 0.00005f
-#define D_MIN_SETPOINT_GAIN_FACTOR 0.00005f
-#endif
-
 #define ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF 15  // The anti gravity throttle highpass filter cutoff
 #define ANTI_GRAVITY_SMOOTH_FILTER_CUTOFF 3  // The anti gravity P smoothing filter cutoff
 
@@ -211,17 +204,6 @@ void pidInitFilters(const pidProfile_t *pidProfile)
         }
 #endif
     }
-
-#if defined(USE_D_MIN)
-    // Initialize the filters for all axis even if the d_min[axis] value is 0
-    // Otherwise if the pidProfile->d_min_xxx parameters are ever added to
-    // in-flight adjustments and transition from 0 to > 0 in flight the feature
-    // won't work because the filter wasn't initialized.
-    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-        biquadFilterInitLPF(&pidRuntime.dMinRange[axis], D_MIN_RANGE_HZ, targetPidLooptime);
-        pt1FilterInit(&pidRuntime.dMinLowpass[axis], pt1FilterGain(D_MIN_LOWPASS_HZ, pidRuntime.dT));
-     }
-#endif
 
     pt1FilterInit(&pidRuntime.antiGravityThrottleLpf, pt1FilterGain(ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF, pidRuntime.dT));
     pt1FilterInit(&pidRuntime.antiGravitySmoothLpf, pt1FilterGain(ANTI_GRAVITY_SMOOTH_FILTER_CUTOFF, pidRuntime.dT));
@@ -400,19 +382,6 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.throttleCompensateAmount = pidRuntime.thrustLinearization - 0.5f * powerf(pidRuntime.thrustLinearization, 2);
 #endif
 
-#if defined(USE_D_MIN)
-    for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
-        const uint8_t dMin = pidProfile->d_min[axis];
-        if ((dMin > 0) && (dMin < pidProfile->pid[axis].D)) {
-            pidRuntime.dMinPercent[axis] = dMin / (float)(pidProfile->pid[axis].D);
-        } else {
-            pidRuntime.dMinPercent[axis] = 0;
-        }
-    }
-    pidRuntime.dMinGyroGain = pidProfile->d_min_gain * D_MIN_GAIN_FACTOR / D_MIN_LOWPASS_HZ;
-    pidRuntime.dMinSetpointGain = pidProfile->d_min_gain * D_MIN_SETPOINT_GAIN_FACTOR * pidProfile->d_min_advance * pidRuntime.pidFrequency / (100 * D_MIN_LOWPASS_HZ);
-    // lowpass included inversely in gain since stronger lowpass decreases peak effect
-#endif
 #ifdef USE_INTERPOLATED_SP
     pidRuntime.ffFromInterpolatedSetpoint = pidProfile->ff_interpolate_sp;
     pidRuntime.ffSmoothFactor = 1.0f - ((float)pidProfile->ff_smooth_factor) / 100.0f;
