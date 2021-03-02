@@ -394,6 +394,10 @@ extern uint8_t __config_end;
 #undef USE_DYN_IDLE
 #endif
 
+#if defined(USE_CUSTOM_DEFAULTS)
+#define USE_CUSTOM_DEFAULTS_ADDRESS
+#endif
+
 #if !defined(USE_EXTI)
 #undef USE_RX_SPI
 #undef USE_RANGEFINDER_HCSR04
