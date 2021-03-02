@@ -248,8 +248,6 @@
 #define USE_RX_SPEKTRUM
 #define USE_RX_SPEKTRUM_TELEMETRY
 
-//#define USE_CUSTOM_DEFAULTS
-
 // Additional drivers included for targets with > 512KB of flash
 #if (TARGET_FLASH_SIZE > 512)
 #define USE_ACC_MPU6050
