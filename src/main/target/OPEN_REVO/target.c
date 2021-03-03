@@ -28,7 +28,7 @@
 #include "drivers/timer_def.h"
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
-#if defined(ELINF405)
+#if defined(DRCL_ELINF405)
     DEF_TIM(TIM11, CH1,  PB9, TIM_USE_ANY,   0, 0),
     DEF_TIM(TIM8,  CH2N, PB0, TIM_USE_MOTOR, 0, 0),
     DEF_TIM(TIM8,  CH3N, PB1, TIM_USE_MOTOR, 0, 0),
@@ -49,9 +49,9 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM3,  CH4, PB1,  TIM_USE_MOTOR,               0, 0), // S2_OUT D1_ST2
     DEF_TIM(TIM2,  CH4, PA3,  TIM_USE_MOTOR,               0, 1), // S3_OUT D1_ST6
     DEF_TIM(TIM2,  CH3, PA2,  TIM_USE_MOTOR,               0, 0), // S4_OUT D1_ST1
-#ifdef REVOLT
+#ifdef OPEN_REVO
     DEF_TIM(TIM4,  CH1, PB6,  TIM_USE_LED,                 0, 0), // LED for REVOLT D1_ST0
-#elif defined(AIRBOTF4) || defined(AIRBOTF4SD)
+#elif defined(AIRB_AIRBOTF4) || defined(AIRB_AIRBOTF4SD)
     DEF_TIM(TIM5,  CH2, PA1,  TIM_USE_MOTOR,               0, 0), // S5_OUT
     DEF_TIM(TIM1,  CH1, PA8,  TIM_USE_MOTOR,               0, 0), // S6_OUT
     DEF_TIM(TIM4,  CH1, PB6,  TIM_USE_LED,                 0, 0), // LED D1_ST0, n/a on older AIRBOTF4

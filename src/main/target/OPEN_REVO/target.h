@@ -20,23 +20,23 @@
 
 #pragma once
 
-#if defined(AIRBOTF4)
+#if defined(AIRB_AIRBOTF4)
 #define TARGET_BOARD_IDENTIFIER "AIR4"
 #define USBD_PRODUCT_STRING     "AirbotF4"
 
-#elif defined(AIRBOTF4SD)
+#elif defined(AIRB_AIRBOTF4SD)
 #define TARGET_BOARD_IDENTIFIER "A4SD"
 #define USBD_PRODUCT_STRING     "AirbotF4SD"
 
-#elif defined(SOULF4)
+#elif defined(OPEN_SOULF4)
 #define TARGET_BOARD_IDENTIFIER "SOUL"
 #define USBD_PRODUCT_STRING     "DemonSoulF4"
 
-#elif defined(PODIUMF4)
+#elif defined(LEGA_PODIUMF4)
 #define TARGET_BOARD_IDENTIFIER "PODI"
 #define USBD_PRODUCT_STRING     "PodiumF4"
 
-#elif defined(ELINF405)
+#elif defined(DRCL_ELINF405)
 #define TARGET_BOARD_IDENTIFIER "ELIN"
 #define USBD_PRODUCT_STRING     "ElinF405"
 
@@ -51,21 +51,21 @@
 #endif
 
 #define LED0_PIN                PB5
-#if defined(PODIUMF4)
+#if defined(LEGA_PODIUMF4)
 #define LED1_PIN                PB4
 #define LED2_PIN                PB6
 #endif
 
 // Disable LED1, conflicts with AirbotF4/Flip32F4 beeper
-#if defined(AIRBOTF4) || defined(AIRBOTF4SD)
+#if defined(AIRB_RBOTF4) || defined(AIRB_AIRBOTF4SD)
 #define USE_BEEPER
 #define BEEPER_PIN              PB4
 #define BEEPER_INVERTED
-#elif defined(SOULF4)
+#elif defined(OPEN_SOULF4)
 #define USE_BEEPER
 #define BEEPER_PIN              PB6
 #define BEEPER_INVERTED
-#elif defined(ELINF405)
+#elif defined(DRCL_ELINF405)
 #define USE_BEEPER
 #define BEEPER_PIN              PB4
 #else
@@ -77,7 +77,7 @@
 
 
 // PC0 used as inverter select GPIO
-#ifdef AIRBOTF4SD
+#ifdef AIRB_AIRBOTF4SD
 #define INVERTER_PIN_UART6      PD2
 #else
 #define INVERTER_PIN_UART1      PC0
@@ -92,7 +92,7 @@
 #define USE_GYRO
 #define USE_ACC
 
-#ifdef AIRBOTF4SD
+#ifdef AIRB_AIRBOTF4SD
 #undef MPU6000_CS_PIN
 #define MPU6000_CS_PIN          PB13
 #define USE_GYRO_SPI_ICM20601
@@ -107,14 +107,14 @@
 #define ACC_2_ALIGN             ALIGN_DEFAULT
 #endif
 
-#if defined(SOULF4)
+#if defined(OPEN_SOULF4)
 #define USE_GYRO_SPI_MPU6000
 #define GYRO_MPU6000_ALIGN      CW180_DEG
 
 #define USE_ACC_SPI_MPU6000
 #define ACC_MPU6000_ALIGN       CW180_DEG
 
-#elif defined(PODIUMF4)
+#elif defined(LEGA_PODIUMF4)
 
 #define USE_GYRO_MPU6500
 #define USE_GYRO_SPI_MPU6500
@@ -124,7 +124,7 @@
 #define USE_ACC_SPI_MPU6500
 #define ACC_MPU6500_ALIGN       CW0_DEG
 
-#elif defined(ELINF405)
+#elif defined(DRCL_ELINF405)
 
 #define USE_GYRO_SPI_MPU6500
 #define GYRO_MPU6500_ALIGN            CW0_DEG
@@ -158,7 +158,7 @@
 #define MPU_INT_EXTI            PC4
 #define USE_MPU_DATA_READY_SIGNAL
 
-#if defined(ELINF405)
+#if defined(DRCL_ELINF405)
 
 #define CAMERA_CONTROL_PIN      PB7
 
@@ -185,13 +185,13 @@
 
 #endif
 
-#if defined(AIRBOTF4) || defined(AIRBOTF4SD)
+#if defined(AIRB_AIRBOTF4) || defined(AIRB_AIRBOTF4SD)
 #define USE_BARO_SPI_BMP280
 #define BMP280_SPI_INSTANCE     SPI1
 #define BMP280_CS_PIN           PC13
 #endif
 
-#if defined(AIRBOTF4SD)
+#if defined(AIRB_AIRBOTF4SD)
 // SDCARD support for AIRBOTF4SD
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 #define USE_SDCARD
@@ -219,7 +219,7 @@
 
 
 #define USE_VCP
-#if defined(PODIUMF4)
+#if defined(LEGA_PODIUMF4)
 #define USE_USB_DETECT
 #define USB_DETECT_PIN          PA8
 #else
@@ -236,7 +236,7 @@
 #define UART3_RX_PIN            PB11
 #define UART3_TX_PIN            PB10
 
-#if defined(REVO) || defined(ELINF405)
+#if defined(OPEN_REVO) || defined(DRCL_ELINF405)
 #define USE_UART4
 #define UART4_RX_PIN            PA1
 #define UART4_TX_PIN            PA0
@@ -246,7 +246,7 @@
 #define UART6_RX_PIN            PC7
 #define UART6_TX_PIN            PC6
 
-#if defined(ELINF405)
+#if defined(DRCL_ELINF405)
 #define PINIO1_PIN              PC13
 #define PINIO2_PIN              PC14
 
@@ -265,14 +265,14 @@
 #define USE_SOFTSERIAL1
 #define USE_SOFTSERIAL2
 
-#if defined(REVO) || defined(ELINF405)
+#if defined(OPEN_REVO) || defined(DRCL_ELINF405)
 #define SERIAL_PORT_COUNT       7 //VCP, USART1, USART3, UART4,  USART6, SOFTSERIAL x 2
 #else
 #define SERIAL_PORT_COUNT       6 //VCP, USART1, USART3, USART6, SOFTSERIAL x 2
 #endif
 
 #define USE_ESCSERIAL
-#if defined(ELINF405)
+#if defined(DRCL_ELINF405)
 #define ESCSERIAL_TIMER_TX_PIN  PB6
 #else
 #define ESCSERIAL_TIMER_TX_PIN  PB14  // (HARDARE=0,PPM)
@@ -280,7 +280,7 @@
 
 #define USE_SPI
 
-#if defined(ELINF405)
+#if defined(DRCL_ELINF405)
 #define USE_SPI_DEVICE_1
 #define SPI1_NSS_PIN            PA4
 #define SPI1_SCK_PIN            PA5
@@ -305,7 +305,7 @@
 #define SPI3_MOSI_PIN           PC12
 
 #define USE_I2C
-#if defined(AIRBOTF4) || defined(AIRBOTF4SD)
+#if defined(AIRB_AIRBOTF4) || defined(AIRB_AIRBOTF4SD)
 // On AIRBOTF4 and AIRBOTF4SD, I2C2 and I2C3 are configurable
 #define USE_I2C_DEVICE_2
 #define I2C2_SCL                NONE // PB10, shared with UART3TX
@@ -322,7 +322,7 @@
 #endif
 
 #define USE_ADC
-#if !defined(PODIUMF4)
+#if !defined(LEGA_PODIUMF4)
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
 #else
@@ -330,23 +330,23 @@
 #define VBAT_ADC_CHANNEL        ADC_Channel_13
 #endif
 
-#if defined(ELINF405)
+#if defined(DRCL_ELINF405)
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #endif
 
-#if defined(AIRBOTF4SD)
+#if defined(AIRB_AIRBOTF4SD)
 #define RSSI_ADC_PIN            PA0
 #endif
 
 #define USE_TRANSPONDER
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
-#if defined(PODIUMF4)
+#if defined(LEGA_PODIUMF4)
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART6
 #define DEFAULT_FEATURES        FEATURE_TELEMETRY
-#elif defined(ELINF405)
+#elif defined(DRCL_ELINF405)
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART1
 #endif
@@ -356,10 +356,10 @@
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         (BIT(2))
 
-#if defined(AIRBOTF4) || defined(AIRBOTF4SD)
+#if defined(AIRB_AIRBOTF4) || defined(AIRB_AIRBOTF4SD)
 #define USABLE_TIMER_CHANNEL_COUNT 13
 #define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(5) | TIM_N(8) | TIM_N(12) )
-#elif defined(ELINF405)
+#elif defined(DRCL_ELINF405)
 #define USABLE_TIMER_CHANNEL_COUNT 9
 #define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(11) )
 #else

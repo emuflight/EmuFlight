@@ -23,7 +23,7 @@
 #define USE_TARGET_CONFIG
 #define TARGET_MANUFACTURER_IDENTIFIER      "TTRH"
 #define TARGET_BOARD_IDENTIFIER             "TT41"
-#if defined (TRANSTECF411HD)
+#if defined (TTRH_TRANSTECF411HD)
 #define USBD_PRODUCT_STRING                 "TransTECF411HD"
 #else
 #define USBD_PRODUCT_STRING                 "TransTECF411"
