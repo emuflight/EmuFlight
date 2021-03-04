@@ -355,6 +355,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 #endif
 
     pidRuntime.axisLockMultiplier = pidProfile->axis_lock_multiplier / 100.0f;
+    pidRuntime.axisSmoothMultiplier = pidProfile->axis_smooth_multiplier / 100.0f;
 
 
 #ifdef USE_DYN_LPF

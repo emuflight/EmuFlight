@@ -1103,6 +1103,7 @@ const clivalue_t valueTable[] = {
     { "i_decay_cutoff",             VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, i_decay_cutoff) },
 
     { "axis_lock_multiplier",       VAR_UINT8 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, axis_lock_multiplier) },
+    { "axis_smooth_multiplier",     VAR_UINT8 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, axis_smooth_multiplier) },
     { "axis_lock_hz",               VAR_UINT8 | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, axis_lock_hz) },
 
     { "spa_roll_p",                 VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250}, PG_PID_PROFILE, offsetof(pidProfile_t, stickTransition[0][ROLL]) },

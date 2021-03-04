@@ -199,6 +199,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_abg_half_life = 50,
         .axis_lock_hz = 2,
         .axis_lock_multiplier = 0,
+        .axis_smooth_multiplier = 0,
     );
 }
 
@@ -526,16 +527,19 @@ static FAST_CODE float stickPositionAttenuation(int axis, int pid) {
 }
 
 static FAST_CODE void stickMovement(int axis) {
-    pidRuntime.filteredStickMovement[axis] = (getRcDeflectionAbs(axis) - pidRuntime.previousRcDeflection[axis]) * pidRuntime.pidFrequency;
-    pidRuntime.previousRcDeflection[axis] = getRcDeflectionAbs(axis);
+    pidRuntime.filteredStickMovement[axis] = fabsf(getRcDeflection(axis) - pidRuntime.previousRcDeflection[axis]) * pidRuntime.pidFrequency;
+    pidRuntime.previousRcDeflection[axis] = getRcDeflection(axis);
     pidRuntime.filteredStickMovement[axis] = pt1FilterApply(&pidRuntime.stickMovementLpf[axis], pidRuntime.filteredStickMovement[axis]);
 }
 
 static FAST_CODE void axisLockScaling(void) {
-    if (pidRuntime.axisLockMultiplier != 0.0f) {
+    if (pidRuntime.axisLockMultiplier != 0.0f || pidRuntime.axisSmoothMultiplier != 0.0f) {
         pidRuntime.axisLockScaler[ROLL] = constrainf(1 - (pidRuntime.filteredStickMovement[PITCH] + pidRuntime.filteredStickMovement[YAW] - pidRuntime.filteredStickMovement[ROLL]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
         pidRuntime.axisLockScaler[PITCH] = constrainf(1 - (pidRuntime.filteredStickMovement[ROLL] + pidRuntime.filteredStickMovement[YAW] - pidRuntime.filteredStickMovement[PITCH]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
         pidRuntime.axisLockScaler[YAW] = constrainf(1 - (pidRuntime.filteredStickMovement[ROLL] + pidRuntime.filteredStickMovement[PITCH] - pidRuntime.filteredStickMovement[YAW]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
+        pidRuntime.axisLockScaler[ROLL] = constrainf(1 - pidRuntime.filteredStickMovement[ROLL] * pidRuntime.axisSmoothMultiplier, 0.0f, 1.0f);
+        pidRuntime.axisLockScaler[PITCH] = constrainf(1 - pidRuntime.filteredStickMovement[PITCH] * pidRuntime.axisSmoothMultiplier, 0.0f, 1.0f);
+        pidRuntime.axisLockScaler[YAW] = constrainf(1 - pidRuntime.filteredStickMovement[YAW] * pidRuntime.axisSmoothMultiplier, 0.0f, 1.0f);
       }
 }
 
