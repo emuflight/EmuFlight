@@ -99,7 +99,7 @@ static float smallAngleCosZ = 0;
 
 static imuRuntimeConfig_t imuRuntimeConfig;
 
-STATIC_UNIT_TESTED float rMat[3][3];
+float rMat[3][3];
 
 STATIC_UNIT_TESTED bool attitudeIsEstablished = false;
 

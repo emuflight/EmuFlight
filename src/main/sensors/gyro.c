@@ -31,6 +31,7 @@
 #include "common/axis.h"
 #include "common/maths.h"
 #include "common/filter.h"
+#include "common/kalman.h"
 
 #include "config/feature.h"
 
@@ -433,6 +434,10 @@ FAST_CODE void gyroUpdate(void)
         break;
 #endif
     }
+
+    gyro.gyroADC[X] = kalman_update(gyro.gyroADC[X], X);
+    gyro.gyroADC[Y] = kalman_update(gyro.gyroADC[Y], Y);
+    gyro.gyroADC[Z] = kalman_update(gyro.gyroADC[Z], Z);
 }
 
 #define GYRO_FILTER_FUNCTION_NAME filterGyro
@@ -616,28 +621,32 @@ uint16_t gyroAbsRateDps(int axis)
 #ifdef USE_DYN_LPF
 void dynLpfGyroUpdate(float cutoff[XYZ_AXIS_COUNT])
 {
-    if (gyro.dynLpfFilter != DYN_LPF_NONE) {
-        if (gyro.dynLpfFilter == DYN_LPF_PT1) {
-            const float gyroDt = gyro.targetLooptime * 1e-6f;
+    const float gyroDt = gyro.targetLooptime * 1e-6f;
+        switch (gyro.dynLpfFilter) {
+        case DYN_LPF_PT1:
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
                 ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], 1.0f, gyroDt);
             }
-        } else if (gyro.dynLpfFilter == DYN_LPF_BIQUAD) {
+            break;
+        case DYN_LPF_BIQUAD:
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
                 biquadFilterUpdateLPF(&gyro.lowpassFilter[axis].biquadFilterState, cutoff[axis], gyro.targetLooptime);
             }
-        } else if (gyro.dynLpfFilter == DYN_LPF_PT1) {
-            const float gyroDt = gyro.targetLooptime * 1e-6f;
+            break;
+        case DYN_LPF_PT3:
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
                 ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], 1.961459177f, gyroDt);
             }
-        } else if (gyro.dynLpfFilter == DYN_LPF_PT1) {
-            const float gyroDt = gyro.targetLooptime * 1e-6f;
+            break;
+        case DYN_LPF_PT4:
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
                 ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], 2.298959223f, gyroDt);
             }
+            break;
+        case DYN_LPF_NONE:
+        default:
+            break;
         }
-    }
 }
 
 uint16_t dynLpfGyroThrCut(float throttle) {

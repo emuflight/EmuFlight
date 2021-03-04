@@ -667,7 +667,7 @@ static FAST_CODE uint8_t processRcSmoothingFilter(void)
 }
 #endif // USE_RC_SMOOTHING_FILTER
 
-#ifdef RC_PREDICTOR
+#ifdef USE_RC_PREDICTOR
 static FAST_CODE void rcPrediction(timeUs_t currentTimeUs) {
 
     static FAST_DATA_ZERO_INIT float rc_velocity[4];
@@ -725,7 +725,7 @@ static FAST_CODE void rcPrediction(timeUs_t currentTimeUs) {
     }
   }
 }
-#endif //RC_PREDICTOR
+#endif // USE_RC_PREDICTOR
 
 FAST_CODE void processRcCommand(timeUs_t currentTimeUs)
 {
@@ -741,9 +741,9 @@ FAST_CODE void processRcCommand(timeUs_t currentTimeUs)
         checkForThrottleErrorResetState(currentRxRefreshRate);
     }
 
-#ifdef RC_PREDICTOR
+#ifdef USE_RC_PREDICTOR
     rcPrediction(currentTimeUs);
-#endif //RC_PREDICTOR
+#endif // USE_RC_PREDICTOR
 
 #ifdef USE_INTERPOLATED_SP
     if (isRxDataNew) {
@@ -1055,6 +1055,7 @@ FAST_CODE float rateDynamics(float rcCommand, int axis, int currentRxRefreshRate
     float pterm_centerStick, pterm_endStick, pterm, iterm_centerStick, iterm_endStick, dterm_centerStick, dterm_endStick, dterm;
     float rcCommandPercent;
     float rcCommandError;
+    float rcCommandChange;
     float inverseRcCommandPercent;
     rcCommandPercent = fabsf(rcCommand) / 500.0f; // make rcCommandPercent go from 0 to 1
     inverseRcCommandPercent = 1.0f - rcCommandPercent;
@@ -1070,8 +1071,9 @@ FAST_CODE float rateDynamics(float rcCommand, int axis, int currentRxRefreshRate
     iterm[axis] += iterm_centerStick + iterm_endStick;
     rcCommand = rcCommand + iterm[axis]; // add the iterm to the rcCommand
 
-    dterm_centerStick = inverseRcCommandPercent * (lastRcCommandData[axis] - rcCommand) * calculateK(currentControlRateProfile->rateDynamics.rateWeightCenter / 100.0f, currentRxRefreshRate); // valid dterm values are between 0-95
-    dterm_endStick = rcCommandPercent * (lastRcCommandData[axis] - rcCommand) * calculateK(currentControlRateProfile->rateDynamics.rateWeightEnd / 100.0f, currentRxRefreshRate);
+    rcCommandChange = lastRcCommandData[axis] - rcCommand;
+    dterm_centerStick = inverseRcCommandPercent * rcCommandChange * calculateK(currentControlRateProfile->rateDynamics.rateWeightCenter / 100.0f, currentRxRefreshRate); // valid dterm values are between 0-95
+    dterm_endStick = rcCommandPercent * rcCommandChange * calculateK(currentControlRateProfile->rateDynamics.rateWeightEnd / 100.0f, currentRxRefreshRate);
     dterm = dterm_centerStick + dterm_endStick;
 
     rcCommand = rcCommand + dterm; // add dterm to the rcCommand (this is real dterm)

@@ -707,7 +707,7 @@ const clivalue_t valueTable[] = {
     { "baro_i2c_device",            VAR_UINT8  | HARDWARE_VALUE, .config.minmaxUnsigned = { 0, 5 }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_i2c_device) },
     { "baro_i2c_address",           VAR_UINT8  | HARDWARE_VALUE, .config.minmaxUnsigned = { 0, I2C_ADDR7_MAX }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_i2c_address) },
     { "baro_hardware",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_BARO_HARDWARE }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_hardware) },
-    { "baro_tab_size",              VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 2, BARO_SAMPLE_COUNT_MAX }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_sample_count) },
+    { "baro_tab_size",              VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 1, BARO_SAMPLE_COUNT_MAX }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_sample_count) },
     { "baro_noise_lpf",             VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 1000 }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_noise_lpf) },
     { "baro_cf_vel",                VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 1000 }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_cf_vel) },
 #endif
@@ -1103,6 +1103,7 @@ const clivalue_t valueTable[] = {
     { "i_decay_cutoff",             VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, i_decay_cutoff) },
 
     { "axis_lock_multiplier",       VAR_UINT8 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, axis_lock_multiplier) },
+    { "axis_smooth_multiplier",     VAR_UINT8 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, axis_smooth_multiplier) },
     { "axis_lock_hz",               VAR_UINT8 | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, axis_lock_hz) },
 
     { "spa_roll_p",                 VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250}, PG_PID_PROFILE, offsetof(pidProfile_t, stickTransition[0][ROLL]) },
@@ -1373,6 +1374,7 @@ const clivalue_t valueTable[] = {
     { "osd_battery_usage_pos",      VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_MAIN_BATT_USAGE]) },
     { "osd_disarmed_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_DISARMED]) },
     { "osd_nheading_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_NUMERICAL_HEADING]) },
+    { "osd_up_down_reference_pos",  VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_UP_DOWN_REFERENCE]) },
 #ifdef USE_VARIO
     { "osd_nvario_pos",             VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_NUMERICAL_VARIO]) },
 #endif
@@ -1455,6 +1457,7 @@ const clivalue_t valueTable[] = {
     { "osd_rcchannels",             VAR_INT8   | MASTER_VALUE | MODE_ARRAY, .config.array.length = OSD_RCCHANNELS_COUNT, PG_OSD_CONFIG, offsetof(osdConfig_t, rcChannels) },
     { "osd_camera_frame_width",     VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { OSD_CAMERA_FRAME_MIN_WIDTH, OSD_CAMERA_FRAME_MAX_WIDTH }, PG_OSD_CONFIG, offsetof(osdConfig_t, camera_frame_width) },
     { "osd_camera_frame_height",    VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { OSD_CAMERA_FRAME_MIN_HEIGHT, OSD_CAMERA_FRAME_MAX_HEIGHT }, PG_OSD_CONFIG, offsetof(osdConfig_t, camera_frame_height) },
+    { "osd_stat_avg_cell_value",    VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_OSD_CONFIG, offsetof(osdConfig_t, stat_show_cell_value) },
     { "osd_task_frequency",         VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { OSD_TASK_FREQUENCY_MIN, OSD_TASK_FREQUENCY_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, task_frequency) },
     { "osd_menu_background",        VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_CMS_BACKGROUND }, PG_OSD_CONFIG, offsetof(osdConfig_t, cms_background_type) },
 #endif // end of #ifdef USE_OSD
@@ -1498,8 +1501,10 @@ const clivalue_t valueTable[] = {
 #endif
 
 // PG_VCD_CONFIG
-#if defined(USE_MAX7456) || defined(USE_FRSKYOSD)
+#if defined(USE_MAX7456) || defined(USE_FRSKYOSD) || defined(USE_MSP_DISPLAYPORT)
     { "vcd_video_system",           VAR_UINT8   | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_VIDEO_SYSTEM }, PG_VCD_CONFIG, offsetof(vcdProfile_t, video_system) },
+#endif
+#if defined(USE_MAX7456)
     { "vcd_h_offset",               VAR_INT8    | MASTER_VALUE, .config.minmax = { -32, 31 }, PG_VCD_CONFIG, offsetof(vcdProfile_t, h_offset) },
     { "vcd_v_offset",               VAR_INT8    | MASTER_VALUE, .config.minmax = { -15, 16 }, PG_VCD_CONFIG, offsetof(vcdProfile_t, v_offset) },
 #endif

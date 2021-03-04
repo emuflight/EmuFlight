@@ -560,6 +560,7 @@ static CMS_Menu cmsx_menuLaunchControl = {
 
 static uint8_t  cmsx_axis_lock_hz;
 static uint8_t  cmsx_axis_lock_mult;
+static uint8_t  cmsx_axis_smooth_mult;
 static uint8_t  cmsx_feedForwardTransition;
 static uint8_t  cmsx_ff_boost;
 #ifdef USE_INTERPOLATED_SP
@@ -588,6 +589,7 @@ static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
     cmsx_axis_lock_hz = pidProfile->axis_lock_hz;
     cmsx_axis_lock_mult = pidProfile->axis_lock_multiplier;
+    cmsx_axis_smooth_mult = pidProfile->axis_smooth_multiplier;
 
     cmsx_feedForwardTransition  = pidProfile->feedForwardTransition;
     cmsx_ff_boost = pidProfile->ff_boost;
@@ -621,6 +623,7 @@ static const void *cmsx_profileOtherOnExit(displayPort_t *pDisp, const OSD_Entry
     pidProfile_t *pidProfile = pidProfilesMutable(pidProfileIndex);
     pidProfile->axis_lock_hz = cmsx_axis_lock_hz;
     pidProfile->axis_lock_multiplier = cmsx_axis_lock_mult;
+    pidProfile->axis_smooth_multiplier = cmsx_axis_smooth_mult;
 
     pidProfile->feedForwardTransition = cmsx_feedForwardTransition;
     pidProfile->ff_boost = cmsx_ff_boost;
@@ -654,6 +657,7 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
 
     { "AXIS LOCK HZ",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_axis_lock_hz,                 1,    50,   1  }, 0 },
     { "AXIS LOCK MULT",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_axis_lock_mult,               0,    50,   1  }, 0 },
+    { "AXIS SMOOTH MULT", OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_axis_smooth_mult,             0,    50,   1  }, 0 },
 
     { "TPA P",       OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &cmsx_dynThrP,           0,  200,  1, 10}, 0 },
     { "TPA I",       OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &cmsx_dynThrI,           0,  200,  1, 10}, 0 },
