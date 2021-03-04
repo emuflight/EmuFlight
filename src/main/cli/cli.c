@@ -4642,6 +4642,95 @@ static void cliRateProfilesJson(const char *cmdName)
     cliPrint("}]}");
 }
 
+static void cliNemesisStatus(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdName);
+    UNUSED(cmdline);
+
+    cliPrintLine("{");
+    cliPrintLinef("\"cpu\":%d,", constrain(getAverageSystemLoadPercent(), 0, LOAD_PERCENTAGE_ONE));
+    
+    cliPrint("\"arming_disable_flags\":[");
+    armingDisableFlags_e flags = getArmingDisableFlags();
+    while (flags) {
+        const int bitpos = ffs(flags) - 1;
+        flags &= ~(1 << bitpos);
+        cliPrintf("\"%s\"", armingDisableFlagNames[bitpos]);
+        if (flags > 0) {
+            cliPrint(",");
+        }
+    }
+    cliPrint("],"); // end arming_disable_flags
+    cliPrintLinef("\"arming_disable_flags_count\":%d,", ARMING_DISABLE_FLAGS_COUNT);
+    //mode flags also needed by Nemesis, but not used?
+    cliPrintLinef("\"vbat\":%d", getLegacyBatteryVoltage());
+    cliPrintLine("}");
+}
+
+static void cliNemesisAttitude(const char *cmdName, char *cmdline) 
+{
+    UNUSED(cmdName);
+    UNUSED(cmdline);
+    cliPrintLinef("{\"attitude\": [%d , %d , %d]}", attitude.values.roll, attitude.values.pitch, DECIDEGREES_TO_DEGREES(attitude.values.yaw));
+
+}
+
+static void cliNemesisRx(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdName);
+    UNUSED(cmdline);
+    cliPrint("{\"rx\":[");
+    for (int channel = 0; channel < MAX_SUPPORTED_RC_CHANNEL_COUNT; channel++) {
+        const uint8_t rawChannel = channel < RX_MAPPABLE_CHANNEL_COUNT ? rxConfig()->rcmap[channel] : channel;
+        uint16_t sample;
+        sample = rxRuntimeState.rcReadRawFn(&rxRuntimeState, rawChannel);
+        cliPrintf("%d", sample);
+        if (channel < MAX_SUPPORTED_RC_CHANNEL_COUNT - 1) {
+            cliPrint(",");
+        }
+    }
+    cliPrint("], \"rcCommand\": [");
+    for (int axis = 0; axis < 4; axis++) {
+        cliPrintf("%d", lrintf(rcCommand[axis]));
+        if (axis < 3) {
+            cliPrint(",");
+        }
+    }   
+    cliPrint("]}");
+
+}
+static void cliNemesisVbat(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdName);
+    UNUSED(cmdline);
+    cliPrint("{\"vbat\":{");
+    cliPrintLinef("\"cells\":%d,", getBatteryCellCount());
+    cliPrintLinef("\"cap\":%d,", batteryConfig()->batteryCapacity);
+    cliPrintLinef("\"volts\":%d,", getLegacyBatteryVoltage());
+    cliPrintLinef("\"mah\":%d,",getMAhDrawn());
+    cliPrintLinef("\"amps\":%d", getAmperage());
+    cliPrint("}}");
+}
+
+static void cliNemesisGyro(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdName);
+    UNUSED(cmdline);
+    cliPrint("{\"gyro\":{");
+#if defined(USE_ACC)
+    cliPrintLinef("\"acc\": [%d, %d, %d],", attitude.values.roll, attitude.values.pitch, DECIDEGREES_TO_DEGREES(attitude.values.yaw));
+#else
+    cliPrintLine("\"acc\": [0,0,0],");
+#endif
+    cliPrintLinef("\"gyro\": [%d, %d, %d],", gyroRateDps(0), gyroRateDps(1), gyroRateDps(2));
+#if defined(USE_MAG)
+    cliPrintLinef("\"mag\": [%d, %d, %d]", lrintf(mag.magADC[0]), lrintf(mag.magADC[1]), lrintf(mag.magADC[2]));
+#else
+    cliPrintLine("\"mag\": [0,0,0]");
+#endif
+   cliPrint("}}");
+}
+
 static void cliConfig(const char *cmdName, char *cmdline)
 {
     UNUSED(cmdline);
@@ -6693,6 +6782,11 @@ const clicmd_t cmdTable[] = {
 
 #ifdef USE_PEGASUS_UI
     CLI_COMMAND_DEF("config", "get all configuration information", NULL, cliConfig),
+    CLI_COMMAND_DEF("nemesis_status", "get status information in JSON format", NULL, cliNemesisStatus),
+    CLI_COMMAND_DEF("nemesis_attitude", "get attitude information in JSON format", NULL, cliNemesisAttitude),
+    CLI_COMMAND_DEF("nemesis_rx", "get rx information in JSON format", NULL, cliNemesisRx),
+    CLI_COMMAND_DEF("nemesis_vbat", "get vbat information in JSON format", NULL, cliNemesisVbat),
+    CLI_COMMAND_DEF("nemesis_gyro", "get gyro information in JSON format", NULL, cliNemesisGyro),
 #endif
 #ifdef USE_GPS
     CLI_COMMAND_DEF("gpspassthrough", "passthrough gps to serial", NULL, cliGpsPassthrough),
