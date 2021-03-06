@@ -208,13 +208,11 @@ STATIC_UNIT_TESTED void crsfDataReceive(uint16_t c, void *data) {
                             break;
                     }
 #endif
-                    default:
-                        break;
                 }
             }
         }
     }
-}
+
 
 
 STATIC_UNIT_TESTED uint8_t crsfFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig)
@@ -363,4 +361,3 @@ bool crsfRxInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig) 
 bool crsfRxIsActive(void) {
     return serialPort != NULL;
 }
-#endif

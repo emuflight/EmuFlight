@@ -111,7 +111,6 @@ typedef enum {
 #define MOTOR_BIT_1           14
 #define MOTOR_BITLENGTH       19
 #endif /* defined(STM32F446xx) */
-#endif
 
 #if defined(STM32F40_41xxx) // must be multiples of timer clock
 #define ONESHOT125_TIMER_MHZ  12
