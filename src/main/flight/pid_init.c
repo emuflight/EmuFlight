@@ -293,7 +293,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         for (int pid = 0; pid <= 2; pid++) {
             pidRuntime.stickPositionTransition[pid][axis] = (pidProfile->stickTransition[pid][axis] / 100.0f) - 1.0f;
         }
-        pidRuntime.axisLockScaler[axis] = 0.0f;
+        pidRuntime.axisLockScaler[axis] = 1.0f;
     }
     pidRuntime.pidCoefficient[FD_YAW].Kdf = DIRECT_FF_SCALE * pidProfile->pid[FD_YAW].DF;
 
