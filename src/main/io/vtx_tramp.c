@@ -50,7 +50,7 @@ const uint16_t trampPowerTable[VTX_TRAMP_POWER_COUNT] = {
 };
 
 const char * const trampPowerNames[VTX_TRAMP_POWER_COUNT + 1] = {
-    "---", "25 ", "100", "200", "400", "600"
+    "---", "Lv1", "Lv2", "LV3", "LV4", "LV5"
 };
 #endif
 
