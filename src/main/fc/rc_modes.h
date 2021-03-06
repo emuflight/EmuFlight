@@ -40,7 +40,8 @@ typedef enum {
     BOXPASSTHRU,
     BOXFAILSAFE,
     BOXGPSRESCUE,
-    BOXID_FLIGHTMODE_LAST = BOXGPSRESCUE,
+    BOXNFEMODE,
+    BOXID_FLIGHTMODE_LAST = BOXNFEMODE,
 
 // When new flight modes are added, the parameter group version for 'modeActivationConditions' in src/main/fc/rc_modes.c has to be incremented to ensure that the RC modes configuration is reset.
 
@@ -82,7 +83,9 @@ typedef enum {
 } modeLogic_e;
 
 // type to hold enough bits for CHECKBOX_ITEM_COUNT. Struct used for value-like behavior
-typedef struct boxBitmask_s { uint32_t bits[(CHECKBOX_ITEM_COUNT + 31) / 32]; } boxBitmask_t;
+typedef struct boxBitmask_s {
+    uint32_t bits[(CHECKBOX_ITEM_COUNT + 31) / 32];
+} boxBitmask_t;
 
 #define MAX_MODE_ACTIVATION_CONDITION_COUNT 20
 

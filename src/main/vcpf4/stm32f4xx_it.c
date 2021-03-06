@@ -38,8 +38,7 @@ extern uint32_t USBD_OTG_EP1OUT_ISR_Handler (USB_OTG_CORE_HANDLE *pdev);
   * @param  None
   * @retval None
   */
-void NMI_Handler(void)
-{
+void NMI_Handler(void) {
 }
 
 /**
@@ -58,8 +57,7 @@ void SVC_Handler(void)
   * @param  None
   * @retval None
   */
-void DebugMon_Handler(void)
-{
+void DebugMon_Handler(void) {
 }
 
 /**
@@ -101,15 +99,13 @@ void OTG_FS_WKUP_IRQHandler(void)
   * @retval None
   */
 #ifdef USE_USB_OTG_HS
-void OTG_HS_WKUP_IRQHandler(void)
-{
-  if (USB_OTG_dev.cfg.low_power)
-  {
-    *(uint32_t *)(0xE000ED10) &= 0xFFFFFFF9 ;
-    SystemInit();
-    USB_OTG_UngateClock(&USB_OTG_dev);
-  }
-  EXTI_ClearITPendingBit(EXTI_Line20);
+void OTG_HS_WKUP_IRQHandler(void) {
+    if (USB_OTG_dev.cfg.low_power) {
+        *(uint32_t *)(0xE000ED10) &= 0xFFFFFFF9 ;
+        SystemInit();
+        USB_OTG_UngateClock(&USB_OTG_dev);
+    }
+    EXTI_ClearITPendingBit(EXTI_Line20);
 }
 #endif
 
@@ -124,7 +120,7 @@ void OTG_HS_IRQHandler(void)
 void OTG_FS_IRQHandler(void)
 #endif
 {
-  USBD_OTG_ISR_Handler (&USB_OTG_dev);
+    USBD_OTG_ISR_Handler (&USB_OTG_dev);
 }
 
 #ifdef USB_OTG_HS_DEDICATED_EP1_ENABLED
@@ -133,9 +129,8 @@ void OTG_FS_IRQHandler(void)
   * @param  None
   * @retval None
   */
-void OTG_HS_EP1_IN_IRQHandler(void)
-{
-  USBD_OTG_EP1IN_ISR_Handler (&USB_OTG_dev);
+void OTG_HS_EP1_IN_IRQHandler(void) {
+    USBD_OTG_EP1IN_ISR_Handler (&USB_OTG_dev);
 }
 
 /**
@@ -143,8 +138,7 @@ void OTG_HS_EP1_IN_IRQHandler(void)
   * @param  None
   * @retval None
   */
-void OTG_HS_EP1_OUT_IRQHandler(void)
-{
-  USBD_OTG_EP1OUT_ISR_Handler (&USB_OTG_dev);
+void OTG_HS_EP1_OUT_IRQHandler(void) {
+    USBD_OTG_EP1OUT_ISR_Handler (&USB_OTG_dev);
 }
 #endif

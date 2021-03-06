@@ -49,7 +49,7 @@ const uint16_t trampPowerTable[VTX_TRAMP_POWER_COUNT] = {
     25, 100, 200, 400, 600
 };
 
-const char * const trampPowerNames[VTX_TRAMP_POWER_COUNT+1] = {
+const char * const trampPowerNames[VTX_TRAMP_POWER_COUNT + 1] = {
     "---", "25 ", "100", "200", "400", "600"
 };
 #endif
@@ -104,28 +104,22 @@ uint8_t  trampFreqRetries = 0;
 uint16_t trampConfPower = 0;
 uint8_t  trampPowerRetries = 0;
 
-static void trampWriteBuf(uint8_t *buf)
-{
+static void trampWriteBuf(uint8_t *buf) {
     serialWriteBuf(trampSerialPort, buf, 16);
 }
 
-static uint8_t trampChecksum(uint8_t *trampBuf)
-{
+static uint8_t trampChecksum(uint8_t *trampBuf) {
     uint8_t cksum = 0;
-
     for (int i = 1 ; i < 14 ; i++) {
         cksum += trampBuf[i];
     }
-
     return cksum;
 }
 
-void trampCmdU16(uint8_t cmd, uint16_t param)
-{
+void trampCmdU16(uint8_t cmd, uint16_t param) {
     if (!trampSerialPort) {
         return;
     }
-
     memset(trampReqBuffer, 0, ARRAYLEN(trampReqBuffer));
     trampReqBuffer[0] = 15;
     trampReqBuffer[1] = cmd;
@@ -135,74 +129,62 @@ void trampCmdU16(uint8_t cmd, uint16_t param)
     trampWriteBuf(trampReqBuffer);
 }
 
-static bool trampValidateFreq(uint16_t freq)
-{
+static bool trampValidateFreq(uint16_t freq) {
     return (freq >= VTX_TRAMP_MIN_FREQUENCY_MHZ && freq <= VTX_TRAMP_MAX_FREQUENCY_MHZ);
 }
 
-static void trampDevSetFreq(uint16_t freq)
-{
+static void trampDevSetFreq(uint16_t freq) {
     trampConfFreq = freq;
     if (trampConfFreq != trampCurFreq) {
         trampFreqRetries = TRAMP_MAX_RETRIES;
     }
 }
 
-void trampSetFreq(uint16_t freq)
-{
+void trampSetFreq(uint16_t freq) {
     trampSetByFreqFlag = true;         //set freq via MHz value
     trampDevSetFreq(freq);
 }
 
-void trampSendFreq(uint16_t freq)
-{
+void trampSendFreq(uint16_t freq) {
     trampCmdU16('F', freq);
 }
 
-static bool trampValidateBandAndChannel(uint8_t band, uint8_t channel)
-{
+static bool trampValidateBandAndChannel(uint8_t band, uint8_t channel) {
     return (band >= VTX_TRAMP_MIN_BAND && band <= VTX_TRAMP_MAX_BAND &&
             channel >= VTX_TRAMP_MIN_CHANNEL && channel <= VTX_TRAMP_MAX_CHANNEL);
 }
 
-static void trampDevSetBandAndChannel(uint8_t band, uint8_t channel)
-{
+static void trampDevSetBandAndChannel(uint8_t band, uint8_t channel) {
     trampDevSetFreq(vtx58_Bandchan2Freq(band, channel));
 }
 
-void trampSetBandAndChannel(uint8_t band, uint8_t channel)
-{
+void trampSetBandAndChannel(uint8_t band, uint8_t channel) {
     trampSetByFreqFlag = false;        //set freq via band/channel
     trampDevSetBandAndChannel(band, channel);
 }
 
-void trampSetRFPower(uint16_t level)
-{
+void trampSetRFPower(uint16_t level) {
     trampConfPower = level;
     if (trampConfPower != trampPower) {
         trampPowerRetries = TRAMP_MAX_RETRIES;
     }
 }
 
-void trampSendRFPower(uint16_t level)
-{
+void trampSendRFPower(uint16_t level) {
     trampCmdU16('P', level);
 }
 
 // return false if error
-bool trampCommitChanges(void)
-{
+bool trampCommitChanges(void) {
     if (trampStatus != TRAMP_STATUS_ONLINE) {
         return false;
     }
-
     trampStatus = TRAMP_STATUS_SET_FREQ_PW;
     return true;
 }
 
 // return false if index out of range
-static bool trampDevSetPowerByIndex(uint8_t index)
-{
+static bool trampDevSetPowerByIndex(uint8_t index) {
     if (index > 0 && index <= sizeof(trampPowerTable)) {
         trampSetRFPower(trampPowerTable[index - 1]);
         trampCommitChanges();
@@ -211,65 +193,52 @@ static bool trampDevSetPowerByIndex(uint8_t index)
     return false;
 }
 
-void trampSetPitMode(uint8_t onoff)
-{
+void trampSetPitMode(uint8_t onoff) {
     trampCmdU16('I', onoff ? 0 : 1);
 }
 
 // returns completed response code
-char trampHandleResponse(void)
-{
+char trampHandleResponse(void) {
     const uint8_t respCode = trampRespBuffer[1];
-
     switch (respCode) {
-    case 'r':
-        {
-            const uint16_t min_freq = trampRespBuffer[2]|(trampRespBuffer[3] << 8);
-            if (min_freq != 0) {
-                trampRFFreqMin = min_freq;
-                trampRFFreqMax = trampRespBuffer[4]|(trampRespBuffer[5] << 8);
-                trampRFPowerMax = trampRespBuffer[6]|(trampRespBuffer[7] << 8);
-                return 'r';
-            }
-
-            // throw bytes echoed from tx to rx in bidirectional mode away
+    case 'r': {
+        const uint16_t min_freq = trampRespBuffer[2] | (trampRespBuffer[3] << 8);
+        if (min_freq != 0) {
+            trampRFFreqMin = min_freq;
+            trampRFFreqMax = trampRespBuffer[4] | (trampRespBuffer[5] << 8);
+            trampRFPowerMax = trampRespBuffer[6] | (trampRespBuffer[7] << 8);
+            return 'r';
         }
-        break;
-
-    case 'v':
-        {
-            const uint16_t freq = trampRespBuffer[2]|(trampRespBuffer[3] << 8);
-            if (freq != 0) {
-                trampCurFreq = freq;
-                trampConfiguredPower = trampRespBuffer[4]|(trampRespBuffer[5] << 8);
-                trampPitMode = trampRespBuffer[7];
-                trampPower = trampRespBuffer[8]|(trampRespBuffer[9] << 8);
-
-                // if no band/chan match then make sure set-by-freq mode is flagged
-                if (!vtx58_Freq2Bandchan(trampCurFreq, &trampBand, &trampChannel)) {
-                    trampSetByFreqFlag = true;
-                }
-
-                if (trampConfFreq == 0)  trampConfFreq  = trampCurFreq;
-                if (trampConfPower == 0) trampConfPower = trampPower;
-                return 'v';
-            }
-
-            // throw bytes echoed from tx to rx in bidirectional mode away
-        }
-        break;
-
-    case 's':
-        {
-            const uint16_t temp = (int16_t)(trampRespBuffer[6]|(trampRespBuffer[7] << 8));
-            if (temp != 0) {
-                trampTemperature = temp;
-                return 's';
-            }
-        }
-        break;
+        // throw bytes echoed from tx to rx in bidirectional mode away
     }
-
+    break;
+    case 'v': {
+        const uint16_t freq = trampRespBuffer[2] | (trampRespBuffer[3] << 8);
+        if (freq != 0) {
+            trampCurFreq = freq;
+            trampConfiguredPower = trampRespBuffer[4] | (trampRespBuffer[5] << 8);
+            trampPitMode = trampRespBuffer[7];
+            trampPower = trampRespBuffer[8] | (trampRespBuffer[9] << 8);
+            // if no band/chan match then make sure set-by-freq mode is flagged
+            if (!vtx58_Freq2Bandchan(trampCurFreq, &trampBand, &trampChannel)) {
+                trampSetByFreqFlag = true;
+            }
+            if (trampConfFreq == 0)  trampConfFreq  = trampCurFreq;
+            if (trampConfPower == 0) trampConfPower = trampPower;
+            return 'v';
+        }
+        // throw bytes echoed from tx to rx in bidirectional mode away
+    }
+    break;
+    case 's': {
+        const uint16_t temp = (int16_t)(trampRespBuffer[6] | (trampRespBuffer[7] << 8));
+        if (temp != 0) {
+            trampTemperature = temp;
+            return 's';
+        }
+    }
+    break;
+    }
     return 0;
 }
 
@@ -282,14 +251,12 @@ typedef enum {
 static trampReceiveState_e trampReceiveState = S_WAIT_LEN;
 static int trampReceivePos = 0;
 
-static void trampResetReceiver(void)
-{
+static void trampResetReceiver(void) {
     trampReceiveState = S_WAIT_LEN;
     trampReceivePos = 0;
 }
 
-static bool trampIsValidResponseCode(uint8_t code)
-{
+static bool trampIsValidResponseCode(uint8_t code) {
     if (code == 'r' || code == 'v' || code == 's') {
         return true;
     } else {
@@ -298,18 +265,14 @@ static bool trampIsValidResponseCode(uint8_t code)
 }
 
 // returns completed response code or 0
-static char trampReceive(uint32_t currentTimeUs)
-{
+static char trampReceive(uint32_t currentTimeUs) {
     UNUSED(currentTimeUs);
-
     if (!trampSerialPort) {
         return 0;
     }
-
     while (serialRxBytesWaiting(trampSerialPort)) {
         const uint8_t c = serialRead(trampSerialPort);
         trampRespBuffer[trampReceivePos++] = c;
-
         switch (trampReceiveState) {
         case S_WAIT_LEN:
             if (c == 0x0F) {
@@ -318,7 +281,6 @@ static char trampReceive(uint32_t currentTimeUs)
                 trampReceivePos = 0;
             }
             break;
-
         case S_WAIT_CODE:
             if (trampIsValidResponseCode(c)) {
                 trampReceiveState = S_DATA;
@@ -326,76 +288,59 @@ static char trampReceive(uint32_t currentTimeUs)
                 trampResetReceiver();
             }
             break;
-
         case S_DATA:
             if (trampReceivePos == 16) {
                 uint8_t cksum = trampChecksum(trampRespBuffer);
-
                 trampResetReceiver();
-
                 if ((trampRespBuffer[14] == cksum) && (trampRespBuffer[15] == 0)) {
                     return trampHandleResponse();
                 }
             }
             break;
-
         default:
             trampResetReceiver();
             break;
         }
     }
-
     return 0;
 }
 
-void trampQuery(uint8_t cmd)
-{
+void trampQuery(uint8_t cmd) {
     trampResetReceiver();
     trampCmdU16(cmd, 0);
 }
 
-void trampQueryR(void)
-{
+void trampQueryR(void) {
     trampQuery('r');
 }
 
-void trampQueryV(void)
-{
+void trampQueryV(void) {
     trampQuery('v');
 }
 
-void trampQueryS(void)
-{
+void trampQueryS(void) {
     trampQuery('s');
 }
 
-static void vtxTrampProcess(vtxDevice_t *vtxDevice, timeUs_t currentTimeUs)
-{
+static void vtxTrampProcess(vtxDevice_t *vtxDevice, timeUs_t currentTimeUs) {
     UNUSED(vtxDevice);
-
     static timeUs_t lastQueryTimeUs = 0;
     static bool initSettingsDoneFlag = false;
-
 #ifdef TRAMP_DEBUG
     static uint16_t debugFreqReqCounter = 0;
     static uint16_t debugPowReqCounter = 0;
 #endif
-
     if (trampStatus == TRAMP_STATUS_BAD_DEVICE) {
         return;
     }
-
     const char replyCode = trampReceive(currentTimeUs);
-
 #ifdef TRAMP_DEBUG
     debug[0] = trampStatus;
 #endif
-
     switch (replyCode) {
     case 'r':
         if (trampStatus <= TRAMP_STATUS_OFFLINE) {
             trampStatus = TRAMP_STATUS_ONLINE;
-
             // once device is ready enter vtx settings
             if (!initSettingsDoneFlag) {
                 initSettingsDoneFlag = true;
@@ -403,20 +348,16 @@ static void vtxTrampProcess(vtxDevice_t *vtxDevice, timeUs_t currentTimeUs)
             }
         }
         break;
-
     case 'v':
-         if (trampStatus == TRAMP_STATUS_CHECK_FREQ_PW) {
-             trampStatus = TRAMP_STATUS_SET_FREQ_PW;
-         }
-         break;
+        if (trampStatus == TRAMP_STATUS_CHECK_FREQ_PW) {
+            trampStatus = TRAMP_STATUS_SET_FREQ_PW;
+        }
+        break;
     }
-
     switch (trampStatus) {
-
     case TRAMP_STATUS_OFFLINE:
     case TRAMP_STATUS_ONLINE:
         if (cmp32(currentTimeUs, lastQueryTimeUs) > 1000 * 1000) { // 1s
-
             if (trampStatus == TRAMP_STATUS_OFFLINE) {
                 trampQueryR();
             } else {
@@ -427,63 +368,54 @@ static void vtxTrampProcess(vtxDevice_t *vtxDevice, timeUs_t currentTimeUs)
                     trampQueryS();
                 }
             }
-
             lastQueryTimeUs = currentTimeUs;
         }
         break;
-
-    case TRAMP_STATUS_SET_FREQ_PW:
-        {
-            bool done = true;
-            if (trampConfFreq && trampFreqRetries && (trampConfFreq != trampCurFreq)) {
-                trampSendFreq(trampConfFreq);
-                trampFreqRetries--;
+    case TRAMP_STATUS_SET_FREQ_PW: {
+        bool done = true;
+        if (trampConfFreq && trampFreqRetries && (trampConfFreq != trampCurFreq)) {
+            trampSendFreq(trampConfFreq);
+            trampFreqRetries--;
 #ifdef TRAMP_DEBUG
-                debugFreqReqCounter++;
+            debugFreqReqCounter++;
 #endif
-                done = false;
-            } else if (trampConfPower && trampPowerRetries && (trampConfPower != trampConfiguredPower)) {
-                trampSendRFPower(trampConfPower);
-                trampPowerRetries--;
+            done = false;
+        } else if (trampConfPower && trampPowerRetries && (trampConfPower != trampConfiguredPower)) {
+            trampSendRFPower(trampConfPower);
+            trampPowerRetries--;
 #ifdef TRAMP_DEBUG
-                debugPowReqCounter++;
+            debugPowReqCounter++;
 #endif
-                done = false;
-            }
-
-            if (!done) {
-                trampStatus = TRAMP_STATUS_CHECK_FREQ_PW;
-
-                // delay next status query by 300ms
-                lastQueryTimeUs = currentTimeUs + 300 * 1000;
-            } else {
-                // everything has been done, let's return to original state
-                trampStatus = TRAMP_STATUS_ONLINE;
-                // reset configuration value in case it failed (no more retries)
-                trampConfFreq  = trampCurFreq;
-                trampConfPower = trampPower;
-                trampFreqRetries = trampPowerRetries = 0;
-            }
+            done = false;
         }
-        break;
-
+        if (!done) {
+            trampStatus = TRAMP_STATUS_CHECK_FREQ_PW;
+            // delay next status query by 300ms
+            lastQueryTimeUs = currentTimeUs + 300 * 1000;
+        } else {
+            // everything has been done, let's return to original state
+            trampStatus = TRAMP_STATUS_ONLINE;
+            // reset configuration value in case it failed (no more retries)
+            trampConfFreq  = trampCurFreq;
+            trampConfPower = trampPower;
+            trampFreqRetries = trampPowerRetries = 0;
+        }
+    }
+    break;
     case TRAMP_STATUS_CHECK_FREQ_PW:
         if (cmp32(currentTimeUs, lastQueryTimeUs) > 200 * 1000) {
             trampQueryV();
             lastQueryTimeUs = currentTimeUs;
         }
         break;
-
     default:
         break;
     }
-
 #ifdef TRAMP_DEBUG
     debug[1] = debugFreqReqCounter;
     debug[2] = debugPowReqCounter;
     debug[3] = 0;
 #endif
-
 #ifdef USE_CMS
     trampCmsUpdateStatusString();
 #endif
@@ -494,19 +426,16 @@ static void vtxTrampProcess(vtxDevice_t *vtxDevice, timeUs_t currentTimeUs)
 
 // Interface to common VTX API
 
-static vtxDevType_e vtxTrampGetDeviceType(const vtxDevice_t *vtxDevice)
-{
+static vtxDevType_e vtxTrampGetDeviceType(const vtxDevice_t *vtxDevice) {
     UNUSED(vtxDevice);
     return VTXDEV_TRAMP;
 }
 
-static bool vtxTrampIsReady(const vtxDevice_t *vtxDevice)
-{
-    return vtxDevice!=NULL && trampStatus > TRAMP_STATUS_OFFLINE;
+static bool vtxTrampIsReady(const vtxDevice_t *vtxDevice) {
+    return vtxDevice != NULL && trampStatus > TRAMP_STATUS_OFFLINE;
 }
 
-static void vtxTrampSetBandAndChannel(vtxDevice_t *vtxDevice, uint8_t band, uint8_t channel)
-{
+static void vtxTrampSetBandAndChannel(vtxDevice_t *vtxDevice, uint8_t band, uint8_t channel) {
     UNUSED(vtxDevice);
     if (trampValidateBandAndChannel(band, channel)) {
         trampSetBandAndChannel(band, channel);
@@ -514,20 +443,17 @@ static void vtxTrampSetBandAndChannel(vtxDevice_t *vtxDevice, uint8_t band, uint
     }
 }
 
-static void vtxTrampSetPowerByIndex(vtxDevice_t *vtxDevice, uint8_t index)
-{
+static void vtxTrampSetPowerByIndex(vtxDevice_t *vtxDevice, uint8_t index) {
     UNUSED(vtxDevice);
     trampDevSetPowerByIndex(index);
 }
 
-static void vtxTrampSetPitMode(vtxDevice_t *vtxDevice, uint8_t onoff)
-{
+static void vtxTrampSetPitMode(vtxDevice_t *vtxDevice, uint8_t onoff) {
     UNUSED(vtxDevice);
     trampSetPitMode(onoff);
 }
 
-static void vtxTrampSetFreq(vtxDevice_t *vtxDevice, uint16_t freq)
-{
+static void vtxTrampSetFreq(vtxDevice_t *vtxDevice, uint16_t freq) {
     UNUSED(vtxDevice);
     if (trampValidateFreq(freq)) {
         trampSetFreq(freq);
@@ -535,24 +461,20 @@ static void vtxTrampSetFreq(vtxDevice_t *vtxDevice, uint16_t freq)
     }
 }
 
-static bool vtxTrampGetBandAndChannel(const vtxDevice_t *vtxDevice, uint8_t *pBand, uint8_t *pChannel)
-{
+static bool vtxTrampGetBandAndChannel(const vtxDevice_t *vtxDevice, uint8_t *pBand, uint8_t *pChannel) {
     if (!vtxTrampIsReady(vtxDevice)) {
         return false;
     }
-
     // if in user-freq mode then report band as zero
     *pBand = trampSetByFreqFlag ? 0 : trampBand;
     *pChannel = trampChannel;
     return true;
 }
 
-static bool vtxTrampGetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex)
-{
+static bool vtxTrampGetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex) {
     if (!vtxTrampIsReady(vtxDevice)) {
         return false;
     }
-
     if (trampConfiguredPower > 0) {
         for (uint8_t i = 0; i < sizeof(trampPowerTable); i++) {
             if (trampConfiguredPower <= trampPowerTable[i]) {
@@ -561,26 +483,21 @@ static bool vtxTrampGetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex)
             }
         }
     }
-
     return true;
 }
 
-static bool vtxTrampGetPitMode(const vtxDevice_t *vtxDevice, uint8_t *pOnOff)
-{
+static bool vtxTrampGetPitMode(const vtxDevice_t *vtxDevice, uint8_t *pOnOff) {
     if (!vtxTrampIsReady(vtxDevice)) {
         return false;
     }
-
     *pOnOff = trampPitMode;
     return true;
 }
 
-static bool vtxTrampGetFreq(const vtxDevice_t *vtxDevice, uint16_t *pFreq)
-{
+static bool vtxTrampGetFreq(const vtxDevice_t *vtxDevice, uint16_t *pFreq) {
     if (!vtxTrampIsReady(vtxDevice)) {
         return false;
     }
-
     *pFreq = trampCurFreq;
     return true;
 }
@@ -601,10 +518,8 @@ static const vtxVTable_t trampVTable = {
 
 #endif
 
-bool vtxTrampInit(void)
-{
+bool vtxTrampInit(void) {
     serialPortConfig_t *portConfig = findSerialPortConfig(FUNCTION_VTX_TRAMP);
-
     if (portConfig) {
         portOptions_e portOptions = 0;
 #if defined(USE_VTX_COMMON)
@@ -612,18 +527,14 @@ bool vtxTrampInit(void)
 #else
         portOptions = SERIAL_BIDIR;
 #endif
-
         trampSerialPort = openSerialPort(portConfig->identifier, FUNCTION_VTX_TRAMP, NULL, NULL, 9600, MODE_RXTX, portOptions);
     }
-
     if (!trampSerialPort) {
         return false;
     }
-
 #if defined(USE_VTX_COMMON)
     vtxCommonSetDevice(&vtxTramp);
 #endif
-
     return true;
 }
 

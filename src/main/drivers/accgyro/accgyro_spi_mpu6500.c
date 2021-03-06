@@ -39,23 +39,18 @@
 
 #define BIT_SLEEP                   0x40
 
-static void mpu6500SpiInit(const busDevice_t *bus)
-{
+static void mpu6500SpiInit(const busDevice_t *bus) {
 #ifndef USE_DUAL_GYRO
     IOInit(bus->busdev_u.spi.csnPin, OWNER_MPU_CS, 0);
     IOConfigGPIO(bus->busdev_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(bus->busdev_u.spi.csnPin);
 #endif
-
     spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_FAST);
 }
 
-uint8_t mpu6500SpiDetect(const busDevice_t *bus)
-{
+uint8_t mpu6500SpiDetect(const busDevice_t *bus) {
     mpu6500SpiInit(bus);
-
     const uint8_t whoAmI = spiBusReadRegister(bus, MPU_RA_WHO_AM_I);
-
     uint8_t mpuDetected = MPU_NONE;
     switch (whoAmI) {
     case MPU6500_WHO_AM_I_CONST:
@@ -80,28 +75,22 @@ uint8_t mpu6500SpiDetect(const busDevice_t *bus)
     return mpuDetected;
 }
 
-void mpu6500SpiAccInit(accDev_t *acc)
-{
+void mpu6500SpiAccInit(accDev_t *acc) {
     mpu6500AccInit(acc);
 }
 
-void mpu6500SpiGyroInit(gyroDev_t *gyro)
-{
+void mpu6500SpiGyroInit(gyroDev_t *gyro) {
     spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_SLOW);
     delayMicroseconds(1);
-
     mpu6500GyroInit(gyro);
-
     // Disable Primary I2C Interface
     spiBusWriteRegister(&gyro->bus, MPU_RA_USER_CTRL, MPU6500_BIT_I2C_IF_DIS);
     delay(100);
-
     spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_FAST);
     delayMicroseconds(1);
 }
 
-bool mpu6500SpiAccDetect(accDev_t *acc)
-{
+bool mpu6500SpiAccDetect(accDev_t *acc) {
     // MPU6500 is used as a equivalent of other accelerometers by some flight controllers
     switch (acc->mpuDetectionResult.sensor) {
     case MPU_65xx_SPI:
@@ -113,15 +102,12 @@ bool mpu6500SpiAccDetect(accDev_t *acc)
     default:
         return false;
     }
-
     acc->initFn = mpu6500SpiAccInit;
     acc->readFn = mpuAccRead;
-
     return true;
 }
 
-bool mpu6500SpiGyroDetect(gyroDev_t *gyro)
-{
+bool mpu6500SpiGyroDetect(gyroDev_t *gyro) {
     // MPU6500 is used as a equivalent of other gyros by some flight controllers
     switch (gyro->mpuDetectionResult.sensor) {
     case MPU_65xx_SPI:
@@ -137,9 +123,7 @@ bool mpu6500SpiGyroDetect(gyroDev_t *gyro)
     default:
         return false;
     }
-
     gyro->initFn = mpu6500SpiGyroInit;
     gyro->readFn = mpuGyroReadSPI;
-
     return true;
 }

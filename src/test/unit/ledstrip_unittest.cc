@@ -388,4 +388,5 @@ bool isArmingDisabled(void) { return false; }
 
 uint8_t getRssiPercent(void) { return 0; }
 
+void pinioBoxTaskControl(void) {}
 }

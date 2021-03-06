@@ -39,8 +39,7 @@ static volatile uint32_t sysTickValStamp = 0;
 // cached value of RCC->CSR
 uint32_t cachedRccCsrValue;
 
-void cycleCounterInit(void)
-{
+void cycleCounterInit(void) {
 #if defined(USE_HAL_DRIVER)
     usTicks = HAL_RCC_GetSysClockFreq() / 1000000;
 #else
@@ -54,8 +53,7 @@ void cycleCounterInit(void)
 
 static volatile int sysTickPending = 0;
 
-void SysTick_Handler(void)
-{
+void SysTick_Handler(void) {
     ATOMIC_BLOCK(NVIC_PRIO_MAX) {
         sysTickUptime++;
         sysTickValStamp = SysTick->VAL;
@@ -70,109 +68,84 @@ void SysTick_Handler(void)
 
 // Return system uptime in microseconds (rollover in 70minutes)
 
-uint32_t microsISR(void)
-{
+uint32_t microsISR(void) {
     register uint32_t ms, pending, cycle_cnt;
-
     ATOMIC_BLOCK(NVIC_PRIO_MAX) {
         cycle_cnt = SysTick->VAL;
-
         if (SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) {
             // Update pending.
             // Record it for multiple calls within the same rollover period
             // (Will be cleared when serviced).
             // Note that multiple rollovers are not considered.
-
             sysTickPending = 1;
-
             // Read VAL again to ensure the value is read after the rollover.
-
             cycle_cnt = SysTick->VAL;
         }
-
         ms = sysTickUptime;
         pending = sysTickPending;
     }
-
     return ((ms + pending) * 1000) + (usTicks * 1000 - cycle_cnt) / usTicks;
 }
 
-uint32_t micros(void)
-{
+uint32_t micros(void) {
     register uint32_t ms, cycle_cnt;
-
     // Call microsISR() in interrupt and elevated (non-zero) BASEPRI context
-
     if ((SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) || (__get_BASEPRI())) {
         return microsISR();
     }
-
     do {
         ms = sysTickUptime;
         cycle_cnt = SysTick->VAL;
     } while (ms != sysTickUptime || cycle_cnt > sysTickValStamp);
-
     return (ms * 1000) + (usTicks * 1000 - cycle_cnt) / usTicks;
 }
 
 // Return system uptime in milliseconds (rollover in 49 days)
-uint32_t millis(void)
-{
+uint32_t millis(void) {
     return sysTickUptime;
 }
 
 #if 1
-void delayMicroseconds(uint32_t us)
-{
+void delayMicroseconds(uint32_t us) {
     uint32_t now = micros();
     while (micros() - now < us);
 }
 #else
-void delayMicroseconds(uint32_t us)
-{
+void delayMicroseconds(uint32_t us) {
     uint32_t elapsed = 0;
     uint32_t lastCount = SysTick->VAL;
-
     for (;;) {
         register uint32_t current_count = SysTick->VAL;
         uint32_t elapsed_us;
-
         // measure the time elapsed since the last time we checked
         elapsed += current_count - lastCount;
         lastCount = current_count;
-
         // convert to microseconds
         elapsed_us = elapsed / usTicks;
         if (elapsed_us >= us)
             break;
-
         // reduce the delay by the elapsed time
         us -= elapsed_us;
-
         // keep fractional microseconds for the next iteration
         elapsed %= usTicks;
     }
 }
 #endif
 
-void delay(uint32_t ms)
-{
+void delay(uint32_t ms) {
     while (ms--)
         delayMicroseconds(1000);
 }
 
-static void indicate(uint8_t count, uint16_t duration)
-{
+static void indicate(uint8_t count, uint16_t duration) {
     if (count) {
         LED1_ON;
         LED0_OFF;
-
         while (count--) {
             LED1_TOGGLE;
             LED0_TOGGLE;
             BEEP_ON;
             delay(duration);
-
             LED1_TOGGLE;
             LED0_TOGGLE;
             BEEP_OFF;
@@ -181,23 +154,17 @@ static void indicate(uint8_t count, uint16_t duration)
     }
 }
 
-void indicateFailure(failureMode_e mode, int codeRepeatsRemaining)
-{
+void indicateFailure(failureMode_e mode, int codeRepeatsRemaining) {
     while (codeRepeatsRemaining--) {
         indicate(WARNING_FLASH_COUNT, WARNING_FLASH_DURATION_MS);
-
         delay(WARNING_PAUSE_DURATION_MS);
-
         indicate(mode + 1, WARNING_CODE_DURATION_LONG_MS);
-
         delay(1000);
     }
 }
 
-void failureMode(failureMode_e mode)
-{
+void failureMode(failureMode_e mode) {
     indicateFailure(mode, 10);
-
 #ifdef DEBUG
     systemReset();
 #else

@@ -28,8 +28,7 @@
 #define VARIANCE_SCALE 0.67f
 
 
-typedef struct kalman
-{
+typedef struct kalman {
     float q;     //process noise covariance
     float r;     //measurement noise covariance
     float p;     //estimation error covariance matrix
@@ -41,6 +40,7 @@ typedef struct kalman
     float axisVar;
     uint16_t windex;
     float axisWindow[MAX_KALMAN_WINDOW_SIZE];
+    float varianceWindow[MAX_KALMAN_WINDOW_SIZE];
     float axisSumMean;
     float axisMean;
     float axisSumVar;

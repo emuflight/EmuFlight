@@ -44,6 +44,7 @@
 #include "drivers/transponder_ir.h"
 #include "drivers/usb_io.h"
 #include "drivers/vtx_common.h"
+#include "drivers/beesign.h"
 #ifdef USB_CDC_HID
 //TODO: Make it platform independent in the future
 #include "vcpf4/usbd_cdc_vcp.h"
@@ -124,34 +125,27 @@
 
 #include "fc_tasks.h"
 
-static void taskMain(timeUs_t currentTimeUs)
-{
+static void taskMain(timeUs_t currentTimeUs) {
     UNUSED(currentTimeUs);
-
 #ifdef USE_SDCARD
     afatfs_poll();
 #endif
 }
 
 #ifdef USE_OSD_SLAVE
-static bool taskSerialCheck(timeUs_t currentTimeUs, timeDelta_t currentDeltaTimeUs)
-{
+static bool taskSerialCheck(timeUs_t currentTimeUs, timeDelta_t currentDeltaTimeUs) {
     UNUSED(currentTimeUs);
     UNUSED(currentDeltaTimeUs);
-
     return mspSerialWaiting();
 }
 #endif
 
-static void taskHandleSerial(timeUs_t currentTimeUs)
-{
+static void taskHandleSerial(timeUs_t currentTimeUs) {
     UNUSED(currentTimeUs);
-
 #if defined(USE_VCP)
     DEBUG_SET(DEBUG_USB, 0, usbCableIsInserted());
     DEBUG_SET(DEBUG_USB, 1, usbVcpIsConnected());
 #endif
-
 #ifdef USE_CLI
     // in cli mode, all serial stuff goes to here. enter cli mode by sending #
     if (cliMode) {
@@ -167,8 +161,7 @@ static void taskHandleSerial(timeUs_t currentTimeUs)
     mspSerialProcess(evaluateMspData, mspFcProcessCommand, mspFcProcessReply);
 }
 
-static void taskBatteryAlerts(timeUs_t currentTimeUs)
-{
+static void taskBatteryAlerts(timeUs_t currentTimeUs) {
     if (!ARMING_FLAG(ARMED)) {
         // the battery *might* fall out in flight, but if that happens the FC will likely be off too unless the user has battery backup.
         batteryUpdatePresence();
@@ -178,13 +171,11 @@ static void taskBatteryAlerts(timeUs_t currentTimeUs)
 }
 
 #ifndef USE_OSD_SLAVE
-static void taskUpdateAccelerometer(timeUs_t currentTimeUs)
-{
+static void taskUpdateAccelerometer(timeUs_t currentTimeUs) {
     accUpdate(currentTimeUs, &accelerometerConfigMutable()->accelerometerTrims);
 }
 
-static void taskUpdateRxMain(timeUs_t currentTimeUs)
-{
+static void taskUpdateRxMain(timeUs_t currentTimeUs) {
     if (!processRx(currentTimeUs)) {
         return;
     }
@@ -192,18 +183,16 @@ static void taskUpdateRxMain(timeUs_t currentTimeUs)
     if (!ARMING_FLAG(ARMED)) {
         int8_t report[8];
         for (int i = 0; i < 8; i++) {
-	        	report[i] = scaleRange(constrain(rcData[i], 1000, 2000), 1000, 2000, -127, 127);
+            report[i] = scaleRange(constrain(rcData[i], 1000, 2000), 1000, 2000, -127, 127);
         }
         USBD_HID_SendReport(&USB_OTG_dev, (uint8_t*)report, sizeof(report));
     }
 #endif
-
 #ifdef USE_USB_CDC_HID
     if (!ARMING_FLAG(ARMED)) {
         sendRcDataToHid();
     }
 #endif
-
     // updateRcCommands sets rcCommand, which is needed by updateAltHoldState and updateSonarAltHoldState
     updateRcCommands();
     updateArmingStatus();
@@ -211,10 +200,8 @@ static void taskUpdateRxMain(timeUs_t currentTimeUs)
 #endif
 
 #ifdef USE_BARO
-static void taskUpdateBaro(timeUs_t currentTimeUs)
-{
+static void taskUpdateBaro(timeUs_t currentTimeUs) {
     UNUSED(currentTimeUs);
-
     if (sensors(SENSOR_BARO)) {
         const uint32_t newDeadline = baroUpdate();
         if (newDeadline != 0) {
@@ -225,43 +212,34 @@ static void taskUpdateBaro(timeUs_t currentTimeUs)
 #endif
 
 #if defined(USE_BARO) || defined(USE_GPS)
-static void taskCalculateAltitude(timeUs_t currentTimeUs)
-{
+static void taskCalculateAltitude(timeUs_t currentTimeUs) {
     calculateEstimatedAltitude(currentTimeUs);
 }
 #endif // USE_BARO || USE_GPS
 
 #ifdef USE_TELEMETRY
-static void taskTelemetry(timeUs_t currentTimeUs)
-{
+static void taskTelemetry(timeUs_t currentTimeUs) {
     if (!cliMode && feature(FEATURE_TELEMETRY)) {
         subTaskTelemetryPollSensors(currentTimeUs);
-
         telemetryProcess(currentTimeUs);
     }
 }
 #endif
 
 #ifdef USE_CAMERA_CONTROL
-static void taskCameraControl(uint32_t currentTime)
-{
+static void taskCameraControl(uint32_t currentTime) {
     if (ARMING_FLAG(ARMED)) {
         return;
     }
-
     cameraControlProcess(currentTime);
 }
 #endif
 
-void fcTasksInit(void)
-{
+void fcTasksInit(void) {
     schedulerInit();
-
     setTaskEnabled(TASK_MAIN, true);
-
     setTaskEnabled(TASK_SERIAL, true);
     rescheduleTask(TASK_SERIAL, TASK_PERIOD_HZ(serialConfig()->serial_update_rate_hz));
-
     const bool useBatteryVoltage = batteryConfig()->voltageMeterSource != VOLTAGE_METER_NONE;
     setTaskEnabled(TASK_BATTERY_VOLTAGE, useBatteryVoltage);
     const bool useBatteryCurrent = batteryConfig()->currentMeterSource != CURRENT_METER_NONE;
@@ -272,15 +250,12 @@ void fcTasksInit(void)
     const bool useBatteryAlerts = batteryConfig()->useVBatAlerts || batteryConfig()->useConsumptionAlerts || feature(FEATURE_OSD);
 #endif
     setTaskEnabled(TASK_BATTERY_ALERTS, (useBatteryVoltage || useBatteryCurrent) && useBatteryAlerts);
-
 #ifdef USE_TRANSPONDER
     setTaskEnabled(TASK_TRANSPONDER, feature(FEATURE_TRANSPONDER));
 #endif
-
 #ifdef STACK_CHECK
     setTaskEnabled(TASK_STACK_CHECK, true);
 #endif
-
 #ifdef USE_OSD_SLAVE
     setTaskEnabled(TASK_OSD_SLAVE, osdSlaveInitialized());
 #else
@@ -293,17 +268,13 @@ void fcTasksInit(void)
 #endif
         setTaskEnabled(TASK_GYROPID, true);
     }
-
     if (sensors(SENSOR_ACC)) {
         setTaskEnabled(TASK_ACCEL, true);
         rescheduleTask(TASK_ACCEL, DEFAULT_ACC_SAMPLE_INTERVAL);
         setTaskEnabled(TASK_ATTITUDE, true);
     }
-
     setTaskEnabled(TASK_RX, true);
-
     setTaskEnabled(TASK_DISPATCH, dispatchIsEnabled());
-
 #ifdef USE_BEEPER
     setTaskEnabled(TASK_BEEPER, true);
 #endif
@@ -341,6 +312,7 @@ void fcTasksInit(void)
     setTaskEnabled(TASK_TRANSPONDER, feature(FEATURE_TRANSPONDER));
 #endif
 #ifdef USE_OSD
+    rescheduleTask(TASK_OSD, TASK_PERIOD_HZ(osdConfig()->task_frequency));
     setTaskEnabled(TASK_OSD, feature(FEATURE_OSD) && osdInitialized());
 #endif
 #ifdef USE_BST
@@ -353,7 +325,10 @@ void fcTasksInit(void)
     setTaskEnabled(TASK_ADC_INTERNAL, true);
 #endif
 #ifdef USE_PINIOBOX
-    setTaskEnabled(TASK_PINIOBOX, true);
+    pinioBoxTaskControl();
+#endif
+#ifdef USE_BEESIGN
+    setTaskEnabled(TASK_BEESIGN, true);
 #endif
 #if defined(CMS) && !defined(BRAINFPV)
 #ifdef USE_MSP_DISPLAYPORT
@@ -363,7 +338,7 @@ void fcTasksInit(void)
 #endif
 #endif
 #ifdef USE_VTX_CONTROL
-#if defined(USE_VTX_RTC6705) || defined(USE_VTX_SMARTAUDIO) || defined(USE_VTX_TRAMP)
+#if defined(USE_VTX_RTC6705) || defined(USE_VTX_SMARTAUDIO) || defined(USE_VTX_TRAMP)  || defined(USE_VTX_BEESIGN)
     setTaskEnabled(TASK_VTXCTRL, true);
 #endif
 #endif
@@ -649,5 +624,15 @@ FAST_RAM cfTask_t cfTasks[TASK_COUNT] = {
         .staticPriority = TASK_PRIORITY_IDLE
     },
 #endif
+
+#ifdef USE_BEESIGN
+    [TASK_BEESIGN] = {
+        .taskName = "BEESIGN",
+        .taskFunc = beesignUpdate,
+        .desiredPeriod = TASK_PERIOD_HZ(60),
+        .staticPriority = TASK_PRIORITY_LOW
+    },
+#endif
+
 #endif
 };

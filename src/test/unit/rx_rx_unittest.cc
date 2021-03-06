@@ -229,4 +229,7 @@ extern "C" {
     void xBusInit(const rxConfig_t *, rxRuntimeConfig_t *) {}
     void rxMspInit(const rxConfig_t *, rxRuntimeConfig_t *) {}
     void rxPwmInit(const rxConfig_t *, rxRuntimeConfig_t *) {}
+
+    void pinioBoxTaskControl(void) {}
+}
 }

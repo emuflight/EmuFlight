@@ -50,10 +50,8 @@ static displayPort_t mspDisplayPort;
 extern uint8_t cliMode;
 #endif
 
-static int output(displayPort_t *displayPort, uint8_t cmd, uint8_t *buf, int len)
-{
+static int output(displayPort_t *displayPort, uint8_t cmd, uint8_t *buf, int len) {
     UNUSED(displayPort);
-
 #ifdef USE_CLI
     // FIXME There should be no dependency on the CLI but mspSerialPush doesn't check for cli mode, and can't because it also shouldn't have a dependency on the CLI.
     if (cliMode) {
@@ -63,95 +61,76 @@ static int output(displayPort_t *displayPort, uint8_t cmd, uint8_t *buf, int len
     return mspSerialPush(cmd, buf, len, MSP_DIRECTION_REPLY);
 }
 
-static int heartbeat(displayPort_t *displayPort)
-{
+static int heartbeat(displayPort_t *displayPort) {
     uint8_t subcmd[] = { 0 };
-
     // heartbeat is used to:
     // a) ensure display is not released by MW OSD software
     // b) prevent OSD Slave boards from displaying a 'disconnected' status.
     return output(displayPort, MSP_DISPLAYPORT, subcmd, sizeof(subcmd));
 }
 
-static int grab(displayPort_t *displayPort)
-{
+static int grab(displayPort_t *displayPort) {
     return heartbeat(displayPort);
 }
 
-static int release(displayPort_t *displayPort)
-{
+static int release(displayPort_t *displayPort) {
     uint8_t subcmd[] = { 1 };
-
     return output(displayPort, MSP_DISPLAYPORT, subcmd, sizeof(subcmd));
 }
 
-static int clearScreen(displayPort_t *displayPort)
-{
+static int clearScreen(displayPort_t *displayPort) {
     uint8_t subcmd[] = { 2 };
-
     return output(displayPort, MSP_DISPLAYPORT, subcmd, sizeof(subcmd));
 }
 
-static int drawScreen(displayPort_t *displayPort)
-{
+static int drawScreen(displayPort_t *displayPort) {
     uint8_t subcmd[] = { 4 };
     return output(displayPort, MSP_DISPLAYPORT, subcmd, sizeof(subcmd));
 }
 
-static int screenSize(const displayPort_t *displayPort)
-{
+static int screenSize(const displayPort_t *displayPort) {
     return displayPort->rows * displayPort->cols;
 }
 
-static int writeString(displayPort_t *displayPort, uint8_t col, uint8_t row, const char *string)
-{
+static int writeString(displayPort_t *displayPort, uint8_t col, uint8_t row, const char *string) {
 #define MSP_OSD_MAX_STRING_LENGTH 30 // FIXME move this
     uint8_t buf[MSP_OSD_MAX_STRING_LENGTH + 4];
-
     int len = strlen(string);
     if (len >= MSP_OSD_MAX_STRING_LENGTH) {
         len = MSP_OSD_MAX_STRING_LENGTH;
     }
-
     buf[0] = 3;
     buf[1] = row;
     buf[2] = col;
     buf[3] = 0;
     memcpy(&buf[4], string, len);
-
     return output(displayPort, MSP_DISPLAYPORT, buf, len + 4);
 }
 
-static int writeChar(displayPort_t *displayPort, uint8_t col, uint8_t row, uint8_t c)
-{
+static int writeChar(displayPort_t *displayPort, uint8_t col, uint8_t row, uint8_t c) {
     char buf[2];
-
     buf[0] = c;
     buf[1] = 0;
     return writeString(displayPort, col, row, buf); //!!TODO - check if there is a direct MSP command to do this
 }
 
-static bool isTransferInProgress(const displayPort_t *displayPort)
-{
+static bool isTransferInProgress(const displayPort_t *displayPort) {
     UNUSED(displayPort);
     return false;
 }
 
-static bool isSynced(const displayPort_t *displayPort)
-{
+static bool isSynced(const displayPort_t *displayPort) {
     UNUSED(displayPort);
     return true;
 }
 
-static void resync(displayPort_t *displayPort)
-{
+static void resync(displayPort_t *displayPort) {
     displayPort->rows = 13 + displayPortProfileMsp()->rowAdjust; // XXX Will reflect NTSC/PAL in the future
     displayPort->cols = 30 + displayPortProfileMsp()->colAdjust;
     drawScreen(displayPort);
 }
 
-static uint32_t txBytesFree(const displayPort_t *displayPort)
-{
+static uint32_t txBytesFree(const displayPort_t *displayPort) {
     UNUSED(displayPort);
     return mspSerialTxBytesFree();
 }
@@ -171,8 +150,7 @@ static const displayPortVTable_t mspDisplayPortVTable = {
     .txBytesFree = txBytesFree
 };
 
-displayPort_t *displayPortMspInit(void)
-{
+displayPort_t *displayPortMspInit(void) {
     displayInit(&mspDisplayPort, &mspDisplayPortVTable);
     resync(&mspDisplayPort);
     return &mspDisplayPort;

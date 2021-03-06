@@ -35,8 +35,7 @@
 
 PG_REGISTER_WITH_RESET_FN(sdcardConfig_t, sdcardConfig, PG_SDCARD_CONFIG, 0);
 
-void pgResetFn_sdcardConfig(sdcardConfig_t *config)
-{
+void pgResetFn_sdcardConfig(sdcardConfig_t *config) {
     config->useDma = false;
 #ifdef SDCARD_SPI_INSTANCE
     config->enabled = 1;
@@ -57,13 +56,11 @@ void pgResetFn_sdcardConfig(sdcardConfig_t *config)
 #else
     config->chipSelectTag = IO_TAG_NONE;
 #endif
-
 #ifdef SDCARD_DETECT_INVERTED
     config->cardDetectInverted = 1;
 #else
     config->cardDetectInverted = 0;
 #endif
-
 #if defined(SDCARD_DMA_STREAM_TX_FULL)
     config->dmaIdentifier = (uint8_t)dmaGetIdentifier(SDCARD_DMA_STREAM_TX_FULL);
 #elif defined(SDCARD_DMA_CHANNEL_TX)
@@ -72,7 +69,6 @@ void pgResetFn_sdcardConfig(sdcardConfig_t *config)
     config->dmaIdentifier = (uint8_t)dmaGetIdentifier(SDIO_DMA);
     config->useDma = true;
 #endif
-
 #if defined(SDCARD_DMA_CHANNEL)
     config->dmaChannel = SDCARD_DMA_CHANNEL;
 #endif

@@ -53,7 +53,6 @@ static void usartConfigurePinInversion(uartPort_t *uartPort) {
     UNUSED(uartPort);
 #else
     bool inverted = uartPort->port.options & SERIAL_INVERTED;
-
 #ifdef USE_INVERTER
     if (inverted) {
         // Enable hardware inverter if available.
@@ -95,51 +94,42 @@ static void usartConfigurePinInversion(uartPort_t *uartPort) {
 
 #ifdef STM32F303xC
     uint32_t inversionPins = 0;
-
     if (uartPort->port.mode & MODE_TX) {
         inversionPins |= USART_InvPin_Tx;
     }
     if (uartPort->port.mode & MODE_RX) {
         inversionPins |= USART_InvPin_Rx;
     }
-
     USART_InvPinCmd(uartPort->USARTx, inversionPins, inverted ? ENABLE : DISABLE);
 #endif
 #endif
 }
 
-void uartReconfigure(uartPort_t *uartPort)
-{
+void uartReconfigure(uartPort_t *uartPort) {
     USART_InitTypeDef USART_InitStructure;
     USART_Cmd(uartPort->USARTx, DISABLE);
-
     USART_InitStructure.USART_BaudRate = uartPort->port.baudRate;
-
     // according to the stm32 documentation wordlen has to be 9 for parity bits
     // this does not seem to matter for rx but will give bad data on tx!
     // This seems to cause RX to break on STM32F1, see https://github.com/betaflight/betaflight/pull/1654
     if (
 #if defined(STM32F1)
-            false &&
+        false &&
 #endif
-            (uartPort->port.options & SERIAL_PARITY_EVEN)) {
+        (uartPort->port.options & SERIAL_PARITY_EVEN)) {
         USART_InitStructure.USART_WordLength = USART_WordLength_9b;
     } else {
         USART_InitStructure.USART_WordLength = USART_WordLength_8b;
     }
-
     USART_InitStructure.USART_StopBits = (uartPort->port.options & SERIAL_STOPBITS_2) ? USART_StopBits_2 : USART_StopBits_1;
     USART_InitStructure.USART_Parity   = (uartPort->port.options & SERIAL_PARITY_EVEN) ? USART_Parity_Even : USART_Parity_No;
-
     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     USART_InitStructure.USART_Mode = 0;
     if (uartPort->port.mode & MODE_RX)
         USART_InitStructure.USART_Mode |= USART_Mode_Rx;
     if (uartPort->port.mode & MODE_TX)
         USART_InitStructure.USART_Mode |= USART_Mode_Tx;
-
     USART_Init(uartPort->USARTx, &USART_InitStructure);
-
     usartConfigurePinInversion(uartPort);
 
     if (uartPort->port.options & SERIAL_BIDIR) {
@@ -156,19 +146,14 @@ void uartReconfigure(uartPort_t *uartPort)
 #endif
     } else
         USART_HalfDuplexCmd(uartPort->USARTx, DISABLE);
-
     USART_Cmd(uartPort->USARTx, ENABLE);
 }
 
-serialPort_t *uartOpen(UARTDevice_e device, serialReceiveCallbackPtr rxCallback, void *rxCallbackData, uint32_t baudRate, portMode_e mode, portOptions_e options)
-{
+serialPort_t *uartOpen(UARTDevice_e device, serialReceiveCallbackPtr rxCallback, void *rxCallbackData, uint32_t baudRate, portMode_e mode, portOptions_e options) {
     uartPort_t *s = serialUART(device, baudRate, mode, options);
-
     if (!s)
         return (serialPort_t *)s;
-
     s->txDMAEmpty = true;
-
     // common serial initialisation code should move to serialPort::init()
     s->port.rxBufferHead = s->port.rxBufferTail = 0;
     s->port.txBufferHead = s->port.txBufferTail = 0;
@@ -178,9 +163,7 @@ serialPort_t *uartOpen(UARTDevice_e device, serialReceiveCallbackPtr rxCallback,
     s->port.mode = mode;
     s->port.baudRate = baudRate;
     s->port.options = options;
-
     uartReconfigure(s);
-
     // Receive DMA or IRQ
     DMA_InitTypeDef DMA_InitStructure;
     if (mode & MODE_RX) {
@@ -209,7 +192,6 @@ serialPort_t *uartOpen(UARTDevice_e device, serialReceiveCallbackPtr rxCallback,
             DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
 #endif
             DMA_InitStructure.DMA_BufferSize = s->port.rxBufferSize;
-
 #ifdef STM32F4
             DMA_InitStructure.DMA_Channel = s->rxDMAChannel;
             DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
@@ -233,9 +215,9 @@ serialPort_t *uartOpen(UARTDevice_e device, serialReceiveCallbackPtr rxCallback,
         } else {
             USART_ClearITPendingBit(s->USARTx, USART_IT_RXNE);
             USART_ITConfig(s->USARTx, USART_IT_RXNE, ENABLE);
+            USART_ITConfig(s->USARTx, USART_IT_IDLE, ENABLE);
         }
     }
-
     // Transmit DMA or IRQ
     if (mode & MODE_TX) {
 #ifdef STM32F4
@@ -263,7 +245,6 @@ serialPort_t *uartOpen(UARTDevice_e device, serialReceiveCallbackPtr rxCallback,
             DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
 #endif
             DMA_InitStructure.DMA_BufferSize = s->port.txBufferSize;
-
 #ifdef STM32F4
             DMA_InitStructure.DMA_Channel = s->txDMAChannel;
             DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
@@ -286,8 +267,6 @@ serialPort_t *uartOpen(UARTDevice_e device, serialReceiveCallbackPtr rxCallback,
             USART_ITConfig(s->USARTx, USART_IT_TXE, ENABLE);
         }
     }
-
     USART_Cmd(s->USARTx, ENABLE);
-
     return (serialPort_t *)s;
 }

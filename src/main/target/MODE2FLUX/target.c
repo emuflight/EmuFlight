@@ -25,7 +25,7 @@
 #include "drivers/timer_def.h"
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
-   
+
     DEF_TIM(TIM4,  CH1,  PB6, TIM_USE_ANY,                 0, 0), //   CAMERA_CONTROL_PIN
     DEF_TIM(TIM12, CH1, PB14, TIM_USE_PWM | TIM_USE_PPM,   0, 0),
 

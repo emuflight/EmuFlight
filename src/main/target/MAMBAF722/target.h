@@ -39,7 +39,9 @@
 #define USE_PINIO
 #define PINIO1_PIN PB0 // Bluetooth mode control, PB0 is connected to the 36 pin (P2.0) of the Bluetooth chip. Replace PB0 with the pin for your flight control and 36-pin connection
 
+#if !defined(MAMBAF722I2C)
 #define CAMERA_CONTROL_PIN      PB8  // define dedicated camera osd pin
+#endif
 
 // ******* GYRO and ACC ********
 
@@ -60,7 +62,34 @@
 #define USE_ACC_SPI_MPU6000
 #define ACC_MPU6000_ALIGN       CW180_DEG
 
+// *************** Baro ************************
+#define USE_BARO
+#define USE_BARO_MS5611
+#define USE_BARO_BMP280
+#define USE_BARO_BMP085
+
+#define USE_I2C
+#define USE_I2C_DEVICE_1
+#define I2C_DEVICE              (I2CDEV_1)
+#define BARO_I2C_INSTANCE       (I2CDEV_1)
+#if defined(MAMBAF722I2C)
+#define I2C1_SCL                PB8        // SCL pad  PB10, shared with UART3TX
+#define I2C1_SDA                PB9       // SDA pad  PB11, shared with UART3RX
+#else
+#define I2C1_SCL                NONE        // SCL pad  PB10, shared with UART3TX
+#define I2C1_SDA                NONE        // SDA pad  PB11, shared with UART3RX
+#endif
+
+//*********** Magnetometer / Compass *************
+#define USE_MAG
+#define USE_MAG_HMC5883
+#define USE_MAG_QMC5883
+
 // ******* SERIAL ********
+#if defined(MAMBAF722I2C)
+#define USB_DETECT_PIN          PC13
+#define USE_USB_DETECT
+#endif
 
 #define USE_VCP
 #define USE_UART1
@@ -161,4 +190,4 @@
 #define TARGET_IO_PORTD         (BIT(2))
 
 #define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(4) | TIM_N(8) | TIM_N(11) ) 
+#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(4) | TIM_N(8) | TIM_N(11) )

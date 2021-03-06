@@ -29,20 +29,17 @@
 
 
 #define DIGIT_TO_VAL(_x)    (_x - '0')
-uint32_t GPS_coord_to_degrees(const char* coordinateString)
-{
+uint32_t GPS_coord_to_degrees(const char* coordinateString) {
     const char *fieldSeparator, *remainingString;
     uint8_t degress = 0, minutes = 0;
     uint16_t fractionalMinutes = 0;
     uint8_t digitIndex;
-
     // scan for decimal point or end of field
     for (fieldSeparator = coordinateString; isdigit((unsigned char)*fieldSeparator); fieldSeparator++) {
         if (fieldSeparator >= coordinateString + 15)
             return 0; // stop potential fail
     }
     remainingString = coordinateString;
-
     // convert degrees
     while ((fieldSeparator - remainingString) > 2) {
         if (degress)

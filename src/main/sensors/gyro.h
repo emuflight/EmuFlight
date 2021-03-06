@@ -28,25 +28,25 @@
 #include "drivers/sensor.h"
 
 extern float vGyroStdDevModulus;
- typedef enum {
-     GYRO_NONE = 0,
-     GYRO_DEFAULT,
-     GYRO_MPU6050,
-     GYRO_L3G4200D,
-     GYRO_MPU3050,
-     GYRO_L3GD20,
-     GYRO_MPU6000,
-     GYRO_MPU6500,
-     GYRO_MPU9250,
-     GYRO_ICM20601,
-     GYRO_ICM20602,
-     GYRO_ICM20608G,
-     GYRO_ICM20649,
-     GYRO_ICM20689,
-     GYRO_BMI160,
-     GYRO_IMUF9001,
-     GYRO_FAKE
- } gyroSensor_e;
+typedef enum {
+    GYRO_NONE = 0,
+    GYRO_DEFAULT,
+    GYRO_MPU6050,
+    GYRO_L3G4200D,
+    GYRO_MPU3050,
+    GYRO_L3GD20,
+    GYRO_MPU6000,
+    GYRO_MPU6500,
+    GYRO_MPU9250,
+    GYRO_ICM20601,
+    GYRO_ICM20602,
+    GYRO_ICM20608G,
+    GYRO_ICM20649,
+    GYRO_ICM20689,
+    GYRO_BMI160,
+    GYRO_IMUF9001,
+    GYRO_FAKE
+} gyroSensor_e;
 
 typedef struct gyro_s {
     uint32_t targetLooptime;
@@ -94,6 +94,10 @@ typedef struct gyroConfig_s {
     uint16_t gyro_lowpass_hz[XYZ_AXIS_COUNT];
     uint16_t gyro_lowpass2_hz[XYZ_AXIS_COUNT];
 
+    uint16_t gyro_ABG_alpha;
+    uint16_t gyro_ABG_boost;
+    uint8_t gyro_ABG_half_life;
+
     uint16_t gyro_soft_notch_hz_1;
     uint16_t gyro_soft_notch_cutoff_1;
     uint16_t gyro_soft_notch_hz_2;
@@ -111,6 +115,7 @@ typedef struct gyroConfig_s {
     uint16_t gyroCalibrationDuration;  // Gyro calibration duration in 1/100 second
     uint16_t dyn_notch_q_factor;
     uint16_t dyn_notch_min_hz;
+    uint16_t dyn_notch_max_hz;
 #if defined(USE_GYRO_IMUF9001)
     uint16_t imuf_mode;
     uint16_t imuf_rate;

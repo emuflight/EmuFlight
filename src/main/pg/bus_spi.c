@@ -53,8 +53,7 @@ const spiDefaultConfig_t spiDefaultConfig[] = {
 
 PG_REGISTER_ARRAY_WITH_RESET_FN(spiPinConfig_t, SPIDEV_COUNT, spiPinConfig, PG_SPI_PIN_CONFIG, 1);
 
-void pgResetFn_spiPinConfig(spiPinConfig_t *spiPinConfig)
-{
+void pgResetFn_spiPinConfig(spiPinConfig_t *spiPinConfig) {
     for (size_t i = 0 ; i < ARRAYLEN(spiDefaultConfig) ; i++) {
         const spiDefaultConfig_t *defconf = &spiDefaultConfig[i];
         spiPinConfig[defconf->device].ioTagSck = defconf->sck;
@@ -131,10 +130,8 @@ ioTag_t preinitIPUList[SPI_PREINIT_IPU_COUNT] = {
     IO_TAG(NONE)
 };
 
-void pgResetFn_spiPreinitIPUConfig(spiCs_t *config)
-{
+void pgResetFn_spiPreinitIPUConfig(spiCs_t *config) {
     int puPins = 0;
-
     for (int i = 0 ; i < SPI_PREINIT_IPU_COUNT ; i++) {
         for (int j = 0 ; j < i ; j++) {
             if (config[j].csnTag == preinitIPUList[i]) {
@@ -142,7 +139,8 @@ void pgResetFn_spiPreinitIPUConfig(spiCs_t *config)
             }
         }
         config[puPins++].csnTag = preinitIPUList[i];
-    next:;
+next:
+        ;
     }
 }
 #endif

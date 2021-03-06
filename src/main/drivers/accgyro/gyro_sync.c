@@ -35,12 +35,11 @@
 #include "drivers/accgyro/gyro_sync.h"
 
 
-bool gyroSyncCheckUpdate(gyroDev_t *gyro)
-{
+bool gyroSyncCheckUpdate(gyroDev_t *gyro) {
     bool ret;
     if (gyro->dataReady) {
         ret = true;
-        gyro->dataReady= false;
+        gyro->dataReady = false;
     } else {
         ret = false;
     }
