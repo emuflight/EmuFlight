@@ -1,0 +1,132 @@
+on:
+  push:
+    tags:
+    - '*'
+    branches:
+    - '*'
+  pull_request:
+    branches:
+    - '*'
+  # repository_dispatch is a newer github-actions feature that will allow building from triggers other than code merge/PR
+  repository_dispatch:
+    types: [build]
+
+name: Build EmuFlight 1
+jobs:
+  build:
+    timeout-minutes: 75
+    strategy:
+      max-parallel: 3
+      matrix:
+        targets: [unified, targets-f4, targets-f7]
+    runs-on: ubuntu-latest
+    steps:
+
+    # curl, by default, may timeout easily
+    - name: curl fix
+      run: function curl () { command curl --connect-timeout 30 --retry 10 "$@" ; }
+
+    - name: Checkout
+      uses: actions/checkout@master
+      with:
+        fetch-depth: 0
+
+    - name: Take the trash out
+      run: |
+        sudo swapoff -a
+        sudo rm -f /swapfile
+        sudo apt clean
+        docker rmi -f $(docker image ls -aq)
+        sync
+        df -h
+      continue-on-error: true
+
+    - name: Setup Python
+      uses: actions/setup-python@master
+      with:
+        python-version: 2.x
+
+    - name: Setup Toolchain
+      uses: fiam/arm-none-eabi-gcc@master
+      with:
+        release: '9-2020-q2' # The arm-none-eabi-gcc release to use.
+
+    - name: Get code version
+      id: get_version
+      run: echo "VERSION=$(make version)" >> $GITHUB_ENV
+
+    # for Makefile interaction
+    - name: Get GitHub Build Number (ENV)
+      id: get_buildno
+      run: echo "GITHUBBUILDNUMBER=${{ github.run_number }}" >> $GITHUB_ENV
+      continue-on-error: true
+
+    - name: Get pull request number
+      id: get_pullno
+      run: echo "PULL_NUMBER=$(echo "$GITHUB_REF" | awk -F / '{print $3}')" >> $GITHUB_ENV
+      if: startsWith(github.ref, 'refs/pull/')
+
+    - name: Get revision tag
+      id: get_revtag
+      run: echo "REVISION_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+      if: startsWith(github.ref, 'refs/tags/')
+
+    - name: Make artifact name
+      id: make_artifactname
+      run: |
+        if [[ "${{ github.REPOSITORY }}" == "emuflight/EmuFlight" ]] ; then
+          ARTIFACT_NAME="EmuFlight-${{ env.VERSION }}-${{ github.run_number }}"
+        else
+          ARTIFACT_NAME="EmuFlight-${{ env.VERSION }}-${{ github.ACTOR }}-${{ github.run_number }}"
+        fi
+        echo "${ARTIFACT_NAME}"
+        echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
+
+    # for debugging
+    - name: Show Variables
+      id: show_vars
+      run: |
+        echo "Actor: ${{ github.ACTOR }}"
+        echo "Repo: ${{ github.REPOSITORY }}"
+        echo "Build: ${{ github.run_number }}"
+        echo "Firmware: ${{ env.VERSION }}"
+        echo "Commit: ${{ github.sha }}"
+        echo "Tag: ${{ env.REVISION_TAG}}"
+        echo "Artifact name: ${{ env.ARTIFACT_NAME }}"
+      continue-on-error: true
+
+    - name: Compile Code
+      run: |
+        make ${{ matrix.targets }}
+
+    # Upload the Builds to ZIP file with existing SHA in .hex names
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@master
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: obj/*.hex
+
+    # Rename .hex for Releases
+    - name: Rename Artifacts
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        sudo apt -y install rename
+        cd obj
+        rename 's/_Build_.*/.hex/' *.hex
+
+    - name: Draft Release
+      uses: softprops/action-gh-release@master
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: obj/*.hex
+        draft: true
+        prerelease: true
+        tag_name: ${{ github.run_number }}   # use the build Number, but we manually change to version so that it creates a version-tag on release
+        name:  DRAFT / EmuFlight ${{ env.VERSION }} / GitHub Build ${{ github.run_number }}
+        body: |
+          # EmuFlight ${{ env.VERSION }}
+          ## BuildTag: ${{ env.REVISION_TAG}}
+          ## Commit: ${{ github.sha }}
+          ## Changes in this Release:
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
