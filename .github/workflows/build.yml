@@ -16,9 +16,9 @@ jobs:
   build:
     timeout-minutes: 75
     strategy:
-      max-parallel: 3
+      max-parallel: 1            #edit for number of make targets
       matrix:
-        targets: [unified, targets-f4, targets-f7]
+        targets: [unified]       #edit for each target group [unified, targets-f4, targets-f7]
     runs-on: ubuntu-latest
     steps:
 
