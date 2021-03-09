@@ -4646,9 +4646,22 @@ static void cliNemesisStatus(const char *cmdName, char *cmdline)
 {
     UNUSED(cmdName);
     UNUSED(cmdline);
-
+    //get max cpu load sum using the same computation as tasks command
+    int maxLoadSum = 0;
+    for (taskId_e taskId = 0; taskId < TASK_COUNT; taskId++) {
+        taskInfo_t taskInfo;
+        getTaskInfo(taskId, &taskInfo);
+        if (taskInfo.isEnabled) {
+            int taskFrequency = taskInfo.averageDeltaTimeUs == 0 ? 0 : lrintf(1e6f / taskInfo.averageDeltaTimeUs);
+            const int maxLoad = taskInfo.maxExecutionTimeUs == 0 ? 0 :(taskInfo.maxExecutionTimeUs * taskFrequency + 5000) / 1000;
+            if (taskId != TASK_SERIAL) {
+                maxLoadSum += maxLoad;
+            }
+            schedulerResetTaskMaxExecutionTime(taskId);
+        }
+    }
     cliPrintLine("{");
-    cliPrintLinef("\"cpu\":%d,", constrain(getAverageSystemLoadPercent(), 0, LOAD_PERCENTAGE_ONE));
+    cliPrintLinef("\"cpu\":%25d.%1d,", maxLoadSum/10, maxLoadSum%10); // does not include the trailing % sign
     
     cliPrint("\"arming_disable_flags\":[");
     armingDisableFlags_e flags = getArmingDisableFlags();
