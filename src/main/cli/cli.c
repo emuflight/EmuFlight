@@ -4747,6 +4747,15 @@ static void cliNemesisGyro(const char *cmdName, char *cmdline)
    cliPrint("}}");
 }
 
+static void cliNemesisCalibAcc(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdName);
+    UNUSED(cmdline);
+    if (!ARMING_FLAG(ARMED))
+        accStartCalibration();
+    cliPrintLine("OK");
+}
+
 static void cliConfig(const char *cmdName, char *cmdline)
 {
     UNUSED(cmdline);
@@ -6803,6 +6812,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("nemesis_rx", "get rx information in JSON format", NULL, cliNemesisRx),
     CLI_COMMAND_DEF("nemesis_vbat", "get vbat information in JSON format", NULL, cliNemesisVbat),
     CLI_COMMAND_DEF("nemesis_gyro", "get gyro information in JSON format", NULL, cliNemesisGyro),
+    CLI_COMMAND_DEF("nemesis_calib_acc", "calibrate accelerometer", NULL, cliNemesisCalibAcc),
 #endif
 #ifdef USE_GPS
     CLI_COMMAND_DEF("gpspassthrough", "passthrough gps to serial", NULL, cliGpsPassthrough),
