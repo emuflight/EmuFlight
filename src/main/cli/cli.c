@@ -4523,7 +4523,10 @@ static void printSerialJson(const serialConfig_t *serialConfig)
 {
     cliPrintLine(",");
     cliPrintLine("\"ports\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
-    for (uint32_t i = 0; i < SERIAL_PORT_COUNT && serialIsPortAvailable(serialConfig->portConfigs[i].identifier); i++) {
+    for (uint32_t i = 0; i < SERIAL_PORT_COUNT; i++) {
+        if (!serialIsPortAvailable(serialConfig->portConfigs[i].identifier)) {
+            continue;
+        };
         if (i > 0)
         {
             cliPrintLine(",");
