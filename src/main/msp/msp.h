@@ -65,8 +65,5 @@ typedef void (*mspProcessReplyFnPtr)(mspPacket_t *cmd);
 void mspInit(void);
 mspResult_e mspFcProcessCommand(mspDescriptor_t srcDesc, mspPacket_t *cmd, mspPacket_t *reply, mspPostProcessFnPtr *mspPostProcessFn);
 void mspFcProcessReply(mspPacket_t *reply);
-bool mspCommonProcessOutCommand(int16_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr *mspPostProcessFn);
-bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst);
-mspResult_e mspCommonProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, sbuf_t *src, mspPostProcessFnPtr *mspPostProcessFn);
-mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, sbuf_t *src);
+
 mspDescriptor_t mspDescriptorAlloc(void);

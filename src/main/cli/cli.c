@@ -4781,55 +4781,6 @@ static void cliConfig(const char *cmdName, char *cmdline)
 }
 #endif
 
-#ifdef USE_MSP_OVER_CLI
-static void hex2byte(char *string, uint8_t *output) {
-    char tempBuff[3];
-    tempBuff[0] = string[0];
-    tempBuff[1] = string[1];
-    tempBuff[2] = 0;
-    *output = (uint8_t)strtol(tempBuff, NULL, 16);
-}
-
-sbuf_t buft;
-uint8_t bufPtr[256];
-
-void cliMsp(char *cmdline) {
-    int len = strlen(cmdline);
-    if (len == 0) {
-        cliPrintLine("No MSP command present");
-        return;
-    } else {
-        uint8_t mspCommand = atoi(cmdline);
-        uint8_t start = 2;
-        if (mspCommand > 99) {
-            start = 4;
-        } else if (mspCommand > 9) {
-            start = 3;
-        }
-        uint8_t inBuff[len];
-        uint8_t output;
-        for (int i = 0; i < len; i++) {
-            hex2byte(&cmdline[(i * 2) + start], &output);
-            inBuff[i] = output;
-        }
-        sbuf_t inBuf = {.ptr = inBuff, .end = &inBuff[len - 1]};
-        //TODO need to fill inPtr with the rest of the bytes from the command line
-        buft.ptr = buft.end = bufPtr;
-        if (mspCommonProcessOutCommand(mspCommand, &buft, NULL) || mspProcessOutCommand(mspCommand, &buft)
-                || mspCommonProcessInCommand(mspCommand, &inBuf, NULL) > -1 || mspProcessInCommand(mspCommand, &inBuf) > -1) {
-            bufWriterAppend(cliWriter, '.');                 //"." is success
-            bufWriterAppend(cliWriter, mspCommand);          //msp command sent
-            bufWriterAppend(cliWriter, inBuf.ptr - inBuf.end);                  //msp command sent
-            bufWriterAppend(cliWriter, buft.ptr - buft.end); //number of chars
-            while (buft.end <= buft.ptr)
-                bufWriterAppend(cliWriter, *(buft.end)++); //send data
-        } else {
-            bufWriterAppend(cliWriter, '!'); //"!" is failure
-        }
-    }
-}
-#endif
-
 static uint8_t getWordLength(char *bufBegin, char *bufEnd)
 {
     while (*(bufEnd - 1) == ' ') {
@@ -6852,9 +6803,6 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("nemesis_rx", "get rx information in JSON format", NULL, cliNemesisRx),
     CLI_COMMAND_DEF("nemesis_vbat", "get vbat information in JSON format", NULL, cliNemesisVbat),
     CLI_COMMAND_DEF("nemesis_gyro", "get gyro information in JSON format", NULL, cliNemesisGyro),
-#endif
-#ifdef USE_MSP_OVER_CLI
-    CLI_COMMAND_DEF("msp", NULL, NULL, cliMsp),
 #endif
 #ifdef USE_GPS
     CLI_COMMAND_DEF("gpspassthrough", "passthrough gps to serial", NULL, cliGpsPassthrough),
