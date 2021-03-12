@@ -148,7 +148,7 @@
 #define USE_RESOURCE_MGMT
 #define USE_RUNAWAY_TAKEOFF     // Runaway Takeoff Prevention (anti-taz) - Marked for removal
 #define USE_TELEMETRY
-#define USE_TELEMETRY_FRSKY_HUB
+//#define USE_TELEMETRY_FRSKY_HUB
 //#define USE_TELEMETRY_HOTT
 //#define USE_TELEMETRY_LTM
 #define USE_TELEMETRY_SMARTPORT
