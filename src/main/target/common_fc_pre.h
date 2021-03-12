@@ -172,7 +172,7 @@
 #define USE_PINIO
 #define USE_PINIOBOX
 #define USE_RCDEVICE
-#define USE_RTC_TIME
+//#define USE_RTC_TIME
 //#define USE_RX_MSP
 #define USE_SERIALRX_FPORT      // FrSky FPort
 #define USE_TELEMETRY_CRSF
