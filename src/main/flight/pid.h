@@ -58,6 +58,9 @@ typedef enum {
     PID_LEVEL_LOW, //pid controller for low errorAngle
     PID_LEVEL_HIGH, //pid controller for high errorAngle
     PID_MAG,
+    PID_ACC_ROLL,
+    PID_ACC_PITCH,
+    PID_ACC_YAW,
     PID_ITEM_COUNT
 } pidIndex_e;
 

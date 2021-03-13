@@ -23,6 +23,7 @@
 #include "common/axis.h"
 #include "common/filter.h"
 #include "common/time.h"
+#include "common/kalman.h"
 
 #include "drivers/accgyro/accgyro.h"
 #include "drivers/bus.h"
@@ -97,6 +98,8 @@ typedef struct gyro_s {
 
     filterApplyFnPtr alphaBetaGammaApplyFn;
     alphaBetaGammaFilter_t alphaBetaGamma[XYZ_AXIS_COUNT];
+
+    kalman_t kalmanFilterStateRate[XYZ_AXIS_COUNT];
 
 #ifdef USE_GYRO_DATA_ANALYSE
     gyroAnalyseState_t gyroAnalyseState;
