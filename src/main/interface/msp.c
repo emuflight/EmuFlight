@@ -1015,6 +1015,8 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, rxConfig()->rcInterpolation);
         sbufWriteU8(dst, rxConfig()->rcInterpolationInterval);
         sbufWriteU16(dst, rxConfig()->airModeActivateThreshold * 10 + 1000);
+        //added in MSP 1.51
+        sbufWriteU8(dst, rxConfig()->sbus_baud_fast);
 #ifdef USE_RX_SPI
         sbufWriteU8(dst, rxSpiConfig()->rx_spi_protocol);
         sbufWriteU32(dst, rxSpiConfig()->rx_spi_id);
@@ -1194,6 +1196,13 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentPidProfile->dFilter[YAW].Wc);
         sbufWriteU16(dst, gyroConfig()->dyn_notch_q_factor);
         sbufWriteU16(dst, gyroConfig()->dyn_notch_min_hz);
+        //added in MSP 1.51
+        sbufWriteU16(dst, gyroConfig()->gyro_ABG_alpha);
+        sbufWriteU16(dst, gyroConfig()->gyro_ABG_boost);
+        sbufWriteU8(dst, gyroConfig()->gyro_ABG_half_life);
+        sbufWriteU16(dst, currentPidProfile->dterm_ABG_alpha);
+        sbufWriteU16(dst, currentPidProfile->dterm_ABG_boost);
+        sbufWriteU8(dst, currentPidProfile->dterm_ABG_half_life);
         break;
     /*#ifndef USE_GYRO_IMUF9001
         case MSP_FAST_KALMAN:
@@ -1277,6 +1286,16 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentPidProfile->setPointITransition[YAW]);
         sbufWriteU8(dst, currentPidProfile->setPointDTransition[YAW]);
         sbufWriteU8(dst, 0); // was NFE_RACE_MODE now made into a flight mode
+        //added is MSP 1.51
+        sbufWriteU8(dst, currentPidProfile->linear_thrust_low_output);
+        sbufWriteU8(dst, currentPidProfile->linear_thrust_high_output);
+        sbufWriteU8(dst, currentPidProfile->linear_throttle);
+        sbufWriteU8(dst, currentPidProfile->mixer_impl);
+        sbufWriteU8(dst, currentPidProfile->mixer_laziness);
+        sbufWriteU8(dst, currentPidProfile->directFF_yaw);
+        sbufWriteU8(dst, currentPidProfile->axis_lock_hz);
+        sbufWriteU8(dst, currentPidProfile->axis_lock_multiplier);
+        sbufWriteU8(dst, currentPidProfile->emuGravityGain);
         break;
         case MSP_SENSOR_CONFIG:
         sbufWriteU8(dst, accelerometerConfig()->acc_hardware);
@@ -1770,6 +1789,14 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
             currentPidProfile->dFilter[YAW].Wc = sbufReadU8(src);
             gyroConfigMutable()->dyn_notch_q_factor = sbufReadU16(src);
             gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
+            //added in MSP 1.51
+            gyroConfigMutable()->gyro_ABG_alpha = sbufReadU16(src);
+            gyroConfigMutable()->gyro_ABG_boost = sbufReadU16(src);
+            gyroConfigMutable()->gyro_ABG_half_life = sbufReadU8(src);
+            currentPidProfile->dterm_ABG_alpha = sbufReadU16(src);
+            currentPidProfile->dterm_ABG_boost = sbufReadU16(src);
+            currentPidProfile->dterm_ABG_half_life = sbufReadU8(src);
+
         }
         // reinitialize the gyro filters with the new values
         validateAndFixGyroConfig();
@@ -1863,6 +1890,16 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         currentPidProfile->setPointITransition[YAW] = sbufReadU8(src);
         currentPidProfile->setPointDTransition[YAW] = sbufReadU8(src);
         sbufReadU8(src); // was NFE_RACE_MODE now its a flight mode.
+        //added in MSP 1.51
+        currentPidProfile->linear_thrust_low_output = sbufReadU8(src);
+        currentPidProfile->linear_thrust_high_output = sbufReadU8(src);
+        currentPidProfile->linear_throttle = sbufReadU8(src);
+        currentPidProfile->mixer_impl = sbufReadU8(src);
+        currentPidProfile->mixer_laziness = sbufReadU8(src);
+        currentPidProfile->directFF_yaw = sbufReadU8(src);
+        currentPidProfile->axis_lock_hz = sbufReadU8(src);
+        currentPidProfile->axis_lock_multiplier = sbufReadU8(src);
+        currentPidProfile->emuGravityGain = sbufReadU8(src);
         }
         pidInitConfig(currentPidProfile);
         break;
@@ -2042,6 +2079,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         rxConfigMutable()->rcInterpolationInterval = sbufReadU8(src);
         rxConfigMutable()->airModeActivateThreshold = (sbufReadU16(src) - 1000) / 10;
         }
+        //added in MSP 1.51
+        rxConfigMutable()->sbus_baud_fast = sbufReadU8(src);
         if (sbufBytesRemaining(src) >= 6) {
 #ifdef USE_RX_SPI
         rxSpiConfigMutable()->rx_spi_protocol = sbufReadU8(src);
