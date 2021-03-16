@@ -73,10 +73,7 @@ const char pidNames[] =
     "YAW;"
     "LEVEL_L;"
     "LEVEL_H;"
-    "MAG;"
-    "ACC_R;"
-    "ACC_P;"
-    "ACC_Y;";
+    "MAG;";
 
 FAST_DATA_ZERO_INIT uint32_t targetPidLooptime;
 FAST_DATA_ZERO_INIT pidAxisData_t pidData[XYZ_AXIS_COUNT];
@@ -126,9 +123,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
             [PID_LEVEL_LOW] =  {100, 0,  10, 40, 70 },
             [PID_LEVEL_HIGH] = { 35, 0,  1,  0,  0 },
             [PID_MAG] =        { 40, 0,  0,  0,  0 },
-            [PID_ACC_ROLL] =   { 0,  0,  0,  0,  100 },
-            [PID_ACC_PITCH] =  { 0,  0,  0,  0,  100 },
-            [PID_ACC_YAW] =    { 0,  0,  0,  0,  100 },
         },
         .stickTransition = {
           { 110, 110, 130 }, // p roll, p pitch, p yaw
@@ -549,43 +543,6 @@ static FAST_CODE void axisLockScaling(void) {
       }
 }
 
-// Experimental ACC pidController
-float FAST_CODE accPidController(int axis, float delta, float setPoint) {
-    static float previousAcceleration[XYZ_AXIS_COUNT];
-    static float previousDelta[XYZ_AXIS_COUNT];
-    static float Iterm[XYZ_AXIS_COUNT];
-
-    // reverse direction of delta as it comes from dterm which is reverse direction to the acceleration
-    // rescale delta to remove the dterm scaling (rework this later if this cascading is worthwhile)
-    // this data comes prefiltered from the dterm, so make sure you are filtering well, lol
-    delta = -delta / pidRuntime.pidCoefficient[axis].Kd;
-    float acceleration = (delta - previousDelta[axis]) * pidRuntime.pidFrequency;
-    previousDelta[axis] = delta;
-
-    // directFF just pases through the pidsum from the velocity controller.
-    // this should make up the bulk of the controller.
-    float directFF = setPoint * pidRuntime.pidCoefficient[axis + 6].Kdf;
-
-    // calculate the errorRate
-    setPoint = setPoint / 25.0f;
-    float accelerationErrorRate = setPoint - acceleration;
-
-    // calculate Pterm
-    float Pterm = accelerationErrorRate * pidRuntime.pidCoefficient[axis + 6].Kp;
-
-    // calculate the Iterm
-    Iterm[axis] += accelerationErrorRate * pidRuntime.pidCoefficient[axis + 6].Ki * pidRuntime.dT;
-
-    // calculate the Dterm
-    float accelerationDerivative = - (acceleration - previousAcceleration[axis]);
-    previousAcceleration[axis] = accelerationDerivative;
-    float Dterm = accelerationDerivative * pidRuntime.pidCoefficient[axis + 6].Kd * pidRuntime.pidFrequency;
-    // i'll add filtering later if this seems worthwhile at all.
-
-    float pidSum = Pterm + Iterm[axis] + Dterm + directFF;
-    return pidSum;
-}
-
 // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
 // Based on 2DOF reference design (matlab)
 void FAST_CODE pidController(const pidProfile_t *pidProfile)
@@ -792,7 +749,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
         // -----calculate D component
         // disable D if launch control is active
-        float delta = 0.0f;
         if ((pidRuntime.pidCoefficient[axis].Kd > 0) && !launchControlActive) {
 
             // Divide rate change by dT to get differential (ie dr/dt).
@@ -946,8 +902,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + pidData[axis].F;
 
         pidData[axis].Sum = pidSum * pidRuntime.axisLockScaler[axis];
-
-        //pidData[axis].Sum = accPidController(axis, delta, pidData[axis].Sum);
 
     }
 
