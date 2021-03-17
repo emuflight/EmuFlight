@@ -1015,8 +1015,6 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, rxConfig()->rcInterpolation);
         sbufWriteU8(dst, rxConfig()->rcInterpolationInterval);
         sbufWriteU16(dst, rxConfig()->airModeActivateThreshold * 10 + 1000);
-        //added in MSP 1.51
-        sbufWriteU8(dst, rxConfig()->sbus_baud_fast);
 #ifdef USE_RX_SPI
         sbufWriteU8(dst, rxSpiConfig()->rx_spi_protocol);
         sbufWriteU32(dst, rxSpiConfig()->rx_spi_id);
@@ -1046,6 +1044,8 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
 #else
         sbufWriteU8(dst, 0);
 #endif
+        //added in MSP 1.51
+        sbufWriteU8(dst, rxConfig()->sbus_baud_fast);
         break;
     case MSP_FAILSAFE_CONFIG:
         sbufWriteU8(dst, failsafeConfig()->failsafe_delay);
