@@ -1039,13 +1039,14 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
 #endif
+        //added in MSP 1.51
+        sbufWriteU8(dst, rxConfig()->sbus_baud_fast);
+        //end 1.51
 #if defined(USE_USB_CDC_HID)
         sbufWriteU8(dst, usbDevConfig()->type);
 #else
         sbufWriteU8(dst, 0);
 #endif
-        //added in MSP 1.51
-        sbufWriteU8(dst, rxConfig()->sbus_baud_fast);
         break;
     case MSP_FAILSAFE_CONFIG:
         sbufWriteU8(dst, failsafeConfig()->failsafe_delay);
@@ -1203,6 +1204,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, currentPidProfile->dterm_ABG_alpha);
         sbufWriteU16(dst, currentPidProfile->dterm_ABG_boost);
         sbufWriteU8(dst, currentPidProfile->dterm_ABG_half_life);
+        //end 1.51
         break;
     /*#ifndef USE_GYRO_IMUF9001
         case MSP_FAST_KALMAN:
@@ -1296,6 +1298,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentPidProfile->axis_lock_hz);
         sbufWriteU8(dst, currentPidProfile->axis_lock_multiplier);
         sbufWriteU8(dst, currentPidProfile->emuGravityGain);
+        //end 1.51
         break;
         case MSP_SENSOR_CONFIG:
         sbufWriteU8(dst, accelerometerConfig()->acc_hardware);
@@ -1796,7 +1799,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
             currentPidProfile->dterm_ABG_alpha = sbufReadU16(src);
             currentPidProfile->dterm_ABG_boost = sbufReadU16(src);
             currentPidProfile->dterm_ABG_half_life = sbufReadU8(src);
-
+            //end 1.51
         }
         // reinitialize the gyro filters with the new values
         validateAndFixGyroConfig();
@@ -1900,6 +1903,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         currentPidProfile->axis_lock_hz = sbufReadU8(src);
         currentPidProfile->axis_lock_multiplier = sbufReadU8(src);
         currentPidProfile->emuGravityGain = sbufReadU8(src);
+        //end 1.51
         }
         pidInitConfig(currentPidProfile);
         break;
@@ -2079,8 +2083,6 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         rxConfigMutable()->rcInterpolationInterval = sbufReadU8(src);
         rxConfigMutable()->airModeActivateThreshold = (sbufReadU16(src) - 1000) / 10;
         }
-        //added in MSP 1.51
-        rxConfigMutable()->sbus_baud_fast = sbufReadU8(src);
         if (sbufBytesRemaining(src) >= 6) {
 #ifdef USE_RX_SPI
         rxSpiConfigMutable()->rx_spi_protocol = sbufReadU8(src);
@@ -2113,8 +2115,13 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
 #endif
         }
         if (sbufBytesRemaining(src) >= 1) {
-        // Added in MSP API 1.40
-        // Kept separate from the section above to work around missing Configurator support in version < 10.4.2
+        //added in MSP 1.51
+        if (sbufBytesRemaining(src) >= 1) {
+            rxConfigMutable()->sbus_baud_fast = sbufReadU8(src);
+        }
+        //end 1.51
+// Added in MSP API 1.40
+// Kept separate from the section above to work around missing Configurator support in version < 10.4.2
 #if defined(USE_USB_CDC_HID)
         usbDevConfigMutable()->type = sbufReadU8(src);
 #else
