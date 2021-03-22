@@ -61,8 +61,6 @@ typedef float (applyRatesFn)(const int axis, float rcCommandf, const float rcCom
 #ifdef USE_INTERPOLATED_SP
 // Setpoint in degrees/sec before RC-Smoothing is applied
 static float rawSetpoint[XYZ_AXIS_COUNT];
-// Stick deflection [-1.0, 1.0] before RC-Smoothing is applied
-static float rawDeflection[XYZ_AXIS_COUNT];
 #endif
 static float last_predicted_rc[4];
 static float setpointRate[3], rcDeflection[3], rcDeflectionAbs[3];
@@ -75,7 +73,7 @@ static float rcCommandDivider = 500.0f;
 static float rcCommandYawDivider = 500.0f;
 
 FAST_DATA_ZERO_INIT uint8_t interpolationChannels;
-static FAST_DATA_ZERO_INIT uint32_t rcFrameNumber;
+static FAST_DATA_ZERO_INIT bool newRxDataForFF;
 
 enum {
     ROLL_FLAG = 1 << ROLL,
@@ -99,12 +97,18 @@ enum {
 static FAST_DATA_ZERO_INIT rcSmoothingFilter_t rcSmoothingData;
 #endif // USE_RC_SMOOTHING_FILTER
 
-uint32_t getRcFrameNumber()
+bool getShouldUpdateFf()
+// only used in pid.c when interpolated_sp is active to initiate a new FF value
 {
-    return rcFrameNumber;
+    const bool updateFf = newRxDataForFF;
+    if (newRxDataForFF == true){
+        newRxDataForFF = false;
+    }
+    return updateFf;
 }
 
 float getSetpointRate(int axis)
+// only used in pid.c to provide setpointRate for the crash recovery function
 {
     return setpointRate[axis];
 }
@@ -138,11 +142,6 @@ float getThrottleDAttenuation(void)
 float getRawSetpoint(int axis)
 {
     return rawSetpoint[axis];
-}
-
-float getRawDeflection(int axis)
-{
-    return rawDeflection[axis];
 }
 
 #endif
@@ -218,11 +217,6 @@ float applyActualRates(const int axis, float rcCommandf, const float rcCommandfA
 float applyCurve(int axis, float deflection)
 {
     return applyRates(axis, deflection, fabsf(deflection));
-}
-
-float getRcCurveSlope(int axis, float deflection)
-{
-    return (applyCurve(axis, deflection + 0.01f) - applyCurve(axis, deflection)) * 100.0f;
 }
 
 static void calculateSetpointRate(int axis)
@@ -731,10 +725,7 @@ FAST_CODE void processRcCommand(timeUs_t currentTimeUs)
 {
     uint8_t updatedChannel;
     if (isRxDataNew) {
-        rcFrameNumber++;
-        for (int i = 0; i < PRIMARY_CHANNEL_COUNT; ++i) {
-            last_predicted_rc[i] = rcCommand[i];
-        }
+        newRxDataForFF = true;
     }
 
     if (isRxDataNew && pidAntiGravityEnabled()) {
@@ -756,7 +747,6 @@ FAST_CODE void processRcCommand(timeUs_t currentTimeUs)
             }
             const float rcCommandfAbs = fabsf(rcCommandf);
             rawSetpoint[i] = applyRates(i, rcCommandf, rcCommandfAbs);
-            rawDeflection[i] = rcCommandf;
         }
     }
 #endif
