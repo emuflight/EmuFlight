@@ -119,6 +119,8 @@ typedef enum {
     DEBUG_ABG_STATE,
     DEBUG_D_ABG_STATE,
     DEBUG_RC_PREDICTOR,
+    DEBUG_LYNCH,
+    DEBUG_LYNCH_ANGLE,
     DEBUG_COUNT
 } debugType_e;
 

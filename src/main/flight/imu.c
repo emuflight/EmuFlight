@@ -37,6 +37,7 @@
 #include "drivers/time.h"
 
 #include "fc/runtime_config.h"
+#include "fc/rc.h"
 
 #include "flight/gps_rescue.h"
 #include "flight/imu.h"
@@ -106,6 +107,22 @@ STATIC_UNIT_TESTED bool attitudeIsEstablished = false;
 // quaternion of sensor frame relative to earth frame
 STATIC_UNIT_TESTED quaternion q = QUATERNION_INITIALIZE;
 STATIC_UNIT_TESTED quaternionProducts qP = QUATERNION_PRODUCTS_INITIALIZE;
+
+quaternion qM[6] = {QUATERNION_INITIALIZE, QUATERNION_INITIALIZE, QUATERNION_INITIALIZE, QUATERNION_INITIALIZE, QUATERNION_INITIALIZE, QUATERNION_INITIALIZE};
+quaternionProducts qPM[6] = {QUATERNION_PRODUCTS_INITIALIZE, QUATERNION_PRODUCTS_INITIALIZE, QUATERNION_PRODUCTS_INITIALIZE, QUATERNION_PRODUCTS_INITIALIZE, QUATERNION_PRODUCTS_INITIALIZE, QUATERNION_PRODUCTS_INITIALIZE};
+
+quaternion qLM[6] = {QUATERNION_INITIALIZE, QUATERNION_INITIALIZE, QUATERNION_INITIALIZE, QUATERNION_INITIALIZE, QUATERNION_INITIALIZE, QUATERNION_INITIALIZE};
+quaternion qTM[6] = {QUATERNION_INITIALIZE, QUATERNION_INITIALIZE, QUATERNION_INITIALIZE, QUATERNION_INITIALIZE, QUATERNION_INITIALIZE, QUATERNION_INITIALIZE};
+
+float thrust[6], pitch[6], roll[6];
+float anglePitch, angleRoll;
+
+quaternion qA = QUATERNION_INITIALIZE;
+quaternionProducts qPA = QUATERNION_PRODUCTS_INITIALIZE;
+
+// quaternion qThrustTransition = QUATERNION_INITIALIZE;
+quaternionProducts qPThrustTranslation = QUATERNION_PRODUCTS_INITIALIZE;
+
 // headfree quaternions
 quaternion headfree = QUATERNION_INITIALIZE;
 quaternion offset = QUATERNION_INITIALIZE;
@@ -123,7 +140,16 @@ PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
     .level_recovery_time = 2500,
     .level_recovery_coef = 5,
     .level_recovery_threshold = 1900,
+    .roll = {0, 0, 0, 0, 0, 0},
+    .pitch = {0, 0, 0, 0, 0, 0},
+    .yaw = {0, 0, 0, 0, 0, 0},
+    .debugMotor = 1,
 );
+
+static float invSqrt(float x)
+{
+    return 1.0f / sqrtf(x);
+}
 
 static void imuQuaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd)
 {
@@ -139,7 +165,7 @@ static void imuQuaternionComputeProducts(quaternion *quat, quaternionProducts *q
     quatProd->zz = quat->z * quat->z;
 }
 
-STATIC_UNIT_TESTED void imuComputeRotationMatrix(void){
+STATIC_UNIT_TESTED void imuComputeRotationMatrix(void) {
     imuQuaternionComputeProducts(&q, &qP);
 
     rMat[0][0] = 1.0f - 2.0f * qP.yy - 2.0f * qP.zz;
@@ -173,6 +199,76 @@ static float calculateThrottleAngleScale(uint16_t throttle_correction_angle)
     return (1800.0f / M_PIf) * (900.0f / throttle_correction_angle);
 }
 
+static void imuComputeMotorQuatOffset(quaternionProducts *quatProd, int16_t initialRoll, int16_t initialPitch, int16_t initialYaw)
+{
+    if (initialRoll > 1800) {
+        initialRoll -= 3600;
+    }
+
+    if (initialPitch > 1800) {
+        initialPitch -= 3600;
+    }
+
+    if (initialYaw > 1800) {
+        initialYaw -= 3600;
+    }
+
+    const float cosRoll = cos_approx(DECIDEGREES_TO_RADIANS(initialRoll) * 0.5f);
+    const float sinRoll = sin_approx(DECIDEGREES_TO_RADIANS(initialRoll) * 0.5f);
+
+    const float cosPitch = cos_approx(DECIDEGREES_TO_RADIANS(initialPitch) * 0.5f);
+    const float sinPitch = sin_approx(DECIDEGREES_TO_RADIANS(initialPitch) * 0.5f);
+
+    const float cosYaw = cos_approx(DECIDEGREES_TO_RADIANS(-initialYaw) * 0.5f);
+    const float sinYaw = sin_approx(DECIDEGREES_TO_RADIANS(-initialYaw) * 0.5f);
+
+    const float q0 = cosRoll * cosPitch * cosYaw + sinRoll * sinPitch * sinYaw;
+    const float q1 = sinRoll * cosPitch * cosYaw - cosRoll * sinPitch * sinYaw;
+    const float q2 = cosRoll * sinPitch * cosYaw + sinRoll * cosPitch * sinYaw;
+    const float q3 = cosRoll * cosPitch * sinYaw - sinRoll * sinPitch * cosYaw;
+
+    quatProd->xx = sq(q1);
+    quatProd->yy = sq(q2);
+    quatProd->zz = sq(q3);
+    quatProd->ww = sq(q0);
+
+    quatProd->xy = q1 * q2;
+    quatProd->xz = q1 * q3;
+    quatProd->yz = q2 * q3;
+
+    quatProd->wx = q0 * q1;
+    quatProd->wy = q0 * q2;
+    quatProd->wz = q0 * q3;
+}
+
+
+void imuQuaternionMultiplicationProd(quaternion *q1, quaternionProducts *q2, quaternion *result)
+{
+    float q2w = sqrt(q2->ww);
+    float q2x = sqrt(q2->xx);
+    float q2y = sqrt(q2->yy);
+    float q2z = sqrt(q2->zz);
+    const float A = (q1->w + q1->x) * (q2w + q2x);
+    const float B = (q1->z - q1->y) * (q2y - q2z);
+    const float C = (q1->w - q1->x) * (q2y + q2z);
+    const float D = (q1->y + q1->z) * (q2w - q2x);
+    const float E = (q1->x + q1->z) * (q2x + q2y);
+    const float F = (q1->x - q1->z) * (q2x - q2y);
+    const float G = (q1->w + q1->y) * (q2w - q2z);
+    const float H = (q1->w - q1->y) * (q2w + q2z);
+
+    result->w = B + (- E - F + G + H) / 2.0f;
+    result->x = A - (+ E + F + G + H) / 2.0f;
+    result->y = C + (+ E - F + G - H) / 2.0f;
+    result->z = D + (+ E - F - G + H) / 2.0f;
+    // Normalise quaternion
+    float recipNorm = invSqrt(sq(result->w) + sq(result->x) + sq(result->y) + sq(result->z));
+    result->w *= recipNorm;
+    result->x *= recipNorm;
+    result->y *= recipNorm;
+    result->z *= recipNorm;
+}
+
 void imuConfigure(uint16_t throttle_correction_angle, uint8_t throttle_correction_value)
 {
     imuRuntimeConfig.dcm_kp = imuConfig()->dcm_kp / 10000.0f;
@@ -189,6 +285,13 @@ void imuConfigure(uint16_t throttle_correction_angle, uint8_t throttle_correctio
     throttleAngleScale = calculateThrottleAngleScale(throttle_correction_angle);
 
     throttleAngleValue = throttle_correction_value;
+
+    // initialize the quaternion offset for each motor
+    for (int motor = 0; motor < 6; motor++) {
+        imuComputeMotorQuatOffset(&qPM[motor], imuConfig()->roll[motor]*10, imuConfig()->pitch[motor]*10, imuConfig()->yaw[motor]*10);
+    }
+    imuComputeMotorQuatOffset(&qPA, 0, 0, 0);
+    imuComputeMotorQuatOffset(&qPThrustTranslation, 0, 0, 0);
 }
 
 void imuInit(void)
@@ -209,15 +312,12 @@ void imuInit(void)
 }
 
 #if defined(USE_ACC)
-static float invSqrt(float x)
-{
-    return 1.0f / sqrtf(x);
-}
 
 static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
-                                bool useAcc, float ax, float ay, float az,
+                                float useAcc, float ax, float ay, float az,
                                 bool useMag,
-                                bool useCOG, float courseOverGround, const float dcmKpGain)
+                                bool useCOG, float courseOverGround, const float dcmKpGain
+                              )
 {
     static float integralFBx = 0.0f,  integralFBy = 0.0f, integralFBz = 0.0f;    // integral error terms scaled by Ki
 
@@ -286,9 +386,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
         az *= recipAccNorm;
 
         // Error is sum of cross product between estimated direction and measured direction of gravity
-        ex += (ay * rMat[2][2] - az * rMat[2][1]);
-        ey += (az * rMat[2][0] - ax * rMat[2][2]);
-        ez += (ax * rMat[2][1] - ay * rMat[2][0]);
+        ex += (ay * rMat[2][2] - az * rMat[2][1]) * useAcc;
+        ey += (az * rMat[2][0] - ax * rMat[2][2]) * useAcc;
+        ez += (ax * rMat[2][1] - ay * rMat[2][0]) * useAcc;
     }
 
     // Compute and apply integral feedback if enabled
@@ -340,10 +440,35 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     attitudeIsEstablished = true;
 }
 
+void setNewLevel(void) {
+   static int inAngleMode = 0;
+   if (FLIGHT_MODE(ANGLE_MODE) && inAngleMode == 0) {
+    inAngleMode = 1;
+    imuComputeMotorQuatOffset(&qPA, attitude.values.roll, attitude.values.pitch, 0);
+  } else if (!FLIGHT_MODE(ANGLE_MODE)) {
+    inAngleMode = 0;
+  }
+}
+float translationThrustFix = 1;
+
+void applyThrustTransition(void) {
+    if(FLIGHT_MODE(LYNCH_TRANSLATE) && FLIGHT_MODE(ANGLE_MODE)) {
+        float rollTranslation = getRcDeflection(ROLL)*450;
+        float pitchTranslation = getRcDeflection(PITCH)*450;
+        imuComputeMotorQuatOffset(&qPThrustTranslation, rollTranslation, pitchTranslation, 0);
+        translationThrustFix = cos_approx(DEGREES_TO_RADIANS(rollTranslation/10)) * cos_approx(DEGREES_TO_RADIANS(pitchTranslation/10));
+        translationThrustFix = 1 / translationThrustFix;
+    } else {
+        imuComputeMotorQuatOffset(&qPThrustTranslation, 0, 0, 0);
+        translationThrustFix = 1;
+    }
+}
+
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void)
 {
     quaternionProducts buffer;
-
+    static int changedToAngle = 0;
+    static int motorsSetup = 0;
     if (FLIGHT_MODE(HEADFREE_MODE)) {
        imuQuaternionComputeProducts(&headfree, &buffer);
 
@@ -351,17 +476,68 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void)
        attitude.values.pitch = lrintf(((0.5f * M_PIf) - acos_approx(+2.0f * (buffer.wy - buffer.xz))) * (1800.0f / M_PIf));
        attitude.values.yaw = lrintf((-atan2_approx((+2.0f * (buffer.wz + buffer.xy)), (+1.0f - 2.0f * (buffer.yy + buffer.zz))) * (1800.0f / M_PIf)));
     } else {
-       attitude.values.roll = lrintf(atan2_approx(rMat[2][1], rMat[2][2]) * (1800.0f / M_PIf));
+       attitude.values.roll = lrintf(((0.5f * M_PIf) - acos_approx(rMat[2][1])) * (1800.0f / M_PIf));
        attitude.values.pitch = lrintf(((0.5f * M_PIf) - acos_approx(-rMat[2][0])) * (1800.0f / M_PIf));
        attitude.values.yaw = lrintf((-atan2_approx(rMat[1][0], rMat[0][0]) * (1800.0f / M_PIf)));
     }
+
+    applyThrustTransition();
+    for (int motor = 0; motor < 6; motor++) {
+
+    if (FLIGHT_MODE(SET_LYNCH_MODE) || (FLIGHT_MODE(ANGLE_MODE) && changedToAngle == 0) || motorsSetup == 0) {
+    imuQuaternionMultiplicationProd(&q, &qPM[motor], &qM[motor]);
+    qLM[motor] = qM[motor];
+    }
+    imuQuaternionMultiplicationProd(&qLM[motor], &qPThrustTranslation, &qTM[motor]);
+
+    float temporaryThrust = 1.0f - 2.0f * qTM[motor].x*qLM[motor].x - 2.0f * qTM[motor].y*qTM[motor].y;
+    float temporaryPitch = lrintf(((0.5f * M_PIf) - acos_approx(-(2.0f * (qTM[motor].x*qTM[motor].z - qTM[motor].w*qTM[motor].y)))) * (1800.0f / M_PIf));
+    float temporaryRoll = lrintf(((0.5f * M_PIf) - acos_approx((2.0f * (qTM[motor].y*qTM[motor].z + qTM[motor].w*qTM[motor].x)))) * (1800.0f / M_PIf));
+
+      if (motor == imuConfig()->debugMotor - 1) {
+          DEBUG_SET(DEBUG_LYNCH, 0, lrintf(attitude.values.roll));
+          DEBUG_SET(DEBUG_LYNCH, 1, lrintf(temporaryRoll));
+          DEBUG_SET(DEBUG_LYNCH, 2, lrintf(temporaryPitch));
+          DEBUG_SET(DEBUG_LYNCH, 3, lrintf(temporaryThrust*1000));
+      }
+
+// recalculate the thrust of the motors. do this when entering angle mode or while in set lynch mode
+      if (FLIGHT_MODE(SET_LYNCH_MODE) || (FLIGHT_MODE(ANGLE_MODE) && changedToAngle == 0) || (FLIGHT_MODE(ANGLE_MODE) && FLIGHT_MODE(LYNCH_TRANSLATE))) {
+        thrust[motor] = temporaryThrust;
+        pitch[motor] = temporaryPitch;
+        roll[motor] = temporaryRoll;
+      }
+    }
+
+    if (!FLIGHT_MODE(ANGLE_MODE)) {
+      changedToAngle = 0;
+    } else {
+      changedToAngle = 1;
+    }
+    motorsSetup = 1;
+
+    attitude.values.roll = lrintf(atan2_approx(rMat[2][1], rMat[2][2]) * (1800.0f / M_PIf));
+
+    setNewLevel();
+
+    attitude.values.roll = lrintf(((0.5f * M_PIf) - acos_approx(rMat[2][1])) * (1800.0f / M_PIf));
+
+    imuQuaternionMultiplicationProd(&q, &qPA, &qA);
+
+    anglePitch = lrintf(((0.5f * M_PIf) - acos_approx(-(2.0f * (qA.x*qA.z - qA.w*qA.y)))) * (1800.0f / M_PIf));
+    angleRoll = lrintf(((0.5f * M_PIf) - acos_approx((2.0f * (qA.y*qA.z + qA.w*qA.x)))) * (1800.0f / M_PIf));
+
+    DEBUG_SET(DEBUG_LYNCH_ANGLE, 0, lrintf(attitude.values.roll));
+    DEBUG_SET(DEBUG_LYNCH_ANGLE, 1, lrintf(attitude.values.pitch));
+    DEBUG_SET(DEBUG_LYNCH_ANGLE, 2, lrintf(angleRoll));
+    DEBUG_SET(DEBUG_LYNCH_ANGLE, 3, lrintf(anglePitch));
 
     if (attitude.values.yaw < 0) {
         attitude.values.yaw += 3600;
     }
 }
 
-static bool imuIsAccelerometerHealthy(float *accAverage)
+static float imuIsAccelerometerHealthy(float *accAverage)
 {
     float accMagnitudeSq = 0;
     for (int axis = 0; axis < 3; axis++) {
@@ -371,8 +547,16 @@ static bool imuIsAccelerometerHealthy(float *accAverage)
 
     accMagnitudeSq = accMagnitudeSq * sq(acc.dev.acc_1G_rec);
 
+    float accStrength = 0.0f;
     // Accept accel readings only in range 0.9g - 1.1g
-    return (0.81f < accMagnitudeSq) && (accMagnitudeSq < 1.21f);
+    if ((0.5f < accMagnitudeSq) && (accMagnitudeSq < 1.69f)) {
+        if (accMagnitudeSq > 1.0f) {
+            accStrength = scaleRangef(accMagnitudeSq, 0.5, 1.0f, 0.0f, 1.0f);
+        } else {
+            accStrength = scaleRangef(accMagnitudeSq, 1.0f, 1.69f, 1.0f, 0.0f);
+        }
+    }
+    return accStrength;
 }
 
 // Calculate the dcmKpGain to use. When armed, the gain is imuRuntimeConfig.dcm_kp * 1.0 scaling.
@@ -381,7 +565,7 @@ static bool imuIsAccelerometerHealthy(float *accAverage)
 //   - wait for a 250ms period of low gyro activity to ensure the craft is not moving
 //   - use a large dcmKpGain value for 500ms to allow the attitude estimate to quickly converge
 //   - reset the gain back to the standard setting
-static float imuCalcKpGain(timeUs_t currentTimeUs, bool useAcc, float *gyroAverage)
+static float imuCalcKpGain(timeUs_t currentTimeUs, float useAcc, float *gyroAverage)
 {
     static bool lastArmState = false;
     static timeUs_t gyroQuietPeriodTimeEnd = 0;
@@ -526,10 +710,27 @@ static void imuComputeQuaternionFromRPY(quaternionProducts *quatProd, int16_t in
 }
 #endif
 
+void imuQuaternionMultiplication(quaternion *q1, quaternion *q2, quaternion *result)
+{
+    const float A = (q1->w + q1->x) * (q2->w + q2->x);
+    const float B = (q1->z - q1->y) * (q2->y - q2->z);
+    const float C = (q1->w - q1->x) * (q2->y + q2->z);
+    const float D = (q1->y + q1->z) * (q2->w - q2->x);
+    const float E = (q1->x + q1->z) * (q2->x + q2->y);
+    const float F = (q1->x - q1->z) * (q2->x - q2->y);
+    const float G = (q1->w + q1->y) * (q2->w - q2->z);
+    const float H = (q1->w - q1->y) * (q2->w + q2->z);
+
+    result->w = B + (- E - F + G + H) / 2.0f;
+    result->x = A - (+ E + F + G + H) / 2.0f;
+    result->y = C + (+ E - F + G - H) / 2.0f;
+    result->z = D + (+ E - F - G + H) / 2.0f;
+}
+
 static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
 {
     static timeUs_t previousIMUUpdateTime;
-    bool useAcc = false;
+    float useAcc = 0;
     bool useMag = false;
     bool useCOG = false; // Whether or not correct yaw via imuMahonyAHRSupdate from our ground course
     float courseOverGround = 0; // To be used when useCOG is true.  Stored in Radians
@@ -667,6 +868,36 @@ float getCosTiltAngle(void)
     return rMat[2][2];
 }
 
+float getMotorThrust(int motor)
+{
+    return thrust[motor];
+}
+
+float getMotorPitch(int motor)
+{
+    return pitch[motor];
+}
+
+float getMotorRoll(int motor)
+{
+    return roll[motor];
+}
+
+float getTranslationThrustFix(void) {
+    return translationThrustFix;
+}
+
+float getAngleAngle(int axis)
+{
+    if (axis == ROLL) {
+        return angleRoll;
+    } else if (axis == PITCH) {
+        return anglePitch;
+    }
+
+    return 0;
+}
+
 void getQuaternion(quaternion *quat)
 {
    quat->w = q.w;
@@ -733,22 +964,6 @@ bool imuQuaternionHeadfreeOffsetSet(void)
     }
 }
 
-void imuQuaternionMultiplication(quaternion *q1, quaternion *q2, quaternion *result)
-{
-    const float A = (q1->w + q1->x) * (q2->w + q2->x);
-    const float B = (q1->z - q1->y) * (q2->y - q2->z);
-    const float C = (q1->w - q1->x) * (q2->y + q2->z);
-    const float D = (q1->y + q1->z) * (q2->w - q2->x);
-    const float E = (q1->x + q1->z) * (q2->x + q2->y);
-    const float F = (q1->x - q1->z) * (q2->x - q2->y);
-    const float G = (q1->w + q1->y) * (q2->w - q2->z);
-    const float H = (q1->w - q1->y) * (q2->w + q2->z);
-
-    result->w = B + (- E - F + G + H) / 2.0f;
-    result->x = A - (+ E + F + G + H) / 2.0f;
-    result->y = C + (+ E - F + G - H) / 2.0f;
-    result->z = D + (+ E - F - G + H) / 2.0f;
-}
 
 void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v)
 {

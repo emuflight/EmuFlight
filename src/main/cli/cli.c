@@ -253,7 +253,7 @@ static const char * const mixerNames[] = {
     "FLYING_WING", "Y4", "HEX6X", "OCTOX8", "OCTOFLATP", "OCTOFLATX",
     "AIRPLANE", "HELI_120_CCPM", "HELI_90_DEG", "VTAIL4",
     "HEX6H", "PPM_TO_SERVO", "DUALCOPTER", "SINGLECOPTER",
-    "ATAIL4", "CUSTOM", "CUSTOMAIRPLANE", "CUSTOMTRI", "QUADX1234", NULL
+    "ATAIL4", "CUSTOM", "CUSTOMAIRPLANE", "CUSTOMTRI", "QUADX1234", "LYNCH", NULL
 };
 #endif
 
@@ -4649,7 +4649,7 @@ static void cliNemesisStatus(const char *cmdName, char *cmdline)
 
     cliPrintLine("{");
     cliPrintLinef("\"cpu\":%d,", constrain(getAverageSystemLoadPercent(), 0, LOAD_PERCENTAGE_ONE));
-    
+
     cliPrint("\"arming_disable_flags\":[");
     armingDisableFlags_e flags = getArmingDisableFlags();
     while (flags) {
@@ -4667,7 +4667,7 @@ static void cliNemesisStatus(const char *cmdName, char *cmdline)
     cliPrintLine("}");
 }
 
-static void cliNemesisAttitude(const char *cmdName, char *cmdline) 
+static void cliNemesisAttitude(const char *cmdName, char *cmdline)
 {
     UNUSED(cmdName);
     UNUSED(cmdline);
@@ -4695,7 +4695,7 @@ static void cliNemesisRx(const char *cmdName, char *cmdline)
         if (axis < 3) {
             cliPrint(",");
         }
-    }   
+    }
     cliPrint("]}");
 
 }

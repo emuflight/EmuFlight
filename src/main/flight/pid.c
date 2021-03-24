@@ -313,16 +313,22 @@ static float calcHorizonLevelStrength(void) {
 // Use the FAST_CODE_NOINLINE directive to avoid this code from being inlined into ITCM RAM to avoid overflow.
 // The impact is possibly slightly slower performance on F7/H7 but they have more than enough
 // processing power that it should be a non-issue.
-STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint) {
+STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim) {
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
+    UNUSED(angleTrim);
+    float currentPidSetpoint;
     float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low;
-
-    float angle = pidProfile->levelAngleLimit * getRcDeflection(axis);
-    if (pidProfile->angleExpo > 0)
-    {
-        const float expof = pidProfile->angleExpo / 100.0f;
-        angle = pidProfile->levelAngleLimit * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
+    float angle;
+    if (!FLIGHT_MODE(LYNCH_TRANSLATE)) {
+      angle = pidProfile->levelAngleLimit * getRcDeflection(axis);
+      if (pidProfile->angleExpo > 0)
+      {
+          const float expof = pidProfile->angleExpo / 100.0f;
+          angle = pidProfile->levelAngleLimit * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
+      }
+    } else {
+      angle = 0;
     }
 
 #ifdef USE_GPS_RESCUE
@@ -333,13 +339,13 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
     pidRuntime.previousAngle[axis] = angle;
 
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
-    float errorAngle = angle - ((attitude.raw[axis] - angleTrim->raw[axis]) * 0.1f);
+    float errorAngle = angle - ((getAngleAngle(axis)) * 0.1f);
     errorAngle = constrainf(errorAngle, -90.0f, 90.0f);
     const float errorAnglePercent = errorAngle / 90.0f;
     const float absErrorAnglePercent = fabsf(errorAnglePercent);
     const float inverseErrorAnglePercent = 1.0f - absErrorAnglePercent;
-    const float angleDterm = (pidRuntime.attitudePrevious[axis] - attitude.raw[axis]) * 0.1f;
-    pidRuntime.attitudePrevious[axis] = attitude.raw[axis];
+    const float angleDterm = (pidRuntime.attitudePrevious[axis] - getAngleAngle(axis)) * 0.1f;
+    pidRuntime.attitudePrevious[axis] = getAngleAngle(axis);
 
     // ANGLE mode - control is angle based
     p_term_low = inverseErrorAnglePercent * errorAngle * pidRuntime.P_angle_low;
@@ -361,8 +367,16 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
         const float horizonLevelStrength = calcHorizonLevelStrength();
         currentPidSetpoint = ((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f + (currentPidSetpoint * horizonLevelStrength * pidRuntime.horizonStrength);
     }
+
+    //roll = cos_approx(DECIDEGREES_TO_RADIANS(attitude.values.roll)
+
     return currentPidSetpoint;
 }
+
+// float angleModeSetpoint(int axis) {
+//     cos_approx(DECIDEGREES_TO_RADIANS(attitude.values.roll)
+//
+// }
 
 static void detectAndSetCrashRecovery(
     const pidCrashRecovery_e crash_recovery, const int axis,
@@ -543,6 +557,9 @@ static FAST_CODE void axisLockScaling(void) {
       }
 }
 
+FAST_DATA_ZERO_INIT float angleSetpointRaw[3];
+FAST_DATA_ZERO_INIT float currentPidSetpoint[3];
+
 // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
 // Based on 2DOF reference design (matlab)
 void FAST_CODE pidController(const pidProfile_t *pidProfile)
@@ -618,12 +635,10 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
     }
 #endif
 
-    // ----------PID controller----------
-    for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
-        // Yaw control is GYRO based, direct sticks control is applied to rate PID
-        // When Race Mode is active PITCH control is also GYRO based in level or horizon mode
-        stickMovement(axis);
-        float currentPidSetpoint = getSetpointRate(axis);
+
+//hey kevin finish adding the angle mode setpoints so that we can get a proper setpoint from angle mode.
+for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
+  currentPidSetpoint[axis] = getSetpointRate(axis);
 #if defined(USE_ACC)
         switch (levelMode) {
         case LEVEL_MODE_OFF:
@@ -642,16 +657,33 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             if (axis == FD_YAW) {
                 break;
             }
-            currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
+            currentPidSetpoint[axis] = pidLevel(axis, pidProfile, angleTrim);
         }
 #endif
+}
+
+if (FLIGHT_MODE(ANGLE_MODE)) {
+  float roll = currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(attitude.values.pitch)) + currentPidSetpoint[FD_ROLL] * cos_approx(DECIDEGREES_TO_RADIANS(attitude.values.pitch));
+  float pitch = currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(attitude.values.roll)) + currentPidSetpoint[FD_PITCH] * cos_approx(DECIDEGREES_TO_RADIANS(attitude.values.roll));
+  float yaw = currentPidSetpoint[FD_ROLL] * sin_approx(DECIDEGREES_TO_RADIANS(attitude.values.pitch)) + currentPidSetpoint[FD_PITCH] * sin_approx(DECIDEGREES_TO_RADIANS(attitude.values.roll)) + currentPidSetpoint[FD_YAW] * cos_approx(DECIDEGREES_TO_RADIANS(attitude.values.roll + attitude.values.pitch));
+  currentPidSetpoint[FD_ROLL] = roll;
+  currentPidSetpoint[FD_PITCH] = pitch;
+  currentPidSetpoint[FD_YAW] = yaw;
+}
+
+    // ----------PID controller----------
+    for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
+        // Yaw control is GYRO based, direct sticks control is applied to rate PID
+        // When Race Mode is active PITCH control is also GYRO based in level or horizon mode
+        stickMovement(axis);
+
 
 #ifdef USE_LAUNCH_CONTROL
         if (launchControlActive) {
 #if defined(USE_ACC)
-            currentPidSetpoint = applyLaunchControl(axis, angleTrim);
+            currentPidSetpoint[axis] = applyLaunchControl(axis, angleTrim);
 #else
-            currentPidSetpoint = applyLaunchControl(axis, NULL);
+            currentPidSetpoint[axis] = applyLaunchControl(axis, NULL);
 #endif
         }
 #endif
@@ -659,13 +691,13 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         // It's not necessary to zero the set points for R/P because the PIDs will be zeroed below
 #ifdef USE_YAW_SPIN_RECOVERY
         if ((axis == FD_YAW) && yawSpinActive) {
-            currentPidSetpoint = 0.0f;
+            currentPidSetpoint[axis] = 0.0f;
         }
 #endif // USE_YAW_SPIN_RECOVERY
 
         // -----calculate error rate
         const float gyroRate = gyro.gyroADCf[axis]; // Process variable from gyro output in deg/sec
-        float errorRate = currentPidSetpoint - gyroRate; // r - y
+        float errorRate = currentPidSetpoint[axis] - gyroRate; // r - y
 
         //Emuboost
         float boostedErrorRate;
@@ -687,7 +719,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
 #if defined(USE_ITERM_RELAX)
         if (!launchControlActive) {
-            applyItermRelax(axis, iterm, &itermErrorRate, currentPidSetpoint);
+            applyItermRelax(axis, iterm, &itermErrorRate, currentPidSetpoint[axis]);
         }
 #endif
 
@@ -735,12 +767,12 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         if (pidRuntime.ffFromInterpolatedSetpoint) {
             pidSetpointDelta = interpolatedSpApply(axis, newRcFrame, pidRuntime.ffFromInterpolatedSetpoint);
         } else {
-            pidSetpointDelta = currentPidSetpoint - pidRuntime.previousPidSetpoint[axis];
+            pidSetpointDelta = currentPidSetpoint[axis] - pidRuntime.previousPidSetpoint[axis];
         }
 #else
-        pidSetpointDelta = currentPidSetpoint - pidRuntime.previousPidSetpoint[axis];
+        pidSetpointDelta = currentPidSetpoint[axis] - pidRuntime.previousPidSetpoint[axis];
 #endif
-        pidRuntime.previousPidSetpoint[axis] = currentPidSetpoint;
+        pidRuntime.previousPidSetpoint[axis] = currentPidSetpoint[axis];
 
 
 #ifdef USE_RC_SMOOTHING_FILTER
@@ -842,7 +874,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
 #ifdef USE_INTERPOLATED_SP
             pidData[axis].F = shouldApplyFfLimits(axis) ?
-                applyFfLimit(axis, feedForward, pidRuntime.pidCoefficient[axis].Kp, currentPidSetpoint) : feedForward;
+                applyFfLimit(axis, feedForward, pidRuntime.pidCoefficient[axis].Kp, currentPidSetpoint[axis]) : feedForward;
 #else
             pidData[axis].F = feedForward;
 #endif
@@ -855,7 +887,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         // this feedforward is literally setpoint * feedforward
         // since yaw acts different this will only work for yaw
         // allowed on roll and pitch, but only in angle mode
-        pidData[axis].F += currentPidSetpoint * pidRuntime.pidCoefficient[axis].Kdf;
+        pidData[axis].F += currentPidSetpoint[axis] * pidRuntime.pidCoefficient[axis].Kdf;
 
 #ifdef USE_YAW_SPIN_RECOVERY
         if (yawSpinActive) {
@@ -891,7 +923,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
         // P boost at the end of throttle chop
         // attenuate effect if turning more than 50 deg/s, half at 100 deg/s
-        float agBoostAttenuator = fabsf(currentPidSetpoint) / 50.0f;
+        float agBoostAttenuator = fabsf(currentPidSetpoint[axis]) / 50.0f;
         agBoostAttenuator = MAX(agBoostAttenuator, 1.0f);
         const float agBoost = 1.0f + (pidRuntime.antiGravityPBoost / agBoostAttenuator);
         if (axis != FD_YAW) {

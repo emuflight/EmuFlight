@@ -61,6 +61,10 @@ typedef struct imuConfig_s {
     uint16_t level_recovery_time;
     uint8_t level_recovery_coef;
     uint16_t level_recovery_threshold;
+    int8_t roll[6];
+    int8_t pitch[6];
+    int8_t yaw[6];
+    int8_t debugMotor;
 } imuConfig_t;
 
 PG_DECLARE(imuConfig_t, imuConfig);
@@ -77,6 +81,12 @@ typedef struct imuRuntimeConfig_s {
 void imuConfigure(uint16_t throttle_correction_angle, uint8_t throttle_correction_value);
 
 float getCosTiltAngle(void);
+float getMotorThrust(int motor);
+float getMotorPitch(int motor);
+float getMotorRoll(int motor);
+float getTranslationThrustFix(void);
+float getAngleAngle(int axis);
+
 void getQuaternion(quaternion * q);
 void imuUpdateAttitude(timeUs_t currentTimeUs);
 

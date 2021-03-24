@@ -213,6 +213,23 @@ static const motorMixer_t mixerQuadX1234[] = {
     { 1.0f,  1.0f,  1.0f,  1.0f },          // REAR_L
 };
 
+
+// finish this bad boy up
+static const motorMixer_t mixerLynch[] = {// thrust, roll, pitch, yaw
+    { 1.0f,  0.0f,   1.3333333f,  1.0f },      // back
+    { 1.0f,  -1.0f, -0.6666666f,  -1.0f },      // front right
+    { 1.0f,  1.0f,  -0.6666666f,  -1.0f },      // front left
+    { 1.0f,  -0.414178f,  0.0f,  1.0f },      // horizontal back cw
+    { 1.0f,  0.414178f, -1.0f,  1.0f },      // horizontal front right cw
+    { 1.0f, -1.0f, -0.414178f,  1.0f },      // horizonatl front left cw
+    { -1.0f, -0.414178f,  1.0f, -1.0f },      // back reverse
+    { -1.0f,  1.0f,  0.414178f, -1.0f },      // front right reverse
+    { -1.0f, -1.0f,  0.414178f,  1.0f },      // front left reverse
+    { -1.0f,  0.414178f,  1.0f, -1.0f },      // horizontal back ccw
+    { -1.0f,  0.414178f, -1.0f, -1.0f },      // horizontal front right ccw
+    { -1.0f, -1.0f, -0.414178f, -1.0f },      // horizonatl front left ccw
+};
+
 // Keep synced with mixerMode_e
 // Some of these entries are bogus when servos (USE_SERVOS) are not configured,
 // but left untouched to keep ordinals synced with mixerMode_e (and configurator).
@@ -245,6 +262,7 @@ const mixer_t mixers[] = {
     { 2, true,  NULL },                // MIXER_CUSTOM_AIRPLANE
     { 3, true,  NULL },                // MIXER_CUSTOM_TRI
     { 4, false, mixerQuadX1234 },
+    { 12, false, mixerLynch },         // special lynchpin stuff
 };
 #endif // !USE_QUAD_MIXER_ONLY
 
