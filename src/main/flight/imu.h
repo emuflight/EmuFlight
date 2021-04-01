@@ -35,9 +35,9 @@ typedef struct {
 #define QUATERNION_INITIALIZE  {.w=1, .x=0, .y=0, .z=0}
 
 typedef struct {
-    float ww,wx,wy,wz,xx,xy,xz,yy,yz,zz;
+    float ww,wx,wy,wz,xx,xy,xz,yy,yz,zz,w,x,y,z;
 } quaternionProducts;
-#define QUATERNION_PRODUCTS_INITIALIZE  {.ww=1, .wx=0, .wy=0, .wz=0, .xx=0, .xy=0, .xz=0, .yy=0, .yz=0, .zz=0}
+#define QUATERNION_PRODUCTS_INITIALIZE  {.ww=1, .wx=0, .wy=0, .wz=0, .xx=0, .xy=0, .xz=0, .yy=0, .yz=0, .zz=0, .w=1, .x=0, .y=0, .z=0}
 
 typedef union {
     int16_t raw[XYZ_AXIS_COUNT];
@@ -64,7 +64,7 @@ typedef struct imuConfig_s {
     int8_t roll[6];
     int8_t pitch[6];
     int8_t yaw[6];
-    int8_t debugMotor;
+    uint8_t debugMotor;
 } imuConfig_t;
 
 PG_DECLARE(imuConfig_t, imuConfig);

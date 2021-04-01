@@ -662,14 +662,18 @@ for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
 #endif
 }
 
-if (FLIGHT_MODE(ANGLE_MODE)) {
+//if (FLIGHT_MODE(ANGLE_MODE)) {
   float roll = currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(attitude.values.pitch)) + currentPidSetpoint[FD_ROLL] * cos_approx(DECIDEGREES_TO_RADIANS(attitude.values.pitch));
   float pitch = currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(attitude.values.roll)) + currentPidSetpoint[FD_PITCH] * cos_approx(DECIDEGREES_TO_RADIANS(attitude.values.roll));
   float yaw = currentPidSetpoint[FD_ROLL] * sin_approx(DECIDEGREES_TO_RADIANS(attitude.values.pitch)) + currentPidSetpoint[FD_PITCH] * sin_approx(DECIDEGREES_TO_RADIANS(attitude.values.roll)) + currentPidSetpoint[FD_YAW] * cos_approx(DECIDEGREES_TO_RADIANS(attitude.values.roll + attitude.values.pitch));
   currentPidSetpoint[FD_ROLL] = roll;
   currentPidSetpoint[FD_PITCH] = pitch;
   currentPidSetpoint[FD_YAW] = yaw;
-}
+  DEBUG_SET(DEBUG_SETPOINT, 0, lrintf(roll));
+  DEBUG_SET(DEBUG_SETPOINT, 1, lrintf(pitch));
+  DEBUG_SET(DEBUG_SETPOINT, 2, lrintf(getAngleAngle(FD_ROLL)));
+  DEBUG_SET(DEBUG_SETPOINT, 3, lrintf(getAngleAngle(FD_PITCH)));
+//}
 
     // ----------PID controller----------
     for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {

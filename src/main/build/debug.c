@@ -105,4 +105,6 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "RC_PREDICTOR",
     "LYNCH",
     "LYNCH_ANGLE",
+    "QUAT",
+    "SETPOINT",
 };

@@ -121,6 +121,8 @@ typedef enum {
     DEBUG_RC_PREDICTOR,
     DEBUG_LYNCH,
     DEBUG_LYNCH_ANGLE,
+    DEBUG_QUAT,
+    DEBUG_SETPOINT,
     DEBUG_COUNT
 } debugType_e;
 
