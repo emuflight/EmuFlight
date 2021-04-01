@@ -355,20 +355,20 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS], motorMixer_t 
 {
     // Now add in the desired throttle, but keep in a range that doesn't clip adjusted
     // roll/pitch/yaw. This could move throttle down, but also up for those low throttle flips.
-    static float totalThrust = 0;
-    float scaledThrust = 0;
-    for (int motor = 0; motor < 6; motor++) {
-        totalThrust += fabsf(getMotorThrust(motor));
-    }
-    scaledThrust = 2.6f / totalThrust;
-    totalThrust = 0;
+    // static float totalThrust = 0;
+    // float scaledThrust = 0;
+    // for (int motor = 0; motor < 6; motor++) {
+    //     totalThrust += fabsf(getMotorThrust(motor));
+    // }
+    // scaledThrust = 2.6f / totalThrust;
+    // totalThrust = 0;
 
     for (int i = 0; i < mixerRuntime.motorCount; i++) {
       float motorOutput = 0;
       if (i >= 6) {
-        motorOutput = constrainf(motorOutputMixSign * motorMix[i] + throttle * activeMixer[i].throttle * getMotorThrust(i-6)*scaledThrust*getTranslationThrustFix(), 0.0f, 1.0f);
+        motorOutput = constrainf(motorOutputMixSign * motorMix[i] + throttle * activeMixer[i].throttle * getMotorThrust(i-6)*getTranslationThrustFix(), 0.0f, 1.0f);
       } else {
-        motorOutput = constrainf(motorOutputMixSign * motorMix[i] + throttle * activeMixer[i].throttle * getMotorThrust(i)*scaledThrust*getTranslationThrustFix(), 0.0f, 1.0f);
+        motorOutput = constrainf(motorOutputMixSign * motorMix[i] + throttle * activeMixer[i].throttle * getMotorThrust(i)*getTranslationThrustFix(), 0.0f, 1.0f);
       }
 #ifdef USE_THRUST_LINEARIZATION
         motorOutput = pidApplyThrustLinearization(motorOutput);
