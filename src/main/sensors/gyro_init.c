@@ -137,7 +137,7 @@ static void gyroInitFilterDynamicNotch()
 static bool gyroInitLowpassFilterLpf(int type, uint16_t lpfHz, uint32_t looptime)
 {
     filterApplyFnPtr *lowpassFilterApplyFn;
-    gyroLowpassFilter_t *lowpassFilter = NULL;
+    ptnFilter_t *lowpassFilter = NULL;
 
     lowpassFilterApplyFn = &gyro.lowpassFilterApplyFn;
     lowpassFilter = gyro.lowpassFilter;
@@ -154,36 +154,28 @@ static bool gyroInitLowpassFilterLpf(int type, uint16_t lpfHz, uint32_t looptime
 
     // If lowpass cutoff has been specified and is less than the Nyquist frequency
     if (lpfHz && lpfHz <= gyroFrequencyNyquist) {
+      *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
+
+      for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
         switch (type) {
         case FILTER_PT1:
-            *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 1, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
-            }
+                ptnFilterInit(&lowpassFilter[axis], 1, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
             ret = true;
             break;
         case FILTER_PT2:
-            *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 2, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
-            }
+                ptnFilterInit(&lowpassFilter[axis], 2, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
             ret = true;
             break;
         case FILTER_PT3:
-            *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 3, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
-            }
+                ptnFilterInit(&lowpassFilter[axis], 3, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
             ret = true;
             break;
         case FILTER_PT4:
-            *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 4, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
-            }
+                ptnFilterInit(&lowpassFilter[axis], 4, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
             ret = true;
             break;
         }
+      }
     }
     return ret;
 }

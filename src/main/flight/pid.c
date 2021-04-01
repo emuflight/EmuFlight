@@ -940,30 +940,24 @@ bool pidAntiGravityEnabled(void)
 #ifdef USE_DYN_LPF
 void dynLpfDTermUpdate(float cutoff[XYZ_AXIS_COUNT])
 {
+    for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
          switch (pidRuntime.dynLpfFilter) {
          case DYN_LPF_PT1:
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 1.0f, pidRuntime.dT);
-            }
+                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis], cutoff[axis], 1.0f, pidRuntime.dT);
             break;
         case DYN_LPF_PT2:
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 1.553773974f, pidRuntime.dT);
-            }
+                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis], cutoff[axis], 1.553773974f, pidRuntime.dT);
             break;
         case DYN_LPF_PT3:
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 1.961459177f, pidRuntime.dT);
-            }
+                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis], cutoff[axis], 1.961459177f, pidRuntime.dT);
             break;
         case DYN_LPF_PT4:
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 2.298959223f, pidRuntime.dT);
-            }
+                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis], cutoff[axis], 2.298959223f, pidRuntime.dT);
             break;
         case DYN_LPF_NONE:
         default:
             break;
+        }
     }
 }
 

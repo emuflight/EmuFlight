@@ -238,9 +238,9 @@ typedef struct pidRuntime_s {
     filterApplyFnPtr dtermNotchApplyFn;
     biquadFilter_t dtermNotch[XYZ_AXIS_COUNT];
     filterApplyFnPtr dtermLowpassApplyFn;
-    dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
+    ptnFilter_t dtermLowpass[XYZ_AXIS_COUNT];
     filterApplyFnPtr dtermLowpass2ApplyFn;
-    dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
+    ptnFilter_t dtermLowpass2[XYZ_AXIS_COUNT];
     filterApplyFnPtr dtermABGApplyFn;
     alphaBetaGammaFilter_t dtermABG[XYZ_AXIS_COUNT];
     filterApplyFnPtr ptermYawLowpassApplyFn;

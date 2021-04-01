@@ -44,9 +44,6 @@
 #define YAW_SPIN_RECOVERY_THRESHOLD_MAX 1950
 #endif
 
-typedef union gyroLowpassFilter_u {
-    ptnFilter_t ptnFilterState;
-} gyroLowpassFilter_t;
 
 typedef enum gyroDetectionFlags_e {
     GYRO_NONE_MASK = 0,
@@ -86,7 +83,7 @@ typedef struct gyro_s {
 
     // lowpass gyro soft filter
     filterApplyFnPtr lowpassFilterApplyFn;
-    gyroLowpassFilter_t lowpassFilter[XYZ_AXIS_COUNT];
+    ptnFilter_t lowpassFilter[XYZ_AXIS_COUNT];
 
     // notch filters
     filterApplyFnPtr notchFilter1ApplyFn;
