@@ -88,7 +88,7 @@ static const char * const osdTableGyroToUse[] = {
 #endif
 
 static const char * const osdTableLpfType[] = {
-    "PT1", "BIQUAD", "PT3", "PT4"
+    "PT1", "PT2", "PT3", "PT4"
 };
 
 static void setProfileIndexString(char *profileString, int profileIndex, char *profileName)

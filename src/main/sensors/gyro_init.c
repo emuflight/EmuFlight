@@ -158,32 +158,28 @@ static bool gyroInitLowpassFilterLpf(int type, uint16_t lpfHz, uint32_t looptime
         case FILTER_PT1:
             *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 1, lpfHz, gyroDt);
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 1, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
+            }
+            ret = true;
+            break;
+        case FILTER_PT2:
+            *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
+            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 2, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
             }
             ret = true;
             break;
         case FILTER_PT3:
             *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 3, lpfHz, gyroDt);
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 3, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
             }
             ret = true;
             break;
         case FILTER_PT4:
             *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 4, lpfHz, gyroDt);
-            }
-            ret = true;
-            break;
-        case FILTER_BIQUAD:
-#ifdef USE_DYN_LPF
-            *lowpassFilterApplyFn = (filterApplyFnPtr) biquadFilterApplyDF1;
-#else
-            *lowpassFilterApplyFn = (filterApplyFnPtr) biquadFilterApply;
-#endif
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                biquadFilterInitLPF(&lowpassFilter[axis].biquadFilterState, lpfHz, looptime);
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 4, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
             }
             ret = true;
             break;
@@ -200,14 +196,14 @@ static void dynLpfFilterInit()
         case FILTER_PT1:
             gyro.dynLpfFilter = DYN_LPF_PT1;
             break;
-        case FILTER_BIQUAD:
-            gyro.dynLpfFilter = DYN_LPF_BIQUAD;
+        case FILTER_PT2:
+            gyro.dynLpfFilter = DYN_LPF_PT2;
             break;
         case FILTER_PT3:
             gyro.dynLpfFilter = DYN_LPF_PT3;
             break;
         case FILTER_PT4:
-            gyro.dynLpfFilter = DYN_LPF_PT3;
+            gyro.dynLpfFilter = DYN_LPF_PT4;
             break;
         default:
             gyro.dynLpfFilter = DYN_LPF_NONE;

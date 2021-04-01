@@ -125,6 +125,7 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->dyn_lpf_gyro_min_hz = 115;
     gyroConfig->dyn_lpf_gyro_width = 0;
     gyroConfig->dyn_lpf_gyro_gain = 70;
+    gyroConfig->dyn_lpf_gyro_boost = 0;
     gyroConfig->dyn_lpf_curve_expo = 5;
     gyroConfig->dyn_notch_max_hz = 600;
     gyroConfig->dyn_notch_q = 250;
@@ -628,9 +629,9 @@ void dynLpfGyroUpdate(float cutoff[XYZ_AXIS_COUNT])
                 ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], 1.0f, gyroDt);
             }
             break;
-        case DYN_LPF_BIQUAD:
+        case DYN_LPF_PT2:
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                biquadFilterUpdateLPF(&gyro.lowpassFilter[axis].biquadFilterState, cutoff[axis], gyro.targetLooptime);
+                ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], 1.553773974f, gyroDt);
             }
             break;
         case DYN_LPF_PT3:
