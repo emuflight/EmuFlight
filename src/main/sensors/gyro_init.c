@@ -250,6 +250,9 @@ void gyroInitFilters(void)
 #ifdef USE_SMITH_PREDICTOR
     smithPredictorInit();
 #endif // USE_SMITH_PREDICTOR
+#ifdef USE_GYRO_DATA_ANALYSE
+    gyroDataAnalyseInit(&gyro.gyroAnalyseState, gyro.targetLooptime);
+#endif
 }
 
 #if defined(USE_GYRO_SLEW_LIMITER)
