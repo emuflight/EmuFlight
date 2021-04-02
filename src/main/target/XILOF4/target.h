@@ -42,16 +42,17 @@
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
-//#define USE_GYRO_SPI_MPU6500
+#define USE_GYRO_SPI_MPU6500
 #define MPU6000_CS_PIN          SPI1_NSS_PIN
 #define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_INSTANCE    SPI1
 #define GYRO_MPU6000_ALIGN      CW180_DEG
 //#define MPU_INT_EXTI            NONE
 //#define GYRO_1_EXTI_PIN         NONE
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
-//#define USE_ACC_SPI_MPU6500
+#define USE_ACC_SPI_MPU6500
 
 // *************** Flash **************************
 #define USE_SPI_DEVICE_2
