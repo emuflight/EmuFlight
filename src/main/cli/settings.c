@@ -1001,6 +1001,8 @@ const clivalue_t valueTable[] = {
     { "lynch_pitch_m6",   VAR_INT8 | MASTER_VALUE, .config.minmax = { -180, 180 }, PG_IMU_CONFIG, offsetof(imuConfig_t, pitch[5]) },
     { "lynch_yaw_m6",   VAR_INT8 | MASTER_VALUE, .config.minmax = { -180, 180 }, PG_IMU_CONFIG, offsetof(imuConfig_t, yaw[5]) },
     { "lynch_motor_debug",   VAR_INT8 | MASTER_VALUE, .config.minmax = { 1, 6 }, PG_IMU_CONFIG, offsetof(imuConfig_t, debugMotor) },
+    { "lynch_angle_debug_axis",   VAR_INT8 | MASTER_VALUE, .config.minmax = { 0, 1 }, PG_PID_PROFILE, offsetof(pidProfile_t, rollOrPitchDebug) },
+
 
 
 // PG_ARMING_CONFIG

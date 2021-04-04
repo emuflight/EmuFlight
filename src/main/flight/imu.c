@@ -261,6 +261,63 @@ static void imuComputeMotorQuatOffset(quaternionProducts *quatProd, int16_t init
     quatProd->wz = q0 * q3;
 }
 
+static void imuComputeRemoveYaw(quaternionProducts *quatProd, int16_t initialYaw)
+{
+    if (initialYaw > 1800) {
+        initialYaw -= 3600;
+    }
+
+    const float cosRoll = 1;
+    const float sinRoll = 0;
+
+    const float cosPitch = 1;
+    const float sinPitch = 0;
+
+    const float cosYaw = cos_approx(DECIDEGREES_TO_RADIANS(-initialYaw) * 0.5f);
+    const float sinYaw = sin_approx(DECIDEGREES_TO_RADIANS(-initialYaw) * 0.5f);
+
+    float q0 = cosRoll * cosPitch * cosYaw + sinRoll * sinPitch * sinYaw;
+    float q1 = sinRoll * cosPitch * cosYaw - cosRoll * sinPitch * sinYaw;
+    float q2 = cosRoll * sinPitch * cosYaw + sinRoll * cosPitch * sinYaw;
+    float q3 = cosRoll * cosPitch * sinYaw - sinRoll * sinPitch * cosYaw;
+
+    float recipNorm = invSqrt(sq(q0) + sq(q1) + sq(q2) + sq(q3));
+    q0 *=recipNorm;
+    q1 *=recipNorm;
+    q2 *=recipNorm;
+    q3 *=recipNorm;
+
+    float A,B,C,D,E,F,G,H;
+
+    A = (quatProd->w + quatProd->x) * (q0 + q1);
+    B = (quatProd->z - quatProd->y) * (q2 - q3);
+    C = (quatProd->w - quatProd->x) * (q2 + q3);
+    D = (quatProd->y + quatProd->z) * (q0 - q1);
+    E = (quatProd->x + quatProd->z) * (q1 + q2);
+    F = (quatProd->x - quatProd->z) * (q1 - q2);
+    G = (quatProd->w + quatProd->y) * (q0 - q3);
+    H = (quatProd->w - quatProd->y) * (q0 + q3);
+
+    quatProd->w = B + (- E - F + G + H) / 2.0f;
+    quatProd->x = A - (+ E + F + G + H) / 2.0f;
+    quatProd->y = C + (+ E - F + G - H) / 2.0f;
+    quatProd->z = D + (+ E - F - G + H) / 2.0f;
+    // Normalise quaternion
+    recipNorm = invSqrt(sq(quatProd->w) + sq(quatProd->x) + sq(quatProd->y) + sq(quatProd->z));
+    quatProd->w *= recipNorm;
+    quatProd->x *= recipNorm;
+    quatProd->y *= recipNorm;
+    quatProd->z *= recipNorm;
+
+    quatProd->xy = quatProd->x * quatProd->y;
+    quatProd->xz = quatProd->x * quatProd->z;
+    quatProd->yz = quatProd->y * quatProd->z;
+
+    quatProd->wx = quatProd->w * quatProd->x;
+    quatProd->wy = quatProd->w * quatProd->y;
+    quatProd->wz = quatProd->w * quatProd->z;
+}
+
 
 void imuQuaternionMultiplicationProd(quaternion *q1, quaternionProducts *q2, quaternion *result, int order)
 {
@@ -476,6 +533,8 @@ void setNewLevel(void) {
     qPA.y = -q.y;
     qPA.z = -q.z;
     imuQuaternionComputeProductsProducts(&qPA);
+    imuComputeRemoveYaw(&qPA, attitude.values.yaw);
+    //imuComputeMotorQuatOffset(&qPA, attitude.values.roll, attitude.values.pitch, attitude.values.yaw);
     //imuComputeMotorQuatOffset(&qPA, -attitude.values.roll, -attitude.values.pitch, 0);
   } else if (!FLIGHT_MODE(ANGLE_MODE)) {
     inAngleMode = 0;
@@ -484,10 +543,14 @@ void setNewLevel(void) {
 float translationThrustFix = 1;
 
 void applyThrustTransition(void) {
-    if(FLIGHT_MODE(LYNCH_TRANSLATE) && FLIGHT_MODE(ANGLE_MODE)) {
+    if(FLIGHT_MODE(LYNCH_TRANSLATE)) {
         float rollTranslation = getRcDeflection(ROLL)*450;
         float pitchTranslation = getRcDeflection(PITCH)*450;
+        if (getCosTiltAngle() > 0.0f) { // right side up treat yaw inputs in the normal direction
         imuComputeMotorQuatOffset(&qPThrustTranslation, -rollTranslation, -pitchTranslation, 0);
+      } else {
+        imuComputeMotorQuatOffset(&qPThrustTranslation, -rollTranslation, pitchTranslation, 0);
+      }
         translationThrustFix = cos_approx(DEGREES_TO_RADIANS(rollTranslation/10)) * cos_approx(DEGREES_TO_RADIANS(pitchTranslation/10));
         translationThrustFix = 1 / translationThrustFix;
     } else {
@@ -520,7 +583,7 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void)
     imuQuaternionMultiplicationProd(&q, &qPM[motor], &qM[motor], 1);
     qLM[motor] = qM[motor];
     }
-    imuQuaternionMultiplicationProd(&qLM[motor], &qPThrustTranslation, &qTM[motor], 2);
+    imuQuaternionMultiplicationProd(&qLM[motor], &qPThrustTranslation, &qTM[motor], 1);
 
     float temporaryThrust = 1.0f - 2.0f * qTM[motor].x*qTM[motor].x - 2.0f * qTM[motor].y*qTM[motor].y;
     float temporaryPitch = lrintf(((0.5f * M_PIf) - acos_approx(-(2.0f * (qTM[motor].x*qTM[motor].z - qTM[motor].w*qTM[motor].y)))) * (1800.0f / M_PIf));
@@ -534,7 +597,8 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void)
       }
 
 // recalculate the thrust of the motors. do this when entering angle mode or while in set lynch mode
-      if (FLIGHT_MODE(SET_LYNCH_MODE) || (FLIGHT_MODE(ANGLE_MODE) && changedToAngle == 0) || (FLIGHT_MODE(ANGLE_MODE) && FLIGHT_MODE(LYNCH_TRANSLATE))) {
+      if (FLIGHT_MODE(SET_LYNCH_MODE) || (FLIGHT_MODE(ANGLE_MODE) && changedToAngle == 0) || (FLIGHT_MODE(ANGLE_MODE) ||
+       FLIGHT_MODE(LYNCH_TRANSLATE))) {
         thrust[motor] = temporaryThrust;
         pitch[motor] = temporaryPitch;
         roll[motor] = temporaryRoll;
@@ -1026,4 +1090,8 @@ bool isUpright(void)
 #else
     return true;
 #endif
+}
+
+bool updateAngles() {
+  return false;
 }
