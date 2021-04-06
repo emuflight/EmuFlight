@@ -258,19 +258,40 @@ void crsfFrameFlightMode(sbuf_t *dst) {
     uint8_t *lengthPtr = sbufPtr(dst);
     sbufWriteU8(dst, 0);
     sbufWriteU8(dst, CRSF_FRAMETYPE_FLIGHT_MODE);
-    // use same logic as OSD, so telemetry displays same flight text as OSD
+
+    // Acro is the default mode
     const char *flightMode = "ACRO";
-    if (isAirmodeActive()) {
-        flightMode = "AIR";
-    }
+
+    // Modes that are only relevant when disarmed
+    if (!ARMING_FLAG(ARMED) && isArmingDisabled()) {
+        flightMode = "!ERR";
+    } else
+
+#if defined(USE_GPS)
+    if (!ARMING_FLAG(ARMED) && feature(FEATURE_GPS) && (!STATE(GPS_FIX) || !STATE(GPS_FIX_HOME))) {
+        flightMode = "WAIT"; // Waiting for GPS lock
+    } else
+#endif
+
+    // Flight modes in decreasing order of importance
     if (FLIGHT_MODE(FAILSAFE_MODE)) {
-        flightMode = "!FS";
+        flightMode = "!FS!";
+    } else if (FLIGHT_MODE(GPS_RESCUE_MODE)) {
+        flightMode = "RTH";
+    } else if (FLIGHT_MODE(PASSTHRU_MODE)) {
+        flightMode = "MANU";
     } else if (FLIGHT_MODE(ANGLE_MODE)) {
         flightMode = "STAB";
     } else if (FLIGHT_MODE(HORIZON_MODE)) {
         flightMode = "HOR";
+    } else if (isAirmodeActive()) {
+        flightMode = "AIR";
     }
+
     sbufWriteString(dst, flightMode);
+    if (!ARMING_FLAG(ARMED)) {
+        sbufWriteU8(dst, '*');
+    }
     sbufWriteU8(dst, '\0');     // zero-terminate string
     // write in the frame length
     *lengthPtr = sbufPtr(dst) - lengthPtr;
