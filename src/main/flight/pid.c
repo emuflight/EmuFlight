@@ -79,9 +79,6 @@ FAST_DATA_ZERO_INIT uint32_t targetPidLooptime;
 FAST_DATA_ZERO_INIT pidAxisData_t pidData[XYZ_AXIS_COUNT];
 FAST_DATA_ZERO_INIT pidRuntime_t pidRuntime;
 
-static fp_rotationMatrix_t earthBodyRateRotation;
-static float rotatedRates[3];
-
 #if defined(USE_THROTTLE_BOOST)
 FAST_DATA_ZERO_INIT float throttleBoost;
 pt1Filter_t throttleLpf;
@@ -427,7 +424,7 @@ STATIC_UNIT_TESTED void rotateItermAndAxisError()
             for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
                 v[i] = pidData[i].I;
             }
-            rotateVector(v, rotationRads);
+            rotateVector(v, rotationRads );
             for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
                 pidData[i].I = v[i];
             }
@@ -681,8 +678,7 @@ if (!((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(SET_LYNCH_MODE))) || updateAngles(
 
 //if (FLIGHT_MODE(ANGLE_MODE)) {
   float roll, pitch, yaw;
-
-/*  if(!FLIGHT_MODE(LYNCH_TRANSLATE)) {
+  if(!FLIGHT_MODE(LYNCH_TRANSLATE)) {
   // if (getCosTiltAngle() > 0.0f) { // right side up treat yaw inputs in the normal direction
       roll = -currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(pitchAngle)) + currentPidSetpoint[FD_ROLL] * cos_approx(DECIDEGREES_TO_RADIANS(pitchAngle));
       pitch = -currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(rollAngle)) + currentPidSetpoint[FD_PITCH] * cos_approx(DECIDEGREES_TO_RADIANS(rollAngle));
@@ -701,23 +697,13 @@ if (!((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(SET_LYNCH_MODE))) || updateAngles(
   } else {
   yaw = -currentPidSetpoint[FD_YAW] * cos_approx(DECIDEGREES_TO_RADIANS(ABS(rollAngle) + ABS(pitchAngle)));
   }
-}*/
-
-fp_angles_t rotationAngles;
-rotationAngles.angles.roll  = degreesToRadians(attitude.values.roll/10.0f);
-rotationAngles.angles.pitch = degreesToRadians(attitude.values.pitch/10.0f);
-rotationAngles.angles.yaw   = degreesToRadians(0.0f);
-
-buildRotationMatrix(&rotationAngles, &earthBodyRateRotation);
-
-applyRotation(&currentPidSetpoint, &earthBodyRateRotation);
-
-  // currentPidSetpoint[FD_ROLL] = rotatedRates[FD_ROLL];
-  // currentPidSetpoint[FD_PITCH] = rotatedRates[FD_PITCH];
-  // currentPidSetpoint[FD_YAW] = rotatedRates[FD_YAW];
-  DEBUG_SET(DEBUG_SETPOINT, 0, lrintf(currentPidSetpoint[FD_ROLL]));
-  DEBUG_SET(DEBUG_SETPOINT, 1, lrintf(currentPidSetpoint[FD_PITCH]));
-  DEBUG_SET(DEBUG_SETPOINT, 2, lrintf(currentPidSetpoint[FD_YAW]));
+}
+  currentPidSetpoint[FD_ROLL] = roll;
+  currentPidSetpoint[FD_PITCH] = pitch;
+  currentPidSetpoint[FD_YAW] = yaw;
+  DEBUG_SET(DEBUG_SETPOINT, 0, lrintf(roll));
+  DEBUG_SET(DEBUG_SETPOINT, 1, lrintf(pitch));
+  DEBUG_SET(DEBUG_SETPOINT, 2, lrintf(yaw));
   DEBUG_SET(DEBUG_SETPOINT, 3, lrintf(getAngleAngle(pidProfile->rollOrPitchDebug)));
 //}
 
