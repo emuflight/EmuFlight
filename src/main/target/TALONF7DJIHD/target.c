@@ -46,4 +46,6 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM8,  CH2,  PC7, TIM_USE_ANY,                 0, 0), // RX6
     DEF_TIM(TIM3,  CH2,  PB5, TIM_USE_ANY,                 0, 0), //SPI_MOSI 3
     DEF_TIM(TIM2,  CH2,  PB3, TIM_USE_ANY,                 0, 0), // Camera Control 1
+
+    
 };
