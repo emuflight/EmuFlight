@@ -28,7 +28,7 @@
 #define ENABLE_DSHOT_DMAR                                true
 
 // ******* LEDs and BEEPER ********
-#define LED0_PIN                                         PC14
+#define LED0_PIN                                         PB0
 
 #define USE_BEEPER
 #define BEEPER_PIN                                       PB4
