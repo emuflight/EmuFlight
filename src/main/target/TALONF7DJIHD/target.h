@@ -69,7 +69,6 @@
 // ******* SERIAL ********
 
 #define USE_VCP
-#define BINDPLUG_PIN                                    PB2
 
 #define USE_UART1
 #define UART1_RX_PIN                                     PA10
@@ -131,6 +130,7 @@
 
 // ******* FEATURES ********
 #define CAMERA_CONTROL_PIN                              PB3
+#define BINDPLUG_PIN                                    PB2
 
 #define DEFAULT_RX_FEATURE                              FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER                               SERIALRX_SBUS
@@ -145,4 +145,4 @@
 
 // timers
 #define USABLE_TIMER_CHANNEL_COUNT                      9                       //updated timer count to compensate for Nf Motor 4
-#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5)  | TIM_N(8)   ) //update based on update CLRACINGF7 Target BF4.1+
+#define USED_TIMERS ( TIM_N(1) |TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5)  | TIM_N(8) | TIM_N(9) ) //update based on update CLRACINGF7 Target BF4.1+
