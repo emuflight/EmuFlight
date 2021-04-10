@@ -44,6 +44,8 @@
 #include "fc/rc_controls.h"
 #include "fc/runtime_config.h"
 
+#include "rx/rx.h"
+
 #include "flight/gps_rescue.h"
 #include "flight/imu.h"
 #include "flight/mixer.h"
@@ -558,8 +560,30 @@ static FAST_CODE void axisLockScaling(void) {
       }
 }
 
-FAST_DATA_ZERO_INIT float angleSetpointRaw[3];
 FAST_DATA_ZERO_INIT float currentPidSetpoint[3];
+
+FAST_DATA_ZERO_INIT float auxSetpoint[2];
+
+static FAST_CODE void getSetpointFromAux(void) {
+      currentPidSetpoint[FD_ROLL] = rcData[4];
+      currentPidSetpoint[FD_PITCH] = rcData[5];
+      currentPidSetpoint[FD_YAW] = 0;
+      for (int axis = FD_ROLL; axis <= FD_PITCH; ++axis) {
+          currentPidSetpoint[axis] = constrainf(currentPidSetpoint[axis], 1000.0f, 2000.0f);
+          currentPidSetpoint[axis] = ABS(currentPidSetpoint[axis] - 1500.0f);
+          if (currentPidSetpoint[axis] > 75) {
+              currentPidSetpoint[axis] -= 75;
+          } else {
+              currentPidSetpoint[axis] = 0;
+          }
+          if (rcData[axis+4] < 1500) {
+              currentPidSetpoint[axis] = -currentPidSetpoint[axis];
+          }
+          currentPidSetpoint[axis] = currentPidSetpoint[axis] / 2;
+      }
+}
+
+FAST_DATA_ZERO_INIT float angleSetpointRaw[3];
 
 // EmuFlight pid controller, which will be maintained in the future with additional features specialised for current (mini) multirotor usage.
 // Based on 2DOF reference design (matlab)
@@ -676,35 +700,55 @@ if (!((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(SET_LYNCH_MODE))) || updateAngles(
     shouldUpdateAngles = 1;
 }
 
-//if (FLIGHT_MODE(ANGLE_MODE)) {
-  float roll, pitch, yaw;
-  if(!FLIGHT_MODE(LYNCH_TRANSLATE)) {
-  // if (getCosTiltAngle() > 0.0f) { // right side up treat yaw inputs in the normal direction
-      roll = -currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(pitchAngle)) + currentPidSetpoint[FD_ROLL] * cos_approx(DECIDEGREES_TO_RADIANS(pitchAngle));
-      pitch = -currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(rollAngle)) + currentPidSetpoint[FD_PITCH] * cos_approx(DECIDEGREES_TO_RADIANS(rollAngle));
-      if (getCosTiltAngle() > 0.0f) { // right side up treat yaw inputs in the normal direction
-      yaw = currentPidSetpoint[FD_ROLL] * sin_approx(DECIDEGREES_TO_RADIANS(pitchAngle)) - currentPidSetpoint[FD_PITCH] * sin_approx(DECIDEGREES_TO_RADIANS(rollAngle)) + currentPidSetpoint[FD_YAW] * cos_approx(DECIDEGREES_TO_RADIANS(ABS(rollAngle) + ABS(pitchAngle)));
-   } else { // when upside down treat yaw inputs as reverse
-  //     roll = currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(pitchAngle)) + currentPidSetpoint[FD_ROLL] * cos_approx(DECIDEGREES_TO_RADIANS(pitchAngle));
-      pitch = -currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(rollAngle)) - currentPidSetpoint[FD_PITCH] * cos_approx(DECIDEGREES_TO_RADIANS(rollAngle));
-      yaw = currentPidSetpoint[FD_ROLL] * sin_approx(DECIDEGREES_TO_RADIANS(pitchAngle)) - currentPidSetpoint[FD_PITCH] * sin_approx(DECIDEGREES_TO_RADIANS(rollAngle)) - currentPidSetpoint[FD_YAW] * cos_approx(DECIDEGREES_TO_RADIANS(ABS(rollAngle) + ABS(pitchAngle)));
-   }
-} else {
-  roll = -currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(pitchAngle));
-  pitch = -currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(rollAngle));
-  if (getCosTiltAngle() > 0.0f) { // right side up treat yaw inputs in the normal direction
-  yaw = currentPidSetpoint[FD_YAW] * cos_approx(DECIDEGREES_TO_RADIANS(ABS(rollAngle) + ABS(pitchAngle)));
-  } else {
-  yaw = -currentPidSetpoint[FD_YAW] * cos_approx(DECIDEGREES_TO_RADIANS(ABS(rollAngle) + ABS(pitchAngle)));
-  }
+if (FLIGHT_MODE(LYNCH_TRANSLATE)) {
+    getSetpointFromAux();
 }
-  currentPidSetpoint[FD_ROLL] = roll;
-  currentPidSetpoint[FD_PITCH] = pitch;
-  currentPidSetpoint[FD_YAW] = yaw;
-  DEBUG_SET(DEBUG_SETPOINT, 0, lrintf(roll));
-  DEBUG_SET(DEBUG_SETPOINT, 1, lrintf(pitch));
-  DEBUG_SET(DEBUG_SETPOINT, 2, lrintf(yaw));
-  DEBUG_SET(DEBUG_SETPOINT, 3, lrintf(getAngleAngle(pidProfile->rollOrPitchDebug)));
+
+//if (FLIGHT_MODE(ANGLE_MODE)) {
+//   float roll, pitch, yaw;
+//   if(!FLIGHT_MODE(LYNCH_TRANSLATE)) {
+//   // if (getCosTiltAngle() > 0.0f) { // right side up treat yaw inputs in the normal direction
+//       roll = -currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(pitchAngle)) + currentPidSetpoint[FD_ROLL] * cos_approx(DECIDEGREES_TO_RADIANS(pitchAngle));
+//       pitch = -currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(rollAngle)) + currentPidSetpoint[FD_PITCH] * cos_approx(DECIDEGREES_TO_RADIANS(rollAngle));
+//       if (getCosTiltAngle() > 0.0f) { // right side up treat yaw inputs in the normal direction
+//       yaw = currentPidSetpoint[FD_ROLL] * sin_approx(DECIDEGREES_TO_RADIANS(pitchAngle)) - currentPidSetpoint[FD_PITCH] * sin_approx(DECIDEGREES_TO_RADIANS(rollAngle)) + currentPidSetpoint[FD_YAW] * cos_approx(DECIDEGREES_TO_RADIANS(ABS(rollAngle) + ABS(pitchAngle)));
+//    } else { // when upside down treat yaw inputs as reverse
+//   //     roll = currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(pitchAngle)) + currentPidSetpoint[FD_ROLL] * cos_approx(DECIDEGREES_TO_RADIANS(pitchAngle));
+//       pitch = -currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(rollAngle)) - currentPidSetpoint[FD_PITCH] * cos_approx(DECIDEGREES_TO_RADIANS(rollAngle));
+//       yaw = currentPidSetpoint[FD_ROLL] * sin_approx(DECIDEGREES_TO_RADIANS(pitchAngle)) - currentPidSetpoint[FD_PITCH] * sin_approx(DECIDEGREES_TO_RADIANS(rollAngle)) - currentPidSetpoint[FD_YAW] * cos_approx(DECIDEGREES_TO_RADIANS(ABS(rollAngle) + ABS(pitchAngle)));
+//    }
+// } else {
+//   roll = -currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(pitchAngle));
+//   pitch = -currentPidSetpoint[FD_YAW] * sin_approx(DECIDEGREES_TO_RADIANS(rollAngle));
+//   if (getCosTiltAngle() > 0.0f) { // right side up treat yaw inputs in the normal direction
+//   yaw = currentPidSetpoint[FD_YAW] * cos_approx(DECIDEGREES_TO_RADIANS(ABS(rollAngle) + ABS(pitchAngle)));
+//   } else {
+//   yaw = -currentPidSetpoint[FD_YAW] * cos_approx(DECIDEGREES_TO_RADIANS(ABS(rollAngle) + ABS(pitchAngle)));
+//   }
+// }
+
+// going to try multiple different set RPY mixes as the drone rotates (bad solution, but it will work)
+
+  // if ((rollAngle < 25 && rollAngle > -25) && (pitchAngle < 25 && pitchAngle > -25) {
+  //     roll = currentPidSetpoint[roll];
+  //     pitch = currentPidSetpoint[pitch];
+  //     yaw = currentPidSetpoint[yaw];
+  // } else if ((rollAngle < 75 && rollAngle > 25) && (pitchAngle < 25 && pitchAngle > -25 {
+  //     roll = currentPidSetpoint[roll];
+  //     pitch = currentPidSetpoint[pitch];
+  //     yaw = currentPidSetpoint[yaw];
+  // }
+
+
+
+
+  // currentPidSetpoint[FD_ROLL] = roll;
+  // currentPidSetpoint[FD_PITCH] = pitch;
+  // currentPidSetpoint[FD_YAW] = yaw;
+  DEBUG_SET(DEBUG_SETPOINT, 0, lrintf(currentPidSetpoint[FD_ROLL]));
+  DEBUG_SET(DEBUG_SETPOINT, 1, lrintf(currentPidSetpoint[FD_PITCH]));
+  DEBUG_SET(DEBUG_SETPOINT, 2, lrintf(getAngleAngle(FD_ROLL)));
+  DEBUG_SET(DEBUG_SETPOINT, 3, lrintf(getAngleAngle(FD_PITCH)));
 //}
 
 

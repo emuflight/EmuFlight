@@ -39,6 +39,7 @@
 #include "fc/runtime_config.h"
 #include "fc/rc.h"
 
+
 #include "flight/gps_rescue.h"
 #include "flight/imu.h"
 #include "flight/mixer.h"
@@ -549,7 +550,7 @@ void applyThrustTransition(void) {
         if (getCosTiltAngle() > 0.0f) { // right side up treat yaw inputs in the normal direction
         imuComputeMotorQuatOffset(&qPThrustTranslation, -rollTranslation, -pitchTranslation, 0);
       } else {
-        imuComputeMotorQuatOffset(&qPThrustTranslation, -rollTranslation, pitchTranslation, 0);
+        imuComputeMotorQuatOffset(&qPThrustTranslation, rollTranslation, -pitchTranslation, 0);
       }
         translationThrustFix = cos_approx(DEGREES_TO_RADIANS(rollTranslation/10)) * cos_approx(DEGREES_TO_RADIANS(pitchTranslation/10));
         translationThrustFix = 1 / translationThrustFix;
@@ -558,6 +559,8 @@ void applyThrustTransition(void) {
         translationThrustFix = 1;
     }
 }
+
+FAST_DATA_ZERO_INIT float yawTranslateCorrection;
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void)
 {
@@ -580,7 +583,15 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void)
     for (int motor = 0; motor < 6; motor++) {
 
     if (FLIGHT_MODE(SET_LYNCH_MODE) || (FLIGHT_MODE(ANGLE_MODE) && changedToAngle == 0) || motorsSetup == 0) {
+    imuComputeMotorQuatOffset(&qPM[motor], imuConfig()->roll[motor]*10, imuConfig()->pitch[motor]*10, 0);
     imuQuaternionMultiplicationProd(&q, &qPM[motor], &qM[motor], 1);
+    if (FLIGHT_MODE(LYNCH_TRANSLATE)) {
+        yawTranslateCorrection += getSetpointRate(YAW) * pidRuntime.dT * 0;
+    }
+    if (FLIGHT_MODE(LYNCH_HEADFREE)) {
+    imuComputeMotorQuatOffset(&qPM[motor], 0, 0, -attitude.values.yaw + yawTranslateCorrection*10);
+    imuQuaternionMultiplicationProd(&qM[motor], &qPM[motor], &qM[motor], 1);
+    }
     qLM[motor] = qM[motor];
     }
     imuQuaternionMultiplicationProd(&qLM[motor], &qPThrustTranslation, &qTM[motor], 1);
@@ -590,7 +601,7 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void)
     float temporaryRoll = lrintf(((0.5f * M_PIf) - acos_approx((2.0f * (qTM[motor].y*qTM[motor].z + qTM[motor].w*qTM[motor].x)))) * (1800.0f / M_PIf));
 
       if (motor == imuConfig()->debugMotor - 1) {
-          DEBUG_SET(DEBUG_LYNCH, 0, lrintf(attitude.values.roll));
+          DEBUG_SET(DEBUG_LYNCH, 0, lrintf(yawTranslateCorrection));
           DEBUG_SET(DEBUG_LYNCH, 1, lrintf(temporaryRoll));
           DEBUG_SET(DEBUG_LYNCH, 2, lrintf(temporaryPitch));
           DEBUG_SET(DEBUG_LYNCH, 3, lrintf(temporaryThrust*1000));
@@ -616,7 +627,7 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void)
 
     setNewLevel();
 
-    attitude.values.roll = lrintf(((0.5f * M_PIf) - acos_approx(rMat[2][1])) * (1800.0f / M_PIf));
+    //attitude.values.roll = lrintf(((0.5f * M_PIf) - acos_approx(rMat[2][1])) * (1800.0f / M_PIf));
 
     imuQuaternionMultiplicationProd(&q, &qPA, &qA, 1);
 
@@ -849,6 +860,7 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
         useMag = true;
     }
 #endif
+
 #if defined(USE_GPS)
     if (!useMag && sensors(SENSOR_GPS) && STATE(GPS_FIX) && gpsSol.numSat >= 5 && gpsSol.groundSpeed >= GPS_COG_MIN_GROUNDSPEED) {
         // Use GPS course over ground to correct attitude.values.yaw

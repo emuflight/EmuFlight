@@ -40,7 +40,8 @@ typedef enum {
     BOXNFE,
     BOXSETLYNCH,
     BOXLYNCHTRANSLATE,
-    BOXID_FLIGHTMODE_LAST = BOXLYNCHTRANSLATE,
+    BOXLYNCHHEADFREE,
+    BOXID_FLIGHTMODE_LAST = BOXLYNCHHEADFREE,
 
 // When new flight modes are added, the parameter group version for 'modeActivationConditions' in src/main/fc/rc_modes.c has to be incremented to ensure that the RC modes configuration is reset.
 

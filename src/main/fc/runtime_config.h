@@ -92,7 +92,8 @@ typedef enum {
     GPS_RESCUE_MODE = (1 << 11),
     NFE_RACE_MODE   = (1 << 12),
     SET_LYNCH_MODE = (1 << 13),
-    LYNCH_TRANSLATE = (1 << 14)
+    LYNCH_TRANSLATE = (1 << 14),
+    LYNCH_HEADFREE = (1 << 15)
 } flightModeFlags_e;
 
 extern uint16_t flightModeFlags;
@@ -114,6 +115,7 @@ extern uint16_t flightModeFlags;
    [BOXNFE]         = LOG2(NFE_RACE_MODE),               \
    [BOXSETLYNCH]    = LOG2(SET_LYNCH_MODE),               \
    [BOXLYNCHTRANSLATE]         = LOG2(LYNCH_TRANSLATE),               \
+   [BOXLYNCHHEADFREE]         = LOG2(LYNCH_HEADFREE),               \
 }                                                        \
 /**/
 
