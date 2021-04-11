@@ -128,6 +128,7 @@
 #define USE_PWM
 #define USE_SERIAL_RX
 #define USE_SERIALRX_CRSF       // Team Black Sheep Crossfire protocol
+#define USE_CRSF_V3
 #define USE_SERIALRX_GHST       // ImmersionRC Ghost Protocol
 #define USE_SERIALRX_IBUS       // FlySky and Turnigy receivers
 #define USE_SERIALRX_SBUS       // Frsky and Futaba receivers
@@ -208,7 +209,6 @@
 #define USE_SERVOS
 #define USE_LED_STRIP
 #define USE_ALT_HOLD
-#define USE_CRSF_V3
 #define USE_DASHBOARD
 #define USE_GPS
 #define USE_GPS_NMEA
