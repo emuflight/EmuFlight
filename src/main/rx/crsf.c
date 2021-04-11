@@ -241,6 +241,7 @@ static void handleCrsfLinkStatisticsTxFrame(const crsfLinkStatisticsTx_t* statsP
 #endif
 }
 #endif
+#endif
 
 STATIC_UNIT_TESTED uint8_t crsfFrameCRC(void) {
     // CRC includes type and payload
