@@ -208,6 +208,7 @@
 #define USE_SERVOS
 #define USE_LED_STRIP
 #define USE_ALT_HOLD
+#define USE_CRSF_V3
 #define USE_DASHBOARD
 #define USE_GPS
 #define USE_GPS_NMEA

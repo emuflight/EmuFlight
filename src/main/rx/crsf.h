@@ -27,6 +27,7 @@
 #define CRSF_PORT_MODE          MODE_RXTX
 
 #define CRSF_MAX_CHANNEL        16
+#define CRSFV3_MAX_CHANNEL      24
 
 typedef struct crsfFrameDef_s {
     uint8_t deviceAddress;
@@ -46,4 +47,5 @@ void crsfRxSendTelemetryData(void);
 struct rxConfig_s;
 struct rxRuntimeConfig_s;
 bool crsfRxInit(const struct rxConfig_s *initialRxConfig, struct rxRuntimeConfig_s *rxRuntimeConfig);
+void crsfRxUpdateBaudrate(uint32_t baudrate);
 bool crsfRxIsActive(void);

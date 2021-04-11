@@ -90,6 +90,7 @@
 
 #if !defined(USE_SERIALRX_CRSF)
 #undef USE_TELEMETRY_CRSF
+#undef USE_CRSF_V3
 #endif
 
 #if !defined(USE_TELEMETRY_CRSF) || !defined(USE_CMS)
