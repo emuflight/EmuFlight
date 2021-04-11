@@ -24,6 +24,9 @@
 #include "drivers/exti.h"
 #include "drivers/sensor.h"
 
+#ifdef USE_GYRO_IMUF9001
+#endif
+
 //#define DEBUG_MPU_DATA_READY_INTERRUPT
 
 #if defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU6000) ||  defined(USE_GYRO_SPI_MPU9250) || defined(USE_GYRO_SPI_ICM20649) \
