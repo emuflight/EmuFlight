@@ -69,6 +69,7 @@ void pgResetFn_rxConfig(rxConfig_t *rxConfig) {
                    .rc_smoothing_derivative_type = RC_SMOOTHING_DERIVATIVE_BIQUAD,
                    .showAlteredRc = 0,
                    .sbus_baud_fast = false,
+                   .crsf_use_rx_snr = false,
                   );
 #ifdef RX_CHANNELS_TAER
     parseRcChannels("TAER1234", rxConfig);

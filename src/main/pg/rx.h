@@ -60,6 +60,7 @@ typedef struct rxConfig_s {
 
     uint8_t showAlteredRc;               // allow you to see rate dynamics in the configurator
     uint8_t sbus_baud_fast; // Select SBus fast baud rate
+    uint8_t crsf_use_rx_snr; // Use RX SNR (in dB) instead of RSSI dBm for CRSF
 } rxConfig_t;
 
 PG_DECLARE(rxConfig_t, rxConfig);
