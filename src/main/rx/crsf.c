@@ -324,7 +324,7 @@ STATIC_UNIT_TESTED void crsfDataReceive(uint16_t c, void *data) {
 #if defined(USE_TELEMETRY_CRSF)
                     case CRSF_FRAMETYPE_LINK_STATISTICS: {
                          // if to FC and 10 bytes + CRSF_FRAME_ORIGIN_DEST_SIZE
-                         if ((crsfFrame.frame.deviceAddress == CRSF_ADDRESS_FLIGHT_CONTROLLER) &&
+                         if ((rssiSource == RSSI_SOURCE_RX_PROTOCOL_CRSF) &&
                              (crsfFrame.frame.frameLength == CRSF_FRAME_ORIGIN_DEST_SIZE + CRSF_FRAME_LINK_STATISTICS_PAYLOAD_SIZE)) {
                              const crsfLinkStatistics_t* statsFrame = (const crsfLinkStatistics_t*)&crsfFrame.frame.payload;
                              handleCrsfLinkStatisticsFrame(statsFrame, currentTimeUs);
@@ -349,7 +349,7 @@ STATIC_UNIT_TESTED void crsfDataReceive(uint16_t c, void *data) {
 #if defined(USE_CRSF_V3)
                     case CRSF_FRAMETYPE_COMMAND:
                         if ((crsfFrame.bytes[fullFrameLength - 2] == crsfFrameCmdCRC()) &&
-                        crsfFrame.bytes[3] == CRSF_ADDRESS_FLIGHT_CONTROLLER)) {
+                        (crsfFrame.bytes[3] == CRSF_ADDRESS_FLIGHT_CONTROLLER)) {
                         crsfProcessCommand(crsfFrame.frame.payload + CRSF_FRAME_ORIGIN_DEST_SIZE);
                         }
                         break;
