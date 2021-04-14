@@ -494,14 +494,14 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     f_term_low = (angle - previousAngle[axis]) * F_angle / dT;
     previousAngle[axis] = angle;
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
-    float errorAngle = angle - ((attitude.raw[axis] - angleTrim->raw[axis]) * 0.1f);
+    float errorAngle = angle - ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f);
     errorAngle = constrainf(errorAngle, -90.0f, 90.0f);
     const float errorAnglePercent = fabsf(errorAngle / 90.0f);
     // ANGLE mode - control is angle based
     p_term_low = (1 - errorAnglePercent) * errorAngle * P_angle_low;
     p_term_high = errorAnglePercent * errorAngle * P_angle_high;
-    d_term_low = (1 - errorAnglePercent) * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_low;
-    d_term_high = errorAnglePercent * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_high;
+    d_term_low = (1 - errorAnglePercent) * (attitudePrevious[axis] - getAngleModeAngles(axis)) * 0.1f * D_angle_low;
+    d_term_high = errorAnglePercent * (attitudePrevious[axis] - getAngleModeAngles(axis)) * 0.1f * D_angle_high;
     attitudePrevious[axis] = attitude.raw[axis];
     currentPidSetpoint = p_term_low + p_term_high;
     currentPidSetpoint += d_term_low + d_term_high;

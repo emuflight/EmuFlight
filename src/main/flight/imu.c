@@ -92,6 +92,8 @@ STATIC_UNIT_TESTED quaternionProducts qpAttitude = QUATERNION_PRODUCTS_INITIALIZ
 quaternion qHeadfree = QUATERNION_INITIALIZE;
 quaternion qOffset = QUATERNION_INITIALIZE;
 
+quaternionProducts buffer = QUATERNION_PRODUCTS_INITIALIZE;
+
 // absolute angle inclination in multiple of 0.1 degree    180 deg = 1800
 attitudeEulerAngles_t attitude = EULER_INITIALIZE;
 
@@ -302,7 +304,6 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, quaternion *vError)
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
-    quaternionProducts buffer;
     if (FLIGHT_MODE(HEADFREE_MODE)) {
         quaternionMultiply(&qOffset, &qAttitude, &qHeadfree);
         quaternionComputeProducts(&qHeadfree, &buffer);
@@ -312,9 +313,11 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
     attitude.values.roll = lrintf(atan2_approx((+2.0f * (buffer.wx + buffer.yz)), (+1.0f - 2.0f * (buffer.xx + buffer.yy))) * (1800.0f / M_PIf));
     attitude.values.pitch = lrintf(((0.5f * M_PIf) - acos_approx(+2.0f * (buffer.wy - buffer.xz))) * (1800.0f / M_PIf));
     attitude.values.yaw = lrintf((-atan2_approx((+2.0f * (buffer.wz + buffer.xy)), (+1.0f - 2.0f * (buffer.yy + buffer.zz))) * (1800.0f / M_PIf)));
+
     if (attitude.values.yaw < 0) {
         attitude.values.yaw += 3600;
     }
+
     if (getCosTiltAngle() > smallAngleCosZ) {
         ENABLE_STATE(SMALL_ANGLE);
     } else {
@@ -428,5 +431,13 @@ bool imuQuaternionHeadfreeOffsetSet(void) {
         return (true);
     } else {
         return (false);
+    }
+}
+
+float getAngleModeAngles(int axis) {
+    if (axis == FD_ROLL) {
+        return lrintf(((0.5f * M_PIf) - acos_approx((2.0f * (buffer.yz + buffer.wx)))) * (1800.0f / M_PIf));
+    } else {
+        return attitude.values.pitch;
     }
 }
