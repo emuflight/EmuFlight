@@ -100,8 +100,8 @@ attitudeEulerAngles_t attitude = EULER_INITIALIZE;
 PG_REGISTER_WITH_RESET_TEMPLATE(imuConfig_t, imuConfig, PG_IMU_CONFIG, 0);
 
 PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
-                  .dcm_kp = 2500,
-                  .dcm_ki = 7,
+                  .dcm_kp = 5500,
+                  .dcm_ki = 10,
                   .small_angle = 180,
                   .accDeadband = {.xy = 40, .z = 40},
                   .acc_unarmedcal = 1
@@ -197,14 +197,18 @@ static void applyVectorError(float ez_ef, quaternion *vError) {
 }
 #endif
 
-static void applyAccError(quaternion *vAcc, quaternion *vError) {
+static void applyAccError(quaternion *vAcc, quaternion *vError, quaternion *gyroAvg) {
     float accTrust = accIsHealthy(&vAcc);
+
+    const float spin_rate = sqrtf(sq(gyroAvg->x) + sq(gyroAvg->y) + sq(gyroAvg->z));
+
+    float spinTrust = constrainf (1.0f - spin_rate / DEGREES_TO_RADIANS(500), 0.0f, 1.0f);
 
     quaternionNormalize(vAcc);
     // Error is sum of cross product between estimated direction and measured direction of gravity
-    vError->x += (vAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - vAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx))) * accTrust;
-    vError->y += (vAcc->z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - vAcc->x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy)) * accTrust;
-    vError->z += (vAcc->x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - vAcc->y * (2.0f * (qpAttitude.xz + -qpAttitude.wy))) * accTrust;
+    vError->x += (vAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - vAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx))) * accTrust * spinTrust;
+    vError->y += (vAcc->z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - vAcc->x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy)) * accTrust * spinTrust;
+    vError->z += (vAcc->x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - vAcc->y * (2.0f * (qpAttitude.xz + -qpAttitude.wy))) * accTrust * spinTrust;
 }
 
 static void applySensorCorrection(quaternion *vError) {
@@ -345,7 +349,7 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs) {
     accGetAverage(&vAccAverage);
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU2, lrintf((quaternionModulus(&vAccAverage) / acc.dev.acc_1G) * 1000));
     if (accIsHealthy(&vAccAverage)) {
-        applyAccError(&vAccAverage, &vError);
+        applyAccError(&vAccAverage, &vError, &vGyroAverage);
     }
     applySensorCorrection(&vError);
     imuMahonyAHRSupdate(deltaT * 1e-6f, &vGyroAverage, &vError);
