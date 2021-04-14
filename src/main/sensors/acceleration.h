@@ -91,4 +91,4 @@ bool accGetAverage(quaternion *average);
 union flightDynamicsTrims_u;
 void setAccelerationTrims(union flightDynamicsTrims_u *accelerationTrimsToUse);
 void accInitFilters(void);
-bool accIsHealthy(quaternion *q);
+float accIsHealthy(quaternion *q);

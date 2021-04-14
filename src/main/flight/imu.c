@@ -198,11 +198,13 @@ static void applyVectorError(float ez_ef, quaternion *vError) {
 #endif
 
 static void applyAccError(quaternion *vAcc, quaternion *vError) {
+    float accTrust = accIsHealthy(&vAcc);
+
     quaternionNormalize(vAcc);
     // Error is sum of cross product between estimated direction and measured direction of gravity
-    vError->x += (vAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - vAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
-    vError->y += (vAcc->z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - vAcc->x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
-    vError->z += (vAcc->x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - vAcc->y * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
+    vError->x += (vAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - vAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx))) * accTrust;
+    vError->y += (vAcc->z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - vAcc->x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy)) * accTrust;
+    vError->z += (vAcc->x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - vAcc->y * (2.0f * (qpAttitude.xz + -qpAttitude.wy))) * accTrust;
 }
 
 static void applySensorCorrection(quaternion *vError) {
@@ -276,6 +278,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, quaternion *vError)
     // PCDM Acta Mech 224, 3091–3109 (2013)
     const float vGyroModulus = quaternionModulus(vGyro);
     // reduce gyro noise integration integrate only above vGyroStdDevModulus
+    // only use gyro data when the gyro is moving more than the random noise the gyro has on the ground
     if (vGyroModulus > vGyroStdDevModulus) {
         qDiff.w = cosf(vGyroModulus * 0.5f * dt);
         qDiff.x = sinf(vGyroModulus * 0.5f * dt) * (vGyro->x / vGyroModulus);
