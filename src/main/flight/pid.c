@@ -482,8 +482,12 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
     static float attitudePrevious[2], previousAngle[2];
-    float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low;
-    float angle = pidProfile->levelAngleLimit * getRcDeflection(axis);
+    float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low, scaledRcDeflection = 0.0f;
+
+    if (getRcDeflection(axis) !=0) {
+        scaledRcDeflection = getRcDeflection(axis) / (getRcDeflectionAbs(FD_PITCH) + getRcDeflectionAbs(FD_ROLL));
+    }
+    float angle = pidProfile->levelAngleLimit * getRcDeflection(axis) * scaledRcDeflection;
     if (pidProfile->angleExpo > 0) {
         const float expof = pidProfile->angleExpo / 100.0f;
         angle = pidProfile->levelAngleLimit * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
