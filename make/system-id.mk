@@ -16,6 +16,12 @@ endif
 
 # configure some variables dependent upon what type of system this is
 
+# FreeBSD
+ifeq ($(UNAME), FreeBSD)
+  OSFAMILY := freebsd
+  FreeBSD := 1
+endif
+
 # Linux
 ifeq ($(UNAME), Linux)
   OSFAMILY := linux
