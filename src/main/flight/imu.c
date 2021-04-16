@@ -197,18 +197,12 @@ static void applyVectorError(float ez_ef, quaternion *vError) {
 }
 #endif
 
-static void applyAccError(quaternion *vAcc, quaternion *vError, quaternion *gyroAvg) {
-    float accTrust = accIsHealthy(&vAcc);
-
-    const float spin_rate = sqrtf(sq(gyroAvg->x) + sq(gyroAvg->y) + sq(gyroAvg->z));
-
-    float spinTrust = constrainf (1.0f - spin_rate / DEGREES_TO_RADIANS(500), 0.0f, 1.0f);
-
+static void applyAccError(quaternion *vAcc, quaternion *vError) {
     quaternionNormalize(vAcc);
     // Error is sum of cross product between estimated direction and measured direction of gravity
-    vError->x += (vAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - vAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx))) * accTrust * spinTrust;
-    vError->y += (vAcc->z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - vAcc->x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy)) * accTrust * spinTrust;
-    vError->z += (vAcc->x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - vAcc->y * (2.0f * (qpAttitude.xz + -qpAttitude.wy))) * accTrust * spinTrust;
+    vError->x += (vAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - vAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
+    vError->y += (vAcc->z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - vAcc->x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
+    vError->z += (vAcc->x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - vAcc->y * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
 }
 
 static void applySensorCorrection(quaternion *vError) {
@@ -259,7 +253,7 @@ static void applySensorCorrection(quaternion *vError) {
 #endif
 }
 
-static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, quaternion *vError) {
+static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, quaternion *vError, float accTrust, float spinTrust) {
     quaternion vKpKi = VECTOR_INITIALIZE;
     static quaternion vIntegralFB = VECTOR_INITIALIZE;
     quaternion qBuff, qDiff;
@@ -267,17 +261,18 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, quaternion *vError)
     const float dcmKpGain = imuRuntimeConfig.dcm_kp * imuUseFastGains();
     const float dcmKiGain = imuRuntimeConfig.dcm_ki * imuUseFastGains();
     // calculate integral feedback
+    float trust = accTrust * spinTrust;
     if (imuRuntimeConfig.dcm_ki > 0.0f) {
-        vIntegralFB.x += dcmKiGain * vError->x * dt;
-        vIntegralFB.y += dcmKiGain * vError->y * dt;
-        vIntegralFB.z += dcmKiGain * vError->z * dt;
+        vIntegralFB.x += dcmKiGain * vError->x * dt * trust;
+        vIntegralFB.y += dcmKiGain * vError->y * dt * trust;
+        vIntegralFB.z += dcmKiGain * vError->z * dt * trust;
     } else {
         quaternionInitVector(&vIntegralFB);
     }
     // apply proportional and integral feedback
-    vKpKi.x += dcmKpGain * vError->x + vIntegralFB.x;
-    vKpKi.y += dcmKpGain * vError->y + vIntegralFB.y;
-    vKpKi.z += dcmKpGain * vError->z + vIntegralFB.z;
+    vKpKi.x += dcmKpGain * vError->x * trust + vIntegralFB.x;
+    vKpKi.y += dcmKpGain * vError->y * trust + vIntegralFB.y;
+    vKpKi.z += dcmKpGain * vError->z * trust + vIntegralFB.z;
     // vGyro integration
     // PCDM Acta Mech 224, 3091–3109 (2013)
     const float vGyroModulus = quaternionModulus(vGyro);
@@ -348,11 +343,16 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs) {
     gyroGetAverage(&vGyroAverage);
     accGetAverage(&vAccAverage);
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU2, lrintf((quaternionModulus(&vAccAverage) / acc.dev.acc_1G) * 1000));
-    if (accIsHealthy(&vAccAverage)) {
-        applyAccError(&vAccAverage, &vError, &vGyroAverage);
+
+    float accTrust = accIsHealthy(&vAccAverage);
+    const float spin_rate = sqrtf(sq(vGyroAverage.x) + sq(vGyroAverage.y) + sq(vGyroAverage.z));
+    float spinTrust = constrainf (1.0f - spin_rate / DEGREES_TO_RADIANS(500), 0.0f, 1.0f);
+
+    if (accTrust) {
+        applyAccError(&vAccAverage, &vError);
     }
     applySensorCorrection(&vError);
-    imuMahonyAHRSupdate(deltaT * 1e-6f, &vGyroAverage, &vError);
+    imuMahonyAHRSupdate(deltaT * 1e-6f, &vGyroAverage, &vError, accTrust, spinTrust);
     imuUpdateEulerAngles();
 #endif
 #if defined(USE_ALT_HOLD)
