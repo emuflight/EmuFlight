@@ -504,14 +504,15 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
 
     // apply extra correction if you are upside down
-    if (getRcDeflection(axis) !=0) {
-        scaledAngle = getAngleModeAngles(axis) / (getAngleModeAngles(FD_PITCH) + getAngleModeAngles(FD_ROLL));
-    } else {
-        scaledAngle = 0.0f;
+    if (getAngleModeAngles(axis) != 0) {
+        scaledAngle = getAngleModeAngles(axis) / (ABS(getAngleModeAngles(FD_PITCH)) + ABS(getAngleModeAngles(FD_ROLL)));
     }
-    currentAngle = ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f) + (-constrainf(howUpsideDown(), 0.0f, -1.0f) * scaledAngle);
+    currentAngle = ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f) + (constrainf(-howUpsideDown(), 0.0f, 1.0f) * scaledAngle * 180.0f);
+
+    DEBUG_SET(DEBUG_ANGLE, axis, lrintf(currentAngle));
 
     float errorAngle = angle - currentAngle;
+    DEBUG_SET(DEBUG_ANGLE, axis + 2, lrintf(errorAngle));
     errorAngle = constrainf(errorAngle, -90.0f, 90.0f);
     const float errorAnglePercent = fabsf(errorAngle / 90.0f);
 
@@ -535,6 +536,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     currentPidSetpoint = angleSetpointFilterApplyFn((filter_t *)&angleSetpointFilter[axis], currentPidSetpoint);
     directFF[axis] = (1 - fabsf(errorAnglePercent)) * DF_angle_low;
     directFF[axis] += fabsf(errorAnglePercent) * DF_angle_high;
+
     return currentPidSetpoint;
 }
 
