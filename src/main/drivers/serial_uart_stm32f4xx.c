@@ -264,8 +264,19 @@ void uartIrqHandler(uartPort_t *s) {
             USART_ITConfig(s->USARTx, USART_IT_TXE, DISABLE);
         }
     }
+    
     if (USART_GetITStatus(s->USARTx, USART_IT_ORE) == SET) {
-        USART_ClearITPendingBit (s->USARTx, USART_IT_ORE);
+        USART_ClearITPendingBit(s->USARTx, USART_IT_ORE);
+    }
+
+    if (USART_GetITStatus(s->USARTx, USART_IT_IDLE) == SET) {
+        if (s->port.idleCallback) {
+            s->port.idleCallback();
+        }
+
+        // clear
+        (void) s->USARTx->SR;
+        (void) s->USARTx->DR;
     }
 }
 #endif
