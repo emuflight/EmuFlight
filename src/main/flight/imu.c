@@ -100,8 +100,8 @@ attitudeEulerAngles_t attitude = EULER_INITIALIZE;
 PG_REGISTER_WITH_RESET_TEMPLATE(imuConfig_t, imuConfig, PG_IMU_CONFIG, 0);
 
 PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
-                  .dcm_kp = 5500,
-                  .dcm_ki = 10,
+                  .dcm_kp = 8500,
+                  .dcm_ki = 0,
                   .small_angle = 180,
                   .accDeadband = {.xy = 40, .z = 40},
                   .acc_unarmedcal = 1

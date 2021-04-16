@@ -482,11 +482,14 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
     static float attitudePrevious[2], previousAngle[2];
-    float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low, currentAngle, scaledRcDeflection = 0.0f;
+    float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low, currentAngle, scaledRcDeflection, scaledAngle = 0.0f;
 
     if (getRcDeflection(axis) !=0) {
         scaledRcDeflection = getRcDeflection(axis) / (getRcDeflectionAbs(FD_PITCH) + getRcDeflectionAbs(FD_ROLL));
+    } else {
+        scaledRcDeflection = 0.0f;
     }
+
     float angle = pidProfile->levelAngleLimit * getRcDeflection(axis) * scaledRcDeflection;
     if (pidProfile->angleExpo > 0) {
         const float expof = pidProfile->angleExpo / 100.0f;
@@ -500,11 +503,13 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     previousAngle[axis] = angle;
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
 
-    if (howUpsideDown() > 1) {
-        currentAngle = (getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f;
+    // apply extra correction if you are upside down
+    if (getRcDeflection(axis) !=0) {
+        scaledAngle = getAngleModeAngles(axis) / (getAngleModeAngles(FD_PITCH) + getAngleModeAngles(FD_ROLL));
     } else {
-        currentAngle = ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f) * (1 - howUpsideDown());
+        scaledAngle = 0.0f;
     }
+    currentAngle = ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f) + (-constrainf(howUpsideDown(), 0.0f, -1.0f) * scaledAngle);
 
     float errorAngle = angle - currentAngle;
     errorAngle = constrainf(errorAngle, -90.0f, 90.0f);
@@ -514,9 +519,9 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     p_term_low = (1 - errorAnglePercent) * errorAngle * P_angle_low;
     p_term_high = errorAnglePercent * errorAngle * P_angle_high;
 
-    d_term_low = (1 - errorAnglePercent) * (attitudePrevious[axis] - currentAngle) * 0.1f * D_angle_low;
-    d_term_high = errorAnglePercent * (attitudePrevious[axis] - currentAngle) * 0.1f * D_angle_high;
-    attitudePrevious[axis] = currentAngle;
+    d_term_low = (1 - errorAnglePercent) * (attitudePrevious[axis] - getAngleModeAngles(axis)) * 0.1f * D_angle_low;
+    d_term_high = errorAnglePercent * (attitudePrevious[axis] - getAngleModeAngles(axis)) * 0.1f * D_angle_high;
+    attitudePrevious[axis] = getAngleModeAngles(axis);
 
     currentPidSetpoint = p_term_low + p_term_high;
     currentPidSetpoint += d_term_low + d_term_high;
