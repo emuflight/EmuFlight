@@ -922,14 +922,14 @@ static bool osdDrawSingleElement(uint8_t item) {
         const uint16_t mAhUsedPercent = ceilf(value / (batteryConfig()->batteryCapacity / 100.0f));
         tfp_sprintf(buff , "%c%3d%%", SYM_MAH, mAhUsedPercent);
         break;
-    }   
+    }
     case OSD_DEBUG:
         tfp_sprintf(buff, "DBG %5d %5d %5d %5d", debug[0], debug[1], debug[2], debug[3]);
         break;
     case OSD_PITCH_ANGLE:
     case OSD_ROLL_ANGLE: {
         const char symbol = (item == OSD_PITCH_ANGLE) ? SYM_PITCH : SYM_ROLL ;
-        const int angle = (item == OSD_PITCH_ANGLE) ? attitude.values.pitch : attitude.values.roll;
+        const int angle = (item == OSD_PITCH_ANGLE) ? attitude.values.pitch : getAngleModeAngles(ROLL);
         //tfp_sprintf(buff, "%c", symbol);
         tfp_sprintf(buff, "%c%c%02d.%01d", symbol, angle < 0 ? '-' : ' ', abs(angle / 10), abs(angle % 10));
         break;

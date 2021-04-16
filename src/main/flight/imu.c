@@ -448,3 +448,7 @@ float getAngleModeAngles(int axis) {
         return attitude.values.pitch;
     }
 }
+
+float howUpsideDown(void) {
+    return 1.0f - 2.0f * buffer.xx - 2.0f * buffer.yy;
+}

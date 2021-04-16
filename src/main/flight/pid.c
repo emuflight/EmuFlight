@@ -482,7 +482,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
     static float attitudePrevious[2], previousAngle[2];
-    float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low, scaledRcDeflection = 0.0f;
+    float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low, currentAngle, scaledRcDeflection = 0.0f;
 
     if (getRcDeflection(axis) !=0) {
         scaledRcDeflection = getRcDeflection(axis) / (getRcDeflectionAbs(FD_PITCH) + getRcDeflectionAbs(FD_ROLL));
@@ -496,17 +496,28 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     angle += gpsRescueAngle[axis] / 100; // ANGLE IS IN CENTIDEGREES
 #endif
     f_term_low = (angle - previousAngle[axis]) * F_angle / dT;
+
     previousAngle[axis] = angle;
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
-    float errorAngle = angle - ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f);
+
+    if (howUpsideDown() > 1) {
+        currentAngle = (getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f;
+    } else {
+        currentAngle = ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f) * (1 - howUpsideDown());
+    }
+
+    float errorAngle = angle - currentAngle;
     errorAngle = constrainf(errorAngle, -90.0f, 90.0f);
     const float errorAnglePercent = fabsf(errorAngle / 90.0f);
+
     // ANGLE mode - control is angle based
     p_term_low = (1 - errorAnglePercent) * errorAngle * P_angle_low;
     p_term_high = errorAnglePercent * errorAngle * P_angle_high;
-    d_term_low = (1 - errorAnglePercent) * (attitudePrevious[axis] - getAngleModeAngles(axis)) * 0.1f * D_angle_low;
-    d_term_high = errorAnglePercent * (attitudePrevious[axis] - getAngleModeAngles(axis)) * 0.1f * D_angle_high;
-    attitudePrevious[axis] = attitude.raw[axis];
+
+    d_term_low = (1 - errorAnglePercent) * (attitudePrevious[axis] - currentAngle) * 0.1f * D_angle_low;
+    d_term_high = errorAnglePercent * (attitudePrevious[axis] - currentAngle) * 0.1f * D_angle_high;
+    attitudePrevious[axis] = currentAngle;
+
     currentPidSetpoint = p_term_low + p_term_high;
     currentPidSetpoint += d_term_low + d_term_high;
     currentPidSetpoint += f_term_low;
