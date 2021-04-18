@@ -520,11 +520,11 @@ float accIsHealthy(quaternion *q) {
 
     float accStrength = 0;
 
-    if ((0.5f < accMagnitudeSq) && (accMagnitudeSq < 1.69f)) {
+    if ((0.81f < accMagnitudeSq) && (accMagnitudeSq < 1.21f)) {
     if (accMagnitudeSq > 1.0f) {
-        accStrength = scaleRangef(accMagnitudeSq, 0.5, 1.0f, 0.0f, 1.0f);
+        accStrength = scaleRangef(accMagnitudeSq, 0.81, 1.0f, 0.0f, 1.0f);
     } else {
-        accStrength = scaleRangef(accMagnitudeSq, 1.0f, 1.69f, 1.0f, 0.0f);
+        accStrength = scaleRangef(accMagnitudeSq, 1.0f, 1.21f, 1.0f, 0.0f);
     }
   }
   return accStrength;
