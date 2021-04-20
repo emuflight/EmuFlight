@@ -662,12 +662,10 @@ static float imuIsAccelerometerHealthy(float *accAverage)
 
     float accStrength = 0.0f;
     // Accept accel readings only in range 0.9g - 1.1g
-    if ((0.5f < accMagnitudeSq) && (accMagnitudeSq < 1.69f)) {
-        if (accMagnitudeSq > 1.0f) {
-            accStrength = scaleRangef(accMagnitudeSq, 0.5, 1.0f, 0.0f, 1.0f);
-        } else {
-            accStrength = scaleRangef(accMagnitudeSq, 1.0f, 1.69f, 1.0f, 0.0f);
-        }
+    if ((0.81f < accMagnitudeSq) && (accMagnitudeSq < 1.21f)) {
+      accStrength = 1;
+    } else {
+      accStrength = 0;
     }
     return accStrength;
 }
