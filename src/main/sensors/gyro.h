@@ -44,6 +44,9 @@
 #define YAW_SPIN_RECOVERY_THRESHOLD_MAX 1950
 #endif
 
+#ifdef USE_SMITH_PREDICTOR
+#define MAX_SMITH_SAMPLES 64
+#endif // USE_SMITH_PREDICTOR
 
 typedef enum gyroDetectionFlags_e {
     GYRO_NONE_MASK = 0,
@@ -65,6 +68,19 @@ typedef struct gyroSensor_s {
     gyroDev_t gyroDev;
     gyroCalibration_t calibration;
 } gyroSensor_t;
+
+#ifdef USE_SMITH_PREDICTOR
+typedef struct smithPredictor_s {
+    uint8_t samples;
+    uint8_t idx;
+
+    float data[MAX_SMITH_SAMPLES + 1]; // This is gonna be a ring buffer. Max of 8ms delay at 8khz
+
+    pt1Filter_t smithPredictorFilter; // filter the smith predictor output for RPY
+
+    float smithPredictorStrength;
+} smithPredictor_t;
+#endif // USE_SMITH_PREDICTOR
 
 typedef struct gyro_s {
     uint16_t sampleRateHz;
@@ -103,6 +119,10 @@ typedef struct gyro_s {
     float dynNotchQ;
 #endif
 
+#ifdef USE_SMITH_PREDICTOR
+    smithPredictor_t smithPredictor[XYZ_AXIS_COUNT];
+#endif // USE_SMITH_PREDICTOR
+
     uint16_t accSampleRateHz;
     uint8_t gyroToUse;
     uint8_t gyroDebugMode;
@@ -122,7 +142,6 @@ typedef struct gyro_s {
 #ifdef USE_GYRO_OVERFLOW_CHECK
     uint8_t overflowAxisMask;
 #endif
-
 } gyro_t;
 
 extern gyro_t gyro;
@@ -204,6 +223,10 @@ typedef struct gyroConfig_s {
 
     uint8_t gyrosDetected; // What gyros should detection be attempted for on startup. Automatically set on first startup.
     uint8_t dyn_lpf_curve_expo; // set the curve for dynamic gyro lowpass filter
+    
+    uint8_t smithPredictorStrength;
+    uint8_t smithPredictorDelay;
+    uint16_t smithPredictorFilterHz;
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);

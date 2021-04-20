@@ -729,6 +729,12 @@ static uint16_t gyroConfig_abg_half_life;
 static uint8_t  gyroConfig_gyro_to_use;
 static uint8_t  gyroConfig_lpf_type;
 
+#ifdef USE_SMITH_PREDICTOR
+static uint8_t smithPredictor_strength;
+static uint8_t smithPredictor_delay;
+static uint16_t smithPredictor_filt_hz;
+#endif // USE_SMITH_PREDICTOR
+
 static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
 {
     UNUSED(pDisp);
@@ -756,6 +762,12 @@ static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
 
     gyroConfig_gyro_to_use    = gyroConfig()->gyro_to_use;
     gyroConfig_lpf_type       = gyroConfig()->gyro_lowpass_type;
+
+#ifdef USE_SMITH_PREDICTOR
+    smithPredictor_strength  = gyroConfig()->smithPredictorStrength;
+    smithPredictor_delay     = gyroConfig()->smithPredictorDelay;
+    smithPredictor_filt_hz   = gyroConfig()->smithPredictorFilterHz;
+#endif
     return NULL;
 }
 
@@ -788,6 +800,11 @@ static const void *cmsx_menuGyro_onExit(displayPort_t *pDisp, const OSD_Entry *s
     gyroConfigMutable()->gyro_to_use = gyroConfig_gyro_to_use;
     gyroConfigMutable()->gyro_lowpass_type = gyroConfig_lpf_type;
 
+#ifdef USE_SMITH_PREDICTOR
+    gyroConfigMutable()->smithPredictorStrength = smithPredictor_strength;
+    gyroConfigMutable()->smithPredictorDelay = smithPredictor_delay;
+    gyroConfigMutable()->smithPredictorFilterHz = smithPredictor_filt_hz;
+#endif
     return NULL;
 }
 
@@ -816,6 +833,11 @@ static const OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "ALPHA",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_alpha,           0, 1000, 1 }, 0 },
     { "ABG BOOST",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_abg_boost,       0, 2000, 5 }, 0 },
     { "ABG HALF LIFE",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_abg_half_life,   0, 1000, 1 }, 0 },
+#ifdef USE_SMITH_PREDICTOR
+    { "SMITH STR",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_strength,        0, 100, 1 }, 0 },
+    { "SMITH DELAY",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_delay,        0, 250, 1 }, 0 },
+    { "SMITH FILT",    OME_UINT16,  NULL, &(OSD_UINT16_t)  { &smithPredictor_filt_hz,        0, 1000, 1 }, 0 },
+#endif
 #ifdef USE_MULTI_GYRO
     { "GYRO TO USE",  OME_TAB,  NULL, &(OSD_TAB_t)    { &gyroConfig_gyro_to_use,  2, osdTableGyroToUse}, REBOOT_REQUIRED },
 #endif

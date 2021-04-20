@@ -136,6 +136,9 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->imuf_pitch_q = 3000;
     gyroConfig->imuf_yaw_q = 3000;
     gyroConfig->imuf_w = 32;
+    gyroConfig->smithPredictorStrength = 50;
+    gyroConfig->smithPredictorDelay = 32; //3.2 ms delay for smith Predictor
+    gyroConfig->smithPredictorFilterHz = 50;
 }
 
 #ifdef USE_GYRO_DATA_ANALYSE
@@ -447,6 +450,24 @@ FAST_CODE void gyroUpdate(void)
     gyro.gyroADC[X] = kalman_update(gyro.gyroADC[X], X);
     gyro.gyroADC[Y] = kalman_update(gyro.gyroADC[Y], Y);
     gyro.gyroADC[Z] = kalman_update(gyro.gyroADC[Z], Z);
+}
+
+float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered) {
+  if (gyroConfig()->smithPredictorDelay > 1) {
+    smithPredictor->data[smithPredictor->idx] = gyroFiltered;
+
+    smithPredictor->idx++;
+    if (smithPredictor->idx > smithPredictor->samples) {
+        smithPredictor->idx = 0;
+    }
+
+    // filter the delayedGyro to help reduce the overall noise this prediction adds
+    float delayedGyro = pt1FilterApply(&smithPredictor->smithPredictorFilter, smithPredictor->data[smithPredictor->idx]);
+
+    float delayCompensatedGyro = smithPredictor->smithPredictorStrength * (gyroFiltered - delayedGyro);
+    return delayCompensatedGyro;
+  }
+  return gyroFiltered;
 }
 
 #define GYRO_FILTER_FUNCTION_NAME filterGyro

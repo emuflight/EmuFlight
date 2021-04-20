@@ -669,11 +669,15 @@ const clivalue_t valueTable[] = {
     { "dyn_lpf_gyro_min_hz",        VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_lpf_gyro_min_hz) },
     { "dyn_lpf_gyro_width",         VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 255 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_lpf_gyro_width) },
     { "dyn_lpf_gyro_curve_expo",    VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 10 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_lpf_curve_expo) },
-    { "dyn_lpf_gain",               VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 200 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_lpf_gyro_gain) },
+    { "dyn_lpf_gain",               VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 200 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_lpf_gyro_gain) },
     { "dyn_lpf_gyro_boost",         VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 10000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_lpf_gyro_boost) },
 #endif
     { "gyro_filter_debug_axis",     VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO_FILTER_DEBUG }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_filter_debug_axis) },
-
+#ifdef USE_SMITH_PREDICTOR
+    { "smith_predict_str",          VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 100 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorStrength) },
+    { "smith_predict_delay",        VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 250 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorDelay) },
+    { "smith_predict_filt_hz",      VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 10000 },  PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorFilterHz) },
+#endif // USE_SMITH_PREDICTOR
 // PG_ACCELEROMETER_CONFIG
 #if defined(USE_ACC)
     { "acc_hardware",               VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ACC_HARDWARE }, PG_ACCELEROMETER_CONFIG, offsetof(accelerometerConfig_t, acc_hardware) },
