@@ -127,8 +127,7 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->dyn_lpf_gyro_gain = 70;
     gyroConfig->dyn_lpf_curve_expo = 5;
     gyroConfig->dyn_notch_max_hz = 600;
-    gyroConfig->dyn_notch_count = 1;
-    gyroConfig->dyn_notch_bandwidth_hz = 45;
+    gyroConfig->dyn_notch_q = 250;
     gyroConfig->dyn_notch_min_hz = 150;
     gyroConfig->gyro_filter_debug_axis = FD_ROLL;
     gyroConfig->imuf_roll_q = 3000;
@@ -139,13 +138,6 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->smithPredictorDelay = 32; //3.2 ms delay for smith Predictor
     gyroConfig->smithPredictorFilterHz = 50;
 }
-
-#ifdef USE_GYRO_DATA_ANALYSE
-bool isDynamicFilterActive(void)
-{
-    return featureIsEnabled(FEATURE_DYNAMIC_FILTER);
-}
-#endif
 
 bool isGyroSensorCalibrationComplete(const gyroSensor_t *gyroSensor)
 {
@@ -488,6 +480,20 @@ float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered) 
 #undef GYRO_FILTER_DEBUG_SET
 #undef GYRO_FILTER_AXIS_DEBUG_SET
 
+#ifdef USE_GYRO_DATA_ANALYSE
+static void dynamicGyroNotchFiltersUpdate(gyro_t *gyro) {
+    if (gyro->gyroAnalyseState.filterUpdateExecute) {
+        const uint8_t axis = gyro->gyroAnalyseState.filterUpdateAxis;
+        const float frequency = gyro->gyroAnalyseState.filterUpdateFrequency;
+
+        DEBUG_SET(DEBUG_MATRIX_FILTER, axis, frequency);
+
+        biquadFilterUpdate(&gyro->notchFilterDyn[0][axis], frequency, gyro->targetLooptime, gyro->dynNotchQ, FILTER_NOTCH);
+        biquadFilterUpdate(&gyro->notchFilterDyn[1][axis], frequency, gyro->targetLooptime, gyro->dynNotchQ, FILTER_NOTCH);
+        biquadFilterUpdate(&gyro->notchFilterDyn[2][axis], frequency, gyro->targetLooptime, gyro->dynNotchQ, FILTER_NOTCH);
+    }
+}
+#endif
 
 FAST_CODE void gyroFiltering(timeUs_t currentTimeUs)
 {
@@ -498,8 +504,9 @@ FAST_CODE void gyroFiltering(timeUs_t currentTimeUs)
     }
 
 #ifdef USE_GYRO_DATA_ANALYSE
-    if (isDynamicFilterActive()) {
-        gyroDataAnalyse(&gyro.gyroAnalyseState);
+    if (featureIsEnabled(FEATURE_DYNAMIC_FILTER)) {
+       gyroDataAnalyse(&gyro.gyroAnalyseState);
+       dynamicGyroNotchFiltersUpdate(&gyro);
     }
 #endif
 

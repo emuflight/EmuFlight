@@ -33,6 +33,14 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
         // DEBUG_GYRO_SCALED records the unfiltered, scaled gyro output
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_SCALED, axis, lrintf(gyro.gyroADC[axis]));
 
+#ifdef USE_GYRO_DATA_ANALYSE
+        if (featureIsEnabled(FEATURE_DYNAMIC_FILTER)) {
+            if (axis == gyro.gyroDebugAxis) {
+                GYRO_FILTER_DEBUG_SET(DEBUG_FFT, 0, lrintf(gyroADCf));
+                GYRO_FILTER_DEBUG_SET(DEBUG_FFT_FREQ, 3, lrintf(gyroADCf));
+            }
+        }
+#endif
 #ifdef USE_RPM_FILTER
         gyroADCf = rpmFilterGyro(axis, gyroADCf);
 #endif
@@ -59,22 +67,15 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
         }
 
 #ifdef USE_GYRO_DATA_ANALYSE
-        if (isDynamicFilterActive()) {
-            if (axis == gyro.gyroDebugAxis) {
-                GYRO_FILTER_DEBUG_SET(DEBUG_FFT, 0, lrintf(gyroADCf));
-                GYRO_FILTER_DEBUG_SET(DEBUG_FFT_FREQ, 3, lrintf(gyroADCf));
-                GYRO_FILTER_DEBUG_SET(DEBUG_DYN_LPF, 0, lrintf(gyroADCf));
-            }
-
-            gyroDataAnalysePush(&gyro.gyroAnalyseState, axis, gyroADCf);
-            for (uint8_t p = 0; p < gyro.notchFilterDynCount; p++) {
-                gyroADCf = gyro.notchFilterDynApplyFn((filter_t*)&gyro.notchFilterDyn[axis][p], gyroADCf);
-            }
-
+        if (featureIsEnabled(FEATURE_DYNAMIC_FILTER)) {
             if (axis == gyro.gyroDebugAxis) {
                 GYRO_FILTER_DEBUG_SET(DEBUG_FFT, 1, lrintf(gyroADCf));
-                GYRO_FILTER_DEBUG_SET(DEBUG_DYN_LPF, 3, lrintf(gyroADCf));
+                GYRO_FILTER_DEBUG_SET(DEBUG_FFT_FREQ, 2, lrintf(gyroADCf));
             }
+            gyroDataAnalysePush(&gyro.gyroAnalyseState, axis, gyroADCf);
+            gyroADCf = gyro.notchFilterDynApplyFn((filter_t *)&gyro.notchFilterDyn[axis][0], gyroADCf);
+            gyroADCf = gyro.notchFilterDynApplyFn((filter_t *)&gyro.notchFilterDyn[axis][1], gyroADCf);
+            gyroADCf = gyro.notchFilterDynApplyFn((filter_t *)&gyro.notchFilterDyn[axis][2], gyroADCf);
         }
 #endif
 

@@ -121,15 +121,14 @@ static void gyroInitFilterDynamicNotch()
 {
     gyro.notchFilterDynApplyFn = nullFilterApply;
 
-    if (isDynamicFilterActive()) {
+    if (featureIsEnabled(FEATURE_DYNAMIC_FILTER)) {
         gyro.notchFilterDynApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1; // must be this function, not DF2
-        gyro.notchFilterDynCount = gyroConfig()->dyn_notch_count;
 
         const float notchQ = filterGetNotchQ(DYNAMIC_NOTCH_DEFAULT_CENTER_HZ, DYNAMIC_NOTCH_DEFAULT_CUTOFF_HZ); // any defaults OK here
-        for (uint8_t axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            for (uint8_t p = 0; p < gyro.notchFilterDynCount; p++) {
-                biquadFilterInit(&gyro.notchFilterDyn[axis][p], DYNAMIC_NOTCH_DEFAULT_CENTER_HZ, gyro.targetLooptime, notchQ, FILTER_NOTCH);
-            }
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+             for (int axis2 = 0; axis2 < XYZ_AXIS_COUNT; axis2++) {
+                 biquadFilterInit(&gyro.notchFilterDyn[axis][axis2], DYNAMIC_NOTCH_DEFAULT_CENTER_HZ, gyro.targetLooptime, notchQ, FILTER_NOTCH);
+           }
         }
     }
 }
@@ -253,6 +252,10 @@ void gyroInitFilters(void)
 #endif
 #ifdef USE_DYN_LPF
     dynLpfFilterInit();
+#endif
+#ifdef USE_GYRO_DATA_ANALYSE
+    gyro.dynNotchQ = gyroConfig()->dyn_notch_q / 100.0f;
+    gyroDataAnalyseStateInit(&gyro.gyroAnalyseState, gyro.targetLooptime);
 #endif
     kalman_init();
     gyroInitABG();
