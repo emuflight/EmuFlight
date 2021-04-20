@@ -160,19 +160,19 @@ static bool gyroInitLowpassFilterLpf(int type, uint16_t lpfHz, uint32_t looptime
       for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
         switch (type) {
         case FILTER_PT1:
-                ptnFilterInit(&lowpassFilter[axis], 1, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
+                ptnFilterInit(&lowpassFilter[axis], 1, lpfHz, gyroDt);
             ret = true;
             break;
         case FILTER_PT2:
-                ptnFilterInit(&lowpassFilter[axis], 2, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
+                ptnFilterInit(&lowpassFilter[axis], 2, lpfHz, gyroDt);
             ret = true;
             break;
         case FILTER_PT3:
-                ptnFilterInit(&lowpassFilter[axis], 3, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
+                ptnFilterInit(&lowpassFilter[axis], 3, lpfHz, gyroDt);
             ret = true;
             break;
         case FILTER_PT4:
-                ptnFilterInit(&lowpassFilter[axis], 4, lpfHz, gyroConfig()->dyn_lpf_gyro_boost, gyroDt);
+                ptnFilterInit(&lowpassFilter[axis], 4, lpfHz, gyroDt);
             ret = true;
             break;
         }

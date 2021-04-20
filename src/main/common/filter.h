@@ -61,9 +61,6 @@ typedef struct ptnFilter_s {
     float state[5];
     float k;
     uint8_t order;
-
-    float boost;
-    pt1Filter_t boostFilter;
 } ptnFilter_t;
 
 typedef enum {
@@ -110,6 +107,6 @@ float ABGAcceleration(alphaBetaGammaFilter_t *filter);
 float ABGJerk(alphaBetaGammaFilter_t *filter);
 float ABGResidualError(alphaBetaGammaFilter_t *filter);
 
-void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, uint16_t boost, float dT);
+void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT);
 void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float ScaleF, float dt);
 float ptnFilterApply(ptnFilter_t *filter, float input);

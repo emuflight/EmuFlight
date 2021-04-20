@@ -301,42 +301,34 @@ float ABGResidualError(alphaBetaGammaFilter_t *filter) {
     return filter->rk;
 }
 
-FAST_CODE void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, uint16_t boost, float dT) {
+FAST_CODE void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT) {
 
-	// AdjCutHz = CutHz /(sqrtf(powf(2, 1/Order) -1))
-	const float ScaleF[] = { 1.0f, 1.553773974f, 1.961459177f, 2.298959223f };
-	float Adj_f_cut;
+	  // AdjCutHz = CutHz /(sqrtf(powf(2, 1/Order) -1))
+    const float ScaleF[] = { 1.0f, 1.553773974f, 1.961459177f, 2.298959223f };
+    float Adj_f_cut;
 
-	filter->order = (order > 4) ? 4 : order;
-	for (int n = 1; n <= filter->order; n++)
-		filter->state[n] = 0.0f;
+	  filter->order = (order > 4) ? 4 : order;
+	  for (int n = 1; n <= filter->order; n++) {
+		    filter->state[n] = 0.0f;
+    }
 
-	Adj_f_cut = (float)f_cut * ScaleF[filter->order - 1];
+	  Adj_f_cut = (float)f_cut * ScaleF[filter->order - 1];
 
-	filter->k = dT / ((1.0f / (2.0f * M_PIf * Adj_f_cut)) + dT);
-
-  pt1FilterInit(&filter->boostFilter, pt1FilterGain(100, dT));
-  filter->boost = (boost * boost / 1000000) * 0.003;
+	  filter->k = dT / ((1.0f / (2.0f * M_PIf * Adj_f_cut)) + dT);
 } // ptnFilterInit
 
 FAST_CODE void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float ScaleF, float dT) {
-  float Adj_f_cut;
-  Adj_f_cut = (float)f_cut * ScaleF;
-  filter->k = dT / ((1.0f / (2.0f * M_PIf * Adj_f_cut)) + dT);
+    float Adj_f_cut;
+    Adj_f_cut = (float)f_cut * ScaleF;
+    filter->k = dT / ((1.0f / (2.0f * M_PIf * Adj_f_cut)) + dT);
 }
 
 FAST_CODE float ptnFilterApply(ptnFilter_t *filter, float input) {
-	filter->state[0] = input;
+    filter->state[0] = input;
 
-  float error = input - filter->state[filter->order];
+	  for (int n = 1; n <= filter->order; n++) {
+		    filter->state[n] += (filter->state[n - 1] - filter->state[n]) * filter->k;
+    }
 
-  error += pt1FilterApply(&filter->boostFilter, fabsf(error) * error * filter->boost);
-  float boost = constrainf((error) / (input - filter->state[filter->order]), 1.0f, 1.0f / filter->k);
-
-
-	for (int n = 1; n <= filter->order; n++) {
-		  filter->state[n] += (filter->state[n - 1] - filter->state[n]) * filter->k * boost;
-  }
-
-	return filter->state[filter->order];
+	  return filter->state[filter->order];
 } // ptnFilterApply

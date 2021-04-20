@@ -199,7 +199,6 @@ typedef struct gyroConfig_s {
     uint16_t dyn_lpf_gyro_min_hz;
     uint8_t  dyn_lpf_gyro_width;
     uint8_t  dyn_lpf_gyro_gain;
-    uint16_t dyn_lpf_gyro_boost;
 
     uint16_t dyn_notch_max_hz;
     uint8_t  dyn_notch_count;
@@ -223,7 +222,7 @@ typedef struct gyroConfig_s {
 
     uint8_t gyrosDetected; // What gyros should detection be attempted for on startup. Automatically set on first startup.
     uint8_t dyn_lpf_curve_expo; // set the curve for dynamic gyro lowpass filter
-    
+
     uint8_t smithPredictorStrength;
     uint8_t smithPredictorDelay;
     uint16_t smithPredictorFilterHz;

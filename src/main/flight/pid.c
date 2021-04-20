@@ -162,9 +162,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dyn_lpf_dterm_min_hz = 65, // NOTE: this lpf is static unless dyn_lpf_dterm_width > 0
         .dyn_lpf_dterm_width = 0,
         .dyn_lpf_dterm_gain = 20,
-        .dyn_lpf_dterm_boost = 0,
         .dterm_lowpass2_hz = 200,   // second Dterm LPF ON by default
-        .dterm_lowpass2_boost = 0,
         .launchControlMode = LAUNCH_CONTROL_MODE_NORMAL,
         .launchControlThrottlePercent = 20,
         .launchControlAngleLimit = 0,

@@ -125,7 +125,6 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->dyn_lpf_gyro_min_hz = 115;
     gyroConfig->dyn_lpf_gyro_width = 0;
     gyroConfig->dyn_lpf_gyro_gain = 70;
-    gyroConfig->dyn_lpf_gyro_boost = 0;
     gyroConfig->dyn_lpf_curve_expo = 5;
     gyroConfig->dyn_notch_max_hz = 600;
     gyroConfig->dyn_notch_count = 1;
@@ -452,6 +451,7 @@ FAST_CODE void gyroUpdate(void)
     gyro.gyroADC[Z] = kalman_update(gyro.gyroADC[Z], Z);
 }
 
+#ifdef USE_SMITH_PREDICTOR
 float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered) {
   if (gyroConfig()->smithPredictorDelay > 1) {
     smithPredictor->data[smithPredictor->idx] = gyroFiltered;
@@ -465,10 +465,12 @@ float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered) 
     float delayedGyro = pt1FilterApply(&smithPredictor->smithPredictorFilter, smithPredictor->data[smithPredictor->idx]);
 
     float delayCompensatedGyro = smithPredictor->smithPredictorStrength * (gyroFiltered - delayedGyro);
-    return delayCompensatedGyro;
+    gyroFiltered += delayCompensatedGyro;
+    return gyroFiltered;
   }
   return gyroFiltered;
 }
+#endif
 
 #define GYRO_FILTER_FUNCTION_NAME filterGyro
 #define GYRO_FILTER_DEBUG_SET(mode, index, value) do { UNUSED(mode); UNUSED(index); UNUSED(value); } while (0)

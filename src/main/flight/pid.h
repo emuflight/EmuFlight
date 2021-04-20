@@ -130,7 +130,6 @@ typedef struct pidProfile_s {
     uint8_t feedForwardTransition;          // Feed forward weight transition
     uint16_t itermLimit;
     uint16_t dterm_lowpass2_hz;             // Extra PT1 Filter on D in hz
-    uint16_t dterm_lowpass2_boost;
     uint8_t throttle_boost;                 // how much should throttle be boosted during transient changes 0-100, 100 adds 10x hpf filtered throttle
     uint8_t throttle_boost_cutoff;          // Which cutoff frequency to use for throttle boost. higher cutoffs keep the boost on for shorter. Specified in hz.
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system
@@ -142,7 +141,6 @@ typedef struct pidProfile_s {
     uint16_t dyn_lpf_dterm_min_hz;
     uint8_t dyn_lpf_dterm_width;
     uint8_t dyn_lpf_dterm_gain;
-    uint16_t dyn_lpf_dterm_boost;
     uint8_t launchControlMode;              // Whether launch control is limited to pitch only (launch stand or top-mount) or all axes (on battery)
     uint8_t launchControlThrottlePercent;   // Throttle percentage to trigger launch for launch control
     uint8_t launchControlAngleLimit;        // Optional launch control angle limit (requires ACC)
