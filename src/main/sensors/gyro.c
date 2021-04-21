@@ -130,13 +130,13 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->dyn_notch_q = 250;
     gyroConfig->dyn_notch_min_hz = 150;
     gyroConfig->gyro_filter_debug_axis = FD_ROLL;
-    gyroConfig->imuf_roll_q = 3000;
-    gyroConfig->imuf_pitch_q = 3000;
-    gyroConfig->imuf_yaw_q = 3000;
+    gyroConfig->imuf_roll_q = 6000;
+    gyroConfig->imuf_pitch_q = 6000;
+    gyroConfig->imuf_yaw_q = 6000;
     gyroConfig->imuf_w = 32;
     gyroConfig->smithPredictorStrength = 50;
-    gyroConfig->smithPredictorDelay = 32; //3.2 ms delay for smith Predictor
-    gyroConfig->smithPredictorFilterHz = 50;
+    gyroConfig->smithPredictorDelay = 40; //3.2 ms delay for smith Predictor
+    gyroConfig->smithPredictorFilterHz = 5;
 }
 
 bool isGyroSensorCalibrationComplete(const gyroSensor_t *gyroSensor)
