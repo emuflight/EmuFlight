@@ -151,6 +151,7 @@
 
 #define USE_GYRO
 #define USE_GYRO_SPI_ICM42605
+#define USE_GYRO_SPI_ICM42688P
 #define USE_MULTI_GYRO
 #undef USE_GYRO_REGISTER_DUMP
 
@@ -173,6 +174,7 @@
 
 #define USE_ACC
 #define USE_ACC_SPI_ICM42605
+#define USE_ACC_SPI_ICM42688P
 
 #define GYRO_1_ALIGN            CW0_DEG
 #define GYRO_2_ALIGN            CW180_DEG
