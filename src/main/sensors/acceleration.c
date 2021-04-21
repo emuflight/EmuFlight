@@ -511,21 +511,10 @@ void accInitFilters(void) {
     }
 }
 
-float accIsHealthy(quaternion *q) {
+bool accIsHealthy(quaternion *q) {
     // acc calibbration error max 2.4% (non Z axes)
     // accept 7% deviation
     float accModulus = quaternionModulus(q);
     accModulus = accModulus / acc.dev.acc_1G;
-    float accMagnitudeSq = accModulus * accModulus;
-
-    float accStrength = 0;
-
-    if ((0.81f < accMagnitudeSq) && (accMagnitudeSq < 1.21f)) {
-    if (accMagnitudeSq > 1.0f) {
-        accStrength = scaleRangef(accMagnitudeSq, 0.81, 1.0f, 0.0f, 1.0f);
-    } else {
-        accStrength = scaleRangef(accMagnitudeSq, 1.0f, 1.21f, 1.0f, 0.0f);
-    }
-  }
-  return accStrength;
+    return ((0.93f < accModulus) && (accModulus < 1.07f));
 }

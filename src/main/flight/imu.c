@@ -253,7 +253,7 @@ static void applySensorCorrection(quaternion *vError) {
 #endif
 }
 
-static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, quaternion *vError, float accTrust, float spinTrust) {
+static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, quaternion *vError, float spinTrust) {
     quaternion vKpKi = VECTOR_INITIALIZE;
     static quaternion vIntegralFB = VECTOR_INITIALIZE;
     quaternion qBuff, qDiff;
@@ -261,23 +261,21 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, quaternion *vError,
     const float dcmKpGain = imuRuntimeConfig.dcm_kp * imuUseFastGains();
     const float dcmKiGain = imuRuntimeConfig.dcm_ki * imuUseFastGains();
     // calculate integral feedback
-    float trust = accTrust * spinTrust;
     if (imuRuntimeConfig.dcm_ki > 0.0f) {
-        vIntegralFB.x += dcmKiGain * vError->x * dt * trust;
-        vIntegralFB.y += dcmKiGain * vError->y * dt * trust;
-        vIntegralFB.z += dcmKiGain * vError->z * dt * trust;
+        vIntegralFB.x += dcmKiGain * vError->x * dt * spinTrust;
+        vIntegralFB.y += dcmKiGain * vError->y * dt * spinTrust;
+        vIntegralFB.z += dcmKiGain * vError->z * dt * spinTrust;
     } else {
         quaternionInitVector(&vIntegralFB);
     }
     // apply proportional and integral feedback
-    vKpKi.x += dcmKpGain * vError->x * trust + vIntegralFB.x;
-    vKpKi.y += dcmKpGain * vError->y * trust + vIntegralFB.y;
-    vKpKi.z += dcmKpGain * vError->z * trust + vIntegralFB.z;
+    vKpKi.x += dcmKpGain * vError->x * spinTrust + vIntegralFB.x;
+    vKpKi.y += dcmKpGain * vError->y * spinTrust + vIntegralFB.y;
+    vKpKi.z += dcmKpGain * vError->z * spinTrust + vIntegralFB.z;
     // vGyro integration
     // PCDM Acta Mech 224, 3091–3109 (2013)
     const float vGyroModulus = quaternionModulus(vGyro);
     // reduce gyro noise integration integrate only above vGyroStdDevModulus
-    // only use gyro data when the gyro is moving more than the random noise the gyro has on the ground
     if (vGyroModulus > vGyroStdDevModulus) {
         qDiff.w = cosf(vGyroModulus * 0.5f * dt);
         qDiff.x = sinf(vGyroModulus * 0.5f * dt) * (vGyro->x / vGyroModulus);
@@ -344,15 +342,14 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs) {
     accGetAverage(&vAccAverage);
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU2, lrintf((quaternionModulus(&vAccAverage) / acc.dev.acc_1G) * 1000));
 
-    float accTrust = accIsHealthy(&vAccAverage);
     const float spin_rate = sqrtf(sq(vGyroAverage.x) + sq(vGyroAverage.y) + sq(vGyroAverage.z));
     float spinTrust = constrainf (1.0f - spin_rate / DEGREES_TO_RADIANS(500), 0.0f, 1.0f);
 
-    if (accTrust) {
+    if (accIsHealthy(&vAccAverage)) {
         applyAccError(&vAccAverage, &vError);
     }
     applySensorCorrection(&vError);
-    imuMahonyAHRSupdate(deltaT * 1e-6f, &vGyroAverage, &vError, accTrust, spinTrust);
+    imuMahonyAHRSupdate(deltaT * 1e-6f, &vGyroAverage, &vError, spinTrust);
     imuUpdateEulerAngles();
 #endif
 #if defined(USE_ALT_HOLD)
