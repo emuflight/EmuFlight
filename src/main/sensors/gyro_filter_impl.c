@@ -82,7 +82,7 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
         update_kalman_covariance(&gyro.kalmanFilterStateRate[axis], gyroADCf);
 
 #ifdef USE_SMITH_PREDICTOR
-        gyroADCf = applySmithPredictor(&gyro.smithPredictor[axis], gyroADCf);
+        gyroADCf = applySmithPredictor(&gyro.smithPredictor[axis], gyroADCf, axis);
 #endif
 
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.

@@ -135,7 +135,7 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->imuf_yaw_q = 6000;
     gyroConfig->imuf_w = 32;
     gyroConfig->smithPredictorStrength = 50;
-    gyroConfig->smithPredictorDelay = 40; //3.2 ms delay for smith Predictor
+    gyroConfig->smithPredictorDelay = 40;
     gyroConfig->smithPredictorFilterHz = 5;
 }
 
@@ -444,9 +444,10 @@ FAST_CODE void gyroUpdate(void)
 }
 
 #ifdef USE_SMITH_PREDICTOR
-float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered) {
-  if (gyroConfig()->smithPredictorDelay > 1) {
+float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered, int axis) {
+  if (smithPredictor->samples > 1) {
     smithPredictor->data[smithPredictor->idx] = gyroFiltered;
+    float input = gyroFiltered;
 
     smithPredictor->idx++;
     if (smithPredictor->idx > smithPredictor->samples) {
@@ -454,10 +455,19 @@ float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered) 
     }
 
     // filter the delayedGyro to help reduce the overall noise this prediction adds
-    float delayedGyro = pt1FilterApply(&smithPredictor->smithPredictorFilter, smithPredictor->data[smithPredictor->idx]);
+    float delayedGyro = smithPredictor->data[smithPredictor->idx];
 
     float delayCompensatedGyro = smithPredictor->smithPredictorStrength * (gyroFiltered - delayedGyro);
+    delayCompensatedGyro = pt1FilterApply(&smithPredictor->smithPredictorFilter, delayCompensatedGyro);
     gyroFiltered += delayCompensatedGyro;
+
+    if (axis == FD_ROLL) {
+        DEBUG_SET(DEBUG_SMITH_PREDICTOR, 0, lrintf(input));
+        DEBUG_SET(DEBUG_SMITH_PREDICTOR, 1, lrintf(gyroFiltered));
+        DEBUG_SET(DEBUG_SMITH_PREDICTOR, 2, lrintf(delayedGyro));
+        DEBUG_SET(DEBUG_SMITH_PREDICTOR, 3, lrintf(delayCompensatedGyro));
+    }
+
     return gyroFiltered;
   }
   return gyroFiltered;

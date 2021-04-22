@@ -227,9 +227,9 @@ void gyroInitABG() {
 void smithPredictorInit() {
     if (gyroConfig()->smithPredictorDelay > 1) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            gyro.smithPredictor[axis].samples = gyroConfig()->smithPredictorDelay / (gyro.targetLooptime / 100);
+            gyro.smithPredictor[axis].samples = gyroConfig()->smithPredictorDelay / (gyro.targetLooptime / 100.0f);
             gyro.smithPredictor[axis].idx = 0;
-            gyro.smithPredictor[axis].smithPredictorStrength = gyroConfig()->smithPredictorStrength / 100;
+            gyro.smithPredictor[axis].smithPredictorStrength = gyroConfig()->smithPredictorStrength / 100.0f;
             pt1FilterInit(&gyro.smithPredictor[axis].smithPredictorFilter, pt1FilterGain(gyroConfig()->smithPredictorFilterHz, gyro.targetLooptime * 1e-6f));
         }
     }
