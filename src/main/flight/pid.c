@@ -406,9 +406,9 @@ void pidInitConfig(const pidProfile_t *pidProfile) {
     dtermBoostMultiplier = (pidProfile->dtermBoost * pidProfile->dtermBoost / 1000000) * 0.003;
     dtermBoostLimitPercent = pidProfile->dtermBoostLimit / 100.0f;
     P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
-    D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
+    D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00002428571f;
     P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
-    D_angle_high = pidProfile->pid[PID_LEVEL_HIGH].D * 0.00017f;
+    D_angle_high = pidProfile->pid[PID_LEVEL_HIGH].D * 0.00002428571f;
     F_angle = pidProfile->pid[PID_LEVEL_LOW].F * 0.00000125f;
     horizonTransition = (float)pidProfile->horizonTransition;
     horizonCutoffDegrees = pidProfile->horizon_tilt_effect;
@@ -520,8 +520,8 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     p_term_low = (1 - errorAnglePercent) * errorAngle * P_angle_low;
     p_term_high = errorAnglePercent * errorAngle * P_angle_high;
 
-    d_term_low = (1 - errorAnglePercent) * (attitudePrevious[axis] - getAngleModeAngles(axis)) * 0.1f * D_angle_low;
-    d_term_high = errorAnglePercent * (attitudePrevious[axis] - getAngleModeAngles(axis)) * 0.1f * D_angle_high;
+    d_term_low = (1 - errorAnglePercent) * (attitudePrevious[axis] - getAngleModeAngles(axis)) *  D_angle_low;
+    d_term_high = errorAnglePercent * (attitudePrevious[axis] - getAngleModeAngles(axis)) *  D_angle_high;
     attitudePrevious[axis] = getAngleModeAngles(axis);
 
     currentPidSetpoint = p_term_low + p_term_high;
