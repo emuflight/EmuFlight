@@ -45,7 +45,7 @@
 #endif
 
 #ifdef USE_SMITH_PREDICTOR
-#define MAX_SMITH_SAMPLES 64
+#define MAX_SMITH_SAMPLES 12 * 32
 #endif // USE_SMITH_PREDICTOR
 
 typedef enum gyroDetectionFlags_e {
