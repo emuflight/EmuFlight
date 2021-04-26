@@ -674,7 +674,7 @@ const clivalue_t valueTable[] = {
 #ifdef USE_SMITH_PREDICTOR
     { "smith_predict_str",          VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 100 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorStrength) },
     { "smith_predict_delay",        VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 120 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorDelay) },
-    { "smith_predict_filt_hz",      VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 10000 },  PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorFilterHz) },
+    { "smith_predict_filt_hz",      VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 1, 10000 },  PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorFilterHz) },
 #endif // USE_SMITH_PREDICTOR
 // PG_ACCELEROMETER_CONFIG
 #if defined(USE_ACC)

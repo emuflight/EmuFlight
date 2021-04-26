@@ -831,7 +831,7 @@ static const OSD_Entry cmsx_menuFilterGlobalEntries[] =
 #ifdef USE_SMITH_PREDICTOR
     { "SMITH STR",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_strength,    0, 100, 1 }, 0 },
     { "SMITH DELAY",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_delay,       0, 120, 1 }, 0 },
-    { "SMITH FILT",      OME_UINT16,  NULL, &(OSD_UINT16_t)  { &smithPredictor_filt_hz,   0, 1000, 1 }, 0 },
+    { "SMITH FILT",      OME_UINT16,  NULL, &(OSD_UINT16_t)  { &smithPredictor_filt_hz,   1, 1000, 1 }, 0 },
 #endif
 #ifdef USE_MULTI_GYRO
     { "GYRO TO USE",  OME_TAB,  NULL, &(OSD_TAB_t)    { &gyroConfig_gyro_to_use,  2, osdTableGyroToUse}, REBOOT_REQUIRED },
