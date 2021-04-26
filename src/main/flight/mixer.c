@@ -1028,7 +1028,10 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
     // correct for the extra thrust yaw adds, then fill up motorMix with pitch and roll
     for (int i = 0; i < motorCount; i++) {
 
-        motorMix[i] = motorMix[i] - yawThrottleCorrection;
+        if (currentPidProfile->mixer_yaw_throttle_comp) {  //!==0
+            // prefer calculating all of the above and maybe not use it, than multiple if/then statements to save from calculating.
+            motorMix[i] = motorMix[i] - yawThrottleCorrection;
+        };
         float motorMixThrust = motorToThrust(motorMix[i], true); // convert into thrust value
 
         // clipping handling
