@@ -580,6 +580,13 @@ static int8_t   cmsx_autoProfileCellCount;
 static uint8_t  cmsx_vbat_sag_compensation;
 #endif
 
+
+#ifdef USE_INTERPOLATED_SP
+static uint8_t cmsx_ff_interpolate_sp;
+static uint8_t cmsx_ff_smooth_factor;
+static uint8_t cmsx_ff_jitter_factor;
+#endif
+
 static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
 {
     UNUSED(pDisp);
@@ -608,6 +615,13 @@ static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
     cmsx_thrustLinearization = pidProfile->thrustLinearization;
     cmsx_motorOutputLimit = pidProfile->motor_output_limit;
     cmsx_autoProfileCellCount = pidProfile->auto_profile_cell_count;
+
+
+#ifdef USE_INTERPOLATED_SP
+    cmsx_ff_interpolate_sp = pidProfile->ff_interpolate_sp;
+    cmsx_ff_smooth_factor = pidProfile->ff_smooth_factor;
+    cmsx_ff_jitter_factor = pidProfile->ff_jitter_factor;
+#endif
 
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION
     cmsx_vbat_sag_compensation = pidProfile->vbat_sag_compensation;
@@ -643,6 +657,13 @@ static const void *cmsx_profileOtherOnExit(displayPort_t *pDisp, const OSD_Entry
     pidProfile->motor_output_limit = cmsx_motorOutputLimit;
     pidProfile->auto_profile_cell_count = cmsx_autoProfileCellCount;
 
+
+#ifdef USE_INTERPOLATED_SP
+    pidProfile->ff_interpolate_sp = cmsx_ff_interpolate_sp;
+    pidProfile->ff_smooth_factor = cmsx_ff_smooth_factor;
+    pidProfile->ff_jitter_factor = cmsx_ff_jitter_factor;
+#endif
+
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION
     pidProfile->vbat_sag_compensation = cmsx_vbat_sag_compensation;
 #endif
@@ -666,7 +687,9 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
 
     { "FF TRANS",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_feedForwardTransition,  0,    100,   1, 10 }, 0 },
 #ifdef USE_INTERPOLATED_SP
+    { "FF MODE",       OME_TAB,    NULL, &(OSD_TAB_t)    { &cmsx_ff_interpolate_sp,  4, lookupTableInterpolatedSetpoint}, 0 },
     { "FF SMOOTHNESS", OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_ff_smooth_factor,     0,     75,   1  }   , 0 },
+    { "FF JITTER",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_ff_jitter_factor,     0,     20,   1  }   , 0 },
 #endif
     { "FF BOOST",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_ff_boost,               0,     50,   1  }   , 0 },
 

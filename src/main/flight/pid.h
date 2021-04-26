@@ -161,6 +161,7 @@ typedef struct pidProfile_s {
     uint8_t ff_interpolate_sp;              // Calculate FF from interpolated setpoint
     uint8_t ff_max_rate_limit;              // Maximum setpoint rate percentage for FF
     uint8_t ff_smooth_factor;               // Amount of smoothing for interpolated FF steps
+    uint8_t ff_jitter_factor;               // Number of RC steps below which to attenuate FF
     uint8_t dyn_lpf_curve_expo;             // set the curve for dynamic dterm lowpass filter
     uint8_t vbat_sag_compensation;          // Reduce motor output by this percentage of the maximum compensation amount
 
@@ -331,6 +332,7 @@ typedef struct pidRuntime_s {
 #ifdef USE_INTERPOLATED_SP
     ffInterpolationType_t ffFromInterpolatedSetpoint;
     float ffSmoothFactor;
+    float ffJitterFactor;
 #endif
 
     float axisLockMultiplier;
@@ -385,4 +387,5 @@ float pidGetDT();
 float pidGetPidFrequency();
 float pidGetFfBoostFactor();
 float pidGetFfSmoothFactor();
+float pidGetFfJitterFactor();
 float dynLpfCutoffFreq(float throttle, uint16_t dynLpfMin, uint16_t dynLpfMax, uint8_t expo);

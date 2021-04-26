@@ -61,6 +61,8 @@ typedef float (applyRatesFn)(const int axis, float rcCommandf, const float rcCom
 #ifdef USE_INTERPOLATED_SP
 // Setpoint in degrees/sec before RC-Smoothing is applied
 static float rawSetpoint[XYZ_AXIS_COUNT];
+static float oldRcCommand[XYZ_AXIS_COUNT];
+float rcCommandDelta[XYZ_AXIS_COUNT];
 #endif
 static float last_predicted_rc[4];
 static float setpointRate[3], rcDeflection[3], rcDeflectionAbs[3];
@@ -141,6 +143,11 @@ float getThrottleDAttenuation(void)
 float getRawSetpoint(int axis)
 {
     return rawSetpoint[axis];
+}
+
+float getRcCommandDelta(int axis)
+{
+    return rcCommandDelta[axis];
 }
 
 #endif
@@ -681,6 +688,8 @@ FAST_CODE void processRcCommand(timeUs_t currentTimeUs)
 #ifdef USE_INTERPOLATED_SP
     if (isRxDataNew) {
         for (int i = FD_ROLL; i <= FD_YAW; i++) {
+            rcCommandDelta[i] = fabsf(rcCommand[i] - oldRcCommand[i]);
+            oldRcCommand[i] = rcCommand[i];
             float rcCommandf;
             if (i == FD_YAW) {
                 rcCommandf = rcCommand[i] / rcCommandYawDivider;
