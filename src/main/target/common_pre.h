@@ -346,7 +346,6 @@
 #define USE_ESC_SENSOR_INFO
 #define USE_CRSF_CMS_TELEMETRY
 #define USE_CRSF_LINK_STATISTICS
-#define USE_CRSF_V3
 #define USE_RX_RSSI_DBM
 #endif
 
@@ -394,6 +393,7 @@
 #define USE_SMITH_PREDICTOR
 #define USE_RX_LINK_UPLINK_POWER
 #define USE_GPS_PLUS_CODES
+#define USE_CRSF_V3
 #endif
 
 #if (TARGET_FLASH_SIZE > 512)
