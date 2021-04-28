@@ -458,7 +458,7 @@ void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex) {
 static float calcHorizonLevelStrength(void) {
     float horizonLevelStrength;
     // 0 at level, 90 at vertical, 180 at inverted (degrees):
-    const float currentInclination = MAX(ABS(attitude.values.roll), ABS(attitude.values.pitch)) / 10.0f;
+    const float currentInclination = acos_approx(howUpsideDown());
     // Used as a factor in the numerator of inclinationLevelRatio - this will cause the entry point of the fade of leveling strength to be adjustable via horizon transition in configurator for RACEMODEhorizon
     const float racemodeHorizonTransitionFactor = horizonCutoffDegrees / (horizonCutoffDegrees - horizonTransition);
     // Used as a factor in the numerator of inclinationLevelRatio - this will cause the fade of leveling strength to start at levelAngleLimit for RACEMODEangle
@@ -503,11 +503,15 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     previousAngle[axis] = angle;
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
 
-    // apply extra correction if you are upside down
-    if (getAngleModeAngles(axis) != 0) {
-        scaledAngle = getAngleModeAngles(axis) / (ABS(getAngleModeAngles(FD_PITCH)) + ABS(getAngleModeAngles(FD_ROLL)));
+    if (FLIGHT_MODE(NFE_RACE_MODE)) { // nfe only effects the roll axis, this allows you to go upside down and still have roll correction.
+        currentAngle = ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f);
+    } else {
+        // apply extra correction if you are upside down
+        if (getAngleModeAngles(axis) != 0) {
+            scaledAngle = getAngleModeAngles(axis) / (ABS(getAngleModeAngles(FD_PITCH)) + ABS(getAngleModeAngles(FD_ROLL)));
+        }
+        currentAngle = ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f) + (constrainf(-howUpsideDown(), 0.0f, 1.0f) * scaledAngle * 180.0f);
     }
-    currentAngle = ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f) + (constrainf(-howUpsideDown(), 0.0f, 1.0f) * scaledAngle * 180.0f);
 
     DEBUG_SET(DEBUG_ANGLE, axis, lrintf(currentAngle));
 
