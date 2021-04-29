@@ -1294,6 +1294,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentPidProfile->linear_throttle);
         sbufWriteU8(dst, currentPidProfile->mixer_impl);
         sbufWriteU8(dst, currentPidProfile->mixer_laziness);
+        sbufWriteU8(dst, currentPidProfile->mixer_yaw_throttle_comp);
         sbufWriteU8(dst, currentPidProfile->directFF_yaw);
         sbufWriteU8(dst, currentPidProfile->axis_lock_hz);
         sbufWriteU8(dst, currentPidProfile->axis_lock_multiplier);
@@ -1899,6 +1900,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         currentPidProfile->linear_throttle = sbufReadU8(src);
         currentPidProfile->mixer_impl = sbufReadU8(src);
         currentPidProfile->mixer_laziness = sbufReadU8(src);
+        currentPidProfile->mixer_yaw_throttle_comp = sbufReadU8(src);
         currentPidProfile->directFF_yaw = sbufReadU8(src);
         currentPidProfile->axis_lock_hz = sbufReadU8(src);
         currentPidProfile->axis_lock_multiplier = sbufReadU8(src);
