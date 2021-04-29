@@ -1212,6 +1212,7 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("linear_throttle", "%d",                 currentPidProfile->linear_throttle);
         BLACKBOX_PRINT_HEADER_LINE("mixer_impl", "%d",                      currentPidProfile->mixer_impl);
         BLACKBOX_PRINT_HEADER_LINE("mixer_laziness", "%d",                  currentPidProfile->mixer_laziness);
+        BLACKBOX_PRINT_HEADER_LINE("mixer_yaw_throttle_comp", "%d",         currentPidProfile->mixer_yaw_throttle_comp);
         // End of EmuFlight controller parameters
         BLACKBOX_PRINT_HEADER_LINE("deadband", "%d",                        rcControlsConfig()->deadband);
         BLACKBOX_PRINT_HEADER_LINE("yaw_deadband", "%d",                    rcControlsConfig()->yaw_deadband);
