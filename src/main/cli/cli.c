@@ -4523,7 +4523,10 @@ static void printSerialJson(const serialConfig_t *serialConfig)
 {
     cliPrintLine(",");
     cliPrintLine("\"ports\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
-    for (uint32_t i = 0; i < SERIAL_PORT_COUNT && serialIsPortAvailable(serialConfig->portConfigs[i].identifier); i++) {
+    for (uint32_t i = 0; i < SERIAL_PORT_COUNT; i++) {
+        if (!serialIsPortAvailable(serialConfig->portConfigs[i].identifier)) {
+            continue;
+        };
         if (i > 0)
         {
             cliPrintLine(",");
@@ -4646,9 +4649,22 @@ static void cliNemesisStatus(const char *cmdName, char *cmdline)
 {
     UNUSED(cmdName);
     UNUSED(cmdline);
-
+    //get max cpu load sum using the same computation as tasks command
+    int maxLoadSum = 0;
+    for (taskId_e taskId = 0; taskId < TASK_COUNT; taskId++) {
+        taskInfo_t taskInfo;
+        getTaskInfo(taskId, &taskInfo);
+        if (taskInfo.isEnabled) {
+            int taskFrequency = taskInfo.averageDeltaTimeUs == 0 ? 0 : lrintf(1e6f / taskInfo.averageDeltaTimeUs);
+            const int maxLoad = taskInfo.maxExecutionTimeUs == 0 ? 0 :(taskInfo.maxExecutionTimeUs * taskFrequency + 5000) / 1000;
+            if (taskId != TASK_SERIAL) {
+                maxLoadSum += maxLoad;
+            }
+            schedulerResetTaskMaxExecutionTime(taskId);
+        }
+    }
     cliPrintLine("{");
-    cliPrintLinef("\"cpu\":%d,", constrain(getAverageSystemLoadPercent(), 0, LOAD_PERCENTAGE_ONE));
+    cliPrintLinef("\"cpu\":%25d.%1d,", maxLoadSum/10, maxLoadSum%10); // does not include the trailing % sign
     
     cliPrint("\"arming_disable_flags\":[");
     armingDisableFlags_e flags = getArmingDisableFlags();
@@ -4729,6 +4745,15 @@ static void cliNemesisGyro(const char *cmdName, char *cmdline)
     cliPrintLine("\"mag\": [0,0,0]");
 #endif
    cliPrint("}}");
+}
+
+static void cliNemesisCalibAcc(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdName);
+    UNUSED(cmdline);
+    if (!ARMING_FLAG(ARMED))
+        accStartCalibration();
+    cliPrintLine("OK");
 }
 
 static void cliConfig(const char *cmdName, char *cmdline)
@@ -6789,6 +6814,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("nemesis_rx", "get rx information in JSON format", NULL, cliNemesisRx),
     CLI_COMMAND_DEF("nemesis_vbat", "get vbat information in JSON format", NULL, cliNemesisVbat),
     CLI_COMMAND_DEF("nemesis_gyro", "get gyro information in JSON format", NULL, cliNemesisGyro),
+    CLI_COMMAND_DEF("nemesis_calib_acc", "calibrate accelerometer", NULL, cliNemesisCalibAcc),
 #endif
 #ifdef USE_GPS
     CLI_COMMAND_DEF("gpspassthrough", "passthrough gps to serial", NULL, cliGpsPassthrough),
