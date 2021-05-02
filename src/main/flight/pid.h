@@ -90,13 +90,12 @@ typedef enum {
     ANTI_GRAVITY_STEP
 } antiGravityMode_e;
 
-typedef enum ffInterpolationType_e {
-    FF_INTERPOLATE_OFF,
-    FF_INTERPOLATE_ON,
-    FF_INTERPOLATE_AVG2,
-    FF_INTERPOLATE_AVG3,
-    FF_INTERPOLATE_AVG4
-} ffInterpolationType_t;
+typedef enum feedforwardAveraging_e {
+    FEEDFORWARD_AVERAGING_OFF,
+    FEEDFORWARD_AVERAGING_2_POINT,
+    FEEDFORWARD_AVERAGING_3_POINT,
+    FEEDFORWARD_AVERAGING_4_POINT,
+} feedforwardAveraging_t;
 
 #define MAX_PROFILE_NAME_LENGTH 8u
 
@@ -128,7 +127,7 @@ typedef struct pidProfile_s {
     uint16_t crash_gthreshold;              // gyro crash value
     uint16_t crash_setpoint_threshold;      // setpoint must be below this value to detect crash, so flips and rolls are not interpreted as crashes
     uint8_t crash_recovery;                 // off, disarm, only works in gps mode
-    uint8_t feedForwardTransition;          // Feed forward weight transition
+    uint8_t feedforwardTransition;          // Feedforward attenuation around centre sticks
     uint16_t itermLimit;
     uint16_t dterm_lowpass2_hz;             // Extra PT1 Filter on D in hz
     uint8_t throttle_boost;                 // how much should throttle be boosted during transient changes 0-100, 100 adds 10x hpf filtered throttle
@@ -151,7 +150,7 @@ typedef struct pidProfile_s {
     uint8_t thrustLinearization;            // Compensation factor for pid linearization
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
-    uint8_t ff_boost;                       // amount of high-pass filtered FF to add to FF, 100 means 100% added
+    uint8_t feedforward_boost;              // amount of setpoint acceleration to add to feedforward, 10 means 100% added
     char profileName[MAX_PROFILE_NAME_LENGTH + 1]; // Descriptive name for profile
 
     uint8_t dyn_idle_min_rpm;                   // minimum motor speed enforced by the dynamic idle controller
@@ -160,10 +159,10 @@ typedef struct pidProfile_s {
     uint8_t dyn_idle_d_gain;                // D gain for corrections around rapid changes in rpm
     uint8_t dyn_idle_max_increase;          // limit on maximum possible increase in motor idle drive during active control
 
-    uint8_t ff_interpolate_sp;              // Calculate FF from interpolated setpoint
-    uint8_t ff_max_rate_limit;              // Maximum setpoint rate percentage for FF
-    uint8_t ff_smooth_factor;               // Amount of smoothing for interpolated FF steps
-    uint8_t ff_jitter_factor;               // Number of RC steps below which to attenuate FF
+    uint8_t feedforward_averaging;          // Number of packets to average when averaging is on
+    uint8_t feedforward_max_rate_limit;     // Maximum setpoint rate percentage for feedforward
+    uint8_t feedforward_smooth_factor;      // Amount of lowpass type smoothing for feedforward steps
+    uint8_t feedforward_jitter_factor;      // Number of RC steps below which to attenuate feedforward
     uint8_t dyn_lpf_curve_expo;             // set the curve for dynamic dterm lowpass filter
     uint8_t vbat_sag_compensation;          // Reduce motor output by this percentage of the maximum compensation amount
 
@@ -254,7 +253,7 @@ typedef struct pidRuntime_s {
     float ffBoostFactor;
     float itermAccelerator;
     uint16_t itermAcceleratorGain;
-    float feedForwardTransition;
+    float feedforwardTransition;
     pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 
     float P_angle_low;
@@ -306,8 +305,8 @@ typedef struct pidRuntime_s {
 #endif
 
 #ifdef USE_RC_SMOOTHING_FILTER
-    ptnFilter_t setpointDerivativePt3[XYZ_AXIS_COUNT];
-    bool setpointDerivativeLpfInitialized;
+    ptnFilter_t feedforwardPt3[XYZ_AXIS_COUNT];
+    bool feedforwardLpfInitialized;
     uint8_t rcSmoothingDebugAxis;
     uint8_t rcSmoothingFilterType;
 #endif // USE_RC_SMOOTHING_FILTER
@@ -332,8 +331,8 @@ typedef struct pidRuntime_s {
     float throttleCompensateAmount;
 #endif
 
-#ifdef USE_INTERPOLATED_SP
-    ffInterpolationType_t ffFromInterpolatedSetpoint;
+#ifdef USE_FEEDFORWARD
+    feedforwardAveraging_t feedforwardAveraging;
     float ffSmoothFactor;
     float ffJitterFactor;
 #endif
