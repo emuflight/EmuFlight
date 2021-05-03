@@ -41,7 +41,8 @@ PG_REGISTER_ARRAY_WITH_RESET_FN(controlRateConfig_t, CONTROL_RATE_PROFILE_COUNT,
 
 void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
 {
-    RESET_CONFIG(controlRateConfig_t, &controlRateConfig[0],
+  for (int i = 0; i < CONTROL_RATE_PROFILE_COUNT; i++) {
+    RESET_CONFIG(controlRateConfig_t, &controlRateConfig[i],
       // default rate dynamics do nothing to effect stick feels
         .rateDynamics = {100, 100, 10, 10, 0, 0,}, // SensitivityLow, SensitivityHigh, Correctionlow, CorrectionHigh, Weightlow, WeightHigh
         .thrMid8 = 50,
@@ -61,133 +62,134 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
         .addRollToYawRc = 0,
         .addYawToRollRc = 0,
         .rollPitchMagExpo = 0,
-        .profileName = { "DEFAULT" },
+        .profileName = { 0 },
     );
-    if (CONTROL_RATE_PROFILE_COUNT > 1)
-    {
-        RESET_CONFIG(controlRateConfig_t, &controlRateConfig[1],
-          // default rate dynamics do nothing to effect stick feels
-            .rateDynamics = { 80, 120, 35, 35, 25, 25 }, // SensitivityLow, SensitivityHigh, Correctionlow, CorrectionHigh, Weightlow, WeightHigh
-            .thrMid8 = 50,
-            .thrExpo8 = 0,
-            .rates_type = RATES_TYPE_BETAFLIGHT,
-            .rcRates[FD_ROLL] = 217,
-            .rcRates[FD_PITCH] = 217,
-            .rcRates[FD_YAW] = 217,
-            .rcExpo[FD_ROLL] = 71,
-            .rcExpo[FD_PITCH] = 71,
-            .rcExpo[FD_YAW] = 71,
-            .rates[FD_ROLL] = 4,
-            .rates[FD_PITCH] = 4,
-            .rates[FD_YAW] = 4,
-            .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
-            .throttle_limit_percent = 100,
-            .addRollToYawRc = 0,
-            .addYawToRollRc = 0,
-            .rollPitchMagExpo = 0,
-            .profileName = { "QckFlsh" },
-        );
-    }
-    if (CONTROL_RATE_PROFILE_COUNT > 2)
-    {
-        RESET_CONFIG(controlRateConfig_t, &controlRateConfig[2],
-          // default rate dynamics do nothing to effect stick feels
-            .rateDynamics = { 80, 100, 25, 15, 50, 35 }, // SensitivityLow, SensitivityHigh, Correctionlow, CorrectionHigh, Weightlow, WeightHigh
-            .thrMid8 = 50,
-            .thrExpo8 = 0,
-            .rates_type = RATES_TYPE_BETAFLIGHT,
-            .rcRates[FD_ROLL] = 120,
-            .rcRates[FD_PITCH] = 120,
-            .rcRates[FD_YAW] = 120,
-            .rcExpo[FD_ROLL] = 0,
-            .rcExpo[FD_PITCH] = 0,
-            .rcExpo[FD_YAW] = 0,
-            .rates[FD_ROLL] = 70,
-            .rates[FD_PITCH] = 70,
-            .rates[FD_YAW] = 70,
-            .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
-            .throttle_limit_percent = 100,
-            .addRollToYawRc = 0,
-            .addYawToRollRc = 0,
-            .rollPitchMagExpo = 0,
-            .profileName = { "DrSchnk" },
-        );
-    }
-    if (CONTROL_RATE_PROFILE_COUNT > 3)
-    {
-        RESET_CONFIG(controlRateConfig_t, &controlRateConfig[3],
-          // default rate dynamics do nothing to effect stick feels
-            .rateDynamics = { 100, 100, 10, 10, 0, 0 }, // SensitivityLow, SensitivityHigh, Correctionlow, CorrectionHigh, Weightlow, WeightHigh
-            .thrMid8 = 50,
-            .thrExpo8 = 0,
-            .rates_type = RATES_TYPE_BETAFLIGHT,
-            .rcRates[FD_ROLL] = 131,
-            .rcRates[FD_PITCH] = 131,
-            .rcRates[FD_YAW] = 131,
-            .rcExpo[FD_ROLL] = 0,
-            .rcExpo[FD_PITCH] = 0,
-            .rcExpo[FD_YAW] = 0,
-            .rates[FD_ROLL] = 71,
-            .rates[FD_PITCH] = 71,
-            .rates[FD_YAW] = 71,
-            .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
-            .throttle_limit_percent = 100,
-            .addRollToYawRc = 0,
-            .addYawToRollRc = 0,
-            .rollPitchMagExpo = 0,
-            .profileName = { "Kore" },
-        );
-    }
-    if (CONTROL_RATE_PROFILE_COUNT > 4)
-    {
-        RESET_CONFIG(controlRateConfig_t, &controlRateConfig[4],
-          // default rate dynamics do nothing to effect stick feels
-            .rateDynamics = { 100, 100, 10, 10, 0, 0 }, // SensitivityLow, SensitivityHigh, Correctionlow, CorrectionHigh, Weightlow, WeightHigh
-            .thrMid8 = 50,
-            .thrExpo8 = 0,
-            .rates_type = RATES_TYPE_BETAFLIGHT,
-            .rcRates[FD_ROLL] = 92,
-            .rcRates[FD_PITCH] = 92,
-            .rcRates[FD_YAW] = 92,
-            .rcExpo[FD_ROLL] = 30,
-            .rcExpo[FD_PITCH] = 30,
-            .rcExpo[FD_YAW] = 30,
-            .rates[FD_ROLL] = 77,
-            .rates[FD_PITCH] = 77,
-            .rates[FD_YAW] = 77,
-            .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
-            .throttle_limit_percent = 100,
-            .addRollToYawRc = 0,
-            .addYawToRollRc = 0,
-            .rollPitchMagExpo = 0,
-            .profileName = { "NerdCopt" },
-        );
-    }
-    if (CONTROL_RATE_PROFILE_COUNT > 5)
-    {
-        RESET_CONFIG(controlRateConfig_t, &controlRateConfig[5],
-          // default rate dynamics do nothing to effect stick feels
-            .rateDynamics = { 100, 100, 10, 10, 0, 0 }, // SensitivityLow, SensitivityHigh, Correctionlow, CorrectionHigh, Weightlow, WeightHigh
-            .thrMid8 = 50,
-            .thrExpo8 = 0,
-            .rates_type = RATES_TYPE_BETAFLIGHT,
-            .rcRates[FD_ROLL] = 103,
-            .rcRates[FD_PITCH] = 103,
-            .rcRates[FD_YAW] = 103,
-            .rcExpo[FD_ROLL] = 25,
-            .rcExpo[FD_PITCH] = 20,
-            .rcExpo[FD_YAW] = 20,
-            .rates[FD_ROLL] = 72,
-            .rates[FD_PITCH] = 72,
-            .rates[FD_YAW] = 68,
-            .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
-            .throttle_limit_percent = 100,
-            .addRollToYawRc = 0,
-            .addYawToRollRc = 0,
-            .rollPitchMagExpo = 0,
-            .profileName = { "Shikijo" },
-        );
-    }
+  }
+    // if (CONTROL_RATE_PROFILE_COUNT > 1)
+    // {
+    //     RESET_CONFIG(controlRateConfig_t, &controlRateConfig[1],
+    //       // default rate dynamics do nothing to effect stick feels
+    //         .rateDynamics = { 80, 120, 35, 35, 25, 25 }, // SensitivityLow, SensitivityHigh, Correctionlow, CorrectionHigh, Weightlow, WeightHigh
+    //         .thrMid8 = 50,
+    //         .thrExpo8 = 0,
+    //         .rates_type = RATES_TYPE_BETAFLIGHT,
+    //         .rcRates[FD_ROLL] = 217,
+    //         .rcRates[FD_PITCH] = 217,
+    //         .rcRates[FD_YAW] = 217,
+    //         .rcExpo[FD_ROLL] = 71,
+    //         .rcExpo[FD_PITCH] = 71,
+    //         .rcExpo[FD_YAW] = 71,
+    //         .rates[FD_ROLL] = 4,
+    //         .rates[FD_PITCH] = 4,
+    //         .rates[FD_YAW] = 4,
+    //         .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
+    //         .throttle_limit_percent = 100,
+    //         .addRollToYawRc = 0,
+    //         .addYawToRollRc = 0,
+    //         .rollPitchMagExpo = 0,
+    //         .profileName = { "QckFlsh" },
+    //     );
+    // }
+    // if (CONTROL_RATE_PROFILE_COUNT > 2)
+    // {
+    //     RESET_CONFIG(controlRateConfig_t, &controlRateConfig[2],
+    //       // default rate dynamics do nothing to effect stick feels
+    //         .rateDynamics = { 80, 100, 25, 15, 50, 35 }, // SensitivityLow, SensitivityHigh, Correctionlow, CorrectionHigh, Weightlow, WeightHigh
+    //         .thrMid8 = 50,
+    //         .thrExpo8 = 0,
+    //         .rates_type = RATES_TYPE_BETAFLIGHT,
+    //         .rcRates[FD_ROLL] = 120,
+    //         .rcRates[FD_PITCH] = 120,
+    //         .rcRates[FD_YAW] = 120,
+    //         .rcExpo[FD_ROLL] = 0,
+    //         .rcExpo[FD_PITCH] = 0,
+    //         .rcExpo[FD_YAW] = 0,
+    //         .rates[FD_ROLL] = 70,
+    //         .rates[FD_PITCH] = 70,
+    //         .rates[FD_YAW] = 70,
+    //         .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
+    //         .throttle_limit_percent = 100,
+    //         .addRollToYawRc = 0,
+    //         .addYawToRollRc = 0,
+    //         .rollPitchMagExpo = 0,
+    //         .profileName = { "DrSchnk" },
+    //     );
+    // }
+    // if (CONTROL_RATE_PROFILE_COUNT > 3)
+    // {
+    //     RESET_CONFIG(controlRateConfig_t, &controlRateConfig[3],
+    //       // default rate dynamics do nothing to effect stick feels
+    //         .rateDynamics = { 100, 100, 10, 10, 0, 0 }, // SensitivityLow, SensitivityHigh, Correctionlow, CorrectionHigh, Weightlow, WeightHigh
+    //         .thrMid8 = 50,
+    //         .thrExpo8 = 0,
+    //         .rates_type = RATES_TYPE_BETAFLIGHT,
+    //         .rcRates[FD_ROLL] = 131,
+    //         .rcRates[FD_PITCH] = 131,
+    //         .rcRates[FD_YAW] = 131,
+    //         .rcExpo[FD_ROLL] = 0,
+    //         .rcExpo[FD_PITCH] = 0,
+    //         .rcExpo[FD_YAW] = 0,
+    //         .rates[FD_ROLL] = 71,
+    //         .rates[FD_PITCH] = 71,
+    //         .rates[FD_YAW] = 71,
+    //         .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
+    //         .throttle_limit_percent = 100,
+    //         .addRollToYawRc = 0,
+    //         .addYawToRollRc = 0,
+    //         .rollPitchMagExpo = 0,
+    //         .profileName = { "Kore" },
+    //     );
+    // }
+    // if (CONTROL_RATE_PROFILE_COUNT > 4)
+    // {
+    //     RESET_CONFIG(controlRateConfig_t, &controlRateConfig[4],
+    //       // default rate dynamics do nothing to effect stick feels
+    //         .rateDynamics = { 100, 100, 10, 10, 0, 0 }, // SensitivityLow, SensitivityHigh, Correctionlow, CorrectionHigh, Weightlow, WeightHigh
+    //         .thrMid8 = 50,
+    //         .thrExpo8 = 0,
+    //         .rates_type = RATES_TYPE_BETAFLIGHT,
+    //         .rcRates[FD_ROLL] = 92,
+    //         .rcRates[FD_PITCH] = 92,
+    //         .rcRates[FD_YAW] = 92,
+    //         .rcExpo[FD_ROLL] = 30,
+    //         .rcExpo[FD_PITCH] = 30,
+    //         .rcExpo[FD_YAW] = 30,
+    //         .rates[FD_ROLL] = 77,
+    //         .rates[FD_PITCH] = 77,
+    //         .rates[FD_YAW] = 77,
+    //         .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
+    //         .throttle_limit_percent = 100,
+    //         .addRollToYawRc = 0,
+    //         .addYawToRollRc = 0,
+    //         .rollPitchMagExpo = 0,
+    //         .profileName = { "NerdCopt" },
+    //     );
+    // }
+    // if (CONTROL_RATE_PROFILE_COUNT > 5)
+    // {
+    //     RESET_CONFIG(controlRateConfig_t, &controlRateConfig[5],
+    //       // default rate dynamics do nothing to effect stick feels
+    //         .rateDynamics = { 100, 100, 10, 10, 0, 0 }, // SensitivityLow, SensitivityHigh, Correctionlow, CorrectionHigh, Weightlow, WeightHigh
+    //         .thrMid8 = 50,
+    //         .thrExpo8 = 0,
+    //         .rates_type = RATES_TYPE_BETAFLIGHT,
+    //         .rcRates[FD_ROLL] = 103,
+    //         .rcRates[FD_PITCH] = 103,
+    //         .rcRates[FD_YAW] = 103,
+    //         .rcExpo[FD_ROLL] = 25,
+    //         .rcExpo[FD_PITCH] = 20,
+    //         .rcExpo[FD_YAW] = 20,
+    //         .rates[FD_ROLL] = 72,
+    //         .rates[FD_PITCH] = 72,
+    //         .rates[FD_YAW] = 68,
+    //         .throttle_limit_type = THROTTLE_LIMIT_TYPE_OFF,
+    //         .throttle_limit_percent = 100,
+    //         .addRollToYawRc = 0,
+    //         .addYawToRollRc = 0,
+    //         .rollPitchMagExpo = 0,
+    //         .profileName = { "Shikijo" },
+    //     );
+    // }
 }
 
 const ratesSettingsLimits_t ratesSettingLimits[RATES_TYPE_COUNT] = {

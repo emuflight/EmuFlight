@@ -23,6 +23,7 @@
 #include "common/axis.h"
 #include "common/filter.h"
 #include "common/time.h"
+#include "common/kalman.h"
 
 #include "drivers/accgyro/accgyro.h"
 #include "drivers/bus.h"
@@ -43,10 +44,9 @@
 #define YAW_SPIN_RECOVERY_THRESHOLD_MAX 1950
 #endif
 
-typedef union gyroLowpassFilter_u {
-    ptnFilter_t ptnFilterState;
-    biquadFilter_t biquadFilterState;
-} gyroLowpassFilter_t;
+#ifdef USE_SMITH_PREDICTOR
+#define MAX_SMITH_SAMPLES 12 * 32
+#endif // USE_SMITH_PREDICTOR
 
 typedef enum gyroDetectionFlags_e {
     GYRO_NONE_MASK = 0,
@@ -69,6 +69,19 @@ typedef struct gyroSensor_s {
     gyroCalibration_t calibration;
 } gyroSensor_t;
 
+#ifdef USE_SMITH_PREDICTOR
+typedef struct smithPredictor_s {
+    uint8_t samples;
+    uint8_t idx;
+
+    float data[MAX_SMITH_SAMPLES + 1]; // This is gonna be a ring buffer. Max of 8ms delay at 8khz
+
+    pt1Filter_t smithPredictorFilter; // filter the smith predictor output for RPY
+
+    float smithPredictorStrength;
+} smithPredictor_t;
+#endif // USE_SMITH_PREDICTOR
+
 typedef struct gyro_s {
     uint16_t sampleRateHz;
     uint32_t targetLooptime;
@@ -86,7 +99,7 @@ typedef struct gyro_s {
 
     // lowpass gyro soft filter
     filterApplyFnPtr lowpassFilterApplyFn;
-    gyroLowpassFilter_t lowpassFilter[XYZ_AXIS_COUNT];
+    ptnFilter_t lowpassFilter[XYZ_AXIS_COUNT];
 
     // notch filters
     filterApplyFnPtr notchFilter1ApplyFn;
@@ -98,10 +111,16 @@ typedef struct gyro_s {
     filterApplyFnPtr alphaBetaGammaApplyFn;
     alphaBetaGammaFilter_t alphaBetaGamma[XYZ_AXIS_COUNT];
 
+    kalman_t kalmanFilterStateRate[XYZ_AXIS_COUNT];
+
 #ifdef USE_GYRO_DATA_ANALYSE
     gyroAnalyseState_t gyroAnalyseState;
     float dynNotchQ;
 #endif
+
+#ifdef USE_SMITH_PREDICTOR
+    smithPredictor_t smithPredictor[XYZ_AXIS_COUNT];
+#endif // USE_SMITH_PREDICTOR
 
     uint16_t accSampleRateHz;
     uint8_t gyroToUse;
@@ -122,7 +141,6 @@ typedef struct gyro_s {
 #ifdef USE_GYRO_OVERFLOW_CHECK
     uint8_t overflowAxisMask;
 #endif
-
 } gyro_t;
 
 extern gyro_t gyro;
@@ -137,7 +155,7 @@ enum {
 enum {
     DYN_LPF_NONE = 0,
     DYN_LPF_PT1,
-    DYN_LPF_BIQUAD,
+    DYN_LPF_PT2,
     DYN_LPF_PT3,
     DYN_LPF_PT4
 };
@@ -179,7 +197,7 @@ typedef struct gyroConfig_s {
 
     uint16_t dyn_lpf_gyro_min_hz;
     uint8_t  dyn_lpf_gyro_width;
-    uint8_t dyn_lpf_gyro_gain;
+    uint8_t  dyn_lpf_gyro_gain;
 
     uint16_t dyn_notch_max_hz;
     uint16_t dyn_notch_q;
@@ -202,6 +220,10 @@ typedef struct gyroConfig_s {
 
     uint8_t gyrosDetected; // What gyros should detection be attempted for on startup. Automatically set on first startup.
     uint8_t dyn_lpf_curve_expo; // set the curve for dynamic gyro lowpass filter
+
+    uint8_t smithPredictorStrength;
+    uint8_t smithPredictorDelay;
+    uint16_t smithPredictorFilterHz;
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);

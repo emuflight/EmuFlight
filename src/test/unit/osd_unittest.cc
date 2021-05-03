@@ -68,9 +68,11 @@ extern "C" {
 
     uint16_t rssi;
     attitudeEulerAngles_t attitude;
+    float rMat[3][3];
+
     pidProfile_t *currentPidProfile;
     int16_t debug[DEBUG16_VALUE_COUNT];
-    int16_t rcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
+    float rcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
     uint8_t GPS_numSat;
     uint16_t GPS_distanceToHome;
     int16_t GPS_directionToHome;
@@ -260,7 +262,7 @@ void simulateFlight(void)
     GPS_distanceToHome = 100;
     GPS_distanceFlownInCm = 10000;
     simulationBatteryVoltage = 1470;
-    simulationAltitude = 200;
+    simulationAltitude = 200; // converts to 6.56168 feet which rounds to 6.6 in imperial units stats test
     simulationTime += 1e6;
     osdRefresh(simulationTime);
 
@@ -498,7 +500,7 @@ TEST_F(OsdTest, TestStatsImperial)
     // then
     // statistics screen should display the following
     int row = 5;
-    displayPortTestBufferSubstring(2, row++, "MAX ALTITUDE      : 6.5%c", SYM_FT);
+    displayPortTestBufferSubstring(2, row++, "MAX ALTITUDE      : 6.6%c", SYM_FT);
     displayPortTestBufferSubstring(2, row++, "MAX SPEED         : 17");
     displayPortTestBufferSubstring(2, row++, "MAX DISTANCE      : 3772%c", SYM_FT);
     displayPortTestBufferSubstring(2, row++, "FLIGHT DISTANCE   : 6.52%c", SYM_MILES);
@@ -902,28 +904,28 @@ TEST_F(OsdTest, TestElementAltitude)
     displayPortTestBufferSubstring(23, 7, "%c0.0%c", SYM_ALTITUDE, SYM_M);
 
     // when
-    simulationAltitude = 247;
+    simulationAltitude = 247;  // rounds to 2.5m
     displayClearScreen(&testDisplayPort);
     osdRefresh(simulationTime);
 
     // then
-    displayPortTestBufferSubstring(23, 7, "%c2.4%c", SYM_ALTITUDE, SYM_M);
+    displayPortTestBufferSubstring(23, 7, "%c2.5%c", SYM_ALTITUDE, SYM_M);
 
     // when
-    simulationAltitude = 4247;
+    simulationAltitude = 4247;  // rounds to 42.5m
     displayClearScreen(&testDisplayPort);
     osdRefresh(simulationTime);
 
     // then
-    displayPortTestBufferSubstring(23, 7, "%c42.4%c", SYM_ALTITUDE, SYM_M);
+    displayPortTestBufferSubstring(23, 7, "%c42.5%c", SYM_ALTITUDE, SYM_M);
 
     // when
-    simulationAltitude = -247;
+    simulationAltitude = -247;  // rounds to -2.5m
     displayClearScreen(&testDisplayPort);
     osdRefresh(simulationTime);
 
     // then
-    displayPortTestBufferSubstring(23, 7, "%c-2.4%c", SYM_ALTITUDE, SYM_M);
+    displayPortTestBufferSubstring(23, 7, "%c-2.5%c", SYM_ALTITUDE, SYM_M);
 
     // when
     simulationAltitude = -70;

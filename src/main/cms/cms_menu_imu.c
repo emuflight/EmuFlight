@@ -88,7 +88,7 @@ static const char * const osdTableGyroToUse[] = {
 #endif
 
 static const char * const osdTableLpfType[] = {
-    "PT1", "BIQUAD", "PT3", "PT4"
+    "PT1", "PT2", "PT3", "PT4"
 };
 
 static void setProfileIndexString(char *profileString, int profileIndex, char *profileName)
@@ -560,6 +560,7 @@ static CMS_Menu cmsx_menuLaunchControl = {
 
 static uint8_t  cmsx_axis_lock_hz;
 static uint8_t  cmsx_axis_lock_mult;
+static uint8_t  cmsx_axis_smooth_mult;
 static uint8_t  cmsx_feedForwardTransition;
 static uint8_t  cmsx_ff_boost;
 #ifdef USE_INTERPOLATED_SP
@@ -579,6 +580,13 @@ static int8_t   cmsx_autoProfileCellCount;
 static uint8_t  cmsx_vbat_sag_compensation;
 #endif
 
+
+#ifdef USE_INTERPOLATED_SP
+static uint8_t cmsx_ff_interpolate_sp;
+static uint8_t cmsx_ff_smooth_factor;
+static uint8_t cmsx_ff_jitter_factor;
+#endif
+
 static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
 {
     UNUSED(pDisp);
@@ -588,6 +596,7 @@ static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
     cmsx_axis_lock_hz = pidProfile->axis_lock_hz;
     cmsx_axis_lock_mult = pidProfile->axis_lock_multiplier;
+    cmsx_axis_smooth_mult = pidProfile->axis_smooth_multiplier;
 
     cmsx_feedForwardTransition  = pidProfile->feedForwardTransition;
     cmsx_ff_boost = pidProfile->ff_boost;
@@ -607,6 +616,13 @@ static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
     cmsx_motorOutputLimit = pidProfile->motor_output_limit;
     cmsx_autoProfileCellCount = pidProfile->auto_profile_cell_count;
 
+
+#ifdef USE_INTERPOLATED_SP
+    cmsx_ff_interpolate_sp = pidProfile->ff_interpolate_sp;
+    cmsx_ff_smooth_factor = pidProfile->ff_smooth_factor;
+    cmsx_ff_jitter_factor = pidProfile->ff_jitter_factor;
+#endif
+
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION
     cmsx_vbat_sag_compensation = pidProfile->vbat_sag_compensation;
 #endif
@@ -621,6 +637,7 @@ static const void *cmsx_profileOtherOnExit(displayPort_t *pDisp, const OSD_Entry
     pidProfile_t *pidProfile = pidProfilesMutable(pidProfileIndex);
     pidProfile->axis_lock_hz = cmsx_axis_lock_hz;
     pidProfile->axis_lock_multiplier = cmsx_axis_lock_mult;
+    pidProfile->axis_smooth_multiplier = cmsx_axis_smooth_mult;
 
     pidProfile->feedForwardTransition = cmsx_feedForwardTransition;
     pidProfile->ff_boost = cmsx_ff_boost;
@@ -640,6 +657,13 @@ static const void *cmsx_profileOtherOnExit(displayPort_t *pDisp, const OSD_Entry
     pidProfile->motor_output_limit = cmsx_motorOutputLimit;
     pidProfile->auto_profile_cell_count = cmsx_autoProfileCellCount;
 
+
+#ifdef USE_INTERPOLATED_SP
+    pidProfile->ff_interpolate_sp = cmsx_ff_interpolate_sp;
+    pidProfile->ff_smooth_factor = cmsx_ff_smooth_factor;
+    pidProfile->ff_jitter_factor = cmsx_ff_jitter_factor;
+#endif
+
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION
     pidProfile->vbat_sag_compensation = cmsx_vbat_sag_compensation;
 #endif
@@ -654,6 +678,7 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
 
     { "AXIS LOCK HZ",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_axis_lock_hz,                 1,    50,   1  }, 0 },
     { "AXIS LOCK MULT",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_axis_lock_mult,               0,    50,   1  }, 0 },
+    { "AXIS SMOOTH MULT", OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_axis_smooth_mult,             0,    50,   1  }, 0 },
 
     { "TPA P",       OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &cmsx_dynThrP,           0,  200,  1, 10}, 0 },
     { "TPA I",       OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &cmsx_dynThrI,           0,  200,  1, 10}, 0 },
@@ -662,7 +687,9 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
 
     { "FF TRANS",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_feedForwardTransition,  0,    100,   1, 10 }, 0 },
 #ifdef USE_INTERPOLATED_SP
+    { "FF MODE",       OME_TAB,    NULL, &(OSD_TAB_t)    { &cmsx_ff_interpolate_sp,  4, lookupTableInterpolatedSetpoint}, 0 },
     { "FF SMOOTHNESS", OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_ff_smooth_factor,     0,     75,   1  }   , 0 },
+    { "FF JITTER",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_ff_jitter_factor,     0,     20,   1  }   , 0 },
 #endif
     { "FF BOOST",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_ff_boost,               0,     50,   1  }   , 0 },
 
@@ -723,6 +750,12 @@ static uint16_t gyroConfig_abg_half_life;
 static uint8_t  gyroConfig_gyro_to_use;
 static uint8_t  gyroConfig_lpf_type;
 
+#ifdef USE_SMITH_PREDICTOR
+static uint8_t smithPredictor_strength;
+static uint8_t smithPredictor_delay;
+static uint16_t smithPredictor_filt_hz;
+#endif // USE_SMITH_PREDICTOR
+
 static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
 {
     UNUSED(pDisp);
@@ -749,6 +782,12 @@ static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
 
     gyroConfig_gyro_to_use    = gyroConfig()->gyro_to_use;
     gyroConfig_lpf_type       = gyroConfig()->gyro_lowpass_type;
+
+#ifdef USE_SMITH_PREDICTOR
+    smithPredictor_strength  = gyroConfig()->smithPredictorStrength;
+    smithPredictor_delay     = gyroConfig()->smithPredictorDelay;
+    smithPredictor_filt_hz   = gyroConfig()->smithPredictorFilterHz;
+#endif
     return NULL;
 }
 
@@ -780,6 +819,11 @@ static const void *cmsx_menuGyro_onExit(displayPort_t *pDisp, const OSD_Entry *s
     gyroConfigMutable()->gyro_to_use = gyroConfig_gyro_to_use;
     gyroConfigMutable()->gyro_lowpass_type = gyroConfig_lpf_type;
 
+#ifdef USE_SMITH_PREDICTOR
+    gyroConfigMutable()->smithPredictorStrength = smithPredictor_strength;
+    gyroConfigMutable()->smithPredictorDelay = smithPredictor_delay;
+    gyroConfigMutable()->smithPredictorFilterHz = smithPredictor_filt_hz;
+#endif
     return NULL;
 }
 
@@ -807,6 +851,11 @@ static const OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "ALPHA",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_alpha,           0, 1000, 1 }, 0 },
     { "ABG BOOST",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_abg_boost,       0, 2000, 5 }, 0 },
     { "ABG HALF LIFE",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_abg_half_life,   0, 1000, 1 }, 0 },
+#ifdef USE_SMITH_PREDICTOR
+    { "SMITH STR",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_strength,    0, 100, 1 }, 0 },
+    { "SMITH DELAY",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_delay,       0, 120, 1 }, 0 },
+    { "SMITH FILT",      OME_UINT16,  NULL, &(OSD_UINT16_t)  { &smithPredictor_filt_hz,   1, 1000, 1 }, 0 },
+#endif
 #ifdef USE_MULTI_GYRO
     { "GYRO TO USE",  OME_TAB,  NULL, &(OSD_TAB_t)    { &gyroConfig_gyro_to_use,  2, osdTableGyroToUse}, REBOOT_REQUIRED },
 #endif

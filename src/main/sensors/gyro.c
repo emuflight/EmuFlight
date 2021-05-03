@@ -31,6 +31,7 @@
 #include "common/axis.h"
 #include "common/maths.h"
 #include "common/filter.h"
+#include "common/kalman.h"
 
 #include "config/feature.h"
 
@@ -129,10 +130,13 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->dyn_notch_q = 250;
     gyroConfig->dyn_notch_min_hz = 150;
     gyroConfig->gyro_filter_debug_axis = FD_ROLL;
-    gyroConfig->imuf_roll_q = 3000;
-    gyroConfig->imuf_pitch_q = 3000;
-    gyroConfig->imuf_yaw_q = 3000;
+    gyroConfig->imuf_roll_q = 6000;
+    gyroConfig->imuf_pitch_q = 6000;
+    gyroConfig->imuf_yaw_q = 6000;
     gyroConfig->imuf_w = 32;
+    gyroConfig->smithPredictorStrength = 50;
+    gyroConfig->smithPredictorDelay = 40;
+    gyroConfig->smithPredictorFilterHz = 5;
 }
 
 bool isGyroSensorCalibrationComplete(const gyroSensor_t *gyroSensor)
@@ -433,7 +437,42 @@ FAST_CODE void gyroUpdate(void)
         break;
 #endif
     }
+
+    gyro.gyroADC[X] = kalman_update(gyro.gyroADC[X], X);
+    gyro.gyroADC[Y] = kalman_update(gyro.gyroADC[Y], Y);
+    gyro.gyroADC[Z] = kalman_update(gyro.gyroADC[Z], Z);
 }
+
+#ifdef USE_SMITH_PREDICTOR
+float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered, int axis) {
+  if (smithPredictor->samples > 1) {
+    smithPredictor->data[smithPredictor->idx] = gyroFiltered;
+    float input = gyroFiltered;
+
+    smithPredictor->idx++;
+    if (smithPredictor->idx > smithPredictor->samples) {
+        smithPredictor->idx = 0;
+    }
+
+    // filter the delayedGyro to help reduce the overall noise this prediction adds
+    float delayedGyro = smithPredictor->data[smithPredictor->idx];
+
+    float delayCompensatedGyro = smithPredictor->smithPredictorStrength * (gyroFiltered - delayedGyro);
+    delayCompensatedGyro = pt1FilterApply(&smithPredictor->smithPredictorFilter, delayCompensatedGyro);
+    gyroFiltered += delayCompensatedGyro;
+
+    if (axis == FD_ROLL) {
+        DEBUG_SET(DEBUG_SMITH_PREDICTOR, 0, lrintf(input));
+        DEBUG_SET(DEBUG_SMITH_PREDICTOR, 1, lrintf(gyroFiltered));
+        DEBUG_SET(DEBUG_SMITH_PREDICTOR, 2, lrintf(delayedGyro));
+        DEBUG_SET(DEBUG_SMITH_PREDICTOR, 3, lrintf(delayCompensatedGyro));
+    }
+
+    return gyroFiltered;
+  }
+  return gyroFiltered;
+}
+#endif
 
 #define GYRO_FILTER_FUNCTION_NAME filterGyro
 #define GYRO_FILTER_DEBUG_SET(mode, index, value) do { UNUSED(mode); UNUSED(index); UNUSED(value); } while (0)
@@ -616,26 +655,24 @@ uint16_t gyroAbsRateDps(int axis)
 #ifdef USE_DYN_LPF
 void dynLpfGyroUpdate(float cutoff[XYZ_AXIS_COUNT])
 {
-    if (gyro.dynLpfFilter != DYN_LPF_NONE) {
-        if (gyro.dynLpfFilter == DYN_LPF_PT1) {
-            const float gyroDt = gyro.targetLooptime * 1e-6f;
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], 1.0f, gyroDt);
-            }
-        } else if (gyro.dynLpfFilter == DYN_LPF_BIQUAD) {
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                biquadFilterUpdateLPF(&gyro.lowpassFilter[axis].biquadFilterState, cutoff[axis], gyro.targetLooptime);
-            }
-        } else if (gyro.dynLpfFilter == DYN_LPF_PT1) {
-            const float gyroDt = gyro.targetLooptime * 1e-6f;
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], 1.961459177f, gyroDt);
-            }
-        } else if (gyro.dynLpfFilter == DYN_LPF_PT1) {
-            const float gyroDt = gyro.targetLooptime * 1e-6f;
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], 2.298959223f, gyroDt);
-            }
+    const float gyroDt = gyro.targetLooptime * 1e-6f;
+    for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+        switch (gyro.dynLpfFilter) {
+        case DYN_LPF_PT1:
+                ptnFilterUpdate(&gyro.lowpassFilter[axis], cutoff[axis], 1.0f, gyroDt);
+            break;
+        case DYN_LPF_PT2:
+                ptnFilterUpdate(&gyro.lowpassFilter[axis], cutoff[axis], 1.553773974f, gyroDt);
+            break;
+        case DYN_LPF_PT3:
+                ptnFilterUpdate(&gyro.lowpassFilter[axis], cutoff[axis], 1.961459177f, gyroDt);
+            break;
+        case DYN_LPF_PT4:
+                ptnFilterUpdate(&gyro.lowpassFilter[axis], cutoff[axis], 2.298959223f, gyroDt);
+            break;
+        case DYN_LPF_NONE:
+        default:
+            break;
         }
     }
 }

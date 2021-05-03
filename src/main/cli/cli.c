@@ -4523,7 +4523,10 @@ static void printSerialJson(const serialConfig_t *serialConfig)
 {
     cliPrintLine(",");
     cliPrintLine("\"ports\":{\"scope\":\"GLOBAL\",\"type\":\"UINT16\",\"mode\":\"ARRAY\",\"values\":[");
-    for (uint32_t i = 0; i < SERIAL_PORT_COUNT && serialIsPortAvailable(serialConfig->portConfigs[i].identifier); i++) {
+    for (uint32_t i = 0; i < SERIAL_PORT_COUNT; i++) {
+        if (!serialIsPortAvailable(serialConfig->portConfigs[i].identifier)) {
+            continue;
+        };
         if (i > 0)
         {
             cliPrintLine(",");
@@ -4640,6 +4643,117 @@ static void cliRateProfilesJson(const char *cmdName)
     }
     changeControlRateProfile(saved);
     cliPrint("}]}");
+}
+
+static void cliNemesisStatus(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdName);
+    UNUSED(cmdline);
+    //get max cpu load sum using the same computation as tasks command
+    int maxLoadSum = 0;
+    for (taskId_e taskId = 0; taskId < TASK_COUNT; taskId++) {
+        taskInfo_t taskInfo;
+        getTaskInfo(taskId, &taskInfo);
+        if (taskInfo.isEnabled) {
+            int taskFrequency = taskInfo.averageDeltaTimeUs == 0 ? 0 : lrintf(1e6f / taskInfo.averageDeltaTimeUs);
+            const int maxLoad = taskInfo.maxExecutionTimeUs == 0 ? 0 :(taskInfo.maxExecutionTimeUs * taskFrequency + 5000) / 1000;
+            if (taskId != TASK_SERIAL) {
+                maxLoadSum += maxLoad;
+            }
+            schedulerResetTaskMaxExecutionTime(taskId);
+        }
+    }
+    cliPrintLine("{");
+    cliPrintLinef("\"cpu\":%25d.%1d,", maxLoadSum/10, maxLoadSum%10); // does not include the trailing % sign
+    
+    cliPrint("\"arming_disable_flags\":[");
+    armingDisableFlags_e flags = getArmingDisableFlags();
+    while (flags) {
+        const int bitpos = ffs(flags) - 1;
+        flags &= ~(1 << bitpos);
+        cliPrintf("\"%s\"", armingDisableFlagNames[bitpos]);
+        if (flags > 0) {
+            cliPrint(",");
+        }
+    }
+    cliPrint("],"); // end arming_disable_flags
+    cliPrintLinef("\"arming_disable_flags_count\":%d,", ARMING_DISABLE_FLAGS_COUNT);
+    //mode flags also needed by Nemesis, but not used?
+    cliPrintLinef("\"vbat\":%d", getLegacyBatteryVoltage());
+    cliPrintLine("}");
+}
+
+static void cliNemesisAttitude(const char *cmdName, char *cmdline) 
+{
+    UNUSED(cmdName);
+    UNUSED(cmdline);
+    cliPrintLinef("{\"attitude\": [%d , %d , %d]}", attitude.values.roll, attitude.values.pitch, DECIDEGREES_TO_DEGREES(attitude.values.yaw));
+
+}
+
+static void cliNemesisRx(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdName);
+    UNUSED(cmdline);
+    cliPrint("{\"rx\":[");
+    for (int channel = 0; channel < MAX_SUPPORTED_RC_CHANNEL_COUNT; channel++) {
+        const uint8_t rawChannel = channel < RX_MAPPABLE_CHANNEL_COUNT ? rxConfig()->rcmap[channel] : channel;
+        uint16_t sample;
+        sample = rxRuntimeState.rcReadRawFn(&rxRuntimeState, rawChannel);
+        cliPrintf("%d", sample);
+        if (channel < MAX_SUPPORTED_RC_CHANNEL_COUNT - 1) {
+            cliPrint(",");
+        }
+    }
+    cliPrint("], \"rcCommand\": [");
+    for (int axis = 0; axis < 4; axis++) {
+        cliPrintf("%d", lrintf(rcCommand[axis]));
+        if (axis < 3) {
+            cliPrint(",");
+        }
+    }   
+    cliPrint("]}");
+
+}
+static void cliNemesisVbat(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdName);
+    UNUSED(cmdline);
+    cliPrint("{\"vbat\":{");
+    cliPrintLinef("\"cells\":%d,", getBatteryCellCount());
+    cliPrintLinef("\"cap\":%d,", batteryConfig()->batteryCapacity);
+    cliPrintLinef("\"volts\":%d,", getLegacyBatteryVoltage());
+    cliPrintLinef("\"mah\":%d,",getMAhDrawn());
+    cliPrintLinef("\"amps\":%d", getAmperage());
+    cliPrint("}}");
+}
+
+static void cliNemesisGyro(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdName);
+    UNUSED(cmdline);
+    cliPrint("{\"gyro\":{");
+#if defined(USE_ACC)
+    cliPrintLinef("\"acc\": [%d, %d, %d],", attitude.values.roll, attitude.values.pitch, DECIDEGREES_TO_DEGREES(attitude.values.yaw));
+#else
+    cliPrintLine("\"acc\": [0,0,0],");
+#endif
+    cliPrintLinef("\"gyro\": [%d, %d, %d],", gyroRateDps(0), gyroRateDps(1), gyroRateDps(2));
+#if defined(USE_MAG)
+    cliPrintLinef("\"mag\": [%d, %d, %d]", lrintf(mag.magADC[0]), lrintf(mag.magADC[1]), lrintf(mag.magADC[2]));
+#else
+    cliPrintLine("\"mag\": [0,0,0]");
+#endif
+   cliPrint("}}");
+}
+
+static void cliNemesisCalibAcc(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdName);
+    UNUSED(cmdline);
+    if (!ARMING_FLAG(ARMED))
+        accStartCalibration();
+    cliPrintLine("OK");
 }
 
 static void cliConfig(const char *cmdName, char *cmdline)
@@ -5064,7 +5178,11 @@ static void cliTasks(const char *cmdName, char *cmdline)
 
 #ifndef MINIMAL_CLI
     if (systemConfig()->task_statistics) {
+#if defined(USE_LATE_TASK_STATISTICS)
+        cliPrintLine("Task list             rate/hz  max/us  avg/us maxload avgload  total/ms   late    run reqd/us");
+#else
         cliPrintLine("Task list             rate/hz  max/us  avg/us maxload avgload  total/ms");
+#endif
     } else {
         cliPrintLine("Task list");
     }
@@ -5082,9 +5200,18 @@ static void cliTasks(const char *cmdName, char *cmdline)
                 averageLoadSum += averageLoad;
             }
             if (systemConfig()->task_statistics) {
+#if defined(USE_LATE_TASK_STATISTICS)
+                cliPrintLinef("%6d %7d %7d %4d.%1d%% %4d.%1d%% %9d %6d %6d %7d",
+                        taskFrequency, taskInfo.maxExecutionTimeUs, taskInfo.averageExecutionTimeUs,
+                        maxLoad/10, maxLoad%10, averageLoad/10, averageLoad%10,
+                        taskInfo.totalExecutionTimeUs / 1000,
+                        taskInfo.lateCount, taskInfo.runCount, taskInfo.execTime);
+#else
                 cliPrintLinef("%6d %7d %7d %4d.%1d%% %4d.%1d%% %9d",
                         taskFrequency, taskInfo.maxExecutionTimeUs, taskInfo.averageExecutionTimeUs,
-                        maxLoad/10, maxLoad%10, averageLoad/10, averageLoad%10, taskInfo.totalExecutionTimeUs / 1000);
+                        maxLoad/10, maxLoad%10, averageLoad/10, averageLoad%10,
+                        taskInfo.totalExecutionTimeUs / 1000);
+#endif
             } else {
                 cliPrintLinef("%6d", taskFrequency);
             }
@@ -5179,28 +5306,17 @@ static void cliRcSmoothing(const char *cmdName, char *cmdline)
                 cliPrintLinef("%d.%03dms", avgRxFrameUs / 1000, avgRxFrameUs % 1000);
             }
         }
-        cliPrintLinef("# Input filter type: %s", lookupTables[TABLE_RC_SMOOTHING_INPUT_TYPE].values[rcSmoothingData->inputFilterType]);
         cliPrintf("# Active input cutoff: %dhz ", rcSmoothingData->inputCutoffFrequency);
         if (rcSmoothingData->inputCutoffSetting == 0) {
             cliPrintLine("(auto)");
         } else {
             cliPrintLine("(manual)");
         }
-        cliPrintf("# Derivative filter type: %s", lookupTables[TABLE_RC_SMOOTHING_DERIVATIVE_TYPE].values[rcSmoothingData->derivativeFilterType]);
-        if (rcSmoothingData->derivativeFilterTypeSetting == RC_SMOOTHING_DERIVATIVE_AUTO) {
-            cliPrintLine(" (auto)");
-        } else {
-            cliPrintLinefeed();
-        }
         cliPrintf("# Active derivative cutoff: %dhz (", rcSmoothingData->derivativeCutoffFrequency);
-        if (rcSmoothingData->derivativeFilterType == RC_SMOOTHING_DERIVATIVE_OFF) {
-            cliPrintLine("off)");
+        if (rcSmoothingData->derivativeCutoffSetting == 0) {
+            cliPrintLine("auto)");
         } else {
-            if (rcSmoothingData->derivativeCutoffSetting == 0) {
-                cliPrintLine("auto)");
-            } else {
-                cliPrintLine("manual)");
-            }
+            cliPrintLine("manual)");
         }
     } else {
         cliPrintLine("INTERPOLATION");
@@ -6693,6 +6809,12 @@ const clicmd_t cmdTable[] = {
 
 #ifdef USE_PEGASUS_UI
     CLI_COMMAND_DEF("config", "get all configuration information", NULL, cliConfig),
+    CLI_COMMAND_DEF("nemesis_status", "get status information in JSON format", NULL, cliNemesisStatus),
+    CLI_COMMAND_DEF("nemesis_attitude", "get attitude information in JSON format", NULL, cliNemesisAttitude),
+    CLI_COMMAND_DEF("nemesis_rx", "get rx information in JSON format", NULL, cliNemesisRx),
+    CLI_COMMAND_DEF("nemesis_vbat", "get vbat information in JSON format", NULL, cliNemesisVbat),
+    CLI_COMMAND_DEF("nemesis_gyro", "get gyro information in JSON format", NULL, cliNemesisGyro),
+    CLI_COMMAND_DEF("nemesis_calib_acc", "calibrate accelerometer", NULL, cliNemesisCalibAcc),
 #endif
 #ifdef USE_GPS
     CLI_COMMAND_DEF("gpspassthrough", "passthrough gps to serial", NULL, cliGpsPassthrough),

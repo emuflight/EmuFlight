@@ -20,15 +20,13 @@
 
 #pragma once
 
-#include "sensors/gyro.h"
 #include "filter.h"
 
-#define MAX_KALMAN_WINDOW_SIZE 300
+#define MAX_KALMAN_WINDOW_SIZE 301
 
-#define VARIANCE_SCALE 0.67f
+#define VARIANCE_SCALE 1.0f
 
-
-typedef struct kalman
+typedef struct kalman_s
 {
     float q;     //process noise covariance
     float r;     //measurement noise covariance
@@ -40,12 +38,16 @@ typedef struct kalman
     float axisVar;
     uint16_t windex;
     float axisWindow[MAX_KALMAN_WINDOW_SIZE];
+    float varianceWindow[MAX_KALMAN_WINDOW_SIZE];
     float axisSumMean;
     float axisMean;
     float axisSumVar;
     float inverseN;
     uint16_t w;
+
+    pt1Filter_t kFilter;
 } kalman_t;
 
 extern void kalman_init(void);
 extern float kalman_update(float input, int axis);
+void update_kalman_covariance(kalman_t *kalmanState, float rate);

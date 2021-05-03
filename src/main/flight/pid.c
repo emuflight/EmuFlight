@@ -30,7 +30,6 @@
 
 #include "common/axis.h"
 #include "common/filter.h"
-#include "common/maths.h"
 
 #include "config/config_reset.h"
 
@@ -169,9 +168,6 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .launchControlGain = 40,
         .launchControlAllowTriggerReset = true,
         .thrustLinearization = 0,
-        .d_min = { 0, 0, 0 },      // roll, pitch, yaw
-        .d_min_gain = 37,
-        .d_min_advance = 20,
         .motor_output_limit = 100,
         .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
         .profileName = { 0 },
@@ -183,6 +179,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .ff_interpolate_sp = FF_INTERPOLATE_ON,
         .ff_max_rate_limit = 100,
         .ff_smooth_factor = 37,
+        .ff_jitter_factor = 7,
         .ff_boost = 15,
         .dyn_lpf_curve_expo = 5,
         .vbat_sag_compensation = 0,
@@ -199,6 +196,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_abg_half_life = 50,
         .axis_lock_hz = 2,
         .axis_lock_multiplier = 0,
+        .axis_smooth_multiplier = 0,
     );
 }
 
@@ -236,6 +234,11 @@ float pidGetFfBoostFactor()
 float pidGetFfSmoothFactor()
 {
     return pidRuntime.ffSmoothFactor;
+}
+
+float pidGetFfJitterFactor()
+{
+    return pidRuntime.ffJitterFactor;
 }
 #endif
 
@@ -275,7 +278,7 @@ float pidCompensateThrustLinearization(float throttle)
     if (pidRuntime.thrustLinearization != 0.0f) {
         // for whoops where a lot of TL is needed, allow more throttle boost
         const float throttleReversed = (1.0f - throttle);
-        throttle /= 1.0f + pidRuntime.throttleCompensateAmount * powerf(throttleReversed, 2);
+        throttle /= 1.0f + pidRuntime.throttleCompensateAmount * powf(throttleReversed, 2);
     }
     return throttle;
 }
@@ -285,7 +288,7 @@ float pidApplyThrustLinearization(float motorOutput)
     if (pidRuntime.thrustLinearization != 0.0f) {
         if (motorOutput > 0.0f) {
             const float motorOutputReversed = (1.0f - motorOutput);
-            motorOutput *= 1.0f + powerf(motorOutputReversed, 2) * pidRuntime.thrustLinearization;
+            motorOutput *= 1.0f + powf(motorOutputReversed, 2) * pidRuntime.thrustLinearization;
         }
     }
     return motorOutput;
@@ -338,6 +341,7 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
     const float absErrorAnglePercent = fabsf(errorAnglePercent);
     const float inverseErrorAnglePercent = 1.0f - absErrorAnglePercent;
     const float angleDterm = (pidRuntime.attitudePrevious[axis] - attitude.raw[axis]) * 0.1f;
+    pidRuntime.attitudePrevious[axis] = attitude.raw[axis];
 
     // ANGLE mode - control is angle based
     p_term_low = inverseErrorAnglePercent * errorAngle * pidRuntime.P_angle_low;
@@ -345,7 +349,6 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
 
     d_term_low = inverseErrorAnglePercent * angleDterm * pidRuntime.D_angle_low;
     d_term_high = absErrorAnglePercent * angleDterm * pidRuntime.D_angle_high;
-    pidRuntime.attitudePrevious[axis] = attitude.raw[axis];
 
     currentPidSetpoint = p_term_low + p_term_high;
     currentPidSetpoint += d_term_low + d_term_high;
@@ -424,14 +427,7 @@ float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelt
         DEBUG_SET(DEBUG_RC_SMOOTHING, 1, lrintf(pidSetpointDelta * 100.0f));
     }
     if (pidRuntime.setpointDerivativeLpfInitialized) {
-        switch (pidRuntime.rcSmoothingFilterType) {
-            case RC_SMOOTHING_DERIVATIVE_PT1:
-                ret = pt1FilterApply(&pidRuntime.setpointDerivativePt1[axis], pidSetpointDelta);
-                break;
-            case RC_SMOOTHING_DERIVATIVE_BIQUAD:
-                ret = biquadFilterApplyDF1(&pidRuntime.setpointDerivativeBiquad[axis], pidSetpointDelta);
-                break;
-        }
+        ret = ptnFilterApply(&pidRuntime.setpointDerivativePt3[axis], pidSetpointDelta);
         if (axis == pidRuntime.rcSmoothingDebugAxis) {
             DEBUG_SET(DEBUG_RC_SMOOTHING, 2, lrintf(ret * 100.0f));
         }
@@ -526,20 +522,19 @@ static FAST_CODE float stickPositionAttenuation(int axis, int pid) {
 }
 
 static FAST_CODE void stickMovement(int axis) {
-    pidRuntime.filteredStickMovement[axis] = (getRcDeflectionAbs(axis) - pidRuntime.previousRcDeflection[axis]) * pidRuntime.pidFrequency;
-    pidRuntime.previousRcDeflection[axis] = getRcDeflectionAbs(axis);
+    pidRuntime.filteredStickMovement[axis] = fabsf(getRcDeflection(axis) - pidRuntime.previousRcDeflection[axis]) * pidRuntime.pidFrequency;
+    pidRuntime.previousRcDeflection[axis] = getRcDeflection(axis);
     pidRuntime.filteredStickMovement[axis] = pt1FilterApply(&pidRuntime.stickMovementLpf[axis], pidRuntime.filteredStickMovement[axis]);
 }
 
 static FAST_CODE void axisLockScaling(void) {
-    if (pidRuntime.axisLockMultiplier != 0.0f) {
-        pidRuntime.axisLockScaler[ROLL] = constrainf(1 - (pidRuntime.filteredStickMovement[PITCH] - pidRuntime.filteredStickMovement[YAW] + pidRuntime.filteredStickMovement[ROLL]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
-        pidRuntime.axisLockScaler[PITCH] = constrainf(1 - (pidRuntime.filteredStickMovement[ROLL] - pidRuntime.filteredStickMovement[YAW] + pidRuntime.filteredStickMovement[PITCH]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
-        pidRuntime.axisLockScaler[YAW] = constrainf(1 - (pidRuntime.filteredStickMovement[ROLL] - pidRuntime.filteredStickMovement[PITCH] + pidRuntime.filteredStickMovement[YAW]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
-      } else {
-        pidRuntime.axisLockScaler[ROLL] = 1.0f;
-        pidRuntime.axisLockScaler[PITCH] = 1.0f;
-        pidRuntime.axisLockScaler[YAW] = 1.0f;
+    if (pidRuntime.axisLockMultiplier != 0.0f || pidRuntime.axisSmoothMultiplier != 0.0f) {
+        pidRuntime.axisLockScaler[ROLL] = constrainf(1 - (pidRuntime.filteredStickMovement[PITCH] + pidRuntime.filteredStickMovement[YAW] - pidRuntime.filteredStickMovement[ROLL]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
+        pidRuntime.axisLockScaler[PITCH] = constrainf(1 - (pidRuntime.filteredStickMovement[ROLL] + pidRuntime.filteredStickMovement[YAW] - pidRuntime.filteredStickMovement[PITCH]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
+        pidRuntime.axisLockScaler[YAW] = constrainf(1 - (pidRuntime.filteredStickMovement[ROLL] + pidRuntime.filteredStickMovement[PITCH] - pidRuntime.filteredStickMovement[YAW]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
+        pidRuntime.axisLockScaler[ROLL] = constrainf(1 - pidRuntime.filteredStickMovement[ROLL] * pidRuntime.axisSmoothMultiplier, 0.0f, 1.0f);
+        pidRuntime.axisLockScaler[PITCH] = constrainf(1 - pidRuntime.filteredStickMovement[PITCH] * pidRuntime.axisSmoothMultiplier, 0.0f, 1.0f);
+        pidRuntime.axisLockScaler[YAW] = constrainf(1 - pidRuntime.filteredStickMovement[YAW] * pidRuntime.axisSmoothMultiplier, 0.0f, 1.0f);
       }
 }
 
@@ -552,9 +547,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
     axisLockScaling();
 
-#ifdef USE_INTERPOLATED_SP
-    static FAST_DATA_ZERO_INIT uint32_t lastFrameNumber;
-#endif
 #if defined(USE_ACC)
     const rollAndPitchTrims_t *angleTrim = &accelerometerConfig()->accelerometerTrims;
 #endif
@@ -612,8 +604,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
 #ifdef USE_INTERPOLATED_SP
     bool newRcFrame = false;
-    if (lastFrameNumber != getRcFrameNumber()) {
-        lastFrameNumber = getRcFrameNumber();
+    if (getShouldUpdateFf()) {
         newRcFrame = true;
     }
 #endif
@@ -802,28 +793,6 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
                 DEBUG_SET(DEBUG_BOOST, 3, lrintf(delta - preDBoost));
             }
 
-#if defined(USE_D_MIN)
-            float dMinFactor = 1.0f;
-            if (pidRuntime.dMinPercent[axis] > 0) {
-                float dMinGyroFactor = biquadFilterApply(&pidRuntime.dMinRange[axis], delta);
-                dMinGyroFactor = fabsf(dMinGyroFactor) * pidRuntime.dMinGyroGain;
-                const float dMinSetpointFactor = (fabsf(pidSetpointDelta)) * pidRuntime.dMinSetpointGain;
-                dMinFactor = MAX(dMinGyroFactor, dMinSetpointFactor);
-                dMinFactor = pidRuntime.dMinPercent[axis] + (1.0f - pidRuntime.dMinPercent[axis]) * dMinFactor;
-                dMinFactor = pt1FilterApply(&pidRuntime.dMinLowpass[axis], dMinFactor);
-                dMinFactor = MIN(dMinFactor, 1.0f);
-                if (axis == FD_ROLL) {
-                    DEBUG_SET(DEBUG_D_MIN, 0, lrintf(dMinGyroFactor * 100));
-                    DEBUG_SET(DEBUG_D_MIN, 1, lrintf(dMinSetpointFactor * 100));
-                    DEBUG_SET(DEBUG_D_MIN, 2, lrintf(pidRuntime.pidCoefficient[axis].Kd * dMinFactor * 10 / DTERM_SCALE));
-                } else if (axis == FD_PITCH) {
-                    DEBUG_SET(DEBUG_D_MIN, 3, lrintf(pidRuntime.pidCoefficient[axis].Kd * dMinFactor * 10 / DTERM_SCALE));
-                }
-            }
-
-            // Apply the dMinFactor
-            delta *= dMinFactor;
-#endif
             pidData[axis].D = delta * getThrottleDAttenuation() * stickPositionAttenuation(axis, 2);
         } else {
             pidData[axis].D = 0;
@@ -938,23 +907,23 @@ bool pidAntiGravityEnabled(void)
 #ifdef USE_DYN_LPF
 void dynLpfDTermUpdate(float cutoff[XYZ_AXIS_COUNT])
 {
-    if (pidRuntime.dynLpfFilter != DYN_LPF_NONE) {
-         if (pidRuntime.dynLpfFilter == DYN_LPF_PT1) {
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 1.0f, pidRuntime.dT);
-            }
-        } else if (pidRuntime.dynLpfFilter == DYN_LPF_BIQUAD) {
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                biquadFilterUpdateLPF(&pidRuntime.dtermLowpass[axis].biquadFilter, cutoff[axis], targetPidLooptime);
-            }
-        } else if (pidRuntime.dynLpfFilter == DYN_LPF_PT3) {
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 1.961459177f, pidRuntime.dT);
-            }
-        } else if (pidRuntime.dynLpfFilter == DYN_LPF_PT4) {
-            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], 2.298959223f, pidRuntime.dT);
-            }
+    for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+         switch (pidRuntime.dynLpfFilter) {
+         case DYN_LPF_PT1:
+                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis], cutoff[axis], 1.0f, pidRuntime.dT);
+            break;
+        case DYN_LPF_PT2:
+                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis], cutoff[axis], 1.553773974f, pidRuntime.dT);
+            break;
+        case DYN_LPF_PT3:
+                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis], cutoff[axis], 1.961459177f, pidRuntime.dT);
+            break;
+        case DYN_LPF_PT4:
+                ptnFilterUpdate(&pidRuntime.dtermLowpass[axis], cutoff[axis], 2.298959223f, pidRuntime.dT);
+            break;
+        case DYN_LPF_NONE:
+        default:
+            break;
         }
     }
 }

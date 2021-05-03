@@ -124,6 +124,7 @@
 #define USE_RTC_TIME
 #define USE_PERSISTENT_MSC_RTC
 #define USE_DSHOT_CACHE_MGMT
+#define USE_LATE_TASK_STATISTICS
 #endif
 
 #ifdef STM32G4
@@ -184,7 +185,7 @@
 #endif
 
 #ifdef USE_FAST_DATA
-#define FAST_DATA_ZERO_INIT             __attribute__ ((section(".fastram_bss"), aligned(4)))
+#define FAST_DATA_ZERO_INIT          __attribute__ ((section(".fastram_bss"), aligned(4)))
 #define FAST_DATA                    __attribute__ ((section(".fastram_data"), aligned(4)))
 #else
 #define FAST_DATA_ZERO_INIT
@@ -293,7 +294,7 @@
 #if ((TARGET_FLASH_SIZE > 256) || (FEATURE_CUT_LEVEL < 8))
 #define USE_LAUNCH_CONTROL
 #define USE_DYN_LPF
-#define USE_D_MIN
+//#define USE_D_MIN
 #endif
 
 #if ((TARGET_FLASH_SIZE > 256) || (FEATURE_CUT_LEVEL < 7))
@@ -368,7 +369,7 @@
 #define USE_TELEMETRY_IBUS
 #define USE_TELEMETRY_IBUS_EXTENDED
 #define USE_TELEMETRY_JETIEXBUS
-#define USE_TELEMETRY_MAVLINK
+//#define USE_TELEMETRY_MAVLINK
 #define USE_UNCOMMON_MIXERS
 #define USE_SIGNATURE
 #define USE_HOTT_TEXTMODE
@@ -391,5 +392,8 @@
 #define USE_CUSTOM_BOX_NAMES
 #define USE_BATTERY_VOLTAGE_SAG_COMPENSATION
 #define USE_RX_MSP_OVERRIDE
-#define RC_PREDICTOR
+#define USE_RC_PREDICTOR
+#define USE_SMITH_PREDICTOR
+#define USE_RX_LINK_UPLINK_POWER
+#define USE_GPS_PLUS_CODES
 #endif
