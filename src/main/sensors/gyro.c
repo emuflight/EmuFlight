@@ -412,9 +412,15 @@ FAST_CODE void gyroUpdate(void)
     case GYRO_CONFIG_USE_GYRO_1:
         gyroUpdateSensor(&gyro.gyroSensor1);
         if (isGyroSensorCalibrationComplete(&gyro.gyroSensor1)) {
+#ifndef USE_GYRO_IMUF9001
             gyro.gyroADC[X] = gyro.gyroSensor1.gyroDev.gyroADC[X] * gyro.gyroSensor1.gyroDev.scale;
             gyro.gyroADC[Y] = gyro.gyroSensor1.gyroDev.gyroADC[Y] * gyro.gyroSensor1.gyroDev.scale;
             gyro.gyroADC[Z] = gyro.gyroSensor1.gyroDev.gyroADC[Z] * gyro.gyroSensor1.gyroDev.scale;
+#else
+            gyro.gyroADC[X] = gyro.gyroSensor1.gyroDev.gyroADC[X];
+            gyro.gyroADC[Y] = gyro.gyroSensor1.gyroDev.gyroADC[Y];
+            gyro.gyroADC[Z] = gyro.gyroSensor1.gyroDev.gyroADC[Z];
+#endif
         }
         break;
 #ifdef USE_MULTI_GYRO
@@ -437,10 +443,11 @@ FAST_CODE void gyroUpdate(void)
         break;
 #endif
     }
-
+#ifndef USE_GYRO_IMUF9001
     gyro.gyroADC[X] = kalman_update(gyro.gyroADC[X], X);
     gyro.gyroADC[Y] = kalman_update(gyro.gyroADC[Y], Y);
     gyro.gyroADC[Z] = kalman_update(gyro.gyroADC[Z], Z);
+#endif
 }
 
 #ifdef USE_SMITH_PREDICTOR

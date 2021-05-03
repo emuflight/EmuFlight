@@ -79,7 +79,9 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
         }
 #endif
 
+#ifndef USE_GYRO_IMUF9001
         update_kalman_covariance(&gyro.kalmanFilterStateRate[axis], gyroADCf);
+#endif
 
 #ifdef USE_SMITH_PREDICTOR
         gyroADCf = applySmithPredictor(&gyro.smithPredictor[axis], gyroADCf, axis);
