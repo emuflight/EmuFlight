@@ -824,13 +824,13 @@ static void gyroInitABGFilter(gyroSensor_t *gyroSensor, uint16_t alpha, uint16_t
 }
 
 #ifdef USE_SMITH_PREDICTOR
-void smithPredictorInit() {
+void smithPredictorInit(gyroSensor_t *gyroSensor) {
     if (gyroConfig()->smithPredictorDelay > 1) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            gyro.smithPredictor[axis].samples = gyroConfig()->smithPredictorDelay / (gyro.targetLooptime / 100.0f);
-            gyro.smithPredictor[axis].idx = 0;
-            gyro.smithPredictor[axis].smithPredictorStrength = gyroConfig()->smithPredictorStrength / 100.0f;
-            pt1FilterInit(&gyro.smithPredictor[axis].smithPredictorFilter, pt1FilterGain(gyroConfig()->smithPredictorFilterHz, gyro.targetLooptime * 1e-6f));
+            gyroSensor->smithPredictor[axis].samples = gyroConfig()->smithPredictorDelay / (gyro.targetLooptime / 100.0f);
+            gyroSensor->smithPredictor[axis].idx = 0;
+            gyroSensor->smithPredictor[axis].smithPredictorStrength = gyroConfig()->smithPredictorStrength / 100.0f;
+            pt1FilterInit(&gyroSensor->smithPredictor[axis].smithPredictorFilter, pt1FilterGain(gyroConfig()->smithPredictorFilterHz, gyro.targetLooptime * 1e-6f));
         }
     }
 }
@@ -862,7 +862,7 @@ static void gyroInitSensorFilters(gyroSensor_t *gyroSensor) {
     gyroInitABGFilter(gyroSensor, gyroConfig()->gyro_ABG_alpha, gyroConfig()->gyro_ABG_boost, gyroConfig()->gyro_ABG_half_life);
 
 #ifdef USE_SMITH_PREDICTOR
-    smithPredictorInit();
+    smithPredictorInit(gyroSensor);
 #endif // USE_SMITH_PREDICTOR
 }
 

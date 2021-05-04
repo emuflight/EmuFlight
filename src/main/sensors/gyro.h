@@ -23,6 +23,7 @@
 #include "common/axis.h"
 #include "common/time.h"
 #include "common/maths.h"
+#include "common/filter.h"
 #include "pg/pg.h"
 #include "drivers/bus.h"
 #include "drivers/sensor.h"
