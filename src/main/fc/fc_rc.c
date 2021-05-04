@@ -166,6 +166,29 @@ float applyRaceFlightRates(const int axis, float rcCommandf, const float rcComma
     return angleRate;
 }
 
+float applyKissRates(const int axis, float rcCommandf, const float rcCommandfAbs)
+{
+    const float rcCurvef = currentControlRateProfile->rcExpo[axis] / 100.0f;
+
+    float kissRpyUseRates = 1.0f / (constrainf(1.0f - (rcCommandfAbs * (currentControlRateProfile->rates[axis] / 100.0f)), 0.01f, 1.00f));
+    float kissRcCommandf = (power3(rcCommandf) * rcCurvef + rcCommandf * (1 - rcCurvef)) * (currentControlRateProfile->rcRates[axis] / 1000.0f);
+    float kissAngle = constrainf(((2000.0f * kissRpyUseRates) * kissRcCommandf), -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
+
+    return kissAngle;
+}
+
+float applyActualRates(const int axis, float rcCommandf, const float rcCommandfAbs)
+{
+    float expof = currentControlRateProfile->rcExpo[axis] / 100.0f;
+    expof = rcCommandfAbs * (powerf(rcCommandf, 5) * expof + rcCommandf * (1 - expof));
+
+    const float centerSensitivity = currentControlRateProfile->rcRates[axis] * 10.0f;
+    const float stickMovement = MAX(0, currentControlRateProfile->rates[axis] * 10.0f - centerSensitivity);
+    const float angleRate = rcCommandf * centerSensitivity + stickMovement * expof;
+
+    return angleRate;
+}
+
 static void calculateSetpointRate(int axis) {
     static volatile float angleRate;
 #ifdef USE_GPS_RESCUE
@@ -772,6 +795,12 @@ void initRcProcessing(void) {
         break;
     case RATES_TYPE_RACEFLIGHT:
         applyRates = applyRaceFlightRates;
+        break;
+    case RATES_TYPE_KISS:
+        applyRates = applyKissRates;
+        break;
+    case RATES_TYPE_ACTUAL:
+        applyRates = applyActualRates;
         break;
     }
     interpolationChannels = 0;
