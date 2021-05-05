@@ -574,7 +574,7 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] = {
 
     { "GYRO ABG ALPHA",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_abg_alpha,           0, 1000, 1 }, 0 },
     { "GYRO ABG BOOST",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_abg_boost,           0, 2000, 1 }, 0 },
-    { "GYRO ABG HL",      OME_UINT16, NULL, &(OSD_UINT8_t) { &gyroConfig_gyro_abg_half_life,       0, 250, 1 }, 0 },
+    { "GYRO ABG HL",      OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_abg_half_life,       0, 250, 1 }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
@@ -743,7 +743,7 @@ static OSD_Entry cmsx_menuFilterPerProfileEntries[] = {
 
     { "DTERM ABG ALPHA",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_abg_alpha,       0, 1000, 1 }, 0 },
     { "DTERM ABG BOOST",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_abg_boost,       0, 2000, 1 }, 0 },
-    { "DTERM ABG HL",       OME_UINT16, NULL, &(OSD_UINT8_t){ &cmsx_dterm_abg_half_life,   0, 250, 1 }, 0 },
+    { "DTERM ABG HL",       OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_dterm_abg_half_life,   0, 250, 1 }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },

@@ -190,6 +190,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .dterm_ABG_boost = 275,
     .dterm_ABG_half_life = 50,
     .emuGravityGain = 100,
+    .angle_filter = 100,
                 );
 }
 
@@ -221,6 +222,8 @@ static FAST_RAM filterApplyFnPtr dtermLowpassApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
 static FAST_RAM filterApplyFnPtr dtermLowpass2ApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
+static FAST_RAM filterApplyFnPtr angleSetpointFilterApplyFn = nullFilterApply;
+static FAST_RAM_ZERO_INIT pt1Filter_t angleSetpointFilter[2];
 static FAST_RAM filterApplyFnPtr dtermABGapplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT alphaBetaGammaFilter_t dtermABG[XYZ_AXIS_COUNT];
 
@@ -248,6 +251,7 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
     const uint32_t pidFrequencyNyquist = pidFrequency / 2; // No rounding needed
     dtermLowpassApplyFn = nullFilterApply;
     dtermLowpass2ApplyFn = nullFilterApply;
+    angleSetpointFilterApplyFn = nullFilterApply;
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         if (pidProfile->dFilter[axis].dLpf && pidProfile->dFilter[axis].dLpf <= pidFrequencyNyquist) {
             switch (pidProfile->dterm_filter_type) {
@@ -274,6 +278,10 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 biquadFilterInitLPF(&dtermLowpass2[axis].biquadFilter, pidProfile->dFilter[axis].dLpf2, targetPidLooptime);
                 break;
             }
+        }
+        if (pidProfile->angle_filter) {
+            angleSetpointFilterApplyFn = (filterApplyFnPtr)pt1FilterApply;
+            pt1FilterInit(&angleSetpointFilter[axis], pt1FilterGain(pidProfile->angle_filter, dT));
         }
         if (pidProfile->dterm_ABG_alpha) {
             dtermABGapplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
@@ -504,6 +512,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
         const float horizonLevelStrength = calcHorizonLevelStrength();
         currentPidSetpoint = ((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f + (currentPidSetpoint * horizonLevelStrength * horizonStrength);
     }
+    currentPidSetpoint = angleSetpointFilterApplyFn((filter_t *)&angleSetpointFilter[axis], currentPidSetpoint);
     directFF[axis] = (1 - fabsf(errorAnglePercent)) * DF_angle_low;
     directFF[axis] += fabsf(errorAnglePercent) * DF_angle_high;
     return currentPidSetpoint;
@@ -670,6 +679,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && FLIGHT_MODE(NFE_RACE_MODE) && (axis != FD_PITCH)) {
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
         }
+
         // Handle yaw spin recovery - zero the setpoint on yaw to aid in recovery
         // It's not necessary to zero the set points for R/P because the PIDs will be zeroed below
 #ifdef USE_YAW_SPIN_RECOVERY
