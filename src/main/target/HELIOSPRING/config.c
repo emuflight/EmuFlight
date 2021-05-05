@@ -28,8 +28,8 @@
 #include "telemetry/telemetry.h"
 #include "flight/mixer.h"
 #include "flight/pid.h"
-#include "fc/config.h"
-#include "fc/fc_rc.h"
+#include "config/config.h"
+#include "fc/rc.h"
 #include "fc/rc_controls.h"
 #include "rx/rx.h"
 
@@ -44,5 +44,5 @@ void targetConfiguration(void) {
     gyroConfigMutable()->gyro_use_32khz = 2; // 16KHZ GYRO
     pidConfigMutable()->pid_process_denom = 1; // 16KHZ PID
     systemConfigMutable()->cpu_overclock  = 1; //192MHz makes Multishot run a little better because of maths. (QuickFlash note, does it really help mutlishot run better, all the false stuff you guys said i'm scepticle)
-    featureDisableImmediate(FEATURE_DYNAMIC_FILTER);
+    //featureDisableImmediate(FEATURE_DYNAMIC_FILTER);
 }

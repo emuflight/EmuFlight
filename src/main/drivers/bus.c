@@ -44,6 +44,9 @@ bool busRawWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data)
 
 bool busWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data)
 {
+#ifdef USE_GYRO_IMUF9001
+    return spiBusWriteRegister(busdev, reg & 0x7f, data);
+#else
 #if !defined(USE_SPI) && !defined(USE_I2C)
     UNUSED(reg);
     UNUSED(data);
@@ -65,6 +68,7 @@ bool busWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data)
     default:
         return false;
     }
+#endif
 }
 
 bool busRawWriteRegisterStart(const busDevice_t *busdev, uint8_t reg, uint8_t data)
@@ -124,6 +128,9 @@ bool busRawReadRegisterBuffer(const busDevice_t *busdev, uint8_t reg, uint8_t *d
 
 bool busReadRegisterBuffer(const busDevice_t *busdev, uint8_t reg, uint8_t *data, uint8_t length)
 {
+#ifdef USE_GYRO_IMUF9001
+    return spiBusReadRegisterBuffer(busdev, reg | 0x80, data, length);
+#else
 #if !defined(USE_SPI) && !defined(USE_I2C)
     UNUSED(reg);
     UNUSED(data);
@@ -146,6 +153,7 @@ bool busReadRegisterBuffer(const busDevice_t *busdev, uint8_t reg, uint8_t *data
     default:
         return false;
     }
+#endif
 }
 
 bool busRawReadRegisterBufferStart(const busDevice_t *busdev, uint8_t reg, uint8_t *data, uint8_t length)
@@ -217,6 +225,11 @@ bool busBusy(const busDevice_t *busdev, bool *error)
 
 uint8_t busReadRegister(const busDevice_t *busdev, uint8_t reg)
 {
+#ifdef USE_GYRO_IMUF9001
+    uint8_t data;
+    busReadRegisterBuffer(busdev, reg, &data, 1);
+    return data;
+#else
 #if !defined(USE_SPI) && !defined(USE_I2C)
     UNUSED(busdev);
     UNUSED(reg);
@@ -225,6 +238,7 @@ uint8_t busReadRegister(const busDevice_t *busdev, uint8_t reg)
     uint8_t data;
     busReadRegisterBuffer(busdev, reg, &data, 1);
     return data;
+#endif
 #endif
 }
 

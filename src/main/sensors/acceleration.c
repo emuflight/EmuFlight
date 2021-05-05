@@ -67,11 +67,13 @@ void accUpdate(timeUs_t currentTimeUs, rollAndPitchTrims_t *rollAndPitchTrims)
         }
     }
 
+#ifndef USE_GYRO_IMUF9001
     if (acc.dev.accAlign == ALIGN_CUSTOM) {
         alignSensorViaMatrix(acc.accADC, &acc.dev.rotationMatrix);
     } else {
         alignSensorViaRotation(acc.accADC, acc.dev.accAlign);
     }
+#endif
 
     if (!accIsCalibrationComplete()) {
         performAcclerationCalibration(rollAndPitchTrims);

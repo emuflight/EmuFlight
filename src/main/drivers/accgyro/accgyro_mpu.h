@@ -252,6 +252,6 @@ struct accDev_s;
 bool mpuAccRead(struct accDev_s *acc);
 
 #ifdef USE_GYRO_IMUF9001
-extern bool mpuGyroDmaSpiReadStart(struct gyroDev_s *gyro);
+extern bool mpuGyroDmaSpiReadStart();
 extern void mpuGyroDmaSpiReadFinish(struct gyroDev_s *gyro);
 #endif

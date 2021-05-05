@@ -611,14 +611,14 @@ static void validateAndFixConfig(void)
 #ifdef USE_GYRO_IMUF9001
 int getImufRateFromGyroSyncDenom(int gyro_use_32khz) {
     switch (gyro_use_32khz) {
-        case THRIRTYTWO_K:
+        case 1:
             return IMUF_RATE_32K;
             break;
-        case SIXTEEN_K:
+        case 2:
         default:
             return IMUF_RATE_16K;
             break;
-        case OFF:
+        case 0:
             return IMUF_RATE_8K;
             break;
     }

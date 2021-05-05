@@ -50,7 +50,7 @@ typedef struct busDevice_s {
 #endif
             IO_t csnPin;
 
-#if defined(USE_GYRO_IMUF9001)
+#ifdef USE_GYRO_IMUF9001
             IO_t rstPin;
 #endif
         } spi;

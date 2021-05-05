@@ -37,3 +37,7 @@ void alignSensorViaMatrix(float *dest, fp_rotationMatrix_t* rotationMatrix);
 void alignSensorViaRotation(float *dest, uint8_t rotation);
 
 void initBoardAlignment(const boardAlignment_t *boardAlignment);
+
+#ifdef USE_GYRO_IMUF9001
+bool isBoardAlignmentStandard(const boardAlignment_t *boardAlignment);
+#endif

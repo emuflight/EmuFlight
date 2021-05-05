@@ -48,6 +48,17 @@
 #define MAX_SMITH_SAMPLES 12 * 32
 #endif // USE_SMITH_PREDICTOR
 
+#if defined(USE_GYRO_IMUF9001)
+typedef enum {
+    IMUF_RATE_32K = 0, // only 32k, 16k, and 8k will ever be used, consider removing the rest
+    IMUF_RATE_16K = 1,
+    IMUF_RATE_8K = 2,
+    IMUF_RATE_4K = 3,
+    IMUF_RATE_2K = 4,
+    IMUF_RATE_1K = 5
+} imufRate_e;
+#endif
+
 typedef enum gyroDetectionFlags_e {
     GYRO_NONE_MASK = 0,
     GYRO_1_MASK = BIT(0),
@@ -171,6 +182,10 @@ typedef enum {
 #define GYRO_CONFIG_USE_GYRO_BOTH   2
 
 typedef struct gyroConfig_s {
+#ifdef USE_GYRO_IMUF9001
+    uint8_t  gyro_align;                       // gyro alignment
+#endif
+
     uint8_t  gyroMovementCalibrationThreshold; // people keep forgetting that moving model while init results in wrong gyro offsets. and then they never reset gyro. so this is now on by default.
     uint8_t  gyro_hardware_lpf;                // gyro DLPF setting
 
@@ -247,4 +262,9 @@ float dynLpfGyroCutoff(uint16_t throttle, float dynlpf2_cutoff);
 #endif
 #ifdef USE_YAW_SPIN_RECOVERY
 void initYawSpinRecovery(int maxYawRate);
+#endif
+
+#ifdef USE_DMA_SPI_DEVICE
+void gyroDmaSpiFinishRead(void);
+void gyroDmaSpiStartRead(void);
 #endif

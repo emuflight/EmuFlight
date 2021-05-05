@@ -44,6 +44,9 @@
 
 #include "drivers/dshot.h"
 #include "drivers/dshot_command.h"
+#ifdef USE_GYRO_IMUF9001
+#include "drivers/dma_spi.h"
+#endif
 #include "drivers/light_led.h"
 #include "drivers/motor.h"
 #include "drivers/sound_beeper.h"
@@ -1279,6 +1282,9 @@ FAST_CODE void taskFiltering(timeUs_t currentTimeUs)
 // Function for loop trigger
 FAST_CODE void taskMainPidLoop(timeUs_t currentTimeUs)
 {
+#ifdef USE_GYRO_IMUF9001
+    dmaSpiDeviceDataReady = false;
+#endif
 
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_GYROPID_SYNC)
     if (lockMainPID() != 0) return;

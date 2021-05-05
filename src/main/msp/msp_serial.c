@@ -40,6 +40,13 @@
 
 #include "msp_serial.h"
 
+#ifdef USE_GYRO_IMUF9001
+#include "drivers/light_led.h"
+#include "drivers/accgyro/accgyro.h"
+#include "drivers/accgyro/accgyro_mpu.h"
+#include "drivers/accgyro/accgyro_imuf9001.h"
+#endif
+
 static mspPort_t mspPorts[MAX_MSP_PORT_COUNT];
 
 static void resetMspPort(mspPort_t *mspPortToReset, serialPort_t *serialPort, bool sharedWithTelemetry)

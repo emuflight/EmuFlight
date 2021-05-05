@@ -35,12 +35,24 @@ void SetSysClock(void);
 
 void systemReset(void)
 {
+#ifdef USE_GYRO_IMUF9001
+    if (mpuResetFn) {
+        mpuResetFn();
+    }
+#endif
+
     __disable_irq();
     NVIC_SystemReset();
 }
 
 void systemResetToBootloader(bootloaderRequestType_e requestType)
 {
+#ifdef USE_GYRO_IMUF9001
+    if (mpuResetFn) {
+        mpuResetFn();
+    }
+#endif
+
     switch (requestType) {
     case BOOTLOADER_REQUEST_ROM:
     default:

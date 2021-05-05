@@ -46,6 +46,9 @@ typedef enum {
     ACC_BMI160,
     ACC_BMI270,
     ACC_LSM6DSO,
+#ifdef USE_GYRO_IMUF9001
+    ACC_IMUF9001,
+#endif
     ACC_FAKE
 } accelerationSensor_e;
 

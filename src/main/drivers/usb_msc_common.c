@@ -47,6 +47,10 @@
 
 #include "pg/usb.h"
 
+#ifdef USE_ACC_IMUF9001
+#include "drivers/accgyro/accgyro_mpu.h"
+#endif
+
 #define DEBOUNCE_TIME_MS 20
 #define ACTIVITY_LED_PERIOD_MS 50
 
@@ -151,6 +155,12 @@ void systemResetToMsc(int timezoneOffsetMinutes)
 
 void systemResetFromMsc(void)
 {
+#ifdef USE_GYRO_IMUF9001
+    if (mpuResetFn) {
+        mpuResetFn();
+    }
+#endif
+
     persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_NONE);
     __disable_irq();
     NVIC_SystemReset();

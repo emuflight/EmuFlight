@@ -46,7 +46,7 @@
 
 
 #define USE_DSHOT_DMAR
-#define ENABLE_DSHOT_DMAR       true
+#define ENABLE_DSHOT_DMAR       DSHOT_DMAR_ON
 
 #define FLASH_CS_PIN           PC14
 #define FLASH_SPI_INSTANCE     SPI3
@@ -170,7 +170,7 @@
 #define USE_MAG
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  NONE  // (HARDARE=0,PPM)
-#define USE_SERIAL_4WAY_BLHELI_INTERFACE
+//#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
@@ -195,7 +195,7 @@
 #define CURRENT_METER_SCALE_DEFAULT    250
 #define VBAT_SCALE                     109
 
-#define CAMERA_CONTROL_PIN             PB6    // define dedicated camera_osd_control pin
+//#define CAMERA_CONTROL_PIN             PB6    // define dedicated camera_osd_control pin
 
 #define IMUF_DEFAULT_PITCH_Q  3000
 #define IMUF_DEFAULT_ROLL_Q   3000

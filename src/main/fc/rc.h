@@ -60,3 +60,8 @@ void updateRcRefreshRate(timeUs_t currentTimeUs);
 uint16_t getCurrentRxRefreshRate(void);
 void updateRcRefreshRate(timeUs_t currentTimeUs);
 float rateDynamics(float rcCommand, int axis, int currentRxRefreshRate);
+
+#ifdef USE_GYRO_IMUF9001
+extern volatile bool isSetpointNew;
+uint32_t getSetpointRateInt(int axis);
+#endif

@@ -68,6 +68,10 @@
 #include "drivers/accgyro_legacy/accgyro_mma845x.h"
 #endif
 
+#ifdef USE_GYRO_IMUF9001
+#include "drivers/accgyro/accgyro_imuf9001.h"
+#endif //USE_GYRO_IMUF9001
+
 #include "drivers/bus_spi.h"
 
 #include "config/config.h"
@@ -263,6 +267,15 @@ retry:
     case ACC_ICM20689:
         if (icm20689SpiAccDetect(dev)) {
             accHardware = ACC_ICM20689;
+            break;
+        }
+        FALLTHROUGH;
+#endif
+
+#ifdef USE_GYRO_IMUF9001
+    case ACC_IMUF9001:
+        if (imufSpiAccDetect(dev)) {
+            accHardware = ACC_IMUF9001;
             break;
         }
         FALLTHROUGH;

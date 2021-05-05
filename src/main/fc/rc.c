@@ -22,6 +22,10 @@
 #include <stdint.h>
 #include <math.h>
 
+#ifdef USE_GYRO_IMUF9001
+#include <string.h>
+#endif
+
 #include "platform.h"
 
 #include "build/debug.h"
@@ -54,6 +58,10 @@
 
 #include "rc.h"
 
+#ifdef USE_GYRO_IMUF9001
+    volatile bool isSetpointNew;
+    static volatile uint32_t setpointRateInt[3];
+#endif
 
 typedef float (applyRatesFn)(const int axis, float rcCommandf, const float rcCommandfAbs);
 
@@ -112,6 +120,12 @@ float getSetpointRate(int axis)
 {
     return setpointRate[axis];
 }
+
+#ifdef USE_GYRO_IMUF9001
+uint32_t getSetpointRateInt(int axis) {
+    return setpointRateInt[axis];
+}
+#endif
 
 float getRcDeflection(int axis)
 {
@@ -256,6 +270,10 @@ static void calculateSetpointRate(int axis)
     }
     // Rate limit from profile (deg/sec)
     setpointRate[axis] = constrainf(angleRate, -SETPOINT_RATE_LIMIT * 1.0f, SETPOINT_RATE_LIMIT * 1.0f);
+
+#ifdef USE_GYRO_IMUF9001
+    memcpy((uint32_t*)&setpointRateInt[axis], (uint32_t*)&setpointRate[axis], sizeof(float));
+#endif
 
     DEBUG_SET(DEBUG_ANGLERATE, axis, angleRate);
 }
@@ -725,6 +743,10 @@ FAST_CODE void processRcCommand(timeUs_t currentTimeUs)
 #endif
             calculateSetpointRate(axis);
         }
+
+#ifdef USE_GYRO_IMUF9001
+        isSetpointNew = 1;
+#endif
 
         DEBUG_SET(DEBUG_RC_INTERPOLATION, 3, setpointRate[0]);
 
