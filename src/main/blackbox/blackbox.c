@@ -1272,17 +1272,17 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("rc_smoothing_rx_average", "%d",         rcSmoothingGetValue(RC_SMOOTHING_VALUE_AVERAGE_FRAME));
 #endif // USE_RC_SMOOTHING_FILTER
 #ifdef USE_GYRO_IMUF9001
-        BLACKBOX_PRINT_HEADER_LINE("IMUF revision", " %d",              imufCurrentVersion);
-        BLACKBOX_PRINT_HEADER_LINE("IMUF lowpass roll", " %d",          gyroConfig()->imuf_roll_lpf_cutoff_hz);
-        BLACKBOX_PRINT_HEADER_LINE("IMUF lowpass pitch", " %d",         gyroConfig()->imuf_pitch_lpf_cutoff_hz);
-        BLACKBOX_PRINT_HEADER_LINE("IMUF lowpass yaw", " %d",           gyroConfig()->imuf_yaw_lpf_cutoff_hz);
-        BLACKBOX_PRINT_HEADER_LINE("IMUF acc lpf cutoff", " %d",        gyroConfig()->imuf_acc_lpf_cutoff_hz);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF_revision", " %d",              imufCurrentVersion);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF_lowpass_roll", " %d",          gyroConfig()->imuf_roll_lpf_cutoff_hz);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF_lowpass_pitch", " %d",         gyroConfig()->imuf_pitch_lpf_cutoff_hz);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF_lowpass_yaw", " %d",           gyroConfig()->imuf_yaw_lpf_cutoff_hz);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF_acc_lpf_cutoff", " %d",        gyroConfig()->imuf_acc_lpf_cutoff_hz);
 #endif
-        BLACKBOX_PRINT_HEADER_LINE("IMUF roll q", " %d",                gyroConfig()->imuf_roll_q);
-        BLACKBOX_PRINT_HEADER_LINE("IMUF pitch q", " %d",               gyroConfig()->imuf_pitch_q);
-        BLACKBOX_PRINT_HEADER_LINE("IMUF yaw q", " %d",                 gyroConfig()->imuf_yaw_q);
-        BLACKBOX_PRINT_HEADER_LINE("IMUF w", " %d",                     gyroConfig()->imuf_w);
-        BLACKBOX_PRINT_HEADER_LINE("IMUF sharpness", " %d",             gyroConfig()->imuf_sharpness);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF_roll_q", " %d",                gyroConfig()->imuf_roll_q);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF_pitch_q", " %d",               gyroConfig()->imuf_pitch_q);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF_yaw_q", " %d",                 gyroConfig()->imuf_yaw_q);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF_w", " %d",                     gyroConfig()->imuf_w);
+        BLACKBOX_PRINT_HEADER_LINE("IMUF_sharpness", " %d",             gyroConfig()->imuf_sharpness);
         BLACKBOX_PRINT_HEADER_LINE("Actual Version Number", "%s %s (%s) %s",    FC_FIRMWARE_NAME, FC_VERSION_STRING, shortGitRevision, targetName);
     default:
         return true;
