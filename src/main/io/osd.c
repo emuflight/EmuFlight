@@ -394,7 +394,7 @@ static void osdFormatMessage(char *buff, size_t size, const char *message) {
         memcpy(buff, message, strlen(message));
     }
     // Write warning for DJI
-    if (osdWarnDjiEnabled()) {
+    if (osdWarnGetState(OSD_WARNING_DJI)) {
         if (message) {
             tfp_sprintf(djiWarningBuffer, message);
         } else {
@@ -440,14 +440,6 @@ void osdWarnSetState(uint8_t warningIndex, bool enabled) {
 
 bool osdWarnGetState(uint8_t warningIndex) {
     return osdConfig()->enabledWarnings & (1 << warningIndex);
-}
-
-bool osdWarnDjiEnabled(void) {
-    return osdWarnGetState(OSD_WARNING_DJI)
-#ifdef USE_VCP
-           && !usbVcpIsConnected()
-#endif
-           ;
 }
 
 static bool osdDrawSingleElement(uint8_t item) {
