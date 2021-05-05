@@ -171,8 +171,8 @@ bool spiBusTransfer(const busDevice_t *bus, const uint8_t *txData, uint8_t *rxDa
     IOLo(bus->busdev_u.spi.csnPin);
     spiTransfer(bus->busdev_u.spi.instance, txData, rxData, length);
     IOHi(bus->busdev_u.spi.csnPin);
+    #endif
     return true;
-#endif
 }
 
 uint16_t spiGetErrorCounter(SPI_TypeDef *instance)

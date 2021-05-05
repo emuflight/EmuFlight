@@ -143,13 +143,13 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->smithPredictorFilterHz = 5;
 
 #ifdef USE_GYRO_IMUF9001
-    gyroConfig->imuf_mode = GTBCM_GYRO_ACC_FILTER_F, // remove this and force this mode
-    gyroConfig->imuf_rate = IMUF_RATE_16K, // probably remove this
-    gyroConfig->imuf_roll_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
-    gyroConfig->imuf_pitch_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
-    gyroConfig->imuf_yaw_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
-   	gyroConfig->imuf_acc_lpf_cutoff_hz = IMUF_DEFAULT_ACC_LPF_HZ,
-    gyroConfig->gyro_offset_yaw = 0,
+    gyroConfig->imuf_mode = GTBCM_GYRO_ACC_FILTER_F; // remove this and force this mode
+    gyroConfig->imuf_rate = IMUF_RATE_16K; // probably remove this
+    gyroConfig->imuf_roll_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ;
+    gyroConfig->imuf_pitch_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ;
+    gyroConfig->imuf_yaw_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ;
+   	gyroConfig->imuf_acc_lpf_cutoff_hz = IMUF_DEFAULT_ACC_LPF_HZ;
+    gyroConfig->gyro_offset_yaw = 0;
 #endif //USE_GYRO_IMUF9001
 }
 

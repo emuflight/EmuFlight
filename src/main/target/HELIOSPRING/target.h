@@ -125,7 +125,7 @@
 #define DMA_SPI_TX_DMA_CHANNEL     DMA_Channel_3
 #define DMA_SPI_RX_DMA_CHANNEL     DMA_Channel_3
 #define DMA_SPI_TX_DMA_HANDLER     DMA2_Stream3_IRQHandler
-#define DMA_SPI_RX_DMA_HANDLER     DMA2_Stream2_IRQHandler
+//#define DMA_SPI_RX_DMA_HANDLER     DMA2_Stream2_IRQHandler
 #define DMA_SPI_TX_DMA_IRQn        DMA2_Stream3_IRQn
 #define DMA_SPI_RX_DMA_IRQn        DMA2_Stream2_IRQn
 

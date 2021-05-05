@@ -173,6 +173,10 @@ bool cliMode = false;
 
 #include "cli.h"
 
+#ifdef USE_GYRO_IMUF9001
+#include "drivers/accgyro/accgyro_imuf9001.h"
+#endif
+
 static serialPort_t *cliPort = NULL;
 
 #ifdef STM32F1
@@ -4665,7 +4669,7 @@ static void cliNemesisStatus(const char *cmdName, char *cmdline)
     }
     cliPrintLine("{");
     cliPrintLinef("\"cpu\":%25d.%1d,", maxLoadSum/10, maxLoadSum%10); // does not include the trailing % sign
-    
+
     cliPrint("\"arming_disable_flags\":[");
     armingDisableFlags_e flags = getArmingDisableFlags();
     while (flags) {
@@ -4683,7 +4687,7 @@ static void cliNemesisStatus(const char *cmdName, char *cmdline)
     cliPrintLine("}");
 }
 
-static void cliNemesisAttitude(const char *cmdName, char *cmdline) 
+static void cliNemesisAttitude(const char *cmdName, char *cmdline)
 {
     UNUSED(cmdName);
     UNUSED(cmdline);
@@ -4711,7 +4715,7 @@ static void cliNemesisRx(const char *cmdName, char *cmdline)
         if (axis < 3) {
             cliPrint(",");
         }
-    }   
+    }
     cliPrint("]}");
 
 }

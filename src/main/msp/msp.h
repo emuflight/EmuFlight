@@ -68,9 +68,9 @@ void mspFcProcessReply(mspPacket_t *reply);
 
 mspDescriptor_t mspDescriptorAlloc(void);
 
-#ifdef USE_GYRO_IMUF9001
-bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr *mspPostProcessFn);
-mspResult_e mspCommonProcessInCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr *mspPostProcessFn);
-bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst);
-mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *dst);
-#endif
+// #ifdef USE_GYRO_IMUF9001
+// bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr *mspPostProcessFn);
+// mspResult_e mspCommonProcessInCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr *mspPostProcessFn);
+// bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst);
+// mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *dst);
+// #endif

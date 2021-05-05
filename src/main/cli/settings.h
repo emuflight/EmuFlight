@@ -62,6 +62,9 @@ typedef enum {
 #ifdef USE_MAG
     TABLE_MAG_HARDWARE,
 #endif
+#ifdef USE_GYRO_IMUF9001
+    TABLE_IMUF_RATE,
+#endif
     TABLE_DEBUG,
     TABLE_MOTOR_PWM_PROTOCOL,
     TABLE_RC_INTERPOLATION,

@@ -1414,8 +1414,8 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("yaw_deadband", "%d",                    rcControlsConfig()->yaw_deadband);
 #ifdef USE_GYRO_IMUF9001
         BLACKBOX_PRINT_HEADER_LINE("IMUF revision", " %d",                  imufCurrentVersion);
-        BLACKBOX_PRINT_HEADER_LINE("IMUF_lowpass_hz", "%d, %d, %d",         gyroConfig()->imuf_roll_lpf_cutoff_hz),
-                                                                            gyroConfig()->imuf_pitch_lpf_cutoff_hz),
+        BLACKBOX_PRINT_HEADER_LINE("IMUF_lowpass_hz", "%d, %d, %d",         gyroConfig()->imuf_roll_lpf_cutoff_hz,
+                                                                            gyroConfig()->imuf_pitch_lpf_cutoff_hz,
                                                                             gyroConfig()->imuf_yaw_lpf_cutoff_hz);
         BLACKBOX_PRINT_HEADER_LINE("IMUF acc lpf cutoff", " %d",            gyroConfig()->imuf_acc_lpf_cutoff_hz);
 #endif //USE_GYRO_IMUF9001
@@ -1431,7 +1431,7 @@ static bool blackboxWriteSysinfo(void)
 #ifdef USE_DYN_LPF
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_dyn_hz", "%d,%d",          gyroConfig()->dyn_lpf_gyro_min_hz,
                                                                             gyroConfig()->dyn_lpf_gyro_width);
-        BLACKBOX_PRINT_HEADER_LINE("dyn_lpf_gyro_gain", "%d",                    gyroConfig()->dyn_lpf_gyro_gain);
+        BLACKBOX_PRINT_HEADER_LINE("dyn_lpf_gyro_gain", "%d",               gyroConfig()->dyn_lpf_gyro_gain);
 #endif
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_hz", "%d",                   gyroConfig()->gyro_soft_notch_hz_1);
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_cutoff", "%d",               gyroConfig()->gyro_soft_notch_cutoff_1);

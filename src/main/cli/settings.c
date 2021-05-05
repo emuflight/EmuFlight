@@ -130,14 +130,22 @@
 const char * const lookupTableAccHardware[] = {
     "AUTO", "NONE", "ADXL345", "MPU6050", "MMA8452", "BMA280", "LSM303DLHC",
     "MPU6000", "MPU6500", "MPU9250", "ICM20601", "ICM20602", "ICM20608G", "ICM20649", "ICM20689", "ICM42605",
-    "BMI160", "BMI270", "LSM6DSO", "FAKE"
+    "BMI160", "BMI270", "LSM6DSO",
+#ifdef USE_GYRO_IMUF9001
+    "ACC_IMUF9001",
+#endif
+    "FAKE"
 };
 
 // sync with gyroHardware_e
 const char * const lookupTableGyroHardware[] = {
     "AUTO", "NONE", "MPU6050", "L3G4200D", "MPU3050", "L3GD20",
     "MPU6000", "MPU6500", "MPU9250", "ICM20601", "ICM20602", "ICM20608G", "ICM20649", "ICM20689", "ICM42605",
-    "BMI160", "BMI270", "LSM6SDO", "FAKE"
+    "BMI160", "BMI270", "LSM6SDO",
+#ifdef USE_GYRO_IMUF9001
+    "GYRO_IMUF9001",
+#endif
+    "FAKE"
 };
 
 #if defined(USE_SENSOR_NAMES) || defined(USE_BARO)
@@ -180,6 +188,16 @@ static const char * const lookupTableAlignment[] = {
     "CW90FLIP",
     "CW180FLIP",
     "CW270FLIP",
+#ifdef USE_GYRO_IMUF9001
+    "CW45",
+    "CW135",
+    "CW225",
+    "CW315",
+    "CW45FLIP",
+    "CW135FLIP",
+    "CW225FLIP",
+    "CW315FLIP",
+#endif
     "CUSTOM",
 };
 
@@ -308,6 +326,12 @@ static const char * const lookupTableAntiGravityMode[] = {
     "SMOOTH",
     "STEP",
 };
+
+#ifdef USE_GYRO_IMUF9001
+static const char * const lookupTableImufRate[] = {
+    "32K", "16K", "8K", "4K", "2K", "1K" // we can likely lock it to only 32k, 16, and 8k
+}; // actually we can probably remove this since our looprate shoudl determine this
+#endif
 
 static const char * const lookupTableFailsafe[] = {
     "AUTO-LAND", "DROP", "GPS-RESCUE"
@@ -521,6 +545,9 @@ const lookupTableEntry_t lookupTables[] = {
 #endif
 #ifdef USE_MAG
     LOOKUP_TABLE_ENTRY(lookupTableMagHardware),
+#endif
+#if defined(USE_GYRO_IMUF9001)
+    LOOKUP_TABLE_ENTRY(lookupTableImufRate),
 #endif
     LOOKUP_TABLE_ENTRY(debugModeNames),
     LOOKUP_TABLE_ENTRY(lookupTablePwmProtocol),
