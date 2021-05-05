@@ -19,16 +19,8 @@
 
 #include "drivers/bus.h"
 
-uint8_t imuf9001SpiDetect(const gyroDev_t *bus);
-
-bool imufSpiAccDetect(accDev_t *acc);
-bool imufSpiGyroDetect(gyroDev_t *gyro);
-
-void imufSpiGyroInit(gyroDev_t *gyro);
-void imufSpiAccInit(accDev_t *acc);
-
-void imufStartCalibration(void);
-void imufEndCalibration(void);
+#include "sensors/gyro.h"
+#include "sensors/acceleration.h"
 
 #ifndef IMUF_DEFAULT_PITCH_Q
 #define IMUF_DEFAULT_PITCH_Q  3000
@@ -209,9 +201,20 @@ typedef enum gpioState {
 } gpioState_t;
 
 extern volatile imuFrame_t imufQuat;
-volatile uint32_t isImufCalibrating;
+extern volatile uint32_t isImufCalibrating;
 
 extern void initImuf9001(void);
 extern uint32_t getCrcImuf9001(uint32_t* data, uint32_t size);
 extern int imufUpdate(uint8_t *buff, uint32_t bin_length);
 extern int imufBootloader(void);
+
+uint8_t imuf9001SpiDetect(const gyroDev_t *bus);
+
+bool imufSpiAccDetect(accDev_t *acc);
+bool imufSpiGyroDetect(gyroDev_t *gyro);
+
+void imufSpiGyroInit(gyroDev_t *gyro);
+void imufSpiAccInit(accDev_t *acc);
+
+void imufStartCalibration(void);
+void imufEndCalibration(void);

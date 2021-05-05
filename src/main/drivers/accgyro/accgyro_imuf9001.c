@@ -45,8 +45,6 @@
 #include "fc/runtime_config.h"
 
 #include "sensors/boardalignment.h"
-#include "sensors/gyro.h"
-#include "sensors/acceleration.h"
 
 #ifdef USE_HAL_F7_CRC
 //CRC stuff should really go in a separate CRC driver, but only IMUF uses it
@@ -54,13 +52,13 @@
 #endif
 
 volatile uint16_t imufCurrentVersion = IMUF_FIRMWARE_MIN_VERSION;
-FAST_RAM_ZERO_INIT volatile uint32_t isImufCalibrating;
-FAST_RAM_ZERO_INIT volatile imuFrame_t imufQuat;
-FAST_RAM_ZERO_INIT gyroDev_t *imufDev;
+FAST_DATA_ZERO_INIT volatile uint32_t isImufCalibrating;
+FAST_DATA_ZERO_INIT volatile imuFrame_t imufQuat;
+FAST_DATA_ZERO_INIT gyroDev_t *imufDev;
 
 #ifdef USE_HAL_F7_CRC
 //CRC stuff should really go in a separate CRC driver, but only IMUF uses it
-FAST_RAM_ZERO_INIT CRC_HandleTypeDef   CrcHandle;
+FAST_DATA_ZERO_INIT CRC_HandleTypeDef   CrcHandle;
 #endif
 
 void crcConfig(void) {
@@ -214,7 +212,7 @@ FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroComma
     command.crc     = getCrcImuf9001((uint32_t *)&command, 11);;
     while (failCount-- > 0) {
         delayMicroseconds(1000);
-        if( IORead(IOGetByTag(IO_TAG(MPU_INT_EXTI))) ) { //IMU is ready to talk
+        if( IORead(IOGetByTag(gyro->mpuIntExtiTag)) ) { //IMU is ready to talk
             failCount -= 100;
             if (imufSendReceiveSpiBlocking(&(gyro->bus), (uint8_t *)&command, (uint8_t *)reply, sizeof(imufCommand_t))) {
                 crcCalc = getCrcImuf9001((uint32_t *)reply, 11);
@@ -231,7 +229,7 @@ FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroComma
                             delay(10);
                         }
                         delayMicroseconds(1000); //give pin time to set
-                        if( IORead(IOGetByTag(IO_TAG(MPU_INT_EXTI))) ) { //IMU is ready to talk
+                        if( IORead(IOGetByTag(gyro->mpuIntExtiTag)) ) { //IMU is ready to talk
                             //reset attempts
                             attempt = 100;
                             delayMicroseconds(1000); //give pin time to set
@@ -396,8 +394,8 @@ uint8_t imuf9001SpiDetect(const gyroDev_t *gyro) {
     //config crc
     crcConfig();
     //config exti as input, not exti for now
-    IOInit(IOGetByTag( IO_TAG(MPU_INT_EXTI) ), OWNER_MPU_EXTI, 0);
-    IOConfigGPIO(IOGetByTag( IO_TAG(MPU_INT_EXTI) ), IOCFG_IPD);
+    IOInit(IOGetByTag(gyro->mpuIntExtiTag), OWNER_GYRO_EXTI, 0);
+    IOConfigGPIO(IOGetByTag(gyro->mpuIntExtiTag), IOCFG_IPD);
     delayMicroseconds(100);
     IOInit(gyro->bus.busdev_u.spi.csnPin, OWNER_MPU_CS, 0);
     IOConfigGPIO(gyro->bus.busdev_u.spi.csnPin, SPI_IO_CS_CFG);
@@ -521,11 +519,11 @@ bool imufSpiGyroDetect(gyroDev_t *gyro) {
     return true;
 }
 
-FAST_CODE void imufStartCalibration(void) {
+FAST_CODE void imufStartCalibration() {
     isImufCalibrating = IMUF_IS_CALIBRATING; //reset by EXTI
 }
 
-FAST_CODE void imufEndCalibration(void) {
+FAST_CODE void imufEndCalibration() {
     isImufCalibrating = IMUF_NOT_CALIBRATING; //reset by EXTI
 }
 
