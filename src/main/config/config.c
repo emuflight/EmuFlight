@@ -92,6 +92,10 @@
 
 #include "drivers/dshot.h"
 
+#ifdef USE_GYRO_IMUF9001
+#include "drivers/accgyro/accgyro_imuf9001.h"
+#endif
+
 static bool configIsDirty; /* someone indicated that the config is modified and it is not yet saved */
 
 static bool rebootRequired = false;  // set if a config change requires a reboot to take effect
@@ -604,8 +608,32 @@ static void validateAndFixConfig(void)
 #endif
 }
 
+#ifdef USE_GYRO_IMUF9001
+int getImufRateFromGyroSyncDenom(int gyro_use_32khz) {
+    switch (gyro_use_32khz) {
+        case THRIRTYTWO_K:
+            return IMUF_RATE_32K;
+            break;
+        case SIXTEEN_K:
+        default:
+            return IMUF_RATE_16K;
+            break;
+        case OFF:
+            return IMUF_RATE_8K;
+            break;
+    }
+}
+#endif
+
 void validateAndFixGyroConfig(void)
 {
+#ifdef USE_GYRO_IMUF9001
+    //keep imuf_rate in sync with the gyro. So either 8k, 16k, or 32k
+    uint8_t imuf_rate = getImufRateFromGyroSyncDenom(gyroConfigMutable()->gyro_use_32khz);
+    gyroConfigMutable()->imuf_rate = imuf_rate;
+    gyroConfigMutable()->imuf_mode = GTBCM_GYRO_ACC_FILTER_F;
+#endif
+
     // Fix gyro filter settings to handle cases where an older configurator was used that
     // allowed higher cutoff limits from previous firmware versions.
     adjustFilterLimit(&gyroConfigMutable()->gyro_soft_notch_hz_1, FILTER_FREQUENCY_MAX);

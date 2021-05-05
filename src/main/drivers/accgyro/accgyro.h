@@ -59,6 +59,9 @@ typedef enum {
     GYRO_BMI160,
     GYRO_BMI270,
     GYRO_LSM6DSO,
+#ifdef USE_GYRO_IMUF9001
+    GYRO_IMUF9001,
+#endif
     GYRO_FAKE
 } gyroHardware_e;
 
@@ -95,6 +98,9 @@ typedef struct gyroDev_s {
     int32_t gyroADCRawPrevious[XYZ_AXIS_COUNT];
     int16_t gyroADCRaw[XYZ_AXIS_COUNT];                      // raw data from sensor
     int16_t temperature;
+#ifdef USE_GYRO_IMUF9001
+    mpuConfiguration_t mpuConfiguration;
+#endif
     mpuDetectionResult_t mpuDetectionResult;
     sensor_align_e gyroAlign;
     gyroRateKHz_e gyroRateKHz;

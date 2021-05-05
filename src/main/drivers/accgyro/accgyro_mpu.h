@@ -144,6 +144,16 @@
 // RF = Register Flag
 #define MPU_RF_DATA_RDY_EN (1 << 0)
 
+#ifdef USE_GYRO_IMUF9001
+typedef void (*mpuResetFnPtr)(void);
+
+extern mpuResetFnPtr mpuResetFn;
+
+typedef struct mpuConfiguration_s {
+    mpuResetFnPtr resetFn;
+}  mpuConfiguration_t;
+#endif //USE_GYRO_IMUF9001
+
 enum gyro_fsr_e {
     INV_FSR_250DPS = 0,
     INV_FSR_500DPS,
@@ -212,6 +222,9 @@ typedef enum {
     BMI_270_SPI,
     LSM6DSO_SPI,
     L3GD20_SPI,
+#ifdef USE_GYRO_IMUF9001
+    IMUF_9001_SPI,
+#endif
 } mpuSensor_e;
 
 typedef enum {
@@ -237,3 +250,8 @@ uint8_t mpuGyroReadRegister(const busDevice_t *bus, uint8_t reg);
 
 struct accDev_s;
 bool mpuAccRead(struct accDev_s *acc);
+
+#ifdef USE_GYRO_IMUF9001
+extern bool mpuGyroDmaSpiReadStart(struct gyroDev_s *gyro);
+extern void mpuGyroDmaSpiReadFinish(struct gyroDev_s *gyro);
+#endif
