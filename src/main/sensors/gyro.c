@@ -157,6 +157,10 @@ typedef struct gyroSensor_s {
     filterApplyFnPtr lowpass2FilterApplyFn;
     gyroLowpassFilter_t lowpass2Filter[XYZ_AXIS_COUNT];
 
+    // ABG filter
+    filterApplyFnPtr gyroABGFilterApplyFn;
+    alphaBetaGammaFilter_t gyroABGFilter[XYZ_AXIS_COUNT];
+
     // notch filters
     filterApplyFnPtr notchFilter1ApplyFn;
     biquadFilter_t notchFilter1[XYZ_AXIS_COUNT];
@@ -255,6 +259,9 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .imuf_acc_lpf_cutoff_hz = IMUF_DEFAULT_ACC_LPF_HZ,
                   .imuf_sharpness = 2500,
                   .gyro_offset_yaw = 0,
+                  .gyro_ABG_alpha = 0,
+                  .gyro_ABG_boost = 275,
+                  .gyro_ABG_half_life = 50,
                  );
 #else //USE_GYRO_IMUF9001
 PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
@@ -291,6 +298,9 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .dyn_notch_q_factor = 250,
                   .dyn_notch_min_hz = 150,
                   .dyn_notch_max_hz = 600,
+                  .gyro_ABG_alpha = 0,
+                  .gyro_ABG_boost = 275,
+                  .gyro_ABG_half_life = 50,
                  );
 #endif //USE_GYRO_IMUF9001
 
@@ -793,6 +803,16 @@ static void gyroInitFilterDynamicNotch(gyroSensor_t *gyroSensor) {
 }
 #endif
 
+static void gyroInitABGFilter(gyroSensor_t *gyroSensor, uint16_t alpha, uint16_t boost, uint16_t halfLife) {
+    gyroSensor->gyroABGFilterApplyFn = nullFilterApply;
+    if (alpha) {
+        gyroSensor->gyroABGFilterApplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+            ABGInit(&gyroSensor->gyroABGFilter[axis], alpha, boost, halfLife, gyro.targetLooptime * 1e-6f);
+        }
+    }
+}
+
 static void gyroInitSensorFilters(gyroSensor_t *gyroSensor) {
 #if defined(USE_GYRO_SLEW_LIMITER)
     gyroInitSlewLimiter(gyroSensor);
@@ -815,6 +835,8 @@ static void gyroInitSensorFilters(gyroSensor_t *gyroSensor) {
 #ifdef USE_GYRO_DATA_ANALYSE
     gyroInitFilterDynamicNotch(gyroSensor);
 #endif
+
+    gyroInitABGFilter(gyroSensor, gyroConfig()->gyro_ABG_alpha, gyroConfig()->gyro_ABG_boost, gyroConfig()->gyro_ABG_half_life);
 }
 
 void gyroInitFilters(void) {

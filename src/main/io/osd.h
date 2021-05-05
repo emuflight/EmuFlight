@@ -229,5 +229,4 @@ void osdStatSetState(uint8_t statIndex, bool enabled);
 bool osdStatGetState(uint8_t statIndex);
 void osdWarnSetState(uint8_t warningIndex, bool enabled);
 bool osdWarnGetState(uint8_t warningIndex);
-bool osdWarnDjiEnabled(void);
 void setCrsfRssi(bool b);
