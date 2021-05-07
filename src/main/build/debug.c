@@ -79,7 +79,6 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "RX_SPEKTRUM_SPI",
     "DSHOT_RPM_TELEMETRY",
     "RPM_FILTER",
-    "D_MIN",
     "DUAL_GYRO_SCALED",
     "DSHOT_RPM_ERRORS",
     "CRSF_LINK_STATISTICS_UPLINK",
@@ -103,4 +102,5 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "ABG_STATE",
     "D_ABG_STATE",
     "RC_PREDICTOR",
+    "SMITH_PREDICT",
 };

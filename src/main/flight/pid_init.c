@@ -30,7 +30,6 @@
 
 #include "common/axis.h"
 #include "common/filter.h"
-#include "common/maths.h"
 
 #include "drivers/dshot_command.h"
 
@@ -45,13 +44,6 @@
 #include "sensors/sensors.h"
 
 #include "pid_init.h"
-
-#if defined(USE_D_MIN)
-#define D_MIN_RANGE_HZ 80    // Biquad lowpass input cutoff to peak D around propwash frequencies
-#define D_MIN_LOWPASS_HZ 10  // PT1 lowpass cutoff to smooth the boost effect
-#define D_MIN_GAIN_FACTOR 0.00005f
-#define D_MIN_SETPOINT_GAIN_FACTOR 0.00005f
-#endif
 
 #define ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF 15  // The anti gravity throttle highpass filter cutoff
 #define ANTI_GRAVITY_SMOOTH_FILTER_CUTOFF 3  // The anti gravity P smoothing filter cutoff
@@ -107,38 +99,26 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     uint16_t dterm_lowpass_hz = pidProfile->dyn_lpf_dterm_min_hz;
 
     if (dterm_lowpass_hz > 0 && dterm_lowpass_hz < pidFrequencyNyquist) {
+        pidRuntime.dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
+
+        for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         switch (pidProfile->dterm_filter_type) {
-        case FILTER_PT1:
-            pidRuntime.dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
-            for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-                ptnFilterInit(&pidRuntime.dtermLowpass[axis].ptnFilter, 1, dterm_lowpass_hz, pidRuntime.dT);
+            case FILTER_PT1:
+                ptnFilterInit(&pidRuntime.dtermLowpass[axis], 1, dterm_lowpass_hz, pidRuntime.dT);
+                break;
+            case FILTER_PT2:
+                ptnFilterInit(&pidRuntime.dtermLowpass[axis], 2, dterm_lowpass_hz, pidRuntime.dT);
+                break;
+            case FILTER_PT3:
+                ptnFilterInit(&pidRuntime.dtermLowpass[axis], 3, dterm_lowpass_hz, pidRuntime.dT);
+                break;
+            case FILTER_PT4:
+                ptnFilterInit(&pidRuntime.dtermLowpass[axis], 4, dterm_lowpass_hz, pidRuntime.dT);
+                break;
+            default:
+                pidRuntime.dtermLowpassApplyFn = nullFilterApply;
+                break;
             }
-            break;
-        case FILTER_PT3:
-            pidRuntime.dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
-            for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-                ptnFilterInit(&pidRuntime.dtermLowpass[axis].ptnFilter, 3, dterm_lowpass_hz, pidRuntime.dT);
-            }
-            break;
-        case FILTER_PT4:
-            pidRuntime.dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
-            for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-                ptnFilterInit(&pidRuntime.dtermLowpass[axis].ptnFilter, 4, dterm_lowpass_hz, pidRuntime.dT);
-            }
-            break;
-        case FILTER_BIQUAD:
-#ifdef USE_DYN_LPF
-            pidRuntime.dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1;
-#else
-            pidRuntime.dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApply;
-#endif
-            for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-                biquadFilterInitLPF(&pidRuntime.dtermLowpass[axis].biquadFilter, dterm_lowpass_hz, targetPidLooptime);
-            }
-            break;
-        default:
-            pidRuntime.dtermLowpassApplyFn = nullFilterApply;
-            break;
         }
     } else {
         pidRuntime.dtermLowpassApplyFn = nullFilterApply;
@@ -148,34 +128,26 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     if (pidProfile->dterm_lowpass2_hz == 0 || pidProfile->dterm_lowpass2_hz > pidFrequencyNyquist) {
         pidRuntime.dtermLowpass2ApplyFn = nullFilterApply;
     } else {
+        pidRuntime.dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
+
+        for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         switch (pidProfile->dterm_filter2_type) {
-        case FILTER_PT1:
-            pidRuntime.dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
-            for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-                ptnFilterInit(&pidRuntime.dtermLowpass2[axis].ptnFilter, 1, pidProfile->dterm_lowpass2_hz, pidRuntime.dT);
-            }
-            break;
-        case FILTER_BIQUAD:
-            pidRuntime.dtermLowpass2ApplyFn = (filterApplyFnPtr)biquadFilterApply;
-            for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-                biquadFilterInitLPF(&pidRuntime.dtermLowpass2[axis].biquadFilter, pidProfile->dterm_lowpass2_hz, targetPidLooptime);
-            }
-            break;
-        case FILTER_PT3:
-            pidRuntime.dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
-            for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-                ptnFilterInit(&pidRuntime.dtermLowpass2[axis].ptnFilter, 3, pidProfile->dterm_lowpass2_hz, pidRuntime.dT);
-            }
-            break;
-        case FILTER_PT4:
-            pidRuntime.dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
-            for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-                ptnFilterInit(&pidRuntime.dtermLowpass2[axis].ptnFilter, 4, pidProfile->dterm_lowpass2_hz, pidRuntime.dT);
-            }
-            break;
-        default:
+            case FILTER_PT1:
+                ptnFilterInit(&pidRuntime.dtermLowpass2[axis], 1, pidProfile->dterm_lowpass2_hz, pidRuntime.dT);
+                break;
+            case FILTER_PT2:
+                ptnFilterInit(&pidRuntime.dtermLowpass2[axis], 2, pidProfile->dterm_lowpass2_hz, pidRuntime.dT);
+                break;
+            case FILTER_PT3:
+                ptnFilterInit(&pidRuntime.dtermLowpass2[axis], 3, pidProfile->dterm_lowpass2_hz, pidRuntime.dT);
+                break;
+            case FILTER_PT4:
+                ptnFilterInit(&pidRuntime.dtermLowpass2[axis], 4, pidProfile->dterm_lowpass2_hz, pidRuntime.dT);
+                break;
+            default:
             pidRuntime.dtermLowpass2ApplyFn = nullFilterApply;
-            break;
+                break;
+            }
         }
     }
 
@@ -212,17 +184,6 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 #endif
     }
 
-#if defined(USE_D_MIN)
-    // Initialize the filters for all axis even if the d_min[axis] value is 0
-    // Otherwise if the pidProfile->d_min_xxx parameters are ever added to
-    // in-flight adjustments and transition from 0 to > 0 in flight the feature
-    // won't work because the filter wasn't initialized.
-    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-        biquadFilterInitLPF(&pidRuntime.dMinRange[axis], D_MIN_RANGE_HZ, targetPidLooptime);
-        pt1FilterInit(&pidRuntime.dMinLowpass[axis], pt1FilterGain(D_MIN_LOWPASS_HZ, pidRuntime.dT));
-     }
-#endif
-
     pt1FilterInit(&pidRuntime.antiGravityThrottleLpf, pt1FilterGain(ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF, pidRuntime.dT));
     pt1FilterInit(&pidRuntime.antiGravitySmoothLpf, pt1FilterGain(ANTI_GRAVITY_SMOOTH_FILTER_CUTOFF, pidRuntime.dT));
 
@@ -240,37 +201,22 @@ void pidInit(const pidProfile_t *pidProfile)
 }
 
 #ifdef USE_RC_SMOOTHING_FILTER
-void pidInitSetpointDerivativeLpf(uint16_t filterCutoff, uint8_t debugAxis, uint8_t filterType)
+void pidInitSetpointDerivativeLpf(uint16_t filterCutoff, uint8_t debugAxis)
 {
     pidRuntime.rcSmoothingDebugAxis = debugAxis;
-    pidRuntime.rcSmoothingFilterType = filterType;
-    if ((filterCutoff > 0) && (pidRuntime.rcSmoothingFilterType != RC_SMOOTHING_DERIVATIVE_OFF)) {
+    if (filterCutoff > 0) {
         pidRuntime.setpointDerivativeLpfInitialized = true;
         for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-            switch (pidRuntime.rcSmoothingFilterType) {
-                case RC_SMOOTHING_DERIVATIVE_PT1:
-                    pt1FilterInit(&pidRuntime.setpointDerivativePt1[axis], pt1FilterGain(filterCutoff, pidRuntime.dT));
-                    break;
-                case RC_SMOOTHING_DERIVATIVE_BIQUAD:
-                    biquadFilterInitLPF(&pidRuntime.setpointDerivativeBiquad[axis], filterCutoff, targetPidLooptime);
-                    break;
-            }
+            ptnFilterInit(&pidRuntime.setpointDerivativePt3[axis], 3, filterCutoff, pidRuntime.dT);
         }
     }
 }
 
 void pidUpdateSetpointDerivativeLpf(uint16_t filterCutoff)
 {
-    if ((filterCutoff > 0) && (pidRuntime.rcSmoothingFilterType != RC_SMOOTHING_DERIVATIVE_OFF)) {
+    if (filterCutoff > 0) {
         for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-            switch (pidRuntime.rcSmoothingFilterType) {
-                case RC_SMOOTHING_DERIVATIVE_PT1:
-                    pt1FilterUpdateCutoff(&pidRuntime.setpointDerivativePt1[axis], pt1FilterGain(filterCutoff, pidRuntime.dT));
-                    break;
-                case RC_SMOOTHING_DERIVATIVE_BIQUAD:
-                    biquadFilterUpdateLPF(&pidRuntime.setpointDerivativeBiquad[axis], filterCutoff, targetPidLooptime);
-                    break;
-            }
+            ptnFilterUpdate(&pidRuntime.setpointDerivativePt3[axis], 3, filterCutoff, pidRuntime.dT);
         }
     }
 }
@@ -289,6 +235,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         pidRuntime.pidCoefficient[axis].Kd = DTERM_SCALE * pidProfile->pid[axis].D;
         pidRuntime.pidCoefficient[axis].Kf = FEEDFORWARD_SCALE * (pidProfile->pid[axis].F / 100.0f);
         pidRuntime.pidCoefficient[axis].Kdf = 0;
+
         pidRuntime.dynThr[axis] = pidProfile->dynThr[axis];
         for (int pid = 0; pid <= 2; pid++) {
             pidRuntime.stickPositionTransition[pid][axis] = (pidProfile->stickTransition[pid][axis] / 100.0f) - 1.0f;
@@ -364,8 +311,8 @@ void pidInitConfig(const pidProfile_t *pidProfile)
         case FILTER_PT1:
             pidRuntime.dynLpfFilter = DYN_LPF_PT1;
             break;
-        case FILTER_BIQUAD:
-            pidRuntime.dynLpfFilter = DYN_LPF_BIQUAD;
+        case FILTER_PT2:
+            pidRuntime.dynLpfFilter = DYN_LPF_PT2;
             break;
         case FILTER_PT3:
             pidRuntime.dynLpfFilter = DYN_LPF_PT3;
@@ -399,25 +346,17 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 
 #ifdef USE_THRUST_LINEARIZATION
     pidRuntime.thrustLinearization = pidProfile->thrustLinearization / 100.0f;
-    pidRuntime.throttleCompensateAmount = pidRuntime.thrustLinearization - 0.5f * powerf(pidRuntime.thrustLinearization, 2);
-#endif
-
-#if defined(USE_D_MIN)
-    for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
-        const uint8_t dMin = pidProfile->d_min[axis];
-        if ((dMin > 0) && (dMin < pidProfile->pid[axis].D)) {
-            pidRuntime.dMinPercent[axis] = dMin / (float)(pidProfile->pid[axis].D);
-        } else {
-            pidRuntime.dMinPercent[axis] = 0;
-        }
-    }
-    pidRuntime.dMinGyroGain = pidProfile->d_min_gain * D_MIN_GAIN_FACTOR / D_MIN_LOWPASS_HZ;
-    pidRuntime.dMinSetpointGain = pidProfile->d_min_gain * D_MIN_SETPOINT_GAIN_FACTOR * pidProfile->d_min_advance * pidRuntime.pidFrequency / (100 * D_MIN_LOWPASS_HZ);
-    // lowpass included inversely in gain since stronger lowpass decreases peak effect
+    pidRuntime.throttleCompensateAmount = pidRuntime.thrustLinearization - 0.5f * powf(pidRuntime.thrustLinearization, 2);
 #endif
 #ifdef USE_INTERPOLATED_SP
     pidRuntime.ffFromInterpolatedSetpoint = pidProfile->ff_interpolate_sp;
-    pidRuntime.ffSmoothFactor = 1.0f - ((float)pidProfile->ff_smooth_factor) / 100.0f;
+    if (pidProfile->ff_smooth_factor) {
+        pidRuntime.ffSmoothFactor = 1.0f - ((float)pidProfile->ff_smooth_factor) / 100.0f;
+    } else {
+        // set automatically according to boost amount, limit to 0.5 for auto
+        pidRuntime.ffSmoothFactor = MAX(0.5f, 1.0f - ((float)pidProfile->ff_boost) * 2.0f / 100.0f);
+    }
+    pidRuntime.ffJitterFactor = pidProfile->ff_jitter_factor;
     interpolatedSpInit(pidProfile);
 #endif
 }

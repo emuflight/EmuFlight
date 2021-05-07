@@ -24,65 +24,87 @@
 #include "kalman.h"
 #include "fc/rc.h"
 #include "build/debug.h"
-
-kalman_t    kalmanFilterStateRate[XYZ_AXIS_COUNT];
+#include "sensors/gyro.h"
 
 static void init_kalman(kalman_t *filter, float q)
 {
     memset(filter, 0, sizeof(kalman_t));
-    filter->q = q * 0.001f;             //add multiplier to make tuning easier
+    filter->q = q * 0.0001f;             //add multiplier to make tuning easier
     filter->r = 88.0f;                  //seeding R at 88.0f
     filter->p = 30.0f;                  //seeding P at 30.0f
     filter->e = 1.0f;
     filter->w = gyroConfig()->imuf_w;
     filter->inverseN = 1.0f/(float)(filter->w);
+
+    pt1FilterInit(&filter->kFilter, pt1FilterGain(50, gyro.sampleLooptime * 1e-6f));
 }
 
 
 void kalman_init(void)
 {
-    init_kalman(&kalmanFilterStateRate[X],  gyroConfig()->imuf_roll_q);
-    init_kalman(&kalmanFilterStateRate[Y],  gyroConfig()->imuf_pitch_q);
-    init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->imuf_yaw_q);
+    init_kalman(&gyro.kalmanFilterStateRate[X],  gyroConfig()->imuf_roll_q);
+    init_kalman(&gyro.kalmanFilterStateRate[Y],  gyroConfig()->imuf_pitch_q);
+    init_kalman(&gyro.kalmanFilterStateRate[Z],  gyroConfig()->imuf_yaw_q);
 }
 
-static FAST_CODE void update_kalman_covariance(float gyroRateData, int axis)
-{
-     kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex] = gyroRateData;
-     kalmanFilterStateRate[axis].axisSumMean +=  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex];
-     kalmanFilterStateRate[axis].axisSumVar =  kalmanFilterStateRate[axis].axisSumVar + ( kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex] *  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex]);
-     kalmanFilterStateRate[axis].windex++;
-    if ( kalmanFilterStateRate[axis].windex >= kalmanFilterStateRate[axis].w)
-    {
-         kalmanFilterStateRate[axis].windex = 0;
-    }
-     kalmanFilterStateRate[axis].axisSumMean -=  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex];
-     kalmanFilterStateRate[axis].axisSumVar =  kalmanFilterStateRate[axis].axisSumVar - ( kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex] *  kalmanFilterStateRate[axis].axisWindow[ kalmanFilterStateRate[axis].windex]);
-     kalmanFilterStateRate[axis].axisMean =  kalmanFilterStateRate[axis].axisSumMean *  kalmanFilterStateRate[axis].inverseN;
-     kalmanFilterStateRate[axis].axisVar =  fabsf(kalmanFilterStateRate[axis].axisSumVar *  kalmanFilterStateRate[axis].inverseN - ( kalmanFilterStateRate[axis].axisMean *  kalmanFilterStateRate[axis].axisMean));
+void update_kalman_covariance(kalman_t *kalmanState, float rate) {
+  if (gyroConfig()->imuf_w >= 3) {
+    kalmanState->axisWindow[kalmanState->windex] = rate;
+    kalmanState->axisSumMean += kalmanState->axisWindow[kalmanState->windex];
 
-    kalmanFilterStateRate[axis].r = sqrtf(kalmanFilterStateRate[axis].axisVar) * VARIANCE_SCALE;
+    float varianceElement = kalmanState->axisWindow[kalmanState->windex] - kalmanState->axisMean;
+    varianceElement = varianceElement * varianceElement;
+    kalmanState->axisSumVar += varianceElement;
+    kalmanState->varianceWindow[kalmanState->windex] = varianceElement;
+    kalmanState->windex++;
+
+    if (kalmanState->windex > kalmanState->w) {
+        kalmanState->windex = 0;
+    }
+
+    kalmanState->axisSumMean -= kalmanState->axisWindow[kalmanState->windex];
+    kalmanState->axisSumVar -= kalmanState->varianceWindow[kalmanState->windex];
+
+    //New mean
+    kalmanState->axisMean = kalmanState->axisSumMean * kalmanState->inverseN;
+    kalmanState->axisVar = kalmanState->axisSumVar * kalmanState->inverseN;
+
+    float squirt;
+    arm_sqrt_f32(kalmanState->axisVar, &squirt);
+    kalmanState->r = squirt * VARIANCE_SCALE;
+  }
 }
 
 FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target, int axis)
 {
+  UNUSED(target);
+
   //project the state ahead using acceleration
-  kalmanState->x += (kalmanState->x - kalmanState->lastX);
+  kalmanState->x += (kalmanState->x - kalmanState->lastX) * kalmanState->k;
 
   //figure out how much to boost or reduce our error in the estimate based on setpoint target.
   //this should be close to 0 as we approach the sepoint and really high the futher away we are from the setpoint.
   //update last state
   kalmanState->lastX = kalmanState->x;
 
-  if (kalmanState->lastX != 0.0f)
-  {
-      kalmanState->e = fabsf(1.0f - (target / kalmanState->lastX));
-  }
-  kalmanState->r += fabsf(input - kalmanState->x);
+
+  // if (kalmanState->lastX != 0.0f)
+  // {
+  //     kalmanState->e = fabsf(1.0f - (target / kalmanState->lastX));
+  // }
+
+  float e = constrainf(kalmanState->r / 45.0f + 0.005f, 0.005f, 0.9f);
+  //make the 1 a configurable value for testing purposes
+  e = -powf(e - 1.0f, 2) * 0.7f + (e - 1.0f) * (1.0f - 0.7f) + 1.0f;
+  kalmanState->e = e;
+
+
+
   //prediction update
   kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
   //measurement update
-  kalmanState->k = kalmanState->p / (kalmanState->p + kalmanState->r);
+  kalmanState->k = kalmanState->p / (kalmanState->p + 10.0f);
+  kalmanState->k = pt1FilterApply(&kalmanState->kFilter, kalmanState->k);
   kalmanState->x += kalmanState->k * (input - kalmanState->x);
   kalmanState->p = (1.0f - kalmanState->k) * kalmanState->p;
 
@@ -90,7 +112,7 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target,
       DEBUG_SET(DEBUG_KALMAN, 0, lrintf(input));
       DEBUG_SET(DEBUG_KALMAN, 1, lrintf(kalmanState->x));
       DEBUG_SET(DEBUG_KALMAN, 2, lrintf(kalmanState->k * 1000.0f));
-      DEBUG_SET(DEBUG_KALMAN, 3, lrintf(kalmanState->r));
+      DEBUG_SET(DEBUG_KALMAN, 3, lrintf(kalmanState->e * 1000.0f));
   }
 
   return kalmanState->x;
@@ -99,8 +121,7 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target,
 FAST_CODE float kalman_update(float input, int axis)
 {
  if (gyroConfig()->imuf_w >= 3) {
-    update_kalman_covariance(input, axis);
-    input = kalman_process(&kalmanFilterStateRate[axis], input, getSetpointRate(axis), axis);
+    input = kalman_process(&gyro.kalmanFilterStateRate[axis], input, getSetpointRate(axis), axis);
  }
     return input;
 }

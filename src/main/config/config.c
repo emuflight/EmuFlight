@@ -262,13 +262,6 @@ static void validateAndFixConfig(void)
             pidProfilesMutable(i)->auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY;
         }
 
-        // If the d_min value for any axis is >= the D gain then reset d_min to 0 for consistent Configurator behavior
-        for (unsigned axis = 0; axis <= FD_YAW; axis++) {
-            if (pidProfilesMutable(i)->d_min[axis] >= pidProfilesMutable(i)->pid[axis].D) {
-                pidProfilesMutable(i)->d_min[axis] = 0;
-            }
-        }
-
 #if defined(USE_BATTERY_VOLTAGE_SAG_COMPENSATION)
         if (batteryConfig()->voltageMeterSource != VOLTAGE_METER_ADC) {
             pidProfilesMutable(i)->vbat_sag_compensation = 0;
@@ -591,6 +584,7 @@ static void validateAndFixConfig(void)
         batteryConfigMutable()->vbatmaxcellvoltage = VBAT_CELL_VOLTAGE_DEFAULT_MAX;
     }
 
+#ifdef USE_MSP_DISPLAYPORT
     // validate that displayport_msp_serial is referencing a valid UART that actually has MSP enabled
     if (displayPortProfileMsp()->displayPortSerial != SERIAL_PORT_NONE) {
         const serialPortConfig_t *portConfig = serialFindPortConfiguration(displayPortProfileMsp()->displayPortSerial);
@@ -602,6 +596,7 @@ static void validateAndFixConfig(void)
             displayPortProfileMspMutable()->displayPortSerial = SERIAL_PORT_NONE;
         }
     }
+#endif
 
 #if defined(TARGET_VALIDATECONFIG)
     // This should be done at the end of the validation

@@ -147,9 +147,6 @@ typedef struct pidProfile_s {
     uint8_t launchControlGain;              // Iterm gain used while launch control is active
     uint8_t launchControlAllowTriggerReset; // Controls trigger behavior and whether the trigger can be reset
     uint8_t thrustLinearization;            // Compensation factor for pid linearization
-    uint8_t d_min[XYZ_AXIS_COUNT];          // Minimum D value on each axis
-    uint8_t d_min_gain;                     // Gain factor for amount of gyro / setpoint activity required to boost D
-    uint8_t d_min_advance;                  // Percentage multiplier for setpoint input to boost algorithm
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
     uint8_t ff_boost;                       // amount of high-pass filtered FF to add to FF, 100 means 100% added
@@ -164,6 +161,7 @@ typedef struct pidProfile_s {
     uint8_t ff_interpolate_sp;              // Calculate FF from interpolated setpoint
     uint8_t ff_max_rate_limit;              // Maximum setpoint rate percentage for FF
     uint8_t ff_smooth_factor;               // Amount of smoothing for interpolated FF steps
+    uint8_t ff_jitter_factor;               // Number of RC steps below which to attenuate FF
     uint8_t dyn_lpf_curve_expo;             // set the curve for dynamic dterm lowpass filter
     uint8_t vbat_sag_compensation;          // Reduce motor output by this percentage of the maximum compensation amount
 
@@ -215,7 +213,6 @@ typedef struct pidAxisData_s {
 
 typedef union dtermLowpass_u {
     ptnFilter_t ptnFilter;
-    biquadFilter_t biquadFilter;
 } dtermLowpass_t;
 
 typedef struct pidCoefficient_s {
@@ -237,9 +234,9 @@ typedef struct pidRuntime_s {
     filterApplyFnPtr dtermNotchApplyFn;
     biquadFilter_t dtermNotch[XYZ_AXIS_COUNT];
     filterApplyFnPtr dtermLowpassApplyFn;
-    dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
+    ptnFilter_t dtermLowpass[XYZ_AXIS_COUNT];
     filterApplyFnPtr dtermLowpass2ApplyFn;
-    dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
+    ptnFilter_t dtermLowpass2[XYZ_AXIS_COUNT];
     filterApplyFnPtr dtermABGApplyFn;
     alphaBetaGammaFilter_t dtermABG[XYZ_AXIS_COUNT];
     filterApplyFnPtr ptermYawLowpassApplyFn;
@@ -305,17 +302,8 @@ typedef struct pidRuntime_s {
     uint8_t itermRelaxThresholdYaw;
 #endif
 
-#ifdef USE_D_MIN
-    biquadFilter_t dMinRange[XYZ_AXIS_COUNT];
-    pt1Filter_t dMinLowpass[XYZ_AXIS_COUNT];
-    float dMinPercent[XYZ_AXIS_COUNT];
-    float dMinGyroGain;
-    float dMinSetpointGain;
-#endif
-
 #ifdef USE_RC_SMOOTHING_FILTER
-    pt1Filter_t setpointDerivativePt1[XYZ_AXIS_COUNT];
-    biquadFilter_t setpointDerivativeBiquad[XYZ_AXIS_COUNT];
+    ptnFilter_t setpointDerivativePt3[XYZ_AXIS_COUNT];
     bool setpointDerivativeLpfInitialized;
     uint8_t rcSmoothingDebugAxis;
     uint8_t rcSmoothingFilterType;
@@ -344,6 +332,7 @@ typedef struct pidRuntime_s {
 #ifdef USE_INTERPOLATED_SP
     ffInterpolationType_t ffFromInterpolatedSetpoint;
     float ffSmoothFactor;
+    float ffJitterFactor;
 #endif
 
     float axisLockMultiplier;
@@ -398,4 +387,5 @@ float pidGetDT();
 float pidGetPidFrequency();
 float pidGetFfBoostFactor();
 float pidGetFfSmoothFactor();
+float pidGetFfJitterFactor();
 float dynLpfCutoffFreq(float throttle, uint16_t dynLpfMin, uint16_t dynLpfMax, uint8_t expo);
