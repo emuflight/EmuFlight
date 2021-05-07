@@ -21,9 +21,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef USE_GYRO_IMUF9001
-
 #include "platform.h"
+
+#ifdef USE_GYRO_IMUF9001
 
 #include "sensors/gyro.h"
 #include "accgyro.h"
@@ -41,10 +41,12 @@
 #include "drivers/light_led.h"
 #include "drivers/sensor.h"
 #include "drivers/time.h"
-#include "fc/config.h"
+#include "config/config.h"
 #include "fc/runtime_config.h"
 
 #include "sensors/boardalignment.h"
+//#include "sensors/gyro.h"
+#include "sensors/acceleration.h"
 
 #ifdef USE_HAL_F7_CRC
 //CRC stuff should really go in a separate CRC driver, but only IMUF uses it
@@ -397,7 +399,7 @@ uint8_t imuf9001SpiDetect(const gyroDev_t *gyro) {
     IOInit(IOGetByTag(gyro->mpuIntExtiTag), OWNER_GYRO_EXTI, 0);
     IOConfigGPIO(IOGetByTag(gyro->mpuIntExtiTag), IOCFG_IPD);
     delayMicroseconds(100);
-    IOInit(gyro->bus.busdev_u.spi.csnPin, OWNER_MPU_CS, 0);
+    IOInit(gyro->bus.busdev_u.spi.csnPin, OWNER_GYRO_CS, 0);
     IOConfigGPIO(gyro->bus.busdev_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(gyro->bus.busdev_u.spi.csnPin);
     hardwareInitialised = true;
@@ -470,7 +472,7 @@ void setupImufParams(imufCommand_t * data) {
         data->param7 = ( (uint16_t)0 << 16)                                      | (uint16_t)0;
         data->param8 = ( (int16_t)boardAlignment()->rollDegrees << 16 )          | imufGyroAlignment();
         data->param9 = ( (int16_t)boardAlignment()->yawDegrees << 16 )           | (int16_t)boardAlignment()->pitchDegrees;
-        data->param10 = ( (uint16_t)gyroConfig()->imuf_sharpness << 16)          | (int16_t)gyroConfig()->imuf_acc_lpf_cutoff_hz;
+  //      data->param10 = ( (uint16_t)gyroConfig()->imuf_sharpness << 16)          | (int16_t)gyroConfig()->imuf_acc_lpf_cutoff_hz;
     }
 }
 
