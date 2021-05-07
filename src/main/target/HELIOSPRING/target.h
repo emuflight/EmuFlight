@@ -33,6 +33,8 @@
 #define DEFAULT_ATTITUDE_UPDATE_INTERVAL 1000
 #define DEFAULT_ACC_SAMPLE_INTERVAL      1000
 
+#define USE_EXTI
+
 #define USE_FAST_SPI_DRIVER
 #define USE_GYRO_IMUF9001
 #define USE_QUAT_IMUF9001
@@ -40,8 +42,8 @@
 #define IMUF9001_CS_PIN         PB1
 #define IMUF9001_RST_PIN        PA4
 #define IMUF9001_SPI_INSTANCE   SPI1
-#define USE_EXTI
-#define GYRO_1_EXTI_PIN         PB0
+#define USE_GYRO_EXTI
+#define GYRO_1_EXTI_PIN            PB0
 #define USE_MPU_DATA_READY_SIGNAL
 
 
@@ -125,7 +127,7 @@
 #define DMA_SPI_TX_DMA_CHANNEL     DMA_Channel_3
 #define DMA_SPI_RX_DMA_CHANNEL     DMA_Channel_3
 #define DMA_SPI_TX_DMA_HANDLER     DMA2_Stream3_IRQHandler
-//#define DMA_SPI_RX_DMA_HANDLER     DMA2_Stream2_IRQHandler
+#define DMA_SPI_RX_DMA_HANDLER     DMA2_Stream2_IRQHandler
 #define DMA_SPI_TX_DMA_IRQn        DMA2_Stream3_IRQn
 #define DMA_SPI_RX_DMA_IRQn        DMA2_Stream2_IRQn
 

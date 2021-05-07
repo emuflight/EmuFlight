@@ -455,7 +455,7 @@ void setupImufParams(imufCommand_t * data) {
         data->param9 = ( (int16_t)boardAlignment()->yawDegrees << 16 )           | (int16_t)boardAlignment()->pitchDegrees;
     } else if (imufCurrentVersion < 225 && imufCurrentVersion > 107) {
         //Odin+ contract.
-        data->param2 = ( (uint16_t)(gyroConfig()->imuf_rate + 1) << 16)            | (uint16_t)gyroConfig()->imuf_w;
+        data->param2 = ( (uint16_t)(gyroConfig()->imuf_rate + 1) << 16)          | (uint16_t)gyroConfig()->imuf_w;
         data->param3 = ( (uint16_t)gyroConfig()->imuf_roll_q << 16)              | (uint16_t)gyroConfig()->imuf_pitch_q;
         data->param4 = ( (uint16_t)gyroConfig()->imuf_yaw_q << 16)               | (uint16_t)gyroConfig()->imuf_roll_lpf_cutoff_hz;
         data->param5 = ( (uint16_t)gyroConfig()->imuf_pitch_lpf_cutoff_hz << 16) | (uint16_t)gyroConfig()->imuf_yaw_lpf_cutoff_hz;
@@ -465,14 +465,14 @@ void setupImufParams(imufCommand_t * data) {
         data->param10 = ( (uint16_t)67.0f << 16)                                 | (int16_t)gyroConfig()->imuf_acc_lpf_cutoff_hz;
     } else {
         //QuickFlash contract!!!
-        data->param2 = ( (uint16_t)(gyroConfig()->imuf_rate + 1) << 16)            | (uint16_t)gyroConfig()->imuf_w;
+        data->param2 = ( (uint16_t)(gyroConfig()->imuf_rate + 1) << 16)          | (uint16_t)gyroConfig()->imuf_w;
         data->param3 = ( (uint16_t)gyroConfig()->imuf_roll_q << 16)              | (uint16_t)gyroConfig()->imuf_pitch_q;
         data->param4 = ( (uint16_t)gyroConfig()->imuf_yaw_q << 16)               | (uint16_t)gyroConfig()->imuf_roll_lpf_cutoff_hz;
         data->param5 = ( (uint16_t)gyroConfig()->imuf_pitch_lpf_cutoff_hz << 16) | (uint16_t)gyroConfig()->imuf_yaw_lpf_cutoff_hz;
         data->param7 = ( (uint16_t)0 << 16)                                      | (uint16_t)0;
         data->param8 = ( (int16_t)boardAlignment()->rollDegrees << 16 )          | imufGyroAlignment();
         data->param9 = ( (int16_t)boardAlignment()->yawDegrees << 16 )           | (int16_t)boardAlignment()->pitchDegrees;
-  //      data->param10 = ( (uint16_t)gyroConfig()->imuf_sharpness << 16)          | (int16_t)gyroConfig()->imuf_acc_lpf_cutoff_hz;
+        data->param10 = ( (uint16_t)0 << 16)                                     | (int16_t)gyroConfig()->imuf_acc_lpf_cutoff_hz;
     }
 }
 

@@ -95,10 +95,8 @@
 #error "The ICM20689_SPI_INSTANCE define has been deprecated - please remove from the target definition"
 #endif
 
-#ifndef USE_GYRO_IMUF9001
 #ifdef MPU_INT_EXTI
 #error "The MPU_INT_EXTI define has been deprecated - please remove from the target definition"
-#endif
 #endif
 
 #ifdef MPU6000_CS_PIN
