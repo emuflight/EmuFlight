@@ -79,7 +79,7 @@ void pgResetFn_gyroDeviceConfig(gyroDeviceConfig_t *devconf)
 #endif // GYRO_1_CUSTOM_ALIGN
 
     // All multi-gyro boards use SPI based gyros.
-#ifdef USE_SPI_GYRO
+#if defined(USE_SPI_GYRO)  || defined(USE_ACC_IMUF9001)
     gyroResetSpiDeviceConfig(&devconf[0], GYRO_1_SPI_INSTANCE, IO_TAG(GYRO_1_CS_PIN), IO_TAG(GYRO_1_EXTI_PIN), GYRO_1_ALIGN, customAlignment1);
 #ifdef USE_MULTI_GYRO
     devconf[1].index = 1;
