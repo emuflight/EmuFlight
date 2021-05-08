@@ -399,7 +399,7 @@ uint8_t imuf9001SpiDetect(const gyroDev_t *gyro) {
     IOInit(IOGetByTag(gyro->mpuIntExtiTag), OWNER_GYRO_EXTI, 0);
     IOConfigGPIO(IOGetByTag(gyro->mpuIntExtiTag), IOCFG_IPD);
     delayMicroseconds(100);
-    IOInit(gyro->bus.busdev_u.spi.csnPin, OWNER_GYRO_CS, 0);
+    IOInit(gyro->bus.busdev_u.spi.csnPin, OWNER_SPI_CS, 0);
     IOConfigGPIO(gyro->bus.busdev_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(gyro->bus.busdev_u.spi.csnPin);
     hardwareInitialised = true;

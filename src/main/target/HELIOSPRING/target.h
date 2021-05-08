@@ -28,6 +28,7 @@
 #define BEEPER_INVERTED
 
 #define USE_GYRO
+//#define USE_SPI_GYRO
 #define USE_ACC
 
 #define DEFAULT_ATTITUDE_UPDATE_INTERVAL 1000

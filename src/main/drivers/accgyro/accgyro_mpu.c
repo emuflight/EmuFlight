@@ -192,6 +192,7 @@ bool mpuAccRead(accDev_t *acc)
 #ifdef USE_GYRO_IMUF9001
 FAST_CODE bool mpuGyroDmaSpiReadStart()
 {
+    (void)(gyro); ///not used at this time
     //no reason not to get acc and gyro data at the same time
     if (isImufCalibrating == IMUF_IS_CALIBRATING) //calibrating
     {
@@ -233,17 +234,17 @@ FAST_CODE bool mpuGyroDmaSpiReadStart()
 
 void mpuGyroDmaSpiReadFinish(gyroDev_t * gyro)
 {
-    //spi rx dma callback
-    memcpy(&imufData, dmaRxBuffer, sizeof(imufData_t));
-    acc.dev.ADCRaw[X]    = (int16_t)(imufData.accX * acc.dev.acc_1G);
-    acc.dev.ADCRaw[Y]    = (int16_t)(imufData.accY * acc.dev.acc_1G);
-    acc.dev.ADCRaw[Z]    = (int16_t)(imufData.accZ * acc.dev.acc_1G);
+  //spi rx dma callback
+  memcpy(&imufData, dmaRxBuffer, sizeof(imufData_t));
+  acc.dev.ADCRaw[X]    = (int16_t)(imufData.accX * acc.dev.acc_1G);
+  acc.dev.ADCRaw[Y]    = (int16_t)(imufData.accY * acc.dev.acc_1G);
+  acc.dev.ADCRaw[Z]    = (int16_t)(imufData.accZ * acc.dev.acc_1G);
 //    gyro->gyroADCf[X]    = imufData.gyroX;
 //    gyro->gyroADCf[Y]    = imufData.gyroY;
 //    gyro->gyroADCf[Z]    = imufData.gyroZ;
-    gyro->gyroADCRaw[X]  = (int16_t)(imufData.gyroX * 16.4f);
-    gyro->gyroADCRaw[Y]  = (int16_t)(imufData.gyroY * 16.4f);
-    gyro->gyroADCRaw[Z]  = (int16_t)(imufData.gyroZ * 16.4f);
+  gyro->gyroADCRaw[X]  = (int16_t)(imufData.gyroX * 16.4f);
+  gyro->gyroADCRaw[Y]  = (int16_t)(imufData.gyroY * 16.4f);
+  gyro->gyroADCRaw[Z]  = (int16_t)(imufData.gyroZ * 16.4f);
 }
 #endif// USE_GYRO_IMUF9001
 
@@ -281,7 +282,9 @@ bool mpuGyroReadSPI(gyroDev_t *gyro)
 
     return true;
 }
+#endif
 
+#if defined(USE_SPI_GYRO) || defined(USE_GYRO_IMUF9001)
 typedef uint8_t (*gyroSpiDetectFn_t)(const busDevice_t *bus);
 
 static gyroSpiDetectFn_t gyroSpiDetectFnTable[] = {
@@ -327,7 +330,7 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro, const gyro
     spiBusSetInstance(&gyro->bus, IMUF9001_SPI_INSTANCE);
     gyro->bus.busdev_u.spi.csnPin = gyro->bus.busdev_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(IMUF9001_CS_PIN)) : gyro->bus.busdev_u.spi.csnPin;
     gyro->bus.busdev_u.spi.rstPin = IOGetByTag(IO_TAG(IMUF9001_RST_PIN));
-    sensor = imuf9001SpiDetect(gyro);
+    uint8_t sensor = imuf9001SpiDetect(gyro);
     // some targets using MPU_9250_SPI, ICM_20608_SPI or ICM_20602_SPI state sensor is MPU_65xx_SPI
     if (sensor != MPU_NONE) {
         gyro->mpuDetectionResult.sensor = sensor;
@@ -373,7 +376,7 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro, const gyro
 
 void mpuPreInit(const struct gyroDeviceConfig_s *config)
 {
-#ifdef USE_SPI_GYRO
+#if defined(USE_SPI_GYRO) || defined(USE_GYRO_IMUF9001)
     spiPreinitRegister(config->csnTag, IOCFG_IPU, 1);
 #else
     UNUSED(config);
@@ -426,7 +429,7 @@ bool mpuDetect(gyroDev_t *gyro, const gyroDeviceConfig_t *config)
     }
 #endif
 
-#ifdef USE_SPI_GYRO
+#if defined(USE_SPI_GYRO) || defined(USE_GYRO_IMUF9001)
     gyro->bus.bustype = BUSTYPE_SPI;
 
     return detectSPISensorsAndUpdateDetectionResult(gyro, config);

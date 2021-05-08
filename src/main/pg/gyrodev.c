@@ -37,7 +37,7 @@
 
 ioTag_t selectMPUIntExtiConfigByHardwareRevision(void); // XXX Should be gone
 
-#if defined(USE_SPI_GYRO) || defined(USE_I2C_GYRO)
+#if defined(USE_SPI_GYRO) || defined(USE_I2C_GYRO) || defined(USE_ACC_IMUF9001)
 static void gyroResetCommonDeviceConfig(gyroDeviceConfig_t *devconf, ioTag_t extiTag, uint8_t alignment, sensorAlignment_t customAlignment)
 {
     devconf->extiTag = extiTag;
@@ -46,7 +46,7 @@ static void gyroResetCommonDeviceConfig(gyroDeviceConfig_t *devconf, ioTag_t ext
 }
 #endif
 
-#ifdef USE_SPI_GYRO
+#if defined(USE_SPI_GYRO)  || defined(USE_ACC_IMUF9001)
 static void gyroResetSpiDeviceConfig(gyroDeviceConfig_t *devconf, SPI_TypeDef *instance, ioTag_t csnTag, ioTag_t extiTag, uint8_t alignment, sensorAlignment_t customAlignment)
 {
     devconf->bustype = BUSTYPE_SPI;
