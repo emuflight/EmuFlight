@@ -768,10 +768,12 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
     case MSP_NAME: {
         // Show warning for DJI OSD instead of pilot name
         // works if osd warnings enabled, osd_warn_dji is on and usb is not connected
+        #ifdef USE_OSD
         if (osdWarnGetState(OSD_WARNING_DJI)) {
             sbufWriteString(dst, djiWarningBuffer);
             break;
         }
+        #endif
         const int nameLen = strlen(pilotConfig()->name);
         for (int i = 0; i < nameLen; i++) {
             sbufWriteU8(dst, pilotConfig()->name[i]);
