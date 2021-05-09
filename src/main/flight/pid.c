@@ -458,7 +458,9 @@ void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex) {
 static float calcHorizonLevelStrength(void) {
     float horizonLevelStrength;
     // 0 at level, 90 at vertical, 180 at inverted (degrees):
-    const float currentInclination = acos_approx(howUpsideDown());
+    const float currentInclination = RADIANS_TO_DEGREES(acos_approx(howUpsideDown()));
+    DEBUG_SET(DEBUG_HORIZON, 0, lrintf(howUpsideDown() * 1000));
+    DEBUG_SET(DEBUG_HORIZON, 1, lrintf(currentInclination * 10));
     // Used as a factor in the numerator of inclinationLevelRatio - this will cause the entry point of the fade of leveling strength to be adjustable via horizon transition in configurator for RACEMODEhorizon
     const float racemodeHorizonTransitionFactor = horizonCutoffDegrees / (horizonCutoffDegrees - horizonTransition);
     // Used as a factor in the numerator of inclinationLevelRatio - this will cause the fade of leveling strength to start at levelAngleLimit for RACEMODEangle
