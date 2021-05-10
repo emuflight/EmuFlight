@@ -545,7 +545,7 @@ const clivalue_t valueTable[] = {
 #if defined(USE_GYRO_DATA_ANALYSE)
     { "dynamic_gyro_notch_q",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_q_factor) },
     { "dynamic_gyro_notch_min_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_min_hz) },
-    { "dynamic_gyro_notch_max_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 600, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_max_hz) },
+    { "dynamic_gyro_notch_max_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 400, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_max_hz) },
 #endif
 
 // PG_ACCELEROMETER_CONFIG
