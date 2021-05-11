@@ -24,6 +24,7 @@ jobs:
       buildtag: ${{ steps.ids.outputs.buildtag }}
       shortsha: ${{ steps.ids.outputs.shortsha }}
       artifact: ${{ steps.ids.outputs.artifact }}
+      version: ${{ steps.ids.outputs.version }}
     runs-on: ubuntu-latest
 
     steps:
@@ -72,13 +73,12 @@ jobs:
       if: startsWith(github.ref, 'refs/pull/')
 
     - name: Get revision tag
+      if: startsWith(github.ref, 'refs/tags/')
       id: get_revtag
       run: echo "REVISION_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-      if: startsWith(github.ref, 'refs/tags/')
 
-    - name: get tag & short-sha
+    - name: get short-sha
       run: |
-        echo "REVISION_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
         echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       continue-on-error: true
 
@@ -99,6 +99,7 @@ jobs:
         echo "::set-output name=buildtag::${{ env.REVISION_TAG }}"
         echo "::set-output name=shortsha::${{ env.SHORT_SHA }}"
         echo "::set-output name=artifact::${{ env.ARTIFACT_NAME }}"
+        echo "::set-output name=version::${{ env.VERSION }}"
       continue-on-error: true
 
     # for debugging
@@ -115,6 +116,7 @@ jobs:
         echo "Artifact name: ${{ env.ARTIFACT_NAME }}"
         echo "outputs.buildtag: ${{ steps.ids.outputs.buildtag }}"
         echo "outputs.shortsha: ${{ steps.ids.outputs.shortsha }}"
+        echo "outputs.artfact: ${{ steps.ids.outputs.artifact }}"
         echo "outputs.artfact: ${{ steps.ids.outputs.artifact }}"
       continue-on-error: true
 
@@ -151,12 +153,13 @@ jobs:
           echo "outputs.buildtag: ${{ needs.build.outputs.buildtag }}"
           echo "outputs.shortsha: ${{ needs.build.outputs.shortsha }}"
           echo "outputs.artfact: ${{ needs.build.outputs.artifact }}"
+          echo "outputs.artfact: ${{ needs.build.outputs.version }}"
         continue-on-error: true
 
       - name: download artifacts
         uses: actions/download-artifact@v2
         with:
-          name: ${{ needs.build.outputs.artifact }} #no name parameter will download all artifacts, but crate separate subfolders
+          name: ${{ needs.build.outputs.artifact }} #no name parameter will download all artifacts, but create separate subfolders
           path: obj
         continue-on-error: false
 
@@ -185,9 +188,15 @@ jobs:
             ### Build ${{ github.run_number }}
             ### Commit SHA: ${{ needs.build.outputs.shortsha }} (${{ github.sha }})
             ### BuildTag: ${{ needs.build.outputs.buildtag }}
-            ### EmuFlight ${{ env.VERSION }} base plus test code
-            ### Changes in this Build:
+            ### EmuFlight ${{ needs.build.outputs.version }} base plus test code
             ### What to Test/Feedback: (Feedback in EmuFlight's Discord or GitHub Discussions)
+            <details><summary>Changes in this Build:</summary>
+            <!-- require single blank line below -->
+
+            ```
+            [insert commit history here]
+            ```
+            </details>
         continue-on-error: true
 
       # Draft Dev-master releases via ncipollo/release-action
@@ -211,9 +220,15 @@ jobs:
             ### Build ${{ github.run_number }}
             ### Commit SHA: ${{ needs.build.outputs.shortsha }} (${{ github.sha }})
             ### BuildTag: ${{ needs.build.outputs.buildtag }}
-            ### EmuFlight ${{ env.VERSION }} base plus committed code
-            ### Changes in this Build:
+            ### EmuFlight ${{ needs.build.outputs.version }} base plus committed code
             ### Feedback Welcome in EmuFlight's Discord or GitHub Discussions.
+            <details><summary>Changes in this Build:</summary>
+            <!-- require single blank line below -->
+
+            ```
+            [insert commit history here]
+            ```
+            </details>
         continue-on-error: true
 
       # Rename .hex for true Releases on main repo
@@ -244,5 +259,11 @@ jobs:
             ### Build ${{ github.run_number }}
             ### Commit SHA: ${{ needs.build.outputs.shortsha }} (${{ github.sha }})
             ### BuildTag: ${{ needs.build.outputs.buildtag }}
-            ### Changes in this Release:
+            <details><summary>Changes in this Build:</summary>
+            <!-- require single blank line below -->
+
+            ```
+            [insert commit history here]
+            ```
+            </details>
         continue-on-error: false
