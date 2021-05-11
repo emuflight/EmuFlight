@@ -849,6 +849,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, imuConfig()->small_angle);
         break;
     case MSP_RC_TUNING:
+        //MSP 1.51
+        sbufWriteU8(dst, currentControlRateProfile->rates_type);
+        //end MSP 1.51
         sbufWriteU8(dst, currentControlRateProfile->rcRates[FD_ROLL]);
         sbufWriteU8(dst, currentControlRateProfile->rcExpo[FD_ROLL]);
         for (int i = 0 ; i < 3; i++) {
@@ -1041,6 +1044,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
 #endif
         //added in MSP 1.51
         sbufWriteU8(dst, rxConfig()->sbus_baud_fast);
+
         //end 1.51
 #if defined(USE_USB_CDC_HID)
         sbufWriteU8(dst, usbDevConfig()->type);
@@ -1566,6 +1570,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         }
         break;
     case MSP_SET_RC_TUNING:
+        //MSP 1.51
+        currentControlRateProfile->rates_type = sbufReadU8(src);
+        //end MSP 1.51
         if (sbufBytesRemaining(src) >= 10) {
             value = sbufReadU8(src);
             if (currentControlRateProfile->rcRates[FD_PITCH] == currentControlRateProfile->rcRates[FD_ROLL]) {
