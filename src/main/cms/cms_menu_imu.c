@@ -100,6 +100,10 @@ static const char * const cms_mixerImplTypeLabels[] = {
     "LEGACY", "SMOOTH", "2PASS"
 };
 
+static const char * const cms_FilterType[] = {
+    "PT1", "PT2", "PT3", "PT4",
+};
+
 static long cmsx_menuImu_onEnter(void) {
     pidProfileIndex = getCurrentPidProfileIndex();
     tmpPidProfileIndex = pidProfileIndex + 1;
@@ -476,7 +480,7 @@ static CMS_Menu cmsx_menuProfileOther = {
     .entries = cmsx_menuProfileOtherEntries,
 };
 
-
+static uint8_t gyroConfig_gyro_lowpass1_type;
 static uint16_t gyroConfig_gyro_lowpass_hz_roll;
 static uint16_t gyroConfig_gyro_lowpass_hz_pitch;
 static uint16_t gyroConfig_gyro_lowpass_hz_yaw;
@@ -502,6 +506,7 @@ static uint16_t gyroConfig_imuf_sharpness;
 #endif
 
 static long cmsx_menuGyro_onEnter(void) {
+    gyroConfig_gyro_lowpass1_type =  gyroConfig()->gyro_lowpass_type;
     gyroConfig_gyro_lowpass_hz_roll =  gyroConfig()->gyro_lowpass_hz[ROLL];
     gyroConfig_gyro_lowpass_hz_pitch =  gyroConfig()->gyro_lowpass_hz[PITCH];
     gyroConfig_gyro_lowpass_hz_yaw =  gyroConfig()->gyro_lowpass_hz[YAW];
@@ -531,6 +536,7 @@ static long cmsx_menuGyro_onEnter(void) {
 
 static long cmsx_menuGyro_onExit(const OSD_Entry *self) {
     UNUSED(self);
+    gyroConfigMutable()->gyro_lowpass_type =  gyroConfig_gyro_lowpass1_type;
     gyroConfigMutable()->gyro_lowpass_hz[ROLL] =  gyroConfig_gyro_lowpass_hz_roll;
     gyroConfigMutable()->gyro_lowpass_hz[PITCH] =  gyroConfig_gyro_lowpass_hz_pitch;
     gyroConfigMutable()->gyro_lowpass_hz[YAW] =  gyroConfig_gyro_lowpass_hz_yaw;
@@ -563,6 +569,7 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] = {
     { "GYRO LPF ROLL",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_roll,     0, 16000, 1 }, 0 },
     { "GYRO LPF PITCH",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_pitch,    0, 16000, 1 }, 0 },
     { "GYRO LPF YAW",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_yaw,      0, 16000, 1 }, 0 },
+    { "GYRO LPF TYPE",    OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &gyroConfig_gyro_lowpass1_type, 1, cms_FilterType }, 0 },
 #ifdef USE_GYRO_LPF2
     { "GYRO LPF2 ROLL",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_roll,    0, 16000, 1 }, 0 },
     { "GYRO LPF2 PITCH",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_pitch,   0, 16000, 1 }, 0 },
@@ -682,6 +689,7 @@ static CMS_Menu cmsx_menuImuf = {
 };
 #endif
 
+static uint16_t cmsx_dterm_lowpass_type;
 static uint16_t cmsx_dterm_lowpass_hz_roll;
 static uint16_t cmsx_dterm_lowpass_hz_pitch;
 static uint16_t cmsx_dterm_lowpass_hz_yaw;
@@ -700,6 +708,7 @@ static long cmsx_FilterPerProfileRead(void) {
     for (uint8_t i = 0; i < 3; i++) {
         tempPidWc[i] = pidProfile->dFilter[i].Wc;
     }
+    cmsx_dterm_lowpass_type      = pidProfile->dterm_filter_type;
     cmsx_dterm_lowpass_hz_roll   = pidProfile->dFilter[ROLL].dLpf;
     cmsx_dterm_lowpass_hz_pitch  = pidProfile->dFilter[PITCH].dLpf;
     cmsx_dterm_lowpass_hz_yaw    = pidProfile->dFilter[YAW].dLpf;
@@ -721,6 +730,7 @@ static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self) {
     for (uint8_t i = 0; i < 3; i++) {
         pidProfile->dFilter[i].Wc = tempPidWc[i];
     }
+    pidProfile->dterm_filter_type   = cmsx_dterm_lowpass_type;
     pidProfile->dFilter[ROLL].dLpf   = cmsx_dterm_lowpass_hz_roll;
     pidProfile->dFilter[PITCH].dLpf  = cmsx_dterm_lowpass_hz_pitch;
     pidProfile->dFilter[YAW].dLpf    = cmsx_dterm_lowpass_hz_yaw;
@@ -745,6 +755,7 @@ static OSD_Entry cmsx_menuFilterPerProfileEntries[] = {
     { "DTERM LPF2 ROLL", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_roll,    0, 500, 1 }, 0 },
     { "DTERM LPF2 PITCH", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_pitch,    0, 500, 1 }, 0 },
     { "DTERM LPF2 YAW", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_yaw,    0, 500, 1 }, 0 },
+    { "DTERM LPF TYPE",    OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &cmsx_dterm_lowpass_type, 1, cms_FilterType }, 0 },
 
     { "SMART SMOOTHING ROLL",    OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_smart_dterm_smoothing_roll,       0, 250, 1 }, 0 },
     { "SMART SMOOTHING PITCH",    OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_smart_dterm_smoothing_pitch,       0, 250, 1 }, 0 },
