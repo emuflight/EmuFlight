@@ -49,6 +49,19 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
         gyroADCf = gyro.notchFilter1ApplyFn((filter_t *)&gyro.notchFilter1[axis], gyroADCf);
         gyroADCf = gyro.lowpassFilterApplyFn((filter_t *)&gyro.lowpassFilter[axis], gyroADCf);
 
+#ifdef USE_GYRO_DATA_ANALYSE
+        if (featureIsEnabled(FEATURE_DYNAMIC_FILTER)) {
+            if (axis == gyro.gyroDebugAxis) {
+                GYRO_FILTER_DEBUG_SET(DEBUG_FFT, 1, lrintf(gyroADCf));
+                GYRO_FILTER_DEBUG_SET(DEBUG_FFT_FREQ, 2, lrintf(gyroADCf));
+            }
+            gyroDataAnalysePush(&gyro.gyroAnalyseState, axis, gyroADCf);
+            gyroADCf = gyro.notchFilterDynApplyFn((filter_t *)&gyro.notchFilterDyn[axis][0], gyroADCf);
+            gyroADCf = gyro.notchFilterDynApplyFn((filter_t *)&gyro.notchFilterDyn[axis][1], gyroADCf);
+            gyroADCf = gyro.notchFilterDynApplyFn((filter_t *)&gyro.notchFilterDyn[axis][2], gyroADCf);
+        }
+#endif
+
         // put alpha betaGamma filter last so that we can use it to predict dterm :)
         if (axis == FD_ROLL) {
             DEBUG_SET(DEBUG_ABG, 0, lrintf(gyroADCf));
@@ -66,20 +79,9 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
             DEBUG_SET(DEBUG_ABG, 3, lrintf(gyroADCf));
         }
 
-#ifdef USE_GYRO_DATA_ANALYSE
-        if (featureIsEnabled(FEATURE_DYNAMIC_FILTER)) {
-            if (axis == gyro.gyroDebugAxis) {
-                GYRO_FILTER_DEBUG_SET(DEBUG_FFT, 1, lrintf(gyroADCf));
-                GYRO_FILTER_DEBUG_SET(DEBUG_FFT_FREQ, 2, lrintf(gyroADCf));
-            }
-            gyroDataAnalysePush(&gyro.gyroAnalyseState, axis, gyroADCf);
-            gyroADCf = gyro.notchFilterDynApplyFn((filter_t *)&gyro.notchFilterDyn[axis][0], gyroADCf);
-            gyroADCf = gyro.notchFilterDynApplyFn((filter_t *)&gyro.notchFilterDyn[axis][1], gyroADCf);
-            gyroADCf = gyro.notchFilterDynApplyFn((filter_t *)&gyro.notchFilterDyn[axis][2], gyroADCf);
-        }
-#endif
-
+#ifndef USE_GYRO_IMUF9001
         update_kalman_covariance(&gyro.kalmanFilterStateRate[axis], gyroADCf);
+#endif
 
 #ifdef USE_SMITH_PREDICTOR
         gyroADCf = applySmithPredictor(&gyro.smithPredictor[axis], gyroADCf, axis);
