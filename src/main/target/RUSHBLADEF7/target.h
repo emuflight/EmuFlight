@@ -33,13 +33,13 @@
 //#define BEEPER_PWM_HZ           1100
 
 #define USE_EXTI
-#define MPU_INT_EXTI PC4
+#define MPU_INT_EXTI PA4
 #define USE_MPU_DATA_READY_SIGNAL
 
 #define USE_ACC
 #define USE_GYRO
 //------MPU6000
-#define MPU6000_CS_PIN           PA4
+#define MPU6000_CS_PIN           PC4
 #define MPU6000_SPI_INSTANCE     SPI1
 
 #define USE_GYRO_SPI_MPU6000

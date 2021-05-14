@@ -35,6 +35,7 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor) {
         gyroADCf = gyroSensor->lowpassFilterApplyFn((filter_t *)&gyroSensor->lowpassFilter[axis], gyroADCf);
         gyroADCf = gyroSensor->notchFilter1ApplyFn((filter_t *)&gyroSensor->notchFilter1[axis], gyroADCf);
         gyroADCf = gyroSensor->notchFilter2ApplyFn((filter_t *)&gyroSensor->notchFilter2[axis], gyroADCf);
+        gyroADCf = gyroSensor->gyroABGFilterApplyFn((filter_t *)&gyroSensor->gyroABGFilter[axis], gyroADCf);
 #ifdef USE_GYRO_DATA_ANALYSE
         if (isDynamicFilterActive()) {
             if (axis == X) {
