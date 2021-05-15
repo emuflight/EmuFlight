@@ -83,7 +83,7 @@ uint32_t simulationTime = 0;
 bool gyroCalibDone = false;
 bool simulationHaveRx = false;
 
-const char * const powerNames[4] ={ "---", "lv1", "lv2", "lv3"} ;
+const char * const powerNames[4] ={ "---", "LV1", "LV2", "LV3"} ;
 static vtxDevice_t testVtxDevice = {
     .capability.bandCount = 5,
     .capability.channelCount = 8,
