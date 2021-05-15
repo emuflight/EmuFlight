@@ -99,5 +99,3 @@ void imuSetHasNewData(uint32_t dt);
 #endif
 
 bool imuQuaternionHeadfreeOffsetSet(void);
-float getAngleModeAngles(int axis);
-float howUpsideDown(void);

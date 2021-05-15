@@ -946,46 +946,17 @@ static bool osdDrawSingleElement(uint8_t item)
             tfp_sprintf(buff + 1, "%d.%02d%c", cellV / 100, cellV % 100, SYM_VOLT);
             break;
         }
-        osdFormatMessage(buff, OSD_FORMAT_MESSAGE_BUFFER_SIZE, NULL);
-        break;
-    }
-    case OSD_AVG_CELL_VOLTAGE: {
-        const int cellV = osdGetBatteryAverageCellVoltage();
-        buff[0] = osdGetBatterySymbol(cellV);
-        tfp_sprintf(buff + 1, "%d.%02d%c", cellV / 100, cellV % 100, SYM_VOLT);
-        break;
-    }
-    case OSD_MAH_PERCENT: {
-        // Calculate constrained value of mAh drawn
-        const float value = constrain(getMAhDrawn(), 0, batteryConfig()->batteryCapacity);
-        // Calculate percentage of total mAh used
-        const uint16_t mAhUsedPercent = ceilf(value / (batteryConfig()->batteryCapacity / 100.0f));
-        tfp_sprintf(buff , "%c%3d%%", SYM_MAH, mAhUsedPercent);
-        break;
-    }
+
     case OSD_DEBUG:
         tfp_sprintf(buff, "DBG %5d %5d %5d %5d", debug[0], debug[1], debug[2], debug[3]);
         break;
 
     case OSD_PITCH_ANGLE:
-    case OSD_ROLL_ANGLE: {
-        const char symbol = (item == OSD_PITCH_ANGLE) ? SYM_PITCH : SYM_ROLL ;
-        const int angle = (item == OSD_PITCH_ANGLE) ? attitude.values.pitch : getAngleModeAngles(ROLL);
-        //tfp_sprintf(buff, "%c", symbol);
-        tfp_sprintf(buff, "%c%c%02d.%01d", symbol, angle < 0 ? '-' : ' ', abs(angle / 10), abs(angle % 10));
-        break;
-    }
-    case OSD_MAIN_BATT_USAGE: {
-        // Set length of indicator bar
-#define MAIN_BATT_USAGE_STEPS 11 // Use an odd number so the bar can be centered.
-        // Calculate constrained value
-        const float value = constrain(batteryConfig()->batteryCapacity - getMAhDrawn(), 0, batteryConfig()->batteryCapacity);
-        // Calculate mAh used progress
-        const uint8_t mAhUsedProgress = ceilf((value / (batteryConfig()->batteryCapacity / MAIN_BATT_USAGE_STEPS)));
-        // Create empty battery indicator bar
-        buff[0] = SYM_PB_START;
-        for (int i = 1; i <= MAIN_BATT_USAGE_STEPS; i++) {
-            buff[i] = i <= mAhUsedProgress ? SYM_PB_FULL : SYM_PB_EMPTY;
+    case OSD_ROLL_ANGLE:
+        {
+            const int angle = (item == OSD_PITCH_ANGLE) ? attitude.values.pitch : attitude.values.roll;
+            tfp_sprintf(buff, "%c%02d.%01d", angle < 0 ? '-' : ' ', abs(angle / 10), abs(angle % 10));
+            break;
         }
 
     case OSD_MAIN_BATT_USAGE:
