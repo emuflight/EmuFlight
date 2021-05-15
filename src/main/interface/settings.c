@@ -314,7 +314,7 @@ static const char * const lookupTableGyroOverflowCheck[] = {
 #endif
 
 static const char * const lookupTableRatesType[] = {
-    "BETAFLIGHT", "RACEFLIGHT"
+    "BETAFLIGHT", "RACEFLIGHT", "KISS", "ACTUAL"
 };
 
 #ifdef USE_OVERCLOCK
@@ -545,7 +545,7 @@ const clivalue_t valueTable[] = {
 #if defined(USE_GYRO_DATA_ANALYSE)
     { "dynamic_gyro_notch_q",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_q_factor) },
     { "dynamic_gyro_notch_min_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_min_hz) },
-    { "dynamic_gyro_notch_max_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 600, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_max_hz) },
+    { "dynamic_gyro_notch_max_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 400, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_max_hz) },
 #endif
 
 // PG_ACCELEROMETER_CONFIG
@@ -936,6 +936,7 @@ const clivalue_t valueTable[] = {
 
     { "level_limit",                VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 10, 90 }, PG_PID_PROFILE, offsetof(pidProfile_t, levelAngleLimit) },
     { "angle_expo",                 VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, angleExpo) },
+    { "angle_filter",               VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, angle_filter) },
 
     { "horizon_transition",         VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0,  200 }, PG_PID_PROFILE, offsetof(pidProfile_t, horizonTransition) },
     { "horizon_tilt_effect",        VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0,  180 }, PG_PID_PROFILE, offsetof(pidProfile_t, horizon_tilt_effect) },

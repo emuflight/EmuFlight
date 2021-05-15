@@ -104,10 +104,11 @@ typedef struct pidProfile_s {
     uint8_t pidAtMinThrottle;               // Disable/Enable pids on zero throttle. Normally even without airmode P and D would be active.
     uint8_t levelAngleLimit;                // Max angle in degrees in level mode
     uint8_t angleExpo;                      // How much expo to add to the
+    uint8_t angle_filter;                   // filter we stick on the rate setpoint angle makes
 
     uint8_t horizonTransition;              // horizonTransition
     uint8_t horizon_tilt_effect;            // inclination factor for Horizon mode
-    uint8_t horizonStrength;               // boost or shrink to angle pids while in horizon mode
+    uint8_t horizonStrength;                // boost or shrink to angle pids while in horizon mode
 
     // EmuFlight PID controller parameters
     uint8_t feathered_pids;                 // determine how feathered your pids are
