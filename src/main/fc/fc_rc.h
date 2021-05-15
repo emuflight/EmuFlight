@@ -52,3 +52,4 @@ bool rcSmoothingAutoCalculate(void);
 bool rcSmoothingInitializationComplete(void);
 #endif
 void updateRcRefreshRate(timeUs_t currentTimeUs);
+float rateDynamics(float rcCommand, int axis, int currentRxRefreshRate);
