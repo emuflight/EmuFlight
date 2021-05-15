@@ -153,6 +153,7 @@ timeUs_t resumeRefreshAt = 0;
 
 static uint8_t armState;
 static bool lastArmState;
+char djiWarningBuffer[12];
 
 static displayPort_t *osdDisplayPort;
 
@@ -403,11 +404,19 @@ static void osdFormatCoordinate(char *buff, char sym, int32_t val)
 }
 #endif // USE_GPS
 
-static void osdFormatMessage(char *buff, size_t size, const char *message)
-{
+static void osdFormatMessage(char *buff, size_t size, const char *message) {
     memset(buff, SYM_BLANK, size);
     if (message) {
         memcpy(buff, message, strlen(message));
+    }
+    // Write warning for DJI
+    if (osdWarnGetState(OSD_WARNING_DJI)) {
+        if (message) {
+            tfp_sprintf(djiWarningBuffer, message);
+        } else {
+            // Set an empty string, because if the warning is NULL, DJI will display CRAFT_NAME
+            tfp_sprintf(djiWarningBuffer, "           ");
+        }
     }
     // Ensure buff is zero terminated
     buff[size - 1] = '\0';
@@ -1743,6 +1752,10 @@ void osdUpdate(timeUs_t currentTimeUs)
         unsetArmingDisabled(ARMING_DISABLED_OSD_MENU);
     }
 #endif
+}
+
+void setCrsfRssi(bool b) {
+    crsfRssi = b;
 }
 
 #endif // USE_OSD
