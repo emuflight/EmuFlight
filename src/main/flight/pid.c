@@ -125,9 +125,9 @@ void resetPidProfile(pidProfile_t *pidProfile) {
         [PID_MAG] = {40, 0, 0, 0},
     },
     .dFilter = {
-        [PID_ROLL] = {2, 65, 200, 0},  // wc, dtermlpf, dtermlpf2, smartSmoothing
-        [PID_PITCH] = {2, 65, 200, 0}, // wc, dtermlpf, dtermlpf2, smartSmoothing
-        [PID_YAW] = {0, 65, 200, 0},    // wc, dtermlpf, dtermlpf2, smartSmoothing
+        [PID_ROLL] = {2, 90, 200, 0},  // wc, dtermlpf, dtermlpf2, smartSmoothing
+        [PID_PITCH] = {2, 90, 200, 0}, // wc, dtermlpf, dtermlpf2, smartSmoothing
+        [PID_YAW] = {0, 90, 200, 0},    // wc, dtermlpf, dtermlpf2, smartSmoothing
     },
     .pidSumLimit = PIDSUM_LIMIT_MAX,
     .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
@@ -190,6 +190,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .dterm_ABG_boost = 275,
     .dterm_ABG_half_life = 50,
     .emuGravityGain = 100,
+    .angle_filter = 100,
                 );
 }
 
@@ -221,6 +222,8 @@ static FAST_RAM filterApplyFnPtr dtermLowpassApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
 static FAST_RAM filterApplyFnPtr dtermLowpass2ApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
+static FAST_RAM filterApplyFnPtr angleSetpointFilterApplyFn = nullFilterApply;
+static FAST_RAM_ZERO_INIT pt1Filter_t angleSetpointFilter[2];
 static FAST_RAM filterApplyFnPtr dtermABGapplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT alphaBetaGammaFilter_t dtermABG[XYZ_AXIS_COUNT];
 
@@ -248,6 +251,7 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
     const uint32_t pidFrequencyNyquist = pidFrequency / 2; // No rounding needed
     dtermLowpassApplyFn = nullFilterApply;
     dtermLowpass2ApplyFn = nullFilterApply;
+    angleSetpointFilterApplyFn = nullFilterApply;
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         if (pidProfile->dFilter[axis].dLpf && pidProfile->dFilter[axis].dLpf <= pidFrequencyNyquist) {
             switch (pidProfile->dterm_filter_type) {
@@ -274,6 +278,10 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 biquadFilterInitLPF(&dtermLowpass2[axis].biquadFilter, pidProfile->dFilter[axis].dLpf2, targetPidLooptime);
                 break;
             }
+        }
+        if (pidProfile->angle_filter) {
+            angleSetpointFilterApplyFn = (filterApplyFnPtr)pt1FilterApply;
+            pt1FilterInit(&angleSetpointFilter[axis], pt1FilterGain(pidProfile->angle_filter, dT));
         }
         if (pidProfile->dterm_ABG_alpha) {
             dtermABGapplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
@@ -398,9 +406,9 @@ void pidInitConfig(const pidProfile_t *pidProfile) {
     dtermBoostMultiplier = (pidProfile->dtermBoost * pidProfile->dtermBoost / 1000000) * 0.003;
     dtermBoostLimitPercent = pidProfile->dtermBoostLimit / 100.0f;
     P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
-    D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
+    D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00002428571f;
     P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
-    D_angle_high = pidProfile->pid[PID_LEVEL_HIGH].D * 0.00017f;
+    D_angle_high = pidProfile->pid[PID_LEVEL_HIGH].D * 0.00002428571f;
     F_angle = pidProfile->pid[PID_LEVEL_LOW].F * 0.00000125f;
     horizonTransition = (float)pidProfile->horizonTransition;
     horizonCutoffDegrees = pidProfile->horizon_tilt_effect;
@@ -450,7 +458,9 @@ void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex) {
 static float calcHorizonLevelStrength(void) {
     float horizonLevelStrength;
     // 0 at level, 90 at vertical, 180 at inverted (degrees):
-    const float currentInclination = MAX(ABS(attitude.values.roll), ABS(attitude.values.pitch)) / 10.0f;
+    const float currentInclination = RADIANS_TO_DEGREES(acos_approx(howUpsideDown()));
+    DEBUG_SET(DEBUG_HORIZON, 0, lrintf(howUpsideDown() * 1000));
+    DEBUG_SET(DEBUG_HORIZON, 1, lrintf(currentInclination * 10));
     // Used as a factor in the numerator of inclinationLevelRatio - this will cause the entry point of the fade of leveling strength to be adjustable via horizon transition in configurator for RACEMODEhorizon
     const float racemodeHorizonTransitionFactor = horizonCutoffDegrees / (horizonCutoffDegrees - horizonTransition);
     // Used as a factor in the numerator of inclinationLevelRatio - this will cause the fade of leveling strength to start at levelAngleLimit for RACEMODEangle
@@ -474,8 +484,15 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
     static float attitudePrevious[2], previousAngle[2];
-    float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low;
-    float angle = pidProfile->levelAngleLimit * getRcDeflection(axis);
+    float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low, currentAngle, scaledRcDeflection, scaledAngle = 0.0f;
+
+    if (getRcDeflection(axis) !=0) {
+        scaledRcDeflection = getRcDeflection(axis) / (getRcDeflectionAbs(FD_PITCH) + getRcDeflectionAbs(FD_ROLL));
+    } else {
+        scaledRcDeflection = 0.0f;
+    }
+
+    float angle = pidProfile->levelAngleLimit * getRcDeflection(axis) * scaledRcDeflection;
     if (pidProfile->angleExpo > 0) {
         const float expof = pidProfile->angleExpo / 100.0f;
         angle = pidProfile->levelAngleLimit * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
@@ -484,17 +501,35 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     angle += gpsRescueAngle[axis] / 100; // ANGLE IS IN CENTIDEGREES
 #endif
     f_term_low = (angle - previousAngle[axis]) * F_angle / dT;
+
     previousAngle[axis] = angle;
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
-    float errorAngle = angle - ((attitude.raw[axis] - angleTrim->raw[axis]) * 0.1f);
+
+    if (FLIGHT_MODE(NFE_RACE_MODE)) { // nfe only effects the roll axis, this allows you to go upside down and still have roll correction.
+        currentAngle = ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f);
+    } else {
+        // apply extra correction if you are upside down
+        if (getAngleModeAngles(axis) != 0) {
+            scaledAngle = getAngleModeAngles(axis) / (ABS(getAngleModeAngles(FD_PITCH)) + ABS(getAngleModeAngles(FD_ROLL)));
+        }
+        currentAngle = ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f) + (constrainf(-howUpsideDown(), 0.0f, 1.0f) * scaledAngle * 180.0f);
+    }
+
+    DEBUG_SET(DEBUG_ANGLE, axis, lrintf(currentAngle));
+
+    float errorAngle = angle - currentAngle;
+    DEBUG_SET(DEBUG_ANGLE, axis + 2, lrintf(errorAngle));
     errorAngle = constrainf(errorAngle, -90.0f, 90.0f);
     const float errorAnglePercent = fabsf(errorAngle / 90.0f);
+
     // ANGLE mode - control is angle based
     p_term_low = (1 - errorAnglePercent) * errorAngle * P_angle_low;
     p_term_high = errorAnglePercent * errorAngle * P_angle_high;
-    d_term_low = (1 - errorAnglePercent) * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_low;
-    d_term_high = errorAnglePercent * (attitudePrevious[axis] - attitude.raw[axis]) * 0.1f * D_angle_high;
-    attitudePrevious[axis] = attitude.raw[axis];
+
+    d_term_low = (1 - errorAnglePercent) * (attitudePrevious[axis] - getAngleModeAngles(axis)) *  D_angle_low;
+    d_term_high = errorAnglePercent * (attitudePrevious[axis] - getAngleModeAngles(axis)) *  D_angle_high;
+    attitudePrevious[axis] = getAngleModeAngles(axis);
+
     currentPidSetpoint = p_term_low + p_term_high;
     currentPidSetpoint += d_term_low + d_term_high;
     currentPidSetpoint += f_term_low;
@@ -504,8 +539,10 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
         const float horizonLevelStrength = calcHorizonLevelStrength();
         currentPidSetpoint = ((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f + (currentPidSetpoint * horizonLevelStrength * horizonStrength);
     }
+    currentPidSetpoint = angleSetpointFilterApplyFn((filter_t *)&angleSetpointFilter[axis], currentPidSetpoint);
     directFF[axis] = (1 - fabsf(errorAnglePercent)) * DF_angle_low;
     directFF[axis] += fabsf(errorAnglePercent) * DF_angle_high;
+
     return currentPidSetpoint;
 }
 
@@ -670,6 +707,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         } else if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && FLIGHT_MODE(NFE_RACE_MODE) && (axis != FD_PITCH)) {
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
         }
+
         // Handle yaw spin recovery - zero the setpoint on yaw to aid in recovery
         // It's not necessary to zero the set points for R/P because the PIDs will be zeroed below
 #ifdef USE_YAW_SPIN_RECOVERY
