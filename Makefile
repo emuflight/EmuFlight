@@ -105,7 +105,11 @@ ifneq ($(TRAVIS_BUILD_NUMBER),)
 BUILDNO := $(TRAVIS_BUILD_NUMBER)
 endif
 
+BUILDDATETIME := $(shell date +'%Y%m%d%Z')
+REVISION := uncommitted_$(BUILDDATETIME)
+ifeq ($(shell git diff --shortstat),)
 REVISION := $(shell git log -1 --format="%h")
+endif
 
 FC_VER_MAJOR := $(shell grep " FC_VERSION_MAJOR" src/main/build/version.h | awk '{print $$3}' )
 FC_VER_MINOR := $(shell grep " FC_VERSION_MINOR" src/main/build/version.h | awk '{print $$3}' )
