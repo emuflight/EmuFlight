@@ -35,7 +35,6 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor) {
         gyroADCf = gyroSensor->lowpassFilterApplyFn((filter_t *)&gyroSensor->lowpassFilter[axis], gyroADCf);
         gyroADCf = gyroSensor->notchFilter1ApplyFn((filter_t *)&gyroSensor->notchFilter1[axis], gyroADCf);
         gyroADCf = gyroSensor->notchFilter2ApplyFn((filter_t *)&gyroSensor->notchFilter2[axis], gyroADCf);
-        gyroADCf = gyroSensor->gyroABGFilterApplyFn((filter_t *)&gyroSensor->gyroABGFilter[axis], gyroADCf);
 #ifdef USE_GYRO_DATA_ANALYSE
         if (isDynamicFilterActive()) {
             if (axis == X) {
@@ -55,6 +54,9 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor) {
             }
         }
 #endif
+
+        gyroADCf = gyroSensor->gyroABGFilterApplyFn((filter_t *)&gyroSensor->gyroABGFilter[axis], gyroADCf);
+
 #ifdef USE_GYRO_IMUF9001
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));

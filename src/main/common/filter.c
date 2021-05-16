@@ -204,6 +204,9 @@ void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, int boostGain, int hal
   filter->dT3 = dT * dT * dT;
 
   pt1FilterInit(&filter->boostFilter, pt1FilterGain(100, dT));
+  pt1FilterInit(&filter->velFilter, pt1FilterGain(75, dT));
+  pt1FilterInit(&filter->accFilter, pt1FilterGain(50, dT));
+  pt1FilterInit(&filter->jerkFilter, pt1FilterGain(25, dT));
 
   filter->boost = (boostGain * boostGain / 1000000) * 0.003;
   filter->halfLife = halfLife != 0 ?
@@ -239,6 +242,10 @@ FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input)
   filter->vk += filter->b / filter->dT * rk;
   filter->ak += filter->g / (2.0f * filter->dT2) * rk;
   filter->jk += filter->e / (6.0f * filter->dT3) * rk;
+
+  filter->vk = pt1FilterApply(&filter->velFilter, filter->vk);
+  filter->ak = pt1FilterApply(&filter->accFilter, filter->ak);
+  filter->jk = pt1FilterApply(&filter->jerkFilter, filter->jk);
 
 	return filter->xk;
 } // ABGUpdate
