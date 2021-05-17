@@ -74,6 +74,10 @@
 #include "sensors/gyro.h"
 #include "sensors/sensors.h"
 
+#ifdef USE_GYRO_IMUF9001
+#include "drivers/accgyro/accgyro_imuf9001.h"
+#endif
+
 #ifdef USE_GYRO_DATA_ANALYSE
 #define DYNAMIC_NOTCH_DEFAULT_CENTER_HZ 350
 #define DYNAMIC_NOTCH_DEFAULT_CUTOFF_HZ 300
@@ -155,24 +159,21 @@ static bool gyroInitLowpassFilterLpf(int type, uint16_t lpfHz, uint32_t looptime
     // If lowpass cutoff has been specified and is less than the Nyquist frequency
     if (lpfHz && lpfHz <= gyroFrequencyNyquist) {
       *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
+      ret = true;
 
       for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
         switch (type) {
         case FILTER_PT1:
                 ptnFilterInit(&lowpassFilter[axis], 1, lpfHz, gyroDt);
-            ret = true;
             break;
         case FILTER_PT2:
                 ptnFilterInit(&lowpassFilter[axis], 2, lpfHz, gyroDt);
-            ret = true;
             break;
         case FILTER_PT3:
                 ptnFilterInit(&lowpassFilter[axis], 3, lpfHz, gyroDt);
-            ret = true;
             break;
         case FILTER_PT4:
                 ptnFilterInit(&lowpassFilter[axis], 4, lpfHz, gyroDt);
-            ret = true;
             break;
         }
       }
@@ -476,6 +477,15 @@ STATIC_UNIT_TESTED gyroHardware_e gyroDetect(gyroDev_t *dev)
         FALLTHROUGH;
 #endif
 
+#ifdef USE_GYRO_IMUF9001
+    case GYRO_IMUF9001:
+        if (imufSpiGyroDetect(dev)) {
+            gyroHardware = GYRO_IMUF9001;
+            break;
+        }
+        FALLTHROUGH;
+#endif //USE_GYRO_IMUF9001
+
 #ifdef USE_FAKE_GYRO
     case GYRO_FAKE:
         if (fakeGyroDetect(dev)) {
@@ -501,8 +511,8 @@ static bool gyroDetectSensor(gyroSensor_t *gyroSensor, const gyroDeviceConfig_t 
 {
 #if defined(USE_GYRO_MPU6050) || defined(USE_GYRO_MPU3050) || defined(USE_GYRO_MPU6500) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU6000) \
  || defined(USE_ACC_MPU6050) || defined(USE_GYRO_SPI_MPU9250) || defined(USE_GYRO_SPI_ICM20601) || defined(USE_GYRO_SPI_ICM20649) \
- || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_L3GD20) || defined(USE_ACCGYRO_BMI160) || defined(USE_ACCGYRO_BMI270) || defined(USE_ACCGYRO_LSM6DSO) || defined(USE_GYRO_SPI_ICM42605)
-
+ || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_L3GD20) || defined(USE_ACCGYRO_BMI160) || defined(USE_ACCGYRO_BMI270) || defined(USE_ACCGYRO_LSM6DSO) \
+ || defined(USE_GYRO_IMUF9001)
     bool gyroFound = mpuDetect(&gyroSensor->gyroDev, config);
 
 #if !defined(USE_FAKE_GYRO) // Allow resorting to fake accgyro if defined
@@ -526,7 +536,8 @@ static void gyroPreInitSensor(const gyroDeviceConfig_t *config)
 {
 #if defined(USE_GYRO_MPU6050) || defined(USE_GYRO_MPU3050) || defined(USE_GYRO_MPU6500) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU6000) \
  || defined(USE_ACC_MPU6050) || defined(USE_GYRO_SPI_MPU9250) || defined(USE_GYRO_SPI_ICM20601) || defined(USE_GYRO_SPI_ICM20649) \
- || defined(USE_GYRO_SPI_ICM20689) || defined(USE_ACCGYRO_BMI160) || defined(USE_ACCGYRO_BMI270) || defined(USE_ACCGRYO_LSM6DSO)
+ || defined(USE_GYRO_SPI_ICM20689) || defined(USE_ACCGYRO_BMI160) || defined(USE_ACCGYRO_BMI270) || defined(USE_ACCGRYO_LSM6DSO) \
+ || defined(USE_GYRO_IMUF9001)
     mpuPreInit(config);
 #else
     UNUSED(config);
