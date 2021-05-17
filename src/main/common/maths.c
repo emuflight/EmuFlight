@@ -24,6 +24,10 @@
 #include "axis.h"
 #include "maths.h"
 
+#ifdef USE_ARM_MATH
+#include "arm_math.h"
+#endif 
+
 #if defined(FAST_MATH) || defined(VERY_FAST_MATH)
 #if defined(VERY_FAST_MATH)
 
@@ -96,6 +100,16 @@ float acos_approx(float x) {
         return result;
 }
 #endif
+
+float fast_fsqrtf(const double value) {
+#ifdef USE_ARM_MATH
+    float squirt;
+    arm_sqrt_f32(value, &squirt);
+    return squirt;
+#else 
+    return sqrtf(value);
+#endif
+}
 
 int gcd(int num, int denom) {
     if (denom == 0) {
