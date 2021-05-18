@@ -183,6 +183,10 @@ typedef struct gyroSensor_s {
     gyroAnalyseState_t gyroAnalyseState;
     float dynNotchQ;
 #endif
+
+#ifdef USE_SMITH_PREDICTOR
+    smithPredictor_t smithPredictor[XYZ_AXIS_COUNT];
+#endif // USE_SMITH_PREDICTOR
 } gyroSensor_t;
 
 STATIC_UNIT_TESTED FAST_RAM_ZERO_INIT gyroSensor_t gyroSensor1;
@@ -244,7 +248,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .checkOverflow = GYRO_OVERFLOW_CHECK_ALL_AXES,
                   .yaw_spin_recovery = true,
                   .yaw_spin_threshold = 1950,
-                  .dyn_notch_q_factor = 300,
+                  .dyn_notch_q_factor = 400,
                   .dyn_notch_min_hz = 150,
                   .dyn_notch_max_hz = 600,
                   .imuf_mode = GTBCM_GYRO_ACC_FILTER_F,
@@ -262,6 +266,9 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_ABG_alpha = 0,
                   .gyro_ABG_boost = 275,
                   .gyro_ABG_half_life = 50,
+                  .smithPredictorStrength = 50,
+                  .smithPredictorDelay = 40,
+                  .smithPredictorFilterHz = 5,
                  );
 #else //USE_GYRO_IMUF9001
 PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
@@ -294,12 +301,15 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_offset_yaw = 0,
                   .yaw_spin_recovery = true,
                   .yaw_spin_threshold = 1950,
-                  .dyn_notch_q_factor = 250,
+                  .dyn_notch_q_factor = 350,
                   .dyn_notch_min_hz = 150,
                   .dyn_notch_max_hz = 600,
                   .gyro_ABG_alpha = 0,
                   .gyro_ABG_boost = 275,
                   .gyro_ABG_half_life = 50,
+                  .smithPredictorStrength = 50,
+                  .smithPredictorDelay = 40,
+                  .smithPredictorFilterHz = 5,
                  );
 #endif //USE_GYRO_IMUF9001
 
@@ -812,6 +822,19 @@ static void gyroInitABGFilter(gyroSensor_t *gyroSensor, uint16_t alpha, uint16_t
     }
 }
 
+#ifdef USE_SMITH_PREDICTOR
+void smithPredictorInit(gyroSensor_t *gyroSensor) {
+    if (gyroConfig()->smithPredictorDelay > 1) {
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+            gyroSensor->smithPredictor[axis].samples = gyroConfig()->smithPredictorDelay / (gyro.targetLooptime / 100.0f);
+            gyroSensor->smithPredictor[axis].idx = 0;
+            gyroSensor->smithPredictor[axis].smithPredictorStrength = gyroConfig()->smithPredictorStrength / 100.0f;
+            pt1FilterInit(&gyroSensor->smithPredictor[axis].smithPredictorFilter, pt1FilterGain(gyroConfig()->smithPredictorFilterHz, gyro.targetLooptime * 1e-6f));
+        }
+    }
+}
+#endif // USE_SMITH_PREDICTOR
+
 static void gyroInitSensorFilters(gyroSensor_t *gyroSensor) {
 #if defined(USE_GYRO_SLEW_LIMITER)
     gyroInitSlewLimiter(gyroSensor);
@@ -836,6 +859,10 @@ static void gyroInitSensorFilters(gyroSensor_t *gyroSensor) {
 #endif
 
     gyroInitABGFilter(gyroSensor, gyroConfig()->gyro_ABG_alpha, gyroConfig()->gyro_ABG_boost, gyroConfig()->gyro_ABG_half_life);
+
+#ifdef USE_SMITH_PREDICTOR
+    smithPredictorInit(gyroSensor);
+#endif // USE_SMITH_PREDICTOR
 }
 
 void gyroInitFilters(void) {
@@ -1051,6 +1078,30 @@ static FAST_CODE void checkForYawSpin(gyroSensor_t *gyroSensor, timeUs_t current
     }
 }
 #endif // USE_YAW_SPIN_RECOVERY
+
+#ifdef USE_SMITH_PREDICTOR
+float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered, int axis) {
+  if (smithPredictor->samples > 1) {
+    smithPredictor->data[smithPredictor->idx] = gyroFiltered;
+    float input = gyroFiltered;
+
+    smithPredictor->idx++;
+    if (smithPredictor->idx > smithPredictor->samples) {
+        smithPredictor->idx = 0;
+    }
+
+    // filter the delayedGyro to help reduce the overall noise this prediction adds
+    float delayedGyro = smithPredictor->data[smithPredictor->idx];
+
+    float delayCompensatedGyro = smithPredictor->smithPredictorStrength * (gyroFiltered - delayedGyro);
+    delayCompensatedGyro = pt1FilterApply(&smithPredictor->smithPredictorFilter, delayCompensatedGyro);
+    gyroFiltered += delayCompensatedGyro;
+
+    return gyroFiltered;
+  }
+  return gyroFiltered;
+}
+#endif
 
 #define GYRO_FILTER_FUNCTION_NAME filterGyro
 #define GYRO_FILTER_DEBUG_SET(...)
