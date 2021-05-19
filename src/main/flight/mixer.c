@@ -999,8 +999,8 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
 
     float postYawThrottle = 0;
     float yawThrottleCorrection = 0;
-    float minMotorYawMix = -1000.0f;
-    float maxMotorYawMix = 1000.0f;
+    float minMotorYawMix = 1000.0f;
+    float maxMotorYawMix = -1000.0f;
 
     // filling up motorMix with throttle, and yaw
     for (int i = 0; i < motorCount; i++) {
