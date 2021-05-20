@@ -62,11 +62,12 @@ void pgResetFn_rxConfig(rxConfig_t *rxConfig) {
                    .airModeActivateThreshold = 32,
                    .max_aux_channel = DEFAULT_AUX_CHANNEL_COUNT,
                    .rc_smoothing_type = RC_SMOOTHING_TYPE_FILTER,
-                   .rc_smoothing_input_cutoff = 50,      // automatically calculate the cutoff by default
+                   .rc_smoothing_input_cutoff = 10,      // automatically calculate the cutoff by default
                    .rc_smoothing_derivative_cutoff = 75, // automatically calculate the cutoff by default
                    .rc_smoothing_debug_axis = ROLL,     // default to debug logging for the roll axis
-                   .rc_smoothing_input_type = RC_SMOOTHING_INPUT_BIQUAD,
-                   .rc_smoothing_derivative_type = RC_SMOOTHING_DERIVATIVE_BIQUAD,
+                   .rc_smoothing_input_type = RC_SMOOTHING_INPUT_PT1,
+                   .rc_smoothing_derivative_type = RC_SMOOTHING_DERIVATIVE_PT1,
+                   .smith_strength = 50,
                    .showAlteredRc = 0,
                    .sbus_baud_fast = false,
                   );
