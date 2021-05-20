@@ -155,7 +155,8 @@
 #endif
 
 #if (FLASH_SIZE > 128)
-//#define USE_PEGASUS_UI
+#define USE_PEGASUS_UI
+#define USE_SMITH_PREDICTOR
 #define USE_SERIALRX_SUMH       // Graupner legacy protocol
 #define USE_CAMERA_CONTROL
 #define USE_CMS
