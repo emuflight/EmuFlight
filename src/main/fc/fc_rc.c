@@ -500,7 +500,7 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
         // after training has completed then log the raw rc channel and the calculated
         // average rx frame rate that was used to calculate the automatic filter cutoffs
         DEBUG_SET(DEBUG_RC_SMOOTHING, 0, lrintf(lastRxData[rxConfig()->rc_smoothing_debug_axis]));
-        DEBUG_SET(DEBUG_RC_SMOOTHING, 3, rcSmoothingData.averageFrameTimeUs);
+        DEBUG_SET(DEBUG_RC_SMOOTHING, 2, lrintf(lastRxData[1]));
     }
     // each pid loop continue to apply the last received channel value to the filter
     for (updatedChannel = 0; updatedChannel < PRIMARY_CHANNEL_COUNT; updatedChannel++) {
@@ -511,13 +511,13 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
                 case RC_SMOOTHING_INPUT_PT1:
                     rcCommand[updatedChannel] = pt1FilterApply((pt1Filter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
                     delayedRcCommand = pt1FilterApply(&pt1Smith[updatedChannel], lastRxData[updatedChannel]);
-                    rcCommand[updatedChannel] = rcSmoothingData.smithStrength * (rcCommand[updatedChannel] - delayedRcCommand);
+                    rcCommand[updatedChannel] += rcSmoothingData.smithStrength * (rcCommand[updatedChannel] - delayedRcCommand);
                     break;
                 case RC_SMOOTHING_INPUT_BIQUAD:
                 default:
                     rcCommand[updatedChannel] = biquadFilterApplyDF1((biquadFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
                     delayedRcCommand = biquadFilterApplyDF1(&biquadSmith[updatedChannel], lastRxData[updatedChannel]);
-                    rcCommand[updatedChannel] = rcSmoothingData.smithStrength * (rcCommand[updatedChannel] - delayedRcCommand);
+                    rcCommand[updatedChannel] += rcSmoothingData.smithStrength * (rcCommand[updatedChannel] - delayedRcCommand);
                     break;
                 }
             } else {
@@ -526,6 +526,9 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
             }
         }
     }
+    DEBUG_SET(DEBUG_RC_SMOOTHING, 1, lrintf(rcCommand[rxConfig()->rc_smoothing_debug_axis]));
+    DEBUG_SET(DEBUG_RC_SMOOTHING, 3, lrintf(rcCommand[1]));
+
     return interpolationChannels;
 }
 #endif // USE_RC_SMOOTHING_FILTER
