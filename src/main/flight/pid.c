@@ -498,16 +498,16 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     if (!FLIGHT_MODE(HORIZON_MODE)) {
       if (pidProfile->angleExpo > 0) {
           const float expof = pidProfile->angleExpo / 100.0f;
-          angle = pidProfile->levelAngleLimit * scaledRcDeflection * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
+          angle = pidProfile->levelAngleLimit * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
       } else {
-          angle = pidProfile->levelAngleLimit * scaledRcDeflection * getRcDeflection(axis);
+          angle = pidProfile->levelAngleLimit * getRcDeflection(axis);
       }
     } else {
       if (pidProfile->angleExpo > 0) {
           const float expof = pidProfile->angleExpo / 100.0f;
-          angle = horizonCutoffDegrees * scaledRcDeflection * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
+          angle = horizonCutoffDegrees * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
       } else {
-          angle = horizonCutoffDegrees * scaledRcDeflection * getRcDeflection(axis);
+          angle = horizonCutoffDegrees * getRcDeflection(axis);
       }
     }
 #ifdef USE_GPS_RESCUE
