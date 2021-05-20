@@ -87,12 +87,6 @@ This is an multiplier on overall stick sensitivity, like RC rate, but for roll a
 
 It acts as a stick sensitivity multiplier, as explained above.
 
-### Filters
-
-`gyro_lpf` sets the hardware gyro low pass filter value. If 0 or 256 the gyro uses the least hardware filtering available (256Hz) and the internal sampling rate is the fastest possible (8kHz) with the least possible delay. The lower the number the stronger the filtering. Stronger filtering reduces noise in the gyro signal before that data gets into the PID calculations. Stronger filtering adds delays that can be associated with wobble and reduced responsiveness. Filtering is needed because motor/frame noise can cause overheating of motors especially when amplified by Dterm in quads with low mass and fast braking ESCs. If 188 or lower are chosen, the gyro sampling is internally at 1kHz and delays are greater. Faster sampling is good because things are slightly more responsive but can cause aliasing noise. Setting to 188 allows syncing of the FC to the gyro at 1kHz (if `gyro_sync` is enabled and available in the code) which reduces aliasing a lot.
-
-`gyro_soft_lpf` is an IIR (Infinite Impulse Response) software low-pass filter that can be configured to any desired frequency. If set to a value above zero it is active. It works after the hardware filter on the gyro (in the FC code) and further reduces noise. The two filters in series have twice the cut rate of one alone. There's not a lot of sense running `gyro_soft_lpf` at a value above `gyro_lpf`. If used, it is typically set about half the hardware filter rate to enhance the cut of higher frequencies before the PID calculations. Frequencies above 100Hz are of no interest to us from a flight control perspective - they can and should be removed from the signal before it gets to the PID calculation stage. 
-
 ### Horizon Mode Commands
 
 The CLI commands `horizon_tilt_effect` and `horizon_tilt_mode` control the effect the current inclination has on self-leveling in the Horizon flight mode. (The current inclination is the number of degrees of pitch or roll that the vehicle is away from level, whichever is greater).
