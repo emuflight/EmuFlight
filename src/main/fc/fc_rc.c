@@ -510,13 +510,13 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
                 switch (rxConfig()->rc_smoothing_input_type) {
                 case RC_SMOOTHING_INPUT_PT1:
                     rcCommand[updatedChannel] = pt1FilterApply((pt1Filter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
-                    delayedRcCommand = pt1FilterApply(&pt1Smith[updatedChannel], lastRxData[updatedChannel]);
+                    delayedRcCommand = pt1FilterApply(&pt1Smith[updatedChannel], rcCommand[updatedChannel]);
                     rcCommand[updatedChannel] += rcSmoothingData.smithStrength * (rcCommand[updatedChannel] - delayedRcCommand);
                     break;
                 case RC_SMOOTHING_INPUT_BIQUAD:
                 default:
                     rcCommand[updatedChannel] = biquadFilterApplyDF1((biquadFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
-                    delayedRcCommand = biquadFilterApplyDF1(&biquadSmith[updatedChannel], lastRxData[updatedChannel]);
+                    delayedRcCommand = biquadFilterApplyDF1(&biquadSmith[updatedChannel], rcCommand[updatedChannel]);
                     rcCommand[updatedChannel] += rcSmoothingData.smithStrength * (rcCommand[updatedChannel] - delayedRcCommand);
                     break;
                 }
