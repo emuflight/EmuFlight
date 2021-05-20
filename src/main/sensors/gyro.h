@@ -181,3 +181,4 @@ bool gyroOverflowDetected(void);
 bool gyroYawSpinDetected(void);
 uint16_t gyroAbsRateDps(int axis);
 uint8_t gyroReadRegister(uint8_t whichSensor, uint8_t reg);
+float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered);
