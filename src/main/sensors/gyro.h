@@ -24,6 +24,7 @@
 #include "common/filter.h"
 #include "common/time.h"
 #include "common/kalman.h"
+#include "common/adaptive_filter.h"
 
 #include "drivers/accgyro/accgyro.h"
 #include "drivers/bus.h"
@@ -121,6 +122,8 @@ typedef struct gyro_s {
 #ifdef USE_SMITH_PREDICTOR
     smithPredictor_t smithPredictor[XYZ_AXIS_COUNT];
 #endif // USE_SMITH_PREDICTOR
+
+    adaptiveFilter_t adaptiveFilter[XYZ_AXIS_COUNT];
 
     uint16_t accSampleRateHz;
     uint8_t gyroToUse;
@@ -224,6 +227,12 @@ typedef struct gyroConfig_s {
     uint8_t smithPredictorStrength;
     uint8_t smithPredictorDelay;
     uint16_t smithPredictorFilterHz;
+
+    uint8_t adaptive_filter_length;
+    uint16_t adaptive_filter_step_size;
+    uint8_t adaptive_filter_delay;
+    uint8_t adaptive_filter_crossfeed;
+    uint16_t adaptive_filter_regularization;
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);

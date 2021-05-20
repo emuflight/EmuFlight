@@ -19,7 +19,6 @@
  */
 
 #include "platform.h"
-#include "common/kalman.h"
 
 static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
 {
@@ -62,7 +61,15 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
         }
 #endif
 
-        // put alpha betaGamma filter last so that we can use it to predict dterm :)
+        if (axis != FD_YAW) {
+            DEBUG_SET(DEBUG_ADAPTIVE_FILTER, axis, lrintf(gyroADCf));
+        }
+        gyroADCf = adaptiveFilterApply(gyroADCf, &gyro.adaptiveFilter[axis]);
+        if (axis != FD_YAW) {
+            DEBUG_SET(DEBUG_ADAPTIVE_FILTER, axis + 2, lrintf(gyroADCf));
+        }
+
+
         if (axis == FD_ROLL) {
             DEBUG_SET(DEBUG_ABG, 0, lrintf(gyroADCf));
         } else if (axis == FD_PITCH) {

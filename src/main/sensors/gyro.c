@@ -32,6 +32,7 @@
 #include "common/maths.h"
 #include "common/filter.h"
 #include "common/kalman.h"
+#include "common/adaptive_filter.h"
 
 #include "config/feature.h"
 
@@ -137,6 +138,11 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->smithPredictorStrength = 50;
     gyroConfig->smithPredictorDelay = 40;
     gyroConfig->smithPredictorFilterHz = 5;
+    gyroConfig->adaptive_filter_length = 0;
+    gyroConfig->adaptive_filter_step_size = 100;
+    gyroConfig->adaptive_filter_delay = 8;
+    gyroConfig->adaptive_filter_crossfeed = 0;
+    gyroConfig->adaptive_filter_regularization = 1000;
 }
 
 bool isGyroSensorCalibrationComplete(const gyroSensor_t *gyroSensor)

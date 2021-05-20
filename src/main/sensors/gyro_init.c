@@ -237,6 +237,18 @@ void smithPredictorInit() {
 }
 #endif // USE_SMITH_PREDICTOR
 
+void adaptiveFilterInit() {
+    if (gyroConfig()->adaptive_filter_length > 1) {
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+            gyro.adaptiveFilter[axis].length = gyroConfig()->adaptive_filter_length;
+            gyro.adaptiveFilter[axis].stepSize = gyroConfig()->adaptive_filter_step_size / 1000000.0f;
+            gyro.adaptiveFilter[axis].samples = gyroConfig()->adaptive_filter_delay;
+            gyro.adaptiveFilter[axis].delayedCrossFeed = gyroConfig()->adaptive_filter_crossfeed / 100.0f;
+            gyro.adaptiveFilter[axis].regularization = gyroConfig()->adaptive_filter_regularization / 1000.0f;
+        }
+    }
+}
+
 void gyroInitFilters(void)
 {
     uint16_t gyro_lowpass_hz = gyroConfig()->dyn_lpf_gyro_min_hz;
@@ -263,6 +275,7 @@ void gyroInitFilters(void)
 #ifdef USE_SMITH_PREDICTOR
     smithPredictorInit();
 #endif // USE_SMITH_PREDICTOR
+    adaptiveFilterInit();
 }
 
 #if defined(USE_GYRO_SLEW_LIMITER)

@@ -119,6 +119,7 @@ typedef enum {
     DEBUG_D_ABG_STATE,
     DEBUG_RC_PREDICTOR,
     DEBUG_SMITH_PREDICTOR,
+    DEBUG_ADAPTIVE_FILTER,
     DEBUG_COUNT
 } debugType_e;
 
