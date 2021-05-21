@@ -160,11 +160,11 @@
 #define USE_SERIALRX_SUMH       // Graupner legacy protocol
 #define USE_CAMERA_CONTROL
 #define USE_CMS
-#define USE_EXTENDED_CMS_MENUS
+//#define USE_EXTENDED_CMS_MENUS
 #define USE_DSHOT_DMAR
 #define USE_GYRO_OVERFLOW_CHECK
 #define USE_YAW_SPIN_RECOVERY
-#define USE_HUFFMAN
+//#define USE_HUFFMAN
 #define USE_MSP_DISPLAYPORT
 #define USE_MSP_OVER_TELEMETRY
 #define MSP_OVER_CLI
