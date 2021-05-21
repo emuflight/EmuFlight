@@ -30,9 +30,6 @@
 
 //#define SCHEDULER_DEBUG // define this to use scheduler debug[] values. Undefined by default for performance reasons
 
-#define I2C1_OVERCLOCK true
-#define I2C2_OVERCLOCK true
-
 #ifdef STM32F1
 #define MINIMAL_CLI
 // Using RX DMA disables the use of receive callbacks
@@ -57,7 +54,6 @@
 #define USE_DSHOT_TELEMETRY_STATS
 #define USE_RPM_FILTER
 #define USE_DYN_IDLE
-#define I2C3_OVERCLOCK true
 #define USE_GYRO_DATA_ANALYSE
 #define USE_ADC
 #define USE_ADC_INTERNAL
@@ -86,8 +82,6 @@
 #define USE_DSHOT_TELEMETRY_STATS
 #define USE_RPM_FILTER
 #define USE_DYN_IDLE
-#define I2C3_OVERCLOCK true
-#define I2C4_OVERCLOCK true
 #define USE_GYRO_DATA_ANALYSE
 #define USE_OVERCLOCK
 #define USE_ADC_INTERNAL
@@ -111,8 +105,6 @@
 #define USE_DSHOT_TELEMETRY_STATS
 #define USE_RPM_FILTER
 #define USE_DYN_IDLE
-#define I2C3_OVERCLOCK true
-#define I2C4_OVERCLOCK true
 #define USE_GYRO_DATA_ANALYSE
 #define USE_ADC_INTERNAL
 #define USE_USB_CDC_HID
@@ -135,8 +127,6 @@
 #define USE_DSHOT_TELEMETRY_STATS
 #define USE_RPM_FILTER
 #define USE_DYN_IDLE
-#define I2C3_OVERCLOCK true
-#define I2C4_OVERCLOCK true
 #define USE_OVERCLOCK
 #define USE_GYRO_DATA_ANALYSE
 #define USE_ADC_INTERNAL
@@ -353,7 +343,6 @@
 
 #if (TARGET_FLASH_SIZE > 256)
 #define USE_CANVAS
-#define USE_DASHBOARD
 #define USE_FRSKYOSD
 #define USE_GPS
 #define USE_GPS_NMEA
@@ -379,8 +368,6 @@
 #define USE_ESC_SENSOR_TELEMETRY
 #define USE_OSD_PROFILES
 #define USE_OSD_STICK_OVERLAY
-#define USE_ESCSERIAL_SIMONK
-#define USE_SERIAL_4WAY_SK_BOOTLOADER
 #define USE_CMS_FAILSAFE_MENU
 #define USE_CMS_GPS_RESCUE_MENU
 #define USE_TELEMETRY_SENSORS_DISABLED_DETAILS
@@ -396,4 +383,11 @@
 #define USE_SMITH_PREDICTOR
 #define USE_RX_LINK_UPLINK_POWER
 #define USE_GPS_PLUS_CODES
+#define USE_CRSF_V3
+#endif
+
+#if (TARGET_FLASH_SIZE > 512)
+#define USE_ESCSERIAL_SIMONK
+#define USE_SERIAL_4WAY_SK_BOOTLOADER
+#define USE_DASHBOARD
 #endif
