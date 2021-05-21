@@ -79,7 +79,7 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 
     float e = constrainf(kalmanState->r / 45.0f + 0.005f, 0.005f, 0.9f);
     //make the 1 a configurable value for testing purposes
-    e = -powerf(e - 1.0f, 2) * 0.7f + (e - 1.0f) * (1.0f - 0.7f) + 1.0f;
+    e = -powf(e - 1.0f, 2) * 0.7f + (e - 1.0f) * (1.0f - 0.7f) + 1.0f;
     kalmanState->e = e;
 
     //prediction update
