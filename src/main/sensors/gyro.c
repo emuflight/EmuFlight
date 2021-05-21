@@ -1080,10 +1080,9 @@ static FAST_CODE void checkForYawSpin(gyroSensor_t *gyroSensor, timeUs_t current
 #endif // USE_YAW_SPIN_RECOVERY
 
 #ifdef USE_SMITH_PREDICTOR
-float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered, int axis) {
+float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered) {
   if (smithPredictor->samples > 1) {
     smithPredictor->data[smithPredictor->idx] = gyroFiltered;
-    float input = gyroFiltered;
 
     smithPredictor->idx++;
     if (smithPredictor->idx > smithPredictor->samples) {
