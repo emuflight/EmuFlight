@@ -316,7 +316,7 @@ static void dps310StartUP(baroDev_t *baro)
     return true;
 }
 
-static void busDeviceInit(busDevice_t *busdev, resourceOwner_e owner)
+static void busDeviceInit(busDevice_t *busdev)
 {
 #ifdef USE_BARO_SPI_DPS310
     if (busdev->bustype == BUSTYPE_SPI) {

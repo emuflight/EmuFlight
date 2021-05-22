@@ -68,7 +68,6 @@
 #define USE_BARO_BMP280
 #define USE_BARO_BMP085
 #define USE_BARO_DPS310
-#define USE_BARO_SPI_DPS310
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
