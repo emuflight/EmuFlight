@@ -118,6 +118,7 @@ bool spiBusWriteRegister(const busDevice_t *bus, uint8_t reg, uint8_t data);
 bool spiBusReadRegisterBuffer(const busDevice_t *bus, uint8_t reg, uint8_t *data, uint8_t length);
 uint8_t spiBusReadRegister(const busDevice_t *bus, uint8_t reg);
 void spiBusSetInstance(busDevice_t *bus, SPI_TypeDef *instance);
+uint16_t spiCalculateDivider(uint32_t freq);
 
 struct spiPinConfig_s;
 void spiPinConfigure(const struct spiPinConfig_s *pConfig);
