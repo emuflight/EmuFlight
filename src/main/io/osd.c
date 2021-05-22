@@ -153,6 +153,7 @@ timeUs_t resumeRefreshAt = 0;
 
 static uint8_t armState;
 static bool lastArmState;
+char djiWarningBuffer[12];
 
 static displayPort_t *osdDisplayPort;
 
