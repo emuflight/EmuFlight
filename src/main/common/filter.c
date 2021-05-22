@@ -237,7 +237,7 @@ FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input)
   rk = input - filter->xk;
   
   // artificially boost the error to increase the response of the filter
-  rk += pt1FilterApply(&filter->velFilter, (fabsf(rk) * rk * filter->boost));
+  rk += pt1FilterApply(&filter->boostFilter, (fabsf(rk) * rk * filter->boost));
   filter->rk = rk; // for logging
   
   // update our estimates given the residual error.
