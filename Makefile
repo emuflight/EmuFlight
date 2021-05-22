@@ -109,9 +109,17 @@ PRE_PUSH_TARGET_LIST ?= $(UNIFIED_TARGETS) NUCLEOH743 SITL STM32F4DISCOVERY_DEBU
 
 include $(ROOT)/make/targets.mk
 
-REVISION := norevision
+BUILDDATETIME := $(shell date +'%Y%m%d%Z')
+REVISION := uncommitted_$(BUILDDATETIME)
 ifeq ($(shell git diff --shortstat),)
 REVISION := $(shell git log -1 --format="%h")
+endif
+
+# build number - default for local builds
+BUILDNO := local
+# github actions build
+ifneq ($(GITHUBBUILDNUMBER),)
+BUILDNO := $(GITHUBBUILDNUMBER)
 endif
 
 FC_VER_MAJOR := $(shell grep " FC_VERSION_MAJOR" src/main/build/version.h | awk '{print $$3}' )
@@ -299,7 +307,13 @@ CPPCHECK        = cppcheck $(CSOURCES) --enable=all --platform=unix64 \
                   -I/usr/include -I/usr/include/linux
 
 
-TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET)_$(REVISION)
+#TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET)_$(REVISION)
+ifneq ($(BUILDNO),local)
+TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET)_Build_$(BUILDNO)_$(REVISION)
+else
+TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET)_Build_$(REVISION)
+endif
+
 
 #
 # Things we will build
