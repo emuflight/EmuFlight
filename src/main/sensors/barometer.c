@@ -40,6 +40,7 @@
 #include "drivers/barometer/barometer_fake.h"
 #include "drivers/barometer/barometer_ms5611.h"
 #include "drivers/barometer/barometer_lps.h"
+#include "drivers/barometer/barometer_dps310.h"
 
 #include "fc/runtime_config.h"
 
@@ -151,7 +152,7 @@ static uint32_t baroPressureSum = 0;
 bool baroDetect(baroDev_t *dev, baroSensor_e baroHardwareToUse) {
     // Detect what pressure sensors are available. baro->update() is set to sensor-specific update function
     baroSensor_e baroHardware = baroHardwareToUse;
-#if !defined(USE_BARO_BMP085) && !defined(USE_BARO_MS5611) && !defined(USE_BARO_SPI_MS5611) && !defined(USE_BARO_BMP280) && !defined(USE_BARO_SPI_BMP280)&& !defined(USE_BARO_QMP6988) && !defined(USE_BARO_SPI_QMP6988)
+#if !defined(USE_BARO_BMP085) && !defined(USE_BARO_MS5611) && !defined(USE_BARO_SPI_MS5611) && !defined(USE_BARO_BMP280) && !defined(USE_BARO_SPI_BMP280)&& !defined(USE_BARO_QMP6988) && !defined(USE_BARO_SPI_QMP6988) && !defined(USE_BARO_SPI_DPS310)
     UNUSED(dev);
 #endif
     switch (barometerConfig()->baro_bustype) {
@@ -206,6 +207,16 @@ bool baroDetect(baroDev_t *dev, baroSensor_e baroHardwareToUse) {
         if (lpsDetect(dev)) {
             baroHardware = BARO_LPS;
             break;
+        }
+#endif
+        FALLTHROUGH;
+        case BARO_DPS310:
+#if defined(USE_BARO_DPS310) || defined(USE_BARO_SPI_DPS310)
+        {
+            if (baroDPS310Detect(dev)) {
+                baroHardware = BARO_DPS310;
+                break;
+            }
         }
 #endif
         FALLTHROUGH;
