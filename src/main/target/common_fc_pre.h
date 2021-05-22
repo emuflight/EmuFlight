@@ -57,7 +57,7 @@
 #define USE_GYRO_DATA_ANALYSE
 #define USE_ADC
 #define USE_ADC_INTERNAL
-#define USE_USB_CDC_HID
+//#define USE_USB_CDC_HID
 #define USE_USB_MSC
 
 #if defined(STM32F40_41xxx) || defined(STM32F411xE)
@@ -76,7 +76,7 @@
 #define USE_GYRO_DATA_ANALYSE
 #define USE_OVERCLOCK
 #define USE_ADC_INTERNAL
-#define USE_USB_CDC_HID
+//#define USE_USB_CDC_HID
 #define USE_USB_MSC
 #endif
 
@@ -138,7 +138,7 @@
 
 
 #if (FLASH_SIZE > 64)
-#define PID_PROFILE_COUNT 1
+#define PID_PROFILE_COUNT 2
 #else
 #define PID_PROFILE_COUNT 1
 #endif
@@ -148,25 +148,25 @@
 #define USE_RESOURCE_MGMT
 #define USE_RUNAWAY_TAKEOFF     // Runaway Takeoff Prevention (anti-taz) - Marked for removal
 #define USE_TELEMETRY
-#define USE_TELEMETRY_FRSKY_HUB
+//#define USE_TELEMETRY_FRSKY_HUB
 //#define USE_TELEMETRY_HOTT
 //#define USE_TELEMETRY_LTM
-#define USE_TELEMETRY_SMARTPORT
+//#define USE_TELEMETRY_SMARTPORT
 #endif
 
 #if (FLASH_SIZE > 128)
-#define USE_PEGASUS_UI
+//#define USE_PEGASUS_UI
 #define USE_SMITH_PREDICTOR
-#define USE_SERIALRX_SUMH       // Graupner legacy protocol
+//#define USE_SERIALRX_SUMH       // Graupner legacy protocol
 #define USE_CAMERA_CONTROL
 #define USE_CMS
 //#define USE_EXTENDED_CMS_MENUS
 #define USE_DSHOT_DMAR
 #define USE_GYRO_OVERFLOW_CHECK
 #define USE_YAW_SPIN_RECOVERY
-//#define USE_HUFFMAN
-#define USE_MSP_DISPLAYPORT
-#define USE_MSP_OVER_TELEMETRY
+#define USE_HUFFMAN
+//#define USE_MSP_DISPLAYPORT
+//#define USE_MSP_OVER_TELEMETRY
 #define MSP_OVER_CLI
 #define USE_OSD
 #define USE_OSD_OVER_MSP_DISPLAYPORT
@@ -175,7 +175,7 @@
 #define USE_RCDEVICE
 #define USE_RTC_TIME
 #define USE_RX_MSP
-#define USE_SERIALRX_FPORT      // FrSky FPort
+//#define USE_SERIALRX_FPORT      // FrSky FPort
 #define USE_TELEMETRY_CRSF
 //#define USE_TELEMETRY_GHST
 //#define USE_TELEMETRY_SRXL
@@ -183,9 +183,9 @@
 #define USE_VTX_COMMON
 #define USE_VTX_CONTROL
 #define USE_VTX_SMARTAUDIO
-#define USE_VTX_TRAMP
+//#define USE_VTX_TRAMP
 #define USE_SERIAL_4WAY_BLHELI_BOOTLOADER
-#define USE_GYRO_LPF2
+//#define USE_GYRO_LPF2
 #define USE_ESC_SENSOR
 #define USE_ESC_SENSOR_INFO
 #define USE_CRSF_CMS_TELEMETRY
@@ -210,20 +210,20 @@
 #define USE_LED_STRIP
 #define USE_ALT_HOLD
 #define USE_DASHBOARD
-//#define USE_GPS
-//#define USE_GPS_NMEA
-//#define USE_GPS_UBLOX
-//#define USE_GPS_RESCUE
+#define USE_GPS
+#define USE_GPS_NMEA
+#define USE_GPS_UBLOX
+#define USE_GPS_RESCUE
 #define USE_OSD
 #define USE_OSD_OVER_MSP_DISPLAYPORT
 #define USE_OSD_ADJUSTMENTS
 #define USE_SENSOR_NAMES
-//#define USE_SERIALRX_JETIEXBUS
-//#define USE_TELEMETRY_IBUS
-//#define USE_TELEMETRY_IBUS_EXTENDED
-//#define USE_TELEMETRY_JETIEXBUS
+#define USE_SERIALRX_JETIEXBUS
+#define USE_TELEMETRY_IBUS
+#define USE_TELEMETRY_IBUS_EXTENDED
+#define USE_TELEMETRY_JETIEXBUS
 #define USE_TELEMETRY_MAVLINK
-//#define USE_UNCOMMON_MIXERS
+#define USE_UNCOMMON_MIXERS
 #define USE_SIGNATURE
 #define USE_CMS_FAILSAFE_MENU
 #define USE_CMS_GPS_RESCUE_MENU
