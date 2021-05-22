@@ -291,8 +291,8 @@ static void applyFlipOverAfterCrashModeToMotors(void)
         float signRoll = getRcDeflection(FD_ROLL) < 0 ? 1 : -1;
         float signYaw = (getRcDeflection(FD_YAW) < 0 ? 1 : -1) * (mixerConfig()->yaw_motors_reversed ? 1 : -1);
 
-        float stickDeflectionLength = sqrtf(sq(stickDeflectionPitchAbs) + sq(stickDeflectionRollAbs));
-        float stickDeflectionExpoLength = sqrtf(sq(stickDeflectionPitchExpo) + sq(stickDeflectionRollExpo));
+        float stickDeflectionLength = fast_fsqrtf(sq(stickDeflectionPitchAbs) + sq(stickDeflectionRollAbs));
+        float stickDeflectionExpoLength = fast_fsqrtf(sq(stickDeflectionPitchExpo) + sq(stickDeflectionRollExpo));
 
         if (stickDeflectionYawAbs > MAX(stickDeflectionPitchAbs, stickDeflectionRollAbs)) {
             // If yaw is the dominant, disable pitch and roll
@@ -305,8 +305,8 @@ static void applyFlipOverAfterCrashModeToMotors(void)
             signYaw = 0;
         }
 
-        const float cosPhi = (stickDeflectionLength > 0) ? (stickDeflectionPitchAbs + stickDeflectionRollAbs) / (sqrtf(2.0f) * stickDeflectionLength) : 0;
-        const float cosThreshold = sqrtf(3.0f)/2.0f; // cos(PI/6.0f)
+        const float cosPhi = (stickDeflectionLength > 0) ? (stickDeflectionPitchAbs + stickDeflectionRollAbs) / (fast_fsqrtf(2.0f) * stickDeflectionLength) : 0;
+        const float cosThreshold = fast_fsqrtf(3.0f)/2.0f; // cos(PI/6.0f)
 
         if (cosPhi < cosThreshold) {
             // Enforce either roll or pitch exclusively, if not on diagonal

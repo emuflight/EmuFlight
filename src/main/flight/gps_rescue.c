@@ -476,7 +476,7 @@ static void sensorUpdate()
         rescueState.sensor.zVelocity = (rescueState.sensor.currentAltitudeCm - previousAltitudeCm) * 1000000.0f / dTime;
         rescueState.sensor.zVelocityAvg = 0.8f * rescueState.sensor.zVelocityAvg + rescueState.sensor.zVelocity * 0.2f;
 
-        rescueState.sensor.accMagnitude = (float) sqrtf(sq(acc.accADC[Z]) + sq(acc.accADC[X]) + sq(acc.accADC[Y])) * acc.dev.acc_1G_rec;
+        rescueState.sensor.accMagnitude = (float) fast_fsqrtf(sq(acc.accADC[Z]) + sq(acc.accADC[X]) + sq(acc.accADC[Y])) * acc.dev.acc_1G_rec;
         rescueState.sensor.accMagnitudeAvg = (rescueState.sensor.accMagnitudeAvg * 0.8f) + (rescueState.sensor.accMagnitude * 0.2f);
 
         previousAltitudeCm = rescueState.sensor.currentAltitudeCm;

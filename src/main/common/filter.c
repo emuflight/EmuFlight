@@ -31,7 +31,7 @@
 
 #define M_LN2_FLOAT 0.69314718055994530942f
 #define M_PI_FLOAT  3.14159265358979323846f
-#define BIQUAD_Q 1.0f / sqrtf(2.0f)     /* quality factor - 2nd order butterworth*/
+#define BIQUAD_Q 1.0f / fast_fsqrtf(2.0f)     /* quality factor - 2nd order butterworth*/
 
 // NULL filter
 
@@ -298,7 +298,7 @@ float ABGResidualError(alphaBetaGammaFilter_t *filter) {
 
 FAST_CODE void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT) {
 
-	  // AdjCutHz = CutHz /(sqrtf(powf(2, 1/Order) -1))
+	  // AdjCutHz = CutHz /(fast_fsqrtf(powf(2, 1/Order) -1))
     const float ScaleF[] = { 1.0f, 1.553773974f, 1.961459177f, 2.298959223f };
     float Adj_f_cut;
 

@@ -147,7 +147,7 @@ MAVLINK_HELPER void mavlink_dcm_to_quaternion(const float dcm[3][3], float quate
 {
     float tr = dcm[0][0] + dcm[1][1] + dcm[2][2];
     if (tr > 0.0f) {
-        float s = sqrtf(tr + 1.0f);
+        float s = fast_fsqrtf(tr + 1.0f);
         quaternion[0] = s * 0.5f;
         s = 0.5f / s;
         quaternion[1] = (dcm[2][1] - dcm[1][2]) * s;
@@ -167,7 +167,7 @@ MAVLINK_HELPER void mavlink_dcm_to_quaternion(const float dcm[3][3], float quate
         int dcm_j = (dcm_i + 1) % 3;
         int dcm_k = (dcm_i + 2) % 3;
 
-        float s = sqrtf((dcm[dcm_i][dcm_i] - dcm[dcm_j][dcm_j] -
+        float s = fast_fsqrtf((dcm[dcm_i][dcm_i] - dcm[dcm_j][dcm_j] -
                     dcm[dcm_k][dcm_k]) + 1.0f);
         quaternion[dcm_i + 1] = s * 0.5f;
         s = 0.5f / s;

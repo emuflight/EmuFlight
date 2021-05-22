@@ -28,8 +28,22 @@
 #include "axis.h"
 #include "maths.h"
 
+#ifdef USE_ARM_MATH
+#include "arm_math.h"
+#endif
+
 #if defined(FAST_MATH) || defined(VERY_FAST_MATH)
 #if defined(VERY_FAST_MATH)
+
+float fast_fsqrtf(const double value) {
+#ifdef USE_ARM_MATH
+    float squirt;
+    arm_sqrt_f32(value, &squirt);
+    return squirt;
+#else
+    return sqrtf(value);
+#endif
+}
 
 // http://lolengine.net/blog/2011/12/21/better-function-approximations
 // Chebyshev http://stackoverflow.com/questions/345085/how-do-trigonometric-functions-work/345117#345117
@@ -98,7 +112,7 @@ float atan2_approx(float y, float x)
 float acos_approx(float x)
 {
     float xa = fabsf(x);
-    float result = sqrtf(1.0f - xa) * (1.5707288f + xa * (-0.2121144f + xa * (0.0742610f + (-0.0187293f * xa))));
+    float result = fast_fsqrtf(1.0f - xa) * (1.5707288f + xa * (-0.2121144f + xa * (0.0742610f + (-0.0187293f * xa))));
     if (x < 0.0f)
         return M_PIf - result;
     else
@@ -150,7 +164,7 @@ float devVariance(stdev_t *dev)
 
 float devStandardDeviation(stdev_t *dev)
 {
-    return sqrtf(devVariance(dev));
+    return fast_fsqrtf(devVariance(dev));
 }
 
 float degreesToRadians(int16_t degrees)
