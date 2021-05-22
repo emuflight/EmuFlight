@@ -151,3 +151,10 @@
 #include "target/common_deprecated_post.h"
 #include "target/common_post.h"
 #include "target/common_defaults_post.h"
+
+#define USE_ARM_MATH // try to use FPU functions
+
+#if defined(UNIT_TEST) || defined(SIMULATOR_BUILD)
+// This feature uses 'arm_math.h', which does not exist for x86.
+#undef USE_ARM_MATH
+#endif 

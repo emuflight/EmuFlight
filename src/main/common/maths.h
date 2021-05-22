@@ -99,6 +99,7 @@ typedef struct fp_rotationMatrix_s {
     float m[3][3];              // matrix
 } fp_rotationMatrix_t;
 
+float fast_fsqrtf(const double value);
 int gcd(int num, int denom);
 int32_t applyDeadband(int32_t value, int32_t deadband);
 

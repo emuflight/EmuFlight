@@ -739,7 +739,7 @@ static bool osdDisplayStat(int statistic, uint8_t displayRow)
         osdDisplayStatisticLabel(displayRow, osdConfig()->stat_show_cell_value ? "END AVG CELL" : "END BATTERY", buff);
         return true;
 
-    case OSD_STAT_BATTERY: 
+    case OSD_STAT_BATTERY:
         {
             const uint16_t statsVoltage = getStatsVoltage();
             osdPrintFloat(buff, SYM_NONE, statsVoltage / 100.0f, "", 2, true, SYM_VOLT);
@@ -747,7 +747,7 @@ static bool osdDisplayStat(int statistic, uint8_t displayRow)
             return true;
         }
         break;
-        
+
     case OSD_STAT_MIN_RSSI:
         itoa(stats.min_rssi, buff, 10);
         strcat(buff, "%");
@@ -1022,7 +1022,7 @@ STATIC_UNIT_TESTED void osdRefresh(timeUs_t currentTimeUs)
             const float a = accAverage[axis];
             osdGForce += a * a;
         }
-        osdGForce = sqrtf(osdGForce) * acc.dev.acc_1G_rec;
+        osdGForce = fast_fsqrtf(osdGForce) * acc.dev.acc_1G_rec;
     }
 #endif
 
