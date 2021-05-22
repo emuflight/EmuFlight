@@ -323,7 +323,7 @@ static void busDeviceInit(busDevice_t *busdev, resourceOwner_e owner)
         IOHi(busdev->busdev_u.spi.csnPin); // Disable
         IOInit(busdev->busdev_u.spi.csnPin, owner, 0);
         IOConfigGPIO(busdev->busdev_u.spi.csnPin, IOCFG_OUT_PP);
-        spiSetDivisor(busdev, spiCalculateDivider(DPS310_MAX_SPI_CLK_HZ));
+        spiSetDivisor(busdev, SPI_CLOCK_STANDARD);
     }
 #else
     UNUSED(busdev);
