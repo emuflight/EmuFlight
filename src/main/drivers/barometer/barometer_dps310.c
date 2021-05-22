@@ -311,7 +311,7 @@ static void dps310StartUP(baroDev_t *baro)
     // 1. Kick off read
     // No need to poll for data ready as the conversion rate is 32Hz and this is sampling at 20Hz
     // Read PSR_B2, PSR_B1, PSR_B0, TMP_B2, TMP_B1, TMP_B0
-     busReadRegisterBufferStart(&baro->busdev, DPS310_REG_PSR_B2, buf, 6);
+    busReadRegisterBuffer(&baro->busdev, DPS310_REG_PSR_B2, buf, 6);
 
     return true;
 }
@@ -326,7 +326,7 @@ static void busDeviceInit(busDevice_t *busdev, resourceOwner_e owner)
 #ifdef USE_SPI_TRANSACTION
         spiBusTransactionInit(busdev, SPI_MODE0_POL_LOW_EDGE_1ST, spiCalculateDivider(DPS310_MAX_SPI_CLK_HZ)); // DPS310 supports Mode 0 or 3
 #else
-        spiBusSetDivisor(busdev, spiCalculateDivider(DPS310_MAX_SPI_CLK_HZ));
+        spiSetDivisor(busdev, spiCalculateDivider(DPS310_MAX_SPI_CLK_HZ));
 #endif
     }
 #else
@@ -339,7 +339,7 @@ static void busDeviceDeInit(busDevice_t *busdev)
 {
 #ifdef USE_BARO_SPI_DPS310
     if (busdev->bustype == BUSTYPE_SPI) {
-        spiPreinitByIO(busdev->busdev_u.spi.csnPin);
+        spiPreinitCsByIO(busdev->busdev_u.spi.csnPin);
     }
 #else
     UNUSED(busdev);
