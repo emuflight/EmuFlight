@@ -42,9 +42,6 @@
 #include "drivers/barometer/barometer_dps310.h"
 #include "drivers/resource.h"
 
-// 10 MHz max SPI frequency
-#define DPS310_MAX_SPI_CLK_HZ 10000000
-
 #if defined(USE_BARO) && defined(USE_BARO_DPS310)
 
 #define DPS310_I2C_ADDR             0x76
