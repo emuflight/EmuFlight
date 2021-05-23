@@ -223,7 +223,7 @@ static bool deviceConfigure(busDevice_t * busDev)
     return true;
 }
 
-static bool dps310GetUP(baroDev_t *baro)
+static void dps310GetUP(baroDev_t *baro)
 {
     UNUSED(baro);
 
@@ -255,8 +255,6 @@ static bool dps310GetUP(baroDev_t *baro)
 
     baroState.pressure = c00 + Praw_sc * (c10 + Praw_sc * (c20 + Praw_sc * c30)) + Traw_sc * c01 + Traw_sc * Praw_sc * (c11 + Praw_sc * c21);
     baroState.temperature = c0 * 0.5f + c1 * Traw_sc;
-
-    return true;
 }
 
 static void deviceCalculate(int32_t *pressure, int32_t *temperature)
@@ -295,25 +293,17 @@ static void dps310StartUT(baroDev_t *baro)
     UNUSED(baro);
 }
 
-static bool dps310GetUT(baroDev_t *baro)
+static void dps310GetUT(baroDev_t *baro)
 {
     UNUSED(baro);
-
-    return true;
 }
 
 static void dps310StartUP(baroDev_t *baro)
 {
-    if (busBusy(&baro->busdev, NULL)) {
-        return false;
-    }
-
     // 1. Kick off read
     // No need to poll for data ready as the conversion rate is 32Hz and this is sampling at 20Hz
     // Read PSR_B2, PSR_B1, PSR_B0, TMP_B2, TMP_B1, TMP_B0
     busReadRegisterBuffer(&baro->busdev, DPS310_REG_PSR_B2, buf, 6);
-
-    return true;
 }
 
 static void busDeviceInit(busDevice_t *busdev)
@@ -321,7 +311,7 @@ static void busDeviceInit(busDevice_t *busdev)
 #ifdef USE_BARO_SPI_DPS310
     if (busdev->bustype == BUSTYPE_SPI) {
         IOHi(busdev->busdev_u.spi.csnPin); // Disable
-        IOInit(busdev->busdev_u.spi.csnPin, owner, 0);
+        IOInit(busdev->busdev_u.spi.csnPin, OWNER_BARO_CS, 0);
         IOConfigGPIO(busdev->busdev_u.spi.csnPin, IOCFG_OUT_PP);
         spiSetDivisor(busdev, SPI_CLOCK_STANDARD);
     }
@@ -346,7 +336,7 @@ bool baroDPS310Detect(baroDev_t *baro)
     busDevice_t *busdev = &baro->busdev;
     bool defaultAddressApplied = false;
 
-    busDeviceInit(&baro->busdev, OWNER_BARO_CS);
+    busDeviceInit(&baro->busdev);
 
     if ((busdev->bustype == BUSTYPE_I2C) && (busdev->busdev_u.i2c.address == 0)) {
         // Default address for BMP280
@@ -366,8 +356,6 @@ bool baroDPS310Detect(baroDev_t *baro)
         busDeviceDeInit(busdev);
         return false;
     }
-
-    busDeviceRegister(busdev);
 
     baro->ut_delay = 0;
     baro->start_ut = dps310StartUT;
