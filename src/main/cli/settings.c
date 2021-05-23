@@ -672,8 +672,8 @@ const clivalue_t valueTable[] = {
     { "adaptive_filter_length",     VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, MAX_ADAPTIVE_FILTER_TAPS },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, adaptive_filter_length) },
     { "adaptive_filter_step_size",  VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 10000 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, adaptive_filter_step_size) },
     { "adaptive_filter_delay",      VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, MAX_ADAPTIVE_FILTER_TAPS },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, adaptive_filter_delay) },
-    { "adaptive_filter_crossfeed",  VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 10000 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, adaptive_filter_crossfeed) },
-    { "adaptive_filter_regularization",  VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 100 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, adaptive_filter_regularization) },
+    { "adaptive_filter_crossfeed",  VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 10000 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, adaptive_filter_crossfeed) },
+    { "adaptive_filter_regularization",  VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 100 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, adaptive_filter_regularization) },
 // PG_ACCELEROMETER_CONFIG
 #if defined(USE_ACC)
     { "acc_hardware",               VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ACC_HARDWARE }, PG_ACCELEROMETER_CONFIG, offsetof(accelerometerConfig_t, acc_hardware) },
