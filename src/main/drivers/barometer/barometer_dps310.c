@@ -327,7 +327,6 @@ static void busDeviceInit(busDevice_t *busdev)
     }
 #else
     UNUSED(busdev);
-    UNUSED(owner);
 #endif
 }
 
