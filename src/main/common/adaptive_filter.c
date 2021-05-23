@@ -52,8 +52,6 @@ static float filter(float input, adaptiveFilter_t *pData) {
   if (pData->squaredNorm < 0.0f) {
       pData->squaredNorm = 0.0f;
   }
-  //DEBUG_SET(DEBUG_ADAPTIVE_FILTER, 2, lrintf(pData->squaredNorm * 1000));
-
 
 	// overwrite oldest input with new input
 	pData->pBuffer[pData->BufferIdx++] = input;
