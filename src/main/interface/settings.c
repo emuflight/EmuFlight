@@ -548,7 +548,7 @@ const clivalue_t valueTable[] = {
     { "dynamic_gyro_notch_max_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 400, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_max_hz) },
 #endif
 #ifdef USE_SMITH_PREDICTOR
-    { "smith_predict_enable",       VAR_UINT8  | MASTER_VALUE, .config.lookup = { TABLE_OFF_ON },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorEnable) },
+    { "smith_predict_enabled",      VAR_UINT8  | MASTER_VALUE, .config.lookup = { TABLE_OFF_ON },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorEnable) },
     { "smith_predict_str",          VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 100 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorStrength) },
     { "smith_predict_delay",        VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 120 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorDelay) },
     { "smith_predict_filt_hz",      VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 10000 },  PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorFilterHz) },
