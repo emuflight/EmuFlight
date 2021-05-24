@@ -88,6 +88,7 @@ typedef enum {
 
 #ifdef USE_SMITH_PREDICTOR
 typedef struct smithPredictor_s {
+    uint8_t enabled;
     uint8_t samples;
     uint8_t idx;
 
