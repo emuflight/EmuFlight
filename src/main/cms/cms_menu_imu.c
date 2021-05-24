@@ -501,7 +501,7 @@ static uint16_t gyroConfig_imuf_w;
 static uint16_t gyroConfig_imuf_sharpness;
 #endif
 #ifdef USE_SMITH_PREDICTOR
-static uint8_t smithPredictor_enable;
+static uint8_t smithPredictor_enabled;
 static uint8_t smithPredictor_strength;
 static uint8_t smithPredictor_delay;
 static uint16_t smithPredictor_filt_hz;
@@ -533,7 +533,7 @@ static long cmsx_menuGyro_onEnter(void) {
     gyroConfig_imuf_sharpness = gyroConfig()->imuf_sharpness;
 #endif
 #ifdef USE_SMITH_PREDICTOR
-    smithPredictor_enable    = gyroConfig()->smithPredictorEnable;
+    smithPredictor_enabled   = gyroConfig()->smithPredictorEnabled;
     smithPredictor_strength  = gyroConfig()->smithPredictorStrength;
     smithPredictor_delay     = gyroConfig()->smithPredictorDelay;
     smithPredictor_filt_hz   = gyroConfig()->smithPredictorFilterHz;
@@ -567,7 +567,7 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self) {
     gyroConfigMutable()->imuf_sharpness = gyroConfig_imuf_sharpness;
 #endif
 #ifdef USE_SMITH_PREDICTOR
-    gyroConfigMutable()->smithPredictorEnable = smithPredictor_enable;
+    gyroConfigMutable()->smithPredictorEnabled = smithPredictor_enabled;
     gyroConfigMutable()->smithPredictorStrength = smithPredictor_strength;
     gyroConfigMutable()->smithPredictorDelay = smithPredictor_delay;
     gyroConfigMutable()->smithPredictorFilterHz = smithPredictor_filt_hz;
@@ -607,7 +607,7 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] = {
     { "GYRO ABG HL",      OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_abg_half_life,       0, 250, 1 }, 0 },
 
 #ifdef USE_SMITH_PREDICTOR
-    { "SMITH ENABLE",    OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &smithPredictor_enable, 1, cms_offOnLabels }, 0 },
+    { "SMITH ENABLED",   OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &smithPredictor_enabled, 1, cms_offOnLabels }, 0 },
     { "SMITH STR",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_strength,    0, 100, 1 }, 0 },
     { "SMITH DELAY",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_delay,       0, 120, 1 }, 0 },
     { "SMITH FILT",      OME_UINT16, NULL, &(OSD_UINT16_t) { &smithPredictor_filt_hz,   1, 1000, 1 }, 0 },
