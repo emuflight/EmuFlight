@@ -1201,6 +1201,7 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("emu_boost_limit_yaw", "%d",             currentPidProfile->errorBoostLimitYaw);
         BLACKBOX_PRINT_HEADER_LINE("dterm_boost", "%d",                     currentPidProfile->dtermBoost);
         BLACKBOX_PRINT_HEADER_LINE("dterm_boost_limit", "%d",               currentPidProfile->dtermBoostLimit);
+        BLACKBOX_PRINT_HEADER_LINE("emu_gravity", "%d",                     currentPidProfile->emuGravityGain);
         BLACKBOX_PRINT_HEADER_LINE("acc_limit_yaw", "%d",                   currentPidProfile->yawRateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("acc_limit", "%d",                       currentPidProfile->rateAccelLimit);
         BLACKBOX_PRINT_HEADER_LINE("pidsum_limit", "%d",                    currentPidProfile->pidSumLimit);
