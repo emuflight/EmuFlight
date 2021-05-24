@@ -150,7 +150,7 @@ typedef struct gyroConfig_s {
     uint16_t imuf_w;
     uint16_t imuf_sharpness;
 
-    uint8_t smithEnabled;
+    uint8_t smithPredictorEnabled;
     uint8_t smithPredictorStrength;
     uint8_t smithPredictorDelay;
     uint16_t smithPredictorFilterHz;
