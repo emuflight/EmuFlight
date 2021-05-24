@@ -125,9 +125,9 @@ void resetPidProfile(pidProfile_t *pidProfile) {
         [PID_MAG] = {40, 0, 0, 0},
     },
     .dFilter = {
-        [PID_ROLL] = {2, 90, 200, 0},  // wc, dtermlpf, dtermlpf2, smartSmoothing
-        [PID_PITCH] = {2, 90, 200, 0}, // wc, dtermlpf, dtermlpf2, smartSmoothing
-        [PID_YAW] = {0, 90, 200, 0},    // wc, dtermlpf, dtermlpf2, smartSmoothing
+        [PID_ROLL] = {90, 200},  // dtermlpf, dtermlpf2
+        [PID_PITCH] = {90, 200}, // dtermlpf, dtermlpf2
+        [PID_YAW] = {90, 200},   // dtermlpf, dtermlpf2
     },
     .pidSumLimit = PIDSUM_LIMIT_MAX,
     .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
@@ -397,7 +397,6 @@ void pidInitConfig(const pidProfile_t *pidProfile) {
         setPointPTransition[axis] = pidProfile->setPointPTransition[axis] / 100.0f;
         setPointITransition[axis] = pidProfile->setPointITransition[axis] / 100.0f;
         setPointDTransition[axis] = pidProfile->setPointDTransition[axis] / 100.0f;
-        smart_dterm_smoothing[axis] = pidProfile->dFilter[axis].smartSmoothing;
     }
     directFF[0] = DIRECT_FF_SCALE * pidProfile->directFF_yaw;
     DF_angle_low = DIRECT_FF_SCALE * pidProfile->pid[PID_LEVEL_LOW].I;
@@ -803,15 +802,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
             dDelta = dtermLowpass2ApplyFn((filter_t *)&dtermLowpass2[axis], dDelta);
             dDelta = dtermABGapplyFn((filter_t *)&dtermABG[axis], dDelta);
-            if (pidProfile->dFilter[axis].Wc > 1) {
-                kdRingBuffer[axis][kdRingBufferPoint[axis]++] = dDelta;
-                kdRingBufferSum[axis] += dDelta;
-                if (kdRingBufferPoint[axis] == pidProfile->dFilter[axis].Wc) {
-                    kdRingBufferPoint[axis] = 0;
-                }
-                dDelta = (float)(kdRingBufferSum[axis] / (float)(pidProfile->dFilter[axis].Wc));
-                kdRingBufferSum[axis] -= kdRingBuffer[axis][kdRingBufferPoint[axis]];
-            }
             //dterm boost, similar to emuboost
             float boostedDtermRate;
             boostedDtermRate = (dDelta * fabsf(dDelta)) * dtermBoostMultiplier;
@@ -820,13 +810,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             }
             dDelta += boostedDtermRate;
             dDelta = pidCoefficient[axis].Kd * dDelta;
-            float dDeltaMultiplier;
-            if (smart_dterm_smoothing[axis] > 0) {
-                dDeltaMultiplier = constrainf(fabsf((dDelta + previousdDelta[axis]) / (4 * smart_dterm_smoothing[axis])) + 0.5, 0.5f, 1.0f); //smooth transition from 0.5-1.0f for the multiplier.
-                dDelta = dDelta * dDeltaMultiplier;
-                previousdDelta[axis] = dDelta;
-                DEBUG_SET(DEBUG_SMART_SMOOTHING, axis, dDeltaMultiplier * 1000.0f);
-            }
             // Divide rate change by dT to get differential (ie dr/dt).
             // dT is fixed and calculated from the target PID loop time
             // This is done to avoid DTerm spikes that occur with dynamically
