@@ -533,7 +533,7 @@ static long cmsx_menuGyro_onEnter(void) {
     gyroConfig_imuf_sharpness = gyroConfig()->imuf_sharpness;
 #endif
 #ifdef USE_SMITH_PREDICTOR
-    smithPredictor_enabled   = gyroConfig()->smithEnabled;
+    smithPredictor_enabled   = gyroConfig()->smithPredictorEnabled;
     smithPredictor_strength  = gyroConfig()->smithPredictorStrength;
     smithPredictor_delay     = gyroConfig()->smithPredictorDelay;
     smithPredictor_filt_hz   = gyroConfig()->smithPredictorFilterHz;
