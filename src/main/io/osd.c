@@ -769,7 +769,7 @@ static bool osdDrawSingleElement(uint8_t item) {
             const float a = accAverage[axis];
             osdGForce += a * a;
         }
-        osdGForce = sqrtf(osdGForce) / acc.dev.acc_1G;
+        osdGForce = fast_fsqrtf(osdGForce) / acc.dev.acc_1G;
         tfp_sprintf(buff, "%01d.%01dG", (int)osdGForce, (int)(osdGForce * 10) % 10);
         break;
     }
