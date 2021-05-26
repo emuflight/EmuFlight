@@ -106,8 +106,6 @@ typedef struct {
 
 static baroState_t  baroState;
 
-static uint8_t buf[6];
-
 // Helper functions
 static uint8_t registerRead(busDevice_t * busDev, uint8_t reg)
 {
