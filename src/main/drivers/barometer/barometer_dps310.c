@@ -169,7 +169,7 @@ static bool deviceConfigure(busDevice_t * busDev)
     // 1. Read the pressure calibration coefficients (c00, c10, c20, c30, c01, c11, and c21) from the Calibration Coefficient register.
     //   Note: The coefficients read from the coefficient register are 2's complement numbers.
     uint8_t coef[18];
-    if (!busReadBuf(busDev, DPS310_REG_COEF, coef, sizeof(coef))) {
+    if (!busReadRegisterBuffer(busDev, DPS310_REG_COEF, coef, sizeof(coef))) {
         return false;
     }
 
@@ -293,7 +293,7 @@ static bool deviceDetect(busDevice_t * busDev)
 
         delay(100);
 
-        bool ack = busReadBuf(busDev, DPS310_REG_ID, chipId, 1);
+        bool ack = busReadRegisterBuffer(busDev, DPS310_REG_ID, chipId, 1);
 
         if (ack && chipId[0] == DPS310_ID_REV_AND_PROD_ID) {
             return true;
