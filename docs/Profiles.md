@@ -30,9 +30,6 @@ Three rate profiles are supported.
 
 Rate profiles can be selected while flying using the inflight adjustments feature.
 
-Each normal profile has a setting called 'default_rate_profile`.  When a profile is activated the
-corresponding rate profile is also activated. 
-
 Profile 0 has a default rate profile of 0.
 Profile 1 has a default rate profile of 1.
 Profile 2 has a default rate profile of 2.
