@@ -77,8 +77,7 @@ A low-pass filter can be enabled for the servos.  It may be useful for avoiding 
 
 Currently it can only be configured via the CLI:
 
-1. Use `set servo_lowpass_freq = nnn` to select the cutoff frequency.  Valid values range from 10Hz to 400Hz, second order filter is used.
-2. Use `set servo_lowpass_enable = ON` to enable filtering.
+Use `set servo_lowpass_freq = nnn` to select the cutoff frequency.  Valid values range from 10Hz to 400Hz, second order filter is used.
 
 ### Tuning
 
