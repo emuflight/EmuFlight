@@ -42,7 +42,7 @@
 #include "drivers/barometer/barometer_dps310.h"
 #include "drivers/resource.h"
 
-//#if defined(USE_BARO) && defined(USE_BARO_DPS310)
+#if defined(USE_BARO) && defined(USE_BARO_DPS310)
 
 #define DPS310_I2C_ADDR             0x76
 
@@ -326,4 +326,4 @@ bool baroDPS310Detect(baroDev_t *baro)
     return true;
 }
 
-//#endif
+#endif
