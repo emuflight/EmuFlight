@@ -121,14 +121,19 @@ static void registerWrite(busDevice_t * busDev, uint8_t reg, uint8_t value)
     busWriteRegister(busDev, reg, value);
 }
 
-static void registerSetBits(busDevice_t * busDev, uint8_t reg, uint8_t setbits)
+static void registerWriteBits(busDevice_t * busDev, uint8_t reg, uint8_t mask, uint8_t bits)
 {
     uint8_t val = registerRead(busDev, reg);
 
-    if ((val & setbits) != setbits) {
-        val |= setbits;
-        registerWrite(busDev, reg, val);
+    if ((val & mask) != bits) {
+        val = (val & (~mask)) | bits;
+        busWriteRegister(busDev, reg, val);
     }
+}
+
+static void registerSetBits(busDevice_t * busDev, uint8_t reg, uint8_t setbits)
+{
+    registerWriteBits(busDev, reg, setbits, setbits);
 }
 
 static int32_t getTwosComplement(uint32_t raw, uint8_t length)
