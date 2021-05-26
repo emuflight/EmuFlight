@@ -231,12 +231,12 @@ static bool deviceConfigure(busDevice_t * busDev)
     return true;
 }
 
-static bool deviceReadMeasurement(baroDev_t *baro)
+static void deviceReadMeasurement(baroDev_t *baro)
 {
     // 1. Check if pressure is ready
     bool pressure_ready = registerRead(&baro->busdev, DPS310_REG_MEAS_CFG) & DPS310_MEAS_CFG_PRS_RDY;
     if (!pressure_ready) {
-        return false;
+        return;
     }
 
     // 2. Choose scaling factors kT (for temperature) and kP (for pressure) based on the chosen precision rate.
@@ -248,7 +248,7 @@ static bool deviceReadMeasurement(baroDev_t *baro)
     // Read PSR_B2, PSR_B1, PSR_B0, TMP_B2, TMP_B1, TMP_B0
     uint8_t buf[6];
     if (!busReadRegisterBuffer(&baro->busdev, DPS310_REG_PSR_B2, buf, 6)) {
-        return false;
+        return;
     }
 
     const int32_t Praw = getTwosComplement((buf[0] << 16) + (buf[1] << 8) + buf[2], 24);
