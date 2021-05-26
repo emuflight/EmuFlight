@@ -586,7 +586,7 @@ static void applyRollYawMix(void) {
 }
 
 static void applyPolarExpo(void) {
-    const float roll_pitch_mag = sqrtf((rcCommand[FD_ROLL] * rcCommand[FD_ROLL] / 250000.0f) + (rcCommand[FD_PITCH] * rcCommand[FD_PITCH] / 250000.0f));
+    const float roll_pitch_mag = fast_fsqrtf((rcCommand[FD_ROLL] * rcCommand[FD_ROLL] / 250000.0f) + (rcCommand[FD_PITCH] * rcCommand[FD_PITCH] / 250000.0f));
 
     float roll_pitch_scale;
     const float rollPitchMagExpo = currentControlRateProfile->rollPitchMagExpo / 100.0f;
