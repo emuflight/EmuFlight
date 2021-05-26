@@ -127,7 +127,7 @@ static void registerWriteBits(busDevice_t * busDev, uint8_t reg, uint8_t mask, u
 
     if ((val & mask) != bits) {
         val = (val & (~mask)) | bits;
-        busWriteRegister(busDev, reg, val);
+        registerWrite(busDev, reg, val);
     }
 }
 
