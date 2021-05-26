@@ -42,7 +42,7 @@
 #include "drivers/barometer/barometer_dps310.h"
 #include "drivers/resource.h"
 
-#if defined(USE_BARO) && defined(USE_BARO_DPS310)
+//#if defined(USE_BARO) && defined(USE_BARO_DPS310)
 
 #define DPS310_I2C_ADDR             0x76
 
@@ -106,9 +106,6 @@ typedef struct {
 
 static baroState_t  baroState;
 
-#define busReadBuf busReadRegisterBuffer
-#define busWrite   busWriteRegister
-
 static uint8_t buf[6];
 
 // Helper functions
@@ -119,7 +116,7 @@ static uint8_t registerRead(busDevice_t * busDev, uint8_t reg)
 
 static void registerWrite(busDevice_t * busDev, uint8_t reg, uint8_t value)
 {
-    busWrite(busDev, reg, value);
+    busWriteRegister(busDev, reg, value);
 }
 
 static void registerSetBits(busDevice_t * busDev, uint8_t reg, uint8_t setbits)
@@ -170,10 +167,10 @@ static bool deviceConfigure(busDevice_t * busDev)
 #define READ_LENGTH (COEFFICIENT_LENGTH / 2)
 
     uint8_t coef[COEFFICIENT_LENGTH];
-    if (!busReadBuf(busDev, DPS310_REG_COEF, coef, READ_LENGTH)) {
+    if (!busReadRegisterBuffer(busDev, DPS310_REG_COEF, coef, READ_LENGTH)) {
         return false;
     }
-     if (!busReadBuf(busDev, DPS310_REG_COEF + READ_LENGTH, coef + READ_LENGTH, COEFFICIENT_LENGTH - READ_LENGTH)) {
+     if (!busReadRegisterBuffer(busDev, DPS310_REG_COEF + READ_LENGTH, coef + READ_LENGTH, COEFFICIENT_LENGTH - READ_LENGTH)) {
         return false;
     }
 
@@ -220,9 +217,13 @@ static bool deviceConfigure(busDevice_t * busDev)
     return true;
 }
 
-static void dps310GetUP(baroDev_t *baro)
+static bool deviceReadMeasurement(baroDev_t *baro)
 {
-    UNUSED(baro);
+    // 1. Check if pressure is ready
+    bool pressure_ready = registerRead(&baro->busdev, DPS310_REG_MEAS_CFG) & DPS310_MEAS_CFG_PRS_RDY;
+    if (!pressure_ready) {
+        return false;
+    }
 
     // 2. Choose scaling factors kT (for temperature) and kP (for pressure) based on the chosen precision rate.
     // The scaling factors are listed in Table 9.
@@ -230,6 +231,11 @@ static void dps310GetUP(baroDev_t *baro)
     static float kP = 253952; // 16 times (Standard)
 
     // 3. Read the pressure and temperature result from the registers
+    // Read PSR_B2, PSR_B1, PSR_B0, TMP_B2, TMP_B1, TMP_B0
+    uint8_t buf[6];
+    if (!busReadRegisterBuffer(&baro->busdev, DPS310_REG_PSR_B2, buf, 6)) {
+        return false;
+    }
 
     const int32_t Praw = getTwosComplement((buf[0] << 16) + (buf[1] << 8) + buf[2], 24);
     const int32_t Traw = getTwosComplement((buf[3] << 16) + (buf[4] << 8) + buf[5], 24);
@@ -265,8 +271,6 @@ static void deviceCalculate(int32_t *pressure, int32_t *temperature)
     }
 }
 
-
-
 #define DETECTION_MAX_RETRY_COUNT   5
 static bool deviceDetect(busDevice_t * busDev)
 {
@@ -285,55 +289,10 @@ static bool deviceDetect(busDevice_t * busDev)
     return false;
 }
 
-static void dps310StartUT(baroDev_t *baro)
-{
-    UNUSED(baro);
-}
-
-static void dps310GetUT(baroDev_t *baro)
-{
-    UNUSED(baro);
-}
-
-static void dps310StartUP(baroDev_t *baro)
-{
-    // 1. Kick off read
-    // No need to poll for data ready as the conversion rate is 32Hz and this is sampling at 20Hz
-    // Read PSR_B2, PSR_B1, PSR_B0, TMP_B2, TMP_B1, TMP_B0
-    busReadRegisterBuffer(&baro->busdev, DPS310_REG_PSR_B2, buf, 6);
-}
-
-static void busDeviceInit(busDevice_t *busdev)
-{
-#ifdef USE_BARO_SPI_DPS310
-    if (busdev->bustype == BUSTYPE_SPI) {
-        IOHi(busdev->busdev_u.spi.csnPin); // Disable
-        IOInit(busdev->busdev_u.spi.csnPin, OWNER_BARO_CS, 0);
-        IOConfigGPIO(busdev->busdev_u.spi.csnPin, IOCFG_OUT_PP);
-        spiSetDivisor(busdev, SPI_CLOCK_STANDARD);
-    }
-#else
-    UNUSED(busdev);
-#endif
-}
-
-static void busDeviceDeInit(busDevice_t *busdev)
-{
-#ifdef USE_BARO_SPI_DPS310
-    if (busdev->bustype == BUSTYPE_SPI) {
-        spiPreinitCsByIO(busdev->busdev_u.spi.csnPin);
-    }
-#else
-    UNUSED(busdev);
-#endif
-}
-
 bool baroDPS310Detect(baroDev_t *baro)
 {
     busDevice_t *busdev = &baro->busdev;
     bool defaultAddressApplied = false;
-
-    busDeviceInit(&baro->busdev);
 
     if ((busdev->bustype == BUSTYPE_I2C) && (busdev->busdev_u.i2c.address == 0)) {
         // Default address for BMP280
@@ -342,7 +301,6 @@ bool baroDPS310Detect(baroDev_t *baro)
     }
 
     if (!deviceDetect(busdev)) {
-        busDeviceDeInit(busdev);
         if (defaultAddressApplied) {
             busdev->busdev_u.i2c.address = 0;
         }
@@ -350,21 +308,22 @@ bool baroDPS310Detect(baroDev_t *baro)
     }
 
     if (!deviceConfigure(busdev)) {
-        busDeviceDeInit(busdev);
         return false;
     }
 
-    baro->ut_delay = 0;
-    baro->start_ut = dps310StartUT;
-    baro->get_ut = dps310GetUT;
+    const uint32_t baroDelay = 1000000 / 32 / 2; // twice the sample rate to capture all new data
 
-    baro->up_delay = 45000; // 45ms delay plus 5 1ms cycles 50ms
-    baro->start_up = dps310StartUP;
-    baro->get_up = dps310GetUP;
+    baro->ut_delay = 0;
+    baro->start_ut = NULL;
+    baro->get_ut = NULL;
+
+    baro->up_delay = baroDelay; 
+    baro->start_up = NULL;
+    baro->get_up = deviceReadMeasurement;
 
     baro->calculate = deviceCalculate;
 
     return true;
 }
 
-#endif
+//#endif
