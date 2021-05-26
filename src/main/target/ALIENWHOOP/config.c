@@ -98,7 +98,7 @@ void targetConfiguration(void) {
     systemConfigMutable()->cpu_overclock = 2; //216MHZ
     /* Default to 32kHz enabled at 16/16 */
     gyroConfigMutable()->gyro_use_32khz = 1; // enable 32kHz sampling
-    gyroConfigMutable()->gyroMovementCalibrationThreshold = 200; // aka moron_threshold
+    gyroConfigMutable()->gyroMovementCalibrationThreshold = 200; 
     gyroConfigMutable()->gyro_sync_denom = 2;  // 16kHz gyro
     pidConfigMutable()->pid_process_denom = 1; // 16kHz PID
     pidConfigMutable()->runaway_takeoff_prevention = false;
