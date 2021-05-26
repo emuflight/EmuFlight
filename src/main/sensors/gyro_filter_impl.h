@@ -55,11 +55,16 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor) {
             }
         }
 #endif
+#ifndef USE_GYRO_IMUF9001
+        gyroADCf = kalman_update(gyroADCf, axis);
+#endif
+
+        applySmithPredictor(gyroSensor->smithPredictor, gyroADCf);
+
 #ifdef USE_GYRO_IMUF9001
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));
 #else //USE_GYRO_IMUF9001
-        gyroADCf = kalman_update(gyroADCf, axis);
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroSensor->gyroDev.gyroADCf[axis]));
 #endif //USE_GYRO_IMUF9001
