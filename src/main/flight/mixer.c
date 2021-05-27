@@ -661,7 +661,7 @@ static void applyFlipOverAfterCrashModeToMotors(void) {
         float signRoll = getRcDeflection(FD_ROLL) < 0 ? 1 : -1;
         float signYaw = (getRcDeflection(FD_YAW) < 0 ? 1 : -1) * (mixerConfig()->yaw_motors_reversed ? 1 : -1);
         float stickDeflectionMax;
-        float stickDeflectionLength = sqrtf(stickDeflectionPitchAbs * stickDeflectionPitchAbs + stickDeflectionRollAbs * stickDeflectionRollAbs);
+        float stickDeflectionLength = fast_fsqrtf(stickDeflectionPitchAbs * stickDeflectionPitchAbs + stickDeflectionRollAbs * stickDeflectionRollAbs);
         if (stickDeflectionPitchAbs > MAX(stickDeflectionRollAbs, stickDeflectionYawAbs)) {
             stickDeflectionMax = stickDeflectionPitchAbs;
             signYaw = 0;
@@ -673,8 +673,8 @@ static void applyFlipOverAfterCrashModeToMotors(void) {
             signRoll = 0;
             signPitch = 0;
         }
-        float cosPhi = (stickDeflectionPitchAbs + stickDeflectionRollAbs) / (sqrtf(2.0f) * stickDeflectionLength);
-        const float cosThreshold = sqrtf(3.0f) / 2.0f; // cos(PI/6.0f)
+        float cosPhi = (stickDeflectionPitchAbs + stickDeflectionRollAbs) / (fast_fsqrtf(2.0f) * stickDeflectionLength);
+        const float cosThreshold = fast_fsqrtf(3.0f) / 2.0f; // cos(PI/6.0f)
         if (cosPhi < cosThreshold) {
             // Enforce either roll or pitch exclusively, if not on diagonal
             if (stickDeflectionRollAbs > stickDeflectionPitchAbs) {
@@ -969,7 +969,7 @@ float thrustToMotor(float thrust, bool fromIdleLevelOffset) {
     }
 
     float compLevel = SCALE_UNITARY_RANGE(thrust, linearThrustLowOutput, linearThrustHighOutput);
-    return (compLevel - 1 + sqrtf(sq(1.0f - compLevel) + 4.0f * compLevel * thrust)) / (2.0f * compLevel);
+    return (compLevel - 1 + fast_fsqrtf(sq(1.0f - compLevel) + 4.0f * compLevel * thrust)) / (2.0f * compLevel);
 }
 
 float motorToThrust(float motor, bool fromIdleLevelOffset) {
