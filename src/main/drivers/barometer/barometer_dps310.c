@@ -110,6 +110,8 @@ typedef struct {
 
 static baroState_t  baroState;
 
+static uint8_t dps310_chip_id = 0;
+
 // Helper functions
 static uint8_t registerRead(busDevice_t * busDev, uint8_t reg)
 {
@@ -308,19 +310,24 @@ bool baroDPS310Detect(baroDev_t *baro)
     busDevice_t *busdev = &baro->busdev;
     bool defaultAddressApplied = false;
 
+    delay(10); // No idea how long the chip takes to power-up, but let's make it 10ms
+
     if ((busdev->bustype == BUSTYPE_I2C) && (busdev->busdev_u.i2c.address == 0)) {
-        // Default address for BMP280
         busdev->busdev_u.i2c.address = DPS310_I2C_ADDR;
         defaultAddressApplied = true;
     }
 
-    if (!deviceDetect(busdev)) {
-        if (defaultAddressApplied) {
-            busdev->busdev_u.i2c.address = 0;
-        }
+    busReadRegisterBuffer(busdev, DPS310_REG_ID, &dps310_chip_id, 1);  /* read Chip Id */
+    if (dps310_chip_id != DPS310_ID_REV_AND_PROD_ID) {
+        //if (!deviceDetect(busdev)) 
+        {
+            if (defaultAddressApplied) {
+                busdev->busdev_u.i2c.address = 0;
+            }
         return false;
+        }
     }
-
+    
     if (!deviceConfigure(busdev)) {
         return false;
     }
