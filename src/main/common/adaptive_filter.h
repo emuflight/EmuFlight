@@ -30,7 +30,6 @@ typedef struct adaptiveFilter_s{
 	uint8_t BufferIdx; // circular index into input buffer
 	float pWeights[MAX_ADAPTIVE_FILTER_TAPS]; // pointer to adaptive filter weights
 	float error; // pointer to output error (desired - output) state
-	float squaredNorm; // pBuffer added and squared
 
   // structure for the delayed input data
   uint8_t samples;

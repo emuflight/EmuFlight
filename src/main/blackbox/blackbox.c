@@ -1421,7 +1421,7 @@ static bool blackboxWriteSysinfo(void)
 #ifdef USE_DYN_LPF
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_dyn_hz", "%d,%d",          gyroConfig()->dyn_lpf_gyro_min_hz,
                                                                             gyroConfig()->dyn_lpf_gyro_width);
-        BLACKBOX_PRINT_HEADER_LINE("dyn_lpf_gyro_gain", "%d",                    gyroConfig()->dyn_lpf_gyro_gain);
+        BLACKBOX_PRINT_HEADER_LINE("dyn_lpf_gyro_gain", "%d",               gyroConfig()->dyn_lpf_gyro_gain);
 #endif
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_hz", "%d",                   gyroConfig()->gyro_soft_notch_hz_1);
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_cutoff", "%d",               gyroConfig()->gyro_soft_notch_cutoff_1);
@@ -1431,6 +1431,11 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("dyn_matrix_q", "%d",                    gyroConfig()->dyn_notch_q);
         BLACKBOX_PRINT_HEADER_LINE("dyn_matrix_min_hz", "%d",               gyroConfig()->dyn_notch_min_hz);
 #endif
+        BLACKBOX_PRINT_HEADER_LINE("adaptive_filter_length", "%d",          gyroConfig()->adaptive_filter_length);
+        BLACKBOX_PRINT_HEADER_LINE("adaptive_filter_step_size", "%d",       gyroConfig()->adaptive_filter_step_size);
+        BLACKBOX_PRINT_HEADER_LINE("adaptive_filter_delay", "%d",           gyroConfig()->adaptive_filter_delay);
+        BLACKBOX_PRINT_HEADER_LINE("adaptive_filter_crossfeed", "%d",       gyroConfig()->adaptive_filter_crossfeed);
+        BLACKBOX_PRINT_HEADER_LINE("adaptive_filter_regularization", "%d",  gyroConfig()->adaptive_filter_regularization);
 #ifdef USE_DSHOT_TELEMETRY
         BLACKBOX_PRINT_HEADER_LINE("dshot_bidir", "%d",                     motorConfig()->dev.useDshotTelemetry);
 #endif

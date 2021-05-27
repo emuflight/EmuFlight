@@ -756,6 +756,12 @@ static uint8_t smithPredictor_delay;
 static uint16_t smithPredictor_filt_hz;
 #endif // USE_SMITH_PREDICTOR
 
+static uint8_t  adaptiveFilter_delay;
+static uint8_t  adaptiveFilter_length;
+static uint16_t adaptiveFilter_step_size;
+static uint8_t  adaptiveFilter_crossfeed;
+static uint16_t adaptiveFilter_regularization;
+
 static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
 {
     UNUSED(pDisp);
@@ -788,6 +794,11 @@ static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
     smithPredictor_delay     = gyroConfig()->smithPredictorDelay;
     smithPredictor_filt_hz   = gyroConfig()->smithPredictorFilterHz;
 #endif
+    adaptiveFilter_delay          = gyroConfig()->adaptive_filter_delay;
+    adaptiveFilter_length         = gyroConfig()->adaptive_filter_length;
+    adaptiveFilter_step_size      = gyroConfig()->adaptive_filter_step_size;
+    adaptiveFilter_crossfeed      = gyroConfig()->adaptive_filter_crossfeed;
+    adaptiveFilter_regularization = gyroConfig()->adaptive_filter_regularization;
     return NULL;
 }
 
@@ -824,6 +835,12 @@ static const void *cmsx_menuGyro_onExit(displayPort_t *pDisp, const OSD_Entry *s
     gyroConfigMutable()->smithPredictorDelay = smithPredictor_delay;
     gyroConfigMutable()->smithPredictorFilterHz = smithPredictor_filt_hz;
 #endif
+
+    gyroConfigMutable()->adaptive_filter_delay = adaptiveFilter_delay;
+    gyroConfigMutable()->adaptive_filter_length = adaptiveFilter_length;
+    gyroConfigMutable()->adaptive_filter_step_size = adaptiveFilter_step_size;
+    gyroConfigMutable()->adaptive_filter_crossfeed = adaptiveFilter_crossfeed;
+    gyroConfigMutable()->adaptive_filter_regularization = adaptiveFilter_regularization;
     return NULL;
 }
 
@@ -854,8 +871,13 @@ static const OSD_Entry cmsx_menuFilterGlobalEntries[] =
 #ifdef USE_SMITH_PREDICTOR
     { "SMITH STR",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_strength,    0, 100, 1 }, 0 },
     { "SMITH DELAY",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_delay,       0, 120, 1 }, 0 },
-    { "SMITH FILT",      OME_UINT16,  NULL, &(OSD_UINT16_t)  { &smithPredictor_filt_hz,   1, 1000, 1 }, 0 },
+    { "SMITH FILT",      OME_UINT16, NULL, &(OSD_UINT16_t) { &smithPredictor_filt_hz,     1, 1000, 1 }, 0 },
 #endif
+    { "ADPT DELAY",      OME_UINT8,  NULL, &(OSD_UINT8_t)  { &adaptiveFilter_delay,          0, 200, 1 }, 0 },
+    { "ADPT LENGTH",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &adaptiveFilter_length,         0, 200, 1 }, 0 },
+    { "ADPT STEP",       OME_UINT16, NULL, &(OSD_UINT16_t) { &adaptiveFilter_step_size,      0, 10000, 1 }, 0 },
+    { "ADPT CRSFEED",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &adaptiveFilter_crossfeed,      0, 100, 1 }, 0 },
+    { "ADPT REGULAR",    OME_UINT16, NULL, &(OSD_UINT16_t) { &adaptiveFilter_regularization, 0, 10000, 1 }, 0 },
 #ifdef USE_MULTI_GYRO
     { "GYRO TO USE",  OME_TAB,  NULL, &(OSD_TAB_t)    { &gyroConfig_gyro_to_use,  2, osdTableGyroToUse}, REBOOT_REQUIRED },
 #endif

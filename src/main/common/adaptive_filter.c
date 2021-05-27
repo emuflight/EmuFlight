@@ -21,10 +21,20 @@
 #include "platform.h"
 #include "adaptive_filter.h"
 
+static float SquaredNorm(adaptiveFilter_t *pData) {
+	float output = 0;
+
+	for (int i = 0; i < pData->length; i++) {
+		output += pData->pBuffer[i] * pData->pBuffer[i];
+	}
+
+	return output;
+}
+
 static void adaptWeights(adaptiveFilter_t *pData) {
 	float normStepSize;
 
-	normStepSize = (pData->stepSize) / (pData->regularization + pData->squaredNorm); // normalize step size
+	normStepSize = (pData->stepSize) / (pData->regularization + SquaredNorm(pData)); // normalize step size
 
 	for (int i = pData->length - 1; i >= 0; i--) {
         // wrap index
@@ -39,18 +49,9 @@ static void adaptWeights(adaptiveFilter_t *pData) {
 
 static float filter(float input, adaptiveFilter_t *pData) {
 	float output = 0;
-
-	pData->squaredNorm += input * input;
-
 	// wrap index
   if (pData->BufferIdx >= pData->length) {
       pData->BufferIdx = 0;
-  }
-
-	pData->squaredNorm -= pData->pBuffer[pData->BufferIdx] * pData->pBuffer[pData->BufferIdx];
-
-  if (pData->squaredNorm < 0.0f) {
-      pData->squaredNorm = 0.0f;
   }
 
 	// overwrite oldest input with new input
