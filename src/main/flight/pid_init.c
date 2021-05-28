@@ -247,6 +247,12 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.dtermMeasurementSlider = pidProfile->dtermMeasurementSlider / 100;
     pidRuntime.dtermMeasurementSliderInverse = 1 - (pidProfile->dtermMeasurementSlider / 100);
 
+    pidRuntime.TorqueInertiaRatio = ((float)pidProfile->TorqueInertiaRatio)/100.0f;
+    pidRuntime.pitchTorqueRatio = ((float)pidProfile->pitchTorqueRatio)/100.0f;
+    pidRuntime.yawTorqueRatio = ((float)pidProfile->yawTorqueRatio)/100.0f;
+    pidRuntime.pitchInertiaRatio = ((float)pidProfile->pitchInertiaRatio)/100.0f;
+    pidRuntime.yawInertiaRatio = ((float)pidProfile->yawInertiaRatio)/100.0f;
+
     pidRuntime.emuBoostPR = (pidProfile->emuBoostPR * pidProfile->emuBoostPR / 1000000) * 0.003;
     pidRuntime.emuBoostY = (pidProfile->emuBoostY * pidProfile->emuBoostY / 1000000) * 0.003;
     pidRuntime.emuBoostLimitPR = powf(pidProfile->emuBoostPR, 0.75f) * 1.4;
