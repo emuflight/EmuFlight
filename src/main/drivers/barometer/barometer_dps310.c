@@ -170,8 +170,17 @@ static bool deviceConfigure(busDevice_t * busDev)
 
     // 1. Read the pressure calibration coefficients (c00, c10, c20, c30, c01, c11, and c21) from the Calibration Coefficient register.
     //   Note: The coefficients read from the coefficient register are 2's complement numbers.
-    uint8_t coef[18];
-    if (!busReadRegisterBuffer(busDev, DPS310_REG_COEF, coef, sizeof(coef))) {
+
+    // Do the read of the coefficients in multiple parts, as the chip will return a read failure when trying to read all at once over I2C.
+#define COEFFICIENT_LENGTH 18
+#define READ_LENGTH (COEFFICIENT_LENGTH / 2)
+
+    uint8_t coef[COEFFICIENT_LENGTH];
+    if (!busReadBuf(busDev, DPS310_REG_COEF, coef, READ_LENGTH)) {
+        return false;
+    }
+
+    if (!busReadBuf(busDev, DPS310_REG_COEF + READ_LENGTH, coef + READ_LENGTH, COEFFICIENT_LENGTH - READ_LENGTH)) {
         return false;
     }
 
@@ -202,21 +211,6 @@ static bool deviceConfigure(busDevice_t * busDev)
     // 0x20 c30 [15:8] + 0x21 c30 [7:0]
     baroState.calib.c30 = getTwosComplement(((uint32_t)coef[16] << 8) | (uint32_t)coef[17], 16);
 
-    // MEAS_CFG: Make sure the device is in IDLE mode
-    registerWriteBits(busDev, DPS310_REG_MEAS_CFG, DPS310_MEAS_CFG_MEAS_CTRL_MASK, DPS310_MEAS_CFG_MEAS_IDLE);
-
-    // Fix IC with a fuse bit problem, which lead to a wrong temperature
-    // Should not affect ICs without this problem
-    registerWrite(busDev, 0x0E, 0xA5);
-    registerWrite(busDev, 0x0F, 0x96);
-    registerWrite(busDev, 0x62, 0x02);
-    registerWrite(busDev, 0x0E, 0x00);
-    registerWrite(busDev, 0x0F, 0x00);
-
-    // Make ONE temperature measurement and flush it
-    registerWriteBits(busDev, DPS310_REG_MEAS_CFG, DPS310_MEAS_CFG_MEAS_CTRL_MASK, DPS310_MEAS_CFG_MEAS_TEMP_SING);
-    delay(40);
-
     // PRS_CFG: pressure measurement rate (32 Hz) and oversampling (16 time standard)
     registerSetBits(busDev, DPS310_REG_PRS_CFG, DPS310_PRS_CFG_BIT_PM_RATE_32HZ | DPS310_PRS_CFG_BIT_PM_PRC_16);
 
@@ -228,7 +222,7 @@ static bool deviceConfigure(busDevice_t * busDev)
     registerSetBits(busDev, DPS310_REG_CFG_REG, DPS310_CFG_REG_BIT_T_SHIFT | DPS310_CFG_REG_BIT_P_SHIFT);
 
     // MEAS_CFG: Continuous pressure and temperature measurement
-    registerWriteBits(busDev, DPS310_REG_MEAS_CFG, DPS310_MEAS_CFG_MEAS_CTRL_MASK, DPS310_MEAS_CFG_MEAS_CTRL_CONT);
+    registerSetBits(busDev, DPS310_REG_MEAS_CFG, DPS310_MEAS_CFG_MEAS_CTRL_CONT);
 
     return true;
 }
