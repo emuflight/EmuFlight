@@ -176,11 +176,11 @@ static bool deviceConfigure(busDevice_t * busDev)
 #define READ_LENGTH (COEFFICIENT_LENGTH / 2)
 
     uint8_t coef[COEFFICIENT_LENGTH];
-    if (!busReadBuf(busDev, DPS310_REG_COEF, coef, READ_LENGTH)) {
+    if (!busReadRegisterBuffer(busDev, DPS310_REG_COEF, coef, READ_LENGTH)) {
         return false;
     }
 
-    if (!busReadBuf(busDev, DPS310_REG_COEF + READ_LENGTH, coef + READ_LENGTH, COEFFICIENT_LENGTH - READ_LENGTH)) {
+    if (!busReadRegisterBuffer(busDev, DPS310_REG_COEF + READ_LENGTH, coef + READ_LENGTH, COEFFICIENT_LENGTH - READ_LENGTH)) {
         return false;
     }
 
