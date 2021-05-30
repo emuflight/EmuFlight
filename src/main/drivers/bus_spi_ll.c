@@ -144,9 +144,9 @@ uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t txByte)
 
     LL_SPI_TransmitData8(instance, txByte);
 
-    spiTimeout = 1000;
-    while (!LL_SPI_IsActiveFlag_RXNE(instance))
-        if ((spiTimeout--) == 0)
+    timeoutStartUs = microsISR();
+    while (!CHECK_SPI_RX_DATA_AVAILABLE(instance)) {
+        if (cmpTimeUs(microsISR(), timeoutStartUs) >= SPI_TIMEOUT_US) {
             return spiTimeoutUserCallback(instance);
 
     return (uint8_t)LL_SPI_ReceiveData8(instance);
@@ -181,9 +181,9 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
         }
         LL_SPI_TransmitData16(instance, w);
 
-        spiTimeout = 1000;
-        while (!LL_SPI_IsActiveFlag_RXNE(instance)) {
-            if ((spiTimeout--) == 0) {
+        timeoutStartUs = microsISR();
+        while (!CHECK_SPI_RX_DATA_AVAILABLE(instance)) {
+            if (cmpTimeUs(microsISR(), timeoutStartUs) >= SPI_TIMEOUT_US) {
                 return spiTimeoutUserCallback(instance);
             }
         }
@@ -206,9 +206,9 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
         uint8_t b = txData ? *(txData++) : 0xFF;
         LL_SPI_TransmitData8(instance, b);
 
-        spiTimeout = 1000;
-        while (!LL_SPI_IsActiveFlag_RXNE(instance)) {
-            if ((spiTimeout--) == 0) {
+        timeoutStartUs = microsISR();
+        while (!CHECK_SPI_RX_DATA_AVAILABLE(instance)) {
+            if (cmpTimeUs(microsISR(), timeoutStartUs) >= SPI_TIMEOUT_US) {
                 return spiTimeoutUserCallback(instance);
             }
         }
