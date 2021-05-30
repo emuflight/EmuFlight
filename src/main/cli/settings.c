@@ -1153,6 +1153,15 @@ const clivalue_t valueTable[] = {
 #ifdef USE_THRUST_LINEARIZATION
     { "thrust_linear",              VAR_UINT8 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 150 }, PG_PID_PROFILE, offsetof(pidProfile_t, thrustLinearization) },
 #endif
+
+#ifdef USE_FEEDBACK_LINEARIZATION
+    { "torque_inertia_ratio",       VAR_UINT16  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, torqueInertiaRatio) },
+    { "pitch_torque_ratio",         VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, pitchTorqueRatio) },
+    { "yaw_torque_ratio",           VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, yawTorqueRatio) },
+    { "pitch_inertia_ratio",        VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, pitchInertiaRatio) },
+    { "yaw_inertia_ratio",          VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, yawInertiaRatio) },
+#endif
+
 #ifdef USE_INTERPOLATED_SP
     { "ff_interpolate_sp",          VAR_UINT8 | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = {TABLE_INTERPOLATED_SP}, PG_PID_PROFILE, offsetof(pidProfile_t, ff_interpolate_sp) },
     { "ff_max_rate_limit",          VAR_UINT8 | PROFILE_VALUE, .config.minmaxUnsigned = {0, 150}, PG_PID_PROFILE, offsetof(pidProfile_t, ff_max_rate_limit) },

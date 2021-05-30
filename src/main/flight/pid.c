@@ -973,3 +973,17 @@ float pidGetPidFrequency()
 {
     return pidRuntime.pidFrequency;
 }
+
+#ifdef USE_FEEDBACK_LINEARIZATION
+void applyFeedbackLinearization(pidAxisData_t *pids, float *gyroData)
+{
+    float k2 = pidRuntime.pitchInertiaRatio;
+    float k3 = pidRuntime.yawInertiaRatio;
+    float kt2 = pidRuntime.pitchTorqueRatio;
+    float kt3 = pidRuntime.yawTorqueRatio;
+    float TIR = pidRuntime.TorqueInertiaRatio;
+    pidData[FD_ROLL].Sum += (k3-k2) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_PITCH] / (PID_MIXER_SCALING * TIR);
+    pidData[FD_PITCH].Sum += (1.0f-k3) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_ROLL] / (PID_MIXER_SCALING * TIR * kt2);
+    pidData[FD_YAW].Sum += (k2-1.0f) * 0.0003046f * gyroData[FD_ROLL] * gyroData[FD_PITCH] / (PID_MIXER_SCALING * TIR * kt3);
+}
+#endif

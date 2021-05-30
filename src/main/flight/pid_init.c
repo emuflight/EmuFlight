@@ -247,7 +247,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.dtermMeasurementSlider = pidProfile->dtermMeasurementSlider / 100;
     pidRuntime.dtermMeasurementSliderInverse = 1 - (pidProfile->dtermMeasurementSlider / 100);
 
-    pidRuntime.TorqueInertiaRatio = ((float)pidProfile->TorqueInertiaRatio)/100.0f;
+    pidRuntime.TorqueInertiaRatio = ((float)pidProfile->torqueInertiaRatio)/100.0f;
     pidRuntime.pitchTorqueRatio = ((float)pidProfile->pitchTorqueRatio)/100.0f;
     pidRuntime.yawTorqueRatio = ((float)pidProfile->yawTorqueRatio)/100.0f;
     pidRuntime.pitchInertiaRatio = ((float)pidProfile->pitchInertiaRatio)/100.0f;

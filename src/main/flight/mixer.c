@@ -506,14 +506,7 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs)
         constrainf(pidData[FD_YAW].Sum, -yawPidSumLimit, yawPidSumLimit) / PID_MIXER_SCALING;
 
 #ifdef USE_FEEDBACK_LINEARIZATION
-k2 = pidRuntime.pitchInertiaRatio;
-k3 = pidRuntime.yawInertiaRatio;
-kt2 = pidRuntime.pitchTorqueRatio;
-kt3 = pidRuntime.yawTorqueRatio;
-ToIR = pidRuntime.TorqueInertiaRatio;
-pidData[FD_ROLL].SUM += (k3-k2)/ToIR*0.0003046f*gyro.gyroADCf[FD_YAW]*gyro.gyroADCf[FD_PITCH]/PID_MIXER_SCALING;
-pidData[FD_PITCH].SUM += (1.0f-k3)/ToIR/kt2*0.0003046f*gyro.gyroADCf[FD_YAW]*gyro.gyroADCf[FD_ROLL]/PID_MIXER_SCALING;
-pidData[FD_YAW].SUM += (k2-1.0f)/ToIR/kt3*0.0003046f*gyro.gyroADCf[FD_ROLL]*gyro.gyroADCf[FD_PITCH]/PID_MIXER_SCALING;
+doFeedbackLinearization(pidData, gyro.gyroADCf);
 #endif
 
     if (!mixerConfig()->yaw_motors_reversed) {
