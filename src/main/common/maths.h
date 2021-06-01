@@ -97,6 +97,7 @@ typedef union {
     fp_angles_def angles;
 } fp_angles_t;
 
+float fast_fsqrtf(const double value);
 int gcd(int num, int denom);
 int32_t applyDeadband(int32_t value, int32_t deadband);
 float fapplyDeadband(float value, float deadband);

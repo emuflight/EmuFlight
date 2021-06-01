@@ -134,7 +134,7 @@ static FAST_RAM_ZERO_INIT int throttleAngleCorrection;
 FAST_RAM_ZERO_INIT bool linearThrustEnabled;
 static FAST_RAM_ZERO_INIT float linearThrustLowOutput;
 static FAST_RAM_ZERO_INIT float linearThrustHighOutput;
-static FAST_RAM_ZERO_INIT FAST_RAM_ZERO_INIT float linearThrustPIDScaler; // used to avoid/limit PID tuning when enabling thrust linearization
+static FAST_RAM_ZERO_INIT float linearThrustPIDScaler; // used to avoid/limit PID tuning when enabling thrust linearization
 static FAST_RAM_ZERO_INIT float linearThrustYawPIDScaler; // 2PASS mixer doesn't apply TL to yaw so it don't needs to compensate for that
 
 static FAST_RAM_ZERO_INIT mixerImplType_e mixerImpl;
@@ -661,7 +661,7 @@ static void applyFlipOverAfterCrashModeToMotors(void) {
         float signRoll = getRcDeflection(FD_ROLL) < 0 ? 1 : -1;
         float signYaw = (getRcDeflection(FD_YAW) < 0 ? 1 : -1) * (mixerConfig()->yaw_motors_reversed ? 1 : -1);
         float stickDeflectionMax;
-        float stickDeflectionLength = sqrtf(stickDeflectionPitchAbs * stickDeflectionPitchAbs + stickDeflectionRollAbs * stickDeflectionRollAbs);
+        float stickDeflectionLength = fast_fsqrtf(stickDeflectionPitchAbs * stickDeflectionPitchAbs + stickDeflectionRollAbs * stickDeflectionRollAbs);
         if (stickDeflectionPitchAbs > MAX(stickDeflectionRollAbs, stickDeflectionYawAbs)) {
             stickDeflectionMax = stickDeflectionPitchAbs;
             signYaw = 0;
@@ -673,8 +673,8 @@ static void applyFlipOverAfterCrashModeToMotors(void) {
             signRoll = 0;
             signPitch = 0;
         }
-        float cosPhi = (stickDeflectionPitchAbs + stickDeflectionRollAbs) / (sqrtf(2.0f) * stickDeflectionLength);
-        const float cosThreshold = sqrtf(3.0f) / 2.0f; // cos(PI/6.0f)
+        float cosPhi = (stickDeflectionPitchAbs + stickDeflectionRollAbs) / (fast_fsqrtf(2.0f) * stickDeflectionLength);
+        const float cosThreshold = fast_fsqrtf(3.0f) / 2.0f; // cos(PI/6.0f)
         if (cosPhi < cosThreshold) {
             // Enforce either roll or pitch exclusively, if not on diagonal
             if (stickDeflectionRollAbs > stickDeflectionPitchAbs) {
@@ -969,7 +969,7 @@ float thrustToMotor(float thrust, bool fromIdleLevelOffset) {
     }
 
     float compLevel = SCALE_UNITARY_RANGE(thrust, linearThrustLowOutput, linearThrustHighOutput);
-    return (compLevel - 1 + sqrtf(sq(1.0f - compLevel) + 4.0f * compLevel * thrust)) / (2.0f * compLevel);
+    return (compLevel - 1 + fast_fsqrtf(sq(1.0f - compLevel) + 4.0f * compLevel * thrust)) / (2.0f * compLevel);
 }
 
 float motorToThrust(float motor, bool fromIdleLevelOffset) {
@@ -997,7 +997,12 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
 
     float controllerMixNormFactor = authority / MAX(controllerMixRange, 1.0f);
 
-    // filling up motorMix with throttle, yaw and roll/pitch
+    float postYawThrottle = 0;
+    float yawThrottleCorrection = 0;
+    float minMotorYawMix = 1000.0f;
+    float maxMotorYawMix = -1000.0f;
+
+    // filling up motorMix with throttle, and yaw
     for (int i = 0; i < motorCount; i++) {
         motorMix[i] = throttleMotor; // motorMix have to contain output-proportional values
 
@@ -1006,7 +1011,27 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
                                         : SCALE_UNITARY_RANGE(throttleMotor, -yawMixMin, -yawMixMax);
 
         motorMix[i] += (yawMix[i] + yawOffset) * controllerMixNormFactor; // yaw is an output-proportional value (RPM-proportional, actually)
+        postYawThrottle += motorMix[i];
 
+        if (motorMix[i] > maxMotorYawMix) {
+            maxMotorYawMix = motorMix[i];
+        } else if (motorMix[i] < minMotorYawMix) {
+            minMotorYawMix = motorMix[i];
+        }
+    }
+    // find the extra thrust that yaw is adding
+    postYawThrottle = postYawThrottle / motorCount;
+    yawThrottleCorrection = postYawThrottle - throttleMotor;
+    // deal with yaw throttle correction values that would cause motor outputs that are greater or less than 1
+    yawThrottleCorrection = constrainf(yawThrottleCorrection, maxMotorYawMix - 1.0f, minMotorYawMix);
+
+    // correct for the extra thrust yaw adds, then fill up motorMix with pitch and roll
+    for (int i = 0; i < motorCount; i++) {
+
+        if (currentPidProfile->mixer_yaw_throttle_comp) {  //!==0
+            // prefer calculating all of the above and maybe not use it, than multiple if/then statements to save from calculating.
+            motorMix[i] = motorMix[i] - yawThrottleCorrection;
+        };
         float motorMixThrust = motorToThrust(motorMix[i], true); // convert into thrust value
 
         // clipping handling
