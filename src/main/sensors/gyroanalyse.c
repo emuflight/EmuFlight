@@ -111,7 +111,7 @@ static float FAST_RAM_ZERO_INIT      sdftResolutionHz;
 static uint8_t FAST_RAM_ZERO_INIT    sdftStartBin;
 static uint8_t FAST_RAM_ZERO_INIT    sdftEndBin;
 static float FAST_RAM_ZERO_INIT      sdftMeanSq;
-static uint16_t FAST_RAM_ZERO_INIT   dynNotchBandwidthHz;
+static uint16_t FAST_RAM_ZERO_INIT   dynNotchQ;
 static uint16_t FAST_RAM_ZERO_INIT   dynNotchMinHz;
 static uint16_t FAST_RAM_ZERO_INIT   dynNotchMaxHz;
 static uint16_t FAST_RAM_ZERO_INIT   dynNotchMaxFFT;
@@ -128,7 +128,7 @@ void gyroDataAnalyseInit(uint32_t targetLooptimeUs)
     gyroAnalyseInitialized = true;
 #endif
 
-    dynNotchBandwidthHz = gyroConfig()->dyn_notch_width;
+    dynNotchQ = gyroConfig()->dyn_notch_q;
     dynNotchMinHz = gyroConfig()->dyn_notch_min_hz;
     dynNotchMaxHz = MAX(2 * dynNotchMinHz, gyroConfig()->dyn_notch_max_hz);
 
@@ -175,10 +175,10 @@ void gyroDataAnalysePush(gyroAnalyseState_t *state, const uint8_t axis, const fl
     state->oversampledGyroAccumulator[axis] += sample;
 }
 
-static void gyroDataAnalyseUpdate(gyroAnalyseState_t *state, biquadFilter_t notchFilterDyn[3][5]);
+static void gyroDataAnalyseUpdate(gyroAnalyseState_t *state);
 
 // Downsample and analyse gyro data
-FAST_CODE void gyroDataAnalyse(gyroAnalyseState_t *state, biquadFilter_t notchFilterDyn[3][5])
+FAST_CODE void gyroDataAnalyse(gyroAnalyseState_t *state)
 {
     // samples should have been pushed by `gyroDataAnalysePush`
     // if gyro sampling is > 1kHz, accumulate and average multiple gyro samples
@@ -211,13 +211,13 @@ FAST_CODE void gyroDataAnalyse(gyroAnalyseState_t *state, biquadFilter_t notchFi
 
     // Find frequency peaks and update filters
     if (state->updateTicks > 0) {
-        gyroDataAnalyseUpdate(state, notchFilterDyn);
+        gyroDataAnalyseUpdate(state);
         --state->updateTicks;
     }
 }
 
 // Find frequency peaks and update filters
-static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state, biquadFilter_t notchFilterDyn[3][5])
+static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
 {
     uint32_t startTime = 0;
     if (debugMode == (DEBUG_FFT_TIME)) {
@@ -358,10 +358,7 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state, 
             for (uint8_t p = 0; p < gyroConfig()->dyn_notch_count; p++) {
                 // Only update notch filter coefficients if the corresponding peak got its center frequency updated in the previous step
                 if (peaks[p].bin != 0 && peaks[p].value > sdftMeanSq) {
-                    // Choose notch Q in such a way that notch bandwidth stays constant (improves prop wash handling)
-                    float dynamicQ = state->centerFreq[state->updateAxis][p] / (float)dynNotchBandwidthHz;
-                    dynamicQ = constrainf(dynamicQ, 2.0f, 10.0f);
-                    biquadFilterUpdate(&notchFilterDyn[state->updateAxis][p], state->centerFreq[state->updateAxis][p], gyro.targetLooptime, dynamicQ, FILTER_NOTCH);
+                    biquadFilterUpdate(&state->notchFilterDyn[state->updateAxis][p], state->centerFreq[state->updateAxis][p], gyro.targetLooptime, dynNotchQ, FILTER_NOTCH);
                 }
             }
 

@@ -487,7 +487,7 @@ static uint16_t gyroConfig_gyro_lowpass_hz_yaw;
 static uint16_t gyroConfig_gyro_lowpass2_hz_roll;
 static uint16_t gyroConfig_gyro_lowpass2_hz_pitch;
 static uint16_t gyroConfig_gyro_lowpass2_hz_yaw;
-static uint16_t gyroConfig_gyro_notch_width;
+static uint16_t gyroConfig_gyro_q;
 static uint8_t gyroConfig_gyro_notch_count;
 static uint16_t gyroConfig_gyro_notch_min_hz;
 static uint16_t gyroConfig_gyro_notch_max_hz;
@@ -514,7 +514,7 @@ static long cmsx_menuGyro_onEnter(void) {
     gyroConfig_gyro_lowpass2_hz_roll =  gyroConfig()->gyro_lowpass2_hz[ROLL];
     gyroConfig_gyro_lowpass2_hz_pitch =  gyroConfig()->gyro_lowpass2_hz[PITCH];
     gyroConfig_gyro_lowpass2_hz_yaw =  gyroConfig()->gyro_lowpass2_hz[YAW];
-    gyroConfig_gyro_notch_width = gyroConfig()->dyn_notch_width;
+    gyroConfig_gyro_q = gyroConfig()->dyn_notch_q;
     gyroConfig_gyro_notch_count = gyroConfig()->dyn_notch_count;
     gyroConfig_gyro_notch_min_hz = gyroConfig()->dyn_notch_min_hz;
     gyroConfig_gyro_notch_max_hz = gyroConfig()->dyn_notch_max_hz;
@@ -545,7 +545,7 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self) {
     gyroConfigMutable()->gyro_lowpass2_hz[ROLL] =  gyroConfig_gyro_lowpass2_hz_roll;
     gyroConfigMutable()->gyro_lowpass2_hz[PITCH] =  gyroConfig_gyro_lowpass2_hz_pitch;
     gyroConfigMutable()->gyro_lowpass2_hz[YAW] =  gyroConfig_gyro_lowpass2_hz_yaw;
-    gyroConfigMutable()->dyn_notch_width = gyroConfig_gyro_notch_width;
+    gyroConfigMutable()->dyn_notch_q = gyroConfig_gyro_q;
     gyroConfigMutable()->dyn_notch_count = gyroConfig_gyro_notch_count;
     gyroConfigMutable()->dyn_notch_min_hz = gyroConfig_gyro_notch_min_hz;
     gyroConfigMutable()->dyn_notch_max_hz = gyroConfig_gyro_notch_max_hz;
@@ -578,8 +578,8 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] = {
     { "GYRO LPF2 PITCH",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_pitch,   0, 16000, 1 }, 0 },
     { "GYRO LPF2 YAW",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_yaw,     0, 16000, 1 }, 0 },
 #endif
-    { "DYN NOTCH WIDTH",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_notch_width,        0, 1000, 1 }, 0 },
-    { "DYN NOTCH COUNT",         OME_UINT8, NULL, &(OSD_UINT8_t) { &gyroConfig_gyro_notch_count,        1, 5, 1 }, 0 },
+    { "DYN NOTCH Q",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_q,        0, 1000, 1 }, 0 },
+    { "DYN NOTCH COUNT",     OME_UINT8, NULL, &(OSD_UINT8_t) { &gyroConfig_gyro_notch_count,        1, 5, 1 }, 0 },
     { "DYN NOTCH MIN HZ",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_notch_min_hz,       30, 1000, 1 }, 0 },
     { "DYN NOTCH MAX HZ",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_notch_max_hz,       200, 1000, 1 }, 0 },
 #ifndef USE_GYRO_IMUF9001

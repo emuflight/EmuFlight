@@ -39,11 +39,12 @@ typedef struct gyroAnalyseState_s {
     uint8_t updateAxis;
 
     float centerFreq[XYZ_AXIS_COUNT][DYN_NOTCH_COUNT_MAX];
+    biquadFilter_t notchFilterDyn[XYZ_AXIS_COUNT][5];
 
 } gyroAnalyseState_t;
 
 void gyroDataAnalyseStateInit(gyroAnalyseState_t *state, uint32_t targetLooptimeUs);
 void gyroDataAnalysePush(gyroAnalyseState_t *state, const uint8_t axis, const float sample);
-void gyroDataAnalyse(gyroAnalyseState_t *state, biquadFilter_t notchFilterDyn[3][5]);
+void gyroDataAnalyse(gyroAnalyseState_t *state);
 uint16_t getMaxFFT(void);
 void resetMaxFFT(void);
