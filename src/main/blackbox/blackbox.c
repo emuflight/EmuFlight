@@ -1240,6 +1240,7 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("gyro_ABG_alpha", "%d",                  gyroConfig()->gyro_ABG_alpha);
         BLACKBOX_PRINT_HEADER_LINE("gyro_ABG_boost", "%d",                  gyroConfig()->gyro_ABG_boost);
         BLACKBOX_PRINT_HEADER_LINE("gyro_ABG_half_life", "%d",              gyroConfig()->gyro_ABG_half_life);
+        BLACKBOX_PRINT_HEADER_LINE("smith_predict_enabled", "%d",              gyroConfig()->smithPredictorEnabled);
         BLACKBOX_PRINT_HEADER_LINE("smith_predict_str", "%d",               gyroConfig()->smithPredictorStrength);
         BLACKBOX_PRINT_HEADER_LINE("smith_predict_delay", "%d",             gyroConfig()->smithPredictorDelay);
         BLACKBOX_PRINT_HEADER_LINE("smith_predict_filt_hz", "%d",           gyroConfig()->smithPredictorFilterHz);
