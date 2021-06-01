@@ -245,6 +245,9 @@ void adaptiveFilterInit() {
             gyro.adaptiveFilter[axis].samples = gyroConfig()->adaptive_filter_delay;
             gyro.adaptiveFilter[axis].delayedCrossFeed = gyroConfig()->adaptive_filter_crossfeed / 100.0f;
             gyro.adaptiveFilter[axis].regularization = gyroConfig()->adaptive_filter_regularization / 1000.0f;
+            for (int i = 0; i < MAX_ADAPTIVE_FILTER_TAPS; i++) {
+                gyro.adaptiveFilter[axis].pWeights[i] = 1 / gyroConfig()->adaptive_filter_delay;
+            }
         }
     }
 }

@@ -21,6 +21,8 @@
 #include "platform.h"
 #include "adaptive_filter.h"
 
+#include "build/debug.h"
+
 static float SquaredNorm(adaptiveFilter_t *pData) {
 	float output = 0;
 
@@ -32,9 +34,14 @@ static float SquaredNorm(adaptiveFilter_t *pData) {
 }
 
 static void adaptWeights(adaptiveFilter_t *pData) {
-	float normStepSize;
+	float normStepSize, squaredNorm;
 
-	normStepSize = (pData->stepSize) / (pData->regularization + SquaredNorm(pData)); // normalize step size
+  squaredNorm = SquaredNorm(pData);
+  // if (axis = FD_ROLL) {
+  //     DEBUG_SET(DEBUG_ADAPTIVE_FILTER, 2, lrintf(squaredNorm * 1000));
+  // }
+
+	normStepSize = (pData->stepSize) / (pData->regularization + squaredNorm); // normalize step size
 
 	for (int i = pData->length - 1; i >= 0; i--) {
         // wrap index
