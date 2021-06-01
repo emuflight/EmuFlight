@@ -245,7 +245,7 @@ static void applySensorCorrection(quaternion *vError) {
             // (bx; 0; 0) - reference mag field vector heading due North in EF (assuming Z-component is zero)
             const float hx = (1.0f - 2.0f * qpAttitude.yy - 2.0f * qpAttitude.zz) * vMagAverage.x + (2.0f * (qpAttitude.xy + -qpAttitude.wz)) * vMagAverage.y + (2.0f * (qpAttitude.xz - -qpAttitude.wy)) * vMagAverage.z;
             const float hy = (2.0f * (qpAttitude.xy - -qpAttitude.wz)) * vMagAverage.x + (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.zz) * vMagAverage.y + (2.0f * (qpAttitude.yz + -qpAttitude.wx)) * vMagAverage.z;
-            const float bx = sqrtf(sq(hx) + sq(hy));
+            const float bx = fast_fsqrtf(sq(hx) + sq(hy));
             // magnetometer error is cross product between estimated magnetic north and measured magnetic north (calculated in EF)
             applyVectorError(-(float)(hy * bx), vError);
         }
@@ -342,7 +342,7 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs) {
     accGetAverage(&vAccAverage);
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU2, lrintf((quaternionModulus(&vAccAverage) / acc.dev.acc_1G) * 1000));
 
-    const float spin_rate = sqrtf(sq(vGyroAverage.x) + sq(vGyroAverage.y) + sq(vGyroAverage.z));
+    const float spin_rate = fast_fsqrtf(sq(vGyroAverage.x) + sq(vGyroAverage.y) + sq(vGyroAverage.z));
     float spinTrust = constrainf (1.0f - spin_rate / DEGREES_TO_RADIANS(500), 0.0f, 1.0f);
 
     if (accIsHealthy(&vAccAverage)) {
