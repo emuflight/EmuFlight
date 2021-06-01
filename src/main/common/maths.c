@@ -24,6 +24,10 @@
 #include "axis.h"
 #include "maths.h"
 
+#ifdef USE_ARM_MATH
+#include "arm_math.h"
+#endif 
+
 #if defined(FAST_MATH) || defined(VERY_FAST_MATH)
 #if defined(VERY_FAST_MATH)
 
@@ -89,13 +93,23 @@ float atan2_approx(float y, float x) {
 // acos_approx maximum absolute error = 6.760856e-05 rads (3.873685e-03 degree)
 float acos_approx(float x) {
     float xa = fabsf(x);
-    float result = sqrtf(1.0f - xa) * (1.5707288f + xa * (-0.2121144f + xa * (0.0742610f + (-0.0187293f * xa))));
+    float result = fast_fsqrtf(1.0f - xa) * (1.5707288f + xa * (-0.2121144f + xa * (0.0742610f + (-0.0187293f * xa))));
     if (x < 0.0f)
         return M_PIf - result;
     else
         return result;
 }
 #endif
+
+float fast_fsqrtf(const double value) {
+#ifdef USE_ARM_MATH
+    float squirt;
+    arm_sqrt_f32(value, &squirt);
+    return squirt;
+#else 
+    return sqrtf(value);
+#endif
+}
 
 int gcd(int num, int denom) {
     if (denom == 0) {
@@ -140,7 +154,7 @@ float devVariance(stdev_t *dev) {
 }
 
 float devStandardDeviation(stdev_t *dev) {
-    return sqrtf(devVariance(dev));
+    return fast_fsqrtf(devVariance(dev));
 }
 
 float degreesToRadians(int16_t degrees) {
@@ -162,7 +176,7 @@ float scaleRangef(float x, float srcFrom, float srcTo, float destFrom, float des
 // Normalize a vector
 void normalizeV(struct fp_vector *src, struct fp_vector *dest) {
     float length;
-    length = sqrtf(src->X * src->X + src->Y * src->Y + src->Z * src->Z);
+    length = fast_fsqrtf(src->X * src->X + src->Y * src->Y + src->Z * src->Z);
     if (length != 0) {
         dest->X = src->X / length;
         dest->Y = src->Y / length;
@@ -448,7 +462,7 @@ float quaternionNorm(quaternion *q) {
 }
 
 float quaternionModulus(quaternion *q) {
-    return (sqrtf(quaternionNorm(q)));
+    return (fast_fsqrtf(quaternionNorm(q)));
 }
 
 void quaternionInitQuaternion(quaternion *i) {
