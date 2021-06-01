@@ -199,11 +199,14 @@ void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, int boostGain, int hal
   filter->b = (1.0f / 6.0f) * powf(1.0f - xi, 2) * (11.0f + 14.0f * xi + 11 * xi * xi);
   filter->g = 2 * powf(1.0f - xi, 3) * (1 + xi);
   filter->e = (1.0f / 6.0f) * powf(1 - xi, 4);
-	filter->dT = dT;
-	filter->dT2 = dT * dT;
+  filter->dT = dT;
+  filter->dT2 = dT * dT;
   filter->dT3 = dT * dT * dT;
 
   pt1FilterInit(&filter->boostFilter, pt1FilterGain(100, dT));
+  pt1FilterInit(&filter->velFilter, pt1FilterGain(75, dT));
+  pt1FilterInit(&filter->accFilter, pt1FilterGain(50, dT));
+  pt1FilterInit(&filter->jerkFilter, pt1FilterGain(25, dT));
 
   filter->boost = (boostGain * boostGain / 1000000) * 0.003;
   filter->halfLife = halfLife != 0 ?
@@ -212,8 +215,8 @@ void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, int boostGain, int hal
 } // ABGInit
 
 FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input) {
-	// float xk;   // current system state (ie: position)
-	// float vk;   // derivative of system state (ie: velocity)
+  // float xk;   // current system state (ie: position)
+  // float vk;   // derivative of system state (ie: velocity)
   // float ak;   // derivative of system velociy (ie: acceleration)
   // float jk;   // derivative of system acceleration (ie: jerk)
   float rk;   // residual error
@@ -226,19 +229,26 @@ FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input)
 
   // update our (estimated) state 'x' from the system (ie pos = pos + vel (last).dT)
   filter->xk += filter->dT * filter->vk + (1.0f / 2.0f) * filter->dT2 * filter->ak + (1.0f / 6.0f) * filter->dT3 * filter->jk;
-  // update (estimated) velocity (also estimated dterm from measurement)
+  // update (estimated) velocity
   filter->vk += filter->dT * filter->ak + 0.5f * filter->dT2 * filter->jk;
   filter->ak += filter->dT * filter->jk;
+  
   // what is our residual error (measured - estimated)
   rk = input - filter->xk;
+  
   // artificially boost the error to increase the response of the filter
-  rk += (fabsf(rk) * rk * filter->boost);
+  rk += pt1FilterApply(&filter->boostFilter, (fabsf(rk) * rk * filter->boost));
   filter->rk = rk; // for logging
+  
   // update our estimates given the residual error.
   filter->xk += filter->a * rk;
   filter->vk += filter->b / filter->dT * rk;
   filter->ak += filter->g / (2.0f * filter->dT2) * rk;
   filter->jk += filter->e / (6.0f * filter->dT3) * rk;
 
-	return filter->xk;
+  filter->vk = pt1FilterApply(&filter->velFilter, filter->vk);
+  filter->ak = pt1FilterApply(&filter->accFilter, filter->ak);
+  filter->jk = pt1FilterApply(&filter->jerkFilter, filter->jk);
+
+  return filter->xk;
 } // ABGUpdate
