@@ -546,8 +546,13 @@ const clivalue_t valueTable[] = {
     { "dynamic_gyro_notch_width",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_width) },
     { "dynamic_gyro_notch_count",       VAR_UINT8 | MASTER_VALUE, .config.minmax = { 1, 5 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_count) },
     { "dynamic_gyro_notch_min_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_min_hz) },
-    { "dynamic_gyro_notch_max_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 600, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_max_hz) },
+    { "dynamic_gyro_notch_max_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 400, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_max_hz) },
 #endif
+#ifdef USE_SMITH_PREDICTOR
+    { "smith_predict_str",          VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 100 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorStrength) },
+    { "smith_predict_delay",        VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 120 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorDelay) },
+    { "smith_predict_filt_hz",      VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 10000 },  PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorFilterHz) },
+#endif // USE_SMITH_PREDICTOR
 
 // PG_ACCELEROMETER_CONFIG
     { "align_acc",                  VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ALIGNMENT }, PG_ACCELEROMETER_CONFIG, offsetof(accelerometerConfig_t, acc_align) },
@@ -951,6 +956,8 @@ const clivalue_t valueTable[] = {
     { "linear_throttle",           VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, linear_throttle) },
     { "mixer_impl",                VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_MIXER_IMPL_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_impl) },
     { "mixer_laziness",            VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_laziness) },
+    { "mixer_yaw_throttle_comp",   VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_yaw_throttle_comp) },
+
 
 // PG_TELEMETRY_CONFIG
 #ifdef USE_TELEMETRY
