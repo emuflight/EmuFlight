@@ -152,6 +152,7 @@ typedef struct pidProfile_s {
     uint8_t linear_throttle;                // When thrust linearization is enabled, tells whether the throttle has to be linear or counter-compensated for legacy feedback
     mixerImplType_e mixer_impl;             // Which mixer implementation use
     uint8_t mixer_laziness;                 // If enabled, mixer clipping strategy will shift values only by the minimum required amount per motor group. Requires linear thrust
+    uint8_t mixer_yaw_throttle_comp;        // If enabled, throttle compesesation for quick yaw movement in 2pass mixer
     uint16_t dterm_ABG_alpha;
     uint16_t dterm_ABG_boost;
     uint8_t dterm_ABG_half_life;
