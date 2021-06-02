@@ -1205,6 +1205,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, gyroConfig()->gyro_ABG_alpha);
         sbufWriteU16(dst, gyroConfig()->gyro_ABG_boost);
         sbufWriteU8(dst, gyroConfig()->gyro_ABG_half_life);
+        sbufWriteU8(dst, gyroConfig()->smithPredictorEnabled);
         sbufWriteU16(dst, currentPidProfile->dterm_ABG_alpha);
         sbufWriteU16(dst, currentPidProfile->dterm_ABG_boost);
         sbufWriteU8(dst, currentPidProfile->dterm_ABG_half_life);
@@ -1804,6 +1805,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
             gyroConfigMutable()->gyro_ABG_alpha = sbufReadU16(src);
             gyroConfigMutable()->gyro_ABG_boost = sbufReadU16(src);
             gyroConfigMutable()->gyro_ABG_half_life = sbufReadU8(src);
+            gyroConfigMutable()->smithPredictorEnabled = sbufReadU8(src);
             currentPidProfile->dterm_ABG_alpha = sbufReadU16(src);
             currentPidProfile->dterm_ABG_boost = sbufReadU16(src);
             currentPidProfile->dterm_ABG_half_life = sbufReadU8(src);
