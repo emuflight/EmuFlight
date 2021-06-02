@@ -30,7 +30,7 @@
 
 /*------------BEEPER---------------*/
 #define USE_BEEPER
-#define BEEPER_PIN              PB3
+#define BEEPER_PIN              PC3
 #define BEEPER_INVERTED
 /*---------------------------------*/
 
