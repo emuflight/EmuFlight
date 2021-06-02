@@ -53,7 +53,7 @@ const uint16_t bsPowerTable[] = {
 };
 
 const char * const bsPowerNames[] = {
-    "OFF",  "5", "25", "200", "400", "600", "PIT MODE"
+    "OFF",  "LV1", "LV2", "LV3", "LV4", "LV5", "PIT MODE"
 };
 
 const char * const bsModeNames[] = {
