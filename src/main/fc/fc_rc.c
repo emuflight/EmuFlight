@@ -98,6 +98,8 @@ volatile uint16_t currentRxRefreshRate;
 #define RC_SMOOTHING_RX_RATE_MAX_US             50000 // 50ms or 20hz
 
 static FAST_RAM_ZERO_INIT rcSmoothingFilter_t rcSmoothingData;
+static FAST_RAM_ZERO_INIT pt1Filter_t pt1Smith[4];
+static FAST_RAM_ZERO_INIT biquadFilter_t biquadSmith[4];
 #endif // USE_RC_SMOOTHING_FILTER
 
 float getSetpointRate(int axis) {
@@ -337,16 +339,20 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                 case RC_SMOOTHING_INPUT_PT1:
                     if (!smoothingData->filterInitialized) {
                         pt1FilterInit((pt1Filter_t*) &smoothingData->filter[i], pt1FilterGain(smoothingData->inputCutoffFrequency, dT));
+                        pt1FilterInit(&pt1Smith[i], pt1FilterGain(smoothingData->inputCutoffFrequency, dT));
                     } else {
                         pt1FilterUpdateCutoff((pt1Filter_t*) &smoothingData->filter[i], pt1FilterGain(smoothingData->inputCutoffFrequency, dT));
+                        pt1FilterUpdateCutoff(&pt1Smith[i], pt1FilterGain(smoothingData->inputCutoffFrequency, dT));
                     }
                     break;
                 case RC_SMOOTHING_INPUT_BIQUAD:
                 default:
                     if (!smoothingData->filterInitialized) {
                         biquadFilterInitLPF((biquadFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, targetPidLooptime);
+                        biquadFilterInitLPF(&biquadSmith[i], smoothingData->inputCutoffFrequency, targetPidLooptime);
                     } else {
                         biquadFilterUpdateLPF((biquadFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, targetPidLooptime);
+                        biquadFilterUpdateLPF(&biquadSmith[i], smoothingData->inputCutoffFrequency, targetPidLooptime);
                     }
                     break;
                 }
@@ -419,6 +425,7 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
         rcSmoothingData.averageFrameTimeUs = 0;
         rcSmoothingResetAccumulation(&rcSmoothingData);
         rcSmoothingData.inputCutoffFrequency = rxConfig()->rc_smoothing_input_cutoff;
+        rcSmoothingData.smithStrength = rxConfig()->smith_strength / 100.0f;
         if (rxConfig()->rc_smoothing_derivative_type != RC_SMOOTHING_DERIVATIVE_OFF) {
             rcSmoothingData.derivativeCutoffFrequency = rxConfig()->rc_smoothing_derivative_cutoff;
         }
@@ -493,19 +500,24 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
         // after training has completed then log the raw rc channel and the calculated
         // average rx frame rate that was used to calculate the automatic filter cutoffs
         DEBUG_SET(DEBUG_RC_SMOOTHING, 0, lrintf(lastRxData[rxConfig()->rc_smoothing_debug_axis]));
-        DEBUG_SET(DEBUG_RC_SMOOTHING, 3, rcSmoothingData.averageFrameTimeUs);
+        DEBUG_SET(DEBUG_RC_SMOOTHING, 2, lrintf(lastRxData[1]));
     }
     // each pid loop continue to apply the last received channel value to the filter
     for (updatedChannel = 0; updatedChannel < PRIMARY_CHANNEL_COUNT; updatedChannel++) {
         if ((1 << updatedChannel) & interpolationChannels) {  // only smooth selected channels base on the rc_interp_ch value
             if (rcSmoothingData.filterInitialized) {
+              float delayedRcCommand;
                 switch (rxConfig()->rc_smoothing_input_type) {
                 case RC_SMOOTHING_INPUT_PT1:
                     rcCommand[updatedChannel] = pt1FilterApply((pt1Filter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
+                    delayedRcCommand = pt1FilterApply(&pt1Smith[updatedChannel], rcCommand[updatedChannel]);
+                    rcCommand[updatedChannel] += rcSmoothingData.smithStrength * (rcCommand[updatedChannel] - delayedRcCommand);
                     break;
                 case RC_SMOOTHING_INPUT_BIQUAD:
                 default:
                     rcCommand[updatedChannel] = biquadFilterApplyDF1((biquadFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
+                    delayedRcCommand = biquadFilterApplyDF1(&biquadSmith[updatedChannel], rcCommand[updatedChannel]);
+                    rcCommand[updatedChannel] += rcSmoothingData.smithStrength * (rcCommand[updatedChannel] - delayedRcCommand);
                     break;
                 }
             } else {
@@ -514,6 +526,9 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
             }
         }
     }
+    DEBUG_SET(DEBUG_RC_SMOOTHING, 1, lrintf(rcCommand[rxConfig()->rc_smoothing_debug_axis]));
+    DEBUG_SET(DEBUG_RC_SMOOTHING, 3, lrintf(rcCommand[1]));
+
     return interpolationChannels;
 }
 #endif // USE_RC_SMOOTHING_FILTER
@@ -849,4 +864,3 @@ bool rcSmoothingInitializationComplete(void) {
     return (rxConfig()->rc_smoothing_type != RC_SMOOTHING_TYPE_FILTER) || rcSmoothingData.filterInitialized;
 }
 #endif // USE_RC_SMOOTHING_FILTER
-

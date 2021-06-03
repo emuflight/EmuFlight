@@ -126,6 +126,7 @@ typedef struct rcSmoothingFilter_s {
     uint16_t derivativeCutoffFrequency;
     int averageFrameTimeUs;
     rcSmoothingFilterTraining_t training;
+    float smithStrength;
 } rcSmoothingFilter_t;
 
 typedef struct rcControlsConfig_s {
