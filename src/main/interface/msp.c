@@ -880,6 +880,11 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateCorrectionEnd);
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateWeightCenter);
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateWeightEnd);
+
+        // MSP 1.51
+        sbufWriteU8(dst, currentControlRateProfile->addRollToYawRc);
+        sbufWriteU8(dst, currentControlRateProfile->addYawToRollRc);
+        // end MSP 1.51
         break;
     case MSP_EMUF:
         sbufWriteU8(dst, currentControlRateProfile->dynThrI);
@@ -1625,6 +1630,12 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
                 currentControlRateProfile->rateDynamics.rateWeightCenter = sbufReadU8(src);
                 currentControlRateProfile->rateDynamics.rateWeightEnd = sbufReadU8(src);
             }
+            // MSP 1.51
+            if (sbufBytesRemaining(src) >= 2) {
+                currentControlRateProfile->addRollToYawRc = sbufReadU8(src);
+                currentControlRateProfile->addYawToRollRc = sbufReadU8(src);
+            }
+            // end MSP 1.51
             initRcProcessing();
         } else {
             return MSP_RESULT_ERROR;
