@@ -21,7 +21,11 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER         "S7X2"
+#if defined(TTRH_TRANSTECF7HD)
+#define USBD_PRODUCT_STRING             "TRANSTECF7HD"
+#else
 #define USBD_PRODUCT_STRING             "TRANSTECF7"
+#endif
 #define TARGET_MANUFACTURER_IDENTIFIER  "TTRH"
 #define USE_TARGET_CONFIG
 
@@ -77,12 +81,21 @@
 #define SPI2_MISO_PIN                   PB14
 #define SPI2_MOSI_PIN                   PB15
 
+#if defined(TTRH_TRANSTECF7HD)
+#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+#define USE_FLASHFS
+#define USE_FLASH_M25P16
+#define FLASH_CS_PIN                                     PC13
+#define FLASH_SPI_INSTANCE                               SPI2
+
+#else
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE            SPI2
 #define MAX7456_SPI_CS_PIN              PB10
 #define MAX7456_SPI_CLK                 (SPI_CLOCK_STANDARD) // 10MHz
 #define MAX7456_RESTORE_CLK             (SPI_CLOCK_FAST)
 
+#endif
 // *************** UART ***************
 #define USE_VCP
 #define USB_DETECT_PIN                  PA4
