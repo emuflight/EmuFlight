@@ -40,6 +40,7 @@
 #define M_SQRT2f    1.41421356237309504880f
 #define M_LN2f      0.69314718055994530942f
 
+
 #define RAD    (M_PIf / 180.0f)
 #define DEGREES_TO_DECIDEGREES(angle) ((angle) * 10)
 #define DECIDEGREES_TO_DEGREES(angle) ((angle) / 10)

@@ -265,6 +265,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_ABG_alpha = 0,
                   .gyro_ABG_boost = 275,
                   .gyro_ABG_half_life = 50,
+                  .smithPredictorEnabled = true,
                   .smithPredictorStrength = 50,
                   .smithPredictorDelay = 40,
                   .smithPredictorFilterHz = 5,
@@ -308,6 +309,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_ABG_alpha = 0,
                   .gyro_ABG_boost = 275,
                   .gyro_ABG_half_life = 50,
+                  .smithPredictorEnabled = true,
                   .smithPredictorStrength = 50,
                   .smithPredictorDelay = 40,
                   .smithPredictorFilterHz = 5,
@@ -824,6 +826,7 @@ static void gyroInitABGFilter(gyroSensor_t *gyroSensor, uint16_t alpha, uint16_t
 void smithPredictorInit(gyroSensor_t *gyroSensor) {
     if (gyroConfig()->smithPredictorDelay > 1) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+            gyroSensor->smithPredictor[axis].enabled = gyroConfig()->smithPredictorEnabled;
             gyroSensor->smithPredictor[axis].samples = gyroConfig()->smithPredictorDelay / (gyro.targetLooptime / 100.0f);
             gyroSensor->smithPredictor[axis].idx = 0;
             gyroSensor->smithPredictor[axis].smithPredictorStrength = gyroConfig()->smithPredictorStrength / 100.0f;
@@ -1079,7 +1082,7 @@ static FAST_CODE void checkForYawSpin(gyroSensor_t *gyroSensor, timeUs_t current
 
 #ifdef USE_SMITH_PREDICTOR
 float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered) {
-  if (smithPredictor->samples > 1) {
+  if (smithPredictor->samples > 1 && smithPredictor->enabled) {
     smithPredictor->data[smithPredictor->idx] = gyroFiltered;
 
     smithPredictor->idx++;
