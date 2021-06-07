@@ -17,7 +17,7 @@
  *
  * If not, see <http://www.gnu.org/licenses/>.
  */
-
+#ifndef USE_GYRO_IMUF9001
 #include <string.h>
 #include "arm_math.h"
 
@@ -33,7 +33,6 @@ void init_kalman(kalman_t *filter, float q) {
     filter->r = 88.0f;                  //seeding R at 88.0f
     filter->p = 30.0f;                  //seeding P at 30.0f
     filter->e = 1.0f;
-    filter->s = gyroConfig()->imuf_sharpness / 250.0f;     //adding the new sharpness :) time to overfilter :O
     filter->w = gyroConfig()->imuf_w;
     filter->inverseN = 1.0f / (float)(filter->w);
 }
@@ -74,22 +73,13 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
     //this should be close to 0 as we approach the sepoint and really high the futher away we are from the setpoint.
     //update last state
     kalmanState->lastX = kalmanState->x;
-    if (kalmanState->s != 0.0f) {
-        float average = fabsf(target + kalmanState->lastX) * 0.5f;
-        if (average > 10.0f) {
-            float error = fabsf(target - kalmanState->lastX);
-            float ratio = error / average;
-            kalmanState->e = kalmanState->s * powf(ratio, 3.0f);  //"ratio" power 3 and multiply by a gain
-        }
-        //prediction update
-        kalmanState->p = kalmanState->p + (kalmanState->q + kalmanState->e);
-    } else {
-        if (kalmanState->lastX != 0.0f) {
-            kalmanState->e = fabsf(1.0f - (target / kalmanState->lastX));
-        }
-        //prediction update
-        kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
+
+    if (kalmanState->lastX != 0.0f) {
+        kalmanState->e = fabsf(1.0f - (target / kalmanState->lastX));
     }
+    //prediction update
+    kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
+
     //measurement update
     kalmanState->k = kalmanState->p / (kalmanState->p + kalmanState->r);
     kalmanState->x += kalmanState->k * (input - kalmanState->x);
@@ -106,3 +96,4 @@ FAST_CODE float kalman_update(float input, int axis) {
     DEBUG_SET(DEBUG_KALMAN, axis, Kgain);                               //Kalman gain
     return input;
 }
+#endif
