@@ -102,7 +102,7 @@ static const char * const cms_mixerImplTypeLabels[] = {
 };
 
 static const char * const cms_FilterType[] = {
-    "PT1", "PT2", "PT3", "PT4",
+    "PT1", "BIQUAD", "PT2", "PT3", "PT4",
 };
 
 static long cmsx_menuImu_onEnter(void) {

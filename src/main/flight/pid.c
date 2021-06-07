@@ -215,6 +215,7 @@ const angle_index_t rcAliasToAngleIndexMap[] = {AI_ROLL, AI_PITCH};
 
 typedef union dtermLowpass_u {
     pt1Filter_t pt1Filter;
+    biquadFilter_t biquadFilter;
     ptnFilter_t ptnFilter;
 } dtermLowpass_t;
 
@@ -260,6 +261,9 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 dtermLowpassApplyFn = (filterApplyFnPtr)pt1FilterApply;
                 pt1FilterInit(&dtermLowpass[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf, dT));
                 break;
+            case FILTER_BIQUAD:
+                dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApply;
+                biquadFilterInitLPF(&dtermLowpass[axis].biquadFilter, pidProfile->dFilter[axis].dLpf, targetPidLooptime);
             case FILTER_PT2:
                 dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
                 ptnFilterInit(&dtermLowpass[axis].ptnFilter, 2, pidProfile->dFilter[axis].dLpf, dT);
@@ -269,6 +273,7 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 ptnFilterInit(&dtermLowpass[axis].ptnFilter, 3, pidProfile->dFilter[axis].dLpf, dT);
                 break;
             case FILTER_PT4:
+                default:
                 dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
                 ptnFilterInit(&dtermLowpass[axis].ptnFilter, 4, pidProfile->dFilter[axis].dLpf, dT);
                 break;
@@ -280,6 +285,9 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)pt1FilterApply;
                 pt1FilterInit(&dtermLowpass2[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf2, dT));
                 break;
+            case FILTER_BIQUAD:
+                dtermLowpass2ApplyFn = (filterApplyFnPtr)biquadFilterApply;
+                biquadFilterInitLPF(&dtermLowpass2[axis].biquadFilter, pidProfile->dFilter[axis].dLpf2, targetPidLooptime);
             case FILTER_PT2:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
                 ptnFilterInit(&dtermLowpass[axis].ptnFilter, 2, pidProfile->dFilter[axis].dLpf2, dT);
@@ -289,6 +297,7 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 ptnFilterInit(&dtermLowpass[axis].ptnFilter, 3, pidProfile->dFilter[axis].dLpf2, dT);
                 break;
             case FILTER_PT4:
+                default:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
                 ptnFilterInit(&dtermLowpass[axis].ptnFilter, 4, pidProfile->dFilter[axis].dLpf2, dT);
                 break;

@@ -57,6 +57,7 @@ typedef struct ptnFilter_s {
 
 typedef enum {
     FILTER_PT1 = 0,
+    FILTER_BIQUAD,
     FILTER_PT2,
     FILTER_PT3,
     FILTER_PT4,
