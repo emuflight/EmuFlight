@@ -748,6 +748,7 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
             case FILTER_BIQUAD:
                 *lowpassFilterApplyFn = (filterApplyFnPtr) biquadFilterApply;
                 biquadFilterInitLPF(&lowpassFilter[axis].biquadFilterState, lpfHz[axis], gyro.targetLooptime);
+                break;
             case FILTER_PT2:
                 *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
                 ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 2, lpfHz[axis], gyroDt);

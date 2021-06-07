@@ -264,6 +264,7 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
             case FILTER_BIQUAD:
                 dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApply;
                 biquadFilterInitLPF(&dtermLowpass[axis].biquadFilter, pidProfile->dFilter[axis].dLpf, targetPidLooptime);
+                break;
             case FILTER_PT2:
                 dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
                 ptnFilterInit(&dtermLowpass[axis].ptnFilter, 2, pidProfile->dFilter[axis].dLpf, dT);
