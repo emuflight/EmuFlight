@@ -353,21 +353,21 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                     if (!smoothingData->filterInitialized) {
                         ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], 2, smoothingData->inputCutoffFrequency, dT);
                     } else {
-                        ptnFilterUpdateCutoff((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 1.553773974f, dT);
+                        ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 1.553773974f, dT);
                     }
                     break;
                 case RC_SMOOTHING_INPUT_PT3:
                     if (!smoothingData->filterInitialized) {
                         ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], 3, smoothingData->inputCutoffFrequency, dT);
                     } else {
-                        ptnFilterUpdateCutoff((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 1.961459177f, dT);
+                        ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 1.961459177f, dT);
                     }
                     break;
                 case RC_SMOOTHING_INPUT_PT4:
                     if (!smoothingData->filterInitialized) {
                         ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], 4, smoothingData->inputCutoffFrequency, dT);
                     } else {
-                        ptnFilterUpdateCutoff((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 2.298959223f, dT);
+                        ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 2.298959223f, dT);
                     }
                     break;
                 }
@@ -512,7 +512,7 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
                 case RC_SMOOTHING_INPUT_PT2:
                 case RC_SMOOTHING_INPUT_PT3:
                 case RC_SMOOTHING_INPUT_PT4:
-                    rcCommand[updatedChannel] = ptnFilterApply((pt1Filter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
+                    rcCommand[updatedChannel] = ptnFilterApply((ptnFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
                     break;
                   }
             } else {
