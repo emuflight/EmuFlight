@@ -257,50 +257,49 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         if (pidProfile->dFilter[axis].dLpf && pidProfile->dFilter[axis].dLpf <= pidFrequencyNyquist) {
             switch (pidProfile->dterm_filter_type) {
-            case FILTER_PT1:
-                dtermLowpassApplyFn = (filterApplyFnPtr)pt1FilterApply;
-                pt1FilterInit(&dtermLowpass[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf, dT));
-                break;
             case FILTER_BIQUAD:
                 dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApply;
                 biquadFilterInitLPF(&dtermLowpass[axis].biquadFilter, pidProfile->dFilter[axis].dLpf, targetPidLooptime);
                 break;
-            case FILTER_PT2:
+            case FILTER_PT4:
                 dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
-                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 2, pidProfile->dFilter[axis].dLpf, dT);
+                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 4, pidProfile->dFilter[axis].dLpf, dT);
                 break;
             case FILTER_PT3:
                 dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
                 ptnFilterInit(&dtermLowpass[axis].ptnFilter, 3, pidProfile->dFilter[axis].dLpf, dT);
                 break;
-            case FILTER_PT4:
-                default:
+            case FILTER_PT2:
                 dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
-                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 4, pidProfile->dFilter[axis].dLpf, dT);
+                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 2, pidProfile->dFilter[axis].dLpf, dT);
+                break;
+            default: // case FILTER_PT1:
+                dtermLowpassApplyFn = (filterApplyFnPtr)pt1FilterApply;
+                pt1FilterInit(&dtermLowpass[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf, dT));
                 break;
             }
         }
         if (pidProfile->dFilter[axis].dLpf2 && pidProfile->dFilter[axis].dLpf2 <= pidFrequencyNyquist) {
             switch (pidProfile->dterm_filter_type) {
-            case FILTER_PT1:
-                dtermLowpass2ApplyFn = (filterApplyFnPtr)pt1FilterApply;
-                pt1FilterInit(&dtermLowpass2[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf2, dT));
-                break;
             case FILTER_BIQUAD:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)biquadFilterApply;
                 biquadFilterInitLPF(&dtermLowpass2[axis].biquadFilter, pidProfile->dFilter[axis].dLpf2, targetPidLooptime);
-            case FILTER_PT2:
+                break;
+            case FILTER_PT4:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
-                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 2, pidProfile->dFilter[axis].dLpf2, dT);
+                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 4, pidProfile->dFilter[axis].dLpf2, dT);
                 break;
             case FILTER_PT3:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
                 ptnFilterInit(&dtermLowpass[axis].ptnFilter, 3, pidProfile->dFilter[axis].dLpf2, dT);
                 break;
-            case FILTER_PT4:
-                default:
+            case FILTER_PT2:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
-                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 4, pidProfile->dFilter[axis].dLpf2, dT);
+                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 2, pidProfile->dFilter[axis].dLpf2, dT);
+                break;
+            default: // case FILTER_PT1:
+                dtermLowpass2ApplyFn = (filterApplyFnPtr)pt1FilterApply;
+                pt1FilterInit(&dtermLowpass2[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf2, dT));
                 break;
             }
         }
