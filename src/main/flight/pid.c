@@ -240,14 +240,6 @@ static FAST_RAM_ZERO_INIT pt1Filter_t axisLockLpf[XYZ_AXIS_COUNT];
 
 static FAST_RAM_ZERO_INIT float iDecay;
 
-#ifdef USE_RC_SMOOTHING_FILTER
-static FAST_RAM_ZERO_INIT pt1Filter_t setpointDerivativePt1[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT biquadFilter_t setpointDerivativeBiquad[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT bool setpointDerivativeLpfInitialized;
-static FAST_RAM_ZERO_INIT uint8_t rcSmoothingDebugAxis;
-static FAST_RAM_ZERO_INIT uint8_t rcSmoothingFilterType;
-#endif // USE_RC_SMOOTHING_FILTER
-
 void pidInitFilters(const pidProfile_t *pidProfile) {
     BUILD_BUG_ON(FD_YAW != 2);                             // ensure yaw axis is 2
     const uint32_t pidFrequencyNyquist = pidFrequency / 2; // No rounding needed
@@ -288,6 +280,7 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
             case FILTER_BIQUAD:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)biquadFilterApply;
                 biquadFilterInitLPF(&dtermLowpass2[axis].biquadFilter, pidProfile->dFilter[axis].dLpf2, targetPidLooptime);
+                break;
             case FILTER_PT2:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
                 ptnFilterInit(&dtermLowpass[axis].ptnFilter, 2, pidProfile->dFilter[axis].dLpf2, dT);
@@ -329,43 +322,6 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
 #endif
     }
 }
-
-
-
-#ifdef USE_RC_SMOOTHING_FILTER
-void pidInitSetpointDerivativeLpf(uint16_t filterCutoff, uint8_t debugAxis, uint8_t filterType) {
-    rcSmoothingDebugAxis = debugAxis;
-    rcSmoothingFilterType = filterType;
-    if ((filterCutoff > 0) && (rcSmoothingFilterType != RC_SMOOTHING_DERIVATIVE_OFF)) {
-        setpointDerivativeLpfInitialized = true;
-        for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-            switch (rcSmoothingFilterType) {
-            case RC_SMOOTHING_DERIVATIVE_PT1:
-                pt1FilterInit(&setpointDerivativePt1[axis], pt1FilterGain(filterCutoff, dT));
-                break;
-            case RC_SMOOTHING_DERIVATIVE_BIQUAD:
-                biquadFilterInitLPF(&setpointDerivativeBiquad[axis], filterCutoff, targetPidLooptime);
-                break;
-            }
-        }
-    }
-}
-
-void pidUpdateSetpointDerivativeLpf(uint16_t filterCutoff) {
-    if ((filterCutoff > 0) && (rcSmoothingFilterType != RC_SMOOTHING_DERIVATIVE_OFF)) {
-        for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-            switch (rcSmoothingFilterType) {
-            case RC_SMOOTHING_DERIVATIVE_PT1:
-                pt1FilterUpdateCutoff(&setpointDerivativePt1[axis], pt1FilterGain(filterCutoff, dT));
-                break;
-            case RC_SMOOTHING_DERIVATIVE_BIQUAD:
-                biquadFilterUpdateLPF(&setpointDerivativeBiquad[axis], filterCutoff, targetPidLooptime);
-                break;
-            }
-        }
-    }
-}
-#endif // USE_RC_SMOOTHING_FILTER
 
 typedef struct pidCoefficient_s {
     float Kp;
