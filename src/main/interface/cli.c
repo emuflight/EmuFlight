@@ -3559,6 +3559,18 @@ static void cliStatus(char *cmdline) {
 #endif
 #endif /* USE_SENSOR_NAMES */
     cliPrintLinefeed();
+
+#if defined(USE_ESC_SENSOR)
+    uint8_t motorCount = getMotorCount();
+    cliPrintLinef("ESC Temperature(s): Motor Count=%d", motorCount);
+    for (uint8_t i = 0; i < motorCount; i++)
+    {
+        const escSensorData_t *escData = getEscSensorData(i); 
+        cliPrintf("ESC %d: %d\260C, ", i, escData->temperature);
+    }
+    cliPrintLinefeed();
+#endif
+
 #ifdef USE_SDCARD
     cliSdInfo(NULL);
 #endif
