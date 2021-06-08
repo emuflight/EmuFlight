@@ -184,11 +184,11 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dyn_lpf_curve_expo = 5,
         .vbat_sag_compensation = 0,
         .dtermMeasurementSlider = 100,
-        .torqueInertiaRatio = 0,
-        .pitchTorqueRatio = 0,
-        .yawTorqueRatio = 0,
-        .pitchInertiaRatio = 0,
-        .yawInertiaRatio = 0,
+        .torqueInertiaRatio = 10000,
+        .pitchTorqueRatio = 100,
+        .yawTorqueRatio = 100,
+        .pitchInertiaRatio = 100,
+        .yawInertiaRatio = 100,
         .emuBoostPR = 15,
         .emuBoostY = 40,
         .dtermBoost = 0,
@@ -981,9 +981,11 @@ void applyFeedbackLinearization(pidAxisData_t *pids, float *gyroData)
     float k3 = pidRuntime.yawInertiaRatio;
     float kt2 = pidRuntime.pitchTorqueRatio;
     float kt3 = pidRuntime.yawTorqueRatio;
-    float TIR = pidRuntime.TorqueInertiaRatio;
-    pids[FD_ROLL].Sum += (k3-k2) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_PITCH] / (PID_MIXER_SCALING * TIR);
-    pids[FD_PITCH].Sum += (1.0f-k3) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_ROLL] / (PID_MIXER_SCALING * TIR * kt2);
-    pids[FD_YAW].Sum += (k2-1.0f) * 0.0003046f * gyroData[FD_ROLL] * gyroData[FD_PITCH] / (PID_MIXER_SCALING * TIR * kt3);
+    float TIR = pidRuntime.torqueInertiaRatio;
+    if (!(kt2==0 || kt3==0 || TIR==0)){
+        pids[FD_ROLL].Sum += (k3-k2) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_PITCH] / (PID_MIXER_SCALING * TIR);
+        pids[FD_PITCH].Sum += (1.0f-k3) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_ROLL] / (PID_MIXER_SCALING * TIR * kt2);
+        pids[FD_YAW].Sum += (k2-1.0f) * 0.0003046f * gyroData[FD_ROLL] * gyroData[FD_PITCH] / (PID_MIXER_SCALING * TIR * kt3);
+    }
 }
 #endif

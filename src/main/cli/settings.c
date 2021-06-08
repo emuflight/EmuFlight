@@ -1155,11 +1155,11 @@ const clivalue_t valueTable[] = {
 #endif
 
 #ifdef USE_FEEDBACK_LINEARIZATION
-    { "torque_inertia_ratio",       VAR_UINT16  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, torqueInertiaRatio) },
-    { "pitch_torque_ratio",         VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, pitchTorqueRatio) },
-    { "yaw_torque_ratio",           VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, yawTorqueRatio) },
-    { "pitch_inertia_ratio",        VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, pitchInertiaRatio) },
-    { "yaw_inertia_ratio",          VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, yawInertiaRatio) },
+    { "torque_inertia_ratio",       VAR_UINT16  | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 10000 }, PG_PID_PROFILE, offsetof(pidProfile_t, torqueInertiaRatio) },
+    { "pitch_torque_ratio",         VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, pitchTorqueRatio) },
+    { "yaw_torque_ratio",           VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, yawTorqueRatio) },
+    { "pitch_inertia_ratio",        VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, pitchInertiaRatio) },
+    { "yaw_inertia_ratio",          VAR_UINT16  | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 500 }, PG_PID_PROFILE, offsetof(pidProfile_t, yawInertiaRatio) },
 #endif
 
 #ifdef USE_INTERPOLATED_SP

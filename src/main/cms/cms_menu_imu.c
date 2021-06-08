@@ -592,7 +592,7 @@ static uint16_t  cmsx_torqueInertiaRatio;
 static uint8_t  cmsx_pitchTorqueRatio;
 static uint8_t  cmsx_yawTorqueRatio;
 static uint8_t cmsx_pitchInertiaRatio;
-static uint8_t  cmsx_yawInertiaRatio;
+static uint16_t  cmsx_yawInertiaRatio;
 #endif
 
 static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
@@ -731,11 +731,11 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "AUTO CELL CNT", OME_INT8, NULL, &(OSD_INT8_t) { &cmsx_autoProfileCellCount, AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT, 1}, 0 },
 
 #ifdef USE_FEEDBACK_LINEARIZATION
-    { "THR BOOST",   OME_UINT16,  NULL, &(OSD_UINT16_t)  { &cmsx_torqueInertiaRatio,    0,    1000,   1  }   , 0 },
-    { "THR BOOST",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_pitchTorqueRatio,        0,    250,   1  }   , 0 },
-    { "THR BOOST",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_yawTorqueRatio,          0,    250,   1  }   , 0 },
-    { "THR BOOST",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_pitchInertiaRatio,       0,    250,   1  }   , 0 },
-    { "THR BOOST",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_yawInertiaRatio,         0,    250,   1  }   , 0 },
+    { "TORQUE INERTIA RATIO",   OME_UINT16,  NULL, &(OSD_UINT16_t)  { &cmsx_torqueInertiaRatio,    1,    10000,   1  }   , 0 },
+    { "PITCH TORQUE RATIO",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_pitchTorqueRatio,        1,    250,   1  }   , 0 },
+    { "YAW TORQUE RATIO",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_yawTorqueRatio,          1,    250,   1  }   , 0 },
+    { "PITCH INERTIA RATIO",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_pitchInertiaRatio,       1,    250,   1  }   , 0 },
+    { "YAW INERTIA RATION",   OME_UINT16,  NULL, &(OSD_UINT8_t)  { &cmsx_yawInertiaRatio,         1,    500,   1  }   , 0 },
 #endif
 
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION

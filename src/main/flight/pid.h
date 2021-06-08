@@ -171,7 +171,7 @@ typedef struct pidProfile_s {
     uint8_t pitchTorqueRatio;
     uint8_t yawTorqueRatio;
     uint8_t pitchInertiaRatio;
-    uint8_t yawInertiaRatio;
+    uint16_t yawInertiaRatio;
 
     uint16_t emuBoostPR;
     uint16_t emuBoostY;
@@ -285,7 +285,7 @@ typedef struct pidRuntime_s {
     float dtermMeasurementSlider;
     float dtermMeasurementSliderInverse;
 
-    float TorqueInertiaRatio;
+    float torqueInertiaRatio;
     float pitchTorqueRatio;
     float yawTorqueRatio;
     float pitchInertiaRatio;
