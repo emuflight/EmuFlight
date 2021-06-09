@@ -3565,6 +3565,87 @@ static void cliBootloader(const char *cmdName, char *cmdline)
     cliRebootEx(rebootTarget);
 }
 
+#ifdef USE_GYRO_IMUF9001
+
+
+static void cliImufBootloaderMode(char *cmdline) {
+    (void)(cmdline);
+    if(imufBootloader()) {
+        cliPrintLine("BOOTLOADER");
+    } else {
+        cliPrintLine("FAIL");
+    }
+}
+
+
+static void cliImufLoadBin(char *cmdline) {
+#define TEMP_BUFF 256
+    uint32_t dataSize;
+    uint8_t output;
+    uint8_t dataBuff[TEMP_BUFF] = {0,};
+    uint32_t x;
+    if(cmdline[0] == '!') {
+        imuf_bin_safe = 1;
+        imuf_buff_ptr = 0;
+        imuf_checksum = 0;
+        memset(imuf_custom_buff, 0, IMUF_CUSTOM_BUFF_LENGTH);
+        cliPrintLine("SUCCESS");
+    } else if(cmdline[0] == '.') {
+        cliPrintLinef("%d", imuf_buff_ptr);
+    } else if(cmdline[0] == 'c') {
+        cliPrintLinef("%d", imuf_checksum);
+    } else if(cmdline[0] == 'l') {
+        if (imuf_bin_safe) {
+            //get the datasize
+            hex2byte(&cmdline[1], &output);
+            dataSize  = ((output & 0xff) << 0 );
+            hex2byte(&cmdline[3], &output);
+            dataSize += ((output & 0xff) << 8 );
+            hex2byte(&cmdline[5], &output);
+            dataSize += ((output & 0xff) << 16);
+            hex2byte(&cmdline[7], &output);
+            dataSize += ((output & 0xff) << 24);
+            if(dataSize < TEMP_BUFF) {
+                //fill the temp buffer
+                for(x = 0; x < dataSize; x++) {
+                    hex2byte(&cmdline[(x * 2) + 9], &output);
+                    dataBuff[x] = output;
+                    imuf_checksum += output;
+                    //cliPrintLinef("out:%d:%d:%d:%d", dataSize, x, (x*2)+9, output, checksum);
+                }
+                if ( (imuf_buff_ptr + dataSize) < IMUF_CUSTOM_BUFF_LENGTH ) {
+                    memcpy(imuf_custom_buff + imuf_buff_ptr, dataBuff, dataSize);
+                    imuf_buff_ptr += dataSize;
+                    cliPrintLine("LOADED");
+                } else {
+                    cliPrintLine("WOAH!");
+                }
+            } else {
+                cliPrintLine("CRAP!");
+            }
+        } else {
+            cliPrintLine("PFFFT!");
+        }
+    }
+}
+
+static void cliImufFlashBin(char *cmdline) {
+    (void)(cmdline);
+    if (imufUpdate(imuf_custom_buff, imuf_buff_ptr)) {
+        cliPrintLine("SUCCESS");
+        bufWriterFlush(cliWriter);
+        delay(5000);
+        *cliBuffer = '\0';
+        bufferIndex = 0;
+        cliMode = 0;
+        // incase a motor was left running during motortest, clear it here
+        mixerResetDisarmedMotors();
+        cliReboot();
+        cliWriter = NULL;
+    }
+}
+#endif // USE_GYRO_IMUF9001
+
 static void cliExit(const char *cmdName, char *cmdline)
 {
     UNUSED(cmdName);
@@ -6795,6 +6876,11 @@ const clicmd_t cmdTable[] = {
         "[master|profile|rates|hardware|all] {defaults|bare}", cliDump),
 #ifdef USE_ESCSERIAL
     CLI_COMMAND_DEF("escprog", "passthrough esc to serial", "<mode [sk/bl/ki/cc]> <index>", cliEscPassthrough),
+#endif
+#ifdef USE_GYRO_IMUF9001
+    CLI_COMMAND_DEF("imufbootloader", NULL, NULL, cliImufBootloaderMode),
+    CLI_COMMAND_DEF("imufloadbin", NULL, NULL, cliImufLoadBin),
+    CLI_COMMAND_DEF("imufflashbin", NULL, NULL, cliImufFlashBin),
 #endif
     CLI_COMMAND_DEF("exit", NULL, NULL, cliExit),
     CLI_COMMAND_DEF("feature", "configure features",
