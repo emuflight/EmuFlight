@@ -327,9 +327,21 @@ static gyroSpiDetectFn_t gyroSpiDetectFnTable[] = {
 static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro, const gyroDeviceConfig_t *config)
 {
 #ifdef USE_GYRO_IMUF9001
+#ifdef IMUF9001_SPI_INSTANCE
     spiBusSetInstance(&gyro->bus, IMUF9001_SPI_INSTANCE);
+#else
+#error IMUF9001 is SPI only
+#endif
+#ifdef IMUF9001_CS_PIN
     gyro->bus.busdev_u.spi.csnPin = gyro->bus.busdev_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(IMUF9001_CS_PIN)) : gyro->bus.busdev_u.spi.csnPin;
+#else
+#error IMUF9001 must use a CS pin (IMUF9001_CS_PIN)
+#endif
+#ifdef IMUF9001_RST_PIN
     gyro->bus.busdev_u.spi.rstPin = IOGetByTag(IO_TAG(IMUF9001_RST_PIN));
+#else
+#error IMUF9001 must use a RST pin (IMUF9001_RST_PIN)
+#endif
     uint8_t sensor = imuf9001SpiDetect(gyro);
     // some targets using MPU_9250_SPI, ICM_20608_SPI or ICM_20602_SPI state sensor is MPU_65xx_SPI
     if (sensor != MPU_NONE) {
