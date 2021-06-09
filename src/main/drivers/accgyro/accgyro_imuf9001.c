@@ -214,7 +214,7 @@ FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroComma
     command.crc     = getCrcImuf9001((uint32_t *)&command, 11);;
     while (failCount-- > 0) {
         delayMicroseconds(1000);
-        if( IORead(IOGetByTag(gyro->mpuIntExtiTag)) ) { //IMU is ready to talk
+        if( IORead(IOGetByTag( IO_TAG(GYRO_1_EXTI_PIN) )) ) { //IMU is ready to talk
             failCount -= 100;
             if (imufSendReceiveSpiBlocking(&(gyro->bus), (uint8_t *)&command, (uint8_t *)reply, sizeof(imufCommand_t))) {
                 crcCalc = getCrcImuf9001((uint32_t *)reply, 11);
@@ -231,7 +231,7 @@ FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroComma
                             delay(10);
                         }
                         delayMicroseconds(1000); //give pin time to set
-                        if( IORead(IOGetByTag(gyro->mpuIntExtiTag)) ) { //IMU is ready to talk
+                        if( IORead(IOGetByTag( IO_TAG(GYRO_1_EXTI_PIN) )) ) { //IMU is ready to talk
                             //reset attempts
                             attempt = 100;
                             delayMicroseconds(1000); //give pin time to set
@@ -396,8 +396,8 @@ uint8_t imuf9001SpiDetect(const gyroDev_t *gyro) {
     //config crc
     crcConfig();
     //config exti as input, not exti for now
-    IOInit(IOGetByTag(gyro->mpuIntExtiTag), OWNER_GYRO_EXTI, 0);
-    IOConfigGPIO(IOGetByTag(gyro->mpuIntExtiTag), IOCFG_IPD);
+    IOInit(IOGetByTag( IO_TAG(GYRO_1_EXTI_PIN) ), OWNER_GYRO_EXTI, 0);
+    IOConfigGPIO(IOGetByTag( IO_TAG(GYRO_1_EXTI_PIN) ), IOCFG_IPD);
     delayMicroseconds(100);
     IOInit(gyro->bus.busdev_u.spi.csnPin, OWNER_GYRO_CS, 0);
     IOConfigGPIO(gyro->bus.busdev_u.spi.csnPin, SPI_IO_CS_CFG);
