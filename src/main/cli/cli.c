@@ -249,6 +249,15 @@ static char __attribute__ ((section(".custom_defaults_start_address"))) *customD
 static char __attribute__ ((section(".custom_defaults_end_address"))) *customDefaultsEnd = CUSTOM_DEFAULTS_END;
 #endif
 
+#ifdef USE_GYRO_IMUF9001
+#define IMUF_CUSTOM_BUFF_LENGTH 26000
+static   uint8_t  imuf_custom_buff[IMUF_CUSTOM_BUFF_LENGTH];
+static   uint32_t imuf_buff_ptr = 0;
+static   uint32_t imuf_checksum = 0;
+static   int      imuf_bin_safe = 0;
+
+#endif
+
 #ifndef USE_QUAD_MIXER_ONLY
 // sync this with mixerMode_e
 static const char * const mixerNames[] = {
@@ -3566,7 +3575,13 @@ static void cliBootloader(const char *cmdName, char *cmdline)
 }
 
 #ifdef USE_GYRO_IMUF9001
-
+static void hex2byte(char *string, uint8_t *output) {
+    char tempBuff[3];
+    tempBuff[0] = string[0];
+    tempBuff[1] = string[1];
+    tempBuff[2] = 0;
+    *output = (uint8_t)strtol(tempBuff, NULL, 16);
+}
 
 static void cliImufBootloaderMode(char *cmdline) {
     (void)(cmdline);
