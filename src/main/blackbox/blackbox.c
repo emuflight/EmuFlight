@@ -1213,6 +1213,7 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("linear_throttle", "%d",                 currentPidProfile->linear_throttle);
         BLACKBOX_PRINT_HEADER_LINE("mixer_impl", "%d",                      currentPidProfile->mixer_impl);
         BLACKBOX_PRINT_HEADER_LINE("mixer_laziness", "%d",                  currentPidProfile->mixer_laziness);
+        BLACKBOX_PRINT_HEADER_LINE("mixer_yaw_throttle_comp", "%d",         currentPidProfile->mixer_yaw_throttle_comp);
         // End of EmuFlight controller parameters
         BLACKBOX_PRINT_HEADER_LINE("deadband", "%d",                        rcControlsConfig()->deadband);
         BLACKBOX_PRINT_HEADER_LINE("yaw_deadband", "%d",                    rcControlsConfig()->yaw_deadband);
@@ -1240,6 +1241,7 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("gyro_ABG_alpha", "%d",                  gyroConfig()->gyro_ABG_alpha);
         BLACKBOX_PRINT_HEADER_LINE("gyro_ABG_boost", "%d",                  gyroConfig()->gyro_ABG_boost);
         BLACKBOX_PRINT_HEADER_LINE("gyro_ABG_half_life", "%d",              gyroConfig()->gyro_ABG_half_life);
+        BLACKBOX_PRINT_HEADER_LINE("smith_predict_enabled", "%d",              gyroConfig()->smithPredictorEnabled);
         BLACKBOX_PRINT_HEADER_LINE("smith_predict_str", "%d",               gyroConfig()->smithPredictorStrength);
         BLACKBOX_PRINT_HEADER_LINE("smith_predict_delay", "%d",             gyroConfig()->smithPredictorDelay);
         BLACKBOX_PRINT_HEADER_LINE("smith_predict_filt_hz", "%d",           gyroConfig()->smithPredictorFilterHz);

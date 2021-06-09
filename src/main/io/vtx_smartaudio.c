@@ -67,7 +67,7 @@ static serialPort_t *smartAudioSerialPort = NULL;
 
 #if defined(USE_CMS) || defined(USE_VTX_COMMON)
 const char * const saPowerNames[VTX_SMARTAUDIO_POWER_COUNT + 1] = {
-    "---", "25 ", "200", "500", "800",
+    "---", "LV1", "LV2", "LV3", "LV4",
 };
 #endif
 
