@@ -26,7 +26,7 @@
 #include "common/maths.h"
 #include "common/sdft.h"
 
-#define SDFT_R 0.9999f  // damping factor for guaranteed SDFT stability (r < 1.0f) 
+#define SDFT_R 0.9999f  // damping factor for guaranteed SDFT stability (r < 1.0f)
 
 static FAST_DATA_ZERO_INIT float     rPowerN;  // SDFT_R to the power of SDFT_SAMPLE_SIZE
 static FAST_DATA_ZERO_INIT bool      isInitialized;
@@ -38,7 +38,7 @@ static void applySqrt(const sdft_t *sdft, float *data);
 void sdftInit(sdft_t *sdft, const uint8_t startBin, const uint8_t endBin, const uint8_t numBatches)
 {
     if (!isInitialized) {
-        rPowerN = powerf(SDFT_R, SDFT_SAMPLE_SIZE);
+        rPowerN = powf(SDFT_R, SDFT_SAMPLE_SIZE);
         const float c = 2.0f * M_PIf / (float)SDFT_SAMPLE_SIZE;
         float phi = 0.0f;
         for (uint8_t i = 0; i < SDFT_BIN_COUNT; i++) {
@@ -68,7 +68,7 @@ void sdftInit(sdft_t *sdft, const uint8_t startBin, const uint8_t endBin, const 
 FAST_CODE void sdftPush(sdft_t *sdft, const float *sample)
 {
     const float delta = *sample - rPowerN * sdft->samples[sdft->idx];
-    
+
     sdft->samples[sdft->idx] = *sample;
     sdft->idx = (sdft->idx + 1) % SDFT_SAMPLE_SIZE;
 

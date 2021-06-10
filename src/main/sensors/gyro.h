@@ -205,8 +205,8 @@ typedef struct gyroConfig_s {
     uint8_t  dyn_lpf_gyro_gain;
 
     uint16_t dyn_notch_max_hz;
-    uint8_t  dyn_notch_count;
-    uint16_t dyn_notch_bandwidth_hz;
+    uint8_t dyn_notch_count;
+    uint16_t dyn_notch_q;
     uint16_t dyn_notch_min_hz;
 
 #if defined(USE_GYRO_IMUF9001)
