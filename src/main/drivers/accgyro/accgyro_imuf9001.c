@@ -48,6 +48,18 @@
 //#include "sensors/gyro.h"
 #include "sensors/acceleration.h"
 
+
+//***** START: CLI DEBUG FOR yeeting IMUF
+#include "cli/cli.h"
+// Commands to print debugging information to the CLI
+#define cliDebugPrintLinefeed cliPrintLinefeed
+#define cliDebugPrintLinef cliPrintLinef
+#define cliDebugPrintLine cliPrintLine
+#define cliDebugPrintf cliPrintf
+#define cliDebugPrint cliPrint
+//***** END: CLI DEBUG FOR yeeting IMUF
+
+
 #ifdef USE_HAL_F7_CRC
 //CRC stuff should really go in a separate CRC driver, but only IMUF uses it
 #include "drivers/system.h"
@@ -107,6 +119,7 @@ FAST_CODE static void gpio_write_pin(GPIO_TypeDef * GPIOx, uint16_t GPIO_Pin, gp
 }
 
 void resetImuf9001(void) {
+    cliDebugPrintLine("yeet: resetImuf9001()");
     gpio_write_pin(IMUF_RST_PORT, IMUF_RST_PIN, GPIO_LO);
     //blink
     for(uint32_t x = 0; x < 40; x++) {
@@ -131,6 +144,7 @@ void resetImuf9001(void) {
 #endif
 
 void imufDeinitGpio(GPIO_TypeDef * GPIOx, uint16_t GPIO_Pin) {
+    cliDebugPrintLine("yeet: imufDeinitGpio()");
     uint32_t position;
     uint32_t ioposition = 0x00U;
     uint32_t iocurrent = 0x00U;
@@ -172,6 +186,7 @@ void imufDeinitGpio(GPIO_TypeDef * GPIOx, uint16_t GPIO_Pin) {
 }
 
 void initImuf9001(void) {
+    cliDebugPrintLine("yeet: initImuf9001()");
     //GPIO manipulation should go into a fast GPIO driver and should be separate from the befhal
 #ifdef USE_HAL_F7_CRC
     HAL_GPIO_DeInit(IMUF_RST_PORT, IMUF_RST_PIN);
@@ -196,11 +211,13 @@ void initImuf9001(void) {
 }
 
 FAST_CODE bool imufSendReceiveSpiBlocking(const busDevice_t *bus, uint8_t *dataTx, uint8_t *daRx, uint8_t length) {
+    cliDebugPrintLine("yeet: imufSendReceiveSpiBlocking()");
     spiBusTransfer(bus, dataTx, daRx, length);
     return true;
 }
 
 FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroCommands_t commandToSend, imufCommand_t *reply, imufCommand_t *data) {
+    cliDebugPrintLine("yeet: imuf9001SendReceiveCommand()");
     imufCommand_t command;
     volatile uint32_t attempt, crcCalc;
     int failCount = 5000;
@@ -250,6 +267,7 @@ FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroComma
 }
 
 int imufBootloader() {
+    cliDebugPrintLine("yeet: imufBootloader()");
     imufCommand_t reply;
     imufCommand_t data;
     memset(&data, 0, sizeof(data));
@@ -312,6 +330,7 @@ int imufBootloader() {
 volatile int checkCount = 0;
 
 int imufUpdate(uint8_t *buff, uint32_t bin_length) {
+    cliDebugPrintLine("yeet: imufUpdate()");
     imufCommand_t reply;
     imufCommand_t data;
     memset(&data, 0, sizeof(data));
@@ -372,6 +391,7 @@ int imufUpdate(uint8_t *buff, uint32_t bin_length) {
 }
 
 int imuf9001Whoami(const gyroDev_t *gyro) {
+    cliDebugPrintLine("yeet: imuf9001Whoami()");
     imufDev = (gyroDev_t *)gyro;
     uint32_t attempt;
     imufCommand_t reply;
@@ -388,6 +408,7 @@ int imuf9001Whoami(const gyroDev_t *gyro) {
 }
 
 uint8_t imuf9001SpiDetect(const gyroDev_t *gyro) {
+    cliDebugPrintLine("yeet: imuf9001SpiDetect()");
     static bool hardwareInitialised = false;
     int returnCheck;
     if (hardwareInitialised) {
@@ -417,10 +438,12 @@ uint8_t imuf9001SpiDetect(const gyroDev_t *gyro) {
 }
 
 void imufSpiAccInit(accDev_t *acc) {
+    cliDebugPrintLine("yeet: imufSpiAccInit()");
     acc->acc_1G = 512 * 4;
 }
 
 static gyroToBoardCommMode_t VerifyAllowedCommMode(uint32_t commMode) {
+    cliDebugPrintLine("yeet: gyroToBoardCommMode_t()");
     switch (commMode) {
     case GTBCM_GYRO_ACC_FILTER_F:
         return (gyroToBoardCommMode_t)commMode;
@@ -431,6 +454,7 @@ static gyroToBoardCommMode_t VerifyAllowedCommMode(uint32_t commMode) {
 }
 
 uint16_t imufGyroAlignment(void) {
+    cliDebugPrintLine("yeet: imufGyroAlignment()");
     if (isBoardAlignmentStandard(boardAlignment())) {
         if(gyroConfig()->gyro_align <= 1) {
             return 0;
@@ -443,6 +467,7 @@ uint16_t imufGyroAlignment(void) {
 }
 
 void setupImufParams(imufCommand_t * data) {
+    cliDebugPrintLine("yeet: setupImufParams()");
     if (imufCurrentVersion < 107) {
         //backwards compatibility for Caprica
         data->param2 = ( (uint16_t)(gyroConfig()->imuf_rate + 1) << 16 );
@@ -477,6 +502,7 @@ void setupImufParams(imufCommand_t * data) {
 }
 
 void imufSpiGyroInit(gyroDev_t *gyro) {
+    cliDebugPrintLine("yeet: imufSpiGyroInit()");
     uint32_t attempt = 0;
     imufCommand_t txData;
     imufCommand_t rxData;
@@ -497,17 +523,20 @@ void imufSpiGyroInit(gyroDev_t *gyro) {
 }
 
 FAST_CODE bool imufReadAccData(accDev_t *acc) {
+    cliDebugPrintLine("yeet: imufReadAccData()");
     UNUSED(acc);
     return true;
 }
 
 bool imufSpiAccDetect(accDev_t *acc) {
+    cliDebugPrintLine("yeet: imufSpiAccDetect()");
     acc->initFn = imufSpiAccInit;
     acc->readFn = imufReadAccData;
     return true;
 }
 
 bool imufSpiGyroDetect(gyroDev_t *gyro) {
+    cliDebugPrintLine("yeet: imufSpiGyroDetect()");
     // MPU6500 is used as a equivalent of other gyros by some flight controllers
     switch (gyro->mpuDetectionResult.sensor) {
     case IMUF_9001_SPI:
@@ -522,10 +551,12 @@ bool imufSpiGyroDetect(gyroDev_t *gyro) {
 }
 
 FAST_CODE void imufStartCalibration() {
+    cliDebugPrintLine("yeet: imufStartCalibration()");
     isImufCalibrating = IMUF_IS_CALIBRATING; //reset by EXTI
 }
 
 FAST_CODE void imufEndCalibration() {
+    cliDebugPrintLine("yeet: imufEndCalibration()");
     isImufCalibrating = IMUF_NOT_CALIBRATING; //reset by EXTI
 }
 
