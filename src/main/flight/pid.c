@@ -145,8 +145,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .crash_recovery = PID_CRASH_RECOVERY_DISARM, // off by default
         .angleExpo = 10,
         .horizonTransition = 0,
-        .horizon_tilt_effect = 130,
-        .horizon_strength = 15,
+        .horizon_tilt_effect = 90,
+        .horizon_strength = 30,
         .itermLimit = 400,
         .throttle_boost = 5,
         .throttle_boost_cutoff = 15,
