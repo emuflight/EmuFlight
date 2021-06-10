@@ -257,10 +257,10 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.iDecayCutoff = pidProfile->i_decay_cutoff;
 
     pidRuntime.P_angle_low = pidProfile->pid[PID_LEVEL_LOW].P * 0.1f;
-    pidRuntime.D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00017f;
+    pidRuntime.D_angle_low = pidProfile->pid[PID_LEVEL_LOW].D * 0.00002428571f;
     pidRuntime.DF_angle_low = pidProfile->pid[PID_LEVEL_LOW].DF * DIRECT_FF_SCALE;
     pidRuntime.P_angle_high = pidProfile->pid[PID_LEVEL_HIGH].P * 0.1f;
-    pidRuntime.D_angle_high = pidProfile->pid[PID_LEVEL_HIGH].D * 0.00017f;
+    pidRuntime.D_angle_high = pidProfile->pid[PID_LEVEL_HIGH].D * 0.00002428571f;
     pidRuntime.DF_angle_high = pidProfile->pid[PID_LEVEL_HIGH].DF * DIRECT_FF_SCALE;
     pidRuntime.F_angle = pidProfile->pid[PID_LEVEL_LOW].F * 0.00000125f;
     pidRuntime.horizonTransition = (float)pidProfile->horizonTransition;

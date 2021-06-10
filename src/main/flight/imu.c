@@ -662,6 +662,14 @@ bool shouldInitializeGPSHeading()
     return false;
 }
 
+float getAngleModeAngles(int axis) {
+    if (axis == FD_ROLL) {
+        return lrintf((0.5f * M_PIf) - acos_approx((rMat[2][1]) * (1800.0f / M_PIf)));
+    } else {
+        return attitude.values.pitch;
+    }
+}
+
 float getCosTiltAngle(void)
 {
     return rMat[2][2];

@@ -300,7 +300,7 @@ float pidApplyThrustLinearization(float motorOutput)
 static float calcHorizonLevelStrength(void) {
     float horizonLevelStrength;
     // 0 at level, 90 at vertical, 180 at inverted (degrees):
-    const float currentInclination = MAX(ABS(attitude.values.roll), ABS(attitude.values.pitch)) / 10.0f;
+    const float currentInclination = RADIANS_TO_DEGREES(acos_approx(getCosTiltAngle()));
     // Used as a factor in the numerator of inclinationLevelRatio - this will cause the entry point of the fade of leveling strength to be adjustable via horizon transition in configurator for RACEMODEhorizon
     if (pidRuntime.horizonCutoffDegrees > 0 && pidRuntime.horizonTransition < pidRuntime.horizonCutoffDegrees) {
         //if horizon_tilt_effect>0 and if horizonTransition<horizon_tilt_effect
@@ -318,9 +318,15 @@ static float calcHorizonLevelStrength(void) {
 STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint) {
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
-    float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low;
+    float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low, currentAngle, scaledRcDeflection, scaledAngle = 0.0f;
 
-    float angle = pidProfile->levelAngleLimit * getRcDeflection(axis);
+    if (getRcDeflection(axis) !=0) {
+        scaledRcDeflection = getRcDeflection(axis) / (getRcDeflectionAbs(FD_PITCH) + getRcDeflectionAbs(FD_ROLL));
+    } else {
+        scaledRcDeflection = 0.0f;
+    }
+
+    float angle = pidProfile->levelAngleLimit * getRcDeflection(axis) * scaledRcDeflection;
     if (pidProfile->angleExpo > 0)
     {
         const float expof = pidProfile->angleExpo / 100.0f;
@@ -335,13 +341,25 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
     pidRuntime.previousAngle[axis] = angle;
 
     angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
-    float errorAngle = angle - ((attitude.raw[axis] - angleTrim->raw[axis]) * 0.1f);
+
+    if (FLIGHT_MODE(NFE_RACE_MODE)) { // nfe only effects the roll axis, this allows you to go upside down and still have roll correction.
+        currentAngle = ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f);
+    } else {
+        // apply extra correction if you are upside down
+        if (getAngleModeAngles(axis) != 0) {
+            scaledAngle = getAngleModeAngles(axis) / (ABS(getAngleModeAngles(FD_PITCH)) + ABS(getAngleModeAngles(FD_ROLL)));
+        }
+        currentAngle = ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f) + (constrainf(-getCosTiltAngle(), 0.0f, 1.0f) * scaledAngle * 180.0f);
+    }
+
+    float errorAngle = angle - currentAngle;
+
     errorAngle = constrainf(errorAngle, -90.0f, 90.0f);
     const float errorAnglePercent = errorAngle / 90.0f;
     const float absErrorAnglePercent = fabsf(errorAnglePercent);
     const float inverseErrorAnglePercent = 1.0f - absErrorAnglePercent;
-    const float angleDterm = (pidRuntime.attitudePrevious[axis] - attitude.raw[axis]) * 0.1f;
-    pidRuntime.attitudePrevious[axis] = attitude.raw[axis];
+    const float angleDterm = (pidRuntime.attitudePrevious[axis] - getAngleModeAngles(axis));
+    pidRuntime.attitudePrevious[axis] = getAngleModeAngles(axis);
 
     // ANGLE mode - control is angle based
     p_term_low = inverseErrorAnglePercent * errorAngle * pidRuntime.P_angle_low;
