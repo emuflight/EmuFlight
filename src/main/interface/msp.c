@@ -766,9 +766,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
     }
     break;
     case MSP_NAME: {
-      // Show warning for DJI OSD instead of pilot name
+        // Show warning for DJI OSD instead of pilot name
         // works if osd warnings enabled, osd_warn_dji is on and usb is not connected
-        if (osdWarnDjiEnabled()) {
+        if (osdWarnGetState(OSD_WARNING_DJI)) {
             sbufWriteString(dst, djiWarningBuffer);
             break;
         }
@@ -867,8 +867,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentControlRateProfile->throttle_limit_percent);
         sbufWriteU8(dst, currentControlRateProfile->vbat_comp_type);
         sbufWriteU8(dst, currentControlRateProfile->vbat_comp_ref);
-        sbufWriteU8(dst, currentControlRateProfile->vbat_comp_throttle_level);
-        sbufWriteU8(dst, currentControlRateProfile->vbat_comp_pid_level);
+        sbufWriteU8(dst, 0);
+        sbufWriteU8(dst, 0);
+
         // sitckpids added in 1.46
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateSensCenter);
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateSensEnd);
@@ -1582,8 +1583,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
             if (sbufBytesRemaining(src) >= 4) {
                 currentControlRateProfile->vbat_comp_type = sbufReadU8(src);
                 currentControlRateProfile->vbat_comp_ref = sbufReadU8(src);
-                currentControlRateProfile->vbat_comp_throttle_level = sbufReadU8(src);
-                currentControlRateProfile->vbat_comp_pid_level = sbufReadU8(src);
+                sbufReadU8(src);
+                sbufReadU8(src);
             }
             if (sbufBytesRemaining(src) >= 6) {
                 currentControlRateProfile->rateDynamics.rateSensCenter = sbufReadU8(src);

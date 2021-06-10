@@ -185,6 +185,17 @@ rx_crsf_unittest_SRC := \
 		$(USER_DIR)/common/streambuf.c \
 		$(USER_DIR)/drivers/serial.c
 
+rx_ghst_unittest_SRC := \
+		$(USER_DIR)/rx/ghst.c \
+		$(USER_DIR)/common/crc.c \
+		$(USER_DIR)/common/maths.c \
+		$(USER_DIR)/common/printf.c \
+		$(USER_DIR)/common/typeconversion.c \
+		$(USER_DIR)/common/streambuf.c \
+		$(USER_DIR)/drivers/serial.c
+
+rx_ghst_unittest_DEFINES := \
+		USE_SERIALRX_GHST
 
 rx_ibus_unittest_SRC := \
 		$(USER_DIR)/rx/ibus.c
@@ -236,6 +247,26 @@ telemetry_crsf_unittest_SRC := \
 
 telemetry_crsf_unittest_DEFINES := \
 		FLASH_SIZE=128 \
+		STM32F10X_MD \
+		__TARGET__="TEST" \
+		__REVISION__="revision"
+
+telemetry_ghst_unittest_SRC := \
+		$(USER_DIR)/rx/ghst.c \
+		$(USER_DIR)/telemetry/ghst.c \
+		$(USER_DIR)/common/crc.c \
+		$(USER_DIR)/common/maths.c \
+		$(USER_DIR)/common/streambuf.c \
+		$(USER_DIR)/common/gps_conversion.c \
+		$(USER_DIR)/common/printf.c \
+		$(USER_DIR)/common/typeconversion.c \
+		$(USER_DIR)/fc/runtime_config.c
+
+telemetry_ghst_unittest_DEFINES := \
+	    UNITTEST \
+		FLASH_SIZE=128 \
+		USE_SERIALRX_GHST \
+		USE_TELEMETRY_GHST \
 		STM32F10X_MD \
 		__TARGET__="TEST" \
 		__REVISION__="revision"

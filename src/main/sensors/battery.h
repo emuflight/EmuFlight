@@ -30,7 +30,7 @@
 #define VBAT_CELL_VOTAGE_RANGE_MIN 10
 #define VBAT_CELL_VOTAGE_RANGE_MAX 50
 
-#define MAX_AUTO_DETECT_CELL_COUNT 8
+#define MAX_AUTO_DETECT_CELL_COUNT 12
 
 #define GET_BATTERY_LPF_FREQUENCY(period) (1 / (period / 10.0f))
 
@@ -97,7 +97,7 @@ void batteryUpdateAlarms(void);
 
 struct rxConfig_s;
 
-float calculateVbatCompensation(uint8_t vbatCompType, uint8_t vbatCompRef);
+float calculateBatteryCompensationFactor();
 uint8_t calculateBatteryPercentageRemaining(void);
 bool isBatteryVoltageConfigured(void);
 uint16_t getBatteryVoltage(void);

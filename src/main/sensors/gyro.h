@@ -23,9 +23,14 @@
 #include "common/axis.h"
 #include "common/time.h"
 #include "common/maths.h"
+#include "common/filter.h"
 #include "pg/pg.h"
 #include "drivers/bus.h"
 #include "drivers/sensor.h"
+
+#ifdef USE_SMITH_PREDICTOR
+#define MAX_SMITH_SAMPLES 12 * 32
+#endif // USE_SMITH_PREDICTOR
 
 extern float vGyroStdDevModulus;
 typedef enum {
@@ -69,6 +74,7 @@ typedef enum {
     FILTER_LOWPASS = 0,
     FILTER_LOWPASS2
 } filterSlots;
+
 #if defined(USE_GYRO_IMUF9001)
 typedef enum {
     IMUF_RATE_32K = 0,
@@ -79,6 +85,20 @@ typedef enum {
     IMUF_RATE_1K = 5
 } imufRate_e;
 #endif
+
+#ifdef USE_SMITH_PREDICTOR
+typedef struct smithPredictor_s {
+    uint8_t enabled;
+    uint8_t samples;
+    uint8_t idx;
+
+    float data[MAX_SMITH_SAMPLES + 1]; // This is gonna be a ring buffer. Max of 8ms delay at 8khz
+
+    pt1Filter_t smithPredictorFilter; // filter the smith predictor output for RPY
+
+    float smithPredictorStrength;
+} smithPredictor_t;
+#endif // USE_SMITH_PREDICTOR
 
 typedef struct gyroConfig_s {
     uint8_t  gyro_align;                       // gyro alignment
@@ -93,6 +113,10 @@ typedef struct gyroConfig_s {
 
     uint16_t gyro_lowpass_hz[XYZ_AXIS_COUNT];
     uint16_t gyro_lowpass2_hz[XYZ_AXIS_COUNT];
+
+    uint16_t gyro_ABG_alpha;
+    uint16_t gyro_ABG_boost;
+    uint8_t gyro_ABG_half_life;
 
     uint16_t gyro_soft_notch_hz_1;
     uint16_t gyro_soft_notch_cutoff_1;
@@ -125,6 +149,11 @@ typedef struct gyroConfig_s {
     uint16_t imuf_yaw_q;
     uint16_t imuf_w;
     uint16_t imuf_sharpness;
+
+    uint8_t smithPredictorEnabled;
+    uint8_t smithPredictorStrength;
+    uint8_t smithPredictorDelay;
+    uint16_t smithPredictorFilterHz;
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);
@@ -154,3 +183,4 @@ bool gyroOverflowDetected(void);
 bool gyroYawSpinDetected(void);
 uint16_t gyroAbsRateDps(int axis);
 uint8_t gyroReadRegister(uint8_t whichSensor, uint8_t reg);
+float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered);

@@ -128,6 +128,7 @@
 #define USE_PWM
 #define USE_SERIAL_RX
 #define USE_SERIALRX_CRSF       // Team Black Sheep Crossfire protocol
+#define USE_SERIALRX_GHST       // ImmersionRC Ghost Protocol
 #define USE_SERIALRX_IBUS       // FlySky and Turnigy receivers
 #define USE_SERIALRX_SBUS       // Frsky and Futaba receivers
 #define USE_SERIALRX_SPEKTRUM   // SRXL, DSM2 and DSMX protocol
@@ -155,6 +156,7 @@
 
 #if (FLASH_SIZE > 128)
 #define USE_PEGASUS_UI
+#define USE_SMITH_PREDICTOR
 #define USE_SERIALRX_SUMH       // Graupner legacy protocol
 #define USE_CAMERA_CONTROL
 #define USE_CMS
@@ -175,6 +177,7 @@
 #define USE_RX_MSP
 #define USE_SERIALRX_FPORT      // FrSky FPort
 #define USE_TELEMETRY_CRSF
+#define USE_TELEMETRY_GHST
 #define USE_TELEMETRY_SRXL
 #define USE_VIRTUAL_CURRENT_METER
 #define USE_VTX_COMMON

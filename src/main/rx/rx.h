@@ -66,6 +66,8 @@ typedef enum {
     SERIALRX_SRXL = 10,
     SERIALRX_TARGET_CUSTOM = 11,
     SERIALRX_FPORT = 12,
+    SERIALRX_GHST = 13,
+    SERIALRX_SRXL2 = 14,
 } SerialRXType;
 
 #define MAX_SUPPORTED_RC_PPM_CHANNEL_COUNT          12
@@ -124,6 +126,7 @@ struct rxRuntimeConfig_s;
 typedef uint16_t (*rcReadRawDataFnPtr)(const struct rxRuntimeConfig_s *rxRuntimeConfig, uint8_t chan); // used by receiver driver to return channel data
 typedef uint8_t (*rcFrameStatusFnPtr)(struct rxRuntimeConfig_s *rxRuntimeConfig);
 typedef bool (*rcProcessFrameFnPtr)(const struct rxRuntimeConfig_s *rxRuntimeConfig);
+typedef timeUs_t rcGetFrameTimeUsFn(void);  // used to retrieve the timestamp in microseconds for the last channe     l data frame
 
 typedef struct rxRuntimeConfig_s {
     uint8_t             channelCount; // number of RC channels as reported by current input driver
@@ -131,6 +134,7 @@ typedef struct rxRuntimeConfig_s {
     rcReadRawDataFnPtr  rcReadRawFn;
     rcFrameStatusFnPtr  rcFrameStatusFn;
     rcProcessFrameFnPtr rcProcessFrameFn;
+    rcGetFrameTimeUsFn *rcFrameTimeUsFn;
     uint16_t            *channelData;
     void                *frameData;
 } rxRuntimeConfig_t;

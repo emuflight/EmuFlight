@@ -55,9 +55,6 @@ reason: improved functionality
 
 See `rx_min_usec` and `rx_max_usec` in Failsafe documentation.
 
-### emfavoidance
-reason: renamed to `emf_avoidance` for consistency
-
 ### yawrate
 reason: renamed to `yaw_rate` for consistency
 

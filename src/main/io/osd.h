@@ -47,6 +47,9 @@ extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
 #define OSD_TIMER_PRECISION(timer)  ((timer >> 4) & 0x0F)
 #define OSD_TIMER_ALARM(timer)      ((timer >> 8) & 0xFF)
 
+#define OSD_TASK_FREQUENCY_MIN 30
+#define OSD_TASK_FREQUENCY_MAX 300
+
 // NB: to ensure backwards compatibility, new enum values must be appended at the end but before the OSD_XXXX_COUNT entry.
 
 // *** IMPORTANT ***
@@ -98,7 +101,7 @@ typedef enum {
     OSD_CRSF_SNR,
     OSD_CRSF_TX,
     OSD_CRSF_RSSI,
-
+    OSD_MAH_PERCENT,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
@@ -189,31 +192,27 @@ STATIC_ASSERT(OSD_WARNING_COUNT <= 16, osdwarnings_overflow);
 
 typedef struct osdConfig_s {
     uint16_t item_pos[OSD_ITEM_COUNT];
-
-    // Alarms
-    uint16_t cap_alarm;
-    uint16_t alt_alarm;
-    uint16_t lq_alarm;
-    uint8_t rssi_alarm;
-    uint16_t distance_alarm;
-
-    osd_unit_e units;
-
     uint16_t timers[OSD_TIMER_COUNT];
     uint16_t enabledWarnings;
-
+    uint32_t enabled_stats;
+    osd_unit_e units;
+    crsfformat_e lq_format;
+    // Alarms
+    int16_t esc_current_alarm;
+    int16_t esc_rpm_alarm;
+    int8_t esc_temp_alarm;
+    uint16_t alt_alarm;
+    uint16_t cap_alarm;
+    uint16_t distance_alarm;
+    uint16_t lq_alarm;
+    uint8_t core_temp_alarm;
+    uint8_t rssi_alarm;
     uint8_t ahMaxPitch;
     uint8_t ahMaxRoll;
-    uint32_t enabled_stats;
-    int8_t esc_temp_alarm;
-    int16_t esc_rpm_alarm;
-    int16_t esc_current_alarm;
-    uint8_t core_temp_alarm;
-
-    crsfformat_e lq_format;
-
+    uint16_t task_frequency;
     uint8_t logo_on_arming;                   // show the logo on arming
     uint8_t logo_on_arming_duration;          // display duration in 0.1s units
+    bool stat_show_cell_value;
 } osdConfig_t;
 
 PG_DECLARE(osdConfig_t, osdConfig);
@@ -230,5 +229,4 @@ void osdStatSetState(uint8_t statIndex, bool enabled);
 bool osdStatGetState(uint8_t statIndex);
 void osdWarnSetState(uint8_t warningIndex, bool enabled);
 bool osdWarnGetState(uint8_t warningIndex);
-bool osdWarnDjiEnabled(void);
 void setCrsfRssi(bool b);

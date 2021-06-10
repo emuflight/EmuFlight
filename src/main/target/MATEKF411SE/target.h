@@ -47,7 +47,7 @@
 #define MPU6500_SPI_INSTANCE    SPI1
 
 #define USE_EXTI
-#define MPU_INT_EXTI            PA1
+#define MPU_INT_EXTI            PA14
 #define USE_MPU_DATA_READY_SIGNAL
 
 #define USE_GYRO
@@ -92,6 +92,7 @@
 #define USE_SOFTSERIAL1
 #define SOFTSERIAL1_RX_PIN  NONE
 #define SOFTSERIAL1_TX_PIN  PB9
+
 #define USE_SOFTSERIAL2
 #define SOFTSERIAL2_RX_PIN  NONE
 #define SOFTSERIAL2_TX_PIN  PA2 //shared pad with UART2_TX
@@ -121,7 +122,7 @@
 
 #define USE_ESCSERIAL
 
-#define CAMERA_CONTROL_PIN  PB6
+#define CAMERA_CONTROL_PIN  PA1
 
 #define USE_PINIO
 #define USE_PINIOBOX
@@ -139,4 +140,3 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 10
 #define USED_TIMERS             ( TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(9)|TIM_N(11) )
-
