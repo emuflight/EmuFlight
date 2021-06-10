@@ -184,12 +184,13 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .linear_throttle = false,
     .mixer_impl = MIXER_IMPL_LEGACY,
     .mixer_laziness = false,
+    .mixer_yaw_throttle_comp = true,
     .horizonStrength = 15,
     .directFF_yaw = 15,
     .dterm_ABG_alpha = 0,
     .dterm_ABG_boost = 275,
     .dterm_ABG_half_life = 50,
-    .emuGravityGain = 100,
+    .emuGravityGain = 50,
     .angle_filter = 100,
                 );
 }
