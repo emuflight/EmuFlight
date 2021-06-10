@@ -229,14 +229,20 @@ FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroComma
     }
     command.command = commandToSend;
     command.crc     = getCrcImuf9001((uint32_t *)&command, 11);;
+    cliDebugPrintLine("yeeting: imuf9001SendReceiveCommand()");
+    cliDebugPrintLine(commandToSend);
+    cliDebugPrintLine(command.crc);
     while (failCount-- > 0) {
         delayMicroseconds(1000);
         if( IORead(IOGetByTag( IO_TAG(GYRO_1_EXTI_PIN) )) ) { //IMU is ready to talk
+            cliDebugPrintLine("// IMU is ready to talk");
             failCount -= 100;
             if (imufSendReceiveSpiBlocking(&(gyro->bus), (uint8_t *)&command, (uint8_t *)reply, sizeof(imufCommand_t))) {
+                cliDebugPrintLine("// imufSendReceiveSpiBlocking PASSED");
                 crcCalc = getCrcImuf9001((uint32_t *)reply, 11);
                 //this is the only valid reply we'll get if we're in BL mode
                 if(crcCalc == reply->crc && (reply->command == IMUF_COMMAND_LISTENING || reply->command == BL_LISTENING)) { //this tells us the IMU was listening for a command, else we need to reset synbc
+                    cliDebugPrintLine("crcCalc PASSED: this tells us the IMU was listening for a command, else we need to reset synbc");
                     for (attempt = 0; attempt < 100; attempt++) {
                         //reset command, just waiting for reply data now
                         command.command = IMUF_COMMAND_NONE;
@@ -249,18 +255,32 @@ FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroComma
                         }
                         delayMicroseconds(1000); //give pin time to set
                         if( IORead(IOGetByTag( IO_TAG(GYRO_1_EXTI_PIN) )) ) { //IMU is ready to talk
+                            cliDebugPrintLine("AGAIN: IMU is ready to talk");
                             //reset attempts
                             attempt = 100;
                             delayMicroseconds(1000); //give pin time to set
                             imufSendReceiveSpiBlocking(&(gyro->bus), (uint8_t *)&command, (uint8_t *)reply, sizeof(imufCommand_t));
                             crcCalc = getCrcImuf9001((uint32_t *)reply, 11);
                             if(crcCalc == reply->crc && reply->command == commandToSend ) { //this tells us the IMU understood the last command
+                                cliDebugPrintLine("final CRC PASSED: this tells us the IMU understood the last command");
                                 return 1;
+                            }
+                            else {
+                                cliDebugPrintLine("final CRC FAILED: this tells us the IMU did not understand the last command");
                             }
                         }
                     }
                 }
+                else {
+                    cliDebugPrintLine("crcCalc failed: this tells us the IMU was NOT listening for a command, else we need to reset synbc");
+                }
             }
+            else  {
+                cliDebugPrintLine("// imufSendReceiveSpiBlocking FAILED");
+            }
+        }
+        else {
+            cliDebugPrintLine("//IMU is NOT ready to talk");
         }
     }
     return 0;
