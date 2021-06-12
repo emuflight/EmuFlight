@@ -1762,6 +1762,12 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
             currentPidProfile->dFilter[ROLL].dLpf2 = sbufReadU16(src);
             currentPidProfile->dFilter[PITCH].dLpf2 = sbufReadU16(src);
             currentPidProfile->dFilter[YAW].dLpf2 = sbufReadU16(src);
+            sbufReadU8(src); //was Smart dTerm Smoothing
+            sbufReadU8(src); //was Smart dTerm Smoothing
+            sbufReadU8(src); //was Smart dTerm Smoothing
+            sbufReadU8(src); //was WitchCraft
+            sbufReadU8(src); //was WitchCraft
+            sbufReadU8(src); //was WitchCraft
             gyroConfigMutable()->dyn_notch_q_factor = sbufReadU16(src);
             gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
         }
