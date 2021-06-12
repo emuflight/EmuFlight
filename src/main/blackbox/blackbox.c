@@ -1177,12 +1177,6 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("dterm_ABG_alpha", "%d",                 currentPidProfile->dterm_ABG_alpha);
         BLACKBOX_PRINT_HEADER_LINE("dterm_ABG_boost", "%d",                 currentPidProfile->dterm_ABG_boost);
         BLACKBOX_PRINT_HEADER_LINE("dterm_ABG_half_life", "%d",             currentPidProfile->dterm_ABG_half_life);
-        BLACKBOX_PRINT_HEADER_LINE("witchcraft_roll", "%d",                 currentPidProfile->dFilter[ROLL].Wc);
-        BLACKBOX_PRINT_HEADER_LINE("witchcraft_pitch", "%d",                currentPidProfile->dFilter[PITCH].Wc);
-        BLACKBOX_PRINT_HEADER_LINE("witchcraft_yaw", "%d",                  currentPidProfile->dFilter[YAW].Wc);
-        BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_roll", "%d",            currentPidProfile->dFilter[ROLL].smartSmoothing);
-        BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_pitch", "%d",           currentPidProfile->dFilter[PITCH].smartSmoothing);
-        BLACKBOX_PRINT_HEADER_LINE("smart_smoothing_yaw", "%d",             currentPidProfile->dFilter[YAW].smartSmoothing);
         BLACKBOX_PRINT_HEADER_LINE("iterm_windup", "%d",                    currentPidProfile->itermWindupPointPercent);
 #if defined(USE_ITERM_RELAX)
         BLACKBOX_PRINT_HEADER_LINE("iterm_relax_cutoff", "%d",          currentPidProfile->iterm_relax_cutoff);
