@@ -349,19 +349,30 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                         biquadFilterUpdateLPF((biquadFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, targetPidLooptime);
                     }
                     break;
+                case RC_SMOOTHING_INPUT_PT2:
+                    if (!smoothingData->filterInitialized) {
+                        ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], 2, smoothingData->inputCutoffFrequency, dT);
+                    } else {
+                        ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 1.553773974f, dT);
+                    }
+                    break;
+                case RC_SMOOTHING_INPUT_PT3:
+                    if (!smoothingData->filterInitialized) {
+                        ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], 3, smoothingData->inputCutoffFrequency, dT);
+                    } else {
+                        ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 1.961459177f, dT);
+                    }
+                    break;
+                case RC_SMOOTHING_INPUT_PT4:
+                    if (!smoothingData->filterInitialized) {
+                        ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], 4, smoothingData->inputCutoffFrequency, dT);
+                    } else {
+                        ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 2.298959223f, dT);
+                    }
+                    break;
                 }
             }
         }
-    }
-    // update or initialize the derivative filter
-    oldCutoff = smoothingData->derivativeCutoffFrequency;
-    if ((rxConfig()->rc_smoothing_derivative_cutoff == 0) && (rxConfig()->rc_smoothing_derivative_type != RC_SMOOTHING_DERIVATIVE_OFF)) {
-        smoothingData->derivativeCutoffFrequency = calcRcSmoothingCutoff(smoothingData->averageFrameTimeUs, (rxConfig()->rc_smoothing_derivative_type == RC_SMOOTHING_DERIVATIVE_PT1));
-    }
-    if (!smoothingData->filterInitialized) {
-        pidInitSetpointDerivativeLpf(smoothingData->derivativeCutoffFrequency, rxConfig()->rc_smoothing_debug_axis, rxConfig()->rc_smoothing_derivative_type);
-    } else if (smoothingData->derivativeCutoffFrequency != oldCutoff) {
-        pidUpdateSetpointDerivativeLpf(smoothingData->derivativeCutoffFrequency);
     }
 }
 
@@ -397,12 +408,6 @@ FAST_CODE_NOINLINE bool rcSmoothingAutoCalculate(void) {
     if (rxConfig()->rc_smoothing_input_cutoff == 0) {
         ret = true;
     }
-    // if the derivative type isn't OFF and the cutoff is 0 then we need to calculate
-    if (rxConfig()->rc_smoothing_derivative_type != RC_SMOOTHING_DERIVATIVE_OFF) {
-        if (rxConfig()->rc_smoothing_derivative_cutoff == 0) {
-            ret = true;
-        }
-    }
     return ret;
 }
 
@@ -419,9 +424,6 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
         rcSmoothingData.averageFrameTimeUs = 0;
         rcSmoothingResetAccumulation(&rcSmoothingData);
         rcSmoothingData.inputCutoffFrequency = rxConfig()->rc_smoothing_input_cutoff;
-        if (rxConfig()->rc_smoothing_derivative_type != RC_SMOOTHING_DERIVATIVE_OFF) {
-            rcSmoothingData.derivativeCutoffFrequency = rxConfig()->rc_smoothing_derivative_cutoff;
-        }
         calculateCutoffs = rcSmoothingAutoCalculate();
         // if we don't need to calculate cutoffs dynamically then the filters can be initialized now
         if (!calculateCutoffs) {
@@ -507,7 +509,12 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
                 default:
                     rcCommand[updatedChannel] = biquadFilterApplyDF1((biquadFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
                     break;
-                }
+                case RC_SMOOTHING_INPUT_PT2:
+                case RC_SMOOTHING_INPUT_PT3:
+                case RC_SMOOTHING_INPUT_PT4:
+                    rcCommand[updatedChannel] = ptnFilterApply((ptnFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
+                    break;
+                  }
             } else {
                 // If filter isn't initialized yet then use the actual unsmoothed rx channel data
                 rcCommand[updatedChannel] = lastRxData[updatedChannel];
@@ -836,8 +843,6 @@ int rcSmoothingGetValue(int whichValue) {
     switch (whichValue) {
     case RC_SMOOTHING_VALUE_INPUT_ACTIVE:
         return rcSmoothingData.inputCutoffFrequency;
-    case RC_SMOOTHING_VALUE_DERIVATIVE_ACTIVE:
-        return rcSmoothingData.derivativeCutoffFrequency;
     case RC_SMOOTHING_VALUE_AVERAGE_FRAME:
         return rcSmoothingData.averageFrameTimeUs;
     default:
@@ -849,4 +854,3 @@ bool rcSmoothingInitializationComplete(void) {
     return (rxConfig()->rc_smoothing_type != RC_SMOOTHING_TYPE_FILTER) || rcSmoothingData.filterInitialized;
 }
 #endif // USE_RC_SMOOTHING_FILTER
-
