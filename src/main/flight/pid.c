@@ -216,6 +216,7 @@ const angle_index_t rcAliasToAngleIndexMap[] = {AI_ROLL, AI_PITCH};
 typedef union dtermLowpass_u {
     pt1Filter_t pt1Filter;
     biquadFilter_t biquadFilter;
+    ptnFilter_t ptnFilter;
 } dtermLowpass_t;
 
 static FAST_RAM_ZERO_INIT float previousPidSetpoint[XYZ_AXIS_COUNT];
@@ -239,14 +240,6 @@ static FAST_RAM_ZERO_INIT pt1Filter_t axisLockLpf[XYZ_AXIS_COUNT];
 
 static FAST_RAM_ZERO_INIT float iDecay;
 
-#ifdef USE_RC_SMOOTHING_FILTER
-static FAST_RAM_ZERO_INIT pt1Filter_t setpointDerivativePt1[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT biquadFilter_t setpointDerivativeBiquad[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT bool setpointDerivativeLpfInitialized;
-static FAST_RAM_ZERO_INIT uint8_t rcSmoothingDebugAxis;
-static FAST_RAM_ZERO_INIT uint8_t rcSmoothingFilterType;
-#endif // USE_RC_SMOOTHING_FILTER
-
 void pidInitFilters(const pidProfile_t *pidProfile) {
     BUILD_BUG_ON(FD_YAW != 2);                             // ensure yaw axis is 2
     const uint32_t pidFrequencyNyquist = pidFrequency / 2; // No rounding needed
@@ -256,27 +249,49 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         if (pidProfile->dFilter[axis].dLpf && pidProfile->dFilter[axis].dLpf <= pidFrequencyNyquist) {
             switch (pidProfile->dterm_filter_type) {
-            case FILTER_PT1:
-                dtermLowpassApplyFn = (filterApplyFnPtr)pt1FilterApply;
-                pt1FilterInit(&dtermLowpass[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf, dT));
-                break;
             case FILTER_BIQUAD:
-            default:
                 dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApply;
                 biquadFilterInitLPF(&dtermLowpass[axis].biquadFilter, pidProfile->dFilter[axis].dLpf, targetPidLooptime);
+                break;
+            case FILTER_PT4:
+                dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
+                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 4, pidProfile->dFilter[axis].dLpf, dT);
+                break;
+            case FILTER_PT3:
+                dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
+                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 3, pidProfile->dFilter[axis].dLpf, dT);
+                break;
+            case FILTER_PT2:
+                dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
+                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 2, pidProfile->dFilter[axis].dLpf, dT);
+                break;
+            default: // case FILTER_PT1:
+                dtermLowpassApplyFn = (filterApplyFnPtr)pt1FilterApply;
+                pt1FilterInit(&dtermLowpass[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf, dT));
                 break;
             }
         }
         if (pidProfile->dFilter[axis].dLpf2 && pidProfile->dFilter[axis].dLpf2 <= pidFrequencyNyquist) {
             switch (pidProfile->dterm_filter_type) {
-            case FILTER_PT1:
-                dtermLowpass2ApplyFn = (filterApplyFnPtr)pt1FilterApply;
-                pt1FilterInit(&dtermLowpass2[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf2, dT));
-                break;
             case FILTER_BIQUAD:
-            default:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)biquadFilterApply;
                 biquadFilterInitLPF(&dtermLowpass2[axis].biquadFilter, pidProfile->dFilter[axis].dLpf2, targetPidLooptime);
+                break;
+            case FILTER_PT4:
+                dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
+                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 4, pidProfile->dFilter[axis].dLpf2, dT);
+                break;
+            case FILTER_PT3:
+                dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
+                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 3, pidProfile->dFilter[axis].dLpf2, dT);
+                break;
+            case FILTER_PT2:
+                dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
+                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 2, pidProfile->dFilter[axis].dLpf2, dT);
+                break;
+            default: // case FILTER_PT1:
+                dtermLowpass2ApplyFn = (filterApplyFnPtr)pt1FilterApply;
+                pt1FilterInit(&dtermLowpass2[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf2, dT));
                 break;
             }
         }
@@ -306,43 +321,6 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
 #endif
     }
 }
-
-
-
-#ifdef USE_RC_SMOOTHING_FILTER
-void pidInitSetpointDerivativeLpf(uint16_t filterCutoff, uint8_t debugAxis, uint8_t filterType) {
-    rcSmoothingDebugAxis = debugAxis;
-    rcSmoothingFilterType = filterType;
-    if ((filterCutoff > 0) && (rcSmoothingFilterType != RC_SMOOTHING_DERIVATIVE_OFF)) {
-        setpointDerivativeLpfInitialized = true;
-        for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-            switch (rcSmoothingFilterType) {
-            case RC_SMOOTHING_DERIVATIVE_PT1:
-                pt1FilterInit(&setpointDerivativePt1[axis], pt1FilterGain(filterCutoff, dT));
-                break;
-            case RC_SMOOTHING_DERIVATIVE_BIQUAD:
-                biquadFilterInitLPF(&setpointDerivativeBiquad[axis], filterCutoff, targetPidLooptime);
-                break;
-            }
-        }
-    }
-}
-
-void pidUpdateSetpointDerivativeLpf(uint16_t filterCutoff) {
-    if ((filterCutoff > 0) && (rcSmoothingFilterType != RC_SMOOTHING_DERIVATIVE_OFF)) {
-        for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-            switch (rcSmoothingFilterType) {
-            case RC_SMOOTHING_DERIVATIVE_PT1:
-                pt1FilterUpdateCutoff(&setpointDerivativePt1[axis], pt1FilterGain(filterCutoff, dT));
-                break;
-            case RC_SMOOTHING_DERIVATIVE_BIQUAD:
-                biquadFilterUpdateLPF(&setpointDerivativeBiquad[axis], filterCutoff, targetPidLooptime);
-                break;
-            }
-        }
-    }
-}
-#endif // USE_RC_SMOOTHING_FILTER
 
 typedef struct pidCoefficient_s {
     float Kp;
