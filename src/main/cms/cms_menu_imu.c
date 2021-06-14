@@ -730,6 +730,7 @@ static uint8_t cmsx_dterm_abg_half_life;
 
 static long cmsx_FilterPerProfileRead(void) {
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
+    cmsx_dterm_lowpass_type      = pidProfile->dterm_filter_type;
     cmsx_dterm_lowpass_hz_roll   = pidProfile->dFilter[ROLL].dLpf;
     cmsx_dterm_lowpass_hz_pitch  = pidProfile->dFilter[PITCH].dLpf;
     cmsx_dterm_lowpass_hz_yaw    = pidProfile->dFilter[YAW].dLpf;
@@ -745,6 +746,7 @@ static long cmsx_FilterPerProfileRead(void) {
 static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self) {
     UNUSED(self);
     pidProfile_t *pidProfile = currentPidProfile;
+    pidProfile->dterm_filter_type    = cmsx_dterm_lowpass_type;
     pidProfile->dFilter[ROLL].dLpf   = cmsx_dterm_lowpass_hz_roll;
     pidProfile->dFilter[PITCH].dLpf  = cmsx_dterm_lowpass_hz_pitch;
     pidProfile->dFilter[YAW].dLpf    = cmsx_dterm_lowpass_hz_yaw;
