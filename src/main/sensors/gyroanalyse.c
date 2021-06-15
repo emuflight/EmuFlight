@@ -128,7 +128,7 @@ void gyroDataAnalyseInit(uint32_t targetLooptimeUs)
     gyroAnalyseInitialized = true;
 #endif
 
-    dynNotchQ = gyroConfig()->dyn_notch_q;
+    dynNotchQ = gyroConfig()->dyn_notch_q / 100.0f;
     dynNotchMinHz = gyroConfig()->dyn_notch_min_hz;
     dynNotchMaxHz = MAX(2 * dynNotchMinHz, gyroConfig()->dyn_notch_max_hz);
 
