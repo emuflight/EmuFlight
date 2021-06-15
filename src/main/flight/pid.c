@@ -192,6 +192,10 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .dterm_ABG_half_life = 50,
     .emuGravityGain = 50,
     .angle_filter = 100,
+    .emuBoost2 = 150,
+    .emuBoost2_filter = 20,
+    .emuBoost2_cutoff = 10,
+    .emuBoost2_expo = 25,
                 );
 }
 
@@ -237,6 +241,8 @@ static FAST_RAM_ZERO_INIT uint8_t itermRelaxCutoffYaw;
 
 static FAST_RAM_ZERO_INIT pt1Filter_t emuGravityThrottleLpf;
 static FAST_RAM_ZERO_INIT pt1Filter_t axisLockLpf[XYZ_AXIS_COUNT];
+
+static FAST_RAM_ZERO_INIT pt1Filter_t emuboost2_0Filter[XYZ_AXIS_COUNT];
 
 static FAST_RAM_ZERO_INIT float iDecay;
 
@@ -312,6 +318,7 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
 
     for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
         pt1FilterInit(&axisLockLpf[i], pt1FilterGain(pidProfile->axis_lock_hz, dT));
+        pt1FilterInit(&emuboost2_0Filter[i], pt1FilterGain(pidProfile->emuBoost2_filter, dT));
 #if defined(USE_ITERM_RELAX)
         if (i != FD_YAW) {
             pt1FilterInit(&windupLpf[i], pt1FilterGain(itermRelaxCutoff, dT));
@@ -333,7 +340,6 @@ static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float directFF[3];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feathered_pids;
-static FAST_RAM_ZERO_INIT float smart_dterm_smoothing[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointDTransition[XYZ_AXIS_COUNT];
@@ -473,7 +479,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     float angle = pidProfile->levelAngleLimit * getRcDeflection(axis) * scaledRcDeflection;
     if (pidProfile->angleExpo > 0) {
         const float expof = pidProfile->angleExpo / 100.0f;
-        angle = pidProfile->levelAngleLimit * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
+        angle = pidProfile->levelAngleLimit * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof)) * scaledRcDeflection;
     }
 #ifdef USE_GPS_RESCUE
     angle += gpsRescueAngle[axis] / 100; // ANGLE IS IN CENTIDEGREES
@@ -636,17 +642,13 @@ static FAST_RAM_ZERO_INIT float stickMovement[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float lastRcDeflectionAbs[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float previousdDelta[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float kdRingBuffer[XYZ_AXIS_COUNT][KD_RING_BUFFER_SIZE];
-static FAST_RAM_ZERO_INIT float kdRingBufferSum[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT uint8_t kdRingBufferPoint[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float previousDtermErrorRate[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float accumulativeError[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float axisLock[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float inverseScaledError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs) {
-    float axisLock[XYZ_AXIS_COUNT];
-    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-        axisLock[axis] = pt1FilterApply(&axisLockLpf[axis], stickMovement[axis]) * axisLockMultiplier;
-    }
 
     scaledAxisPid[ROLL] = constrainf(1 - axisLock[PITCH] - axisLock[YAW] + axisLock[ROLL], 0.0f, 1.0f);
     scaledAxisPid[PITCH] = constrainf(1 - axisLock[ROLL] - axisLock[YAW] + axisLock[PITCH], 0.0f, 1.0f);
@@ -660,6 +662,8 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     float errorRate;
     // ----------PID controller----------
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
+
+        axisLock[axis] = pt1FilterApply(&axisLockLpf[axis], stickMovement[axis]) * axisLockMultiplier;
 
         // emugravity, the different hopefully better version of antiGravity no effect on yaw
         float errorAccelerator = 1.0f;
@@ -734,9 +738,9 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             const float setpointLpf = pt1FilterApply(&windupLpf[axis], currentPidSetpoint);
             const float setpointHpf = fabsf(currentPidSetpoint - setpointLpf);
             if (axis != FD_YAW) {
-                itermRelaxFactor = MAX(1 - setpointHpf / pidProfile->iterm_relax_threshold, 0.0f);
+                itermRelaxFactor = MAX(1.0f - setpointHpf / pidProfile->iterm_relax_threshold, 0.0f);
             } else {
-                itermRelaxFactor = MAX(1 - setpointHpf / pidProfile->iterm_relax_threshold_yaw, 0.0f);
+                itermRelaxFactor = MAX(1.0f - setpointHpf / pidProfile->iterm_relax_threshold_yaw, 0.0f);
             }
             if (SIGN(iterm) == SIGN(itermErrorRate)) {
                 itermErrorRate *= itermRelaxFactor;
@@ -770,13 +774,20 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             temporaryIterm[axis] = iterm;
         }
         // -----calculate D component
+        float pureError = 0.0f;
+        //filter Kd properly, no setpoint filtering
+        pureError = errorRate - previousError[axis];
+        previousError[axis] = errorRate;
+
+        float dtermErrorRate = currentPidSetpoint - gyroRate * inverseScaledError[axis]; // r - y
+        float dtermError = dtermErrorRate - previousDtermErrorRate[axis];
+        previousDtermErrorRate[axis] = dtermErrorRate;
+
+        const float pureMeasurement = -(gyroRate - previousMeasurement[axis]);
+        previousMeasurement[axis] = gyroRate;
+
         if (pidCoefficient[axis].Kd > 0) {
-            //filter Kd properly, no setpoint filtering
-            const float pureError = errorRate - previousError[axis];
-            const float pureMeasurement = -(gyroRate - previousMeasurement[axis]);
-            previousMeasurement[axis] = gyroRate;
-            previousError[axis] = errorRate;
-            float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
+            float dDelta = ((feathered_pids * pureMeasurement) * inverseScaledError[axis] + ((1 - feathered_pids) * dtermError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
             //filter the dterm
             dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
             dDelta = dtermLowpass2ApplyFn((filter_t *)&dtermLowpass2[axis], dDelta);
@@ -843,6 +854,42 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             pidData[axis].D *= getThrottleDAttenuation();
         }
 
+        // emuboost 2.0
+        if (pidProfile->emuBoost2) {
+          //need to add logging, lol
+          float changeError = pureError * pidFrequency * DTERM_SCALE * 20.0f;
+          changeError = changeError / pidProfile->emuBoost2_cutoff;
+
+          float doSignMatch = 0;
+          changeError = constrainf(changeError, -1.0f, 1.0f);
+          changeError = ABS(changeError) * power3(changeError) * (pidProfile->emuBoost2_expo / 100.0f) + changeError * (1 - pidProfile->emuBoost2_expo / 100.0f);
+
+          float scaledError = constrainf(errorRate / pidProfile->emuBoost2_cutoff, -1.0f, 1.0f);
+          scaledError = ABS(scaledError) * power3(scaledError) * (pidProfile->emuBoost2_expo / 100.0f) + scaledError * (1 - pidProfile->emuBoost2_expo / 100.0f);
+
+          scaledError *= changeError;
+          scaledError = pt1FilterApply(&emuboost2_0Filter[axis], scaledError);
+          if (axis == FD_ROLL || axis == FD_PITCH) {
+              DEBUG_SET(DEBUG_EMUBOOST, axis, lrintf(scaledError * 1000));
+          }
+
+          if (scaledError > 0.0f) {
+              inverseScaledError[axis] = 1 - scaledError; // this is only 1 when the error and change in setpoint are high
+
+              pidData[axis].P *= ((pidProfile->emuBoost2 / 100.0f) * scaledError) + 1.0f;
+              //pidData[axis].D *= inverseScaledError[axis];
+              doSignMatch = 1000.0f;
+          } else {
+              inverseScaledError[axis] = 1.0f;
+              doSignMatch = 0.0f;
+          }
+          if (axis == FD_ROLL || axis == FD_PITCH) {
+            DEBUG_SET(DEBUG_EMUBOOST, axis + 2, lrintf(doSignMatch));
+          }
+        } else {
+            inverseScaledError[axis] = 1.0f;
+        }
+
         const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + directFeedForward;
         pidData[axis].Sum = pidSum * scaledAxisPid[axis];
     }
@@ -854,4 +901,8 @@ bool crashRecoveryModeActive(void) {
 
 float pidGetPreviousSetpoint(int axis) {
     return previousPidSetpoint[axis];
+}
+
+float getDtermPercentLeft(int axis) {
+    return inverseScaledError[axis];
 }

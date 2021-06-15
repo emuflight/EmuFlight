@@ -1208,6 +1208,11 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("mixer_impl", "%d",                      currentPidProfile->mixer_impl);
         BLACKBOX_PRINT_HEADER_LINE("mixer_laziness", "%d",                  currentPidProfile->mixer_laziness);
         BLACKBOX_PRINT_HEADER_LINE("mixer_yaw_throttle_comp", "%d",         currentPidProfile->mixer_yaw_throttle_comp);
+        BLACKBOX_PRINT_HEADER_LINE("emuboost2", "%d",                       currentPidProfile->emuBoost2);
+        BLACKBOX_PRINT_HEADER_LINE("emuboost2_filter", "%d",                currentPidProfile->emuBoost2_filter);
+        BLACKBOX_PRINT_HEADER_LINE("emuboost2_cutoff", "%d",                currentPidProfile->emuBoost2_cutoff);
+        BLACKBOX_PRINT_HEADER_LINE("emuboost2_expo", "%d",                  currentPidProfile->emuBoost2_expo);
+
         // End of EmuFlight controller parameters
         BLACKBOX_PRINT_HEADER_LINE("deadband", "%d",                        rcControlsConfig()->deadband);
         BLACKBOX_PRINT_HEADER_LINE("yaw_deadband", "%d",                    rcControlsConfig()->yaw_deadband);
@@ -1235,10 +1240,11 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("gyro_ABG_alpha", "%d",                  gyroConfig()->gyro_ABG_alpha);
         BLACKBOX_PRINT_HEADER_LINE("gyro_ABG_boost", "%d",                  gyroConfig()->gyro_ABG_boost);
         BLACKBOX_PRINT_HEADER_LINE("gyro_ABG_half_life", "%d",              gyroConfig()->gyro_ABG_half_life);
-        BLACKBOX_PRINT_HEADER_LINE("smith_predict_enabled", "%d",              gyroConfig()->smithPredictorEnabled);
+        BLACKBOX_PRINT_HEADER_LINE("smith_predict_enabled", "%d",           gyroConfig()->smithPredictorEnabled);
         BLACKBOX_PRINT_HEADER_LINE("smith_predict_str", "%d",               gyroConfig()->smithPredictorStrength);
         BLACKBOX_PRINT_HEADER_LINE("smith_predict_delay", "%d",             gyroConfig()->smithPredictorDelay);
         BLACKBOX_PRINT_HEADER_LINE("smith_predict_filt_hz", "%d",           gyroConfig()->smithPredictorFilterHz);
+
 #if defined(USE_ACC)
         BLACKBOX_PRINT_HEADER_LINE("acc_lpf_hz", "%d",                  (int)(accelerometerConfig()->acc_lpf_hz * 100.0f));
         BLACKBOX_PRINT_HEADER_LINE("acc_hardware", "%d",                accelerometerConfig()->acc_hardware);

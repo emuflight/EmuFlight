@@ -96,3 +96,5 @@ float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input);
 void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT);
 void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float ScaleF, float dt);
 float ptnFilterApply(ptnFilter_t *filter, float input);
+
+float crossFeed(float crossFeed, float preFiltered, float postFiltered);

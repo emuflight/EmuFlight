@@ -154,6 +154,10 @@ typedef struct pidProfile_s {
     uint16_t dterm_ABG_alpha;
     uint16_t dterm_ABG_boost;
     uint8_t dterm_ABG_half_life;
+    uint8_t emuBoost2;
+    uint8_t emuBoost2_filter;
+    uint8_t emuBoost2_cutoff;
+    uint8_t emuBoost2_expo;
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE
@@ -198,3 +202,4 @@ void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex);
 bool crashRecoveryModeActive(void);
 float pidGetPreviousSetpoint(int axis);
 void pidUpdateEmuGravityThrottleFilter(float throttle);
+float getDtermPercentLeft(int axis);

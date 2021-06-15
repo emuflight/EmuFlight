@@ -223,14 +223,14 @@ FAST_CODE float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input)
   // update (estimated) velocity
   filter->vk += filter->dT * filter->ak + 0.5f * filter->dT2 * filter->jk;
   filter->ak += filter->dT * filter->jk;
-  
+
   // what is our residual error (measured - estimated)
   rk = input - filter->xk;
-  
+
   // artificially boost the error to increase the response of the filter
   rk += pt1FilterApply(&filter->boostFilter, (fabsf(rk) * rk * filter->boost));
   filter->rk = rk; // for logging
-  
+
   // update our estimates given the residual error.
   filter->xk += filter->a * rk;
   filter->vk += filter->b / filter->dT * rk;
@@ -275,3 +275,7 @@ FAST_CODE float ptnFilterApply(ptnFilter_t *filter, float input) {
 
 	  return filter->state[filter->order];
 } // ptnFilterApply
+
+FAST_CODE float crossFeed(float crossFeed, float preFiltered, float postFiltered) {
+    return (preFiltered * crossFeed) + (postFiltered * (1.0f - crossFeed));
+}
