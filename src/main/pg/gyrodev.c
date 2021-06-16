@@ -37,7 +37,7 @@
 
 ioTag_t selectMPUIntExtiConfigByHardwareRevision(void); // XXX Should be gone
 
-#if defined(USE_SPI_GYRO) || defined(USE_I2C_GYRO) || defined(USE_GYRO_IMUF9001)
+#if defined(USE_SPI_GYRO) || defined(USE_I2C_GYRO)
 static void gyroResetCommonDeviceConfig(gyroDeviceConfig_t *devconf, ioTag_t extiTag, uint8_t alignment, sensorAlignment_t customAlignment)
 {
     devconf->extiTag = extiTag;
@@ -46,7 +46,7 @@ static void gyroResetCommonDeviceConfig(gyroDeviceConfig_t *devconf, ioTag_t ext
 }
 #endif
 
-#if defined(USE_SPI_GYRO)  || defined(USE_GYRO_IMUF9001)
+#if defined(USE_SPI_GYRO)
 static void gyroResetSpiDeviceConfig(gyroDeviceConfig_t *devconf, SPI_TypeDef *instance, ioTag_t csnTag, ioTag_t extiTag, uint8_t alignment, sensorAlignment_t customAlignment)
 {
     devconf->bustype = BUSTYPE_SPI;
@@ -79,9 +79,7 @@ void pgResetFn_gyroDeviceConfig(gyroDeviceConfig_t *devconf)
 #endif // GYRO_1_CUSTOM_ALIGN
 
     // All multi-gyro boards use SPI based gyros.
-#ifdef USE_GYRO_IMUF9001
-    gyroResetSpiDeviceConfig(&devconf[0], IMUF9001_SPI_INSTANCE, IO_TAG(IMUF9001_CS_PIN), IO_TAG(GYRO_1_EXTI_PIN), GYRO_1_ALIGN, customAlignment1);
-#elif USE_SPI_GYRO
+#ifdef USE_SPI_GYRO
     gyroResetSpiDeviceConfig(&devconf[0], GYRO_1_SPI_INSTANCE, IO_TAG(GYRO_1_CS_PIN), IO_TAG(GYRO_1_EXTI_PIN), GYRO_1_ALIGN, customAlignment1);
 #ifdef USE_MULTI_GYRO
     devconf[1].index = 1;
