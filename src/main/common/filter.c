@@ -275,7 +275,3 @@ FAST_CODE float ptnFilterApply(ptnFilter_t *filter, float input) {
 
 	  return filter->state[filter->order];
 } // ptnFilterApply
-
-FAST_CODE float crossFeed(float crossFeed, float preFiltered, float postFiltered) {
-    return (preFiltered * crossFeed) + (postFiltered * (1.0f - crossFeed));
-}
