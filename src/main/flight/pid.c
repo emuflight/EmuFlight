@@ -643,7 +643,6 @@ static FAST_RAM_ZERO_INIT float lastRcDeflectionAbs[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousDtermErrorRate[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float accumulativeError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float axisLock[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float inverseScaledError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
