@@ -48,7 +48,6 @@
 #endif
 
 #ifdef STM32F4
-#define USE_SRAM2
 #if defined(STM32F40_41xxx)
 #define USE_FAST_RAM
 #endif
@@ -67,7 +66,6 @@
 #endif // STM32F4
 
 #ifdef STM32F7
-#define USE_SRAM2
 #define USE_ITCM_RAM
 #define USE_FAST_RAM
 #define USE_DSHOT
@@ -113,12 +111,6 @@
 #ifdef STM32F4
 // Data in RAM which is guaranteed to not be reset on hot reboot
 #define PERSISTENT                  __attribute__ ((section(".persistent_data"), aligned(4)))
-#endif
-
-#ifdef USE_SRAM2
-#define SRAM2                       __attribute__ ((section(".sram2"), aligned(4)))
-#else
-#define SRAM2
 #endif
 
 #define USE_BRUSHED_ESC_AUTODETECT  // Detect if brushed motors are connected and set defaults appropriately to avoid motors spinning on boot
