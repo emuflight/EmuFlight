@@ -217,6 +217,7 @@ FAST_CODE bool imufSendReceiveSpiBlocking(const busDevice_t *bus, uint8_t *dataT
 }
 
 FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroCommands_t commandToSend, imufCommand_t *reply, imufCommand_t *data) {
+    cliDebugPrintLine("------------------------------------");
     cliDebugPrintLine("yeet: imuf9001SendReceiveCommand()");
     imufCommand_t command;
     volatile uint32_t attempt, crcCalc;
@@ -229,9 +230,6 @@ FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroComma
     }
     command.command = commandToSend;
     command.crc     = getCrcImuf9001((uint32_t *)&command, 11);;
-    cliDebugPrintLine("yeeting: imuf9001SendReceiveCommand()");
-    cliDebugPrintLine(commandToSend);
-    cliDebugPrintLine(command.crc);
     while (failCount-- > 0) {
         delayMicroseconds(1000);
         if( IORead(IOGetByTag( IO_TAG(GYRO_1_EXTI_PIN) )) ) { //IMU is ready to talk
@@ -262,7 +260,8 @@ FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroComma
                 else {
                     cliDebugPrintLine("False");
                 }
-
+                cliDebugPrint("reply-> command is : ");
+                cliDebugPrintLine(reply->command);
                 if(crcCalc == reply->crc && (reply->command == IMUF_COMMAND_LISTENING || reply->command == BL_LISTENING)) { //this tells us the IMU was listening for a command, else we need to reset synbc
                     cliDebugPrintLine("crcCalc PASSED: this tells us the IMU was listening for a command, else we need to reset synbc");
                     for (attempt = 0; attempt < 100; attempt++) {
@@ -362,6 +361,7 @@ int imufBootloader() {
 #endif
     //config pins
     delay(200);
+    cliDebugPrintLine("COMMAND: BL_REPORT_INFO from imufBootLoader()");
     if (imuf9001SendReceiveCommand(imufDev, BL_REPORT_INFO, &reply, &data)) {
         return 1;
     } else {
@@ -377,7 +377,7 @@ int imufUpdate(uint8_t *buff, uint32_t bin_length) {
     imufCommand_t data;
     memset(&data, 0, sizeof(data));
     //check if BL is active
-    cliDebugPrintLine("COMMAND: BL_REPORT_INFO");
+    cliDebugPrintLine("COMMAND: BL_REPORT_INFO from imufUpdate()");
     if (imuf9001SendReceiveCommand(imufDev, BL_REPORT_INFO, &reply, &data)) {
         //erase firmware on MCU
         cliDebugPrintLine("COMMAND: BL_ERASE_ALL");
