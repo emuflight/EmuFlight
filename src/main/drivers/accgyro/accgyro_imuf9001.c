@@ -241,6 +241,28 @@ FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroComma
                 cliDebugPrintLine("// imufSendReceiveSpiBlocking PASSED");
                 crcCalc = getCrcImuf9001((uint32_t *)reply, 11);
                 //this is the only valid reply we'll get if we're in BL mode
+                cliDebugPrint("crcCalc  == reply->crc :");
+                if (crcCalc == reply->crc) {
+                    cliDebugPrintLine("True");
+                }
+                else {
+                    cliDebugPrintLine("False");
+                }
+                cliDebugPrint("reply->command == IMUF_COMMAND_LISTENING : ");
+                if (reply->command == IMUF_COMMAND_LISTENING) {
+                    cliDebugPrintLine("True");
+                }
+                else {
+                    cliDebugPrintLine("False");
+                }
+                cliDebugPrint("reply->command == BL_LISTENING");
+                if (reply->command == BL_LISTENING) {
+                    cliDebugPrintLine("True");
+                }
+                else {
+                    cliDebugPrintLine("False");
+                }
+
                 if(crcCalc == reply->crc && (reply->command == IMUF_COMMAND_LISTENING || reply->command == BL_LISTENING)) { //this tells us the IMU was listening for a command, else we need to reset synbc
                     cliDebugPrintLine("crcCalc PASSED: this tells us the IMU was listening for a command, else we need to reset synbc");
                     for (attempt = 0; attempt < 100; attempt++) {
@@ -355,10 +377,13 @@ int imufUpdate(uint8_t *buff, uint32_t bin_length) {
     imufCommand_t data;
     memset(&data, 0, sizeof(data));
     //check if BL is active
+    cliDebugPrintLine("COMMAND: BL_REPORT_INFO");
     if (imuf9001SendReceiveCommand(imufDev, BL_REPORT_INFO, &reply, &data)) {
         //erase firmware on MCU
+        cliDebugPrintLine("COMMAND: BL_ERASE_ALL");
         if( imuf9001SendReceiveCommand(imufDev, BL_ERASE_ALL, &reply, &data) ) {
             //good data
+            cliDebugPrintLine("COMMAND: BL_PREPARE_PROGRAM");
             if( imuf9001SendReceiveCommand(imufDev, BL_PREPARE_PROGRAM, &reply, &data) ) {
                 //blink
                 for(uint32_t x = 0; x < 10; x++) {
@@ -377,6 +402,7 @@ int imufUpdate(uint8_t *buff, uint32_t bin_length) {
                     data.param7 = (*(__IO uint32_t *)(chunk_start + x + 20));
                     data.param8 = (*(__IO uint32_t *)(chunk_start + x + 24));
                     data.param9 = (*(__IO uint32_t *)(chunk_start + x + 28));
+                    cliDebugPrintLine("COMMAND: BL_WRITE_FIRMWARES");
                     if( imuf9001SendReceiveCommand(imufDev, BL_WRITE_FIRMWARES, &reply, &data) ) {
                         //continue writing
                         LED0_TOGGLE;
@@ -390,6 +416,7 @@ int imufUpdate(uint8_t *buff, uint32_t bin_length) {
                         return 0;
                     }
                 }
+                cliDebugPrintLine("COMMAND: BL_END_PROGRAM");
                 if( imuf9001SendReceiveCommand(imufDev, BL_END_PROGRAM, &reply, &data) ) {
                     //blink
                     for(uint32_t x = 0; x < 40; x++) {
@@ -416,6 +443,7 @@ int imuf9001Whoami(const gyroDev_t *gyro) {
     uint32_t attempt;
     imufCommand_t reply;
     for (attempt = 0; attempt < 5; attempt++) {
+        cliDebugPrintLine("COMMAND: IMUF_COMMAND_REPORT_INFO");
         if (imuf9001SendReceiveCommand(gyro, IMUF_COMMAND_REPORT_INFO, &reply, NULL)) {
             imufCurrentVersion = (*(imufVersion_t *) & (reply.param1)).firmware;
             if (imufCurrentVersion >= IMUF_FIRMWARE_MIN_VERSION) {
@@ -533,6 +561,7 @@ void imufSpiGyroInit(gyroDev_t *gyro) {
             resetImuf9001();
             delay(300 * attempt);
         }
+        cliDebugPrintLine("COMMAND: IMUF_COMMAND_SETUP");
         if (imuf9001SendReceiveCommand(gyro, IMUF_COMMAND_SETUP, &txData, &rxData)) {
             //enable EXTI
             mpuGyroInit(gyro);
