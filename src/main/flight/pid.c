@@ -185,7 +185,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .mixer_impl = MIXER_IMPL_LEGACY,
     .mixer_laziness = false,
     .mixer_yaw_throttle_comp = true,
-    .horizonStrength = 15,
+    .horizonStrength = 30,
     .directFF_yaw = 15,
     .dterm_ABG_alpha = 0,
     .dterm_ABG_boost = 275,
@@ -333,7 +333,6 @@ static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float directFF[3];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feathered_pids;
-static FAST_RAM_ZERO_INIT float smart_dterm_smoothing[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointDTransition[XYZ_AXIS_COUNT];
@@ -470,10 +469,12 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
         scaledRcDeflection = 0.0f;
     }
 
-    float angle = pidProfile->levelAngleLimit * getRcDeflection(axis) * scaledRcDeflection;
+    float angle;
     if (pidProfile->angleExpo > 0) {
         const float expof = pidProfile->angleExpo / 100.0f;
-        angle = pidProfile->levelAngleLimit * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
+        angle = pidProfile->levelAngleLimit * scaledRcDeflection * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
+    } else {
+        angle = pidProfile->levelAngleLimit * scaledRcDeflection * getRcDeflection(axis);
     }
 #ifdef USE_GPS_RESCUE
     angle += gpsRescueAngle[axis] / 100; // ANGLE IS IN CENTIDEGREES
@@ -636,10 +637,6 @@ static FAST_RAM_ZERO_INIT float stickMovement[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float lastRcDeflectionAbs[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float previousdDelta[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float kdRingBuffer[XYZ_AXIS_COUNT][KD_RING_BUFFER_SIZE];
-static FAST_RAM_ZERO_INIT float kdRingBufferSum[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT uint8_t kdRingBufferPoint[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs) {
