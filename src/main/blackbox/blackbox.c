@@ -1233,7 +1233,8 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_cutoff", "%d,%d",            gyroConfig()->gyro_soft_notch_cutoff_1,
                                    gyroConfig()->gyro_soft_notch_cutoff_2);
 #if defined(USE_GYRO_DATA_ANALYSE)
-        BLACKBOX_PRINT_HEADER_LINE("dynamic_gyro_notch_q", "%d",            gyroConfig()->dyn_notch_q_factor);
+        BLACKBOX_PRINT_HEADER_LINE("dynamic_gyro_width", "%d",              gyroConfig()->dyn_notch_q);
+        BLACKBOX_PRINT_HEADER_LINE("dynamic_gyro_notch_count", "%d",        gyroConfig()->dyn_notch_count);
         BLACKBOX_PRINT_HEADER_LINE("dynamic_gyro_notch_min_hz", "%d",       gyroConfig()->dyn_notch_min_hz);
         BLACKBOX_PRINT_HEADER_LINE("dynamic_gyro_notch_max_hz", "%d",       gyroConfig()->dyn_notch_max_hz);
 #endif
