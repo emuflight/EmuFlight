@@ -616,7 +616,7 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] = {
     { "SMITH ENABLED",   OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &smithPredictor_enabled, 1, cms_offOnLabels }, 0 },
     { "SMITH STR",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_strength,    0, 100, 1 }, 0 },
     { "SMITH DELAY",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_delay,       0, 120, 1 }, 0 },
-    { "SMITH FILT HZ",   OME_UINT16, NULL, &(OSD_UINT8_t) { &smithPredictor_filt_hz,   1, 250, 1 }, 0 },
+    { "SMITH FILT HZ",   OME_UINT8, NULL, &(OSD_UINT8_t) { &smithPredictor_filt_hz,   1, 250, 1 }, 0 },
 #endif
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
