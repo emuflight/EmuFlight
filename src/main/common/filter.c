@@ -255,13 +255,13 @@ FAST_CODE void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut,
 
 	  Adj_f_cut = (float)f_cut * ScaleF[filter->order - 1];
 
-	  filter->k = dT / ((1.0f / (2.0f * M_PI_FLOAT * Adj_f_cut)) + dT);
+	  filter->k = dT / ((1.0f / (2.0f * M_PIf * Adj_f_cut)) + dT);
 } // ptnFilterInit
 
 FAST_CODE void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float ScaleF, float dT) {
     float Adj_f_cut;
     Adj_f_cut = (float)f_cut * ScaleF;
-    filter->k = dT / ((1.0f / (2.0f * M_PI_FLOAT * Adj_f_cut)) + dT);
+    filter->k = dT / ((1.0f / (2.0f * M_PIf * Adj_f_cut)) + dT);
 }
 
 FAST_CODE float ptnFilterApply(ptnFilter_t *filter, float input) {
