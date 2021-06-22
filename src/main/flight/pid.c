@@ -463,8 +463,8 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     static float attitudePrevious[2], previousAngle[2];
     float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low, currentAngle, scaledRcDeflection, scaledAngle = 0.0f;
 
-    if (getRcDeflection(axis) !=0) {
-        scaledRcDeflection = getRcDeflection(axis) / (getRcDeflectionAbs(FD_PITCH) + getRcDeflectionAbs(FD_ROLL));
+    if (getRcDeflection(axis) != 0) {
+        scaledRcDeflection = getRcDeflectionAbs(axis) / (getRcDeflectionAbs(FD_PITCH) + getRcDeflectionAbs(FD_ROLL));
     } else {
         scaledRcDeflection = 0.0f;
     }
