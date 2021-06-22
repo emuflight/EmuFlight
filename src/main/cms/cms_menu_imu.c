@@ -510,7 +510,7 @@ static uint16_t gyroConfig_imuf_w;
 static uint8_t smithPredictor_enabled;
 static uint8_t smithPredictor_strength;
 static uint8_t smithPredictor_delay;
-static uint16_t smithPredictor_filt_hz;
+static uint8_t smithPredictor_filt_hz;
 #endif // USE_SMITH_PREDICTOR
 
 static long cmsx_menuGyro_onEnter(void) {
@@ -616,7 +616,7 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] = {
     { "SMITH ENABLED",   OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &smithPredictor_enabled, 1, cms_offOnLabels }, 0 },
     { "SMITH STR",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_strength,    0, 100, 1 }, 0 },
     { "SMITH DELAY",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_delay,       0, 120, 1 }, 0 },
-    { "SMITH FILT",      OME_UINT16, NULL, &(OSD_UINT16_t) { &smithPredictor_filt_hz,   1, 1000, 1 }, 0 },
+    { "SMITH FILT HZ",   OME_UINT16, NULL, &(OSD_UINT8_t) { &smithPredictor_filt_hz,   1, 250, 1 }, 0 },
 #endif
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
