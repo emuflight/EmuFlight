@@ -64,6 +64,16 @@ FAST_CODE float pt1FilterApply(pt1Filter_t *filter, float input) {
     return filter->state;
 }
 
+/*
+ * PT2 LowPassFilter
+ */
+
+
+/*
+ * PT3 LowPassFilter
+ */
+
+
 // Slew filter with limit
 
 void slewFilterInit(slewFilter_t *filter, float slewLimit, float threshold) {
