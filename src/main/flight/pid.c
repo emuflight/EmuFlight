@@ -200,6 +200,8 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .emuBoost2_filter = 20,
     .emuBoost2_cutoff = 10,
     .emuBoost2_expo = 25,
+    .dtermDynNotch = true,
+    .dterm_dyn_notch_q = 350,
                 );
 }
 
@@ -806,11 +808,11 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             float dDelta = ((feathered_pids * pureMeasurement) * inverseScaledError[axis] + ((1 - feathered_pids) * dtermError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
             //filter the dterm
 #ifdef USE_GYRO_DATA_ANALYSE
-            if (isDynamicFilterActive()) {
+            if (isDynamicFilterActive() && pidProfile->dtermDynNotch) {
                 for (int p = 0; p < gyroConfig()->dyn_notch_count; p++) {
                     if (getCenterFreq(axis, p) != previousNotchCenterFreq[axis][p]) {
                         previousNotchCenterFreq[axis][p] = getCenterFreq(axis, p);
-                        biquadFilterUpdate(&dtermNotch[axis][p], previousNotchCenterFreq[axis][p], targetPidLooptime, gyroConfig()->dyn_notch_q / 100.0f, FILTER_NOTCH);
+                        biquadFilterUpdate(&dtermNotch[axis][p], previousNotchCenterFreq[axis][p], targetPidLooptime, pidProfile->dterm_dyn_notch_q / 100.0f, FILTER_NOTCH);
                     }
                     dDelta = biquadFilterApplyDF1(&dtermNotch[axis][p], dDelta);
                 }
@@ -883,11 +885,9 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
         // emuboost 2.0
         if (pidProfile->emuBoost2) {
-          //need to add logging, lol
           float changeError = pureError * pidFrequency * DTERM_SCALE * 20.0f;
           changeError = changeError / pidProfile->emuBoost2_cutoff;
 
-          float doSignMatch = 0;
           changeError = constrainf(changeError, -1.0f, 1.0f);
           changeError = ABS(changeError) * power3(changeError) * (pidProfile->emuBoost2_expo / 100.0f) + changeError * (1 - pidProfile->emuBoost2_expo / 100.0f);
 
@@ -896,22 +896,14 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
           scaledError *= changeError;
           scaledError = pt1FilterApply(&emuboost2_0Filter[axis], scaledError);
-          if (axis == FD_ROLL || axis == FD_PITCH) {
-              DEBUG_SET(DEBUG_EMUBOOST, axis, lrintf(scaledError * 1000));
-          }
+          DEBUG_SET(DEBUG_EMUBOOST, axis, lrintf(scaledError * 1000));
+          inverseScaledError[axis] = 1.0f - scaledError; // this is only 1 when the error and change in setpoint are high
 
           if (scaledError > 0.0f) {
-              inverseScaledError[axis] = 1 - scaledError; // this is only 1 when the error and change in setpoint are high
-
               pidData[axis].P *= ((pidProfile->emuBoost2 / 100.0f) * scaledError) + 1.0f;
-              //pidData[axis].D *= inverseScaledError[axis];
-              doSignMatch = 1000.0f;
+              //pidData[axis].D *= inverseScaledError[axis]; // this gets applied elsewhere to the dterm so that the feathered part of dterm is the only part effected
           } else {
               inverseScaledError[axis] = 1.0f;
-              doSignMatch = 0.0f;
-          }
-          if (axis == FD_ROLL || axis == FD_PITCH) {
-            DEBUG_SET(DEBUG_EMUBOOST, axis + 2, lrintf(doSignMatch));
           }
         } else {
             inverseScaledError[axis] = 1.0f;
