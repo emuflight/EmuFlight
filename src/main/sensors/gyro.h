@@ -153,7 +153,7 @@ typedef struct gyroConfig_s {
     uint8_t smithPredictorEnabled;
     uint8_t smithPredictorStrength;
     uint8_t smithPredictorDelay;
-    uint16_t smithPredictorFilterHz;
+    uint8_t smithPredictorFilterHz;
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);
