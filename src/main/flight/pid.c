@@ -902,8 +902,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
           if (scaledError > 0.0f) {
               pidData[axis].P *= ((pidProfile->emuBoost2 / 100.0f) * scaledError) + 1.0f;
               //pidData[axis].D *= inverseScaledError[axis]; // this gets applied elsewhere to the dterm so that the feathered part of dterm is the only part effected
-          } else {
-              inverseScaledError[axis] = 1.0f;
           }
         } else {
             inverseScaledError[axis] = 1.0f;
