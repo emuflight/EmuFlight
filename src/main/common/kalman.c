@@ -17,7 +17,7 @@
  *
  * If not, see <http://www.gnu.org/licenses/>.
  */
-
+#ifndef USE_GYRO_IMUF9001
 #include <string.h>
 #include "arm_math.h"
 
@@ -84,6 +84,7 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 
     //prediction update
     kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
+
     //measurement update
     kalmanState->k = kalmanState->p / (kalmanState->p + 10.0f);
     kalmanState->k = pt1FilterApply(&kalmanState->kFilter, kalmanState->k);
@@ -101,3 +102,4 @@ FAST_CODE float kalman_update(float input, int axis) {
     DEBUG_SET(DEBUG_KALMAN, axis, Kgain);                               //Kalman gain
     return input;
 }
+#endif

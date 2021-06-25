@@ -1225,8 +1225,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_q);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_q);
         sbufWriteU16(dst, gyroConfig()->imuf_w);
-        sbufWriteU16(dst, 0); // imuf_sharpness
+        //sbufWriteU16(0); // was imuf_sharpness
 #ifdef  USE_GYRO_IMUF9001
+        sbufWriteU16(dst, gyroConfig()->imuf_ptn_order); //MSP 1.51 Helio only
         sbufWriteU16(dst, gyroConfig()->imuf_roll_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_lpf_cutoff_hz);
@@ -1833,8 +1834,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         gyroConfigMutable()->imuf_pitch_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_yaw_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_w = sbufReadU16(src);
-        sbufReadU16(src); // imuf_sharpness
+        //sbufReadU16(src); // was imuf_sharpness
 #ifdef USE_GYRO_IMUF9001
+        gyroConfigMutable()->imuf_ptn_order = sbufReadU16(src); //MSP 1.51 Helio only
         gyroConfigMutable()->imuf_roll_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_pitch_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_yaw_lpf_cutoff_hz = sbufReadU16(src);
