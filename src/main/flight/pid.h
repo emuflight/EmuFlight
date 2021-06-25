@@ -158,6 +158,7 @@ typedef struct pidProfile_s {
     uint8_t emuBoost2_filter;
     uint8_t emuBoost2_cutoff;
     uint8_t emuBoost2_expo;
+    uint8_t emuBoost2_dboost;
     uint8_t dtermDynNotch;
     uint16_t dterm_dyn_notch_q;
 } pidProfile_t;

@@ -1212,6 +1212,7 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("emuboost2_filter", "%d",                currentPidProfile->emuBoost2_filter);
         BLACKBOX_PRINT_HEADER_LINE("emuboost2_cutoff", "%d",                currentPidProfile->emuBoost2_cutoff);
         BLACKBOX_PRINT_HEADER_LINE("emuboost2_expo", "%d",                  currentPidProfile->emuBoost2_expo);
+        BLACKBOX_PRINT_HEADER_LINE("emuboost2_dboost", "%d",                currentPidProfile->emuBoost2_dboost);
 
         // End of EmuFlight controller parameters
         BLACKBOX_PRINT_HEADER_LINE("deadband", "%d",                        rcControlsConfig()->deadband);

@@ -200,6 +200,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .emuBoost2_filter = 20,
     .emuBoost2_cutoff = 10,
     .emuBoost2_expo = 25,
+    .emuBoost2_dboost = false,
     .dtermDynNotch = true,
     .dterm_dyn_notch_q = 350,
                 );
@@ -902,6 +903,10 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
           if (scaledError > 0.0f) {
               pidData[axis].P *= ((pidProfile->emuBoost2 / 100.0f) * scaledError) + 1.0f;
               //pidData[axis].D *= inverseScaledError[axis]; // this gets applied elsewhere to the dterm so that the feathered part of dterm is the only part effected
+            if (pidProfile->emuBoost2_dboost) {
+                } else {
+                inverseScaledError[axis] = 1.0f;
+            }
           }
         } else {
             inverseScaledError[axis] = 1.0f;

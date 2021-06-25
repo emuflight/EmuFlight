@@ -87,6 +87,7 @@ static uint8_t emuBoost2;
 static uint8_t emuBoost2_filter;
 static uint8_t emuBoost2_cutoff;
 static uint8_t emuBoost2_expo;
+static uint8_t emuBoost2_dboost;
 
 static uint8_t tmpRateProfileIndex;
 static uint8_t rateProfileIndex;
@@ -167,6 +168,7 @@ static long cmsx_PidAdvancedRead(void) {
     emuBoost2_filter = pidProfile->emuBoost2_filter;
     emuBoost2_cutoff = pidProfile->emuBoost2_cutoff;
     emuBoost2_expo = pidProfile->emuBoost2_expo;
+    emuBoost2_dboost = pidProfile->emuBoost2_dboost;
     return 0;
 }
 
@@ -204,6 +206,7 @@ static long cmsx_PidAdvancedWriteback(const OSD_Entry *self) {
     pidProfile->emuBoost2_filter = emuBoost2_filter;
     pidProfile->emuBoost2_cutoff = emuBoost2_cutoff;
     pidProfile->emuBoost2_expo = emuBoost2_expo;
+    pidProfile->emuBoost2_dboost = emuBoost2_dboost;
     pidInitConfig(currentPidProfile);
     return 0;
 }
@@ -238,10 +241,11 @@ static OSD_Entry cmsx_menuPidAdvancedEntries[] = {
     { "MIXER LAZINESS",    OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &mixer_laziness, 1, cms_offOnLabels }, 0 },
     { "MIXER YAW THR COMP", OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &mixer_yaw_throttle_comp, 1, cms_offOnLabels }, 0 },
 
-    { "EMUBOOST 2.0",      OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2,       0,  250,  1}, 0 },
-    { "EMUBOOST 2.0 FILT", OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2_filter,       1,  250,  1}, 0 },
-    { "EMUBOOST 2.0 CUT",  OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2_cutoff,       10,  250,  1}, 0 },
-    { "EMUBOOST 2.0 EXPO",  OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2_expo,       10,  100,  1}, 0 },
+    { "EMUBOOST 2",      OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2,       0,  250,  1}, 0 },
+    { "EMUBOOST 2 FILT", OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2_filter,       1,  250,  1}, 0 },
+    { "EMUBOOST 2 CUT",  OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2_cutoff,       10,  250,  1}, 0 },
+    { "EMUBOOST 2 EXPO",  OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2_expo,       10,  100,  1}, 0 },
+    { "EMUBOOST 2 DBOOST",OME_TAB,   NULL, &(OSD_TAB_t)  { (uint8_t *) &emuBoost2_dboost, 1, cms_offOnLabels }, 0 },
 
     { "SAVE&EXIT",         OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK",              OME_Back, NULL, NULL, 0 },
