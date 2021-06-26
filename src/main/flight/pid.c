@@ -189,7 +189,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .mixer_impl = MIXER_IMPL_LEGACY,
     .mixer_laziness = false,
     .mixer_yaw_throttle_comp = true,
-    .horizonStrength = 15,
+    .horizonStrength = 30,
     .directFF_yaw = 15,
     .dterm_ABG_alpha = 0,
     .dterm_ABG_boost = 275,
@@ -489,16 +489,20 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     static float attitudePrevious[2], previousAngle[2];
     float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low, currentAngle, scaledRcDeflection, scaledAngle = 0.0f;
 
-    if (getRcDeflection(axis) !=0) {
-        scaledRcDeflection = getRcDeflection(axis) / (getRcDeflectionAbs(FD_PITCH) + getRcDeflectionAbs(FD_ROLL));
+    if (getRcDeflection(axis) != 0) {
+        scaledRcDeflection = getRcDeflectionAbs(axis) / (getRcDeflectionAbs(FD_PITCH) + getRcDeflectionAbs(FD_ROLL));
     } else {
         scaledRcDeflection = 0.0f;
     }
 
-    float angle = pidProfile->levelAngleLimit * getRcDeflection(axis) * scaledRcDeflection;
+    float angle;
     if (pidProfile->angleExpo > 0) {
         const float expof = pidProfile->angleExpo / 100.0f;
-        angle = pidProfile->levelAngleLimit * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof)) * scaledRcDeflection;
+
+        angle = pidProfile->levelAngleLimit * scaledRcDeflection * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
+    } else {
+        angle = pidProfile->levelAngleLimit * scaledRcDeflection * getRcDeflection(axis);
+
     }
 #ifdef USE_GPS_RESCUE
     angle += gpsRescueAngle[axis] / 100; // ANGLE IS IN CENTIDEGREES
