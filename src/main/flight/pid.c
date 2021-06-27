@@ -454,6 +454,8 @@ static float calcHorizonLevelStrength(void) {
         // if racemode_tilt_effect = 0 or horizonTransition>racemode_tilt_effect means no leveling
         horizonLevelStrength = 1;
     }
+    DEBUG_SET(DEBUG_HORIZON, 2, lrintf(horizonLevelStrength * 1000));
+
     return constrainf(horizonLevelStrength, 0, 1);
 }
 
