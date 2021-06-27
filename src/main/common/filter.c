@@ -99,12 +99,12 @@ float filterGetNotchQ(float centerFreq, float cutoffFreq)
 /* sets up a biquad filter as a 2nd order butterworth LPF */
 void biquadFilterInitLPF(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate)
 {
-    biquadFilterInit(filter, filterFreq, refreshRate, BIQUAD_Q, FILTER_LPF);
+    biquadFilterInit(filter, filterFreq, refreshRate, BIQUAD_Q, FILTER_LPF, 1.0f);
 }
 
-void biquadFilterInit(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate, float Q, biquadFilterType_e filterType)
+void biquadFilterInit(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate, float Q, biquadFilterType_e filterType, float weight)
 {
-    biquadFilterUpdate(filter, filterFreq, refreshRate, Q, filterType);
+    biquadFilterUpdate(filter, filterFreq, refreshRate, Q, filterType, weight);
 
     // zero initial samples
     filter->x1 = filter->x2 = 0;
@@ -133,13 +133,13 @@ void biquadFilterLpfCascadeInit(butterworthFilter_t *filter, int order, float fi
         break;
     }
 
-    biquadFilterInit(&filter->butterworthLpf1, filterFreq, refreshRate, filter->q1, FILTER_LPF);
+    biquadFilterInit(&filter->butterworthLpf1, filterFreq, refreshRate, filter->q1, FILTER_LPF, 1.0f);
     if (filter->q2) {
-        biquadFilterInit(&filter->butterworthLpf2, filterFreq, refreshRate, filter->q2, FILTER_LPF);
+        biquadFilterInit(&filter->butterworthLpf2, filterFreq, refreshRate, filter->q2, FILTER_LPF, 1.0f);
     }
 }
 
-FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate, float Q, biquadFilterType_e filterType)
+FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate, float Q, biquadFilterType_e filterType, float weight)
 {
     // setup variables
     const float omega = 2.0f * M_PIf * filterFreq * refreshRate * 0.000001f;
@@ -198,18 +198,21 @@ FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint
     filter->b2 /= a0;
     filter->a1 /= a0;
     filter->a2 /= a0;
+
+    // update weight
+    filter->weight = weight;
 }
 
 FAST_CODE void biquadFilterUpdateLPF(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate)
 {
-    biquadFilterUpdate(filter, filterFreq, refreshRate, BIQUAD_Q, FILTER_LPF);
+    biquadFilterUpdate(filter, filterFreq, refreshRate, BIQUAD_Q, FILTER_LPF, 1.0f);
 }
 
 void biquadFilterLpfCascadeUpdate(butterworthFilter_t *filter, float filterFreq, uint32_t refreshRate)
 {
-      biquadFilterUpdate(&filter->butterworthLpf1, filterFreq, refreshRate, filter->q1, FILTER_LPF);
+      biquadFilterUpdate(&filter->butterworthLpf1, filterFreq, refreshRate, filter->q1, FILTER_LPF, 1.0f);
       if (filter->q2) {
-          biquadFilterUpdate(&filter->butterworthLpf2, filterFreq, refreshRate, filter->q2, FILTER_LPF);
+          biquadFilterUpdate(&filter->butterworthLpf2, filterFreq, refreshRate, filter->q2, FILTER_LPF, 1.0f);
       }
 }
 
@@ -230,12 +233,24 @@ FAST_CODE float biquadFilterApplyDF1(biquadFilter_t *filter, float input)
     return result;
 }
 
+/* Computes a biquadFilter_t filter in df1 and crossfades input with output */
+FAST_CODE float biquadFilterApplyDF1Weighted(biquadFilter_t* filter, float input)
+{
+    // compute result
+    const float result = biquadFilterApplyDF1(filter, input);
+
+    // crossfading of input and output to turn filter on/off gradually
+    return filter->weight * result + (1 - filter->weight) * input;
+}
+
 /* Computes a biquadFilter_t filter in direct form 2 on a sample (higher precision but can't handle changes in coefficients */
 FAST_CODE float biquadFilterApply(biquadFilter_t *filter, float input)
 {
     const float result = filter->b0 * input + filter->x1;
+
     filter->x1 = filter->b1 * input - filter->a1 * result + filter->x2;
     filter->x2 = filter->b2 * input - filter->a2 * result;
+
     return result;
 }
 
