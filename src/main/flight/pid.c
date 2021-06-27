@@ -432,12 +432,14 @@ void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex) {
 }
 
 // calculates strength of horizon leveling; 0 = none, 1.0 = most leveling
-static float calcHorizonLevelStrength(void) {
+static float calcHorizonLevelStrength(int axis) {
     float horizonLevelStrength;
     // 0 at level, 90 at vertical, 180 at inverted (degrees):
     const float currentInclination = RADIANS_TO_DEGREES(acos_approx(howUpsideDown()));
-    DEBUG_SET(DEBUG_HORIZON, 0, lrintf(howUpsideDown() * 1000));
-    DEBUG_SET(DEBUG_HORIZON, 1, lrintf(currentInclination * 10));
+    if (axis == FD_ROLL) {
+        DEBUG_SET(DEBUG_HORIZON, 0, lrintf(howUpsideDown() * 1000));
+        DEBUG_SET(DEBUG_HORIZON, 1, lrintf(currentInclination * 10));
+    }
     // Used as a factor in the numerator of inclinationLevelRatio - this will cause the entry point of the fade of leveling strength to be adjustable via horizon transition in configurator for RACEMODEhorizon
     const float racemodeHorizonTransitionFactor = horizonCutoffDegrees / (horizonCutoffDegrees - horizonTransition);
     // Used as a factor in the numerator of inclinationLevelRatio - this will cause the fade of leveling strength to start at levelAngleLimit for RACEMODEangle
@@ -454,7 +456,10 @@ static float calcHorizonLevelStrength(void) {
         // if racemode_tilt_effect = 0 or horizonTransition>racemode_tilt_effect means no leveling
         horizonLevelStrength = 1;
     }
-    DEBUG_SET(DEBUG_HORIZON, 2, lrintf(horizonLevelStrength * 1000));
+
+    if (axis == FD_ROLL) {
+        DEBUG_SET(DEBUG_HORIZON, 2, lrintf(horizonLevelStrength * 1000));
+    }
 
     return constrainf(horizonLevelStrength, 0, 1);
 }
@@ -514,13 +519,17 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     currentPidSetpoint = p_term_low + p_term_high;
     currentPidSetpoint += d_term_low + d_term_high;
     currentPidSetpoint += f_term_low;
+
     if (FLIGHT_MODE(HORIZON_MODE)) {
         // HORIZON mode - mix of ANGLE and ACRO modes
         // mix in errorAngle to currentPidSetpoint to add a little auto-level feel
-        const float horizonLevelStrength = calcHorizonLevelStrength();
+        const float horizonLevelStrength = calcHorizonLevelStrength(axis);
         currentPidSetpoint = ((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f + (currentPidSetpoint * horizonLevelStrength * horizonStrength);
-        DEBUG_SET(DEBUG_HORIZON, 2, lrintf(currentPidSetpoint * 10));
+        if (axis == FD_ROLL) {
+            DEBUG_SET(DEBUG_HORIZON, 3, lrintf(currentPidSetpoint * 10));
+        }
     }
+
     currentPidSetpoint = angleSetpointFilterApplyFn((filter_t *)&angleSetpointFilter[axis], currentPidSetpoint);
     directFF[axis] = (1 - fabsf(errorAnglePercent)) * DF_angle_low;
     directFF[axis] += fabsf(errorAnglePercent) * DF_angle_high;
