@@ -34,7 +34,7 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor) {
 #ifndef USE_GYRO_IMUF9001
         gyroADCf = kalman_update(gyroADCf, axis);
 #endif
-        
+
         // apply static notch filters and software lowpass filters
         gyroADCf = gyroSensor->lowpass2FilterApplyFn((filter_t *)&gyroSensor->lowpass2Filter[axis], gyroADCf);
         gyroADCf = gyroSensor->lowpassFilterApplyFn((filter_t *)&gyroSensor->lowpassFilter[axis], gyroADCf);
@@ -56,8 +56,10 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor) {
             }
         }
 #endif
-        update_kalman_covariance(gyroADCf, axis);
 
+#ifndef USE_GYRO_IMUF9001
+        update_kalman_covariance(gyroADCf, axis);
+#endif
         applySmithPredictor(gyroSensor->smithPredictor, gyroADCf);
 
 #ifdef USE_GYRO_IMUF9001
