@@ -86,10 +86,8 @@ typedef struct pidf_s {
 } pidf_t;
 
 typedef struct dFilter_s {
-    uint8_t Wc;
     uint16_t dLpf;
     uint16_t dLpf2;
-    uint8_t smartSmoothing;
 } dFilter_t;
 
 typedef struct pidProfile_s {
@@ -198,7 +196,5 @@ void pidInitConfig(const pidProfile_t *pidProfile);
 void pidInit(const pidProfile_t *pidProfile);
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex);
 bool crashRecoveryModeActive(void);
-void pidInitSetpointDerivativeLpf(uint16_t filterCutoff, uint8_t debugAxis, uint8_t filterType);
-void pidUpdateSetpointDerivativeLpf(uint16_t filterCutoff);
 float pidGetPreviousSetpoint(int axis);
 void pidUpdateEmuGravityThrottleFilter(float throttle);
