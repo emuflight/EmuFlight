@@ -505,13 +505,12 @@ static uint16_t gyroConfig_imuf_roll_q;
 static uint16_t gyroConfig_imuf_pitch_q;
 static uint16_t gyroConfig_imuf_yaw_q;
 static uint16_t gyroConfig_imuf_w;
-static uint16_t gyroConfig_imuf_sharpness;
 #endif
 #ifdef USE_SMITH_PREDICTOR
 static uint8_t smithPredictor_enabled;
 static uint8_t smithPredictor_strength;
 static uint8_t smithPredictor_delay;
-static uint16_t smithPredictor_filt_hz;
+static uint8_t smithPredictor_filt_hz;
 #endif // USE_SMITH_PREDICTOR
 
 static long cmsx_menuGyro_onEnter(void) {
@@ -538,7 +537,6 @@ static long cmsx_menuGyro_onEnter(void) {
     gyroConfig_imuf_pitch_q = gyroConfig()->imuf_pitch_q;
     gyroConfig_imuf_yaw_q = gyroConfig()->imuf_yaw_q;
     gyroConfig_imuf_w = gyroConfig()->imuf_w;
-    gyroConfig_imuf_sharpness = gyroConfig()->imuf_sharpness;
 #endif
 #ifdef USE_SMITH_PREDICTOR
     smithPredictor_enabled   = gyroConfig()->smithPredictorEnabled;
@@ -573,7 +571,6 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self) {
     gyroConfigMutable()->imuf_pitch_q = gyroConfig_imuf_pitch_q;
     gyroConfigMutable()->imuf_yaw_q = gyroConfig_imuf_yaw_q;
     gyroConfigMutable()->imuf_w = gyroConfig_imuf_w;
-    gyroConfigMutable()->imuf_sharpness = gyroConfig_imuf_sharpness;
 #endif
 #ifdef USE_SMITH_PREDICTOR
     gyroConfigMutable()->smithPredictorEnabled = smithPredictor_enabled;
@@ -604,7 +601,6 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] = {
     { "ROLL Q",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,              100, 16000, 100 }, 0 },
     { "PITCH Q",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,             100, 16000, 100 }, 0 },
     { "YAW Q",            OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,               100, 16000, 100 }, 0 },
-    { "IMUF SHARPNESS",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness,           0, 16000,   5 }, 0 },
 
 #endif
     { "GYRO NF1",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_1,     0, 500, 1 }, 0 },
@@ -620,7 +616,7 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] = {
     { "SMITH ENABLED",   OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &smithPredictor_enabled, 1, cms_offOnLabels }, 0 },
     { "SMITH STR",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_strength,    0, 100, 1 }, 0 },
     { "SMITH DELAY",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_delay,       0, 120, 1 }, 0 },
-    { "SMITH FILT",      OME_UINT16, NULL, &(OSD_UINT16_t) { &smithPredictor_filt_hz,   1, 1000, 1 }, 0 },
+    { "SMITH FILT HZ",   OME_UINT8, NULL, &(OSD_UINT8_t) { &smithPredictor_filt_hz,   1, 250, 1 }, 0 },
 #endif
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
@@ -651,7 +647,7 @@ static uint16_t gyroConfig_imuf_pitch_lpf_cutoff_hz;
 static uint16_t gyroConfig_imuf_roll_lpf_cutoff_hz;
 static uint16_t gyroConfig_imuf_yaw_lpf_cutoff_hz;
 static uint16_t gyroConfig_imuf_acc_lpf_cutoff_hz;
-static uint16_t gyroConfig_imuf_sharpness;
+static uint8_t gyroConfig_imuf_ptn_order;
 #endif
 
 #if defined(USE_GYRO_IMUF9001)
@@ -664,7 +660,7 @@ static long cmsx_menuImuf_onEnter(void) {
     gyroConfig_imuf_roll_lpf_cutoff_hz = gyroConfig()->imuf_roll_lpf_cutoff_hz;
     gyroConfig_imuf_yaw_lpf_cutoff_hz = gyroConfig()->imuf_yaw_lpf_cutoff_hz;
     gyroConfig_imuf_acc_lpf_cutoff_hz = gyroConfig()->imuf_acc_lpf_cutoff_hz;
-    gyroConfig_imuf_sharpness = gyroConfig()->imuf_sharpness;
+    gyroConfig_imuf_ptn_order = gyroConfig()->imuf_ptn_order;
     return 0;
 }
 #endif
@@ -680,7 +676,7 @@ static long cmsx_menuImuf_onExit(const OSD_Entry *self) {
     gyroConfigMutable()->imuf_pitch_lpf_cutoff_hz = gyroConfig_imuf_pitch_lpf_cutoff_hz;
     gyroConfigMutable()->imuf_yaw_lpf_cutoff_hz = gyroConfig_imuf_yaw_lpf_cutoff_hz;
     gyroConfigMutable()->imuf_acc_lpf_cutoff_hz = gyroConfig_imuf_acc_lpf_cutoff_hz;
-    gyroConfigMutable()->imuf_sharpness = gyroConfig_imuf_sharpness;
+    gyroConfigMutable()->imuf_ptn_order = gyroConfig_imuf_ptn_order;
     return 0;
 }
 #endif
@@ -693,7 +689,7 @@ static OSD_Entry cmsx_menuImufEntries[] = {
     { "ROLL Q",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,              0, 16000, 100 }, 0 },
     { "PITCH Q",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,             0, 16000, 100 }, 0 },
     { "YAW Q",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,               0, 16000, 100 }, 0 },
-    { "IMUF SHARPNESS",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness,           0, 16000,    5 }, 0 },
+    { "IMUF PTN ORD",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_imuf_ptn_order,           1, 4,       1 }, 0 },
     { "ROLL LPF",        OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_lpf_cutoff_hz,  0, 450,     1 }, 0 },
     { "PITCH LPF",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_lpf_cutoff_hz, 0, 450,     1 }, 0 },
     { "YAW LPF",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_lpf_cutoff_hz,   0, 450,     1 }, 0 },
