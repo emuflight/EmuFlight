@@ -83,7 +83,7 @@ static const char * const osdTableThrottleLimitType[] = {
 
 #ifdef USE_MULTI_GYRO
 static const char * const osdTableGyroToUse[] = {
-    "FIRST", "SECOND", "BOTH"
+    "FIRST", "SECOND", "BOTH_SIMP", "BOTH_VAR"
 };
 #endif
 
@@ -857,7 +857,7 @@ static const OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "SMITH FILT",      OME_UINT16,  NULL, &(OSD_UINT16_t)  { &smithPredictor_filt_hz,   1, 1000, 1 }, 0 },
 #endif
 #ifdef USE_MULTI_GYRO
-    { "GYRO TO USE",  OME_TAB,  NULL, &(OSD_TAB_t)    { &gyroConfig_gyro_to_use,  2, osdTableGyroToUse}, REBOOT_REQUIRED },
+    { "GYRO TO USE",  OME_TAB,  NULL, &(OSD_TAB_t)    { &gyroConfig_gyro_to_use,  3, osdTableGyroToUse}, REBOOT_REQUIRED },
 #endif
 
     { "BACK", OME_Back, NULL, NULL, 0 },

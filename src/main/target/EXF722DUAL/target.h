@@ -56,7 +56,7 @@
 
 #define GYRO_2_ALIGN        CW90_DEG
 
-#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_BOTH
+#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE
 
 #define USE_VCP
 #define USE_UART1
@@ -125,7 +125,7 @@
 
 #define USE_ADC
 #define ADC_INSTANCE            ADC3
-#define ADC3_DMA_OPT            0  // DMA 2 Stream 0 Channel 2 
+#define ADC3_DMA_OPT            0  // DMA 2 Stream 0 Channel 2
 
 #define USE_I2C
 #define USE_I2C_DEVICE_2

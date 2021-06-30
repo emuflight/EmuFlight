@@ -39,6 +39,7 @@
 
 #define GYRO_SCALE_2000DPS (2000.0f / (1 << 15))   // 16.384 dps/lsb scalefactor for 2000dps sensors
 #define GYRO_SCALE_4000DPS (4000.0f / (1 << 15))   //  8.192 dps/lsb scalefactor for 4000dps sensors
+#define GYRO_VARIANCE_WINDOW 64 // size is 64 so that variance for 2ms of data can occur even while at 32k
 
 typedef enum {
     GYRO_NONE = 0,
@@ -80,6 +81,18 @@ typedef enum {
     GYRO_RATE_32_kHz,
 } gyroRateKHz_e;
 
+typedef struct  gyroVariance_s {
+    uint16_t windex;
+    uint16_t w;
+    float axisWindow[GYRO_VARIANCE_WINDOW];
+    float varianceWindow[GYRO_VARIANCE_WINDOW];
+    float axisSumVar;
+    float axisVar;
+    float axisSumMean;
+    float axisMean;
+    float inverseN;
+} __attribute__((__packed__)) gyroVariance_t;
+
 typedef struct gyroDev_s {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
     pthread_mutex_t lock;
@@ -109,6 +122,7 @@ typedef struct gyroDev_s {
     fp_rotationMatrix_t rotationMatrix;
     uint16_t gyroSampleRateHz;
     uint16_t accSampleRateHz;
+    gyroVariance_t variance[XYZ_AXIS_COUNT];
 } gyroDev_t;
 
 typedef struct accDev_s {

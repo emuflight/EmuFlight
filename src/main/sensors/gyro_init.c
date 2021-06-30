@@ -611,7 +611,7 @@ bool gyroInit(void)
     }
 
 #if defined(USE_MULTI_GYRO)
-    if ((gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH && !((gyroDetectionFlags & GYRO_ALL_MASK) == GYRO_ALL_MASK))
+    if ((gyro.gyroToUse >= GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE && !((gyroDetectionFlags & GYRO_ALL_MASK) == GYRO_ALL_MASK))
         || (gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_1 && !(gyroDetectionFlags & GYRO_1_MASK))
         || (gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_2 && !(gyroDetectionFlags & GYRO_2_MASK))) {
         if (gyroDetectionFlags & GYRO_1_MASK) {
@@ -627,14 +627,14 @@ bool gyroInit(void)
     // Only allow using both gyros simultaneously if they are the same hardware type.
     if (((gyroDetectionFlags & GYRO_ALL_MASK) == GYRO_ALL_MASK) && gyro.gyroSensor1.gyroDev.gyroHardware == gyro.gyroSensor2.gyroDev.gyroHardware) {
         gyroDetectionFlags |= GYRO_IDENTICAL_MASK;
-    } else if (gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
+    } else if (gyro.gyroToUse >= GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE) {
         // If the user selected "BOTH" and they are not the same type, then reset to using only the first gyro.
         gyro.gyroToUse = GYRO_CONFIG_USE_GYRO_1;
         gyroConfigMutable()->gyro_to_use = gyro.gyroToUse;
         eepromWriteRequired = true;
     }
 
-    if (gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_2 || gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
+    if (gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_2 || gyro.gyroToUse >= GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE) {
         gyroInitSensor(&gyro.gyroSensor2, gyroDeviceConfig(1));
         gyro.gyroHasOverflowProtection =  gyro.gyroHasOverflowProtection && gyro.gyroSensor2.gyroDev.gyroHasOverflowProtection;
         detectedSensors[SENSOR_INDEX_GYRO] = gyro.gyroSensor2.gyroDev.gyroHardware;
@@ -645,7 +645,7 @@ bool gyroInit(void)
         writeEEPROM();
     }
 
-    if (gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_1 || gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
+    if (gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_1 || gyro.gyroToUse >= GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE) {
         gyroInitSensor(&gyro.gyroSensor1, gyroDeviceConfig(0));
         gyro.gyroHasOverflowProtection =  gyro.gyroHasOverflowProtection && gyro.gyroSensor1.gyroDev.gyroHasOverflowProtection;
         detectedSensors[SENSOR_INDEX_GYRO] = gyro.gyroSensor1.gyroDev.gyroHardware;

@@ -1653,7 +1653,8 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         case GYRO_CONFIG_USE_GYRO_2:
             gyroAlignment = gyroDeviceConfig(1)->alignment;
             break;
-        case GYRO_CONFIG_USE_GYRO_BOTH:
+        case GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE:
+        case GYRO_CONFIG_USE_GYRO_BOTH_VARIANCE:
             // for dual-gyro in "BOTH" mode we only read/write gyro 0
         default:
             gyroAlignment = gyroDeviceConfig(0)->alignment;
@@ -2470,7 +2471,8 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
             case GYRO_CONFIG_USE_GYRO_2:
                 gyroDeviceConfigMutable(1)->alignment = gyroAlignment;
                 break;
-            case GYRO_CONFIG_USE_GYRO_BOTH:
+            case GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE:
+            case GYRO_CONFIG_USE_GYRO_BOTH_VARIANCE:
                 // For dual-gyro in "BOTH" mode we'll only update gyro 0
             default:
                 gyroDeviceConfigMutable(0)->alignment = gyroAlignment;

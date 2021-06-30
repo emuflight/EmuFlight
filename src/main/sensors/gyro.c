@@ -26,6 +26,8 @@
 
 #include "platform.h"
 
+#include "arm_math.h"
+
 #include "build/debug.h"
 
 #include "common/axis.h"
@@ -155,7 +157,8 @@ FAST_CODE bool gyroIsCalibrationComplete(void)
         case GYRO_CONFIG_USE_GYRO_2: {
             return isGyroSensorCalibrationComplete(&gyro.gyroSensor2);
         }
-        case GYRO_CONFIG_USE_GYRO_BOTH: {
+        case GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE:
+        case GYRO_CONFIG_USE_GYRO_BOTH_VARIANCE: {
             return isGyroSensorCalibrationComplete(&gyro.gyroSensor1) && isGyroSensorCalibrationComplete(&gyro.gyroSensor2);
         }
 #endif
@@ -242,6 +245,11 @@ STATIC_UNIT_TESTED void performGyroCalibration(gyroSensor_t *gyroSensor, uint8_t
             gyroSensor->gyroDev.gyroZero[axis] = gyroSensor->calibration.sum[axis] / gyroCalculateCalibratingCycles();
             if (axis == Z) {
               gyroSensor->gyroDev.gyroZero[axis] -= ((float)gyroConfig()->gyro_offset_yaw / 100);
+            }
+
+            for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+                gyroSensor->gyroDev.variance[axis].inverseN = 1.0f / (int)(gyro.sampleRateHz / 1e3f);
+                gyroSensor->gyroDev.variance[axis].w = (int)(gyro.sampleRateHz / 1e3f);
             }
         }
     }
@@ -406,6 +414,36 @@ static FAST_CODE FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t *gyroSens
     }
 }
 
+FAST_CODE float gyroVariance(gyroVariance_t *variance, float gyroRate) {
+    if(variance->w > 1) {
+        variance->axisWindow[variance->windex] = gyroRate;
+        variance->axisSumMean += variance->axisWindow[variance->windex];
+
+        float varianceElement = variance->axisWindow[variance->windex] - variance->axisMean;
+        varianceElement = varianceElement * varianceElement;
+        variance->axisSumVar += varianceElement;
+        variance->varianceWindow[variance->windex] = varianceElement;
+        variance->windex++;
+
+        if (variance->windex > variance->w) {
+            variance->windex = 0;
+        }
+
+        variance->axisSumMean -= variance->axisWindow[variance->windex];
+        variance->axisSumVar -= variance->varianceWindow[variance->windex];
+
+        //New mean
+        variance->axisMean = variance->axisSumMean * variance->inverseN;
+        variance->axisVar = variance->axisSumVar * variance->inverseN;
+
+        float squirt = 0;
+        arm_sqrt_f32(variance->axisVar, &squirt);
+        return squirt;
+    } else {
+        return 1.0f;
+    }
+}
+
 FAST_CODE void gyroUpdate(void)
 {
     switch (gyro.gyroToUse) {
@@ -426,13 +464,37 @@ FAST_CODE void gyroUpdate(void)
             gyro.gyroADC[Z] = gyro.gyroSensor2.gyroDev.gyroADC[Z] * gyro.gyroSensor2.gyroDev.scale;
         }
         break;
-    case GYRO_CONFIG_USE_GYRO_BOTH:
+    case GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE:
         gyroUpdateSensor(&gyro.gyroSensor1);
         gyroUpdateSensor(&gyro.gyroSensor2);
         if (isGyroSensorCalibrationComplete(&gyro.gyroSensor1) && isGyroSensorCalibrationComplete(&gyro.gyroSensor2)) {
             gyro.gyroADC[X] = ((gyro.gyroSensor1.gyroDev.gyroADC[X] * gyro.gyroSensor1.gyroDev.scale) + (gyro.gyroSensor2.gyroDev.gyroADC[X] * gyro.gyroSensor2.gyroDev.scale)) / 2.0f;
             gyro.gyroADC[Y] = ((gyro.gyroSensor1.gyroDev.gyroADC[Y] * gyro.gyroSensor1.gyroDev.scale) + (gyro.gyroSensor2.gyroDev.gyroADC[Y] * gyro.gyroSensor2.gyroDev.scale)) / 2.0f;
             gyro.gyroADC[Z] = ((gyro.gyroSensor1.gyroDev.gyroADC[Z] * gyro.gyroSensor1.gyroDev.scale) + (gyro.gyroSensor2.gyroDev.gyroADC[Z] * gyro.gyroSensor2.gyroDev.scale)) / 2.0f;
+        }
+        break;
+    case GYRO_CONFIG_USE_GYRO_BOTH_VARIANCE:
+        gyroUpdateSensor(&gyro.gyroSensor1);
+        gyroUpdateSensor(&gyro.gyroSensor2);
+        if (isGyroSensorCalibrationComplete(&gyro.gyroSensor1) && isGyroSensorCalibrationComplete(&gyro.gyroSensor2)) {
+            float gyroScaled1, gyroScaled2, varianceGyro1, varianceGyro2;
+            gyroScaled1 = gyro.gyroSensor1.gyroDev.gyroADC[X] * gyro.gyroSensor1.gyroDev.scale;
+            gyroScaled2 = gyro.gyroSensor2.gyroDev.gyroADC[X] * gyro.gyroSensor2.gyroDev.scale;
+            varianceGyro1 = gyroVariance(&gyro.gyroSensor1.gyroDev.variance[X], gyroScaled1);
+            varianceGyro2 = gyroVariance(&gyro.gyroSensor2.gyroDev.variance[X], gyroScaled2);
+            gyro.gyroADC[X] = ((gyroScaled1 * varianceGyro2) + (gyroScaled2 * varianceGyro1)) / (varianceGyro1 + varianceGyro2);
+
+            gyroScaled1 = gyro.gyroSensor1.gyroDev.gyroADC[Y] * gyro.gyroSensor1.gyroDev.scale;
+            gyroScaled2 = gyro.gyroSensor2.gyroDev.gyroADC[Y] * gyro.gyroSensor2.gyroDev.scale;
+            varianceGyro1 = gyroVariance(&gyro.gyroSensor1.gyroDev.variance[Y], gyroScaled1);
+            varianceGyro2 = gyroVariance(&gyro.gyroSensor2.gyroDev.variance[Y], gyroScaled2);
+            gyro.gyroADC[Y] = ((gyroScaled1 * varianceGyro2) + (gyroScaled2 * varianceGyro1)) / (varianceGyro1 + varianceGyro2);
+
+            gyroScaled1 = gyro.gyroSensor1.gyroDev.gyroADC[Z] * gyro.gyroSensor1.gyroDev.scale;
+            gyroScaled2 = gyro.gyroSensor2.gyroDev.gyroADC[Z] * gyro.gyroSensor2.gyroDev.scale;
+            varianceGyro1 = gyroVariance(&gyro.gyroSensor1.gyroDev.variance[Z], gyroScaled1);
+            varianceGyro2 = gyroVariance(&gyro.gyroSensor2.gyroDev.variance[Z], gyroScaled2);
+            gyro.gyroADC[Z] = ((gyroScaled1 * varianceGyro2) + (gyroScaled2 * varianceGyro1)) / (varianceGyro1 + varianceGyro2);
         }
         break;
 #endif
@@ -537,7 +599,8 @@ FAST_CODE void gyroFiltering(timeUs_t currentTimeUs)
             DEBUG_SET(DEBUG_DUAL_GYRO_SCALED, 3, lrintf(gyro.gyroSensor2.gyroDev.gyroADC[Y] * gyro.gyroSensor2.gyroDev.scale));
             break;
 
-    case GYRO_CONFIG_USE_GYRO_BOTH:
+    case GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE:
+    case GYRO_CONFIG_USE_GYRO_BOTH_VARIANCE:
             DEBUG_SET(DEBUG_DUAL_GYRO_RAW, 0, gyro.gyroSensor1.gyroDev.gyroADCRaw[X]);
             DEBUG_SET(DEBUG_DUAL_GYRO_RAW, 1, gyro.gyroSensor1.gyroDev.gyroADCRaw[Y]);
             DEBUG_SET(DEBUG_DUAL_GYRO_RAW, 2, gyro.gyroSensor2.gyroDev.gyroADCRaw[X]);
@@ -619,7 +682,8 @@ void gyroReadTemperature(void)
         gyroSensorTemperature = gyroReadSensorTemperature(gyro.gyroSensor2);
         break;
 
-    case GYRO_CONFIG_USE_GYRO_BOTH:
+    case GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE:
+    case GYRO_CONFIG_USE_GYRO_BOTH_VARIANCE:
         gyroSensorTemperature = MAX(gyroReadSensorTemperature(gyro.gyroSensor1), gyroReadSensorTemperature(gyro.gyroSensor2));
         break;
 #endif // USE_MULTI_GYRO
