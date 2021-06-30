@@ -1029,9 +1029,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
 #if defined(USE_RC_SMOOTHING_FILTER)
         sbufWriteU8(dst, rxConfig()->rc_smoothing_type);
         sbufWriteU8(dst, rxConfig()->rc_smoothing_input_cutoff);
-        sbufWriteU8(dst, rxConfig()->rc_smoothing_derivative_cutoff);
+        sbufWriteU8(dst, 0); // was rc_smoothing_derivative_cutoff
         sbufWriteU8(dst, rxConfig()->rc_smoothing_input_type);
-        sbufWriteU8(dst, rxConfig()->rc_smoothing_derivative_type);
+        sbufWriteU8(dst, 0); // was rc_smoothing_derivative_type
 #else
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
@@ -1186,12 +1186,12 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, currentPidProfile->dFilter[ROLL].dLpf2);
         sbufWriteU16(dst, currentPidProfile->dFilter[PITCH].dLpf2);
         sbufWriteU16(dst, currentPidProfile->dFilter[YAW].dLpf2);
-        sbufWriteU8(dst, currentPidProfile->dFilter[ROLL].smartSmoothing);
-        sbufWriteU8(dst, currentPidProfile->dFilter[PITCH].smartSmoothing);
-        sbufWriteU8(dst, currentPidProfile->dFilter[YAW].smartSmoothing);
-        sbufWriteU8(dst, currentPidProfile->dFilter[ROLL].Wc);
-        sbufWriteU8(dst, currentPidProfile->dFilter[PITCH].Wc);
-        sbufWriteU8(dst, currentPidProfile->dFilter[YAW].Wc);
+        sbufWriteU8(dst, 0); //was smartSmoothing
+        sbufWriteU8(dst, 0); //was smartSmoothing
+        sbufWriteU8(dst, 0); //was smartSmoothing
+        sbufWriteU8(dst, 0); //was WitchCraft
+        sbufWriteU8(dst, 0); //was WitchCraft
+        sbufWriteU8(dst, 0); //was WitchCraft
         sbufWriteU16(dst, gyroConfig()->dyn_notch_q_factor);
         sbufWriteU16(dst, gyroConfig()->dyn_notch_min_hz);
         break;
@@ -1209,7 +1209,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_q);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_q);
         sbufWriteU16(dst, gyroConfig()->imuf_w);
-        sbufWriteU16(dst, gyroConfig()->imuf_sharpness);
+        sbufWriteU16(dst, 0); // was imuf_sharpness
 #ifdef  USE_GYRO_IMUF9001
         sbufWriteU16(dst, gyroConfig()->imuf_roll_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_lpf_cutoff_hz);
@@ -1762,12 +1762,12 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
             currentPidProfile->dFilter[ROLL].dLpf2 = sbufReadU16(src);
             currentPidProfile->dFilter[PITCH].dLpf2 = sbufReadU16(src);
             currentPidProfile->dFilter[YAW].dLpf2 = sbufReadU16(src);
-            currentPidProfile->dFilter[ROLL].smartSmoothing = sbufReadU8(src);
-            currentPidProfile->dFilter[PITCH].smartSmoothing = sbufReadU8(src);
-            currentPidProfile->dFilter[YAW].smartSmoothing = sbufReadU8(src);
-            currentPidProfile->dFilter[ROLL].Wc = sbufReadU8(src);
-            currentPidProfile->dFilter[PITCH].Wc = sbufReadU8(src);
-            currentPidProfile->dFilter[YAW].Wc = sbufReadU8(src);
+            sbufReadU8(src); //was Smart dTerm Smoothing
+            sbufReadU8(src); //was Smart dTerm Smoothing
+            sbufReadU8(src); //was Smart dTerm Smoothing
+            sbufReadU8(src); //was WitchCraft
+            sbufReadU8(src); //was WitchCraft
+            sbufReadU8(src); //was WitchCraft
             gyroConfigMutable()->dyn_notch_q_factor = sbufReadU16(src);
             gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
         }
@@ -1792,7 +1792,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         gyroConfigMutable()->imuf_pitch_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_yaw_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_w = sbufReadU16(src);
-        gyroConfigMutable()->imuf_sharpness = sbufReadU16(src);
+        sbufReadU16(src); // was imuf_sharpness
 #ifdef USE_GYRO_IMUF9001
         gyroConfigMutable()->imuf_roll_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_pitch_lpf_cutoff_hz = sbufReadU16(src);
@@ -2062,9 +2062,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
 #if defined(USE_RC_SMOOTHING_FILTER)
         rxConfigMutable()->rc_smoothing_type = sbufReadU8(src);
         rxConfigMutable()->rc_smoothing_input_cutoff = sbufReadU8(src);
-        rxConfigMutable()->rc_smoothing_derivative_cutoff = sbufReadU8(src);
+        sbufReadU8(src); // was rc_smoothing_derivative_cutoff
         rxConfigMutable()->rc_smoothing_input_type = sbufReadU8(src);
-        rxConfigMutable()->rc_smoothing_derivative_type = sbufReadU8(src);
+        sbufReadU8(src); // was rc_smoothing_derivative_type
 #else
         sbufReadU8(src);
         sbufReadU8(src);

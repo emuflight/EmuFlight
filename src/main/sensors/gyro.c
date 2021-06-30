@@ -143,6 +143,7 @@ bool firstArmingCalibrationWasStarted = false;
 typedef union gyroLowpassFilter_u {
     pt1Filter_t pt1FilterState;
     biquadFilter_t biquadFilterState;
+    ptnFilter_t ptnFilterState;
 } gyroLowpassFilter_t;
 
 typedef struct gyroSensor_s {
@@ -261,7 +262,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .imuf_pitch_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
                   .imuf_yaw_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
                   .imuf_acc_lpf_cutoff_hz = IMUF_DEFAULT_ACC_LPF_HZ,
-                  .imuf_sharpness = 2500,
+                  .imuf_ptn_order = 3,
                   .gyro_offset_yaw = 0,
                   .gyro_ABG_alpha = 0,
                   .gyro_ABG_boost = 275,
@@ -299,7 +300,6 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .imuf_pitch_q = 3000,
                   .imuf_yaw_q = 3000,
                   .imuf_w = 32,
-                  .imuf_sharpness = 2500,
                   .gyro_offset_yaw = 0,
                   .yaw_spin_recovery = true,
                   .yaw_spin_threshold = 1950,
@@ -740,13 +740,25 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
         float gain = pt1FilterGain(lpfHz[axis], gyroDt);
         if (lpfHz[axis] && lpfHz[axis] <= gyroFrequencyNyquist) {
             switch (type) {
-            case FILTER_PT1:
-                *lowpassFilterApplyFn = (filterApplyFnPtr) pt1FilterApply;
-                pt1FilterInit(&lowpassFilter[axis].pt1FilterState, gain);
-                break;
             case FILTER_BIQUAD:
                 *lowpassFilterApplyFn = (filterApplyFnPtr) biquadFilterApply;
                 biquadFilterInitLPF(&lowpassFilter[axis].biquadFilterState, lpfHz[axis], gyro.targetLooptime);
+                break;
+            case FILTER_PT4:
+                *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 4, lpfHz[axis], gyroDt);
+                break;
+            case FILTER_PT3:
+                *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 3, lpfHz[axis], gyroDt);
+                break;
+            case FILTER_PT2:
+                *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 2, lpfHz[axis], gyroDt);
+                break;
+            default: // case FILTER_PT1:
+                *lowpassFilterApplyFn = (filterApplyFnPtr) pt1FilterApply;
+                pt1FilterInit(&lowpassFilter[axis].pt1FilterState, gain);
                 break;
             }
         }

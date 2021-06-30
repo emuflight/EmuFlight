@@ -68,18 +68,14 @@ typedef enum {
 
 typedef enum {
     RC_SMOOTHING_INPUT_PT1,
-    RC_SMOOTHING_INPUT_BIQUAD
+    RC_SMOOTHING_INPUT_BIQUAD,
+    RC_SMOOTHING_INPUT_PT2,
+    RC_SMOOTHING_INPUT_PT3,
+    RC_SMOOTHING_INPUT_PT4
 } rcSmoothingInputFilter_e;
 
 typedef enum {
-    RC_SMOOTHING_DERIVATIVE_OFF,
-    RC_SMOOTHING_DERIVATIVE_PT1,
-    RC_SMOOTHING_DERIVATIVE_BIQUAD
-} rcSmoothingDerivativeFilter_e;
-
-typedef enum {
     RC_SMOOTHING_VALUE_INPUT_ACTIVE,
-    RC_SMOOTHING_VALUE_DERIVATIVE_ACTIVE,
     RC_SMOOTHING_VALUE_AVERAGE_FRAME
 } rcSmoothingInfoType_e;
 
@@ -117,13 +113,13 @@ typedef struct rcSmoothingFilterTraining_s {
 typedef union rcSmoothingFilterTypes_u {
     pt1Filter_t pt1Filter;
     biquadFilter_t biquadFilter;
+    ptnFilter_t ptnFilter;
 } rcSmoothingFilterTypes_t;
 
 typedef struct rcSmoothingFilter_s {
     bool filterInitialized;
     rcSmoothingFilterTypes_t filter[4];
     uint16_t inputCutoffFrequency;
-    uint16_t derivativeCutoffFrequency;
     int averageFrameTimeUs;
     rcSmoothingFilterTraining_t training;
 } rcSmoothingFilter_t;
@@ -133,7 +129,7 @@ typedef struct rcControlsConfig_s {
     uint8_t yaw_deadband;                   // introduce a deadband around the stick center for yaw axis. Must be greater than zero.
     uint8_t alt_hold_deadband;              // defines the neutral zone of throttle stick during altitude hold, default setting is +/-40
     uint8_t alt_hold_fast_change;           // when disabled, turn off the althold when throttle stick is out of deadband defined with alt_hold_deadband; when enabled, altitude changes slowly proportional to stick movement
-    bool yaw_control_reversed;            // invert control direction of yaw
+    bool yaw_control_reversed;              // invert control direction of yaw
 } rcControlsConfig_t;
 
 PG_DECLARE(rcControlsConfig_t, rcControlsConfig);
