@@ -849,6 +849,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, imuConfig()->small_angle);
         break;
     case MSP_RC_TUNING:
+        //MSP 1.51
+        sbufWriteU8(dst, currentControlRateProfile->rates_type);
+        //end MSP 1.51
         sbufWriteU8(dst, currentControlRateProfile->rcRates[FD_ROLL]);
         sbufWriteU8(dst, currentControlRateProfile->rcExpo[FD_ROLL]);
         for (int i = 0 ; i < 3; i++) {
@@ -877,6 +880,11 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateCorrectionEnd);
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateWeightCenter);
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateWeightEnd);
+
+        // MSP 1.51
+        sbufWriteU8(dst, currentControlRateProfile->addRollToYawRc);
+        sbufWriteU8(dst, currentControlRateProfile->addYawToRollRc);
+        // end MSP 1.51
         break;
     case MSP_EMUF:
         sbufWriteU8(dst, currentControlRateProfile->dynThrI);
@@ -1039,6 +1047,10 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
 #endif
+        //added in MSP 1.51
+        sbufWriteU8(dst, rxConfig()->sbus_baud_fast);
+
+        //end 1.51
 #if defined(USE_USB_CDC_HID)
         sbufWriteU8(dst, usbDevConfig()->type);
 #else
@@ -1194,6 +1206,15 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, 0); //was WitchCraft
         sbufWriteU16(dst, gyroConfig()->dyn_notch_q);
         sbufWriteU16(dst, gyroConfig()->dyn_notch_min_hz);
+        //added in MSP 1.51
+        sbufWriteU16(dst, gyroConfig()->gyro_ABG_alpha);
+        sbufWriteU16(dst, gyroConfig()->gyro_ABG_boost);
+        sbufWriteU8(dst, gyroConfig()->gyro_ABG_half_life);
+        sbufWriteU8(dst, gyroConfig()->smithPredictorEnabled);
+        sbufWriteU16(dst, currentPidProfile->dterm_ABG_alpha);
+        sbufWriteU16(dst, currentPidProfile->dterm_ABG_boost);
+        sbufWriteU8(dst, currentPidProfile->dterm_ABG_half_life);
+        //end 1.51
         break;
     /*#ifndef USE_GYRO_IMUF9001
         case MSP_FAST_KALMAN:
@@ -1209,8 +1230,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_q);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_q);
         sbufWriteU16(dst, gyroConfig()->imuf_w);
-        sbufWriteU16(dst, 0); // was imuf_sharpness
+        //sbufWriteU16(0); // was imuf_sharpness
 #ifdef  USE_GYRO_IMUF9001
+        sbufWriteU16(dst, gyroConfig()->imuf_ptn_order); //MSP 1.51 Helio only
         sbufWriteU16(dst, gyroConfig()->imuf_roll_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_lpf_cutoff_hz);
@@ -1277,6 +1299,18 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentPidProfile->setPointITransition[YAW]);
         sbufWriteU8(dst, currentPidProfile->setPointDTransition[YAW]);
         sbufWriteU8(dst, 0); // was NFE_RACE_MODE now made into a flight mode
+        //added is MSP 1.51
+        sbufWriteU8(dst, currentPidProfile->linear_thrust_low_output);
+        sbufWriteU8(dst, currentPidProfile->linear_thrust_high_output);
+        sbufWriteU8(dst, currentPidProfile->linear_throttle);
+        sbufWriteU8(dst, currentPidProfile->mixer_impl);
+        sbufWriteU8(dst, currentPidProfile->mixer_laziness);
+        sbufWriteU8(dst, currentPidProfile->mixer_yaw_throttle_comp);
+        sbufWriteU8(dst, currentPidProfile->directFF_yaw);
+        sbufWriteU8(dst, currentPidProfile->axis_lock_hz);
+        sbufWriteU8(dst, currentPidProfile->axis_lock_multiplier);
+        sbufWriteU8(dst, currentPidProfile->emuGravityGain);
+        //end 1.51
         break;
         case MSP_SENSOR_CONFIG:
         sbufWriteU8(dst, accelerometerConfig()->acc_hardware);
@@ -1544,6 +1578,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         }
         break;
     case MSP_SET_RC_TUNING:
+        //MSP 1.51
+        currentControlRateProfile->rates_type = sbufReadU8(src);
+        //end MSP 1.51
         if (sbufBytesRemaining(src) >= 10) {
             value = sbufReadU8(src);
             if (currentControlRateProfile->rcRates[FD_PITCH] == currentControlRateProfile->rcRates[FD_ROLL]) {
@@ -1594,6 +1631,12 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
                 currentControlRateProfile->rateDynamics.rateWeightCenter = sbufReadU8(src);
                 currentControlRateProfile->rateDynamics.rateWeightEnd = sbufReadU8(src);
             }
+            // MSP 1.51
+            if (sbufBytesRemaining(src) >= 2) {
+                currentControlRateProfile->addRollToYawRc = sbufReadU8(src);
+                currentControlRateProfile->addYawToRollRc = sbufReadU8(src);
+            }
+            // end MSP 1.51
             initRcProcessing();
         } else {
             return MSP_RESULT_ERROR;
@@ -1770,6 +1813,15 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
             sbufReadU8(src); //was WitchCraft
             gyroConfigMutable()->dyn_notch_q = sbufReadU16(src);
             gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
+            //added in MSP 1.51
+            gyroConfigMutable()->gyro_ABG_alpha = sbufReadU16(src);
+            gyroConfigMutable()->gyro_ABG_boost = sbufReadU16(src);
+            gyroConfigMutable()->gyro_ABG_half_life = sbufReadU8(src);
+            gyroConfigMutable()->smithPredictorEnabled = sbufReadU8(src);
+            currentPidProfile->dterm_ABG_alpha = sbufReadU16(src);
+            currentPidProfile->dterm_ABG_boost = sbufReadU16(src);
+            currentPidProfile->dterm_ABG_half_life = sbufReadU8(src);
+            //end 1.51
         }
         // reinitialize the gyro filters with the new values
         validateAndFixGyroConfig();
@@ -1792,8 +1844,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         gyroConfigMutable()->imuf_pitch_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_yaw_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_w = sbufReadU16(src);
-        sbufReadU16(src); // was imuf_sharpness
+        //sbufReadU16(src); // was imuf_sharpness
 #ifdef USE_GYRO_IMUF9001
+        gyroConfigMutable()->imuf_ptn_order = sbufReadU16(src); //MSP 1.51 Helio only
         gyroConfigMutable()->imuf_roll_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_pitch_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_yaw_lpf_cutoff_hz = sbufReadU16(src);
@@ -1863,6 +1916,18 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         currentPidProfile->setPointITransition[YAW] = sbufReadU8(src);
         currentPidProfile->setPointDTransition[YAW] = sbufReadU8(src);
         sbufReadU8(src); // was NFE_RACE_MODE now its a flight mode.
+        //added in MSP 1.51
+        currentPidProfile->linear_thrust_low_output = sbufReadU8(src);
+        currentPidProfile->linear_thrust_high_output = sbufReadU8(src);
+        currentPidProfile->linear_throttle = sbufReadU8(src);
+        currentPidProfile->mixer_impl = sbufReadU8(src);
+        currentPidProfile->mixer_laziness = sbufReadU8(src);
+        currentPidProfile->mixer_yaw_throttle_comp = sbufReadU8(src);
+        currentPidProfile->directFF_yaw = sbufReadU8(src);
+        currentPidProfile->axis_lock_hz = sbufReadU8(src);
+        currentPidProfile->axis_lock_multiplier = sbufReadU8(src);
+        currentPidProfile->emuGravityGain = sbufReadU8(src);
+        //end 1.51
         }
         pidInitConfig(currentPidProfile);
         break;
@@ -2074,8 +2139,13 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
 #endif
         }
         if (sbufBytesRemaining(src) >= 1) {
-        // Added in MSP API 1.40
-        // Kept separate from the section above to work around missing Configurator support in version < 10.4.2
+        //added in MSP 1.51
+        if (sbufBytesRemaining(src) >= 1) {
+            rxConfigMutable()->sbus_baud_fast = sbufReadU8(src);
+        }
+        //end 1.51
+// Added in MSP API 1.40
+// Kept separate from the section above to work around missing Configurator support in version < 10.4.2
 #if defined(USE_USB_CDC_HID)
         usbDevConfigMutable()->type = sbufReadU8(src);
 #else
