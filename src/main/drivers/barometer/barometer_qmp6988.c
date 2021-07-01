@@ -197,15 +197,17 @@ bool qmp6988Detect(baroDev_t *baro) {
     Coe_a2_ = (short)((hb << 8) | lb);
     hb = databuf[24];
     temp1 = temp1 | ((hb & 0xf0) >> 4);
-    if(temp1 & 0x80000)
+    if (temp1 & 0x80000) {
         Coe_b00_ = ((int)temp1 - (int)0x100000);
-    else
+    } else {
         Coe_b00_ = temp1;
+    }
     temp2 = temp2 | (hb & 0x0f);
-    if(temp2 & 0x80000)
+    if (temp2 & 0x80000) {
         Coe_a0_  = ((int)temp2 - (int)0x100000);
-    else
+    } else {
         Coe_a0_ = temp2;
+    }
     qmp6988_cal.Coe_a0 = (float)Coe_a0_ / 16.0;
     qmp6988_cal.Coe_a1 = (-6.30E-03) + (4.30E-04) * (float)Coe_a1_ / 32767.0;
     qmp6988_cal.Coe_a2 = (-1.9E-11) + (1.2E-10) * (float)Coe_a2_ / 32767.0;
