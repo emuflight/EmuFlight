@@ -176,6 +176,7 @@ void targetConfiguration(void) {
     pidConfigMutable()->runaway_takeoff_prevention = true;
     osdConfigMutable()->cap_alarm = 2200;
     pidProfilesMutable(0)->dterm_filter_type = FILTER_PT1;
+    pidProfilesMutable(0)->dterm_filter2_type = FILTER_PT1;
     // pidProfilesMutable(0)->dyn_lpf_dterm_min_hz = 77;
     // pidProfilesMutable(0)->dyn_lpf_dterm_max_hz = 187;
     // pidProfilesMutable(0)->dterm_lowpass_hz = 150;
