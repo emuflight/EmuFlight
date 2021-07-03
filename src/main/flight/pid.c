@@ -983,12 +983,16 @@ void applyFeedbackLinearization(pidAxisData_t *pids, float *gyroData)
     float kt3 = pidRuntime.yawTorqueRatio;
     float TIR = pidRuntime.torqueInertiaRatio;
     if (!(kt2==0 || kt3==0 || TIR==0)){
-        pids[FD_ROLL].Sum += (k3-k2) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_PITCH] / (PID_MIXER_SCALING * TIR);
-        pids[FD_PITCH].Sum += (1.0f-k3) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_ROLL] / (PID_MIXER_SCALING * TIR * kt2);
-        pids[FD_YAW].Sum += (k2-1.0f) * 0.0003046f * gyroData[FD_ROLL] * gyroData[FD_PITCH] / (PID_MIXER_SCALING * TIR * kt3);
-        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 1, lrintf(pids[FD_ROLL].Sum * PID_MIXER_SCALING));
-        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 2, lrintf(pids[FD_PITCH].Sum * PID_MIXER_SCALING));
-        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 3, lrintf(pids[FD_YAW].Sum * PID_MIXER_SCALING));
+        float roll_linearization = (k3-k2) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_PITCH] / (TIR);
+        float pitch_linearization = (1.0f-k3) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_ROLL] / (TIR * kt2);
+        float yaw_linearization = (k2-1.0f) * 0.0003046f * gyroData[FD_ROLL] * gyroData[FD_PITCH] / (TIR * kt3);
+        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 0, lrintf(1000.0f * (pids[FD_ROLL].Sum + roll_linearization) / pids[FD_ROLL].Sum));
+        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 1, lrintf(1000.0f * (pids[FD_PITCH].Sum + pitch_linearization) / pids[FD_PITCH].Sum));
+        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 2, lrintf(1000.0f * (pids[FD_YAW].Sum + yaw_linearization) / pids[FD_YAW].Sum));
+
+        pids[FD_ROLL].Sum += roll_linearization;
+        pids[FD_PITCH].Sum += pitch_linearization;
+        pids[FD_YAW].Sum += yaw_linearization;
     }
 }
 #endif
