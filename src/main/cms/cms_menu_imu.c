@@ -735,7 +735,7 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "PITCH TORQUE RATIO",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_pitchTorqueRatio,        1,    250,   1  }   , 0 },
     { "YAW TORQUE RATIO",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_yawTorqueRatio,          1,    250,   1  }   , 0 },
     { "PITCH INERTIA RATIO",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_pitchInertiaRatio,       1,    250,   1  }   , 0 },
-    { "YAW INERTIA RATION",   OME_UINT16,  NULL, &(OSD_UINT8_t)  { &cmsx_yawInertiaRatio,         1,    500,   1  }   , 0 },
+    { "YAW INERTIA RATION",   OME_UINT16,  NULL, &(OSD_UINT16_t)  { &cmsx_yawInertiaRatio,         1,    500,   1  }   , 0 },
 #endif
 
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION

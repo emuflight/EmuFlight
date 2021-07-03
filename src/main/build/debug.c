@@ -103,4 +103,5 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "D_ABG_STATE",
     "RC_PREDICTOR",
     "SMITH_PREDICT",
+    "FEEDBACK_LINEARIZATION",
 };

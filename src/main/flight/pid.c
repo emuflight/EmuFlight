@@ -986,6 +986,9 @@ void applyFeedbackLinearization(pidAxisData_t *pids, float *gyroData)
         pids[FD_ROLL].Sum += (k3-k2) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_PITCH] / (PID_MIXER_SCALING * TIR);
         pids[FD_PITCH].Sum += (1.0f-k3) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_ROLL] / (PID_MIXER_SCALING * TIR * kt2);
         pids[FD_YAW].Sum += (k2-1.0f) * 0.0003046f * gyroData[FD_ROLL] * gyroData[FD_PITCH] / (PID_MIXER_SCALING * TIR * kt3);
+        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 1, lrintf(pids[FD_ROLL].Sum * PID_MIXER_SCALING));
+        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 2, lrintf(pids[FD_PITCH].Sum * PID_MIXER_SCALING));
+        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 3, lrintf(pids[FD_YAW].Sum * PID_MIXER_SCALING));
     }
 }
 #endif
