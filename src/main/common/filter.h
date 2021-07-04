@@ -60,10 +60,11 @@ typedef struct alphaBetaGammaFilter_s {
 typedef struct ptnFilter_s {
     float state[5];
     float k;
+    float scaler;
     uint8_t order;
 } ptnFilter_t;
 
-typedef enum {
+typedef enum { // change this so that you choose a filter type, aka pt or butterworth, then add a new variable called lowpass order
     FILTER_PT1 = 0,
     FILTER_PT2,
     FILTER_PT3,
@@ -108,5 +109,5 @@ float ABGJerk(alphaBetaGammaFilter_t *filter);
 float ABGResidualError(alphaBetaGammaFilter_t *filter);
 
 void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT);
-void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float ScaleF, float dt);
+void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float dt);
 float ptnFilterApply(ptnFilter_t *filter, float input);

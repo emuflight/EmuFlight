@@ -193,7 +193,7 @@ float applyRaceFlightRates(const int axis, float rcCommandf, const float rcComma
     // -1.0 to 1.0 ranged and curved
     rcCommandf = ((1.0f + expo * (rcCommandf * rcCommandf - 1.0f)) * rcCommandf);
     // convert to -2000 to 2000 range using acro+ modifier
-    float angleRate = rcCommandf * (rcRate + (ABS(rcCommandf) * rcRate * acroPlus));
+    float angleRate = rcCommandf * (rcRate + (rcCommandfAbs * rcRate * acroPlus));
 
     return angleRate;
 }
@@ -429,7 +429,7 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                 if (!smoothingData->filterInitialized) {
                     ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], 3, smoothingData->inputCutoffFrequency, dT);
                 } else {
-                    ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 1.961459177f, dT);
+                    ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, dT);
                 }
             }
         }
