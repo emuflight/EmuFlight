@@ -185,18 +185,12 @@ static bool gyroInitLowpassFilterLpf(int type, uint16_t lpfHz, uint32_t looptime
 static void dynLpfFilterInit()
 {
     if (gyroConfig()->dyn_lpf_gyro_width > 0) {
-        switch (gyroConfig()->gyro_lowpass_type) {
+        switch (gyroConfig()->gyro_lowpass_type) { // keep switch statement to deal with future versions where butterworth is an option
         case FILTER_PT1:
-            gyro.dynLpfFilter = DYN_LPF_PT1;
-            break;
         case FILTER_PT2:
-            gyro.dynLpfFilter = DYN_LPF_PT2;
-            break;
         case FILTER_PT3:
-            gyro.dynLpfFilter = DYN_LPF_PT3;
-            break;
         case FILTER_PT4:
-            gyro.dynLpfFilter = DYN_LPF_PT4;
+            gyro.dynLpfFilter = DYN_LPF_ON;
             break;
         default:
             gyro.dynLpfFilter = DYN_LPF_NONE;

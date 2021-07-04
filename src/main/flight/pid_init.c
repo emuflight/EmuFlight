@@ -216,7 +216,7 @@ void pidUpdateSetpointDerivativeLpf(uint16_t filterCutoff)
 {
     if (filterCutoff > 0) {
         for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-            ptnFilterUpdate(&pidRuntime.setpointDerivativePt3[axis], 3, filterCutoff, pidRuntime.dT);
+            ptnFilterUpdate(&pidRuntime.setpointDerivativePt3[axis], filterCutoff, pidRuntime.dT);
         }
     }
 }
@@ -307,18 +307,12 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 
 #ifdef USE_DYN_LPF
     if (pidProfile->dyn_lpf_dterm_width > 0) {
-        switch (pidProfile->dterm_filter_type) {
+        switch (pidProfile->dterm_filter_type) { // keep switch statement to deal with future versions where butterworth is an option
         case FILTER_PT1:
-            pidRuntime.dynLpfFilter = DYN_LPF_PT1;
-            break;
         case FILTER_PT2:
-            pidRuntime.dynLpfFilter = DYN_LPF_PT2;
-            break;
         case FILTER_PT3:
-            pidRuntime.dynLpfFilter = DYN_LPF_PT3;
-            break;
         case FILTER_PT4:
-            pidRuntime.dynLpfFilter = DYN_LPF_PT4;
+            pidRuntime.dynLpfFilter = DYN_LPF_ON;
             break;
         default:
             pidRuntime.dynLpfFilter = DYN_LPF_NONE;
