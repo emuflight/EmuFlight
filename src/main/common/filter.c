@@ -299,20 +299,22 @@ float ABGResidualError(alphaBetaGammaFilter_t *filter) {
 FAST_CODE void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT) {
 
 	  // AdjCutHz = CutHz /(sqrtf(powf(2, 1/Order) -1))
-    filter->order = (order > 4) ? 4 : order;
-    filter->scaler = 1.0f / (sqrtf(powf(2.0f, 1.0f / filter->order) - 1.0f));
+    const float ScaleF[] = { 1.0f, 1.553773974f, 1.961459177f, 2.298959223f };
+    float Adj_f_cut;
 
+	  filter->order = (order > 4) ? 4 : order;
 	  for (int n = 1; n <= filter->order; n++) {
 		    filter->state[n] = 0.0f;
     }
 
-	  float Adj_f_cut = f_cut * filter->scaler;
+	  Adj_f_cut = (float)f_cut * ScaleF[filter->order - 1];
 
 	  filter->k = dT / ((1.0f / (2.0f * M_PI_FLOAT * Adj_f_cut)) + dT);
 } // ptnFilterInit
 
-FAST_CODE void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float dT) {
-    float Adj_f_cut = f_cut * filter->scaler;
+FAST_CODE void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float ScaleF, float dT) {
+    float Adj_f_cut;
+    Adj_f_cut = (float)f_cut * ScaleF;
     filter->k = dT / ((1.0f / (2.0f * M_PI_FLOAT * Adj_f_cut)) + dT);
 }
 

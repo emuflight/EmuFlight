@@ -656,9 +656,23 @@ uint16_t gyroAbsRateDps(int axis)
 void dynLpfGyroUpdate(float cutoff[XYZ_AXIS_COUNT])
 {
     const float gyroDt = gyro.targetLooptime * 1e-6f;
-    if (gyro.dynLpfFilter == DYN_LPF_ON) {
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            ptnFilterUpdate(&gyro.lowpassFilter[axis], cutoff[axis], gyroDt);
+    for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+        switch (gyro.dynLpfFilter) {
+        case DYN_LPF_PT1:
+                ptnFilterUpdate(&gyro.lowpassFilter[axis], cutoff[axis], 1.0f, gyroDt);
+            break;
+        case DYN_LPF_PT2:
+                ptnFilterUpdate(&gyro.lowpassFilter[axis], cutoff[axis], 1.553773974f, gyroDt);
+            break;
+        case DYN_LPF_PT3:
+                ptnFilterUpdate(&gyro.lowpassFilter[axis], cutoff[axis], 1.961459177f, gyroDt);
+            break;
+        case DYN_LPF_PT4:
+                ptnFilterUpdate(&gyro.lowpassFilter[axis], cutoff[axis], 2.298959223f, gyroDt);
+            break;
+        case DYN_LPF_NONE:
+        default:
+            break;
         }
     }
 }
