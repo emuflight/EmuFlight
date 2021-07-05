@@ -298,8 +298,8 @@ static const char * const lookupTableRcInterpolationChannels[] = {
 };
 
 static const char * const lookupTableLowpassType[] = {
-    "BUTTERWORTH",
     "PT",
+    "BUTTERWORTH",
 };
 
 static const char * const lookupTableAntiGravityMode[] = {
@@ -609,6 +609,7 @@ const clivalue_t valueTable[] = {
 #endif
 
     { "gyro_lowpass_type",          VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_LOWPASS_TYPE }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass_type) },
+    { "gyro_lowpass_order",         VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 1,  4 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass_order) },
 
     { "gyro_notch1_hz",             VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, FILTER_FREQUENCY_MAX }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_soft_notch_hz_1) },
     { "gyro_notch1_cutoff",         VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, FILTER_FREQUENCY_MAX }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_soft_notch_cutoff_1) },
@@ -1048,7 +1049,9 @@ const clivalue_t valueTable[] = {
     { "dyn_lpf2_dterm_gain",        VAR_UINT8  | MASTER_VALUE,  .config.minmaxUnsigned = { 0,  200 },    PG_PID_PROFILE, offsetof(pidProfile_t, dyn_lpf_dterm_gain) },
 #endif
     { "dterm_lowpass_type",         VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_LOWPASS_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter_type) },
+    { "dterm_lowpass_order",        VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 4 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter_order) },
     { "dterm_lowpass2_type",        VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_LOWPASS_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter2_type) },
+    { "dterm_lowpass2_order",       VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 4 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter2_order) },
     { "dterm_lowpass2_hz",          VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, FILTER_FREQUENCY_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lowpass2_hz) },
     { "dterm_notch_hz",             VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, FILTER_FREQUENCY_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_notch_hz) },
     { "dterm_notch_cutoff",         VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, FILTER_FREQUENCY_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_notch_cutoff) },
