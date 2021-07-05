@@ -1201,12 +1201,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, currentPidProfile->dFilter[ROLL].dLpf2);
         sbufWriteU16(dst, currentPidProfile->dFilter[PITCH].dLpf2);
         sbufWriteU16(dst, currentPidProfile->dFilter[YAW].dLpf2);
-        sbufWriteU8(dst, 0); //was smartSmoothing
-        sbufWriteU8(dst, 0); //was smartSmoothing
-        sbufWriteU8(dst, 0); //was smartSmoothing
-        sbufWriteU8(dst, 0); //was WitchCraft
-        sbufWriteU8(dst, 0); //was WitchCraft
-        sbufWriteU8(dst, 0); //was WitchCraft
+        //MSP 1.51 removes SmartDTermSmoothing and WitchCraft
         sbufWriteU16(dst, gyroConfig()->dyn_notch_q);
         sbufWriteU16(dst, gyroConfig()->dyn_notch_min_hz);
         //added in MSP 1.51
@@ -1815,12 +1810,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
             currentPidProfile->dFilter[ROLL].dLpf2 = sbufReadU16(src);
             currentPidProfile->dFilter[PITCH].dLpf2 = sbufReadU16(src);
             currentPidProfile->dFilter[YAW].dLpf2 = sbufReadU16(src);
-            sbufReadU8(src); //was Smart dTerm Smoothing
-            sbufReadU8(src); //was Smart dTerm Smoothing
-            sbufReadU8(src); //was Smart dTerm Smoothing
-            sbufReadU8(src); //was WitchCraft
-            sbufReadU8(src); //was WitchCraft
-            sbufReadU8(src); //was WitchCraft
+            //MSP 1.51 removes SmartDTermSmoothing and WitchCraft
             gyroConfigMutable()->dyn_notch_q = sbufReadU16(src);
             gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
             //added in MSP 1.51
