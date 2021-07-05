@@ -17,6 +17,7 @@
  *
  * If not, see <http://www.gnu.org/licenses/>.
  */
+#include "platform.h"
 
 #include "resource.h"
 
@@ -25,6 +26,9 @@ const char * const ownerNames[OWNER_TOTAL_COUNT] = {
     "PWM",
     "PPM",
     "MOTOR",
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+    "BRUSHED_REVERSE",
+#endif
     "SERVO",
     "LED",
     "ADC",
