@@ -1,13 +1,13 @@
 /*
- * This file is part of Cleanflight and Betaflight and EmuFlight.
+ * This file is part of Cleanflight and Betaflight.
  *
- * Cleanflight and Betaflight and EmuFlight are free software. You can redistribute
+ * Cleanflight and Betaflight are free software. You can redistribute
  * this software and/or modify this software under the terms of the
  * GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option)
  * any later version.
  *
- * Cleanflight and Betaflight and EmuFlight are distributed in the hope that they
+ * Cleanflight and Betaflight are distributed in the hope that they
  * will be useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
@@ -36,6 +36,7 @@
 #include "drivers/io.h"
 #include "drivers/nvic.h"
 #include "drivers/rcc.h"
+#include "drivers/time.h"
 
 #ifndef SPI2_SCK_PIN
 #define SPI2_NSS_PIN    PB12
@@ -71,8 +72,6 @@
 #define SPI4_NSS_PIN NONE
 #endif
 
-#define SPI_DEFAULT_TIMEOUT 10
-
 static LL_SPI_InitTypeDef defaultInit =
 {
     .TransferDirection = SPI_DIRECTION_2LINES,
@@ -107,10 +106,12 @@ void spiInitDevice(SPIDevice device, bool leadingEdge)
     IOInit(IOGetByTag(spi->miso), OWNER_SPI_MISO, RESOURCE_INDEX(device));
     IOInit(IOGetByTag(spi->mosi), OWNER_SPI_MOSI, RESOURCE_INDEX(device));
 
-    if (spi->leadingEdge == true)
+    if (spi->leadingEdge == true) {
         IOConfigGPIOAF(IOGetByTag(spi->sck), SPI_IO_AF_SCK_CFG_LOW, spi->sckAF);
-    else
+    } else {
         IOConfigGPIOAF(IOGetByTag(spi->sck), SPI_IO_AF_SCK_CFG_HIGH, spi->sckAF);
+    }
+
     IOConfigGPIOAF(IOGetByTag(spi->miso), SPI_IO_AF_MISO_CFG, spi->misoAF);
     IOConfigGPIOAF(IOGetByTag(spi->mosi), SPI_IO_AF_CFG, spi->mosiAF);
 
@@ -136,18 +137,21 @@ void spiInitDevice(SPIDevice device, bool leadingEdge)
 
 uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t txByte)
 {
-    uint16_t spiTimeout = 1000;
+    timeUs_t timeoutStartUs = microsISR();
 
-    while (!LL_SPI_IsActiveFlag_TXE(instance))
-        if ((spiTimeout--) == 0)
+    while (!LL_SPI_IsActiveFlag_TXE(instance)) {
+        if (cmpTimeUs(microsISR(), timeoutStartUs) >= SPI_TIMEOUT_US) {
             return spiTimeoutUserCallback(instance);
-
+        }
+    }
     LL_SPI_TransmitData8(instance, txByte);
 
     timeoutStartUs = microsISR();
     while (!CHECK_SPI_RX_DATA_AVAILABLE(instance)) {
         if (cmpTimeUs(microsISR(), timeoutStartUs) >= SPI_TIMEOUT_US) {
             return spiTimeoutUserCallback(instance);
+        }
+    }
 
     return (uint8_t)LL_SPI_ReceiveData8(instance);
 }
@@ -163,12 +167,14 @@ bool spiIsBusBusy(SPI_TypeDef *instance)
 
 bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, int len)
 {
+    timeUs_t timeoutStartUs;
+    
     // set 16-bit transfer
     CLEAR_BIT(instance->CR2, SPI_RXFIFO_THRESHOLD);
     while (len > 1) {
-        int spiTimeout = 1000;
+        timeoutStartUs = microsISR();
         while (!LL_SPI_IsActiveFlag_TXE(instance)) {
-            if ((spiTimeout--) == 0) {
+            if (cmpTimeUs(microsISR(), timeoutStartUs) >= SPI_TIMEOUT_US) {
                 return spiTimeoutUserCallback(instance);
             }
         }
@@ -197,9 +203,9 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
     // set 8-bit transfer
     SET_BIT(instance->CR2, SPI_RXFIFO_THRESHOLD);
     if (len) {
-        int spiTimeout = 1000;
+        timeoutStartUs = microsISR();
         while (!LL_SPI_IsActiveFlag_TXE(instance)) {
-            if ((spiTimeout--) == 0) {
+            if (cmpTimeUs(microsISR(), timeoutStartUs) >= SPI_TIMEOUT_US) {
                 return spiTimeoutUserCallback(instance);
             }
         }
