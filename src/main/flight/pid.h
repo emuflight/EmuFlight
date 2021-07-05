@@ -108,6 +108,7 @@ typedef struct pidProfile_s {
     pidf_t  pid[PID_ITEM_COUNT];
 
     uint8_t dterm_filter_type;              // Filter selection for dterm
+    uint8_t dterm_filter_order;
     uint8_t itermWindupPointPercent;        // iterm windup threshold, percent motor saturation
     uint16_t pidSumLimit;
     uint16_t pidSumLimitYaw;
@@ -138,6 +139,7 @@ typedef struct pidProfile_s {
     uint8_t iterm_relax_threshold;          // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t iterm_relax_threshold_yaw;      // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t dterm_filter2_type;             // Filter selection for 2nd dterm
+    uint8_t dterm_filter2_order;
     uint16_t dyn_lpf_dterm_min_hz;
     uint8_t dyn_lpf_dterm_width;
     uint8_t dyn_lpf_dterm_gain;
@@ -213,6 +215,7 @@ typedef struct pidAxisData_s {
 
 typedef union dtermLowpass_u {
     ptnFilter_t ptnFilter;
+    butterworthFilter_t butterworthFilter;
 } dtermLowpass_t;
 
 typedef struct pidCoefficient_s {
@@ -234,9 +237,9 @@ typedef struct pidRuntime_s {
     filterApplyFnPtr dtermNotchApplyFn;
     biquadFilter_t dtermNotch[XYZ_AXIS_COUNT];
     filterApplyFnPtr dtermLowpassApplyFn;
-    ptnFilter_t dtermLowpass[XYZ_AXIS_COUNT];
+    dtermLowpass_t dtermLowpass[XYZ_AXIS_COUNT];
     filterApplyFnPtr dtermLowpass2ApplyFn;
-    ptnFilter_t dtermLowpass2[XYZ_AXIS_COUNT];
+    dtermLowpass_t dtermLowpass2[XYZ_AXIS_COUNT];
     filterApplyFnPtr dtermABGApplyFn;
     alphaBetaGammaFilter_t dtermABG[XYZ_AXIS_COUNT];
     filterApplyFnPtr ptermYawLowpassApplyFn;

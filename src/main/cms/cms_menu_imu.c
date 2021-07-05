@@ -88,7 +88,7 @@ static const char * const osdTableGyroToUse[] = {
 #endif
 
 static const char * const osdTableLpfType[] = {
-    "PT1", "PT2", "PT3", "PT4"
+    "BUTTERWORTH", "PT"
 };
 
 static void setProfileIndexString(char *profileString, int profileIndex, char *profileName)
@@ -749,6 +749,7 @@ static uint16_t gyroConfig_abg_half_life;
 
 static uint8_t  gyroConfig_gyro_to_use;
 static uint8_t  gyroConfig_lpf_type;
+static uint8_t  gyroConfig_lpf_order;
 
 #ifdef USE_SMITH_PREDICTOR
 static uint8_t smithPredictor_strength;
@@ -782,6 +783,7 @@ static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
 
     gyroConfig_gyro_to_use    = gyroConfig()->gyro_to_use;
     gyroConfig_lpf_type       = gyroConfig()->gyro_lowpass_type;
+    gyroConfig_lpf_order      = gyroConfig()->gyro_lowpass_order;
 
 #ifdef USE_SMITH_PREDICTOR
     smithPredictor_strength  = gyroConfig()->smithPredictorStrength;
@@ -818,6 +820,7 @@ static const void *cmsx_menuGyro_onExit(displayPort_t *pDisp, const OSD_Entry *s
 
     gyroConfigMutable()->gyro_to_use = gyroConfig_gyro_to_use;
     gyroConfigMutable()->gyro_lowpass_type = gyroConfig_lpf_type;
+    gyroConfigMutable()->gyro_lowpass_order = gyroConfig_lpf_order;
 
 #ifdef USE_SMITH_PREDICTOR
     gyroConfigMutable()->smithPredictorStrength = smithPredictor_strength;
@@ -835,7 +838,9 @@ static const OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "LPF WIDTH",  OME_UINT8, NULL, &(OSD_UINT8_t) { &dynFiltGyroWidth,  0, 255, 1 }, 0 },
     { "LPF EXPO",   OME_UINT8, NULL, &(OSD_UINT8_t) { &dynFiltGyroExpo,   0, 10, 1 }, 0 },
     { "LPF GAIN",   OME_UINT8, NULL, &(OSD_UINT8_t) { &dynFiltGyroGain,   0, 200, 1 }, 0 },
-    { "LPF TYPE",   OME_TAB,   NULL, &(OSD_TAB_t)   { &gyroConfig_lpf_type,     3, osdTableLpfType}, 0 },
+    { "LPF TYPE",   OME_TAB,   NULL, &(OSD_TAB_t)   { &gyroConfig_lpf_type,     1, osdTableLpfType}, 0 },
+    { "LPF TYPE",   OME_UINT8, NULL, &(OSD_UINT8_t) { &gyroConfig_lpf_order,    1, 4, 1}, 0 },
+
 #endif
 #ifdef USE_GYRO_DATA_ANALYSE
     { "MATRIX Q",        OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltMatrixQ,       0, 1000, 1 }, 0 },
@@ -887,7 +892,8 @@ static uint16_t dterm_abg_boost;
 static uint16_t dterm_abg_half_life;
 static uint8_t cmsx_dterm_lpf_type;
 static uint8_t cmsx_dterm_lpf2_type;
-
+static uint8_t cmsx_dterm_lpf_order;
+static uint8_t cmsx_dterm_lpf2_order;
 static const void *cmsx_DtermFilterRead(displayPort_t *pDisp)
 {
     UNUSED(pDisp);
@@ -906,6 +912,8 @@ static const void *cmsx_DtermFilterRead(displayPort_t *pDisp)
     dterm_abg_half_life       = pidProfile->dterm_abg_half_life;
     cmsx_dterm_lpf_type       = pidProfile->dterm_filter_type;
     cmsx_dterm_lpf2_type      = pidProfile->dterm_filter2_type;
+    cmsx_dterm_lpf_order      = pidProfile->dterm_filter_order;
+    cmsx_dterm_lpf2_order     = pidProfile->dterm_filter2_order;
 
     return NULL;
 }
@@ -930,6 +938,8 @@ static const void *cmsx_DtermFilterWriteback(displayPort_t *pDisp, const OSD_Ent
 
     pidProfile->dterm_filter_type       = cmsx_dterm_lpf_type;
     pidProfile->dterm_filter2_type      = cmsx_dterm_lpf2_type;
+    pidProfile->dterm_filter_type       = cmsx_dterm_lpf_order;
+    pidProfile->dterm_filter2_type      = cmsx_dterm_lpf2_order;
     return NULL;
 }
 
@@ -941,10 +951,12 @@ static const OSD_Entry cmsx_menuDtermFilterEntries[] =
     { "LPF WIDTH", OME_UINT8, NULL, &(OSD_UINT8_t) { &dynFiltDtermWidth, 0, 255, 1 }, 0 },
     { "LPF EXPO",  OME_UINT8, NULL, &(OSD_UINT8_t) { &dynFiltDtermExpo, 0, 10,   1 }, 0 },
     { "LPF GAIN",  OME_UINT8, NULL, &(OSD_UINT8_t) { &dynFiltDtermGain, 0,  200, 1 }, 0 },
-    { "LPF TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)   { &cmsx_dterm_lpf_type,     3, osdTableLpfType}, 0 },
+    { "LPF TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)   { &cmsx_dterm_lpf_type,     1, osdTableLpfType}, 0 },
+    { "LPF ORDER", OME_UINT8, NULL, &(OSD_UINT8_t) { &cmsx_dterm_lpf_type, 0, 4, 1 }, 0 },
 #endif
     { "LPF2",      OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz,    0, FILTER_FREQUENCY_MAX, 1 }, 0 },
-    { "LPF2 TYPE", OME_TAB,    NULL, &(OSD_TAB_t)   { &cmsx_dterm_lpf2_type,      3, osdTableLpfType}, 0 },
+    { "LPF2 TYPE", OME_TAB,    NULL, &(OSD_TAB_t)   { &cmsx_dterm_lpf2_type,      1, osdTableLpfType}, 0 },
+    { "LPF2 ORDER",OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_dterm_lpf2_order, 0, 4, 1 }, 0 },
 
     { "ALPHA",         OME_UINT16, NULL, &(OSD_UINT16_t) { &dterm_alpha,            0, 1000, 1 }, 0 },
     { "ABG BOOST",     OME_UINT16, NULL, &(OSD_UINT16_t) { &dterm_abg_boost,        0, 2000, 5 }, 0 },

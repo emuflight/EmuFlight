@@ -138,10 +138,10 @@ static void gyroInitFilterDynamicNotch()
 }
 #endif
 
-static bool gyroInitLowpassFilterLpf(int type, uint16_t lpfHz, uint32_t looptime)
+static bool gyroInitLowpassFilterLpf(int type, int order, uint16_t lpfHz, uint32_t looptime)
 {
     filterApplyFnPtr *lowpassFilterApplyFn;
-    ptnFilter_t *lowpassFilter = NULL;
+    gyroLowpassFilter_t *lowpassFilter = NULL;
 
     lowpassFilterApplyFn = &gyro.lowpassFilterApplyFn;
     lowpassFilter = gyro.lowpassFilter;
@@ -158,22 +158,17 @@ static bool gyroInitLowpassFilterLpf(int type, uint16_t lpfHz, uint32_t looptime
 
     // If lowpass cutoff has been specified and is less than the Nyquist frequency
     if (lpfHz && lpfHz <= gyroFrequencyNyquist) {
-      *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
       ret = true;
 
       for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
         switch (type) {
-        case FILTER_PT1:
-                ptnFilterInit(&lowpassFilter[axis], 1, lpfHz, gyroDt);
+        case FILTER_BUTTERWORTH:
+                *lowpassFilterApplyFn = (filterApplyFnPtr) biquadCascadeFilterApply;
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, order, lpfHz, gyroDt);
             break;
-        case FILTER_PT2:
-                ptnFilterInit(&lowpassFilter[axis], 2, lpfHz, gyroDt);
-            break;
-        case FILTER_PT3:
-                ptnFilterInit(&lowpassFilter[axis], 3, lpfHz, gyroDt);
-            break;
-        case FILTER_PT4:
-                ptnFilterInit(&lowpassFilter[axis], 4, lpfHz, gyroDt);
+        case FILTER_PT:
+                *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, order, lpfHz, gyroDt);
             break;
         }
       }
@@ -186,11 +181,11 @@ static void dynLpfFilterInit()
 {
     if (gyroConfig()->dyn_lpf_gyro_width > 0) {
         switch (gyroConfig()->gyro_lowpass_type) { // keep switch statement to deal with future versions where butterworth is an option
-        case FILTER_PT1:
-        case FILTER_PT2:
-        case FILTER_PT3:
-        case FILTER_PT4:
-            gyro.dynLpfFilter = DYN_LPF_ON;
+        case FILTER_BUTTERWORTH:
+            gyro.dynLpfFilter = DYN_LPF_BUTTERWORTH;
+            break;
+        case FILTER_PT:
+            gyro.dynLpfFilter = DYN_LPF_PT;
             break;
         default:
             gyro.dynLpfFilter = DYN_LPF_NONE;
@@ -237,6 +232,7 @@ void gyroInitFilters(void)
 
     gyroInitLowpassFilterLpf(
       gyroConfig()->gyro_lowpass_type,
+      gyroConfig()->gyro_lowpass_order,
       gyro_lowpass_hz,
       gyro.targetLooptime
     );

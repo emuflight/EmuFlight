@@ -298,10 +298,8 @@ static const char * const lookupTableRcInterpolationChannels[] = {
 };
 
 static const char * const lookupTableLowpassType[] = {
-    "PT1",
-    "PT2",
-    "PT3",
-    "PT4",
+    "BUTTERWORTH",
+    "PT",
 };
 
 static const char * const lookupTableAntiGravityMode[] = {

@@ -156,8 +156,10 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .iterm_relax_threshold = 35,
         .iterm_relax_threshold_yaw = 35,
         .antiGravityMode = ANTI_GRAVITY_SMOOTH,
-        .dterm_filter_type = FILTER_PT1,
-        .dterm_filter2_type = FILTER_PT1,
+        .dterm_filter_type = FILTER_PT,
+        .dterm_filter_order = 1,
+        .dterm_filter2_type = FILTER_BUTTERWORTH,
+        .dterm_filter2_order = 1,
         .dyn_lpf_dterm_min_hz = 65, // NOTE: this lpf is static unless dyn_lpf_dterm_width > 0
         .dyn_lpf_dterm_width = 0,
         .dyn_lpf_dterm_gain = 20,
@@ -907,9 +909,13 @@ bool pidAntiGravityEnabled(void)
 #ifdef USE_DYN_LPF
 void dynLpfDTermUpdate(float cutoff[XYZ_AXIS_COUNT])
 {
-    if (pidRuntime.dynLpfFilter == DYN_LPF_ON) {
+    if (pidRuntime.dynLpfFilter == DYN_LPF_PT) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            ptnFilterUpdate(&pidRuntime.dtermLowpass[axis], cutoff[axis], pidRuntime.dT);
+            ptnFilterUpdate(&pidRuntime.dtermLowpass[axis].ptnFilter, cutoff[axis], pidRuntime.dT);
+        }
+    } else if (pidRuntime.dynLpfFilter == DYN_LPF_BUTTERWORTH) {
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+            biquadFilterLpfCascadeUpdate(&pidRuntime.dtermLowpass[axis].butterworthFilter, cutoff[axis], targetPidLooptime);
         }
     }
 }

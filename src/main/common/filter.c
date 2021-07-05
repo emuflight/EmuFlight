@@ -113,6 +113,34 @@ void biquadFilterInit(biquadFilter_t *filter, float filterFreq, uint32_t refresh
     filter->y1 = filter->y2 = 0;
 }
 
+void biquadFilterLpfCascadeInit(butterworthFilter_t *filter, int order, float filterFreq, uint32_t refreshRate)
+{
+    order = constrain(order, 1, 4);
+    switch (order) {
+    case 1:
+        filter->q1 = 0.5f;
+        filter->q2 = 0.0f;
+        break;
+    case 2:
+        filter->q1 = 0.70710678f;
+        filter->q2 = 0.0f;
+        break;
+    case 3:
+        filter->q1 = 0.5f;
+        filter->q2 = 1.0f;
+        break;
+    case 4:
+        filter->q1 = 0.54119610f;
+        filter->q2 = 1.3065630f;
+        break;
+    }
+
+    biquadFilterInit(&filter->butterworthLpf1, filterFreq, refreshRate, filter->q1, FILTER_LPF);
+    if (filter->q2) {
+        biquadFilterInit(&filter->butterworthLpf2, filterFreq, refreshRate, filter->q2, FILTER_LPF);
+    }
+}
+
 FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate, float Q, biquadFilterType_e filterType)
 {
     // setup variables
@@ -120,34 +148,51 @@ FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint
     const float sn = sin_approx(omega);
     const float cs = cos_approx(omega);
     const float alpha = sn / (2.0f * Q);
+    float T = 0.0f;
 
     switch (filterType) {
     case FILTER_LPF:
-        // 2nd order Butterworth (with Q=1/sqrt(2)) / Butterworth biquad section with Q
-        // described in http://www.ti.com/lit/an/slaa447/slaa447.pdf
-        filter->b1 = 1 - cs;
-        filter->b0 = filter->b1 * 0.5f;
-        filter->b2 = filter->b0;
-        filter->a1 = -2 * cs;
-        filter->a2 = 1 - alpha;
+        if (Q != 0.5f) {
+            // 2nd order Butterworth (with Q=1/sqrt(2)) / Butterworth biquad section with Q
+            // described in http://www.ti.com/lit/an/slaa447/slaa447.pdf
+            filter->b1 = 1.0f - cs;
+            filter->b0 = filter->b1 * 0.5f;
+            filter->b2 = filter->b0;
+            filter->a1 = -2.0f * cs;
+            filter->a2 = 1.0f - alpha;
+        } else {
+            // 1st order Butterworth, H(s) = 1 / (1 + s),
+            // transformed according to http://www.iowahills.com/A4IIRBilinearTransform.html
+            T = 2.0f * sn / (cs + 1.0f);   // T = 2 * tan(omega / 2)
+            filter->b0 = T;
+            filter->b1 = T;
+            filter->b2 = 0.0f;
+            filter->a1 = T - 2.0f;
+            filter->a2 = 0.0f;
+        }
         break;
     case FILTER_NOTCH:
-        filter->b0 = 1;
-        filter->b1 = -2 * cs;
-        filter->b2 = 1;
+        filter->b0 = 1.0f;
+        filter->b1 = -2.0f * cs;
+        filter->b2 = 1.0f;
         filter->a1 = filter->b1;
-        filter->a2 = 1 - alpha;
+        filter->a2 = 1.0f - alpha;
         break;
     case FILTER_BPF:
         filter->b0 = alpha;
-        filter->b1 = 0;
+        filter->b1 = 0.0f;
         filter->b2 = -alpha;
-        filter->a1 = -2 * cs;
-        filter->a2 = 1 - alpha;
+        filter->a1 = -2.0f * cs;
+        filter->a2 = 1.0f - alpha;
         break;
     }
 
-    const float a0 = 1 + alpha;
+    float a0;
+    if (T) {
+        a0 = T + 2.0f;
+    } else {
+        a0 = 1.0f + alpha;
+    }
 
     // precompute the coefficients
     filter->b0 /= a0;
@@ -160,6 +205,14 @@ FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint
 FAST_CODE void biquadFilterUpdateLPF(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate)
 {
     biquadFilterUpdate(filter, filterFreq, refreshRate, BIQUAD_Q, FILTER_LPF);
+}
+
+void biquadFilterLpfCascadeUpdate(butterworthFilter_t *filter, float filterFreq, uint32_t refreshRate)
+{
+      biquadFilterUpdate(&filter->butterworthLpf1, filterFreq, refreshRate, filter->q1, FILTER_LPF);
+      if (filter->q2) {
+          biquadFilterUpdate(&filter->butterworthLpf2, filterFreq, refreshRate, filter->q2, FILTER_LPF);
+      }
 }
 
 /* Computes a biquadFilter_t filter on a sample (slightly less precise than df2 but works in dynamic mode) */
@@ -186,6 +239,16 @@ FAST_CODE float biquadFilterApply(biquadFilter_t *filter, float input)
     filter->x1 = filter->b1 * input - filter->a1 * result + filter->x2;
     filter->x2 = filter->b2 * input - filter->a2 * result;
     return result;
+}
+
+FAST_CODE float biquadCascadeFilterApply(butterworthFilter_t *filter, float input)
+{
+    input = biquadFilterApplyDF1(&filter->butterworthLpf1, input);
+    if (filter->q2) {
+        input = biquadFilterApplyDF1(&filter->butterworthLpf2, input);
+    }
+
+    return input;
 }
 
 void laggedMovingAverageInit(laggedMovingAverage_t *filter, uint16_t windowSize, float *buf)
@@ -299,7 +362,7 @@ float ABGResidualError(alphaBetaGammaFilter_t *filter) {
 FAST_CODE void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT) {
 
 	  // AdjCutHz = CutHz /(sqrtf(powf(2, 1/Order) -1))
-    filter->order = (order > 4) ? 4 : order;
+    filter->order = constrain(order, 1, 4);
     filter->scaler = 1.0f / (sqrtf(powf(2.0f, 1.0f / filter->order) - 1.0f));
 
 	  for (int n = 1; n <= filter->order; n++) {

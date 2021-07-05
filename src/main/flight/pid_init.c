@@ -99,21 +99,15 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     uint16_t dterm_lowpass_hz = pidProfile->dyn_lpf_dterm_min_hz;
 
     if (dterm_lowpass_hz > 0 && dterm_lowpass_hz < pidFrequencyNyquist) {
-        pidRuntime.dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
-
         for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         switch (pidProfile->dterm_filter_type) {
-            case FILTER_PT1:
-                ptnFilterInit(&pidRuntime.dtermLowpass[axis], 1, dterm_lowpass_hz, pidRuntime.dT);
+            case FILTER_BUTTERWORTH:
+                pidRuntime.dtermLowpass2ApplyFn = (filterApplyFnPtr)biquadCascadeFilterApply;
+                biquadFilterLpfCascadeInit(&pidRuntime.dtermLowpass[axis].butterworthFilter, pidProfile->dterm_filter_order, dterm_lowpass_hz, targetPidLooptime);
                 break;
-            case FILTER_PT2:
-                ptnFilterInit(&pidRuntime.dtermLowpass[axis], 2, dterm_lowpass_hz, pidRuntime.dT);
-                break;
-            case FILTER_PT3:
-                ptnFilterInit(&pidRuntime.dtermLowpass[axis], 3, dterm_lowpass_hz, pidRuntime.dT);
-                break;
-            case FILTER_PT4:
-                ptnFilterInit(&pidRuntime.dtermLowpass[axis], 4, dterm_lowpass_hz, pidRuntime.dT);
+            case FILTER_PT:
+                pidRuntime.dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
+                ptnFilterInit(&pidRuntime.dtermLowpass[axis].ptnFilter, pidProfile->dterm_filter_order, dterm_lowpass_hz, pidRuntime.dT);
                 break;
             default:
                 pidRuntime.dtermLowpassApplyFn = nullFilterApply;
@@ -128,21 +122,15 @@ void pidInitFilters(const pidProfile_t *pidProfile)
     if (pidProfile->dterm_lowpass2_hz == 0 || pidProfile->dterm_lowpass2_hz > pidFrequencyNyquist) {
         pidRuntime.dtermLowpass2ApplyFn = nullFilterApply;
     } else {
-        pidRuntime.dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
-
         for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         switch (pidProfile->dterm_filter2_type) {
-            case FILTER_PT1:
-                ptnFilterInit(&pidRuntime.dtermLowpass2[axis], 1, pidProfile->dterm_lowpass2_hz, pidRuntime.dT);
+            case FILTER_BUTTERWORTH:
+                pidRuntime.dtermLowpass2ApplyFn = (filterApplyFnPtr)biquadCascadeFilterApply;
+                biquadFilterLpfCascadeInit(&pidRuntime.dtermLowpass[axis].butterworthFilter, pidProfile->dterm_filter2_order, pidProfile->dterm_lowpass2_hz, targetPidLooptime);
                 break;
-            case FILTER_PT2:
-                ptnFilterInit(&pidRuntime.dtermLowpass2[axis], 2, pidProfile->dterm_lowpass2_hz, pidRuntime.dT);
-                break;
-            case FILTER_PT3:
-                ptnFilterInit(&pidRuntime.dtermLowpass2[axis], 3, pidProfile->dterm_lowpass2_hz, pidRuntime.dT);
-                break;
-            case FILTER_PT4:
-                ptnFilterInit(&pidRuntime.dtermLowpass2[axis], 4, pidProfile->dterm_lowpass2_hz, pidRuntime.dT);
+            case FILTER_PT:
+                pidRuntime.dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
+                ptnFilterInit(&pidRuntime.dtermLowpass2[axis].ptnFilter, pidProfile->dterm_filter2_order, pidProfile->dterm_lowpass2_hz, pidRuntime.dT);
                 break;
             default:
             pidRuntime.dtermLowpass2ApplyFn = nullFilterApply;
@@ -307,12 +295,12 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 
 #ifdef USE_DYN_LPF
     if (pidProfile->dyn_lpf_dterm_width > 0) {
-        switch (pidProfile->dterm_filter_type) { // keep switch statement to deal with future versions where butterworth is an option
-        case FILTER_PT1:
-        case FILTER_PT2:
-        case FILTER_PT3:
-        case FILTER_PT4:
-            pidRuntime.dynLpfFilter = DYN_LPF_ON;
+        switch (pidProfile->dterm_filter_type) {
+        case FILTER_BUTTERWORTH:
+            pidRuntime.dynLpfFilter = DYN_LPF_BUTTERWORTH;
+            break;
+        case FILTER_PT:
+            pidRuntime.dynLpfFilter = DYN_LPF_PT;
             break;
         default:
             pidRuntime.dynLpfFilter = DYN_LPF_NONE;

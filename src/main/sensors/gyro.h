@@ -48,6 +48,11 @@
 #define MAX_SMITH_SAMPLES 12 * 32
 #endif // USE_SMITH_PREDICTOR
 
+typedef union gyroLowpassFilter_u {
+    ptnFilter_t ptnFilterState;
+    butterworthFilter_t butterworthFilterState;
+} gyroLowpassFilter_t;
+
 typedef enum gyroDetectionFlags_e {
     GYRO_NONE_MASK = 0,
     GYRO_1_MASK = BIT(0),
@@ -99,7 +104,7 @@ typedef struct gyro_s {
 
     // lowpass gyro soft filter
     filterApplyFnPtr lowpassFilterApplyFn;
-    ptnFilter_t lowpassFilter[XYZ_AXIS_COUNT];
+    gyroLowpassFilter_t lowpassFilter[XYZ_AXIS_COUNT];
 
     // notch filters
     filterApplyFnPtr notchFilter1ApplyFn;
@@ -154,7 +159,8 @@ enum {
 
 enum {
     DYN_LPF_NONE = 0,
-    DYN_LPF_ON,
+    DYN_LPF_BUTTERWORTH,
+    DYN_LPF_PT,
 };
 
 typedef enum {
@@ -186,6 +192,7 @@ typedef struct gyroConfig_s {
 
     // Lowpass primary/secondary
     uint8_t  gyro_lowpass_type;
+    uint8_t  gyro_lowpass_order;
 
     uint8_t  yaw_spin_recovery;
     int16_t  yaw_spin_threshold;

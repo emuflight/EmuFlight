@@ -109,7 +109,8 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->gyroCalibrationDuration = 125;        // 1.25 seconds
     gyroConfig->gyroMovementCalibrationThreshold = 48;
     gyroConfig->gyro_hardware_lpf = GYRO_HARDWARE_LPF_NORMAL;
-    gyroConfig->gyro_lowpass_type = FILTER_PT1;
+    gyroConfig->gyro_lowpass_type = FILTER_PT;
+    gyroConfig->gyro_lowpass_order = 1;
     gyroConfig->alpha = 0;
     gyroConfig->abg_boost = 350;
     gyroConfig->abg_half_life = 50;
@@ -656,9 +657,13 @@ uint16_t gyroAbsRateDps(int axis)
 void dynLpfGyroUpdate(float cutoff[XYZ_AXIS_COUNT])
 {
     const float gyroDt = gyro.targetLooptime * 1e-6f;
-    if (gyro.dynLpfFilter == DYN_LPF_ON) {
+    if (gyro.dynLpfFilter == DYN_LPF_PT) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            ptnFilterUpdate(&gyro.lowpassFilter[axis], cutoff[axis], gyroDt);
+            ptnFilterUpdate(&gyro.lowpassFilter[axis].ptnFilterState, cutoff[axis], gyroDt);
+        }
+    } else if (gyro.dynLpfFilter == DYN_LPF_BUTTERWORTH) {
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+            biquadFilterLpfCascadeUpdate(&gyro.lowpassFilter[axis].butterworthFilterState, cutoff[axis], gyro.targetLooptime);
         }
     }
 }

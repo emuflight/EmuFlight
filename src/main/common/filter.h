@@ -41,6 +41,12 @@ typedef struct biquadFilter_s {
     float x1, x2, y1, y2;
 } biquadFilter_t;
 
+typedef struct butterworthFilter_s {
+    float q1, q2;
+    biquadFilter_t butterworthLpf1; // only need to cascaded biquad filters to make up to 4th order butterworth
+    biquadFilter_t butterworthLpf2;
+} butterworthFilter_t;
+
 typedef struct laggedMovingAverage_s {
     uint16_t movingWindowIndex;
     uint16_t windowSize;
@@ -64,11 +70,9 @@ typedef struct ptnFilter_s {
     uint8_t order;
 } ptnFilter_t;
 
-typedef enum { // change this so that you choose a filter type, aka pt or butterworth, then add a new variable called lowpass order
-    FILTER_PT1 = 0,
-    FILTER_PT2,
-    FILTER_PT3,
-    FILTER_PT4,
+typedef enum {
+    FILTER_PT = 0,
+    FILTER_BUTTERWORTH,
 } lowpassFilterType_e;
 
 typedef enum {
@@ -89,6 +93,10 @@ void biquadFilterUpdateLPF(biquadFilter_t *filter, float filterFreq, uint32_t re
 float biquadFilterApplyDF1(biquadFilter_t *filter, float input);
 float biquadFilterApply(biquadFilter_t *filter, float input);
 float filterGetNotchQ(float centerFreq, float cutoffFreq);
+
+void biquadFilterLpfCascadeInit(butterworthFilter_t *filter, int order, float filterFreq, uint32_t refreshRate);
+void biquadFilterLpfCascadeUpdate(butterworthFilter_t *filter, float filterFreq, uint32_t refreshRate);
+float biquadCascadeFilterApply(butterworthFilter_t *filter, float input);
 
 void laggedMovingAverageInit(laggedMovingAverage_t *filter, uint16_t windowSize, float *buf);
 float laggedMovingAverageUpdate(laggedMovingAverage_t *filter, float input);
