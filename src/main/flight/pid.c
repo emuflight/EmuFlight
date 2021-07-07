@@ -136,6 +136,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .pidSumLimit = PIDSUM_LIMIT_MAX,
     .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
     .dterm_filter_type = FILTER_PT1,
+    .dterm_filter2_type = FILTER_PT1,
     .itermWindupPointPercent = 70,
     .pidAtMinThrottle = PID_STABILISATION_ON,
     .levelAngleLimit = 45,
@@ -281,7 +282,7 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
         }
 
         if (pidProfile->dFilter[axis].dLpf2 && pidProfile->dFilter[axis].dLpf2 <= pidFrequencyNyquist) {
-            switch (pidProfile->dterm_filter_type) {
+            switch (pidProfile->dterm_filter2_type) {
             case FILTER_BIQUAD:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)biquadFilterApply;
                 biquadFilterInitLPF(&dtermLowpass2[axis].biquadFilter, pidProfile->dFilter[axis].dLpf2, targetPidLooptime);
