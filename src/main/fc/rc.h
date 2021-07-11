@@ -49,5 +49,5 @@ float applyCurve(int axis, float deflection);
 bool getShouldUpdateFeedforward();
 void updateRcRefreshRate(timeUs_t currentTimeUs);
 uint16_t getCurrentRxRefreshRate(void);
-void updateRcRefreshRate(timeUs_t currentTimeUs);
+bool getRxRateValid(void);
 float rateDynamics(float rcCommand, int axis, int currentRxRefreshRate);
