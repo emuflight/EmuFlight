@@ -136,7 +136,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .itermWindupPointPercent = 70,
         .pidAtMinThrottle = PID_STABILISATION_ON,
         .levelAngleLimit = 55,
-        .feedForwardTransition = 0,
+        .feedforwardTransition = 0,
         .itermThrottleThreshold = 250,
         .itermAcceleratorGain = 3500,
         .crash_dthreshold = 50,     // degrees/second/second
@@ -429,7 +429,7 @@ float FAST_CODE applyRcSmoothingFeedforwardFilter(int axis, float pidSetpointDel
         DEBUG_SET(DEBUG_RC_SMOOTHING, 1, lrintf(pidSetpointDelta * 100.0f));
     }
     if (pidRuntime.feedforwardLpfInitialized) {
-        ret = ptnFilterApply(&pidRuntime.setpointDerivativePt3[axis], pidSetpointDelta);
+        ret = ptnFilterApply(&pidRuntime.feedforwardPt3[axis], pidSetpointDelta);
         if (axis == pidRuntime.rcSmoothingDebugAxis) {
             DEBUG_SET(DEBUG_RC_SMOOTHING, 2, lrintf(ret * 100.0f));
         }
