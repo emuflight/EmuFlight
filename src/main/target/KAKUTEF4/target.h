@@ -72,7 +72,7 @@
 #define USE_GYRO_SPI_ICM20689
 #define GYRO_ICM20689_ALIGN      CW270_DEG
 
-#if defined(FLYWOOF405)
+#if defined(FLYWOOF405) || defined(KAKUTEF4V2)
 //------MPU6000
 #define MPU6000_CS_PIN           PC4
 #define MPU6000_SPI_INSTANCE     SPI1
