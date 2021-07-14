@@ -160,6 +160,7 @@ void targetConfiguration(void) {
     osdConfigMutable()->enabledWarnings &= ~(1 << OSD_WARNING_CORE_TEMPERATURE);
     osdConfigMutable()->cap_alarm = 255;
     pidProfilesMutable(0)->dterm_filter_type = FILTER_PT2;
+    pidProfilesMutable(0)->dterm_filter2_type = FILTER_PT2;
     pidProfilesMutable(0)->dFilter[ROLL].dLpf = 200;
     pidProfilesMutable(0)->dFilter[PITCH].dLpf = 200;
     pidProfilesMutable(0)->dFilter[YAW].dLpf = 200;
