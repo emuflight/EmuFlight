@@ -986,13 +986,13 @@ void applyFeedbackLinearization(pidAxisData_t *pids, float *gyroData)
         float roll_linearization = (k3-k2) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_PITCH] / (TIR);
         float pitch_linearization = (1.0f-k3) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_ROLL] / (TIR * kt2);
         float yaw_linearization = (k2-1.0f) * 0.0003046f * gyroData[FD_ROLL] * gyroData[FD_PITCH] / (TIR * kt3);
-        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 0, lrintf(1000.0f * (pids[FD_ROLL].Sum + roll_linearization) / pids[FD_ROLL].Sum));
-        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 1, lrintf(1000.0f * (pids[FD_PITCH].Sum + pitch_linearization) / pids[FD_PITCH].Sum));
-        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 2, lrintf(1000.0f * (pids[FD_YAW].Sum + yaw_linearization) / pids[FD_YAW].Sum));
-
         pids[FD_ROLL].Sum += roll_linearization;
         pids[FD_PITCH].Sum += pitch_linearization;
         pids[FD_YAW].Sum += yaw_linearization;
+        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 0, lrintf(100.0f * pids[FD_ROLL].Sum / currentPidProfile->pidSumLimit));
+        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 1, lrintf(100.0f * pids[FD_PITCH].Sum / currentPidProfile->pidSumLimit));
+        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 2, lrintf(100.0f * pids[FD_YAW].Sum / currentPidProfile->pidSumLimitYaw));
+
     }
 }
 #endif
