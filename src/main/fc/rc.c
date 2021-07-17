@@ -617,9 +617,6 @@ FAST_CODE void processRcCommand(timeUs_t currentTimeUs)
         if (isRxDataNew) {
 
             isDuplicate[axis] = (oldRcCommand[axis] == rcCommand[axis]);
-            if (fabsf(rcCommand[axis] - oldRcCommand[axis]) > 150) {
-                rcCommand[axis] = oldRcCommand[axis];
-            }
             rcCommandDelta[axis] = fabsf(rcCommand[axis] - oldRcCommand[axis]);
             oldRcCommand[axis] = rcCommand[axis];
         }
