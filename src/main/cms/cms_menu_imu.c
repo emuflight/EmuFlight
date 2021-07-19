@@ -709,6 +709,8 @@ static uint16_t cmsx_dterm_lowpass2_type;
 static uint16_t cmsx_dterm_lowpass2_hz_roll;
 static uint16_t cmsx_dterm_lowpass2_hz_pitch;
 static uint16_t cmsx_dterm_lowpass2_hz_yaw;
+static uint8_t cmsx_dterm_dyn_notch_enable ;
+static uint16_t cmsx_dterm_dyn_notch_q;
 static uint16_t cmsx_dterm_abg_alpha;
 static uint16_t cmsx_dterm_abg_boost;
 static uint8_t cmsx_dterm_abg_half_life;
@@ -723,6 +725,8 @@ static long cmsx_FilterPerProfileRead(void) {
     cmsx_dterm_lowpass2_hz_roll  = pidProfile->dFilter[ROLL].dLpf2;
     cmsx_dterm_lowpass2_hz_pitch = pidProfile->dFilter[PITCH].dLpf2;
     cmsx_dterm_lowpass2_hz_yaw   = pidProfile->dFilter[YAW].dLpf2;
+    cmsx_dterm_dyn_notch_enable  = pidProfile->dtermDynNotch;
+    cmsx_dterm_dyn_notch_q       = pidProfile->dterm_dyn_notch_q;
     cmsx_dterm_abg_alpha = pidProfile->dterm_ABG_alpha;
     cmsx_dterm_abg_boost = pidProfile->dterm_ABG_boost;
     cmsx_dterm_abg_half_life = pidProfile->dterm_ABG_half_life;
@@ -740,6 +744,8 @@ static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self) {
     pidProfile->dFilter[ROLL].dLpf2  = cmsx_dterm_lowpass2_hz_roll;
     pidProfile->dFilter[PITCH].dLpf2 = cmsx_dterm_lowpass2_hz_pitch;
     pidProfile->dFilter[YAW].dLpf2   = cmsx_dterm_lowpass2_hz_yaw;
+    pidProfile->dtermDynNotch        = cmsx_dterm_dyn_notch_enable;
+    pidProfile->dterm_dyn_notch_q    = cmsx_dterm_dyn_notch_q;
     pidProfile->dterm_ABG_alpha = cmsx_dterm_abg_alpha;
     pidProfile->dterm_ABG_boost = cmsx_dterm_abg_boost;
     pidProfile->dterm_ABG_half_life = cmsx_dterm_abg_half_life;
@@ -757,6 +763,8 @@ static OSD_Entry cmsx_menuFilterPerProfileEntries[] = {
     { "DTERM LPF2 ROLL", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_roll,    0, 500, 1 }, 0 },
     { "DTERM LPF2 PITCH", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_pitch,    0, 500, 1 }, 0 },
     { "DTERM LPF2 YAW", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_yaw,    0, 500, 1 }, 0 },
+    { "DTERM DYN ENABLE",   OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &cmsx_dterm_dyn_notch_enable, 1, cms_offOnLabels }, 0 },
+    { "DTERM DYN NOT Q",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_dyn_notch_q,    0, 2000, 1 }, 0 },
     { "DTERM ABG ALPHA",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_abg_alpha,       0, 1000, 1 }, 0 },
     { "DTERM ABG BOOST",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_abg_boost,       0, 2000, 1 }, 0 },
     { "DTERM ABG HL",       OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_dterm_abg_half_life,   0, 250, 1 }, 0 },
