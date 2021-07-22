@@ -197,7 +197,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .dterm_ABG_half_life = 50,
     .emuGravityGain = 50,
     .angle_filter = 100,
-    .dtermDynNotch = true,
+    .dtermDynNotch = false,
     .dterm_dyn_notch_q = 400,
                 );
 }
