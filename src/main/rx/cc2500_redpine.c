@@ -203,7 +203,7 @@ rx_spi_received_e redpineSpiDataReceived(uint8_t *packet)
 
             break;
         case STATE_BIND:
-            if (cc2500checkBindRequested(true)) { // TODO || autobind
+            if (cc2500checkBindRequested(true) || rxFrSkySpiConfig()->autoBind) {
                 redpineFast = true;
                 initialise();
                 cc2500LedOn();
@@ -245,7 +245,7 @@ rx_spi_received_e redpineSpiDataReceived(uint8_t *packet)
             }
             break;
         case STATE_BIND_COMPLETE:
-            if (1) { // TODO autobind
+            if (!rxFrSkySpiConfig()->autoBind) {
                 writeEEPROM();
             } else {
                 uint8_t ctr = 80;
