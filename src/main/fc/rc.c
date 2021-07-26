@@ -223,7 +223,7 @@ float applyCurve(int axis, float deflection)
     return applyRates(axis, deflection, fabsf(deflection));
 }
 
-static void scaleSetpointToFpvCamAngle(void)
+static void scaleRawSetpointToFpvCamAngle(void)
 {
     float currentPitchAngle = constrainf(attitude.raw[FD_PITCH] * 0.1f,-rxConfig()->fpvCamAngleDegrees,rxConfig()->fpvCamAngleDegrees);
     //recalculate sin/cos only when rxConfig()->fpvCamAngleDegrees changed
@@ -240,10 +240,10 @@ static void scaleSetpointToFpvCamAngle(void)
         sinFactor = sin_approx(rxConfig()->fpvCamAngleDegrees * RAD);
     }
 
-    float roll = setpointRate[ROLL];
-    float yaw = setpointRate[YAW];
-    setpointRate[ROLL] = constrainf(roll * cosFactor -  yaw * sinFactor, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
-    setpointRate[YAW]  = constrainf(yaw  * cosFactor + roll * sinFactor, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
+    float roll = rawSetpoint[ROLL];
+    float yaw = rawSetpoint[YAW];
+    rawSetpoint[ROLL] = constrainf(roll * cosFactor -  yaw * sinFactor, -SETPOINT_RATE_LIMIT * 1.0f, SETPOINT_RATE_LIMIT * 1.0f);
+    rawSetpoint[YAW]  = constrainf(yaw  * cosFactor + roll * sinFactor, -SETPOINT_RATE_LIMIT * 1.0f, SETPOINT_RATE_LIMIT * 1.0f);
 }
 
 #define THROTTLE_BUFFER_MAX 20
@@ -579,10 +579,9 @@ FAST_CODE void processRcCommand(void)
             rawSetpoint[axis] = constrainf(angleRate, -1.0f * SETPOINT_RATE_LIMIT, 1.0f * SETPOINT_RATE_LIMIT);
             DEBUG_SET(DEBUG_ANGLERATE, axis, angleRate);
         }
-
-        // adjust un-filtered setpoint steps to camera angle (mixing Roll and Yaw)
+        // adjust raw setpoint steps to camera angle (mixing Roll and Yaw)
         if (rxConfig()->fpvCamAngleDegrees && IS_RC_MODE_ACTIVE(BOXFPVANGLEMIX) && !FLIGHT_MODE(HEADFREE_MODE)) {
-            scaleSetpointToFpvCamAngle();
+            scaleRawSetpointToFpvCamAngle();
         }
     }
 
