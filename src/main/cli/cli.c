@@ -1587,7 +1587,7 @@ static void cliSerialPassthrough(const char *cmdName, char *cmdline)
         for (unsigned i = 0; i < getMotorCount(); i++) {
             const ioTag_t tag = motorConfig()->dev.ioTags[i];
             if (tag) {
-                const timerHardware_t *timerHardware = timerGetByTag(tag);
+                const timerHardware_t *timerHardware = timerGetConfiguredByTag(tag);
                 if (timerHardware) {
                     IO_t io = IOGetByTag(tag);
                     IOInit(io, OWNER_MOTOR, 0);
@@ -5984,7 +5984,7 @@ static void cliDmaopt(const char *cmdName, char *cmdline)
 #if defined(USE_TIMER_MGMT)
         timerIoConfig = timerIoConfigByTag(ioTag);
 #endif
-        timer = timerGetByTag(ioTag);
+        timer = timerGetConfiguredByTag(ioTag);
     }
 
     // opt or list
