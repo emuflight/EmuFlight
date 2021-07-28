@@ -319,10 +319,9 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
 
                     // get centerFreq in Hz from weighted bins
                     float centerFreq = dynNotchMaxHz;
-                    float sdftMeanBin = 0;
 
                     if (sdftSum > 0) {
-                        sdftMeanBin = (sdftWeightedSum / sdftSum);
+                        float sdftMeanBin = (sdftWeightedSum / sdftSum);
                         centerFreq = sdftMeanBin * sdftResolutionHz;
                         centerFreq = constrainf(centerFreq, dynNotchMinHz, dynNotchMaxHz);
                         // In theory, the index points to the centre frequency of the bin.
