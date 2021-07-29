@@ -437,10 +437,7 @@ static float calcHorizonLevelStrength(int axis) {
     float horizonLevelStrength;
     // 0 at level, 90 at vertical, 180 at inverted (degrees):
     const float currentInclination = RADIANS_TO_DEGREES(acos_approx(howUpsideDown()));
-    if (axis == FD_ROLL) {
-        DEBUG_SET(DEBUG_HORIZON, 0, lrintf(howUpsideDown() * 1000));
-        DEBUG_SET(DEBUG_HORIZON, 1, lrintf(currentInclination * 10));
-    }
+
     // Used as a factor in the numerator of inclinationLevelRatio - this will cause the entry point of the fade of leveling strength to be adjustable via horizon transition in configurator for RACEMODEhorizon
     const float racemodeHorizonTransitionFactor = horizonCutoffDegrees / (horizonCutoffDegrees - horizonTransition);
     // Used as a factor in the numerator of inclinationLevelRatio - this will cause the fade of leveling strength to start at levelAngleLimit for RACEMODEangle
@@ -459,6 +456,8 @@ static float calcHorizonLevelStrength(int axis) {
     }
 
     if (axis == FD_ROLL) {
+        DEBUG_SET(DEBUG_HORIZON, 0, lrintf(howUpsideDown() * 1000));
+        DEBUG_SET(DEBUG_HORIZON, 1, lrintf(currentInclination * 10));
         DEBUG_SET(DEBUG_HORIZON, 2, lrintf(horizonLevelStrength * 1000));
     }
 
