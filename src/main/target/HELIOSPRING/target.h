@@ -44,7 +44,9 @@
 #define IMUF9001_RST_PIN        PA4
 #define IMUF9001_SPI_INSTANCE   SPI1
 #define USE_GYRO_EXTI
-#define GYRO_1_EXTI_PIN         PB0
+#define MPU_INT_EXTI            PB0
+#define GYRO_1_CS_PIN           IMUF9001_CS_PIN
+#define GYRO_1_SPI_INSTANCE     IMUF9001_SPI_INSTANCE
 #define USE_MPU_DATA_READY_SIGNAL
 
 
