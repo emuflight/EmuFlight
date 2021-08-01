@@ -40,6 +40,7 @@
 
 #include "rx/rx_spi.h"
 #include "rx/cc2500_frsky_common.h"
+#include "rx/cc2500_redpine.h"
 #include "rx/nrf24_cx10.h"
 #include "rx/nrf24_syma.h"
 #include "rx/nrf24_v202.h"
@@ -147,6 +148,13 @@ STATIC_UNIT_TESTED bool rxSpiSetProtocol(rx_spi_protocol_e protocol) {
         protocolInit = sfhssSpiInit;
         protocolDataReceived = sfhssSpiDataReceived;
         protocolSetRcDataFromPayload = sfhssSpiSetRcData;
+        break;
+#endif
+#if defined(USE_RX_REDPINE_SPI)
+    case RX_SPI_REDPINE:
+        protocolInit = redpineSpiInit;
+        protocolDataReceived = redpineSpiDataReceived;
+        protocolSetRcDataFromPayload = redpineSetRcData;
         break;
 #endif
     }
