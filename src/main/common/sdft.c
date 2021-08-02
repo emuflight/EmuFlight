@@ -104,10 +104,8 @@ FAST_CODE void sdftPushBatch(sdft_t* sdft, const float *sample, const uint8_t *b
 FAST_CODE void sdftMagSq(const sdft_t *sdft, float *output)
 {
     for (uint8_t i = sdft->startBin; i <= sdft->endBin; i++) {
-        float re;
-        float im;
-        re = crealf(sdft->data[i]);
-        im = cimagf(sdft->data[i]);
+        float re = crealf(sdft->data[i]);
+        float im = cimagf(sdft->data[i]);
         output[i] = re * re + im * im;
     }
 }
