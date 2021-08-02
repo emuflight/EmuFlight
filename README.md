@@ -1,3 +1,20 @@
+if you want to support my endless night trying things : https://www.paypal.me/binarylefmart
+thanks to @Faduf (https://github.com/Faduf/betaflight/tree/4.1.0-RC6_Alti_cutoff)
+thanks to @Loutwice (https://github.com/loutwice/EmuFlight/releases)
+we can have alti limit on our racers
+
+RECOMMANDATION : if you have GPS wait to have a gps fix (at least 7 sat ) or it can mess with altitude
+
+If gps and baro not ready a warning message NO ALTI LIM will prompt
+if alti limit is reached a warning message will prompt : ALTI_LIM
+three parameters to set by cli :
+
+alti_cutoff ( alti that cut off the trhottle )
+alti_start_lim ( alti which throttle will be decreasing )
+altiLimiter : ON/OFF
+
+
+
 ![EmuFlight](docs/assets/images/EmuFlight.png)
 
 EmuFlight is flight controller software (firmware) used to fly multi-rotor craft.
