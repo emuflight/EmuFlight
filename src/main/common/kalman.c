@@ -68,8 +68,7 @@ void update_kalman_covariance(float rate, int axis) {
     kalmanFilterStateRate[axis].r = squirt * VARIANCE_SCALE;
 }
 
-FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target) {
-    UNUSED(target);
+FAST_CODE float kalman_process(kalman_t* kalmanState, float input) {
     //project the state ahead using acceleration
     kalmanState->x += (kalmanState->x - kalmanState->lastX) * kalmanState->k;
     //figure out how much to boost or reduce our error in the estimate based on setpoint target.
@@ -95,11 +94,18 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 }
 
 FAST_CODE float kalman_update(float input, int axis) {
+    float preFiltered;
+    preFiltered = input;
     if (gyroConfig()->imuf_w >= 3) {
-        input = kalman_process(&kalmanFilterStateRate[axis], input, getSetpointRate(axis) );
+        input = kalman_process(&kalmanFilterStateRate[axis], input);
     }
-    int16_t Kgain = (kalmanFilterStateRate[axis].k * 1000.0f);
-    DEBUG_SET(DEBUG_KALMAN, axis, Kgain);                               //Kalman gain
+    if (axis == FD_ROLL) {
+        DEBUG_SET(DEBUG_KALMAN, 0, preFiltered); // prefiltered
+        DEBUG_SET(DEBUG_KALMAN, 1, input); // postfiltered
+        DEBUG_SET(DEBUG_KALMAN, 2, kalmanFilterStateRate[axis].r * 1000.0f); // covariance
+        DEBUG_SET(DEBUG_KALMAN, 3, kalmanFilterStateRate[axis].k * 1000.0f); // gain
+    }
+
     return input;
 }
 #endif
