@@ -40,8 +40,8 @@ void sdftInit(sdft_t *sdft, const uint8_t startBin, const uint8_t endBin, const 
     if (!isInitialized) {
         rPowerN = powf(SDFT_R, SDFT_SAMPLE_SIZE);
         const float c = 2.0f * M_PIf / (float)SDFT_SAMPLE_SIZE;
-        float phi = 0.0f;
         for (uint8_t i = 0; i < SDFT_BIN_COUNT; i++) {
+            float phi = 0.0f;
             phi = c * i;
             twiddle[i] = SDFT_R * (cos_approx(phi) + _Complex_I * sin_approx(phi));
         }
@@ -103,10 +103,9 @@ FAST_CODE void sdftPushBatch(sdft_t* sdft, const float *sample, const uint8_t *b
 // Get squared magnitude of frequency spectrum
 FAST_CODE void sdftMagSq(const sdft_t *sdft, float *output)
 {
-    float re;
-    float im;
-
     for (uint8_t i = sdft->startBin; i <= sdft->endBin; i++) {
+        float re;
+        float im;
         re = crealf(sdft->data[i]);
         im = cimagf(sdft->data[i]);
         output[i] = re * re + im * im;
