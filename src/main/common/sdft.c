@@ -126,10 +126,10 @@ FAST_CODE void sdftMagnitude(const sdft_t *sdft, float *output)
 FAST_CODE void sdftWinSq(const sdft_t *sdft, float *output)
 {
     complex_t val;
-    float re;
-    float im;
 
     for (uint8_t i = (sdft->startBin + 1); i < sdft->endBin; i++) {
+        float re;
+        float im;
         val = sdft->data[i] - 0.5f * (sdft->data[i - 1] + sdft->data[i + 1]); // multiply by 2 to save one multiplication
         re = crealf(val);
         im = cimagf(val);
