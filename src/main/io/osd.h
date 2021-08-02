@@ -102,6 +102,7 @@ typedef enum {
     OSD_CRSF_TX,
     OSD_CRSF_RSSI,
     OSD_MAH_PERCENT,
+    OSD_PLUS_CODE,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
@@ -197,6 +198,8 @@ typedef struct osdConfig_s {
     uint32_t enabled_stats;
     osd_unit_e units;
     crsfformat_e lq_format;
+    uint8_t plus_code_digits;
+    bool plus_code_short;
     // Alarms
     int16_t esc_current_alarm;
     int16_t esc_rpm_alarm;
