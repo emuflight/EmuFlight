@@ -250,7 +250,7 @@ typedef struct pidRuntime_s {
     float antiGravityOsdCutoff;
     float antiGravityThrottleHpf;
     float antiGravityPBoost;
-    float ffBoostFactor;
+    float feedforwardBoostFactor;
     float itermAccelerator;
     uint16_t itermAcceleratorGain;
     float feedforwardTransition;
@@ -334,8 +334,8 @@ typedef struct pidRuntime_s {
 
 #ifdef USE_FEEDFORWARD
     feedforwardAveraging_t feedforwardAveraging;
-    float ffSmoothFactor;
-    float ffJitterFactor;
+    float feedforwardSmoothFactor;
+    float feedforwardJitterFactor;
 #endif
 
     float axisLockMultiplier;
@@ -388,7 +388,7 @@ void pidSetItermReset(bool enabled);
 float pidGetPreviousSetpoint(int axis);
 float pidGetDT();
 float pidGetPidFrequency();
-float pidGetFfBoostFactor();
-float pidGetFfSmoothFactor();
-float pidGetFfJitterFactor();
+float pidGetFeedforwardBoostFactor();
+float pidGetFeedforwardSmoothFactor();
+float pidGetFeedforwardJitterFactor();
 float dynLpfCutoffFreq(float throttle, uint16_t dynLpfMin, uint16_t dynLpfMax, uint8_t expo);
