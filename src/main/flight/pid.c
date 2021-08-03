@@ -187,7 +187,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .linear_thrust_low_output = 65,
     .linear_thrust_high_output = 0,
     .linear_throttle = false,
-    .mixer_impl = MIXER_IMPL_LEGACY,
+    .mixer_impl = MIXER_IMPL_2PASS,
     .mixer_laziness = false,
     .mixer_yaw_throttle_comp = true,
     .horizonStrength = 15,
