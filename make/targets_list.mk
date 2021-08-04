@@ -9,6 +9,8 @@ NOBUILD_TARGETS   = $(sort $(filter-out target,$(basename $(notdir $(wildcard $(
 OPBL_TARGETS      = $(sort $(filter %_OPBL,$(ALT_TARGETS)))
 VALID_TARGETS     = $(sort $(filter-out $(NOBUILD_TARGETS),$(BASE_TARGETS) $(ALT_TARGETS)))
 
+SPRACINGH7_TARGETS  = $(sort $(filter SPRACINGH7%, $(VALID_TARGETS)))
+
 # For alt targets, returns their base target name.
 # For base targets, returns the (same) target name.
 # param $1 = target name
