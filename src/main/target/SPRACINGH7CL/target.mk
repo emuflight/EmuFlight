@@ -31,8 +31,7 @@ TARGET_SRC += \
             drivers/bus_quadspi.c \
             drivers/accgyro/accgyro_mpu.c \
             drivers/accgyro/accgyro_mpu6500.c \
-            drivers/accgyro/accgyro_spi_icm42605.c \
-            drivers/accgyro/accgyro_spi_icm42688p.c \
+            drivers/accgyro/accgyro_spi_icm426xx.c \
             drivers/compass/compass_hmc5883l.c \
             drivers/compass/compass_qmc5883l.c \
             drivers/barometer/barometer_bmp388.c \
