@@ -1,13 +1,13 @@
 /*
- * This file is part of Cleanflight and Betaflight.
+ * This file is part of Cleanflight and Betaflight and EmuFlight.
  *
- * Cleanflight and Betaflight are free software. You can redistribute
+ * Cleanflight and Betaflight and EmuFlight are free software. You can redistribute
  * this software and/or modify this software under the terms of the
  * GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option)
  * any later version.
  *
- * Cleanflight and Betaflight are distributed in the hope that they
+ * Cleanflight and Betaflight and EmuFlight are distributed in the hope that they
  * will be useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
@@ -22,13 +22,13 @@
 
 #include "drivers/bus.h"
 
-bool icm42688PAccDetect(accDev_t *acc);
-bool icm42688PGyroDetect(gyroDev_t *gyro);
+bool icm426xxAccDetect(accDev_t *acc);
+bool icm426xxGyroDetect(gyroDev_t *gyro);
 
-void icm42688PAccInit(accDev_t *acc);
-void icm42688PGyroInit(gyroDev_t *gyro);
+void icm426xxAccInit(accDev_t *acc);
+void icm426xxGyroInit(gyroDev_t *gyro);
 
-uint8_t icm42688PSpiDetect(const extDevice_t *dev);
+uint8_t icm426xxSpiDetect(const extDevice_t *dev);
 
-bool icm42688PSpiAccDetect(accDev_t *acc);
-bool icm42688PSpiGyroDetect(gyroDev_t *gyro);
+bool icm426xxSpiAccDetect(accDev_t *acc);
+bool icm426xxSpiGyroDetect(gyroDev_t *gyro);
