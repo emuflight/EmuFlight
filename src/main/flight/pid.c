@@ -58,6 +58,10 @@
 #include "sensors/acceleration.h"
 #include "sensors/battery.h"
 
+#ifdef USE_GYRO_DATA_ANALYSE
+#include "sensors/gyroanalyse.h"
+#endif
+
 const char pidNames[] =
     "ROLL;"
     "PITCH;"
@@ -183,7 +187,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .linear_thrust_low_output = 65,
     .linear_thrust_high_output = 0,
     .linear_throttle = false,
-    .mixer_impl = MIXER_IMPL_LEGACY,
+    .mixer_impl = MIXER_IMPL_2PASS,
     .mixer_laziness = false,
     .mixer_yaw_throttle_comp = true,
     .horizonStrength = 65,
@@ -193,6 +197,8 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .dterm_ABG_half_life = 50,
     .emuGravityGain = 50,
     .angle_filter = 100,
+    .dtermDynNotch = false,
+    .dterm_dyn_notch_q = 400,
                 );
 }
 
@@ -229,6 +235,7 @@ static FAST_RAM filterApplyFnPtr angleSetpointFilterApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT pt1Filter_t angleSetpointFilter[2];
 static FAST_RAM filterApplyFnPtr dtermABGapplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT alphaBetaGammaFilter_t dtermABG[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT biquadFilter_t dtermNotch[XYZ_AXIS_COUNT][5];
 
 #if defined(USE_ITERM_RELAX)
 static FAST_RAM_ZERO_INIT pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
@@ -247,6 +254,7 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
     dtermLowpassApplyFn = nullFilterApply;
     dtermLowpass2ApplyFn = nullFilterApply;
     angleSetpointFilterApplyFn = nullFilterApply;
+
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         if (pidProfile->dFilter[axis].dLpf && pidProfile->dFilter[axis].dLpf <= pidFrequencyNyquist) {
             switch (pidProfile->dterm_filter_type) {
@@ -272,6 +280,7 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 break;
             }
         }
+
         if (pidProfile->dFilter[axis].dLpf2 && pidProfile->dFilter[axis].dLpf2 <= pidFrequencyNyquist) {
             switch (pidProfile->dterm_filter2_type) {
             case FILTER_BIQUAD:
@@ -296,15 +305,24 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 break;
             }
         }
+
         if (pidProfile->angle_filter) {
             angleSetpointFilterApplyFn = (filterApplyFnPtr)pt1FilterApply;
             pt1FilterInit(&angleSetpointFilter[axis], pt1FilterGain(pidProfile->angle_filter, dT));
         }
+
         if (pidProfile->dterm_ABG_alpha) {
             dtermABGapplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
             ABGInit(&dtermABG[axis], pidProfile->dterm_ABG_alpha, pidProfile->dterm_ABG_boost, pidProfile->dterm_ABG_half_life, dT);
         }
+
+        if (isDynamicFilterActive()) {
+            for (int axis2 = 0; axis2 < gyroConfig()->dyn_notch_count; axis2++) {
+                biquadFilterInit(&dtermNotch[axis][axis2], 400, targetPidLooptime, gyroConfig()->dyn_notch_q / 100.0f, FILTER_NOTCH);
+            }
+        }
     }
+
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, dT));
 #endif
@@ -649,6 +667,7 @@ static FAST_RAM_ZERO_INIT float stickMovement[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float lastRcDeflectionAbs[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float previousNotchCenterFreq[XYZ_AXIS_COUNT][5];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs) {
@@ -787,6 +806,17 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             previousError[axis] = errorRate;
             float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
             //filter the dterm
+#ifdef USE_GYRO_DATA_ANALYSE
+            if (isDynamicFilterActive() && pidProfile->dtermDynNotch) {
+                for (int p = 0; p < gyroConfig()->dyn_notch_count; p++) {
+                    if (getCenterFreq(axis, p) != previousNotchCenterFreq[axis][p]) {
+                        previousNotchCenterFreq[axis][p] = getCenterFreq(axis, p);
+                        biquadFilterUpdate(&dtermNotch[axis][p], previousNotchCenterFreq[axis][p], targetPidLooptime, pidProfile->dterm_dyn_notch_q / 100.0f, FILTER_NOTCH);
+                    }
+                    dDelta = biquadFilterApplyDF1(&dtermNotch[axis][p], dDelta);
+                }
+            }
+#endif
             dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
             dDelta = dtermLowpass2ApplyFn((filter_t *)&dtermLowpass2[axis], dDelta);
             dDelta = dtermABGapplyFn((filter_t *)&dtermABG[axis], dDelta);
