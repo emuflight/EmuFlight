@@ -664,7 +664,7 @@ static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousNotchCenterFreq[XYZ_AXIS_COUNT][5];
 static FAST_RAM_ZERO_INIT float previousDtermErrorRate[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float axisLock[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float inverseScaledError[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float dynamicDtermScaler[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs) {
@@ -798,7 +798,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         pureError = errorRate - previousError[axis];
         previousError[axis] = errorRate;
 
-        float dtermErrorRate = currentPidSetpoint - gyroRate * inverseScaledError[axis]; // r - y
+        float dtermErrorRate = currentPidSetpoint - gyroRate * dynamicDtermScaler[axis]; // r - y
         float dtermError = dtermErrorRate - previousDtermErrorRate[axis];
         previousDtermErrorRate[axis] = dtermErrorRate;
 
@@ -806,7 +806,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         previousMeasurement[axis] = gyroRate;
 
         if (pidCoefficient[axis].Kd > 0) {
-            float dDelta = ((feathered_pids * pureMeasurement) * inverseScaledError[axis] + ((1 - feathered_pids) * dtermError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
+            float dDelta = ((feathered_pids * pureMeasurement) * dynamicDtermScaler[axis] + ((1 - feathered_pids) * dtermError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
             // filter the dterm
 #ifdef USE_GYRO_DATA_ANALYSE
             if (isDynamicFilterActive() && pidProfile->dtermDynNotch) {
@@ -886,7 +886,6 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
 
         // emuboost 2.0
         if (pidProfile->emuBoost2) {
-          //need to add logging, lol
           float changeError = pureError * pidFrequency * DTERM_SCALE * 20.0f;
           changeError = changeError / pidProfile->emuBoost2_cutoff;
 
@@ -897,27 +896,24 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
           float scaledError = constrainf(errorRate / pidProfile->emuBoost2_cutoff, -1.0f, 1.0f);
           scaledError = ABS(scaledError) * power3(scaledError) * (pidProfile->emuBoost2_expo / 100.0f) + scaledError * (1 - pidProfile->emuBoost2_expo / 100.0f);
 
-          scaledError *= changeError;
+          scaledError *= changeError; // this is only 1 when the error and change in setpoint are high
           scaledError = pt1FilterApply(&emuboost2_0Filter[axis], scaledError);
           if (axis == FD_ROLL || axis == FD_PITCH) {
               DEBUG_SET(DEBUG_EMUBOOST, axis, lrintf(scaledError * 1000));
           }
+          dynamicDtermScaler[axis] = 1 - scaledError; // this is only 0 when the error and change in setpoint are high
 
           if (scaledError > 0.0f) {
-              inverseScaledError[axis] = 1 - scaledError; // this is only 1 when the error and change in setpoint are high
-
               pidData[axis].P *= ((pidProfile->emuBoost2 / 100.0f) * scaledError) + 1.0f;
-              //pidData[axis].D *= inverseScaledError[axis];
               doSignMatch = 1000.0f;
           } else {
-              inverseScaledError[axis] = 1.0f;
               doSignMatch = 0.0f;
           }
           if (axis == FD_ROLL || axis == FD_PITCH) {
             DEBUG_SET(DEBUG_EMUBOOST, axis + 2, lrintf(doSignMatch));
           }
         } else {
-            inverseScaledError[axis] = 1.0f;
+            dynamicDtermScaler[axis] = 1.0f;
         }
 
         const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + directFeedForward;
@@ -934,5 +930,5 @@ float pidGetPreviousSetpoint(int axis) {
 }
 
 float getDtermPercentLeft(int axis) {
-    return inverseScaledError[axis];
+    return dynamicDtermScaler[axis];
 }
