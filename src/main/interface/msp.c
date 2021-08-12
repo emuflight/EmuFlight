@@ -1192,7 +1192,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, 0); //was WitchCraft
         sbufWriteU8(dst, 0); //was WitchCraft
         sbufWriteU8(dst, 0); //was WitchCraft
-        sbufWriteU16(dst, gyroConfig()->dyn_notch_q_factor);
+        sbufWriteU16(dst, gyroConfig()->dyn_notch_q);
         sbufWriteU16(dst, gyroConfig()->dyn_notch_min_hz);
         break;
     /*#ifndef USE_GYRO_IMUF9001
@@ -1209,7 +1209,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_q);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_q);
         sbufWriteU16(dst, gyroConfig()->imuf_w);
-        sbufWriteU16(dst, gyroConfig()->imuf_sharpness);
+        sbufWriteU16(dst, 0); // was imuf_sharpness
 #ifdef  USE_GYRO_IMUF9001
         sbufWriteU16(dst, gyroConfig()->imuf_roll_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_lpf_cutoff_hz);
@@ -1768,7 +1768,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
             sbufReadU8(src); //was WitchCraft
             sbufReadU8(src); //was WitchCraft
             sbufReadU8(src); //was WitchCraft
-            gyroConfigMutable()->dyn_notch_q_factor = sbufReadU16(src);
+            gyroConfigMutable()->dyn_notch_q = sbufReadU16(src);
             gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
         }
         // reinitialize the gyro filters with the new values
@@ -1792,7 +1792,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         gyroConfigMutable()->imuf_pitch_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_yaw_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_w = sbufReadU16(src);
-        gyroConfigMutable()->imuf_sharpness = sbufReadU16(src);
+        sbufReadU16(src); // was imuf_sharpness
 #ifdef USE_GYRO_IMUF9001
         gyroConfigMutable()->imuf_roll_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_pitch_lpf_cutoff_hz = sbufReadU16(src);

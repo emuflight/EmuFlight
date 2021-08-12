@@ -2392,6 +2392,7 @@ void cliRxBind(char *cmdline) {
 #ifdef USE_RX_CC2500_BIND
     case RX_SPI_FRSKY_D:
     case RX_SPI_FRSKY_X:
+    case RX_SPI_REDPINE:
     case RX_SPI_SFHSS:
         cc2500SpiBind();
         cliPrint("Binding...");
