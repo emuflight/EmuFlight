@@ -43,7 +43,7 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor) {
           }
 
           gyroDataAnalysePush(&gyroSensor->gyroAnalyseState, axis, gyroADCf);
-          for (int p = 0; p < gyroConfig()->dyn_notch_count; p++) {
+          for (uint8_t p = 0; p < gyroConfig()->dyn_notch_count; p++) {
               gyroADCf = gyroSensor->notchFilterDynApplyFn((filter_t *)&gyroSensor->gyroAnalyseState.notchFilterDyn[axis][p], gyroADCf);
           }
             if (axis == X) {
