@@ -179,10 +179,10 @@ void targetConfiguration(void)
 
     // Voltage & Current
     batteryConfigMutable()->batteryCapacity = 300;
-    batteryConfigMutable()->vbatmaxcellvoltage = 450;
-    batteryConfigMutable()->vbatfullcellvoltage = 400;
-    batteryConfigMutable()->vbatmincellvoltage = 290;
-    batteryConfigMutable()->vbatwarningcellvoltage = 320;
+//    batteryConfigMutable()->vbatmaxcellvoltage = 450;
+//    batteryConfigMutable()->vbatfullcellvoltage = 400;
+//    batteryConfigMutable()->vbatmincellvoltage = 290;
+//    batteryConfigMutable()->vbatwarningcellvoltage = 320;
 
     // Others
     pidConfigMutable()->pid_process_denom = 1;
@@ -218,8 +218,8 @@ void targetConfiguration(void)
     gyroConfigMutable()->gyro_lowpass_hz = 200;
     gyroConfigMutable()->gyro_lowpass2_hz = 200;
     gyroConfigMutable()->yaw_spin_threshold = 1950;
-    gyroConfigMutable()->dyn_lpf_gyro_min_hz = 160;
-    gyroConfigMutable()->dyn_lpf_gyro_max_hz = 400;
+//    gyroConfigMutable()->dyn_lpf_gyro_min_hz = 160;
+//    gyroConfigMutable()->dyn_lpf_gyro_max_hz = 400;
 
     pidProfilesMutable(0)->dterm_filter_type = FILTER_PT1;
     pidProfilesMutable(0)->dyn_lpf_dterm_min_hz = 56;
@@ -229,10 +229,10 @@ void targetConfiguration(void)
     pidProfilesMutable(0)->dterm_notch_cutoff = 0;
     pidProfilesMutable(0)->vbatPidCompensation = true;
     pidProfilesMutable(0)->iterm_rotation = true;
-    pidProfilesMutable(0)->itermThrottleThreshold = 250;
-    pidProfilesMutable(0)->yawRateAccelLimit = 0;
-    pidProfilesMutable(0)->iterm_relax = ITERM_RELAX_RPY;
-    pidProfilesMutable(0)->iterm_relax_type = ITERM_RELAX_GYRO;
+//    pidProfilesMutable(0)->itermThrottleThreshold = 250;
+//    pidProfilesMutable(0)->yawRateAccelLimit = 0;
+//    pidProfilesMutable(0)->iterm_relax = ITERM_RELAX_RPY;
+//    pidProfilesMutable(0)->iterm_relax_type = ITERM_RELAX_GYRO;
     pidProfilesMutable(0)->pidSumLimit = 500;
     pidProfilesMutable(0)->pidSumLimitYaw = 400;
     pidProfilesMutable(0)->pid[PID_PITCH].P = 55;
@@ -250,13 +250,11 @@ void targetConfiguration(void)
     pidProfilesMutable(0)->pid[PID_LEVEL].P = 70;
     pidProfilesMutable(0)->pid[PID_LEVEL].I = 70;
     pidProfilesMutable(0)->pid[PID_LEVEL].D = 100;
-    pidProfilesMutable(0)->levelAngleLimit  = 85;
+//    pidProfilesMutable(0)->levelAngleLimit  = 85;
     pidProfilesMutable(0)->horizon_tilt_effect = 75;
-    pidProfilesMutable(0)->d_min[FD_ROLL] = 20;
-    pidProfilesMutable(0)->d_min[FD_PITCH] = 18;
-    pidProfilesMutable(0)->d_min_gain = 25;
-    pidProfilesMutable(0)->d_min_advance = 1;
-    pidProfilesMutable(0)->horizon_tilt_expert_mode = false;
+//    pidProfilesMutable(0)->d_min[FD_ROLL] = 20;
+//    pidProfilesMutable(0)->d_min_gain = 25;
+//    pidProfilesMutable(0)->horizon_tilt_expert_mode = false;
 
     controlRateProfilesMutable(0)->rcRates[FD_YAW] = 100;
     controlRateProfilesMutable(0)->rates[FD_ROLL] = 73;
@@ -265,7 +263,7 @@ void targetConfiguration(void)
     controlRateProfilesMutable(0)->rcExpo[FD_ROLL] = 15;
     controlRateProfilesMutable(0)->rcExpo[FD_PITCH] = 15;
     controlRateProfilesMutable(0)->rcExpo[FD_YAW]  = 15;
-    controlRateProfilesMutable(0)->dynThrPID = 65;
+  //  controlRateProfilesMutable(0)->dynThrPID = 65;
     controlRateProfilesMutable(0)->tpa_breakpoint = 1250;
 #endif
 }
