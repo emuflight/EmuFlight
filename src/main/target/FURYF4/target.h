@@ -89,6 +89,7 @@
 #else
 
 #define USE_BARO
+#define USE_BARO_BMP280
 #define USE_BARO_MS5611
 #define MS5611_I2C_INSTANCE     I2CDEV_1
 
