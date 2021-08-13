@@ -104,8 +104,11 @@
 #define RX_SPI_LED_PIN                  PA13
 #define RX_SPI_EXTI_PIN                 PB2
 #define RX_SPI_BIND_PIN                 PC15
+#define RX_CC2500_SPI_GDO_0_PIN         PB2
+#define RX_CC2500_SPI_LED_PIN           PA13
 #define RX_CC2500_SPI_TX_EN_PIN         PA6
 #define RX_CC2500_SPI_ANT_SEL_PIN       PA7
+#define RX_CC2500_SPI_LNA_EN_PIN        NONE
 
 #define USE_RX_FRSKY_SPI_TELEMETRY
 #define USE_RX_CC2500_SPI_PA_LNA
@@ -139,7 +142,7 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
 /* ======== ESC ======== */
-#define ENABLE_DSHOT_DMAR               DSHOT_DMAR_ON
+#define ENABLE_DSHOT_DMAR               true
 
 /* ======== OTHER ======== */
 #define DEFAULT_FEATURES                (FEATURE_LED_STRIP | FEATURE_OSD | FEATURE_TELEMETRY)

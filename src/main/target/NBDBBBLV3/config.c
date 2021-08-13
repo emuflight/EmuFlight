@@ -38,7 +38,7 @@
 
 #include "fc/config.h"
 #include "fc/controlrate_profile.h"
-#include "fc/core.h"
+#include "fc/fc_core.h"
 #include "fc/rc_adjustments.h"
 #include "fc/rc_modes.h"
 #include "fc/rc_controls.h"
@@ -49,7 +49,7 @@
 
 #include "pg/vcd.h"
 #include "pg/rx.h"
-#include "pg/motor.h"
+//#include "pg/motor.h"
 //#include "pg/vtx_table.h"
 
 #include "rx/rx.h"
@@ -57,10 +57,10 @@
 
 #include "pg/rx.h"
 #include "pg/rx_spi.h"
-#include "pg/rx_spi_cc2500.h"
+//#include "pg/rx_spi_cc2500.h"
 #include "pg/vcd.h"
 
-#include "osd/osd.h"
+#include "io/osd.h"
 
 #include "io/serial.h"
 #include "io/vtx.h"
@@ -77,7 +77,7 @@ void targetConfiguration(void)
 
 // BASE Defaults
 
-    // OSD
+/*    // OSD
     osdConfigMutable()->item_pos[OSD_CRAFT_NAME]        = OSD_POS(9, 10) | OSD_PROFILE_1_FLAG;
     osdConfigMutable()->item_pos[OSD_MAIN_BATT_VOLTAGE] = OSD_POS(23, 9) | OSD_PROFILE_1_FLAG;
     osdConfigMutable()->item_pos[OSD_ITEM_TIMER_2]      = OSD_POS(2,  9) | OSD_PROFILE_1_FLAG;
@@ -162,15 +162,15 @@ void targetConfiguration(void)
     modeActivationConditionsMutable(3)->auxChannelIndex  = AUX3 - NON_AUX_CHANNEL_COUNT;
     modeActivationConditionsMutable(3)->range.startStep  = CHANNEL_VALUE_TO_STEP(1700);
     modeActivationConditionsMutable(3)->range.endStep    = CHANNEL_VALUE_TO_STEP(2100);
-*/
+
     // LEDs
     ledStripStatusModeConfigMutable()->ledConfigs[0] = DEFINE_LED(7, 7,  8, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
     ledStripStatusModeConfigMutable()->ledConfigs[1] = DEFINE_LED(8, 7, 13, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
-
+*/
     // Motor & ESC
     motorConfigMutable()->digitalIdleOffsetValue = 1000;
     motorConfigMutable()->dev.useBurstDshot = true;
-    motorConfigMutable()->dev.useDshotTelemetry = false;
+//    motorConfigMutable()->dev.useDshotTelemetry = false;
     motorConfigMutable()->motorPoleCount = 12;
     motorConfigMutable()->dev.motorPwmProtocol = PWM_TYPE_DSHOT600;
 
@@ -205,8 +205,8 @@ void targetConfiguration(void)
         channelRangeConfig->min = 1000;
         channelRangeConfig->max = 2000;
     }
-#else
-    osdConfigMutable()->item_pos[OSD_RSSI_VALUE]        = OSD_POS(2, 10) | OSD_PROFILE_1_FLAG;
+//#else
+//    osdConfigMutable()->item_pos[OSD_RSSI_VALUE]        = OSD_POS(2, 10) | OSD_PROFILE_1_FLAG;
 #endif
 
 #if defined(BEEBRAIN_BL_V3_BASE)
