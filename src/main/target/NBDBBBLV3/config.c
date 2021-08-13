@@ -192,7 +192,7 @@ void targetConfiguration(void)
     //BNF Configurations
 
 #if defined (BEEBRAIN_BL_V3_65_CRSF)
-    osdConfigMutable()->item_pos[OSD_LINK_QUALITY]      = OSD_POS(2, 10) | OSD_PROFILE_1_FLAG;
+//    osdConfigMutable()->item_pos[OSD_LINK_QUALITY]      = OSD_POS(2, 10) | OSD_PROFILE_1_FLAG;
 
     rxConfigMutable()->mincheck = 1050;
     rxConfigMutable()->maxcheck = 1950;
