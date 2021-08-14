@@ -92,6 +92,8 @@
 #define RTC6705_SPI_INSTANCE            SPI3
 #define RTC6705_POWER_PIN               PA8
 
+#define RTC6705_POWER_PIN_HIGH_ENABLE
+
 //#define VTX_POWER_PIN_INVERTED
 //#define RTC6705_EXPAND_POWER_CTRL
 //#define CMS_SKIP_EMPTY_VTX_TABLE_ENTRIES
@@ -101,6 +103,10 @@
 #define USE_RX_SPI
 
 #define RX_SPI_INSTANCE                 SPI2
+#define RX_SCK_PIN                      SPI2_SCK_PIN
+#define RX_SCK_PIN                      SPI2_SCK_PIN
+#define RX_MISO_PIN                     SPI2_MISO_PIN
+#define RX_MOSI_PIN                     SPI2_MOSI_PIN
 #define RX_NSS_PIN                      SPI2_NSS_PIN
 #define RX_SPI_LED_PIN                  PA13
 #define RX_SPI_EXTI_PIN                 PB2
