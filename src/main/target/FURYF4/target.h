@@ -75,6 +75,11 @@
 #define USE_ACC_SPI_MPU6500
 #define ACC_MPU6500_ALIGN       CW180_DEG
 
+#define USE_BARO
+#define USE_BARO_BMP280
+#define USE_BARO_MS5611
+#define MS5611_I2C_INSTANCE     I2CDEV_1
+
 #ifdef FURYF4OSD
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
@@ -87,11 +92,6 @@
 #define DEFAULT_FEATURES        FEATURE_OSD
 
 #else
-
-#define USE_BARO
-#define USE_BARO_BMP280
-#define USE_BARO_MS5611
-#define MS5611_I2C_INSTANCE     I2CDEV_1
 
 #define USE_SDCARD
 
