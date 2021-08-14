@@ -31,7 +31,7 @@
 #define USE_UART
 
 #define USE_VCP
-#define USE_MSP_UART
+//#define USE_MSP_UART
 
 #define USE_UART1
 #define UART1_RX_PIN                    PA10
@@ -97,6 +97,7 @@
 //#define CMS_SKIP_EMPTY_VTX_TABLE_ENTRIES
 
 /* ======== RX ======== */
+#define DJTS
 #define USE_RX_SPI
 
 #define RX_SPI_INSTANCE                 SPI2
@@ -155,4 +156,4 @@
 #define USABLE_TIMER_CHANNEL_COUNT      5
 #define USED_TIMERS                     ( TIM_N(4) | TIM_N(5) )
 
-#define USE_TARGET_CONFIG
+//#define USE_TARGET_CONFIG
