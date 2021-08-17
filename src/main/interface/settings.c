@@ -65,6 +65,8 @@
 #include "io/vtx_control.h"
 #include "io/vtx_rtc6705.h"
 
+#include "common/olc.h"
+
 #include "pg/adc.h"
 #include "pg/beeper.h"
 #include "pg/beeper_dev.h"
@@ -239,7 +241,8 @@ static const char * const lookupTableRxSpi[] = {
     "FLYSKY",
     "FLYSKY_2A",
     "KN",
-    "SFHSS"
+    "SFHSS", 
+    "REDPINE"
 };
 #endif
 
@@ -537,7 +540,8 @@ const clivalue_t valueTable[] = {
     { "gyro_to_use",                VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_to_use) },
 #endif
 #if defined(USE_GYRO_DATA_ANALYSE)
-    { "dynamic_gyro_notch_q",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_q_factor) },
+    { "dynamic_gyro_notch_q",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_q) },
+    { "dynamic_gyro_notch_count",   VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, 5 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_count) },
     { "dynamic_gyro_notch_min_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_min_hz) },
     { "dynamic_gyro_notch_max_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 400, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_max_hz) },
 #endif
@@ -846,6 +850,9 @@ const clivalue_t valueTable[] = {
     { "runaway_takeoff_deactivate_throttle_percent",  VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 100 }, PG_PID_CONFIG, offsetof(pidConfig_t, runaway_takeoff_deactivate_throttle) }, // minimum throttle percentage during deactivation phase
 #endif
 // PG_PID_PROFILE
+    { "dterm_dyn_notch_enable",     VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermDynNotch) },
+    { "dterm_dyn_notch_q",          VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 1, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dyn_notch_q) },
+
     { "dterm_abg_alpha",            VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_ABG_alpha) },
     { "dterm_abg_boost",            VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_ABG_boost) },
     { "dterm_abg_half_life",        VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_ABG_half_life) },
@@ -853,6 +860,7 @@ const clivalue_t valueTable[] = {
     { "dterm_lowpass_hz_roll",      VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[ROLL].dLpf) },
     { "dterm_lowpass_hz_pitch",     VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].dLpf) },
     { "dterm_lowpass_hz_yaw",       VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[YAW].dLpf) },
+    { "dterm_lowpass2_type",        VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_FILTER_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter2_type) },
     { "dterm_lowpass2_hz_roll",     VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[ROLL].dLpf2) },
     { "dterm_lowpass2_hz_pitch",    VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].dLpf2) },
     { "dterm_lowpass2_hz_yaw",      VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[YAW].dLpf2) },
@@ -1046,6 +1054,9 @@ const clivalue_t valueTable[] = {
     { "osd_gps_lon_pos",            VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_GPS_LON]) },
     { "osd_gps_lat_pos",            VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_GPS_LAT]) },
     { "osd_gps_sats_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_GPS_SATS]) },
+    { "osd_plus_code_pos",          VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_PLUS_CODE]) },
+    { "plus_code_digits",           VAR_UINT8  | MASTER_VALUE, .config.minmax = { 10, 13 }, PG_OSD_CONFIG, offsetof(osdConfig_t, plus_code_digits) },
+    { "plus_code_short",            VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_OSD_CONFIG, offsetof(osdConfig_t, plus_code_short) },
     { "osd_home_dir_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_HOME_DIR]) },
     { "osd_home_dist_pos",          VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_HOME_DIST]) },
     { "osd_compass_bar_pos",        VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_COMPASS_BAR]) },
