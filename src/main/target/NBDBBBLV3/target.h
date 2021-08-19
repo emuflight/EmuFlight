@@ -162,4 +162,4 @@
 #define USABLE_TIMER_CHANNEL_COUNT      5
 #define USED_TIMERS                     ( TIM_N(4) | TIM_N(5) )
 
-//#define USE_TARGET_CONFIG
+#define USE_TARGET_CONFIG
