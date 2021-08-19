@@ -69,7 +69,7 @@
 #define MPU6000_CS_PIN                  PA4
 #define MPU6000_SPI_INSTANCE            SPI3
 
-#define GYRO_MPU6000_ALIGN              CW180_DEG
+//#define GYRO_MPU6000_ALIGN              CW180_DEG
 
 /* ======== ACC ======== */
 #define USE_ACC
