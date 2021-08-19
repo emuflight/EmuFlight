@@ -181,7 +181,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .motor_output_limit = 100,
     .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
     .horizon_tilt_effect = 90,
-    .horizonTransition = 5,
+    .horizonTransition = 0,
     .axis_lock_hz = 2,
     .axis_lock_multiplier = 0,
     .linear_thrust_low_output = 65,
@@ -190,7 +190,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .mixer_impl = MIXER_IMPL_2PASS,
     .mixer_laziness = false,
     .mixer_yaw_throttle_comp = true,
-    .horizonStrength = 65,
+    .horizonStrength = 50,
     .directFF_yaw = 15,
     .dterm_ABG_alpha = 0,
     .dterm_ABG_boost = 275,
@@ -502,12 +502,20 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     }
 
     float angle;
-    if (pidProfile->angleExpo > 0) {
-        const float expof = pidProfile->angleExpo / 100.0f;
-
-        angle = pidProfile->levelAngleLimit * scaledRcDeflection * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
+    if (!FLIGHT_MODE(HORIZON_MODE)) {
+      if (pidProfile->angleExpo > 0) {
+          const float expof = pidProfile->angleExpo / 100.0f;
+          angle = pidProfile->levelAngleLimit * scaledRcDeflection * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
+      } else {
+          angle = pidProfile->levelAngleLimit * scaledRcDeflection * getRcDeflection(axis);
+      }
     } else {
-        angle = pidProfile->levelAngleLimit * scaledRcDeflection * getRcDeflection(axis);
+      if (pidProfile->angleExpo > 0) {
+          const float expof = pidProfile->angleExpo / 100.0f;
+          angle = horizonCutoffDegrees * scaledRcDeflection * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
+      } else {
+          angle = horizonCutoffDegrees * scaledRcDeflection * getRcDeflection(axis);
+      }
     }
 #ifdef USE_GPS_RESCUE
     angle += gpsRescueAngle[axis] / 100; // ANGLE IS IN CENTIDEGREES
@@ -515,7 +523,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     f_term_low = (angle - previousAngle[axis]) * F_angle / dT;
 
     previousAngle[axis] = angle;
-    angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
+    angle = constrainf(angle, -90.0f, 90.0f);
 
     if (FLIGHT_MODE(NFE_RACE_MODE)) { // nfe only effects the roll axis, this allows you to go upside down and still have roll correction.
         currentAngle = ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f);
