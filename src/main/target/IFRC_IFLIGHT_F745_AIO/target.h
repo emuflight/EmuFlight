@@ -145,6 +145,9 @@
 #define CURRENT_METER_ADC_PIN       PC2
 #define RSSI_ADC_PIN                PC5
 
+#define USE_LED_STRIP
+#define WS2811_PIN                  PD12
+
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
