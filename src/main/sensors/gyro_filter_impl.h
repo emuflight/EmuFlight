@@ -30,6 +30,11 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor) {
 #endif
         // DEBUG_GYRO_SCALED records the unfiltered, scaled gyro output
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_SCALED, axis, lrintf(gyroADCf));
+
+#ifndef USE_GYRO_IMUF9001
+        gyroADCf = kalman_update(gyroADCf, axis);
+#endif
+
         // apply static notch filters and software lowpass filters
         gyroADCf = gyroSensor->lowpass2FilterApplyFn((filter_t *)&gyroSensor->lowpass2Filter[axis], gyroADCf);
         gyroADCf = gyroSensor->lowpassFilterApplyFn((filter_t *)&gyroSensor->lowpassFilter[axis], gyroADCf);
@@ -37,28 +42,30 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor) {
         gyroADCf = gyroSensor->notchFilter2ApplyFn((filter_t *)&gyroSensor->notchFilter2[axis], gyroADCf);
 #ifdef USE_GYRO_DATA_ANALYSE
         if (isDynamicFilterActive()) {
-            if (axis == X) {
-                GYRO_FILTER_DEBUG_SET(DEBUG_FFT, 0, lrintf(gyroADCf));      // store raw data
-                GYRO_FILTER_DEBUG_SET(DEBUG_FFT_FREQ, 3, lrintf(gyroADCf)); // store raw data
-            }
-        }
-#endif
-#ifdef USE_GYRO_DATA_ANALYSE
-        if (isDynamicFilterActive()) {
-            gyroDataAnalysePush(&gyroSensor->gyroAnalyseState, axis, gyroADCf);
-            gyroADCf = gyroSensor->notchFilterDynApplyFn((filter_t *)&gyroSensor->notchFilterDyn[axis][0], gyroADCf);
-            gyroADCf = gyroSensor->notchFilterDynApplyFn((filter_t *)&gyroSensor->notchFilterDyn[axis][1], gyroADCf);
-            gyroADCf = gyroSensor->notchFilterDynApplyFn((filter_t *)&gyroSensor->notchFilterDyn[axis][2], gyroADCf);
+          if (axis == X) {
+              GYRO_FILTER_DEBUG_SET(DEBUG_FFT, 0, lrintf(gyroADCf));
+              GYRO_FILTER_DEBUG_SET(DEBUG_FFT_FREQ, 3, lrintf(gyroADCf));
+          }
+
+          gyroDataAnalysePush(&gyroSensor->gyroAnalyseState, axis, gyroADCf);
+          for (int p = 0; p < gyroConfig()->dyn_notch_count; p++) {
+              gyroADCf = gyroSensor->notchFilterDynApplyFn((filter_t *)&gyroSensor->gyroAnalyseState.notchFilterDyn[axis][p], gyroADCf);
+          }
             if (axis == X) {
                 GYRO_FILTER_DEBUG_SET(DEBUG_FFT, 1, lrintf(gyroADCf)); // store data after dynamic notch
             }
         }
 #endif
+
+#ifndef USE_GYRO_IMUF9001
+        update_kalman_covariance(gyroADCf, axis);
+#endif
+        applySmithPredictor(gyroSensor->smithPredictor, gyroADCf);
+
 #ifdef USE_GYRO_IMUF9001
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));
 #else //USE_GYRO_IMUF9001
-        gyroADCf = kalman_update(gyroADCf, axis);
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroSensor->gyroDev.gyroADCf[axis]));
 #endif //USE_GYRO_IMUF9001

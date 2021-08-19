@@ -34,13 +34,14 @@
 #define PIDSUM_LIMIT_MIN            100
 #define PIDSUM_LIMIT_MAX            1000
 #define KD_RING_BUFFER_SIZE 10
+#define EMU_GRAVITY_THROTTLE_FILTER_CUTOFF 15  // The emu gravity throttle highpass filter cutoff
+
 
 // Scaling factors for Pids for better tunable range in configurator for betaflight pid controller. The scaling is based on legacy pid controller or previous float
 #define PTERM_SCALE 0.032029f
 #define ITERM_SCALE 0.244381f
 #define DTERM_SCALE 0.000529f
-
-// This value gives the same "feel" as the previous Kd default of 26 (26 * DTERM_SCALE)
+#define DIRECT_FF_SCALE 0.005f
 
 typedef enum {
     PID_ROLL,
@@ -69,6 +70,13 @@ typedef enum {
     PID_CRASH_RECOVERY_BEEP
 } pidCrashRecovery_e;
 
+typedef enum {
+    MIXER_IMPL_LEGACY = 0,
+    MIXER_IMPL_SMOOTH,
+    MIXER_IMPL_2PASS,
+    MIXER_IMPL_COUNT
+} mixerImplType_e;
+
 typedef struct pidf_s {
     uint8_t P;
     uint8_t I;
@@ -78,27 +86,28 @@ typedef struct pidf_s {
 } pidf_t;
 
 typedef struct dFilter_s {
-    uint8_t Wc;
     uint16_t dLpf;
     uint16_t dLpf2;
-    uint8_t smartSmoothing;
 } dFilter_t;
 
 typedef struct pidProfile_s {
     pidf_t  pid[PID_ITEM_COUNT];
+    uint8_t directFF_yaw;                    // a true FF for the yaw
     dFilter_t dFilter[3];
 
     uint8_t dterm_filter_type;              // Filter selection for dterm
+    uint8_t dterm_filter2_type;              // Filter selection for dterm
     uint8_t itermWindupPointPercent;        // Experimental ITerm windup threshold, percent motor saturation
     uint16_t pidSumLimit;
     uint16_t pidSumLimitYaw;
     uint8_t pidAtMinThrottle;               // Disable/Enable pids on zero throttle. Normally even without airmode P and D would be active.
     uint8_t levelAngleLimit;                // Max angle in degrees in level mode
     uint8_t angleExpo;                      // How much expo to add to the
+    uint8_t angle_filter;                   // filter we stick on the rate setpoint angle makes
 
     uint8_t horizonTransition;              // horizonTransition
     uint8_t horizon_tilt_effect;            // inclination factor for Horizon mode
-    uint8_t horizonStrength;               // boost or shrink to angle pids while in horizon mode
+    uint8_t horizonStrength;                // boost or shrink to angle pids while in horizon mode
 
     // EmuFlight PID controller parameters
     uint8_t feathered_pids;                 // determine how feathered your pids are
@@ -130,10 +139,24 @@ typedef struct pidProfile_s {
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system
     uint8_t iterm_relax_cutoff;
     uint8_t iterm_relax_cutoff_yaw;
-    uint8_t iterm_relax_threshold;             // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
-    uint8_t iterm_relax_threshold_yaw;         // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
+    uint8_t iterm_relax_threshold;          // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
+    uint8_t iterm_relax_threshold_yaw;      // This cutoff frequency specifies a low pass filter which predicts average response of the quad to setpoint
     uint8_t motor_output_limit;             // Upper limit of the motor output (percent)
     int8_t auto_profile_cell_count;         // Cell count for this profile to be used with if auto PID profile switching is used
+    uint8_t emuGravityGain;                // Gain for the EmuGravity
+    uint8_t axis_lock_hz;                   // filter for the axis lock
+    uint8_t axis_lock_multiplier;           // multplier for the axis lock effect
+    uint8_t linear_thrust_low_output;       // Sets the level of thrust linearization for low motor outputs
+    uint8_t linear_thrust_high_output;      // Sets the level of thrust linearization for high motor outputs
+    uint8_t linear_throttle;                // When thrust linearization is enabled, tells whether the throttle has to be linear or counter-compensated for legacy feedback
+    mixerImplType_e mixer_impl;             // Which mixer implementation use
+    uint8_t mixer_laziness;                 // If enabled, mixer clipping strategy will shift values only by the minimum required amount per motor group. Requires linear thrust
+    uint8_t mixer_yaw_throttle_comp;        // If enabled, throttle compesesation for quick yaw movement in 2pass mixer
+    uint16_t dterm_ABG_alpha;
+    uint16_t dterm_ABG_boost;
+    uint8_t dterm_ABG_half_life;
+    uint8_t dtermDynNotch;
+    uint16_t dterm_dyn_notch_q;
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE
@@ -176,6 +199,5 @@ void pidInitConfig(const pidProfile_t *pidProfile);
 void pidInit(const pidProfile_t *pidProfile);
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex);
 bool crashRecoveryModeActive(void);
-void pidInitSetpointDerivativeLpf(uint16_t filterCutoff, uint8_t debugAxis, uint8_t filterType);
-void pidUpdateSetpointDerivativeLpf(uint16_t filterCutoff);
 float pidGetPreviousSetpoint(int axis);
+void pidUpdateEmuGravityThrottleFilter(float throttle);

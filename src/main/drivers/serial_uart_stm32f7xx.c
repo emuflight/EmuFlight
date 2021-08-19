@@ -300,6 +300,14 @@ void uartIrqHandler(uartPort_t *s) {
             handleUsartTxDma(s);
         }
     }
+
+        if (__HAL_UART_GET_IT(huart, UART_IT_IDLE)) {
+            if (s->port.idleCallback) {
+                s->port.idleCallback();
+            }
+
+            __HAL_UART_CLEAR_IDLEFLAG(huart);
+        }    
 }
 
 static void handleUsartTxDma(uartPort_t *s) {

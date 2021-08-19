@@ -136,7 +136,7 @@ void targetConfiguration(void) {
     //     rxChannelRangeConfigsMutable(rxRangeIndex)->min = 102;
     //     rxChannelRangeConfigsMutable(rxRangeIndex)->max = 1840;
     // }
-    gyroConfigMutable()->gyro_lowpass_type = FILTER_BIQUAD;
+    gyroConfigMutable()->gyro_lowpass_type = FILTER_PT2;
     gyroConfigMutable()->gyro_lowpass_hz[ROLL] = 150;
     gyroConfigMutable()->gyro_lowpass_hz[PITCH] = 150;
     gyroConfigMutable()->gyro_lowpass_hz[YAW] = 150;
@@ -159,8 +159,11 @@ void targetConfiguration(void) {
     pidConfigMutable()->runaway_takeoff_prevention = false;
     osdConfigMutable()->enabledWarnings &= ~(1 << OSD_WARNING_CORE_TEMPERATURE);
     osdConfigMutable()->cap_alarm = 255;
-    pidProfilesMutable(0)->dterm_filter_type = FILTER_BIQUAD;
+    pidProfilesMutable(0)->dterm_filter_type = FILTER_PT2;
+    pidProfilesMutable(0)->dterm_filter2_type = FILTER_PT2;
     pidProfilesMutable(0)->dFilter[ROLL].dLpf = 200;
+    pidProfilesMutable(0)->dFilter[PITCH].dLpf = 200;
+    pidProfilesMutable(0)->dFilter[YAW].dLpf = 200;
     pidProfilesMutable(0)->yawRateAccelLimit = 0;
     pidProfilesMutable(0)->pidSumLimit = 1000;
     pidProfilesMutable(0)->pidSumLimitYaw = 1000;

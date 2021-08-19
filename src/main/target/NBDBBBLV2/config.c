@@ -193,6 +193,7 @@ void targetConfiguration(void)
     pidConfigMutable()->runaway_takeoff_prevention = true;
     osdConfigMutable()->cap_alarm = 2200;
     pidProfilesMutable(0)->dterm_filter_type = FILTER_PT1;
+    pidProfilesMutable(0)->dterm_filter2_type = FILTER_PT1;
 
     modeActivationConditionsMutable(0)->modeId          = BOXARM;
     modeActivationConditionsMutable(0)->auxChannelIndex = AUX1 - NON_AUX_CHANNEL_COUNT;
