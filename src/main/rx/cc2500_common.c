@@ -131,6 +131,10 @@ void cc2500LedOff(void) {
 #endif
 }
 
+void cc2500LedToggle(void) {
+    IOToggle(cc2500LedPin);
+}
+
 void cc2500LedBlink(timeMs_t blinkms) {
     static bool ledIsOn = true;
     static timeMs_t ledBlinkMs = 0;
@@ -200,5 +204,14 @@ bool cc2500SpiInit(void) {
     cc2500TxDisable();
 #endif // USE_RX_CC2500_SPI_PA_LNA
     return true;
+}
+
+void cc2500ApplyRegisterConfig(const cc2500RegisterConfigElement_t *configArrayPtr, int configSize)
+{
+    const int entryCount = configSize / sizeof(cc2500RegisterConfigElement_t);
+    for (int i = 0; i < entryCount; i++) {
+        cc2500WriteReg(configArrayPtr->registerID, configArrayPtr->registerValue);
+        configArrayPtr++;
+    }
 }
 #endif

@@ -48,6 +48,7 @@
 
 #include "common/axis.h"
 #include "common/maths.h"
+#include "common/olc.h"
 #include "common/printf.h"
 #include "common/typeconversion.h"
 #include "common/utils.h"
@@ -622,6 +623,25 @@ static bool osdDrawSingleElement(uint8_t item) {
             buff[7] = '\0';
         }
         break;
+    case OSD_PLUS_CODE: {
+        STATIC_ASSERT(GPS_DEGREES_DIVIDER == OLC_DEG_MULTIPLIER, invalid_olc_deg_multiplier);
+        uint8_t digits = osdConfig()->plus_code_digits;
+        bool isPlusCodeShort = osdConfig()->plus_code_short;
+        uint8_t digitsRemoved = (isPlusCodeShort) ? 4 : 0;
+        if (STATE(GPS_FIX)) {
+            olc_encode(gpsSol.llh.lat, gpsSol.llh.lon, digits, buff, sizeof(buff));
+        } else {
+            // +codes with > 8 digits have a + at the 9th digit
+            // and we only support 10 and up.
+            memset(buff, '-', digits + 1);
+            buff[8] = '+';
+            buff[digits + 1] = '\0';
+        }
+        // Optionally trim digits from the left
+        memmove(buff, buff+digitsRemoved, strlen(buff) + digitsRemoved);
+        buff[digits + 1 - digitsRemoved] = '\0';
+        break;
+    }
 #endif // GPS
     case OSD_COMPASS_BAR:
         memcpy(buff, compassBar + osdGetHeadingIntoDiscreteDirections(DECIDEGREES_TO_DEGREES(attitude.values.yaw), 16), 9);
@@ -769,7 +789,7 @@ static bool osdDrawSingleElement(uint8_t item) {
             const float a = accAverage[axis];
             osdGForce += a * a;
         }
-        osdGForce = sqrtf(osdGForce) / acc.dev.acc_1G;
+        osdGForce = fast_fsqrtf(osdGForce) / acc.dev.acc_1G;
         tfp_sprintf(buff, "%01d.%01dG", (int)osdGForce, (int)(osdGForce * 10) % 10);
         break;
     }
@@ -922,14 +942,14 @@ static bool osdDrawSingleElement(uint8_t item) {
         const uint16_t mAhUsedPercent = ceilf(value / (batteryConfig()->batteryCapacity / 100.0f));
         tfp_sprintf(buff , "%c%3d%%", SYM_MAH, mAhUsedPercent);
         break;
-    }   
+    }
     case OSD_DEBUG:
         tfp_sprintf(buff, "DBG %5d %5d %5d %5d", debug[0], debug[1], debug[2], debug[3]);
         break;
     case OSD_PITCH_ANGLE:
     case OSD_ROLL_ANGLE: {
         const char symbol = (item == OSD_PITCH_ANGLE) ? SYM_PITCH : SYM_ROLL ;
-        const int angle = (item == OSD_PITCH_ANGLE) ? attitude.values.pitch : attitude.values.roll;
+        const int angle = (item == OSD_PITCH_ANGLE) ? attitude.values.pitch : getAngleModeAngles(ROLL);
         //tfp_sprintf(buff, "%c", symbol);
         tfp_sprintf(buff, "%c%c%02d.%01d", symbol, angle < 0 ? '-' : ' ', abs(angle / 10), abs(angle % 10));
         break;
@@ -1046,6 +1066,7 @@ static void osdDrawElements(void) {
         osdDrawSingleElement(OSD_GPS_LON);
         osdDrawSingleElement(OSD_HOME_DIST);
         osdDrawSingleElement(OSD_HOME_DIR);
+        osdDrawSingleElement(OSD_PLUS_CODE);
     }
 #endif // GPS
 #ifdef USE_ESC_SENSOR
@@ -1112,6 +1133,8 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig) {
     osdConfig->task_frequency = 60; // at 125 or 150 the refresh rate is exactly 25 (PAL) or 30 (NTSC)
     osdConfig->logo_on_arming = OSD_LOGO_ARMING_OFF;
     osdConfig->logo_on_arming_duration = 5;  // 0.5 seconds
+    osdConfig->plus_code_digits = 11; // Number of digits to use in OSD_PLUS_CODE
+    osdConfig->plus_code_short = false; // If 4 leading digits have to be removed from the OSD_PLUS_CODE
 }
 
 static void osdDrawLogo(int x, int y) {

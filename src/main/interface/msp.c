@@ -849,6 +849,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, imuConfig()->small_angle);
         break;
     case MSP_RC_TUNING:
+        //MSP 1.51
+        sbufWriteU8(dst, currentControlRateProfile->rates_type);
+        //end MSP 1.51
         sbufWriteU8(dst, currentControlRateProfile->rcRates[FD_ROLL]);
         sbufWriteU8(dst, currentControlRateProfile->rcExpo[FD_ROLL]);
         for (int i = 0 ; i < 3; i++) {
@@ -869,7 +872,6 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentControlRateProfile->vbat_comp_ref);
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
-
         // sitckpids added in 1.46
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateSensCenter);
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateSensEnd);
@@ -877,6 +879,10 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateCorrectionEnd);
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateWeightCenter);
         sbufWriteU8(dst, currentControlRateProfile->rateDynamics.rateWeightEnd);
+        //MSP 1.51
+        sbufWriteU8(dst, currentControlRateProfile->addRollToYawRc);
+        sbufWriteU8(dst, currentControlRateProfile->addYawToRollRc);
+        //end MSP 1.51
         break;
     case MSP_EMUF:
         sbufWriteU8(dst, currentControlRateProfile->dynThrI);
@@ -1029,9 +1035,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
 #if defined(USE_RC_SMOOTHING_FILTER)
         sbufWriteU8(dst, rxConfig()->rc_smoothing_type);
         sbufWriteU8(dst, rxConfig()->rc_smoothing_input_cutoff);
-        sbufWriteU8(dst, rxConfig()->rc_smoothing_derivative_cutoff);
+        sbufWriteU8(dst, 0); // was rc_smoothing_derivative_cutoff
         sbufWriteU8(dst, rxConfig()->rc_smoothing_input_type);
-        sbufWriteU8(dst, rxConfig()->rc_smoothing_derivative_type);
+        sbufWriteU8(dst, 0); // was rc_smoothing_derivative_type
 #else
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
@@ -1039,6 +1045,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
 #endif
+        //MSP 1.51
+        sbufWriteU8(dst, rxConfig()->sbus_baud_fast);
+        //end MSP 1.51
 #if defined(USE_USB_CDC_HID)
         sbufWriteU8(dst, usbDevConfig()->type);
 #else
@@ -1173,6 +1182,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, gyroConfig()->gyro_soft_notch_hz_2);
         sbufWriteU16(dst, gyroConfig()->gyro_soft_notch_cutoff_2);
         sbufWriteU8(dst, currentPidProfile->dterm_filter_type);
+        //MSP 1.51
+        sbufWriteU8(dst, currentPidProfile->dterm_filter2_type);
+        //end MSP 1.51
         sbufWriteU8(dst, gyroConfig()->gyro_hardware_lpf);
         sbufWriteU8(dst, gyroConfig()->gyro_32khz_hardware_lpf);
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass_hz[ROLL]);
@@ -1186,14 +1198,26 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, currentPidProfile->dFilter[ROLL].dLpf2);
         sbufWriteU16(dst, currentPidProfile->dFilter[PITCH].dLpf2);
         sbufWriteU16(dst, currentPidProfile->dFilter[YAW].dLpf2);
-        sbufWriteU8(dst, currentPidProfile->dFilter[ROLL].smartSmoothing);
-        sbufWriteU8(dst, currentPidProfile->dFilter[PITCH].smartSmoothing);
-        sbufWriteU8(dst, currentPidProfile->dFilter[YAW].smartSmoothing);
-        sbufWriteU8(dst, currentPidProfile->dFilter[ROLL].Wc);
-        sbufWriteU8(dst, currentPidProfile->dFilter[PITCH].Wc);
-        sbufWriteU8(dst, currentPidProfile->dFilter[YAW].Wc);
-        sbufWriteU16(dst, gyroConfig()->dyn_notch_q_factor);
+        //MSP 1.51 removes SmartDTermSmoothing and WitchCraft
+        //MSP 1.51 adds and refactors dynamic_filter
+        sbufWriteU8(dst, gyroConfig()->dyn_notch_count);    //dynamic_gyro_notch_count
+        sbufWriteU16(dst, gyroConfig()->dyn_notch_q);
         sbufWriteU16(dst, gyroConfig()->dyn_notch_min_hz);
+        sbufWriteU16(dst, gyroConfig()->dyn_notch_max_hz);   //dynamic_gyro_notch_max_hz
+        //end MSP 1.51 add/refactor dynamic filter
+        //MSP 1.51
+        sbufWriteU16(dst, gyroConfig()->gyro_ABG_alpha);
+        sbufWriteU16(dst, gyroConfig()->gyro_ABG_boost);
+        sbufWriteU8(dst, gyroConfig()->gyro_ABG_half_life);
+        sbufWriteU8(dst, gyroConfig()->smithPredictorEnabled);
+        sbufWriteU16(dst, currentPidProfile->dterm_ABG_alpha);
+        sbufWriteU16(dst, currentPidProfile->dterm_ABG_boost);
+        sbufWriteU8(dst, currentPidProfile->dterm_ABG_half_life);
+        //end MSP 1.51
+        //MSP 1.51 dynamic dTerm notch
+        sbufWriteU8(dst, currentPidProfile->dtermDynNotch);        //dterm_dyn_notch_enable
+        sbufWriteU16(dst, currentPidProfile->dterm_dyn_notch_q);   //dterm_dyn_notch_q
+        //end MSP 1.51 dynamic dTerm notch
         break;
     /*#ifndef USE_GYRO_IMUF9001
         case MSP_FAST_KALMAN:
@@ -1209,8 +1233,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_q);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_q);
         sbufWriteU16(dst, gyroConfig()->imuf_w);
-        sbufWriteU16(dst, gyroConfig()->imuf_sharpness);
+        //MSP 1.51 removes imuf_sharpness
 #ifdef  USE_GYRO_IMUF9001
+        sbufWriteU16(dst, gyroConfig()->imuf_ptn_order); //MSP 1.51 Helio only
         sbufWriteU16(dst, gyroConfig()->imuf_roll_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_pitch_lpf_cutoff_hz);
         sbufWriteU16(dst, gyroConfig()->imuf_yaw_lpf_cutoff_hz);
@@ -1277,6 +1302,18 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentPidProfile->setPointITransition[YAW]);
         sbufWriteU8(dst, currentPidProfile->setPointDTransition[YAW]);
         sbufWriteU8(dst, 0); // was NFE_RACE_MODE now made into a flight mode
+        //MSP 1.51
+        sbufWriteU8(dst, currentPidProfile->linear_thrust_low_output);
+        sbufWriteU8(dst, currentPidProfile->linear_thrust_high_output);
+        sbufWriteU8(dst, currentPidProfile->linear_throttle);
+        sbufWriteU8(dst, currentPidProfile->mixer_impl);
+        sbufWriteU8(dst, currentPidProfile->mixer_laziness);
+        sbufWriteU8(dst, currentPidProfile->mixer_yaw_throttle_comp);
+        sbufWriteU8(dst, currentPidProfile->directFF_yaw);
+        sbufWriteU8(dst, currentPidProfile->axis_lock_hz);
+        sbufWriteU8(dst, currentPidProfile->axis_lock_multiplier);
+        sbufWriteU8(dst, currentPidProfile->emuGravityGain);
+        //end MSP 1.51
         break;
         case MSP_SENSOR_CONFIG:
         sbufWriteU8(dst, accelerometerConfig()->acc_hardware);
@@ -1544,6 +1581,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         }
         break;
     case MSP_SET_RC_TUNING:
+        //MSP 1.51
+        currentControlRateProfile->rates_type = sbufReadU8(src);
+        //end MSP 1.51
         if (sbufBytesRemaining(src) >= 10) {
             value = sbufReadU8(src);
             if (currentControlRateProfile->rcRates[FD_PITCH] == currentControlRateProfile->rcRates[FD_ROLL]) {
@@ -1594,6 +1634,12 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
                 currentControlRateProfile->rateDynamics.rateWeightCenter = sbufReadU8(src);
                 currentControlRateProfile->rateDynamics.rateWeightEnd = sbufReadU8(src);
             }
+            //MSP 1.51
+            if (sbufBytesRemaining(src) >= 2) {
+                currentControlRateProfile->addRollToYawRc = sbufReadU8(src);
+                currentControlRateProfile->addYawToRollRc = sbufReadU8(src);
+            }
+            //end MSP 1.51
             initRcProcessing();
         } else {
             return MSP_RESULT_ERROR;
@@ -1748,6 +1794,13 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         if (sbufBytesRemaining(src) >= 1) {
             currentPidProfile->dterm_filter_type = sbufReadU8(src);
         }
+
+        //MSP 1.51
+        if (sbufBytesRemaining(src) >= 1) {
+            currentPidProfile->dterm_filter2_type = sbufReadU8(src);
+        }
+        //end MSP 1.51
+
         if (sbufBytesRemaining(src) >= 10) {
             gyroConfigMutable()->gyro_hardware_lpf = sbufReadU8(src);
             gyroConfigMutable()->gyro_32khz_hardware_lpf = sbufReadU8(src);
@@ -1762,14 +1815,26 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
             currentPidProfile->dFilter[ROLL].dLpf2 = sbufReadU16(src);
             currentPidProfile->dFilter[PITCH].dLpf2 = sbufReadU16(src);
             currentPidProfile->dFilter[YAW].dLpf2 = sbufReadU16(src);
-            currentPidProfile->dFilter[ROLL].smartSmoothing = sbufReadU8(src);
-            currentPidProfile->dFilter[PITCH].smartSmoothing = sbufReadU8(src);
-            currentPidProfile->dFilter[YAW].smartSmoothing = sbufReadU8(src);
-            currentPidProfile->dFilter[ROLL].Wc = sbufReadU8(src);
-            currentPidProfile->dFilter[PITCH].Wc = sbufReadU8(src);
-            currentPidProfile->dFilter[YAW].Wc = sbufReadU8(src);
-            gyroConfigMutable()->dyn_notch_q_factor = sbufReadU16(src);
+            //MSP 1.51 removes SmartDTermSmoothing and WitchCraft
+            //MSP 1.51 adds and refactors dynamic_filter
+            gyroConfigMutable()->dyn_notch_count = sbufReadU8(src); //dynamic_gyro_notch_count
+            gyroConfigMutable()->dyn_notch_q = sbufReadU16(src);
             gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
+            gyroConfigMutable()->dyn_notch_max_hz = sbufReadU16(src); //dynamic_gyro_notch_max_hz
+            //end 1.51 add/refactor dynamic_filter
+            //MSP 1.51
+            gyroConfigMutable()->gyro_ABG_alpha = sbufReadU16(src);
+            gyroConfigMutable()->gyro_ABG_boost = sbufReadU16(src);
+            gyroConfigMutable()->gyro_ABG_half_life = sbufReadU8(src);
+            gyroConfigMutable()->smithPredictorEnabled = sbufReadU8(src);
+            currentPidProfile->dterm_ABG_alpha = sbufReadU16(src);
+            currentPidProfile->dterm_ABG_boost = sbufReadU16(src);
+            currentPidProfile->dterm_ABG_half_life = sbufReadU8(src);
+            //end MSP 1.51
+            //MSP 1.51 dynamic dTerm notch
+            currentPidProfile->dtermDynNotch = sbufReadU8(src);         //dterm_dyn_notch_enable
+            currentPidProfile->dterm_dyn_notch_q = sbufReadU16(src);    //dterm_dyn_notch_q
+            //end MSP 1.51 dynamic dTerm notch
         }
         // reinitialize the gyro filters with the new values
         validateAndFixGyroConfig();
@@ -1792,8 +1857,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         gyroConfigMutable()->imuf_pitch_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_yaw_q = sbufReadU16(src);
         gyroConfigMutable()->imuf_w = sbufReadU16(src);
-        gyroConfigMutable()->imuf_sharpness = sbufReadU16(src);
+        //MSP 1.51 removes imuf_sharpness
 #ifdef USE_GYRO_IMUF9001
+        gyroConfigMutable()->imuf_ptn_order = sbufReadU16(src); //MSP 1.51 Helio only
         gyroConfigMutable()->imuf_roll_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_pitch_lpf_cutoff_hz = sbufReadU16(src);
         gyroConfigMutable()->imuf_yaw_lpf_cutoff_hz = sbufReadU16(src);
@@ -1863,6 +1929,18 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         currentPidProfile->setPointITransition[YAW] = sbufReadU8(src);
         currentPidProfile->setPointDTransition[YAW] = sbufReadU8(src);
         sbufReadU8(src); // was NFE_RACE_MODE now its a flight mode.
+        //added in MSP 1.51
+        currentPidProfile->linear_thrust_low_output = sbufReadU8(src);
+        currentPidProfile->linear_thrust_high_output = sbufReadU8(src);
+        currentPidProfile->linear_throttle = sbufReadU8(src);
+        currentPidProfile->mixer_impl = sbufReadU8(src);
+        currentPidProfile->mixer_laziness = sbufReadU8(src);
+        currentPidProfile->mixer_yaw_throttle_comp = sbufReadU8(src);
+        currentPidProfile->directFF_yaw = sbufReadU8(src);
+        currentPidProfile->axis_lock_hz = sbufReadU8(src);
+        currentPidProfile->axis_lock_multiplier = sbufReadU8(src);
+        currentPidProfile->emuGravityGain = sbufReadU8(src);
+        //end 1.51
         }
         pidInitConfig(currentPidProfile);
         break;
@@ -2062,9 +2140,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
 #if defined(USE_RC_SMOOTHING_FILTER)
         rxConfigMutable()->rc_smoothing_type = sbufReadU8(src);
         rxConfigMutable()->rc_smoothing_input_cutoff = sbufReadU8(src);
-        rxConfigMutable()->rc_smoothing_derivative_cutoff = sbufReadU8(src);
+        sbufReadU8(src); // was rc_smoothing_derivative_cutoff
         rxConfigMutable()->rc_smoothing_input_type = sbufReadU8(src);
-        rxConfigMutable()->rc_smoothing_derivative_type = sbufReadU8(src);
+        sbufReadU8(src); // was rc_smoothing_derivative_type
 #else
         sbufReadU8(src);
         sbufReadU8(src);
@@ -2073,9 +2151,15 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         sbufReadU8(src);
 #endif
         }
+        //added in MSP 1.51
         if (sbufBytesRemaining(src) >= 1) {
-        // Added in MSP API 1.40
-        // Kept separate from the section above to work around missing Configurator support in version < 10.4.2
+            rxConfigMutable()->sbus_baud_fast = sbufReadU8(src);
+        }
+        //end 1.51
+
+        if (sbufBytesRemaining(src) >= 1) {
+// Added in MSP API 1.40
+// Kept separate from the section above to work around missing Configurator support in version < 10.4.2
 #if defined(USE_USB_CDC_HID)
         usbDevConfigMutable()->type = sbufReadU8(src);
 #else

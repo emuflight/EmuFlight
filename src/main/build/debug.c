@@ -76,5 +76,6 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "RC_SMOOTHING_RATE",
     "IMU",
     "KALMAN",
-    "SMART_SMOOTHING",
+    "ANGLE",
+    "HORIZON"
 };
