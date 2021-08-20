@@ -1484,8 +1484,8 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, rxConfig()->spektrum_sat_bind);
         sbufWriteU16(dst, rxConfig()->rx_min_usec);
         sbufWriteU16(dst, rxConfig()->rx_max_usec);
-        sbufWriteU8(dst, 0); // not required in API 1.44, was rxConfig()->rcInterpolation)
-        sbufWriteU8(dst, 0); // not required in API 1.44, was rxConfig()->rcInterpolationInterval)
+        sbufWriteU8(dst, rxConfig()->rcInterpolation);
+        sbufWriteU8(dst, rxConfig()->rcInterpolationInterval);
         sbufWriteU16(dst, rxConfig()->airModeActivateThreshold * 10 + 1000);
 #ifdef USE_RX_SPI
         sbufWriteU8(dst, rxSpiConfig()->rx_spi_protocol);
@@ -1497,13 +1497,13 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, 0);
 #endif
         sbufWriteU8(dst, rxConfig()->fpvCamAngleDegrees);
-        sbufWriteU8(dst, 0); // not required in API 1.44, was rxConfig()->rcSmoothingChannels
+        sbufWriteU8(dst, rxConfig()->rcInterpolationChannels);
 #if defined(USE_RC_SMOOTHING_FILTER)
-        sbufWriteU8(dst, rxConfig()->rc_smoothing_mode);
-        sbufWriteU8(dst, rxConfig()->rc_smoothing_setpoint_cutoff);
-        sbufWriteU8(dst, rxConfig()->rc_smoothing_feedforward_cutoff);
-        sbufWriteU8(dst, 0); // not required in API 1.44, was rxConfig()->rc_smoothing_input_type
-        sbufWriteU8(dst, 0); // not required in API 1.44, was rxConfig()->rc_smoothing_derivative_type
+        sbufWriteU8(dst, rxConfig()->rc_smoothing_type);
+        sbufWriteU8(dst, rxConfig()->rc_smoothing_input_cutoff);
+        sbufWriteU8(dst, rxConfig()->rc_smoothing_derivative_cutoff);
+        sbufWriteU8(dst, rxConfig()->rc_smoothing_input_type);
+        sbufWriteU8(dst, rxConfig()->rc_smoothing_derivative_type);
 #else
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
@@ -1518,7 +1518,7 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
 #endif
         // Added in MSP API 1.42
 #if defined(USE_RC_SMOOTHING_FILTER)
-        sbufWriteU8(dst, rxConfig()->rc_smoothing_auto_factor_rpy);
+        sbufWriteU8(dst, rxConfig()->rc_smoothing_auto_factor);
 #else
         sbufWriteU8(dst, 0);
 #endif
@@ -1806,7 +1806,7 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, 0); // was pidProfile.yaw_p_limit
         sbufWriteU8(dst, 0); // reserved
         sbufWriteU8(dst, 0); // was vbatPidCompensation
-        sbufWriteU8(dst, currentPidProfile->feedforwardTransition);
+        sbufWriteU8(dst, currentPidProfile->feedForwardTransition);
         sbufWriteU8(dst, 0); // was low byte of currentPidProfile->dtermSetpointWeight
         sbufWriteU8(dst, 0); // reserved
         sbufWriteU8(dst, 0); // reserved
@@ -1861,14 +1861,14 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, 0);
 #endif
         // Added in MSP API 1.44
-#if defined(USE_FEEDFORWARD)
-        sbufWriteU8(dst, currentPidProfile->feedforward_averaging);
-        sbufWriteU8(dst, currentPidProfile->feedforward_smooth_factor);
+#if defined(USE_INTERPOLATED_SP)
+        sbufWriteU8(dst, currentPidProfile->ff_interpolate_sp);
+        sbufWriteU8(dst, currentPidProfile->ff_smooth_factor);
 #else
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
 #endif
-        sbufWriteU8(dst, currentPidProfile->feedforward_boost);
+        sbufWriteU8(dst, currentPidProfile->ff_boost);
 #if defined(USE_BATTERY_VOLTAGE_SAG_COMPENSATION)
         sbufWriteU8(dst, currentPidProfile->vbat_sag_compensation);
 #else
@@ -2639,7 +2639,7 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
         sbufReadU16(src); // was pidProfile.yaw_p_limit
         sbufReadU8(src); // reserved
         sbufReadU8(src); // was vbatPidCompensation
-        currentPidProfile->feedforwardTransition = sbufReadU8(src);
+        currentPidProfile->feedForwardTransition = sbufReadU8(src);
         sbufReadU8(src); // was low byte of currentPidProfile->dtermSetpointWeight
         sbufReadU8(src); // reserved
         sbufReadU8(src); // reserved
@@ -2712,14 +2712,14 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
         }
         if (sbufBytesRemaining(src) >= 5) {
             // Added in MSP API 1.44
-#if defined(USE_FEEDFORWARD)
-            currentPidProfile->feedforward_averaging = sbufReadU8(src);
-            currentPidProfile->feedforward_smooth_factor = sbufReadU8(src);
+#if defined(USE_INTERPOLATED_SP)
+            currentPidProfile->ff_interpolate_sp = sbufReadU8(src);
+            currentPidProfile->ff_smooth_factor = sbufReadU8(src);
 #else
             sbufReadU8(src);
             sbufReadU8(src);
 #endif
-            currentPidProfile->feedforward_boost = sbufReadU8(src);
+            currentPidProfile->ff_boost = sbufReadU8(src);
 #if defined(USE_BATTERY_VOLTAGE_SAG_COMPENSATION)
             currentPidProfile->vbat_sag_compensation = sbufReadU8(src);
 #else
@@ -3126,8 +3126,8 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
             rxConfigMutable()->rx_max_usec = sbufReadU16(src);
         }
         if (sbufBytesRemaining(src) >= 4) {
-            sbufReadU8(src); // not required in API 1.44, was rxConfigMutable()->rcInterpolation
-            sbufReadU8(src); // not required in API 1.44, was rxConfigMutable()->rcInterpolationInterval
+            rxConfigMutable()->rcInterpolation = sbufReadU8(src);
+            rxConfigMutable()->rcInterpolationInterval = sbufReadU8(src);
             rxConfigMutable()->airModeActivateThreshold = (sbufReadU16(src) - 1000) / 10;
         }
         if (sbufBytesRemaining(src) >= 6) {
@@ -3146,13 +3146,13 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
         }
         if (sbufBytesRemaining(src) >= 6) {
             // Added in MSP API 1.40
-            sbufReadU8(src); // not required in API 1.44, was rxConfigMutable()->rcSmoothingChannels
+            rxConfigMutable()->rcInterpolationChannels = sbufReadU8(src);
 #if defined(USE_RC_SMOOTHING_FILTER)
-            configRebootUpdateCheckU8(&rxConfigMutable()->rc_smoothing_mode, sbufReadU8(src));
-            configRebootUpdateCheckU8(&rxConfigMutable()->rc_smoothing_setpoint_cutoff, sbufReadU8(src));
-            configRebootUpdateCheckU8(&rxConfigMutable()->rc_smoothing_feedforward_cutoff, sbufReadU8(src));
-            sbufReadU8(src); // not required in API 1.44, was rc_smoothing_input_type
-            sbufReadU8(src); // not required in API 1.44, was rc_smoothing_derivative_type
+            configRebootUpdateCheckU8(&rxConfigMutable()->rc_smoothing_type, sbufReadU8(src));
+            configRebootUpdateCheckU8(&rxConfigMutable()->rc_smoothing_input_cutoff, sbufReadU8(src));
+            configRebootUpdateCheckU8(&rxConfigMutable()->rc_smoothing_derivative_cutoff, sbufReadU8(src));
+            configRebootUpdateCheckU8(&rxConfigMutable()->rc_smoothing_input_type, sbufReadU8(src));
+            configRebootUpdateCheckU8(&rxConfigMutable()->rc_smoothing_derivative_type, sbufReadU8(src));
 #else
             sbufReadU8(src);
             sbufReadU8(src);
@@ -3177,7 +3177,7 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
             // the 10.6 configurator where it was possible to submit an invalid out-of-range value. We might be
             // able to remove the constraint at some point in the future once the affected versions are deprecated
             // enough that the risk is low.
-            configRebootUpdateCheckU8(&rxConfigMutable()->rc_smoothing_auto_factor_rpy, constrain(sbufReadU8(src), RC_SMOOTHING_AUTO_FACTOR_MIN, RC_SMOOTHING_AUTO_FACTOR_MAX));
+            configRebootUpdateCheckU8(&rxConfigMutable()->rc_smoothing_auto_factor, constrain(sbufReadU8(src), RC_SMOOTHING_AUTO_FACTOR_MIN, RC_SMOOTHING_AUTO_FACTOR_MAX));
 #else
             sbufReadU8(src);
 #endif

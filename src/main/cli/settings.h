@@ -64,6 +64,8 @@ typedef enum {
 #endif
     TABLE_DEBUG,
     TABLE_MOTOR_PWM_PROTOCOL,
+    TABLE_RC_INTERPOLATION,
+    TABLE_RC_INTERPOLATION_CHANNELS,
     TABLE_LOWPASS_TYPE,
     TABLE_ANTI_GRAVITY_MODE,
     TABLE_FAILSAFE,
@@ -100,6 +102,7 @@ typedef enum {
     TABLE_VIDEO_SYSTEM,
 #endif
 #ifdef USE_RC_SMOOTHING_FILTER
+    TABLE_RC_SMOOTHING_TYPE,
     TABLE_RC_SMOOTHING_DEBUG,
 #endif // USE_RC_SMOOTHING_FILTER
 #ifdef USE_VTX_COMMON
@@ -119,7 +122,7 @@ typedef enum {
     TABLE_GYRO_FILTER_DEBUG,
     TABLE_POSITION_ALT_SOURCE,
     TABLE_OFF_ON_AUTO,
-    TABLE_FEEDFORWARD_AVERAGING,
+    TABLE_INTERPOLATED_SP,
     TABLE_DSHOT_BITBANGED_TIMER,
     TABLE_OSD_DISPLAYPORT_DEVICE,
 #ifdef USE_OSD
@@ -247,6 +250,6 @@ extern const char * const lookupTableItermRelaxType[];
 
 extern const char * const lookupTableOsdDisplayPortDevice[];
 
-extern const char * const lookupTableFeedforwardAveraging[];
+extern const char * const lookupTableInterpolatedSetpoint[];
 
 extern const char * const lookupTableCMSMenuBackgroundType[];

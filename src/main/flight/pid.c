@@ -47,7 +47,7 @@
 #include "flight/imu.h"
 #include "flight/mixer.h"
 #include "flight/rpm_filter.h"
-#include "flight/feedforward.h"
+#include "flight/interpolated_setpoint.h"
 
 #include "io/gps.h"
 
@@ -135,7 +135,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_notch_cutoff = 0,
         .itermWindupPointPercent = 70,
         .pidAtMinThrottle = PID_STABILISATION_ON,
-        .levelAngleLimit = 55,
+        .levelAngleLimit = 45,
         .feedForwardTransition = 0,
         .itermThrottleThreshold = 250,
         .itermAcceleratorGain = 3500,
@@ -178,11 +178,11 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dyn_idle_i_gain = 50,
         .dyn_idle_d_gain = 50,
         .dyn_idle_max_increase = 150,
-        .feedforward_averaging = FEEDFORWARD_AVERAGING_OFF,
-        .feedforward_max_rate_limit = 100,
-        .feedforward_smooth_factor = 37,
-        .feedforward_jitter_factor = 7,
-        .feedforward_boost = 15,
+        .ff_interpolate_sp = FF_INTERPOLATE_ON,
+        .ff_max_rate_limit = 100,
+        .ff_smooth_factor = 37,
+        .ff_jitter_factor = 7,
+        .ff_boost = 15,
         .dyn_lpf_curve_expo = 5,
         .vbat_sag_compensation = 0,
         .dtermMeasurementSlider = 100,
@@ -232,7 +232,7 @@ float pidGetFfBoostFactor()
     return pidRuntime.ffBoostFactor;
 }
 
-#ifdef USE_FEEDFORWARD
+#ifdef USE_INTERPOLATED_SP
 float pidGetFfSmoothFactor()
 {
     return pidRuntime.ffSmoothFactor;
@@ -422,13 +422,13 @@ STATIC_UNIT_TESTED void rotateItermAndAxisError()
 }
 
 #ifdef USE_RC_SMOOTHING_FILTER
-float FAST_CODE applyRcSmoothingFeedforwardFilter(int axis, float pidSetpointDelta)
+float FAST_CODE applyRcSmoothingDerivativeFilter(int axis, float pidSetpointDelta)
 {
     float ret = pidSetpointDelta;
     if (axis == pidRuntime.rcSmoothingDebugAxis) {
         DEBUG_SET(DEBUG_RC_SMOOTHING, 1, lrintf(pidSetpointDelta * 100.0f));
     }
-    if (pidRuntime.feedforwardLpfInitialized) {
+    if (pidRuntime.setpointDerivativeLpfInitialized) {
         ret = ptnFilterApply(&pidRuntime.setpointDerivativePt3[axis], pidSetpointDelta);
         if (axis == pidRuntime.rcSmoothingDebugAxis) {
             DEBUG_SET(DEBUG_RC_SMOOTHING, 2, lrintf(ret * 100.0f));
@@ -604,9 +604,9 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
     rpmFilterUpdate();
 #endif
 
-#ifdef USE_FEEDFORWARD
+#ifdef USE_INTERPOLATED_SP
     bool newRcFrame = false;
-    if (getShouldUpdateFeedforward()) {
+    if (getShouldUpdateFf()) {
         newRcFrame = true;
     }
 #endif
@@ -724,10 +724,21 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 
         // -----calculate pidSetpointDelta
         float pidSetpointDelta = 0;
-#ifdef USE_FEEDFORWARD
-        pidSetpointDelta = feedforwardApply(axis, newRcFrame, pidRuntime.feedforwardAveraging);
+#ifdef USE_INTERPOLATED_SP
+        if (pidRuntime.ffFromInterpolatedSetpoint) {
+            pidSetpointDelta = interpolatedSpApply(axis, newRcFrame, pidRuntime.ffFromInterpolatedSetpoint);
+        } else {
+            pidSetpointDelta = currentPidSetpoint - pidRuntime.previousPidSetpoint[axis];
+        }
+#else
+        pidSetpointDelta = currentPidSetpoint - pidRuntime.previousPidSetpoint[axis];
 #endif
         pidRuntime.previousPidSetpoint[axis] = currentPidSetpoint;
+
+
+#ifdef USE_RC_SMOOTHING_FILTER
+        pidSetpointDelta = applyRcSmoothingDerivativeFilter(axis, pidSetpointDelta);
+#endif // USE_RC_SMOOTHING_FILTER
 
         // -----calculate D component
         // disable D if launch control is active
@@ -796,19 +807,16 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         // Only enable feedforward for rate mode and if launch control is inactive
         const float feedforwardGain = (flightModeFlags || launchControlActive) ? 0.0f : pidRuntime.pidCoefficient[axis].Kf;
         if (feedforwardGain > 0) {
-            // no transition if feedforwardTransition == 0
-            float transition = pidRuntime.feedforwardTransition > 0 ? MIN(1.f, getRcDeflectionAbs(axis) * pidRuntime.feedforwardTransition) : 1;
+            // no transition if feedForwardTransition == 0
+            float transition = pidRuntime.feedForwardTransition > 0 ? MIN(1.f, getRcDeflectionAbs(axis) * pidRuntime.feedForwardTransition) : 1;
             float feedForward = feedforwardGain * transition * pidSetpointDelta * pidRuntime.pidFrequency;
 
-#ifdef USE_FEEDFORWARD
-            pidData[axis].F = shouldApplyFeedforwardLimits(axis) ?
-                applyFeedforwardLimit(axis, feedForward, pidRuntime.pidCoefficient[axis].Kp, currentPidSetpoint) : feedForward;
+#ifdef USE_INTERPOLATED_SP
+            pidData[axis].F = shouldApplyFfLimits(axis) ?
+                applyFfLimit(axis, feedForward, pidRuntime.pidCoefficient[axis].Kp, currentPidSetpoint) : feedForward;
 #else
             pidData[axis].F = feedForward;
 #endif
-#ifdef USE_RC_SMOOTHING_FILTER
-            pidData[axis].F = applyRcSmoothingFeedforwardFilter(axis, pidData[axis].F);
-#endif // USE_RC_SMOOTHING_FILTER
         } else {
             pidData[axis].F = 0;
         }

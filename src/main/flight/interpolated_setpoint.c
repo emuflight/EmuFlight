@@ -21,7 +21,7 @@
 #include <math.h>
 #include "platform.h"
 
-#ifdef USE_FEEDFORWARD
+#ifdef USE_INTERPOLATED_SP
 
 #include "build/debug.h"
 
@@ -31,7 +31,7 @@
 
 #include "flight/pid.h"
 
-#include "feedforward.h"
+#include "interpolated_setpoint.h"
 
 static float setpointDeltaImpl[XYZ_AXIS_COUNT];
 static float setpointDelta[XYZ_AXIS_COUNT];
@@ -54,9 +54,9 @@ static uint8_t averagingCount;
 static float ffMaxRateLimit[XYZ_AXIS_COUNT];
 static float ffMaxRate[XYZ_AXIS_COUNT];
 
-void feedforwardInit(const pidProfile_t *pidProfile) {
-    const float ffMaxRateScale = pidProfile->feedforward_max_rate_limit * 0.01f;
-    averagingCount = pidProfile->feedforward_averaging + 1;
+void interpolatedSpInit(const pidProfile_t *pidProfile) {
+    const float ffMaxRateScale = pidProfile->ff_max_rate_limit * 0.01f;
+    averagingCount = pidProfile->ff_interpolate_sp;
     for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
         ffMaxRate[i] = applyCurve(i, 1.0f);
         ffMaxRateLimit[i] = ffMaxRate[i] * ffMaxRateScale;
@@ -64,7 +64,7 @@ void feedforwardInit(const pidProfile_t *pidProfile) {
     }
 }
 
-FAST_CODE_NOINLINE float feedforwardApply(int axis, bool newRcFrame, feedforwardAveraging_t feedforwardAveraging) {
+FAST_CODE_NOINLINE float interpolatedSpApply(int axis, bool newRcFrame, ffInterpolationType_t type) {
 
     if (newRcFrame) {
         float rcCommandDelta = getRcCommandDelta(axis);
@@ -99,7 +99,7 @@ FAST_CODE_NOINLINE float feedforwardApply(int axis, bool newRcFrame, feedforward
         } else {
             // movement!
             if (prevDuplicatePacket[axis] == true) {
-                // don't boost the packet after a duplicate, the feedforward alone is enough, usually
+                // don't boost the packet after a duplicate, the FF alone is enough, usually
                 // in part because after a duplicate, the raw up-step is large, so the jitter attenuator is less active
                 ffAttenuator = 0.0f;
             }
@@ -138,26 +138,26 @@ FAST_CODE_NOINLINE float feedforwardApply(int axis, bool newRcFrame, feedforward
         }
 
         if (axis == FD_ROLL) {
-            DEBUG_SET(DEBUG_FF_INTERPOLATED, 0, lrintf(setpointDeltaImpl[axis] * 100.0f)); // base feedforward
+            DEBUG_SET(DEBUG_FF_INTERPOLATED, 0, lrintf(setpointDeltaImpl[axis] * 100.0f)); // base FF
             DEBUG_SET(DEBUG_FF_INTERPOLATED, 1, lrintf(boostAmount * 100.0f)); // boost amount
             // debug 2 is interpolated setpoint, above
             DEBUG_SET(DEBUG_FF_INTERPOLATED, 3, lrintf(rcCommandDelta * 100.0f)); // rcCommand packet difference
         }
 
-        // add boost to base feedforward
+        // add boost to base feed forward
         setpointDeltaImpl[axis] += boostAmount;
 
         // apply averaging
-        if (feedforwardAveraging) {
-            setpointDelta[axis] = laggedMovingAverageUpdate(&setpointDeltaAvg[axis].filter, setpointDeltaImpl[axis]);
-        } else {
+        if (type == FF_INTERPOLATE_ON) {
             setpointDelta[axis] = setpointDeltaImpl[axis];
+        } else {
+            setpointDelta[axis] = laggedMovingAverageUpdate(&setpointDeltaAvg[axis].filter, setpointDeltaImpl[axis]);
         }
     }
     return setpointDelta[axis];
 }
 
-FAST_CODE_NOINLINE float applyFeedforwardLimit(int axis, float value, float Kp, float currentPidSetpoint) {
+FAST_CODE_NOINLINE float applyFfLimit(int axis, float value, float Kp, float currentPidSetpoint) {
     switch (axis) {
     case FD_ROLL:
         DEBUG_SET(DEBUG_FF_LIMIT, 0, value);
@@ -182,7 +182,7 @@ FAST_CODE_NOINLINE float applyFeedforwardLimit(int axis, float value, float Kp, 
     return value;
 }
 
-bool shouldApplyFeedforwardLimits(int axis)
+bool shouldApplyFfLimits(int axis)
 {
     return ffMaxRateLimit[axis] != 0.0f && axis < FD_YAW;
 }

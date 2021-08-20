@@ -26,7 +26,6 @@
 
 bool simulatedAirmodeEnabled = true;
 float simulatedSetpointRate[3] = { 0,0,0 };
-float simulatedPrevSetpointRate[3] = { 0,0,0 };
 float simulatedRcDeflection[3] = { 0,0,0 };
 float simulatedThrottlePAttenuation = 1.0f;
 float simulatedMotorMixRange = 0.0f;
@@ -82,27 +81,12 @@ extern "C" {
     void beeperConfirmationBeeps(uint8_t) { }
     bool isLaunchControlActive(void) {return unitLaunchControlActive; }
     void disarm(flightLogDisarmReason_e) { }
-    float applyFeedforwardLimit(int axis, float value, float Kp, float currentPidSetpoint)
-    {
+    float applyFFLimit(int axis, float value, float Kp, float currentPidSetpoint) {
         UNUSED(axis);
         UNUSED(Kp);
         UNUSED(currentPidSetpoint);
         return value;
     }
-    void feedforwardInit(const pidProfile_t) { }
-    float feedforwardApply(int axis, bool newRcFrame, feedforwardAveraging_t feedforwardAveraging)
-    {
-        UNUSED(newRcFrame);
-        UNUSED(feedforwardAveraging);
-        return simulatedSetpointRate[axis] - simulatedPrevSetpointRate[axis];
-    }
-    bool shouldApplyFeedforwardLimits(int axis)
-    {
-        UNUSED(axis);
-        return true;
-    }
-    bool getShouldUpdateFeedforward() { return true; }
-    void initRcProcessing(void) { }
 }
 
 pidProfile_t *pidProfile;
@@ -200,7 +184,6 @@ void resetTest(void) {
 }
 
 void setStickPosition(int axis, float stickRatio) {
-    simulatedPrevSetpointRate[axis] = simulatedSetpointRate[axis];
     simulatedSetpointRate[axis] = 1998.0f * stickRatio;
     simulatedRcDeflection[axis] = stickRatio;
 }
@@ -504,7 +487,7 @@ TEST(pidControllerTest, testFeedForward) {
 
     EXPECT_NEAR(2232.78, pidData[FD_ROLL].F, calculateTolerance(2232.78));
     EXPECT_NEAR(-2061.03, pidData[FD_PITCH].F, calculateTolerance(-2061.03));
-    EXPECT_NEAR(-2061.03, pidData[FD_YAW].F, calculateTolerance(-2061.03));
+    EXPECT_NEAR(-82.52, pidData[FD_YAW].F, calculateTolerance(-82.5));
 
     // Match the stick to gyro to stop error
     setStickPosition(FD_ROLL, 0.5f);
@@ -515,13 +498,9 @@ TEST(pidControllerTest, testFeedForward) {
 
     EXPECT_NEAR(-558.20, pidData[FD_ROLL].F, calculateTolerance(-558.20));
     EXPECT_NEAR(515.26, pidData[FD_PITCH].F, calculateTolerance(515.26));
-    EXPECT_NEAR(515.26, pidData[FD_YAW].F, calculateTolerance(515.26));
+    EXPECT_NEAR(-41.26, pidData[FD_YAW].F, calculateTolerance(-41.26));
 
-     setStickPosition(FD_ROLL, 0.0f);
-     setStickPosition(FD_PITCH, 0.0f);
-     setStickPosition(FD_YAW, 0.0f);
-
-     for (int loop = 0; loop <= 15; loop++) {
+    for (int loop =0; loop <= 15; loop++) {
         gyro.gyroADCf[FD_ROLL] += gyro.gyroADCf[FD_ROLL];
         pidController(pidProfile, currentTestTime());
     }
