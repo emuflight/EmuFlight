@@ -1240,7 +1240,7 @@ static FAST_CODE_NOINLINE void subTaskRcCommand(timeUs_t currentTimeUs)
         resetYawAxis();
     }
 
-    processRcCommand(currentTimeUs);
+    processRcCommand();
 }
 
 FAST_CODE void taskGyroSample(timeUs_t currentTimeUs)

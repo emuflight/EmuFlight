@@ -112,11 +112,6 @@ typedef struct rcSmoothingFilter_s {
     rcSmoothingFilterTraining_t training;
     uint8_t debugAxis;
     uint8_t autoSmoothnessFactor;
-#ifdef USE_RC_PREDICTOR
-    pt1Filter_t velocityLpf[4];
-    float predictorPercent;
-    float predictorTime;
-#endif
 } rcSmoothingFilter_t;
 
 typedef struct rcControlsConfig_s {

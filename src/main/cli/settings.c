@@ -728,10 +728,6 @@ const clivalue_t valueTable[] = {
     { "rc_smoothing_debug_axis",    VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RC_SMOOTHING_DEBUG }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_debug_axis) },
     { "rc_smoothing_auto_smoothness",VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { RC_SMOOTHING_AUTO_FACTOR_MIN, RC_SMOOTHING_AUTO_FACTOR_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_auto_factor) },
 #endif // USE_RC_SMOOTHING_FILTER
-    { "rc_predictor_percent",       VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 100 }, PG_RX_CONFIG, offsetof(rxConfig_t, predictive_rc_percent) },
-    { "rc_predictor_velocity_hz",   VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, predictive_rc_cutoff) },
-    { "rc_predictor_time",          VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 10, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, predictive_rc_time) },
-
     { "fpv_mix_degrees",            VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 90 }, PG_RX_CONFIG, offsetof(rxConfig_t, fpvCamAngleDegrees) },
     { "yaw_around_gravity",         VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_RX_CONFIG, offsetof(rxConfig_t, yawAroundGravity) },
     { "max_aux_channels",           VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, MAX_AUX_CHANNEL_COUNT }, PG_RX_CONFIG, offsetof(rxConfig_t, max_aux_channel) },

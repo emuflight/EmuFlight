@@ -71,10 +71,6 @@ typedef struct rxConfig_s {
     uint32_t msp_override_channels_mask; // Channels to override when the MSP override mode is enabled
 
     uint8_t showAlteredRc;               // allow you to see rate dynamics in the configurator
-
-    uint8_t predictive_rc_cutoff;
-    uint8_t predictive_rc_percent;
-    uint8_t predictive_rc_time;
 } rxConfig_t;
 
 PG_DECLARE(rxConfig_t, rxConfig);

@@ -74,9 +74,6 @@ void pgResetFn_rxConfig(rxConfig_t *rxConfig)
         .crsf_use_rx_snr = false,
         .msp_override_channels_mask = 0,
         .showAlteredRc = 0,
-        .predictive_rc_cutoff = 25,
-        .predictive_rc_percent = 100,
-        .predictive_rc_time = 50,
     );
 
 #ifdef RX_CHANNELS_TAER
