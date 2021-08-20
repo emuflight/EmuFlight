@@ -58,6 +58,11 @@ typedef enum {
     CENTERED
 } rollPitchStatus_e;
 
+typedef enum {
+    OFF,
+    ON
+} rcSmoothingMode_e;
+
 #define ROL_LO (1 << (2 * ROLL))
 #define ROL_CE (3 << (2 * ROLL))
 #define ROL_HI (2 << (2 * ROLL))

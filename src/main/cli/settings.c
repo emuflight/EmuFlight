@@ -441,7 +441,7 @@ static const char * const lookupTableOffOnAuto[] = {
 };
 
 const char* const lookupTableFeedforwardAveraging[] = {
-    "OFF", "2_POINT", "3_POINT", "4_POINT"
+    "NONE", "2_POINT", "3_POINT", "4_POINT"
 };
 
 static const char* const lookupTableDshotBitbangedTimer[] = {
