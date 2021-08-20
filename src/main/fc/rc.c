@@ -59,7 +59,6 @@ typedef float (applyRatesFn)(const int axis, float rcCommandf, const float rcCom
 
 #ifdef USE_FEEDFORWARD
 static float oldRcCommand[XYZ_AXIS_COUNT];
-static bool isDuplicate[XYZ_AXIS_COUNT];
 float rcCommandDelta[XYZ_AXIS_COUNT];
 #endif
 #ifdef USE_RC_SMOOTHING_FILTER
@@ -246,8 +245,8 @@ static void scaleSetpointToFpvCamAngle(void)
 
     float roll = setpointRate[ROLL];
     float yaw = setpointRate[YAW];
-    setpointRate[ROLL] = constrainf(roll * cosFactor -  yaw * sinFactor, -(float)SETPOINT_RATE_LIMIT, (float)SETPOINT_RATE_LIMIT);
-    setpointRate[YAW]  = constrainf(yaw  * cosFactor + roll * sinFactor, -(float)SETPOINT_RATE_LIMIT, (float)SETPOINT_RATE_LIMIT);
+    setpointRate[ROLL] = constrainf(roll * cosFactor -  yaw * sinFactor, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
+    setpointRate[YAW]  = constrainf(yaw  * cosFactor + roll * sinFactor, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
 }
 
 #define THROTTLE_BUFFER_MAX 20
@@ -337,15 +336,15 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
         for (int i = 0; i < PRIMARY_CHANNEL_COUNT; i++) {
             if (i < THROTTLE) { // Throttle handled by smoothing rcCommand
                 if (!smoothingData->filterInitialized) {
-                    ptnFilterInit(&smoothingData->filter[i], 3, smoothingData->setpointCutoffFrequency, dT);
+                    pt3FilterInit(&smoothingData->filter[i], pt3FilterGain(smoothingData->setpointCutoffFrequency, dT));
                 } else {
-                    ptnFilterUpdate(&smoothingData->filter[i], smoothingData->setpointCutoffFrequency, dT);
+                    pt3FilterUpdateCutoff(&smoothingData->filter[i], pt3FilterGain(smoothingData->setpointCutoffFrequency, dT));
                 }
             } else {
                 if (!smoothingData->filterInitialized) {
-                    ptnFilterInit(&smoothingData->filter[i], 3, smoothingData->throttleCutoffFrequency, dT);
+                    ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], 3, smoothingData->throttleCutoffFrequency, dT);
                 } else {
-                    ptnFilterUpdate(&smoothingData->filter[i], smoothingData->throttleCutoffFrequency, dT);
+                    ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->throttleCutoffFrequency, dT);
                 }
             }
         }
@@ -605,10 +604,6 @@ FAST_CODE void processRcCommand(timeUs_t currentTimeUs)
         checkForThrottleErrorResetState(currentRxRefreshRate);
     }
 
-#ifdef USE_RC_PREDICTOR
-    rcPrediction(currentTimeUs);
-#endif // USE_RC_PREDICTOR
-
 #ifdef USE_RC_SMOOTHING_FILTER
     processRcSmoothingFilter();
 #endif
@@ -650,17 +645,17 @@ FAST_CODE void processRcCommand(timeUs_t currentTimeUs)
                 angleRateRaw = applyRates(axis, rcCommandRaw, fabsf(rcCommandRaw));
             }
 
-            setpointRate[axis] = constrainf(angleRate, -(float)SETPOINT_RATE_LIMIT, (float)SETPOINT_RATE_LIMIT);
-            rawSetpoint[axis] = constrainf(angleRateRaw, -(float)SETPOINT_RATE_LIMIT, (float)SETPOINT_RATE_LIMIT);
+            setpointRate[axis] = constrainf(angleRate, -(float)currentControlRateProfile->rate_limit[axis], (float)currentControlRateProfile->rate_limit[axis]);
+            rawSetpoint[axis] = constrainf(angleRateRaw, -(float)currentControlRateProfile->rate_limit[axis], (float)currentControlRateProfile->rate_limit[axis]);
 
             DEBUG_SET(DEBUG_ANGLERATE, axis, angleRate);
         }
 
-        // adjust un-filtered setpoint steps to camera angle (mixing Roll and Yaw)
-        if (rxConfig()->fpvCamAngleDegrees && IS_RC_MODE_ACTIVE(BOXFPVANGLEMIX) && !FLIGHT_MODE(HEADFREE_MODE)) {
-            scaleSetpointToFpvCamAngle();
-        }
+    // adjust un-filtered setpoint steps to camera angle (mixing Roll and Yaw)
+    if (rxConfig()->fpvCamAngleDegrees && IS_RC_MODE_ACTIVE(BOXFPVANGLEMIX) && !FLIGHT_MODE(HEADFREE_MODE)) {
+        scaleSetpointToFpvCamAngle();
     }
+
     isRxDataNew = false;
 }
 

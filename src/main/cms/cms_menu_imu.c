@@ -676,7 +676,7 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "TPA D",       OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &cmsx_dynThrD,           0,  200,  1, 10}, 0 },
     { "TPA BRKPT",   OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_tpaBreakpoint,      1000,  2000, 10}, 0 },
 
-    { "FF TRANSITION", OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_feedforwardTransition,  0,    100,   1, 10 }, 0 },
+    { "FF TRANSITION", OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_feedForwardTransition,  0,    100,   1, 10 }, 0 },
 #ifdef USE_FEEDFORWARD
     { "FF AVERAGING",  OME_TAB,    NULL, &(OSD_TAB_t)    { &cmsx_feedforward_averaging,         4, lookupTableFeedforwardAveraging}, 0 },
     { "FF SMOOTHNESS", OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_feedforward_smooth_factor,     0,     75,   1  }   , 0 },

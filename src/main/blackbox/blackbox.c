@@ -1390,7 +1390,7 @@ static bool blackboxWriteSysinfo(void)
         BLACKBOX_PRINT_HEADER_LINE("emuBoostY", "%d",                       currentPidProfile->emuBoostY);
         BLACKBOX_PRINT_HEADER_LINE("d_boost", "%d",                         currentPidProfile->dtermBoost);
 
-        BLACKBOX_PRINT_HEADER_LINE("ff_transition", "%d",                   currentPidProfile->feedforwardTransition);
+        BLACKBOX_PRINT_HEADER_LINE("ff_transition", "%d",                   currentPidProfile->feedForwardTransition);
         BLACKBOX_PRINT_HEADER_LINE("ff_weight", "%d,%d,%d",                 currentPidProfile->pid[PID_ROLL].F,
                                                                             currentPidProfile->pid[PID_PITCH].F,
                                                                             currentPidProfile->pid[PID_YAW].F);
