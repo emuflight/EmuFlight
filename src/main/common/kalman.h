@@ -23,7 +23,7 @@
 #include "sensors/gyro.h"
 #include "filter.h"
 
-#define MAX_KALMAN_WINDOW_SIZE 100
+#define MAX_KALMAN_WINDOW_SIZE 64
 
 #define VARIANCE_SCALE 1.0f
 

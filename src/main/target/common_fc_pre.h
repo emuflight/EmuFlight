@@ -125,8 +125,8 @@
 #define USE_BRUSHED_ESC_AUTODETECT  // Detect if brushed motors are connected and set defaults appropriately to avoid motors spinning on boot
 #define USE_CLI
 #define USE_GYRO_REGISTER_DUMP  // Adds gyroregisters command to cli to dump configured register values
-#define USE_PPM
-#define USE_PWM
+//#define USE_PPM
+//#define USE_PWM
 #define USE_SERIAL_RX
 #define USE_SERIALRX_CRSF       // Team Black Sheep Crossfire protocol
 #define USE_SERIALRX_GHST       // ImmersionRC Ghost Protocol
@@ -202,28 +202,28 @@
 #define USE_SPEKTRUM_RSSI_PERCENT_CONVERSION
 #define USE_SPEKTRUM_VTX_CONTROL
 #define USE_SPEKTRUM_VTX_TELEMETRY
-#define USE_SPEKTRUM_CMS_TELEMETRY
+//#define USE_SPEKTRUM_CMS_TELEMETRY
 #endif
-#define USE_OVERCLOCK
+//#define USE_OVERCLOCK
 #endif
 
 #if (FLASH_SIZE > 256)
-#define USE_SERVOS
+//#define USE_SERVOS
 #define USE_LED_STRIP
 // #define USE_ALT_HOLD
-#define USE_DASHBOARD
+//#define USE_DASHBOARD
 // #define USE_GPS
 // #define USE_GPS_NMEA
 // #define USE_GPS_UBLOX
 // #define USE_GPS_RESCUE
 #define USE_OSD
-#define USE_OSD_OVER_MSP_DISPLAYPORT
-#define USE_OSD_ADJUSTMENTS
+//#define USE_OSD_OVER_MSP_DISPLAYPORT
+//#define USE_OSD_ADJUSTMENTS
 //#define USE_SENSOR_NAMES
 #define USE_SERIALRX_JETIEXBUS
 #define USE_TELEMETRY_IBUS
-#define USE_TELEMETRY_IBUS_EXTENDED
-#define USE_TELEMETRY_JETIEXBUS
+//#define USE_TELEMETRY_IBUS_EXTENDED
+//#define USE_TELEMETRY_JETIEXBUS
 // #define USE_TELEMETRY_MAVLINK
 // #define USE_UNCOMMON_MIXERS
 // #define USE_SIGNATURE

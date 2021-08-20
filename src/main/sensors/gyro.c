@@ -840,6 +840,9 @@ void smithPredictorInit(gyroSensor_t *gyroSensor) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
             gyroSensor->smithPredictor[axis].enabled = gyroConfig()->smithPredictorEnabled;
             gyroSensor->smithPredictor[axis].samples = gyroConfig()->smithPredictorDelay / (gyro.targetLooptime / 100.0f);
+            if (gyroSensor->smithPredictor[axis].samples > MAX_SMITH_SAMPLES) {
+              gyroSensor->smithPredictor[axis].samples = MAX_SMITH_SAMPLES;
+            }
             gyroSensor->smithPredictor[axis].idx = 0;
             gyroSensor->smithPredictor[axis].smithPredictorStrength = gyroConfig()->smithPredictorStrength / 100.0f;
             pt1FilterInit(&gyroSensor->smithPredictor[axis].smithPredictorFilter, pt1FilterGain(gyroConfig()->smithPredictorFilterHz, gyro.targetLooptime * 1e-6f));

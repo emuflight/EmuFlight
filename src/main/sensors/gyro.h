@@ -29,7 +29,7 @@
 #include "drivers/sensor.h"
 
 #ifdef USE_SMITH_PREDICTOR
-#define MAX_SMITH_SAMPLES 12 * 32
+#define MAX_SMITH_SAMPLES 12 * 4
 #endif // USE_SMITH_PREDICTOR
 
 extern float vGyroStdDevModulus;
