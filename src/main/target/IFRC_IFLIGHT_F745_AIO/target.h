@@ -49,7 +49,7 @@
 #define USE_MAG
 #define USE_MAG_HMC5883
 #define USE_MAG_QMC5883
-#define MAG_I2C_INSTANCE           (I2CDEV_1)
+#define MAG_I2C_INSTANCE           (I2CDEV_2)
 
 //#define MAG_HMC5883_ALIGN CW270_DEG_FLIP
 //#define MAG_HMC5883_ALIGN CW90_DEG
@@ -57,6 +57,7 @@
 #define USE_BARO
 #define USE_BARO_MS5611
 #define USE_BARO_BMP280
+#define USE_BARO_DPS310
 #define BARO_I2C_INSTANCE           (I2CDEV_1)
 
 #define USABLE_TIMER_CHANNEL_COUNT 14
@@ -81,38 +82,22 @@
 #define UART4_RX_PIN PA1
 #define UART4_TX_PIN PA0
 
-#define USE_UART6
-#define UART6_RX_PIN PC7
-#define UART6_TX_PIN PC6
-
 #define USE_UART7
 #define UART7_RX_PIN PE7
 #define UART7_TX_PIN PE8
 
-#define USE_UART8
-#define UART8_RX_PIN PE0
-#define UART8_TX_PIN PC4
-
-#define USE_SOFTSERIAL1
-#define USE_SOFTSERIAL2
-
-#define SERIAL_PORT_COUNT 10 //VCP, USART1, USART2, USART3, UART4, UART5, USART6, USART7, USART8, SOFTSERIAL x 2
+#define SERIAL_PORT_COUNT 6 //VCP, USART1, USART2, USART3, UART4, USART7
 
 #define USE_ESCSERIAL
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
-#define USE_SPI_DEVICE_2
 #define USE_SPI_DEVICE_3
 #define USE_SPI_DEVICE_4
 
 #define SPI1_SCK_PIN            PA5
 #define SPI1_MISO_PIN           PA6
 #define SPI1_MOSI_PIN           PA7
-
-#define SPI2_SCK_PIN            PB13
-#define SPI2_MISO_PIN           PB14
-#define SPI2_MOSI_PIN           PB15
 
 #define SPI3_SCK_PIN            PC10
 #define SPI3_MISO_PIN           PC11
@@ -135,7 +120,7 @@
 #define FLASH_SPI_INSTANCE      SPI3
 
 #define USE_I2C
-#define USE_I2C_DEVICE_1  // External I2C
+#define USE_I2C_DEVICE_1
 #define I2C_DEVICE                  (I2CDEV_1)
 #define I2C1_SCL               PB8
 #define I2C1_SDA               PB9
@@ -146,7 +131,6 @@
 #define RSSI_ADC_PIN                PC5
 
 #define USE_LED_STRIP
-#define WS2811_PIN                  PD12
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
@@ -157,4 +141,4 @@
 #define TARGET_IO_PORTD 0xffff
 #define TARGET_IO_PORTE 0xffff
 
-#define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(9) )
+#define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9) )

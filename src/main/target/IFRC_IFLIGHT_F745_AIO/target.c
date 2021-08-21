@@ -34,15 +34,6 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM3,  CH3, PB0,  TIM_USE_MOTOR,               0, 0 ), // S10_OUT 1 DMA1_ST7
     DEF_TIM(TIM3,  CH4, PB1,  TIM_USE_MOTOR,               0, 0 ), // S6_OUT  2 DMA1_ST0
     DEF_TIM(TIM1,  CH1, PE9,  TIM_USE_MOTOR,               0, 2 ), // S2_OUT  3 DMA1_ST4
-    DEF_TIM(TIM1,  CH2, PE11,  TIM_USE_MOTOR,               0, 1 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
-
-    DEF_TIM(TIM8,  CH3, PC8,  TIM_USE_ANY,               0, 1 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
-    DEF_TIM(TIM1,  CH3, PE13,  TIM_USE_ANY,               0, 1 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
-    DEF_TIM(TIM2,  CH3, PB10,  TIM_USE_ANY,               0, 0 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
-    DEF_TIM(TIM2,  CH4, PB11,  TIM_USE_ANY,               0, 0 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
-    DEF_TIM(TIM8,  CH1, PC6,  TIM_USE_ANY,               0, 0 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
-    DEF_TIM(TIM8,  CH2, PC7,  TIM_USE_ANY,               0, 1 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
-    DEF_TIM(TIM2,  CH4, PA3,  TIM_USE_ANY,               0, 0 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
-    DEF_TIM(TIM9,  CH1, PA2,  TIM_USE_ANY,               0, 0 ), // S1_OUT  4 DMA1_ST1 DMA1_ST3
+    DEF_TIM(TIM1,  CH2, PE11,  TIM_USE_MOTOR,               0, 1 ), // S1_OUT  4 DMA1_ST1
 
     };
