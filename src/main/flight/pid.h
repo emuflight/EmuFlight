@@ -96,6 +96,7 @@ typedef struct pidProfile_s {
     dFilter_t dFilter[3];
 
     uint8_t dterm_filter_type;              // Filter selection for dterm
+    uint8_t dterm_filter2_type;              // Filter selection for dterm
     uint8_t itermWindupPointPercent;        // Experimental ITerm windup threshold, percent motor saturation
     uint16_t pidSumLimit;
     uint16_t pidSumLimitYaw;
@@ -154,6 +155,8 @@ typedef struct pidProfile_s {
     uint16_t dterm_ABG_alpha;
     uint16_t dterm_ABG_boost;
     uint8_t dterm_ABG_half_life;
+    uint8_t dtermDynNotch;
+    uint16_t dterm_dyn_notch_q;
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE

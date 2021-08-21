@@ -133,7 +133,8 @@ typedef struct gyroConfig_s {
     int16_t  yaw_spin_threshold;
 
     uint16_t gyroCalibrationDuration;  // Gyro calibration duration in 1/100 second
-    uint16_t dyn_notch_q_factor;
+    uint16_t dyn_notch_q;
+    uint8_t dyn_notch_count;
     uint16_t dyn_notch_min_hz;
     uint16_t dyn_notch_max_hz;
 #if defined(USE_GYRO_IMUF9001)
@@ -143,7 +144,7 @@ typedef struct gyroConfig_s {
     uint16_t imuf_roll_lpf_cutoff_hz;
     uint16_t imuf_yaw_lpf_cutoff_hz;
     uint16_t imuf_acc_lpf_cutoff_hz;
-    uint16_t imuf_sharpness;
+    uint8_t imuf_ptn_order;
 #endif
     uint16_t imuf_pitch_q;
     uint16_t imuf_roll_q;
@@ -153,7 +154,7 @@ typedef struct gyroConfig_s {
     uint8_t smithPredictorEnabled;
     uint8_t smithPredictorStrength;
     uint8_t smithPredictorDelay;
-    uint16_t smithPredictorFilterHz;
+    uint8_t smithPredictorFilterHz;
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);
@@ -184,3 +185,4 @@ bool gyroYawSpinDetected(void);
 uint16_t gyroAbsRateDps(int axis);
 uint8_t gyroReadRegister(uint8_t whichSensor, uint8_t reg);
 float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered);
+bool isDynamicFilterActive(void);

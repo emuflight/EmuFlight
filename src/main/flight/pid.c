@@ -58,6 +58,10 @@
 #include "sensors/acceleration.h"
 #include "sensors/battery.h"
 
+#ifdef USE_GYRO_DATA_ANALYSE
+#include "sensors/gyroanalyse.h"
+#endif
+
 const char pidNames[] =
     "ROLL;"
     "PITCH;"
@@ -132,6 +136,7 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .pidSumLimit = PIDSUM_LIMIT_MAX,
     .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
     .dterm_filter_type = FILTER_PT1,
+    .dterm_filter2_type = FILTER_PT1,
     .itermWindupPointPercent = 70,
     .pidAtMinThrottle = PID_STABILISATION_ON,
     .levelAngleLimit = 45,
@@ -175,23 +180,25 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .iterm_relax_threshold_yaw = 35,
     .motor_output_limit = 100,
     .auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY,
-    .horizon_tilt_effect = 80,
+    .horizon_tilt_effect = 90,
     .horizonTransition = 0,
     .axis_lock_hz = 2,
     .axis_lock_multiplier = 0,
     .linear_thrust_low_output = 65,
     .linear_thrust_high_output = 0,
     .linear_throttle = false,
-    .mixer_impl = MIXER_IMPL_LEGACY,
+    .mixer_impl = MIXER_IMPL_2PASS,
     .mixer_laziness = false,
     .mixer_yaw_throttle_comp = true,
-    .horizonStrength = 15,
+    .horizonStrength = 50,
     .directFF_yaw = 15,
     .dterm_ABG_alpha = 0,
     .dterm_ABG_boost = 275,
     .dterm_ABG_half_life = 50,
     .emuGravityGain = 50,
     .angle_filter = 100,
+    .dtermDynNotch = false,
+    .dterm_dyn_notch_q = 400,
                 );
 }
 
@@ -228,6 +235,7 @@ static FAST_RAM filterApplyFnPtr angleSetpointFilterApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT pt1Filter_t angleSetpointFilter[2];
 static FAST_RAM filterApplyFnPtr dtermABGapplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT alphaBetaGammaFilter_t dtermABG[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT biquadFilter_t dtermNotch[XYZ_AXIS_COUNT][5];
 
 #if defined(USE_ITERM_RELAX)
 static FAST_RAM_ZERO_INIT pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
@@ -246,6 +254,7 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
     dtermLowpassApplyFn = nullFilterApply;
     dtermLowpass2ApplyFn = nullFilterApply;
     angleSetpointFilterApplyFn = nullFilterApply;
+
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         if (pidProfile->dFilter[axis].dLpf && pidProfile->dFilter[axis].dLpf <= pidFrequencyNyquist) {
             switch (pidProfile->dterm_filter_type) {
@@ -271,23 +280,24 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 break;
             }
         }
+
         if (pidProfile->dFilter[axis].dLpf2 && pidProfile->dFilter[axis].dLpf2 <= pidFrequencyNyquist) {
-            switch (pidProfile->dterm_filter_type) {
+            switch (pidProfile->dterm_filter2_type) {
             case FILTER_BIQUAD:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)biquadFilterApply;
                 biquadFilterInitLPF(&dtermLowpass2[axis].biquadFilter, pidProfile->dFilter[axis].dLpf2, targetPidLooptime);
                 break;
             case FILTER_PT4:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
-                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 4, pidProfile->dFilter[axis].dLpf2, dT);
+                ptnFilterInit(&dtermLowpass2[axis].ptnFilter, 4, pidProfile->dFilter[axis].dLpf2, dT);
                 break;
             case FILTER_PT3:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
-                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 3, pidProfile->dFilter[axis].dLpf2, dT);
+                ptnFilterInit(&dtermLowpass2[axis].ptnFilter, 3, pidProfile->dFilter[axis].dLpf2, dT);
                 break;
             case FILTER_PT2:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
-                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 2, pidProfile->dFilter[axis].dLpf2, dT);
+                ptnFilterInit(&dtermLowpass2[axis].ptnFilter, 2, pidProfile->dFilter[axis].dLpf2, dT);
                 break;
             default: // case FILTER_PT1:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)pt1FilterApply;
@@ -295,15 +305,24 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 break;
             }
         }
+
         if (pidProfile->angle_filter) {
             angleSetpointFilterApplyFn = (filterApplyFnPtr)pt1FilterApply;
             pt1FilterInit(&angleSetpointFilter[axis], pt1FilterGain(pidProfile->angle_filter, dT));
         }
+
         if (pidProfile->dterm_ABG_alpha) {
             dtermABGapplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
             ABGInit(&dtermABG[axis], pidProfile->dterm_ABG_alpha, pidProfile->dterm_ABG_boost, pidProfile->dterm_ABG_half_life, dT);
         }
+
+        if (isDynamicFilterActive()) {
+            for (int axis2 = 0; axis2 < gyroConfig()->dyn_notch_count; axis2++) {
+                biquadFilterInit(&dtermNotch[axis][axis2], 400, targetPidLooptime, gyroConfig()->dyn_notch_q / 100.0f, FILTER_NOTCH);
+            }
+        }
     }
+
 #if defined(USE_THROTTLE_BOOST)
     pt1FilterInit(&throttleLpf, pt1FilterGain(pidProfile->throttle_boost_cutoff, dT));
 #endif
@@ -333,7 +352,6 @@ static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float directFF[3];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feathered_pids;
-static FAST_RAM_ZERO_INIT float smart_dterm_smoothing[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointITransition[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float setPointDTransition[XYZ_AXIS_COUNT];
@@ -433,12 +451,11 @@ void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex) {
 }
 
 // calculates strength of horizon leveling; 0 = none, 1.0 = most leveling
-static float calcHorizonLevelStrength(void) {
+static float calcHorizonLevelStrength(int axis) {
     float horizonLevelStrength;
     // 0 at level, 90 at vertical, 180 at inverted (degrees):
     const float currentInclination = RADIANS_TO_DEGREES(acos_approx(howUpsideDown()));
-    DEBUG_SET(DEBUG_HORIZON, 0, lrintf(howUpsideDown() * 1000));
-    DEBUG_SET(DEBUG_HORIZON, 1, lrintf(currentInclination * 10));
+
     // Used as a factor in the numerator of inclinationLevelRatio - this will cause the entry point of the fade of leveling strength to be adjustable via horizon transition in configurator for RACEMODEhorizon
     const float racemodeHorizonTransitionFactor = horizonCutoffDegrees / (horizonCutoffDegrees - horizonTransition);
     // Used as a factor in the numerator of inclinationLevelRatio - this will cause the fade of leveling strength to start at levelAngleLimit for RACEMODEangle
@@ -455,6 +472,13 @@ static float calcHorizonLevelStrength(void) {
         // if racemode_tilt_effect = 0 or horizonTransition>racemode_tilt_effect means no leveling
         horizonLevelStrength = 1;
     }
+
+    if (axis == FD_ROLL) {
+        DEBUG_SET(DEBUG_HORIZON, 0, lrintf(howUpsideDown() * 1000));
+        DEBUG_SET(DEBUG_HORIZON, 1, lrintf(currentInclination * 10));
+        DEBUG_SET(DEBUG_HORIZON, 2, lrintf(horizonLevelStrength * 1000));
+    }
+
     return constrainf(horizonLevelStrength, 0, 1);
 }
 
@@ -464,16 +488,27 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     static float attitudePrevious[2], previousAngle[2];
     float p_term_low, p_term_high, d_term_low, d_term_high, f_term_low, currentAngle, scaledRcDeflection, scaledAngle = 0.0f;
 
-    if (getRcDeflection(axis) !=0) {
-        scaledRcDeflection = getRcDeflection(axis) / (getRcDeflectionAbs(FD_PITCH) + getRcDeflectionAbs(FD_ROLL));
+    if (getRcDeflection(axis) != 0) {
+        scaledRcDeflection = getRcDeflectionAbs(axis) / (getRcDeflectionAbs(FD_PITCH) + getRcDeflectionAbs(FD_ROLL));
     } else {
         scaledRcDeflection = 0.0f;
     }
 
-    float angle = pidProfile->levelAngleLimit * getRcDeflection(axis) * scaledRcDeflection;
-    if (pidProfile->angleExpo > 0) {
-        const float expof = pidProfile->angleExpo / 100.0f;
-        angle = pidProfile->levelAngleLimit * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
+    float angle;
+    if (!FLIGHT_MODE(HORIZON_MODE)) {
+      if (pidProfile->angleExpo > 0) {
+          const float expof = pidProfile->angleExpo / 100.0f;
+          angle = pidProfile->levelAngleLimit * scaledRcDeflection * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
+      } else {
+          angle = pidProfile->levelAngleLimit * scaledRcDeflection * getRcDeflection(axis);
+      }
+    } else {
+      if (pidProfile->angleExpo > 0) {
+          const float expof = pidProfile->angleExpo / 100.0f;
+          angle = horizonCutoffDegrees * scaledRcDeflection * (getRcDeflection(axis) * power3(getRcDeflectionAbs(axis)) * expof + getRcDeflection(axis) * (1 - expof));
+      } else {
+          angle = horizonCutoffDegrees * scaledRcDeflection * getRcDeflection(axis);
+      }
     }
 #ifdef USE_GPS_RESCUE
     angle += gpsRescueAngle[axis] / 100; // ANGLE IS IN CENTIDEGREES
@@ -481,7 +516,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     f_term_low = (angle - previousAngle[axis]) * F_angle / dT;
 
     previousAngle[axis] = angle;
-    angle = constrainf(angle, -pidProfile->levelAngleLimit, pidProfile->levelAngleLimit);
+    angle = constrainf(angle, -90.0f, 90.0f);
 
     if (FLIGHT_MODE(NFE_RACE_MODE)) { // nfe only effects the roll axis, this allows you to go upside down and still have roll correction.
         currentAngle = ((getAngleModeAngles(axis) - angleTrim->raw[axis]) * 0.1f);
@@ -511,12 +546,17 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     currentPidSetpoint = p_term_low + p_term_high;
     currentPidSetpoint += d_term_low + d_term_high;
     currentPidSetpoint += f_term_low;
+
     if (FLIGHT_MODE(HORIZON_MODE)) {
         // HORIZON mode - mix of ANGLE and ACRO modes
         // mix in errorAngle to currentPidSetpoint to add a little auto-level feel
-        const float horizonLevelStrength = calcHorizonLevelStrength();
+        const float horizonLevelStrength = calcHorizonLevelStrength(axis);
         currentPidSetpoint = ((getSetpointRate(axis) * (1 - horizonLevelStrength)) + getSetpointRate(axis)) * 0.5f + (currentPidSetpoint * horizonLevelStrength * horizonStrength);
+        if (axis == FD_ROLL) {
+            DEBUG_SET(DEBUG_HORIZON, 3, lrintf(currentPidSetpoint * 10));
+        }
     }
+
     currentPidSetpoint = angleSetpointFilterApplyFn((filter_t *)&angleSetpointFilter[axis], currentPidSetpoint);
     directFF[axis] = (1 - fabsf(errorAnglePercent)) * DF_angle_low;
     directFF[axis] += fabsf(errorAnglePercent) * DF_angle_high;
@@ -636,10 +676,7 @@ static FAST_RAM_ZERO_INIT float stickMovement[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float lastRcDeflectionAbs[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float previousdDelta[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT float kdRingBuffer[XYZ_AXIS_COUNT][KD_RING_BUFFER_SIZE];
-static FAST_RAM_ZERO_INIT float kdRingBufferSum[XYZ_AXIS_COUNT];
-static FAST_RAM_ZERO_INIT uint8_t kdRingBufferPoint[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float previousNotchCenterFreq[XYZ_AXIS_COUNT][5];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs) {
@@ -778,6 +815,17 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             previousError[axis] = errorRate;
             float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
             //filter the dterm
+#ifdef USE_GYRO_DATA_ANALYSE
+            if (isDynamicFilterActive() && pidProfile->dtermDynNotch) {
+                for (int p = 0; p < gyroConfig()->dyn_notch_count; p++) {
+                    if (getCenterFreq(axis, p) != previousNotchCenterFreq[axis][p]) {
+                        previousNotchCenterFreq[axis][p] = getCenterFreq(axis, p);
+                        biquadFilterUpdate(&dtermNotch[axis][p], previousNotchCenterFreq[axis][p], targetPidLooptime, pidProfile->dterm_dyn_notch_q / 100.0f, FILTER_NOTCH);
+                    }
+                    dDelta = biquadFilterApplyDF1(&dtermNotch[axis][p], dDelta);
+                }
+            }
+#endif
             dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
             dDelta = dtermLowpass2ApplyFn((filter_t *)&dtermLowpass2[axis], dDelta);
             dDelta = dtermABGapplyFn((filter_t *)&dtermABG[axis], dDelta);
