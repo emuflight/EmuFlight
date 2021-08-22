@@ -86,10 +86,8 @@ typedef struct pidf_s {
 } pidf_t;
 
 typedef struct dFilter_s {
-    uint8_t Wc;
     uint16_t dLpf;
     uint16_t dLpf2;
-    uint8_t smartSmoothing;
 } dFilter_t;
 
 typedef struct pidProfile_s {
@@ -98,6 +96,7 @@ typedef struct pidProfile_s {
     dFilter_t dFilter[3];
 
     uint8_t dterm_filter_type;              // Filter selection for dterm
+    uint8_t dterm_filter2_type;              // Filter selection for dterm
     uint8_t itermWindupPointPercent;        // Experimental ITerm windup threshold, percent motor saturation
     uint16_t pidSumLimit;
     uint16_t pidSumLimitYaw;
@@ -156,6 +155,8 @@ typedef struct pidProfile_s {
     uint16_t dterm_ABG_alpha;
     uint16_t dterm_ABG_boost;
     uint8_t dterm_ABG_half_life;
+    uint8_t dtermDynNotch;
+    uint16_t dterm_dyn_notch_q;
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE
@@ -198,7 +199,5 @@ void pidInitConfig(const pidProfile_t *pidProfile);
 void pidInit(const pidProfile_t *pidProfile);
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex);
 bool crashRecoveryModeActive(void);
-void pidInitSetpointDerivativeLpf(uint16_t filterCutoff, uint8_t debugAxis, uint8_t filterType);
-void pidUpdateSetpointDerivativeLpf(uint16_t filterCutoff);
 float pidGetPreviousSetpoint(int axis);
 void pidUpdateEmuGravityThrottleFilter(float throttle);

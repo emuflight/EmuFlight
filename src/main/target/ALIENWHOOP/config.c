@@ -122,7 +122,8 @@ void targetConfiguration(void) {
         pidProfile->pid[PID_LEVEL_LOW].I = 65;
         pidProfile->pid[PID_LEVEL_LOW].D = 55;
         /* Setpoints */
-        pidProfile->dterm_filter_type = FILTER_BIQUAD;
+        pidProfile->dterm_filter_type = FILTER_PT2;
+        pidProfile->dterm_filter2_type = FILTER_PT2;
         pidProfile->levelAngleLimit = 65;
     }
     for (uint8_t rateProfileIndex = 0; rateProfileIndex < CONTROL_RATE_PROFILE_COUNT; rateProfileIndex++) {
