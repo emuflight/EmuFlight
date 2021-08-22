@@ -30,28 +30,6 @@ void imufSpiAccInit(accDev_t *acc);
 void imufStartCalibration(void);
 void imufEndCalibration(void);
 
-#ifndef IMUF_DEFAULT_PITCH_Q
-#define IMUF_DEFAULT_PITCH_Q  3000
-#endif
-#ifndef IMUF_DEFAULT_ROLL_Q
-#define IMUF_DEFAULT_ROLL_Q  3000
-#endif
-#ifndef IMUF_DEFAULT_YAW_Q
-#define IMUF_DEFAULT_YAW_Q  3000
-#endif
-#ifndef IMUF_IMUF_W
-#define IMUF_IMUF_W  32
-#endif
-#ifndef IMUF_DEFAULT_ROLL_AF
-#define IMUF_DEFAULT_ROLL_AF  0
-#endif
-#ifndef IMUF_DEFAULT_PITCH_AF
-#define IMUF_DEFAULT_PITCH_AF  0
-#endif
-#ifndef IMUF_DEFAULT_YAW_AF
-#define IMUF_DEFAULT_YAW_AF  0
-#endif
-
 
 #define IMUF_FIRMWARE_MIN_VERSION  106
 extern volatile uint16_t imufCurrentVersion;
