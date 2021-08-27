@@ -65,8 +65,8 @@
 
 #include "fc/runtime_config.h"
 
-#ifdef USE_GYRO_DATA_ANALYSE
-#include "flight/gyroanalyse.h"
+#ifdef USE_DYN_NOTCH_FILTER
+#include "flight/dyn_notch_filter.h"
 #endif
 
 #include "pg/gyrodev.h"
@@ -76,11 +76,6 @@
 
 #ifdef USE_GYRO_IMUF9001
 #include "drivers/accgyro/accgyro_imuf9001.h"
-#endif
-
-#ifdef USE_GYRO_DATA_ANALYSE
-#define DYNAMIC_NOTCH_DEFAULT_CENTER_HZ 350
-#define DYNAMIC_NOTCH_DEFAULT_CUTOFF_HZ 300
 #endif
 
 #ifdef USE_MULTI_GYRO
@@ -120,24 +115,6 @@ static void gyroInitFilterNotch1(uint16_t notchHz, uint16_t notchCutoffHz)
     }
 }
 
-#ifdef USE_GYRO_DATA_ANALYSE
-static void gyroInitFilterDynamicNotch()
-{
-    gyro.notchFilterDynApplyFn = nullFilterApply;
-
-    if (isDynamicFilterActive()) {
-        gyro.notchFilterDynApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1; // must be this function, not DF2
-        gyro.notchFilterDynCount = gyroConfig()->dyn_notch_count;
-
-        const float notchQ = filterGetNotchQ(DYNAMIC_NOTCH_DEFAULT_CENTER_HZ, DYNAMIC_NOTCH_DEFAULT_CUTOFF_HZ); // any defaults OK here
-        for (uint8_t axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            for (uint8_t p = 0; p < gyro.notchFilterDynCount; p++) {
-                biquadFilterInit(&gyro.notchFilterDyn[axis][p], DYNAMIC_NOTCH_DEFAULT_CENTER_HZ, gyro.targetLooptime, notchQ, FILTER_NOTCH, 1.0f);
-            }
-        }
-    }
-}
-#endif
 
 static bool gyroInitLowpassFilterLpf(int type, int order, uint16_t lpfHz, uint32_t looptime)
 {
@@ -239,9 +216,6 @@ void gyroInitFilters(void)
     );
 
     gyroInitFilterNotch1(gyroConfig()->gyro_soft_notch_hz_1, gyroConfig()->gyro_soft_notch_cutoff_1);
-#ifdef USE_GYRO_DATA_ANALYSE
-    gyroInitFilterDynamicNotch();
-#endif
 #ifdef USE_DYN_LPF
     dynLpfFilterInit();
 #endif
@@ -250,8 +224,8 @@ void gyroInitFilters(void)
 #ifdef USE_SMITH_PREDICTOR
     smithPredictorInit();
 #endif // USE_SMITH_PREDICTOR
-#ifdef USE_GYRO_DATA_ANALYSE
-    gyroDataAnalyseInit(&gyro.gyroAnalyseState, gyro.targetLooptime);
+#ifdef USE_DYN_NOTCH_FILTER
+dynNotchInit(dynNotchConfig(), gyro.targetLooptime);
 #endif
 }
 

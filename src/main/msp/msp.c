@@ -116,6 +116,7 @@
 
 #include "pg/beeper.h"
 #include "pg/board.h"
+#include "pg/dyn_notch.h"
 #include "pg/gyrodev.h"
 #include "pg/motor.h"
 #include "pg/rx.h"
@@ -1776,11 +1777,11 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, 0);
 #endif
         // Added in MSP API 1.42
-#if defined(USE_GYRO_DATA_ANALYSE)
+#if defined(USE_DYN_NOTCH_FILTER)
         sbufWriteU8(dst, 0);  // DEPRECATED 1.43: dyn_notch_range
         sbufWriteU8(dst, 0);  // DEPRECATED 1.44: dyn_notch_width_percent
-        sbufWriteU16(dst, gyroConfig()->dyn_notch_q);
-        sbufWriteU16(dst, gyroConfig()->dyn_notch_min_hz);
+        sbufWriteU16(dst, dynNotchConfig()->dyn_notch_q);
+        sbufWriteU16(dst, dynNotchConfig()->dyn_notch_min_hz);
 #else
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
@@ -1794,9 +1795,9 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
 #endif
-#if defined(USE_GYRO_DATA_ANALYSE)
+#if defined(USE_DYN_NOTCH_FILTER)
         // Added in MSP API 1.43
-        sbufWriteU16(dst, gyroConfig()->dyn_notch_max_hz);
+        sbufWriteU16(dst, dynNotchConfig()->dyn_notch_max_hz);
 #else
         sbufWriteU16(dst, 0);
 #endif
@@ -1806,8 +1807,8 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
 #else
         sbufWriteU8(dst, 0);
 #endif
-#if defined(USE_GYRO_DATA_ANALYSE)
-        sbufWriteU8(dst, gyroConfig()->dyn_notch_count);
+#if defined(USE_DYN_NOTCH_FILTER)
+        sbufWriteU8(dst, dynNotchConfig()->dyn_notch_count);
 #else
         sbufWriteU8(dst, 0);
 #endif
@@ -2603,11 +2604,11 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
         }
         if (sbufBytesRemaining(src) >= 8) {
             // Added in MSP API 1.42
-#if defined(USE_GYRO_DATA_ANALYSE)
+#if defined(USE_DYN_NOTCH_FILTER)
             sbufReadU8(src); // DEPRECATED 1.43: dyn_notch_range
             sbufReadU8(src); // DEPRECATED 1.44: dyn_notch_width_percent
-            gyroConfigMutable()->dyn_notch_q = sbufReadU16(src);
-            gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
+            dynNotchConfigMutable()->dyn_notch_q = sbufReadU16(src);
+            dynNotchConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
 #else
             sbufReadU8(src);
             sbufReadU8(src);
@@ -2622,10 +2623,10 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
             sbufReadU8(src);
 #endif
         }
-        if (sbufBytesRemaining(src) >= 1) {
-#if defined(USE_GYRO_DATA_ANALYSE)
+        if (sbufBytesRemaining(src) >= 2) {
+#if defined(USE_DYN_NOTCH_FILTER)
             // Added in MSP API 1.43
-            gyroConfigMutable()->dyn_notch_max_hz = sbufReadU16(src);
+            dynNotchConfigMutable()->dyn_notch_max_hz = sbufReadU16(src);
 #else
             sbufReadU16(src);
 #endif
@@ -2637,8 +2638,8 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
 #else
             sbufReadU8(src);
 #endif
-#if defined(USE_GYRO_DATA_ANALYSE)
-            gyroConfigMutable()->dyn_notch_count = sbufReadU8(src);
+#if defined(USE_DYN_NOTCH_FILTER)
+            dynNotchConfigMutable()->dyn_notch_count = sbufReadU8(src);
 #else
             sbufReadU8(src);
 #endif

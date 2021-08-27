@@ -726,9 +726,9 @@ static CMS_Menu cmsx_menuProfileOther = {
     .entries = cmsx_menuProfileOtherEntries,
 };
 
-#ifdef USE_GYRO_DATA_ANALYSE
+#ifdef USE_DYN_NOTCH_FILTER
 static uint16_t dynFiltNotchMaxHz;
-static uint8_t  dynFiltCount;
+static uint8_t  dynFiltNotchCount;
 static uint16_t dynFiltNotchQ;
 static uint16_t dynFiltNotchMinHz;
 #endif
@@ -767,11 +767,11 @@ static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
     dynFiltGyroExpo  = gyroConfig()->dyn_lpf_curve_expo;
     dynFiltGyroGain  = gyroConfig()->dyn_lpf_gyro_gain;
 #endif
-#ifdef USE_GYRO_DATA_ANALYSE
-    dynFiltNotchMaxHz   = gyroConfig()->dyn_notch_max_hz;
-    dynFiltCount        = gyroConfig()->dyn_notch_count;
-    dynFiltNotchQ       = gyroConfig()->dyn_notch_q;
-    dynFiltNotchMinHz   = gyroConfig()->dyn_notch_min_hz;
+#ifdef USE_DYN_NOTCH_FILTER
+    dynFiltNotchMaxHz   = dynNotchConfig()->dyn_notch_max_hz;
+    dynFiltNotchCount   = dynNotchConfig()->dyn_notch_count;
+    dynFiltNotchQ       = dynNotchConfig()->dyn_notch_q;
+    dynFiltNotchMinHz   = dynNotchConfig()->dyn_notch_min_hz;
 #endif
 #ifndef USE_GYRO_IMUF9001
     gyroConfig_imuf_roll_q    = gyroConfig()->imuf_roll_q;
@@ -805,11 +805,11 @@ static const void *cmsx_menuGyro_onExit(displayPort_t *pDisp, const OSD_Entry *s
     gyroConfigMutable()->dyn_lpf_curve_expo  = dynFiltGyroExpo;
     gyroConfigMutable()->dyn_lpf_gyro_gain = dynFiltGyroGain;
 #endif
-#ifdef USE_GYRO_DATA_ANALYSE
-    gyroConfigMutable()->dyn_notch_max_hz        = dynFiltNotchMaxHz;
-    gyroConfigMutable()->dyn_notch_count         = dynFiltCount;
-    gyroConfigMutable()->dyn_notch_q             = dynFiltNotchQ;
-    gyroConfigMutable()->dyn_notch_min_hz        = dynFiltNotchMinHz;
+#ifdef USE_DYN_NOTCH_FILTER
+    dynNotchConfigMutable()->dyn_notch_max_hz        = dynFiltNotchMaxHz;
+    dynNotchConfigMutable()->dyn_notch_count         = dynFiltNotchCount;
+    dynNotchConfigMutable()->dyn_notch_q             = dynFiltNotchQ;
+    dynNotchConfigMutable()->dyn_notch_min_hz        = dynFiltNotchMinHz;
 #endif
 #ifndef USE_GYRO_IMUF9001
     gyroConfigMutable()->imuf_roll_q    = gyroConfig_imuf_roll_q;
@@ -843,10 +843,9 @@ static const OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "LPF GAIN",   OME_UINT8, NULL, &(OSD_UINT8_t) { &dynFiltGyroGain,   0, 200, 1 }, 0 },
     { "LPF TYPE",   OME_TAB,   NULL, &(OSD_TAB_t)   { &gyroConfig_lpf_type,     1, osdTableLpfType}, 0 },
     { "LPF TYPE",   OME_UINT8, NULL, &(OSD_UINT8_t) { &gyroConfig_lpf_order,    1, 4, 1}, 0 },
-
 #endif
-#ifdef USE_GYRO_DATA_ANALYSE
-    { "NOTCH COUNT",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &dynFiltCount,        1, DYN_NOTCH_COUNT_MAX, 1 }, 0 },
+#ifdef USE_DYN_NOTCH_FILTER
+    { "NOTCH COUNT",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &dynFiltNotchCount,   1, DYN_NOTCH_COUNT_MAX, 1 }, 0 },
     { "NOTCH Q",        OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltNotchQ,       1, 1000, 1 }, 0 },
     { "NOTCH MIN HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltNotchMinHz,   0, 1000, 1 }, 0 },
     { "NOTCH MAX HZ",   OME_UINT16, NULL, &(OSD_UINT16_t) { &dynFiltNotchMaxHz,   0, 1000, 1 }, 0 },
@@ -1065,7 +1064,6 @@ static const OSD_Entry cmsx_menuImuEntries[] =
     {"GYRO FILT",   OME_Submenu, cmsMenuChange,                 &cmsx_menuFilterGlobal,                                        0},
     {"ANGLE HORZN", OME_Submenu, cmsMenuChange,                 &cmsx_menuAngle,                                               0},
     {"MISC PP",     OME_Submenu, cmsMenuChange,                 &cmsx_menuProfileOther,                                        0},
-
     {"RATE PROF",   OME_UINT8,   cmsx_rateProfileIndexOnChange, &(OSD_UINT8_t){ &tmpRateProfileIndex, 1, CONTROL_RATE_PROFILE_COUNT, 1}, 0},
     {"RATE",        OME_Submenu, cmsMenuChange,                 &cmsx_menuRateProfile,                                         0},
 
