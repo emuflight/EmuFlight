@@ -561,11 +561,6 @@ static CMS_Menu cmsx_menuLaunchControl = {
 static uint8_t  cmsx_axis_lock_hz;
 static uint8_t  cmsx_axis_lock_mult;
 static uint8_t  cmsx_axis_smooth_mult;
-static uint8_t  cmsx_feedforwardTransition;
-static uint8_t  cmsx_feedforward_boost;
-#ifdef USE_FEEDFORWARD
-static uint8_t cmsx_feedforward_smooth_factor;
-#endif
 static uint8_t  cmsx_dynThrP;
 static uint8_t  cmsx_dynThrI;
 static uint8_t  cmsx_dynThrD;
@@ -582,6 +577,8 @@ static uint8_t  cmsx_vbat_sag_compensation;
 
 
 #ifdef USE_FEEDFORWARD
+static uint8_t cmsx_feedforward_transition;
+static uint8_t cmsx_feedforward_boost;
 static uint8_t cmsx_feedforward_averaging;
 static uint8_t cmsx_feedforward_smooth_factor;
 static uint8_t cmsx_feedforward_jitter_factor;
@@ -598,12 +595,6 @@ static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
     cmsx_axis_lock_mult = pidProfile->axis_lock_multiplier;
     cmsx_axis_smooth_mult = pidProfile->axis_smooth_multiplier;
 
-    cmsx_feedforwardTransition  = pidProfile->feedforwardTransition;
-    cmsx_feedforward_boost = pidProfile->feedforward_boost;
-#ifdef USE_FEEDFORWARD
-    cmsx_feedforward_smooth_factor = pidProfile->feedforward_smooth_factor;
-#endif
-
     cmsx_dynThrP                = pidProfile->dynThr[0];
     cmsx_dynThrI                = pidProfile->dynThr[1];
     cmsx_dynThrD                = pidProfile->dynThr[2];
@@ -618,7 +609,9 @@ static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
 
 
 #ifdef USE_FEEDFORWARD
+    cmsx_feedforward_transition  = pidProfile->feedforward_transition;
     cmsx_feedforward_averaging = pidProfile->feedforward_averaging;
+    cmsx_feedforward_boost = pidProfile->feedforward_boost;
     cmsx_feedforward_smooth_factor = pidProfile->feedforward_smooth_factor;
     cmsx_feedforward_jitter_factor = pidProfile->feedforward_jitter_factor;
 #endif
@@ -639,12 +632,6 @@ static const void *cmsx_profileOtherOnExit(displayPort_t *pDisp, const OSD_Entry
     pidProfile->axis_lock_multiplier = cmsx_axis_lock_mult;
     pidProfile->axis_smooth_multiplier = cmsx_axis_smooth_mult;
 
-    pidProfile->feedforwardTransition = cmsx_feedforwardTransition;
-    pidProfile->feedforward_boost = cmsx_feedforward_boost;
-#ifdef USE_FEEDFORWARD
-    pidProfile->feedforward_smooth_factor = cmsx_feedforward_smooth_factor;
-#endif
-
     pidProfile->dynThr[0] = cmsx_dynThrP;
     pidProfile->dynThr[1] = cmsx_dynThrI;
     pidProfile->dynThr[2] = cmsx_dynThrD;
@@ -659,7 +646,9 @@ static const void *cmsx_profileOtherOnExit(displayPort_t *pDisp, const OSD_Entry
 
 
 #ifdef USE_FEEDFORWARD
+    pidProfile->feedforward_transition = cmsx_feedforward_transition;
     pidProfile->feedforward_averaging = cmsx_feedforward_averaging;
+    pidProfile->feedforward_boost = cmsx_feedforward_boost;
     pidProfile->feedforward_smooth_factor = cmsx_feedforward_smooth_factor;
     pidProfile->feedforward_jitter_factor = cmsx_feedforward_jitter_factor;
 #endif
@@ -685,14 +674,13 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "TPA D",       OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &cmsx_dynThrD,           0,  200,  1, 10}, 0 },
     { "TPA BRKPT",   OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_tpaBreakpoint,      1000,  2000, 10}, 0 },
 
-    { "FF TRANSITION", OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_feedforwardTransition,  0,    100,   1, 10 }, 0 },
 #ifdef USE_FEEDFORWARD
+    { "FF TRANSITION", OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_feedforward_transition,        0,    100,   1, 10 }, 0 },
     { "FF AVERAGING",  OME_TAB,    NULL, &(OSD_TAB_t)    { &cmsx_feedforward_averaging,         4, lookupTableFeedforwardAveraging}, 0 },
     { "FF SMOOTHNESS", OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_feedforward_smooth_factor,     0,     75,   1  }   , 0 },
     { "FF JITTER",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_feedforward_jitter_factor,     0,     20,   1  }   , 0 },
+    { "FF BOOST",      OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_feedforward_boost,             0,     50,   1  }   , 0 },
 #endif
-    { "FF BOOST",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_feedforward_boost,               0,     50,   1  }   , 0 },
-
     { "AG GAIN",     OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_itermAcceleratorGain,   ITERM_ACCELERATOR_GAIN_OFF, ITERM_ACCELERATOR_GAIN_MAX, 10 }   , 0 },
 #ifdef USE_THROTTLE_BOOST
     { "THR BOOST",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_throttleBoost,          0,    100,   1  }   , 0 },

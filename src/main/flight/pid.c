@@ -83,7 +83,7 @@ FAST_DATA_ZERO_INIT float throttleBoost;
 pt1Filter_t throttleLpf;
 #endif
 
-PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
+PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 1);
 
 #if defined(STM32F1)
 #define PID_PROCESS_DENOM_DEFAULT       8
@@ -135,8 +135,8 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dterm_notch_cutoff = 0,
         .itermWindupPointPercent = 70,
         .pidAtMinThrottle = PID_STABILISATION_ON,
-        .levelAngleLimit = 45,
-        .feedforwardTransition = 0,
+        .levelAngleLimit = 55,
+        .feedforward_transition = 0,
         .itermThrottleThreshold = 250,
         .itermAcceleratorGain = 3500,
         .crash_dthreshold = 50,     // degrees/second/second
@@ -804,7 +804,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         if (feedforwardGain > 0) {
             // halve feedforward in Level mode since stick sensitivity is weaker by about half
             feedforwardGain *= FLIGHT_MODE(ANGLE_MODE) ? 0.5f : 1.0f;
-            // transition now calculated in feedforward.c when new RC data arrives 
+            // transition now calculated in feedforward.c when new RC data arrives
             float feedForward = feedforwardGain * pidSetpointDelta * pidRuntime.pidFrequency;
 
 #ifdef USE_FEEDFORWARD
