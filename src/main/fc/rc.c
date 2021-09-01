@@ -64,6 +64,7 @@ float rcCommandDelta[XYZ_AXIS_COUNT];
 #endif
 static float rawSetpoint[XYZ_AXIS_COUNT];
 static float setpointRate[3], rcDeflection[3], rcDeflectionAbs[3];
+static float rcDeflectionSmoothed[3];
 static float throttlePAttenuation, throttleIAttenuation, throttleDAttenuation;
 static bool reverseMotors = false;
 static applyRatesFn *applyRates;
@@ -106,14 +107,21 @@ bool getShouldUpdateFeedforward()
 }
 
 float getSetpointRate(int axis)
-// only used in pid.c to provide setpointRate for the crash recovery function
 {
+#ifdef USE_RC_SMOOTHING_FILTER
     return setpointRate[axis];
+#else
+    return rawSetpoint[axis];
+#endif
 }
 
 float getRcDeflection(int axis)
 {
+#ifdef USE_RC_SMOOTHING_FILTER
+    return rcDeflectionSmoothed[axis];
+#else
     return rcDeflection[axis];
+#endif
 }
 
 float getRcDeflectionAbs(int axis)
@@ -327,7 +335,6 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
         smoothingData->throttleCutoffFrequency = calcAutoSmoothingCutoff(smoothingData->averageFrameTimeUs, smoothingData->autoSmoothnessFactorThrottle);
     }
 
-
     // initialize or update the Setpoint filter
     if ((smoothingData->setpointCutoffFrequency != oldCutoff) || !smoothingData->filterInitialized) {
         for (int i = 0; i < PRIMARY_CHANNEL_COUNT; i++) {
@@ -343,6 +350,15 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                 } else {
                     ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->setpointCutoffFrequency, dT);
                 }
+            }
+        }
+
+        // initialize or update the Level filter
+        for (int i = FD_ROLL; i < FD_YAW; i++) {
+            if (!smoothingData->filterInitialized) {
+                ptnFilterInit(&smoothingData->filterDeflection[i], 3, smoothingData->setpointCutoffFrequency, dT);
+            } else {
+                ptnFilterUpdateCutoff(&smoothingData->filterDeflection[i], 3, smoothingData->setpointCutoffFrequency, dT);
             }
         }
     }
@@ -528,6 +544,17 @@ static FAST_CODE void processRcSmoothingFilter(void)
             *dst = rxDataToSmooth[i];
         }
     }
+
+    // for ANGLE and HORIZON, smooth rcDeflection on pitch and roll to avoid setpoint steps
+    bool smoothingNeeded = (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && rcSmoothingData.filterInitialized;
+    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
+        if (smoothingNeeded && axis < FD_YAW) {
+            rcDeflectionSmoothed[axis] = ptnFilterApply(&rcSmoothingData.filterDeflection[axis], rcDeflection[axis]);
+        } else {
+            rcDeflectionSmoothed[axis] = rcDeflection[axis];
+        }
+    }
+
 }
 #endif // USE_RC_SMOOTHING_FILTER
 
