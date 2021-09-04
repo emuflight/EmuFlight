@@ -860,7 +860,7 @@ void mixThingsUp(const float scaledAxisPidRoll, const float scaledAxisPidPitch, 
     float controllerMixMin = 0, controllerMixMax = 0;
 
     for (int i = 0; i < motorCount; i++) {
-        float yawMixVal = controllerMix3DModeSign * scaledAxisPidYaw * currentMixer[i].yaw;
+        float yawMixVal = scaledAxisPidYaw * currentMixer[i].yaw;
         if (yawMixVal > yawMixMax) {
             yawMixMax = yawMixVal;
         } else if (yawMixVal < yawMixMin) {
