@@ -358,7 +358,7 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
             if (!smoothingData->filterInitialized) {
                 ptnFilterInit(&smoothingData->filterDeflection[i], 3, smoothingData->setpointCutoffFrequency, dT);
             } else {
-                ptnFilterUpdateCutoff(&smoothingData->filterDeflection[i], 3, smoothingData->setpointCutoffFrequency, dT);
+                ptnFilterUpdate(&smoothingData->filterDeflection[i], 3, smoothingData->setpointCutoffFrequency, dT);
             }
         }
     }
