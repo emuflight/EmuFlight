@@ -830,7 +830,7 @@ static const OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "LPF EXPO",   OME_UINT8, NULL, &(OSD_UINT8_t) { &dynFiltGyroExpo,   0, 10, 1 }, 0 },
     { "LPF GAIN",   OME_UINT8, NULL, &(OSD_UINT8_t) { &dynFiltGyroGain,   0, 200, 1 }, 0 },
     { "LPF TYPE",   OME_TAB,   NULL, &(OSD_TAB_t)   { &gyroConfig_lpf_type,     1, osdTableLpfType}, 0 },
-    { "LPF TYPE",   OME_UINT8, NULL, &(OSD_UINT8_t) { &gyroConfig_lpf_order,    1, 4, 1}, 0 },
+    { "LPF ORDER",  OME_UINT8, NULL, &(OSD_UINT8_t) { &gyroConfig_lpf_order,    1, 4, 1}, 0 },
 #endif
 #ifdef USE_DYN_NOTCH_FILTER
     { "NOTCH COUNT",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &dynFiltNotchCount,   1, DYN_NOTCH_COUNT_MAX, 1 }, 0 },
@@ -929,8 +929,8 @@ static const void *cmsx_DtermFilterWriteback(displayPort_t *pDisp, const OSD_Ent
 
     pidProfile->dterm_filter_type       = cmsx_dterm_lpf_type;
     pidProfile->dterm_filter2_type      = cmsx_dterm_lpf2_type;
-    pidProfile->dterm_filter_type       = cmsx_dterm_lpf_order;
-    pidProfile->dterm_filter2_type      = cmsx_dterm_lpf2_order;
+    pidProfile->dterm_filter_order      = cmsx_dterm_lpf_order;
+    pidProfile->dterm_filter2_order     = cmsx_dterm_lpf2_order;
     return NULL;
 }
 
@@ -943,7 +943,7 @@ static const OSD_Entry cmsx_menuDtermFilterEntries[] =
     { "LPF EXPO",  OME_UINT8, NULL, &(OSD_UINT8_t) { &dynFiltDtermExpo, 0, 10,   1 }, 0 },
     { "LPF GAIN",  OME_UINT8, NULL, &(OSD_UINT8_t) { &dynFiltDtermGain, 0,  200, 1 }, 0 },
     { "LPF TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)   { &cmsx_dterm_lpf_type,     1, osdTableLpfType}, 0 },
-    { "LPF ORDER", OME_UINT8, NULL, &(OSD_UINT8_t) { &cmsx_dterm_lpf_type, 0, 4, 1 }, 0 },
+    { "LPF ORDER", OME_UINT8, NULL, &(OSD_UINT8_t) { &cmsx_dterm_lpf_order, 0, 4, 1 }, 0 },
 #endif
     { "LPF2",      OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz,    0, FILTER_FREQUENCY_MAX, 1 }, 0 },
     { "LPF2 TYPE", OME_TAB,    NULL, &(OSD_TAB_t)   { &cmsx_dterm_lpf2_type,      1, osdTableLpfType}, 0 },
