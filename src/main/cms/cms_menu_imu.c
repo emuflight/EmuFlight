@@ -849,7 +849,7 @@ static const OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "ABG HALF LIFE",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_abg_half_life,   0, 1000, 1 }, 0 },
 #ifdef USE_SMITH_PREDICTOR
     { "SMITH STR",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_strength,    0, 100, 1 }, 0 },
-    { "SMITH DELAY",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_delay,       0, 120, 1 }, 0 },
+    { "SMITH DELAY",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_delay,       0, 60, 1 }, 0 },
     { "SMITH FILT",      OME_UINT16,  NULL, &(OSD_UINT16_t)  { &smithPredictor_filt_hz,   1, 1000, 1 }, 0 },
 #endif
 #ifdef USE_MULTI_GYRO

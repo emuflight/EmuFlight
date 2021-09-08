@@ -45,7 +45,7 @@
 #endif
 
 #ifdef USE_SMITH_PREDICTOR
-#define MAX_SMITH_SAMPLES 12 * 32
+#define MAX_SMITH_SAMPLES 6 * 32
 #endif // USE_SMITH_PREDICTOR
 
 typedef union gyroLowpassFilter_u {
@@ -79,7 +79,7 @@ typedef struct smithPredictor_s {
     uint8_t samples;
     uint8_t idx;
 
-    float data[MAX_SMITH_SAMPLES + 1]; // This is gonna be a ring buffer. Max of 8ms delay at 8khz
+    float data[MAX_SMITH_SAMPLES + 1]; // This is gonna be a ring buffer. Max of 6ms delay at 32khz
 
     pt1Filter_t smithPredictorFilter; // filter the smith predictor output for RPY
 
