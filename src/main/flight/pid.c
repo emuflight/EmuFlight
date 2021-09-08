@@ -304,7 +304,7 @@ float pidApplyThrustLinearization(float motorOutput)
 
 #if defined(USE_ACC)
 // calculates strength of horizon leveling; 0 = none, 1.0 = most leveling
-static float calcHorizonLevelStrength(void) {
+static FAST_CODE_NOINLINE float calcHorizonLevelStrength(void) {
     float horizonLevelStrength;
     // 0 at level, 90 at vertical, 180 at inverted (degrees):
     const float currentInclination = MAX(ABS(attitude.values.roll), ABS(attitude.values.pitch)) / 10.0f;
@@ -427,7 +427,7 @@ STATIC_UNIT_TESTED void rotateItermAndAxisError()
 }
 
 #ifdef USE_RC_SMOOTHING_FILTER
-float FAST_CODE applyRcSmoothingFeedforwardFilter(int axis, float pidSetpointDelta)
+float FAST_CODE_NOINLINE applyRcSmoothingFeedforwardFilter(int axis, float pidSetpointDelta)
 {
     float ret = pidSetpointDelta;
     if (axis == pidRuntime.rcSmoothingDebugAxis) {
@@ -512,7 +512,7 @@ static FAST_CODE_NOINLINE float applyLaunchControl(int axis, const rollAndPitchT
 }
 #endif
 
-static FAST_CODE float emuboost(float input, float boostMultiplier, float boostLimit)
+static FAST_CODE_NOINLINE float emuboost(float input, float boostMultiplier, float boostLimit)
 {
     float boostedRate = (input * fabsf(input)) * boostMultiplier;
     if (fabsf(input * boostLimit) < fabsf(boostedRate))
@@ -524,17 +524,17 @@ static FAST_CODE float emuboost(float input, float boostMultiplier, float boostL
     return input;
 }
 
-static FAST_CODE float stickPositionAttenuation(int axis, int pid) {
+static FAST_CODE_NOINLINE float stickPositionAttenuation(int axis, int pid) {
     return 1 + (getRcDeflectionAbs(axis) * pidRuntime.stickPositionTransition[pid][axis]);
 }
 
-static FAST_CODE void stickMovement(int axis) {
+static FAST_CODE_NOINLINE void stickMovement(int axis) {
     pidRuntime.filteredStickMovement[axis] = fabsf(getRcDeflection(axis) - pidRuntime.previousRcDeflection[axis]) * pidRuntime.pidFrequency;
     pidRuntime.previousRcDeflection[axis] = getRcDeflection(axis);
     pidRuntime.filteredStickMovement[axis] = pt1FilterApply(&pidRuntime.stickMovementLpf[axis], pidRuntime.filteredStickMovement[axis]);
 }
 
-static FAST_CODE void axisLockScaling(void) {
+static FAST_CODE_NOINLINE void axisLockScaling(void) {
     if (pidRuntime.axisLockMultiplier != 0.0f || pidRuntime.axisSmoothMultiplier != 0.0f) {
         pidRuntime.axisLockScaler[ROLL] = constrainf(1 - (pidRuntime.filteredStickMovement[PITCH] + pidRuntime.filteredStickMovement[YAW] - pidRuntime.filteredStickMovement[ROLL]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);
         pidRuntime.axisLockScaler[PITCH] = constrainf(1 - (pidRuntime.filteredStickMovement[ROLL] + pidRuntime.filteredStickMovement[YAW] - pidRuntime.filteredStickMovement[PITCH]) * pidRuntime.axisLockMultiplier, 0.0f, 1.0f);

@@ -255,7 +255,7 @@ STATIC_UNIT_TESTED void performGyroCalibration(gyroSensor_t *gyroSensor, uint8_t
 }
 
 #if defined(USE_GYRO_SLEW_LIMITER)
-FAST_CODE int32_t gyroSlewLimiter(gyroSensor_t *gyroSensor, int axis)
+FAST_CODE_NOINLINE int32_t gyroSlewLimiter(gyroSensor_t *gyroSensor, int axis)
 {
     int32_t ret = (int32_t)gyroSensor->gyroDev.gyroADCRaw[axis];
     if (gyroConfig()->checkOverflow || gyro.gyroHasOverflowProtection) {
@@ -350,7 +350,7 @@ static FAST_CODE_NOINLINE void handleYawSpin(timeUs_t currentTimeUs)
     }
 }
 
-static FAST_CODE void checkForYawSpin(timeUs_t currentTimeUs)
+static FAST_CODE_NOINLINE void checkForYawSpin(timeUs_t currentTimeUs)
 {
     // if not in overflow mode, handle yaw spins above threshold
 #ifdef USE_GYRO_OVERFLOW_CHECK
@@ -442,7 +442,7 @@ FAST_CODE void gyroUpdate(void)
 }
 
 #ifdef USE_SMITH_PREDICTOR
-float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered, int axis) {
+FAST_CODE_NOINLINE float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered, int axis) {
   if (smithPredictor->samples > 1) {
     smithPredictor->data[smithPredictor->idx] = gyroFiltered;
     float input = gyroFiltered;

@@ -316,7 +316,7 @@ FAST_CODE_NOINLINE int calcAutoSmoothingCutoff(int avgRxFrameTimeUs, uint8_t aut
 
 // Preforms a reasonableness check on the rx frame time to avoid bad data
 // skewing the average.
-static FAST_CODE bool rcSmoothingRxRateValid(int currentRxRefreshRate)
+static FAST_CODE_NOINLINE bool rcSmoothingRxRateValid(int currentRxRefreshRate)
 {
     return (currentRxRefreshRate >= RC_SMOOTHING_RX_RATE_MIN_US && currentRxRefreshRate <= RC_SMOOTHING_RX_RATE_MAX_US);
 }
@@ -385,7 +385,7 @@ FAST_CODE_NOINLINE void rcSmoothingResetAccumulation(rcSmoothingFilter_t *smooth
 
 // Accumulate the rx frame time samples. Once we've collected enough samples calculate the
 // average and return true.
-static FAST_CODE bool rcSmoothingAccumulateSample(rcSmoothingFilter_t *smoothingData, int rxFrameTimeUs)
+static FAST_CODE_NOINLINE bool rcSmoothingAccumulateSample(rcSmoothingFilter_t *smoothingData, int rxFrameTimeUs)
 {
     smoothingData->training.sum += rxFrameTimeUs;
     smoothingData->training.count++;
@@ -823,7 +823,7 @@ bool rcSmoothingInitializationComplete(void) {
 }
 #endif // USE_RC_SMOOTHING_FILTER
 
-FAST_CODE float calculateK(float k, int time) {
+FAST_CODE_NOINLINE float calculateK(float k, int time) {
     if (k == 0.0f) {
         return 0;
     }
@@ -837,7 +837,7 @@ FAST_CODE float calculateK(float k, int time) {
     return dT / (RC + dT);
 }
 
-FAST_CODE float rateDynamics(float rcCommand, int axis, int currentRxRefreshRate)
+FAST_CODE_NOINLINE float rateDynamics(float rcCommand, int axis, int currentRxRefreshRate)
 {
   static FAST_DATA_ZERO_INIT float lastRcCommandData[3];
   static FAST_DATA_ZERO_INIT float iterm[3];
