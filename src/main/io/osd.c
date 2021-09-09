@@ -551,6 +551,9 @@ static bool osdDrawSingleElement(uint8_t item) {
             case 7:
                 osdtxpower = 250;
                 break;
+            case 8:
+                osdtxpower = 50;
+                break;
             default:
                 osdtxpower = 0;
                 break;

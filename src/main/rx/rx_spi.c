@@ -77,7 +77,6 @@ STATIC_UNIT_TESTED uint16_t rxSpiReadRawRC(const rxRuntimeConfig_t *rxRuntimeCon
 
 STATIC_UNIT_TESTED bool rxSpiSetProtocol(rx_spi_protocol_e protocol) {
     switch (protocol) {
-    default:
 #ifdef USE_RX_V202
     case RX_SPI_NRF24_V202_250K:
     case RX_SPI_NRF24_V202_1M:
@@ -157,6 +156,8 @@ STATIC_UNIT_TESTED bool rxSpiSetProtocol(rx_spi_protocol_e protocol) {
         protocolSetRcDataFromPayload = redpineSetRcData;
         break;
 #endif
+    default:
+        return false;
     }
     return true;
 }

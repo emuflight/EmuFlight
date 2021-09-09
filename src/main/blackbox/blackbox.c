@@ -1168,6 +1168,9 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("levelPIDHIGH", "%d,%d",                 currentPidProfile->pid[PID_LEVEL_HIGH].P,
                                    currentPidProfile->pid[PID_LEVEL_HIGH].D);
         BLACKBOX_PRINT_HEADER_LINE("magPID", "%d",                          currentPidProfile->pid[PID_MAG].P);
+        BLACKBOX_PRINT_HEADER_LINE("df_yaw", "%d",                          currentPidProfile->directFF_yaw);
+        BLACKBOX_PRINT_HEADER_LINE("df_angle_low", "%d",                    currentPidProfile->pid[PID_LEVEL_LOW].I);
+        BLACKBOX_PRINT_HEADER_LINE("df_angle_high", "%d",                   currentPidProfile->pid[PID_LEVEL_HIGH].I);
         BLACKBOX_PRINT_HEADER_LINE("dterm_filter_type", "%d",               currentPidProfile->dterm_filter_type);
         BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass_hz_roll", "%d",           currentPidProfile->dFilter[ROLL].dLpf);
         BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass_hz_pitch", "%d",          currentPidProfile->dFilter[PITCH].dLpf);
