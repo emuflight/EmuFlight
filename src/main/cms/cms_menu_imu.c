@@ -240,7 +240,7 @@ static OSD_Entry cmsx_menuPidAdvancedEntries[] = {
 
     { "EMUBOOST 2.0",      OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2,       0,  250,  1}, 0 },
     { "EMUBOOST 2.0 FILT", OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2_filter,       1,  250,  1}, 0 },
-    { "EMUBOOST 2.0 CUT",  OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2_cutoff,       10,  250,  1}, 0 },
+    { "EMUBOOST 2.0 CUT",  OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2_cutoff,       5,  250,  1}, 0 },
     { "EMUBOOST 2.0 EXPO",  OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2_expo,       10,  100,  1}, 0 },
 
     { "SAVE&EXIT",         OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},

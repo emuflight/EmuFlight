@@ -854,7 +854,7 @@ const clivalue_t valueTable[] = {
     { "dterm_dyn_notch_q",          VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 1, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dyn_notch_q) },
     { "emuboost2",                  VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, emuBoost2) },
     { "emuboost2_filter",           VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 1, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, emuBoost2_filter) },
-    { "emuboost2_cutoff",           VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 10, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, emuBoost2_cutoff) },
+    { "emuboost2_cutoff",           VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 5, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, emuBoost2_cutoff) },
     { "emuboost2_expo",             VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, emuBoost2_expo) },
 
     { "dterm_abg_alpha",            VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_ABG_alpha) },

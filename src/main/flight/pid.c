@@ -200,9 +200,9 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .dtermDynNotch = false,
     .dterm_dyn_notch_q = 400,
     .emuBoost2 = 150,
-    .emuBoost2_filter = 20,
-    .emuBoost2_cutoff = 10,
-    .emuBoost2_expo = 25,
+    .emuBoost2_filter = 50,
+    .emuBoost2_cutoff = 5,
+    .emuBoost2_expo = 35,
                 );
 }
 
