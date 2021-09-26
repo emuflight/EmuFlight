@@ -188,6 +188,11 @@ typedef struct pidProfile_s {
     uint8_t axis_lock_hz;                   // filter for the axis lock
     uint8_t axis_lock_multiplier;           // multplier for the axis lock effect
     uint8_t axis_smooth_multiplier;         // decreases pidsum on the axis you move
+
+    uint8_t emuBoost2;                      // a smart way to dynamically boost/shrink pterm and dterm
+    uint8_t emuBoost2_filter;
+    uint8_t emuBoost2_cutoff;
+    uint8_t emuBoost2_expo;
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
@@ -342,6 +347,10 @@ typedef struct pidRuntime_s {
     float axisLockMultiplier;
     float axisSmoothMultiplier;
     float axisLockScaler[XYZ_AXIS_COUNT];
+
+    float emuBoost2;
+    pt1Filter_t emuboostFilter[XYZ_AXIS_COUNT];
+    float emuBoost2Expo;
 } pidRuntime_t;
 
 extern pidRuntime_t pidRuntime;

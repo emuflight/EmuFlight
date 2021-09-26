@@ -167,6 +167,10 @@ static uint16_t cmsx_dboost;
 static uint8_t  cmsx_i_decay;
 static uint8_t  cmsx_iterm_relax_cutoff;
 static uint8_t  cmsx_iterm_relax_cutoff_yaw;
+static uint8_t emuBoost2;
+static uint8_t emuBoost2_filter;
+static uint8_t emuBoost2_cutoff;
+static uint8_t emuBoost2_expo;
 
 static const void *cmsx_PidAdvancedOnEnter(displayPort_t *pDisp)
 {
@@ -184,6 +188,11 @@ static const void *cmsx_PidAdvancedOnEnter(displayPort_t *pDisp)
     cmsx_iterm_relax_cutoff = pidProfile->iterm_relax_cutoff;
     cmsx_iterm_relax_cutoff_yaw = pidProfile->iterm_relax_cutoff_yaw;
 #endif
+
+    emuBoost2 = pidProfile->emuBoost2;
+    emuBoost2_filter = pidProfile->emuBoost2_filter;
+    emuBoost2_cutoff = pidProfile->emuBoost2_cutoff;
+    emuBoost2_expo = pidProfile->emuBoost2_expo;
 
     return NULL;
 }
@@ -206,6 +215,11 @@ static const void *cmsx_PidAdvancedWriteback(displayPort_t *pDisp, const OSD_Ent
     pidProfile->iterm_relax_cutoff_yaw = cmsx_iterm_relax_cutoff_yaw;
 #endif
 
+    pidProfile->emuBoost2 = emuBoost2;
+    pidProfile->emuBoost2_filter = emuBoost2_filter;
+    pidProfile->emuBoost2_cutoff = emuBoost2_cutoff;
+    pidProfile->emuBoost2_expo = emuBoost2_expo;
+
     return NULL;
 }
 
@@ -225,6 +239,11 @@ static const OSD_Entry cmsx_menuPidAdvancedEntries[] =
     { "I RELAX CUTOFF",    OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_iterm_relax_cutoff,      10, 100, 1 }, 0 },
     { "I RELAX CUTOFF YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_iterm_relax_cutoff_yaw,  10, 100, 1 }, 0 },
 #endif
+    { "EMUBOOST 2.0",      OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2,             0,  250,  1}, 0 },
+    { "EMUBOOST 2.0 FILT", OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2_filter,      1,  250,  1}, 0 },
+    { "EMUBOOST 2.0 CUT",  OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2_cutoff,      5,  250,  1}, 0 },
+    { "EMUBOOST 2.0 EXPO", OME_UINT8, NULL, &(OSD_UINT8_t){ &emuBoost2_expo,       10,  100,  1}, 0 },
+
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }
 };

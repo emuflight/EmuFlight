@@ -199,6 +199,10 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .axis_lock_hz = 2,
         .axis_lock_multiplier = 0,
         .axis_smooth_multiplier = 0,
+        .emuBoost2 = 75,
+        .emuBoost2_filter = 50,
+        .emuBoost2_cutoff = 5,
+        .emuBoost2_expo = 10,
     );
 }
 
@@ -551,6 +555,8 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
 {
     static float previousGyroRate[XYZ_AXIS_COUNT];
     static float previousErrorRate[XYZ_AXIS_COUNT];
+    static float previousDtermError[XYZ_AXIS_COUNT];
+    static float dynamicDtermScaler[XYZ_AXIS_COUNT];
 
     axisLockScaling();
 
@@ -735,20 +741,24 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         pidRuntime.previousPidSetpoint[axis] = currentPidSetpoint;
 
         // -----calculate D component
+        // Divide rate change by dT to get differential (ie dr/dt).
+        // dT is fixed and calculated from the target PID loop time
+        // This is done to avoid DTerm spikes that occur with dynamically
+        // calculated deltaT whenever another task causes the PID
+        // loop execution to be delayed.
+        float changeInMeasurement = -(gyro.gyroADCf[axis] - previousGyroRate[axis]);
+        float changeInError = errorRate - previousErrorRate[axis];
+
+        previousGyroRate[axis] = gyro.gyroADCf[axis];
+        previousErrorRate[axis] = errorRate;
         // disable D if launch control is active
         if ((pidRuntime.pidCoefficient[axis].Kd > 0) && !launchControlActive) {
+            float dtermError = currentPidSetpoint - gyroRate * dynamicDtermScaler[axis];
+            float changeInDtermError = dtermError - previousDtermError[axis] * dynamicDtermScaler[axis];
 
-            // Divide rate change by dT to get differential (ie dr/dt).
-            // dT is fixed and calculated from the target PID loop time
-            // This is done to avoid DTerm spikes that occur with dynamically
-            // calculated deltaT whenever another task causes the PID
-            // loop execution to be delayed.
-            float dtermFromMeasurement = -(gyro.gyroADCf[axis] - previousGyroRate[axis]);
-            float dtermFromError = errorRate - previousErrorRate[axis];
-            previousGyroRate[axis] = gyro.gyroADCf[axis];
-            previousErrorRate[axis] = errorRate;
-            float delta = ((dtermFromMeasurement * pidRuntime.dtermMeasurementSlider) + (dtermFromError * pidRuntime.dtermMeasurementSliderInverse)) * pidRuntime.pidFrequency;
+            previousDtermError[axis] = dtermError;
 
+            float delta = ((changeInMeasurement * pidRuntime.dtermMeasurementSlider * dynamicDtermScaler[axis]) + (changeInDtermError * pidRuntime.dtermMeasurementSliderInverse)) * pidRuntime.pidFrequency;
             delta *= pidRuntime.pidCoefficient[axis].Kd;
 
             // log unfiltered roll and pitch dterm, log filtered later so we can compare without dmin/dboost
@@ -869,8 +879,25 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
             DEBUG_SET(DEBUG_ANTI_GRAVITY, axis + 2, lrintf(agBoost * 1000));
         }
 
-        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + pidData[axis].F;
+        // emuboost 2.0
+        if (pidRuntime.emuBoost2) {
+            int signError = SIGN(errorRate);
+            float changeError = changeInError * pidRuntime.pidFrequency * DTERM_SCALE * 20.0f;
+            changeError = changeError / (pidProfile->emuBoost2_cutoff);
 
+            changeError = constrainf(changeError, -1.0f, 1.0f);
+            changeError = changeError * power3(changeError) * pidRuntime.emuBoost2Expo + changeError * (1 - pidRuntime.emuBoost2Expo);
+
+            changeError *= signError; // changeError is positive when error is getting larger, and negative when error is getting lower.
+            changeError = pt1FilterApply(&pidRuntime.emuboostFilter[axis], changeError);
+            dynamicDtermScaler[axis] = 1 - changeError; // shrink dterm if error is growing, boost dterm is error is shrinking
+
+            pidData[axis].P *= constrainf((pidRuntime.emuBoost2 * changeError) + 1.0f, 0.0f, 1.0f + pidRuntime.emuBoost2); // boost pterm if error is growing, shrink pterm if error is shrinking.
+        } else {
+            dynamicDtermScaler[axis] = 1.0f;
+        }
+
+        const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + pidData[axis].F;
         pidData[axis].Sum = pidSum * pidRuntime.axisLockScaler[axis];
 
     }

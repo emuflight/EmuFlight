@@ -161,6 +161,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 
     for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
         pt1FilterInit(&pidRuntime.stickMovementLpf[i], pt1FilterGain(pidProfile->axis_lock_hz, pidRuntime.dT));
+        pt1FilterInit(&pidRuntime.emuboostFilter[i], pt1FilterGain(pidProfile->emuBoost2_cutoff, pidRuntime.dT));
 #if defined(USE_ITERM_RELAX)
         if (pidRuntime.itermRelaxCutoff || pidRuntime.itermRelaxCutoffYaw) {
             if (i != FD_YAW) {
@@ -285,6 +286,8 @@ void pidInitConfig(const pidProfile_t *pidProfile)
     pidRuntime.axisLockMultiplier = pidProfile->axis_lock_multiplier / 100.0f;
     pidRuntime.axisSmoothMultiplier = pidProfile->axis_smooth_multiplier / 100.0f;
 
+    pidRuntime.emuBoost2 = pidProfile->emuBoost2 / 100.0f;
+    pidRuntime.emuBoost2Expo = pidProfile->emuBoost2_expo / 100.0f;
 
 #ifdef USE_DYN_LPF
     if (pidProfile->dyn_lpf_dterm_width > 0) {

@@ -285,7 +285,7 @@ static const char * const lookupTableCameraControlMode[] = {
 #endif
 
 static const char * const lookupTablePwmProtocol[] = {
-    "PWM", "MULTISHOT", "BRUSHED",
+    "PWM","ONESHOT125", "ONESHOT42", "MULTISHOT", "BRUSHED",
     "DSHOT150", "DSHOT300", "DSHOT600", "DSHOT1200", "DSHOT2400", "DSHOT4800", "PROSHOT1000",
     "DISABLED"
 };
@@ -1041,6 +1041,11 @@ const clivalue_t valueTable[] = {
     { "dterm_abg_alpha",            VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermAlpha) },
     { "dterm_abg_boost",            VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 2000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_abg_boost) },
     { "dterm_abg_half_life",        VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_abg_half_life) },
+
+    { "emuboost2",                  VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, emuBoost2) },
+    { "emuboost2_filter",           VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, emuBoost2_filter) },
+    { "emuboost2_cutoff",           VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 5, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, emuBoost2_cutoff) },
+    { "emuboost2_expo",             VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, emuBoost2_expo) },
 #if defined(USE_BATTERY_VOLTAGE_SAG_COMPENSATION)
     { "vbat_sag_compensation",      VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 150 }, PG_PID_PROFILE, offsetof(pidProfile_t, vbat_sag_compensation) },
 #endif
