@@ -831,7 +831,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile)
         }
 
         // -----calculate true yaw feedforward component
-        // feedforward as betaflight calls it is really a setpoint derivative
+        // feedforward as betaflight calls it is really a setpoint derivative/dterm Kick
         // this feedforward is literally setpoint * feedforward
         // since yaw acts different this will only work for yaw
         // allowed on roll and pitch, but only in angle mode
