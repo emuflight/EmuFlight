@@ -130,7 +130,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         },
         .pidSumLimit = PIDSUM_LIMIT,
         .pidSumLimitYaw = PIDSUM_LIMIT_YAW,
-        .yaw_lowpass_hz = 0,
+        .yaw_lpf_hz = 0,
         .dterm_notch_hz = 0,
         .dterm_notch_cutoff = 0,
         .itermWindupPointPercent = 70,
@@ -163,7 +163,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dyn_lpf_dterm_min_hz = 65, // NOTE: this lpf is static unless dyn_lpf_dterm_width > 0
         .dyn_lpf_dterm_width = 0,
         .dyn_lpf_dterm_gain = 20,
-        .dterm_lowpass2_hz = 200,   // second Dterm LPF ON by default
+        .dterm_lpf2_hz = 200,   // second Dterm LPF ON by default
         .launchControlMode = LAUNCH_CONTROL_MODE_NORMAL,
         .launchControlThrottlePercent = 20,
         .launchControlAngleLimit = 0,

@@ -100,7 +100,7 @@ typedef enum feedforwardAveraging_e {
 #define MAX_PROFILE_NAME_LENGTH 8u
 
 typedef struct pidProfile_s {
-    uint16_t yaw_lowpass_hz;                // Additional yaw filter when yaw axis too noisy
+    uint16_t yaw_lpf_hz;                // Additional yaw filter when yaw axis too noisy
     uint16_t dterm_notch_hz;                // Biquad dterm notch hz
     uint16_t dterm_notch_cutoff;            // Biquad dterm notch low cutoff
 
@@ -128,7 +128,7 @@ typedef struct pidProfile_s {
     uint16_t crash_setpoint_threshold;      // setpoint must be below this value to detect crash, so flips and rolls are not interpreted as crashes
     uint8_t crash_recovery;                 // off, disarm, only works in gps mode
     uint16_t itermLimit;
-    uint16_t dterm_lowpass2_hz;             // Extra PT1 Filter on D in hz
+    uint16_t dterm_lpf2_hz;             // Extra PT1 Filter on D in hz
     uint8_t throttle_boost;                 // how much should throttle be boosted during transient changes 0-100, 100 adds 10x hpf filtered throttle
     uint8_t throttle_boost_cutoff;          // Which cutoff frequency to use for throttle boost. higher cutoffs keep the boost on for shorter. Specified in hz.
     uint8_t iterm_rotation;                 // rotates iterm to translate world errors to local coordinate system

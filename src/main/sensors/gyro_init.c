@@ -119,10 +119,10 @@ static void gyroInitFilterNotch1(uint16_t notchHz, uint16_t notchCutoffHz)
 static bool gyroInitLowpassFilterLpf(int type, int order, uint16_t lpfHz, uint32_t looptime)
 {
     filterApplyFnPtr *lowpassFilterApplyFn;
-    gyroLowpassFilter_t *lowpassFilter = NULL;
+    gyroLowpassFilter_t *lpfFilter = NULL;
 
     lowpassFilterApplyFn = &gyro.lowpassFilterApplyFn;
-    lowpassFilter = gyro.lowpassFilter;
+    lpfFilter = gyro.lpfFilter;
 
     bool ret = false;
 
@@ -142,11 +142,11 @@ static bool gyroInitLowpassFilterLpf(int type, int order, uint16_t lpfHz, uint32
         switch (type) {
         case FILTER_BUTTERWORTH:
                 *lowpassFilterApplyFn = (filterApplyFnPtr) biquadCascadeFilterApply;
-                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, order, lpfHz, gyroDt);
+                ptnFilterInit(&lpfFilter[axis].ptnFilterState, order, lpfHz, gyroDt);
             break;
         case FILTER_PT:
                 *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
-                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, order, lpfHz, gyroDt);
+                ptnFilterInit(&lpfFilter[axis].ptnFilterState, order, lpfHz, gyroDt);
             break;
         }
       }
@@ -158,7 +158,7 @@ static bool gyroInitLowpassFilterLpf(int type, int order, uint16_t lpfHz, uint32
 static void dynLpfFilterInit()
 {
     if (gyroConfig()->dyn_lpf_gyro_width > 0) {
-        switch (gyroConfig()->gyro_lowpass_type) { // keep switch statement to deal with future versions where butterworth is an option
+        switch (gyroConfig()->gyro_lpf_type) { // keep switch statement to deal with future versions where butterworth is an option
         case FILTER_BUTTERWORTH:
             gyro.dynLpfFilter = DYN_LPF_BUTTERWORTH;
             break;
@@ -209,8 +209,8 @@ void gyroInitFilters(void)
     uint16_t gyro_lowpass_hz = gyroConfig()->dyn_lpf_gyro_min_hz;
 
     gyroInitLowpassFilterLpf(
-      gyroConfig()->gyro_lowpass_type,
-      gyroConfig()->gyro_lowpass_order,
+      gyroConfig()->gyro_lpf_type,
+      gyroConfig()->gyro_lpf_order,
       gyro_lowpass_hz,
       gyro.targetLooptime
     );

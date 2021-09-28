@@ -791,8 +791,8 @@ static const void *cmsx_menuGyro_onEnter(displayPort_t *pDisp)
     gyroConfig_abg_half_life  = gyroConfig()->abg_half_life;
 
     gyroConfig_gyro_to_use    = gyroConfig()->gyro_to_use;
-    gyroConfig_lpf_type       = gyroConfig()->gyro_lowpass_type;
-    gyroConfig_lpf_order      = gyroConfig()->gyro_lowpass_order;
+    gyroConfig_lpf_type       = gyroConfig()->gyro_lpf_type;
+    gyroConfig_lpf_order      = gyroConfig()->gyro_lpf_order;
 
 #ifdef USE_SMITH_PREDICTOR
     smithPredictor_strength  = gyroConfig()->smithPredictorStrength;
@@ -829,8 +829,8 @@ static const void *cmsx_menuGyro_onExit(displayPort_t *pDisp, const OSD_Entry *s
     gyroConfigMutable()->abg_half_life  = gyroConfig_abg_half_life;
 
     gyroConfigMutable()->gyro_to_use = gyroConfig_gyro_to_use;
-    gyroConfigMutable()->gyro_lowpass_type = gyroConfig_lpf_type;
-    gyroConfigMutable()->gyro_lowpass_order = gyroConfig_lpf_order;
+    gyroConfigMutable()->gyro_lpf_type = gyroConfig_lpf_type;
+    gyroConfigMutable()->gyro_lpf_order = gyroConfig_lpf_order;
 
 #ifdef USE_SMITH_PREDICTOR
     gyroConfigMutable()->smithPredictorStrength = smithPredictor_strength;
@@ -896,7 +896,7 @@ static uint8_t dynFiltDtermWidth;
 static uint8_t dynFiltDtermExpo;
 static uint8_t dynFiltDtermGain;
 #endif
-static uint16_t cmsx_dterm_lowpass2_hz;
+static uint16_t cmsx_dterm_lpf2_hz;
 static uint16_t dterm_alpha;
 static uint16_t dterm_abg_boost;
 static uint16_t dterm_abg_half_life;
@@ -915,7 +915,7 @@ static const void *cmsx_DtermFilterRead(displayPort_t *pDisp)
     dynFiltDtermExpo = pidProfile->dyn_lpf_curve_expo;
     dynFiltDtermGain = pidProfile->dyn_lpf_dterm_gain;
 #endif
-    cmsx_dterm_lowpass2_hz  = pidProfile->dterm_lowpass2_hz;
+    cmsx_dterm_lpf2_hz  = pidProfile->dterm_lpf2_hz;
 
     dterm_alpha               = pidProfile->dtermAlpha;
     dterm_abg_boost           = pidProfile->dterm_abg_boost;
@@ -940,7 +940,7 @@ static const void *cmsx_DtermFilterWriteback(displayPort_t *pDisp, const OSD_Ent
     pidProfile->dyn_lpf_curve_expo           = dynFiltDtermExpo;
     pidProfile->dyn_lpf_dterm_gain = dynFiltDtermGain;
 #endif
-    pidProfile->dterm_lowpass2_hz  = cmsx_dterm_lowpass2_hz;
+    pidProfile->dterm_lpf2_hz  = cmsx_dterm_lpf2_hz;
 
     pidProfile->dtermAlpha              = dterm_alpha;
     pidProfile->dterm_abg_boost         = dterm_abg_boost;
@@ -964,7 +964,7 @@ static const OSD_Entry cmsx_menuDtermFilterEntries[] =
     { "LPF TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)   { &cmsx_dterm_lpf_type,     1, osdTableLpfType}, 0 },
     { "LPF ORDER", OME_UINT8, NULL, &(OSD_UINT8_t) { &cmsx_dterm_lpf_order, 0, 4, 1 }, 0 },
 #endif
-    { "LPF2",      OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz,    0, FILTER_FREQUENCY_MAX, 1 }, 0 },
+    { "LPF2",      OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lpf2_hz,    0, FILTER_FREQUENCY_MAX, 1 }, 0 },
     { "LPF2 TYPE", OME_TAB,    NULL, &(OSD_TAB_t)   { &cmsx_dterm_lpf2_type,      1, osdTableLpfType}, 0 },
     { "LPF2 ORDER",OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_dterm_lpf2_order, 0, 4, 1 }, 0 },
 

@@ -245,7 +245,7 @@ static void validateAndFixConfig(void)
     for (unsigned i = 0; i < PID_PROFILE_COUNT; i++) {
         // Fix filter settings to handle cases where an older configurator was used that
         // allowed higher cutoff limits from previous firmware versions.
-        adjustFilterLimit(&pidProfilesMutable(i)->dterm_lowpass2_hz, FILTER_FREQUENCY_MAX);
+        adjustFilterLimit(&pidProfilesMutable(i)->dterm_lpf2_hz, FILTER_FREQUENCY_MAX);
         adjustFilterLimit(&pidProfilesMutable(i)->dterm_notch_hz, FILTER_FREQUENCY_MAX);
         adjustFilterLimit(&pidProfilesMutable(i)->dterm_notch_cutoff, 0);
 

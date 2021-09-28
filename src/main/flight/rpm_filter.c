@@ -88,10 +88,10 @@ PG_REGISTER_WITH_RESET_FN(rpmFilterConfig_t, rpmFilterConfig, PG_RPM_FILTER_CONF
 
 void pgResetFn_rpmFilterConfig(rpmFilterConfig_t *config)
 {
-    config->gyro_rpm_notch_harmonics = 2;
-    config->gyro_rpm_notch_min = 100;
-    config->gyro_rpm_notch_fade_range_hz = 50;
-    config->gyro_rpm_notch_q = 850;
+    config->rpm_filter_harmonics = 2;
+    config->rpm_filter_min_hz = 100;
+    config->rpm_filter_fade_range_hz = 50;
+    config->rpm_filter_q = 850;
 
     config->rpm_filter_lpf_hz = 150;
 }

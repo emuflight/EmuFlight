@@ -104,7 +104,7 @@ typedef struct gyro_s {
 
     // lowpass gyro soft filter
     filterApplyFnPtr lowpassFilterApplyFn;
-    gyroLowpassFilter_t lowpassFilter[XYZ_AXIS_COUNT];
+    gyroLowpassFilter_t lpfFilter[XYZ_AXIS_COUNT];
 
     // notch filters
     filterApplyFnPtr notchFilter1ApplyFn;
@@ -183,8 +183,8 @@ typedef struct gyroConfig_s {
     uint8_t  checkOverflow;
 
     // Lowpass primary/secondary
-    uint8_t  gyro_lowpass_type;
-    uint8_t  gyro_lowpass_order;
+    uint8_t  gyro_lpf_type;
+    uint8_t  gyro_lpf_order;
 
     uint8_t  yaw_spin_recovery;
     int16_t  yaw_spin_threshold;

@@ -120,9 +120,9 @@ set p_yaw = 80
 # profile
 profile 0
 
-set dterm_lowpass_type = PT1
-set dterm_lowpass_hz = 100
-set dterm_lowpass2_hz = 200
+set dterm_lpf_type = PT1
+set dterm_lpf_hz = 100
+set dterm_lpf2_hz = 200
 set dterm_notch_hz = 0
 set dterm_notch_cutoff = 160
 set vbat_pid_gain = OFF
@@ -151,7 +151,7 @@ set iterm_windup = 40
 set iterm_limit = 150
 set pidsum_limit = 500
 set pidsum_limit_yaw = 400
-set yaw_lowpass_hz = 0
+set yaw_lpf_hz = 0
 set throttle_boost = 5
 set throttle_boost_cutoff = 15
 set acro_trainer_angle_limit = 20
@@ -184,8 +184,8 @@ set abs_control_error_limit = 20
 # profile
 profile 0
 
-set dterm_lowpass_hz = 0
-set dterm_lowpass2_hz = 0
+set dterm_lpf_hz = 0
+set dterm_lpf2_hz = 0
 set dterm_notch_cutoff = 0
 set p_pitch = 40
 set d_pitch = 26
@@ -196,7 +196,7 @@ set p_yaw = 80
 # profile
 profile 1
 
-set dterm_lowpass_type = BIQUAD
+set dterm_lpf_type = BIQUAD
 set dterm_notch_cutoff = 0
 
 # profile

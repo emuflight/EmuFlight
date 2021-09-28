@@ -1746,9 +1746,9 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
 
         break;
     case MSP_FILTER_CONFIG :
-        sbufWriteU8(dst, 0); // DEPRECATED: gyro_lowpass_hz
-        sbufWriteU16(dst, 0); // DEPRECATED: dterm_lowpass_hz
-        sbufWriteU16(dst, currentPidProfile->yaw_lowpass_hz);
+        sbufWriteU8(dst, 0); // DEPRECATED: gyro_lpf_hz
+        sbufWriteU16(dst, 0); // DEPRECATED: dterm_lpf_hz
+        sbufWriteU16(dst, currentPidProfile->yaw_lpf_hz);
         sbufWriteU16(dst, gyroConfig()->gyro_soft_notch_hz_1);
         sbufWriteU16(dst, gyroConfig()->gyro_soft_notch_cutoff_1);
         sbufWriteU16(dst, currentPidProfile->dterm_notch_hz);
@@ -1758,11 +1758,11 @@ static bool mspProcessOutCommand(int16_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentPidProfile->dterm_filter_type);
         sbufWriteU8(dst, gyroConfig()->gyro_hardware_lpf);
         sbufWriteU8(dst, 0); // DEPRECATED: gyro_32khz_hardware_lpf
-        sbufWriteU16(dst, 0); // DEPRECATED: gyro_lowpass_hz
-        sbufWriteU16(dst, 0); // DEPRECATED: gyro_lowpass2_hz
-        sbufWriteU8(dst, gyroConfig()->gyro_lowpass_type);
-        sbufWriteU8(dst, 0); // DEPRECATED: gyro_lowpass2_type
-        sbufWriteU16(dst, currentPidProfile->dterm_lowpass2_hz);
+        sbufWriteU16(dst, 0); // DEPRECATED: gyro_lpf_hz
+        sbufWriteU16(dst, 0); // DEPRECATED: gyro_lpf2_hz
+        sbufWriteU8(dst, gyroConfig()->gyro_lpf_type);
+        sbufWriteU8(dst, 0); // DEPRECATED: gyro_lpf2_type
+        sbufWriteU16(dst, currentPidProfile->dterm_lpf2_hz);
         // Added in MSP API 1.41
         sbufWriteU8(dst, currentPidProfile->dterm_filter2_type);
 #if defined(USE_DYN_LPF)
@@ -2567,9 +2567,9 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
 
         break;
     case MSP_SET_FILTER_CONFIG:
-        sbufReadU8(src); // DEPRECATED: gyro_lowpass_hz
-        sbufReadU16(src); // DEPRECATED: dterm_lowpass_hz
-        currentPidProfile->yaw_lowpass_hz = sbufReadU16(src);
+        sbufReadU8(src); // DEPRECATED: gyro_lpf_hz
+        sbufReadU16(src); // DEPRECATED: dterm_lpf_hz
+        currentPidProfile->yaw_lpf_hz = sbufReadU16(src);
         if (sbufBytesRemaining(src) >= 8) {
             gyroConfigMutable()->gyro_soft_notch_hz_1 = sbufReadU16(src);
             gyroConfigMutable()->gyro_soft_notch_cutoff_1 = sbufReadU16(src);
@@ -2586,11 +2586,11 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
         if (sbufBytesRemaining(src) >= 10) {
             gyroConfigMutable()->gyro_hardware_lpf = sbufReadU8(src);
             sbufReadU8(src); // DEPRECATED: gyro_32khz_hardware_lpf
-            sbufReadU16(src); // DEPRECATED: gyro_lowpass_hz
-            sbufReadU16(src);  // DEPRECATED: gyro_lowpass2_hz
-            sbufReadU8(src); // DEPRECATED: gyro_lowpass_hz
-            sbufReadU8(src); // DEPRECATED: gyro_lowpass2_hz
-            currentPidProfile->dterm_lowpass2_hz = sbufReadU16(src);
+            sbufReadU16(src); // DEPRECATED: gyro_lpf_hz
+            sbufReadU16(src);  // DEPRECATED: gyro_lpf2_hz
+            sbufReadU8(src); // DEPRECATED: gyro_lpf_hz
+            sbufReadU8(src); // DEPRECATED: gyro_lpf2_hz
+            currentPidProfile->dterm_lpf2_hz = sbufReadU16(src);
         }
         if (sbufBytesRemaining(src) >= 9) {
             // Added in MSP API 1.41
