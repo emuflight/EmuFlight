@@ -46,11 +46,11 @@
 
 #if defined(USE_CMS) || defined(USE_VTX_COMMON)
 const uint16_t trampPowerTable[VTX_TRAMP_POWER_COUNT] = {
-    25, 100, 200, 400, 600
+    25, 100, 200, 400, 600, 1000
 };
 
 const char * const trampPowerNames[VTX_TRAMP_POWER_COUNT + 1] = {
-    "---", "LV1", "LV2", "LV3", "LV4", "LV5"
+    "---", "LV1", "LV2", "LV3", "LV4", "LV5", "LV6"
 };
 #endif
 

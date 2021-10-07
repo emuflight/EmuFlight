@@ -67,7 +67,7 @@ static serialPort_t *smartAudioSerialPort = NULL;
 
 #if defined(USE_CMS) || defined(USE_VTX_COMMON)
 const char * const saPowerNames[VTX_SMARTAUDIO_POWER_COUNT + 1] = {
-    "---", "LV1", "LV2", "LV3", "LV4",
+    "---", "LV1", "LV2", "LV3", "LV4", "LV5"
 };
 #endif
 
@@ -128,6 +128,7 @@ saPowerTable_t saPowerTable[VTX_SMARTAUDIO_POWER_COUNT] = {
     { 200,  16,   1 },
     { 500,  25,   2 },
     { 800,  40,   3 },
+    {1000,  40,   4 },
 };
 
 // Last received device ('hard') states
