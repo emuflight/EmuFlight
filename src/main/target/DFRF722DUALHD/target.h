@@ -161,7 +161,7 @@
 #define SERIALRX_UART                       SERIAL_PORT_USART2
 #define SERIALRX_PROVIDER                   SERIALRX_SBUS
 
-#define SENSORS_SET             (SENSOR_ACC | SENSOR_BARO)
+#define SENSORS_SET             (SENSOR_ACC)
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
