@@ -743,15 +743,15 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
                 break;
             case FILTER_PT4:
                 *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
-                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 4, lpfHz[axis], gyroDt);
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, FILTER_PT4, lpfHz[axis], gyroDt);
                 break;
             case FILTER_PT3:
                 *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
-                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 3, lpfHz[axis], gyroDt);
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, FILTER_PT3, lpfHz[axis], gyroDt);
                 break;
             case FILTER_PT2:
                 *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
-                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, 2, lpfHz[axis], gyroDt);
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, FILTER_PT2, lpfHz[axis], gyroDt);
                 break;
             default: // case FILTER_PT1:
                 *lowpassFilterApplyFn = (filterApplyFnPtr) pt1FilterApply;
