@@ -351,21 +351,21 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                     break;
                 case RC_SMOOTHING_INPUT_PT2:
                     if (!smoothingData->filterInitialized) {
-                        ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], 2, smoothingData->inputCutoffFrequency, dT);
+                        ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], FILTER_PT2, smoothingData->inputCutoffFrequency, dT);
                     } else {
                         ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 1.553773974f, dT);
                     }
                     break;
                 case RC_SMOOTHING_INPUT_PT3:
                     if (!smoothingData->filterInitialized) {
-                        ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], 3, smoothingData->inputCutoffFrequency, dT);
+                        ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], FILTER_PT3, smoothingData->inputCutoffFrequency, dT);
                     } else {
                         ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 1.961459177f, dT);
                     }
                     break;
                 case RC_SMOOTHING_INPUT_PT4:
                     if (!smoothingData->filterInitialized) {
-                        ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], 4, smoothingData->inputCutoffFrequency, dT);
+                        ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], FILTER_PT4, smoothingData->inputCutoffFrequency, dT);
                     } else {
                         ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 2.298959223f, dT);
                     }
