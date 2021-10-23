@@ -77,9 +77,6 @@ DL_DIR    := $(ROOT)/downloads
 
 export RM := rm
 
-# import macros that are OS specific
-include $(ROOT)/make/$(OSFAMILY).mk
-
 # include the tools makefile
 include $(ROOT)/make/tools.mk
 
