@@ -270,15 +270,15 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 break;
             case FILTER_PT4:
                 dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
-                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 4, pidProfile->dFilter[axis].dLpf, dT);
+                ptnFilterInit(&dtermLowpass[axis].ptnFilter, FILTER_PT4, pidProfile->dFilter[axis].dLpf, dT);
                 break;
             case FILTER_PT3:
                 dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
-                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 3, pidProfile->dFilter[axis].dLpf, dT);
+                ptnFilterInit(&dtermLowpass[axis].ptnFilter, FILTER_PT3, pidProfile->dFilter[axis].dLpf, dT);
                 break;
             case FILTER_PT2:
                 dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
-                ptnFilterInit(&dtermLowpass[axis].ptnFilter, 2, pidProfile->dFilter[axis].dLpf, dT);
+                ptnFilterInit(&dtermLowpass[axis].ptnFilter, FILTER_PT2, pidProfile->dFilter[axis].dLpf, dT);
                 break;
             default: // case FILTER_PT1:
                 dtermLowpassApplyFn = (filterApplyFnPtr)pt1FilterApply;
@@ -295,15 +295,15 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 break;
             case FILTER_PT4:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
-                ptnFilterInit(&dtermLowpass2[axis].ptnFilter, 4, pidProfile->dFilter[axis].dLpf2, dT);
+                ptnFilterInit(&dtermLowpass2[axis].ptnFilter, FILTER_PT4, pidProfile->dFilter[axis].dLpf2, dT);
                 break;
             case FILTER_PT3:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
-                ptnFilterInit(&dtermLowpass2[axis].ptnFilter, 3, pidProfile->dFilter[axis].dLpf2, dT);
+                ptnFilterInit(&dtermLowpass2[axis].ptnFilter, FILTER_PT3, pidProfile->dFilter[axis].dLpf2, dT);
                 break;
             case FILTER_PT2:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
-                ptnFilterInit(&dtermLowpass2[axis].ptnFilter, 2, pidProfile->dFilter[axis].dLpf2, dT);
+                ptnFilterInit(&dtermLowpass2[axis].ptnFilter, FILTER_PT2, pidProfile->dFilter[axis].dLpf2, dT);
                 break;
             default: // case FILTER_PT1:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)pt1FilterApply;
