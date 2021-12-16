@@ -94,6 +94,7 @@
 #define USE_RX_FRSKY_SPI_D
 #define USE_RX_FRSKY_SPI_X
 #define USE_RX_SFHSS_SPI
+#define USE_RX_REDPINE_SPI
 
 // *************** OSD *****************************
 #define USE_MAX7456
