@@ -163,7 +163,7 @@ void targetConfiguration(void)
     vtxSettingsConfigMutable()->channel = 8;
     vtxSettingsConfigMutable()->power = 3;
 
-    gyroConfigMutable()->gyro_sync_denom = 1; // This looks like 8k in GUI but actually 3.2k
+//    gyroConfigMutable()->gyro_sync_denom = 1; // This looks like 8k in GUI but actually 3.2k
     gyroConfigMutable()->gyro_lowpass_type = FILTER_PT1;
     gyroConfigMutable()->gyro_lowpass_hz[ROLL] = 200;
     gyroConfigMutable()->gyro_lowpass_hz[PITCH] = 200;
@@ -215,7 +215,7 @@ void targetConfiguration(void)
     modeActivationConditionsMutable(4)->range.startStep = CHANNEL_VALUE_TO_STEP(1700);
     modeActivationConditionsMutable(4)->range.endStep   = CHANNEL_VALUE_TO_STEP(2100);
 
-    strcpy(pilotConfigMutable()->name, "BBBL V2");
+    strcpy(pilotConfigMutable()->name, "BBBL V3");
 
     ledStripConfigMutable()->ledConfigs[0] = DEFINE_LED(7,  7,  8, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
     ledStripConfigMutable()->ledConfigs[1] = DEFINE_LED(8,  7, 13, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
