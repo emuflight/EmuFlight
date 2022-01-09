@@ -55,25 +55,23 @@
 #define USE_MSP_UART
 
 // *************** Gyro & ACC **********************
-#define USE_GYRO
+
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
+#define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
 //#define MPU6000_SPI_DIVISOR              16 //?? Req for V3?
 
 #define MPU6000_CS_PIN                   PA4
 #define MPU6000_SPI_INSTANCE             SPI3
-#define GYRO_1_CS_PIN                    MPU6000_CS_PIN
-#define GYRO_1_SPI_INSTANCE              MPU6000_SPI_INSTANCE
 
 #define GYRO_MPU6000_ALIGN               CW180_DEG
 #define ACC_MPU6000_ALIGN                CW180_DEG
 
 #define USE_EXTI
 #define MPU_INT_EXTI                    PB0
-#define GYRO_1_EXTI_PIN                 MPU_INT_EXTI
-//#define MPU6000_INT_EXTI                 PB0
 #define USE_MPU_DATA_READY_SIGNAL
+
 
 
 // *************** RX ******************************
