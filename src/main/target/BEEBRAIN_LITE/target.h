@@ -102,6 +102,7 @@
 #define USE_RX_CC2500_SPI_PA_LNA
 #define USE_RX_FRSKY_SPI_D
 #define USE_RX_FRSKY_SPI_X
+#define USE_RX_REDPINE_SPI
 #endif
 
 // *************** OSD *****************************
