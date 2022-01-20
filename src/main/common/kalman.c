@@ -87,7 +87,6 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input) {
     //measurement update
     kalmanState->k = kalmanState->p / (kalmanState->p + 10.0f);
     kalmanState->k = pt1FilterApply(&kalmanState->kFilter, kalmanState->k);
-    kalmanState->k = kalmanState->p / (kalmanState->p + kalmanState->r);
     kalmanState->x += kalmanState->k * (input - kalmanState->x);
     kalmanState->p = (1.0f - kalmanState->k) * kalmanState->p;
     return kalmanState->x;
