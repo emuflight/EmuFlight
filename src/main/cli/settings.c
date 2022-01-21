@@ -679,6 +679,9 @@ const clivalue_t valueTable[] = {
     { "gyro_calib_duration",        VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 50,  3000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyroCalibrationDuration) },
     { "gyro_calib_noise_limit",     VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0,  200 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyroMovementCalibrationThreshold) },
     { "gyro_offset_yaw",            VAR_INT16  | MASTER_VALUE, .config.minmax = { -1000, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_offset_yaw) },
+    { "imuf_q",                     VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 1000, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_q) },
+    { "imuf_w",                     VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 65   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_w) },
+
 #ifdef USE_GYRO_OVERFLOW_CHECK
     { "gyro_overflow_detect",       VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO_OVERFLOW_CHECK }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, checkOverflow) },
 #endif
