@@ -266,6 +266,7 @@ void gyroInitFilters(void)
 #ifdef USE_DYN_NOTCH_FILTER
     dynNotchInit(dynNotchConfig(), gyro.targetLooptime);
 #endif
+    kalman_init();
 }
 
 #if defined(USE_GYRO_SLEW_LIMITER)
