@@ -244,6 +244,7 @@ STATIC_UNIT_TESTED void performGyroCalibration(gyroSensor_t *gyroSensor, uint8_t
             }
 
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+                memset(&gyroSensor->gyroDev.variance[axis], 0, sizeof(gyroVariance_t));
                 gyroSensor->gyroDev.variance[axis].inverseN = 1.0f / 8.0f;
                 gyroSensor->gyroDev.variance[axis].w = 8;
             }
@@ -433,7 +434,7 @@ FAST_CODE float gyroVariance(gyroVariance_t *variance, float gyroRate) {
 
     float squirt = 0;
     arm_sqrt_f32(variance->axisVar, &squirt);
-    return squirt;
+    return squirt * 100.0f + 1.0f;
 }
 
 FAST_CODE void gyroUpdate(void)
@@ -475,6 +476,10 @@ FAST_CODE void gyroUpdate(void)
             varianceGyro1 = gyroVariance(&gyro.gyroSensor1.gyroDev.variance[X], gyroScaled1);
             varianceGyro2 = gyroVariance(&gyro.gyroSensor2.gyroDev.variance[X], gyroScaled2);
             gyro.gyroADC[X] = ((gyroScaled1 * varianceGyro2) + (gyroScaled2 * varianceGyro1)) / (varianceGyro1 + varianceGyro2);
+            DEBUG_SET(DEBUG_FUSION, 0, lrintf(gyroScaled1));
+            DEBUG_SET(DEBUG_FUSION, 1, lrintf(gyroScaled2));
+            DEBUG_SET(DEBUG_FUSION, 2, lrintf(varianceGyro1));
+            DEBUG_SET(DEBUG_FUSION, 3, lrintf(varianceGyro2));
 
             gyroScaled1 = gyro.gyroSensor1.gyroDev.gyroADC[Y] * gyro.gyroSensor1.gyroDev.scale;
             gyroScaled2 = gyro.gyroSensor2.gyroDev.gyroADC[Y] * gyro.gyroSensor2.gyroDev.scale;

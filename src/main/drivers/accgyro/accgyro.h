@@ -38,7 +38,7 @@
 
 #define GYRO_SCALE_2000DPS (2000.0f / (1 << 15))   // 16.384 dps/lsb scalefactor for 2000dps sensors
 #define GYRO_SCALE_4000DPS (4000.0f / (1 << 15))   //  8.192 dps/lsb scalefactor for 4000dps sensors
-#define GYRO_VARIANCE_WINDOW 8
+#define GYRO_VARIANCE_WINDOW 9
 
 typedef enum {
     GYRO_NONE = 0,
