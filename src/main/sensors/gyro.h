@@ -24,6 +24,7 @@
 #include "common/filter.h"
 #include "common/time.h"
 #include "common/utils.h"
+#include "common/kalman.h"
 
 #include "drivers/accgyro/accgyro.h"
 #include "drivers/bus.h"
@@ -109,6 +110,8 @@ typedef struct gyro_s {
 
     filterApplyFnPtr notchFilter2ApplyFn;
     biquadFilter_t notchFilter2[XYZ_AXIS_COUNT];
+
+    kalman_t kalmanFilterStateRate[XYZ_AXIS_COUNT];
 
     uint16_t accSampleRateHz;
     uint8_t gyroToUse;
@@ -197,6 +200,8 @@ typedef struct gyroConfig_s {
     uint8_t gyro_lpf1_dyn_expo; // set the curve for dynamic gyro lowpass filter
     uint8_t simplified_gyro_filter;
     uint8_t simplified_gyro_filter_multiplier;
+    uint8_t imuf_w;
+    uint16_t imuf_q;
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);
