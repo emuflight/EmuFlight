@@ -274,46 +274,15 @@ FAST_CODE float ptnFilterApply(ptnFilter_t *filter, float input) {
 	  return filter->state[filter->order];
 } // ptnFilterApply
 
-
-
 void luluFilterInit(luluFilter_t *filter, int N)
 {
-
-	float *buf = (float*)malloc(sizeof(float)*N*2 + 1);
-	float *minBufA = (float*)malloc(sizeof(float)*(N*2) + 1);
-	float *luluInterimA = (float*)malloc(sizeof(float)*N*2 + 1);
-	float *maxBufA = (float*)malloc(sizeof(float)*N*2 + 1);
-	float *inputBufB = (float*)malloc(sizeof(float)*N*2 + 1);
-	float *minBufB = (float*)malloc(sizeof(float)*N*2 + 1);
-	float *luluInterimB = (float*)malloc(sizeof(float)*N*2 + 1);
-	float *maxBufB = (float*)malloc(sizeof(float)*N*2 + 1);
-	float *luluInterimC = (float*)malloc(sizeof(float)*N*2 + 1);
-
     filter->N = N;
     filter->windowSize = N*2 + 1;
     filter->windowBufIndex = 0;
-    filter->buf = buf;
-    filter->minBufA = minBufA;
-    filter->luluInterimA = luluInterimA;
-    filter->luluInterimB = luluInterimB;
-
-    for(int i = 0; i < N*2 + 1; i++)
-    {
-        filter->buf[i] = 0;
-    }
-    for(int i = 0; i < N*2 + 1; i++)
-    {
-        filter->minBufA[i] = 0;
-    }
-    for(int i = 0; i < N*2 + 1; i++)
-    {
-        filter->luluInterimA[i] = 0;
-    }
-
-    for(int i = 0; i < N*2 + 1; i++)
-    {
-        filter->luluInterimB[i] = 0;
-    }
+    memset(filter->buf, 0, sizeof(float) * (2 * N + 1));
+    memset(filter->minBufA, 0, sizeof(float) * (2 * N + 1));
+    memset(filter->luluInterimA, 0, sizeof(float) * (2 * N + 1));
+    memset(filter->luluInterimB, 0, sizeof(float) * (2 * N + 1));
 }
 
 
@@ -331,9 +300,9 @@ FAST_CODE float luluFilterPartialApply(luluFilter_t *filter, float input)
 
 	const int indexer = (windowIndex - filterN + filterWindow) % filterWindow;
 
-	float latestMinimum = 99999999999;
+	float latestMinimum = filter->buf[indexer];
 
-	for(int i = indexer; i < filterCount + indexer; i++)
+	for(int i = indexer + 1; i < filterCount + indexer; i++)
 	{
 		if(filter->buf[i % filterWindow] < latestMinimum)
 		{

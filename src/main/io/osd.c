@@ -219,7 +219,10 @@ static const uint8_t osdElementDisplayOrder[] = {
     OSD_DISARMED,
     OSD_NUMERICAL_HEADING,
     OSD_NUMERICAL_VARIO,
-    OSD_COMPASS_BAR
+    OSD_COMPASS_BAR,
+#ifdef USE_LULU
+    OSD_LULU_N
+#endif
 };
 
 PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 5);
@@ -798,6 +801,9 @@ static bool osdDrawSingleElement(uint8_t item) {
         tfp_sprintf(buff, "%01d.%01dG", (int)osdGForce, (int)(osdGForce * 10) % 10);
         break;
     }
+    case OSD_LULU_N:
+        tfp_sprintf(buff, "N=%2d", &currentPidProfile->lulu_n_val);
+        break;
     case OSD_ROLL_PIDS:
         osdFormatPID(buff, "ROL", &currentPidProfile->pid[PID_ROLL]);
         break;

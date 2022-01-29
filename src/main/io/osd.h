@@ -111,6 +111,7 @@ typedef enum {
     OSD_CRSF_RSSI,
     OSD_MAH_PERCENT,
     OSD_PLUS_CODE,
+    OSD_LULU_N,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 

@@ -148,7 +148,6 @@ typedef union gyroLowpassFilter_u {
     pt1Filter_t pt1FilterState;
     biquadFilter_t biquadFilterState;
     ptnFilter_t ptnFilterState;
-    luluFilter2_t luluFilterState;
 } gyroLowpassFilter_t;
 
 typedef struct gyroSensor_s {
@@ -790,11 +789,6 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
             case FILTER_BIQUAD:
                 *lowpassFilterApplyFn = (filterApplyFnPtr) biquadFilterApply;
                 biquadFilterInitLPF(&lowpassFilter[axis].biquadFilterState, lpfHz[axis], gyro.targetLooptime);
-                break;
-            case FILTER_LULU:
-                *lowpassFilterApplyFn = (filterApplyFnPtr) luluFilterApply;
-				luluFilterInit(&lowpassFilter[axis].luluFilterState.A, NVal);
-				luluFilterInit(&lowpassFilter[axis].luluFilterState.B, NVal);
                 break;
             case FILTER_PT4:
                 *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;

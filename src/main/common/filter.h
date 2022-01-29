@@ -55,15 +55,15 @@ typedef struct ptnFilter_s {
     uint8_t order;
 } ptnFilter_t;
 
-
+//Max N = 25
 typedef struct {
     int windowSize;
     int windowBufIndex;
     int N;
-    float *buf;
-    float *minBufA;
-    float *luluInterimA;
-    float *luluInterimB;
+    float buf[51];
+    float minBufA[51];
+    float luluInterimA[51];
+    float luluInterimB[51];
 } luluFilter_t;
 
 typedef struct {
@@ -113,8 +113,6 @@ float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input);
 void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT);
 void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float ScaleF, float dt);
 float ptnFilterApply(ptnFilter_t *filter, float input);
-
-#define NVal 10
 
 void luluFilterInit(luluFilter_t *filter, int N);
 float luluFilterApply(luluFilter2_t *filter, float input);

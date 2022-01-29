@@ -197,6 +197,9 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .angle_filter = 100,
     .dtermDynNotch = false,
     .dterm_dyn_notch_q = 400,
+#ifdef USE_LULU
+    .lulu_n_val = 2
+#endif
                 );
 }
 
@@ -277,8 +280,8 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 break;
             case FILTER_LULU:
             	dtermLowpassApplyFn = (filterApplyFnPtr)luluFilterApply;
-            	luluFilterInit(&dtermLowpass[axis].luluFilter.A, NVal);
-            	luluFilterInit(&dtermLowpass[axis].luluFilter.B, NVal);
+            	luluFilterInit(&dtermLowpass[axis].luluFilter.A, pidProfile->lulu_n_val);
+            	luluFilterInit(&dtermLowpass[axis].luluFilter.B, pidProfile->lulu_n_val);
             	break;
             default: // case FILTER_PT1:
                 dtermLowpassApplyFn = (filterApplyFnPtr)pt1FilterApply;
@@ -307,8 +310,8 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 break;
             case FILTER_LULU:
             	dtermLowpass2ApplyFn = (filterApplyFnPtr)luluFilterApply;
-            	luluFilterInit(&dtermLowpass2[axis].luluFilter.A, NVal);
-            	luluFilterInit(&dtermLowpass2[axis].luluFilter.B, NVal);
+            	luluFilterInit(&dtermLowpass2[axis].luluFilter.A, pidProfile->lulu_n_val);
+            	luluFilterInit(&dtermLowpass2[axis].luluFilter.B, pidProfile->lulu_n_val);
             	break;
             default: // case FILTER_PT1:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)pt1FilterApply;
@@ -834,8 +837,16 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
                 }
             }
 #endif
+            if(axis < 2) 
+            {
+                DEBUG_SET(DEBUG_LULU, axis, lrintf(dDelta));
+            }
             dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
             dDelta = dtermLowpass2ApplyFn((filter_t *)&dtermLowpass2[axis], dDelta);
+            if(axis < 2) 
+            {
+                DEBUG_SET(DEBUG_LULU, axis + 2, lrintf(dDelta));
+            }
             dDelta = dtermABGapplyFn((filter_t *)&dtermABG[axis], dDelta);
             //dterm boost, similar to emuboost
             float boostedDtermRate;

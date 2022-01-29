@@ -974,6 +974,9 @@ const clivalue_t valueTable[] = {
     { "mixer_impl",                VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_MIXER_IMPL_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_impl) },
     { "mixer_laziness",            VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_laziness) },
     { "mixer_yaw_throttle_comp",   VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_yaw_throttle_comp) },
+#ifdef USE_LULU
+    { "lulu_n_val", VAR_UINT8 | PROFILE_VALUE, .config.minmax = { 0, 25 }, PG_PID_PROFILE, offsetof(pidProfile_t, lulu_n_val) },
+#endif
 
 
 // PG_TELEMETRY_CONFIG
