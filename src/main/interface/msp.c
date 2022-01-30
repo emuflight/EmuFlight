@@ -1983,7 +1983,9 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         currentPidProfile->axis_lock_hz = sbufReadU8(src);
         currentPidProfile->axis_lock_multiplier = sbufReadU8(src);
         currentPidProfile->emuGravityGain = sbufReadU8(src);
+#ifdef USE_LULU
         currentPidProfile->lulu_n_val = sbufReadU8(src);
+#endif
         //end 1.51
         }
         pidInitConfig(currentPidProfile);

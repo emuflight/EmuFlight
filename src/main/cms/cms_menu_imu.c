@@ -104,7 +104,10 @@ static const char * const cms_mixerImplTypeLabels[] = {
 };
 
 static const char * const cms_FilterType[] = {
-    "PT1", "BIQUAD", "PT2", "PT3", "PT4", "LULU"
+    "PT1", "BIQUAD", "PT2", "PT3", "PT4"
+#ifdef USE_LULU
+    , "LULU"
+#endif
 };
 
 #ifdef USE_GYRO_DATA_ANALYSE
