@@ -31,6 +31,9 @@
 #include "common/axis.h"
 #include "common/maths.h"
 #include "common/filter.h"
+#ifdef USE_LULU
+#include "common/lulu.h"
+#endif
 
 #include "config/config_reset.h"
 #include "pg/pg.h"
