@@ -14,102 +14,179 @@
 #include "fc/fc_rc.h"
 
 
+#ifdef __ARM_ACLE
+#include <arm_acle.h>
+#endif /* __ARM_ACLE */
+#include <fenv.h>
+
 void luluFilterInit(luluFilter_t *filter, int N)
 {
+	if(N > 15)
+	{
+		N = 15;
+	}
+	if(N < 1)
+	{
+		N = 1;
+	}
     filter->N = N;
-    filter->windowSize = N*2 + 1;
+    filter->windowSize = filter->N * 2 + 1;
     filter->windowBufIndex = 0;
-    memset(filter->buf, 0, sizeof(float) * (2 * N + 1));
-    memset(filter->minBufA, 0, sizeof(float) * (2 * N + 1));
-    memset(filter->luluInterimA, 0, sizeof(float) * (2 * N + 1));
-    memset(filter->luluInterimB, 0, sizeof(float) * (2 * N + 1));
+
+	memset(filter->luluInterim, 0, sizeof(float) * (filter->windowSize));
+	memset(filter->luluInterimB, 0, sizeof(float) * (filter->windowSize));
 }
 
+FAST_CODE float fixRoad(float *series, float *seriesB, int index, int filterN, int windowSize)
+{	
+	register float curVal = 0;
+	register float curValB = 0;
+	for(int N = 1; N <= filterN; N++)
+	{
+		int indexNeg = (index + windowSize - 2*N) % windowSize;
+		register int curIndex = (indexNeg + 1);
+		register float prevVal = series[indexNeg];
+		register float prevValB = seriesB[indexNeg];
+		register int indexPos = (curIndex + N) % windowSize;
+		for(int i = windowSize - 2*N; i < windowSize - N; i++)
+		{
+			if(indexPos >= windowSize)
+			{
+				indexPos = 0;
+			}
+			if(curIndex >= windowSize)
+			{
+				curIndex = 0;
+			}
+			//curIndex = (2 - 1) % 3 = 1
+			curVal = series[curIndex];
+			curValB = seriesB[curIndex];
+			register float nextVal = series[indexPos];
+			register float nextValB = seriesB[indexPos];
+			// onbump (s, 1, 1, 3)
+			//if(onBump(series, curIndex, N, windowSize))
+			if(prevVal < curVal && curVal > nextVal)
+			{
+				float maxValue = MAX(prevVal, nextVal);
 
+	            series[curIndex] = maxValue;
+                register int k = curIndex;
+	            for(int j = 1; j < N; j++)
+				{
+                    if(++k >= windowSize)
+                    {
+                        k = 0;
+                    }
+					series[k] = maxValue;
+				}
+			}
+
+			if(prevValB > curValB && curValB < nextValB)
+			{
+				float minValue = MIN(prevValB, nextValB);
+
+	            curVal = minValue;
+                seriesB[curIndex] = minValue;
+                register int k = curIndex;
+	            for(int j = 1; j < N; j++)
+				{
+                    if(++k >= windowSize)
+                    {
+                        k = 0;
+                    }
+					seriesB[k] = minValue;
+				}
+			}
+			prevVal = curVal;
+			prevValB = curValB;
+			curIndex++;
+			indexPos++;
+		}
+
+		curIndex = (indexNeg + 1);
+		prevVal = series[indexNeg];
+		prevValB = seriesB[indexNeg];
+		indexPos = (curIndex + N) % windowSize;
+		for(int i = windowSize - 2*N; i < windowSize - N; i++)
+		{
+			if(indexPos >= windowSize)
+			{
+				indexPos = 0;
+			}
+			if(curIndex >= windowSize)
+			{
+				curIndex = 0;
+			}
+			//curIndex = (2 - 1) % 3 = 1
+			curVal = series[curIndex];
+			curValB = seriesB[curIndex];
+			register float nextVal = series[indexPos];
+			register float nextValB = seriesB[indexPos];
+
+			if(prevVal > curVal && curVal < nextVal)
+			{
+				float minValue = MIN(prevVal, nextVal);
+
+	            curVal = minValue;
+                series[curIndex] = minValue;
+                register int k = curIndex;
+	            for(int j = 1; j < N; j++)
+				{
+                    if(++k >= windowSize)
+                    {
+                        k = 0;
+                    }
+					series[k] = minValue;
+				}
+			}
+
+			if(prevValB < curValB && curValB > nextValB)
+			{
+				float maxValue = MAX(prevValB, nextValB);
+				curValB = maxValue;
+	            seriesB[curIndex] = maxValue;
+                register int k = curIndex;
+	            for(int j = 1; j < N; j++)
+				{
+                    if(++k >= windowSize)
+                    {
+                        k = 0;
+                    }
+					seriesB[k] = maxValue;
+				}
+			}
+			prevVal = curVal;
+			prevValB = curValB;
+			curIndex++;
+			indexPos++;
+		}
+	}
+	return (curVal - curValB) / 2;
+}
 
 FAST_CODE float luluFilterPartialApply(luluFilter_t *filter, float input)
 {
-	int windowIndex = filter->windowBufIndex;
-	//Update the current filter window
-	filter->buf[windowIndex] = input;
-	filter->luluInterimA[windowIndex] = input;
-
+	//This is the value N of the LULU filter.
 	int filterN = filter->N;
-	int filterCount = filterN + 1;
+	//This is the total window size for the rolling buffer
 	int filterWindow = filter->windowSize;
 
-	const int indexer = (windowIndex - filterN + filterWindow) % filterWindow;
+	int windowIndex = filter->windowBufIndex;
+	int newIndex = (windowIndex + 1) % filterWindow;
+	filter->windowBufIndex = newIndex;
+	filter->luluInterim[windowIndex] = input;
+	filter->luluInterimB[windowIndex] = -input;
 
-	float latestMinimum = filter->buf[indexer];
-
-	for(int i = indexer + 1; i < filterCount + indexer; i++)
-	{
-		if(filter->buf[i % filterWindow] < latestMinimum)
-		{
-			latestMinimum = filter->buf[i % filterWindow];
-		}
-	}
-
-	//Calculate the previous sequence minimum and store in "bufMin"
-	filter->minBufA[windowIndex] = latestMinimum;
-	//calculatePrevSequenceMaximum(filter->minBufA, windowIndex, filterCount, filterWindow);
-	for(int i = 1; i < filterCount; i++)
-	{
-		int curIndex = (windowIndex + filterWindow - i) % filterWindow;
-		if(filter->minBufA[curIndex] > latestMinimum)
-		{
-			latestMinimum = filter->minBufA[curIndex];
-		}
-	}
-
-	filter->luluInterimA[indexer] = latestMinimum;
-
-	filter->luluInterimB[0] = latestMinimum;
-	for(int i = 1; i <= filterN; i++)
-	{
-		int curIndex = (indexer + filterWindow - i) % filterWindow;
-		if(latestMinimum < filter->luluInterimA[curIndex])
-		{
-			latestMinimum = filter->luluInterimA[curIndex];
-		}
-		filter->luluInterimB[i] = latestMinimum;
-	}
-	//float luluMinN = calculatePrevSequenceMaximum(filter->luluInterimA, filter->windowBufIndex, filter->N + 1, filter->windowSize);
-
-	//luluMinN = luluMinN < filter->luluInterimB[filter->N] ? luluMinN : filter->luluInterimB[filter->N];
-
-	float bufMaxInterim = filter->luluInterimB[0];
-
-	for(int i = filterN; i >= 0; i--)
-	{
-		float prevMaxVals = filter->luluInterimB[i];
-		float curEvalFloat = filter->luluInterimA[indexer + (filterN - i) % filterWindow];
-		bufMaxInterim = bufMaxInterim < curEvalFloat ? curEvalFloat : bufMaxInterim;
-		float bufMaxN = bufMaxInterim;
-		//Calculate the maximum of the L filtered values and store in maxBuf, remember to update the values that might have changed
-//		bufMaxN = calculatePrevSequenceMaximum(filter->luluInterimA, index, filterCount - i, filterWindow);
-		if(prevMaxVals > bufMaxN)
-		{
-			bufMaxN = prevMaxVals;
-		}
-		if(latestMinimum > bufMaxN)
-		{
-			latestMinimum = bufMaxN;
-		}
-	}
-
-	if(windowIndex++ >= filterWindow) {
-		filter->windowBufIndex = 0;
-	} else {
-		filter->windowBufIndex = windowIndex;
-	}
-
-	return latestMinimum;
+	//memcpy(filter->luluInterim, filter->buf, sizeof(float) * filterWindow);
+	float returnVal;
+	returnVal = fixRoad(filter->luluInterim, filter->luluInterimB, windowIndex, filterN, filterWindow);
+	return returnVal;
 }
 
-FAST_CODE float luluFilterApply(luluFilter2_t *filter, float input)
+FAST_CODE float luluFilterApply(luluFilter_t *filter, float input)
 {
-	float resultA = luluFilterPartialApply(&filter->A, input);
-	float resultB = luluFilterPartialApply(&filter->B, -input);
-	return (resultA - resultB) / 2;
+	//This is the UL filter
+	float resultA = luluFilterPartialApply(filter, input);
+	//We use the median interpretation of this filter to remove bias in the output
+	return resultA;
 }
