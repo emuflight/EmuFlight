@@ -2,21 +2,15 @@
 
 
 
-//Max N = 25
+//Max N = 15
 typedef struct {
     int windowSize;
     int windowBufIndex;
     int N;
-    float buf[51];
-    float minBufA[51];
-    float luluInterimA[51];
-    float luluInterimB[51];
+    float luluInterim[32] __attribute__ ((aligned (128)));
+    float luluInterimB[32];
 } luluFilter_t;
 
-typedef struct {
-	luluFilter_t A;
-	luluFilter_t B;
-} luluFilter2_t;
 
 void luluFilterInit(luluFilter_t *filter, int N);
-float luluFilterApply(luluFilter2_t *filter, float input);
+float luluFilterApply(luluFilter_t *filter, float input);
