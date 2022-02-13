@@ -67,7 +67,7 @@ FAST_CODE float fixRoad(float *series, float *seriesB, int index, int filterN, i
 			//if(onBump(series, curIndex, N, windowSize))
 			if(prevVal < curVal && curVal > nextVal)
 			{
-				register float maxValue = MAX(prevVal, nextVal);
+				float maxValue = MAX(prevVal, nextVal);
 
 	            series[curIndex] = maxValue;
                 register int k = curIndex;
@@ -81,12 +81,12 @@ FAST_CODE float fixRoad(float *series, float *seriesB, int index, int filterN, i
 				}
 			}
 
-			if(prevValB > curValB && curValB < nextValB)
+			if(prevValB < curValB && curValB > nextValB)
 			{
-				register float minValue = MIN(prevValB, nextValB);
+				float maxValue = MAX(prevValB, nextValB);
 
-	            curVal = minValue;
-                seriesB[curIndex] = minValue;
+	            curVal = maxValue;
+                seriesB[curIndex] = maxValue;
                 register int k = curIndex;
 	            for(int j = 1; j < N; j++)
 				{
@@ -94,7 +94,7 @@ FAST_CODE float fixRoad(float *series, float *seriesB, int index, int filterN, i
                     {
                         k = 0;
                     }
-					seriesB[k] = minValue;
+					seriesB[k] = maxValue;
 				}
 			}
 			prevVal = curVal;
@@ -125,7 +125,7 @@ FAST_CODE float fixRoad(float *series, float *seriesB, int index, int filterN, i
 
 			if(prevVal > curVal && curVal < nextVal)
 			{
-				register float minValue = MIN(prevVal, nextVal);
+				float minValue = MIN(prevVal, nextVal);
 
 	            curVal = minValue;
                 series[curIndex] = minValue;
@@ -140,11 +140,11 @@ FAST_CODE float fixRoad(float *series, float *seriesB, int index, int filterN, i
 				}
 			}
 
-			if(prevValB < curValB && curValB > nextValB)
+			if(prevValB > curValB && curValB < nextValB)
 			{
-				register float maxValue = MAX(prevValB, nextValB);
-				curValB = maxValue;
-	            seriesB[curIndex] = maxValue;
+				float minValue = MIN(prevValB, nextValB);
+				curValB = minValue;
+	            seriesB[curIndex] = minValue;
                 register int k = curIndex;
 	            for(int j = 1; j < N; j++)
 				{
@@ -152,7 +152,7 @@ FAST_CODE float fixRoad(float *series, float *seriesB, int index, int filterN, i
                     {
                         k = 0;
                     }
-					seriesB[k] = maxValue;
+					seriesB[k] = minValue;
 				}
 			}
 			prevVal = curVal;
