@@ -67,7 +67,7 @@ FAST_CODE float fixRoad(float *series, float *seriesB, int index, int filterN, i
 			//if(onBump(series, curIndex, N, windowSize))
 			if(prevVal < curVal && curVal > nextVal)
 			{
-				float maxValue = MAX(prevVal, nextVal);
+				register float maxValue = MAX(prevVal, nextVal);
 
 	            series[curIndex] = maxValue;
                 register int k = curIndex;
@@ -83,7 +83,7 @@ FAST_CODE float fixRoad(float *series, float *seriesB, int index, int filterN, i
 
 			if(prevValB > curValB && curValB < nextValB)
 			{
-				float minValue = MIN(prevValB, nextValB);
+				register float minValue = MIN(prevValB, nextValB);
 
 	            curVal = minValue;
                 seriesB[curIndex] = minValue;
@@ -125,7 +125,7 @@ FAST_CODE float fixRoad(float *series, float *seriesB, int index, int filterN, i
 
 			if(prevVal > curVal && curVal < nextVal)
 			{
-				float minValue = MIN(prevVal, nextVal);
+				register float minValue = MIN(prevVal, nextVal);
 
 	            curVal = minValue;
                 series[curIndex] = minValue;
@@ -142,7 +142,7 @@ FAST_CODE float fixRoad(float *series, float *seriesB, int index, int filterN, i
 
 			if(prevValB < curValB && curValB > nextValB)
 			{
-				float maxValue = MAX(prevValB, nextValB);
+				register float maxValue = MAX(prevValB, nextValB);
 				curValB = maxValue;
 	            seriesB[curIndex] = maxValue;
                 register int k = curIndex;
@@ -167,20 +167,17 @@ FAST_CODE float fixRoad(float *series, float *seriesB, int index, int filterN, i
 FAST_CODE float luluFilterPartialApply(luluFilter_t *filter, float input)
 {
 	//This is the value N of the LULU filter.
-	int filterN = filter->N;
+	register int filterN = filter->N;
 	//This is the total window size for the rolling buffer
-	int filterWindow = filter->windowSize;
+	register int filterWindow = filter->windowSize;
 
-	int windowIndex = filter->windowBufIndex;
-	int newIndex = (windowIndex + 1) % filterWindow;
+	register int windowIndex = filter->windowBufIndex;
+    register float inputVal = input;
+	register int newIndex = (windowIndex + 1) % filterWindow;
 	filter->windowBufIndex = newIndex;
-	filter->luluInterim[windowIndex] = input;
-	filter->luluInterimB[windowIndex] = -input;
-
-	//memcpy(filter->luluInterim, filter->buf, sizeof(float) * filterWindow);
-	float returnVal;
-	returnVal = fixRoad(filter->luluInterim, filter->luluInterimB, windowIndex, filterN, filterWindow);
-	return returnVal;
+	filter->luluInterim[windowIndex] = inputVal;
+	filter->luluInterimB[windowIndex] = -inputVal;
+	return fixRoad(filter->luluInterim, filter->luluInterimB, windowIndex, filterN, filterWindow);
 }
 
 FAST_CODE float luluFilterApply(luluFilter_t *filter, float input)
