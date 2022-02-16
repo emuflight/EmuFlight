@@ -4236,6 +4236,18 @@ static void cliSave(const char *cmdName, char *cmdline)
     }
 }
 
+static void cliSaveNoReboot(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdline);
+
+    if (tryPrepareSave(cmdName)) {
+        writeEEPROM();
+        readEEPROM();
+        cliPrintHashLine("saving");
+
+    }
+}
+
 #if defined(USE_CUSTOM_DEFAULTS)
 bool resetConfigToCustomDefaults(void)
 {
@@ -6860,6 +6872,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("rxfail", "show/set rx failsafe settings", NULL, cliRxFailsafe),
     CLI_COMMAND_DEF("rxrange", "configure rx channel ranges", NULL, cliRxRange),
     CLI_COMMAND_DEF("save", "save and reboot", NULL, cliSave),
+    CLI_COMMAND_DEF("save_no_reboot", "save without reboot", NULL, cliSaveNoReboot),
 #ifdef USE_SDCARD
     CLI_COMMAND_DEF("sd_info", "sdcard info", NULL, cliSdInfo),
 #endif
