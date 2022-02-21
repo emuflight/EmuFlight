@@ -110,7 +110,7 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->gyroMovementCalibrationThreshold = 48;
     gyroConfig->gyro_hardware_lpf = GYRO_HARDWARE_LPF_NORMAL;
     gyroConfig->gyro_lpf1_type = FILTER_PT1;
-    gyroConfig->gyro_lpf1_static_hz = GYRO_LPF1_DYN_MIN_HZ_DEFAULT;  
+    gyroConfig->gyro_lpf1_static_hz = GYRO_LPF1_DYN_MIN_HZ_DEFAULT;
         // NOTE: dynamic lpf is enabled by default so this setting is actually
         // overridden and the static lowpass 1 is disabled. We can't set this
         // value to 0 otherwise Configurator versions 10.4 and earlier will also
@@ -133,6 +133,9 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->gyro_lpf1_dyn_expo = 5;
     gyroConfig->simplified_gyro_filter = true;
     gyroConfig->simplified_gyro_filter_multiplier = SIMPLIFIED_TUNING_DEFAULT;
+    gyroConfig->smithPredictorStrength = 50;
+    gyroConfig->smithPredictorDelay = 40;
+    gyroConfig->smithPredictorFilterHz = 5;
 }
 
 FAST_CODE bool isGyroSensorCalibrationComplete(const gyroSensor_t *gyroSensor)
@@ -447,6 +450,37 @@ FAST_CODE void gyroUpdate(void)
         gyro.sampleCount++;
     }
 }
+
+#ifdef USE_SMITH_PREDICTOR
+FAST_CODE_NOINLINE float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered, int axis) {
+  if (smithPredictor->samples > 1) {
+    smithPredictor->data[smithPredictor->idx] = gyroFiltered;
+    float input = gyroFiltered;
+
+    smithPredictor->idx++;
+    if (smithPredictor->idx > smithPredictor->samples) {
+        smithPredictor->idx = 0;
+    }
+
+    // filter the delayedGyro to help reduce the overall noise this prediction adds
+    float delayedGyro = smithPredictor->data[smithPredictor->idx];
+
+    float delayCompensatedGyro = smithPredictor->smithPredictorStrength * (gyroFiltered - delayedGyro);
+    delayCompensatedGyro = pt1FilterApply(&smithPredictor->smithPredictorFilter, delayCompensatedGyro);
+    gyroFiltered += delayCompensatedGyro;
+
+    if (axis == gyro.gyroDebugAxis) {
+        DEBUG_SET(DEBUG_SMITH_PREDICTOR, 0, lrintf(input));
+        DEBUG_SET(DEBUG_SMITH_PREDICTOR, 1, lrintf(gyroFiltered));
+        DEBUG_SET(DEBUG_SMITH_PREDICTOR, 2, lrintf(delayedGyro));
+        DEBUG_SET(DEBUG_SMITH_PREDICTOR, 3, lrintf(delayCompensatedGyro));
+    }
+
+    return gyroFiltered;
+  }
+  return gyroFiltered;
+}
+#endif
 
 #define GYRO_FILTER_FUNCTION_NAME filterGyro
 #define GYRO_FILTER_DEBUG_SET(mode, index, value) do { UNUSED(mode); UNUSED(index); UNUSED(value); } while (0)

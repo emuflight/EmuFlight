@@ -82,6 +82,9 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
         }
 #endif
 
+#ifdef USE_SMITH_PREDICTOR
+         applySmithPredictor(&gyro.smithPredictor[axis], gyroADCf, axis);
+#endif
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));
 
