@@ -75,6 +75,6 @@ void pgResetFn_i2cConfig(i2cConfig_t *i2cConfig)
     }
 }
 
-PG_REGISTER_ARRAY_WITH_RESET_FN(i2cConfig_t, I2CDEV_COUNT, i2cConfig, PG_I2C_CONFIG, 1);
+PG_REGISTER_ARRAY_WITH_RESET_FN(i2cConfig_t, I2CDEV_COUNT, i2cConfig, PG_I2C_CONFIG, 0);
 
 #endif // defined(USE_I2C) && !defined(USE_SOFT_I2C)

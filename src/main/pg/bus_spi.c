@@ -61,7 +61,7 @@ const spiDefaultConfig_t spiDefaultConfig[] = {
 #endif
 };
 
-PG_REGISTER_ARRAY_WITH_RESET_FN(spiPinConfig_t, SPIDEV_COUNT, spiPinConfig, PG_SPI_PIN_CONFIG, 1);
+PG_REGISTER_ARRAY_WITH_RESET_FN(spiPinConfig_t, SPIDEV_COUNT, spiPinConfig, PG_SPI_PIN_CONFIG, 0);
 
 void pgResetFn_spiPinConfig(spiPinConfig_t *spiPinConfig)
 {
