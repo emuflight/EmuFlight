@@ -189,36 +189,36 @@ FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint
     case FILTER_LPF:
         // 2nd order Butterworth (with Q=1/sqrt(2)) / Butterworth biquad section with Q
         // described in http://www.ti.com/lit/an/slaa447/slaa447.pdf
-        filter->b1 = 1 - cs;
+        filter->b1 = 1.0 - cs;
         filter->b0 = filter->b1 * 0.5f;
         filter->b2 = filter->b0;
-        filter->a1 = -2 * cs;
-        filter->a2 = 1 - alpha;
+        filter->a1 = -2.0 * cs;
+        filter->a2 = 1.0 - alpha;
         break;
     case FILTER_NOTCH:
-        filter->b0 = 1;
-        filter->b1 = -2 * cs;
-        filter->b2 = 1;
+        filter->b0 = 1.0;
+        filter->b1 = -2.0 * cs;
+        filter->b2 = 1.0;
         filter->a1 = filter->b1;
-        filter->a2 = 1 - alpha;
+        filter->a2 = 1.0 - alpha;
         break;
     case FILTER_BPF:
         filter->b0 = alpha;
-        filter->b1 = 0;
+        filter->b1 = 0.0;
         filter->b2 = -alpha;
-        filter->a1 = -2 * cs;
-        filter->a2 = 1 - alpha;
+        filter->a1 = -2.0 * cs;
+        filter->a2 = 1.0 - alpha;
         break;
     }
 
-    const float a0 = 1 + alpha;
+    const float a0 = 1.0 / (1.0 + alpha);
 
     // precompute the coefficients
-    filter->b0 /= a0;
-    filter->b1 /= a0;
-    filter->b2 /= a0;
-    filter->a1 /= a0;
-    filter->a2 /= a0;
+    filter->b0 *= a0;
+    filter->b1 *= a0;
+    filter->b2 *= a0;
+    filter->a1 *= a0;
+    filter->a2 *= a0;
 
     // update weight
     filter->weight = weight;
