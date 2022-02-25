@@ -32,6 +32,8 @@ typedef struct rpmFilterConfig_s
 
     uint16_t rpm_filter_lpf_hz;        // the cutoff of the lpf on reported motor rpm
 
+    uint8_t noise_limit;
+
 } rpmFilterConfig_t;
 
 PG_DECLARE(rpmFilterConfig_t, rpmFilterConfig);

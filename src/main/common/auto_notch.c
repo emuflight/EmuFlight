@@ -21,9 +21,12 @@
 #include <string.h>
 #include "arm_math.h"
 
+#include "platform.h"
+
 #include "auto_notch.h"
 #include "build/debug.h"
 #include "maths.h"
+
 /*
  * The idea is simple, run a passband at the notch frequency to isolate noise
  * at the notch frequency. Then look at the averaged squared rate of change over
@@ -34,21 +37,18 @@
 
 
 void initAutoNotch(autoNotch_t *autoNotch, float initial_frequency, int q, int noiseLimit, float looptimeUs) {
-    // creates an exponential moving average that will cover the freq we are nothing/bandpassing
-    float adjustedQ = q / 100.0f;
-
     autoNotch->noiseLimit = noiseLimit;
     autoNotch->weight = 1.0;
     autoNotch->invWeight = 0.0;
 
     autoNotch->preVariance = 0.0;
     pt1FilterInit(&autoNotch->preVarianceFilter, pt1FilterGain(10.0, looptimeUs * 1e-6f));
-    biquadFilterInit(&autoNotch->preVarianceBandpass, initial_frequency, looptimeUs, adjustedQ, FILTER_BPF, 1.0f);
+    biquadFilterInit(&autoNotch->preVarianceBandpass, initial_frequency, looptimeUs, q, FILTER_BPF, 1.0f);
 
-    biquadFilterInit(&autoNotch->notchFilter, initial_frequency, looptimeUs, adjustedQ, FILTER_NOTCH, 1.0f);
+    biquadFilterInit(&autoNotch->notchFilter, initial_frequency, looptimeUs, q, FILTER_NOTCH, 1.0f);
 }
 
-float applyAutoNotch(autoNotch_t *autoNotch, float input) {
+FAST_CODE float applyAutoNotch(autoNotch_t *autoNotch, float input) {
     float preNotchNoise = biquadFilterApplyDF1(&autoNotch->preVarianceBandpass, input);
     // variance is approximately the noise squared and averaged
     autoNotch->preVariance = pt1FilterApply(&autoNotch->preVarianceFilter, preNotchNoise * preNotchNoise);
@@ -58,14 +58,18 @@ float applyAutoNotch(autoNotch_t *autoNotch, float input) {
     return autoNotch->weight * notchFilteredNoise + autoNotch->invWeight * input;
 }
 
-void updateAutoNotch(autoNotch_t *autoNotch, float frequency, float q, float weightMultiplier, float looptimeUs) {
-    biquadFilterInit(&autoNotch->preVarianceBandpass, frequency, looptimeUs, q, FILTER_BPF, 1.0f);
-    biquadFilterUpdate(&autoNotch->notchFilter, frequency, looptimeUs, q, FILTER_NOTCH, 1.0f);
-
+FAST_CODE void updateWeight(autoNotch_t *autoNotch, float weightMultiplier) {
     float deviation;
     arm_sqrt_f32(autoNotch->preVariance, &deviation);
     float weight = deviation / autoNotch->noiseLimit;
 
     autoNotch->weight = MIN(weight * weightMultiplier, 1.0);
     autoNotch->invWeight = 1.0 - autoNotch->weight;
+}
+
+FAST_CODE void updateAutoNotch(autoNotch_t *autoNotch, float frequency, float q, float weightMultiplier, float looptimeUs) {
+    biquadFilterInit(&autoNotch->preVarianceBandpass, frequency, looptimeUs, q, FILTER_BPF, 1.0f);
+    biquadFilterUpdate(&autoNotch->notchFilter, frequency, looptimeUs, q, FILTER_NOTCH, 1.0f);
+
+    updateWeight(autoNotch, weightMultiplier);
 }
