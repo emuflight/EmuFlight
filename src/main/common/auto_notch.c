@@ -22,10 +22,8 @@
 #include "arm_math.h"
 
 #include "auto_notch.h"
-#include "fc/rc.h"
 #include "build/debug.h"
-#include "sensors/gyro.h"
-
+#include "maths.h"
 /*
  * The idea is simple, run a passband at the notch frequency to isolate noise
  * at the notch frequency. Then look at the averaged squared rate of change over
@@ -34,60 +32,40 @@
  * this allows us to crossfade based on noise.
  */
 
-/*
-void init(auto_notch_t *auto_notch, float frequency, int gain) {
-  for (int i = 0; i < SAMPLE_LENGTH - 1; i++) {
-    float currentX = 1 * (i + 1.0);
-    filter->sumX += currentX;
-    filter->sumXSquared += currentX * currentX;
-  }
-  filter->sumXSquared = filter->sumXSquared * filter->w;
-  filter->squaredSumX = filter->sumX * filter->sumX;
+
+void init(autoNotch_t *autoNotch, float initial_frequency, int q, int noiseLimit, float looptimeUs) {
+    // creates an exponential moving average that will cover the freq we are nothing/bandpassing
+    float adjustedQ = q / 100.0f;
+
+    autoNotch->noiseLimit = noiseLimit;
+    autoNotch->weight = 1.0;
+    autoNotch->invWeight = 0.0;
+
+    autoNotch->preVariance = 0.0;
+    pt1FilterInit(&autoNotch->preVarianceFilter, pt1FilterGain(10.0, looptimeUs * 1e-6f));
+    biquadFilterInit(&autoNotch->preVarianceBandpass, initial_frequency, looptimeUs, adjustedQ, FILTER_BPF, 1.0f);
+
+    biquadFilterInit(&autoNotch->notchFilter, initial_frequency, looptimeUs, adjustedQ, FILTER_NOTCH, 1.0f);
 }
 
-void update_kalman_variance(kalman_t *state, float input) {
-  // put new data in the circular buffer
-  state->axisWindow[state->windex] = input;
-  state->windex++;
+float apply(autoNotch_t *autoNotch, float input) {
+    float preNotchNoise = biquadFilterApplyDF1(&autoNotch->preVarianceBandpass, input);
+    // variance is approximately the noise squared and averaged
+    autoNotch->preVariance = pt1FilterApply(&autoNotch->preVarianceFilter, preNotchNoise * preNotchNoise);
 
-  if (state->windex > state->w) {
-    state->windex = 0;
-  }
+    float notchFilteredNoise = biquadFilterApplyDF1(&autoNotch->notchFilter, input);
 
-  // least squares regression line
-  float sumXY = 0.0f;
-  float sumY = 0.0f;
-  int tempPointer = state->windex;
-  for (int i = 0; i < state->w; i++) {
-    float currentX = 1 * (i + 1.0);
-    sumXY += currentX * state->axisWindow[tempPointer];
-    sumY += state->axisWindow[tempPointer];
-    tempPointer++;
-    if (tempPointer > state->w) {
-      tempPointer = 0;
-    }
-  }
-
-  tempPointer = state->windex;
-  float m = (state->w * sumXY - state->sumX * sumY) * 2.9301453352086263478668541959681e-7f;
-  float b = (sumY - m * state->sumX) * 0.0125f;
-
-  // calculate variance against the curve
-  float variance = 0.0f;
-  for (int i = 0; i < state->w; i++) {
-    float currentX = 1 * (i + 1.0);
-    float pointOnLine = m * currentX + b;
-    float error = state->axisWindow[tempPointer] - pointOnLine;
-    variance += error * error;
-
-    tempPointer++;
-      if (tempPointer > state->w) {
-        tempPointer = 0;
-      }
-  }
-    float squirt;
-    arm_sqrt_f32(variance, &squirt);
-    state->variance = squirt * VARIANCE_SCALE;
-    state->variance = pt1FilterApply(&state->kFilter, state->variance);
+    return autoNotch->weight * notchFilteredNoise + autoNotch->invWeight * input;
 }
-*/
+
+void updateAutoNotch(autoNotch_t *autoNotch, float frequency, float q, float weightMultiplier, float looptimeUs) {
+    biquadFilterInit(&autoNotch->preVarianceBandpass, frequency, looptimeUs, q, FILTER_BPF, 1.0f);
+    biquadFilterUpdate(&autoNotch->notchFilter, frequency, looptimeUs, q, FILTER_NOTCH, 1.0f);
+
+    float deviation;
+    arm_sqrt_f32(autoNotch->preVariance, &deviation);
+    float weight = deviation / autoNotch->noiseLimit;
+
+    autoNotch->weight = MIN(weight * weightMultiplier, 1.0);
+    autoNotch->invWeight = 1.0 - autoNotch->weight;
+}

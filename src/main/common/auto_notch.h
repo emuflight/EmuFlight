@@ -22,36 +22,14 @@
 
 #include "filter.h"
 
-// 8k / 100 gives us ability to see down to 50hz noise
-#define SAMPLE_LENGTH (8000 / 100) + 1
-// SAMPLE_LENGTH = 81
+typedef struct autoNotch_s {
+    float preVariance;
+    pt1Filter_t preVarianceFilter; // used as an exponential average, setup k to act like exponential average
+    biquadFilter_t preVarianceBandpass;
 
-// code below is precomputed to find the value of sum, sum squared, and squared sum
-// will need to be recomputed for different SAMPLE_LENGTH values
-/*int main()
-{
-    int sum = 0;
-    int sum_squared = 0;
-    int squared_sum = 0;
-    for (int i = 0; i < SAMPLE_LENGTH - 1; i++) {
-        int current_value = 1.0 * (i + 1.0);
-        sum += current_value;
-        sum_squared += current_value * current_value;
-    }
-    sum_squared = sum_squared * (SAMPLE_LENGTH - 1);
-    squared_sum = sum * sum;
+    float noiseLimit; // default of 50 allows 70 amplitude noise to be totally notched
+    float weight;
+    float invWeight;
 
-    printf("Hello, World!\n");
-    printf("sum %d\n", sum);
-    printf("sum squared %d\n", sum_squared);
-    printf("squared sum %d\n", squared_sum);
-}*/
-
-#define SUM 3240
-#define SUM_SQUARED 13910400
-#define SQUARED_SUM 10497600
-
-
-typedef struct auto_notch_s {
-
-} auto_notch_t;
+    biquadFilter_t notchFilter; // the notch filter we apply to the data
+} autoNotch_t;
