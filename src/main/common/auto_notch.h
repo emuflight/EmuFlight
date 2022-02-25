@@ -33,3 +33,7 @@ typedef struct autoNotch_s {
 
     biquadFilter_t notchFilter; // the notch filter we apply to the data
 } autoNotch_t;
+
+void initAutoNotch(autoNotch_t *autoNotch, float initial_frequency, int q, int noiseLimit, float looptimeUs);
+float applyAutoNotch(autoNotch_t *autoNotch, float input);
+void updateAutoNotch(autoNotch_t *autoNotch, float frequency, float q, float weightMultiplier, float looptimeUs);

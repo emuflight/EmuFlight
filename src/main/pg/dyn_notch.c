@@ -33,7 +33,8 @@ PG_RESET_TEMPLATE(dynNotchConfig_t, dynNotchConfig,
     .dyn_notch_min_hz = 150,
     .dyn_notch_max_hz = 600,
     .dyn_notch_q = 300,
-    .dyn_notch_count = 3
+    .dyn_notch_count = 3,
+    .noise_limit = 50,
 );
 
 #endif // USE_DYN_NOTCH_FILTER

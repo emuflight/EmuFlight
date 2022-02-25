@@ -33,7 +33,7 @@
  */
 
 
-void init(autoNotch_t *autoNotch, float initial_frequency, int q, int noiseLimit, float looptimeUs) {
+void initAutoNotch(autoNotch_t *autoNotch, float initial_frequency, int q, int noiseLimit, float looptimeUs) {
     // creates an exponential moving average that will cover the freq we are nothing/bandpassing
     float adjustedQ = q / 100.0f;
 
@@ -48,7 +48,7 @@ void init(autoNotch_t *autoNotch, float initial_frequency, int q, int noiseLimit
     biquadFilterInit(&autoNotch->notchFilter, initial_frequency, looptimeUs, adjustedQ, FILTER_NOTCH, 1.0f);
 }
 
-float apply(autoNotch_t *autoNotch, float input) {
+float applyAutoNotch(autoNotch_t *autoNotch, float input) {
     float preNotchNoise = biquadFilterApplyDF1(&autoNotch->preVarianceBandpass, input);
     // variance is approximately the noise squared and averaged
     autoNotch->preVariance = pt1FilterApply(&autoNotch->preVarianceFilter, preNotchNoise * preNotchNoise);
