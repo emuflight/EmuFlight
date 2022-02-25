@@ -36,4 +36,5 @@ typedef struct autoNotch_s {
 
 void initAutoNotch(autoNotch_t *autoNotch, float initial_frequency, int q, int noiseLimit, float looptimeUs);
 float applyAutoNotch(autoNotch_t *autoNotch, float input);
+void updateWeight(autoNotch_t *autoNotch, float weightMultiplier);
 void updateAutoNotch(autoNotch_t *autoNotch, float frequency, float q, float weightMultiplier, float looptimeUs);

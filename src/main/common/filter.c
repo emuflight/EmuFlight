@@ -214,6 +214,7 @@ FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint
     const float a0 = 1.0 / (1.0 + alpha);
 
     // precompute the coefficients
+    // consider moving inside switch statement as you could save cpu
     filter->b0 *= a0;
     filter->b1 *= a0;
     filter->b2 *= a0;
