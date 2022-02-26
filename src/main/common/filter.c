@@ -185,6 +185,12 @@ FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint
     const float cs = cos_approx(omega);
     const float alpha = sn / (2.0f * Q);
 
+    // shift filterFreq of the biquad to satisfy -3dB cutoff condition for all Q values
+    if (filterType == FILTER_LPF) {
+        const float q = 2 * Q * Q;
+        filterFreq *= sqrtf((1 - q + sqrtf(2 * q * (q - 1) + 1)) / q);
+    }
+
     switch (filterType) {
     case FILTER_LPF:
         // 2nd order Butterworth (with Q=1/sqrt(2)) / Butterworth biquad section with Q
