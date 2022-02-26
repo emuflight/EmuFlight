@@ -1072,8 +1072,10 @@ const clivalue_t valueTable[] = {
     { "dterm_lpf1_dyn_expo",        VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lpf1_dyn_expo) },
 #endif
     { PARAM_NAME_DTERM_LPF1_TYPE,       VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_DTERM_LPF_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lpf1_type) },
+    { "dterm_lpf1_biquad_q",            VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lpf1_biquad_q) },
     { PARAM_NAME_DTERM_LPF1_STATIC_HZ,  VAR_INT16  | PROFILE_VALUE, .config.minmax = { 0, LPF_MAX_HZ }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lpf1_static_hz) },
     { PARAM_NAME_DTERM_LPF2_TYPE,       VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_DTERM_LPF_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lpf2_type) },
+    { "dterm_lpf2_biquad_q",            VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lpf2_biquad_q) },
     { PARAM_NAME_DTERM_LPF2_STATIC_HZ,  VAR_INT16  | PROFILE_VALUE, .config.minmax = { 0, LPF_MAX_HZ }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_lpf2_static_hz) },
     { PARAM_NAME_DTERM_NOTCH_HZ,        VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, LPF_MAX_HZ }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_notch_hz) },
     { PARAM_NAME_DTERM_NOTCH_CUTOFF,    VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, LPF_MAX_HZ }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_notch_cutoff) },
@@ -1698,9 +1700,10 @@ const clivalue_t valueTable[] = {
 #endif
 
 #ifdef USE_RPM_FILTER
-    { PARAM_NAME_RPM_FILTER_HARMONICS,     VAR_UINT8 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 3 }, PG_RPM_FILTER_CONFIG, offsetof(rpmFilterConfig_t, rpm_filter_harmonics) },
+    { PARAM_NAME_RPM_FILTER_HARMONICS,     VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 3 }, PG_RPM_FILTER_CONFIG, offsetof(rpmFilterConfig_t, rpm_filter_harmonics) },
     { PARAM_NAME_RPM_FILTER_Q,             VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 250, 3000 }, PG_RPM_FILTER_CONFIG, offsetof(rpmFilterConfig_t, rpm_filter_q) },
-    { PARAM_NAME_RPM_FILTER_MIN_HZ,        VAR_UINT8 | MASTER_VALUE, .config.minmaxUnsigned = { 30, 200 }, PG_RPM_FILTER_CONFIG, offsetof(rpmFilterConfig_t, rpm_filter_min_hz) },
+    { PARAM_NAME_RPM_FILTER_Q,             VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 1, 255 }, PG_RPM_FILTER_CONFIG, offsetof(rpmFilterConfig_t, noise_limit) },
+    { PARAM_NAME_RPM_FILTER_MIN_HZ,        VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 30, 200 }, PG_RPM_FILTER_CONFIG, offsetof(rpmFilterConfig_t, rpm_filter_min_hz) },
     { PARAM_NAME_RPM_FILTER_FADE_RANGE_HZ, VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 1000 }, PG_RPM_FILTER_CONFIG, offsetof(rpmFilterConfig_t, rpm_filter_fade_range_hz) },
     { PARAM_NAME_RPM_FILTER_LPF_HZ,        VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 100, 500 }, PG_RPM_FILTER_CONFIG, offsetof(rpmFilterConfig_t, rpm_filter_lpf_hz) },
 #endif
