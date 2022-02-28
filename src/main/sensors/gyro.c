@@ -476,8 +476,7 @@ FAST_CODE void gyroUpdate(void)
             gyro.gyroADC[X] = ((gyroScaled1 * varianceGyro2) + (gyroScaled2 * varianceGyro1)) / (varianceGyro1 + varianceGyro2);
             DEBUG_SET(DEBUG_FUSION, 0, lrintf(gyroScaled1));
             DEBUG_SET(DEBUG_FUSION, 1, lrintf(gyroScaled2));
-            DEBUG_SET(DEBUG_FUSION, 2, lrintf(varianceGyro1));
-            DEBUG_SET(DEBUG_FUSION, 3, lrintf(varianceGyro2));
+            DEBUG_SET(DEBUG_FUSION, 2, lrintf(gyro.gyroADC[X]));
 
             gyroScaled1 = gyro.gyroSensor1.gyroDev.gyroADC[Y] * gyro.gyroSensor1.gyroDev.scale;
             gyroScaled2 = gyro.gyroSensor2.gyroDev.gyroADC[Y] * gyro.gyroSensor2.gyroDev.scale;
