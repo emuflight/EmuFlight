@@ -616,7 +616,7 @@ bool gyroInit(void)
     }
 
 #if defined(USE_MULTI_GYRO)
-    if ((gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH && !((gyroDetectionFlags & GYRO_ALL_MASK) == GYRO_ALL_MASK))
+    if ((gyro.gyroToUse >= GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE && !((gyroDetectionFlags & GYRO_ALL_MASK) == GYRO_ALL_MASK))
         || (gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_1 && !(gyroDetectionFlags & GYRO_1_MASK))
         || (gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_2 && !(gyroDetectionFlags & GYRO_2_MASK))) {
         if (gyroDetectionFlags & GYRO_1_MASK) {
@@ -632,14 +632,14 @@ bool gyroInit(void)
     // Only allow using both gyros simultaneously if they are the same hardware type.
     if (((gyroDetectionFlags & GYRO_ALL_MASK) == GYRO_ALL_MASK) && gyro.gyroSensor1.gyroDev.gyroHardware == gyro.gyroSensor2.gyroDev.gyroHardware) {
         gyroDetectionFlags |= GYRO_IDENTICAL_MASK;
-    } else if (gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
+    } else if (gyro.gyroToUse >= GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE) {
         // If the user selected "BOTH" and they are not the same type, then reset to using only the first gyro.
         gyro.gyroToUse = GYRO_CONFIG_USE_GYRO_1;
         gyroConfigMutable()->gyro_to_use = gyro.gyroToUse;
         eepromWriteRequired = true;
     }
 
-    if (gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_2 || gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
+    if (gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_2 || gyro.gyroToUse >= GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE) {
         static DMA_DATA uint8_t gyroBuf2[GYRO_BUF_SIZE];
         // SPI DMA buffer required per device
         gyro.gyroSensor2.gyroDev.dev.txBuf = gyroBuf2;
@@ -655,7 +655,7 @@ bool gyroInit(void)
         writeEEPROM();
     }
 
-    if (gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_1 || gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
+    if (gyro.gyroToUse == GYRO_CONFIG_USE_GYRO_1 || gyro.gyroToUse >= GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE) {
         static DMA_DATA uint8_t gyroBuf1[GYRO_BUF_SIZE];
         // SPI DMA buffer required per device
         gyro.gyroSensor1.gyroDev.dev.txBuf = gyroBuf1;

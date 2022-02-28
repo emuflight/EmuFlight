@@ -191,7 +191,7 @@ static const char * const lookupTableAlignment[] = {
 
 #ifdef USE_MULTI_GYRO
 static const char * const lookupTableGyro[] = {
-    "FIRST", "SECOND", "BOTH"
+     "FIRST", "SECOND", "BOTH_SIMPLE", "BOTH_VARIANCE"
 };
 #endif
 
