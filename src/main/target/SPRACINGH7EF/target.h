@@ -112,7 +112,7 @@
 #define UART8_TX_PIN            PE1 // NC
 
 #define USE_UART9               // Main receiver connection, on connector and though-hole pads.
-#define UART9_RX_PIN            PD14 // J11:3, J8:3 
+#define UART9_RX_PIN            PD14 // J11:3, J8:3
 #define UART9_TX_PIN            PD15 // J11:4, J8:4
 
 #define USE_UART10
@@ -188,7 +188,7 @@
 #define GYRO_1_ALIGN            CW0_DEG
 #define GYRO_2_ALIGN            CW180_DEG
 
-#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_BOTH
+#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_BOTH_VARIANCE
 
 #define USE_FLASHFS
 #define USE_FLASH_TOOLS

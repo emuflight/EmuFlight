@@ -65,7 +65,7 @@
 #define GYRO_2_ALIGN        CW270_DEG
 #endif
 
-#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_BOTH
+#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE
 
 #define USE_BARO
 #define USE_BARO_BMP280
@@ -159,12 +159,12 @@
 #define USE_ADC
 // It's possible to use ADC1 or ADC3 on this target, same pins.
 //#define ADC_INSTANCE                        ADC1
-//#define ADC1_DMA_OPT                        0  // DMA 2 Stream 0 Channel 0 
+//#define ADC1_DMA_OPT                        0  // DMA 2 Stream 0 Channel 0
 
 
 // Using ADC3 frees up DMA2_Stream0 for SPI1_RX (not necessarily, SPI1_RX has DMA2_Stream2 as well)
 #define ADC_INSTANCE                        ADC3
-#define ADC3_DMA_OPT                        0  // DMA 2 Stream 0 Channel 2 
+#define ADC3_DMA_OPT                        0  // DMA 2 Stream 0 Channel 2
 
 
 #define VBAT_ADC_PIN                        PC1
@@ -206,4 +206,3 @@
 //#define USABLE_TIMER_CHANNEL_COUNT 17 // 4xPWM, 8xESC, 2xESC via UART3 RX/TX, 1xLED Strip, 1xIR, CAM_C
 #define USABLE_TIMER_CHANNEL_COUNT 17
 #define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9))
-
