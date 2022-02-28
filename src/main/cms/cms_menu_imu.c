@@ -81,7 +81,7 @@ static const char * const osdTableThrottleLimitType[] = {
 
 #ifdef USE_MULTI_GYRO
 static const char * const osdTableGyroToUse[] = {
-    "FIRST", "SECOND", "BOTH"
+    "FIRST", "SECOND", "BOTH_SIMP", "BOTH_VAR"
 };
 #endif
 
@@ -742,7 +742,7 @@ static const OSD_Entry cmsx_menuFilterGlobalEntries[] =
     { "GYRO NF2",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_2,     0, 500, 1 } },
     { "GYRO NF2C",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_2, 0, 500, 1 } },
 #ifdef USE_MULTI_GYRO
-    { "GYRO TO USE",  OME_TAB | REBOOT_REQUIRED,  NULL, &(OSD_TAB_t)    { &gyroConfig_gyro_to_use,  2, osdTableGyroToUse} },
+    { "GYRO TO USE",  OME_TAB | REBOOT_REQUIRED,  NULL, &(OSD_TAB_t)    { &gyroConfig_gyro_to_use,  3, osdTableGyroToUse} },
 #endif
 
     { "BACK", OME_Back, NULL, NULL },
