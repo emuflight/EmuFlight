@@ -37,7 +37,7 @@
 
 
 void initAutoNotch(autoNotch_t *autoNotch, float initial_frequency, int q, int noiseLimit, float looptimeUs) {
-    autoNotch->noiseLimit = noiseLimit;
+    autoNotch->noiseLimitInv = 1.0 / noiseLimit;
     autoNotch->weight = 1.0;
     autoNotch->invWeight = 0.0;
 
@@ -58,10 +58,13 @@ FAST_CODE float applyAutoNotch(autoNotch_t *autoNotch, float input) {
     return autoNotch->weight * notchFilteredNoise + autoNotch->invWeight * input;
 }
 
-FAST_CODE void updateWeight(autoNotch_t *autoNotch, float weightMultiplier) {
+FAST_CODE void updateWeight(autoNotch_t *autoNotch, float frequency, float weightMultiplier) {
     float deviation;
     arm_sqrt_f32(autoNotch->preVariance, &deviation);
-    float weight = deviation / autoNotch->noiseLimit;
+    // 1 / 360
+    // higher freq have less delay when filtering anyhow and make more dterm noise
+    float frequencyAccounter = 1.0f + frequency * 0.002777777777f;
+    float weight = deviation * frequencyAccounter * autoNotch->noiseLimitInv;
 
     autoNotch->weight = MIN(weight * weightMultiplier, 1.0);
     autoNotch->invWeight = 1.0 - autoNotch->weight;
@@ -71,5 +74,5 @@ FAST_CODE void updateAutoNotch(autoNotch_t *autoNotch, float frequency, float q,
     biquadFilterInit(&autoNotch->preVarianceBandpass, frequency, looptimeUs, q, FILTER_BPF, 1.0f);
     biquadFilterUpdate(&autoNotch->notchFilter, frequency, looptimeUs, q, FILTER_NOTCH, 1.0f);
 
-    updateWeight(autoNotch, weightMultiplier);
+    updateWeight(autoNotch, frequency, weightMultiplier);
 }
