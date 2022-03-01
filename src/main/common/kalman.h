@@ -36,14 +36,14 @@ typedef struct kalman_s
     float lastX; //previous state
     float e;
     float axisVar;
-    uint16_t windex;
+    uint8_t windex;
     float axisWindow[MAX_KALMAN_WINDOW_SIZE];
     float varianceWindow[MAX_KALMAN_WINDOW_SIZE];
     float axisSumMean;
     float axisMean;
     float axisSumVar;
     float inverseN;
-    uint16_t w;
+    uint8_t w;
 
     pt1Filter_t kFilter;
 } kalman_t;
