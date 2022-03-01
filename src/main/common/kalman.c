@@ -22,7 +22,6 @@
 #include "arm_math.h"
 
 #include "kalman.h"
-#include "fc/rc.h"
 #include "build/debug.h"
 #include "sensors/gyro.h"
 
