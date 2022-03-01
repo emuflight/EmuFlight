@@ -215,7 +215,7 @@ FAST_CODE_NOINLINE void rpmFilterUpdate(void)
             clone->preVarianceBandpass.b2 = template->preVarianceBandpass.b2;
             clone->preVarianceBandpass.b0 = template->preVarianceBandpass.a1;
             clone->preVarianceBandpass.b2 = template->preVarianceBandpass.a2;
-            updateWeight(clone, weight);
+            updateWeight(clone, frequency, weight);
             }
 
         if (++currentHarmonic == currentFilter->harmonics) {

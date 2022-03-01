@@ -27,7 +27,7 @@ typedef struct autoNotch_s {
     pt1Filter_t preVarianceFilter; // used as an exponential average, setup k to act like exponential average
     biquadFilter_t preVarianceBandpass;
 
-    float noiseLimit; // default of 50 allows 70 amplitude noise to be totally notched
+    float noiseLimitInv; // default of 50 allows 70 amplitude noise to be totally notched
     float weight;
     float invWeight;
 
@@ -36,5 +36,5 @@ typedef struct autoNotch_s {
 
 void initAutoNotch(autoNotch_t *autoNotch, float initial_frequency, int q, int noiseLimit, float looptimeUs);
 float applyAutoNotch(autoNotch_t *autoNotch, float input);
-void updateWeight(autoNotch_t *autoNotch, float weightMultiplier);
+void updateWeight(autoNotch_t *autoNotch, float frequency, float weightMultiplier);
 void updateAutoNotch(autoNotch_t *autoNotch, float frequency, float q, float weightMultiplier, float looptimeUs);
