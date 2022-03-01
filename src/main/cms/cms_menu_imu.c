@@ -862,7 +862,9 @@ static CMS_Menu cmsx_menuDynFilt = {
 #endif
 
 static uint16_t cmsx_dterm_lpf1_static_hz;
+static uint8_t  cmsx_dterm_lpf1_q;
 static uint16_t cmsx_dterm_lpf2_static_hz;
+static uint8_t  cmsx_dterm_lpf2_q;
 static uint16_t cmsx_dterm_notch_hz;
 static uint16_t cmsx_dterm_notch_cutoff;
 static uint16_t cmsx_yaw_lowpass_hz;
@@ -874,7 +876,9 @@ static const void *cmsx_FilterPerProfileRead(displayPort_t *pDisp)
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
 
     cmsx_dterm_lpf1_static_hz   = pidProfile->dterm_lpf1_static_hz;
+    cmsx_dterm_lpf1_q           = pidProfile->dterm_lpf1_biquad_q;
     cmsx_dterm_lpf2_static_hz   = pidProfile->dterm_lpf2_static_hz;
+    cmsx_dterm_lpf2_q           = pidProfile->dterm_lpf2_biquad_q;
     cmsx_dterm_notch_hz         = pidProfile->dterm_notch_hz;
     cmsx_dterm_notch_cutoff     = pidProfile->dterm_notch_cutoff;
     cmsx_yaw_lowpass_hz         = pidProfile->yaw_lowpass_hz;
@@ -890,7 +894,9 @@ static const void *cmsx_FilterPerProfileWriteback(displayPort_t *pDisp, const OS
     pidProfile_t *pidProfile = currentPidProfile;
 
     pidProfile->dterm_lpf1_static_hz  = cmsx_dterm_lpf1_static_hz;
+    pidProfile->dterm_lpf1_biquad_q   = cmsx_dterm_lpf1_q;
     pidProfile->dterm_lpf2_static_hz  = cmsx_dterm_lpf2_static_hz;
+    pidProfile->dterm_lpf2_biquad_q   = cmsx_dterm_lpf2_q;
     pidProfile->dterm_notch_hz        = cmsx_dterm_notch_hz;
     pidProfile->dterm_notch_cutoff    = cmsx_dterm_notch_cutoff;
     pidProfile->yaw_lowpass_hz        = cmsx_yaw_lowpass_hz;
@@ -903,7 +909,9 @@ static const OSD_Entry cmsx_menuFilterPerProfileEntries[] =
     { "-- FILTER PP  --", OME_Label, NULL, NULL },
 
     { "DTERM LPF1", OME_UINT16 | SLIDER_DTERM, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lpf1_static_hz, 0, LPF_MAX_HZ, 1 } },
+    { "LPF1 Q",     OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_dterm_lpf1_q,       0, 100, 1 } },
     { "DTERM LPF2", OME_UINT16 | SLIDER_DTERM, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lpf2_static_hz, 0, LPF_MAX_HZ, 1 } },
+    { "LPF2 Q",     OME_UINT8,  NULL, &(OSD_UINT8_t){ &cmsx_dterm_lpf2_q,       0, 100, 1 } },
     { "DTERM NF",   OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_notch_hz,       0, LPF_MAX_HZ, 1 } },
     { "DTERM NFCO", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_notch_cutoff,   0, LPF_MAX_HZ, 1 } },
     { "YAW LPF",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_yaw_lowpass_hz,       0, 500, 1 } },
