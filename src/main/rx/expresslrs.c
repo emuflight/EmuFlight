@@ -1099,7 +1099,7 @@ rx_spi_received_e expressLrsDataReceived(uint8_t *payloadBuffer)
     if (rfPacketStatus != RX_SPI_RECEIVED_NONE) {
         // A packet has been received since last time
         rfPacketReturnStatus = rfPacketStatus;
-        rfPacketStatus = RX_SPI_RECEIVED_NONE;
+         rfPacketStatus = RX_SPI_RECEIVED_NONE;
     }
     return rfPacketReturnStatus;
 }

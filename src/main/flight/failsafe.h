@@ -28,9 +28,8 @@
 #define PERIOD_OF_1_SECONDS            1 * MILLIS_PER_SECOND
 #define PERIOD_OF_3_SECONDS            3 * MILLIS_PER_SECOND
 #define PERIOD_OF_30_SECONDS          30 * MILLIS_PER_SECOND
-#define PERIOD_RXDATA_FAILURE        200    // millis
+#define PERIOD_RXDATA_FAILURE        10     // millis
 #define PERIOD_RXDATA_RECOVERY       200    // millis
-
 
 typedef struct failsafeConfig_s {
     uint16_t failsafe_throttle;             // Throttle level used for landing - specify value between 1000..2000 (pwm pulse width for slightly below hover). center throttle = 1500.
