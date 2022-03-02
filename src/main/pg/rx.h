@@ -57,6 +57,8 @@ typedef struct rxConfig_s {
     uint8_t rc_smoothing_debug_axis;           // Axis to log as debug values when debug_mode = RC_SMOOTHING
     uint8_t rc_smoothing_auto_factor_rpy;      // Used to adjust the "smoothness" determined by the auto cutoff calculations
     uint8_t rc_smoothing_auto_factor_throttle; // Used to adjust the "smoothness" determined by the auto cutoff calculations
+    uint8_t rcVelocityCutoffBoost;
+    uint8_t rcVelocityCutoff;
     uint8_t rssi_src_frame_lpf_period;         // Period of the cutoff frequency for the source frame RSSI filter (in 0.1 s)
     uint8_t srxl2_unit_id;                     // Spektrum SRXL2 RX unit id
     uint8_t srxl2_baud_fast;                   // Select Spektrum SRXL2 fast baud rate

@@ -760,6 +760,8 @@ const clivalue_t valueTable[] = {
     { PARAM_NAME_RC_SMOOTHING_FEEDFORWARD_CUTOFF, VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_feedforward_cutoff) },
     { PARAM_NAME_RC_SMOOTHING_THROTTLE_CUTOFF,    VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_throttle_cutoff) },
     { PARAM_NAME_RC_SMOOTHING_DEBUG_AXIS,         VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RC_SMOOTHING_DEBUG }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_debug_axis) },
+    { "rc_velocity_boost_cutoff_hz",              VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 1, 255 }, PG_RX_CONFIG, offsetof(rxConfig_t, rcVelocityCutoff) },
+    { "rc_velocity_boost",                        VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 255 }, PG_RX_CONFIG, offsetof(rxConfig_t, rcVelocityCutoffBoost) },
 #endif // USE_RC_SMOOTHING_FILTER
 
     { "fpv_mix_degrees",             VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 90 }, PG_RX_CONFIG, offsetof(rxConfig_t, fpvCamAngleDegrees) },

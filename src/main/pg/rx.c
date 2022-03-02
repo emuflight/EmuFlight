@@ -67,6 +67,8 @@ void pgResetFn_rxConfig(rxConfig_t *rxConfig)
         .rc_smoothing_debug_axis = ROLL,
         .rc_smoothing_auto_factor_rpy = 30,
         .rc_smoothing_auto_factor_throttle = 30,
+        .rcVelocityCutoffBoost = 75,
+        .rcVelocityCutoff = 15,
         .srxl2_unit_id = 1,
         .srxl2_baud_fast = true,
         .sbus_baud_fast = false,
