@@ -108,6 +108,7 @@ typedef struct rcSmoothingFilter_s {
     uint8_t debugAxis;
     uint8_t autoSmoothnessFactorSetpoint;
     uint8_t autoSmoothnessFactorThrottle;
+    pt1Filter_t rcVelocityFilter[4];
 } rcSmoothingFilter_t;
 
 typedef struct rcControlsConfig_s {
