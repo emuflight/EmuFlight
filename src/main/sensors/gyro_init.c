@@ -581,6 +581,7 @@ bool gyroInit(void)
     case DEBUG_GYRO_FILTERED:
     case DEBUG_DYN_LPF:
     case DEBUG_GYRO_SAMPLE:
+    case DEBUG_KALMAN:
         gyro.gyroDebugMode = debugMode;
         break;
     case DEBUG_DUAL_GYRO_DIFF:
