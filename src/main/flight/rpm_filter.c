@@ -96,7 +96,7 @@ void pgResetFn_rpmFilterConfig(rpmFilterConfig_t *config)
 
     config->rpm_filter_lpf_hz = 150;
 
-    config->noise_limit = 50;
+    config->noise_limit = 30;
 }
 
 static void rpmNotchFilterInit(rpmNotchFilter_t *filter, const rpmFilterConfig_t *config, const timeUs_t looptimeUs)
