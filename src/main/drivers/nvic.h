@@ -46,8 +46,11 @@
 #define NVIC_PRIO_SONAR_EXTI               NVIC_BUILD_PRIORITY(NVIC_PRIO_OFFSET + 2, 0)  // maybe increase slightly
 #define NVIC_PRIO_DSHOT_DMA                NVIC_BUILD_PRIORITY(NVIC_PRIO_OFFSET + 2, 1)
 #define NVIC_PRIO_TRANSPONDER_DMA          NVIC_BUILD_PRIORITY(NVIC_PRIO_OFFSET + 3, 0)
-#define NVIC_PRIO_RX_INT_EXTI              NVIC_BUILD_PRIORITY(NVIC_PRIO_LOWEST, 0x0f)
-#define NVIC_PRIO_RX_BUSY_EXTI             NVIC_BUILD_PRIORITY(NVIC_PRIO_OFFSET + 3, 0)
+
+// RX_SPI must be lower priority than SPI DMA so EXTI ISRs don't interfere with SPI transfers and transfer complete callbacks
+#define NVIC_PRIO_RX_INT_EXTI              NVIC_BUILD_PRIORITY(NVIC_PRIO_OFFSET + 3, 0x0f)
+#define NVIC_PRIO_RX_BUSY_EXTI             NVIC_BUILD_PRIORITY(NVIC_PRIO_OFFSET + 3, 0x0f)
+
 #define NVIC_PRIO_MPU_INT_EXTI             NVIC_BUILD_PRIORITY(NVIC_PRIO_LOWEST, 0x0f)
 #define NVIC_PRIO_MAG_INT_EXTI             NVIC_BUILD_PRIORITY(NVIC_PRIO_LOWEST, 0x0f)
 #define NVIC_PRIO_WS2811_DMA               NVIC_BUILD_PRIORITY(NVIC_PRIO_OFFSET + 1, 2)  // TODO - is there some reason to use high priority?
