@@ -38,6 +38,7 @@
 #include "cms/cms_menu_imu.h"
 
 #include "common/utils.h"
+#include "common/kalman.h"
 
 #include "config/feature.h"
 #include "config/simplified_tuning.h"
@@ -849,7 +850,7 @@ static const OSD_Entry cmsx_menuDynFiltEntries[] =
     { "DTERM DLPF MAX",  OME_UINT16 | SLIDER_DTERM, NULL, &(OSD_UINT16_t) { &dtermLpfDynMax, 0, 1000, 1 } },
     { "DTERM DLPF EXPO", OME_UINT8, NULL, &(OSD_UINT8_t) { &dtermLpfDynExpo,  0, 10, 1 } },
 #endif
-    { "IMUF W",          OME_UINT8, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,         0,   64,   1 } },
+    { "IMUF W",          OME_UINT8, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,         0,   MAX_KALMAN_WINDOW_SIZE, 1 } },
     { "IMUF Q",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_q,       100, 16000, 100 } },
 
     { "BACK", OME_Back, NULL, NULL },
