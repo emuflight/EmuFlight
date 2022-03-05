@@ -22,7 +22,7 @@
 
 #include "filter.h"
 
-#define MAX_KALMAN_WINDOW_SIZE 65
+#define MAX_KALMAN_WINDOW_SIZE 64
 
 #define VARIANCE_SCALE 1.0f
 
@@ -37,13 +37,16 @@ typedef struct kalman_s
     float e;
     float axisVar;
     uint8_t windex;
-    float axisWindow[MAX_KALMAN_WINDOW_SIZE];
-    float varianceWindow[MAX_KALMAN_WINDOW_SIZE];
+    float axisWindow[MAX_KALMAN_WINDOW_SIZE + 1];
+    float varianceWindow[MAX_KALMAN_WINDOW_SIZE + 1];
     float axisSumMean;
     float axisMean;
     float axisSumVar;
     float inverseN;
     uint8_t w;
+    float sumX;
+    float sumXSquared;
+    float squaredSumX;
 
     pt1Filter_t kFilter;
 } kalman_t;
