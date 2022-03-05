@@ -33,7 +33,15 @@ static void init_kalman(kalman_t *filter, float q)
     filter->p = 30.0f;                  //seeding P at 30.0f
     filter->e = 1.0f;
     filter->w = gyroConfig()->imuf_w;
-    filter->inverseN = 1.0f/(float)(filter->w);
+    filter->inverseN = 1.0f / filter->w;
+
+    for (int i = 0; i < filter->w; i++) {
+      float currentX = 1 * (i + 1.0);
+      filter->sumX += currentX;
+      filter->sumXSquared += currentX * currentX;
+    }
+    filter->sumXSquared = filter->sumXSquared * filter->w;
+    filter->squaredSumX = filter->sumX * filter->sumX;
 
     pt1FilterInit(&filter->kFilter, pt1FilterGain(50, gyro.sampleLooptime * 1e-6f));
 }
@@ -46,6 +54,7 @@ void kalman_init(void)
     init_kalman(&gyro.kalmanFilterStateRate[Z],  gyroConfig()->imuf_q);
 }
 
+// may not need to be updated at pidloop speed, updating this at lower rates might be viable and desireable
 void update_kalman_covariance(kalman_t *kalmanState, float rate) {
   if (gyroConfig()->imuf_w >= 3) {
     kalmanState->axisWindow[kalmanState->windex] = rate;
@@ -61,6 +70,39 @@ void update_kalman_covariance(kalman_t *kalmanState, float rate) {
         kalmanState->windex = 0;
     }
 
+    // least squares regression line
+    // look at a recursive formula
+    float sumXY = 0.0f;
+    float sumY = 0.0f;
+    int tempPointer = kalmanState->windex;
+    for (int i = 0; i < kalmanState->w; i++) {
+        float currentX = 1 * (i + 1.0);
+        sumXY += currentX * kalmanState->axisWindow[tempPointer];
+        sumY += kalmanState->axisWindow[tempPointer];
+        tempPointer++;
+        if (tempPointer > kalmanState->w) {
+            tempPointer = 0;
+        }
+    }
+
+    tempPointer = kalmanState->windex;
+    float m = (kalmanState->w * sumXY - kalmanState->sumX * sumY) / (kalmanState->sumXSquared - kalmanState->squaredSumX);
+    float b = (sumY - m * kalmanState->sumX) * kalmanState->inverseN;
+
+    // calculate variance against the curve
+    float variance = 0.0f;
+    for (int i = 0; i < kalmanState->w; i++) {
+        float currentX = 1 * (i + 1.0);
+        float pointOnLine = m * currentX + b;
+        float error = kalmanState->axisWindow[tempPointer] - pointOnLine;
+        variance += error * error;
+
+        tempPointer++;
+        if (tempPointer > kalmanState->w) {
+            tempPointer = 0;
+        }
+    }
+
     kalmanState->axisSumMean -= kalmanState->axisWindow[kalmanState->windex];
     kalmanState->axisSumVar -= kalmanState->varianceWindow[kalmanState->windex];
 
@@ -68,8 +110,14 @@ void update_kalman_covariance(kalman_t *kalmanState, float rate) {
     kalmanState->axisMean = kalmanState->axisSumMean * kalmanState->inverseN;
     kalmanState->axisVar = kalmanState->axisSumVar * kalmanState->inverseN;
 
+    // compare the variance with the least squares variance
+    // this tells us how much of our variance is movement, vs noise
+    // the more noise we have the less we should boost Q
+    // our prediction is that the more filtering we have the less
+    // we can trust our prediction
+    float varianceDifference = MAX(kalmanState->axisVar - variance, 0.0);
     float squirt;
-    arm_sqrt_f32(kalmanState->axisVar, &squirt);
+    arm_sqrt_f32(varianceDifference, &squirt);
     kalmanState->r = squirt * VARIANCE_SCALE;
   }
 }
@@ -81,7 +129,7 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input)
 
   kalmanState->lastX = kalmanState->x;
 
-  float e = constrainf(kalmanState->r / 45.0f + 0.005f, 0.005f, 0.9f);
+  float e = constrainf(kalmanState->r / 45.0f + 0.005f, 0.005f, 0.95f);
   //make the 1 a configurable value for testing purposes
   e = -powf(e - 1.0f, 2) * 0.7f + (e - 1.0f) * (1.0f - 0.7f) + 1.0f;
   kalmanState->e = e;
