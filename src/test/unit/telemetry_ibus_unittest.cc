@@ -185,7 +185,7 @@ bool telemetryDetermineEnabledState(portSharing_e portSharing)
 
 
 bool isSerialPortShared(const serialPortConfig_t *portConfig,
-                        uint16_t functionMask,
+                        uint32_t functionMask,
                         serialPortFunction_e sharedWithFunction)
 {
     EXPECT_EQ(findSerialPortConfig_stub_retval, portConfig);
