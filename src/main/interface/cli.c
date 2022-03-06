@@ -980,7 +980,7 @@ static void cliSerial(char *cmdline) {
     ptr = nextArg(ptr);
     if (ptr) {
         val = atoi(ptr);
-        portConfig.functionMask = val & 0xFFFF;
+        portConfig.functionMask = val & 0xFFFFFFFF;
         validArgumentCount++;
     }
     for (int i = 0; i < 4; i ++) {

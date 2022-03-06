@@ -245,7 +245,7 @@ static const char * const lookupTableRxSpi[] = {
     "FLYSKY",
     "FLYSKY_2A",
     "KN",
-    "SFHSS", 
+    "SFHSS",
     "REDPINE"
 };
 #endif
@@ -359,7 +359,7 @@ static const char * const lookupTableRescueSanityType[] = {
 
 #ifdef USE_MAX7456
 static const char * const lookupTableVideoSystem[] = {
-    "AUTO", "PAL", "NTSC"
+    "AUTO", "PAL", "NTSC", "HDZERO"
 };
 #endif // USE_MAX7456
 
