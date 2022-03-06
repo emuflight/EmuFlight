@@ -214,11 +214,11 @@ portSharing_e determinePortSharing(const serialPortConfig_t *portConfig, serialP
     return portConfig->functionMask == function ? PORTSHARING_NOT_SHARED : PORTSHARING_SHARED;
 }
 
-bool isSerialPortShared(const serialPortConfig_t *portConfig, uint16_t functionMask, serialPortFunction_e sharedWithFunction) {
+bool isSerialPortShared(const serialPortConfig_t *portConfig, uint32_t functionMask, serialPortFunction_e sharedWithFunction) {
     return (portConfig) && (portConfig->functionMask & sharedWithFunction) && (portConfig->functionMask & functionMask);
 }
 
-serialPort_t *findSharedSerialPort(uint16_t functionMask, serialPortFunction_e sharedWithFunction) {
+serialPort_t *findSharedSerialPort(uint32_t functionMask, serialPortFunction_e sharedWithFunction) {
     for (unsigned i = 0; i < SERIAL_PORT_COUNT; i++) {
         const serialPortConfig_t *candidate = &serialConfig()->portConfigs[i];
         if (isSerialPortShared(candidate, functionMask, sharedWithFunction)) {
