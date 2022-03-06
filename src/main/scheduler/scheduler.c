@@ -217,7 +217,7 @@ void getTaskInfo(taskId_e taskId, taskInfo_t * taskInfo)
     taskInfo->subTaskName = getTask(taskId)->attribute->subTaskName;
     taskInfo->maxExecutionTimeUs = getTask(taskId)->maxExecutionTimeUs;
     taskInfo->totalExecutionTimeUs = getTask(taskId)->totalExecutionTimeUs;
-    taskInfo->averageExecutionTime10thUs = getTask(taskId)->movingSumExecutionTime10thUs / TASK_STATS_MOVING_SUM_COUNT;
+    taskInfo->averageExecutionTimeUs = getTask(taskId)->anticipatedExecutionTime >> TASK_EXEC_TIME_SHIFT;
     taskInfo->averageDeltaTime10thUs = getTask(taskId)->movingSumDeltaTime10thUs / TASK_STATS_MOVING_SUM_COUNT;
     taskInfo->latestDeltaTimeUs = getTask(taskId)->taskLatestDeltaTimeUs;
     taskInfo->movingAverageCycleTimeUs = getTask(taskId)->movingAverageCycleTimeUs;
@@ -389,7 +389,6 @@ FAST_CODE timeUs_t schedulerExecuteTask(task_t *selectedTask, timeUs_t currentTi
         selectedTask->attribute->taskFunc(currentTimeBeforeTaskCallUs);
         taskExecutionTimeUs = micros() - currentTimeBeforeTaskCallUs;
         taskTotalExecutionTime += taskExecutionTimeUs;
-        selectedTask->movingSumExecutionTime10thUs += (taskExecutionTimeUs * 10) - selectedTask->movingSumExecutionTime10thUs / TASK_STATS_MOVING_SUM_COUNT;
         if (!ignoreCurrentTaskExecRate) {
             // Record task execution rate and max execution time
             selectedTask->taskLatestDeltaTimeUs = cmpTimeUs(currentTimeUs, selectedTask->lastStatsAtUs);
