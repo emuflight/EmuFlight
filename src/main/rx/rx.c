@@ -639,8 +639,6 @@ FAST_CODE_NOINLINE void rxFrameCheck(timeUs_t currentTimeUs, timeDelta_t current
         break;
     }
 
-    detectAndApplySignalLossBehaviour();
-
     if (signalReceived) {
         rxSignalReceived = true;
         failsafeOnValidDataReceived();
@@ -649,6 +647,8 @@ FAST_CODE_NOINLINE void rxFrameCheck(timeUs_t currentTimeUs, timeDelta_t current
         // Signal the failsafe system that no rx signal is currently present
         failsafeOnValidDataFailed();
     }
+
+    detectAndApplySignalLossBehaviour();
 
     if ((signalReceived && useDataDrivenProcessing) || cmpTimeUs(currentTimeUs, rxNextUpdateAtUs) > 0) {
         rxDataProcessingRequired = true;
@@ -694,7 +694,7 @@ static void readRxChannelsApplyRanges(void)
     }
 }
 
-bool calculateRxChannelsAndUpdateFailsafe(timeUs_t currentTimeUs)
+bool calculateRxChannelsAndApplyRanges(timeUs_t currentTimeUs)
 {
     if (auxiliaryProcessingRequired) {
         auxiliaryProcessingRequired = !rxRuntimeState.rcProcessFrameFn(&rxRuntimeState);

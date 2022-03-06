@@ -750,7 +750,7 @@ bool processRx(timeUs_t currentTimeUs)
     DEBUG_SET(DEBUG_RX_TIMING, 0, MIN(frameDeltaUs / 10, INT16_MAX));
     DEBUG_SET(DEBUG_RX_TIMING, 1, MIN(frameAgeUs / 10, INT16_MAX));
 
-    if (!calculateRxChannelsAndUpdateFailsafe(currentTimeUs)) {
+    if (!calculateRxChannelsAndApplyRanges(currentTimeUs)) {
         return false;
     }
 
