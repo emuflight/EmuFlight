@@ -21,8 +21,6 @@
 #pragma once
 
 
-// can't use 0
-#define NVIC_PRIO_MAX                      NVIC_BUILD_PRIORITY(0, 1)
 
 #ifdef USE_SPRACING_PIXEL_OSD
 // missing video ISRs can result in loss of camera sync or corrupt displays so
@@ -30,12 +28,17 @@
 // All other ISRs *MUST* use a >0 priority.
 
 // Video ISRs
-#define NVIC_PRIO_VIDEO_SYNC               NVIC_BUILD_PRIORITY(0, 2)
-#define NVIC_PRIO_VIDEO_DMA                NVIC_BUILD_PRIORITY(0, 3)
-#define NVIC_PRIO_VIDEO_ADC                NVIC_BUILD_PRIORITY(0, 4)
+#define NVIC_PRIO_VIDEO_SYNC               NVIC_BUILD_PRIORITY(0, 1)
+#define NVIC_PRIO_VIDEO_DMA                NVIC_BUILD_PRIORITY(0, 2)
+#define NVIC_PRIO_VIDEO_ADC                NVIC_BUILD_PRIORITY(0, 3)
+
+#define NVIC_PRIO_MAX                      NVIC_BUILD_PRIORITY(0, 4)
 
 #define NVIC_PRIO_OFFSET                   1
 #else
+
+#define NVIC_PRIO_MAX                      NVIC_BUILD_PRIORITY(0, 1)
+
 #define NVIC_PRIO_OFFSET                   0
 #endif
 
