@@ -300,7 +300,7 @@ static void bmi270IntExtiInit(gyroDev_t *gyro)
     IOInit(mpuIntIO, OWNER_GYRO_EXTI, 0);
     EXTIHandlerInit(&gyro->exti, bmi270ExtiHandler);
     EXTIConfig(mpuIntIO, &gyro->exti, NVIC_PRIO_MPU_INT_EXTI, IOCFG_IN_FLOATING, BETAFLIGHT_EXTI_TRIGGER_RISING);
-    EXTIEnable(mpuIntIO, true);
+    EXTIEnable(mpuIntIO);
 }
 #else
 void bmi270ExtiHandler(extiCallbackRec_t *cb)
@@ -320,7 +320,7 @@ static bool bmi270AccRead(accDev_t *acc)
 
         busSegment_t segments[] = {
                 {.u.buffers = {NULL, NULL}, 8, true, NULL},
-                {.u.buffers = {NULL, NULL}, 0, true, NULL},
+                {.u.link = {NULL, NULL}, 0, true, NULL},
         };
         segments[0].u.buffers.txData = acc->gyro->dev.txBuf;
         segments[0].u.buffers.rxData = acc->gyro->dev.rxBuf;
@@ -398,7 +398,7 @@ static bool bmi270GyroReadRegister(gyroDev_t *gyro)
 
         busSegment_t segments[] = {
                 {.u.buffers = {NULL, NULL}, 8, true, NULL},
-                {.u.buffers = {NULL, NULL}, 0, true, NULL},
+                {.u.link = {NULL, NULL}, 0, true, NULL},
         };
         segments[0].u.buffers.txData = gyro->dev.txBuf;
         segments[0].u.buffers.rxData = gyro->dev.rxBuf;

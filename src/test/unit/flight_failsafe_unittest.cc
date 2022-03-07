@@ -183,7 +183,7 @@ TEST(FlightFailsafeTest, TestFailsafeDetectsRxLossAndStartsLanding)
     failsafeOnValidDataReceived();                  // set last valid sample at current time
 
     // when
-    for (sysTickUptime = 0; sysTickUptime < (uint32_t)(PERIOD_RXDATA_FAILURE + failsafeConfig()->failsafe_delay * MILLIS_PER_TENTH_SECOND); sysTickUptime++) {
+    for (sysTickUptime = 0; sysTickUptime < (uint32_t)(failsafeConfig()->failsafe_delay * MILLIS_PER_TENTH_SECOND); sysTickUptime++) {
         failsafeOnValidDataFailed();
 
         failsafeUpdateState();

@@ -143,7 +143,7 @@ extern "C" {
     void mixTable(timeUs_t) {};
     void writeMotors(void) {};
     void writeServos(void) {};
-    bool calculateRxChannelsAndUpdateFailsafe(timeUs_t) { return true; }
+    bool calculateRxChannelsAndApplyRanges(timeUs_t) { return true; }
     bool isMixerUsingServos(void) { return false; }
     void gyroUpdate() {}
     timeDelta_t getTaskDeltaTimeUs(taskId_e) { return 0; }
