@@ -293,8 +293,7 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
         {
             for (int p = 0; p < gyroConfig()->dyn_notch_count; p++) {
 
-                // Only update state->centerFreq if there is a peak (ignore void peaks) and if peak is above noise floor
-                if (peaks[p].bin != 0 && peaks[p].value > sdftMeanSq) {
+                if (peaks[p].bin != 0) {
 
                     // accumulate sdftSum and sdftWeightedSum from peak bin, and shoulder bins either side of peak
                     float squaredData = peaks[p].value; // peak data already squared (see sdftWinSq)

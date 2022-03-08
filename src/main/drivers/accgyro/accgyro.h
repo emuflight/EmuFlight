@@ -107,7 +107,7 @@ typedef struct accDev_s {
     bool dataReady;
     bool acc_high_fsr;
     char revisionCode;                                      // a revision code for the sensor, if known
-}  __attribute__((packed)) accDev_t;
+} accDev_t;
 
 static inline void accDevLock(accDev_t *acc) {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
