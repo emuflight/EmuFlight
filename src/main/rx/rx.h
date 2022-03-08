@@ -177,9 +177,10 @@ extern rxRuntimeState_t rxRuntimeState; //!!TODO remove this extern, only needed
 void rxInit(void);
 void rxProcessPending(bool state);
 bool rxUpdateCheck(timeUs_t currentTimeUs, timeDelta_t currentDeltaTimeUs);
+void rxFrameCheck(timeUs_t currentTimeUs, timeDelta_t currentDeltaTimeUs, timeDelta_t anticipatedDeltaTime10thUs);
 bool rxIsReceivingSignal(void);
 bool rxAreFlightChannelsValid(void);
-bool calculateRxChannelsAndUpdateFailsafe(timeUs_t currentTimeUs);
+bool calculateRxChannelsAndApplyRanges(timeUs_t currentTimeUs);
 
 struct rxConfig_s;
 

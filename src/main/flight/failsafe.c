@@ -69,7 +69,7 @@ PG_RESET_TEMPLATE(failsafeConfig_t, failsafeConfig,
     .failsafe_off_delay = 10,                        // 1sec
     .failsafe_switch_mode = 0,                       // default failsafe switch action is identical to rc link loss
     .failsafe_procedure = FAILSAFE_PROCEDURE_DROP_IT,// default full failsafe procedure is 0: auto-landing
-    .failsafe_recovery_delay = 20,                   // 2 sec of valid rx data (plus 200ms) needed to allow recovering from failsafe procedure
+    .failsafe_recovery_delay = 20,                   // 2 sec of valid rx data needed to allow recovering from failsafe procedure
     .failsafe_stick_threshold = 30                   // 30 percent of stick deflection to exit GPS Rescue procedure
 );
 
@@ -86,7 +86,7 @@ const char * const failsafeProcedureNames[FAILSAFE_PROCEDURE_COUNT] = {
  */
 void failsafeReset(void)
 {
-    failsafeState.rxDataFailurePeriod = PERIOD_RXDATA_FAILURE + failsafeConfig()->failsafe_delay * MILLIS_PER_TENTH_SECOND;
+    failsafeState.rxDataFailurePeriod = failsafeConfig()->failsafe_delay * MILLIS_PER_TENTH_SECOND;
     failsafeState.rxDataRecoveryPeriod = PERIOD_RXDATA_RECOVERY + failsafeConfig()->failsafe_recovery_delay * MILLIS_PER_TENTH_SECOND;
     failsafeState.validRxDataReceivedAt = 0;
     failsafeState.validRxDataFailedAt = 0;
@@ -177,7 +177,7 @@ void failsafeOnRxResume(void)
 void failsafeOnValidDataReceived(void)
 {
     failsafeState.validRxDataReceivedAt = millis();
-    if ((failsafeState.validRxDataReceivedAt - failsafeState.validRxDataFailedAt) > failsafeState.rxDataRecoveryPeriod) {
+    if (cmp32(failsafeState.validRxDataReceivedAt, failsafeState.validRxDataFailedAt) > (int32_t)failsafeState.rxDataRecoveryPeriod) {
         failsafeState.rxLinkState = FAILSAFE_RXLINK_UP;
         unsetArmingDisabled(ARMING_DISABLED_RX_FAILSAFE);
     }
@@ -187,12 +187,20 @@ void failsafeOnValidDataFailed(void)
 {
     setArmingDisabled(ARMING_DISABLED_RX_FAILSAFE); // To prevent arming with no RX link
     failsafeState.validRxDataFailedAt = millis();
-    if ((failsafeState.validRxDataFailedAt - failsafeState.validRxDataReceivedAt) > failsafeState.rxDataFailurePeriod) {
+    if (cmp32(failsafeState.validRxDataFailedAt, failsafeState.validRxDataReceivedAt) > (int32_t)failsafeState.rxDataFailurePeriod) {
         failsafeState.rxLinkState = FAILSAFE_RXLINK_DOWN;
     }
 }
 
-void failsafeUpdateState(void)
+void failsafeCheckDataFailurePeriod(void)
+{
+    if (cmp32(millis(), failsafeState.validRxDataReceivedAt) > (int32_t)failsafeState.rxDataFailurePeriod) {
+        setArmingDisabled(ARMING_DISABLED_RX_FAILSAFE); // To prevent arming with no RX link
+        failsafeState.rxLinkState = FAILSAFE_RXLINK_DOWN;
+    }
+}
+
+FAST_CODE_NOINLINE void failsafeUpdateState(void)
 {
     if (!failsafeIsMonitoring()) {
         return;
@@ -224,7 +232,7 @@ void failsafeUpdateState(void)
                     if (THROTTLE_HIGH == calculateThrottleStatus()) {
                         failsafeState.throttleLowPeriod = millis() + failsafeConfig()->failsafe_throttle_low_delay * MILLIS_PER_TENTH_SECOND;
                     }
-                    // Kill switch logic (must be independent of receivingRxData to skip PERIOD_RXDATA_FAILURE delay before disarming)
+                    // Kill switch logic
                     if (failsafeSwitchIsOn && failsafeConfig()->failsafe_switch_mode == FAILSAFE_SWITCH_MODE_KILL) {
                         // KillswitchEvent: failsafe switch is configured as KILL switch and is switched ON
                         failsafeActivate();
