@@ -92,14 +92,16 @@ STATIC_UNIT_TESTED quaternionProducts qpAttitude = QUATERNION_PRODUCTS_INITIALIZ
 quaternion qHeadfree = QUATERNION_INITIALIZE;
 quaternion qOffset = QUATERNION_INITIALIZE;
 
+quaternionProducts buffer = QUATERNION_PRODUCTS_INITIALIZE;
+
 // absolute angle inclination in multiple of 0.1 degree    180 deg = 1800
 attitudeEulerAngles_t attitude = EULER_INITIALIZE;
 
 PG_REGISTER_WITH_RESET_TEMPLATE(imuConfig_t, imuConfig, PG_IMU_CONFIG, 0);
 
 PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
-                  .dcm_kp = 2500,
-                  .dcm_ki = 7,
+                  .dcm_kp = 8500,
+                  .dcm_ki = 0,
                   .small_angle = 180,
                   .accDeadband = {.xy = 40, .z = 40},
                   .acc_unarmedcal = 1
@@ -243,7 +245,7 @@ static void applySensorCorrection(quaternion *vError) {
             // (bx; 0; 0) - reference mag field vector heading due North in EF (assuming Z-component is zero)
             const float hx = (1.0f - 2.0f * qpAttitude.yy - 2.0f * qpAttitude.zz) * vMagAverage.x + (2.0f * (qpAttitude.xy + -qpAttitude.wz)) * vMagAverage.y + (2.0f * (qpAttitude.xz - -qpAttitude.wy)) * vMagAverage.z;
             const float hy = (2.0f * (qpAttitude.xy - -qpAttitude.wz)) * vMagAverage.x + (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.zz) * vMagAverage.y + (2.0f * (qpAttitude.yz + -qpAttitude.wx)) * vMagAverage.z;
-            const float bx = sqrtf(sq(hx) + sq(hy));
+            const float bx = fast_fsqrtf(sq(hx) + sq(hy));
             // magnetometer error is cross product between estimated magnetic north and measured magnetic north (calculated in EF)
             applyVectorError(-(float)(hy * bx), vError);
         }
@@ -302,7 +304,6 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, quaternion *vError)
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
-    quaternionProducts buffer;
     if (FLIGHT_MODE(HEADFREE_MODE)) {
         quaternionMultiply(&qOffset, &qAttitude, &qHeadfree);
         quaternionComputeProducts(&qHeadfree, &buffer);
@@ -312,9 +313,11 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
     attitude.values.roll = lrintf(atan2_approx((+2.0f * (buffer.wx + buffer.yz)), (+1.0f - 2.0f * (buffer.xx + buffer.yy))) * (1800.0f / M_PIf));
     attitude.values.pitch = lrintf(((0.5f * M_PIf) - acos_approx(+2.0f * (buffer.wy - buffer.xz))) * (1800.0f / M_PIf));
     attitude.values.yaw = lrintf((-atan2_approx((+2.0f * (buffer.wz + buffer.xy)), (+1.0f - 2.0f * (buffer.yy + buffer.zz))) * (1800.0f / M_PIf)));
+
     if (attitude.values.yaw < 0) {
         attitude.values.yaw += 3600;
     }
+
     if (getCosTiltAngle() > smallAngleCosZ) {
         ENABLE_STATE(SMALL_ANGLE);
     } else {
@@ -338,6 +341,7 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs) {
     gyroGetAverage(&vGyroAverage);
     accGetAverage(&vAccAverage);
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU2, lrintf((quaternionModulus(&vAccAverage) / acc.dev.acc_1G) * 1000));
+
     if (accIsHealthy(&vAccAverage)) {
         applyAccError(&vAccAverage, &vError);
     }
@@ -429,4 +433,16 @@ bool imuQuaternionHeadfreeOffsetSet(void) {
     } else {
         return (false);
     }
+}
+
+float getAngleModeAngles(int axis) {
+    if (axis == FD_ROLL) {
+        return lrintf(((0.5f * M_PIf) - acos_approx((2.0f * (buffer.yz + buffer.wx)))) * (1800.0f / M_PIf));
+    } else {
+        return attitude.values.pitch;
+    }
+}
+
+float howUpsideDown(void) {
+    return 1.0f - 2.0f * buffer.xx - 2.0f * buffer.yy;
 }

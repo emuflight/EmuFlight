@@ -73,7 +73,6 @@ include $(ROOT)/make/system-id.mk
 ifndef TOOLS_DIR
 TOOLS_DIR := $(ROOT)/tools
 endif
-BUILD_DIR := $(ROOT)/build
 DL_DIR    := $(ROOT)/downloads
 
 export RM := rm
@@ -468,9 +467,6 @@ $(DL_DIR):
 	$(V1) mkdir -p $@
 
 $(TOOLS_DIR):
-	$(V1) mkdir -p $@
-
-$(BUILD_DIR):
 	$(V1) mkdir -p $@
 
 ## version           : print firmware version

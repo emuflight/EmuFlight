@@ -27,12 +27,6 @@ FrSky telemetry signals are inverted.  To connect a cleanflight capable board to
 
 For 1, just connect your inverter to a usart or software serial port.
 
-For 2 and 3 use the CLI command as follows:
-
-```
-set telemetry_inversion = ON
-```
-
 
 ### Available sensors
 
@@ -68,11 +62,6 @@ Tmp2 : number of sats. Every second, a number > 100 is sent to represent GPS sig
 
 Cels : average cell value, vbat divided by cell number.
 
-> Cleanflight will send Cels (FLVSS Individual Cell Voltages Telemetry), disable the setting to use actual FLVSS sensor with: 
-> ```
-> set telemetry_send_cells = OFF
-> ```
-> 
 > Note: cell voltage values are an assumed reputation of the cell voltage based on the packs voltage. Actual cell voltage may differ.
 >
 > To view individual cells or more importantly to get lowest cell (all cells are the sum of vbat, so each cell is the same in this case):
@@ -213,11 +202,6 @@ GPS : GPS coordinates.
 
 Cels : average cell value, vbat divided by cell number.
 
-> Cleanflight will send Cels (FLVSS Individual Cell Voltages Telemetry), disable the setting to use actual FLVSS sensor with: 
-> ```
-> set telemetry_send_cells = OFF
-> ```
-> 
 > Note: cell voltage values are an assumed reputation of the cell voltage based on the packs voltage. Actual cell voltage may differ. It is recommeded that you chain the flight controllers telemetry with a real Frsky FLVSS s.port sensor.
 >
 > To view individual cells or more importantly to get lowest cell (all cells are the sum of vbat, so each cell is the same in this case):
@@ -238,12 +222,6 @@ While Cleanflight telemetry brings a lot of valuable data to the radio, there ar
 
 Smartport devices can be connected directly to STM32F3 boards such as the SPRacingF3 and Sparky, with a single straight through cable without the need for any hardware modifications on the FC or the receiver. Connect the TX PIN of the UART to the Smartport signal pin.
 
-For Smartport on F3 based boards, enable the telemetry inversion setting.
-
-```
-set telemetry_inversion = ON
-```
-
 ### SmartPort on F1 and F3 targets with SoftSerial
 
 Since F1 targets like Naze32 or Flip32 are not equipped with hardware inverters, SoftSerial might be simpler to use. 
@@ -251,8 +229,7 @@ Since F1 targets like Naze32 or Flip32 are not equipped with hardware inverters,
 1. Enable SoftSerial ```feature SOFTSERIAL```
 2. In Configurator assign _Telemetry_ > _Smartport_ > _Auto_ to SoftSerial port of your choice
 3. Enable Telemetry ```feature TELEMETRY```
-4. Confirm telemetry invesion ```set telemetry_inversion = ON```
-5. You have to bridge TX and RX lines of SoftSerial and connect them together to S.Port signal line in receiver
+4. You have to bridge TX and RX lines of SoftSerial and connect them together to S.Port signal line in receiver
 
 Notes:
 
@@ -290,11 +267,6 @@ Ibus telemetry can be enabled in the firmware at build time using defines in tar
 CLI command to enable:
 ```
 serial 1 1024 115200 57600 115200 115200
-```
-
-CLI setting to determine if the voltage reported is Vbatt or calculated average cell voltage
-```
-set ibus_report_cell_voltage=[ON/OFF]
 ```
 
 ### Available sensors
