@@ -1,0 +1,287 @@
+on:
+  push:
+    tags:
+    - '*'
+  pull_request:
+    branches:
+    - '*'
+  # repository_dispatch is a newer github-actions feature that will allow building from triggers other than code merge/PR
+  repository_dispatch:
+    types: [build]
+
+name: Build EmuFlight
+jobs:
+  build:
+    continue-on-error: false
+    timeout-minutes: 75
+    strategy:
+      max-parallel: 1
+      matrix:
+        targets: [all]
+    outputs:
+      buildtag: ${{ steps.ids.outputs.buildtag }}
+      shortsha: ${{ steps.ids.outputs.shortsha }}
+      artifact: ${{ steps.ids.outputs.artifact }}
+      version: ${{ steps.ids.outputs.version }}
+    runs-on: ubuntu-latest
+
+    steps:
+    # curl, by default, may timeout easily
+    - name: curl fix
+      run: function curl () { command curl --connect-timeout 30 --retry 10 "$@" ; }
+
+    # checkout with speedup #0 works, but maybe 5 safe for revisions/recompiles
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 5
+
+#    - name: Setup Python
+#      uses: actions/setup-python@v2
+#
+#    - name: Setup Toolchain
+#      uses: fiam/arm-none-eabi-gcc@v1
+#      #uses: emuflight/arm-none-eabi-gcc@retry_timeout
+#      with:
+#        release: '9-2020-q2' # The arm-none-eabi-gcc release to use.
+
+    # EmuFlight version
+    - name: Get code version
+      id: get_version
+      run: echo "VERSION=$(make version)" >> $GITHUB_ENV
+
+    # for Makefile interaction
+    - name: Get GitHub Build Number (ENV)
+      id: get_buildno
+      run: echo "GITHUBBUILDNUMBER=${{ github.run_number }}" >> $GITHUB_ENV
+      continue-on-error: true
+
+    - name: Get pull request number
+      id: get_pullno
+      run: echo "PULL_NUMBER=$(echo "$GITHUB_REF" | awk -F / '{print $3}')" >> $GITHUB_ENV
+      if: startsWith(github.ref, 'refs/pull/')
+
+    - name: Get revision tag
+      if: startsWith(github.ref, 'refs/tags/')
+      id: get_revtag
+      run: echo "REVISION_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+
+    - name: get short-sha
+      run: |
+        echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      continue-on-error: true
+
+    - name: Make artifact name
+      id: make_artifactname
+      run: |
+        if [[ "${{ github.REPOSITORY }}" == "emuflight/EmuFlight" ]] ; then
+          ARTIFACT_NAME="EmuFlight-${{ env.VERSION }}-${{ github.run_number }}"
+        else
+          ARTIFACT_NAME="EmuFlight-${{ env.VERSION }}-${{ github.ACTOR }}-${{ github.run_number }}"
+        fi
+        echo "${ARTIFACT_NAME}"
+        echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
+
+    - id: ids
+      name: set outputs
+      run: |
+        echo "::set-output name=buildtag::${{ env.REVISION_TAG }}"
+        echo "::set-output name=shortsha::${{ env.SHORT_SHA }}"
+        echo "::set-output name=artifact::${{ env.ARTIFACT_NAME }}"
+        echo "::set-output name=version::${{ env.VERSION }}"
+      continue-on-error: true
+
+    # for debugging
+    - name: Show Variables
+      id: show_vars
+      run: |
+        echo "Actor: ${{ github.ACTOR }}"
+        echo "Repo: ${{ github.REPOSITORY }}"
+        echo "Build: ${{ github.run_number }}"
+        echo "Firmware: ${{ env.VERSION }}"
+        echo "Commit: ${{ github.sha }}"
+        echo "ShortSHA: ${{ env.SHORT_SHA }}"
+        echo "Tag: ${{ env.REVISION_TAG}}"
+        echo "Artifact name: ${{ env.ARTIFACT_NAME }}"
+        echo "outputs.buildtag: ${{ steps.ids.outputs.buildtag }}"
+        echo "outputs.shortsha: ${{ steps.ids.outputs.shortsha }}"
+        echo "outputs.artfact: ${{ steps.ids.outputs.artifact }}"
+        echo "outputs.artfact: ${{ steps.ids.outputs.artifact }}"
+      continue-on-error: true
+
+    # arm_sdk_install
+    - name: arm_sdk_install
+      id: arm_sdk_install
+      run: |
+        make arm_sdk_install --trace
+
+    # install libblocksruntime-dev
+    - name:
+      id: libblocksruntime-dev
+      run: |
+        sudo apt-get install -y libblocksruntime-dev
+
+    # checks
+    - name: unittests checks
+      id: checks
+      run: |
+        make  EXTRA_FLAGS=-Werror checks
+
+    # test-all
+    - name: unittests test-all
+      id: test-all
+      run: |
+        make  EXTRA_FLAGS=-Werror test-all
+
+    # Build HEX
+    - name: Compile Targets
+      run: |
+        make EXTRA_FLAGS=-Werror ${{ matrix.targets }}
+
+    # Upload the Builds to ZIP file with existing SHA in .hex names
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: obj/*.hex
+
+
+  releases:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    steps:
+      # for debugging
+      - name: show variables
+        run: |
+          echo "Build: ${{ github.RUN_NUMBER }}"
+          echo "Commit: ${{ github.SHA }}"
+          echo "Ref: ${{ GITHUB.REF }}"
+          echo "Actor: ${{ github.ACTOR }}"
+          echo "Repo: ${{ github.REPOSITORY }}"
+          echo "outputs.buildtag: ${{ needs.build.outputs.buildtag }}"
+          echo "outputs.shortsha: ${{ needs.build.outputs.shortsha }}"
+          echo "outputs.artfact: ${{ needs.build.outputs.artifact }}"
+          echo "outputs.artfact: ${{ needs.build.outputs.version }}"
+        continue-on-error: true
+
+      - name: download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ needs.build.outputs.artifact }} #no name parameter will download all artifacts, but create separate subfolders
+          path: obj
+        continue-on-error: false
+
+      - name: list/find extractions
+        run: |
+          find ./ -name "*.hex"
+
+      - name: date
+        run: |
+          echo "TDATE=$(date +'%Y%m%dT%H%M%S') >> $GITHUB_ENV
+          echo "::set-output name=tdate::${{ env.TDATE }}"
+
+      # Draft Dev-Unstable releases via ncipollo/release-action
+      # softprops/action-gh-release fails to release on separate repo
+      - name: Draft Release Dev-Unstable repo
+        if: contains(github.ref, 'test') || contains(github.ref, 'unstab')
+        uses: ncipollo/release-action@v1
+        with:
+          repo: dev-unstable
+          owner: emuflight
+          token: ${{ secrets.NC_PAT_EMUF }}
+          tag: "${{ env.TDATE }}-hex-${{ github.run_number }}"
+          draft: true
+          prerelease: true
+          allowUpdates: true
+          artifacts: obj/*.hex
+          artifactContentType: raw
+          name:  "DEV-UNSTABLE HEX / Build ${{ github.run_number }}"
+          body: |
+            ## HEX BUILD for TESTING
+            ### Build ${{ github.run_number }}
+            ### Commit SHA: ${{ needs.build.outputs.shortsha }} (${{ github.sha }})
+            ### BuildTag: ${{ needs.build.outputs.buildtag }}
+            ### EmuFlight ${{ needs.build.outputs.version }} base plus test code
+            ### What to Test/Feedback: (Feedback in EmuFlight's Discord or GitHub Discussions)
+            <details><summary>Changes in this Build:</summary>
+            <!-- require single blank line below -->
+
+            ```
+            [insert commit history here]
+            ```
+            </details>
+        continue-on-error: true
+
+      # Draft Dev-master releases via ncipollo/release-action
+      # softprops/action-gh-release fails to release on separate repo
+      - name: Draft Release Dev-Master repo
+        if: contains(github.ref, 'master')
+        uses: ncipollo/release-action@v1
+        with:
+          repo: dev-master
+          owner: emuflight
+          token: ${{ secrets.NC_PAT_EMUF }}
+          tag: "${{ env.TDATE }}-hex-${{ github.run_number }}"
+          draft: true
+          prerelease: true
+          allowUpdates: true
+          artifacts: obj/*.hex
+          artifactContentType: raw
+          name:  "DEV-MASTER HEX / Build ${{ github.run_number }}"
+          body: |
+            ## HEX BUILD of MASTER
+            ### Build ${{ github.run_number }}
+            ### Commit SHA: ${{ needs.build.outputs.shortsha }} (${{ github.sha }})
+            ### BuildTag: ${{ needs.build.outputs.buildtag }}
+            ### EmuFlight ${{ needs.build.outputs.version }} base plus committed code
+            ### Feedback Welcome in EmuFlight's Discord or GitHub Discussions.
+            <details><summary>Changes in this Build:</summary>
+            <!-- require single blank line below -->
+
+            ```
+            [insert commit history here]
+            ```
+            </details>
+        continue-on-error: true
+
+      # Rename .hex for true Releases on main repo
+      - name: Rename Artifacts
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          sudo apt -y install rename
+          cd obj
+          rename 's/_Build_.*/.hex/' *.hex
+
+      #Draft Releases on main Repo
+      # could potentially change to ncipollo/release-action as well
+      - name: Draft Release Main Repo
+        if: contains(github.ref, 'releas')
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: true
+          prerelease: true
+          allowUpdates: true
+          # tag: use the build Number, but we MUST manually change to version so that it creates a version-tag on release
+          tag: ${{ env.VERSION }}
+          artifacts: obj/*.hex
+          artifactContentType: raw
+          name:  DRAFT / EmuFlight ${{ env.VERSION }} / GitHub Build ${{ github.run_number }}
+          body: |
+            ## EmuFlight ${{ env.VERSION }}
+            ### Build ${{ github.run_number }}
+            ### Commit SHA: ${{ needs.build.outputs.shortsha }} (${{ github.sha }})
+            ### BuildTag: ${{ needs.build.outputs.buildtag }}
+            <details><summary>Changes in this Build:</summary>
+            <!-- require single blank line below -->
+
+            ```
+            [insert commit history here]
+            ```
+            </details>
+        continue-on-error: false

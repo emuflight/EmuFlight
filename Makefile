@@ -116,9 +116,17 @@ endif
 
 include $(ROOT)/make/targets.mk
 
-REVISION := norevision
+BUILDDATETIME := $(shell date +'%Y%m%d%Z')
+REVISION := uncommitted_$(BUILDDATETIME)
 ifeq ($(shell git diff --shortstat),)
 REVISION := $(shell git log -1 --format="%h")
+endif
+
+# build number - default for local builds
+BUILDNO := local
+# github actions build
+ifneq ($(GITHUBBUILDNUMBER),)
+BUILDNO := $(GITHUBBUILDNUMBER)
 endif
 
 FC_VER_MAJOR := $(shell grep " FC_VERSION_MAJOR" src/main/build/version.h | awk '{print $$3}' )
@@ -306,7 +314,12 @@ CPPCHECK        = cppcheck $(CSOURCES) --enable=all --platform=unix64 \
                   $(addprefix -I,$(INCLUDE_DIRS)) \
                   -I/usr/include -I/usr/include/linux
 
-TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET)
+#TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET)_$(REVISION)
+ifneq ($(BUILDNO),local)
+TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET)_Build_$(BUILDNO)_$(REVISION)
+else
+TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET)_Build_$(REVISION)
+endif
 
 # Things we will distribute (variable name, includes revision by default)
 #
