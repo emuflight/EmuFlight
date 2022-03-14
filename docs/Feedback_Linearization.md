@@ -21,20 +21,22 @@ torqueInertiaPitch = torqueInertia \* pitchTorque / pitchInertia
 It is assumed that the frame is symmetrical ie\(any X or H design) and that the motor layout and weights have the largest effect on moments of inertia. Note that this is a rough estimation only. The estimation can be improved by acounting for the inertia due to the battery, body, HD camera, and electronics. If one has a 3d model of their exact build they could use a 3d modelling program to directly calculate the moments of inertia. That would give the most accurate results.
 
 There are several measurements that need to be taken:
-1. W is the width of the motor layout in millimeters
-2. L is the length of the motor layout in millimeters
-3. m is the mass of a motor + propellor + mounting in grams
-4. M is the all up weight of the quad in grams
+1. W is the width of the motor layout in **millimeters**
+2. L is the length of the motor layout in **millimeters**
+3. m is the mass of a motor + propellor + mounting in **grams**
+4. M is the all up weight of the quad in **grams**
+5. Perform a hover test to get Ih the average hover current in **amps**
 
+Calculate important Characteristics
 1. TWR is the thrust to weight ratio of the quad
 
-Perform a hover test and obtain the following pieces of information:
-1. Average current at hover
-2. Average motor RPM at hover
+Important constants:
+1. gravitational acceleration g = 9.81 m/s^2
+2. motor velocity constant Kv \(as reported by the manufacturer)
 
 The parameters are calculated as follows
-1. torqueInertia = 
+1. torqueInertia = 1e3 * \( M * g * TWR) / \(4 * W * m)
 2. pitchInertia = L^2 / W^2
 3. yawInertia = = \(L^2 + W^2) / W^2
 4. pitchTorque = L / W
-5. yawTorque = 
+5. yawTorque = 1e6 * \(16.4 * Ih) / \(W * Kv * M * g)
