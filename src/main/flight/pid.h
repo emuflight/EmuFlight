@@ -167,6 +167,12 @@ typedef struct pidProfile_s {
 
     uint8_t  dtermMeasurementSlider;
 
+    uint16_t torqueInertiaRatio;
+    uint8_t pitchTorqueRatio;
+    uint8_t yawTorqueRatio;
+    uint8_t pitchInertiaRatio;
+    uint16_t yawInertiaRatio;
+
     uint16_t emuBoostPR;
     uint16_t emuBoostY;
     uint16_t dtermBoost;
@@ -279,6 +285,12 @@ typedef struct pidRuntime_s {
     float dtermMeasurementSlider;
     float dtermMeasurementSliderInverse;
 
+    float torqueInertiaRatio;
+    float pitchTorqueRatio;
+    float yawTorqueRatio;
+    float pitchInertiaRatio;
+    float yawInertiaRatio;
+
     float emuBoostPR;
     float emuBoostY;
     float emuBoostLimitPR;
@@ -389,3 +401,4 @@ float pidGetFfBoostFactor();
 float pidGetFfSmoothFactor();
 float pidGetFfJitterFactor();
 float dynLpfCutoffFreq(float throttle, uint16_t dynLpfMin, uint16_t dynLpfMax, uint8_t expo);
+void applyFeedbackLinearization(pidAxisData_t *pids, float *gyroData);

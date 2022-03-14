@@ -184,6 +184,11 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .dyn_lpf_curve_expo = 5,
         .vbat_sag_compensation = 0,
         .dtermMeasurementSlider = 100,
+        .torqueInertiaRatio = 10000,
+        .pitchTorqueRatio = 100,
+        .yawTorqueRatio = 100,
+        .pitchInertiaRatio = 100,
+        .yawInertiaRatio = 100,
         .emuBoostPR = 15,
         .emuBoostY = 40,
         .dtermBoost = 0,
@@ -968,3 +973,26 @@ float pidGetPidFrequency()
 {
     return pidRuntime.pidFrequency;
 }
+
+#ifdef USE_FEEDBACK_LINEARIZATION
+void applyFeedbackLinearization(pidAxisData_t *pids, float *gyroData)
+{
+    float k2 = pidRuntime.pitchInertiaRatio;
+    float k3 = pidRuntime.yawInertiaRatio;
+    float kt2 = pidRuntime.pitchTorqueRatio;
+    float kt3 = pidRuntime.yawTorqueRatio;
+    float TIR = pidRuntime.torqueInertiaRatio;
+    if (!(kt2==0 || kt3==0 || TIR==0)){
+        float roll_linearization = (k3-k2) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_PITCH] / (TIR);
+        float pitch_linearization = (1.0f-k3) * 0.0003046f * gyroData[FD_YAW] * gyroData[FD_ROLL] / (TIR * kt2);
+        float yaw_linearization = (k2-1.0f) * 0.0003046f * gyroData[FD_ROLL] * gyroData[FD_PITCH] / (TIR * kt3);
+        pids[FD_ROLL].Sum += roll_linearization;
+        pids[FD_PITCH].Sum += pitch_linearization;
+        pids[FD_YAW].Sum += yaw_linearization;
+        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 0, lrintf(100.0f * pids[FD_ROLL].Sum / currentPidProfile->pidSumLimit));
+        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 1, lrintf(100.0f * pids[FD_PITCH].Sum / currentPidProfile->pidSumLimit));
+        DEBUG_SET(DEBUG_FEEDBACK_LINEARIZATION, 2, lrintf(100.0f * pids[FD_YAW].Sum / currentPidProfile->pidSumLimitYaw));
+
+    }
+}
+#endif

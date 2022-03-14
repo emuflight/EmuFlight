@@ -587,6 +587,14 @@ static uint8_t cmsx_ff_smooth_factor;
 static uint8_t cmsx_ff_jitter_factor;
 #endif
 
+#ifdef USE_FEEDBACK_LINEARIZATION
+static uint16_t  cmsx_torqueInertiaRatio;
+static uint8_t  cmsx_pitchTorqueRatio;
+static uint8_t  cmsx_yawTorqueRatio;
+static uint8_t cmsx_pitchInertiaRatio;
+static uint16_t  cmsx_yawInertiaRatio;
+#endif
+
 static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
 {
     UNUSED(pDisp);
@@ -623,6 +631,14 @@ static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
     cmsx_ff_jitter_factor = pidProfile->ff_jitter_factor;
 #endif
 
+#ifdef USE_FEEDBACK_LINEARIZATION
+    cmsx_torqueInertiaRatio = pidProfile->torqueInertiaRatio;
+    cmsx_pitchTorqueRatio = pidProfile->pitchTorqueRatio;
+    cmsx_yawTorqueRatio = pidProfile->yawTorqueRatio;
+    cmsx_pitchInertiaRatio = pidProfile->pitchInertiaRatio;
+    cmsx_yawInertiaRatio = pidProfile->yawInertiaRatio;
+#endif
+
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION
     cmsx_vbat_sag_compensation = pidProfile->vbat_sag_compensation;
 #endif
@@ -657,11 +673,18 @@ static const void *cmsx_profileOtherOnExit(displayPort_t *pDisp, const OSD_Entry
     pidProfile->motor_output_limit = cmsx_motorOutputLimit;
     pidProfile->auto_profile_cell_count = cmsx_autoProfileCellCount;
 
-
 #ifdef USE_INTERPOLATED_SP
     pidProfile->ff_interpolate_sp = cmsx_ff_interpolate_sp;
     pidProfile->ff_smooth_factor = cmsx_ff_smooth_factor;
     pidProfile->ff_jitter_factor = cmsx_ff_jitter_factor;
+#endif
+
+#ifdef USE_FEEDBACK_LINEARIZATION
+    pidProfile->torqueInertiaRatio = cmsx_torqueInertiaRatio;
+    pidProfile->pitchTorqueRatio = cmsx_pitchTorqueRatio;
+    pidProfile->yawTorqueRatio = cmsx_yawTorqueRatio;
+    pidProfile->pitchInertiaRatio = cmsx_pitchInertiaRatio;
+    pidProfile->yawInertiaRatio = cmsx_yawInertiaRatio;
 #endif
 
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION
@@ -706,6 +729,14 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "MTR OUT LIM %",OME_UINT8, NULL, &(OSD_UINT8_t) { &cmsx_motorOutputLimit, MOTOR_OUTPUT_LIMIT_PERCENT_MIN,  MOTOR_OUTPUT_LIMIT_PERCENT_MAX,  1}, 0 },
 
     { "AUTO CELL CNT", OME_INT8, NULL, &(OSD_INT8_t) { &cmsx_autoProfileCellCount, AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT, 1}, 0 },
+
+#ifdef USE_FEEDBACK_LINEARIZATION
+    { "TORQUE INERTIA RATIO",   OME_UINT16,  NULL, &(OSD_UINT16_t)  { &cmsx_torqueInertiaRatio,    1,    10000,   1  }   , 0 },
+    { "PITCH TORQUE RATIO",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_pitchTorqueRatio,        1,    250,   1  }   , 0 },
+    { "YAW TORQUE RATIO",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_yawTorqueRatio,          1,    250,   1  }   , 0 },
+    { "PITCH INERTIA RATIO",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_pitchInertiaRatio,       1,    250,   1  }   , 0 },
+    { "YAW INERTIA RATION",   OME_UINT16,  NULL, &(OSD_UINT16_t)  { &cmsx_yawInertiaRatio,         1,    500,   1  }   , 0 },
+#endif
 
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION
     { "VBAT_SAG_COMP", OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_vbat_sag_compensation, 0, 150, 1 }, 0 },
