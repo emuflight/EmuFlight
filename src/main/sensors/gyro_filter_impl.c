@@ -90,13 +90,8 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(void)
         }
 #endif
 
-        // downsample updating the kalman covariance to be a third of pidloop rate
-        static int covarianceDownSampler = 1;
-        if (covarianceDownSampler == 3) {
-            update_kalman_covariance(&gyro.kalmanFilterStateRate[axis], gyroADCf);
-            covarianceDownSampler = 0;
-        }
-            covarianceDownSampler += 1;
+        update_kalman_covariance(&gyro.kalmanFilterStateRate[axis], gyroADCf);
+
 
         // DEBUG_GYRO_FILTERED records the scaled, filtered, after all software filtering has been applied.
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_FILTERED, axis, lrintf(gyroADCf));
