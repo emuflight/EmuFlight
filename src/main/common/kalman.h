@@ -44,9 +44,6 @@ typedef struct kalman_s
     float axisSumVar;
     float inverseN;
     uint8_t w;
-    float sumX;
-    float sumXSquared;
-    float squaredSumX;
 
     pt1Filter_t kFilter;
 } kalman_t;
