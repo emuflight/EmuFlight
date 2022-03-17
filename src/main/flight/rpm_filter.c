@@ -210,11 +210,6 @@ FAST_CODE_NOINLINE void rpmFilterUpdate(void)
             clone->notchFilter.a1 = template->notchFilter.a1;
             clone->notchFilter.a2 = template->notchFilter.a2;
 
-            clone->preVarianceBandpass.b0 = template->preVarianceBandpass.b0;
-            //clone->preVarianceBandpass.b1 = template->preVarianceBandpass.b1; // always 0
-            clone->preVarianceBandpass.b2 = template->preVarianceBandpass.b2;
-            clone->preVarianceBandpass.b0 = template->preVarianceBandpass.a1;
-            clone->preVarianceBandpass.b2 = template->preVarianceBandpass.a2;
             updateWeight(clone, frequency, weight);
             }
 

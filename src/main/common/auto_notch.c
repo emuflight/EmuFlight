@@ -43,17 +43,16 @@ void initAutoNotch(autoNotch_t *autoNotch, float initial_frequency, int q, int n
 
     autoNotch->preVariance = 0.0;
     pt1FilterInit(&autoNotch->preVarianceFilter, pt1FilterGain(10.0, looptimeUs * 1e-6f));
-    biquadFilterInit(&autoNotch->preVarianceBandpass, initial_frequency, looptimeUs, q, FILTER_BPF, 1.0f);
 
     biquadFilterInit(&autoNotch->notchFilter, initial_frequency, looptimeUs, q, FILTER_NOTCH, 1.0f);
 }
 
 FAST_CODE float applyAutoNotch(autoNotch_t *autoNotch, float input) {
-    float preNotchNoise = biquadFilterApplyDF1(&autoNotch->preVarianceBandpass, input);
+    float notchFilteredNoise = biquadFilterApplyDF1(&autoNotch->notchFilter, input);
+
+    float preNotchNoise = input - notchFilteredNoise;
     // variance is approximately the noise squared and averaged
     autoNotch->preVariance = pt1FilterApply(&autoNotch->preVarianceFilter, preNotchNoise * preNotchNoise);
-
-    float notchFilteredNoise = biquadFilterApplyDF1(&autoNotch->notchFilter, input);
 
     return autoNotch->weight * notchFilteredNoise + autoNotch->invWeight * input;
 }
@@ -63,7 +62,7 @@ FAST_CODE void updateWeight(autoNotch_t *autoNotch, float frequency, float weigh
     arm_sqrt_f32(autoNotch->preVariance, &deviation);
     // 1 / 360
     // higher freq have less delay when filtering anyhow and make more dterm noise
-    float frequencyAccounter = 1.0f + frequency * 0.002777777777f;
+    float frequencyAccounter = 1.0f + frequency * 0.002777777777f; // the 0.0027 is 1/360
     float weight = deviation * frequencyAccounter * autoNotch->noiseLimitInv;
 
     autoNotch->weight = MIN(weight * weightMultiplier, 1.0);
@@ -71,7 +70,6 @@ FAST_CODE void updateWeight(autoNotch_t *autoNotch, float frequency, float weigh
 }
 
 FAST_CODE void updateAutoNotch(autoNotch_t *autoNotch, float frequency, float q, float weightMultiplier, float looptimeUs) {
-    biquadFilterInit(&autoNotch->preVarianceBandpass, frequency, looptimeUs, q, FILTER_BPF, 1.0f);
     biquadFilterUpdate(&autoNotch->notchFilter, frequency, looptimeUs, q, FILTER_NOTCH, 1.0f);
 
     updateWeight(autoNotch, frequency, weightMultiplier);
