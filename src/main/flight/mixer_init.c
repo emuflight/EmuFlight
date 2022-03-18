@@ -42,6 +42,8 @@
 
 #include "sensors/battery.h"
 
+#include "common/filter.h"
+
 #include "mixer_init.h"
 
 PG_REGISTER_WITH_RESET_TEMPLATE(mixerConfig_t, mixerConfig, PG_MIXER_CONFIG, 0);
@@ -322,6 +324,13 @@ void mixerInitProfile(void)
         }
     }
 #endif
+    mixerRuntime.maxMotorChange = currentPidProfile->max_motor_change * pidGetDT();
+    for (int motor = 0; motor < MAX_SUPPORTED_MOTORS; motor++) {
+        if (currentPidProfile->motor_lpf_hz) {
+            pt1FilterInit(&mixerRuntime.motorLpf[motor], pt1FilterGain(currentPidProfile->motor_lpf_hz, pidGetDT()));
+        }
+        mixerRuntime.previousMotorOutput[motor] = 0.0;
+    }
 }
 
 #ifdef USE_LAUNCH_CONTROL

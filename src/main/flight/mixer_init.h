@@ -23,6 +23,7 @@
 #include "platform.h"
 
 #include "flight/mixer.h"
+#include "common/filter.h"
 
 
 typedef struct mixerRuntime_s {
@@ -53,6 +54,9 @@ typedef struct mixerRuntime_s {
     float vbatFull;
     float vbatRangeToCompensate;
 #endif
+    float maxMotorChange;
+    pt1Filter_t motorLpf[MAX_SUPPORTED_MOTORS];
+    float previousMotorOutput[MAX_SUPPORTED_MOTORS];
 } mixerRuntime_t;
 
 extern mixerRuntime_t mixerRuntime;
