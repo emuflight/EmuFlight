@@ -226,6 +226,9 @@ typedef struct pidProfile_s {
     uint8_t simplified_dterm_filter;
     uint8_t simplified_dterm_filter_multiplier;
     uint8_t simplified_pitch_pi_gain;
+
+    uint8_t max_motor_change;
+    uint16_t motor_lpf_hz;
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);

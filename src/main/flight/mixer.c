@@ -353,6 +353,35 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS], motorMixer_t 
 #ifdef USE_THRUST_LINEARIZATION
         motorOutput = pidApplyThrustLinearization(motorOutput);
 #endif
+
+        // apply some motor motor filtering before we take it of the -1 to 1 range
+        // motors are nonlinear as they hit max and min limits
+        // this should make filtering them worthwhile over just the gyro/pids
+        if (mixerRuntime.maxMotorChange) {
+            // ensure the max change is at least default value if somehow motorOutput is negative
+            // allow for more change if the motor desires a higher range
+            float changeLimit = MAX((1.0 + motorOutput) * mixerRuntime.maxMotorChange, mixerRuntime.maxMotorChange);
+            float desiredChangeAbs = fabsf(motorOutput - mixerRuntime.previousMotorOutput[i]);
+            if (desiredChangeAbs > changeLimit) {
+                desiredChangeAbs = changeLimit;
+            }
+            if (motorOutput > mixerRuntime.previousMotorOutput[i]) {
+                mixerRuntime.previousMotorOutput[i] += desiredChangeAbs;
+            } else {
+                mixerRuntime.previousMotorOutput[i] -= desiredChangeAbs;
+            }
+            motorOutput = mixerRuntime.previousMotorOutput[i];
+        }
+
+        if (currentPidProfile->motor_lpf_hz) {
+            // dynamically raise the cutoff as motor output is higher
+            float motorLpfHz = MAX((1.0 + motorOutput) * currentPidProfile->motor_lpf_hz, currentPidProfile->motor_lpf_hz);
+            // consider just multiplying the motorlpf k by a multiplier instead of increasing the freq
+            pt1FilterUpdateCutoff(&mixerRuntime.motorLpf[i], pt1FilterGain(motorLpfHz, pidGetDT()));
+            motorOutput = pt1FilterApply(&mixerRuntime.motorLpf[i], motorOutput);
+        }
+
+        // put the motor output into the desired range
         motorOutput = motorOutputMin + motorOutputRange * motorOutput;
 
 #ifdef USE_SERVOS
@@ -534,7 +563,7 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs)
     }
 #endif
 
-    // send throttle value to blackbox, including scaling and throttle boost, but not TL compensation, dyn idle or airmode 
+    // send throttle value to blackbox, including scaling and throttle boost, but not TL compensation, dyn idle or airmode
     mixerThrottle = throttle;
 
 #ifdef USE_DYN_IDLE
