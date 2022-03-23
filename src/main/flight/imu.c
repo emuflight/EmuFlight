@@ -245,7 +245,7 @@ static void applySensorCorrection(quaternion *vError) {
             // (bx; 0; 0) - reference mag field vector heading due North in EF (assuming Z-component is zero)
             const float hx = (1.0f - 2.0f * qpAttitude.yy - 2.0f * qpAttitude.zz) * vMagAverage.x + (2.0f * (qpAttitude.xy + -qpAttitude.wz)) * vMagAverage.y + (2.0f * (qpAttitude.xz - -qpAttitude.wy)) * vMagAverage.z;
             const float hy = (2.0f * (qpAttitude.xy - -qpAttitude.wz)) * vMagAverage.x + (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.zz) * vMagAverage.y + (2.0f * (qpAttitude.yz + -qpAttitude.wx)) * vMagAverage.z;
-            const float bx = sqrtf(sq(hx) + sq(hy));
+            const float bx = fast_fsqrtf(sq(hx) + sq(hy));
             // magnetometer error is cross product between estimated magnetic north and measured magnetic north (calculated in EF)
             applyVectorError(-(float)(hy * bx), vError);
         }
@@ -253,7 +253,7 @@ static void applySensorCorrection(quaternion *vError) {
 #endif
 }
 
-static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, quaternion *vError, float spinTrust) {
+static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, quaternion *vError) {
     quaternion vKpKi = VECTOR_INITIALIZE;
     static quaternion vIntegralFB = VECTOR_INITIALIZE;
     quaternion qBuff, qDiff;
@@ -262,16 +262,16 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, quaternion *vError,
     const float dcmKiGain = imuRuntimeConfig.dcm_ki * imuUseFastGains();
     // calculate integral feedback
     if (imuRuntimeConfig.dcm_ki > 0.0f) {
-        vIntegralFB.x += dcmKiGain * vError->x * dt * spinTrust;
-        vIntegralFB.y += dcmKiGain * vError->y * dt * spinTrust;
-        vIntegralFB.z += dcmKiGain * vError->z * dt * spinTrust;
+        vIntegralFB.x += dcmKiGain * vError->x * dt;
+        vIntegralFB.y += dcmKiGain * vError->y * dt;
+        vIntegralFB.z += dcmKiGain * vError->z * dt;
     } else {
         quaternionInitVector(&vIntegralFB);
     }
     // apply proportional and integral feedback
-    vKpKi.x += dcmKpGain * vError->x * spinTrust + vIntegralFB.x;
-    vKpKi.y += dcmKpGain * vError->y * spinTrust + vIntegralFB.y;
-    vKpKi.z += dcmKpGain * vError->z * spinTrust + vIntegralFB.z;
+    vKpKi.x += dcmKpGain * vError->x + vIntegralFB.x;
+    vKpKi.y += dcmKpGain * vError->y + vIntegralFB.y;
+    vKpKi.z += dcmKpGain * vError->z + vIntegralFB.z;
     // vGyro integration
     // PCDM Acta Mech 224, 3091–3109 (2013)
     const float vGyroModulus = quaternionModulus(vGyro);
@@ -342,14 +342,11 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs) {
     accGetAverage(&vAccAverage);
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU2, lrintf((quaternionModulus(&vAccAverage) / acc.dev.acc_1G) * 1000));
 
-    const float spin_rate = sqrtf(sq(vGyroAverage.x) + sq(vGyroAverage.y) + sq(vGyroAverage.z));
-    float spinTrust = constrainf (1.0f - spin_rate / DEGREES_TO_RADIANS(500), 0.0f, 1.0f);
-
     if (accIsHealthy(&vAccAverage)) {
         applyAccError(&vAccAverage, &vError);
     }
     applySensorCorrection(&vError);
-    imuMahonyAHRSupdate(deltaT * 1e-6f, &vGyroAverage, &vError, spinTrust);
+    imuMahonyAHRSupdate(deltaT * 1e-6f, &vGyroAverage, &vError);
     imuUpdateEulerAngles();
 #endif
 #if defined(USE_ALT_HOLD)

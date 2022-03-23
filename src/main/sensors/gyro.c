@@ -89,19 +89,6 @@
 #include "sensors/gyroanalyse.h"
 #endif
 #include "sensors/sensors.h"
-
-#if defined(USE_BRAINFPV_SPECTROGRAPH)
-#include "ch.h"
-#include "brainfpv/spectrograph.h"
-static uint16_t spec_idx = 0;
-extern binary_semaphore_t spectrographDataReadySemaphore;
-extern bool spec_data_processed;
-
-extern float spec_gyro_data_roll[];
-extern float spec_gyro_data_pitch[];
-extern float spec_gyro_data_yaw[];
-#endif /* defined(USE_BRAINFPV_SPECTROGRAPH) */
-
 #ifdef USE_GYRO_IMUF9001
 
 #include "drivers/accgyro/accgyro_imuf9001.h"
@@ -156,6 +143,7 @@ bool firstArmingCalibrationWasStarted = false;
 typedef union gyroLowpassFilter_u {
     pt1Filter_t pt1FilterState;
     biquadFilter_t biquadFilterState;
+    ptnFilter_t ptnFilterState;
 } gyroLowpassFilter_t;
 
 typedef struct gyroSensor_s {
@@ -182,7 +170,6 @@ typedef struct gyroSensor_s {
     biquadFilter_t notchFilter2[XYZ_AXIS_COUNT];
 
     filterApplyFnPtr notchFilterDynApplyFn;
-    biquadFilter_t notchFilterDyn[XYZ_AXIS_COUNT][XYZ_AXIS_COUNT];
 
     // overflow and recovery
     timeUs_t overflowTimeUs;
@@ -194,7 +181,6 @@ typedef struct gyroSensor_s {
 
 #ifdef USE_GYRO_DATA_ANALYSE
     gyroAnalyseState_t gyroAnalyseState;
-    float dynNotchQ;
 #endif
 
 #ifdef USE_SMITH_PREDICTOR
@@ -261,24 +247,26 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .checkOverflow = GYRO_OVERFLOW_CHECK_ALL_AXES,
                   .yaw_spin_recovery = true,
                   .yaw_spin_threshold = 1950,
-                  .dyn_notch_q_factor = 400,
+                  .dyn_notch_q = 400,
+                  .dyn_notch_count = 3, // default of 3 is similar to the matrix filter.
                   .dyn_notch_min_hz = 150,
                   .dyn_notch_max_hz = 600,
                   .imuf_mode = GTBCM_GYRO_ACC_FILTER_F,
                   .imuf_rate = IMUF_RATE_16K,
-                  .imuf_roll_q = IMUF_DEFAULT_ROLL_Q,
-                  .imuf_pitch_q = IMUF_DEFAULT_PITCH_Q,
-                  .imuf_yaw_q = IMUF_DEFAULT_YAW_Q,
-                  .imuf_w = IMUF_DEFAULT_W,
+                  .imuf_roll_q = 6000,
+                  .imuf_pitch_q = 6000,
+                  .imuf_yaw_q = 6000,
+                  .imuf_w = 32,
                   .imuf_roll_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
                   .imuf_pitch_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
                   .imuf_yaw_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
                   .imuf_acc_lpf_cutoff_hz = IMUF_DEFAULT_ACC_LPF_HZ,
-//                  .imuf_sharpness = 2500,
+                  .imuf_ptn_order = 3,
                   .gyro_offset_yaw = 0,
                   .gyro_ABG_alpha = 0,
                   .gyro_ABG_boost = 275,
                   .gyro_ABG_half_life = 50,
+                  .smithPredictorEnabled = true,
                   .smithPredictorStrength = 50,
                   .smithPredictorDelay = 40,
                   .smithPredictorFilterHz = 5,
@@ -307,20 +295,21 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_soft_notch_hz_2 = 0,
                   .gyro_soft_notch_cutoff_2 = 0,
                   .checkOverflow = GYRO_OVERFLOW_CHECK_ALL_AXES,
-                  .imuf_roll_q = 3000,
-                  .imuf_pitch_q = 3000,
-                  .imuf_yaw_q = 3000,
+                  .imuf_roll_q = 6000,
+                  .imuf_pitch_q = 6000,
+                  .imuf_yaw_q = 6000,
                   .imuf_w = 32,
-//                  .imuf_sharpness = 2500,
                   .gyro_offset_yaw = 0,
                   .yaw_spin_recovery = true,
                   .yaw_spin_threshold = 1950,
-                  .dyn_notch_q_factor = 350,
+                  .dyn_notch_q = 350,
+                  .dyn_notch_count = 3, // default of 3 is similar to the matrix filter.
                   .dyn_notch_min_hz = 150,
                   .dyn_notch_max_hz = 600,
                   .gyro_ABG_alpha = 0,
                   .gyro_ABG_boost = 275,
                   .gyro_ABG_half_life = 50,
+                  .smithPredictorEnabled = true,
                   .smithPredictorStrength = 50,
                   .smithPredictorDelay = 40,
                   .smithPredictorFilterHz = 5,
@@ -543,13 +532,9 @@ STATIC_UNIT_TESTED gyroSensor_e gyroDetect(gyroDev_t *dev) {
 }
 
 static bool gyroInitSensor(gyroSensor_t *gyroSensor) {
-#ifdef USE_GYRO_DATA_ANALYSE
-    gyroSensor->dynNotchQ = gyroConfig()->dyn_notch_q_factor / 100.0f;
-#endif
     gyroSensor->gyroDev.gyro_high_fsr = gyroConfig()->gyro_high_fsr;
 #if defined(USE_GYRO_MPU6050) || defined(USE_GYRO_MPU3050) || defined(USE_GYRO_MPU6500) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU6000) \
- || defined(USE_ACC_MPU6050) || defined(USE_GYRO_SPI_MPU9250) || defined(USE_GYRO_SPI_ICM20601) || defined(USE_GYRO_SPI_ICM20649) || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_IMUF9001) || defined(USE_GYRO_SPI_BMI160)
-
+ || defined(USE_ACC_MPU6050) || defined(USE_GYRO_SPI_MPU9250) || defined(USE_GYRO_SPI_ICM20601) || defined(USE_GYRO_SPI_ICM20649) || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_IMUF9001) || defined(USE_ACCGYRO_BMI160)
     mpuDetect(&gyroSensor->gyroDev);
     mpuResetFn = gyroSensor->gyroDev.mpuConfiguration.resetFn; // must be set after mpuDetect
 #endif
@@ -752,13 +737,25 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
         float gain = pt1FilterGain(lpfHz[axis], gyroDt);
         if (lpfHz[axis] && lpfHz[axis] <= gyroFrequencyNyquist) {
             switch (type) {
-            case FILTER_PT1:
-                *lowpassFilterApplyFn = (filterApplyFnPtr) pt1FilterApply;
-                pt1FilterInit(&lowpassFilter[axis].pt1FilterState, gain);
-                break;
             case FILTER_BIQUAD:
                 *lowpassFilterApplyFn = (filterApplyFnPtr) biquadFilterApply;
                 biquadFilterInitLPF(&lowpassFilter[axis].biquadFilterState, lpfHz[axis], gyro.targetLooptime);
+                break;
+            case FILTER_PT4:
+                *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, FILTER_PT4, lpfHz[axis], gyroDt);
+                break;
+            case FILTER_PT3:
+                *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, FILTER_PT3, lpfHz[axis], gyroDt);
+                break;
+            case FILTER_PT2:
+                *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
+                ptnFilterInit(&lowpassFilter[axis].ptnFilterState, FILTER_PT2, lpfHz[axis], gyroDt);
+                break;
+            default: // case FILTER_PT1:
+                *lowpassFilterApplyFn = (filterApplyFnPtr) pt1FilterApply;
+                pt1FilterInit(&lowpassFilter[axis].pt1FilterState, gain);
                 break;
             }
         }
@@ -807,13 +804,10 @@ static void gyroInitFilterNotch2(gyroSensor_t *gyroSensor, uint16_t notchHz, uin
             biquadFilterInit(&gyroSensor->notchFilter2[axis], notchHz, gyro.targetLooptime, notchQ, FILTER_NOTCH);
         }
     }
-#if defined(USE_BRAINFPV_SPECTROGRAPH)
-    chBSemObjectInit(&spectrographDataReadySemaphore, FALSE);
-#endif /* defined(USE_BRAINFPV_SPECTROGRAPH) */
 }
 
 #ifdef USE_GYRO_DATA_ANALYSE
-static bool isDynamicFilterActive(void) {
+bool isDynamicFilterActive(void) {
     return feature(FEATURE_DYNAMIC_FILTER);
 }
 
@@ -822,8 +816,8 @@ static void gyroInitFilterDynamicNotch(gyroSensor_t *gyroSensor) {
     if (isDynamicFilterActive()) {
         gyroSensor->notchFilterDynApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1; // must be this function, not DF2
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            for (int axis2 = 0; axis2 < XYZ_AXIS_COUNT; axis2++) {
-                biquadFilterInit(&gyroSensor->notchFilterDyn[axis][axis2], 400, gyro.targetLooptime, gyroSensor->dynNotchQ, FILTER_NOTCH);
+            for (int axis2 = 0; axis2 < gyroConfig()->dyn_notch_count; axis2++) {
+                biquadFilterInit(&gyroSensor->gyroAnalyseState.notchFilterDyn[axis][axis2], 400, gyro.targetLooptime, gyroConfig()->dyn_notch_q / 100.0f, FILTER_NOTCH);
             }
         }
     }
@@ -844,6 +838,7 @@ static void gyroInitABGFilter(gyroSensor_t *gyroSensor, uint16_t alpha, uint16_t
 void smithPredictorInit(gyroSensor_t *gyroSensor) {
     if (gyroConfig()->smithPredictorDelay > 1) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+            gyroSensor->smithPredictor[axis].enabled = gyroConfig()->smithPredictorEnabled;
             gyroSensor->smithPredictor[axis].samples = gyroConfig()->smithPredictorDelay / (gyro.targetLooptime / 100.0f);
             gyroSensor->smithPredictor[axis].idx = 0;
             gyroSensor->smithPredictor[axis].smithPredictorStrength = gyroConfig()->smithPredictorStrength / 100.0f;
@@ -1099,7 +1094,7 @@ static FAST_CODE void checkForYawSpin(gyroSensor_t *gyroSensor, timeUs_t current
 
 #ifdef USE_SMITH_PREDICTOR
 float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered) {
-  if (smithPredictor->samples > 1) {
+  if (smithPredictor->samples > 1 && smithPredictor->enabled) {
     smithPredictor->data[smithPredictor->idx] = gyroFiltered;
 
     smithPredictor->idx++;
@@ -1132,15 +1127,6 @@ float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered) 
 #undef GYRO_FILTER_FUNCTION_NAME
 #undef GYRO_FILTER_DEBUG_SET
 
-static FAST_CODE void dynamicGyroNotchFiltersUpdate(gyroSensor_t* gyroSensor) {
-    if (gyroSensor->gyroAnalyseState.filterUpdateExecute) {
-        const uint8_t axis = gyroSensor->gyroAnalyseState.filterUpdateAxis;
-        const uint16_t frequency = gyroSensor->gyroAnalyseState.filterUpdateFrequency;
-        biquadFilterUpdate(&gyroSensor->notchFilterDyn[0][axis], frequency, gyro.targetLooptime, gyroSensor->dynNotchQ, FILTER_NOTCH);
-        biquadFilterUpdate(&gyroSensor->notchFilterDyn[1][axis], frequency, gyro.targetLooptime, gyroSensor->dynNotchQ, FILTER_NOTCH);
-        biquadFilterUpdate(&gyroSensor->notchFilterDyn[2][axis], frequency, gyro.targetLooptime, gyroSensor->dynNotchQ, FILTER_NOTCH);
-    }
-}
 
 static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs_t currentTimeUs) {
 #ifndef USE_DMA_SPI_DEVICE
@@ -1204,30 +1190,8 @@ static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs
 #ifdef USE_GYRO_DATA_ANALYSE
     if (isDynamicFilterActive()) {
         gyroDataAnalyse(&gyroSensor->gyroAnalyseState);
-        dynamicGyroNotchFiltersUpdate(gyroSensor);
     }
 #endif
-
-#if defined(USE_BRAINFPV_SPECTROGRAPH)
-    if (spec_data_processed) {
-        if (gyroDebugMode == DEBUG_GYRO_RAW) {
-            spec_gyro_data_roll[spec_idx] = debug[0];
-            spec_gyro_data_pitch[spec_idx] = debug[1];
-            spec_gyro_data_yaw[spec_idx] = debug[2];
-        } else {
-            spec_gyro_data_roll[spec_idx] = gyro.gyroADCf[0];
-            spec_gyro_data_pitch[spec_idx] = gyro.gyroADCf[1];
-            spec_gyro_data_yaw[spec_idx] = gyro.gyroADCf[2];
-        }
-        spec_idx++;
-        if (spec_idx == SPEC_FFT_LENGTH) {
-            spec_data_processed = false;
-            spec_idx = 0;
-            chBSemSignal(&spectrographDataReadySemaphore);
-        }
-    }
-#endif /* defined(USE_BRAINFPV_SPECTROGRAPH) */
-
 #if (!defined(USE_GYRO_OVERFLOW_CHECK) && !defined(USE_YAW_SPIN_RECOVERY))
     UNUSED(currentTimeUs);
 #endif

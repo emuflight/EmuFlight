@@ -56,8 +56,6 @@
 
 #define CRSF_PAYLOAD_OFFSET offsetof(crsfFrameDef_t, type)
 
-#define CRSF_LINK_TIMEOUT_US 3000000
-
 STATIC_UNIT_TESTED bool crsfFrameDone = false;
 STATIC_UNIT_TESTED crsfFrame_t crsfFrame;
 STATIC_UNIT_TESTED crsfFrame_t crsfChannelDataFrame;
@@ -67,8 +65,6 @@ static serialPort_t *serialPort;
 static uint32_t crsfFrameStartAtUs = 0;
 static uint8_t telemetryBuf[CRSF_FRAME_SIZE_MAX];
 static uint8_t telemetryBufLen = 0;
-
-crsfLinkInfo_t crsf_link_info;
 
 /*
  * CRSF protocol
@@ -119,28 +115,38 @@ struct crsfPayloadRcChannelsPacked_s {
 
 typedef struct crsfPayloadRcChannelsPacked_s crsfPayloadRcChannelsPacked_t;
 
-struct crsfPayloadLinkStatistics_s {
-    uint8_t     uplinkRSSIAnt1;
-    uint8_t     uplinkRSSIAnt2;
-    uint8_t     uplinkLQ;
-    int8_t      uplinkSNR;
-    uint8_t     activeAntenna;
-    uint8_t     rfMode;
-    uint8_t     uplinkTXPower;
-    uint8_t     downlinkRSSI;
-    uint8_t     downlinkLQ;
-    int8_t      downlinkSNR;
-} __attribute__ ((__packed__));
 
-typedef struct crsfPayloadLinkStatistics_s crsfPayloadLinkStatistics_t;
+typedef struct crsfPayloadLinkstatistics_s {
+    uint8_t uplink_RSSI_1;
+    uint8_t uplink_RSSI_2;
+    uint8_t uplink_Link_quality;
+    int8_t uplink_SNR;
+    uint8_t active_antenna;
+    uint8_t rf_Mode;
+    uint8_t uplink_TX_Power;
+    uint8_t downlink_RSSI;
+    uint8_t downlink_Link_quality;
+    int8_t downlink_SNR;
+} crsfLinkStatistics_t;
 
-volatile crsfPayloadLinkStatistics_t* linkStats;
+static void handleCrsfLinkStatisticsFrame(const crsfLinkStatistics_t* statsPtr, timeUs_t currentTimeUs) {
+    const crsfLinkStatistics_t stats = *statsPtr;
+    CRSFsetLQ(stats.uplink_Link_quality);
+    CRSFsetRFMode(stats.rf_Mode);
+    CRSFsetSnR(stats.downlink_SNR);
+    CRSFsetTXPower(stats.uplink_TX_Power);
+    if (stats.uplink_RSSI_1 == 0) {
+        CRSFsetRSSI(stats.uplink_RSSI_2);
+    } else if (stats.uplink_RSSI_2 == 0) {
+        CRSFsetRSSI(stats.uplink_RSSI_1);
+    } else {
+        uint8_t rssimin = MIN(stats.uplink_RSSI_1, stats.uplink_RSSI_2) * -1;
+        CRSFsetRSSI(rssimin);
+    }
+}
 
-void crsfUpdateLinkStats(void);
-static bool link_stats_received = false;
 
-STATIC_UNIT_TESTED uint8_t crsfFrameCRC(void)
-{
+STATIC_UNIT_TESTED uint8_t crsfFrameCRC(void) {
     // CRC includes type and payload
     uint8_t crc = crc8_dvb_s2(0, crsfFrame.frame.type);
     for (int ii = 0; ii < crsfFrame.frame.frameLength - CRSF_FRAME_LENGTH_TYPE_CRC; ++ii) {
@@ -201,32 +207,27 @@ STATIC_UNIT_TESTED void crsfDataReceive(uint16_t c, void *data) {
                         break;
                     }
 #endif
-                        case CRSF_FRAMETYPE_LINK_STATISTICS:
-                            crsfUpdateLinkStats();
-                            break;
-                        default:
-                            break;
+#if defined(USE_TELEMETRY_CRSF)
+                    case CRSF_FRAMETYPE_LINK_STATISTICS: {
+                         // if to FC and 10 bytes + CRSF_FRAME_ORIGIN_DEST_SIZE
+                         if ((crsfFrame.frame.deviceAddress == CRSF_ADDRESS_FLIGHT_CONTROLLER) &&
+                             (crsfFrame.frame.frameLength == CRSF_FRAME_ORIGIN_DEST_SIZE + CRSF_FRAME_LINK_STATISTICS_PAYLOAD_SIZE)) {
+                             const crsfLinkStatistics_t* statsFrame = (const crsfLinkStatistics_t*)&crsfFrame.frame.payload;
+                             handleCrsfLinkStatisticsFrame(statsFrame, currentTimeUs);
+                         }
+                        break;
                     }
 #endif
+                    default:
+                        break;
                 }
             }
         }
     }
+}
 
-
-
-STATIC_UNIT_TESTED uint8_t crsfFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig)
-{
+STATIC_UNIT_TESTED uint8_t crsfFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig) {
     UNUSED(rxRuntimeConfig);
-
-    if (link_stats_received) {
-        if (micros() - crsf_link_info.updated_us > CRSF_LINK_TIMEOUT_US) {
-            memset(&crsf_link_info, 0, sizeof(crsf_link_info));
-            crsf_link_info.snr = -20;
-            link_stats_received = false;
-        }
-    }
-
     if (crsfFrameDone) {
         crsfFrameDone = false;
 
@@ -253,62 +254,7 @@ STATIC_UNIT_TESTED uint8_t crsfFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig)
     return RX_FRAME_PENDING;
 }
 
-void crsfUpdateLinkStats(void)
-{
-    const crsfPayloadLinkStatistics_t* linkStats = (crsfPayloadLinkStatistics_t*)&crsfFrame.frame.payload;
-
-    crsf_link_info.lq = linkStats->uplinkLQ;
-    if (linkStats->rfMode == 2) {
-        crsf_link_info.lq *= 3;
-    }
-
-    switch (linkStats->uplinkTXPower) {
-        case 0:
-            crsf_link_info.tx_power = 0;
-            break;
-        case 1:
-            crsf_link_info.tx_power = 10;
-            break;
-        case 2:
-            crsf_link_info.tx_power = 25;
-            break;
-        case 3:
-            crsf_link_info.tx_power = 100;
-            break;
-        case 4:
-            crsf_link_info.tx_power = 500;
-            break;
-        case 5:
-            crsf_link_info.tx_power = 1000;
-            break;
-        case 6:
-            crsf_link_info.tx_power = 2000;
-            break;
-        case 7:
-            crsf_link_info.tx_power = 250;
-            break;
-        default:
-            crsf_link_info.tx_power = 0;
-            break;
-    }
-
-    if (linkStats->uplinkRSSIAnt1 == 0) {
-        crsf_link_info.rssi = linkStats->uplinkRSSIAnt2;
-    }
-    else if (linkStats->uplinkRSSIAnt2 == 0) {
-        crsf_link_info.rssi = linkStats->uplinkRSSIAnt1;
-    }
-    else {
-        crsf_link_info.rssi = MIN(linkStats->uplinkRSSIAnt1, linkStats->uplinkRSSIAnt2);
-    }
-
-    crsf_link_info.snr = linkStats->uplinkSNR;
-    crsf_link_info.updated_us = micros();
-    link_stats_received = true;
-}
-
-STATIC_UNIT_TESTED uint16_t crsfReadRawRC(const rxRuntimeConfig_t *rxRuntimeConfig, uint8_t chan)
-{
+STATIC_UNIT_TESTED uint16_t crsfReadRawRC(const rxRuntimeConfig_t *rxRuntimeConfig, uint8_t chan) {
     UNUSED(rxRuntimeConfig);
     /* conversion from RC value to PWM
      *       RC     PWM
@@ -361,3 +307,4 @@ bool crsfRxInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig) 
 bool crsfRxIsActive(void) {
     return serialPort != NULL;
 }
+#endif

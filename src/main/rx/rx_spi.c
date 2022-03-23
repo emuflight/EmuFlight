@@ -40,6 +40,7 @@
 
 #include "rx/rx_spi.h"
 #include "rx/cc2500_frsky_common.h"
+#include "rx/cc2500_redpine.h"
 #include "rx/nrf24_cx10.h"
 #include "rx/nrf24_syma.h"
 #include "rx/nrf24_v202.h"
@@ -76,7 +77,6 @@ STATIC_UNIT_TESTED uint16_t rxSpiReadRawRC(const rxRuntimeConfig_t *rxRuntimeCon
 
 STATIC_UNIT_TESTED bool rxSpiSetProtocol(rx_spi_protocol_e protocol) {
     switch (protocol) {
-    default:
 #ifdef USE_RX_V202
     case RX_SPI_NRF24_V202_250K:
     case RX_SPI_NRF24_V202_1M:
@@ -149,6 +149,15 @@ STATIC_UNIT_TESTED bool rxSpiSetProtocol(rx_spi_protocol_e protocol) {
         protocolSetRcDataFromPayload = sfhssSpiSetRcData;
         break;
 #endif
+#if defined(USE_RX_REDPINE_SPI)
+    case RX_SPI_REDPINE:
+        protocolInit = redpineSpiInit;
+        protocolDataReceived = redpineSpiDataReceived;
+        protocolSetRcDataFromPayload = redpineSetRcData;
+        break;
+#endif
+    default:
+        return false;
     }
     return true;
 }

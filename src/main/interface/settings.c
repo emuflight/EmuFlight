@@ -65,6 +65,8 @@
 #include "io/vtx_control.h"
 #include "io/vtx_rtc6705.h"
 
+#include "common/olc.h"
+
 #include "pg/adc.h"
 #include "pg/beeper.h"
 #include "pg/beeper_dev.h"
@@ -239,7 +241,8 @@ static const char * const lookupTableRxSpi[] = {
     "FLYSKY",
     "FLYSKY_2A",
     "KN",
-    "SFHSS"
+    "SFHSS", 
+    "REDPINE"
 };
 #endif
 
@@ -279,8 +282,7 @@ static const char * const lookupTableRcInterpolationChannels[] = {
     "RP", "RPY", "RPYT", "T", "RPT",
 };
 static const char * const lookupTableFilterType[] = {
-    "PT1",
-    "BIQUAD"
+    "PT1", "BIQUAD", "PT2", "PT3", "PT4",
 };
 
 #if defined(USE_GYRO_IMUF9001)
@@ -365,12 +367,9 @@ static const char * const lookupTableRcSmoothingDebug[] = {
     "ROLL", "PITCH", "YAW", "THROTTLE"
 };
 static const char * const lookupTableRcSmoothingInputType[] = {
-    "PT1", "BIQUAD"
+    "PT1", "BIQUAD", "PT2", "PT3", "PT4"
 };
-static const char * const lookupTableRcSmoothingDerivativeType[] = {
-    "OFF", "PT1", "BIQUAD"
-};
-#endif // USE_RC_SMOOTHING_FILTER
+#endif
 
 #ifdef USE_OSD
 static const char * const lookupTableOsdLogoOnArming[] = {
@@ -464,7 +463,6 @@ const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableRcSmoothingType),
     LOOKUP_TABLE_ENTRY(lookupTableRcSmoothingDebug),
     LOOKUP_TABLE_ENTRY(lookupTableRcSmoothingInputType),
-    LOOKUP_TABLE_ENTRY(lookupTableRcSmoothingDerivativeType),
 #endif // USE_RC_SMOOTHING_FILTER
     LOOKUP_TABLE_ENTRY(lookupTableThrottleVbatCompType),
 #ifdef USE_OSD
@@ -519,13 +517,12 @@ const clivalue_t valueTable[] = {
     { "imuf_roll_lpf_cutoff_hz",    VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 450   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_roll_lpf_cutoff_hz) },
     { "imuf_yaw_lpf_cutoff_hz",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 450   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_yaw_lpf_cutoff_hz) },
     { "imuf_acc_lpf_cutoff_hz",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 180  }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_acc_lpf_cutoff_hz) },
-//    { "imuf_sharpness",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_sharpness) },
+    { "imuf_ptn_order",             VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, 4     }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_ptn_order) },
 #else
     { "imuf_roll_q",                VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_roll_q) },
     { "imuf_pitch_q",               VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_pitch_q) },
     { "imuf_yaw_q",                 VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_yaw_q) },
     { "imuf_w",                     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 512   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_w) },
-//    { "imuf_sharpness",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_sharpness) },
 #endif
 
 #ifdef USE_GYRO_OVERFLOW_CHECK
@@ -543,14 +540,16 @@ const clivalue_t valueTable[] = {
     { "gyro_to_use",                VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_to_use) },
 #endif
 #if defined(USE_GYRO_DATA_ANALYSE)
-    { "dynamic_gyro_notch_q",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_q_factor) },
+    { "dynamic_gyro_notch_q",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_q) },
+    { "dynamic_gyro_notch_count",   VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, 5 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_count) },
     { "dynamic_gyro_notch_min_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_min_hz) },
     { "dynamic_gyro_notch_max_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 400, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_max_hz) },
 #endif
 #ifdef USE_SMITH_PREDICTOR
+    { "smith_predict_enabled",      VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorEnabled) },
     { "smith_predict_str",          VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 100 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorStrength) },
     { "smith_predict_delay",        VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 120 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorDelay) },
-    { "smith_predict_filt_hz",      VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 10000 },  PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorFilterHz) },
+    { "smith_predict_filt_hz",      VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, 250 },  PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorFilterHz) },
 #endif // USE_SMITH_PREDICTOR
 
 // PG_ACCELEROMETER_CONFIG
@@ -583,7 +582,7 @@ const clivalue_t valueTable[] = {
     { "baro_i2c_device",            VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 5 }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_i2c_device) },
     { "baro_i2c_address",           VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, I2C_ADDR7_MAX }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_i2c_address) },
     { "baro_hardware",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_BARO_HARDWARE }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_hardware) },
-    { "baro_tab_size",              VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, BARO_SAMPLE_COUNT_MAX }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_sample_count) },
+    { "baro_tab_size",              VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, BARO_SAMPLE_COUNT_MAX }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_sample_count) },
     { "baro_noise_lpf",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 1000 }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_noise_lpf) },
     { "baro_cf_vel",                VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 1000 }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_cf_vel) },
     { "baro_cf_alt",                VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 1000 }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_cf_alt) },
@@ -605,10 +604,8 @@ const clivalue_t valueTable[] = {
 #ifdef USE_RC_SMOOTHING_FILTER
     { "rc_smoothing_type",          VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RC_SMOOTHING_TYPE }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_type) },
     { "rc_smoothing_input_hz",      VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_input_cutoff) },
-    { "rc_smoothing_derivative_hz", VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_derivative_cutoff) },
     { "rc_smoothing_debug_axis",    VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RC_SMOOTHING_DEBUG }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_debug_axis) },
     { "rc_smoothing_input_type",    VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RC_SMOOTHING_INPUT_TYPE }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_input_type) },
-    { "rc_smoothing_derivative_type", VAR_UINT8 | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RC_SMOOTHING_DERIVATIVE_TYPE }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_derivative_type) },
 #endif // USE_RC_SMOOTHING_FILTER
 
     { "fpv_mix_degrees",            VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 90 }, PG_RX_CONFIG, offsetof(rxConfig_t, fpvCamAngleDegrees) },
@@ -853,6 +850,9 @@ const clivalue_t valueTable[] = {
     { "runaway_takeoff_deactivate_throttle_percent",  VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 100 }, PG_PID_CONFIG, offsetof(pidConfig_t, runaway_takeoff_deactivate_throttle) }, // minimum throttle percentage during deactivation phase
 #endif
 // PG_PID_PROFILE
+    { "dterm_dyn_notch_enable",     VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermDynNotch) },
+    { "dterm_dyn_notch_q",          VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 1, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dyn_notch_q) },
+
     { "dterm_abg_alpha",            VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_ABG_alpha) },
     { "dterm_abg_boost",            VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_ABG_boost) },
     { "dterm_abg_half_life",        VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_ABG_half_life) },
@@ -860,15 +860,10 @@ const clivalue_t valueTable[] = {
     { "dterm_lowpass_hz_roll",      VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[ROLL].dLpf) },
     { "dterm_lowpass_hz_pitch",     VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].dLpf) },
     { "dterm_lowpass_hz_yaw",       VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[YAW].dLpf) },
+    { "dterm_lowpass2_type",        VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_FILTER_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter2_type) },
     { "dterm_lowpass2_hz_roll",     VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[ROLL].dLpf2) },
     { "dterm_lowpass2_hz_pitch",    VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].dLpf2) },
     { "dterm_lowpass2_hz_yaw",      VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[YAW].dLpf2) },
-    { "smart_dterm_smoothing_roll", VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[ROLL].smartSmoothing) },
-    { "smart_dterm_smoothing_pitch",VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].smartSmoothing) },
-    { "smart_dterm_smoothing_yaw",  VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[YAW].smartSmoothing) },
-    { "witchcraft_roll",            VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[ROLL].Wc) },
-    { "witchcraft_pitch",           VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].Wc) },
-    { "witchcraft_yaw",             VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[YAW].Wc) },
     { "pid_at_min_throttle",        VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, pidAtMinThrottle) },
     { "spa_roll_p",                 VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250}, PG_PID_PROFILE, offsetof(pidProfile_t, setPointPTransition[ROLL]) },
     { "spa_roll_i",                 VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250}, PG_PID_PROFILE, offsetof(pidProfile_t, setPointITransition[ROLL]) },
@@ -955,6 +950,8 @@ const clivalue_t valueTable[] = {
     { "linear_throttle",           VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, linear_throttle) },
     { "mixer_impl",                VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_MIXER_IMPL_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_impl) },
     { "mixer_laziness",            VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_laziness) },
+    { "mixer_yaw_throttle_comp",   VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_yaw_throttle_comp) },
+
 
 // PG_TELEMETRY_CONFIG
 #ifdef USE_TELEMETRY
@@ -1057,6 +1054,9 @@ const clivalue_t valueTable[] = {
     { "osd_gps_lon_pos",            VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_GPS_LON]) },
     { "osd_gps_lat_pos",            VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_GPS_LAT]) },
     { "osd_gps_sats_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_GPS_SATS]) },
+    { "osd_plus_code_pos",          VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_PLUS_CODE]) },
+    { "plus_code_digits",           VAR_UINT8  | MASTER_VALUE, .config.minmax = { 10, 13 }, PG_OSD_CONFIG, offsetof(osdConfig_t, plus_code_digits) },
+    { "plus_code_short",            VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_OSD_CONFIG, offsetof(osdConfig_t, plus_code_short) },
     { "osd_home_dir_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_HOME_DIR]) },
     { "osd_home_dist_pos",          VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_HOME_DIST]) },
     { "osd_compass_bar_pos",        VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_COMPASS_BAR]) },
@@ -1101,10 +1101,6 @@ const clivalue_t valueTable[] = {
     { "osd_stat_bbox",              VAR_UINT32  | MASTER_VALUE | MODE_BITSET, .config.bitpos = OSD_STAT_BLACKBOX,        PG_OSD_CONFIG, offsetof(osdConfig_t, enabled_stats)},
     { "osd_stat_bb_no",             VAR_UINT32  | MASTER_VALUE | MODE_BITSET, .config.bitpos = OSD_STAT_BLACKBOX_NUMBER, PG_OSD_CONFIG, offsetof(osdConfig_t, enabled_stats)},
 
-#endif
-
-#if defined(USE_BRAINFPV_SPECTROGRAPH)
-    { "brainfpv_spectrograph",      VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 1 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, spec_enabled) },
 #endif
 
 // PG_SYSTEM_CONFIG
@@ -1203,42 +1199,6 @@ const clivalue_t valueTable[] = {
     { "pinio_box", VAR_UINT8 | MASTER_VALUE | MODE_ARRAY, .config.array.length = PINIO_COUNT, PG_PINIOBOX_CONFIG, offsetof(pinioBoxConfig_t, permanentId) },
 #endif
 #endif
-
-#ifdef USE_BRAINFPV_OSD
-    { "brainfpv_osd_sync_thresh",   VAR_UINT8  | MASTER_VALUE, .config.minmax = { BRAINFPV_OSD_SYNC_TH_MIN, BRAINFPV_OSD_SYNC_TH_MAX }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, sync_threshold) },
-    { "brainfpv_osd_white_level",   VAR_UINT8  | MASTER_VALUE, .config.minmax = { 100, 255 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, white_level) },
-    { "brainfpv_osd_black_level",   VAR_UINT8  | MASTER_VALUE, .config.minmax = { 15, 40 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, black_level) },
-    { "brainfpv_osd_invert",        VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 1 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, invert) },
-    { "brainfpv_osd_x_offset",      VAR_INT8   | MASTER_VALUE, .config.minmax = { -8, 7 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, x_offset) },
-    { "brainfpv_osd_x_scale",       VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 15 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, x_scale) },
-    { "brainfpv_osd_sbs3d",         VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 1 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, sbs_3d_enabled) },
-    { "brainfpv_osd_sbs3d_roff",    VAR_UINT8  | MASTER_VALUE, .config.minmax = { 10, 40 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, sbs_3d_right_eye_offset) },
-    { "brainfpv_osd_font",          VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 2 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, font) },
-    { "brainfpv_osd_ahi_steps",     VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 9 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, ahi_steps) },
-    { "brainfpv_ir_sys",            VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 2 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, ir_system) },
-    { "brainfpv_ir_ilapid",         VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 32767 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, ir_ilap_id) },
-    { "brainfpv_ir_trackmateid",    VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, 4095 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, ir_trackmate_id) },
-    { "brainfpv_bmi160foc",         VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 1 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, bmi160foc) },
-    { "brainfpv_bmi160foc_ret",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 1 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, bmi160foc_ret) },
-    { "brainfpv_altitude_scale",    VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 1 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, altitude_scale) },
-    { "brainfpv_speed_scale",    VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 1 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, speed_scale) },
-    { "brainfpv_map",    VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 1 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, map) },
-    { "brainfpv_map_max_dist_m",    VAR_UINT16  | MASTER_VALUE, .config.minmax = { 10, 32767 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, map_max_dist_m) },
-    { "brainfpv_sticks_display",    VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 2 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, sticks_display) },
-    { "brainfpv_show_logo_on_arm",  VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 1 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, show_logo_on_arm) },
-    { "brainfpv_show_pilot_logo",    VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 1 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, show_pilot_logo) },
-    { "brainfpv_hd_frame_mode",      VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 2 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, hd_frame) },
-    { "brainfpv_hd_frame_width",     VAR_UINT8  | MASTER_VALUE, .config.minmax = { 20, 255 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, hd_frame_width) },
-    { "brainfpv_hd_frame_height",    VAR_UINT8  | MASTER_VALUE, .config.minmax = { 20, 255 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, hd_frame_height) },
-    { "brainfpv_hd_frame_h_offset",  VAR_INT8   | MASTER_VALUE, .config.minmax = { -100, 100 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, hd_frame_h_offset) },
-    { "brainfpv_hd_frame_v_offset",  VAR_INT8   | MASTER_VALUE, .config.minmax = { -100, 100 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, hd_frame_v_offset) },
-    { "brainfpv_crsf_link_stats",  VAR_UINT8   | MASTER_VALUE, .config.minmax = { 0, 1 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, crsf_link_stats) },
-    { "brainfpv_crsf_link_stats_power",  VAR_UINT8   | MASTER_VALUE, .config.minmax = { 0, 1 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, crsf_link_stats_power) },
-    { "brainfpv_crsf_link_stats_rssi",  VAR_UINT8   | MASTER_VALUE, .config.minmax = { 0, 3 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, crsf_link_stats_rssi) },
-    { "brainfpv_crsf_link_stats_snr",  VAR_UINT8   | MASTER_VALUE, .config.minmax = { 0, 3 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, crsf_link_stats_snr) },
-    { "brainfpv_crsf_link_stats_snr_threshold",  VAR_INT8   | MASTER_VALUE, .config.minmax = { -10, 10 }, PG_BRAINFPV_CONFIG, offsetof(bfOsdConfig_t, crsf_link_stats_snr_threshold) },
-#endif
-
 
 //PG USB
 #ifdef USE_USB_CDC_HID

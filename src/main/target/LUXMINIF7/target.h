@@ -124,6 +124,19 @@
 #define I2C1_SDA                PB9
 #define I2C_DEVICE              (I2CDEV_1)
 
+//****************FLASH*****************************
+#define USE_SPI
+#define USE_SPI_DEVICE_2
+
+#define SPI2_SCK_PIN            PB13
+#define SPI2_MISO_PIN           PB14
+#define SPI2_MOSI_PIN           PB15
+
+#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+#define USE_FLASHFS
+#define USE_FLASH_M25P16
+#define FLASH_CS_PIN            PB12
+#define FLASH_SPI_INSTANCE      SPI2
 
 // *************** ADC *****************************
 #define USE_ADC

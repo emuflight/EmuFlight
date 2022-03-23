@@ -98,7 +98,7 @@ void targetConfiguration(void) {
     systemConfigMutable()->cpu_overclock = 2; //216MHZ
     /* Default to 32kHz enabled at 16/16 */
     gyroConfigMutable()->gyro_use_32khz = 1; // enable 32kHz sampling
-    gyroConfigMutable()->gyroMovementCalibrationThreshold = 200; // aka moron_threshold
+    gyroConfigMutable()->gyroMovementCalibrationThreshold = 200; 
     gyroConfigMutable()->gyro_sync_denom = 2;  // 16kHz gyro
     pidConfigMutable()->pid_process_denom = 1; // 16kHz PID
     pidConfigMutable()->runaway_takeoff_prevention = false;
@@ -122,7 +122,8 @@ void targetConfiguration(void) {
         pidProfile->pid[PID_LEVEL_LOW].I = 65;
         pidProfile->pid[PID_LEVEL_LOW].D = 55;
         /* Setpoints */
-        pidProfile->dterm_filter_type = FILTER_BIQUAD;
+        pidProfile->dterm_filter_type = FILTER_PT2;
+        pidProfile->dterm_filter2_type = FILTER_PT2;
         pidProfile->levelAngleLimit = 65;
     }
     for (uint8_t rateProfileIndex = 0; rateProfileIndex < CONTROL_RATE_PROFILE_COUNT; rateProfileIndex++) {

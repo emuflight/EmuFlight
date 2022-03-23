@@ -33,6 +33,7 @@
 #include "drivers/buf_writer.h"
 #include "drivers/io.h"
 #include "drivers/serial.h"
+#include "drivers/time.h"
 #include "drivers/timer.h"
 #include "drivers/pwm_output.h"
 #include "drivers/light_led.h"
@@ -76,9 +77,9 @@
 // *** change to adapt Revision
 #define SERIAL_4WAY_VER_MAIN 20
 #define SERIAL_4WAY_VER_SUB_1 (uint8_t) 0
-#define SERIAL_4WAY_VER_SUB_2 (uint8_t) 02
+#define SERIAL_4WAY_VER_SUB_2 (uint8_t) 05
 
-#define SERIAL_4WAY_PROTOCOL_VER 107
+#define SERIAL_4WAY_PROTOCOL_VER 108
 // *** end
 
 #if (SERIAL_4WAY_VER_MAIN > 24)
@@ -325,8 +326,8 @@ uint16_t _crc_xmodem_update (uint16_t crc, uint8_t data) {
         (pDeviceInfo->words[0] == 0xF850) || (pDeviceInfo->words[0] == 0xE8B1) || \
         (pDeviceInfo->words[0] == 0xE8B2))
 
-#define ARM_DEVICE_MATCH ((pDeviceInfo->words[0] == 0x1F06) || \
-        (pDeviceInfo->words[0] == 0x3306) || (pDeviceInfo->words[0] == 0x3406) || (pDeviceInfo->words[0] == 0x3506))
+// BLHeli_32 MCU ID hi > 0x00 and < 0x90 / lo always = 0x06
+#define ARM_DEVICE_MATCH ((pDeviceInfo->bytes[1] > 0x00) && (pDeviceInfo->bytes[1] < 0x90) && (pDeviceInfo->bytes[0] == 0x06))
 
 static uint8_t CurrentInterfaceMode;
 
@@ -607,34 +608,27 @@ void esc4wayProcess(serialPort_t *mspPort) {
                     if (!BL_PageErase(&ioMem)) ACK_OUT = ACK_D_GENERAL_ERROR;
                     break;
                 }
-
-                case cmd_DeviceReset:
-                {
-                    if (ParamBuf[0] < escCount) {
-                        // Channel may change here
-                        selected_esc = ParamBuf[0];
-                    }
-                    else {
-                        ACK_OUT = ACK_I_INVALID_CHANNEL;
-                        break;
-                    }
-                    switch (CurrentInterfaceMode)
-                    {
-                        case imSIL_BLB:
-                        #ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
-                        case imATM_BLB:
-                        case imARM_BLB:
-                        {
-                            BL_SendCMDRunRestartBootloader(&DeviceInfo);
-                            break;
-                        }
-                        #endif
-                        #ifdef USE_SERIAL_4WAY_SK_BOOTLOADER
-                        case imSK:
-                        {
-                            break;
-                        }
-                        #endif
+                default:
+                    ACK_OUT = ACK_I_INVALID_CMD;
+                }
+                break;
+            }
+#endif
+        //*** Device Memory Read Ops ***
+            case cmd_DeviceRead: {
+                ioMem.D_NUM_BYTES = ParamBuf[0];
+                /*
+                wtf.D_FLASH_ADDR_H=Adress_H;
+                wtf.D_FLASH_ADDR_L=Adress_L;
+                wtf.D_PTR_I = BUF_I;
+                */
+                switch (CurrentInterfaceMode) {
+#ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
+                case imSIL_BLB:
+                case imATM_BLB:
+                case imARM_BLB: {
+                    if (!BL_ReadFlash(CurrentInterfaceMode, &ioMem)) {
+                        ACK_OUT = ACK_D_GENERAL_ERROR;
                     }
                     break;
                 }
