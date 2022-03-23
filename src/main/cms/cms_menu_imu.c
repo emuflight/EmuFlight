@@ -530,6 +530,9 @@ static uint8_t cmsx_feedforward_smooth_factor;
 static uint8_t cmsx_feedforward_jitter_factor;
 #endif
 
+static uint8_t cmsx_max_motor_change;
+static uint16_t cmsx_motor_lpf_hz;
+
 static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
 {
     UNUSED(pDisp);
@@ -575,6 +578,9 @@ static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION
     cmsx_vbat_sag_compensation = pidProfile->vbat_sag_compensation;
 #endif
+
+    cmsx_max_motor_change = pidProfile->max_motor_change;
+    cmsx_motor_lpf_hz     = pidProfile->motor_lpf_hz;
 
     return NULL;
 }
@@ -625,6 +631,9 @@ static const void *cmsx_profileOtherOnExit(displayPort_t *pDisp, const OSD_Entry
     pidProfile->vbat_sag_compensation = cmsx_vbat_sag_compensation;
 #endif
 
+    pidProfile->max_motor_change = cmsx_max_motor_change;
+    pidProfile->motor_lpf_hz     = cmsx_motor_lpf_hz;
+
     initEscEndpoints();
     return NULL;
 }
@@ -673,6 +682,9 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
 #ifdef USE_BATTERY_VOLTAGE_SAG_COMPENSATION
     { "VBAT_SAG_COMP", OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_vbat_sag_compensation, 0, 150, 1 } },
 #endif
+
+    { "MAX MTR CHNG", OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_max_motor_change, 0, 255, 1 } },
+    { "MOTOR LPF",    OME_UINT16,  NULL, &(OSD_UINT16_t) { &cmsx_max_motor_change, 0, 1000, 1 } },
 
     { "BACK", OME_Back, NULL, NULL },
     { NULL, OME_END, NULL, NULL}
