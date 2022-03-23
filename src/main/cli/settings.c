@@ -528,6 +528,10 @@ static const char* const lookupTableSwitchMode[] = {
 };
 #endif
 
+const char * const lookupTableUltraInstinctType[] = {
+    "ULTRA", "CONSERVATIVE",
+};
+
 #define LOOKUP_TABLE_ENTRY(name) { name, ARRAYLEN(name) }
 
 const lookupTableEntry_t lookupTables[] = {
@@ -653,6 +657,7 @@ const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableFreqDomain),
     LOOKUP_TABLE_ENTRY(lookupTableSwitchMode),
 #endif
+    LOOKUP_TABLE_ENTRY(lookupTableUltraInstinctType),
 };
 
 #undef LOOKUP_TABLE_ENTRY
@@ -660,7 +665,7 @@ const lookupTableEntry_t lookupTables[] = {
 const clivalue_t valueTable[] = {
 // PG_GYRO_CONFIG
     { PARAM_NAME_GYRO_HARDWARE_LPF, VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO_HARDWARE_LPF }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_hardware_lpf) },
-    
+
 #if defined(USE_GYRO_SPI_ICM20649)
     { "gyro_high_range",            VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_high_fsr) },
 #endif
@@ -1102,6 +1107,7 @@ const clivalue_t valueTable[] = {
     { PARAM_NAME_ITERM_RELAX_TYPE,   VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ITERM_RELAX_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_type) },
     { PARAM_NAME_ITERM_RELAX_CUTOFF, VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 1, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_cutoff) },
 #endif
+    { "iterm_ultra_instinct",       VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ULTRA_INSTINCT }, PG_PID_PROFILE, offsetof(pidProfile_t, ultra_instinct_iterm) },
     { PARAM_NAME_ITERM_WINDUP,      VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 30, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermWindupPointPercent) },
     { "iterm_limit",                VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 500 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermLimit) },
     { PARAM_NAME_PIDSUM_LIMIT,      VAR_UINT16 | PROFILE_VALUE, .config.minmaxUnsigned = { PIDSUM_LIMIT_MIN, PIDSUM_LIMIT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, pidSumLimit) },
