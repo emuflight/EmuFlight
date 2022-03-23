@@ -131,6 +131,7 @@ typedef enum feedforwardAveraging_e {
 typedef enum {
   ULTRA,
   CONSERVATIVE,
+  OFF,
   ULTRA_INSTINCT_TYPE_COUNT,
 } ultraInstinctIterm_e;
 

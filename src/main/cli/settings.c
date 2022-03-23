@@ -529,7 +529,7 @@ static const char* const lookupTableSwitchMode[] = {
 #endif
 
 const char * const lookupTableUltraInstinctType[] = {
-    "ULTRA", "CONSERVATIVE",
+    "ULTRA", "CONSERVATIVE", "OFF",
 };
 
 #define LOOKUP_TABLE_ENTRY(name) { name, ARRAYLEN(name) }
