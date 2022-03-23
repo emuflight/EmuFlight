@@ -222,6 +222,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .simplified_pitch_pi_gain = SIMPLIFIED_TUNING_DEFAULT,
         .simplified_dterm_filter = true,
         .simplified_dterm_filter_multiplier = SIMPLIFIED_TUNING_DEFAULT,
+        .ultra_instinct_iterm = ULTRA,
     );
 
 #ifndef USE_D_MIN
@@ -943,6 +944,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile, timeUs_t currentTim
     for (int axis = FD_ROLL; axis <= FD_YAW; ++axis) {
 
         float currentPidSetpoint = getSetpointRate(axis);
+        float rawPidSetpoint = getRawSetpoint(axis);
         if (pidRuntime.maxVelocity[axis]) {
             currentPidSetpoint = accelerationLimit(axis, currentPidSetpoint);
         }
@@ -964,12 +966,14 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile, timeUs_t currentTim
                 break;
             }
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
+            rawPidSetpoint = currentPidSetpoint;
         }
 #endif
 
 #ifdef USE_ACRO_TRAINER
         if ((axis != FD_YAW) && pidRuntime.acroTrainerActive && !pidRuntime.inCrashRecoveryMode && !launchControlActive) {
             currentPidSetpoint = applyAcroTrainer(axis, angleTrim, currentPidSetpoint);
+            rawPidSetpoint = currentPidSetpoint;
         }
 #endif // USE_ACRO_TRAINER
 
@@ -977,8 +981,10 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile, timeUs_t currentTim
         if (launchControlActive) {
 #if defined(USE_ACC)
             currentPidSetpoint = applyLaunchControl(axis, angleTrim);
+            rawPidSetpoint = currentPidSetpoint;
 #else
             currentPidSetpoint = applyLaunchControl(axis, NULL);
+            rawPidSetpoint = currentPidSetpoint;
 #endif
         }
 #endif
@@ -988,6 +994,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile, timeUs_t currentTim
 #ifdef USE_YAW_SPIN_RECOVERY
         if ((axis == FD_YAW) && yawSpinActive) {
             currentPidSetpoint = 0.0f;
+            rawPidSetpoint = currentPidSetpoint;
         }
 #endif // USE_YAW_SPIN_RECOVERY
 
@@ -1001,7 +1008,16 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile, timeUs_t currentTim
 #endif
 
         const float previousIterm = pidData[axis].I;
-        float itermErrorRate = errorRate;
+        float itermErrorRate;
+        if (pidProfile->ultra_instinct_iterm == ULTRA) {
+            // no need to apply gyro filtering or rc filtering to iterm, reduce delay :)
+            itermErrorRate = rawPidSetpoint - gyro.gyroADC[axis];
+        } else if (pidProfile->ultra_instinct_iterm == CONSERVATIVE) {
+            // still apply rc filtering, no gyro filtering
+            itermErrorRate = currentPidSetpoint - gyro.gyroADC[axis];
+        } else {
+            itermErrorRate = errorRate;
+        }
 #ifdef USE_ABSOLUTE_CONTROL
         float uncorrectedSetpoint = currentPidSetpoint;
 #endif
@@ -1125,7 +1141,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile, timeUs_t currentTim
         if (feedforwardGain > 0) {
             // halve feedforward in Level mode since stick sensitivity is weaker by about half
             feedforwardGain *= FLIGHT_MODE(ANGLE_MODE) ? 0.5f : 1.0f;
-            // transition now calculated in feedforward.c when new RC data arrives 
+            // transition now calculated in feedforward.c when new RC data arrives
             float feedForward = feedforwardGain * pidSetpointDelta * pidRuntime.pidFrequency;
 
 #ifdef USE_FEEDFORWARD

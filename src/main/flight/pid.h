@@ -128,6 +128,12 @@ typedef enum feedforwardAveraging_e {
     FEEDFORWARD_AVERAGING_4_POINT,
 } feedforwardAveraging_t;
 
+typedef enum {
+  ULTRA,
+  CONSERVATIVE,
+  ULTRA_INSTINCT_TYPE_COUNT,
+} ultraInstinctIterm_e;
+
 #define MAX_PROFILE_NAME_LENGTH 8u
 
 typedef struct pidProfile_s {
@@ -226,6 +232,8 @@ typedef struct pidProfile_s {
     uint8_t simplified_dterm_filter;
     uint8_t simplified_dterm_filter_multiplier;
     uint8_t simplified_pitch_pi_gain;
+
+    uint8_t ultra_instinct_iterm;
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
