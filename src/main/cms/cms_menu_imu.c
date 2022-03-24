@@ -684,7 +684,7 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
 #endif
 
     { "MAX MTR CHNG", OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_max_motor_change, 0, 255, 1 } },
-    { "MOTOR LPF",    OME_UINT16,  NULL, &(OSD_UINT16_t) { &cmsx_max_motor_change, 0, 1000, 1 } },
+    { "MOTOR LPF",    OME_UINT16,  NULL, &(OSD_UINT16_t) { &cmsx_motor_lpf_hz, 0, 1000, 1 } },
 
     { "BACK", OME_Back, NULL, NULL },
     { NULL, OME_END, NULL, NULL}
