@@ -1188,7 +1188,7 @@ const clivalue_t valueTable[] = {
 #endif
 
 #ifdef USE_FEEDFORWARD
-    { PARAM_NAME_FEEDFORWARD_TRANSITION,     VAR_UINT8  | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, feedforward_transition) },
+    { PARAM_NAME_FEEDFORWARD_TRANSITION,     VAR_UINT8 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, feedforward_transition) },
     { PARAM_NAME_FEEDFORWARD_AVERAGING,      VAR_UINT8 | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_FEEDFORWARD_AVERAGING }, PG_PID_PROFILE, offsetof(pidProfile_t, feedforward_averaging) },
     { PARAM_NAME_FEEDFORWARD_SMOOTH_FACTOR,  VAR_UINT8 | PROFILE_VALUE, .config.minmaxUnsigned = {0, 75}, PG_PID_PROFILE, offsetof(pidProfile_t, feedforward_smooth_factor) },
     { PARAM_NAME_FEEDFORWARD_JITTER_FACTOR,  VAR_UINT8 | PROFILE_VALUE, .config.minmaxUnsigned = {0, 20}, PG_PID_PROFILE, offsetof(pidProfile_t, feedforward_jitter_factor) },
@@ -1203,9 +1203,12 @@ const clivalue_t valueTable[] = {
     { PARAM_NAME_DYN_IDLE_D_GAIN,            VAR_UINT8 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dyn_idle_d_gain) },
     { PARAM_NAME_DYN_IDLE_MAX_INCREASE,      VAR_UINT8 | PROFILE_VALUE, .config.minmaxUnsigned = { 10, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, dyn_idle_max_increase) },
 #endif
-    { "max_motor_change",           VAR_UINT8 | PROFILE_VALUE, .config.minmax = { 0, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, max_motor_change) },
+    { "max_motor_change",           VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, max_motor_change) },
+    { "motor_change_increase",      VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, motor_change_growth) },
+    { "motor_change_decrease",      VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 1, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, motor_change_decrease) },
     { "motor_lpf_hz",               VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 4000 }, PG_PID_PROFILE, offsetof(pidProfile_t, motor_lpf_hz) },
-    { "level_race_mode",            VAR_UINT8 | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, level_race_mode) },
+
+    { "level_race_mode",            VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, level_race_mode) },
 
 #ifdef USE_SIMPLIFIED_TUNING
     { PARAM_NAME_SIMPLIFIED_PIDS_MODE,               VAR_UINT8 | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_SIMPLIFIED_TUNING_PIDS_MODE }, PG_PID_PROFILE, offsetof(pidProfile_t, simplified_pids_mode) },

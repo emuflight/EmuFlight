@@ -360,11 +360,15 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS], motorMixer_t 
         if (mixerRuntime.maxMotorChange) {
             // ensure the max change is at least default value if somehow motorOutput is negative
             // allow for more change if the motor desires a higher range
-            float changeLimit = MAX((1.0 + motorOutput) * mixerRuntime.maxMotorChange, mixerRuntime.maxMotorChange);
+            float changeLimit = MAX((1.0 + motorOutput) * mixerRuntime.currentMotorChange[i], mixerRuntime.maxMotorChange);
             float desiredChangeAbs = fabsf(motorOutput - mixerRuntime.previousMotorOutput[i]);
             if (desiredChangeAbs > changeLimit) {
                 desiredChangeAbs = changeLimit;
+                mixerRuntime.currentMotorChange[i] += mixerRuntime.motorChangeGrowth;
+            } else {
+                mixerRuntime.currentMotorChange[i] = MAX(mixerRuntime.currentMotorChange[i] + mixerRuntime.motorChangeDecrease, mixerRuntime.maxMotorChange);
             }
+
             if (motorOutput > mixerRuntime.previousMotorOutput[i]) {
                 mixerRuntime.previousMotorOutput[i] += desiredChangeAbs;
             } else {

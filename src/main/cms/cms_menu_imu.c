@@ -531,6 +531,9 @@ static uint8_t cmsx_feedforward_jitter_factor;
 #endif
 
 static uint8_t cmsx_max_motor_change;
+static uint8_t cmsx_motor_change_growth;
+static uint8_t cmsx_motor_change_decrease;
+
 static uint16_t cmsx_motor_lpf_hz;
 
 static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
@@ -580,6 +583,9 @@ static const void *cmsx_profileOtherOnEnter(displayPort_t *pDisp)
 #endif
 
     cmsx_max_motor_change = pidProfile->max_motor_change;
+    cmsx_motor_change_growth = pidProfile->motor_change_growth;
+    cmsx_motor_change_decrease = pidProfile->motor_change_decrease;
+
     cmsx_motor_lpf_hz     = pidProfile->motor_lpf_hz;
 
     return NULL;
@@ -632,6 +638,9 @@ static const void *cmsx_profileOtherOnExit(displayPort_t *pDisp, const OSD_Entry
 #endif
 
     pidProfile->max_motor_change = cmsx_max_motor_change;
+    pidProfile->motor_change_growth = cmsx_motor_change_growth;
+    pidProfile->motor_change_decrease = cmsx_motor_change_decrease;
+
     pidProfile->motor_lpf_hz     = cmsx_motor_lpf_hz;
 
     initEscEndpoints();
@@ -684,6 +693,9 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
 #endif
 
     { "MAX MTR CHNG", OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_max_motor_change, 0, 255, 1 } },
+    { "MTR CHNG INC", OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_motor_change_growth, 0, 255, 1 } },
+    { "MTR CHNG DEC", OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_motor_change_decrease, 1, 255, 1 } },
+
     { "MOTOR LPF",    OME_UINT16,  NULL, &(OSD_UINT16_t) { &cmsx_motor_lpf_hz, 0, 1000, 1 } },
 
     { "BACK", OME_Back, NULL, NULL },

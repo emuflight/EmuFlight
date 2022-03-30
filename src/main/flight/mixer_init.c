@@ -325,11 +325,14 @@ void mixerInitProfile(void)
     }
 #endif
     mixerRuntime.maxMotorChange = currentPidProfile->max_motor_change * pidGetDT();
+    mixerRuntime.motorChangeGrowth = currentPidProfile->motor_change_growth * pidGetDT();
+    mixerRuntime.motorChangeDecrease = currentPidProfile->motor_change_decrease * pidGetDT();
     for (int motor = 0; motor < MAX_SUPPORTED_MOTORS; motor++) {
         if (currentPidProfile->motor_lpf_hz) {
             pt1FilterInit(&mixerRuntime.motorLpf[motor], pt1FilterGain(currentPidProfile->motor_lpf_hz, pidGetDT()));
         }
         mixerRuntime.previousMotorOutput[motor] = 0.0;
+        mixerRuntime.currentMotorChange[motor] = 0.0;
     }
 }
 

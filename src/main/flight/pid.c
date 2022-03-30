@@ -222,7 +222,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .simplified_pitch_pi_gain = SIMPLIFIED_TUNING_DEFAULT,
         .simplified_dterm_filter = true,
         .simplified_dterm_filter_multiplier = SIMPLIFIED_TUNING_DEFAULT,
-        .max_motor_change = 25,
+        .max_motor_change = 40,
+        .motor_change_growth = 40,
+        .motor_change_decrease = 45,
         .motor_lpf_hz = 120,
         .ultra_instinct_iterm = ULTRA,
     );

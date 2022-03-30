@@ -235,6 +235,8 @@ typedef struct pidProfile_s {
     uint8_t simplified_pitch_pi_gain;
 
     uint8_t max_motor_change;
+    uint8_t motor_change_growth;
+    uint8_t motor_change_decrease;      // typically want decrease larger than increase
     uint16_t motor_lpf_hz;
     uint8_t ultra_instinct_iterm;
 } pidProfile_t;
