@@ -469,7 +469,7 @@ FAST_CODE_NOINLINE float applySmithPredictor(smithPredictor_t *smithPredictor, f
     delayCompensatedGyro = pt1FilterApply(&smithPredictor->smithPredictorFilter, delayCompensatedGyro);
     gyroFiltered += delayCompensatedGyro;
 
-    if (axis == gyro.gyroDebugAxis) {
+    if (axis == (int)(gyro.gyroDebugAxis)) {
         DEBUG_SET(DEBUG_SMITH_PREDICTOR, 0, lrintf(input));
         DEBUG_SET(DEBUG_SMITH_PREDICTOR, 1, lrintf(gyroFiltered));
         DEBUG_SET(DEBUG_SMITH_PREDICTOR, 2, lrintf(delayedGyro));
