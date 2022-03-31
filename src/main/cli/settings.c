@@ -660,7 +660,7 @@ const lookupTableEntry_t lookupTables[] = {
 const clivalue_t valueTable[] = {
 // PG_GYRO_CONFIG
     { PARAM_NAME_GYRO_HARDWARE_LPF, VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO_HARDWARE_LPF }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_hardware_lpf) },
-    
+
 #if defined(USE_GYRO_SPI_ICM20649)
     { "gyro_high_range",            VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_high_fsr) },
 #endif
@@ -1198,6 +1198,7 @@ const clivalue_t valueTable[] = {
     { PARAM_NAME_DYN_IDLE_MAX_INCREASE,      VAR_UINT8 | PROFILE_VALUE, .config.minmaxUnsigned = { 10, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, dyn_idle_max_increase) },
 #endif
     { "level_race_mode",            VAR_UINT8 | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, level_race_mode) },
+    { "attitude_lock_ff",           VAR_UINT8 | PROFILE_VALUE, .config.minmaxUnsigned = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, attitude_lock_ff) },
 
 #ifdef USE_SIMPLIFIED_TUNING
     { PARAM_NAME_SIMPLIFIED_PIDS_MODE,               VAR_UINT8 | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_SIMPLIFIED_TUNING_PIDS_MODE }, PG_PID_PROFILE, offsetof(pidProfile_t, simplified_pids_mode) },

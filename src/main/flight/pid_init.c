@@ -431,6 +431,7 @@ void pidInitConfig(const pidProfile_t *pidProfile)
 #endif
 
     pidRuntime.levelRaceMode = pidProfile->level_race_mode;
+    pidRuntime.attitudeLockFF = pidProfile->attitude_lock_ff / 100.0;
 }
 
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex)
@@ -440,4 +441,3 @@ void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex)
         memcpy(pidProfilesMutable(dstPidProfileIndex), pidProfilesMutable(srcPidProfileIndex), sizeof(pidProfile_t));
     }
 }
-

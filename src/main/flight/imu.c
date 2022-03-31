@@ -37,6 +37,7 @@
 #include "drivers/time.h"
 
 #include "fc/runtime_config.h"
+#include "fc/rc.h"
 
 #include "flight/gps_rescue.h"
 #include "flight/imu.h"
@@ -97,6 +98,10 @@ static float fc_acc;
 static float smallAngleCosZ = 0;
 
 static imuRuntimeConfig_t imuRuntimeConfig;
+
+quaternion setpointIntegrated = QUATERNION_INITIALIZE;
+float gravityError[3];
+float yawSetpointAddition[3];
 
 float rMat[3][3];
 
@@ -351,6 +356,49 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void)
     }
 }
 
+// convert from quaternion to gravity vector, then create a roll/pitch/yaw error
+// this error will be fed into an angle mode pid
+void attitudeLockGravityError(float dt, float rateSetpointRoll, float rateSetpointPitch, float rateSetpointYaw) {
+    // need radians
+    float gx = DEGREES_TO_RADIANS(rateSetpointRoll);
+    float gy = DEGREES_TO_RADIANS(rateSetpointPitch);
+    float gz = DEGREES_TO_RADIANS(rateSetpointYaw);
+
+    gx *= (0.5f * dt);
+    gy *= (0.5f * dt);
+    gz *= (0.5f * dt);
+
+    quaternion buffer;
+    buffer.w = setpointIntegrated.w;
+    buffer.x = setpointIntegrated.x;
+    buffer.y = setpointIntegrated.y;
+    buffer.z = setpointIntegrated.z;
+
+    setpointIntegrated.w += (-buffer.x * gx - buffer.y * gy - buffer.z * gz);
+    setpointIntegrated.x += (+buffer.w * gx + buffer.y * gz - buffer.z * gy);
+    setpointIntegrated.y += (+buffer.w * gy - buffer.x * gz + buffer.z * gx);
+    setpointIntegrated.z += (+buffer.w * gz + buffer.x * gy - buffer.y * gx);
+
+    // grab gravity vectors as they are sometimes easier to work with, lol
+    float estimatedXGravity = rMat[2][0];
+    float estimatedYGravity = rMat[2][1];
+    float estimatedZGravity = q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z;
+
+    float desiredXGravity = 2.0f * (setpointIntegrated.x*setpointIntegrated.z - setpointIntegrated.w*setpointIntegrated.y);
+    float desiredYGravity = 2.0f * (setpointIntegrated.y*setpointIntegrated.z - setpointIntegrated.w*setpointIntegrated.x);
+    float desiredZGravity = setpointIntegrated.w * setpointIntegrated.w - setpointIntegrated.x*setpointIntegrated.x - setpointIntegrated.y*setpointIntegrated.y + setpointIntegrated.z*setpointIntegrated.z;
+
+    // i think this is in radians???
+    // directions need to be sorted
+    gravityError[0] = (estimatedZGravity*desiredXGravity) - (estimatedXGravity*desiredZGravity);
+    gravityError[1] = -((estimatedYGravity*desiredZGravity) - (estimatedZGravity*desiredYGravity));
+    gravityError[2] = (estimatedXGravity*desiredYGravity) - (estimatedYGravity*desiredZGravity);
+    // yaw around error axis, aka add some yaw to help with pitch and roll corrections
+    yawSetpointAddition[0] = gravityError[0] * rateSetpointYaw;
+    yawSetpointAddition[0] = -gravityError[1] * rateSetpointYaw;
+    yawSetpointAddition[0] = gravityError[2] * rateSetpointYaw;
+}
+
 static bool imuIsAccelerometerHealthy(float *accAverage)
 {
     float accMagnitudeSq = 0;
@@ -549,6 +597,8 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
                         useCOG, courseOverGround,  imuCalcKpGain(currentTimeUs, useAcc, gyroAverage));
 
     imuUpdateEulerAngles();
+
+    attitudeLockGravityError(deltaT * 1e-6f, getSetpointRate(0), getSetpointRate(1), getSetpointRate(2));
 #endif
 }
 
@@ -722,4 +772,14 @@ bool isUpright(void)
 #else
     return true;
 #endif
+}
+
+float getYawSetpointAddition(int axis)
+{
+    return yawSetpointAddition[axis];
+}
+
+float getGravityError(int axis)
+{
+    return gravityError[axis];
 }

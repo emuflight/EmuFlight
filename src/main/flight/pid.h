@@ -226,6 +226,8 @@ typedef struct pidProfile_s {
     uint8_t simplified_dterm_filter;
     uint8_t simplified_dterm_filter_multiplier;
     uint8_t simplified_pitch_pi_gain;
+
+    uint8_t attitude_lock_ff;
 } pidProfile_t;
 
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
@@ -391,6 +393,8 @@ typedef struct pidRuntime_s {
     float feedforwardJitterFactor;
     float feedforwardBoostFactor;
 #endif
+
+    float attitudeLockFF;
 } pidRuntime_t;
 
 extern pidRuntime_t pidRuntime;

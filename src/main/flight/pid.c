@@ -222,6 +222,7 @@ void resetPidProfile(pidProfile_t *pidProfile)
         .simplified_pitch_pi_gain = SIMPLIFIED_TUNING_DEFAULT,
         .simplified_dterm_filter = true,
         .simplified_dterm_filter_multiplier = SIMPLIFIED_TUNING_DEFAULT,
+        .attitude_lock_ff = 85,
     );
 
 #ifndef USE_D_MIN
@@ -432,6 +433,13 @@ STATIC_UNIT_TESTED float calcHorizonLevelStrength(void)
 // The impact is possibly slightly slower performance on F7/H7 but they have more than enough
 // processing power that it should be a non-issue.
 STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, float currentPidSetpoint) {
+    float error = RADIANS_TO_DEGREES(getGravityError(axis));
+    currentPidSetpoint = error * pidRuntime.levelGain;
+    // higher values give a setpoint boost to help reduce the error faster
+    currentPidSetpoint += currentPidSetpoint * pidRuntime.attitudeLockFF;
+    // TODO, filter the error as it'll update at a lower rate than the pidloop does
+
+/*
     // calculate error angle and limit the angle to the max inclination
     // rcDeflection is in range [-1.0, 1.0]
     float angle = pidProfile->levelAngleLimit * getLevelModeRcDeflection(axis);
@@ -449,6 +457,7 @@ STATIC_UNIT_TESTED FAST_CODE_NOINLINE float pidLevel(int axis, const pidProfile_
         const float horizonLevelStrength = calcHorizonLevelStrength();
         currentPidSetpoint = currentPidSetpoint + (errorAngle * pidRuntime.horizonGain * horizonLevelStrength);
     }
+    */
     return currentPidSetpoint;
 }
 
@@ -961,6 +970,8 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile, timeUs_t currentTim
             FALLTHROUGH;
         case LEVEL_MODE_RP:
             if (axis == FD_YAW) {
+              // will be pretty much your yaw setpoint
+                currentPidSetpoint = getYawSetpointAddition(2) + (currentPidSetpoint - getYawSetpointAddition(2) * pidRuntime.attitudeLockFF);
                 break;
             }
             currentPidSetpoint = pidLevel(axis, pidProfile, angleTrim, currentPidSetpoint);
@@ -982,6 +993,8 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile, timeUs_t currentTim
 #endif
         }
 #endif
+
+        DEBUG_SET(DEBUG_PID_SETPOINT, axis, lrintf(currentPidSetpoint));
 
         // Handle yaw spin recovery - zero the setpoint on yaw to aid in recovery
         // It's not necessary to zero the set points for R/P because the PIDs will be zeroed below
@@ -1125,7 +1138,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile, timeUs_t currentTim
         if (feedforwardGain > 0) {
             // halve feedforward in Level mode since stick sensitivity is weaker by about half
             feedforwardGain *= FLIGHT_MODE(ANGLE_MODE) ? 0.5f : 1.0f;
-            // transition now calculated in feedforward.c when new RC data arrives 
+            // transition now calculated in feedforward.c when new RC data arrives
             float feedForward = feedforwardGain * pidSetpointDelta * pidRuntime.pidFrequency;
 
 #ifdef USE_FEEDFORWARD
