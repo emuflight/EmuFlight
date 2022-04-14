@@ -49,6 +49,9 @@
 #include "flight/mixer.h"
 #include "flight/rpm_filter.h"
 #include "flight/feedforward.h"
+#ifdef USE_DYN_NOTCH_FILTER
+#include "flight/dyn_notch_filter.h"
+#endif
 
 #include "io/gps.h"
 
@@ -1125,7 +1128,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile, timeUs_t currentTim
         if (feedforwardGain > 0) {
             // halve feedforward in Level mode since stick sensitivity is weaker by about half
             feedforwardGain *= FLIGHT_MODE(ANGLE_MODE) ? 0.5f : 1.0f;
-            // transition now calculated in feedforward.c when new RC data arrives 
+            // transition now calculated in feedforward.c when new RC data arrives
             float feedForward = feedforwardGain * pidSetpointDelta * pidRuntime.pidFrequency;
 
 #ifdef USE_FEEDFORWARD
@@ -1193,7 +1196,31 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile, timeUs_t currentTim
         {
             pidData[axis].Sum = pidSum;
         }
+
+#ifdef USE_DYN_NOTCH_FILTER
+        if (isDynNotchActive()) {
+            // if (axis == gyro.gyroDebugAxis) {
+            //     GYRO_FILTER_DEBUG_SET(DEBUG_FFT, 0, lrintf(gyroADCf));
+            //     GYRO_FILTER_DEBUG_SET(DEBUG_FFT_FREQ, 3, lrintf(gyroADCf));
+            //     GYRO_FILTER_DEBUG_SET(DEBUG_DYN_LPF, 0, lrintf(gyroADCf));
+            // }
+
+            dynNotchPush(axis, pidData[axis].Sum);
+            pidData[axis].Sum = dynNotchFilter(axis, pidData[axis].Sum);
+
+            // if (axis == gyro.gyroDebugAxis) {
+            //     GYRO_FILTER_DEBUG_SET(DEBUG_FFT, 1, lrintf(gyroADCf));
+            //     GYRO_FILTER_DEBUG_SET(DEBUG_DYN_LPF, 3, lrintf(gyroADCf));
+            // }
+        }
+#endif
+    DEBUG_SET(DEBUG_PIDSUM, axis, lrintf(pidData[axis].Sum));
     }
+#ifdef USE_DYN_NOTCH_FILTER
+    if (isDynNotchActive()) {
+        dynNotchUpdate();
+    }
+#endif
 
     // Disable PID control if at zero throttle or if gyro overflow detected
     // This may look very innefficient, but it is done on purpose to always show real CPU usage as in flight
