@@ -524,7 +524,7 @@ static uint8_t cmsx_iterm_relax_cutoff;
 
 #ifdef USE_FEEDFORWARD
 static uint8_t cmsx_feedforward_transition;
-static uint8_t cmsx_feedforward_boost;
+static int8_t cmsx_feedforward_boost;
 static uint8_t cmsx_feedforward_averaging;
 static uint8_t cmsx_feedforward_smooth_factor;
 static uint8_t cmsx_feedforward_jitter_factor;
@@ -637,7 +637,7 @@ static const OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "FF AVERAGING",  OME_TAB,    NULL, &(OSD_TAB_t)    { &cmsx_feedforward_averaging,         4, lookupTableFeedforwardAveraging} },
     { "FF SMOOTHNESS", OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_feedforward_smooth_factor,     0,     75,   1  }    },
     { "FF JITTER",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_feedforward_jitter_factor,     0,     20,   1  }    },
-    { "FF BOOST",      OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_feedforward_boost,             0,     50,   1  }    },
+    { "FF BOOST",      OME_UINT8,  NULL, &(OSD_INT8_t)  { &cmsx_feedforward_boost,            -50,     50,   1  }    },
 #endif
     { "ANGLE STR",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_angleStrength,          0,    200,   1  }    },
     { "HORZN STR",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonStrength,        0,    200,   1  }    },

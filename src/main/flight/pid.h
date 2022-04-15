@@ -208,7 +208,7 @@ typedef struct pidProfile_s {
     uint8_t feedforward_averaging;          // Number of packets to average when averaging is on
     uint8_t feedforward_smooth_factor;      // Amount of lowpass type smoothing for feedforward steps
     uint8_t feedforward_jitter_factor;      // Number of RC steps below which to attenuate feedforward
-    uint8_t feedforward_boost;              // amount of setpoint acceleration to add to feedforward, 10 means 100% added
+    int8_t feedforward_boost;               // setpoint acceleration added to feedforward, 10 means 100% added, higher is more than that
     uint8_t feedforward_max_rate_limit;     // Maximum setpoint rate percentage for feedforward
 
     uint8_t dterm_lpf1_dyn_expo;            // set the curve for dynamic dterm lowpass filter
