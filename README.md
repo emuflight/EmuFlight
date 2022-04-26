@@ -30,9 +30,9 @@
 * Error-based Boosts for P, I, & D. (EmuBoost/DBoost)
 * i-Decay
 * Throttle Point Attenuation (TPA) for P, I, & D
-* Stick Point Attenuation
-* Advanced Dynamic Gyro & D-Term Filter
-* Smith Predictor on Gyro
+* Stick Point Attenuation (SPA)
+* Advanced Dynamic Gyro & D-Term Filters
+* Smith-Predictor on Gyro
 * Optional ABG Filters for Gyro and DTerm
 * PT(n) for LPF and RC-Smoothing
 * Rate-Dynamics (Stick-feel modifier)
