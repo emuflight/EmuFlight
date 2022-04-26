@@ -1,4 +1,4 @@
-![EmuFlight](docs/assets/images/EMUFLIGHT-LOGO_03_BlueLogoTransBack.png)
+![EmuFlight](docs/assets/images/EMUFlightLogo-2022_Trans.png)
 
 ## EmuFlight is flight controller software (firmware) used to fly multi-rotor aircraft.
 * This fork differs from Baseflight, Cleanflight and Betaflight in that it focuses on flight performance, innovative filtering, and leading-edge features.
