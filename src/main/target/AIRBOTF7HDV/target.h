@@ -22,21 +22,18 @@
 
 #define USE_TARGET_CONFIG
 
-#define TARGET_BOARD_IDENTIFIER "MTKS"
-#define USBD_PRODUCT_STRING  "MATEKF722HD"
+#define TARGET_BOARD_IDENTIFIER "AB7V"
+#define USBD_PRODUCT_STRING  "AIRBOTF7HDV"
 
 #define ENABLE_DSHOT_DMAR       true
 
 #define USE_LEDSTRIP
 
-#define LED0_PIN                PA14  //Blue   SWCLK
-#define LED1_PIN                PA13  //Green  SWDIO
+#define LED0_PIN                PA3  //
 
 #define USE_BEEPER
-#define BEEPER_PIN              PC13
+#define BEEPER_PIN              PB2
 #define BEEPER_INVERTED
-
-#define CAMERA_CONTROL_PIN      PB15
 
 // *************** SPI1 Gyro & ACC *******************
 
@@ -46,20 +43,19 @@
 #define SPI1_MISO_PIN           PA6
 #define SPI1_MOSI_PIN           PA7
 
-#define USE_EXTI
-#define MPU_INT_EXTI            PC4
-
-#define MPU6000_CS_PIN          PB2
-#define MPU6000_SPI_INSTANCE    SPI1
-
 #define USE_GYRO
-#define USE_GYRO_SPI_MPU6000
+#define USE_GYRO_SPI_MPU6500   // actual gyro is ICM20602 which is detected by the MPU6500 code
+#define USE_EXTI
+
+#define MPU6500_CS_PIN          PC4
+#define MPU6500_EXTI_PIN        NONE
+#define MPU6500_SPI_INSTANCE    SPI1
 
 #define USE_ACC
-#define USE_ACC_SPI_MPU6000
+#define USE_ACC_SPI_MPU6500
 
-#define GYRO_MPU6000_ALIGN    CW180_DEG_FLIP
-#define ACC_MPU6000_ALIGN     CW180_DEG_FLIP
+#define GYRO_MPU6500_ALIGN    CW90_DEG
+#define ACC_MPU6500_ALIGN     CW90_DEG
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
@@ -89,7 +85,7 @@
 #define USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN            PB13
 #define SPI2_MISO_PIN           PB14
-#define SPI2_MOSI_PIN           PC3
+#define SPI2_MOSI_PIN           PB15
 
 
 // *************** SPI3  BLACKBOX****************
@@ -103,16 +99,13 @@
 // *************** UART *****************************
 
 #define USE_VCP
-#define USB_DETECT_PIN          PC14
 #define USE_USB_DETECT
 
 #define USE_UART1
 #define UART1_TX_PIN            PA9
-#define UART1_RX_PIN            PA10
 
 #define USE_UART2
 #define UART2_TX_PIN            PA2
-#define UART2_RX_PIN            PA3
 
 #define USE_UART3
 #define UART3_TX_PIN            PC10
@@ -130,41 +123,36 @@
 #define UART6_TX_PIN            PC6
 #define UART6_RX_PIN            PC7
 
-#define USE_SOFTSERIAL1
-//#define SOFTSERIAL1_TX_PIN      PA2
-
-#define SERIAL_PORT_COUNT       8
+#define SERIAL_PORT_COUNT       7   //USB+6UARTS
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
-#define SERIALRX_UART           SERIAL_PORT_USART2
+#define SERIALRX_UART           SERIAL_PORT_USART1
 
 // *************** ADC *****************************
 #define USE_ADC
-//#define ADC1_DMA_STREAM         DMA2_Stream0
-#define VBAT_ADC_PIN            PC2
+#define ADC1_DMA_STREAM         DMA2_Stream0
+#define VBAT_ADC_PIN            PC0
 #define CURRENT_METER_ADC_PIN   PC1
-#define RSSI_ADC_PIN            PC0
-#define EXTERNAL1_ADC_PIN       PA4
 
 // *************** Others ***************************
 
-#define USE_PINIO
-#define PINIO1_PIN              PA15
-#define PINIO2_PIN              PB3
-#define USE_PINIOBOX
-
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
+#define DEFAULT_FEATURES        ( FEATURE_TELEMETRY )
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define CURRENT_METER_SCALE_DEFAULT 179
 
-#define USE_ESCSERIAL
+#define USE_PINIO
+#define PINIO1_PIN PC14
+#define PINIO2_PIN PA10
+#define USE_PINIOBOX
+
+#define CAMERA_CONTROL_PIN PA8
 
 #define TARGET_IO_PORTA 0xffff
 #define TARGET_IO_PORTB 0xffff
 #define TARGET_IO_PORTC 0xffff
 #define TARGET_IO_PORTD 0xffff
 
-#define USABLE_TIMER_CHANNEL_COUNT 14
-#define USED_TIMERS    (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(8)|TIM_N(9)|TIM_N(12))
+#define USABLE_TIMER_CHANNEL_COUNT 6
+#define USED_TIMERS    (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(8))

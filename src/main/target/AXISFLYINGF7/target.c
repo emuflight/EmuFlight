@@ -29,20 +29,16 @@
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
 
-    DEF_TIM(TIM4,  CH1, PD12,  TIM_USE_LED,                 0, 0 ), // S6_IN DMA2_ST7
+    DEF_TIM(TIM8, CH4, PC9, TIM_USE_MOTOR, 0, 0),   //S1
+    DEF_TIM(TIM3, CH3, PB0, TIM_USE_MOTOR, 0, 0),   // S2
+    DEF_TIM(TIM8, CH3, PC8, TIM_USE_MOTOR, 0, 0),  // S3
+    DEF_TIM(TIM3, CH4, PB1, TIM_USE_MOTOR, 0, 0),   // S4
+    DEF_TIM(TIM4, CH1, PB6, TIM_USE_MOTOR, 0, 0),   // S5
+    DEF_TIM(TIM4, CH2, PB7, TIM_USE_MOTOR, 0, 0),   //S6
+    DEF_TIM(TIM3, CH2, PC7, TIM_USE_MOTOR, 0, 0),   //S7
+    DEF_TIM(TIM3, CH1, PC6, TIM_USE_MOTOR, 0, 0),   //S8
 
-    DEF_TIM(TIM3,  CH3, PB0,  TIM_USE_MOTOR,               0, 0 ), // S10_OUT 1 DMA1_ST7
-    DEF_TIM(TIM3,  CH4, PB1,  TIM_USE_MOTOR,               0, 0 ), // S6_OUT  2 DMA1_ST0
-    DEF_TIM(TIM1,  CH1, PE9,  TIM_USE_MOTOR,               0, 2 ), // S2_OUT  3 DMA1_ST4
-    DEF_TIM(TIM1,  CH2, PE11,  TIM_USE_MOTOR,               0, 1 ), // S1_OUT  4 DMA1_ST1
-
-    //resource MOTOR 5 B04 + pin B04: TIM3 CH1 (AF2)
-    DEF_TIM(TIM3,  CH1, PB4,  TIM_USE_MOTOR,               0, 0 ),
-    //resource MOTOR 6 B05 + pin B05: TIM3 CH2 (AF2)
-    DEF_TIM(TIM3,  CH2, PB5,  TIM_USE_MOTOR,               0, 0 ),
-
-    DEF_TIM(TIM8,  CH2, PC7,  TIM_USE_ANY,               0, 1 ),
-    DEF_TIM(TIM8,  CH3, PC8,  TIM_USE_ANY,               0, 1 ), //cam control
-    DEF_TIM(TIM1,  CH3, PE13,  TIM_USE_ANY,              0, 1 ),
+    DEF_TIM(TIM2, CH1, PA15, TIM_USE_LED, 0, 0),    //lED
+    DEF_TIM(TIM1, CH1, PA8,  TIM_USE_ANY, 0, 0),    //CAMERA
 
 };
