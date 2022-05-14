@@ -349,10 +349,8 @@ static FAST_CODE_NOINLINE void dynNotchProcess(void)
 
                     // Estimate true peak position
                     const float denom = y0 + y1 + y2;
-                    if (denom != 0.0f) {
-                        float upper_ratio = y2 / denom;
-                        float lower_ratio = y0 / denom;
-                        meanBin += upper_ratio - lower_ratio;
+                    if (denom != 0.0f) { 
+                        meanBin += (y2 - y0) / denom;
                     }
 
                     // Convert bin to frequency: freq = bin * binResoultion (bin 0 is 0Hz)
