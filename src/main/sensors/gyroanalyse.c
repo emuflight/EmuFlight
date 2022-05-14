@@ -323,16 +323,11 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
                         const float y2 = sdftData[peaks[p].bin + 1] * 1.25;
                         
                         float meanBin = y1;
-
-                        // Estimate true peak position aka. meanBin (fit parabola y(x) over y0, y1 and y2, solve dy/dx=0 for x)
-                        const float denom = 2.0f * (y0 - 2 * y1 + y2);
+                        
                         // Estimate true peak position
                         const float denom = y0 + y1 + y2;
                         if (denom != 0.0f) {
-                            meanBin += (y0 - y2) / denom;
-                            float upper_ratio = y2 / denom;
-                            float lower_ratio = y0 / denom;
-                            meanBin += upper_ratio - lower_ratio;
+                            meanBin += (y2 - y0) / denom;
                         }
                         
                         centerFreq = meanBin * sdftResolutionHz;
