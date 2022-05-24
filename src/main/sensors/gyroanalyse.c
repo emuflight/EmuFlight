@@ -337,7 +337,7 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
 
                         // PT1 style dynamic smoothing moves rapidly towards big peaks and slowly away, up to 8x faster
                         // DYN_NOTCH_SMOOTH_HZ = 8 & dynamicFactor = 1 .. 5  =>  PT1 -3dB cutoff frequency = 4Hz .. 40Hz
-                        const float dynamicFactor = constrainf((peaks[p].value * 0.5) / sdftNoiseThreshold, 1.0f, 5.0f);
+                        const float dynamicFactor = constrainf((peaks[p].value * 0.5) / sdftMeanSq, 1.0f, 5.0f);
                         state->centerFreq[state->updateAxis][p] += smoothFactor * dynamicFactor * (centerFreq - state->centerFreq[state->updateAxis][p]);
                     }
                 }
