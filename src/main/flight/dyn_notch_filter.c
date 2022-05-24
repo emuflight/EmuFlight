@@ -356,8 +356,8 @@ static FAST_CODE_NOINLINE void dynNotchProcess(void)
                     // Convert bin to frequency: freq = bin * binResoultion (bin 0 is 0Hz)
                     const float centerFreq = constrainf(meanBin * sdftResolutionHz, dynNotch.minHz, dynNotch.maxHz);
 
-                    // PT1 style smoothing moves notch center freqs rapidly towards big peaks and slowly away, up to 10x faster 
-                    const float cutoffMult = constrainf(peaks[p].value / sdftNoiseThreshold, 1.0f, 10.0f);
+                    // PT1 style smoothing moves notch center freqs rapidly towards big peaks and slowly away, up to 5x faster 
+                    const float cutoffMult = constrainf((peaks[p].value * 0.5) / sdftNoiseThreshold, 1.0f, 5.0f);
                     const float gain = pt1FilterGain(DYN_NOTCH_SMOOTH_HZ * cutoffMult, pt1LooptimeS); // dynamic PT1 k value
 
                     // Finally update notch center frequency p on current axis
