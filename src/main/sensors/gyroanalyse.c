@@ -82,7 +82,7 @@
 // Each SDFT output bin has width sdftSampleRateHz/100, ie 13.3Hz per bin at 1333Hz
 // Usable bandwidth is half this, ie 666Hz if sdftSampleRateHz is 1333Hz, i.e. bin 1 is 13.3Hz, bin 2 is 26.7Hz etc
 
-#define DYN_NOTCH_SMOOTH_HZ        4
+#define DYN_NOTCH_SMOOTH_HZ        8
 #define DYN_NOTCH_CALC_TICKS       (XYZ_AXIS_COUNT * STEP_COUNT) // 3 axes and 4 steps per axis
 #define DYN_NOTCH_OSD_MIN_THROTTLE 20
 
