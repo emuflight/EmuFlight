@@ -336,8 +336,8 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
                         // at 1333hz, bin widths are 13.3Hz, so bin 2 (26.7Hz) has the range 20Hz to 33.3Hz
 
                         // PT1 style dynamic smoothing moves rapidly towards big peaks and slowly away, up to 8x faster
-                        // DYN_NOTCH_SMOOTH_HZ = 4 & dynamicFactor = 1 .. 8  =>  PT1 -3dB cutoff frequency = 4Hz .. 41Hz
-                        const float dynamicFactor = constrainf(peaks[p].value / sdftMeanSq, 1.0f, 8.0f);
+                        // DYN_NOTCH_SMOOTH_HZ = 8 & dynamicFactor = 1 .. 5  =>  PT1 -3dB cutoff frequency = 4Hz .. 40Hz
+                        const float dynamicFactor = constrainf((peaks[p].value * 0.5) / sdftNoiseThreshold, 1.0f, 5.0f);
                         state->centerFreq[state->updateAxis][p] += smoothFactor * dynamicFactor * (centerFreq - state->centerFreq[state->updateAxis][p]);
                     }
                 }
