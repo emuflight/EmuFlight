@@ -324,7 +324,6 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
                         float sdftMeanBin = (sdftWeightedSum / sdftSum);
                         centerFreq = sdftMeanBin * sdftResolutionHz;
                         
-                        centerFreq = meanBin * sdftResolutionHz;
                         centerFreq = constrainf(centerFreq, dynNotchMinHz, dynNotchMaxHz);
                         // In theory, the index points to the centre frequency of the bin.
                         // at 1333hz, bin widths are 13.3Hz, so bin 2 (26.7Hz) has the range 20Hz to 33.3Hz
