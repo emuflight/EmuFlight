@@ -82,7 +82,7 @@
 // Each SDFT output bin has width sdftSampleRateHz/100, ie 13.3Hz per bin at 1333Hz
 // Usable bandwidth is half this, ie 666Hz if sdftSampleRateHz is 1333Hz, i.e. bin 1 is 13.3Hz, bin 2 is 26.7Hz etc
 
-#define DYN_NOTCH_SMOOTH_HZ        8
+#define DYN_NOTCH_SMOOTH_HZ        4
 #define DYN_NOTCH_CALC_TICKS       (XYZ_AXIS_COUNT * STEP_COUNT) // 3 axes and 4 steps per axis
 #define DYN_NOTCH_OSD_MIN_THROTTLE 20
 
@@ -298,12 +298,14 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
                     // accumulate sdftSum and sdftWeightedSum from peak bin, and shoulder bins either side of peak
                     float squaredData = peaks[p].value; // peak data already squared (see sdftWinSq)
                     float sdftSum = squaredData;
+                    float sdftWeightedSum = squaredData * peaks[p];
 
                     // accumulate upper shoulder unless it would be sdftEndBin
                     int shoulderBin = peaks[p].bin + 1;
                     if (shoulderBin < sdftEndBin) {
                         squaredData = sdftData[shoulderBin]; // sdftData already squared (see sdftWinSq)
                         sdftSum += squaredData;
+                        sdftWeightedSum += squaredData * shoulderBin  * 1.25;
                     }
 
                     // accumulate lower shoulder unless lower shoulder would be bin 0 (DC)
@@ -311,6 +313,7 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
                         shoulderBin = peaks[p].bin - 1;
                         squaredData = sdftData[shoulderBin]; // sdftData already squared (see sdftWinSq)
                         sdftSum += squaredData;
+                        sdftWeightedSum += squaredData * shoulderBin * 0.95;
                     }
 
                     // get centerFreq in Hz from weighted bins
@@ -318,17 +321,8 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
 
                     if (sdftSum > 0) {
                         // Height of peak bin (y1) and shoulder bins (y0, y2)
-                        const float y0 = sdftData[peaks[p].bin - 1] * 0.95;
-                        const float y1 = sdftData[peaks[p].bin];
-                        const float y2 = sdftData[peaks[p].bin + 1] * 1.25;
-                        
-                        float meanBin = y1;
-                        
-                        // Estimate true peak position
-                        const float denom = y0 + y1 + y2;
-                        if (denom != 0.0f) {
-                            meanBin += (y2 - y0) / denom;
-                        }
+                        float sdftMeanBin = (sdftWeightedSum / sdftSum);
+                        centerFreq = sdftMeanBin * sdftResolutionHz;
                         
                         centerFreq = meanBin * sdftResolutionHz;
                         centerFreq = constrainf(centerFreq, dynNotchMinHz, dynNotchMaxHz);
@@ -337,7 +331,7 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
 
                         // PT1 style dynamic smoothing moves rapidly towards big peaks and slowly away, up to 8x faster
                         // DYN_NOTCH_SMOOTH_HZ = 8 & dynamicFactor = 1 .. 5  =>  PT1 -3dB cutoff frequency = 4Hz .. 40Hz
-                        const float dynamicFactor = constrainf((peaks[p].value * 0.5) / sdftMeanSq, 1.0f, 5.0f);
+                        const float dynamicFactor = constrainf(peaks[p].value / sdftMeanSq, 1.0f, 8.0f);
                         state->centerFreq[state->updateAxis][p] += smoothFactor * dynamicFactor * (centerFreq - state->centerFreq[state->updateAxis][p]);
                     }
                 }
