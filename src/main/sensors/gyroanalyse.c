@@ -298,7 +298,7 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
                     // accumulate sdftSum and sdftWeightedSum from peak bin, and shoulder bins either side of peak
                     float squaredData = peaks[p].value; // peak data already squared (see sdftWinSq)
                     float sdftSum = squaredData;
-                    float sdftWeightedSum = squaredData * peaks[p];
+                    float sdftWeightedSum = squaredData * peaks[p].bin;
 
                     // accumulate upper shoulder unless it would be sdftEndBin
                     int shoulderBin = peaks[p].bin + 1;
