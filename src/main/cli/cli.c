@@ -31,6 +31,7 @@
 // FIXME remove this for targets that don't need a CLI.  Perhaps use a no-op macro when USE_CLI is not enabled
 // signal that we're in cli mode
 bool cliMode = false;
+bool cliExited = false;
 
 #ifdef USE_CLI
 
@@ -3608,6 +3609,24 @@ static void cliExit(const char *cmdName, char *cmdline)
     cliReboot();
 }
 
+static void cliExitNoReboot(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdName);
+    UNUSED(cmdline);
+
+    cliPrintHashLine("leaving CLI mode, unsaved changes lost");
+    cliWriterFlush();
+
+    *cliBuffer = '\0';
+    bufferIndex = 0;
+    cliMode = false;
+    cliExited = true;
+    // incase a motor was left running during motortest, clear it here
+    mixerResetDisarmedMotors();
+    waitForSerialPortToFinishTransmitting(cliPort);
+    motorShutdown();    
+}
+
 #ifdef USE_GPS
 static void cliGpsPassthrough(const char *cmdName, char *cmdline)
 {
@@ -4267,6 +4286,18 @@ static void cliSave(const char *cmdName, char *cmdline)
     }
 }
 
+static void cliSaveNoReboot(const char *cmdName, char *cmdline)
+{
+    UNUSED(cmdline);
+
+    if (tryPrepareSave(cmdName)) {
+        writeEEPROM();
+        readEEPROM();
+        cliPrintHashLine("saving");
+
+    }
+}
+
 #if defined(USE_CUSTOM_DEFAULTS)
 bool resetConfigToCustomDefaults(void)
 {
@@ -4724,7 +4755,7 @@ static void cliRateProfilesJson(const char *cmdName)
 static void cliConfig(const char *cmdName, char *cmdline)
 {
     UNUSED(cmdline);
-
+    cliPrintLine("----- CONFIG START -----");
     cliPrintLine("{");
     for (uint32_t i = 0; i < valueTableEntryCount; i++)
     {
@@ -4752,6 +4783,7 @@ static void cliConfig(const char *cmdName, char *cmdline)
     cliPrintf(",\"imuf\":\"%lu\"", imufCurrentVersion);
 #endif
     cliPrintLine("}");
+    cliPrintLine("----- CONFIG END -----");
 }
 #endif
 
@@ -6786,6 +6818,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("escprog", "passthrough esc to serial", "<mode [sk/bl/ki/cc]> <index>", cliEscPassthrough),
 #endif
     CLI_COMMAND_DEF("exit", NULL, NULL, cliExit),
+    CLI_COMMAND_DEF("exit_no_reboot", NULL, NULL, cliExitNoReboot),
     CLI_COMMAND_DEF("feature", "configure features",
         "list\r\n"
         "\t<->[name]", cliFeature),
@@ -6846,6 +6879,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("rxfail", "show/set rx failsafe settings", NULL, cliRxFailsafe),
     CLI_COMMAND_DEF("rxrange", "configure rx channel ranges", NULL, cliRxRange),
     CLI_COMMAND_DEF("save", "save and reboot", NULL, cliSave),
+    CLI_COMMAND_DEF("save_no_reboot", "save without reboot", NULL, cliSaveNoReboot),
 #ifdef USE_SDCARD
     CLI_COMMAND_DEF("sd_info", "sdcard info", NULL, cliSdInfo),
 #endif
@@ -7114,6 +7148,9 @@ static bool cliProcessCustomDefaults(bool quiet)
 
 void cliEnter(serialPort_t *serialPort)
 {
+    if (cliExited) { // required for exit_no_reboot
+        return;
+    }
     cliMode = true;
     cliPort = serialPort;
     setPrintfSerialPort(cliPort);
