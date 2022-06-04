@@ -140,6 +140,10 @@ static const char * const lookupTableOffOn[] = {
     "OFF", "ON"
 };
 
+static const char * const lookupTableOffOnAuto[] = {
+    "OFF", "ON", "AUTO"
+};
+
 static const char * const lookupTableCrashRecovery[] = {
     "OFF", "ON", "BEEP"
 };
@@ -381,14 +385,11 @@ static const char *const lookupTableMixerImplType[] = {
     "LEGACY", "SMOOTH", "2PASS"
 };
 
-static const char * const lookupTableOffOnAuto[] = {
-    "OFF", "ON", "AUTO"
-};
-
 #define LOOKUP_TABLE_ENTRY(name) { name, ARRAYLEN(name) }
 
 const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableOffOn),
+    LOOKUP_TABLE_ENTRY(lookupTableOffOnAuto),
     LOOKUP_TABLE_ENTRY(lookupTableUnit),
     LOOKUP_TABLE_ENTRY(lookupTableCrsfformat),
     LOOKUP_TABLE_ENTRY(lookupTableAlignment),
@@ -473,7 +474,6 @@ const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableOsdLogoOnArming),
 #endif
     LOOKUP_TABLE_ENTRY(lookupTableMixerImplType),
-    LOOKUP_TABLE_ENTRY(lookupTableOffOnAuto),
 };
 
 #undef LOOKUP_TABLE_ENTRY
