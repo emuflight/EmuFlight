@@ -60,7 +60,7 @@
 #define USE_BARO_DPS310
 #define BARO_I2C_INSTANCE           (I2CDEV_1)
 
-#define USABLE_TIMER_CHANNEL_COUNT 14
+#define USABLE_TIMER_CHANNEL_COUNT 15
 
 #define USE_VCP
 #define USE_USB_DETECT
@@ -129,6 +129,11 @@
 #define VBAT_ADC_PIN                PC3
 #define CURRENT_METER_ADC_PIN       PC2
 #define RSSI_ADC_PIN                PC5
+#define ADC_INSTANCE                ADC1
+#define ADC1_DMA_STREAM             DMA2_Stream4
+#define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
+#define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
+#define CURRENT_METER_SCALE_DEFAULT     100
 
 #define USE_LED_STRIP
 

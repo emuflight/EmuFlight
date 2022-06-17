@@ -28,7 +28,21 @@
 #include "drivers/timer_def.h"
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
+  #if defined(MAMBAF722_X8)
+    DEF_TIM(TIM11,  CH1,  PB9,   TIM_USE_PPM,   0, 0 ), // PPM IN
+    DEF_TIM(TIM8,   CH3,  PC8,   TIM_USE_MOTOR, 0, 0 ), // S1_OUT – UP2-1
+    DEF_TIM(TIM8,   CH4,  PC9,   TIM_USE_MOTOR, 0, 0 ), // S2_OUT – UP2-1
+    DEF_TIM(TIM1,   CH1,  PA8,   TIM_USE_MOTOR, 0, 0 ), // S3_OUT – UP2-5
+    DEF_TIM(TIM1,   CH2,  PA9,   TIM_USE_MOTOR, 0, 0 ), // S4_OUT – UP2-5
+    DEF_TIM(TIM3,   CH3,  PB0,   TIM_USE_MOTOR, 0, 0), // S5_OUT -
+    DEF_TIM(TIM3,   CH4,  PB1,   TIM_USE_MOTOR, 0, 0), // S6_OUT - 
+    DEF_TIM(TIM1,   CH3,  PA10,  TIM_USE_MOTOR, 0, 0 ), // S7_OUT –
+    DEF_TIM(TIM3,   CH1,  PB4,   TIM_USE_MOTOR, 0, 0), // S8_OUT -
 
+    DEF_TIM(TIM4,   CH3,  PB8,   TIM_USE_ANY,   0, 0 ), // FC CAM – DMA1_ST7
+
+    DEF_TIM(TIM2,   CH2,  PB3,   TIM_USE_LED,   0, 0 ), // LED_STRIP – DMA1_ST6
+#else
     DEF_TIM(TIM11,  CH1,  PB9,   TIM_USE_PPM,   0, 0 ), // PPM IN
     DEF_TIM(TIM8,   CH3,  PC8,   TIM_USE_MOTOR, 0, 0 ), // S1_OUT – UP2-1
     DEF_TIM(TIM8,   CH4,  PC9,   TIM_USE_MOTOR, 0, 0 ), // S2_OUT – UP2-1
@@ -38,5 +52,5 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM4,   CH3,  PB8,   TIM_USE_ANY,   0, 0 ), // FC CAM – DMA1_ST7
 
     DEF_TIM(TIM2,   CH2,  PB3,   TIM_USE_LED,   0, 0 ), // LED_STRIP – DMA1_ST6
-
+#endif
 };
