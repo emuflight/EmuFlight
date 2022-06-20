@@ -27,6 +27,7 @@
 
 typedef enum {
     TABLE_OFF_ON = 0,
+    TABLE_OFF_ON_AUTO,
     TABLE_UNIT,
     TABLE_CRSFFORMAT,
     TABLE_ALIGNMENT,
