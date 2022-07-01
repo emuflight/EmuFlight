@@ -383,6 +383,25 @@ static mspResult_e hdZeroProcessMspCommand(mspPacket_t *cmd, mspPacket_t *reply,
     vtxSeen = vtxActive = true;
     vtxHeartbeat = millis();
 
+    sbuf_t *dst = &reply->buf;
+    sbuf_t *src = &cmd->buf;
+    const uint8_t cmdMSP = cmd->cmd;
+    reply->cmd = cmd->cmd;
+    if (cmdMSP == MSP_FC_VARIANT) {
+        //We advertise as ARDU on this port for the prettier font
+        sbufWriteData(dst, "ARDU", FLIGHT_CONTROLLER_IDENTIFIER_LENGTH);
+        return MSP_RESULT_ACK;
+    }
+
+    // #define MSP_SET_VTXTABLE_BAND 227
+    // #define MSP_SET_VTXTABLE_POWERLEVEL 228
+    // MSP_IMUF_CONFIG 227 -> MSP_SET_VTXTABLE_BAND (in betaflight)
+    // MSP_SET_IMUF_CONFIG 228 -> MSP_SET_VTXTABLE_POWERLEVEL (in betaflight)
+    if (cmdMSP == 227 || cmdMSP == 228) {
+        // We don't have VTX Tables so we just drop the packet and send ACK
+        return MSP_RESULT_ACK;
+    }
+
     // Process MSP command
     return mspProcessCommand(cmd, reply, mspPostProcessFn);
 }
