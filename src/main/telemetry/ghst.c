@@ -67,6 +67,7 @@
 
 #define GHST_CYCLETIME_US                   100000      // 10x/sec
 #define GHST_FRAME_PACK_PAYLOAD_SIZE        10
+#define GHST_FRAME_GPS_PAYLOAD_SIZE         10
 #define GHST_FRAME_LENGTH_CRC               1
 #define GHST_FRAME_LENGTH_TYPE              1
 
@@ -120,10 +121,91 @@ void ghstFramePackTelemetry(sbuf_t *dst)
     sbufWriteU8(dst, 0x00);                     // tbd3
 }
 
+// GPS data, primary, positional data
+void ghstFrameGpsPrimaryTelemetry(sbuf_t *dst)
+{
+    // use sbufWrite since CRC does not include frame length
+    sbufWriteU8(dst, GHST_FRAME_GPS_PAYLOAD_SIZE + GHST_FRAME_LENGTH_CRC + GHST_FRAME_LENGTH_TYPE);
+    sbufWriteU8(dst, GHST_DL_GPS_PRIMARY);
+
+    sbufWriteU32(dst, gpsSol.llh.lat);
+    sbufWriteU32(dst, gpsSol.llh.lon);
+
+    sbufWriteU16(dst, STATE(GPS_FIX) ? gpsSol.llh.alt : 0);
+}
+
+// GPS data, secondary, auxiliary data
+void ghstFrameGpsSecondaryTelemetry(sbuf_t *dst)
+{
+    // use sbufWrite since CRC does not include frame length
+    sbufWriteU8(dst, GHST_FRAME_GPS_PAYLOAD_SIZE + GHST_FRAME_LENGTH_CRC + GHST_FRAME_LENGTH_TYPE);
+    sbufWriteU8(dst, GHST_DL_GPS_SECONDARY);
+
+    sbufWriteU16(dst, gpsSol.groundSpeed);      // speed in 0.1m/s
+    sbufWriteU16(dst, gpsSol.groundCourse);     // degrees * 10
+    sbufWriteU8(dst, gpsSol.numSat);
+	
+    sbufWriteU16(dst, (uint16_t) (GPS_distanceToHome / 10));    // use units of 10m to increase range of U16 to 655.36km
+    sbufWriteU16(dst, GPS_directionToHome);
+
+    uint8_t gpsFlags = 0;
+    if(STATE(GPS_FIX))
+        gpsFlags |= GPS_FLAGS_FIX;
+    if(STATE(GPS_FIX_HOME))
+        gpsFlags |= GPS_FLAGS_FIX_HOME;
+    sbufWriteU8(dst, gpsFlags);
+}
+
+// Mag, Baro (and Vario) data
+void ghstFrameMagBaro(sbuf_t *dst)
+{
+    int16_t vario = 0;
+    int16_t altitude = 0;
+    int16_t yaw = 0;
+    uint8_t flags = 0;
+
+#ifdef USE_VARIO
+    if (sensors(SENSOR_VARIO) && telemetryIsSensorEnabled(SENSOR_VARIO)) {
+        vario = getEstimatedVario();       // vario, cm/s
+        flags |= MISC_FLAGS_VARIO;
+    }
+#endif
+
+#ifdef USE_BARO
+    if (sensors(SENSOR_BARO)) {
+        flags |= MISC_FLAGS_BAROALT;
+        altitude = constrain(getEstimatedAltitude(), -32000, 32000);
+    }
+#endif
+
+#ifdef USE_MAG
+    if (sensors(SENSOR_MAG)) {
+        flags |= MISC_FLAGS_MAGHEAD;
+        yaw = attitude.values.yaw;
+    }
+#endif
+
+    // use sbufWrite since CRC does not include frame length
+    sbufWriteU8(dst, GHST_FRAME_GPS_PAYLOAD_SIZE + GHST_FRAME_LENGTH_CRC + GHST_FRAME_LENGTH_TYPE);
+    sbufWriteU8(dst, GHST_DL_MAGBARO);
+
+    sbufWriteU16(dst, yaw);                 // magHeading, deci-degrees
+    sbufWriteU16(dst, altitude);            // baroAltitude, m
+    sbufWriteU8(dst, vario);                // cm/s
+	
+    sbufWriteU16(dst, 0);
+    sbufWriteU16(dst, 0);
+
+    sbufWriteU8(dst, flags);
+}
+
 // schedule array to decide how often each type of frame is sent
 typedef enum {
     GHST_FRAME_START_INDEX = 0,
     GHST_FRAME_PACK_INDEX = GHST_FRAME_START_INDEX, // Battery (Pack) data
+    GHST_FRAME_GPS_PRIMARY_INDEX,                   // GPS, primary values (Lat, Long, Alt)
+    GHST_FRAME_GPS_SECONDARY_INDEX,                 // GPS, secondary values (Sat Count, HDOP, etc.)
+    GHST_FRAME_MAGBARO_INDEX,                       // Magnetometer/Baro values
     GHST_SCHEDULE_COUNT_MAX
 } ghstFrameTypeIndex_e;
 
@@ -144,9 +226,27 @@ STATIC_UNIT_TESTED void processGhst(void)
         ghstFramePackTelemetry(dst);
         ghstFinalize(dst);
     }
-    if (ghstScheduleCount != 0)  {
-        ghstScheduleIndex = (ghstScheduleIndex + 1) % ghstScheduleCount;
+
+    if (currentSchedule & BIT(GHST_FRAME_GPS_PRIMARY_INDEX)) {
+        ghstInitializeFrame(dst);
+        ghstFrameGpsPrimaryTelemetry(dst);
+        ghstFinalize(dst);
     }
+
+    if (currentSchedule & BIT(GHST_FRAME_GPS_SECONDARY_INDEX)) {
+        ghstInitializeFrame(dst);
+        ghstFrameGpsSecondaryTelemetry(dst);
+        ghstFinalize(dst);
+    }
+
+    if (currentSchedule & BIT(GHST_FRAME_MAGBARO_INDEX)) {
+        ghstInitializeFrame(dst);
+        ghstFrameMagBaro(dst);
+        ghstFinalize(dst);
+    }
+
+    ghstScheduleIndex = (ghstScheduleIndex + 1) % ghstScheduleCount;
+
 }
 
 void initGhstTelemetry(void)
@@ -162,6 +262,23 @@ void initGhstTelemetry(void)
     if (isBatteryVoltageConfigured() || isAmperageConfigured()) {
         ghstSchedule[index++] = BIT(GHST_FRAME_PACK_INDEX);
     }
+
+#ifdef USE_GPS
+    if (feature(FEATURE_GPS)) {
+        ghstSchedule[index++] = BIT(GHST_FRAME_GPS_PRIMARY_INDEX);
+    }
+
+    if (feature(FEATURE_GPS)) {
+        ghstSchedule[index++] = BIT(GHST_FRAME_GPS_SECONDARY_INDEX);
+     }
+#endif
+
+#if defined(USE_BARO) || defined(USE_MAG)
+    if (sensors(SENSOR_BARO) || sensors(SENSOR_MAG)) {
+        ghstSchedule[index++] = BIT(GHST_FRAME_MAGBARO_INDEX);
+    }
+#endif
+
     ghstScheduleCount = (uint8_t)index;
  }
 
