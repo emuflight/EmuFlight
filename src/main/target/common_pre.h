@@ -432,3 +432,8 @@ extern uint8_t _dmaram_end__;
 #define USE_EMFAT_ICON
 #define USE_GPS_PLUS_CODES
 #endif
+
+// EMUFLIGHT memory management
+#undef USE_TELEMETRY_MAVLINK
+#undef USE_PPM
+#undef USE_SERVOS
