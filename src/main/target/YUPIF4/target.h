@@ -123,7 +123,6 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART6
 #define DEFAULT_FEATURES        (FEATURE_OSD)
-#define USE_GYRO_FAST_KALMAN
 
 // Target IO and timers
 #define TARGET_IO_PORTA         0xffff
