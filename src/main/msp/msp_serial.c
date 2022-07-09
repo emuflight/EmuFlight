@@ -429,6 +429,7 @@ static void mspEvaluateNonMspData(mspPort_t * mspPort, uint8_t receivedChar)
         mspPort->pendingRequest = MSP_PENDING_BOOTLOADER_ROM;
 #ifdef USE_CLI
    } else if (receivedChar == '#') {
+        cliExited = false;
         mspPort->pendingRequest = MSP_PENDING_CLI;
 #endif
 #if defined(USE_FLASH_BOOT_LOADER)
