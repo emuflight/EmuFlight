@@ -30,6 +30,7 @@ typedef enum {
     RATES_TYPE_KISS,
     RATES_TYPE_ACTUAL,
     RATES_TYPE_QUICK,
+    RATES_TYPE_QUICKFLASH,
     RATES_TYPE_COUNT    // must be the final entry
 } ratesType_e;
 
@@ -69,6 +70,10 @@ typedef struct controlRateConfig_s {
     char profileName[MAX_RATE_PROFILE_NAME_LENGTH + 1]; // Descriptive name for rate profile
     uint8_t quickRatesRcExpo;               // Sets expo on rc command for quick rates
     uint8_t levelExpo[2];                   // roll/pitch level mode expo
+    uint16_t QFMaxRate[3];
+    int8_t QFQuadratic[3];
+    int8_t QFCubic[3];
+    int8_t QFQuartic[3];
 } controlRateConfig_t;
 
 PG_DECLARE_ARRAY(controlRateConfig_t, CONTROL_RATE_PROFILE_COUNT, controlRateProfiles);

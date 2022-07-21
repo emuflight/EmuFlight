@@ -67,6 +67,19 @@ void pgResetFn_controlRateProfiles(controlRateConfig_t *controlRateConfig)
             .quickRatesRcExpo = 0,
             .levelExpo[FD_ROLL] = 0,
             .levelExpo[FD_PITCH] = 0,
+
+            .QFMaxRate[FD_ROLL] = 970,
+            .QFMaxRate[FD_PITCH] = 970,
+            .QFMaxRate[FD_YAW] = 970,
+            .QFQuadratic[FD_ROLL] = -80,
+            .QFQuadratic[FD_PITCH] = -80,
+            .QFQuadratic[FD_YAW] = -80,
+            .QFCubic[FD_ROLL] = 25,
+            .QFCubic[FD_PITCH] = 25,
+            .QFCubic[FD_YAW] = 25,
+            .QFQuartic[FD_ROLL] = 75,
+            .QFQuartic[FD_PITCH] = 75,
+            .QFQuartic[FD_YAW] = 75,
         );
     }
 }
@@ -77,6 +90,7 @@ const ratesSettingsLimits_t ratesSettingLimits[RATES_TYPE_COUNT] = {
     [RATES_TYPE_KISS]       = { 255,  99, 100 },
     [RATES_TYPE_ACTUAL]     = { 200, 200, 100 },
     [RATES_TYPE_QUICK]      = { 255, 200, 100 },
+    [RATES_TYPE_QUICKFLASH] = { 0  ,   0,   0 },
 };
 
 void loadControlRateProfile(void)

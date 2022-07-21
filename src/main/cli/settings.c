@@ -351,7 +351,7 @@ static const char * const lookupTableGyroOverflowCheck[] = {
 #endif
 
 static const char * const lookupTableRatesType[] = {
-    "BETAFLIGHT", "RACEFLIGHT", "KISS", "ACTUAL", "QUICK"
+    "BETAFLIGHT", "RACEFLIGHT", "KISS", "ACTUAL", "QUICK", "QUICKFLASH"
 };
 
 #ifdef USE_OVERCLOCK
@@ -980,6 +980,19 @@ const clivalue_t valueTable[] = {
     { "yaw_srate",                  VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { 0, CONTROL_RATE_CONFIG_RATE_MAX }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rates[FD_YAW]) },
     { PARAM_NAME_TPA_RATE,          VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { 0, CONTROL_RATE_CONFIG_TPA_MAX}, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, tpa_rate) },
     { PARAM_NAME_TPA_BREAKPOINT,    VAR_UINT16 | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { PWM_PULSE_MIN, PWM_PULSE_MAX }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, tpa_breakpoint) },
+
+    { "roll_qf_max_rate",           VAR_UINT16  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { 1, 2000 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, QFMaxRate[FD_ROLL]) },
+    { "pitch_qf_max_rate",          VAR_UINT16  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { 1, 2000 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, QFMaxRate[FD_PITCH]) },
+    { "yaw_qf_max_rate",            VAR_UINT16  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { 1, 2000 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, QFMaxRate[FD_YAW]) },
+    { "roll_qf_quadratic",          VAR_INT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { -100, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, QFQuadratic[FD_ROLL]) },
+    { "pitch_qf_quadratic",         VAR_INT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { -100, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, QFQuadratic[FD_PITCH]) },
+    { "yaw_qf_quadratic",           VAR_INT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { -100, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, QFQuadratic[FD_YAW]) },
+    { "roll_qf_cubic",              VAR_INT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { -100, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, QFCubic[FD_ROLL]) },
+    { "pitch_qf_cubic",             VAR_INT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { -100, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, QFCubic[FD_PITCH]) },
+    { "yaw_qf_cubic",               VAR_INT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { -100, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, QFCubic[FD_YAW]) },
+    { "roll_qf_quartic",            VAR_INT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { -100, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, QFQuartic[FD_ROLL]) },
+    { "pitch_qf_quartic",           VAR_INT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { -100, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, QFQuartic[FD_PITCH]) },
+    { "yaw_qf_quartic",             VAR_INT8  | PROFILE_RATE_VALUE, .config.minmaxUnsigned = { -100, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, QFQuartic[FD_YAW]) },
 #ifdef USE_TPA_MODE
     { "tpa_mode",                   VAR_UINT8  | PROFILE_RATE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_TPA_MODE }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, tpaMode) },
 #endif

@@ -241,6 +241,25 @@ float applyQuickRates(const int axis, float rcCommandf, const float rcCommandfAb
     return angleRate;
 }
 
+float applyQuickFlashRates(const int axis, float rcCommandf, const float rcCommandfAbs)
+{
+    float inputSign = 1.0;
+    if (rcCommandf < 0.0) {
+        inputSign = -1.0;
+    }
+
+    float quadraticExpo = currentControlRateProfile->QFQuadratic[axis] / 100.0f;
+    float cubicExpo = currentControlRateProfile->QFCubic[axis] / 100.0f;
+    float quarticExpo = currentControlRateProfile->QFQuartic[axis] / 100.0f;
+
+
+    float quadratic = rcCommandfAbs * rcCommandfAbs * quadraticExpo + rcCommandfAbs * (1.0 - quadraticExpo);
+    float cubic = quadratic * quadratic * quadratic * cubicExpo + quadratic * (1.0 - cubicExpo);
+    float quartic = cubic * cubic * cubic * cubic * quarticExpo + cubic * (1.0 - quarticExpo);
+
+    return inputSign * quartic * currentControlRateProfile->QFMaxRate[axis];
+}
+
 float applyCurve(int axis, float deflection)
 {
     return applyRates(axis, deflection, fabsf(deflection));
@@ -586,7 +605,7 @@ FAST_CODE void processRcCommand(void)
 #endif
 
             float angleRate;
-            
+
 #ifdef USE_GPS_RESCUE
             if ((axis == FD_YAW) && FLIGHT_MODE(GPS_RESCUE_MODE)) {
                 // If GPS Rescue is active then override the setpointRate used in the
@@ -756,6 +775,10 @@ void initRcProcessing(void)
         break;
     case RATES_TYPE_QUICK:
         applyRates = applyQuickRates;
+
+        break;
+    case RATES_TYPE_QUICKFLASH:
+        applyRates = applyQuickFlashRates;
 
         break;
     }
