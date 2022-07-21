@@ -403,7 +403,7 @@ static FAST_CODE_NOINLINE void dynNotchProcess(void)
 FAST_CODE float dynNotchFilter(const int axis, float value) 
 {
     for (int p = 0; p < dynNotch.count; p++) {
-        value = biquadFilterApplyDF1(&dynNotch.notch[axis][p], value);
+        value = biquadFilterApply(&dynNotch.notch[axis][p], value);
     }
 
     return value;

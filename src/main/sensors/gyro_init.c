@@ -174,11 +174,7 @@ static bool gyroInitLowpassFilterLpf(int slot, int type, uint16_t lpfHz, uint32_
             break;
         case FILTER_BIQUAD:
             if (lpfHz <= gyroFrequencyNyquist) {
-#ifdef USE_DYN_LPF
-                *lowpassFilterApplyFn = (filterApplyFnPtr) biquadFilterApplyDF1;
-#else
                 *lowpassFilterApplyFn = (filterApplyFnPtr) biquadFilterApply;
-#endif
                 for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
                     biquadFilterInitLPF(&lowpassFilter[axis].biquadFilterState, lpfHz, looptime);
                 }

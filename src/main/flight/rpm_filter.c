@@ -48,7 +48,7 @@
 #define RPM_FILTER_MAXHARMONICS 3
 #define SECONDS_PER_MINUTE      60.0f
 #define ERPM_PER_LSB            100.0f
-#define MIN_UPDATE_T            0.001f
+#define MIN_UPDATE_T            0.002f
 
 
 static pt1Filter_t rpmFilters[MAX_SUPPORTED_MOTORS];
@@ -88,7 +88,7 @@ PG_REGISTER_WITH_RESET_FN(rpmFilterConfig_t, rpmFilterConfig, PG_RPM_FILTER_CONF
 
 void pgResetFn_rpmFilterConfig(rpmFilterConfig_t *config)
 {
-    config->rpm_filter_harmonics = 3;
+    config->rpm_filter_harmonics = 2;
     config->rpm_filter_min_hz = 100;
     config->rpm_filter_fade_range_hz = 50;
     config->rpm_filter_q = 500;
@@ -153,7 +153,7 @@ static float applyFilter(rpmNotchFilter_t *filter, const int axis, float value)
     }
     for (int motor = 0; motor < getMotorCount(); motor++) {
         for (int i = 0; i < filter->harmonics; i++) {
-            value = biquadFilterApplyDF1Weighted(&filter->notch[axis][motor][i], value);
+            value = biquadFilterApplyWeighted(&filter->notch[axis][motor][i], value);
         }
     }
     return value;
@@ -181,8 +181,7 @@ FAST_CODE_NOINLINE void rpmFilterUpdate(void)
 
     for (int i = 0; i < filterUpdatesPerIteration; i++) {
 
-        float frequency = constrainf(
-            (currentHarmonic + 1) * motorFrequency[currentMotor], currentFilter->minHz, currentFilter->maxHz);
+        float frequency = constrainf((currentHarmonic + 1) * motorFrequency[currentMotor], currentFilter->minHz, currentFilter->maxHz);
         biquadFilter_t *template = &currentFilter->notch[0][currentMotor][currentHarmonic];
         // uncomment below to debug filter stepping. Need to also comment out motor rpm DEBUG_SET above
         /* DEBUG_SET(DEBUG_RPM_FILTER, 0, harmonic); */
@@ -196,8 +195,7 @@ FAST_CODE_NOINLINE void rpmFilterUpdate(void)
             weight = (frequency - currentFilter->minHz) / currentFilter->fadeRangeHz;
         }
 
-        biquadFilterUpdate(
-            template, frequency, currentFilter->looptimeUs, currentFilter->q, FILTER_NOTCH, weight);
+        biquadFilterUpdate(template, frequency, currentFilter->looptimeUs, currentFilter->q, FILTER_NOTCH, weight);
 
         for (int axis = 1; axis < XYZ_AXIS_COUNT; axis++) {
             biquadFilter_t *clone = &currentFilter->notch[axis][currentMotor][currentHarmonic];
