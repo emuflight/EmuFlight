@@ -194,6 +194,7 @@ STATIC_UNIT_TESTED uint8_t ghstFrameStatus(rxRuntimeState_t *rxRuntimeState)
         const int fullFrameLength = ghstValidatedFrame.frame.len + GHST_FRAME_LENGTH_ADDRESS + GHST_FRAME_LENGTH_FRAMELENGTH;
         if (crc == ghstValidatedFrame.bytes[fullFrameLength - 1] && ghstValidatedFrame.frame.addr == GHST_ADDR_FC) {
             ghstValidatedFrameAvailable = true;
+            rxRuntimeState->lastRcFrameTimeUs = ghstRxFrameEndAtUs;
             return RX_FRAME_COMPLETE | RX_FRAME_PROCESSING_REQUIRED;            // request callback through ghstProcessFrame to do the decoding  work
         }
 
@@ -248,7 +249,8 @@ static bool ghstProcessFrame(const rxRuntimeState_t *rxRuntimeState)
 
                     if (rssiSource == RSSI_SOURCE_RX_PROTOCOL) {
                         // rssi sent sign-inverted
-                        const uint16_t rssiPercentScaled = scaleRange(-rssiFrame->rssi, GHST_RSSI_DBM_MIN, 0, GHST_RSSI_DBM_MAX, RSSI_MAX_VALUE);
+                        uint16_t rssiPercentScaled = scaleRange(-rssiFrame->rssi, GHST_RSSI_DBM_MIN, GHST_RSSI_DBM_MAX, 0, RSSI_MAX_VALUE);
+                        rssiPercentScaled = MIN(rssiPercentScaled, RSSI_MAX_VALUE);
                         setRssi(rssiPercentScaled, RSSI_SOURCE_RX_PROTOCOL);
                     }
 
