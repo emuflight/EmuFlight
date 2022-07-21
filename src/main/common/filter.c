@@ -174,7 +174,6 @@ void biquadFilterInit(biquadFilter_t *filter, float filterFreq, uint32_t refresh
 
     // zero initial samples
     filter->x1 = filter->x2 = 0;
-    filter->y1 = filter->y2 = 0;
 }
 
 FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate, float Q, biquadFilterType_e filterType, float weight)
@@ -184,41 +183,27 @@ FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint
     const float sn = sin_approx(omega);
     const float cs = cos_approx(omega);
     const float alpha = sn / (2.0f * Q);
+    const float a0 = 1.0 / (1.0 + alpha);
+
 
     switch (filterType) {
     case FILTER_LPF:
         // 2nd order Butterworth (with Q=1/sqrt(2)) / Butterworth biquad section with Q
         // described in http://www.ti.com/lit/an/slaa447/slaa447.pdf
-        filter->b1 = 1 - cs;
+        filter->b1 = (1.0 - cs) * a0;
         filter->b0 = filter->b1 * 0.5f;
         filter->b2 = filter->b0;
-        filter->a1 = -2 * cs;
-        filter->a2 = 1 - alpha;
+        filter->a1 = (-2.0 * cs) * a0;
+        filter->a2 = (1.0 - alpha) * a0;
         break;
     case FILTER_NOTCH:
-        filter->b0 = 1;
-        filter->b1 = -2 * cs;
-        filter->b2 = 1;
+        filter->b0 = a0;
+        filter->b1 = (-2.0 * cs) * a0;
+        filter->b2 = filter->b0;
         filter->a1 = filter->b1;
-        filter->a2 = 1 - alpha;
-        break;
-    case FILTER_BPF:
-        filter->b0 = alpha;
-        filter->b1 = 0;
-        filter->b2 = -alpha;
-        filter->a1 = -2 * cs;
-        filter->a2 = 1 - alpha;
+        filter->a2 = (1.0 - alpha) * a0;
         break;
     }
-
-    const float a0 = 1 + alpha;
-
-    // precompute the coefficients
-    filter->b0 /= a0;
-    filter->b1 /= a0;
-    filter->b2 /= a0;
-    filter->a1 /= a0;
-    filter->a2 /= a0;
 
     // update weight
     filter->weight = weight;
@@ -229,34 +214,17 @@ FAST_CODE void biquadFilterUpdateLPF(biquadFilter_t *filter, float filterFreq, u
     biquadFilterUpdate(filter, filterFreq, refreshRate, BIQUAD_Q, FILTER_LPF, 1.0f);
 }
 
-/* Computes a biquadFilter_t filter on a sample (slightly less precise than df2 but works in dynamic mode) */
-FAST_CODE float biquadFilterApplyDF1(biquadFilter_t *filter, float input)
-{
-    /* compute result */
-    const float result = filter->b0 * input + filter->b1 * filter->x1 + filter->b2 * filter->x2 - filter->a1 * filter->y1 - filter->a2 * filter->y2;
-
-    /* shift x1 to x2, input to x1 */
-    filter->x2 = filter->x1;
-    filter->x1 = input;
-
-    /* shift y1 to y2, result to y1 */
-    filter->y2 = filter->y1;
-    filter->y1 = result;
-
-    return result;
-}
-
-/* Computes a biquadFilter_t filter in df1 and crossfades input with output */
-FAST_CODE float biquadFilterApplyDF1Weighted(biquadFilter_t* filter, float input)
+// Computes a biquadFilter_t filter and crossfades input with output
+FAST_CODE float biquadFilterApplyWeighted(biquadFilter_t* filter, float input)
 {
     // compute result
-    const float result = biquadFilterApplyDF1(filter, input);
+    const float result = biquadFilterApply(filter, input);
 
     // crossfading of input and output to turn filter on/off gradually
     return filter->weight * result + (1 - filter->weight) * input;
 }
 
-/* Computes a biquadFilter_t filter in direct form 2 on a sample (higher precision but can't handle changes in coefficients */
+// Computes a biquadFilter_t filter in transposed direct form II on incoming samples (highest precision form)
 FAST_CODE float biquadFilterApply(biquadFilter_t *filter, float input)
 {
     const float result = filter->b0 * input + filter->x1;

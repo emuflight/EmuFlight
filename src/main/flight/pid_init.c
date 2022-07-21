@@ -120,11 +120,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
             break;
         case FILTER_BIQUAD:
             if (pidProfile->dterm_lpf1_static_hz < pidFrequencyNyquist) {
-#ifdef USE_DYN_LPF
-                pidRuntime.dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1;
-#else
                 pidRuntime.dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApply;
-#endif
                 for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
                     biquadFilterInitLPF(&pidRuntime.dtermLowpass[axis].biquadFilter, dterm_lpf1_init_hz, targetPidLooptime);
                 }
