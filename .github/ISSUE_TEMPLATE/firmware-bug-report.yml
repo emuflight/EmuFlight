@@ -1,5 +1,5 @@
 name: Firmware Bug Report
-description: Create a report to help us fix bugs in the Betaflight firmware.
+description: Create a report to help us fix bugs in the EmuFlight firmware.
 labels: ["Template: Bug"]
 body:
 
@@ -33,7 +33,7 @@ body:
     attributes:
       label: Flight controller configuration
       description: |
-        Create a `diff` and post it here in a code block. Put (three backticks) at the start and end of the diff block (instructions  on how to do a diff: https://oscarliang.com/use-diff-not-dump-betaflight/).
+        Create a `diff` and post it here in a code block.
         Use `resource show all` to create a resource allocation list and post it here in a code block. Put (three backticks) at the start and end of the output block.
       value: |
         ```
