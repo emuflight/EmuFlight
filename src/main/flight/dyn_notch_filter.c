@@ -19,11 +19,11 @@
  */
 
 /* original work by Rav
- * 
+ *
  * 2018_07 updated by ctzsnooze to post filter, wider Q, different peak detection
  * coding assistance and advice from DieHertz, Rav, eTracer
  * test pilots icr4sh, UAV Tech, Flint723
- * 
+ *
  * 2021_02 updated by KarateBrot: switched FFT with SDFT, multiple notches per axis
  * test pilots: Sugar K, bizmar
  */
@@ -123,7 +123,7 @@ typedef struct dynNotch_s {
 
     int maxCenterFreq;
     float centerFreq[XYZ_AXIS_COUNT][DYN_NOTCH_COUNT_MAX];
-    
+
     timeUs_t looptimeUs;
     biquadFilter_t notch[XYZ_AXIS_COUNT][DYN_NOTCH_COUNT_MAX];
 
@@ -135,11 +135,7 @@ static FAST_DATA_ZERO_INIT dynNotch_t dynNotch;
 // accumulator for oversampled data => no aliasing and less noise
 static FAST_DATA_ZERO_INIT int   sampleIndex;
 static FAST_DATA_ZERO_INIT int   sampleCount;
-static FAST_DATA_ZERO_INIT float sampleCountRcp;
-static FAST_DATA_ZERO_INIT float sampleAccumulator[XYZ_AXIS_COUNT];
-
-// downsampled data for frequency analysis
-static FAST_DATA_ZERO_INIT float sampleAvg[XYZ_AXIS_COUNT];
+static FAST_DATA_ZERO_INIT float sample[XYZ_AXIS_COUNT];
 
 // parameters for peak detection and frequency analysis
 static FAST_DATA_ZERO_INIT state_t state;
@@ -173,7 +169,6 @@ void dynNotchInit(const dynNotchConfig_t *config, const timeUs_t targetLooptimeU
     }
 
     sampleCount = MAX(1, looprateHz / (2 * dynNotch.maxHz)); // 600hz, 8k looptime, 6.00
-    sampleCountRcp = 1.0f / sampleCount;
 
     sdftSampleRateHz = looprateHz / sampleCount;
     // eg 8k, user max 600hz, int(8000/1200) = 6 (6.666), sdftSampleRateHz = 1333hz, range 666Hz
@@ -189,7 +184,7 @@ void dynNotchInit(const dynNotchConfig_t *config, const timeUs_t targetLooptimeU
     pt1LooptimeS = DYN_NOTCH_CALC_TICKS / looprateHz;
 
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-        sdftInit(&sdft[axis], sdftStartBin, sdftEndBin, sampleCount);
+        sdftInit(&sdft[axis], sdftStartBin, sdftEndBin);
     }
 
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
@@ -202,9 +197,9 @@ void dynNotchInit(const dynNotchConfig_t *config, const timeUs_t targetLooptimeU
 }
 
 // Collect gyro data, to be downsampled and analysed in dynNotchUpdate() function
-FAST_CODE void dynNotchPush(const int axis, const float sample)
+FAST_CODE void dynNotchPush(const int axis, const float input)
 {
-    sampleAccumulator[axis] += sample;
+    sample[axis] = input;
 }
 
 static void dynNotchProcess(void);
@@ -212,18 +207,14 @@ static void dynNotchProcess(void);
 // Downsample and analyse gyro data
 FAST_CODE void dynNotchUpdate(void)
 {
-    // samples should have been pushed by `dynNotchPush`
     // if gyro sampling is > 1kHz, accumulate and average multiple gyro samples
     if (sampleIndex == sampleCount) {
         sampleIndex = 0;
 
-        // calculate mean value of accumulated samples
+        // 2us @ F722
+        // SDFT processing in batches to synchronize with incoming downsampled data
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            sampleAvg[axis] = sampleAccumulator[axis] * sampleCountRcp;
-            sampleAccumulator[axis] = 0;
-            if (axis == gyro.gyroDebugAxis) {
-                DEBUG_SET(DEBUG_FFT, 2, lrintf(sampleAvg[axis]));
-            }
+            sdftPush(&sdft[axis], sample[axis]);
         }
 
         // We need DYN_NOTCH_CALC_TICKS ticks to update all axes with newly sampled value
@@ -231,12 +222,6 @@ FAST_CODE void dynNotchUpdate(void)
         // at 8kHz PID loop rate this means 8kHz / 4 / 3 = 666Hz => update every 1.5ms
         // at 4kHz PID loop rate this means 4kHz / 4 / 3 = 333Hz => update every 3ms
         state.tick = DYN_NOTCH_CALC_TICKS;
-    }
-
-    // 2us @ F722
-    // SDFT processing in batches to synchronize with incoming downsampled data
-    for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-        sdftPushBatch(&sdft[axis], sampleAvg[axis], sampleIndex);
     }
     sampleIndex++;
 
@@ -258,11 +243,11 @@ static FAST_CODE_NOINLINE void dynNotchProcess(void)
     DEBUG_SET(DEBUG_FFT_TIME, 0, state.step);
 
     switch (state.step) {
-    
+
         case STEP_WINDOW: // 4.1us (3-6us) @ F722
         {
             sdftWinSq(&sdft[state.axis], sdftData);
-            
+
             // Get total vibrational power in dyn notch range for noise floor estimate in STEP_CALC_FREQUENCIES
             sdftNoiseThreshold = 0.0f;
             for (int bin = (sdftStartBin + 1); bin < sdftEndBin; bin++) {   // don't use startBin or endBin because they are not windowed properly
@@ -343,20 +328,22 @@ static FAST_CODE_NOINLINE void dynNotchProcess(void)
                     float meanBin = peaks[p].bin;
 
                     // Height of peak bin (y1) and shoulder bins (y0, y2)
-                    const float y0 = sdftData[peaks[p].bin - 1];
-                    const float y1 = sdftData[peaks[p].bin];
-                    const float y2 = sdftData[peaks[p].bin + 1];
+                    float y0 = sdftData[peaks[p].bin - 1];
+                    float y1 = sdftData[peaks[p].bin];
+                    float y2 = sdftData[peaks[p].bin + 1];
 
-                    // Estimate true peak position aka. meanBin (fit parabola y(x) over y0, y1 and y2, solve dy/dx=0 for x)
-                    const float denom = 2.0f * (y0 - 2 * y1 + y2);
-                    if (denom != 0.0f) {
-                        meanBin += (y0 - y2) / denom;
+                    // Estimate true peak position aka. meanBin
+                    y0 = y0 * 1.04;
+                    y2 = y2 * 0.94;
+                    float denominator = y0 + y1 + y2;
+                    if (denominator != 0.0) {
+                        meanBin += (y2 - y0) / denominator;
                     }
 
                     // Convert bin to frequency: freq = bin * binResoultion (bin 0 is 0Hz)
                     const float centerFreq = constrainf(meanBin * sdftResolutionHz, dynNotch.minHz, dynNotch.maxHz);
 
-                    // PT1 style smoothing moves notch center freqs rapidly towards big peaks and slowly away, up to 10x faster 
+                    // PT1 style smoothing moves notch center freqs rapidly towards big peaks and slowly away, up to 10x faster
                     const float cutoffMult = constrainf(peaks[p].value / sdftNoiseThreshold, 1.0f, 10.0f);
                     const float gain = pt1FilterGain(DYN_NOTCH_SMOOTH_HZ * cutoffMult, pt1LooptimeS); // dynamic PT1 k value
 
@@ -400,7 +387,7 @@ static FAST_CODE_NOINLINE void dynNotchProcess(void)
     state.step = (state.step + 1) % STEP_COUNT;
 }
 
-FAST_CODE float dynNotchFilter(const int axis, float value) 
+FAST_CODE float dynNotchFilter(const int axis, float value)
 {
     for (int p = 0; p < dynNotch.count; p++) {
         value = biquadFilterApplyDF1(&dynNotch.notch[axis][p], value);
