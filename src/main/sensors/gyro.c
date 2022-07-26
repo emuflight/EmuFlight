@@ -44,6 +44,7 @@
 #include "drivers/accgyro/accgyro_mpu6050.h"
 #include "drivers/accgyro/accgyro_mpu6500.h"
 #include "drivers/accgyro/accgyro_spi_bmi160.h"
+#include "drivers/accgyro/accgyro_spi_bmi270.h"
 #include "drivers/accgyro/accgyro_spi_icm20649.h"
 #include "drivers/accgyro/accgyro_spi_icm20689.h"
 #include "drivers/accgyro/accgyro_spi_mpu6000.h"
@@ -507,6 +508,17 @@ STATIC_UNIT_TESTED gyroSensor_e gyroDetect(gyroDev_t *dev) {
         }
         FALLTHROUGH;
 #endif
+#ifdef USE_ACCGYRO_BMI270
+    case GYRO_BMI270:
+        if (bmi270SpiGyroDetect(dev)) {
+            gyroHardware = GYRO_BMI270;
+#ifdef GYRO_BMI270_ALIGN
+            dev->gyroAlign = GYRO_BMI270_ALIGN;
+#endif
+            break;
+        }
+        FALLTHROUGH;
+#endif
 #ifdef USE_GYRO_IMUF9001
     case GYRO_IMUF9001:
         if (imufSpiGyroDetect(dev)) {
@@ -536,7 +548,7 @@ STATIC_UNIT_TESTED gyroSensor_e gyroDetect(gyroDev_t *dev) {
 static bool gyroInitSensor(gyroSensor_t *gyroSensor) {
     gyroSensor->gyroDev.gyro_high_fsr = gyroConfig()->gyro_high_fsr;
 #if defined(USE_GYRO_MPU6050) || defined(USE_GYRO_MPU3050) || defined(USE_GYRO_MPU6500) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU6000) \
- || defined(USE_ACC_MPU6050) || defined(USE_GYRO_SPI_MPU9250) || defined(USE_GYRO_SPI_ICM20601) || defined(USE_GYRO_SPI_ICM20649) || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_IMUF9001) || defined(USE_ACCGYRO_BMI160)
+ || defined(USE_ACC_MPU6050) || defined(USE_GYRO_SPI_MPU9250) || defined(USE_GYRO_SPI_ICM20601) || defined(USE_GYRO_SPI_ICM20649) || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_IMUF9001) || defined(USE_ACCGYRO_BMI160) || defined(USE_ACCGYRO_BMI270)
     mpuDetect(&gyroSensor->gyroDev);
     mpuResetFn = gyroSensor->gyroDev.mpuConfiguration.resetFn; // must be set after mpuDetect
 #endif
@@ -581,6 +593,7 @@ static bool gyroInitSensor(gyroSensor_t *gyroSensor) {
     case GYRO_MPU3050:
     case GYRO_L3GD20:
     case GYRO_BMI160:
+    case GYRO_BMI270:
     case GYRO_MPU6000:
     case GYRO_MPU6500:
     case GYRO_MPU9250:
