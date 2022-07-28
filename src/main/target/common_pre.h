@@ -295,6 +295,7 @@ extern uint8_t _dmaram_end__;
 #define USE_MSP_OVER_TELEMETRY
 #define USE_OSD_OVER_MSP_DISPLAYPORT
 #define USE_LED_STRIP
+#define USE_PEGASUS_UI
 #endif
 
 #if ((TARGET_FLASH_SIZE > 256) || (FEATURE_CUT_LEVEL < 11))
