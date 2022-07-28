@@ -50,6 +50,10 @@
 #define YAW_SPIN_RECOVERY_THRESHOLD_MAX 1950
 #endif
 
+#ifdef USE_SMITH_PREDICTOR
+#define MAX_SMITH_SAMPLES 6 * 8
+#endif // USE_SMITH_PREDICTOR
+
 typedef union gyroLowpassFilter_u {
     pt1Filter_t pt1FilterState;
     biquadFilter_t biquadFilterState;
@@ -77,6 +81,20 @@ typedef struct gyroSensor_s {
     gyroDev_t gyroDev;
     gyroCalibration_t calibration;
 } gyroSensor_t;
+
+#ifdef USE_SMITH_PREDICTOR
+typedef struct smithPredictor_s {
+    uint8_t samples;
+    uint8_t idx;
+
+    float data[MAX_SMITH_SAMPLES + 1]; // This is gonna be a ring buffer. Max of 6ms delay at 32khz
+
+    pt1Filter_t smithPredictorFilter; // filter the smith predictor output for RPY
+
+    float smithPredictorStrength;
+} smithPredictor_t;
+#endif // USE_SMITH_PREDICTOR
+
 
 typedef struct gyro_s {
     uint16_t sampleRateHz;
@@ -112,6 +130,10 @@ typedef struct gyro_s {
     biquadFilter_t notchFilter2[XYZ_AXIS_COUNT];
 
     kalman_t kalmanFilterStateRate[XYZ_AXIS_COUNT];
+
+#ifdef USE_SMITH_PREDICTOR
+    smithPredictor_t smithPredictor[XYZ_AXIS_COUNT];
+#endif // USE_SMITH_PREDICTOR
 
     uint16_t accSampleRateHz;
     uint8_t gyroToUse;
@@ -199,8 +221,13 @@ typedef struct gyroConfig_s {
     uint8_t gyro_lpf1_dyn_expo; // set the curve for dynamic gyro lowpass filter
     uint8_t simplified_gyro_filter;
     uint8_t simplified_gyro_filter_multiplier;
+
     uint8_t imuf_w;
     uint16_t imuf_q;
+
+    uint8_t smithPredictorStrength;
+    uint8_t smithPredictorDelay;
+    uint16_t smithPredictorFilterHz;
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);
