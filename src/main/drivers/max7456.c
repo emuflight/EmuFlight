@@ -171,6 +171,7 @@
 #define MAX7456_DEVICE_TYPE_AT  1
 
 #define CHARS_PER_LINE      30 // XXX Should be related to VIDEO_BUFFER_CHARS_*?
+#define CHARS_PER_LINE_HD   50
 
 // On shared SPI buss we want to change clock for OSD chip and restore for other devices.
 
