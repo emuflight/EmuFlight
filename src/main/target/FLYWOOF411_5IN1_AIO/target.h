@@ -22,13 +22,14 @@
 
 
 #define TARGET_BOARD_IDENTIFIER "FLWO"
-#define USBD_PRODUCT_STRING "FLYWOOF411RX"
+#define USBD_PRODUCT_STRING "FLYWOOF411_5IN1_AIO"
 
 #define LED0_PIN PC13
 
 #define USE_BEEPER
 #define BEEPER_PIN PC14
 #define BEEPER_INVERTED
+#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 // *************** Gyro & ACC **********************
 #define USE_SPI
@@ -61,22 +62,22 @@
 //#define ACC_ICM20689_ALIGN CW180_DEG
 
 // *************** Baro **************************
-//#define USE_I2C
+#define USE_I2C
 
-//#define USE_I2C_DEVICE_1
-//#define I2C_DEVICE (I2CDEV_1)
-//#define I2C1_SCL PB8 // SCL pad
-//#define I2C1_SDA PB9 // SDA pad
-//#define BARO_I2C_INSTANCE (I2CDEV_1)
+#define USE_I2C_DEVICE_1
+#define I2C_DEVICE (I2CDEV_1)
+#define I2C1_SCL NONE // SCL pad
+#define I2C1_SDA NONE // SDA pad
+#define BARO_I2C_INSTANCE (I2CDEV_1)
 
-//#define USE_BARO //External, connect to I2C1
-//#define USE_BARO_BMP280
-//#define USE_BARO_MS5611
-//#define USE_BARO_BMP085
+#define USE_BARO //External, connect to I2C1
+#define USE_BARO_BMP280
+#define USE_BARO_MS5611
+#define USE_BARO_BMP085
 
-//#define USE_MAG
-//#define USE_MAG_HMC5883 //External, connect to I2C1
-//#define USE_MAG_QMC5883
+#define USE_MAG
+#define USE_MAG_HMC5883 //External, connect to I2C1
+#define USE_MAG_QMC5883
 
 // *************** UART *****************************
 #define USE_VCP
@@ -118,9 +119,13 @@
 #define USE_RX_FRSKY_SPI_D
 #define USE_RX_FRSKY_SPI_X
 #define USE_RX_REDPINE_SPI
-#define DEFAULT_RX_FEATURE      FEATURE_RX_SPI
 #define RX_SPI_DEFAULT_PROTOCOL RX_SPI_FRSKY_D
 #define USE_RX_FRSKY_SPI_TELEMETRY
+//#define USE_RX_CC2500_SPI_DIVERSITY
+//#define USE_RX_CC2500_SPI_PA_LNA
+
+#define SERIALRX_PROVIDER SERIALRX_SBUS
+#define DEFAULT_RX_FEATURE FEATURE_RX_SERIAL
 
 // *************** OSD/FLASH *****************************
 #define USE_SPI_DEVICE_2
@@ -169,5 +174,5 @@
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS             ( TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4) )
+#define USABLE_TIMER_CHANNEL_COUNT 10
+#define USED_TIMERS             ( TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(9) )
