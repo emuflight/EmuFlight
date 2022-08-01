@@ -54,6 +54,7 @@
 
 #include "sensors/battery.h"
 #include "sensors/acceleration.h"
+#include "sensors/gyro.h"
 
 enum {
     ROLL_FLAG = 1 << ROLL,
@@ -828,6 +829,10 @@ void initRcProcessing(void) {
         interpolationChannels |= THROTTLE_FLAG;
         break;
     }
+#ifdef USE_YAW_SPIN_RECOVERY
+    const int maxYawRate = (int)applyRates(FD_YAW, 1.0f, 1.0f);
+    initYawSpinRecovery(maxYawRate);
+#endif
 }
 
 bool rcSmoothingIsEnabled(void) {

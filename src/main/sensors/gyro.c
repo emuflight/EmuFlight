@@ -117,6 +117,8 @@ static FAST_RAM_ZERO_INIT uint8_t overflowAxisMask;
 #endif
 
 #ifdef USE_YAW_SPIN_RECOVERY
+static FAST_RAM_ZERO_INIT bool yawSpinRecoveryEnabled;
+static FAST_RAM_ZERO_INIT int yawSpinRecoveryThreshold;
 static FAST_RAM_ZERO_INIT bool yawSpinDetected;
 #endif
 
@@ -245,7 +247,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_soft_notch_hz_2 = 0,
                   .gyro_soft_notch_cutoff_2 = 0,
                   .checkOverflow = GYRO_OVERFLOW_CHECK_ALL_AXES,
-                  .yaw_spin_recovery = true,
+                  .yaw_spin_recovery = YAW_SPIN_RECOVERY_AUTO,
                   .yaw_spin_threshold = 1950,
                   .dyn_notch_q = 400,
                   .dyn_notch_count = 3, // default of 3 is similar to the matrix filter.
@@ -300,7 +302,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .imuf_yaw_q = 6000,
                   .imuf_w = 32,
                   .gyro_offset_yaw = 0,
-                  .yaw_spin_recovery = true,
+                  .yaw_spin_recovery = YAW_SPIN_RECOVERY_AUTO,
                   .yaw_spin_threshold = 1950,
                   .dyn_notch_q = 350,
                   .dyn_notch_count = 3, // default of 3 is similar to the matrix filter.
@@ -1058,7 +1060,7 @@ static FAST_CODE void checkForOverflow(gyroSensor_t *gyroSensor, timeUs_t curren
 
 #ifdef USE_YAW_SPIN_RECOVERY
 static FAST_CODE_NOINLINE void handleYawSpin(gyroSensor_t *gyroSensor, timeUs_t currentTimeUs) {
-    const float yawSpinResetRate = gyroConfig()->yaw_spin_threshold - 100.0f;
+    const float yawSpinResetRate = yawSpinRecoveryThreshold - 100.0f;
     if (fabsf(gyroSensor->gyroDev.gyroADCf[Z]) < yawSpinResetRate) {
         // testing whether 20ms of consecutive OK gyro yaw values is enough
         if (cmpTimeUs(currentTimeUs, gyroSensor->yawSpinTimeUs) > 20000) {
@@ -1083,7 +1085,7 @@ static FAST_CODE void checkForYawSpin(gyroSensor_t *gyroSensor, timeUs_t current
     } else {
 #ifndef SIMULATOR_BUILD
         // check for spin on yaw axis only
-        if (fabsf(gyroSensor->gyroDev.gyroADCf[Z]) > gyroConfig()->yaw_spin_threshold) {
+        if (fabsf(gyroSensor->gyroDev.gyroADCf[Z]) > yawSpinRecoveryThreshold) {
             gyroSensor->yawSpinDetected = true;
             gyroSensor->yawSpinTimeUs = currentTimeUs;
         }
@@ -1183,7 +1185,7 @@ static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs
     }
 #endif
 #ifdef USE_YAW_SPIN_RECOVERY
-    if (gyroConfig()->yaw_spin_recovery) {
+    if (yawSpinRecoveryEnabled) {
         checkForYawSpin(gyroSensor, currentTimeUs);
     }
 #endif
@@ -1385,3 +1387,30 @@ uint8_t gyroReadRegister(uint8_t whichSensor, uint8_t reg) {
     return mpuGyroReadRegister(gyroSensorBusByDevice(whichSensor), reg);
 }
 #endif // USE_GYRO_REGISTER_DUMP
+
+#ifdef USE_YAW_SPIN_RECOVERY
+void initYawSpinRecovery(int maxYawRate)
+{
+    bool enabledFlag;
+    int threshold;
+
+    switch (gyroConfig()->yaw_spin_recovery) {
+    case YAW_SPIN_RECOVERY_OFF:
+        enabledFlag = false;
+        threshold = YAW_SPIN_RECOVERY_THRESHOLD_MAX;
+        break;
+    case YAW_SPIN_RECOVERY_ON:
+        enabledFlag = true;
+        threshold = gyroConfig()->yaw_spin_threshold;
+        break;
+    case YAW_SPIN_RECOVERY_AUTO:
+        enabledFlag = true;
+        const int overshootAllowance = MAX(maxYawRate / 4, 200); // Allow a 25% or minimum 200dps overshoot tolerance
+        threshold = constrain(maxYawRate + overshootAllowance, YAW_SPIN_RECOVERY_THRESHOLD_MIN, YAW_SPIN_RECOVERY_THRESHOLD_MAX);
+        break;
+    }
+
+    yawSpinRecoveryEnabled = enabledFlag;
+    yawSpinRecoveryThreshold = threshold;
+}
+#endif

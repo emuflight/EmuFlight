@@ -293,8 +293,7 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
         {
             for (int p = 0; p < gyroConfig()->dyn_notch_count; p++) {
 
-                // Only update state->centerFreq if there is a peak (ignore void peaks) and if peak is above noise floor
-                if (peaks[p].bin != 0 && peaks[p].value > sdftMeanSq) {
+                if (peaks[p].bin != 0) {
 
                     // accumulate sdftSum and sdftWeightedSum from peak bin, and shoulder bins either side of peak
                     float squaredData = peaks[p].value; // peak data already squared (see sdftWinSq)
@@ -306,7 +305,7 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
                     if (shoulderBin < sdftEndBin) {
                         squaredData = sdftData[shoulderBin]; // sdftData already squared (see sdftWinSq)
                         sdftSum += squaredData;
-                        sdftWeightedSum += squaredData * shoulderBin;
+                        sdftWeightedSum += squaredData * shoulderBin  * 1.25;
                     }
 
                     // accumulate lower shoulder unless lower shoulder would be bin 0 (DC)
@@ -314,23 +313,23 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
                         shoulderBin = peaks[p].bin - 1;
                         squaredData = sdftData[shoulderBin]; // sdftData already squared (see sdftWinSq)
                         sdftSum += squaredData;
-                        sdftWeightedSum += squaredData * shoulderBin;
+                        sdftWeightedSum += squaredData * shoulderBin * 0.95;
                     }
 
                     // get centerFreq in Hz from weighted bins
                     float centerFreq = dynNotchMaxHz;
 
                     if (sdftSum > 0) {
+                        // Height of peak bin (y1) and shoulder bins (y0, y2)
                         float sdftMeanBin = (sdftWeightedSum / sdftSum);
                         centerFreq = sdftMeanBin * sdftResolutionHz;
+                        
                         centerFreq = constrainf(centerFreq, dynNotchMinHz, dynNotchMaxHz);
                         // In theory, the index points to the centre frequency of the bin.
                         // at 1333hz, bin widths are 13.3Hz, so bin 2 (26.7Hz) has the range 20Hz to 33.3Hz
-                        // Rav feels that maybe centerFreq = (sdftMeanBin + 0.5) * sdftResolutionHz is better
-                        // empirical checking shows that not adding 0.5 works better
 
                         // PT1 style dynamic smoothing moves rapidly towards big peaks and slowly away, up to 8x faster
-                        // DYN_NOTCH_SMOOTH_HZ = 4 & dynamicFactor = 1 .. 8  =>  PT1 -3dB cutoff frequency = 4Hz .. 41Hz
+                        // DYN_NOTCH_SMOOTH_HZ = 8 & dynamicFactor = 1 .. 5  =>  PT1 -3dB cutoff frequency = 4Hz .. 40Hz
                         const float dynamicFactor = constrainf(peaks[p].value / sdftMeanSq, 1.0f, 8.0f);
                         state->centerFreq[state->updateAxis][p] += smoothFactor * dynamicFactor * (centerFreq - state->centerFreq[state->updateAxis][p]);
                     }

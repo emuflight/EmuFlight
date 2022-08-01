@@ -130,13 +130,10 @@
 #define UART6_TX_PIN            PC6
 #define UART6_RX_PIN            PC7
 
-#define USE_UART10
-#define UART10_TX_PIN           PA2
-
-
 #define USE_SOFTSERIAL1
+//#define SOFTSERIAL1_TX_PIN      PA2
 
-#define SERIAL_PORT_COUNT       9
+#define SERIAL_PORT_COUNT       8
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
