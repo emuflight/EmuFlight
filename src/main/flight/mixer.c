@@ -1003,10 +1003,10 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
     float maxMotorYawMix = -1000.0f;
 
     // filling up motorMix with throttle, and yaw
-    // clipping handling
-    float yawOffset = mixerLaziness ? (ABS(yawMix[i]) * SCALE_UNITARY_RANGE(throttleMotor, 1, -1))
-                                    : SCALE_UNITARY_RANGE(throttleMotor, -yawMixMin, -yawMixMax);
     for (int i = 0; i < motorCount; i++) {
+    // clipping handling
+        float yawOffset = mixerLaziness ? (ABS(yawMix[i]) * SCALE_UNITARY_RANGE(throttleMotor, 1, -1))
+                                        : SCALE_UNITARY_RANGE(throttleMotor, -yawMixMin, -yawMixMax);
         motorMix[i] = throttleMotor + (yawMix[i] + yawOffset) * controllerMixNormFactor; // yaw is an output-proportional value (RPM-proportional, actually)
         postYawThrottle += motorMix[i];
 
@@ -1026,14 +1026,15 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
     thrustPostYaw = motorToThrust(throttlePostYaw, true);
 
     // correct for the extra thrust yaw adds, then fill up motorMix with pitch and roll
-    // clipping handling
-    float rollPitchOffset = mixerLaziness ? (ABS(rollPitchMix[i]) * SCALE_UNITARY_RANGE(thrustPostYaw , 1, -1))
-                                          : SCALE_UNITARY_RANGE(thrustPostYaw , -rollPitchMixMin, -rollPitchMixMax);
     for (int i = 0; i < motorCount; i++) {
         if (currentPidProfile->mixer_yaw_throttle_comp) {  //!==0
             // prefer calculating all of the above and maybe not use it, than multiple if/then statements to save from calculating.
             motorMix[i] = motorMix[i] - yawThrottleCorrection;
         };
+
+        // clipping handling
+        float rollPitchOffset = mixerLaziness ? (ABS(rollPitchMix[i]) * SCALE_UNITARY_RANGE(thrustPostYaw , 1, -1))
+                                              : SCALE_UNITARY_RANGE(thrustPostYaw , -rollPitchMixMin, -rollPitchMixMax);
         float motorMixThrust = motorToThrust(motorMix[i], true); // convert into thrust value
 
         motorMixThrust += (rollPitchOffset + rollPitchMix[i]) * controllerMixNormFactor; // roll and pitch are thrust-proportional values
