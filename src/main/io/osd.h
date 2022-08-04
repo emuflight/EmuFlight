@@ -28,22 +28,24 @@ extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
 
 #define OSD_ELEMENT_BUFFER_LENGTH 32
 
-#define VISIBLE_FLAG  0x2000
-#define VISIBLE(x)    (x & VISIBLE_FLAG)
-#define OSD_POS_MAX    0xFFF
-#define OSD_POSCFG_MAX   (VISIBLE_FLAG|0xFFF) // For CLI values
+#define VISIBLE_FLAG      0x2000
+#define VISIBLE(x)        (x & VISIBLE_FLAG)
+#define OSD_POS_MAX       0x3FF
+#define OSD_POS_MAX_HD    0xFFF
+#define OSD_POSCFG_MAX    (VISIBLE_FLAG|0x3FF) // For CLI values
+#define OSD_POSCFG_MAX_HD (VISIBLE_FLAG|0xFFF) // For CLI values
 
 // Character coordinate
-#define OSD_POSITION_BITS    5 // 5 bits gives a range 0-31
-#define OSD_POSITION_BITS_HD 6 // 6 bits gives a range 0-63
+#define OSD_POSITION_BITS       5 // 5 bits gives a range 0-31
+#define OSD_POSITION_BITS_HD    6 // 6 bits gives a range 0-63
 #define OSD_POSITION_XY_MASK    ((1 << OSD_POSITION_BITS) - 1)
 #define OSD_POSITION_XY_MASK_HD ((1 << OSD_POSITION_BITS_HD) - 1)
-#define OSD_POS(x,y)  ((x & OSD_POSITION_XY_MASK) | ((y & OSD_POSITION_XY_MASK) << OSD_POSITION_BITS))
-#define OSD_X(x)      (x & OSD_POSITION_XY_MASK)
-#define OSD_Y(x)      ((x >> OSD_POSITION_BITS) & OSD_POSITION_XY_MASK)
-#define OSD_POS_HD(x,y)  ((x & OSD_POSITION_XY_MASK_HD) | ((y & OSD_POSITION_XY_MASK_HD) << OSD_POSITION_BITS_HD))
-#define OSD_X_HD(x)      (x & OSD_POSITION_XY_MASK_HD)
-#define OSD_Y_HD(x)      ((x >> OSD_POSITION_BITS_HD) & OSD_POSITION_XY_MASK_HD)
+#define OSD_POS(x,y)            ((x & OSD_POSITION_XY_MASK) | ((y & OSD_POSITION_XY_MASK) << OSD_POSITION_BITS))
+#define OSD_X(x)                (x & OSD_POSITION_XY_MASK)
+#define OSD_Y(x)                ((x >> OSD_POSITION_BITS) & OSD_POSITION_XY_MASK)
+#define OSD_POS_HD(x,y)         ((x & OSD_POSITION_XY_MASK_HD) | ((y & OSD_POSITION_XY_MASK_HD) << OSD_POSITION_BITS_HD))
+#define OSD_X_HD(x)             (x & OSD_POSITION_XY_MASK_HD)
+#define OSD_Y_HD(x)             ((x >> OSD_POSITION_BITS_HD) & OSD_POSITION_XY_MASK_HD)
 
 // Timer configuration
 // Stored as 15[alarm:8][precision:4][source:4]0

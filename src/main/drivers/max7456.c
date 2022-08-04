@@ -66,9 +66,11 @@
 
 #define VIDEO_MODE_PAL              0x40
 #define VIDEO_MODE_NTSC             0x00
+#define VIDEO_MODE_HD               0x32
 #define VIDEO_MODE_MASK             0x40
 #define VIDEO_MODE_IS_PAL(val)      (((val) & VIDEO_MODE_MASK) == VIDEO_MODE_PAL)
 #define VIDEO_MODE_IS_NTSC(val)     (((val) & VIDEO_MODE_MASK) == VIDEO_MODE_NTSC)
+#define VIDEO_MODE_IS_HD(val)       (((val) & VIDEO_MODE_MASK) == VIDEO_MODE_HD)
 
 #define VIDEO_SIGNAL_DEBOUNCE_MS    100 // Time to wait for input to stabilize
 
