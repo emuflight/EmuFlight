@@ -133,7 +133,7 @@ static void handleCrsfLinkStatisticsFrame(const crsfLinkStatistics_t* statsPtr, 
     const crsfLinkStatistics_t stats = *statsPtr;
     CRSFsetLQ(stats.uplink_Link_quality);
     CRSFsetRFMode(stats.rf_Mode);
-    CRSFsetSnR(stats.downlink_SNR);
+    CRSFsetSnR(stats.uplink_SNR);
     CRSFsetTXPower(stats.uplink_TX_Power);
     if (stats.uplink_RSSI_1 == 0) {
         CRSFsetRSSI(stats.uplink_RSSI_2);
