@@ -1,0 +1,19 @@
+[package]
+name = "rustemu"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[profile.release]
+opt-level = 'z' # turn on maximum optimizations. We only have 64kB
+lto = true      # Link-time-optimizations for further size reduction
+
+[lib]
+crate-type = ["staticlib"]
+
+[build-dependencies]
+cbindgen = "0.20.0"
+
+[dependencies]
+panic-abort = "0.3.2"
+panic-halt = "0.2.0"
