@@ -203,6 +203,17 @@ INCLUDE_DIRS    := $(INCLUDE_DIRS) \
 INCLUDE_DIRS    := $(INCLUDE_DIRS) \
                    $(TARGET_DIR)
 
+RUSTEMU_DIR         := $(ROOT)/src/rustemu
+RUSTEMU_INCLUDE_DIR := $(RUSTEMU_DIR)/include/
+RUSTEMU_TARGET_DIR  := $(RUSTEMU_DIR)/target/thumbv7em-none-eabihf/release
+RUSTEMU_HEADER      := $(RUSTEMU_INCLUDE_DIR)/rustemu.h
+RUSTEMU_SRC         := $(shell find $(RUSTEMU_DIR)/src -name '*.rs')
+
+INCLUDE_DIRS    := $(INCLUDE_DIRS) \
+                   $(RUSTEMU_INCLUDE_DIR)
+
+EXTRA_LD_FLAGS   := $(EXTRA_LD_FLAGS) -L$(RUSTEMU_TARGET_DIR) -lrustemu
+
 VPATH           := $(VPATH):$(TARGET_DIR)
 
 include $(ROOT)/make/source.mk
@@ -327,6 +338,9 @@ CLEAN_ARTIFACTS += $(TARGET_DFU)
 # Make sure build date and revision is updated on every incremental build
 $(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC)
 
+$(RUSTEMU_HEADER): $(RUSTEMU_SRC)
+	cd src/rustemu && cargo build --release --target thumbv7em-none-eabihf
+
 # List of buildable ELF files and their object dependencies.
 # It would be nice to compute these lists, but that seems to be just beyond make.
 
@@ -390,7 +404,7 @@ $(TARGET_HEX): $(TARGET_BIN)
 
 endif
 
-$(TARGET_ELF): $(TARGET_OBJS) $(LD_SCRIPT)
+$(TARGET_ELF): $(RUSTEMU_HEADER) $(TARGET_OBJS) $(LD_SCRIPT)
 	@echo "Linking $(TARGET)" "$(STDOUT)"
 	$(V1) $(CROSS_CC) -o $@ $(filter-out %.ld,$^) $(LD_FLAGS)
 	$(V1) $(SIZE) $(TARGET_ELF)
@@ -682,7 +696,6 @@ test_versions:
 ## test_%            : run test 'test_%' from the test suite
 test_%:
 	$(V0) cd src/test && $(MAKE) $@
-
 
 # rebuild everything when makefile changes
 $(TARGET_OBJS): Makefile $(TARGET_DIR)/target.mk $(wildcard make/*)
