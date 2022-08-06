@@ -183,7 +183,6 @@ typedef struct gyroSensor_s {
     biquadFilter_t notchFilter2[XYZ_AXIS_COUNT];
 
     filterApplyFnPtr notchFilterDynApplyFn;
-    biquadFilter_t notchFilterDyn[XYZ_AXIS_COUNT][XYZ_AXIS_COUNT];
 
     // overflow and recovery
     timeUs_t overflowTimeUs;
@@ -195,7 +194,6 @@ typedef struct gyroSensor_s {
 
 #ifdef USE_GYRO_DATA_ANALYSE
     gyroAnalyseState_t gyroAnalyseState;
-    float dynNotchQ;
 #endif
 
 #ifdef USE_SMITH_PREDICTOR
@@ -262,7 +260,8 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .checkOverflow = GYRO_OVERFLOW_CHECK_ALL_AXES,
                   .yaw_spin_recovery = true,
                   .yaw_spin_threshold = 1950,
-                  .dyn_notch_q_factor = 400,
+                  .dyn_notch_q = 400,
+                  .dyn_notch_count = 3, // default of 3 is similar to the matrix filter.
                   .dyn_notch_min_hz = 150,
                   .dyn_notch_max_hz = 600,
                   .imuf_mode = GTBCM_GYRO_ACC_FILTER_F,
@@ -316,7 +315,8 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_offset_yaw = 0,
                   .yaw_spin_recovery = true,
                   .yaw_spin_threshold = 1950,
-                  .dyn_notch_q_factor = 350,
+                  .dyn_notch_q = 350,
+                  .dyn_notch_count = 3, // default of 3 is similar to the matrix filter.
                   .dyn_notch_min_hz = 150,
                   .dyn_notch_max_hz = 600,
                   .gyro_ABG_alpha = 0,
@@ -545,9 +545,6 @@ STATIC_UNIT_TESTED gyroSensor_e gyroDetect(gyroDev_t *dev) {
 }
 
 static bool gyroInitSensor(gyroSensor_t *gyroSensor) {
-#ifdef USE_GYRO_DATA_ANALYSE
-    gyroSensor->dynNotchQ = gyroConfig()->dyn_notch_q_factor / 100.0f;
-#endif
     gyroSensor->gyroDev.gyro_high_fsr = gyroConfig()->gyro_high_fsr;
 #if defined(USE_GYRO_MPU6050) || defined(USE_GYRO_MPU3050) || defined(USE_GYRO_MPU6500) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU6000) \
  || defined(USE_ACC_MPU6050) || defined(USE_GYRO_SPI_MPU9250) || defined(USE_GYRO_SPI_ICM20601) || defined(USE_GYRO_SPI_ICM20649) || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_IMUF9001) || defined(USE_GYRO_SPI_BMI160)
@@ -827,7 +824,7 @@ static void gyroInitFilterNotch2(gyroSensor_t *gyroSensor, uint16_t notchHz, uin
 }
 
 #ifdef USE_GYRO_DATA_ANALYSE
-static bool isDynamicFilterActive(void) {
+bool isDynamicFilterActive(void) {
     return feature(FEATURE_DYNAMIC_FILTER);
 }
 
@@ -836,8 +833,8 @@ static void gyroInitFilterDynamicNotch(gyroSensor_t *gyroSensor) {
     if (isDynamicFilterActive()) {
         gyroSensor->notchFilterDynApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1; // must be this function, not DF2
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            for (int axis2 = 0; axis2 < XYZ_AXIS_COUNT; axis2++) {
-                biquadFilterInit(&gyroSensor->notchFilterDyn[axis][axis2], 400, gyro.targetLooptime, gyroSensor->dynNotchQ, FILTER_NOTCH);
+            for (int axis2 = 0; axis2 < gyroConfig()->dyn_notch_count; axis2++) {
+                biquadFilterInit(&gyroSensor->gyroAnalyseState.notchFilterDyn[axis][axis2], 400, gyro.targetLooptime, gyroConfig()->dyn_notch_q / 100.0f, FILTER_NOTCH);
             }
         }
     }
@@ -1147,15 +1144,6 @@ float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered) 
 #undef GYRO_FILTER_FUNCTION_NAME
 #undef GYRO_FILTER_DEBUG_SET
 
-static FAST_CODE void dynamicGyroNotchFiltersUpdate(gyroSensor_t* gyroSensor) {
-    if (gyroSensor->gyroAnalyseState.filterUpdateExecute) {
-        const uint8_t axis = gyroSensor->gyroAnalyseState.filterUpdateAxis;
-        const uint16_t frequency = gyroSensor->gyroAnalyseState.filterUpdateFrequency;
-        biquadFilterUpdate(&gyroSensor->notchFilterDyn[0][axis], frequency, gyro.targetLooptime, gyroSensor->dynNotchQ, FILTER_NOTCH);
-        biquadFilterUpdate(&gyroSensor->notchFilterDyn[1][axis], frequency, gyro.targetLooptime, gyroSensor->dynNotchQ, FILTER_NOTCH);
-        biquadFilterUpdate(&gyroSensor->notchFilterDyn[2][axis], frequency, gyro.targetLooptime, gyroSensor->dynNotchQ, FILTER_NOTCH);
-    }
-}
 
 static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs_t currentTimeUs) {
 #ifndef USE_DMA_SPI_DEVICE
@@ -1219,7 +1207,6 @@ static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs
 #ifdef USE_GYRO_DATA_ANALYSE
     if (isDynamicFilterActive()) {
         gyroDataAnalyse(&gyroSensor->gyroAnalyseState);
-        dynamicGyroNotchFiltersUpdate(gyroSensor);
     }
 #endif
 
