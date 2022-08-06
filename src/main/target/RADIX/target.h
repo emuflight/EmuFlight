@@ -204,7 +204,7 @@ void brainFPVUpdateSettings(void);
 #undef USE_GPS_UBLOX
 #undef USE_GYRO_LPF2
 #undef USE_LED_STRIP
-#undef USE_MSP_DISPLAYPORT
+//#undef USE_MSP_DISPLAYPORT
 #undef USE_MSP_OVER_TELEMETRY
 #undef USE_OSD_OVER_MSP_DISPLAYPORT
 //#undef USE_OSD
