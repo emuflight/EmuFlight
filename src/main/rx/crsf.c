@@ -284,12 +284,12 @@ void crsfUpdateLinkStats(void)
 {
     const crsfLinkStatistics_t* linkStats = (crsfLinkStatistics_t*)&crsfFrame.frame.payload;
 
-    crsf_link_info.lq = linkStats->uplinkLQ;
-    if (linkStats->rfMode == 2) {
+    crsf_link_info.lq = linkStats->uplink_Link_quality;
+    if (linkStats->rf_Mode == 2) {
         crsf_link_info.lq *= 3;
     }
 
-    switch (linkStats->uplinkTXPower) {
+    switch (linkStats->uplink_TX_Power) {
         case 0:
             crsf_link_info.tx_power = 0;
             break;
@@ -314,22 +314,25 @@ void crsfUpdateLinkStats(void)
         case 7:
             crsf_link_info.tx_power = 250;
             break;
+        case 8:
+            crsf_link_info.tx_power = 50;
+            break;
         default:
             crsf_link_info.tx_power = 0;
             break;
     }
 
-    if (linkStats->uplinkRSSIAnt1 == 0) {
-        crsf_link_info.rssi = linkStats->uplinkRSSIAnt2;
+    if (linkStats->uplink_RSSI_1 == 0) {
+        crsf_link_info.rssi = linkStats->uplink_RSSI_2;
     }
-    else if (linkStats->uplinkRSSIAnt2 == 0) {
-        crsf_link_info.rssi = linkStats->uplinkRSSIAnt1;
+    else if (linkStats->uplink_RSSI_2 == 0) {
+        crsf_link_info.rssi = linkStats->uplink_RSSI_1;
     }
     else {
-        crsf_link_info.rssi = MIN(linkStats->uplinkRSSIAnt1, linkStats->uplinkRSSIAnt2);
+        crsf_link_info.rssi = MIN(linkStats->uplink_RSSI_1, linkStats->uplink_RSSI_2);
     }
 
-    crsf_link_info.snr = linkStats->uplinkSNR;
+    crsf_link_info.snr = linkStats->uplink_SNR;
     crsf_link_info.updated_us = micros();
     link_stats_received = true;
 }

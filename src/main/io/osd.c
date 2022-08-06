@@ -108,6 +108,12 @@
 #include "cms/cms.h"
 #endif
 
+typedef enum {
+    OSD_LOGO_ARMING_OFF,
+    OSD_LOGO_ARMING_ON,
+    OSD_LOGO_ARMING_FIRST
+} osd_logo_on_arming_e;
+
 #if defined(USE_BRAINFPV_OSD)
 extern bool osd_arming_or_stats;
 extern bool brainfpv_user_avatar_set;
@@ -485,10 +491,12 @@ static bool osdDrawSingleElement(uint8_t item)
         {
             if (osdElementRssi_BrainFPV(elemPosX, elemPosY)) {
                 brainfpv_item = true;
-            } else {
+            }
+            else {
                 uint16_t osdRssi = getRssi() * 100 / 1024; // change range
                 if (osdRssi >= 100)
                     osdRssi = 99;
+
                 tfp_sprintf(buff, "%c%2d", SYM_RSSI, osdRssi);
             }
             break;
@@ -535,7 +543,8 @@ static bool osdDrawSingleElement(uint8_t item)
                 osdtxpower = 0;
                 break;
             }
-            break;
+        }
+        break;
         }
     case OSD_MAIN_BATT_VOLTAGE:
         buff[0] = osdGetBatterySymbol(osdGetBatteryAverageCellVoltage());
@@ -624,6 +633,7 @@ static bool osdDrawSingleElement(uint8_t item)
             buff[7] = '\0';
         }
         break;
+
     case OSD_PLUS_CODE: {
         STATIC_ASSERT(GPS_DEGREES_DIVIDER == OLC_DEG_MULTIPLIER, invalid_olc_deg_multiplier);
         uint8_t digits = osdConfig()->plus_code_digits;
@@ -643,6 +653,7 @@ static bool osdDrawSingleElement(uint8_t item)
         buff[digits + 1 - digitsRemoved] = '\0';
         break;
     }
+
 #endif // GPS
 
     case OSD_COMPASS_BAR:
@@ -836,10 +847,11 @@ static bool osdDrawSingleElement(uint8_t item)
                 const float a = accAverage[axis];
                 osdGForce += a * a;
             }
-            osdGForce = fast_fsqrtf(osdGForce) / acc.dev.acc_1G;
+            osdGForce = sqrtf(osdGForce) / acc.dev.acc_1G;
             tfp_sprintf(buff, "%01d.%01dG", (int)osdGForce, (int)(osdGForce * 10) % 10);
             break;
         }
+
     case OSD_ROLL_PIDS:
         osdFormatPID(buff, "ROL", &currentPidProfile->pid[PID_ROLL]);
         break;
@@ -1253,6 +1265,7 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->logo_on_arming_duration = 5;  // 0.5 seconds
     osdConfig->plus_code_digits = 11; // Number of digits to use in OSD_PLUS_CODE
     osdConfig->plus_code_short = false; // If 4 leading digits have to be removed from the OSD_PLUS_CODE
+
 }
 
 static void osdDrawLogo(int x, int y)
