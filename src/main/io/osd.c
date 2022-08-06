@@ -633,7 +633,6 @@ static bool osdDrawSingleElement(uint8_t item)
             buff[7] = '\0';
         }
         break;
-
     case OSD_PLUS_CODE: {
         STATIC_ASSERT(GPS_DEGREES_DIVIDER == OLC_DEG_MULTIPLIER, invalid_olc_deg_multiplier);
         uint8_t digits = osdConfig()->plus_code_digits;
@@ -653,7 +652,6 @@ static bool osdDrawSingleElement(uint8_t item)
         buff[digits + 1 - digitsRemoved] = '\0';
         break;
     }
-
 #endif // GPS
 
     case OSD_COMPASS_BAR:
@@ -1265,7 +1263,6 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->logo_on_arming_duration = 5;  // 0.5 seconds
     osdConfig->plus_code_digits = 11; // Number of digits to use in OSD_PLUS_CODE
     osdConfig->plus_code_short = false; // If 4 leading digits have to be removed from the OSD_PLUS_CODE
-
 }
 
 static void osdDrawLogo(int x, int y)
