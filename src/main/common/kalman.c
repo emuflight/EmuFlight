@@ -17,7 +17,7 @@
  *
  * If not, see <http://www.gnu.org/licenses/>.
  */
-
+#ifndef USE_GYRO_IMUF9001
 #include <string.h>
 #include "arm_math.h"
 
@@ -29,13 +29,14 @@ kalman_t    kalmanFilterStateRate[XYZ_AXIS_COUNT];
 
 void init_kalman(kalman_t *filter, float q) {
     memset(filter, 0, sizeof(kalman_t));
-    filter->q = q * 0.001f;             //add multiplier to make tuning easier
+    filter->q = q * 0.0001f;             //add multiplier to make tuning easier
     filter->r = 88.0f;                  //seeding R at 88.0f
     filter->p = 30.0f;                  //seeding P at 30.0f
     filter->e = 1.0f;
-  //  filter->s = gyroConfig()->imuf_sharpness / 250.0f;     //adding the new sharpness :) time to overfilter :O
     filter->w = gyroConfig()->imuf_w;
     filter->inverseN = 1.0f / (float)(filter->w);
+
+    pt1FilterInit(&filter->kFilter, pt1FilterGain(50, gyro.targetLooptime * 1e-6f));
 }
 
 
@@ -46,51 +47,47 @@ void kalman_init(void) {
     init_kalman(&kalmanFilterStateRate[Z],  gyroConfig()->imuf_yaw_q);
 }
 
-void update_kalman_covariance(kalman_t *kalmanState, float rate) {
-    kalmanState->axisWindow[kalmanState->windex] = rate;
-    kalmanState->axisSumMean += kalmanState->axisWindow[kalmanState->windex];
-    float varianceElement = kalmanState->axisWindow[kalmanState->windex] - kalmanState->axisMean;
+void update_kalman_covariance(float rate, int axis) {
+    kalmanFilterStateRate[axis].axisWindow[kalmanFilterStateRate[axis].windex] = rate;
+    kalmanFilterStateRate[axis].axisSumMean += kalmanFilterStateRate[axis].axisWindow[kalmanFilterStateRate[axis].windex];
+    float varianceElement = kalmanFilterStateRate[axis].axisWindow[kalmanFilterStateRate[axis].windex] - kalmanFilterStateRate[axis].axisMean;
     varianceElement = varianceElement * varianceElement;
-    kalmanState->axisSumVar += varianceElement;
-    kalmanState->varianceWindow[kalmanState->windex] = varianceElement;
-    kalmanState->windex++;
-    if (kalmanState->windex >= kalmanState->w) {
-        kalmanState->windex = 0;
+    kalmanFilterStateRate[axis].axisSumVar += varianceElement;
+    kalmanFilterStateRate[axis].varianceWindow[kalmanFilterStateRate[axis].windex] = varianceElement;
+    kalmanFilterStateRate[axis].windex++;
+    if (kalmanFilterStateRate[axis].windex > kalmanFilterStateRate[axis].w) {
+        kalmanFilterStateRate[axis].windex = 0;
     }
-    kalmanState->axisSumMean -= kalmanState->axisWindow[kalmanState->windex];
-    kalmanState->axisSumVar -= kalmanState->varianceWindow[kalmanState->windex];
+    kalmanFilterStateRate[axis].axisSumMean -= kalmanFilterStateRate[axis].axisWindow[kalmanFilterStateRate[axis].windex];
+    kalmanFilterStateRate[axis].axisSumVar -= kalmanFilterStateRate[axis].varianceWindow[kalmanFilterStateRate[axis].windex];
     //New mean
-    kalmanState->axisMean = kalmanState->axisSumMean * kalmanState->inverseN;
-    kalmanState->axisVar = kalmanState->axisSumVar * kalmanState->inverseN;
+    kalmanFilterStateRate[axis].axisMean = kalmanFilterStateRate[axis].axisSumMean * kalmanFilterStateRate[axis].inverseN;
+    kalmanFilterStateRate[axis].axisVar = kalmanFilterStateRate[axis].axisSumVar * kalmanFilterStateRate[axis].inverseN;
     float squirt;
-    arm_sqrt_f32(kalmanState->axisVar, &squirt);
-    kalmanState->r = squirt * VARIANCE_SCALE;
+    arm_sqrt_f32(kalmanFilterStateRate[axis].axisVar, &squirt);
+    kalmanFilterStateRate[axis].r = squirt * VARIANCE_SCALE;
 }
 
 FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target) {
+    UNUSED(target);
     //project the state ahead using acceleration
-    kalmanState->x += (kalmanState->x - kalmanState->lastX);
+    kalmanState->x += (kalmanState->x - kalmanState->lastX) * kalmanState->k;
     //figure out how much to boost or reduce our error in the estimate based on setpoint target.
     //this should be close to 0 as we approach the sepoint and really high the futher away we are from the setpoint.
     //update last state
     kalmanState->lastX = kalmanState->x;
-    if (kalmanState->s != 0.0f) {
-        float average = fabsf(target + kalmanState->lastX) * 0.5f;
-        if (average > 10.0f) {
-            float error = fabsf(target - kalmanState->lastX);
-            float ratio = error / average;
-            kalmanState->e = kalmanState->s * powf(ratio, 3.0f);  //"ratio" power 3 and multiply by a gain
-        }
-        //prediction update
-        kalmanState->p = kalmanState->p + (kalmanState->q + kalmanState->e);
-    } else {
-        if (kalmanState->lastX != 0.0f) {
-            kalmanState->e = fabsf(1.0f - (target / kalmanState->lastX));
-        }
-        //prediction update
-        kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
-    }
+
+    float e = constrainf(kalmanState->r / 45.0f + 0.005f, 0.005f, 0.9f);
+    //make the 1 a configurable value for testing purposes
+    e = -powf(e - 1.0f, 2) * 0.7f + (e - 1.0f) * (1.0f - 0.7f) + 1.0f;
+    kalmanState->e = e;
+
+    //prediction update
+    kalmanState->p = kalmanState->p + (kalmanState->q * kalmanState->e);
+
     //measurement update
+    kalmanState->k = kalmanState->p / (kalmanState->p + 10.0f);
+    kalmanState->k = pt1FilterApply(&kalmanState->kFilter, kalmanState->k);
     kalmanState->k = kalmanState->p / (kalmanState->p + kalmanState->r);
     kalmanState->x += kalmanState->k * (input - kalmanState->x);
     kalmanState->p = (1.0f - kalmanState->k) * kalmanState->p;
@@ -99,10 +96,10 @@ FAST_CODE float kalman_process(kalman_t* kalmanState, float input, float target)
 
 FAST_CODE float kalman_update(float input, int axis) {
     if (gyroConfig()->imuf_w >= 3) {
-        update_kalman_covariance(&kalmanFilterStateRate[axis], input);
         input = kalman_process(&kalmanFilterStateRate[axis], input, getSetpointRate(axis) );
     }
     int16_t Kgain = (kalmanFilterStateRate[axis].k * 1000.0f);
     DEBUG_SET(DEBUG_KALMAN, axis, Kgain);                               //Kalman gain
     return input;
 }
+#endif
