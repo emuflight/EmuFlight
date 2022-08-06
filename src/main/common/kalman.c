@@ -33,7 +33,6 @@ void init_kalman(kalman_t *filter, float q) {
     filter->r = 88.0f;                  //seeding R at 88.0f
     filter->p = 30.0f;                  //seeding P at 30.0f
     filter->e = 1.0f;
-  //  filter->s = gyroConfig()->imuf_sharpness / 250.0f;     //adding the new sharpness :) time to overfilter :O
     filter->w = gyroConfig()->imuf_w;
     filter->inverseN = 1.0f / (float)(filter->w);
 }

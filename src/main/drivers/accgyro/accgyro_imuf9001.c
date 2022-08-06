@@ -473,7 +473,6 @@ void setupImufParams(imufCommand_t * data) {
         data->param7 = ( (uint16_t)0 << 16)                                      | (uint16_t)0;
         data->param8 = ( (int16_t)boardAlignment()->rollDegrees << 16 )          | imufGyroAlignment();
         data->param9 = ( (int16_t)boardAlignment()->yawDegrees << 16 )           | (int16_t)boardAlignment()->pitchDegrees;
-  //      data->param10 = ( (uint16_t)gyroConfig()->imuf_sharpness << 16)          | (int16_t)gyroConfig()->imuf_acc_lpf_cutoff_hz;
     }
 }
 
