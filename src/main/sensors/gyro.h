@@ -88,6 +88,7 @@ typedef enum {
 
 #ifdef USE_SMITH_PREDICTOR
 typedef struct smithPredictor_s {
+    uint8_t enabled;
     uint8_t samples;
     uint8_t idx;
 
@@ -149,6 +150,7 @@ typedef struct gyroConfig_s {
     uint16_t imuf_w;
   //  uint16_t imuf_sharpness;
 
+    uint8_t smithPredictorEnabled;
     uint8_t smithPredictorStrength;
     uint8_t smithPredictorDelay;
     uint16_t smithPredictorFilterHz;

@@ -83,7 +83,7 @@ uint32_t simulationTime = 0;
 bool gyroCalibDone = false;
 bool simulationHaveRx = false;
 
-const char * const powerNames[4] ={ "---", "25", "100", "200"} ;
+const char * const powerNames[4] ={ "---", "LV1", "LV2", "LV3"} ;
 static vtxDevice_t testVtxDevice = {
     .capability.bandCount = 5,
     .capability.channelCount = 8,
@@ -152,7 +152,7 @@ TEST(VtxTest, VtxCanUpdateVtxWithActivationCondition)
     EXPECT_EQ(0, actualVtxConfig->channel);
     EXPECT_EQ(0, actualVtxConfig->power);
 
-    
+
     // let's set condition number 1
     vtxChannelActivationCondition_t *cac1 = &vtxConfigMutable()->vtxChannelActivationConditions[1];
     cac1->auxChannelIndex = 0; // zero indexed, 0 is aux1
@@ -169,7 +169,7 @@ TEST(VtxTest, VtxCanUpdateVtxWithActivationCondition)
     cac2->power = 1;
     (&cac2->range)->startStep = CHANNEL_VALUE_TO_STEP(1500);
     (&cac2->range)->endStep = CHANNEL_VALUE_TO_STEP(1800);
-    
+
     // set actual channel to low "inactive" value
     rcData[AUX1] = 1000;
     vtxUpdateActivatedChannel(); // band, channel and power should remain at 0 as aux channel not active
@@ -178,9 +178,9 @@ TEST(VtxTest, VtxCanUpdateVtxWithActivationCondition)
     EXPECT_EQ(0, actualVtxConfig->channel);
     EXPECT_EQ(0, actualVtxConfig->power);
 
-    // set AUX1 to match condition 1 
+    // set AUX1 to match condition 1
     rcData[AUX1] = 1950;
-    // actualVtxConfig should be updated 
+    // actualVtxConfig should be updated
     vtxUpdateActivatedChannel();
 
     EXPECT_EQ(cac1->band, actualVtxConfig->band);
@@ -189,7 +189,7 @@ TEST(VtxTest, VtxCanUpdateVtxWithActivationCondition)
 
     // set AUX1 to match condition 2
     rcData[AUX1] = 1650;
-    // actualVtxConfig should be updated 
+    // actualVtxConfig should be updated
     vtxUpdateActivatedChannel();
 
     EXPECT_EQ(cac2->band, actualVtxConfig->band);
@@ -229,7 +229,7 @@ TEST(VtxTest, VtxShouldNotUpdateBandAndChannelOnceArmed)
     cac2->power = 1;
     (&cac2->range)->startStep = CHANNEL_VALUE_TO_STEP(1500);
     (&cac2->range)->endStep = CHANNEL_VALUE_TO_STEP(2000);
-    
+
     rcData[AUX1] = 1200;
     // set actual channel to low "inactive" value
     vtxUpdateActivatedChannel(); // band, channel and power should remain at 0 as aux channel not active
