@@ -25,10 +25,10 @@
 
 #define MAX_KALMAN_WINDOW_SIZE 128
 
-#define VARIANCE_SCALE 0.67f
+#define VARIANCE_SCALE 1.0f
 
 
-typedef struct kalman {
+typedef struct kalman_s {
     float q;     //process noise covariance
     float r;     //measurement noise covariance
     float p;     //estimation error covariance matrix
@@ -36,17 +36,19 @@ typedef struct kalman {
     float x;     //state
     float lastX; //previous state
     float e;
-    float s;
     float axisVar;
     uint16_t windex;
-    float axisWindow[MAX_KALMAN_WINDOW_SIZE];
-    float varianceWindow[MAX_KALMAN_WINDOW_SIZE];
+    float axisWindow[MAX_KALMAN_WINDOW_SIZE + 1];
+    float varianceWindow[MAX_KALMAN_WINDOW_SIZE + 1];
     float axisSumMean;
     float axisMean;
     float axisSumVar;
     float inverseN;
     uint16_t w;
+
+    pt1Filter_t kFilter;
 } kalman_t;
 
 extern void kalman_init(void);
 extern float kalman_update(float input, int axis);
+extern void update_kalman_covariance(float rate, int axis);

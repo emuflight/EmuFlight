@@ -132,9 +132,36 @@ struct crsfPayloadLinkStatistics_s {
     int8_t      downlinkSNR;
 } __attribute__ ((__packed__));
 
-typedef struct crsfPayloadLinkStatistics_s crsfPayloadLinkStatistics_t;
+typedef struct crsfPayloadLinkstatistics_s {
+    uint8_t uplink_RSSI_1;
+    uint8_t uplink_RSSI_2;
+    uint8_t uplink_Link_quality;
+    int8_t uplink_SNR;
+    uint8_t active_antenna;
+    uint8_t rf_Mode;
+    uint8_t uplink_TX_Power;
+    uint8_t downlink_RSSI;
+    uint8_t downlink_Link_quality;
+    int8_t downlink_SNR;
+} crsfLinkStatistics_t;
 
-volatile crsfPayloadLinkStatistics_t* linkStats;
+static void handleCrsfLinkStatisticsFrame(const crsfLinkStatistics_t* statsPtr, timeUs_t currentTimeUs) {
+    const crsfLinkStatistics_t stats = *statsPtr;
+    CRSFsetLQ(stats.uplink_Link_quality);
+    CRSFsetRFMode(stats.rf_Mode);
+    CRSFsetSnR(stats.uplink_SNR);
+    CRSFsetTXPower(stats.uplink_TX_Power);
+    if (stats.uplink_RSSI_1 == 0) {
+        CRSFsetRSSI(stats.uplink_RSSI_2);
+    } else if (stats.uplink_RSSI_2 == 0) {
+        CRSFsetRSSI(stats.uplink_RSSI_1);
+    } else {
+        uint8_t rssimin = MIN(stats.uplink_RSSI_1, stats.uplink_RSSI_2) * -1;
+        CRSFsetRSSI(rssimin);
+    }
+}
+
+volatile crsfLinkStatistics_t* linkStats;
 
 void crsfUpdateLinkStats(void);
 static bool link_stats_received = false;
@@ -255,7 +282,7 @@ STATIC_UNIT_TESTED uint8_t crsfFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig)
 
 void crsfUpdateLinkStats(void)
 {
-    const crsfPayloadLinkStatistics_t* linkStats = (crsfPayloadLinkStatistics_t*)&crsfFrame.frame.payload;
+    const crsfLinkStatistics_t* linkStats = (crsfLinkStatistics_t*)&crsfFrame.frame.payload;
 
     crsf_link_info.lq = linkStats->uplinkLQ;
     if (linkStats->rfMode == 2) {

@@ -48,6 +48,7 @@
 
 #include "common/axis.h"
 #include "common/maths.h"
+#include "common/olc.h"
 #include "common/printf.h"
 #include "common/typeconversion.h"
 #include "common/utils.h"
@@ -484,13 +485,55 @@ static bool osdDrawSingleElement(uint8_t item)
         {
             if (osdElementRssi_BrainFPV(elemPosX, elemPosY)) {
                 brainfpv_item = true;
-            }
-            else {
+            } else {
                 uint16_t osdRssi = getRssi() * 100 / 1024; // change range
                 if (osdRssi >= 100)
                     osdRssi = 99;
-
                 tfp_sprintf(buff, "%c%2d", SYM_RSSI, osdRssi);
+            }
+            break;
+        }
+    case OSD_CRSF_SNR: { //crsf signal to noise ratio
+        if(crsfRssi) {
+            uint8_t osdSNR = CRSFgetSnR();
+            tfp_sprintf(buff, "SN %2dDB", osdSNR );
+        }
+        break;
+    }
+    case OSD_CRSF_TX: { //crsf tx output power
+        if(crsfRssi) {
+            uint16_t osdtxpower = CRSFgetTXPower();
+            switch (osdtxpower) {
+            case 0:
+                osdtxpower = 0;
+                break;
+            case 1:
+                osdtxpower = 10;
+                break;
+            case 2:
+                osdtxpower = 25;
+                break;
+            case 3:
+                osdtxpower = 100;
+                break;
+            case 4:
+                osdtxpower = 500;
+                break;
+            case 5:
+                osdtxpower = 1000;
+                break;
+            case 6:
+                osdtxpower = 2000;
+                break;
+            case 7:
+                osdtxpower = 250;
+                break;
+            case 8:
+                osdtxpower = 50;
+                break;
+            default:
+                osdtxpower = 0;
+                break;
             }
             break;
         }
@@ -581,7 +624,25 @@ static bool osdDrawSingleElement(uint8_t item)
             buff[7] = '\0';
         }
         break;
-
+    case OSD_PLUS_CODE: {
+        STATIC_ASSERT(GPS_DEGREES_DIVIDER == OLC_DEG_MULTIPLIER, invalid_olc_deg_multiplier);
+        uint8_t digits = osdConfig()->plus_code_digits;
+        bool isPlusCodeShort = osdConfig()->plus_code_short;
+        uint8_t digitsRemoved = (isPlusCodeShort) ? 4 : 0;
+        if (STATE(GPS_FIX)) {
+            olc_encode(gpsSol.llh.lat, gpsSol.llh.lon, digits, buff, sizeof(buff));
+        } else {
+            // +codes with > 8 digits have a + at the 9th digit
+            // and we only support 10 and up.
+            memset(buff, '-', digits + 1);
+            buff[8] = '+';
+            buff[digits + 1] = '\0';
+        }
+        // Optionally trim digits from the left
+        memmove(buff, buff+digitsRemoved, strlen(buff) + digitsRemoved);
+        buff[digits + 1 - digitsRemoved] = '\0';
+        break;
+    }
 #endif // GPS
 
     case OSD_COMPASS_BAR:
@@ -775,11 +836,10 @@ static bool osdDrawSingleElement(uint8_t item)
                 const float a = accAverage[axis];
                 osdGForce += a * a;
             }
-            osdGForce = sqrtf(osdGForce) / acc.dev.acc_1G;
+            osdGForce = fast_fsqrtf(osdGForce) / acc.dev.acc_1G;
             tfp_sprintf(buff, "%01d.%01dG", (int)osdGForce, (int)(osdGForce * 10) % 10);
             break;
         }
-
     case OSD_ROLL_PIDS:
         osdFormatPID(buff, "ROL", &currentPidProfile->pid[PID_ROLL]);
         break;
@@ -1107,6 +1167,7 @@ static void osdDrawElements(void)
         osdDrawSingleElement(OSD_GPS_LON);
         osdDrawSingleElement(OSD_HOME_DIST);
         osdDrawSingleElement(OSD_HOME_DIR);
+        osdDrawSingleElement(OSD_PLUS_CODE);
     }
 #endif // GPS
 
@@ -1187,6 +1248,11 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
 
     osdConfig->ahMaxPitch = 20; // 20 degrees
     osdConfig->ahMaxRoll = 40; // 40 degrees
+    osdConfig->task_frequency = 60; // at 125 or 150 the refresh rate is exactly 25 (PAL) or 30 (NTSC)
+    osdConfig->logo_on_arming = OSD_LOGO_ARMING_OFF;
+    osdConfig->logo_on_arming_duration = 5;  // 0.5 seconds
+    osdConfig->plus_code_digits = 11; // Number of digits to use in OSD_PLUS_CODE
+    osdConfig->plus_code_short = false; // If 4 leading digits have to be removed from the OSD_PLUS_CODE
 }
 
 static void osdDrawLogo(int x, int y)

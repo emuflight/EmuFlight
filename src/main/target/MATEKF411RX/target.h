@@ -49,7 +49,9 @@
 #define SPI1_MOSI_PIN           PA7
 
 #define MPU6000_CS_PIN          PA4
+#define ICM20689_CS_PIN         MPU6000_CS_PIN
 #define MPU6000_SPI_INSTANCE    SPI1
+#define ICM20689_SPI_INSTANCE   MPU6000_SPI_INSTANCE
 
 #define USE_EXTI
 #define MPU_INT_EXTI            PA1
@@ -57,18 +59,24 @@
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
+#define USE_GYRO_SPI_ICM20689
 
 #if defined(CRAZYBEEF4FS) || defined(CRAZYBEEF4FR) || defined(CRAZYBEEF4DX)
 #define GYRO_MPU6000_ALIGN      CW90_DEG
+#define GYRO_ICM20689_ALIGN      CW90_DEG
 #else
 #define GYRO_MPU6000_ALIGN      CW180_DEG
+#define GYRO_ICM20689_ALIGN      CW180_DEG
 #endif
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
+#define USE_ACC_SPI_ICM20689
 #if defined(CRAZYBEEF4FS) || defined(CRAZYBEEF4FR) || defined(CRAZYBEEF4DX)
 #define ACC_MPU6000_ALIGN       CW90_DEG
+#define ACC_ICM20689_ALIGN       CW90_DEG
 #else
 #define ACC_MPU6000_ALIGN       CW180_DEG
+#define ACC_ICM20689_ALIGN       CW180_DEG
 #endif
 // *************** SPI2 OSD *****************************
 #define USE_SPI_DEVICE_2
@@ -126,6 +134,7 @@
 
 #define USE_RX_FRSKY_SPI_D
 #define USE_RX_FRSKY_SPI_X
+#define USE_RX_REDPINE_SPI
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SPI
 #define RX_SPI_DEFAULT_PROTOCOL RX_SPI_FRSKY_X
 #define USE_RX_FRSKY_SPI_TELEMETRY
@@ -145,6 +154,7 @@
 #define BINDPLUG_PIN            PB2
 #define USE_RX_FRSKY_SPI_D
 #define USE_RX_FRSKY_SPI_X
+#define USE_RX_REDPINE_SPI
 #define USE_RX_SFHSS_SPI
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SPI
 #define RX_SPI_DEFAULT_PROTOCOL RX_SPI_FRSKY_X
