@@ -1059,6 +1059,6 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
     for (int i = 0; i < motorCount; i++) {
         motorMix[i] += motorCorrection;
 
-        motorMix[i] = thrustToMotor(motorMixThrust, true); // translating back into motor value
+        motorMix[i] = thrustToMotor(motorMix[i], true); // translating back into motor value
     }
 }
