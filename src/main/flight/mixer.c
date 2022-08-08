@@ -1025,6 +1025,9 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
     float throttlePostYaw = postYawThrottle - yawThrottleCorrection;
     float thrustPostYaw = motorToThrust(throttlePostYaw, true);
 
+    float maxMotor = -1000.0;
+    float minMotor = 1000.0;
+
     // correct for the extra thrust yaw adds, then fill up motorMix with pitch and roll
     for (int i = 0; i < motorCount; i++) {
         if (currentPidProfile->mixer_yaw_throttle_comp) {  //!==0
@@ -1032,12 +1035,29 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
             motorMix[i] = motorMix[i] - yawThrottleCorrection;
         };
 
+        motorMix[i] = motorToThrust(motorMix[i], true); // convert into thrust value
         // clipping handling
         float rollPitchOffset = mixerLaziness ? (ABS(rollPitchMix[i]) * SCALE_UNITARY_RANGE(thrustPostYaw , 1, -1))
                                               : SCALE_UNITARY_RANGE(thrustPostYaw , -rollPitchMixMin, -rollPitchMixMax);
-        float motorMixThrust = motorToThrust(motorMix[i], true); // convert into thrust value
+        motorMix[i] += (rollPitchOffset + rollPitchMix[i]) * controllerMixNormFactor; // roll and pitch are thrust-proportional values
+        if (motorMixThrust > maxMotor) {
+            maxMotor = motorMixThrust;
+        }
+        if (motorMixThrust < minMotor) {
+            minMotor = motorMixThrust;
+        }
+    }
 
-        motorMixThrust += (rollPitchOffset + rollPitchMix[i]) * controllerMixNormFactor; // roll and pitch are thrust-proportional values
+    // if the range is outside the normal bounds, correct it here
+    float motorCorrection = 0.0;
+    if (maxMotor > 1.0) {
+        motorCorrection = 1.0 - maxMotor;
+    } else if (minMotor < 0.0) {
+        motorCorrection = -minMotor;
+    }
+
+    for (int i = 0; i < motorCount; i++) {
+        motorMix[i] += motorCorrection;
 
         motorMix[i] = thrustToMotor(motorMixThrust, true); // translating back into motor value
     }
