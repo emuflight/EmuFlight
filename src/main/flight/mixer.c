@@ -1040,11 +1040,11 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
         float rollPitchOffset = mixerLaziness ? (ABS(rollPitchMix[i]) * SCALE_UNITARY_RANGE(thrustPostYaw , 1, -1))
                                               : SCALE_UNITARY_RANGE(thrustPostYaw , -rollPitchMixMin, -rollPitchMixMax);
         motorMix[i] += (rollPitchOffset + rollPitchMix[i]) * controllerMixNormFactor; // roll and pitch are thrust-proportional values
-        if (motorMixThrust > maxMotor) {
-            maxMotor = motorMixThrust;
+        if (motorMix[i] > maxMotor) {
+            maxMotor = motorMix[i];
         }
-        if (motorMixThrust < minMotor) {
-            minMotor = motorMixThrust;
+        if (motorMix[i] < minMotor) {
+            minMotor = motorMix[i];
         }
     }
 
