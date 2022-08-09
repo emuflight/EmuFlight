@@ -27,7 +27,7 @@
 
 #define ENABLE_DSHOT_DMAR       true
 
-#define USE_LEDS_TRIP
+#define USE_LED_STRIP
 
 #define LED0_PIN                PA3  //
 
