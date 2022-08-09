@@ -27,7 +27,7 @@
 
 #define ENABLE_DSHOT_DMAR       true
 
-#define USE_LEDSTRIP
+#define USE_LED_STRIP
 
 #define LED0_PIN                PA14  //Blue   SWCLK
 #define LED1_PIN                PA13  //Green  SWDIO
