@@ -759,7 +759,11 @@ float applyThrottleLimit(float throttle) {
 
 void mixWithThrottleLegacy(float *motorMix, float *controllerMix, float controllerMixMin, float controllerMixMax) {
     float throttleThrust = currentPidProfile->linear_throttle ? throttle : motorToThrust(throttle, true);
+#ifdef USE_BRUSHED_ESC_AUTODETECT
     float normFactor = 1 / (controllerMixRange > 1.0f && hardwareMotorType != MOTOR_BRUSHED ? controllerMixRange : 1.0f);
+#else
+    float normFactor = 1 / (controllerMixRange > 1.0f ? controllerMixRange : 1.0f);
+#endif
 
     if (mixerImpl == MIXER_IMPL_LEGACY) {
         // legacy clipping handling

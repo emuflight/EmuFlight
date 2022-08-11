@@ -170,7 +170,7 @@
 
 #define DEFAULT_FEATURES        (FEATURE_OSD)
 #define DEFAULT_RX_FEATURE      FEATURE_RX_PPM
-#define SERIALRX_PROVIDER       SERIALRX_SBUS
+//#define SERIALRX_PROVIDER       SERIALRX_SBUS
 
 #define SPEKTRUM_BIND
 // PPM input
@@ -191,16 +191,17 @@ bool brainfpv_settings_updated_from_cms;
 void brainFPVUpdateSettings(void);
 
 //  RADIX memory management
-#undef BRUSHED_MOTORS_PWM_RATE
-#undef USE_ALT_HOLD
-#undef USE_BARO_MS5611
-//#undef USE_BRUSHED_ESC_AUTODETECT
+#undef BRUSHED_MOTORS
+//#undef PWM_BRUSHED_TIMER_MHZ    // undef not necessary
+//#undef BRUSHED_MOTORS_PWM_RATE  // brushless get set as well -- motorConfig->dev.motorPwmRate = BRUSHLESS_MOTORS_PWM_RATE;
+#undef USE_BRUSHED_ESC_AUTODETECT // requires mixer.c modification
 #undef USE_CMS_FAILSAFE_MENU
 #undef USE_CMS_GPS_RESCUE_MENU
 #undef USE_EXTENDED_CMS_MENUS
-//#undef USE_GPS
+#undef USE_ALT_HOLD
+#undef USE_GPS
 #undef USE_GPS_NMEA
-//#undef USE_GPS_RESCUE
+//#undef USE_GPS_RESCUE  //required to build :/
 #undef USE_GPS_UBLOX
 #undef USE_GYRO_LPF2
 #undef USE_LED_STRIP
@@ -212,23 +213,35 @@ void brainFPVUpdateSettings(void);
 #undef USE_PEGASUS_UI
 #undef USE_PPM
 //#undef USE_PWM
-#undef USE_SERIALRX_FPORT      // FrSky FPort
-#undef USE_SERIALRX_GHST       // ImmersionRC Ghost Protocol
-#undef USE_SERIALRX_IBUS       // FlySky and Turnigy receivers
-#undef USE_SERIALRX_JETIEXBUS
-#undef USE_SERIALRX_SPEKTRUM   // SRXL, DSM2 and DSMX protocol
-#undef USE_SERIALRX_SUMD       // Graupner Hott protocol
-#undef USE_SERIALRX_SUMH       // Graupner legacy protocol
-#undef USE_SERIALRX_XBUS       // JR
 #undef USE_SERVOS
+
+//#undef USE_SERIAL_RX
+//#undef USE_SERIALRX_CRSF        //Team Black Sheep Crossfire protocol
+#undef USE_SERIALRX_FPORT       //FrSky FPort
+#undef USE_SERIALRX_GHST        //ImmersionRC Ghost Protocol
+#undef USE_SERIALRX_IBUS        //FlySky and Turnigy receivers
+#undef USE_SERIALRX_JETIEXBUS
+#undef USE_SERIALRX_SBUS        //Frsky and Futaba receivers
+#undef USE_SERIALRX_SPEKTRUM    //SRXL, DSM2 and DSMX protocol
+#undef USE_SERIALRX_SUMD        //Graupner Hott protocol
+#undef USE_SERIALRX_SUMH        //Graupner legacy protocol
+#undef USE_SERIALRX_TARGET_CUSTOM
+#undef USE_SERIALRX_XBUS        //JR
+
+
+
 #undef USE_SPEKTRUM_BIND
 #undef USE_SPEKTRUM_BIND_PLUG
 #undef USE_SPEKTRUM_CMS_TELEMETRY
 #undef USE_SPEKTRUM_FAKE_RSSI
 #undef USE_SPEKTRUM_REAL_RSSI
+#undef USE_SPEKTRUM_REGION_CODES
 #undef USE_SPEKTRUM_RSSI_PERCENT_CONVERSION
 #undef USE_SPEKTRUM_VTX_CONTROL
 #undef USE_SPEKTRUM_VTX_TELEMETRY
+
+//#undef USE_TELEMETRY
+//#undef USE_TELEMETRY_CRSF
 #undef USE_TELEMETRY_FRSKY_HUB
 #undef USE_TELEMETRY_GHST
 #undef USE_TELEMETRY_HOTT
@@ -237,14 +250,23 @@ void brainFPVUpdateSettings(void);
 #undef USE_TELEMETRY_JETIEXBUS
 #undef USE_TELEMETRY_LTM
 #undef USE_TELEMETRY_MAVLINK
+#undef USE_TELEMETRY_NRF24_LTM
 #undef USE_TELEMETRY_SMARTPORT
 #undef USE_TELEMETRY_SRXL
+
 #undef USE_UNCOMMON_MIXERS
-#undef USE_VTX_TRAMP
+
+#undef USE_VTX_BEESIGN
+//#undef USE_VTX_COMMON //vtx required
+#undef USE_VTX_COMMON_FREQ_API //spektrum
+//#undef USE_VTX_CONTROL //vtx required
+#undef USE_VTX_LOCK_FREQ //beebrain
 #undef USE_VTX_RTC6705
 #undef USE_VTX_RTC6705_SOFTSPI
-#undef USE_VTX_BEESIGN
-#undef USE_VTX_LOCK_FREQ
+//#undef USE_VTX_SMARTAUDIO
+#undef USE_VTX_TABLE
+#undef USE_VTX_TRAMP
+
 #undef USE_EXTENDED_CMS_MENUS
 //#undef USE_SENSOR_NAMES
 #undef USE_SIGNATURE
@@ -253,3 +275,122 @@ void brainFPVUpdateSettings(void);
 #undef DEBUG_HARDWARE_REVISION_TABLE
 #undef USE_PINIO
 #undef USE_PINIOBOX
+
+//defaults
+#define SERIALRX_PROVIDER SERIALRX_CRSF
+
+// crazy tests
+#undef USE_TRANSPONDER
+
+#undef USE_OSD_PROFILES
+
+#undef USE_BARO_BMP085
+#undef USE_BARO_DPS310
+#undef USE_BARO_LPS
+#undef USE_BARO_MS5611
+#undef USE_BARO_QMP6988
+#undef USE_BARO_SPI_LPS
+#undef USE_BARO_SPI_MS5611
+#undef USE_BARO_SPI_QMP6988
+#undef USE_SONAR
+#undef USE_BEESIGN
+#undef USE_OSD_BEESIGN
+#undef USE_OSD_STICK_OVERLAY
+#undef USE_I2C_OLED_DISPLAY
+
+#undef USE_MAG
+#undef USE_MAG_AK8963
+#undef USE_MAG_AK8975
+#undef USE_MAG_DATA_READY_SIGNAL
+#undef USE_MAG_HMC5883
+#undef USE_MAG_LIS3MDL
+#undef USE_MAG_QMC5883
+#undef USE_MAG_SPI_AK8963
+#undef USE_MAG_SPI_HMC5883
+#undef USE_MPU9250_MAG
+
+//#undef USE_GYRO
+//#undef USE_GYRO_DATA_ANALYSE
+//#undef USE_GYRO_EXTI
+#undef USE_GYRO_IMUF9001
+#undef USE_GYRO_L3G4200D
+#undef USE_GYRO_L3GD20
+#undef USE_GYRO_MPU3050
+#undef USE_GYRO_MPU6000
+#undef USE_GYRO_MPU6050
+#undef USE_GYRO_MPU6500
+//#undef USE_GYRO_SPI_BMI160
+#undef USE_GYRO_SPI_ICM20601
+#undef USE_GYRO_SPI_ICM20649
+#undef USE_GYRO_SPI_ICM20689
+#undef USE_GYRO_SPI_MPU6000
+#undef USE_GYRO_SPI_MPU6500
+#undef USE_GYRO_SPI_MPU9250
+
+#undef USE_RTC6705
+#undef USE_RTC6705_CLK_HACK
+#undef USE_RTC6705_PITMODE_CTRL
+#undef USE_RTC6705_SOFTSPI_ON_HW_SPI
+
+#undef USE_RPM_FILTER
+#undef USE_QUAT_IMUF9001
+
+#undef USE_COPY_PROFILE_CMS_MENU
+
+#undef USE_ACC_ADXL345
+//#undef USE_ACC_BMA280
+#undef USE_ACC_IMUF9001
+#undef USE_ACC_LSM303DLHC
+#undef USE_ACC_MMA8452
+#undef USE_ACC_MPU6000
+#undef USE_ACC_MPU6050
+#undef USE_ACC_MPU6500
+//#undef USE_ACC_SPI_BMI160
+#undef USE_ACC_SPI_ICM20649
+#undef USE_ACC_SPI_ICM20689
+#undef USE_ACC_SPI_MPU6000
+#undef USE_ACC_SPI_MPU6500
+#undef USE_ACC_SPI_MPU9250
+//#undef USE_ACCGYRO_BMI160
+
+#undef USE_ACRO_TRAINER
+
+// no clue
+#undef USE_RX_CC2500
+#undef USE_RX_CC2500_BIND
+#undef USE_RX_CC2500_SPI_DIVERSITY
+#undef USE_RX_CC2500_SPI_PA_LNA
+#undef USE_RX_CX10
+#undef USE_RX_FLYSKY
+#undef USE_RX_FLYSKY_SPI_LED
+#undef USE_RX_FRSKY_SPI
+#undef USE_RX_FRSKY_SPI_D
+#undef USE_RX_FRSKY_SPI_TELEMETRY
+#undef USE_RX_FRSKY_SPI_X
+#undef USE_RX_H8_3D
+#undef USE_RX_INAV
+#undef USE_RX_KN
+//#undef USE_RX_LINK_QUALITY_INFO
+#undef USE_RX_MSP
+#undef USE_RX_NRF24
+#undef USE_RX_REDPINE_SPI
+//#undef USE_RX_RSSI_DBM
+#undef USE_RX_SFHSS_SPI
+#undef USE_RX_SPI
+#undef USE_RX_SYMA
+#undef USE_RX_V202
+#undef USE_RX_XN297
+
+#undef USE_RANGEFINDER
+#undef USE_RANGEFINDER_HCSR04
+#undef USE_RANGEFINDER_HCSR04_I2C
+#undef USE_RANGEFINDER_SRF10
+#undef USE_RANGEFINDER_TF
+
+#undef USE_PROFILE_NAMES
+#undef USE_OSD_PROFILES
+
+#undef USE_LAUNCH_CONTROL
+#undef USE_INTEGRATED_YAW_CONTROL
+
+#undef USE_32K_CAPABLE_GYRO
