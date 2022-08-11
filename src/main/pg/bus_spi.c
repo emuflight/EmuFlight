@@ -94,6 +94,9 @@ ioTag_t preinitIPUList[SPI_PREINIT_IPU_COUNT] = {
 #ifdef BMI160_CS_PIN
     IO_TAG(BMI160_CS_PIN),
 #endif
+#ifdef BMI270_CS_PIN
+	    IO_TAG(BMI270_CS_PIN),
+	#endif
 #ifdef L3GD20_CS_PIN
     IO_TAG(L3GD20_CS_PIN),
 #endif

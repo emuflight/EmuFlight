@@ -1,0 +1,122 @@
+
+double check with BF commit of adding BMI270 support and make sure names are correct.
+going off of bmi160 in Emu, these folders will need modified for support:
+note: control-F each file to see if missed instance of bmi160
+
+src/main/drivers/accgyro/accgyro_spi_bmi270.c
+
+src/main/drivers/accgyro/accgyro_spi_bmi270.h
+
+*src/main/sensors/acceleration.c
+	line 46: #include "drivers/accgyro/accgyro_spi_bmi270.h"
+
+	line 300->:
+	#ifdef USE_ACCGYRO_BMI270
+	    case ACC_BMI270:
+	        if (bmi270SpiAccDetect(dev)) {
+	            accHardware = ACC_BMI270;
+	#ifdef ACC_BMI270_ALIGN
+	            dev->accAlign = ACC_BMI270_ALIGN;
+	#endif
+	            break;
+	        }
+	        FALLTHROUGH;
+	#endif
+
+*src/main/pg/bus_spi.c
+	line 96/97:
+	#ifdef BMI270_CS_PIN
+	    IO_TAG(BMI270_CS_PIN),
+	#endif
+
+*src/main/drivers/accgyro/accgyro_mpu.h
+	line 218:     BMI_270_SPI,
+
+*src/main/drivers/accgyro/accgyro_mpu.c
+	line 56: #include "drivers/accgyro/accgyro_spi_bmi270.h"
+
+	line 372-376:
+	#ifdef USE_ACCGYRO_BMI270
+	#ifndef USE_DUAL_GYRO
+	    spiBusSetInstance(&gyro->bus, BMI270_SPI_INSTANCE);
+	#endif
+#ifdef BMI270_CS_PIN
+    gyro->bus.busdev_u.spi.csnPin = gyro->bus.busdev_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(BMI270_CS_PIN)) : gyro->bus.busdev_u.spi.csnPin;
+#endif
+    sensor = bmi270Detect(&gyro->bus);
+    if (sensor != MPU_NONE) {
+        gyro->mpuDetectionResult.sensor = sensor;
+        return true;
+    }
+#endif
+
+*src/main/sensors/acceleration.h
+	line 51:     ACC_BMI270,
+
+*src/main/sensors/gyro.c
+	line 47: #include "drivers/accgyro/accgyro_spi_bmi270.h"
+
+	line 500->:
+	#ifdef USE_ACCGYRO_BMI270
+	    case GYRO_BMI270:
+        	if (bmi270SpiGyroDetect(dev)) {
+	            gyroHardware = GYRO_BMI270;
+	#ifdef GYRO_BMI270_ALIGN
+	            dev->gyroAlign = GYRO_BMI270_ALIGN;
+	#endif
+            break;
+        }
+        FALLTHROUGH;
+	#endif
+
+	line 546 add: || defined(USE_ACCGYRO_BMI270)
+
+	line 594:     case GYRO_BMI270:
+
+*src/main/sensors/gyro.h
+	line 52:     GYRO_BMI270,
+
+	typedef enum {
+	    GYRO_HARDWARE_LPF_NORMAL,
+	    GYRO_HARDWARE_LPF_OPTION_1,
+	    GYRO_HARDWARE_LPF_OPTION_2,
+	#ifdef USE_GYRO_DLPF_EXPERIMENTAL
+	    GYRO_HARDWARE_LPF_EXPERIMENTAL,
+	#endif
+	    GYRO_HARDWARE_LPF_COUNT
+	} gyroHardwareLpf_e;
+
+*make/source.mk
+	line 201:             drivers/accgyro/accgyro_spi_bmi270.c \
+
+*src/main/interface/settings.c
+	line 112 add: "BMI270",
+	line 118 add: "BMI270",
+
+
+
+look into later if need: (see bf)
+src/main/drivers/accgyro/gyro_sync.c
+	        case BMI_270_SPI:
+#ifdef USE_GYRO_DLPF_EXPERIMENTAL
+            if (gyro->hardware_lpf == GYRO_HARDWARE_LPF_EXPERIMENTAL) {
+                // 6.4KHz sampling, but data is unfiltered (no hardware DLPF)
+                gyro->gyroRateKHz = GYRO_RATE_6400_Hz;
+                gyroSampleRateHz = 6400;
+            } else
+#endif
+            {
+                gyro->gyroRateKHz = GYRO_RATE_3200_Hz;
+                gyroSampleRateHz = 3200;
+            }
+            accSampleRateHz = 800;
+            break;
+
+
+
+
+
+
+
+
+	
