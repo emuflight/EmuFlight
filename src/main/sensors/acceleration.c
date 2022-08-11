@@ -304,7 +304,7 @@ retry:
 
 #ifdef USE_ACCGYRO_BMI270
     case ACC_BMI270:
-        if (bmi160SpiAccDetect(dev)) {
+        if (bmi270SpiAccDetect(dev)) {
             accHardware = ACC_BMI270;
 #ifdef ACC_BMI270_ALIGN
             dev->accAlign = ACC_BMI270_ALIGN;
