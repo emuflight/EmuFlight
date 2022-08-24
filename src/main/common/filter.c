@@ -183,25 +183,25 @@ FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint
     const float sn = sin_approx(omega);
     const float cs = cos_approx(omega);
     const float alpha = sn / (2.0f * Q);
-    const float a0 = 1.0 / (1.0 + alpha);
+    const float a0 = 1.0f / (1.0f + alpha);
 
 
     switch (filterType) {
     case FILTER_LPF:
         // 2nd order Butterworth (with Q=1/sqrt(2)) / Butterworth biquad section with Q
         // described in http://www.ti.com/lit/an/slaa447/slaa447.pdf
-        filter->b1 = (1.0 - cs) * a0;
+        filter->b1 = (1.0f - cs) * a0;
         filter->b0 = filter->b1 * 0.5f;
         filter->b2 = filter->b0;
-        filter->a1 = (-2.0 * cs) * a0;
-        filter->a2 = (1.0 - alpha) * a0;
+        filter->a1 = (-2.0f * cs) * a0;
+        filter->a2 = (1.0f - alpha) * a0;
         break;
     case FILTER_NOTCH:
         filter->b0 = a0;
-        filter->b1 = (-2.0 * cs) * a0;
+        filter->b1 = (-2.0f * cs) * a0;
         filter->b2 = filter->b0;
         filter->a1 = filter->b1;
-        filter->a2 = (1.0 - alpha) * a0;
+        filter->a2 = (1.0f - alpha) * a0;
         break;
     }
 
