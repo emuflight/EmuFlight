@@ -42,9 +42,9 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM4, CH1, PB6,   TIM_USE_ANY,   0, 0),   // SERVO
     DEF_TIM(TIM4, CH2, PB7,   TIM_USE_ANY,   0, 0),   // servo
 
-    DEF_TIM(TIM1, CH1, PA8,   TIM_USE_LED,   0, 2),   // TX2
-    DEF_TIM(TIM9, CH2, PA3,   TIM_USE_ANY,   0, 0),   // RX4
-    DEF_TIM(TIM5, CH3, PA2,   TIM_USE_ANY,   0, 0),   // TX4
-    DEF_TIM(TIM12, CH2, PB15, TIM_USE_ANY,   0, 0),   // TX4
+    DEF_TIM(TIM1, CH1, PA8,   TIM_USE_LED,   0, 2),   // led
+    DEF_TIM(TIM9, CH2, PA3,   TIM_USE_ANY,   0, 0),   // RX4, ppm
+    DEF_TIM(TIM5, CH3, PA2,   TIM_USE_ANY,   0, 0),   // TX2, pwm
+    DEF_TIM(TIM12, CH2, PB15, TIM_USE_ANY,   0, 0),   // camera
 
 };
