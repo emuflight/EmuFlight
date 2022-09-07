@@ -5,8 +5,11 @@ FEATURES       += VCP ONBOARDFLASH
 #            $(ROOT)/lib/main/BoschSensortec/BMI270-Sensor-API/bmi270_maximum_fifo.c \
 #            $(ROOT)/lib/main/BoschSensortec/BMI270-Sensor-API/bmi270.c \
 #            drivers/accgyro/bmi270.c \
+# BF using max_fifo ; accgyro_spi_bmi270.c specifies max-fifo
+
 
 TARGET_SRC = \
+            $(ROOT)/lib/main/BoschSensortec/BMI270-Sensor-API/bmi270_maximum_fifo.c \
             drivers/accgyro/accgyro_spi_bmi270.c \
             drivers/barometer/barometer_ms5611.c \
             drivers/barometer/barometer_bmp280.c \
