@@ -384,7 +384,7 @@ static mspResult_e hdZeroProcessMspCommand(mspPacket_t *cmd, mspPacket_t *reply,
     vtxHeartbeat = millis();
 
     sbuf_t *dst = &reply->buf;
-    sbuf_t *src = &cmd->buf;
+
     const uint8_t cmdMSP = cmd->cmd;
     reply->cmd = cmd->cmd;
     if (cmdMSP == MSP_FC_VARIANT) {
