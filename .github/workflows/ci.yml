@@ -24,6 +24,12 @@ jobs:
       - name: Prepare environment
         run: make arm_sdk_install
 
+      - name: Setup Rust
+        run: |
+          rustup update stable
+          rustup target add thumbv7em-none-eabihf
+          cargo install cbindgen
+
       - name: Execute Build
         run: make all RELEASE=${{ inputs.release_build && 'yes' || 'no' }}
 
