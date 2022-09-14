@@ -310,17 +310,16 @@ void simpleLPFilterInit(simpleLowpassFilter_t *filter, int32_t beta, int32_t fpS
     filter->fpShift = fpShift;
 }
 
+// AdjCutHz = CutHz / (sqrtf(powf(2, 1/Order) -1))
 const float PTN_SCALE[3] = { 1.0f, 1.553773974f, 1.961459177f };
 
 void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT) {
-    const float ScaleF[] = { 1.0f, 1.553773974f, 1.961459177f };
     float Adj_f_cut;
 	filter->order = (order > 3) ? 3 : order;
 	for (int n = 1; n <= filter->order; n++) {
 	   filter->state[n] = 0.0f;
     }
 
-    // AdjCutHz = CutHz /(sqrtf(powf(2, 1/Order) -1))
 	Adj_f_cut = f_cut * PTN_SCALE[filter->order - 1];
 
 	filter->k = dT / ((1.0f / (2.0f * M_PIf * Adj_f_cut)) + dT);
