@@ -44,7 +44,7 @@ jobs:
 
     - name: Setup Rust
       run: |
-        rustup update stable
+        rustup install nightly
         rustup target add thumbv7em-none-eabihf
         cargo install cbindgen
 

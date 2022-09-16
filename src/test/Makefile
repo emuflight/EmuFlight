@@ -22,7 +22,7 @@ RUSTEMU_INCLUDE_DIR := $(RUSTEMU_DIR)/include/
 RUSTEMU_TARGET_DIR  := $(RUSTEMU_DIR)/target/x86_64-unknown-linux-gnu/release
 RUSTEMU_HEADER      := $(RUSTEMU_INCLUDE_DIR)/rustemu.h
 RUSTEMU_LIBRARY     := $(RUSTEMU_TARGET_DIR)/librustemu.a
-RUSTEMU_SRC         := $(shell find $(RUSTEMU_DIR)/src -name '*.rs')
+RUSTEMU_SOURCES         := $(shell find $(RUSTEMU_DIR)/src -name '*.rs')
 
 include $(ROOT)/make/system-id.mk
 include $(ROOT)/make/targets_list.mk
@@ -678,11 +678,11 @@ $(OBJECT_DIR)/gtest_main.a : $(OBJECT_DIR)/gtest-all.o $(OBJECT_DIR)/gtest_main.
 -include $(OBJECT_DIR)/gtest-all.d \
          $(OBJECT_DIR)/gtest_main.d
 
-$(RUSTEMU_LIBRARY): $(RUSTEMU_SRC)
-	cd $(ROOT)/src/rustemu && cargo build --release
+$(RUSTEMU_LIBRARY): $(RUSTEMU_SOURCES)
+	cd $(ROOT)/src/rustemu && cargo +nightly build --release
 
 $(RUSTEMU_HEADER): $(RUSTEMU_LIBRARY)
-	cd $(ROOT)/src/rustemu && cbindgen --lang c -o $(PWD)/$(RUSTEMU_HEADER)
+	cd $(ROOT)/src/rustemu && cbindgen --lang c++ -o $(PWD)/$(RUSTEMU_HEADER)
 
 # includes in test dir must override includes in user dir, unless the user
 # specifies a list of endorsed directories in ${target}_INCLUDE_DIRS.

@@ -4,9 +4,13 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
+[profile.dev]
+panic = "abort"
+
 [profile.release]
 opt-level = 'z' # turn on maximum optimizations. We only have 64kB
 lto = true      # Link-time-optimizations for further size reduction
+panic = "abort"
 
 [lib]
 crate-type = ["staticlib"]
