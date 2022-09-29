@@ -882,33 +882,18 @@ FAST_CODE_NOINLINE void mixTable(timeUs_t currentTimeUs, uint8_t vbatPidCompensa
         motorMix[i] = mix;
     }
 
-    static uint32_t _count = 1;
-    static uint32_t _loop  = 0;
+    // keep the calculated propeller difference in place at the lower boundary
+    // neg. motor values are useless and cause stability issues
     if (motorMixMin < 0.0f)
     {
-    	_loop++;
-    	// changes to make it less floaty
-    	if (_loop %= 500)	// was 100, 400
-    	{
-    		if (_count < 3) // was 200, 100
-    		{
-    			_count++;
-    		}
-    	}
-    	float delta = -motorMixMin * _count;
-    	delta = MIN(delta, 0.1f);
-    	motorMixMax -= motorMixMin;
-    	motorMixMin = 0.0f;
-        for (int i = 0; i < motorCount; i++)
-        {
-             motorMix[i] += delta;
-        }
+	    for (int i = 0; i < motorCount; i++)
+	    {
+	    	 motorMix[i] -= motorMixMin;
+	    }
+	    motorMixMax -= motorMixMin;
+	    motorMixMin = 0.0f;
     }
-    else
-    {
-    	_count = 1;
-    	_loop  = 0;
-    }
+
     pidUpdateAntiGravityThrottleFilter(throttle);
 
 #ifdef USE_DYN_LPF
