@@ -47,6 +47,8 @@
 #define ICM20608G_WHO_AM_I_CONST            (0xAF)
 #define ICM20649_WHO_AM_I_CONST             (0xE1)
 #define ICM20689_WHO_AM_I_CONST             (0x98)
+#define ICM42605_WHO_AM_I_CONST             (0x42)
+#define ICM42688P_WHO_AM_I_CONST            (0x47)
 
 // RA = Register Address
 
@@ -214,6 +216,8 @@ typedef enum {
     ICM_20608_SPI,
     ICM_20649_SPI,
     ICM_20689_SPI,
+    ICM_42605_SPI,
+    ICM_42688P_SPI,
     BMI_160_SPI,
     IMUF_9001_SPI,
 } mpuSensor_e;
