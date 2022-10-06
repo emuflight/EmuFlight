@@ -10,6 +10,7 @@
 ## EmuFlight Releases
 
 * [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5422b54319254b6f9b6d01464ae9380c)](https://www.codacy.com/gh/emuflight/EmuFlight?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emuflight/EmuFlight&amp;utm_campaign=Badge_Grade)
+* [![Build EmuFlight](https://github.com/emuflight/EmuFlight/actions/workflows/build.yml/badge.svg)](https://github.com/emuflight/EmuFlight/actions/workflows/build.yml)
 * https://github.com/emuflight/EmuConfigurator/releases
 * https://github.com/emuflight/EmuFlight/releases
 
