@@ -74,7 +74,7 @@ static int srxlClearScreen(displayPort_t *displayPort, displayClearOption_e opti
             srxlWriteChar(displayPort, col, row, DISPLAYPORT_ATTR_NONE, ' ');
         }
     }
-    srxlWriteString(displayPort, 1, 0, DISPLAYPORT_ATTR_NONE, "BETAFLIGHT");
+    srxlWriteString(displayPort, 1, 0, DISPLAYPORT_ATTR_NONE, "EMUFLIGHT");
 
     if (displayPort->grabCount == 0) {
         srxlWriteString(displayPort, 0, 2, DISPLAYPORT_ATTR_NONE, CMS_STARTUP_HELP_TEXT1);
