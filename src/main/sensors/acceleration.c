@@ -384,7 +384,7 @@ bool accInit(uint32_t gyroSamplingInverval)
         	pt1FilterInit(&accFilter[axis], gain);
         }
     }
-    init_dynLpf2Acc(accLpfCutHz);
+//    init_dynLpf2Acc(accLpfCutHz);
 
     return true;
 }
