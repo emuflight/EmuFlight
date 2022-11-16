@@ -45,7 +45,7 @@
 #include "fc/runtime_config.h"
 
 #include "sensors/boardalignment.h"
-//#include "sensors/gyro.h"
+#include "sensors/gyro.h"
 #include "sensors/acceleration.h"
 
 #ifdef USE_HAL_F7_CRC
