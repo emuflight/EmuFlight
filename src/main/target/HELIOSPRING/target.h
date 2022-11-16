@@ -27,14 +27,21 @@
 #define BEEPER_PIN                  PC15
 #define BEEPER_INVERTED
 
+
 #define USE_GYRO
-//#define USE_SPI_GYRO
 #define USE_ACC
+#define GYRO_1_SPI_INSTANCE     SPI1
+#define GYRO_1_CS_PIN           PB1
+#define GYRO_1_ALIGN            CW0_DEG
+#define GYRO_1_EXTI_PIN         PB0
+
+#define USE_SPI
+#define USE_SPI_DEVICE_1
+
+#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
 
 #define DEFAULT_ATTITUDE_UPDATE_INTERVAL 1000
 #define DEFAULT_ACC_SAMPLE_INTERVAL      1000
-
-#define USE_EXTI
 
 #define USE_FAST_SPI_DRIVER
 #define USE_GYRO_IMUF9001
@@ -43,12 +50,9 @@
 #define IMUF9001_CS_PIN         PB1
 #define IMUF9001_RST_PIN        PA4
 #define IMUF9001_SPI_INSTANCE   SPI1
-#define USE_GYRO_EXTI
-#define GYRO_1_EXTI_PIN            PB0
-#define GYRO_1_CS_PIN           IMUF9001_CS_PIN
-#define GYRO_1_SPI_INSTANCE     IMUF9001_SPI_INSTANCE
-#define USE_MPU_DATA_READY_SIGNAL
+#define USE_EXTI
 
+#define USE_MPU_DATA_READY_SIGNAL
 
 #define USE_DSHOT_DMAR
 #define ENABLE_DSHOT_DMAR       DSHOT_DMAR_ON
