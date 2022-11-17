@@ -1,0 +1,333 @@
+/*
+ * This file is part of Cleanflight and Betaflight.
+ *
+ * Cleanflight and Betaflight are free software. You can redistribute
+ * this software and/or modify this software under the terms of the
+ * GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * Cleanflight and Betaflight are distributed in the hope that they
+ * will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this software.
+ *
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <ctype.h>
+#include <string.h>
+#include <drivers/vtx_table.h>
+
+#include "platform.h"
+
+#if defined(USE_CMS) && defined(USE_VTX_TRAMP)
+
+#include "common/printf.h"
+#include "common/utils.h"
+
+#include "cms/cms.h"
+#include "cms/cms_types.h"
+
+#include "drivers/vtx_common.h"
+
+#include "fc/config.h"
+
+#include "io/vtx_tramp.h"
+#include "io/vtx.h"
+
+char trampCmsStatusString[31] = "- -- ---- ----";
+//                               m bc ffff tppp
+//                               01234567890123
+
+
+static bool trampDeviceConfigured = false;
+
+void trampCmsUpdateStatusString(void)
+{
+    if (!trampDeviceConfigured) {
+        strncpy(trampCmsStatusString, "TRAMP NOT CONFIGURED", sizeof(trampCmsStatusString));
+        return;
+    }
+
+    vtxDevice_t *vtxDevice = vtxCommonDevice();
+
+    if (vtxTableBandCount == 0 || vtxTablePowerLevels == 0) {
+        strncpy(trampCmsStatusString, "PLEASE CONFIGURE VTXTABLE", sizeof(trampCmsStatusString));
+        return;
+    }
+
+    trampCmsStatusString[0] = '*';
+    trampCmsStatusString[1] = ' ';
+    uint8_t band;
+    uint8_t chan;
+    if (!vtxCommonGetBandAndChannel(vtxDevice, &band, &chan) || (band == 0 && chan == 0)) {
+        trampCmsStatusString[2] = 'U';//user freq
+        trampCmsStatusString[3] = 'F';
+    } else {
+        trampCmsStatusString[2] = vtxCommonLookupBandLetter(vtxDevice, band);
+        trampCmsStatusString[3] = vtxCommonLookupChannelName(vtxDevice, chan)[0];
+    }
+    trampCmsStatusString[4] = ' ';
+
+    if (trampCurFreq)
+        tfp_sprintf(&trampCmsStatusString[5], "%4d", trampCurFreq);
+    else
+        tfp_sprintf(&trampCmsStatusString[5], "----");
+
+    if (trampPower) {
+        tfp_sprintf(&trampCmsStatusString[9], " %c%3d", (trampPower == trampConfiguredPower) ? ' ' : '*', trampPower);
+    } else {
+        tfp_sprintf(&trampCmsStatusString[9], " ----");
+    }
+}
+
+uint8_t trampCmsPitMode = 0;
+uint8_t trampCmsBand = 1;
+uint8_t trampCmsChan = 1;
+uint16_t trampCmsFreqRef;
+
+static OSD_TAB_t trampCmsEntBand;
+static OSD_TAB_t trampCmsEntChan;
+
+static OSD_UINT16_t trampCmsEntFreqRef = { &trampCmsFreqRef, 5600, 5900, 0 };
+
+static uint8_t trampCmsPower = 1;
+
+static OSD_TAB_t trampCmsEntPower;
+
+static void trampCmsUpdateFreqRef(void)
+{
+    if (trampDeviceConfigured) {
+        if (trampCmsBand > 0 && trampCmsChan > 0) {
+            trampCmsFreqRef = vtxCommonLookupFrequency(vtxCommonDevice(), trampCmsBand, trampCmsChan);
+        }
+    } else {
+        trampCmsFreqRef = 0;
+    }
+}
+
+static long trampCmsConfigBand(displayPort_t *pDisp, const void *self)
+{
+    UNUSED(pDisp);
+    UNUSED(self);
+
+    if (trampDeviceConfigured) {
+        if (trampCmsBand == 0) {
+            // Bounce back
+            trampCmsBand = 1;
+        } else {
+            trampCmsUpdateFreqRef();
+        }
+    } else {
+        trampCmsBand = 0;
+    }
+
+    return 0;
+}
+
+static long trampCmsConfigChan(displayPort_t *pDisp, const void *self)
+{
+    UNUSED(pDisp);
+    UNUSED(self);
+
+    if (trampDeviceConfigured) {
+        if (trampCmsChan == 0) {
+            // Bounce back
+            trampCmsChan = 1;
+        } else {
+            trampCmsUpdateFreqRef();
+        }
+    } else {
+        trampCmsChan = 0;
+    }
+
+    return 0;
+}
+
+static long trampCmsConfigPower(displayPort_t *pDisp, const void *self)
+{
+    UNUSED(pDisp);
+    UNUSED(self);
+
+    if (trampDeviceConfigured) {
+        if (trampCmsPower == 0) {
+            // Bounce back
+            trampCmsPower = 1;
+        }
+    } else {
+        trampCmsPower = 0;
+    }
+
+    return 0;
+}
+
+static OSD_INT16_t trampCmsEntTemp = { &trampTemperature, -100, 300, 0 };
+
+static const char * const trampCmsPitModeNames[] = {
+    "---", "OFF", "ON "
+};
+
+static OSD_TAB_t trampCmsEntPitMode = { &trampCmsPitMode, 2, trampCmsPitModeNames };
+
+static long trampCmsSetPitMode(displayPort_t *pDisp, const void *self)
+{
+    UNUSED(pDisp);
+    UNUSED(self);
+
+    if (trampDeviceConfigured) {
+        if (trampCmsPitMode == 0) {
+            // Bouce back
+            trampCmsPitMode = 1;
+        } else {
+            trampSetPitMode(trampCmsPitMode - 1);
+        }
+    } else {
+        trampCmsPitMode = 0;
+    }
+    return 0;
+}
+
+static long trampCmsCommence(displayPort_t *pDisp, const void *self)
+{
+    UNUSED(pDisp);
+    UNUSED(self);
+
+    vtxDevice_t *device = vtxCommonDevice();
+    vtxCommonSetBandAndChannel(device, trampCmsBand, trampCmsChan);
+    vtxCommonSetPowerByIndex(device, trampCmsPower);
+
+    // If it fails, the user should retry later
+    trampCommitChanges();
+
+    // update'vtx_' settings
+    vtxSettingsConfigMutable()->band = trampCmsBand;
+    vtxSettingsConfigMutable()->channel = trampCmsChan;
+    vtxSettingsConfigMutable()->power = trampCmsPower;
+    vtxSettingsConfigMutable()->freq = vtxCommonLookupFrequency(vtxCommonDevice(), trampCmsBand, trampCmsChan);
+
+    saveConfigAndNotify();
+
+    return MENU_CHAIN_BACK;
+}
+
+static bool trampCmsInitSettings(void)
+{
+    vtxDevice_t *device = vtxCommonDevice();
+    trampDeviceConfigured = false;
+
+    if (!device) {
+        return false;
+    }
+
+    vtxDevType_e vtxType = vtxCommonGetDeviceType(device);
+    trampDeviceConfigured = (vtxType == VTXDEV_TRAMP);
+
+    if (trampDeviceConfigured) {
+        vtxCommonGetBandAndChannel(device, &trampCmsBand, &trampCmsChan);
+
+        trampCmsUpdateFreqRef();
+        trampCmsPitMode = trampPitMode + 1;
+
+        if (trampConfiguredPower > 0) {
+            if (!vtxCommonGetPowerIndex(vtxCommonDevice(), &trampCmsPower)) {
+                trampCmsPower = 1;
+            }
+        }
+        trampCmsEntBand.max = vtxTableBandCount;
+        trampCmsEntChan.max = vtxTableChannelCount;
+        trampCmsEntPower.max = vtxTablePowerLevels;
+    } else {
+        trampCmsPitMode = 0;
+        trampCmsBand = 0;
+        trampCmsChan = 0;
+        trampCmsPower = 0;
+
+        trampCmsEntBand.max = 0;
+        trampCmsEntBand.names = 0;
+
+        trampCmsEntChan.max = 0;
+        trampCmsEntChan.names = 0;
+
+        trampCmsEntPower.max = 0;
+
+        trampCmsUpdateStatusString();
+    }
+    trampCmsEntBand.val = &trampCmsBand;
+    trampCmsEntBand.names = vtxTableBandNames;
+
+    trampCmsEntChan.val = &trampCmsChan;
+    trampCmsEntChan.names = vtxTableChannelNames;
+
+    trampCmsEntPower.val = &trampCmsPower;
+    trampCmsEntPower.names = vtxTablePowerLabels;
+
+    return true;
+}
+
+static long trampCmsOnEnter(void)
+{
+    if (!trampCmsInitSettings()) {
+        return MENU_CHAIN_BACK;
+    }
+
+    return 0;
+}
+
+static long trampCmsCommenceOnEnter(void)
+{
+    if (!trampDeviceConfigured) {
+        return MENU_CHAIN_BACK;
+    }
+    return 0;
+}
+
+static const OSD_Entry trampCmsMenuCommenceEntries[] = {
+    { "CONFIRM", OME_Label,   NULL,          NULL, 0 },
+    { "YES",     OME_Funcall, trampCmsCommence, NULL, 0 },
+    { "BACK",    OME_Back, NULL, NULL, 0 },
+    { NULL,      OME_END, NULL, NULL, 0 }
+};
+
+static CMS_Menu trampCmsMenuCommence = {
+#ifdef CMS_MENU_DEBUG
+    .GUARD_text = "XVTXTRC",
+    .GUARD_type = OME_MENU,
+#endif
+    .onEnter = trampCmsCommenceOnEnter,
+    .onExit = NULL,
+    .entries = trampCmsMenuCommenceEntries,
+};
+
+static const OSD_Entry trampMenuEntries[] =
+{
+    { "- TRAMP -", OME_Label, NULL, NULL, 0 },
+
+    { "",       OME_Label,   NULL,                   trampCmsStatusString,  DYNAMIC },
+    { "PIT",    OME_TAB,     trampCmsSetPitMode,     &trampCmsEntPitMode,   0 },
+    { "BAND",   OME_TAB,     trampCmsConfigBand,     &trampCmsEntBand,      0 },
+    { "CHAN",   OME_TAB,     trampCmsConfigChan,     &trampCmsEntChan,      0 },
+    { "(FREQ)", OME_UINT16,  NULL,                   &trampCmsEntFreqRef,   DYNAMIC },
+    { "POWER",  OME_TAB,     trampCmsConfigPower,    &trampCmsEntPower,     0 },
+    { "T(C)",   OME_INT16,   NULL,                   &trampCmsEntTemp,      DYNAMIC },
+    { "SET",    OME_Submenu, cmsMenuChange,          &trampCmsMenuCommence, 0 },
+
+    { "BACK",   OME_Back, NULL, NULL, 0 },
+    { NULL,     OME_END, NULL, NULL, 0 }
+};
+
+CMS_Menu cmsx_menuVtxTramp = {
+#ifdef CMS_MENU_DEBUG
+    .GUARD_text = "XVTXTR",
+    .GUARD_type = OME_MENU,
+#endif
+    .onEnter = trampCmsOnEnter,
+    .onExit = NULL,
+    .entries = trampMenuEntries,
+};
+#endif
