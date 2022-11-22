@@ -38,6 +38,7 @@
 
 #define GYRO_SCALE_2000DPS (2000.0f / (1 << 15))   // 16.384 dps/lsb scalefactor for 2000dps sensors
 #define GYRO_SCALE_4000DPS (4000.0f / (1 << 15))   //  8.192 dps/lsb scalefactor for 4000dps sensors
+#define GYRO_VARIANCE_WINDOW 9
 
 typedef enum {
     GYRO_NONE = 0,
@@ -90,6 +91,18 @@ typedef enum {
     GYRO_EXTI_NO_INT
 } gyroModeSPI_e;
 
+typedef struct gyroVariance_s {
+    uint16_t windex;
+    uint16_t w;
+    float axisWindow[GYRO_VARIANCE_WINDOW];
+    float varianceWindow[GYRO_VARIANCE_WINDOW];
+    float axisSumVar;
+    float axisVar;
+    float axisSumMean;
+    float axisMean;
+    float inverseN;
+} gyroVariance_t;
+
 typedef struct gyroDev_s {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
     pthread_mutex_t lock;
@@ -128,6 +141,7 @@ typedef struct gyroDev_s {
     fp_rotationMatrix_t rotationMatrix;
     uint16_t gyroSampleRateHz;
     uint16_t accSampleRateHz;
+    gyroVariance_t variance[XYZ_AXIS_COUNT];
     uint8_t accDataReg;
     uint8_t gyroDataReg;
 } gyroDev_t;

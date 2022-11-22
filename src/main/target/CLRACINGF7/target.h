@@ -57,7 +57,7 @@
 #define GYRO_2_ALIGN            CW90_DEG
 //#define ACC_2_ALIGN             CW90_DEG
 
-#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_BOTH
+#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_BOTH_SIMPLE
 
 #define USE_MAG
 #define USE_MAG_HMC5883
@@ -161,4 +161,3 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT      9
 #define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5)  | TIM_N(8)   )
-
