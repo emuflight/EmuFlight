@@ -103,6 +103,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 
     //1st Dterm Lowpass Filter
     uint16_t dterm_lpf1_init_hz = pidProfile->dterm_lpf1_static_hz;
+    pidRuntime.dtermLowpassBiquadQ = pidProfile->dterm_lpf1_biquad_q / 100.0f;
 
 #ifdef USE_DYN_LPF
     if (pidProfile->dterm_lpf1_dyn_min_hz) {
@@ -126,7 +127,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
                 pidRuntime.dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApply;
 #endif
                 for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-                    biquadFilterInitLPF(&pidRuntime.dtermLowpass[axis].biquadFilter, dterm_lpf1_init_hz, targetPidLooptime);
+                    biquadFilterInit(&pidRuntime.dtermLowpass[axis].biquadFilter, dterm_lpf1_init_hz, targetPidLooptime, pidRuntime.dtermLowpassBiquadQ, FILTER_LPF, 1.0f);
                 }
             } else {
                 pidRuntime.dtermLowpassApplyFn = nullFilterApply;
@@ -165,7 +166,7 @@ void pidInitFilters(const pidProfile_t *pidProfile)
             if (pidProfile->dterm_lpf2_static_hz < pidFrequencyNyquist) {
                 pidRuntime.dtermLowpass2ApplyFn = (filterApplyFnPtr)biquadFilterApply;
                 for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-                    biquadFilterInitLPF(&pidRuntime.dtermLowpass2[axis].biquadFilter, pidProfile->dterm_lpf2_static_hz, targetPidLooptime);
+                    biquadFilterInit(&pidRuntime.dtermLowpass2[axis].biquadFilter, pidProfile->dterm_lpf2_static_hz, targetPidLooptime, pidProfile->dterm_lpf2_biquad_q / 100.0f, FILTER_LPF, 1.0f);
                 }
             } else {
                 pidRuntime.dtermLowpassApplyFn = nullFilterApply;
@@ -440,4 +441,3 @@ void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex)
         memcpy(pidProfilesMutable(dstPidProfileIndex), pidProfilesMutable(srcPidProfileIndex), sizeof(pidProfile_t));
     }
 }
-

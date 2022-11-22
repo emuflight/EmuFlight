@@ -180,7 +180,9 @@ void resetPidProfile(pidProfile_t *pidProfile)
             // reset the lowpass filter type to PT1 overriding the desired BIQUAD setting.
         .dterm_lpf2_static_hz = DTERM_LPF2_HZ_DEFAULT,   // second Dterm LPF ON by default
         .dterm_lpf1_type = FILTER_PT1,
+        .dterm_lpf1_biquad_q = 71,
         .dterm_lpf2_type = FILTER_PT1,
+        .dterm_lpf2_biquad_q = 71,
         .dterm_lpf1_dyn_min_hz = DTERM_LPF1_DYN_MIN_HZ_DEFAULT,
         .dterm_lpf1_dyn_max_hz = DTERM_LPF1_DYN_MAX_HZ_DEFAULT,
         .launchControlMode = LAUNCH_CONTROL_MODE_NORMAL,
@@ -1125,7 +1127,7 @@ void FAST_CODE pidController(const pidProfile_t *pidProfile, timeUs_t currentTim
         if (feedforwardGain > 0) {
             // halve feedforward in Level mode since stick sensitivity is weaker by about half
             feedforwardGain *= FLIGHT_MODE(ANGLE_MODE) ? 0.5f : 1.0f;
-            // transition now calculated in feedforward.c when new RC data arrives 
+            // transition now calculated in feedforward.c when new RC data arrives
             float feedForward = feedforwardGain * pidSetpointDelta * pidRuntime.pidFrequency;
 
 #ifdef USE_FEEDFORWARD
@@ -1261,7 +1263,7 @@ void dynLpfDTermUpdate(float throttle)
             break;
         case DYN_LPF_BIQUAD:
             for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-                biquadFilterUpdateLPF(&pidRuntime.dtermLowpass[axis].biquadFilter, cutoffFreq, targetPidLooptime);
+                biquadFilterUpdate(&pidRuntime.dtermLowpass[axis].biquadFilter, cutoffFreq, targetPidLooptime, pidRuntime.dtermLowpassBiquadQ, FILTER_LPF, 1.0f);
             }
             break;
         case DYN_LPF_PT2:
