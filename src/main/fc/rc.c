@@ -350,15 +350,15 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
         for (int i = 0; i < PRIMARY_CHANNEL_COUNT; i++) {
             if (i < THROTTLE) { // Throttle handled by smoothing rcCommand
                 if (!smoothingData->filterInitialized) {
-                    pt3FilterInit(&smoothingData->filter[i], pt3FilterGain(smoothingData->setpointCutoffFrequency, dT));
+                    ptnFilterInit(&smoothingData->filter[i], rxConfig()->rc_smoothing_order, smoothingData->setpointCutoffFrequency, dT);
                 } else {
-                    pt3FilterUpdateCutoff(&smoothingData->filter[i], pt3FilterGain(smoothingData->setpointCutoffFrequency, dT));
+                    ptnFilterUpdate(&smoothingData->filter[i], smoothingData->setpointCutoffFrequency, dT);
                 }
             } else {
                 if (!smoothingData->filterInitialized) {
-                    pt3FilterInit(&smoothingData->filter[i], pt3FilterGain(smoothingData->throttleCutoffFrequency, dT));
+                    ptnFilterInit(&smoothingData->filter[i], rxConfig()->rc_smoothing_order, smoothingData->throttleCutoffFrequency, dT);
                 } else {
-                    pt3FilterUpdateCutoff(&smoothingData->filter[i], pt3FilterGain(smoothingData->throttleCutoffFrequency, dT));
+                    ptnFilterUpdate(&smoothingData->filter[i], smoothingData->throttleCutoffFrequency, dT);
                 }
             }
         }
@@ -366,9 +366,9 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
         // initialize or update the Level filter
         for (int i = FD_ROLL; i < FD_YAW; i++) {
             if (!smoothingData->filterInitialized) {
-                pt3FilterInit(&smoothingData->filterDeflection[i], pt3FilterGain(smoothingData->setpointCutoffFrequency, dT));
+                ptnFilterInit(&smoothingData->filterDeflection[i], rxConfig()->rc_smoothing_order, smoothingData->setpointCutoffFrequency, dT);
             } else {
-                pt3FilterUpdateCutoff(&smoothingData->filterDeflection[i], pt3FilterGain(smoothingData->setpointCutoffFrequency, dT));
+                ptnFilterUpdate(&smoothingData->filterDeflection[i], smoothingData->setpointCutoffFrequency, dT);
             }
         }
     }
@@ -546,7 +546,7 @@ static FAST_CODE void processRcSmoothingFilter(void)
     for (int i = 0; i < PRIMARY_CHANNEL_COUNT; i++) {
         float *dst = i == THROTTLE ? &rcCommand[i] : &setpointRate[i];
         if (rcSmoothingData.filterInitialized) {
-            *dst = pt3FilterApply(&rcSmoothingData.filter[i], rxDataToSmooth[i]);
+            *dst = ptnFilterApply(&rcSmoothingData.filter[i], rxDataToSmooth[i]);
         } else {
             // If filter isn't initialized yet, as in smoothing off, use the actual unsmoothed rx channel data
             *dst = rxDataToSmooth[i];
@@ -557,7 +557,7 @@ static FAST_CODE void processRcSmoothingFilter(void)
     bool smoothingNeeded = (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && rcSmoothingData.filterInitialized;
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         if (smoothingNeeded && axis < FD_YAW) {
-            rcDeflectionSmoothed[axis] = pt3FilterApply(&rcSmoothingData.filterDeflection[axis], rcDeflection[axis]);
+            rcDeflectionSmoothed[axis] = ptnFilterApply(&rcSmoothingData.filterDeflection[axis], rcDeflection[axis]);
         } else {
             rcDeflectionSmoothed[axis] = rcDeflection[axis];
         }
@@ -586,7 +586,7 @@ FAST_CODE void processRcCommand(void)
 #endif
 
             float angleRate;
-            
+
 #ifdef USE_GPS_RESCUE
             if ((axis == FD_YAW) && FLIGHT_MODE(GPS_RESCUE_MODE)) {
                 // If GPS Rescue is active then override the setpointRate used in the

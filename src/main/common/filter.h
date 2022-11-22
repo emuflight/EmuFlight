@@ -63,6 +63,18 @@ typedef struct laggedMovingAverage_s {
     bool primed;
 } laggedMovingAverage_t;
 
+typedef struct simpleLowpassFilter_s {
+    int32_t fp;
+    int32_t beta;
+    int32_t fpShift;
+} simpleLowpassFilter_t;
+
+typedef struct ptnFilter_s {
+    float state[4];
+    float k;
+    uint8_t order;
+} ptnFilter_t;
+
 typedef enum {
     FILTER_PT1 = 0,
     FILTER_BIQUAD,
@@ -111,11 +123,9 @@ float pt3FilterApply(pt3Filter_t *filter, float input);
 void slewFilterInit(slewFilter_t *filter, float slewLimit, float threshold);
 float slewFilterApply(slewFilter_t *filter, float input);
 
-typedef struct simpleLowpassFilter_s {
-    int32_t fp;
-    int32_t beta;
-    int32_t fpShift;
-} simpleLowpassFilter_t;
-
 int32_t simpleLPFilterUpdate(simpleLowpassFilter_t *filter, int32_t newVal);
 void simpleLPFilterInit(simpleLowpassFilter_t *filter, int32_t beta, int32_t fpShift);
+
+void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT);
+void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float dt);
+float ptnFilterApply(ptnFilter_t *filter, float input);
