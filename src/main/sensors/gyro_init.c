@@ -266,6 +266,7 @@ void gyroInitFilters(void)
 #ifdef USE_DYN_NOTCH_FILTER
     dynNotchInit(dynNotchConfig(), gyro.targetLooptime);
 #endif
+    kalman_init();
 }
 
 #if defined(USE_GYRO_SLEW_LIMITER)
@@ -580,6 +581,7 @@ bool gyroInit(void)
     case DEBUG_GYRO_FILTERED:
     case DEBUG_DYN_LPF:
     case DEBUG_GYRO_SAMPLE:
+    case DEBUG_KALMAN:
         gyro.gyroDebugMode = debugMode;
         break;
     case DEBUG_DUAL_GYRO_DIFF:
