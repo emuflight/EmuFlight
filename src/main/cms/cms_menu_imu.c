@@ -777,6 +777,12 @@ static uint16_t dtermLpfDynMax;
 static uint8_t dtermLpfDynExpo;
 #endif
 
+#ifdef USE_SMITH_PREDICTOR
+static uint8_t smithPredictor_strength;
+static uint8_t smithPredictor_delay;
+static uint16_t smithPredictor_filt_hz;
+#endif // USE_SMITH_PREDICTOR
+
 static const void *cmsx_menuDynFilt_onEnter(displayPort_t *pDisp)
 {
     UNUSED(pDisp);
@@ -795,6 +801,12 @@ static const void *cmsx_menuDynFilt_onEnter(displayPort_t *pDisp)
     dtermLpfDynMin  = pidProfile->dterm_lpf1_dyn_min_hz;
     dtermLpfDynMax  = pidProfile->dterm_lpf1_dyn_max_hz;
     dtermLpfDynExpo = pidProfile->dterm_lpf1_dyn_expo;
+#endif
+
+#ifdef USE_SMITH_PREDICTOR
+    smithPredictor_strength  = gyroConfig()->smithPredictorStrength;
+    smithPredictor_delay     = gyroConfig()->smithPredictorDelay;
+    smithPredictor_filt_hz   = gyroConfig()->smithPredictorFilterHz;
 #endif
 
     return NULL;
@@ -821,6 +833,12 @@ static const void *cmsx_menuDynFilt_onExit(displayPort_t *pDisp, const OSD_Entry
     pidProfile->dterm_lpf1_dyn_expo           = dtermLpfDynExpo;
 #endif
 
+#ifdef USE_SMITH_PREDICTOR
+    gyroConfigMutable()->smithPredictorStrength = smithPredictor_strength;
+    gyroConfigMutable()->smithPredictorDelay = smithPredictor_delay;
+    gyroConfigMutable()->smithPredictorFilterHz = smithPredictor_filt_hz;
+#endif
+
     return NULL;
 }
 
@@ -844,6 +862,11 @@ static const OSD_Entry cmsx_menuDynFiltEntries[] =
     { "DTERM DLPF EXPO", OME_UINT8, NULL, &(OSD_UINT8_t) { &dtermLpfDynExpo,  0, 10, 1 } },
 #endif
 
+#ifdef USE_SMITH_PREDICTOR
+    { "SMITH STR",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_strength,    0, 100, 1 } },
+    { "SMITH DELAY",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_delay,       0, 60, 1 } },
+    { "SMITH FILT",      OME_UINT16,  NULL, &(OSD_UINT16_t)  { &smithPredictor_filt_hz,   1, 1000, 1 } },
+#endif
     { "BACK", OME_Back, NULL, NULL },
     { NULL, OME_END, NULL, NULL}
 };
