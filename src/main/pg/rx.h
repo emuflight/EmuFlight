@@ -50,12 +50,15 @@ typedef struct rxConfig_s {
     uint8_t rssi_src_frame_errors;             // true to use frame drop flags in the rx protocol
     int8_t rssi_offset;                        // offset applied to the RSSI value before it is returned
     uint8_t rc_smoothing_mode;                 // Whether filter based rc smoothing is on or off
+    uint8_t rc_smoothing_order;                // choose from pt1-pt4 for rc smoothing
     uint8_t rc_smoothing_setpoint_cutoff;      // Filter cutoff frequency for the setpoint filter (0 = auto)
     uint8_t rc_smoothing_feedforward_cutoff;   // Filter cutoff frequency for the feedforward filter (0 = auto)
     uint8_t rc_smoothing_throttle_cutoff;      // Filter cutoff frequency for the setpoint filter (0 = auto)
     uint8_t rc_smoothing_debug_axis;           // Axis to log as debug values when debug_mode = RC_SMOOTHING
     uint8_t rc_smoothing_auto_factor_rpy;      // Used to adjust the "smoothness" determined by the auto cutoff calculations
     uint8_t rc_smoothing_auto_factor_throttle; // Used to adjust the "smoothness" determined by the auto cutoff calculations
+    uint8_t rcVelocityCutoffBoost;
+    uint8_t rcVelocityCutoff;
     uint8_t rssi_src_frame_lpf_period;         // Period of the cutoff frequency for the source frame RSSI filter (in 0.1 s)
     uint8_t srxl2_unit_id;                     // Spektrum SRXL2 RX unit id
     uint8_t srxl2_baud_fast;                   // Select Spektrum SRXL2 fast baud rate

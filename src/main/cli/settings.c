@@ -756,12 +756,15 @@ const clivalue_t valueTable[] = {
 
 #ifdef USE_RC_SMOOTHING_FILTER
     { PARAM_NAME_RC_SMOOTHING,                   VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_mode) },
+    { "rc_smoothing_order",                      VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 1, 3 }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_mode) },
     { PARAM_NAME_RC_SMOOTHING_AUTO_FACTOR,       VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { RC_SMOOTHING_AUTO_FACTOR_MIN, RC_SMOOTHING_AUTO_FACTOR_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_auto_factor_rpy) },
     { PARAM_NAME_RC_SMOOTHING_AUTO_FACTOR_THROTTLE, VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { RC_SMOOTHING_AUTO_FACTOR_MIN, RC_SMOOTHING_AUTO_FACTOR_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_auto_factor_throttle) },
     { PARAM_NAME_RC_SMOOTHING_SETPOINT_CUTOFF,    VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_setpoint_cutoff) },
     { PARAM_NAME_RC_SMOOTHING_FEEDFORWARD_CUTOFF, VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_feedforward_cutoff) },
     { PARAM_NAME_RC_SMOOTHING_THROTTLE_CUTOFF,    VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_throttle_cutoff) },
     { PARAM_NAME_RC_SMOOTHING_DEBUG_AXIS,         VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RC_SMOOTHING_DEBUG }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_debug_axis) },
+    { "rc_velocity_boost_cutoff_hz",              VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 1, 255 }, PG_RX_CONFIG, offsetof(rxConfig_t, rcVelocityCutoff) },
+    { "rc_velocity_boost",                        VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 255 }, PG_RX_CONFIG, offsetof(rxConfig_t, rcVelocityCutoffBoost) },
 #endif // USE_RC_SMOOTHING_FILTER
 
     { "fpv_mix_degrees",             VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 0, 90 }, PG_RX_CONFIG, offsetof(rxConfig_t, fpvCamAngleDegrees) },
