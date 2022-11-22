@@ -288,7 +288,7 @@ scheduler_unittest_SRC := \
 		$(USER_DIR)/common/streambuf.c
 
 scheduler_unittest_DEFINES := \
-		USE_OSD= 
+		USE_OSD=
 
 sensor_gyro_unittest_SRC := \
 		$(USER_DIR)/sensors/gyro.c \
@@ -402,7 +402,6 @@ pid_unittest_SRC :=  \
 pid_unittest_DEFINES := \
 		USE_ITERM_RELAX= \
 		USE_RC_SMOOTHING_FILTER= \
-		USE_ABSOLUTE_CONTROL= \
 		USE_LAUNCH_CONTROL= \
 		USE_FEEDFORWARD=
 
