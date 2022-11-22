@@ -45,9 +45,6 @@
 #include "config/config.h"
 #include "fc/runtime_config.h"
 
-#ifdef USE_DYN_NOTCH_FILTER
-#include "flight/dyn_notch_filter.h"
-#endif
 #include "flight/rpm_filter.h"
 
 #include "io/beeper.h"
@@ -110,7 +107,7 @@ void pgResetFn_gyroConfig(gyroConfig_t *gyroConfig)
     gyroConfig->gyroMovementCalibrationThreshold = 48;
     gyroConfig->gyro_hardware_lpf = GYRO_HARDWARE_LPF_NORMAL;
     gyroConfig->gyro_lpf1_type = FILTER_PT1;
-    gyroConfig->gyro_lpf1_static_hz = GYRO_LPF1_DYN_MIN_HZ_DEFAULT;  
+    gyroConfig->gyro_lpf1_static_hz = GYRO_LPF1_DYN_MIN_HZ_DEFAULT;
         // NOTE: dynamic lpf is enabled by default so this setting is actually
         // overridden and the static lowpass 1 is disabled. We can't set this
         // value to 0 otherwise Configurator versions 10.4 and earlier will also
@@ -471,12 +468,6 @@ FAST_CODE void gyroFiltering(timeUs_t currentTimeUs)
     } else {
         filterGyroDebug();
     }
-
-#ifdef USE_DYN_NOTCH_FILTER
-    if (isDynNotchActive()) {
-        dynNotchUpdate();
-    }
-#endif
 
     if (gyro.useDualGyroDebugging) {
         switch (gyro.gyroToUse) {

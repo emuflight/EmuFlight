@@ -39,6 +39,9 @@
 #include "flight/feedforward.h"
 #include "flight/pid.h"
 #include "flight/rpm_filter.h"
+#ifdef USE_DYN_NOTCH_FILTER
+#include "flight/dyn_notch_filter.h"
+#endif
 
 #include "sensors/gyro.h"
 #include "sensors/sensors.h"
@@ -238,6 +241,9 @@ void pidInitFilters(const pidProfile_t *pidProfile)
 
     pt1FilterInit(&pidRuntime.antiGravityThrottleLpf, pt1FilterGain(ANTI_GRAVITY_THROTTLE_FILTER_CUTOFF, pidRuntime.dT));
     pt1FilterInit(&pidRuntime.antiGravitySmoothLpf, pt1FilterGain(ANTI_GRAVITY_SMOOTH_FILTER_CUTOFF, pidRuntime.dT));
+    #ifdef USE_DYN_NOTCH_FILTER
+        dynNotchInit(dynNotchConfig(), targetPidLooptime);
+    #endif
 }
 
 void pidInit(const pidProfile_t *pidProfile)
@@ -440,4 +446,3 @@ void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex)
         memcpy(pidProfilesMutable(dstPidProfileIndex), pidProfilesMutable(srcPidProfileIndex), sizeof(pidProfile_t));
     }
 }
-

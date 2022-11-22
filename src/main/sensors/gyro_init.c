@@ -63,10 +63,6 @@
 
 #include "fc/runtime_config.h"
 
-#ifdef USE_DYN_NOTCH_FILTER
-#include "flight/dyn_notch_filter.h"
-#endif
-
 #include "pg/gyrodev.h"
 
 #include "sensors/gyro.h"
@@ -262,9 +258,6 @@ void gyroInitFilters(void)
     gyroInitFilterNotch2(gyroConfig()->gyro_soft_notch_hz_2, gyroConfig()->gyro_soft_notch_cutoff_2);
 #ifdef USE_DYN_LPF
     dynLpfFilterInit();
-#endif
-#ifdef USE_DYN_NOTCH_FILTER
-    dynNotchInit(dynNotchConfig(), gyro.targetLooptime);
 #endif
 }
 
