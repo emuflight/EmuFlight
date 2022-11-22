@@ -386,7 +386,7 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
 
     osdConfig->stat_show_cell_value = false;
     osdConfig->framerate_hz = OSD_FRAMERATE_DEFAULT_HZ;
-    osdConfig->cms_background_type = DISPLAY_BACKGROUND_TRANSPARENT;
+    osdConfig->cms_background_type = DISPLAY_BACKGROUND_BLACK;
 }
 
 void pgResetFn_osdElementConfig(osdElementConfig_t *osdElementConfig)
@@ -739,7 +739,7 @@ static bool osdDisplayStat(int statistic, uint8_t displayRow)
         osdDisplayStatisticLabel(displayRow, osdConfig()->stat_show_cell_value ? "END AVG CELL" : "END BATTERY", buff);
         return true;
 
-    case OSD_STAT_BATTERY: 
+    case OSD_STAT_BATTERY:
         {
             const uint16_t statsVoltage = getStatsVoltage();
             osdPrintFloat(buff, SYM_NONE, statsVoltage / 100.0f, "", 2, true, SYM_VOLT);
@@ -747,7 +747,7 @@ static bool osdDisplayStat(int statistic, uint8_t displayRow)
             return true;
         }
         break;
-        
+
     case OSD_STAT_MIN_RSSI:
         itoa(stats.min_rssi, buff, 10);
         strcat(buff, "%");

@@ -41,6 +41,7 @@
 #include "common/maths.h"
 #include "common/sdft.h"
 #include "common/utils.h"
+#include "common/auto_notch.h"
 
 #include "config/feature.h"
 
@@ -125,7 +126,7 @@ typedef struct dynNotch_s {
     float centerFreq[XYZ_AXIS_COUNT][DYN_NOTCH_COUNT_MAX];
 
     timeUs_t looptimeUs;
-    biquadFilter_t notch[XYZ_AXIS_COUNT][DYN_NOTCH_COUNT_MAX];
+    autoNotch_t notch[XYZ_AXIS_COUNT][DYN_NOTCH_COUNT_MAX];
 
 } dynNotch_t;
 
@@ -196,7 +197,7 @@ void dynNotchInit(const dynNotchConfig_t *config, const timeUs_t targetLooptimeU
         for (int p = 0; p < dynNotch.count; p++) {
             // any init value is fine, but evenly spreading centerFreqs across frequency range makes notch filters stick to peaks quicker
             dynNotch.centerFreq[axis][p] = (p + 0.5f) * (dynNotch.maxHz - dynNotch.minHz) / (float)dynNotch.count + dynNotch.minHz;
-            biquadFilterInit(&dynNotch.notch[axis][p], dynNotch.centerFreq[axis][p], dynNotch.looptimeUs, dynNotch.q, FILTER_NOTCH, 1.0f);
+            initAutoNotch(&dynNotch.notch[axis][p], dynNotch.centerFreq[axis][p], dynNotch.q, config->noise_limit, dynNotch.looptimeUs);
         }
     }
 }
@@ -388,7 +389,7 @@ static FAST_CODE_NOINLINE void dynNotchProcess(void)
                 // Only update notch filter coefficients if the corresponding peak got its center frequency updated in the previous step
                 if (peaks[p].bin != 0 && peaks[p].value > sdftNoiseThreshold) {
                   // todo update autonotch crossfade value
-                    biquadFilterUpdate(&dynNotch.notch[state.axis][p], dynNotch.centerFreq[state.axis][p], dynNotch.looptimeUs, dynNotch.q, FILTER_NOTCH, 1.0f);
+                    updateAutoNotch(&dynNotch.notch[state.axis][p], dynNotch.centerFreq[state.axis][p], dynNotch.q, 1.0f, dynNotch.looptimeUs);
                 }
             }
 
@@ -404,12 +405,7 @@ static FAST_CODE_NOINLINE void dynNotchProcess(void)
 FAST_CODE float dynNotchFilter(const int axis, float value)
 {
     for (int p = 0; p < dynNotch.count; p++) {
-        float preFiltered = value;
-        value = biquadFilterApplyDF1Weighted(&dynNotch.notch[axis][p], value);
-        float postFiltered = value;
-
-        // TODO add new data to the auto_notch here
-
+        value = applyAutoNotch(&dynNotch.notch[axis][p], value);
     }
 
     return value;
