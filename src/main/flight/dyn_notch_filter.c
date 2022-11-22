@@ -83,7 +83,7 @@
 // Each SDFT output bin has width sdftSampleRateHz/72, ie 18.5Hz per bin at 1333Hz.
 // Usable bandwidth is half this, ie 666Hz if sdftSampleRateHz is 1333Hz, i.e. bin 1 is 18.5Hz, bin 2 is 37.0Hz etc.
 
-#define DYN_NOTCH_SMOOTH_HZ        4
+#define DYN_NOTCH_SMOOTH_HZ        8
 #define DYN_NOTCH_CALC_TICKS       (XYZ_AXIS_COUNT * STEP_COUNT) // 3 axes and 4 steps per axis
 #define DYN_NOTCH_OSD_MIN_THROTTLE 20
 #define DYN_NOTCH_UPDATE_MIN_HZ    2000
@@ -343,21 +343,21 @@ static FAST_CODE_NOINLINE void dynNotchProcess(void)
                     float meanBin = peaks[p].bin;
 
                     // Height of peak bin (y1) and shoulder bins (y0, y2)
-                    const float y0 = sdftData[peaks[p].bin - 1];
+                    const float y0 = sdftData[peaks[p].bin - 1] * 0.95;
                     const float y1 = sdftData[peaks[p].bin];
-                    const float y2 = sdftData[peaks[p].bin + 1];
+                    const float y2 = sdftData[peaks[p].bin + 1] * 1.25;
 
-                    // Estimate true peak position aka. meanBin (fit parabola y(x) over y0, y1 and y2, solve dy/dx=0 for x)
-                    const float denom = 2.0f * (y0 - 2 * y1 + y2);
-                    if (denom != 0.0f) {
-                        meanBin += (y0 - y2) / denom;
+                    // Estimate true peak position
+                    const float denom = y0 + y1 + y2;
+                    if (denom != 0.0f) { 
+                        meanBin += (y2 - y0) / denom;
                     }
 
                     // Convert bin to frequency: freq = bin * binResoultion (bin 0 is 0Hz)
                     const float centerFreq = constrainf(meanBin * sdftResolutionHz, dynNotch.minHz, dynNotch.maxHz);
 
-                    // PT1 style smoothing moves notch center freqs rapidly towards big peaks and slowly away, up to 10x faster 
-                    const float cutoffMult = constrainf(peaks[p].value / sdftNoiseThreshold, 1.0f, 10.0f);
+                    // PT1 style smoothing moves notch center freqs rapidly towards big peaks and slowly away, up to 5x faster 
+                    const float cutoffMult = constrainf((peaks[p].value * 0.5) / sdftNoiseThreshold, 1.0f, 5.0f);
                     const float gain = pt1FilterGain(DYN_NOTCH_SMOOTH_HZ * cutoffMult, pt1LooptimeS); // dynamic PT1 k value
 
                     // Finally update notch center frequency p on current axis
