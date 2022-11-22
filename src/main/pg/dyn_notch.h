@@ -30,6 +30,7 @@ typedef struct dynNotchConfig_s
     uint16_t dyn_notch_max_hz;
     uint16_t dyn_notch_q;
     uint8_t  dyn_notch_count;
+    uint8_t  noise_limit;
 
 } dynNotchConfig_t;
 

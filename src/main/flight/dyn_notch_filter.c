@@ -19,11 +19,11 @@
  */
 
 /* original work by Rav
- * 
+ *
  * 2018_07 updated by ctzsnooze to post filter, wider Q, different peak detection
  * coding assistance and advice from DieHertz, Rav, eTracer
  * test pilots icr4sh, UAV Tech, Flint723
- * 
+ *
  * 2021_02 updated by KarateBrot: switched FFT with SDFT, multiple notches per axis
  * test pilots: Sugar K, bizmar
  */
@@ -41,6 +41,7 @@
 #include "common/maths.h"
 #include "common/sdft.h"
 #include "common/utils.h"
+#include "common/auto_notch.h"
 
 #include "config/feature.h"
 
@@ -123,9 +124,9 @@ typedef struct dynNotch_s {
 
     int maxCenterFreq;
     float centerFreq[XYZ_AXIS_COUNT][DYN_NOTCH_COUNT_MAX];
-    
+
     timeUs_t looptimeUs;
-    biquadFilter_t notch[XYZ_AXIS_COUNT][DYN_NOTCH_COUNT_MAX];
+    autoNotch_t notch[XYZ_AXIS_COUNT][DYN_NOTCH_COUNT_MAX];
 
 } dynNotch_t;
 
@@ -196,7 +197,7 @@ void dynNotchInit(const dynNotchConfig_t *config, const timeUs_t targetLooptimeU
         for (int p = 0; p < dynNotch.count; p++) {
             // any init value is fine, but evenly spreading centerFreqs across frequency range makes notch filters stick to peaks quicker
             dynNotch.centerFreq[axis][p] = (p + 0.5f) * (dynNotch.maxHz - dynNotch.minHz) / (float)dynNotch.count + dynNotch.minHz;
-            biquadFilterInit(&dynNotch.notch[axis][p], dynNotch.centerFreq[axis][p], dynNotch.looptimeUs, dynNotch.q, FILTER_NOTCH, 1.0f);
+            initAutoNotch(&dynNotch.notch[axis][p], dynNotch.centerFreq[axis][p], dynNotch.q, config->noise_limit, dynNotch.looptimeUs);
         }
     }
 }
@@ -258,11 +259,11 @@ static FAST_CODE_NOINLINE void dynNotchProcess(void)
     DEBUG_SET(DEBUG_FFT_TIME, 0, state.step);
 
     switch (state.step) {
-    
+
         case STEP_WINDOW: // 4.1us (3-6us) @ F722
         {
             sdftWinSq(&sdft[state.axis], sdftData);
-            
+
             // Get total vibrational power in dyn notch range for noise floor estimate in STEP_CALC_FREQUENCIES
             sdftNoiseThreshold = 0.0f;
             for (int bin = (sdftStartBin + 1); bin < sdftEndBin; bin++) {   // don't use startBin or endBin because they are not windowed properly
@@ -356,7 +357,7 @@ static FAST_CODE_NOINLINE void dynNotchProcess(void)
                     // Convert bin to frequency: freq = bin * binResoultion (bin 0 is 0Hz)
                     const float centerFreq = constrainf(meanBin * sdftResolutionHz, dynNotch.minHz, dynNotch.maxHz);
 
-                    // PT1 style smoothing moves notch center freqs rapidly towards big peaks and slowly away, up to 10x faster 
+                    // PT1 style smoothing moves notch center freqs rapidly towards big peaks and slowly away, up to 10x faster
                     const float cutoffMult = constrainf(peaks[p].value / sdftNoiseThreshold, 1.0f, 10.0f);
                     const float gain = pt1FilterGain(DYN_NOTCH_SMOOTH_HZ * cutoffMult, pt1LooptimeS); // dynamic PT1 k value
 
@@ -387,7 +388,8 @@ static FAST_CODE_NOINLINE void dynNotchProcess(void)
             for (int p = 0; p < dynNotch.count; p++) {
                 // Only update notch filter coefficients if the corresponding peak got its center frequency updated in the previous step
                 if (peaks[p].bin != 0 && peaks[p].value > sdftNoiseThreshold) {
-                    biquadFilterUpdate(&dynNotch.notch[state.axis][p], dynNotch.centerFreq[state.axis][p], dynNotch.looptimeUs, dynNotch.q, FILTER_NOTCH, 1.0f);
+                  // todo update autonotch crossfade value
+                    updateAutoNotch(&dynNotch.notch[state.axis][p], dynNotch.centerFreq[state.axis][p], dynNotch.q, 1.0f, dynNotch.looptimeUs);
                 }
             }
 
@@ -400,10 +402,10 @@ static FAST_CODE_NOINLINE void dynNotchProcess(void)
     state.step = (state.step + 1) % STEP_COUNT;
 }
 
-FAST_CODE float dynNotchFilter(const int axis, float value) 
+FAST_CODE float dynNotchFilter(const int axis, float value)
 {
     for (int p = 0; p < dynNotch.count; p++) {
-        value = biquadFilterApplyDF1(&dynNotch.notch[axis][p], value);
+        value = applyAutoNotch(&dynNotch.notch[axis][p], value);
     }
 
     return value;

@@ -693,6 +693,7 @@ const clivalue_t valueTable[] = {
 #if defined(USE_DYN_NOTCH_FILTER)
     { PARAM_NAME_DYN_NOTCH_COUNT,   VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 0, DYN_NOTCH_COUNT_MAX }, PG_DYN_NOTCH_CONFIG, offsetof(dynNotchConfig_t, dyn_notch_count) },
     { PARAM_NAME_DYN_NOTCH_Q,       VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 1, 1000 }, PG_DYN_NOTCH_CONFIG, offsetof(dynNotchConfig_t, dyn_notch_q) },
+    { "dyn_notch_noise_limit",      VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 255 }, PG_DYN_NOTCH_CONFIG, offsetof(dynNotchConfig_t, noise_limit) },
     { PARAM_NAME_DYN_NOTCH_MIN_HZ,  VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 20, 250 }, PG_DYN_NOTCH_CONFIG, offsetof(dynNotchConfig_t, dyn_notch_min_hz) },
     { PARAM_NAME_DYN_NOTCH_MAX_HZ,  VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 200, 1000 }, PG_DYN_NOTCH_CONFIG, offsetof(dynNotchConfig_t, dyn_notch_max_hz) },
 #endif
@@ -1700,6 +1701,7 @@ const clivalue_t valueTable[] = {
 #ifdef USE_RPM_FILTER
     { PARAM_NAME_RPM_FILTER_HARMONICS,     VAR_UINT8 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 3 }, PG_RPM_FILTER_CONFIG, offsetof(rpmFilterConfig_t, rpm_filter_harmonics) },
     { PARAM_NAME_RPM_FILTER_Q,             VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 250, 3000 }, PG_RPM_FILTER_CONFIG, offsetof(rpmFilterConfig_t, rpm_filter_q) },
+    { "rpm_noise_limit",                   VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 1, 255 }, PG_RPM_FILTER_CONFIG, offsetof(rpmFilterConfig_t, noise_limit) },
     { PARAM_NAME_RPM_FILTER_MIN_HZ,        VAR_UINT8 | MASTER_VALUE, .config.minmaxUnsigned = { 30, 200 }, PG_RPM_FILTER_CONFIG, offsetof(rpmFilterConfig_t, rpm_filter_min_hz) },
     { PARAM_NAME_RPM_FILTER_FADE_RANGE_HZ, VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 0, 1000 }, PG_RPM_FILTER_CONFIG, offsetof(rpmFilterConfig_t, rpm_filter_fade_range_hz) },
     { PARAM_NAME_RPM_FILTER_LPF_HZ,        VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { 100, 500 }, PG_RPM_FILTER_CONFIG, offsetof(rpmFilterConfig_t, rpm_filter_lpf_hz) },

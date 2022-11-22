@@ -31,6 +31,7 @@
 #include "common/filter.h"
 #include "common/maths.h"
 #include "common/time.h"
+#include "common/auto_notch.h"
 
 #include "drivers/dshot.h"
 
@@ -62,7 +63,7 @@ typedef struct rpmNotchFilter_s {
     float    q;
     timeUs_t looptimeUs;
 
-    biquadFilter_t notch[XYZ_AXIS_COUNT][MAX_SUPPORTED_MOTORS][RPM_FILTER_MAXHARMONICS];
+    autoNotch_t notch[XYZ_AXIS_COUNT][MAX_SUPPORTED_MOTORS][RPM_FILTER_MAXHARMONICS];
 
 } rpmNotchFilter_t;
 
@@ -94,6 +95,8 @@ void pgResetFn_rpmFilterConfig(rpmFilterConfig_t *config)
     config->rpm_filter_q = 500;
 
     config->rpm_filter_lpf_hz = 150;
+
+    config->noise_limit = 30;
 }
 
 static void rpmNotchFilterInit(rpmNotchFilter_t *filter, const rpmFilterConfig_t *config, const timeUs_t looptimeUs)
@@ -108,8 +111,8 @@ static void rpmNotchFilterInit(rpmNotchFilter_t *filter, const rpmFilterConfig_t
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
         for (int motor = 0; motor < getMotorCount(); motor++) {
             for (int i = 0; i < filter->harmonics; i++) {
-                biquadFilterInit(
-                    &filter->notch[axis][motor][i], filter->minHz * i, filter->looptimeUs, filter->q, FILTER_NOTCH, 0.0f);
+                initAutoNotch(
+                    &filter->notch[axis][motor][i], filter->minHz * i, filter->q, config->noise_limit, filter->looptimeUs);
             }
         }
     }
@@ -153,7 +156,7 @@ static float applyFilter(rpmNotchFilter_t *filter, const int axis, float value)
     }
     for (int motor = 0; motor < getMotorCount(); motor++) {
         for (int i = 0; i < filter->harmonics; i++) {
-            value = biquadFilterApplyDF1Weighted(&filter->notch[axis][motor][i], value);
+            value = applyAutoNotch(&filter->notch[axis][motor][i], value);
         }
     }
     return value;
@@ -183,31 +186,32 @@ FAST_CODE_NOINLINE void rpmFilterUpdate(void)
 
         float frequency = constrainf(
             (currentHarmonic + 1) * motorFrequency[currentMotor], currentFilter->minHz, currentFilter->maxHz);
-        biquadFilter_t *template = &currentFilter->notch[0][currentMotor][currentHarmonic];
+        autoNotch_t *template = &currentFilter->notch[0][currentMotor][currentHarmonic];
         // uncomment below to debug filter stepping. Need to also comment out motor rpm DEBUG_SET above
         /* DEBUG_SET(DEBUG_RPM_FILTER, 0, harmonic); */
         /* DEBUG_SET(DEBUG_RPM_FILTER, 1, motor); */
         /* DEBUG_SET(DEBUG_RPM_FILTER, 2, currentFilter == &gyroFilter); */
         /* DEBUG_SET(DEBUG_RPM_FILTER, 3, frequency) */
-        
+
         // fade out notch when approaching minHz (turn it off)
         float weight = 1.0f;
         if (frequency < currentFilter->minHz + currentFilter->fadeRangeHz) {
             weight = (frequency - currentFilter->minHz) / currentFilter->fadeRangeHz;
         }
 
-        biquadFilterUpdate(
-            template, frequency, currentFilter->looptimeUs, currentFilter->q, FILTER_NOTCH, weight);
+        updateAutoNotch(
+            template, frequency, currentFilter->q, weight, currentFilter->looptimeUs);
 
         for (int axis = 1; axis < XYZ_AXIS_COUNT; axis++) {
-            biquadFilter_t *clone = &currentFilter->notch[axis][currentMotor][currentHarmonic];
-            clone->b0 = template->b0;
-            clone->b1 = template->b1;
-            clone->b2 = template->b2;
-            clone->a1 = template->a1;
-            clone->a2 = template->a2;
-            clone->weight = template->weight;
-        }
+            autoNotch_t *clone = &currentFilter->notch[axis][currentMotor][currentHarmonic];
+            clone->notchFilter.b0 = template->notchFilter.b0;
+            clone->notchFilter.b1 = template->notchFilter.b1;
+            clone->notchFilter.b2 = template->notchFilter.b2;
+            clone->notchFilter.a1 = template->notchFilter.a1;
+            clone->notchFilter.a2 = template->notchFilter.a2;
+
+            updateWeight(clone, frequency, weight);
+            }
 
         if (++currentHarmonic == currentFilter->harmonics) {
             currentHarmonic = 0;
