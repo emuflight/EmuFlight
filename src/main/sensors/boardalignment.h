@@ -37,3 +37,5 @@ void alignSensorViaMatrix(float *dest, fp_rotationMatrix_t* rotationMatrix);
 void alignSensorViaRotation(float *dest, uint8_t rotation);
 
 void initBoardAlignment(const boardAlignment_t *boardAlignment);
+
+bool isBoardAlignmentStandard(const boardAlignment_t *boardAlignment); // HELIOSPRING

@@ -67,6 +67,7 @@
 #include "drivers/serial.h"
 #include "drivers/serial_softserial.h"
 #include "drivers/serial_uart.h"
+#include "drivers/serial_usb_vcp.h" // HELIOSPRING
 #include "drivers/sdcard.h"
 #include "drivers/sdio.h"
 #include "drivers/sound_beeper.h"
@@ -81,6 +82,14 @@
 #include "drivers/vtx_common.h"
 #include "drivers/vtx_rtc6705.h"
 #include "drivers/vtx_table.h"
+
+// HELIOSPRING
+#ifdef USE_DMA_SPI_DEVICE
+#include "drivers/dma_spi.h"
+#endif //USE_DMA_SPI_DEVICE
+#ifdef USE_GYRO_IMUF9001
+#include "drivers/accgyro/accgyro_imuf9001.h"
+#endif //USE_GYRO_IMUF9001
 
 #include "fc/board_info.h"
 #include "fc/config.h"
@@ -223,6 +232,9 @@ static void configureSPIAndQuadSPI(void)
 #ifdef USE_SPI_DEVICE_1
     spiInit(SPIDEV_1);
 #endif
+#ifdef USE_DMA_SPI_DEVICE // HELIOSPRING
+    dmaSpiInit();
+#endif
 #ifdef USE_SPI_DEVICE_2
     spiInit(SPIDEV_2);
 #endif
@@ -263,6 +275,14 @@ void init(void)
 #endif
 
     systemInit();
+
+// HELIOSPRING
+#ifdef USE_GYRO_IMUF9001
+    if (isMPUSoftReset()) {
+        // reset imuf before befhal mucks with the pins
+        initImuf9001();
+    }
+#endif
 
     // initialize IO (needed for all IO operations)
     IOInitGlobal();
@@ -486,6 +506,23 @@ void init(void)
 #endif
 
 #ifdef USE_OVERCLOCK
+// HELIOSPRING
+#if defined(STM32F3) && defined(USE_VCP)
+    if (systemConfig()->cpu_overclock > OVERCLOCK_128MHZ) {
+        usbVcpOpen();
+        uint32_t us = micros();
+        bool usbConnected = false;
+        while(cmpTimeUs(micros(), us) < 1500000 && !usbConnected) {
+            usbConnected = usbVcpIsConnected() != 0;
+        }
+    
+        /* void indicate(uint8_t count, uint16_t duration); */
+        /* indicate((RCC->CFGR & (0xf << 18)) >> 18, 500); */
+        if (!usbConnected) {
+            OverclockRebootIfNecessary(systemConfig()->cpu_overclock);
+        }
+    } else 
+#endif
     OverclockRebootIfNecessary(systemConfig()->cpu_overclock);
 #endif
 

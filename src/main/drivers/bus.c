@@ -29,6 +29,9 @@
 
 bool busWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data)
 {
+#ifdef USE_DMA_SPI_DEVICE // HELIOSPRING
+    return spiBusWriteRegister(busdev, reg & 0x7f, data);
+#else // not HELIOSPRING
 #if !defined(USE_SPI) && !defined(USE_I2C)
     UNUSED(reg);
     UNUSED(data);
@@ -50,7 +53,9 @@ bool busWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data)
     default:
         return false;
     }
+#endif // not HELIOSPRING
 }
+
 
 bool busWriteRegisterStart(const busDevice_t *busdev, uint8_t reg, uint8_t data)
 {
@@ -157,6 +162,11 @@ bool busBusy(const busDevice_t *busdev, bool *error)
 
 uint8_t busReadRegister(const busDevice_t *busdev, uint8_t reg)
 {
+#ifdef USE_DMA_SPI_DEVICE // HELIOSPRING
+    uint8_t data;
+    busReadRegisterBuffer(busdev, reg, &data, 1);
+    return data;
+#else // not HELIOSPRING
 #if !defined(USE_SPI) && !defined(USE_I2C)
     UNUSED(busdev);
     UNUSED(reg);
@@ -166,4 +176,5 @@ uint8_t busReadRegister(const busDevice_t *busdev, uint8_t reg)
     busReadRegisterBuffer(busdev, reg, &data, 1);
     return data;
 #endif
+#endif // HELIOSPRING
 }

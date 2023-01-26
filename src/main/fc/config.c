@@ -82,6 +82,11 @@
 
 #include "common/sensor_alignment.h"
 
+// HELIOSPRING
+#ifdef USE_GYRO_IMUF9001
+#include "drivers/accgyro/accgyro_imuf9001.h"
+#endif
+
 static bool configIsDirty; /* someone indicated that the config is modified and it is not yet saved */
 
 static bool rebootRequired = false;  // set if a config change requires a reboot to take effect
@@ -178,6 +183,33 @@ static void adjustFilterLimit(uint16_t *parm, uint16_t resetValue)
         *parm = resetValue;
     }
 }
+
+// HELIOPRING
+#ifdef USE_GYRO_IMUF9001
+int getImufRateFromGyroSyncDenom(int gyroSyncDenom){
+    switch (gyroSyncDenom) {
+        case 1:
+            return IMUF_RATE_32K;
+            break;
+        case 2:
+        default:
+            return IMUF_RATE_16K;
+            break;
+        case 4:
+            return IMUF_RATE_8K;
+            break;
+        case 8:
+            return IMUF_RATE_4K;
+            break;
+        case 16:
+            return IMUF_RATE_2K;
+            break;
+        case 32:
+            return IMUF_RATE_1K;
+            break;
+    }
+}
+#endif
 
 static void validateAndFixConfig(void)
 {
@@ -555,6 +587,18 @@ void validateAndFixGyroConfig(void)
     // Disable dynamic filter if gyro loop is less than 2KHz
     if (gyro.targetLooptime > DYNAMIC_FILTER_MAX_SUPPORTED_LOOP_TIME) {
         featureDisable(FEATURE_DYNAMIC_FILTER);
+    }
+#endif
+
+// HELIOSPRING
+#ifdef USE_GYRO_IMUF9001
+    //keeop imuf_rate in sync with the gyro.
+    uint8_t imuf_rate = getImufRateFromGyroSyncDenom(gyroConfigMutable()->gyro_sync_denom);
+    gyroConfigMutable()->imuf_rate = imuf_rate;
+    if (imuf_rate == IMUF_RATE_32K) {
+        gyroConfigMutable()->imuf_mode = GTBCM_GYRO_ACC_FILTER_F;
+    } else {
+        gyroConfigMutable()->imuf_mode = GTBCM_DEFAULT;
     }
 #endif
 

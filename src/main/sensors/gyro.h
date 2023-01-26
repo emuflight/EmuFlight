@@ -36,6 +36,18 @@
 
 #define FILTER_FREQUENCY_MAX 4000 // maximum frequency for filter cutoffs (nyquist limit of 8K max sampling)
 
+// HELIOSPRING
+#if defined(USE_GYRO_IMUF9001)
+typedef enum {
+    IMUF_RATE_32K = 0,
+    IMUF_RATE_16K = 1,
+    IMUF_RATE_8K = 2,
+    IMUF_RATE_4K = 3,
+    IMUF_RATE_2K = 4,
+    IMUF_RATE_1K = 5
+} imufRate_e;
+#endif
+
 typedef union gyroLowpassFilter_u {
     pt1Filter_t pt1FilterState;
     biquadFilter_t biquadFilterState;
@@ -152,6 +164,22 @@ typedef struct gyroConfig_s {
     uint16_t dyn_notch_q;
     uint16_t dyn_notch_min_hz;
     uint8_t  gyro_filter_debug_axis;
+
+#if defined(USE_GYRO_IMUF9001) // HELIOSPRING
+    uint16_t imuf_mode;
+    uint16_t imuf_rate;
+    uint16_t imuf_pitch_q;
+    uint16_t imuf_roll_q;
+    uint16_t imuf_yaw_q;
+    uint16_t imuf_w;
+    uint16_t imuf_pitch_lpf_cutoff_hz;
+    uint16_t imuf_roll_lpf_cutoff_hz;
+    uint16_t imuf_yaw_lpf_cutoff_hz;
+    uint8_t  imuf_pitch_af;
+    uint8_t  imuf_roll_af;
+    uint8_t  imuf_yaw_af;
+    uint8_t  gyro_align;                       // gyro alignment
+#endif
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);
@@ -179,4 +207,10 @@ gyroDetectionFlags_t getGyroDetectionFlags(void);
 #ifdef USE_DYN_LPF
 float dynThrottle(float throttle);
 void dynLpfGyroUpdate(float throttle);
+#endif
+
+// HELIOSPRING
+#ifdef USE_DMA_SPI_DEVICE
+void gyroDmaSpiFinishRead(void);
+void gyroDmaSpiStartRead(void);
 #endif

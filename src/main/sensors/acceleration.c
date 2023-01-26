@@ -65,6 +65,11 @@
 #include "drivers/accgyro_legacy/accgyro_mma845x.h"
 #endif
 
+// HELIOSPRING
+#ifdef USE_ACC_IMUF9001
+#include "drivers/accgyro/accgyro_imuf9001.h"
+#endif //USE_ACC_IMUF9001
+
 #include "drivers/bus_spi.h"
 
 #include "fc/config.h"
@@ -260,6 +265,16 @@ retry:
         FALLTHROUGH;
 #endif
 
+// HELIOSPRING
+#ifdef USE_ACC_IMUF9001
+    case ACC_IMUF9001:
+        if (imufSpiAccDetect(dev)) {
+            accHardware = ACC_IMUF9001;
+            break;
+        }
+        FALLTHROUGH;
+#endif
+
 #ifdef USE_ACC_SPI_ICM20689
     case ACC_ICM20689:
         if (icm20689SpiAccDetect(dev)) {
@@ -309,6 +324,12 @@ retry:
     return true;
 }
 
+// HELIOSPRING
+int  accGetSamplingIntervall(void)
+{
+    return acc.accSamplingInterval;
+}
+
 bool accInit(uint32_t gyroSamplingInverval)
 {
     memset(&acc, 0, sizeof(acc));
@@ -351,6 +372,11 @@ bool accInit(uint32_t gyroSamplingInverval)
     default:
         acc.accSamplingInterval = 1000;
     }
+
+#ifdef USE_ACC_IMUF9001 // HELIOSPRING
+        acc.accSamplingInterval = 500;
+#endif
+
     if (accLpfCutHz) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
             biquadFilterInitLPF(&accFilter[axis], accLpfCutHz, acc.accSamplingInterval);

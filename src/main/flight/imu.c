@@ -38,6 +38,8 @@
 
 #include "fc/runtime_config.h"
 
+#include "fc/rc_controls.h" // HELIOSPRING
+
 #include "flight/gps_rescue.h"
 #include "flight/imu.h"
 #include "flight/mixer.h"

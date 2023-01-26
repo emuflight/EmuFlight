@@ -43,6 +43,7 @@ typedef enum {
     ACC_ICM20649,
     ACC_ICM20689,
     ACC_BMI160,
+    ACC_IMUF9001, // HELIOSPRING
     ACC_FAKE
 } accelerationSensor_e;
 
@@ -87,3 +88,5 @@ union flightDynamicsTrims_u;
 void setAccelerationTrims(union flightDynamicsTrims_u *accelerationTrimsToUse);
 void accInitFilters(void);
 void applyAccelerometerTrimsDelta(union rollAndPitchTrims_u *rollAndPitchTrimsDelta);
+
+int  accGetSamplingIntervall(void); // HELIOSPRING

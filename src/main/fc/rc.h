@@ -30,10 +30,16 @@ typedef enum {
     INTERPOLATION_CHANNELS_RPT,
 } interpolationChannels_e;
 
+// HELIOSPRING
+#ifdef USE_GYRO_IMUF9001
+extern volatile bool isSetpointNew;
+#endif
+
 extern uint16_t currentRxRefreshRate;
 
 void processRcCommand(void);
 float getSetpointRate(int axis);
+uint32_t getSetpointRateInt(int axis); // HELIOSPRING
 float getRcDeflection(int axis);
 float getRcDeflectionAbs(int axis);
 float getThrottlePIDAttenuation(void);
