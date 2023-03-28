@@ -44,6 +44,9 @@
 #define GYRO_32KHZ_HARDWARE_LPF_NORMAL       0
 #define GYRO_32KHZ_HARDWARE_LPF_EXPERIMENTAL 1
 
+#define GYRO_HARDWARE_LPF_OPTION_1 1
+#define GYRO_HARDWARE_LPF_OPTION_2 2
+
 #define GYRO_LPF_256HZ      0
 #define GYRO_LPF_188HZ      1
 #define GYRO_LPF_98HZ       2
@@ -91,6 +94,8 @@ typedef struct gyroDev_s {
     ioTag_t mpuIntExtiTag;
     uint8_t gyroHasOverflowProtection;
     gyroSensor_e gyroHardware;
+    uint8_t accDataReg;
+    uint8_t gyroDataReg;
 } gyroDev_t;
 
 typedef struct accDev_s {
