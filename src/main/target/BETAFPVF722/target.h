@@ -49,6 +49,16 @@
 #define GYRO_MPU6000_ALIGN                               CW180_DEG
 #define ACC_MPU6000_ALIGN                                CW180_DEG
 
+
+// ICM42688P
+#define USE_GYRO_SPI_ICM42688P
+#define USE_ACC_SPI_ICM42688P
+#define ICM42688P_CS_PIN                                PA4
+#define ICM42688P_SPI_INSTANCE                          SPI1
+#define GYRO_ICM42688P_ALIGN                            CW180_DEG
+#define ACC_ICM42688P_ALIGN                             CW180_DEG
+
+
 // OSD
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE                             SPI3
