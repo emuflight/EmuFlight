@@ -112,6 +112,9 @@ typedef enum {
     TABLE_OSD_LOGO_ON_ARMING,
 #endif
     TABLE_MIXER_IMPL_TYPE,
+#ifdef USE_GYRO_DATA_ANALYSE
+    TABLE_DYN_NOTCH_MODE_TYPE,
+#endif
     LOOKUP_TABLE_COUNT
 } lookupTableIndex_e;
 

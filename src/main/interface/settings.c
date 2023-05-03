@@ -285,6 +285,7 @@ static const char * const lookupTableRcInterpolation[] = {
 static const char * const lookupTableRcInterpolationChannels[] = {
     "RP", "RPY", "RPYT", "T", "RPT",
 };
+
 static const char * const lookupTableFilterType[] = {
     "PT1", "BIQUAD", "PT2", "PT3", "PT4",
 };
@@ -385,6 +386,12 @@ static const char *const lookupTableMixerImplType[] = {
     "LEGACY", "SMOOTH", "2PASS"
 };
 
+#ifdef USE_GYRO_DATA_ANALYSE
+static const char *const lookupTableDynNotchModeType[] = {
+    "RP", "RPY"
+};
+#endif
+
 #define LOOKUP_TABLE_ENTRY(name) { name, ARRAYLEN(name) }
 
 const lookupTableEntry_t lookupTables[] = {
@@ -474,6 +481,9 @@ const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableOsdLogoOnArming),
 #endif
     LOOKUP_TABLE_ENTRY(lookupTableMixerImplType),
+#ifdef USE_GYRO_DATA_ANALYSE
+    LOOKUP_TABLE_ENTRY(lookupTableDynNotchModeType),
+#endif
 };
 
 #undef LOOKUP_TABLE_ENTRY
@@ -545,6 +555,7 @@ const clivalue_t valueTable[] = {
     { "gyro_to_use",                VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_to_use) },
 #endif
 #if defined(USE_GYRO_DATA_ANALYSE)
+    { "dynamic_gyro_notch_mode",    VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_DYN_NOTCH_MODE_TYPE }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_mode) },
     { "dynamic_gyro_notch_q",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_q) },
     { "dynamic_gyro_notch_count",   VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, 5 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_count) },
     { "dynamic_gyro_notch_min_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_min_hz) },

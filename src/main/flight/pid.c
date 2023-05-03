@@ -809,7 +809,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
             //filter the dterm
 #ifdef USE_GYRO_DATA_ANALYSE
-            if (isDynamicFilterActive() && pidProfile->dtermDynNotch) {
+            if (isDynamicFilterActive() && pidProfile->dtermDynNotch && axis <= gyroConfig()->dyn_notch_mode+1) {
                 for (int p = 0; p < gyroConfig()->dyn_notch_count; p++) {
                     if (getCenterFreq(axis, p) != previousNotchCenterFreq[axis][p]) {
                         previousNotchCenterFreq[axis][p] = getCenterFreq(axis, p);
