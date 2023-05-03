@@ -366,6 +366,19 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
         return true;
     }
 #endif
+#ifdef USE_GYRO_SPI_ICM42605
+#ifdef ICM42605_SPI_INSTANCE
+    spiBusSetInstance(&gyro->bus, ICM42605_SPI_INSTANCE);
+#endif
+#ifdef ICM42605_CS_PIN
+    gyro->bus.busdev_u.spi.csnPin = gyro->bus.busdev_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(ICM42605_CS_PIN)) : gyro->bus.busdev_u.spi.csnPin;
+#endif
+    sensor = icm426xxSpiDetect(&gyro->bus);
+    if (sensor != MPU_NONE) {
+        gyro->mpuDetectionResult.sensor = sensor;
+        return true;
+    }
+#endif
 #ifdef USE_GYRO_SPI_ICM42688P
 #ifdef ICM42688P_SPI_INSTANCE
     spiBusSetInstance(&gyro->bus, ICM42688P_SPI_INSTANCE);
