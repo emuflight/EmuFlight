@@ -27,7 +27,7 @@
 
 #define ENABLE_DSHOT_DMAR       true
 
-#define USE_LEDSTRIP
+#define USE_LED_STRIP
 
 #define LED0_PIN                PA14  //Blue   SWCLK
 #define LED1_PIN                PA13  //Green  SWDIO
@@ -96,6 +96,7 @@
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
+#define USE_FLASH_W25M
 #define USE_FLASH_M25P16
 #define FLASH_CS_PIN            PB12
 #define FLASH_SPI_INSTANCE      SPI2
@@ -130,13 +131,10 @@
 #define UART6_TX_PIN            PC6
 #define UART6_RX_PIN            PC7
 
-#define USE_UART10
-#define UART10_TX_PIN           PA2
-
-
 #define USE_SOFTSERIAL1
+//#define SOFTSERIAL1_TX_PIN      PA2
 
-#define SERIAL_PORT_COUNT       9
+#define SERIAL_PORT_COUNT       8
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS

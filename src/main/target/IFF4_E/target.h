@@ -105,6 +105,9 @@
 #define SPI3_MISO_PIN                 PC11
 #define SPI3_MOSI_PIN                 PC12
 
+#define USE_BARO
+#define USE_BARO_BMP280
+
 #define USE_I2C
 #define USE_I2C_DEVICE_2
 #define I2C2_SCL                      PB10

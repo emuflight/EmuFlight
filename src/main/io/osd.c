@@ -48,6 +48,7 @@
 
 #include "common/axis.h"
 #include "common/maths.h"
+#include "common/olc.h"
 #include "common/printf.h"
 #include "common/typeconversion.h"
 #include "common/utils.h"
@@ -550,6 +551,9 @@ static bool osdDrawSingleElement(uint8_t item) {
             case 7:
                 osdtxpower = 250;
                 break;
+            case 8:
+                osdtxpower = 50;
+                break;
             default:
                 osdtxpower = 0;
                 break;
@@ -622,6 +626,25 @@ static bool osdDrawSingleElement(uint8_t item) {
             buff[7] = '\0';
         }
         break;
+    case OSD_PLUS_CODE: {
+        STATIC_ASSERT(GPS_DEGREES_DIVIDER == OLC_DEG_MULTIPLIER, invalid_olc_deg_multiplier);
+        uint8_t digits = osdConfig()->plus_code_digits;
+        bool isPlusCodeShort = osdConfig()->plus_code_short;
+        uint8_t digitsRemoved = (isPlusCodeShort) ? 4 : 0;
+        if (STATE(GPS_FIX)) {
+            olc_encode(gpsSol.llh.lat, gpsSol.llh.lon, digits, buff, sizeof(buff));
+        } else {
+            // +codes with > 8 digits have a + at the 9th digit
+            // and we only support 10 and up.
+            memset(buff, '-', digits + 1);
+            buff[8] = '+';
+            buff[digits + 1] = '\0';
+        }
+        // Optionally trim digits from the left
+        memmove(buff, buff+digitsRemoved, strlen(buff) + digitsRemoved);
+        buff[digits + 1 - digitsRemoved] = '\0';
+        break;
+    }
 #endif // GPS
     case OSD_COMPASS_BAR:
         memcpy(buff, compassBar + osdGetHeadingIntoDiscreteDirections(DECIDEGREES_TO_DEGREES(attitude.values.yaw), 16), 9);
@@ -1046,6 +1069,7 @@ static void osdDrawElements(void) {
         osdDrawSingleElement(OSD_GPS_LON);
         osdDrawSingleElement(OSD_HOME_DIST);
         osdDrawSingleElement(OSD_HOME_DIR);
+        osdDrawSingleElement(OSD_PLUS_CODE);
     }
 #endif // GPS
 #ifdef USE_ESC_SENSOR
@@ -1112,6 +1136,8 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig) {
     osdConfig->task_frequency = 60; // at 125 or 150 the refresh rate is exactly 25 (PAL) or 30 (NTSC)
     osdConfig->logo_on_arming = OSD_LOGO_ARMING_OFF;
     osdConfig->logo_on_arming_duration = 5;  // 0.5 seconds
+    osdConfig->plus_code_digits = 11; // Number of digits to use in OSD_PLUS_CODE
+    osdConfig->plus_code_short = false; // If 4 leading digits have to be removed from the OSD_PLUS_CODE
 }
 
 static void osdDrawLogo(int x, int y) {
