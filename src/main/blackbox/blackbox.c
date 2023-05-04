@@ -91,7 +91,7 @@
 PG_REGISTER_WITH_RESET_TEMPLATE(blackboxConfig_t, blackboxConfig, PG_BLACKBOX_CONFIG, 1);
 
 PG_RESET_TEMPLATE(blackboxConfig_t, blackboxConfig,
-                  .p_ratio = 32,
+                  .p_ratio = 48,
                   .device = DEFAULT_BLACKBOX_DEVICE,
                   .record_acc = 1,
                   .mode = BLACKBOX_MODE_NORMAL
