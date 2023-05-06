@@ -745,7 +745,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
     case MSP_RAW_IMU: {
         // Hack scale due to choice of units for sensor data in multiwii
         uint8_t scale = 1;
-#ifndef USE_GYRO_IMUF9001
+//#ifndef USE_GYRO_IMUF9001
         if (acc.dev.acc_1G > 512 * 4) {
             scale = 8;
         } else if (acc.dev.acc_1G > 512 * 2) {
@@ -753,7 +753,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         } else if (acc.dev.acc_1G >= 512) {
             scale = 2;
         }
-#endif //USE_GYRO_IMUF9001
+//#endif //USE_GYRO_IMUF9001
         for (int i = 0; i < 3; i++) {
             sbufWriteU16(dst, lrintf(acc.accADC[i] / scale));
         }
