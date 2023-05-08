@@ -1009,13 +1009,10 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
 
     // filling up motorMix with throttle, and yaw
     for (int i = 0; i < motorCount; i++) {
-        motorMix[i] = throttleMotor; // motorMix have to contain output-proportional values
-
-        // clipping handling
+    // clipping handling
         float yawOffset = mixerLaziness ? (ABS(yawMix[i]) * SCALE_UNITARY_RANGE(throttleMotor, 1, -1))
                                         : SCALE_UNITARY_RANGE(throttleMotor, -yawMixMin, -yawMixMax);
-
-        motorMix[i] += (yawMix[i] + yawOffset) * controllerMixNormFactor; // yaw is an output-proportional value (RPM-proportional, actually)
+        motorMix[i] = throttleMotor + (yawMix[i] + yawOffset) * controllerMixNormFactor; // yaw is an output-proportional value (RPM-proportional, actually)
         postYawThrottle += motorMix[i];
 
         if (motorMix[i] > maxMotorYawMix) {
@@ -1030,21 +1027,43 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
     // deal with yaw throttle correction values that would cause motor outputs that are greater or less than 1
     yawThrottleCorrection = constrainf(yawThrottleCorrection, maxMotorYawMix - 1.0f, minMotorYawMix);
 
+    float throttlePostYaw = postYawThrottle - yawThrottleCorrection;
+    float thrustPostYaw = motorToThrust(throttlePostYaw, true);
+
+    float maxMotor = -1000.0;
+    float minMotor = 1000.0;
+
     // correct for the extra thrust yaw adds, then fill up motorMix with pitch and roll
     for (int i = 0; i < motorCount; i++) {
-
         if (currentPidProfile->mixer_yaw_throttle_comp) {  //!==0
             // prefer calculating all of the above and maybe not use it, than multiple if/then statements to save from calculating.
             motorMix[i] = motorMix[i] - yawThrottleCorrection;
         };
-        float motorMixThrust = motorToThrust(motorMix[i], true); // convert into thrust value
 
+        motorMix[i] = motorToThrust(motorMix[i], true); // convert into thrust value
         // clipping handling
-        float rollPitchOffset = mixerLaziness ? (ABS(rollPitchMix[i]) * SCALE_UNITARY_RANGE(motorMixThrust, 1, -1))
-                                              : SCALE_UNITARY_RANGE(motorMixThrust, -rollPitchMixMin, -rollPitchMixMax);
+        float rollPitchOffset = mixerLaziness ? (ABS(rollPitchMix[i]) * SCALE_UNITARY_RANGE(thrustPostYaw , 1, -1))
+                                              : SCALE_UNITARY_RANGE(thrustPostYaw , -rollPitchMixMin, -rollPitchMixMax);
+        motorMix[i] += (rollPitchOffset + rollPitchMix[i]) * controllerMixNormFactor; // roll and pitch are thrust-proportional values
+        if (motorMix[i] > maxMotor) {
+            maxMotor = motorMix[i];
+        }
+        if (motorMix[i] < minMotor) {
+            minMotor = motorMix[i];
+        }
+    }
 
-        motorMixThrust += (rollPitchOffset + rollPitchMix[i]) * controllerMixNormFactor; // roll and pitch are thrust-proportional values
+    // if the range is outside the normal bounds, correct it here
+    float motorCorrection = 0.0;
+    if (maxMotor > 1.0) {
+        motorCorrection = 1.0 - maxMotor;
+    } else if (minMotor < 0.0) {
+        motorCorrection = -minMotor;
+    }
 
-        motorMix[i] = thrustToMotor(motorMixThrust, true); // translating back into motor value
+    for (int i = 0; i < motorCount; i++) {
+        motorMix[i] += motorCorrection;
+
+        motorMix[i] = thrustToMotor(motorMix[i], true); // translating back into motor value
     }
 }
