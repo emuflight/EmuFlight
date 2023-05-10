@@ -758,7 +758,11 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
             sbufWriteU16(dst, lrintf(acc.accADC[i] / scale));
         }
         for (int i = 0; i < 3; i++) {
+#ifdef USE_GYRO_IMUF9001
+            sbufWriteU16(dst, gyroRateDps(i) * scale);
+#else
             sbufWriteU16(dst, gyroRateDps(i));
+#endif
         }
         for (int i = 0; i < 3; i++) {
             sbufWriteU16(dst, lrintf(mag.magADC[i]));
