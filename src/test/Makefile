@@ -17,6 +17,13 @@ ROOT = ../..
 OBJECT_DIR = ../../obj/test
 TARGET_DIR = $(USER_DIR)/target
 
+RUSTEMU_DIR         := $(ROOT)/src/rustemu
+RUSTEMU_INCLUDE_DIR := $(RUSTEMU_DIR)/include/
+RUSTEMU_TARGET_DIR  := $(RUSTEMU_DIR)/target/x86_64-unknown-linux-gnu/release
+RUSTEMU_HEADER      := $(RUSTEMU_INCLUDE_DIR)/rustemu.h
+RUSTEMU_LIBRARY     := $(RUSTEMU_TARGET_DIR)/librustemu.a
+RUSTEMU_SOURCES         := $(shell find $(RUSTEMU_DIR)/src -name '*.rs')
+
 include $(ROOT)/make/system-id.mk
 include $(ROOT)/make/targets_list.mk
 
@@ -128,10 +135,6 @@ cms_unittest_SRC := \
 common_filter_unittest_SRC := \
 		$(USER_DIR)/common/filter.c \
 		$(USER_DIR)/common/maths.c
-
-
-encoding_unittest_SRC := \
-		$(USER_DIR)/common/encoding.c
 
 
 flight_failsafe_unittest_SRC := \
@@ -511,7 +514,7 @@ ifeq ($(shell $(CC) -v 2>&1 | grep -q "clang version" && echo "clang"),clang)
 # Travis reports CC_VERSION of 4.2.1
 CC_VERSION_MAJOR := $(firstword $(subst ., ,$(CC_VERSION)))
 CC_VERSION_CHECK_MIN := 7
-CC_VERSION_CHECK_MAX := 13
+CC_VERSION_CHECK_MAX := 15
 
 # Added flags for clang 11 - 13 are not backwards compatible
 ifeq ($(shell expr $(CC_VERSION_MAJOR) \> 10 \& $(CC_VERSION_MAJOR) \< 14), 1)
@@ -566,6 +569,7 @@ C_FLAGS   += $(COVERAGE_FLAGS)
 CXX_FLAGS += $(COVERAGE_FLAGS)
 
 C_FLAGS   += -D_GNU_SOURCE
+LD_FLAGS  += -L$(RUSTEMU_TARGET_DIR) -lrustemu
 
 # Set up the parameter group linker flags according to OS
 ifeq ($(OSFAMILY), macosx)
@@ -674,10 +678,15 @@ $(OBJECT_DIR)/gtest_main.a : $(OBJECT_DIR)/gtest-all.o $(OBJECT_DIR)/gtest_main.
 -include $(OBJECT_DIR)/gtest-all.d \
          $(OBJECT_DIR)/gtest_main.d
 
+$(RUSTEMU_LIBRARY): $(RUSTEMU_SOURCES)
+	cd $(ROOT)/src/rustemu && cargo +nightly build --release
+
+$(RUSTEMU_HEADER): $(RUSTEMU_LIBRARY)
+	cd $(ROOT)/src/rustemu && cbindgen --lang c++ -o $(PWD)/$(RUSTEMU_HEADER)
 
 # includes in test dir must override includes in user dir, unless the user
 # specifies a list of endorsed directories in ${target}_INCLUDE_DIRS.
-test_include_dirs  = $1 $(TEST_DIR) $(USER_DIR)
+test_include_dirs  = $1 $(TEST_DIR) $(USER_DIR) $(RUSTEMU_INCLUDE_DIR)
 test_cflags	   = $(addprefix -I,$(call test_include_dirs,$1))
 
 
@@ -748,7 +757,7 @@ $(OBJECT_DIR)/$1/%.c.o: $(TARGET_DIR)/$(call get_base_target,$(call target,$1))/
                 -c $$< -o $$@
 endif
 
-$(OBJECT_DIR)/$1/$(basename $1).o: $(TEST_DIR)/$(basename $1).cc
+$(OBJECT_DIR)/$1/$(basename $1).o: $(RUSTEMU_HEADER) $(TEST_DIR)/$(basename $1).cc
 	@echo "compiling $$<" "$(STDOUT)"
 	$(V1) mkdir -p $$(dir $$@)
 	$(V1) $(CXX) $(CXX_FLAGS) $$(call test_cflags,$$($1_INCLUDE_DIRS)) \

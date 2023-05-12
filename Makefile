@@ -218,6 +218,18 @@ INCLUDE_DIRS    := $(INCLUDE_DIRS) \
 INCLUDE_DIRS    := $(INCLUDE_DIRS) \
                    $(TARGET_DIR)
 
+RUSTEMU_DIR         := $(ROOT)/src/rustemu
+RUSTEMU_INCLUDE_DIR := $(RUSTEMU_DIR)/include/
+RUSTEMU_TARGET_DIR  := $(RUSTEMU_DIR)/target/thumbv7em-none-eabihf/release
+RUSTEMU_HEADER      := $(RUSTEMU_INCLUDE_DIR)/rustemu.h
+RUSTEMU_LIBRARY     := $(RUSTEMU_TARGET_DIR)/librustemu.a
+RUSTEMU_SOURCES     := $(shell find $(RUSTEMU_DIR)/src -name '*.rs')
+
+INCLUDE_DIRS    := $(INCLUDE_DIRS) \
+                   $(RUSTEMU_INCLUDE_DIR)
+
+EXTRA_LD_FLAGS   := $(EXTRA_LD_FLAGS) -L$(RUSTEMU_TARGET_DIR) -lrustemu
+
 VPATH           := $(VPATH):$(TARGET_DIR)
 
 include $(ROOT)/make/source.mk
@@ -250,7 +262,7 @@ CC_DEBUG_OPTIMISATION   := $(OPTIMISE_DEFAULT)
 CC_DEFAULT_OPTIMISATION := $(OPTIMISATION_BASE) $(OPTIMISE_DEFAULT)
 CC_SPEED_OPTIMISATION   := $(OPTIMISATION_BASE) $(OPTIMISE_SPEED)
 CC_SIZE_OPTIMISATION    := $(OPTIMISATION_BASE) $(OPTIMISE_SIZE)
-CC_NO_OPTIMISATION      := 
+CC_NO_OPTIMISATION      :=
 
 #
 # Added after GCC version update, remove once the warnings have been fixed
@@ -347,6 +359,12 @@ CLEAN_ARTIFACTS += $(TARGET_DFU)
 # Make sure build date and revision is updated on every incremental build
 $(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC)
 
+$(RUSTEMU_LIBRARY): $(RUSTEMU_SOURCES)
+	cd $(RUSTEMU_DIR) && cargo build --release --target thumbv7em-none-eabihf
+
+$(RUSTEMU_HEADER): $(RUSTEMU_LIBRARY)
+	cd $(RUSTEMU_DIR) && cbindgen --lang c -o $(PWD)/$(RUSTEMU_HEADER)
+
 # List of buildable ELF files and their object dependencies.
 # It would be nice to compute these lists, but that seems to be just beyond make.
 
@@ -357,7 +375,7 @@ ifeq ($(EXST),no)
 $(TARGET_BIN): $(TARGET_ELF)
 	@echo "Creating BIN $(TARGET_BIN)" "$(STDOUT)"
 	$(V1) $(OBJCOPY) -O binary $< $@
-	
+
 $(TARGET_HEX): $(TARGET_ELF)
 	@echo "Creating HEX $(TARGET_HEX)" "$(STDOUT)"
 	$(V1) $(OBJCOPY) -O ihex --set-start 0x8000000 $< $@
@@ -381,8 +399,8 @@ $(TARGET_BIN): $(TARGET_UNPATCHED_BIN)
 	$(V1) dd if=$(TARGET_UNPATCHED_BIN) of=$(TARGET_BIN) conv=notrunc
 
 	@echo "Generating MD5 hash of binary" "$(STDOUT)"
-	$(V1) openssl dgst -md5 $(TARGET_BIN) > $(TARGET_UNPATCHED_BIN).md5 
-	
+	$(V1) openssl dgst -md5 $(TARGET_BIN) > $(TARGET_UNPATCHED_BIN).md5
+
 	@echo "Patching MD5 hash into binary" "$(STDOUT)"
 	$(V1) cat $(TARGET_UNPATCHED_BIN).md5 | awk '{printf("%08x: %s",(1024*$(FIRMWARE_SIZE))-16,$$2);}' | xxd -r - $(TARGET_BIN)
 	$(V1) echo $(FIRMWARE_SIZE) | awk '{printf("-s 0x%08x -l 16 -c 16 %s",(1024*$$1)-16,"$(TARGET_BIN)");}' | xargs xxd
@@ -395,12 +413,12 @@ $(TARGET_BIN): $(TARGET_UNPATCHED_BIN)
 	@echo "Extracting HASH section from unpatched EXST elf $(TARGET_ELF)" "$(STDOUT)"
 	$(OBJCOPY) $(TARGET_ELF) $(TARGET_EXST_ELF).tmp --dump-section .exst_hash=$(TARGET_EXST_HASH_SECTION_FILE) -j .exst_hash
 	rm $(TARGET_EXST_ELF).tmp
-	
+
 	@echo "Patching MD5 hash into HASH section" "$(STDOUT)"
 	$(V1) cat $(TARGET_UNPATCHED_BIN).md5 | awk '{printf("%08x: %s",64-16,$$2);}' | xxd -r - $(TARGET_EXST_HASH_SECTION_FILE)
-	
+
 # For some currently unknown reason, OBJCOPY, with only input/output files, will generate a file around 2GB for the H730 unless we remove an unused-section
-# As a workaround drop the ._user_heap_stack section, which is only used during build to show errors if there's not enough space for the heap/stack. 
+# As a workaround drop the ._user_heap_stack section, which is only used during build to show errors if there's not enough space for the heap/stack.
 # The issue can be seen with `readelf -S $(TARGET_EXST_ELF)' vs `readelf -S $(TARGET_ELF)`
 	$(V1) @echo "Patching updated HASH section into $(TARGET_EXST_ELF)" "$(STDOUT)"
 	$(OBJCOPY) $(TARGET_ELF) $(TARGET_EXST_ELF) --remove-section ._user_heap_stack --update-section .exst_hash=$(TARGET_EXST_HASH_SECTION_FILE)
@@ -416,7 +434,7 @@ $(TARGET_HEX): $(TARGET_BIN)
 
 endif
 
-$(TARGET_ELF): $(TARGET_OBJS) $(LD_SCRIPT) $(LD_SCRIPTS)
+$(TARGET_ELF): $(RUSTEMU_HEADER) $(RUSTEMU_LIBRARY) $(TARGET_OBJS) $(LD_SCRIPT) $(LD_SCRIPTS)
 	@echo "Linking $(TARGET)" "$(STDOUT)"
 	$(V1) $(CROSS_CC) -o $@ $(filter-out %.ld,$^) $(LD_FLAGS)
 	$(V1) $(SIZE) $(TARGET_ELF)
@@ -707,7 +725,6 @@ test_versions:
 ## test_%            : run test 'test_%' from the test suite
 test_%:
 	$(V0) cd src/test && $(MAKE) $@
-
 
 # rebuild everything when makefile changes
 $(TARGET_OBJS): Makefile $(TARGET_DIR)/target.mk $(wildcard make/*)

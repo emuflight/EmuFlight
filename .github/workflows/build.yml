@@ -42,6 +42,12 @@ jobs:
       run: |
         make arm_sdk_install --trace
 
+    - name: Setup Rust
+      run: |
+        rustup install nightly
+        rustup target add thumbv7em-none-eabihf
+        cargo install cbindgen
+
     # EmuFlight version
     - name: Get Firmware Version
       id: get_version

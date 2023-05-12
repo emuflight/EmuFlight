@@ -36,8 +36,9 @@
 #include "build/debug.h"
 #include "build/version.h"
 
+#include <rustemu.h>
+
 #include "common/axis.h"
-#include "common/encoding.h"
 #include "common/maths.h"
 #include "common/time.h"
 #include "common/utils.h"
