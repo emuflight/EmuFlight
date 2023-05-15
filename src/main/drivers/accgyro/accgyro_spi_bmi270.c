@@ -183,6 +183,17 @@ static void bmi270UploadConfig(const busDevice_t *bus)
     bmi270RegisterWrite(bus, BMI270_REG_INIT_CTRL, 1, 1);
 }
 
+static uint8_t getBmiOsrMode()
+{
+    switch(gyroConfig()->gyro_hardware_lpf) {
+        case GYRO_HARDWARE_LPF_NORMAL:
+            return BMI270_VAL_GYRO_CONF_BWP_OSR4;
+        case GYRO_HARDWARE_LPF_EXPERIMENTAL:
+            return BMI270_VAL_GYRO_CONF_BWP_NORM;
+    }
+    return 0;
+}
+
 static void bmi270Config(const gyroDev_t *gyro)
 {
     const busDevice_t *bus = &gyro->bus;
@@ -220,7 +231,7 @@ static void bmi270Config(const gyroDev_t *gyro)
     bmi270RegisterWrite(bus, BMI270_REG_ACC_RANGE, BMI270_VAL_ACC_RANGE_16G, 1);
 
     // Configure the gyro
-    bmi270RegisterWrite(bus, BMI270_REG_GYRO_CONF, (BMI270_VAL_GYRO_CONF_FILTER_PERF << 7) | (BMI270_VAL_GYRO_CONF_NOISE_PERF << 6) | (BMI270_VAL_GYRO_CONF_BWP_OSR4 << 4) | BMI270_VAL_GYRO_CONF_ODR3200, 1);
+    bmi270RegisterWrite(bus, BMI270_REG_GYRO_CONF, (BMI270_VAL_GYRO_CONF_FILTER_PERF << 7) | (BMI270_VAL_GYRO_CONF_NOISE_PERF << 6) | (getBmiOsrMode() << 4) | BMI270_VAL_GYRO_CONF_ODR3200, 1);
 
     // Configure the gyro full-range scale
     bmi270RegisterWrite(bus, BMI270_REG_GYRO_RANGE, BMI270_VAL_GYRO_RANGE_2000DPS, 1);
