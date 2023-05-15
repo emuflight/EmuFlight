@@ -189,7 +189,7 @@ static uint8_t getBmiOsrMode()
         case GYRO_HARDWARE_LPF_NORMAL:
             return BMI270_VAL_GYRO_CONF_BWP_OSR4;
         case GYRO_HARDWARE_LPF_EXPERIMENTAL:
-            return BMI270_VAL_GYRO_CONF_BWP_NORM;
+            return BMI270_VAL_GYRO_CONF_BWP_OSR2;
     }
     return 0;
 }
