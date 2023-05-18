@@ -198,6 +198,22 @@ void icm426xxAccInit(accDev_t *acc) {
     acc->acc_1G = 512 * 4;
 }
 
+bool icm426xxAccRead(accDev_t *acc)
+{
+    uint8_t data[6];
+
+    const bool ack = busReadRegisterBuffer(&acc->bus, ICM426XX_RA_ACCEL_DATA_X1, data, 6);
+    if (!ack) {
+        return false;
+    }
+
+    acc->ADCRaw[X] = (int16_t)((data[0] << 8) | data[1]);
+    acc->ADCRaw[Y] = (int16_t)((data[2] << 8) | data[3]);
+    acc->ADCRaw[Z] = (int16_t)((data[4] << 8) | data[5]);
+
+    return true;
+}
+
 bool icm426xxSpiAccDetect(accDev_t *acc) {
     switch (acc->mpuDetectionResult.sensor) {
     case ICM_42605_SPI:
@@ -207,7 +223,7 @@ bool icm426xxSpiAccDetect(accDev_t *acc) {
         return false;
     }
     acc->initFn = icm426xxAccInit;
-    acc->readFn = mpuAccRead;
+    acc->readFn = icm426xxAccRead;
     return true;
 }
 
@@ -298,6 +314,27 @@ void icm426xxGyroInit(gyroDev_t *gyro)
     delay(15);
 }
 
+// MIGHT NOT work on STM32F7
+#define STATIC_DMA_DATA_AUTO static
+//FAST_CODE bool mpuGyroReadSPI(gyroDev_t *gyro)
+bool icm426xxGyroReadSPI(gyroDev_t *gyro)
+{
+    //static const uint8_t dataToSend[7] = {MPU_RA_GYRO_XOUT_H | 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    STATIC_DMA_DATA_AUTO uint8_t dataToSend[7] = {ICM426XX_RA_GYRO_DATA_X1 | 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    //uint8_t data[7];
+    STATIC_DMA_DATA_AUTO uint8_t data[7];
+
+    const bool ack = spiBusTransfer(&gyro->bus, dataToSend, data, 7);
+    if (!ack) {
+        return false;
+    }
+
+    gyro->gyroADCRaw[X] = (int16_t)((data[1] << 8) | data[2]);
+    gyro->gyroADCRaw[Y] = (int16_t)((data[3] << 8) | data[4]);
+    gyro->gyroADCRaw[Z] = (int16_t)((data[5] << 8) | data[6]);
+
+    return true;
+}
 
 bool icm426xxSpiGyroDetect(gyroDev_t *gyro) {
     switch (gyro->mpuDetectionResult.sensor) {
@@ -309,7 +346,7 @@ bool icm426xxSpiGyroDetect(gyroDev_t *gyro) {
     }
 
     gyro->initFn = icm426xxGyroInit;
-    gyro->readFn = mpuGyroReadSPI;
+    gyro->readFn = icm426xxGyroReadSPI;
 
     gyro->scale = (2000.0f / (1 << 15));   // 16.384 dps/lsb scalefactor for 2000dps sensors
 
