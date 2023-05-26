@@ -42,6 +42,8 @@
 
 #define USE_VCP
 #define USE_FLASHFS
+#define USE_BEEPER
+#define USE_USB_DETECT
 
 #define USE_LED
 #define LED0_PIN             PA15
