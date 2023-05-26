@@ -251,7 +251,6 @@ void spiBusSetInstance(busDevice_t *bus, SPI_TypeDef *instance) {
     bus->bustype = BUSTYPE_SPI;
     bus->busdev_u.spi.instance = instance;
 }
-#endif
 
 
 uint16_t spiCalculateDivider(uint32_t freq)
@@ -279,3 +278,5 @@ uint8_t spiReadRegMsk(const busDevice_t *bus, uint8_t reg)
 {
     return spiBusReadRegister(bus, reg | 0x80);
 }
+
+#endif
