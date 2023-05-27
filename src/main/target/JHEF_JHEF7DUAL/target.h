@@ -104,6 +104,7 @@
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
+#define I2C_DEVICE        (I2CDEV_1)    //manually added
 #define BARO_I2C_INSTANCE (I2CDEV_1)
 #define I2C1_SCL PB6
 #define I2C1_SDA PB7
@@ -145,19 +146,27 @@
 #define VBAT_ADC_PIN PC2
 #define CURRENT_METER_ADC_PIN PC1
 #define RSSI_ADC_PIN PC0
-#define ADC3_DMA_STREAM DMA2_Stream1 //manually edited Stream1
+// #define ADC3_DMA_STREAM DMA2_Stream0 //manually edited to _Stream1 // commented out, does not exist in existing target
+#define ADC3_DMA_OPT            0  // DMA 2 Stream 0 Channel 2 //copied from existing target
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 450
 
 #define ENABLE_DSHOT_DMAR true
 
+// manually added from existing target
+// note - existing target has config.c referencing PINIO as well - unsure why it is needed
+#define USE_PINIO
+#define PINIO1_PIN              PC14 // VTX power switcher
+#define PINIO2_PIN              PB9  // 2xCamera switcher
+#define USE_PINIOBOX
+
 // notice - this file was programmatically generated and did not account for any potential LEDx_INVERTED, inverted Telem, etc.
 
 #define TARGET_IO_PORTA 0xffff
 #define TARGET_IO_PORTB 0xffff
 #define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
+#define TARGET_IO_PORTD (BIT(2)) // manually modified from existing target
 // notice - masks were programmatically generated - must verify last port group for 0xffff or (BIT(2))
 
 #define USABLE_TIMER_CHANNEL_COUNT 9

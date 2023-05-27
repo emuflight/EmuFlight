@@ -15,3 +15,4 @@ drivers/max7456.c \
 
 # notice - this file was programmatically generated and may be incomplete.
 #  eg: flash, compass, barometer, vtx6705, ledstrip, pinio, etc.
+# existing src/main/target/JHEF7DUAL contains compass_fake, does not contain light_led, does not contain pinio

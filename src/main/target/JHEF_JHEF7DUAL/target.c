@@ -29,7 +29,7 @@
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
 /* notice - incomplete */
 // format : DEF_TIM(TIMxx, CHx, Pxx, TIM_USE_xxxxxxx, x, x), //comment
-    DEF_TIM(TIM9, CH2, PA3, TIM_USE_LED, 0, 0), //LED0
+    DEF_TIM(TIM9, CH2, PA3, TIM_USE_PPM, 0, 0), //LED0
 
     DEF_TIM(TIM3, CH3, PB0, TIM_USE_MOTOR, 0, 0), // #define MOTOR1_PIN PB0
     DEF_TIM(TIM3, CH4, PB1, TIM_USE_MOTOR, 0, 0), // #define MOTOR2_PIN PB1
@@ -42,6 +42,8 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM4, CH3, PB8, TIM_USE_ANY, 0, 0), //CAM_CONTROL
 
 };
+
+// existing src/main/target/JHEF7DUAL contains TIM_USE_PPM, not TIM_USE_LED for TIM9-CH2-PA3
 
 // TIM_USE options:
 // TIM_USE_ANY
