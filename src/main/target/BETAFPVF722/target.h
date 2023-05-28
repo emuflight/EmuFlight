@@ -33,7 +33,7 @@
 #define BEEPER_INVERTED
 
 //define camera control
-#define CAMERA_CONTROL_PIN                               PC8
+// N/A
 
 //MPU-6000
 #define USE_GYRO
@@ -130,6 +130,7 @@
 #define VBAT_ADC_PIN                                     PC0
 #define RSSI_ADC_PIN                                     PC2
 #define CURRENT_METER_SCALE_DEFAULT                      450                   // 3.3/120A  = 25mv/A
+#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 // SPI devices
 #define USE_SPI
@@ -164,5 +165,5 @@
 #define TARGET_IO_PORTD                                 (BIT(2))
 
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                      8
-#define USED_TIMERS ( TIM_N(1) |TIM_N(2) | TIM_N(3) | TIM_N(4) |  TIM_N(8) )
+#define USABLE_TIMER_CHANNEL_COUNT                      7
+#define USED_TIMERS ( TIM_N(1) |TIM_N(2) | TIM_N(3) | TIM_N(4) )
