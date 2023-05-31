@@ -254,10 +254,13 @@ static const char * const lookupTableGyroHardwareLpf[] = {
     "NORMAL",
 #if defined(USE_GYRO_SPI_ICM42605) || defined(USE_GYRO_SPI_ICM42688P)
     "OPTION1",
-    "OPTION2"
+    "OPTION2",
+#if defined(USE_GYRO_SPI_ICM42688P) && defined(USE_GYRO_DLPF_EXPERIMENTAL) // will need bmi270 logic as well
+    "EXPERIMENTAL",
+#endif
 #else
     "EXPERIMENTAL",
-    "1KHZ_SAMPLING"
+    "1KHZ_SAMPLING",
 #endif
 };
 
