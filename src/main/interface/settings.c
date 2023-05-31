@@ -260,7 +260,7 @@ static const char * const lookupTableGyroHardwareLpf[] = {
 #endif
 #else
     "EXPERIMENTAL",
-    "1KHZ_SAMPLING",
+    "1KHZ_SAMPLING"
 #endif
 };
 
