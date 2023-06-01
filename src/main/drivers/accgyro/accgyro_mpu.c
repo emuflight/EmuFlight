@@ -56,6 +56,7 @@
 #include "drivers/accgyro/accgyro_spi_bmi270.h"
 #include "drivers/accgyro/accgyro_spi_icm20649.h"
 #include "drivers/accgyro/accgyro_spi_icm20689.h"
+#include "drivers/accgyro/accgyro_spi_icm426xx.h"
 #include "drivers/accgyro/accgyro_spi_mpu6000.h"
 #include "drivers/accgyro/accgyro_spi_mpu6500.h"
 #include "drivers/accgyro/accgyro_spi_mpu9250.h"
@@ -361,6 +362,32 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
 #endif
     sensor = icm20689SpiDetect(&gyro->bus);
     // icm20689SpiDetect detects ICM20602 and ICM20689
+    if (sensor != MPU_NONE) {
+        gyro->mpuDetectionResult.sensor = sensor;
+        return true;
+    }
+#endif
+#ifdef USE_GYRO_SPI_ICM42605
+#ifdef ICM42605_SPI_INSTANCE
+    spiBusSetInstance(&gyro->bus, ICM42605_SPI_INSTANCE);
+#endif
+#ifdef ICM42605_CS_PIN
+    gyro->bus.busdev_u.spi.csnPin = gyro->bus.busdev_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(ICM42605_CS_PIN)) : gyro->bus.busdev_u.spi.csnPin;
+#endif
+    sensor = icm426xxSpiDetect(&gyro->bus);
+    if (sensor != MPU_NONE) {
+        gyro->mpuDetectionResult.sensor = sensor;
+        return true;
+    }
+#endif
+#ifdef USE_GYRO_SPI_ICM42688P
+#ifdef ICM42688P_SPI_INSTANCE
+    spiBusSetInstance(&gyro->bus, ICM42688P_SPI_INSTANCE);
+#endif
+#ifdef ICM42688P_CS_PIN
+    gyro->bus.busdev_u.spi.csnPin = gyro->bus.busdev_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(ICM42688P_CS_PIN)) : gyro->bus.busdev_u.spi.csnPin;
+#endif
+    sensor = icm426xxSpiDetect(&gyro->bus);
     if (sensor != MPU_NONE) {
         gyro->mpuDetectionResult.sensor = sensor;
         return true;

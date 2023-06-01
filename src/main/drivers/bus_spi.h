@@ -124,3 +124,8 @@ uint16_t spiCalculateDivider(uint32_t freq);
 
 struct spiPinConfig_s;
 void spiPinConfigure(const struct spiPinConfig_s *pConfig);
+
+// Determine the divisor to use for a given bus frequency
+uint16_t spiCalculateDivider(uint32_t freq);
+
+uint8_t spiReadRegMsk(const busDevice_t *bus, uint8_t reg);
