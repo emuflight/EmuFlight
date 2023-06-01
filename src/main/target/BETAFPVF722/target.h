@@ -33,7 +33,7 @@
 #define BEEPER_INVERTED
 
 //define camera control
-// N/A
+#define CAMERA_CONTROL_PIN                               PC8
 
 //MPU-6000
 #define USE_GYRO
@@ -48,16 +48,6 @@
 #define MPU6000_SPI_INSTANCE                             SPI1                   //GYRO_1_SPI_INSTANCE
 #define GYRO_MPU6000_ALIGN                               CW180_DEG
 #define ACC_MPU6000_ALIGN                                CW180_DEG
-
-
-// ICM42688P
-#define USE_GYRO_SPI_ICM42688P
-#define USE_ACC_SPI_ICM42688P
-#define ICM42688P_CS_PIN                                PA4
-#define ICM42688P_SPI_INSTANCE                          SPI1
-#define GYRO_ICM42688P_ALIGN                            CW180_DEG
-#define ACC_ICM42688P_ALIGN                             CW180_DEG
-
 
 // OSD
 #define USE_MAX7456
@@ -130,7 +120,6 @@
 #define VBAT_ADC_PIN                                     PC0
 #define RSSI_ADC_PIN                                     PC2
 #define CURRENT_METER_SCALE_DEFAULT                      450                   // 3.3/120A  = 25mv/A
-#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 // SPI devices
 #define USE_SPI
@@ -165,5 +154,5 @@
 #define TARGET_IO_PORTD                                 (BIT(2))
 
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                      7
-#define USED_TIMERS ( TIM_N(1) |TIM_N(2) | TIM_N(3) | TIM_N(4) )
+#define USABLE_TIMER_CHANNEL_COUNT                      8
+#define USED_TIMERS ( TIM_N(1) |TIM_N(2) | TIM_N(3) | TIM_N(4) |  TIM_N(8) )

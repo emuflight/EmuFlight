@@ -28,7 +28,8 @@
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
 // FILO arrangement for motor assignments, Motor 1 starts at 2nd DECLARATION
- 
+    DEF_TIM(TIM8,  CH3,  PC8, TIM_USE_ANY,               0, 0), // USE FOR CAMERA CONTROL
+
     DEF_TIM(TIM3,  CH3,  PB0, TIM_USE_MOTOR,             0, 0), // D1-ST0                   MOTOR1
     DEF_TIM(TIM3,  CH4,  PB1, TIM_USE_MOTOR,             0, 0), // D1-ST3                   MOTOR2
     DEF_TIM(TIM2,  CH2,  PA1, TIM_USE_MOTOR,             0, 0), // D1-ST7                   MOTOR3
@@ -37,4 +38,5 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM4,  CH2,  PB7, TIM_USE_MOTOR,             0, 0), // NONE  TIM4_UP_D1-ST6     MOTOR6
 
     DEF_TIM(TIM1,  CH1,  PA8, TIM_USE_LED,               0, 0), // D1-ST2                   LED/MOTOR5
+
 };
