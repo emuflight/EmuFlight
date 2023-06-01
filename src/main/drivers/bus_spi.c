@@ -252,7 +252,6 @@ void spiBusSetInstance(busDevice_t *bus, SPI_TypeDef *instance) {
     bus->busdev_u.spi.instance = instance;
 }
 
-
 uint16_t spiCalculateDivider(uint32_t freq)
 {
 #if defined(STM32F4) || defined(STM32G4) || defined(STM32F7)

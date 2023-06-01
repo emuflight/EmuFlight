@@ -52,8 +52,6 @@
 #define GYRO_HARDWARE_LPF_OPTION_1 1
 #define GYRO_HARDWARE_LPF_OPTION_2 2
 
-
-
 #define GYRO_LPF_256HZ      0
 #define GYRO_LPF_188HZ      1
 #define GYRO_LPF_98HZ       2

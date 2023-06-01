@@ -38,7 +38,6 @@
 #include "drivers/sensor.h"
 #include "drivers/time.h"
 
-
 // 24 MHz max SPI frequency
 #define ICM426XX_MAX_SPI_CLK_HZ 24000000
 
