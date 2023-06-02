@@ -110,6 +110,7 @@
 #include "rx/spektrum.h"
 
 #include "io/beeper.h"
+#include "io/displayport_hdzero_osd.h"
 #include "io/displayport_max7456.h"
 #include "io/displayport_srxl.h"
 #include "io/serial.h"
@@ -548,12 +549,25 @@ void init(void) {
     if (feature(FEATURE_OSD)) {
 #if defined(USE_OSD_BEESIGN)
         // If there is a beesign for the OSD then use it
-        osdDisplayPort = beesignDisplayPortInit(vcdProfile());
-#elif defined(USE_MAX7456)
+        if (!osdDisplayPort) {
+            osdDisplayPort = beesignDisplayPortInit(vcdProfile());
+        }
+#endif
+#if defined(USE_HDZERO_OSD)
+        if (!osdDisplayPort) {
+            osdDisplayPort = hdzeroOsdDisplayPortInit();
+        }
+#endif
+#if defined(USE_MAX7456)
         // If there is a max7456 chip for the OSD then use it
-        osdDisplayPort = max7456DisplayPortInit(vcdProfile());
-#elif defined(USE_CMS) && defined(USE_MSP_DISPLAYPORT) && defined(USE_OSD_OVER_MSP_DISPLAYPORT) // OSD over MSP; not supported (yet)
-        osdDisplayPort = displayPortMspInit();
+        if (!osdDisplayPort) {
+            osdDisplayPort = max7456DisplayPortInit(vcdProfile());
+        }
+#endif
+#if defined(USE_CMS) && defined(USE_MSP_DISPLAYPORT) && defined(USE_OSD_OVER_MSP_DISPLAYPORT) // OSD over MSP; not supported (yet)
+        if (!osdDisplayPort) {
+            osdDisplayPort = displayPortMspInit();
+        }
 #endif
         // osdInit  will register with CMS by itself.
         osdInit(osdDisplayPort);

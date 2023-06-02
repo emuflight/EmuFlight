@@ -283,7 +283,10 @@ static void backupAndResetConfigs(void) {
     resetConfigs();
 }
 
-static void cliPrint(const char *str) {
+void cliPrint(const char *str) {
+    if (!cliMode) {
+        return;
+    }
     while (*str) {
         if(cliSmartMode) {
             //no carriage returns. Those are dumb.
@@ -299,14 +302,14 @@ static void cliPrint(const char *str) {
     bufWriterFlush(cliWriter);
 }
 
-static void cliPrintLinefeed(void) {
+void cliPrintLinefeed(void) {
     cliPrint("\r\n");
     if(cliSmartMode) {
         bufWriterFlush(cliWriter);
     }
 }
 
-static void cliPrintLine(const char *str) {
+void cliPrintLine(const char *str) {
     cliPrint(str);
     cliPrintLinefeed();
 }
@@ -370,7 +373,10 @@ static bool cliDefaultPrintLinef(uint8_t dumpMask, bool equalsDefault, const cha
     }
 }
 
-static void cliPrintf(const char *format, ...) {
+void cliPrintf(const char *format, ...) {
+    if (!cliMode) {
+        return;
+    }
     va_list va;
     va_start(va, format);
     cliPrintfva(format, va);
@@ -378,7 +384,11 @@ static void cliPrintf(const char *format, ...) {
 }
 
 
-static void cliPrintLinef(const char *format, ...) {
+void cliPrintLinef(const char *format, ...) {
+    if (!cliMode) {
+        return;
+    }
+
     va_list va;
     va_start(va, format);
     cliPrintfva(format, va);
@@ -980,7 +990,7 @@ static void cliSerial(char *cmdline) {
     ptr = nextArg(ptr);
     if (ptr) {
         val = atoi(ptr);
-        portConfig.functionMask = val & 0xFFFF;
+        portConfig.functionMask = val & 0xFFFFFFFF;
         validArgumentCount++;
     }
     for (int i = 0; i < 4; i ++) {
@@ -2395,7 +2405,7 @@ void cliRxBind(char *cmdline) {
     case RX_SPI_REDPINE:
     case RX_SPI_SFHSS:
         cc2500SpiBind();
-        cliPrint("Binding...");
+        cliPrintf("Binding...");
         break;
 #endif
     default:

@@ -74,6 +74,7 @@
 #include "io/gps.h"
 #include "io/ledstrip.h"
 #include "io/osd.h"
+#include "io/displayport_hdzero_osd.h"
 #include "io/piniobox.h"
 #include "io/serial.h"
 #include "io/transponder_ir.h"
@@ -159,6 +160,11 @@ static void taskHandleSerial(timeUs_t currentTimeUs) {
     bool evaluateMspData = osdSlaveIsLocked ?  MSP_SKIP_NON_MSP_DATA : MSP_EVALUATE_NON_MSP_DATA;;
 #endif
     mspSerialProcess(evaluateMspData, mspFcProcessCommand, mspFcProcessReply);
+
+#ifdef USE_HDZERO_OSD
+    // Capture HDZero messages to determine if VTX is connected
+    hdzeroOsdSerialProcess(mspFcProcessCommand);
+#endif
 }
 
 static void taskBatteryAlerts(timeUs_t currentTimeUs) {

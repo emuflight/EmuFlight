@@ -745,7 +745,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
     case MSP_RAW_IMU: {
         // Hack scale due to choice of units for sensor data in multiwii
         uint8_t scale = 1;
-#ifndef USE_GYRO_IMUF9001
+//#ifndef USE_GYRO_IMUF9001
         if (acc.dev.acc_1G > 512 * 4) {
             scale = 8;
         } else if (acc.dev.acc_1G > 512 * 2) {
@@ -753,12 +753,16 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         } else if (acc.dev.acc_1G >= 512) {
             scale = 2;
         }
-#endif //USE_GYRO_IMUF9001
+//#endif //USE_GYRO_IMUF9001
         for (int i = 0; i < 3; i++) {
             sbufWriteU16(dst, lrintf(acc.accADC[i] / scale));
         }
         for (int i = 0; i < 3; i++) {
+#ifdef USE_GYRO_IMUF9001
+            sbufWriteU16(dst, gyroRateDps(i) * scale);
+#else
             sbufWriteU16(dst, gyroRateDps(i));
+#endif
         }
         for (int i = 0; i < 3; i++) {
             sbufWriteU16(dst, lrintf(mag.magADC[i]));
@@ -1080,7 +1084,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
                 continue;
             };
             sbufWriteU8(dst, serialConfig()->portConfigs[i].identifier);
-            sbufWriteU16(dst, serialConfig()->portConfigs[i].functionMask);
+            sbufWriteU32(dst, serialConfig()->portConfigs[i].functionMask);
             sbufWriteU8(dst, serialConfig()->portConfigs[i].msp_baudrateIndex);
             sbufWriteU8(dst, serialConfig()->portConfigs[i].gps_baudrateIndex);
             sbufWriteU8(dst, serialConfig()->portConfigs[i].telemetry_baudrateIndex);
@@ -2193,7 +2197,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         }
         break;
         case MSP_SET_CF_SERIAL_CONFIG: {
-    uint8_t portConfigSize = sizeof(uint8_t) + sizeof(uint16_t) + (sizeof(uint8_t) * 4);
+    uint8_t portConfigSize = sizeof(uint8_t) + sizeof(uint32_t) + (sizeof(uint8_t) * 4);
     if (dataSize % portConfigSize != 0) {
     return MSP_RESULT_ERROR;
     }
@@ -2205,7 +2209,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
     return MSP_RESULT_ERROR;
     }
     portConfig->identifier = identifier;
-    portConfig->functionMask = sbufReadU16(src);
+    portConfig->functionMask = sbufReadU32(src);
     portConfig->msp_baudrateIndex = sbufReadU8(src);
     portConfig->gps_baudrateIndex = sbufReadU8(src);
     portConfig->telemetry_baudrateIndex = sbufReadU8(src);

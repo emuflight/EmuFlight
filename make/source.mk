@@ -137,6 +137,7 @@ COMMON_SRC = \
             io/dashboard.c \
             io/displayport_max7456.c \
             io/displayport_msp.c \
+            io/displayport_hdzero_osd.c \
             io/displayport_oled.c \
             io/displayport_srxl.c \
             io/displayport_crsf.c \

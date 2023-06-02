@@ -1286,7 +1286,7 @@ void osdInit(displayPort_t *osdDisplayPortToUse)
     if (!osdDisplayPortToUse) {
         return;
     }
-    BUILD_BUG_ON(OSD_POS_MAX != OSD_POS(31,31));
+    BUILD_BUG_ON(OSD_POS_MAX != OSD_POS(63, 63));
     osdDisplayPort = osdDisplayPortToUse;
 #ifdef USE_CMS
     cmsDisplayPortRegister(osdDisplayPort);
