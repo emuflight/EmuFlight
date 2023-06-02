@@ -191,22 +191,25 @@ bool brainfpv_settings_updated_from_cms;
 void brainFPVUpdateSettings(void);
 
 //  RADIX memory management
+#undef BRUSHED_MOTORS
 #undef BRUSHED_MOTORS_PWM_RATE
+#undef USE_BRUSHED_ESC_AUTODETECT
+
 #undef USE_ALT_HOLD
 #undef USE_BARO_MS5611
-//#undef USE_BRUSHED_ESC_AUTODETECT
+
 #undef USE_CMS_FAILSAFE_MENU
 #undef USE_CMS_GPS_RESCUE_MENU
 #undef USE_EXTENDED_CMS_MENUS
-//#undef USE_GPS
+#undef USE_GPS       //madchiller prefers gps for external pilots
 #undef USE_GPS_NMEA
-//#undef USE_GPS_RESCUE
-#undef USE_GPS_UBLOX
+#undef USE_GPS_RESCUE
+#undef USE_GPS_UBLOX //needed for GPS usage
 #undef USE_GYRO_LPF2
 #undef USE_LED_STRIP
-//#undef USE_MSP_DISPLAYPORT
+//#undef USE_MSP_DISPLAYPORT            //will need for HD
 #undef USE_MSP_OVER_TELEMETRY
-#undef USE_OSD_OVER_MSP_DISPLAYPORT
+//#undef USE_OSD_OVER_MSP_DISPLAYPORT   //will need for HD
 //#undef USE_OSD
 #undef USE_OSD_ADJUSTMENTS
 #undef USE_PEGASUS_UI
@@ -253,3 +256,13 @@ void brainFPVUpdateSettings(void);
 #undef DEBUG_HARDWARE_REVISION_TABLE
 #undef USE_PINIO
 #undef USE_PINIOBOX
+
+#define PID_PROFILE_COUNT 1
+#define CONTROL_RATE_PROFILE_COUNT  1
+
+#undef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
+
+#undef USE_ESC_SENSOR
+#undef USE_ESC_SENSOR_INFO
+
+#undef USE_GPS
