@@ -201,10 +201,10 @@ void brainFPVUpdateSettings(void);
 #undef USE_CMS_FAILSAFE_MENU
 #undef USE_CMS_GPS_RESCUE_MENU
 #undef USE_EXTENDED_CMS_MENUS
-#undef USE_GPS       //madchiller prefers gps for external pilots
+// #undef USE_GPS       //madchiller prefers gps for external pilots
 #undef USE_GPS_NMEA
-#undef USE_GPS_RESCUE
-#undef USE_GPS_UBLOX //needed for GPS usage
+// #undef USE_GPS_RESCUE
+// #undef USE_GPS_UBLOX //needed for GPS usage
 #undef USE_GYRO_LPF2
 #undef USE_LED_STRIP
 //#undef USE_MSP_DISPLAYPORT            //will need for HD
@@ -265,4 +265,6 @@ void brainFPVUpdateSettings(void);
 #undef USE_ESC_SENSOR
 #undef USE_ESC_SENSOR_INFO
 
-#undef USE_GPS
+#undef USE_DASHBOARD
+
+#undef USE_GYRO_DATA_ANALYSE
