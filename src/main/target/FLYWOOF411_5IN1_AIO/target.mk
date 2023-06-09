@@ -3,8 +3,8 @@ F411_TARGETS    += $(TARGET)
 FEATURES        += VCP
 
 TARGET_SRC = \
-drivers/accgyro/accgyro_bmi270.c \
 drivers/accgyro/accgyro_mpu.c \
+drivers/accgyro/accgyro_bmi270.c \
 drivers/accgyro/accgyro_spi_bmi270.c \
 drivers/accgyro/accgyro_spi_icm20689.c \
 drivers/accgyro/accgyro_spi_icm426xx.c \
@@ -14,9 +14,9 @@ drivers/barometer/barometer_bmp280.c \
 drivers/barometer/barometer_ms5611.c \
 drivers/compass/compass_hmc5883l.c \
 drivers/compass/compass_qmc5883l.c \
+drivers/light_ws2811strip.c \
 drivers/rx/rx_a7105.c \
 drivers/rx/rx_cc2500.c \
-drivers/light_ws2811strip.c \
 drivers/max7456.c \
 rx/cc2500_common.c \
 rx/cc2500_frsky_d.c \
