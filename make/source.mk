@@ -249,6 +249,7 @@ SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
             common/kalman.c \
 
 SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
+            drivers/accgyro/accgyro_spi_bmi270_init.c \
             bus_bst_stm32f30x.c \
             drivers/barometer/barometer_bmp085.c \
             drivers/barometer/barometer_bmp280.c \
