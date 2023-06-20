@@ -666,10 +666,10 @@ static int8_t bmi270ProcessGyroCas(uint8_t raw)
     return result;
 }
 
-static void bmi270UploadConfig(const busDevice_t *dev)
+static void bmi270UploadConfig(const busDevice_t *bus)
 {
-    bmi270RegisterWrite(dev, BMI270_REG_PWR_CONF, 0, 1);
-    bmi270RegisterWrite(dev, BMI270_REG_INIT_CTRL, 0, 1);
+    bmi270RegisterWrite(bus, BMI270_REG_PWR_CONF, 0, 1);
+    bmi270RegisterWrite(bus, BMI270_REG_INIT_CTRL, 0, 1);
 
 //help
 
@@ -679,8 +679,12 @@ static void bmi270UploadConfig(const busDevice_t *dev)
  //   spiBusWriteRegister(dev, BMI270_REG_INIT_DATA, (uint8_t *)bmi270_config_file, sizeof(bmi270_config_file));
 
     // Transfer the config file
-    bmi270RegisterWrite(dev, BMI270_REG_INIT_DATA, (uint8_t *)bmi270_config_file, sizeof(bmi270_config_file));
+//    bmi270RegisterWrite(dev, BMI270_REG_INIT_DATA, (uint8_t *)bmi270_config_file, sizeof(bmi270_config_file));
 
+    IOLo(bus->busdev_u.spi.csnPin);
+    spiTransferByte(bus->busdev_u.spi.instance, BMI270_REG_INIT_DATA);
+    spiTransfer(bus->busdev_u.spi.instance, bmi270_config_file, NULL, sizeof(bmi270_config_file));
+    IOHi(bus->busdev_u.spi.csnPin);
 
 //help
   //  // Transfer the config file
@@ -690,7 +694,7 @@ static void bmi270UploadConfig(const busDevice_t *dev)
   //  IOHi(dev->busdev_u.spi.csnPin);
 
     delay(10);
-    bmi270RegisterWrite(dev, BMI270_REG_INIT_CTRL, 1, 1);
+    bmi270RegisterWrite(bus, BMI270_REG_INIT_CTRL, 1, 1);
 }
 
 static void bmi270EnableIOC(const busDevice_t *dev)
@@ -767,16 +771,18 @@ static uint8_t getBmiOsrMode()
             return BMI270_VAL_GYRO_CONF_BWP_OSR2;
         case GYRO_HARDWARE_LPF_OPTION_2:
             return BMI270_VAL_GYRO_CONF_BWP_NORM;
+#ifdef USE_GYRO_DLPF_EXPERIMENTAL
         case GYRO_HARDWARE_LPF_EXPERIMENTAL:
             return BMI270_VAL_GYRO_CONF_BWP_NORM;
+#endif
     }
     return 0;
 }
 
 
-static void bmi270Config(gyroDev_t *gyro)
+static void bmi270Config(const gyroDev_t *gyro)
 {
-    busDevice_t *dev = &gyro->bus;
+    const busDevice_t *dev = &gyro->bus;
 
     // If running in hardware_lpf experimental mode then switch to FIFO-based,
     // 6.4KHz sampling, unfiltered data vs. the default 3.2KHz with hardware filtering
