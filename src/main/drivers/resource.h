@@ -53,7 +53,6 @@ typedef enum {
     OWNER_OSD_CS,
     OWNER_RX_SPI_CS,
     OWNER_SPI_CS,
-    OWNER_GYRO_EXTI,    
     OWNER_MPU_EXTI,
     OWNER_BARO_EXTI,
     OWNER_COMPASS_EXTI,
