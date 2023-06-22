@@ -252,10 +252,10 @@ static const char * const lookupTableRxSpi[] = {
 
 static const char * const lookupTableGyroHardwareLpf[] = {
     "NORMAL",
-#if defined(USE_GYRO_SPI_ICM42605) || defined(USE_GYRO_SPI_ICM42688P)
+#if defined(USE_GYRO_SPI_ICM42605) || defined(USE_GYRO_SPI_ICM42688P) || defined(USE_ACCGYRO_BMI270)
     "OPTION1",
     "OPTION2",
-#if defined(USE_GYRO_SPI_ICM42688P) && defined(USE_GYRO_DLPF_EXPERIMENTAL) // will need bmi270 logic as well
+#if ( defined(USE_GYRO_SPI_ICM42688P) || defined(USE_ACCGYRO_BMI270) ) && defined(USE_GYRO_DLPF_EXPERIMENTAL) // icm42688p & bmi270 experimental
     "EXPERIMENTAL",
 #endif
 #else
