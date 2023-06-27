@@ -176,7 +176,7 @@ static void bmi270IntExtiInit(gyroDev_t *gyro)
 
     IO_t mpuIntIO = IOGetByTag(gyro->mpuIntExtiTag);
 
-    IOInit(mpuIntIO, OWNER_GYRO_EXTI, 0);
+    IOInit(mpuIntIO, OWNER_MPU_EXTI, 0);
     EXTIHandlerInit(&gyro->exti, bmi270ExtiHandler);
     EXTIConfig(mpuIntIO, &gyro->exti, NVIC_PRIO_MPU_INT_EXTI, IOCFG_IN_FLOATING );
     EXTIEnable(mpuIntIO, true);
