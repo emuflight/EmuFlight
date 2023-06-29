@@ -86,7 +86,7 @@ PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 
 #ifdef STM32F10X
 #define PID_PROCESS_DENOM_DEFAULT 1
-#elif defined(USE_GYRO_SPI_MPU6000) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_ICM20689)
+#elif defined(USE_GYRO_SPI_MPU6000) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_SPI_ICM42605) || defined(USE_GYRO_SPI_ICM42688P)
 #define PID_PROCESS_DENOM_DEFAULT 1
 #else
 #define PID_PROCESS_DENOM_DEFAULT 2
@@ -315,12 +315,14 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
             dtermABGapplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
             ABGInit(&dtermABG[axis], pidProfile->dterm_ABG_alpha, pidProfile->dterm_ABG_boost, pidProfile->dterm_ABG_half_life, dT);
         }
-
+#ifdef USE_GYRO_DATA_ANALYSE
         if (isDynamicFilterActive()) {
             for (int axis2 = 0; axis2 < gyroConfig()->dyn_notch_count; axis2++) {
                 biquadFilterInit(&dtermNotch[axis][axis2], 400, targetPidLooptime, gyroConfig()->dyn_notch_q / 100.0f, FILTER_NOTCH);
             }
         }
+#endif
+
     }
 
 #if defined(USE_THROTTLE_BOOST)

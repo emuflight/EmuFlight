@@ -53,6 +53,8 @@ typedef enum {
     GYRO_ICM20608G,
     GYRO_ICM20649,
     GYRO_ICM20689,
+    GYRO_ICM42605,
+    GYRO_ICM42688P,
     GYRO_BMI160,
     GYRO_IMUF9001,
     GYRO_FAKE
@@ -196,7 +198,9 @@ bool gyroYawSpinDetected(void);
 uint16_t gyroAbsRateDps(int axis);
 uint8_t gyroReadRegister(uint8_t whichSensor, uint8_t reg);
 float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered);
+#ifdef USE_GYRO_DATA_ANALYSE
 bool isDynamicFilterActive(void);
+#endif
 #ifdef USE_YAW_SPIN_RECOVERY
 void initYawSpinRecovery(int maxYawRate);
 #endif
