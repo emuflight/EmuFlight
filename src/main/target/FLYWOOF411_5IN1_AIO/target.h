@@ -66,8 +66,8 @@
 
 #define ICM42688P_SPI_INSTANCE    SPI1
 #define ICM42688P_CS_PIN          PB2
-#define ACC_ICM426XX_ALIGN        CW90_DEG
-#define GYRO_ICM426XX_ALIGN       CW90_DEG
+#define ACC_ICM42688P_ALIGN       CW0_DEG_FLIP
+#define GYRO_ICM42688P_ALIGN      CW0_DEG_FLIP
 
 // *************** Baro **************************
 #define USE_I2C
