@@ -38,19 +38,21 @@
 #define GYRO_BMI270_ALIGN       CW270_DEG
 
 // dual gyro
+#define USE_DUAL_GYRO
+
 // gyro 1
-#define GYRO_1_CS_PIN           BMI270_CS_PIN
-#define GYRO_1_SPI_INSTANCE     BMI270_SPI_INSTANCE
+#define GYRO_1_CS_PIN           PE11
+#define GYRO_1_SPI_INSTANCE     SPI4
 #define GYRO_1_EXTI_PIN         PB1
-#define GYRO_1_ALIGN            GYRO_BMI270_ALIGN
-#define ACC_1_ALIGN             ACC_BMI270_ALIGN
+#define GYRO_1_ALIGN            CW270_DEG
+#define ACC_1_ALIGN             CW270_DEG
 
 // gyro 2
 #define GYRO_2_CS_PIN           PB12
 #define GYRO_2_SPI_INSTANCE     SPI2
 #define GYRO_2_EXTI_PIN         PD0
-#define GYRO_2_ALIGN            GYRO_BMI270_ALIGN
-#define ACC_2_ALIGN             ACC_BMI270_ALIGN
+#define GYRO_2_ALIGN            CW270_DEG
+#define ACC_2_ALIGN             CW270_DEG
 
 #define USE_VCP
 #define USE_USB_DETECT
