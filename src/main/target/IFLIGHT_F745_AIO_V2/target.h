@@ -24,6 +24,8 @@
 
 #define USBD_PRODUCT_STRING "IFLIGHT_F745_AIO_V2"
 
+#define ENABLE_DSHOT_DMAR       true
+
 #define LED0_PIN   PC13
 
 #define USE_BEEPER
@@ -38,6 +40,8 @@
 
 #define USE_SPI_GYRO
 #define USE_ACCGYRO_BMI270
+#define USE_GYRO_SPI_MPU6000
+#define USE_ACC_SPI_MPU6000
 
 #define USE_EXTI
 #define USE_GYRO_EXTI

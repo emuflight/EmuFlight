@@ -315,12 +315,14 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
             dtermABGapplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
             ABGInit(&dtermABG[axis], pidProfile->dterm_ABG_alpha, pidProfile->dterm_ABG_boost, pidProfile->dterm_ABG_half_life, dT);
         }
-
+#ifdef USE_GYRO_DATA_ANALYSE
         if (isDynamicFilterActive()) {
             for (int axis2 = 0; axis2 < gyroConfig()->dyn_notch_count; axis2++) {
                 biquadFilterInit(&dtermNotch[axis][axis2], 400, targetPidLooptime, gyroConfig()->dyn_notch_q / 100.0f, FILTER_NOTCH);
             }
         }
+#endif
+
     }
 
 #if defined(USE_THROTTLE_BOOST)
