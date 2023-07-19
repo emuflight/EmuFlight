@@ -44,10 +44,10 @@
 #define USE_ACC_SPI_MPU6000
 
 #define USE_EXTI
-#define USE_GYRO_EXTI
+//#define USE_GYRO_EXTI
 #define GYRO_1_EXTI_PIN             PD0
 #define GYRO_2_EXTI_PIN             PD8
-#define MPU_INT_EXTI
+#define MPU_INT_EXTI                PD0
 
 #define GYRO_1_CS_PIN               PA4
 #define GYRO_1_SPI_INSTANCE         SPI1
