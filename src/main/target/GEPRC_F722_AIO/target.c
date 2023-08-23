@@ -37,9 +37,9 @@ DEF_TIM(TIM8, CH2, PC7, TIM_USE_MOTOR, 0, 1),	//MOTOR 3
 DEF_TIM(TIM8, CH1, PC6, TIM_USE_MOTOR, 0, 0),	//MOTOR 4
 
 //DEF_TIM(TIM4, CH1, PB6, TIM_USE_ANY, 0, 0),	//in config but match no pins
-//DEF_TIM(TIM4, CH2, PB7, TIM_USE_ANY, 0, 0), //pretty sure left over from
+//DEF_TIM(TIM4, CH2, PB7, TIM_USE_ANY, 0, 0),   //pretty sure left over from
 //DEF_TIM(TIM3, CH4, PB1, TIM_USE_ANY, 0, 0),	//geprc_f722_bthd target/config
-//DEF_TIM(TIM3, CH3, PB0, TIM_USE_ANY, 0, 0), //as match motors 5-8
+//DEF_TIM(TIM3, CH3, PB0, TIM_USE_ANY, 0, 0),   //as match motors 5-8
 
 DEF_TIM(TIM2, CH2, PA1, TIM_USE_LED, 0, 0)	//LED
 };
