@@ -66,6 +66,7 @@
 #define USE_MAG_HMC5883
 #define MAG_I2C_INSTANCE        (I2CDEV_1)
 
+#define RX_PPM_PIN              PB7
 
 #define USE_VCP
 #define USE_UART1
