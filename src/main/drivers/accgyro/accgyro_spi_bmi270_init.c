@@ -630,6 +630,12 @@ static void bmi270EnableSPI(const busDevice_t *dev)
 
 uint8_t bmi270Detect(const busDevice_t *dev)
 {
+#ifndef USE_DUAL_GYRO
+    IOInit(dev->busdev_u.spi.csnPin, OWNER_MPU_CS, 0);
+    IOConfigGPIO(dev->busdev_u.spi.csnPin, SPI_IO_CS_CFG);
+    IOHi(dev->busdev_u.spi.csnPin);
+#endif
+
     //help -do we need:
                 spiSetDivisor(dev->busdev_u.spi.instance, spiCalculateDivider(BMI270_MAX_SPI_CLK_HZ));
     bmi270EnableSPI(dev);
