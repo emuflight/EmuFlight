@@ -98,7 +98,7 @@ const struct bmi2_feature_config bmi270_maximum_fifo_feat_out[BMI270_MAXIMUM_FIF
  * @retval 0 -> Success
  * @retval < 0 -> Fail
  */
-static int8_t null_ptr_check(const struct bmi2_dev *dev);
+static int8_t null_ptr_check(const struct bmi2_dev *bus);
 
 /***************************************************************************/
 
@@ -113,7 +113,7 @@ static int8_t null_ptr_check(const struct bmi2_dev *dev);
  *  4) Updates the feature offset parameters in the device structure.
  *  5) Updates the maximum number of pages, in the device structure.
  */
-int8_t bmi270_maximum_fifo_init(struct bmi2_dev *dev)
+int8_t bmi270_maximum_fifo_init(struct bmi2_dev *bus)
 {
     /* Variable to define result */
     int8_t rslt;
@@ -197,7 +197,7 @@ int8_t bmi270_maximum_fifo_init(struct bmi2_dev *dev)
  * @brief This internal API is used to validate the device structure pointer for
  * null conditions.
  */
-static int8_t null_ptr_check(const struct bmi2_dev *dev)
+static int8_t null_ptr_check(const struct bmi2_dev *bus)
 {
     /* Variable to define result */
     int8_t rslt = BMI2_OK;
