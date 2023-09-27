@@ -40,6 +40,10 @@
 // dual gyro
 #define USE_DUAL_GYRO
 
+#define USE_EXTI //REQUIRED when USE_GYRO_EXTI
+#define USE_GYRO_EXTI
+#define USE_MPU_DATA_READY_SIGNAL
+
 // gyro 1
 #define GYRO_1_CS_PIN           PE11
 #define GYRO_1_SPI_INSTANCE     SPI4
