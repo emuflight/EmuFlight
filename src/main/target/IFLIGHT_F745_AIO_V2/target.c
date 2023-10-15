@@ -17,6 +17,7 @@
  *
  * If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <stdint.h>
 
 #include "platform.h"
@@ -27,14 +28,17 @@
 #include "drivers/timer_def.h"
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
-// FILO arrangement for motor assignments, Motor 1 starts at 2nd DECLARATION
- 
-    DEF_TIM(TIM3,  CH3,  PB0, TIM_USE_MOTOR,             0, 0), // D1-ST0                   MOTOR1
-    DEF_TIM(TIM3,  CH4,  PB1, TIM_USE_MOTOR,             0, 0), // D1-ST3                   MOTOR2
-    DEF_TIM(TIM2,  CH2,  PA1, TIM_USE_MOTOR,             0, 0), // D1-ST7                   MOTOR3
-    DEF_TIM(TIM2,  CH1,  PA0, TIM_USE_MOTOR,             0, 0), // D2-ST2/D2-ST4            MOTOR4
-    DEF_TIM(TIM4,  CH1,  PB6, TIM_USE_MOTOR,             0, 0), // D1-ST4                   MOTOR5
-    DEF_TIM(TIM4,  CH2,  PB7, TIM_USE_MOTOR,             0, 0), // NONE  TIM4_UP_D1-ST6     MOTOR6
 
-    DEF_TIM(TIM1,  CH1,  PA8, TIM_USE_LED,               0, 0), // D1-ST2                   LED/MOTOR5
-};
+    DEF_TIM(TIM1,  CH1, PA8,  TIM_USE_LED,                 0, 0 ), //LED
+    DEF_TIM(TIM2,  CH2, PB3,  TIM_USE_ANY,                 0, 0 ), //CAM
+
+    DEF_TIM(TIM3,  CH3, PB0,  TIM_USE_MOTOR,               0, 0 ), // M1
+    DEF_TIM(TIM3,  CH4, PB1,  TIM_USE_MOTOR,               0, 0 ), // M2
+    DEF_TIM(TIM3,  CH1, PB4,  TIM_USE_MOTOR,               0, 0 ), // M3
+    DEF_TIM(TIM3,  CH2, PB5,  TIM_USE_MOTOR,               0, 0 ), // M4
+    DEF_TIM(TIM4,  CH1, PD12, TIM_USE_MOTOR,               0, 0 ), // M5
+    DEF_TIM(TIM4,  CH2, PD13, TIM_USE_MOTOR,               0, 0 ), // M6
+    DEF_TIM(TIM8,  CH3, PC8,  TIM_USE_MOTOR,               0, 1 ), // M7
+    DEF_TIM(TIM8,  CH4, PC9,  TIM_USE_MOTOR,               0, 0 ), // M8
+
+    };
