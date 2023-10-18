@@ -3748,6 +3748,9 @@ const cliResourceValue_t resourceTable[] = {
 #if defined(USE_PWM)
     DEFA( OWNER_PWMINPUT,      PG_PWM_CONFIG, pwmConfig_t, ioTags[0], PWM_INPUT_PORT_COUNT ),
 #endif
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+    DEFS( OWNER_BRUSHED_REVERSE, PG_MOTOR_CONFIG, motorConfig_t, dev.reverseTag ),
+#endif
 #ifdef USE_RANGEFINDER_HCSR04
     DEFS( OWNER_SONAR_TRIGGER, PG_SONAR_CONFIG, sonarConfig_t, triggerTag ),
     DEFS( OWNER_SONAR_ECHO,    PG_SONAR_CONFIG, sonarConfig_t, echoTag ),
