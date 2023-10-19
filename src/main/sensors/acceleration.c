@@ -45,6 +45,7 @@
 #include "drivers/accgyro/accgyro_spi_bmi160.h"
 #include "drivers/accgyro/accgyro_spi_icm20649.h"
 #include "drivers/accgyro/accgyro_spi_icm20689.h"
+#include "drivers/accgyro/accgyro_spi_icm426xx.h"
 #include "drivers/accgyro/accgyro_spi_mpu6000.h"
 #include "drivers/accgyro/accgyro_spi_mpu6500.h"
 #include "drivers/accgyro/accgyro_spi_mpu9250.h"
@@ -294,6 +295,31 @@ retry:
 #ifdef ACC_BMI160_ALIGN
             dev->accAlign = ACC_BMI160_ALIGN;
 #endif
+            break;
+        }
+        FALLTHROUGH;
+#endif
+#if defined(USE_ACC_SPI_ICM42605) || defined(USE_ACC_SPI_ICM42688P)
+    case ACC_ICM42605:
+    case ACC_ICM42688P:
+        if (icm426xxSpiAccDetect(dev)) {
+            switch (dev->mpuDetectionResult.sensor) {
+            case ICM_42605_SPI:
+                accHardware = ACC_ICM42605;
+#ifdef ACC_ICM42605_ALIGN
+            dev->accAlign = ACC_ICM42605_ALIGN;
+#endif
+                break;
+            case ICM_42688P_SPI:
+                accHardware = ACC_ICM42688P;
+#ifdef ACC_ICM42688P_ALIGN
+            dev->accAlign = ACC_ICM42688P_ALIGN;
+#endif
+                break;
+            default:
+                accHardware = ACC_NONE;
+                break;
+            }
             break;
         }
         FALLTHROUGH;

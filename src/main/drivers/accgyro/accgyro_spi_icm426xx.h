@@ -20,23 +20,17 @@
 
 #pragma once
 
-extern uint8_t cliMode;
-extern int cliSmartMode;
+#include "drivers/bus.h"
 
-struct clivalue_s;
-void *cliGetValuePointer(const struct clivalue_s *value);
-const void *cliGetDefaultPointer(const struct clivalue_s *value);
+#define ICM426xx_BIT_RESET                  (0x80)
 
-struct serialConfig_s;
-void cliInit(const struct serialConfig_s *serialConfig);
-void cliProcess(void);
-struct serialPort_s;
-void cliEnter(struct serialPort_s *serialPort);
+bool icm426xxAccDetect(accDev_t *acc);
+bool icm426xxGyroDetect(gyroDev_t *gyro);
 
-#ifdef USE_CLI_DEBUG_PRINT
-void cliPrint(const char *str);
-void cliPrintLinefeed(void);
-void cliPrintLine(const char *str);
-void cliPrintf(const char *format, ...);
-void cliPrintLinef(const char *format, ...);
-#endif
+void icm426xxAccInit(accDev_t *acc);
+void icm426xxGyroInit(gyroDev_t *gyro);
+
+uint8_t icm426xxSpiDetect(const busDevice_t *dev);
+
+bool icm426xxSpiAccDetect(accDev_t *acc);
+bool icm426xxSpiGyroDetect(gyroDev_t *gyro);

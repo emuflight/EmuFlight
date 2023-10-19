@@ -109,13 +109,13 @@
 const char * const lookupTableAccHardware[] = {
     "AUTO", "NONE", "ADXL345", "MPU6050", "MMA8452", "BMA280", "LSM303DLHC",
     "MPU6000", "MPU6500", "MPU9250", "ICM20601", "ICM20602", "ICM20608G", "ICM20649", "ICM20689",
-    "BMI160", "ACC_IMUF9001", "FAKE"
+    "ICM42605", "ICM42688P", "BMI160", "ACC_IMUF9001", "FAKE"
 };
 // sync with gyroSensor_e
 const char * const lookupTableGyroHardware[] = {
     "AUTO", "NONE", "MPU6050", "L3G4200D", "MPU3050", "L3GD20",
     "MPU6000", "MPU6500", "MPU9250", "ICM20601", "ICM20602", "ICM20608G", "ICM20649", "ICM20689",
-    "BMI160", "GYRO_IMUF9001", "FAKE"
+    "ICM42605", "ICM42688P", "BMI160", "GYRO_IMUF9001", "FAKE"
 };
 
 #if defined(USE_SENSOR_NAMES) || defined(USE_BARO)
@@ -252,8 +252,16 @@ static const char * const lookupTableRxSpi[] = {
 
 static const char * const lookupTableGyroHardwareLpf[] = {
     "NORMAL",
+#if defined(USE_GYRO_SPI_ICM42605) || defined(USE_GYRO_SPI_ICM42688P)
+    "OPTION1",
+    "OPTION2",
+#if defined(USE_GYRO_SPI_ICM42688P) && defined(USE_GYRO_DLPF_EXPERIMENTAL) // will need bmi270 logic as well
+    "EXPERIMENTAL",
+#endif
+#else
     "EXPERIMENTAL",
     "1KHZ_SAMPLING"
+#endif
 };
 
 #ifdef USE_32K_CAPABLE_GYRO
