@@ -104,6 +104,10 @@ static const char * const cms_FilterType[] = {
     "PT1", "BIQUAD", "PT2", "PT3", "PT4",
 };
 
+static const char * const cms_dynNotchModeType[] = {
+    "RP", "RPY"
+};
+
 static long cmsx_menuImu_onEnter(void) {
     pidProfileIndex = getCurrentPidProfileIndex();
     tmpPidProfileIndex = pidProfileIndex + 1;
@@ -494,6 +498,7 @@ static uint16_t gyroConfig_gyro_q;
 static uint8_t gyroConfig_gyro_notch_count;
 static uint16_t gyroConfig_gyro_notch_min_hz;
 static uint16_t gyroConfig_gyro_notch_max_hz;
+static uint8_t gyroConfig_gyro_notch_mode;
 static uint16_t gyroConfig_gyro_abg_alpha;
 static uint16_t gyroConfig_gyro_abg_boost;
 static uint8_t gyroConfig_gyro_abg_half_life;
@@ -522,10 +527,10 @@ static long cmsx_menuGyro_onEnter(void) {
     gyroConfig_gyro_notch_count = gyroConfig()->dyn_notch_count;
     gyroConfig_gyro_notch_min_hz = gyroConfig()->dyn_notch_min_hz;
     gyroConfig_gyro_notch_max_hz = gyroConfig()->dyn_notch_max_hz;
+    gyroConfig_gyro_notch_mode = gyroConfig()->dyn_notch_mode;
     gyroConfig_gyro_abg_alpha = gyroConfig()->gyro_ABG_alpha;
     gyroConfig_gyro_abg_boost = gyroConfig()->gyro_ABG_boost;
     gyroConfig_gyro_abg_half_life = gyroConfig()->gyro_ABG_half_life;
-
 #ifndef USE_GYRO_IMUF9001
     gyroConfig_imuf_roll_q = gyroConfig()->imuf_roll_q;
     gyroConfig_imuf_pitch_q = gyroConfig()->imuf_pitch_q;
@@ -554,6 +559,7 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self) {
     gyroConfigMutable()->dyn_notch_count = gyroConfig_gyro_notch_count;
     gyroConfigMutable()->dyn_notch_min_hz = gyroConfig_gyro_notch_min_hz;
     gyroConfigMutable()->dyn_notch_max_hz = gyroConfig_gyro_notch_max_hz;
+    gyroConfigMutable()->dyn_notch_mode = gyroConfig_gyro_notch_mode;
     gyroConfigMutable()->gyro_ABG_alpha = gyroConfig_gyro_abg_alpha;
     gyroConfigMutable()->gyro_ABG_boost = gyroConfig_gyro_abg_boost;
     gyroConfigMutable()->gyro_ABG_half_life = gyroConfig_gyro_abg_half_life;
@@ -588,6 +594,7 @@ static OSD_Entry cmsx_menuFilterGlobalEntries[] = {
     { "DYN NOTCH COUNT",     OME_UINT8, NULL, &(OSD_UINT8_t) { &gyroConfig_gyro_notch_count,        1, 5, 1 }, 0 },
     { "DYN NOTCH MIN HZ",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_notch_min_hz,       30, 1000, 1 }, 0 },
     { "DYN NOTCH MAX HZ",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_notch_max_hz,       200, 1000, 1 }, 0 },
+    { "DYN NOTCH MODE",      OME_TAB, NULL, &(OSD_TAB_t) { (uint8_t *) &gyroConfig_gyro_notch_mode, 1, cms_dynNotchModeType }, 0 },
 #ifndef USE_GYRO_IMUF9001
     { "IMUF W",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,                   0, 512,     1 }, 0 },
     { "ROLL Q",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,              100, 16000, 100 }, 0 },
