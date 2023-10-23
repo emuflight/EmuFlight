@@ -117,7 +117,7 @@ typedef struct smithPredictor_s {
 typedef enum {
     RP = 0,
     RPY = 1
-} dynamicGyroNotchMode_e;
+} dynamicGyroAxisType_e;
 #endif
 
 typedef struct gyroConfig_s {
@@ -153,7 +153,7 @@ typedef struct gyroConfig_s {
     int16_t  yaw_spin_threshold;
 
     uint16_t gyroCalibrationDuration;  // Gyro calibration duration in 1/100 second
-    uint8_t dyn_notch_mode;
+    uint8_t dyn_notch_axis;
     uint16_t dyn_notch_q;
     uint8_t dyn_notch_count;
     uint16_t dyn_notch_min_hz;

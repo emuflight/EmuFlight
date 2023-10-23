@@ -113,7 +113,7 @@ typedef enum {
 #endif
     TABLE_MIXER_IMPL_TYPE,
 #ifdef USE_GYRO_DATA_ANALYSE
-    TABLE_DYN_NOTCH_MODE_TYPE,
+    TABLE_DYN_NOTCH_AXIS_TYPE,
 #endif
     LOOKUP_TABLE_COUNT
 } lookupTableIndex_e;

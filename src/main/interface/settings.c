@@ -395,7 +395,7 @@ static const char *const lookupTableMixerImplType[] = {
 };
 
 #ifdef USE_GYRO_DATA_ANALYSE
-static const char *const lookupTableDynNotchModeType[] = {
+static const char *const lookupTableDynNotchAxisType[] = {
     "RP", "RPY"
 };
 #endif
@@ -490,7 +490,7 @@ const lookupTableEntry_t lookupTables[] = {
 #endif
     LOOKUP_TABLE_ENTRY(lookupTableMixerImplType),
 #ifdef USE_GYRO_DATA_ANALYSE
-    LOOKUP_TABLE_ENTRY(lookupTableDynNotchModeType),
+    LOOKUP_TABLE_ENTRY(lookupTableDynNotchAxisType),
 #endif
 };
 
@@ -563,7 +563,7 @@ const clivalue_t valueTable[] = {
     { "gyro_to_use",                VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_to_use) },
 #endif
 #if defined(USE_GYRO_DATA_ANALYSE)
-    { "dynamic_gyro_notch_mode",    VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_DYN_NOTCH_MODE_TYPE }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_mode) },
+    { "dynamic_gyro_notch_axis",    VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_DYN_NOTCH_AXIS_TYPE }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_axis) },
     { "dynamic_gyro_notch_q",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_q) },
     { "dynamic_gyro_notch_count",   VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, 5 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_count) },
     { "dynamic_gyro_notch_min_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_min_hz) },
