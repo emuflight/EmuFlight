@@ -289,7 +289,7 @@ void icm426xxGyroInit(gyroDev_t *gyro)
 
     spiBusWriteRegister(&gyro->bus, ICM426XX_RA_INT_SOURCE0, ICM426XX_UI_DRDY_INT1_EN_ENABLED);
 
-    uint8_t intConfig1Value = spiBusReadRegister(&gyro->bus, ICM426XX_RA_INT_CONFIG1);
+    uint8_t intConfig1Value = spiReadRegMsk(&gyro->bus, ICM426XX_RA_INT_CONFIG1);
     // Datasheet says: "User should change setting to 0 from default setting of 1, for proper INT1 and INT2 pin operation"
     intConfig1Value &= ~(1 << ICM426XX_INT_ASYNC_RESET_BIT);
     intConfig1Value |= (ICM426XX_INT_TPULSE_DURATION_8 | ICM426XX_INT_TDEASSERT_DISABLED);
@@ -298,7 +298,7 @@ void icm426xxGyroInit(gyroDev_t *gyro)
 
     // Disable AFSR to prevent stalls in gyro output
     // ICM426XX_INTF_CONFIG1 location in user bank 0
-    uint8_t intfConfig1Value = spiBusReadRegister(&gyro->bus, ICM426XX_INTF_CONFIG1);
+    uint8_t intfConfig1Value = spiReadRegMsk(&gyro->bus, ICM426XX_INTF_CONFIG1);
     intfConfig1Value &= ~ICM426XX_INTF_CONFIG1_AFSR_MASK;
     intfConfig1Value |= ICM426XX_INTF_CONFIG1_AFSR_DISABLE;
     spiBusWriteRegister(&gyro->bus, ICM426XX_INTF_CONFIG1, intfConfig1Value);
