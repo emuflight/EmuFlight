@@ -158,8 +158,10 @@ typedef struct gyroSensor_s {
     gyroLowpassFilter_t lowpassFilter[XYZ_AXIS_COUNT];
 
     // lowpass2 gyro soft filter
+#ifdef USE_GYRO_LPF2
     filterApplyFnPtr lowpass2FilterApplyFn;
     gyroLowpassFilter_t lowpass2Filter[XYZ_AXIS_COUNT];
+#endif
 
     // ABG filter
     filterApplyFnPtr gyroABGFilterApplyFn;
@@ -236,10 +238,12 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_lowpass_hz[ROLL] = 0,
                   .gyro_lowpass_hz[PITCH] = 0,
                   .gyro_lowpass_hz[YAW] = 0,
+#ifdef USE_GYRO_LPF2
                   .gyro_lowpass2_type = FILTER_PT1,
                   .gyro_lowpass2_hz[ROLL] = 0,
                   .gyro_lowpass2_hz[PITCH] = 0,
                   .gyro_lowpass2_hz[YAW] = 0,
+#endif
                   .gyro_high_fsr = false,
                   .gyro_use_32khz = true,
                   .gyro_to_use = GYRO_CONFIG_USE_GYRO_DEFAULT,
@@ -286,10 +290,12 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_lowpass_hz[ROLL] = 115,
                   .gyro_lowpass_hz[PITCH] = 115,
                   .gyro_lowpass_hz[YAW] = 105,
+#ifdef USE_GYRO_LPF2
                   .gyro_lowpass2_type = FILTER_PT1,
                   .gyro_lowpass2_hz[ROLL] = 0,
                   .gyro_lowpass2_hz[PITCH] = 0,
                   .gyro_lowpass2_hz[YAW] = 0,
+#endif
                   .gyro_high_fsr = false,
                   .gyro_use_32khz = false,
                   .gyro_to_use = GYRO_CONFIG_USE_GYRO_DEFAULT,
@@ -743,6 +749,7 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
         lpfHz[PITCH] = gyroConfig()->gyro_lowpass_hz[PITCH];
         lpfHz[YAW] = gyroConfig()->gyro_lowpass_hz[YAW];
         break;
+#ifdef USE_GYRO_LPF2
     case FILTER_LOWPASS2:
         lowpassFilterApplyFn = &gyroSensor->lowpass2FilterApplyFn;
         lowpassFilter = gyroSensor->lowpass2Filter;
@@ -750,6 +757,7 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
         lpfHz[PITCH] = gyroConfig()->gyro_lowpass2_hz[PITCH];
         lpfHz[YAW] = gyroConfig()->gyro_lowpass2_hz[YAW];
         break;
+#endif
     default:
         return;
     }
@@ -888,11 +896,13 @@ static void gyroInitSensorFilters(gyroSensor_t *gyroSensor) {
         FILTER_LOWPASS,
         gyroConfig()->gyro_lowpass_type
     );
+#ifdef USE_GYRO_LPF2
     gyroInitLowpassFilterLpf(
         gyroSensor,
         FILTER_LOWPASS2,
         gyroConfig()->gyro_lowpass2_type
     );
+#endif
     gyroInitFilterNotch1(gyroSensor, gyroConfig()->gyro_soft_notch_hz_1, gyroConfig()->gyro_soft_notch_cutoff_1);
     gyroInitFilterNotch2(gyroSensor, gyroConfig()->gyro_soft_notch_hz_2, gyroConfig()->gyro_soft_notch_cutoff_2);
 #ifdef USE_GYRO_DATA_ANALYSE

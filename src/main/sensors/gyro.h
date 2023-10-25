@@ -125,7 +125,9 @@ typedef struct gyroConfig_s {
     uint8_t  gyro_to_use;
 
     uint16_t gyro_lowpass_hz[XYZ_AXIS_COUNT];
+#ifdef USE_GYRO_LPF2
     uint16_t gyro_lowpass2_hz[XYZ_AXIS_COUNT];
+#endif
 
     uint16_t gyro_ABG_alpha;
     uint16_t gyro_ABG_boost;
@@ -140,7 +142,9 @@ typedef struct gyroConfig_s {
 
     // Lowpass primary/secondary
     uint8_t  gyro_lowpass_type;
+#ifdef USE_GYRO_LPF2
     uint8_t  gyro_lowpass2_type;
+#endif
 
     uint8_t  yaw_spin_recovery;
     int16_t  yaw_spin_threshold;

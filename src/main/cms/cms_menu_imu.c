@@ -487,10 +487,12 @@ static uint8_t gyroConfig_gyro_lowpass1_type;
 static uint16_t gyroConfig_gyro_lowpass_hz_roll;
 static uint16_t gyroConfig_gyro_lowpass_hz_pitch;
 static uint16_t gyroConfig_gyro_lowpass_hz_yaw;
+#ifdef USE_GYRO_LPF2
 static uint8_t gyroConfig_gyro_lowpass2_type;
 static uint16_t gyroConfig_gyro_lowpass2_hz_roll;
 static uint16_t gyroConfig_gyro_lowpass2_hz_pitch;
 static uint16_t gyroConfig_gyro_lowpass2_hz_yaw;
+#endif
 static uint16_t gyroConfig_gyro_q;
 static uint8_t gyroConfig_gyro_notch_count;
 static uint16_t gyroConfig_gyro_notch_min_hz;
@@ -516,10 +518,12 @@ static long cmsx_menuGyro_onEnter(void) {
     gyroConfig_gyro_lowpass_hz_roll =  gyroConfig()->gyro_lowpass_hz[ROLL];
     gyroConfig_gyro_lowpass_hz_pitch =  gyroConfig()->gyro_lowpass_hz[PITCH];
     gyroConfig_gyro_lowpass_hz_yaw =  gyroConfig()->gyro_lowpass_hz[YAW];
+#ifdef USE_GYRO_LPF2
     gyroConfig_gyro_lowpass2_type =  gyroConfig()->gyro_lowpass2_type;
     gyroConfig_gyro_lowpass2_hz_roll =  gyroConfig()->gyro_lowpass2_hz[ROLL];
     gyroConfig_gyro_lowpass2_hz_pitch =  gyroConfig()->gyro_lowpass2_hz[PITCH];
     gyroConfig_gyro_lowpass2_hz_yaw =  gyroConfig()->gyro_lowpass2_hz[YAW];
+#endif
     gyroConfig_gyro_q = gyroConfig()->dyn_notch_q;
     gyroConfig_gyro_notch_count = gyroConfig()->dyn_notch_count;
     gyroConfig_gyro_notch_min_hz = gyroConfig()->dyn_notch_min_hz;
@@ -549,10 +553,12 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self) {
     gyroConfigMutable()->gyro_lowpass_hz[ROLL] =  gyroConfig_gyro_lowpass_hz_roll;
     gyroConfigMutable()->gyro_lowpass_hz[PITCH] =  gyroConfig_gyro_lowpass_hz_pitch;
     gyroConfigMutable()->gyro_lowpass_hz[YAW] =  gyroConfig_gyro_lowpass_hz_yaw;
+#ifdef USE_GYRO_LPF2
     gyroConfigMutable()->gyro_lowpass2_type =  gyroConfig_gyro_lowpass2_type;
     gyroConfigMutable()->gyro_lowpass2_hz[ROLL] =  gyroConfig_gyro_lowpass2_hz_roll;
     gyroConfigMutable()->gyro_lowpass2_hz[PITCH] =  gyroConfig_gyro_lowpass2_hz_pitch;
     gyroConfigMutable()->gyro_lowpass2_hz[YAW] =  gyroConfig_gyro_lowpass2_hz_yaw;
+#endif
     gyroConfigMutable()->dyn_notch_q = gyroConfig_gyro_q;
     gyroConfigMutable()->dyn_notch_count = gyroConfig_gyro_notch_count;
     gyroConfigMutable()->dyn_notch_min_hz = gyroConfig_gyro_notch_min_hz;

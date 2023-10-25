@@ -1227,10 +1227,12 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_hz_roll", "%d",            gyroConfig()->gyro_lowpass_hz[ROLL]);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_hz_pitch", "%d",           gyroConfig()->gyro_lowpass_hz[PITCH]);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_hz_yaw", "%d",             gyroConfig()->gyro_lowpass_hz[YAW]);
+#ifdef USE_GYRO_LPF2
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass2_type", "%d",              gyroConfig()->gyro_lowpass2_type);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass2_hz_roll", "%d",           gyroConfig()->gyro_lowpass2_hz[ROLL]);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass2_hz_pitch", "%d",          gyroConfig()->gyro_lowpass2_hz[PITCH]);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass2_hz_yaw", "%d",            gyroConfig()->gyro_lowpass2_hz[YAW]);
+#endif
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_hz", "%d,%d",                gyroConfig()->gyro_soft_notch_hz_1,
                                    gyroConfig()->gyro_soft_notch_hz_2);
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_cutoff", "%d,%d",            gyroConfig()->gyro_soft_notch_cutoff_1,
