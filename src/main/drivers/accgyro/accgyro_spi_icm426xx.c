@@ -48,7 +48,7 @@
 #define ICM426XX_BANK_SELECT3                       0x03
 #define ICM426XX_BANK_SELECT4                       0x04
 
-// Fix for stalls in gyro output. See https://github.com/ArduPilot/ardupilot/pull/25332
+// Fix for stalls in gyro output. See https://github.com/ArduPilot/ardupilot/pull/25332 ; https://github.com/betaflight/betaflight/pull/13132
 #define ICM426XX_INTF_CONFIG1                       0x4D
 #define ICM426XX_INTF_CONFIG1_AFSR_MASK             0xC0
 #define ICM426XX_INTF_CONFIG1_AFSR_DISABLE          0x40
