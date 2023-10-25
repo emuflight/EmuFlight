@@ -1180,8 +1180,10 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass2_hz_roll", "%d",          currentPidProfile->dFilter[ROLL].dLpf2);
         BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass2_hz_pitch", "%d",         currentPidProfile->dFilter[PITCH].dLpf2);
         BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass2_hz_yaw", "%d",           currentPidProfile->dFilter[YAW].dLpf2);
+#ifdef USE_GYRO_DATA_ANALYSE
         BLACKBOX_PRINT_HEADER_LINE("dterm_dyn_notch_enable", "%d",          currentPidProfile->dtermDynNotch);
         BLACKBOX_PRINT_HEADER_LINE("dterm_dyn_notch_q", "%d",               currentPidProfile->dterm_dyn_notch_q);
+#endif
         BLACKBOX_PRINT_HEADER_LINE("dterm_ABG_alpha", "%d",                 currentPidProfile->dterm_ABG_alpha);
         BLACKBOX_PRINT_HEADER_LINE("dterm_ABG_boost", "%d",                 currentPidProfile->dterm_ABG_boost);
         BLACKBOX_PRINT_HEADER_LINE("dterm_ABG_half_life", "%d",             currentPidProfile->dterm_ABG_half_life);
@@ -1240,6 +1242,7 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("dynamic_gyro_notch_count", "%d",        gyroConfig()->dyn_notch_count);
         BLACKBOX_PRINT_HEADER_LINE("dynamic_gyro_notch_min_hz", "%d",       gyroConfig()->dyn_notch_min_hz);
         BLACKBOX_PRINT_HEADER_LINE("dynamic_gyro_notch_max_hz", "%d",       gyroConfig()->dyn_notch_max_hz);
+        BLACKBOX_PRINT_HEADER_LINE("dynamic_gyro_notch_axis", "%d",       gyroConfig()->dyn_notch_axis);
 #endif
         BLACKBOX_PRINT_HEADER_LINE("gyro_ABG_alpha", "%d",                  gyroConfig()->gyro_ABG_alpha);
         BLACKBOX_PRINT_HEADER_LINE("gyro_ABG_boost", "%d",                  gyroConfig()->gyro_ABG_boost);
