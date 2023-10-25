@@ -155,8 +155,10 @@ typedef struct pidProfile_s {
     uint16_t dterm_ABG_alpha;
     uint16_t dterm_ABG_boost;
     uint8_t dterm_ABG_half_life;
+#ifdef USE_GYRO_DATA_ANALYSE
     uint8_t dtermDynNotch;
     uint16_t dterm_dyn_notch_q;
+#endif
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE
