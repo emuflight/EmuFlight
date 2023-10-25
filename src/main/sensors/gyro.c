@@ -250,11 +250,13 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .checkOverflow = GYRO_OVERFLOW_CHECK_ALL_AXES,
                   .yaw_spin_recovery = YAW_SPIN_RECOVERY_AUTO,
                   .yaw_spin_threshold = 1950,
+#ifdef USE_GYRO_DATA_ANALYSE
                   .dyn_notch_axis = RPY,
                   .dyn_notch_q = 400,
                   .dyn_notch_count = 3, // default of 3 is similar to the matrix filter.
                   .dyn_notch_min_hz = 150,
                   .dyn_notch_max_hz = 600,
+#endif
                   .imuf_mode = GTBCM_GYRO_ACC_FILTER_F,
                   .imuf_rate = IMUF_RATE_16K,
                   .imuf_roll_q = 6000,
@@ -306,11 +308,13 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_offset_yaw = 0,
                   .yaw_spin_recovery = YAW_SPIN_RECOVERY_AUTO,
                   .yaw_spin_threshold = 1950,
+#ifdef USE_GYRO_DATA_ANALYSE
                   .dyn_notch_axis = RPY,
                   .dyn_notch_q = 350,
                   .dyn_notch_count = 3, // default of 3 is similar to the matrix filter.
                   .dyn_notch_min_hz = 150,
                   .dyn_notch_max_hz = 600,
+#endif
                   .gyro_ABG_alpha = 0,
                   .gyro_ABG_boost = 275,
                   .gyro_ABG_half_life = 50,
