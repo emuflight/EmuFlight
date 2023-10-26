@@ -1194,11 +1194,21 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass_hz[ROLL]);
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass_hz[PITCH]);
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass_hz[YAW]);
+#ifdef USE_GYRO_LPF2
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass2_hz[ROLL]);
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass2_hz[PITCH]);
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass2_hz[YAW]);
+#else
+        sbufWriteU16(dst, 0);
+        sbufWriteU16(dst, 0);
+        sbufWriteU16(dst, 0);
+#endif
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass_type);
+#ifdef USE_GYRO_LPF2
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass2_type);
+#else
+        sbufWriteU8(dst, 0);
+#endif
         sbufWriteU16(dst, currentPidProfile->dFilter[ROLL].dLpf2);
         sbufWriteU16(dst, currentPidProfile->dFilter[PITCH].dLpf2);
         sbufWriteU16(dst, currentPidProfile->dFilter[YAW].dLpf2);
@@ -1823,11 +1833,21 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
             gyroConfigMutable()->gyro_lowpass_hz[ROLL] = sbufReadU16(src);
             gyroConfigMutable()->gyro_lowpass_hz[PITCH] = sbufReadU16(src);
             gyroConfigMutable()->gyro_lowpass_hz[YAW] = sbufReadU16(src);
+#ifdef USE_GYRO_LPF2
             gyroConfigMutable()->gyro_lowpass2_hz[ROLL] = sbufReadU16(src);
             gyroConfigMutable()->gyro_lowpass2_hz[PITCH] = sbufReadU16(src);
             gyroConfigMutable()->gyro_lowpass2_hz[YAW] = sbufReadU16(src);
+#else
+            sbufReadU16(src);
+            sbufReadU16(src);
+            sbufReadU16(src);
+#endif
             gyroConfigMutable()->gyro_lowpass_type = sbufReadU8(src);
+#ifdef USE_GYRO_LPF2
             gyroConfigMutable()->gyro_lowpass2_type = sbufReadU8(src);
+#else
+            sbufReadU8(src);
+#endif
             currentPidProfile->dFilter[ROLL].dLpf2 = sbufReadU16(src);
             currentPidProfile->dFilter[PITCH].dLpf2 = sbufReadU16(src);
             currentPidProfile->dFilter[YAW].dLpf2 = sbufReadU16(src);
