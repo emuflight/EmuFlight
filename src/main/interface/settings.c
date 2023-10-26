@@ -513,10 +513,12 @@ const clivalue_t valueTable[] = {
     { "gyro_lowpass_hz_pitch",      VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass_hz[PITCH]) },
     { "gyro_lowpass_hz_yaw",        VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass_hz[YAW]) },
 
+#ifdef USE_GYRO_LPF2
     { "gyro_lowpass2_type",         VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_FILTER_TYPE }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass2_type) },
     { "gyro_lowpass2_hz_roll",      VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass2_hz[ROLL]) },
     { "gyro_lowpass2_hz_pitch",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass2_hz[PITCH]) },
     { "gyro_lowpass2_hz_yaw",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass2_hz[YAW]) },
+#endif
 
     { "gyro_abg_alpha",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_ABG_alpha) },
     { "gyro_abg_boost",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  2000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_ABG_boost) },
