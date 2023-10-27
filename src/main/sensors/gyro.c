@@ -159,8 +159,10 @@ typedef struct gyroSensor_s {
     gyroLowpassFilter_t lowpassFilter[XYZ_AXIS_COUNT];
 
     // lowpass2 gyro soft filter
+#ifdef USE_GYRO_LPF2
     filterApplyFnPtr lowpass2FilterApplyFn;
     gyroLowpassFilter_t lowpass2Filter[XYZ_AXIS_COUNT];
+#endif
 
     // ABG filter
     filterApplyFnPtr gyroABGFilterApplyFn;
@@ -251,6 +253,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .checkOverflow = GYRO_OVERFLOW_CHECK_ALL_AXES,
                   .yaw_spin_recovery = YAW_SPIN_RECOVERY_AUTO,
                   .yaw_spin_threshold = 1950,
+                  .dyn_notch_axis = RPY,
                   .dyn_notch_q = 400,
                   .dyn_notch_count = 3, // default of 3 is similar to the matrix filter.
                   .dyn_notch_min_hz = 150,
@@ -306,6 +309,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_offset_yaw = 0,
                   .yaw_spin_recovery = YAW_SPIN_RECOVERY_AUTO,
                   .yaw_spin_threshold = 1950,
+                  .dyn_notch_axis = RPY,
                   .dyn_notch_q = 350,
                   .dyn_notch_count = 3, // default of 3 is similar to the matrix filter.
                   .dyn_notch_min_hz = 150,
@@ -756,6 +760,7 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
         lpfHz[PITCH] = gyroConfig()->gyro_lowpass_hz[PITCH];
         lpfHz[YAW] = gyroConfig()->gyro_lowpass_hz[YAW];
         break;
+#ifdef USE_GYRO_LPF2
     case FILTER_LOWPASS2:
         lowpassFilterApplyFn = &gyroSensor->lowpass2FilterApplyFn;
         lowpassFilter = gyroSensor->lowpass2Filter;
@@ -763,6 +768,7 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
         lpfHz[PITCH] = gyroConfig()->gyro_lowpass2_hz[PITCH];
         lpfHz[YAW] = gyroConfig()->gyro_lowpass2_hz[YAW];
         break;
+#endif
     default:
         return;
     }
@@ -856,7 +862,7 @@ static void gyroInitFilterDynamicNotch(gyroSensor_t *gyroSensor) {
     gyroSensor->notchFilterDynApplyFn = nullFilterApply;
     if (isDynamicFilterActive()) {
         gyroSensor->notchFilterDynApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1; // must be this function, not DF2
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+        for (int axis = 0; axis < gyroConfig()->dyn_notch_axis+1; axis++) {
             for (int axis2 = 0; axis2 < gyroConfig()->dyn_notch_count; axis2++) {
                 biquadFilterInit(&gyroSensor->gyroAnalyseState.notchFilterDyn[axis][axis2], 400, gyro.targetLooptime, gyroConfig()->dyn_notch_q / 100.0f, FILTER_NOTCH);
             }
@@ -901,11 +907,13 @@ static void gyroInitSensorFilters(gyroSensor_t *gyroSensor) {
         FILTER_LOWPASS,
         gyroConfig()->gyro_lowpass_type
     );
+#ifdef USE_GYRO_LPF2
     gyroInitLowpassFilterLpf(
         gyroSensor,
         FILTER_LOWPASS2,
         gyroConfig()->gyro_lowpass2_type
     );
+#endif
     gyroInitFilterNotch1(gyroSensor, gyroConfig()->gyro_soft_notch_hz_1, gyroConfig()->gyro_soft_notch_cutoff_1);
     gyroInitFilterNotch2(gyroSensor, gyroConfig()->gyro_soft_notch_hz_2, gyroConfig()->gyro_soft_notch_cutoff_2);
 #ifdef USE_GYRO_DATA_ANALYSE
