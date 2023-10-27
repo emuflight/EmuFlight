@@ -114,7 +114,9 @@ void targetConfiguration(void)
 
     gyroConfigMutable()->gyro_lowpass_type = FILTER_PT1;
     gyroConfigMutable()->gyro_lowpass_hz = 200;
+#ifdef USE_GYRO_LPF2
     gyroConfigMutable()->gyro_lowpass2_hz = 200;
+#endif
     gyroConfigMutable()->yaw_spin_threshold = 1950;
     gyroConfigMutable()->dyn_lpf_gyro_min_hz = 160;
     gyroConfigMutable()->dyn_lpf_gyro_max_hz = 400;

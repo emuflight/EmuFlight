@@ -1194,11 +1194,21 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass_hz[ROLL]);
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass_hz[PITCH]);
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass_hz[YAW]);
+#ifdef USE_GYRO_LPF2
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass2_hz[ROLL]);
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass2_hz[PITCH]);
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass2_hz[YAW]);
+#else
+        sbufWriteU16(dst, 0);
+        sbufWriteU16(dst, 0);
+        sbufWriteU16(dst, 0);
+#endif
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass_type);
+#ifdef USE_GYRO_LPF2
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass2_type);
+#else
+        sbufWriteU8(dst, 0);
+#endif
         sbufWriteU16(dst, currentPidProfile->dFilter[ROLL].dLpf2);
         sbufWriteU16(dst, currentPidProfile->dFilter[PITCH].dLpf2);
         sbufWriteU16(dst, currentPidProfile->dFilter[YAW].dLpf2);
@@ -1833,17 +1843,10 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
             currentPidProfile->dFilter[YAW].dLpf2 = sbufReadU16(src);
             //MSP 1.51 removes SmartDTermSmoothing and WitchCraft
             //MSP 1.51 adds and refactors dynamic_filter
-#ifdef USE_GYRO_DATA_ANALYSE
             gyroConfigMutable()->dyn_notch_count = sbufReadU8(src); //dynamic_gyro_notch_count
             gyroConfigMutable()->dyn_notch_q = sbufReadU16(src);
             gyroConfigMutable()->dyn_notch_min_hz = sbufReadU16(src);
             gyroConfigMutable()->dyn_notch_max_hz = sbufReadU16(src); //dynamic_gyro_notch_max_hz
-#else
-            sbufReadU8(src);
-            sbufReadU16(src);
-            sbufReadU16(src);
-            sbufReadU16(src);
-#endif
             //end 1.51 add/refactor dynamic_filter
             //MSP 1.51
             gyroConfigMutable()->gyro_ABG_alpha = sbufReadU16(src);
@@ -1855,13 +1858,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
             currentPidProfile->dterm_ABG_half_life = sbufReadU8(src);
             //end MSP 1.51
             //MSP 1.51 dynamic dTerm notch
-#ifdef USE_GYRO_DATA_ANALYSE
             currentPidProfile->dtermDynNotch = sbufReadU8(src);         //dterm_dyn_notch_enable
             currentPidProfile->dterm_dyn_notch_q = sbufReadU16(src);    //dterm_dyn_notch_q
-#else
-            sbufReadU8(src);
-            sbufReadU16(src);
-#endif
             //end MSP 1.51 dynamic dTerm notch
         }
         // reinitialize the gyro filters with the new values

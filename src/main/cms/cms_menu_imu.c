@@ -493,9 +493,12 @@ static uint8_t gyroConfig_gyro_lowpass1_type;
 static uint16_t gyroConfig_gyro_lowpass_hz_roll;
 static uint16_t gyroConfig_gyro_lowpass_hz_pitch;
 static uint16_t gyroConfig_gyro_lowpass_hz_yaw;
+#ifdef USE_GYRO_LPF2
+static uint8_t gyroConfig_gyro_lowpass2_type;
 static uint16_t gyroConfig_gyro_lowpass2_hz_roll;
 static uint16_t gyroConfig_gyro_lowpass2_hz_pitch;
 static uint16_t gyroConfig_gyro_lowpass2_hz_yaw;
+#endif
 #ifdef USE_GYRO_DATA_ANALYSE
 static uint16_t gyroConfig_gyro_q;
 static uint8_t gyroConfig_gyro_notch_count;
@@ -524,9 +527,12 @@ static long cmsx_menuGyro_onEnter(void) {
     gyroConfig_gyro_lowpass_hz_roll =  gyroConfig()->gyro_lowpass_hz[ROLL];
     gyroConfig_gyro_lowpass_hz_pitch =  gyroConfig()->gyro_lowpass_hz[PITCH];
     gyroConfig_gyro_lowpass_hz_yaw =  gyroConfig()->gyro_lowpass_hz[YAW];
+#ifdef USE_GYRO_LPF2
+    gyroConfig_gyro_lowpass2_type =  gyroConfig()->gyro_lowpass2_type;
     gyroConfig_gyro_lowpass2_hz_roll =  gyroConfig()->gyro_lowpass2_hz[ROLL];
     gyroConfig_gyro_lowpass2_hz_pitch =  gyroConfig()->gyro_lowpass2_hz[PITCH];
     gyroConfig_gyro_lowpass2_hz_yaw =  gyroConfig()->gyro_lowpass2_hz[YAW];
+#endif
 #ifdef USE_GYRO_DATA_ANALYSE
     gyroConfig_gyro_q = gyroConfig()->dyn_notch_q;
     gyroConfig_gyro_notch_count = gyroConfig()->dyn_notch_count;
@@ -558,9 +564,12 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self) {
     gyroConfigMutable()->gyro_lowpass_hz[ROLL] =  gyroConfig_gyro_lowpass_hz_roll;
     gyroConfigMutable()->gyro_lowpass_hz[PITCH] =  gyroConfig_gyro_lowpass_hz_pitch;
     gyroConfigMutable()->gyro_lowpass_hz[YAW] =  gyroConfig_gyro_lowpass_hz_yaw;
+#ifdef USE_GYRO_LPF2
+    gyroConfigMutable()->gyro_lowpass2_type =  gyroConfig_gyro_lowpass2_type;
     gyroConfigMutable()->gyro_lowpass2_hz[ROLL] =  gyroConfig_gyro_lowpass2_hz_roll;
     gyroConfigMutable()->gyro_lowpass2_hz[PITCH] =  gyroConfig_gyro_lowpass2_hz_pitch;
     gyroConfigMutable()->gyro_lowpass2_hz[YAW] =  gyroConfig_gyro_lowpass2_hz_yaw;
+#endif
 #ifdef USE_GYRO_DATA_ANALYSE
     gyroConfigMutable()->dyn_notch_q = gyroConfig_gyro_q;
     gyroConfigMutable()->dyn_notch_count = gyroConfig_gyro_notch_count;
@@ -589,11 +598,12 @@ static long cmsx_menuGyro_onExit(const OSD_Entry *self) {
 static OSD_Entry cmsx_menuFilterGlobalEntries[] = {
     { "-- FILTER GLB  --", OME_Label, NULL, NULL, 0 },
 
+    { "GYRO LPF TYPE",    OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &gyroConfig_gyro_lowpass1_type, 4, cms_FilterType }, 0 },
     { "GYRO LPF ROLL",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_roll,     0, 16000, 1 }, 0 },
     { "GYRO LPF PITCH",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_pitch,    0, 16000, 1 }, 0 },
     { "GYRO LPF YAW",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_yaw,      0, 16000, 1 }, 0 },
-    { "GYRO LPF TYPE",    OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &gyroConfig_gyro_lowpass1_type, 4, cms_FilterType }, 0 },
 #ifdef USE_GYRO_LPF2
+    { "GYRO LPF2 TYPE",   OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &gyroConfig_gyro_lowpass2_type, 4, cms_FilterType }, 0 },
     { "GYRO LPF2 ROLL",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_roll,    0, 16000, 1 }, 0 },
     { "GYRO LPF2 PITCH",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_pitch,   0, 16000, 1 }, 0 },
     { "GYRO LPF2 YAW",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_yaw,     0, 16000, 1 }, 0 },
