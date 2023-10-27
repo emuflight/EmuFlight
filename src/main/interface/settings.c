@@ -394,11 +394,9 @@ static const char *const lookupTableMixerImplType[] = {
     "LEGACY", "SMOOTH", "2PASS"
 };
 
-#ifdef USE_GYRO_DATA_ANALYSE
 static const char *const lookupTableDynNotchAxisType[] = {
     "RP", "RPY"
 };
-#endif
 
 #define LOOKUP_TABLE_ENTRY(name) { name, ARRAYLEN(name) }
 
@@ -489,9 +487,7 @@ const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableOsdLogoOnArming),
 #endif
     LOOKUP_TABLE_ENTRY(lookupTableMixerImplType),
-#ifdef USE_GYRO_DATA_ANALYSE
     LOOKUP_TABLE_ENTRY(lookupTableDynNotchAxisType),
-#endif
 };
 
 #undef LOOKUP_TABLE_ENTRY

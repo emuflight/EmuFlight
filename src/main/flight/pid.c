@@ -197,10 +197,8 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .dterm_ABG_half_life = 50,
     .emuGravityGain = 50,
     .angle_filter = 100,
-#ifdef USE_GYRO_DATA_ANALYSE
     .dtermDynNotch = false,
     .dterm_dyn_notch_q = 400,
-#endif
                 );
 }
 
@@ -237,7 +235,9 @@ static FAST_RAM filterApplyFnPtr angleSetpointFilterApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT pt1Filter_t angleSetpointFilter[2];
 static FAST_RAM filterApplyFnPtr dtermABGapplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT alphaBetaGammaFilter_t dtermABG[XYZ_AXIS_COUNT];
+#ifdef USE_GYRO_DATA_ANALYSE
 static FAST_RAM_ZERO_INIT biquadFilter_t dtermNotch[XYZ_AXIS_COUNT][5];
+#endif
 
 #if defined(USE_ITERM_RELAX)
 static FAST_RAM_ZERO_INIT pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
@@ -673,7 +673,9 @@ static FAST_RAM_ZERO_INIT float stickMovement[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float lastRcDeflectionAbs[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
+#ifdef USE_GYRO_DATA_ANALYSE
 static FAST_RAM_ZERO_INIT float previousNotchCenterFreq[XYZ_AXIS_COUNT][5];
+#endif
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs) {

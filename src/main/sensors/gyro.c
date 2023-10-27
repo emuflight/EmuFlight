@@ -238,12 +238,10 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_lowpass_hz[ROLL] = 0,
                   .gyro_lowpass_hz[PITCH] = 0,
                   .gyro_lowpass_hz[YAW] = 0,
-#ifdef USE_GYRO_LPF2
                   .gyro_lowpass2_type = FILTER_PT1,
                   .gyro_lowpass2_hz[ROLL] = 0,
                   .gyro_lowpass2_hz[PITCH] = 0,
                   .gyro_lowpass2_hz[YAW] = 0,
-#endif
                   .gyro_high_fsr = false,
                   .gyro_use_32khz = true,
                   .gyro_to_use = GYRO_CONFIG_USE_GYRO_DEFAULT,
@@ -254,13 +252,11 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .checkOverflow = GYRO_OVERFLOW_CHECK_ALL_AXES,
                   .yaw_spin_recovery = YAW_SPIN_RECOVERY_AUTO,
                   .yaw_spin_threshold = 1950,
-#ifdef USE_GYRO_DATA_ANALYSE
                   .dyn_notch_axis = RPY,
                   .dyn_notch_q = 400,
                   .dyn_notch_count = 3, // default of 3 is similar to the matrix filter.
                   .dyn_notch_min_hz = 150,
                   .dyn_notch_max_hz = 600,
-#endif
                   .imuf_mode = GTBCM_GYRO_ACC_FILTER_F,
                   .imuf_rate = IMUF_RATE_16K,
                   .imuf_roll_q = 6000,
@@ -293,12 +289,10 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_lowpass_hz[ROLL] = 115,
                   .gyro_lowpass_hz[PITCH] = 115,
                   .gyro_lowpass_hz[YAW] = 105,
-#ifdef USE_GYRO_LPF2
                   .gyro_lowpass2_type = FILTER_PT1,
                   .gyro_lowpass2_hz[ROLL] = 0,
                   .gyro_lowpass2_hz[PITCH] = 0,
                   .gyro_lowpass2_hz[YAW] = 0,
-#endif
                   .gyro_high_fsr = false,
                   .gyro_use_32khz = false,
                   .gyro_to_use = GYRO_CONFIG_USE_GYRO_DEFAULT,
@@ -314,13 +308,11 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_offset_yaw = 0,
                   .yaw_spin_recovery = YAW_SPIN_RECOVERY_AUTO,
                   .yaw_spin_threshold = 1950,
-#ifdef USE_GYRO_DATA_ANALYSE
                   .dyn_notch_axis = RPY,
                   .dyn_notch_q = 350,
                   .dyn_notch_count = 3, // default of 3 is similar to the matrix filter.
                   .dyn_notch_min_hz = 150,
                   .dyn_notch_max_hz = 600,
-#endif
                   .gyro_ABG_alpha = 0,
                   .gyro_ABG_boost = 275,
                   .gyro_ABG_half_life = 50,
