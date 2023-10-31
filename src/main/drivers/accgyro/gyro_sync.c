@@ -54,8 +54,6 @@ uint32_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t lpf, uint8_t gyroSyncDenomin
     gyro->mpuDividerDrops = gyroSyncDenominator - 1;
     gyro->gyroRateKHz = lpfNoneOr256 ? GYRO_RATE_8_kHz : GYRO_RATE_1_kHz;
 
-
-
     switch (gyro->mpuDetectionResult.sensor) {
         case ICM_20649_SPI:  //20649 is a weird gyro
             gyro->gyroRateKHz = lpfNoneOr256 ? GYRO_RATE_9_kHz : GYRO_RATE_1100_Hz;
