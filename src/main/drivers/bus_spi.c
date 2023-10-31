@@ -272,7 +272,8 @@ uint16_t spiCalculateDivider(uint32_t freq)
     return divisor;
 }
 
-// Wait for bus to become free, then read a byte of data where the register is ORed with 0x80
+// Wait for bus to become free, then read a byte of data where the register is bitwise OR'ed with 0x80
+// EmuFlight codebase is old.  Bitwise or 0x80 is redundant here as spiBusReadRegister already contains such.
 uint8_t spiReadRegMsk(const busDevice_t *bus, uint8_t reg)
 {
     return spiBusReadRegister(bus, reg | 0x80);
