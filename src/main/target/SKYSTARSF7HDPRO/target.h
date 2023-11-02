@@ -22,8 +22,11 @@
 
 #define USE_TARGET_CONFIG
 
+#define TARGET_MANUFACTURER_IDENTIFIER "SKST"
+#define USBD_PRODUCT_STRING     "SKST7HDPRO"
+
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
 #define TARGET_BOARD_IDENTIFIER "S7X2"
-#define USBD_PRODUCT_STRING     "SKYSTARSF7HD"
 
 // ******* LEDs and BEEPER ********
 
@@ -34,46 +37,49 @@
 #define BEEPER_PIN              PB2
 #define BEEPER_INVERTED
 
-#define ENABLE_DSHOT_DMAR       true
+//#define ENABLE_DSHOT_DMAR       true
 
 #define USE_PINIO
-#define PINIO1_PIN PB0 // Bluetooth mode control, PB0 is connected to the 36 pin (P2.0) of the Bluetooth chip. Replace PB0 with the pin for your flight control and 36-pin connection
+#define PINIO1_PIN PA14 // Bluetooth mode control, PB0 is connected to the 36 pin (P2.0) of the Bluetooth chip. Replace PB0 with the pin for your flight control and 36-pin connection
 
 #define USE_CAMERA_CONTROL
-#define CAMERA_CONTROL_PIN      PA10 // define dedicated camera osd pin
+#define CAMERA_CONTROL_PIN      PA8 // define dedicated camera osd pin
 
 
 // ******* GYRO and ACC ********
 
+#define USE_DUAL_GYRO
 #define USE_EXTI
-#define MPU_INT_EXTI            PC4
-#define USE_MPU_DATA_READY_SIGNAL
+#define GYRO_1_EXTI_PIN         PC4
+#define GYRO_2_EXTI_PIN         PC0
+#define MPU_INT_EXTI
+
+#define GYRO_1_CS_PIN           PA4
+#define GYRO_1_SPI_INSTANCE     SPI1
+#define GYRO_2_CS_PIN           PC13
+#define GYRO_2_SPI_INSTANCE     SPI1
 
 #define USE_GYRO
-
-#define USE_ACC
-
+#define USE_GYRO_SPI_MPU6000
+#define USE_GYRO_SPI_MPU6500
 #define USE_SPI_GYRO
 #define USE_ACCGYRO_BMI270
-#define BMI270_CS_PIN           PA4
-#define BMI270_SPI_INSTANCE     SPI1
-#define ACC_BMI270_ALIGN        CW180_DEG
-#define GYRO_BMI270_ALIGN       CW180_DEG
 
-#define MPU6000_CS_PIN           PA4
-#define MPU6000_SPI_INSTANCE     SPI1
-
-#define USE_GYRO_SPI_MPU6000
-#define GYRO_MPU6000_ALIGN      CW180_DEG
-
+#define USE_ACC
 #define USE_ACC_SPI_MPU6000
-#define ACC_MPU6000_ALIGN       CW180_DEG
+#define USE_ACC_SPI_MPU6500
+
+#define GYRO_1_ALIGN     CW90_DEG_FLIP
+#define ACC_1_ALIGN      CW90_DEG_FLIP
+
+#define GYRO_2_ALIGN    CW0_DEG
+#define ACC_2_ALIGN     CW0_DEG
+
+#define USE_MPU_DATA_READY_SIGNAL
+#define ENSURE_MPU_DATA_READY_IS_LOW
+#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
 
 // *************** Baro ************************
-#define USE_BARO
-#define USE_BARO_MS5611
-#define USE_BARO_BMP280
-#define USE_BARO_BMP085
 
 #define USE_SPI
 
@@ -82,14 +88,16 @@
 #define SPI2_MISO_PIN           PB14
 #define SPI2_MOSI_PIN           PB15
 
-#define BMP280_CS_PIN             PA4
-#define BARO_CS_PIN             PA4
-#define BARO_SPI_INSTANCE       SPI2
+#define USE_BARO
+#define USE_BARO_SPI_BMP280
+#define DEFAULT_BARO_SPI_BMP280
+#define BMP280_SPI_INSTANCE     SPI2
+#define BMP280_CS_PIN           PB1
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
-#define I2C1_SCL                PB8        // SCL pad  PB10, shared with UART3TX
-#define I2C1_SDA                PB9       // SDA pad  PB11, shared with UART3RX
+#define I2C1_SCL                PB8
+#define I2C1_SDA                PB9
 
 
 //*********** Magnetometer / Compass *************
@@ -101,7 +109,6 @@
 // ******* SERIAL ********
 
 #define USE_VCP
-#define USE_USB_DETECT
 
 #define USE_UART1
 #define USE_UART2
@@ -110,8 +117,8 @@
 #define USE_UART5
 #define USE_UART6
 
-#define UART1_TX_PIN            PB6
-#define UART1_RX_PIN            PB7
+#define UART1_TX_PIN            PA9
+#define UART1_RX_PIN            PA10
 
 #define UART2_TX_PIN            PA2
 #define UART2_RX_PIN            PA3
@@ -151,13 +158,8 @@
 // ******* ADC ********
 
 #define USE_ADC
-#define ADC_INSTANCE            ADC3           //Mambaf722 settings verified work for this fc
-#define ADC3_DMA_STREAM         DMA2_Stream0    //Mambaf722 settings verified work for this fc
-//#define ADC_INSTANCE            ADC2        //Recommended BF Config Settings
-//#define ADC2_DMA_STREAM         DMA2_Stream3    //Recommended BF Config Settings
-//#define ADC2_DMA_STREAM         DMA2_Stream2    //Based off a guys BF dump online that was used to fix timer/channels as bfconfig wrong
-
-
+#define ADC_INSTANCE            ADC2
+#define ADC2_DMA_STREAM         DMA2_Stream3
 
 #define VBAT_ADC_PIN            PC1
 #define RSSI_ADC_PIN            PC2
@@ -167,7 +169,9 @@
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
-#define MAX7456_CS_PIN          PB12
+#define MAX7456_SPI_CS_PIN      PB12
+#define MAX7456_SPI_CLK         ( SPI_CLOCK_STANDARD )
+#define MAX7456_RESTORE_CLK     ( SPI_CLOCK_FAST )
 
 //******* FLASH ********
 
@@ -189,6 +193,8 @@
 #define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
+#define CURRENT_METER_SCALE_DEFAULT 290
+
 
 #define USE_ESCSERIAL
 
@@ -198,4 +204,4 @@
 #define TARGET_IO_PORTD         0xffff
 
 #define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(8) )
+#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3)| TIM_N(4) | TIM_N(8) )
