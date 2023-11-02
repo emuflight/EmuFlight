@@ -20,9 +20,11 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "NEBD"
-
+#define TARGET_MANUFACTURER_IDENTIFIER "NEBD"
 #define USBD_PRODUCT_STRING "NBD_INFINITYAIOV2PRO"
+
+#define FC_TARGET_MCU     STM32F745     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
 
 #define LED0_PIN   PC0
 
@@ -114,20 +116,22 @@
 #define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
 #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 
-//#define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+#define USE_FLASH
 #define USE_FLASHFS
 #define USE_FLASH_W25Q128FV     //official
 #define FLASH_CS_PIN            PB0
 #define FLASH_SPI_INSTANCE      SPI1
 
-#define USE_FLASH_W25Q          //testing
-#define USE_FLASH_W25M512       //testing
-#define USE_FLASH_M25P16        //testing
+#define USE_FLASH_M25P16    // testing // 16MB Micron M25P16 and others (ref: https://github.com/betaflight/betaflight/blob/master/src/main/drivers/flash_m25p16.c)
+#define USE_FLASH_W25M      // testing // 1Gb NAND flash support
+#define USE_FLASH_W25M512   // testing // 16, 32, 64 or 128MB Winbond stacked die support
+#define USE_FLASH_W25Q      // testing // 512Kb (256Kb x 2 stacked) NOR flash support
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE_1           (I2CDEV_1)
+#define MAG_I2C_INSTANCE       (I2CDEV_1)
 #define I2C1_SCL               PB8
 #define I2C1_SDA               PB9
 
@@ -148,6 +152,9 @@
 #define TARGET_IO_PORTC 0xffff
 #define TARGET_IO_PORTD 0xffff
 #define TARGET_IO_PORTE 0xffff
+
+#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
+#define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
 #define USABLE_TIMER_CHANNEL_COUNT      7
 #define USED_TIMERS ( TIM_N(1) | TIM_N(3) | TIM_N(4) )
