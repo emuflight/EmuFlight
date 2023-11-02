@@ -65,9 +65,15 @@
 #define USE_ACC_SPI_ICM42688P
 
 #define ICM42688P_SPI_INSTANCE    SPI1
-#define ICM42688P_CS_PIN          PB2
+#define ICM42688P_CS_PIN          PA4
 #define ACC_ICM42688P_ALIGN       CW0_DEG_FLIP
 #define GYRO_ICM42688P_ALIGN      CW0_DEG_FLIP
+
+#define USE_SPI_GYRO
+#define BMI270_SPI_INSTANCE       SPI1
+#define BMI270_CS_PIN             PA4
+#define ACC_BMI270_ALIGN          CW0_DEG_FLIP
+#define GYRO_BMI270_ALIGN         CW0_DEG_FLIP
 
 // *************** Baro **************************
 #define USE_I2C
