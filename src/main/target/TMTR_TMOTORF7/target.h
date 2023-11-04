@@ -20,9 +20,11 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "TMR7"
-#define USBD_PRODUCT_STRING     "TMOTORF7"
 #define TARGET_MANUFACTURER_IDENTIFIER "TMTR"
+#define USBD_PRODUCT_STRING "TMOTORF7"
+
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
 
 #define LED0_PIN                PB2
 
@@ -35,7 +37,7 @@
 #define USE_PINIO
 #define PINIO1_PIN                PC14
 #define USE_PINIOBOX
-
+#define PINIO1_BOX 40
 
 #define ENABLE_DSHOT_DMAR       true
 
@@ -44,21 +46,44 @@
 #define USE_MPU_DATA_READY_SIGNAL
 
 #define USE_GYRO
+#define USE_ACC
+
 #define USE_GYRO_SPI_MPU6000
+#define USE_ACC_SPI_MPU6000
+#define USE_ACCGYRO_BMI270
+#define USE_GYRO_SPI_ICM42688P
+#define USE_ACC_SPI_ICM42688P
+#define USE_GYRO_SPI_MPU6500
+#define USE_ACC_SPI_MPU6500
+
 #define MPU6000_CS_PIN          PA4
 #define MPU6000_SPI_INSTANCE    SPI1
-#define ACC_MPU6000_ALIGN           CW0_DEG
-#define GYRO_MPU6000_ALIGN           CW0_DEG
+#define ACC_MPU6000_ALIGN       CW0_DEG
+#define GYRO_MPU6000_ALIGN      CW0_DEG
 
-#define USE_ACC
-#define USE_ACC_SPI_MPU6000
-#define USE_ACC_SPI_MPU6500
+#define MPU6500_CS_PIN          PA4
+#define MPU6500_SPI_INSTANCE    SPI1
+#define ACC_MPU6500_ALIGN       CW0_DEG
+#define GYRO_MPU6500_ALIGN      CW0_DEG
+
+#define USE_SPI_GYRO
+#define BMI270_CS_PIN           PA4
+#define BMI270_SPI_INSTANCE     SPI1
+#define ACC_BMI270_ALIGN        CW0_DEG
+#define GYRO_BMI270_ALIGN       CW0_DEG
+
+#define ICM42688P_CS_PIN        PA4
+#define ICM42688P_SPI_INSTANCE  SPI1
+#define ACC_ICM42688P_ALIGN     CW0_DEG
+#define GYRO_ICM42688P_ALIGN    CW0_DEG
 
 #define USE_BARO
 #define USE_BARO_SPI_BMP280
 #define DEFAULT_BARO_SPI_BMP280
 #define BMP280_SPI_INSTANCE     SPI3
 #define BMP280_CS_PIN           PC15
+#define BARO_SPI_INSTANCE       SPI3
+#define BARO_CS_PIN             PC15
 
 #define USE_MAG
 #define USE_MAG_HMC5883
@@ -133,20 +158,21 @@
 #define VBAT_ADC_PIN            PC1
 #define CURRENT_METER_ADC_PIN   PC2
 #define RSSI_ADC_PIN            PC3
+#define ADC1_DMA_STREAM DMA2_Stream4 //# ADC 1: DMA2 Stream 4 Channel 0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
-#define SERIALRX_PROVIDER       SERIALRX_SBUS
+//#define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_UART5
-//#define SBUS_TELEMETRY_UART     SERIAL_PORT_USART1
+#define SBUS_TELEMETRY_UART     SERIAL_PORT_USART1 // soft UART??
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES        ( FEATURE_OSD  )
+#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 
 #define TARGET_IO_PORTA         ( 0xffff )
 #define TARGET_IO_PORTB         ( 0xffff )
 #define TARGET_IO_PORTC         ( 0xffff )
 #define TARGET_IO_PORTD         ( 0x0004 )
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
+#define USABLE_TIMER_CHANNEL_COUNT 11
 #define USED_TIMERS              ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(11) )
