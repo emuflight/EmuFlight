@@ -104,13 +104,10 @@
 #define USE_UART4
 #define UART4_TX_PIN         PA0
 #define UART4_RX_PIN         PA1
-#define USE_UART5
-#define USE_UART6
 #define USE_UART7
 #define UART7_TX_PIN         PE8
 #define UART7_RX_PIN         PE7
-// UART5,6=NONE, add +2 to serial_count
-#define SERIAL_PORT_COUNT 8
+#define SERIAL_PORT_COUNT 6
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
