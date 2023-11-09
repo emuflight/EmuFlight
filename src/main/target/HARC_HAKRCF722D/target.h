@@ -134,13 +134,10 @@
 #define USE_UART4
 #define UART4_TX_PIN         PA0
 #define UART4_RX_PIN         PA1
-#define USE_UART5
 #define USE_UART6
 #define UART6_TX_PIN         PC6
 #define UART6_RX_PIN         PC7
-#define SERIAL_PORT_COUNT 7
-// UART5 NONE, added +1 serial count
-// notice - please verify serial count. UARTs defined as NONE may need to be included.
+#define SERIAL_PORT_COUNT 6
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
