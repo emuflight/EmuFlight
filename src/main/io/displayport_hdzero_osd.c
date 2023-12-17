@@ -388,8 +388,8 @@ static mspResult_e hdZeroProcessMspCommand(mspPacket_t *cmd, mspPacket_t *reply,
     const uint8_t cmdMSP = cmd->cmd;
     reply->cmd = cmd->cmd;
     if (cmdMSP == MSP_FC_VARIANT) {
-        //We advertise as ARDU on this port for the prettier font
-        sbufWriteData(dst, "ARDU", FLIGHT_CONTROLLER_IDENTIFIER_LENGTH);
+        //We advertise as EMUF on this port for the prettier font
+        sbufWriteData(dst, "EMUF", FLIGHT_CONTROLLER_IDENTIFIER_LENGTH);
         return MSP_RESULT_ACK;
     }
 
