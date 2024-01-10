@@ -44,7 +44,7 @@ void pgResetFn_boardConfig(boardConfig_t *boardConfig) {
 #if !defined(GENERIC_TARGET)
         strncpy(boardConfig->boardName, targetName, MAX_BOARD_NAME_LENGTH);
 #if defined(TARGET_MANUFACTURER_IDENTIFIER)
-        strncpy(boardConfig->manufacturerId, TARGET_MANUFACTURER_IDENTIFIER, MAX_MANUFACTURER_ID_LENGTH);
+        memcpy(boardConfig->manufacturerId, TARGET_MANUFACTURER_IDENTIFIER, MAX_MANUFACTURER_ID_LENGTH);
 #endif
         boardConfig->boardInformationSet = true;
 #else
