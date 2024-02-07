@@ -56,7 +56,8 @@ FILE_COMPILE_FOR_SPEED
 #define MSP_WRITE_STRING 3
 #define MSP_DRAW_SCREEN 4
 #define MSP_SET_OPTIONS 5
-#define DRAW_FREQ_DENOM 4 // 60Hz
+//#define DRAW_FREQ_DENOM 4 // 60Hz
+#define DRAW_FREQ_DENOM 8 // 30Hz
 #define TX_BUFFER_SIZE 1024
 #define VTX_TIMEOUT 1000 // 1 second timer
 
@@ -279,13 +280,14 @@ static uint32_t txBytesFree(const displayPort_t *displayPort)
     return mspSerialTxBytesFree();
 }
 
-static bool getFontMetadata(displayFontMetadata_t *metadata, const displayPort_t *displayPort)
-{
-    UNUSED(displayPort);
-    metadata->charCount = 512;
-    metadata->version = FONT_VERSION;
-    return true;
-}
+//Commented out as compiler reports unused.
+//static bool getFontMetadata(displayFontMetadata_t *metadata, const displayPort_t *displayPort)
+//{
+//    UNUSED(displayPort);
+//    metadata->charCount = 512;
+//    metadata->version = FONT_VERSION;
+//    return true;
+//}
 
 static bool isTransferInProgress(const displayPort_t *displayPort)
 {
@@ -293,11 +295,12 @@ static bool isTransferInProgress(const displayPort_t *displayPort)
     return false;
 }
 
-static bool isReady(displayPort_t *displayPort)
-{
-    UNUSED(displayPort);
-    return vtxActive;
-}
+//Commented out as compiler reports unused.
+//static bool isReady(displayPort_t *displayPort)
+//{
+//    UNUSED(displayPort);
+//    return vtxActive;
+//}
 
 static int grab(displayPort_t *displayPort)
 {
@@ -383,15 +386,18 @@ static mspResult_e hdZeroProcessMspCommand(mspPacket_t *cmd, mspPacket_t *reply,
     vtxSeen = vtxActive = true;
     vtxHeartbeat = millis();
 
-    sbuf_t *dst = &reply->buf;
+    //Commented out as compiler reports unused.
+    //sbuf_t *dst = &reply->buf;
 
     const uint8_t cmdMSP = cmd->cmd;
     reply->cmd = cmd->cmd;
-    if (cmdMSP == MSP_FC_VARIANT) {
-        //We advertise as ARDU on this port for the prettier font
-        sbufWriteData(dst, "ARDU", FLIGHT_CONTROLLER_IDENTIFIER_LENGTH);
-        return MSP_RESULT_ACK;
-    }
+
+    //Apparently no longer required as HDZero will send the MSP/EEPROM value of "EMUF" fc_variant
+    //if (cmdMSP == MSP_FC_VARIANT) {
+    //    //We advertise as EMUF on this port for the prettier font
+    //    sbufWriteData(dst, "EMUF", FLIGHT_CONTROLLER_IDENTIFIER_LENGTH);
+    //    return MSP_RESULT_ACK;
+    //}
 
     // #define MSP_SET_VTXTABLE_BAND 227
     // #define MSP_SET_VTXTABLE_POWERLEVEL 228
