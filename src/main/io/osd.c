@@ -220,7 +220,7 @@ static const uint8_t osdElementDisplayOrder[] = {
     OSD_COMPASS_BAR
 };
 
-PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 4);
+PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 5);
 
 /**
  * Gets the correct altitude symbol for the current unit system
@@ -1155,7 +1155,7 @@ void osdInit(displayPort_t *osdDisplayPortToUse) {
     if (!osdDisplayPortToUse) {
         return;
     }
-    BUILD_BUG_ON(OSD_POS_MAX != OSD_POS(31, 31));
+    BUILD_BUG_ON(OSD_POS_MAX != OSD_POS(63, 31));
     osdDisplayPort = osdDisplayPortToUse;
 #ifdef USE_CMS
     cmsDisplayPortRegister(osdDisplayPort);

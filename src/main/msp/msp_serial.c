@@ -41,10 +41,9 @@
 
 static mspPort_t mspPorts[MAX_MSP_PORT_COUNT];
 
-static void resetMspPort(mspPort_t *mspPortToReset, serialPort_t *serialPort, bool sharedWithTelemetry) {
+void resetMspPort(mspPort_t *mspPortToReset, serialPort_t *serialPort) {
     memset(mspPortToReset, 0, sizeof(mspPort_t));
     mspPortToReset->port = serialPort;
-    mspPortToReset->sharedWithTelemetry = sharedWithTelemetry;
 }
 
 void mspSerialAllocatePorts(void) {
@@ -58,8 +57,8 @@ void mspSerialAllocatePorts(void) {
         }
         serialPort_t *serialPort = openSerialPort(portConfig->identifier, FUNCTION_MSP, NULL, NULL, baudRates[portConfig->msp_baudrateIndex], MODE_RXTX, SERIAL_NOT_INVERTED);
         if (serialPort) {
-            bool sharedWithTelemetry = isSerialPortShared(portConfig, FUNCTION_MSP, TELEMETRY_PORT_FUNCTIONS_MASK);
-            resetMspPort(mspPort, serialPort, sharedWithTelemetry);
+            resetMspPort(mspPort, serialPort);
+            mspPort->sharedWithTelemetry = isSerialPortShared(portConfig, FUNCTION_MSP, TELEMETRY_PORT_FUNCTIONS_MASK);
             portIndex++;
         }
         portConfig = findNextSerialPortConfig(FUNCTION_MSP);
@@ -504,4 +503,55 @@ uint32_t mspSerialTxBytesFree(void) {
         }
     }
     return ret;
+}
+
+int mspSerialPushPort(uint16_t cmd, const uint8_t *data, int datalen, mspPort_t *mspPort, mspVersion_e version)
+{
+    uint8_t pushBuf[MSP_PORT_OUTBUF_SIZE];
+
+    mspPacket_t push = {
+        .buf = { .ptr = pushBuf, .end = ARRAYEND(pushBuf), },
+        .cmd = cmd,
+        .result = 0,
+    };
+
+    sbufWriteData(&push.buf, data, datalen);
+
+    sbufSwitchToReader(&push.buf, pushBuf);
+
+    return mspSerialEncode(mspPort, &push, version);
+}
+
+void mspSerialProcessOnePort(mspPort_t * const mspPort, mspEvaluateNonMspData_e evaluateNonMspData, mspProcessCommandFnPtr mspProcessCommandFn)
+{
+    mspPostProcessFnPtr mspPostProcessFn = NULL;
+
+    if (serialRxBytesWaiting(mspPort->port)) {
+        // There are bytes incoming - abort pending request
+        mspPort->lastActivityMs = millis();
+        mspPort->pendingRequest = MSP_PENDING_NONE;
+
+        // Process incoming bytes
+        while (serialRxBytesWaiting(mspPort->port)) {
+            const uint8_t c = serialRead(mspPort->port);
+            const bool consumed = mspSerialProcessReceivedData(mspPort, c);
+
+            if (!consumed && evaluateNonMspData == MSP_EVALUATE_NON_MSP_DATA) {
+                mspEvaluateNonMspData(mspPort, c);
+            }
+
+            if (mspPort->c_state == MSP_COMMAND_RECEIVED) {
+                mspPostProcessFn = mspSerialProcessReceivedCommand(mspPort, mspProcessCommandFn);
+                break; // process one command at a time so as not to block.
+            }
+        }
+
+        if (mspPostProcessFn) {
+            waitForSerialPortToFinishTransmitting(mspPort->port);
+            mspPostProcessFn(mspPort->port);
+        }
+    }
+    else {
+        mspProcessPendingRequest(mspPort);
+    }
 }
