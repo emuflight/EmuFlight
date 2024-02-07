@@ -82,9 +82,10 @@ static void ghstInitializeFrame(sbuf_t *dst)
     sbufWriteU8(dst, GHST_ADDR_RX);
 }
 
-STATIC_UNIT_TESTED uint8_t *getGhstFrame(){
-    return ghstFrame;
-}
+//compiler reports unused
+//STATIC_UNIT_TESTED uint8_t *getGhstFrame(){
+//    return ghstFrame;
+//}
 
 static void ghstFinalize(sbuf_t *dst)
 {
