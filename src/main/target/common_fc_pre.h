@@ -170,6 +170,7 @@
 #define MSP_OVER_CLI
 #define USE_OSD
 #define USE_OSD_OVER_MSP_DISPLAYPORT
+#define USE_HDZERO_OSD
 #define USE_PINIO
 #define USE_PINIOBOX
 #define USE_RCDEVICE
