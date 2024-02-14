@@ -101,10 +101,11 @@ static uint8_t beesignCRC(const beesign_frame_t *pPackage) {
     return crc;
 }
 
-static uint8_t beesignChkID(uint8_t id) {
-    UNUSED(id);
-    return BEESIGN_OK;
-}
+// compiler reports unused
+//static uint8_t beesignChkID(uint8_t id) {
+//    UNUSED(id);
+//    return BEESIGN_OK;
+//}
 
 uint8_t beesignReceive(uint8_t **pRcvFrame) {
     if (!receiveFrameValid) {
@@ -608,7 +609,7 @@ bool checkBeesignSerialPort(void) {
 
 void beesignUpdate(timeUs_t currentTimeUs) {
     UNUSED(currentTimeUs);
-    if (checkBeesignSerialPort) {
+    if (checkBeesignSerialPort()) {
 #ifdef USE_OSD_BEESIGN
         static uint32_t beesignTaskCounter = 0;
         static uint32_t beesignSendNextCounterPoint = 0;
