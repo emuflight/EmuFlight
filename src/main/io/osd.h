@@ -28,7 +28,7 @@ extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
 
 #define OSD_ELEMENT_BUFFER_LENGTH 32
 
-#define VISIBLE_FLAG  0x2000
+#define VISIBLE_FLAG  0x0800
 #define VISIBLE(x)    (x & VISIBLE_FLAG)
 
 #define OSD_POS_MAX    0x7FF
