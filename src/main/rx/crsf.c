@@ -129,7 +129,8 @@ typedef struct crsfPayloadLinkstatistics_s {
     int8_t downlink_SNR;
 } crsfLinkStatistics_t;
 
-static void handleCrsfLinkStatisticsFrame(const crsfLinkStatistics_t* statsPtr) {
+static void handleCrsfLinkStatisticsFrame(const crsfLinkStatistics_t* statsPtr, timeUs_t currentTimeUs) {
+    UNUSED(currentTimeUs);
     const crsfLinkStatistics_t stats = *statsPtr;
     CRSFsetLQ(stats.uplink_Link_quality);
     CRSFsetRFMode(stats.rf_Mode);
@@ -213,7 +214,7 @@ STATIC_UNIT_TESTED void crsfDataReceive(uint16_t c, void *data) {
                          if ((crsfFrame.frame.deviceAddress == CRSF_ADDRESS_FLIGHT_CONTROLLER) &&
                              (crsfFrame.frame.frameLength == CRSF_FRAME_ORIGIN_DEST_SIZE + CRSF_FRAME_LINK_STATISTICS_PAYLOAD_SIZE)) {
                              const crsfLinkStatistics_t* statsFrame = (const crsfLinkStatistics_t*)&crsfFrame.frame.payload;
-                             handleCrsfLinkStatisticsFrame(statsFrame);
+                             handleCrsfLinkStatisticsFrame(statsFrame, currentTimeUs);
                          }
                         break;
                     }
