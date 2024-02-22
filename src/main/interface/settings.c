@@ -359,7 +359,7 @@ static const char * const lookupTableRescueSanityType[] = {
 
 #ifdef USE_MAX7456
 static const char * const lookupTableVideoSystem[] = {
-    "AUTO", "PAL", "NTSC", "HDZERO"
+    "AUTO", "PAL", "NTSC", "HD"
 };
 #endif // USE_MAX7456
 
