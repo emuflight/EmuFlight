@@ -627,6 +627,8 @@ static bool gyroInitSensor(gyroSensor_t *gyroSensor) {
     case GYRO_MPU6000:
     case GYRO_MPU6500:
     case GYRO_MPU9250:
+    case GYRO_ICM42688P:
+    case GYRO_ICM42605:
         gyroSensor->gyroDev.gyroHasOverflowProtection = true;
         break;
     case GYRO_ICM20601:
