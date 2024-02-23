@@ -141,6 +141,8 @@ jobs:
   artifacts:
     if: github.event_name == 'pull_request'
     needs: build
+    permissions:
+      issues: write
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
