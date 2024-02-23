@@ -153,7 +153,7 @@ jobs:
       - name: Add artifacts link
         uses: beni69/artifact-link@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.NC_PAT_EMUF }}
           summary: false
         continue-on-error: true
 
