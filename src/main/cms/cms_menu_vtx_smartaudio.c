@@ -492,7 +492,7 @@ static OSD_Entry saCmsMenuConfigEntries[] = {
     { "OP MODEL",  OME_TAB,     saCmsConfigOpmodelByGvar,              &(OSD_TAB_t){ &saCmsOpmodel, 2, saCmsOpmodelNames }, DYNAMIC },
     { "FSEL MODE", OME_TAB,     saCmsConfigFreqModeByGvar,             &saCmsEntFselMode,                                   DYNAMIC },
     { "PIT FMODE", OME_TAB,     saCmsConfigPitFModeByGvar,             &saCmsEntPitFMode,                                   0 },
-    { "POR FREQ",  OME_Submenu, (CMSEntryFuncPtr)saCmsORFreqGetString, &saCmsMenuPORFreq,                                   OPTSTRING },
+    { "POR FREQ",  OME_Submenu, (CMSEntryFuncPtr)(long)saCmsORFreqGetString, &saCmsMenuPORFreq,                                   OPTSTRING },
 #ifdef USE_EXTENDED_CMS_MENUS
     { "STATX",     OME_Submenu, cmsMenuChange,                         &saCmsMenuStats,                                     0 },
 #endif /* USE_EXTENDED_CMS_MENUS */
@@ -534,7 +534,7 @@ static OSD_Entry saCmsMenuFreqModeEntries[] = {
     { "- SMARTAUDIO -", OME_Label, NULL, NULL, 0 },
 
     { "",       OME_Label,   NULL,                                     saCmsStatusString,  DYNAMIC },
-    { "FREQ",   OME_Submenu, (CMSEntryFuncPtr)saCmsUserFreqGetString,  &saCmsMenuUserFreq, OPTSTRING },
+    { "FREQ",   OME_Submenu, (CMSEntryFuncPtr)(long)saCmsUserFreqGetString,  &saCmsMenuUserFreq, OPTSTRING },
     { "POWER",  OME_TAB,     saCmsConfigPowerByGvar,                   &saCmsEntPower,     0 },
     { "SET",    OME_Submenu, cmsMenuChange,                            &saCmsMenuCommence, 0 },
     { "CONFIG", OME_Submenu, cmsMenuChange,                            &saCmsMenuConfig,   0 },
