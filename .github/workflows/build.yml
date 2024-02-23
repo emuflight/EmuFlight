@@ -87,8 +87,8 @@ jobs:
         echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       continue-on-error: true
 
-    - name: Make artifact name
-      id: make_artifactname
+    - name: set artifact name
+      id: set_artifactname
       run: |
         if [[ "${{ github.REPOSITORY }}" == "emuflight/EmuFlight" ]] ; then
           ARTIFACT_NAME="EmuFlight-${{ env.VERSION }}-${{ github.run_number }}"
@@ -98,8 +98,8 @@ jobs:
         echo "${ARTIFACT_NAME}"
         echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
 
-    - id: ids
-      name : set outputs
+    - name: set outputs
+      id: ids
       run: |
         echo "::set-output name=buildtag::${{ env.REVISION_TAG }}"
         echo "::set-output name=shortsha::${{ env.SHORT_SHA }}"
@@ -122,7 +122,7 @@ jobs:
         echo "outputs.buildtag: ${{ steps.ids.outputs.buildtag }}"
         echo "outputs.shortsha: ${{ steps.ids.outputs.shortsha }}"
         echo "outputs.artfact: ${{ steps.ids.outputs.artifact }}"
-        echo "outputs.artfact: ${{ steps.ids.outputs.artifact }}"
+        echo "outputs.version: ${{ steps.ids.outputs.version }}"
       continue-on-error: true
 
     # Build HEX
@@ -132,11 +132,27 @@ jobs:
 
     # Upload the Builds to ZIP file with existing SHA in .hex names
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
+      id: artifact-upload
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ env.ARTIFACT_NAME }}
         path: obj/*.hex
 
+  artifacts:
+    if: github.event_name == 'pull_request'
+    needs: build
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    steps:
+      # Add artifacts links
+      - name: Add artifacts link
+        uses: beni69/artifact-link@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          summary: false
+        continue-on-error: true
 
   releases:
     if: startsWith(github.ref, 'refs/tags/')
@@ -158,12 +174,12 @@ jobs:
           echo "outputs.buildtag: ${{ needs.build.outputs.buildtag }}"
           echo "outputs.shortsha: ${{ needs.build.outputs.shortsha }}"
           echo "outputs.artfact: ${{ needs.build.outputs.artifact }}"
-          echo "outputs.artfact: ${{ needs.build.outputs.version }}"
+          echo "outputs.version: ${{ needs.build.outputs.version }}"
           echo "NOW=$(date +'%Y%m%d.%H%M%S')" >> $GITHUB_ENV
         continue-on-error: true
 
       - name: download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build.outputs.artifact }} #no name parameter will download all artifacts, but create separate subfolders
           path: obj
