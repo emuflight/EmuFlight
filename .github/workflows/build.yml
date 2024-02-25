@@ -144,8 +144,6 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
     continue-on-error: false
     steps:
@@ -153,7 +151,7 @@ jobs:
       - name: Add artifacts link
         uses: beni69/artifact-link@v1
         with:
-          token: ${{ secrets.NC_PAT_EMUF }}
+          token: ${{ github.token }}
           summary: false
         continue-on-error: true
 
