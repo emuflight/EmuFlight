@@ -12,6 +12,8 @@ on:
     types: [build]
 
 name: Build EmuFlight
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   build:
     continue-on-error: false
@@ -137,12 +139,13 @@ jobs:
   artifacts:
     if: github.event_name == 'pull_request'
     needs: build
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       id-token: write
       contents: read
       issues: write
       pull-requests: write
-    #permissions: write-all
     runs-on: ubuntu-latest
     continue-on-error: false
     steps:
