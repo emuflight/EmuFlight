@@ -142,7 +142,7 @@ jobs:
       contents: read
       issues: write
       pull-requests: write
-    permissions: write-all
+    #permissions: write-all
     runs-on: ubuntu-latest
     continue-on-error: false
     steps:
