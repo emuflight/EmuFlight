@@ -141,9 +141,10 @@ jobs:
   artifacts:
     if: github.event_name == 'pull_request'
     needs: build
-    permissions:
-      issues: write
-      pull-requests: write
+    #permissions:
+    #  issues: write
+    #  pull-requests: write
+    permissions: write-all
     runs-on: ubuntu-latest
     continue-on-error: false
     steps:
