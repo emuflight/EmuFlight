@@ -90,11 +90,7 @@ jobs:
     - name: set artifact name
       id: set_artifactname
       run: |
-        if [[ "${{ github.REPOSITORY }}" == "emuflight/EmuFlight" ]] ; then
-          ARTIFACT_NAME="EmuFlight-${{ env.VERSION }}-${{ github.run_number }}"
-        else
-          ARTIFACT_NAME="EmuFlight-${{ env.VERSION }}-${{ github.ACTOR }}-${{ github.run_number }}"
-        fi
+        ARTIFACT_NAME="EmuFlight-${{ env.VERSION }}-${{ github.run_number }}-${{ env.SHORT_SHA }}"
         echo "${ARTIFACT_NAME}"
         echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
 
