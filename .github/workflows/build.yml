@@ -147,13 +147,13 @@ jobs:
     if: github.event_name == 'pull_request'
     needs: build
     runs-on: ubuntu-latest
+    permissions: write-all
     continue-on-error: false
     steps:
-      # Add artifacts links
       - name: Add artifacts link
         uses: beni69/artifact-link@v1
         with:
-          token: ${{ github.token }}
+          token: ${{ secrets.NC_PAT_EMUF }}
           summary: false
         continue-on-error: true
 
