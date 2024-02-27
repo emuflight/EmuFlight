@@ -130,6 +130,7 @@ typedef struct crsfPayloadLinkstatistics_s {
 } crsfLinkStatistics_t;
 
 static void handleCrsfLinkStatisticsFrame(const crsfLinkStatistics_t* statsPtr, timeUs_t currentTimeUs) {
+    UNUSED(currentTimeUs);
     const crsfLinkStatistics_t stats = *statsPtr;
     CRSFsetLQ(stats.uplink_Link_quality);
     CRSFsetRFMode(stats.rf_Mode);
