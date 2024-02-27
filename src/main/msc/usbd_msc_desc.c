@@ -67,8 +67,10 @@
 #define USBD_MANUFACTURER_STRING   "STMicroelectronics"
 #define USBD_PRODUCT_HS_STRING        "Mass Storage in HS Mode"
 #define USBD_PRODUCT_FS_STRING        "Mass Storage in FS Mode"
-#define USBD_CONFIGURATION_HS_STRING  "MSC Config"
-#define USBD_INTERFACE_HS_STRING      "MSC Interface"
+#define USBD_CONFIGURATION_HS_STRING  "MSC Config in HS Mode"
+#define USBD_INTERFACE_HS_STRING      "MSC Interface in HS Mode"
+#define USBD_CONFIGURATION_FS_STRING  "MSC Config in FS Mode"
+#define USBD_INTERFACE_FS_STRING      "MSC Interface in FS Mode"
 /**
   * @}
   */
