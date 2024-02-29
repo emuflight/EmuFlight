@@ -423,6 +423,8 @@ void I2S_Init(SPI_TypeDef* SPIx, I2S_InitTypeDef* I2S_InitStruct)
     /* Get the PLLM value */
     pllm = (uint32_t)(RCC->PLLCFGR & RCC_PLLCFGR_PLLM);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wduplicated-branches"
     if((RCC->PLLCFGR & RCC_PLLCFGR_PLLSRC) == RCC_PLLCFGR_PLLSRC_HSE)
     {
       /* Get the I2S source clock value */
@@ -433,6 +435,7 @@ void I2S_Init(SPI_TypeDef* SPIx, I2S_InitTypeDef* I2S_InitStruct)
       i2sclk = (uint32_t)(((HSI_VALUE / pllm) * plln) / pllr);
     }
   #endif /* I2S_EXTERNAL_CLOCK_VAL */
+#pragma GCC diagnostic pop
     
     /* Compute the Real divider depending on the MCLK output state, with a floating point */
     if(I2S_InitStruct->I2S_MCLKOutput == I2S_MCLKOutput_Enable)
