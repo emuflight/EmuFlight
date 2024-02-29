@@ -329,7 +329,7 @@ static int cmsDrawMenuEntry(displayPort_t *pDisplay, OSD_Entry *p, uint8_t row) 
             buff[0] = 0x0;
             if ((p->type == OME_Submenu) && p->func && (p->flags & OPTSTRING)) {
                 // Special case of sub menu entry with optional value display.
-                char *str = ((CMSMenuOptFuncPtr)p->func)();
+                char *str = ((CMSMenuOptFuncPtr)(long)p->func)();
                 strncpy( buff, str, CMS_DRAW_BUFFER_LEN);
             }
             strncat(buff, ">", CMS_DRAW_BUFFER_LEN);
