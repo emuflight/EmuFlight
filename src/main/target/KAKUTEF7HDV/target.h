@@ -20,20 +20,20 @@
 
 #pragma once
 
+#define FC_TARGET_MCU                   STM32F745  // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER        "S745"      // generic ID
+#define TARGET_MANUFACTURER_IDENTIFIER "HBRO"
+
 //#define USE_TARGET_CONFIG
 #if defined(KAKUTEF7MINIV2)
-#define TARGET_BOARD_IDENTIFIER "KF7M"
-#define USBD_PRODUCT_STRING "KakuteF7 Mini V2"
+#define USBD_PRODUCT_STRING "KAKUTEF7MINIV2"
+#elif defined(KAKUTEF7V2)
+#define USBD_PRODUCT_STRING "KAKUTEF7V2"
 #elif defined(KAKUTEF7V15)
-#define TARGET_BOARD_IDENTIFIER "KTF7"
-#define USBD_PRODUCT_STRING "Kakutef7 v15"
+#define USBD_PRODUCT_STRING "KAKUTEF7V15"
 #else
-#define TARGET_BOARD_IDENTIFIER "KTF7"
-#define USBD_PRODUCT_STRING "KakuteF7 HD"
+#define USBD_PRODUCT_STRING "KAKUTEF7HDV"
 #endif
-
-#define TARGET_BOARD_IDENTIFIER "KTF7"
-#define USBD_PRODUCT_STRING "KakuteF7"
 
 #define LED0_PIN                PA2
 
@@ -43,6 +43,14 @@
 
 #define USE_ACC
 #define USE_GYRO
+
+//ICM20689
+#define USE_ACC_SPI_ICM20689
+#define USE_GYRO_SPI_ICM20689
+#define ACC_ICM20689_ALIGN         CW270_DEG
+#define GYRO_ICM20689_ALIGN        CW270_DEG
+#define ICM20689_CS_PIN            PE4
+#define ICM20689_SPI_INSTANCE      SPI4
 
 // MPU6000
 #define USE_ACC_SPI_MPU6000
@@ -119,7 +127,7 @@
 #define SPI4_MISO_PIN           PE5
 #define SPI4_MOSI_PIN           PE6
 
-#if defined(KAKUTEF7V15) || defined(KAKUTEF7MINIV2)
+#if defined(KAKUTEF7V15) || defined(KAKUTEF7V2) ||defined(KAKUTEF7MINIV2)
 #define CAMERA_CONTROL_PIN      PB3
 
 #define USE_MAX7456
