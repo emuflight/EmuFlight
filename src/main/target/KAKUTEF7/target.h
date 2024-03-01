@@ -20,13 +20,16 @@
 
 #pragma once
 
+#define TARGET_MANUFACTURER_IDENTIFIER "HBRO"
+#define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
+
 //#define USE_TARGET_CONFIG
 #if defined(KAKUTEF7MINIV1)
 #define TARGET_BOARD_IDENTIFIER "KF7M"
-#define USBD_PRODUCT_STRING "KakuteF7 Mini V1"
+#define USBD_PRODUCT_STRING "KAKUTEF7MINIV1"
 #else
 #define TARGET_BOARD_IDENTIFIER "KTF7"
-#define USBD_PRODUCT_STRING "KakuteF7"
+#define USBD_PRODUCT_STRING "KAKUTEF7"
 #endif
 
 #define LED0_PIN                PA2
@@ -37,24 +40,39 @@
 
 #define USE_ACC
 #define USE_GYRO
-
-// ICM-20689
 #define USE_ACC_SPI_ICM20689
 #define USE_GYRO_SPI_ICM20689
-#define GYRO_ICM20689_ALIGN      CW270_DEG
-#define ACC_ICM20689_ALIGN       CW270_DEG
-#define MPU_INT_EXTI               PE1
+#define USE_ACC_SPI_MPU6000
+#define USE_GYRO_SPI_MPU6000
 
-#define ICM20689_CS_PIN          SPI4_NSS_PIN
-#define ICM20689_SPI_INSTANCE    SPI4
-#define GYRO_1_CS_PIN            ICM20689_CS_PIN
-#define GYRO_1_SPI_INSTANCE      ICM20689_SPI_INSTANCE
-
-#define ACC_1_ALIGN              ACC_ICM20689_ALIGN
-#define GYRO_1_ALIGN             GYRO_ICM20689_ALIGN
+#define USE_SPI_GYRO
+#define USE_EXTI // notice - REQUIRED when USE_GYRO_EXTI
+#define USE_GYRO_EXTI
 
 #define USE_MPU_DATA_READY_SIGNAL
-#define USE_EXTI
+
+#define GYRO_1_ALIGN          CW270_DEG
+#define ACC_1_ALIGN           CW270_DEG
+#define GYRO_1_CS_PIN         PE4
+#define GYRO_1_EXTI_PIN       PE1
+#define GYRO_1_SPI_INSTANCE   SPI4
+#define MPU_INT_EXTI          PE1
+
+#define USE_DUAL_GYRO
+
+#define GYRO_2_ALIGN          CW0_DEG
+#define ACC_2_ALIGN           CW0_DEG
+#define GYRO_2_SPI_INSTANCE   SPI4
+
+#define ACC_MPU6000_ALIGN     CW270_DEG
+#define GYRO_MPU6000_ALIGN    CW270_DEG
+#define MPU6000_CS_PIN        PE4
+#define MPU6000_SPI_INSTANCE  SPI4
+
+#define ACC_ICM20689_ALIGN    CW270_DEG
+#define GYRO_ICM20689_ALIGN   CW270_DEG
+#define ICM20689_CS_PIN       PE4
+#define ICM20689_SPI_INSTANCE SPI4
 
 #define USE_VCP
 #define USE_USB_DETECT
@@ -129,14 +147,10 @@
 #define USE_SDCARD
 #define SDCARD_DETECT_INVERTED
 #define SDCARD_DETECT_PIN                   PD8
-
 #define SDCARD_SPI_INSTANCE                 SPI1
 #define SDCARD_SPI_CS_PIN                   SPI1_NSS_PIN
-
 #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256 // 422kHz
-
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER      8 // 27MHz
-
 #define SDCARD_DMA_STREAM_TX_FULL             DMA2_Stream5
 #define SDCARD_DMA_CHANNEL                    3
 #endif
