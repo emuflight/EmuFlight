@@ -20,8 +20,11 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "MKF4"
-#define USBD_PRODUCT_STRING  "Matek F405 SE"
+#define TARGET_MANUFACTURER_IDENTIFIER "MTKS"
+#define USBD_PRODUCT_STRING "MATEKF405SE"
+
+#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
 
 #define LED0_PIN                PA14
 #define LED1_PIN                PA13
@@ -88,7 +91,7 @@
 #define BARO_I2C_INSTANCE       (I2CDEV_1)
 
 #define USE_I2C_DEVICE_2
-#define I2C_DEVICE              (I2CDEV_2)
+#define I2C_DEVICE_2            (I2CDEV_2)
 #define I2C2_SCL                PB10        // SCL pad
 #define I2C2_SDA                PB11       // SDA pad
 #define BARO_I2C_INSTANCE       (I2CDEV_1)
