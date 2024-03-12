@@ -28,7 +28,7 @@
 #include "drivers/dma.h"
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
-    DEF_TIM(TIM5,  CH1, PA0,  TIM_USE_ANY, 0, 0),
+    DEF_TIM(TIM5,  CH1, PA0,  TIM_USE_ANY, 0, 0),  //cam
 
     DEF_TIM(TIM9,  CH2, PA3,  TIM_USE_PPM,   0, 0),  // PPM
 
