@@ -59,7 +59,7 @@ jobs:
       continue-on-error: true
 
     - name: Setup Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
 
     # EmuFlight version
     - name: Get code version
