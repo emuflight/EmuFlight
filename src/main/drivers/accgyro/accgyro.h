@@ -69,6 +69,7 @@
 #define GYRO_RATE_1_kHz     1000.0f
 #define GYRO_RATE_1100_Hz   909.09f
 #define GYRO_RATE_3200_Hz   312.5f
+#define GYRO_RATE_6400_Hz   156.25f
 #define GYRO_RATE_8_kHz     125.0f
 #define GYRO_RATE_9_kHz     111.11f
 #define GYRO_RATE_16_kHz    64.0f
