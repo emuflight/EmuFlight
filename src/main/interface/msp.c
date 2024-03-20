@@ -1169,6 +1169,10 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, motorConfig()->dev.motorPwmRate);
         sbufWriteU16(dst, motorConfig()->digitalIdleOffsetValue);
         sbufWriteU8(dst, gyroConfig()->gyro_use_32khz);
+        //MSP 1.54 - insert here to avoid new unnecessary Configurator code
+        sbufWriteU8(dst, motorConfig()->motorPoleCount);
+        sbufWriteU16(dst, gyroConfig()->gyroSampleRateHz);
+        //End MSP 1.54
         sbufWriteU8(dst, motorConfig()->dev.motorPwmInversion);
         sbufWriteU8(dst, gyroConfig()->gyro_to_use);
         sbufWriteU8(dst, gyroConfig()->gyro_high_fsr);
@@ -1792,6 +1796,12 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         if (sbufBytesRemaining(src)) {
             gyroConfigMutable()->gyro_use_32khz = sbufReadU8(src);
         }
+        //MSP 1.54 - insert here to avoid new unnecessary Configurator code
+        if (sbufBytesRemaining(src) >= 3) {
+            motorConfigMutable()->motorPoleCount = sbufReadU8(src);
+            gyroConfigMutable()->gyroSampleRateHz = sbufReadU16(src);
+        }
+        //End MSP 1.54
         if (sbufBytesRemaining(src)) {
             motorConfigMutable()->dev.motorPwmInversion = sbufReadU8(src);
         }

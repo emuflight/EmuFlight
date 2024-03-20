@@ -104,6 +104,8 @@ typedef struct gyroDev_s {
     gyroSensor_e gyroHardware;
     uint8_t accDataReg;
     uint8_t gyroDataReg;
+    //MSP 1.54
+    //uint16_t gyroSampleRateHz;
 } gyroDev_t;
 
 typedef struct accDev_s {
