@@ -169,6 +169,8 @@ static escSensorData_t *escDataCombined;
 #define AH_SIDEBAR_WIDTH_POS 7
 #define AH_SIDEBAR_HEIGHT_POS 3
 
+static uint8_t leftScreen;
+
 static const char compassBar[] = {
     SYM_HEADING_W,
     SYM_HEADING_LINE, SYM_HEADING_DIVIDED_LINE, SYM_HEADING_LINE,
@@ -1163,19 +1165,25 @@ void osdInit(displayPort_t *osdDisplayPortToUse) {
     armState = ARMING_FLAG(ARMED);
     memset(blinkBits, 0, sizeof(blinkBits));
     displayClearScreen(osdDisplayPort);
-    osdDrawLogo(3, 1);
+#if defined(USE_HDZERO_OSD)
+    if (vcdProfile()->video_system == VIDEO_SYSTEM_HD) {
+        leftScreen = HDINDENT;
+    } else
+#endif
+    { leftScreen = SDINDENT;}
+    osdDrawLogo(leftScreen + 3, 1);
     char string_buffer[30];
     tfp_sprintf(string_buffer, "V%s", FC_VERSION_STRING);
-    displayWrite(osdDisplayPort, 20, 6, string_buffer);
+    displayWrite(osdDisplayPort, leftScreen + 20, 6, string_buffer);
 #ifdef USE_CMS
-    displayWrite(osdDisplayPort, 7, 8,  CMS_STARTUP_HELP_TEXT1);
-    displayWrite(osdDisplayPort, 11, 9, CMS_STARTUP_HELP_TEXT2);
-    displayWrite(osdDisplayPort, 11, 10, CMS_STARTUP_HELP_TEXT3);
+    displayWrite(osdDisplayPort, leftScreen + 7, 8,  CMS_STARTUP_HELP_TEXT1);
+    displayWrite(osdDisplayPort, leftScreen + 11, 9, CMS_STARTUP_HELP_TEXT2);
+    displayWrite(osdDisplayPort, leftScreen + 11, 10, CMS_STARTUP_HELP_TEXT3);
 #endif
 #ifdef USE_RTC_TIME
     char dateTimeBuffer[FORMATTED_DATE_TIME_BUFSIZE];
     if (osdFormatRtcDateTime(&dateTimeBuffer[0])) {
-        displayWrite(osdDisplayPort, 5, 12, dateTimeBuffer);
+        displayWrite(osdDisplayPort, leftScreen + 5, 12, dateTimeBuffer);
     }
 #endif
     displayResync(osdDisplayPort);
@@ -1483,12 +1491,12 @@ static timeDelta_t osdShowArmed(void)
     timeDelta_t ret;
     displayClearScreen(osdDisplayPort);
     if ((osdConfig()->logo_on_arming == OSD_LOGO_ARMING_ON) || ((osdConfig()->logo_on_arming == OSD_LOGO_ARMING_FIRST) && !everArmed)) {
-        osdDrawLogo(3, 1);
+        osdDrawLogo(leftScreen + 3, 1);
         ret = osdConfig()->logo_on_arming_duration * 1e5;
     } else {
         ret = (REFRESH_1S / 2);
     }
-    displayWrite(osdDisplayPort, 12, 7, "ARMED");
+    displayWrite(osdDisplayPort, leftScreen + 12, 7, "ARMED");
     everArmed = true;
     return ret;
 }
