@@ -458,6 +458,9 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
         // Signature
         sbufWriteData(dst, getSignature(), SIGNATURE_LENGTH);
 #endif
+        //MSP 1.54
+        sbufWriteU16(dst, gyroConfig()->gyroSampleRateHz); //For Configurator PID/Gyro loop selection.
+        //End MSP 1.54
 #endif // USE_BOARD_INFO
         break;
     }
@@ -1171,7 +1174,6 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, gyroConfig()->gyro_use_32khz);
         //MSP 1.54 - insert here to avoid new unnecessary Configurator code
         sbufWriteU8(dst, motorConfig()->motorPoleCount);
-        sbufWriteU16(dst, gyroConfig()->gyroSampleRateHz);
         //End MSP 1.54
         sbufWriteU8(dst, motorConfig()->dev.motorPwmInversion);
         sbufWriteU8(dst, gyroConfig()->gyro_to_use);
@@ -1797,9 +1799,8 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
             gyroConfigMutable()->gyro_use_32khz = sbufReadU8(src);
         }
         //MSP 1.54 - insert here to avoid new unnecessary Configurator code
-        if (sbufBytesRemaining(src) >= 3) {
+        if (sbufBytesRemaining(src) >= 1) {
             motorConfigMutable()->motorPoleCount = sbufReadU8(src);
-            gyroConfigMutable()->gyroSampleRateHz = sbufReadU16(src);
         }
         //End MSP 1.54
         if (sbufBytesRemaining(src)) {
