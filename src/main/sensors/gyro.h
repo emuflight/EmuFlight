@@ -178,6 +178,7 @@ typedef struct gyroConfig_s {
 
     //MSP 1.54
     uint16_t gyroSampleRateHz;
+    //End MSP 1.54
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);
