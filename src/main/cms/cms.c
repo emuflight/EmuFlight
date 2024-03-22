@@ -27,6 +27,8 @@
 //#define CMS_PAGE_DEBUG // For multi-page/menu debugging
 //#define CMS_MENU_DEBUG // For external menu content creators
 
+#pragma once
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -66,6 +68,7 @@
 // For VISIBLE*
 #include "io/osd.h"
 #include "io/rcdevice_cam.h"
+#include "pg/vcd.h"
 
 #include "rx/rx.h"
 
@@ -591,13 +594,18 @@ void cmsMenuOpen(void) {
     if ( pCurrentDisplay->cols < NORMAL_SCREEN_MIN_COLS) {
         smallScreen       = true;
         linesPerMenuItem  = 2;
-        leftMenuColumn    = 0;
+        leftMenuColumn    = SDINDENT;
         rightMenuColumn   = pCurrentDisplay->cols;
         maxMenuItems      = (pCurrentDisplay->rows) / linesPerMenuItem;
     } else {
         smallScreen       = false;
         linesPerMenuItem  = 1;
-        leftMenuColumn    = 2;
+#if defined(USE_HDZERO_OSD)
+    if ((vcdProfile()->video_system == VIDEO_SYSTEM_HD) && (pCurrentDisplay->cols > 30)) {
+        leftMenuColumn = HDINDENT + 2;
+    } else
+#endif
+        { leftMenuColumn    = SDINDENT + 2; }
 #ifdef CMS_OSD_RIGHT_ALIGNED_VALUES
         rightMenuColumn   = pCurrentDisplay->cols - 2;
 #else

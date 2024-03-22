@@ -1384,9 +1384,9 @@ static void osdGetBlackboxStatusString(char * buff) {
 #endif
 
 static void osdDisplayStatisticLabel(uint8_t y, const char * text, const char * value) {
-    displayWrite(osdDisplayPort, 2, y, text);
-    displayWrite(osdDisplayPort, 20, y, ":");
-    displayWrite(osdDisplayPort, 22, y, value);
+    displayWrite(osdDisplayPort, leftScreen + 2, y, text);
+    displayWrite(osdDisplayPort, leftScreen + 20, y, ":");
+    displayWrite(osdDisplayPort, leftScreen + 22, y, value);
 }
 
 /*
@@ -1408,7 +1408,7 @@ static void osdShowStats(uint16_t endBatteryVoltage) {
     uint8_t top = 2;
     char buff[OSD_ELEMENT_BUFFER_LENGTH];
     displayClearScreen(osdDisplayPort);
-    displayWrite(osdDisplayPort, 2, top++, "  --- STATS ---");
+    displayWrite(osdDisplayPort, leftScreen + 2, top++, "  --- STATS ---");
     if (osdStatGetState(OSD_STAT_RTC_DATE_TIME)) {
         bool success = false;
 #ifdef USE_RTC_TIME
@@ -1417,7 +1417,7 @@ static void osdShowStats(uint16_t endBatteryVoltage) {
         if (!success) {
             tfp_sprintf(buff, "NO RTC");
         }
-        displayWrite(osdDisplayPort, 2, top++, buff);
+        displayWrite(osdDisplayPort, leftScreen + 2, top++, buff);
     }
     if (osdStatGetState(OSD_STAT_TIMER_1)) {
         osdFormatTimer(buff, false, (OSD_TIMER_SRC(osdConfig()->timers[OSD_TIMER_1]) == OSD_TIMER_SRC_ON ? false : true), OSD_TIMER_1);
