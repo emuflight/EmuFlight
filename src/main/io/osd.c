@@ -1170,7 +1170,7 @@ void osdInit(displayPort_t *osdDisplayPortToUse) {
         leftScreen = HDINDENT;
     } else
 #endif
-    { leftScreen = SDINDENT;}
+    { leftScreen = SDINDENT; }
     osdDrawLogo(leftScreen + 3, 1);
     char string_buffer[30];
     tfp_sprintf(string_buffer, "V%s", FC_VERSION_STRING);
