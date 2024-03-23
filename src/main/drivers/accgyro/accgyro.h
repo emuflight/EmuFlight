@@ -33,16 +33,27 @@
 #include <pthread.h>
 #endif
 
+#define GYRO_SCALE_2000DPS (2000.0f / (1 << 15))   // 16.384 dps/lsb scalefactor for 2000dps sensors
+#define GYRO_SCALE_4000DPS (4000.0f / (1 << 15))   //  8.192 dps/lsb scalefactor for 4000dps sensor
+
 #ifndef MPU_I2C_INSTANCE
 #define MPU_I2C_INSTANCE I2C_DEVICE
 #endif
 
 #define GYRO_HARDWARE_LPF_NORMAL       0
-#define GYRO_HARDWARE_LPF_EXPERIMENTAL 1
 #define GYRO_HARDWARE_LPF_1KHZ_SAMPLE  2
+
+#if defined(USE_GYRO_SPI_ICM42688P) || defined(USE_ACCGYRO_BMI270)
+#define GYRO_HARDWARE_LPF_EXPERIMENTAL 3
+#else
+#define GYRO_HARDWARE_LPF_EXPERIMENTAL 1
+#endif
 
 #define GYRO_32KHZ_HARDWARE_LPF_NORMAL       0
 #define GYRO_32KHZ_HARDWARE_LPF_EXPERIMENTAL 1
+
+#define GYRO_HARDWARE_LPF_OPTION_1 1
+#define GYRO_HARDWARE_LPF_OPTION_2 2
 
 #define GYRO_LPF_256HZ      0
 #define GYRO_LPF_188HZ      1
@@ -91,6 +102,8 @@ typedef struct gyroDev_s {
     ioTag_t mpuIntExtiTag;
     uint8_t gyroHasOverflowProtection;
     gyroSensor_e gyroHardware;
+    uint8_t accDataReg;
+    uint8_t gyroDataReg;
 } gyroDev_t;
 
 typedef struct accDev_s {

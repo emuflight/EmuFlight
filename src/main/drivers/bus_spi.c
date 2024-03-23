@@ -251,4 +251,33 @@ void spiBusSetInstance(busDevice_t *bus, SPI_TypeDef *instance) {
     bus->bustype = BUSTYPE_SPI;
     bus->busdev_u.spi.instance = instance;
 }
+
+// icm42688p and bmi270 porting
+uint16_t spiCalculateDivider(uint32_t freq)
+{
+#if defined(STM32F4) || defined(STM32G4) || defined(STM32F7)
+    uint32_t spiClk = SystemCoreClock / 2;
+#elif defined(STM32H7)
+    uint32_t spiClk = 100000000;
+#elif defined(AT32F4)
+    if(freq > 36000000){
+        freq = 36000000;
+    }
+    uint32_t spiClk = system_core_clock / 2;
+#else
+#error "Base SPI clock not defined for this architecture"
+#endif
+    uint16_t divisor = 2;
+    spiClk >>= 1;
+    for (; (spiClk > freq) && (divisor < 256); divisor <<= 1, spiClk >>= 1);
+    return divisor;
+}
+
+// Wait for bus to become free, then read a byte of data where the register is bitwise OR'ed with 0x80
+// EmuFlight codebase is old.  Bitwise or 0x80 is redundant here as spiBusReadRegister already contains such.
+uint8_t spiReadRegMsk(const busDevice_t *bus, uint8_t reg)
+{
+    return spiBusReadRegister(bus, reg | 0x80);
+}
+
 #endif
