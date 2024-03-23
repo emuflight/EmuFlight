@@ -646,7 +646,7 @@ long cmsMenuExit(displayPort_t *pDisplay, const void *ptr) {
     currentCtx.menu = NULL;
     if (exitType == CMS_EXIT_SAVEREBOOT) {
         displayClearScreen(pDisplay);
-        displayWrite(pDisplay, leftMenuColumn + 5, 3, "REBOOTING...");
+        displayWrite(pDisplay, (pCurrentDisplay->cols % 2) - 6, 3, "REBOOTING...");
         displayResync(pDisplay); // Was max7456RefreshAll(); why at this timing?
         stopMotors();
         stopPwmAllMotors();
