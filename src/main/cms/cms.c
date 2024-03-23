@@ -599,16 +599,16 @@ void cmsMenuOpen(void) {
         smallScreen       = false;
         linesPerMenuItem  = 1;
 #if defined(USE_HDZERO_OSD)
-    if ((vcdProfile()->video_system == VIDEO_SYSTEM_HD) && (pCurrentDisplay->cols > 30)) {
-        leftMenuColumn = HDINDENTMENU + 2;
-    } else
+    if ((vcdProfile()->video_system == VIDEO_SYSTEM_HD) && (pCurrentDisplay->cols > 30))
+        { leftMenuColumn = HDINDENTMENU + 2; }
+    else
 #endif
         { leftMenuColumn    = SDINDENT + 2; }
 #ifdef CMS_OSD_RIGHT_ALIGNED_VALUES
 #if defined(USE_HDZERO_OSD)
-    if ((vcdProfile()->video_system == VIDEO_SYSTEM_HD) && (pCurrentDisplay->cols > 30)) {
-        rightMenuColumn   = pCurrentDisplay->cols - 3 - HDINDENTMENU;
-    } else
+    if ((vcdProfile()->video_system == VIDEO_SYSTEM_HD) && (pCurrentDisplay->cols > 30))
+        { rightMenuColumn   = pCurrentDisplay->cols - 3 - HDINDENTMENU; }
+    else
 #endif
         { rightMenuColumn   = pCurrentDisplay->cols - 2; }
 

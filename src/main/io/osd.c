@@ -1166,11 +1166,11 @@ void osdInit(displayPort_t *osdDisplayPortToUse) {
     memset(blinkBits, 0, sizeof(blinkBits));
     displayClearScreen(osdDisplayPort);
 #if defined(USE_HDZERO_OSD)
-    if ((vcdProfile()->video_system == VIDEO_SYSTEM_HD) && (pCurrentDisplay->cols > 30)) {
-        leftScreen = HDINDENTINIT;
-    } else
+    if ((vcdProfile()->video_system == VIDEO_SYSTEM_HD) && (pCurrentDisplay->cols > 30))
+        { leftScreen = HDINDENTINIT; }
+    else
 #endif
-    { leftScreen = SDINDENT; }
+        { leftScreen = SDINDENT; }
     osdDrawLogo(leftScreen + 3, 1);
     char string_buffer[30];
     tfp_sprintf(string_buffer, "V%s", FC_VERSION_STRING);
