@@ -85,7 +85,7 @@
 #define USE_I2C
 // Useful for MATEKF405_OSD, since it does not have the SCL / SDA pads
 #define USE_I2C_DEVICE_1
-#define I2C_DEVICE              (I2CDEV_1)
+#define I2C_DEVICE_1            (I2CDEV_1)
 #define I2C1_SCL                PB8        // S4 pad
 #define I2C3_SDA                PB9        // S6 pad
 #define BARO_I2C_INSTANCE       (I2CDEV_1)
@@ -94,7 +94,7 @@
 #define I2C_DEVICE_2            (I2CDEV_2)
 #define I2C2_SCL                PB10        // SCL pad
 #define I2C2_SDA                PB11       // SDA pad
-#define BARO_I2C_INSTANCE       (I2CDEV_1)
+#define MAG_I2C_INSTANCE        (I2CDEV_2)
 
 #define USE_BARO
 #define USE_BARO_BMP280
