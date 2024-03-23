@@ -1166,8 +1166,8 @@ void osdInit(displayPort_t *osdDisplayPortToUse) {
     memset(blinkBits, 0, sizeof(blinkBits));
     displayClearScreen(osdDisplayPort);
 #if defined(USE_HDZERO_OSD)
-    if (vcdProfile()->video_system == VIDEO_SYSTEM_HD) {
-        leftScreen = HDINDENT;
+    if ((vcdProfile()->video_system == VIDEO_SYSTEM_HD) && (pCurrentDisplay->cols > 30)) {
+        leftScreen = HDINDENTINIT;
     } else
 #endif
     { leftScreen = SDINDENT; }

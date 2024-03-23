@@ -27,8 +27,6 @@
 //#define CMS_PAGE_DEBUG // For multi-page/menu debugging
 //#define CMS_MENU_DEBUG // For external menu content creators
 
-#pragma once
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -594,7 +592,7 @@ void cmsMenuOpen(void) {
     if ( pCurrentDisplay->cols < NORMAL_SCREEN_MIN_COLS) {
         smallScreen       = true;
         linesPerMenuItem  = 2;
-        leftMenuColumn    = SDINDENT;
+        leftMenuColumn    = 0;
         rightMenuColumn   = pCurrentDisplay->cols;
         maxMenuItems      = (pCurrentDisplay->rows) / linesPerMenuItem;
     } else {
@@ -602,12 +600,18 @@ void cmsMenuOpen(void) {
         linesPerMenuItem  = 1;
 #if defined(USE_HDZERO_OSD)
     if ((vcdProfile()->video_system == VIDEO_SYSTEM_HD) && (pCurrentDisplay->cols > 30)) {
-        leftMenuColumn = HDINDENT + 2;
+        leftMenuColumn = HDINDENTMENU + 2;
     } else
 #endif
         { leftMenuColumn    = SDINDENT + 2; }
 #ifdef CMS_OSD_RIGHT_ALIGNED_VALUES
-        rightMenuColumn   = pCurrentDisplay->cols - 2;
+#if defined(USE_HDZERO_OSD)
+    if ((vcdProfile()->video_system == VIDEO_SYSTEM_HD) && (pCurrentDisplay->cols > 30)) {
+        rightMenuColumn   = pCurrentDisplay->cols - 3 - HDINDENTMENU;
+    } else
+#endif
+        { rightMenuColumn   = pCurrentDisplay->cols - 2; }
+
 #else
         rightMenuColumn   = pCurrentDisplay->cols - CMS_DRAW_BUFFER_LEN;
 #endif
