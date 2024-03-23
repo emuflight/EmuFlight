@@ -38,27 +38,35 @@
 #define SPI1_MISO_PIN           PA6
 #define SPI1_MOSI_PIN           PA7
 
-#define MPU6000_CS_PIN          PA4
-//#define ICM20689_CS_PIN         PA4
-#define MPU6000_SPI_INSTANCE    SPI1
-//#define ICM20689_SPI_INSTANCE   SPI1
-
 #define USE_EXTI
 #define USE_GYRO_EXTI
 #define MPU_INT_EXTI         PB6
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
-#define USE_GYRO
-#define USE_GYRO_SPI_MPU6000
-#define GYRO_MPU6000_ALIGN      CW0_DEG_FLIP
-//#define USE_GYRO_SPI_ICM20689
-//#define ACC_ICM20689_ALIGN       CW180_DEG
 #define USE_ACC
+#define USE_GYRO
+
 #define USE_ACC_SPI_MPU6000
-#define ACC_MPU6000_ALIGN       CW0_DEG_FLIP
-//#define USE_ACC_SPI_ICM20689
-//#define ACC_ICM20689_ALIGN       CW180_DEG
+#define USE_GYRO_SPI_MPU6000
+#define GYRO_MPU6000_ALIGN      CW180_DEG
+#define ACC_MPU6000_ALIGN       CW180_DEG
+#define MPU6000_CS_PIN          PA4
+#define MPU6000_SPI_INSTANCE    SPI1
+
+#define USE_ACC_SPI_MPU6500
+#define USE_GYRO_SPI_MPU6500
+#define ACC_MPU6500_ALIGN       CW180_DEG
+#define GYRO_MPU6500_ALIGN      CW180_DEG
+#define MPU6500_CS_PIN          PA4
+#define MPU6500_SPI_INSTANCE    SPI1
+
+#define USE_ACCGYRO_BMI270
+#define USE_SPI_GYRO
+#define ACC_BMI270_ALIGN        CW180_DEG
+#define GYRO_BMI270_ALIGN       CW180_DEG
+#define BMI270_CS_PIN           PA4
+#define BMI270_SPI_INSTANCE     SPI1
 
 // *************** Baro **************************
 //#define USE_I2C
@@ -140,17 +148,17 @@
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      PB12
 
-//#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-//#define USE_FLASHFS
-//#define USE_FLASH_M25P16
-//#define FLASH_CS_PIN            PB2
-//#define FLASH_SPI_INSTANCE      SPI2
+#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+#define USE_FLASHFS
+#define USE_FLASH_M25P16
+#define FLASH_CS_PIN            PB2
+#define FLASH_SPI_INSTANCE      SPI2
 
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE         ADC1
-#define ADC1_DMA_OPT            0  // DMA 2 Stream 0 Channel 0
-
+//#define ADC1_DMA_OPT            0  // DMA 2 Stream 0 Channel 0
+#define ADC1_DMA_STREAM DMA2_Stream4 //# ADC 1: DMA2 Stream 4 Channel 0
 #define VBAT_ADC_PIN            PA1
 #define CURRENT_METER_ADC_PIN   PB0
 //#define RSSI_ADC_PIN            PB1
@@ -166,7 +174,7 @@
 //#define PINIO2_PIN              PA15 // Camera switcher
 //#define USE_PINIOBOX
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
+#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_SOFTSERIAL)
 #define CURRENT_METER_SCALE_DEFAULT         179
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
