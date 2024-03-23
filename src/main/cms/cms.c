@@ -611,7 +611,6 @@ void cmsMenuOpen(void) {
     else
 #endif
         { rightMenuColumn   = pCurrentDisplay->cols - 2; }
-
 #else
         rightMenuColumn   = pCurrentDisplay->cols - CMS_DRAW_BUFFER_LEN;
 #endif
