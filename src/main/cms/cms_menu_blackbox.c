@@ -140,7 +140,7 @@ static long cmsx_EraseFlash(displayPort_t *pDisplay, const void *ptr) {
         return 0;
     }
     displayClearScreen(pDisplay);
-    displayWrite(pDisplay, 5, 3, "ERASING FLASH...");
+    displayWrite(pDisplay, (pCurrentDisplay->cols % 2) - 7, 3, "ERASING FLASH...");
     displayResync(pDisplay); // Was max7456RefreshAll(); Why at this timing?
     flashfsEraseCompletely();
     while (!flashfsIsReady()) {

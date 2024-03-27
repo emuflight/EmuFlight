@@ -22,6 +22,7 @@
 
 #include "common/time.h"
 #include "pg/pg.h"
+#include "pg/vcd.h"
 
 #define OSD_NUM_TIMER_TYPES 3
 extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
@@ -43,6 +44,9 @@ extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
                        ((y & OSD_POSITION_XY_MASK) << OSD_POSITION_BITS))
 #define OSD_X(x)      ((x & OSD_POSITION_XY_MASK) | ((x & OSD_POSITION_XHD_MASK) >> (OSD_POSITION_BIT_XHD - OSD_POSITION_BITS)))
 #define OSD_Y(x)      ((x >> OSD_POSITION_BITS) & OSD_POSITION_XY_MASK)
+
+#define SDINDENT      0   //Analog leftmost character for OSD Init and Menus
+#define HDINDENT     10   //HD leftmost character for OSD Init and Menus
 
 // Timer configuration
 // Stored as 15[alarm:8][precision:4][source:4]0
