@@ -21,7 +21,7 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER       "IFRC"
-#define USBD_PRODUCT_STRING           "IFLIGHT SUCCEX E F4"
+#define USBD_PRODUCT_STRING           "IFLIGHT_SUCCEX_E_F4"
 
 #define LED0_PIN                      PB5
 
