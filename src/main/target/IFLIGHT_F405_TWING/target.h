@@ -20,12 +20,12 @@
 
 #pragma once
 
-#if defined(IFF4_TWIN_G_M)
+#if defined(IFLIGHT_F405_TWING_M)
 #define TARGET_BOARD_IDENTIFIER "S405"
-#define USBD_PRODUCT_STRING "IFLIGHTF4TWIN_G_mpu6000"
+#define USBD_PRODUCT_STRING "IFLIGHT_F405_TWING_M"
 #else
 #define TARGET_BOARD_IDENTIFIER "S405"
-#define USBD_PRODUCT_STRING "IFLIGHTF4TWIN_G"
+#define USBD_PRODUCT_STRING "IFLIGHT_F405_TWING"
 #endif
 
 #define USE_DSHOT_DMAR
@@ -47,7 +47,7 @@
 #define PINIO1_PIN              PC14
 #define PINIO2_PIN              PC15
 
-#if defined(IFF4_TWIN_G_M)
+#if defined(IFLIGHT_F405_TWING_M)
 #define USE_MPU_DATA_READY_SIGNAL
 
 #define USE_EXTI
