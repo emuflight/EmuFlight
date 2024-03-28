@@ -159,6 +159,7 @@ jobs:
           echo "outputs.shortsha: ${{ needs.build.outputs.shortsha }}"
           echo "outputs.artfact: ${{ needs.build.outputs.artifact }}"
           echo "outputs.artfact: ${{ needs.build.outputs.version }}"
+          echo "NOW=$(date +'%Y%m%d.%H%M%S')" >> $GITHUB_ENV
         continue-on-error: true
 
       - name: download artifacts
@@ -181,7 +182,7 @@ jobs:
           repo: dev-unstable
           owner: emuflight
           token: ${{ secrets.NC_PAT_EMUF }}
-          tag: "hex-${{ github.run_number }}"
+          tag: "${{ env.NOW }}-hex"
           draft: true
           prerelease: true
           allowUpdates: true
@@ -213,7 +214,7 @@ jobs:
           repo: dev-master
           owner: emuflight
           token: ${{ secrets.NC_PAT_EMUF }}
-          tag: "hex-${{ github.run_number }}"
+          tag: "${{ env.NOW }}-hex"
           draft: true
           prerelease: true
           allowUpdates: true
