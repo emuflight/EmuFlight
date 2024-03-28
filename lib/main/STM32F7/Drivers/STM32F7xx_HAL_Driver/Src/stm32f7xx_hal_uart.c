@@ -248,6 +248,8 @@ HAL_StatusTypeDef HAL_UART_Init(UART_HandleTypeDef *huart)
     return HAL_ERROR;
   }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wduplicated-branches"
   if(huart->Init.HwFlowCtl != UART_HWCONTROL_NONE)
   {
     /* Check the parameters */
@@ -258,6 +260,7 @@ HAL_StatusTypeDef HAL_UART_Init(UART_HandleTypeDef *huart)
     /* Check the parameters */
     assert_param(IS_UART_INSTANCE(huart->Instance));
   }
+#pragma GCC diagnostic pop
 
   if(huart->gState == HAL_UART_STATE_RESET)
   {

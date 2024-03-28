@@ -66,10 +66,10 @@
 #define USBD_MANUFACTURER_STRING      FC_FIRMWARE_NAME
 #define USBD_PRODUCT_HS_STRING        "STM32 Virtual ComPort in HS Mode"
 #define USBD_PRODUCT_FS_STRING        "STM32 Virtual ComPort in FS Mode"
-#define USBD_CONFIGURATION_HS_STRING  "VCP Config"
-#define USBD_INTERFACE_HS_STRING      "VCP Interface"
-#define USBD_CONFIGURATION_FS_STRING  "VCP Config"
-#define USBD_INTERFACE_FS_STRING      "VCP Interface"
+#define USBD_CONFIGURATION_HS_STRING  "VCP Config in HS Mode"
+#define USBD_INTERFACE_HS_STRING      "VCP Interface in HS Mode"
+#define USBD_CONFIGURATION_FS_STRING  "VCP Config in FS Mode"
+#define USBD_INTERFACE_FS_STRING      "VCP Interface in FS Mode"
 
 /* Private macro -------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
