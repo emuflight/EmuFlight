@@ -20,8 +20,11 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "S411"
+#define TARGET_MANUFACTURER_IDENTIFIER "IFRC"
 #define USBD_PRODUCT_STRING "IFLIGHT_F411_AIO32"
+
+#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
 
 #define LED0_PIN                  PB5
 

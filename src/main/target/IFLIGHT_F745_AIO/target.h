@@ -20,9 +20,11 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "IFRC"
-
+#define TARGET_MANUFACTURER_IDENTIFIER "IFRC"
 #define USBD_PRODUCT_STRING "IFLIGHT_F745_AIO"
+
+#define FC_TARGET_MCU     STM32F745     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
 
 #define LED0_PIN   PC13
 
