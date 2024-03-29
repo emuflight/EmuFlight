@@ -20,9 +20,11 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "S7X2"
+#define TARGET_MANUFACTURER_IDENTIFIER "IFRC"
+#define USBD_PRODUCT_STRING "IFLIGHT_SUCCEX_E_F7"
 
-#define USBD_PRODUCT_STRING     "IFLIGHT_SUCCEX_E_F7"
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
 
 #define ENABLE_DSHOT_DMAR       true
 
