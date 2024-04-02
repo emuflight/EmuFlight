@@ -71,10 +71,6 @@
 #define GYRO_1_SPI_INSTANCE  SPI4
 #define MPU_INT_EXTI         PB1
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 41ad9160b ([target] add NBD_INFINITYAIOV2 (not pro))
 #define USE_EXTI // notice - REQUIRED when USE_GYRO_EXTI
 #define USE_GYRO_EXTI
 
@@ -100,7 +96,6 @@
 #define UART8_TX_PIN         PE1
 #define UART8_RX_PIN         PE0
 #define SERIAL_PORT_COUNT 7
-// notice - please verify serial count. UARTs defined as NONE may need to be included.
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
