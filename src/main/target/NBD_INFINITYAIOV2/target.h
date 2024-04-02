@@ -95,7 +95,7 @@
 #define USE_UART8
 #define UART8_TX_PIN         PE1
 #define UART8_RX_PIN         PE0
-#define SERIAL_PORT_COUNT 9
+#define SERIAL_PORT_COUNT 7
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
