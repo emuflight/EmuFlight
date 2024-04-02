@@ -41,9 +41,6 @@
 #define USE_VCP
 #define USE_FLASHFS
 #define USE_FLASH_M25P16    // 16MB Micron M25P16 and others (ref: https://github.com/betaflight/betaflight/blob/master/src/main/drivers/flash_m25p16.c)
-//#define USE_FLASH_W25M    // 1Gb NAND flash support
-//#define USE_FLASH_W25M512 // 16, 32, 64 or 128MB Winbond stacked die support
-//#define USE_FLASH_W25Q    // 512Kb (256Kb x 2 stacked) NOR flash support
 #define USE_OSD
 
 #define USE_LED
@@ -74,7 +71,6 @@
 #define GYRO_1_SPI_INSTANCE  SPI4
 #define MPU_INT_EXTI         PB1
 
-
 #define USE_EXTI // notice - REQUIRED when USE_GYRO_EXTI
 #define USE_GYRO_EXTI
 
@@ -99,8 +95,7 @@
 #define USE_UART8
 #define UART8_TX_PIN         PE1
 #define UART8_RX_PIN         PE0
-#define SERIAL_PORT_COUNT 7
-// notice - please verify serial count. UARTs defined as NONE may need to be included.
+#define SERIAL_PORT_COUNT 9
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
@@ -139,4 +134,3 @@
 #define USED_TIMERS ( TIM_N(1) | TIM_N(3) | TIM_N(4) )
 
 // notice - this file was programmatically generated and may be incomplete.
-
