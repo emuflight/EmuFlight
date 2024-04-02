@@ -20,8 +20,11 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER       "IFRC"
-#define USBD_PRODUCT_STRING           "IFLIGHT SUCCEX E F4"
+#define TARGET_MANUFACTURER_IDENTIFIER "IFRC"
+#define USBD_PRODUCT_STRING "IFLIGHT_SUCCEX_E_F4"
+
+#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
 
 #define LED0_PIN                      PB5
 
@@ -104,9 +107,6 @@
 #define SPI3_SCK_PIN                  PC10
 #define SPI3_MISO_PIN                 PC11
 #define SPI3_MOSI_PIN                 PC12
-
-#define USE_BARO
-#define USE_BARO_BMP280
 
 #define USE_I2C
 #define USE_I2C_DEVICE_2

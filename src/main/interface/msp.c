@@ -1084,7 +1084,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
                 continue;
             };
             sbufWriteU8(dst, serialConfig()->portConfigs[i].identifier);
-            sbufWriteU16(dst, serialConfig()->portConfigs[i].functionMask);
+            sbufWriteU32(dst, serialConfig()->portConfigs[i].functionMask);
             sbufWriteU8(dst, serialConfig()->portConfigs[i].msp_baudrateIndex);
             sbufWriteU8(dst, serialConfig()->portConfigs[i].gps_baudrateIndex);
             sbufWriteU8(dst, serialConfig()->portConfigs[i].telemetry_baudrateIndex);
@@ -2219,7 +2219,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         }
         break;
         case MSP_SET_CF_SERIAL_CONFIG: {
-    uint8_t portConfigSize = sizeof(uint8_t) + sizeof(uint16_t) + (sizeof(uint8_t) * 4);
+    uint8_t portConfigSize = sizeof(uint8_t) + sizeof(uint32_t) + (sizeof(uint8_t) * 4);
     if (dataSize % portConfigSize != 0) {
     return MSP_RESULT_ERROR;
     }
@@ -2231,7 +2231,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
     return MSP_RESULT_ERROR;
     }
     portConfig->identifier = identifier;
-    portConfig->functionMask = sbufReadU16(src);
+    portConfig->functionMask = sbufReadU32(src);
     portConfig->msp_baudrateIndex = sbufReadU8(src);
     portConfig->gps_baudrateIndex = sbufReadU8(src);
     portConfig->telemetry_baudrateIndex = sbufReadU8(src);

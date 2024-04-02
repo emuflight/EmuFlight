@@ -38,12 +38,17 @@
 
 /* Multi-Arch Support for 168MHz or 216MHz ARM Cortex processors - STM32F405RGT or STM32F7RET
  */
+
+#define TARGET_MANUFACTURER_IDENTIFIER  "ALWH"
+
 #if defined(ALIENWHOOPF4)
-#define TARGET_BOARD_IDENTIFIER "AWF4"
-#define USBD_PRODUCT_STRING     "AlienWhoopF4"
+#define USBD_PRODUCT_STRING             "ALIENWHOOPF4"
+#define FC_TARGET_MCU                   STM32F405     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER         "S405"        // generic ID
 #else
-#define TARGET_BOARD_IDENTIFIER "AWF7"
-#define USBD_PRODUCT_STRING     "AlienWhoopF7"
+#define USBD_PRODUCT_STRING            "ALIENWHOOPF7"
+#define FC_TARGET_MCU                  STM32F7X2     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER        "S7X2"
 #endif
 
 #define USE_TARGET_CONFIG // see config.c for target specific customizations
@@ -125,6 +130,9 @@
 // MPU
 #define MPU6500_CS_PIN          SPI1_NSS_PIN
 #define MPU6500_SPI_INSTANCE    SPI1
+#define MPU9250_CS_PIN          SPI1_NSS_PIN
+#define MPU9250_SPI_INSTANCE    SPI1
+
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
 // MAG
@@ -136,11 +144,15 @@
 // GYRO
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6500
+#define USE_GYRO_SPI_MPU9250
 #define GYRO_MPU6500_ALIGN      CW0_DEG
+#define GYRO_MPU9250_ALIGN      CW0_DEG
 // ACC
 #define USE_ACC
 #define USE_ACC_SPI_MPU6500
+#define USE_ACC_SPI_MPU9250
 #define ACC_MPU6500_ALIGN       CW0_DEG
+#define ACC_MPU9250_ALIGN       CW0_DEG
 
 /* Optional Digital Pressure Sensor (barometer) - Bosch BMP280
  * TODO: not implemented on V1 or V2 pcb
@@ -231,6 +243,10 @@
 #define TARGET_IO_PORTD         0xffff
 #define TARGET_IO_PORTE         0xffff
 #endif
+
+#define USE_ADC
+#define ADC1_DMA_OPT        1
+#define ADC1_DMA_STREAM     DMA2_Stream4 //# ADC 1: DMA2 Stream 4 Channel 0
 
 /* Timers
  */

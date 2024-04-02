@@ -20,7 +20,7 @@
 
 #pragma once
 
-#if defined(DIAT_MAMBAF405US_I2C)
+#if defined(MAMBAF405US_I2C)
 #define TARGET_BOARD_IDENTIFIER "S405"
 #define USBD_PRODUCT_STRING "MAMBAF405US I2C"
 #else
@@ -79,7 +79,7 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_2
 #define I2C_DEVICE              (I2CDEV_2)
-#if defined(DIAT_MAMBAF405US_I2C)
+#if defined(MAMBAF405US_I2C)
 #define I2C2_SCL                PB8        // SCL pad  PB10, shared with UART3TX
 #define I2C2_SDA                PB9        // SDA pad  PB11, shared with UART3RX
 #else

@@ -19,8 +19,12 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER                          "S411"
-#define USBD_PRODUCT_STRING                              "IFLIGHT F411 PRO"
+
+#define TARGET_MANUFACTURER_IDENTIFIER "IFRC"
+#define USBD_PRODUCT_STRING "IFLIGHT_F411_PRO"
+
+#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
 
 #define ENABLE_DSHOT_DMAR                                true
 

@@ -20,9 +20,11 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "S7X2"
+#define TARGET_MANUFACTURER_IDENTIFIER "IFRC"
+#define USBD_PRODUCT_STRING "IFLIGHT_SUCCEX_E_F7"
 
-#define USBD_PRODUCT_STRING     "IFLIGHT_SUCCEX_E_F7"
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
 
 #define ENABLE_DSHOT_DMAR       true
 
@@ -51,13 +53,28 @@
 #define MPU6000_CS_PIN           PA15
 
 #define USE_GYRO
-#define USE_GYRO_SPI_MPU6000
-
 #define USE_ACC
+
 #define USE_ACC_SPI_MPU6000
+#define USE_GYRO_SPI_MPU6000
 
 #define ACC_MPU6000_ALIGN        CW180_DEG
 #define GYRO_MPU6000_ALIGN       CW180_DEG
+
+#define USE_GYRO_SPI_ICM20689
+#define USE_ACC_SPI_ICM20689
+#define ACC_ICM20689_ALIGN       CW180_DEG
+#define GYRO_ICM20689_ALIGN      CW180_DEG
+#define ICM20689_CS_PIN          PA15
+#define ICM20689_SPI_INSTANCE    SPI1
+
+#define USE_SPI_GYRO
+#define USE_GYRO_EXTI
+#define USE_ACCGYRO_BMI270
+#define ACC_BMI270_ALIGN         CW180_DEG
+#define GYRO_BMI270_ALIGN        CW180_DEG
+#define BMI270_CS_PIN            PA15
+#define BMI270_SPI_INSTANCE      SPI1
 
 #define USE_VCP
 #define USE_UART1

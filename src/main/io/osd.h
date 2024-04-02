@@ -22,6 +22,7 @@
 
 #include "common/time.h"
 #include "pg/pg.h"
+#include "pg/vcd.h"
 
 #define OSD_NUM_TIMER_TYPES 3
 extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
@@ -30,15 +31,22 @@ extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
 
 #define VISIBLE_FLAG  0x0800
 #define VISIBLE(x)    (x & VISIBLE_FLAG)
-#define OSD_POS_MAX   0x3FF
-#define OSD_POSCFG_MAX   (VISIBLE_FLAG|0x3FF) // For CLI values
+
+#define OSD_POS_MAX    0x7FF
+#define OSD_POSCFG_MAX   (VISIBLE_FLAG|0x7FF) // For CLI values
 
 // Character coordinate
-#define OSD_POSITION_BITS 5 // 5 bits gives a range 0-31
-#define OSD_POSITION_XY_MASK ((1 << OSD_POSITION_BITS) - 1)
-#define OSD_POS(x,y)  ((x & OSD_POSITION_XY_MASK) | ((y & OSD_POSITION_XY_MASK) << OSD_POSITION_BITS))
-#define OSD_X(x)      (x & OSD_POSITION_XY_MASK)
+#define OSD_POSITION_BITS       5       // 5 bits gives a range 0-31
+#define OSD_POSITION_BIT_XHD    10      // extra bit used to extend X range in a backward compatible manner for HD displays
+#define OSD_POSITION_XHD_MASK   (1 << OSD_POSITION_BIT_XHD)
+#define OSD_POSITION_XY_MASK    ((1 << OSD_POSITION_BITS) - 1)
+#define OSD_POS(x,y)  ((x & OSD_POSITION_XY_MASK) | ((x << (OSD_POSITION_BIT_XHD - OSD_POSITION_BITS)) & OSD_POSITION_XHD_MASK) | \
+                       ((y & OSD_POSITION_XY_MASK) << OSD_POSITION_BITS))
+#define OSD_X(x)      ((x & OSD_POSITION_XY_MASK) | ((x & OSD_POSITION_XHD_MASK) >> (OSD_POSITION_BIT_XHD - OSD_POSITION_BITS)))
 #define OSD_Y(x)      ((x >> OSD_POSITION_BITS) & OSD_POSITION_XY_MASK)
+
+#define SDINDENT      0   //Analog leftmost character for OSD Init and Menus
+#define HDINDENT     10   //HD leftmost character for OSD Init and Menus
 
 // Timer configuration
 // Stored as 15[alarm:8][precision:4][source:4]0
