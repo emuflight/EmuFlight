@@ -19,17 +19,30 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER "NERO"
+#define TARGET_MANUFACTURER_IDENTIFIER "BKMN"
+#define USBD_PRODUCT_STRING "NERO"
 
-#define USBD_PRODUCT_STRING     "NERO"
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
+
+#define USE_ACC
+#define USE_ACC_SPI_MPU6500
+#define USE_ACC_SPI_ICM20602 // detected by MPU6500 code
+#define USE_GYRO
+#define USE_GYRO_SPI_MPU6500
+#define USE_GYRO_SPI_ICM20602 // detected by MPU6500 code
+#define USE_SDCARD
 
 #define HW_PIN                  PB2
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 
+#define USE_LED
 #define LED0_PIN                PB6
 #define LED1_PIN                PB5
 #define LED2_PIN                PB4
+#define LED_STRIP_PIN           PB0 // Shared with MOTOR5_PIN
+#define MOTOR5_PIN              PB0 // Shared with LED_STRIP_PIN
 
 #define USE_BEEPER
 #define BEEPER_PIN              PC1
@@ -55,7 +68,7 @@
 #define GYRO_MPU6500_ALIGN      CW0_DEG
 
 #define USE_SDCARD
-
+#define USE_SDCARD_SDIO
 #define SDCARD_DETECT_INVERTED
 #define SDCARD_DETECT_PIN                   PD2
 #define SDCARD_SPI_INSTANCE                 SPI3
@@ -96,6 +109,7 @@
 
 #define SERIAL_PORT_COUNT       6
 
+#define ENABLE_DSHOT_DMAR true
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PC7 // (Hardware=0, PPM)
 
@@ -121,10 +135,16 @@
 
 #define USE_ADC
 #define VBAT_ADC_PIN            PC3
+#define CURRENT_METER_ADC_PIN PC2
+#define RSSI_ADC_PIN PA4
+#define ADC1_DMA_OPT        1
+#define ADC1_DMA_STREAM DMA2_Stream4 //# ADC 1: DMA2 Stream 4 Channel 0
+#define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
+#define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
-#define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
+#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART6
 
