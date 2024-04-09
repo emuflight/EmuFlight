@@ -21,18 +21,21 @@
 #pragma once
 
 #if defined(CRAZYBEEF4FR)
-#define TARGET_BOARD_IDENTIFIER "C4FR"
-#define USBD_PRODUCT_STRING     "CrazyBee F4 FR"
+#define TARGET_MANUFACTURER_IDENTIFIER "HAMO"
+#define USBD_PRODUCT_STRING            "CRAZYBEEF4FR"
 #elif defined(CRAZYBEEF4FS)
-#define TARGET_BOARD_IDENTIFIER "C4FS"
-#define USBD_PRODUCT_STRING     "CrazyBee F4 FS"
+#define TARGET_MANUFACTURER_IDENTIFIER "HAMO"
+#define USBD_PRODUCT_STRING            "CRAZYBEEF4FS"
 #elif defined(CRAZYBEEF4DX)
-#define TARGET_BOARD_IDENTIFIER "C4DX"
-#define USBD_PRODUCT_STRING     "CrazyBee F4 DX"
+#define TARGET_MANUFACTURER_IDENTIFIER "HAMO"
+#define USBD_PRODUCT_STRING            "CRAZYBEEF4DX"
 #else
-#define TARGET_BOARD_IDENTIFIER "M41R"
-#define USBD_PRODUCT_STRING     "MATEKF411RX"
+#define TARGET_MANUFACTURER_IDENTIFIER "MTKS"
+#define USBD_PRODUCT_STRING            "MATEKF411RX"
 #endif
+
+#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
 
 #define LED0_PIN                PC13
 
@@ -43,6 +46,16 @@
 #define USE_SPI
 
 // *************** SPI1 Gyro & ACC **********************
+#define USE_GYRO
+#define USE_GYRO_SPI_MPU6000
+#define USE_GYRO_SPI_ICM20689
+#define USE_GYRO_SPI_ICM42688P
+#define USE_ACC
+#define USE_ACC_SPI_MPU6000
+#define USE_ACC_SPI_ICM20689
+#define USE_ACC_SPI_ICM42688P
+#define USE_ACCGYRO_BMI270
+
 #define USE_SPI_DEVICE_1
 #define SPI1_SCK_PIN            PA5
 #define SPI1_MISO_PIN           PA6
@@ -57,27 +70,36 @@
 #define MPU_INT_EXTI            PA1
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define USE_GYRO
-#define USE_GYRO_SPI_MPU6000
-#define USE_GYRO_SPI_ICM20689
+#define ICM42688P_CS_PIN         PA4
+#define ICM42688P_SPI_INSTANCE   SPI1
+
+#define BMI270_CS_PIN            PA4
+#define BMI270_SPI_INSTANCE      SPI1
 
 #if defined(CRAZYBEEF4FS) || defined(CRAZYBEEF4FR) || defined(CRAZYBEEF4DX)
-#define GYRO_MPU6000_ALIGN      CW90_DEG
+#define GYRO_MPU6000_ALIGN       CW90_DEG
 #define GYRO_ICM20689_ALIGN      CW90_DEG
+#define GYRO_ICM42688P_ALIGN     CW90_DEG
+#define GYRO_BMI270_ALIGN        CW90_DEG
 #else
-#define GYRO_MPU6000_ALIGN      CW180_DEG
+#define GYRO_MPU6000_ALIGN       CW180_DEG
 #define GYRO_ICM20689_ALIGN      CW180_DEG
+#define GYRO_ICM42688P_ALIGN     CW180_DEG
+#define GYRO_BMI270_ALIGN        CW180_DEG
 #endif
-#define USE_ACC
-#define USE_ACC_SPI_MPU6000
-#define USE_ACC_SPI_ICM20689
+
 #if defined(CRAZYBEEF4FS) || defined(CRAZYBEEF4FR) || defined(CRAZYBEEF4DX)
-#define ACC_MPU6000_ALIGN       CW90_DEG
+#define ACC_MPU6000_ALIGN        CW90_DEG
 #define ACC_ICM20689_ALIGN       CW90_DEG
+#define ACC_ICM42688P_ALIGN      CW90_DEG
+#define ACC_BMI270_ALIGN         CW90_DEG
 #else
-#define ACC_MPU6000_ALIGN       CW180_DEG
+#define ACC_MPU6000_ALIGN        CW180_DEG
 #define ACC_ICM20689_ALIGN       CW180_DEG
+#define ACC_ICM42688P_ALIGN      CW180_DEG
+#define ACC_BMI270_ALIGN         CW180_DEG
 #endif
+
 // *************** SPI2 OSD *****************************
 #define USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN            PB13
