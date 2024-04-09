@@ -20,9 +20,11 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "DFR7"
+#define TARGET_MANUFACTURER_IDENTIFIER "DFRA"
+#define USBD_PRODUCT_STRING "DFR_F722_DUAL_HD"
 
-#define USBD_PRODUCT_STRING     "DFR F722 DUAL HD"
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
 
 #define USE_DUAL_GYRO
 
@@ -161,7 +163,7 @@
 #define SERIALRX_UART                       SERIAL_PORT_USART2
 #define SERIALRX_PROVIDER                   SERIALRX_SBUS
 
-#define SENSORS_SET             (SENSOR_ACC | SENSOR_BARO)
+#define SENSORS_SET             (SENSOR_ACC)
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
