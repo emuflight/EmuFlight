@@ -53,10 +53,12 @@
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
 #define USE_GYRO_SPI_ICM20689
+#define USE_GYRO_SPI_ICM42688P
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define USE_ACC_SPI_ICM20689
+#define USE_ACC_SPI_ICM42688P
 
 #define ACC_ICM20689_1_ALIGN    CW90_DEG
 #define GYRO_ICM20689_1_ALIGN   CW90_DEG
@@ -67,6 +69,9 @@
 #define GYRO_MPU6000_2_ALIGN    CW90_DEG
 #define GYRO_2_ALIGN            GYRO_MPU6000_2_ALIGN
 #define ACC_2_ALIGN             ACC_MPU6000_2_ALIGN
+
+#define ACC_ICM42688P_ALIGN     CW90_DEG
+#define GYRO_ICM42688P_ALIGN    CW90_DEG
 
 #define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
 
@@ -140,7 +145,7 @@
 
 #define USE_ADC
 #define ADC_INSTANCE            ADC3
-#define ADC3_DMA_OPT            0  // DMA 2 Stream 0 Channel 2 
+#define ADC3_DMA_OPT            0  // DMA 2 Stream 0 Channel 2
 
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2

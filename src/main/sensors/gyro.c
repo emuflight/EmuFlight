@@ -44,8 +44,10 @@
 #include "drivers/accgyro/accgyro_mpu6050.h"
 #include "drivers/accgyro/accgyro_mpu6500.h"
 #include "drivers/accgyro/accgyro_spi_bmi160.h"
+#include "drivers/accgyro/accgyro_spi_bmi270.h"
 #include "drivers/accgyro/accgyro_spi_icm20649.h"
 #include "drivers/accgyro/accgyro_spi_icm20689.h"
+#include "drivers/accgyro/accgyro_spi_icm426xx.h"
 #include "drivers/accgyro/accgyro_spi_mpu6000.h"
 #include "drivers/accgyro/accgyro_spi_mpu6500.h"
 #include "drivers/accgyro/accgyro_spi_mpu9250.h"
@@ -157,8 +159,10 @@ typedef struct gyroSensor_s {
     gyroLowpassFilter_t lowpassFilter[XYZ_AXIS_COUNT];
 
     // lowpass2 gyro soft filter
+#ifdef USE_GYRO_LPF2
     filterApplyFnPtr lowpass2FilterApplyFn;
     gyroLowpassFilter_t lowpass2Filter[XYZ_AXIS_COUNT];
+#endif
 
     // ABG filter
     filterApplyFnPtr gyroABGFilterApplyFn;
@@ -208,7 +212,7 @@ static void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int typ
 #ifdef STM32F10X
 #define GYRO_SYNC_DENOM_DEFAULT 8
 #elif defined(USE_GYRO_SPI_MPU6000) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_ICM20601) || defined(USE_GYRO_SPI_ICM20649) \
-   || defined(USE_GYRO_SPI_ICM20689)
+   || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_SPI_ICM42605) || defined(USE_GYRO_SPI_ICM42688P) || defined(USE_ACCGYRO_BMI160) || defined(USE_ACCGYRO_BMI270)
 #define GYRO_SYNC_DENOM_DEFAULT 1
 #else
 #define GYRO_SYNC_DENOM_DEFAULT 3
@@ -249,6 +253,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .checkOverflow = GYRO_OVERFLOW_CHECK_ALL_AXES,
                   .yaw_spin_recovery = YAW_SPIN_RECOVERY_AUTO,
                   .yaw_spin_threshold = 1950,
+                  .dyn_notch_axis = RPY,
                   .dyn_notch_q = 400,
                   .dyn_notch_count = 3, // default of 3 is similar to the matrix filter.
                   .dyn_notch_min_hz = 150,
@@ -304,6 +309,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .gyro_offset_yaw = 0,
                   .yaw_spin_recovery = YAW_SPIN_RECOVERY_AUTO,
                   .yaw_spin_threshold = 1950,
+                  .dyn_notch_axis = RPY,
                   .dyn_notch_q = 350,
                   .dyn_notch_count = 3, // default of 3 is similar to the matrix filter.
                   .dyn_notch_min_hz = 150,
@@ -496,12 +502,48 @@ STATIC_UNIT_TESTED gyroSensor_e gyroDetect(gyroDev_t *dev) {
         }
         FALLTHROUGH;
 #endif
+#if defined(USE_GYRO_SPI_ICM42605) || defined(USE_GYRO_SPI_ICM42688P)
+    case GYRO_ICM42605:
+    case GYRO_ICM42688P:
+        if (icm426xxSpiGyroDetect(dev)) {
+            switch (dev->mpuDetectionResult.sensor) {
+            case ICM_42605_SPI:
+                gyroHardware = GYRO_ICM42605;
+#ifdef GYRO_ICM42605_ALIGN
+            dev->gyroAlign = GYRO_ICM42605_ALIGN;
+#endif
+                break;
+            case ICM_42688P_SPI:
+                gyroHardware = GYRO_ICM42688P;
+#ifdef GYRO_ICM42688P_ALIGN
+            dev->gyroAlign = GYRO_ICM42688P_ALIGN;
+#endif
+                break;
+            default:
+                gyroHardware = GYRO_NONE;
+                break;
+            }
+            break;
+        }
+        FALLTHROUGH;
+#endif
 #ifdef USE_ACCGYRO_BMI160
     case GYRO_BMI160:
         if (bmi160SpiGyroDetect(dev)) {
             gyroHardware = GYRO_BMI160;
 #ifdef GYRO_BMI160_ALIGN
             dev->gyroAlign = GYRO_BMI160_ALIGN;
+#endif
+            break;
+        }
+        FALLTHROUGH;
+#endif
+#ifdef USE_ACCGYRO_BMI270
+    case GYRO_BMI270:
+        if (bmi270SpiGyroDetect(dev)) {
+            gyroHardware = GYRO_BMI270;
+#ifdef GYRO_BMI270_ALIGN
+            dev->gyroAlign = GYRO_BMI270_ALIGN;
 #endif
             break;
         }
@@ -536,7 +578,7 @@ STATIC_UNIT_TESTED gyroSensor_e gyroDetect(gyroDev_t *dev) {
 static bool gyroInitSensor(gyroSensor_t *gyroSensor) {
     gyroSensor->gyroDev.gyro_high_fsr = gyroConfig()->gyro_high_fsr;
 #if defined(USE_GYRO_MPU6050) || defined(USE_GYRO_MPU3050) || defined(USE_GYRO_MPU6500) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU6000) \
- || defined(USE_ACC_MPU6050) || defined(USE_GYRO_SPI_MPU9250) || defined(USE_GYRO_SPI_ICM20601) || defined(USE_GYRO_SPI_ICM20649) || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_IMUF9001) || defined(USE_ACCGYRO_BMI160)
+ || defined(USE_ACC_MPU6050) || defined(USE_GYRO_SPI_MPU9250) || defined(USE_GYRO_SPI_ICM20601) || defined(USE_GYRO_SPI_ICM20649) || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_SPI_ICM42605) || defined(USE_GYRO_SPI_ICM42688P) || defined(USE_GYRO_IMUF9001) || defined(USE_ACCGYRO_BMI160) || defined(USE_ACCGYRO_BMI270)
     mpuDetect(&gyroSensor->gyroDev);
     mpuResetFn = gyroSensor->gyroDev.mpuConfiguration.resetFn; // must be set after mpuDetect
 #endif
@@ -581,9 +623,12 @@ static bool gyroInitSensor(gyroSensor_t *gyroSensor) {
     case GYRO_MPU3050:
     case GYRO_L3GD20:
     case GYRO_BMI160:
+    case GYRO_BMI270:
     case GYRO_MPU6000:
     case GYRO_MPU6500:
     case GYRO_MPU9250:
+    case GYRO_ICM42688P:
+    case GYRO_ICM42605:
         gyroSensor->gyroDev.gyroHasOverflowProtection = true;
         break;
     case GYRO_ICM20601:
@@ -717,6 +762,7 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
         lpfHz[PITCH] = gyroConfig()->gyro_lowpass_hz[PITCH];
         lpfHz[YAW] = gyroConfig()->gyro_lowpass_hz[YAW];
         break;
+#ifdef USE_GYRO_LPF2
     case FILTER_LOWPASS2:
         lowpassFilterApplyFn = &gyroSensor->lowpass2FilterApplyFn;
         lowpassFilter = gyroSensor->lowpass2Filter;
@@ -724,6 +770,7 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
         lpfHz[PITCH] = gyroConfig()->gyro_lowpass2_hz[PITCH];
         lpfHz[YAW] = gyroConfig()->gyro_lowpass2_hz[YAW];
         break;
+#endif
     default:
         return;
     }
@@ -817,7 +864,7 @@ static void gyroInitFilterDynamicNotch(gyroSensor_t *gyroSensor) {
     gyroSensor->notchFilterDynApplyFn = nullFilterApply;
     if (isDynamicFilterActive()) {
         gyroSensor->notchFilterDynApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1; // must be this function, not DF2
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+        for (int axis = 0; axis < gyroConfig()->dyn_notch_axis+1; axis++) {
             for (int axis2 = 0; axis2 < gyroConfig()->dyn_notch_count; axis2++) {
                 biquadFilterInit(&gyroSensor->gyroAnalyseState.notchFilterDyn[axis][axis2], 400, gyro.targetLooptime, gyroConfig()->dyn_notch_q / 100.0f, FILTER_NOTCH);
             }
@@ -862,11 +909,13 @@ static void gyroInitSensorFilters(gyroSensor_t *gyroSensor) {
         FILTER_LOWPASS,
         gyroConfig()->gyro_lowpass_type
     );
+#ifdef USE_GYRO_LPF2
     gyroInitLowpassFilterLpf(
         gyroSensor,
         FILTER_LOWPASS2,
         gyroConfig()->gyro_lowpass2_type
     );
+#endif
     gyroInitFilterNotch1(gyroSensor, gyroConfig()->gyro_soft_notch_hz_1, gyroConfig()->gyro_soft_notch_cutoff_1);
     gyroInitFilterNotch2(gyroSensor, gyroConfig()->gyro_soft_notch_hz_2, gyroConfig()->gyro_soft_notch_cutoff_2);
 #ifdef USE_GYRO_DATA_ANALYSE

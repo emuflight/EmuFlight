@@ -34,6 +34,13 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 
+#define USE_SPI_GYRO	
+#define USE_ACCGYRO_BMI270
+#define BMI270_CS_PIN           PA4
+#define BMI270_SPI_INSTANCE     SPI1
+#define ACC_BMI270_ALIGN        CW90_DEG
+#define GYRO_BMI270_ALIGN       CW90_DEG
+
 #define SPI1_SCK_PIN            PA5
 #define SPI1_MISO_PIN           PA6
 #define SPI1_MOSI_PIN           PA7

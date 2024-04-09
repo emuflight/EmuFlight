@@ -1138,6 +1138,7 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("spa_yaw_p", "%d",                       currentPidProfile->setPointPTransition[YAW]);
         BLACKBOX_PRINT_HEADER_LINE("spa_yaw_i", "%d",                       currentPidProfile->setPointITransition[YAW]);
         BLACKBOX_PRINT_HEADER_LINE("spa_yaw_d", "%d",                       currentPidProfile->setPointDTransition[YAW]);
+        BLACKBOX_PRINT_HEADER_LINE("rates_type", "%d",                      currentControlRateProfile->rates_type);
         BLACKBOX_PRINT_HEADER_LINE("rc_rates", "%d,%d,%d",                  currentControlRateProfile->rcRates[ROLL],
                                    currentControlRateProfile->rcRates[PITCH],
                                    currentControlRateProfile->rcRates[YAW]);
@@ -1179,8 +1180,10 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass2_hz_roll", "%d",          currentPidProfile->dFilter[ROLL].dLpf2);
         BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass2_hz_pitch", "%d",         currentPidProfile->dFilter[PITCH].dLpf2);
         BLACKBOX_PRINT_HEADER_LINE("dterm_lowpass2_hz_yaw", "%d",           currentPidProfile->dFilter[YAW].dLpf2);
+#ifdef USE_GYRO_DATA_ANALYSE
         BLACKBOX_PRINT_HEADER_LINE("dterm_dyn_notch_enable", "%d",          currentPidProfile->dtermDynNotch);
         BLACKBOX_PRINT_HEADER_LINE("dterm_dyn_notch_q", "%d",               currentPidProfile->dterm_dyn_notch_q);
+#endif
         BLACKBOX_PRINT_HEADER_LINE("dterm_ABG_alpha", "%d",                 currentPidProfile->dterm_ABG_alpha);
         BLACKBOX_PRINT_HEADER_LINE("dterm_ABG_boost", "%d",                 currentPidProfile->dterm_ABG_boost);
         BLACKBOX_PRINT_HEADER_LINE("dterm_ABG_half_life", "%d",             currentPidProfile->dterm_ABG_half_life);
@@ -1226,10 +1229,12 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_hz_roll", "%d",            gyroConfig()->gyro_lowpass_hz[ROLL]);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_hz_pitch", "%d",           gyroConfig()->gyro_lowpass_hz[PITCH]);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass_hz_yaw", "%d",             gyroConfig()->gyro_lowpass_hz[YAW]);
+#ifdef USE_GYRO_LPF2
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass2_type", "%d",              gyroConfig()->gyro_lowpass2_type);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass2_hz_roll", "%d",           gyroConfig()->gyro_lowpass2_hz[ROLL]);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass2_hz_pitch", "%d",          gyroConfig()->gyro_lowpass2_hz[PITCH]);
         BLACKBOX_PRINT_HEADER_LINE("gyro_lowpass2_hz_yaw", "%d",            gyroConfig()->gyro_lowpass2_hz[YAW]);
+#endif
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_hz", "%d,%d",                gyroConfig()->gyro_soft_notch_hz_1,
                                    gyroConfig()->gyro_soft_notch_hz_2);
         BLACKBOX_PRINT_HEADER_LINE("gyro_notch_cutoff", "%d,%d",            gyroConfig()->gyro_soft_notch_cutoff_1,
@@ -1239,6 +1244,7 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("dynamic_gyro_notch_count", "%d",        gyroConfig()->dyn_notch_count);
         BLACKBOX_PRINT_HEADER_LINE("dynamic_gyro_notch_min_hz", "%d",       gyroConfig()->dyn_notch_min_hz);
         BLACKBOX_PRINT_HEADER_LINE("dynamic_gyro_notch_max_hz", "%d",       gyroConfig()->dyn_notch_max_hz);
+        BLACKBOX_PRINT_HEADER_LINE("dynamic_gyro_notch_axis", "%d",       gyroConfig()->dyn_notch_axis);
 #endif
         BLACKBOX_PRINT_HEADER_LINE("gyro_ABG_alpha", "%d",                  gyroConfig()->gyro_ABG_alpha);
         BLACKBOX_PRINT_HEADER_LINE("gyro_ABG_boost", "%d",                  gyroConfig()->gyro_ABG_boost);
@@ -1266,6 +1272,7 @@ static bool blackboxWriteSysinfo(void) {
         BLACKBOX_PRINT_HEADER_LINE("motor_pwm_protocol", "%d",              motorConfig()->dev.motorPwmProtocol);
         BLACKBOX_PRINT_HEADER_LINE("motor_pwm_rate", "%d",                  motorConfig()->dev.motorPwmRate);
         BLACKBOX_PRINT_HEADER_LINE("dshot_idle_value", "%d",                motorConfig()->digitalIdleOffsetValue);
+        BLACKBOX_PRINT_HEADER_LINE("motor_poles", "%d",                     motorConfig()->motorPoleCount);
         BLACKBOX_PRINT_HEADER_LINE("debug_mode", "%d",                      systemConfig()->debug_mode);
         BLACKBOX_PRINT_HEADER_LINE("features", "%d",                        featureConfig()->enabledFeatures);
 #ifdef USE_RC_SMOOTHING_FILTER

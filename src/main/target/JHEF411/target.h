@@ -56,6 +56,13 @@
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define ACC_MPU6000_ALIGN       CW180_DEG
+
+#define USE_ACC_SPI_ICM42688P
+#define USE_GYRO_SPI_ICM42688P
+#define ICM42688P_CS_PIN          PA4
+#define ICM42688P_SPI_INSTANCE    SPI1
+#define ACC_ICM42688P_ALIGN       CW180_DEG
+#define GYRO_ICM42688P_ALIGN      CW180_DEG
 // *************** Baro **************************
 #define USE_I2C
 
