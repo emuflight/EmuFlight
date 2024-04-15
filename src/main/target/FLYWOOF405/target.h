@@ -20,8 +20,10 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "S405"
-#define USBD_PRODUCT_STRING  "FLYWOOF405 - MPU6000"
+#define BOARD_NAME        FLYWOOF405
+#define MANUFACTURER_ID   FLWO
+#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
+#define FC_TARGET_MCU     STM32F405     // not used in EmuF
 
 //----------------------------------------
 #define USE_TARGET_CONFIG
@@ -36,8 +38,11 @@
 #define CAMERA_CONTROL_PIN      PA9
 
 #define USE_PINIO
-#define PINIO1_PIN              PB12
 #define USE_PINIOBOX
+#define PINIO1_PIN           PB12
+#define PINIO2_PIN           PB13
+#define PINIO1_BOX 40
+#define PINIO2_BOX 41
 
 //SPI DEVICE-------------------------------
 #define USE_SPI
@@ -54,8 +59,9 @@
 #define SPI3_MOSI_PIN           PC12
 //Gyro & ACC-------------------------------
 
+#define USE_SPI_GYRO
 #define USE_EXTI
-#define MPU_INT_EXTI            PC5
+#define USE_GYRO_EXTI
 #define USE_MPU_DATA_READY_SIGNAL
 
 //MPU-6000
@@ -63,11 +69,22 @@
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define USE_GYRO_SPI_MPU6000
+#define USE_GYRO_SPI_ICM20689
+#define USE_ACC_SPI_ICM20689
+#define USE_GYRO_SPI_ICM42688P
+#define USE_ACC_SPI_ICM42688P
 
-#define MPU6000_CS_PIN          PC4
-#define MPU6000_SPI_INSTANCE    SPI1
-#define GYRO_MPU6000_ALIGN      CW270_DEG
-#define ACC_MPU6000_ALIGN       CW270_DEG
+#define ACC_1_ALIGN          CW270_DEG
+#define GYRO_1_ALIGN         CW270_DEG
+#define GYRO_1_CS_PIN        PC4
+#define GYRO_1_EXTI_PIN      PC5
+#define GYRO_1_SPI_INSTANCE  SPI1
+
+#define USE_DUAL_GYRO
+
+#define ACC_2_ALIGN          CW0_DEG
+#define GYRO_2_ALIGN         CW0_DEG
+#define GYRO_2_SPI_INSTANCE  SPI1
 
 //Baro & MAG-------------------------------
 #define USE_I2C
@@ -155,6 +172,7 @@
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         (BIT(2))
 
+#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS             (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(8)|TIM_N(12))
+#define USABLE_TIMER_CHANNEL_COUNT 10
+#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) )
