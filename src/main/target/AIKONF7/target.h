@@ -19,8 +19,11 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER "AIKO"
-#define USBD_PRODUCT_STRING "AIKONF7"
+
+#define BOARD_NAME        AIKONF7
+#define MANUFACTURER_ID   AIKO
+#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
 
 #define ENABLE_DSHOT_DMAR       true
 
@@ -38,12 +41,16 @@
 #define USE_EXTI
 #define MPU_INT_EXTI              PC4
 #define USE_MPU_DATA_READY_SIGNAL
-//MPU-6000
+
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
+#define USE_ACC_SPI_ICM42688P
+#define USE_ACCGYRO_BMI270
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
+#define USE_GYRO_SPI_ICM42688P
 
+//MPU-6000
 #define GYRO_MPU6000_ALIGN      CW0_DEG
 #define ACC_MPU6000_ALIGN       CW0_DEG
 #define MPU6000_CS_PIN          PA4
@@ -59,6 +66,18 @@
 #define GYRO_MPU6500_ALIGN      CW0_DEG
 #define MPU6500_CS_PIN          SPI1_NSS_PIN
 #define MPU6500_SPI_INSTANCE    SPI1
+
+// ICM42688P
+#define ACC_ICM42688P_ALIGN      CW0_DEG
+#define GYRO_ICM42688P_ALIGN     CW0_DEG
+#define ICM42688P_CS_PIN         PA4
+#define ICM42688P_SPI_INSTANCE   SPI1
+
+// BMI270
+#define ACC_BMI270_ALIGN         CW0_DEG
+#define GYRO_BMI270_ALIGN        CW0_DEG
+#define BMI270_CS_PIN            PA4
+#define BMI270_SPI_INSTANCE      SPI1
 
 #define USE_MAG
 #define USE_MAG_HMC5883
