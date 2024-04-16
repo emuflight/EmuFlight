@@ -22,8 +22,10 @@
 
 #define USE_TARGET_CONFIG
 
+#define BOARD_NAME        HGLRCF722
+#define MANUFACTURER_ID   HGLR
 #define TARGET_BOARD_IDENTIFIER "S7X2"
-#define USBD_PRODUCT_STRING  "HGLRCF722"
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
 
 #define ENABLE_DSHOT_DMAR       true
 
@@ -42,20 +44,27 @@
 #define SPI1_MISO_PIN           PA6
 #define SPI1_MOSI_PIN           PA7
 
+#define USE_SPI_GYRO
 #define USE_EXTI
+#define USE_GYRO_EXTI
 #define MPU_INT_EXTI         PC4
-
-#define MPU6000_CS_PIN           PB2
-#define MPU6000_SPI_INSTANCE     SPI1
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
+#define USE_ACCGYRO_BMI270
 
 #define GYRO_MPU6000_ALIGN    CW180_DEG_FLIP
 #define ACC_MPU6000_ALIGN     CW180_DEG_FLIP
+#define MPU6000_CS_PIN        PB2
+#define MPU6000_SPI_INSTANCE  SPI1
+
+#define ACC_BMI270_ALIGN      CW180_DEG_FLIP
+#define GYRO_BMI270_ALIGN     CW180_DEG_FLIP
+#define BMI270_CS_PIN         PB2
+#define BMI270_SPI_INSTANCE   SPI1
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
