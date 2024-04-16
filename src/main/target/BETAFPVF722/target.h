@@ -19,9 +19,11 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER                          "S7X2"
-#define USBD_PRODUCT_STRING                              "BETAFPVF722"
-#define TARGET_MANUFACTURER_IDENTIFIER                   "BEFH"
+
+#define BOARD_NAME        BETAFPVF722
+#define MANUFACTURER_ID   BEFH
+#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
 
 #define ENABLE_DSHOT_DMAR                                true
 
@@ -40,23 +42,29 @@
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define USE_GYRO_SPI_MPU6000
-#define USE_EXTI
-#define USE_MPU_DATA_READY_SIGNAL
-
-#define MPU_INT_EXTI                                     PC4                    //MPU_INT_EXTI
-#define MPU6000_CS_PIN                                   PA4                    //GYRO_1_CS_PIN
-#define MPU6000_SPI_INSTANCE                             SPI1                   //GYRO_1_SPI_INSTANCE
-#define GYRO_MPU6000_ALIGN                               CW180_DEG
-#define ACC_MPU6000_ALIGN                                CW180_DEG
-
-
-// ICM42688P
 #define USE_GYRO_SPI_ICM42688P
 #define USE_ACC_SPI_ICM42688P
-#define ICM42688P_CS_PIN                                PA4
-#define ICM42688P_SPI_INSTANCE                          SPI1
-#define GYRO_ICM42688P_ALIGN                            CW180_DEG
-#define ACC_ICM42688P_ALIGN                             CW180_DEG
+#define USE_ACCGYRO_BMI270
+
+#define USE_SPI_GYRO
+#define USE_EXTI
+#define USE_GYRO_EXTI
+
+#define USE_MPU_DATA_READY_SIGNAL
+
+#define ACC_1_ALIGN          CW180_DEG
+#define GYRO_1_ALIGN         CW180_DEG
+#define GYRO_1_CS_PIN        PA4
+#define GYRO_1_EXTI_PIN      PC4
+#define GYRO_1_SPI_INSTANCE  SPI1
+
+#define USE_DUAL_GYRO
+
+#define ACC_2_ALIGN          CW180_DEG
+#define GYRO_2_ALIGN         CW180_DEG
+#define GYRO_2_CS_PIN        PC3
+#define GYRO_2_EXTI_PIN      PB2
+#define GYRO_2_SPI_INSTANCE  SPI1
 
 
 // OSD
@@ -130,6 +138,8 @@
 #define VBAT_ADC_PIN                                     PC0
 #define RSSI_ADC_PIN                                     PC2
 #define CURRENT_METER_SCALE_DEFAULT                      450                   // 3.3/120A  = 25mv/A
+#define ADC1_DMA_OPT                                     0
+#define ADC1_DMA_STREAM                                  DMA2_Stream0 //# ADC 1: DMA2 Stream 0 Channel 0
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 // SPI devices
