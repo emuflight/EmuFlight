@@ -20,8 +20,10 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "AIK4"
-#define USBD_PRODUCT_STRING     "AIKONF4"
+#define BOARD_NAME        AIKONF4
+#define MANUFACTURER_ID   AIKO
+#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
+#define FC_TARGET_MCU     STM32F405     // not used in EmuF
 
 #define LED0_PIN                PB4
 #define USE_BEEPER
@@ -38,21 +40,31 @@
 #define MPU_INT_EXTI            PC4
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define MPU6000_CS_PIN          SPI1_NSS_PIN
-#define MPU6000_SPI_INSTANCE    SPI1
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
+#define USE_ACC_SPI_ICM20602
+#define USE_GYRO_SPI_ICM20602
+#define USE_ACCGYRO_BMI270
+#define USE_GYRO_SPI_MPU6500
+#define USE_ACC_SPI_MPU6500
+
+#define MPU6000_CS_PIN          SPI1_NSS_PIN
+#define MPU6000_SPI_INSTANCE    SPI1
 #define GYRO_MPU6000_ALIGN      CW0_DEG
 #define ACC_MPU6000_ALIGN       CW0_DEG
 
-#define USE_GYRO_SPI_MPU6500
-#define USE_ACC_SPI_MPU6500
+// ICM2060x detected by MPU6500 driver
 #define MPU6500_CS_PIN          MPU6000_CS_PIN
 #define MPU6500_SPI_INSTANCE    MPU6000_SPI_INSTANCE
 #define GYRO_MPU6500_ALIGN      GYRO_MPU6000_ALIGN
 #define ACC_MPU6500_ALIGN       ACC_MPU6000_ALIGN
+
+#define ACC_BMI270_ALIGN         CW0_DEG
+#define GYRO_BMI270_ALIGN        CW0_DEG
+#define BMI270_CS_PIN            PA4
+#define BMI270_SPI_INSTANCE      SPI1
 
 #define USE_BARO
 #define USE_BARO_BMP280
