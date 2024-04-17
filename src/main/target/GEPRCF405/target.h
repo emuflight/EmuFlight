@@ -21,9 +21,10 @@
 
 #define USE_TARGET_CONFIG
 
-#define TARGET_BOARD_IDENTIFIER	"GPR4"
-#define TARGET_MANUFACTURER_IDENTIFIER	"GEPR"
-#define USBD_PRODUCT_STRING	"GEPRCF405"
+#define BOARD_NAME        GEPRCF405
+#define MANUFACTURER_ID   GEPR
+#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
+#define FC_TARGET_MCU     STM32F405     // not used in EmuF
 
 #define LED0_PIN                PC14
 #define LED1_PIN                PC15
@@ -32,20 +33,35 @@
 #define BEEPER_PIN              PC13
 #define BEEPER_INVERTED
 
+#define USE_SPI_GYRO
 #define USE_EXTI
+#define USE_GYRO_EXTI
+
 #define MPU_INT_EXTI            PC3
 #define USE_MPU_DATA_READY_SIGNAL
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
-#define ACC_MPU6000_1_ALIGN     CW270_DEG
-
+#define USE_ACC_SPI_ICM42688P
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
-#define GYRO_MPU6000_ALIGN      CW270_DEG
+#define USE_GYRO_SPI_ICM42688P
+#define USE_ACCGYRO_BMI270
 
+#define ACC_MPU6000_ALIGN       CW270_DEG
+#define GYRO_MPU6000_ALIGN      CW270_DEG
 #define MPU6000_CS_PIN          PA15
 #define MPU6000_SPI_INSTANCE    SPI3
+
+#define ACC_ICM42688P_ALIGN     CW180_DEG
+#define GYRO_ICM42688P_ALIGN    CW180_DEG
+#define ICM42688P_CS_PIN        PA15
+#define ICM42688P_SPI_INSTANCE  SPI3
+
+#define ACC_BMI270_ALIGN        CW180_DEG
+#define GYRO_BMI270_ALIGN       CW180_DEG
+#define BMI270_CS_PIN           PA15
+#define BMI270_SPI_INSTANCE     SPI3
 
 //-------------------------------------SPI2 FLASH------------------------------
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
