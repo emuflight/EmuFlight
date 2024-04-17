@@ -20,8 +20,10 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "FWF7"
-#define USBD_PRODUCT_STRING  "FLYWOOF7DUAL"
+#define BOARD_NAME        FLYWOOF7DUAL
+#define MANUFACTURER_ID   FLWO
+#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
 
 #define ENABLE_DSHOT_DMAR       true
 
@@ -66,37 +68,40 @@
 
 #define CAMERA_CONTROL_PIN      PB8
 
-#define USE_DUAL_GYRO
+#define USE_SPI_GYRO
 #define USE_EXTI
-#define GYRO_1_EXTI_PIN         PC3
-#define GYRO_2_EXTI_PIN         PC4
-#define MPU_INT_EXTI            PC3
+#define USE_GYRO_EXTI
+
+#define USE_MPU_DATA_READY_SIGNAL
+#define ENSURE_MPU_DATA_READY_IS_LOW
 
 #define GYRO_1_CS_PIN                       PA4
 #define GYRO_1_SPI_INSTANCE                 SPI1
 #define GYRO_2_CS_PIN                       PB2
 #define GYRO_2_SPI_INSTANCE                 SPI1
 
-#define USE_MPU_DATA_READY_SIGNAL
-#define ENSURE_MPU_DATA_READY_IS_LOW
-
 #define USE_GYRO
-#define USE_GYRO_SPI_MPU6000
-#define USE_GYRO_SPI_ICM20689
-
 #define USE_ACC
+#define USE_GYRO_SPI_MPU6000
 #define USE_ACC_SPI_MPU6000
+#define USE_GYRO_SPI_ICM20689
 #define USE_ACC_SPI_ICM20689
+#define USE_GYRO_SPI_ICM42688P
+#define USE_ACC_SPI_ICM42688P
 
-#define ACC_MPU6000_1_ALIGN           CW180_DEG_FLIP
-#define GYRO_MPU6000_1_ALIGN          CW180_DEG_FLIP
-#define GYRO_1_ALIGN                GYRO_MPU6000_1_ALIGN
-#define ACC_1_ALIGN                 ACC_MPU6000_1_ALIGN
+#define ACC_1_ALIGN          CW180_DEG_FLIP
+#define GYRO_1_ALIGN         CW180_DEG_FLIP
+#define GYRO_1_CS_PIN        PA4
+#define GYRO_1_EXTI_PIN      PC3
+#define GYRO_1_SPI_INSTANCE SPI1
 
-#define ACC_ICM20689_2_ALIGN         CW270_DEG
-#define GYRO_ICM20689_2_ALIGN        CW270_DEG
-#define GYRO_2_ALIGN                GYRO_ICM20689_2_ALIGN
-#define ACC_2_ALIGN                 ACC_ICM20689_2_ALIGN
+#define USE_DUAL_GYRO
+
+#define ACC_2_ALIGN          CW270_DEG
+#define GYRO_2_ALIGN         CW270_DEG
+#define GYRO_2_CS_PIN        PB2
+#define GYRO_2_EXTI_PIN      PC4
+#define GYRO_2_SPI_INSTANCE SPI1
 
 #define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
 
@@ -156,7 +161,7 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
 #define DEFAULT_RX_FEATURE                  FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES                    (FEATURE_RSSI_ADC | FEATURE_TELEMETRY | FEATURE_OSD | FEATURE_LED_STRIP)
+#define DEFAULT_FEATURES                    (FEATURE_RSSI_ADC | FEATURE_TELEMETRY | FEATURE_OSD | FEATURE_AIRMODE | FEATURE_LED_STRIP)
 #define SERIALRX_UART                       SERIAL_PORT_USART1
 #define SERIALRX_PROVIDER                   SERIALRX_SBUS
 
@@ -174,5 +179,5 @@
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) |TIM_N(11) )
+#define USABLE_TIMER_CHANNEL_COUNT 12
+#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(5) | TIM_N(8) | TIM_N(10) )
