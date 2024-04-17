@@ -20,11 +20,10 @@
 
 #pragma once
 
-#define TARGET_MANUFACTURER_IDENTIFIER "IFRC"
-#define USBD_PRODUCT_STRING "IFLIGHT_F411_PRO"
-
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define BOARD_NAME        IFLIGHT_F411_PRO
+#define MANUFACTURER_ID   IFRC
 #define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
+#define FC_TARGET_MCU     STM32F411     // not used in EmuF
 
 #define ENABLE_DSHOT_DMAR                                true
 
@@ -35,20 +34,43 @@
 #define BEEPER_PIN                                       PB2
 #define BEEPER_INVERTED
 
-//MPU-6000
-#define USE_GYRO
 #define USE_ACC
+#define USE_ACC_SPI_ICM20689
+#define USE_ACC_SPI_ICM42688P
 #define USE_ACC_SPI_MPU6000
+#define USE_ACCGYRO_BMI270
+#define USE_GYRO
+#define USE_GYRO_SPI_ICM20689
+#define USE_GYRO_SPI_ICM42688P
 #define USE_GYRO_SPI_MPU6000
+
+#define USE_SPI_GYRO
 #define USE_EXTI
+#define USE_GYRO_EXTI
+
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define MPU_INT_EXTI                                     PA1                    //MPU_INT_EXTI
-#define MPU6000_CS_PIN                                   PA4                    //GYRO_1_CS_PIN
-#define MPU6000_SPI_INSTANCE                             SPI1                   //GYRO_1_SPI_INSTANCE
-#define GYRO_MPU6000_ALIGN                               CW0_DEG
-#define ACC_MPU6000_ALIGN                                CW0_DEG
+#define MPU_INT_EXTI             PA1
 
+#define ACC_MPU6000_ALIGN        CW0_DEG
+#define GYRO_MPU6000_ALIGN       CW0_DEG
+#define MPU6000_CS_PIN           PA4
+#define MPU6000_SPI_INSTANCE     SPI1
+
+#define ACC_ICM20689_ALIGN       CW0_DEG
+#define GYRO_ICM20689_ALIGN      CW0_DEG
+#define ICM20689_CS_PIN          PA4
+#define ICM20689_SPI_INSTANCE    SPI1
+
+#define ACC_ICM42688P_ALIGN      CW0_DEG
+#define GYRO_ICM42688P_ALIGN     CW0_DEG
+#define ICM42688P_CS_PIN         PA4
+#define ICM42688P_SPI_INSTANCE   SPI1
+
+#define ACC_BMI270_ALIGN         CW0_DEG
+#define GYRO_BMI270_ALIGN        CW0_DEG
+#define BMI270_CS_PIN            PA4
+#define BMI270_SPI_INSTANCE      SPI1
 
 // *************** Baro **************************
 #define USE_I2C
