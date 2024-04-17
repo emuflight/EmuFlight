@@ -19,9 +19,11 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER                          "S411"
-#define USBD_PRODUCT_STRING                              "HGLRCF411"
-#define TARGET_MANUFACTURER_IDENTIFIER                   "HGLR"
+
+#define BOARD_NAME        HGLRCF411
+#define MANUFACTURER_ID   HGLR
+#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
+#define FC_TARGET_MCU     STM32F411     // not used in EmuF
 
 #define ENABLE_DSHOT_DMAR                                true
 
@@ -39,14 +41,26 @@
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define USE_GYRO_SPI_MPU6000
+#define USE_ACC_SPI_ICM42688P
+#define USE_GYRO_SPI_ICM42688P
+#define USE_ACCGYRO_BMI270
+
+#define USE_SPI_GYRO
 #define USE_EXTI
+#define USE_GYRO_EXTI
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define MPU_INT_EXTI                                     PA1                    //MPU_INT_EXTI
-#define MPU6000_CS_PIN                                   PA4                    //GYRO_1_CS_PIN
-#define MPU6000_SPI_INSTANCE                             SPI1                   //GYRO_1_SPI_INSTANCE
-#define GYRO_MPU6000_ALIGN                               CW180_DEG
-#define ACC_MPU6000_ALIGN                                CW180_DEG
+#define ACC_1_ALIGN          CW180_DEG
+#define GYRO_1_ALIGN         CW180_DEG
+#define GYRO_1_CS_PIN        PA4
+#define GYRO_1_EXTI_PIN      PA1
+#define GYRO_1_SPI_INSTANCE  SPI1
+
+#define USE_DUAL_GYRO
+
+#define ACC_2_ALIGN          CW0_DEG
+#define GYRO_2_ALIGN         CW0_DEG
+#define GYRO_2_SPI_INSTANCE  SPI1
 
 // OSD
 #define USE_MAX7456
