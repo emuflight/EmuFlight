@@ -1,0 +1,87 @@
+// timers for target.c
+// format : DEF_TIM(TIMxx, CHx, Pxx, TIM_USE_xxxxxxx, 0, x), //comment
+
+TIM_USE options:
+TIM_USE_ANY
+TIM_USE_BEEPER
+TIM_USE_LED
+TIM_USE_MOTOR
+TIM_USE_NONE
+TIM_USE_PPM
+TIM_USE_PWM
+TIM_USE_SERVO
+TIM_USE_TRANSPONDER
+
+// config.h timers
+#define MOTOR1_PIN           PA10
+#define MOTOR2_PIN           PB3
+#define MOTOR3_PIN           PB8
+#define MOTOR4_PIN           PB9
+#define MOTOR5_PIN           PA0
+#define MOTOR6_PIN           PA1
+
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB10, 1,  0) \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) \
+    TIMER_PIN_MAP( 3, PA7 , 2,  0) \
+    TIMER_PIN_MAP( 4, PA6 , 1,  0) \
+    TIMER_PIN_MAP( 5, PA5 , 1,  0) \
+    TIMER_PIN_MAP( 6, PA10, 1,  0) \
+    TIMER_PIN_MAP( 7, PB3 , 1,  0) \
+    TIMER_PIN_MAP( 8, PB8 , 1,  0) \
+    TIMER_PIN_MAP( 9, PB9 , 1, -1) \
+    TIMER_PIN_MAP(10, PA0 , 2,  0) \
+    TIMER_PIN_MAP(11, PA1 , 2,  0)
+
+// unified timers
+# timer
+timer B10 AF1
+# pin B10: TIM2 CH3 (AF1)
+timer B01 AF2
+# pin B01: TIM3 CH4 (AF2)
+timer B00 AF2
+# pin B00: TIM3 CH3 (AF2)
+timer A07 AF2
+# pin A07: TIM3 CH2 (AF2)
+timer A06 AF2
+# pin A06: TIM3 CH1 (AF2)
+timer A05 AF1
+# pin A05: TIM2 CH1 (AF1)
+timer A10 AF1
+# pin A10: TIM1 CH3 (AF1)
+timer B03 AF1
+# pin B03: TIM2 CH2 (AF1)
+timer B08 AF2
+# pin B08: TIM4 CH3 (AF2)
+timer B09 AF2
+# pin B09: TIM4 CH4 (AF2)
+timer A00 AF2
+# pin A00: TIM5 CH1 (AF2)
+timer A01 AF2
+# pin A01: TIM5 CH2 (AF2)
+
+dma ADC 1 1
+# ADC 1: DMA2 Stream 4 Channel 0
+dma pin B10 0
+# pin B10: DMA1 Stream 1 Channel 3
+dma pin B01 0
+# pin B01: DMA1 Stream 2 Channel 5
+dma pin B00 0
+# pin B00: DMA1 Stream 7 Channel 5
+dma pin A07 0
+# pin A07: DMA1 Stream 5 Channel 5
+dma pin A06 0
+# pin A06: DMA1 Stream 4 Channel 5
+dma pin A05 0
+# pin A05: DMA1 Stream 5 Channel 3
+dma pin A10 0
+# pin A10: DMA2 Stream 6 Channel 0
+dma pin B03 0
+# pin B03: DMA1 Stream 6 Channel 3
+dma pin B08 0
+# pin B08: DMA1 Stream 7 Channel 2
+dma pin A00 0
+# pin A00: DMA1 Stream 2 Channel 6
+dma pin A01 0
+# pin A01: DMA1 Stream 4 Channel 6

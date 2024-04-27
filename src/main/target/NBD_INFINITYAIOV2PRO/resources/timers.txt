@@ -1,0 +1,57 @@
+// timers for target.c
+// format : DEF_TIM(TIMxx, CHx, Pxx, TIM_USE_xxxxxxx, 0, x), //comment
+
+TIM_USE options:
+TIM_USE_ANY
+TIM_USE_BEEPER
+TIM_USE_LED
+TIM_USE_MOTOR
+TIM_USE_NONE
+TIM_USE_PPM
+TIM_USE_PWM
+TIM_USE_SERVO
+TIM_USE_TRANSPONDER
+
+// config.h timers
+#define MOTOR1_PIN           PC9
+#define MOTOR2_PIN           PC8
+#define MOTOR3_PIN           PC7
+#define MOTOR4_PIN           PC6
+
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC9 , 1,  0) \
+    TIMER_PIN_MAP( 1, PC8 , 1,  0) \
+    TIMER_PIN_MAP( 2, PC7 , 1,  0) \
+    TIMER_PIN_MAP( 3, PC6 , 1,  0) \
+    TIMER_PIN_MAP( 4, PA9 , 1,  0) \
+    TIMER_PIN_MAP( 5, PD13, 1,  0)
+
+// unified timers
+# timer
+timer C09 AF2
+# pin C09: TIM3 CH4 (AF2)
+timer C08 AF2
+# pin C08: TIM3 CH3 (AF2)
+timer C07 AF2
+# pin C07: TIM3 CH2 (AF2)
+timer C06 AF2
+# pin C06: TIM3 CH1 (AF2)
+timer A09 AF1
+# pin A09: TIM1 CH2 (AF1)
+timer D13 AF2
+# pin D13: TIM4 CH2 (AF2)
+
+dma ADC 1 0
+# ADC 1: DMA2 Stream 0 Channel 0
+dma pin C09 0
+# pin C09: DMA1 Stream 2 Channel 5
+dma pin C08 0
+# pin C08: DMA1 Stream 7 Channel 5
+dma pin C07 0
+# pin C07: DMA1 Stream 5 Channel 5
+dma pin C06 0
+# pin C06: DMA1 Stream 4 Channel 5
+dma pin A09 0
+# pin A09: DMA2 Stream 6 Channel 0
+dma pin D13 0
+# pin D13: DMA1 Stream 3 Channel 2
