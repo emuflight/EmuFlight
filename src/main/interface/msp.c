@@ -458,6 +458,9 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
         // Signature
         sbufWriteData(dst, getSignature(), SIGNATURE_LENGTH);
 #endif
+        //MSP 1.54
+        sbufWriteU16(dst, gyroConfig()->gyroSampleRateHz); //For Configurator PID/Gyro loop selection.
+        //End MSP 1.54
 #endif // USE_BOARD_INFO
         break;
     }
@@ -1169,6 +1172,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, motorConfig()->dev.motorPwmRate);
         sbufWriteU16(dst, motorConfig()->digitalIdleOffsetValue);
         sbufWriteU8(dst, gyroConfig()->gyro_use_32khz);
+        //MSP 1.54 - insert here to avoid new unnecessary Configurator code
+        sbufWriteU8(dst, motorConfig()->motorPoleCount);
+        //End MSP 1.54
         sbufWriteU8(dst, motorConfig()->dev.motorPwmInversion);
         sbufWriteU8(dst, gyroConfig()->gyro_to_use);
         sbufWriteU8(dst, gyroConfig()->gyro_high_fsr);
@@ -1358,6 +1364,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
     sbufWriteU8(dst, vtxSettingsConfig()->power);
     sbufWriteU8(dst, pitmode);
     sbufWriteU16(dst, vtxSettingsConfig()->freq);
+    //MSP 1.54
+    sbufWriteU8(dst, vtxSettingsConfig()->lowPowerDisarm);
+    //END MSP 1.54
     // future extensions here...
     } else {
     sbufWriteU8(dst, VTXDEV_UNKNOWN); // no VTX detected
@@ -1792,6 +1801,11 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         if (sbufBytesRemaining(src)) {
             gyroConfigMutable()->gyro_use_32khz = sbufReadU8(src);
         }
+        //MSP 1.54 - insert here to avoid new unnecessary Configurator code
+        if (sbufBytesRemaining(src) >= 1) {
+            motorConfigMutable()->motorPoleCount = sbufReadU8(src);
+        }
+        //End MSP 1.54
         if (sbufBytesRemaining(src)) {
             motorConfigMutable()->dev.motorPwmInversion = sbufReadU8(src);
         }
@@ -2016,32 +2030,37 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
 #endif
 #ifdef USE_VTX_COMMON
         case MSP_SET_VTX_CONFIG: {
-    vtxDevice_t *vtxDevice = vtxCommonDevice();
-    if (vtxDevice) {
-    if (vtxCommonGetDeviceType(vtxDevice) != VTXDEV_UNKNOWN) {
-    uint16_t newFrequency = sbufReadU16(src);
-    if (newFrequency <= VTXCOMMON_MSP_BANDCHAN_CHKVAL) {  //value is band and channel
-    const uint8_t newBand = (newFrequency / 8) + 1;
-    const uint8_t newChannel = (newFrequency % 8) + 1;
-    vtxSettingsConfigMutable()->band = newBand;
-    vtxSettingsConfigMutable()->channel = newChannel;
-    vtxSettingsConfigMutable()->freq = vtx58_Bandchan2Freq(newBand, newChannel);
-    } else {  //value is frequency in MHz
-    vtxSettingsConfigMutable()->band = 0;
-    vtxSettingsConfigMutable()->freq = newFrequency;
-    }
-    if (sbufBytesRemaining(src) > 1) {
-    vtxSettingsConfigMutable()->power = sbufReadU8(src);
-    // Delegate pitmode to vtx directly
-    const uint8_t newPitmode = sbufReadU8(src);
-    uint8_t currentPitmode = 0;
-    vtxCommonGetPitMode(vtxDevice, &currentPitmode);
-    if (currentPitmode != newPitmode) {
-    vtxCommonSetPitMode(vtxDevice, newPitmode);
-    }
-    }
-    }
-    }
+            vtxDevice_t *vtxDevice = vtxCommonDevice();
+            if (vtxDevice) {
+                if (vtxCommonGetDeviceType(vtxDevice) != VTXDEV_UNKNOWN) {
+                    uint16_t newFrequency = sbufReadU16(src);
+                    if (newFrequency <= VTXCOMMON_MSP_BANDCHAN_CHKVAL) {  //value is band and channel
+                    const uint8_t newBand = (newFrequency / 8) + 1;
+                    const uint8_t newChannel = (newFrequency % 8) + 1;
+                    vtxSettingsConfigMutable()->band = newBand;
+                    vtxSettingsConfigMutable()->channel = newChannel;
+                    vtxSettingsConfigMutable()->freq = vtx58_Bandchan2Freq(newBand, newChannel);
+                } else {  //value is frequency in MHz
+                    vtxSettingsConfigMutable()->band = 0;
+                    vtxSettingsConfigMutable()->freq = newFrequency;
+                }
+                if (sbufBytesRemaining(src) > 1) {
+                    vtxSettingsConfigMutable()->power = sbufReadU8(src);
+                    // Delegate pitmode to vtx directly
+                    const uint8_t newPitmode = sbufReadU8(src);
+                    uint8_t currentPitmode = 0;
+                    vtxCommonGetPitMode(vtxDevice, &currentPitmode);
+                    if (currentPitmode != newPitmode) {
+                        vtxCommonSetPitMode(vtxDevice, newPitmode);
+                    }
+                }
+                // MSP 1.54
+                if (sbufBytesRemaining(src) >= 1) {
+                    vtxSettingsConfigMutable()->lowPowerDisarm = sbufReadU8(src);
+                }
+                // END MSP 1.54
+            }
+        }
     }
     break;
 #endif
