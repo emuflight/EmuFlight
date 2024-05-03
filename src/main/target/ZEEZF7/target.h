@@ -66,9 +66,13 @@
 
 // Blackbox
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+#define USE_FLASH
 #define USE_FLASHFS
+#define USE_FLASH_W25N01G   // official
+#define USE_FLASH_M25P16    // 16MB Micron M25P16 driver; drives all unless QSPI
 #define USE_FLASH_W25M
-#define USE_FLASH_M25P16
+#define USE_FLASH_W25M512
+#define USE_FLASH_W25Q
 #define FLASH_CS_PIN                                     PA4
 #define FLASH_SPI_INSTANCE                               SPI1
 
