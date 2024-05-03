@@ -20,8 +20,20 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER         "BBPRO" // BeeBrain Pro
+#define MANUFACTURER_ID                 NEBD
 #define USBD_PRODUCT_STRING             "BeeBrain PRO"
+#define TARGET_BOARD_IDENTIFIER         "S411"         // generic ID
+#define FC_TARGET_MCU                   STM32F411      // not used in EmuF
+
+#if defined(BEEBRAIN_PRO_DSM_US)
+#define BOARD_NAME                      BEEBRAIN_PRO_DSM_US
+#elif defined(BEEBRAIN_PRO_DSM_INTL)
+#define BOARD_NAME                      BEEBRAIN_PRO_DSM_INTL
+#elif defined(BEEBRAIN_PRO_FRSKY_US)
+#define BOARD_NAME                      BEEBRAIN_PRO_FRSKY_US
+#else
+#define BOARD_NAME                      BEEBRAINPRO
+#endif
 
 #define USE_TARGET_CONFIG
 #define TARGET_PREINIT
@@ -72,6 +84,15 @@
 
 #define GYRO_MPU6000_ALIGN              CW90_DEG
 #define ACC_MPU6000_ALIGN               CW90_DEG
+
+#if (defined(BEEBRAIN_PRO_DSM_US) || defined(BEEBRAIN_PRO_DSM_INTL))
+#define USE_ACCGYRO_BMI160
+#define BMI160_SPI_DIVISOR              16
+#define BMI160_INT_EXTI                 PB0
+#define BMI160_CS_PIN                   PA4
+#define BMI160_SPI_INSTANCE             SPI3
+#define GYRO_BMI160_ALIGN               CW0_DEG
+#endif
 
 // *************** RX ******************************
 #if (defined(BEEBRAIN_PRO_DSM_US) || defined(BEEBRAIN_PRO_DSM_INTL))
