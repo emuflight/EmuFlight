@@ -92,16 +92,19 @@
 #define USE_UART2
 #define UART2_TX_PIN         PA2
 #define UART2_RX_PIN         PA3
+#define USE_UART3
+#define UART3_TX_PIN         NONE
+#define UART3_RX_PIN         PB11
 #define USE_UART4
 #define UART4_TX_PIN         PA0
-#define UART4_RX_PIN         PB11
+#define UART4_RX_PIN         PA1
 #define USE_UART5
 #define UART5_TX_PIN         PC12
 #define UART5_RX_PIN         PD2
 #define USE_UART6
 #define UART6_TX_PIN         PC6
 #define UART6_RX_PIN         PC7
-#define SERIAL_PORT_COUNT 6
+#define SERIAL_PORT_COUNT 7
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
@@ -132,8 +135,10 @@
 
 #define PINIO1_PIN           PC0
 #define PINIO2_PIN           PC2
-#define PINIO1_CONFIG 129
-#define PINIO1_BOX 40
+#define PINIO1_CONFIG        129
+#define PINIO2_CONFIG        129
+#define PINIO1_BOX           40
+#define PINIO2_BOX           41
 
 #define TARGET_IO_PORTA 0xffff
 #define TARGET_IO_PORTB 0xffff
