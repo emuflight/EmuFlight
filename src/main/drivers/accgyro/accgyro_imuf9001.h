@@ -56,7 +56,7 @@ typedef struct imufCommand {
     uint32_t param10;
     uint32_t crc;
     uint32_t tail;
-} __attribute__ ((__packed__)) imufCommand_t;
+} __attribute__ ((__packed__, aligned(4))) imufCommand_t;
 
 typedef struct imufData {
     float gyroX;
