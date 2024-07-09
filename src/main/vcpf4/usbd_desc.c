@@ -66,6 +66,18 @@
 #define USBD_LANGID_STRING              0x409
 #define USBD_MANUFACTURER_STRING        FC_FIRMWARE_NAME
 
+#ifndef USBD_PRODUCT_STRING
+#if defined STM32F1
+#define USBD_PRODUCT_STRING        "EmuFlight STM32F1"
+#elif defined STM32F3
+#define USBD_PRODUCT_STRING        "EmuFlight STM32F3"
+#elif defined STM32F4
+#define USBD_PRODUCT_STRING        "EmuFlight STM32F4"
+#elif defined STM32F7
+#define USBD_PRODUCT_STRING        "EmuFlight STM32F7"
+#endif
+#endif
+
 #ifdef USBD_PRODUCT_STRING
 #define USBD_PRODUCT_HS_STRING          USBD_PRODUCT_STRING
 #define USBD_PRODUCT_FS_STRING          USBD_PRODUCT_STRING
