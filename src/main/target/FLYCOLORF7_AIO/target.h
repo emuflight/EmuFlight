@@ -66,18 +66,25 @@
 
 #define USE_MPU_DATA_READY_SIGNAL
 
+#define ACC_MPU6000_ALIGN    CW0_DEG
+#define GYRO_MPU6000_ALIGN   CW0_DEG
+#define MPU_INT_EXTI         PC3
+#define MPU6000_CS_PIN       PA4
+#define MPU6000_SPI_INSTANCE SPI1
+
 #define ACC_1_ALIGN          CW0_DEG
 #define GYRO_1_ALIGN         CW0_DEG
 #define GYRO_1_CS_PIN        PA4
 #define GYRO_1_EXTI_PIN      PC3
 #define GYRO_1_SPI_INSTANCE SPI1
 
-#define USE_DUAL_GYRO
-
-#define ACC_2_ALIGN          CW0_DEG
-#define GYRO_2_ALIGN         CW0_DEG
-#define GYRO_2_CS_PIN        PB2
-#define GYRO_2_EXTI_PIN      PC4
+//seemingly invalid
+//#define USE_DUAL_GYRO
+//
+//#define ACC_2_ALIGN          CW0_DEG
+//#define GYRO_2_ALIGN         CW0_DEG
+//#define GYRO_2_CS_PIN        PB2
+//#define GYRO_2_EXTI_PIN      PC4
 
 #define USE_UART1
 #define UART1_TX_PIN         PA9
