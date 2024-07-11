@@ -31,6 +31,8 @@
 #define USE_GYRO_SPI_MPU6000
 #define USE_FLASH
 #define USE_FLASH_W25Q128FV
+#define USE_BARO
+#define USE_BARO_BMP280
 #define USE_MAX7456
 
 #define USE_VCP
@@ -105,6 +107,7 @@
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE_1      (I2CDEV_1)
 #define MAG_I2C_INSTANCE (I2CDEV_1)
+#define BARO_I2C_INSTANCE (I2CDEV_1)
 #define I2C1_SCL PB6
 #define I2C1_SDA PB7
 
