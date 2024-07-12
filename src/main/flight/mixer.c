@@ -865,13 +865,13 @@ void mixThingsUp(const float scaledAxisPidRoll, const float scaledAxisPidPitch, 
     float controllerMixMin = 0, controllerMixMax = 0;
 
     for (int i = 0; i < motorCount; i++) {
-        float yawMixVal = controllerMix3DModeSign * scaledAxisPidYaw * currentMixer[i].yaw;
+        float yawMixVal = scaledAxisPidYaw * currentMixer[i].yaw;
         if (yawMixVal > yawMixMax) {
             yawMixMax = yawMixVal;
         } else if (yawMixVal < yawMixMin) {
             yawMixMin = yawMixVal;
         }
-        yawMix[i] = yawMixVal;
+        yawMix[i] = yawMixVal * controllerMix3DModeSign;
 
         float rollPitchMixVal = scaledAxisPidRoll * currentMixer[i].roll + scaledAxisPidPitch * currentMixer[i].pitch;
         if (rollPitchMixVal > rollPitchMixMax) {
@@ -879,15 +879,15 @@ void mixThingsUp(const float scaledAxisPidRoll, const float scaledAxisPidPitch, 
         } else if (rollPitchMixVal < rollPitchMixMin) {
             rollPitchMixMin = rollPitchMixVal;
         }
-        rollPitchMix[i] = rollPitchMixVal;
+        rollPitchMix[i] = rollPitchMixVal * controllerMix3DModeSign;
 
-        float controllerMixVal = controllerMix3DModeSign * (rollPitchMixVal + yawMixVal);
+        float controllerMixVal = (rollPitchMixVal + yawMixVal);
         if (controllerMixVal > controllerMixMax) {
             controllerMixMax = controllerMixVal;
         } else if (controllerMixVal < controllerMixMin) {
             controllerMixMin = controllerMixVal;
         }
-        controllerMix[i] = controllerMixVal;
+        controllerMix[i] = controllerMixVal * controllerMix3DModeSign;
     }
 
     controllerMixRange = controllerMixMax - controllerMixMin; // measures how much the controller is trying to compensate
