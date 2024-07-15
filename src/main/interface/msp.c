@@ -458,6 +458,9 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
         // Signature
         sbufWriteData(dst, getSignature(), SIGNATURE_LENGTH);
 #endif
+        //MSP 1.54
+        sbufWriteU16(dst, gyroConfig()->gyroSampleRateHz); //For Configurator PID/Gyro loop selection.
+        //End MSP 1.54
 #endif // USE_BOARD_INFO
         break;
     }
@@ -1084,7 +1087,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
                 continue;
             };
             sbufWriteU8(dst, serialConfig()->portConfigs[i].identifier);
-            sbufWriteU16(dst, serialConfig()->portConfigs[i].functionMask);
+            sbufWriteU32(dst, serialConfig()->portConfigs[i].functionMask);
             sbufWriteU8(dst, serialConfig()->portConfigs[i].msp_baudrateIndex);
             sbufWriteU8(dst, serialConfig()->portConfigs[i].gps_baudrateIndex);
             sbufWriteU8(dst, serialConfig()->portConfigs[i].telemetry_baudrateIndex);
@@ -1169,6 +1172,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, motorConfig()->dev.motorPwmRate);
         sbufWriteU16(dst, motorConfig()->digitalIdleOffsetValue);
         sbufWriteU8(dst, gyroConfig()->gyro_use_32khz);
+        //MSP 1.54 - insert here to avoid new unnecessary Configurator code
+        sbufWriteU8(dst, motorConfig()->motorPoleCount);
+        //End MSP 1.54
         sbufWriteU8(dst, motorConfig()->dev.motorPwmInversion);
         sbufWriteU8(dst, gyroConfig()->gyro_to_use);
         sbufWriteU8(dst, gyroConfig()->gyro_high_fsr);
@@ -1194,20 +1200,37 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass_hz[ROLL]);
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass_hz[PITCH]);
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass_hz[YAW]);
+#ifdef USE_GYRO_LPF2
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass2_hz[ROLL]);
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass2_hz[PITCH]);
         sbufWriteU16(dst, gyroConfig()->gyro_lowpass2_hz[YAW]);
+#else
+        sbufWriteU16(dst, 0);
+        sbufWriteU16(dst, 0);
+        sbufWriteU16(dst, 0);
+#endif
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass_type);
+#ifdef USE_GYRO_LPF2
         sbufWriteU8(dst, gyroConfig()->gyro_lowpass2_type);
+#else
+        sbufWriteU8(dst, 0);
+#endif
         sbufWriteU16(dst, currentPidProfile->dFilter[ROLL].dLpf2);
         sbufWriteU16(dst, currentPidProfile->dFilter[PITCH].dLpf2);
         sbufWriteU16(dst, currentPidProfile->dFilter[YAW].dLpf2);
         //MSP 1.51 removes SmartDTermSmoothing and WitchCraft
         //MSP 1.51 adds and refactors dynamic_filter
+#ifdef USE_GYRO_DATA_ANALYSE
         sbufWriteU8(dst, gyroConfig()->dyn_notch_count);    //dynamic_gyro_notch_count
         sbufWriteU16(dst, gyroConfig()->dyn_notch_q);
         sbufWriteU16(dst, gyroConfig()->dyn_notch_min_hz);
         sbufWriteU16(dst, gyroConfig()->dyn_notch_max_hz);   //dynamic_gyro_notch_max_hz
+#else
+        sbufWriteU8(dst, 0);
+        sbufWriteU16(dst, 0);
+        sbufWriteU16(dst, 0);
+        sbufWriteU16(dst, 0);
+#endif
         //end MSP 1.51 add/refactor dynamic filter
         //MSP 1.51
         sbufWriteU16(dst, gyroConfig()->gyro_ABG_alpha);
@@ -1219,8 +1242,13 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, currentPidProfile->dterm_ABG_half_life);
         //end MSP 1.51
         //MSP 1.51 dynamic dTerm notch
+#ifdef USE_GYRO_DATA_ANALYSE
         sbufWriteU8(dst, currentPidProfile->dtermDynNotch);        //dterm_dyn_notch_enable
         sbufWriteU16(dst, currentPidProfile->dterm_dyn_notch_q);   //dterm_dyn_notch_q
+#else
+        sbufWriteU8(dst, 0);
+        sbufWriteU16(dst, 0);
+#endif
         //end MSP 1.51 dynamic dTerm notch
         break;
     /*#ifndef USE_GYRO_IMUF9001
@@ -1336,6 +1364,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
     sbufWriteU8(dst, vtxSettingsConfig()->power);
     sbufWriteU8(dst, pitmode);
     sbufWriteU16(dst, vtxSettingsConfig()->freq);
+    //MSP 1.54
+    sbufWriteU8(dst, vtxSettingsConfig()->lowPowerDisarm);
+    //END MSP 1.54
     // future extensions here...
     } else {
     sbufWriteU8(dst, VTXDEV_UNKNOWN); // no VTX detected
@@ -1770,6 +1801,11 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         if (sbufBytesRemaining(src)) {
             gyroConfigMutable()->gyro_use_32khz = sbufReadU8(src);
         }
+        //MSP 1.54 - insert here to avoid new unnecessary Configurator code
+        if (sbufBytesRemaining(src) >= 1) {
+            motorConfigMutable()->motorPoleCount = sbufReadU8(src);
+        }
+        //End MSP 1.54
         if (sbufBytesRemaining(src)) {
             motorConfigMutable()->dev.motorPwmInversion = sbufReadU8(src);
         }
@@ -1994,32 +2030,37 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
 #endif
 #ifdef USE_VTX_COMMON
         case MSP_SET_VTX_CONFIG: {
-    vtxDevice_t *vtxDevice = vtxCommonDevice();
-    if (vtxDevice) {
-    if (vtxCommonGetDeviceType(vtxDevice) != VTXDEV_UNKNOWN) {
-    uint16_t newFrequency = sbufReadU16(src);
-    if (newFrequency <= VTXCOMMON_MSP_BANDCHAN_CHKVAL) {  //value is band and channel
-    const uint8_t newBand = (newFrequency / 8) + 1;
-    const uint8_t newChannel = (newFrequency % 8) + 1;
-    vtxSettingsConfigMutable()->band = newBand;
-    vtxSettingsConfigMutable()->channel = newChannel;
-    vtxSettingsConfigMutable()->freq = vtx58_Bandchan2Freq(newBand, newChannel);
-    } else {  //value is frequency in MHz
-    vtxSettingsConfigMutable()->band = 0;
-    vtxSettingsConfigMutable()->freq = newFrequency;
-    }
-    if (sbufBytesRemaining(src) > 1) {
-    vtxSettingsConfigMutable()->power = sbufReadU8(src);
-    // Delegate pitmode to vtx directly
-    const uint8_t newPitmode = sbufReadU8(src);
-    uint8_t currentPitmode = 0;
-    vtxCommonGetPitMode(vtxDevice, &currentPitmode);
-    if (currentPitmode != newPitmode) {
-    vtxCommonSetPitMode(vtxDevice, newPitmode);
-    }
-    }
-    }
-    }
+            vtxDevice_t *vtxDevice = vtxCommonDevice();
+            if (vtxDevice) {
+                if (vtxCommonGetDeviceType(vtxDevice) != VTXDEV_UNKNOWN) {
+                    uint16_t newFrequency = sbufReadU16(src);
+                    if (newFrequency <= VTXCOMMON_MSP_BANDCHAN_CHKVAL) {  //value is band and channel
+                    const uint8_t newBand = (newFrequency / 8) + 1;
+                    const uint8_t newChannel = (newFrequency % 8) + 1;
+                    vtxSettingsConfigMutable()->band = newBand;
+                    vtxSettingsConfigMutable()->channel = newChannel;
+                    vtxSettingsConfigMutable()->freq = vtx58_Bandchan2Freq(newBand, newChannel);
+                } else {  //value is frequency in MHz
+                    vtxSettingsConfigMutable()->band = 0;
+                    vtxSettingsConfigMutable()->freq = newFrequency;
+                }
+                if (sbufBytesRemaining(src) > 1) {
+                    vtxSettingsConfigMutable()->power = sbufReadU8(src);
+                    // Delegate pitmode to vtx directly
+                    const uint8_t newPitmode = sbufReadU8(src);
+                    uint8_t currentPitmode = 0;
+                    vtxCommonGetPitMode(vtxDevice, &currentPitmode);
+                    if (currentPitmode != newPitmode) {
+                        vtxCommonSetPitMode(vtxDevice, newPitmode);
+                    }
+                }
+                // MSP 1.54
+                if (sbufBytesRemaining(src) >= 1) {
+                    vtxSettingsConfigMutable()->lowPowerDisarm = sbufReadU8(src);
+                }
+                // END MSP 1.54
+            }
+        }
     }
     break;
 #endif
@@ -2197,7 +2238,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         }
         break;
         case MSP_SET_CF_SERIAL_CONFIG: {
-    uint8_t portConfigSize = sizeof(uint8_t) + sizeof(uint16_t) + (sizeof(uint8_t) * 4);
+    uint8_t portConfigSize = sizeof(uint8_t) + sizeof(uint32_t) + (sizeof(uint8_t) * 4);
     if (dataSize % portConfigSize != 0) {
     return MSP_RESULT_ERROR;
     }
@@ -2209,7 +2250,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
     return MSP_RESULT_ERROR;
     }
     portConfig->identifier = identifier;
-    portConfig->functionMask = sbufReadU16(src);
+    portConfig->functionMask = sbufReadU32(src);
     portConfig->msp_baudrateIndex = sbufReadU8(src);
     portConfig->gps_baudrateIndex = sbufReadU8(src);
     portConfig->telemetry_baudrateIndex = sbufReadU8(src);

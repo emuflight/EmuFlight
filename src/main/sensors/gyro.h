@@ -53,7 +53,10 @@ typedef enum {
     GYRO_ICM20608G,
     GYRO_ICM20649,
     GYRO_ICM20689,
+    GYRO_ICM42605,
+    GYRO_ICM42688P,
     GYRO_BMI160,
+    GYRO_BMI270,
     GYRO_IMUF9001,
     GYRO_FAKE
 } gyroSensor_e;
@@ -111,6 +114,11 @@ typedef struct smithPredictor_s {
 } smithPredictor_t;
 #endif // USE_SMITH_PREDICTOR
 
+typedef enum {
+    RP = 0,
+    RPY = 1
+} dynamicGyroAxisType_e;
+
 typedef struct gyroConfig_s {
     uint8_t  gyro_align;                       // gyro alignment
     uint8_t  gyroMovementCalibrationThreshold; // people keep forgetting that moving model while init results in wrong gyro offsets. and then they never reset gyro. so this is now on by default.
@@ -144,6 +152,7 @@ typedef struct gyroConfig_s {
     int16_t  yaw_spin_threshold;
 
     uint16_t gyroCalibrationDuration;  // Gyro calibration duration in 1/100 second
+    uint8_t dyn_notch_axis;
     uint16_t dyn_notch_q;
     uint8_t dyn_notch_count;
     uint16_t dyn_notch_min_hz;
@@ -166,6 +175,10 @@ typedef struct gyroConfig_s {
     uint8_t smithPredictorStrength;
     uint8_t smithPredictorDelay;
     uint8_t smithPredictorFilterHz;
+
+    //MSP 1.54
+    uint16_t gyroSampleRateHz;
+    //End MSP 1.54
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);
@@ -196,7 +209,9 @@ bool gyroYawSpinDetected(void);
 uint16_t gyroAbsRateDps(int axis);
 uint8_t gyroReadRegister(uint8_t whichSensor, uint8_t reg);
 float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered);
+#ifdef USE_GYRO_DATA_ANALYSE
 bool isDynamicFilterActive(void);
+#endif
 #ifdef USE_YAW_SPIN_RECOVERY
 void initYawSpinRecovery(int maxYawRate);
 #endif

@@ -84,12 +84,10 @@ extern bool linearThrustEnabled;
 
 PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 
-#ifdef STM32F10X
-#define PID_PROCESS_DENOM_DEFAULT 1
-#elif defined(USE_GYRO_SPI_MPU6000) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_ICM20689)
-#define PID_PROCESS_DENOM_DEFAULT 1
-#else
+#if defined(STM32F3) || defined(STM32F411xE)
 #define PID_PROCESS_DENOM_DEFAULT 2
+#else
+#define PID_PROCESS_DENOM_DEFAULT 1
 #endif
 
 #ifndef DEFAULT_PIDS_ROLL
@@ -239,7 +237,9 @@ static FAST_RAM filterApplyFnPtr angleSetpointFilterApplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT pt1Filter_t angleSetpointFilter[2];
 static FAST_RAM filterApplyFnPtr dtermABGapplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT alphaBetaGammaFilter_t dtermABG[XYZ_AXIS_COUNT];
+#ifdef USE_GYRO_DATA_ANALYSE
 static FAST_RAM_ZERO_INIT biquadFilter_t dtermNotch[XYZ_AXIS_COUNT][5];
+#endif
 
 #if defined(USE_ITERM_RELAX)
 static FAST_RAM_ZERO_INIT pt1Filter_t windupLpf[XYZ_AXIS_COUNT];
@@ -321,12 +321,14 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
             dtermABGapplyFn = (filterApplyFnPtr)alphaBetaGammaApply;
             ABGInit(&dtermABG[axis], pidProfile->dterm_ABG_alpha, pidProfile->dterm_ABG_boost, pidProfile->dterm_ABG_half_life, dT);
         }
-
+#ifdef USE_GYRO_DATA_ANALYSE
         if (isDynamicFilterActive()) {
             for (int axis2 = 0; axis2 < gyroConfig()->dyn_notch_count; axis2++) {
                 biquadFilterInit(&dtermNotch[axis][axis2], 400, targetPidLooptime, gyroConfig()->dyn_notch_q / 100.0f, FILTER_NOTCH);
             }
         }
+#endif
+
     }
 
 #if defined(USE_THROTTLE_BOOST)
@@ -676,7 +678,9 @@ static FAST_RAM_ZERO_INIT float stickMovement[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float lastRcDeflectionAbs[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
+#ifdef USE_GYRO_DATA_ANALYSE
 static FAST_RAM_ZERO_INIT float previousNotchCenterFreq[XYZ_AXIS_COUNT][5];
+#endif
 static FAST_RAM_ZERO_INIT float previousDtermErrorRate[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float axisLock[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float dynamicDtermScaler[XYZ_AXIS_COUNT];
@@ -824,7 +828,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             float dDelta = ((feathered_pids * pureMeasurement) * dynamicDtermScaler[axis] + ((1 - feathered_pids) * dtermError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
             // filter the dterm
 #ifdef USE_GYRO_DATA_ANALYSE
-            if (isDynamicFilterActive() && pidProfile->dtermDynNotch) {
+            if (isDynamicFilterActive() && pidProfile->dtermDynNotch && axis <= gyroConfig()->dyn_notch_axis+1) {
                 for (int p = 0; p < gyroConfig()->dyn_notch_count; p++) {
                     if (getCenterFreq(axis, p) != previousNotchCenterFreq[axis][p]) {
                         previousNotchCenterFreq[axis][p] = getCenterFreq(axis, p);

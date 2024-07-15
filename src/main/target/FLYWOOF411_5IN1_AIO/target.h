@@ -21,8 +21,10 @@
 #pragma once
 
 
-#define TARGET_BOARD_IDENTIFIER "FLWO"
-#define USBD_PRODUCT_STRING "FLYWOOF411_5IN1_AIO"
+#define BOARD_NAME        FLYWOOF411_5IN1_AIO
+#define MANUFACTURER_ID   FLWO
+#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
+#define FC_TARGET_MCU     STM32F411     // not used in EmuF
 
 #define LED0_PIN PC13
 
@@ -39,11 +41,6 @@
 #define SPI1_MISO_PIN PA6
 #define SPI1_MOSI_PIN PA7
 
-#define MPU6000_CS_PIN PA4
-//#define ICM20689_CS_PIN PA4
-#define MPU6000_SPI_INSTANCE SPI1
-//#define ICM20689_SPI_INSTANCE SPI1
-
 #define USE_EXTI
 #define USE_GYRO_EXTI
 #define MPU_INT_EXTI PB2
@@ -52,14 +49,27 @@
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
-#define GYRO_MPU6000_ALIGN CW0_DEG_FLIP
-//#define USE_GYRO_SPI_ICM20689
-//#define ACC_ICM20689_ALIGN CW180_DEG
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
-#define ACC_MPU6000_ALIGN CW0_DEG_FLIP
-//#define USE_ACC_SPI_ICM20689
-//#define ACC_ICM20689_ALIGN CW180_DEG
+#define USE_GYRO_SPI_ICM42688P
+#define USE_ACC_SPI_ICM42688P
+#define USE_ACCGYRO_BMI270
+#define USE_SPI_GYRO
+
+#define MPU6000_CS_PIN            PA4
+#define MPU6000_SPI_INSTANCE      SPI1
+#define GYRO_MPU6000_ALIGN        CW0_DEG_FLIP
+#define ACC_MPU6000_ALIGN         CW0_DEG_FLIP
+
+#define ICM42688P_SPI_INSTANCE    SPI1
+#define ICM42688P_CS_PIN          PA4
+#define ACC_ICM42688P_ALIGN       CW0_DEG_FLIP
+#define GYRO_ICM42688P_ALIGN      CW0_DEG_FLIP
+
+#define BMI270_SPI_INSTANCE       SPI1
+#define BMI270_CS_PIN             PA4
+#define ACC_BMI270_ALIGN          CW0_DEG_FLIP
+#define GYRO_BMI270_ALIGN         CW0_DEG_FLIP
 
 // *************** Baro **************************
 #define USE_I2C

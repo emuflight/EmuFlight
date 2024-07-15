@@ -20,8 +20,11 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "KTF7"
-#define USBD_PRODUCT_STRING "KakuteF7 Mini V3"
+#define TARGET_MANUFACTURER_IDENTIFIER "HBRO"
+#define USBD_PRODUCT_STRING            "KAKUTEF7MINIV3"
+
+#define FC_TARGET_MCU                  STM32F7X2  // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER        "S7X2"     // generic ID
 
 #define LED0_PIN                  PD2
 
@@ -29,22 +32,41 @@
 #define BEEPER_PIN                PC8
 #define BEEPER_INVERTED
 
-//MPU6000
 #define USE_ACC
 #define USE_GYRO
+
+#define USE_SPI_GYRO
+#define USE_EXTI // notice - REQUIRED when USE_GYRO_EXTI
+#define USE_GYRO_EXTI
+
+#define USE_MPU_DATA_READY_SIGNAL
+
+#define GYRO_1_ALIGN             CW270_DEG
+#define ACC_1_ALIGN              CW270_DEG
+#define GYRO_1_CS_PIN            PB2
+#define GYRO_1_EXTI_PIN          PA4
+#define GYRO_1_SPI_INSTANCE      SPI1
+#define MPU_INT_EXTI             PA4
+
+#define USE_DUAL_GYRO
+
+#define GYRO_2_ALIGN             CW0_DEG
+#define ACC_2_ALIGN              CW0_DEG
+#define GYRO_2_SPI_INSTANCE      SPI1
+
 #define USE_ACC_SPI_MPU6000
 #define USE_GYRO_SPI_MPU6000
+#define ACC_MPU6000_ALIGN        CW270_DEG
+#define GYRO_MPU6000_ALIGN       CW270_DEG
+#define MPU6000_CS_PIN           PB2
+#define MPU6000_SPI_INSTANCE     SPI1
 
-#define MPU_INT_EXTI              PA4
-#define MPU6000_CS_PIN            SPI1_NSS_PIN
-#define MPU6000_SPI_INSTANCE      SPI1
-#define GYRO_1_CS_PIN             MPU6000_CS_PIN
-#define GYRO_1_SPI_INSTANCE       MPU6000_SPI_INSTANCE
-
-#define GYRO_MPU6000_ALIGN        CW270_DEG
-#define ACC_MPU6000_ALIGN         CW270_DEG
-#define ACC_1_ALIGN               ACC_MPU6000_ALIGN
-#define GYRO_1_ALIGN              GYRO_MPU6000_ALIGN
+#define USE_ACC_SPI_ICM42688P
+#define USE_GYRO_SPI_ICM42688P
+#define ACC_ICM42688P_ALIGN      CW270_DEG
+#define GYRO_ICM42688P_ALIGN     CW270_DEG
+#define ICM42688P_CS_PIN         PB2
+#define ICM42688P_SPI_INSTANCE   SPI1
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define USE_EXTI

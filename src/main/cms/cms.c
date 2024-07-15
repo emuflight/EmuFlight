@@ -66,6 +66,7 @@
 // For VISIBLE*
 #include "io/osd.h"
 #include "io/rcdevice_cam.h"
+#include "pg/vcd.h"
 
 #include "rx/rx.h"
 
@@ -329,7 +330,7 @@ static int cmsDrawMenuEntry(displayPort_t *pDisplay, OSD_Entry *p, uint8_t row) 
             buff[0] = 0x0;
             if ((p->type == OME_Submenu) && p->func && (p->flags & OPTSTRING)) {
                 // Special case of sub menu entry with optional value display.
-                char *str = ((CMSMenuOptFuncPtr)p->func)();
+                char *str = ((CMSMenuOptFuncPtr)(long)p->func)();
                 strncpy( buff, str, CMS_DRAW_BUFFER_LEN);
             }
             strncat(buff, ">", CMS_DRAW_BUFFER_LEN);
@@ -597,9 +598,19 @@ void cmsMenuOpen(void) {
     } else {
         smallScreen       = false;
         linesPerMenuItem  = 1;
-        leftMenuColumn    = 2;
+#if defined(USE_HDZERO_OSD)
+    if ((vcdProfile()->video_system == VIDEO_SYSTEM_HD) && (pCurrentDisplay->cols > 30))
+        { leftMenuColumn = HDINDENT + 2; }
+    else
+#endif
+        { leftMenuColumn    = SDINDENT + 2; }
 #ifdef CMS_OSD_RIGHT_ALIGNED_VALUES
-        rightMenuColumn   = pCurrentDisplay->cols - 2;
+#if defined(USE_HDZERO_OSD)
+    if ((vcdProfile()->video_system == VIDEO_SYSTEM_HD) && (pCurrentDisplay->cols > 30))
+        { rightMenuColumn   = pCurrentDisplay->cols - 2 - HDINDENT; }
+    else
+#endif
+        { rightMenuColumn   = pCurrentDisplay->cols - 2; }
 #else
         rightMenuColumn   = pCurrentDisplay->cols - CMS_DRAW_BUFFER_LEN;
 #endif
@@ -634,7 +645,7 @@ long cmsMenuExit(displayPort_t *pDisplay, const void *ptr) {
     currentCtx.menu = NULL;
     if (exitType == CMS_EXIT_SAVEREBOOT) {
         displayClearScreen(pDisplay);
-        displayWrite(pDisplay, 5, 3, "REBOOTING...");
+        displayWrite(pDisplay, (pCurrentDisplay->cols % 2) - 6, 3, "REBOOTING...");
         displayResync(pDisplay); // Was max7456RefreshAll(); why at this timing?
         stopMotors();
         stopPwmAllMotors();

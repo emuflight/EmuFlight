@@ -22,8 +22,10 @@
 
 #define USE_TARGET_CONFIG
 
-#define TARGET_BOARD_IDENTIFIER "HK7D"
-#define USBD_PRODUCT_STRING  "HAKRCF722D"
+#define BOARD_NAME        HAKRCF722D
+#define MANUFACTURER_ID   HARC
+#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
 
 #define ENABLE_DSHOT_DMAR       true
 
@@ -42,34 +44,36 @@
 #define SPI1_MISO_PIN           PA6
 #define SPI1_MOSI_PIN           PA7
 
-#define USE_DUAL_GYRO
 #define USE_EXTI
-#define GYRO_1_EXTI_PIN         PC4
-#define GYRO_2_EXTI_PIN         PC3
-#define MPU_INT_EXTI
-
-#define GYRO_1_CS_PIN           PB2
-#define GYRO_1_SPI_INSTANCE     SPI1
-#define GYRO_2_CS_PIN           PC15
-#define GYRO_2_SPI_INSTANCE     SPI1
+#define USE_SPI_GYRO
+#define USE_GYRO_EXTI
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
 #define USE_GYRO_SPI_MPU6500
+#define USE_GYRO_SPI_ICM42688P
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define USE_ACC_SPI_MPU6500
+#define USE_ACC_SPI_ICM42688P
+#define USE_ACCGYRO_BMI270
 
-#define GYRO_MPU6000_1_ALIGN    CW180_DEG
-#define ACC_MPU6000_1_ALIGN     CW180_DEG
-#define GYRO_1_ALIGN            GYRO_MPU6000_1_ALIGN
-#define ACC_1_ALIGN             ACC_MPU6000_1_ALIGN
+#define ACC_1_ALIGN          CW90_DEG
+#define GYRO_1_ALIGN         CW90_DEG
+#define GYRO_1_CS_PIN        PB2
+#define GYRO_1_EXTI_PIN      PC4
+#define GYRO_1_SPI_INSTANCE  SPI1
+#define GYRO_MPU6000_1_ALIGN CW180_DEG
+#define ACC_MPU6000_1_ALIGN  CW180_DEG
 
-#define GYRO_MPU6500_2_ALIGN    CW90_DEG
-#define ACC_MPU6500_2_ALIGN     CW90_DEG
-#define GYRO_2_ALIGN            GYRO_MPU6500_2_ALIGN
-#define ACC_2_ALIGN             ACC_MPU6500_2_ALIGN
+#define USE_DUAL_GYRO
+
+#define ACC_2_ALIGN          CW90_DEG
+#define GYRO_2_ALIGN         CW90_DEG
+#define GYRO_2_CS_PIN        PC15
+#define GYRO_2_EXTI_PIN      PC3
+#define GYRO_2_SPI_INSTANCE  SPI1
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW

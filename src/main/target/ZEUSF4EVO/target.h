@@ -19,9 +19,11 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER                          "S411"
-#define USBD_PRODUCT_STRING                              "ZEUSF4EVO"
-#define TARGET_MANUFACTURER_IDENTIFIER                   "HGLR"
+
+#define BOARD_NAME        ZEUSF4EVO
+#define MANUFACTURER_ID   HGLR
+#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
+#define FC_TARGET_MCU     STM32F411     // not used in EmuF
 
 #define ENABLE_DSHOT_DMAR                                true
 
@@ -34,19 +36,29 @@
 //define camera control
 //#define CAMERA_CONTROL_PIN                               PB10
 
-//MPU-6000
 #define USE_GYRO
+#define USE_GYRO_SPI_MPU6000
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
-#define USE_GYRO_SPI_MPU6000
+#define USE_ACCGYRO_BMI270
+
+#define USE_SPI_GYRO
 #define USE_EXTI
+#define USE_GYRO_EXTI
+
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define MPU_INT_EXTI                                     PA1                    //MPU_INT_EXTI
-#define MPU6000_CS_PIN                                   PA4                    //GYRO_1_CS_PIN
-#define MPU6000_SPI_INSTANCE                             SPI1                   //GYRO_1_SPI_INSTANCE
-#define GYRO_MPU6000_ALIGN                               CW180_DEG
-#define ACC_MPU6000_ALIGN                                CW180_DEG
+#define MPU_INT_EXTI             PA1
+
+#define ACC_MPU6000_ALIGN        CW180_DEG
+#define GYRO_MPU6000_ALIGN       CW180_DEG
+#define MPU6000_CS_PIN           PA4
+#define MPU6000_SPI_INSTANCE     SPI1
+
+#define ACC_BMI270_ALIGN         CW180_DEG
+#define GYRO_BMI270_ALIGN        CW180_DEG
+#define BMI270_CS_PIN            PA4
+#define BMI270_SPI_INSTANCE      SPI1
 
 // OSD
 #define USE_MAX7456
@@ -123,6 +135,8 @@
 #define FLASH_SPI_INSTANCE                              SPI2
 
 #define USE_LED_STRIP
+
+#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 
 #define DEFAULT_RX_FEATURE                              FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER                               SERIALRX_SBUS

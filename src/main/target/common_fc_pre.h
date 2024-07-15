@@ -170,6 +170,7 @@
 #define MSP_OVER_CLI
 #define USE_OSD
 #define USE_OSD_OVER_MSP_DISPLAYPORT
+#define USE_HDZERO_OSD
 #define USE_PINIO
 #define USE_PINIOBOX
 #define USE_RCDEVICE
@@ -228,3 +229,6 @@
 #define USE_CMS_FAILSAFE_MENU
 #define USE_CMS_GPS_RESCUE_MENU
 #endif
+
+// ICM42688P & BMI270 experimental define 
+#define USE_GYRO_DLPF_EXPERIMENTAL

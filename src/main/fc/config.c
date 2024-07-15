@@ -434,6 +434,7 @@ void validateAndFixGyroConfig(void) {
         samplingTime = 1.0f / 9000.0f;
         break;
     case BMI_160_SPI:
+    case BMI_270_SPI:
         samplingTime = 0.0003125f;
         break;
     default:

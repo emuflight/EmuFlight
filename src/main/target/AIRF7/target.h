@@ -20,8 +20,10 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "RAF7"
-#define USBD_PRODUCT_STRING     "Racerstar AirF7"
+#define MANUFACTURER_ID RAST
+#define BOARD_NAME AIRF7
+#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
 
 #define LED0_PIN                PA3
 
@@ -44,15 +46,21 @@
 
 #define USE_GYRO
 #define USE_ACC
+#define USE_ACC_SPI_MPU6000
+#define USE_GYRO_SPI_MPU6000
 #define USE_ACC_SPI_MPU6500
 #define USE_GYRO_SPI_MPU6500
 #define USE_MPU_DATA_READY_SIGNAL
+
+#define ACC_MPU6000_ALIGN         CW90_DEG
+#define GYRO_MPU6000_ALIGN        CW90_DEG
+#define MPU6000_CS_PIN            PC4
+#define MPU6000_SPI_INSTANCE      SPI1
 
 #define MPU6500_CS_PIN                                   PC4                    //GYRO_1_CS_PIN
 #define MPU6500_SPI_INSTANCE                             SPI1                   //GYRO_1_SPI_INSTANCE
 #define GYRO_MPU6500_ALIGN                               CW90_DEG
 #define ACC_MPU6500_ALIGN                                CW90_DEG
-
 
 // *************** OSD **************************
 

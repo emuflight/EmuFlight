@@ -90,7 +90,7 @@ static serialPortStub_t serialWriteStub;
 static bool portIsShared = false;
 
 bool isSerialPortShared(const serialPortConfig_t *portConfig,
-                        uint16_t functionMask,
+                        uint32_t functionMask,
                         serialPortFunction_e sharedWithFunction)
 {
     EXPECT_EQ(portConfig, findSerialPortConfig_stub_retval);

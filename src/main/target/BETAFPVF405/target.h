@@ -20,8 +20,10 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "BEFH"
-#define USBD_PRODUCT_STRING     "BetaFPV f405"
+#define BOARD_NAME        BETAFPVF405
+#define MANUFACTURER_ID   BEFH
+#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
+#define FC_TARGET_MCU     STM32F405     // not used in EmuF
 
 #define USE_BEEPER
 #define BEEPER_PIN              PB4
@@ -98,9 +100,10 @@
 #define USE_GYRO
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
-#define GYRO_MPU6000_ALIGN      CW270_DEG
 #define USE_GYRO_SPI_MPU6000
-#define ACC_MPU6000_ALIGN       CW270_DEG
+#define USE_GYRO_SPI_ICM42688P
+#define USE_ACC_SPI_ICM42688P
+#define USE_ACCGYRO_BMI270
 
 // MPU6000 interrupts
 #define USE_EXTI
@@ -108,8 +111,17 @@
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
-#define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
+#define ACC_1_ALIGN          CW270_DEG
+#define GYRO_1_ALIGN         CW270_DEG
+#define GYRO_1_CS_PIN        PA4
+#define GYRO_1_EXTI_PIN      PC4
+#define GYRO_1_SPI_INSTANCE  SPI1
+
+#define USE_DUAL_GYRO
+
+#define ACC_2_ALIGN          CW0_DEG
+#define GYRO_2_ALIGN         CW0_DEG
+#define GYRO_2_SPI_INSTANCE  SPI1
 
 #define USE_BARO
 #define USE_BARO_BMP280

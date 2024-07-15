@@ -168,9 +168,11 @@ void targetConfiguration(void)
     gyroConfigMutable()->gyro_lowpass_hz[ROLL] = 200;
     gyroConfigMutable()->gyro_lowpass_hz[PITCH] = 200;
     gyroConfigMutable()->gyro_lowpass_hz[YAW] = 200;
+#ifdef USE_GYRO_LPF2
     gyroConfigMutable()->gyro_lowpass2_hz[ROLL] = 250;
     gyroConfigMutable()->gyro_lowpass2_hz[PITCH] = 250;
     gyroConfigMutable()->gyro_lowpass2_hz[YAW] = 250;
+#endif
     gyroConfigMutable()->yaw_spin_threshold = 1950;
     rxConfigMutable()->mincheck = 1075;
     rxConfigMutable()->maxcheck = 1900;

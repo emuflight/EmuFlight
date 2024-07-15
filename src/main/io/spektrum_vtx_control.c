@@ -113,6 +113,9 @@ const uint8_t vtxBsPi[SPEKTRUM_VTX_POWER_COUNT] = {
 #endif // USE_VTX_BEESIGN
 
 uint8_t convertSpektrumVtxPowerIndex(uint8_t sPower) {
+#if !(defined(USE_VTX_RTC6705) || defined(USE_VTX_SMARTAUDIO) || defined(USE_VTX_TRAMP))
+    UNUSED(sPower);
+#endif
     uint8_t devicePower = 0;
     const vtxDevice_t *vtxDevice = vtxCommonDevice();
     switch (vtxCommonGetDeviceType(vtxDevice)) {

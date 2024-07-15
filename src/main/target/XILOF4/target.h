@@ -22,8 +22,10 @@
 
 //#define USE_TARGET_CONFIG
 
-#define TARGET_BOARD_IDENTIFIER "XILO"
-#define USBD_PRODUCT_STRING     "XiloF4"
+#define BOARD_NAME        XILOF4
+#define MANUFACTURER_ID   GEFP
+#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
+#define FC_TARGET_MCU     STM32F405     // not used in EmuF
 
 #define LED0_PIN                PC15
 #define USE_BEEPER
@@ -40,19 +42,32 @@
 #define SPI1_MISO_PIN           PA6
 #define SPI1_MOSI_PIN           PA7
 
-#define USE_GYRO
-#define USE_GYRO_SPI_MPU6000
-#define USE_GYRO_SPI_MPU6500
-#define MPU6000_CS_PIN          SPI1_NSS_PIN
-#define MPU6000_SPI_INSTANCE    SPI1
-#define MPU6500_SPI_INSTANCE    SPI1
-#define GYRO_MPU6000_ALIGN      CW180_DEG
-//#define MPU_INT_EXTI            NONE
-//#define GYRO_1_EXTI_PIN         NONE
-
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define USE_ACC_SPI_MPU6500
+#define USE_ACCGYRO_BMI270
+#define USE_GYRO
+#define USE_GYRO_SPI_MPU6000
+#define USE_GYRO_SPI_MPU6500
+
+#define USE_SPI_GYRO
+#define USE_MPU_DATA_READY_SIGNAL
+
+#define ACC_MPU6000_ALIGN        CW180_DEG
+#define GYRO_MPU6000_ALIGN       CW180_DEG
+#define MPU6000_CS_PIN           PC4
+#define MPU6000_SPI_INSTANCE     SPI1
+
+#define ACC_MPU6500_ALIGN        CW180_DEG
+#define GYRO_MPU6500_ALIGN       CW180_DEG
+#define MPU6500_CS_PIN           PC4
+#define MPU6500_SPI_INSTANCE     SPI1
+
+#define ACC_BMI270_ALIGN         CW180_DEG
+#define GYRO_BMI270_ALIGN        CW180_DEG
+#define BMI270_CS_PIN            PC4
+#define BMI270_SPI_INSTANCE      SPI1
+
 
 // *************** Flash **************************
 #define USE_SPI_DEVICE_2
