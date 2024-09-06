@@ -121,8 +121,8 @@ jobs:
         echo "Artifact name: ${{ env.ARTIFACT_NAME }}"
         echo "outputs.buildtag: ${{ steps.ids.outputs.buildtag }}"
         echo "outputs.shortsha: ${{ steps.ids.outputs.shortsha }}"
-        echo "outputs.artfact: ${{ steps.ids.outputs.artifact }}"
-        echo "outputs.artfact: ${{ steps.ids.outputs.artifact }}"
+        echo "outputs.artifact: ${{ steps.ids.outputs.artifact }}"
+        echo "outputs.version: ${{ steps.ids.outputs.version }}"
       continue-on-error: true
 
     # Build HEX
@@ -132,7 +132,7 @@ jobs:
 
     # Upload the Builds to ZIP file with existing SHA in .hex names
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ env.ARTIFACT_NAME }}
         path: obj/*.hex
@@ -157,13 +157,13 @@ jobs:
           echo "Repo: ${{ github.REPOSITORY }}"
           echo "outputs.buildtag: ${{ needs.build.outputs.buildtag }}"
           echo "outputs.shortsha: ${{ needs.build.outputs.shortsha }}"
-          echo "outputs.artfact: ${{ needs.build.outputs.artifact }}"
-          echo "outputs.artfact: ${{ needs.build.outputs.version }}"
+          echo "outputs.artifact: ${{ needs.build.outputs.artifact }}"
+          echo "outputs.version: ${{ needs.build.outputs.version }}"
           echo "NOW=$(date +'%Y%m%d.%H%M%S')" >> $GITHUB_ENV
         continue-on-error: true
 
       - name: download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build.outputs.artifact }} #no name parameter will download all artifacts, but create separate subfolders
           path: obj
