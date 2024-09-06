@@ -106,7 +106,7 @@ jobs:
         echo "buildtag=${{ env.REVISION_TAG }}" >> $GITHUB_OUTPUT
         echo "name=${{ env.SHORT_SHA }}" >> $GITHUB_OUTPUT
         echo "shortsha=${{ env.SHORT_SHA }}" >> $GITHUB_OUTPUT
-        echo "version=${{ env.VERSION }" >> $GITHUB_OUTPUT
+        echo "version=${{ env.VERSION }}" >> $GITHUB_OUTPUT
       continue-on-error: true
 
     # for debugging
