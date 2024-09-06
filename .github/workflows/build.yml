@@ -38,7 +38,7 @@ jobs:
         fetch-depth: 0
 
     - name: Cache build toolchain
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       id: cache-toolchain
       with:
         path: tools
@@ -59,7 +59,9 @@ jobs:
       continue-on-error: true
 
     - name: Setup Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
 
     # EmuFlight version
     - name: Get code version
@@ -101,10 +103,10 @@ jobs:
     - id: ids
       name : set outputs
       run: |
-        echo "::set-output name=buildtag::${{ env.REVISION_TAG }}"
-        echo "::set-output name=shortsha::${{ env.SHORT_SHA }}"
-        echo "::set-output name=artifact::${{ env.ARTIFACT_NAME }}"
-        echo "::set-output name=version::${{ env.VERSION }}"
+        echo "buildtag=${{ env.REVISION_TAG }}" >> $GITHUB_OUTPUT
+        echo "name=value" >> $GITHUB_OUTPUT
+        echo "shortsha=${{ env.SHORT_SHA }}" >> $GITHUB_OUTPUT
+        echo "version=${{ env.VERSION }" >> $GITHUB_OUTPUT
       continue-on-error: true
 
     # for debugging
