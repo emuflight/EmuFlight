@@ -90,6 +90,7 @@
 #define USE_UART5
 #define UART5_TX_PIN         PC12
 #define UART5_RX_PIN         PD2
+#define INVERTER_PIN_UART4   PC14
 #define SERIAL_PORT_COUNT 6
 
 #define USE_I2C
