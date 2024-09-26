@@ -134,6 +134,8 @@
 #define TARGET_IO_PORTE 0xffff
 // notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
 
+#define ENABLE_DSHOT_DMAR       true
+
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
