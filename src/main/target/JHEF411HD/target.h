@@ -44,6 +44,7 @@
 #define USE_OSD
 
 #define LED_STRIP_PIN PA8
+#define LED0_PIN PC13
 #define USE_BEEPER
 #define BEEPER_PIN PB2
 #define BEEPER_INVERTED
