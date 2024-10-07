@@ -33,12 +33,12 @@ jobs:
       run: function curl () { command curl --connect-timeout 30 --retry 10 "$@" ; }
 
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        fetch-depth: 9
 
     - name: Cache build toolchain
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       id: cache-toolchain
       with:
         path: tools
@@ -59,7 +59,9 @@ jobs:
       continue-on-error: true
 
     - name: Setup Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
 
     # EmuFlight version
     - name: Get code version
@@ -101,10 +103,10 @@ jobs:
     - id: ids
       name : set outputs
       run: |
-        echo "::set-output name=buildtag::${{ env.REVISION_TAG }}"
-        echo "::set-output name=shortsha::${{ env.SHORT_SHA }}"
-        echo "::set-output name=artifact::${{ env.ARTIFACT_NAME }}"
-        echo "::set-output name=version::${{ env.VERSION }}"
+        echo "buildtag=${{ env.REVISION_TAG }}" >> $GITHUB_OUTPUT
+        echo "name=${{ env.SHORT_SHA }}" >> $GITHUB_OUTPUT
+        echo "shortsha=${{ env.SHORT_SHA }}" >> $GITHUB_OUTPUT
+        echo "version=${{ env.VERSION }}" >> $GITHUB_OUTPUT
       continue-on-error: true
 
     # for debugging
@@ -121,8 +123,8 @@ jobs:
         echo "Artifact name: ${{ env.ARTIFACT_NAME }}"
         echo "outputs.buildtag: ${{ steps.ids.outputs.buildtag }}"
         echo "outputs.shortsha: ${{ steps.ids.outputs.shortsha }}"
-        echo "outputs.artfact: ${{ steps.ids.outputs.artifact }}"
-        echo "outputs.artfact: ${{ steps.ids.outputs.artifact }}"
+        echo "outputs.artifact: ${{ steps.ids.outputs.artifact }}"
+        echo "outputs.version: ${{ steps.ids.outputs.version }}"
       continue-on-error: true
 
     # Build HEX
@@ -132,7 +134,7 @@ jobs:
 
     # Upload the Builds to ZIP file with existing SHA in .hex names
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ env.ARTIFACT_NAME }}
         path: obj/*.hex
@@ -157,13 +159,13 @@ jobs:
           echo "Repo: ${{ github.REPOSITORY }}"
           echo "outputs.buildtag: ${{ needs.build.outputs.buildtag }}"
           echo "outputs.shortsha: ${{ needs.build.outputs.shortsha }}"
-          echo "outputs.artfact: ${{ needs.build.outputs.artifact }}"
-          echo "outputs.artfact: ${{ needs.build.outputs.version }}"
+          echo "outputs.artifact: ${{ needs.build.outputs.artifact }}"
+          echo "outputs.version: ${{ needs.build.outputs.version }}"
           echo "NOW=$(date +'%Y%m%d.%H%M%S')" >> $GITHUB_ENV
         continue-on-error: true
 
       - name: download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build.outputs.artifact }} #no name parameter will download all artifacts, but create separate subfolders
           path: obj
