@@ -61,8 +61,8 @@ typedef enum {
     FILTER_PT2,
     FILTER_PT3,
     FILTER_PT4,
-#ifdef USE_LULU   
-	FILTER_LULU,
+#ifdef USE_LULU
+    FILTER_LULU,
 #endif
 } lowpassFilterType_e;
 

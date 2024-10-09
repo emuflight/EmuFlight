@@ -295,9 +295,9 @@ static const char * const lookupTableRcInterpolationChannels[] = {
 };
 
 static const char * const lookupTableFilterType[] = {
-    "PT1", "BIQUAD", "PT2", "PT3", "PT4"
+    "PT1", "BIQUAD", "PT2", "PT3", "PT4",
 #ifdef USE_LULU
-    , "LULU"
+    "LULU",
 #endif
 };
 
