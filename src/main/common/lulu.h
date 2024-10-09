@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 //Max N = 15
 typedef struct {
     int windowSize;
