@@ -311,9 +311,9 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 ptnFilterInit(&dtermLowpass2[axis].ptnFilter, FILTER_PT2, pidProfile->dFilter[axis].dLpf2, dT);
                 break;
             case FILTER_LULU:
-            	dtermLowpass2ApplyFn = (filterApplyFnPtr)luluFilterApply;
-            	luluFilterInit(&dtermLowpass2[axis].luluFilter, pidProfile->lulu_n_val);
-            	break;
+                dtermLowpass2ApplyFn = (filterApplyFnPtr)luluFilterApply;
+                luluFilterInit(&dtermLowpass2[axis].luluFilter, pidProfile->lulu_n_val);
+                break;
             default: // case FILTER_PT1:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)pt1FilterApply;
                 pt1FilterInit(&dtermLowpass2[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf2, dT));
