@@ -9,6 +9,5 @@ typedef struct {
     float luluInterimB[32];
 } luluFilter_t;
 
-
 void luluFilterInit(luluFilter_t *filter, int N);
 float luluFilterApply(luluFilter_t *filter, float input);
