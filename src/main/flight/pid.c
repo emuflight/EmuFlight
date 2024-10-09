@@ -222,6 +222,7 @@ typedef union dtermLowpass_u {
     pt1Filter_t pt1Filter;
     biquadFilter_t biquadFilter;
     ptnFilter_t ptnFilter;
+    luluFilter2_t luluFilter;
 } dtermLowpass_t;
 
 static FAST_RAM_ZERO_INIT float previousPidSetpoint[XYZ_AXIS_COUNT];
@@ -274,6 +275,11 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
                 ptnFilterInit(&dtermLowpass[axis].ptnFilter, FILTER_PT2, pidProfile->dFilter[axis].dLpf, dT);
                 break;
+            case FILTER_LULU:
+            	dtermLowpassApplyFn = (filterApplyFnPtr)luluFilterApply;
+            	luluFilterInit(&dtermLowpass[axis].luluFilter.A, NVal);
+            	luluFilterInit(&dtermLowpass[axis].luluFilter.B, NVal);
+            	break;
             default: // case FILTER_PT1:
                 dtermLowpassApplyFn = (filterApplyFnPtr)pt1FilterApply;
                 pt1FilterInit(&dtermLowpass[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf, dT));
@@ -299,6 +305,11 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
                 ptnFilterInit(&dtermLowpass2[axis].ptnFilter, FILTER_PT2, pidProfile->dFilter[axis].dLpf2, dT);
                 break;
+            case FILTER_LULU:
+            	dtermLowpass2ApplyFn = (filterApplyFnPtr)luluFilterApply;
+            	luluFilterInit(&dtermLowpass2[axis].luluFilter.A, NVal);
+            	luluFilterInit(&dtermLowpass2[axis].luluFilter.B, NVal);
+            	break;
             default: // case FILTER_PT1:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)pt1FilterApply;
                 pt1FilterInit(&dtermLowpass2[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf2, dT));

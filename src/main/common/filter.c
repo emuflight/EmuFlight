@@ -273,3 +273,134 @@ FAST_CODE float ptnFilterApply(ptnFilter_t *filter, float input) {
 
 	  return filter->state[filter->order];
 } // ptnFilterApply
+
+
+
+void luluFilterInit(luluFilter_t *filter, int N)
+{
+
+	float *buf = (float*)malloc(sizeof(float)*N*2 + 1);
+	float *minBufA = (float*)malloc(sizeof(float)*(N*2) + 1);
+	float *luluInterimA = (float*)malloc(sizeof(float)*N*2 + 1);
+	float *maxBufA = (float*)malloc(sizeof(float)*N*2 + 1);
+	float *inputBufB = (float*)malloc(sizeof(float)*N*2 + 1);
+	float *minBufB = (float*)malloc(sizeof(float)*N*2 + 1);
+	float *luluInterimB = (float*)malloc(sizeof(float)*N*2 + 1);
+	float *maxBufB = (float*)malloc(sizeof(float)*N*2 + 1);
+	float *luluInterimC = (float*)malloc(sizeof(float)*N*2 + 1);
+
+    filter->N = N;
+    filter->windowSize = N*2 + 1;
+    filter->windowBufIndex = 0;
+    filter->buf = buf;
+    filter->minBufA = minBufA;
+    filter->luluInterimA = luluInterimA;
+    filter->luluInterimB = luluInterimB;
+
+    for(int i = 0; i < N*2 + 1; i++)
+    {
+        filter->buf[i] = 0;
+    }
+    for(int i = 0; i < N*2 + 1; i++)
+    {
+        filter->minBufA[i] = 0;
+    }
+    for(int i = 0; i < N*2 + 1; i++)
+    {
+        filter->luluInterimA[i] = 0;
+    }
+
+    for(int i = 0; i < N*2 + 1; i++)
+    {
+        filter->luluInterimB[i] = 0;
+    }
+}
+
+
+
+FAST_CODE float luluFilterPartialApply(luluFilter_t *filter, float input)
+{
+	int windowIndex = filter->windowBufIndex;
+	//Update the current filter window
+	filter->buf[windowIndex] = input;
+	filter->luluInterimA[windowIndex] = input;
+
+	int filterN = filter->N;
+	int filterCount = filterN + 1;
+	int filterWindow = filter->windowSize;
+
+	const int indexer = (windowIndex - filterN + filterWindow) % filterWindow;
+
+	float latestMinimum = 99999999999;
+
+	for(int i = indexer; i < filterCount + indexer; i++)
+	{
+		if(filter->buf[i % filterWindow] < latestMinimum)
+		{
+			latestMinimum = filter->buf[i % filterWindow];
+		}
+	}
+
+	//Calculate the previous sequence minimum and store in "bufMin"
+	filter->minBufA[windowIndex] = latestMinimum;
+	//calculatePrevSequenceMaximum(filter->minBufA, windowIndex, filterCount, filterWindow);
+	for(int i = 1; i < filterCount; i++)
+	{
+		int curIndex = (windowIndex + filterWindow - i) % filterWindow;
+		if(filter->minBufA[curIndex] > latestMinimum)
+		{
+			latestMinimum = filter->minBufA[curIndex];
+		}
+	}
+
+	filter->luluInterimA[indexer] = latestMinimum;
+
+	filter->luluInterimB[0] = latestMinimum;
+	for(int i = 1; i <= filterN; i++)
+	{
+		int curIndex = (indexer + filterWindow - i) % filterWindow;
+		if(latestMinimum < filter->luluInterimA[curIndex])
+		{
+			latestMinimum = filter->luluInterimA[curIndex];
+		}
+		filter->luluInterimB[i] = latestMinimum;
+	}
+	//float luluMinN = calculatePrevSequenceMaximum(filter->luluInterimA, filter->windowBufIndex, filter->N + 1, filter->windowSize);
+
+	//luluMinN = luluMinN < filter->luluInterimB[filter->N] ? luluMinN : filter->luluInterimB[filter->N];
+
+	float bufMaxInterim = filter->luluInterimB[0];
+
+	for(int i = filterN; i >= 0; i--)
+	{
+		float prevMaxVals = filter->luluInterimB[i];
+		float curEvalFloat = filter->luluInterimA[indexer + (filterN - i) % filterWindow];
+		bufMaxInterim = bufMaxInterim < curEvalFloat ? curEvalFloat : bufMaxInterim;
+		float bufMaxN = bufMaxInterim;
+		//Calculate the maximum of the L filtered values and store in maxBuf, remember to update the values that might have changed
+//		bufMaxN = calculatePrevSequenceMaximum(filter->luluInterimA, index, filterCount - i, filterWindow);
+		if(prevMaxVals > bufMaxN)
+		{
+			bufMaxN = prevMaxVals;
+		}
+		if(latestMinimum > bufMaxN)
+		{
+			latestMinimum = bufMaxN;
+		}
+	}
+
+	if(windowIndex++ >= filterWindow) {
+		filter->windowBufIndex = 0;
+	} else {
+		filter->windowBufIndex = windowIndex;
+	}
+
+	return latestMinimum;
+}
+
+FAST_CODE float luluFilterApply(luluFilter2_t *filter, float input)
+{
+	float resultA = luluFilterPartialApply(&filter->A, input);
+	float resultB = luluFilterPartialApply(&filter->B, -input);
+	return (resultA - resultB) / 2;
+}

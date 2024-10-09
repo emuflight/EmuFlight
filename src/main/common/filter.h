@@ -55,12 +55,29 @@ typedef struct ptnFilter_s {
     uint8_t order;
 } ptnFilter_t;
 
+
+typedef struct {
+    int windowSize;
+    int windowBufIndex;
+    int N;
+    float *buf;
+    float *minBufA;
+    float *luluInterimA;
+    float *luluInterimB;
+} luluFilter_t;
+
+typedef struct {
+	luluFilter_t A;
+	luluFilter_t B;
+} luluFilter2_t;
+
 typedef enum {
     FILTER_PT1 = 0,
     FILTER_BIQUAD,
     FILTER_PT2,
     FILTER_PT3,
     FILTER_PT4,
+	FILTER_LULU
 } lowpassFilterType_e;
 
 typedef enum {
@@ -96,3 +113,8 @@ float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input);
 void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT);
 void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float ScaleF, float dt);
 float ptnFilterApply(ptnFilter_t *filter, float input);
+
+#define NVal 10
+
+void luluFilterInit(luluFilter_t *filter, int N);
+float luluFilterApply(luluFilter2_t *filter, float input);
