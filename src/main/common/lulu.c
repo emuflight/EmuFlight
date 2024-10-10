@@ -100,6 +100,9 @@ FAST_CODE float fixRoad(float *series, float *seriesB, int index, int filterN, i
             indexPos++;
         }
     }
+    int finalIndex = (index + windowSize - filterN) % windowSize;
+    curVal = series[finalIndex];
+    curValB = seriesB[finalIndex];
     return (curVal - curValB) / 2;
 }
 
