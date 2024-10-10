@@ -33,6 +33,9 @@
 #include "common/filter.h"
 #include "common/maths.h"
 #include "common/utils.h"
+#ifdef USE_LULU
+#include "common/lulu.h"
+#endif
 
 #include "config/feature.h"
 #include "pg/pg.h"

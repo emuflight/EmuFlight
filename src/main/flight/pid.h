@@ -157,6 +157,9 @@ typedef struct pidProfile_s {
     uint8_t dterm_ABG_half_life;
     uint8_t dtermDynNotch;
     uint16_t dterm_dyn_notch_q;
+#ifdef USE_LULU
+    uint8_t lulu_n_val;
+#endif
 } pidProfile_t;
 
 #ifndef USE_OSD_SLAVE

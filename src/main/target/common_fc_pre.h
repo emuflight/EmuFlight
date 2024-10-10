@@ -228,6 +228,7 @@
 #define USE_SIGNATURE
 #define USE_CMS_FAILSAFE_MENU
 #define USE_CMS_GPS_RESCUE_MENU
+#define USE_LULU
 #endif
 
 // ICM42688P & BMI270 experimental define 

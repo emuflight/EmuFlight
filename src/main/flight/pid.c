@@ -31,6 +31,9 @@
 #include "common/axis.h"
 #include "common/maths.h"
 #include "common/filter.h"
+#ifdef USE_LULU
+#include "common/lulu.h"
+#endif
 
 #include "config/config_reset.h"
 #include "pg/pg.h"
@@ -197,6 +200,9 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .angle_filter = 100,
     .dtermDynNotch = false,
     .dterm_dyn_notch_q = 400,
+#ifdef USE_LULU
+    .lulu_n_val = 2
+#endif
                 );
 }
 
@@ -222,6 +228,7 @@ typedef union dtermLowpass_u {
     pt1Filter_t pt1Filter;
     biquadFilter_t biquadFilter;
     ptnFilter_t ptnFilter;
+    luluFilter_t luluFilter;
 } dtermLowpass_t;
 
 static FAST_RAM_ZERO_INIT float previousPidSetpoint[XYZ_AXIS_COUNT];
@@ -274,6 +281,10 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
                 dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
                 ptnFilterInit(&dtermLowpass[axis].ptnFilter, FILTER_PT2, pidProfile->dFilter[axis].dLpf, dT);
                 break;
+            case FILTER_LULU:
+                dtermLowpassApplyFn = (filterApplyFnPtr)luluFilterApply;
+                luluFilterInit(&dtermLowpass[axis].luluFilter, pidProfile->lulu_n_val);
+                break;
             default: // case FILTER_PT1:
                 dtermLowpassApplyFn = (filterApplyFnPtr)pt1FilterApply;
                 pt1FilterInit(&dtermLowpass[axis].pt1Filter, pt1FilterGain(pidProfile->dFilter[axis].dLpf, dT));
@@ -298,6 +309,10 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
             case FILTER_PT2:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;
                 ptnFilterInit(&dtermLowpass2[axis].ptnFilter, FILTER_PT2, pidProfile->dFilter[axis].dLpf2, dT);
+                break;
+            case FILTER_LULU:
+                dtermLowpass2ApplyFn = (filterApplyFnPtr)luluFilterApply;
+                luluFilterInit(&dtermLowpass2[axis].luluFilter, pidProfile->lulu_n_val);
                 break;
             default: // case FILTER_PT1:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)pt1FilterApply;
@@ -823,8 +838,16 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
                 }
             }
 #endif
+            if(axis < 2) 
+            {
+                DEBUG_SET(DEBUG_LULU, axis, lrintf(dDelta));
+            }
             dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
             dDelta = dtermLowpass2ApplyFn((filter_t *)&dtermLowpass2[axis], dDelta);
+            if(axis < 2) 
+            {
+                DEBUG_SET(DEBUG_LULU, axis + 2, lrintf(dDelta));
+            }
             dDelta = dtermABGapplyFn((filter_t *)&dtermABG[axis], dDelta);
             //dterm boost, similar to emuboost
             float boostedDtermRate;
