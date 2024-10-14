@@ -221,7 +221,7 @@ static const uint8_t osdElementDisplayOrder[] = {
     OSD_NUMERICAL_VARIO,
     OSD_COMPASS_BAR,
 #ifdef USE_LULU
-    OSD_LULU_N
+    OSD_LULU_N,
 #endif
 };
 
