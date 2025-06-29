@@ -134,10 +134,11 @@ jobs:
 
     # Upload the Builds to ZIP file with existing SHA in .hex names
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.ARTIFACT_NAME }}
+        name: ${{ env.ARTIFACT_NAME }}-${{ matrix.targets }}
         path: obj/*.hex
+        artifact-overwrite: true
 
 
   releases:
@@ -165,11 +166,15 @@ jobs:
         continue-on-error: true
 
       - name: download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: ${{ needs.build.outputs.artifact }} #no name parameter will download all artifacts, but create separate subfolders
-          path: obj
+          path: downloaded_artifacts
         continue-on-error: false
+
+      - name: Move artifacts to obj/
+        run: |
+          mkdir -p obj
+          find downloaded_artifacts -name "*.hex" -exec mv {} obj/ \;
 
       - name: list/find extractions
         run: |
