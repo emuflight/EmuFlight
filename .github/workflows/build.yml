@@ -48,16 +48,6 @@ jobs:
       if: steps.cache-toolchain.outputs.cache-hit != 'true'
       run: make arm_sdk_install
 
-    - name: Take the trash out
-      run: |
-        sudo swapoff -a
-        sudo rm -f /swapfile
-        sudo apt clean
-        docker rmi -f $(docker image ls -aq)
-        sync
-        df -h
-      continue-on-error: true
-
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
