@@ -128,8 +128,7 @@ jobs:
       with:
         name: ${{ env.ARTIFACT_NAME }}-${{ matrix.targets }}
         path: obj/*.hex
-        artifact-overwrite: true
-
+        overwrite: true
 
   releases:
     if: startsWith(github.ref, 'refs/tags/')
