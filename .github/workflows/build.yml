@@ -48,16 +48,6 @@ jobs:
       if: steps.cache-toolchain.outputs.cache-hit != 'true'
       run: make arm_sdk_install
 
-    - name: Take the trash out
-      run: |
-        sudo swapoff -a
-        sudo rm -f /swapfile
-        sudo apt clean
-        docker rmi -f $(docker image ls -aq)
-        sync
-        df -h
-      continue-on-error: true
-
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -134,11 +124,11 @@ jobs:
 
     # Upload the Builds to ZIP file with existing SHA in .hex names
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.ARTIFACT_NAME }}
+        name: ${{ env.ARTIFACT_NAME }}-${{ matrix.targets }}
         path: obj/*.hex
-
+        overwrite: true
 
   releases:
     if: startsWith(github.ref, 'refs/tags/')
@@ -165,11 +155,15 @@ jobs:
         continue-on-error: true
 
       - name: download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: ${{ needs.build.outputs.artifact }} #no name parameter will download all artifacts, but create separate subfolders
-          path: obj
+          path: downloaded_artifacts
         continue-on-error: false
+
+      - name: Move artifacts to obj/
+        run: |
+          mkdir -p obj
+          find downloaded_artifacts -name "*.hex" -exec mv {} obj/ \;
 
       - name: list/find extractions
         run: |
