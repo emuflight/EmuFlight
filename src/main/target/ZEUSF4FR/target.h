@@ -20,9 +20,10 @@
 
 #pragma once
 
-
-#define TARGET_BOARD_IDENTIFIER "HGLR"
-#define USBD_PRODUCT_STRING "ZEUSF4FR"
+#define BOARD_NAME        ZEUSF4FR
+#define MANUFACTURER_ID   HGLR
+#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
+#define FC_TARGET_MCU     STM32F411     // not used in EmuF
 
 #define LED0_PIN PC13
 
@@ -38,27 +39,28 @@
 #define SPI1_MISO_PIN PA6
 #define SPI1_MOSI_PIN PA7
 
-#define MPU6000_CS_PIN PA4
-//#define ICM20689_CS_PIN PA4
-#define MPU6000_SPI_INSTANCE SPI1
-//#define ICM20689_SPI_INSTANCE SPI1
-
 #define USE_EXTI
 #define USE_GYRO_EXTI
-#define MPU_INT_EXTI PA1
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
-#define USE_GYRO
-#define USE_GYRO_SPI_MPU6000
-#define GYRO_MPU6000_ALIGN CW180_DEG
-//#define USE_GYRO_SPI_ICM20689
-//#define ACC_ICM20689_ALIGN CW180_DEG
+#define MPU_INT_EXTI PA1
+
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
-#define ACC_MPU6000_ALIGN CW180_DEG
-//#define USE_ACC_SPI_ICM20689
-//#define ACC_ICM20689_ALIGN CW180_DEG
+#define USE_ACCGYRO_BMI270
+#define USE_GYRO
+#define USE_GYRO_SPI_MPU6000
+
+#define ACC_MPU6000_ALIGN        CW180_DEG
+#define GYRO_MPU6000_ALIGN       CW180_DEG
+#define MPU6000_CS_PIN           PA4
+#define MPU6000_SPI_INSTANCE     SPI1
+
+#define ACC_BMI270_ALIGN         CW180_DEG
+#define GYRO_BMI270_ALIGN        CW180_DEG
+#define BMI270_CS_PIN            PA4
+#define BMI270_SPI_INSTANCE      SPI1
 
 // *************** Baro **************************
 //#define USE_I2C

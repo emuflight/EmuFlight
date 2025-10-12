@@ -20,9 +20,10 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "S7X7"
-
-#define USBD_PRODUCT_STRING     "AXISFLYINGF7"
+#define BOARD_NAME        AXISFLYINGF7
+#define MANUFACTURER_ID   AXFL
+#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
 
 #define CAMERA_CONTROL_PIN      PA8
 
@@ -58,20 +59,27 @@
 #define SPI3_MISO_PIN           PB4
 #define SPI3_MOSI_PIN           PB5
 
-#define MPU6000_CS_PIN          PB12
-#define MPU6000_SPI_INSTANCE    SPI2
-
 //#define USE_EXTI
 //#define MPU_INT_EXTI            NONE
 #define USE_MPU_DATA_READY_SIGNAL
 
+#define USE_ACC
 #define USE_GYRO
+
+// MPU6000
+#define USE_ACC_SPI_MPU6000
 #define USE_GYRO_SPI_MPU6000
 #define GYRO_MPU6000_ALIGN      CW0_DEG
-
-#define USE_ACC
-#define USE_ACC_SPI_MPU6000
 #define ACC_MPU6000_ALIGN       CW0_DEG
+#define MPU6000_CS_PIN          PB12
+#define MPU6000_SPI_INSTANCE    SPI2
+
+// BMI270
+#define USE_ACCGYRO_BMI270
+#define ACC_BMI270_ALIGN        CW0_DEG
+#define GYRO_BMI270_ALIGN       CW0_DEG
+#define BMI270_CS_PIN           PB12
+#define BMI270_SPI_INSTANCE     SPI2
 
 #define LED0_PIN                PB10
 

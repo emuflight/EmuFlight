@@ -84,12 +84,10 @@ extern bool linearThrustEnabled;
 
 PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 
-#ifdef STM32F10X
-#define PID_PROCESS_DENOM_DEFAULT 1
-#elif defined(USE_GYRO_SPI_MPU6000) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_SPI_ICM42605) || defined(USE_GYRO_SPI_ICM42688P) || defined(USE_ACCGYRO_BMI160) || defined(USE_ACCGYRO_BMI270)
-#define PID_PROCESS_DENOM_DEFAULT 1
-#else
+#if defined(STM32F3) || defined(STM32F411xE)
 #define PID_PROCESS_DENOM_DEFAULT 2
+#else
+#define PID_PROCESS_DENOM_DEFAULT 1
 #endif
 
 #ifndef DEFAULT_PIDS_ROLL

@@ -20,8 +20,11 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "BFF4"
-#define USBD_PRODUCT_STRING     "BetaFlightF4"
+#define TARGET_MANUFACTURER_IDENTIFIER "FPVM"
+#define USBD_PRODUCT_STRING "BETAFLIGHTF4"
+
+#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
 
 #define LED0_PIN                PB5
 
@@ -32,18 +35,24 @@
 // PC13 used as inverter select GPIO for UART2
 #define INVERTER_PIN_UART2      PC13
 
-#define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
-
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
-#define GYRO_MPU6000_ALIGN      CW180_DEG
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
+
+#define MPU6000_CS_PIN          PA4
+#define MPU6000_SPI_INSTANCE    SPI1
+
 #define ACC_MPU6000_ALIGN       CW180_DEG
+#define GYRO_MPU6000_ALIGN      CW180_DEG
+#define MPU6000_CS_PIN          PA4
+#define MPU6000_SPI_INSTANCE    SPI1
 
-
+#define ACC_BMI270_ALIGN        CW180_DEG
+#define GYRO_BMI270_ALIGN       CW180_DEG
+#define BMI270_CS_PIN           PA4
+#define BMI270_SPI_INSTANCE     SPI1
 
 // MPU6000 interrupts
 #define USE_EXTI
@@ -122,6 +131,9 @@
 #define I2C2_SCL                NONE // PB10, UART3_TX
 #define I2C2_SDA                NONE // PB11, UART3_RX
 #define I2C_DEVICE              (I2CDEV_2)
+#define MAG_I2C_INSTANCE        (I2CDEV_2)
+#define BARO_I2C_INSTANCE       (I2CDEV_2)
+#define DASHBOARD_I2C_INSTANCE  (I2CDEV_2)
 
 #define USE_ADC
 #define CURRENT_METER_ADC_PIN   PC1
@@ -133,7 +145,7 @@
 #define SBUS_TELEMETRY_UART     SERIAL_PORT_USART2
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-#define DEFAULT_FEATURES        ( FEATURE_TELEMETRY | FEATURE_OSD )
+#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 
 #define TARGET_IO_PORTA (0xffff & ~(BIT(14)|BIT(13)))
 #define TARGET_IO_PORTB (0xffff & ~(BIT(2)))

@@ -27,7 +27,8 @@
 enum VIDEO_SYSTEMS {
     VIDEO_SYSTEM_AUTO = 0,
     VIDEO_SYSTEM_PAL,
-    VIDEO_SYSTEM_NTSC
+    VIDEO_SYSTEM_NTSC,
+    VIDEO_SYSTEM_HD
 };
 
 typedef struct vcdProfile_s {
