@@ -105,13 +105,12 @@ typedef struct smithPredictor_s {
     uint8_t enabled;
     uint8_t samples;
     uint8_t idx;
-
     float data[MAX_SMITH_SAMPLES + 1]; // This is gonna be a ring buffer. Max of 8ms delay at 8khz
-
     pt1Filter_t smithPredictorFilter; // filter the smith predictor output for RPY
-
     float smithPredictorStrength;
 } smithPredictor_t;
+
+float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered);
 #endif // USE_SMITH_PREDICTOR
 
 typedef enum {
@@ -208,7 +207,6 @@ bool gyroOverflowDetected(void);
 bool gyroYawSpinDetected(void);
 uint16_t gyroAbsRateDps(int axis);
 uint8_t gyroReadRegister(uint8_t whichSensor, uint8_t reg);
-float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered);
 #ifdef USE_GYRO_DATA_ANALYSE
 bool isDynamicFilterActive(void);
 #endif
