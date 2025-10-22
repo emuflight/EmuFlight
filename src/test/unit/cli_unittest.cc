@@ -40,16 +40,11 @@ extern "C" {
     #include "flight/mixer.h"
     #include "flight/pid.h"
     #include "flight/servos.h"
-    #pragma GCC diagnostic push
     #pragma weak inputSource_e
-    #pragma weak colors
-    #pragma weak modeColors
-    #pragma weak specialColors
     #include "interface/cli.h"
     #include "interface/msp.h"
     #include "interface/msp_box.h"
     #include "interface/settings.h"
-    #pragma GCC diagnostic pop
     #include "io/beeper.h"
     #include "io/ledstrip.h"
     #include "io/osd.h"
