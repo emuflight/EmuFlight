@@ -160,10 +160,6 @@ typedef struct ledStripConfig_s {
 
 PG_DECLARE(ledStripConfig_t, ledStripConfig);
 
-extern hsvColor_t *colors;
-extern const modeColorIndexes_t *modeColors;
-extern specialColorIndexes_t specialColors;
-
 #define LF(name) LED_FUNCTION_ ## name
 #define LO(name) LED_FLAG_OVERLAY(LED_OVERLAY_ ## name)
 #define LD(name) LED_FLAG_DIRECTION(LED_DIRECTION_ ## name)
