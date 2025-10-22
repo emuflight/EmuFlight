@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #include <limits.h>
 
@@ -39,10 +40,16 @@ extern "C" {
     #include "flight/mixer.h"
     #include "flight/pid.h"
     #include "flight/servos.h"
+    #pragma GCC diagnostic push
+    #pragma weak inputSource_e
+    #pragma weak colors
+    #pragma weak modeColors
+    #pragma weak specialColors
     #include "interface/cli.h"
     #include "interface/msp.h"
     #include "interface/msp_box.h"
     #include "interface/settings.h"
+    #pragma GCC diagnostic pop
     #include "io/beeper.h"
     #include "io/ledstrip.h"
     #include "io/osd.h"
@@ -59,9 +66,12 @@ extern "C" {
     void cliGet(char *cmdline);
     void cliVtx(char *cmdline);
 
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wc99-designator"
     const clivalue_t valueTable[] = {
         { "array_unit_test",             VAR_INT8  | MODE_ARRAY | MASTER_VALUE, .config.array.length = 3, PG_RESERVED_FOR_TESTING_1, 0 }
     };
+    #pragma GCC diagnostic pop
     const uint16_t valueTableEntryCount = ARRAYLEN(valueTable);
     const lookupTableEntry_t lookupTables[] = {};
 
@@ -85,6 +95,7 @@ extern "C" {
     PG_REGISTER(pidConfig_t, pidConfig, PG_PID_CONFIG, 0);
     PG_REGISTER_WITH_RESET_TEMPLATE(vtxConfig_t, vtxConfig, PG_VTX_CONFIG, 1);
     PG_RESET_TEMPLATE(vtxConfig_t, vtxConfig,
+                      .vtxChannelActivationConditions = {},
                       .halfDuplex = true
                      );
 
@@ -93,6 +104,10 @@ extern "C" {
 
 #include "unittest_macros.h"
 #include "gtest/gtest.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wc99-designator"
+
 TEST(CLIUnittest, TestCliSet)
 {
 
@@ -101,6 +116,7 @@ TEST(CLIUnittest, TestCliSet)
     const clivalue_t cval = {
         .name = "array_unit_test",
         .type = MODE_ARRAY | MASTER_VALUE | VAR_INT8,
+        .config = {.array.length = 3},
         .pgn = PG_RESERVED_FOR_TESTING_1,
         .offset = 0
     };
@@ -203,6 +219,9 @@ TEST(CLIUnittest, TestCliVtxInvalidArgumentCount)
     EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.startStep));
     EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.endStep));
 }
+
+#pragma GCC diagnostic pop
+
 // STUBS
 extern "C" {
 
@@ -257,7 +276,9 @@ const box_t *findBoxByBoxId(boxId_e) { return &boxes[0]; }
 int8_t unitTestDataArray[3];
 
 void pgResetFn_unitTestData(int8_t *ptr) {
-    ptr = &unitTestDataArray[0];
+    (void)ptr;  // Unused parameter
+    // Reset to default array
+    memset(unitTestDataArray, 0, sizeof(unitTestDataArray));
 }
 
 uint32_t getBeeperOffMask(void) { return 0; }

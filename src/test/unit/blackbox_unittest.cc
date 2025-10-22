@@ -46,6 +46,9 @@ extern "C" {
     #include "sensors/battery.h"
     #include "sensors/gyro.h"
 
+    // Register required for gyro_sync.c
+    PG_REGISTER(gyroConfig_t, gyroConfig, PG_GYRO_CONFIG, 0);
+
     extern int16_t blackboxIInterval;
     extern int16_t blackboxPInterval;
 }
@@ -368,7 +371,7 @@ uint8_t stateFlags;
 const uint32_t baudRates[] = {0, 9600, 19200, 38400, 57600, 115200, 230400, 250000,
         400000, 460800, 500000, 921600, 1000000, 1500000, 2000000, 2470000}; // see baudRate_e
 uint8_t debugMode;
-int32_t blackboxHeaderBudget;
+extern int32_t blackboxHeaderBudget;
 gpsSolutionData_t gpsSol;
 int32_t GPS_home[2];
 
@@ -397,7 +400,7 @@ bool isSerialTransmitBufferEmpty(const serialPort_t *) {return false;}
 bool feature(uint32_t) {return false;}
 void mspSerialReleasePortIfAllocated(serialPort_t *) {}
 serialPortConfig_t *findSerialPortConfig(serialPortFunction_e ) {return NULL;}
-serialPort_t *findSharedSerialPort(uint16_t , serialPortFunction_e ) {return NULL;}
+serialPort_t *findSharedSerialPort(uint32_t, serialPortFunction_e ) {return NULL;}
 serialPort_t *openSerialPort(serialPortIdentifier_e, serialPortFunction_e, serialReceiveCallbackPtr, void *, uint32_t, portMode_e, portOptions_e) {return NULL;}
 void closeSerialPort(serialPort_t *) {}
 portSharing_e determinePortSharing(const serialPortConfig_t *, serialPortFunction_e ) {return PORTSHARING_UNUSED;}

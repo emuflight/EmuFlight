@@ -35,7 +35,10 @@ extern "C" {
     #include "flight/imu.h"
     #include "flight/mixer.h"
     #include "flight/pid.h"
+    #pragma GCC diagnostic push
+    #pragma weak inputSource_e
     #include "flight/servos.h"
+    #pragma GCC diagnostic pop
     #include "io/beeper.h"
     #include "io/gps.h"
     #include "rx/rx.h"
@@ -43,6 +46,14 @@ extern "C" {
     #include "sensors/acceleration.h"
     #include "sensors/gyro.h"
     #include "telemetry/telemetry.h"
+
+    // Global variable definitions
+    // rcCommand is defined in rc_controls.c when included  
+    extern float rcCommand[4];
+    
+    // rcData would be defined in rx.c, but since we don't link rx.c,
+    // we define it here for the test
+    int16_t rcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
 
     PG_REGISTER(accelerometerConfig_t, accelerometerConfig, PG_ACCELEROMETER_CONFIG, 0);
     PG_REGISTER(blackboxConfig_t, blackboxConfig, PG_BLACKBOX_CONFIG, 0);
@@ -55,8 +66,6 @@ extern "C" {
     PG_REGISTER(telemetryConfig_t, telemetryConfig, PG_TELEMETRY_CONFIG, 0);
     PG_REGISTER(failsafeConfig_t, failsafeConfig, PG_FAILSAFE_CONFIG, 0);
 
-    float rcCommand[4];
-    int16_t rcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
     uint16_t averageSystemLoadPercent = 0;
     uint8_t cliMode = 0;
     uint8_t debugMode = 0;
@@ -851,4 +860,5 @@ extern "C" {
     bool usbCableIsInserted(void) { return false; }
     bool usbVcpIsConnected(void) { return false; }
     void pinioBoxTaskControl(void) {}
+    void updateRcRefreshRate(uint16_t) {}
 }
