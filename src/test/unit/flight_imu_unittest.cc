@@ -70,7 +70,7 @@ extern "C" {
 // STUBS
 
 extern "C" {
-boxBitmask_t rcModeActivationMask;
+extern boxBitmask_t rcModeActivationMask;
 float rcCommand[4];
 int16_t rcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
 float vGyroStdDevModulus;

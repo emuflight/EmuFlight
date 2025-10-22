@@ -24,6 +24,9 @@
 extern "C" {
     #include <platform.h>
 
+    // Enable Smith Predictor feature for unit testing
+    #define USE_SMITH_PREDICTOR
+
     #include "build/build_config.h"
     #include "build/debug.h"
     #include "common/axis.h"
@@ -115,9 +118,9 @@ TEST(SensorGyro, Update)
 {
     pgResetAll();
     // turn off filters
-    gyroConfigMutable()->gyro_lowpass_hz[ROLL] = 0;
+    gyroConfigMutable()->gyro_lowpass_hz[0] = 0;  // FD_ROLL
 #ifdef USE_GYRO_LPF2
-    gyroConfigMutable()->gyro_lowpass2_hz[ROLL] = 0;
+    gyroConfigMutable()->gyro_lowpass2_hz[0] = 0;  // FD_ROLL
 #endif
     gyroConfigMutable()->gyro_soft_notch_hz_1 = 0;
     gyroConfigMutable()->gyro_soft_notch_hz_2 = 0;
