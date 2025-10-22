@@ -73,10 +73,30 @@ extern "C" {
     bool gyroOverflowDetected(void) { return false; }
     float getRcDeflection(int axis) { return simulatedRcDeflection[axis]; }
     void beeperConfirmationBeeps(uint8_t) { }
+    
+    // Additional stubs for pid testing
+    void mixerInitProfile(void) { }
+    
+    bool linearThrustEnabled = false;
+    float getThrottlePAttenuation(void) { return 1.0f; }
+    float getThrottleIAttenuation(void) { return 1.0f; }
+    float getThrottleDAttenuation(void) { return 1.0f; }
+    
+    float getAngleModeAngles(int axis) { 
+        (void)axis;
+        return 0.0f; 
+    }
+    
+    float howUpsideDown(void) { 
+        return 0.0f; 
+    }
 }
 
 pidProfile_t *pidProfile;
 rollAndPitchTrims_t rollAndPitchTrims = { { 0, 0 } };
+
+// Stub for gyro configuration system
+gyroConfig_t gyroConfig_System;
 
 int loopIter = 0;
 
