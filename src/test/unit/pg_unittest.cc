@@ -34,10 +34,19 @@ extern "C" {
 PG_REGISTER_WITH_RESET_TEMPLATE(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 1);
 
 PG_RESET_TEMPLATE(motorConfig_t, motorConfig,
+    .dev = {
+        .motorPwmRate = 400,
+        .motorPwmProtocol = 0,
+        .motorPwmInversion = 0,
+        .useUnsyncedPwm = 0,
+        .useBurstDshot = 0,
+        .ioTags = {0}
+    },
+    .digitalIdleOffsetValue = 0,
     .minthrottle = 1150,
     .maxthrottle = 1850,
     .mincommand = 1000,
-    .dev = {.motorPwmRate = 400}
+    .motorPoleCount = 0
 );
 }
 
