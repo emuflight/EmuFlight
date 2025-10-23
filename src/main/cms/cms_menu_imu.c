@@ -87,6 +87,9 @@ static uint8_t tmpRateProfileIndex;
 static uint8_t rateProfileIndex;
 static char rateProfileIndexString[] = " p-r";
 static controlRateConfig_t rateProfile;
+#ifdef USE_LULU
+static uint8_t lulu_n_val;
+#endif
 
 static const char * const cms_offOnLabels[] = {
     "OFF", "ON"
@@ -101,7 +104,10 @@ static const char * const cms_mixerImplTypeLabels[] = {
 };
 
 static const char * const cms_FilterType[] = {
-    "PT1", "BIQUAD", "PT2", "PT3", "PT4",
+    "PT1", "BIQUAD", "PT2", "PT3", "PT4", 
+#ifdef USE_LULU
+    "LULU",
+#endif
 };
 
 #ifdef USE_GYRO_DATA_ANALYSE
@@ -159,6 +165,9 @@ static long cmsx_PidAdvancedRead(void) {
     itermWindup = pidProfile->itermWindupPointPercent;
     emuGravityGain = pidProfile->emuGravityGain;
     linear_thrust_low_output = pidProfile->linear_thrust_low_output;
+#ifdef USE_LULU
+    lulu_n_val = pidProfile->lulu_n_val;
+#endif
     linear_thrust_high_output = pidProfile->linear_thrust_high_output;
     linear_throttle = pidProfile->linear_throttle;
     mixer_impl = pidProfile->mixer_impl;
@@ -192,6 +201,9 @@ static long cmsx_PidAdvancedWriteback(const OSD_Entry *self) {
     pidProfile->itermWindupPointPercent = itermWindup;
     pidProfile->emuGravityGain = emuGravityGain;
     pidProfile->linear_thrust_low_output = linear_thrust_low_output;
+#ifdef USE_LULU
+    pidProfile->lulu_n_val = lulu_n_val;
+#endif
     pidProfile->linear_thrust_high_output = linear_thrust_high_output;
     pidProfile->linear_throttle = linear_throttle;
     pidProfile->mixer_impl = mixer_impl;
@@ -230,7 +242,9 @@ static OSD_Entry cmsx_menuPidAdvancedEntries[] = {
     { "MIXER IMPL",        OME_TAB,   NULL, &(OSD_TAB_t)   { &mixer_impl, MIXER_IMPL_COUNT - 1, cms_mixerImplTypeLabels }, 0 },
     { "MIXER LAZINESS",    OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &mixer_laziness, 1, cms_offOnLabels }, 0 },
     { "MIXER YAW THR COMP", OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &mixer_yaw_throttle_comp, 1, cms_offOnLabels }, 0 },
-
+#ifdef USE_LULU
+    { "LULU N", OME_UINT8, NULL, &(OSD_UINT8_t) { &lulu_n_val, 0, 25,  1}, 0 },
+#endif
     { "SAVE&EXIT",         OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK",              OME_Back, NULL, NULL, 0 },
     { NULL,                OME_END, NULL, NULL, 0 }
@@ -788,11 +802,11 @@ static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self) {
 static OSD_Entry cmsx_menuFilterPerProfileEntries[] = {
     { "-- FILTER PP  --", OME_Label, NULL, NULL, 0 },
 
-    { "DTERM LPF TYPE",    OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &cmsx_dterm_lowpass_type, 4, cms_FilterType }, 0 },
+    { "DTERM LPF TYPE",    OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &cmsx_dterm_lowpass_type, 5, cms_FilterType }, 0 },
     { "DTERM LPF ROLL",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz_roll,     0, 500, 1 }, 0 },
     { "DTERM LPF PITCH",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz_pitch,     0, 500, 1 }, 0 },
     { "DTERM LPF YAW",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz_yaw,     0, 500, 1 }, 0 },
-    { "DTERM LPF2 TYPE",    OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &cmsx_dterm_lowpass2_type, 4, cms_FilterType }, 0 },
+    { "DTERM LPF2 TYPE",    OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &cmsx_dterm_lowpass2_type, 5, cms_FilterType }, 0 },
     { "DTERM LPF2 ROLL", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_roll,    0, 500, 1 }, 0 },
     { "DTERM LPF2 PITCH", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_pitch,    0, 500, 1 }, 0 },
     { "DTERM LPF2 YAW", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_yaw,    0, 500, 1 }, 0 },
