@@ -133,12 +133,15 @@ TEST(SensorGyro, Update)
     EXPECT_EQ(false, isGyroCalibrationComplete());
 
     timeUs_t currentTimeUs = 0;
+    const timeDelta_t gyroUpdatePeriod = 1000; // 1ms = 1kHz update rate
     
     // Calibrate with constant values
     fakeGyroSet(gyroDevPtr, 5, 6, 7);
+    currentTimeUs += gyroUpdatePeriod;
     gyroUpdate(currentTimeUs);
     while (!isGyroCalibrationComplete()) {
         fakeGyroSet(gyroDevPtr, 5, 6, 7);
+        currentTimeUs += gyroUpdatePeriod;
         gyroUpdate(currentTimeUs);
     }
     
@@ -148,6 +151,7 @@ TEST(SensorGyro, Update)
     EXPECT_EQ(7, gyroDevPtr->gyroZero[Z]);
     
     // After calibration, with same values, output should be near zero (allowing for filter effects)
+    currentTimeUs += gyroUpdatePeriod;
     gyroUpdate(currentTimeUs);
     EXPECT_NEAR(0, gyro.gyroADCf[X], 1.0f);  // Allow small deviation for filters
     EXPECT_NEAR(0, gyro.gyroADCf[Y], 1.0f);
@@ -159,6 +163,7 @@ TEST(SensorGyro, Update)
     float prevZ = gyro.gyroADCf[Z];
     
     fakeGyroSet(gyroDevPtr, 15, 26, 97);
+    currentTimeUs += gyroUpdatePeriod;
     gyroUpdate(currentTimeUs);
     
     // Values should change significantly and be non-zero

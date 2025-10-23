@@ -40,7 +40,6 @@ extern "C" {
     #include "flight/mixer.h"
     #include "flight/pid.h"
     #include "flight/servos.h"
-    #pragma weak inputSource_e
     #include "interface/cli.h"
     #include "interface/msp.h"
     #include "interface/msp_box.h"

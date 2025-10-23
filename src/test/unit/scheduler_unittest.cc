@@ -39,7 +39,7 @@ const int TEST_DISPATCH_TIME = 1;
 
 extern "C" {
     extern cfTask_t * unittest_scheduler_selectedTask;
-    extern uint8_t unittest_scheduler_selectedTaskDynPrio;
+    extern uint8_t unittest_scheduler_selectedTaskDynamicPriority;
     extern uint16_t unittest_scheduler_waitingTasks;
 
     // set up micros() to simulate time
