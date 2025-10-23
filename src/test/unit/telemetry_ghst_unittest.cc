@@ -106,11 +106,10 @@ uint16_t    mAh Drawn
 #define FRAME_HEADER_FOOTER_LEN 4
 
 
-// NOTE: GHST telemetry tests are disabled because processGhst() uses a complex scheduling
-// system and the frame buffer is not directly populated by processGhst(). The firmware
-// telemetry API has evolved to use ghstRxWriteTelemetryData() callback which sends data
-// to the receiver. Testing this properly requires mocking the entire GHST RX/TX pipeline.
-// The getGhstFrame() accessor is enabled for potential future test rewrites.
+// NOTE: Re-disabled - ghstRxInit() sets up serialPort but processGhst() still doesn't
+// populate the frame. The issue is that processGhst() writes to ghstFrame via sbuf, then
+// calls ghstFinalize() which calls ghstRxWriteTelemetryData(). The firmware has evolved
+// to use a complex TX pipeline that isn't easily testable without significant refactoring.
 TEST(TelemetryGhstTest, DISABLED_TestBattery)
 {
     uint8_t *frame = getGhstFrame();
@@ -118,10 +117,17 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
     uint16_t current;
     uint32_t usedMah;
 
+    // Initialize GHST RX (sets up serialPort so ghstRxIsActive() returns true)
+    rxRuntimeConfig_t rxRuntimeState;
+    ghstRxInit(rxConfig(), &rxRuntimeState);
+
+    // Initialize with battery config enabled
+    testBatteryVoltage = 0; // 0.1V units
+    testAmperage = 0;
+    testmAhDrawn = 0;
+    
     initGhstTelemetry();
     processGhst();
-
-    testBatteryVoltage = 0; // 0.1V units
 
     EXPECT_EQ(GHST_ADDR_RX, frame[0]); // address
     EXPECT_EQ(12, frame[1]); // length
@@ -133,6 +139,7 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
     usedMah = frame[7] << 16 | frame[8] << 8 | frame [9]; // mAh
     EXPECT_EQ(0, usedMah);
 
+    // Update battery values
     testBatteryVoltage = 124; // 12.4V = 1240 mv
     testAmperage = 2960; // = 29.60A = 29600mA - amperage is in 0.01A steps
     testmAhDrawn = 1234;
@@ -149,14 +156,17 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
 }
 
 
-// NOTE: Same issue as TestBattery - requires mocking full GHST telemetry pipeline.
+// NOTE: Re-disabled - same issue as TestBattery.
 TEST(TelemetryGhstTest, DISABLED_TestBatteryCellVoltage)
 {
     uint8_t *frame = getGhstFrame(); 
-    /* memset(&frame, 0, sizeof(*frame)); */
     uint16_t voltage;
     uint16_t current;
     uint32_t usedMah;
+
+    // Initialize GHST RX
+    rxRuntimeConfig_t rxRuntimeState;
+    ghstRxInit(rxConfig(), &rxRuntimeState);
 
     testBatteryVoltage = 124; // 12.4V = 1240 mv
     testBatteryCellVoltage = 413; // 12.4/3
@@ -165,7 +175,8 @@ TEST(TelemetryGhstTest, DISABLED_TestBatteryCellVoltage)
     testmAhDrawn = 1234;
 
     telemetryConfigMutable()->report_cell_voltage = true;
-
+    
+    initGhstTelemetry();
     processGhst();
 
     voltage = frame[4] << 8 | frame[3]; // mV * 100
@@ -204,11 +215,21 @@ uint8_t serialRead(serialPort_t *) {return 0;}
 void serialWrite(serialPort_t *, uint8_t) {}
 void serialWriteBuf(serialPort_t *, const uint8_t *, int) {}
 void serialSetMode(serialPort_t *, portMode_e) {}
-serialPort_t *openSerialPort(serialPortIdentifier_e, serialPortFunction_e, serialReceiveCallbackPtr, void *, uint32_t, portMode_e, portOptions_e) {return NULL;}
+
+// Return a fake serial port so ghstRxIsActive() returns true
+static serialPort_t fakeSerialPort;
+serialPort_t *openSerialPort(serialPortIdentifier_e, serialPortFunction_e, serialReceiveCallbackPtr, void *, uint32_t, portMode_e, portOptions_e) {
+    return &fakeSerialPort;
+}
+
 void closeSerialPort(serialPort_t *) {}
 bool isSerialTransmitBufferEmpty(const serialPort_t *) { return true; }
 
-serialPortConfig_t *findSerialPortConfig(serialPortFunction_e) {return NULL;}
+// Return a fake serial port config so ghstRxInit() can proceed
+static serialPortConfig_t fakeSerialPortConfig;
+serialPortConfig_t *findSerialPortConfig(serialPortFunction_e) {
+    return &fakeSerialPortConfig;
+}
 
 bool telemetryDetermineEnabledState(portSharing_e) {return true;}
 bool telemetryCheckRxPortShared(const serialPortConfig_t *) {return true;}
