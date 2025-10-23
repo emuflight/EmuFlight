@@ -233,6 +233,10 @@ TEST(SchedulerUnittest, TestQueueInit)
 
 cfTask_t *deadBeefPtr = reinterpret_cast<cfTask_t*>(0xDEADBEEF);
 
+// NOTE: This test is disabled because it tries to access taskQueueArray[TASK_COUNT + 1]
+// which is out of bounds. The array is sized [TASK_COUNT + 1], so valid indices are
+// 0 through TASK_COUNT. The test was checking for buffer overruns but is itself buggy.
+// The queue implementation is correct - it doesn't overflow. This test needs redesign.
 TEST(SchedulerUnittest, DISABLED_TestQueue)
 {
     queueClear();

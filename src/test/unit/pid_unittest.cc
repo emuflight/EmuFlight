@@ -242,51 +242,54 @@ TEST(pidControllerTest, testPidLoop) {
     gyro.gyroADCf[FD_ROLL] = 100;
     pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
 
-    // Loop 2 - ROLL error should produce non-zero P, I, D for ROLL only
-    EXPECT_LT(pidData[FD_ROLL].P, 0);  // Should be negative for positive gyro error
-    EXPECT_EQ(pidData[FD_PITCH].P, 0);
-    EXPECT_EQ(pidData[FD_YAW].P, 0);
-    EXPECT_LT(pidData[FD_ROLL].I, 0);  // Integral should accumulate
-    EXPECT_EQ(pidData[FD_PITCH].I, 0);
-    EXPECT_EQ(pidData[FD_YAW].I, 0);
-    EXPECT_LT(pidData[FD_ROLL].D, 0);  // D-term from error change
-    EXPECT_EQ(pidData[FD_PITCH].D, 0);
-    EXPECT_EQ(pidData[FD_YAW].D, 0);
+    // Loop 2 - Expect PID loop reaction to ROLL error (updated values for current firmware)
+    ASSERT_NEAR(-128.12, pidData[FD_ROLL].P, calculateTolerance(-128.12));
+    EXPECT_FLOAT_EQ(0, pidData[FD_PITCH].P);
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].P);
+    ASSERT_NEAR(-3.91, pidData[FD_ROLL].I, calculateTolerance(-3.91));
+    EXPECT_FLOAT_EQ(0, pidData[FD_PITCH].I);
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].I);
+    ASSERT_NEAR(-253.50, pidData[FD_ROLL].D, calculateTolerance(-253.50));
+    EXPECT_FLOAT_EQ(0, pidData[FD_PITCH].D);
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].D);
 
     // Add error on PITCH (ROLL error still present)
     gyro.gyroADCf[FD_PITCH] = -100;
     pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
 
-    // Loop 3 - PITCH error now present along with ROLL
-    EXPECT_LT(pidData[FD_ROLL].P, 0);
-    EXPECT_GT(pidData[FD_PITCH].P, 0);  // Negative gyro error produces positive P
-    EXPECT_EQ(pidData[FD_YAW].P, 0);
-    EXPECT_LT(pidData[FD_ROLL].I, 0);
-    EXPECT_GT(pidData[FD_PITCH].I, 0);
-    EXPECT_EQ(pidData[FD_YAW].I, 0);
+    // Loop 3 - Expect PID loop reaction to PITCH error, ROLL is still in error (updated values)
+    ASSERT_NEAR(-128.12, pidData[FD_ROLL].P, calculateTolerance(-128.12));
+    ASSERT_NEAR(185.78, pidData[FD_PITCH].P, calculateTolerance(185.78));
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].P);
+    ASSERT_NEAR(-7.82, pidData[FD_ROLL].I, calculateTolerance(-7.82));
+    ASSERT_NEAR(4.89, pidData[FD_PITCH].I, calculateTolerance(4.89));
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].I);
+    ASSERT_NEAR(-217.26, pidData[FD_ROLL].D, calculateTolerance(-217.26));
+    ASSERT_NEAR(245.31, pidData[FD_PITCH].D, calculateTolerance(245.31));
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].D);
 
     // Add error on YAW
     gyro.gyroADCf[FD_YAW] = 100;
     pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
 
-    // Loop 4 - All axes have error
-    EXPECT_LT(pidData[FD_ROLL].P, 0);
-    EXPECT_GT(pidData[FD_PITCH].P, 0);
-    EXPECT_LT(pidData[FD_YAW].P, 0);
-    EXPECT_LT(pidData[FD_ROLL].I, 0);
-    EXPECT_GT(pidData[FD_PITCH].I, 0);
-    EXPECT_LT(pidData[FD_YAW].I, 0);
+    // Loop 4 - Expect PID loop reaction to YAW error, ROLL and PITCH are still in error (updated values)
+    ASSERT_NEAR(-128.12, pidData[FD_ROLL].P, calculateTolerance(-128.12));
+    ASSERT_NEAR(185.78, pidData[FD_PITCH].P, calculateTolerance(185.78));
+    ASSERT_NEAR(-224.31, pidData[FD_YAW].P, calculateTolerance(-224.31));
+    ASSERT_NEAR(-11.73, pidData[FD_ROLL].I, calculateTolerance(-11.73));
+    ASSERT_NEAR(9.78, pidData[FD_PITCH].I, calculateTolerance(9.78));
+    ASSERT_NEAR(-4.40, pidData[FD_YAW].I, calculateTolerance(-4.40));
+    ASSERT_NEAR(99.46, pidData[FD_ROLL].D, calculateTolerance(99.46));
+    ASSERT_NEAR(288.18, pidData[FD_PITCH].D, calculateTolerance(288.18));
+    ASSERT_NEAR(-140.18, pidData[FD_YAW].D, calculateTolerance(-140.18));
 
     // Simulate Iterm behaviour during mixer saturation
     simulatedControllerMixRange = 1.2f;
-    float rollIBefore = pidData[FD_ROLL].I;
-    float pitchIBefore = pidData[FD_PITCH].I;
-    float yawIBefore = pidData[FD_YAW].I;
     pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
-    // I-terms should be clamped during saturation
-    EXPECT_NEAR(rollIBefore, pidData[FD_ROLL].I, fabs(rollIBefore * 0.1f));
-    EXPECT_NEAR(pitchIBefore, pidData[FD_PITCH].I, fabs(pitchIBefore * 0.1f));
-    EXPECT_NEAR(yawIBefore, pidData[FD_YAW].I, fabs(yawIBefore * 0.1f));
+    // During saturation, I-terms should be constrained (updated values)
+    ASSERT_NEAR(-11.73, pidData[FD_ROLL].I, calculateTolerance(-11.73));
+    ASSERT_NEAR(9.78, pidData[FD_PITCH].I, calculateTolerance(9.78));
+    ASSERT_NEAR(-4.41, pidData[FD_YAW].I, calculateTolerance(-4.41));
     simulatedControllerMixRange = 0;
 
     // Match stick to gyro to eliminate error
@@ -298,13 +301,17 @@ TEST(pidControllerTest, testPidLoop) {
         pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
     }
     
-    // After error is removed, P and D should go to zero
-    EXPECT_NEAR(0, pidData[FD_ROLL].P, 10);
-    EXPECT_NEAR(0, pidData[FD_PITCH].P, 10);
-    EXPECT_NEAR(0, pidData[FD_YAW].P, 10);
-    EXPECT_NEAR(0, pidData[FD_ROLL].D, 10);
-    EXPECT_NEAR(0, pidData[FD_PITCH].D, 10);
-    EXPECT_NEAR(0, pidData[FD_YAW].D, 10);
+    // After error is removed, P goes to zero, I-terms remain, D has filtering lag (updated values)
+    EXPECT_FLOAT_EQ(0, pidData[FD_ROLL].P);
+    EXPECT_FLOAT_EQ(0, pidData[FD_PITCH].P);
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].P);
+    ASSERT_NEAR(-11.73, pidData[FD_ROLL].I, calculateTolerance(-11.73));
+    ASSERT_NEAR(9.78, pidData[FD_PITCH].I, calculateTolerance(9.78));
+    ASSERT_NEAR(-7.92, pidData[FD_YAW].I, calculateTolerance(-7.92));
+    // D-term has filtering, so doesn't instantly go to zero - verify small residual values
+    ASSERT_NEAR(-8.98, pidData[FD_ROLL].D, calculateTolerance(-8.98));
+    ASSERT_NEAR(0.17, pidData[FD_PITCH].D, calculateTolerance(0.17));
+    ASSERT_NEAR(-5.57, pidData[FD_YAW].D, calculateTolerance(-5.57));
 
     // Now disable Stabilisation
     pidStabilisationState(PID_STABILISATION_OFF);
@@ -348,17 +355,28 @@ TEST(pidControllerTest, testPidLevel) {
     pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
     pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
 
-    // Store the angle mode outputs
-    float angleModeRollP = pidData[FD_ROLL].P;
-    float angleModePitchP = pidData[FD_PITCH].P;
+    // Check angle mode output values (updated for current firmware)
+    ASSERT_NEAR(368.22, pidData[FD_ROLL].P, calculateTolerance(368.22));
+    ASSERT_NEAR(-533.92, pidData[FD_PITCH].P, calculateTolerance(-533.92));
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].P);
+    ASSERT_NEAR(23.23, pidData[FD_ROLL].I, calculateTolerance(23.23));
+    ASSERT_NEAR(-29.04, pidData[FD_PITCH].I, calculateTolerance(-29.04));
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].I);
+    EXPECT_NEAR(0, pidData[FD_ROLL].D, 0.01);  // Small D-term noise is acceptable
+    EXPECT_NEAR(0, pidData[FD_PITCH].D, 0.01);
+    EXPECT_NEAR(0, pidData[FD_YAW].D, 0.01);
 
     // Now disable angle mode and run the same stick input in rate mode
     disableFlightMode(ANGLE_MODE);
     pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
 
-    // Expect rate mode to produce different output than angle mode
-    EXPECT_NE(pidData[FD_ROLL].P, angleModeRollP);
-    EXPECT_NE(pidData[FD_PITCH].P, angleModePitchP);
+    // Rate mode should produce much higher values than angle mode (updated values)
+    ASSERT_NEAR(2819.53, pidData[FD_ROLL].P, calculateTolerance(2819.53));
+    ASSERT_NEAR(-4088.32, pidData[FD_PITCH].P, calculateTolerance(-4088.32));
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].P);
+    ASSERT_NEAR(89.72, pidData[FD_ROLL].I, calculateTolerance(89.72));
+    ASSERT_NEAR(-112.16, pidData[FD_PITCH].I, calculateTolerance(-112.16));
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].I);
 }
 
 
@@ -382,13 +400,13 @@ TEST(pidControllerTest, testPidHorizon) {
     attitude.values.pitch = -550;
     pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
 
-    // Store full stick output
-    float fullStickRollP = pidData[FD_ROLL].P;
-    float fullStickPitchP = pidData[FD_PITCH].P;
-    
-    // Both should be non-zero
-    EXPECT_NE(0, fullStickRollP);
-    EXPECT_NE(0, fullStickPitchP);
+    // Horizon mode with full stick should produce full rate output (updated values)
+    ASSERT_NEAR(2016.22, pidData[FD_ROLL].P, calculateTolerance(2016.22));
+    ASSERT_NEAR(-2923.52, pidData[FD_PITCH].P, calculateTolerance(-2923.52));
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].P);
+    ASSERT_NEAR(47.55, pidData[FD_ROLL].I, calculateTolerance(47.55));
+    ASSERT_NEAR(-59.44, pidData[FD_PITCH].I, calculateTolerance(-59.44));
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].I);
 
     // Test with partial stick input
     setStickPosition(FD_ROLL, 0.1f);
@@ -397,12 +415,13 @@ TEST(pidControllerTest, testPidHorizon) {
     attitude.values.pitch = -536;
     pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
 
-    float partialStickRollP = pidData[FD_ROLL].P;
-    float partialStickPitchP = pidData[FD_PITCH].P;
-
-    // Horizon mode should produce proportionally smaller outputs for smaller stick
-    EXPECT_LT(fabs(partialStickRollP), fabs(fullStickRollP));
-    EXPECT_LT(fabs(partialStickPitchP), fabs(fullStickPitchP));
+    // Horizon mode with partial stick should blend angle + rate (updated values)
+    ASSERT_NEAR(711.64, pidData[FD_ROLL].P, calculateTolerance(711.64));
+    ASSERT_NEAR(-1031.87, pidData[FD_PITCH].P, calculateTolerance(-1031.87));
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].P);
+    ASSERT_NEAR(76.28, pidData[FD_ROLL].I, calculateTolerance(76.28));
+    ASSERT_NEAR(-95.35, pidData[FD_PITCH].I, calculateTolerance(-95.35));
+    EXPECT_FLOAT_EQ(0, pidData[FD_YAW].I);
 }
 
 TEST(pidControllerTest, testMixerSaturation) {

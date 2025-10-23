@@ -114,6 +114,10 @@ TEST(SensorGyro, Calibrate)
     EXPECT_EQ(7, gyroDevPtr->gyroZero[Z]);
 }
 
+// NOTE: This test is disabled because it expects unfiltered gyro values but
+// the firmware now applies Kalman filtering and Smith Predictor. The test would  
+// need to either: 1) disable all filtering before gyroInit(), or 2) update
+// expectations to match filtered output values. Requires firmware knowledge to fix properly.
 TEST(SensorGyro, DISABLED_Update)
 {
     pgResetAll();
