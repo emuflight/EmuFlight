@@ -35,10 +35,8 @@ extern "C" {
     #include "flight/imu.h"
     #include "flight/mixer.h"
     #include "flight/pid.h"
-    #pragma GCC diagnostic push
-    #pragma weak inputSource_e
+    // pragma weak inputSource_e removed - firmware bug fixed (changed enum to typedef enum)
     #include "flight/servos.h"
-    #pragma GCC diagnostic pop
     #include "io/beeper.h"
     #include "io/gps.h"
     #include "rx/rx.h"

@@ -60,7 +60,7 @@ extern "C" {
     PG_REGISTER(telemetryConfig_t, telemetryConfig, PG_TELEMETRY_CONFIG, 0);
     PG_REGISTER(failsafeConfig_t, failsafeConfig, PG_FAILSAFE_CONFIG, 0);
 
-    float rcCommand[4];
+    // rcCommand is defined in rc_controls.c (compiled), rcData needs to be provided
     int16_t rcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
     uint16_t averageSystemLoadPercent = 0;
     uint8_t cliMode = 0;
@@ -85,12 +85,22 @@ bool simulationHaveRx = false;
 
 const char * const powerNames[4] ={ "---", "LV1", "LV2", "LV3"} ;
 static vtxDevice_t testVtxDevice = {
-    .capability.bandCount = 5,
-    .capability.channelCount = 8,
-    .capability.powerCount = 3,
+    .vTable = NULL,
+    .capability = {
+        .bandCount = 5,
+        .channelCount = 8,
+        .powerCount = 3,
+        .filler = 0
+    },
+    .frequencyTable = NULL,
     .bandNames = (char **)vtx58BandNames,
     .channelNames = (char **)vtx58ChannelNames,
-    .powerNames = (char **)powerNames
+    .powerNames = (char **)powerNames,
+    .frequency = 0,
+    .band = 0,
+    .channel = 0,
+    .powerIndex = 0,
+    .pitMode = 0
 };
 
 #include "gtest/gtest.h"

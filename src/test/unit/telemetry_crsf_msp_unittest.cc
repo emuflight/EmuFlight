@@ -297,4 +297,14 @@ extern "C" {
     int32_t getMAhDrawn(void) {
       return testmAhDrawn;
     }
+
+    // CRSF telemetry stubs (missing from original test)
+    void CRSFsetLQ(uint16_t crsflqValue) { (void)crsflqValue; }
+    void CRSFsetRFMode(uint8_t crsfrfValue) { (void)crsfrfValue; }
+    void CRSFsetSnR(uint16_t crsfsnrValue) { (void)crsfsnrValue; }
+    void CRSFsetTXPower(uint16_t crsftxpValue) { (void)crsftxpValue; }
+    void CRSFsetRSSI(uint8_t crsfrssiValue) { (void)crsfrssiValue; }
+    
+    // Battery stub (missing from original test)
+    uint8_t getBatteryCellCount(void) { return 3; }
 }
