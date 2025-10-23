@@ -67,7 +67,7 @@ extern "C" {
     uint8_t ghstScheduleCount;
     void ghstInitializeFrame(sbuf_t *dst);
     void processGhst(void);
-    uint8_t *getGhstFrame(void);
+    uint8_t *getGhstFrame(void);  // Unit test accessor in firmware
 
     bool airMode;
 
@@ -106,10 +106,11 @@ uint16_t    mAh Drawn
 #define FRAME_HEADER_FOOTER_LEN 4
 
 
-// NOTE: These GHST tests are disabled because the firmware telemetry API has changed.
-// The tests call processGhst() expecting it to populate a buffer returned by getGhstFrame(),
-// but the buffer remains empty. This suggests the GHST telemetry implementation changed
-// since these tests were written. Requires firmware expert to update.
+// NOTE: GHST telemetry tests are disabled because processGhst() uses a complex scheduling
+// system and the frame buffer is not directly populated by processGhst(). The firmware
+// telemetry API has evolved to use ghstRxWriteTelemetryData() callback which sends data
+// to the receiver. Testing this properly requires mocking the entire GHST RX/TX pipeline.
+// The getGhstFrame() accessor is enabled for potential future test rewrites.
 TEST(TelemetryGhstTest, DISABLED_TestBattery)
 {
     uint8_t *frame = getGhstFrame();
@@ -148,6 +149,7 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
 }
 
 
+// NOTE: Same issue as TestBattery - requires mocking full GHST telemetry pipeline.
 TEST(TelemetryGhstTest, DISABLED_TestBatteryCellVoltage)
 {
     uint8_t *frame = getGhstFrame(); 
@@ -256,9 +258,6 @@ bool checkGhstTelemetryState(void) {
     return true;
 }
 
-// Missing stubs for GHST telemetry
-static uint8_t ghstFrameBuffer[64];
-uint8_t *getGhstFrame(void) { return ghstFrameBuffer; }
 int16_t GPS_directionToHome = 0;
 
 }

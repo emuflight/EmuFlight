@@ -82,12 +82,12 @@ static void ghstInitializeFrame(sbuf_t *dst)
     sbufWriteU8(dst, GHST_ADDR_RX);
 }
 
-//compiler reports unused
-/*
+// Unit test accessor function - only used during testing
+#ifdef UNITTEST
 STATIC_UNIT_TESTED uint8_t *getGhstFrame(){
     return ghstFrame;
 }
-*/
+#endif
 
 static void ghstFinalize(sbuf_t *dst)
 {
