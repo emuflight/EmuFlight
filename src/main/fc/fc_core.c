@@ -337,6 +337,22 @@ void tryArm(void) {
             }
         }
 #endif
+
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+        if (isModeActivationConditionPresent(BOXFLIPOVERAFTERCRASH)) {
+            if (!(IS_RC_MODE_ACTIVE(BOXFLIPOVERAFTERCRASH))) {
+                flipOverAfterCrashMode = false;
+                pwmWriteBrushedMotorReverse(false);
+            } else {
+                flipOverAfterCrashMode = true;
+#ifdef USE_RUNAWAY_TAKEOFF
+                runawayTakeoffCheckDisabled = false;
+#endif
+                pwmWriteBrushedMotorReverse(true);
+            }
+        }
+#endif
+
         ENABLE_ARMING_FLAG(ARMED);
         ENABLE_ARMING_FLAG(WAS_EVER_ARMED);
         resetTryingToArm();

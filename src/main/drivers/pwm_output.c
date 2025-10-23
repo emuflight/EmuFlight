@@ -26,16 +26,10 @@
 #include "platform.h"
 #include "drivers/time.h"
 
-#include "pg/pinio.h"
-#include "pg/piniobox.h"
-
-#include "interface/msp_box.h"
-
 #include "drivers/io.h"
 #include "pwm_output.h"
 #include "timer.h"
 #include "drivers/pwm_output.h"
-#include "config/feature.h"
 
 static FAST_RAM_ZERO_INIT pwmWriteFn *pwmWrite;
 static FAST_RAM_ZERO_INIT pwmOutputPort_t motors[MAX_SUPPORTED_MOTORS];
@@ -66,6 +60,10 @@ static pwmOutputPort_t servos[MAX_SUPPORTED_SERVOS];
 #ifdef USE_BEEPER
 static pwmOutputPort_t beeperPwm;
 static uint16_t freqBeep = 0;
+#endif
+
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+IO_t ioBrushedReverse;
 #endif
 
 static bool pwmMotorsEnabled = false;
@@ -137,16 +135,8 @@ static void pwmWriteUnused(uint8_t index, float value) {
     UNUSED(value);
 }
 
-FAST_CODE static void pwmWriteStandard(uint8_t index, float value) {
-    if(feature(FEATURE_3D)) {
-        if (lrintf(value) - 1500 > 0) {
-            pinioSet(0, 0);     // set to forward
-            value = (value - 1500) * 2 + 1000;
-        } else {
-            pinioSet(0, 1);     // set to backward
-            value = (1500 - value) * 2 + 1000;
-        }
-    }
+FAST_CODE static void pwmWriteStandard(uint8_t index, float value)
+{
     /* TODO: move value to be a number between 0-1 (i.e. percent throttle from mixer) */
     *motors[index].channel.ccr = lrintf((value * motors[index].pulseScale) + motors[index].pulseOffset);
 }
@@ -277,6 +267,12 @@ void motorDevInit(const motorDevConfig_t *motorConfig, uint16_t idlePulse, uint8
     if (!isDshot) {
         pwmWrite = &pwmWriteStandard;
         pwmCompleteWrite = useUnsyncedPwm ? &pwmCompleteWriteUnused : &pwmCompleteOneshotMotorUpdate;
+
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+        ioBrushedReverse = IOGetByTag(motorConfig->reverseTag);
+        IOInit(ioBrushedReverse, OWNER_BRUSHED_REVERSE, 0);
+        IOConfigGPIO(ioBrushedReverse, IOCFG_OUT_PP);
+#endif
     }
     for (int motorIndex = 0; motorIndex < MAX_SUPPORTED_MOTORS && motorIndex < motorCount; motorIndex++) {
         const ioTag_t tag = motorConfig->ioTags[motorIndex];
@@ -552,6 +548,17 @@ void beeperPwmInit(const ioTag_t tag, uint16_t frequency) {
         pwmOutConfig(&beeperPwm.channel, timer, PWM_TIMER_1MHZ, PWM_TIMER_1MHZ / freqBeep, (PWM_TIMER_1MHZ / freqBeep) / 2, 0);
         *beeperPwm.channel.ccr = 0;
         beeperPwm.enabled = false;
+    }
+}
+#endif
+
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+void pwmWriteBrushedMotorReverse(bool onoffReverse)
+{
+    if (onoffReverse == true) {
+        IOHi(ioBrushedReverse);
+    } else {
+        IOLo(ioBrushedReverse);
     }
 }
 #endif

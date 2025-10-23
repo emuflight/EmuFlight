@@ -90,7 +90,7 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT] = {
     { BOXUSER1, "USER1", 40 },
     { BOXUSER2, "USER2", 41 },
     { BOXUSER3, "USER3", 42 },
-    { BOXUSER4, "FLIP OVER AFTER CRASH BRUSHED", 43 },
+    { BOXUSER4, "USER4", 43 },
     { BOXPIDAUDIO, "PID AUDIO", 44 },
     { BOXPARALYZE, "PARALYZE", 45 },
     { BOXGPSRESCUE, "GPS RESCUE", 46 },
@@ -205,6 +205,12 @@ void initActiveBoxIds(void) {
     if (isMotorProtocolDshot()) {
         BME(BOXFLIPOVERAFTERCRASH);
     }
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+    else {
+        BME(BOXFLIPOVERAFTERCRASH);
+    }
+#endif
+
     if (feature(FEATURE_SERVO_TILT)) {
         BME(BOXCAMSTAB);
     }

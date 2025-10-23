@@ -36,10 +36,6 @@
 #include "pg/pg.h"
 #include "pg/pg_ids.h"
 #include "pg/rx.h"
-#include "pg/pinio.h"
-#include "pg/piniobox.h"
-
-#include "interface/msp_box.h"
 
 #include "drivers/pwm_output.h"
 #include "drivers/pwm_esc_detect.h"
@@ -88,6 +84,9 @@ void pgResetFn_motorConfig(motorConfig_t *motorConfig) {
     motorConfig->dev.motorPwmRate = BRUSHED_MOTORS_PWM_RATE;
     motorConfig->dev.motorPwmProtocol = PWM_TYPE_BRUSHED;
     motorConfig->dev.useUnsyncedPwm = true;
+#ifdef USE_BRUSHED_FLIPOVERAFTERCRASH
+    motorConfig->dev.reverseTag = IO_TAG(BRUSHED_REVERSE_PIN);
+#endif
 #else
 #ifdef USE_BRUSHED_ESC_AUTODETECT
     if (hardwareMotorType == MOTOR_BRUSHED) {
@@ -628,11 +627,6 @@ static void calculateThrottleAndCurrentMotorEndpoints(timeUs_t currentTimeUs) {
         motorRangeMax = motorOutputHigh;
         motorOutputMin = motorOutputLow;
         motorOutputRange = motorOutputHigh - motorOutputLow;
-        if (getBoxIdState(BOXUSER4)) {
-            controllerMix3DModeSign = -1;
-        } else {
-            controllerMix3DModeSign = 1;
-        }
     }
     throttle = constrainf(throttle / currentThrottleInputRange, 0.0f, 1.0f);
 }

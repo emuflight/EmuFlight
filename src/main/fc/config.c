@@ -179,7 +179,8 @@ static void validateAndFixConfig(void) {
         currentPidProfile->auto_profile_cell_count = AUTO_PROFILE_CELL_COUNT_STAY;
     }
     if (motorConfig()->dev.motorPwmProtocol == PWM_TYPE_BRUSHED) {
-        //  featureClear(FEATURE_3D);
+        featureClear(FEATURE_3D);
+
         if (motorConfig()->mincommand < 1000) {
             motorConfigMutable()->mincommand = 1000;
         }
