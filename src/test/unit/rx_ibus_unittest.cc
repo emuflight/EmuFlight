@@ -42,7 +42,7 @@ extern "C" {
     uint8_t batteryCellCount = 3;
     float rcCommand[4] = {0, 0, 0, 0};
     int16_t telemTemperature1 = 0;
-    baro_t baro = { .baroTemperature = 50 };
+    baro_t baro = { .dev = {}, .BaroAlt = 0, .baroTemperature = 50, .baroPressure = 0 };
     telemetryConfig_t telemetryConfig_System;
 }
 
@@ -79,8 +79,12 @@ typedef struct serialPortStub_s {
 
 static serialPort_t serialTestInstance;
 static serialPortConfig_t serialTestInstanceConfig = {
+    .functionMask = 0,
     .identifier = SERIAL_PORT_DUMMY_IDENTIFIER,
-    .functionMask = 0
+    .msp_baudrateIndex = 0,
+    .gps_baudrateIndex = 0,
+    .blackbox_baudrateIndex = 0,
+    .telemetry_baudrateIndex = 0
 };
 
 static serialReceiveCallbackPtr stub_serialRxCallback;
