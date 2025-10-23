@@ -77,5 +77,6 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "IMU",
     "KALMAN",
     "ANGLE",
-    "HORIZON"
+    "HORIZON",
+    "EMUBOOST"
 };

@@ -197,6 +197,10 @@ void resetPidProfile(pidProfile_t *pidProfile) {
     .angle_filter = 100,
     .dtermDynNotch = false,
     .dterm_dyn_notch_q = 400,
+    .emuBoost2 = 150,
+    .emuBoost2_filter = 50,
+    .emuBoost2_cutoff = 5,
+    .emuBoost2_expo = 35,
                 );
 }
 
@@ -245,6 +249,8 @@ static FAST_RAM_ZERO_INIT uint8_t itermRelaxCutoffYaw;
 
 static FAST_RAM_ZERO_INIT pt1Filter_t emuGravityThrottleLpf;
 static FAST_RAM_ZERO_INIT pt1Filter_t axisLockLpf[XYZ_AXIS_COUNT];
+
+static FAST_RAM_ZERO_INIT pt1Filter_t emuboost2_0Filter[XYZ_AXIS_COUNT];
 
 static FAST_RAM_ZERO_INIT float iDecay;
 
@@ -333,6 +339,7 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
 
     for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
         pt1FilterInit(&axisLockLpf[i], pt1FilterGain(pidProfile->axis_lock_hz, dT));
+        pt1FilterInit(&emuboost2_0Filter[i], pt1FilterGain(pidProfile->emuBoost2_filter, dT));
 #if defined(USE_ITERM_RELAX)
         if (i != FD_YAW) {
             pt1FilterInit(&windupLpf[i], pt1FilterGain(itermRelaxCutoff, dT));
@@ -674,13 +681,12 @@ static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
 #ifdef USE_GYRO_DATA_ANALYSE
 static FAST_RAM_ZERO_INIT float previousNotchCenterFreq[XYZ_AXIS_COUNT][5];
 #endif
+static FAST_RAM_ZERO_INIT float previousDtermErrorRate[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float axisLock[XYZ_AXIS_COUNT];
+static FAST_RAM_ZERO_INIT float dynamicDtermScaler[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 
 void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *angleTrim, timeUs_t currentTimeUs) {
-    float axisLock[XYZ_AXIS_COUNT];
-    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
-        axisLock[axis] = pt1FilterApply(&axisLockLpf[axis], stickMovement[axis]) * axisLockMultiplier;
-    }
 
     scaledAxisPid[ROLL] = constrainf(1 - axisLock[PITCH] - axisLock[YAW] + axisLock[ROLL], 0.0f, 1.0f);
     scaledAxisPid[PITCH] = constrainf(1 - axisLock[ROLL] - axisLock[YAW] + axisLock[PITCH], 0.0f, 1.0f);
@@ -694,6 +700,8 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
     float errorRate;
     // ----------PID controller----------
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
+
+        axisLock[axis] = pt1FilterApply(&axisLockLpf[axis], stickMovement[axis]) * axisLockMultiplier;
 
         // emugravity, the different hopefully better version of antiGravity no effect on yaw
         float errorAccelerator = 1.0f;
@@ -768,9 +776,9 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             const float setpointLpf = pt1FilterApply(&windupLpf[axis], currentPidSetpoint);
             const float setpointHpf = fabsf(currentPidSetpoint - setpointLpf);
             if (axis != FD_YAW) {
-                itermRelaxFactor = MAX(1 - setpointHpf / pidProfile->iterm_relax_threshold, 0.0f);
+                itermRelaxFactor = MAX(1.0f - setpointHpf / pidProfile->iterm_relax_threshold, 0.0f);
             } else {
-                itermRelaxFactor = MAX(1 - setpointHpf / pidProfile->iterm_relax_threshold_yaw, 0.0f);
+                itermRelaxFactor = MAX(1.0f - setpointHpf / pidProfile->iterm_relax_threshold_yaw, 0.0f);
             }
             if (SIGN(iterm) == SIGN(itermErrorRate)) {
                 itermErrorRate *= itermRelaxFactor;
@@ -804,14 +812,21 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             temporaryIterm[axis] = iterm;
         }
         // -----calculate D component
+        float pureError = 0.0f;
+        //filter Kd properly, no setpoint filtering
+        pureError = errorRate - previousError[axis];
+        previousError[axis] = errorRate;
+
+        float dtermErrorRate = currentPidSetpoint - gyroRate * dynamicDtermScaler[axis]; // r - y
+        float dtermError = dtermErrorRate - previousDtermErrorRate[axis];
+        previousDtermErrorRate[axis] = dtermErrorRate;
+
+        const float pureMeasurement = -(gyroRate - previousMeasurement[axis]);
+        previousMeasurement[axis] = gyroRate;
+
         if (pidCoefficient[axis].Kd > 0) {
-            //filter Kd properly, no setpoint filtering
-            const float pureError = errorRate - previousError[axis];
-            const float pureMeasurement = -(gyroRate - previousMeasurement[axis]);
-            previousMeasurement[axis] = gyroRate;
-            previousError[axis] = errorRate;
-            float dDelta = ((feathered_pids * pureMeasurement) + ((1 - feathered_pids) * pureError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
-            //filter the dterm
+            float dDelta = ((feathered_pids * pureMeasurement) * dynamicDtermScaler[axis] + ((1 - feathered_pids) * dtermError)) * pidFrequency; //calculating the dterm determine how much is calculated using measurement vs error
+            // filter the dterm
 #ifdef USE_GYRO_DATA_ANALYSE
             if (isDynamicFilterActive() && pidProfile->dtermDynNotch && axis <= gyroConfig()->dyn_notch_axis+1) {
                 for (int p = 0; p < gyroConfig()->dyn_notch_count; p++) {
@@ -826,7 +841,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             dDelta = dtermLowpassApplyFn((filter_t *)&dtermLowpass[axis], dDelta);
             dDelta = dtermLowpass2ApplyFn((filter_t *)&dtermLowpass2[axis], dDelta);
             dDelta = dtermABGapplyFn((filter_t *)&dtermABG[axis], dDelta);
-            //dterm boost, similar to emuboost
+            // dterm boost, similar to emuboost
             float boostedDtermRate;
             boostedDtermRate = (dDelta * fabsf(dDelta)) * dtermBoostMultiplier;
             if (fabsf(dDelta * dtermBoostLimitPercent) < fabsf(boostedDtermRate)) {
@@ -888,6 +903,38 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             pidData[axis].D *= getThrottleDAttenuation();
         }
 
+        // emuboost 2.0
+        if (pidProfile->emuBoost2) {
+          float changeError = pureError * pidFrequency * DTERM_SCALE * 20.0f;
+          changeError = changeError / pidProfile->emuBoost2_cutoff;
+
+          float doSignMatch = 0;
+          changeError = constrainf(changeError, -1.0f, 1.0f);
+          changeError = ABS(changeError) * power3(changeError) * (pidProfile->emuBoost2_expo / 100.0f) + changeError * (1 - pidProfile->emuBoost2_expo / 100.0f);
+
+          float scaledError = constrainf(errorRate / pidProfile->emuBoost2_cutoff, -1.0f, 1.0f);
+          scaledError = ABS(scaledError) * power3(scaledError) * (pidProfile->emuBoost2_expo / 100.0f) + scaledError * (1 - pidProfile->emuBoost2_expo / 100.0f);
+
+          scaledError *= changeError; // this is only 1 when the error and change in setpoint are high
+          scaledError = pt1FilterApply(&emuboost2_0Filter[axis], scaledError);
+          if (axis == FD_ROLL || axis == FD_PITCH) {
+              DEBUG_SET(DEBUG_EMUBOOST, axis, lrintf(scaledError * 1000));
+          }
+          dynamicDtermScaler[axis] = 1 - scaledError; // this is only 0 when the error and change in setpoint are high
+
+          if (scaledError > 0.0f) {
+              pidData[axis].P *= ((pidProfile->emuBoost2 / 100.0f) * scaledError) + 1.0f;
+              doSignMatch = 1000.0f;
+          } else {
+              doSignMatch = 0.0f;
+          }
+          if (axis == FD_ROLL || axis == FD_PITCH) {
+            DEBUG_SET(DEBUG_EMUBOOST, axis + 2, lrintf(doSignMatch));
+          }
+        } else {
+            dynamicDtermScaler[axis] = 1.0f;
+        }
+
         const float pidSum = pidData[axis].P + pidData[axis].I + pidData[axis].D + directFeedForward;
         pidData[axis].Sum = pidSum * scaledAxisPid[axis];
     }
@@ -899,4 +946,8 @@ bool crashRecoveryModeActive(void) {
 
 float pidGetPreviousSetpoint(int axis) {
     return previousPidSetpoint[axis];
+}
+
+float getDtermPercentLeft(int axis) {
+    return dynamicDtermScaler[axis];
 }
