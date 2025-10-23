@@ -349,4 +349,18 @@ bool ghstRxIsActive(void)
 {
     return serialPort != NULL;
 }
+
+// Unit test accessor to read telemetry buffer populated by ghstRxWriteTelemetryData()
+#ifdef UNITTEST
+uint8_t *ghstGetTelemetryBuf(void)
+{
+    return telemetryBuf;
+}
+
+uint8_t ghstGetTelemetryBufLen(void)
+{
+    return telemetryBufLen;
+}
+#endif
+
 #endif

@@ -86,6 +86,14 @@ extern "C" {
     PG_REGISTER(accelerometerConfig_t, accelerometerConfig, PG_ACCELEROMETER_CONFIG, 0);
 }
 
+// Unit test accessor functions to read firmware's internal telemetry buffer
+// The firmware flow: processGhst() → ghstFinalize() → ghstRxWriteTelemetryData() → copies to telemetryBuf
+// These accessor functions are defined in src/main/rx/ghst.c wrapped in #ifdef UNITTEST
+extern "C" {
+    uint8_t *ghstGetTelemetryBuf(void);     // Returns pointer to telemetryBuf
+    uint8_t ghstGetTelemetryBufLen(void);   // Returns telemetryBufLen
+}
+
 #include "unittest_macros.h"
 #include "gtest/gtest.h"
 
@@ -106,13 +114,17 @@ uint16_t    mAh Drawn
 #define FRAME_HEADER_FOOTER_LEN 4
 
 
-// NOTE: Re-disabled - ghstRxInit() sets up serialPort but processGhst() still doesn't
-// populate the frame. The issue is that processGhst() writes to ghstFrame via sbuf, then
-// calls ghstFinalize() which calls ghstRxWriteTelemetryData(). The firmware has evolved
-// to use a complex TX pipeline that isn't easily testable without significant refactoring.
+// Tests GHST battery telemetry frame generation and transmission.
+// The firmware flow: processGhst() → writes to ghstFrame → ghstFinalize() → ghstRxWriteTelemetryData() → telemetryBuf
+// We access the firmware's telemetryBuf via accessor functions to validate the transmitted frame content.
+//
+// NOTE: DISABLED - processGhst() doesn't populate telemetryBuf with updated values on subsequent calls.
+// First call with zero values works, but second call after updating test variables still returns zeros.
+// Likely issue: processGhst() uses a schedule system and may only send frames at specific intervals,
+// or there's a state machine that's not being properly reset between calls.
+// Requires deeper investigation of GHST telemetry scheduling and state management.
 TEST(TelemetryGhstTest, DISABLED_TestBattery)
 {
-    uint8_t *frame = getGhstFrame();
     uint16_t voltage;
     uint16_t current;
     uint32_t usedMah;
@@ -129,37 +141,52 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
     initGhstTelemetry();
     processGhst();
 
-    EXPECT_EQ(GHST_ADDR_RX, frame[0]); // address
-    EXPECT_EQ(12, frame[1]); // length
-    EXPECT_EQ(0x23, frame[2]); // type
-    voltage = frame[3] << 8 | frame[4]; // mV * 100
+    // Get telemetry buffer via accessor
+    uint8_t *telemetryBuf = ghstGetTelemetryBuf();
+    uint8_t telemetryBufLen = ghstGetTelemetryBufLen();
+
+    // Validate frame was written to telemetry buffer
+    EXPECT_GT(telemetryBufLen, 0); // Frame was transmitted
+    EXPECT_EQ(GHST_ADDR_RX, telemetryBuf[0]); // address
+    EXPECT_EQ(12, telemetryBuf[1]); // length
+    EXPECT_EQ(0x23, telemetryBuf[2]); // type (GHST_DL_PACK_STAT)
+    
+    // Validate battery data (all zeros initially)
+    voltage = telemetryBuf[4] << 8 | telemetryBuf[3]; // mV * 100 (little-endian: LSB in [3], MSB in [4])
     EXPECT_EQ(0, voltage);
-    current = frame[5] << 8 | frame[6]; // mA * 100
+    current = telemetryBuf[6] << 8 | telemetryBuf[5]; // mA * 100 (little-endian)
     EXPECT_EQ(0, current);
-    usedMah = frame[7] << 16 | frame[8] << 8 | frame [9]; // mAh
+    usedMah = telemetryBuf[9] << 16 | telemetryBuf[8] << 8 | telemetryBuf[7]; // mAh (little-endian: [7]=LSB, [8]=mid, [9]=MSB)
     EXPECT_EQ(0, usedMah);
 
-    // Update battery values
+    // Update battery values and test again
     testBatteryVoltage = 124; // 12.4V = 1240 mv
     testAmperage = 2960; // = 29.60A = 29600mA - amperage is in 0.01A steps
     testmAhDrawn = 1234;
 
     processGhst();
+    
+    // Get updated buffer (must call accessor again after processGhst)
+    telemetryBuf = ghstGetTelemetryBuf();
 
-    voltage = frame[4] << 8 | frame[3]; // mV * 100
+    // Validate updated values
+    voltage = telemetryBuf[4] << 8 | telemetryBuf[3]; // mV * 100 (little-endian)
     EXPECT_EQ(testBatteryVoltage * 10, voltage);
-    current = frame[6] << 8 | frame[5]; // mA * 100
+    current = telemetryBuf[6] << 8 | telemetryBuf[5]; // mA * 100 (little-endian)
     EXPECT_EQ(testAmperage, current);
-    usedMah = frame[9] << 16 | frame[8] << 8 | frame [7]; // mAh
+    usedMah = telemetryBuf[9] << 16 | telemetryBuf[8] << 8 | telemetryBuf[7]; // mAh (little-endian)
     EXPECT_EQ(testmAhDrawn/10, usedMah);
 
 }
 
 
-// NOTE: Re-disabled - same issue as TestBattery.
+// Tests GHST battery telemetry with cell voltage reporting enabled.
+// Validates that firmware correctly sends per-cell voltage instead of pack voltage
+// when telemetryConfig()->report_cell_voltage is enabled.
+//
+// NOTE: DISABLED - Same issue as TestBattery. Telemetry buffer not being updated.
 TEST(TelemetryGhstTest, DISABLED_TestBatteryCellVoltage)
 {
-    uint8_t *frame = getGhstFrame(); 
     uint16_t voltage;
     uint16_t current;
     uint32_t usedMah;
@@ -174,16 +201,27 @@ TEST(TelemetryGhstTest, DISABLED_TestBatteryCellVoltage)
     testAmperage = 2960; // = 29.60A = 29600mA - amperage is in 0.01A steps
     testmAhDrawn = 1234;
 
+    // Enable cell voltage reporting mode
     telemetryConfigMutable()->report_cell_voltage = true;
     
     initGhstTelemetry();
     processGhst();
 
-    voltage = frame[4] << 8 | frame[3]; // mV * 100
-    EXPECT_EQ(testBatteryCellVoltage, voltage);
-    current = frame[6] << 8 | frame[5]; // mA * 100
+    // Get telemetry buffer via accessor
+    uint8_t *telemetryBuf = ghstGetTelemetryBuf();
+    uint8_t telemetryBufLen = ghstGetTelemetryBufLen();
+
+    // Validate frame was transmitted
+    EXPECT_GT(telemetryBufLen, 0);
+    
+    // Validate cell voltage (not pack voltage) is reported
+    voltage = telemetryBuf[4] << 8 | telemetryBuf[3]; // mV * 100 (little-endian)
+    EXPECT_EQ(testBatteryCellVoltage, voltage); // Should be cell voltage, not pack
+    
+    current = telemetryBuf[6] << 8 | telemetryBuf[5]; // mA * 100 (little-endian)
     EXPECT_EQ(testAmperage, current);
-    usedMah = frame[9] << 16 | frame[8] << 8 | frame [7]; // mAh
+    
+    usedMah = telemetryBuf[9] << 16 | telemetryBuf[8] << 8 | telemetryBuf[7]; // mAh (little-endian)
     EXPECT_EQ(testmAhDrawn/10, usedMah);
 }
 
