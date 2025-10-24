@@ -162,8 +162,8 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
     EXPECT_EQ(0, usedMah);
 
     // Update battery values and test again
-    testBatteryVoltage = 124; // 12.4V = 1240 mv
-    testAmperage = 2960; // = 29.60A = 29600mA - amperage is in 0.01A steps
+    testBatteryVoltage = 124; // 12.4V (units are 0.1V)
+    testAmperage = 2960; // 29.60A (units are 0.01A)
     testmAhDrawn = 1234;
 
     testAdvanceMicros(50000); // Advance time for next frame
@@ -200,10 +200,10 @@ TEST(TelemetryGhstTest, DISABLED_TestBatteryCellVoltage)
     rxRuntimeConfig_t rxRuntimeState;
     ghstRxInit(rxConfig(), &rxRuntimeState);
 
-    testBatteryVoltage = 124; // 12.4V = 1240 mv
-    testBatteryCellVoltage = 413; // 12.4/3
+    testBatteryVoltage = 124; // 12.4V (units are 0.1V)
+    testBatteryCellVoltage = 413; // 4.13V (units are 0.01V)
     testBatteryCellCount = 3;
-    testAmperage = 2960; // = 29.60A = 29600mA - amperage is in 0.01A steps
+    testAmperage = 2960; // 29.60A (units are 0.01A)
     testmAhDrawn = 1234;
 
     // Enable cell voltage reporting mode
