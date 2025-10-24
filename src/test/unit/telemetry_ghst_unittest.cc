@@ -76,7 +76,7 @@ extern "C" {
     uint8_t testBatteryCellCount = 0;
     int32_t testAmperage = 0;
     int32_t testmAhDrawn = 0;
-    uint32_t getEstimatedAltitude() { return 0; }
+    int32_t getEstimatedAltitude(void) { return 0; }
 
     serialPort_t *telemetrySharedPort;
     PG_REGISTER(batteryConfig_t, batteryConfig, PG_BATTERY_CONFIG, 0);

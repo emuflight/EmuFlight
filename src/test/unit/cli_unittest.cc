@@ -144,7 +144,7 @@ TEST(CLIUnittest, TestCliVtx)
     EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac6->range.endStep));
 
     // set condition 6
-    char *str = (char *)"6 6 1 2 3 925 1300"; 
+    char str[] = "6 6 1 2 3 925 1300";
     cliVtx(str);
 
     EXPECT_EQ(6, cac6->auxChannelIndex);
@@ -156,7 +156,7 @@ TEST(CLIUnittest, TestCliVtx)
     EXPECT_EQ(1300, MODE_STEP_TO_CHANNEL_VALUE(cac6->range.endStep));
 
     // set condition 2
-    char *str2 = (char *)"2 1 2 3 4 1500 2100"; 
+    char str2[] = "2 1 2 3 4 1500 2100";
     cliVtx(str2);
 
     const vtxChannelActivationCondition_t *cac2 = &vtxConfig()->vtxChannelActivationConditions[2];
@@ -170,7 +170,7 @@ TEST(CLIUnittest, TestCliVtx)
 
     // test we can reset existing condition
     // by providing 0 vaues, the condition should be reset (and error shown to the user)
-    char *str3 = (char *)"2 0 0 0 0 0 0"; 
+    char str3[] = "2 0 0 0 0 0 0";
     cliVtx(str3);
 
     EXPECT_EQ(0, cac2->auxChannelIndex);
@@ -183,7 +183,7 @@ TEST(CLIUnittest, TestCliVtx)
 TEST(CLIUnittest, TestCliVtxInvalidArgumentCount)
 {
     // cli expects 7 total arguments (condition index + 6 parameters)
-    char *correctCmd = (char *) "1 1 2 3 4 1000 2000";
+    char correctCmd[] = "1 1 2 3 4 1000 2000";
     cliVtx(correctCmd);  // load some data into condition 1
     const vtxChannelActivationCondition_t *cac1 = &vtxConfig()->vtxChannelActivationConditions[1];
     EXPECT_EQ(1, cac1->auxChannelIndex);
@@ -192,7 +192,7 @@ TEST(CLIUnittest, TestCliVtxInvalidArgumentCount)
     EXPECT_EQ(4, cac1->power);
     EXPECT_EQ(1000, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.startStep));
     EXPECT_EQ(2000, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.endStep));
-    char *str = (char *)"1 0 0 0 0";  // 5 arguments, should throw an error and reset the line 1
+    char str[] = "1 0 0 0 0";  // 5 arguments, should throw an error and reset the line 1
     cliVtx(str);
     EXPECT_EQ(0, cac1->auxChannelIndex);
     EXPECT_EQ(0, cac1->band);
@@ -204,7 +204,7 @@ TEST(CLIUnittest, TestCliVtxInvalidArgumentCount)
 
     cliVtx(correctCmd);  // load some more data into condition 1 so we have something to reset
 
-    char *tooManyArgs = (char *)"1 0 0 0 0 100 200 300";  // 7 arguments, expects 6
+    char tooManyArgs[] = "1 0 0 0 0 100 200 300";  // 7 arguments, expects 6
     cliVtx(tooManyArgs); //should throw an cli error and reset the line 1
     EXPECT_EQ(0, cac1->auxChannelIndex);
     EXPECT_EQ(0, cac1->band);

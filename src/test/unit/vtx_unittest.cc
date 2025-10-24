@@ -135,8 +135,8 @@ TEST(VtxTest, PitMode)
 
 void ResetVtxActivationConditions(void) {
     for (uint8_t index = 0; index < MAX_CHANNEL_ACTIVATION_CONDITION_COUNT; index++) {
-        const vtxChannelActivationCondition_t *cac = &vtxConfig()->vtxChannelActivationConditions[index];
-        memset(&cac, 0, sizeof(vtxChannelActivationCondition_t));
+        vtxChannelActivationCondition_t *cac = &vtxConfigMutable()->vtxChannelActivationConditions[index];
+        memset(cac, 0, sizeof(*cac));
     }
 }
 
