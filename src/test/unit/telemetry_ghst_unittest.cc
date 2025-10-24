@@ -98,6 +98,16 @@ extern "C" {
 #include "unittest_macros.h"
 #include "gtest/gtest.h"
 
+// Helper to drive GHST scheduler until telemetry TX occurs
+static bool driveGhstUntilTx(int maxTries) {
+    for (int i = 0; i < maxTries; ++i) {
+        testAdvanceMicros(50000); // Advance time between frames
+        processGhst();
+        if (ghstGetTelemetryBufLen() > 0) return true;
+    }
+    return false;
+}
+
 uint8_t crfsCrc(uint8_t *frame, int frameLen)
 {
     uint8_t crc = 0;
@@ -138,17 +148,7 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
     testmAhDrawn = 0;
     
     initGhstTelemetry();
-    
-    // Drive scheduler until TX buffer is populated
-    auto driveUntilTx = [&](int tries) {
-        for (int i = 0; i < tries; ++i) {
-            testAdvanceMicros(50000); // Advance time between frames
-            processGhst();
-            if (ghstGetTelemetryBufLen() > 0) return true;
-        }
-        return false;
-    };
-    ASSERT_TRUE(driveUntilTx(8));
+    ASSERT_TRUE(driveGhstUntilTx(8));
 
     // Get telemetry buffer via accessor
     uint8_t *telemetryBuf = ghstGetTelemetryBuf();
@@ -173,7 +173,7 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
     testAmperage = 2960; // 29.60A (units are 0.01A)
     testmAhDrawn = 1234;
 
-    ASSERT_TRUE(driveUntilTx(8));
+    ASSERT_TRUE(driveGhstUntilTx(8));
     
     // Get updated buffer (must call accessor again after processGhst)
     telemetryBuf = ghstGetTelemetryBuf();
@@ -219,17 +219,7 @@ TEST(TelemetryGhstTest, DISABLED_TestBatteryCellVoltage)
     telemetryConfigMutable()->report_cell_voltage = true;
     
     initGhstTelemetry();
-    
-    // Drive scheduler until TX buffer is populated
-    auto driveUntilTx = [&](int tries) {
-        for (int i = 0; i < tries; ++i) {
-            testAdvanceMicros(50000); // Advance time between frames
-            processGhst();
-            if (ghstGetTelemetryBufLen() > 0) return true;
-        }
-        return false;
-    };
-    ASSERT_TRUE(driveUntilTx(8));
+    ASSERT_TRUE(driveGhstUntilTx(8));
 
     // Get telemetry buffer via accessor
     uint8_t *telemetryBuf = ghstGetTelemetryBuf();
