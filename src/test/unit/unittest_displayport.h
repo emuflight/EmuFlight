@@ -18,7 +18,7 @@
 #pragma once
 
 #include <string.h>
-#include <stdarg.h>
+#include <stdarg.h>  // Required for va_list, va_start, va_end
 
 extern "C" {
 #include "drivers/display.h"

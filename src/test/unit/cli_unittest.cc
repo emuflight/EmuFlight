@@ -18,7 +18,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdarg.h>
+#include <stdarg.h>  // Required for va_list, va_start, va_end
 
 #include <limits.h>
 
