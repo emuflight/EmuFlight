@@ -36,7 +36,7 @@ extern "C" {
     #include "pg/pg_ids.h"
     #include "io/beeper.h"
 
-    boxBitmask_t rcModeActivationMask;
+    extern boxBitmask_t rcModeActivationMask;
     int16_t debug[DEBUG16_VALUE_COUNT];
     uint8_t debugMode = 0;
 
@@ -231,5 +231,9 @@ extern "C" {
     void rxPwmInit(const rxConfig_t *, rxRuntimeConfig_t *) {}
 
     void pinioBoxTaskControl(void) {}
-}
+
+    void setCrsfRssi(uint16_t rssiValue)
+    {
+        UNUSED(rssiValue);
+    }
 }

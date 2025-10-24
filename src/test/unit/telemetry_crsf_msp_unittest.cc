@@ -76,7 +76,7 @@ extern "C" {
     uint8_t payloadOutput[64];
     sbuf_t payloadOutputBuf;
     int32_t testmAhDrawn = 0;
-    uint32_t getEstimatedAltitude() { return 0; }
+    int32_t getEstimatedAltitude(void) { return 0; }
 
     PG_REGISTER(batteryConfig_t, batteryConfig, PG_BATTERY_CONFIG, 0);
     PG_REGISTER(telemetryConfig_t, telemetryConfig, PG_TELEMETRY_CONFIG, 0);
@@ -297,4 +297,14 @@ extern "C" {
     int32_t getMAhDrawn(void) {
       return testmAhDrawn;
     }
+
+    // CRSF telemetry stubs (missing from original test)
+    void CRSFsetLQ(uint16_t crsflqValue) { (void)crsflqValue; }
+    void CRSFsetRFMode(uint8_t crsfrfValue) { (void)crsfrfValue; }
+    void CRSFsetSnR(uint16_t crsfsnrValue) { (void)crsfsnrValue; }
+    void CRSFsetTXPower(uint16_t crsftxpValue) { (void)crsftxpValue; }
+    void CRSFsetRSSI(uint8_t crsfrssiValue) { (void)crsfrssiValue; }
+    
+    // Battery stub (missing from original test)
+    uint8_t getBatteryCellCount(void) { return 3; }
 }

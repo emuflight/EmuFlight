@@ -33,7 +33,7 @@ extern "C" {
 extern "C" {
 STATIC_UNIT_TESTED extern uint16_t dmaBufferOffset;
 
-STATIC_UNIT_TESTED void fastUpdateLEDDMABuffer(rgbColor24bpp_t *color);
+STATIC_UNIT_TESTED void fastUpdateLEDDMABuffer(ledStripFormatRGB_e ledFormat, rgbColor24bpp_t *color);
 STATIC_UNIT_TESTED void updateLEDDMABuffer(uint8_t componentValue);
 }
 
@@ -50,7 +50,7 @@ TEST(WS2812, updateDMABuffer) {
     updateLEDDMABuffer(color1.rgb.r);
     updateLEDDMABuffer(color1.rgb.b);
 #else
-    fastUpdateLEDDMABuffer(&color1);
+    fastUpdateLEDDMABuffer(LED_GRB, &color1);  // Updated: firmware now requires ledFormat parameter
 #endif
 
     // then

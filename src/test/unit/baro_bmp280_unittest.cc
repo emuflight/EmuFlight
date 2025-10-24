@@ -44,7 +44,7 @@ typedef struct bmp280_calib_param_s {
     int32_t t_fine; /* calibration t_fine data */
 } bmp280_calib_param_t;
 
-bmp280_calib_param_t bmp280_cal;
+extern bmp280_calib_param_t bmp280_cal;
 }
 
 

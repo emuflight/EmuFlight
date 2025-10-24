@@ -66,7 +66,7 @@ extern "C" {
     uint16_t testBatteryVoltage = 0;
     int32_t testAmperage = 0;
     int32_t testmAhDrawn = 0;
-    uint32_t getEstimatedAltitude() { return 0; }
+    int32_t getEstimatedAltitude() { return gpsSol.llh.alt; }  // Return GPS altitude for testing
 
     serialPort_t *telemetrySharedPort;
     PG_REGISTER(batteryConfig_t, batteryConfig, PG_BATTERY_CONFIG, 0);
@@ -217,6 +217,9 @@ TEST(TelemetryCrsfTest, TestFlightMode)
 {
     uint8_t frame[CRSF_FRAME_SIZE_MAX];
 
+    // Arm the system so firmware doesn't return "WAIT" mode
+    ENABLE_ARMING_FLAG(ARMED);
+
     // nothing set, so ACRO mode
     airMode = false;
     int frameLen = getCrsfFrame(frame, CRSF_FRAMETYPE_FLIGHT_MODE);
@@ -340,5 +343,15 @@ bool handleMspFrame(uint8_t *, int, uint8_t *)  { return false; }
 void crsfScheduleMspResponse(void) {};
 bool isBatteryVoltageConfigured(void) { return true; }
 bool isAmperageConfigured(void) { return true; }
+
+// CRSF telemetry stubs (missing from original test)
+void CRSFsetLQ(uint16_t crsflqValue) { (void)crsflqValue; }
+void CRSFsetRFMode(uint8_t crsfrfValue) { (void)crsfrfValue; }
+void CRSFsetSnR(uint16_t crsfsnrValue) { (void)crsfsnrValue; }
+void CRSFsetTXPower(uint16_t crsftxpValue) { (void)crsftxpValue; }
+void CRSFsetRSSI(uint8_t crsfrssiValue) { (void)crsfrssiValue; }
+
+// Battery stub (missing from original test)
+uint8_t getBatteryCellCount(void) { return 3; }
 
 }

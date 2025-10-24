@@ -253,16 +253,24 @@ extern "C" {
 class RcControlsAdjustmentsTest : public ::testing::Test {
 protected:
     controlRateConfig_t controlRateConfig = {
-            .rcRates[FD_ROLL] = 90,
-            .rcRates[FD_PITCH] = 90,
-            .rcExpo[FD_ROLL] = 0,
-            .rcExpo[FD_PITCH] = 0,
             .thrMid8 = 0,
             .thrExpo8 = 0,
+            .rates_type = 0,
+            .rcRates = {90, 90, 0},
+            .rcExpo = {0, 0, 0},
             .rates = {0, 0, 0},
+            .addRollToYawRc = 0,
+            .addYawToRollRc = 0,
+            .rollPitchMagExpo = 0,
+            .rateDynamics = {0, 0, 0, 0, 0, 0},
             .dynThrP = 0,
-            .rcExpo[FD_YAW] = 0,
-            .tpa_breakpoint = 0
+            .dynThrI = 0,
+            .dynThrD = 0,
+            .tpa_breakpoint = 0,
+            .throttle_limit_type = 0,
+            .throttle_limit_percent = 0,
+            .vbat_comp_type = 0,
+            .vbat_comp_ref = 0
     };
 
     virtual void SetUp() {
@@ -320,16 +328,24 @@ TEST_F(RcControlsAdjustmentsTest, processRcAdjustmentsWithRcRateFunctionSwitchUp
 {
     // given
     controlRateConfig_t controlRateConfig = {
-            .rcRates[FD_ROLL] = 90,
-            .rcRates[FD_PITCH] = 90,
-            .rcExpo[FD_ROLL] = 0,
-            .rcExpo[FD_PITCH] = 0,
             .thrMid8 = 0,
             .thrExpo8 = 0,
-            .rates = {0,0,0},
-            .dynThrPID = 0,
-            .rcExpo[FD_YAW] = 0,
-            .tpa_breakpoint = 0
+            .rates_type = 0,
+            .rcRates = {90, 90, 0},
+            .rcExpo = {0, 0, 0},
+            .rates = {0, 0, 0},
+            .addRollToYawRc = 0,
+            .addYawToRollRc = 0,
+            .rollPitchMagExpo = 0,
+            .rateDynamics = {0, 0, 0, 0, 0, 0},
+            .dynThrP = 0,
+            .dynThrI = 0,
+            .dynThrD = 0,
+            .tpa_breakpoint = 0,
+            .throttle_limit_type = 0,
+            .throttle_limit_percent = 0,
+            .vbat_comp_type = 0,
+            .vbat_comp_ref = 0
     };
 
     // and

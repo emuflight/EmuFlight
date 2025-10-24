@@ -38,9 +38,9 @@ const int TEST_DISPATCH_TIME = 1;
 #define TASK_PERIOD_HZ(hz) (1000000 / (hz))
 
 extern "C" {
-    cfTask_t * unittest_scheduler_selectedTask;
-    uint8_t unittest_scheduler_selectedTaskDynPrio;
-    uint16_t unittest_scheduler_waitingTasks;
+    extern cfTask_t * unittest_scheduler_selectedTask;
+    extern uint8_t unittest_scheduler_selectedTaskDynamicPriority;
+    extern uint16_t unittest_scheduler_waitingTasks;
 
     // set up micros() to simulate time
     uint32_t simulatedTime = 0;
@@ -66,58 +66,149 @@ extern "C" {
     extern cfTask_t *queueFirst(void);
     extern cfTask_t *queueNext(void);
 
+    // Suppress C99 array designator warnings for cfTasks initialization
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wc99-designator"
+
     cfTask_t cfTasks[TASK_COUNT] = {
         [TASK_SYSTEM] = {
             .taskName = "SYSTEM",
+            .subTaskName = NULL,
+            .checkFunc = NULL,
             .taskFunc = taskSystemLoad,
             .desiredPeriod = TASK_PERIOD_HZ(10),
             .staticPriority = TASK_PRIORITY_MEDIUM_HIGH,
+            .executeNow = false,
+            .dynamicPriority = 0,
+            .taskAgeCycles = 0,
+            .taskLatestDeltaTime = 0,
+            .lastExecutedAt = 0,
+            .lastSignaledAt = 0,
+            .movingSumExecutionTime = 0,
+            .maxExecutionTime = 0,
+            .totalExecutionTime = 0,
         },
         [TASK_GYROPID] = {
             .taskName = "PID",
             .subTaskName = "GYRO",
+            .checkFunc = NULL,
             .taskFunc = taskMainPidLoop,
             .desiredPeriod = 1000,
             .staticPriority = TASK_PRIORITY_REALTIME,
+            .executeNow = false,
+            .dynamicPriority = 0,
+            .taskAgeCycles = 0,
+            .taskLatestDeltaTime = 0,
+            .lastExecutedAt = 0,
+            .lastSignaledAt = 0,
+            .movingSumExecutionTime = 0,
+            .maxExecutionTime = 0,
+            .totalExecutionTime = 0,
         },
         [TASK_ACCEL] = {
             .taskName = "ACCEL",
+            .subTaskName = NULL,
+            .checkFunc = NULL,
             .taskFunc = taskUpdateAccelerometer,
             .desiredPeriod = 10000,
             .staticPriority = TASK_PRIORITY_MEDIUM,
+            .executeNow = false,
+            .dynamicPriority = 0,
+            .taskAgeCycles = 0,
+            .taskLatestDeltaTime = 0,
+            .lastExecutedAt = 0,
+            .lastSignaledAt = 0,
+            .movingSumExecutionTime = 0,
+            .maxExecutionTime = 0,
+            .totalExecutionTime = 0,
         },
         [TASK_ATTITUDE] = {
             .taskName = "ATTITUDE",
+            .subTaskName = NULL,
+            .checkFunc = NULL,
             .taskFunc = imuUpdateAttitude,
             .desiredPeriod = TASK_PERIOD_HZ(1000),
             .staticPriority = TASK_PRIORITY_MEDIUM,
+            .executeNow = false,
+            .dynamicPriority = 0,
+            .taskAgeCycles = 0,
+            .taskLatestDeltaTime = 0,
+            .lastExecutedAt = 0,
+            .lastSignaledAt = 0,
+            .movingSumExecutionTime = 0,
+            .maxExecutionTime = 0,
+            .totalExecutionTime = 0,
         },
         [TASK_RX] = {
             .taskName = "RX",
+            .subTaskName = NULL,
             .checkFunc = rxUpdateCheck,
             .taskFunc = taskUpdateRxMain,
             .desiredPeriod = TASK_PERIOD_HZ(50),
             .staticPriority = TASK_PRIORITY_HIGH,
+            .executeNow = false,
+            .dynamicPriority = 0,
+            .taskAgeCycles = 0,
+            .taskLatestDeltaTime = 0,
+            .lastExecutedAt = 0,
+            .lastSignaledAt = 0,
+            .movingSumExecutionTime = 0,
+            .maxExecutionTime = 0,
+            .totalExecutionTime = 0,
         },
         [TASK_SERIAL] = {
             .taskName = "SERIAL",
+            .subTaskName = NULL,
+            .checkFunc = NULL,
             .taskFunc = taskHandleSerial,
             .desiredPeriod = TASK_PERIOD_HZ(100),
             .staticPriority = TASK_PRIORITY_LOW,
+            .executeNow = false,
+            .dynamicPriority = 0,
+            .taskAgeCycles = 0,
+            .taskLatestDeltaTime = 0,
+            .lastExecutedAt = 0,
+            .lastSignaledAt = 0,
+            .movingSumExecutionTime = 0,
+            .maxExecutionTime = 0,
+            .totalExecutionTime = 0,
         },
         [TASK_DISPATCH] = {
             .taskName = "DISPATCH",
+            .subTaskName = NULL,
+            .checkFunc = NULL,
             .taskFunc = dispatchProcess,
             .desiredPeriod = TASK_PERIOD_HZ(1000),
             .staticPriority = TASK_PRIORITY_HIGH,
+            .executeNow = false,
+            .dynamicPriority = 0,
+            .taskAgeCycles = 0,
+            .taskLatestDeltaTime = 0,
+            .lastExecutedAt = 0,
+            .lastSignaledAt = 0,
+            .movingSumExecutionTime = 0,
+            .maxExecutionTime = 0,
+            .totalExecutionTime = 0,
         },
         [TASK_BATTERY_VOLTAGE] = {
             .taskName = "BATTERY_VOLTAGE",
+            .subTaskName = NULL,
+            .checkFunc = NULL,
             .taskFunc = taskUpdateBatteryVoltage,
             .desiredPeriod = TASK_PERIOD_HZ(50),
             .staticPriority = TASK_PRIORITY_MEDIUM,
+            .executeNow = false,
+            .dynamicPriority = 0,
+            .taskAgeCycles = 0,
+            .taskLatestDeltaTime = 0,
+            .lastExecutedAt = 0,
+            .lastSignaledAt = 0,
+            .movingSumExecutionTime = 0,
+            .maxExecutionTime = 0,
+            .totalExecutionTime = 0,
         }
     };
+    #pragma GCC diagnostic pop
 }
 
 TEST(SchedulerUnittest, TestPriorites)
@@ -140,24 +231,26 @@ TEST(SchedulerUnittest, TestQueueInit)
     }
 }
 
-cfTask_t *deadBeefPtr = reinterpret_cast<cfTask_t*>(0xDEADBEEF);
-
+// NOTE: taskQueueArray is sized [TASK_COUNT + 1] where the last element (index TASK_COUNT)
+// is reserved for the NULL terminator. This test verifies queue operations maintain proper
+// priority ordering and don't corrupt the NULL terminator.
 TEST(SchedulerUnittest, TestQueue)
 {
     queueClear();
-    taskQueueArray[TASK_COUNT + 1] = deadBeefPtr;
+    // Verify last element is NULL after clear
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT]);
 
     queueAdd(&cfTasks[TASK_SYSTEM]); // TASK_PRIORITY_MEDIUM_HIGH
     EXPECT_EQ(1, taskQueueSize);
     EXPECT_EQ(&cfTasks[TASK_SYSTEM], queueFirst());
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT + 1]);
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT]); // NULL terminator intact
 
     queueAdd(&cfTasks[TASK_GYROPID]); // TASK_PRIORITY_REALTIME
     EXPECT_EQ(2, taskQueueSize);
     EXPECT_EQ(&cfTasks[TASK_GYROPID], queueFirst());
     EXPECT_EQ(&cfTasks[TASK_SYSTEM], queueNext());
     EXPECT_EQ(NULL, queueNext());
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT + 1]);
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT]); // NULL terminator intact
 
     queueAdd(&cfTasks[TASK_SERIAL]); // TASK_PRIORITY_LOW
     EXPECT_EQ(3, taskQueueSize);
@@ -165,7 +258,7 @@ TEST(SchedulerUnittest, TestQueue)
     EXPECT_EQ(&cfTasks[TASK_SYSTEM], queueNext());
     EXPECT_EQ(&cfTasks[TASK_SERIAL], queueNext());
     EXPECT_EQ(NULL, queueNext());
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT + 1]);
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT]); // NULL terminator intact
 
     queueAdd(&cfTasks[TASK_BATTERY_VOLTAGE]); // TASK_PRIORITY_MEDIUM
     EXPECT_EQ(4, taskQueueSize);
@@ -174,7 +267,7 @@ TEST(SchedulerUnittest, TestQueue)
     EXPECT_EQ(&cfTasks[TASK_BATTERY_VOLTAGE], queueNext());
     EXPECT_EQ(&cfTasks[TASK_SERIAL], queueNext());
     EXPECT_EQ(NULL, queueNext());
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT + 1]);
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT]); // NULL terminator intact
 
     queueAdd(&cfTasks[TASK_RX]); // TASK_PRIORITY_HIGH
     EXPECT_EQ(5, taskQueueSize);
@@ -184,7 +277,7 @@ TEST(SchedulerUnittest, TestQueue)
     EXPECT_EQ(&cfTasks[TASK_BATTERY_VOLTAGE], queueNext());
     EXPECT_EQ(&cfTasks[TASK_SERIAL], queueNext());
     EXPECT_EQ(NULL, queueNext());
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT + 1]);
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT]); // NULL terminator intact
 
     queueRemove(&cfTasks[TASK_SYSTEM]); // TASK_PRIORITY_HIGH
     EXPECT_EQ(4, taskQueueSize);
@@ -193,27 +286,27 @@ TEST(SchedulerUnittest, TestQueue)
     EXPECT_EQ(&cfTasks[TASK_BATTERY_VOLTAGE], queueNext());
     EXPECT_EQ(&cfTasks[TASK_SERIAL], queueNext());
     EXPECT_EQ(NULL, queueNext());
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT + 1]);
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT]); // NULL terminator intact
 }
 
 TEST(SchedulerUnittest, TestQueueAddAndRemove)
 {
     queueClear();
-    taskQueueArray[TASK_COUNT + 1] = deadBeefPtr;
+    // Verify NULL terminator is in place
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT]);
 
     // fill up the queue
     for (int taskId = 0; taskId < TASK_COUNT; ++taskId) {
         const bool added = queueAdd(&cfTasks[taskId]);
         EXPECT_EQ(true, added);
         EXPECT_EQ(taskId + 1, taskQueueSize);
-        EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT + 1]);
+        EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT]); // NULL terminator intact
     }
 
     // double check end of queue
     EXPECT_EQ(TASK_COUNT, taskQueueSize);
     EXPECT_NE(static_cast<cfTask_t*>(0), taskQueueArray[TASK_COUNT - 1]); // last item was indeed added to queue
     EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT]); // null pointer at end of queue is preserved
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT + 1]); // there hasn't been an out by one error
 
     // and empty it again
     for (int taskId = 0; taskId < TASK_COUNT; ++taskId) {
@@ -221,20 +314,20 @@ TEST(SchedulerUnittest, TestQueueAddAndRemove)
         EXPECT_EQ(true, removed);
         EXPECT_EQ(TASK_COUNT - taskId - 1, taskQueueSize);
         EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT - taskId]);
-        EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT + 1]);
+        EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT]); // NULL terminator intact
     }
 
     // double check size and end of queue
     EXPECT_EQ(0, taskQueueSize); // queue is indeed empty
-    EXPECT_EQ(NULL, taskQueueArray[0]); // there is a null pointer at the end of the queueu
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT + 1]); // no accidental overwrites past end of queue
+    EXPECT_EQ(NULL, taskQueueArray[0]); // there is a null pointer at the end of the queue
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT]); // NULL terminator still intact
 }
 
 TEST(SchedulerUnittest, TestQueueArray)
 {
     // test there are no "out by one" errors or buffer overruns when items are added and removed
     queueClear();
-    taskQueueArray[TASK_COUNT_UNITTEST + 1] = deadBeefPtr; // note, must set deadBeefPtr after queueClear
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT_UNITTEST]); // Verify NULL terminator
 
     unsigned enqueuedTasks = 0;
     EXPECT_EQ(enqueuedTasks, taskQueueSize);
@@ -244,7 +337,7 @@ TEST(SchedulerUnittest, TestQueueArray)
             setTaskEnabled(static_cast<cfTaskId_e>(taskId), true);
             enqueuedTasks++;
             EXPECT_EQ(enqueuedTasks, taskQueueSize);
-            EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT_UNITTEST + 1]);
+            EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT_UNITTEST]); // NULL terminator intact
         }
     }
 
@@ -252,7 +345,7 @@ TEST(SchedulerUnittest, TestQueueArray)
     const cfTask_t *lastTaskPrev = taskQueueArray[enqueuedTasks - 1];
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks]);
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks + 1]);
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT_UNITTEST + 1]);
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT_UNITTEST]); // NULL terminator intact
 
     setTaskEnabled(TASK_SYSTEM, false);
     EXPECT_EQ(enqueuedTasks - 1, taskQueueSize);
@@ -260,7 +353,7 @@ TEST(SchedulerUnittest, TestQueueArray)
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks - 1]); // NULL at end of queue
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks]);
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks + 1]);
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT_UNITTEST + 1]);
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT_UNITTEST]); // NULL terminator intact
 
     taskQueueArray[enqueuedTasks - 1] = 0;
     setTaskEnabled(TASK_SYSTEM, true);
@@ -268,7 +361,7 @@ TEST(SchedulerUnittest, TestQueueArray)
     EXPECT_EQ(lastTaskPrev, taskQueueArray[enqueuedTasks - 1]);
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks]);
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks + 1]);
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT_UNITTEST + 1]);
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT_UNITTEST]); // NULL terminator intact
 
     cfTaskInfo_t taskInfo;
     getTaskInfo(static_cast<cfTaskId_e>(enqueuedTasks + 1), &taskInfo);
@@ -277,20 +370,20 @@ TEST(SchedulerUnittest, TestQueueArray)
     EXPECT_EQ(enqueuedTasks, taskQueueSize);
     EXPECT_EQ(lastTaskPrev, taskQueueArray[enqueuedTasks - 1]);
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks + 1]); // check no buffer overrun
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT_UNITTEST + 1]);
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT_UNITTEST]); // NULL terminator intact
 
     setTaskEnabled(TASK_SYSTEM, false);
     EXPECT_EQ(enqueuedTasks - 1, taskQueueSize);
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks]);
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks + 1]);
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT_UNITTEST + 1]);
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT_UNITTEST]); // NULL terminator intact
 
     setTaskEnabled(TASK_ACCEL, false);
     EXPECT_EQ(enqueuedTasks - 2, taskQueueSize);
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks - 1]);
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks]);
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks + 1]);
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT_UNITTEST + 1]);
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT_UNITTEST]); // NULL terminator intact
 
     setTaskEnabled(TASK_BATTERY_VOLTAGE, false);
     EXPECT_EQ(enqueuedTasks - 2, taskQueueSize);
@@ -298,7 +391,7 @@ TEST(SchedulerUnittest, TestQueueArray)
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks - 1]);
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks]);
     EXPECT_EQ(NULL, taskQueueArray[enqueuedTasks + 1]);
-    EXPECT_EQ(deadBeefPtr, taskQueueArray[TASK_COUNT_UNITTEST + 1]);
+    EXPECT_EQ(NULL, taskQueueArray[TASK_COUNT_UNITTEST]); // NULL terminator intact
 }
 
 TEST(SchedulerUnittest, TestSchedulerInit)
