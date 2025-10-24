@@ -154,11 +154,11 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
     EXPECT_EQ(0x23, telemetryBuf[2]); // type (GHST_DL_PACK_STAT)
     
     // Validate battery data (all zeros initially)
-    voltage = telemetryBuf[4] << 8 | telemetryBuf[3]; // mV * 100 (little-endian: LSB in [3], MSB in [4])
+    voltage = telemetryBuf[4] << 8 | telemetryBuf[3]; // volts * 100 (little-endian: LSB [3], MSB [4])
     EXPECT_EQ(0, voltage);
-    current = telemetryBuf[6] << 8 | telemetryBuf[5]; // mA * 100 (little-endian)
+    current = telemetryBuf[6] << 8 | telemetryBuf[5]; // amps * 100 (little-endian)
     EXPECT_EQ(0, current);
-    usedMah = telemetryBuf[9] << 16 | telemetryBuf[8] << 8 | telemetryBuf[7]; // mAh (little-endian: [7]=LSB, [8]=mid, [9]=MSB)
+    usedMah = telemetryBuf[9] << 16 | telemetryBuf[8] << 8 | telemetryBuf[7]; // mAh (LE: [7]=LSB, [8]=mid, [9]=MSB)
     EXPECT_EQ(0, usedMah);
 
     // Update battery values and test again
@@ -171,13 +171,15 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
     
     // Get updated buffer (must call accessor again after processGhst)
     telemetryBuf = ghstGetTelemetryBuf();
+    telemetryBufLen = ghstGetTelemetryBufLen();
+    ASSERT_GT(telemetryBufLen, 0);
 
     // Validate updated values
-    voltage = telemetryBuf[4] << 8 | telemetryBuf[3]; // mV * 100 (little-endian)
+    voltage = telemetryBuf[4] << 8 | telemetryBuf[3]; // volts * 100 (little-endian)
     EXPECT_EQ(testBatteryVoltage * 10, voltage);
-    current = telemetryBuf[6] << 8 | telemetryBuf[5]; // mA * 100 (little-endian)
+    current = telemetryBuf[6] << 8 | telemetryBuf[5]; // amps * 100 (little-endian)
     EXPECT_EQ(testAmperage, current);
-    usedMah = telemetryBuf[9] << 16 | telemetryBuf[8] << 8 | telemetryBuf[7]; // mAh (little-endian)
+    usedMah = telemetryBuf[9] << 16 | telemetryBuf[8] << 8 | telemetryBuf[7]; // mAh (LE)
     EXPECT_EQ(testmAhDrawn/10, usedMah);
 
 }
@@ -219,13 +221,13 @@ TEST(TelemetryGhstTest, DISABLED_TestBatteryCellVoltage)
     EXPECT_GT(telemetryBufLen, 0);
     
     // Validate cell voltage (not pack voltage) is reported
-    voltage = telemetryBuf[4] << 8 | telemetryBuf[3]; // mV * 100 (little-endian)
+    voltage = telemetryBuf[4] << 8 | telemetryBuf[3]; // volts * 100 (little-endian)
     EXPECT_EQ(testBatteryCellVoltage, voltage); // Should be cell voltage, not pack
     
-    current = telemetryBuf[6] << 8 | telemetryBuf[5]; // mA * 100 (little-endian)
+    current = telemetryBuf[6] << 8 | telemetryBuf[5]; // amps * 100 (little-endian)
     EXPECT_EQ(testAmperage, current);
     
-    usedMah = telemetryBuf[9] << 16 | telemetryBuf[8] << 8 | telemetryBuf[7]; // mAh (little-endian)
+    usedMah = telemetryBuf[9] << 16 | telemetryBuf[8] << 8 | telemetryBuf[7]; // mAh (LE)
     EXPECT_EQ(testmAhDrawn/10, usedMah);
 }
 
