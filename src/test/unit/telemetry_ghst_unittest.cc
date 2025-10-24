@@ -42,6 +42,7 @@ extern "C" {
     #include "drivers/serial.h"
     #include "drivers/system.h"
 
+    #include "config/feature.h"
     #include "fc/config.h"
     #include "fc/runtime_config.h"
 
@@ -67,7 +68,6 @@ extern "C" {
     uint8_t ghstScheduleCount;
     void ghstInitializeFrame(sbuf_t *dst);
     void processGhst(void);
-    uint8_t *getGhstFrame(void);  // Unit test accessor in firmware
 
     bool airMode;
 
@@ -119,11 +119,9 @@ uint16_t    mAh Drawn
 // The firmware flow: processGhst() → writes to ghstFrame → ghstFinalize() → ghstRxWriteTelemetryData() → telemetryBuf
 // We access the firmware's telemetryBuf via accessor functions to validate the transmitted frame content.
 //
-// NOTE: DISABLED - Further investigation needed. Added fake clock and TX buffer space,
-// but values still return 0 after processGhst() calls. The GHST scheduler appears to require 
-// additional conditions beyond time advancement (e.g., specific frame type rotation, telemetry 
-// enable flags, or inter-frame timing requirements). Infrastructure is complete for future 
-// enabling once scheduler behavior is fully understood.
+// NOTE: Currently disabled pending scheduler rotation details.
+// Infrastructure is ready. To re-enable, drive several GHST windows and break on first nonzero TX.
+// Optionally stub feature(FEATURE_GPS)=false to keep the schedule minimal (PACK_STAT only).
 TEST(TelemetryGhstTest, DISABLED_TestBattery)
 {
     uint16_t voltage;
@@ -132,7 +130,7 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
 
     // Initialize GHST RX (sets up serialPort so ghstRxIsActive() returns true)
     rxRuntimeConfig_t rxRuntimeState;
-    ghstRxInit(rxConfig(), &rxRuntimeState);
+    ASSERT_TRUE(ghstRxInit(rxConfig(), &rxRuntimeState));
 
     // Initialize with battery config enabled
     testBatteryVoltage = 0; // 0.1V units
@@ -140,18 +138,27 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
     testmAhDrawn = 0;
     
     initGhstTelemetry();
-    testAdvanceMicros(50000); // Advance time to allow scheduler window to elapse
-    processGhst();
+    
+    // Drive scheduler until TX buffer is populated
+    auto driveUntilTx = [&](int tries) {
+        for (int i = 0; i < tries; ++i) {
+            testAdvanceMicros(50000); // Advance time between frames
+            processGhst();
+            if (ghstGetTelemetryBufLen() > 0) return true;
+        }
+        return false;
+    };
+    ASSERT_TRUE(driveUntilTx(8));
 
     // Get telemetry buffer via accessor
     uint8_t *telemetryBuf = ghstGetTelemetryBuf();
     uint8_t telemetryBufLen = ghstGetTelemetryBufLen();
 
     // Validate frame was written to telemetry buffer
-    EXPECT_GT(telemetryBufLen, 0); // Frame was transmitted
-    EXPECT_EQ(GHST_ADDR_RX, telemetryBuf[0]); // address
-    EXPECT_EQ(12, telemetryBuf[1]); // length
-    EXPECT_EQ(0x23, telemetryBuf[2]); // type (GHST_DL_PACK_STAT)
+    EXPECT_GT(telemetryBufLen, 0);                  // Frame was transmitted
+    EXPECT_EQ(GHST_ADDR_RX, telemetryBuf[0]);       // address
+    EXPECT_EQ(12, telemetryBuf[1]);                 // length (type + payload + crc)
+    EXPECT_EQ(GHST_DL_PACK_STAT, telemetryBuf[2]);  // type
     
     // Validate battery data (all zeros initially)
     voltage = telemetryBuf[4] << 8 | telemetryBuf[3]; // volts * 100 (little-endian: LSB [3], MSB [4])
@@ -166,21 +173,23 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
     testAmperage = 2960; // 29.60A (units are 0.01A)
     testmAhDrawn = 1234;
 
-    testAdvanceMicros(50000); // Advance time for next frame
-    processGhst();
+    ASSERT_TRUE(driveUntilTx(8));
     
     // Get updated buffer (must call accessor again after processGhst)
     telemetryBuf = ghstGetTelemetryBuf();
     telemetryBufLen = ghstGetTelemetryBufLen();
     ASSERT_GT(telemetryBufLen, 0);
 
-    // Validate updated values
+    // Validate updated values with explicit unit conversion
+    constexpr int kVoltScale = 10;  // 0.1V → 0.01V
+    constexpr int kMahScale = 10;   // 0.1mAh → 1mAh
+    
     voltage = telemetryBuf[4] << 8 | telemetryBuf[3]; // volts * 100 (little-endian)
-    EXPECT_EQ(testBatteryVoltage * 10, voltage);
+    EXPECT_EQ(testBatteryVoltage * kVoltScale, voltage);
     current = telemetryBuf[6] << 8 | telemetryBuf[5]; // amps * 100 (little-endian)
     EXPECT_EQ(testAmperage, current);
     usedMah = telemetryBuf[9] << 16 | telemetryBuf[8] << 8 | telemetryBuf[7]; // mAh (LE)
-    EXPECT_EQ(testmAhDrawn/10, usedMah);
+    EXPECT_EQ(testmAhDrawn / kMahScale, usedMah);
 
 }
 
@@ -198,7 +207,7 @@ TEST(TelemetryGhstTest, DISABLED_TestBatteryCellVoltage)
 
     // Initialize GHST RX
     rxRuntimeConfig_t rxRuntimeState;
-    ghstRxInit(rxConfig(), &rxRuntimeState);
+    ASSERT_TRUE(ghstRxInit(rxConfig(), &rxRuntimeState));
 
     testBatteryVoltage = 124; // 12.4V (units are 0.1V)
     testBatteryCellVoltage = 413; // 4.13V (units are 0.01V)
@@ -210,8 +219,17 @@ TEST(TelemetryGhstTest, DISABLED_TestBatteryCellVoltage)
     telemetryConfigMutable()->report_cell_voltage = true;
     
     initGhstTelemetry();
-    testAdvanceMicros(50000); // Advance time to allow scheduler window to elapse
-    processGhst();
+    
+    // Drive scheduler until TX buffer is populated
+    auto driveUntilTx = [&](int tries) {
+        for (int i = 0; i < tries; ++i) {
+            testAdvanceMicros(50000); // Advance time between frames
+            processGhst();
+            if (ghstGetTelemetryBufLen() > 0) return true;
+        }
+        return false;
+    };
+    ASSERT_TRUE(driveUntilTx(8));
 
     // Get telemetry buffer via accessor
     uint8_t *telemetryBuf = ghstGetTelemetryBuf();
@@ -255,7 +273,8 @@ void testAdvanceMicros(uint32_t delta) { fakeMicros += delta; }
 uint32_t micros(void) { return fakeMicros; }
 uint32_t microsISR(void) { return fakeMicros; }
 
-bool feature(uint32_t) {return true;}
+// Disable GPS to reduce schedule rotation complexity
+bool feature(uint32_t f) { return (f == FEATURE_GPS) ? false : true; }
 
 uint32_t serialRxBytesWaiting(const serialPort_t *) {return 0;}
 // Provide space so ghstRxWriteTelemetryData() can "send"
