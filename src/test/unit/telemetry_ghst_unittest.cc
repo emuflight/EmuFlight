@@ -92,6 +92,7 @@ extern "C" {
 extern "C" {
     uint8_t *ghstGetTelemetryBuf(void);     // Returns pointer to telemetryBuf
     uint8_t ghstGetTelemetryBufLen(void);   // Returns telemetryBufLen
+    void testAdvanceMicros(uint32_t delta); // Advance fake time for scheduler testing
 }
 
 #include "unittest_macros.h"
@@ -118,11 +119,11 @@ uint16_t    mAh Drawn
 // The firmware flow: processGhst() → writes to ghstFrame → ghstFinalize() → ghstRxWriteTelemetryData() → telemetryBuf
 // We access the firmware's telemetryBuf via accessor functions to validate the transmitted frame content.
 //
-// NOTE: DISABLED - processGhst() doesn't populate telemetryBuf with updated values on subsequent calls.
-// First call with zero values works, but second call after updating test variables still returns zeros.
-// Likely issue: processGhst() uses a schedule system and may only send frames at specific intervals,
-// or there's a state machine that's not being properly reset between calls.
-// Requires deeper investigation of GHST telemetry scheduling and state management.
+// NOTE: DISABLED - Further investigation needed. Added fake clock and TX buffer space,
+// but values still return 0 after processGhst() calls. The GHST scheduler appears to require 
+// additional conditions beyond time advancement (e.g., specific frame type rotation, telemetry 
+// enable flags, or inter-frame timing requirements). Infrastructure is complete for future 
+// enabling once scheduler behavior is fully understood.
 TEST(TelemetryGhstTest, DISABLED_TestBattery)
 {
     uint16_t voltage;
@@ -139,6 +140,7 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
     testmAhDrawn = 0;
     
     initGhstTelemetry();
+    testAdvanceMicros(50000); // Advance time to allow scheduler window to elapse
     processGhst();
 
     // Get telemetry buffer via accessor
@@ -164,6 +166,7 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
     testAmperage = 2960; // = 29.60A = 29600mA - amperage is in 0.01A steps
     testmAhDrawn = 1234;
 
+    testAdvanceMicros(50000); // Advance time for next frame
     processGhst();
     
     // Get updated buffer (must call accessor again after processGhst)
@@ -184,7 +187,7 @@ TEST(TelemetryGhstTest, DISABLED_TestBattery)
 // Validates that firmware correctly sends per-cell voltage instead of pack voltage
 // when telemetryConfig()->report_cell_voltage is enabled.
 //
-// NOTE: DISABLED - Same issue as TestBattery. Telemetry buffer not being updated.
+// NOTE: DISABLED - Same as TestBattery. Requires further scheduler investigation.
 TEST(TelemetryGhstTest, DISABLED_TestBatteryCellVoltage)
 {
     uint16_t voltage;
@@ -205,6 +208,7 @@ TEST(TelemetryGhstTest, DISABLED_TestBatteryCellVoltage)
     telemetryConfigMutable()->report_cell_voltage = true;
     
     initGhstTelemetry();
+    testAdvanceMicros(50000); // Advance time to allow scheduler window to elapse
     processGhst();
 
     // Get telemetry buffer via accessor
@@ -243,12 +247,17 @@ gpsSolutionData_t gpsSol;
 
 void beeperConfirmationBeeps(uint8_t beepCount) {UNUSED(beepCount);}
 
-uint32_t micros(void) {return 0;}
+// Fake time for scheduler-driven telemetry
+static uint32_t fakeMicros = 0;
+void testAdvanceMicros(uint32_t delta) { fakeMicros += delta; }
+uint32_t micros(void) { return fakeMicros; }
+uint32_t microsISR(void) { return fakeMicros; }
 
 bool feature(uint32_t) {return true;}
 
 uint32_t serialRxBytesWaiting(const serialPort_t *) {return 0;}
-uint32_t serialTxBytesFree(const serialPort_t *) {return 0;}
+// Provide space so ghstRxWriteTelemetryData() can "send"
+uint32_t serialTxBytesFree(const serialPort_t *) { return 64; }
 uint8_t serialRead(serialPort_t *) {return 0;}
 void serialWrite(serialPort_t *, uint8_t) {}
 void serialWriteBuf(serialPort_t *, const uint8_t *, int) {}
@@ -309,9 +318,6 @@ bool isAmperageConfigured(void) { return true; }
 
 void setRssi(uint16_t, rssiSource_e){}
 rssiSource_e rssiSource;
-
-
-uint32_t microsISR(void) { return 0; };
 
 bool checkGhstTelemetryState(void) {
     return true;
