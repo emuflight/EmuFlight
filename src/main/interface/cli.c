@@ -71,6 +71,7 @@ extern uint8_t __config_end;
 #include "drivers/display.h"
 #include "drivers/dma.h"
 #include "drivers/dma_spi.h"
+#include "drivers/exti.h"
 #include "drivers/flash.h"
 #include "drivers/inverter.h"
 #include "drivers/io.h"
@@ -2486,6 +2487,10 @@ static void cliRebootEx(bool bootLoader) {
     bufWriterFlush(cliWriter);
     waitForSerialPortToFinishTransmitting(cliPort);
     stopPwmAllMotors();
+#if defined(USE_DMA_SPI_DEVICE) && defined(MPU_INT_EXTI)
+    // Re-enable gyro EXTI before reboot
+    EXTIEnable(IOGetByTag(IO_TAG(MPU_INT_EXTI)), true);
+#endif
     if (bootLoader) {
         systemResetToBootloader();
         return;
@@ -2644,6 +2649,10 @@ static void cliExit(char *cmdline) {
     cliMode = 0;
     // incase a motor was left running during motortest, clear it here
     mixerResetDisarmedMotors();
+#if defined(USE_DMA_SPI_DEVICE) && defined(MPU_INT_EXTI)
+    // Re-enable gyro EXTI before reboot
+    EXTIEnable(IOGetByTag(IO_TAG(MPU_INT_EXTI)), true);
+#endif
     cliReboot();
     cliWriter = NULL;
 }
@@ -4583,6 +4592,10 @@ void cliEnter(serialPort_t *serialPort) {
 #endif
     cliPrompt();
     setArmingDisabled(ARMING_DISABLED_CLI);
+#if defined(USE_DMA_SPI_DEVICE) && defined(MPU_INT_EXTI)
+    // Disable gyro EXTI during CLI to prevent preemption of USB writes
+    EXTIEnable(IOGetByTag(IO_TAG(MPU_INT_EXTI)), false);
+#endif
 }
 
 void cliInit(const serialConfig_t *serialConfig) {
