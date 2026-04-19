@@ -37,33 +37,33 @@
 #include "drivers/time.h"
 
 
-static void icm20649SpiInit(const extDevice_t *bus) {
+static void icm20649SpiInit(const extDevice_t *dev) {
     static bool hardwareInitialised = false;
     if (hardwareInitialised) {
         return;
     }
 #ifndef USE_DUAL_GYRO
-    IOInit(bus->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
-    IOConfigGPIO(bus->busType_u.spi.csnPin, SPI_IO_CS_CFG);
-    IOHi(bus->busType_u.spi.csnPin);
+    IOInit(dev->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
+    IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
+    IOHi(dev->busType_u.spi.csnPin);
 #endif
     // all registers can be read/written at full speed (7MHz +-10%)
     // TODO verify that this works at 9MHz and 10MHz on non F7
-    spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     hardwareInitialised = true;
 }
 
-uint8_t icm20649SpiDetect(const extDevice_t *bus) {
-    icm20649SpiInit(bus);
-    spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
-    spiWriteReg(bus, ICM20649_RA_REG_BANK_SEL, 0 << 4); // select bank 0 just to be safe
+uint8_t icm20649SpiDetect(const extDevice_t *dev) {
+    icm20649SpiInit(dev);
+    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiWriteReg(dev, ICM20649_RA_REG_BANK_SEL, 0 << 4); // select bank 0 just to be safe
     delay(15);
-    spiWriteReg(bus, ICM20649_RA_PWR_MGMT_1, ICM20649_BIT_RESET);
+    spiWriteReg(dev, ICM20649_RA_PWR_MGMT_1, ICM20649_BIT_RESET);
     uint8_t icmDetected = MPU_NONE;
     uint8_t attemptsRemaining = 20;
     do {
         delay(150);
-        const uint8_t whoAmI = spiReadReg(bus, ICM20649_RA_WHO_AM_I);
+        const uint8_t whoAmI = spiReadReg(dev, ICM20649_RA_WHO_AM_I);
         if (whoAmI == ICM20649_WHO_AM_I_CONST) {
             icmDetected = ICM_20649_SPI;
         } else {

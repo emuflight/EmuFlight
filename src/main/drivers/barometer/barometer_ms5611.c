@@ -49,10 +49,10 @@
 #define CMD_PROM_RD             0xA0 // Prom read command
 #define PROM_NB                 8
 
-static void ms5611_reset(extDevice_t *busdev);
-static uint16_t ms5611_prom(extDevice_t *busdev, int8_t coef_num);
+static void ms5611_reset(extDevice_t *dev);
+static uint16_t ms5611_prom(extDevice_t *dev, int8_t coef_num);
 STATIC_UNIT_TESTED int8_t ms5611_crc(uint16_t *prom);
-static uint32_t ms5611_read_adc(extDevice_t *busdev);
+static uint32_t ms5611_read_adc(extDevice_t *dev);
 static void ms5611_start_ut(baroDev_t *baro);
 static void ms5611_get_ut(baroDev_t *baro);
 static void ms5611_start_up(baroDev_t *baro);
@@ -64,26 +64,26 @@ STATIC_UNIT_TESTED uint32_t ms5611_up;  // static result of pressure measurement
 STATIC_UNIT_TESTED uint16_t ms5611_c[PROM_NB];  // on-chip ROM
 static uint8_t ms5611_osr = CMD_ADC_4096;
 
-void ms5611BusInit(extDevice_t *busdev) {
+void ms5611BusInit(extDevice_t *dev) {
 #ifdef USE_BARO_SPI_MS5611
-    if (busdev->busType == BUS_TYPE_SPI) {
-        IOHi(busdev->busType_u.spi.csnPin); // Disable
-        IOInit(busdev->busType_u.spi.csnPin, OWNER_BARO_CS, 0);
-        IOConfigGPIO(busdev->busType_u.spi.csnPin, IOCFG_OUT_PP);
-        spiSetDivisor(busdev->busType_u.spi.instance, SPI_CLOCK_STANDARD); // XXX
+    if (dev->busType == BUS_TYPE_SPI) {
+        IOHi(dev->busType_u.spi.csnPin); // Disable
+        IOInit(dev->busType_u.spi.csnPin, OWNER_BARO_CS, 0);
+        IOConfigGPIO(dev->busType_u.spi.csnPin, IOCFG_OUT_PP);
+        spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD); // XXX
     }
 #else
-    UNUSED(busdev);
+    UNUSED(dev);
 #endif
 }
 
-void ms5611BusDeinit(extDevice_t *busdev) {
+void ms5611BusDeinit(extDevice_t *dev) {
 #ifdef USE_BARO_SPI_MS5611
-    if (busdev->busType == BUS_TYPE_SPI) {
-        spiPreinitCsByIO(busdev->busType_u.spi.csnPin);
+    if (dev->busType == BUS_TYPE_SPI) {
+        spiPreinitCsByIO(dev->busType_u.spi.csnPin);
     }
 #else
-    UNUSED(busdev);
+    UNUSED(dev);
 #endif
 }
 
@@ -92,20 +92,20 @@ bool ms5611Detect(baroDev_t *baro) {
     int i;
     bool defaultAddressApplied = false;
     delay(10); // No idea how long the chip takes to power-up, but let's make it 10ms
-    extDevice_t *busdev = &baro->dev;
-    ms5611BusInit(busdev);
-    if ((busdev->busType == BUS_TYPE_I2C) && (busdev->busType_u.i2c.address == 0)) {
+    extDevice_t *dev = &baro->dev;
+    ms5611BusInit(dev);
+    if ((dev->busType == BUS_TYPE_I2C) && (dev->busType_u.i2c.address == 0)) {
         // Default address for MS5611
-        busdev->busType_u.i2c.address = MS5611_I2C_ADDR;
+        dev->busType_u.i2c.address = MS5611_I2C_ADDR;
         defaultAddressApplied = true;
     }
-    if (!busReadRegisterBuffer(busdev, CMD_PROM_RD, &sig, 1) || sig == 0xFF) {
+    if (!busReadRegisterBuffer(dev, CMD_PROM_RD, &sig, 1) || sig == 0xFF) {
         goto fail;
     }
-    ms5611_reset(busdev);
+    ms5611_reset(dev);
     // read all coefficients
     for (i = 0; i < PROM_NB; i++)
-        ms5611_c[i] = ms5611_prom(busdev, i);
+        ms5611_c[i] = ms5611_prom(dev, i);
     // check crc, bail out if wrong - we are probably talking to BMP085 w/o XCLR line!
     if (ms5611_crc(ms5611_c) != 0) {
         goto fail;
@@ -121,21 +121,21 @@ bool ms5611Detect(baroDev_t *baro) {
     return true;
 fail:
     ;
-    ms5611BusDeinit(busdev);
+    ms5611BusDeinit(dev);
     if (defaultAddressApplied) {
-        busdev->busType_u.i2c.address = 0;
+        dev->busType_u.i2c.address = 0;
     }
     return false;
 }
 
-static void ms5611_reset(extDevice_t *busdev) {
-    busWriteRegister(busdev, CMD_RESET, 1);
+static void ms5611_reset(extDevice_t *dev) {
+    busWriteRegister(dev, CMD_RESET, 1);
     delayMicroseconds(2800);
 }
 
-static uint16_t ms5611_prom(extDevice_t *busdev, int8_t coef_num) {
+static uint16_t ms5611_prom(extDevice_t *dev, int8_t coef_num) {
     uint8_t rxbuf[2] = { 0, 0 };
-    busReadRegisterBuffer(busdev, CMD_PROM_RD + coef_num * 2, rxbuf, 2); // send PROM READ command
+    busReadRegisterBuffer(dev, CMD_PROM_RD + coef_num * 2, rxbuf, 2); // send PROM READ command
     return rxbuf[0] << 8 | rxbuf[1];
 }
 
@@ -165,9 +165,9 @@ STATIC_UNIT_TESTED int8_t ms5611_crc(uint16_t *prom) {
     return -1;
 }
 
-static uint32_t ms5611_read_adc(extDevice_t *busdev) {
+static uint32_t ms5611_read_adc(extDevice_t *dev) {
     uint8_t rxbuf[3];
-    busReadRegisterBuffer(busdev, CMD_ADC_READ, rxbuf, 3); // read ADC
+    busReadRegisterBuffer(dev, CMD_ADC_READ, rxbuf, 3); // read ADC
     return (rxbuf[0] << 16) | (rxbuf[1] << 8) | rxbuf[2];
 }
 

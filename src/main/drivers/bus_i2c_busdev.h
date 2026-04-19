@@ -20,6 +20,6 @@
 
 #pragma once
 
-bool i2cBusWriteRegister(const extDevice_t *busdev, uint8_t reg, uint8_t data);
-bool i2cBusReadRegisterBuffer(const extDevice_t *busdev, uint8_t reg, uint8_t *data, uint8_t length);
-uint8_t i2cBusReadRegister(const extDevice_t *bus, uint8_t reg);
+bool i2cBusWriteRegister(const extDevice_t *dev, uint8_t reg, uint8_t data);
+bool i2cBusReadRegisterBuffer(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint8_t length);
+uint8_t i2cBusReadRegister(const extDevice_t *dev, uint8_t reg);

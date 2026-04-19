@@ -153,29 +153,29 @@ static aafConfig_t aafLUT42605[AAF_CONFIG_COUNT] = {  // see table in section 5.
     [AAF_CONFIG_1962HZ] = { 63, 3968,  3 }, // 995 Hz is the max cutoff on the 42605
 };
 
-static void icm426xxSpiInit(const extDevice_t *bus) {
+static void icm426xxSpiInit(const extDevice_t *dev) {
     static bool hardwareInitialised = false;
     if (hardwareInitialised) {
         return;
     }
 #ifndef USE_DUAL_GYRO
-    IOInit(bus->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
-    IOConfigGPIO(bus->busType_u.spi.csnPin, SPI_IO_CS_CFG);
-    IOHi(bus->busType_u.spi.csnPin);
+    IOInit(dev->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
+    IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
+    IOHi(dev->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     hardwareInitialised = true;
 }
 
-uint8_t icm426xxSpiDetect(const extDevice_t *bus) {
-    icm426xxSpiInit(bus);
-    spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed
-    spiWriteReg(bus, MPU_RA_PWR_MGMT_1, ICM426xx_BIT_RESET);
+uint8_t icm426xxSpiDetect(const extDevice_t *dev) {
+    icm426xxSpiInit(dev);
+    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed
+    spiWriteReg(dev, MPU_RA_PWR_MGMT_1, ICM426xx_BIT_RESET);
     uint8_t icmDetected = MPU_NONE;
     uint8_t attemptsRemaining = 20;
     do {
         delay(150);
-        const uint8_t whoAmI = spiReadReg(bus, MPU_RA_WHO_AM_I);
+        const uint8_t whoAmI = spiReadReg(dev, MPU_RA_WHO_AM_I);
         switch (whoAmI) {
         case ICM42605_WHO_AM_I_CONST:
             icmDetected = ICM_42605_SPI;
@@ -194,7 +194,7 @@ uint8_t icm426xxSpiDetect(const extDevice_t *bus) {
             return MPU_NONE;
         }
     } while (attemptsRemaining--);
-    spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     return icmDetected;
 }
 

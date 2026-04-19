@@ -117,18 +117,18 @@ void mpu6000SpiAccInit(accDev_t *acc) {
     acc->acc_1G = 512 * 4;
 }
 
-uint8_t mpu6000SpiDetect(const extDevice_t *bus) {
+uint8_t mpu6000SpiDetect(const extDevice_t *dev) {
 #ifndef USE_DUAL_GYRO
-    IOInit(bus->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
-    IOConfigGPIO(bus->busType_u.spi.csnPin, SPI_IO_CS_CFG);
-    IOHi(bus->busType_u.spi.csnPin);
+    IOInit(dev->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
+    IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
+    IOHi(dev->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
-    spiWriteReg(bus, MPU_RA_PWR_MGMT_1, BIT_H_RESET);
+    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
+    spiWriteReg(dev, MPU_RA_PWR_MGMT_1, BIT_H_RESET);
     uint8_t attemptsRemaining = 5;
     do {
         delay(150);
-        const uint8_t whoAmI = spiReadReg(bus, MPU_RA_WHO_AM_I);
+        const uint8_t whoAmI = spiReadReg(dev, MPU_RA_WHO_AM_I);
         if (whoAmI == MPU6000_WHO_AM_I_CONST) {
             break;
         }
@@ -136,7 +136,7 @@ uint8_t mpu6000SpiDetect(const extDevice_t *bus) {
             return MPU_NONE;
         }
     } while (attemptsRemaining--);
-    const uint8_t productID = spiReadReg(bus, MPU_RA_PRODUCT_ID);
+    const uint8_t productID = spiReadReg(dev, MPU_RA_PRODUCT_ID);
     /* look for a product ID we recognise */
     // verify product revision
     switch (productID) {

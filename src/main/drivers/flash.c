@@ -36,37 +36,37 @@
 #include "drivers/time.h"
 
 static extDevice_t busInstance;
-static extDevice_t *busdev;
+static extDevice_t *dev;
 
 static flashDevice_t flashDevice;
 
 // Read chip identification and send it to device detect
 
 bool flashInit(const flashConfig_t *flashConfig) {
-    busdev = &busInstance;
+    dev = &busInstance;
     if (flashConfig->csTag) {
-        busdev->busType_u.spi.csnPin = IOGetByTag(flashConfig->csTag);
+        dev->busType_u.spi.csnPin = IOGetByTag(flashConfig->csTag);
     } else {
         return false;
     }
-    if (!IOIsFreeOrPreinit(busdev->busType_u.spi.csnPin)) {
+    if (!IOIsFreeOrPreinit(dev->busType_u.spi.csnPin)) {
         return false;
     }
-    busdev->busType = BUS_TYPE_SPI;
+    dev->busType = BUS_TYPE_SPI;
     SPI_TypeDef *instance = spiInstanceByDevice(SPI_CFG_TO_DEV(flashConfig->spiDevice));
     if (!instance) {
         return false;
     }
-    spiBusSetInstance(busdev, instance);
-    IOInit(busdev->busType_u.spi.csnPin, OWNER_FLASH_CS, 0);
-    IOConfigGPIO(busdev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
-    IOHi(busdev->busType_u.spi.csnPin);
+    spiBusSetInstance(dev, instance);
+    IOInit(dev->busType_u.spi.csnPin, OWNER_FLASH_CS, 0);
+    IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
+    IOHi(dev->busType_u.spi.csnPin);
 #ifndef FLASH_SPI_SHARED
     //Maximum speed for standard READ command is 20mHz, other commands tolerate 25mHz
-    //spiSetDivisor(busdev->busType_u.spi.instance, SPI_CLOCK_FAST);
-    spiSetDivisor(busdev->busType_u.spi.instance, SPI_CLOCK_STANDARD * 2);
+    //spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_FAST);
+    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD * 2);
 #endif
-    flashDevice.dev = busdev;
+    flashDevice.dev = dev;
     const uint8_t out[] = { SPIFLASH_INSTRUCTION_RDID, 0, 0, 0 };
     delay(50); // short delay required after initialisation of SPI device instance.
     /* Just in case transfer fails and writes nothing, so we don't try to verify the ID against random garbage
@@ -74,7 +74,7 @@ bool flashInit(const flashConfig_t *flashConfig) {
      */
     uint8_t in[4] = { 0 };
     // Clearing the CS bit terminates the command early so we don't have to read the chip UID:
-    spiReadWriteBuf(busdev, out, in, sizeof(out));
+    spiReadWriteBuf(dev, out, in, sizeof(out));
     // Manufacturer, memory type, and capacity
     uint32_t chipID = (in[1] << 16) | (in[2] << 8) | (in[3]);
 #ifdef USE_FLASH_M25P16

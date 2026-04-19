@@ -122,7 +122,7 @@ static bool bmp085InitDone = false;
 STATIC_UNIT_TESTED uint16_t bmp085_ut;  // static result of temperature measurement
 STATIC_UNIT_TESTED uint32_t bmp085_up;  // static result of pressure measurement
 
-static void bmp085_get_cal_param(extDevice_t *busdev);
+static void bmp085_get_cal_param(extDevice_t *dev);
 static void bmp085_start_ut(baroDev_t *baro);
 static void bmp085_get_ut(baroDev_t *baro);
 static void bmp085_start_up(baroDev_t *baro);
@@ -180,21 +180,21 @@ bool bmp085Detect(const bmp085Config_t *config, baroDev_t *baro) {
     UNUSED(config);
 #endif
     delay(20); // datasheet says 10ms, we'll be careful and do 20.
-    extDevice_t *busdev = &baro->dev;
-    if ((busdev->busType == BUS_TYPE_I2C) && (busdev->busType_u.i2c.address == 0)) {
+    extDevice_t *dev = &baro->dev;
+    if ((dev->busType == BUS_TYPE_I2C) && (dev->busType_u.i2c.address == 0)) {
         // Default address for BMP085
-        busdev->busType_u.i2c.address = BMP085_I2C_ADDR;
+        dev->busType_u.i2c.address = BMP085_I2C_ADDR;
         defaultAddressApplied = true;
     }
-    ack = busReadRegisterBuffer(busdev, BMP085_CHIP_ID__REG, &data, 1); /* read Chip Id */
+    ack = busReadRegisterBuffer(dev, BMP085_CHIP_ID__REG, &data, 1); /* read Chip Id */
     if (ack) {
         bmp085.chip_id = BMP085_GET_BITSLICE(data, BMP085_CHIP_ID);
         bmp085.oversampling_setting = 3;
         if (bmp085.chip_id == BMP085_CHIP_ID) { /* get bitslice */
-            busReadRegisterBuffer(busdev, BMP085_VERSION_REG, &data, 1); /* read Version reg */
+            busReadRegisterBuffer(dev, BMP085_VERSION_REG, &data, 1); /* read Version reg */
             bmp085.ml_version = BMP085_GET_BITSLICE(data, BMP085_ML_VERSION); /* get ML Version */
             bmp085.al_version = BMP085_GET_BITSLICE(data, BMP085_AL_VERSION); /* get AL Version */
-            bmp085_get_cal_param(busdev); /* readout bmp085 calibparam structure */
+            bmp085_get_cal_param(dev); /* readout bmp085 calibparam structure */
             baro->ut_delay = UT_DELAY;
             baro->up_delay = UP_DELAY;
             baro->start_ut = bmp085_start_ut;
@@ -215,7 +215,7 @@ bool bmp085Detect(const bmp085Config_t *config, baroDev_t *baro) {
 #endif
     BMP085_OFF;
     if (defaultAddressApplied) {
-        busdev->busType_u.i2c.address = 0;
+        dev->busType_u.i2c.address = 0;
     }
     return false;
 }
@@ -316,9 +316,9 @@ STATIC_UNIT_TESTED void bmp085_calculate(int32_t *pressure, int32_t *temperature
         *temperature = temp;
 }
 
-static void bmp085_get_cal_param(extDevice_t *busdev) {
+static void bmp085_get_cal_param(extDevice_t *dev) {
     uint8_t data[22];
-    busReadRegisterBuffer(busdev, BMP085_PROM_START__ADDR, data, BMP085_PROM_DATA__LEN);
+    busReadRegisterBuffer(dev, BMP085_PROM_START__ADDR, data, BMP085_PROM_DATA__LEN);
     /*parameters AC1-AC6*/
     bmp085.cal_param.ac1 = (data[0] << 8) | data[1];
     bmp085.cal_param.ac2 = (data[2] << 8) | data[3];

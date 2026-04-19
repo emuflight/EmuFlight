@@ -506,9 +506,9 @@ uint8_t mpuGyroFCHOICE(gyroDev_t *gyro) {
 }
 
 #ifdef USE_GYRO_REGISTER_DUMP
-uint8_t mpuGyroReadRegister(const extDevice_t *bus, uint8_t reg) {
+uint8_t mpuGyroReadRegister(const extDevice_t *dev, uint8_t reg) {
     uint8_t data;
-    const bool ack = busReadRegisterBuffer(bus, reg, &data, 1);
+    const bool ack = busReadRegisterBuffer(dev, reg, &data, 1);
     if (ack) {
         return data;
     } else {

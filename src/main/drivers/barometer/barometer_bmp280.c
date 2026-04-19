@@ -52,51 +52,51 @@ static void bmp280_get_up(baroDev_t *baro);
 
 STATIC_UNIT_TESTED void bmp280_calculate(int32_t *pressure, int32_t *temperature);
 
-void bmp280BusInit(extDevice_t *busdev) {
+void bmp280BusInit(extDevice_t *dev) {
 #ifdef USE_BARO_SPI_BMP280
-    if (busdev->busType == BUS_TYPE_SPI) {
-        IOHi(busdev->busType_u.spi.csnPin); // Disable
-        IOInit(busdev->busType_u.spi.csnPin, OWNER_BARO_CS, 0);
-        IOConfigGPIO(busdev->busType_u.spi.csnPin, IOCFG_OUT_PP);
-        spiSetDivisor(busdev->busType_u.spi.instance, SPI_CLOCK_STANDARD); // XXX
+    if (dev->busType == BUS_TYPE_SPI) {
+        IOHi(dev->busType_u.spi.csnPin); // Disable
+        IOInit(dev->busType_u.spi.csnPin, OWNER_BARO_CS, 0);
+        IOConfigGPIO(dev->busType_u.spi.csnPin, IOCFG_OUT_PP);
+        spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD); // XXX
     }
 #else
-    UNUSED(busdev);
+    UNUSED(dev);
 #endif
 }
 
-void bmp280BusDeinit(extDevice_t *busdev) {
+void bmp280BusDeinit(extDevice_t *dev) {
 #ifdef USE_BARO_SPI_BMP280
-    if (busdev->busType == BUS_TYPE_SPI) {
-        spiPreinitCsByIO(busdev->busType_u.spi.csnPin);
+    if (dev->busType == BUS_TYPE_SPI) {
+        spiPreinitCsByIO(dev->busType_u.spi.csnPin);
     }
 #else
-    UNUSED(busdev);
+    UNUSED(dev);
 #endif
 }
 
 bool bmp280Detect(baroDev_t *baro) {
     delay(20);
-    extDevice_t *busdev = &baro->dev;
+    extDevice_t *dev = &baro->dev;
     bool defaultAddressApplied = false;
-    bmp280BusInit(busdev);
-    if ((busdev->busType == BUS_TYPE_I2C) && (busdev->busType_u.i2c.address == 0)) {
+    bmp280BusInit(dev);
+    if ((dev->busType == BUS_TYPE_I2C) && (dev->busType_u.i2c.address == 0)) {
         // Default address for BMP280
-        busdev->busType_u.i2c.address = BMP280_I2C_ADDR;
+        dev->busType_u.i2c.address = BMP280_I2C_ADDR;
         defaultAddressApplied = true;
     }
-    busReadRegisterBuffer(busdev, BMP280_CHIP_ID_REG, &bmp280_chip_id, 1);  /* read Chip Id */
+    busReadRegisterBuffer(dev, BMP280_CHIP_ID_REG, &bmp280_chip_id, 1);  /* read Chip Id */
     if (bmp280_chip_id != BMP280_DEFAULT_CHIP_ID) {
-        bmp280BusDeinit(busdev);
+        bmp280BusDeinit(dev);
         if (defaultAddressApplied) {
-            busdev->busType_u.i2c.address = 0;
+            dev->busType_u.i2c.address = 0;
         }
         return false;
     }
     // read calibration
-    busReadRegisterBuffer(busdev, BMP280_TEMPERATURE_CALIB_DIG_T1_LSB_REG, (uint8_t *)&bmp280_cal, 24);
+    busReadRegisterBuffer(dev, BMP280_TEMPERATURE_CALIB_DIG_T1_LSB_REG, (uint8_t *)&bmp280_cal, 24);
     // set oversampling + power mode (forced), and start sampling
-    busWriteRegister(busdev, BMP280_CTRL_MEAS_REG, BMP280_MODE);
+    busWriteRegister(dev, BMP280_CTRL_MEAS_REG, BMP280_MODE);
     // these are dummy as temperature is measured as part of pressure
     baro->ut_delay = 0;
     baro->get_ut = bmp280_get_ut;

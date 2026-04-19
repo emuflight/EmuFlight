@@ -239,7 +239,7 @@ bool mpuGyroReadSPI(struct gyroDev_s *gyro);
 void mpuDetect(struct gyroDev_s *gyro);
 uint8_t mpuGyroDLPF(struct gyroDev_s *gyro);
 uint8_t mpuGyroFCHOICE(struct gyroDev_s *gyro);
-uint8_t mpuGyroReadRegister(const extDevice_t *bus, uint8_t reg);
+uint8_t mpuGyroReadRegister(const extDevice_t *dev, uint8_t reg);
 
 struct accDev_s;
 bool mpuAccRead(struct accDev_s *acc);

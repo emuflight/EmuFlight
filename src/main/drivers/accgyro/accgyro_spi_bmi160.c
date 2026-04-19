@@ -88,24 +88,24 @@ static volatile bool bmi160DataReady = false;
 static volatile bool bmi160ExtiInitDone = false;
 
 //! Private functions
-static int32_t BMI160_Config(const extDevice_t *bus);
-static int32_t BMI160_do_foc(const extDevice_t *bus);
+static int32_t BMI160_Config(const extDevice_t *dev);
+static int32_t BMI160_do_foc(const extDevice_t *dev);
 
-uint8_t bmi160Detect(const extDevice_t *bus) {
+uint8_t bmi160Detect(const extDevice_t *dev) {
     if (BMI160Detected) {
         return BMI_160_SPI;
     }
 #ifndef USE_DUAL_GYRO
-    IOInit(bus->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
-    IOConfigGPIO(bus->busType_u.spi.csnPin, SPI_IO_CS_CFG);
-    IOHi(bus->busType_u.spi.csnPin);
+    IOInit(dev->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
+    IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
+    IOHi(dev->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(bus->busType_u.spi.instance, BMI160_SPI_DIVISOR);
+    spiSetDivisor(dev->busType_u.spi.instance, BMI160_SPI_DIVISOR);
     /* Read this address to activate SPI (see p. 84) */
-    spiReadReg(bus, 0x7F);
+    spiReadReg(dev, 0x7F);
     delay(100); // Give SPI some time to start up
     /* Check the chip ID */
-    if (spiReadReg(bus, BMI160_REG_CHIPID) != 0xd1) {
+    if (spiReadReg(dev, BMI160_REG_CHIPID) != 0xd1) {
         return MPU_NONE;
     }
     BMI160Detected = true;
@@ -117,18 +117,18 @@ uint8_t bmi160Detect(const extDevice_t *bus) {
  * @brief Initialize the BMI160 6-axis sensor.
  * @return 0 for success, -1 for failure to allocate, -10 for failure to get irq
  */
-static void BMI160_Init(const extDevice_t *bus) {
+static void BMI160_Init(const extDevice_t *dev) {
     if (BMI160InitDone || !BMI160Detected) {
         return;
     }
     /* Configure the BMI160 Sensor */
-    if (BMI160_Config(bus) != 0) {
+    if (BMI160_Config(dev) != 0) {
         return;
     }
     bool do_foc = false;
     /* Perform fast offset compensation if requested */
     if (do_foc) {
-        BMI160_do_foc(bus);
+        BMI160_do_foc(dev);
     }
     BMI160InitDone = true;
 }
@@ -137,52 +137,52 @@ static void BMI160_Init(const extDevice_t *bus) {
 /**
  * @brief Configure the sensor
  */
-static int32_t BMI160_Config(const extDevice_t *bus) {
+static int32_t BMI160_Config(const extDevice_t *dev) {
     // Set normal power mode for gyro and accelerometer
-    spiWriteReg(bus, BMI160_REG_CMD, BMI160_PMU_CMD_PMU_GYR_NORMAL);
+    spiWriteReg(dev, BMI160_REG_CMD, BMI160_PMU_CMD_PMU_GYR_NORMAL);
     delay(100); // can take up to 80ms
-    spiWriteReg(bus, BMI160_REG_CMD, BMI160_PMU_CMD_PMU_ACC_NORMAL);
+    spiWriteReg(dev, BMI160_REG_CMD, BMI160_PMU_CMD_PMU_ACC_NORMAL);
     delay(5); // can take up to 3.8ms
     // Verify that normal power mode was entered
-    uint8_t pmu_status = spiReadReg(bus, BMI160_REG_PMU_STAT);
+    uint8_t pmu_status = spiReadReg(dev, BMI160_REG_PMU_STAT);
     if ((pmu_status & 0x3C) != 0x14) {
         return -3;
     }
     // Set odr and ranges
     // Set acc_us = 0 acc_bwp = 0b010 so only the first filter stage is used
-    spiWriteReg(bus, BMI160_REG_ACC_CONF, 0x20 | BMI160_ODR_800_Hz);
+    spiWriteReg(dev, BMI160_REG_ACC_CONF, 0x20 | BMI160_ODR_800_Hz);
     delay(1);
     // Set gyr_bwp = 0b010 so only the first filter stage is used
-    spiWriteReg(bus, BMI160_REG_GYR_CONF, 0x20 | BMI160_ODR_3200_Hz);
+    spiWriteReg(dev, BMI160_REG_GYR_CONF, 0x20 | BMI160_ODR_3200_Hz);
     delay(1);
-    spiWriteReg(bus, BMI160_REG_ACC_RANGE, BMI160_RANGE_8G);
+    spiWriteReg(dev, BMI160_REG_ACC_RANGE, BMI160_RANGE_8G);
     delay(1);
-    spiWriteReg(bus, BMI160_REG_GYR_RANGE, BMI160_RANGE_2000DPS);
+    spiWriteReg(dev, BMI160_REG_GYR_RANGE, BMI160_RANGE_2000DPS);
     delay(1);
     // Enable offset compensation
-    uint8_t val = spiReadReg(bus, BMI160_REG_OFFSET_0);
-    spiWriteReg(bus, BMI160_REG_OFFSET_0, val | 0xC0);
+    uint8_t val = spiReadReg(dev, BMI160_REG_OFFSET_0);
+    spiWriteReg(dev, BMI160_REG_OFFSET_0, val | 0xC0);
     // Enable data ready interrupt
-    spiWriteReg(bus, BMI160_REG_INT_EN1, BMI160_INT_EN1_DRDY);
+    spiWriteReg(dev, BMI160_REG_INT_EN1, BMI160_INT_EN1_DRDY);
     delay(1);
     // Enable INT1 pin
-    spiWriteReg(bus, BMI160_REG_INT_OUT_CTRL, BMI160_INT_OUT_CTRL_INT1_CONFIG);
+    spiWriteReg(dev, BMI160_REG_INT_OUT_CTRL, BMI160_INT_OUT_CTRL_INT1_CONFIG);
     delay(1);
     // Map data ready interrupt to INT1 pin
-    spiWriteReg(bus, BMI160_REG_INT_MAP1, BMI160_REG_INT_MAP1_INT1_DRDY);
+    spiWriteReg(dev, BMI160_REG_INT_MAP1, BMI160_REG_INT_MAP1_INT1_DRDY);
     delay(1);
     return 0;
 }
 
-static int32_t BMI160_do_foc(const extDevice_t *bus) {
+static int32_t BMI160_do_foc(const extDevice_t *dev) {
     // assume sensor is mounted on top
     uint8_t val = 0x7D;;
-    spiWriteReg(bus, BMI160_REG_FOC_CONF, val);
+    spiWriteReg(dev, BMI160_REG_FOC_CONF, val);
     // Start FOC
-    spiWriteReg(bus, BMI160_REG_CMD, BMI160_CMD_START_FOC);
+    spiWriteReg(dev, BMI160_REG_CMD, BMI160_CMD_START_FOC);
     // Wait for FOC to complete
     for (int i = 0; i < 50; i++) {
-        val = spiReadReg(bus, BMI160_REG_STATUS);
+        val = spiReadReg(dev, BMI160_REG_STATUS);
         if (val & BMI160_REG_STATUS_FOC_RDY) {
             break;
         }
@@ -192,12 +192,12 @@ static int32_t BMI160_do_foc(const extDevice_t *bus) {
         return -3;
     }
     // Program NVM
-    val = spiReadReg(bus, BMI160_REG_CONF);
-    spiWriteReg(bus, BMI160_REG_CONF, val | BMI160_REG_CONF_NVM_PROG_EN);
-    spiWriteReg(bus, BMI160_REG_CMD, BMI160_CMD_PROG_NVM);
+    val = spiReadReg(dev, BMI160_REG_CONF);
+    spiWriteReg(dev, BMI160_REG_CONF, val | BMI160_REG_CONF_NVM_PROG_EN);
+    spiWriteReg(dev, BMI160_REG_CMD, BMI160_CMD_PROG_NVM);
     // Wait for NVM programming to complete
     for (int i = 0; i < 50; i++) {
-        val = spiReadReg(bus, BMI160_REG_STATUS);
+        val = spiReadReg(dev, BMI160_REG_STATUS);
         if (val & BMI160_REG_STATUS_NVM_RDY) {
             break;
         }

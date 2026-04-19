@@ -196,8 +196,8 @@ void initImuf9001(void) {
     resetImuf9001();
 }
 
-FAST_CODE bool imufSendReceiveSpiBlocking(const extDevice_t *bus, uint8_t *dataTx, uint8_t *daRx, uint8_t length) {
-    spiReadWriteBuf(bus, dataTx, daRx, length);
+FAST_CODE bool imufSendReceiveSpiBlocking(const extDevice_t *dev, uint8_t *dataTx, uint8_t *daRx, uint8_t length) {
+    spiReadWriteBuf(dev, dataTx, daRx, length);
     return true;
 }
 

@@ -79,29 +79,29 @@ STATIC_ASSERT(M25P16_PAGESIZE < FLASH_MAX_PAGE_SIZE, M25P16_PAGESIZE_too_small);
 
 const flashVTable_t m25p16_vTable;
 
-static void m25p16_disable(extDevice_t *bus) {
-    IOHi(bus->busType_u.spi.csnPin);
+static void m25p16_disable(extDevice_t *dev) {
+    IOHi(dev->busType_u.spi.csnPin);
     __NOP();
 }
 
-static void m25p16_enable(extDevice_t *bus) {
+static void m25p16_enable(extDevice_t *dev) {
     __NOP();
-    IOLo(bus->busType_u.spi.csnPin);
+    IOLo(dev->busType_u.spi.csnPin);
 }
 
-static void m25p16_transfer(extDevice_t *bus, const uint8_t *txData, uint8_t *rxData, int len) {
-    m25p16_enable(bus);
-    spiTransfer(bus->busType_u.spi.instance, txData, rxData, len);
-    m25p16_disable(bus);
+static void m25p16_transfer(extDevice_t *dev, const uint8_t *txData, uint8_t *rxData, int len) {
+    m25p16_enable(dev);
+    spiTransfer(dev->busType_u.spi.instance, txData, rxData, len);
+    m25p16_disable(dev);
 }
 
 /**
  * Send the given command byte to the device.
  */
-static void m25p16_performOneByteCommand(extDevice_t *bus, uint8_t command) {
-    m25p16_enable(bus);
-    spiTransferByte(bus->busType_u.spi.instance, command);
-    m25p16_disable(bus);
+static void m25p16_performOneByteCommand(extDevice_t *dev, uint8_t command) {
+    m25p16_enable(dev);
+    spiTransferByte(dev->busType_u.spi.instance, command);
+    m25p16_disable(dev);
 }
 
 /**
@@ -114,10 +114,10 @@ static void m25p16_writeEnable(flashDevice_t *fdevice) {
     fdevice->couldBeBusy = true;
 }
 
-static uint8_t m25p16_readStatus(extDevice_t *bus) {
+static uint8_t m25p16_readStatus(extDevice_t *dev) {
     const uint8_t command[2] = { M25P16_INSTRUCTION_READ_STATUS_REG, 0 };
     uint8_t in[2];
-    m25p16_transfer(bus, command, in, sizeof(command));
+    m25p16_transfer(dev, command, in, sizeof(command));
     return in[1];
 }
 

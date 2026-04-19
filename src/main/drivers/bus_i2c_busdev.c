@@ -29,17 +29,17 @@
 #include "drivers/bus.h"
 #include "drivers/bus_i2c.h"
 
-bool i2cBusWriteRegister(const extDevice_t *busdev, uint8_t reg, uint8_t data) {
-    return i2cWrite(busdev->busType_u.i2c.device, busdev->busType_u.i2c.address, reg, data);
+bool i2cBusWriteRegister(const extDevice_t *dev, uint8_t reg, uint8_t data) {
+    return i2cWrite(dev->busType_u.i2c.device, dev->busType_u.i2c.address, reg, data);
 }
 
-bool i2cBusReadRegisterBuffer(const extDevice_t *busdev, uint8_t reg, uint8_t *data, uint8_t length) {
-    return i2cRead(busdev->busType_u.i2c.device, busdev->busType_u.i2c.address, reg, length, data);
+bool i2cBusReadRegisterBuffer(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint8_t length) {
+    return i2cRead(dev->busType_u.i2c.device, dev->busType_u.i2c.address, reg, length, data);
 }
 
-uint8_t i2cBusReadRegister(const extDevice_t *busdev, uint8_t reg) {
+uint8_t i2cBusReadRegister(const extDevice_t *dev, uint8_t reg) {
     uint8_t data;
-    i2cRead(busdev->busType_u.i2c.device, busdev->busType_u.i2c.address, reg, 1, &data);
+    i2cRead(dev->busType_u.i2c.device, dev->busType_u.i2c.address, reg, 1, &data);
     return data;
 }
 #endif

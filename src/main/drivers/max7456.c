@@ -175,15 +175,15 @@
 // On shared SPI buss we want to change clock for OSD chip and restore for other devices.
 
 #ifdef MAX7456_SPI_CLK
-#define __spiBusTransactionBegin(busdev)        {spiSetDivisor((busdev)->busType_u.spi.instance, max7456SpiClock);IOLo((busdev)->busType_u.spi.csnPin);}
+#define __spiBusTransactionBegin(dev)        {spiSetDivisor((dev)->busType_u.spi.instance, max7456SpiClock);IOLo((dev)->busType_u.spi.csnPin);}
 #else
-#define __spiBusTransactionBegin(busdev)        IOLo((busdev)->busType_u.spi.csnPin)
+#define __spiBusTransactionBegin(dev)        IOLo((dev)->busType_u.spi.csnPin)
 #endif
 
 #ifdef MAX7456_RESTORE_CLK
-#define __spiBusTransactionEnd(busdev)       {IOHi((busdev)->busType_u.spi.csnPin);spiSetDivisor((busdev)->busType_u.spi.instance, MAX7456_RESTORE_CLK);}
+#define __spiBusTransactionEnd(dev)       {IOHi((dev)->busType_u.spi.csnPin);spiSetDivisor((dev)->busType_u.spi.instance, MAX7456_RESTORE_CLK);}
 #else
-#define __spiBusTransactionEnd(busdev)       IOHi((busdev)->busType_u.spi.csnPin)
+#define __spiBusTransactionEnd(dev)       IOHi((dev)->busType_u.spi.csnPin)
 #endif
 
 #ifndef MAX7456_SPI_CLK
@@ -191,7 +191,7 @@
 #endif
 
 extDevice_t max7456BusDevice;
-extDevice_t *busdev = &max7456BusDevice;
+extDevice_t *dev = &max7456BusDevice;
 
 static uint16_t max7456SpiClock = MAX7456_SPI_CLK;
 
@@ -228,11 +228,11 @@ static uint8_t max7456DeviceType;
 static void max7456DrawScreenSlow(void);
 
 static uint8_t max7456Send(uint8_t add, uint8_t data) {
-    spiTransferByte(busdev->busType_u.spi.instance, add);
+    spiTransferByte(dev->busType_u.spi.instance, add);
 #ifdef USE_NBD7456
     delayMicroseconds(10);
 #endif
-    return spiTransferByte(busdev->busType_u.spi.instance, data);
+    return spiTransferByte(dev->busType_u.spi.instance, data);
 }
 
 #ifdef MAX7456_DMA_CHANNEL_TX
@@ -250,7 +250,7 @@ static void max7456SendDma(void* tx_buffer, void* rx_buffer, uint16_t buffer_siz
 #endif
     // Common to both channels
     DMA_StructInit(&DMA_InitStructure);
-    DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(&(busdev->busType_u.spi.instance->DR));
+    DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(&(dev->busType_u.spi.instance->DR));
     DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
     DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
     DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
@@ -287,9 +287,9 @@ static void max7456SendDma(void* tx_buffer, void* rx_buffer, uint16_t buffer_siz
     DMA_ITConfig(MAX7456_DMA_CHANNEL_TX, DMA_IT_TC, ENABLE);
 #endif
     // Enable SPI TX/RX request
-    __spiBusTransactionBegin(busdev);
+    __spiBusTransactionBegin(dev);
     dmaTransactionInProgress = true;
-    SPI_I2S_DMACmd(busdev->busType_u.spi.instance,
+    SPI_I2S_DMACmd(dev->busType_u.spi.instance,
 #ifdef MAX7456_DMA_CHANNEL_RX
                    SPI_I2S_DMAReq_Rx |
 #endif
@@ -302,21 +302,21 @@ void max7456_dma_irq_handler(dmaChannelDescriptor_t* descriptor) {
         DMA_Cmd(MAX7456_DMA_CHANNEL_RX, DISABLE);
 #endif
         // Make sure SPI DMA transfer is complete
-        while (SPI_I2S_GetFlagStatus (busdev->busType_u.spi.instance, SPI_I2S_FLAG_TXE) == RESET) {};
-        while (SPI_I2S_GetFlagStatus (busdev->busType_u.spi.instance, SPI_I2S_FLAG_BSY) == SET) {};
+        while (SPI_I2S_GetFlagStatus (dev->busType_u.spi.instance, SPI_I2S_FLAG_TXE) == RESET) {};
+        while (SPI_I2S_GetFlagStatus (dev->busType_u.spi.instance, SPI_I2S_FLAG_BSY) == SET) {};
         // Empty RX buffer. RX DMA takes care of it if enabled.
         // This should be done after transmission finish!!!
-        while (SPI_I2S_GetFlagStatus(busdev->busType_u.spi.instance, SPI_I2S_FLAG_RXNE) == SET) {
-            busdev->busType_u.spi.instance->DR;
+        while (SPI_I2S_GetFlagStatus(dev->busType_u.spi.instance, SPI_I2S_FLAG_RXNE) == SET) {
+            dev->busType_u.spi.instance->DR;
         }
         DMA_Cmd(MAX7456_DMA_CHANNEL_TX, DISABLE);
         DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF);
-        SPI_I2S_DMACmd(busdev->busType_u.spi.instance,
+        SPI_I2S_DMACmd(dev->busType_u.spi.instance,
 #ifdef MAX7456_DMA_CHANNEL_RX
                        SPI_I2S_DMAReq_Rx |
 #endif
                        SPI_I2S_DMAReq_Tx, DISABLE);
-        __spiBusTransactionEnd(busdev);
+        __spiBusTransactionEnd(dev);
         dmaTransactionInProgress = false;
     }
     if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_HTIF)) {
@@ -336,7 +336,7 @@ uint8_t max7456GetRowsCount(void) {
 void max7456ReInit(void) {
     uint8_t srdata = 0;
     static bool firstInit = true;
-    __spiBusTransactionBegin(busdev);
+    __spiBusTransactionBegin(dev);
     switch (videoSignalCfg) {
     case VIDEO_SYSTEM_PAL:
         videoSignalReg = VIDEO_MODE_PAL | OSD_ENABLE;
@@ -364,13 +364,13 @@ void max7456ReInit(void) {
     // Set all rows to same charactor black/white level
     max7456Brightness(0, 2);
     // Re-enable MAX7456 (last function call disables it)
-    __spiBusTransactionBegin(busdev);
+    __spiBusTransactionBegin(dev);
     // Make sure the Max7456 is enabled
     max7456Send(MAX7456ADD_VM0, videoSignalReg);
     max7456Send(MAX7456ADD_HOS, hosRegValue);
     max7456Send(MAX7456ADD_VOS, vosRegValue);
     max7456Send(MAX7456ADD_DMM, displayMemoryModeReg | CLEAR_DISPLAY);
-    __spiBusTransactionEnd(busdev);
+    __spiBusTransactionEnd(dev);
     // Clear shadow to force redraw all screen in non-dma mode.
     memset(shadowBuffer, 0, maxScreenSize);
     if (firstInit) {
@@ -388,17 +388,17 @@ bool max7456Init(const max7456Config_t *max7456Config, const vcdProfile_t *pVcdP
     if (!max7456Config->csTag) {
         return false;
     }
-    busdev->busType_u.spi.csnPin = IOGetByTag(max7456Config->csTag);
-    if (!IOIsFreeOrPreinit(busdev->busType_u.spi.csnPin)) {
+    dev->busType_u.spi.csnPin = IOGetByTag(max7456Config->csTag);
+    if (!IOIsFreeOrPreinit(dev->busType_u.spi.csnPin)) {
         return false;
     }
-    IOInit(busdev->busType_u.spi.csnPin, OWNER_OSD_CS, 0);
-    IOConfigGPIO(busdev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
-    IOHi(busdev->busType_u.spi.csnPin);
-    spiBusSetInstance(busdev, spiInstanceByDevice(SPI_CFG_TO_DEV(max7456Config->spiDevice)));
+    IOInit(dev->busType_u.spi.csnPin, OWNER_OSD_CS, 0);
+    IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
+    IOHi(dev->busType_u.spi.csnPin);
+    spiBusSetInstance(dev, spiInstanceByDevice(SPI_CFG_TO_DEV(max7456Config->spiDevice)));
     // Detect device type by writing and reading CA[8] bit at CMAL[6].
     // Do this at half the speed for safety.
-    spiSetDivisor(busdev->busType_u.spi.instance, MAX7456_SPI_CLK * 2);
+    spiSetDivisor(dev->busType_u.spi.instance, MAX7456_SPI_CLK * 2);
     max7456Send(MAX7456ADD_CMAL, (1 << 6)); // CA[8] bit
     if (max7456Send(MAX7456ADD_CMAL | MAX7456ADD_READ, 0xff) & (1 << 6)) {
         max7456DeviceType = MAX7456_DEVICE_TYPE_AT;
@@ -425,11 +425,11 @@ bool max7456Init(const max7456Config_t *max7456Config, const vcdProfile_t *pVcdP
     UNUSED(max7456Config);
     UNUSED(cpuOverclock);
 #endif
-    spiSetDivisor(busdev->busType_u.spi.instance, max7456SpiClock);
+    spiSetDivisor(dev->busType_u.spi.instance, max7456SpiClock);
     // force soft reset on Max7456
-    __spiBusTransactionBegin(busdev);
+    __spiBusTransactionBegin(dev);
     max7456Send(MAX7456ADD_VM0, MAX7456_RESET);
-    __spiBusTransactionEnd(busdev);
+    __spiBusTransactionEnd(dev);
     // Setup values to write to registers
     videoSignalCfg = pVcdProfile->video_system;
     hosRegValue = 32 - pVcdProfile->h_offset;
@@ -450,9 +450,9 @@ void max7456Invert(bool invert) {
     } else {
         displayMemoryModeReg &= ~INVERT_PIXEL_COLOR;
     }
-    __spiBusTransactionBegin(busdev);
+    __spiBusTransactionBegin(dev);
     max7456Send(MAX7456ADD_DMM, displayMemoryModeReg);
-    __spiBusTransactionEnd(busdev);
+    __spiBusTransactionEnd(dev);
 }
 
 /**
@@ -463,11 +463,11 @@ void max7456Invert(bool invert) {
  */
 void max7456Brightness(uint8_t black, uint8_t white) {
     const uint8_t reg = (black << 2) | (3 - white);
-    __spiBusTransactionBegin(busdev);
+    __spiBusTransactionBegin(dev);
     for (int i = MAX7456ADD_RB0; i <= MAX7456ADD_RB15; i++) {
         max7456Send(i, reg);
     }
-    __spiBusTransactionEnd(busdev);
+    __spiBusTransactionEnd(dev);
 }
 
 //just fill with spaces with some tricks
@@ -512,18 +512,18 @@ void max7456ReInitIfRequired(void) {
     static uint32_t lastSigCheckMs = 0;
     static uint32_t videoDetectTimeMs = 0;
     static uint16_t reInitCount = 0;
-    __spiBusTransactionBegin(busdev);
+    __spiBusTransactionBegin(dev);
     const uint8_t stallCheck = max7456Send(MAX7456ADD_VM0 | MAX7456ADD_READ, 0x00);
-    __spiBusTransactionEnd(busdev);
+    __spiBusTransactionEnd(dev);
     const timeMs_t nowMs = millis();
     if (stallCheck != videoSignalReg) {
         max7456ReInit();
     } else if ((videoSignalCfg == VIDEO_SYSTEM_AUTO)
                && ((nowMs - lastSigCheckMs) > MAX7456_SIGNAL_CHECK_INTERVAL_MS)) {
         // Adjust output format based on the current input format.
-        __spiBusTransactionBegin(busdev);
+        __spiBusTransactionBegin(dev);
         const uint8_t videoSense = max7456Send(MAX7456ADD_STAT, 0x00);
-        __spiBusTransactionEnd(busdev);
+        __spiBusTransactionEnd(dev);
         DEBUG_SET(DEBUG_MAX7456_SIGNAL, DEBUG_MAX7456_SIGNAL_MODEREG, videoSignalReg & VIDEO_MODE_MASK);
         DEBUG_SET(DEBUG_MAX7456_SIGNAL, DEBUG_MAX7456_SIGNAL_SENSE, videoSense & 0x7);
         DEBUG_SET(DEBUG_MAX7456_SIGNAL, DEBUG_MAX7456_SIGNAL_ROWS, max7456GetRowsCount());
@@ -576,16 +576,16 @@ void max7456DrawScreen(void) {
 #ifdef MAX7456_DMA_CHANNEL_TX
             max7456SendDma(spiBuff, NULL, buff_len);
 #else
-            __spiBusTransactionBegin(busdev);
+            __spiBusTransactionBegin(dev);
 #ifdef USE_NBD7456
             for(int k = 0; k < buff_len; k++) {
                 delayMicroseconds(5);
-                spiTransferByte(busdev->busType_u.spi.instance, spiBuff[k]);
+                spiTransferByte(dev->busType_u.spi.instance, spiBuff[k]);
             }
 #else // USE_NBD7456
-            spiTransfer(busdev->busType_u.spi.instance, spiBuff, NULL, buff_len);
+            spiTransfer(dev->busType_u.spi.instance, spiBuff, NULL, buff_len);
 #endif
-            __spiBusTransactionEnd(busdev);
+            __spiBusTransactionEnd(dev);
 #endif // MAX7456_DMA_CHANNEL_TX
         }
         max7456Lock = false;
@@ -594,7 +594,7 @@ void max7456DrawScreen(void) {
 
 static void max7456DrawScreenSlow(void) {
     bool escapeCharFound = false;
-    __spiBusTransactionBegin(busdev);
+    __spiBusTransactionBegin(dev);
     // Enable auto-increment mode and update every character in the screenBuffer.
     // The "escape" character 0xFF must be skipped as it causes the MAX7456 to exit auto-increment mode.
     max7456Send(MAX7456ADD_DMAH, 0);
@@ -622,7 +622,7 @@ static void max7456DrawScreenSlow(void) {
             }
         }
     }
-    __spiBusTransactionEnd(busdev);
+    __spiBusTransactionEnd(dev);
 }
 
 
@@ -645,7 +645,7 @@ void max7456WriteNvm(uint8_t char_address, const uint8_t *font_data) {
 #endif
     while (max7456Lock);
     max7456Lock = true;
-    __spiBusTransactionBegin(busdev);
+    __spiBusTransactionBegin(dev);
     // disable display
     fontIsLoading = true;
     max7456Send(MAX7456ADD_VM0, 0);
@@ -667,7 +667,7 @@ void max7456WriteNvm(uint8_t char_address, const uint8_t *font_data) {
         delay(10);
 #endif
     }
-    __spiBusTransactionEnd(busdev);
+    __spiBusTransactionEnd(dev);
     max7456Lock = false;
 }
 
