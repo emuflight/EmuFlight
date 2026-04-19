@@ -26,10 +26,10 @@
 #include "drivers/io_types.h"
 
 typedef enum {
-    BUSTYPE_NONE = 0,
-    BUSTYPE_I2C,
-    BUSTYPE_SPI,
-    BUSTYPE_MPU_SLAVE // Slave I2C on SPI master
+    BUS_TYPE_NONE = 0,
+    BUS_TYPE_I2C,
+    BUS_TYPE_SPI,
+    BUS_TYPE_MPU_SLAVE // Slave I2C on SPI master
 } busType_e;
 
 typedef struct busDevice_s {

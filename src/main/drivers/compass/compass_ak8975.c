@@ -135,7 +135,7 @@ static bool ak8975Read(magDev_t *mag, int16_t *magData) {
 bool ak8975Detect(magDev_t *mag) {
     uint8_t sig = 0;
     busDevice_t *busdev = &mag->busdev;
-    if (busdev->bustype == BUSTYPE_I2C && busdev->busdev_u.i2c.address == 0) {
+    if (busdev->bustype == BUS_TYPE_I2C && busdev->busdev_u.i2c.address == 0) {
         busdev->busdev_u.i2c.address = AK8975_MAG_I2C_ADDRESS;
     }
     bool ack = busReadRegisterBuffer(busdev, AK8975_MAG_REG_WIA, &sig, 1);

@@ -52,7 +52,7 @@ bool flashInit(const flashConfig_t *flashConfig) {
     if (!IOIsFreeOrPreinit(busdev->busdev_u.spi.csnPin)) {
         return false;
     }
-    busdev->bustype = BUSTYPE_SPI;
+    busdev->bustype = BUS_TYPE_SPI;
     SPI_TypeDef *instance = spiInstanceByDevice(SPI_CFG_TO_DEV(flashConfig->spiDevice));
     if (!instance) {
         return false;

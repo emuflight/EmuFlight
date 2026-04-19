@@ -37,11 +37,11 @@ bool busWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data) {
 #endif
     switch (busdev->bustype) {
 #ifdef USE_SPI
-    case BUSTYPE_SPI:
+    case BUS_TYPE_SPI:
         return spiBusWriteRegister(busdev, reg & 0x7f, data);
 #endif
 #ifdef USE_I2C
-    case BUSTYPE_I2C:
+    case BUS_TYPE_I2C:
         return i2cBusWriteRegister(busdev, reg, data);
 #endif
     default:
@@ -61,11 +61,11 @@ bool busReadRegisterBuffer(const busDevice_t *busdev, uint8_t reg, uint8_t *data
 #endif
     switch (busdev->bustype) {
 #ifdef USE_SPI
-    case BUSTYPE_SPI:
+    case BUS_TYPE_SPI:
         return spiBusReadRegisterBuffer(busdev, reg | 0x80, data, length);
 #endif
 #ifdef USE_I2C
-    case BUSTYPE_I2C:
+    case BUS_TYPE_I2C:
         return i2cBusReadRegisterBuffer(busdev, reg, data, length);
 #endif
     default:

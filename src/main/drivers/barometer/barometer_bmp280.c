@@ -54,7 +54,7 @@ STATIC_UNIT_TESTED void bmp280_calculate(int32_t *pressure, int32_t *temperature
 
 void bmp280BusInit(busDevice_t *busdev) {
 #ifdef USE_BARO_SPI_BMP280
-    if (busdev->bustype == BUSTYPE_SPI) {
+    if (busdev->bustype == BUS_TYPE_SPI) {
         IOHi(busdev->busdev_u.spi.csnPin); // Disable
         IOInit(busdev->busdev_u.spi.csnPin, OWNER_BARO_CS, 0);
         IOConfigGPIO(busdev->busdev_u.spi.csnPin, IOCFG_OUT_PP);
@@ -67,7 +67,7 @@ void bmp280BusInit(busDevice_t *busdev) {
 
 void bmp280BusDeinit(busDevice_t *busdev) {
 #ifdef USE_BARO_SPI_BMP280
-    if (busdev->bustype == BUSTYPE_SPI) {
+    if (busdev->bustype == BUS_TYPE_SPI) {
         spiPreinitCsByIO(busdev->busdev_u.spi.csnPin);
     }
 #else
@@ -80,7 +80,7 @@ bool bmp280Detect(baroDev_t *baro) {
     busDevice_t *busdev = &baro->busdev;
     bool defaultAddressApplied = false;
     bmp280BusInit(busdev);
-    if ((busdev->bustype == BUSTYPE_I2C) && (busdev->busdev_u.i2c.address == 0)) {
+    if ((busdev->bustype == BUS_TYPE_I2C) && (busdev->busdev_u.i2c.address == 0)) {
         // Default address for BMP280
         busdev->busdev_u.i2c.address = BMP280_I2C_ADDR;
         defaultAddressApplied = true;

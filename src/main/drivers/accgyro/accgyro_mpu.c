@@ -427,11 +427,11 @@ void mpuDetect(gyroDev_t *gyro) {
     // MPU datasheet specifies 30ms.
     delay(35);
 #if defined(USE_I2C) && !defined(USE_DMA_SPI_DEVICE)
-    if (gyro->bus.bustype == BUSTYPE_NONE) {
+    if (gyro->bus.bustype == BUS_TYPE_NONE) {
         // if no bustype is selected try I2C first.
-        gyro->bus.bustype = BUSTYPE_I2C;
+        gyro->bus.bustype = BUS_TYPE_I2C;
     }
-    if (gyro->bus.bustype == BUSTYPE_I2C) {
+    if (gyro->bus.bustype == BUS_TYPE_I2C) {
         gyro->bus.busdev_u.i2c.device = MPU_I2C_INSTANCE;
         gyro->bus.busdev_u.i2c.address = MPU_ADDRESS;
         uint8_t sig = 0;
@@ -457,7 +457,7 @@ void mpuDetect(gyroDev_t *gyro) {
     }
 #endif
 #ifdef USE_SPI
-    gyro->bus.bustype = BUSTYPE_SPI;
+    gyro->bus.bustype = BUS_TYPE_SPI;
     detectSPISensorsAndUpdateDetectionResult(gyro);
 #endif
 }

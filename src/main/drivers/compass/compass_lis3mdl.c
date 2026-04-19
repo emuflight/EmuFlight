@@ -128,7 +128,7 @@ static bool lis3mdlInit(magDev_t *mag) {
 bool lis3mdlDetect(magDev_t * mag) {
     busDevice_t *busdev = &mag->busdev;
     uint8_t sig = 0;
-    if (busdev->bustype == BUSTYPE_I2C && busdev->busdev_u.i2c.address == 0) {
+    if (busdev->bustype == BUS_TYPE_I2C && busdev->busdev_u.i2c.address == 0) {
         busdev->busdev_u.i2c.address = LIS3MDL_MAG_I2C_ADDRESS;
     }
     bool ack = busReadRegisterBuffer(&mag->busdev, LIS3MDL_REG_WHO_AM_I, &sig, 1);

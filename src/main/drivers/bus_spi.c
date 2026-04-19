@@ -248,7 +248,7 @@ FAST_CODE uint8_t spiBusReadRegister(const busDevice_t *bus, uint8_t reg) {
 }
 
 void spiBusSetInstance(busDevice_t *bus, SPI_TypeDef *instance) {
-    bus->bustype = BUSTYPE_SPI;
+    bus->bustype = BUS_TYPE_SPI;
     bus->busdev_u.spi.instance = instance;
 }
 

@@ -108,7 +108,7 @@ static bool qmc5883lRead(magDev_t *magDev, int16_t *magData) {
 
 bool qmc5883lDetect(magDev_t *magDev) {
     busDevice_t *busdev = &magDev->busdev;
-    if (busdev->bustype == BUSTYPE_I2C && busdev->busdev_u.i2c.address == 0) {
+    if (busdev->bustype == BUS_TYPE_I2C && busdev->busdev_u.i2c.address == 0) {
         busdev->busdev_u.i2c.address = QMC5883L_MAG_I2C_ADDRESS;
     }
     // Must write reset first  - don't care about the result
