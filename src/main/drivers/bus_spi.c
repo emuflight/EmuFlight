@@ -42,6 +42,19 @@
 
 FAST_RAM_ZERO_INIT spiDevice_t spiDevice[SPIDEV_COUNT];
 
+// Bus-abstraction layer: one busDevice_t per SPI peripheral. Shared by every
+// extDevice_t that uses this bus. Populated by spiInit() on successful init
+// of each SPI peripheral. Not statically initialised — zero-init is fine
+// because unused slots stay BUS_TYPE_NONE.
+FAST_RAM_ZERO_INIT static busDevice_t spiBusDevice[SPIDEV_COUNT];
+
+busDevice_t *spiBusByDevice(SPIDevice device) {
+    if (device == SPIINVALID || device >= SPIDEV_COUNT) {
+        return NULL;
+    }
+    return &spiBusDevice[device];
+}
+
 SPIDevice spiDeviceByInstance(SPI_TypeDef *instance) {
 #ifdef USE_SPI_DEVICE_1
     if (instance == SPI1)
@@ -70,39 +83,46 @@ SPI_TypeDef *spiInstanceByDevice(SPIDevice device) {
 }
 
 bool spiInit(SPIDevice device) {
+    bool ok = false;
     switch (device) {
     case SPIINVALID:
         return false;
     case SPIDEV_1:
 #ifdef USE_SPI_DEVICE_1
         spiInitDevice(device);
-        return true;
-#else
-        break;
+        ok = true;
 #endif
+        break;
     case SPIDEV_2:
 #ifdef USE_SPI_DEVICE_2
         spiInitDevice(device);
-        return true;
-#else
-        break;
+        ok = true;
 #endif
+        break;
     case SPIDEV_3:
 #if defined(USE_SPI_DEVICE_3) && !defined(STM32F1)
         spiInitDevice(device);
-        return true;
-#else
-        break;
+        ok = true;
 #endif
+        break;
     case SPIDEV_4:
 #if defined(USE_SPI_DEVICE_4)
         spiInitDevice(device);
-        return true;
-#else
+        ok = true;
+#endif
         break;
+    }
+    if (ok) {
+        // Populate bus-abstraction resource for this peripheral. Later stages
+        // migrate extDevice_t to dereference dev->bus->busType_u.spi.instance
+        // instead of the per-device inline copy.
+        spiBusDevice[device].busType = BUS_TYPE_SPI;
+        spiBusDevice[device].busType_u.spi.instance = spiDevice[device].dev;
+#if defined(USE_HAL_DRIVER)
+        spiBusDevice[device].busType_u.spi.handle = &spiDevice[device].hspi;
 #endif
     }
-    return false;
+    return ok;
 }
 
 uint32_t spiTimeoutUserCallback(SPI_TypeDef *instance) {

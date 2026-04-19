@@ -112,6 +112,11 @@ void spiResetErrorCounter(SPI_TypeDef *instance);
 SPIDevice spiDeviceByInstance(SPI_TypeDef *instance);
 SPI_TypeDef *spiInstanceByDevice(SPIDevice device);
 
+// Bus-abstraction accessor. Returns a pointer to the shared busDevice_t that
+// represents the given SPI peripheral (populated by spiInit()). Returns NULL
+// for invalid devices. Used by Stage I.3+ to wire extDevice_t.bus.
+busDevice_t *spiBusByDevice(SPIDevice device);
+
 bool spiReadWriteBuf(const extDevice_t *dev, const uint8_t *txData, uint8_t *rxData, int length);
 
 bool spiWriteReg(const extDevice_t *dev, uint8_t reg, uint8_t data);
