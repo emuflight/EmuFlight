@@ -270,6 +270,12 @@ FAST_CODE uint8_t spiReadReg(const extDevice_t *dev, uint8_t reg) {
 void spiBusSetInstance(extDevice_t *dev, SPI_TypeDef *instance) {
     dev->busType = BUS_TYPE_SPI;
     dev->busType_u.spi.instance = instance;
+    // Wire the bus-abstraction back-pointer. spiInit() must have already
+    // populated spiBusDevice[] for this peripheral; if the caller passes an
+    // instance that does not map to a known SPI device, bus stays NULL and
+    // callers that rely on dev->bus will hit a clear null deref at first
+    // use rather than a silent wrong-peripheral access.
+    dev->bus = spiBusByDevice(spiDeviceByInstance(instance));
 }
 
 // icm42688p and bmi270 porting

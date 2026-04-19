@@ -51,11 +51,13 @@ typedef struct busDevice_s {
     } busType_u;
 } busDevice_t;
 
-// Per-device struct. Will gain a busDevice_t *bus back-pointer in a later
-// sub-commit; today it still carries the full bus info (instance/device)
-// inline so callers keep working. The instance/device fields will move to
-// the shared busDevice_t once every caller is migrated.
+// Per-device struct. Carries a back-pointer to the shared busDevice_t
+// (populated by spiBusSetInstance for SPI devices; NULL for I2C and
+// MPU-slave devices until their bus-resource split lands). The inline
+// instance/device fields are still present and authoritative in this
+// sub-commit; Stage I.4 migrates access sites to prefer dev->bus.
 typedef struct extDevice_s {
+    busDevice_t *bus;
     busType_e busType;
     union {
         struct extSpi_s {
