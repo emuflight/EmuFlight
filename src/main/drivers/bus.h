@@ -57,13 +57,6 @@ typedef struct extDevice_s {
     } busType_u;
 } extDevice_t;
 
-// Transitional alias. EmuFlight has not yet split the combined bus+device
-// struct into Betaflight's shared busDevice_s (per-peripheral resource) and
-// per-device extDevice_s. Until that split, both names resolve to the same
-// struct and code written against either name works. The alias can be
-// removed once all internal callers migrate off busDevice_t.
-typedef extDevice_t busDevice_t;
-
 #ifdef TARGET_BUS_INIT
 void targetBusInit(void);
 #endif
