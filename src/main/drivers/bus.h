@@ -32,10 +32,33 @@ typedef enum {
     BUS_TYPE_MPU_SLAVE // Slave I2C on SPI master
 } busType_e;
 
-typedef struct extDevice_s {
+// Shared bus-resource struct. Represents an SPI or I2C peripheral; one
+// instance per physical bus. Does NOT carry per-device addressing (CS pin,
+// I2C slave address). Matches Betaflight 4.5-maintenance layout minus the
+// DMA/segment fields which are a later phase.
+typedef struct busDevice_s {
     busType_e busType;
     union {
         struct busSpi_s {
+            SPI_TypeDef *instance;
+#if defined(USE_HAL_DRIVER)
+            SPI_HandleTypeDef* handle; // cached here for efficiency
+#endif
+        } spi;
+        struct busI2C_s {
+            I2CDevice device;
+        } i2c;
+    } busType_u;
+} busDevice_t;
+
+// Per-device struct. Will gain a busDevice_t *bus back-pointer in a later
+// sub-commit; today it still carries the full bus info (instance/device)
+// inline so callers keep working. The instance/device fields will move to
+// the shared busDevice_t once every caller is migrated.
+typedef struct extDevice_s {
+    busType_e busType;
+    union {
+        struct extSpi_s {
             SPI_TypeDef *instance;
 #if defined(USE_HAL_DRIVER)
             SPI_HandleTypeDef* handle; // cached here for efficiency
@@ -46,11 +69,11 @@ typedef struct extDevice_s {
             IO_t rstPin;
 #endif
         } spi;
-        struct busI2C_s {
+        struct extI2C_s {
             I2CDevice device;
             uint8_t address;
         } i2c;
-        struct busMpuSlave_s {
+        struct extMpuSlave_s {
             const struct extDevice_s *master;
             uint8_t address;
         } mpuSlave;
