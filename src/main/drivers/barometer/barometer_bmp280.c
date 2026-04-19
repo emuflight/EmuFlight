@@ -52,7 +52,7 @@ static void bmp280_get_up(baroDev_t *baro);
 
 STATIC_UNIT_TESTED void bmp280_calculate(int32_t *pressure, int32_t *temperature);
 
-void bmp280BusInit(busDevice_t *busdev) {
+void bmp280BusInit(extDevice_t *busdev) {
 #ifdef USE_BARO_SPI_BMP280
     if (busdev->busType == BUS_TYPE_SPI) {
         IOHi(busdev->busType_u.spi.csnPin); // Disable
@@ -65,7 +65,7 @@ void bmp280BusInit(busDevice_t *busdev) {
 #endif
 }
 
-void bmp280BusDeinit(busDevice_t *busdev) {
+void bmp280BusDeinit(extDevice_t *busdev) {
 #ifdef USE_BARO_SPI_BMP280
     if (busdev->busType == BUS_TYPE_SPI) {
         spiPreinitCsByIO(busdev->busType_u.spi.csnPin);
@@ -77,7 +77,7 @@ void bmp280BusDeinit(busDevice_t *busdev) {
 
 bool bmp280Detect(baroDev_t *baro) {
     delay(20);
-    busDevice_t *busdev = &baro->dev;
+    extDevice_t *busdev = &baro->dev;
     bool defaultAddressApplied = false;
     bmp280BusInit(busdev);
     if ((busdev->busType == BUS_TYPE_I2C) && (busdev->busType_u.i2c.address == 0)) {

@@ -112,12 +112,12 @@ void spiResetErrorCounter(SPI_TypeDef *instance);
 SPIDevice spiDeviceByInstance(SPI_TypeDef *instance);
 SPI_TypeDef *spiInstanceByDevice(SPIDevice device);
 
-bool spiReadWriteBuf(const busDevice_t *bus, const uint8_t *txData, uint8_t *rxData, int length);
+bool spiReadWriteBuf(const extDevice_t *bus, const uint8_t *txData, uint8_t *rxData, int length);
 
-bool spiWriteReg(const busDevice_t *bus, uint8_t reg, uint8_t data);
-bool spiReadRegBuf(const busDevice_t *bus, uint8_t reg, uint8_t *data, uint8_t length);
-uint8_t spiReadReg(const busDevice_t *bus, uint8_t reg);
-void spiBusSetInstance(busDevice_t *bus, SPI_TypeDef *instance);
+bool spiWriteReg(const extDevice_t *bus, uint8_t reg, uint8_t data);
+bool spiReadRegBuf(const extDevice_t *bus, uint8_t reg, uint8_t *data, uint8_t length);
+uint8_t spiReadReg(const extDevice_t *bus, uint8_t reg);
+void spiBusSetInstance(extDevice_t *bus, SPI_TypeDef *instance);
 
 struct spiPinConfig_s;
 void spiPinConfigure(const struct spiPinConfig_s *pConfig);
@@ -125,4 +125,4 @@ void spiPinConfigure(const struct spiPinConfig_s *pConfig);
 // Determine the divisor to use for a given bus frequency
 uint16_t spiCalculateDivider(uint32_t freq);
 
-uint8_t spiReadRegMsk(const busDevice_t *bus, uint8_t reg);
+uint8_t spiReadRegMsk(const extDevice_t *bus, uint8_t reg);

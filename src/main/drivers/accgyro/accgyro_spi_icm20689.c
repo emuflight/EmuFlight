@@ -37,7 +37,7 @@
 #include "drivers/time.h"
 
 
-static void icm20689SpiInit(const busDevice_t *bus) {
+static void icm20689SpiInit(const extDevice_t *bus) {
     static bool hardwareInitialised = false;
     if (hardwareInitialised) {
         return;
@@ -51,7 +51,7 @@ static void icm20689SpiInit(const busDevice_t *bus) {
     hardwareInitialised = true;
 }
 
-uint8_t icm20689SpiDetect(const busDevice_t *bus) {
+uint8_t icm20689SpiDetect(const extDevice_t *bus) {
     icm20689SpiInit(bus);
     spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed
     spiWriteReg(bus, MPU_RA_PWR_MGMT_1, ICM20689_BIT_RESET);

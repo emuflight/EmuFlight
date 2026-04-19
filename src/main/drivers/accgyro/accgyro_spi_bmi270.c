@@ -146,7 +146,7 @@ typedef enum {
 
 // BMI270 register reads are 16bits with the first byte a "dummy" value 0
 // that must be ignored. The result is in the second byte.
-static uint8_t bmi270RegisterRead(const busDevice_t *bus, bmi270Register_e registerId)
+static uint8_t bmi270RegisterRead(const extDevice_t *bus, bmi270Register_e registerId)
 {
     uint8_t data[2] = { 0, 0 };
 
@@ -157,7 +157,7 @@ static uint8_t bmi270RegisterRead(const busDevice_t *bus, bmi270Register_e regis
     }
 }
 
-static void bmi270RegisterWrite(const busDevice_t *bus, bmi270Register_e registerId, uint8_t value, unsigned delayMs)
+static void bmi270RegisterWrite(const extDevice_t *bus, bmi270Register_e registerId, uint8_t value, unsigned delayMs)
 {
     spiWriteReg(bus, registerId, value);
     if (delayMs) {
@@ -167,7 +167,7 @@ static void bmi270RegisterWrite(const busDevice_t *bus, bmi270Register_e registe
 
 // Toggle the CS to switch the device into SPI mode.
 // Device switches initializes as I2C and switches to SPI on a low to high CS transition
-static void bmi270EnableSPI(const busDevice_t *bus)
+static void bmi270EnableSPI(const extDevice_t *bus)
 {
     IOLo(bus->busType_u.spi.csnPin);
     delay(1);
@@ -175,7 +175,7 @@ static void bmi270EnableSPI(const busDevice_t *bus)
     delay(10);
 }
 
-uint8_t bmi270Detect(const busDevice_t *bus)
+uint8_t bmi270Detect(const extDevice_t *bus)
 {
 #ifndef USE_DUAL_GYRO
     IOInit(bus->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
@@ -193,7 +193,7 @@ uint8_t bmi270Detect(const busDevice_t *bus)
     return MPU_NONE;
 }
 
-static void bmi270UploadConfig(const busDevice_t *bus)
+static void bmi270UploadConfig(const extDevice_t *bus)
 {
     bmi270RegisterWrite(bus, BMI270_REG_PWR_CONF, 0, 1);
     bmi270RegisterWrite(bus, BMI270_REG_INIT_CTRL, 0, 1);
@@ -221,7 +221,7 @@ static uint8_t getBmiOsrMode()
 
 static void bmi270Config(const gyroDev_t *gyro)
 {
-    const busDevice_t *bus = &gyro->dev;
+    const extDevice_t *bus = &gyro->dev;
 
     // If running in hardware_lpf experimental mode then switch to FIFO-based,
     // 6.4KHz sampling, unfiltered data vs. the default 3.2KHz with hardware filtering

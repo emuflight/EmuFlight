@@ -190,8 +190,8 @@
 #define MAX7456_SPI_CLK           (SPI_CLOCK_STANDARD)
 #endif
 
-busDevice_t max7456BusDevice;
-busDevice_t *busdev = &max7456BusDevice;
+extDevice_t max7456BusDevice;
+extDevice_t *busdev = &max7456BusDevice;
 
 static uint16_t max7456SpiClock = MAX7456_SPI_CLK;
 

@@ -182,7 +182,7 @@ static void hmc5883lConfigureDataReadyInterruptHandling(magDev_t* mag) {
 }
 
 #ifdef USE_MAG_SPI_HMC5883
-static void hmc5883SpiInit(busDevice_t *busdev) {
+static void hmc5883SpiInit(extDevice_t *busdev) {
     IOHi(busdev->busType_u.spi.csnPin); // Disable
     IOInit(busdev->busType_u.spi.csnPin, OWNER_COMPASS_CS, 0);
     IOConfigGPIO(busdev->busType_u.spi.csnPin, IOCFG_OUT_PP);
@@ -192,7 +192,7 @@ static void hmc5883SpiInit(busDevice_t *busdev) {
 
 static bool hmc5883lRead(magDev_t *mag, int16_t *magData) {
     uint8_t buf[6];
-    busDevice_t *busdev = &mag->dev;
+    extDevice_t *busdev = &mag->dev;
     bool ack = busReadRegisterBuffer(busdev, HMC58X3_REG_DATA, buf, 6);
     if (!ack) {
         return false;
@@ -204,7 +204,7 @@ static bool hmc5883lRead(magDev_t *mag, int16_t *magData) {
 }
 
 static bool hmc5883lInit(magDev_t *mag) {
-    busDevice_t *busdev = &mag->dev;
+    extDevice_t *busdev = &mag->dev;
     // leave test mode
     busWriteRegister(busdev, HMC58X3_REG_CONFA, HMC_CONFA_8_SAMLES | HMC_CONFA_DOR_15HZ | HMC_CONFA_NORMAL);    // Configuration Register A  -- 0 11 100 00  num samples: 8 ; output rate: 15Hz ; normal measurement mode
     busWriteRegister(busdev, HMC58X3_REG_CONFB, HMC_CONFB_GAIN_1_3GA);                                          // Configuration Register B  -- 001 00000    configuration gain 1.3Ga
@@ -215,7 +215,7 @@ static bool hmc5883lInit(magDev_t *mag) {
 }
 
 bool hmc5883lDetect(magDev_t* mag) {
-    busDevice_t *busdev = &mag->dev;
+    extDevice_t *busdev = &mag->dev;
     uint8_t sig = 0;
 #ifdef USE_MAG_SPI_HMC5883
     if (busdev->busType == BUS_TYPE_SPI) {

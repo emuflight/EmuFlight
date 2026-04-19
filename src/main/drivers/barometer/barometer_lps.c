@@ -189,15 +189,15 @@
 static uint32_t rawP = 0;
 static uint16_t rawT = 0;
 
-bool lpsWriteCommand(busDevice_t *busdev, uint8_t cmd, uint8_t byte) {
+bool lpsWriteCommand(extDevice_t *busdev, uint8_t cmd, uint8_t byte) {
     return spiWriteReg(busdev, cmd, byte);
 }
 
-bool lpsReadCommand(busDevice_t *busdev, uint8_t cmd, uint8_t *data, uint8_t len) {
+bool lpsReadCommand(extDevice_t *busdev, uint8_t cmd, uint8_t *data, uint8_t len) {
     return spiReadRegBuf(busdev, cmd | 0x80 | 0x40, data, len);
 }
 
-bool lpsWriteVerify(busDevice_t *busdev, uint8_t cmd, uint8_t byte) {
+bool lpsWriteVerify(extDevice_t *busdev, uint8_t cmd, uint8_t byte) {
     uint8_t temp = 0xff;
     spiWriteReg(busdev, cmd, byte);
     spiReadRegBuf(busdev, cmd, &temp, 1);
@@ -205,12 +205,12 @@ bool lpsWriteVerify(busDevice_t *busdev, uint8_t cmd, uint8_t byte) {
     return false;
 }
 
-static void lpsOn(busDevice_t *busdev, uint8_t CTRL1_val) {
+static void lpsOn(extDevice_t *busdev, uint8_t CTRL1_val) {
     lpsWriteCommand(busdev, LPS_CTRL1, CTRL1_val | 0x80);
     //Instead of delay let's ready status reg
 }
 
-static void lpsOff(busDevice_t *busdev) {
+static void lpsOff(extDevice_t *busdev) {
     lpsWriteCommand(busdev, LPS_CTRL1, 0x00 | (0x01 << 2));
 }
 
@@ -241,7 +241,7 @@ static void lps_calculate(int32_t *pressure, int32_t *temperature) {
 
 bool lpsDetect(baroDev_t *baro) {
     //Detect
-    busDevice_t *busdev = &baro->dev;
+    extDevice_t *busdev = &baro->dev;
     IOInit(busdev->busType_u.spi.csnPin, OWNER_BARO_CS, 0);
     IOConfigGPIO(busdev->busType_u.spi.csnPin, IOCFG_OUT_PP);
     IOHi(busdev->busType_u.spi.csnPin); // Disable

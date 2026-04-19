@@ -88,10 +88,10 @@ static volatile bool bmi160DataReady = false;
 static volatile bool bmi160ExtiInitDone = false;
 
 //! Private functions
-static int32_t BMI160_Config(const busDevice_t *bus);
-static int32_t BMI160_do_foc(const busDevice_t *bus);
+static int32_t BMI160_Config(const extDevice_t *bus);
+static int32_t BMI160_do_foc(const extDevice_t *bus);
 
-uint8_t bmi160Detect(const busDevice_t *bus) {
+uint8_t bmi160Detect(const extDevice_t *bus) {
     if (BMI160Detected) {
         return BMI_160_SPI;
     }
@@ -117,7 +117,7 @@ uint8_t bmi160Detect(const busDevice_t *bus) {
  * @brief Initialize the BMI160 6-axis sensor.
  * @return 0 for success, -1 for failure to allocate, -10 for failure to get irq
  */
-static void BMI160_Init(const busDevice_t *bus) {
+static void BMI160_Init(const extDevice_t *bus) {
     if (BMI160InitDone || !BMI160Detected) {
         return;
     }
@@ -137,7 +137,7 @@ static void BMI160_Init(const busDevice_t *bus) {
 /**
  * @brief Configure the sensor
  */
-static int32_t BMI160_Config(const busDevice_t *bus) {
+static int32_t BMI160_Config(const extDevice_t *bus) {
     // Set normal power mode for gyro and accelerometer
     spiWriteReg(bus, BMI160_REG_CMD, BMI160_PMU_CMD_PMU_GYR_NORMAL);
     delay(100); // can take up to 80ms
@@ -174,7 +174,7 @@ static int32_t BMI160_Config(const busDevice_t *bus) {
     return 0;
 }
 
-static int32_t BMI160_do_foc(const busDevice_t *bus) {
+static int32_t BMI160_do_foc(const extDevice_t *bus) {
     // assume sensor is mounted on top
     uint8_t val = 0x7D;;
     spiWriteReg(bus, BMI160_REG_FOC_CONF, val);

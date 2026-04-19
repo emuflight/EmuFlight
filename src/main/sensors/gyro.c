@@ -325,7 +325,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
 #endif //USE_GYRO_IMUF9001
 
 
-const busDevice_t *gyroSensorBus(void) {
+const extDevice_t *gyroSensorBus(void) {
 #ifdef USE_DUAL_GYRO
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_2) {
         return &gyroSensor2.gyroDev.dev;
@@ -338,7 +338,7 @@ const busDevice_t *gyroSensorBus(void) {
 }
 
 #ifdef USE_GYRO_REGISTER_DUMP
-const busDevice_t *gyroSensorBusByDevice(uint8_t whichSensor) {
+const extDevice_t *gyroSensorBusByDevice(uint8_t whichSensor) {
 #ifdef USE_DUAL_GYRO
     if (whichSensor == GYRO_CONFIG_USE_GYRO_2) {
         return &gyroSensor2.gyroDev.dev;

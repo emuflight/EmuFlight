@@ -103,7 +103,7 @@
 
 static bool lis3mdlRead(magDev_t * mag, int16_t *magData) {
     uint8_t buf[6];
-    busDevice_t *busdev = &mag->dev;
+    extDevice_t *busdev = &mag->dev;
     bool ack = busReadRegisterBuffer(busdev, LIS3MDL_REG_OUT_X_L, buf, 6);
     if (!ack) {
         return false;
@@ -115,7 +115,7 @@ static bool lis3mdlRead(magDev_t * mag, int16_t *magData) {
 }
 
 static bool lis3mdlInit(magDev_t *mag) {
-    busDevice_t *busdev = &mag->dev;
+    extDevice_t *busdev = &mag->dev;
     busWriteRegister(busdev, LIS3MDL_REG_CTRL_REG2, LIS3MDL_FS_4GAUSS);
     busWriteRegister(busdev, LIS3MDL_REG_CTRL_REG1, LIS3MDL_TEMP_EN | LIS3MDL_OM_ULTRA_HI_PROF | LIS3MDL_DO_80);
     busWriteRegister(busdev, LIS3MDL_REG_CTRL_REG5, LIS3MDL_BDU);
@@ -126,7 +126,7 @@ static bool lis3mdlInit(magDev_t *mag) {
 }
 
 bool lis3mdlDetect(magDev_t * mag) {
-    busDevice_t *busdev = &mag->dev;
+    extDevice_t *busdev = &mag->dev;
     uint8_t sig = 0;
     if (busdev->busType == BUS_TYPE_I2C && busdev->busType_u.i2c.address == 0) {
         busdev->busType_u.i2c.address = LIS3MDL_MAG_I2C_ADDRESS;

@@ -122,7 +122,7 @@ static bool bmp085InitDone = false;
 STATIC_UNIT_TESTED uint16_t bmp085_ut;  // static result of temperature measurement
 STATIC_UNIT_TESTED uint32_t bmp085_up;  // static result of pressure measurement
 
-static void bmp085_get_cal_param(busDevice_t *busdev);
+static void bmp085_get_cal_param(extDevice_t *busdev);
 static void bmp085_start_ut(baroDev_t *baro);
 static void bmp085_get_ut(baroDev_t *baro);
 static void bmp085_start_up(baroDev_t *baro);
@@ -180,7 +180,7 @@ bool bmp085Detect(const bmp085Config_t *config, baroDev_t *baro) {
     UNUSED(config);
 #endif
     delay(20); // datasheet says 10ms, we'll be careful and do 20.
-    busDevice_t *busdev = &baro->dev;
+    extDevice_t *busdev = &baro->dev;
     if ((busdev->busType == BUS_TYPE_I2C) && (busdev->busType_u.i2c.address == 0)) {
         // Default address for BMP085
         busdev->busType_u.i2c.address = BMP085_I2C_ADDR;
@@ -316,7 +316,7 @@ STATIC_UNIT_TESTED void bmp085_calculate(int32_t *pressure, int32_t *temperature
         *temperature = temp;
 }
 
-static void bmp085_get_cal_param(busDevice_t *busdev) {
+static void bmp085_get_cal_param(extDevice_t *busdev) {
     uint8_t data[22];
     busReadRegisterBuffer(busdev, BMP085_PROM_START__ADDR, data, BMP085_PROM_DATA__LEN);
     /*parameters AC1-AC6*/

@@ -51,7 +51,7 @@ static void mpu9250AccAndGyroInit(gyroDev_t *gyro);
 
 static bool mpuSpi9250InitDone = false;
 
-bool mpu9250SpiWriteRegister(const busDevice_t *bus, uint8_t reg, uint8_t data) {
+bool mpu9250SpiWriteRegister(const extDevice_t *bus, uint8_t reg, uint8_t data) {
     IOLo(bus->busType_u.spi.csnPin);
     delayMicroseconds(1);
     spiTransferByte(bus->busType_u.spi.instance, reg);
@@ -61,7 +61,7 @@ bool mpu9250SpiWriteRegister(const busDevice_t *bus, uint8_t reg, uint8_t data) 
     return true;
 }
 
-static bool mpu9250SpiSlowReadRegisterBuffer(const busDevice_t *bus, uint8_t reg, uint8_t *data, uint8_t length) {
+static bool mpu9250SpiSlowReadRegisterBuffer(const extDevice_t *bus, uint8_t reg, uint8_t *data, uint8_t length) {
     IOLo(bus->busType_u.spi.csnPin);
     delayMicroseconds(1);
     spiTransferByte(bus->busType_u.spi.instance, reg | 0x80); // read transaction
@@ -73,10 +73,10 @@ static bool mpu9250SpiSlowReadRegisterBuffer(const busDevice_t *bus, uint8_t reg
 
 void mpu9250SpiResetGyro(void) {
 #if 0
-// XXX This doesn't work. Need a proper busDevice_t.
+// XXX This doesn't work. Need a proper extDevice_t.
     // Device Reset
 #ifdef MPU9250_CS_PIN
-    busDevice_t bus = { .spi = { .csnPin = IOGetByTag(IO_TAG(MPU9250_CS_PIN)) } };
+    extDevice_t bus = { .spi = { .csnPin = IOGetByTag(IO_TAG(MPU9250_CS_PIN)) } };
     mpu9250SpiWriteRegister(&bus, MPU_RA_PWR_MGMT_1, MPU9250_BIT_RESET);
     delay(150);
 #endif
@@ -99,7 +99,7 @@ void mpu9250SpiAccInit(accDev_t *acc) {
     acc->acc_1G = 512 * 4;
 }
 
-bool mpu9250SpiWriteRegisterVerify(const busDevice_t *bus, uint8_t reg, uint8_t data) {
+bool mpu9250SpiWriteRegisterVerify(const extDevice_t *bus, uint8_t reg, uint8_t data) {
     mpu9250SpiWriteRegister(bus, reg, data);
     delayMicroseconds(100);
     uint8_t attemptsRemaining = 20;
@@ -137,7 +137,7 @@ static void mpu9250AccAndGyroInit(gyroDev_t *gyro) {
     mpuSpi9250InitDone = true; //init done
 }
 
-uint8_t mpu9250SpiDetect(const busDevice_t *bus) {
+uint8_t mpu9250SpiDetect(const extDevice_t *bus) {
 #ifndef USE_DUAL_GYRO
     IOInit(bus->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
     IOConfigGPIO(bus->busType_u.spi.csnPin, SPI_IO_CS_CFG);

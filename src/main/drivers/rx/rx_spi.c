@@ -41,8 +41,8 @@
 
 #include "rx_spi.h"
 
-static busDevice_t rxSpiDevice;
-static busDevice_t *busdev = &rxSpiDevice;
+static extDevice_t rxSpiDevice;
+static extDevice_t *busdev = &rxSpiDevice;
 
 #define DISABLE_RX()    {IOHi(busdev->busType_u.spi.csnPin);}
 #define ENABLE_RX()     {IOLo(busdev->busType_u.spi.csnPin);}

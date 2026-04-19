@@ -173,11 +173,11 @@ static const uint8_t multiWiiFont[][5] = { // Refer to "Times New Roman" Font Da
     { 0x7A, 0x7E, 0x7E, 0x7E, 0x7A }, //   (131)    - 0x00C8 Vertical Bargraph - 6 (full)
 };
 
-static bool i2c_OLED_send_cmd(busDevice_t *bus, uint8_t command) {
+static bool i2c_OLED_send_cmd(extDevice_t *bus, uint8_t command) {
     return i2cWrite(bus->busType_u.i2c.device, bus->busType_u.i2c.address, 0x80, command);
 }
 
-static bool i2c_OLED_send_cmdarray(busDevice_t *bus, const uint8_t *commands, size_t len) {
+static bool i2c_OLED_send_cmdarray(extDevice_t *bus, const uint8_t *commands, size_t len) {
     for (size_t i = 0 ; i < len ; i++) {
         if (!i2c_OLED_send_cmd(bus, commands[i])) {
             return false;
@@ -186,11 +186,11 @@ static bool i2c_OLED_send_cmdarray(busDevice_t *bus, const uint8_t *commands, si
     return true;
 }
 
-static bool i2c_OLED_send_byte(busDevice_t *bus, uint8_t val) {
+static bool i2c_OLED_send_byte(extDevice_t *bus, uint8_t val) {
     return i2cWrite(bus->busType_u.i2c.device, bus->busType_u.i2c.address, 0x40, val);
 }
 
-void i2c_OLED_clear_display_quick(busDevice_t *bus) {
+void i2c_OLED_clear_display_quick(extDevice_t *bus) {
     static const uint8_t i2c_OLED_cmd_clear_display_quick[] = {
         0xb0, // set page address to 0
         0x40, // Display start line register to 0
@@ -203,7 +203,7 @@ void i2c_OLED_clear_display_quick(busDevice_t *bus) {
     }
 }
 
-void i2c_OLED_clear_display(busDevice_t *bus) {
+void i2c_OLED_clear_display(extDevice_t *bus) {
     static const uint8_t i2c_OLED_cmd_clear_display_pre[] = {
         0xa6, // Set Normal Display
         0xae, // Display OFF
@@ -220,7 +220,7 @@ void i2c_OLED_clear_display(busDevice_t *bus) {
     i2c_OLED_send_cmdarray(bus, i2c_OLED_cmd_clear_display_post, ARRAYLEN(i2c_OLED_cmd_clear_display_post));
 }
 
-void i2c_OLED_set_xy(busDevice_t *bus, uint8_t col, uint8_t row) {
+void i2c_OLED_set_xy(extDevice_t *bus, uint8_t col, uint8_t row) {
     uint8_t i2c_OLED_cmd_set_xy[] = {
         0xb0 + row,                                            //set page address
         0x00 + ((CHARACTER_WIDTH_TOTAL * col) & 0x0f),         //set low col address
@@ -229,11 +229,11 @@ void i2c_OLED_set_xy(busDevice_t *bus, uint8_t col, uint8_t row) {
     i2c_OLED_send_cmdarray(bus, i2c_OLED_cmd_set_xy, ARRAYLEN(i2c_OLED_cmd_set_xy));
 }
 
-void i2c_OLED_set_line(busDevice_t *bus, uint8_t row) {
+void i2c_OLED_set_line(extDevice_t *bus, uint8_t row) {
     i2c_OLED_set_xy(bus, 0, row);
 }
 
-void i2c_OLED_send_char(busDevice_t *bus, unsigned char ascii) {
+void i2c_OLED_send_char(extDevice_t *bus, unsigned char ascii) {
     unsigned char i;
     uint8_t buffer;
     for (i = 0; i < 5; i++) {
@@ -244,7 +244,7 @@ void i2c_OLED_send_char(busDevice_t *bus, unsigned char ascii) {
     i2c_OLED_send_byte(bus, CHAR_FORMAT);    // the gap
 }
 
-void i2c_OLED_send_string(busDevice_t *bus, const char *string) {
+void i2c_OLED_send_string(extDevice_t *bus, const char *string) {
     // Sends a string of chars until null terminator
     while (*string) {
         i2c_OLED_send_char(bus, *string);
@@ -256,7 +256,7 @@ void i2c_OLED_send_string(busDevice_t *bus, const char *string) {
 * according to http://www.adafruit.com/datasheets/UG-2864HSWEG01.pdf Chapter 4.4 Page 15
 */
 
-bool ug2864hsweg01InitI2C(busDevice_t *bus) {
+bool ug2864hsweg01InitI2C(extDevice_t *bus) {
     // Set display OFF
     if (!i2c_OLED_send_cmd(bus, 0xAE)) {
         return false;

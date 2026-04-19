@@ -117,7 +117,7 @@ void mpu6000SpiAccInit(accDev_t *acc) {
     acc->acc_1G = 512 * 4;
 }
 
-uint8_t mpu6000SpiDetect(const busDevice_t *bus) {
+uint8_t mpu6000SpiDetect(const extDevice_t *bus) {
 #ifndef USE_DUAL_GYRO
     IOInit(bus->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
     IOConfigGPIO(bus->busType_u.spi.csnPin, SPI_IO_CS_CFG);

@@ -35,8 +35,8 @@
 #include "drivers/io.h"
 #include "drivers/time.h"
 
-static busDevice_t busInstance;
-static busDevice_t *busdev;
+static extDevice_t busInstance;
+static extDevice_t *busdev;
 
 static flashDevice_t flashDevice;
 

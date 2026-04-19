@@ -32,7 +32,7 @@ typedef enum {
     BUS_TYPE_MPU_SLAVE // Slave I2C on SPI master
 } busType_e;
 
-typedef struct busDevice_s {
+typedef struct extDevice_s {
     busType_e busType;
     union {
         struct busSpi_s {
@@ -51,23 +51,23 @@ typedef struct busDevice_s {
             uint8_t address;
         } i2c;
         struct busMpuSlave_s {
-            const struct busDevice_s *master;
+            const struct extDevice_s *master;
             uint8_t address;
         } mpuSlave;
     } busType_u;
-} busDevice_t;
+} extDevice_t;
+
+// Transitional alias. EmuFlight has not yet split the combined bus+device
+// struct into Betaflight's shared busDevice_s (per-peripheral resource) and
+// per-device extDevice_s. Until that split, both names resolve to the same
+// struct and code written against either name works. The alias can be
+// removed once all internal callers migrate off busDevice_t.
+typedef extDevice_t busDevice_t;
 
 #ifdef TARGET_BUS_INIT
 void targetBusInit(void);
 #endif
 
-bool busWriteRegister(const busDevice_t *bus, uint8_t reg, uint8_t data);
-bool busReadRegisterBuffer(const busDevice_t *bus, uint8_t reg, uint8_t *data, uint8_t length);
-uint8_t busReadRegister(const busDevice_t *bus, uint8_t reg);
-
-// Betaflight paste-and-tweak alias. In BF master, extDevice_t is a separate
-// per-device struct pointing at a shared busDevice_s. EmuFlight has not yet
-// split the bus resource from the device; extDevice_t is a typedef so driver
-// code written against BF signatures compiles against our combined struct.
-// Splitting the shared-bus resource is a future refactor stage.
-typedef busDevice_t extDevice_t;
+bool busWriteRegister(const extDevice_t *dev, uint8_t reg, uint8_t data);
+bool busReadRegisterBuffer(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint8_t length);
+uint8_t busReadRegister(const extDevice_t *dev, uint8_t reg);

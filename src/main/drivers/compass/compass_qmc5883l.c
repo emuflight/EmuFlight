@@ -75,7 +75,7 @@
 static bool qmc5883lInit(magDev_t *magDev) {
     UNUSED(magDev);
     bool ack = true;
-    busDevice_t *busdev = &magDev->dev;
+    extDevice_t *busdev = &magDev->dev;
     ack = ack && busWriteRegister(busdev, 0x0B, 0x01);
     ack = ack && busWriteRegister(busdev, QMC5883L_REG_CONF1, QMC5883L_MODE_CONTINUOUS | QMC5883L_ODR_200HZ | QMC5883L_OSR_512 | QMC5883L_RNG_8G);
     if (!ack) {
@@ -91,7 +91,7 @@ static bool qmc5883lRead(magDev_t *magDev, int16_t *magData) {
     magData[X] = 0;
     magData[Y] = 0;
     magData[Z] = 0;
-    busDevice_t *busdev = &magDev->dev;
+    extDevice_t *busdev = &magDev->dev;
     bool ack = busReadRegisterBuffer(busdev, QMC5883L_REG_STATUS, &status, 1);
     if (!ack || (status & 0x04) == 0) {
         return false;
@@ -107,7 +107,7 @@ static bool qmc5883lRead(magDev_t *magDev, int16_t *magData) {
 }
 
 bool qmc5883lDetect(magDev_t *magDev) {
-    busDevice_t *busdev = &magDev->dev;
+    extDevice_t *busdev = &magDev->dev;
     if (busdev->busType == BUS_TYPE_I2C && busdev->busType_u.i2c.address == 0) {
         busdev->busType_u.i2c.address = QMC5883L_MAG_I2C_ADDRESS;
     }

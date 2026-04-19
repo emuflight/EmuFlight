@@ -37,7 +37,7 @@
 #include "drivers/time.h"
 
 
-static void icm20649SpiInit(const busDevice_t *bus) {
+static void icm20649SpiInit(const extDevice_t *bus) {
     static bool hardwareInitialised = false;
     if (hardwareInitialised) {
         return;
@@ -53,7 +53,7 @@ static void icm20649SpiInit(const busDevice_t *bus) {
     hardwareInitialised = true;
 }
 
-uint8_t icm20649SpiDetect(const busDevice_t *bus) {
+uint8_t icm20649SpiDetect(const extDevice_t *bus) {
     icm20649SpiInit(bus);
     spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     spiWriteReg(bus, ICM20649_RA_REG_BANK_SEL, 0 << 4); // select bank 0 just to be safe

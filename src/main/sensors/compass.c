@@ -117,7 +117,7 @@ static uint8_t magInit = 0;
 #if !defined(SIMULATOR_BUILD)
 bool compassDetect(magDev_t *dev) {
     magSensor_e magHardware = MAG_NONE;
-    busDevice_t *busdev = &dev->dev;
+    extDevice_t *busdev = &dev->dev;
 #ifdef USE_MAG_DATA_READY_SIGNAL
     dev->magIntExtiTag = compassConfig()->interruptTag;
 #endif

@@ -39,7 +39,7 @@
 
 #define BIT_SLEEP                   0x40
 
-static void mpu6500SpiInit(const busDevice_t *bus) {
+static void mpu6500SpiInit(const extDevice_t *bus) {
 #ifndef USE_DUAL_GYRO
     IOInit(bus->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
     IOConfigGPIO(bus->busType_u.spi.csnPin, SPI_IO_CS_CFG);
@@ -48,7 +48,7 @@ static void mpu6500SpiInit(const busDevice_t *bus) {
     spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_FAST);
 }
 
-uint8_t mpu6500SpiDetect(const busDevice_t *bus) {
+uint8_t mpu6500SpiDetect(const extDevice_t *bus) {
     mpu6500SpiInit(bus);
     const uint8_t whoAmI = spiReadReg(bus, MPU_RA_WHO_AM_I);
     uint8_t mpuDetected = MPU_NONE;

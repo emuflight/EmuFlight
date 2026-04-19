@@ -59,7 +59,7 @@ static flashDevice_t dieDevice[MAX_DIE_COUNT];
 static int dieCount;
 static uint32_t dieSize;
 
-static void w25m_dieSelect(busDevice_t *busdev, int die) {
+static void w25m_dieSelect(extDevice_t *busdev, int die) {
     static int activeDie = -1;
     if (activeDie == die) {
         return;

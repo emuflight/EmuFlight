@@ -153,7 +153,7 @@ static aafConfig_t aafLUT42605[AAF_CONFIG_COUNT] = {  // see table in section 5.
     [AAF_CONFIG_1962HZ] = { 63, 3968,  3 }, // 995 Hz is the max cutoff on the 42605
 };
 
-static void icm426xxSpiInit(const busDevice_t *bus) {
+static void icm426xxSpiInit(const extDevice_t *bus) {
     static bool hardwareInitialised = false;
     if (hardwareInitialised) {
         return;
@@ -167,7 +167,7 @@ static void icm426xxSpiInit(const busDevice_t *bus) {
     hardwareInitialised = true;
 }
 
-uint8_t icm426xxSpiDetect(const busDevice_t *bus) {
+uint8_t icm426xxSpiDetect(const extDevice_t *bus) {
     icm426xxSpiInit(bus);
     spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed
     spiWriteReg(bus, MPU_RA_PWR_MGMT_1, ICM426xx_BIT_RESET);

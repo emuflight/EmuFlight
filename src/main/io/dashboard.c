@@ -80,7 +80,7 @@
 #define DISPLAY_UPDATE_FREQUENCY (MICROSECONDS_IN_A_SECOND / 5)
 #define PAGE_CYCLE_FREQUENCY (MICROSECONDS_IN_A_SECOND * 5)
 
-static busDevice_t *bus;
+static extDevice_t *bus;
 
 static uint32_t nextDisplayUpdateAt = 0;
 static bool dashboardPresent = false;
@@ -600,7 +600,7 @@ void dashboardUpdate(timeUs_t currentTimeUs) {
 }
 
 void dashboardInit(void) {
-    static busDevice_t dashBoardBus;
+    static extDevice_t dashBoardBus;
     dashBoardBus.busType_u.i2c.device = I2C_CFG_TO_DEV(dashboardConfig()->device);
     dashBoardBus.busType_u.i2c.address = dashboardConfig()->address;
     bus = &dashBoardBus;

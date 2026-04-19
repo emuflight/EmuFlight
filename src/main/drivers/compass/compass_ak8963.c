@@ -100,14 +100,14 @@
 
 #if defined(USE_MAG_AK8963) && (defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU9250))
 
-static bool ak8963SpiWriteRegisterDelay(const busDevice_t *bus, uint8_t reg, uint8_t data) {
+static bool ak8963SpiWriteRegisterDelay(const extDevice_t *bus, uint8_t reg, uint8_t data) {
     spiWriteReg(bus, reg, data);
     delayMicroseconds(10);
     return true;
 }
 
-static bool ak8963SlaveReadRegisterBuffer(const busDevice_t *slavedev, uint8_t reg, uint8_t *buf, uint8_t len) {
-    const busDevice_t *bus = slavedev->busType_u.mpuSlave.master;
+static bool ak8963SlaveReadRegisterBuffer(const extDevice_t *slavedev, uint8_t reg, uint8_t *buf, uint8_t len) {
+    const extDevice_t *bus = slavedev->busType_u.mpuSlave.master;
     ak8963SpiWriteRegisterDelay(bus, MPU_RA_I2C_SLV0_ADDR, slavedev->busType_u.mpuSlave.address | READ_FLAG); // set I2C slave address for read
     ak8963SpiWriteRegisterDelay(bus, MPU_RA_I2C_SLV0_REG, reg);                             // set I2C slave register
     ak8963SpiWriteRegisterDelay(bus, MPU_RA_I2C_SLV0_CTRL, (len & 0x0F) | I2C_SLV0_EN);     // read number of bytes
@@ -118,8 +118,8 @@ static bool ak8963SlaveReadRegisterBuffer(const busDevice_t *slavedev, uint8_t r
     return ack;
 }
 
-static bool ak8963SlaveWriteRegister(const busDevice_t *slavedev, uint8_t reg, uint8_t data) {
-    const busDevice_t *bus = slavedev->busType_u.mpuSlave.master;
+static bool ak8963SlaveWriteRegister(const extDevice_t *slavedev, uint8_t reg, uint8_t data) {
+    const extDevice_t *bus = slavedev->busType_u.mpuSlave.master;
     ak8963SpiWriteRegisterDelay(bus, MPU_RA_I2C_SLV0_ADDR, slavedev->busType_u.mpuSlave.address); // set I2C slave address for write
     ak8963SpiWriteRegisterDelay(bus, MPU_RA_I2C_SLV0_REG, reg);                             // set I2C slave register
     ak8963SpiWriteRegisterDelay(bus, MPU_RA_I2C_SLV0_DO, data);                             // set I2C sLave value
@@ -135,11 +135,11 @@ typedef struct queuedReadState_s {
 
 static queuedReadState_t queuedRead = { false, 0, 0};
 
-static bool ak8963SlaveStartRead(const busDevice_t *slavedev, uint8_t reg, uint8_t len) {
+static bool ak8963SlaveStartRead(const extDevice_t *slavedev, uint8_t reg, uint8_t len) {
     if (queuedRead.waiting) {
         return false;
     }
-    const busDevice_t *bus = slavedev->busType_u.mpuSlave.master;
+    const extDevice_t *bus = slavedev->busType_u.mpuSlave.master;
     queuedRead.len = len;
     ak8963SpiWriteRegisterDelay(bus, MPU_RA_I2C_SLV0_ADDR, slavedev->busType_u.mpuSlave.address | READ_FLAG);  // set I2C slave address for read
     ak8963SpiWriteRegisterDelay(bus, MPU_RA_I2C_SLV0_REG, reg);                             // set I2C slave register
@@ -161,9 +161,9 @@ static uint32_t ak8963SlaveQueuedReadTimeRemaining(void) {
     return timeRemaining;
 }
 
-static bool ak8963SlaveCompleteRead(const busDevice_t *slavedev, uint8_t *buf) {
+static bool ak8963SlaveCompleteRead(const extDevice_t *slavedev, uint8_t *buf) {
     uint32_t timeRemaining = ak8963SlaveQueuedReadTimeRemaining();
-    const busDevice_t *bus = slavedev->busType_u.mpuSlave.master;
+    const extDevice_t *bus = slavedev->busType_u.mpuSlave.master;
     if (timeRemaining > 0) {
         delayMicroseconds(timeRemaining);
     }
@@ -172,7 +172,7 @@ static bool ak8963SlaveCompleteRead(const busDevice_t *slavedev, uint8_t *buf) {
     return true;
 }
 
-static bool ak8963SlaveReadData(const busDevice_t *busdev, uint8_t *buf) {
+static bool ak8963SlaveReadData(const extDevice_t *busdev, uint8_t *buf) {
     typedef enum {
         CHECK_STATUS = 0,
         WAITING_FOR_STATUS,
@@ -224,7 +224,7 @@ restart:
 }
 #endif
 
-static bool ak8963ReadRegisterBuffer(const busDevice_t *busdev, uint8_t reg, uint8_t *buf, uint8_t len) {
+static bool ak8963ReadRegisterBuffer(const extDevice_t *busdev, uint8_t reg, uint8_t *buf, uint8_t len) {
 #if defined(USE_MAG_AK8963) && (defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU9250))
     if (busdev->busType == BUS_TYPE_MPU_SLAVE) {
         return ak8963SlaveReadRegisterBuffer(busdev, reg, buf, len);
@@ -233,7 +233,7 @@ static bool ak8963ReadRegisterBuffer(const busDevice_t *busdev, uint8_t reg, uin
     return busReadRegisterBuffer(busdev, reg, buf, len);
 }
 
-static bool ak8963WriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data) {
+static bool ak8963WriteRegister(const extDevice_t *busdev, uint8_t reg, uint8_t data) {
 #if defined(USE_MAG_AK8963) && (defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU9250))
     if (busdev->busType == BUS_TYPE_MPU_SLAVE) {
         return ak8963SlaveWriteRegister(busdev, reg, data);
@@ -242,7 +242,7 @@ static bool ak8963WriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t 
     return busWriteRegister(busdev, reg, data);
 }
 
-static bool ak8963DirectReadData(const busDevice_t *busdev, uint8_t *buf) {
+static bool ak8963DirectReadData(const extDevice_t *busdev, uint8_t *buf) {
     uint8_t status;
     bool ack = ak8963ReadRegisterBuffer(busdev, AK8963_MAG_REG_ST1, &status, 1);
     if (!ack || (status & ST1_DATA_READY) == 0) {
@@ -259,7 +259,7 @@ static int16_t parseMag(uint8_t *raw, int16_t gain) {
 static bool ak8963Read(magDev_t *mag, int16_t *magData) {
     bool ack = false;
     uint8_t buf[7];
-    const busDevice_t *busdev = &mag->dev;
+    const extDevice_t *busdev = &mag->dev;
     switch (busdev->busType) {
 #if defined(USE_MAG_SPI_AK8963) || defined(USE_MAG_AK8963)
     case BUS_TYPE_I2C:
@@ -292,7 +292,7 @@ static bool ak8963Read(magDev_t *mag, int16_t *magData) {
 static bool ak8963Init(magDev_t *mag) {
     uint8_t asa[3];
     uint8_t status;
-    const busDevice_t *busdev = &mag->dev;
+    const extDevice_t *busdev = &mag->dev;
     ak8963WriteRegister(busdev, AK8963_MAG_REG_CNTL1, CNTL1_MODE_POWER_DOWN);               // power down before entering fuse mode
     ak8963WriteRegister(busdev, AK8963_MAG_REG_CNTL1, CNTL1_MODE_FUSE_ROM);                 // Enter Fuse ROM access mode
     ak8963ReadRegisterBuffer(busdev, AK8963_MAG_REG_ASAX, asa, sizeof(asa));                // Read the x-, y-, and z-axis calibration values
@@ -308,7 +308,7 @@ static bool ak8963Init(magDev_t *mag) {
     return true;
 }
 
-void ak8963BusInit(const busDevice_t *busdev) {
+void ak8963BusInit(const extDevice_t *busdev) {
     switch (busdev->busType) {
 #ifdef USE_MAG_AK8963
     case BUS_TYPE_I2C:
@@ -337,7 +337,7 @@ void ak8963BusInit(const busDevice_t *busdev) {
     }
 }
 
-void ak8963BusDeInit(const busDevice_t *busdev) {
+void ak8963BusDeInit(const extDevice_t *busdev) {
     switch (busdev->busType) {
 #ifdef USE_MAG_AK8963
     case BUS_TYPE_I2C:
@@ -361,7 +361,7 @@ void ak8963BusDeInit(const busDevice_t *busdev) {
 
 bool ak8963Detect(magDev_t *mag) {
     uint8_t sig = 0;
-    busDevice_t *busdev = &mag->dev;
+    extDevice_t *busdev = &mag->dev;
     if ((busdev->busType == BUS_TYPE_I2C || busdev->busType == BUS_TYPE_MPU_SLAVE) && busdev->busType_u.mpuSlave.address == 0) {
         busdev->busType_u.mpuSlave.address = AK8963_MAG_I2C_ADDRESS;
     }

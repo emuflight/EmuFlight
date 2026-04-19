@@ -80,7 +80,7 @@
 static bool ak8975Init(magDev_t *mag) {
     uint8_t asa[3];
     uint8_t status;
-    busDevice_t *busdev = &mag->dev;
+    extDevice_t *busdev = &mag->dev;
     busWriteRegister(busdev, AK8975_MAG_REG_CNTL, CNTL_MODE_POWER_DOWN); // power down before entering fuse mode
     delay(20);
     busWriteRegister(busdev, AK8975_MAG_REG_CNTL, CNTL_MODE_FUSE_ROM); // Enter Fuse ROM access mode
@@ -109,7 +109,7 @@ static bool ak8975Read(magDev_t *mag, int16_t *magData) {
     bool ack;
     uint8_t status;
     uint8_t buf[6];
-    busDevice_t *busdev = &mag->dev;
+    extDevice_t *busdev = &mag->dev;
     ack = busReadRegisterBuffer(busdev, AK8975_MAG_REG_ST1, &status, 1);
     if (!ack || (status & ST1_REG_DATA_READY) == 0) {
         return false;
@@ -134,7 +134,7 @@ static bool ak8975Read(magDev_t *mag, int16_t *magData) {
 
 bool ak8975Detect(magDev_t *mag) {
     uint8_t sig = 0;
-    busDevice_t *busdev = &mag->dev;
+    extDevice_t *busdev = &mag->dev;
     if (busdev->busType == BUS_TYPE_I2C && busdev->busType_u.i2c.address == 0) {
         busdev->busType_u.i2c.address = AK8975_MAG_I2C_ADDRESS;
     }
