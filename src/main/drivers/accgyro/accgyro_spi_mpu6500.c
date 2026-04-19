@@ -45,7 +45,7 @@ static void mpu6500SpiInit(const extDevice_t *dev) {
     IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(dev->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_FAST);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_FAST);
 }
 
 uint8_t mpu6500SpiDetect(const extDevice_t *dev) {
@@ -86,13 +86,13 @@ void mpu6500SpiAccInit(accDev_t *acc) {
 }
 
 void mpu6500SpiGyroInit(gyroDev_t *gyro) {
-    spiSetDivisor(gyro->dev.busType_u.spi.instance, SPI_CLOCK_SLOW);
+    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_SLOW);
     delayMicroseconds(1);
     mpu6500GyroInit(gyro);
     // Disable Primary I2C Interface
     spiWriteReg(&gyro->dev, MPU_RA_USER_CTRL, MPU6500_BIT_I2C_IF_DIS);
     delay(100);
-    spiSetDivisor(gyro->dev.busType_u.spi.instance, SPI_CLOCK_FAST);
+    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_FAST);
     delayMicroseconds(1);
 }
 

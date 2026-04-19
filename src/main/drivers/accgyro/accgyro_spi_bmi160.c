@@ -100,7 +100,7 @@ uint8_t bmi160Detect(const extDevice_t *dev) {
     IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(dev->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(dev->busType_u.spi.instance, BMI160_SPI_DIVISOR);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, BMI160_SPI_DIVISOR);
     /* Read this address to activate SPI (see p. 84) */
     spiReadReg(dev, 0x7F);
     delay(100); // Give SPI some time to start up
@@ -245,7 +245,7 @@ bool bmi160AccRead(accDev_t *acc) {
     uint8_t bmi160_rx_buf[BUFFER_SIZE];
     static const uint8_t bmi160_tx_buf[BUFFER_SIZE] = {BMI160_REG_ACC_DATA_X_LSB | 0x80, 0, 0, 0, 0, 0, 0};
     IOLo(acc->dev.busType_u.spi.csnPin);
-    spiTransfer(acc->dev.busType_u.spi.instance, bmi160_tx_buf, bmi160_rx_buf, BUFFER_SIZE);   // receive response
+    spiTransfer(acc->dev.bus->busType_u.spi.instance, bmi160_tx_buf, bmi160_rx_buf, BUFFER_SIZE);   // receive response
     IOHi(acc->dev.busType_u.spi.csnPin);
     acc->ADCRaw[X] = (int16_t)((bmi160_rx_buf[IDX_ACCEL_XOUT_H] << 8) | bmi160_rx_buf[IDX_ACCEL_XOUT_L]);
     acc->ADCRaw[Y] = (int16_t)((bmi160_rx_buf[IDX_ACCEL_YOUT_H] << 8) | bmi160_rx_buf[IDX_ACCEL_YOUT_L]);
@@ -268,7 +268,7 @@ bool bmi160GyroRead(gyroDev_t *gyro) {
     uint8_t bmi160_rx_buf[BUFFER_SIZE];
     static const uint8_t bmi160_tx_buf[BUFFER_SIZE] = {BMI160_REG_GYR_DATA_X_LSB | 0x80, 0, 0, 0, 0, 0, 0};
     IOLo(gyro->dev.busType_u.spi.csnPin);
-    spiTransfer(gyro->dev.busType_u.spi.instance, bmi160_tx_buf, bmi160_rx_buf, BUFFER_SIZE);   // receive response
+    spiTransfer(gyro->dev.bus->busType_u.spi.instance, bmi160_tx_buf, bmi160_rx_buf, BUFFER_SIZE);   // receive response
     IOHi(gyro->dev.busType_u.spi.csnPin);
     gyro->gyroADCRaw[X] = (int16_t)((bmi160_rx_buf[IDX_GYRO_XOUT_H] << 8) | bmi160_rx_buf[IDX_GYRO_XOUT_L]);
     gyro->gyroADCRaw[Y] = (int16_t)((bmi160_rx_buf[IDX_GYRO_YOUT_H] << 8) | bmi160_rx_buf[IDX_GYRO_YOUT_L]);

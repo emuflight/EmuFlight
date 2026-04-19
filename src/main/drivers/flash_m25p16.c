@@ -91,7 +91,7 @@ static void m25p16_enable(extDevice_t *dev) {
 
 static void m25p16_transfer(extDevice_t *dev, const uint8_t *txData, uint8_t *rxData, int len) {
     m25p16_enable(dev);
-    spiTransfer(dev->busType_u.spi.instance, txData, rxData, len);
+    spiTransfer(dev->bus->busType_u.spi.instance, txData, rxData, len);
     m25p16_disable(dev);
 }
 
@@ -100,7 +100,7 @@ static void m25p16_transfer(extDevice_t *dev, const uint8_t *txData, uint8_t *rx
  */
 static void m25p16_performOneByteCommand(extDevice_t *dev, uint8_t command) {
     m25p16_enable(dev);
-    spiTransferByte(dev->busType_u.spi.instance, command);
+    spiTransferByte(dev->bus->busType_u.spi.instance, command);
     m25p16_disable(dev);
 }
 
@@ -230,8 +230,8 @@ static void m25p16_pageProgramContinue(flashDevice_t *fdevice, const uint8_t *da
     m25p16_waitForReady(fdevice, DEFAULT_TIMEOUT_MILLIS);
     m25p16_writeEnable(fdevice);
     m25p16_enable(fdevice->dev);
-    spiTransfer(fdevice->dev->busType_u.spi.instance, command, NULL, fdevice->isLargeFlash ? 5 : 4);
-    spiTransfer(fdevice->dev->busType_u.spi.instance, data, NULL, length);
+    spiTransfer(fdevice->dev->bus->busType_u.spi.instance, command, NULL, fdevice->isLargeFlash ? 5 : 4);
+    spiTransfer(fdevice->dev->bus->busType_u.spi.instance, data, NULL, length);
     m25p16_disable(fdevice->dev);
     fdevice->currentWriteAddress += length;
 }
@@ -276,8 +276,8 @@ static int m25p16_readBytes(flashDevice_t *fdevice, uint32_t address, uint8_t *b
         return 0;
     }
     m25p16_enable(fdevice->dev);
-    spiTransfer(fdevice->dev->busType_u.spi.instance, command, NULL, fdevice->isLargeFlash ? 5 : 4);
-    spiTransfer(fdevice->dev->busType_u.spi.instance, NULL, buffer, length);
+    spiTransfer(fdevice->dev->bus->busType_u.spi.instance, command, NULL, fdevice->isLargeFlash ? 5 : 4);
+    spiTransfer(fdevice->dev->bus->busType_u.spi.instance, NULL, buffer, length);
     m25p16_disable(fdevice->dev);
     return length;
 }
