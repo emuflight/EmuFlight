@@ -117,27 +117,27 @@ uint32_t spiTimeoutUserCallback(SPI_TypeDef *instance) {
 
 FAST_CODE bool spiBusTransfer(const busDevice_t *bus, const uint8_t *txData, uint8_t *rxData, int length) {
 #ifdef USE_DMA_SPI_DEVICE
-    if(USE_DMA_SPI_DEVICE == bus->busdev_u.spi.instance) {
+    if(USE_DMA_SPI_DEVICE == bus->busType_u.spi.instance) {
         uint32_t timeoutCheck = millis();
         memcpy(dmaTxBuffer, (uint8_t *)txData, length);
         dmaSpiTransmitReceive(dmaTxBuffer, dmaRxBuffer, length, 1);
         while(dmaSpiReadStatus != DMA_SPI_READ_DONE) {
             if(millis() - timeoutCheck > GYRO_READ_TIMEOUT) {
                 //GYRO_READ_TIMEOUT ms max, read failed, cleanup spi and return 0
-                IOHi(bus->busdev_u.spi.csnPin);
+                IOHi(bus->busType_u.spi.csnPin);
                 return false;
             }
         }
         memcpy((uint8_t *)rxData, dmaRxBuffer, length);
     } else {
-        IOLo(bus->busdev_u.spi.csnPin);
-        spiTransfer(bus->busdev_u.spi.instance, txData, rxData, length);
-        IOHi(bus->busdev_u.spi.csnPin);
+        IOLo(bus->busType_u.spi.csnPin);
+        spiTransfer(bus->busType_u.spi.instance, txData, rxData, length);
+        IOHi(bus->busType_u.spi.csnPin);
     }
 #else
-    IOLo(bus->busdev_u.spi.csnPin);
-    spiTransfer(bus->busdev_u.spi.instance, txData, rxData, length);
-    IOHi(bus->busdev_u.spi.csnPin);
+    IOLo(bus->busType_u.spi.csnPin);
+    spiTransfer(bus->busType_u.spi.instance, txData, rxData, length);
+    IOHi(bus->busType_u.spi.csnPin);
 #endif
     return true;
 }
@@ -159,7 +159,7 @@ void spiResetErrorCounter(SPI_TypeDef *instance) {
 
 FAST_CODE bool spiBusWriteRegister(const busDevice_t *bus, uint8_t reg, uint8_t data) {
 #ifdef USE_DMA_SPI_DEVICE
-    if(USE_DMA_SPI_DEVICE == bus->busdev_u.spi.instance) {
+    if(USE_DMA_SPI_DEVICE == bus->busType_u.spi.instance) {
         uint32_t timeoutCheck = millis();
         dmaTxBuffer[0] = reg;
         dmaTxBuffer[1] = data;
@@ -167,89 +167,89 @@ FAST_CODE bool spiBusWriteRegister(const busDevice_t *bus, uint8_t reg, uint8_t 
         while(dmaSpiReadStatus != DMA_SPI_READ_DONE) {
             if(millis() - timeoutCheck > GYRO_READ_TIMEOUT) {
                 //GYRO_READ_TIMEOUT ms max, read failed, cleanup spi and return 0
-                IOHi(bus->busdev_u.spi.csnPin);
+                IOHi(bus->busType_u.spi.csnPin);
                 return false;
             }
         }
     } else {
-        IOLo(bus->busdev_u.spi.csnPin);
-        spiTransferByte(bus->busdev_u.spi.instance, reg);
-        spiTransferByte(bus->busdev_u.spi.instance, data);
-        IOHi(bus->busdev_u.spi.csnPin);
+        IOLo(bus->busType_u.spi.csnPin);
+        spiTransferByte(bus->busType_u.spi.instance, reg);
+        spiTransferByte(bus->busType_u.spi.instance, data);
+        IOHi(bus->busType_u.spi.csnPin);
     }
 #else
-    IOLo(bus->busdev_u.spi.csnPin);
-    spiTransferByte(bus->busdev_u.spi.instance, reg);
-    spiTransferByte(bus->busdev_u.spi.instance, data);
-    IOHi(bus->busdev_u.spi.csnPin);
+    IOLo(bus->busType_u.spi.csnPin);
+    spiTransferByte(bus->busType_u.spi.instance, reg);
+    spiTransferByte(bus->busType_u.spi.instance, data);
+    IOHi(bus->busType_u.spi.csnPin);
 #endif
     return true;
 }
 
 FAST_CODE bool spiBusReadRegisterBuffer(const busDevice_t *bus, uint8_t reg, uint8_t *data, uint8_t length) {
 #ifdef USE_DMA_SPI_DEVICE
-    if(USE_DMA_SPI_DEVICE == bus->busdev_u.spi.instance) {
+    if(USE_DMA_SPI_DEVICE == bus->busType_u.spi.instance) {
         uint32_t timeoutCheck = millis();
         dmaTxBuffer[0] = reg | 0x80;
         dmaSpiTransmitReceive(dmaTxBuffer, dmaRxBuffer, length + 1, 1);
         while(dmaSpiReadStatus != DMA_SPI_READ_DONE) {
             if(millis() - timeoutCheck > GYRO_READ_TIMEOUT) {
                 //GYRO_READ_TIMEOUT ms max, read failed, cleanup spi and return 0
-                IOHi(bus->busdev_u.spi.csnPin);
+                IOHi(bus->busType_u.spi.csnPin);
                 return false;
             }
         }
         memcpy(data, dmaRxBuffer + 1, length);
     } else {
-        IOLo(bus->busdev_u.spi.csnPin);
-        spiTransferByte(bus->busdev_u.spi.instance, reg | 0x80); // read transaction
-        spiTransfer(bus->busdev_u.spi.instance, NULL, data, length);
-        IOHi(bus->busdev_u.spi.csnPin);
+        IOLo(bus->busType_u.spi.csnPin);
+        spiTransferByte(bus->busType_u.spi.instance, reg | 0x80); // read transaction
+        spiTransfer(bus->busType_u.spi.instance, NULL, data, length);
+        IOHi(bus->busType_u.spi.csnPin);
     }
 #else
-    IOLo(bus->busdev_u.spi.csnPin);
-    spiTransferByte(bus->busdev_u.spi.instance, reg | 0x80); // read transaction
-    spiTransfer(bus->busdev_u.spi.instance, NULL, data, length);
-    IOHi(bus->busdev_u.spi.csnPin);
+    IOLo(bus->busType_u.spi.csnPin);
+    spiTransferByte(bus->busType_u.spi.instance, reg | 0x80); // read transaction
+    spiTransfer(bus->busType_u.spi.instance, NULL, data, length);
+    IOHi(bus->busType_u.spi.csnPin);
 #endif
     return true;
 }
 
 FAST_CODE uint8_t spiBusReadRegister(const busDevice_t *bus, uint8_t reg) {
 #ifdef USE_DMA_SPI_DEVICE
-    if(USE_DMA_SPI_DEVICE == bus->busdev_u.spi.instance) {
+    if(USE_DMA_SPI_DEVICE == bus->busType_u.spi.instance) {
         uint32_t timeoutCheck = millis();
         dmaTxBuffer[0] = reg | 0x80;
         dmaSpiTransmitReceive(dmaTxBuffer, dmaRxBuffer, 2, 1);
         while(dmaSpiReadStatus != DMA_SPI_READ_DONE) {
             if(millis() - timeoutCheck > GYRO_READ_TIMEOUT) {
                 //GYRO_READ_TIMEOUT ms max, read failed, cleanup spi and return 0
-                IOHi(bus->busdev_u.spi.csnPin);
+                IOHi(bus->busType_u.spi.csnPin);
                 return 0;
             }
         }
         return dmaRxBuffer[1];
     } else {
         uint8_t data;
-        IOLo(bus->busdev_u.spi.csnPin);
-        spiTransferByte(bus->busdev_u.spi.instance, reg | 0x80); // read transaction
-        spiTransfer(bus->busdev_u.spi.instance, NULL, &data, 1);
-        IOHi(bus->busdev_u.spi.csnPin);
+        IOLo(bus->busType_u.spi.csnPin);
+        spiTransferByte(bus->busType_u.spi.instance, reg | 0x80); // read transaction
+        spiTransfer(bus->busType_u.spi.instance, NULL, &data, 1);
+        IOHi(bus->busType_u.spi.csnPin);
         return data;
     }
 #else
     uint8_t data;
-    IOLo(bus->busdev_u.spi.csnPin);
-    spiTransferByte(bus->busdev_u.spi.instance, reg | 0x80); // read transaction
-    spiTransfer(bus->busdev_u.spi.instance, NULL, &data, 1);
-    IOHi(bus->busdev_u.spi.csnPin);
+    IOLo(bus->busType_u.spi.csnPin);
+    spiTransferByte(bus->busType_u.spi.instance, reg | 0x80); // read transaction
+    spiTransfer(bus->busType_u.spi.instance, NULL, &data, 1);
+    IOHi(bus->busType_u.spi.csnPin);
     return data;
 #endif
 }
 
 void spiBusSetInstance(busDevice_t *bus, SPI_TypeDef *instance) {
-    bus->bustype = BUS_TYPE_SPI;
-    bus->busdev_u.spi.instance = instance;
+    bus->busType = BUS_TYPE_SPI;
+    bus->busType_u.spi.instance = instance;
 }
 
 // icm42688p and bmi270 porting

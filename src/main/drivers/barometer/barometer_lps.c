@@ -242,10 +242,10 @@ static void lps_calculate(int32_t *pressure, int32_t *temperature) {
 bool lpsDetect(baroDev_t *baro) {
     //Detect
     busDevice_t *busdev = &baro->busdev;
-    IOInit(busdev->busdev_u.spi.csnPin, OWNER_BARO_CS, 0);
-    IOConfigGPIO(busdev->busdev_u.spi.csnPin, IOCFG_OUT_PP);
-    IOHi(busdev->busdev_u.spi.csnPin); // Disable
-    spiSetDivisor(busdev->busdev_u.spi.instance, SPI_CLOCK_STANDARD); // Baro can work only on up to 10Mhz SPI bus
+    IOInit(busdev->busType_u.spi.csnPin, OWNER_BARO_CS, 0);
+    IOConfigGPIO(busdev->busType_u.spi.csnPin, IOCFG_OUT_PP);
+    IOHi(busdev->busType_u.spi.csnPin); // Disable
+    spiSetDivisor(busdev->busType_u.spi.instance, SPI_CLOCK_STANDARD); // Baro can work only on up to 10Mhz SPI bus
     uint8_t temp = 0x00;
     lpsReadCommand(&baro->busdev, LPS_WHO_AM_I, &temp, 1);
     if (temp != LPS25_ID && temp != LPS22_ID && temp != LPS33_ID && temp != LPS35_ID) {

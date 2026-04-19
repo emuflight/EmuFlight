@@ -151,16 +151,16 @@ bool baroDetect(baroDev_t *dev, baroSensor_e baroHardwareToUse) {
     switch (barometerConfig()->baro_bustype) {
     case BUS_TYPE_I2C:
 #ifdef USE_I2C
-        dev->busdev.bustype = BUS_TYPE_I2C;
-        dev->busdev.busdev_u.i2c.device = I2C_CFG_TO_DEV(barometerConfig()->baro_i2c_device);
-        dev->busdev.busdev_u.i2c.address = barometerConfig()->baro_i2c_address;
+        dev->busdev.busType = BUS_TYPE_I2C;
+        dev->busdev.busType_u.i2c.device = I2C_CFG_TO_DEV(barometerConfig()->baro_i2c_device);
+        dev->busdev.busType_u.i2c.address = barometerConfig()->baro_i2c_address;
 #endif
         break;
     case BUS_TYPE_SPI:
 #ifdef USE_SPI
-        dev->busdev.bustype = BUS_TYPE_SPI;
+        dev->busdev.busType = BUS_TYPE_SPI;
         spiBusSetInstance(&dev->busdev, spiInstanceByDevice(SPI_CFG_TO_DEV(barometerConfig()->baro_spi_device)));
-        dev->busdev.busdev_u.spi.csnPin = IOGetByTag(barometerConfig()->baro_spi_csn);
+        dev->busdev.busType_u.spi.csnPin = IOGetByTag(barometerConfig()->baro_spi_csn);
 #endif
         break;
     default:

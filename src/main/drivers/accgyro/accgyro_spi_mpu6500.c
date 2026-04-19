@@ -41,11 +41,11 @@
 
 static void mpu6500SpiInit(const busDevice_t *bus) {
 #ifndef USE_DUAL_GYRO
-    IOInit(bus->busdev_u.spi.csnPin, OWNER_MPU_CS, 0);
-    IOConfigGPIO(bus->busdev_u.spi.csnPin, SPI_IO_CS_CFG);
-    IOHi(bus->busdev_u.spi.csnPin);
+    IOInit(bus->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
+    IOConfigGPIO(bus->busType_u.spi.csnPin, SPI_IO_CS_CFG);
+    IOHi(bus->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_FAST);
+    spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_FAST);
 }
 
 uint8_t mpu6500SpiDetect(const busDevice_t *bus) {
@@ -86,13 +86,13 @@ void mpu6500SpiAccInit(accDev_t *acc) {
 }
 
 void mpu6500SpiGyroInit(gyroDev_t *gyro) {
-    spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_SLOW);
+    spiSetDivisor(gyro->bus.busType_u.spi.instance, SPI_CLOCK_SLOW);
     delayMicroseconds(1);
     mpu6500GyroInit(gyro);
     // Disable Primary I2C Interface
     spiBusWriteRegister(&gyro->bus, MPU_RA_USER_CTRL, MPU6500_BIT_I2C_IF_DIS);
     delay(100);
-    spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_FAST);
+    spiSetDivisor(gyro->bus.busType_u.spi.instance, SPI_CLOCK_FAST);
     delayMicroseconds(1);
 }
 

@@ -102,11 +102,11 @@ static bool mpuSpi6000InitDone = false;
 void mpu6000SpiGyroInit(gyroDev_t *gyro) {
     mpuGyroInit(gyro);
     mpu6000AccAndGyroInit(gyro);
-    spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_INITIALIZATION);
+    spiSetDivisor(gyro->bus.busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
     // Accel and Gyro DLPF Setting
     spiBusWriteRegister(&gyro->bus, MPU6000_CONFIG, mpuGyroDLPF(gyro));
     delayMicroseconds(1);
-    spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_FAST);  // 18 MHz SPI clock
+    spiSetDivisor(gyro->bus.busType_u.spi.instance, SPI_CLOCK_FAST);  // 18 MHz SPI clock
     mpuGyroRead(gyro);
     if (((int8_t)gyro->gyroADCRaw[1]) == -1 && ((int8_t)gyro->gyroADCRaw[0]) == -1) {
         failureMode(FAILURE_GYRO_INIT_FAILED);
@@ -119,11 +119,11 @@ void mpu6000SpiAccInit(accDev_t *acc) {
 
 uint8_t mpu6000SpiDetect(const busDevice_t *bus) {
 #ifndef USE_DUAL_GYRO
-    IOInit(bus->busdev_u.spi.csnPin, OWNER_MPU_CS, 0);
-    IOConfigGPIO(bus->busdev_u.spi.csnPin, SPI_IO_CS_CFG);
-    IOHi(bus->busdev_u.spi.csnPin);
+    IOInit(bus->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
+    IOConfigGPIO(bus->busType_u.spi.csnPin, SPI_IO_CS_CFG);
+    IOHi(bus->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_INITIALIZATION);
+    spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
     spiBusWriteRegister(bus, MPU_RA_PWR_MGMT_1, BIT_H_RESET);
     uint8_t attemptsRemaining = 5;
     do {
@@ -161,7 +161,7 @@ static void mpu6000AccAndGyroInit(gyroDev_t *gyro) {
     if (mpuSpi6000InitDone) {
         return;
     }
-    spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_INITIALIZATION);
+    spiSetDivisor(gyro->bus.busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
     // Device Reset
     spiBusWriteRegister(&gyro->bus, MPU_RA_PWR_MGMT_1, BIT_H_RESET);
     delay(150);
@@ -191,7 +191,7 @@ static void mpu6000AccAndGyroInit(gyroDev_t *gyro) {
     spiBusWriteRegister(&gyro->bus, MPU_RA_INT_ENABLE, MPU_RF_DATA_RDY_EN);
     delayMicroseconds(15);
 #endif
-    spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_FAST);
+    spiSetDivisor(gyro->bus.busType_u.spi.instance, SPI_CLOCK_FAST);
     delayMicroseconds(1);
     mpuSpi6000InitDone = true;
 }

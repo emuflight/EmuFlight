@@ -43,17 +43,17 @@ static void icm20689SpiInit(const busDevice_t *bus) {
         return;
     }
 #ifndef USE_DUAL_GYRO
-    IOInit(bus->busdev_u.spi.csnPin, OWNER_MPU_CS, 0);
-    IOConfigGPIO(bus->busdev_u.spi.csnPin, SPI_IO_CS_CFG);
-    IOHi(bus->busdev_u.spi.csnPin);
+    IOInit(bus->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
+    IOConfigGPIO(bus->busType_u.spi.csnPin, SPI_IO_CS_CFG);
+    IOHi(bus->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     hardwareInitialised = true;
 }
 
 uint8_t icm20689SpiDetect(const busDevice_t *bus) {
     icm20689SpiInit(bus);
-    spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed
+    spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed
     spiBusWriteRegister(bus, MPU_RA_PWR_MGMT_1, ICM20689_BIT_RESET);
     uint8_t icmDetected = MPU_NONE;
     uint8_t attemptsRemaining = 20;
@@ -84,7 +84,7 @@ uint8_t icm20689SpiDetect(const busDevice_t *bus) {
             return MPU_NONE;
         }
     } while (attemptsRemaining--);
-    spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     return icmDetected;
 }
 
@@ -107,7 +107,7 @@ bool icm20689SpiAccDetect(accDev_t *acc) {
 
 void icm20689GyroInit(gyroDev_t *gyro) {
     mpuGyroInit(gyro);
-    spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_INITIALIZATION);
+    spiSetDivisor(gyro->bus.busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
     spiBusWriteRegister(&gyro->bus, MPU_RA_PWR_MGMT_1, ICM20689_BIT_RESET);
     delay(100);
     spiBusWriteRegister(&gyro->bus, MPU_RA_SIGNAL_PATH_RESET, 0x03);
@@ -131,7 +131,7 @@ void icm20689GyroInit(gyroDev_t *gyro) {
 #ifdef USE_MPU_DATA_READY_SIGNAL
     spiBusWriteRegister(&gyro->bus, MPU_RA_INT_ENABLE, 0x01); // RAW_RDY_EN interrupt enable
 #endif
-    spiSetDivisor(gyro->bus.busdev_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(gyro->bus.busType_u.spi.instance, SPI_CLOCK_STANDARD);
 }
 
 bool icm20689SpiGyroDetect(gyroDev_t *gyro) {

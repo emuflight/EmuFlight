@@ -159,17 +159,17 @@ static void icm426xxSpiInit(const busDevice_t *bus) {
         return;
     }
 #ifndef USE_DUAL_GYRO
-    IOInit(bus->busdev_u.spi.csnPin, OWNER_MPU_CS, 0);
-    IOConfigGPIO(bus->busdev_u.spi.csnPin, SPI_IO_CS_CFG);
-    IOHi(bus->busdev_u.spi.csnPin);
+    IOInit(bus->busType_u.spi.csnPin, OWNER_MPU_CS, 0);
+    IOConfigGPIO(bus->busType_u.spi.csnPin, SPI_IO_CS_CFG);
+    IOHi(bus->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     hardwareInitialised = true;
 }
 
 uint8_t icm426xxSpiDetect(const busDevice_t *bus) {
     icm426xxSpiInit(bus);
-    spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed
+    spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed
     spiBusWriteRegister(bus, MPU_RA_PWR_MGMT_1, ICM426xx_BIT_RESET);
     uint8_t icmDetected = MPU_NONE;
     uint8_t attemptsRemaining = 20;
@@ -194,7 +194,7 @@ uint8_t icm426xxSpiDetect(const busDevice_t *bus) {
             return MPU_NONE;
         }
     } while (attemptsRemaining--);
-    spiSetDivisor(bus->busdev_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     return icmDetected;
 }
 
@@ -254,7 +254,7 @@ void icm426xxGyroInit(gyroDev_t *gyro)
 {
     mpuGyroInit(gyro);
 
-    spiSetDivisor(gyro->bus.busdev_u.spi.instance, spiCalculateDivider(ICM426XX_MAX_SPI_CLK_HZ));
+    spiSetDivisor(gyro->bus.busType_u.spi.instance, spiCalculateDivider(ICM426XX_MAX_SPI_CLK_HZ));
 
     gyro->accDataReg = ICM426XX_RA_ACCEL_DATA_X1;
     gyro->gyroDataReg = ICM426XX_RA_GYRO_DATA_X1;

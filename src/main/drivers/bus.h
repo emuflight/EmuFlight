@@ -33,9 +33,9 @@ typedef enum {
 } busType_e;
 
 typedef struct busDevice_s {
-    busType_e bustype;
+    busType_e busType;
     union {
-        struct deviceSpi_s {
+        struct busSpi_s {
             SPI_TypeDef *instance;
 #if defined(USE_HAL_DRIVER)
             SPI_HandleTypeDef* handle; // cached here for efficiency
@@ -46,15 +46,15 @@ typedef struct busDevice_s {
             IO_t rstPin;
 #endif
         } spi;
-        struct deviceI2C_s {
+        struct busI2C_s {
             I2CDevice device;
             uint8_t address;
         } i2c;
-        struct deviceMpuSlave_s {
+        struct busMpuSlave_s {
             const struct busDevice_s *master;
             uint8_t address;
         } mpuSlave;
-    } busdev_u;
+    } busType_u;
 } busDevice_t;
 
 #ifdef TARGET_BUS_INIT

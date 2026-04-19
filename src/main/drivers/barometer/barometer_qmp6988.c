@@ -99,11 +99,11 @@ STATIC_UNIT_TESTED void qmp6988_calculate(int32_t *pressure, int32_t *temperatur
 
 void qmp6988BusInit(busDevice_t *busdev) {
 #ifdef USE_BARO_SPI_QMP6988
-    if (busdev->bustype == BUS_TYPE_SPI) {
-        IOHi(busdev->busdev_u.spi.csnPin);
-        IOInit(busdev->busdev_u.spi.csnPin, OWNER_BARO_CS, 0);
-        IOConfigGPIO(busdev->busdev_u.spi.csnPin, IOCFG_OUT_PP);
-        spiSetDivisor(busdev->busdev_u.spi.instance, SPI_CLOCK_STANDARD);
+    if (busdev->busType == BUS_TYPE_SPI) {
+        IOHi(busdev->busType_u.spi.csnPin);
+        IOInit(busdev->busType_u.spi.csnPin, OWNER_BARO_CS, 0);
+        IOConfigGPIO(busdev->busType_u.spi.csnPin, IOCFG_OUT_PP);
+        spiSetDivisor(busdev->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     }
 #else
     UNUSED(busdev);
@@ -112,10 +112,10 @@ void qmp6988BusInit(busDevice_t *busdev) {
 
 void qmp6988BusDeinit(busDevice_t *busdev) {
 #ifdef USE_BARO_SPI_QMP6988
-    if (busdev->bustype == BUS_TYPE_SPI) {
-        IOConfigGPIO(busdev->busdev_u.spi.csnPin, IOCFG_IPU);
-        IORelease(busdev->busdev_u.spi.csnPin);
-        IOInit(busdev->busdev_u.spi.csnPin, OWNER_SPI_PREINIT, 0);
+    if (busdev->busType == BUS_TYPE_SPI) {
+        IOConfigGPIO(busdev->busType_u.spi.csnPin, IOCFG_IPU);
+        IORelease(busdev->busType_u.spi.csnPin);
+        IOInit(busdev->busType_u.spi.csnPin, OWNER_SPI_PREINIT, 0);
     }
 #else
     UNUSED(busdev);
@@ -142,15 +142,15 @@ bool qmp6988Detect(baroDev_t *baro) {
     busDevice_t *busdev = &baro->busdev;
     bool defaultAddressApplied = false;
     qmp6988BusInit(busdev);
-    if ((busdev->bustype == BUS_TYPE_I2C) && (busdev->busdev_u.i2c.address == 0)) {
-        busdev->busdev_u.i2c.address = QMP6988_I2C_ADDR;
+    if ((busdev->busType == BUS_TYPE_I2C) && (busdev->busType_u.i2c.address == 0)) {
+        busdev->busType_u.i2c.address = QMP6988_I2C_ADDR;
         defaultAddressApplied = true;
     }
     busReadRegisterBuffer(busdev, QMP6988_CHIP_ID_REG, &qmp6988_chip_id, 1);  /* read Chip Id */
     if (qmp6988_chip_id != QMP6988_DEFAULT_CHIP_ID) {
         qmp6988BusDeinit(busdev);
         if (defaultAddressApplied) {
-            busdev->busdev_u.i2c.address = 0;
+            busdev->busType_u.i2c.address = 0;
         }
         return false;
     }

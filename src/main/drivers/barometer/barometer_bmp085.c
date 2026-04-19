@@ -181,9 +181,9 @@ bool bmp085Detect(const bmp085Config_t *config, baroDev_t *baro) {
 #endif
     delay(20); // datasheet says 10ms, we'll be careful and do 20.
     busDevice_t *busdev = &baro->busdev;
-    if ((busdev->bustype == BUS_TYPE_I2C) && (busdev->busdev_u.i2c.address == 0)) {
+    if ((busdev->busType == BUS_TYPE_I2C) && (busdev->busType_u.i2c.address == 0)) {
         // Default address for BMP085
-        busdev->busdev_u.i2c.address = BMP085_I2C_ADDR;
+        busdev->busType_u.i2c.address = BMP085_I2C_ADDR;
         defaultAddressApplied = true;
     }
     ack = busReadRegisterBuffer(busdev, BMP085_CHIP_ID__REG, &data, 1); /* read Chip Id */
@@ -215,7 +215,7 @@ bool bmp085Detect(const bmp085Config_t *config, baroDev_t *baro) {
 #endif
     BMP085_OFF;
     if (defaultAddressApplied) {
-        busdev->busdev_u.i2c.address = 0;
+        busdev->busType_u.i2c.address = 0;
     }
     return false;
 }

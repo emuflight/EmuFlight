@@ -174,7 +174,7 @@ static const uint8_t multiWiiFont[][5] = { // Refer to "Times New Roman" Font Da
 };
 
 static bool i2c_OLED_send_cmd(busDevice_t *bus, uint8_t command) {
-    return i2cWrite(bus->busdev_u.i2c.device, bus->busdev_u.i2c.address, 0x80, command);
+    return i2cWrite(bus->busType_u.i2c.device, bus->busType_u.i2c.address, 0x80, command);
 }
 
 static bool i2c_OLED_send_cmdarray(busDevice_t *bus, const uint8_t *commands, size_t len) {
@@ -187,7 +187,7 @@ static bool i2c_OLED_send_cmdarray(busDevice_t *bus, const uint8_t *commands, si
 }
 
 static bool i2c_OLED_send_byte(busDevice_t *bus, uint8_t val) {
-    return i2cWrite(bus->busdev_u.i2c.device, bus->busdev_u.i2c.address, 0x40, val);
+    return i2cWrite(bus->busType_u.i2c.device, bus->busType_u.i2c.address, 0x40, val);
 }
 
 void i2c_OLED_clear_display_quick(busDevice_t *bus) {

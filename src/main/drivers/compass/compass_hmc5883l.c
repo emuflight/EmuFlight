@@ -183,10 +183,10 @@ static void hmc5883lConfigureDataReadyInterruptHandling(magDev_t* mag) {
 
 #ifdef USE_MAG_SPI_HMC5883
 static void hmc5883SpiInit(busDevice_t *busdev) {
-    IOHi(busdev->busdev_u.spi.csnPin); // Disable
-    IOInit(busdev->busdev_u.spi.csnPin, OWNER_COMPASS_CS, 0);
-    IOConfigGPIO(busdev->busdev_u.spi.csnPin, IOCFG_OUT_PP);
-    spiSetDivisor(busdev->busdev_u.spi.instance, SPI_CLOCK_STANDARD);
+    IOHi(busdev->busType_u.spi.csnPin); // Disable
+    IOInit(busdev->busType_u.spi.csnPin, OWNER_COMPASS_CS, 0);
+    IOConfigGPIO(busdev->busType_u.spi.csnPin, IOCFG_OUT_PP);
+    spiSetDivisor(busdev->busType_u.spi.instance, SPI_CLOCK_STANDARD);
 }
 #endif
 
@@ -218,13 +218,13 @@ bool hmc5883lDetect(magDev_t* mag) {
     busDevice_t *busdev = &mag->busdev;
     uint8_t sig = 0;
 #ifdef USE_MAG_SPI_HMC5883
-    if (busdev->bustype == BUS_TYPE_SPI) {
+    if (busdev->busType == BUS_TYPE_SPI) {
         hmc5883SpiInit(&mag->busdev);
     }
 #endif
 #ifdef USE_MAG_HMC5883
-    if (busdev->bustype == BUS_TYPE_I2C && busdev->busdev_u.i2c.address == 0) {
-        busdev->busdev_u.i2c.address = HMC5883_MAG_I2C_ADDRESS;
+    if (busdev->busType == BUS_TYPE_I2C && busdev->busType_u.i2c.address == 0) {
+        busdev->busType_u.i2c.address = HMC5883_MAG_I2C_ADDRESS;
     }
 #endif
     bool ack = busReadRegisterBuffer(&mag->busdev, HMC58X3_REG_IDA, &sig, 1);

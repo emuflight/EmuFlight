@@ -35,7 +35,7 @@ bool busWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data) {
     UNUSED(reg);
     UNUSED(data);
 #endif
-    switch (busdev->bustype) {
+    switch (busdev->busType) {
 #ifdef USE_SPI
     case BUS_TYPE_SPI:
         return spiBusWriteRegister(busdev, reg & 0x7f, data);
@@ -59,7 +59,7 @@ bool busReadRegisterBuffer(const busDevice_t *busdev, uint8_t reg, uint8_t *data
     UNUSED(data);
     UNUSED(length);
 #endif
-    switch (busdev->bustype) {
+    switch (busdev->busType) {
 #ifdef USE_SPI
     case BUS_TYPE_SPI:
         return spiBusReadRegisterBuffer(busdev, reg | 0x80, data, length);
