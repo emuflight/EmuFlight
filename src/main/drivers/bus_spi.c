@@ -115,7 +115,7 @@ uint32_t spiTimeoutUserCallback(SPI_TypeDef *instance) {
 }
 
 
-FAST_CODE bool spiBusTransfer(const busDevice_t *bus, const uint8_t *txData, uint8_t *rxData, int length) {
+FAST_CODE bool spiReadWriteBuf(const busDevice_t *bus, const uint8_t *txData, uint8_t *rxData, int length) {
 #ifdef USE_DMA_SPI_DEVICE
     if(USE_DMA_SPI_DEVICE == bus->busType_u.spi.instance) {
         uint32_t timeoutCheck = millis();
@@ -157,7 +157,7 @@ void spiResetErrorCounter(SPI_TypeDef *instance) {
     }
 }
 
-FAST_CODE bool spiBusWriteRegister(const busDevice_t *bus, uint8_t reg, uint8_t data) {
+FAST_CODE bool spiWriteReg(const busDevice_t *bus, uint8_t reg, uint8_t data) {
 #ifdef USE_DMA_SPI_DEVICE
     if(USE_DMA_SPI_DEVICE == bus->busType_u.spi.instance) {
         uint32_t timeoutCheck = millis();
@@ -186,7 +186,7 @@ FAST_CODE bool spiBusWriteRegister(const busDevice_t *bus, uint8_t reg, uint8_t 
     return true;
 }
 
-FAST_CODE bool spiBusReadRegisterBuffer(const busDevice_t *bus, uint8_t reg, uint8_t *data, uint8_t length) {
+FAST_CODE bool spiReadRegBuf(const busDevice_t *bus, uint8_t reg, uint8_t *data, uint8_t length) {
 #ifdef USE_DMA_SPI_DEVICE
     if(USE_DMA_SPI_DEVICE == bus->busType_u.spi.instance) {
         uint32_t timeoutCheck = millis();
@@ -215,7 +215,7 @@ FAST_CODE bool spiBusReadRegisterBuffer(const busDevice_t *bus, uint8_t reg, uin
     return true;
 }
 
-FAST_CODE uint8_t spiBusReadRegister(const busDevice_t *bus, uint8_t reg) {
+FAST_CODE uint8_t spiReadReg(const busDevice_t *bus, uint8_t reg) {
 #ifdef USE_DMA_SPI_DEVICE
     if(USE_DMA_SPI_DEVICE == bus->busType_u.spi.instance) {
         uint32_t timeoutCheck = millis();
@@ -274,10 +274,10 @@ uint16_t spiCalculateDivider(uint32_t freq)
 }
 
 // Wait for bus to become free, then read a byte of data where the register is bitwise OR'ed with 0x80
-// EmuFlight codebase is old.  Bitwise or 0x80 is redundant here as spiBusReadRegister already contains such.
+// EmuFlight codebase is old.  Bitwise or 0x80 is redundant here as spiReadReg already contains such.
 uint8_t spiReadRegMsk(const busDevice_t *bus, uint8_t reg)
 {
-    return spiBusReadRegister(bus, reg | 0x80);
+    return spiReadReg(bus, reg | 0x80);
 }
 
 #endif

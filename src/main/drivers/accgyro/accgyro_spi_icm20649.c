@@ -56,14 +56,14 @@ static void icm20649SpiInit(const busDevice_t *bus) {
 uint8_t icm20649SpiDetect(const busDevice_t *bus) {
     icm20649SpiInit(bus);
     spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
-    spiBusWriteRegister(bus, ICM20649_RA_REG_BANK_SEL, 0 << 4); // select bank 0 just to be safe
+    spiWriteReg(bus, ICM20649_RA_REG_BANK_SEL, 0 << 4); // select bank 0 just to be safe
     delay(15);
-    spiBusWriteRegister(bus, ICM20649_RA_PWR_MGMT_1, ICM20649_BIT_RESET);
+    spiWriteReg(bus, ICM20649_RA_PWR_MGMT_1, ICM20649_BIT_RESET);
     uint8_t icmDetected = MPU_NONE;
     uint8_t attemptsRemaining = 20;
     do {
         delay(150);
-        const uint8_t whoAmI = spiBusReadRegister(bus, ICM20649_RA_WHO_AM_I);
+        const uint8_t whoAmI = spiReadReg(bus, ICM20649_RA_WHO_AM_I);
         if (whoAmI == ICM20649_WHO_AM_I_CONST) {
             icmDetected = ICM_20649_SPI;
         } else {
@@ -84,12 +84,12 @@ void icm20649AccInit(accDev_t *acc) {
     // 1,024 LSB/g 30g
     acc->acc_1G = acc->acc_high_fsr ? 1024 : 2048;
     spiSetDivisor(acc->dev.busType_u.spi.instance, SPI_CLOCK_STANDARD);
-    spiBusWriteRegister(&acc->dev, ICM20649_RA_REG_BANK_SEL, 2 << 4); // config in bank 2
+    spiWriteReg(&acc->dev, ICM20649_RA_REG_BANK_SEL, 2 << 4); // config in bank 2
     delay(15);
     const uint8_t acc_fsr = acc->acc_high_fsr ? ICM20649_FSR_30G : ICM20649_FSR_16G;
-    spiBusWriteRegister(&acc->dev, ICM20649_RA_ACCEL_CONFIG, acc_fsr << 1);
+    spiWriteReg(&acc->dev, ICM20649_RA_ACCEL_CONFIG, acc_fsr << 1);
     delay(15);
-    spiBusWriteRegister(&acc->dev, ICM20649_RA_REG_BANK_SEL, 0 << 4); // back to bank 0
+    spiWriteReg(&acc->dev, ICM20649_RA_REG_BANK_SEL, 0 << 4); // back to bank 0
     delay(15);
 }
 
@@ -106,13 +106,13 @@ bool icm20649SpiAccDetect(accDev_t *acc) {
 void icm20649GyroInit(gyroDev_t *gyro) {
     mpuGyroInit(gyro);
     spiSetDivisor(gyro->dev.busType_u.spi.instance, SPI_CLOCK_STANDARD); // ensure proper speed
-    spiBusWriteRegister(&gyro->dev, ICM20649_RA_REG_BANK_SEL, 0 << 4); // select bank 0 just to be safe
+    spiWriteReg(&gyro->dev, ICM20649_RA_REG_BANK_SEL, 0 << 4); // select bank 0 just to be safe
     delay(15);
-    spiBusWriteRegister(&gyro->dev, ICM20649_RA_PWR_MGMT_1, ICM20649_BIT_RESET);
+    spiWriteReg(&gyro->dev, ICM20649_RA_PWR_MGMT_1, ICM20649_BIT_RESET);
     delay(100);
-    spiBusWriteRegister(&gyro->dev, ICM20649_RA_PWR_MGMT_1, INV_CLK_PLL);
+    spiWriteReg(&gyro->dev, ICM20649_RA_PWR_MGMT_1, INV_CLK_PLL);
     delay(15);
-    spiBusWriteRegister(&gyro->dev, ICM20649_RA_REG_BANK_SEL, 2 << 4); // config in bank 2
+    spiWriteReg(&gyro->dev, ICM20649_RA_REG_BANK_SEL, 2 << 4); // config in bank 2
     delay(15);
     const uint8_t gyro_fsr = gyro->gyro_high_fsr ? ICM20649_FSR_4000DPS : ICM20649_FSR_2000DPS;
     // If hardware_lpf is either GYRO_HARDWARE_LPF_NORMAL or GYRO_HARDWARE_LPF_EXPERIMENTAL then the
@@ -122,18 +122,18 @@ void icm20649GyroInit(gyroDev_t *gyro) {
     // the ICM20649 only has a single 9KHz DLPF cutoff.
     uint8_t raGyroConfigData = gyro->gyroRateKHz > GYRO_RATE_1100_Hz ? 0 : 1; // deactivate GYRO_FCHOICE for sample rates over 1kHz (opposite of other invensense chips)
     raGyroConfigData |= gyro_fsr << 1;
-    spiBusWriteRegister(&gyro->dev, ICM20649_RA_GYRO_CONFIG_1, raGyroConfigData);
+    spiWriteReg(&gyro->dev, ICM20649_RA_GYRO_CONFIG_1, raGyroConfigData);
     delay(15);
-    spiBusWriteRegister(&gyro->dev, ICM20649_RA_GYRO_SMPLRT_DIV, gyro->mpuDividerDrops); // Get Divider Drops
+    spiWriteReg(&gyro->dev, ICM20649_RA_GYRO_SMPLRT_DIV, gyro->mpuDividerDrops); // Get Divider Drops
     delay(100);
     // Data ready interrupt configuration
     // back to bank 0
-    spiBusWriteRegister(&gyro->dev, ICM20649_RA_REG_BANK_SEL, 0 << 4);
+    spiWriteReg(&gyro->dev, ICM20649_RA_REG_BANK_SEL, 0 << 4);
     delay(15);
-    spiBusWriteRegister(&gyro->dev, ICM20649_RA_INT_PIN_CFG, 0x11);  // INT_ANYRD_2CLEAR, BYPASS_EN
+    spiWriteReg(&gyro->dev, ICM20649_RA_INT_PIN_CFG, 0x11);  // INT_ANYRD_2CLEAR, BYPASS_EN
     delay(15);
 #ifdef USE_MPU_DATA_READY_SIGNAL
-    spiBusWriteRegister(&gyro->dev, ICM20649_RA_INT_ENABLE_1, 0x01);
+    spiWriteReg(&gyro->dev, ICM20649_RA_INT_ENABLE_1, 0x01);
 #endif
 }
 
@@ -151,7 +151,7 @@ bool icm20649SpiGyroDetect(gyroDev_t *gyro) {
 bool icm20649GyroReadSPI(gyroDev_t *gyro) {
     static const uint8_t dataToSend[7] = {ICM20649_RA_GYRO_XOUT_H | 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
     uint8_t data[7];
-    const bool ack = spiBusTransfer(&gyro->dev, dataToSend, data, 7);
+    const bool ack = spiReadWriteBuf(&gyro->dev, dataToSend, data, 7);
     if (!ack) {
         return false;
     }
@@ -163,7 +163,7 @@ bool icm20649GyroReadSPI(gyroDev_t *gyro) {
 
 bool icm20649AccRead(accDev_t *acc) {
     uint8_t data[6];
-    const bool ack = spiBusReadRegisterBuffer(&acc->dev, ICM20649_RA_ACCEL_XOUT_H, data, 6);
+    const bool ack = spiReadRegBuf(&acc->dev, ICM20649_RA_ACCEL_XOUT_H, data, 6);
     if (!ack) {
         return false;
     }

@@ -29,7 +29,7 @@
 
 bool busWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data) {
 #ifdef USE_DMA_SPI_DEVICE
-    return spiBusWriteRegister(busdev, reg & 0x7f, data);
+    return spiWriteReg(busdev, reg & 0x7f, data);
 #else
 #if !defined(USE_SPI) && !defined(USE_I2C)
     UNUSED(reg);
@@ -38,7 +38,7 @@ bool busWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data) {
     switch (busdev->busType) {
 #ifdef USE_SPI
     case BUS_TYPE_SPI:
-        return spiBusWriteRegister(busdev, reg & 0x7f, data);
+        return spiWriteReg(busdev, reg & 0x7f, data);
 #endif
 #ifdef USE_I2C
     case BUS_TYPE_I2C:
@@ -52,7 +52,7 @@ bool busWriteRegister(const busDevice_t *busdev, uint8_t reg, uint8_t data) {
 
 bool busReadRegisterBuffer(const busDevice_t *busdev, uint8_t reg, uint8_t *data, uint8_t length) {
 #ifdef USE_DMA_SPI_DEVICE
-    return spiBusReadRegisterBuffer(busdev, reg | 0x80, data, length);
+    return spiReadRegBuf(busdev, reg | 0x80, data, length);
 #else
 #if !defined(USE_SPI) && !defined(USE_I2C)
     UNUSED(reg);
@@ -62,7 +62,7 @@ bool busReadRegisterBuffer(const busDevice_t *busdev, uint8_t reg, uint8_t *data
     switch (busdev->busType) {
 #ifdef USE_SPI
     case BUS_TYPE_SPI:
-        return spiBusReadRegisterBuffer(busdev, reg | 0x80, data, length);
+        return spiReadRegBuf(busdev, reg | 0x80, data, length);
 #endif
 #ifdef USE_I2C
     case BUS_TYPE_I2C:

@@ -65,7 +65,7 @@ static void w25m_dieSelect(busDevice_t *busdev, int die) {
         return;
     }
     uint8_t command[2] = { W25M_INSTRUCTION_SOFTWARE_DIE_SELECT, die };
-    spiBusTransfer(busdev, command, NULL, 2);
+    spiReadWriteBuf(busdev, command, NULL, 2);
     activeDie = die;
 }
 

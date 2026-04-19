@@ -101,7 +101,7 @@
 #if defined(USE_MAG_AK8963) && (defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU9250))
 
 static bool ak8963SpiWriteRegisterDelay(const busDevice_t *bus, uint8_t reg, uint8_t data) {
-    spiBusWriteRegister(bus, reg, data);
+    spiWriteReg(bus, reg, data);
     delayMicroseconds(10);
     return true;
 }
@@ -113,7 +113,7 @@ static bool ak8963SlaveReadRegisterBuffer(const busDevice_t *slavedev, uint8_t r
     ak8963SpiWriteRegisterDelay(bus, MPU_RA_I2C_SLV0_CTRL, (len & 0x0F) | I2C_SLV0_EN);     // read number of bytes
     delay(4);
     __disable_irq();
-    bool ack = spiBusReadRegisterBuffer(bus, MPU_RA_EXT_SENS_DATA_00, buf, len);            // read I2C
+    bool ack = spiReadRegBuf(bus, MPU_RA_EXT_SENS_DATA_00, buf, len);            // read I2C
     __enable_irq();
     return ack;
 }
@@ -168,7 +168,7 @@ static bool ak8963SlaveCompleteRead(const busDevice_t *slavedev, uint8_t *buf) {
         delayMicroseconds(timeRemaining);
     }
     queuedRead.waiting = false;
-    spiBusReadRegisterBuffer(bus, MPU_RA_EXT_SENS_DATA_00, buf, queuedRead.len);            // read I2C buffer
+    spiReadRegBuf(bus, MPU_RA_EXT_SENS_DATA_00, buf, queuedRead.len);            // read I2C buffer
     return true;
 }
 

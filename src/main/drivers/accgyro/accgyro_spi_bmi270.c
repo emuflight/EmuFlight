@@ -150,7 +150,7 @@ static uint8_t bmi270RegisterRead(const busDevice_t *bus, bmi270Register_e regis
 {
     uint8_t data[2] = { 0, 0 };
 
-    if (spiBusReadRegisterBuffer(bus, registerId, data, 2)) {
+    if (spiReadRegBuf(bus, registerId, data, 2)) {
         return data[1];
     } else {
         return 0;
@@ -159,7 +159,7 @@ static uint8_t bmi270RegisterRead(const busDevice_t *bus, bmi270Register_e regis
 
 static void bmi270RegisterWrite(const busDevice_t *bus, bmi270Register_e registerId, uint8_t value, unsigned delayMs)
 {
-    spiBusWriteRegister(bus, registerId, value);
+    spiWriteReg(bus, registerId, value);
     if (delayMs) {
         delay(delayMs);
     }

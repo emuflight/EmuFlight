@@ -112,11 +112,11 @@ void spiResetErrorCounter(SPI_TypeDef *instance);
 SPIDevice spiDeviceByInstance(SPI_TypeDef *instance);
 SPI_TypeDef *spiInstanceByDevice(SPIDevice device);
 
-bool spiBusTransfer(const busDevice_t *bus, const uint8_t *txData, uint8_t *rxData, int length);
+bool spiReadWriteBuf(const busDevice_t *bus, const uint8_t *txData, uint8_t *rxData, int length);
 
-bool spiBusWriteRegister(const busDevice_t *bus, uint8_t reg, uint8_t data);
-bool spiBusReadRegisterBuffer(const busDevice_t *bus, uint8_t reg, uint8_t *data, uint8_t length);
-uint8_t spiBusReadRegister(const busDevice_t *bus, uint8_t reg);
+bool spiWriteReg(const busDevice_t *bus, uint8_t reg, uint8_t data);
+bool spiReadRegBuf(const busDevice_t *bus, uint8_t reg, uint8_t *data, uint8_t length);
+uint8_t spiReadReg(const busDevice_t *bus, uint8_t reg);
 void spiBusSetInstance(busDevice_t *bus, SPI_TypeDef *instance);
 
 struct spiPinConfig_s;

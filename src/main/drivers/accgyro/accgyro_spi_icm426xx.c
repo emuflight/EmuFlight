@@ -170,12 +170,12 @@ static void icm426xxSpiInit(const busDevice_t *bus) {
 uint8_t icm426xxSpiDetect(const busDevice_t *bus) {
     icm426xxSpiInit(bus);
     spiSetDivisor(bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed
-    spiBusWriteRegister(bus, MPU_RA_PWR_MGMT_1, ICM426xx_BIT_RESET);
+    spiWriteReg(bus, MPU_RA_PWR_MGMT_1, ICM426xx_BIT_RESET);
     uint8_t icmDetected = MPU_NONE;
     uint8_t attemptsRemaining = 20;
     do {
         delay(150);
-        const uint8_t whoAmI = spiBusReadRegister(bus, MPU_RA_WHO_AM_I);
+        const uint8_t whoAmI = spiReadReg(bus, MPU_RA_WHO_AM_I);
         switch (whoAmI) {
         case ICM42605_WHO_AM_I_CONST:
             icmDetected = ICM_42605_SPI;
@@ -235,19 +235,19 @@ static aafConfig_t getGyroAafConfig(const mpuSensor_e, const aafConfig_e);
 
 static void turnGyroAccOff(const gyroDev_t *gyro)
 {
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_PWR_MGMT0, ICM426XX_PWR_MGMT0_GYRO_ACCEL_MODE_OFF);
+    spiWriteReg(&gyro->dev, ICM426XX_RA_PWR_MGMT0, ICM426XX_PWR_MGMT0_GYRO_ACCEL_MODE_OFF);
 }
 
 // Turn on gyro and acc on in Low Noise mode
 static void turnGyroAccOn(const gyroDev_t *gyro)
 {
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_PWR_MGMT0, ICM426XX_PWR_MGMT0_TEMP_DISABLE_OFF | ICM426XX_PWR_MGMT0_ACCEL_MODE_LN | ICM426XX_PWR_MGMT0_GYRO_MODE_LN);
+    spiWriteReg(&gyro->dev, ICM426XX_RA_PWR_MGMT0, ICM426XX_PWR_MGMT0_TEMP_DISABLE_OFF | ICM426XX_PWR_MGMT0_ACCEL_MODE_LN | ICM426XX_PWR_MGMT0_GYRO_MODE_LN);
     delay(1);
 }
 
 static void setUserBank(const gyroDev_t *gyro, const uint8_t user_bank)
 {
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_REG_BANK_SEL, user_bank & 7);
+    spiWriteReg(&gyro->dev, ICM426XX_RA_REG_BANK_SEL, user_bank & 7);
 }
 
 void icm426xxGyroInit(gyroDev_t *gyro)
@@ -268,40 +268,40 @@ void icm426xxGyroInit(gyroDev_t *gyro)
     const mpuSensor_e gyroModel = gyro->mpuDetectionResult.sensor;
     aafConfig_t aafConfig = getGyroAafConfig(gyroModel, gyroConfig()->gyro_hardware_lpf);
     setUserBank(gyro, ICM426XX_BANK_SELECT1);
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_GYRO_CONFIG_STATIC3, aafConfig.delt);
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_GYRO_CONFIG_STATIC4, aafConfig.deltSqr & 0xFF);
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_GYRO_CONFIG_STATIC5, (aafConfig.deltSqr >> 8) | (aafConfig.bitshift << 4));
+    spiWriteReg(&gyro->dev, ICM426XX_RA_GYRO_CONFIG_STATIC3, aafConfig.delt);
+    spiWriteReg(&gyro->dev, ICM426XX_RA_GYRO_CONFIG_STATIC4, aafConfig.deltSqr & 0xFF);
+    spiWriteReg(&gyro->dev, ICM426XX_RA_GYRO_CONFIG_STATIC5, (aafConfig.deltSqr >> 8) | (aafConfig.bitshift << 4));
 
     // Configure acc Anti-Alias Filter for 1kHz sample rate (see tasks.c)
     aafConfig = getGyroAafConfig(gyroModel, AAF_CONFIG_258HZ);
     setUserBank(gyro, ICM426XX_BANK_SELECT2);
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_ACCEL_CONFIG_STATIC2, aafConfig.delt << 1);
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_ACCEL_CONFIG_STATIC3, aafConfig.deltSqr & 0xFF);
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_ACCEL_CONFIG_STATIC4, (aafConfig.deltSqr >> 8) | (aafConfig.bitshift << 4));
+    spiWriteReg(&gyro->dev, ICM426XX_RA_ACCEL_CONFIG_STATIC2, aafConfig.delt << 1);
+    spiWriteReg(&gyro->dev, ICM426XX_RA_ACCEL_CONFIG_STATIC3, aafConfig.deltSqr & 0xFF);
+    spiWriteReg(&gyro->dev, ICM426XX_RA_ACCEL_CONFIG_STATIC4, (aafConfig.deltSqr >> 8) | (aafConfig.bitshift << 4));
 
     // Configure gyro and acc UI Filters
     setUserBank(gyro, ICM426XX_BANK_SELECT0);
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_GYRO_ACCEL_CONFIG0, ICM426XX_ACCEL_UI_FILT_BW_LOW_LATENCY | ICM426XX_GYRO_UI_FILT_BW_LOW_LATENCY);
+    spiWriteReg(&gyro->dev, ICM426XX_RA_GYRO_ACCEL_CONFIG0, ICM426XX_ACCEL_UI_FILT_BW_LOW_LATENCY | ICM426XX_GYRO_UI_FILT_BW_LOW_LATENCY);
 
     // Configure interrupt pin
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_INT_CONFIG, ICM426XX_INT1_MODE_PULSED | ICM426XX_INT1_DRIVE_CIRCUIT_PP | ICM426XX_INT1_POLARITY_ACTIVE_HIGH);
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_INT_CONFIG0, ICM426XX_UI_DRDY_INT_CLEAR_ON_SBR);
+    spiWriteReg(&gyro->dev, ICM426XX_RA_INT_CONFIG, ICM426XX_INT1_MODE_PULSED | ICM426XX_INT1_DRIVE_CIRCUIT_PP | ICM426XX_INT1_POLARITY_ACTIVE_HIGH);
+    spiWriteReg(&gyro->dev, ICM426XX_RA_INT_CONFIG0, ICM426XX_UI_DRDY_INT_CLEAR_ON_SBR);
 
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_INT_SOURCE0, ICM426XX_UI_DRDY_INT1_EN_ENABLED);
+    spiWriteReg(&gyro->dev, ICM426XX_RA_INT_SOURCE0, ICM426XX_UI_DRDY_INT1_EN_ENABLED);
 
-    uint8_t intConfig1Value = spiBusReadRegister(&gyro->dev, ICM426XX_RA_INT_CONFIG1);
+    uint8_t intConfig1Value = spiReadReg(&gyro->dev, ICM426XX_RA_INT_CONFIG1);
     // Datasheet says: "User should change setting to 0 from default setting of 1, for proper INT1 and INT2 pin operation"
     intConfig1Value &= ~(1 << ICM426XX_INT_ASYNC_RESET_BIT);
     intConfig1Value |= (ICM426XX_INT_TPULSE_DURATION_8 | ICM426XX_INT_TDEASSERT_DISABLED);
 
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_INT_CONFIG1, intConfig1Value);
+    spiWriteReg(&gyro->dev, ICM426XX_RA_INT_CONFIG1, intConfig1Value);
 
     // Disable AFSR to prevent stalls in gyro output
     // ICM426XX_INTF_CONFIG1 location in user bank 0
-    uint8_t intfConfig1Value = spiBusReadRegister(&gyro->dev, ICM426XX_INTF_CONFIG1);
+    uint8_t intfConfig1Value = spiReadReg(&gyro->dev, ICM426XX_INTF_CONFIG1);
     intfConfig1Value &= ~ICM426XX_INTF_CONFIG1_AFSR_MASK;
     intfConfig1Value |= ICM426XX_INTF_CONFIG1_AFSR_DISABLE;
-    spiBusWriteRegister(&gyro->dev, ICM426XX_INTF_CONFIG1, intfConfig1Value);
+    spiWriteReg(&gyro->dev, ICM426XX_INTF_CONFIG1, intfConfig1Value);
 
     // Turn on gyro and acc on again so ODR and FSR can be configured
     turnGyroAccOn(gyro);
@@ -317,11 +317,11 @@ void icm426xxGyroInit(gyroDev_t *gyro)
     }
 
     STATIC_ASSERT(INV_FSR_2000DPS == 3, INV_FSR_2000DPS_must_be_3_to_generate_correct_value);
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_GYRO_CONFIG0, (3 - INV_FSR_2000DPS) << 5 | (odrConfig & 0x0F));
+    spiWriteReg(&gyro->dev, ICM426XX_RA_GYRO_CONFIG0, (3 - INV_FSR_2000DPS) << 5 | (odrConfig & 0x0F));
     delay(15);
 
     STATIC_ASSERT(INV_FSR_16G == 3, INV_FSR_16G_must_be_3_to_generate_correct_value);
-    spiBusWriteRegister(&gyro->dev, ICM426XX_RA_ACCEL_CONFIG0, (3 - INV_FSR_16G) << 5 | (odrConfig & 0x0F));
+    spiWriteReg(&gyro->dev, ICM426XX_RA_ACCEL_CONFIG0, (3 - INV_FSR_16G) << 5 | (odrConfig & 0x0F));
     delay(15);
 }
 
@@ -335,7 +335,7 @@ bool icm426xxGyroReadSPI(gyroDev_t *gyro)
     //uint8_t data[7];
     STATIC_DMA_DATA_AUTO uint8_t data[7];
 
-    const bool ack = spiBusTransfer(&gyro->dev, dataToSend, data, 7);
+    const bool ack = spiReadWriteBuf(&gyro->dev, dataToSend, data, 7);
     if (!ack) {
         return false;
     }
