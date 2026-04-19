@@ -72,8 +72,7 @@ bool flashInit(const flashConfig_t *flashConfig) {
     /* Just in case transfer fails and writes nothing, so we don't try to verify the ID against random garbage
      * from the stack:
      */
-    uint8_t in[4];
-    in[1] = 0;
+    uint8_t in[4] = { 0 };
     // Clearing the CS bit terminates the command early so we don't have to read the chip UID:
     spiReadWriteBuf(busdev, out, in, sizeof(out));
     // Manufacturer, memory type, and capacity

@@ -203,9 +203,9 @@ bool compassDetect(magDev_t *dev) {
             busdev->busType_u.i2c.address = compassConfig()->mag_i2c_address;
         }
         if (gyroMpuDetectionResult()->sensor == MPU_9250_SPI) {
-            dev->dev.busType = BUS_TYPE_MPU_SLAVE;
+            busdev->busType = BUS_TYPE_MPU_SLAVE;
             busdev->busType_u.mpuSlave.address = compassConfig()->mag_i2c_address;
-            dev->dev.busType_u.mpuSlave.master = gyroSensorBus();
+            busdev->busType_u.mpuSlave.master = gyroSensorBus();
         }
         if (ak8963Detect(dev)) {
 #ifdef MAG_AK8963_ALIGN
