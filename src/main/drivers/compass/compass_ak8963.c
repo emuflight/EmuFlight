@@ -259,7 +259,7 @@ static int16_t parseMag(uint8_t *raw, int16_t gain) {
 static bool ak8963Read(magDev_t *mag, int16_t *magData) {
     bool ack = false;
     uint8_t buf[7];
-    const busDevice_t *busdev = &mag->busdev;
+    const busDevice_t *busdev = &mag->dev;
     switch (busdev->busType) {
 #if defined(USE_MAG_SPI_AK8963) || defined(USE_MAG_AK8963)
     case BUS_TYPE_I2C:
@@ -292,7 +292,7 @@ static bool ak8963Read(magDev_t *mag, int16_t *magData) {
 static bool ak8963Init(magDev_t *mag) {
     uint8_t asa[3];
     uint8_t status;
-    const busDevice_t *busdev = &mag->busdev;
+    const busDevice_t *busdev = &mag->dev;
     ak8963WriteRegister(busdev, AK8963_MAG_REG_CNTL1, CNTL1_MODE_POWER_DOWN);               // power down before entering fuse mode
     ak8963WriteRegister(busdev, AK8963_MAG_REG_CNTL1, CNTL1_MODE_FUSE_ROM);                 // Enter Fuse ROM access mode
     ak8963ReadRegisterBuffer(busdev, AK8963_MAG_REG_ASAX, asa, sizeof(asa));                // Read the x-, y-, and z-axis calibration values
@@ -361,7 +361,7 @@ void ak8963BusDeInit(const busDevice_t *busdev) {
 
 bool ak8963Detect(magDev_t *mag) {
     uint8_t sig = 0;
-    busDevice_t *busdev = &mag->busdev;
+    busDevice_t *busdev = &mag->dev;
     if ((busdev->busType == BUS_TYPE_I2C || busdev->busType == BUS_TYPE_MPU_SLAVE) && busdev->busType_u.mpuSlave.address == 0) {
         busdev->busType_u.mpuSlave.address = AK8963_MAG_I2C_ADDRESS;
     }

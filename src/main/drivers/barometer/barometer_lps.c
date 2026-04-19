@@ -221,10 +221,10 @@ static void lps_nothing(baroDev_t *baro) {
 
 static void lps_read(baroDev_t *baro) {
     uint8_t status = 0x00;
-    lpsReadCommand(&baro->busdev, LPS_STATUS, &status, 1);
+    lpsReadCommand(&baro->dev, LPS_STATUS, &status, 1);
     if (status & 0x03) {
         uint8_t temp[5];
-        lpsReadCommand(&baro->busdev, LPS_OUT_XL, temp, 5);
+        lpsReadCommand(&baro->dev, LPS_OUT_XL, temp, 5);
         /* Build the raw data */
         rawP = temp[0] | (temp[1] << 8) | (temp[2] << 16) | ((temp[2] & 0x80) ? 0xff000000 : 0);
         rawT = (temp[4] << 8) | temp[3];
@@ -241,13 +241,13 @@ static void lps_calculate(int32_t *pressure, int32_t *temperature) {
 
 bool lpsDetect(baroDev_t *baro) {
     //Detect
-    busDevice_t *busdev = &baro->busdev;
+    busDevice_t *busdev = &baro->dev;
     IOInit(busdev->busType_u.spi.csnPin, OWNER_BARO_CS, 0);
     IOConfigGPIO(busdev->busType_u.spi.csnPin, IOCFG_OUT_PP);
     IOHi(busdev->busType_u.spi.csnPin); // Disable
     spiSetDivisor(busdev->busType_u.spi.instance, SPI_CLOCK_STANDARD); // Baro can work only on up to 10Mhz SPI bus
     uint8_t temp = 0x00;
-    lpsReadCommand(&baro->busdev, LPS_WHO_AM_I, &temp, 1);
+    lpsReadCommand(&baro->dev, LPS_WHO_AM_I, &temp, 1);
     if (temp != LPS25_ID && temp != LPS22_ID && temp != LPS33_ID && temp != LPS35_ID) {
         return false;
     }

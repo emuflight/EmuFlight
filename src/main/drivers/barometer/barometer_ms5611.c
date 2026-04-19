@@ -92,7 +92,7 @@ bool ms5611Detect(baroDev_t *baro) {
     int i;
     bool defaultAddressApplied = false;
     delay(10); // No idea how long the chip takes to power-up, but let's make it 10ms
-    busDevice_t *busdev = &baro->busdev;
+    busDevice_t *busdev = &baro->dev;
     ms5611BusInit(busdev);
     if ((busdev->busType == BUS_TYPE_I2C) && (busdev->busType_u.i2c.address == 0)) {
         // Default address for MS5611
@@ -172,19 +172,19 @@ static uint32_t ms5611_read_adc(busDevice_t *busdev) {
 }
 
 static void ms5611_start_ut(baroDev_t *baro) {
-    busWriteRegister(&baro->busdev, CMD_ADC_CONV + CMD_ADC_D2 + ms5611_osr, 1); // D2 (temperature) conversion start!
+    busWriteRegister(&baro->dev, CMD_ADC_CONV + CMD_ADC_D2 + ms5611_osr, 1); // D2 (temperature) conversion start!
 }
 
 static void ms5611_get_ut(baroDev_t *baro) {
-    ms5611_ut = ms5611_read_adc(&baro->busdev);
+    ms5611_ut = ms5611_read_adc(&baro->dev);
 }
 
 static void ms5611_start_up(baroDev_t *baro) {
-    busWriteRegister(&baro->busdev, CMD_ADC_CONV + CMD_ADC_D1 + ms5611_osr, 1); // D1 (pressure) conversion start!
+    busWriteRegister(&baro->dev, CMD_ADC_CONV + CMD_ADC_D1 + ms5611_osr, 1); // D1 (pressure) conversion start!
 }
 
 static void ms5611_get_up(baroDev_t *baro) {
-    ms5611_up = ms5611_read_adc(&baro->busdev);
+    ms5611_up = ms5611_read_adc(&baro->dev);
 }
 
 STATIC_UNIT_TESTED void ms5611_calculate(int32_t *pressure, int32_t *temperature) {

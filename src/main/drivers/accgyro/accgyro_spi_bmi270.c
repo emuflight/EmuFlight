@@ -221,7 +221,7 @@ static uint8_t getBmiOsrMode()
 
 static void bmi270Config(const gyroDev_t *gyro)
 {
-    const busDevice_t *bus = &gyro->bus;
+    const busDevice_t *bus = &gyro->dev;
 
     // If running in hardware_lpf experimental mode then switch to FIFO-based,
     // 6.4KHz sampling, unfiltered data vs. the default 3.2KHz with hardware filtering
@@ -326,9 +326,9 @@ static bool bmi270AccRead(accDev_t *acc)
     uint8_t bmi270_rx_buf[BUFFER_SIZE];
     static const uint8_t bmi270_tx_buf[BUFFER_SIZE] = {BMI270_REG_ACC_DATA_X_LSB | 0x80, 0, 0, 0, 0, 0, 0, 0};
 
-    IOLo(acc->bus.busType_u.spi.csnPin);
-    spiTransfer(acc->bus.busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
-    IOHi(acc->bus.busType_u.spi.csnPin);
+    IOLo(acc->dev.busType_u.spi.csnPin);
+    spiTransfer(acc->dev.busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
+    IOHi(acc->dev.busType_u.spi.csnPin);
 
     acc->ADCRaw[X] = (int16_t)((bmi270_rx_buf[IDX_ACCEL_XOUT_H] << 8) | bmi270_rx_buf[IDX_ACCEL_XOUT_L]);
     acc->ADCRaw[Y] = (int16_t)((bmi270_rx_buf[IDX_ACCEL_YOUT_H] << 8) | bmi270_rx_buf[IDX_ACCEL_YOUT_L]);
@@ -354,9 +354,9 @@ static bool bmi270GyroReadRegister(gyroDev_t *gyro)
     uint8_t bmi270_rx_buf[BUFFER_SIZE];
     static const uint8_t bmi270_tx_buf[BUFFER_SIZE] = {BMI270_REG_GYR_DATA_X_LSB | 0x80, 0, 0, 0, 0, 0, 0, 0};
 
-    IOLo(gyro->bus.busType_u.spi.csnPin);
-    spiTransfer(gyro->bus.busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
-    IOHi(gyro->bus.busType_u.spi.csnPin);
+    IOLo(gyro->dev.busType_u.spi.csnPin);
+    spiTransfer(gyro->dev.busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
+    IOHi(gyro->dev.busType_u.spi.csnPin);
 
     gyro->gyroADCRaw[X] = (int16_t)((bmi270_rx_buf[IDX_GYRO_XOUT_H] << 8) | bmi270_rx_buf[IDX_GYRO_XOUT_L]);
     gyro->gyroADCRaw[Y] = (int16_t)((bmi270_rx_buf[IDX_GYRO_YOUT_H] << 8) | bmi270_rx_buf[IDX_GYRO_YOUT_L]);
@@ -389,9 +389,9 @@ static bool bmi270GyroReadFifo(gyroDev_t *gyro)
     // Burst read the FIFO length followed by the next 6 bytes containing the gyro axis data for
     // the first sample in the queue. It's possible for the FIFO to be empty so we need to check the
     // length before using the sample.
-    IOLo(gyro->bus.busType_u.spi.csnPin);
-    spiTransfer(gyro->bus.busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
-    IOHi(gyro->bus.busType_u.spi.csnPin);
+    IOLo(gyro->dev.busType_u.spi.csnPin);
+    spiTransfer(gyro->dev.busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
+    IOHi(gyro->dev.busType_u.spi.csnPin);
 
     int fifoLength = (uint16_t)((bmi270_rx_buf[IDX_FIFO_LENGTH_H] << 8) | bmi270_rx_buf[IDX_FIFO_LENGTH_L]);
 
@@ -423,7 +423,7 @@ static bool bmi270GyroReadFifo(gyroDev_t *gyro)
     // would end up in a lock state of always re-reading the same partial or invalid sample.
     if (fifoLength > 0) {
         // Partial or additional frames left - flush the FIFO
-        bmi270RegisterWrite(&gyro->bus, BMI270_REG_CMD, BMI270_VAL_CMD_FIFOFLUSH, 0);
+        bmi270RegisterWrite(&gyro->dev, BMI270_REG_CMD, BMI270_VAL_CMD_FIFOFLUSH, 0);
     }
 
     return dataRead;
@@ -494,6 +494,6 @@ bool bmi270SpiGyroDetect(gyroDev_t *gyro)
 // watermark reason as an idication of gyro data ready.
 uint8_t bmi270InterruptStatus(gyroDev_t *gyro)
 {
-    return bmi270RegisterRead(&gyro->bus, BMI270_REG_INT_STATUS_1);
+    return bmi270RegisterRead(&gyro->dev, BMI270_REG_INT_STATUS_1);
 }
 #endif // USE_ACCGYRO_BMI270

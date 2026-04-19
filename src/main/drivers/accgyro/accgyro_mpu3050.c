@@ -65,19 +65,19 @@ static uint8_t mpu3050GetDLPF(uint8_t lpf) {
 
 static void mpu3050Init(gyroDev_t *gyro) {
     delay(25); // datasheet page 13 says 20ms. other stuff could have been running meanwhile. but we'll be safe
-    const bool ack = busWriteRegister(&gyro->bus, MPU3050_SMPLRT_DIV, 0);
+    const bool ack = busWriteRegister(&gyro->dev, MPU3050_SMPLRT_DIV, 0);
     if (!ack) {
         failureMode(FAILURE_ACC_INIT);
     }
-    busWriteRegister(&gyro->bus, MPU3050_DLPF_FS_SYNC, MPU3050_FS_SEL_2000DPS | mpu3050GetDLPF(gyro->hardware_lpf));
-    busWriteRegister(&gyro->bus, MPU3050_INT_CFG, 0);
-    busWriteRegister(&gyro->bus, MPU3050_USER_CTRL, MPU3050_USER_RESET);
-    busWriteRegister(&gyro->bus, MPU3050_PWR_MGM, MPU3050_CLK_SEL_PLL_GX);
+    busWriteRegister(&gyro->dev, MPU3050_DLPF_FS_SYNC, MPU3050_FS_SEL_2000DPS | mpu3050GetDLPF(gyro->hardware_lpf));
+    busWriteRegister(&gyro->dev, MPU3050_INT_CFG, 0);
+    busWriteRegister(&gyro->dev, MPU3050_USER_CTRL, MPU3050_USER_RESET);
+    busWriteRegister(&gyro->dev, MPU3050_PWR_MGM, MPU3050_CLK_SEL_PLL_GX);
 }
 
 static bool mpu3050GyroRead(gyroDev_t *gyro) {
     uint8_t data[6];
-    const bool ack = busReadRegisterBuffer(&gyro->bus, MPU3050_GYRO_OUT, data, 6);
+    const bool ack = busReadRegisterBuffer(&gyro->dev, MPU3050_GYRO_OUT, data, 6);
     if (!ack) {
         return false;
     }
@@ -89,7 +89,7 @@ static bool mpu3050GyroRead(gyroDev_t *gyro) {
 
 static bool mpu3050ReadTemperature(gyroDev_t *gyro, int16_t *tempData) {
     uint8_t buf[2];
-    if (!busReadRegisterBuffer(&gyro->bus, MPU3050_TEMP_OUT, buf, 2)) {
+    if (!busReadRegisterBuffer(&gyro->dev, MPU3050_TEMP_OUT, buf, 2)) {
         return false;
     }
     *tempData = 35 + ((int32_t)(buf[0] << 8 | buf[1]) + 13200) / 280;

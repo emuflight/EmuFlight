@@ -328,12 +328,12 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
 const busDevice_t *gyroSensorBus(void) {
 #ifdef USE_DUAL_GYRO
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_2) {
-        return &gyroSensor2.gyroDev.bus;
+        return &gyroSensor2.gyroDev.dev;
     } else {
-        return &gyroSensor1.gyroDev.bus;
+        return &gyroSensor1.gyroDev.dev;
     }
 #else
-    return &gyroSensor1.gyroDev.bus;
+    return &gyroSensor1.gyroDev.dev;
 #endif
 }
 
@@ -341,13 +341,13 @@ const busDevice_t *gyroSensorBus(void) {
 const busDevice_t *gyroSensorBusByDevice(uint8_t whichSensor) {
 #ifdef USE_DUAL_GYRO
     if (whichSensor == GYRO_CONFIG_USE_GYRO_2) {
-        return &gyroSensor2.gyroDev.bus;
+        return &gyroSensor2.gyroDev.dev;
     } else {
-        return &gyroSensor1.gyroDev.bus;
+        return &gyroSensor1.gyroDev.dev;
     }
 #else
     UNUSED(whichSensor);
-    return &gyroSensor1.gyroDev.bus;
+    return &gyroSensor1.gyroDev.dev;
 #endif
 }
 #endif // USE_GYRO_REGISTER_DUMP
@@ -672,18 +672,18 @@ bool gyroInit(void) {
     gyroToUse = gyroConfig()->gyro_to_use;
 #if defined(USE_DUAL_GYRO) && defined(GYRO_1_CS_PIN)
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_1 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
-        gyroSensor1.gyroDev.bus.busType_u.spi.csnPin = IOGetByTag(IO_TAG(GYRO_1_CS_PIN));
-        IOInit(gyroSensor1.gyroDev.bus.busType_u.spi.csnPin, OWNER_MPU_CS, RESOURCE_INDEX(0));
-        IOHi(gyroSensor1.gyroDev.bus.busType_u.spi.csnPin); // Ensure device is disabled, important when two devices are on the same bus.
-        IOConfigGPIO(gyroSensor1.gyroDev.bus.busType_u.spi.csnPin, SPI_IO_CS_CFG);
+        gyroSensor1.gyroDev.dev.busType_u.spi.csnPin = IOGetByTag(IO_TAG(GYRO_1_CS_PIN));
+        IOInit(gyroSensor1.gyroDev.dev.busType_u.spi.csnPin, OWNER_MPU_CS, RESOURCE_INDEX(0));
+        IOHi(gyroSensor1.gyroDev.dev.busType_u.spi.csnPin); // Ensure device is disabled, important when two devices are on the same bus.
+        IOConfigGPIO(gyroSensor1.gyroDev.dev.busType_u.spi.csnPin, SPI_IO_CS_CFG);
     }
 #endif
 #if defined(USE_DUAL_GYRO) && defined(GYRO_2_CS_PIN)
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_2 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
-        gyroSensor2.gyroDev.bus.busType_u.spi.csnPin = IOGetByTag(IO_TAG(GYRO_2_CS_PIN));
-        IOInit(gyroSensor2.gyroDev.bus.busType_u.spi.csnPin, OWNER_MPU_CS, RESOURCE_INDEX(1));
-        IOHi(gyroSensor2.gyroDev.bus.busType_u.spi.csnPin); // Ensure device is disabled, important when two devices are on the same bus.
-        IOConfigGPIO(gyroSensor2.gyroDev.bus.busType_u.spi.csnPin, SPI_IO_CS_CFG);
+        gyroSensor2.gyroDev.dev.busType_u.spi.csnPin = IOGetByTag(IO_TAG(GYRO_2_CS_PIN));
+        IOInit(gyroSensor2.gyroDev.dev.busType_u.spi.csnPin, OWNER_MPU_CS, RESOURCE_INDEX(1));
+        IOHi(gyroSensor2.gyroDev.dev.busType_u.spi.csnPin); // Ensure device is disabled, important when two devices are on the same bus.
+        IOConfigGPIO(gyroSensor2.gyroDev.dev.busType_u.spi.csnPin, SPI_IO_CS_CFG);
     }
 #endif
     gyroSensor1.gyroDev.gyroAlign = ALIGN_DEFAULT;
@@ -700,8 +700,8 @@ bool gyroInit(void) {
 #ifdef GYRO_1_ALIGN
     gyroSensor1.gyroDev.gyroAlign = GYRO_1_ALIGN;
 #endif
-    gyroSensor1.gyroDev.bus.busType = BUS_TYPE_SPI;
-    spiBusSetInstance(&gyroSensor1.gyroDev.bus, GYRO_1_SPI_INSTANCE);
+    gyroSensor1.gyroDev.dev.busType = BUS_TYPE_SPI;
+    spiBusSetInstance(&gyroSensor1.gyroDev.dev, GYRO_1_SPI_INSTANCE);
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_1 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
         ret = gyroInitSensor(&gyroSensor1);
         if (!ret) {
@@ -725,8 +725,8 @@ bool gyroInit(void) {
 #ifdef GYRO_2_ALIGN
     gyroSensor2.gyroDev.gyroAlign = GYRO_2_ALIGN;
 #endif
-    gyroSensor2.gyroDev.bus.busType = BUS_TYPE_SPI;
-    spiBusSetInstance(&gyroSensor2.gyroDev.bus, GYRO_2_SPI_INSTANCE);
+    gyroSensor2.gyroDev.dev.busType = BUS_TYPE_SPI;
+    spiBusSetInstance(&gyroSensor2.gyroDev.dev, GYRO_2_SPI_INSTANCE);
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_2 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
         ret = gyroInitSensor(&gyroSensor2);
         if (!ret) {

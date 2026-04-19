@@ -102,11 +102,11 @@ static bool mpuSpi6000InitDone = false;
 void mpu6000SpiGyroInit(gyroDev_t *gyro) {
     mpuGyroInit(gyro);
     mpu6000AccAndGyroInit(gyro);
-    spiSetDivisor(gyro->bus.busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
+    spiSetDivisor(gyro->dev.busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
     // Accel and Gyro DLPF Setting
-    spiBusWriteRegister(&gyro->bus, MPU6000_CONFIG, mpuGyroDLPF(gyro));
+    spiBusWriteRegister(&gyro->dev, MPU6000_CONFIG, mpuGyroDLPF(gyro));
     delayMicroseconds(1);
-    spiSetDivisor(gyro->bus.busType_u.spi.instance, SPI_CLOCK_FAST);  // 18 MHz SPI clock
+    spiSetDivisor(gyro->dev.busType_u.spi.instance, SPI_CLOCK_FAST);  // 18 MHz SPI clock
     mpuGyroRead(gyro);
     if (((int8_t)gyro->gyroADCRaw[1]) == -1 && ((int8_t)gyro->gyroADCRaw[0]) == -1) {
         failureMode(FAILURE_GYRO_INIT_FAILED);
@@ -161,37 +161,37 @@ static void mpu6000AccAndGyroInit(gyroDev_t *gyro) {
     if (mpuSpi6000InitDone) {
         return;
     }
-    spiSetDivisor(gyro->bus.busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
+    spiSetDivisor(gyro->dev.busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
     // Device Reset
-    spiBusWriteRegister(&gyro->bus, MPU_RA_PWR_MGMT_1, BIT_H_RESET);
+    spiBusWriteRegister(&gyro->dev, MPU_RA_PWR_MGMT_1, BIT_H_RESET);
     delay(150);
-    spiBusWriteRegister(&gyro->bus, MPU_RA_SIGNAL_PATH_RESET, BIT_GYRO | BIT_ACC | BIT_TEMP);
+    spiBusWriteRegister(&gyro->dev, MPU_RA_SIGNAL_PATH_RESET, BIT_GYRO | BIT_ACC | BIT_TEMP);
     delay(150);
     // Clock Source PPL with Z axis gyro reference
-    spiBusWriteRegister(&gyro->bus, MPU_RA_PWR_MGMT_1, MPU_CLK_SEL_PLLGYROZ);
+    spiBusWriteRegister(&gyro->dev, MPU_RA_PWR_MGMT_1, MPU_CLK_SEL_PLLGYROZ);
     delayMicroseconds(15);
     // Disable Primary I2C Interface
-    spiBusWriteRegister(&gyro->bus, MPU_RA_USER_CTRL, BIT_I2C_IF_DIS);
+    spiBusWriteRegister(&gyro->dev, MPU_RA_USER_CTRL, BIT_I2C_IF_DIS);
     delayMicroseconds(15);
-    spiBusWriteRegister(&gyro->bus, MPU_RA_PWR_MGMT_2, 0x00);
+    spiBusWriteRegister(&gyro->dev, MPU_RA_PWR_MGMT_2, 0x00);
     delayMicroseconds(15);
     // Accel Sample Rate 1kHz
     // Gyroscope Output Rate =  1kHz when the DLPF is enabled
-    spiBusWriteRegister(&gyro->bus, MPU_RA_SMPLRT_DIV, gyro->mpuDividerDrops);
+    spiBusWriteRegister(&gyro->dev, MPU_RA_SMPLRT_DIV, gyro->mpuDividerDrops);
     delayMicroseconds(15);
     // Gyro +/- 1000 DPS Full Scale
-    spiBusWriteRegister(&gyro->bus, MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3);
+    spiBusWriteRegister(&gyro->dev, MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3);
     delayMicroseconds(15);
     // Accel +/- 16 G Full Scale
-    spiBusWriteRegister(&gyro->bus, MPU_RA_ACCEL_CONFIG, INV_FSR_16G << 3);
+    spiBusWriteRegister(&gyro->dev, MPU_RA_ACCEL_CONFIG, INV_FSR_16G << 3);
     delayMicroseconds(15);
-    spiBusWriteRegister(&gyro->bus, MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 0 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR
+    spiBusWriteRegister(&gyro->dev, MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 0 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR
     delayMicroseconds(15);
 #ifdef USE_MPU_DATA_READY_SIGNAL
-    spiBusWriteRegister(&gyro->bus, MPU_RA_INT_ENABLE, MPU_RF_DATA_RDY_EN);
+    spiBusWriteRegister(&gyro->dev, MPU_RA_INT_ENABLE, MPU_RF_DATA_RDY_EN);
     delayMicroseconds(15);
 #endif
-    spiSetDivisor(gyro->bus.busType_u.spi.instance, SPI_CLOCK_FAST);
+    spiSetDivisor(gyro->dev.busType_u.spi.instance, SPI_CLOCK_FAST);
     delayMicroseconds(1);
     mpuSpi6000InitDone = true;
 }

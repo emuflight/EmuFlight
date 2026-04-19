@@ -66,7 +66,7 @@ bool flashInit(const flashConfig_t *flashConfig) {
     //spiSetDivisor(busdev->busType_u.spi.instance, SPI_CLOCK_FAST);
     spiSetDivisor(busdev->busType_u.spi.instance, SPI_CLOCK_STANDARD * 2);
 #endif
-    flashDevice.busdev = busdev;
+    flashDevice.dev = busdev;
     const uint8_t out[] = { SPIFLASH_INSTRUCTION_RDID, 0, 0, 0 };
     delay(50); // short delay required after initialisation of SPI device instance.
     /* Just in case transfer fails and writes nothing, so we don't try to verify the ID against random garbage

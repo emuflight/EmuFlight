@@ -77,7 +77,7 @@ void bmp280BusDeinit(busDevice_t *busdev) {
 
 bool bmp280Detect(baroDev_t *baro) {
     delay(20);
-    busDevice_t *busdev = &baro->busdev;
+    busDevice_t *busdev = &baro->dev;
     bool defaultAddressApplied = false;
     bmp280BusInit(busdev);
     if ((busdev->busType == BUS_TYPE_I2C) && (busdev->busType_u.i2c.address == 0)) {
@@ -122,13 +122,13 @@ static void bmp280_get_ut(baroDev_t *baro) {
 static void bmp280_start_up(baroDev_t *baro) {
     // start measurement
     // set oversampling + power mode (forced), and start sampling
-    busWriteRegister(&baro->busdev, BMP280_CTRL_MEAS_REG, BMP280_MODE);
+    busWriteRegister(&baro->dev, BMP280_CTRL_MEAS_REG, BMP280_MODE);
 }
 
 static void bmp280_get_up(baroDev_t *baro) {
     uint8_t data[BMP280_DATA_FRAME_SIZE];
     // read data from sensor
-    busReadRegisterBuffer(&baro->busdev, BMP280_PRESSURE_MSB_REG, data, BMP280_DATA_FRAME_SIZE);
+    busReadRegisterBuffer(&baro->dev, BMP280_PRESSURE_MSB_REG, data, BMP280_DATA_FRAME_SIZE);
     bmp280_up = (int32_t)((((uint32_t)(data[0])) << 12) | (((uint32_t)(data[1])) << 4) | ((uint32_t)data[2] >> 4));
     bmp280_ut = (int32_t)((((uint32_t)(data[3])) << 12) | (((uint32_t)(data[4])) << 4) | ((uint32_t)data[5] >> 4));
 }

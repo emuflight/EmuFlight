@@ -217,7 +217,7 @@ FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroComma
         delayMicroseconds(1000);
         if( IORead(IOGetByTag(IO_TAG(MPU_INT_EXTI))) ) { //IMU is ready to talk
             failCount -= 100;
-            if (imufSendReceiveSpiBlocking(&(gyro->bus), (uint8_t *)&command, (uint8_t *)reply, sizeof(imufCommand_t))) {
+            if (imufSendReceiveSpiBlocking(&(gyro->dev), (uint8_t *)&command, (uint8_t *)reply, sizeof(imufCommand_t))) {
                 crcCalc = getCrcImuf9001((uint32_t *)reply, 11);
                 //this is the only valid reply we'll get if we're in BL mode
                 if(crcCalc == reply->crc && (reply->command == IMUF_COMMAND_LISTENING || reply->command == BL_LISTENING)) { //this tells us the IMU was listening for a command, else we need to reset synbc
@@ -236,7 +236,7 @@ FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroComma
                             //reset attempts
                             attempt = 100;
                             delayMicroseconds(1000); //give pin time to set
-                            imufSendReceiveSpiBlocking(&(gyro->bus), (uint8_t *)&command, (uint8_t *)reply, sizeof(imufCommand_t));
+                            imufSendReceiveSpiBlocking(&(gyro->dev), (uint8_t *)&command, (uint8_t *)reply, sizeof(imufCommand_t));
                             crcCalc = getCrcImuf9001((uint32_t *)reply, 11);
                             if(crcCalc == reply->crc && reply->command == commandToSend ) { //this tells us the IMU understood the last command
                                 return 1;
@@ -400,9 +400,9 @@ uint8_t imuf9001SpiDetect(const gyroDev_t *gyro) {
     IOInit(IOGetByTag( IO_TAG(MPU_INT_EXTI) ), OWNER_MPU_EXTI, 0);
     IOConfigGPIO(IOGetByTag( IO_TAG(MPU_INT_EXTI) ), IOCFG_IPD);
     delayMicroseconds(100);
-    IOInit(gyro->bus.busType_u.spi.csnPin, OWNER_MPU_CS, 0);
-    IOConfigGPIO(gyro->bus.busType_u.spi.csnPin, SPI_IO_CS_CFG);
-    IOHi(gyro->bus.busType_u.spi.csnPin);
+    IOInit(gyro->dev.busType_u.spi.csnPin, OWNER_MPU_CS, 0);
+    IOConfigGPIO(gyro->dev.busType_u.spi.csnPin, SPI_IO_CS_CFG);
+    IOHi(gyro->dev.busType_u.spi.csnPin);
     hardwareInitialised = true;
     for (int x = 0; x < 3; x++) {
         if (x) {

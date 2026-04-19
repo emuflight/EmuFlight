@@ -64,3 +64,10 @@ void targetBusInit(void);
 bool busWriteRegister(const busDevice_t *bus, uint8_t reg, uint8_t data);
 bool busReadRegisterBuffer(const busDevice_t *bus, uint8_t reg, uint8_t *data, uint8_t length);
 uint8_t busReadRegister(const busDevice_t *bus, uint8_t reg);
+
+// Betaflight paste-and-tweak alias. In BF master, extDevice_t is a separate
+// per-device struct pointing at a shared busDevice_s. EmuFlight has not yet
+// split the bus resource from the device; extDevice_t is a typedef so driver
+// code written against BF signatures compiles against our combined struct.
+// Splitting the shared-bus resource is a future refactor stage.
+typedef busDevice_t extDevice_t;

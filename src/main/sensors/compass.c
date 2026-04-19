@@ -117,7 +117,7 @@ static uint8_t magInit = 0;
 #if !defined(SIMULATOR_BUILD)
 bool compassDetect(magDev_t *dev) {
     magSensor_e magHardware = MAG_NONE;
-    busDevice_t *busdev = &dev->busdev;
+    busDevice_t *busdev = &dev->dev;
 #ifdef USE_MAG_DATA_READY_SIGNAL
     dev->magIntExtiTag = compassConfig()->interruptTag;
 #endif
@@ -203,9 +203,9 @@ bool compassDetect(magDev_t *dev) {
             busdev->busType_u.i2c.address = compassConfig()->mag_i2c_address;
         }
         if (gyroMpuDetectionResult()->sensor == MPU_9250_SPI) {
-            dev->busdev.busType = BUS_TYPE_MPU_SLAVE;
+            dev->dev.busType = BUS_TYPE_MPU_SLAVE;
             busdev->busType_u.mpuSlave.address = compassConfig()->mag_i2c_address;
-            dev->busdev.busType_u.mpuSlave.master = gyroSensorBus();
+            dev->dev.busType_u.mpuSlave.master = gyroSensorBus();
         }
         if (ak8963Detect(dev)) {
 #ifdef MAG_AK8963_ALIGN

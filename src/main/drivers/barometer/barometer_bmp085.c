@@ -180,7 +180,7 @@ bool bmp085Detect(const bmp085Config_t *config, baroDev_t *baro) {
     UNUSED(config);
 #endif
     delay(20); // datasheet says 10ms, we'll be careful and do 20.
-    busDevice_t *busdev = &baro->busdev;
+    busDevice_t *busdev = &baro->dev;
     if ((busdev->busType == BUS_TYPE_I2C) && (busdev->busType_u.i2c.address == 0)) {
         // Default address for BMP085
         busdev->busType_u.i2c.address = BMP085_I2C_ADDR;
@@ -265,7 +265,7 @@ static void bmp085_start_ut(baroDev_t *baro) {
 #if defined(BARO_EOC_GPIO)
     isConversionComplete = false;
 #endif
-    busWriteRegister(&baro->busdev, BMP085_CTRL_MEAS_REG, BMP085_T_MEASURE);
+    busWriteRegister(&baro->dev, BMP085_CTRL_MEAS_REG, BMP085_T_MEASURE);
 }
 
 static void bmp085_get_ut(baroDev_t *baro) {
@@ -276,7 +276,7 @@ static void bmp085_get_ut(baroDev_t *baro) {
         return;
     }
 #endif
-    busReadRegisterBuffer(&baro->busdev, BMP085_ADC_OUT_MSB_REG, data, 2);
+    busReadRegisterBuffer(&baro->dev, BMP085_ADC_OUT_MSB_REG, data, 2);
     bmp085_ut = (data[0] << 8) | data[1];
 }
 
@@ -286,7 +286,7 @@ static void bmp085_start_up(baroDev_t *baro) {
 #if defined(BARO_EOC_GPIO)
     isConversionComplete = false;
 #endif
-    busWriteRegister(&baro->busdev, BMP085_CTRL_MEAS_REG, ctrl_reg_data);
+    busWriteRegister(&baro->dev, BMP085_CTRL_MEAS_REG, ctrl_reg_data);
 }
 
 /** read out up for pressure conversion
@@ -301,7 +301,7 @@ static void bmp085_get_up(baroDev_t *baro) {
         return;
     }
 #endif
-    busReadRegisterBuffer(&baro->busdev, BMP085_ADC_OUT_MSB_REG, data, 3);
+    busReadRegisterBuffer(&baro->dev, BMP085_ADC_OUT_MSB_REG, data, 3);
     bmp085_up = (((uint32_t) data[0] << 16) | ((uint32_t) data[1] << 8) | (uint32_t) data[2])
                 >> (8 - bmp085.oversampling_setting);
 }
