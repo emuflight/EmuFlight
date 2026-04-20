@@ -70,7 +70,7 @@ void ms5611BusInit(extDevice_t *dev) {
         IOHi(dev->busType_u.spi.csnPin); // Disable
         IOInit(dev->busType_u.spi.csnPin, OWNER_BARO_CS, 0);
         IOConfigGPIO(dev->busType_u.spi.csnPin, IOCFG_OUT_PP);
-        spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD); // XXX
+        spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD); // XXX
     }
 #else
     UNUSED(dev);

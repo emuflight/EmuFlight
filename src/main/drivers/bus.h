@@ -61,7 +61,12 @@ typedef struct extDevice_s {
     busType_e busType;
     union {
         struct extSpi_s {
+            SPI_TypeDef *instance;
+#if defined(USE_HAL_DRIVER)
+            SPI_HandleTypeDef* handle; // cached here for efficiency
+#endif
             IO_t csnPin;
+
 #if defined(USE_GYRO_IMUF9001)
             IO_t rstPin;
 #endif

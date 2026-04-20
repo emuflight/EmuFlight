@@ -186,7 +186,7 @@ static void hmc5883SpiInit(extDevice_t *dev) {
     IOHi(dev->busType_u.spi.csnPin); // Disable
     IOInit(dev->busType_u.spi.csnPin, OWNER_COMPASS_CS, 0);
     IOConfigGPIO(dev->busType_u.spi.csnPin, IOCFG_OUT_PP);
-    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD);
 }
 #endif
 

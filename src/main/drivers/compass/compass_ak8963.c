@@ -320,7 +320,7 @@ void ak8963BusInit(const extDevice_t *dev) {
         IOHi(dev->busType_u.spi.csnPin);                                                  // Disable
         IOInit(dev->busType_u.spi.csnPin, OWNER_COMPASS_CS, 0);
         IOConfigGPIO(dev->busType_u.spi.csnPin, IOCFG_OUT_PP);
-        spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+        spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD);
         break;
 #endif
 #if defined(USE_MAG_AK8963) && (defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU9250))

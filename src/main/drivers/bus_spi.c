@@ -113,10 +113,9 @@ bool spiInit(SPIDevice device) {
         break;
     }
     if (ok) {
-        // Populate the shared bus-abstraction resource for this peripheral.
-        // extDevice_t's .bus back-pointer (set in spiBusSetInstance) points
-        // at this entry, and all transaction code reads the SPI instance and
-        // HAL handle from here via dev->bus->busType_u.spi.*.
+        // Populate bus-abstraction resource for this peripheral. Later stages
+        // migrate extDevice_t to dereference dev->bus->busType_u.spi.instance
+        // instead of the per-device inline copy.
         spiBusDevice[device].busType = BUS_TYPE_SPI;
         spiBusDevice[device].busType_u.spi.instance = spiDevice[device].dev;
 #if defined(USE_HAL_DRIVER)
@@ -138,7 +137,7 @@ uint32_t spiTimeoutUserCallback(SPI_TypeDef *instance) {
 
 FAST_CODE bool spiReadWriteBuf(const extDevice_t *dev, const uint8_t *txData, uint8_t *rxData, int length) {
 #ifdef USE_DMA_SPI_DEVICE
-    if(USE_DMA_SPI_DEVICE == dev->bus->busType_u.spi.instance) {
+    if(USE_DMA_SPI_DEVICE == dev->busType_u.spi.instance) {
         uint32_t timeoutCheck = millis();
         memcpy(dmaTxBuffer, (uint8_t *)txData, length);
         dmaSpiTransmitReceive(dmaTxBuffer, dmaRxBuffer, length, 1);
@@ -152,12 +151,12 @@ FAST_CODE bool spiReadWriteBuf(const extDevice_t *dev, const uint8_t *txData, ui
         memcpy((uint8_t *)rxData, dmaRxBuffer, length);
     } else {
         IOLo(dev->busType_u.spi.csnPin);
-        spiTransfer(dev->bus->busType_u.spi.instance, txData, rxData, length);
+        spiTransfer(dev->busType_u.spi.instance, txData, rxData, length);
         IOHi(dev->busType_u.spi.csnPin);
     }
 #else
     IOLo(dev->busType_u.spi.csnPin);
-    spiTransfer(dev->bus->busType_u.spi.instance, txData, rxData, length);
+    spiTransfer(dev->busType_u.spi.instance, txData, rxData, length);
     IOHi(dev->busType_u.spi.csnPin);
 #endif
     return true;
@@ -180,7 +179,7 @@ void spiResetErrorCounter(SPI_TypeDef *instance) {
 
 FAST_CODE bool spiWriteReg(const extDevice_t *dev, uint8_t reg, uint8_t data) {
 #ifdef USE_DMA_SPI_DEVICE
-    if(USE_DMA_SPI_DEVICE == dev->bus->busType_u.spi.instance) {
+    if(USE_DMA_SPI_DEVICE == dev->busType_u.spi.instance) {
         uint32_t timeoutCheck = millis();
         dmaTxBuffer[0] = reg;
         dmaTxBuffer[1] = data;
@@ -194,14 +193,14 @@ FAST_CODE bool spiWriteReg(const extDevice_t *dev, uint8_t reg, uint8_t data) {
         }
     } else {
         IOLo(dev->busType_u.spi.csnPin);
-        spiTransferByte(dev->bus->busType_u.spi.instance, reg);
-        spiTransferByte(dev->bus->busType_u.spi.instance, data);
+        spiTransferByte(dev->busType_u.spi.instance, reg);
+        spiTransferByte(dev->busType_u.spi.instance, data);
         IOHi(dev->busType_u.spi.csnPin);
     }
 #else
     IOLo(dev->busType_u.spi.csnPin);
-    spiTransferByte(dev->bus->busType_u.spi.instance, reg);
-    spiTransferByte(dev->bus->busType_u.spi.instance, data);
+    spiTransferByte(dev->busType_u.spi.instance, reg);
+    spiTransferByte(dev->busType_u.spi.instance, data);
     IOHi(dev->busType_u.spi.csnPin);
 #endif
     return true;
@@ -209,7 +208,7 @@ FAST_CODE bool spiWriteReg(const extDevice_t *dev, uint8_t reg, uint8_t data) {
 
 FAST_CODE bool spiReadRegBuf(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint8_t length) {
 #ifdef USE_DMA_SPI_DEVICE
-    if(USE_DMA_SPI_DEVICE == dev->bus->busType_u.spi.instance) {
+    if(USE_DMA_SPI_DEVICE == dev->busType_u.spi.instance) {
         uint32_t timeoutCheck = millis();
         dmaTxBuffer[0] = reg | 0x80;
         dmaSpiTransmitReceive(dmaTxBuffer, dmaRxBuffer, length + 1, 1);
@@ -223,14 +222,14 @@ FAST_CODE bool spiReadRegBuf(const extDevice_t *dev, uint8_t reg, uint8_t *data,
         memcpy(data, dmaRxBuffer + 1, length);
     } else {
         IOLo(dev->busType_u.spi.csnPin);
-        spiTransferByte(dev->bus->busType_u.spi.instance, reg | 0x80); // read transaction
-        spiTransfer(dev->bus->busType_u.spi.instance, NULL, data, length);
+        spiTransferByte(dev->busType_u.spi.instance, reg | 0x80); // read transaction
+        spiTransfer(dev->busType_u.spi.instance, NULL, data, length);
         IOHi(dev->busType_u.spi.csnPin);
     }
 #else
     IOLo(dev->busType_u.spi.csnPin);
-    spiTransferByte(dev->bus->busType_u.spi.instance, reg | 0x80); // read transaction
-    spiTransfer(dev->bus->busType_u.spi.instance, NULL, data, length);
+    spiTransferByte(dev->busType_u.spi.instance, reg | 0x80); // read transaction
+    spiTransfer(dev->busType_u.spi.instance, NULL, data, length);
     IOHi(dev->busType_u.spi.csnPin);
 #endif
     return true;
@@ -238,7 +237,7 @@ FAST_CODE bool spiReadRegBuf(const extDevice_t *dev, uint8_t reg, uint8_t *data,
 
 FAST_CODE uint8_t spiReadReg(const extDevice_t *dev, uint8_t reg) {
 #ifdef USE_DMA_SPI_DEVICE
-    if(USE_DMA_SPI_DEVICE == dev->bus->busType_u.spi.instance) {
+    if(USE_DMA_SPI_DEVICE == dev->busType_u.spi.instance) {
         uint32_t timeoutCheck = millis();
         dmaTxBuffer[0] = reg | 0x80;
         dmaSpiTransmitReceive(dmaTxBuffer, dmaRxBuffer, 2, 1);
@@ -253,16 +252,16 @@ FAST_CODE uint8_t spiReadReg(const extDevice_t *dev, uint8_t reg) {
     } else {
         uint8_t data;
         IOLo(dev->busType_u.spi.csnPin);
-        spiTransferByte(dev->bus->busType_u.spi.instance, reg | 0x80); // read transaction
-        spiTransfer(dev->bus->busType_u.spi.instance, NULL, &data, 1);
+        spiTransferByte(dev->busType_u.spi.instance, reg | 0x80); // read transaction
+        spiTransfer(dev->busType_u.spi.instance, NULL, &data, 1);
         IOHi(dev->busType_u.spi.csnPin);
         return data;
     }
 #else
     uint8_t data;
     IOLo(dev->busType_u.spi.csnPin);
-    spiTransferByte(dev->bus->busType_u.spi.instance, reg | 0x80); // read transaction
-    spiTransfer(dev->bus->busType_u.spi.instance, NULL, &data, 1);
+    spiTransferByte(dev->busType_u.spi.instance, reg | 0x80); // read transaction
+    spiTransfer(dev->busType_u.spi.instance, NULL, &data, 1);
     IOHi(dev->busType_u.spi.csnPin);
     return data;
 #endif
@@ -270,12 +269,12 @@ FAST_CODE uint8_t spiReadReg(const extDevice_t *dev, uint8_t reg) {
 
 void spiBusSetInstance(extDevice_t *dev, SPI_TypeDef *instance) {
     dev->busType = BUS_TYPE_SPI;
-    // Wire the bus-abstraction back-pointer to the shared busDevice_t for
-    // this peripheral. spiInit() must have already populated spiBusDevice[]
-    // by this point; if the caller passes an instance that does not map to
-    // a known SPI peripheral, bus stays NULL and callers that use dev->bus
-    // will hit a clear null deref rather than a silent wrong-peripheral
-    // access.
+    dev->busType_u.spi.instance = instance;
+    // Wire the bus-abstraction back-pointer. spiInit() must have already
+    // populated spiBusDevice[] for this peripheral; if the caller passes an
+    // instance that does not map to a known SPI device, bus stays NULL and
+    // callers that rely on dev->bus will hit a clear null deref at first
+    // use rather than a silent wrong-peripheral access.
     dev->bus = spiBusByDevice(spiDeviceByInstance(instance));
 }
 
