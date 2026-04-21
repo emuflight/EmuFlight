@@ -115,12 +115,16 @@ bool spiInit(SPIDevice device) {
     if (ok) {
         // Populate bus-abstraction resource for this peripheral. Later stages
         // migrate extDevice_t to dereference dev->bus->busType_u.spi.instance
-        // instead of the per-device inline copy.
-        spiBusDevice[device].busType = BUS_TYPE_SPI;
-        spiBusDevice[device].busType_u.spi.instance = spiDevice[device].dev;
+        // instead of the per-device inline copy. Route through spiBusByDevice()
+        // so the write shares the read path's bounds check.
+        busDevice_t *bus = spiBusByDevice(device);
+        if (bus) {
+            bus->busType = BUS_TYPE_SPI;
+            bus->busType_u.spi.instance = spiDevice[device].dev;
 #if defined(USE_HAL_DRIVER)
-        spiBusDevice[device].busType_u.spi.handle = &spiDevice[device].hspi;
+            bus->busType_u.spi.handle = &spiDevice[device].hspi;
 #endif
+        }
     }
     return ok;
 }
