@@ -159,7 +159,7 @@ bool baroDetect(baroDev_t *dev, baroSensor_e baroHardwareToUse) {
     case BUS_TYPE_SPI:
 #ifdef USE_SPI
         dev->dev.busType = BUS_TYPE_SPI;
-        spiBusSetInstance(&dev->dev, spiInstanceByDevice(SPI_CFG_TO_DEV(barometerConfig()->baro_spi_device)));
+        spiSetBusInstance(&dev->dev, barometerConfig()->baro_spi_device);
         dev->dev.busType_u.spi.csnPin = IOGetByTag(barometerConfig()->baro_spi_csn);
 #endif
         break;

@@ -122,6 +122,20 @@ bool spiReadWriteBuf(const extDevice_t *dev, const uint8_t *txData, uint8_t *rxD
 bool spiWriteReg(const extDevice_t *dev, uint8_t reg, uint8_t data);
 bool spiReadRegBuf(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint8_t length);
 uint8_t spiReadReg(const extDevice_t *dev, uint8_t reg);
+
+// Mark an extDevice_t as belonging to an SPI bus, using the 1-based CLI
+// device id (1 == SPI1, 2 == SPI2, ...). Matches Betaflight 4.5-maintenance
+// spiSetBusInstance signature so callers that already carry the config id
+// can stop round-tripping through spiInstanceByDevice. Returns false if
+// device is 0 (disabled) or out of range, or if the peripheral slot is
+// not backed by a real SPI_TypeDef on this target.
+bool spiSetBusInstance(extDevice_t *dev, uint32_t device);
+
+// Legacy SPI_TypeDef*-based entry point. Thin forwarder over
+// spiSetBusInstance(). Still used by 12 Pattern-A call sites in
+// gyro.c / accgyro_mpu.c that pass target.h MACRO_SPI_INSTANCE tokens
+// (raw SPI1/SPI2/...). Scheduled for removal once Stage L.2 migrates
+// target macros to *_SPI_BUS integer ids.
 void spiBusSetInstance(extDevice_t *dev, SPI_TypeDef *instance);
 
 struct spiPinConfig_s;

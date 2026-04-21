@@ -48,10 +48,9 @@ static extDevice_t *dev = &rxSpiDevice;
 #define ENABLE_RX()     {IOLo(dev->busType_u.spi.csnPin);}
 
 bool rxSpiDeviceInit(const rxSpiConfig_t *rxSpiConfig) {
-    if (!rxSpiConfig->spibus) {
+    if (!spiSetBusInstance(dev, rxSpiConfig->spibus)) {
         return false;
     }
-    spiBusSetInstance(dev, spiInstanceByDevice(SPI_CFG_TO_DEV(rxSpiConfig->spibus)));
     const IO_t rxCsPin = IOGetByTag(rxSpiConfig->csnTag);
     IOInit(rxCsPin, OWNER_RX_SPI_CS, 0);
     IOConfigGPIO(rxCsPin, SPI_IO_CS_CFG);

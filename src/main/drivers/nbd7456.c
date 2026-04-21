@@ -393,7 +393,7 @@ bool max7456Init(const max7456Config_t *max7456Config, const vcdProfile_t *pVcdP
     IOInit(dev->busType_u.spi.csnPin, OWNER_OSD_CS, 0);
     IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(dev->busType_u.spi.csnPin);
-    spiBusSetInstance(dev, spiInstanceByDevice(SPI_CFG_TO_DEV(max7456Config->spiDevice)));
+    spiSetBusInstance(dev, max7456Config->spiDevice);
     // Detect device type by writing and reading CA[8] bit at CMAL[6].
     // Do this at half the speed for safety.
     spiSetDivisor(dev->busType_u.spi.instance, MAX7456_SPI_CLK * 2);
