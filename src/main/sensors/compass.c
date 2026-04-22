@@ -33,6 +33,7 @@
 #include "drivers/bus_i2c.h"
 #include "drivers/bus_spi.h"
 #include "drivers/bus.h"
+#include "drivers/bus_i2c_busdev.h"
 #include "drivers/accgyro/accgyro_mpu.h"
 #include "drivers/compass/compass.h"
 #include "drivers/compass/compass_ak8975.h"
@@ -124,8 +125,7 @@ bool compassDetect(magDev_t *dev) {
     switch (compassConfig()->mag_bustype) {
 #ifdef USE_I2C
     case BUS_TYPE_I2C:
-        extDev->busType = BUS_TYPE_I2C;
-        extDev->busType_u.i2c.device = I2C_CFG_TO_DEV(compassConfig()->mag_i2c_device);
+        i2cBusSetInstance(extDev, compassConfig()->mag_i2c_device);
         extDev->busType_u.i2c.address = compassConfig()->mag_i2c_address;
 #endif
         break;

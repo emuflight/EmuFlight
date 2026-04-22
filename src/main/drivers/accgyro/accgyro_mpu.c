@@ -34,6 +34,7 @@
 
 #include "drivers/bus.h"
 #include "drivers/bus_i2c.h"
+#include "drivers/bus_i2c_busdev.h"
 #include "drivers/bus_spi.h"
 #include "drivers/exti.h"
 #include "drivers/io.h"
@@ -432,7 +433,7 @@ void mpuDetect(gyroDev_t *gyro) {
         gyro->dev.busType = BUS_TYPE_I2C;
     }
     if (gyro->dev.busType == BUS_TYPE_I2C) {
-        gyro->dev.busType_u.i2c.device = MPU_I2C_INSTANCE;
+        i2cBusSetInstance(&gyro->dev, I2C_DEV_TO_CFG(MPU_I2C_INSTANCE));
         gyro->dev.busType_u.i2c.address = MPU_ADDRESS;
         uint8_t sig = 0;
         bool ack = busReadRegisterBuffer(&gyro->dev, MPU_RA_WHO_AM_I, &sig, 1);

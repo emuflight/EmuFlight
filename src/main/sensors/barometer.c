@@ -30,6 +30,7 @@
 #include "pg/pg_ids.h"
 
 #include "drivers/bus.h"
+#include "drivers/bus_i2c_busdev.h"
 #include "drivers/bus_spi.h"
 #include "drivers/io.h"
 
@@ -151,8 +152,7 @@ bool baroDetect(baroDev_t *dev, baroSensor_e baroHardwareToUse) {
     switch (barometerConfig()->baro_bustype) {
     case BUS_TYPE_I2C:
 #ifdef USE_I2C
-        dev->dev.busType = BUS_TYPE_I2C;
-        dev->dev.busType_u.i2c.device = I2C_CFG_TO_DEV(barometerConfig()->baro_i2c_device);
+        i2cBusSetInstance(&dev->dev, barometerConfig()->baro_i2c_device);
         dev->dev.busType_u.i2c.address = barometerConfig()->baro_i2c_address;
 #endif
         break;
