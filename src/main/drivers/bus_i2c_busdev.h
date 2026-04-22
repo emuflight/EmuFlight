@@ -23,3 +23,9 @@
 bool i2cBusWriteRegister(const extDevice_t *dev, uint8_t reg, uint8_t data);
 bool i2cBusReadRegisterBuffer(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint8_t length);
 uint8_t i2cBusReadRegister(const extDevice_t *dev, uint8_t reg);
+// Associate a device with an I2C bus (BF 4.5-maintenance signature). device
+// is 1-indexed CFG form (1..I2CDEV_COUNT); returns false on out-of-range.
+// Populates dev->bus back-pointer AND inline dev->busType / busType_u.i2c.device
+// so both BF-sourced access paths and EmuFlight's existing inline accessors
+// resolve. Inline address is caller's responsibility.
+bool i2cBusSetInstance(extDevice_t *dev, uint32_t device);
