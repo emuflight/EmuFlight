@@ -291,18 +291,18 @@ bool spiSetBusInstance(extDevice_t *dev, uint32_t device) {
 
 void spiBusSetInstance(extDevice_t *dev, SPI_TypeDef *instance) {
     SPIDevice device = spiDeviceByInstance(instance);
-    if (device != SPIINVALID) {
-        (void)spiSetBusInstance(dev, SPI_DEV_TO_CFG(device));
+    if (device != SPIINVALID && spiSetBusInstance(dev, SPI_DEV_TO_CFG(device))) {
         return;
     }
-    // Instance does not map to a known SPI peripheral on this target
-    // (e.g. target.h references SPI1 but USE_SPI_DEVICE_1 is disabled).
-    // Preserve pre-Stage-L behaviour: set busType and cache the inline
-    // instance pointer; leave dev->bus NULL so Stage I.3+ code that
-    // dereferences dev->bus hits a clear null deref rather than a silent
-    // wrong-peripheral access.
+    // Forwarding failed: either the instance does not map to a known SPI
+    // peripheral (e.g. target.h references SPI1 but USE_SPI_DEVICE_1 is
+    // disabled) or spiSetBusInstance rejected the device id. Preserve
+    // pre-Stage-L behaviour: set busType and cache the inline instance
+    // pointer; clear dev->bus so Stage I.3+ code that dereferences it
+    // hits a clean null deref rather than a silent stale-bus access.
     dev->busType = BUS_TYPE_SPI;
     dev->busType_u.spi.instance = instance;
+    dev->bus = NULL;
 }
 
 // icm42688p and bmi270 porting

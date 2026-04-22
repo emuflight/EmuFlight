@@ -131,8 +131,9 @@ bool compassDetect(magDev_t *dev) {
         break;
 #ifdef USE_SPI
     case BUS_TYPE_SPI:
-        extDev->busType = BUS_TYPE_SPI;
-        spiSetBusInstance(extDev, compassConfig()->mag_spi_device);
+        if (!spiSetBusInstance(extDev, compassConfig()->mag_spi_device)) {
+            return false;
+        }
         extDev->busType_u.spi.csnPin = IOGetByTag(compassConfig()->mag_spi_csn);
 #endif
         break;
