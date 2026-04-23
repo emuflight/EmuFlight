@@ -32,8 +32,10 @@ typedef enum {
     BUS_TYPE_MPU_SLAVE // Slave I2C on SPI master
 } busType_e;
 
-// Shared bus-resource struct. Represents an SPI or I2C peripheral; one
-// instance per physical bus. Does NOT carry per-device addressing (CS pin,
+struct extDevice_s;
+
+// Shared bus-resource struct. Represents an SPI, I2C, or MPU-slave peripheral;
+// one instance per physical bus. Does NOT carry per-device addressing (CS pin,
 // I2C slave address). Matches Betaflight 4.5-maintenance layout minus the
 // DMA/segment fields which are a later phase.
 typedef struct busDevice_s {
@@ -48,6 +50,9 @@ typedef struct busDevice_s {
         struct busI2C_s {
             I2CDevice device;
         } i2c;
+        struct busMpuSlave_s {
+            const struct extDevice_s *master;
+        } mpuSlave;
     } busType_u;
 } busDevice_t;
 

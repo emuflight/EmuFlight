@@ -119,6 +119,7 @@ static uint8_t magInit = 0;
 bool compassDetect(magDev_t *dev) {
     magSensor_e magHardware = MAG_NONE;
     extDevice_t *extDev = &dev->dev;
+    extDev->bus = &dev->bus;
 #ifdef USE_MAG_DATA_READY_SIGNAL
     dev->magIntExtiTag = compassConfig()->interruptTag;
 #endif
@@ -143,6 +144,8 @@ bool compassDetect(magDev_t *dev) {
             extDev->busType = BUS_TYPE_MPU_SLAVE;
             extDev->busType_u.mpuSlave.master = gyroSensorBus();
             extDev->busType_u.mpuSlave.address = compassConfig()->mag_i2c_address;
+            extDev->bus->busType = BUS_TYPE_MPU_SLAVE;
+            extDev->bus->busType_u.mpuSlave.master = gyroSensorBus();
         } else {
             return false;
         }
@@ -207,6 +210,8 @@ bool compassDetect(magDev_t *dev) {
             extDev->busType = BUS_TYPE_MPU_SLAVE;
             extDev->busType_u.mpuSlave.address = compassConfig()->mag_i2c_address;
             extDev->busType_u.mpuSlave.master = gyroSensorBus();
+            extDev->bus->busType = BUS_TYPE_MPU_SLAVE;
+            extDev->bus->busType_u.mpuSlave.master = gyroSensorBus();
         }
         if (ak8963Detect(dev)) {
 #ifdef MAG_AK8963_ALIGN

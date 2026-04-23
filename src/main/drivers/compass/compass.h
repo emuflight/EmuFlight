@@ -29,6 +29,7 @@ typedef struct magDev_s {
     sensorMagReadFuncPtr read;                              // read 3 axis data function
     extiCallbackRec_t exti;
     extDevice_t dev;
+    busDevice_t bus;                                        // For MPU slave bus instance
     sensor_align_e magAlign;
     ioTag_t magIntExtiTag;
     int16_t magGain[3];
