@@ -701,7 +701,7 @@ bool gyroInit(void) {
     gyroSensor1.gyroDev.gyroAlign = GYRO_1_ALIGN;
 #endif
     gyroSensor1.gyroDev.dev.busType = BUS_TYPE_SPI;
-    spiBusSetInstance(&gyroSensor1.gyroDev.dev, GYRO_1_SPI_INSTANCE);
+    spiSetBusInstance(&gyroSensor1.gyroDev.dev, SPI_DEV_TO_CFG(GYRO_1_SPI_BUS));
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_1 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
         ret = gyroInitSensor(&gyroSensor1);
         if (!ret) {
@@ -726,7 +726,7 @@ bool gyroInit(void) {
     gyroSensor2.gyroDev.gyroAlign = GYRO_2_ALIGN;
 #endif
     gyroSensor2.gyroDev.dev.busType = BUS_TYPE_SPI;
-    spiBusSetInstance(&gyroSensor2.gyroDev.dev, GYRO_2_SPI_INSTANCE);
+    spiSetBusInstance(&gyroSensor2.gyroDev.dev, SPI_DEV_TO_CFG(GYRO_2_SPI_BUS));
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_2 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
         ret = gyroInitSensor(&gyroSensor2);
         if (!ret) {

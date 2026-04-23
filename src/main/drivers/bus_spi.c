@@ -289,21 +289,6 @@ bool spiSetBusInstance(extDevice_t *dev, uint32_t device) {
     return true;
 }
 
-void spiBusSetInstance(extDevice_t *dev, SPI_TypeDef *instance) {
-    SPIDevice device = spiDeviceByInstance(instance);
-    if (device != SPIINVALID && spiSetBusInstance(dev, SPI_DEV_TO_CFG(device))) {
-        return;
-    }
-    // Forwarding failed: either the instance does not map to a known SPI
-    // peripheral (e.g. target.h references SPI1 but USE_SPI_DEVICE_1 is
-    // disabled) or spiSetBusInstance rejected the device id. Preserve
-    // pre-Stage-L behaviour: set busType and cache the inline instance
-    // pointer; clear dev->bus so Stage I.3+ code that dereferences it
-    // hits a clean null deref rather than a silent stale-bus access.
-    dev->busType = BUS_TYPE_SPI;
-    dev->busType_u.spi.instance = instance;
-    dev->bus = NULL;
-}
 
 // icm42688p and bmi270 porting
 uint16_t spiCalculateDivider(uint32_t freq)

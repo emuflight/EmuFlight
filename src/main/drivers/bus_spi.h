@@ -131,12 +131,6 @@ uint8_t spiReadReg(const extDevice_t *dev, uint8_t reg);
 // not backed by a real SPI_TypeDef on this target.
 bool spiSetBusInstance(extDevice_t *dev, uint32_t device);
 
-// Legacy SPI_TypeDef*-based entry point. Thin forwarder over
-// spiSetBusInstance(). Still used by 12 Pattern-A call sites in
-// gyro.c / accgyro_mpu.c that pass target.h MACRO_SPI_INSTANCE tokens
-// (raw SPI1/SPI2/...). Scheduled for removal once Stage L.2 migrates
-// target macros to *_SPI_BUS integer ids.
-void spiBusSetInstance(extDevice_t *dev, SPI_TypeDef *instance);
 
 struct spiPinConfig_s;
 void spiPinConfigure(const struct spiPinConfig_s *pConfig);

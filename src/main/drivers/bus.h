@@ -57,7 +57,7 @@ typedef struct busDevice_s {
 } busDevice_t;
 
 // Per-device struct. Carries a back-pointer to the shared busDevice_t
-// (populated by spiBusSetInstance for SPI devices; NULL for I2C and
+// (populated by spiSetBusInstance for SPI devices; NULL for I2C and
 // MPU-slave devices until their bus-resource split lands). The inline
 // instance/device fields are still present and authoritative in this
 // sub-commit; Stage I.4 migrates access sites to prefer dev->bus.

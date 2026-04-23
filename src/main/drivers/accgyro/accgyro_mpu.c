@@ -279,7 +279,7 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
     // note, when USE_DUAL_GYRO is enabled the gyro->dev must already be initialised.
 #ifdef USE_GYRO_SPI_MPU6000
 #ifndef USE_DUAL_GYRO
-    spiBusSetInstance(&gyro->dev, MPU6000_SPI_INSTANCE);
+    spiSetBusInstance(&gyro->dev, SPI_DEV_TO_CFG(MPU6000_SPI_BUS));
 #endif
 #ifdef MPU6000_CS_PIN
     gyro->dev.busType_u.spi.csnPin = gyro->dev.busType_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(MPU6000_CS_PIN)) : gyro->dev.busType_u.spi.csnPin;
@@ -292,7 +292,7 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
 #endif
 #ifdef USE_GYRO_SPI_MPU6500
 #ifndef USE_DUAL_GYRO
-    spiBusSetInstance(&gyro->dev, MPU6500_SPI_INSTANCE);
+    spiSetBusInstance(&gyro->dev, SPI_DEV_TO_CFG(MPU6500_SPI_BUS));
 #endif
 #ifdef MPU6500_CS_PIN
     gyro->dev.busType_u.spi.csnPin = gyro->dev.busType_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(MPU6500_CS_PIN)) : gyro->dev.busType_u.spi.csnPin;
@@ -305,8 +305,8 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
     }
 #endif
 #ifdef USE_GYRO_IMUF9001
-#ifdef IMUF9001_SPI_INSTANCE
-    spiBusSetInstance(&gyro->dev, IMUF9001_SPI_INSTANCE);
+#ifdef IMUF9001_SPI_BUS
+    spiSetBusInstance(&gyro->dev, SPI_DEV_TO_CFG(IMUF9001_SPI_BUS));
 #else
 #error IMUF9001 is SPI only
 #endif
@@ -329,7 +329,7 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
 #endif
 #ifdef  USE_GYRO_SPI_MPU9250
 #ifndef USE_DUAL_GYRO
-    spiBusSetInstance(&gyro->dev, MPU9250_SPI_INSTANCE);
+    spiSetBusInstance(&gyro->dev, SPI_DEV_TO_CFG(MPU9250_SPI_BUS));
 #endif
 #ifdef MPU9250_CS_PIN
     gyro->dev.busType_u.spi.csnPin = gyro->dev.busType_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(MPU9250_CS_PIN)) : gyro->dev.busType_u.spi.csnPin;
@@ -342,8 +342,8 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
     }
 #endif
 #ifdef USE_GYRO_SPI_ICM20649
-#ifdef ICM20649_SPI_INSTANCE
-    spiBusSetInstance(&gyro->dev, ICM20649_SPI_INSTANCE);
+#ifdef ICM20649_SPI_BUS
+    spiSetBusInstance(&gyro->dev, SPI_DEV_TO_CFG(ICM20649_SPI_BUS));
 #endif
 #ifdef ICM20649_CS_PIN
     gyro->dev.busType_u.spi.csnPin = gyro->dev.busType_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(ICM20649_CS_PIN)) : gyro->dev.busType_u.spi.csnPin;
@@ -356,7 +356,7 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
 #endif
 #ifdef USE_GYRO_SPI_ICM20689
 #ifndef USE_DUAL_GYRO
-    spiBusSetInstance(&gyro->dev, ICM20689_SPI_INSTANCE);
+    spiSetBusInstance(&gyro->dev, SPI_DEV_TO_CFG(ICM20689_SPI_BUS));
 #endif
 #ifdef ICM20689_CS_PIN
     gyro->dev.busType_u.spi.csnPin = gyro->dev.busType_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(ICM20689_CS_PIN)) : gyro->dev.busType_u.spi.csnPin;
@@ -369,8 +369,8 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
     }
 #endif
 #ifdef USE_GYRO_SPI_ICM42605
-#ifdef ICM42605_SPI_INSTANCE
-    spiBusSetInstance(&gyro->dev, ICM42605_SPI_INSTANCE);
+#ifdef ICM42605_SPI_BUS
+    spiSetBusInstance(&gyro->dev, SPI_DEV_TO_CFG(ICM42605_SPI_BUS));
 #endif
 #ifdef ICM42605_CS_PIN
     gyro->dev.busType_u.spi.csnPin = gyro->dev.busType_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(ICM42605_CS_PIN)) : gyro->dev.busType_u.spi.csnPin;
@@ -382,8 +382,8 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
     }
 #endif
 #ifdef USE_GYRO_SPI_ICM42688P
-#ifdef ICM42688P_SPI_INSTANCE
-    spiBusSetInstance(&gyro->dev, ICM42688P_SPI_INSTANCE);
+#ifdef ICM42688P_SPI_BUS
+    spiSetBusInstance(&gyro->dev, SPI_DEV_TO_CFG(ICM42688P_SPI_BUS));
 #endif
 #ifdef ICM42688P_CS_PIN
     gyro->dev.busType_u.spi.csnPin = gyro->dev.busType_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(ICM42688P_CS_PIN)) : gyro->dev.busType_u.spi.csnPin;
@@ -396,7 +396,7 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
 #endif
 #ifdef USE_ACCGYRO_BMI160
 #ifndef USE_DUAL_GYRO
-    spiBusSetInstance(&gyro->dev, BMI160_SPI_INSTANCE);
+    spiSetBusInstance(&gyro->dev, SPI_DEV_TO_CFG(BMI160_SPI_BUS));
 #endif
 #ifdef BMI160_CS_PIN
     gyro->dev.busType_u.spi.csnPin = gyro->dev.busType_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(BMI160_CS_PIN)) : gyro->dev.busType_u.spi.csnPin;
@@ -409,7 +409,7 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
 #endif
 #ifdef USE_ACCGYRO_BMI270
 #ifndef USE_DUAL_GYRO
-    spiBusSetInstance(&gyro->dev, BMI270_SPI_INSTANCE);
+    spiSetBusInstance(&gyro->dev, SPI_DEV_TO_CFG(BMI270_SPI_BUS));
 #endif
 #ifdef BMI270_CS_PIN
     gyro->dev.busType_u.spi.csnPin = gyro->dev.busType_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(BMI270_CS_PIN)) : gyro->dev.busType_u.spi.csnPin;
