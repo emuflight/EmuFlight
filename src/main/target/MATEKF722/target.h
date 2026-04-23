@@ -42,10 +42,10 @@
 #define SPI1_MOSI_PIN           PA7
 
 #define MPU6500_CS_PIN          PC2
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 
 #define ICM20689_CS_PIN         PC2
-#define ICM20689_SPI_INSTANCE   SPI1
+#define ICM20689_SPI_BUS   SPIDEV_1
 
 #define USE_EXTI
 #define MPU_INT_EXTI            PC3

@@ -53,7 +53,7 @@
 
 #define MPU_INT_EXTI                                     PC9                    //MPU_INT_EXTI
 #define MPU6000_CS_PIN                                   PB12                    //GYRO_1_CS_PIN
-#define MPU6000_SPI_INSTANCE                             SPI2                   //GYRO_1_SPI_INSTANCE
+#define MPU6000_SPI_BUS                             SPIDEV_2                   //GYRO_1_SPI_BUS
 #define GYRO_MPU6000_ALIGN                               CW0_DEG_FLIP
 #define ACC_MPU6000_ALIGN                                CW0_DEG_FLIP
 

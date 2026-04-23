@@ -51,7 +51,7 @@
 #define MPU_INT_EXTI PC13
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 #define MPU6000_CS_PIN          PA4
 
 #define USE_GYRO

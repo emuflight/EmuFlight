@@ -40,7 +40,7 @@
 #define INVERTER_PIN_UART6      PB12
 
 #define MPU6000_CS_PIN          PB2
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 
 // MPU6000 interrupts
 #define USE_EXTI

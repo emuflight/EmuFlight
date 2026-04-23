@@ -78,17 +78,17 @@
 #define ACC_MPU6000_ALIGN          CW270_DEG
 #define GYRO_MPU6000_ALIGN         CW270_DEG
 #define MPU6000_CS_PIN             PA4
-#define MPU6000_SPI_INSTANCE       SPI1
+#define MPU6000_SPI_BUS       SPIDEV_1
 
 #define ACC_MPU6500_ALIGN          CW270_DEG
 #define GYRO_MPU6500_ALIGN         CW270_DEG
 #define MPU6500_CS_PIN             PA4
-#define MPU6500_SPI_INSTANCE       SPI1
+#define MPU6500_SPI_BUS       SPIDEV_1
 
 #define ACC_ICM42688P_ALIGN        CW270_DEG
 #define GYRO_ICM42688P_ALIGN       CW270_DEG
 #define ICM42688P_CS_PIN           PA4
-#define ICM42688P_SPI_INSTANCE     SPI1
+#define ICM42688P_SPI_BUS     SPIDEV_1
 
 #define MAG_I2C_INSTANCE (I2CDEV_1)
 #define USE_I2C

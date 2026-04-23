@@ -63,7 +63,7 @@
 //#define MPU6000_SPI_DIVISOR              16 //?? Req for V3?
 
 #define MPU6000_CS_PIN                   PA4
-#define MPU6000_SPI_INSTANCE             SPI3
+#define MPU6000_SPI_BUS             SPIDEV_3
 
 #define GYRO_MPU6000_ALIGN               CW180_DEG
 #define ACC_MPU6000_ALIGN                CW180_DEG

@@ -38,7 +38,7 @@
 #define INVERTER_PIN_UART2      PB2 // PB2 used as inverter select GPIO
 
 #define MPU6000_CS_PIN          PC4
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000

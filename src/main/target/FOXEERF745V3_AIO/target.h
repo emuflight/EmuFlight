@@ -73,13 +73,13 @@
 #define ACC_1_ALIGN          CW90_DEG
 #define GYRO_1_CS_PIN        PA15
 #define GYRO_1_EXTI_PIN      PD0
-#define GYRO_1_SPI_INSTANCE SPI3
+#define GYRO_1_SPI_BUS SPIDEV_3
 #define MPU_INT_EXTI         PD0
 
 #define ACC_ICM42688P_ALIGN      CW90_DEG
 #define GYRO_ICM42688P_ALIGN     CW90_DEG
 #define ICM42688P_CS_PIN         PA15
-#define ICM42688P_SPI_INSTANCE   SPI3
+#define ICM42688P_SPI_BUS   SPIDEV_3
 
 #define USE_UART1
 #define UART1_TX_PIN         PA9

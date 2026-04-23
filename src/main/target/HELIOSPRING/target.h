@@ -39,7 +39,7 @@
 #define USE_ACC_IMUF9001
 #define IMUF9001_CS_PIN         PB1
 #define IMUF9001_RST_PIN        PA4
-#define IMUF9001_SPI_INSTANCE   SPI1
+#define IMUF9001_SPI_BUS   SPIDEV_1
 #define USE_EXTI
 #define MPU_INT_EXTI            PB0
 #define USE_MPU_DATA_READY_SIGNAL

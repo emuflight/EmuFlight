@@ -49,7 +49,7 @@
 #define SPI1_MOSI_PIN           PA7
 
 #define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 
 #define USE_EXTI
 #define MPU_INT_EXTI            PC4

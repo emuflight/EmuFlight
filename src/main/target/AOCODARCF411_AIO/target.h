@@ -72,12 +72,12 @@
 #define ACC_MPU6500_ALIGN        CW90_DEG
 #define GYRO_MPU6500_ALIGN       CW90_DEG
 #define MPU6500_CS_PIN           PB12
-#define MPU6500_SPI_INSTANCE     SPI2
+#define MPU6500_SPI_BUS     SPIDEV_2
 
 #define ACC_BMI270_ALIGN         CW90_DEG
 #define GYRO_BMI270_ALIGN        CW90_DEG
 #define BMI270_CS_PIN            PB12
-#define BMI270_SPI_INSTANCE      SPI2
+#define BMI270_SPI_BUS      SPIDEV_2
 
 #define USE_UART1
 #define UART1_TX_PIN         PA9

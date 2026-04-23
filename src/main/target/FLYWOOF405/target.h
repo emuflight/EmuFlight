@@ -78,13 +78,13 @@
 #define GYRO_1_ALIGN         CW270_DEG
 #define GYRO_1_CS_PIN        PC4
 #define GYRO_1_EXTI_PIN      PC5
-#define GYRO_1_SPI_INSTANCE  SPI1
+#define GYRO_1_SPI_BUS  SPIDEV_1
 
 #define USE_DUAL_GYRO
 
 #define ACC_2_ALIGN          CW0_DEG
 #define GYRO_2_ALIGN         CW0_DEG
-#define GYRO_2_SPI_INSTANCE  SPI1
+#define GYRO_2_SPI_BUS  SPIDEV_1
 
 //Baro & MAG-------------------------------
 #define USE_I2C

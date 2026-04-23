@@ -49,7 +49,7 @@
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
-#define MPU6000_SPI_INSTANCE     SPI1
+#define MPU6000_SPI_BUS     SPIDEV_1
 #define MPU6000_CS_PIN           PA15
 
 #define USE_GYRO
@@ -66,7 +66,7 @@
 #define ACC_ICM20689_ALIGN       CW180_DEG
 #define GYRO_ICM20689_ALIGN      CW180_DEG
 #define ICM20689_CS_PIN          PA15
-#define ICM20689_SPI_INSTANCE    SPI1
+#define ICM20689_SPI_BUS    SPIDEV_1
 
 #define USE_SPI_GYRO
 #define USE_GYRO_EXTI
@@ -74,7 +74,7 @@
 #define ACC_BMI270_ALIGN         CW180_DEG
 #define GYRO_BMI270_ALIGN        CW180_DEG
 #define BMI270_CS_PIN            PA15
-#define BMI270_SPI_INSTANCE      SPI1
+#define BMI270_SPI_BUS      SPIDEV_1
 
 #define USE_VCP
 #define USE_UART1

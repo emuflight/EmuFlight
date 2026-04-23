@@ -45,12 +45,12 @@
 #define USE_GYRO_SPI_MPU6000
 #define USE_ACC_SPI_MPU6000
 #define MPU6000_CS_PIN                  SPI1_NSS_PIN
-#define MPU6000_SPI_INSTANCE            SPI1
+#define MPU6000_SPI_BUS            SPIDEV_1
 #define GYRO_MPU6000_ALIGN              CW0_DEG_FLIP
 #define ACC_MPU6000_ALIGN               GYRO_MPU6000_ALIGN
 
 #define GYRO_1_CS_PIN                   MPU6000_CS_PIN
-#define GYRO_1_SPI_INSTANCE             MPU6000_SPI_INSTANCE
+#define GYRO_1_SPI_BUS             MPU6000_SPI_BUS
 #define GYRO_1_ALIGN                    CW0_DEG_FLIP
 
 #define USE_SPI

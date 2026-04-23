@@ -75,13 +75,13 @@
 #define GYRO_1_ALIGN         CW270_DEG
 #define GYRO_1_CS_PIN        PE4
 #define GYRO_1_EXTI_PIN      PE1
-#define GYRO_1_SPI_INSTANCE             SPI4
+#define GYRO_1_SPI_BUS             SPIDEV_4
 
 #define USE_DUAL_GYRO
 
 #define ACC_2_ALIGN          CW0_DEG
 #define GYRO_2_ALIGN         CW0_DEG
-#define GYRO_2_SPI_INSTANCE             SPI4
+#define GYRO_2_SPI_BUS             SPIDEV_4
 
 #define USE_UART1
 #define UART1_TX_PIN         PA9

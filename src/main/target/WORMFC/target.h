@@ -73,7 +73,7 @@
 #else
 #define MPU6500_CS_PIN          PA4
 #endif
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 
 // ACC section -- start
 #define USE_ACC

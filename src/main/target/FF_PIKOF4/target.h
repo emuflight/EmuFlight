@@ -57,16 +57,16 @@
 
 #if defined(FF_PIKOF4OSD)
 #define MPU6000_CS_PIN          PA15
-#define MPU6000_SPI_INSTANCE    SPI3
+#define MPU6000_SPI_BUS    SPIDEV_3
 
 #define MPU6500_CS_PIN          PA15
-#define MPU6500_SPI_INSTANCE    SPI3
+#define MPU6500_SPI_BUS    SPIDEV_3
 #else
 #define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 
 #define MPU6500_CS_PIN          PA4
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 #endif
 
 #define USE_GYRO

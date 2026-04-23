@@ -53,10 +53,10 @@
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
-#define GYRO_1_SPI_INSTANCE     SPI1
+#define GYRO_1_SPI_BUS     SPIDEV_1
 #define GYRO_1_CS_PIN           PA15
 
-#define GYRO_2_SPI_INSTANCE     SPI1
+#define GYRO_2_SPI_BUS     SPIDEV_1
 #define GYRO_2_CS_PIN           PC3
 
 #define USE_GYRO

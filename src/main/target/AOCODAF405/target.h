@@ -71,7 +71,7 @@
 #define ACC_MPU6500_ALIGN        CW0_DEG_FLIP
 #define GYRO_MPU6500_ALIGN       CW0_DEG_FLIP
 #define MPU6500_CS_PIN           PB11
-#define MPU6500_SPI_INSTANCE     SPI1
+#define MPU6500_SPI_BUS     SPIDEV_1
 
 #define USE_UART1
 #define UART1_TX_PIN         PA9

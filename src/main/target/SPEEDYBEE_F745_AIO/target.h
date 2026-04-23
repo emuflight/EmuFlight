@@ -73,13 +73,13 @@
 #define ACC_1_ALIGN          CW90_DEG
 #define GYRO_1_CS_PIN        PE4
 #define GYRO_1_EXTI_PIN      PE1
-#define GYRO_1_SPI_INSTANCE  SPI4
+#define GYRO_1_SPI_BUS  SPIDEV_4
 #define MPU_INT_EXTI         PE1
 
 #define ACC_MPU6000_ALIGN         CW90_DEG
 #define GYRO_MPU6000_ALIGN        CW90_DEG
 #define MPU6000_CS_PIN            PE4
-#define MPU6000_SPI_INSTANCE      SPI4
+#define MPU6000_SPI_BUS      SPIDEV_4
 
 #define USE_UART1
 #define UART1_TX_PIN         PA9

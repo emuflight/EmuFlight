@@ -70,13 +70,13 @@
 #define GYRO_MPU6000_ALIGN   CW0_DEG
 #define MPU_INT_EXTI         PC3
 #define MPU6000_CS_PIN       PA4
-#define MPU6000_SPI_INSTANCE SPI1
+#define MPU6000_SPI_BUS SPIDEV_1
 
 #define ACC_1_ALIGN          CW0_DEG
 #define GYRO_1_ALIGN         CW0_DEG
 #define GYRO_1_CS_PIN        PA4
 #define GYRO_1_EXTI_PIN      PC3
-#define GYRO_1_SPI_INSTANCE SPI1
+#define GYRO_1_SPI_BUS SPIDEV_1
 
 //seemingly invalid
 //#define USE_DUAL_GYRO

@@ -65,14 +65,14 @@
 
 #if defined(OMNIBUSF4V6)
 #define GYRO_1_CS_PIN           PA4   // Onboard IMU
-#define GYRO_1_SPI_INSTANCE     SPI1
+#define GYRO_1_SPI_BUS     SPIDEV_1
 #define GYRO_2_CS_PIN           PC14  // External IMU
-#define GYRO_2_SPI_INSTANCE     SPI1
+#define GYRO_2_SPI_BUS     SPIDEV_1
 #else
 #define GYRO_1_CS_PIN           PD2
-#define GYRO_1_SPI_INSTANCE     SPI3
+#define GYRO_1_SPI_BUS     SPIDEV_3
 #define GYRO_2_CS_PIN           PA4
-#define GYRO_2_SPI_INSTANCE     SPI1
+#define GYRO_2_SPI_BUS     SPIDEV_1
 #endif
 
 #define GYRO_1_ALIGN            CW180_DEG

@@ -50,7 +50,7 @@
 #define ACC_ICM20689_ALIGN         CW270_DEG
 #define GYRO_ICM20689_ALIGN        CW270_DEG
 #define ICM20689_CS_PIN            PE4
-#define ICM20689_SPI_INSTANCE      SPI4
+#define ICM20689_SPI_BUS      SPIDEV_4
 
 // MPU6000
 #define USE_ACC_SPI_MPU6000
@@ -60,9 +60,9 @@
 #define MPU_INT_EXTI               PE1
 
 #define MPU6000_CS_PIN          SPI4_NSS_PIN
-#define MPU6000_SPI_INSTANCE    SPI4
+#define MPU6000_SPI_BUS    SPIDEV_4
 #define GYRO_1_CS_PIN            MPU6000_CS_PIN
-#define GYRO_1_SPI_INSTANCE      MPU6000_SPI_INSTANCE
+#define GYRO_1_SPI_BUS      MPU6000_SPI_BUS
 
 #define ACC_1_ALIGN              ACC_MPU6000_ALIGN
 #define GYRO_1_ALIGN             GYRO_MPU6000_ALIGN

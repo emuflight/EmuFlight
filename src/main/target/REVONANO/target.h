@@ -33,7 +33,7 @@
 #define BEEPER_PIN              PC13
 
 #define MPU6500_CS_PIN          PB12
-#define MPU6500_SPI_INSTANCE    SPI2
+#define MPU6500_SPI_BUS    SPIDEV_2
 
 #define USE_ACC
 #define USE_ACC_MPU6500
