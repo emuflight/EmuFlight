@@ -113,7 +113,7 @@ static bool ak8963SlaveReadRegisterBuffer(const extDevice_t *slavedev, uint8_t r
     ak8963SpiWriteRegisterDelay(dev, MPU_RA_I2C_SLV0_CTRL, (len & 0x0F) | I2C_SLV0_EN);     // read number of bytes
     delay(4);
     __disable_irq();
-    bool ack = spiReadRegBuf(dev, MPU_RA_EXT_SENS_DATA_00, buf, len);            // read I2C
+    bool ack = spiReadRegMskBufRB(dev, MPU_RA_EXT_SENS_DATA_00, buf, len);
     __enable_irq();
     return ack;
 }
@@ -168,7 +168,7 @@ static bool ak8963SlaveCompleteRead(const extDevice_t *slavedev, uint8_t *buf) {
         delayMicroseconds(timeRemaining);
     }
     queuedRead.waiting = false;
-    spiReadRegBuf(dev, MPU_RA_EXT_SENS_DATA_00, buf, queuedRead.len);            // read I2C buffer
+    spiReadRegBuf(dev, MPU_RA_EXT_SENS_DATA_00 | 0x80, buf, queuedRead.len);     // read I2C buffer
     return true;
 }
 

@@ -150,7 +150,7 @@ static uint8_t bmi270RegisterRead(const extDevice_t *dev, bmi270Register_e regis
 {
     uint8_t data[2] = { 0, 0 };
 
-    if (spiReadRegBuf(dev, registerId, data, 2)) {
+    if (spiReadRegMskBufRB(dev, registerId, data, 2)) {
         return data[1];
     } else {
         return 0;

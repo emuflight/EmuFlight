@@ -102,10 +102,10 @@ uint8_t bmi160Detect(const extDevice_t *dev) {
 #endif
     spiSetDivisor(dev->busType_u.spi.instance, BMI160_SPI_DIVISOR);
     /* Read this address to activate SPI (see p. 84) */
-    spiReadReg(dev, 0x7F);
+    spiReadRegMsk(dev, 0x7F);
     delay(100); // Give SPI some time to start up
     /* Check the chip ID */
-    if (spiReadReg(dev, BMI160_REG_CHIPID) != 0xd1) {
+    if (spiReadRegMsk(dev, BMI160_REG_CHIPID) != 0xd1) {
         return MPU_NONE;
     }
     BMI160Detected = true;
@@ -144,7 +144,7 @@ static int32_t BMI160_Config(const extDevice_t *dev) {
     spiWriteReg(dev, BMI160_REG_CMD, BMI160_PMU_CMD_PMU_ACC_NORMAL);
     delay(5); // can take up to 3.8ms
     // Verify that normal power mode was entered
-    uint8_t pmu_status = spiReadReg(dev, BMI160_REG_PMU_STAT);
+    uint8_t pmu_status = spiReadRegMsk(dev, BMI160_REG_PMU_STAT);
     if ((pmu_status & 0x3C) != 0x14) {
         return -3;
     }
@@ -160,7 +160,7 @@ static int32_t BMI160_Config(const extDevice_t *dev) {
     spiWriteReg(dev, BMI160_REG_GYR_RANGE, BMI160_RANGE_2000DPS);
     delay(1);
     // Enable offset compensation
-    uint8_t val = spiReadReg(dev, BMI160_REG_OFFSET_0);
+    uint8_t val = spiReadRegMsk(dev, BMI160_REG_OFFSET_0);
     spiWriteReg(dev, BMI160_REG_OFFSET_0, val | 0xC0);
     // Enable data ready interrupt
     spiWriteReg(dev, BMI160_REG_INT_EN1, BMI160_INT_EN1_DRDY);
@@ -182,7 +182,7 @@ static int32_t BMI160_do_foc(const extDevice_t *dev) {
     spiWriteReg(dev, BMI160_REG_CMD, BMI160_CMD_START_FOC);
     // Wait for FOC to complete
     for (int i = 0; i < 50; i++) {
-        val = spiReadReg(dev, BMI160_REG_STATUS);
+        val = spiReadRegMsk(dev, BMI160_REG_STATUS);
         if (val & BMI160_REG_STATUS_FOC_RDY) {
             break;
         }
@@ -192,12 +192,12 @@ static int32_t BMI160_do_foc(const extDevice_t *dev) {
         return -3;
     }
     // Program NVM
-    val = spiReadReg(dev, BMI160_REG_CONF);
+    val = spiReadRegMsk(dev, BMI160_REG_CONF);
     spiWriteReg(dev, BMI160_REG_CONF, val | BMI160_REG_CONF_NVM_PROG_EN);
     spiWriteReg(dev, BMI160_REG_CMD, BMI160_CMD_PROG_NVM);
     // Wait for NVM programming to complete
     for (int i = 0; i < 50; i++) {
-        val = spiReadReg(dev, BMI160_REG_STATUS);
+        val = spiReadRegMsk(dev, BMI160_REG_STATUS);
         if (val & BMI160_REG_STATUS_NVM_RDY) {
             break;
         }

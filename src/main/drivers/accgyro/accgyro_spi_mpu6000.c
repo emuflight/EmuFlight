@@ -128,7 +128,7 @@ uint8_t mpu6000SpiDetect(const extDevice_t *dev) {
     uint8_t attemptsRemaining = 5;
     do {
         delay(150);
-        const uint8_t whoAmI = spiReadReg(dev, MPU_RA_WHO_AM_I);
+        const uint8_t whoAmI = spiReadRegMsk(dev, MPU_RA_WHO_AM_I);
         if (whoAmI == MPU6000_WHO_AM_I_CONST) {
             break;
         }
@@ -136,7 +136,7 @@ uint8_t mpu6000SpiDetect(const extDevice_t *dev) {
             return MPU_NONE;
         }
     } while (attemptsRemaining--);
-    const uint8_t productID = spiReadReg(dev, MPU_RA_PRODUCT_ID);
+    const uint8_t productID = spiReadRegMsk(dev, MPU_RA_PRODUCT_ID);
     /* look for a product ID we recognise */
     // verify product revision
     switch (productID) {

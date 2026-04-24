@@ -50,7 +50,7 @@ static void mpu6500SpiInit(const extDevice_t *dev) {
 
 uint8_t mpu6500SpiDetect(const extDevice_t *dev) {
     mpu6500SpiInit(dev);
-    const uint8_t whoAmI = spiReadReg(dev, MPU_RA_WHO_AM_I);
+    const uint8_t whoAmI = spiReadRegMsk(dev, MPU_RA_WHO_AM_I);
     uint8_t mpuDetected = MPU_NONE;
     switch (whoAmI) {
     case MPU6500_WHO_AM_I_CONST:

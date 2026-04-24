@@ -261,7 +261,7 @@ FAST_CODE bool mpuGyroRead(gyroDev_t *gyro) {
 FAST_CODE bool mpuGyroReadSPI(gyroDev_t *gyro) {
     static const uint8_t dataToSend[7] = {MPU_RA_GYRO_XOUT_H | 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
     uint8_t data[7];
-    const bool ack = spiReadWriteBuf(&gyro->dev, dataToSend, data, 7);
+    const bool ack = spiReadWriteBufRB(&gyro->dev, (uint8_t *)dataToSend, data, 7);
     if (!ack) {
         return false;
     }

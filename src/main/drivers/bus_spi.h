@@ -114,28 +114,73 @@ SPI_TypeDef *spiInstanceByDevice(SPIDevice device);
 
 // Bus-abstraction accessor. Returns a pointer to the shared busDevice_t that
 // represents the given SPI peripheral (populated by spiInit()). Returns NULL
-// for invalid devices. Used by Stage I.3+ to wire extDevice_t.bus.
+// for invalid devices.
 busDevice_t *spiBusByDevice(SPIDevice device);
 
-bool spiReadWriteBuf(const extDevice_t *dev, const uint8_t *txData, uint8_t *rxData, int length);
-
-bool spiWriteReg(const extDevice_t *dev, uint8_t reg, uint8_t data);
-bool spiReadRegBuf(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint8_t length);
-uint8_t spiReadReg(const extDevice_t *dev, uint8_t reg);
-
-// Mark an extDevice_t as belonging to an SPI bus, using the 1-based CLI
-// device id (1 == SPI1, 2 == SPI2, ...). Matches Betaflight 4.5-maintenance
-// spiSetBusInstance signature so callers that already carry the config id
-// can stop round-tripping through spiInstanceByDevice. Returns false if
-// device is 0 (disabled) or out of range, or if the peripheral slot is
-// not backed by a real SPI_TypeDef on this target.
+// Mark an extDevice_t as belonging to an SPI bus, using the 1-based CLI device id.
+// Returns false if device is 0 (disabled), out of range, or the peripheral is absent.
 bool spiSetBusInstance(extDevice_t *dev, uint32_t device);
 
+// Called after all devices are initialised to enable SPI DMA where channels are available.
+// Stage M.1: stub — DMA channel allocation requires dma_reqmap (Stage M.3).
+void spiInitBusDMA(void);
+
+// Determine the divisor / clock for a given frequency
+uint16_t spiCalculateDivider(uint32_t freq);
+uint32_t spiCalculateClock(uint16_t spiClkDivisor);
+
+// Per-device clock and phase settings.
+// spiSetClkDivisor also immediately applies the divisor to the SPI peripheral
+// (synchronous path; Stage M.3 will defer to transfer-start via DMA init struct).
+void spiSetClkDivisor(const extDevice_t *dev, uint16_t divider);
+void spiSetClkPhasePolarity(const extDevice_t *dev, bool leadingEdge);
+
+// Enable/disable DMA on a specific device. Enabled by default; a no-op in Stage M.1
+// (DMA transfers are not yet active; bus->useDMA stays false until spiInitBusDMA).
+void spiDmaEnable(const extDevice_t *dev, bool enable);
+
+// Segment-based async SPI API (matches BF 4.5-maintenance).
+// Stage M.1: spiSequence executes synchronously; spiIsBusy always returns false
+// after spiSequence returns; spiWait is a no-op.
+void spiSequence(const extDevice_t *dev, busSegment_t *segments);
+void spiWait(const extDevice_t *dev);
+void spiRelease(const extDevice_t *dev);
+bool spiIsBusy(const extDevice_t *dev);
+void spiLinkSegments(const extDevice_t *dev, busSegment_t *firstSegment, busSegment_t *secondSegment);
+
+/*
+ * Routine naming convention:
+ *  spi[Read][Write][Reg][Msk][Buf][RB]
+ *
+ *  Read:      Perform a read, returning the value read unless 'Buf'
+ *  Write:     Perform a write
+ *  ReadWrite: Perform both, returning the value read unless 'Buf'
+ *  Reg:       Register number 'reg' written first
+ *  Msk:       Register OR'd with 0x80 (device signals read via bit 7)
+ *  Buf:       Pass data of given length by reference
+ *  RB:        Return false immediately if bus busy, else complete and return true
+ */
+uint8_t spiReadReg(const extDevice_t *dev, uint8_t reg);
+uint8_t spiReadRegMsk(const extDevice_t *dev, uint8_t reg);
+void spiReadRegBuf(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint8_t length);
+bool spiReadRegBufRB(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint8_t length);
+bool spiReadRegMskBufRB(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint8_t length);
+
+void spiWrite(const extDevice_t *dev, uint8_t data);
+void spiWriteReg(const extDevice_t *dev, uint8_t reg, uint8_t data);
+bool spiWriteRegRB(const extDevice_t *dev, uint8_t reg, uint8_t data);
+void spiWriteRegBuf(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint32_t length);
+
+uint8_t spiReadWrite(const extDevice_t *dev, uint8_t data);
+uint8_t spiReadWriteReg(const extDevice_t *dev, uint8_t reg, uint8_t data);
+void spiReadWriteBuf(const extDevice_t *dev, uint8_t *txData, uint8_t *rxData, int len);
+bool spiReadWriteBufRB(const extDevice_t *dev, uint8_t *txData, uint8_t *rxData, int length);
+
+bool spiUseDMA(const extDevice_t *dev);
+bool spiUseSDO_DMA(const extDevice_t *dev);
+void spiBusDeviceRegister(const extDevice_t *dev);
+uint8_t spiGetRegisteredDeviceCount(void);
+uint8_t spiGetExtDeviceCount(const extDevice_t *dev);
 
 struct spiPinConfig_s;
 void spiPinConfigure(const struct spiPinConfig_s *pConfig);
-
-// Determine the divisor to use for a given bus frequency
-uint16_t spiCalculateDivider(uint32_t freq);
-
-uint8_t spiReadRegMsk(const extDevice_t *dev, uint8_t reg);

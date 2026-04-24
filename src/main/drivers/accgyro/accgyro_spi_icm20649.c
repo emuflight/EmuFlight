@@ -63,7 +63,7 @@ uint8_t icm20649SpiDetect(const extDevice_t *dev) {
     uint8_t attemptsRemaining = 20;
     do {
         delay(150);
-        const uint8_t whoAmI = spiReadReg(dev, ICM20649_RA_WHO_AM_I);
+        const uint8_t whoAmI = spiReadRegMsk(dev, ICM20649_RA_WHO_AM_I);
         if (whoAmI == ICM20649_WHO_AM_I_CONST) {
             icmDetected = ICM_20649_SPI;
         } else {
@@ -151,7 +151,7 @@ bool icm20649SpiGyroDetect(gyroDev_t *gyro) {
 bool icm20649GyroReadSPI(gyroDev_t *gyro) {
     static const uint8_t dataToSend[7] = {ICM20649_RA_GYRO_XOUT_H | 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
     uint8_t data[7];
-    const bool ack = spiReadWriteBuf(&gyro->dev, dataToSend, data, 7);
+    const bool ack = spiReadWriteBufRB(&gyro->dev, (uint8_t *)dataToSend, data, 7);
     if (!ack) {
         return false;
     }
@@ -163,7 +163,7 @@ bool icm20649GyroReadSPI(gyroDev_t *gyro) {
 
 bool icm20649AccRead(accDev_t *acc) {
     uint8_t data[6];
-    const bool ack = spiReadRegBuf(&acc->dev, ICM20649_RA_ACCEL_XOUT_H, data, 6);
+    const bool ack = spiReadRegMskBufRB(&acc->dev, ICM20649_RA_ACCEL_XOUT_H, data, 6);
     if (!ack) {
         return false;
     }

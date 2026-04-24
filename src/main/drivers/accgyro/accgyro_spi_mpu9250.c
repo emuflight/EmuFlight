@@ -148,7 +148,7 @@ uint8_t mpu9250SpiDetect(const extDevice_t *dev) {
     uint8_t attemptsRemaining = 20;
     do {
         delay(150);
-        const uint8_t in = spiReadReg(dev, MPU_RA_WHO_AM_I);
+        const uint8_t in = spiReadRegMsk(dev, MPU_RA_WHO_AM_I);
         if (in == MPU9250_WHO_AM_I_CONST || in == MPU9255_WHO_AM_I_CONST) {
             break;
         }

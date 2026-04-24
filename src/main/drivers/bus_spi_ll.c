@@ -195,6 +195,15 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
     return true;
 }
 
+// Platform-internal DMA functions — stubs for Stage M.1.
+// Stage M.3 will provide full implementations once dma_reqmap is ported.
+void spiSequenceStart(const extDevice_t *dev) { UNUSED(dev); }
+void spiInternalInitStream(const extDevice_t *dev, bool preInit) { UNUSED(dev); UNUSED(preInit); }
+void spiInternalStartDMA(const extDevice_t *dev) { UNUSED(dev); }
+void spiInternalStopDMA(const extDevice_t *dev) { UNUSED(dev); }
+void spiInternalResetStream(dmaChannelDescriptor_t *descriptor) { UNUSED(descriptor); }
+void spiInternalResetDescriptors(busDevice_t *bus) { UNUSED(bus); }
+
 void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {
 #if !(defined(STM32F1) || defined(STM32F3))
     // SPI2 and SPI3 are on APB1/AHB1 which PCLK is half that of APB2/AHB2.

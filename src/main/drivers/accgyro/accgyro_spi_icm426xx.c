@@ -175,7 +175,7 @@ uint8_t icm426xxSpiDetect(const extDevice_t *dev) {
     uint8_t attemptsRemaining = 20;
     do {
         delay(150);
-        const uint8_t whoAmI = spiReadReg(dev, MPU_RA_WHO_AM_I);
+        const uint8_t whoAmI = spiReadRegMsk(dev, MPU_RA_WHO_AM_I);
         switch (whoAmI) {
         case ICM42605_WHO_AM_I_CONST:
             icmDetected = ICM_42605_SPI;
@@ -289,7 +289,7 @@ void icm426xxGyroInit(gyroDev_t *gyro)
 
     spiWriteReg(&gyro->dev, ICM426XX_RA_INT_SOURCE0, ICM426XX_UI_DRDY_INT1_EN_ENABLED);
 
-    uint8_t intConfig1Value = spiReadReg(&gyro->dev, ICM426XX_RA_INT_CONFIG1);
+    uint8_t intConfig1Value = spiReadRegMsk(&gyro->dev, ICM426XX_RA_INT_CONFIG1);
     // Datasheet says: "User should change setting to 0 from default setting of 1, for proper INT1 and INT2 pin operation"
     intConfig1Value &= ~(1 << ICM426XX_INT_ASYNC_RESET_BIT);
     intConfig1Value |= (ICM426XX_INT_TPULSE_DURATION_8 | ICM426XX_INT_TDEASSERT_DISABLED);
@@ -298,7 +298,7 @@ void icm426xxGyroInit(gyroDev_t *gyro)
 
     // Disable AFSR to prevent stalls in gyro output
     // ICM426XX_INTF_CONFIG1 location in user bank 0
-    uint8_t intfConfig1Value = spiReadReg(&gyro->dev, ICM426XX_INTF_CONFIG1);
+    uint8_t intfConfig1Value = spiReadRegMsk(&gyro->dev, ICM426XX_INTF_CONFIG1);
     intfConfig1Value &= ~ICM426XX_INTF_CONFIG1_AFSR_MASK;
     intfConfig1Value |= ICM426XX_INTF_CONFIG1_AFSR_DISABLE;
     spiWriteReg(&gyro->dev, ICM426XX_INTF_CONFIG1, intfConfig1Value);
@@ -335,7 +335,7 @@ bool icm426xxGyroReadSPI(gyroDev_t *gyro)
     //uint8_t data[7];
     STATIC_DMA_DATA_AUTO uint8_t data[7];
 
-    const bool ack = spiReadWriteBuf(&gyro->dev, dataToSend, data, 7);
+    const bool ack = spiReadWriteBufRB(&gyro->dev, dataToSend, data, 7);
     if (!ack) {
         return false;
     }

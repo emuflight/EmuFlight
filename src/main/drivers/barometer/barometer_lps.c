@@ -200,7 +200,7 @@ bool lpsReadCommand(extDevice_t *dev, uint8_t cmd, uint8_t *data, uint8_t len) {
 bool lpsWriteVerify(extDevice_t *dev, uint8_t cmd, uint8_t byte) {
     uint8_t temp = 0xff;
     spiWriteReg(dev, cmd, byte);
-    spiReadRegBuf(dev, cmd, &temp, 1);
+    spiReadRegBuf(dev, cmd | 0x80, &temp, 1);
     if (byte == temp) return true;
     return false;
 }

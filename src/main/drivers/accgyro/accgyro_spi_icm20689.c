@@ -59,7 +59,7 @@ uint8_t icm20689SpiDetect(const extDevice_t *dev) {
     uint8_t attemptsRemaining = 20;
     do {
         delay(150);
-        const uint8_t whoAmI = spiReadReg(dev, MPU_RA_WHO_AM_I);
+        const uint8_t whoAmI = spiReadRegMsk(dev, MPU_RA_WHO_AM_I);
         switch (whoAmI) {
         case ICM20601_WHO_AM_I_CONST:
             icmDetected = ICM_20601_SPI;
