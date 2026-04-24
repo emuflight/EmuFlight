@@ -168,8 +168,7 @@ static bool ak8963SlaveCompleteRead(const extDevice_t *slavedev, uint8_t *buf) {
         delayMicroseconds(timeRemaining);
     }
     queuedRead.waiting = false;
-    spiReadRegBuf(dev, MPU_RA_EXT_SENS_DATA_00 | 0x80, buf, queuedRead.len);     // read I2C buffer
-    return true;
+    return spiReadRegMskBufRB(dev, MPU_RA_EXT_SENS_DATA_00, buf, queuedRead.len);     // read I2C buffer
 }
 
 static bool ak8963SlaveReadData(const extDevice_t *dev, uint8_t *buf) {

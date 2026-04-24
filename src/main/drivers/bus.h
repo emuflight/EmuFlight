@@ -88,7 +88,7 @@ typedef struct busDevice_s {
 // Per-device struct. Carries a back-pointer to the shared busDevice_t
 // (populated by spiSetBusInstance for SPI devices). The inline
 // busType/instance/handle fields are still present and authoritative;
-// Stage I.4 will remove them once a safe migration path is confirmed.
+// removal is deferred pending a safe migration path (see stage-I-revert/SUMMARY.md).
 typedef struct extDevice_s {
     busDevice_t *bus;
     busType_e busType;
@@ -136,6 +136,8 @@ typedef struct extDevice_s {
  * negateCS controls whether CS is deasserted between segments.
  * callback (if non-NULL) is called after each segment completes; its return value
  * may request BUS_BUSY (repeat), BUS_ABORT (skip remaining), or BUS_READY (advance).
+ * Stage M.1 sync path advances unconditionally; BUS_ABORT/BUS_BUSY only honored
+ * by the async DMA path (Stage M.3).
  */
 typedef struct busSegment_s {
     union {
