@@ -107,7 +107,7 @@ endif
 BUILDDATETIME := $(shell date +'%Y%m%d%Z')
 REVISION := uncommitted_$(BUILDDATETIME)
 ifeq ($(shell git diff --shortstat),)
-REVISION := $(shell git log -1 --format="%h")
+REVISION := $(shell git rev-parse HEAD | cut -c1-7)
 endif
 
 FC_VER_MAJOR := $(shell grep " FC_VERSION_MAJOR" src/main/build/version.h | awk '{print $$3}' )
@@ -310,7 +310,10 @@ CLEAN_ARTIFACTS += $(TARGET_ELF) $(TARGET_OBJS) $(TARGET_MAP)
 CLEAN_ARTIFACTS += $(TARGET_LST)
 
 # Make sure build date and revision is updated on every incremental build
-$(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC)
+$(OBJECT_DIR)/$(TARGET)/build/version.o : FORCE
+
+.PHONY: FORCE
+FORCE:
 
 # List of buildable ELF files and their object dependencies.
 # It would be nice to compute these lists, but that seems to be just beyond make.
