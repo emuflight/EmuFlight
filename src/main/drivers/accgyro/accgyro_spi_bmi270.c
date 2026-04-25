@@ -327,7 +327,7 @@ static bool bmi270AccRead(accDev_t *acc)
     static const uint8_t bmi270_tx_buf[BUFFER_SIZE] = {BMI270_REG_ACC_DATA_X_LSB | 0x80, 0, 0, 0, 0, 0, 0, 0};
 
     IOLo(acc->dev.busType_u.spi.csnPin);
-    spiTransfer(acc->dev.busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
+    spiTransfer(acc->dev.bus->busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
     IOHi(acc->dev.busType_u.spi.csnPin);
 
     acc->ADCRaw[X] = (int16_t)((bmi270_rx_buf[IDX_ACCEL_XOUT_H] << 8) | bmi270_rx_buf[IDX_ACCEL_XOUT_L]);
@@ -355,7 +355,7 @@ static bool bmi270GyroReadRegister(gyroDev_t *gyro)
     static const uint8_t bmi270_tx_buf[BUFFER_SIZE] = {BMI270_REG_GYR_DATA_X_LSB | 0x80, 0, 0, 0, 0, 0, 0, 0};
 
     IOLo(gyro->dev.busType_u.spi.csnPin);
-    spiTransfer(gyro->dev.busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
+    spiTransfer(gyro->dev.bus->busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
     IOHi(gyro->dev.busType_u.spi.csnPin);
 
     gyro->gyroADCRaw[X] = (int16_t)((bmi270_rx_buf[IDX_GYRO_XOUT_H] << 8) | bmi270_rx_buf[IDX_GYRO_XOUT_L]);
@@ -390,7 +390,7 @@ static bool bmi270GyroReadFifo(gyroDev_t *gyro)
     // the first sample in the queue. It's possible for the FIFO to be empty so we need to check the
     // length before using the sample.
     IOLo(gyro->dev.busType_u.spi.csnPin);
-    spiTransfer(gyro->dev.busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
+    spiTransfer(gyro->dev.bus->busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
     IOHi(gyro->dev.busType_u.spi.csnPin);
 
     int fifoLength = (uint16_t)((bmi270_rx_buf[IDX_FIFO_LENGTH_H] << 8) | bmi270_rx_buf[IDX_FIFO_LENGTH_L]);

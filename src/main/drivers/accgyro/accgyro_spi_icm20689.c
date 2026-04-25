@@ -107,7 +107,7 @@ bool icm20689SpiAccDetect(accDev_t *acc) {
 
 void icm20689GyroInit(gyroDev_t *gyro) {
     mpuGyroInit(gyro);
-    spiSetDivisor(gyro->dev.busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
+    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
     spiWriteReg(&gyro->dev, MPU_RA_PWR_MGMT_1, ICM20689_BIT_RESET);
     delay(100);
     spiWriteReg(&gyro->dev, MPU_RA_SIGNAL_PATH_RESET, 0x03);
@@ -131,7 +131,7 @@ void icm20689GyroInit(gyroDev_t *gyro) {
 #ifdef USE_MPU_DATA_READY_SIGNAL
     spiWriteReg(&gyro->dev, MPU_RA_INT_ENABLE, 0x01); // RAW_RDY_EN interrupt enable
 #endif
-    spiSetDivisor(gyro->dev.busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
 }
 
 bool icm20689SpiGyroDetect(gyroDev_t *gyro) {

@@ -254,7 +254,7 @@ void icm426xxGyroInit(gyroDev_t *gyro)
 {
     mpuGyroInit(gyro);
 
-    spiSetDivisor(gyro->dev.busType_u.spi.instance, spiCalculateDivider(ICM426XX_MAX_SPI_CLK_HZ));
+    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, spiCalculateDivider(ICM426XX_MAX_SPI_CLK_HZ));
 
     gyro->accDataReg = ICM426XX_RA_ACCEL_DATA_X1;
     gyro->gyroDataReg = ICM426XX_RA_GYRO_DATA_X1;
