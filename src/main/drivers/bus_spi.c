@@ -201,7 +201,7 @@ void spiDmaEnable(const extDevice_t *dev, bool enable) {
 // Stage M.3 will defer HW application to transfer-start via the DMA init struct.
 void spiSetClkDivisor(const extDevice_t *dev, uint16_t divisor) {
     ((extDevice_t *)dev)->busType_u.spi.speed = divisor;
-    spiSetDivisor(dev->busType_u.spi.instance, divisor);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, divisor);
 }
 
 // Store per-device clock phase/polarity flag.
@@ -257,7 +257,7 @@ void spiSequence(const extDevice_t *dev, busSegment_t *segments) {
     bus->curSegment = segments;
 
 #ifdef USE_DMA_SPI_DEVICE
-    if (dev->busType_u.spi.instance == USE_DMA_SPI_DEVICE) {
+    if (dev->bus->busType_u.spi.instance == USE_DMA_SPI_DEVICE) {
         // IMUF9001 custom DMA path: only supports single-segment transfers.
         if (segments[0].len > 0 && segments[1].len == 0) {
             uint8_t *txData = segments[0].u.buffers.txData;
@@ -292,7 +292,7 @@ void spiSequence(const extDevice_t *dev, busSegment_t *segments) {
     IOLo(dev->busType_u.spi.csnPin);
 
     for (busSegment_t *seg = segments; seg->len > 0; seg++) {
-        spiTransfer(dev->busType_u.spi.instance,
+        spiTransfer(dev->bus->busType_u.spi.instance,
                     seg->u.buffers.txData,
                     seg->u.buffers.rxData,
                     seg->len);
