@@ -56,12 +56,12 @@ bool rxSpiDeviceInit(const rxSpiConfig_t *rxSpiConfig) {
     IOConfigGPIO(rxCsPin, SPI_IO_CS_CFG);
     dev->busType_u.spi.csnPin = rxCsPin;
     DISABLE_RX();
-    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     return true;
 }
 
 uint8_t rxSpiTransferByte(uint8_t data) {
-    return spiTransferByte(dev->busType_u.spi.instance, data);
+    return spiTransferByte(dev->bus->busType_u.spi.instance, data);
 }
 
 uint8_t rxSpiWriteByte(uint8_t data) {
