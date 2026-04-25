@@ -123,7 +123,7 @@ uint8_t mpu6000SpiDetect(const extDevice_t *dev) {
     IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(dev->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
     spiWriteReg(dev, MPU_RA_PWR_MGMT_1, BIT_H_RESET);
     uint8_t attemptsRemaining = 5;
     do {
