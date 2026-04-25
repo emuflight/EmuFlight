@@ -183,7 +183,7 @@ uint8_t bmi270Detect(const extDevice_t *dev)
     IOHi(dev->busType_u.spi.csnPin);
 #endif
 
-    spiSetDivisor(dev->busType_u.spi.instance, spiCalculateDivider(BMI270_MAX_SPI_CLK_HZ));
+    spiSetDivisor(dev->bus->busType_u.spi.instance, spiCalculateDivider(BMI270_MAX_SPI_CLK_HZ));
     bmi270EnableSPI(dev);
 
     if (bmi270RegisterRead(dev, BMI270_REG_CHIP_ID) == BMI270_CHIP_ID) {
@@ -200,8 +200,8 @@ static void bmi270UploadConfig(const extDevice_t *dev)
 
     // Transfer the config file
     IOLo(dev->busType_u.spi.csnPin);
-    spiTransferByte(dev->busType_u.spi.instance, BMI270_REG_INIT_DATA);
-    spiTransfer(dev->busType_u.spi.instance, bmi270_maximum_fifo_config_file, NULL, sizeof(bmi270_maximum_fifo_config_file));
+    spiTransferByte(dev->bus->busType_u.spi.instance, BMI270_REG_INIT_DATA);
+    spiTransfer(dev->bus->busType_u.spi.instance, bmi270_maximum_fifo_config_file, NULL, sizeof(bmi270_maximum_fifo_config_file));
     IOHi(dev->busType_u.spi.csnPin);
 
     delay(10);
