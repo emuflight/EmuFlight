@@ -45,7 +45,7 @@ static void mpu6500SpiInit(const extDevice_t *dev) {
     IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(dev->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_FAST);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_FAST);
 }
 
 uint8_t mpu6500SpiDetect(const extDevice_t *dev) {

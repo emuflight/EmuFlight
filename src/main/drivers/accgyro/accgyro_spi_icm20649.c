@@ -49,13 +49,13 @@ static void icm20649SpiInit(const extDevice_t *dev) {
 #endif
     // all registers can be read/written at full speed (7MHz +-10%)
     // TODO verify that this works at 9MHz and 10MHz on non F7
-    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     hardwareInitialised = true;
 }
 
 uint8_t icm20649SpiDetect(const extDevice_t *dev) {
     icm20649SpiInit(dev);
-    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     spiWriteReg(dev, ICM20649_RA_REG_BANK_SEL, 0 << 4); // select bank 0 just to be safe
     delay(15);
     spiWriteReg(dev, ICM20649_RA_PWR_MGMT_1, ICM20649_BIT_RESET);
