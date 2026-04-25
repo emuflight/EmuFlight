@@ -247,7 +247,7 @@ bool lpsDetect(baroDev_t *baro) {
     IOInit(dev->busType_u.spi.csnPin, OWNER_BARO_CS, 0);
     IOConfigGPIO(dev->busType_u.spi.csnPin, IOCFG_OUT_PP);
     IOHi(dev->busType_u.spi.csnPin); // Disable
-    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD); // Baro can work only on up to 10Mhz SPI bus
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD); // Baro can work only on up to 10Mhz SPI bus
     uint8_t temp = 0x00;
     lpsReadCommand(&baro->dev, LPS_WHO_AM_I, &temp, 1);
     if (temp != LPS25_ID && temp != LPS22_ID && temp != LPS33_ID && temp != LPS35_ID) {
