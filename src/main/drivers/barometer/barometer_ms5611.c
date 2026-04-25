@@ -66,11 +66,11 @@ static uint8_t ms5611_osr = CMD_ADC_4096;
 
 void ms5611BusInit(extDevice_t *dev) {
 #ifdef USE_BARO_SPI_MS5611
-    if (dev->busType == BUS_TYPE_SPI) {
+    if (dev->bus->busType == BUS_TYPE_SPI) {
         IOHi(dev->busType_u.spi.csnPin); // Disable
         IOInit(dev->busType_u.spi.csnPin, OWNER_BARO_CS, 0);
         IOConfigGPIO(dev->busType_u.spi.csnPin, IOCFG_OUT_PP);
-        spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD); // XXX
+        spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD); // XXX
     }
 #else
     UNUSED(dev);
@@ -79,7 +79,7 @@ void ms5611BusInit(extDevice_t *dev) {
 
 void ms5611BusDeinit(extDevice_t *dev) {
 #ifdef USE_BARO_SPI_MS5611
-    if (dev->busType == BUS_TYPE_SPI) {
+    if (dev->bus->busType == BUS_TYPE_SPI) {
         spiPreinitCsByIO(dev->busType_u.spi.csnPin);
     }
 #else
@@ -94,7 +94,7 @@ bool ms5611Detect(baroDev_t *baro) {
     delay(10); // No idea how long the chip takes to power-up, but let's make it 10ms
     extDevice_t *dev = &baro->dev;
     ms5611BusInit(dev);
-    if ((dev->busType == BUS_TYPE_I2C) && (dev->busType_u.i2c.address == 0)) {
+    if ((dev->bus->busType == BUS_TYPE_I2C) && (dev->busType_u.i2c.address == 0)) {
         // Default address for MS5611
         dev->busType_u.i2c.address = MS5611_I2C_ADDR;
         defaultAddressApplied = true;
