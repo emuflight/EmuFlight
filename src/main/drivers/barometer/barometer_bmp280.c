@@ -54,11 +54,11 @@ STATIC_UNIT_TESTED void bmp280_calculate(int32_t *pressure, int32_t *temperature
 
 void bmp280BusInit(extDevice_t *dev) {
 #ifdef USE_BARO_SPI_BMP280
-    if (dev->busType == BUS_TYPE_SPI) {
+    if (dev->bus->busType == BUS_TYPE_SPI) {
         IOHi(dev->busType_u.spi.csnPin); // Disable
         IOInit(dev->busType_u.spi.csnPin, OWNER_BARO_CS, 0);
         IOConfigGPIO(dev->busType_u.spi.csnPin, IOCFG_OUT_PP);
-        spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD); // XXX
+        spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD); // XXX
     }
 #else
     UNUSED(dev);
@@ -67,7 +67,7 @@ void bmp280BusInit(extDevice_t *dev) {
 
 void bmp280BusDeinit(extDevice_t *dev) {
 #ifdef USE_BARO_SPI_BMP280
-    if (dev->busType == BUS_TYPE_SPI) {
+    if (dev->bus->busType == BUS_TYPE_SPI) {
         spiPreinitCsByIO(dev->busType_u.spi.csnPin);
     }
 #else
@@ -80,7 +80,7 @@ bool bmp280Detect(baroDev_t *baro) {
     extDevice_t *dev = &baro->dev;
     bool defaultAddressApplied = false;
     bmp280BusInit(dev);
-    if ((dev->busType == BUS_TYPE_I2C) && (dev->busType_u.i2c.address == 0)) {
+    if ((dev->bus->busType == BUS_TYPE_I2C) && (dev->busType_u.i2c.address == 0)) {
         // Default address for BMP280
         dev->busType_u.i2c.address = BMP280_I2C_ADDR;
         defaultAddressApplied = true;
