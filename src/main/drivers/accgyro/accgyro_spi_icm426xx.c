@@ -163,13 +163,13 @@ static void icm426xxSpiInit(const extDevice_t *dev) {
     IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(dev->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     hardwareInitialised = true;
 }
 
 uint8_t icm426xxSpiDetect(const extDevice_t *dev) {
     icm426xxSpiInit(dev);
-    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed
     spiWriteReg(dev, MPU_RA_PWR_MGMT_1, ICM426xx_BIT_RESET);
     uint8_t icmDetected = MPU_NONE;
     uint8_t attemptsRemaining = 20;
@@ -194,7 +194,7 @@ uint8_t icm426xxSpiDetect(const extDevice_t *dev) {
             return MPU_NONE;
         }
     } while (attemptsRemaining--);
-    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     return icmDetected;
 }
 
