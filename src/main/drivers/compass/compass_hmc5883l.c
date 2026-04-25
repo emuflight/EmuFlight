@@ -186,7 +186,7 @@ static void hmc5883SpiInit(extDevice_t *dev) {
     IOHi(dev->busType_u.spi.csnPin); // Disable
     IOInit(dev->busType_u.spi.csnPin, OWNER_COMPASS_CS, 0);
     IOConfigGPIO(dev->busType_u.spi.csnPin, IOCFG_OUT_PP);
-    spiSetDivisor(dev->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
 }
 #endif
 
@@ -218,12 +218,12 @@ bool hmc5883lDetect(magDev_t* mag) {
     extDevice_t *dev = &mag->dev;
     uint8_t sig = 0;
 #ifdef USE_MAG_SPI_HMC5883
-    if (dev->busType == BUS_TYPE_SPI) {
+    if (dev->bus->busType == BUS_TYPE_SPI) {
         hmc5883SpiInit(&mag->dev);
     }
 #endif
 #ifdef USE_MAG_HMC5883
-    if (dev->busType == BUS_TYPE_I2C && dev->busType_u.i2c.address == 0) {
+    if (dev->bus->busType == BUS_TYPE_I2C && dev->busType_u.i2c.address == 0) {
         dev->busType_u.i2c.address = HMC5883_MAG_I2C_ADDRESS;
     }
 #endif
