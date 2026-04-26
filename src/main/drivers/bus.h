@@ -86,18 +86,12 @@ typedef struct busDevice_s {
 } busDevice_t;
 
 // Per-device struct. Carries a back-pointer to the shared busDevice_t
-// (populated by spiSetBusInstance for SPI devices). The inline
-// busType/instance/handle fields are still present and authoritative;
-// removal is deferred pending a safe migration path (see stage-I-revert/SUMMARY.md).
+// (populated by spiSetBusInstance for SPI devices). Bus type and instance
+// are accessed via the bus back-pointer (dev->bus->busType / bus->busType_u.spi.instance).
 typedef struct extDevice_s {
     busDevice_t *bus;
-    busType_e busType;
     union {
         struct extSpi_s {
-            SPI_TypeDef *instance;
-#if defined(USE_HAL_DRIVER)
-            SPI_HandleTypeDef* handle; // cached here for efficiency
-#endif
             IO_t csnPin;
             uint16_t speed;
             bool leadingEdge;

@@ -57,11 +57,6 @@ bool i2cBusSetInstance(extDevice_t *dev, uint32_t device)
     dev->bus->busType = BUS_TYPE_I2C;
     dev->bus->busType_u.i2c.device = I2C_CFG_TO_DEV(device);
 
-    // Transitional: keep inline fields authoritative until access-site
-    // migration lands. EmuFlight's i2cBus* accessors still read inline.
-    dev->busType = BUS_TYPE_I2C;
-    dev->busType_u.i2c.device = I2C_CFG_TO_DEV(device);
-
     return true;
 }
 #endif

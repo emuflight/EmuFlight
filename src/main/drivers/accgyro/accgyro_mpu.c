@@ -428,11 +428,7 @@ void mpuDetect(gyroDev_t *gyro) {
     // MPU datasheet specifies 30ms.
     delay(35);
 #if defined(USE_I2C) && !defined(USE_DMA_SPI_DEVICE)
-    if (gyro->dev.busType == BUS_TYPE_NONE) {
-        // if no busType is selected try I2C first.
-        gyro->dev.busType = BUS_TYPE_I2C;
-    }
-    if (gyro->dev.busType == BUS_TYPE_I2C) {
+    if (gyro->dev.bus == NULL || gyro->dev.bus->busType == BUS_TYPE_I2C) {
         i2cBusSetInstance(&gyro->dev, I2C_DEV_TO_CFG(MPU_I2C_INSTANCE));
         gyro->dev.busType_u.i2c.address = MPU_ADDRESS;
         uint8_t sig = 0;
@@ -455,10 +451,14 @@ void mpuDetect(gyroDev_t *gyro) {
             }
             return;
         }
+        // I2C probe failed; reset bus state so SPI detection starts clean.
+        // Without this reset, i2cBusSetInstance will have written dev->busType_u.i2c.device
+        // at union offset 0, aliasing dev->busType_u.spi.csnPin after field removal.
+        gyro->dev.bus = NULL;
+        memset(&gyro->dev.busType_u, 0, sizeof(gyro->dev.busType_u));
     }
 #endif
 #ifdef USE_SPI
-    gyro->dev.busType = BUS_TYPE_SPI;
     detectSPISensorsAndUpdateDetectionResult(gyro);
 #endif
 }

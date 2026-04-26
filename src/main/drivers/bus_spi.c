@@ -171,9 +171,6 @@ bool spiSetBusInstance(extDevice_t *dev, uint32_t device) {
         bus->curSegment = (busSegment_t *)BUS_SPI_FREE;
     }
 
-    // Keep inline fields populated (Stage I.4 deferred — access sites still read these).
-    dev->busType = BUS_TYPE_SPI;
-    dev->busType_u.spi.instance = instance;
     return true;
 }
 

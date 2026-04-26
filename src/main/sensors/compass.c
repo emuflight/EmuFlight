@@ -141,7 +141,6 @@ bool compassDetect(magDev_t *dev) {
 #if defined(USE_MAG_AK8963) && (defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU9250))
     case BUS_TYPE_MPU_SLAVE: {
         if (gyroMpuDetectionResult()->sensor == MPU_9250_SPI) {
-            extDev->busType = BUS_TYPE_MPU_SLAVE;
             extDev->busType_u.mpuSlave.master = gyroSensorBus();
             extDev->busType_u.mpuSlave.address = compassConfig()->mag_i2c_address;
             extDev->bus->busType = BUS_TYPE_MPU_SLAVE;
@@ -207,7 +206,6 @@ bool compassDetect(magDev_t *dev) {
             extDev->busType_u.i2c.address = compassConfig()->mag_i2c_address;
         }
         if (gyroMpuDetectionResult()->sensor == MPU_9250_SPI) {
-            extDev->busType = BUS_TYPE_MPU_SLAVE;
             extDev->busType_u.mpuSlave.address = compassConfig()->mag_i2c_address;
             extDev->busType_u.mpuSlave.master = gyroSensorBus();
             extDev->bus->busType = BUS_TYPE_MPU_SLAVE;
