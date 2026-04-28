@@ -26,6 +26,9 @@
 
 #ifdef USE_SPI
 
+// STM32F405 CCM SRAM (0x10000000–0x1000FFFF) is inaccessible by DMA1/2.
+#define IS_CCM(p) (((uint32_t)(p) & 0xffff0000) == 0x10000000)
+
 #include "drivers/bus.h"
 #include "drivers/bus_spi.h"
 #include "drivers/bus_spi_impl.h"
@@ -186,10 +189,9 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
 
     if (dev->busType_u.spi.leadingEdge != bus->busType_u.spi.leadingEdge) {
         // F3/F4 have no SCK_CFG_LOW/HIGH GPIO variant — only CR1 CPOL/CPHA updated.
-        if (dev->busType_u.spi.leadingEdge) {
-            instance->CR1 &= ~(SPI_CPOL_High | SPI_CPHA_2Edge);
-        } else {
-            instance->CR1 |= (SPI_CPOL_High | SPI_CPHA_2Edge);
+        instance->CR1 &= ~(SPI_CPOL_High | SPI_CPHA_2Edge);
+        if (!dev->busType_u.spi.leadingEdge) {
+            instance->CR1 |= SPI_CPOL_High | SPI_CPHA_2Edge;
         }
         bus->busType_u.spi.leadingEdge = dev->busType_u.spi.leadingEdge;
     }
@@ -197,8 +199,10 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
     SPI_Cmd(instance, ENABLE);
 
     // Scan the segment list for DMA safety.
+    // CCM SRAM is inaccessible by DMA on F4 — reject any buffer in that region.
     for (busSegment_t *checkSegment = (busSegment_t *)bus->curSegment; checkSegment->len; checkSegment++) {
-        if ((checkSegment->u.buffers.rxData) && (bus->dmaRx == (dmaChannelDescriptor_t *)NULL)) {
+        if (((checkSegment->u.buffers.rxData) && (IS_CCM(checkSegment->u.buffers.rxData) || (bus->dmaRx == (dmaChannelDescriptor_t *)NULL))) ||
+            ((checkSegment->u.buffers.txData) && IS_CCM(checkSegment->u.buffers.txData))) {
             dmaSafe = false;
             break;
         }
