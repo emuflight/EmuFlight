@@ -22,6 +22,9 @@
 
 #include "resource.h"
 
+// Opaque DMA engine handle used by dma_reqmap (matches BF 4.5-maintenance).
+typedef struct dmaResource_s dmaResource_t;
+
 struct dmaChannelDescriptor_s;
 typedef void (*dmaCallbackHandlerFuncPtr)(struct dmaChannelDescriptor_s *channelDescriptor);
 

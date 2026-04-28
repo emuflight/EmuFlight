@@ -163,6 +163,7 @@ MCU_COMMON_SRC = \
             drivers/audio_stm32f7xx.c \
             drivers/bus_i2c_hal.c \
             drivers/dma_stm32f7xx.c \
+            drivers/dma_reqmap_mcu.c \
             drivers/light_ws2811strip_hal.c \
             drivers/transponder_ir_io_hal.c \
             drivers/bus_spi_ll.c \
