@@ -73,6 +73,24 @@ spiDevice_t spiDevice[SPIDEV_COUNT];
 #endif
 
 #define SPI_DEFAULT_TIMEOUT 10
+#define SPI_DMA_THRESHOLD 8
+
+#ifdef STM32F7
+#define IS_DTCM(p) (((uint32_t)(p) & 0xffff0000) == 0x20000000)
+#endif
+
+static uint32_t spiDivisorToBRbits(SPI_TypeDef *instance, uint16_t divisor)
+{
+#if !(defined(STM32F1) || defined(STM32F3))
+    if (instance == SPI2 || instance == SPI3) {
+        divisor /= 2;
+    }
+#else
+    UNUSED(instance);
+#endif
+    // divisor | 0x100 ensures non-zero; ffs maps power-of-2 divisor to prescaler index.
+    return (ffs(divisor | 0x100) - 2) << SPI_CR1_BR_Pos;
+}
 
 void spiInitDevice(SPIDevice device) {
     spiDevice_t *spi = &(spiDevice[device]);
@@ -195,9 +213,120 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
     return true;
 }
 
-// Platform-internal DMA functions — stubs for Stage M.1.
-// Stage M.3 will provide full implementations once dma_reqmap is ported.
-void spiSequenceStart(const extDevice_t *dev) { UNUSED(dev); }
+// DMA transfer setup and start (BF 4.5-maintenance parity).
+// Handles per-device speed and polarity switching, then dispatches to DMA path
+// (when bus->useDMA is enabled by spiInitBusDMA, Stage M.3.d) or polled path.
+FAST_CODE void spiSequenceStart(const extDevice_t *dev)
+{
+    busDevice_t *bus = dev->bus;
+    SPI_TypeDef *instance = bus->busType_u.spi.instance;
+    spiDevice_t *spi = &spiDevice[spiDeviceByInstance(instance)];
+    bool dmaSafe = dev->useDMA;
+    uint32_t xferLen = 0;
+    uint32_t segmentCount = 0;
+
+    bus->initSegment = true;
+
+    LL_SPI_Disable(instance);
+
+    if (dev->busType_u.spi.speed != bus->busType_u.spi.speed) {
+        LL_SPI_SetBaudRatePrescaler(instance, spiDivisorToBRbits(instance, dev->busType_u.spi.speed));
+        bus->busType_u.spi.speed = dev->busType_u.spi.speed;
+    }
+
+    if (dev->busType_u.spi.leadingEdge != bus->busType_u.spi.leadingEdge) {
+        if (dev->busType_u.spi.leadingEdge) {
+            IOConfigGPIOAF(IOGetByTag(spi->sck), SPI_IO_AF_SCK_CFG_LOW, spi->sckAF);
+            LL_SPI_SetClockPhase(instance, LL_SPI_PHASE_1EDGE);
+            LL_SPI_SetClockPolarity(instance, LL_SPI_POLARITY_LOW);
+        } else {
+            IOConfigGPIOAF(IOGetByTag(spi->sck), SPI_IO_AF_SCK_CFG_HIGH, spi->sckAF);
+            LL_SPI_SetClockPhase(instance, LL_SPI_PHASE_2EDGE);
+            LL_SPI_SetClockPolarity(instance, LL_SPI_POLARITY_HIGH);
+        }
+        bus->busType_u.spi.leadingEdge = dev->busType_u.spi.leadingEdge;
+    }
+
+    LL_SPI_Enable(instance);
+
+    // Scan the segment list for DMA safety (cache alignment, DTCM region).
+    for (busSegment_t *checkSegment = (busSegment_t *)bus->curSegment; checkSegment->len; checkSegment++) {
+        if ((checkSegment->u.buffers.rxData) && (bus->dmaRx == (dmaChannelDescriptor_t *)NULL)) {
+            dmaSafe = false;
+            break;
+        }
+#ifdef STM32F7
+        // Non-DTCM Rx buffers must be cache-line aligned for DMA on F7.
+        if ((checkSegment->u.buffers.rxData) && !IS_DTCM(checkSegment->u.buffers.rxData) &&
+            (((uint32_t)checkSegment->u.buffers.rxData & 31) || (checkSegment->len & 31))) {
+            dmaSafe = false;
+            break;
+        }
+#endif
+        segmentCount++;
+        xferLen += checkSegment->len;
+    }
+
+    // Use DMA if available and safe (dead path until spiInitBusDMA sets bus->useDMA, Stage M.3.d).
+    if (bus->useDMA && dmaSafe && ((segmentCount > 1) ||
+                                    (xferLen >= SPI_DMA_THRESHOLD) ||
+                                    !bus->curSegment[segmentCount].negateCS)) {
+        spiInternalInitStream(dev, false);
+        IOLo(dev->busType_u.spi.csnPin);
+        spiInternalStartDMA(dev);
+    } else {
+        busSegment_t *lastSegment = NULL;
+        bool segmentComplete;
+
+        while (bus->curSegment->len) {
+            if (!lastSegment || lastSegment->negateCS) {
+                IOLo(dev->busType_u.spi.csnPin);
+            }
+
+            spiTransfer(instance,
+                        bus->curSegment->u.buffers.txData,
+                        bus->curSegment->u.buffers.rxData,
+                        bus->curSegment->len);
+
+            if (bus->curSegment->negateCS) {
+                IOHi(dev->busType_u.spi.csnPin);
+            }
+
+            segmentComplete = true;
+            if (bus->curSegment->callback) {
+                switch (bus->curSegment->callback(dev->callbackArg)) {
+                case BUS_BUSY:
+                    segmentComplete = false;
+                    break;
+                case BUS_ABORT:
+                    bus->curSegment = (busSegment_t *)BUS_SPI_FREE;
+                    return;
+                case BUS_READY:
+                default:
+                    break;
+                }
+            }
+            if (segmentComplete) {
+                lastSegment = (busSegment_t *)bus->curSegment;
+                bus->curSegment++;
+            }
+        }
+
+        if (bus->curSegment->u.link.dev) {
+            busSegment_t *endSegment = (busSegment_t *)bus->curSegment;
+            const extDevice_t *nextDev = endSegment->u.link.dev;
+            busSegment_t *nextSegments = (busSegment_t *)endSegment->u.link.segments;
+            bus->curSegment = nextSegments;
+            endSegment->u.link.dev = NULL;
+            endSegment->u.link.segments = NULL;
+            spiSequenceStart(nextDev);
+        } else {
+            bus->curSegment = (busSegment_t *)BUS_SPI_FREE;
+        }
+    }
+}
+
+// Platform-internal DMA functions — stubs until Stage M.3.d (dma_reqmap + spiInitBusDMA).
 void spiInternalInitStream(const extDevice_t *dev, bool preInit) { UNUSED(dev); UNUSED(preInit); }
 void spiInternalStartDMA(const extDevice_t *dev) { UNUSED(dev); }
 void spiInternalStopDMA(const extDevice_t *dev) { UNUSED(dev); }

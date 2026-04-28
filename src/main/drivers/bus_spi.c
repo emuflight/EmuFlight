@@ -194,11 +194,9 @@ void spiDmaEnable(const extDevice_t *dev, bool enable) {
     ((extDevice_t *)dev)->useDMA = enable;
 }
 
-// Store per-device clock divisor and apply it immediately to the SPI peripheral.
-// Stage M.3 will defer HW application to transfer-start via the DMA init struct.
+// Store per-device clock divisor; hardware applied at spiSequenceStart time.
 void spiSetClkDivisor(const extDevice_t *dev, uint16_t divisor) {
     ((extDevice_t *)dev)->busType_u.spi.speed = divisor;
-    spiSetDivisor(dev->bus->busType_u.spi.instance, divisor);
 }
 
 // Store per-device clock phase/polarity flag.
@@ -242,10 +240,6 @@ void spiLinkSegments(const extDevice_t *dev, busSegment_t *firstSegment, busSegm
     endSegment->u.link.segments = secondSegment;
 }
 
-// Synchronous segment-based SPI transfer.
-// Processes each segment in order: asserts CS once, transfers data, deasserts CS
-// according to negateCS. The USE_DMA_SPI_DEVICE (IMUF9001) single-segment DMA path
-// is preserved as a special case; multi-segment always uses synchronous spiTransfer.
 void spiSequence(const extDevice_t *dev, busSegment_t *segments) {
     busDevice_t *bus = dev->bus;
 
@@ -285,28 +279,7 @@ void spiSequence(const extDevice_t *dev, busSegment_t *segments) {
     }
 #endif
 
-    // Synchronous path: assert CS, process all segments, handle CS per negateCS flag.
-    IOLo(dev->busType_u.spi.csnPin);
-
-    for (busSegment_t *seg = segments; seg->len > 0; seg++) {
-        spiTransfer(dev->bus->busType_u.spi.instance,
-                    seg->u.buffers.txData,
-                    seg->u.buffers.rxData,
-                    seg->len);
-
-        if (seg->callback) {
-            seg->callback(dev->callbackArg);
-        }
-
-        if (seg->negateCS) {
-            IOHi(dev->busType_u.spi.csnPin);
-            if ((seg + 1)->len > 0) {
-                IOLo(dev->busType_u.spi.csnPin);
-            }
-        }
-    }
-
-    bus->curSegment = (busSegment_t *)BUS_SPI_FREE;
+    spiSequenceStart(dev);
 }
 
 void spiReadWriteBuf(const extDevice_t *dev, uint8_t *txData, uint8_t *rxData, int len) {

@@ -128,9 +128,7 @@ void spiInitBusDMA(void);
 uint16_t spiCalculateDivider(uint32_t freq);
 uint32_t spiCalculateClock(uint16_t spiClkDivisor);
 
-// Per-device clock and phase settings.
-// spiSetClkDivisor also immediately applies the divisor to the SPI peripheral
-// (synchronous path; Stage M.3 will defer to transfer-start via DMA init struct).
+// Per-device clock and phase settings; hardware applied at spiSequenceStart time.
 void spiSetClkDivisor(const extDevice_t *dev, uint16_t divider);
 void spiSetClkPhasePolarity(const extDevice_t *dev, bool leadingEdge);
 
@@ -138,9 +136,9 @@ void spiSetClkPhasePolarity(const extDevice_t *dev, bool leadingEdge);
 // (DMA transfers are not yet active; bus->useDMA stays false until spiInitBusDMA).
 void spiDmaEnable(const extDevice_t *dev, bool enable);
 
-// Segment-based async SPI API (matches BF 4.5-maintenance).
-// Stage M.1: spiSequence executes synchronously; spiIsBusy always returns false
-// after spiSequence returns; spiWait is a no-op.
+// Segment-based SPI API (matches BF 4.5-maintenance).
+// Dispatches via spiSequenceStart: polled when bus->useDMA is false,
+// DMA when enabled by spiInitBusDMA.
 void spiSequence(const extDevice_t *dev, busSegment_t *segments);
 void spiWait(const extDevice_t *dev);
 void spiRelease(const extDevice_t *dev);
