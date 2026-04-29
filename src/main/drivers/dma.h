@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include "resource.h"
 
 // Opaque DMA engine handle used by dma_reqmap (matches BF 4.5-maintenance).
@@ -33,6 +34,7 @@ typedef struct dmaChannelDescriptor_s {
 #if defined(STM32F4) || defined(STM32F7)
     DMA_Stream_TypeDef*         ref;
     uint8_t                     stream;
+    uint32_t                    channel;
 #else
     DMA_Channel_TypeDef*        ref;
 #endif
@@ -114,6 +116,8 @@ dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef* stream);
 dmaChannelDescriptor_t* dmaGetDmaDescriptor(const DMA_Stream_TypeDef* stream);
 DMA_Stream_TypeDef* dmaGetRefByIdentifier(const dmaIdentifier_e identifier);
 uint32_t dmaGetChannel(const uint8_t channel);
+bool dmaAllocate(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex);
+void dmaEnable(dmaIdentifier_e identifier);
 
 #else
 

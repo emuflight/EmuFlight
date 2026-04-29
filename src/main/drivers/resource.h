@@ -42,6 +42,8 @@ typedef enum {
     OWNER_SPI_SCK,
     OWNER_SPI_MISO,
     OWNER_SPI_MOSI,
+    OWNER_SPI_SDO,
+    OWNER_SPI_SDI,
     OWNER_I2C_SCL,
     OWNER_I2C_SDA,
     OWNER_SDCARD,

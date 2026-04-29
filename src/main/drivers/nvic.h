@@ -27,6 +27,7 @@
 #define NVIC_PRIO_BARO_EXTI                NVIC_BUILD_PRIORITY(0x0f, 0x0f)
 #define NVIC_PRIO_SONAR_EXTI               NVIC_BUILD_PRIORITY(2, 0)  // maybe increase slightly
 #define NVIC_PRIO_TRANSPONDER_DMA          NVIC_BUILD_PRIORITY(3, 0)
+#define NVIC_PRIO_SPI_DMA                  NVIC_BUILD_PRIORITY(0, 0)
 #ifdef USE_DMA_SPI_DEVICE
 #ifdef STM32F7
 #define NVIC_PRIO_MPU_INT_EXTI             NVIC_BUILD_PRIORITY(0x00, 0x03)

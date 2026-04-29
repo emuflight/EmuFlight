@@ -29,6 +29,10 @@
 #include "drivers/bus.h"
 #include "drivers/bus_spi.h"
 #include "drivers/bus_spi_impl.h"
+#include "drivers/dma.h"
+#include "drivers/dma_reqmap.h"
+#include "drivers/nvic.h"
+#include "drivers/resource.h"
 #include "drivers/exti.h"
 #include "drivers/io.h"
 #include "drivers/rcc.h"
@@ -174,8 +178,62 @@ bool spiSetBusInstance(extDevice_t *dev, uint32_t device) {
     return true;
 }
 
-// Stub: DMA channel allocation requires dma_reqmap infrastructure (Stage M.3).
-void spiInitBusDMA(void) {
+void spiInitBusDMA(void)
+{
+#if (defined(STM32F4) || defined(STM32F7)) && defined(USE_SPI)
+    for (uint32_t device = 0; device < SPIDEV_COUNT; device++) {
+        busDevice_t *bus = &spiBusDevice[device];
+
+        if (bus->busType != BUS_TYPE_SPI) {
+            continue;
+        }
+
+        dmaIdentifier_e dmaTxIdentifier = DMA_NONE;
+        dmaIdentifier_e dmaRxIdentifier = DMA_NONE;
+
+        for (uint8_t opt = 0; opt < MAX_PERIPHERAL_DMA_OPTIONS; opt++) {
+            const dmaChannelSpec_t *dmaTxChannelSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SPI_SDO, device, opt);
+            if (dmaTxChannelSpec) {
+                dmaTxIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaTxChannelSpec->ref);
+                if (!dmaAllocate(dmaTxIdentifier, OWNER_SPI_SDO, device + 1)) {
+                    dmaTxIdentifier = DMA_NONE;
+                    continue;
+                }
+                bus->dmaTx = dmaGetDescriptorByIdentifier(dmaTxIdentifier);
+                bus->dmaTx->stream  = DMA_DEVICE_INDEX(dmaTxIdentifier);
+                bus->dmaTx->channel = dmaTxChannelSpec->channel;
+                dmaEnable(dmaTxIdentifier);
+                break;
+            }
+        }
+
+        for (uint8_t opt = 0; opt < MAX_PERIPHERAL_DMA_OPTIONS; opt++) {
+            const dmaChannelSpec_t *dmaRxChannelSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SPI_SDI, device, opt);
+            if (dmaRxChannelSpec) {
+                dmaRxIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaRxChannelSpec->ref);
+                if (!dmaAllocate(dmaRxIdentifier, OWNER_SPI_SDI, device + 1)) {
+                    dmaRxIdentifier = DMA_NONE;
+                    continue;
+                }
+                bus->dmaRx = dmaGetDescriptorByIdentifier(dmaRxIdentifier);
+                bus->dmaRx->stream  = DMA_DEVICE_INDEX(dmaRxIdentifier);
+                bus->dmaRx->channel = dmaRxChannelSpec->channel;
+                dmaEnable(dmaRxIdentifier);
+                break;
+            }
+        }
+
+        if (dmaTxIdentifier && dmaRxIdentifier) {
+            spiInternalResetStream(bus->dmaRx);
+            spiInternalResetStream(bus->dmaTx);
+            spiInternalResetDescriptors(bus);
+            // IRQ handler registration and bus->useDMA = true deferred to Stage M.3.e
+        } else {
+            bus->dmaRx = NULL;
+            bus->dmaTx = NULL;
+        }
+    }
+#endif
 }
 
 bool spiIsBusy(const extDevice_t *dev) {
