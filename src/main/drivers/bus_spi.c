@@ -267,7 +267,7 @@ FAST_CODE static void spiRxIrqHandler(dmaChannelDescriptor_t *descriptor)
 
     spiInternalStopDMA(dev);
 
-#ifdef __DCACHE_PRESENT
+#ifdef STM32F7
     if (bus->curSegment->u.buffers.rxData) {
         SCB_InvalidateDCache_by_Addr(
             (uint32_t *)((uint32_t)bus->curSegment->u.buffers.rxData & ~CACHE_LINE_MASK),

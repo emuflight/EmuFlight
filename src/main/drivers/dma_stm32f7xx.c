@@ -86,6 +86,9 @@ static void enableDmaClock(int index) {
 }
 
 bool dmaAllocate(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex) {
+    if (identifier == DMA_NONE) {
+        return false;
+    }
     const int index = DMA_IDENTIFIER_TO_INDEX(identifier);
     if (dmaDescriptors[index].owner != OWNER_FREE) {
         return false;
@@ -96,6 +99,9 @@ bool dmaAllocate(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t reso
 }
 
 void dmaEnable(dmaIdentifier_e identifier) {
+    if (identifier == DMA_NONE) {
+        return;
+    }
     const int index = DMA_IDENTIFIER_TO_INDEX(identifier);
     enableDmaClock(index);
 }

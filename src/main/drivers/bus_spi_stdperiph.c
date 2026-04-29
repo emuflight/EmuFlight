@@ -269,6 +269,7 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
     }
 }
 
+#if defined(STM32F4)
 void spiInternalResetDescriptors(busDevice_t *bus)
 {
     DMA_InitTypeDef *initTx = bus->initTx;
@@ -420,6 +421,7 @@ void spiInternalStopDMA(const extDevice_t *dev)
         SPI_I2S_DMACmd(instance, SPI_I2S_DMAReq_Tx, DISABLE);
     }
 }
+#endif // STM32F4
 
 void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {
 #define BR_BITS ((BIT(5) | BIT(4) | BIT(3)))
