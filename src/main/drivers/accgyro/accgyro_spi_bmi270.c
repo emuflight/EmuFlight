@@ -351,12 +351,14 @@ static bool bmi270GyroReadRegister(gyroDev_t *gyro)
         BUFFER_SIZE,
     };
 
-    uint8_t bmi270_rx_buf[BUFFER_SIZE];
     static const uint8_t bmi270_tx_buf[BUFFER_SIZE] = {BMI270_REG_GYR_DATA_X_LSB | 0x80, 0, 0, 0, 0, 0, 0, 0};
-
-    IOLo(gyro->dev.busType_u.spi.csnPin);
-    spiTransfer(gyro->dev.bus->busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
-    IOHi(gyro->dev.busType_u.spi.csnPin);
+    static uint8_t bmi270_rx_buf[BUFFER_SIZE];
+    busSegment_t segments[] = {
+        {.u.buffers = {(uint8_t *)bmi270_tx_buf, bmi270_rx_buf}, BUFFER_SIZE, true, NULL},
+        {.u.link = {NULL, NULL}, 0, true, NULL},
+    };
+    spiSequence(&gyro->dev, &segments[0]);
+    spiWait(&gyro->dev);
 
     gyro->gyroADCRaw[X] = (int16_t)((bmi270_rx_buf[IDX_GYRO_XOUT_H] << 8) | bmi270_rx_buf[IDX_GYRO_XOUT_L]);
     gyro->gyroADCRaw[Y] = (int16_t)((bmi270_rx_buf[IDX_GYRO_YOUT_H] << 8) | bmi270_rx_buf[IDX_GYRO_YOUT_L]);
@@ -384,14 +386,13 @@ static bool bmi270GyroReadFifo(gyroDev_t *gyro)
 
     bool dataRead = false;
     static const uint8_t bmi270_tx_buf[BUFFER_SIZE] = {BMI270_REG_FIFO_LENGTH_LSB | 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    uint8_t bmi270_rx_buf[BUFFER_SIZE];
-
-    // Burst read the FIFO length followed by the next 6 bytes containing the gyro axis data for
-    // the first sample in the queue. It's possible for the FIFO to be empty so we need to check the
-    // length before using the sample.
-    IOLo(gyro->dev.busType_u.spi.csnPin);
-    spiTransfer(gyro->dev.bus->busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
-    IOHi(gyro->dev.busType_u.spi.csnPin);
+    static uint8_t bmi270_rx_buf[BUFFER_SIZE];
+    busSegment_t segments[] = {
+        {.u.buffers = {(uint8_t *)bmi270_tx_buf, bmi270_rx_buf}, BUFFER_SIZE, true, NULL},
+        {.u.link = {NULL, NULL}, 0, true, NULL},
+    };
+    spiSequence(&gyro->dev, &segments[0]);
+    spiWait(&gyro->dev);
 
     int fifoLength = (uint16_t)((bmi270_rx_buf[IDX_FIFO_LENGTH_H] << 8) | bmi270_rx_buf[IDX_FIFO_LENGTH_L]);
 
