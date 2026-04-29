@@ -24,6 +24,8 @@
 
 #include "platform.h"
 
+#include "build/atomic.h"
+
 #ifdef USE_SPI
 
 // Transmit-only DMA path: used when a bus has a Tx DMA channel but no Rx channel.
@@ -349,14 +351,14 @@ void spiInitBusDMA(void)
             spiInternalResetStream(bus->dmaTx);
             spiInternalResetDescriptors(bus);
             dmaSetHandler(dmaRxIdentifier, spiRxIrqHandler, NVIC_PRIO_SPI_DMA, 0);
-            // bus->useDMA = true deferred to Stage M.3.f (requires ATOMIC_BLOCK in spiSequence first)
+            bus->useDMA = true;
 #ifdef USE_TX_IRQ_HANDLER
         } else if (dmaTxIdentifier) {
             bus->dmaRx = (dmaChannelDescriptor_t *)NULL;
             spiInternalResetStream(bus->dmaTx);
             spiInternalResetDescriptors(bus);
             dmaSetHandler(dmaTxIdentifier, spiTxIrqHandler, NVIC_PRIO_SPI_DMA, 0);
-            // bus->useDMA = true deferred to Stage M.3.f
+            bus->useDMA = true;
 #endif
         } else {
             bus->dmaRx = NULL;
@@ -431,13 +433,11 @@ void spiLinkSegments(const extDevice_t *dev, busSegment_t *firstSegment, busSegm
 void spiSequence(const extDevice_t *dev, busSegment_t *segments) {
     busDevice_t *bus = dev->bus;
 
-    spiWait(dev);
-
-    bus->curSegment = segments;
-
 #ifdef USE_DMA_SPI_DEVICE
     if (dev->bus->busType_u.spi.instance == USE_DMA_SPI_DEVICE) {
-        // IMUF9001 custom DMA path: only supports single-segment transfers.
+        // IMUF9001 blocking custom DMA — incompatible with non-blocking segment queuing.
+        spiWait(dev);
+        bus->curSegment = segments;
         if (segments[0].len > 0 && segments[1].len == 0) {
             uint8_t *txData = segments[0].u.buffers.txData;
             uint8_t *rxData = segments[0].u.buffers.rxData;
@@ -464,8 +464,47 @@ void spiSequence(const extDevice_t *dev, busSegment_t *segments) {
             bus->curSegment = (busSegment_t *)BUS_SPI_FREE;
             return;
         }
+        spiSequenceStart(dev);
+        return;
     }
 #endif
+
+    ATOMIC_BLOCK(NVIC_PRIO_MAX) {
+        if (spiIsBusy(dev)) {
+            busSegment_t *endSegment;
+
+            // Find the last segment of the new transfer
+            for (endSegment = segments; endSegment->len; endSegment++);
+
+            // Safe to discard the volatile qualifier as we're in an atomic block
+            busSegment_t *endCmpSegment = (busSegment_t *)bus->curSegment;
+
+            if (endCmpSegment) {
+                while (true) {
+                    // Find the last segment of the current transfer
+                    for (; endCmpSegment->len; endCmpSegment++);
+
+                    if (endCmpSegment == endSegment) {
+                        // Same segment list queued twice; abort.
+                        return;
+                    }
+
+                    if (endCmpSegment->u.link.dev == NULL) {
+                        break;
+                    } else {
+                        endCmpSegment = (busSegment_t *)endCmpSegment->u.link.segments;
+                    }
+                }
+
+                endCmpSegment->u.link.dev = dev;
+                endCmpSegment->u.link.segments = segments;
+            }
+
+            return;
+        } else {
+            bus->curSegment = segments;
+        }
+    }
 
     spiSequenceStart(dev);
 }
