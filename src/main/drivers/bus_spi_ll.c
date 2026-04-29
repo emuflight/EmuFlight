@@ -482,7 +482,7 @@ void spiInternalStopDMA(const extDevice_t *dev)
     } else {
         while (LL_SPI_IsActiveFlag_BSY(instance));
         while (LL_SPI_IsActiveFlag_RXNE(instance)) {
-            instance->DR;
+            (void)instance->DR;
         }
         LL_DMA_DisableStream(dmaTx->dma, dmaTx->stream);
         DMA_CLEAR_FLAG(dmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
