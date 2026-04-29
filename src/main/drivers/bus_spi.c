@@ -26,6 +26,18 @@
 
 #ifdef USE_SPI
 
+// Transmit-only DMA path: used when a bus has a Tx DMA channel but no Rx channel.
+// Applicable to F4/F7; not needed on H7/G4 where full-duplex DMA is always available.
+#if defined(STM32F4) || defined(STM32F7)
+#define USE_TX_IRQ_HANDLER
+#endif
+
+// F7 cache-line constants for DMA buffer maintenance (32-byte L1D cache lines on Cortex-M7).
+#ifdef STM32F7
+#define CACHE_LINE_SIZE  32
+#define CACHE_LINE_MASK  (CACHE_LINE_SIZE - 1)
+#endif
+
 #include "drivers/bus.h"
 #include "drivers/bus_spi.h"
 #include "drivers/bus_spi_impl.h"
@@ -178,6 +190,115 @@ bool spiSetBusInstance(extDevice_t *dev, uint32_t device) {
     return true;
 }
 
+// Shared segment-completion handler called from spiRxIrqHandler / spiTxIrqHandler.
+// Advances the segment list, starts the next DMA transfer, or marks the bus free.
+FAST_CODE static void spiIrqHandler(const extDevice_t *dev)
+{
+    busDevice_t *bus = dev->bus;
+    busSegment_t *nextSegment;
+
+    if (bus->curSegment->callback) {
+        switch (bus->curSegment->callback(dev->callbackArg)) {
+        case BUS_BUSY:
+            bus->curSegment--;
+            spiInternalInitStream(dev, true);
+            break;
+        case BUS_ABORT:
+            nextSegment = (busSegment_t *)bus->curSegment + 1;
+            while (nextSegment->len != 0) {
+                bus->curSegment = nextSegment;
+                nextSegment = (busSegment_t *)bus->curSegment + 1;
+            }
+            break;
+        case BUS_READY:
+        default:
+            break;
+        }
+    }
+
+    nextSegment = (busSegment_t *)bus->curSegment + 1;
+
+    if (nextSegment->len == 0) {
+        if (nextSegment->u.link.dev) {
+            const extDevice_t *nextDev = nextSegment->u.link.dev;
+            busSegment_t *nextSegments = (busSegment_t *)nextSegment->u.link.segments;
+            bus->curSegment = nextSegments;
+            nextSegment->u.link.dev = NULL;
+            nextSegment->u.link.segments = NULL;
+            spiSequenceStart(nextDev);
+        } else {
+            bus->curSegment = (busSegment_t *)BUS_SPI_FREE;
+        }
+    } else {
+        bool negateCS = bus->curSegment->negateCS;
+        bus->curSegment = nextSegment;
+
+        if (bus->initSegment) {
+            spiInternalInitStream(dev, false);
+            bus->initSegment = false;
+        }
+
+        if (negateCS) {
+            IOLo(dev->busType_u.spi.csnPin);
+        }
+
+        spiInternalStartDMA(dev);
+        spiInternalInitStream(dev, true);
+    }
+}
+
+// DMA Rx TC IRQ handler — fires when SPI Rx DMA transfer completes.
+// Negates CS, stops DMA, invalidates cache on F7, then advances the segment list.
+FAST_CODE static void spiRxIrqHandler(dmaChannelDescriptor_t *descriptor)
+{
+    const extDevice_t *dev = (const extDevice_t *)descriptor->userParam;
+
+    if (!dev) {
+        return;
+    }
+
+    busDevice_t *bus = dev->bus;
+
+    if (bus->curSegment->negateCS) {
+        IOHi(dev->busType_u.spi.csnPin);
+    }
+
+    spiInternalStopDMA(dev);
+
+#ifdef __DCACHE_PRESENT
+    if (bus->curSegment->u.buffers.rxData) {
+        SCB_InvalidateDCache_by_Addr(
+            (uint32_t *)((uint32_t)bus->curSegment->u.buffers.rxData & ~CACHE_LINE_MASK),
+            (((uint32_t)bus->curSegment->u.buffers.rxData & CACHE_LINE_MASK) +
+              bus->curSegment->len - 1 + CACHE_LINE_SIZE) & ~CACHE_LINE_MASK);
+    }
+#endif
+
+    spiIrqHandler(dev);
+}
+
+#ifdef USE_TX_IRQ_HANDLER
+// DMA Tx TC IRQ handler — used for Tx-only DMA buses (no Rx channel).
+FAST_CODE static void spiTxIrqHandler(dmaChannelDescriptor_t *descriptor)
+{
+    const extDevice_t *dev = (const extDevice_t *)descriptor->userParam;
+
+    if (!dev) {
+        return;
+    }
+
+    busDevice_t *bus = dev->bus;
+
+    spiInternalStopDMA(dev);
+
+    if (bus->curSegment->negateCS) {
+        IOHi(dev->busType_u.spi.csnPin);
+    }
+
+    spiIrqHandler(dev);
+}
+#endif
+
 void spiInitBusDMA(void)
 {
 #if (defined(STM32F4) || defined(STM32F7)) && defined(USE_SPI)
@@ -227,7 +348,16 @@ void spiInitBusDMA(void)
             spiInternalResetStream(bus->dmaRx);
             spiInternalResetStream(bus->dmaTx);
             spiInternalResetDescriptors(bus);
-            // IRQ handler registration and bus->useDMA = true deferred to Stage M.3.e
+            dmaSetHandler(dmaRxIdentifier, spiRxIrqHandler, NVIC_PRIO_SPI_DMA, 0);
+            // bus->useDMA = true deferred to Stage M.3.f (requires ATOMIC_BLOCK in spiSequence first)
+#ifdef USE_TX_IRQ_HANDLER
+        } else if (dmaTxIdentifier) {
+            bus->dmaRx = (dmaChannelDescriptor_t *)NULL;
+            spiInternalResetStream(bus->dmaTx);
+            spiInternalResetDescriptors(bus);
+            dmaSetHandler(dmaTxIdentifier, spiTxIrqHandler, NVIC_PRIO_SPI_DMA, 0);
+            // bus->useDMA = true deferred to Stage M.3.f
+#endif
         } else {
             bus->dmaRx = NULL;
             bus->dmaTx = NULL;

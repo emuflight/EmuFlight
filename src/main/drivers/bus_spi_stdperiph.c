@@ -269,12 +269,157 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
     }
 }
 
-// Platform-internal DMA functions — stubs until Stage M.3.d (dma_reqmap + spiInitBusDMA).
-void spiInternalInitStream(const extDevice_t *dev, bool preInit) { UNUSED(dev); UNUSED(preInit); }
-void spiInternalStartDMA(const extDevice_t *dev) { UNUSED(dev); }
-void spiInternalStopDMA(const extDevice_t *dev) { UNUSED(dev); }
-void spiInternalResetStream(dmaChannelDescriptor_t *descriptor) { UNUSED(descriptor); }
-void spiInternalResetDescriptors(busDevice_t *bus) { UNUSED(bus); }
+void spiInternalResetDescriptors(busDevice_t *bus)
+{
+    DMA_InitTypeDef *initTx = bus->initTx;
+
+    DMA_StructInit(initTx);
+    initTx->DMA_Channel = bus->dmaTx->channel;
+    initTx->DMA_DIR = DMA_DIR_MemoryToPeripheral;
+    initTx->DMA_Mode = DMA_Mode_Normal;
+    initTx->DMA_PeripheralBaseAddr = (uint32_t)&bus->busType_u.spi.instance->DR;
+    initTx->DMA_Priority = DMA_Priority_Low;
+    initTx->DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+    initTx->DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+    initTx->DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+
+    if (bus->dmaRx) {
+        DMA_InitTypeDef *initRx = bus->initRx;
+
+        DMA_StructInit(initRx);
+        initRx->DMA_Channel = bus->dmaRx->channel;
+        initRx->DMA_DIR = DMA_DIR_PeripheralToMemory;
+        initRx->DMA_Mode = DMA_Mode_Normal;
+        initRx->DMA_PeripheralBaseAddr = (uint32_t)&bus->busType_u.spi.instance->DR;
+        initRx->DMA_Priority = DMA_Priority_Low;
+        initRx->DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+        initRx->DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+    }
+}
+
+void spiInternalResetStream(dmaChannelDescriptor_t *descriptor)
+{
+    DMA_Stream_TypeDef *streamRegs = (DMA_Stream_TypeDef *)descriptor->ref;
+    streamRegs->CR = 0U;
+    DMA_CLEAR_FLAG(descriptor, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
+}
+
+void spiInternalInitStream(const extDevice_t *dev, bool preInit)
+{
+    static uint8_t dummyTxByte = 0xff;
+    static uint8_t dummyRxByte;
+    busDevice_t *bus = dev->bus;
+
+    volatile busSegment_t *segment = bus->curSegment;
+
+    if (preInit) {
+        segment++;
+        if (segment->len == 0) {
+            return;
+        }
+    }
+
+    int len = segment->len;
+    uint8_t *txData = segment->u.buffers.txData;
+    DMA_InitTypeDef *initTx = bus->initTx;
+
+    if (txData) {
+        initTx->DMA_Memory0BaseAddr = (uint32_t)txData;
+        initTx->DMA_MemoryInc = DMA_MemoryInc_Enable;
+    } else {
+        dummyTxByte = 0xff;
+        initTx->DMA_Memory0BaseAddr = (uint32_t)&dummyTxByte;
+        initTx->DMA_MemoryInc = DMA_MemoryInc_Disable;
+    }
+    initTx->DMA_BufferSize = len;
+
+    if (bus->dmaRx) {
+        uint8_t *rxData = segment->u.buffers.rxData;
+        DMA_InitTypeDef *initRx = bus->initRx;
+
+        if (rxData) {
+            initRx->DMA_Memory0BaseAddr = (uint32_t)rxData;
+            initRx->DMA_MemoryInc = DMA_MemoryInc_Enable;
+        } else {
+            initRx->DMA_Memory0BaseAddr = (uint32_t)&dummyRxByte;
+            initRx->DMA_MemoryInc = DMA_MemoryInc_Disable;
+        }
+        /* Use 16-bit memory writes where possible to prevent atomic access issues on gyro data */
+        if ((initRx->DMA_Memory0BaseAddr & 0x1) || (len & 0x1)) {
+            initRx->DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+        } else {
+            initRx->DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
+        }
+        initRx->DMA_BufferSize = len;
+    }
+}
+
+void spiInternalStartDMA(const extDevice_t *dev)
+{
+    dmaChannelDescriptor_t *dmaTx = dev->bus->dmaTx;
+    dmaChannelDescriptor_t *dmaRx = dev->bus->dmaRx;
+    DMA_Stream_TypeDef *streamRegsTx = (DMA_Stream_TypeDef *)dmaTx->ref;
+
+    if (dmaRx) {
+        DMA_Stream_TypeDef *streamRegsRx = (DMA_Stream_TypeDef *)dmaRx->ref;
+
+        dmaRx->userParam = (uint32_t)dev;
+
+        DMA_CLEAR_FLAG(dmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
+        DMA_CLEAR_FLAG(dmaRx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
+
+        streamRegsTx->CR = 0U;
+        streamRegsRx->CR = 0U;
+
+        /* Use Rx TC interrupt — fires after SPI operation completes, unlike Tx TC
+         * which fires when Tx FIFO empties while the SPI operation is still in progress.
+         */
+        DMA_ITConfig(streamRegsRx, DMA_IT_TC, ENABLE);
+
+        DMA_Init(streamRegsTx, dev->bus->initTx);
+        DMA_Init(streamRegsRx, dev->bus->initRx);
+
+        DMA_Cmd(streamRegsTx, ENABLE);
+        DMA_Cmd(streamRegsRx, ENABLE);
+
+        SPI_I2S_DMACmd(dev->bus->busType_u.spi.instance, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
+    } else {
+        dmaTx->userParam = (uint32_t)dev;
+
+        DMA_CLEAR_FLAG(dmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
+
+        streamRegsTx->CR = 0U;
+        DMA_ITConfig(streamRegsTx, DMA_IT_TC, ENABLE);
+        DMA_Init(streamRegsTx, dev->bus->initTx);
+        DMA_Cmd(streamRegsTx, ENABLE);
+
+        SPI_I2S_DMACmd(dev->bus->busType_u.spi.instance, SPI_I2S_DMAReq_Tx, ENABLE);
+    }
+}
+
+void spiInternalStopDMA(const extDevice_t *dev)
+{
+    dmaChannelDescriptor_t *dmaTx = dev->bus->dmaTx;
+    dmaChannelDescriptor_t *dmaRx = dev->bus->dmaRx;
+    SPI_TypeDef *instance = dev->bus->busType_u.spi.instance;
+    DMA_Stream_TypeDef *streamRegsTx = (DMA_Stream_TypeDef *)dmaTx->ref;
+
+    if (dmaRx) {
+        DMA_Stream_TypeDef *streamRegsRx = (DMA_Stream_TypeDef *)dmaRx->ref;
+
+        streamRegsTx->CR = 0U;
+        streamRegsRx->CR = 0U;
+
+        SPI_I2S_DMACmd(instance, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, DISABLE);
+    } else {
+        while (SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_BSY));
+        while (SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_RXNE)) {
+            instance->DR;
+        }
+        streamRegsTx->CR = 0U;
+        SPI_I2S_DMACmd(instance, SPI_I2S_DMAReq_Tx, DISABLE);
+    }
+}
 
 void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {
 #define BR_BITS ((BIT(5) | BIT(4) | BIT(3)))
