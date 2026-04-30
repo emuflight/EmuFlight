@@ -278,7 +278,7 @@ FAST_CODE bool mpuGyroReadSPI(gyroDev_t *gyro)
     case GYRO_EXTI_INIT:
     {
         memset(gyro->dev.txBuf, 0xff, 16);
-        gyro->gyroDmaMaxDuration = 5;
+        gyro->gyroDmaMaxDuration = 5; // seed estimate in CPU cycles; updated by mpuIntCallback with actual measurements
 #if defined(MPU_INT_EXTI)
         if (gyro->detectedEXTI > GYRO_EXTI_DETECT_THRESHOLD) {
             if (spiUseDMA(&gyro->dev)) {

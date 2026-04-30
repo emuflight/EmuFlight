@@ -384,7 +384,7 @@ static bool bmi270GyroReadRegister(gyroDev_t *gyro)
     {
         memset(dev->txBuf, 0x00, 14);
 
-        gyro->gyroDmaMaxDuration = 5;
+        gyro->gyroDmaMaxDuration = 5; // seed estimate in CPU cycles; updated by bmi270Intcallback with actual measurements
 #if defined(USE_GYRO_EXTI) && defined(USE_MPU_DATA_READY_SIGNAL)
         if (gyro->detectedEXTI > GYRO_EXTI_DETECT_THRESHOLD) {
             if (spiUseDMA(dev)) {
