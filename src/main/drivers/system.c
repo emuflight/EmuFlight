@@ -49,9 +49,8 @@ void cycleCounterInit(void) {
 #endif
     // Enable DWT cycle counter (Cortex-M3/M4/M7)
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-#if defined(USE_HAL_DRIVER)
-    // Cortex-M7 requires unlocking DWT write access via LAR
-    *((volatile uint32_t *)(DWT_BASE + 0x0FB0)) = 0xC5ACCE55;
+#if defined(STM32F7)
+    DWT->LAR = 0xC5ACCE55;
 #endif
     DWT->CYCCNT = 0;
     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
