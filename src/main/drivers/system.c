@@ -47,6 +47,19 @@ void cycleCounterInit(void) {
     RCC_GetClocksFreq(&clocks);
     usTicks = clocks.SYSCLK_Frequency / 1000000;
 #endif
+    // Enable DWT cycle counter (Cortex-M3/M4/M7)
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+#if defined(USE_HAL_DRIVER)
+    // Cortex-M7 requires unlocking DWT write access via LAR
+    *((volatile uint32_t *)(DWT_BASE + 0x0FB0)) = 0xC5ACCE55;
+#endif
+    DWT->CYCCNT = 0;
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+}
+
+uint32_t getCycleCounter(void)
+{
+    return DWT->CYCCNT;
 }
 
 // SysTick

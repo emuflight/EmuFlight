@@ -84,6 +84,8 @@ imufData_t imufData;
 
 #define MPU_INQUIRY_MASK   0x7E
 
+#define GYRO_EXTI_DETECT_THRESHOLD 1000
+
 #if defined(USE_I2C) && !defined(USE_DMA_SPI_DEVICE)
 static void mpu6050FindRevision(gyroDev_t *gyro) {
     // There is a map of revision contained in the android source tree which is quite comprehensive and may help to understand this code
@@ -122,24 +124,35 @@ static void mpu6050FindRevision(gyroDev_t *gyro) {
  * Gyro interrupt service routine
  */
 #if defined(MPU_INT_EXTI)
+// Called in ISR context after DMA transfer completes
+busStatus_e mpuIntCallback(uint32_t arg)
+{
+    gyroDev_t *gyro = (gyroDev_t *)arg;
+    int32_t gyroDmaDuration = cmpTimeCycles(getCycleCounter(), gyro->gyroLastEXTI);
+    if (gyroDmaDuration > gyro->gyroDmaMaxDuration) {
+        gyro->gyroDmaMaxDuration = gyroDmaDuration;
+    }
+    gyro->dataReady = true;
+    return BUS_READY;
+}
+
 FAST_CODE static void mpuIntExtiHandler(extiCallbackRec_t *cb) {
 #ifdef USE_DMA_SPI_DEVICE
     //start dma read
     (void)(cb);
     gyroDmaSpiStartRead();
 #else
-#ifdef DEBUG_MPU_DATA_READY_INTERRUPT
-    static uint32_t lastCalledAtUs = 0;
-    const uint32_t nowUs = micros();
-    debug[0] = (uint16_t)(nowUs - lastCalledAtUs);
-    lastCalledAtUs = nowUs;
-#endif
     gyroDev_t *gyro = container_of(cb, gyroDev_t, exti);
-    gyro->dataReady = true;
-#ifdef DEBUG_MPU_DATA_READY_INTERRUPT
-    const uint32_t now2Us = micros();
-    debug[1] = (uint16_t)(now2Us - nowUs);
-#endif // DEBUG_MPU_DATA_READY_INTERRUPT
+    uint32_t nowCycles = getCycleCounter();
+    int32_t gyroLastPeriod = cmpTimeCycles(nowCycles, gyro->gyroLastEXTI);
+    if ((gyro->gyroShortPeriod == 0) || (gyroLastPeriod < gyro->gyroShortPeriod)) {
+        gyro->gyroSyncEXTI = gyro->gyroLastEXTI + gyro->gyroDmaMaxDuration;
+    }
+    gyro->gyroLastEXTI = nowCycles;
+    if (gyro->gyroModeSPI == GYRO_EXTI_INT_DMA) {
+        spiSequence(&gyro->dev, gyro->segments);
+    }
+    gyro->detectedEXTI++;
 #endif // USE_DMA_SPI_DEVICE
 }
 
@@ -258,16 +271,75 @@ FAST_CODE bool mpuGyroRead(gyroDev_t *gyro) {
     return true;
 }
 
-FAST_CODE bool mpuGyroReadSPI(gyroDev_t *gyro) {
-    static const uint8_t dataToSend[7] = {MPU_RA_GYRO_XOUT_H | 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    static uint8_t data[7];
-    const bool ack = spiReadWriteBufRB(&gyro->dev, (uint8_t *)dataToSend, data, 7);
-    if (!ack) {
-        return false;
+FAST_CODE bool mpuGyroReadSPI(gyroDev_t *gyro)
+{
+    int16_t *gyroData = (int16_t *)gyro->dev.rxBuf;
+    switch (gyro->gyroModeSPI) {
+    case GYRO_EXTI_INIT:
+    {
+        memset(gyro->dev.txBuf, 0xff, 16);
+        gyro->gyroDmaMaxDuration = 5;
+#if defined(MPU_INT_EXTI)
+        if (gyro->detectedEXTI > GYRO_EXTI_DETECT_THRESHOLD) {
+            if (spiUseDMA(&gyro->dev)) {
+                gyro->dev.callbackArg = (uint32_t)gyro;
+                gyro->dev.txBuf[0] = gyro->accDataReg | 0x80;
+                gyro->segments[0].len = gyro->gyroDataReg - gyro->accDataReg + sizeof(uint8_t) + 3 * sizeof(int16_t);
+                gyro->segments[0].callback = mpuIntCallback;
+                gyro->segments[0].u.buffers.txData = gyro->dev.txBuf;
+                gyro->segments[0].u.buffers.rxData = &gyro->dev.rxBuf[1];
+                gyro->segments[0].negateCS = true;
+                gyro->segments[1].len = 0;
+                gyro->segments[1].u.link.dev = NULL;
+                gyro->segments[1].u.link.segments = NULL;
+                gyro->gyroModeSPI = GYRO_EXTI_INT_DMA;
+            } else {
+                gyro->gyroModeSPI = GYRO_EXTI_INT;
+            }
+        } else {
+            gyro->gyroModeSPI = GYRO_EXTI_NO_INT;
+        }
+#else
+        gyro->gyroModeSPI = GYRO_EXTI_NO_INT;
+#endif
+        break;
     }
-    gyro->gyroADCRaw[X] = (int16_t)((data[1] << 8) | data[2]);
-    gyro->gyroADCRaw[Y] = (int16_t)((data[3] << 8) | data[4]);
-    gyro->gyroADCRaw[Z] = (int16_t)((data[5] << 8) | data[6]);
+
+    case GYRO_EXTI_INT:
+    case GYRO_EXTI_NO_INT:
+    {
+        gyro->dev.txBuf[0] = gyro->gyroDataReg | 0x80;
+
+        busSegment_t segments[] = {
+            {.u.buffers = {NULL, NULL}, 7, true, NULL},
+            {.u.link = {NULL, NULL}, 0, true, NULL},
+        };
+        segments[0].u.buffers.txData = gyro->dev.txBuf;
+        segments[0].u.buffers.rxData = &gyro->dev.rxBuf[1];
+
+        spiSequence(&gyro->dev, &segments[0]);
+        spiWait(&gyro->dev);
+
+        gyro->gyroADCRaw[X] = __builtin_bswap16(gyroData[1]);
+        gyro->gyroADCRaw[Y] = __builtin_bswap16(gyroData[2]);
+        gyro->gyroADCRaw[Z] = __builtin_bswap16(gyroData[3]);
+        break;
+    }
+
+    case GYRO_EXTI_INT_DMA:
+    {
+        // Data was read by DMA from EXTI interrupt; acc and gyro may not be contiguous
+        const uint8_t gyroDataIndex = ((gyro->gyroDataReg - gyro->accDataReg) >> 1) + 1;
+        gyro->gyroADCRaw[X] = __builtin_bswap16(gyroData[gyroDataIndex]);
+        gyro->gyroADCRaw[Y] = __builtin_bswap16(gyroData[gyroDataIndex + 1]);
+        gyro->gyroADCRaw[Z] = __builtin_bswap16(gyroData[gyroDataIndex + 2]);
+        break;
+    }
+
+    default:
+        break;
+    }
+
     return true;
 }
 
