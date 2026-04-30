@@ -339,6 +339,18 @@ const extDevice_t *gyroSensorBus(void) {
 #endif
 }
 
+gyroDev_t *gyroSensorGetDev(void) {
+#ifdef USE_DUAL_GYRO
+    if (gyroToUse == GYRO_CONFIG_USE_GYRO_2) {
+        return &gyroSensor2.gyroDev;
+    } else {
+        return &gyroSensor1.gyroDev;
+    }
+#else
+    return &gyroSensor1.gyroDev;
+#endif
+}
+
 #ifdef USE_GYRO_REGISTER_DUMP
 const extDevice_t *gyroSensorBusByDevice(uint8_t whichSensor) {
 #ifdef USE_DUAL_GYRO

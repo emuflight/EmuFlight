@@ -20,10 +20,13 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "platform.h"
 
 #ifdef USE_ACCGYRO_BMI270
+
+#include "common/utils.h"
 
 #include "drivers/accgyro/accgyro.h"
 #include "drivers/accgyro/accgyro_spi_bmi270.h"
@@ -33,6 +36,7 @@
 #include "drivers/io_impl.h"
 #include "drivers/nvic.h"
 #include "drivers/sensor.h"
+#include "drivers/system.h"
 #include "drivers/time.h"
 
 // 10 MHz max SPI frequency
@@ -65,6 +69,8 @@ const uint8_t bmi270_maximum_fifo_config_file[] = {
 };
 
 #define BMI270_CHIP_ID 0x24
+
+#define GYRO_EXTI_DETECT_THRESHOLD 1000
 
 // BMI270 registers (not the complete list)
 typedef enum {
@@ -288,10 +294,29 @@ static void bmi270Config(const gyroDev_t *gyro)
 extiCallbackRec_t bmi270IntCallbackRec;
 
 #if defined(USE_GYRO_EXTI) && defined(USE_MPU_DATA_READY_SIGNAL)
+// Called in ISR context after DMA transfer completes
+busStatus_e bmi270Intcallback(uint32_t arg)
+{
+    gyroDev_t *gyro = (gyroDev_t *)arg;
+    int32_t gyroDmaDuration = cmpTimeCycles(getCycleCounter(), gyro->gyroLastEXTI);
+    if (gyroDmaDuration > gyro->gyroDmaMaxDuration) {
+        gyro->gyroDmaMaxDuration = gyroDmaDuration;
+    }
+    gyro->dataReady = true;
+    return BUS_READY;
+}
+
 void bmi270ExtiHandler(extiCallbackRec_t *cb)
 {
     gyroDev_t *gyro = container_of(cb, gyroDev_t, exti);
-    gyro->dataReady = true;
+    extDevice_t *dev = &gyro->dev;
+    uint32_t nowCycles = getCycleCounter();
+    gyro->gyroSyncEXTI = gyro->gyroLastEXTI + gyro->gyroDmaMaxDuration;
+    gyro->gyroLastEXTI = nowCycles;
+    if (gyro->gyroModeSPI == GYRO_EXTI_INT_DMA) {
+        spiSequence(dev, gyro->segments);
+    }
+    gyro->detectedEXTI++;
 }
 
 static void bmi270IntExtiInit(gyroDev_t *gyro)
@@ -304,65 +329,113 @@ static void bmi270IntExtiInit(gyroDev_t *gyro)
 
     IOInit(mpuIntIO, OWNER_MPU_EXTI, 0);
     EXTIHandlerInit(&gyro->exti, bmi270ExtiHandler);
-    EXTIConfig(mpuIntIO, &gyro->exti, NVIC_PRIO_MPU_INT_EXTI, IOCFG_IN_FLOATING );
+    EXTIConfig(mpuIntIO, &gyro->exti, NVIC_PRIO_MPU_INT_EXTI, IOCFG_IN_FLOATING);
     EXTIEnable(mpuIntIO, true);
 }
 #endif
 
 static bool bmi270AccRead(accDev_t *acc)
 {
-    enum {
-        IDX_REG = 0,
-        IDX_SKIP,
-        IDX_ACCEL_XOUT_L,
-        IDX_ACCEL_XOUT_H,
-        IDX_ACCEL_YOUT_L,
-        IDX_ACCEL_YOUT_H,
-        IDX_ACCEL_ZOUT_L,
-        IDX_ACCEL_ZOUT_H,
-        BUFFER_SIZE,
-    };
+    extDevice_t *dev = &acc->gyro->dev;
 
-    uint8_t bmi270_rx_buf[BUFFER_SIZE];
-    static const uint8_t bmi270_tx_buf[BUFFER_SIZE] = {BMI270_REG_ACC_DATA_X_LSB | 0x80, 0, 0, 0, 0, 0, 0, 0};
+    switch (acc->gyro->gyroModeSPI) {
+    case GYRO_EXTI_INT:
+    case GYRO_EXTI_NO_INT:
+    {
+        dev->txBuf[0] = BMI270_REG_ACC_DATA_X_LSB | 0x80;
 
-    IOLo(acc->dev.busType_u.spi.csnPin);
-    spiTransfer(acc->dev.bus->busType_u.spi.instance, bmi270_tx_buf, bmi270_rx_buf, BUFFER_SIZE);   // receive response
-    IOHi(acc->dev.busType_u.spi.csnPin);
+        busSegment_t segments[] = {
+            {.u.buffers = {NULL, NULL}, 8, true, NULL},
+            {.u.link = {NULL, NULL}, 0, true, NULL},
+        };
+        segments[0].u.buffers.txData = dev->txBuf;
+        segments[0].u.buffers.rxData = dev->rxBuf;
 
-    acc->ADCRaw[X] = (int16_t)((bmi270_rx_buf[IDX_ACCEL_XOUT_H] << 8) | bmi270_rx_buf[IDX_ACCEL_XOUT_L]);
-    acc->ADCRaw[Y] = (int16_t)((bmi270_rx_buf[IDX_ACCEL_YOUT_H] << 8) | bmi270_rx_buf[IDX_ACCEL_YOUT_L]);
-    acc->ADCRaw[Z] = (int16_t)((bmi270_rx_buf[IDX_ACCEL_ZOUT_H] << 8) | bmi270_rx_buf[IDX_ACCEL_ZOUT_L]);
+        spiSequence(dev, &segments[0]);
+        spiWait(dev);
+
+        FALLTHROUGH;
+    }
+
+    case GYRO_EXTI_INT_DMA:
+    {
+        int16_t *accData = (int16_t *)dev->rxBuf;
+        acc->ADCRaw[X] = accData[1];
+        acc->ADCRaw[Y] = accData[2];
+        acc->ADCRaw[Z] = accData[3];
+        break;
+    }
+
+    case GYRO_EXTI_INIT:
+    default:
+        break;
+    }
 
     return true;
 }
 
 static bool bmi270GyroReadRegister(gyroDev_t *gyro)
 {
-    enum {
-        IDX_REG = 0,
-        IDX_SKIP,
-        IDX_GYRO_XOUT_L,
-        IDX_GYRO_XOUT_H,
-        IDX_GYRO_YOUT_L,
-        IDX_GYRO_YOUT_H,
-        IDX_GYRO_ZOUT_L,
-        IDX_GYRO_ZOUT_H,
-        BUFFER_SIZE,
-    };
+    extDevice_t *dev = &gyro->dev;
+    int16_t *gyroData = (int16_t *)dev->rxBuf;
 
-    static const uint8_t bmi270_tx_buf[BUFFER_SIZE] = {BMI270_REG_GYR_DATA_X_LSB | 0x80, 0, 0, 0, 0, 0, 0, 0};
-    static uint8_t bmi270_rx_buf[BUFFER_SIZE];
-    busSegment_t segments[] = {
-        {.u.buffers = {(uint8_t *)bmi270_tx_buf, bmi270_rx_buf}, BUFFER_SIZE, true, NULL},
-        {.u.link = {NULL, NULL}, 0, true, NULL},
-    };
-    spiSequence(&gyro->dev, &segments[0]);
-    spiWait(&gyro->dev);
+    switch (gyro->gyroModeSPI) {
+    case GYRO_EXTI_INIT:
+    {
+        memset(dev->txBuf, 0x00, 14);
 
-    gyro->gyroADCRaw[X] = (int16_t)((bmi270_rx_buf[IDX_GYRO_XOUT_H] << 8) | bmi270_rx_buf[IDX_GYRO_XOUT_L]);
-    gyro->gyroADCRaw[Y] = (int16_t)((bmi270_rx_buf[IDX_GYRO_YOUT_H] << 8) | bmi270_rx_buf[IDX_GYRO_YOUT_L]);
-    gyro->gyroADCRaw[Z] = (int16_t)((bmi270_rx_buf[IDX_GYRO_ZOUT_H] << 8) | bmi270_rx_buf[IDX_GYRO_ZOUT_L]);
+        gyro->gyroDmaMaxDuration = 5;
+        if (gyro->detectedEXTI > GYRO_EXTI_DETECT_THRESHOLD) {
+            if (spiUseDMA(dev)) {
+                dev->callbackArg = (uint32_t)gyro;
+                dev->txBuf[0] = BMI270_REG_ACC_DATA_X_LSB | 0x80;
+                gyro->segments[0].len = 14;
+                gyro->segments[0].callback = bmi270Intcallback;
+                gyro->segments[0].u.buffers.txData = dev->txBuf;
+                gyro->segments[0].u.buffers.rxData = dev->rxBuf;
+                gyro->segments[0].negateCS = true;
+                gyro->gyroModeSPI = GYRO_EXTI_INT_DMA;
+            } else {
+                gyro->gyroModeSPI = GYRO_EXTI_INT;
+            }
+        } else {
+            gyro->gyroModeSPI = GYRO_EXTI_NO_INT;
+        }
+        break;
+    }
+
+    case GYRO_EXTI_INT:
+    case GYRO_EXTI_NO_INT:
+    {
+        dev->txBuf[0] = BMI270_REG_GYR_DATA_X_LSB | 0x80;
+
+        busSegment_t segments[] = {
+            {.u.buffers = {NULL, NULL}, 8, true, NULL},
+            {.u.link = {NULL, NULL}, 0, true, NULL},
+        };
+        segments[0].u.buffers.txData = dev->txBuf;
+        segments[0].u.buffers.rxData = dev->rxBuf;
+
+        spiSequence(dev, &segments[0]);
+        spiWait(dev);
+
+        gyro->gyroADCRaw[X] = gyroData[1];
+        gyro->gyroADCRaw[Y] = gyroData[2];
+        gyro->gyroADCRaw[Z] = gyroData[3];
+        break;
+    }
+
+    case GYRO_EXTI_INT_DMA:
+    {
+        gyro->gyroADCRaw[X] = gyroData[4];
+        gyro->gyroADCRaw[Y] = gyroData[5];
+        gyro->gyroADCRaw[Z] = gyroData[6];
+        break;
+    }
+
+    default:
+        break;
+    }
 
     return true;
 }

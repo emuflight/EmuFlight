@@ -193,6 +193,7 @@ void gyroDmaSpiStartRead(void);
 void gyroUpdate(timeUs_t currentTimeUs);
 bool gyroGetAverage(quaternion *vAverage);
 const extDevice_t *gyroSensorBus(void);
+struct gyroDev_s *gyroSensorGetDev(void);
 struct mpuConfiguration_s;
 const struct mpuConfiguration_s *gyroMpuConfiguration(void);
 struct mpuDetectionResult_s;

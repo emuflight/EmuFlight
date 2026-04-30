@@ -128,6 +128,7 @@ typedef struct accDev_s {
     sensorAccInitFuncPtr initFn;                              // initialize function
     sensorAccReadFuncPtr readFn;                              // read 3 axis data function
     extDevice_t dev;
+    struct gyroDev_s *gyro;
     uint16_t acc_1G;
     int16_t ADCRaw[XYZ_AXIS_COUNT];
     mpuDetectionResult_t mpuDetectionResult;
