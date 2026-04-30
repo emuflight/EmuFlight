@@ -536,10 +536,10 @@ void mpuDetect(gyroDev_t *gyro) {
 }
 
 void mpuGyroInit(gyroDev_t *gyro) {
+    gyro->accDataReg = MPU_RA_ACCEL_XOUT_H;
+    gyro->gyroDataReg = MPU_RA_GYRO_XOUT_H;
 #ifdef MPU_INT_EXTI
     mpuIntExtiInit(gyro);
-#else
-    UNUSED(gyro);
 #endif
 }
 
