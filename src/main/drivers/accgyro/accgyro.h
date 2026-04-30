@@ -75,6 +75,13 @@
 #define GYRO_RATE_16_kHz    64.0f
 #define GYRO_RATE_32_kHz    32.0f
 
+typedef enum {
+    GYRO_EXTI_INIT = 0,
+    GYRO_EXTI_INT_DMA,
+    GYRO_EXTI_INT,
+    GYRO_EXTI_NO_INT
+} gyroModeSPI_e;
+
 typedef struct gyroDev_s {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
     pthread_mutex_t lock;
@@ -105,6 +112,13 @@ typedef struct gyroDev_s {
     gyroSensor_e gyroHardware;
     uint8_t accDataReg;
     uint8_t gyroDataReg;
+    gyroModeSPI_e gyroModeSPI;
+    uint32_t detectedEXTI;
+    uint32_t gyroLastEXTI;
+    uint32_t gyroSyncEXTI;
+    int32_t gyroShortPeriod;
+    int32_t gyroDmaMaxDuration;
+    busSegment_t segments[2];
 } gyroDev_t;
 
 typedef struct accDev_s {

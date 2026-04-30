@@ -221,6 +221,8 @@ static void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int typ
 #define GYRO_OVERFLOW_TRIGGER_THRESHOLD 31980  // 97.5% full scale (1950dps for 2000dps gyro)
 #define GYRO_OVERFLOW_RESET_THRESHOLD 30340    // 92.5% full scale (1850dps for 2000dps gyro)
 
+#define GYRO_BUF_SIZE 32
+
 PG_REGISTER_WITH_RESET_TEMPLATE(gyroConfig_t, gyroConfig, PG_GYRO_CONFIG, 6);
 
 #ifndef GYRO_CONFIG_USE_GYRO_DEFAULT
@@ -702,6 +704,9 @@ bool gyroInit(void) {
 #endif
     spiSetBusInstance(&gyroSensor1.gyroDev.dev, SPI_DEV_TO_CFG(GYRO_1_SPI_BUS));
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_1 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
+        static FAST_RAM_ZERO_INIT uint8_t gyroBuf1[GYRO_BUF_SIZE];
+        gyroSensor1.gyroDev.dev.txBuf = gyroBuf1;
+        gyroSensor1.gyroDev.dev.rxBuf = &gyroBuf1[GYRO_BUF_SIZE / 2];
         ret = gyroInitSensor(&gyroSensor1);
         if (!ret) {
             return false; // TODO handle failure of first gyro detection better. - Perhaps update the config to use second gyro then indicate a new failure mode and reboot.
@@ -709,6 +714,11 @@ bool gyroInit(void) {
         gyroHasOverflowProtection =  gyroHasOverflowProtection && gyroSensor1.gyroDev.gyroHasOverflowProtection;
     }
 #else // USE_DUAL_GYRO
+    {
+        static FAST_RAM_ZERO_INIT uint8_t gyroBuf1[GYRO_BUF_SIZE];
+        gyroSensor1.gyroDev.dev.txBuf = gyroBuf1;
+        gyroSensor1.gyroDev.dev.rxBuf = &gyroBuf1[GYRO_BUF_SIZE / 2];
+    }
     ret = gyroInitSensor(&gyroSensor1);
     gyroHasOverflowProtection =  gyroHasOverflowProtection && gyroSensor1.gyroDev.gyroHasOverflowProtection;
 #endif // USE_DUAL_GYRO
@@ -726,6 +736,9 @@ bool gyroInit(void) {
 #endif
     spiSetBusInstance(&gyroSensor2.gyroDev.dev, SPI_DEV_TO_CFG(GYRO_2_SPI_BUS));
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_2 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
+        static FAST_RAM_ZERO_INIT uint8_t gyroBuf2[GYRO_BUF_SIZE];
+        gyroSensor2.gyroDev.dev.txBuf = gyroBuf2;
+        gyroSensor2.gyroDev.dev.rxBuf = &gyroBuf2[GYRO_BUF_SIZE / 2];
         ret = gyroInitSensor(&gyroSensor2);
         if (!ret) {
             return false; // TODO handle failure of second gyro detection better. - Perhaps update the config to use first gyro then indicate a new failure mode and reboot.
