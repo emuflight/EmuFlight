@@ -385,6 +385,7 @@ static bool bmi270GyroReadRegister(gyroDev_t *gyro)
         memset(dev->txBuf, 0x00, 14);
 
         gyro->gyroDmaMaxDuration = 5;
+#if defined(USE_GYRO_EXTI) && defined(USE_MPU_DATA_READY_SIGNAL)
         if (gyro->detectedEXTI > GYRO_EXTI_DETECT_THRESHOLD) {
             if (spiUseDMA(dev)) {
                 dev->callbackArg = (uint32_t)gyro;
@@ -401,6 +402,9 @@ static bool bmi270GyroReadRegister(gyroDev_t *gyro)
         } else {
             gyro->gyroModeSPI = GYRO_EXTI_NO_INT;
         }
+#else
+        gyro->gyroModeSPI = GYRO_EXTI_NO_INT;
+#endif
         break;
     }
 
