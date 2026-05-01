@@ -149,9 +149,11 @@ FAST_CODE static void mpuIntExtiHandler(extiCallbackRec_t *cb) {
         gyro->gyroSyncEXTI = gyro->gyroLastEXTI + gyro->gyroDmaMaxDuration;
     }
     gyro->gyroLastEXTI = nowCycles;
+#ifdef GYRO_USES_SPI
     if (gyro->gyroModeSPI == GYRO_EXTI_INT_DMA) {
         spiSequence(&gyro->dev, gyro->segments);
     }
+#endif
     gyro->detectedEXTI++;
 #endif // USE_DMA_SPI_DEVICE
 }
@@ -273,6 +275,7 @@ FAST_CODE bool mpuGyroRead(gyroDev_t *gyro) {
 
 FAST_CODE bool mpuGyroReadSPI(gyroDev_t *gyro)
 {
+#ifdef GYRO_USES_SPI
     int16_t *gyroData = (int16_t *)gyro->dev.rxBuf;
     switch (gyro->gyroModeSPI) {
     case GYRO_EXTI_INIT:
@@ -341,6 +344,19 @@ FAST_CODE bool mpuGyroReadSPI(gyroDev_t *gyro)
     }
 
     return true;
+#else
+    // I2C gyro path (e.g. CRAZYFLIE2): spiSequence not available
+    static const uint8_t dataToSend[7] = {MPU_RA_GYRO_XOUT_H | 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    static uint8_t data[7];
+    const bool ack = spiReadWriteBufRB(&gyro->dev, (uint8_t *)dataToSend, data, 7);
+    if (!ack) {
+        return false;
+    }
+    gyro->gyroADCRaw[X] = (int16_t)((data[1] << 8) | data[2]);
+    gyro->gyroADCRaw[Y] = (int16_t)((data[3] << 8) | data[4]);
+    gyro->gyroADCRaw[Z] = (int16_t)((data[5] << 8) | data[6]);
+    return true;
+#endif
 }
 
 #ifdef USE_SPI
