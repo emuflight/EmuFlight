@@ -98,6 +98,7 @@ static bool mpuSpi6000InitDone = false;
 #define MPU6000_REV_D8 0x58
 #define MPU6000_REV_D9 0x59
 #define MPU6000_REV_D10 0x5A
+#define MPU6000_SHORT_THRESHOLD         82  // Any interrupt interval less than this will be recognised as the short interval of ~79us
 
 void mpu6000SpiGyroInit(gyroDev_t *gyro) {
     mpuGyroInit(gyro);
@@ -213,6 +214,7 @@ bool mpu6000SpiGyroDetect(gyroDev_t *gyro) {
     gyro->readFn = mpuGyroReadSPI;
     // 16.4 dps/lsb scalefactor
     gyro->scale = 1.0f / 16.4f;
+    gyro->gyroShortPeriod = clockMicrosToCycles(MPU6000_SHORT_THRESHOLD);
     return true;
 }
 

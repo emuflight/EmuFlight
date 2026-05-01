@@ -61,6 +61,11 @@ uint32_t getCycleCounter(void)
     return DWT->CYCCNT;
 }
 
+uint32_t clockMicrosToCycles(uint32_t micros)
+{
+    return micros * usTicks;
+}
+
 // SysTick
 
 static volatile int sysTickPending = 0;

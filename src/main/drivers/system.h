@@ -52,6 +52,7 @@ void checkForBootLoaderRequest(void);
 bool isMPUSoftReset(void);
 void cycleCounterInit(void);
 uint32_t getCycleCounter(void);
+uint32_t clockMicrosToCycles(uint32_t micros);
 
 static inline int32_t cmpTimeCycles(uint32_t a, uint32_t b)
 {
