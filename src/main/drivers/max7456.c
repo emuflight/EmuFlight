@@ -307,7 +307,7 @@ void max7456_dma_irq_handler(dmaChannelDescriptor_t* descriptor) {
         // Empty RX buffer. RX DMA takes care of it if enabled.
         // This should be done after transmission finish!!!
         while (SPI_I2S_GetFlagStatus(dev->bus->busType_u.spi.instance, SPI_I2S_FLAG_RXNE) == SET) {
-            dev->bus->busType_u.spi.instance->DR;
+            (void)dev->bus->busType_u.spi.instance->DR;
         }
         DMA_Cmd(MAX7456_DMA_CHANNEL_TX, DISABLE);
         DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF);
