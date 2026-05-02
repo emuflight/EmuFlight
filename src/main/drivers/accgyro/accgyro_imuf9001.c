@@ -235,10 +235,11 @@ FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroComma
                             //reset attempts
                             attempt = 100;
                             delayMicroseconds(1000); //give pin time to set
-                            imufSendReceiveSpiBlocking(&(gyro->dev), (uint8_t *)&command, (uint8_t *)reply, sizeof(imufCommand_t));
-                            crcCalc = getCrcImuf9001((uint32_t *)reply, 11);
-                            if(crcCalc == reply->crc && reply->command == commandToSend ) { //this tells us the IMU understood the last command
-                                return 1;
+                            if (imufSendReceiveSpiBlocking(&(gyro->dev), (uint8_t *)&command, (uint8_t *)reply, sizeof(imufCommand_t))) {
+                                crcCalc = getCrcImuf9001((uint32_t *)reply, 11);
+                                if(crcCalc == reply->crc && reply->command == commandToSend ) { //this tells us the IMU understood the last command
+                                    return 1;
+                                }
                             }
                         }
                     }
