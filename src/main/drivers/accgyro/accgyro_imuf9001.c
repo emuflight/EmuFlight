@@ -197,8 +197,7 @@ void initImuf9001(void) {
 }
 
 FAST_CODE bool imufSendReceiveSpiBlocking(const extDevice_t *dev, uint8_t *dataTx, uint8_t *daRx, uint8_t length) {
-    spiReadWriteBuf(dev, dataTx, daRx, length);
-    return true;
+    return spiReadWriteBufRB(dev, dataTx, daRx, length);
 }
 
 FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroCommands_t commandToSend, imufCommand_t *reply, imufCommand_t *data) {
