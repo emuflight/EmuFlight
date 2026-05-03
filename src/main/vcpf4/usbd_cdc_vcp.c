@@ -27,7 +27,9 @@
 #include "usbd_cdc_vcp.h"
 #include "stm32f4xx_conf.h"
 #include "stdbool.h"
+#include "drivers/nvic.h"
 #include "drivers/time.h"
+#include "build/atomic.h"
 
 LINE_CODING g_lc;
 
@@ -176,8 +178,10 @@ uint32_t CDC_Send_DATA(const uint8_t *ptrBuffer, uint32_t sendLength) {
             }
             delay(1);
         }
-        APP_Rx_Buffer[APP_Rx_ptr_in] = ptrBuffer[i];
-        APP_Rx_ptr_in = (APP_Rx_ptr_in + 1) % APP_RX_DATA_SIZE;
+        ATOMIC_BLOCK(NVIC_BUILD_PRIORITY(6, 0)) {
+            APP_Rx_Buffer[APP_Rx_ptr_in] = ptrBuffer[i];
+            APP_Rx_ptr_in = (APP_Rx_ptr_in + 1) % APP_RX_DATA_SIZE;
+        }
     }
     return sendLength;
 }
