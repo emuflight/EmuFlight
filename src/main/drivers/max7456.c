@@ -190,8 +190,8 @@
 #define MAX7456_SPI_CLK           (SPI_CLOCK_STANDARD)
 #endif
 
-extDevice_t max7456BusDevice;
-extDevice_t *dev = &max7456BusDevice;
+static extDevice_t max7456BusDevice;
+static extDevice_t *dev = &max7456BusDevice;
 
 static uint16_t max7456SpiClock = MAX7456_SPI_CLK;
 
@@ -208,7 +208,7 @@ static uint8_t shadowBuffer[VIDEO_BUFFER_CHARS_PAL];
 
 #define MAX_CHARS2UPDATE    100
 #ifdef MAX7456_DMA_CHANNEL_TX
-volatile bool dmaTransactionInProgress = false;
+static volatile bool dmaTransactionInProgress = false;
 #endif
 
 static uint8_t spiBuff[MAX_CHARS2UPDATE * 6];
