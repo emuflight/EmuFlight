@@ -196,6 +196,11 @@ typedef struct {
     void* test;
 } DMA_Channel_TypeDef;
 
+// Stub for StdPeriph DMA_InitTypeDef used in bus.h DMA init cache fields (BF 4.5-m parity)
+typedef struct {
+    void* test;
+} DMA_InitTypeDef;
+
 uint8_t DMA_GetFlagStatus(void *);
 void DMA_Cmd(DMA_Channel_TypeDef*, FunctionalState );
 void DMA_ClearFlag(uint32_t);
