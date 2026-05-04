@@ -37,7 +37,7 @@
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
 #define MPU6500_CS_PIN          PB12
-#define MPU6500_SPI_INSTANCE    SPI2
+#define MPU6500_SPI_BUS    SPIDEV_2
 
 // Using MPU6050 for the moment.
 #define USE_GYRO

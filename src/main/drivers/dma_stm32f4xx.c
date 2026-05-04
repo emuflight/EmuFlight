@@ -74,6 +74,28 @@ DEFINE_DMA_IRQ_HANDLER(2, 6, DMA2_ST6_HANDLER)
 DEFINE_DMA_IRQ_HANDLER(2, 7, DMA2_ST7_HANDLER)
 
 #define DMA_RCC(x) ((x) == DMA1 ? RCC_AHB1Periph_DMA1 : RCC_AHB1Periph_DMA2)
+
+bool dmaAllocate(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex) {
+    if (identifier == DMA_NONE) {
+        return false;
+    }
+    const int index = DMA_IDENTIFIER_TO_INDEX(identifier);
+    if (dmaDescriptors[index].owner != OWNER_FREE) {
+        return false;
+    }
+    dmaDescriptors[index].owner = owner;
+    dmaDescriptors[index].resourceIndex = resourceIndex;
+    return true;
+}
+
+void dmaEnable(dmaIdentifier_e identifier) {
+    if (identifier == DMA_NONE) {
+        return;
+    }
+    const int index = DMA_IDENTIFIER_TO_INDEX(identifier);
+    RCC_AHB1PeriphClockCmd(DMA_RCC(dmaDescriptors[index].dma), ENABLE);
+}
+
 void dmaInit(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex) {
     const int index = DMA_IDENTIFIER_TO_INDEX(identifier);
     RCC_AHB1PeriphClockCmd(DMA_RCC(dmaDescriptors[index].dma), ENABLE);

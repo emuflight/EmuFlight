@@ -27,7 +27,9 @@
 #include "usbd_cdc_vcp.h"
 #include "stm32f4xx_conf.h"
 #include "stdbool.h"
+#include "drivers/nvic.h"
 #include "drivers/time.h"
+#include "build/atomic.h"
 
 LINE_CODING g_lc;
 
@@ -156,10 +158,31 @@ static uint16_t VCP_Ctrl(uint32_t Cmd, uint8_t* Buf, uint32_t Len) {
  * Description    : send the data received from the STM32 to the PC through USB
  * Input          : buffer to send, and the length of the buffer.
  * Output         : None.
- * Return         : None.
+ * Return         : Bytes actually written; may be less than sendLength on TX
+ *                  backpressure (host slow or disconnected).
  *******************************************************************************/
 uint32_t CDC_Send_DATA(const uint8_t *ptrBuffer, uint32_t sendLength) {
-    VCP_DataTx(ptrBuffer, sendLength);
+    // Wait up to 2 ms for any in-flight USB packet to finish; bail early on timeout.
+    uint32_t txStateDeadline = millis() + 2;
+    while (USB_Tx_State != 0) {
+        if (millis() >= txStateDeadline) {
+            return 0;
+        }
+    }
+    for (uint32_t i = 0; i < sendLength; i++) {
+        // Wait up to 2 ms per byte for ring-buffer space; return partial count on timeout.
+        uint32_t deadline = millis() + 2;
+        while (CDC_Send_FreeBytes() == 0) {
+            if (millis() >= deadline) {
+                return i;
+            }
+            delay(1);
+        }
+        ATOMIC_BLOCK(NVIC_BUILD_PRIORITY(6, 0)) {
+            APP_Rx_Buffer[APP_Rx_ptr_in] = ptrBuffer[i];
+            APP_Rx_ptr_in = (APP_Rx_ptr_in + 1) % APP_RX_DATA_SIZE;
+        }
+    }
     return sendLength;
 }
 

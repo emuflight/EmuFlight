@@ -62,7 +62,7 @@
 #define ACC_MPU6000_ALIGN        CW180_DEG_FLIP
 #define GYRO_MPU6000_ALIGN       CW180_DEG_FLIP
 #define MPU6000_CS_PIN           PC2
-#define MPU6000_SPI_INSTANCE     SPI1
+#define MPU6000_SPI_BUS     SPIDEV_1
 
 #define USE_UART1
 #define UART1_TX_PIN         PA9

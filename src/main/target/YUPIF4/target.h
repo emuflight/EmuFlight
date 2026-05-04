@@ -45,7 +45,7 @@
 
 //ICM 20689
 #define ICM20689_CS_PIN         PA4
-#define ICM20689_SPI_INSTANCE   SPI1
+#define ICM20689_SPI_BUS   SPIDEV_1
 
 #define USE_ACC
 #define USE_ACC_SPI_ICM20689
@@ -57,7 +57,7 @@
 
 // MPU 6500
 #define MPU6500_CS_PIN          PA4
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 
 #define USE_ACC
 #define USE_ACC_MPU6500

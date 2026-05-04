@@ -35,7 +35,7 @@
 #define BEEPER_INVERTED
 
 #define MPU6000_CS_PIN          PB12
-#define MPU6000_SPI_INSTANCE    SPI2
+#define MPU6000_SPI_BUS    SPIDEV_2
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000

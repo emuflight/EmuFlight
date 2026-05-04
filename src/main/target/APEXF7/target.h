@@ -117,9 +117,9 @@
 #define GYRO_1_EXTI_PIN         PA4
 #define GYRO_2_EXTI_PIN         PC3
 #define GYRO_1_CS_PIN           PD2
-#define GYRO_1_SPI_INSTANCE     SPI3
+#define GYRO_1_SPI_BUS     SPIDEV_3
 #define GYRO_2_CS_PIN           PB10
-#define GYRO_2_SPI_INSTANCE     SPI3
+#define GYRO_2_SPI_BUS     SPIDEV_3
 
 #define ACC_MPU6000_1_ALIGN         CW0_DEG
 #define GYRO_MPU6000_1_ALIGN        CW0_DEG

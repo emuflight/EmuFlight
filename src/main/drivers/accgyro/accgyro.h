@@ -75,6 +75,13 @@
 #define GYRO_RATE_16_kHz    64.0f
 #define GYRO_RATE_32_kHz    32.0f
 
+typedef enum {
+    GYRO_EXTI_INIT = 0,
+    GYRO_EXTI_INT_DMA,
+    GYRO_EXTI_INT,
+    GYRO_EXTI_NO_INT
+} gyroModeSPI_e;
+
 typedef struct gyroDev_s {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
     pthread_mutex_t lock;
@@ -83,7 +90,7 @@ typedef struct gyroDev_s {
     sensorGyroReadFuncPtr readFn;                             // read 3 axis data function
     sensorGyroReadDataFuncPtr temperatureFn;                  // read temperature if available
     extiCallbackRec_t exti;
-    busDevice_t bus;
+    extDevice_t dev;
     float scale;                                            // scalefactor
     float gyroZero[XYZ_AXIS_COUNT];
     float gyroADC[XYZ_AXIS_COUNT];                        // gyro data after calibration and alignment
@@ -105,6 +112,13 @@ typedef struct gyroDev_s {
     gyroSensor_e gyroHardware;
     uint8_t accDataReg;
     uint8_t gyroDataReg;
+    gyroModeSPI_e gyroModeSPI;
+    uint32_t detectedEXTI;
+    uint32_t gyroLastEXTI;
+    uint32_t gyroSyncEXTI;
+    int32_t gyroShortPeriod;
+    int32_t gyroDmaMaxDuration;
+    busSegment_t segments[2];
 } gyroDev_t;
 
 typedef struct accDev_s {
@@ -113,7 +127,8 @@ typedef struct accDev_s {
 #endif
     sensorAccInitFuncPtr initFn;                              // initialize function
     sensorAccReadFuncPtr readFn;                              // read 3 axis data function
-    busDevice_t bus;
+    extDevice_t dev;
+    struct gyroDev_s *gyro;
     uint16_t acc_1G;
     int16_t ADCRaw[XYZ_AXIS_COUNT];
     mpuDetectionResult_t mpuDetectionResult;

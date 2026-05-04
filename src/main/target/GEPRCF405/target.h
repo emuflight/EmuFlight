@@ -51,17 +51,17 @@
 #define ACC_MPU6000_ALIGN       CW270_DEG
 #define GYRO_MPU6000_ALIGN      CW270_DEG
 #define MPU6000_CS_PIN          PA15
-#define MPU6000_SPI_INSTANCE    SPI3
+#define MPU6000_SPI_BUS    SPIDEV_3
 
 #define ACC_ICM42688P_ALIGN     CW180_DEG
 #define GYRO_ICM42688P_ALIGN    CW180_DEG
 #define ICM42688P_CS_PIN        PA15
-#define ICM42688P_SPI_INSTANCE  SPI3
+#define ICM42688P_SPI_BUS  SPIDEV_3
 
 #define ACC_BMI270_ALIGN        CW180_DEG
 #define GYRO_BMI270_ALIGN       CW180_DEG
 #define BMI270_CS_PIN           PA15
-#define BMI270_SPI_INSTANCE     SPI3
+#define BMI270_SPI_BUS     SPIDEV_3
 
 //-------------------------------------SPI2 FLASH------------------------------
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT

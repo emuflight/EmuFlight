@@ -68,7 +68,7 @@
 #define ACC_1_ALIGN          CW180_DEG
 #define GYRO_1_CS_PIN        PE11
 #define GYRO_1_EXTI_PIN      PB1
-#define GYRO_1_SPI_INSTANCE  SPI4
+#define GYRO_1_SPI_BUS  SPIDEV_4
 #define MPU_INT_EXTI         PB1
 
 #define USE_EXTI // notice - REQUIRED when USE_GYRO_EXTI
@@ -78,7 +78,7 @@
 #define ACC_BMI270_ALIGN     CW180_DEG
 #define GYRO_BMI270_ALIGN    CW180_DEG
 #define BMI270_CS_PIN        PE11
-#define BMI270_SPI_INSTANCE  SPI4
+#define BMI270_SPI_BUS  SPIDEV_4
 
 #define USE_UART1
 #define UART1_RX_PIN         PB7

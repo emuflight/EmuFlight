@@ -19,7 +19,7 @@
 
 #include "drivers/bus.h"
 
-uint8_t imuf9001SpiDetect(const gyroDev_t *bus);
+uint8_t imuf9001SpiDetect(const gyroDev_t *dev);
 
 bool imufSpiAccDetect(accDev_t *acc);
 bool imufSpiGyroDetect(gyroDev_t *gyro);

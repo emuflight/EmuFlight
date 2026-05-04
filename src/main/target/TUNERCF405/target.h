@@ -66,14 +66,14 @@
 #define ACC_1_ALIGN          CW180_DEG
 #define GYRO_1_CS_PIN        PA4
 #define GYRO_1_EXTI_PIN      PC4
-#define GYRO_1_SPI_INSTANCE  SPI1
+#define GYRO_1_SPI_BUS  SPIDEV_1
 #define MPU_INT_EXTI         PC4
 
 #define USE_SPI_GYRO
 #define ACC_BMI270_ALIGN     CW180_DEG
 #define GYRO_BMI270_ALIGN    CW180_DEG
 #define BMI270_CS_PIN        PA4
-#define BMI270_SPI_INSTANCE  SPI1
+#define BMI270_SPI_BUS  SPIDEV_1
 
 #define USE_UART1
 #define UART1_TX_PIN         PA9

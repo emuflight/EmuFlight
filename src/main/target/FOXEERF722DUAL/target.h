@@ -32,7 +32,7 @@
 
 #define MPU_INT_EXTI                PC4
 #define MPU6000_CS_PIN              PB2
-#define MPU6000_SPI_INSTANCE        SPI1
+#define MPU6000_SPI_BUS        SPIDEV_1
 #define GYRO_MPU6000_ALIGN          CW270_DEG
 #define ACC_MPU6000_ALIGN           CW270_DEG
 #else
@@ -45,9 +45,9 @@
 #define GYRO_2_EXTI_PIN         PB0
 
 #define GYRO_1_CS_PIN                       PB2
-#define GYRO_1_SPI_INSTANCE                 SPI1
+#define GYRO_1_SPI_BUS                 SPIDEV_1
 #define GYRO_2_CS_PIN                       PB1
-#define GYRO_2_SPI_INSTANCE                 SPI1
+#define GYRO_2_SPI_BUS                 SPIDEV_1
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW

@@ -135,9 +135,9 @@
 #define USE_ACC_SPI_MPU6500
 
 #define GYRO_1_CS_PIN           PA15
-#define GYRO_1_SPI_INSTANCE     SPI1
+#define GYRO_1_SPI_BUS     SPIDEV_1
 #define GYRO_2_CS_PIN           PC3
-#define GYRO_2_SPI_INSTANCE     SPI1
+#define GYRO_2_SPI_BUS     SPIDEV_1
 
 #define ACC_MPU6500_1_ALIGN     CW0_DEG
 #define GYRO_MPU6500_1_ALIGN    CW0_DEG

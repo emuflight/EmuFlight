@@ -44,9 +44,9 @@
 #define MPU_INT_EXTI
 
 #define GYRO_1_CS_PIN           PA4
-#define GYRO_1_SPI_INSTANCE     SPI1
+#define GYRO_1_SPI_BUS     SPIDEV_1
 #define GYRO_2_CS_PIN           PB2
-#define GYRO_2_SPI_INSTANCE     SPI1
+#define GYRO_2_SPI_BUS     SPIDEV_1
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000

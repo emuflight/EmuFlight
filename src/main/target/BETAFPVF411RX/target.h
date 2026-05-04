@@ -53,21 +53,21 @@
 #define GYRO_MPU6000_ALIGN      CW180_DEG
 #define ACC_MPU6000_ALIGN       CW180_DEG
 #define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 
 #define USE_ACC_SPI_MPU6500
 #define USE_GYRO_SPI_MPU6500
 #define ACC_MPU6500_ALIGN       CW180_DEG
 #define GYRO_MPU6500_ALIGN      CW180_DEG
 #define MPU6500_CS_PIN          PA4
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 
 #define USE_ACCGYRO_BMI270
 #define USE_SPI_GYRO
 #define ACC_BMI270_ALIGN        CW180_DEG
 #define GYRO_BMI270_ALIGN       CW180_DEG
 #define BMI270_CS_PIN           PA4
-#define BMI270_SPI_INSTANCE     SPI1
+#define BMI270_SPI_BUS     SPIDEV_1
 
 // *************** UART *****************************
 #define USE_VCP

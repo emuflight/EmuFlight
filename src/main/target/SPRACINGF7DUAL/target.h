@@ -178,9 +178,9 @@
 #define RTC6705_POWER_PIN                   PB7  // Shared with PWM6
 
 #define GYRO_1_CS_PIN                       SPI1_NSS_PIN
-#define GYRO_1_SPI_INSTANCE                 SPI1
+#define GYRO_1_SPI_BUS                 SPIDEV_1
 #define GYRO_2_CS_PIN                       PB2
-#define GYRO_2_SPI_INSTANCE                 SPI1
+#define GYRO_2_SPI_BUS                 SPIDEV_1
 
 #define USE_ADC
 // It's possible to use ADC1 or ADC3 on this target, same pins.

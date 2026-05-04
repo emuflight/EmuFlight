@@ -70,7 +70,7 @@
 #define ACC_ICM20689_ALIGN       CW180_DEG
 #define GYRO_ICM20689_ALIGN      CW180_DEG
 #define ICM20689_CS_PIN          PC2
-#define ICM20689_SPI_INSTANCE    SPI1
+#define ICM20689_SPI_BUS    SPIDEV_1
 
 #define USE_UART1
 #define UART1_TX_PIN         PA9

@@ -41,28 +41,27 @@
 
 #include "rx_spi.h"
 
-static busDevice_t rxSpiDevice;
-static busDevice_t *busdev = &rxSpiDevice;
+static extDevice_t rxSpiDevice;
+static extDevice_t *dev = &rxSpiDevice;
 
-#define DISABLE_RX()    {IOHi(busdev->busdev_u.spi.csnPin);}
-#define ENABLE_RX()     {IOLo(busdev->busdev_u.spi.csnPin);}
+#define DISABLE_RX()    {IOHi(dev->busType_u.spi.csnPin);}
+#define ENABLE_RX()     {IOLo(dev->busType_u.spi.csnPin);}
 
 bool rxSpiDeviceInit(const rxSpiConfig_t *rxSpiConfig) {
-    if (!rxSpiConfig->spibus) {
+    if (!spiSetBusInstance(dev, rxSpiConfig->spibus)) {
         return false;
     }
-    spiBusSetInstance(busdev, spiInstanceByDevice(SPI_CFG_TO_DEV(rxSpiConfig->spibus)));
     const IO_t rxCsPin = IOGetByTag(rxSpiConfig->csnTag);
     IOInit(rxCsPin, OWNER_RX_SPI_CS, 0);
     IOConfigGPIO(rxCsPin, SPI_IO_CS_CFG);
-    busdev->busdev_u.spi.csnPin = rxCsPin;
+    dev->busType_u.spi.csnPin = rxCsPin;
     DISABLE_RX();
-    spiSetDivisor(busdev->busdev_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     return true;
 }
 
 uint8_t rxSpiTransferByte(uint8_t data) {
-    return spiTransferByte(busdev->busdev_u.spi.instance, data);
+    return spiTransferByte(dev->bus->busType_u.spi.instance, data);
 }
 
 uint8_t rxSpiWriteByte(uint8_t data) {

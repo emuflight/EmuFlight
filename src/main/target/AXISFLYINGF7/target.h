@@ -72,14 +72,14 @@
 #define GYRO_MPU6000_ALIGN      CW0_DEG
 #define ACC_MPU6000_ALIGN       CW0_DEG
 #define MPU6000_CS_PIN          PB12
-#define MPU6000_SPI_INSTANCE    SPI2
+#define MPU6000_SPI_BUS    SPIDEV_2
 
 // BMI270
 #define USE_ACCGYRO_BMI270
 #define ACC_BMI270_ALIGN        CW0_DEG
 #define GYRO_BMI270_ALIGN       CW0_DEG
 #define BMI270_CS_PIN           PB12
-#define BMI270_SPI_INSTANCE     SPI2
+#define BMI270_SPI_BUS     SPIDEV_2
 
 #define LED0_PIN                PB10
 

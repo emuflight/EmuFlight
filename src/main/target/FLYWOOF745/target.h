@@ -30,7 +30,7 @@
  #define BEEPER_INVERTED
 
  #define MPU6000_CS_PIN        PE4
- #define MPU6000_SPI_INSTANCE  SPI4
+ #define MPU6000_SPI_BUS  SPIDEV_4
 
  #define USE_ACC
  #define USE_ACC_SPI_MPU6000

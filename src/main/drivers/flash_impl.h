@@ -29,7 +29,7 @@
 struct flashVTable_s;
 
 typedef struct flashDevice_s {
-    busDevice_t *busdev;
+    extDevice_t *dev;
     const struct flashVTable_s *vTable;
     flashGeometry_t geometry;
     uint32_t currentWriteAddress;
