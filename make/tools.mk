@@ -39,7 +39,8 @@ ARM_SDK_FILE := $(notdir $(ARM_SDK_URL))
 
 # Use silent+stderr in CI (CI env var set by GitHub Actions); progress bar otherwise.
 # --progress-bar emits ANSI escape codes that pollute CI logs.
-CURL_PROGRESS := $(if $(CI),-sS,--progress-bar)
+# Match explicit truthy values only to avoid false positives (e.g., CI=false).
+CURL_PROGRESS := $(if $(filter true 1 yes,$(CI)),-sS,--progress-bar)
 
 # add toolchain binaries to PATH
 export PATH := $(ARM_SDK_DIR)/bin:$(PATH)
