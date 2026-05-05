@@ -1464,10 +1464,6 @@ void initYawSpinRecovery(int maxYawRate)
     int threshold;
 
     switch (gyroConfig()->yaw_spin_recovery) {
-    case YAW_SPIN_RECOVERY_OFF:
-        enabledFlag = false;
-        threshold = YAW_SPIN_RECOVERY_THRESHOLD_MAX;
-        break;
     case YAW_SPIN_RECOVERY_ON:
         enabledFlag = true;
         threshold = gyroConfig()->yaw_spin_threshold;
@@ -1478,11 +1474,15 @@ void initYawSpinRecovery(int maxYawRate)
         threshold = constrain(maxYawRate + overshootAllowance, YAW_SPIN_RECOVERY_THRESHOLD_MIN, YAW_SPIN_RECOVERY_THRESHOLD_MAX);
         break;
     }
+    case YAW_SPIN_RECOVERY_OFF:
+    default:
+        enabledFlag = false;
+        threshold = YAW_SPIN_RECOVERY_THRESHOLD_MAX;
+        break;
     }
 
     yawSpinRecoveryEnabled = enabledFlag;
     yawSpinRecoveryThreshold = threshold;
-
-#pragma GCC diagnostic pop
 }
 #endif
+#pragma GCC diagnostic pop
