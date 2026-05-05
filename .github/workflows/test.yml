@@ -52,3 +52,11 @@ jobs:
 
     - name: Run tests
       run: make test
+
+    - name: Build SITL
+      run: make TARGET=SITL
+
+    - name: SITL smoke test
+      run: |
+        timeout 5 ./obj/main/EmuFlight_SITL.elf 2>/tmp/sitl.log || true
+        grep -q "bind port" /tmp/sitl.log || { echo "SITL did not bind TCP port:"; cat /tmp/sitl.log; exit 1; }
