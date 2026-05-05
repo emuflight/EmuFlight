@@ -57,12 +57,12 @@ arm_sdk_install: arm_sdk_download $(SDK_INSTALL_MARKER)
 $(SDK_INSTALL_MARKER):
 ifneq ($(OSFAMILY), windows)
 	@echo "[arm_sdk] Extracting: $(ARM_SDK_FILE) → $(TOOLS_DIR)"
-	-$(V1) tar -C $(TOOLS_DIR) -xjf "$(DL_DIR)/$(ARM_SDK_FILE)"
+	$(V1) tar -C $(TOOLS_DIR) -xjf "$(DL_DIR)/$(ARM_SDK_FILE)"
 else
 	@echo "[arm_sdk] Extracting: $(ARM_SDK_FILE) → $(ARM_SDK_DIR)"
-	-$(V1) unzip -q -d $(ARM_SDK_DIR) "$(DL_DIR)/$(ARM_SDK_FILE)"
+	$(V1) unzip -q -d $(ARM_SDK_DIR) "$(DL_DIR)/$(ARM_SDK_FILE)"
 endif
-	@echo "[arm_sdk] Installed: $(SDK_INSTALL_MARKER)"
+	@[ -f "$(SDK_INSTALL_MARKER)" ] && echo "[arm_sdk] Installed: $(SDK_INSTALL_MARKER)" || (echo "[arm_sdk] ERROR: extraction failed, marker not found"; exit 1)
 
 .NOTPARALLEL .PHONY: arm_sdk_download
 arm_sdk_download: | $(DL_DIR)
@@ -276,7 +276,7 @@ zip_clean:
 
 ifeq ($(shell [ -d "$(ARM_SDK_DIR)" ] && echo "exists"), exists)
   ARM_SDK_PREFIX := $(ARM_SDK_DIR)/bin/arm-none-eabi-
-else ifeq (,$(findstring arm_sdk,$(MAKECMDGOALS)))
+else ifeq (,$(filter arm_sdk_install arm_sdk_download arm_sdk_clean,$(MAKECMDGOALS)))
   GCC_VERSION = $(shell arm-none-eabi-gcc -dumpversion)
   ifeq ($(GCC_VERSION),)
     $(error **ERROR** arm-none-eabi-gcc not in the PATH. Run 'make arm_sdk_install' to install automatically in the tools folder of this repo)
