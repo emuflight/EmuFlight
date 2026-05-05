@@ -37,6 +37,10 @@ endif
 
 ARM_SDK_FILE := $(notdir $(ARM_SDK_URL))
 
+# Use silent+stderr in CI (CI env var set by GitHub Actions); progress bar otherwise.
+# --progress-bar emits ANSI escape codes that pollute CI logs.
+CURL_PROGRESS := $(if $(CI),-sS,--progress-bar)
+
 # add toolchain binaries to PATH
 export PATH := $(ARM_SDK_DIR)/bin:$(PATH)
 
@@ -64,7 +68,7 @@ arm_sdk_download: | $(DL_DIR)
 arm_sdk_download: $(DL_DIR)/$(ARM_SDK_FILE)
 $(DL_DIR)/$(ARM_SDK_FILE):
 	@echo "[arm_sdk] Downloading: $(ARM_SDK_FILE)"
-	$(V1) curl -L --progress-bar -o "$(DL_DIR)/$(ARM_SDK_FILE)" -z "$(DL_DIR)/$(ARM_SDK_FILE)" "$(ARM_SDK_URL)"
+	$(V1) curl -L $(CURL_PROGRESS) -o "$(DL_DIR)/$(ARM_SDK_FILE)" "$(ARM_SDK_URL)"
 	@echo "[arm_sdk] Download complete: $(DL_DIR)/$(ARM_SDK_FILE)"
 
 ## arm_sdk_clean     : Uninstall Arm SDK
