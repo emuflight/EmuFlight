@@ -51,16 +51,21 @@ arm_sdk_install: arm_sdk_download $(SDK_INSTALL_MARKER)
 
 $(SDK_INSTALL_MARKER):
 ifneq ($(OSFAMILY), windows)
+	@echo "[arm_sdk] Extracting: $(ARM_SDK_FILE) → $(TOOLS_DIR)"
 	-$(V1) tar -C $(TOOLS_DIR) -xjf "$(DL_DIR)/$(ARM_SDK_FILE)"
 else
+	@echo "[arm_sdk] Extracting: $(ARM_SDK_FILE) → $(ARM_SDK_DIR)"
 	-$(V1) unzip -q -d $(ARM_SDK_DIR) "$(DL_DIR)/$(ARM_SDK_FILE)"
 endif
+	@echo "[arm_sdk] Installed: $(SDK_INSTALL_MARKER)"
 
 .NOTPARALLEL .PHONY: arm_sdk_download
 arm_sdk_download: | $(DL_DIR)
 arm_sdk_download: $(DL_DIR)/$(ARM_SDK_FILE)
 $(DL_DIR)/$(ARM_SDK_FILE):
-	$(V1) curl -L -sS -o "$(DL_DIR)/$(ARM_SDK_FILE)" -z "$(DL_DIR)/$(ARM_SDK_FILE)" "$(ARM_SDK_URL)"
+	@echo "[arm_sdk] Downloading: $(ARM_SDK_FILE)"
+	$(V1) curl -L --progress-bar -o "$(DL_DIR)/$(ARM_SDK_FILE)" -z "$(DL_DIR)/$(ARM_SDK_FILE)" "$(ARM_SDK_URL)"
+	@echo "[arm_sdk] Download complete: $(DL_DIR)/$(ARM_SDK_FILE)"
 
 ## arm_sdk_clean     : Uninstall Arm SDK
 .PHONY: arm_sdk_clean
@@ -266,7 +271,7 @@ zip_clean:
 
 ifeq ($(shell [ -d "$(ARM_SDK_DIR)" ] && echo "exists"), exists)
   ARM_SDK_PREFIX := $(ARM_SDK_DIR)/bin/arm-none-eabi-
-else ifeq (,$(findstring _install,$(MAKECMDGOALS)))
+else ifeq (,$(findstring arm_sdk,$(MAKECMDGOALS)))
   GCC_VERSION = $(shell arm-none-eabi-gcc -dumpversion)
   ifeq ($(GCC_VERSION),)
     $(error **ERROR** arm-none-eabi-gcc not in the PATH. Run 'make arm_sdk_install' to install automatically in the tools folder of this repo)
