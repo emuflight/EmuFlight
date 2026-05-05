@@ -1,0 +1,14 @@
+---
+# Codacy static analysis configuration
+# https://docs.codacy.com/repositories-configure/codacy-configuration-file/
+
+engines:
+  cppcheck:
+    # Suppress "Include file: <x> not found" (missingInclude / missingIncludeSystem)
+    # These are Cppcheck false positives for standard C library headers.
+    # Cppcheck itself states it does not need standard headers to produce correct results.
+    # The headers (<math.h>, <assert.h>, etc.) are present on all actual build targets.
+    # https://cppcheck.sourceforge.io/manual.pdf - section "Suppressions"
+    extraOptions:
+      - "--suppress=missingInclude"
+      - "--suppress=missingIncludeSystem"
