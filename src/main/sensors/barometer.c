@@ -21,6 +21,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <math.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 
 #include "platform.h"
 
@@ -339,6 +341,8 @@ void performBaroCalibrationCycle(void) {
         calibratingB--;
         savedGroundPressure = baroGroundPressure;
     }
+
+#pragma GCC diagnostic pop
 }
 
 #endif /* BARO */

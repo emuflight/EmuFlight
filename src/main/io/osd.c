@@ -1645,4 +1645,9 @@ void setCrsfRssi(bool b) {
     crsfRssi = b;
 }
 
+#else // !USE_OSD
+
+// Stub implementations when OSD is disabled
+char djiWarningBuffer[12];
+
 #endif // USE_OSD

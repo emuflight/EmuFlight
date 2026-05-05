@@ -100,7 +100,11 @@ void pgResetFn_motorConfig(motorConfig_t *motorConfig) {
     {
         motorConfig->minthrottle = 1070;
         motorConfig->dev.motorPwmRate = BRUSHLESS_MOTORS_PWM_RATE;
+#ifdef USE_DSHOT
         motorConfig->dev.motorPwmProtocol = PWM_TYPE_DSHOT600;
+#else
+        motorConfig->dev.motorPwmProtocol = PWM_TYPE_STANDARD;
+#endif
     }
 #endif
     motorConfig->maxthrottle = 2000;
@@ -1055,9 +1059,9 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
 
     // if the range is outside the normal bounds, correct it here
     float motorCorrection = 0.0;
-    if (maxMotor > 1.0) {
-        motorCorrection = 1.0 - maxMotor;
-    } else if (minMotor < 0.0) {
+    if (maxMotor > 1.0f) {
+        motorCorrection = 1.0f - maxMotor;
+    } else if (minMotor < 0.0f) {
         motorCorrection = -minMotor;
     }
 
