@@ -102,15 +102,13 @@
 #define I2C1_SCL PB8
 #define I2C1_SDA PB9
 
-#define USE_SDCARD_SDIO
 #define SDCARD_SPI_CS_PIN    PA0
 #define SDCARD_SPI_INSTANCE SPI2
-#define SDCARD_DMA_CHANNEL          6            //# pin A00: DMA1 Stream 2 Channel 6
-#define SDCARD_DMA_CHANNEL_TX       DMA1_Stream2 //# pin A00: DMA1 Stream 2 Channel 6
-//notice - other sdcard defines maybe needed (rare?): SDCARD_DMA_STREAM_TX_FULL, SDCARD_DMA_STREAM_TX, SDCARD_DMA_CLK, SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG
+#define SDCARD_DMA_CHANNEL          0            // SPI2 TX: DMA1 Stream4 Channel0
+#define SDCARD_DMA_CHANNEL_TX       DMA1_Stream4 // SPI2 TX: DMA1 Stream4 Channel0
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
-#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4    //notice - needs validation. these are hardware dependent. known options: 2, 4, 8.
-#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256  //notice - needs validation. these are hardware dependent. known options: 128, 256
+#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4
+#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256
 
 #define MAX7456_SPI_CS_PIN   PB12
 #define MAX7456_SPI_INSTANCE SPI2
