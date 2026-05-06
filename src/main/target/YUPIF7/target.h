@@ -43,7 +43,7 @@
 #define SPI1_MOSI_PIN           PA7
 
 #define ICM20689_CS_PIN         PA4
-#define ICM20689_SPI_INSTANCE   SPI1
+#define ICM20689_SPI_BUS   SPIDEV_1
 
 #define USE_EXTI
 #define MPU_INT_EXTI            PC4

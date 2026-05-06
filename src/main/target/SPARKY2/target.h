@@ -44,7 +44,7 @@
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
 #define MPU9250_CS_PIN          PC4
-#define MPU9250_SPI_INSTANCE    SPI1
+#define MPU9250_SPI_BUS    SPIDEV_1
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU9250

@@ -51,7 +51,7 @@
 #define GYRO_MPU6000_ALIGN      CW0_DEG
 #define ACC_MPU6000_ALIGN       CW0_DEG
 #define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI3
@@ -132,5 +132,5 @@
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT      6
-#define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(4)  )
+#define USABLE_TIMER_CHANNEL_COUNT      15
+#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) |TIM_N(5) | TIM_N(8) | TIM_N(9) )

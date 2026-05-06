@@ -149,6 +149,7 @@ PG_DECLARE(flight3DConfig_t, flight3DConfig);
 typedef struct armingConfig_s {
     uint8_t gyro_cal_on_first_arm;          // allow disarm/arm on throttle down + roll left/right
     uint8_t auto_disarm_delay;              // allow automatically disarming multicopters after auto_disarm_delay seconds of zero throttle. Disabled when 0
+    uint8_t prearm_allow_rearm;             // allow re-arming without need to reset the preArm AUX channel
     bool isUsingSticksForArming;            // allow using sticks position to arm
 } armingConfig_t;
 

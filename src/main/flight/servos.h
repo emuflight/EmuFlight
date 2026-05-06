@@ -25,7 +25,7 @@
 #include "drivers/pwm_output.h"
 
 // These must be consecutive, see 'reversedSources'
-enum {
+typedef enum {
     INPUT_STABILIZED_ROLL = 0,
     INPUT_STABILIZED_PITCH,
     INPUT_STABILIZED_YAW,

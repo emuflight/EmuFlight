@@ -28,7 +28,7 @@ typedef void (*baroOpFuncPtr)(struct baroDev_s *baro);                       // 
 typedef void (*baroCalculateFuncPtr)(int32_t *pressure, int32_t *temperature); // baro calculation (filled params are pressure and temperature)
 
 typedef struct baroDev_s {
-    busDevice_t busdev;
+    extDevice_t dev;
     uint16_t ut_delay;
     uint16_t up_delay;
     baroOpFuncPtr start_ut;

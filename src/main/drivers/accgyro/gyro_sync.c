@@ -53,21 +53,35 @@ uint32_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t lpf, uint8_t gyroSyncDenomin
     }
     gyro->mpuDividerDrops = gyroSyncDenominator - 1;
     gyro->gyroRateKHz = lpfNoneOr256 ? GYRO_RATE_8_kHz : GYRO_RATE_1_kHz;
+    gyroConfigMutable()->gyroSampleRateHz = lpfNoneOr256 ? 8000 : 1000;
 
     switch (gyro->mpuDetectionResult.sensor) {
         case ICM_20649_SPI:  //20649 is a weird gyro
             gyro->gyroRateKHz = lpfNoneOr256 ? GYRO_RATE_9_kHz : GYRO_RATE_1100_Hz;
+            gyroConfigMutable()->gyroSampleRateHz = lpfNoneOr256 ? 9000 : 1100;
             break;
         case BMI_160_SPI:    //brainFPV is also a weird gyro
             if (lpfNoneOr256) { gyro->gyroRateKHz = GYRO_RATE_3200_Hz; }
+            gyroConfigMutable()->gyroSampleRateHz = 3200;
             break;
         case BMI_270_SPI:    //bmi270
-            gyro->gyroRateKHz = GYRO_RATE_3200_Hz;
+#ifdef USE_GYRO_DLPF_EXPERIMENTAL
+            if (lpf == GYRO_HARDWARE_LPF_EXPERIMENTAL) {
+                // 6.4KHz sampling, but data is unfiltered (no hardware DLPF)
+                gyro->gyroRateKHz = GYRO_RATE_6400_Hz;
+                gyroConfigMutable()->gyroSampleRateHz = 6400;
+            } else
+#endif
+            {
+                gyro->gyroRateKHz = GYRO_RATE_3200_Hz;
+                gyroConfigMutable()->gyroSampleRateHz = 3200;
+            }
             break;
         default:
             if (gyro_use_32khz) {
                 //use full 32k
                 gyro->gyroRateKHz = GYRO_RATE_32_kHz;
+                gyroConfigMutable()->gyroSampleRateHz = 32000;
             }
     }
 

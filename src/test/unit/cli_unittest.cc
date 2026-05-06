@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdarg.h>  // Required for va_list, va_start, va_end
 
 #include <limits.h>
 
@@ -59,9 +60,14 @@ extern "C" {
     void cliGet(char *cmdline);
     void cliVtx(char *cmdline);
 
+    static const int UNIT_TEST_DATA_LENGTH = 3;
+
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wc99-designator"
     const clivalue_t valueTable[] = {
-        { "array_unit_test",             VAR_INT8  | MODE_ARRAY | MASTER_VALUE, .config.array.length = 3, PG_RESERVED_FOR_TESTING_1, 0 }
+        { "array_unit_test",             VAR_INT8  | MODE_ARRAY | MASTER_VALUE, .config.array.length = UNIT_TEST_DATA_LENGTH, PG_RESERVED_FOR_TESTING_1, 0 }
     };
+    #pragma GCC diagnostic pop
     const uint16_t valueTableEntryCount = ARRAYLEN(valueTable);
     const lookupTableEntry_t lookupTables[] = {};
 
@@ -85,14 +91,19 @@ extern "C" {
     PG_REGISTER(pidConfig_t, pidConfig, PG_PID_CONFIG, 0);
     PG_REGISTER_WITH_RESET_TEMPLATE(vtxConfig_t, vtxConfig, PG_VTX_CONFIG, 1);
     PG_RESET_TEMPLATE(vtxConfig_t, vtxConfig,
+                      .vtxChannelActivationConditions = {},
                       .halfDuplex = true
                      );
 
-    PG_REGISTER_WITH_RESET_FN(int8_t, unitTestData, PG_RESERVED_FOR_TESTING_1, 0);
+    PG_REGISTER_ARRAY_WITH_RESET_FN(int8_t, UNIT_TEST_DATA_LENGTH, unitTestData, PG_RESERVED_FOR_TESTING_1, 0);
 }
 
 #include "unittest_macros.h"
 #include "gtest/gtest.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wc99-designator"
+
 TEST(CLIUnittest, TestCliSet)
 {
 
@@ -101,13 +112,14 @@ TEST(CLIUnittest, TestCliSet)
     const clivalue_t cval = {
         .name = "array_unit_test",
         .type = MODE_ARRAY | MASTER_VALUE | VAR_INT8,
+        .config = {.array.length = UNIT_TEST_DATA_LENGTH},
         .pgn = PG_RESERVED_FOR_TESTING_1,
         .offset = 0
     };
 
     printf("\n===============================\n");
     int8_t *data = (int8_t *)cliGetValuePointer(&cval);
-    for(int i=0; i<3; i++){
+    for(int i=0; i<UNIT_TEST_DATA_LENGTH; i++){
         printf("data[%d] = %d\n", i, data[i]);
     }
     printf("\n===============================\n");
@@ -134,7 +146,7 @@ TEST(CLIUnittest, TestCliVtx)
     EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac6->range.endStep));
 
     // set condition 6
-    char *str = (char *)"6 6 1 2 3 925 1300"; 
+    char str[] = "6 6 1 2 3 925 1300";
     cliVtx(str);
 
     EXPECT_EQ(6, cac6->auxChannelIndex);
@@ -146,7 +158,7 @@ TEST(CLIUnittest, TestCliVtx)
     EXPECT_EQ(1300, MODE_STEP_TO_CHANNEL_VALUE(cac6->range.endStep));
 
     // set condition 2
-    char *str2 = (char *)"2 1 2 3 4 1500 2100"; 
+    char str2[] = "2 1 2 3 4 1500 2100";
     cliVtx(str2);
 
     const vtxChannelActivationCondition_t *cac2 = &vtxConfig()->vtxChannelActivationConditions[2];
@@ -160,7 +172,7 @@ TEST(CLIUnittest, TestCliVtx)
 
     // test we can reset existing condition
     // by providing 0 vaues, the condition should be reset (and error shown to the user)
-    char *str3 = (char *)"2 0 0 0 0 0 0"; 
+    char str3[] = "2 0 0 0 0 0 0";
     cliVtx(str3);
 
     EXPECT_EQ(0, cac2->auxChannelIndex);
@@ -173,7 +185,7 @@ TEST(CLIUnittest, TestCliVtx)
 TEST(CLIUnittest, TestCliVtxInvalidArgumentCount)
 {
     // cli expects 7 total arguments (condition index + 6 parameters)
-    char *correctCmd = (char *) "1 1 2 3 4 1000 2000";
+    char correctCmd[] = "1 1 2 3 4 1000 2000";
     cliVtx(correctCmd);  // load some data into condition 1
     const vtxChannelActivationCondition_t *cac1 = &vtxConfig()->vtxChannelActivationConditions[1];
     EXPECT_EQ(1, cac1->auxChannelIndex);
@@ -182,7 +194,7 @@ TEST(CLIUnittest, TestCliVtxInvalidArgumentCount)
     EXPECT_EQ(4, cac1->power);
     EXPECT_EQ(1000, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.startStep));
     EXPECT_EQ(2000, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.endStep));
-    char *str = (char *)"1 0 0 0 0";  // 5 arguments, should throw an error and reset the line 1
+    char str[] = "1 0 0 0 0";  // 5 arguments, should throw an error and reset the line 1
     cliVtx(str);
     EXPECT_EQ(0, cac1->auxChannelIndex);
     EXPECT_EQ(0, cac1->band);
@@ -191,10 +203,11 @@ TEST(CLIUnittest, TestCliVtxInvalidArgumentCount)
     EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.startStep));
     EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.endStep));
 
+    // Recreate correctCmd before second call—cliVtx may modify the buffer in-place
+    char correctCmd2[] = "1 1 2 3 4 1000 2000";
+    cliVtx(correctCmd2);  // load some more data into condition 1 so we have something to reset
 
-    cliVtx(correctCmd);  // load some more data into condition 1 so we have something to reset
-
-    char *tooManyArgs = (char *)"1 0 0 0 0 100 200 300";  // 7 arguments, expects 6
+    char tooManyArgs[] = "1 0 0 0 0 100 200 300";  // 8 tokens (index + 7 values), expects 6
     cliVtx(tooManyArgs); //should throw an cli error and reset the line 1
     EXPECT_EQ(0, cac1->auxChannelIndex);
     EXPECT_EQ(0, cac1->band);
@@ -203,6 +216,9 @@ TEST(CLIUnittest, TestCliVtxInvalidArgumentCount)
     EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.startStep));
     EXPECT_EQ(900, MODE_STEP_TO_CHANNEL_VALUE(cac1->range.endStep));
 }
+
+#pragma GCC diagnostic pop
+
 // STUBS
 extern "C" {
 
@@ -254,10 +270,11 @@ static const box_t boxes[] = { { 0, "DUMMYBOX", 0 } };
 const box_t *findBoxByPermanentId(uint8_t) { return &boxes[0]; }
 const box_t *findBoxByBoxId(boxId_e) { return &boxes[0]; }
 
-int8_t unitTestDataArray[3];
+int8_t unitTestDataArray[UNIT_TEST_DATA_LENGTH];
 
 void pgResetFn_unitTestData(int8_t *ptr) {
-    ptr = &unitTestDataArray[0];
+    // Reset the full PG memory array (UNIT_TEST_DATA_LENGTH elements)
+    memset(ptr, 0, UNIT_TEST_DATA_LENGTH * sizeof(int8_t));
 }
 
 uint32_t getBeeperOffMask(void) { return 0; }

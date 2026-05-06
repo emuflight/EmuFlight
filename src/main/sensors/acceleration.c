@@ -22,6 +22,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 
 #include "platform.h"
 
@@ -366,7 +368,8 @@ retry:
 bool accInit(void) {
     memset(&acc, 0, sizeof(acc));
     // copy over the common gyro mpu settings
-    acc.dev.bus = *gyroSensorBus();
+    acc.dev.dev = *gyroSensorBus();
+    acc.dev.gyro = gyroSensorGetDev();
     acc.dev.mpuDetectionResult = *gyroMpuDetectionResult();
     acc.dev.acc_high_fsr = accelerometerConfig()->acc_high_fsr;
 #ifdef USE_DUAL_GYRO
@@ -555,4 +558,6 @@ bool accIsHealthy(quaternion *q) {
     float accModulus = quaternionModulus(q);
     accModulus = accModulus / acc.dev.acc_1G;
     return ((0.93f < accModulus) && (accModulus < 1.07f));
+
+#pragma GCC diagnostic pop
 }

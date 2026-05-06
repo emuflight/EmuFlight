@@ -84,12 +84,10 @@ extern bool linearThrustEnabled;
 
 PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 
-#ifdef STM32F10X
-#define PID_PROCESS_DENOM_DEFAULT 1
-#elif defined(USE_GYRO_SPI_MPU6000) || defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_SPI_ICM42605) || defined(USE_GYRO_SPI_ICM42688P) || defined(USE_ACCGYRO_BMI160) || defined(USE_ACCGYRO_BMI270)
-#define PID_PROCESS_DENOM_DEFAULT 1
-#else
+#if defined(STM32F3) || defined(STM32F411xE)
 #define PID_PROCESS_DENOM_DEFAULT 2
+#else
+#define PID_PROCESS_DENOM_DEFAULT 1
 #endif
 
 #ifndef DEFAULT_PIDS_ROLL
@@ -449,7 +447,7 @@ void pidInit(const pidProfile_t *pidProfile) {
 }
 
 void pidCopyProfile(uint8_t dstPidProfileIndex, uint8_t srcPidProfileIndex) {
-    if ((dstPidProfileIndex < PID_PROFILE_COUNT - 1 && srcPidProfileIndex < PID_PROFILE_COUNT - 1) && dstPidProfileIndex != srcPidProfileIndex) {
+    if ((dstPidProfileIndex < PID_PROFILE_COUNT && srcPidProfileIndex < PID_PROFILE_COUNT) && dstPidProfileIndex != srcPidProfileIndex) {
         memcpy(pidProfilesMutable(dstPidProfileIndex), pidProfilesMutable(srcPidProfileIndex), sizeof(pidProfile_t));
     }
 }
@@ -752,7 +750,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             errorLimitAxis = pidProfile->errorBoostLimitYaw;
         }
         errorLimitAxis = errorLimitAxis / 100;
-        float errorMultiplier = (errorBoostAxis * errorBoostAxis / 1000000) * 0.003;
+        float errorMultiplier = (errorBoostAxis * errorBoostAxis / 1000000) * 0.003f;
         float boostedErrorRate;
         boostedErrorRate = (errorRate * fabsf(errorRate)) * errorMultiplier;
         if (fabsf(errorRate * errorLimitAxis) < fabsf(boostedErrorRate)) {

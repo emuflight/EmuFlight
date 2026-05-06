@@ -346,12 +346,18 @@ uint32_t CDC_Send_FreeBytes(void) {
  *         this function.
  * @param  ptrBuffer: Buffer of data to be sent
  * @param  sendLength: Number of data to be sent (in bytes)
- * @retval Bytes sent
+ * @retval Bytes actually written; may be less than sendLength on TX backpressure
+ *         (host slow or disconnected). Callers must not assume a full write.
  */
 uint32_t CDC_Send_DATA(const uint8_t *ptrBuffer, uint32_t sendLength) {
     for (uint32_t i = 0; i < sendLength; i++) {
+        // Wait up to 2 ms per byte for space; return partial count on timeout
+        // to prevent an indefinite spin that would trigger WWDG reset.
+        uint32_t deadline = millis() + 2;
         while (CDC_Send_FreeBytes() == 0) {
-            // block until there is free space in the ring buffer
+            if (millis() >= deadline) {
+                return i;
+            }
             delay(1);
         }
         ATOMIC_BLOCK(NVIC_BUILD_PRIORITY(6, 0)) { // Paranoia

@@ -82,13 +82,6 @@ static void ghstInitializeFrame(sbuf_t *dst)
     sbufWriteU8(dst, GHST_ADDR_RX);
 }
 
-//compiler reports unused
-/*
-STATIC_UNIT_TESTED uint8_t *getGhstFrame(){
-    return ghstFrame;
-}
-*/
-
 static void ghstFinalize(sbuf_t *dst)
 {
     crc8_dvb_s2_sbuf_append(dst, &ghstFrame[2]); // start at byte 2, since CRC does not include device address and frame length

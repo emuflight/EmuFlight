@@ -1134,4 +1134,27 @@ extern "C" {
     bool isFlipOverAfterCrashMode(void) {
         return false;
     }
+
+    // CRSF stubs
+    uint16_t CRSFgetLQ(void) { return 50; }
+    uint8_t CRSFgetRFMode(void) { return 0; }
+    uint8_t CRSFgetSnR(void) { return 10; }
+    uint16_t CRSFgetTXPower(void) { return 100; }
+    uint8_t CRSFgetRSSI(void) { return 50; }
+
+    // OLC stubs
+    int olc_encode(float lat, float lon, size_t length, char *buf, size_t bufsize) {
+        (void)lat;
+        (void)lon;
+        (void)length;
+        (void)buf;
+        (void)bufsize;
+        return 0;
+    }
+
+    // Flight mode stubs
+    float getAngleModeAngles(int axis) {
+        (void)axis;
+        return 0.0f;
+    }
 }

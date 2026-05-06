@@ -22,6 +22,6 @@
 
 #include "atomic.h"
 
-#if defined(UNIT_TEST)
+#if defined(UNIT_TEST) || defined(SIMULATOR_BUILD)
 uint8_t atomic_BASEPRI;
 #endif

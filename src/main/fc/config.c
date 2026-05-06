@@ -225,7 +225,6 @@ static void validateAndFixConfig(void) {
 #endif // USE_SOFTSPI
 #if defined(USE_ADC)
     if (featureConfigured(FEATURE_RSSI_ADC)) {
-        rxConfigMutable()->rssi_channel = 0;
         rxConfigMutable()->rssi_src_frame_errors = false;
     } else
 #endif
@@ -252,7 +251,7 @@ static void validateAndFixConfig(void) {
         || true
 #endif
     ) {
-#if defined(USE_GPS)
+#if defined(USE_GPS_RESCUE)
         if (failsafeConfig()->failsafe_procedure == FAILSAFE_PROCEDURE_GPS_RESCUE) {
             failsafeConfigMutable()->failsafe_procedure = FAILSAFE_PROCEDURE_DROP_IT;
         }

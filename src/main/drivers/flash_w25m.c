@@ -59,13 +59,13 @@ static flashDevice_t dieDevice[MAX_DIE_COUNT];
 static int dieCount;
 static uint32_t dieSize;
 
-static void w25m_dieSelect(busDevice_t *busdev, int die) {
+static void w25m_dieSelect(extDevice_t *dev, int die) {
     static int activeDie = -1;
     if (activeDie == die) {
         return;
     }
     uint8_t command[2] = { W25M_INSTRUCTION_SOFTWARE_DIE_SELECT, die };
-    spiBusTransfer(busdev, command, NULL, 2);
+    spiReadWriteBuf(dev, command, NULL, 2);
     activeDie = die;
 }
 
@@ -73,7 +73,7 @@ static bool w25m_isReady(flashDevice_t *fdevice) {
     UNUSED(fdevice);
     for (int die = 0 ; die < dieCount ; die++) {
         if (dieDevice[die].couldBeBusy) {
-            w25m_dieSelect(fdevice->busdev, die);
+            w25m_dieSelect(fdevice->dev, die);
             if (!dieDevice[die].vTable->isReady(&dieDevice[die])) {
                 return false;
             }
@@ -98,8 +98,8 @@ bool w25m_detect(flashDevice_t *fdevice, uint32_t chipID) {
         // W25Q256 x 2
         dieCount = 2;
         for (int die = 0 ; die < dieCount ; die++) {
-            w25m_dieSelect(fdevice->busdev, die);
-            dieDevice[die].busdev = fdevice->busdev;
+            w25m_dieSelect(fdevice->dev, die);
+            dieDevice[die].dev = fdevice->dev;
             m25p16_detect(&dieDevice[die], JEDEC_ID_WINBOND_W25Q256);
         }
         fdevice->geometry.flashType = FLASH_TYPE_NOR;
@@ -124,13 +124,13 @@ bool w25m_detect(flashDevice_t *fdevice, uint32_t chipID) {
 
 void w25m_eraseSector(flashDevice_t *fdevice, uint32_t address) {
     int dieNumber = address / dieSize;
-    w25m_dieSelect(fdevice->busdev, dieNumber);
+    w25m_dieSelect(fdevice->dev, dieNumber);
     dieDevice[dieNumber].vTable->eraseSector(&dieDevice[dieNumber], address % dieSize);
 }
 
 void w25m_eraseCompletely(flashDevice_t *fdevice) {
     for (int dieNumber = 0 ; dieNumber < dieCount ; dieNumber++) {
-        w25m_dieSelect(fdevice->busdev, dieNumber);
+        w25m_dieSelect(fdevice->dev, dieNumber);
         dieDevice[dieNumber].vTable->eraseCompletely(&dieDevice[dieNumber]);
     }
 }
@@ -141,7 +141,7 @@ static int currentWriteDie;
 void w25m_pageProgramBegin(flashDevice_t *fdevice, uint32_t address) {
     UNUSED(fdevice);
     currentWriteDie = address / dieSize;
-    w25m_dieSelect(fdevice->busdev, currentWriteDie);
+    w25m_dieSelect(fdevice->dev, currentWriteDie);
     currentWriteAddress = address % dieSize;
     dieDevice[currentWriteDie].vTable->pageProgramBegin(&dieDevice[currentWriteDie], currentWriteAddress);
 }
@@ -172,7 +172,7 @@ int w25m_readBytes(flashDevice_t *fdevice, uint32_t address, uint8_t *buffer, in
         int dieNumber = address / dieSize;
         uint32_t dieAddress = address % dieSize;
         tlen = MIN(dieAddress + rlen, dieSize) - dieAddress;
-        w25m_dieSelect(fdevice->busdev, dieNumber);
+        w25m_dieSelect(fdevice->dev, dieNumber);
         rbytes = dieDevice[dieNumber].vTable->readBytes(&dieDevice[dieNumber], dieAddress, buffer, tlen);
         if (!rbytes) {
             return 0;

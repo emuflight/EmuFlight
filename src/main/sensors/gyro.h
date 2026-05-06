@@ -105,13 +105,12 @@ typedef struct smithPredictor_s {
     uint8_t enabled;
     uint8_t samples;
     uint8_t idx;
-
     float data[MAX_SMITH_SAMPLES + 1]; // This is gonna be a ring buffer. Max of 8ms delay at 8khz
-
     pt1Filter_t smithPredictorFilter; // filter the smith predictor output for RPY
-
     float smithPredictorStrength;
 } smithPredictor_t;
+
+float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered);
 #endif // USE_SMITH_PREDICTOR
 
 typedef enum {
@@ -175,6 +174,10 @@ typedef struct gyroConfig_s {
     uint8_t smithPredictorStrength;
     uint8_t smithPredictorDelay;
     uint8_t smithPredictorFilterHz;
+
+    //MSP 1.54
+    uint16_t gyroSampleRateHz;
+    //End MSP 1.54
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);
@@ -189,7 +192,8 @@ void gyroDmaSpiStartRead(void);
 #endif
 void gyroUpdate(timeUs_t currentTimeUs);
 bool gyroGetAverage(quaternion *vAverage);
-const busDevice_t *gyroSensorBus(void);
+const extDevice_t *gyroSensorBus(void);
+struct gyroDev_s *gyroSensorGetDev(void);
 struct mpuConfiguration_s;
 const struct mpuConfiguration_s *gyroMpuConfiguration(void);
 struct mpuDetectionResult_s;
@@ -204,7 +208,6 @@ bool gyroOverflowDetected(void);
 bool gyroYawSpinDetected(void);
 uint16_t gyroAbsRateDps(int axis);
 uint8_t gyroReadRegister(uint8_t whichSensor, uint8_t reg);
-float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered);
 #ifdef USE_GYRO_DATA_ANALYSE
 bool isDynamicFilterActive(void);
 #endif

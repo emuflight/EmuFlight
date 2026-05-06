@@ -49,7 +49,7 @@
 
 #define MPU6500_CS_PIN          PC4
 #define MPU6500_EXTI_PIN        NONE
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6500

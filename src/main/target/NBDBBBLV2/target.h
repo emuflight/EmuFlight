@@ -65,7 +65,7 @@
 #define GYRO_BMI160_ALIGN               CW0_DEG
 
 #define BMI160_CS_PIN                   PA4
-#define BMI160_SPI_INSTANCE             SPI3
+#define BMI160_SPI_BUS             SPIDEV_3
 
 #define USE_EXTI
 #define MPU_INT_EXTI                    PB0

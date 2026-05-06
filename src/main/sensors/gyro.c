@@ -23,6 +23,8 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 
 #include "platform.h"
 
@@ -221,6 +223,8 @@ static void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int typ
 #define GYRO_OVERFLOW_TRIGGER_THRESHOLD 31980  // 97.5% full scale (1950dps for 2000dps gyro)
 #define GYRO_OVERFLOW_RESET_THRESHOLD 30340    // 92.5% full scale (1850dps for 2000dps gyro)
 
+#define GYRO_BUF_SIZE 32
+
 PG_REGISTER_WITH_RESET_TEMPLATE(gyroConfig_t, gyroConfig, PG_GYRO_CONFIG, 6);
 
 #ifndef GYRO_CONFIG_USE_GYRO_DEFAULT
@@ -268,7 +272,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
                   .imuf_pitch_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
                   .imuf_yaw_lpf_cutoff_hz = IMUF_DEFAULT_LPF_HZ,
                   .imuf_acc_lpf_cutoff_hz = IMUF_DEFAULT_ACC_LPF_HZ,
-                  .imuf_ptn_order = 3,
+                  .imuf_ptn_order = 2,
                   .gyro_offset_yaw = 0,
                   .gyro_ABG_alpha = 0,
                   .gyro_ABG_boost = 275,
@@ -325,29 +329,41 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
 #endif //USE_GYRO_IMUF9001
 
 
-const busDevice_t *gyroSensorBus(void) {
+const extDevice_t *gyroSensorBus(void) {
 #ifdef USE_DUAL_GYRO
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_2) {
-        return &gyroSensor2.gyroDev.bus;
+        return &gyroSensor2.gyroDev.dev;
     } else {
-        return &gyroSensor1.gyroDev.bus;
+        return &gyroSensor1.gyroDev.dev;
     }
 #else
-    return &gyroSensor1.gyroDev.bus;
+    return &gyroSensor1.gyroDev.dev;
+#endif
+}
+
+gyroDev_t *gyroSensorGetDev(void) {
+#ifdef USE_DUAL_GYRO
+    if (gyroToUse == GYRO_CONFIG_USE_GYRO_2) {
+        return &gyroSensor2.gyroDev;
+    } else {
+        return &gyroSensor1.gyroDev;
+    }
+#else
+    return &gyroSensor1.gyroDev;
 #endif
 }
 
 #ifdef USE_GYRO_REGISTER_DUMP
-const busDevice_t *gyroSensorBusByDevice(uint8_t whichSensor) {
+const extDevice_t *gyroSensorBusByDevice(uint8_t whichSensor) {
 #ifdef USE_DUAL_GYRO
     if (whichSensor == GYRO_CONFIG_USE_GYRO_2) {
-        return &gyroSensor2.gyroDev.bus;
+        return &gyroSensor2.gyroDev.dev;
     } else {
-        return &gyroSensor1.gyroDev.bus;
+        return &gyroSensor1.gyroDev.dev;
     }
 #else
     UNUSED(whichSensor);
-    return &gyroSensor1.gyroDev.bus;
+    return &gyroSensor1.gyroDev.dev;
 #endif
 }
 #endif // USE_GYRO_REGISTER_DUMP
@@ -603,9 +619,9 @@ static bool gyroInitSensor(gyroSensor_t *gyroSensor) {
         break;
     }
     // Must set gyro targetLooptime before gyroDev.init and initialisation of filters
-    gyro.targetLooptime = gyroSetSampleRate(&gyroSensor->gyroDev, gyroConfig()->gyro_hardware_lpf, gyroConfig()->gyro_sync_denom, gyroConfig()->gyro_use_32khz);
     gyroSensor->gyroDev.hardware_lpf = gyroConfig()->gyro_hardware_lpf;
     gyroSensor->gyroDev.hardware_32khz_lpf = gyroConfig()->gyro_32khz_hardware_lpf;
+    gyro.targetLooptime = gyroSetSampleRate(&gyroSensor->gyroDev, gyroConfig()->gyro_hardware_lpf, gyroConfig()->gyro_sync_denom, gyroConfig()->gyro_use_32khz);
     gyroSensor->gyroDev.initFn(&gyroSensor->gyroDev);
 #ifndef USE_GYRO_IMUF9001
     if (gyroConfig()->gyro_align != ALIGN_DEFAULT) {
@@ -672,18 +688,18 @@ bool gyroInit(void) {
     gyroToUse = gyroConfig()->gyro_to_use;
 #if defined(USE_DUAL_GYRO) && defined(GYRO_1_CS_PIN)
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_1 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
-        gyroSensor1.gyroDev.bus.busdev_u.spi.csnPin = IOGetByTag(IO_TAG(GYRO_1_CS_PIN));
-        IOInit(gyroSensor1.gyroDev.bus.busdev_u.spi.csnPin, OWNER_MPU_CS, RESOURCE_INDEX(0));
-        IOHi(gyroSensor1.gyroDev.bus.busdev_u.spi.csnPin); // Ensure device is disabled, important when two devices are on the same bus.
-        IOConfigGPIO(gyroSensor1.gyroDev.bus.busdev_u.spi.csnPin, SPI_IO_CS_CFG);
+        gyroSensor1.gyroDev.dev.busType_u.spi.csnPin = IOGetByTag(IO_TAG(GYRO_1_CS_PIN));
+        IOInit(gyroSensor1.gyroDev.dev.busType_u.spi.csnPin, OWNER_MPU_CS, RESOURCE_INDEX(0));
+        IOHi(gyroSensor1.gyroDev.dev.busType_u.spi.csnPin); // Ensure device is disabled, important when two devices are on the same bus.
+        IOConfigGPIO(gyroSensor1.gyroDev.dev.busType_u.spi.csnPin, SPI_IO_CS_CFG);
     }
 #endif
 #if defined(USE_DUAL_GYRO) && defined(GYRO_2_CS_PIN)
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_2 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
-        gyroSensor2.gyroDev.bus.busdev_u.spi.csnPin = IOGetByTag(IO_TAG(GYRO_2_CS_PIN));
-        IOInit(gyroSensor2.gyroDev.bus.busdev_u.spi.csnPin, OWNER_MPU_CS, RESOURCE_INDEX(1));
-        IOHi(gyroSensor2.gyroDev.bus.busdev_u.spi.csnPin); // Ensure device is disabled, important when two devices are on the same bus.
-        IOConfigGPIO(gyroSensor2.gyroDev.bus.busdev_u.spi.csnPin, SPI_IO_CS_CFG);
+        gyroSensor2.gyroDev.dev.busType_u.spi.csnPin = IOGetByTag(IO_TAG(GYRO_2_CS_PIN));
+        IOInit(gyroSensor2.gyroDev.dev.busType_u.spi.csnPin, OWNER_MPU_CS, RESOURCE_INDEX(1));
+        IOHi(gyroSensor2.gyroDev.dev.busType_u.spi.csnPin); // Ensure device is disabled, important when two devices are on the same bus.
+        IOConfigGPIO(gyroSensor2.gyroDev.dev.busType_u.spi.csnPin, SPI_IO_CS_CFG);
     }
 #endif
     gyroSensor1.gyroDev.gyroAlign = ALIGN_DEFAULT;
@@ -700,9 +716,11 @@ bool gyroInit(void) {
 #ifdef GYRO_1_ALIGN
     gyroSensor1.gyroDev.gyroAlign = GYRO_1_ALIGN;
 #endif
-    gyroSensor1.gyroDev.bus.bustype = BUSTYPE_SPI;
-    spiBusSetInstance(&gyroSensor1.gyroDev.bus, GYRO_1_SPI_INSTANCE);
+    spiSetBusInstance(&gyroSensor1.gyroDev.dev, SPI_DEV_TO_CFG(GYRO_1_SPI_BUS));
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_1 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
+        static FAST_RAM_ZERO_INIT uint8_t gyroBuf1[GYRO_BUF_SIZE];
+        gyroSensor1.gyroDev.dev.txBuf = gyroBuf1;
+        gyroSensor1.gyroDev.dev.rxBuf = &gyroBuf1[GYRO_BUF_SIZE / 2];
         ret = gyroInitSensor(&gyroSensor1);
         if (!ret) {
             return false; // TODO handle failure of first gyro detection better. - Perhaps update the config to use second gyro then indicate a new failure mode and reboot.
@@ -710,6 +728,11 @@ bool gyroInit(void) {
         gyroHasOverflowProtection =  gyroHasOverflowProtection && gyroSensor1.gyroDev.gyroHasOverflowProtection;
     }
 #else // USE_DUAL_GYRO
+    {
+        static FAST_RAM_ZERO_INIT uint8_t gyroBuf1[GYRO_BUF_SIZE];
+        gyroSensor1.gyroDev.dev.txBuf = gyroBuf1;
+        gyroSensor1.gyroDev.dev.rxBuf = &gyroBuf1[GYRO_BUF_SIZE / 2];
+    }
     ret = gyroInitSensor(&gyroSensor1);
     gyroHasOverflowProtection =  gyroHasOverflowProtection && gyroSensor1.gyroDev.gyroHasOverflowProtection;
 #endif // USE_DUAL_GYRO
@@ -725,9 +748,11 @@ bool gyroInit(void) {
 #ifdef GYRO_2_ALIGN
     gyroSensor2.gyroDev.gyroAlign = GYRO_2_ALIGN;
 #endif
-    gyroSensor2.gyroDev.bus.bustype = BUSTYPE_SPI;
-    spiBusSetInstance(&gyroSensor2.gyroDev.bus, GYRO_2_SPI_INSTANCE);
+    spiSetBusInstance(&gyroSensor2.gyroDev.dev, SPI_DEV_TO_CFG(GYRO_2_SPI_BUS));
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_2 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
+        static FAST_RAM_ZERO_INIT uint8_t gyroBuf2[GYRO_BUF_SIZE];
+        gyroSensor2.gyroDev.dev.txBuf = gyroBuf2;
+        gyroSensor2.gyroDev.dev.rxBuf = &gyroBuf2[GYRO_BUF_SIZE / 2];
         ret = gyroInitSensor(&gyroSensor2);
         if (!ret) {
             return false; // TODO handle failure of second gyro detection better. - Perhaps update the config to use first gyro then indicate a new failure mode and reboot.
@@ -1447,14 +1472,17 @@ void initYawSpinRecovery(int maxYawRate)
         enabledFlag = true;
         threshold = gyroConfig()->yaw_spin_threshold;
         break;
-    case YAW_SPIN_RECOVERY_AUTO:
+    case YAW_SPIN_RECOVERY_AUTO: {
         enabledFlag = true;
         const int overshootAllowance = MAX(maxYawRate / 4, 200); // Allow a 25% or minimum 200dps overshoot tolerance
         threshold = constrain(maxYawRate + overshootAllowance, YAW_SPIN_RECOVERY_THRESHOLD_MIN, YAW_SPIN_RECOVERY_THRESHOLD_MAX);
         break;
     }
+    }
 
     yawSpinRecoveryEnabled = enabledFlag;
     yawSpinRecoveryThreshold = threshold;
+
+#pragma GCC diagnostic pop
 }
 #endif

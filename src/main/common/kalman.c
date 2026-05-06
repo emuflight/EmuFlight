@@ -19,7 +19,26 @@
  */
 #ifndef USE_GYRO_IMUF9001
 #include <string.h>
+#include <math.h>
+
+#ifdef USE_ARM_MATH
 #include "arm_math.h"
+#else
+// Fallback for SITL and non-ARM targets
+typedef enum {
+    ARM_MATH_SUCCESS = 0,
+    ARM_MATH_ARGUMENT_ERROR = -1
+} arm_status;
+
+static inline arm_status arm_sqrt_f32(float x, float *out) {
+    if (x < 0.0f) {
+        *out = 0.0f;
+        return ARM_MATH_ARGUMENT_ERROR;
+    }
+    *out = sqrtf(x);
+    return ARM_MATH_SUCCESS;
+}
+#endif
 
 #include "kalman.h"
 #include "fc/fc_rc.h"
@@ -64,7 +83,14 @@ void update_kalman_covariance(float rate, int axis) {
     kalmanFilterStateRate[axis].axisMean = kalmanFilterStateRate[axis].axisSumMean * kalmanFilterStateRate[axis].inverseN;
     kalmanFilterStateRate[axis].axisVar = kalmanFilterStateRate[axis].axisSumVar * kalmanFilterStateRate[axis].inverseN;
     float squirt;
-    arm_sqrt_f32(kalmanFilterStateRate[axis].axisVar, &squirt);
+    // Clamp variance before sqrt to prevent NaN; arm_sqrt_f32 handles both ARM NEON and C fallback
+    float clampedVar = fmaxf(kalmanFilterStateRate[axis].axisVar, 0.0f);
+#if defined(UNIT_TEST) || defined(SIMULATOR_BUILD)
+#include <assert.h>
+    // Debug: catch unexpectedly large negative variance (suggests calculation bug)
+    assert(kalmanFilterStateRate[axis].axisVar > -1e-6f);
+#endif
+    arm_sqrt_f32(clampedVar, &squirt);
     kalmanFilterStateRate[axis].r = squirt * VARIANCE_SCALE;
 }
 

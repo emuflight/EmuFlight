@@ -38,7 +38,7 @@
  #define CAMERA_CONTROL_PIN PB3
 
  #define MPU6000_CS_PIN        PA15
- #define MPU6000_SPI_INSTANCE  SPI3
+ #define MPU6000_SPI_BUS  SPIDEV_3
 
  #define USE_ACC
  #define USE_ACC_SPI_MPU6000
@@ -66,7 +66,7 @@
  #define USE_SPI_GYRO
  #define USE_ACCGYRO_BMI270
  #define BMI270_CS_PIN           PA15
- #define BMI270_SPI_INSTANCE     SPI3
+ #define BMI270_SPI_BUS     SPIDEV_3
  #define ACC_BMI270_ALIGN        CW180_DEG
  #define GYRO_BMI270_ALIGN       CW180_DEG
  #endif

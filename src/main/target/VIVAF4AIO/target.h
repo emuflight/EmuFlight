@@ -38,7 +38,7 @@
 #define USE_MPU_DATA_READY_SIGNAL
 
 #define MPU6500_CS_PIN            PA4
-#define MPU6500_SPI_INSTANCE      SPI1
+#define MPU6500_SPI_BUS      SPIDEV_1
 
 #define ACC_MPU6500_1_ALIGN       CW0_DEG
 #define GYRO_MPU6500_1_ALIGN      CW0_DEG

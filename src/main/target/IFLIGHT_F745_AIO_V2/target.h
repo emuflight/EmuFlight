@@ -20,9 +20,11 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "IFRC"
-
+#define TARGET_MANUFACTURER_IDENTIFIER "IFRC"
 #define USBD_PRODUCT_STRING "IFLIGHT_F745_AIO_V2"
+
+#define FC_TARGET_MCU     STM32F745     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
 
 #define ENABLE_DSHOT_DMAR       true
 
@@ -50,9 +52,9 @@
 #define MPU_INT_EXTI
 
 #define GYRO_1_CS_PIN               PA4
-#define GYRO_1_SPI_INSTANCE         SPI1
+#define GYRO_1_SPI_BUS         SPIDEV_1
 #define GYRO_2_CS_PIN               PB12
-#define GYRO_2_SPI_INSTANCE         SPI2
+#define GYRO_2_SPI_BUS         SPIDEV_2
 
 #define GYRO_1_ALIGN                CW0_DEG
 #define ACC_1_ALIGN                 CW0_DEG

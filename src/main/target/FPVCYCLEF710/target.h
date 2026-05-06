@@ -44,7 +44,7 @@
 
 #define MPU_INT_EXTI            PC4
 #define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 #define GYRO_MPU6000_ALIGN      CW270_DEG_FLIP
 #define ACC_MPU6000_ALIGN       CW270_DEG_FLIP
 

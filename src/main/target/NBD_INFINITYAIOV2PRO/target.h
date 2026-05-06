@@ -35,7 +35,7 @@
 #define USE_SPI_GYRO
 #define USE_ACCGYRO_BMI270
 #define BMI270_CS_PIN           PE11
-#define BMI270_SPI_INSTANCE     SPI4
+#define BMI270_SPI_BUS     SPIDEV_4
 #define ACC_BMI270_ALIGN        CW270_DEG
 #define GYRO_BMI270_ALIGN       CW270_DEG
 
@@ -48,14 +48,14 @@
 
 // gyro 1
 #define GYRO_1_CS_PIN           PE11
-#define GYRO_1_SPI_INSTANCE     SPI4
+#define GYRO_1_SPI_BUS     SPIDEV_4
 #define GYRO_1_EXTI_PIN         PB1
 #define GYRO_1_ALIGN            CW270_DEG
 #define ACC_1_ALIGN             CW270_DEG
 
 // gyro 2
 #define GYRO_2_CS_PIN           PB12
-#define GYRO_2_SPI_INSTANCE     SPI2
+#define GYRO_2_SPI_BUS     SPIDEV_2
 #define GYRO_2_EXTI_PIN         PD0
 #define GYRO_2_ALIGN            CW270_DEG
 #define ACC_2_ALIGN             CW270_DEG

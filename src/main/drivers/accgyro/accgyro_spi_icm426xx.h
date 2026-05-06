@@ -30,7 +30,7 @@ bool icm426xxGyroDetect(gyroDev_t *gyro);
 void icm426xxAccInit(accDev_t *acc);
 void icm426xxGyroInit(gyroDev_t *gyro);
 
-uint8_t icm426xxSpiDetect(const busDevice_t *dev);
+uint8_t icm426xxSpiDetect(const extDevice_t *dev);
 
 bool icm426xxSpiAccDetect(accDev_t *acc);
 bool icm426xxSpiGyroDetect(gyroDev_t *gyro);

@@ -42,6 +42,8 @@ const char * const ownerNames[OWNER_TOTAL_COUNT] = {
     "SPI_SCK",
     "SPI_MISO",
     "SPI_MOSI",
+    "SPI_SDO",
+    "SPI_SDI",
     "I2C_SCL",
     "I2C_SDA",
     "SDCARD",

@@ -248,7 +248,8 @@ FAST_CODE void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut,
     const float ScaleF[] = { 1.0f, 1.553773974f, 1.961459177f, 2.298959223f };
     float Adj_f_cut;
 
-	  filter->order = (order > 4) ? 4 : order;
+	  // Clamp order to valid range [1, 4]
+	  filter->order = (order < 1) ? 1 : ((order > 4) ? 4 : order);
 	  for (int n = 1; n <= filter->order; n++) {
 		    filter->state[n] = 0.0f;
     }

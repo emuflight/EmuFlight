@@ -100,7 +100,11 @@ void pgResetFn_motorConfig(motorConfig_t *motorConfig) {
     {
         motorConfig->minthrottle = 1070;
         motorConfig->dev.motorPwmRate = BRUSHLESS_MOTORS_PWM_RATE;
+#ifdef USE_DSHOT
         motorConfig->dev.motorPwmProtocol = PWM_TYPE_DSHOT600;
+#else
+        motorConfig->dev.motorPwmProtocol = PWM_TYPE_STANDARD;
+#endif
     }
 #endif
     motorConfig->maxthrottle = 2000;
@@ -865,13 +869,13 @@ void mixThingsUp(const float scaledAxisPidRoll, const float scaledAxisPidPitch, 
     float controllerMixMin = 0, controllerMixMax = 0;
 
     for (int i = 0; i < motorCount; i++) {
-        float yawMixVal = controllerMix3DModeSign * scaledAxisPidYaw * currentMixer[i].yaw;
+        float yawMixVal = scaledAxisPidYaw * currentMixer[i].yaw;
         if (yawMixVal > yawMixMax) {
             yawMixMax = yawMixVal;
         } else if (yawMixVal < yawMixMin) {
             yawMixMin = yawMixVal;
         }
-        yawMix[i] = yawMixVal;
+        yawMix[i] = yawMixVal * controllerMix3DModeSign;
 
         float rollPitchMixVal = scaledAxisPidRoll * currentMixer[i].roll + scaledAxisPidPitch * currentMixer[i].pitch;
         if (rollPitchMixVal > rollPitchMixMax) {
@@ -879,15 +883,15 @@ void mixThingsUp(const float scaledAxisPidRoll, const float scaledAxisPidPitch, 
         } else if (rollPitchMixVal < rollPitchMixMin) {
             rollPitchMixMin = rollPitchMixVal;
         }
-        rollPitchMix[i] = rollPitchMixVal;
+        rollPitchMix[i] = rollPitchMixVal * controllerMix3DModeSign;
 
-        float controllerMixVal = controllerMix3DModeSign * (rollPitchMixVal + yawMixVal);
+        float controllerMixVal = (rollPitchMixVal + yawMixVal);
         if (controllerMixVal > controllerMixMax) {
             controllerMixMax = controllerMixVal;
         } else if (controllerMixVal < controllerMixMin) {
             controllerMixMin = controllerMixVal;
         }
-        controllerMix[i] = controllerMixVal;
+        controllerMix[i] = controllerMixVal * controllerMix3DModeSign;
     }
 
     controllerMixRange = controllerMixMax - controllerMixMin; // measures how much the controller is trying to compensate
@@ -1030,8 +1034,8 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
     float throttlePostYaw = postYawThrottle - yawThrottleCorrection;
     float thrustPostYaw = motorToThrust(throttlePostYaw, true);
 
-    float maxMotor = -1000.0;
-    float minMotor = 1000.0;
+    float maxMotor = -1000.0f;
+    float minMotor = 1000.0f;
 
     // correct for the extra thrust yaw adds, then fill up motorMix with pitch and roll
     for (int i = 0; i < motorCount; i++) {
@@ -1054,10 +1058,10 @@ static void twoPassMix(float *motorMix, const float *yawMix, const float *rollPi
     }
 
     // if the range is outside the normal bounds, correct it here
-    float motorCorrection = 0.0;
-    if (maxMotor > 1.0) {
-        motorCorrection = 1.0 - maxMotor;
-    } else if (minMotor < 0.0) {
+    float motorCorrection = 0.0f;
+    if (maxMotor > 1.0f) {
+        motorCorrection = 1.0f - maxMotor;
+    } else if (minMotor < 0.0f) {
         motorCorrection = -minMotor;
     }
 

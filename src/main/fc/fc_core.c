@@ -134,7 +134,7 @@ static bool flipOverAfterCrashMode = false;
 static timeUs_t disarmAt;     // Time of automatic disarm when "Don't spin the motors when armed" is enabled and auto_disarm_delay is nonzero
 
 bool limitDistanceReach;
-bool isRXDataNew;
+extern volatile bool isRXDataNew;
 static int lastArmingDisabledReason = 0;
 static timeUs_t lastDisarmTimeUs;
 static int tryingToArm = ARMING_DELAYED_DISARMED;
@@ -225,7 +225,7 @@ void updateArmingStatus(void) {
             unsetArmingDisabled(ARMING_DISABLED_CALIBRATING);
         }
         if (isModeActivationConditionPresent(BOXPREARM)) {
-            if (IS_RC_MODE_ACTIVE(BOXPREARM) && !ARMING_FLAG(WAS_ARMED_WITH_PREARM)) {
+            if (IS_RC_MODE_ACTIVE(BOXPREARM) && (!ARMING_FLAG(WAS_ARMED_WITH_PREARM) || armingConfig()->prearm_allow_rearm)) {
                 unsetArmingDisabled(ARMING_DISABLED_NOPREARM);
             } else {
                 setArmingDisabled(ARMING_DISABLED_NOPREARM);

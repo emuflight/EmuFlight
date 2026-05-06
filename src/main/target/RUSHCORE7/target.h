@@ -41,7 +41,7 @@
 #define USE_GYRO
 //------MPU6000
 #define MPU6000_CS_PIN           PA4
-#define MPU6000_SPI_INSTANCE     SPI1
+#define MPU6000_SPI_BUS     SPIDEV_1
 
 #define USE_GYRO_SPI_MPU6000
 #define GYRO_MPU6000_ALIGN      CW270_DEG_FLIP
@@ -56,7 +56,7 @@
 
 //------ICM20602
 #define MPU6500_CS_PIN          PA4
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 
 #define USE_GYRO_SPI_MPU6500
 #define GYRO_MPU6500_ALIGN      CW270_DEG_FLIP

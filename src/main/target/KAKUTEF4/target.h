@@ -62,7 +62,7 @@
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
 #define  ICM20689_CS_PIN          PC4
-#define ICM20689_SPI_INSTANCE    SPI1
+#define ICM20689_SPI_BUS    SPIDEV_1
 
 #define USE_ACC
 #define USE_ACC_SPI_ICM20689
@@ -75,7 +75,7 @@
 #if defined(FLYWOOF405) || defined(KAKUTEF4V2)
 //------MPU6000
 #define MPU6000_CS_PIN           PC4
-#define MPU6000_SPI_INSTANCE     SPI1
+#define MPU6000_SPI_BUS     SPIDEV_1
 #define USE_GYRO_SPI_MPU6000
 #define GYRO_MPU6000_ALIGN      CW270_DEG
 #define USE_ACC_SPI_MPU6000

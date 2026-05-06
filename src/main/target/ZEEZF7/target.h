@@ -53,7 +53,7 @@
 
 #define MPU_INT_EXTI                                     PC9                    //MPU_INT_EXTI
 #define MPU6000_CS_PIN                                   PB12                    //GYRO_1_CS_PIN
-#define MPU6000_SPI_INSTANCE                             SPI2                   //GYRO_1_SPI_INSTANCE
+#define MPU6000_SPI_BUS                             SPIDEV_2                   //GYRO_1_SPI_BUS
 #define GYRO_MPU6000_ALIGN                               CW0_DEG_FLIP
 #define ACC_MPU6000_ALIGN                                CW0_DEG_FLIP
 
@@ -66,9 +66,13 @@
 
 // Blackbox
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+#define USE_FLASH
 #define USE_FLASHFS
+#define USE_FLASH_W25N01G   // official
+#define USE_FLASH_M25P16    // 16MB Micron M25P16 driver; drives all unless QSPI
 #define USE_FLASH_W25M
-#define USE_FLASH_M25P16
+#define USE_FLASH_W25M512
+#define USE_FLASH_W25Q
 #define FLASH_CS_PIN                                     PA4
 #define FLASH_SPI_INSTANCE                               SPI1
 

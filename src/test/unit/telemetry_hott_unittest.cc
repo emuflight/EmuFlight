@@ -34,7 +34,6 @@ extern "C" {
 
     #include "drivers/system.h"
     #include "drivers/serial.h"
-    #include "drivers/system.h"
 
     #include "fc/runtime_config.h"
 
@@ -180,8 +179,8 @@ uint32_t fixedMillis = 0;
 
 baro_t baro;
 
-uint32_t getEstimatedAltitude() { return 0; }
-uint32_t getEstimatedVario() { return 0; }
+int32_t getEstimatedAltitude(void) { return 0; }
+int16_t getEstimatedVario(void) { return 0; }
 
 uint32_t millis(void) {
     return fixedMillis;

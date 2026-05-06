@@ -30,5 +30,9 @@
 
 typedef struct displayPort_s displayPort_t;
 
+#if defined(USE_OSD) && defined(USE_HDZERO_OSD)
 displayPort_t *hdzeroOsdDisplayPortInit(void);
 void hdzeroOsdSerialProcess(mspProcessCommandFnPtr mspProcessCommandFn);
+#else
+static inline void hdzeroOsdSerialProcess(mspProcessCommandFnPtr mspProcessCommandFn) { (void)mspProcessCommandFn; }
+#endif

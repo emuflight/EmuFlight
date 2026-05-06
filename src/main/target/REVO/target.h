@@ -84,10 +84,10 @@
 #endif
 
 #define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 
 #define MPU6500_CS_PIN          PA4
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 
 #define USE_GYRO
 #define USE_ACC
@@ -97,12 +97,12 @@
 #define MPU6000_CS_PIN          PB13
 #define USE_GYRO_SPI_ICM20601
 #define ICM20601_CS_PIN         PA4 // served through MPU6500 code
-#define ICM20601_SPI_INSTANCE   SPI1
+#define ICM20601_SPI_BUS   SPIDEV_1
 #define USE_DUAL_GYRO
 #define GYRO_1_CS_PIN           MPU6000_CS_PIN
 #define GYRO_2_CS_PIN           ICM20601_CS_PIN
-#define GYRO_1_SPI_INSTANCE     MPU6000_SPI_INSTANCE
-#define GYRO_2_SPI_INSTANCE     ICM20601_SPI_INSTANCE
+#define GYRO_1_SPI_BUS     MPU6000_SPI_BUS
+#define GYRO_2_SPI_BUS     ICM20601_SPI_BUS
 #define ACC_1_ALIGN             ALIGN_DEFAULT
 #define ACC_2_ALIGN             ALIGN_DEFAULT
 #endif
@@ -129,7 +129,7 @@
 #define USE_GYRO_SPI_MPU6500
 #define GYRO_MPU6500_ALIGN            CW0_DEG
 #define MPU6500_CS_PIN           PA4
-#define MPU6500_SPI_INSTANCE     SPI1
+#define MPU6500_SPI_BUS     SPIDEV_1
 
 #define USE_ACC_SPI_MPU6500
 #define ACC_MPU6500_ALIGN             CW0_DEG

@@ -21,6 +21,7 @@ extern "C" {
 #include "platform.h"
 #include "target.h"
 #include "drivers/barometer/barometer.h"
+#include "drivers/barometer/barometer_bmp280.h"
 #include "drivers/bus.h"
 
 void bmp280_calculate(int32_t *pressure, int32_t *temperature);
@@ -28,23 +29,9 @@ void bmp280_calculate(int32_t *pressure, int32_t *temperature);
 extern uint32_t bmp280_up;
 extern uint32_t bmp280_ut;
 
-typedef struct bmp280_calib_param_s {
-    uint16_t dig_T1; /* calibration T1 data */
-    int16_t dig_T2; /* calibration T2 data */
-    int16_t dig_T3; /* calibration T3 data */
-    uint16_t dig_P1; /* calibration P1 data */
-    int16_t dig_P2; /* calibration P2 data */
-    int16_t dig_P3; /* calibration P3 data */
-    int16_t dig_P4; /* calibration P4 data */
-    int16_t dig_P5; /* calibration P5 data */
-    int16_t dig_P6; /* calibration P6 data */
-    int16_t dig_P7; /* calibration P7 data */
-    int16_t dig_P8; /* calibration P8 data */
-    int16_t dig_P9; /* calibration P9 data */
-    int32_t t_fine; /* calibration t_fine data */
-} bmp280_calib_param_t;
 
-bmp280_calib_param_t bmp280_cal;
+
+extern bmp280_calib_param_t bmp280_cal;
 }
 
 
@@ -144,8 +131,8 @@ TEST(baroBmp280Test, TestBmp280CalculateZeroP)
 extern "C" {
 
 void delay(uint32_t) {}
-bool busReadRegisterBuffer(const busDevice_t*, uint8_t, uint8_t*, uint8_t) {return true;}
-bool busWriteRegister(const busDevice_t*, uint8_t, uint8_t) {return true;}
+bool busReadRegisterBuffer(const extDevice_t*, uint8_t, uint8_t*, uint8_t) {return true;}
+bool busWriteRegister(const extDevice_t*, uint8_t, uint8_t) {return true;}
 
 void spiSetDivisor() {
 }

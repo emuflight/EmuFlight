@@ -18,6 +18,7 @@
 #pragma once
 
 #include <string.h>
+#include <stdarg.h>  // Required for va_list, va_start, va_end
 
 extern "C" {
 #include "drivers/display.h"
@@ -95,6 +96,11 @@ static uint32_t displayPortTestTxBytesFree(const displayPort_t *displayPort) {
     return 0;
 }
 
+static bool displayPortTestIsSynced(const displayPort_t *displayPort) {
+    UNUSED(displayPort);
+    return true;
+}
+
 static const displayPortVTable_t testDisplayPortVTable = {
     .grab = displayPortTestGrab,
     .release = displayPortTestRelease,
@@ -106,6 +112,7 @@ static const displayPortVTable_t testDisplayPortVTable = {
     .isTransferInProgress = displayPortTestIsTransferInProgress,
     .heartbeat = displayPortTestHeartbeat,
     .resync = displayPortTestResync,
+    .isSynced = displayPortTestIsSynced,
     .txBytesFree = displayPortTestTxBytesFree
 };
 

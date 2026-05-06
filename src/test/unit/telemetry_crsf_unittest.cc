@@ -66,7 +66,7 @@ extern "C" {
     uint16_t testBatteryVoltage = 0;
     int32_t testAmperage = 0;
     int32_t testmAhDrawn = 0;
-    uint32_t getEstimatedAltitude() { return 0; }
+    int32_t getEstimatedAltitude() { return gpsSol.llh.alt; }  // Return GPS altitude for testing
 
     serialPort_t *telemetrySharedPort;
     PG_REGISTER(batteryConfig_t, batteryConfig, PG_BATTERY_CONFIG, 0);
@@ -213,12 +213,29 @@ TEST(TelemetryCrsfTest, TestAttitude)
     EXPECT_EQ(crfsCrc(frame, frameLen), frame[9]);
 }
 
-TEST(TelemetryCrsfTest, TestFlightMode)
+// Fixture for flight mode test to ensure proper cleanup of global state
+class TelemetryCrsfFlightModeTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        // Arm the system so firmware doesn't return "WAIT" mode
+        ENABLE_ARMING_FLAG(ARMED);
+        airMode = false;
+    }
+
+    void TearDown() override {
+        // Clean up global state to prevent test interference
+        DISABLE_ARMING_FLAG(ARMED);
+        disableFlightMode(ANGLE_MODE);
+        disableFlightMode(HORIZON_MODE);
+        airMode = false;
+    }
+};
+
+TEST_F(TelemetryCrsfFlightModeTest, TestFlightMode)
 {
     uint8_t frame[CRSF_FRAME_SIZE_MAX];
 
-    // nothing set, so ACRO mode
-    airMode = false;
+    // nothing set, so ACRO mode (system already armed from SetUp)
     int frameLen = getCrsfFrame(frame, CRSF_FRAMETYPE_FLIGHT_MODE);
     EXPECT_EQ(5 + FRAME_HEADER_FOOTER_LEN, frameLen);
     EXPECT_EQ(CRSF_SYNC_BYTE, frame[0]); // address
@@ -340,5 +357,15 @@ bool handleMspFrame(uint8_t *, int, uint8_t *)  { return false; }
 void crsfScheduleMspResponse(void) {};
 bool isBatteryVoltageConfigured(void) { return true; }
 bool isAmperageConfigured(void) { return true; }
+
+// CRSF telemetry stubs (missing from original test)
+void CRSFsetLQ(uint16_t crsflqValue) { UNUSED(crsflqValue); }
+void CRSFsetRFMode(uint8_t crsfrfValue) { UNUSED(crsfrfValue); }
+void CRSFsetSnR(uint16_t crsfsnrValue) { UNUSED(crsfsnrValue); }
+void CRSFsetTXPower(uint16_t crsftxpValue) { UNUSED(crsftxpValue); }
+void CRSFsetRSSI(uint8_t crsfrssiValue) { UNUSED(crsfrssiValue); }
+
+// Battery stub (missing from original test)
+uint8_t getBatteryCellCount(void) { return 3; }
 
 }

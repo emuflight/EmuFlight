@@ -22,6 +22,7 @@
 
 #include "common/time.h"
 #include "pg/pg.h"
+#include "pg/vcd.h"
 
 #define OSD_NUM_TIMER_TYPES 3
 extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
@@ -43,6 +44,9 @@ extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
                        ((y & OSD_POSITION_XY_MASK) << OSD_POSITION_BITS))
 #define OSD_X(x)      ((x & OSD_POSITION_XY_MASK) | ((x & OSD_POSITION_XHD_MASK) >> (OSD_POSITION_BIT_XHD - OSD_POSITION_BITS)))
 #define OSD_Y(x)      ((x >> OSD_POSITION_BITS) & OSD_POSITION_XY_MASK)
+
+#define SDINDENT      0   //Analog leftmost character for OSD Init and Menus
+#define HDINDENT     10   //HD leftmost character for OSD Init and Menus
 
 // Timer configuration
 // Stored as 15[alarm:8][precision:4][source:4]0
@@ -224,6 +228,7 @@ typedef struct osdConfig_s {
 
 PG_DECLARE(osdConfig_t, osdConfig);
 
+#ifdef USE_OSD
 extern timeUs_t resumeRefreshAt;
 extern char djiWarningBuffer[12];
 
@@ -237,3 +242,12 @@ bool osdStatGetState(uint8_t statIndex);
 void osdWarnSetState(uint8_t warningIndex, bool enabled);
 bool osdWarnGetState(uint8_t warningIndex);
 void setCrsfRssi(bool b);
+#else
+extern char djiWarningBuffer[12];  // stub for when OSD is disabled
+static inline void osdUpdate(timeUs_t currentTimeUs) { (void)currentTimeUs; }
+static inline bool osdWarnGetState(uint8_t warningIndex) { (void)warningIndex; return false; }
+static inline void osdWarnSetState(uint8_t warningIndex, bool enabled) { (void)warningIndex; (void)enabled; }
+static inline bool osdStatGetState(uint8_t statIndex) { (void)statIndex; return false; }
+static inline void osdStatSetState(uint8_t statIndex, bool enabled) { (void)statIndex; (void)enabled; }
+static inline void setCrsfRssi(bool b) { (void)b; }
+#endif
