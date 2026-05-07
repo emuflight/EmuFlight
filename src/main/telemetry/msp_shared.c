@@ -60,9 +60,13 @@ static mspTxBuffer_t mspTxBuffer;
 static mspPacket_t mspRxPacket;
 static mspPacket_t mspTxPacket;
 static mspDescriptor_t mspSharedDescriptor;
+static bool mspSharedDescriptorInitialized;
 
 void initSharedMsp(void) {
-    mspSharedDescriptor = mspDescriptorAlloc();
+    if (!mspSharedDescriptorInitialized) {
+        mspSharedDescriptor = mspDescriptorAlloc();
+        mspSharedDescriptorInitialized = true;
+    }
     mspPackage.requestBuffer = (uint8_t *)&mspRxBuffer;
     mspPackage.requestPacket = &mspRxPacket;
     mspPackage.requestPacket->buf.ptr = mspPackage.requestBuffer;

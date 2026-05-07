@@ -156,12 +156,12 @@ static uint32_t mspArmingDisableFlags = 0;
 
 static void mspArmingDisableByDescriptor(mspDescriptor_t desc)
 {
-    mspArmingDisableFlags |= (1 << desc);
+    mspArmingDisableFlags |= ((uint32_t)1 << desc);
 }
 
 static void mspArmingEnableByDescriptor(mspDescriptor_t desc)
 {
-    mspArmingDisableFlags &= ~(1 << desc);
+    mspArmingDisableFlags &= ~((uint32_t)1 << desc);
 }
 
 static bool mspIsMspArmingEnabled(void)
