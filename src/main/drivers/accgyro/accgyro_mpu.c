@@ -69,6 +69,10 @@
 #include "fc/runtime_config.h"
 #endif //USE_GYRO_IMUF9001
 
+#if defined(USE_DMA_SPI_DEVICE) && defined(USE_GYRO_IMUF9001)
+STATIC_ASSERT(GTBCM_GYRO_ACC_FILTER_F <= sizeof(dmaRxBuffer), imuf_default_mode_fits_dma_buffer);
+#endif
+
 mpuResetFnPtr mpuResetFn;
 
 #ifdef USE_GYRO_IMUF9001
@@ -226,9 +230,15 @@ FAST_CODE bool mpuGyroDmaSpiReadStart(gyroDev_t * gyro) {
             isSetpointNew = 0;
         }
     }
-    memset(dmaRxBuffer, 0, gyroConfig()->imuf_mode); //clear buffer
-    //send and receive data using SPI and DMA
-    dmaSpiTransmitReceive(dmaTxBuffer, dmaRxBuffer, gyroConfig()->imuf_mode, 0);
+    uint32_t xferLen = gyroConfig()->imuf_mode;
+    if (xferLen > sizeof(dmaRxBuffer)) {
+        xferLen = (uint32_t)sizeof(dmaRxBuffer);
+    }
+    if (xferLen == 0) {
+        return false;
+    }
+    memset(dmaRxBuffer, 0, xferLen);
+    dmaSpiTransmitReceive(dmaTxBuffer, dmaRxBuffer, xferLen, 0);
 #else
     dmaTxBuffer[0] = MPU_RA_ACCEL_XOUT_H | 0x80;
     dmaSpiTransmitReceive(dmaTxBuffer, dmaRxBuffer, 15, 0);
