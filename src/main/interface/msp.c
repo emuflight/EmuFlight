@@ -149,6 +149,9 @@ static int mspDescriptorCounter = 0;
 
 mspDescriptor_t mspDescriptorAlloc(void)
 {
+    if (mspDescriptorCounter >= (int)(sizeof(uint32_t) * 8)) {
+        return (mspDescriptor_t)0;
+    }
     return (mspDescriptor_t)mspDescriptorCounter++;
 }
 
