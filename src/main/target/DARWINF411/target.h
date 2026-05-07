@@ -90,7 +90,7 @@
 #define UART2_TX_PIN         PA2
 #define UART2_RX_PIN         PA3
 #define USE_SOFTSERIAL1
-#define SOFTSERIAL1_TX_PIN   PB3
+#define SOFTSERIAL1_TX_PIN   PB3  // PB3 (TIM2_CH2) shared with motor 5 — motor 5 and motor 6 disabled; softserial takes priority
 #define SOFTSERIAL1_RX_PIN   PB3
 #define SERIAL_PORT_COUNT 4
 
@@ -132,7 +132,7 @@
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
+#define USABLE_TIMER_CHANNEL_COUNT 7
 #define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(9) )
 
 // notice - this file was programmatically generated and may be incomplete.

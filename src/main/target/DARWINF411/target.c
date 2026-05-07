@@ -34,8 +34,9 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM3, CH2, PB5, TIM_USE_MOTOR, 0, 0), // motor 2
     DEF_TIM(TIM4, CH1, PB6, TIM_USE_MOTOR, 0, 0), // motor 3
     DEF_TIM(TIM4, CH2, PB7, TIM_USE_MOTOR, 0, 0), // motor 4
-    DEF_TIM(TIM2, CH2, PB3,  TIM_USE_MOTOR, 0, 0), // motor 5; shared with SOFTSERIAL1 TX/RX — mutually exclusive (BF: MOTOR 5 B03 / SERIAL_TX|RX 11 B03)
-    DEF_TIM(TIM2, CH3, PB10, TIM_USE_MOTOR, 0, 0), // motor 6
+    // DEF_TIM(TIM2, CH2, PB3,  TIM_USE_MOTOR, 0, 0), // motor 5 disabled; PB3 used for SOFTSERIAL1 TX/RX — mutually exclusive (BF: MOTOR 5 B03 / SERIAL_TX|RX 11 B03)
+    DEF_TIM(TIM2, CH2, PB3,  TIM_USE_ANY,   0, 0), // SOFTSERIAL1 TX/RX (half-duplex; shared with motor 5 — motor 5 disabled)
+    // DEF_TIM(TIM2, CH3, PB10, TIM_USE_MOTOR, 0, 0), // motor 6 disabled; motor 5 disabled leaves 5 motor slots (odd count — invalid); motor 6 also disabled for even 4-motor count
     DEF_TIM(TIM9, CH2, PA3,  TIM_USE_PPM,   0, 0), // PPM; shared with UART2_RX — mutually exclusive (BF: PPM 1 A03 / SERIAL_RX 2 A03)
     DEF_TIM(TIM1, CH1, PA8,  TIM_USE_LED,   0, 0), // led
 };
