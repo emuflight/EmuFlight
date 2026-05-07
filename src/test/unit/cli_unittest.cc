@@ -386,4 +386,6 @@ bool boardInformationIsSet(void) { return true; };
 bool setBoardName(char *newBoardName) { UNUSED(newBoardName); return true; };
 bool setManufacturerId(char *newManufacturerId) { UNUSED(newManufacturerId); return true; };
 bool persistBoardInformation(void) { return true; };
+
+mspDescriptor_t mspDescriptorAlloc(void) { return 0; }
 }
