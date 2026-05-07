@@ -46,6 +46,11 @@
 #define BEEPER_PIN           PC13
 #define BEEPER_INVERTED
 #define USE_USB_DETECT
+#define USB_DETECT_PIN       PC14
+
+#define USE_MAX7456
+#define MAX7456_SPI_CS_PIN   PB2
+#define MAX7456_SPI_INSTANCE SPI1
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
