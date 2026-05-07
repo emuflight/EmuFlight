@@ -20,6 +20,9 @@
 
 #pragma once
 
+#include "bus.h"
+#include "dma.h"
+
 // Sentinel value stored in bus->curSegment when no DMA transfer is in progress.
 #define BUS_SPI_FREE 0x0
 
