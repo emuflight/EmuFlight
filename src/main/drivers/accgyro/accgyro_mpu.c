@@ -71,6 +71,7 @@
 
 #if defined(USE_DMA_SPI_DEVICE) && defined(USE_GYRO_IMUF9001)
 STATIC_ASSERT(GTBCM_GYRO_ACC_FILTER_F <= sizeof(dmaRxBuffer), imuf_default_mode_fits_dma_buffer);
+STATIC_ASSERT(sizeof(imufData_t) <= sizeof(dmaRxBuffer), imuf_data_fits_dma_rx_buffer);
 #endif
 
 mpuResetFnPtr mpuResetFn;
@@ -230,10 +231,8 @@ FAST_CODE bool mpuGyroDmaSpiReadStart(gyroDev_t * gyro) {
             isSetpointNew = 0;
         }
     }
-    uint32_t xferLen = gyroConfig()->imuf_mode;
-    if (xferLen > sizeof(dmaRxBuffer)) {
-        xferLen = (uint32_t)sizeof(dmaRxBuffer);
-    }
+    const uint32_t dmaBufSize = (uint32_t)MIN(sizeof(dmaTxBuffer), sizeof(dmaRxBuffer));
+    uint32_t xferLen = MIN((uint32_t)gyroConfig()->imuf_mode, dmaBufSize);
     if (xferLen == 0) {
         return false;
     }
