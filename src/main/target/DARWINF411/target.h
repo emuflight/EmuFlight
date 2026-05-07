@@ -71,17 +71,17 @@
 #define ACC_MPU6500_ALIGN        CW90_DEG_FLIP
 #define GYRO_MPU6500_ALIGN       CW90_DEG_FLIP
 #define MPU6500_CS_PIN           PA4
-#define MPU6500_SPI_INSTANCE     SPI1
+#define MPU6500_SPI_BUS          SPIDEV_1
 
 #define ACC_ICM20689_ALIGN       CW90_DEG_FLIP
 #define GYRO_ICM20689_ALIGN      CW90_DEG_FLIP
 #define ICM20689_CS_PIN          PA4
-#define ICM20689_SPI_INSTANCE    SPI1
+#define ICM20689_SPI_BUS         SPIDEV_1
 
 #define ACC_BMI270_ALIGN         CW90_DEG_FLIP
 #define GYRO_BMI270_ALIGN        CW90_DEG_FLIP
 #define BMI270_CS_PIN            PA4
-#define BMI270_SPI_INSTANCE      SPI1
+#define BMI270_SPI_BUS           SPIDEV_1
 
 #define USE_UART1
 #define UART1_TX_PIN         PA9
