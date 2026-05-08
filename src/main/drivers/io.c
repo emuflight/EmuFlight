@@ -370,9 +370,12 @@ void IOInitGlobal(void) {
 IO_t IOGetByTag(ioTag_t tag) {
     const int portIdx = DEFIO_TAG_GPIOID(tag);
     const int pinIdx = DEFIO_TAG_PIN(tag);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wlogical-op"
     if (portIdx < 0 || portIdx >= DEFIO_PORT_USED_COUNT) {
         return NULL;
     }
+#pragma GCC diagnostic pop
     // check if pin exists
     if (!(ioDefUsedMask[portIdx] & (1 << pinIdx))) {
         return NULL;

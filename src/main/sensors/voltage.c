@@ -129,7 +129,7 @@ void pgResetFn_voltageSensorADCConfig(voltageSensorADCConfig_t *instance) {
 }
 
 
-static const uint8_t voltageMeterAdcChannelMap[] = {
+static const uint8_t voltageMeterAdcChannelMap[] __attribute__((unused)) = {
     ADC_BATTERY,
 #ifdef ADC_POWER_12V
     ADC_POWER_12V,

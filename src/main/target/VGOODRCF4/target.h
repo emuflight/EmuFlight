@@ -27,16 +27,13 @@
 #define LED0_PIN                PC14
 #define LED1_PIN                PC15
 
-//define camera control
-#define CAMERA_CONTROL_PIN      PC9
-
 #define USE_BEEPER
 #define BEEPER_PIN              PC13
 #define BEEPER_INVERTED
 
 //#define ENABLE_DSHOT_DMAR       true//debug for checking
 
-#define GYRO_MPU6000_ALIGN      CW180_DEG
+#define GYRO_MPU6000_ALIGN      CW270_DEG
 
 #define USE_EXTI
 #define MPU_INT_EXTI            PC3
@@ -55,7 +52,7 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
-#define USE_FLASH_W25M512
+#define USE_FLASH_W25Q128FV
 #define FLASH_CS_PIN            PB12
 #define FLASH_SPI_INSTANCE      SPI2
 

@@ -23,6 +23,8 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 
 #include "platform.h"
 
@@ -685,20 +687,20 @@ bool gyroInit(void) {
     memset(&gyro, 0, sizeof(gyro));
     gyroToUse = gyroConfig()->gyro_to_use;
 #if defined(USE_DUAL_GYRO) && defined(GYRO_1_CS_PIN)
-    if (gyroToUse == GYRO_CONFIG_USE_GYRO_1 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
-        gyroSensor1.gyroDev.dev.busType_u.spi.csnPin = IOGetByTag(IO_TAG(GYRO_1_CS_PIN));
-        IOInit(gyroSensor1.gyroDev.dev.busType_u.spi.csnPin, OWNER_MPU_CS, RESOURCE_INDEX(0));
-        IOHi(gyroSensor1.gyroDev.dev.busType_u.spi.csnPin); // Ensure device is disabled, important when two devices are on the same bus.
-        IOConfigGPIO(gyroSensor1.gyroDev.dev.busType_u.spi.csnPin, SPI_IO_CS_CFG);
-    }
+    // Always deassert CS regardless of gyroToUse so the inactive device cannot
+    // respond on the bus (critical when both gyros share the same SPI bus).
+    gyroSensor1.gyroDev.dev.busType_u.spi.csnPin = IOGetByTag(IO_TAG(GYRO_1_CS_PIN));
+    IOInit(gyroSensor1.gyroDev.dev.busType_u.spi.csnPin, OWNER_MPU_CS, RESOURCE_INDEX(0));
+    IOHi(gyroSensor1.gyroDev.dev.busType_u.spi.csnPin); // Ensure device is disabled, important when two devices are on the same bus.
+    IOConfigGPIO(gyroSensor1.gyroDev.dev.busType_u.spi.csnPin, SPI_IO_CS_CFG);
 #endif
 #if defined(USE_DUAL_GYRO) && defined(GYRO_2_CS_PIN)
-    if (gyroToUse == GYRO_CONFIG_USE_GYRO_2 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
-        gyroSensor2.gyroDev.dev.busType_u.spi.csnPin = IOGetByTag(IO_TAG(GYRO_2_CS_PIN));
-        IOInit(gyroSensor2.gyroDev.dev.busType_u.spi.csnPin, OWNER_MPU_CS, RESOURCE_INDEX(1));
-        IOHi(gyroSensor2.gyroDev.dev.busType_u.spi.csnPin); // Ensure device is disabled, important when two devices are on the same bus.
-        IOConfigGPIO(gyroSensor2.gyroDev.dev.busType_u.spi.csnPin, SPI_IO_CS_CFG);
-    }
+    // Always deassert CS regardless of gyroToUse so the inactive device cannot
+    // respond on the bus (critical when both gyros share the same SPI bus).
+    gyroSensor2.gyroDev.dev.busType_u.spi.csnPin = IOGetByTag(IO_TAG(GYRO_2_CS_PIN));
+    IOInit(gyroSensor2.gyroDev.dev.busType_u.spi.csnPin, OWNER_MPU_CS, RESOURCE_INDEX(1));
+    IOHi(gyroSensor2.gyroDev.dev.busType_u.spi.csnPin); // Ensure device is disabled, important when two devices are on the same bus.
+    IOConfigGPIO(gyroSensor2.gyroDev.dev.busType_u.spi.csnPin, SPI_IO_CS_CFG);
 #endif
     gyroSensor1.gyroDev.gyroAlign = ALIGN_DEFAULT;
 #if defined(GYRO_1_EXTI_PIN)
@@ -1470,14 +1472,17 @@ void initYawSpinRecovery(int maxYawRate)
         enabledFlag = true;
         threshold = gyroConfig()->yaw_spin_threshold;
         break;
-    case YAW_SPIN_RECOVERY_AUTO:
+    case YAW_SPIN_RECOVERY_AUTO: {
         enabledFlag = true;
         const int overshootAllowance = MAX(maxYawRate / 4, 200); // Allow a 25% or minimum 200dps overshoot tolerance
         threshold = constrain(maxYawRate + overshootAllowance, YAW_SPIN_RECOVERY_THRESHOLD_MIN, YAW_SPIN_RECOVERY_THRESHOLD_MAX);
         break;
     }
+    }
 
     yawSpinRecoveryEnabled = enabledFlag;
     yawSpinRecoveryThreshold = threshold;
+
+#pragma GCC diagnostic pop
 }
 #endif

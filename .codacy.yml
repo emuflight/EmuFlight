@@ -1,0 +1,5 @@
+---
+engines:
+  cppcheck:
+    enabled: true
+    extraOptions: "--suppress=missingIncludeSystem"

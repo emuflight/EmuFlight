@@ -22,7 +22,7 @@
 
 #include <stdint.h>
 
-#if !defined(UNIT_TEST)
+#if !defined(UNIT_TEST) && !defined(SIMULATOR_BUILD)
 // BASEPRI manipulation functions
 // only set_BASEPRI is implemented in device library. It does always create memory barrier
 // missing versions are implemented here
@@ -39,8 +39,8 @@ __attribute__( ( always_inline ) ) static inline void __set_BASEPRI_MAX_nb(uint3
 
 #endif
 
-#if defined(UNIT_TEST)
-// atomic related functions for unittest.
+#if defined(UNIT_TEST) || defined(SIMULATOR_BUILD)
+// atomic related functions for unit tests and simulator
 
 extern uint8_t atomic_BASEPRI;
 
@@ -127,7 +127,10 @@ static inline uint8_t __basepriSetRetVal(uint8_t prio) {
 // this macro can be used only ONCE PER LINE, but multiple uses per block are fine
 
 #if (__GNUC__ > 9)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcpp"
 # warning "Please verify that ATOMIC_BARRIER works as intended"
+#pragma GCC diagnostic pop
 // increment version number if BARRIER works
 // TODO - use flag to disable ATOMIC_BARRIER and use full barrier instead
 // you should check that local variable scope with cleanup spans entire block

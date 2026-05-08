@@ -197,7 +197,7 @@ static void applyVectorError(float ez_ef, quaternion *vError) {
 }
 #endif
 
-static void applyAccError(quaternion *vAcc, quaternion *vError) {
+static void __attribute__((unused)) applyAccError(quaternion *vAcc, quaternion *vError) {
     quaternionNormalize(vAcc);
     // Error is sum of cross product between estimated direction and measured direction of gravity
     vError->x += (vAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - vAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
@@ -205,7 +205,7 @@ static void applyAccError(quaternion *vAcc, quaternion *vError) {
     vError->z += (vAcc->x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - vAcc->y * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
 }
 
-static void applySensorCorrection(quaternion *vError) {
+static void __attribute__((unused)) applySensorCorrection(quaternion *vError) {
 #if !defined(USE_MAG) && !defined(USE_GPS)
     UNUSED(vError);
 #endif

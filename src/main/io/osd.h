@@ -228,6 +228,7 @@ typedef struct osdConfig_s {
 
 PG_DECLARE(osdConfig_t, osdConfig);
 
+#ifdef USE_OSD
 extern timeUs_t resumeRefreshAt;
 extern char djiWarningBuffer[12];
 
@@ -241,3 +242,12 @@ bool osdStatGetState(uint8_t statIndex);
 void osdWarnSetState(uint8_t warningIndex, bool enabled);
 bool osdWarnGetState(uint8_t warningIndex);
 void setCrsfRssi(bool b);
+#else
+extern char djiWarningBuffer[12];  // stub for when OSD is disabled
+static inline void osdUpdate(timeUs_t currentTimeUs) { (void)currentTimeUs; }
+static inline bool osdWarnGetState(uint8_t warningIndex) { (void)warningIndex; return false; }
+static inline void osdWarnSetState(uint8_t warningIndex, bool enabled) { (void)warningIndex; (void)enabled; }
+static inline bool osdStatGetState(uint8_t statIndex) { (void)statIndex; return false; }
+static inline void osdStatSetState(uint8_t statIndex, bool enabled) { (void)statIndex; (void)enabled; }
+static inline void setCrsfRssi(bool b) { (void)b; }
+#endif

@@ -750,7 +750,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
             errorLimitAxis = pidProfile->errorBoostLimitYaw;
         }
         errorLimitAxis = errorLimitAxis / 100;
-        float errorMultiplier = (errorBoostAxis * errorBoostAxis / 1000000) * 0.003;
+        float errorMultiplier = (errorBoostAxis * errorBoostAxis / 1000000) * 0.003f;
         float boostedErrorRate;
         boostedErrorRate = (errorRate * fabsf(errorRate)) * errorMultiplier;
         if (fabsf(errorRate * errorLimitAxis) < fabsf(boostedErrorRate)) {

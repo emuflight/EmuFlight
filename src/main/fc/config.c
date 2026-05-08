@@ -251,11 +251,14 @@ static void validateAndFixConfig(void) {
         || true
 #endif
     ) {
-#if defined(USE_GPS)
+#if defined(USE_GPS_RESCUE)
         if (failsafeConfig()->failsafe_procedure == FAILSAFE_PROCEDURE_GPS_RESCUE) {
             failsafeConfigMutable()->failsafe_procedure = FAILSAFE_PROCEDURE_DROP_IT;
         }
 #endif
+        if (failsafeConfig()->failsafe_procedure >= FAILSAFE_PROCEDURE_COUNT) {
+            failsafeConfigMutable()->failsafe_procedure = FAILSAFE_PROCEDURE_DROP_IT;
+        }
         if (isModeActivationConditionPresent(BOXGPSRESCUE)) {
             removeModeActivationCondition(BOXGPSRESCUE);
         }

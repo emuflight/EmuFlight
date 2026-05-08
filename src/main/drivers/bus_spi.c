@@ -442,6 +442,9 @@ void spiSequence(const extDevice_t *dev, busSegment_t *segments) {
             uint8_t *txData = segments[0].u.buffers.txData;
             uint8_t *rxData = segments[0].u.buffers.rxData;
             int len = segments[0].len;
+            if ((size_t)len > sizeof(dmaTxBuffer)) {
+                len = sizeof(dmaTxBuffer);
+            }
             uint32_t timeoutCheck = millis();
             if (txData) {
                 memcpy(dmaTxBuffer, txData, len);
