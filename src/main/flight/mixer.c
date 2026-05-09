@@ -36,9 +36,6 @@
 #include "pg/pg.h"
 #include "pg/pg_ids.h"
 #include "pg/rx.h"
-#include "pg/pinio.h"
-#include "pg/piniobox.h"
-
 #include "interface/msp_box.h"
 
 #include "drivers/pwm_output.h"
