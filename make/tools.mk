@@ -16,23 +16,23 @@ arm_sdk_version:
 ## arm_sdk_install   : Install Arm SDK
 .NOTPARALLEL .PHONY: arm_sdk_install
 
-# source: https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads
-ARM_SDK_URL_BASE  := https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update
+# source: https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases
+XPACK_VERSION     := 9.3.1-1.1
+ARM_SDK_URL_BASE  := https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases/download/v$(XPACK_VERSION)/xpack-arm-none-eabi-gcc-$(XPACK_VERSION)
 
 # Set up ARM (STM32) SDK
-ARM_SDK_DIR ?= $(TOOLS_DIR)/gcc-arm-none-eabi-9-2020-q2-update
+ARM_SDK_DIR ?= $(TOOLS_DIR)/xpack-arm-none-eabi-gcc-$(XPACK_VERSION)
 
-# source: https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads
 ifdef LINUX
-  ARM_SDK_URL  := $(ARM_SDK_URL_BASE)-x86_64-linux.tar.bz2
+  ARM_SDK_URL := $(ARM_SDK_URL_BASE)-linux-x64.tar.gz
 endif
 
 ifdef MACOSX
-  ARM_SDK_URL  := $(ARM_SDK_URL_BASE)-mac.tar.bz2
+  ARM_SDK_URL := $(ARM_SDK_URL_BASE)-darwin-x64.tar.gz
 endif
 
 ifdef WINDOWS
-  ARM_SDK_URL  := $(ARM_SDK_URL_BASE)-win32.zip
+  ARM_SDK_URL := $(ARM_SDK_URL_BASE)-win32-x64.zip
 endif
 
 ARM_SDK_FILE := $(notdir $(ARM_SDK_URL))
@@ -57,10 +57,10 @@ arm_sdk_install: arm_sdk_download $(SDK_INSTALL_MARKER)
 $(SDK_INSTALL_MARKER):
 ifneq ($(OSFAMILY), windows)
 	@echo "[arm_sdk] Extracting: $(ARM_SDK_FILE) → $(TOOLS_DIR)"
-	$(V1) tar -C $(TOOLS_DIR) -xjf "$(DL_DIR)/$(ARM_SDK_FILE)"
+	$(V1) tar -C $(TOOLS_DIR) -xzf "$(DL_DIR)/$(ARM_SDK_FILE)"
 else
-	@echo "[arm_sdk] Extracting: $(ARM_SDK_FILE) → $(ARM_SDK_DIR)"
-	$(V1) unzip -q -d $(ARM_SDK_DIR) "$(DL_DIR)/$(ARM_SDK_FILE)"
+	@echo "[arm_sdk] Extracting: $(ARM_SDK_FILE) → $(TOOLS_DIR)"
+	$(V1) unzip -q -d $(TOOLS_DIR) "$(DL_DIR)/$(ARM_SDK_FILE)"
 endif
 	@[ -f "$(SDK_INSTALL_MARKER)" ] && echo "[arm_sdk] Installed: $(SDK_INSTALL_MARKER)" || (echo "[arm_sdk] ERROR: extraction failed, marker not found"; exit 1)
 
@@ -69,7 +69,7 @@ arm_sdk_download: | $(DL_DIR)
 arm_sdk_download: $(DL_DIR)/$(ARM_SDK_FILE)
 $(DL_DIR)/$(ARM_SDK_FILE):
 	@echo "[arm_sdk] Downloading: $(ARM_SDK_FILE)"
-	$(V1) curl -L $(CURL_PROGRESS) -o "$(DL_DIR)/$(ARM_SDK_FILE)" "$(ARM_SDK_URL)"
+	$(V1) curl -L --fail $(CURL_PROGRESS) -o "$(DL_DIR)/$(ARM_SDK_FILE)" "$(ARM_SDK_URL)"
 	@echo "[arm_sdk] Download complete: $(DL_DIR)/$(ARM_SDK_FILE)"
 
 ## arm_sdk_clean     : Uninstall Arm SDK
@@ -276,7 +276,7 @@ zip_clean:
 
 ifeq ($(shell [ -d "$(ARM_SDK_DIR)" ] && echo "exists"), exists)
   ARM_SDK_PREFIX := $(ARM_SDK_DIR)/bin/arm-none-eabi-
-else ifeq (,$(filter arm_sdk_install arm_sdk_download arm_sdk_clean,$(MAKECMDGOALS)))
+else ifeq (,$(filter arm_sdk_% %_install %_clean clean clean_test,$(MAKECMDGOALS)))
   GCC_VERSION = $(shell arm-none-eabi-gcc -dumpversion)
   ifeq ($(GCC_VERSION),)
     $(error **ERROR** arm-none-eabi-gcc not in the PATH. Run 'make arm_sdk_install' to install automatically in the tools folder of this repo)
