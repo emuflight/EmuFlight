@@ -54,16 +54,19 @@ typedef struct mspPacket_s {
     uint8_t direction;
 } mspPacket_t;
 
+typedef int mspDescriptor_t;
+
 struct serialPort_s;
 typedef void (*mspPostProcessFnPtr)(struct serialPort_s *port); // msp post process function, used for gracefully handling reboots, etc.
-typedef mspResult_e (*mspProcessCommandFnPtr)(mspPacket_t *cmd, mspPacket_t *reply, mspPostProcessFnPtr *mspPostProcessFn);
+typedef mspResult_e (*mspProcessCommandFnPtr)(mspDescriptor_t srcDesc, mspPacket_t *cmd, mspPacket_t *reply, mspPostProcessFnPtr *mspPostProcessFn);
 typedef void (*mspProcessReplyFnPtr)(mspPacket_t *cmd);
 
 
 void mspInit(void);
-mspResult_e mspFcProcessCommand(mspPacket_t *cmd, mspPacket_t *reply, mspPostProcessFnPtr *mspPostProcessFn);
+mspDescriptor_t mspDescriptorAlloc(void);
+mspResult_e mspFcProcessCommand(mspDescriptor_t srcDesc, mspPacket_t *cmd, mspPacket_t *reply, mspPostProcessFnPtr *mspPostProcessFn);
 void mspFcProcessReply(mspPacket_t *reply);
 bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr *mspPostProcessFn);
-mspResult_e mspCommonProcessInCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr *mspPostProcessFn);
+mspResult_e mspCommonProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr *mspPostProcessFn);
 bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst);
-mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *dst);
+mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t *dst);

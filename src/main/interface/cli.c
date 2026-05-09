@@ -169,6 +169,7 @@ extern uint8_t __config_end;
 
 
 static serialPort_t *cliPort;
+static mspDescriptor_t cliMspDescriptor;
 
 #ifdef STM32F1
 #define CLI_IN_BUFFER_SIZE 128
@@ -2621,7 +2622,7 @@ void cliMsp(char *cmdline) {
         //TODO need to fill inPtr with the rest of the bytes from the command line
         buft.ptr = buft.end = bufPtr;
         if (mspCommonProcessOutCommand(mspCommand, &buft, NULL) || mspProcessOutCommand(mspCommand, &buft)
-                || mspCommonProcessInCommand(mspCommand, &inBuf, NULL) > -1 || mspProcessInCommand(mspCommand, &inBuf) > -1) {
+                || mspCommonProcessInCommand(cliMspDescriptor, mspCommand, &inBuf, NULL) > -1 || mspProcessInCommand(cliMspDescriptor, mspCommand, &inBuf) > -1) {
             bufWriterAppend(cliWriter, '.');                 //"." is success
             bufWriterAppend(cliWriter, mspCommand);          //msp command sent
             bufWriterAppend(cliWriter, inBuf.ptr - inBuf.end);                  //msp command sent
@@ -4587,5 +4588,6 @@ void cliEnter(serialPort_t *serialPort) {
 
 void cliInit(const serialConfig_t *serialConfig) {
     UNUSED(serialConfig);
+    cliMspDescriptor = mspDescriptorAlloc();
 }
 #endif // USE_CLI

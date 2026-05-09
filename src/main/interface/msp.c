@@ -145,6 +145,33 @@ enum {
 
 static uint8_t rebootMode;
 
+static int mspDescriptorCounter = 0;
+
+mspDescriptor_t mspDescriptorAlloc(void)
+{
+    if (mspDescriptorCounter >= (int)(sizeof(uint32_t) * 8)) {
+        return (mspDescriptor_t)0;
+    }
+    return (mspDescriptor_t)mspDescriptorCounter++;
+}
+
+static uint32_t mspArmingDisableFlags = 0;
+
+static void mspArmingDisableByDescriptor(mspDescriptor_t desc)
+{
+    mspArmingDisableFlags |= ((uint32_t)1 << desc);
+}
+
+static void mspArmingEnableByDescriptor(mspDescriptor_t desc)
+{
+    mspArmingDisableFlags &= ~((uint32_t)1 << desc);
+}
+
+static bool mspIsMspArmingEnabled(void)
+{
+    return mspArmingDisableFlags == 0;
+}
+
 #ifndef USE_OSD_SLAVE
 
 typedef enum {
@@ -1409,7 +1436,8 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         }
 #endif // USE_OSD_SLAVE
 
-static mspResult_e mspFcProcessOutCommandWithArg(uint8_t cmdMSP, sbuf_t *src, sbuf_t *dst, mspPostProcessFnPtr *mspPostProcessFn) {
+static mspResult_e mspFcProcessOutCommandWithArg(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t *src, sbuf_t *dst, mspPostProcessFnPtr *mspPostProcessFn) {
+    UNUSED(srcDesc);
 #if defined(USE_OSD_SLAVE)
     UNUSED(dst);
 #endif
@@ -1482,7 +1510,8 @@ static void mspFcDataFlashReadCommand(sbuf_t *dst, sbuf_t *src) {
 #endif
 
 #ifdef USE_OSD_SLAVE
-static mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
+static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t *src) {
+    UNUSED(srcDesc);
     UNUSED(cmdMSP);
     UNUSED(src);
     switch(cmdMSP) {
@@ -1503,7 +1532,7 @@ static mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
 
 #else
 
-mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
+mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t *src) {
     uint32_t i;
     uint8_t value;
     const unsigned int dataSize = sbufBytesRemaining(src);
@@ -2084,6 +2113,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
     disableRunawayTakeoff = sbufReadU8(src);
     }
     if (command) {
+    mspArmingDisableByDescriptor(srcDesc);
     setArmingDisabled(ARMING_DISABLED_MSP);
     if (ARMING_FLAG(ARMED)) {
     disarm();
@@ -2092,10 +2122,13 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
     runawayTakeoffTemporaryDisable(false);
 #endif
     } else {
+    mspArmingEnableByDescriptor(srcDesc);
+    if (mspIsMspArmingEnabled()) {
     unsetArmingDisabled(ARMING_DISABLED_MSP);
 #ifdef USE_RUNAWAY_TAKEOFF
     runawayTakeoffTemporaryDisable(disableRunawayTakeoff);
 #endif
+    }
     }
     }
     break;
@@ -2354,7 +2387,7 @@ mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src) {
         }
 #endif // USE_OSD_SLAVE
 
-mspResult_e mspCommonProcessInCommand(uint8_t cmdMSP, sbuf_t *src, mspPostProcessFnPtr *mspPostProcessFn) {
+mspResult_e mspCommonProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t *src, mspPostProcessFnPtr *mspPostProcessFn) {
     UNUSED(mspPostProcessFn);
     const unsigned int dataSize = sbufBytesRemaining(src);
     UNUSED(dataSize); // maybe unused due to compiler options
@@ -2507,7 +2540,7 @@ mspResult_e mspCommonProcessInCommand(uint8_t cmdMSP, sbuf_t *src, mspPostProces
 #endif
 #endif // OSD || USE_OSD_SLAVE
     default:
-        return mspProcessInCommand(cmdMSP, src);
+        return mspProcessInCommand(srcDesc, cmdMSP, src);
     }
     return MSP_RESULT_ACK;
 }
@@ -2515,7 +2548,7 @@ mspResult_e mspCommonProcessInCommand(uint8_t cmdMSP, sbuf_t *src, mspPostProces
 /*
  * Returns MSP_RESULT_ACK, MSP_RESULT_ERROR or MSP_RESULT_NO_REPLY
  */
-mspResult_e mspFcProcessCommand(mspPacket_t *cmd, mspPacket_t *reply, mspPostProcessFnPtr *mspPostProcessFn) {
+mspResult_e mspFcProcessCommand(mspDescriptor_t srcDesc, mspPacket_t *cmd, mspPacket_t *reply, mspPostProcessFnPtr *mspPostProcessFn) {
     int ret = MSP_RESULT_ACK;
     sbuf_t *dst = &reply->buf;
     sbuf_t *src = &cmd->buf;
@@ -2526,7 +2559,7 @@ mspResult_e mspFcProcessCommand(mspPacket_t *cmd, mspPacket_t *reply, mspPostPro
         ret = MSP_RESULT_ACK;
     } else if (mspProcessOutCommand(cmdMSP, dst)) {
         ret = MSP_RESULT_ACK;
-    } else if ((ret = mspFcProcessOutCommandWithArg(cmdMSP, src, dst, mspPostProcessFn)) != MSP_RESULT_CMD_UNKNOWN) {
+    } else if ((ret = mspFcProcessOutCommandWithArg(srcDesc, cmdMSP, src, dst, mspPostProcessFn)) != MSP_RESULT_CMD_UNKNOWN) {
         /* ret */;
 #ifdef USE_SERIAL_4WAY_BLHELI_INTERFACE
     } else if (cmdMSP == MSP_SET_4WAY_IF) {
@@ -2544,7 +2577,7 @@ mspResult_e mspFcProcessCommand(mspPacket_t *cmd, mspPacket_t *reply, mspPostPro
         ret = MSP_RESULT_ACK;
 #endif
     } else {
-        ret = mspCommonProcessInCommand(cmdMSP, src, mspPostProcessFn);
+        ret = mspCommonProcessInCommand(srcDesc, cmdMSP, src, mspPostProcessFn);
     }
     reply->result = ret;
     return ret;

@@ -59,8 +59,14 @@ static mspRxBuffer_t mspRxBuffer;
 static mspTxBuffer_t mspTxBuffer;
 static mspPacket_t mspRxPacket;
 static mspPacket_t mspTxPacket;
+static mspDescriptor_t mspSharedDescriptor;
+static bool mspSharedDescriptorInitialized;
 
 void initSharedMsp(void) {
+    if (!mspSharedDescriptorInitialized) {
+        mspSharedDescriptor = mspDescriptorAlloc();
+        mspSharedDescriptorInitialized = true;
+    }
     mspPackage.requestBuffer = (uint8_t *)&mspRxBuffer;
     mspPackage.requestPacket = &mspRxPacket;
     mspPackage.requestPacket->buf.ptr = mspPackage.requestBuffer;
@@ -76,7 +82,7 @@ static void processMspPacket(void) {
     mspPackage.responsePacket->result = 0;
     mspPackage.responsePacket->buf.end = mspPackage.responseBuffer;
     mspPostProcessFnPtr mspPostProcessFn = NULL;
-    if (mspFcProcessCommand(mspPackage.requestPacket, mspPackage.responsePacket, &mspPostProcessFn) == MSP_RESULT_ERROR) {
+    if (mspFcProcessCommand(mspSharedDescriptor, mspPackage.requestPacket, mspPackage.responsePacket, &mspPostProcessFn) == MSP_RESULT_ERROR) {
         sbufWriteU8(&mspPackage.responsePacket->buf, TELEMETRY_MSP_ERROR);
     }
     if (mspPostProcessFn) {
