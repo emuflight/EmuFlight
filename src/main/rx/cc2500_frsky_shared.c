@@ -390,7 +390,9 @@ void nextChannel(uint8_t skip) {
 }
 
 bool frSkySpiInit(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeConfig) {
-    cc2500SpiInit();
+    if (!cc2500SpiInit()) {
+        return false;
+    }
     spiProtocol = rxSpiConfig->rx_spi_protocol;
     switch (spiProtocol) {
     case RX_SPI_FRSKY_D:

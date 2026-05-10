@@ -320,9 +320,7 @@ void handleJetiExBusTelemetry(void) {
             return;
         }
         if ((jetiExBusRequestFrame[EXBUS_HEADER_DATA_ID] == EXBUS_EX_REQUEST) && (jetiExBusCalcCRC16(jetiExBusRequestFrame, jetiExBusRequestFrame[EXBUS_HEADER_MSG_LEN]) == 0)) {
-            // switch to TX mode
             if (serialRxBytesWaiting(jetiExBusPort) == 0) {
-                serialSetMode(jetiExBusPort, MODE_TX);
                 jetiExBusTransceiveState = EXBUS_TRANS_TX;
                 item = sendJetiExBusTelemetry(jetiExBusRequestFrame[EXBUS_HEADER_PACKET_ID], item);
                 jetiExBusRequestState = EXBUS_STATE_PROCESSED;
@@ -336,7 +334,6 @@ void handleJetiExBusTelemetry(void) {
     // check the state if transmit is ready
     if (jetiExBusTransceiveState == EXBUS_TRANS_IS_TX_COMPLETED) {
         if (isSerialTransmitBufferEmpty(jetiExBusPort)) {
-            serialSetMode(jetiExBusPort, MODE_RX);
             jetiExBusTransceiveState = EXBUS_TRANS_RX;
             jetiExBusRequestState = EXBUS_STATE_ZERO;
         }
