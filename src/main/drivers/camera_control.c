@@ -63,7 +63,7 @@
 #include "io/osd.h"
 #endif
 
-PG_REGISTER_WITH_RESET_TEMPLATE(cameraControlConfig_t, cameraControlConfig, PG_CAMERA_CONTROL_CONFIG, 0);
+PG_REGISTER_WITH_RESET_TEMPLATE(cameraControlConfig_t, cameraControlConfig, PG_CAMERA_CONTROL_CONFIG, 1);
 
 PG_RESET_TEMPLATE(cameraControlConfig_t, cameraControlConfig,
                   .mode = CAMERA_CONTROL_MODE_HARDWARE_PWM,
@@ -72,6 +72,7 @@ PG_RESET_TEMPLATE(cameraControlConfig_t, cameraControlConfig,
                   .internalResistance = 470,
                   .ioTag = IO_TAG(CAMERA_CONTROL_PIN),
                   .inverted = 0,   // Output is inverted externally
+                  .buttonResistanceValues = { 450, 270, 150, 68, 0 },
                  );
 
 static struct {
@@ -167,10 +168,8 @@ void cameraControlProcess(uint32_t currentTimeUs) {
     }
 }
 
-static const int buttonResistanceValues[] = { 45000, 27000, 15000, 6810, 0 };
-
 static float calculateKeyPressVoltage(const cameraControlKey_e key) {
-    const int buttonResistance = buttonResistanceValues[key];
+    const int buttonResistance = cameraControlConfig()->buttonResistanceValues[key] * 100;
     return 1.0e-2f * cameraControlConfig()->refVoltage * buttonResistance / (100 * cameraControlConfig()->internalResistance + buttonResistance);
 }
 
