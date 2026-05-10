@@ -407,7 +407,9 @@ rx_spi_received_e sfhssSpiDataReceived(uint8_t *packet) {
 
 bool sfhssSpiInit(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeConfig) {
     UNUSED(rxSpiConfig);
-    cc2500SpiInit();
+    if (!cc2500SpiInit()) {
+        return false;
+    }
     rxRuntimeConfig->channelCount = RC_CHANNEL_COUNT_SFHSS;
     start_time = millis();
     SET_STATE(STATE_INIT);
