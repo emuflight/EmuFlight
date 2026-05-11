@@ -22,6 +22,7 @@
 #include <stdint.h>
 #include "platform.h"
 #ifdef USE_TARGET_CONFIG
+#include "io/serial.h"
 #include "pg/pinio.h"
 #include "pg/piniobox.h"
 
@@ -31,5 +32,12 @@ void targetConfiguration(void) {
     pinioBoxConfigMutable()->permanentId[2] = 255;
     pinioBoxConfigMutable()->permanentId[3] = 255;
     pinioConfigMutable()->config[0] = 129;
+    pinioConfigMutable()->config[1] = 129;
+
+    // UART4 default: MSP DisplayPort for DJI Vista/O3 (matches BF: serial 3 1)
+    serialPortConfig_t *uart4Port = serialFindPortConfiguration(SERIAL_PORT_UART4);
+    if (uart4Port) {
+        uart4Port->functionMask = FUNCTION_MSP;
+    }
 }
 #endif
