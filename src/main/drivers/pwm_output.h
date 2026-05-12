@@ -109,7 +109,7 @@ typedef enum {
 
 #define MOTOR_BIT_0           7
 #define MOTOR_BIT_1           14
-#define MOTOR_BITLENGTH       19
+#define MOTOR_BITLENGTH       20
 
 #define MOTOR_PROSHOT1000_HZ         MHZ_TO_HZ(24)
 #define PROSHOT_BASE_SYMBOL          24 // 1uS
