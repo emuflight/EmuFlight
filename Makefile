@@ -400,12 +400,16 @@ $(NOBUILD_TARGETS):
 CLEAN_TARGETS = $(addprefix clean_,$(VALID_TARGETS) )
 TARGETS_CLEAN = $(addsuffix _clean,$(VALID_TARGETS) )
 
-## clean             : clean up temporary / machine-generated files
+## clean             : clean one target (TARGET=<name>), or all targets if TARGET is unspecified
 clean:
+ifeq ($(origin TARGET), file)
+	$(MAKE) clean_all
+else
 	@echo "Cleaning $(TARGET)"
 	$(V0) rm -f $(CLEAN_ARTIFACTS)
 	$(V0) rm -rf $(OBJECT_DIR)/$(TARGET)
 	@echo "Cleaning $(TARGET) succeeded."
+endif
 
 ## clean_test        : clean up temporary / machine-generated files (tests)
 clean_test:
