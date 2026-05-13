@@ -57,7 +57,7 @@
 #define EXTEL_SYNC_LEN      1
 #define EXTEL_CRC_LEN       1
 #define EXTEL_HEADER_LEN    6
-#define EXTEL_MAX_LEN       28
+#define EXTEL_MAX_LEN       26
 #define EXTEL_OVERHEAD      (EXTEL_SYNC_LEN + EXTEL_HEADER_LEN + EXTEL_CRC_LEN)
 #define EXTEL_MAX_PAYLOAD   (EXTEL_MAX_LEN - EXTEL_OVERHEAD)
 #define EXBUS_MAX_REQUEST_BUFFER_SIZE   (EXBUS_OVERHEAD + EXTEL_MAX_LEN)
@@ -114,14 +114,14 @@ typedef struct exBusSensor_s {
 // after every 15 sensors a new header has to be inserted (e.g. "BF D2")
 const exBusSensor_t jetiExSensors[] = {
     {"BF D1",       "",      EX_TYPE_DES,   0              },     // device descripton
-    {"Voltage",     "V",     EX_TYPE_14b,   DECIMAL_MASK(1)},
-    {"Current",     "A",     EX_TYPE_14b,   DECIMAL_MASK(2)},
-    {"Altitude",    "m",     EX_TYPE_14b,   DECIMAL_MASK(2)},
+    {"Voltage",     "V",     EX_TYPE_22b,   DECIMAL_MASK(1)},
+    {"Current",     "A",     EX_TYPE_22b,   DECIMAL_MASK(2)},
+    {"Altitude",    "m",     EX_TYPE_22b,   DECIMAL_MASK(2)},
     {"Capacity",    "mAh",   EX_TYPE_22b,   DECIMAL_MASK(0)},
     {"Power",       "W",     EX_TYPE_22b,   DECIMAL_MASK(1)},
-    {"Roll angle",  "\xB0",  EX_TYPE_14b,   DECIMAL_MASK(1)},
-    {"Pitch angle", "\xB0",  EX_TYPE_14b,   DECIMAL_MASK(1)},
-    {"Heading",     "\xB0",  EX_TYPE_14b,   DECIMAL_MASK(1)},
+    {"Roll angle",  "\xB0",  EX_TYPE_22b,   DECIMAL_MASK(1)},
+    {"Pitch angle", "\xB0",  EX_TYPE_22b,   DECIMAL_MASK(1)},
+    {"Heading",     "\xB0",  EX_TYPE_22b,   DECIMAL_MASK(1)},
     {"Vario",       "m/s",   EX_TYPE_22b,   DECIMAL_MASK(2)}
 };
 
@@ -277,7 +277,11 @@ uint8_t createExTelemetryValueMessage(uint8_t *exMessage, uint8_t item) {
             sensorValue = sensorValue >> 8;
             iCount--;
         }
-        *p++ = (sensorValue & 0x9F) | jetiExSensors[item].decimals;
+        if (jetiExSensors[item].exDataType != EX_TYPE_GPS) {
+            *p++ = (sensorValue & 0x9F) | jetiExSensors[item].decimals;
+        } else {
+            *p++ = sensorValue;
+        }
         item = getNextActiveSensor(item);
         if (startItem >= item) {
             break;
