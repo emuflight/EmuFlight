@@ -138,7 +138,7 @@ const exBusSensor_t jetiExSensors[] = {
     {"GPS Lat",         "",         EX_TYPE_GPS,   DECIMAL_MASK(0)},     // [12]
     {"GPS Speed",       "m/s",      EX_TYPE_22b,   DECIMAL_MASK(2)},     // [13]
     {"GPS H-Distance",  "m",        EX_TYPE_22b,   DECIMAL_MASK(0)},     // [14]
-    {"GPS H-Direction", "\xB0",     EX_TYPE_22b,   DECIMAL_MASK(1)},     // [15]
+    {"GPS H-Direction", "\xB0",     EX_TYPE_22b,   DECIMAL_MASK(0)},     // [15]
     {"EF D2",           "",         EX_TYPE_DES,   0              },     // device description [16]
     {"GPS Heading",     "\xB0",     EX_TYPE_22b,   DECIMAL_MASK(1)},     // [17]
     {"GPS Altitude",    "m",        EX_TYPE_22b,   DECIMAL_MASK(2)},     // [18]
