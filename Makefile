@@ -419,11 +419,15 @@ $(CLEAN_TARGETS):
 $(TARGETS_CLEAN):
 	$(V0) $(MAKE) -j TARGET=$(subst _clean,,$@) clean
 
-## clean_all         : clean all valid targets
-clean_all: $(CLEAN_TARGETS)
+## clean_all         : clean all targets (compiled objects only; obj/*.hex and obj/*.bin preserved)
+clean_all:
+	@echo "Cleaning all targets"
+	$(V0) rm -rf $(OBJECT_DIR)
+	$(V0) cd src/test && $(MAKE) clean || true
+	@echo "All targets cleaned."
 
-## all_clean         : clean all valid targets (alias for above)
-all_clean: $(TARGETS_CLEAN)
+## all_clean         : clean all targets (alias for clean_all)
+all_clean: clean_all
 
 
 flash_$(TARGET): $(TARGET_HEX)
