@@ -40,6 +40,7 @@
 
 static int32_t estimatedAltitude = 0;                // in cm
 static int16_t estimatedVario = 0;                   // in cm/s
+static int32_t prevAltitude = INT32_MIN;             // INT32_MIN = uninitialized sentinel
 
 #define BARO_UPDATE_FREQUENCY_40HZ (1000 * 25)
 
@@ -98,8 +99,11 @@ void calculateEstimatedAltitude(timeUs_t currentTimeUs) {
     } else if (haveBaroAlt) {
         estimatedAltitude = baroAlt;
     }
-    static int32_t prevAltitude = 0;
-    estimatedVario = applyDeadband(constrain((estimatedAltitude - prevAltitude) * 1000000 / (int32_t)dTime, INT16_MIN, INT16_MAX), 10);
+    if (prevAltitude == INT32_MIN) {
+        prevAltitude = estimatedAltitude;
+    } else {
+        estimatedVario = applyDeadband(constrain((estimatedAltitude - prevAltitude) * 1000000 / (int32_t)dTime, INT16_MIN, INT16_MAX), 10);
+    }
     prevAltitude = estimatedAltitude;
 
     DEBUG_SET(DEBUG_ALTITUDE, 0, (int32_t)(100 * gpsTrust));
