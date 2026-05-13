@@ -174,8 +174,8 @@ static bool deviceConfigure(const extDevice_t *dev)
     // 1. Read the pressure calibration coefficients (c00, c10, c20, c30, c01, c11, and c21, c31, c40) from the Calibration Coefficient register.
     //   Note: The coefficients read from the coefficient register are 2's complement numbers.
     // Do the read of the coefficients in multiple parts, as the chip will return a read failure when trying to read all at once over I2C.
-    unsigned coefficientLength = chipId[0] == SPL07_003_CHIP_ID ? 22 : 18;
-    uint8_t coef[coefficientLength];
+    const unsigned coefficientLength = (chipId[0] == SPL07_003_CHIP_ID) ? 22 : 18;
+    uint8_t coef[22]; // fixed max size; SPL07-003 needs 22, DPS310 needs 18
 
 #define READ_LENGTH 9
 
@@ -254,8 +254,8 @@ static void dps310GetUP(baroDev_t *baro)
 
     // 2. Choose scaling factors kT (for temperature) and kP (for pressure) based on the chosen precision rate.
     // The scaling factors are listed in Table 9.
-    static float kT = 253952; // 16 times (Standard)
-    static float kP = 253952; // 16 times (Standard)
+    static const float kT = 253952.0f; // 16 times (Standard)
+    static const float kP = 253952.0f; // 16 times (Standard)
 
     // 3. Read the pressure and temperature result from the registers
 
