@@ -178,7 +178,6 @@ enum exSensors_e {
 static union {
     int32_t vInt;
     uint16_t vWord[2];
-    char vBytes[4];
 } exGps;
 #endif
 
