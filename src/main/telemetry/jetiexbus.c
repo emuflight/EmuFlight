@@ -49,6 +49,16 @@
 #include "sensors/battery.h"
 #include "sensors/sensors.h"
 
+#include "config/feature.h"
+
+#ifdef USE_GPS
+#include "io/gps.h"
+#endif
+
+#if defined(USE_ACC)
+#include "sensors/acceleration.h"
+#endif
+
 #include "telemetry/jetiexbus.h"
 #include "telemetry/telemetry.h"
 
@@ -111,18 +121,30 @@ typedef struct exBusSensor_s {
 #define DECIMAL_MASK(decimals) (decimals << 5)
 
 // list of telemetry messages
-// after every 15 sensors a new header has to be inserted (e.g. "BF D2")
+// after every 15 data sensors a new device descriptor must be inserted (e.g. "EF D2")
 const exBusSensor_t jetiExSensors[] = {
-    {"BF D1",       "",      EX_TYPE_DES,   0              },     // device descripton
-    {"Voltage",     "V",     EX_TYPE_22b,   DECIMAL_MASK(1)},
-    {"Current",     "A",     EX_TYPE_22b,   DECIMAL_MASK(2)},
-    {"Altitude",    "m",     EX_TYPE_22b,   DECIMAL_MASK(2)},
-    {"Capacity",    "mAh",   EX_TYPE_22b,   DECIMAL_MASK(0)},
-    {"Power",       "W",     EX_TYPE_22b,   DECIMAL_MASK(1)},
-    {"Roll angle",  "\xB0",  EX_TYPE_22b,   DECIMAL_MASK(1)},
-    {"Pitch angle", "\xB0",  EX_TYPE_22b,   DECIMAL_MASK(1)},
-    {"Heading",     "\xB0",  EX_TYPE_22b,   DECIMAL_MASK(1)},
-    {"Vario",       "m/s",   EX_TYPE_22b,   DECIMAL_MASK(2)}
+    {"EF D1",           "",         EX_TYPE_DES,   0              },     // device description [0]
+    {"Voltage",         "V",        EX_TYPE_22b,   DECIMAL_MASK(1)},     // [1]
+    {"Current",         "A",        EX_TYPE_22b,   DECIMAL_MASK(2)},     // [2]
+    {"Altitude",        "m",        EX_TYPE_22b,   DECIMAL_MASK(2)},     // [3]
+    {"Capacity",        "mAh",      EX_TYPE_22b,   DECIMAL_MASK(0)},     // [4]
+    {"Power",           "W",        EX_TYPE_22b,   DECIMAL_MASK(1)},     // [5]
+    {"Roll angle",      "\xB0",     EX_TYPE_22b,   DECIMAL_MASK(1)},     // [6]
+    {"Pitch angle",     "\xB0",     EX_TYPE_22b,   DECIMAL_MASK(1)},     // [7]
+    {"Heading",         "\xB0",     EX_TYPE_22b,   DECIMAL_MASK(1)},     // [8]
+    {"Vario",           "m/s",      EX_TYPE_22b,   DECIMAL_MASK(2)},     // [9]
+    {"GPS Sats",        "",         EX_TYPE_22b,   DECIMAL_MASK(0)},     // [10]
+    {"GPS Long",        "",         EX_TYPE_GPS,   DECIMAL_MASK(0)},     // [11]
+    {"GPS Lat",         "",         EX_TYPE_GPS,   DECIMAL_MASK(0)},     // [12]
+    {"GPS Speed",       "m/s",      EX_TYPE_22b,   DECIMAL_MASK(2)},     // [13]
+    {"GPS H-Distance",  "m",        EX_TYPE_22b,   DECIMAL_MASK(0)},     // [14]
+    {"GPS H-Direction", "\xB0",     EX_TYPE_22b,   DECIMAL_MASK(1)},     // [15]
+    {"EF D2",           "",         EX_TYPE_DES,   0              },     // device description [16]
+    {"GPS Heading",     "\xB0",     EX_TYPE_22b,   DECIMAL_MASK(1)},     // [17]
+    {"GPS Altitude",    "m",        EX_TYPE_22b,   DECIMAL_MASK(2)},     // [18]
+    {"G-Force X",       "",         EX_TYPE_22b,   DECIMAL_MASK(3)},     // [19]
+    {"G-Force Y",       "",         EX_TYPE_22b,   DECIMAL_MASK(3)},     // [20]
+    {"G-Force Z",       "",         EX_TYPE_22b,   DECIMAL_MASK(3)},     // [21]
 };
 
 // after every 15 sensors increment the step by 2 (e.g. ...EX_VAL15, EX_VAL16 = 17) to skip the device description
@@ -135,15 +157,73 @@ enum exSensors_e {
     EX_ROLL_ANGLE,
     EX_PITCH_ANGLE,
     EX_HEADING,
-    EX_VARIO
+    EX_VARIO,
+    EX_GPS_SATS,
+    EX_GPS_LONG,
+    EX_GPS_LAT,
+    EX_GPS_SPEED,
+    EX_GPS_DISTANCE_TO_HOME,
+    EX_GPS_DIRECTION_TO_HOME,
+    // index 16 = EF D2 device descriptor — skip via explicit assignment
+    EX_GPS_HEADING = 17,
+    EX_GPS_ALTITUDE,
+    EX_GFORCE_X,
+    EX_GFORCE_Y,
+    EX_GFORCE_Z,
 };
 
 #define JETI_EX_SENSOR_COUNT (ARRAYLEN(jetiExSensors))
+
+#ifdef USE_GPS
+static union {
+    int32_t vInt;
+    uint16_t vWord[2];
+    char vBytes[4];
+} exGps;
+#endif
 
 static uint8_t jetiExBusTelemetryFrame[40];
 static uint8_t jetiExBusTransceiveState = EXBUS_TRANS_RX;
 static uint8_t firstActiveSensor = 0;
 static uint32_t exSensorEnabled = 0;
+
+#ifdef USE_GPS
+static void enableGpsTelemetry(bool enable)
+{
+    if (enable) {
+        bitArraySet(&exSensorEnabled, EX_GPS_SATS);
+        bitArraySet(&exSensorEnabled, EX_GPS_LONG);
+        bitArraySet(&exSensorEnabled, EX_GPS_LAT);
+        bitArraySet(&exSensorEnabled, EX_GPS_SPEED);
+        bitArraySet(&exSensorEnabled, EX_GPS_DISTANCE_TO_HOME);
+        bitArraySet(&exSensorEnabled, EX_GPS_DIRECTION_TO_HOME);
+        bitArraySet(&exSensorEnabled, EX_GPS_HEADING);
+        bitArraySet(&exSensorEnabled, EX_GPS_ALTITUDE);
+    } else {
+        bitArrayClr(&exSensorEnabled, EX_GPS_SATS);
+        bitArrayClr(&exSensorEnabled, EX_GPS_LONG);
+        bitArrayClr(&exSensorEnabled, EX_GPS_LAT);
+        bitArrayClr(&exSensorEnabled, EX_GPS_SPEED);
+        bitArrayClr(&exSensorEnabled, EX_GPS_DISTANCE_TO_HOME);
+        bitArrayClr(&exSensorEnabled, EX_GPS_DIRECTION_TO_HOME);
+        bitArrayClr(&exSensorEnabled, EX_GPS_HEADING);
+        bitArrayClr(&exSensorEnabled, EX_GPS_ALTITUDE);
+    }
+}
+
+static uint32_t calcGpsDDMMmmm(int32_t value, bool isLong)
+{
+    uint32_t absValue = abs(value);
+    uint16_t deg16 = absValue / GPS_DEGREES_DIVIDER;
+    uint16_t min16 = (absValue - deg16 * GPS_DEGREES_DIVIDER) * 6 / 1000;
+    exGps.vInt = 0;
+    exGps.vWord[0] = min16;
+    exGps.vWord[1] = deg16;
+    exGps.vWord[1] |= isLong ? 0x2000 : 0;
+    exGps.vWord[1] |= (value < 0) ? 0x4000 : 0;
+    return exGps.vInt;
+}
+#endif
 
 static uint8_t sendJetiExBusTelemetry(uint8_t packetID, uint8_t item);
 static uint8_t getNextActiveSensor(uint8_t currentSensor);
@@ -195,10 +275,18 @@ void initJetiExBusTelemetry(void) {
     if (sensors(SENSOR_ACC)) {
         bitArraySet(&exSensorEnabled, EX_ROLL_ANGLE);
         bitArraySet(&exSensorEnabled, EX_PITCH_ANGLE);
+#if defined(USE_ACC)
+        bitArraySet(&exSensorEnabled, EX_GFORCE_X);
+        bitArraySet(&exSensorEnabled, EX_GFORCE_Y);
+        bitArraySet(&exSensorEnabled, EX_GFORCE_Z);
+#endif
     }
     if (sensors(SENSOR_MAG)) {
         bitArraySet(&exSensorEnabled, EX_HEADING);
     }
+#ifdef USE_GPS
+    enableGpsTelemetry(feature(FEATURE_GPS));
+#endif
     firstActiveSensor = getNextActiveSensor(0);     // find the first active sensor
 }
 
@@ -243,6 +331,32 @@ int32_t getSensorValue(uint8_t sensor) {
     case EX_VARIO:
         return getEstimatedVario();
         break;
+#ifdef USE_GPS
+    case EX_GPS_SATS:
+        return gpsSol.numSat;
+    case EX_GPS_LONG:
+        return calcGpsDDMMmmm(gpsSol.llh.lon, true);
+    case EX_GPS_LAT:
+        return calcGpsDDMMmmm(gpsSol.llh.lat, false);
+    case EX_GPS_SPEED:
+        return gpsSol.groundSpeed * 10;  // 0.1m/s -> cm/s for DECIMAL_MASK(2)
+    case EX_GPS_DISTANCE_TO_HOME:
+        return GPS_distanceToHome;
+    case EX_GPS_DIRECTION_TO_HOME:
+        return GPS_directionToHome;
+    case EX_GPS_HEADING:
+        return gpsSol.groundCourse;  // degrees * 10; DECIMAL_MASK(1) -> X.X deg
+    case EX_GPS_ALTITUDE:
+        return gpsSol.llh.alt;       // cm; DECIMAL_MASK(2) -> meters
+#endif
+#if defined(USE_ACC)
+    case EX_GFORCE_X:
+        return (int16_t)((acc.accADC[X] / acc.dev.acc_1G) * 1000);
+    case EX_GFORCE_Y:
+        return (int16_t)((acc.accADC[Y] / acc.dev.acc_1G) * 1000);
+    case EX_GFORCE_Z:
+        return (int16_t)((acc.accADC[Z] / acc.dev.acc_1G) * 1000);
+#endif
     default:
         return -1;
     }
