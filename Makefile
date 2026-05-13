@@ -312,7 +312,7 @@ CLEAN_ARTIFACTS += $(TARGET_LST)
 # Make sure build date and revision is updated on every incremental build
 $(OBJECT_DIR)/$(TARGET)/build/version.o : FORCE
 
-.PHONY: FORCE
+.PHONY: FORCE clean clean_test clean_all all_clean
 FORCE:
 
 # List of buildable ELF files and their object dependencies.
@@ -400,12 +400,19 @@ $(NOBUILD_TARGETS):
 CLEAN_TARGETS = $(addprefix clean_,$(VALID_TARGETS) )
 TARGETS_CLEAN = $(addsuffix _clean,$(VALID_TARGETS) )
 
-## clean             : clean up temporary / machine-generated files
+## clean             : clean one target (TARGET=<name>), or all targets if TARGET is unspecified
 clean:
+# $(origin TARGET) returns "file" when TARGET comes from the ?= default on line 19 (no command-line override)
+# → delegate to clean_all. Returns "command line" or "environment" when the user sets TARGET explicitly
+# → perform the standard per-target clean of $(CLEAN_ARTIFACTS) and $(OBJECT_DIR)/$(TARGET).
+ifeq ($(origin TARGET), file)
+	$(MAKE) clean_all
+else
 	@echo "Cleaning $(TARGET)"
 	$(V0) rm -f $(CLEAN_ARTIFACTS)
 	$(V0) rm -rf $(OBJECT_DIR)/$(TARGET)
 	@echo "Cleaning $(TARGET) succeeded."
+endif
 
 ## clean_test        : clean up temporary / machine-generated files (tests)
 clean_test:
@@ -419,11 +426,15 @@ $(CLEAN_TARGETS):
 $(TARGETS_CLEAN):
 	$(V0) $(MAKE) -j TARGET=$(subst _clean,,$@) clean
 
-## clean_all         : clean all valid targets
-clean_all: $(CLEAN_TARGETS)
+## clean_all         : clean all targets (compiled objects only; obj/*.hex and obj/*.bin preserved)
+clean_all:
+	@echo "Cleaning all targets"
+	$(V0) rm -rf $(OBJECT_DIR)
+	$(V0) cd src/test && $(MAKE) clean || true
+	@echo "All targets cleaned."
 
-## all_clean         : clean all valid targets (alias for above)
-all_clean: $(TARGETS_CLEAN)
+## all_clean         : clean all targets (alias for clean_all)
+all_clean: clean_all
 
 
 flash_$(TARGET): $(TARGET_HEX)
