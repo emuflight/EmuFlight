@@ -179,8 +179,8 @@ static bool deviceConfigure(const extDevice_t *dev)
 
 #define READ_LENGTH 9
 
-    for (unsigned i = 0; i < sizeof(coef); ) {
-        int chunk = MIN((unsigned)READ_LENGTH, (sizeof(coef) - i));
+    for (unsigned i = 0; i < coefficientLength; ) {
+        int chunk = MIN((unsigned)READ_LENGTH, (coefficientLength - i));
         if (!busReadBuf(dev, DPS310_REG_COEF + i,  coef + i, chunk)) {
             return false;
         }
