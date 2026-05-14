@@ -39,8 +39,12 @@
 #include "sensors/barometer.h"
 
 static int32_t estimatedAltitude = 0;                // in cm
+static int16_t estimatedVario = 0;                   // in cm/s
+static int32_t prevAltitude = INT32_MIN;             // INT32_MIN = uninitialized sentinel
 
 #define BARO_UPDATE_FREQUENCY_40HZ (1000 * 25)
+#define VARIO_DEADBAND_CM_S        10          // deadband applied to vario output (cm/s); matches BF 4.5-m value
+#define USEC_PER_SEC               1000000     // µs per second; used to scale altitude delta to cm/s
 
 
 #if defined(USE_BARO) || defined(USE_GPS)
@@ -97,9 +101,17 @@ void calculateEstimatedAltitude(timeUs_t currentTimeUs) {
     } else if (haveBaroAlt) {
         estimatedAltitude = baroAlt;
     }
+    if (prevAltitude == INT32_MIN) {
+        prevAltitude = estimatedAltitude;
+    } else {
+        estimatedVario = applyDeadband(constrain((estimatedAltitude - prevAltitude) * USEC_PER_SEC / (int32_t)dTime, INT16_MIN, INT16_MAX), VARIO_DEADBAND_CM_S);
+    }
+    prevAltitude = estimatedAltitude;
+
     DEBUG_SET(DEBUG_ALTITUDE, 0, (int32_t)(100 * gpsTrust));
     DEBUG_SET(DEBUG_ALTITUDE, 1, baroAlt);
     DEBUG_SET(DEBUG_ALTITUDE, 2, gpsAlt);
+    DEBUG_SET(DEBUG_ALTITUDE, 3, estimatedVario);
 }
 
 bool isAltitudeOffset(void) {
@@ -111,7 +123,6 @@ int32_t getEstimatedAltitude(void) {
     return estimatedAltitude;
 }
 
-// This should be removed or fixed, but it would require changing a lot of other things to get rid of.
 int16_t getEstimatedVario(void) {
-    return 0;
+    return estimatedVario;
 }
