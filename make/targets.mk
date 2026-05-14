@@ -79,7 +79,25 @@ UNSUPPORTED_TARGETS := \
     TINYBEEF3 \
     TINYFISH \
     X_RACERSPI \
-    ZCOREF3
+    ZCOREF3 \
+    CI_STM32F405 \
+    CI_STM32F411 \
+    CI_STM32F446 \
+    CI_STM32F7X2 \
+    CI_STM32F7X6
+
+# Synthetic CI targets — compile-only, not flashable, excluded from release builds.
+# CI_STM32F3 omitted: all F3 targets exceed RAM budget in EF master (pre-existing).
+# HELIOSPRING and STRIXF10 are real product boards (not synthetic); they cover the
+# IMUF9001 dual-MCU code path and are intentionally included in release builds.
+CI_TARGETS := CI_STM32F405 CI_STM32F411 CI_STM32F446 CI_STM32F7X2 CI_STM32F7X6 HELIOSPRING STRIXF10
+
+.PHONY: targets-ci-print targets-ci
+
+targets-ci-print:
+	@echo $(CI_TARGETS)
+
+targets-ci: $(CI_TARGETS)
 
 SUPPORTED_TARGETS := $(filter-out $(UNSUPPORTED_TARGETS), $(VALID_TARGETS))
 
