@@ -8,4 +8,5 @@ TARGET_SRC = \
             drivers/compass/compass_qmc5883l.c \
 						drivers/barometer/barometer_bmp280.c \
 						drivers/barometer/barometer_ms5611.c \
+drivers/barometer/barometer_dps310.c \
             drivers/max7456.c

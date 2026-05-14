@@ -86,6 +86,7 @@
 
 #define USE_BARO
 #define USE_BARO_BMP280
+#define USE_BARO_DPS310
 
 #define USE_VCP
 

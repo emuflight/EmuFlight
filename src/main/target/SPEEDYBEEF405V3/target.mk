@@ -14,6 +14,7 @@ drivers/barometer/barometer_fake.c \
 drivers/barometer/barometer_lps.c \
 drivers/barometer/barometer_ms5611.c \
 drivers/barometer/barometer_qmp6988.c \
+drivers/barometer/barometer_dps310.c \
 
 # This resource file generated using https://github.com/nerdCopter/target-convert
 # Commit: 1bce24c 

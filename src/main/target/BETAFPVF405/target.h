@@ -126,6 +126,7 @@
 #define USE_BARO
 #define USE_BARO_BMP280
 #define USE_BARO_MS5611
+#define USE_BARO_DPS310
 
 #define USE_MAG
 #define USE_MAG_HMC5883

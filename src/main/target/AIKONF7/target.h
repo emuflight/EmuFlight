@@ -133,6 +133,7 @@
 
 /*
 #define USE_BARO
+#define USE_BARO_DPS310
 #define BMP280_SPI_INSTANCE     SPI3
 #define BMP280_CS_PIN           PB2
 */
