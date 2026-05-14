@@ -384,6 +384,9 @@ bool baroDPS310Detect(baroDev_t *baro)
 
     if (!deviceConfigure(dev)) {
         deviceDeInit(dev);
+        if (defaultAddressApplied) {
+            dev->busType_u.i2c.address = 0;
+        }
         return false;
     }
 
