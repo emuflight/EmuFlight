@@ -423,6 +423,15 @@ void spiInternalStopDMA(const extDevice_t *dev)
 }
 #endif // STM32F4
 
+#if defined(STM32F303)
+// F3 DMA SPI not yet implemented — stubs satisfy the linker for compile-only CI targets.
+void spiInternalResetDescriptors(busDevice_t *bus) { UNUSED(bus); }
+void spiInternalResetStream(dmaChannelDescriptor_t *descriptor) { UNUSED(descriptor); }
+void spiInternalInitStream(const extDevice_t *dev, bool preInit) { UNUSED(dev); UNUSED(preInit); }
+void spiInternalStartDMA(const extDevice_t *dev) { UNUSED(dev); }
+void spiInternalStopDMA(const extDevice_t *dev) { UNUSED(dev); }
+#endif // STM32F303
+
 void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {
 #define BR_BITS ((BIT(5) | BIT(4) | BIT(3)))
 #if !(defined(STM32F1) || defined(STM32F3))

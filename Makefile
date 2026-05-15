@@ -312,7 +312,10 @@ CLEAN_ARTIFACTS += $(TARGET_LST)
 # Make sure build date and revision is updated on every incremental build
 $(OBJECT_DIR)/$(TARGET)/build/version.o : FORCE
 
-.PHONY: FORCE clean clean_test clean_all all_clean
+.PHONY: FORCE clean clean_test clean_all all_clean \
+        targets-group-1 targets-group-2 targets-group-3 \
+        targets-group-4 targets-group-5 targets-group-6 targets-group-7 \
+        targets-group-rest
 FORCE:
 
 # List of buildable ELF files and their object dependencies.
@@ -386,7 +389,19 @@ targets-group-2: $(GROUP_2_TARGETS)
 ## targets-group-3   : build some targets
 targets-group-3: $(GROUP_3_TARGETS)
 
-## targets-group-rest: build the rest of the targets (not listed in group 1, 2 or 3)
+## targets-group-4   : build some targets
+targets-group-4: $(GROUP_4_TARGETS)
+
+## targets-group-5   : build some targets
+targets-group-5: $(GROUP_5_TARGETS)
+
+## targets-group-6   : build some targets
+targets-group-6: $(GROUP_6_TARGETS)
+
+## targets-group-7   : build some targets
+targets-group-7: $(GROUP_7_TARGETS)
+
+## targets-group-rest: build the rest of the targets (not listed in groups 1-7)
 targets-group-rest: $(GROUP_OTHER_TARGETS)
 
 $(VALID_TARGETS):
@@ -510,10 +525,20 @@ targets:
 	@echo "Base target:         $(BASE_TARGET)"
 	@echo "targets-group-1:     $(GROUP_1_TARGETS)"
 	@echo "targets-group-2:     $(GROUP_2_TARGETS)"
+	@echo "targets-group-3:     $(GROUP_3_TARGETS)"
+	@echo "targets-group-4:     $(GROUP_4_TARGETS)"
+	@echo "targets-group-5:     $(GROUP_5_TARGETS)"
+	@echo "targets-group-6:     $(GROUP_6_TARGETS)"
+	@echo "targets-group-7:     $(GROUP_7_TARGETS)"
 	@echo "targets-group-rest:  $(GROUP_OTHER_TARGETS)"
 
 	@echo "targets-group-1:     $(words $(GROUP_1_TARGETS)) targets"
 	@echo "targets-group-2:     $(words $(GROUP_2_TARGETS)) targets"
+	@echo "targets-group-3:     $(words $(GROUP_3_TARGETS)) targets"
+	@echo "targets-group-4:     $(words $(GROUP_4_TARGETS)) targets"
+	@echo "targets-group-5:     $(words $(GROUP_5_TARGETS)) targets"
+	@echo "targets-group-6:     $(words $(GROUP_6_TARGETS)) targets"
+	@echo "targets-group-7:     $(words $(GROUP_7_TARGETS)) targets"
 	@echo "targets-group-rest:  $(words $(GROUP_OTHER_TARGETS)) targets"
 	@echo "total in all groups  $(words $(SUPPORTED_TARGETS)) targets"
 

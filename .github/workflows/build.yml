@@ -2,24 +2,24 @@ on:
   push:
     tags:
     - '*'
-    #branches:
-    #- '*'
-  pull_request:
-    branches:
-    - '*'
+  workflow_dispatch:
   # repository_dispatch is a newer github-actions feature that will allow building from triggers other than code merge/PR
   repository_dispatch:
     types: [build]
 
-name: Build EmuFlight
+name: Build EmuFlight Full
 jobs:
+  ci-gate:
+    uses: ./.github/workflows/ci.yml
+
   build:
+    needs: [ci-gate]
     continue-on-error: false
     timeout-minutes: 75
     strategy:
-      max-parallel: 4
+      fail-fast: false
       matrix:
-        targets: [targets-group-1, targets-group-2, targets-group-3, targets-group-rest]
+        targets: [targets-group-1, targets-group-2, targets-group-3, targets-group-4, targets-group-5, targets-group-6, targets-group-7, targets-group-rest]
     outputs:
       buildtag: ${{ steps.ids.outputs.buildtag }}
       shortsha: ${{ steps.ids.outputs.shortsha }}
@@ -130,142 +130,3 @@ jobs:
         path: obj/*.hex
         overwrite: true
 
-  releases:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: build
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    continue-on-error: false
-    steps:
-      # for debugging
-      - name: show variables
-        run: |
-          echo "Build: ${{ github.RUN_NUMBER }}"
-          echo "Commit: ${{ github.SHA }}"
-          echo "Ref: ${{ GITHUB.REF }}"
-          echo "Actor: ${{ github.ACTOR }}"
-          echo "Repo: ${{ github.REPOSITORY }}"
-          echo "outputs.buildtag: ${{ needs.build.outputs.buildtag }}"
-          echo "outputs.shortsha: ${{ needs.build.outputs.shortsha }}"
-          echo "outputs.artifact: ${{ needs.build.outputs.artifact }}"
-          echo "outputs.version: ${{ needs.build.outputs.version }}"
-          echo "NOW=$(date +'%Y%m%d.%H%M%S')" >> $GITHUB_ENV
-        continue-on-error: true
-
-      - name: download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: downloaded_artifacts
-        continue-on-error: false
-
-      - name: Move artifacts to obj/
-        run: |
-          mkdir -p obj
-          find downloaded_artifacts -name "*.hex" -exec mv {} obj/ \;
-
-      - name: list/find extractions
-        run: |
-          find ./ -name "*.hex"
-
-      # Draft Dev-Unstable releases via ncipollo/release-action
-      # softprops/action-gh-release fails to release on separate repo
-      - name: Draft Release Dev-Unstable repo
-        if: contains(github.ref, 'test') || contains(github.ref, 'unstab')
-        uses: ncipollo/release-action@v1
-        with:
-          repo: dev-unstable
-          owner: emuflight
-          token: ${{ secrets.NC_PAT_EMUF }}
-          tag: "${{ env.NOW }}-hex"
-          draft: true
-          prerelease: true
-          allowUpdates: true
-          artifacts: obj/*.hex
-          artifactContentType: raw
-          name:  "DEV-UNSTABLE HEX / Build ${{ github.run_number }}"
-          body: |
-            ## HEX BUILD for TESTING
-            ### Build ${{ github.run_number }}
-            ### Commit SHA: ${{ needs.build.outputs.shortsha }} (${{ github.sha }})
-            ### BuildTag: ${{ needs.build.outputs.buildtag }}
-            ### EmuFlight ${{ needs.build.outputs.version }} base plus test code
-            ### What to Test/Feedback: (Feedback in EmuFlight's Discord or GitHub Discussions)
-            <details><summary>Changes in this Build:</summary>
-            <!-- require single blank line below -->
-
-            ```
-            [insert commit history here]
-            ```
-            </details>
-        continue-on-error: true
-
-      # Draft Dev-master releases via ncipollo/release-action
-      # softprops/action-gh-release fails to release on separate repo
-      - name: Draft Release Dev-Master repo
-        if: contains(github.ref, 'master')
-        uses: ncipollo/release-action@v1
-        with:
-          repo: dev-master
-          owner: emuflight
-          token: ${{ secrets.NC_PAT_EMUF }}
-          tag: "${{ env.NOW }}-hex"
-          draft: true
-          prerelease: true
-          allowUpdates: true
-          artifacts: obj/*.hex
-          artifactContentType: raw
-          name:  "DEV-MASTER HEX / Build ${{ github.run_number }}"
-          body: |
-            ## HEX BUILD of MASTER
-            ### Build ${{ github.run_number }}
-            ### Commit SHA: ${{ needs.build.outputs.shortsha }} (${{ github.sha }})
-            ### BuildTag: ${{ needs.build.outputs.buildtag }}
-            ### EmuFlight ${{ needs.build.outputs.version }} base plus committed code
-            ### Feedback Welcome in EmuFlight's Discord or GitHub Discussions.
-            <details><summary>Changes in this Build:</summary>
-            <!-- require single blank line below -->
-
-            ```
-            [insert commit history here]
-            ```
-            </details>
-        continue-on-error: true
-
-      # Rename .hex for true Releases on main repo
-      - name: Rename Artifacts
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          sudo apt -y install rename
-          cd obj
-          rename 's/_Build_.*/.hex/' *.hex
-
-      #Draft Releases on main Repo
-      # could potentially change to ncipollo/release-action as well
-      - name: Draft Release Main Repo
-        if: contains(github.ref, 'releas')
-        uses: ncipollo/release-action@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          draft: true
-          prerelease: true
-          allowUpdates: true
-          # tag: use the build Number, but we MUST manually change to version so that it creates a version-tag on release
-          tag: ${{ env.VERSION }}
-          artifacts: obj/*.hex
-          artifactContentType: raw
-          name:  DRAFT / EmuFlight ${{ env.VERSION }} / GitHub Build ${{ github.run_number }}
-          body: |
-            ## EmuFlight ${{ env.VERSION }}
-            ### Build ${{ github.run_number }}
-            ### Commit SHA: ${{ needs.build.outputs.shortsha }} (${{ github.sha }})
-            ### BuildTag: ${{ needs.build.outputs.buildtag }}
-            <details><summary>Changes in this Build:</summary>
-            <!-- require single blank line below -->
-
-            ```
-            [insert commit history here]
-            ```
-            </details>
-        continue-on-error: false

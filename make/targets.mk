@@ -79,17 +79,38 @@ UNSUPPORTED_TARGETS := \
     TINYBEEF3 \
     TINYFISH \
     X_RACERSPI \
-    ZCOREF3
+    ZCOREF3 \
+    CI_STM32F3 \
+    CI_STM32F405 \
+    CI_STM32F411 \
+    CI_STM32F446 \
+    CI_STM32F7X2 \
+    CI_STM32F7X6
+
+# Synthetic CI targets — compile-only, not flashable, excluded from release builds.
+# CI_STM32F3 excluded from CI_TARGETS and UNSUPPORTED (no release build): all F3 targets exceed
+# RAM budget in EF master (pre-existing). Target files kept for reference and manual builds.
+# See: https://github.com/emuflight/EmuFlight/issues/1190 — tracking F3 RAM fix.
+# HELIOSPRING and STRIXF10 are real product boards (not synthetic); they cover the
+# IMUF9001 dual-MCU code path and are intentionally included in release builds.
+CI_TARGETS := CI_STM32F405 CI_STM32F411 CI_STM32F446 CI_STM32F7X2 CI_STM32F7X6 HELIOSPRING STRIXF10
+
+.PHONY: targets-ci-print targets-ci
+
+targets-ci-print:
+	@echo $(CI_TARGETS)
+
+targets-ci: $(CI_TARGETS)
 
 SUPPORTED_TARGETS := $(filter-out $(UNSUPPORTED_TARGETS), $(VALID_TARGETS))
 
 TARGETS_TOTAL := $(words $(SUPPORTED_TARGETS))
-TARGET_GROUPS := 4
+TARGET_GROUPS := 8
 TARGETS_PER_GROUP := $(shell expr $(TARGETS_TOTAL) / $(TARGET_GROUPS) )
 
 ST := 1
 ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_1_TARGETS := $(wordlist  $(ST), $(ET), $(SUPPORTED_TARGETS))
+GROUP_1_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
 
 ST := $(shell expr $(ET) + 1)
 ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
@@ -99,7 +120,23 @@ ST := $(shell expr $(ET) + 1)
 ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
 GROUP_3_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
 
-GROUP_OTHER_TARGETS := $(filter-out $(GROUP_1_TARGETS) $(GROUP_2_TARGETS) $(GROUP_3_TARGETS), $(SUPPORTED_TARGETS))
+ST := $(shell expr $(ET) + 1)
+ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
+GROUP_4_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
+
+ST := $(shell expr $(ET) + 1)
+ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
+GROUP_5_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
+
+ST := $(shell expr $(ET) + 1)
+ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
+GROUP_6_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
+
+ST := $(shell expr $(ET) + 1)
+ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
+GROUP_7_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
+
+GROUP_OTHER_TARGETS := $(filter-out $(GROUP_1_TARGETS) $(GROUP_2_TARGETS) $(GROUP_3_TARGETS) $(GROUP_4_TARGETS) $(GROUP_5_TARGETS) $(GROUP_6_TARGETS) $(GROUP_7_TARGETS), $(SUPPORTED_TARGETS))
 
 ifeq ($(filter $(TARGET),$(ALT_TARGETS)), $(TARGET))
 BASE_TARGET    := $(firstword $(subst /,, $(subst ./src/main/target/,, $(dir $(wildcard $(ROOT)/src/main/target/*/$(TARGET).mk)))))

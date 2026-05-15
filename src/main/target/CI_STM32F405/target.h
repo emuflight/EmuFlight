@@ -1,0 +1,162 @@
+/*
+ * This file is part of EmuFlight. It is derived from Betaflight.
+ *
+ * This is free software. You can redistribute this software
+ * and/or modify this software under the terms of the GNU General
+ * Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later
+ * version.
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public
+ * License along with this software.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+// Synthetic CI target — STM32F405 family, kitchen-sink IMU coverage.
+// GPIO pins copied from TUNERCF405 (valid for F405; not a real product).
+// .hex output is NOT flashable. See make/targets.mk UNSUPPORTED_TARGETS.
+// IMU coverage: MPU6000 67%, ICM42688P 36%, MPU6500 29%, BMI270 21%,
+//               ICM20689 11%, ICM20602 2%, BMI160 (EF production boards).
+// All IMUs share SPI1 CS pin — compile coverage only, not runtime multi-IMU.
+
+#pragma once
+
+#define TARGET_MANUFACTURER_IDENTIFIER "CIST"
+#define USBD_PRODUCT_STRING "CI_STM32F405"
+
+#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER "CF405"  // generic ID
+
+#define USE_FLASH
+#define USE_FLASH_W25Q128FV
+#define USE_GYRO
+#define USE_ACC
+// MPU6000 — 67% of F405 fleet
+#define USE_GYRO_SPI_MPU6000
+#define USE_ACC_SPI_MPU6000
+// ICM42688P — 36%
+#define USE_GYRO_SPI_ICM42688P
+#define USE_ACC_SPI_ICM42688P
+// MPU6500 — 29%
+#define USE_GYRO_SPI_MPU6500
+#define USE_ACC_SPI_MPU6500
+// BMI270 — 21%
+#define USE_ACCGYRO_BMI270
+// ICM20689 — 11% (driver also covers ICM20601, ICM20602)
+#define USE_GYRO_SPI_ICM20689
+#define USE_ACC_SPI_ICM20689
+// BMI160 — EF production boards (NBDHMBF4PRO); only compile coverage
+#define USE_ACCGYRO_BMI160
+#define USE_BARO
+#define USE_BARO_BMP280
+#define USE_BARO_SPI_BMP280
+#define USE_BARO_MS5611
+#define USE_BARO_BMP085
+#define USE_BARO_QMP6988
+#define USE_MAX7456
+
+#define USE_VCP
+#define USE_FLASHFS
+#define USE_FLASH_M25P16
+#define USE_OSD
+
+#define USE_LED
+#define LED0_PIN             PB9
+#define LED_STRIP_PIN        PB1
+#define USE_BEEPER
+#define BEEPER_PIN           PB2
+#define BEEPER_INVERTED
+
+#define USE_SPI
+#define USE_SPI_DEVICE_1
+#define SPI1_SCK_PIN         PA5
+#define SPI1_MISO_PIN        PA6
+#define SPI1_MOSI_PIN        PA7
+#define USE_SPI_DEVICE_2
+#define SPI2_SCK_PIN         PB13
+#define SPI2_MISO_PIN        PB14
+#define SPI2_MOSI_PIN        PB15
+#define USE_SPI_DEVICE_3
+#define SPI3_SCK_PIN         PB3
+#define SPI3_MISO_PIN        PB4
+#define SPI3_MOSI_PIN        PB5
+
+#define USE_EXTI
+#define USE_GYRO_EXTI
+#define MPU_INT_EXTI         PC4
+#define USE_MPU_DATA_READY_SIGNAL
+
+#define GYRO_1_ALIGN         CW0_DEG
+#define ACC_1_ALIGN          CW0_DEG
+#define GYRO_1_CS_PIN        PA4
+#define GYRO_1_EXTI_PIN      PC4
+#define GYRO_1_SPI_BUS  SPIDEV_1
+
+#define USE_SPI_GYRO
+
+// All IMU drivers share CS/bus — compile coverage only
+#define MPU6000_CS_PIN        PA4
+#define MPU6000_SPI_BUS  SPIDEV_1
+#define ICM42688P_CS_PIN      PA4
+#define ICM42688P_SPI_BUS SPIDEV_1
+#define MPU6500_CS_PIN        PA4
+#define MPU6500_SPI_BUS  SPIDEV_1
+#define BMI270_CS_PIN         PA4
+#define BMI270_SPI_BUS   SPIDEV_1
+#define ICM20689_CS_PIN       PA4
+#define ICM20689_SPI_BUS SPIDEV_1
+#define BMI160_CS_PIN         PA4
+#define BMI160_SPI_BUS   SPIDEV_1
+#define BMI160_SPI_DIVISOR   16
+#define BMI160_INT_EXTI      PC4
+
+#define BARO_CS_PIN           PC5
+#define BMP280_CS_PIN         PC5
+#define BMP280_SPI_INSTANCE   SPI2
+#define FLASH_CS_PIN          PA15
+#define FLASH_SPI_INSTANCE    SPI3
+#define MAX7456_SPI_CS_PIN    PB12
+#define MAX7456_SPI_INSTANCE  SPI2
+
+#define USE_UART1
+#define UART1_TX_PIN         PA9
+#define UART1_RX_PIN         PA10
+#define USE_UART2
+#define UART2_TX_PIN         PA2
+#define UART2_RX_PIN         PA3
+#define USE_UART3
+#define UART3_TX_PIN         PC10
+#define UART3_RX_PIN         PC11
+#define USE_UART4
+#define UART4_TX_PIN         PA0
+#define UART4_RX_PIN         PA1
+#define USE_UART6
+#define UART6_TX_PIN         PC6
+#define UART6_RX_PIN         PC7
+
+#define SERIAL_PORT_COUNT    6 // VCP + UART1..4 + UART6
+
+#define USE_I2C
+#define USE_I2C_DEVICE_1
+#define I2C_DEVICE           (I2CDEV_1)
+#define I2C1_SCL             PB6
+#define I2C1_SDA             PB7
+
+#define USE_ADC
+#define ADC_INSTANCE         ADC1
+#define VBAT_ADC_PIN         PC2
+#define CURRENT_METER_ADC_PIN PC1
+
+#define DEFAULT_RX_FEATURE   FEATURE_RX_SERIAL
+#define SERIALRX_PROVIDER    SERIALRX_SBUS
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTD (BIT(2))
+
+#define USABLE_TIMER_CHANNEL_COUNT 9
+#define USED_TIMERS (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8))

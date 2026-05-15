@@ -1,0 +1,194 @@
+on:
+  # Runs automatically after Build EmuFlight Full completes on any trigger.
+  # Conditions inside each step gate which release destinations are published.
+  workflow_run:
+    workflows: ["Build EmuFlight Full"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: 'build.yml run ID to pull artifacts from (required for workflow_dispatch)'
+        required: true
+        type: string
+  repository_dispatch:
+    types: [release]
+
+name: Release EmuFlight
+
+jobs:
+  releases:
+    if: |
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+    permissions:
+      actions: read
+      contents: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    steps:
+      - name: Resolve source run ID
+        id: run_id
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "RUN_ID=${{ github.event.inputs.build_run_id }}" >> $GITHUB_ENV
+          elif [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            RUN_ID="${{ github.event.client_payload.run_id }}"
+            if [[ -z "$RUN_ID" ]]; then
+              echo "::error::repository_dispatch release trigger requires client_payload.run_id"
+              exit 1
+            fi
+            echo "RUN_ID=${RUN_ID}" >> $GITHUB_ENV
+          else
+            echo "RUN_ID=${{ github.event.workflow_run.id }}" >> $GITHUB_ENV
+          fi
+          echo "NOW=$(date +'%Y%m%d.%H%M%S')" >> $GITHUB_ENV
+
+      - name: Resolve source branch and SHA
+        id: meta
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+            echo "BRANCH=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_ENV
+            echo "SHA=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
+          elif [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            echo "BRANCH=${{ github.event.client_payload.branch }}" >> $GITHUB_ENV
+            echo "SHA=${{ github.event.client_payload.sha }}" >> $GITHUB_ENV
+          else
+            echo "BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
+            echo "SHA=${{ github.sha }}" >> $GITHUB_ENV
+          fi
+
+      # for debugging
+      - name: show variables
+        run: |
+          echo "Build Run ID: ${{ env.RUN_ID }}"
+          echo "Build: ${{ github.run_number }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Repo: ${{ github.repository }}"
+          echo "Branch: ${{ env.BRANCH }}"
+          echo "SHA: ${{ env.SHA }}"
+        continue-on-error: true
+
+      - name: Download artifacts from build run
+        uses: actions/download-artifact@v4
+        with:
+          path: downloaded_artifacts
+          run-id: ${{ env.RUN_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: false
+
+      - name: Move artifacts to obj/
+        run: |
+          mkdir -p obj
+          find downloaded_artifacts -name "*.hex" -exec mv {} obj/ \;
+
+      - name: list/find extractions
+        run: |
+          find ./ -name "*.hex"
+
+      # Draft Dev-Unstable releases to emuflight/dev-unstable via ncipollo/release-action
+      # softprops/action-gh-release fails to release on separate repo
+      - name: Draft Release emuflight/dev-unstable
+        if: |
+          contains(env.BRANCH, 'test') ||
+          contains(env.BRANCH, 'unstab')
+        uses: ncipollo/release-action@v1
+        with:
+          repo: dev-unstable
+          owner: emuflight
+          token: ${{ secrets.NC_PAT_EMUF }}
+          tag: "${{ env.NOW }}-hex"
+          draft: true
+          prerelease: true
+          allowUpdates: true
+          artifacts: obj/*.hex
+          artifactContentType: raw
+          name:  "DEV-UNSTABLE HEX / Build ${{ github.run_number }}"
+          body: |
+            ## HEX BUILD for TESTING
+            ### Build ${{ github.run_number }}
+            ### Commit SHA: ${{ env.SHA }}
+            ### BuildTag: ${{ env.BRANCH }}
+            ### EmuFlight base plus test code
+            ### What to Test/Feedback: (Feedback in EmuFlight's Discord or GitHub Discussions)
+            <details><summary>Changes in this Build:</summary>
+            <!-- require single blank line below -->
+
+            ```
+            [insert commit history here]
+            ```
+            </details>
+        continue-on-error: true
+
+      # Draft Dev-Master releases to emuflight/dev-master via ncipollo/release-action
+      # softprops/action-gh-release fails to release on separate repo
+      - name: Draft Release emuflight/dev-master
+        if: contains(env.BRANCH, 'master')
+        uses: ncipollo/release-action@v1
+        with:
+          repo: dev-master
+          owner: emuflight
+          token: ${{ secrets.NC_PAT_EMUF }}
+          tag: "${{ env.NOW }}-hex"
+          draft: true
+          prerelease: true
+          allowUpdates: true
+          artifacts: obj/*.hex
+          artifactContentType: raw
+          name:  "DEV-MASTER HEX / Build ${{ github.run_number }}"
+          body: |
+            ## HEX BUILD of MASTER
+            ### Build ${{ github.run_number }}
+            ### Commit SHA: ${{ env.SHA }}
+            ### EmuFlight base plus committed code
+            ### Feedback Welcome in EmuFlight's Discord or GitHub Discussions.
+            <details><summary>Changes in this Build:</summary>
+            <!-- require single blank line below -->
+
+            ```
+            [insert commit history here]
+            ```
+            </details>
+        continue-on-error: true
+
+      # Rename .hex for true Releases on emuflight/EmuFlight
+      # continue-on-error: true is intentional — a transient apt failure should not
+      # block a firmware release; the downstream Draft Release step is the hard gate.
+      - name: Rename Artifacts
+        run: |
+          sudo apt -y install rename
+          cd obj
+          rename 's/_Build_.*/.hex/' *.hex
+        continue-on-error: true
+
+      # Draft Releases on emuflight/EmuFlight
+      # could potentially change to ncipollo/release-action as well
+      - name: Draft Release emuflight/EmuFlight
+        if: contains(env.BRANCH, 'releas')
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: true
+          prerelease: true
+          allowUpdates: true
+          # tag: we MUST manually change to version so that it creates a version-tag on release
+          tag: ${{ env.BRANCH }}
+          artifacts: obj/*.hex
+          artifactContentType: raw
+          name:  DRAFT / EmuFlight ${{ env.BRANCH }} / GitHub Build ${{ github.run_number }}
+          body: |
+            ## EmuFlight ${{ env.BRANCH }}
+            ### Build ${{ github.run_number }}
+            ### Commit SHA: ${{ env.SHA }}
+            <details><summary>Changes in this Build:</summary>
+            <!-- require single blank line below -->
+
+            ```
+            [insert commit history here]
+            ```
+            </details>
+        continue-on-error: false

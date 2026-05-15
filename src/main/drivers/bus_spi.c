@@ -628,7 +628,7 @@ uint8_t spiReadRegMsk(const extDevice_t *dev, uint8_t reg) {
 }
 
 uint16_t spiCalculateDivider(uint32_t freq) {
-#if defined(STM32F4) || defined(STM32G4) || defined(STM32F7)
+#if defined(STM32F4) || defined(STM32G4) || defined(STM32F7) || defined(STM32F303)
     uint32_t spiClk = SystemCoreClock / 2;
 #elif defined(STM32H7)
     uint32_t spiClk = 100000000;
@@ -647,7 +647,7 @@ uint16_t spiCalculateDivider(uint32_t freq) {
 }
 
 uint32_t spiCalculateClock(uint16_t spiClkDivisor) {
-#if defined(STM32F4) || defined(STM32G4) || defined(STM32F7)
+#if defined(STM32F4) || defined(STM32G4) || defined(STM32F7) || defined(STM32F303)
     uint32_t spiClk = SystemCoreClock / 2;
 #elif defined(STM32H7)
     uint32_t spiClk = 100000000;
