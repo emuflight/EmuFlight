@@ -31,29 +31,11 @@ jobs:
         target: [CI_STM32F405, CI_STM32F411, CI_STM32F446, CI_STM32F7X2, CI_STM32F7X6, HELIOSPRING]
 
     steps:
-    - name: curl fix
-      run: function curl () { command curl --connect-timeout 30 --retry 10 "$@" ; }
-
-    - name: Checkout
-      uses: actions/checkout@v6
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
-    - name: Cache build toolchain
-      uses: actions/cache@v5
-      id: cache-toolchain
-      with:
-        path: tools
-        key: ${{ runner.os }}-${{ hashFiles('make/tools.mk') }}
-
-    - name: Download and install toolchain
-      if: steps.cache-toolchain.outputs.cache-hit != 'true'
-      run: make arm_sdk_install
-
-    - name: Setup Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.x'
+    - uses: ./.github/actions/ef-toolchain
 
     - name: Compile ${{ matrix.target }}
       run: make ${{ matrix.target }}
@@ -67,29 +49,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: curl fix
-      run: function curl () { command curl --connect-timeout 30 --retry 10 "$@" ; }
-
-    - name: Checkout
-      uses: actions/checkout@v6
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
-    - name: Cache build toolchain
-      uses: actions/cache@v5
-      id: cache-toolchain
-      with:
-        path: tools
-        key: ${{ runner.os }}-${{ hashFiles('make/tools.mk') }}
-
-    - name: Download and install toolchain
-      if: steps.cache-toolchain.outputs.cache-hit != 'true'
-      run: make arm_sdk_install
-
-    - name: Setup Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.x'
+    - uses: ./.github/actions/ef-toolchain
 
     - name: Fetch base branch
       run: git fetch origin ${{ github.base_ref }} --no-tags --prune
@@ -117,29 +81,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: curl fix
-      run: function curl () { command curl --connect-timeout 30 --retry 10 "$@" ; }
-
-    - name: Checkout
-      uses: actions/checkout@v6
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
-    - name: Cache build toolchain
-      uses: actions/cache@v5
-      id: cache-toolchain
-      with:
-        path: tools
-        key: ${{ runner.os }}-${{ hashFiles('make/tools.mk') }}
-
-    - name: Download and install toolchain
-      if: steps.cache-toolchain.outputs.cache-hit != 'true'
-      run: make arm_sdk_install
-
-    - name: Setup Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.x'
+    - uses: ./.github/actions/ef-toolchain
 
     - name: Fetch base branch
       run: git fetch origin ${{ github.base_ref }} --no-tags --prune
