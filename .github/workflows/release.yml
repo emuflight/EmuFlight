@@ -142,12 +142,11 @@ jobs:
           find ./ -name "*.hex"
 
       # Draft dev-unstable releases.
+      # Any branch / any build — no restriction.
       # On any fork: releases to the fork repo using GITHUB_TOKEN.
       # On emuflight/EmuFlight: releases to emuflight/dev-unstable using NC_PAT_EMUF.
+      # Old-style tag compat: tags like 'forTesting' on any branch also trigger this.
       - name: Draft Release dev-unstable
-        if: |
-          contains(env.BRANCH, 'test') ||
-          contains(env.BRANCH, 'unstab')
         uses: ncipollo/release-action@v1
         with:
           repo: ${{ github.repository == 'emuflight/EmuFlight' && 'dev-unstable' || github.event.repository.name }}
@@ -177,10 +176,12 @@ jobs:
         continue-on-error: true
 
       # Draft dev-master releases.
+      # master branch only (new way). Old-style tag compat: tags on the master branch
+      # also satisfy env.BRANCH == 'master' since head_branch reflects the branch, not the tag name.
       # On any fork: releases to the fork repo using GITHUB_TOKEN.
       # On emuflight/EmuFlight: releases to emuflight/dev-master using NC_PAT_EMUF.
       - name: Draft Release dev-master
-        if: contains(env.BRANCH, 'master')
+        if: env.BRANCH == 'master'
         uses: ncipollo/release-action@v1
         with:
           repo: ${{ github.repository == 'emuflight/EmuFlight' && 'dev-master' || github.event.repository.name }}
@@ -218,9 +219,11 @@ jobs:
           rename 's/_Build_.*/.hex/' *.hex
         continue-on-error: true
 
-      # Draft Releases on emuflight/EmuFlight
+      # Official releases to emuflight/EmuFlight — master branch only, upstream repo only.
+      # Skipped on all forks. Old-style 'releas' tag compat: tag on master branch still
+      # satisfies env.BRANCH == 'master'; the emuflight/EmuFlight guard prevents fork accidents.
       - name: Draft Release emuflight/EmuFlight
-        if: contains(env.BRANCH, 'releas') && github.repository == 'emuflight/EmuFlight'
+        if: env.BRANCH == 'master' && github.repository == 'emuflight/EmuFlight'
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
