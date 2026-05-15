@@ -25,6 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Keep in sync with CI_TARGETS in make/targets.mk
         target: [CI_STM32F405, CI_STM32F411, CI_STM32F446, CI_STM32F7X2, CI_STM32F7X6, HELIOSPRING, STRIXF10]
 
     steps:
@@ -86,9 +87,15 @@ jobs:
       with:
         python-version: '3.x'
 
+    - name: Fetch base branch
+      run: git fetch origin ${{ github.base_ref }} --no-tags --prune
+
     - name: Detect modified real targets
       id: changed
       run: |
+        # fetch-depth: 0 provides full history; base ref fetched above ensures origin/$BASE exists.
+        # grep -v '^CI_' excludes synthetic CI-only targets (CI_STM32F405, etc.) which are
+        # not real firmware targets and should not trigger additional target builds.
         CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
           | grep '^src/main/target/' \
           | sed 's|src/main/target/||;s|/.*||' \

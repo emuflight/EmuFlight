@@ -20,6 +20,9 @@ jobs:
     if: |
       github.event_name != 'workflow_run' ||
       github.event.workflow_run.conclusion == 'success'
+    permissions:
+      actions: read
+      contents: write
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     timeout-minutes: 10
@@ -41,19 +44,33 @@ jobs:
           else
             echo "RUN_ID=${{ github.event.workflow_run.id }}" >> $GITHUB_ENV
           fi
+          echo "NOW=$(date +'%Y%m%d.%H%M%S')" >> $GITHUB_ENV
+
+      - name: Resolve source branch and SHA
+        id: meta
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+            echo "BRANCH=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_ENV
+            echo "SHA=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
+          elif [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            echo "BRANCH=${{ github.event.client_payload.branch }}" >> $GITHUB_ENV
+            echo "SHA=${{ github.event.client_payload.sha }}" >> $GITHUB_ENV
+          else
+            echo "BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
+            echo "SHA=${{ github.sha }}" >> $GITHUB_ENV
+          fi
 
       # for debugging
       - name: show variables
         run: |
           echo "Build Run ID: ${{ env.RUN_ID }}"
-          echo "Build: ${{ github.RUN_NUMBER }}"
-          echo "Commit: ${{ github.SHA }}"
-          echo "Ref: ${{ GITHUB.REF }}"
-          echo "Actor: ${{ github.ACTOR }}"
-          echo "Repo: ${{ github.REPOSITORY }}"
-          echo "Triggering workflow: ${{ github.event.workflow_run.name }}"
-          echo "Triggering workflow branch: ${{ github.event.workflow_run.head_branch }}"
-          echo "NOW=$(date +'%Y%m%d.%H%M%S')" >> $GITHUB_ENV
+          echo "Build: ${{ github.run_number }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Repo: ${{ github.repository }}"
+          echo "Branch: ${{ env.BRANCH }}"
+          echo "SHA: ${{ env.SHA }}"
         continue-on-error: true
 
       - name: Download artifacts from build run
@@ -77,8 +94,8 @@ jobs:
       # softprops/action-gh-release fails to release on separate repo
       - name: Draft Release Dev-Unstable repo
         if: |
-          contains(github.event.workflow_run.head_branch, 'test') ||
-          contains(github.event.workflow_run.head_branch, 'unstab')
+          contains(env.BRANCH, 'test') ||
+          contains(env.BRANCH, 'unstab')
         uses: ncipollo/release-action@v1
         with:
           repo: dev-unstable
@@ -94,8 +111,8 @@ jobs:
           body: |
             ## HEX BUILD for TESTING
             ### Build ${{ github.run_number }}
-            ### Commit SHA: ${{ github.event.workflow_run.head_sha }}
-            ### BuildTag: ${{ github.event.workflow_run.head_branch }}
+            ### Commit SHA: ${{ env.SHA }}
+            ### BuildTag: ${{ env.BRANCH }}
             ### EmuFlight base plus test code
             ### What to Test/Feedback: (Feedback in EmuFlight's Discord or GitHub Discussions)
             <details><summary>Changes in this Build:</summary>
@@ -110,7 +127,7 @@ jobs:
       # Draft Dev-master releases via ncipollo/release-action
       # softprops/action-gh-release fails to release on separate repo
       - name: Draft Release Dev-Master repo
-        if: contains(github.event.workflow_run.head_branch, 'master')
+        if: contains(env.BRANCH, 'master')
         uses: ncipollo/release-action@v1
         with:
           repo: dev-master
@@ -126,7 +143,7 @@ jobs:
           body: |
             ## HEX BUILD of MASTER
             ### Build ${{ github.run_number }}
-            ### Commit SHA: ${{ github.event.workflow_run.head_sha }}
+            ### Commit SHA: ${{ env.SHA }}
             ### EmuFlight base plus committed code
             ### Feedback Welcome in EmuFlight's Discord or GitHub Discussions.
             <details><summary>Changes in this Build:</summary>
@@ -149,7 +166,7 @@ jobs:
       #Draft Releases on main Repo
       # could potentially change to ncipollo/release-action as well
       - name: Draft Release Main Repo
-        if: contains(github.event.workflow_run.head_branch, 'releas')
+        if: contains(env.BRANCH, 'releas')
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -157,14 +174,14 @@ jobs:
           prerelease: true
           allowUpdates: true
           # tag: we MUST manually change to version so that it creates a version-tag on release
-          tag: ${{ github.event.workflow_run.head_branch }}
+          tag: ${{ env.BRANCH }}
           artifacts: obj/*.hex
           artifactContentType: raw
-          name:  DRAFT / EmuFlight ${{ github.event.workflow_run.head_branch }} / GitHub Build ${{ github.run_number }}
+          name:  DRAFT / EmuFlight ${{ env.BRANCH }} / GitHub Build ${{ github.run_number }}
           body: |
-            ## EmuFlight ${{ github.event.workflow_run.head_branch }}
+            ## EmuFlight ${{ env.BRANCH }}
             ### Build ${{ github.run_number }}
-            ### Commit SHA: ${{ github.event.workflow_run.head_sha }}
+            ### Commit SHA: ${{ env.SHA }}
             <details><summary>Changes in this Build:</summary>
             <!-- require single blank line below -->
 
