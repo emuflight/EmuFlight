@@ -7,7 +7,7 @@ on:
   repository_dispatch:
     types: [build]
 
-name: Build EmuFlight Full
+name: "03 Build EmuFlight Full"
 jobs:
   ci-gate:
     uses: ./.github/workflows/ci.yml

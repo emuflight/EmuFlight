@@ -12,7 +12,7 @@ on:
   repository_dispatch:
     types: [ci]
 
-name: CI Compile Validation
+name: "02 CI Compile Validation"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
