@@ -142,7 +142,7 @@ jobs:
           find ./ -name "*.hex"
 
       # Draft dev-unstable releases.
-      # On nerdCopter fork: releases to nerdCopter/EmuFlight_nerdRepo using GITHUB_TOKEN.
+      # On any fork: releases to the fork repo using GITHUB_TOKEN.
       # On emuflight/EmuFlight: releases to emuflight/dev-unstable using NC_PAT_EMUF.
       - name: Draft Release dev-unstable
         if: |
@@ -150,9 +150,9 @@ jobs:
           contains(env.BRANCH, 'unstab')
         uses: ncipollo/release-action@v1
         with:
-          repo: ${{ github.repository_owner == 'nerdCopter' && 'EmuFlight_nerdRepo' || 'dev-unstable' }}
+          repo: ${{ github.repository == 'emuflight/EmuFlight' && 'dev-unstable' || github.event.repository.name }}
           owner: ${{ github.repository_owner }}
-          token: ${{ github.repository_owner == 'nerdCopter' && secrets.GITHUB_TOKEN || secrets.NC_PAT_EMUF }}
+          token: ${{ github.repository == 'emuflight/EmuFlight' && secrets.NC_PAT_EMUF || secrets.GITHUB_TOKEN }}
           tag: "${{ env.NOW }}-hex"
           draft: true
           prerelease: true
@@ -177,15 +177,15 @@ jobs:
         continue-on-error: true
 
       # Draft dev-master releases.
-      # On nerdCopter fork: releases to nerdCopter/EmuFlight_nerdRepo using GITHUB_TOKEN.
+      # On any fork: releases to the fork repo using GITHUB_TOKEN.
       # On emuflight/EmuFlight: releases to emuflight/dev-master using NC_PAT_EMUF.
       - name: Draft Release dev-master
         if: contains(env.BRANCH, 'master')
         uses: ncipollo/release-action@v1
         with:
-          repo: ${{ github.repository_owner == 'nerdCopter' && 'EmuFlight_nerdRepo' || 'dev-master' }}
+          repo: ${{ github.repository == 'emuflight/EmuFlight' && 'dev-master' || github.event.repository.name }}
           owner: ${{ github.repository_owner }}
-          token: ${{ github.repository_owner == 'nerdCopter' && secrets.GITHUB_TOKEN || secrets.NC_PAT_EMUF }}
+          token: ${{ github.repository == 'emuflight/EmuFlight' && secrets.NC_PAT_EMUF || secrets.GITHUB_TOKEN }}
           tag: "${{ env.NOW }}-hex"
           draft: true
           prerelease: true
