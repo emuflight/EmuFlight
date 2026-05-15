@@ -24,6 +24,7 @@
 
 #pragma once
 
+// ci-changed-targets test: trivial no-op change — safe to revert or close
 #define TARGET_MANUFACTURER_IDENTIFIER "FOXE"
 #define USBD_PRODUCT_STRING "FOXEERF722V4"
 
