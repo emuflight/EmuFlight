@@ -220,7 +220,7 @@ jobs:
 
       # Draft Releases on emuflight/EmuFlight
       - name: Draft Release emuflight/EmuFlight
-        if: contains(env.BRANCH, 'releas')
+        if: contains(env.BRANCH, 'releas') && github.repository == 'emuflight/EmuFlight'
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
