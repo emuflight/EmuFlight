@@ -3,11 +3,11 @@ on:
     tags:
     - '*'
   workflow_dispatch:
-  # repository_dispatch is a newer github-actions feature that will allow building from triggers other than code merge/PR
   repository_dispatch:
     types: [build]
 
 name: "03 Build EmuFlight Full"
+
 jobs:
   ci-gate:
     uses: ./.github/workflows/ci.yml
@@ -20,113 +20,36 @@ jobs:
       fail-fast: false
       matrix:
         targets: [targets-group-1, targets-group-2, targets-group-3, targets-group-4, targets-group-5, targets-group-6, targets-group-7, targets-group-rest]
-    outputs:
-      buildtag: ${{ steps.ids.outputs.buildtag }}
-      shortsha: ${{ steps.ids.outputs.shortsha }}
-      artifact: ${{ steps.ids.outputs.artifact }}
-      version: ${{ steps.ids.outputs.version }}
     runs-on: ubuntu-latest
 
     steps:
-    # curl, by default, may timeout easily
-    - name: curl fix
-      run: function curl () { command curl --connect-timeout 30 --retry 10 "$@" ; }
-
-    - name: Checkout
-      uses: actions/checkout@v6
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 9
 
-    - name: Cache build toolchain
-      uses: actions/cache@v5
-      id: cache-toolchain
-      with:
-        path: tools
-        key: ${{ runner.os }}-${{ hashFiles('make/tools.mk') }}
+    - uses: ./.github/actions/ef-toolchain
 
-    - name: Download and install toolchain
-      if: steps.cache-toolchain.outputs.cache-hit != 'true'
-      run: make arm_sdk_install
-
-    - name: Setup Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.x'
-
-    # EmuFlight version
     - name: Get code version
-      id: get_version
       run: echo "VERSION=$(make version)" >> $GITHUB_ENV
-
-    # for Makefile interaction
-    - name: Get GitHub Build Number (ENV)
-      id: get_buildno
-      run: echo "GITHUBBUILDNUMBER=${{ github.run_number }}" >> $GITHUB_ENV
-      continue-on-error: true
-
-    - name: Get pull request number
-      id: get_pullno
-      run: echo "PULL_NUMBER=$(echo "$GITHUB_REF" | awk -F / '{print $3}')" >> $GITHUB_ENV
-      if: startsWith(github.ref, 'refs/pull/')
 
     - name: Get revision tag
       if: startsWith(github.ref, 'refs/tags/')
-      id: get_revtag
       run: echo "REVISION_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
 
-    - name: get short-sha
-      run: |
-        echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-      continue-on-error: true
-
     - name: Make artifact name
-      id: make_artifactname
       run: |
-        if [[ "${{ github.REPOSITORY }}" == "emuflight/EmuFlight" ]] ; then
-          ARTIFACT_NAME="EmuFlight-${{ env.VERSION }}-${{ github.run_number }}"
+        if [[ "${{ github.repository }}" == "emuflight/EmuFlight" ]]; then
+          echo "ARTIFACT_NAME=EmuFlight-${{ env.VERSION }}-${{ github.run_number }}" >> $GITHUB_ENV
         else
-          ARTIFACT_NAME="EmuFlight-${{ env.VERSION }}-${{ github.ACTOR }}-${{ github.run_number }}"
+          echo "ARTIFACT_NAME=EmuFlight-${{ env.VERSION }}-${{ github.actor }}-${{ github.run_number }}" >> $GITHUB_ENV
         fi
-        echo "${ARTIFACT_NAME}"
-        echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
 
-    - id: ids
-      name : set outputs
-      run: |
-        echo "buildtag=${{ env.REVISION_TAG }}" >> $GITHUB_OUTPUT
-        echo "name=${{ env.SHORT_SHA }}" >> $GITHUB_OUTPUT
-        echo "shortsha=${{ env.SHORT_SHA }}" >> $GITHUB_OUTPUT
-        echo "version=${{ env.VERSION }}" >> $GITHUB_OUTPUT
-      continue-on-error: true
+    - name: Compile
+      run: make ${{ matrix.targets }}
 
-    # for debugging
-    - name: Show Variables
-      id: show_vars
-      run: |
-        echo "Actor: ${{ github.ACTOR }}"
-        echo "Repo: ${{ github.REPOSITORY }}"
-        echo "Build: ${{ github.run_number }}"
-        echo "Firmware: ${{ env.VERSION }}"
-        echo "Commit: ${{ github.sha }}"
-        echo "ShortSHA: ${{ env.SHORT_SHA }}"
-        echo "Tag: ${{ env.REVISION_TAG}}"
-        echo "Artifact name: ${{ env.ARTIFACT_NAME }}"
-        echo "outputs.buildtag: ${{ steps.ids.outputs.buildtag }}"
-        echo "outputs.shortsha: ${{ steps.ids.outputs.shortsha }}"
-        echo "outputs.artifact: ${{ steps.ids.outputs.artifact }}"
-        echo "outputs.version: ${{ steps.ids.outputs.version }}"
-      continue-on-error: true
-
-    # Build HEX
-    - name: Compile Code
-      run: |
-        make ${{ matrix.targets }}
-
-    # Upload the Builds to ZIP file with existing SHA in .hex names
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.ARTIFACT_NAME }}-${{ matrix.targets }}
         path: obj/*.hex
         overwrite: true
-
