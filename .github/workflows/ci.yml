@@ -97,15 +97,10 @@ jobs:
     - name: Detect new real targets
       id: detect
       run: |
-        TOUCHED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
+        # --diff-filter=A: only files Added in this PR (new target directories)
+        NEW=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }}...HEAD \
           | awk -F/ '/^src\/main\/target\/[^\/]+\// { t=$4; if (t !~ /^CI_/) print t }' \
-          | sort -u)
-        if [[ -n "$TOUCHED" ]]; then
-          BASE=$(git ls-tree --name-only origin/${{ github.base_ref }} src/main/target/ | sort)
-          NEW=$(comm -23 <(echo "$TOUCHED") <(echo "$BASE") | tr '\n' ' ' | xargs)
-        else
-          NEW=""
-        fi
+          | sort -u | tr '\n' ' ' | xargs)
         echo "new_targets=${NEW}" >> $GITHUB_OUTPUT
         echo "New real targets: ${NEW}"
 
@@ -152,15 +147,10 @@ jobs:
     - name: Detect modified real targets
       id: detect
       run: |
-        TOUCHED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
+        # --diff-filter=M: only files Modified in this PR (existing target directories)
+        MOD=$(git diff --name-only --diff-filter=M origin/${{ github.base_ref }}...HEAD \
           | awk -F/ '/^src\/main\/target\/[^\/]+\// { t=$4; if (t !~ /^CI_/) print t }' \
-          | sort -u)
-        if [[ -n "$TOUCHED" ]]; then
-          BASE=$(git ls-tree --name-only origin/${{ github.base_ref }} src/main/target/ | sort)
-          MOD=$(comm -12 <(echo "$TOUCHED") <(echo "$BASE") | tr '\n' ' ' | xargs)
-        else
-          MOD=""
-        fi
+          | sort -u | tr '\n' ' ' | xargs)
         echo "modified_targets=${MOD}" >> $GITHUB_OUTPUT
         echo "Modified real targets: ${MOD}"
 
