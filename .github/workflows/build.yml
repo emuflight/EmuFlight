@@ -17,9 +17,8 @@ jobs:
     continue-on-error: false
     timeout-minutes: 75
     strategy:
-      max-parallel: 4
       matrix:
-        targets: [targets-group-1, targets-group-2, targets-group-3, targets-group-rest]
+        targets: [targets-group-1, targets-group-2, targets-group-3, targets-group-4, targets-group-5, targets-group-6, targets-group-7, targets-group-rest]
     outputs:
       buildtag: ${{ steps.ids.outputs.buildtag }}
       shortsha: ${{ steps.ids.outputs.shortsha }}
