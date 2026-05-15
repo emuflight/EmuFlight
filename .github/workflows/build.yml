@@ -12,6 +12,11 @@ on:
     types: [build]
 
 name: Build EmuFlight
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     continue-on-error: false
