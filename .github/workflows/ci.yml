@@ -96,14 +96,13 @@ jobs:
     - name: Detect modified real targets
       id: changed
       run: |
-        # fetch-depth: 0 provides full history; base ref fetched above ensures origin/$BASE exists.
-        # grep -v '^CI_' excludes synthetic CI-only targets (CI_STM32F405, etc.) which are
-        # not real firmware targets and should not trigger additional target builds.
+        # awk replaces grep|sed|grep pipeline — each grep can exit 1 (no match) under
+        # bash -eo pipefail, failing the step on PRs that touch no target files.
+        # CI_ prefixed directories (synthetic targets) are excluded by the awk condition.
         CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
-          | grep '^src/main/target/' \
-          | sed 's|src/main/target/||;s|/.*||' \
-          | grep -v '^CI_' \
-          | sort -u | tr '\n' ' ')
+          | awk -F/ '/^src\/main\/target\/[^\/]+\// { t=$4; if (t !~ /^CI_/) print t }' \
+          | sort -u \
+          | tr '\n' ' ')
         echo "extra_targets=${CHANGED}" >> $GITHUB_OUTPUT
         echo "Changed real targets: ${CHANGED}"
 

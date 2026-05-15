@@ -312,7 +312,10 @@ CLEAN_ARTIFACTS += $(TARGET_LST)
 # Make sure build date and revision is updated on every incremental build
 $(OBJECT_DIR)/$(TARGET)/build/version.o : FORCE
 
-.PHONY: FORCE clean clean_test clean_all all_clean
+.PHONY: FORCE clean clean_test clean_all all_clean \
+        targets-group-1 targets-group-2 targets-group-3 \
+        targets-group-4 targets-group-5 targets-group-6 targets-group-7 \
+        targets-group-rest
 FORCE:
 
 # List of buildable ELF files and their object dependencies.
