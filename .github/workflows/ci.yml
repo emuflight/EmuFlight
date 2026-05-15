@@ -58,7 +58,62 @@ jobs:
     - name: Compile ${{ matrix.target }}
       run: make ${{ matrix.target }}
 
-  ci-changed-targets:
+  ci-new-targets:
+    if: github.event_name == 'pull_request'
+    # Hard gate: a newly introduced target directory that fails to compile blocks merge.
+    # New targets have no prior state — a compile failure is always a PR regression.
+    continue-on-error: false
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: curl fix
+      run: function curl () { command curl --connect-timeout 30 --retry 10 "$@" ; }
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Cache build toolchain
+      uses: actions/cache@v4
+      id: cache-toolchain
+      with:
+        path: tools
+        key: ${{ runner.os }}-${{ hashFiles('make/tools.mk') }}
+
+    - name: Download and install toolchain
+      if: steps.cache-toolchain.outputs.cache-hit != 'true'
+      run: make arm_sdk_install
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Fetch base branch
+      run: git fetch origin ${{ github.base_ref }} --no-tags --prune
+
+    - name: Detect new real targets
+      id: detect
+      run: |
+        TOUCHED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
+          | awk -F/ '/^src\/main\/target\/[^\/]+\// { t=$4; if (t !~ /^CI_/) print t }' \
+          | sort -u)
+        if [[ -n "$TOUCHED" ]]; then
+          BASE=$(git ls-tree --name-only origin/${{ github.base_ref }} src/main/target/ | sort)
+          NEW=$(comm -23 <(echo "$TOUCHED") <(echo "$BASE") | tr '\n' ' ' | xargs)
+        else
+          NEW=""
+        fi
+        echo "new_targets=${NEW}" >> $GITHUB_OUTPUT
+        echo "New real targets: ${NEW}"
+
+    - name: Compile new real targets
+      if: steps.detect.outputs.new_targets != ''
+      run: make ${{ steps.detect.outputs.new_targets }}
+
+  ci-modified-targets:
     if: github.event_name == 'pull_request'
     # Advisory: a touched target may have pre-existing issues unrelated to this PR.
     # Failures here are informational and do not block merge.
@@ -95,18 +150,20 @@ jobs:
       run: git fetch origin ${{ github.base_ref }} --no-tags --prune
 
     - name: Detect modified real targets
-      id: changed
+      id: detect
       run: |
-        # awk replaces grep|sed|grep pipeline — each grep can exit 1 (no match) under
-        # bash -eo pipefail, failing the step on PRs that touch no target files.
-        # CI_ prefixed directories (synthetic targets) are excluded by the awk condition.
-        CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
+        TOUCHED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
           | awk -F/ '/^src\/main\/target\/[^\/]+\// { t=$4; if (t !~ /^CI_/) print t }' \
-          | sort -u \
-          | tr '\n' ' ')
-        echo "extra_targets=${CHANGED}" >> $GITHUB_OUTPUT
-        echo "Changed real targets: ${CHANGED}"
+          | sort -u)
+        if [[ -n "$TOUCHED" ]]; then
+          BASE=$(git ls-tree --name-only origin/${{ github.base_ref }} src/main/target/ | sort)
+          MOD=$(comm -12 <(echo "$TOUCHED") <(echo "$BASE") | tr '\n' ' ' | xargs)
+        else
+          MOD=""
+        fi
+        echo "modified_targets=${MOD}" >> $GITHUB_OUTPUT
+        echo "Modified real targets: ${MOD}"
 
-    - name: Compile changed real targets
-      if: steps.changed.outputs.extra_targets != ''
-      run: make ${{ steps.changed.outputs.extra_targets }}
+    - name: Compile modified real targets
+      if: steps.detect.outputs.modified_targets != ''
+      run: make ${{ steps.detect.outputs.modified_targets }}
