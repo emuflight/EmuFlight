@@ -88,7 +88,7 @@
 #define TARGET_IO_PORTA 0xffff
 #define TARGET_IO_PORTB 0xffff
 #define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTF 0x00ff
+#define TARGET_IO_PORTF 0x001f
 
 #define USABLE_TIMER_CHANNEL_COUNT 6
 #define USED_TIMERS (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4))

@@ -104,6 +104,8 @@
 #define MPU6500_SPI_BUS  SPIDEV_1
 
 #define BARO_CS_PIN           PD2
+#define BMP280_CS_PIN         PD2
+#define BMP280_SPI_INSTANCE   SPI2
 #define FLASH_CS_PIN          PA15
 #define FLASH_SPI_INSTANCE    SPI3
 #define MAX7456_SPI_CS_PIN    PB12

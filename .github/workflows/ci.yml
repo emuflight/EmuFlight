@@ -59,6 +59,8 @@ jobs:
 
   ci-changed-targets:
     if: github.event_name == 'pull_request'
+    # Advisory: a touched target may have pre-existing issues unrelated to this PR.
+    # Failures here are informational and do not block merge.
     continue-on-error: true
     timeout-minutes: 15
     runs-on: ubuntu-latest
