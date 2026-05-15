@@ -27,7 +27,8 @@ jobs:
       fail-fast: false
       matrix:
         # Keep in sync with CI_TARGETS in make/targets.mk
-        target: [CI_STM32F405, CI_STM32F411, CI_STM32F446, CI_STM32F7X2, CI_STM32F7X6, HELIOSPRING, STRIXF10]
+        # STRIXF10 removed: IMUF9001 covered by HELIOSPRING; F7X2RE MCU covered by CI_STM32F7X2
+        target: [CI_STM32F405, CI_STM32F411, CI_STM32F446, CI_STM32F7X2, CI_STM32F7X6, HELIOSPRING]
 
     steps:
     - name: curl fix

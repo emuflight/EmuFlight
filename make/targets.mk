@@ -91,9 +91,11 @@ UNSUPPORTED_TARGETS := \
 # CI_STM32F3 excluded from CI_TARGETS and UNSUPPORTED (no release build): all F3 targets exceed
 # RAM budget in EF master (pre-existing). Target files kept for reference and manual builds.
 # See: https://github.com/emuflight/EmuFlight/issues/1190 — tracking F3 RAM fix.
-# HELIOSPRING and STRIXF10 are real product boards (not synthetic); they cover the
-# IMUF9001 dual-MCU code path and are intentionally included in release builds.
-CI_TARGETS := CI_STM32F405 CI_STM32F411 CI_STM32F446 CI_STM32F7X2 CI_STM32F7X6 HELIOSPRING STRIXF10
+# HELIOSPRING is a real product board (not synthetic); it covers the IMUF9001 dual-MCU
+# code path (F405+F301) and is intentionally included in release builds.
+# STRIXF10 (F722RE+IMUF9001) removed — IMUF9001 coverage provided by HELIOSPRING;
+# F7X2RE MCU family already covered by CI_STM32F7X2 synthetic target.
+CI_TARGETS := CI_STM32F405 CI_STM32F411 CI_STM32F446 CI_STM32F7X2 CI_STM32F7X6 HELIOSPRING
 
 .PHONY: targets-ci-print targets-ci
 
