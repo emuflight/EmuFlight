@@ -90,9 +90,9 @@ jobs:
         run: |
           find ./ -name "*.hex"
 
-      # Draft Dev-Unstable releases via ncipollo/release-action
+      # Draft Dev-Unstable releases to emuflight/dev-unstable via ncipollo/release-action
       # softprops/action-gh-release fails to release on separate repo
-      - name: Draft Release Dev-Unstable repo
+      - name: Draft Release emuflight/dev-unstable
         if: |
           contains(env.BRANCH, 'test') ||
           contains(env.BRANCH, 'unstab')
@@ -124,9 +124,9 @@ jobs:
             </details>
         continue-on-error: true
 
-      # Draft Dev-master releases via ncipollo/release-action
+      # Draft Dev-Master releases to emuflight/dev-master via ncipollo/release-action
       # softprops/action-gh-release fails to release on separate repo
-      - name: Draft Release Dev-Master repo
+      - name: Draft Release emuflight/dev-master
         if: contains(env.BRANCH, 'master')
         uses: ncipollo/release-action@v1
         with:
@@ -155,7 +155,7 @@ jobs:
             </details>
         continue-on-error: true
 
-      # Rename .hex for true Releases on main repo
+      # Rename .hex for true Releases on emuflight/EmuFlight
       - name: Rename Artifacts
         run: |
           sudo apt -y install rename
@@ -163,9 +163,9 @@ jobs:
           rename 's/_Build_.*/.hex/' *.hex
         continue-on-error: true
 
-      #Draft Releases on main Repo
+      # Draft Releases on emuflight/EmuFlight
       # could potentially change to ncipollo/release-action as well
-      - name: Draft Release Main Repo
+      - name: Draft Release emuflight/EmuFlight
         if: contains(env.BRANCH, 'releas')
         uses: ncipollo/release-action@v1
         with:
