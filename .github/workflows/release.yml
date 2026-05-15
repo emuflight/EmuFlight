@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
     inputs:
       build_run_id:
-        description: 'build.yml run ID to pull artifacts from (required for workflow_dispatch)'
-        required: true
+        description: 'build.yml run ID (leave blank to use latest successful build)'
+        required: false
         type: string
   repository_dispatch:
     types: [release]
@@ -33,7 +33,19 @@ jobs:
         id: run_id
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "RUN_ID=${{ github.event.inputs.build_run_id }}" >> $GITHUB_ENV
+            INPUT_ID="${{ github.event.inputs.build_run_id }}"
+            if [[ -n "$INPUT_ID" ]]; then
+              echo "RUN_ID=${INPUT_ID}" >> $GITHUB_ENV
+            else
+              RUN_ID=$(gh run list --repo "${{ github.repository }}" \
+                --workflow build.yml --status success --limit 1 \
+                --json databaseId --jq '.[0].databaseId')
+              if [[ -z "$RUN_ID" ]]; then
+                echo "::error::No successful build.yml run found in this repository"
+                exit 1
+              fi
+              echo "RUN_ID=${RUN_ID}" >> $GITHUB_ENV
+            fi
           elif [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
             RUN_ID="${{ github.event.client_payload.run_id }}"
             if [[ -z "$RUN_ID" ]]; then
