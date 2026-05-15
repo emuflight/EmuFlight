@@ -8,6 +8,7 @@ on:
     branches:
     - '*'
   workflow_dispatch:
+  workflow_call:
   repository_dispatch:
     types: [ci]
 

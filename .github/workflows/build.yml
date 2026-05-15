@@ -9,7 +9,11 @@ on:
 
 name: Build EmuFlight Full
 jobs:
+  ci-gate:
+    uses: ./.github/workflows/ci.yml
+
   build:
+    needs: [ci-gate]
     continue-on-error: false
     timeout-minutes: 75
     strategy:
