@@ -17,6 +17,7 @@
 
 #pragma once
 
+// ci-changed-targets test: trivial no-op change — safe to revert or merge
 #define TARGET_BOARD_IDENTIFIER "HESP"
 #define USBD_PRODUCT_STRING     "HELIOSPRING"
 #define MSP_OVER_CLI
