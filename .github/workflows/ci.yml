@@ -40,6 +40,23 @@ jobs:
     - name: Compile ${{ matrix.target }}
       run: make ${{ matrix.target }}
 
+  ci-sitl:
+    continue-on-error: false
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.x'
+
+    - name: Compile SITL
+      run: make SITL
+
   ci-new-targets:
     if: github.event_name == 'pull_request'
     # Hard gate: a newly introduced target directory that fails to compile blocks merge.
