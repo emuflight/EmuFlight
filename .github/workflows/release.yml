@@ -156,6 +156,8 @@ jobs:
         continue-on-error: true
 
       # Rename .hex for true Releases on emuflight/EmuFlight
+      # continue-on-error: true is intentional — a transient apt failure should not
+      # block a firmware release; the downstream Draft Release step is the hard gate.
       - name: Rename Artifacts
         run: |
           sudo apt -y install rename
