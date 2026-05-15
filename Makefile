@@ -386,7 +386,31 @@ targets-group-2: $(GROUP_2_TARGETS)
 ## targets-group-3   : build some targets
 targets-group-3: $(GROUP_3_TARGETS)
 
-## targets-group-rest: build the rest of the targets (not listed in group 1, 2 or 3)
+## targets-group-4   : build some targets
+targets-group-4: $(GROUP_4_TARGETS)
+
+## targets-group-5   : build some targets
+targets-group-5: $(GROUP_5_TARGETS)
+
+## targets-group-6   : build some targets
+targets-group-6: $(GROUP_6_TARGETS)
+
+## targets-group-7   : build some targets
+targets-group-7: $(GROUP_7_TARGETS)
+
+## targets-group-8   : build some targets
+targets-group-8: $(GROUP_8_TARGETS)
+
+## targets-group-9   : build some targets
+targets-group-9: $(GROUP_9_TARGETS)
+
+## targets-group-10  : build some targets
+targets-group-10: $(GROUP_10_TARGETS)
+
+## targets-group-11  : build some targets
+targets-group-11: $(GROUP_11_TARGETS)
+
+## targets-group-rest: build the rest of the targets (not listed in groups 1-11)
 targets-group-rest: $(GROUP_OTHER_TARGETS)
 
 $(VALID_TARGETS):

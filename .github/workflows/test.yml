@@ -47,8 +47,24 @@ jobs:
     - name: Install BlocksRuntime
       run: sudo apt-get update && sudo apt-get install -y libblocksruntime-dev
 
-    - name: Clean test artifacts
-      run: make clean_test
-
     - name: Run tests
-      run: make test
+      run: make clean_test && make test
+
+  sitl:
+    continue-on-error: false
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Compile SITL
+      run: make SITL
