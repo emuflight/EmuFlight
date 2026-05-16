@@ -30,7 +30,7 @@ from collections import OrderedDict
 # Words containing digits are kept as-is automatically (e.g. 3D, MAX7456).
 _ACRONYMS = {
     'ADC', 'CRSF', 'DMA', 'ESC', 'GPS', 'IMU', 'LED', 'LPF', 'MSP',
-    'OSD', 'PID', 'PWM', 'RC', 'RPM', 'RTC', 'RX', 'SDCARD', 'SDIO',
+    'OSD', 'PID', 'PWM', 'RC', 'RCDEVICE', 'RPM', 'RTC', 'RX', 'SDCARD', 'SDIO',
     'SPI', 'TX', 'USB', 'VCD', 'VTX',
 }
 
@@ -334,9 +334,24 @@ def _format_range(entry, table_map):
     return ''
 
 
+def _extract_use_conditions(cond):
+    """Extract all USE_* symbols from a condition, preserving negation."""
+    out = []
+    # Match negated or plain USE_* tokens, including defined() forms
+    for m in re.finditer(r'(!)?\\s*(?:defined\\()?\\s*(USE_[A-Z0-9_]+)\\s*\\)?', cond):
+        neg, sym = m.groups()
+        out.append(f'!{sym}' if neg else sym)
+    return out
+
+
 def _format_requires(ifdef_conds):
-    """Return only the simple USE_xxx conditions as a readable string."""
-    simple = [c for c in ifdef_conds if re.match(r'USE_\w+$', c)]
+    """Return USE_xxx requirements, including negated/defined forms."""
+    simple = []
+    for c in ifdef_conds:
+        simple.extend(_extract_use_conditions(c))
+        # Also catch standalone simple forms
+        if re.match(r'!?USE_\\w+$', c):
+            simple.append(c)
     if not simple:
         return ''
     return ', '.join(f'`{c}`' for c in dict.fromkeys(simple))  # deduplicated, ordered

@@ -1,7 +1,7 @@
 # CLI Parameters Reference
 
 > **Auto-generated** — do not edit manually.
-> Source: `src/main/interface/settings.c` | Generated: 2026-05-16 | Commit: `eb8fdbf6d9`
+> Source: `src/main/interface/settings.c` | Generated: 2026-05-16 | Commit: `790f6f9f2d`
 
 ---
 
@@ -61,65 +61,65 @@
 - [Piniobox Config](#piniobox-config)
 - [USB Config](#usb-config)
 - [Flash Config](#flash-config)
-- [Rcdevice Config](#rcdevice-config)
+- [RCDEVICE Config](#rcdevice-config)
 
 ---
 
 ## Gyro Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `align_gyro` | uint8 | master | `DEFAULT`, `CW0`, `CW90`, `CW180`, `CW270`, `CW0FLIP`, `CW90FLIP`, `CW180FLIP`, `CW270FLIP`, `CW45`, `CW135`, `CW225`, `CW315`, `CW45FLIP`, `CW135FLIP`, `CW225FLIP`, `CW315FLIP` |  |
-| `gyro_hardware_lpf` | uint8 | master | `NORMAL`, `OPTION1`, `OPTION2`, `EXPERIMENTAL`, `EXPERIMENTAL`, `1KHZ_SAMPLING` |  |
-| `gyro_32khz_hardware_lpf` | uint8 | master | `NORMAL`, `EXPERIMENTAL` | `USE_32K_CAPABLE_GYRO` |
-| `gyro_high_range` | uint8 | master | `OFF`, `ON` |  |
-| `gyro_sync_denom` | uint8 | master | `1` – `32` |  |
-| `gyro_lowpass_type` | uint8 | master | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |  |
-| `gyro_lowpass_hz_roll` | uint16 | master | `0` – `16000` |  |
-| `gyro_lowpass_hz_pitch` | uint16 | master | `0` – `16000` |  |
-| `gyro_lowpass_hz_yaw` | uint16 | master | `0` – `16000` |  |
-| `gyro_lowpass2_type` | uint8 | master | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` | `USE_GYRO_LPF2` |
-| `gyro_lowpass2_hz_roll` | uint16 | master | `0` – `16000` | `USE_GYRO_LPF2` |
-| `gyro_lowpass2_hz_pitch` | uint16 | master | `0` – `16000` | `USE_GYRO_LPF2` |
-| `gyro_lowpass2_hz_yaw` | uint16 | master | `0` – `16000` | `USE_GYRO_LPF2` |
-| `gyro_abg_alpha` | uint16 | master | `0` – `1000` |  |
-| `gyro_abg_boost` | uint16 | master | `0` – `2000` |  |
-| `gyro_abg_half_life` | uint8 | master | `0` – `250` |  |
-| `gyro_notch1_hz` | uint16 | master | `0` – `16000` |  |
-| `gyro_notch1_cutoff` | uint16 | master | `0` – `16000` |  |
-| `gyro_notch2_hz` | uint16 | master | `0` – `16000` |  |
-| `gyro_notch2_cutoff` | uint16 | master | `0` – `16000` |  |
-| `gyro_calib_duration` | uint16 | master | `50` – `3000` |  |
-| `gyro_calib_noise_limit` | uint8 | master | `0` – `200` |  |
-| `gyro_offset_yaw` | int16 | master | `-1000` – `1000` |  |
-| `imuf_rate` | uint8 | master | `32K`, `16K`, `8K`, `4K`, `2K`, `1K` | `USE_GYRO_IMUF9001` |
-| `imuf_roll_q` | uint16 | master | `100` – `16000` | `USE_GYRO_IMUF9001` |
-| `imuf_pitch_q` | uint16 | master | `100` – `16000` | `USE_GYRO_IMUF9001` |
-| `imuf_yaw_q` | uint16 | master | `100` – `16000` | `USE_GYRO_IMUF9001` |
-| `imuf_w` | uint16 | master | `3` – `512` | `USE_GYRO_IMUF9001` |
-| `imuf_pitch_lpf_cutoff_hz` | uint16 | master | `0` – `450` | `USE_GYRO_IMUF9001` |
-| `imuf_roll_lpf_cutoff_hz` | uint16 | master | `0` – `450` | `USE_GYRO_IMUF9001` |
-| `imuf_yaw_lpf_cutoff_hz` | uint16 | master | `0` – `450` | `USE_GYRO_IMUF9001` |
-| `imuf_acc_lpf_cutoff_hz` | uint16 | master | `30` – `180` | `USE_GYRO_IMUF9001` |
-| `imuf_ptn_order` | uint8 | master | `1` – `4` | `USE_GYRO_IMUF9001` |
-| `imuf_roll_q` | uint16 | master | `0` – `16000` |  |
-| `imuf_pitch_q` | uint16 | master | `0` – `16000` |  |
-| `imuf_yaw_q` | uint16 | master | `0` – `16000` |  |
-| `imuf_w` | uint16 | master | `0` – `512` |  |
-| `gyro_overflow_detect` | uint8 | master | `OFF`, `YAW`, `ALL` | `USE_GYRO_OVERFLOW_CHECK` |
-| `yaw_spin_recovery` | uint8 | master | `OFF`, `ON`, `AUTO` | `USE_YAW_SPIN_RECOVERY` |
-| `yaw_spin_threshold` | uint16 | master | `YAW_SPIN_RECOVERY_THRESHOLD_MIN` – `YAW_SPIN_RECOVERY_THRESHOLD_MAX` | `USE_YAW_SPIN_RECOVERY` |
-| `gyro_use_32khz` | uint8 | master | `OFF`, `ON` |  |
-| `gyro_to_use` | uint8 | master | `FIRST`, `SECOND`, `BOTH` | `USE_DUAL_GYRO` |
-| `dynamic_gyro_notch_axis` | uint8 | master | `RP`, `RPY` |  |
-| `dynamic_gyro_notch_q` | uint16 | master | `1` – `1000` |  |
-| `dynamic_gyro_notch_count` | uint8 | master | `1` – `5` |  |
-| `dynamic_gyro_notch_min_hz` | uint16 | master | `30` – `1000` |  |
-| `dynamic_gyro_notch_max_hz` | uint16 | master | `400` – `1000` |  |
-| `smith_predict_enabled` | uint8 | master | `OFF`, `ON` | `USE_SMITH_PREDICTOR` |
-| `smith_predict_str` | uint8 | master | `0` – `100` | `USE_SMITH_PREDICTOR` |
-| `smith_predict_delay` | uint8 | master | `0` – `120` | `USE_SMITH_PREDICTOR` |
-| `smith_predict_filt_hz` | uint8 | master | `1` – `250` | `USE_SMITH_PREDICTOR` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `align_gyro` | uint8 | master | `DEFAULT`, `CW0`, `CW90`, `CW180`, `CW270`, `CW0FLIP`, `CW90FLIP`, `CW180FLIP`, `CW270FLIP`, `CW45`, `CW135`, `CW225`, `CW315`, `CW45FLIP`, `CW135FLIP`, `CW225FLIP`, `CW315FLIP` |
+| `gyro_hardware_lpf` | uint8 | master | `NORMAL`, `OPTION1`, `OPTION2`, `EXPERIMENTAL`, `EXPERIMENTAL`, `1KHZ_SAMPLING` |
+| `gyro_32khz_hardware_lpf` | uint8 | master | `NORMAL`, `EXPERIMENTAL` |
+| `gyro_high_range` | uint8 | master | `OFF`, `ON` |
+| `gyro_sync_denom` | uint8 | master | `1` – `32` |
+| `gyro_lowpass_type` | uint8 | master | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |
+| `gyro_lowpass_hz_roll` | uint16 | master | `0` – `16000` |
+| `gyro_lowpass_hz_pitch` | uint16 | master | `0` – `16000` |
+| `gyro_lowpass_hz_yaw` | uint16 | master | `0` – `16000` |
+| `gyro_lowpass2_type` | uint8 | master | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |
+| `gyro_lowpass2_hz_roll` | uint16 | master | `0` – `16000` |
+| `gyro_lowpass2_hz_pitch` | uint16 | master | `0` – `16000` |
+| `gyro_lowpass2_hz_yaw` | uint16 | master | `0` – `16000` |
+| `gyro_abg_alpha` | uint16 | master | `0` – `1000` |
+| `gyro_abg_boost` | uint16 | master | `0` – `2000` |
+| `gyro_abg_half_life` | uint8 | master | `0` – `250` |
+| `gyro_notch1_hz` | uint16 | master | `0` – `16000` |
+| `gyro_notch1_cutoff` | uint16 | master | `0` – `16000` |
+| `gyro_notch2_hz` | uint16 | master | `0` – `16000` |
+| `gyro_notch2_cutoff` | uint16 | master | `0` – `16000` |
+| `gyro_calib_duration` | uint16 | master | `50` – `3000` |
+| `gyro_calib_noise_limit` | uint8 | master | `0` – `200` |
+| `gyro_offset_yaw` | int16 | master | `-1000` – `1000` |
+| `imuf_rate` | uint8 | master | `32K`, `16K`, `8K`, `4K`, `2K`, `1K` |
+| `imuf_roll_q` | uint16 | master | `100` – `16000` |
+| `imuf_pitch_q` | uint16 | master | `100` – `16000` |
+| `imuf_yaw_q` | uint16 | master | `100` – `16000` |
+| `imuf_w` | uint16 | master | `3` – `512` |
+| `imuf_pitch_lpf_cutoff_hz` | uint16 | master | `0` – `450` |
+| `imuf_roll_lpf_cutoff_hz` | uint16 | master | `0` – `450` |
+| `imuf_yaw_lpf_cutoff_hz` | uint16 | master | `0` – `450` |
+| `imuf_acc_lpf_cutoff_hz` | uint16 | master | `30` – `180` |
+| `imuf_ptn_order` | uint8 | master | `1` – `4` |
+| `imuf_roll_q` | uint16 | master | `0` – `16000` |
+| `imuf_pitch_q` | uint16 | master | `0` – `16000` |
+| `imuf_yaw_q` | uint16 | master | `0` – `16000` |
+| `imuf_w` | uint16 | master | `0` – `512` |
+| `gyro_overflow_detect` | uint8 | master | `OFF`, `YAW`, `ALL` |
+| `yaw_spin_recovery` | uint8 | master | `OFF`, `ON`, `AUTO` |
+| `yaw_spin_threshold` | uint16 | master | `YAW_SPIN_RECOVERY_THRESHOLD_MIN` – `YAW_SPIN_RECOVERY_THRESHOLD_MAX` |
+| `gyro_use_32khz` | uint8 | master | `OFF`, `ON` |
+| `gyro_to_use` | uint8 | master | `FIRST`, `SECOND`, `BOTH` |
+| `dynamic_gyro_notch_axis` | uint8 | master | `RP`, `RPY` |
+| `dynamic_gyro_notch_q` | uint16 | master | `1` – `1000` |
+| `dynamic_gyro_notch_count` | uint8 | master | `1` – `5` |
+| `dynamic_gyro_notch_min_hz` | uint16 | master | `30` – `1000` |
+| `dynamic_gyro_notch_max_hz` | uint16 | master | `400` – `1000` |
+| `smith_predict_enabled` | uint8 | master | `OFF`, `ON` |
+| `smith_predict_str` | uint8 | master | `0` – `100` |
+| `smith_predict_delay` | uint8 | master | `0` – `120` |
+| `smith_predict_filt_hz` | uint8 | master | `1` – `250` |
 
 ## Accelerometer Config
 
@@ -135,70 +135,70 @@
 
 ## Compass Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `align_mag` | uint8 | master | `DEFAULT`, `CW0`, `CW90`, `CW180`, `CW270`, `CW0FLIP`, `CW90FLIP`, `CW180FLIP`, `CW270FLIP`, `CW45`, `CW135`, `CW225`, `CW315`, `CW45FLIP`, `CW135FLIP`, `CW225FLIP`, `CW315FLIP` | `USE_MAG` |
-| `mag_bustype` | uint8 | master | `NONE`, `I2C`, `SPI`, `SLAVE` | `USE_MAG` |
-| `mag_i2c_device` | uint8 | master | `0` – `I2CDEV_COUNT` | `USE_MAG` |
-| `mag_i2c_address` | uint8 | master | `0` – `I2C_ADDR7_MAX` | `USE_MAG` |
-| `mag_spi_device` | uint8 | master | `0` – `SPIDEV_COUNT` | `USE_MAG` |
-| `mag_hardware` | uint8 | master | `AUTO`, `NONE`, `HMC5883`, `AK8975`, `AK8963`, `QMC5883` | `USE_MAG` |
-| `mag_declination` | int16 | master | `-18000` – `18000` | `USE_MAG` |
-| `mag_calibration` | int16 | master | array\[XYZ_AXIS_COUNT\] | `USE_MAG` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `align_mag` | uint8 | master | `DEFAULT`, `CW0`, `CW90`, `CW180`, `CW270`, `CW0FLIP`, `CW90FLIP`, `CW180FLIP`, `CW270FLIP`, `CW45`, `CW135`, `CW225`, `CW315`, `CW45FLIP`, `CW135FLIP`, `CW225FLIP`, `CW315FLIP` |
+| `mag_bustype` | uint8 | master | `NONE`, `I2C`, `SPI`, `SLAVE` |
+| `mag_i2c_device` | uint8 | master | `0` – `I2CDEV_COUNT` |
+| `mag_i2c_address` | uint8 | master | `0` – `I2C_ADDR7_MAX` |
+| `mag_spi_device` | uint8 | master | `0` – `SPIDEV_COUNT` |
+| `mag_hardware` | uint8 | master | `AUTO`, `NONE`, `HMC5883`, `AK8975`, `AK8963`, `QMC5883` |
+| `mag_declination` | int16 | master | `-18000` – `18000` |
+| `mag_calibration` | int16 | master | array\[XYZ_AXIS_COUNT\] |
 
 ## Barometer Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `baro_bustype` | uint8 | master | `NONE`, `I2C`, `SPI`, `SLAVE` | `USE_BARO` |
-| `baro_spi_device` | uint8 | master | `0` – `5` | `USE_BARO` |
-| `baro_i2c_device` | uint8 | master | `0` – `5` | `USE_BARO` |
-| `baro_i2c_address` | uint8 | master | `0` – `I2C_ADDR7_MAX` | `USE_BARO` |
-| `baro_hardware` | uint8 | master | `AUTO`, `NONE`, `BMP085`, `MS5611`, `BMP280`, `LPS`, `QMP6988` | `USE_BARO` |
-| `baro_tab_size` | uint8 | master | `1` – `BARO_SAMPLE_COUNT_MAX` | `USE_BARO` |
-| `baro_noise_lpf` | uint16 | master | `0` – `1000` | `USE_BARO` |
-| `baro_cf_vel` | uint16 | master | `0` – `1000` | `USE_BARO` |
-| `baro_cf_alt` | uint16 | master | `0` – `1000` | `USE_BARO` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `baro_bustype` | uint8 | master | `NONE`, `I2C`, `SPI`, `SLAVE` |
+| `baro_spi_device` | uint8 | master | `0` – `5` |
+| `baro_i2c_device` | uint8 | master | `0` – `5` |
+| `baro_i2c_address` | uint8 | master | `0` – `I2C_ADDR7_MAX` |
+| `baro_hardware` | uint8 | master | `AUTO`, `NONE`, `BMP085`, `MS5611`, `BMP280`, `LPS`, `QMP6988` |
+| `baro_tab_size` | uint8 | master | `1` – `BARO_SAMPLE_COUNT_MAX` |
+| `baro_noise_lpf` | uint16 | master | `0` – `1000` |
+| `baro_cf_vel` | uint16 | master | `0` – `1000` |
+| `baro_cf_alt` | uint16 | master | `0` – `1000` |
 
 ## RX Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `mid_rc` | uint16 | master | `1200` – `1700` |  |
-| `min_check` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |  |
-| `max_check` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |  |
-| `rssi_channel` | int8 | master | `0` – `MAX_SUPPORTED_RC_CHANNEL_COUNT` |  |
-| `rssi_src_frame_errors` | int8 | master | `OFF`, `ON` |  |
-| `rssi_scale` | uint8 | master | `RSSI_SCALE_MIN` – `RSSI_SCALE_MAX` |  |
-| `rssi_offset` | int8 | master | `-100` – `100` |  |
-| `rssi_invert` | int8 | master | `OFF`, `ON` |  |
-| `rc_interp` | uint8 | master | `OFF`, `PRESET`, `AUTO`, `MANUAL` |  |
-| `rc_interp_ch` | uint8 | master | `RP`, `RPY`, `RPYT`, `T`, `RPT` |  |
-| `rc_interp_int` | uint8 | master | `1` – `50` |  |
-| `rc_smoothing_type` | uint8 | master | `INTERPOLATION`, `FILTER` | `USE_RC_SMOOTHING_FILTER` |
-| `rc_smoothing_input_hz` | uint8 | master | `0` – `UINT8_MAX` | `USE_RC_SMOOTHING_FILTER` |
-| `rc_smoothing_debug_axis` | uint8 | master | `ROLL`, `PITCH`, `YAW`, `THROTTLE` | `USE_RC_SMOOTHING_FILTER` |
-| `rc_smoothing_input_type` | uint8 | master | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` | `USE_RC_SMOOTHING_FILTER` |
-| `fpv_mix_degrees` | uint8 | master | `0` – `90` |  |
-| `cinematic_yaw` | uint8 | master | `OFF`, `ON` |  |
-| `max_aux_channels` | uint8 | master | `0` – `MAX_AUX_CHANNEL_COUNT` |  |
-| `serialrx_provider` | uint8 | master | `SPEK1024`, `SPEK2048`, `SBUS`, `SUMD`, `SUMH`, `XB-B`, `XB-B-RJ01`, `IBUS`, `JETIEXBUS`, `CRSF`, `SRXL`, `CUSTOM`, `FPORT`, `GHST` | `USE_SERIAL_RX` |
-| `serialrx_inverted` | uint8 | master | `OFF`, `ON` | `USE_SERIAL_RX` |
-| `spektrum_sat_bind` | uint8 | master | `SPEKTRUM_SAT_BIND_DISABLED` – `SPEKTRUM_SAT_BIND_MAX` | `USE_SPEKTRUM_BIND` |
-| `spektrum_sat_bind_autoreset` | uint8 | master | `OFF`, `ON` | `USE_SPEKTRUM_BIND` |
-| `sbus_baud_fast` | uint8 | master | `OFF`, `ON` |  |
-| `airmode_start_throttle_percent` | uint8 | master | `0` – `100` |  |
-| `rx_min_usec` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |  |
-| `rx_max_usec` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |  |
-| `serialrx_halfduplex` | uint8 | master | `OFF`, `ON` |  |
-| `show_altered_rc` | uint8 | master | `OFF`, `ON` |  |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `mid_rc` | uint16 | master | `1200` – `1700` |
+| `min_check` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |
+| `max_check` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |
+| `rssi_channel` | int8 | master | `0` – `MAX_SUPPORTED_RC_CHANNEL_COUNT` |
+| `rssi_src_frame_errors` | int8 | master | `OFF`, `ON` |
+| `rssi_scale` | uint8 | master | `RSSI_SCALE_MIN` – `RSSI_SCALE_MAX` |
+| `rssi_offset` | int8 | master | `-100` – `100` |
+| `rssi_invert` | int8 | master | `OFF`, `ON` |
+| `rc_interp` | uint8 | master | `OFF`, `PRESET`, `AUTO`, `MANUAL` |
+| `rc_interp_ch` | uint8 | master | `RP`, `RPY`, `RPYT`, `T`, `RPT` |
+| `rc_interp_int` | uint8 | master | `1` – `50` |
+| `rc_smoothing_type` | uint8 | master | `INTERPOLATION`, `FILTER` |
+| `rc_smoothing_input_hz` | uint8 | master | `0` – `UINT8_MAX` |
+| `rc_smoothing_debug_axis` | uint8 | master | `ROLL`, `PITCH`, `YAW`, `THROTTLE` |
+| `rc_smoothing_input_type` | uint8 | master | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |
+| `fpv_mix_degrees` | uint8 | master | `0` – `90` |
+| `cinematic_yaw` | uint8 | master | `OFF`, `ON` |
+| `max_aux_channels` | uint8 | master | `0` – `MAX_AUX_CHANNEL_COUNT` |
+| `serialrx_provider` | uint8 | master | `SPEK1024`, `SPEK2048`, `SBUS`, `SUMD`, `SUMH`, `XB-B`, `XB-B-RJ01`, `IBUS`, `JETIEXBUS`, `CRSF`, `SRXL`, `CUSTOM`, `FPORT`, `GHST` |
+| `serialrx_inverted` | uint8 | master | `OFF`, `ON` |
+| `spektrum_sat_bind` | uint8 | master | `SPEKTRUM_SAT_BIND_DISABLED` – `SPEKTRUM_SAT_BIND_MAX` |
+| `spektrum_sat_bind_autoreset` | uint8 | master | `OFF`, `ON` |
+| `sbus_baud_fast` | uint8 | master | `OFF`, `ON` |
+| `airmode_start_throttle_percent` | uint8 | master | `0` – `100` |
+| `rx_min_usec` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |
+| `rx_max_usec` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |
+| `serialrx_halfduplex` | uint8 | master | `OFF`, `ON` |
+| `show_altered_rc` | uint8 | master | `OFF`, `ON` |
 
 ## RX SPI Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `rx_spi_protocol` | uint8 | master | `V202_250K`, `V202_1M`, `SYMA_X`, `SYMA_X5C`, `CX10`, `CX10A`, `H8_3D`, `INAV`, `FRSKY_D`, `FRSKY_X`, `FLYSKY`, `FLYSKY_2A`, `KN`, `SFHSS`, `REDPINE` | `USE_RX_SPI` |
-| `rx_spi_bus` | uint8 | master | `0` – `SPIDEV_COUNT` | `USE_RX_SPI` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `rx_spi_protocol` | uint8 | master | `V202_250K`, `V202_1M`, `SYMA_X`, `SYMA_X5C`, `CX10`, `CX10A`, `H8_3D`, `INAV`, `FRSKY_D`, `FRSKY_X`, `FLYSKY`, `FLYSKY_2A`, `KN`, `SFHSS`, `REDPINE` |
+| `rx_spi_bus` | uint8 | master | `0` – `SPIDEV_COUNT` |
 
 ## ADC Config
 
@@ -214,27 +214,27 @@
 
 ## Blackbox Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `blackbox_p_ratio` | uint16 | master | `0` – `INT16_MAX` | `USE_BLACKBOX` |
-| `blackbox_device` | uint8 | master | `NONE`, `SPIFLASH`, `SDCARD`, `SERIAL` | `USE_BLACKBOX` |
-| `blackbox_record_acc` | uint8 | master | `OFF`, `ON` | `USE_BLACKBOX` |
-| `blackbox_mode` | uint8 | master | `NORMAL`, `MOTOR_TEST`, `ALWAYS` | `USE_BLACKBOX` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `blackbox_p_ratio` | uint16 | master | `0` – `INT16_MAX` |
+| `blackbox_device` | uint8 | master | `NONE`, `SPIFLASH`, `SDCARD`, `SERIAL` |
+| `blackbox_record_acc` | uint8 | master | `OFF`, `ON` |
+| `blackbox_mode` | uint8 | master | `NORMAL`, `MOTOR_TEST`, `ALWAYS` |
 
 ## Motor Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `min_throttle` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |  |
-| `max_throttle` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |  |
-| `min_command` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |  |
-| `dshot_idle_value` | uint16 | master | `0` – `2000` | `USE_DSHOT` |
-| `dshot_burst` | uint8 | master | `OFF`, `ON` | `USE_DSHOT`, `USE_DSHOT_DMAR` |
-| `use_unsynced_pwm` | uint8 | master | `OFF`, `ON` |  |
-| `motor_pwm_protocol` | uint8 | master | `OFF`, `ONESHOT125`, `ONESHOT42`, `MULTISHOT`, `BRUSHED`, `DSHOT150`, `DSHOT300`, `DSHOT600`, `DSHOT1200`, `DSHOT2400`, `DSHOT4800`, `PROSHOT1000` |  |
-| `motor_pwm_rate` | uint16 | master | `200` – `32000` |  |
-| `motor_pwm_inversion` | uint8 | master | `OFF`, `ON` |  |
-| `motor_poles` | uint8 | master | `4` – `UINT8_MAX` |  |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `min_throttle` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |
+| `max_throttle` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |
+| `min_command` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |
+| `dshot_idle_value` | uint16 | master | `0` – `2000` |
+| `dshot_burst` | uint8 | master | `OFF`, `ON` |
+| `use_unsynced_pwm` | uint8 | master | `OFF`, `ON` |
+| `motor_pwm_protocol` | uint8 | master | `OFF`, `ONESHOT125`, `ONESHOT42`, `MULTISHOT`, `BRUSHED`, `DSHOT150`, `DSHOT300`, `DSHOT600`, `DSHOT1200`, `DSHOT2400`, `DSHOT4800`, `PROSHOT1000` |
+| `motor_pwm_rate` | uint16 | master | `200` – `32000` |
+| `motor_pwm_inversion` | uint8 | master | `OFF`, `ON` |
+| `motor_poles` | uint8 | master | `4` – `UINT8_MAX` |
 
 ## Throttle Correction Config
 
@@ -264,9 +264,9 @@
 
 ## Gimbal Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `gimbal_mode` | uint8 | master | `NORMAL`, `MIXTILT` | `USE_SERVOS` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `gimbal_mode` | uint8 | master | `NORMAL`, `MIXTILT` |
 
 ## Battery Config
 
@@ -306,24 +306,24 @@
 
 ## Current Sensor Virtual Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `ibatv_scale` | int16 | master | `-16000` – `16000` | `USE_VIRTUAL_CURRENT_METER` |
-| `ibatv_offset` | uint16 | master | `0` – `16000` | `USE_VIRTUAL_CURRENT_METER` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `ibatv_scale` | int16 | master | `-16000` – `16000` |
+| `ibatv_offset` | uint16 | master | `0` – `16000` |
 
 ## Beeper Dev Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `beeper_inversion` | uint8 | master | `OFF`, `ON` | `USE_BEEPER` |
-| `beeper_od` | uint8 | master | `OFF`, `ON` | `USE_BEEPER` |
-| `beeper_frequency` | int16 | master | `0` – `16000` | `USE_BEEPER` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `beeper_inversion` | uint8 | master | `OFF`, `ON` |
+| `beeper_od` | uint8 | master | `OFF`, `ON` |
+| `beeper_frequency` | int16 | master | `0` – `16000` |
 
 ## Beeper Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `beeper_dshot_beacon_tone` | uint8 | master | `1` – `DSHOT_CMD_BEACON5` | `USE_BEEPER`, `USE_DSHOT` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `beeper_dshot_beacon_tone` | uint8 | master | `1` – `DSHOT_CMD_BEACON5` |
 
 ## Mixer Config
 
@@ -347,13 +347,13 @@
 
 ## Servo Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `servo_center_pulse` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` | `USE_SERVOS` |
-| `servo_pwm_rate` | uint16 | master | `50` – `498` | `USE_SERVOS` |
-| `servo_lowpass_hz` | uint16 | master | `0` – `400` | `USE_SERVOS` |
-| `tri_unarmed_servo` | int8 | master | `OFF`, `ON` | `USE_SERVOS` |
-| `channel_forwarding_start` | uint8 | master | `AUX1` – `MAX_SUPPORTED_RC_CHANNEL_COUNT` | `USE_SERVOS` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `servo_center_pulse` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |
+| `servo_pwm_rate` | uint16 | master | `50` – `498` |
+| `servo_lowpass_hz` | uint16 | master | `0` – `400` |
+| `tri_unarmed_servo` | int8 | master | `OFF`, `ON` |
+| `channel_forwarding_start` | uint8 | master | `AUX1` – `MAX_SUPPORTED_RC_CHANNEL_COUNT` |
 
 ## Control Rate Profiles
 
@@ -418,34 +418,34 @@
 
 ## GPS Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `gps_provider` | uint8 | master | `NMEA`, `UBLOX` | `USE_GPS` |
-| `gps_sbas_mode` | uint8 | master | `AUTO`, `EGNOS`, `WAAS`, `MSAS`, `GAGAN` | `USE_GPS` |
-| `gps_auto_config` | uint8 | master | `OFF`, `ON` | `USE_GPS` |
-| `gps_auto_baud` | uint8 | master | `OFF`, `ON` | `USE_GPS` |
-| `gps_ublox_use_galileo` | uint8 | master | `OFF`, `ON` | `USE_GPS` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `gps_provider` | uint8 | master | `NMEA`, `UBLOX` |
+| `gps_sbas_mode` | uint8 | master | `AUTO`, `EGNOS`, `WAAS`, `MSAS`, `GAGAN` |
+| `gps_auto_config` | uint8 | master | `OFF`, `ON` |
+| `gps_auto_baud` | uint8 | master | `OFF`, `ON` |
+| `gps_ublox_use_galileo` | uint8 | master | `OFF`, `ON` |
 
 ## GPS Rescue
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `gps_rescue_angle` | uint16 | master | `0` – `200` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_initial_alt` | uint16 | master | `20` – `100` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_descent_dist` | uint16 | master | `30` – `500` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_ground_speed` | uint16 | master | `30` – `3000` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_throttle_p` | uint16 | master | `0` – `500` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_throttle_i` | uint16 | master | `0` – `500` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_throttle_d` | uint16 | master | `0` – `500` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_velocity_p` | uint16 | master | `0` – `500` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_velocity_i` | uint16 | master | `0` – `500` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_velocity_d` | uint16 | master | `0` – `500` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_yaw_p` | uint16 | master | `0` – `500` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_throttle_min` | uint16 | master | `1000` – `2000` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_throttle_max` | uint16 | master | `1000` – `2000` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_throttle_hover` | uint16 | master | `1000` – `2000` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_sanity_checks` | uint8 | master | `RESCUE_SANITY_OFF`, `RESCUE_SANITY_ON`, `RESCUE_SANITY_FS_ONLY` | `USE_GPS`, `USE_GPS_RESCUE` |
-| `gps_rescue_min_sats` | uint8 | master | `0` – `50` | `USE_GPS`, `USE_GPS_RESCUE` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `gps_rescue_angle` | uint16 | master | `0` – `200` |
+| `gps_rescue_initial_alt` | uint16 | master | `20` – `100` |
+| `gps_rescue_descent_dist` | uint16 | master | `30` – `500` |
+| `gps_rescue_ground_speed` | uint16 | master | `30` – `3000` |
+| `gps_rescue_throttle_p` | uint16 | master | `0` – `500` |
+| `gps_rescue_throttle_i` | uint16 | master | `0` – `500` |
+| `gps_rescue_throttle_d` | uint16 | master | `0` – `500` |
+| `gps_rescue_velocity_p` | uint16 | master | `0` – `500` |
+| `gps_rescue_velocity_i` | uint16 | master | `0` – `500` |
+| `gps_rescue_velocity_d` | uint16 | master | `0` – `500` |
+| `gps_rescue_yaw_p` | uint16 | master | `0` – `500` |
+| `gps_rescue_throttle_min` | uint16 | master | `1000` – `2000` |
+| `gps_rescue_throttle_max` | uint16 | master | `1000` – `2000` |
+| `gps_rescue_throttle_hover` | uint16 | master | `1000` – `2000` |
+| `gps_rescue_sanity_checks` | uint8 | master | `RESCUE_SANITY_OFF`, `RESCUE_SANITY_ON`, `RESCUE_SANITY_FS_ONLY` |
+| `gps_rescue_min_sats` | uint8 | master | `0` – `50` |
 
 ## RC Controls Config
 
@@ -457,257 +457,257 @@
 
 ## PID Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `pid_process_denom` | uint8 | master | `1` – `MAX_PID_PROCESS_DENOM` |  |
-| `runaway_takeoff_prevention` | uint8 | master | `OFF`, `ON` | `USE_RUNAWAY_TAKEOFF` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `pid_process_denom` | uint8 | master | `1` – `MAX_PID_PROCESS_DENOM` |
+| `runaway_takeoff_prevention` | uint8 | master | `OFF`, `ON` |
 
 ## PID Profile
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `dterm_dyn_notch_q` | uint16 | profile | `1` – `1000` | `USE_GYRO_DATA_ANALYSE` |
-| `dterm_abg_alpha` | uint16 | profile | `0` – `1000` |  |
-| `dterm_abg_boost` | uint16 | profile | `0` – `2000` |  |
-| `dterm_abg_half_life` | uint8 | profile | `0` – `250` |  |
-| `dterm_lowpass_type` | uint8 | profile | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |  |
-| `dterm_lowpass_hz_roll` | uint16 | profile | `0` – `16000` |  |
-| `dterm_lowpass_hz_pitch` | uint16 | profile | `0` – `16000` |  |
-| `dterm_lowpass_hz_yaw` | uint16 | profile | `0` – `16000` |  |
-| `dterm_lowpass2_type` | uint8 | profile | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |  |
-| `dterm_lowpass2_hz_roll` | uint16 | profile | `0` – `16000` |  |
-| `dterm_lowpass2_hz_pitch` | uint16 | profile | `0` – `16000` |  |
-| `dterm_lowpass2_hz_yaw` | uint16 | profile | `0` – `16000` |  |
-| `pid_at_min_throttle` | uint8 | profile | `OFF`, `ON` |  |
-| `spa_roll_p` | uint8 | profile | `0` – `250` |  |
-| `spa_roll_i` | uint8 | profile | `0` – `250` |  |
-| `spa_roll_d` | uint8 | profile | `0` – `250` |  |
-| `spa_pitch_p` | uint8 | profile | `0` – `250` |  |
-| `spa_pitch_i` | uint8 | profile | `0` – `250` |  |
-| `spa_pitch_d` | uint8 | profile | `0` – `250` |  |
-| `spa_yaw_p` | uint8 | profile | `0` – `250` |  |
-| `spa_yaw_i` | uint8 | profile | `0` – `250` |  |
-| `spa_yaw_d` | uint8 | profile | `0` – `250` |  |
-| `acc_limit_yaw` | uint16 | profile | `0` – `500` |  |
-| `acc_limit` | uint16 | profile | `0` – `500` |  |
-| `crash_dthreshold` | uint16 | profile | `0` – `2000` |  |
-| `crash_gthreshold` | uint16 | profile | `0` – `2000` |  |
-| `crash_setpoint_threshold` | uint16 | profile | `0` – `2000` |  |
-| `crash_time` | uint16 | profile | `0` – `5000` |  |
-| `crash_delay` | uint16 | profile | `0` – `500` |  |
-| `crash_recovery_angle` | uint8 | profile | `0` – `30` |  |
-| `crash_recovery_rate` | uint8 | profile | `0` – `255` |  |
-| `crash_limit_yaw` | uint16 | profile | `0` – `1000` |  |
-| `crash_recovery` | uint8 | profile | `OFF`, `ON`, `BEEP` |  |
-| `iterm_rotation` | uint8 | profile | `OFF`, `ON` |  |
-| `iterm_relax_cutoff` | uint8 | profile | `0` – `100` |  |
-| `iterm_relax_cutoff_yaw` | uint8 | profile | `0` – `100` |  |
-| `iterm_relax_threshold` | uint8 | profile | `10` – `100` |  |
-| `iterm_relax_threshold_yaw` | uint8 | profile | `10` – `100` |  |
-| `iterm_windup` | uint8 | profile | `0` – `100` |  |
-| `iterm_limit` | uint16 | profile | `0` – `500` |  |
-| `pidsum_limit` | uint16 | profile | `PIDSUM_LIMIT_MIN` – `PIDSUM_LIMIT_MAX` |  |
-| `pidsum_limit_yaw` | uint16 | profile | `PIDSUM_LIMIT_MIN` – `PIDSUM_LIMIT_MAX` |  |
-| `throttle_boost` | uint8 | profile | `0` – `100` |  |
-| `throttle_boost_cutoff` | uint8 | profile | `5` – `50` |  |
-| `feathered_pids` | uint8 | profile | `0` – `100` |  |
-| `i_decay` | uint8 | profile | `1` – `10` |  |
-| `i_decay_cutoff` | uint8 | profile | `1` – `250` |  |
-| `emu_boost` | uint16 | profile | `0` – `2000` |  |
-| `emu_boost_yaw` | uint16 | profile | `0` – `2000` |  |
-| `emu_boost_limit` | uint8 | profile | `0` – `250` |  |
-| `emu_boost_limit_yaw` | uint8 | profile | `0` – `250` |  |
-| `dterm_boost` | uint16 | profile | `0` – `2000` |  |
-| `dterm_boost_limit` | uint8 | profile | `0` – `250` |  |
-| `emu_gravity` | uint8 | profile | `0` – `255` |  |
-| `axis_lock_multiplier` | uint8 | profile | `0` – `10` |  |
-| `axis_lock_hz` | uint8 | profile | `1` – `50` |  |
-| `p_pitch` | uint8 | profile | `0` – `200` |  |
-| `i_pitch` | uint8 | profile | `0` – `200` |  |
-| `d_pitch` | uint8 | profile | `0` – `200` |  |
-| `p_roll` | uint8 | profile | `0` – `200` |  |
-| `i_roll` | uint8 | profile | `0` – `200` |  |
-| `d_roll` | uint8 | profile | `0` – `200` |  |
-| `p_yaw` | uint8 | profile | `0` – `200` |  |
-| `i_yaw` | uint8 | profile | `0` – `200` |  |
-| `d_yaw` | uint8 | profile | `0` – `200` |  |
-| `df_yaw` | uint8 | profile | `0` – `200` |  |
-| `p_angle_low` | uint8 | profile | `0` – `200` |  |
-| `d_angle_low` | uint8 | profile | `0` – `200` |  |
-| `p_angle_high` | uint8 | profile | `0` – `200` |  |
-| `d_angle_high` | uint8 | profile | `0` – `200` |  |
-| `f_angle` | uint16 | profile | `0` – `2000` |  |
-| `df_angle_low` | uint8 | profile | `0` – `200` |  |
-| `df_angle_high` | uint8 | profile | `0` – `200` |  |
-| `level_limit` | uint8 | profile | `10` – `90` |  |
-| `angle_expo` | uint8 | profile | `0` – `100` |  |
-| `angle_filter` | uint8 | profile | `0` – `255` |  |
-| `horizon_transition` | uint8 | profile | `0` – `200` |  |
-| `horizon_tilt_effect` | uint8 | profile | `0` – `180` |  |
-| `horizon_strength` | uint8 | profile | `0` – `200` |  |
-| `motor_output_limit` | uint8 | profile | `MOTOR_OUTPUT_LIMIT_PERCENT_MIN` – `MOTOR_OUTPUT_LIMIT_PERCENT_MAX` |  |
-| `auto_profile_cell_count` | int8 | profile | `AUTO_PROFILE_CELL_COUNT_CHANGE` – `MAX_AUTO_DETECT_CELL_COUNT` |  |
-| `linear_thrust_low_output` | uint8 | profile | `0` – `100` |  |
-| `linear_thrust_high_output` | uint8 | profile | `0` – `100` |  |
-| `linear_throttle` | uint8 | profile | `OFF`, `ON` |  |
-| `mixer_impl` | uint8 | profile | `LEGACY`, `SMOOTH`, `2PASS` |  |
-| `mixer_laziness` | uint8 | profile | `OFF`, `ON` |  |
-| `mixer_yaw_throttle_comp` | uint8 | profile | `OFF`, `ON` |  |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `dterm_dyn_notch_q` | uint16 | profile | `1` – `1000` |
+| `dterm_abg_alpha` | uint16 | profile | `0` – `1000` |
+| `dterm_abg_boost` | uint16 | profile | `0` – `2000` |
+| `dterm_abg_half_life` | uint8 | profile | `0` – `250` |
+| `dterm_lowpass_type` | uint8 | profile | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |
+| `dterm_lowpass_hz_roll` | uint16 | profile | `0` – `16000` |
+| `dterm_lowpass_hz_pitch` | uint16 | profile | `0` – `16000` |
+| `dterm_lowpass_hz_yaw` | uint16 | profile | `0` – `16000` |
+| `dterm_lowpass2_type` | uint8 | profile | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |
+| `dterm_lowpass2_hz_roll` | uint16 | profile | `0` – `16000` |
+| `dterm_lowpass2_hz_pitch` | uint16 | profile | `0` – `16000` |
+| `dterm_lowpass2_hz_yaw` | uint16 | profile | `0` – `16000` |
+| `pid_at_min_throttle` | uint8 | profile | `OFF`, `ON` |
+| `spa_roll_p` | uint8 | profile | `0` – `250` |
+| `spa_roll_i` | uint8 | profile | `0` – `250` |
+| `spa_roll_d` | uint8 | profile | `0` – `250` |
+| `spa_pitch_p` | uint8 | profile | `0` – `250` |
+| `spa_pitch_i` | uint8 | profile | `0` – `250` |
+| `spa_pitch_d` | uint8 | profile | `0` – `250` |
+| `spa_yaw_p` | uint8 | profile | `0` – `250` |
+| `spa_yaw_i` | uint8 | profile | `0` – `250` |
+| `spa_yaw_d` | uint8 | profile | `0` – `250` |
+| `acc_limit_yaw` | uint16 | profile | `0` – `500` |
+| `acc_limit` | uint16 | profile | `0` – `500` |
+| `crash_dthreshold` | uint16 | profile | `0` – `2000` |
+| `crash_gthreshold` | uint16 | profile | `0` – `2000` |
+| `crash_setpoint_threshold` | uint16 | profile | `0` – `2000` |
+| `crash_time` | uint16 | profile | `0` – `5000` |
+| `crash_delay` | uint16 | profile | `0` – `500` |
+| `crash_recovery_angle` | uint8 | profile | `0` – `30` |
+| `crash_recovery_rate` | uint8 | profile | `0` – `255` |
+| `crash_limit_yaw` | uint16 | profile | `0` – `1000` |
+| `crash_recovery` | uint8 | profile | `OFF`, `ON`, `BEEP` |
+| `iterm_rotation` | uint8 | profile | `OFF`, `ON` |
+| `iterm_relax_cutoff` | uint8 | profile | `0` – `100` |
+| `iterm_relax_cutoff_yaw` | uint8 | profile | `0` – `100` |
+| `iterm_relax_threshold` | uint8 | profile | `10` – `100` |
+| `iterm_relax_threshold_yaw` | uint8 | profile | `10` – `100` |
+| `iterm_windup` | uint8 | profile | `0` – `100` |
+| `iterm_limit` | uint16 | profile | `0` – `500` |
+| `pidsum_limit` | uint16 | profile | `PIDSUM_LIMIT_MIN` – `PIDSUM_LIMIT_MAX` |
+| `pidsum_limit_yaw` | uint16 | profile | `PIDSUM_LIMIT_MIN` – `PIDSUM_LIMIT_MAX` |
+| `throttle_boost` | uint8 | profile | `0` – `100` |
+| `throttle_boost_cutoff` | uint8 | profile | `5` – `50` |
+| `feathered_pids` | uint8 | profile | `0` – `100` |
+| `i_decay` | uint8 | profile | `1` – `10` |
+| `i_decay_cutoff` | uint8 | profile | `1` – `250` |
+| `emu_boost` | uint16 | profile | `0` – `2000` |
+| `emu_boost_yaw` | uint16 | profile | `0` – `2000` |
+| `emu_boost_limit` | uint8 | profile | `0` – `250` |
+| `emu_boost_limit_yaw` | uint8 | profile | `0` – `250` |
+| `dterm_boost` | uint16 | profile | `0` – `2000` |
+| `dterm_boost_limit` | uint8 | profile | `0` – `250` |
+| `emu_gravity` | uint8 | profile | `0` – `255` |
+| `axis_lock_multiplier` | uint8 | profile | `0` – `10` |
+| `axis_lock_hz` | uint8 | profile | `1` – `50` |
+| `p_pitch` | uint8 | profile | `0` – `200` |
+| `i_pitch` | uint8 | profile | `0` – `200` |
+| `d_pitch` | uint8 | profile | `0` – `200` |
+| `p_roll` | uint8 | profile | `0` – `200` |
+| `i_roll` | uint8 | profile | `0` – `200` |
+| `d_roll` | uint8 | profile | `0` – `200` |
+| `p_yaw` | uint8 | profile | `0` – `200` |
+| `i_yaw` | uint8 | profile | `0` – `200` |
+| `d_yaw` | uint8 | profile | `0` – `200` |
+| `df_yaw` | uint8 | profile | `0` – `200` |
+| `p_angle_low` | uint8 | profile | `0` – `200` |
+| `d_angle_low` | uint8 | profile | `0` – `200` |
+| `p_angle_high` | uint8 | profile | `0` – `200` |
+| `d_angle_high` | uint8 | profile | `0` – `200` |
+| `f_angle` | uint16 | profile | `0` – `2000` |
+| `df_angle_low` | uint8 | profile | `0` – `200` |
+| `df_angle_high` | uint8 | profile | `0` – `200` |
+| `level_limit` | uint8 | profile | `10` – `90` |
+| `angle_expo` | uint8 | profile | `0` – `100` |
+| `angle_filter` | uint8 | profile | `0` – `255` |
+| `horizon_transition` | uint8 | profile | `0` – `200` |
+| `horizon_tilt_effect` | uint8 | profile | `0` – `180` |
+| `horizon_strength` | uint8 | profile | `0` – `200` |
+| `motor_output_limit` | uint8 | profile | `MOTOR_OUTPUT_LIMIT_PERCENT_MIN` – `MOTOR_OUTPUT_LIMIT_PERCENT_MAX` |
+| `auto_profile_cell_count` | int8 | profile | `AUTO_PROFILE_CELL_COUNT_CHANGE` – `MAX_AUTO_DETECT_CELL_COUNT` |
+| `linear_thrust_low_output` | uint8 | profile | `0` – `100` |
+| `linear_thrust_high_output` | uint8 | profile | `0` – `100` |
+| `linear_throttle` | uint8 | profile | `OFF`, `ON` |
+| `mixer_impl` | uint8 | profile | `LEGACY`, `SMOOTH`, `2PASS` |
+| `mixer_laziness` | uint8 | profile | `OFF`, `ON` |
+| `mixer_yaw_throttle_comp` | uint8 | profile | `OFF`, `ON` |
 
 ## Telemetry Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `tlm_inverted` | uint8 | master | `OFF`, `ON` | `USE_TELEMETRY` |
-| `tlm_halfduplex` | uint8 | master | `OFF`, `ON` | `USE_TELEMETRY` |
-| `frsky_default_lat` | int16 | master | `-9000` – `9000` | `USE_TELEMETRY` |
-| `frsky_default_long` | int16 | master | `-18000` – `18000` | `USE_TELEMETRY` |
-| `frsky_gps_format` | uint8 | master | `0` – `FRSKY_FORMAT_NMEA` | `USE_TELEMETRY` |
-| `frsky_unit` | uint8 | master | `IMPERIAL`, `METRIC` | `USE_TELEMETRY` |
-| `frsky_vfas_precision` | uint8 | master | `FRSKY_VFAS_PRECISION_LOW` – `FRSKY_VFAS_PRECISION_HIGH` | `USE_TELEMETRY` |
-| `hott_alarm_int` | uint8 | master | `0` – `120` | `USE_TELEMETRY` |
-| `pid_in_tlm` | uint8 | master | `OFF`, `ON` | `USE_TELEMETRY` |
-| `report_cell_voltage` | uint8 | master | `OFF`, `ON` | `USE_TELEMETRY` |
-| `ibus_sensor` | uint8 | master | array\[IBUS_SENSOR_COUNT\] | `USE_TELEMETRY` |
-| `smartport_use_extra_sensors` | uint8 | master | `OFF`, `ON` | `USE_TELEMETRY` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `tlm_inverted` | uint8 | master | `OFF`, `ON` |
+| `tlm_halfduplex` | uint8 | master | `OFF`, `ON` |
+| `frsky_default_lat` | int16 | master | `-9000` – `9000` |
+| `frsky_default_long` | int16 | master | `-18000` – `18000` |
+| `frsky_gps_format` | uint8 | master | `0` – `FRSKY_FORMAT_NMEA` |
+| `frsky_unit` | uint8 | master | `IMPERIAL`, `METRIC` |
+| `frsky_vfas_precision` | uint8 | master | `FRSKY_VFAS_PRECISION_LOW` – `FRSKY_VFAS_PRECISION_HIGH` |
+| `hott_alarm_int` | uint8 | master | `0` – `120` |
+| `pid_in_tlm` | uint8 | master | `OFF`, `ON` |
+| `report_cell_voltage` | uint8 | master | `OFF`, `ON` |
+| `ibus_sensor` | uint8 | master | array\[IBUS_SENSOR_COUNT\] |
+| `smartport_use_extra_sensors` | uint8 | master | `OFF`, `ON` |
 
 ## LED Strip Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `ledstrip_visual_beeper` | uint8 | master | `OFF`, `ON` | `USE_LED_STRIP` |
-| `ledstrip_grb_rgb` | uint8 | master | `GRB`, `RGB` | `USE_LED_STRIP` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `ledstrip_visual_beeper` | uint8 | master | `OFF`, `ON` |
+| `ledstrip_grb_rgb` | uint8 | master | `GRB`, `RGB` |
 
 ## SDCARD Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `sdcard_dma` | uint8 | master | `OFF`, `ON` | `USE_SDCARD` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `sdcard_dma` | uint8 | master | `OFF`, `ON` |
 
 ## SDIO Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `sdio_clk_bypass` | uint8 | master | `OFF`, `ON` | `USE_SDCARD_SDIO` |
-| `sdio_use_cache` | uint8 | master | `OFF`, `ON` | `USE_SDCARD_SDIO` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `sdio_clk_bypass` | uint8 | master | `OFF`, `ON` |
+| `sdio_use_cache` | uint8 | master | `OFF`, `ON` |
 
 ## OSD Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `osd_units` | uint8 | master | `IMPERIAL`, `METRIC` | `USE_OSD` |
-| `osd_warn_arming_disable` | uint16 | master | bitflag | `USE_OSD` |
-| `osd_warn_batt_not_full` | uint16 | master | bitflag | `USE_OSD` |
-| `osd_warn_batt_warning` | uint16 | master | bitflag | `USE_OSD` |
-| `osd_warn_batt_critical` | uint16 | master | bitflag | `USE_OSD` |
-| `osd_warn_visual_beeper` | uint16 | master | bitflag | `USE_OSD` |
-| `osd_warn_crash_flip` | uint16 | master | bitflag | `USE_OSD` |
-| `osd_warn_esc_fail` | uint16 | master | bitflag | `USE_OSD` |
-| `osd_task_frequency` | uint16 | master | `OSD_TASK_FREQUENCY_MIN` – `OSD_TASK_FREQUENCY_MAX` | `USE_OSD` |
-| `osd_warn_core_temp` | uint16 | master | bitflag | `USE_OSD`, `USE_ADC_INTERNAL` |
-| `osd_warn_rc_smoothing` | uint16 | master | bitflag | `USE_OSD` |
-| `osd_warn_dji` | uint16 | master | bitflag | `USE_OSD` |
-| `osd_lq_format` | uint8 | master | `SCALED`, `MODE`, `FREQ`, `SIMPLE`, `TBS` | `USE_OSD` |
-| `osd_lq_alarm` | uint16 | master | `0` – `300` | `USE_OSD` |
-| `osd_rssi_alarm` | uint8 | master | `0` – `100` | `USE_OSD` |
-| `osd_cap_alarm` | uint16 | master | `0` – `20000` | `USE_OSD` |
-| `osd_alt_alarm` | uint16 | master | `0` – `10000` | `USE_OSD` |
-| `osd_distance_alarm` | uint16 | master | `0` – `10000` | `USE_OSD` |
-| `osd_esc_temp_alarm` | int8 | master | `INT8_MIN` – `INT8_MAX` | `USE_OSD` |
-| `osd_esc_rpm_alarm` | int16 | master | `ESC_RPM_ALARM_OFF` – `INT16_MAX` | `USE_OSD` |
-| `osd_esc_current_alarm` | int16 | master | `ESC_CURRENT_ALARM_OFF` – `INT16_MAX` | `USE_OSD` |
-| `osd_core_temp_alarm` | uint8 | master | `0` – `UINT8_MAX` | `USE_OSD`, `USE_ADC_INTERNAL` |
-| `osd_stat_show_cell_value` | uint8 | master | `OFF`, `ON` | `USE_OSD` |
-| `osd_ah_max_pit` | uint8 | master | `0` – `90` | `USE_OSD` |
-| `osd_ah_max_rol` | uint8 | master | `0` – `90` | `USE_OSD` |
-| `osd_logo_on_arming` | uint8 | master | `OFF`, `ON`, `FIRST_ARMING` | `USE_OSD` |
-| `osd_logo_on_arming_duration` | uint8 | master | `5` – `50` | `USE_OSD` |
-| `osd_tim1` | uint16 | master | `0` – `INT16_MAX` | `USE_OSD` |
-| `osd_tim2` | uint16 | master | `0` – `INT16_MAX` | `USE_OSD` |
-| `osd_vbat_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_rssi_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_crsf_tx_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_crsf_snr_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_crsf_rssi_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_tim_1_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_tim_2_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_remaining_time_estimate_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_flymode_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_g_force_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_throttle_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_vtx_channel_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_crosshairs_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_ah_sbar_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_ah_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_current_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_mah_drawn_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_craft_name_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_gps_speed_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_gps_lon_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_gps_lat_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_gps_sats_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_plus_code_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `plus_code_digits` | uint8 | master | `10` – `13` | `USE_OSD` |
-| `plus_code_short` | uint8 | master | `OFF`, `ON` | `USE_OSD` |
-| `osd_home_dir_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_home_dist_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_compass_bar_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_altitude_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_pid_roll_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_pid_pitch_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_pid_yaw_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_debug_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_power_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_pidrate_profile_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_warnings_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_avg_cell_voltage_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_pit_ang_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_rol_ang_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_battery_usage_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_disarmed_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_nheading_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_nvario_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_esc_tmp_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_esc_rpm_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_rtc_date_time_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_adjustment_range_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_mah_percent_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD` |
-| `osd_core_temp_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` | `USE_OSD`, `USE_ADC_INTERNAL` |
-| `osd_stat_rtc_date_time` | uint32 | master | bitflag | `USE_OSD` |
-| `osd_stat_tim_1` | uint32 | master | bitflag | `USE_OSD` |
-| `osd_stat_tim_2` | uint32 | master | bitflag | `USE_OSD` |
-| `osd_stat_max_spd` | uint32 | master | bitflag | `USE_OSD` |
-| `osd_stat_max_dist` | uint32 | master | bitflag | `USE_OSD` |
-| `osd_stat_min_batt` | uint32 | master | bitflag | `USE_OSD` |
-| `osd_stat_endbatt` | uint32 | master | bitflag | `USE_OSD` |
-| `osd_stat_battery` | uint32 | master | bitflag | `USE_OSD` |
-| `osd_stat_min_rssi` | uint32 | master | bitflag | `USE_OSD` |
-| `osd_stat_max_curr` | uint32 | master | bitflag | `USE_OSD` |
-| `osd_stat_used_mah` | uint32 | master | bitflag | `USE_OSD` |
-| `osd_stat_max_alt` | uint32 | master | bitflag | `USE_OSD` |
-| `osd_stat_bbox` | uint32 | master | bitflag | `USE_OSD` |
-| `osd_stat_bb_no` | uint32 | master | bitflag | `USE_OSD` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `osd_units` | uint8 | master | `IMPERIAL`, `METRIC` |
+| `osd_warn_arming_disable` | uint16 | master | bitflag |
+| `osd_warn_batt_not_full` | uint16 | master | bitflag |
+| `osd_warn_batt_warning` | uint16 | master | bitflag |
+| `osd_warn_batt_critical` | uint16 | master | bitflag |
+| `osd_warn_visual_beeper` | uint16 | master | bitflag |
+| `osd_warn_crash_flip` | uint16 | master | bitflag |
+| `osd_warn_esc_fail` | uint16 | master | bitflag |
+| `osd_task_frequency` | uint16 | master | `OSD_TASK_FREQUENCY_MIN` – `OSD_TASK_FREQUENCY_MAX` |
+| `osd_warn_core_temp` | uint16 | master | bitflag |
+| `osd_warn_rc_smoothing` | uint16 | master | bitflag |
+| `osd_warn_dji` | uint16 | master | bitflag |
+| `osd_lq_format` | uint8 | master | `SCALED`, `MODE`, `FREQ`, `SIMPLE`, `TBS` |
+| `osd_lq_alarm` | uint16 | master | `0` – `300` |
+| `osd_rssi_alarm` | uint8 | master | `0` – `100` |
+| `osd_cap_alarm` | uint16 | master | `0` – `20000` |
+| `osd_alt_alarm` | uint16 | master | `0` – `10000` |
+| `osd_distance_alarm` | uint16 | master | `0` – `10000` |
+| `osd_esc_temp_alarm` | int8 | master | `INT8_MIN` – `INT8_MAX` |
+| `osd_esc_rpm_alarm` | int16 | master | `ESC_RPM_ALARM_OFF` – `INT16_MAX` |
+| `osd_esc_current_alarm` | int16 | master | `ESC_CURRENT_ALARM_OFF` – `INT16_MAX` |
+| `osd_core_temp_alarm` | uint8 | master | `0` – `UINT8_MAX` |
+| `osd_stat_show_cell_value` | uint8 | master | `OFF`, `ON` |
+| `osd_ah_max_pit` | uint8 | master | `0` – `90` |
+| `osd_ah_max_rol` | uint8 | master | `0` – `90` |
+| `osd_logo_on_arming` | uint8 | master | `OFF`, `ON`, `FIRST_ARMING` |
+| `osd_logo_on_arming_duration` | uint8 | master | `5` – `50` |
+| `osd_tim1` | uint16 | master | `0` – `INT16_MAX` |
+| `osd_tim2` | uint16 | master | `0` – `INT16_MAX` |
+| `osd_vbat_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_rssi_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_crsf_tx_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_crsf_snr_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_crsf_rssi_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_tim_1_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_tim_2_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_remaining_time_estimate_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_flymode_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_g_force_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_throttle_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_vtx_channel_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_crosshairs_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_ah_sbar_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_ah_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_current_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_mah_drawn_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_craft_name_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_gps_speed_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_gps_lon_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_gps_lat_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_gps_sats_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_plus_code_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `plus_code_digits` | uint8 | master | `10` – `13` |
+| `plus_code_short` | uint8 | master | `OFF`, `ON` |
+| `osd_home_dir_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_home_dist_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_compass_bar_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_altitude_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_pid_roll_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_pid_pitch_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_pid_yaw_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_debug_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_power_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_pidrate_profile_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_warnings_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_avg_cell_voltage_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_pit_ang_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_rol_ang_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_battery_usage_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_disarmed_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_nheading_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_nvario_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_esc_tmp_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_esc_rpm_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_rtc_date_time_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_adjustment_range_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_mah_percent_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_core_temp_pos` | uint16 | master | `0` – `OSD_POSCFG_MAX` |
+| `osd_stat_rtc_date_time` | uint32 | master | bitflag |
+| `osd_stat_tim_1` | uint32 | master | bitflag |
+| `osd_stat_tim_2` | uint32 | master | bitflag |
+| `osd_stat_max_spd` | uint32 | master | bitflag |
+| `osd_stat_max_dist` | uint32 | master | bitflag |
+| `osd_stat_min_batt` | uint32 | master | bitflag |
+| `osd_stat_endbatt` | uint32 | master | bitflag |
+| `osd_stat_battery` | uint32 | master | bitflag |
+| `osd_stat_min_rssi` | uint32 | master | bitflag |
+| `osd_stat_max_curr` | uint32 | master | bitflag |
+| `osd_stat_used_mah` | uint32 | master | bitflag |
+| `osd_stat_max_alt` | uint32 | master | bitflag |
+| `osd_stat_bbox` | uint32 | master | bitflag |
+| `osd_stat_bb_no` | uint32 | master | bitflag |
 
 ## System Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `task_statistics` | int8 | master | `OFF`, `ON` |  |
-| `debug_mode` | uint8 | master | `NONE`, `CYCLETIME`, `BATTERY`, `GYRO_FILTERED`, `ACCELEROMETER`, `PIDLOOP`, `GYRO_SCALED`, `RC_INTERPOLATION`, `ANGLERATE`, `ESC_SENSOR`, `SCHEDULER`, `STACK`, `ESC_SENSOR_RPM`, `ESC_SENSOR_TMP`, `ALTITUDE`, `FFT`, `FFT_TIME`, `FFT_FREQ`, `RX_FRSKY_SPI`, `RX_SFHSS_SPI`, `GYRO_RAW`, `DUAL_GYRO`, `DUAL_GYRO_RAW`, `DUAL_GYRO_COMBINE`, `DUAL_GYRO_DIFF`, `MAX7456_SIGNAL`, `MAX7456_SPICLOCK`, `SBUS`, `FPORT`, `RANGEFINDER`, `RANGEFINDER_QUALITY`, `LIDAR_TF`, `CORE_TEMP`, `RUNAWAY_TAKEOFF`, `SDIO`, `CURRENT_SENSOR`, `USB`, `SMARTAUDIO`, `RTH`, `ITERM_RELAX`, `RC_SMOOTHING`, `RX_SIGNAL_LOSS`, `RC_SMOOTHING_RATE`, `IMU`, `KALMAN`, `ANGLE`, `HORIZON` |  |
-| `rate_6pos_switch` | int8 | master | `OFF`, `ON` |  |
-| `cpu_overclock` | uint8 | master | `OFF`, `192MHZ`, `216MHZ`, `240MHZ`, `108MHZ`, `120MHZ`, `240MHZ` | `USE_OVERCLOCK` |
-| `pwr_on_arm_grace` | uint8 | master | `0` – `30` |  |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `task_statistics` | int8 | master | `OFF`, `ON` |
+| `debug_mode` | uint8 | master | `NONE`, `CYCLETIME`, `BATTERY`, `GYRO_FILTERED`, `ACCELEROMETER`, `PIDLOOP`, `GYRO_SCALED`, `RC_INTERPOLATION`, `ANGLERATE`, `ESC_SENSOR`, `SCHEDULER`, `STACK`, `ESC_SENSOR_RPM`, `ESC_SENSOR_TMP`, `ALTITUDE`, `FFT`, `FFT_TIME`, `FFT_FREQ`, `RX_FRSKY_SPI`, `RX_SFHSS_SPI`, `GYRO_RAW`, `DUAL_GYRO`, `DUAL_GYRO_RAW`, `DUAL_GYRO_COMBINE`, `DUAL_GYRO_DIFF`, `MAX7456_SIGNAL`, `MAX7456_SPICLOCK`, `SBUS`, `FPORT`, `RANGEFINDER`, `RANGEFINDER_QUALITY`, `LIDAR_TF`, `CORE_TEMP`, `RUNAWAY_TAKEOFF`, `SDIO`, `CURRENT_SENSOR`, `USB`, `SMARTAUDIO`, `RTH`, `ITERM_RELAX`, `RC_SMOOTHING`, `RX_SIGNAL_LOSS`, `RC_SMOOTHING_RATE`, `IMU`, `KALMAN`, `ANGLE`, `HORIZON` |
+| `rate_6pos_switch` | int8 | master | `OFF`, `ON` |
+| `cpu_overclock` | uint8 | master | `OFF`, `192MHZ`, `216MHZ`, `240MHZ`, `108MHZ`, `120MHZ`, `240MHZ` |
+| `pwr_on_arm_grace` | uint8 | master | `0` – `30` |
 
 ## VTX Settings Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `vtx_band` | uint8 | master | `VTX_SETTINGS_NO_BAND` – `VTX_SETTINGS_MAX_BAND` | `USE_VTX_COMMON` |
-| `vtx_channel` | uint8 | master | `VTX_SETTINGS_MIN_CHANNEL` – `VTX_SETTINGS_MAX_CHANNEL` | `USE_VTX_COMMON` |
-| `vtx_power` | uint8 | master | `VTX_SETTINGS_MIN_POWER` – `VTX_SETTINGS_POWER_COUNT - 1` | `USE_VTX_COMMON` |
-| `vtx_low_power_disarm` | uint8 | master | `OFF`, `ON` | `USE_VTX_COMMON` |
-| `vtx_freq` | uint16 | master | `0` – `VTX_SETTINGS_MAX_FREQUENCY_MHZ` | `USE_VTX_COMMON` |
-| `vtx_pit_mode_freq` | uint16 | master | `0` – `VTX_SETTINGS_MAX_FREQUENCY_MHZ` | `USE_VTX_COMMON` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `vtx_band` | uint8 | master | `VTX_SETTINGS_NO_BAND` – `VTX_SETTINGS_MAX_BAND` |
+| `vtx_channel` | uint8 | master | `VTX_SETTINGS_MIN_CHANNEL` – `VTX_SETTINGS_MAX_CHANNEL` |
+| `vtx_power` | uint8 | master | `VTX_SETTINGS_MIN_POWER` – `VTX_SETTINGS_POWER_COUNT - 1` |
+| `vtx_low_power_disarm` | uint8 | master | `OFF`, `ON` |
+| `vtx_freq` | uint16 | master | `0` – `VTX_SETTINGS_MAX_FREQUENCY_MHZ` |
+| `vtx_pit_mode_freq` | uint16 | master | `0` – `VTX_SETTINGS_MAX_FREQUENCY_MHZ` |
 
 ## VTX Config
 
@@ -717,53 +717,53 @@
 
 ## VCD Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `vcd_video_system` | uint8 | master | `AUTO`, `PAL`, `NTSC`, `HD` | `USE_MAX7456` |
-| `vcd_h_offset` | int8 | master | `-32` – `31` | `USE_MAX7456` |
-| `vcd_v_offset` | int8 | master | `-15` – `16` | `USE_MAX7456` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `vcd_video_system` | uint8 | master | `AUTO`, `PAL`, `NTSC`, `HD` |
+| `vcd_h_offset` | int8 | master | `-32` – `31` |
+| `vcd_v_offset` | int8 | master | `-15` – `16` |
 
 ## MAX7456 Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `max7456_clock` | uint8 | master | `HALF`, `DEFAULT`, `FULL` | `USE_MAX7456` |
-| `max7456_spi_bus` | uint8 | master | `0` – `SPIDEV_COUNT` | `USE_MAX7456` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `max7456_clock` | uint8 | master | `HALF`, `DEFAULT`, `FULL` |
+| `max7456_spi_bus` | uint8 | master | `0` – `SPIDEV_COUNT` |
 
 ## Display Port MSP Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `displayport_msp_col_adjust` | int8 | master | `-6` – `0` | `USE_MSP_DISPLAYPORT` |
-| `displayport_msp_row_adjust` | int8 | master | `-3` – `0` | `USE_MSP_DISPLAYPORT` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `displayport_msp_col_adjust` | int8 | master | `-6` – `0` |
+| `displayport_msp_row_adjust` | int8 | master | `-3` – `0` |
 
 ## Display Port MAX7456 Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `displayport_max7456_col_adjust` | int8 | master | `-6` – `0` | `USE_MAX7456` |
-| `displayport_max7456_row_adjust` | int8 | master | `-3` – `0` | `USE_MAX7456` |
-| `displayport_max7456_inv` | uint8 | master | `OFF`, `ON` | `USE_MAX7456` |
-| `displayport_max7456_blk` | uint8 | master | `0` – `3` | `USE_MAX7456` |
-| `displayport_max7456_wht` | uint8 | master | `0` – `3` | `USE_MAX7456` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `displayport_max7456_col_adjust` | int8 | master | `-6` – `0` |
+| `displayport_max7456_row_adjust` | int8 | master | `-3` – `0` |
+| `displayport_max7456_inv` | uint8 | master | `OFF`, `ON` |
+| `displayport_max7456_blk` | uint8 | master | `0` – `3` |
+| `displayport_max7456_wht` | uint8 | master | `0` – `3` |
 
 ## ESC Sensor Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `esc_sensor_halfduplex` | uint8 | master | `OFF`, `ON` | `USE_ESC_SENSOR` |
-| `esc_sensor_current_offset` | uint16 | master | `0` – `16000` | `USE_ESC_SENSOR` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `esc_sensor_halfduplex` | uint8 | master | `OFF`, `ON` |
+| `esc_sensor_current_offset` | uint16 | master | `0` – `16000` |
 
 ## RX Frsky SPI Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `frsky_spi_autobind` | uint8 | master | `OFF`, `ON` | `USE_RX_FRSKY_SPI` |
-| `frsky_spi_tx_id` | uint8 | master | array\[2\] | `USE_RX_FRSKY_SPI` |
-| `frsky_spi_offset` | int8 | master | `-127` – `127` | `USE_RX_FRSKY_SPI` |
-| `frsky_spi_bind_hop_data` | uint8 | master | array\[50\] | `USE_RX_FRSKY_SPI` |
-| `frsky_x_rx_num` | uint8 | master | `0` – `255` | `USE_RX_FRSKY_SPI` |
-| `frsky_spi_use_external_adc` | uint8 | master | `OFF`, `ON` | `USE_RX_FRSKY_SPI` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `frsky_spi_autobind` | uint8 | master | `OFF`, `ON` |
+| `frsky_spi_tx_id` | uint8 | master | array\[2\] |
+| `frsky_spi_offset` | int8 | master | `-127` – `127` |
+| `frsky_spi_bind_hop_data` | uint8 | master | array\[50\] |
+| `frsky_x_rx_num` | uint8 | master | `0` – `255` |
+| `frsky_spi_use_external_adc` | uint8 | master | `OFF`, `ON` |
 
 ## Status LED Config
 
@@ -773,59 +773,59 @@
 
 ## Dashboard Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `dashboard_i2c_bus` | uint8 | master | `0` – `I2CDEV_COUNT` | `USE_DASHBOARD` |
-| `dashboard_i2c_addr` | uint8 | master | `I2C_ADDR7_MIN` – `I2C_ADDR7_MAX` | `USE_DASHBOARD` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `dashboard_i2c_bus` | uint8 | master | `0` – `I2CDEV_COUNT` |
+| `dashboard_i2c_addr` | uint8 | master | `I2C_ADDR7_MIN` – `I2C_ADDR7_MAX` |
 
 ## Camera Control Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `camera_control_mode` | uint8 | master | `HARDWARE_PWM`, `SOFTWARE_PWM`, `DAC` | `USE_CAMERA_CONTROL` |
-| `camera_control_ref_voltage` | uint16 | master | `200` – `400` | `USE_CAMERA_CONTROL` |
-| `camera_control_key_delay` | uint16 | master | `100` – `500` | `USE_CAMERA_CONTROL` |
-| `camera_control_internal_resistance` | uint16 | master | `10` – `1000` | `USE_CAMERA_CONTROL` |
-| `camera_control_button_resistance` | uint16 | master | array\[CAMERA_CONTROL_KEYS_COUNT\] | `USE_CAMERA_CONTROL` |
-| `camera_control_inverted` | uint8 | master | `OFF`, `ON` | `USE_CAMERA_CONTROL` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `camera_control_mode` | uint8 | master | `HARDWARE_PWM`, `SOFTWARE_PWM`, `DAC` |
+| `camera_control_ref_voltage` | uint16 | master | `200` – `400` |
+| `camera_control_key_delay` | uint16 | master | `100` – `500` |
+| `camera_control_internal_resistance` | uint16 | master | `10` – `1000` |
+| `camera_control_button_resistance` | uint16 | master | array\[CAMERA_CONTROL_KEYS_COUNT\] |
+| `camera_control_inverted` | uint8 | master | `OFF`, `ON` |
 
 ## Rangefinder Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `rangefinder_hardware` | uint8 | master | `NONE`, `HCSR04`, `TFMINI`, `TF02` | `USE_RANGEFINDER` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `rangefinder_hardware` | uint8 | master | `NONE`, `HCSR04`, `TFMINI`, `TF02` |
 
 ## Pinio Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `pinio_config` | uint8 | master | array\[PINIO_COUNT\] | `USE_PINIO` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `pinio_config` | uint8 | master | array\[PINIO_COUNT\] |
 
 ## Piniobox Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `pinio_box` | uint8 | master | array\[PINIO_COUNT\] | `USE_PINIO`, `USE_PINIOBOX` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `pinio_box` | uint8 | master | array\[PINIO_COUNT\] |
 
 ## USB Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `usb_hid_cdc` | uint8 | master | `OFF`, `ON` | `USE_USB_CDC_HID` |
-| `usb_msc_pin_pullup` | uint8 | master | `OFF`, `ON` | `USE_USB_MSC` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `usb_hid_cdc` | uint8 | master | `OFF`, `ON` |
+| `usb_msc_pin_pullup` | uint8 | master | `OFF`, `ON` |
 
 ## Flash Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `flash_spi_bus` | uint8 | master | `0` – `SPIDEV_COUNT` | `USE_FLASH` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `flash_spi_bus` | uint8 | master | `0` – `SPIDEV_COUNT` |
 
-## Rcdevice Config
+## RCDEVICE Config
 
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `rcdevice_init_dev_attempts` | uint8 | master | `0` – `10` | `USE_RCDEVICE` |
-| `rcdevice_init_dev_attempt_interval` | uint32 | master | `500` – `5000` | `USE_RCDEVICE` |
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `rcdevice_init_dev_attempts` | uint8 | master | `0` – `10` |
+| `rcdevice_init_dev_attempt_interval` | uint32 | master | `500` – `5000` |
 
 ---
 *Generated by `docs/gen_cli_docs.py` from `src/main/interface/settings.c`*
