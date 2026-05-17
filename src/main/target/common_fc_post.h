@@ -150,11 +150,11 @@
 #undef USE_ADC_INTERNAL
 #endif
 
-#if (!defined(USE_SDCARD) && !defined(USE_FLASHFS)) || !(defined(STM32F4) || defined(STM32F7))
+#if (!defined(USE_SDCARD) && !defined(USE_FLASHFS)) || !(defined(STM32F4) || defined(STM32F7) || defined(STM32H7))
 #undef USE_USB_MSC
 #endif
 
-#if !defined(USE_VCP) || defined(STM32F7)
+#if !defined(USE_VCP) || defined(STM32F7) || defined(STM32H7)
 #undef USE_USB_CDC_HID
 #endif
 

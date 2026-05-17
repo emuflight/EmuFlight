@@ -145,7 +145,7 @@ typedef struct {
 #endif
     motorDmaTimer_t *timer;
     volatile bool requestTelemetry;
-#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     uint32_t dmaBuffer[DSHOT_DMA_BUFFER_SIZE];
 #else
     uint8_t dmaBuffer[DSHOT_DMA_BUFFER_SIZE];
