@@ -73,6 +73,10 @@ __STATIC_INLINE void LL_EX_DMA_DisableResource(DMA_Stream_TypeDef *DMAx_Streamy)
     CLEAR_BIT(DMAx_Streamy->CR, DMA_SxCR_EN);
 }
 
+// Aliases used by shared HAL drivers that call the F7 stream naming convention
+#define LL_EX_DMA_EnableStream  LL_EX_DMA_EnableResource
+#define LL_EX_DMA_DisableStream LL_EX_DMA_DisableResource
+
 __STATIC_INLINE void LL_EX_DMA_EnableIT_TC(DMA_Stream_TypeDef *DMAx_Streamy)
 {
     SET_BIT(DMAx_Streamy->CR, DMA_SxCR_TCIE);

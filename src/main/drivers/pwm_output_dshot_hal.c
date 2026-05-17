@@ -77,6 +77,9 @@ FAST_CODE void pwmWriteDshotInt(uint8_t index, uint16_t value) {
         bufferSize = loadDmaBuffer(motor->dmaBuffer, 1, packet);
         motor->timer->timerDmaSources |= motor->timerDmaSource;
         LL_EX_DMA_SetDataLength(motor->timerHardware->dmaRef, bufferSize);
+#if defined(STM32H7)
+        SCB_CleanDCache_by_Addr((uint32_t *)motor->dmaBuffer, bufferSize * sizeof(uint32_t));
+#endif
         LL_EX_DMA_EnableStream(motor->timerHardware->dmaRef);
     }
 }
@@ -93,6 +96,10 @@ FAST_CODE void pwmCompleteDshotMotorUpdate(uint8_t motorCount) {
 #ifdef USE_DSHOT_DMAR
         if (useBurstDshot) {
             LL_EX_DMA_SetDataLength(dmaMotorTimers[i].dmaBurstRef, dmaMotorTimers[i].dmaBurstLength);
+#if defined(STM32H7)
+            SCB_CleanDCache_by_Addr((uint32_t *)dmaMotorTimers[i].dmaBurstBuffer,
+                                    dmaMotorTimers[i].dmaBurstLength * sizeof(uint32_t));
+#endif
             LL_EX_DMA_EnableStream(dmaMotorTimers[i].dmaBurstRef);
             /* configure the DMA Burst Mode */
             LL_TIM_ConfigDMABurst(dmaMotorTimers[i].timer, LL_TIM_DMABURST_BASEADDR_CCR1, LL_TIM_DMABURST_LENGTH_4TRANSFERS);
@@ -221,7 +228,11 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     if (useBurstDshot) {
         dmaInit(timerHardware->dmaTimUPIrqHandler, OWNER_TIMUP, timerGetTIMNumber(timerHardware->tim));
         dmaSetHandler(timerHardware->dmaTimUPIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
+#if defined(STM32H7)
+        dma_init.PeriphRequest = timerHardware->dmaTimUPChannel;
+#else
         dma_init.Channel = timerHardware->dmaTimUPChannel;
+#endif
         dma_init.MemoryOrM2MDstAddress = (uint32_t)motor->timer->dmaBurstBuffer;
         dma_init.FIFOThreshold = LL_DMA_FIFOTHRESHOLD_FULL;
         dma_init.PeriphOrM2MSrcAddress = (uint32_t)&timerHardware->tim->DMAR;
@@ -230,7 +241,11 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     {
         dmaInit(timerHardware->dmaIrqHandler, OWNER_MOTOR, RESOURCE_INDEX(motorIndex));
         dmaSetHandler(timerHardware->dmaIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
+#if defined(STM32H7)
+        dma_init.PeriphRequest = timerHardware->dmaChannel;
+#else
         dma_init.Channel = timerHardware->dmaChannel;
+#endif
         dma_init.MemoryOrM2MDstAddress = (uint32_t)motor->dmaBuffer;
         dma_init.FIFOThreshold = LL_DMA_FIFOTHRESHOLD_1_4;
         dma_init.PeriphOrM2MSrcAddress = (uint32_t)timerChCCR(timerHardware);
