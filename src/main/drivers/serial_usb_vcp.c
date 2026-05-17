@@ -207,6 +207,9 @@ serialPort_t *usbVcpOpen(void) {
     usbGenerateDisconnectPulse();
     IOInit(IOGetByTag(IO_TAG(PA11)), OWNER_USB, 0);
     IOInit(IOGetByTag(IO_TAG(PA12)), OWNER_USB, 0);
+#if defined(STM32H7)
+    HAL_PWREx_EnableUSBVoltageDetector();
+#endif
     /* Init Device Library */
     USBD_Init(&USBD_Device, &VCP_Desc, 0);
     /* Add Supported Class */

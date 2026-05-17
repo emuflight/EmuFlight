@@ -103,6 +103,7 @@ static int8_t CDC_Itf_Init(void);
 static int8_t CDC_Itf_DeInit(void);
 static int8_t CDC_Itf_Control(uint8_t cmd, uint8_t* pbuf, uint16_t length);
 static int8_t CDC_Itf_Receive(uint8_t* pbuf, uint32_t *Len);
+static int8_t CDC_Itf_TransmitCplt(uint8_t* pbuf, uint32_t *Len, uint8_t epnum);
 
 static void TIM_Config(void);
 static void Error_Handler(void);
@@ -111,7 +112,8 @@ USBD_CDC_ItfTypeDef USBD_CDC_fops = {
     CDC_Itf_Init,
     CDC_Itf_DeInit,
     CDC_Itf_Control,
-    CDC_Itf_Receive
+    CDC_Itf_Receive,
+    CDC_Itf_TransmitCplt
 };
 
 
@@ -267,6 +269,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 static int8_t CDC_Itf_Receive(uint8_t* Buf, uint32_t *Len) {
     rxAvailable = *Len;
     rxBuffPtr = Buf;
+    return (USBD_OK);
+}
+
+static int8_t CDC_Itf_TransmitCplt(uint8_t* Buf, uint32_t *Len, uint8_t epnum) {
+    UNUSED(Buf);
+    UNUSED(Len);
+    UNUSED(epnum);
     return (USBD_OK);
 }
 
