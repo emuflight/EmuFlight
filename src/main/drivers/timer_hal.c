@@ -322,7 +322,11 @@ void configTimeBase(TIM_TypeDef *tim, uint16_t period, uint32_t hz) {
     timerHandle[timerIndex].Handle.Init.CounterMode = TIM_COUNTERMODE_UP;
     timerHandle[timerIndex].Handle.Init.RepetitionCounter = 0x0000;
     HAL_TIM_Base_Init(&timerHandle[timerIndex].Handle);
+#if defined(STM32H7)
+    if (tim == TIM1 || tim == TIM2 || tim == TIM3 || tim == TIM4 || tim == TIM5 || tim == TIM8) {
+#else
     if (tim == TIM1 || tim == TIM2 || tim == TIM3 || tim == TIM4 || tim == TIM5 || tim == TIM8 || tim == TIM9) {
+#endif
         TIM_ClockConfigTypeDef sClockSourceConfig;
         memset(&sClockSourceConfig, 0, sizeof(sClockSourceConfig));
         sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
@@ -805,7 +809,7 @@ void timerInit(void) {
     for (int i = 0; i < USABLE_TIMER_CHANNEL_COUNT; i++) {
         RCC_ClockCmd(timerRCC(timerHardware[i].tim), ENABLE);
     }
-#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     for (unsigned timerIndex = 0; timerIndex < USABLE_TIMER_CHANNEL_COUNT; timerIndex++) {
         const timerHardware_t *timerHardwarePtr = &timerHardware[timerIndex];
         if (timerHardwarePtr->usageFlags == TIM_USE_NONE) {

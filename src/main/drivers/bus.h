@@ -73,7 +73,7 @@ typedef struct busDevice_s {
     // dmaChannelDescriptor_t requires dma.h which is not available in unit test / SITL builds
     dmaChannelDescriptor_t *dmaTx;
     dmaChannelDescriptor_t *dmaRx;
-#if defined(STM32F7)
+#if defined(STM32F7) || defined(STM32H7)
     LL_DMA_InitTypeDef *initTx;
     LL_DMA_InitTypeDef *initRx;
 #else
@@ -112,7 +112,7 @@ typedef struct extDevice_s {
     // Per-device DMA init cache — reduces inter-segment setup time (BF 4.5-m pattern).
     // Pointer stored in bus->initTx/initRx so the bus driver always references the
     // current device's cache.
-#if defined(STM32F7)
+#if defined(STM32F7) || defined(STM32H7)
     LL_DMA_InitTypeDef initTx;
     LL_DMA_InitTypeDef initRx;
 #else

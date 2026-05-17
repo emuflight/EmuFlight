@@ -20,6 +20,10 @@
 
 #pragma once
 
+#if defined(STM32H7)
+#include "drivers/dma.h"
+#endif
+
 // Configuration constants
 
 #if defined(STM32F1)
@@ -49,7 +53,7 @@
 #ifndef UART_TX_BUFFER_SIZE
 #define UART_TX_BUFFER_SIZE     256
 #endif
-#elif defined(STM32F7)
+#elif defined(STM32F7) || defined(STM32H7)
 #define UARTDEV_COUNT_MAX 8
 #define UARTHARDWARE_MAX_PINS 3
 #ifndef UART_RX_BUFFER_SIZE
@@ -114,6 +118,14 @@
 
 #define UARTDEV_COUNT (UARTDEV_COUNT_1 + UARTDEV_COUNT_2 + UARTDEV_COUNT_3 + UARTDEV_COUNT_4 + UARTDEV_COUNT_5 + UARTDEV_COUNT_6 + UARTDEV_COUNT_7 + UARTDEV_COUNT_8)
 
+// Per-pin AF definition needed by H7 UART driver
+#if defined(STM32F7) || defined(STM32H7)
+typedef struct uartPinDef_s {
+    ioTag_t pin;
+    uint8_t af;
+} uartPinDef_t;
+#endif
+
 typedef struct uartHardware_s {
     UARTDevice_e device;    // XXX Not required for full allocation
     USART_TypeDef* reg;
@@ -124,9 +136,21 @@ typedef struct uartHardware_s {
     uint32_t DMAChannel;
     DMA_Stream_TypeDef *txDMAStream;
     DMA_Stream_TypeDef *rxDMAStream;
+#elif defined(STM32H7)
+#ifdef USE_DMA
+    dmaResource_t *txDMAResource;
+    dmaResource_t *rxDMAResource;
+    uint32_t txDMAChannel;   // DMAMUX request ID (DMA_REQUEST_USARTx_TX)
+    uint32_t rxDMAChannel;   // DMAMUX request ID (DMA_REQUEST_USARTx_RX)
 #endif
+#endif
+#if defined(STM32F7) || defined(STM32H7)
+    uartPinDef_t rxPins[UARTHARDWARE_MAX_PINS];
+    uartPinDef_t txPins[UARTHARDWARE_MAX_PINS];
+#else
     ioTag_t rxPins[UARTHARDWARE_MAX_PINS];
     ioTag_t txPins[UARTHARDWARE_MAX_PINS];
+#endif
 #if defined(STM32F7)
     uint32_t rcc_ahb1;
     rccPeriphTag_t rcc_apb2;
@@ -134,8 +158,10 @@ typedef struct uartHardware_s {
 #else
     rccPeriphTag_t rcc;
 #endif
+#if !defined(STM32F7) && !defined(STM32H7)
     uint8_t af;
-#if defined(STM32F7)
+#endif
+#if defined(STM32F7) || defined(STM32H7)
     uint8_t txIrq;
     uint8_t rxIrq;
 #else
@@ -143,6 +169,12 @@ typedef struct uartHardware_s {
 #endif
     uint8_t txPriority;
     uint8_t rxPriority;
+#if defined(STM32H7)
+    volatile uint8_t *txBuffer;
+    volatile uint8_t *rxBuffer;
+    uint16_t txBufferSize;
+    uint16_t rxBufferSize;
+#endif
 } uartHardware_t;
 
 extern const uartHardware_t uartHardware[];
@@ -150,13 +182,27 @@ extern const uartHardware_t uartHardware[];
 // uartDevice_t is an actual device instance.
 // XXX Instances are allocated for uarts defined by USE_UARTx atm.
 
+#if defined(STM32H7)
+typedef enum {
+    TX_PIN_ACTIVE,
+    TX_PIN_MONITOR,
+    TX_PIN_IGNORE
+} txPinState_t;
+#endif
+
 typedef struct uartDevice_s {
     uartPort_t port;
     const uartHardware_t *hardware;
+#if defined(STM32H7)
+    uartPinDef_t rx;
+    uartPinDef_t tx;
+    txPinState_t txPinState;
+#else
     ioTag_t rx;
     ioTag_t tx;
     volatile uint8_t rxBuffer[UART_RX_BUFFER_SIZE];
     volatile uint8_t txBuffer[UART_TX_BUFFER_SIZE];
+#endif
 } uartDevice_t;
 
 extern uartDevice_t *uartDevmap[];
@@ -174,3 +220,11 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
 void uartIrqHandler(uartPort_t *s);
 
 void uartReconfigure(uartPort_t *uartPort);
+
+#if defined(STM32H7)
+struct dmaChannelDescriptor_s;
+void uartConfigureDma(uartDevice_t *uartdev);
+void uartDmaIrqHandler(struct dmaChannelDescriptor_s *descriptor);
+bool checkUsartTxOutput(uartPort_t *s);
+void uartTxMonitor(uartPort_t *s);
+#endif

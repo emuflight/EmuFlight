@@ -55,6 +55,68 @@
 #define STM32F7
 #endif
 
+#elif defined(STM32H743xx)
+#ifdef FLASH_SIZE
+#undef FLASH_SIZE
+#endif
+#include "stm32h7xx.h"
+#include "stm32h7xx_hal.h"
+#include "system_stm32h7xx.h"
+
+#include "stm32h7xx_ll_spi.h"
+#include "stm32h7xx_ll_gpio.h"
+#include "stm32h7xx_ll_dma.h"
+#include "stm32h7xx_ll_rcc.h"
+#include "stm32h7xx_ll_bus.h"
+#include "stm32h7xx_ll_tim.h"
+#include "stm32h7xx_ll_system.h"
+#include "drivers/stm32h7xx_ll_ex.h"
+
+// Chip Unique ID on H743
+#define U_ID_0 (*(uint32_t*)0x1ff1e800)
+#define U_ID_1 (*(uint32_t*)0x1ff1e804)
+#define U_ID_2 (*(uint32_t*)0x1ff1e808)
+
+#ifndef STM32H7
+#define STM32H7
+#endif
+
+// H7 splits APB1 into APB1LENR/APB1HENR and adds APB4ENR.
+// RCC_ClockCmd is a no-op for HAL builds, so only compilation compat is needed.
+#define RCC_APB1ENR_I2C1EN   RCC_APB1LENR_I2C1EN
+#define RCC_APB1ENR_I2C2EN   RCC_APB1LENR_I2C2EN
+#define RCC_APB1ENR_I2C3EN   RCC_APB1LENR_I2C3EN
+#define RCC_APB1ENR_I2C4EN   RCC_APB4ENR_I2C4EN
+#define RCC_APB1ENR_SPI2EN   RCC_APB1LENR_SPI2EN
+#define RCC_APB1ENR_SPI3EN   RCC_APB1LENR_SPI3EN
+#define RCC_APB1ENR_USART2EN RCC_APB1LENR_USART2EN
+#define RCC_APB1ENR_USART3EN RCC_APB1LENR_USART3EN
+#define RCC_APB1ENR_UART4EN  RCC_APB1LENR_UART4EN
+#define RCC_APB1ENR_UART5EN  RCC_APB1LENR_UART5EN
+#define RCC_APB1ENR_UART7EN  RCC_APB1LENR_UART7EN
+#define RCC_APB1ENR_UART8EN  RCC_APB1LENR_UART8EN
+#define RCC_APB1ENR_TIM2EN   RCC_APB1LENR_TIM2EN
+#define RCC_APB1ENR_TIM3EN   RCC_APB1LENR_TIM3EN
+#define RCC_APB1ENR_TIM4EN   RCC_APB1LENR_TIM4EN
+#define RCC_APB1ENR_TIM5EN   RCC_APB1LENR_TIM5EN
+#define RCC_APB1ENR_TIM6EN   RCC_APB1LENR_TIM6EN
+#define RCC_APB1ENR_TIM7EN   RCC_APB1LENR_TIM7EN
+#define RCC_APB1ENR_TIM12EN  RCC_APB1LENR_TIM12EN
+#define RCC_APB1ENR_TIM13EN  RCC_APB1LENR_TIM13EN
+#define RCC_APB1ENR_TIM14EN  RCC_APB1LENR_TIM14EN
+
+// H7 memory section attributes for DMA-capable AXI SRAM placement
+#define DMA_RAM     __attribute__((section(".DMA_RAM"), aligned(32)))
+#define DMA_RW_AXI  __attribute__((section(".DMA_RW_AXI"), aligned(32)))
+
+// H7 driver enablement flags (BF-style; always on for H7)
+#define USE_DMA
+#define USE_TIMER
+#define USE_UART
+
+// H7 has no TIM9/10/11 — IRQ handler names differ from F7. timer_hal.c uses F7-style.
+#define TIM1_UP_TIM10_IRQHandler  TIM1_UP_IRQHandler
+
 #elif defined(STM32F40_41xxx) || defined (STM32F411xE) || defined (STM32F446xx)
 
 #include "stm32f4xx.h"

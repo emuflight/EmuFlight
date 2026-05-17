@@ -27,7 +27,8 @@ enum rcc_reg {
     RCC_AHB,
     RCC_APB2,
     RCC_APB1,
-    RCC_AHB1
+    RCC_AHB1,
+    RCC_AHB4
 };
 
 #define RCC_ENCODE(reg, mask) (((reg) << 5) | LOG2_32BIT(mask))
@@ -35,6 +36,9 @@ enum rcc_reg {
 #define RCC_APB2(periph) RCC_ENCODE(RCC_APB2, RCC_APB2ENR_ ## periph ## EN)
 #define RCC_APB1(periph) RCC_ENCODE(RCC_APB1, RCC_APB1ENR_ ## periph ## EN)
 #define RCC_AHB1(periph) RCC_ENCODE(RCC_AHB1, RCC_AHB1ENR_ ## periph ## EN)
+#define RCC_AHB4(periph) RCC_ENCODE(RCC_AHB4, RCC_AHB4ENR_ ## periph ## EN)
+// H7 aliases: APB1 is split into APB1L/APB1H; RCC_APB1L maps directly to the _LENR registers
+#define RCC_APB1L(periph) RCC_ENCODE(RCC_APB1, RCC_APB1LENR_ ## periph ## EN)
 
 void RCC_ClockCmd(rccPeriphTag_t periphTag, FunctionalState NewState);
 void RCC_ResetCmd(rccPeriphTag_t periphTag, FunctionalState NewState);
