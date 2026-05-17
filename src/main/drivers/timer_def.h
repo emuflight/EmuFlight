@@ -705,9 +705,9 @@
 #elif defined(STM32H7)
 
 // H7: dmaopt is a direct pool stream index (0-7 = DMA1_S0..S7, 8-15 = DMA2_S0..S7).
-// DMAMUX configures the actual request at runtime; dmaChannel is set to 0 here.
-// TIM_UP DMA (burst DShot) is left NULL and configured at runtime via dma_reqmap.
-#define DEF_TIM(tim, chan, pin, flags, out, dmaopt) {                   \
+// upopt is the pool stream index for TIM_UP burst DShot (NONE = burst not available).
+// DMAMUX routes the actual peripheral request at init via DEF_TIM_DMA_REQUEST.
+#define DEF_TIM(tim, chan, pin, flags, out, dmaopt, upopt) {            \
     tim,                                                                \
     IO_TAG(pin),                                                        \
     DEF_TIM_CHANNEL(CH_ ## chan),                                       \
@@ -716,10 +716,14 @@
     DEF_TIM_AF(TCH_## tim ## _ ## chan, pin),                           \
     DEF_TIM_DMA_COND(                                                   \
         DEF_TIM_H7_STREAM(dmaopt),                                      \
-        0,                                                              \
+        DEF_TIM_DMA_REQUEST(TCH_## tim ## _ ## chan),                   \
         DEF_TIM_H7_HANDLER(dmaopt)                                      \
     ),                                                                  \
-    DEF_TIM_DMA_COND(NULL, 0, 0)                                        \
+    DEF_TIM_DMA_COND(                                                   \
+        DEF_TIM_H7_STREAM(upopt),                                       \
+        DEF_TIM_DMA_REQUEST(TCH_## tim ## _UP),                         \
+        DEF_TIM_H7_HANDLER(upopt)                                       \
+    )                                                                   \
 }                                                                       \
 /**/
 
@@ -764,6 +768,62 @@
 #define DEF_TIM_H7_HANDLER__13    DMA2_ST5_HANDLER
 #define DEF_TIM_H7_HANDLER__14    DMA2_ST6_HANDLER
 #define DEF_TIM_H7_HANDLER__15    DMA2_ST7_HANDLER
+#define DEF_TIM_H7_STREAM__NONE   NULL
+#define DEF_TIM_H7_HANDLER__NONE  0
+
+// DMAMUX request routing — maps timer channel to PeriphRequest ID (BF parity)
+#define DEF_TIM_DMA_REQUEST(timch) \
+    CONCAT(DEF_TIM_DMA_REQ__, DEF_TIM_TCH2BTCH(timch))
+
+#ifndef DMA_REQUEST_NONE
+#define DMA_REQUEST_NONE  DMA_REQUEST_MEM2MEM
+#endif
+
+#define DEF_TIM_DMA_REQ__BTCH_TIM1_CH1    DMA_REQUEST_TIM1_CH1
+#define DEF_TIM_DMA_REQ__BTCH_TIM1_CH2    DMA_REQUEST_TIM1_CH2
+#define DEF_TIM_DMA_REQ__BTCH_TIM1_CH3    DMA_REQUEST_TIM1_CH3
+#define DEF_TIM_DMA_REQ__BTCH_TIM1_CH4    DMA_REQUEST_TIM1_CH4
+#define DEF_TIM_DMA_REQ__BTCH_TIM1_UP     DMA_REQUEST_TIM1_UP
+
+#define DEF_TIM_DMA_REQ__BTCH_TIM2_CH1    DMA_REQUEST_TIM2_CH1
+#define DEF_TIM_DMA_REQ__BTCH_TIM2_CH2    DMA_REQUEST_TIM2_CH2
+#define DEF_TIM_DMA_REQ__BTCH_TIM2_CH3    DMA_REQUEST_TIM2_CH3
+#define DEF_TIM_DMA_REQ__BTCH_TIM2_CH4    DMA_REQUEST_TIM2_CH4
+#define DEF_TIM_DMA_REQ__BTCH_TIM2_UP     DMA_REQUEST_TIM2_UP
+
+#define DEF_TIM_DMA_REQ__BTCH_TIM3_CH1    DMA_REQUEST_TIM3_CH1
+#define DEF_TIM_DMA_REQ__BTCH_TIM3_CH2    DMA_REQUEST_TIM3_CH2
+#define DEF_TIM_DMA_REQ__BTCH_TIM3_CH3    DMA_REQUEST_TIM3_CH3
+#define DEF_TIM_DMA_REQ__BTCH_TIM3_CH4    DMA_REQUEST_TIM3_CH4
+#define DEF_TIM_DMA_REQ__BTCH_TIM3_UP     DMA_REQUEST_TIM3_UP
+
+#define DEF_TIM_DMA_REQ__BTCH_TIM4_CH1    DMA_REQUEST_TIM4_CH1
+#define DEF_TIM_DMA_REQ__BTCH_TIM4_CH2    DMA_REQUEST_TIM4_CH2
+#define DEF_TIM_DMA_REQ__BTCH_TIM4_CH3    DMA_REQUEST_TIM4_CH3
+#define DEF_TIM_DMA_REQ__BTCH_TIM4_CH4    DMA_REQUEST_NONE      // no DMAMUX request on H743
+#define DEF_TIM_DMA_REQ__BTCH_TIM4_UP     DMA_REQUEST_TIM4_UP
+
+#define DEF_TIM_DMA_REQ__BTCH_TIM5_CH1    DMA_REQUEST_TIM5_CH1
+#define DEF_TIM_DMA_REQ__BTCH_TIM5_CH2    DMA_REQUEST_TIM5_CH2
+#define DEF_TIM_DMA_REQ__BTCH_TIM5_CH3    DMA_REQUEST_TIM5_CH3
+#define DEF_TIM_DMA_REQ__BTCH_TIM5_CH4    DMA_REQUEST_TIM5_CH4
+#define DEF_TIM_DMA_REQ__BTCH_TIM5_UP     DMA_REQUEST_TIM5_UP
+
+#define DEF_TIM_DMA_REQ__BTCH_TIM8_CH1    DMA_REQUEST_TIM8_CH1
+#define DEF_TIM_DMA_REQ__BTCH_TIM8_CH2    DMA_REQUEST_TIM8_CH2
+#define DEF_TIM_DMA_REQ__BTCH_TIM8_CH3    DMA_REQUEST_TIM8_CH3
+#define DEF_TIM_DMA_REQ__BTCH_TIM8_CH4    DMA_REQUEST_TIM8_CH4
+#define DEF_TIM_DMA_REQ__BTCH_TIM8_UP     DMA_REQUEST_TIM8_UP
+
+#define DEF_TIM_DMA_REQ__BTCH_TIM15_CH1   DMA_REQUEST_TIM15_CH1
+#define DEF_TIM_DMA_REQ__BTCH_TIM15_CH2   DMA_REQUEST_NONE
+#define DEF_TIM_DMA_REQ__BTCH_TIM15_UP    DMA_REQUEST_TIM15_UP
+
+#define DEF_TIM_DMA_REQ__BTCH_TIM16_CH1   DMA_REQUEST_TIM16_CH1
+#define DEF_TIM_DMA_REQ__BTCH_TIM16_UP    DMA_REQUEST_TIM16_UP
+
+#define DEF_TIM_DMA_REQ__BTCH_TIM17_CH1   DMA_REQUEST_TIM17_CH1
+#define DEF_TIM_DMA_REQ__BTCH_TIM17_UP    DMA_REQUEST_TIM17_UP
 
 // AF table for H7 — same GPIO_AFx_TIMy numbering as F7 for most timers
 //PORTA
