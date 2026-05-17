@@ -41,15 +41,16 @@
 #define ADC_INSTANCE ADC1
 #endif
 
-// Default DMA streams; targets can override via target.h
+// Default DMA streams for H7; avoid streams 0-3 which DShot motors typically use.
+// Targets can override via target.h.
 #ifndef ADC1_DMA_STREAM
-#define ADC1_DMA_STREAM DMA1_Stream1
+#define ADC1_DMA_STREAM DMA1_Stream4
 #endif
 #ifndef ADC2_DMA_STREAM
-#define ADC2_DMA_STREAM DMA1_Stream2
+#define ADC2_DMA_STREAM DMA1_Stream5
 #endif
 #ifndef ADC3_DMA_STREAM
-#define ADC3_DMA_STREAM DMA1_Stream3
+#define ADC3_DMA_STREAM DMA1_Stream6
 #endif
 
 const adcDevice_t adcHardware[] = {
@@ -113,6 +114,101 @@ static void adcInitDevice(adcDevice_t *adcdev, int channelCount)
 
 static adcDevice_t adc;
 
+#ifdef USE_ADC_INTERNAL
+// ADC3 injected channels: VREFINT = rank1 (ch19), TEMPSENSOR = rank2 (ch18) — RM0433 Table 205
+// H7A3/H7B3 do not have ADC3; guard accordingly.
+#if !(defined(STM32H7A3xx) || defined(STM32H7A3xxQ))
+
+static ADC_HandleTypeDef adcInternalHandle;
+static bool adcInternalConversionInProgress = false;
+
+static void adcInitInternalInjected(void)
+{
+    __HAL_RCC_ADC3_CLK_ENABLE();
+
+    adcInternalHandle.Instance                      = ADC3;
+    adcInternalHandle.Init.ClockPrescaler           = ADC_CLOCK_ASYNC_DIV2;
+    adcInternalHandle.Init.Resolution               = ADC_RESOLUTION_12B;
+    adcInternalHandle.Init.ScanConvMode             = DISABLE;
+    adcInternalHandle.Init.EOCSelection             = ADC_EOC_SINGLE_CONV;
+    adcInternalHandle.Init.LowPowerAutoWait         = DISABLE;
+    adcInternalHandle.Init.ContinuousConvMode       = DISABLE;
+    adcInternalHandle.Init.NbrOfConversion          = 1;
+    adcInternalHandle.Init.DiscontinuousConvMode    = DISABLE;
+    adcInternalHandle.Init.NbrOfDiscConversion      = 1;
+    adcInternalHandle.Init.ExternalTrigConv         = ADC_SOFTWARE_START;
+    adcInternalHandle.Init.ExternalTrigConvEdge     = ADC_EXTERNALTRIGCONVEDGE_NONE;
+    // No DMA for injected internal channels — CPU reads directly from data register
+    adcInternalHandle.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DR;
+    adcInternalHandle.Init.Overrun                  = ADC_OVR_DATA_OVERWRITTEN;
+    adcInternalHandle.Init.OversamplingMode         = DISABLE;
+    if (HAL_ADC_Init(&adcInternalHandle) != HAL_OK) {
+        return;
+    }
+    HAL_ADCEx_Calibration_Start(&adcInternalHandle, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
+
+    // VREFINT on ADC3 injected rank 1; TEMPSENSOR on injected rank 2
+    // HAL automatically enables internal voltage reference / temp sensor paths for these channels
+    ADC_InjectionConfTypeDef iConfig;
+    memset(&iConfig, 0, sizeof(iConfig));
+    iConfig.InjectedChannel               = ADC_CHANNEL_VREFINT;
+    iConfig.InjectedRank                  = ADC_INJECTED_RANK_1;
+    iConfig.InjectedSamplingTime          = ADC_SAMPLETIME_810CYCLES_5;
+    iConfig.InjectedSingleDiff            = ADC_SINGLE_ENDED;
+    iConfig.InjectedOffsetNumber          = ADC_OFFSET_NONE;
+    iConfig.InjectedOffset                = 0;
+    iConfig.InjectedNbrOfConversion       = 2;
+    iConfig.InjectedDiscontinuousConvMode = DISABLE;
+    iConfig.AutoInjectedConv              = DISABLE;
+    iConfig.QueueInjectedContext          = DISABLE;
+    iConfig.ExternalTrigInjecConv         = ADC_INJECTED_SOFTWARE_START;
+    iConfig.ExternalTrigInjecConvEdge     = ADC_EXTERNALTRIGINJECCONV_EDGE_NONE;
+    iConfig.InjecOversamplingMode         = DISABLE;
+    if (HAL_ADCEx_InjectedConfigChannel(&adcInternalHandle, &iConfig) != HAL_OK) {
+        return;
+    }
+
+    iConfig.InjectedChannel = ADC_CHANNEL_TEMPSENSOR;
+    iConfig.InjectedRank    = ADC_INJECTED_RANK_2;
+    if (HAL_ADCEx_InjectedConfigChannel(&adcInternalHandle, &iConfig) != HAL_OK) {
+        return;
+    }
+
+    adcVREFINTCAL = *VREFINT_CAL_ADDR;
+    adcTSCAL1 = *TEMPSENSOR_CAL1_ADDR;
+    adcTSCAL2 = *TEMPSENSOR_CAL2_ADDR;
+    adcTSSlopeK = (TEMPSENSOR_CAL2_TEMP - TEMPSENSOR_CAL1_TEMP) * 1000 / (adcTSCAL2 - adcTSCAL1);
+}
+
+bool adcInternalIsBusy(void)
+{
+    if (adcInternalConversionInProgress) {
+        if (HAL_ADCEx_InjectedPollForConversion(&adcInternalHandle, 0) == HAL_OK) {
+            adcInternalConversionInProgress = false;
+        }
+    }
+    return adcInternalConversionInProgress;
+}
+
+void adcInternalStartConversion(void)
+{
+    HAL_ADCEx_InjectedStart(&adcInternalHandle);
+    adcInternalConversionInProgress = true;
+}
+
+uint16_t adcInternalReadVrefint(void)
+{
+    return HAL_ADCEx_InjectedGetValue(&adcInternalHandle, ADC_INJECTED_RANK_1);
+}
+
+uint16_t adcInternalReadTempsensor(void)
+{
+    return HAL_ADCEx_InjectedGetValue(&adcInternalHandle, ADC_INJECTED_RANK_2);
+}
+
+#endif // !(STM32H7A3xx || STM32H7A3xxQ)
+#endif // USE_ADC_INTERNAL
+
 void adcInit(const adcConfig_t *config)
 {
     memset(&adcOperatingConfig, 0, sizeof(adcOperatingConfig));
@@ -153,67 +249,77 @@ void adcInit(const adcConfig_t *config)
         adcOperatingConfig[i].enabled    = true;
     }
 
+#ifndef USE_ADC_INTERNAL
     if (!adcActive) {
         return;
     }
+#endif
 
-    // Enable ADC12 kernel clock (HAL doesn't do this automatically)
-    __HAL_RCC_ADC12_CLK_ENABLE();
+    if (adcActive) {
+        // Enable ADC12 kernel clock (HAL doesn't do this automatically)
+        __HAL_RCC_ADC12_CLK_ENABLE();
 
-    adcInitDevice(&adc, configuredAdcChannels);
+        adcInitDevice(&adc, configuredAdcChannels);
 
-    uint8_t rank = 0;
-    for (int i = 0; i < ADC_CHANNEL_COUNT; i++) {
-        if (!adcOperatingConfig[i].enabled) {
-            continue;
-        }
+        uint8_t rank = 0;
+        for (int i = 0; i < ADC_CHANNEL_COUNT; i++) {
+            if (!adcOperatingConfig[i].enabled) {
+                continue;
+            }
 
-        // Look up the full 32-bit H7 channel constant from tagmap
-        uint32_t h7channel = 0;
-        for (int j = 0; j < ADC_TAG_MAP_COUNT; j++) {
-            if (adcTagMap[j].tag == adcOperatingConfig[i].tag) {
-                h7channel = adcTagMap[j].channel;
-                break;
+            // Look up the full 32-bit H7 channel constant from tagmap
+            uint32_t h7channel = 0;
+            for (int j = 0; j < ADC_TAG_MAP_COUNT; j++) {
+                if (adcTagMap[j].tag == adcOperatingConfig[i].tag) {
+                    h7channel = adcTagMap[j].channel;
+                    break;
+                }
+            }
+
+            ADC_ChannelConfTypeDef sConfig;
+            sConfig.Channel      = h7channel;
+            sConfig.Rank         = adcRegularRankMap[rank++];
+            sConfig.SamplingTime = adcOperatingConfig[i].sampleTime;
+            sConfig.SingleDiff   = ADC_SINGLE_ENDED;
+            sConfig.OffsetNumber = ADC_OFFSET_NONE;
+            sConfig.Offset       = 0;
+            if (HAL_ADC_ConfigChannel(&adc.ADCHandle, &sConfig) != HAL_OK) {
+                return;
             }
         }
 
-        ADC_ChannelConfTypeDef sConfig;
-        sConfig.Channel      = h7channel;
-        sConfig.Rank         = adcRegularRankMap[rank++];
-        sConfig.SamplingTime = adcOperatingConfig[i].sampleTime;
-        sConfig.SingleDiff   = ADC_SINGLE_ENDED;
-        sConfig.OffsetNumber = ADC_OFFSET_NONE;
-        sConfig.Offset       = 0;
-        if (HAL_ADC_ConfigChannel(&adc.ADCHandle, &sConfig) != HAL_OK) {
+        dmaIdentifier_e dmaId = dmaGetIdentifier((DMA_Stream_TypeDef *)adc.dmaResource);
+        dmaInit(dmaId, OWNER_ADC, 0);
+
+        adc.DmaHandle.Instance               = (DMA_Stream_TypeDef *)adc.dmaResource;
+        adc.DmaHandle.Init.Request           = adc.channel;
+        adc.DmaHandle.Init.Direction         = DMA_PERIPH_TO_MEMORY;
+        adc.DmaHandle.Init.PeriphInc         = DMA_PINC_DISABLE;
+        adc.DmaHandle.Init.MemInc            = configuredAdcChannels > 1 ? DMA_MINC_ENABLE : DMA_MINC_DISABLE;
+        adc.DmaHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+        adc.DmaHandle.Init.MemDataAlignment  = DMA_MDATAALIGN_HALFWORD;
+        adc.DmaHandle.Init.Mode              = DMA_CIRCULAR;
+        adc.DmaHandle.Init.Priority          = DMA_PRIORITY_HIGH;
+        adc.DmaHandle.Init.FIFOMode          = DMA_FIFOMODE_DISABLE;
+        adc.DmaHandle.Init.FIFOThreshold     = DMA_FIFO_THRESHOLD_FULL;
+        adc.DmaHandle.Init.MemBurst          = DMA_MBURST_SINGLE;
+        adc.DmaHandle.Init.PeriphBurst       = DMA_PBURST_SINGLE;
+
+        if (HAL_DMA_Init(&adc.DmaHandle) != HAL_OK) {
+            return;
+        }
+        __HAL_LINKDMA(&adc.ADCHandle, DMA_Handle, adc.DmaHandle);
+
+        if (HAL_ADC_Start_DMA(&adc.ADCHandle, (uint32_t *)&adcValues, configuredAdcChannels) != HAL_OK) {
             return;
         }
     }
 
-    dmaIdentifier_e dmaId = dmaGetIdentifier((DMA_Stream_TypeDef *)adc.dmaResource);
-    dmaInit(dmaId, OWNER_ADC, 0);
-
-    adc.DmaHandle.Instance               = (DMA_Stream_TypeDef *)adc.dmaResource;
-    adc.DmaHandle.Init.Request           = adc.channel;
-    adc.DmaHandle.Init.Direction         = DMA_PERIPH_TO_MEMORY;
-    adc.DmaHandle.Init.PeriphInc         = DMA_PINC_DISABLE;
-    adc.DmaHandle.Init.MemInc            = configuredAdcChannels > 1 ? DMA_MINC_ENABLE : DMA_MINC_DISABLE;
-    adc.DmaHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-    adc.DmaHandle.Init.MemDataAlignment  = DMA_MDATAALIGN_HALFWORD;
-    adc.DmaHandle.Init.Mode              = DMA_CIRCULAR;
-    adc.DmaHandle.Init.Priority          = DMA_PRIORITY_HIGH;
-    adc.DmaHandle.Init.FIFOMode          = DMA_FIFOMODE_DISABLE;
-    adc.DmaHandle.Init.FIFOThreshold     = DMA_FIFO_THRESHOLD_FULL;
-    adc.DmaHandle.Init.MemBurst          = DMA_MBURST_SINGLE;
-    adc.DmaHandle.Init.PeriphBurst       = DMA_PBURST_SINGLE;
-
-    if (HAL_DMA_Init(&adc.DmaHandle) != HAL_OK) {
-        return;
-    }
-    __HAL_LINKDMA(&adc.ADCHandle, DMA_Handle, adc.DmaHandle);
-
-    if (HAL_ADC_Start_DMA(&adc.ADCHandle, (uint32_t *)&adcValues, configuredAdcChannels) != HAL_OK) {
-        return;
-    }
+#ifdef USE_ADC_INTERNAL
+#if !(defined(STM32H7A3xx) || defined(STM32H7A3xxQ))
+    adcInitInternalInjected();
+#endif
+#endif
 }
 
 #endif // USE_ADC

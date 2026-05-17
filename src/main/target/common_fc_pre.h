@@ -86,7 +86,7 @@
 // DShot and SPI DMA buffers must stay in AXI SRAM where DMA controllers can reach them
 #define USE_DSHOT
 #define USE_GYRO_DATA_ANALYSE
-// Note: USE_ADC_INTERNAL intentionally omitted — no adc_stm32h7xx.c driver yet
+#define USE_ADC_INTERNAL
 // Note: USE_USB_CDC_HID and USE_USB_MSC intentionally omitted — fc_tasks.c pulls in
 // vcpf4/usbd_cdc_vcp.h (F4-specific) under those guards; not yet ported for H7
 #endif
