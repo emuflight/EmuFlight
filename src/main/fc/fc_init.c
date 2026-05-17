@@ -202,8 +202,10 @@ void busSwitchInit(void) {
 #endif
 
 void init(void) {
-#ifdef USE_ITCM_RAM
+#if defined(USE_ITCM_RAM) && !defined(STM32H7)
     /* Load functions into ITCM RAM */
+    // H7: startup SystemInit() already copied ITCM then set it MPU read-only;
+    // repeating the copy here would cause a MemManage fault.
     extern uint8_t tcm_code_start;
     extern uint8_t tcm_code_end;
     extern uint8_t tcm_code;
