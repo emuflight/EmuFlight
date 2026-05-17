@@ -31,6 +31,32 @@
 
 void SystemClock_Config(void);
 
+void enableGPIOPowerUsageAndNoiseReductions(void)
+{
+    // AHB4 — GPIO ports
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOD_CLK_ENABLE();
+    __HAL_RCC_GPIOE_CLK_ENABLE();
+    __HAL_RCC_GPIOF_CLK_ENABLE();
+    __HAL_RCC_GPIOG_CLK_ENABLE();
+    __HAL_RCC_GPIOH_CLK_ENABLE();
+    __HAL_RCC_GPIOI_CLK_ENABLE();
+    __HAL_RCC_GPIOJ_CLK_ENABLE();
+    __HAL_RCC_GPIOK_CLK_ENABLE();
+    // AHB1 — DMA
+    __HAL_RCC_DMA1_CLK_ENABLE();
+    __HAL_RCC_DMA2_CLK_ENABLE();
+    // APB2 — SPI1, SPI4, SPI5
+    __HAL_RCC_SPI1_CLK_ENABLE();
+    __HAL_RCC_SPI4_CLK_ENABLE();
+    __HAL_RCC_SPI5_CLK_ENABLE();
+    // APB1L — SPI2, SPI3
+    __HAL_RCC_SPI2_CLK_ENABLE();
+    __HAL_RCC_SPI3_CLK_ENABLE();
+}
+
 void configureMasterClockOutputs(void)
 {
     // Initialize pins for MCO1 and MCO2 for clock testing/verification
@@ -134,6 +160,8 @@ void systemInit(void)
     cycleCounterInit();
 
     // SysTick is updated whenever HAL_RCC_ClockConfig is called.
+
+    enableGPIOPowerUsageAndNoiseReductions();
 }
 
 void systemReset(void)

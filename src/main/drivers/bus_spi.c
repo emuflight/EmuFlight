@@ -34,8 +34,8 @@
 #define USE_TX_IRQ_HANDLER
 #endif
 
-// F7 cache-line constants for DMA buffer maintenance (32-byte L1D cache lines on Cortex-M7).
-#ifdef STM32F7
+// Cache-line constants for DMA buffer maintenance (32-byte L1D cache lines on Cortex-M7).
+#if defined(STM32F7) || defined(STM32H7)
 #define CACHE_LINE_SIZE  32
 #define CACHE_LINE_MASK  (CACHE_LINE_SIZE - 1)
 #endif
@@ -267,7 +267,7 @@ FAST_CODE static void spiRxIrqHandler(dmaChannelDescriptor_t *descriptor)
 
     spiInternalStopDMA(dev);
 
-#ifdef STM32F7
+#if defined(STM32F7) || defined(STM32H7)
     if (bus->curSegment->u.buffers.rxData) {
         SCB_InvalidateDCache_by_Addr(
             (uint32_t *)((uint32_t)bus->curSegment->u.buffers.rxData & ~CACHE_LINE_MASK),
@@ -303,7 +303,7 @@ FAST_CODE static void spiTxIrqHandler(dmaChannelDescriptor_t *descriptor)
 
 void spiInitBusDMA(void)
 {
-#if (defined(STM32F4) || defined(STM32F7)) && defined(USE_SPI)
+#if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7)) && defined(USE_SPI)
     for (uint32_t device = 0; device < SPIDEV_COUNT; device++) {
         busDevice_t *bus = &spiBusDevice[device];
 

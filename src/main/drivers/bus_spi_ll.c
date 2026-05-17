@@ -92,7 +92,11 @@ spiDevice_t spiDevice[SPIDEV_COUNT];
 
 static uint32_t spiDivisorToBRbits(SPI_TypeDef *instance, uint16_t divisor)
 {
-#if !(defined(STM32F1) || defined(STM32F3))
+#if defined(STM32H7)
+    // On H7 all SPI buses are derived from the same kernel clock — no halving for SPI2/SPI3.
+    UNUSED(instance);
+#elif !(defined(STM32F1) || defined(STM32F3))
+    // On F4/F7 SPI2/SPI3 are on APB1 (half the APB2 rate), so halve divisor to compensate.
     if (instance == SPI2 || instance == SPI3) {
         divisor /= 2;
     }
@@ -142,10 +146,13 @@ void spiInitDevice(SPIDevice device) {
         .CRCCalculation = SPI_CRCCALCULATION_DISABLE,
     };
     LL_SPI_SetRxFIFOThreshold(spi->dev, SPI_RXFIFO_THRESHOLD_QF);
-    LL_SPI_Init(spi->dev, &init);
-    LL_SPI_Enable(spi->dev);
 #if defined(STM32H7)
-    LL_SPI_StartMasterTransfer(spi->dev);
+    LL_SPI_EnableGPIOControl(spi->dev);
+#endif
+    LL_SPI_Init(spi->dev, &init);
+#if !defined(STM32H7)
+    // H7: leave SPI disabled after init; Enable/StartMasterTransfer happen per-transfer in spiTransfer.
+    LL_SPI_Enable(spi->dev);
 #endif
 }
 
@@ -171,7 +178,41 @@ bool spiIsBusBusy(SPI_TypeDef *instance) {
 }
 
 bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, int len) {
-#if !defined(STM32H7)
+#if defined(STM32H7)
+    LL_SPI_SetTransferSize(instance, len);
+    LL_SPI_Enable(instance);
+    LL_SPI_StartMasterTransfer(instance);
+    int spiTimeout;
+    while (len) {
+        spiTimeout = 1000;
+        while (!LL_SPI_IsActiveFlag_TXP(instance)) {
+            if ((spiTimeout--) == 0) {
+                return spiTimeoutUserCallback(instance);
+            }
+        }
+        uint8_t b = txData ? *(txData++) : 0xFF;
+        LL_SPI_TransmitData8(instance, b);
+        spiTimeout = 1000; // reuse declared above
+        while (!LL_SPI_IsActiveFlag_RXP(instance)) {
+            if ((spiTimeout--) == 0) {
+                return spiTimeoutUserCallback(instance);
+            }
+        }
+        b = LL_SPI_ReceiveData8(instance);
+        if (rxData) {
+            *(rxData++) = b;
+        }
+        --len;
+    }
+    spiTimeout = 1000;
+    while (!LL_SPI_IsActiveFlag_EOT(instance)) {
+        if ((spiTimeout--) == 0) {
+            return spiTimeoutUserCallback(instance);
+        }
+    }
+    LL_SPI_ClearFlag_TXTF(instance);
+    LL_SPI_Disable(instance);
+#else
     // set 16-bit transfer
     CLEAR_BIT(instance->CR2, SPI_RXFIFO_THRESHOLD);
     while (len > 1) {
@@ -204,7 +245,6 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
     }
     // set 8-bit transfer
     SET_BIT(instance->CR2, SPI_RXFIFO_THRESHOLD);
-#endif
     if (len) {
         int spiTimeout = 1000;
         while (!LL_SPI_IsActiveFlag_TXE(instance)) {
@@ -226,6 +266,7 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
         }
         --len;
     }
+#endif
     return true;
 }
 
@@ -243,7 +284,9 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
 
     bus->initSegment = true;
 
+#if !defined(STM32H7)
     LL_SPI_Disable(instance);
+#endif
 
     if (dev->busType_u.spi.speed != bus->busType_u.spi.speed) {
         LL_SPI_SetBaudRatePrescaler(instance, spiDivisorToBRbits(instance, dev->busType_u.spi.speed));
@@ -263,9 +306,8 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
         bus->busType_u.spi.leadingEdge = dev->busType_u.spi.leadingEdge;
     }
 
+#if !defined(STM32H7)
     LL_SPI_Enable(instance);
-#if defined(STM32H7)
-    LL_SPI_StartMasterTransfer(instance);
 #endif
 
     // Scan the segment list for DMA safety (cache alignment, DTCM region).
@@ -484,13 +526,16 @@ void spiInternalStartDMA(const extDevice_t *dev)
         LL_DMA_Init(dmaTx->dma, dmaTx->stream, bus->initTx);
         LL_DMA_Init(dmaRx->dma, dmaRx->stream, bus->initRx);
 
+#if defined(STM32H7)
+        LL_SPI_SetTransferSize(dev->bus->busType_u.spi.instance, bus->curSegment->len);
         LL_DMA_EnableStream(dmaTx->dma, dmaTx->stream);
         LL_DMA_EnableStream(dmaRx->dma, dmaRx->stream);
-
-#if defined(STM32H7)
-        LL_SPI_EnableDMAReq_TX(dev->bus->busType_u.spi.instance);
-        LL_SPI_EnableDMAReq_RX(dev->bus->busType_u.spi.instance);
+        SET_BIT(dev->bus->busType_u.spi.instance->CFG1, SPI_CFG1_RXDMAEN | SPI_CFG1_TXDMAEN);
+        LL_SPI_Enable(dev->bus->busType_u.spi.instance);
+        LL_SPI_StartMasterTransfer(dev->bus->busType_u.spi.instance);
 #else
+        LL_DMA_EnableStream(dmaTx->dma, dmaTx->stream);
+        LL_DMA_EnableStream(dmaRx->dma, dmaRx->stream);
         SET_BIT(dev->bus->busType_u.spi.instance->CR2, SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN);
 #endif
     } else {
