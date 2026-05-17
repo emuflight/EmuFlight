@@ -702,6 +702,143 @@
 #define DEF_TIM_AF__PI6__TCH_TIM8_CH2     D(3, 8)
 #define DEF_TIM_AF__PI7__TCH_TIM8_CH3     D(3, 8)
 
+#elif defined(STM32H7)
+
+// H7: dmaopt is a direct pool stream index (0-7 = DMA1_S0..S7, 8-15 = DMA2_S0..S7).
+// DMAMUX configures the actual request at runtime; dmaChannel is set to 0 here.
+// TIM_UP DMA (burst DShot) is left NULL and configured at runtime via dma_reqmap.
+#define DEF_TIM(tim, chan, pin, flags, out, dmaopt) {                   \
+    tim,                                                                \
+    IO_TAG(pin),                                                        \
+    DEF_TIM_CHANNEL(CH_ ## chan),                                       \
+    flags,                                                              \
+    (DEF_TIM_OUTPUT(CH_ ## chan) | out),                                \
+    DEF_TIM_AF(TCH_## tim ## _ ## chan, pin),                           \
+    DEF_TIM_DMA_COND(                                                   \
+        DEF_TIM_H7_STREAM(dmaopt),                                      \
+        0,                                                              \
+        DEF_TIM_H7_HANDLER(dmaopt)                                      \
+    ),                                                                  \
+    DEF_TIM_DMA_COND(NULL, 0, 0)                                        \
+}                                                                       \
+/**/
+
+#define DEF_TIM_CHANNEL(ch)                   CONCAT(DEF_TIM_CHANNEL__, DEF_TIM_CH_GET(ch))
+#define DEF_TIM_CHANNEL__D(chan_n, n_channel) TIM_CHANNEL_ ## chan_n
+
+#define DEF_TIM_AF(timch, pin)                CONCAT(DEF_TIM_AF__, DEF_TIM_AF_GET(timch, pin))
+#define DEF_TIM_AF__D(af_n, tim_n)            GPIO_AF ## af_n ## _TIM ## tim_n
+
+#define DEF_TIM_H7_STREAM(opt)    CONCAT(DEF_TIM_H7_STREAM__, opt)
+#define DEF_TIM_H7_STREAM__0      DMA1_Stream0
+#define DEF_TIM_H7_STREAM__1      DMA1_Stream1
+#define DEF_TIM_H7_STREAM__2      DMA1_Stream2
+#define DEF_TIM_H7_STREAM__3      DMA1_Stream3
+#define DEF_TIM_H7_STREAM__4      DMA1_Stream4
+#define DEF_TIM_H7_STREAM__5      DMA1_Stream5
+#define DEF_TIM_H7_STREAM__6      DMA1_Stream6
+#define DEF_TIM_H7_STREAM__7      DMA1_Stream7
+#define DEF_TIM_H7_STREAM__8      DMA2_Stream0
+#define DEF_TIM_H7_STREAM__9      DMA2_Stream1
+#define DEF_TIM_H7_STREAM__10     DMA2_Stream2
+#define DEF_TIM_H7_STREAM__11     DMA2_Stream3
+#define DEF_TIM_H7_STREAM__12     DMA2_Stream4
+#define DEF_TIM_H7_STREAM__13     DMA2_Stream5
+#define DEF_TIM_H7_STREAM__14     DMA2_Stream6
+#define DEF_TIM_H7_STREAM__15     DMA2_Stream7
+
+#define DEF_TIM_H7_HANDLER(opt)   CONCAT(DEF_TIM_H7_HANDLER__, opt)
+#define DEF_TIM_H7_HANDLER__0     DMA1_ST0_HANDLER
+#define DEF_TIM_H7_HANDLER__1     DMA1_ST1_HANDLER
+#define DEF_TIM_H7_HANDLER__2     DMA1_ST2_HANDLER
+#define DEF_TIM_H7_HANDLER__3     DMA1_ST3_HANDLER
+#define DEF_TIM_H7_HANDLER__4     DMA1_ST4_HANDLER
+#define DEF_TIM_H7_HANDLER__5     DMA1_ST5_HANDLER
+#define DEF_TIM_H7_HANDLER__6     DMA1_ST6_HANDLER
+#define DEF_TIM_H7_HANDLER__7     DMA1_ST7_HANDLER
+#define DEF_TIM_H7_HANDLER__8     DMA2_ST0_HANDLER
+#define DEF_TIM_H7_HANDLER__9     DMA2_ST1_HANDLER
+#define DEF_TIM_H7_HANDLER__10    DMA2_ST2_HANDLER
+#define DEF_TIM_H7_HANDLER__11    DMA2_ST3_HANDLER
+#define DEF_TIM_H7_HANDLER__12    DMA2_ST4_HANDLER
+#define DEF_TIM_H7_HANDLER__13    DMA2_ST5_HANDLER
+#define DEF_TIM_H7_HANDLER__14    DMA2_ST6_HANDLER
+#define DEF_TIM_H7_HANDLER__15    DMA2_ST7_HANDLER
+
+// AF table for H7 — same GPIO_AFx_TIMy numbering as F7 for most timers
+//PORTA
+#define DEF_TIM_AF__PA0__TCH_TIM2_CH1     D(1, 2)
+#define DEF_TIM_AF__PA1__TCH_TIM2_CH2     D(1, 2)
+#define DEF_TIM_AF__PA2__TCH_TIM2_CH3     D(1, 2)
+#define DEF_TIM_AF__PA3__TCH_TIM2_CH4     D(1, 2)
+#define DEF_TIM_AF__PA5__TCH_TIM2_CH1     D(1, 2)
+#define DEF_TIM_AF__PA6__TCH_TIM3_CH1     D(2, 3)
+#define DEF_TIM_AF__PA7__TCH_TIM1_CH1N    D(1, 1)
+#define DEF_TIM_AF__PA7__TCH_TIM3_CH2     D(2, 3)
+#define DEF_TIM_AF__PA7__TCH_TIM8_CH1N    D(3, 8)
+#define DEF_TIM_AF__PA8__TCH_TIM1_CH1     D(1, 1)
+#define DEF_TIM_AF__PA9__TCH_TIM1_CH2     D(1, 1)
+#define DEF_TIM_AF__PA10__TCH_TIM1_CH3    D(1, 1)
+#define DEF_TIM_AF__PA11__TCH_TIM1_CH4    D(1, 1)
+#define DEF_TIM_AF__PA15__TCH_TIM2_CH1    D(1, 2)
+#define DEF_TIM_AF__PA0__TCH_TIM5_CH1     D(2, 5)
+#define DEF_TIM_AF__PA1__TCH_TIM5_CH2     D(2, 5)
+#define DEF_TIM_AF__PA2__TCH_TIM5_CH3     D(2, 5)
+#define DEF_TIM_AF__PA3__TCH_TIM5_CH4     D(2, 5)
+//PORTB
+#define DEF_TIM_AF__PB0__TCH_TIM1_CH2N    D(1, 1)
+#define DEF_TIM_AF__PB0__TCH_TIM3_CH3     D(2, 3)
+#define DEF_TIM_AF__PB1__TCH_TIM1_CH3N    D(1, 1)
+#define DEF_TIM_AF__PB1__TCH_TIM3_CH4     D(2, 3)
+#define DEF_TIM_AF__PB3__TCH_TIM2_CH2     D(1, 2)
+#define DEF_TIM_AF__PB4__TCH_TIM3_CH1     D(2, 3)
+#define DEF_TIM_AF__PB5__TCH_TIM3_CH2     D(2, 3)
+#define DEF_TIM_AF__PB6__TCH_TIM4_CH1     D(2, 4)
+#define DEF_TIM_AF__PB7__TCH_TIM4_CH2     D(2, 4)
+#define DEF_TIM_AF__PB8__TCH_TIM4_CH3     D(2, 4)
+#define DEF_TIM_AF__PB8__TCH_TIM16_CH1    D(1, 16)
+#define DEF_TIM_AF__PB9__TCH_TIM4_CH4     D(2, 4)
+#define DEF_TIM_AF__PB9__TCH_TIM17_CH1    D(1, 17)
+#define DEF_TIM_AF__PB10__TCH_TIM2_CH3    D(1, 2)
+#define DEF_TIM_AF__PB11__TCH_TIM2_CH4    D(1, 2)
+#define DEF_TIM_AF__PB13__TCH_TIM1_CH1N   D(1, 1)
+#define DEF_TIM_AF__PB14__TCH_TIM1_CH2N   D(1, 1)
+#define DEF_TIM_AF__PB14__TCH_TIM12_CH1   D(2, 12)
+#define DEF_TIM_AF__PB15__TCH_TIM1_CH3N   D(1, 1)
+#define DEF_TIM_AF__PB15__TCH_TIM12_CH2   D(2, 12)
+//PORTC
+#define DEF_TIM_AF__PC6__TCH_TIM3_CH1     D(2, 3)
+#define DEF_TIM_AF__PC7__TCH_TIM3_CH2     D(2, 3)
+#define DEF_TIM_AF__PC8__TCH_TIM3_CH3     D(2, 3)
+#define DEF_TIM_AF__PC9__TCH_TIM3_CH4     D(2, 3)
+#define DEF_TIM_AF__PC6__TCH_TIM8_CH1     D(3, 8)
+#define DEF_TIM_AF__PC7__TCH_TIM8_CH2     D(3, 8)
+#define DEF_TIM_AF__PC8__TCH_TIM8_CH3     D(3, 8)
+#define DEF_TIM_AF__PC9__TCH_TIM8_CH4     D(3, 8)
+//PORTD
+#define DEF_TIM_AF__PD12__TCH_TIM4_CH1    D(2, 4)
+#define DEF_TIM_AF__PD13__TCH_TIM4_CH2    D(2, 4)
+#define DEF_TIM_AF__PD14__TCH_TIM4_CH3    D(2, 4)
+#define DEF_TIM_AF__PD15__TCH_TIM4_CH4    D(2, 4)
+//PORTE
+#define DEF_TIM_AF__PE5__TCH_TIM15_CH1    D(4, 15)
+#define DEF_TIM_AF__PE6__TCH_TIM15_CH2    D(4, 15)
+#define DEF_TIM_AF__PE8__TCH_TIM1_CH1N    D(1, 1)
+#define DEF_TIM_AF__PE9__TCH_TIM1_CH1     D(1, 1)
+#define DEF_TIM_AF__PE10__TCH_TIM1_CH2N   D(1, 1)
+#define DEF_TIM_AF__PE11__TCH_TIM1_CH2    D(1, 1)
+#define DEF_TIM_AF__PE12__TCH_TIM1_CH3N   D(1, 1)
+#define DEF_TIM_AF__PE13__TCH_TIM1_CH3    D(1, 1)
+#define DEF_TIM_AF__PE14__TCH_TIM1_CH4    D(1, 1)
+//PORTF
+#define DEF_TIM_AF__PF6__TCH_TIM16_CH1    D(1, 16)
+#define DEF_TIM_AF__PF7__TCH_TIM17_CH1    D(1, 17)
+#define DEF_TIM_AF__PF8__TCH_TIM13_CH1    D(9, 13)
+#define DEF_TIM_AF__PF9__TCH_TIM14_CH1    D(9, 14)
+//PORTH
+#define DEF_TIM_AF__PH6__TCH_TIM12_CH1    D(2, 12)
+#define DEF_TIM_AF__PH9__TCH_TIM12_CH2    D(2, 12)
+
 #endif
 
 #ifdef USE_TIMER_MGMT
@@ -717,6 +854,10 @@
 #elif defined(STM32F1)
 
 #define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) )
+
+#elif defined(STM32H7)
+
+#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(6) | TIM_N(7) | TIM_N(8) | TIM_N(12) | TIM_N(13) | TIM_N(14) | TIM_N(15) | TIM_N(16) | TIM_N(17) )
 
 #else
 #error "No timer / channel tag definition found for CPU"

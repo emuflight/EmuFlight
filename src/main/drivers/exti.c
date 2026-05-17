@@ -42,7 +42,7 @@ extiChannelRec_t extiChannelRecs[16];
 static const uint8_t extiGroups[16] = { 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6 };
 static uint8_t extiGroupPriority[EXTI_IRQ_GROUPS];
 
-#if defined(STM32F1) || defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F1) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
 static const uint8_t extiGroupIRQn[EXTI_IRQ_GROUPS] = {
     EXTI0_IRQn,
     EXTI1_IRQn,
@@ -90,7 +90,7 @@ void EXTIHandlerInit(extiCallbackRec_t *self, extiHandlerCallback *fn) {
     self->fn = fn;
 }
 
-#if defined(STM32F7)
+#if defined(STM32F7) || defined(STM32H7)
 void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, ioConfig_t config) {
     (void)config;
     int chIdx;
@@ -166,14 +166,20 @@ void EXTIRelease(IO_t io) {
 }
 
 void EXTIEnable(IO_t io, bool enable) {
-#if defined(STM32F1) || defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F1) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     uint32_t extiLine = IO_EXTI_Line(io);
     if (!extiLine)
         return;
+    volatile uint32_t * const imrReg =
+#if defined(STM32H7)
+        &EXTI->IMR1;
+#else
+        &EXTI->IMR;
+#endif
     if (enable)
-        EXTI->IMR |= extiLine;
+        *imrReg |= extiLine;
     else
-        EXTI->IMR &= ~extiLine;
+        *imrReg &= ~extiLine;
 #elif defined(STM32F303xC)
     int extiLine = IO_EXTI_Line(io);
     if (extiLine < 0)
@@ -189,6 +195,16 @@ void EXTIEnable(IO_t io, bool enable) {
 }
 
 void EXTI_IRQHandler(void) {
+#if defined(STM32H7)
+    uint32_t exti_active = EXTI->IMR1 & EXTI->PR1;
+    while (exti_active) {
+        unsigned idx = 31 - __builtin_clz(exti_active);
+        uint32_t mask = 1 << idx;
+        extiChannelRecs[idx].handler->fn(extiChannelRecs[idx].handler);
+        EXTI->PR1 = mask;
+        exti_active &= ~mask;
+    }
+#else
     uint32_t exti_active = EXTI->IMR & EXTI->PR;
     while (exti_active) {
         unsigned idx = 31 - __builtin_clz(exti_active);
@@ -197,6 +213,7 @@ void EXTI_IRQHandler(void) {
         EXTI->PR = mask;  // clear pending mask (by writing 1)
         exti_active &= ~mask;
     }
+#endif
 }
 
 #define _EXTI_IRQ_HANDLER(name)                 \
@@ -209,7 +226,7 @@ void EXTI_IRQHandler(void) {
 
 _EXTI_IRQ_HANDLER(EXTI0_IRQHandler);
 _EXTI_IRQ_HANDLER(EXTI1_IRQHandler);
-#if defined(STM32F1) || defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F1) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
 _EXTI_IRQ_HANDLER(EXTI2_IRQHandler);
 #elif defined(STM32F3)
 _EXTI_IRQ_HANDLER(EXTI2_TS_IRQHandler);

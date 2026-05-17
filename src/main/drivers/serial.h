@@ -49,6 +49,8 @@ typedef enum {
     SERIAL_BIDIR_OD        = 0 << 4,
     SERIAL_BIDIR_PP        = 1 << 4,
     SERIAL_BIDIR_NOPULL    = 1 << 5, // disable pulls in BIDIR RX mode
+    SERIAL_BIDIR_PP_PD     = 1 << 6, // PP mode with pull-down (H7 bidirectional)
+    SERIAL_CHECK_TX        = 1 << 7, // monitor TX line state (H7 half-duplex)
 } portOptions_e;
 
 // Define known line control states which may be passed up by underlying serial driver callback

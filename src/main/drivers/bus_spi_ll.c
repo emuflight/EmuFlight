@@ -75,8 +75,19 @@ spiDevice_t spiDevice[SPIDEV_COUNT];
 #define SPI_DEFAULT_TIMEOUT 10
 #define SPI_DMA_THRESHOLD 8
 
-#ifdef STM32F7
+#if defined(STM32F7) || defined(STM32H7)
 #define IS_DTCM(p) (((uint32_t)(p) & 0xffff0000) == 0x20000000)
+#endif
+
+#if defined(STM32H7)
+#define SPI_CR1_BR_Pos                      SPI_CFG1_MBR_Pos
+#define SPI_RXFIFO_THRESHOLD_QF             LL_SPI_FIFO_TH_01DATA
+#define LL_SPI_SetRxFIFOThreshold(spi, t)   LL_SPI_SetFIFOThreshold(spi, t)
+#define LL_SPI_IsActiveFlag_TXE(x)          LL_SPI_IsActiveFlag_TXP(x)
+#define LL_SPI_IsActiveFlag_RXNE(x)         LL_SPI_IsActiveFlag_RXP(x)
+#define LL_SPI_IsActiveFlag_BSY(x)          (!LL_SPI_IsActiveFlag_TXC(x))
+#define LL_SPI_GetTxFIFOLevel(x)            (LL_SPI_IsActiveFlag_TXP(x) ? 0 : 1)
+#define LL_SPI_TX_FIFO_EMPTY                0
 #endif
 
 static uint32_t spiDivisorToBRbits(SPI_TypeDef *instance, uint16_t divisor)
@@ -133,6 +144,9 @@ void spiInitDevice(SPIDevice device) {
     LL_SPI_SetRxFIFOThreshold(spi->dev, SPI_RXFIFO_THRESHOLD_QF);
     LL_SPI_Init(spi->dev, &init);
     LL_SPI_Enable(spi->dev);
+#if defined(STM32H7)
+    LL_SPI_StartMasterTransfer(spi->dev);
+#endif
 }
 
 uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t txByte) {
@@ -157,6 +171,7 @@ bool spiIsBusBusy(SPI_TypeDef *instance) {
 }
 
 bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, int len) {
+#if !defined(STM32H7)
     // set 16-bit transfer
     CLEAR_BIT(instance->CR2, SPI_RXFIFO_THRESHOLD);
     while (len > 1) {
@@ -189,6 +204,7 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
     }
     // set 8-bit transfer
     SET_BIT(instance->CR2, SPI_RXFIFO_THRESHOLD);
+#endif
     if (len) {
         int spiTimeout = 1000;
         while (!LL_SPI_IsActiveFlag_TXE(instance)) {
@@ -248,6 +264,9 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
     }
 
     LL_SPI_Enable(instance);
+#if defined(STM32H7)
+    LL_SPI_StartMasterTransfer(instance);
+#endif
 
     // Scan the segment list for DMA safety (cache alignment, DTCM region).
     for (busSegment_t *checkSegment = (busSegment_t *)bus->curSegment; checkSegment->len; checkSegment++) {
@@ -326,7 +345,7 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
     }
 }
 
-#ifdef STM32F7
+#if defined(STM32F7) || defined(STM32H7)
 #define CACHE_LINE_SIZE  32
 #define CACHE_LINE_MASK  (CACHE_LINE_SIZE - 1)
 #endif
@@ -336,10 +355,18 @@ void spiInternalResetDescriptors(busDevice_t *bus)
     LL_DMA_InitTypeDef *initTx = bus->initTx;
 
     LL_DMA_StructInit(initTx);
+#if defined(STM32H7)
+    initTx->PeriphRequest = bus->dmaTx->channel;
+#else
     initTx->Channel = bus->dmaTx->channel;
+#endif
     initTx->Mode = LL_DMA_MODE_NORMAL;
     initTx->Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH;
+#if defined(STM32H7)
+    initTx->PeriphOrM2MSrcAddress = (uint32_t)&bus->busType_u.spi.instance->TXDR;
+#else
     initTx->PeriphOrM2MSrcAddress = (uint32_t)&bus->busType_u.spi.instance->DR;
+#endif
     initTx->Priority = LL_DMA_PRIORITY_LOW;
     initTx->PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT;
     initTx->PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_BYTE;
@@ -349,10 +376,18 @@ void spiInternalResetDescriptors(busDevice_t *bus)
         LL_DMA_InitTypeDef *initRx = bus->initRx;
 
         LL_DMA_StructInit(initRx);
+#if defined(STM32H7)
+        initRx->PeriphRequest = bus->dmaRx->channel;
+#else
         initRx->Channel = bus->dmaRx->channel;
+#endif
         initRx->Mode = LL_DMA_MODE_NORMAL;
         initRx->Direction = LL_DMA_DIRECTION_PERIPH_TO_MEMORY;
+#if defined(STM32H7)
+        initRx->PeriphOrM2MSrcAddress = (uint32_t)&bus->busType_u.spi.instance->RXDR;
+#else
         initRx->PeriphOrM2MSrcAddress = (uint32_t)&bus->busType_u.spi.instance->DR;
+#endif
         initRx->Priority = LL_DMA_PRIORITY_LOW;
         initRx->PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT;
         initRx->PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_BYTE;
@@ -452,7 +487,12 @@ void spiInternalStartDMA(const extDevice_t *dev)
         LL_DMA_EnableStream(dmaTx->dma, dmaTx->stream);
         LL_DMA_EnableStream(dmaRx->dma, dmaRx->stream);
 
+#if defined(STM32H7)
+        LL_SPI_EnableDMAReq_TX(dev->bus->busType_u.spi.instance);
+        LL_SPI_EnableDMAReq_RX(dev->bus->busType_u.spi.instance);
+#else
         SET_BIT(dev->bus->busType_u.spi.instance->CR2, SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN);
+#endif
     } else {
         DMA_Stream_TypeDef *streamRegsTx = (DMA_Stream_TypeDef *)dmaTx->ref;
 
@@ -462,7 +502,11 @@ void spiInternalStartDMA(const extDevice_t *dev)
         LL_EX_DMA_EnableIT_TC(streamRegsTx);
         LL_DMA_Init(dmaTx->dma, dmaTx->stream, bus->initTx);
         LL_DMA_EnableStream(dmaTx->dma, dmaTx->stream);
+#if defined(STM32H7)
+        LL_SPI_EnableDMAReq_TX(dev->bus->busType_u.spi.instance);
+#else
         SET_BIT(dev->bus->busType_u.spi.instance->CR2, SPI_CR2_TXDMAEN);
+#endif
     }
 }
 
@@ -482,7 +526,11 @@ void spiInternalStopDMA(const extDevice_t *dev)
     } else {
         while (LL_SPI_IsActiveFlag_BSY(instance));
         while (LL_SPI_IsActiveFlag_RXNE(instance)) {
+#if defined(STM32H7)
+            (void)instance->RXDR;
+#else
             (void)instance->DR;
+#endif
         }
         LL_DMA_DisableStream(dmaTx->dma, dmaTx->stream);
         DMA_CLEAR_FLAG(dmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);

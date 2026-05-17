@@ -45,11 +45,11 @@ typedef enum {
 typedef struct uartPort_s {
     serialPort_t port;
 
-#if defined(STM32F7)
+#if defined(STM32F7) || defined(STM32H7)
     DMA_HandleTypeDef rxDMAHandle;
     DMA_HandleTypeDef txDMAHandle;
 #endif
-#if defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     DMA_Stream_TypeDef *rxDMAStream;
     DMA_Stream_TypeDef *txDMAStream;
     uint32_t rxDMAChannel;
@@ -72,6 +72,9 @@ typedef struct uartPort_s {
 #endif
     USART_TypeDef *USARTx;
     bool txDMAEmpty;
+#if defined(STM32H7)
+    bool (*checkUsartTxOutput)(struct uartPort_s *s);
+#endif
 } uartPort_t;
 
 void uartPinConfigure(const serialPinConfig_t *pSerialPinConfig);

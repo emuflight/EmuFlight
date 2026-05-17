@@ -50,12 +50,27 @@
 #define __USBD_CONF_H
 
 /* Includes ------------------------------------------------------------------*/
+#if defined(STM32H7)
+#include "stm32h7xx_hal.h"
+#else
 #include "stm32f7xx_hal.h"
+#endif
 #if (USBD_DEBUG_LEVEL > 0)
 #include <stdio.h>
 #endif
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
+/* H7 AXI SRAM section attribute for DMA-accessible USB buffers */
+#if defined(STM32H7)
+#define DMA_RW_AXI  __attribute__((section(".DMA_RW_AXI"), aligned(32)))
+#else
+#define DMA_RW_AXI
+#endif
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

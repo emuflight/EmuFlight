@@ -100,7 +100,11 @@ void uartReconfigure(uartPort_t *uartPort) {
     if (uartPort->port.mode & MODE_RX) {
         if (uartPort->rxDMAStream) {
             uartPort->rxDMAHandle.Instance = uartPort->rxDMAStream;
+#if defined(STM32H7)
+            uartPort->rxDMAHandle.Init.Request = uartPort->rxDMAChannel;
+#else
             uartPort->rxDMAHandle.Init.Channel = uartPort->rxDMAChannel;
+#endif
             uartPort->rxDMAHandle.Init.Direction = DMA_PERIPH_TO_MEMORY;
             uartPort->rxDMAHandle.Init.PeriphInc = DMA_PINC_DISABLE;
             uartPort->rxDMAHandle.Init.MemInc = DMA_MINC_ENABLE;
@@ -133,7 +137,11 @@ void uartReconfigure(uartPort_t *uartPort) {
     if (uartPort->port.mode & MODE_TX) {
         if (uartPort->txDMAStream) {
             uartPort->txDMAHandle.Instance = uartPort->txDMAStream;
+#if defined(STM32H7)
+            uartPort->txDMAHandle.Init.Request = uartPort->txDMAChannel;
+#else
             uartPort->txDMAHandle.Init.Channel = uartPort->txDMAChannel;
+#endif
             uartPort->txDMAHandle.Init.Direction = DMA_MEMORY_TO_PERIPH;
             uartPort->txDMAHandle.Init.PeriphInc = DMA_PINC_DISABLE;
             uartPort->txDMAHandle.Init.MemInc = DMA_MINC_ENABLE;

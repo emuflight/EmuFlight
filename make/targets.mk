@@ -149,13 +149,14 @@ endif
 
 F4_TARGETS      := $(F405_TARGETS) $(F411_TARGETS) $(F446_TARGETS)
 F7_TARGETS      := $(F7X2RE_TARGETS) $(F7X5XE_TARGETS) $(F7X5XG_TARGETS) $(F7X5XI_TARGETS) $(F7X6XG_TARGETS)
+H7_TARGETS      := $(H743_TARGETS)
 
 ifeq ($(filter $(TARGET),$(VALID_TARGETS)),)
 $(error Target '$(TARGET)' is not valid, must be one of $(VALID_TARGETS). Have you prepared a valid target.mk?)
 endif
 
-ifeq ($(filter $(TARGET),$(F1_TARGETS) $(F3_TARGETS) $(F4_TARGETS) $(F7_TARGETS) $(SITL_TARGETS)),)
-$(error Target '$(TARGET)' has not specified a valid STM group, must be one of F1, F3, F405, F411 or F7x5. Have you prepared a valid target.mk?)
+ifeq ($(filter $(TARGET),$(F1_TARGETS) $(F3_TARGETS) $(F4_TARGETS) $(F7_TARGETS) $(H7_TARGETS) $(SITL_TARGETS)),)
+$(error Target '$(TARGET)' has not specified a valid STM group, must be one of F1, F3, F405, F411, F7x5, or H743. Have you prepared a valid target.mk?)
 endif
 
 ifeq ($(TARGET),$(filter $(TARGET),$(F3_TARGETS)))
@@ -173,6 +174,9 @@ SIMULATOR_BUILD = yes
 
 else ifeq ($(TARGET),$(filter $(TARGET), $(F1_TARGETS)))
 TARGET_MCU := STM32F1
+
+else ifeq ($(TARGET),$(filter $(TARGET), $(H7_TARGETS)))
+TARGET_MCU := STM32H7
 else
 $(error Unknown target MCU specified.)
 endif
