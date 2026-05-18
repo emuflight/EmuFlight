@@ -155,7 +155,7 @@ else ifeq ($(TARGET),$(filter $(TARGET),$(H750_TARGETS)))
 DEVICE_FLAGS   += -DSTM32H750xx
 ifeq ($(EXST),yes)
 LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h750_exst.ld
-DEVICE_FLAGS   += -DEXST
+DEVICE_FLAGS   += -DEXST -DUSE_EXST
 TARGET_FLAGS   += -DEXST
 else
 LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h750_128k.ld
@@ -172,7 +172,7 @@ else ifeq ($(TARGET),$(filter $(TARGET),$(H723_TARGETS)))
 DEVICE_FLAGS   += -DSTM32H723xx
 ifeq ($(EXST),yes)
 LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h723_exst.ld
-DEVICE_FLAGS   += -DEXST
+DEVICE_FLAGS   += -DEXST -DUSE_EXST
 TARGET_FLAGS   += -DEXST
 else
 LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h723_1m.ld
@@ -185,7 +185,7 @@ else ifeq ($(TARGET),$(filter $(TARGET),$(H725_TARGETS)))
 DEVICE_FLAGS   += -DSTM32H725xx
 ifeq ($(EXST),yes)
 LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h723_exst.ld
-DEVICE_FLAGS   += -DEXST
+DEVICE_FLAGS   += -DEXST -DUSE_EXST
 TARGET_FLAGS   += -DEXST
 else
 LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h723_1m.ld
@@ -202,7 +202,7 @@ else ifeq ($(TARGET),$(filter $(TARGET),$(H730_TARGETS)))
 DEVICE_FLAGS   += -DSTM32H730xx
 ifeq ($(EXST),yes)
 LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h730_exst.ld
-DEVICE_FLAGS   += -DEXST
+DEVICE_FLAGS   += -DEXST -DUSE_EXST
 TARGET_FLAGS   += -DEXST
 else
 LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h730_128k.ld

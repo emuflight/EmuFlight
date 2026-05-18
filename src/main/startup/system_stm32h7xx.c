@@ -819,8 +819,8 @@ void SystemInit (void)
     extern uint8_t isr_vector_table_base;
 
     SCB->VTOR = (uint32_t)&isr_vector_table_base;
-  #if defined(STM32H730xx)
-    /* Configure the Vector Table location add offset address ------------------*/
+  #if defined(STM32H730xx) || defined(STM32H723xx) || defined(STM32H725xx)
+    /* OCTOSPI XIP targets: copy ISR vectors from OCTOSPI to DTCM for fast dispatch */
 
     extern uint8_t isr_vector_table_flash_base;
     extern uint8_t isr_vector_table_end;
