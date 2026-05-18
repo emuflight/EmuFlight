@@ -55,7 +55,7 @@
 #define STM32F7
 #endif
 
-#elif defined(STM32H743xx)
+#elif defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx)
 #ifdef FLASH_SIZE
 #undef FLASH_SIZE
 #endif
@@ -72,10 +72,10 @@
 #include "stm32h7xx_ll_system.h"
 #include "drivers/stm32h7xx_ll_ex.h"
 
-// Chip Unique ID on H743
-#define U_ID_0 (*(uint32_t*)0x1ff1e800)
-#define U_ID_1 (*(uint32_t*)0x1ff1e804)
-#define U_ID_2 (*(uint32_t*)0x1ff1e808)
+// Chip Unique ID — same register base (0x1FF1E800) on all H7 variants per RM0433/RM0468
+#define U_ID_0 (*(uint32_t*)UID_BASE)
+#define U_ID_1 (*(uint32_t*)(UID_BASE + 4))
+#define U_ID_2 (*(uint32_t*)(UID_BASE + 8))
 
 #ifndef STM32H7
 #define STM32H7
