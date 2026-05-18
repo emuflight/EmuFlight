@@ -1,5 +1,5 @@
 <?php
-	// see docs/Travis.md, .travis.sh
+	// buildserver upload endpoint
 
 	$baseDir = "/var/www/builds/";
 
@@ -7,7 +7,7 @@
 	$manualFile = $_FILES["manual"];
 
 	$recentCommits = $_POST["recent_commits"];
-	$travisJobId = sanitize($_POST["travis_build_number"]);
+	$buildJobId = sanitize($_POST["build_number"]);
 	$lastCommitDate = sanitize($_POST["last_commit_date"]);
 	$revision = sanitize($_POST["revision"]);
 	$branch = sanitize($_POST["branch"]);
@@ -16,7 +16,7 @@
 	$build_name = sanitize($_POST["build_name"]);
 
 	$uploadDir = $baseDir . "/" . $github_repo . "/" . $lastCommitDate . "/";
-	$prefix = $uploadDir . $travisJobId . "_" . $revision . "_" . $build_name;
+	$prefix = $uploadDir . $buildJobId . "_" . $revision . "_" . $build_name;
 
 	if(!file_exists($uploadDir)) mkdir($uploadDir, 0770, true);
 

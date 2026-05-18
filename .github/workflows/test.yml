@@ -44,9 +44,6 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Install BlocksRuntime
-      run: sudo apt-get update && sudo apt-get install -y libblocksruntime-dev
-
     - name: Run tests
       run: make clean_test && make test
 
