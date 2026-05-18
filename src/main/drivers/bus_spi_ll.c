@@ -320,7 +320,19 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
             dmaSafe = false;
             break;
         }
-#ifdef STM32F7
+#if defined(STM32H7)
+        // DMA1/2 cannot access DTCM on H7 — fall back to polled if buffer is there.
+        if ((checkSegment->u.buffers.rxData) && IS_DTCM(checkSegment->u.buffers.rxData)) {
+            dmaSafe = false;
+            break;
+        }
+        // Non-DTCM Rx buffers must be 32-byte cache-line aligned for cache maintenance.
+        if ((checkSegment->u.buffers.rxData) && !IS_DTCM(checkSegment->u.buffers.rxData) &&
+            (((uint32_t)checkSegment->u.buffers.rxData & 31) || (checkSegment->len & 31))) {
+            dmaSafe = false;
+            break;
+        }
+#elif defined(STM32F7)
         // Non-DTCM Rx buffers must be cache-line aligned for DMA on F7.
         if ((checkSegment->u.buffers.rxData) && !IS_DTCM(checkSegment->u.buffers.rxData) &&
             (((uint32_t)checkSegment->u.buffers.rxData & 31) || (checkSegment->len & 31))) {
