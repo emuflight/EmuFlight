@@ -75,7 +75,11 @@ spiDevice_t spiDevice[SPIDEV_COUNT];
 #define SPI_DEFAULT_TIMEOUT 10
 #define SPI_DMA_THRESHOLD 8
 
-#if defined(STM32F7) || defined(STM32H7)
+#if defined(STM32H7)
+// H7 DTCM is 128 KB (0x20000000–0x2001FFFF); DMA1/2 cannot access it
+#define IS_DTCM(p) (((uint32_t)(p) & 0xfffe0000) == 0x20000000)
+#elif defined(STM32F7)
+// F7 DTCM is 64 KB (0x20000000–0x2000FFFF)
 #define IS_DTCM(p) (((uint32_t)(p) & 0xffff0000) == 0x20000000)
 #endif
 
