@@ -182,7 +182,7 @@ bool hcsr04Detect(rangefinderDev_t *dev, const sonarConfig_t * rangefinderHardwa
         // Hardware detected - configure the driver
 #ifdef USE_EXTI
         EXTIHandlerInit(&hcsr04_extiCallbackRec, hcsr04_extiHandler);
-        EXTIConfig(echoIO, &hcsr04_extiCallbackRec, NVIC_PRIO_SONAR_EXTI, EXTI_Trigger_Rising_Falling); // TODO - priority!
+        EXTIConfig(echoIO, &hcsr04_extiCallbackRec, NVIC_PRIO_SONAR_EXTI, IOCFG_IN_FLOATING, EXTI_TRIGGER_BOTH);
         EXTIEnable(echoIO, true);
 #endif
         dev->delayMs = 100;

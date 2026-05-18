@@ -51,8 +51,12 @@
 
 #elif defined(STM32F7) || defined(STM32H7)
 
-//speed is packed inside modebits 5 and 2,
+// mode: bits 0-1, speed: bits 2-3, otype: bit 4, pupd: bits 5-6
 #define IO_CONFIG(mode, speed, pupd) ((mode) | ((speed) << 2) | ((pupd) << 5))
+#define IO_CONFIG_GET_MODE(cfg)  (((cfg) >> 0) & 0x03)
+#define IO_CONFIG_GET_SPEED(cfg) (((cfg) >> 2) & 0x03)
+#define IO_CONFIG_GET_OTYPE(cfg) (((cfg) >> 4) & 0x01)
+#define IO_CONFIG_GET_PULL(cfg)  (((cfg) >> 5) & 0x03)
 
 #define IOCFG_OUT_PP         IO_CONFIG(GPIO_MODE_OUTPUT_PP, GPIO_SPEED_FREQ_LOW,  GPIO_NOPULL)
 #define IOCFG_OUT_PP_UP      IO_CONFIG(GPIO_MODE_OUTPUT_PP, GPIO_SPEED_FREQ_LOW,  GPIO_PULLUP)

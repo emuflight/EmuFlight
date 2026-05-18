@@ -329,7 +329,7 @@ static void bmi270IntExtiInit(gyroDev_t *gyro)
 
     IOInit(mpuIntIO, OWNER_MPU_EXTI, 0);
     EXTIHandlerInit(&gyro->exti, bmi270ExtiHandler);
-    EXTIConfig(mpuIntIO, &gyro->exti, NVIC_PRIO_MPU_INT_EXTI, IOCFG_IN_FLOATING);
+    EXTIConfig(mpuIntIO, &gyro->exti, NVIC_PRIO_MPU_INT_EXTI, IOCFG_IN_FLOATING, EXTI_TRIGGER_RISING);
     EXTIEnable(mpuIntIO, true);
 }
 #endif

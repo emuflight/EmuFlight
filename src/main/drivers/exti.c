@@ -91,24 +91,26 @@ void EXTIHandlerInit(extiCallbackRec_t *self, extiHandlerCallback *fn) {
 }
 
 #if defined(STM32F7) || defined(STM32H7)
-void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, ioConfig_t config) {
-    (void)config;
-    int chIdx;
-    chIdx = IO_GPIOPinIdx(io);
+static const uint32_t extiTriggerToHALMode[] = {
+    [EXTI_TRIGGER_RISING]  = GPIO_MODE_IT_RISING,
+    [EXTI_TRIGGER_FALLING] = GPIO_MODE_IT_FALLING,
+    [EXTI_TRIGGER_BOTH]    = GPIO_MODE_IT_RISING_FALLING,
+};
+
+void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, ioConfig_t config, extiTrigger_t trigger) {
+    int chIdx = IO_GPIOPinIdx(io);
     if (chIdx < 0)
         return;
     extiChannelRec_t *rec = &extiChannelRecs[chIdx];
     int group = extiGroups[chIdx];
     GPIO_InitTypeDef init = {
-        .Pin = IO_Pin(io),
-        .Mode = GPIO_MODE_IT_RISING,
-        .Speed = GPIO_SPEED_FREQ_LOW,
-        .Pull = GPIO_NOPULL,
+        .Pin   = IO_Pin(io),
+        .Mode  = extiTriggerToHALMode[trigger],
+        .Speed = IO_CONFIG_GET_SPEED(config),
+        .Pull  = IO_CONFIG_GET_PULL(config),
     };
     HAL_GPIO_Init(IO_GPIO(io), &init);
     rec->handler = cb;
-    //uint32_t extiLine = IO_EXTI_Line(io);
-    //EXTI_ClearITPendingBit(extiLine);
     if (extiGroupPriority[group] > irqPriority) {
         extiGroupPriority[group] = irqPriority;
         HAL_NVIC_SetPriority(extiGroupIRQn[group], NVIC_PRIORITY_BASE(irqPriority), NVIC_PRIORITY_SUB(irqPriority));
@@ -116,10 +118,15 @@ void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, ioConfig_t conf
     }
 }
 #else
+static const EXTITrigger_TypeDef extiTriggerToSPL[] = {
+    [EXTI_TRIGGER_RISING]  = EXTI_Trigger_Rising,
+    [EXTI_TRIGGER_FALLING] = EXTI_Trigger_Falling,
+    [EXTI_TRIGGER_BOTH]    = EXTI_Trigger_Rising_Falling,
+};
 
-void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, EXTITrigger_TypeDef trigger) {
-    int chIdx;
-    chIdx = IO_GPIOPinIdx(io);
+void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, ioConfig_t config, extiTrigger_t trigger) {
+    (void)config;
+    int chIdx = IO_GPIOPinIdx(io);
     if (chIdx < 0)
         return;
     extiChannelRec_t *rec = &extiChannelRecs[chIdx];
@@ -127,9 +134,7 @@ void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, EXTITrigger_Typ
     rec->handler = cb;
 #if defined(STM32F10X)
     GPIO_EXTILineConfig(IO_GPIO_PortSource(io), IO_GPIO_PinSource(io));
-#elif defined(STM32F303xC)
-    SYSCFG_EXTILineConfig(IO_EXTI_PortSourceGPIO(io), IO_EXTI_PinSource(io));
-#elif defined(STM32F4)
+#elif defined(STM32F303xC) || defined(STM32F4)
     SYSCFG_EXTILineConfig(IO_EXTI_PortSourceGPIO(io), IO_EXTI_PinSource(io));
 #else
 # warning "Unknown CPU"
@@ -139,7 +144,7 @@ void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, EXTITrigger_Typ
     EXTI_InitTypeDef EXTIInit;
     EXTIInit.EXTI_Line = extiLine;
     EXTIInit.EXTI_Mode = EXTI_Mode_Interrupt;
-    EXTIInit.EXTI_Trigger = trigger;
+    EXTIInit.EXTI_Trigger = extiTriggerToSPL[trigger];
     EXTIInit.EXTI_LineCmd = ENABLE;
     EXTI_Init(&EXTIInit);
     if (extiGroupPriority[group] > irqPriority) {
