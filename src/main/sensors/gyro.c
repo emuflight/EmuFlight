@@ -718,7 +718,7 @@ bool gyroInit(void) {
 #endif
     spiSetBusInstance(&gyroSensor1.gyroDev.dev, SPI_DEV_TO_CFG(GYRO_1_SPI_BUS));
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_1 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
-        static FAST_RAM_ZERO_INIT uint8_t gyroBuf1[GYRO_BUF_SIZE];
+        static DMA_DATA_ZERO_INIT uint8_t gyroBuf1[GYRO_BUF_SIZE];
         gyroSensor1.gyroDev.dev.txBuf = gyroBuf1;
         gyroSensor1.gyroDev.dev.rxBuf = &gyroBuf1[GYRO_BUF_SIZE / 2];
         ret = gyroInitSensor(&gyroSensor1);
@@ -729,7 +729,7 @@ bool gyroInit(void) {
     }
 #else // USE_DUAL_GYRO
     {
-        static FAST_RAM_ZERO_INIT uint8_t gyroBuf1[GYRO_BUF_SIZE];
+        static DMA_DATA_ZERO_INIT uint8_t gyroBuf1[GYRO_BUF_SIZE];
         gyroSensor1.gyroDev.dev.txBuf = gyroBuf1;
         gyroSensor1.gyroDev.dev.rxBuf = &gyroBuf1[GYRO_BUF_SIZE / 2];
     }
@@ -750,7 +750,7 @@ bool gyroInit(void) {
 #endif
     spiSetBusInstance(&gyroSensor2.gyroDev.dev, SPI_DEV_TO_CFG(GYRO_2_SPI_BUS));
     if (gyroToUse == GYRO_CONFIG_USE_GYRO_2 || gyroToUse == GYRO_CONFIG_USE_GYRO_BOTH) {
-        static FAST_RAM_ZERO_INIT uint8_t gyroBuf2[GYRO_BUF_SIZE];
+        static DMA_DATA_ZERO_INIT uint8_t gyroBuf2[GYRO_BUF_SIZE];
         gyroSensor2.gyroDev.dev.txBuf = gyroBuf2;
         gyroSensor2.gyroDev.dev.rxBuf = &gyroBuf2[GYRO_BUF_SIZE / 2];
         ret = gyroInitSensor(&gyroSensor2);

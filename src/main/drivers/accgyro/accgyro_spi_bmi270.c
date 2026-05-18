@@ -462,10 +462,10 @@ static bool bmi270GyroReadFifo(gyroDev_t *gyro)
     };
 
     bool dataRead = false;
-    static const uint8_t bmi270_tx_buf[BUFFER_SIZE] = {BMI270_REG_FIFO_LENGTH_LSB | 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    static uint8_t bmi270_rx_buf[BUFFER_SIZE];
+    STATIC_DMA_DATA_AUTO uint8_t bmi270_tx_buf[BUFFER_SIZE] = {BMI270_REG_FIFO_LENGTH_LSB | 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    STATIC_DMA_DATA_AUTO uint8_t bmi270_rx_buf[BUFFER_SIZE];
     busSegment_t segments[] = {
-        {.u.buffers = {(uint8_t *)bmi270_tx_buf, bmi270_rx_buf}, BUFFER_SIZE, true, NULL},
+        {.u.buffers = {bmi270_tx_buf, bmi270_rx_buf}, BUFFER_SIZE, true, NULL},
         {.u.link = {NULL, NULL}, 0, true, NULL},
     };
     spiSequence(&gyro->dev, &segments[0]);
