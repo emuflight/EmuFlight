@@ -157,8 +157,8 @@ static inline void __atomic_barrier_cleanup(atomic_barrier_state_t *state) {
 }
 
 #define ATOMIC_BARRIER(data)                                            \
-    atomic_barrier_state_t __attribute__((cleanup(__atomic_barrier_cleanup) __unused__)) __UNIQL(__barrier) = { .ptr = &(data) }; \
-    ATOMIC_BARRIER_ENTER(__UNIQL(__barrier).ptr, #data);                \
+    atomic_barrier_state_t __attribute__((cleanup(__atomic_barrier_cleanup), __unused__)) __UNIQL(__barrier) = { .ptr = &(data) }; \
+    ATOMIC_BARRIER_ENTER((volatile unsigned char *)__UNIQL(__barrier).ptr, #data); \
     do {} while(0)                                                      \
 /**/
 
