@@ -93,7 +93,7 @@ static const dmaPeripheralMapping_t dmaPeripheralMapping[] = {
 #ifdef USE_ADC
     REQMAP(ADC, 1),
     REQMAP(ADC, 2),
-#if defined(STM32H743xx)
+#if defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx)
     REQMAP(ADC, 3),
 #endif
 #endif
