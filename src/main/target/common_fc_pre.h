@@ -84,6 +84,7 @@
 #define USE_ITCM_RAM
 // Note: USE_FAST_RAM intentionally omitted — DTCM is not DMA-accessible on H7;
 // DShot and SPI DMA buffers must stay in AXI SRAM where DMA controllers can reach them
+#define USE_DMA_RAM
 #define USE_DSHOT
 #define USE_GYRO_DATA_ANALYSE
 #define USE_ADC_INTERNAL
