@@ -155,7 +155,12 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     const IO_t motorIO = IOGetByTag(timerHardware->tag);
     const uint8_t timerIndex = getTimerIndex(timer);
     const bool configureTimer = (timerIndex == dmaMotorTimerCount - 1);
+#if defined(STM32H7)
+    // H7 GPIO driver is significantly stronger than F4/F7; VERY_HIGH causes ringing on DShot lines
+    IOConfigGPIOAF(motorIO, IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_LOW, GPIO_PULLDOWN), timerHardware->alternateFunction);
+#else
     IOConfigGPIOAF(motorIO, IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_VERY_HIGH, GPIO_PULLDOWN), timerHardware->alternateFunction);
+#endif
     if (configureTimer) {
         LL_TIM_InitTypeDef init;
         LL_TIM_StructInit(&init);
