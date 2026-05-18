@@ -41,16 +41,17 @@
 #define ADC_INSTANCE ADC1
 #endif
 
-// Default DMA streams for H7; avoid streams 0-3 which DShot motors typically use.
-// Targets can override via target.h.
+// Default DMA streams for H7 ADC.
+// DMA1 is reserved for timer-based DMA (DShot motors S0-3, LED strip, etc.).
+// ADC defaults to DMA2 to avoid any overlap. Targets can override via target.h.
 #ifndef ADC1_DMA_STREAM
-#define ADC1_DMA_STREAM DMA1_Stream4
+#define ADC1_DMA_STREAM DMA2_Stream1
 #endif
 #ifndef ADC2_DMA_STREAM
-#define ADC2_DMA_STREAM DMA1_Stream5
+#define ADC2_DMA_STREAM DMA2_Stream2
 #endif
 #ifndef ADC3_DMA_STREAM
-#define ADC3_DMA_STREAM DMA1_Stream6
+#define ADC3_DMA_STREAM DMA2_Stream3
 #endif
 
 const adcDevice_t adcHardware[] = {
