@@ -325,8 +325,6 @@ void icm426xxGyroInit(gyroDev_t *gyro)
     delay(15);
 }
 
-// MIGHT NOT work on STM32F7
-#define STATIC_DMA_DATA_AUTO static
 //FAST_CODE bool mpuGyroReadSPI(gyroDev_t *gyro)
 bool icm426xxGyroReadSPI(gyroDev_t *gyro)
 {

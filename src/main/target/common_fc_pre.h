@@ -114,6 +114,13 @@
 #define FAST_CODE_NOINLINE
 #endif // USE_ITCM_RAM
 
+// On H7, ISR handlers in ITCM execute from fastest memory (zero flash latency).
+#if defined(STM32H7)
+#define FAST_IRQ_HANDLER            FAST_CODE
+#else
+#define FAST_IRQ_HANDLER
+#endif
+
 #ifdef USE_FAST_RAM
 #define FAST_RAM_ZERO_INIT             __attribute__ ((section(".fastram_bss"), aligned(4)))
 #define FAST_RAM                    __attribute__ ((section(".fastram_data"), aligned(4)))
@@ -122,7 +129,25 @@
 #define FAST_RAM
 #endif // USE_FAST_RAM
 
-#ifdef STM32F4
+// DMA buffer placement macros.
+// H7: DMA cannot access DTCM; place DMA buffers in AXI SRAM (.dmaram sections).
+// F7: DTCM is DMA-accessible, so FAST_RAM (DTCM) works.
+// Others: no special placement required.
+#if defined(STM32H7)
+#define DMA_DATA_ZERO_INIT          __attribute__ ((section(".dmaram_bss"),  aligned(32)))
+#define DMA_DATA                    __attribute__ ((section(".dmaram_data"), aligned(32)))
+#define STATIC_DMA_DATA_AUTO        static DMA_DATA
+#elif defined(STM32F7)
+#define DMA_DATA_ZERO_INIT          FAST_RAM_ZERO_INIT
+#define DMA_DATA                    FAST_RAM
+#define STATIC_DMA_DATA_AUTO        static DMA_DATA
+#else
+#define DMA_DATA_ZERO_INIT
+#define DMA_DATA
+#define STATIC_DMA_DATA_AUTO        static
+#endif
+
+#if defined(STM32F4) || defined(STM32H7)
 // Data in RAM which is guaranteed to not be reset on hot reboot
 #define PERSISTENT                  __attribute__ ((section(".persistent_data"), aligned(4)))
 #endif
