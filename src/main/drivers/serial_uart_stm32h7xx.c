@@ -594,7 +594,7 @@ static void handleUsartTxDma(uartPort_t *s)
     }
 }
 
-void uartIrqHandler(uartPort_t *s)
+FAST_IRQ_HANDLER void uartIrqHandler(uartPort_t *s)
 {
     UART_HandleTypeDef *huart = &s->Handle;
 

@@ -51,7 +51,7 @@ static uint16_t timerChannel = 0;
 transponder_t transponder;
 bool transponderInitialised = false;
 
-static void TRANSPONDER_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
+FAST_IRQ_HANDLER static void TRANSPONDER_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
     HAL_DMA_IRQHandler(TimHandle.hdma[descriptor->userParam]);
     TIM_DMACmd(&TimHandle, timerChannel, DISABLE);
     transponderIrDataTransferInProgress = 0;
