@@ -168,6 +168,7 @@ MCU_COMMON_SRC = \
             drivers/adc_stm32h7xx.c \
             drivers/audio_stm32h7xx.c \
             drivers/bus_i2c_hal.c \
+            drivers/bus_i2c_timing.c \
             drivers/dma_stm32h7xx.c \
             drivers/dma_reqmap_mcu.c \
             drivers/light_ws2811strip_hal.c \
