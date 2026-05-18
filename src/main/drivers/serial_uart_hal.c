@@ -327,7 +327,7 @@ const struct serialPortVTable uartVTable[] = {
 
 #ifdef USE_UART1
 // USART1 Rx/Tx IRQ Handler
-void USART1_IRQHandler(void) {
+FAST_IRQ_HANDLER void USART1_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_1]->port);
     uartIrqHandler(s);
 }
@@ -335,7 +335,7 @@ void USART1_IRQHandler(void) {
 
 #ifdef USE_UART2
 // USART2 Rx/Tx IRQ Handler
-void USART2_IRQHandler(void) {
+FAST_IRQ_HANDLER void USART2_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_2]->port);
     uartIrqHandler(s);
 }
@@ -343,7 +343,7 @@ void USART2_IRQHandler(void) {
 
 #ifdef USE_UART3
 // USART3 Rx/Tx IRQ Handler
-void USART3_IRQHandler(void) {
+FAST_IRQ_HANDLER void USART3_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_3]->port);
     uartIrqHandler(s);
 }
@@ -351,7 +351,7 @@ void USART3_IRQHandler(void) {
 
 #ifdef USE_UART4
 // UART4 Rx/Tx IRQ Handler
-void UART4_IRQHandler(void) {
+FAST_IRQ_HANDLER void UART4_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_4]->port);
     uartIrqHandler(s);
 }
@@ -359,7 +359,7 @@ void UART4_IRQHandler(void) {
 
 #ifdef USE_UART5
 // UART5 Rx/Tx IRQ Handler
-void UART5_IRQHandler(void) {
+FAST_IRQ_HANDLER void UART5_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_5]->port);
     uartIrqHandler(s);
 }
@@ -367,7 +367,7 @@ void UART5_IRQHandler(void) {
 
 #ifdef USE_UART6
 // USART6 Rx/Tx IRQ Handler
-void USART6_IRQHandler(void) {
+FAST_IRQ_HANDLER void USART6_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_6]->port);
     uartIrqHandler(s);
 }
@@ -375,7 +375,7 @@ void USART6_IRQHandler(void) {
 
 #ifdef USE_UART7
 // UART7 Rx/Tx IRQ Handler
-void UART7_IRQHandler(void) {
+FAST_IRQ_HANDLER void UART7_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_7]->port);
     uartIrqHandler(s);
 }
@@ -383,7 +383,7 @@ void UART7_IRQHandler(void) {
 
 #ifdef USE_UART8
 // UART8 Rx/Tx IRQ Handler
-void UART8_IRQHandler(void) {
+FAST_IRQ_HANDLER void UART8_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_8]->port);
     uartIrqHandler(s);
 }
