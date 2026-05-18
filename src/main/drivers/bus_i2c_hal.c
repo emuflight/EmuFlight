@@ -34,6 +34,9 @@
 
 #include "drivers/bus_i2c.h"
 #include "drivers/bus_i2c_impl.h"
+#if defined(STM32H7)
+#include "drivers/bus_i2c_timing.h"
+#endif
 
 #define CLOCKSPEED 800000    // i2c clockspeed 400kHz default (conform specs), 800kHz  and  1200kHz (Betaflight default)
 
@@ -222,13 +225,24 @@ void i2cInit(I2CDevice device) {
     I2C_HandleTypeDef *pHandle = &pDev->handle;
     memset(pHandle, 0, sizeof(*pHandle));
     pHandle->Instance = pDev->hardware->reg;
-    /// TODO: HAL check if I2C timing is correct
+#if defined(STM32H7)
+    // Compute TIMINGR from the actual peripheral clock so timing is correct
+    // across any H7 target regardless of PLL configuration.
+    // I2C1/2/3 clock = D2PCLK1 (APB1); I2C4 clock = D3PCLK1 (APB4).
+    {
+        uint32_t i2cPclk = (pHandle->Instance == I2C4) ? HAL_RCCEx_GetD3PCLK1Freq()
+                                                        : HAL_RCC_GetPCLK1Freq();
+        int i2cFreqKhz = pDev->overClock ? 800 : 400;
+        pHandle->Init.Timing = i2cClockTIMINGR(i2cPclk, i2cFreqKhz, 0);
+    }
+#else
     if (pDev->overClock) {
         // 800khz Maximum speed tested on various boards without issues
         pHandle->Init.Timing = 0x00500D1D;
     } else {
         pHandle->Init.Timing = 0x00500C6F;
     }
+#endif
     pHandle->Init.OwnAddress1 = 0x0;
     pHandle->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
     pHandle->Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
