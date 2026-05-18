@@ -384,11 +384,6 @@ COMMON_FLAGS = \
 	-isystem $(GTEST_DIR)/inc \
 	-MMD -MP
 
-ifeq ($(OSFAMILY),macosx)
-COMMON_FLAGS += -fblocks
-LDFLAGS	     += -lBlocksRuntime
-endif
-
 ifndef MACOSX
 COMMON_FLAGS += -pthread
 endif
