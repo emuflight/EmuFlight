@@ -99,11 +99,6 @@ ifneq ($(GITHUBBUILDNUMBER),)
 BUILDNO := $(GITHUBBUILDNUMBER)
 endif
 
-# travis build
-ifneq ($(TRAVIS_BUILD_NUMBER),)
-BUILDNO := $(TRAVIS_BUILD_NUMBER)
-endif
-
 BUILDDATETIME := $(shell date +'%Y%m%d%Z')
 REVISION := uncommitted_$(BUILDDATETIME)
 ifeq ($(shell git diff --shortstat),)
