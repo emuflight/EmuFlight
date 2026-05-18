@@ -104,7 +104,15 @@ static void adcInitDevice(adcDevice_t *adcdev, int channelCount)
     adcdev->ADCHandle.Init.NbrOfDiscConversion       = 1;
     adcdev->ADCHandle.Init.ExternalTrigConv          = ADC_SOFTWARE_START;
     adcdev->ADCHandle.Init.ExternalTrigConvEdge      = ADC_EXTERNALTRIGCONVEDGE_NONE;
-    adcdev->ADCHandle.Init.ConversionDataManagement  = ADC_CONVERSIONDATA_DMA_CIRCULAR;
+    // H723/H725/H730: ADC3 uses DMAContinuousRequests instead of ConversionDataManagement.
+#if defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx)
+    if (adcdev->ADCx == ADC3) {
+        adcdev->ADCHandle.Init.DMAContinuousRequests = ENABLE;
+    } else
+#endif
+    {
+        adcdev->ADCHandle.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DMA_CIRCULAR;
+    }
     adcdev->ADCHandle.Init.Overrun                   = ADC_OVR_DATA_OVERWRITTEN;
     adcdev->ADCHandle.Init.OversamplingMode          = DISABLE;
     if (HAL_ADC_Init(&adcdev->ADCHandle) != HAL_OK) {
