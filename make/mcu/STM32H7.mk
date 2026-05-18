@@ -138,13 +138,50 @@ ARCH_FLAGS      = -mthumb -mcpu=cortex-m7 -mfloat-abi=hard -mfpu=fpv5-sp-d16 -fs
 DEVICE_FLAGS    = -DUSE_HAL_DRIVER -DUSE_FULL_LL_DRIVER -DSTM32H7
 
 #
-# H743xI : 2M FLASH, 512KB AXI SRAM + 512KB D2 & D3 SRAM (H753xI also)
+# H743xI : 2M FLASH, 512K AXI SRAM + 512K D2 & D3 SRAM (H753xI also)
 #
 ifeq ($(TARGET),$(filter $(TARGET),$(H743_TARGETS)))
 DEVICE_FLAGS   += -DSTM32H743xx
 LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h743_2m.ld
 STARTUP_SRC     = startup_stm32h743xx.s
 TARGET_FLASH   := 2048
+DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
+
+#
+# H750xB : 128K FLASH, 512K AXI SRAM + 512K D2 & D3 SRAM
+#
+else ifeq ($(TARGET),$(filter $(TARGET),$(H750_TARGETS)))
+DEVICE_FLAGS   += -DSTM32H750xx
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h750_128k.ld
+STARTUP_SRC     = startup_stm32h750xx.s
+TARGET_FLASH   := 128
+DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
+
+#
+# H723xG / H725xG : 1M FLASH, 320K AXI SRAM + 32K D2 SRAM
+#
+else ifeq ($(TARGET),$(filter $(TARGET),$(H723_TARGETS)))
+DEVICE_FLAGS   += -DSTM32H723xx
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h723_1m.ld
+STARTUP_SRC     = startup_stm32h723xx.s
+TARGET_FLASH   := 1024
+DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
+
+else ifeq ($(TARGET),$(filter $(TARGET),$(H725_TARGETS)))
+DEVICE_FLAGS   += -DSTM32H725xx
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h723_1m.ld
+STARTUP_SRC     = startup_stm32h723xx.s
+TARGET_FLASH   := 1024
+DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
+
+#
+# H730xB : 128K FLASH, 320K AXI SRAM + 32K D2 SRAM
+#
+else ifeq ($(TARGET),$(filter $(TARGET),$(H730_TARGETS)))
+DEVICE_FLAGS   += -DSTM32H730xx
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h730_128k.ld
+STARTUP_SRC     = startup_stm32h730xx.s
+TARGET_FLASH   := 128
 DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
 
 else
