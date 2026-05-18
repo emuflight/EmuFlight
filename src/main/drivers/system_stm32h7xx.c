@@ -33,56 +33,11 @@ void SystemClock_Config(void);
 
 void enableGPIOPowerUsageAndNoiseReductions(void)
 {
-    // AHB4 — GPIO ports (H7: AHB4, not AHB1 as on F4/F7)
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    __HAL_RCC_GPIOD_CLK_ENABLE();
-    __HAL_RCC_GPIOE_CLK_ENABLE();
-    __HAL_RCC_GPIOF_CLK_ENABLE();
-    __HAL_RCC_GPIOG_CLK_ENABLE();
-    __HAL_RCC_GPIOH_CLK_ENABLE();
-    __HAL_RCC_GPIOI_CLK_ENABLE();
-    __HAL_RCC_GPIOJ_CLK_ENABLE();
-    __HAL_RCC_GPIOK_CLK_ENABLE();
-    // AHB1 — DMA
+    // AHB1 — DMA controllers (enabled early; individual drivers also call RCC_ClockCmd)
     __HAL_RCC_DMA1_CLK_ENABLE();
     __HAL_RCC_DMA2_CLK_ENABLE();
-    // APB1L — timers (H7 APB1 is split into APB1L/APB1H; TIM2-7/12-14 are APB1L)
-    __HAL_RCC_TIM2_CLK_ENABLE();
-    __HAL_RCC_TIM3_CLK_ENABLE();
-    __HAL_RCC_TIM4_CLK_ENABLE();
-    __HAL_RCC_TIM5_CLK_ENABLE();
-    __HAL_RCC_TIM6_CLK_ENABLE();
-    __HAL_RCC_TIM7_CLK_ENABLE();   // USB CDC TX poll timer — must be enabled before CDC_Itf_Init
-    __HAL_RCC_TIM12_CLK_ENABLE();
-    __HAL_RCC_TIM13_CLK_ENABLE();
-    __HAL_RCC_TIM14_CLK_ENABLE();
-    __HAL_RCC_LPTIM1_CLK_ENABLE();
-    // APB1L — SPI, USART, I2C
-    __HAL_RCC_SPI2_CLK_ENABLE();
-    __HAL_RCC_SPI3_CLK_ENABLE();
-    __HAL_RCC_USART2_CLK_ENABLE();
-    __HAL_RCC_USART3_CLK_ENABLE();
-    __HAL_RCC_UART4_CLK_ENABLE();
-    __HAL_RCC_UART5_CLK_ENABLE();
-    __HAL_RCC_I2C1_CLK_ENABLE();
-    __HAL_RCC_I2C2_CLK_ENABLE();
-    __HAL_RCC_I2C3_CLK_ENABLE();
-    __HAL_RCC_UART7_CLK_ENABLE();
-    __HAL_RCC_UART8_CLK_ENABLE();
-    // APB2 — timers (H7: TIM15/16/17 replace F7's TIM9/10/11)
-    __HAL_RCC_TIM1_CLK_ENABLE();
-    __HAL_RCC_TIM8_CLK_ENABLE();
-    __HAL_RCC_TIM15_CLK_ENABLE();
-    __HAL_RCC_TIM16_CLK_ENABLE();
-    __HAL_RCC_TIM17_CLK_ENABLE();
-    // APB2 — SPI, USART
-    __HAL_RCC_SPI1_CLK_ENABLE();
-    __HAL_RCC_SPI4_CLK_ENABLE();
-    __HAL_RCC_SPI5_CLK_ENABLE();
-    __HAL_RCC_USART1_CLK_ENABLE();
-    __HAL_RCC_USART6_CLK_ENABLE();
+    // All other peripherals (GPIO, timers, UARTs, SPI, I2C) are enabled on-demand
+    // by each driver via RCC_ClockCmd() or direct HAL macros.
 }
 
 void configureMasterClockOutputs(void)

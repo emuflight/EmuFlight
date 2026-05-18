@@ -316,7 +316,7 @@ const spiHardware_t spiHardware[] = {
             { DEFIO_TAG_E(PC1),  GPIO_AF5_SPI2 },
             { DEFIO_TAG_E(PC3),  GPIO_AF5_SPI2 },
         },
-        .rcc = RCC_APB1(SPI2),
+        .rcc = RCC_APB1L(SPI2),
         .dmaIrqHandler = DMA1_ST4_HANDLER,
     },
     {
@@ -336,7 +336,7 @@ const spiHardware_t spiHardware[] = {
             { DEFIO_TAG_E(PC12), GPIO_AF6_SPI3 },
             { DEFIO_TAG_E(PD6),  GPIO_AF5_SPI3 },
         },
-        .rcc = RCC_APB1(SPI3),
+        .rcc = RCC_APB1L(SPI3),
         .dmaIrqHandler = DMA1_ST7_HANDLER,
     },
     {
