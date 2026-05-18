@@ -1,0 +1,48 @@
+on:
+  push:
+    tags:
+    - '*'
+    branches:
+    - '*'
+  pull_request:
+    branches:
+    - '*'
+  repository_dispatch:
+    types: [test-macos]
+
+name: Test Suite macOS
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    continue-on-error: false
+    timeout-minutes: 30
+    runs-on: macos-13
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 9
+
+    - name: Cache build toolchain
+      uses: actions/cache@v4
+      id: cache-toolchain
+      with:
+        path: tools
+        key: ${{ runner.os }}-${{ hashFiles('make/tools.mk') }}
+
+    - name: Download and install toolchain
+      if: steps.cache-toolchain.outputs.cache-hit != 'true'
+      run: make arm_sdk_install
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Run tests
+      run: make clean_test && make test
