@@ -120,6 +120,16 @@ static adcDevice_t adc;
 // H7A3/H7B3 do not have ADC3; guard accordingly.
 #if !(defined(STM32H7A3xx) || defined(STM32H7A3xxQ))
 
+// H743/H750/H7A3 factory-calibrate VREFINT at 16-bit precision; H723/H725/H730 use 12-bit.
+// ADC runs at 12-bit here, so shift 16-bit cal values right by 4 to match the live sample domain.
+#if defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
+#define VREFINT_CAL_SHIFT 4
+#elif defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx)
+#define VREFINT_CAL_SHIFT 0
+#else
+#error Unknown STM32H7 variant — add VREFINT_CAL_SHIFT definition
+#endif
+
 static ADC_HandleTypeDef adcInternalHandle;
 static bool adcInternalConversionInProgress = false;
 
@@ -175,9 +185,9 @@ static void adcInitInternalInjected(void)
         return;
     }
 
-    adcVREFINTCAL = *VREFINT_CAL_ADDR;
-    adcTSCAL1 = *TEMPSENSOR_CAL1_ADDR;
-    adcTSCAL2 = *TEMPSENSOR_CAL2_ADDR;
+    adcVREFINTCAL = *VREFINT_CAL_ADDR >> VREFINT_CAL_SHIFT;
+    adcTSCAL1 = *TEMPSENSOR_CAL1_ADDR >> VREFINT_CAL_SHIFT;
+    adcTSCAL2 = *TEMPSENSOR_CAL2_ADDR >> VREFINT_CAL_SHIFT;
     adcTSSlopeK = (TEMPSENSOR_CAL2_TEMP - TEMPSENSOR_CAL1_TEMP) * 1000 / (adcTSCAL2 - adcTSCAL1);
 }
 
