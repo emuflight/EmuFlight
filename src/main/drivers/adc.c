@@ -40,7 +40,10 @@
 
 adcOperatingConfig_t adcOperatingConfig[ADC_CHANNEL_COUNT];
 
-#if defined(STM32F7)
+#if defined(STM32H7)
+// 32-byte aligned: DMA target in AXI SRAM (D-cached); invalidate before CPU read
+volatile uint16_t adcValues[ADC_CHANNEL_COUNT] __attribute__((aligned(32)));
+#elif defined(STM32F7)
 volatile FAST_RAM_ZERO_INIT uint16_t adcValues[ADC_CHANNEL_COUNT];
 #else
 volatile uint16_t adcValues[ADC_CHANNEL_COUNT];
@@ -82,6 +85,9 @@ ADCDevice adcDeviceByInstance(ADC_TypeDef *instance) {
 }
 
 uint16_t adcGetChannel(uint8_t channel) {
+#if defined(STM32H7)
+    SCB_InvalidateDCache_by_Addr((uint32_t*)adcValues, 32);
+#endif
 #ifdef DEBUG_ADC_CHANNELS
     if (adcOperatingConfig[0].enabled) {
         debug[0] = adcValues[adcOperatingConfig[0].dmaIndex];
