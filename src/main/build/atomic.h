@@ -148,42 +148,19 @@ static inline uint8_t __basepriSetRetVal(uint8_t prio) {
 #define ATOMIC_BARRIER_LEAVE(dataPtr, refStr)                              \
     __asm__ volatile ("\t# barrier (" refStr ") leave\n" : "m" (*(dataPtr)))
 
-#if defined(__clang__) && defined(__APPLE__)
-// Apple clang version, using Objective C-style block cleanup.
-// based on https://stackoverflow.com/questions/24959440/rewrite-gcc-cleanup-macro-with-nested-function-for-clang
-typedef void (^__cleanup_block)(void);
-static inline void __do_cleanup(__cleanup_block * b) {
-    (*b)();
+typedef struct atomic_barrier_state {
+    void *ptr;
+} atomic_barrier_state_t;
+
+static inline void __atomic_barrier_cleanup(atomic_barrier_state_t *state) {
+    __asm__ volatile ("" : : "m" (*(volatile unsigned char *)state->ptr));
 }
 
 #define ATOMIC_BARRIER(data)                                            \
-    typeof(data) *__UNIQL(__barrier) = &data;                           \
-    ATOMIC_BARRIER_ENTER(__UNIQL(__barrier), #data);                    \
-    __cleanup_block __attribute__((cleanup(__do_cleanup) __unused__)) __UNIQL(__cleanup) = \
-        ^{  ATOMIC_BARRIER_LEAVE(__UNIQL(__barrier), #data); };         \
+    atomic_barrier_state_t __attribute__((cleanup(__atomic_barrier_cleanup) __unused__)) __UNIQL(__barrier) = { .ptr = &(data) }; \
+    ATOMIC_BARRIER_ENTER(__UNIQL(__barrier).ptr, #data);                \
     do {} while(0)                                                      \
 /**/
-#elif defined(__clang__)
-// Non-Apple clang version, using local function cleanup.
-#define ATOMIC_BARRIER(data)                                            \
-    __extension__ void  __UNIQL(__barrierEnd)(typeof(data) **__d) {     \
-         ATOMIC_BARRIER_LEAVE(*__d, #data);                             \
-    }                                                                   \
-    typeof(data) __attribute__((__cleanup__(__UNIQL(__barrierEnd)))) *__UNIQL(__barrier) = &data; \
-    ATOMIC_BARRIER_ENTER(__UNIQL(__barrier), #data);                    \
-    do {} while(0)                                                      \
-/**/
-#else
-// gcc version, uses local function for cleanup.
-#define ATOMIC_BARRIER(data)                                            \
-    __extension__ void  __UNIQL(__barrierEnd)(typeof(data) **__d) {     \
-         ATOMIC_BARRIER_LEAVE(*__d, #data);                             \
-    }                                                                   \
-    typeof(data) __attribute__((__cleanup__(__UNIQL(__barrierEnd)))) *__UNIQL(__barrier) = &data; \
-    ATOMIC_BARRIER_ENTER(__UNIQL(__barrier), #data);                    \
-    do {} while(0)                                                      \
-/**/
-#endif
 
 // define these wrappers for atomic operations, using gcc builtins
 #define ATOMIC_OR(ptr, val) __sync_fetch_and_or(ptr, val)

@@ -39,12 +39,6 @@ jobs:
       if: steps.cache-toolchain.outputs.cache-hit != 'true'
       run: make arm_sdk_install
 
-    - name: Install BlocksRuntime
-      run: brew install libblocksruntime
-
-    - name: Expose BlocksRuntime library path
-      run: echo "LDFLAGS=-L$(brew --prefix libblocksruntime)/lib" >> $GITHUB_ENV
-
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
