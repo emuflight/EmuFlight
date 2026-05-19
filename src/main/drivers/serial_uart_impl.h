@@ -54,7 +54,11 @@
 #define UART_TX_BUFFER_SIZE     256
 #endif
 #elif defined(STM32F7) || defined(STM32H7)
+#if defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
+#define UARTDEV_COUNT_MAX 10
+#else
 #define UARTDEV_COUNT_MAX 8
+#endif
 #if defined(STM32H7)
 #define UARTHARDWARE_MAX_PINS 6
 #else
