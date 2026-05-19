@@ -90,7 +90,11 @@ const struct ioPortDef_s ioPortDefs[] = {
     { RCC_AHB4(GPIOF) },
     { RCC_AHB4(GPIOG) },
     { RCC_AHB4(GPIOH) },
+#if defined(GPIOI)
     { RCC_AHB4(GPIOI) },
+#else
+    { 0 }, // no GPIOI on this variant; keep array indexed by port letter
+#endif
     { RCC_AHB4(GPIOJ) },
     { RCC_AHB4(GPIOK) },
 };

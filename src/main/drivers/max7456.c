@@ -211,7 +211,7 @@ static uint8_t shadowBuffer[VIDEO_BUFFER_CHARS_PAL];
 static volatile bool dmaTransactionInProgress = false;
 #endif
 
-static DMA_DATA uint8_t spiBuff[MAX_CHARS2UPDATE * 6];
+static DMA_DATA_ZERO_INIT uint8_t spiBuff[MAX_CHARS2UPDATE * 6];
 
 static uint8_t  videoSignalCfg;
 static uint8_t  videoSignalReg  = OSD_ENABLE; // OSD_ENABLE required to trigger first ReInit

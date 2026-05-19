@@ -126,8 +126,8 @@
 
 #define UARTDEV_COUNT (UARTDEV_COUNT_1 + UARTDEV_COUNT_2 + UARTDEV_COUNT_3 + UARTDEV_COUNT_4 + UARTDEV_COUNT_5 + UARTDEV_COUNT_6 + UARTDEV_COUNT_7 + UARTDEV_COUNT_8)
 
-// Per-pin AF definition needed by H7 UART driver
-#if defined(STM32F7) || defined(STM32H7)
+// Per-pin AF definition needed by H7 UART driver (F7 uses a single struct-level af)
+#if defined(STM32H7)
 typedef struct uartPinDef_s {
     ioTag_t pin;
     uint8_t af;
@@ -152,7 +152,7 @@ typedef struct uartHardware_s {
     uint32_t rxDMAChannel;   // DMAMUX request ID (DMA_REQUEST_USARTx_RX)
 #endif
 #endif
-#if defined(STM32F7) || defined(STM32H7)
+#if defined(STM32H7)
     uartPinDef_t rxPins[UARTHARDWARE_MAX_PINS];
     uartPinDef_t txPins[UARTHARDWARE_MAX_PINS];
 #else
@@ -166,7 +166,7 @@ typedef struct uartHardware_s {
 #else
     rccPeriphTag_t rcc;
 #endif
-#if !defined(STM32F7) && !defined(STM32H7)
+#if !defined(STM32H7)
     uint8_t af;
 #endif
 #if defined(STM32F7) || defined(STM32H7)

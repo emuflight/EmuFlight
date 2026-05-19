@@ -48,8 +48,7 @@ void uartPinConfigure(const serialPinConfig_t *pSerialPinConfig) {
         const uartHardware_t *hardware = &uartHardware[hindex];
         const UARTDevice_e device = hardware->device;
         for (int pindex = 0 ; pindex < UARTHARDWARE_MAX_PINS ; pindex++) {
-#if defined(STM32F7) || defined(STM32H7)
-            // rxPins/txPins are uartPinDef_t structs (pin + af); compare the pin field
+#if defined(STM32H7)
             if (hardware->rxPins[pindex].pin && (hardware->rxPins[pindex].pin == pSerialPinConfig->ioTagRx[device]))
                 uartdev->rx = hardware->rxPins[pindex];
             if (hardware->txPins[pindex].pin && (hardware->txPins[pindex].pin == pSerialPinConfig->ioTagTx[device]))
@@ -61,7 +60,7 @@ void uartPinConfigure(const serialPinConfig_t *pSerialPinConfig) {
                 uartdev->tx = pSerialPinConfig->ioTagTx[device];
 #endif
         }
-#if defined(STM32F7) || defined(STM32H7)
+#if defined(STM32H7)
         if (uartdev->rx.pin || uartdev->tx.pin) {
 #else
         if (uartdev->rx || uartdev->tx) {
