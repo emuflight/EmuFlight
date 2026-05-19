@@ -256,7 +256,20 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
         dma_init.PeriphOrM2MSrcAddress = (uint32_t)timerChCCR(timerHardware);
     }
     dma_init.Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH;
+#if defined(STM32H7)
+    // Per-channel DShot: disable FIFO (direct mode) so TCIF fires only after the last
+    // word reaches the timer CCR, not when it enters the FIFO. Without this, the IRQ
+    // disables the DMA stream before the trailing-zero words drain from the FIFO to CCR,
+    // leaving the motor pin high and causing ESC misinterpretation (twinges).
+    // Burst path keeps FIFO enabled (threshold already set to FULL above).
+#ifdef USE_DSHOT_DMAR
+    dma_init.FIFOMode = useBurstDshot ? LL_DMA_FIFOMODE_ENABLE : LL_DMA_FIFOMODE_DISABLE;
+#else
+    dma_init.FIFOMode = LL_DMA_FIFOMODE_DISABLE;
+#endif
+#else
     dma_init.FIFOMode = LL_DMA_FIFOMODE_ENABLE;
+#endif
     dma_init.MemBurst = LL_DMA_MBURST_SINGLE;
     dma_init.PeriphBurst = LL_DMA_PBURST_SINGLE;
     dma_init.NbData = pwmProtocolType == PWM_TYPE_PROSHOT1000 ? PROSHOT_DMA_BUFFER_SIZE : DSHOT_DMA_BUFFER_SIZE;
