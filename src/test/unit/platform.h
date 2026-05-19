@@ -31,6 +31,9 @@
 #define FAST_CODE_NOINLINE
 #define FAST_RAM_ZERO_INIT
 #define FAST_RAM
+#define DMA_DATA_ZERO_INIT
+#define DMA_DATA
+#define STATIC_DMA_DATA_AUTO        static
 
 #define PID_PROFILE_COUNT 3
 #define USE_MAG

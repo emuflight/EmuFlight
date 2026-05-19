@@ -194,21 +194,6 @@ static uint32_t getFLASHSectorForEEPROM(void) {
     }
 }
 
-#elif defined(STM32H743xx)
-/*
-H7 Bank 1:
-Sector 0    0x08000000 - 0x0801FFFF 128 Kbytes
-Sector 1    0x08020000 - 0x0803FFFF 128 Kbytes (config)
-Sector 2    0x08040000 - 0x0805FFFF 128 Kbytes
-...
-Sector 7    0x080E0000 - 0x080FFFFF 128 Kbytes
-Bank 2: same layout starting at 0x08100000
-*/
-
-static uint32_t getFLASHSectorForEEPROM(void) {
-    return h7GetFlashSector();
-}
-
 #elif defined(STM32F4)
 /*
 Sector 0    0x08000000 - 0x08003FFF 16 Kbytes
