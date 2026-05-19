@@ -56,7 +56,7 @@
 #elif defined(STM32F7) || defined(STM32H7)
 #define UARTDEV_COUNT_MAX 8
 #if defined(STM32H7)
-#define UARTHARDWARE_MAX_PINS 5
+#define UARTHARDWARE_MAX_PINS 6
 #else
 #define UARTHARDWARE_MAX_PINS 3
 #endif
