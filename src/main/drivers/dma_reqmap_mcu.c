@@ -115,6 +115,14 @@ static const dmaPeripheralMapping_t dmaPeripheralMapping[] = {
     REQMAP_DIR(UART, 7, RX),
     REQMAP_DIR(UART, 8, TX),
     REQMAP_DIR(UART, 8, RX),
+#ifdef USE_UART9
+    REQMAP_DIR(UART, 9, TX),
+    REQMAP_DIR(UART, 9, RX),
+#endif
+#ifdef USE_UART10
+    { DMA_PERIPH_UART_TX, UARTDEV_10, DMA_REQUEST_USART10_TX },
+    { DMA_PERIPH_UART_RX, UARTDEV_10, DMA_REQUEST_USART10_RX },
+#endif
 #endif
 
 #ifdef USE_TIMER
