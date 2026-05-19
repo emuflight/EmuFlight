@@ -78,6 +78,10 @@ spiDevice_t spiDevice[SPIDEV_COUNT];
 #if defined(STM32H7)
 // H7 DTCM is 128 KB (0x20000000–0x2001FFFF); DMA1/2 cannot access it
 #define IS_DTCM(p) (((uint32_t)(p) & 0xfffe0000) == 0x20000000)
+// Linker-exported write-through DMA RAM region; buffers here need no cache maintenance
+extern uint8_t _dmaram_start__;
+extern uint8_t _dmaram_end__;
+#define IS_DMARAM(p) ((uint8_t *)(p) >= &_dmaram_start__ && (uint8_t *)(p) < &_dmaram_end__)
 #elif defined(STM32F7)
 // F7 DTCM is 64 KB (0x20000000–0x2000FFFF)
 #define IS_DTCM(p) (((uint32_t)(p) & 0xffff0000) == 0x20000000)
@@ -327,8 +331,8 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
             dmaSafe = false;
             break;
         }
-        // Non-DTCM Rx buffers must be 32-byte cache-line aligned for cache maintenance.
-        if ((checkSegment->u.buffers.rxData) && !IS_DTCM(checkSegment->u.buffers.rxData) &&
+        // Rx buffers outside write-through dmaram must be 32-byte cache-line aligned.
+        if ((checkSegment->u.buffers.rxData) && !IS_DMARAM(checkSegment->u.buffers.rxData) &&
             (((uint32_t)checkSegment->u.buffers.rxData & 31) || (checkSegment->len & 31))) {
             dmaSafe = false;
             break;
@@ -481,7 +485,11 @@ void spiInternalInitStream(const extDevice_t *dev, bool preInit)
 
     if (txData) {
 #ifdef __DCACHE_PRESENT
+#if defined(STM32H7)
+        if (!IS_DMARAM(txData)) {
+#else
         if (!IS_DTCM(txData)) {
+#endif
             SCB_CleanDCache_by_Addr(
                 (uint32_t *)((uint32_t)txData & ~CACHE_LINE_MASK),
                 (((uint32_t)txData & CACHE_LINE_MASK) + len - 1 + CACHE_LINE_SIZE) & ~CACHE_LINE_MASK);
@@ -501,7 +509,11 @@ void spiInternalInitStream(const extDevice_t *dev, bool preInit)
 
         if (rxData) {
 #ifdef __DCACHE_PRESENT
+#if defined(STM32H7)
+            if (!IS_DMARAM(rxData)) {
+#else
             if (!IS_DTCM(rxData)) {
+#endif
                 SCB_CleanInvalidateDCache_by_Addr(
                     (uint32_t *)((uint32_t)rxData & ~CACHE_LINE_MASK),
                     (((uint32_t)rxData & CACHE_LINE_MASK) + len - 1 + CACHE_LINE_SIZE) & ~CACHE_LINE_MASK);
