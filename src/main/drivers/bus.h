@@ -34,6 +34,7 @@ typedef enum {
     BUS_TYPE_SPI,
     BUS_TYPE_MPU_SLAVE, // Slave I2C on SPI master
     BUS_TYPE_GYRO_AUTO, // Only used by acc/gyro bus auto detection code
+    BUS_TYPE_QSPI,
 } busType_e;
 
 typedef enum {
@@ -66,6 +67,11 @@ typedef struct busDevice_s {
         struct busMpuSlave_s {
             const struct extDevice_s *master;
         } mpuSlave;
+#ifdef USE_QUADSPI
+        struct busQSpi_s {
+            struct quadSpiResource_s *instance;
+        } qspi;
+#endif
     } busType_u;
     bool useDMA;
     uint8_t deviceCount;

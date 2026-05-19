@@ -55,7 +55,7 @@
 #define STM32F7
 #endif
 
-#elif defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx)
+#elif defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx) || defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
 #ifdef FLASH_SIZE
 #undef FLASH_SIZE
 #endif
@@ -116,6 +116,9 @@
 
 // H7 has no TIM9/10/11 — IRQ handler names differ from F7. timer_hal.c uses F7-style.
 #define TIM1_UP_TIM10_IRQHandler  TIM1_UP_IRQHandler
+
+// QuadSPI platform traits for bus_quadspi driver
+#define MAX_QUADSPI_PIN_SEL 3
 
 #elif defined(STM32F40_41xxx) || defined (STM32F411xE) || defined (STM32F446xx)
 

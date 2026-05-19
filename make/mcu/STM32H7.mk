@@ -264,7 +264,10 @@ MCU_COMMON_SRC = \
             drivers/bus_i2c_hal.c \
             drivers/bus_i2c_timing.c \
             drivers/bus_octospi_stm32h7xx.c \
+            drivers/bus_quadspi.c \
+            drivers/bus_quadspi_stm32h7xx.c \
             drivers/can_stm32h7xx.c \
+            pg/bus_quadspi.c \
             drivers/dma_stm32h7xx.c \
             drivers/dma_reqmap_mcu.c \
             drivers/light_ws2811strip_hal.c \
