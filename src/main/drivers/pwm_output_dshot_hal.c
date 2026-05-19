@@ -35,8 +35,8 @@
 #include "rcc.h"
 
 static FAST_RAM_ZERO_INIT uint8_t dmaMotorTimerCount = 0;
-static FAST_RAM_ZERO_INIT motorDmaTimer_t dmaMotorTimers[MAX_DMA_TIMERS];
-static FAST_RAM_ZERO_INIT motorDmaOutput_t dmaMotors[MAX_SUPPORTED_MOTORS];
+static DMA_DATA_ZERO_INIT motorDmaTimer_t dmaMotorTimers[MAX_DMA_TIMERS];
+static DMA_DATA_ZERO_INIT motorDmaOutput_t dmaMotors[MAX_SUPPORTED_MOTORS];
 
 motorDmaOutput_t *getMotorDmaOutput(uint8_t index) {
     return &dmaMotors[index];
@@ -77,9 +77,6 @@ FAST_CODE void pwmWriteDshotInt(uint8_t index, uint16_t value) {
         bufferSize = loadDmaBuffer(motor->dmaBuffer, 1, packet);
         motor->timer->timerDmaSources |= motor->timerDmaSource;
         LL_EX_DMA_SetDataLength(motor->timerHardware->dmaRef, bufferSize);
-#if defined(STM32H7)
-        SCB_CleanDCache_by_Addr((uint32_t *)motor->dmaBuffer, bufferSize * sizeof(uint32_t));
-#endif
         LL_EX_DMA_EnableStream(motor->timerHardware->dmaRef);
     }
 }
@@ -96,10 +93,6 @@ FAST_CODE void pwmCompleteDshotMotorUpdate(uint8_t motorCount) {
 #ifdef USE_DSHOT_DMAR
         if (useBurstDshot) {
             LL_EX_DMA_SetDataLength(dmaMotorTimers[i].dmaBurstRef, dmaMotorTimers[i].dmaBurstLength);
-#if defined(STM32H7)
-            SCB_CleanDCache_by_Addr((uint32_t *)dmaMotorTimers[i].dmaBurstBuffer,
-                                    dmaMotorTimers[i].dmaBurstLength * sizeof(uint32_t));
-#endif
             LL_EX_DMA_EnableStream(dmaMotorTimers[i].dmaBurstRef);
             /* configure the DMA Burst Mode */
             LL_TIM_ConfigDMABurst(dmaMotorTimers[i].timer, LL_TIM_DMABURST_BASEADDR_CCR1, LL_TIM_DMABURST_LENGTH_4TRANSFERS);
@@ -256,20 +249,7 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
         dma_init.PeriphOrM2MSrcAddress = (uint32_t)timerChCCR(timerHardware);
     }
     dma_init.Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH;
-#if defined(STM32H7)
-    // Per-channel DShot: disable FIFO (direct mode) so TCIF fires only after the last
-    // word reaches the timer CCR, not when it enters the FIFO. Without this, the IRQ
-    // disables the DMA stream before the trailing-zero words drain from the FIFO to CCR,
-    // leaving the motor pin high and causing ESC misinterpretation (twinges).
-    // Burst path keeps FIFO enabled (threshold already set to FULL above).
-#ifdef USE_DSHOT_DMAR
-    dma_init.FIFOMode = useBurstDshot ? LL_DMA_FIFOMODE_ENABLE : LL_DMA_FIFOMODE_DISABLE;
-#else
-    dma_init.FIFOMode = LL_DMA_FIFOMODE_DISABLE;
-#endif
-#else
     dma_init.FIFOMode = LL_DMA_FIFOMODE_ENABLE;
-#endif
     dma_init.MemBurst = LL_DMA_MBURST_SINGLE;
     dma_init.PeriphBurst = LL_DMA_PBURST_SINGLE;
     dma_init.NbData = pwmProtocolType == PWM_TYPE_PROSHOT1000 ? PROSHOT_DMA_BUFFER_SIZE : DSHOT_DMA_BUFFER_SIZE;
