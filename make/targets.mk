@@ -149,14 +149,14 @@ endif
 
 F4_TARGETS      := $(F405_TARGETS) $(F411_TARGETS) $(F446_TARGETS)
 F7_TARGETS      := $(F7X2RE_TARGETS) $(F7X5XE_TARGETS) $(F7X5XG_TARGETS) $(F7X5XI_TARGETS) $(F7X6XG_TARGETS)
-H7_TARGETS      := $(H743_TARGETS)
+H7_TARGETS      := $(H743_TARGETS) $(H750_TARGETS) $(H723_TARGETS) $(H725_TARGETS) $(H730_TARGETS) $(H735_TARGETS) $(H7A3_TARGETS)
 
 ifeq ($(filter $(TARGET),$(VALID_TARGETS)),)
 $(error Target '$(TARGET)' is not valid, must be one of $(VALID_TARGETS). Have you prepared a valid target.mk?)
 endif
 
 ifeq ($(filter $(TARGET),$(F1_TARGETS) $(F3_TARGETS) $(F4_TARGETS) $(F7_TARGETS) $(H7_TARGETS) $(SITL_TARGETS)),)
-$(error Target '$(TARGET)' has not specified a valid STM group, must be one of F1, F3, F405, F411, F7x5, or H743. Have you prepared a valid target.mk?)
+$(error Target '$(TARGET)' has not specified a valid STM group, must be one of F1, F3, F405, F411, F7x5, F7x6, H743, H750, H723, H725, H730, H735, or H7A3. Have you prepared a valid target.mk?)
 endif
 
 ifeq ($(TARGET),$(filter $(TARGET),$(F3_TARGETS)))

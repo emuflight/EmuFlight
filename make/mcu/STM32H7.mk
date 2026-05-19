@@ -172,6 +172,7 @@ else ifeq ($(TARGET),$(filter $(TARGET),$(H723_TARGETS)))
 DEVICE_FLAGS   += -DSTM32H723xx
 ifeq ($(EXST),yes)
 LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h723_exst.ld
+LD_SCRIPTS      = $(LINKER_DIR)/stm32_h723_common.ld $(LINKER_DIR)/stm32_h723_common_post.ld
 DEVICE_FLAGS   += -DEXST -DUSE_EXST
 TARGET_FLAGS   += -DEXST
 else
@@ -202,6 +203,7 @@ else ifeq ($(TARGET),$(filter $(TARGET),$(H730_TARGETS)))
 DEVICE_FLAGS   += -DSTM32H730xx
 ifeq ($(EXST),yes)
 LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h730_exst.ld
+LD_SCRIPTS      = $(LINKER_DIR)/stm32_h730_common.ld $(LINKER_DIR)/stm32_h730_common_post.ld
 DEVICE_FLAGS   += -DEXST -DUSE_EXST
 TARGET_FLAGS   += -DEXST
 else
@@ -209,6 +211,34 @@ LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h730_128k.ld
 endif
 STARTUP_SRC     = startup_stm32h730xx.s
 TARGET_FLASH   := 128
+DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
+
+#
+# H735xG : 1M FLASH, 320K AXI SRAM + 32K D2 SRAM
+# EXST: firmware runs in-place from OCTOSPI at 0x90100000 (memory-mapped)
+#
+else ifeq ($(TARGET),$(filter $(TARGET),$(H735_TARGETS)))
+DEVICE_FLAGS   += -DSTM32H735xx
+ifeq ($(EXST),yes)
+LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h735_exst.ld
+LD_SCRIPTS      = $(LINKER_DIR)/stm32_h735_common.ld $(LINKER_DIR)/stm32_h735_common_post.ld
+DEVICE_FLAGS   += -DEXST -DUSE_EXST
+TARGET_FLAGS   += -DEXST
+else
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h735_1m.ld
+endif
+STARTUP_SRC     = startup_stm32h735xx.s
+TARGET_FLASH   := 1024
+DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
+
+#
+# H7A3xI : 2M FLASH, 1MB AXI SRAM + 160K AHB & SRD SRAM
+#
+else ifeq ($(TARGET),$(filter $(TARGET),$(H7A3_TARGETS)))
+DEVICE_FLAGS   += -DSTM32H7A3xx
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h7a3_2m.ld
+STARTUP_SRC     = startup_stm32h7a3xx.s
+TARGET_FLASH   := 2048
 DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
 
 else
@@ -233,12 +263,15 @@ MCU_COMMON_SRC = \
             drivers/audio_stm32h7xx.c \
             drivers/bus_i2c_hal.c \
             drivers/bus_i2c_timing.c \
+            drivers/bus_octospi_stm32h7xx.c \
+            drivers/can_stm32h7xx.c \
             drivers/dma_stm32h7xx.c \
             drivers/dma_reqmap_mcu.c \
             drivers/light_ws2811strip_hal.c \
             drivers/transponder_ir_io_hal.c \
             drivers/bus_spi_ll.c \
             drivers/pwm_output_dshot_hal.c \
+            drivers/sdio_h7xx.c \
             drivers/timer_hal.c \
             drivers/timer_stm32h7xx.c \
             drivers/system_stm32h7xx.c \
@@ -260,6 +293,11 @@ MSC_SRC = \
 ifneq ($(filter SDCARD,$(FEATURES)),)
 MSC_SRC += \
             msc/usbd_storage_sd_spi.c
+endif
+
+ifneq ($(filter SDCARD_SDIO,$(FEATURES)),)
+MSC_SRC += \
+            msc/usbd_storage_sdio.c
 endif
 
 ifneq ($(filter ONBOARDFLASH,$(FEATURES)),)
