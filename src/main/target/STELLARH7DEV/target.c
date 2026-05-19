@@ -34,5 +34,5 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM4, CH1, PD12, TIM_USE_SERVO, 0, 0, NONE),
     DEF_TIM(TIM4, CH2, PD13, TIM_USE_SERVO, 0, 0, NONE),
     DEF_TIM(TIM2, CH1, PA15, TIM_USE_LED, 0, 13, NONE), // led strip — DMA2_S5 (DMA2_S1-S3 reserved for ADC1-3)
-    DEF_TIM(TIM3, CH1, PB4, TIM_USE_ANY, 0, 0, NONE),
+    DEF_TIM(TIM3, CH1, PB4, TIM_USE_ANY, 0, NONE, NONE),
 };
