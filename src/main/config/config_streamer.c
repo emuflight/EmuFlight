@@ -57,7 +57,7 @@ extern uint8_t __config_end;
 # elif defined(STM32F746xx)
 #  define FLASH_PAGE_SIZE                 ((uint32_t)0x8000)
 // H7
-# elif defined(STM32H743xx)
+# elif defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx) || defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
 #  define FLASH_PAGE_SIZE                 ((uint32_t)0x20000) // 128K sectors
 # elif defined(UNIT_TEST)
 #  define FLASH_PAGE_SIZE                 (0x400)
@@ -83,7 +83,11 @@ static uint32_t h7GetFlashSector(void) {
 }
 
 static uint32_t h7GetFlashBank(void) {
+#if defined(DUAL_BANK)
     return ((uint32_t)&__config_start >= 0x08100000U) ? FLASH_BANK_2 : FLASH_BANK_1;
+#else
+    return FLASH_BANK_1;
+#endif
 }
 #endif
 

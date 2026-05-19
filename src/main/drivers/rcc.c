@@ -58,9 +58,11 @@ void RCC_ClockCmd(rccPeriphTag_t periphTag, FunctionalState NewState)
         __HAL_RCC_CLK(AHB1, NOSUFFIX, mask, NewState);
         break;
 
+#ifdef STM32H7
     case RCC_AHB2:
         __HAL_RCC_CLK(AHB2, NOSUFFIX, mask, NewState);
         break;
+#endif
 
 #if !(defined(STM32H7) || defined(STM32G4))
     case RCC_APB1:
@@ -149,9 +151,11 @@ void RCC_ResetCmd(rccPeriphTag_t periphTag, FunctionalState NewState)
         __HAL_RCC_RESET(AHB1, NOSUFFIX, mask, NewState);
         break;
 
+#ifdef STM32H7
     case RCC_AHB2:
         __HAL_RCC_RESET(AHB2, NOSUFFIX, mask, NewState);
         break;
+#endif
 
 #if !(defined(STM32H7) || defined(STM32G4))
     case RCC_APB1:
