@@ -36,7 +36,7 @@
 
 void targetConfiguration(void) {
     telemetryConfigMutable()->halfDuplex = false;
-    voltageSensorADCConfigMutable(VOLTAGE_SENSOR_ADC_VBAT)->vbatscale = VBAT_SCALE;
+    voltageSensorADCConfigMutable(VOLTAGE_SENSOR_ADC_VBAT)->vbatscale = DEFAULT_VOLTAGE_METER_SCALE;
     //rxConfigMutable()->rcInterpolation         = RC_SMOOTHING_MANUAL;
     //rxConfigMutable()->rcInterpolationInterval = 14;
     //rxConfigMutable()->rcInterpolationChannels = INTERPOLATION_CHANNELS_RPYT;
