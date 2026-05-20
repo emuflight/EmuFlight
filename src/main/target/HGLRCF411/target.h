@@ -88,7 +88,7 @@
 #define ESCSERIAL_TIMER_TX_PIN                           PB8                    // (Hardware=0, PPM)
 #define CURRENT_METER_ADC_PIN                            PB1
 #define VBAT_ADC_PIN                                     PB0
-#define CURRENT_METER_SCALE_DEFAULT                      250                    // 3.3/120A  = 25mv/A
+#define DEFAULT_CURRENT_METER_SCALE                      250                    // 3.3/120A  = 25mv/A
 
 // SPI devices
 #define USE_SPI

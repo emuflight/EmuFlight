@@ -184,7 +184,7 @@
 #define RSSI_ADC_PIN            PC4
 
 #define CURRENT_METER_OFFSET_DEFAULT 2500                      // ACS712/714-30A - 0A = 2.5V
-#define CURRENT_METER_SCALE_DEFAULT -667                       // ACS712/714-30A - 66.666 mV/A inverted mode
+#define DEFAULT_CURRENT_METER_SCALE -667                       // ACS712/714-30A - 66.666 mV/A inverted mode
 
 #define BINDPLUG_PIN            PB2
 
