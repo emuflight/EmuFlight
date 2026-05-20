@@ -128,7 +128,6 @@ INCLUDE_DIRS    := $(INCLUDE_DIRS) \
                    $(USBHID_DIR)/Inc \
                    $(USBMSC_DIR)/Inc \
                    $(CMSIS_DIR)/Core/Include \
-                   $(ROOT)/lib/main/STM32H7/Drivers/CMSIS/Device/ST/STM32H7xx/Include \
                    $(ROOT)/src/main/vcp_hal
 
 #Flags
@@ -312,3 +311,12 @@ endif
 
 DSP_LIB := $(ROOT)/lib/main/CMSIS/DSP
 DEVICE_FLAGS += -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1 -DUNALIGNED_SUPPORT_DISABLE -DARM_MATH_CM7
+
+# STM32H7 vendor HAL/LL sources have identical branches that GCC flags.
+# Suppress -Wduplicated-branches only for those files; EF source keeps the check.
+$(OBJECT_DIR)/$(TARGET)/stm32h7xx_hal_%.o: CFLAGS += -Wno-duplicated-branches
+$(OBJECT_DIR)/$(TARGET)/stm32h7xx_ll_%.o:  CFLAGS += -Wno-duplicated-branches
+
+# Use -isystem for the CMSIS device headers so GCC suppresses redefinition
+# warnings that arise because the Makefile also defines FLASH_SIZE via -D.
+CFLAGS += -isystem $(ROOT)/lib/main/STM32H7/Drivers/CMSIS/Device/ST/STM32H7xx/Include
