@@ -95,7 +95,7 @@
 #define DEFAULT_CURRENT_METER_SOURCE                     CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN                            PB1
 #define VBAT_ADC_PIN                                     PB0
-#define CURRENT_METER_SCALE_DEFAULT                      400
+#define DEFAULT_CURRENT_METER_SCALE                      400
 
 // SPI devices
 #define USE_SPI
