@@ -111,7 +111,7 @@
 #define DEFAULT_CURRENT_METER_SOURCE                     CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN                            PC3
 #define VBAT_ADC_PIN                                     PC2
-#define CURRENT_METER_SCALE_DEFAULT                      250                    // 3.3/120A  = 25mv/A
+#define CURRENT_METER_SCALE_DEFAULT        350                    // 3.3/120A  = 25mv/A
 
 // SPI devices
 #define USE_SPI
