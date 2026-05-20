@@ -128,7 +128,7 @@
 #define RSSI_ADC_PIN                    PC0
 #define VBAT_ADC_PIN                    PC1
 #define CURRENT_METER_ADC_PIN           PC2
-#define CURRENT_METER_SCALE_DEFAULT     235
+#define DEFAULT_CURRENT_METER_SCALE     235
 
 
 // *************** Target Config *******************

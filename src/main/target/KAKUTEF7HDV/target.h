@@ -182,6 +182,7 @@
 #define USE_ADC
 #define CURRENT_METER_ADC_PIN   PC2
 #define VBAT_ADC_PIN            PC3
+#define DEFAULT_CURRENT_METER_SCALE        275
 #define RSSI_ADC_PIN            PC5
 
 

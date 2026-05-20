@@ -142,7 +142,7 @@
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
 #define RSSI_ADC_PIN            PC3
-#define CURRENT_METER_SCALE_DEFAULT 250                     // 3.3/120A  = 25mv/A
+#define DEFAULT_CURRENT_METER_SCALE 250                     // 3.3/120A  = 25mv/A
 
 #define BINDPLUG_PIN            PB2
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL

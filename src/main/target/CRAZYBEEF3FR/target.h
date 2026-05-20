@@ -108,7 +108,7 @@
 #define VBAT_ADC_PIN            PA0
 #define CURRENT_METER_ADC_PIN   PA1
 #define ADC_INSTANCE            ADC1
-#define CURRENT_METER_SCALE_DEFAULT 2350
+#define DEFAULT_CURRENT_METER_SCALE 2350
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
