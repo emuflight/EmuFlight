@@ -157,7 +157,7 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
 #define CURRENT_METER_SCALE_DEFAULT     170
-#define VBAT_SCALE                      110
+#define VBAT_SCALE_DEFAULT                      110
 
 #define ENABLE_DSHOT_DMAR       true
 

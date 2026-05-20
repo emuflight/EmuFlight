@@ -90,7 +90,7 @@
 #define VBAT_ADC_PIN            PC1
 #define RSSI_ADC_PIN            PC0
 #define CURRENT_METER_SCALE_DEFAULT 100
-//#define VBAT_SCALE              100
+//#define VBAT_SCALE_DEFAULT              100
 
 #define USE_SDCARD
 #define SDCARD_DETECT_INVERTED

@@ -106,7 +106,7 @@
 #define VBAT_ADC_PIN                                     PC2
 #define RSSI_ADC_PIN                                     PC3
 #define CURRENT_METER_SCALE_DEFAULT                      150                    // 3.3/120A  = 25mv/A
-#define VBAT_SCALE                                       160                    //configurator tab voltage scale
+#define VBAT_SCALE_DEFAULT                                       160                    //configurator tab voltage scale
 
 // SPI devices
 #define USE_SPI
