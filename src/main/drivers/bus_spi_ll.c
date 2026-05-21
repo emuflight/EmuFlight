@@ -574,9 +574,14 @@ void spiInternalStartDMA(const extDevice_t *dev)
         LL_DMA_WriteReg(streamRegsTx, CR, 0U);
         LL_EX_DMA_EnableIT_TC(streamRegsTx);
         LL_DMA_Init(dmaTx->dma, dmaTx->stream, bus->initTx);
+#if defined(STM32H7)
+        LL_SPI_SetTransferSize(dev->bus->busType_u.spi.instance, bus->curSegment->len);
+#endif
         LL_DMA_EnableStream(dmaTx->dma, dmaTx->stream);
 #if defined(STM32H7)
-        LL_SPI_EnableDMAReq_TX(dev->bus->busType_u.spi.instance);
+        SET_BIT(dev->bus->busType_u.spi.instance->CFG1, SPI_CFG1_TXDMAEN);
+        LL_SPI_Enable(dev->bus->busType_u.spi.instance);
+        LL_SPI_StartMasterTransfer(dev->bus->busType_u.spi.instance);
 #else
         SET_BIT(dev->bus->busType_u.spi.instance->CR2, SPI_CR2_TXDMAEN);
 #endif
@@ -596,6 +601,10 @@ void spiInternalStopDMA(const extDevice_t *dev)
         DMA_CLEAR_FLAG(dmaRx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
         LL_SPI_DisableDMAReq_TX(instance);
         LL_SPI_DisableDMAReq_RX(instance);
+#if defined(STM32H7)
+        LL_SPI_ClearFlag_TXTF(instance);
+        LL_SPI_Disable(instance);
+#endif
     } else {
         while (LL_SPI_IsActiveFlag_BSY(instance));
         while (LL_SPI_IsActiveFlag_RXNE(instance)) {
@@ -608,12 +617,17 @@ void spiInternalStopDMA(const extDevice_t *dev)
         LL_DMA_DisableStream(dmaTx->dma, dmaTx->stream);
         DMA_CLEAR_FLAG(dmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
         LL_SPI_DisableDMAReq_TX(instance);
+#if defined(STM32H7)
+        LL_SPI_ClearFlag_TXTF(instance);
+        LL_SPI_Disable(instance);
+#endif
     }
 }
 
 void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {
-#if !(defined(STM32F1) || defined(STM32F3))
+#if !(defined(STM32F1) || defined(STM32F3) || defined(STM32H7))
     // SPI2 and SPI3 are on APB1/AHB1 which PCLK is half that of APB2/AHB2.
+    // H7: all SPI buses share one kernel clock — no halving needed.
     if (instance == SPI2 || instance == SPI3) {
         divisor /= 2; // Safe for divisor == 0 or 1
     }
