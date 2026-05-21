@@ -110,9 +110,11 @@
 #define VBAT_ADC_PIN                    PC5
 #define CURRENT_METER_ADC_PIN           PB0
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
-#define VBAT_SCALE_DEFAULT              210
+#define VBAT_SCALE_DEFAULT              210  // EF naming
+#define DEFAULT_VOLTAGE_METER_SCALE     210  // BF naming
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
-#define DEFAULT_CURRENT_METER_SCALE     120
+#define CURRENT_METER_SCALE_DEFAULT     120  // EF naming
+#define DEFAULT_CURRENT_METER_SCALE     120  // BF naming
 
 #define PINIO1_PIN                      PB3
 #define PINIO1_CONFIG                   129
