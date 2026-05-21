@@ -44,7 +44,7 @@ static IO_t transponderIO = IO_NONE;
 static TIM_HandleTypeDef TimHandle;
 static uint16_t timerChannel = 0;
 
-#if !defined(STM32F7)
+#if !defined(STM32F7) && !defined(STM32H7)
 #error "Transponder (via HAL) not supported on this MCU."
 #endif
 
@@ -84,10 +84,18 @@ void transponderIrHardwareInit(ioTag_t ioTag, transponder_t *transponder) {
     static DMA_HandleTypeDef hdma_tim;
     transponderIO = IOGetByTag(ioTag);
     IOInit(transponderIO, OWNER_TRANSPONDER, 0);
+#if defined(STM32H7)
+    IOConfigGPIOAF(transponderIO, IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_LOW, GPIO_PULLDOWN), timerHardware->alternateFunction);
+#else
     IOConfigGPIOAF(transponderIO, IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_VERY_HIGH, GPIO_PULLDOWN), timerHardware->alternateFunction);
+#endif
     __DMA1_CLK_ENABLE();
     /* Set the parameters to be configured */
+#if defined(STM32H7)
+    hdma_tim.Init.Request = timerHardware->dmaChannel;
+#else
     hdma_tim.Init.Channel = timerHardware->dmaChannel;
+#endif
     hdma_tim.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_tim.Init.PeriphInc = DMA_PINC_DISABLE;
     hdma_tim.Init.MemInc = DMA_MINC_ENABLE;
