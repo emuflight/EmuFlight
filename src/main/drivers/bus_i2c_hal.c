@@ -214,7 +214,7 @@ void i2cInit(I2CDevice device) {
     RCC_ClockCmd(hardware->rcc, ENABLE);
     i2cUnstick(scl, sda);
     // Init pins
-#ifdef STM32F7
+#if defined(STM32F7) || defined(STM32H7)
     IOConfigGPIOAF(scl, pDev->pullUp ? IOCFG_I2C_PU : IOCFG_I2C, GPIO_AF4_I2C);
     IOConfigGPIOAF(sda, pDev->pullUp ? IOCFG_I2C_PU : IOCFG_I2C, GPIO_AF4_I2C);
 #else
