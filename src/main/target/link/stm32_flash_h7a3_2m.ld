@@ -34,9 +34,9 @@ ENTRY(Reset_Handler)
 /* Specify the memory areas */
 MEMORY
 {
-    FLASH (rx)        : ORIGIN = 0x08000000, LENGTH = 16K  /* 2 sectors */
-    FLASH_CONFIG (r)  : ORIGIN = 0x08020000, LENGTH = 16K  /* 2 sectors */
-    FLASH1 (rx)       : ORIGIN = 0x08040000, LENGTH = 2016K
+    FLASH (rx)        : ORIGIN = 0x08000000, LENGTH = 128K
+    FLASH_CONFIG (r)  : ORIGIN = 0x08020000, LENGTH = 128K
+    FLASH1 (rx)       : ORIGIN = 0x08040000, LENGTH = 1792K
 
     ITCM_RAM (rwx)    : ORIGIN = 0x00000000, LENGTH = 64K
     DTCM_RAM (rwx)    : ORIGIN = 0x20000000, LENGTH = 128K
@@ -108,16 +108,16 @@ SECTIONS
     tcm_code_end = .; 
   } >ITCM_RAM AT >FLASH1
 
-  .ARM.extab   : 
-  { 
-    *(.ARM.extab* .gnu.linkonce.armextab.*) 
-  } >FLASH
-  
-  .ARM : 
+  .ARM.extab   :
+  {
+    *(.ARM.extab* .gnu.linkonce.armextab.*)
+  } >FLASH1
+
+  .ARM :
   {
     __exidx_start = .;
     *(.ARM.exidx*) __exidx_end = .;
-  } >FLASH
+  } >FLASH1
 
   .pg_registry :
   {
@@ -125,14 +125,14 @@ SECTIONS
     KEEP (*(.pg_registry))
     KEEP (*(SORT(.pg_registry.*)))
     PROVIDE_HIDDEN (__pg_registry_end = .);
-  } >FLASH
-  
+  } >FLASH1
+
   .pg_resetdata :
   {
     PROVIDE_HIDDEN (__pg_resetdata_start = .);
     KEEP (*(.pg_resetdata))
     PROVIDE_HIDDEN (__pg_resetdata_end = .);
-  } >FLASH
+  } >FLASH1
 
   /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);
@@ -147,7 +147,7 @@ SECTIONS
 
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
-  } >FASTRAM AT >FLASH
+  } >FASTRAM AT >FLASH1
 
   /* Uninitialized data section */
   . = ALIGN(4);
@@ -193,7 +193,7 @@ SECTIONS
 
     . = ALIGN(4);
     _efastram_data = .;        /* define a global symbol at data end */
-  } >FASTRAM AT >FLASH
+  } >FASTRAM AT >FLASH1
 
   . = ALIGN(4);
   .fastram_bss (NOLOAD) :
@@ -222,7 +222,7 @@ SECTIONS
     *(.dmaram_data*)          /* .data* sections */
     . = ALIGN(32);
     _edmaram_data = .;        /* define a global symbol at data end */
-  } >RAM AT >FLASH
+  } >RAM AT >FLASH1
 
   . = ALIGN(32);
   .dmaram_bss (NOLOAD) :
