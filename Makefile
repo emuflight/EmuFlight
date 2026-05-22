@@ -99,11 +99,6 @@ ifneq ($(GITHUBBUILDNUMBER),)
 BUILDNO := $(GITHUBBUILDNUMBER)
 endif
 
-# travis build
-ifneq ($(TRAVIS_BUILD_NUMBER),)
-BUILDNO := $(TRAVIS_BUILD_NUMBER)
-endif
-
 BUILDDATETIME := $(shell date +'%Y%m%d%Z')
 REVISION := uncommitted_$(BUILDDATETIME)
 ifeq ($(shell git diff --shortstat),)
@@ -444,11 +439,11 @@ clean_test:
 
 ## clean_<TARGET>    : clean up one specific target
 $(CLEAN_TARGETS):
-	$(V0) $(MAKE) -j TARGET=$(subst clean_,,$@) clean
+	$(V0) $(MAKE) TARGET=$(subst clean_,,$@) clean
 
 ## <TARGET>_clean    : clean up one specific target (alias for above)
 $(TARGETS_CLEAN):
-	$(V0) $(MAKE) -j TARGET=$(subst _clean,,$@) clean
+	$(V0) $(MAKE) TARGET=$(subst _clean,,$@) clean
 
 ## clean_all         : clean all targets (compiled objects only; obj/*.hex and obj/*.bin preserved)
 clean_all:
@@ -481,10 +476,10 @@ openocd-gdb: $(TARGET_ELF)
 endif
 
 binary:
-	$(V0) $(MAKE) -j $(TARGET_BIN)
+	$(V0) $(MAKE) $(TARGET_BIN)
 
 hex:
-	$(V0) $(MAKE) -j $(TARGET_HEX)
+	$(V0) $(MAKE) $(TARGET_HEX)
 
 unbrick_$(TARGET): $(TARGET_HEX)
 	$(V0) stty -F $(SERIAL_DEVICE) raw speed 115200 -crtscts cs8 -parenb -cstopb -ixon
