@@ -69,8 +69,8 @@ typedef struct busDevice_s {
     } busType_u;
     bool useDMA;
     uint8_t deviceCount;
-#ifndef UNIT_TEST
-    // dmaChannelDescriptor_t requires dma.h which is not available in unit test builds
+#if !defined(UNIT_TEST) && !defined(SIMULATOR_BUILD)
+    // dmaChannelDescriptor_t requires dma.h which is not available in unit test / SITL builds
     dmaChannelDescriptor_t *dmaTx;
     dmaChannelDescriptor_t *dmaRx;
 #if defined(STM32F7)
@@ -80,7 +80,7 @@ typedef struct busDevice_s {
     DMA_InitTypeDef    *initTx;
     DMA_InitTypeDef    *initRx;
 #endif
-#endif // UNIT_TEST
+#endif // !UNIT_TEST && !SIMULATOR_BUILD
     volatile struct busSegment_s *volatile curSegment;
     bool initSegment;
 } busDevice_t;
@@ -108,7 +108,7 @@ typedef struct extDevice_s {
             uint8_t address;
         } mpuSlave;
     } busType_u;
-#ifndef UNIT_TEST
+#if !defined(UNIT_TEST) && !defined(SIMULATOR_BUILD)
     // Per-device DMA init cache — reduces inter-segment setup time (BF 4.5-m pattern).
     // Pointer stored in bus->initTx/initRx so the bus driver always references the
     // current device's cache.
@@ -119,7 +119,7 @@ typedef struct extDevice_s {
     DMA_InitTypeDef    initTx;
     DMA_InitTypeDef    initRx;
 #endif
-#endif // UNIT_TEST
+#endif // !UNIT_TEST && !SIMULATOR_BUILD
     bool useDMA;
     uint8_t *txBuf, *rxBuf;
     uint32_t callbackArg;

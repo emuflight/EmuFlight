@@ -152,7 +152,7 @@
 #define CURRENT_METER_ADC_PIN             PC1
 #define VBAT_ADC_PIN                      PC2
 #define RSSI_ADC_PIN                      PC0
-#define CURRENT_METER_SCALE_DEFAULT       450  // 3.3/120A  = 25mv/A
+#define DEFAULT_CURRENT_METER_SCALE       450  // 3.3/120A  = 25mv/A
 
 #define DEFAULT_RX_FEATURE                FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER                 SERIALRX_SBUS

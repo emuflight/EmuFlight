@@ -384,11 +384,6 @@ COMMON_FLAGS = \
 	-isystem $(GTEST_DIR)/inc \
 	-MMD -MP
 
-ifeq ($(shell $(CC) -v 2>&1 | grep -q "clang version" && echo "clang"),clang)
-COMMON_FLAGS += -fblocks
-LDFLAGS	     += -lBlocksRuntime
-endif
-
 ifndef MACOSX
 COMMON_FLAGS += -pthread
 endif

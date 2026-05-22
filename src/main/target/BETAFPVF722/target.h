@@ -137,7 +137,7 @@
 #define CURRENT_METER_ADC_PIN                            PC1
 #define VBAT_ADC_PIN                                     PC0
 #define RSSI_ADC_PIN                                     PC2
-#define CURRENT_METER_SCALE_DEFAULT                      450                   // 3.3/120A  = 25mv/A
+#define DEFAULT_CURRENT_METER_SCALE                      450                   // 3.3/120A  = 25mv/A
 #define ADC1_DMA_OPT                                     0
 #define ADC1_DMA_STREAM                                  DMA2_Stream0 //# ADC 1: DMA2 Stream 0 Channel 0
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
