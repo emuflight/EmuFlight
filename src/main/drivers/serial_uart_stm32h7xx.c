@@ -72,6 +72,18 @@ static DMA_RW_AXI volatile uint8_t uart7RxBuffer[UART_RX_BUFFER_SIZE];
 static DMA_RW_AXI volatile uint8_t uart8TxBuffer[UART_TX_BUFFER_SIZE];
 static DMA_RW_AXI volatile uint8_t uart8RxBuffer[UART_RX_BUFFER_SIZE];
 #endif
+#ifdef USE_UART9
+static DMA_RW_AXI volatile uint8_t uart9TxBuffer[UART_TX_BUFFER_SIZE];
+static DMA_RW_AXI volatile uint8_t uart9RxBuffer[UART_RX_BUFFER_SIZE];
+#endif
+#ifdef USE_UART10
+static DMA_RW_AXI volatile uint8_t uart10TxBuffer[UART_TX_BUFFER_SIZE];
+static DMA_RW_AXI volatile uint8_t uart10RxBuffer[UART_RX_BUFFER_SIZE];
+#endif
+#ifdef USE_LPUART1
+static DMA_RW_AXI volatile uint8_t lpuart1TxBuffer[UART_TX_BUFFER_SIZE];
+static DMA_RW_AXI volatile uint8_t lpuart1RxBuffer[UART_RX_BUFFER_SIZE];
+#endif
 
 #ifndef UART1_TX_DMA_STREAM
 #define UART1_TX_DMA_STREAM NULL
