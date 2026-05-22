@@ -205,7 +205,10 @@ void EXTI_IRQHandler(void) {
     while (exti_active) {
         unsigned idx = 31 - __builtin_clz(exti_active);
         uint32_t mask = 1 << idx;
-        extiChannelRecs[idx].handler->fn(extiChannelRecs[idx].handler);
+        extiCallbackRec_t *handler = extiChannelRecs[idx].handler;
+        if (handler && handler->fn) {
+            handler->fn(handler);
+        }
         EXTI->PR1 = mask;
         exti_active &= ~mask;
     }
