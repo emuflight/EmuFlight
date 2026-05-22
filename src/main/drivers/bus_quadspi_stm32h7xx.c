@@ -202,6 +202,7 @@ void quadSpiInitDevice(quadSpiDevice_e device)
 
     RCC_ClockCmd(quadSpi->rcc, ENABLE);
     RCC_ResetCmd(quadSpi->rcc, ENABLE);
+    RCC_ResetCmd(quadSpi->rcc, DISABLE);
 
     IOInit(IOGetByTag(quadSpi->clk),  OWNER_QUADSPI_CLK,  RESOURCE_INDEX(device));
     IOInit(IOGetByTag(quadSpi->bk1IO0), OWNER_QUADSPI_BK1IO0, RESOURCE_INDEX(device));

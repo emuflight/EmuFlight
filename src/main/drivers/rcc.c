@@ -139,9 +139,9 @@ void RCC_ResetCmd(rccPeriphTag_t periphTag, FunctionalState NewState)
 #define __HAL_RCC_RELEASE_RESET(bus, suffix, enbit) (RCC->bus ## RSTR ## suffix &= ~(enbit))
 #define __HAL_RCC_RESET(bus, suffix, enbit, NewState) \
     if (NewState == ENABLE) {                         \
-        __HAL_RCC_RELEASE_RESET(bus, suffix, enbit);  \
-    } else {                                          \
         __HAL_RCC_FORCE_RESET(bus, suffix, enbit);    \
+    } else {                                          \
+        __HAL_RCC_RELEASE_RESET(bus, suffix, enbit);  \
     }
 
 #if defined(USE_HAL_DRIVER)
