@@ -73,6 +73,7 @@
 #define RSSI_ADC_PIN            PB1
 #define CURRENT_METER_ADC_PIN   PC4
 #define VBAT_ADC_PIN            PC5
+#define DEFAULT_CURRENT_METER_SCALE        179
 
 #define USE_GYRO
 #define USE_ACC

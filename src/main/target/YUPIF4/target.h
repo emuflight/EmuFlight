@@ -143,7 +143,7 @@
 #define RSSI_ADC_PIN            PC0
 #define VBAT_ADC_PIN            PC1
 #define CURRENT_METER_ADC_PIN   PC2
-#define CURRENT_METER_SCALE_DEFAULT 150
+#define DEFAULT_CURRENT_METER_SCALE 150
 
 // Default configuration
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL

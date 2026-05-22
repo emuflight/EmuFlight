@@ -99,11 +99,6 @@ ifneq ($(GITHUBBUILDNUMBER),)
 BUILDNO := $(GITHUBBUILDNUMBER)
 endif
 
-# travis build
-ifneq ($(TRAVIS_BUILD_NUMBER),)
-BUILDNO := $(TRAVIS_BUILD_NUMBER)
-endif
-
 BUILDDATETIME := $(shell date +'%Y%m%d%Z')
 REVISION := uncommitted_$(BUILDDATETIME)
 ifeq ($(shell git diff --shortstat),)
@@ -386,7 +381,31 @@ targets-group-2: $(GROUP_2_TARGETS)
 ## targets-group-3   : build some targets
 targets-group-3: $(GROUP_3_TARGETS)
 
-## targets-group-rest: build the rest of the targets (not listed in group 1, 2 or 3)
+## targets-group-4   : build some targets
+targets-group-4: $(GROUP_4_TARGETS)
+
+## targets-group-5   : build some targets
+targets-group-5: $(GROUP_5_TARGETS)
+
+## targets-group-6   : build some targets
+targets-group-6: $(GROUP_6_TARGETS)
+
+## targets-group-7   : build some targets
+targets-group-7: $(GROUP_7_TARGETS)
+
+## targets-group-8   : build some targets
+targets-group-8: $(GROUP_8_TARGETS)
+
+## targets-group-9   : build some targets
+targets-group-9: $(GROUP_9_TARGETS)
+
+## targets-group-10  : build some targets
+targets-group-10: $(GROUP_10_TARGETS)
+
+## targets-group-11  : build some targets
+targets-group-11: $(GROUP_11_TARGETS)
+
+## targets-group-rest: build the rest of the targets (not listed in groups 1-11)
 targets-group-rest: $(GROUP_OTHER_TARGETS)
 
 $(VALID_TARGETS):
@@ -420,11 +439,11 @@ clean_test:
 
 ## clean_<TARGET>    : clean up one specific target
 $(CLEAN_TARGETS):
-	$(V0) $(MAKE) -j TARGET=$(subst clean_,,$@) clean
+	$(V0) $(MAKE) TARGET=$(subst clean_,,$@) clean
 
 ## <TARGET>_clean    : clean up one specific target (alias for above)
 $(TARGETS_CLEAN):
-	$(V0) $(MAKE) -j TARGET=$(subst _clean,,$@) clean
+	$(V0) $(MAKE) TARGET=$(subst _clean,,$@) clean
 
 ## clean_all         : clean all targets (compiled objects only; obj/*.hex and obj/*.bin preserved)
 clean_all:
@@ -457,10 +476,10 @@ openocd-gdb: $(TARGET_ELF)
 endif
 
 binary:
-	$(V0) $(MAKE) -j $(TARGET_BIN)
+	$(V0) $(MAKE) $(TARGET_BIN)
 
 hex:
-	$(V0) $(MAKE) -j $(TARGET_HEX)
+	$(V0) $(MAKE) $(TARGET_HEX)
 
 unbrick_$(TARGET): $(TARGET_HEX)
 	$(V0) stty -F $(SERIAL_DEVICE) raw speed 115200 -crtscts cs8 -parenb -cstopb -ixon

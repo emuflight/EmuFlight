@@ -126,6 +126,7 @@
 #define ADC3_DMA_STREAM DMA2_Stream0 //# ADC 3: DMA2 Stream 0 Channel 2
 #define DEFAULT_VOLTAGE_METER_SOURCE        VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE        CURRENT_METER_ADC
+#define DEFAULT_VOLTAGE_METER_SCALE                 111
 #define DEFAULT_CURRENT_METER_SCALE         220
 #define ADC_INSTANCE                        ADC3
 

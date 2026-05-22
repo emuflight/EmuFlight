@@ -1,5 +1,4 @@
 ---
 engines:
   cppcheck:
-    enabled: true
-    extraOptions: "--suppress=missingIncludeSystem"
+    language: c

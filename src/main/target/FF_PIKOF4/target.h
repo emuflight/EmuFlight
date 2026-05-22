@@ -160,7 +160,7 @@
 #if defined(FF_PIKOF4OSD)
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN           PC1
-#define CURRENT_METER_SCALE_DEFAULT     250
+#define DEFAULT_CURRENT_METER_SCALE     250
 #endif
 /*---------------------------------*/
 
