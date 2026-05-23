@@ -553,6 +553,9 @@ MMFLASH_CODE static uint32_t octoSpi_addressSizeFromValue(uint8_t addressSize)
 
 MMFLASH_CODE_NOINLINE bool octoSpiTransmit1LINE(octoSpiResource_t *instance_, uint8_t instruction, uint8_t dummyCycles, const uint8_t *out, int length)
 {
+    if (out && length <= 0) {
+        return false;
+    }
     OCTOSPI_TypeDef *instance = (OCTOSPI_TypeDef *)instance_;
     OSPI_Command_t cmd; // Can't initialise to zero as compiler optimization will use memset() which is not in RAM.
 
@@ -592,6 +595,9 @@ MMFLASH_CODE_NOINLINE bool octoSpiTransmit1LINE(octoSpiResource_t *instance_, ui
 
 MMFLASH_CODE_NOINLINE bool octoSpiReceive1LINE(octoSpiResource_t *instance_, uint8_t instruction, uint8_t dummyCycles, uint8_t *in, int length)
 {
+    if (length <= 0) {
+        return false;
+    }
     OCTOSPI_TypeDef *instance = (OCTOSPI_TypeDef *)instance_;
     OSPI_Command_t cmd; // Can't initialise to zero as compiler optimization will use memset() which is not in RAM.
 
@@ -628,6 +634,9 @@ MMFLASH_CODE_NOINLINE bool octoSpiReceive1LINE(octoSpiResource_t *instance_, uin
 
 MMFLASH_CODE_NOINLINE bool octoSpiReceive4LINES(octoSpiResource_t *instance_, uint8_t instruction, uint8_t dummyCycles, uint8_t *in, int length)
 {
+    if (length <= 0) {
+        return false;
+    }
     OCTOSPI_TypeDef *instance = (OCTOSPI_TypeDef *)instance_;
     OSPI_Command_t cmd; // Can't initialise to zero as compiler optimization will use memset() which is not in RAM.
 
@@ -664,6 +673,9 @@ MMFLASH_CODE_NOINLINE bool octoSpiReceive4LINES(octoSpiResource_t *instance_, ui
 
 MMFLASH_CODE_NOINLINE bool octoSpiReceiveWithAddress1LINE(octoSpiResource_t *instance_, uint8_t instruction, uint8_t dummyCycles, uint32_t address, uint8_t addressSize, uint8_t *in, int length)
 {
+    if (length <= 0) {
+        return false;
+    }
     OCTOSPI_TypeDef *instance = (OCTOSPI_TypeDef *)instance_;
     OSPI_Command_t cmd; // Can't initialise to zero as compiler optimization will use memset() which is not in RAM.
 
@@ -701,6 +713,9 @@ MMFLASH_CODE_NOINLINE bool octoSpiReceiveWithAddress1LINE(octoSpiResource_t *ins
 
 MMFLASH_CODE_NOINLINE bool octoSpiReceiveWithAddress4LINES(octoSpiResource_t *instance_, uint8_t instruction, uint8_t dummyCycles, uint32_t address, uint8_t addressSize, uint8_t *in, int length)
 {
+    if (length <= 0) {
+        return false;
+    }
     OCTOSPI_TypeDef *instance = (OCTOSPI_TypeDef *)instance_;
     OSPI_Command_t cmd; // Can't initialise to zero as compiler optimization will use memset() which is not in RAM.
 
@@ -738,6 +753,9 @@ MMFLASH_CODE_NOINLINE bool octoSpiReceiveWithAddress4LINES(octoSpiResource_t *in
 
 MMFLASH_CODE_NOINLINE bool octoSpiTransmitWithAddress1LINE(octoSpiResource_t *instance_, uint8_t instruction, uint8_t dummyCycles, uint32_t address, uint8_t addressSize, const uint8_t *out, int length)
 {
+    if (length <= 0) {
+        return false;
+    }
     OCTOSPI_TypeDef *instance = (OCTOSPI_TypeDef *)instance_;
     OSPI_Command_t cmd; // Can't initialise to zero as compiler optimization will use memset() which is not in RAM.
 
@@ -775,6 +793,9 @@ MMFLASH_CODE_NOINLINE bool octoSpiTransmitWithAddress1LINE(octoSpiResource_t *in
 
 MMFLASH_CODE_NOINLINE bool octoSpiTransmitWithAddress4LINES(octoSpiResource_t *instance_, uint8_t instruction, uint8_t dummyCycles, uint32_t address, uint8_t addressSize, const uint8_t *out, int length)
 {
+    if (length <= 0) {
+        return false;
+    }
     OCTOSPI_TypeDef *instance = (OCTOSPI_TypeDef *)instance_;
     OSPI_Command_t cmd; // Can't initialise to zero as compiler optimization will use memset() which is not in RAM.
 

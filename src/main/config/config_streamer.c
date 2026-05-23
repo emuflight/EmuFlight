@@ -57,8 +57,10 @@ extern uint8_t __config_end;
 # elif defined(STM32F746xx)
 #  define FLASH_PAGE_SIZE                 ((uint32_t)0x8000)
 // H7
-# elif defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx) || defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
+# elif defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx)
 #  define FLASH_PAGE_SIZE                 ((uint32_t)0x20000) // 128K sectors
+# elif defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
+#  define FLASH_PAGE_SIZE                 ((uint32_t)0x2000)  // 8K sectors
 # elif defined(UNIT_TEST)
 #  define FLASH_PAGE_SIZE                 (0x400)
 // SIMULATOR
@@ -72,7 +74,7 @@ extern uint8_t __config_end;
 #if defined(STM32H7)
 // H7 flash minimum write size is 256-bit (32 bytes = 8 x uint32_t).
 // Buffer individual 32-bit writes until a full flash word is ready.
-static uint32_t  h7FlashWriteBuf[8];
+static uint32_t  h7FlashWriteBuf[FLASH_NB_32BITWORD_IN_FLASHWORD];
 static int       h7FlashWriteBufIdx;
 static uintptr_t h7FlashBlockAddr;
 
