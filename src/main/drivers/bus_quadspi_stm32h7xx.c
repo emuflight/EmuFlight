@@ -695,7 +695,9 @@ void quadSpiSetDivisor(const extDevice_t *dev, uint16_t divisor)
 
     quadSpiDevice_t *quadSpi = &(quadSpiDevice[device]);
     quadSpi->halHandle->hal.Init.ClockPrescaler = divisor;
-    HAL_QSPI_Init(&quadSpi->halHandle->hal);
+    if (HAL_QSPI_Init(&quadSpi->halHandle->hal) != HAL_OK) {
+        Error_Handler();
+    }
 }
 
 void quadSpiWait(const extDevice_t *dev)
