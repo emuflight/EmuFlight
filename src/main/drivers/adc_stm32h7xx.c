@@ -132,7 +132,7 @@ static adcDevice_t adc;
 // ADC runs at 12-bit here, so shift 16-bit cal values right by 4 to match the live sample domain.
 #if defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
 #define VREFINT_CAL_SHIFT 4
-#elif defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx)
+#elif defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx)
 #define VREFINT_CAL_SHIFT 0
 #else
 #error Unknown STM32H7 variant — add VREFINT_CAL_SHIFT definition
@@ -275,8 +275,7 @@ void adcInit(const adcConfig_t *config)
 #endif
 
     if (adcActive) {
-        // Enable ADC12 kernel clock (HAL doesn't do this automatically)
-        __HAL_RCC_ADC12_CLK_ENABLE();
+        RCC_ClockCmd(adc.rccADC, ENABLE);
 
         adcInitDevice(&adc, configuredAdcChannels);
 

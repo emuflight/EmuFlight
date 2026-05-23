@@ -95,7 +95,7 @@ uint32_t i2cClockTIMINGR(uint32_t pclkFreq, int i2cFreqKhz, int dfcoeff)
     uint16_t sclh;
     uint16_t scll;
 
-    for (int presc = 0; presc < 15; presc++) {
+    for (int presc = 0; presc <= 15; presc++) {
         i2cClockComputeRaw(pclkFreq, i2cFreqKhz, presc, dfcoeff, &scldel, &sdadel, &sclh, &scll);
         if ((scldel < 16) && (sdadel < 16) && (sclh < 256) && (scll < 256)) {
             return TIMINGR(presc, scldel, sdadel, sclh, scll);

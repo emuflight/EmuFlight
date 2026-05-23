@@ -93,7 +93,7 @@ static const dmaPeripheralMapping_t dmaPeripheralMapping[] = {
 #ifdef USE_ADC
     REQMAP(ADC, 1),
     REQMAP(ADC, 2),
-#if defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx)
+#if defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx)
     REQMAP(ADC, 3),
 #endif
 #endif
@@ -261,16 +261,6 @@ const dmaChannelSpec_t *dmaGetChannelSpecByTimerValue(TIM_TypeDef *tim, uint8_t 
     return NULL;
 }
 
-const dmaChannelSpec_t *dmaGetChannelSpecByTimer(const timerHardware_t *timer)
-{
-    if (!timer) {
-        return NULL;
-    }
-
-    dmaoptValue_t dmaopt = dmaoptByTag(timer->tag);
-    return dmaGetChannelSpecByTimerValue(timer->tim, timer->channel, dmaopt);
-}
-
 dmaoptValue_t dmaGetOptionByTimer(const timerHardware_t *timer)
 {
     for (unsigned opt = 0; opt < ARRAYLEN(dmaChannelSpec); opt++) {
@@ -280,6 +270,16 @@ dmaoptValue_t dmaGetOptionByTimer(const timerHardware_t *timer)
     }
 
     return DMA_OPT_UNUSED;
+}
+
+const dmaChannelSpec_t *dmaGetChannelSpecByTimer(const timerHardware_t *timer)
+{
+    if (!timer) {
+        return NULL;
+    }
+
+    dmaoptValue_t dmaopt = dmaGetOptionByTimer(timer);
+    return dmaGetChannelSpecByTimerValue(timer->tim, timer->channel, dmaopt);
 }
 
 #elif (defined(STM32F4) || defined(STM32F7)) && defined(USE_SPI)

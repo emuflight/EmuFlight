@@ -201,7 +201,7 @@ void EXTIEnable(IO_t io, bool enable) {
 
 void EXTI_IRQHandler(void) {
 #if defined(STM32H7)
-    uint32_t exti_active = EXTI->IMR1 & EXTI->PR1;
+    uint32_t exti_active = EXTI->IMR1 & EXTI->PR1 & 0xFFFFu;
     while (exti_active) {
         unsigned idx = 31 - __builtin_clz(exti_active);
         uint32_t mask = 1 << idx;

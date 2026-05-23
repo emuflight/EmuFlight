@@ -1,6 +1,6 @@
 SECTIONS
 {
-  /* Create space for a hash.  Currently an MD5 has is used, which is 16   */
+  /* Create space for a hash.  Currently an MD5 hash is used, which is 16  */
   /* bytes long. however the last 64 bytes are RESERVED for hash related   */
   .exst_hash :
   {

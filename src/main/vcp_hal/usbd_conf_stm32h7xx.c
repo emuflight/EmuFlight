@@ -76,6 +76,18 @@ PCD_HandleTypeDef hpcd;
                        PCD BSP Routines
  *******************************************************************************/
 
+#if defined(STM32H730xx)
+void OTG_HS_EP1_OUT_IRQHandler(void)
+{
+    HAL_PCD_IRQHandler(&hpcd);
+}
+
+void OTG_HS_EP1_IN_IRQHandler(void)
+{
+    HAL_PCD_IRQHandler(&hpcd);
+}
+#endif
+
 #if defined(USE_USB_FS) && !(defined(STM32H7A3xx) || defined(STM32H7A3xxQ) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx))
 void OTG_FS_IRQHandler(void)
 #else
@@ -331,6 +343,10 @@ void HAL_PCD_MspDeInit(PCD_HandleTypeDef * hpcd)
 
         /* Peripheral interrupt Deinit*/
         HAL_NVIC_DisableIRQ(OTG_HS_IRQn);
+#if defined(STM32H730xx)
+        HAL_NVIC_DisableIRQ(OTG_HS_EP1_OUT_IRQn);
+        HAL_NVIC_DisableIRQ(OTG_HS_EP1_IN_IRQn);
+#endif
     }
 #else
 #error Unknown MCU

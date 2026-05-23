@@ -61,7 +61,7 @@ REGION_ALIAS("MAIN",     OCTOSPI1_CODE)
 REGION_ALIAS("VECTAB",   MAIN)
 
 /* Highest address of the user mode stack */
-_estack = ORIGIN(STACKRAM) + LENGTH(STACKRAM);
+_estack = ORIGIN(STACKRAM) + LENGTH(STACKRAM) - 8; /* Reserve 2 x 4bytes for info across reset */
 
 __octospi1_start = ORIGIN(OCTOSPI1);
 __octospi2_start = ORIGIN(OCTOSPI2);

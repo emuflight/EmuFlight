@@ -147,7 +147,7 @@ SECTIONS
 
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
-  } >FASTRAM AT >FLASH1
+  } >RAM AT >FLASH1
 
   /* Uninitialized data section */
   . = ALIGN(4);
@@ -163,7 +163,7 @@ SECTIONS
     . = ALIGN(4);
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
-  } >FASTRAM
+  } >RAM
 
   /* Uninitialized data section */
   . = ALIGN(4);
