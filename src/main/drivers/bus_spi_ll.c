@@ -196,6 +196,8 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
         spiTimeout = 1000;
         while (!LL_SPI_IsActiveFlag_TXP(instance)) {
             if ((spiTimeout--) == 0) {
+                LL_SPI_ClearFlag_TXTF(instance);
+                LL_SPI_Disable(instance);
                 return spiTimeoutUserCallback(instance);
             }
         }
@@ -204,6 +206,8 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
         spiTimeout = 1000; // reuse declared above
         while (!LL_SPI_IsActiveFlag_RXP(instance)) {
             if ((spiTimeout--) == 0) {
+                LL_SPI_ClearFlag_TXTF(instance);
+                LL_SPI_Disable(instance);
                 return spiTimeoutUserCallback(instance);
             }
         }
@@ -216,6 +220,8 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
     spiTimeout = 1000;
     while (!LL_SPI_IsActiveFlag_EOT(instance)) {
         if ((spiTimeout--) == 0) {
+            LL_SPI_ClearFlag_TXTF(instance);
+            LL_SPI_Disable(instance);
             return spiTimeoutUserCallback(instance);
         }
     }
