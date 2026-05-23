@@ -113,18 +113,17 @@ bool quadSpiSetBusInstance(extDevice_t *dev, uint32_t device)
         return false;
     }
 
-    dev->bus = &quadSpiBusDevice[QUADSPI_CFG_TO_DEV(device)];
+    busDevice_t *bus = &quadSpiBusDevice[QUADSPI_CFG_TO_DEV(device)];
 
     // By default each device should use QSPI DMA if the bus supports it
     dev->useDMA = true;
 
-    if (dev->bus->busType == BUS_TYPE_QSPI) {
-        // This bus has already been initialised
-        dev->bus->deviceCount++;
+    if (bus->busType == BUS_TYPE_QSPI) {
+        // This bus has already been initialised — safe to assign now
+        dev->bus = bus;
+        bus->deviceCount++;
         return true;
     }
-
-    busDevice_t *bus = dev->bus;
 
     bus->busType_u.qspi.instance = quadSpiDevice[QUADSPI_CFG_TO_DEV(device)].dev;
 
@@ -132,6 +131,7 @@ bool quadSpiSetBusInstance(extDevice_t *dev, uint32_t device)
         return false;
     }
 
+    dev->bus = bus;
     bus->busType = BUS_TYPE_QSPI;
     bus->deviceCount = 1;
     bus->curSegment = (volatile busSegment_t *)BUS_QSPI_FREE;
