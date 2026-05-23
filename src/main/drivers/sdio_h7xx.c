@@ -157,6 +157,12 @@ void sdioPinConfigure(void)
         SDIOFINDPIN(D2);
         SDIOFINDPIN(D3);
     }
+
+    if (!sdioPin[SDIO_PIN_CK].pin ||
+        !sdioPin[SDIO_PIN_CMD].pin ||
+        !sdioPin[SDIO_PIN_D0].pin) {
+        sdioHardware = NULL;
+    }
 }
 
 #undef SDIOFINDPIN
