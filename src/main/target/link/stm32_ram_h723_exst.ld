@@ -193,7 +193,7 @@ SECTIONS
     . = ALIGN(4);
     _esram2 = .;
     __sram2_end__ = _esram2;
-  } >RAM
+  } >D2_RAM
 
   /* FAST_RAM (DTCM) — initialised, stored in MAIN (OCTOSPI) */
   _sfastram_idata = LOADADDR(.fastram_data);
