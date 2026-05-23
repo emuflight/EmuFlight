@@ -545,7 +545,10 @@ MMFLASH_DATA static const uint32_t octoSpi_addressSizeMap[] = {
 
 MMFLASH_CODE static uint32_t octoSpi_addressSizeFromValue(uint8_t addressSize)
 {
-    return octoSpi_addressSizeMap[((addressSize + 1) / 8) - 1]; // rounds to nearest OSPI_ADDRESS_* value that will hold the address.
+    uint32_t index = ((uint32_t)(addressSize + 1) / 8);
+    if (index < 1) index = 1;
+    if (index > 4) index = 4;
+    return octoSpi_addressSizeMap[index - 1];
 }
 
 MMFLASH_CODE_NOINLINE bool octoSpiTransmit1LINE(octoSpiResource_t *instance_, uint8_t instruction, uint8_t dummyCycles, const uint8_t *out, int length)
@@ -570,7 +573,7 @@ MMFLASH_CODE_NOINLINE bool octoSpiTransmit1LINE(octoSpiResource_t *instance_, ui
 
     cmd.DataDtrMode        = OSPI_DATA_DTR_DISABLE;
     cmd.DataMode           = OSPI_DATA_NONE;
-    cmd.NbData             = length;
+    cmd.NbData             = (uint32_t)length;
 
     cmd.DQSMode            = OSPI_DQS_DISABLE;
     cmd.SIOOMode           = OSPI_SIOO_INST_EVERY_CMD;
@@ -609,7 +612,7 @@ MMFLASH_CODE_NOINLINE bool octoSpiReceive1LINE(octoSpiResource_t *instance_, uin
 
     cmd.DataDtrMode        = OSPI_DATA_DTR_DISABLE;
     cmd.DataMode           = OSPI_DATA_1_LINE;
-    cmd.NbData             = length;
+    cmd.NbData             = (uint32_t)length;
 
     cmd.DQSMode            = OSPI_DQS_DISABLE;
     cmd.SIOOMode           = OSPI_SIOO_INST_EVERY_CMD;
@@ -645,7 +648,7 @@ MMFLASH_CODE_NOINLINE bool octoSpiReceive4LINES(octoSpiResource_t *instance_, ui
 
     cmd.DataDtrMode        = OSPI_DATA_DTR_DISABLE;
     cmd.DataMode           = OSPI_DATA_4_LINES;
-    cmd.NbData             = length;
+    cmd.NbData             = (uint32_t)length;
 
     cmd.DQSMode            = OSPI_DQS_DISABLE;
     cmd.SIOOMode           = OSPI_SIOO_INST_EVERY_CMD;
@@ -682,7 +685,7 @@ MMFLASH_CODE_NOINLINE bool octoSpiReceiveWithAddress1LINE(octoSpiResource_t *ins
 
     cmd.DataDtrMode        = OSPI_DATA_DTR_DISABLE;
     cmd.DataMode           = OSPI_DATA_1_LINE;
-    cmd.NbData             = length;
+    cmd.NbData             = (uint32_t)length;
 
     cmd.SIOOMode           = OSPI_SIOO_INST_EVERY_CMD;
     cmd.DQSMode            = OSPI_DQS_DISABLE;
@@ -719,7 +722,7 @@ MMFLASH_CODE_NOINLINE bool octoSpiReceiveWithAddress4LINES(octoSpiResource_t *in
 
     cmd.DataDtrMode        = OSPI_DATA_DTR_DISABLE;
     cmd.DataMode           = OSPI_DATA_4_LINES;
-    cmd.NbData             = length;
+    cmd.NbData             = (uint32_t)length;
 
     cmd.DQSMode            = OSPI_DQS_DISABLE;
     cmd.SIOOMode           = OSPI_SIOO_INST_EVERY_CMD;
@@ -756,7 +759,7 @@ MMFLASH_CODE_NOINLINE bool octoSpiTransmitWithAddress1LINE(octoSpiResource_t *in
 
     cmd.DataDtrMode        = OSPI_DATA_DTR_DISABLE;
     cmd.DataMode           = OSPI_DATA_1_LINE;
-    cmd.NbData             = length;
+    cmd.NbData             = (uint32_t)length;
 
     cmd.DQSMode            = OSPI_DQS_DISABLE;
     cmd.SIOOMode           = OSPI_SIOO_INST_EVERY_CMD;
@@ -793,7 +796,7 @@ MMFLASH_CODE_NOINLINE bool octoSpiTransmitWithAddress4LINES(octoSpiResource_t *i
 
     cmd.DataDtrMode        = OSPI_DATA_DTR_DISABLE;
     cmd.DataMode           = OSPI_DATA_4_LINES;
-    cmd.NbData             = length;
+    cmd.NbData             = (uint32_t)length;
 
     cmd.DQSMode            = OSPI_DQS_DISABLE;
     cmd.SIOOMode           = OSPI_SIOO_INST_EVERY_CMD;

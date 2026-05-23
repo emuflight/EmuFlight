@@ -63,6 +63,9 @@ void transponderIrHardwareInit(ioTag_t ioTag, transponder_t *transponder) {
         return;
     }
     const timerHardware_t *timerHardware = timerGetByTag(ioTag);
+    if (!timerHardware) {
+        return;
+    }
     transponderTimerHardware = timerHardware;
     TIM_TypeDef *timer = timerHardware->tim;
     timerChannel = timerHardware->channel;
