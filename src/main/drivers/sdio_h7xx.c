@@ -478,7 +478,7 @@ SD_Error_t SD_GetCardInfo(void)
     SD_CardInfo.SD_cid.OEM_AppliID = Temp << 8;
 
     // Byte 2
-    Temp = (uint8_t)((SD_Handle.CID[0] & 0x000000FF00) >> 8);
+    Temp = (uint8_t)((SD_Handle.CID[0] & 0x0000FF00) >> 8);
     SD_CardInfo.SD_cid.OEM_AppliID |= Temp;
 
     // Byte 3
@@ -523,7 +523,7 @@ SD_Error_t SD_GetCardInfo(void)
 
     // Byte 13
     Temp = (uint8_t)((SD_Handle.CID[3] & 0x00FF0000) >> 16);
-    SD_CardInfo.SD_cid.Reserved1   |= (Temp & 0xF0) >> 4;
+    SD_CardInfo.SD_cid.Reserved1    = (Temp & 0xF0) >> 4;
     SD_CardInfo.SD_cid.ManufactDate = (Temp & 0x0F) << 8;
 
     // Byte 14

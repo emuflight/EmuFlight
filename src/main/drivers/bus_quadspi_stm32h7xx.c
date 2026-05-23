@@ -284,7 +284,10 @@ static const uint32_t quadSpi_addressSizeMap[] = {
 
 static uint32_t quadSpi_addressSizeFromValue(uint8_t addressSize)
 {
-    return quadSpi_addressSizeMap[((addressSize + 1) / 8) - 1];
+    uint32_t index = ((uint32_t)(addressSize + 1) / 8);
+    if (index < 1) index = 1;
+    if (index > 4) index = 4;
+    return quadSpi_addressSizeMap[index - 1];
 }
 
 #define QUADSPI_DEFAULT_TIMEOUT 10

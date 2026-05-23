@@ -5,7 +5,7 @@
 **
 **  Abstract    : Linker script for STM32H735xG Device with
 **                320K AXI-SRAM mapped onto AXI bus on D1 domain
-                       (Shared AXI/I-TCM 192KB is all configured as AXI-SRAM)
+**                       (Shared AXI/I-TCM 192KB is all configured as AXI-SRAM)
 **                 16K SRAM1 mapped on D2 domain
 **                 16K SRAM2 mapped on D2 domain
 **                 16K SRAM  mapped on D3 domain

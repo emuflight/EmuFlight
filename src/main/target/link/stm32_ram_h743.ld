@@ -159,7 +159,7 @@ SECTIONS
   . = ALIGN(4);
   .bss (NOLOAD) :
   {
-    /* This is used by the startup in order to initialize the .bss secion */
+    /* This is used by the startup in order to initialize the .bss section */
     _sbss = .;         /* define a global symbol at bss start */
     __bss_start__ = _sbss;
     *(.bss)
@@ -175,7 +175,7 @@ SECTIONS
   . = ALIGN(4);
   .sram2 (NOLOAD) :
   {
-    /* This is used by the startup in order to initialize the .sram2 secion */
+    /* This is used by the startup in order to initialize the .sram2 section */
     _ssram2 = .;         /* define a global symbol at sram2 start */
     __sram2_start__ = _ssram2;
     *(.sram2)

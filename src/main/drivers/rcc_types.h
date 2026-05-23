@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #if defined(STM32H7)
 typedef uint16_t rccPeriphTag_t;
 #else

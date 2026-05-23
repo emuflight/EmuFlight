@@ -388,3 +388,27 @@ FAST_IRQ_HANDLER void UART8_IRQHandler(void) {
     uartIrqHandler(s);
 }
 #endif
+
+#ifdef USE_UART9
+// UART9 Rx/Tx IRQ Handler
+FAST_IRQ_HANDLER void UART9_IRQHandler(void) {
+    uartPort_t *s = &(uartDevmap[UARTDEV_9]->port);
+    uartIrqHandler(s);
+}
+#endif
+
+#ifdef USE_UART10
+// USART10 Rx/Tx IRQ Handler
+FAST_IRQ_HANDLER void USART10_IRQHandler(void) {
+    uartPort_t *s = &(uartDevmap[UARTDEV_10]->port);
+    uartIrqHandler(s);
+}
+#endif
+
+#ifdef USE_LPUART1
+// LPUART1 Rx/Tx IRQ Handler
+FAST_IRQ_HANDLER void LPUART1_IRQHandler(void) {
+    uartPort_t *s = &(uartDevmap[LPUARTDEV_1]->port);
+    uartIrqHandler(s);
+}
+#endif

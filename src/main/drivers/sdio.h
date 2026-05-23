@@ -31,7 +31,7 @@ typedef enum {
 
 #define SDIODEV_COUNT 2
 
-#if ENABLE_SDIO_INIT && defined(USE_SDCARD_SDIO)
+#if defined(ENABLE_SDIO_INIT) && ENABLE_SDIO_INIT && defined(USE_SDCARD_SDIO)
 void sdioPinConfigure(void);
 void sdioInitialize(void);
 #endif

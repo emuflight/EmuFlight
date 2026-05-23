@@ -341,9 +341,11 @@ int config_streamer_flush(config_streamer_t *c) {
 #if defined(STM32H7)
     // Flush any partial 32-byte flash word that hasn't been written yet
     if (h7FlashWriteBufIdx > 0) {
-        memset(h7FlashWriteBuf + h7FlashWriteBufIdx, 0, (ARRAYLEN(h7FlashWriteBuf) - h7FlashWriteBufIdx) * sizeof(uint32_t));
-        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, h7FlashBlockAddr, (uint32_t)h7FlashWriteBuf) != HAL_OK) {
-            c->err = -2;
+        if (c->err == 0) {
+            memset(h7FlashWriteBuf + h7FlashWriteBufIdx, 0, (ARRAYLEN(h7FlashWriteBuf) - h7FlashWriteBufIdx) * sizeof(uint32_t));
+            if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, h7FlashBlockAddr, (uint32_t)h7FlashWriteBuf) != HAL_OK) {
+                c->err = -2;
+            }
         }
         h7FlashWriteBufIdx = 0;
     }
