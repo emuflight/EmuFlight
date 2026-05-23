@@ -54,7 +54,7 @@ REGION_ALIAS("FASTRAM",  DTCM_RAM)
 REGION_ALIAS("MAIN",     CODE_RAM)
 
 /* Highest address of the user mode stack */
-_estack = ORIGIN(STACKRAM) + LENGTH(STACKRAM);
+_estack = ORIGIN(STACKRAM) + LENGTH(STACKRAM) - 8; /* Reserve 2 x 4bytes for info across reset */
 
 _Min_Heap_Size  = 0;
 _Min_Stack_Size = 0x800;

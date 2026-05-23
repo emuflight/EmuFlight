@@ -217,7 +217,11 @@ void transponderIrDisable(void) {
 #else
     IOLo(transponderIO);
 #endif
+#if defined(STM32H7)
+    IOConfigGPIOAF(transponderIO, IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_LOW, GPIO_PULLDOWN), timerHardware->alternateFunction);
+#else
     IOConfigGPIOAF(transponderIO, IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_VERY_HIGH, GPIO_PULLDOWN), timerHardware->alternateFunction);
+#endif
 }
 
 void transponderIrTransmit(void) {

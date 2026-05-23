@@ -332,6 +332,10 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
             dmaSafe = false;
             break;
         }
+        if ((checkSegment->u.buffers.txData) && IS_DTCM(checkSegment->u.buffers.txData)) {
+            dmaSafe = false;
+            break;
+        }
         // Rx buffers outside write-through dmaram must be 32-byte cache-line aligned.
         if ((checkSegment->u.buffers.rxData) && !IS_DMARAM(checkSegment->u.buffers.rxData) &&
             (((uint32_t)checkSegment->u.buffers.rxData & 31) || (checkSegment->len & 31))) {
@@ -467,8 +471,8 @@ void spiInternalResetStream(dmaChannelDescriptor_t *descriptor)
 
 void spiInternalInitStream(const extDevice_t *dev, bool preInit)
 {
-    static uint8_t dummyTxByte = 0xff;
-    static uint8_t dummyRxByte;
+    static DMA_DATA uint8_t dummyTxByte = 0xff;
+    static DMA_DATA_ZERO_INIT uint8_t dummyRxByte;
     busDevice_t *bus = dev->bus;
 
     busSegment_t *segment = (busSegment_t *)bus->curSegment;

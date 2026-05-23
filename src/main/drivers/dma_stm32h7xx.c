@@ -77,7 +77,7 @@ DEFINE_DMA_IRQ_HANDLER(2, 7, DMA2_ST7_HANDLER)
 static void enableDmaClock(int index)
 {
     RCC_ClockCmd(dmaDescriptors[index].dma == DMA1 ? RCC_AHB1(DMA1) : RCC_AHB1(DMA2), ENABLE);
-    // There seems to be no explicit control for DMAMUX1 clocking
+    __HAL_RCC_DMAMUX1_CLK_ENABLE();
 }
 
 void dmaEnable(dmaIdentifier_e identifier)

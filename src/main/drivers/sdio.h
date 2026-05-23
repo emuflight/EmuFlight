@@ -18,6 +18,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #define SDIO_CFG_TO_DEV(x) ((x) - 1)
 #define SDIO_DEV_TO_CFG(x) ((x) + 1)
 

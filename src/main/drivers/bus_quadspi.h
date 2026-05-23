@@ -42,7 +42,7 @@
 #ifdef USE_QUADSPI
 
 typedef enum {
-    QUADSPI_CLOCK_INITIALIZATION = 256,
+    QUADSPI_CLOCK_INITIALIZATION = 255,
     /* QSPI freq = CLK /(1 + ClockPrescaler) = 200 MHz/(1+x) */
     QUADSPI_CLOCK_INITIALISATION = 255, //  0.78125 Mhz
     QUADSPI_CLOCK_SLOW           = 19,  // 10.00000 Mhz

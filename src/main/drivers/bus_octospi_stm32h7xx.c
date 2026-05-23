@@ -196,7 +196,7 @@ MMFLASH_CODE_NOINLINE static ErrorStatus octoSpiConfigureCommand(OCTOSPI_TypeDef
         instance->ABR = cmd->AlternateBytes;
 
         MODIFY_REG(
-            instance->ABR,
+            instance->CCR,
             (OCTOSPI_CCR_ABMODE | OCTOSPI_CCR_ABDTR | OCTOSPI_CCR_ABSIZE),
             (cmd->AlternateBytesMode | cmd->AlternateBytesDtrMode | cmd->AlternateBytesSize)
         );
