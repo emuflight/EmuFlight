@@ -104,8 +104,8 @@ static void adcInitDevice(adcDevice_t *adcdev, int channelCount)
     adcdev->ADCHandle.Init.NbrOfDiscConversion       = 1;
     adcdev->ADCHandle.Init.ExternalTrigConv          = ADC_SOFTWARE_START;
     adcdev->ADCHandle.Init.ExternalTrigConvEdge      = ADC_EXTERNALTRIGCONVEDGE_NONE;
-    // H723/H725/H730: ADC3 uses DMAContinuousRequests instead of ConversionDataManagement.
-#if defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx)
+    // H723/H725/H730/H735: ADC3 uses DMAContinuousRequests instead of ConversionDataManagement.
+#if defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx)
     if (adcdev->ADCx == ADC3) {
         adcdev->ADCHandle.Init.DMAContinuousRequests = ENABLE;
     } else
