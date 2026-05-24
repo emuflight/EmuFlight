@@ -55,7 +55,7 @@
 #endif
 #elif defined(STM32F7) || defined(STM32H7)
 #if defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
-#define UARTDEV_COUNT_MAX 10
+#define UARTDEV_COUNT_MAX 11  // UARTs 1-10 + LPUART1 (index 10)
 #else
 #define UARTDEV_COUNT_MAX 8
 #endif
