@@ -484,6 +484,9 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
 
 uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, portOptions_e options)
 {
+    if ((unsigned)device >= UARTDEV_COUNT_MAX) {
+        return NULL;
+    }
     uartDevice_t *uartdev = uartDevmap[device];
     if (!uartdev) {
         return NULL;
