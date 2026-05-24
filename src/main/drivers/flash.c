@@ -35,6 +35,11 @@
 #include "drivers/io.h"
 #include "drivers/time.h"
 
+#ifdef USE_FLASH_W25Q128FV
+#include "flash_w25q128fv.h"
+#include "drivers/bus_quadspi.h"
+#endif
+
 static extDevice_t busInstance;
 static extDevice_t *dev;
 
@@ -42,7 +47,53 @@ static flashDevice_t flashDevice;
 
 // Read chip identification and send it to device detect
 
+#if defined(USE_FLASH_W25Q128FV) && defined(USE_QUADSPI)
+static extDevice_t qspiFlashDevice;
+
+static bool flashInitQuadSpi(void)
+{
+    extDevice_t *qdev = &qspiFlashDevice;
+
+    // QUADSPI_FLASH_DEVICE is the QUADSPI device index configured for the target.
+    // If undefined, default to device 1 (index 0).
+#ifndef QUADSPI_FLASH_DEVICE
+#define QUADSPI_FLASH_DEVICE QUADSPIDEV_1
+#endif
+
+    if (!quadSpiSetBusInstance(qdev, QUADSPI_FLASH_DEVICE)) {
+        return false;
+    }
+
+    quadSpiSetDivisor(qdev, QUADSPI_CLOCK_INITIALISATION);
+
+    uint8_t in[3] = { 0 };
+    // RDID (0x9F) via 1LINE: instruction only, receive 3 data bytes
+    if (!quadSpiReceive1LINE(qdev, SPIFLASH_INSTRUCTION_RDID, 0, in, sizeof(in))) {
+        return false;
+    }
+
+    uint32_t chipID = ((uint32_t)in[0] << 16) | ((uint32_t)in[1] << 8) | (uint32_t)in[2];
+
+    flashDevice.io.handle.qspiDev = qdev;
+
+    if (w25q128fv_detect(&flashDevice, chipID)) {
+        quadSpiSetDivisor(qdev, QUADSPI_CLOCK_FAST);
+        return true;
+    }
+
+    return false;
+}
+#endif // USE_FLASH_W25Q128FV && USE_QUADSPI
+
 bool flashInit(const flashConfig_t *flashConfig) {
+#if defined(USE_FLASH_W25Q128FV) && defined(USE_QUADSPI)
+    // Attempt QuadSPI-attached flash first when QUADSPI is available.
+    // SPI flash config (csTag) may be absent on pure-QuadSPI boards.
+    if (flashInitQuadSpi()) {
+        return true;
+    }
+#endif
+
     dev = &busInstance;
     if (flashConfig->csTag) {
         dev->busType_u.spi.csnPin = IOGetByTag(flashConfig->csTag);

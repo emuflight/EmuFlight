@@ -26,10 +26,28 @@
 
 #include "drivers/bus.h"
 
+#ifdef USE_QUADSPI
+#include "drivers/bus_quadspi.h"
+#endif
+
 struct flashVTable_s;
 
+// IO handle union: SPI uses extDevice_t*, QuadSPI uses extDevice_t* via bus_quadspi.
+// The qspiDev pointer is a separate extDevice registered on the QSPI bus, distinct
+// from the SPI extDevice used by m25p16/w25m.
+typedef struct flashDeviceIO_s {
+    union {
+        extDevice_t *dev;   // SPI path: csnPin + spiInstance via spiSetBusInstance
+#ifdef USE_QUADSPI
+        extDevice_t *qspiDev; // QuadSPI path: registered via quadSpiSetBusInstance
+#endif
+    } handle;
+} flashDeviceIO_t;
+
 typedef struct flashDevice_s {
+    // SPI path: legacy direct extDevice_t pointer (used by m25p16, w25m)
     extDevice_t *dev;
+
     const struct flashVTable_s *vTable;
     flashGeometry_t geometry;
     uint32_t currentWriteAddress;
@@ -38,6 +56,12 @@ typedef struct flashDevice_s {
     // for writes. This allows us to avoid polling for writable status
     // when it is definitely ready already.
     bool couldBeBusy;
+
+    // QuadSPI path: io union populated by w25q128fv_detect(); NULL for SPI devices.
+    flashDeviceIO_t io;
+
+    // Timeout tracking for QuadSPI driver (milliseconds)
+    uint32_t timeoutAt;
 } flashDevice_t;
 
 typedef struct flashVTable_s {
