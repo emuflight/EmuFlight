@@ -323,7 +323,7 @@ static sdcardReceiveBlockStatus_e sdcard_receiveDataBlock(uint8_t *buffer, int c
 }
 
 static bool sdcard_sendDataBlockFinish(void) {
-#ifdef USE_HAL_DRIVER
+#if defined(USE_HAL_DRIVER) && !defined(STM32H7)
     // Drain anything left in the Rx FIFO (we didn't read it during the write)
     //This is necessary here as when using msc there is timing issue
     while (LL_SPI_IsActiveFlag_RXNE(sdcard.instance)) {
@@ -357,7 +357,7 @@ static void sdcard_sendDataBlockBegin(const uint8_t *buffer, bool multiBlockWrit
     spiTransferByte(sdcard.instance, 0xFF);
     spiTransferByte(sdcard.instance, multiBlockWrite ? SDCARD_MULTIPLE_BLOCK_WRITE_START_TOKEN : SDCARD_SINGLE_BLOCK_WRITE_START_TOKEN);
     if (sdcard.useDMAForTx) {
-#if defined(USE_HAL_DRIVER)
+#if defined(USE_HAL_DRIVER) && !defined(STM32H7)
         LL_DMA_InitTypeDef init;
         LL_DMA_StructInit(&init);
         init.Channel = dmaGetChannel(sdcard.dmaChannel);
@@ -375,7 +375,7 @@ static void sdcard_sendDataBlockBegin(const uint8_t *buffer, bool multiBlockWrit
         LL_DMA_Init(sdcard.dma->dma, sdcard.dma->stream, &init);
         LL_DMA_EnableStream(sdcard.dma->dma, sdcard.dma->stream);
         LL_SPI_EnableDMAReq_TX(sdcard.instance);
-#else
+#elif !defined(STM32H7)
         DMA_InitTypeDef init;
         DMA_StructInit(&init);
 #ifdef STM32F4
@@ -648,7 +648,7 @@ doMore:
     case SDCARD_STATE_SENDING_WRITE:
         // Have we finished sending the write yet?
         sendComplete = false;
-#if defined(USE_HAL_DRIVER)
+#if defined(USE_HAL_DRIVER) && !defined(STM32H7)
         if (sdcard.useDMAForTx && DMA_GET_FLAG_STATUS(sdcard.dma, DMA_IT_TCIF)) {
             //Clear both flags after transfer
             DMA_CLEAR_FLAG(sdcard.dma, DMA_IT_TCIF);
@@ -663,7 +663,7 @@ doMore:
             LL_SPI_DisableDMAReq_TX(sdcard.instance);
             sendComplete = true;
         }
-#else
+#elif !defined(STM32H7)
 #ifdef STM32F4
         if (sdcard.useDMAForTx && DMA_GetFlagStatus(sdcard.dma->ref, sdcard.dma->completeFlag) == SET) {
             DMA_ClearFlag(sdcard.dma->ref, sdcard.dma->completeFlag);

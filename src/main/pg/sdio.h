@@ -20,11 +20,25 @@
 
 #pragma once
 
+#include "drivers/io_types.h"
 #include "pg/pg.h"
 
 typedef struct sdioConfig_s {
     uint8_t clockBypass;
     uint8_t useCache;
+    uint8_t use4BitWidth;
+    uint8_t device;         // 1=SDMMC1, 2=SDMMC2 (0=invalid/not configured)
 } sdioConfig_t;
 
 PG_DECLARE(sdioConfig_t, sdioConfig);
+
+typedef struct sdioPinConfig_s {
+    ioTag_t CKPin;
+    ioTag_t CMDPin;
+    ioTag_t D0Pin;
+    ioTag_t D1Pin;
+    ioTag_t D2Pin;
+    ioTag_t D3Pin;
+} sdioPinConfig_t;
+
+PG_DECLARE(sdioPinConfig_t, sdioPinConfig);

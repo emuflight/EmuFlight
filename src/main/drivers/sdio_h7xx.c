@@ -328,10 +328,10 @@ static SD_Error_t SD_DoInit(void)
         return SD_ERROR;
     }
 
-    STATIC_ASSERT(sizeof(SD_Handle.CSD) == sizeof(hsd1.CSD), hal-csd-size-error);
+    STATIC_ASSERT(sizeof(SD_Handle.CSD) == sizeof(hsd1.CSD), hal_csd_size_error);
     memcpy(&SD_Handle.CSD, &hsd1.CSD, sizeof(SD_Handle.CSD));
 
-    STATIC_ASSERT(sizeof(SD_Handle.CID) == sizeof(hsd1.CID), hal-cid-size-error);
+    STATIC_ASSERT(sizeof(SD_Handle.CID) == sizeof(hsd1.CID), hal_cid_size_error);
     memcpy(&SD_Handle.CID, &hsd1.CID, sizeof(SD_Handle.CID));
 
     return SD_OK;
