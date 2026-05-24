@@ -90,6 +90,8 @@
 #define USE_ADC_INTERNAL
 // Note: USE_USB_CDC_HID and USE_USB_MSC intentionally omitted — fc_tasks.c pulls in
 // vcpf4/usbd_cdc_vcp.h (F4-specific) under those guards; not yet ported for H7
+#define I2C3_OVERCLOCK true
+#define I2C4_OVERCLOCK true
 #endif
 
 #if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)

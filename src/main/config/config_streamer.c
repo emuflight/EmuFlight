@@ -29,6 +29,14 @@
 #ifndef EEPROM_IN_RAM
 extern uint8_t __config_start;   // configured via linker script when building binaries.
 extern uint8_t __config_end;
+#else
+// RAM-based config: eepromData[] is the backing store; __config_start/__config_end
+// are macro-aliased to it in common_fc_post.h.
+#if defined(PERSISTENT)
+PERSISTENT uint8_t eepromData[EEPROM_SIZE];
+#else
+uint8_t eepromData[EEPROM_SIZE];
+#endif
 #endif
 
 #if !defined(FLASH_PAGE_SIZE)
@@ -71,7 +79,7 @@ extern uint8_t __config_end;
 # endif
 #endif
 
-#if defined(STM32H7)
+#if defined(STM32H7) && !defined(EEPROM_IN_RAM)
 // H7 flash minimum write size is 256-bit (32 bytes = 8 x uint32_t).
 // Buffer individual 32-bit writes until a full flash word is ready.
 static uint32_t  h7FlashWriteBuf[FLASH_NB_32BITWORD_IN_FLASHWORD];
@@ -102,10 +110,12 @@ void config_streamer_start(config_streamer_t *c, uintptr_t base, int size) {
     c->address = base;
     c->size = size;
     if (!c->unlocked) {
+#if !defined(EEPROM_IN_RAM)
 #if defined(STM32F7) || defined(STM32H7)
         HAL_FLASH_Unlock();
 #else
         FLASH_Unlock();
+#endif
 #endif
         c->unlocked = true;
     }
@@ -122,7 +132,7 @@ void config_streamer_start(config_streamer_t *c, uintptr_t base, int size) {
 #else
 # error "Unsupported CPU"
 #endif
-#if defined(STM32H7)
+#if defined(STM32H7) && !defined(EEPROM_IN_RAM)
     // Reset H7 flash word buffer state at start of each config save
     h7FlashWriteBufIdx = 0;
     memset(h7FlashWriteBuf, 0, sizeof(h7FlashWriteBuf));
@@ -252,7 +262,12 @@ static int write_word(config_streamer_t *c, uint32_t value) {
     if (c->err != 0) {
         return c->err;
     }
-#if defined(STM32H7)
+#if defined(EEPROM_IN_RAM)
+    // RAM-based config: direct memory write, no flash erase/program needed.
+    *(uint32_t *)c->address = value;
+    c->address += sizeof(value);
+    return 0;
+#elif defined(STM32H7)
     // H7: sector erase at page boundary, then buffer into 32-byte flash words
     if (c->address % FLASH_PAGE_SIZE == 0) {
         FLASH_EraseInitTypeDef EraseInitStruct = {
@@ -340,7 +355,7 @@ int config_streamer_flush(config_streamer_t *c) {
         c->err = write_word(c, c->buffer.w);
         c->at = 0;
     }
-#if defined(STM32H7)
+#if defined(STM32H7) && !defined(EEPROM_IN_RAM)
     // Flush any partial 32-byte flash word that hasn't been written yet
     if (h7FlashWriteBufIdx > 0) {
         if (c->err == 0) {
@@ -357,10 +372,12 @@ int config_streamer_flush(config_streamer_t *c) {
 
 int config_streamer_finish(config_streamer_t *c) {
     if (c->unlocked) {
+#if !defined(EEPROM_IN_RAM)
 #if defined(STM32F7) || defined(STM32H7)
         HAL_FLASH_Lock();
 #else
         FLASH_Lock();
+#endif
 #endif
         c->unlocked = false;
     }
