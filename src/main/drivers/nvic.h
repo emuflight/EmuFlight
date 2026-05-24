@@ -75,6 +75,7 @@
 #define NVIC_PRIO_SERIALLPUART1            NVIC_BUILD_PRIORITY(1, 2)
 #define NVIC_PRIO_I2C_ER                   NVIC_BUILD_PRIORITY(0, 0)
 #define NVIC_PRIO_I2C_EV                   NVIC_BUILD_PRIORITY(0, 0)
+#define NVIC_PRIO_SDIO_DMA                 NVIC_BUILD_PRIORITY(0, 0)
 #define NVIC_PRIO_USB                      NVIC_BUILD_PRIORITY(2, 0)
 #define NVIC_PRIO_USB_WUP                  NVIC_BUILD_PRIORITY(1, 0)
 #define NVIC_PRIO_SONAR_ECHO               NVIC_BUILD_PRIORITY(0x0f, 0x0f)

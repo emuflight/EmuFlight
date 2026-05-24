@@ -136,6 +136,7 @@
 #define PG_RCDEVICE_CONFIG 539
 #define PG_BETAFLIGHT_END 539
 #define PG_QUADSPI_CONFIG           548
+#define PG_SDIO_PIN_CONFIG          550
 
 
 // OSD configuration (subject to change)
