@@ -28,12 +28,9 @@
 #define USE_GYRO
 #define USE_GYRO_SPI_ICM42688P
 #define USE_ACC_SPI_ICM42688P
-#define USE_FLASH
 #define USE_MAX7456
 
 #define USE_VCP
-#define USE_FLASHFS
-#define USE_FLASH_M25P16
 #define USE_OSD
 
 #define USE_LED
@@ -99,9 +96,8 @@
 #define I2C2_SCL                        PB10
 #define I2C2_SDA                        PB11
 
-#define FLASH_CS_PIN                    PC13
-#define FLASH_SPI_INSTANCE              SPI4
-#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+// Flash chip is Winbond W25N01G (JEDEC 0xEFAA21) — NAND, not NOR.
+// No EmuFlight NAND flash driver exists yet; blackbox to SPI flash unsupported.
 
 #define MAX7456_SPI_CS_PIN              PB8
 #define MAX7456_SPI_INSTANCE            SPI2
