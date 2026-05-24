@@ -43,7 +43,11 @@
 //#define USE_SPI_DEVICE_6
 #define USE_I2C
 #define USE_I2C_DEVICE_1
+#define I2C1_SCL                PB6
+#define I2C1_SDA                PB7
 #define USE_I2C_DEVICE_4
+#define I2C4_SCL                PD12  // J8:5
+#define I2C4_SDA                PD13  // J8:6
 #define USE_PINIO
 #define USE_PINIOBOX
 #define USE_ACC
@@ -135,6 +139,8 @@
 #define UART10_RX_PIN        PE2
 #define SERIAL_PORT_COUNT    11
 
+// RX_SPI_CS_PIN shares PB12 with GYRO_2_CS_PIN (SPI2_NSS_PIN) — BF parity.
+// Hardware design: USE_RX_SPI and dual-gyro are mutually exclusive on this board.
 #define RX_SPI_CS_PIN        PB12
 #define RX_SPI_BIND_PIN      NONE
 #define RX_SPI_LED_PIN       NONE
