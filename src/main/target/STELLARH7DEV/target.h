@@ -114,6 +114,9 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE     120
 
+// PB3: VTX/DJI connector power enable (active-high).
+// PINIO1_CONFIG = 0x81: push-pull, inverted — USER1 inactive → PB3 HIGH → VTX ON.
+// USER1 active (box 40) drives PB3 LOW → VTX pit mode / power cut.
 #define PINIO1_PIN                      PB3
 #define PINIO1_CONFIG                   129
 #define PINIO1_BOX                      40

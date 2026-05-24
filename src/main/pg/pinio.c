@@ -39,6 +39,19 @@
 #define PINIO4_PIN NONE
 #endif
 
+#ifndef PINIO1_CONFIG
+#define PINIO1_CONFIG PINIO_CONFIG_MODE_OUT_PP
+#endif
+#ifndef PINIO2_CONFIG
+#define PINIO2_CONFIG PINIO_CONFIG_MODE_OUT_PP
+#endif
+#ifndef PINIO3_CONFIG
+#define PINIO3_CONFIG PINIO_CONFIG_MODE_OUT_PP
+#endif
+#ifndef PINIO4_CONFIG
+#define PINIO4_CONFIG PINIO_CONFIG_MODE_OUT_PP
+#endif
+
 PG_REGISTER_WITH_RESET_TEMPLATE(pinioConfig_t, pinioConfig, PG_PINIO_CONFIG, 0);
 
 PG_RESET_TEMPLATE(pinioConfig_t, pinioConfig,
@@ -49,10 +62,10 @@ PG_RESET_TEMPLATE(pinioConfig_t, pinioConfig,
     IO_TAG(PINIO4_PIN),
 },
 .config = {
-    PINIO_CONFIG_MODE_OUT_PP,
-    PINIO_CONFIG_MODE_OUT_PP,
-    PINIO_CONFIG_MODE_OUT_PP,
-    PINIO_CONFIG_MODE_OUT_PP
+    PINIO1_CONFIG,
+    PINIO2_CONFIG,
+    PINIO3_CONFIG,
+    PINIO4_CONFIG,
 },
                  );
 #endif
