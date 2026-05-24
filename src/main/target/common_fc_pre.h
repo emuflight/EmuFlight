@@ -121,6 +121,16 @@
 #define FAST_IRQ_HANDLER
 #endif
 
+// OctoSPI memory-mapped mode: code that runs while MM is disabled must be in RAM
+// (not in the external OctoSPI flash which is inaccessible during MM-off window).
+#ifdef USE_OCTOSPI
+#define MMFLASH_CODE            FAST_CODE
+#define MMFLASH_CODE_NOINLINE   FAST_CODE NOINLINE
+#else
+#define MMFLASH_CODE
+#define MMFLASH_CODE_NOINLINE
+#endif
+
 #ifdef USE_FAST_RAM
 #define FAST_RAM_ZERO_INIT             __attribute__ ((section(".fastram_bss"), aligned(4)))
 #define FAST_RAM                    __attribute__ ((section(".fastram_data"), aligned(4)))
