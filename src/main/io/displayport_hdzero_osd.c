@@ -336,7 +336,12 @@ static const displayPortVTable_t hdzeroOsdVTable = {
 
 bool hdzeroOsdSerialInit(void)
 {
+#if defined(STM32H7)
+    // On H7, UART TX DMA can only reach AXI SRAM, not DTCM where plain static lands.
+    static DMA_RW_AXI volatile uint8_t txBuffer[TX_BUFFER_SIZE];
+#else
     static volatile uint8_t txBuffer[TX_BUFFER_SIZE];
+#endif
     memset(&hdZeroMspPort, 0, sizeof(mspPort_t));
 
     serialPortConfig_t *portConfig = findSerialPortConfig(FUNCTION_HDZERO_OSD);
