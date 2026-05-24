@@ -210,3 +210,20 @@
 #elif !defined(USE_SERIAL_4WAY_BLHELI_INTERFACE) && (defined(USE_SERIAL_4WAY_BLHELI_BOOTLOADER) || defined(USE_SERIAL_4WAY_SK_BOOTLOADER))
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 #endif
+
+// CONFIG_IN_RAM: firmware uses a RAM array as config storage (no flash write needed).
+// Required for EXST targets where the linker script has no FLASH_CONFIG section
+// (e.g. H730 running from OctoSPI, bootloader-managed memory-mapped mode).
+// Aliases __config_start/__config_end to eepromData[] so config_eeprom.c and
+// config_streamer.c see valid addresses without linker-script symbols.
+#if defined(CONFIG_IN_RAM)
+#ifndef EEPROM_IN_RAM
+#define EEPROM_IN_RAM
+#endif
+#ifndef EEPROM_SIZE
+#define EEPROM_SIZE     4096
+#endif
+extern uint8_t eepromData[EEPROM_SIZE];
+#define __config_start  (*eepromData)
+#define __config_end    (*(eepromData + EEPROM_SIZE))
+#endif

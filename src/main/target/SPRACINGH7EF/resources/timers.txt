@@ -1,0 +1,49 @@
+// timers for target.c
+// format : DEF_TIM(TIMxx, CHx, Pxx, TIM_USE_xxxxxxx, 0, x), //comment
+
+TIM_USE options:
+TIM_USE_ANY
+TIM_USE_BEEPER
+TIM_USE_LED
+TIM_USE_MOTOR
+TIM_USE_NONE
+TIM_USE_PPM
+TIM_USE_PWM
+TIM_USE_SERVO
+TIM_USE_TRANSPONDER
+
+// config.h timers
+#define MOTOR1_PIN           PA0
+#define MOTOR2_PIN           PA1
+#define MOTOR3_PIN           PA2
+#define MOTOR4_PIN           PA3
+#define MOTOR5_PIN           PA6
+#define MOTOR6_PIN           PA7
+#define MOTOR7_PIN           PB0
+#define MOTOR8_PIN           PB1
+
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA0 , 2,  0 ) \
+    TIMER_PIN_MAP( 1, PA1 , 2,  1 ) \
+    TIMER_PIN_MAP( 2, PA2 , 2,  2 ) \
+    TIMER_PIN_MAP( 3, PA3 , 2,  3 ) \
+    TIMER_PIN_MAP( 4, PA6 , 1,  4 ) \
+    TIMER_PIN_MAP( 5, PA7 , 2,  5 ) \
+    TIMER_PIN_MAP( 6, PB0 , 2,  6 ) \
+    TIMER_PIN_MAP( 7, PB1 , 2,  7 ) \
+    TIMER_PIN_MAP( 8, PB8 , 1,  8 ) \
+    TIMER_PIN_MAP( 9, PB9 , 1,  9 )
+
+// TIMER_PIN_MAP from config.h
+// format: TIMER_PIN_MAP(index, pin, occurrence, dmaopt)
+// occurrence selects which timer from the MCU timer table (see lookup/*.csv)
+        TIMER_PIN_MAP( 0, PA0 , 2,  0 ) \
+        TIMER_PIN_MAP( 1, PA1 , 2,  1 ) \
+        TIMER_PIN_MAP( 2, PA2 , 2,  2 ) \
+        TIMER_PIN_MAP( 3, PA3 , 2,  3 ) \
+        TIMER_PIN_MAP( 4, PA6 , 1,  4 ) \
+        TIMER_PIN_MAP( 5, PA7 , 2,  5 ) \
+        TIMER_PIN_MAP( 6, PB0 , 2,  6 ) \
+        TIMER_PIN_MAP( 7, PB1 , 2,  7 ) \
+        TIMER_PIN_MAP( 8, PB8 , 1,  8 ) \
+        TIMER_PIN_MAP( 9, PB9 , 1,  9 )
