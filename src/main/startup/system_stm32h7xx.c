@@ -295,7 +295,7 @@ pllConfig_t pll1Config7A3 = {
 // Source for CRS input
 #define MCU_RCC_CRS_SYNC_SOURCE RCC_CRS_SYNC_SOURCE_USB1
 
-#elif defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx)
+#elif defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx)
 
 // Nominal max 550MHz, but >520Mhz requires ECC to be disabled, CPUFREQ_BOOST set in option bytes and prevents OCTOSPI clock from running at the correct clock speed.
 // Unless CPUFREQ_BOOST in option bytes is enabled maximum CPU speed is limited to 520Mhz in VOS0.  VOS1 is limited to 400Mhz
@@ -359,7 +359,7 @@ static void SystemClockHSE_Config(void)
     pll1Config = (HAL_GetREVID() == REV_ID_V) ? &pll1ConfigRevV : &pll1ConfigRevY;
 #elif defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
     pll1Config = &pll1Config7A3;
-#elif defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx)
+#elif defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx)
     pll1Config = &pll1Config72x73x;
 #else
 #error Unknown MCU type
@@ -473,8 +473,8 @@ void SystemClock_Config(void)
 {
     // Configure power supply
 
-#if defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H7A3xx) || defined(STM32H730xx)
-    // Legacy H7 devices (H743, H750) and newer but SMPS-less devices(H7A3, H723, H730)
+#if defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H7A3xx) || defined(STM32H730xx) || defined(STM32H735xx)
+    // Legacy H7 devices (H743, H750) and newer but SMPS-less devices(H7A3, H723, H730, H735)
 
     HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
 
@@ -632,7 +632,7 @@ void SystemClock_Config(void)
     RCC_PeriphClkInit.PLL2.PLL2P = 2; // 800Mhz / 2 = 400Mhz
     RCC_PeriphClkInit.PLL2.PLL2Q = 3; // 800Mhz / 3 = 266Mhz // 133Mhz can be derived from this for for QSPI if flash chip supports the speed.
     RCC_PeriphClkInit.PLL2.PLL2R = 4; // 800Mhz / 4 = 200Mhz // HAL LIBS REQUIRE 200MHZ SDMMC CLOCK, see HAL_SD_ConfigWideBusOperation, SDMMC_HSpeed_CLK_DIV, SDMMC_NSpeed_CLK_DIV
-#    elif defined(STM32H730xx)
+#    elif defined(STM32H730xx) || defined(STM32H735xx)
     RCC_PeriphClkInit.PLL2.PLL2M = 8;
     RCC_PeriphClkInit.PLL2.PLL2N = 400000000 / PLL_SRC_FREQ * 8; // HSE frequency / 8 (PLL2M) * 400 (PLL2N) = 400Mhz.
     RCC_PeriphClkInit.PLL2.PLL2VCOSEL = RCC_PLL2VCOMEDIUM; // Medium VCO range:150 to 420 MHz
@@ -751,7 +751,7 @@ void SystemInit (void)
     RCC->CR |= RCC_CR_HSEON;
     RCC->CR |= RCC_CR_HSI48ON;
 
-#if defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx)
+#if defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx)
     /* Reset D1CFGR register */
     RCC->D1CFGR = 0x00000000;
 
@@ -808,7 +808,7 @@ void SystemInit (void)
 
     /* Configure the Vector Table location add offset address ------------------*/
 #if defined(VECT_TAB_SRAM)
-  #if defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx)
+  #if defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx)
     SCB->VTOR = D1_AXISRAM_BASE  | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal ITCMSRAM */
   #elif defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
     SCB->VTOR = CD_AXISRAM_BASE  | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal ITCMSRAM */
@@ -819,7 +819,7 @@ void SystemInit (void)
     extern uint8_t isr_vector_table_base;
 
     SCB->VTOR = (uint32_t)&isr_vector_table_base;
-  #if defined(STM32H730xx) || defined(STM32H723xx) || defined(STM32H725xx)
+  #if defined(STM32H730xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H735xx)
     /* OCTOSPI XIP targets: copy ISR vectors from OCTOSPI to DTCM for fast dispatch */
 
     extern uint8_t isr_vector_table_flash_base;
