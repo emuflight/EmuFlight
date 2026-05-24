@@ -1390,11 +1390,11 @@ bool SD_GetState(void) {
 
 
 /** -----------------------------------------------------------------------------------------------------------------*/
-bool SD_Init(void) {
+SD_Error_t SD_Init(void) {
     SD_Error_t ErrorState;
     // Check if SD card is present
     if(SD_IsDetected() != SD_PRESENT) {
-        return false;
+        return SD_NOT_CONFIGURED;
     }
     // Initialize SDIO peripheral interface with default configuration for SD card initialization
     MODIFY_REG(SDIO->CLKCR, CLKCR_CLEAR_MASK, (uint32_t) SDIO_INIT_CLK_DIV);
