@@ -98,7 +98,11 @@ const i2cHardware_t i2cHardware[I2CDEV_COUNT] = {
         .reg = I2C4,
         .sclPins = { I2CPINDEF(PD12), I2CPINDEF(PF14) },
         .sdaPins = { I2CPINDEF(PD13), I2CPINDEF(PF15) },
-        .rcc = RCC_APB4(I2C4),    // I2C4 is on D3/APB4, not APB1
+#if defined(STM32H7)
+        .rcc = RCC_APB4(I2C4),    // H7: I2C4 is on D3/APB4, not APB1
+#else
+        .rcc = RCC_APB1(I2C4),
+#endif
         .ev_irq = I2C4_EV_IRQn,
         .er_irq = I2C4_ER_IRQn,
     },

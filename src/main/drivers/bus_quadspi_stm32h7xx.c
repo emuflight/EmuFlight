@@ -688,6 +688,9 @@ bool quadSpiInstructionWithData1LINE(const extDevice_t *dev, uint8_t instruction
 
 void quadSpiSetDivisor(const extDevice_t *dev, uint16_t divisor)
 {
+    if (!dev || !dev->bus) {
+        return;
+    }
     quadSpiDevice_e device = quadSpiDeviceByInstance(dev->bus->busType_u.qspi.instance);
     if (HAL_QSPI_DeInit(&quadSpiDevice[device].halHandle->hal) != HAL_OK) {
         Error_Handler();

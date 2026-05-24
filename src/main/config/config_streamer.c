@@ -284,6 +284,9 @@ static int write_word(config_streamer_t *c, uint32_t value) {
     }
     // Capture the base address of this 32-byte flash word on first word of the block
     if (h7FlashWriteBufIdx == 0) {
+        if ((c->address & 31U) != 0U) {
+            return -3; // FLASHWORD address must be 32-byte aligned
+        }
         h7FlashBlockAddr = c->address;
     }
     h7FlashWriteBuf[h7FlashWriteBufIdx++] = value;
