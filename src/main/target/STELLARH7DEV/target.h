@@ -32,6 +32,7 @@
 
 #define USE_VCP
 #define USE_OSD
+#define USE_USB_DETECT
 #define USB_DETECT_PIN                  PA12
 
 #define USE_LED
@@ -39,7 +40,6 @@
 #define LED_STRIP_PIN                   PA15
 #define USE_BEEPER
 #define BEEPER_PIN                      PA3
-#define USE_USB_DETECT
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -115,6 +115,8 @@
 // PB3: VTX/DJI connector power enable (active-high).
 // PINIO1_CONFIG = 0x81: push-pull, inverted — USER1 inactive → PB3 HIGH → VTX ON.
 // USER1 active (box 40) drives PB3 LOW → VTX pit mode / power cut.
+#define USE_PINIO
+#define USE_PINIOBOX
 #define PINIO1_PIN                      PB3
 #define PINIO1_CONFIG                   129
 #define PINIO1_BOX                      40
