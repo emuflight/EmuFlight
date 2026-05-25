@@ -137,10 +137,7 @@
 
 #define PINIO2_PIN           PB3
 #define PINIO2_CONFIG 129
-#define PINIO1_BOX 0
 #define PINIO2_BOX 40
-#define PINIO3_BOX 41
-#define PINIO4_BOX 42
 
 #define TARGET_IO_PORTA 0xffff
 #define TARGET_IO_PORTB 0xffff
