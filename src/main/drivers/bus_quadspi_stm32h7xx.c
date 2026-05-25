@@ -352,7 +352,7 @@ static void quadSpiDeselectDevice(quadSpiResource_t *instance)
 
 bool quadSpiTransmit1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, const uint8_t *out, int length)
 {
-    if (!dev || !dev->bus) {
+    if (!dev || !dev->bus || !dev->bus->busType_u.qspi.instance) {
         return false;
     }
 
@@ -369,6 +369,9 @@ bool quadSpiTransmit1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t d
     cmd.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
     cmd.SIOOMode          = QSPI_SIOO_INST_EVERY_CMD;
     cmd.Instruction       = instruction;
+    if (length <= 0) {
+        return false;
+    }
     cmd.NbData            = length;
 
     if (out) {
@@ -398,7 +401,7 @@ bool quadSpiTransmit1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t d
 
 bool quadSpiReceive1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, uint8_t *in, int length)
 {
-    if (!dev || !dev->bus) {
+    if (!dev || !dev->bus || !dev->bus->busType_u.qspi.instance) {
         return false;
     }
 
@@ -415,6 +418,9 @@ bool quadSpiReceive1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t du
     cmd.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
     cmd.SIOOMode          = QSPI_SIOO_INST_EVERY_CMD;
     cmd.Instruction       = instruction;
+    if (length <= 0) {
+        return false;
+    }
     cmd.NbData            = length;
 
     quadSpiSelectDevice(dev->bus->busType_u.qspi.instance);
@@ -438,7 +444,7 @@ bool quadSpiReceive1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t du
 
 bool quadSpiReceive4LINES(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, uint8_t *in, int length)
 {
-    if (!dev || !dev->bus) {
+    if (!dev || !dev->bus || !dev->bus->busType_u.qspi.instance) {
         return false;
     }
 
@@ -455,6 +461,9 @@ bool quadSpiReceive4LINES(const extDevice_t *dev, uint8_t instruction, uint8_t d
     cmd.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
     cmd.SIOOMode          = QSPI_SIOO_INST_EVERY_CMD;
     cmd.Instruction       = instruction;
+    if (length <= 0) {
+        return false;
+    }
     cmd.NbData            = length;
 
     quadSpiSelectDevice(dev->bus->busType_u.qspi.instance);
@@ -478,7 +487,7 @@ bool quadSpiReceive4LINES(const extDevice_t *dev, uint8_t instruction, uint8_t d
 
 bool quadSpiReceiveWithAddress1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, uint32_t address, uint8_t addressSize, uint8_t *in, int length)
 {
-    if (!dev || !dev->bus) {
+    if (!dev || !dev->bus || !dev->bus->busType_u.qspi.instance) {
         return false;
     }
 
@@ -497,6 +506,9 @@ bool quadSpiReceiveWithAddress1LINE(const extDevice_t *dev, uint8_t instruction,
     cmd.Instruction       = instruction;
     cmd.Address           = address;
     cmd.AddressSize       = quadSpi_addressSizeFromValue(addressSize);
+    if (length <= 0) {
+        return false;
+    }
     cmd.NbData            = length;
 
     quadSpiSelectDevice(dev->bus->busType_u.qspi.instance);
@@ -520,7 +532,7 @@ bool quadSpiReceiveWithAddress1LINE(const extDevice_t *dev, uint8_t instruction,
 
 bool quadSpiReceiveWithAddress4LINES(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, uint32_t address, uint8_t addressSize, uint8_t *in, int length)
 {
-    if (!dev || !dev->bus) {
+    if (!dev || !dev->bus || !dev->bus->busType_u.qspi.instance) {
         return false;
     }
 
@@ -539,6 +551,9 @@ bool quadSpiReceiveWithAddress4LINES(const extDevice_t *dev, uint8_t instruction
     cmd.Instruction       = instruction;
     cmd.Address           = address;
     cmd.AddressSize       = quadSpi_addressSizeFromValue(addressSize);
+    if (length <= 0) {
+        return false;
+    }
     cmd.NbData            = length;
 
     quadSpiSelectDevice(dev->bus->busType_u.qspi.instance);
@@ -562,7 +577,7 @@ bool quadSpiReceiveWithAddress4LINES(const extDevice_t *dev, uint8_t instruction
 
 bool quadSpiTransmitWithAddress1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, uint32_t address, uint8_t addressSize, const uint8_t *out, int length)
 {
-    if (!dev || !dev->bus) {
+    if (!dev || !dev->bus || !dev->bus->busType_u.qspi.instance) {
         return false;
     }
 
@@ -581,6 +596,9 @@ bool quadSpiTransmitWithAddress1LINE(const extDevice_t *dev, uint8_t instruction
     cmd.Instruction       = instruction;
     cmd.Address           = address;
     cmd.AddressSize       = quadSpi_addressSizeFromValue(addressSize);
+    if (length <= 0) {
+        return false;
+    }
     cmd.NbData            = length;
 
     quadSpiSelectDevice(dev->bus->busType_u.qspi.instance);
@@ -604,7 +622,7 @@ bool quadSpiTransmitWithAddress1LINE(const extDevice_t *dev, uint8_t instruction
 
 bool quadSpiTransmitWithAddress4LINES(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, uint32_t address, uint8_t addressSize, const uint8_t *out, int length)
 {
-    if (!dev || !dev->bus) {
+    if (!dev || !dev->bus || !dev->bus->busType_u.qspi.instance) {
         return false;
     }
 
@@ -623,6 +641,9 @@ bool quadSpiTransmitWithAddress4LINES(const extDevice_t *dev, uint8_t instructio
     cmd.Instruction       = instruction;
     cmd.Address           = address;
     cmd.AddressSize       = quadSpi_addressSizeFromValue(addressSize);
+    if (length <= 0) {
+        return false;
+    }
     cmd.NbData            = length;
 
     quadSpiSelectDevice(dev->bus->busType_u.qspi.instance);
@@ -646,7 +667,7 @@ bool quadSpiTransmitWithAddress4LINES(const extDevice_t *dev, uint8_t instructio
 
 bool quadSpiInstructionWithAddress1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, uint32_t address, uint8_t addressSize)
 {
-    if (!dev || !dev->bus) {
+    if (!dev || !dev->bus || !dev->bus->busType_u.qspi.instance) {
         return false;
     }
 
@@ -684,7 +705,7 @@ bool quadSpiInstructionWithAddress1LINE(const extDevice_t *dev, uint8_t instruct
 
 bool quadSpiInstructionWithData1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, const uint8_t *out, int length)
 {
-    if (!dev || !dev->bus) {
+    if (!dev || !dev->bus || !dev->bus->busType_u.qspi.instance) {
         return false;
     }
 
@@ -701,6 +722,9 @@ bool quadSpiInstructionWithData1LINE(const extDevice_t *dev, uint8_t instruction
     cmd.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
     cmd.SIOOMode          = QSPI_SIOO_INST_EVERY_CMD;
     cmd.Instruction       = instruction;
+    if (length <= 0) {
+        return false;
+    }
     cmd.NbData            = length;
 
     quadSpiSelectDevice(dev->bus->busType_u.qspi.instance);
@@ -746,7 +770,7 @@ void quadSpiWait(const extDevice_t *dev)
 
 bool quadSpiIsBusy(const extDevice_t *dev)
 {
-    if (!dev || !dev->bus) {
+    if (!dev || !dev->bus || !dev->bus->busType_u.qspi.instance) {
         return false;
     }
 
