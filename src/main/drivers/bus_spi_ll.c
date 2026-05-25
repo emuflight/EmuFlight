@@ -101,7 +101,9 @@ extern uint8_t _dmaram_end__;
 static uint32_t spiDivisorToBRbits(SPI_TypeDef *instance, uint16_t divisor)
 {
 #if defined(STM32H7)
-    // On H7 all SPI buses are derived from the same kernel clock — no halving for SPI2/SPI3.
+    // On H7 all SPI buses share one kernel clock (SPI_KER_CK from PLL1/2/3 Q output) — no
+    // APB1 halving for SPI2/SPI3. If a target later overrides SPI123ClockSelection to
+    // D2PCLK1, reinstate the divisor/=2 compensation for SPI2/SPI3.
     UNUSED(instance);
 #elif !(defined(STM32F1) || defined(STM32F3))
     // On F4/F7 SPI2/SPI3 are on APB1 (half the APB2 rate), so halve divisor to compensate.

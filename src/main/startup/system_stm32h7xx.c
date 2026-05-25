@@ -649,6 +649,9 @@ void SystemClock_Config(void)
     HAL_RCCEx_PeriphCLKConfig(&RCC_PeriphClkInit);
 #  endif
 
+    // ADC sourced from CK_PER (per_ck) async clock with ADC_CLOCK_ASYNC_DIV2 in driver.
+    // BF uses PLL2 for ADC; EF uses CK_PER intentionally to avoid PLL2 configuration
+    // complexity. Ensure per_ck frequency / 2 satisfies the ADC async clock limit (≤50 MHz).
     RCC_PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
     RCC_PeriphClkInit.AdcClockSelection = RCC_ADCCLKSOURCE_CLKP;
     HAL_RCCEx_PeriphCLKConfig(&RCC_PeriphClkInit);
