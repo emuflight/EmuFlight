@@ -422,8 +422,8 @@ static void SystemClockHSE_Config(void)
     }
 
     // Configure PLL2 and PLL3
-    // Use of PLL2 and PLL3 are not determined yet.
-    // A review of total system wide clock requirements is necessary.
+    // PLL2 is configured below as part of PeriphCLKInit (SDMMC kernel = PLL2R = 200 MHz).
+    // PLL3 is not configured; no current consumers. USB uses HSI48+CRS instead.
 
 
     // Configure SCGU (System Clock Generation Unit)
@@ -649,9 +649,15 @@ void SystemClock_Config(void)
     HAL_RCCEx_PeriphCLKConfig(&RCC_PeriphClkInit);
 #  endif
 
+    // CKPER source: pin to HSI (64 MHz default) explicitly to prevent silent breakage
+    // if a future target overrides the reset default (e.g. to HSE or CSI).
+    RCC_PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_CKPER;
+    RCC_PeriphClkInit.CkperClockSelection  = RCC_CLKPSOURCE_HSI;
+    HAL_RCCEx_PeriphCLKConfig(&RCC_PeriphClkInit);
+
     // ADC sourced from CK_PER (per_ck) async clock with ADC_CLOCK_ASYNC_DIV2 in driver.
     // BF uses PLL2 for ADC; EF uses CK_PER intentionally to avoid PLL2 configuration
-    // complexity. Ensure per_ck frequency / 2 satisfies the ADC async clock limit (≤50 MHz).
+    // complexity. HSI / 2 = 32 MHz satisfies the ADC async clock limit (≤40 MHz per RM0433 Table 64).
     RCC_PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
     RCC_PeriphClkInit.AdcClockSelection = RCC_ADCCLKSOURCE_CLKP;
     HAL_RCCEx_PeriphCLKConfig(&RCC_PeriphClkInit);

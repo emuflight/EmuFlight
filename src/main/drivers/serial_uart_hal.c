@@ -122,11 +122,11 @@ void uartReconfigure(uartPort_t *uartPort) {
             __HAL_LINKDMA(&uartPort->Handle, hdmarx, uartPort->rxDMAHandle);
             HAL_UART_Receive_DMA(&uartPort->Handle, (uint8_t*)uartPort->port.rxBuffer, uartPort->port.rxBufferSize);
             uartPort->rxDMAPos = __HAL_DMA_GET_COUNTER(&uartPort->rxDMAHandle);
-            // NOTE(STM32H7): When DMA RX is active, the ring buffer consumer MUST call
+            // NOTE(STM32H7): DMA RX is now active. The ring buffer consumer (uartRead) MUST call
             // SCB_InvalidateDCache_by_Addr(rxBuffer, size) before reading, because the
             // D-cache will return stale CPU-cached data if not invalidated after DMA writes.
-            // Currently all UART RX DMA streams default to NULL (interrupt mode only),
-            // so this path is inactive. This guard must be added before enabling any UART DMA RX.
+            // In current board configs rxDMAStream is always NULL so this branch is never reached,
+            // but this guard MUST be implemented in uartRead() before any UART DMA RX is enabled.
         } else {
             /* Enable the UART Parity Error Interrupt */
             SET_BIT(uartPort->USARTx->CR1, USART_CR1_PEIE);
