@@ -618,7 +618,8 @@ void SystemClock_Config(void)
     HAL_RCCEx_PeriphCLKConfig(&RCC_PeriphClkInit);
 
 #ifdef USE_SDCARD_SDIO
-    __HAL_RCC_SDMMC1_CLK_ENABLE(); // FIXME enable SDMMC1 or SDMMC2 depending on target.
+    // SDMMC peripheral clock is enabled in HAL_SD_MspInit() based on the active SDMMC instance
+    // (SDMMC1 or SDMMC2). No early unconditional enable needed here.
 
     RCC_PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_SDMMC;
 
