@@ -53,6 +53,7 @@
 #define BEEPER_INVERTED
 #define CAMERA_CONTROL_PIN   PB7
 #define USE_USB_DETECT
+#define USB_DETECT_PIN       PC5
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1

@@ -52,7 +52,7 @@
 #define PINIO4_CONFIG PINIO_CONFIG_MODE_OUT_PP
 #endif
 
-PG_REGISTER_WITH_RESET_TEMPLATE(pinioConfig_t, pinioConfig, PG_PINIO_CONFIG, 1);
+PG_REGISTER_WITH_RESET_TEMPLATE(pinioConfig_t, pinioConfig, PG_PINIO_CONFIG, 0);
 
 PG_RESET_TEMPLATE(pinioConfig_t, pinioConfig,
 .ioTag = {
