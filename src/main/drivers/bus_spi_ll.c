@@ -645,6 +645,10 @@ void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {
 #endif
     LL_SPI_Disable(instance);
     LL_SPI_SetBaudRatePrescaler(instance, divisor ? (ffs(divisor | 0x100) - 2) << SPI_CR1_BR_Pos : 0);
+#if !defined(STM32H7)
+    // H7 manages SPI enable per-transfer (SetTransferSize→Enable→StartMasterTransfer).
+    // Re-enabling here would leave SPI permanently enabled outside a transfer context.
     LL_SPI_Enable(instance);
+#endif
 }
 #endif
