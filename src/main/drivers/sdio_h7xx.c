@@ -276,7 +276,7 @@ bool SD_InitialiseHardware(dmaResource_t *dma)
 
 bool SD_GetState(void)
 {
-    HAL_SD_CardStateTypedef cardState = HAL_SD_GetCardState(&hsd1);
+    HAL_SD_CardStateTypedef cardState = HAL_SD_GetCardState(activeHandle);
 
     return (cardState == HAL_SD_CARD_TRANSFER);
 }
@@ -594,7 +594,7 @@ SD_Error_t SD_WriteBlocks_DMA(uint64_t WriteAddress, uint32_t *buffer, uint32_t 
     SCB_CleanDCache_by_Addr(buffer, NumberOfBlocks * BlockSize);
 
     HAL_StatusTypeDef status;
-    if ((status = HAL_SD_WriteBlocks_DMA(&hsd1, (uint8_t *)buffer, WriteAddress, NumberOfBlocks)) != HAL_OK) {
+    if ((status = HAL_SD_WriteBlocks_DMA(activeHandle, (uint8_t *)buffer, WriteAddress, NumberOfBlocks)) != HAL_OK) {
         SD_Handle.TXCplt = 0;
         return SD_ERROR;
     }
@@ -629,7 +629,7 @@ SD_Error_t SD_ReadBlocks_DMA(uint64_t ReadAddress, uint32_t *buffer, uint32_t Bl
     sdReadParameters.NumberOfBlocks = NumberOfBlocks;
 
     HAL_StatusTypeDef status;
-    if ((status = HAL_SD_ReadBlocks_DMA(&hsd1, (uint8_t *)buffer, ReadAddress, NumberOfBlocks)) != HAL_OK) {
+    if ((status = HAL_SD_ReadBlocks_DMA(activeHandle, (uint8_t *)buffer, ReadAddress, NumberOfBlocks)) != HAL_OK) {
         SD_Handle.RXCplt = 0;
         return SD_ERROR;
     }
