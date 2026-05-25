@@ -42,12 +42,16 @@
 // SPI6 is on D3 domain (requires BDMA, not yet implemented in EF)
 //#define USE_SPI_DEVICE_6
 #define USE_I2C
+// I2C1 (PB6/PB7) shares pins with UART1 — hardware design; mutually exclusive at runtime.
+// Disable USE_I2C_DEVICE_1 if UART1 is needed, and vice versa.
 #define USE_I2C_DEVICE_1
 #define I2C1_SCL                PB6
 #define I2C1_SDA                PB7
 #define USE_I2C_DEVICE_4
 #define I2C4_SCL                PD12  // J8:5
 #define I2C4_SDA                PD13  // J8:6
+#define BARO_I2C_INSTANCE               I2CDEV_4
+#define MAG_I2C_INSTANCE                I2CDEV_4
 #define USE_PINIO
 #define USE_PINIOBOX
 #define USE_ACC
@@ -107,6 +111,7 @@
 #define GYRO_2_EXTI_PIN         PC8 // TIM8 CH3
 #define GYRO_2_SPI_BUS     SPIDEV_2
 
+// UART1 (PB6/PB7) shares pins with I2C1 — hardware design; mutually exclusive at runtime.
 #define USE_UART1
 #define UART1_TX_PIN         PB6
 #define UART1_RX_PIN         PB7
@@ -122,12 +127,7 @@
 #define USE_UART5
 #define UART5_TX_PIN         NONE
 #define UART5_RX_PIN         PD2
-#define USE_UART6
-#define UART6_TX_PIN         NONE
-#define UART6_RX_PIN         NONE
-#define USE_UART7
-#define UART7_TX_PIN         NONE
-#define UART7_RX_PIN         NONE
+// UART6 and UART7 omitted: both TX and RX pins are NONE on this board — no physical connection.
 #define USE_UART8
 #define UART8_TX_PIN         PE1
 #define UART8_RX_PIN         PE0
@@ -137,7 +137,7 @@
 #define USE_UART10
 #define UART10_TX_PIN        PE3
 #define UART10_RX_PIN        PE2
-#define SERIAL_PORT_COUNT    11
+#define SERIAL_PORT_COUNT    9
 
 // RX_SPI_CS_PIN shares PB12 with GYRO_2_CS_PIN (SPI2_NSS_PIN) — BF parity.
 // Hardware design: USE_RX_SPI and dual-gyro are mutually exclusive on this board.

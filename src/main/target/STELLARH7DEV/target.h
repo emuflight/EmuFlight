@@ -32,6 +32,7 @@
 
 #define USE_VCP
 #define USE_OSD
+#define USB_DETECT_PIN                  PA12
 
 #define USE_LED
 #define LED1_PIN                        PB1
@@ -86,6 +87,7 @@
 #define UART8_RX_PIN                    PE0
 #define MSP_DISPLAYPORT_UART            SERIAL_PORT_USART7
 #define ESC_SENSOR_UART                 SERIAL_PORT_USART8
+#define SERIALRX_UART                   SERIAL_PORT_UART4
 #define SERIAL_PORT_COUNT               6
 
 #define USE_I2C
