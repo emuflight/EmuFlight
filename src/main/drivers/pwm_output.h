@@ -130,7 +130,7 @@ typedef struct {
     DMA_Stream_TypeDef *dmaBurstRef;
 #endif
     uint16_t dmaBurstLength;
-    uint32_t dmaBurstBuffer[DSHOT_DMA_BUFFER_SIZE * 4];
+    uint32_t dmaBurstBuffer[DSHOT_DMA_BUFFER_SIZE * 4] __attribute__((aligned(32)));
 #endif
     uint16_t timerDmaSources;
 } motorDmaTimer_t;
