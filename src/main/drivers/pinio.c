@@ -69,6 +69,9 @@ void pinioInit(const pinioConfig_t *pinioConfig) {
 }
 
 void pinioSet(int index, bool on) {
+    if (!pinioRuntime[index].io) {
+        return;
+    }
     bool newState = on ^ pinioRuntime[index].inverted;
     if (newState != pinioRuntime[index].state) {
         IOWrite(pinioRuntime[index].io, newState);
