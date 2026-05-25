@@ -136,7 +136,7 @@
 #define ENABLE_DSHOT_DMAR true
 
 #define PINIO2_PIN           PB3
-#define PINIO1_CONFIG 129
+#define PINIO2_CONFIG 129
 #define PINIO1_BOX 0
 #define PINIO2_BOX 40
 #define PINIO3_BOX 41
