@@ -55,6 +55,11 @@ typedef struct SD_Handle_s
 
 SD_HandleTypeDef hsd1;
 
+// Pointer to the active HAL handle — hsd1 is reused for either SDMMC1 or SDMMC2.
+// Both IRQ handlers route to this pointer so they remain correct regardless of which
+// SDMMC instance is active.
+static SD_HandleTypeDef *activeHandle = NULL;
+
 SD_CardInfo_t                      SD_CardInfo;
 SD_CardType_t                      SD_CardType;
 
@@ -281,6 +286,7 @@ static SD_Error_t SD_DoInit(void)
     HAL_StatusTypeDef status;
 
     memset(&hsd1, 0, sizeof(hsd1));
+    activeHandle = &hsd1;
 
     hsd1.Instance = sdioHardware->instance;
 
@@ -680,14 +686,30 @@ void HAL_SD_AbortCallback(SD_HandleTypeDef *hsd)
     SD_Handle.RXCplt = 0;
 }
 
+bool SD_IsDetected(void) {
+    __IO uint8_t status = SD_PRESENT;
+#ifdef SDCARD_DETECT_PIN
+    const IO_t sd_det = IOGetByTag(IO_TAG(SDCARD_DETECT_PIN));
+    if (IORead(sd_det) != 0) {
+        status = SD_NOT_PRESENT;
+    }
+#endif
+    return status;
+}
+
+void SD_Initialize_LL(DMA_Stream_TypeDef *dma) {
+    UNUSED(dma);
+    // H7 uses SDMMC internal DMA (IDMA) — no external DMA stream configuration needed.
+}
+
 void SDMMC1_IRQHandler(void)
 {
-    HAL_SD_IRQHandler(&hsd1);
+    if (activeHandle) HAL_SD_IRQHandler(activeHandle);
 }
 
 void SDMMC2_IRQHandler(void)
 {
-    HAL_SD_IRQHandler(&hsd1);
+    if (activeHandle) HAL_SD_IRQHandler(activeHandle);
 }
 
 #endif
