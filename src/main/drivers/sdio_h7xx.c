@@ -285,6 +285,10 @@ static SD_Error_t SD_DoInit(void)
 {
     HAL_StatusTypeDef status;
 
+    if (!sdioHardware) {
+        return SD_ERROR;
+    }
+
     memset(&hsd1, 0, sizeof(hsd1));
     activeHandle = &hsd1;
 
