@@ -352,6 +352,10 @@ static void quadSpiDeselectDevice(quadSpiResource_t *instance)
 
 bool quadSpiTransmit1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, const uint8_t *out, int length)
 {
+    if (!dev || !dev->bus) {
+        return false;
+    }
+
     quadSpiDevice_e device = quadSpiDeviceByInstance(dev->bus->busType_u.qspi.instance);
     HAL_StatusTypeDef status;
 
@@ -394,6 +398,10 @@ bool quadSpiTransmit1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t d
 
 bool quadSpiReceive1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, uint8_t *in, int length)
 {
+    if (!dev || !dev->bus) {
+        return false;
+    }
+
     quadSpiDevice_e device = quadSpiDeviceByInstance(dev->bus->busType_u.qspi.instance);
     HAL_StatusTypeDef status;
 
@@ -430,6 +438,10 @@ bool quadSpiReceive1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t du
 
 bool quadSpiReceive4LINES(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, uint8_t *in, int length)
 {
+    if (!dev || !dev->bus) {
+        return false;
+    }
+
     quadSpiDevice_e device = quadSpiDeviceByInstance(dev->bus->busType_u.qspi.instance);
     HAL_StatusTypeDef status;
 
@@ -466,6 +478,10 @@ bool quadSpiReceive4LINES(const extDevice_t *dev, uint8_t instruction, uint8_t d
 
 bool quadSpiReceiveWithAddress1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, uint32_t address, uint8_t addressSize, uint8_t *in, int length)
 {
+    if (!dev || !dev->bus) {
+        return false;
+    }
+
     quadSpiDevice_e device = quadSpiDeviceByInstance(dev->bus->busType_u.qspi.instance);
     HAL_StatusTypeDef status;
 
@@ -504,6 +520,10 @@ bool quadSpiReceiveWithAddress1LINE(const extDevice_t *dev, uint8_t instruction,
 
 bool quadSpiReceiveWithAddress4LINES(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, uint32_t address, uint8_t addressSize, uint8_t *in, int length)
 {
+    if (!dev || !dev->bus) {
+        return false;
+    }
+
     quadSpiDevice_e device = quadSpiDeviceByInstance(dev->bus->busType_u.qspi.instance);
     HAL_StatusTypeDef status;
 
@@ -542,6 +562,10 @@ bool quadSpiReceiveWithAddress4LINES(const extDevice_t *dev, uint8_t instruction
 
 bool quadSpiTransmitWithAddress1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, uint32_t address, uint8_t addressSize, const uint8_t *out, int length)
 {
+    if (!dev || !dev->bus) {
+        return false;
+    }
+
     quadSpiDevice_e device = quadSpiDeviceByInstance(dev->bus->busType_u.qspi.instance);
     HAL_StatusTypeDef status;
 
@@ -580,6 +604,10 @@ bool quadSpiTransmitWithAddress1LINE(const extDevice_t *dev, uint8_t instruction
 
 bool quadSpiTransmitWithAddress4LINES(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, uint32_t address, uint8_t addressSize, const uint8_t *out, int length)
 {
+    if (!dev || !dev->bus) {
+        return false;
+    }
+
     quadSpiDevice_e device = quadSpiDeviceByInstance(dev->bus->busType_u.qspi.instance);
     HAL_StatusTypeDef status;
 
@@ -618,6 +646,10 @@ bool quadSpiTransmitWithAddress4LINES(const extDevice_t *dev, uint8_t instructio
 
 bool quadSpiInstructionWithAddress1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, uint32_t address, uint8_t addressSize)
 {
+    if (!dev || !dev->bus) {
+        return false;
+    }
+
     quadSpiDevice_e device = quadSpiDeviceByInstance(dev->bus->busType_u.qspi.instance);
     HAL_StatusTypeDef status;
 
@@ -652,6 +684,10 @@ bool quadSpiInstructionWithAddress1LINE(const extDevice_t *dev, uint8_t instruct
 
 bool quadSpiInstructionWithData1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t dummyCycles, const uint8_t *out, int length)
 {
+    if (!dev || !dev->bus) {
+        return false;
+    }
+
     quadSpiDevice_e device = quadSpiDeviceByInstance(dev->bus->busType_u.qspi.instance);
     HAL_StatusTypeDef status;
 
@@ -710,6 +746,10 @@ void quadSpiWait(const extDevice_t *dev)
 
 bool quadSpiIsBusy(const extDevice_t *dev)
 {
+    if (!dev || !dev->bus) {
+        return false;
+    }
+
     quadSpiDevice_e device = quadSpiDeviceByInstance(dev->bus->busType_u.qspi.instance);
     return quadSpiDevice[device].halHandle->hal.State == HAL_QSPI_STATE_BUSY;
 }
