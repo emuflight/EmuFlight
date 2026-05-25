@@ -27,9 +27,22 @@
 #include "drivers/io.h"
 #include "interface/msp_box.h"
 
-PG_REGISTER_WITH_RESET_TEMPLATE(pinioBoxConfig_t, pinioBoxConfig, PG_PINIOBOX_CONFIG, 1);
+#ifndef PINIO1_BOX
+#define PINIO1_BOX PERMANENT_ID_NONE
+#endif
+#ifndef PINIO2_BOX
+#define PINIO2_BOX PERMANENT_ID_NONE
+#endif
+#ifndef PINIO3_BOX
+#define PINIO3_BOX PERMANENT_ID_NONE
+#endif
+#ifndef PINIO4_BOX
+#define PINIO4_BOX PERMANENT_ID_NONE
+#endif
+
+PG_REGISTER_WITH_RESET_TEMPLATE(pinioBoxConfig_t, pinioBoxConfig, PG_PINIOBOX_CONFIG, 2);
 
 PG_RESET_TEMPLATE(pinioBoxConfig_t, pinioBoxConfig,
-{ PERMANENT_ID_NONE, PERMANENT_ID_NONE, PERMANENT_ID_NONE, PERMANENT_ID_NONE }
+{ PINIO1_BOX, PINIO2_BOX, PINIO3_BOX, PINIO4_BOX }
                  );
 #endif
