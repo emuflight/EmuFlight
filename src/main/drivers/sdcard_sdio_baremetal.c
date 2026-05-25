@@ -268,10 +268,13 @@ void sdcard_init(const sdcardConfig_t *config) {
         return;
     }
     sdcard.dma = config->dmaIdentifier;
+#if !defined(STM32H7)
+    // H7 uses SDMMC IDMA — no external DMA stream needed; dmaIdentifier is 0 by design.
     if (sdcard.dma == 0) {
         sdcard.state = SDCARD_STATE_NOT_PRESENT;
         return;
     }
+#endif
     if (config->cardDetectTag) {
         sdcard.cardDetectPin = IOGetByTag(config->cardDetectTag);
     } else {

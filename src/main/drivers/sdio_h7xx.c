@@ -286,7 +286,7 @@ static SD_Error_t SD_DoInit(void)
     HAL_StatusTypeDef status;
 
     if (!sdioHardware) {
-        return SD_ERROR;
+        return SD_NOT_CONFIGURED;
     }
 
     memset(&hsd1, 0, sizeof(hsd1));
