@@ -639,6 +639,10 @@ void spiInternalStopDMA(const extDevice_t *dev)
 void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {
     LL_SPI_Disable(instance);
     LL_SPI_SetBaudRatePrescaler(instance, spiDivisorToBRbits(instance, divisor));
+#if !defined(STM32H7)
+    // H7 manages SPI enable per-transfer (SetTransferSize→Enable→StartMasterTransfer).
+    // Re-enabling here would leave SPI permanently enabled outside a transfer context.
     LL_SPI_Enable(instance);
+#endif
 }
 #endif
