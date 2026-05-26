@@ -54,11 +54,7 @@
 #define UART_TX_BUFFER_SIZE     256
 #endif
 #elif defined(STM32F7) || defined(STM32H7)
-#if defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
 #define UARTDEV_COUNT_MAX 11  // UARTs 1-10 + LPUART1 (index 10)
-#else
-#define UARTDEV_COUNT_MAX 11  // H743/H750 use ≤8; H723/H725/H730/H735 can reach 11
-#endif
 #if defined(STM32H7)
 #define UARTHARDWARE_MAX_PINS 6
 #else
