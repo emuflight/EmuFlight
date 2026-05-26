@@ -383,7 +383,7 @@ bool quadSpiTransmit1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t d
     status = HAL_QSPI_Command(&quadSpiDevice[device].halHandle->hal, &cmd, QUADSPI_DEFAULT_TIMEOUT);
     bool timeout = (status != HAL_OK);
     if (!timeout) {
-        if (out && length > 0) {
+        if (out) {
             status = HAL_QSPI_Transmit(&quadSpiDevice[device].halHandle->hal, (uint8_t *)out, QUADSPI_DEFAULT_TIMEOUT);
             timeout = (status != HAL_OK);
         }
