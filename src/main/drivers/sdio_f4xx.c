@@ -1412,7 +1412,7 @@ SD_Error_t SD_Init(void) {
         // Enable wide operation
         ErrorState = SD_WideBusOperationConfig(SD_BUS_WIDE_4B);
         if (ErrorState == SD_OK && sdioConfig()->clockBypass) {
-            if (SD_HighSpeed()) {
+            if (SD_HighSpeed() == SD_OK) {
                 SDIO->CLKCR |= SDIO_CLKCR_BYPASS;
                 SDIO->CLKCR |= SDIO_CLKCR_NEGEDGE;
             }

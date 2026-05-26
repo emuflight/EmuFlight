@@ -484,6 +484,9 @@ void sdcard_init(const sdcardConfig_t *config) {
     }
     sdcard.instance = spiInstanceByDevice(config->device);
     sdcard.useDMAForTx = config->useDma;
+#if defined(STM32H7)
+    sdcard.useDMAForTx = false;
+#endif
     if (sdcard.useDMAForTx) {
 #if defined(STM32F4) || defined(STM32F7)
         sdcard.dmaChannel = config->dmaChannel;

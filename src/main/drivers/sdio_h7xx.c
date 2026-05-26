@@ -276,6 +276,9 @@ bool SD_InitialiseHardware(dmaResource_t *dma)
 
 bool SD_GetState(void)
 {
+    if (!activeHandle) {
+        return false;
+    }
     HAL_SD_CardStateTypedef cardState = HAL_SD_GetCardState(activeHandle);
 
     return (cardState == HAL_SD_CARD_TRANSFER);
