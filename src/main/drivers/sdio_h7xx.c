@@ -596,8 +596,7 @@ SD_Error_t SD_WriteBlocks_DMA(uint64_t WriteAddress, uint32_t *buffer, uint32_t 
     // Ensure the data is flushed to main memory
     SCB_CleanDCache_by_Addr(buffer, NumberOfBlocks * BlockSize);
 
-    HAL_StatusTypeDef status;
-    if ((status = HAL_SD_WriteBlocks_DMA(activeHandle, (uint8_t *)buffer, WriteAddress, NumberOfBlocks)) != HAL_OK) {
+    if (HAL_SD_WriteBlocks_DMA(activeHandle, (uint8_t *)buffer, WriteAddress, NumberOfBlocks) != HAL_OK) {
         SD_Handle.TXCplt = 0;
         return SD_ERROR;
     }
@@ -631,8 +630,7 @@ SD_Error_t SD_ReadBlocks_DMA(uint64_t ReadAddress, uint32_t *buffer, uint32_t Bl
     sdReadParameters.BlockSize = BlockSize;
     sdReadParameters.NumberOfBlocks = NumberOfBlocks;
 
-    HAL_StatusTypeDef status;
-    if ((status = HAL_SD_ReadBlocks_DMA(activeHandle, (uint8_t *)buffer, ReadAddress, NumberOfBlocks)) != HAL_OK) {
+    if (HAL_SD_ReadBlocks_DMA(activeHandle, (uint8_t *)buffer, ReadAddress, NumberOfBlocks) != HAL_OK) {
         SD_Handle.RXCplt = 0;
         return SD_ERROR;
     }
