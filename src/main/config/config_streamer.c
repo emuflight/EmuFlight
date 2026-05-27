@@ -264,7 +264,7 @@ static int write_word(config_streamer_t *c, uint32_t value) {
     }
 #if defined(EEPROM_IN_RAM)
     // RAM-based config: direct memory write, no flash erase/program needed.
-    *(uint32_t *)c->address = value;
+    memcpy((void *)c->address, &value, sizeof(value));
     c->address += sizeof(value);
     return 0;
 #elif defined(STM32H7)
