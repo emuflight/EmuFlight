@@ -98,8 +98,16 @@
 #define I2C2_SCL                        PB10
 #define I2C2_SDA                        PB11
 
-// Flash chip is Winbond W25N01G (JEDEC 0xEFAA21) — NAND, not NOR.
-// No EmuFlight NAND flash driver exists yet; blackbox to SPI flash unsupported.
+// Flash: Winbond W25M02G (2×W25N01G NAND dies) on SPI4, CS=PC13.
+// Pending feat/flash-drivers-backport (flash_w25m.c + common_fc_post.h USE_FLASH_W25M gate).
+// Do NOT use DEFAULT_BLACKBOX_DEVICE here — use ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+// to avoid redefinition conflict with the fallback in blackbox.c.
+// Uncomment when flash driver branch is merged:
+//#define USE_FLASH
+//#define USE_FLASH_W25M02G
+//#define FLASH_CS_PIN                    PC13
+//#define FLASH_SPI_INSTANCE              SPI4
+//#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
 #define MAX7456_SPI_CS_PIN              PB8
 #define MAX7456_SPI_INSTANCE            SPI2
