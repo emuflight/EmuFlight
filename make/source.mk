@@ -351,7 +351,6 @@ SRC += \
             drivers/flash_w25n.c \
             drivers/flash_w25q128fv.c \
             io/flashfs.c \
-            pg/flash.c \
             $(MSC_SRC)
 endif
 
