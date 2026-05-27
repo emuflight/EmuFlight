@@ -77,6 +77,7 @@ typedef struct dmaTimerMapping_s {
 #define DMA_REQUEST_SPI3_SDI  DMA_REQUEST_SPI3_RX
 #define DMA_REQUEST_SPI4_SDO  DMA_REQUEST_SPI4_TX
 #define DMA_REQUEST_SPI4_SDI  DMA_REQUEST_SPI4_RX
+// SPI5 REQMAP omitted: EF bus_spi.h does not define SPIDEV_5 and no H7 target uses SPI5 yet.
 
 static const dmaPeripheralMapping_t dmaPeripheralMapping[] = {
 #ifdef USE_SPI
