@@ -167,17 +167,59 @@
 #define USE_32K_CAPABLE_GYRO
 #endif
 
-#if defined(USE_FLASH_W25M512)
-#define USE_FLASH_W25M
+// Flash chip-variant → NOR interface (flash_m25p16.c guard)
+#if (defined(USE_FLASH_W25M512) || defined(USE_FLASH_W25Q128FV) || defined(USE_FLASH_PY25Q128HA)) && !defined(USE_FLASH_M25P16)
 #define USE_FLASH_M25P16
 #endif
 
-#if defined(USE_FLASH_W25M02G)
+// W25M02G is two stacked W25N01G NAND dies; activate the per-die driver
+#if defined(USE_FLASH_W25M02G) && !defined(USE_FLASH_W25N01G)
+#define USE_FLASH_W25N01G
+#endif
+
+// W25N01G or W25N02K → USE_FLASH_W25N (flash_w25n.c guard)
+#if defined(USE_FLASH_W25N02K) || defined(USE_FLASH_W25N01G)
+#define USE_FLASH_W25N
+#endif
+
+// M25P16 or W25N → USE_FLASH_W25M (flash_w25m.c dispatcher guard)
+#if (defined(USE_FLASH_M25P16) || defined(USE_FLASH_W25N)) && !defined(USE_FLASH_W25M)
 #define USE_FLASH_W25M
 #endif
 
-#if defined(USE_FLASH_M25P16)
+// Aggregate: any valid chip driver present → USE_FLASH_CHIP
+#if defined(USE_FLASH_M25P16) || defined(USE_FLASH_W25M) || defined(USE_FLASH_W25N) || defined(USE_FLASH_W25Q128FV)
+#if !defined(USE_FLASH_CHIP)
+#define USE_FLASH_CHIP
+#endif
+#endif
+
+// Derive USE_FLASH for targets that omit it in target.h
+#if (defined(USE_FLASH_M25P16) || defined(USE_FLASH_W25N) || defined(USE_FLASH_W25Q128FV)) && !defined(USE_FLASH)
 #define USE_FLASH
+#endif
+
+// SPI bus selector used by flash_impl.h
+#if defined(USE_SPI) && (defined(USE_FLASH_M25P16) || defined(USE_FLASH_W25M512) || defined(USE_FLASH_W25N) || defined(USE_FLASH_W25M02G))
+#if !defined(USE_FLASH_SPI)
+#define USE_FLASH_SPI
+#endif
+#endif
+
+// Auto-enable tools and filesystem when flash is present
+#ifdef USE_FLASH
+#if !defined(USE_FLASH_TOOLS)
+#define USE_FLASH_TOOLS
+#endif
+#if !defined(USE_FLASHFS)
+#define USE_FLASHFS
+#endif
+#endif
+
+// Roll back tools/fs if no valid chip driver was activated
+#ifndef USE_FLASH_CHIP
+#undef USE_FLASH_TOOLS
+#undef USE_FLASHFS
 #endif
 
 #if defined(USE_MAX7456)
