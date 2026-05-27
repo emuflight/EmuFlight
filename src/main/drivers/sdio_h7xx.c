@@ -591,6 +591,10 @@ SD_Error_t SD_WriteBlocks_DMA(uint64_t WriteAddress, uint32_t *buffer, uint32_t 
         return SD_ADDR_MISALIGNED;
     }
 
+    if (!activeHandle) {
+        return SD_ERROR;
+    }
+
     SD_Handle.TXCplt = 1;
 
     // Ensure the data is flushed to main memory
@@ -622,6 +626,10 @@ SD_Error_t SD_ReadBlocks_DMA(uint64_t ReadAddress, uint32_t *buffer, uint32_t Bl
 
     if ((uint32_t)buffer & 0x1f) {
         return SD_ADDR_MISALIGNED;
+    }
+
+    if (!activeHandle) {
+        return SD_ERROR;
     }
 
     SD_Handle.RXCplt = 1;
