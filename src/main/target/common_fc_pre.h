@@ -88,8 +88,10 @@
 #define USE_DSHOT
 #define USE_GYRO_DATA_ANALYSE
 #define USE_ADC_INTERNAL
-// Note: USE_USB_CDC_HID and USE_USB_MSC intentionally omitted — fc_tasks.c pulls in
-// vcpf4/usbd_cdc_vcp.h (F4-specific) under those guards; not yet ported for H7
+// Note: USE_USB_CDC_HID intentionally omitted — fc_tasks.c pulls in
+// vcpf4/usbd_cdc_vcp.h (F4-specific) under that guard; not yet ported for H7.
+// common_fc_post.h strips USE_USB_MSC if no SDCARD/FLASHFS or no BLACKBOX.
+#define USE_USB_MSC
 #define I2C3_OVERCLOCK true
 #define I2C4_OVERCLOCK true
 #endif
