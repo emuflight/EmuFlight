@@ -44,6 +44,10 @@
 
 #if defined(STM32F1) || defined(STM32F3)
 uint8_t ledStripDMABuffer[WS2811_DMA_BUFFER_SIZE];
+#elif defined(STM32H7)
+// H7: DMA cannot access DTCM. Place buffer in write-through AXI SRAM via .dmaram_bss
+// so DMA always reads current data without explicit cache flush.
+DMA_DATA_ZERO_INIT uint32_t ledStripDMABuffer[WS2811_DMA_BUFFER_SIZE];
 #elif defined(STM32F7)
 FAST_RAM_ZERO_INIT uint32_t ledStripDMABuffer[WS2811_DMA_BUFFER_SIZE];
 #else

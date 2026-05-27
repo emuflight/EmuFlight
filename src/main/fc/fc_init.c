@@ -62,6 +62,7 @@
 #include "drivers/serial_softserial.h"
 #include "drivers/serial_uart.h"
 #include "drivers/sdcard.h"
+#include "drivers/sdio.h"
 #include "drivers/sound_beeper.h"
 #include "drivers/system.h"
 #include "drivers/time.h"
@@ -374,6 +375,10 @@ void init(void) {
     spiInit(SPIDEV_4);
 #endif
 #endif // USE_SPI
+#if defined(USE_SDCARD_SDIO) && !defined(CONFIG_IN_SDCARD) && defined(STM32H7)
+    sdioPinConfigure();
+    sdioInitialize();
+#endif
 #ifdef USE_USB_MSC
     /* MSC mode will start after init, but will not allow scheduler to run,
      *  so there is no bottleneck in reading and writing data */
