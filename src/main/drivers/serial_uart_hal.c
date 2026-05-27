@@ -122,11 +122,9 @@ void uartReconfigure(uartPort_t *uartPort) {
             __HAL_LINKDMA(&uartPort->Handle, hdmarx, uartPort->rxDMAHandle);
             HAL_UART_Receive_DMA(&uartPort->Handle, (uint8_t*)uartPort->port.rxBuffer, uartPort->port.rxBufferSize);
             uartPort->rxDMAPos = __HAL_DMA_GET_COUNTER(&uartPort->rxDMAHandle);
-            // NOTE(STM32H7): DMA RX is now active. The ring buffer consumer (uartRead) MUST call
-            // SCB_InvalidateDCache_by_Addr(rxBuffer, size) before reading, because the
-            // D-cache will return stale CPU-cached data if not invalidated after DMA writes.
-            // In current board configs rxDMAStream is always NULL so this branch is never reached,
-            // but this guard MUST be implemented in uartRead() before any UART DMA RX is enabled.
+            // NOTE(STM32H7): DMA RX is now active. uartRead() calls SCB_InvalidateDCache_by_Addr
+            // before reading each byte so the D-cache does not return stale data after DMA writes.
+            // rxDMAStream is currently always NULL in H7 board configs (path unreachable at runtime).
         } else {
             /* Enable the UART Parity Error Interrupt */
             SET_BIT(uartPort->USARTx->CR1, USART_CR1_PEIE);
@@ -283,6 +281,9 @@ uint8_t uartRead(serialPort_t *instance) {
     uint8_t ch;
     uartPort_t *s = (uartPort_t *)instance;
     if (s->rxDMAStream) {
+#if defined(STM32H7)
+        SCB_InvalidateDCache_by_Addr((uint32_t *)&s->port.rxBuffer[s->port.rxBufferSize - s->rxDMAPos], sizeof(uint8_t));
+#endif
         ch = s->port.rxBuffer[s->port.rxBufferSize - s->rxDMAPos];
         if (--s->rxDMAPos == 0)
             s->rxDMAPos = s->port.rxBufferSize;
