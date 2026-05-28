@@ -49,7 +49,12 @@ static const timerHardware_t *transponderTimerHardware = NULL;
 #error "Transponder (via HAL) not supported on this MCU."
 #endif
 
+#if defined(STM32H7)
+// H7: .bss is in DTCM which DMA cannot access; place in AXI SRAM via .dmaram_data.
+DMA_DATA transponder_t transponder;
+#else
 transponder_t transponder;
+#endif
 bool transponderInitialised = false;
 
 FAST_IRQ_HANDLER static void TRANSPONDER_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
