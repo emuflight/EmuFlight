@@ -129,6 +129,12 @@ bool spiInit(SPIDevice device) {
         ok = true;
 #endif
         break;
+    case SPIDEV_5:
+#if defined(USE_SPI_DEVICE_5)
+        spiInitDevice(device);
+        ok = true;
+#endif
+        break;
     }
     if (ok) {
         busDevice_t *bus = spiBusByDevice(device);
