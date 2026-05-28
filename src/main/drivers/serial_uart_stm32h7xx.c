@@ -623,9 +623,6 @@ FAST_IRQ_HANDLER void uartIrqHandler(uartPort_t *s)
             s->port.rxBuffer[s->port.rxBufferHead] = rbyte;
             s->port.rxBufferHead = (s->port.rxBufferHead + 1) % s->port.rxBufferSize;
         }
-        CLEAR_BIT(huart->Instance->CR1, USART_CR1_PEIE);
-        CLEAR_BIT(huart->Instance->CR3, USART_CR3_EIE);
-        __HAL_UART_SEND_REQ(huart, UART_RXDATA_FLUSH_REQUEST);
     }
     if (__HAL_UART_GET_IT(huart, UART_IT_PE) != RESET) {
         __HAL_UART_CLEAR_IT(huart, UART_CLEAR_PEF);
