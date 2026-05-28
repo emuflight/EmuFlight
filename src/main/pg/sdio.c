@@ -54,7 +54,7 @@ PG_RESET_TEMPLATE(sdioConfig_t, sdioConfig,
                   .clockBypass = 0,
                   .useCache = 0,
                   .use4BitWidth = SDIO_USE_4BIT,
-                  .device = 1,    // default SDMMC1
+                  .device = 1     // default SDMMC1
                  );
 
 PG_REGISTER_WITH_RESET_TEMPLATE(sdioPinConfig_t, sdioPinConfig, PG_SDIO_PIN_CONFIG, 0);

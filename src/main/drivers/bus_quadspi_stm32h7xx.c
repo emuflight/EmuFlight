@@ -369,7 +369,7 @@ bool quadSpiTransmit1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t d
     cmd.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
     cmd.SIOOMode          = QSPI_SIOO_INST_EVERY_CMD;
     cmd.Instruction       = instruction;
-    if (length <= 0) {
+    if (!out || length <= 0) {
         return false;
     }
     cmd.NbData            = length;
@@ -418,7 +418,7 @@ bool quadSpiReceive1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t du
     cmd.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
     cmd.SIOOMode          = QSPI_SIOO_INST_EVERY_CMD;
     cmd.Instruction       = instruction;
-    if (length <= 0) {
+    if (!in || length <= 0) {
         return false;
     }
     cmd.NbData            = length;
@@ -461,7 +461,7 @@ bool quadSpiReceive4LINES(const extDevice_t *dev, uint8_t instruction, uint8_t d
     cmd.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
     cmd.SIOOMode          = QSPI_SIOO_INST_EVERY_CMD;
     cmd.Instruction       = instruction;
-    if (length <= 0) {
+    if (!in || length <= 0) {
         return false;
     }
     cmd.NbData            = length;
@@ -506,7 +506,7 @@ bool quadSpiReceiveWithAddress1LINE(const extDevice_t *dev, uint8_t instruction,
     cmd.Instruction       = instruction;
     cmd.Address           = address;
     cmd.AddressSize       = quadSpi_addressSizeFromValue(addressSize);
-    if (length <= 0) {
+    if (!in || length <= 0) {
         return false;
     }
     cmd.NbData            = length;
@@ -551,7 +551,7 @@ bool quadSpiReceiveWithAddress4LINES(const extDevice_t *dev, uint8_t instruction
     cmd.Instruction       = instruction;
     cmd.Address           = address;
     cmd.AddressSize       = quadSpi_addressSizeFromValue(addressSize);
-    if (length <= 0) {
+    if (!in || length <= 0) {
         return false;
     }
     cmd.NbData            = length;
@@ -596,7 +596,7 @@ bool quadSpiTransmitWithAddress1LINE(const extDevice_t *dev, uint8_t instruction
     cmd.Instruction       = instruction;
     cmd.Address           = address;
     cmd.AddressSize       = quadSpi_addressSizeFromValue(addressSize);
-    if (length <= 0) {
+    if (!out || length <= 0) {
         return false;
     }
     cmd.NbData            = length;
@@ -641,7 +641,7 @@ bool quadSpiTransmitWithAddress4LINES(const extDevice_t *dev, uint8_t instructio
     cmd.Instruction       = instruction;
     cmd.Address           = address;
     cmd.AddressSize       = quadSpi_addressSizeFromValue(addressSize);
-    if (length <= 0) {
+    if (!out || length <= 0) {
         return false;
     }
     cmd.NbData            = length;
@@ -722,7 +722,7 @@ bool quadSpiInstructionWithData1LINE(const extDevice_t *dev, uint8_t instruction
     cmd.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
     cmd.SIOOMode          = QSPI_SIOO_INST_EVERY_CMD;
     cmd.Instruction       = instruction;
-    if (length <= 0) {
+    if (!out || length <= 0) {
         return false;
     }
     cmd.NbData            = length;
@@ -748,10 +748,13 @@ bool quadSpiInstructionWithData1LINE(const extDevice_t *dev, uint8_t instruction
 
 void quadSpiSetDivisor(const extDevice_t *dev, uint16_t divisor)
 {
-    if (!dev || !dev->bus) {
+    if (!dev || !dev->bus || !dev->bus->busType_u.qspi.instance) {
         return;
     }
     quadSpiDevice_e device = quadSpiDeviceByInstance(dev->bus->busType_u.qspi.instance);
+    if (device == QUADSPIINVALID) {
+        return;
+    }
     if (HAL_QSPI_DeInit(&quadSpiDevice[device].halHandle->hal) != HAL_OK) {
         Error_Handler();
     }

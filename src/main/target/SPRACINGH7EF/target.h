@@ -26,7 +26,7 @@
 
 #define BOARD_NAME              SPRACINGH7EF
 #define MANUFACTURER_ID         SPRO
-#define TARGET_BOARD_IDENTIFIER "S730"  // generic ID
+#define TARGET_BOARD_IDENTIFIER "SP7E"
 #define FC_TARGET_MCU           STM32H730     // not used in EmuF
 
 // Config storage: OctoSPI flash is configured by bootloader (memory-mapped mode);
