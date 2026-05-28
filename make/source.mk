@@ -150,6 +150,7 @@ COMMON_SRC = \
             io/osd.c \
             io/pidaudio.c \
             sensors/barometer.c \
+            drivers/barometer/barometer_dps310.c \
             sensors/rangefinder.c \
             telemetry/telemetry.c \
             telemetry/crsf.c \
