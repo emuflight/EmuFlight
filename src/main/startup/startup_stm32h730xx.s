@@ -94,6 +94,32 @@ LoopFillZerobss:
   cmp  r2, r3
   bcc  FillZerobss
 
+/*-----*/
+  ldr  r2, =_ssram2
+  b  LoopFillZerosram2
+/* Zero fill the sram2 segment. */
+FillZerosram2:
+  movs  r3, #0
+  str  r3, [r2], #4
+
+LoopFillZerosram2:
+  ldr  r3, = _esram2
+  cmp  r2, r3
+  bcc  FillZerosram2
+
+  ldr  r2, =_sfastram_bss
+  b  LoopFillZerofastram_bss
+/* Zero fill the fastram_bss segment. */
+FillZerofastram_bss:
+  movs  r3, #0
+  str  r3, [r2], #4
+
+LoopFillZerofastram_bss:
+  ldr  r3, = _efastram_bss
+  cmp  r2, r3
+  bcc  FillZerofastram_bss
+/*-----*/
+
 /* Call static constructors */
 /*  bl __libc_init_array */
 /* Call the application's entry point.*/
