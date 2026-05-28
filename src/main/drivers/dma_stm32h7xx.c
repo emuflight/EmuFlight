@@ -153,7 +153,8 @@ dmaChannelDescriptor_t *dmaGetDescriptorByIdentifier(const dmaIdentifier_e ident
 
 uint32_t dmaGetChannel(const uint8_t channel)
 {
-    return ((uint32_t)channel * 2) << 24;
+    // H7 uses DMAMUX: DMA_REQUEST_* values are sequential integers, not bit-shifted CHSEL.
+    return (uint32_t)channel;
 }
 
 #endif
