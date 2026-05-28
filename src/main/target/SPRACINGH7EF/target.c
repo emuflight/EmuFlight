@@ -39,7 +39,7 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM3, CH3, PB0, TIM_USE_MOTOR, 0, 6, NONE), // motor 7
     DEF_TIM(TIM3, CH4, PB1, TIM_USE_MOTOR, 0, 7, NONE), // motor 8
     DEF_TIM(TIM16, CH1, PB8, TIM_USE_LED, 0, 8, NONE), // led strip
-    DEF_TIM(TIM17, CH1, PB9, TIM_USE_CAMERA_CONTROL, 0, 9, NONE), // camera control — confirmed TIM17_CH1/PB9 per BF SPRACINGH7EF config.h
+    DEF_TIM(TIM17, CH1, PB9, TIM_USE_ANY, 0, 9, NONE), // camera control (TIM17_CH1/PB9 per BF config; TIM_USE_CAMERA_CONTROL not yet in EF timer.h)
 };
 
 // notice - this file was programmatically generated and may be incomplete.
