@@ -1073,8 +1073,8 @@ void w25n_readBBLUT(flashDevice_t *fdevice, bblut_t *bblut, int lutsize)
 
         for (int i = 0, offset = 0 ; i < lutsize ; i++, offset += 4) {
             if (i < W25N_BBLUT_TABLE_ENTRY_COUNT) {
-                bblut[i].pba = (in[offset + 0] << 16)|in[offset + 1];
-                bblut[i].lba = (in[offset + 2] << 16)|in[offset + 3];
+                bblut[i].pba = (bblutBuffer[offset + 0] << 8)|bblutBuffer[offset + 1];
+                bblut[i].lba = (bblutBuffer[offset + 2] << 8)|bblutBuffer[offset + 3];
             }
         }
     }
