@@ -795,13 +795,20 @@ void quadSpiSequence(const extDevice_t *dev, busSegment_t *segments)
             csNegated = false;
         }
 
+        HAL_StatusTypeDef status = HAL_OK;
         if (curSegment->u.buffers.txData) {
             WRITE_REG(quadSpiDevice[device].halHandle->hal.Instance->DLR, curSegment->len - 1U);
-            HAL_QSPI_Transmit(&quadSpiDevice[device].halHandle->hal, (uint8_t *)curSegment->u.buffers.txData, QUADSPI_DEFAULT_TIMEOUT);
+            status = HAL_QSPI_Transmit(&quadSpiDevice[device].halHandle->hal, (uint8_t *)curSegment->u.buffers.txData, QUADSPI_DEFAULT_TIMEOUT);
         }
-        if (curSegment->u.buffers.rxData) {
+        if (status == HAL_OK && curSegment->u.buffers.rxData) {
             WRITE_REG(quadSpiDevice[device].halHandle->hal.Instance->DLR, curSegment->len - 1U);
-            HAL_QSPI_Receive(&quadSpiDevice[device].halHandle->hal, (uint8_t *)curSegment->u.buffers.rxData, QUADSPI_DEFAULT_TIMEOUT);
+            status = HAL_QSPI_Receive(&quadSpiDevice[device].halHandle->hal, (uint8_t *)curSegment->u.buffers.rxData, QUADSPI_DEFAULT_TIMEOUT);
+        }
+
+        if (status != HAL_OK) {
+            quadSpiDeselectDevice(dev->bus->busType_u.qspi.instance);
+            quadSpiTimeoutUserCallback(dev->bus->busType_u.qspi.instance);
+            return;
         }
 
         if (curSegment->negateCS) {
