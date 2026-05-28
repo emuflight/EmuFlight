@@ -50,8 +50,8 @@ static const timerHardware_t *transponderTimerHardware = NULL;
 #endif
 
 #if defined(STM32H7)
-// H7: .bss is in DTCM which DMA cannot access; place in AXI SRAM via .dmaram_data.
-DMA_DATA transponder_t transponder;
+// H7: .bss is in DTCM which DMA cannot access; place in AXI SRAM via .dmaram_bss.
+DMA_DATA_ZERO_INIT transponder_t transponder;
 #else
 transponder_t transponder;
 #endif
