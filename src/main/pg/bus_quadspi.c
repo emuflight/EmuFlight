@@ -147,6 +147,9 @@ void pgResetFn_quadSpiConfig(quadSpiConfig_t *quadSpiConfig)
 {
     for (size_t i = 0 ; i < ARRAYLEN(quadSpiDefaultConfig) ; i++) {
         const quadSpiDefaultConfig_t *defconf = &quadSpiDefaultConfig[i];
+        if ((unsigned)defconf->device >= QUADSPIDEV_COUNT) {
+            continue;
+        }
         quadSpiConfig[defconf->device].ioTagClk = defconf->clk;
 
         quadSpiConfig[defconf->device].ioTagBK1IO0 = defconf->bk1IO0;

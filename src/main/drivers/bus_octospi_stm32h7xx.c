@@ -556,6 +556,9 @@ MMFLASH_CODE_NOINLINE bool octoSpiTransmit1LINE(octoSpiResource_t *instance_, ui
     if (out && length <= 0) {
         return false;
     }
+    if (!out && length > 0) {
+        return false;
+    }
     OCTOSPI_TypeDef *instance = (OCTOSPI_TypeDef *)instance_;
     OSPI_Command_t cmd; // Can't initialise to zero as compiler optimization will use memset() which is not in RAM.
 
