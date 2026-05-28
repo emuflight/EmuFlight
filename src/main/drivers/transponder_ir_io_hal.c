@@ -64,6 +64,8 @@ FAST_IRQ_HANDLER static void TRANSPONDER_DMA_IRQHandler(dmaChannelDescriptor_t* 
 }
 
 void transponderIrHardwareInit(ioTag_t ioTag, transponder_t *transponder) {
+    transponderInitialised = false;
+    transponderTimerHardware = NULL;
     if (!ioTag) {
         return;
     }
@@ -175,7 +177,7 @@ bool transponderIrInit(const ioTag_t ioTag, const transponderProvider_e provider
         return false;
     }
     transponderIrHardwareInit(ioTag, &transponder);
-    return true;
+    return transponderInitialised;
 }
 
 bool isTransponderIrReady(void) {

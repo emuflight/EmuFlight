@@ -246,7 +246,7 @@ endif
 
 DEVICE_FLAGS    += -DHSE_VALUE=$(HSE_VALUE) -DHSE_STARTUP_TIMEOUT=1000 -DSTM32
 
-TARGET_FLAGS    = -D$(TARGET)
+TARGET_FLAGS   += -D$(TARGET)
 
 VCP_SRC = \
             vcp_hal/usbd_desc.c \

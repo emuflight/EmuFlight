@@ -147,9 +147,12 @@ static const sdioPin_t *sdioFindPinDef(const sdioPin_t *pindefs, ioTag_t pin)
 
 void sdioPinConfigure(void)
 {
+    memset(sdioPin, 0, sizeof(sdioPin));
+    sdioHardware = NULL;
+
     SDIODevice device = SDIO_CFG_TO_DEV(sdioConfig()->device);
 
-    if (device == SDIOINVALID) {
+    if (device < SDIODEV_1 || device >= SDIODEV_COUNT) {
         return;
     }
 
@@ -559,16 +562,17 @@ SD_Error_t SD_GetCardInfo(void)
 
 SD_Error_t SD_Init(void)
 {
-    static bool sdInitAttempted = false;
-    static SD_Error_t result = SD_ERROR;
+    static bool sdInitSucceeded = false;
 
-    if (sdInitAttempted) {
-        return result;
+    if (sdInitSucceeded) {
+        return SD_OK;
     }
 
-    sdInitAttempted = true;
+    SD_Error_t result = SD_DoInit();
 
-    result = SD_DoInit();
+    if (result == SD_OK) {
+        sdInitSucceeded = true;
+    }
 
     return result;
 }
@@ -707,8 +711,16 @@ void HAL_SD_AbortCallback(SD_HandleTypeDef *hsd)
 {
     UNUSED(hsd);
 
-    SD_Handle.TXCplt = 0;
-    SD_Handle.RXCplt = 0;
+    if (SD_Handle.TXCplt) {
+        SD_Handle.TXErrors++;
+        SD_Handle.TXError = 1;
+        SD_Handle.TXCplt = 0;
+    }
+    if (SD_Handle.RXCplt) {
+        SD_Handle.RXErrors++;
+        SD_Handle.RXError = 1;
+        SD_Handle.RXCplt = 0;
+    }
 }
 
 bool SD_IsDetected(void) {

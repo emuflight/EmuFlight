@@ -86,8 +86,7 @@ static uint32_t  h7FlashWriteBuf[FLASH_NB_32BITWORD_IN_FLASHWORD];
 static int       h7FlashWriteBufIdx;
 static uintptr_t h7FlashBlockAddr;
 
-static uint32_t h7GetFlashSector(void) {
-    const uint32_t addr = (uint32_t)&__config_start;
+static uint32_t h7GetFlashSector(uint32_t addr) {
     const uint32_t bankBase = (addr >= 0x08100000U) ? 0x08100000U : 0x08000000U;
     return (addr - bankBase) / FLASH_PAGE_SIZE;
 }
@@ -273,7 +272,7 @@ static int write_word(config_streamer_t *c, uint32_t value) {
         FLASH_EraseInitTypeDef EraseInitStruct = {
             .TypeErase = FLASH_TYPEERASE_SECTORS,
             .Banks     = h7GetFlashBank(),
-            .Sector    = h7GetFlashSector(),
+            .Sector    = h7GetFlashSector(c->address),
             .NbSectors = 1
         };
         uint32_t SECTORError;

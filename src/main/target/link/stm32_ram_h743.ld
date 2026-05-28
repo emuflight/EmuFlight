@@ -153,7 +153,7 @@ SECTIONS
 
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
-  } >DTCM_RAM
+  } >D2_RAM
 
   /* Uninitialized data section */
   . = ALIGN(4);
@@ -169,7 +169,7 @@ SECTIONS
     . = ALIGN(4);
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
-  } >DTCM_RAM
+  } >D2_RAM
 
   /* Uninitialized data section */
   . = ALIGN(4);
@@ -184,7 +184,7 @@ SECTIONS
     . = ALIGN(4);
     _esram2 = .;         /* define a global symbol at sram2 end */
     __sram2_end__ = _esram2;
-  } >DTCM_RAM
+  } >D2_RAM
 
   /* used during startup to initialized fastram_data */
   _sfastram_idata = LOADADDR(.fastram_data);
@@ -278,7 +278,7 @@ SECTIONS
   .persistent_data (NOLOAD) :
   {
     __persistent_data_start__ = .;
-    *(.persistent_data)
+    KEEP(*(.persistent_data))
     . = ALIGN(4);
     __persistent_data_end__ = .;
   } >RAM

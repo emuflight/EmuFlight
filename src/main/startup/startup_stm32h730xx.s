@@ -63,10 +63,7 @@ Reset_Handler:
 
   bl persistentObjectInit
 
-/* Call the clock system intitialization function.*/
-  bl  SystemInit
-
-/* Copy the data segment initializers from flash to SRAM */  
+/* Copy the data segment initializers from flash to SRAM */
   movs  r1, #0
   b  LoopCopyDataInit
 
@@ -119,6 +116,9 @@ LoopFillZerofastram_bss:
   cmp  r2, r3
   bcc  FillZerofastram_bss
 /*-----*/
+
+/* Call the clock system initialization function after RAM sections are ready.*/
+  bl  SystemInit
 
 /* Call static constructors */
 /*  bl __libc_init_array */
