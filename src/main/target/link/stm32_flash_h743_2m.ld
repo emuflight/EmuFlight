@@ -178,7 +178,7 @@ SECTIONS
     . = ALIGN(4);
     _esram2 = .;         /* define a global symbol at sram2 end */
     __sram2_end__ = _esram2;
-  } >RAM
+  } >D2_RAM
 
   /* used during startup to initialized fastram_data */
   _sfastram_idata = LOADADDR(.fastram_data);

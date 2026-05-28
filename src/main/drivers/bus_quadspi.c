@@ -80,7 +80,7 @@ uint32_t quadSpiTimeoutUserCallback(quadSpiResource_t *instance)
 {
     quadSpiDevice_e device = quadSpiDeviceByInstance(instance);
     if (device == QUADSPIINVALID) {
-        return -1;
+        return UINT32_MAX;
     }
     quadSpiDevice[device].errorCount++;
     return quadSpiDevice[device].errorCount;

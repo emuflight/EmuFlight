@@ -357,6 +357,29 @@ const spiHardware_t spiHardware[] = {
         .rcc = RCC_APB2(SPI4),
         .dmaIrqHandler = DMA2_ST1_HANDLER,
     },
+#if defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx)
+    {
+        .device = SPIDEV_5,
+        .reg = SPI5,
+        .sckPins = {
+            { DEFIO_TAG_E(PE2),  GPIO_AF5_SPI5 },
+            { DEFIO_TAG_E(PF7),  GPIO_AF5_SPI5 },
+            { DEFIO_TAG_E(PH6),  GPIO_AF5_SPI5 },
+        },
+        .misoPins = {
+            { DEFIO_TAG_E(PE11), GPIO_AF5_SPI5 },
+            { DEFIO_TAG_E(PF8),  GPIO_AF5_SPI5 },
+            { DEFIO_TAG_E(PH7),  GPIO_AF5_SPI5 },
+        },
+        .mosiPins = {
+            { DEFIO_TAG_E(PE14), GPIO_AF5_SPI5 },
+            { DEFIO_TAG_E(PF9),  GPIO_AF5_SPI5 },
+            { DEFIO_TAG_E(PF11), GPIO_AF5_SPI5 },
+        },
+        .rcc = RCC_APB2(SPI5),
+        .dmaIrqHandler = DMA2_ST2_HANDLER,
+    },
+#endif
 #endif
 };
 

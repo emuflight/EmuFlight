@@ -49,6 +49,8 @@ typedef struct SD_Handle_s
     volatile uint32_t RXCplt;          // SD RX Complete is equal 0 when no transfer
     volatile uint32_t TXCplt;          // SD TX Complete is equal 0 when no transfer
 
+    volatile uint8_t  RXError;         // set by ErrorCallback; cleared at transfer start
+    volatile uint8_t  TXError;         // set by ErrorCallback; cleared at transfer start
     uint32_t RXErrors;
     uint32_t TXErrors;
 } SD_Handle_t;
@@ -165,7 +167,11 @@ void sdioPinConfigure(void)
 
     if (!sdioPin[SDIO_PIN_CK].pin ||
         !sdioPin[SDIO_PIN_CMD].pin ||
-        !sdioPin[SDIO_PIN_D0].pin) {
+        !sdioPin[SDIO_PIN_D0].pin ||
+        (sdioConfig()->use4BitWidth && (
+            !sdioPin[SDIO_PIN_D1].pin ||
+            !sdioPin[SDIO_PIN_D2].pin ||
+            !sdioPin[SDIO_PIN_D3].pin))) {
         sdioHardware = NULL;
     }
 }
@@ -570,12 +576,14 @@ SD_Error_t SD_Init(void)
 SD_Error_t SD_CheckWrite(void)
 {
     if (SD_Handle.TXCplt != 0) return SD_BUSY;
+    if (SD_Handle.TXError) { SD_Handle.TXError = 0; return SD_ERROR; }
     return SD_OK;
 }
 
 SD_Error_t SD_CheckRead(void)
 {
     if (SD_Handle.RXCplt != 0) return SD_BUSY;
+    if (SD_Handle.RXError) { SD_Handle.RXError = 0; return SD_ERROR; }
     return SD_OK;
 }
 
@@ -595,6 +603,7 @@ SD_Error_t SD_WriteBlocks_DMA(uint64_t WriteAddress, uint32_t *buffer, uint32_t 
         return SD_ERROR;
     }
 
+    SD_Handle.TXError = 0;
     SD_Handle.TXCplt = 1;
 
     // Ensure the data is flushed to main memory
@@ -632,6 +641,7 @@ SD_Error_t SD_ReadBlocks_DMA(uint64_t ReadAddress, uint32_t *buffer, uint32_t Bl
         return SD_ERROR;
     }
 
+    SD_Handle.RXError = 0;
     SD_Handle.RXCplt = 1;
 
     sdReadParameters.buffer = buffer;
@@ -682,11 +692,13 @@ void HAL_SD_ErrorCallback(SD_HandleTypeDef *hsd)
     UNUSED(hsd);
     if (SD_Handle.RXCplt) {
         SD_Handle.RXErrors++;
+        SD_Handle.RXError = 1;
         SD_Handle.RXCplt = 0;
     }
 
     if (SD_Handle.TXCplt) {
         SD_Handle.TXErrors++;
+        SD_Handle.TXError = 1;
         SD_Handle.TXCplt = 0;
     }
 }

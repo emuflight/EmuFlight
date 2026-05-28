@@ -41,8 +41,9 @@
 adcOperatingConfig_t adcOperatingConfig[ADC_CHANNEL_COUNT];
 
 #if defined(STM32H7)
-// 32-byte aligned: DMA target in AXI SRAM (D-cached); invalidate before CPU read
-volatile uint16_t adcValues[ADC_CHANNEL_COUNT] __attribute__((aligned(32)));
+// In AXI SRAM (.dmaram_bss): DMA1/2-accessible, D-cached; invalidate before CPU read.
+// DMA_DATA_ZERO_INIT provides 32-byte alignment so no adjacent variable shares a cache line.
+DMA_DATA_ZERO_INIT volatile uint16_t adcValues[ADC_CHANNEL_COUNT];
 #elif defined(STM32F7)
 volatile FAST_RAM_ZERO_INIT uint16_t adcValues[ADC_CHANNEL_COUNT];
 #else
