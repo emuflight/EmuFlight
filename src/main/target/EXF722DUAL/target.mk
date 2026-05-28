@@ -5,4 +5,5 @@ TARGET_SRC = \
             drivers/compass/compass_fake.c \
             drivers/accgyro/accgyro_spi_icm20689.c \
             drivers/barometer/barometer_bmp280.c \
+drivers/barometer/barometer_dps310.c \
             drivers/max7456.c
