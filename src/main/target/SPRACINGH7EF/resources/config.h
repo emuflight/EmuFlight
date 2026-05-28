@@ -36,8 +36,6 @@
 #define USE_BUTTONS
 #define BUTTON_A_PIN            PD10
 #define BUTTON_A_PIN_INVERTED
-#define BUTTON_B_PIN            PD10
-#define BUTTON_B_PIN_INVERTED
 
 // FC has 2 flash chips, one for logging on SPI6, one for code/data storage on OCTOSPIM_P1 (Memory mapped mode)
 // Config is to be stored on the flash chip used for code/data storage, this requires that the
