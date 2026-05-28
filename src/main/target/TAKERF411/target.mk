@@ -5,6 +5,7 @@ TARGET_SRC = \
 drivers/accgyro/accgyro_spi_icm426xx.c \
 drivers/accgyro/accgyro_spi_bmi270.c \
 drivers/barometer/barometer_bmp280.c \
+drivers/barometer/barometer_dps310.c \
 drivers/light_led.h \
 drivers/light_ws2811strip.c \
 drivers/pinio.c \

@@ -2,6 +2,7 @@ F7X5XG_TARGETS += $(TARGET)
 FEATURES       += VCP ONBOARDFLASH
 
 TARGET_SRC = \
+drivers/barometer/barometer_dps310.c \
 drivers/accgyro/accgyro_spi_icm426xx.c \
 drivers/accgyro/accgyro_spi_bmi270.c \
 $(addprefix drivers/compass/,$(notdir $(wildcard $(SRC_DIR)/drivers/compass/*.c))) \
