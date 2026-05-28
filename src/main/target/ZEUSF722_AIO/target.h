@@ -84,6 +84,7 @@
 #define USE_BARO_BMP280
 #define USE_BARO_SPI_BMP280
 #define USE_BARO_MS5611
+#define USE_BARO_DPS310
 #define BMP280_CS_PIN             PA4
 #define BARO_CS_PIN             PA4
 #define BMP280_SPI_INSTANCE   SPI1
