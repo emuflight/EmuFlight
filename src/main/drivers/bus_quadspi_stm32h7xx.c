@@ -373,10 +373,7 @@ bool quadSpiTransmit1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t d
         return false;
     }
     cmd.NbData            = length;
-
-    if (out) {
-        cmd.DataMode = QSPI_DATA_1_LINE;
-    }
+    cmd.DataMode          = QSPI_DATA_1_LINE;
 
     quadSpiSelectDevice(dev->bus->busType_u.qspi.instance);
 
