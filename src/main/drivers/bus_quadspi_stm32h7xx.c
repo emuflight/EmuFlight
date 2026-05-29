@@ -367,7 +367,6 @@ bool quadSpiTransmit1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t d
     cmd.InstructionMode   = QSPI_INSTRUCTION_1_LINE;
     cmd.AddressMode       = QSPI_ADDRESS_NONE;
     cmd.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
-    cmd.DataMode          = QSPI_DATA_NONE;
     cmd.DummyCycles       = dummyCycles;
     cmd.DdrMode           = QSPI_DDR_MODE_DISABLE;
     cmd.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
