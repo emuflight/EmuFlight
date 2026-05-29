@@ -144,7 +144,7 @@ void blackboxDeviceFlush(void) {
      * devices will progressively write in the background without Blackbox calling anything.
      */
     case BLACKBOX_DEVICE_FLASH:
-        flashfsFlushAsync();
+        flashfsFlushAsync(false);
         break;
 #endif // USE_FLASHFS
     default:
@@ -164,7 +164,7 @@ bool blackboxDeviceFlushForce(void) {
         return isSerialTransmitBufferEmpty(blackboxPort);
 #ifdef USE_FLASHFS
     case BLACKBOX_DEVICE_FLASH:
-        return flashfsFlushAsync();
+        return flashfsFlushAsync(true);
 #endif // USE_FLASHFS
 #ifdef USE_SDCARD
     case BLACKBOX_DEVICE_SDCARD:
@@ -550,7 +550,7 @@ blackboxBufferReserveStatus_e blackboxDeviceReserveBufferSpace(int32_t bytes) {
              * that the Blackbox header writing code doesn't have to guess about the best time to ask flashfs to
              * flush, and doesn't stall waiting for a flush that would otherwise not automatically be called.
              */
-            flashfsFlushAsync();
+            flashfsFlushAsync(true);
         }
         return BLACKBOX_RESERVE_TEMPORARY_FAILURE;
 #endif // USE_FLASHFS

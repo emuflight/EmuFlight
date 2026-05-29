@@ -32,7 +32,7 @@ SECTIONS
     PROVIDE (isr_vector_table_base = .);
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
-  } >FLASH AT >AXIM_FLASH
+  } >FLASH AT >WRITABLE_FLASH
 
   /* The program code and other data goes into FLASH */
   .text :
@@ -69,13 +69,13 @@ SECTIONS
   .ARM.extab   : 
   { 
     *(.ARM.extab* .gnu.linkonce.armextab.*) 
-  } >FLASH
+  } >MOVABLE_FLASH
   
   .ARM : 
   {
     __exidx_start = .;
     *(.ARM.exidx*) __exidx_end = .;
-  } >FLASH AT >AXIM_FLASH
+  } >MOVABLE_FLASH
 
   .pg_registry :
   {
@@ -83,14 +83,14 @@ SECTIONS
     KEEP (*(.pg_registry))
     KEEP (*(SORT(.pg_registry.*)))
     PROVIDE_HIDDEN (__pg_registry_end = .);
-  } >FLASH AT >AXIM_FLASH
+  } >MOVABLE_FLASH
   
   .pg_resetdata :
   {
     PROVIDE_HIDDEN (__pg_resetdata_start = .);
     KEEP (*(.pg_resetdata))
     PROVIDE_HIDDEN (__pg_resetdata_end = .);
-  } >FLASH AT >AXIM_FLASH
+  } >WRITABLE_FLASH1
 
   /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);
@@ -105,7 +105,7 @@ SECTIONS
 
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
-  } >RAM AT >AXIM_FLASH
+  } >RAM AT >WRITABLE_FLASH1
 
   /* Uninitialized data section */
   . = ALIGN(4);
@@ -151,7 +151,7 @@ SECTIONS
 
     . = ALIGN(4);
     _efastram_data = .;        /* define a global symbol at data end */
-  } >FASTRAM AT >AXIM_FLASH
+  } >FASTRAM AT >WRITABLE_FLASH
 
   . = ALIGN(4);
   .fastram_bss (NOLOAD) :
