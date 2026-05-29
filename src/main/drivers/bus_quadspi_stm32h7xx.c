@@ -263,6 +263,10 @@ void quadSpiInitDevice(quadSpiDevice_e device)
     case QUADSPI_MODE_DUAL_FLASH:
         quadSpi->halHandle->hal.Init.DualFlash = QSPI_DUALFLASH_ENABLE;
         break;
+    default:
+        quadSpi->halHandle->hal.Init.FlashID = QSPI_FLASH_ID_1;
+        quadSpi->halHandle->hal.Init.DualFlash = QSPI_DUALFLASH_DISABLE;
+        break;
     }
 
     if (HAL_QSPI_Init(&quadSpi->halHandle->hal) != HAL_OK) {
