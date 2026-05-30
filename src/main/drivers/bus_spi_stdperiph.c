@@ -182,6 +182,9 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
             divisor /= 2;
         }
 #endif
+        // BF parity: constrain after halving — divisor=1 after /=2 gives prescaler 256
+        // via ffs(-1)<<3, causing SPI at ~164kHz which overruns spiTransfer timeout (1000 iters).
+        divisor = (divisor < 2) ? 2 : divisor;
         instance->CR1 = (instance->CR1 & ~BR_BITS) | (divisor ? ((ffs(divisor | 0x100) - 2) << 3) : 0);
 #undef BR_BITS
         bus->busType_u.spi.speed = dev->busType_u.spi.speed;
