@@ -524,12 +524,12 @@ static uint32_t m25p16_pageProgramContinueQspi(flashDevice_t *fdevice, uint8_t c
     fdevice->currentWriteAddress += dataSize;
 
     if (fdevice->callback) {
-        fdevice->callback(bufferSizes[0]);
+        fdevice->callback(dataSize);
     }
 
     fdevice->couldBeBusy = true;
 
-    return bufferSizes[0];
+    return dataSize;
 }
 
 static void m25p16_pageProgramQspi(flashDevice_t *fdevice, uint32_t address, const uint8_t *data, uint32_t length, void (*callback)(uint32_t length))
