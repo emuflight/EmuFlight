@@ -515,6 +515,9 @@ int flashfsReadAbs(uint32_t address, uint8_t *buffer, unsigned int len)
     int bytesRead;
 
     // Did caller try to read past the end of the volume?
+    if (address >= flashfsSize) {
+        return 0;
+    }
     if (address + len > flashfsSize) {
         // Truncate their request
         len = flashfsSize - address;
