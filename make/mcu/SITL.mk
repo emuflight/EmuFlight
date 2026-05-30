@@ -51,6 +51,7 @@ LD_FLAGS    := \
               -Wl,-gc-sections,-Map,$(TARGET_MAP) \
               -Wl,-L$(LINKER_DIR) \
               -Wl,--cref \
+              -Wl,--no-warn-rwx-segments \
               -T$(LD_SCRIPT)
 
 ifneq ($(filter SITL_STATIC,$(OPTIONS)),)
