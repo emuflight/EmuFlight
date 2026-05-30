@@ -182,6 +182,9 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
             divisor /= 2;
         }
 #endif
+        // BF parity: constrain after halving — divisor=1 after /=2 gives prescaler 256
+        // via ffs(-1)<<3, causing SPI at ~164kHz which overruns spiTransfer timeout (1000 iters).
+        divisor = (divisor < 2) ? 2 : divisor;
         instance->CR1 = (instance->CR1 & ~BR_BITS) | (divisor ? ((ffs(divisor | 0x100) - 2) << 3) : 0);
 #undef BR_BITS
         bus->busType_u.spi.speed = dev->busType_u.spi.speed;
@@ -345,12 +348,11 @@ void spiInternalInitStream(const extDevice_t *dev, bool preInit)
             initRx->DMA_Memory0BaseAddr = (uint32_t)&dummyRxByte;
             initRx->DMA_MemoryInc = DMA_MemoryInc_Disable;
         }
-        /* Use 16-bit memory writes where possible to prevent atomic access issues on gyro data */
-        if ((initRx->DMA_Memory0BaseAddr & 0x1) || (len & 0x1)) {
-            initRx->DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-        } else {
-            initRx->DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
-        }
+        /* Always use byte-width DMA writes. HalfWord mode zero-pads each SPI byte
+         * to 16 bits (0xAB → 0x00AB), corrupting any even-length even-aligned
+         * receive buffer (e.g. flash reads). Gyro bursts use odd lengths and were
+         * unaffected, masking this bug. */
+        initRx->DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
         initRx->DMA_BufferSize = len;
     }
 }
@@ -426,11 +428,11 @@ void spiInternalStopDMA(const extDevice_t *dev)
 void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {
 #define BR_BITS ((BIT(5) | BIT(4) | BIT(3)))
 #if !(defined(STM32F1) || defined(STM32F3))
-    // SPI2 and SPI3 are on APB1/AHB1 which PCLK is half that of APB2/AHB2.
     if (instance == SPI2 || instance == SPI3) {
-        divisor /= 2; // Safe for divisor == 0 or 1
+        divisor /= 2;
     }
 #endif
+    divisor = (divisor < 2) ? 2 : divisor;
     SPI_Cmd(instance, DISABLE);
     const uint16_t tempRegister = (instance->CR1 & ~BR_BITS);
     instance->CR1 = tempRegister | (divisor ? ((ffs(divisor | 0x100) - 2) << 3) : 0);
