@@ -341,27 +341,20 @@ busStatus_e m25p16_callbackReady(uint32_t arg)
  */
 static void m25p16_eraseSector(flashDevice_t *fdevice, uint32_t address)
 {
-    STATIC_DMA_DATA_AUTO uint8_t sectorErase[5] = { M25P16_INSTRUCTION_SECTOR_ERASE };
-    STATIC_DMA_DATA_AUTO uint8_t readStatus[2] = { M25P16_INSTRUCTION_READ_STATUS_REG, 0 };
-    STATIC_DMA_DATA_AUTO uint8_t readyStatus[2];
-    STATIC_DMA_DATA_AUTO uint8_t writeEnable[] = { M25P16_INSTRUCTION_WRITE_ENABLE };
-
-    busSegment_t segments[] = {
-            {.u.buffers = {readStatus, readyStatus}, sizeof(readStatus), true, m25p16_callbackReady},
-            {.u.buffers = {writeEnable, NULL}, sizeof(writeEnable), true, m25p16_callbackWriteEnable},
-            {.u.buffers = {sectorErase, NULL}, fdevice->isLargeFlash ? 5 : 4, true, NULL},
-            {.u.link = {NULL, NULL}, 0, true, NULL},
-    };
-
-    // Ensure any prior DMA has completed before continuing
-    spiWait(fdevice->io.handle.dev);
+    uint8_t sectorErase[5] = { M25P16_INSTRUCTION_SECTOR_ERASE };
+    uint8_t writeEnable[] = { M25P16_INSTRUCTION_WRITE_ENABLE };
 
     m25p16_setCommandAddress(&sectorErase[1], address, fdevice->isLargeFlash);
 
-    spiSequence(fdevice->io.handle.dev, segments);
+    // Poll WIP bit before issuing write-enable — spiSequence BUS_BUSY is ignored
+    // in the M.1 sync/polled path; use direct polled wait instead.
+    m25p16_waitForReady(fdevice);
 
-    // Block pending completion of SPI access, but the erase will be ongoing
-    spiWait(fdevice->io.handle.dev);
+    spiReadWriteBuf(fdevice->io.handle.dev, writeEnable, NULL, sizeof(writeEnable));
+    fdevice->couldBeBusy = true;
+
+    spiReadWriteBuf(fdevice->io.handle.dev, sectorErase, NULL, fdevice->isLargeFlash ? 5 : 4);
+    fdevice->couldBeBusy = true;
 }
 
 #ifdef USE_QUADSPI
@@ -378,22 +371,19 @@ static void m25p16_eraseSectorQspi(flashDevice_t *fdevice, uint32_t address)
 
 static void m25p16_eraseCompletely(flashDevice_t *fdevice)
 {
-    STATIC_DMA_DATA_AUTO uint8_t readStatus[2] = { M25P16_INSTRUCTION_READ_STATUS_REG, 0 };
-    STATIC_DMA_DATA_AUTO uint8_t readyStatus[2];
-    STATIC_DMA_DATA_AUTO uint8_t writeEnable[] = { M25P16_INSTRUCTION_WRITE_ENABLE };
-    STATIC_DMA_DATA_AUTO uint8_t bulkErase[] = { M25P16_INSTRUCTION_BULK_ERASE };
+    uint8_t writeEnable[] = { M25P16_INSTRUCTION_WRITE_ENABLE };
+    uint8_t bulkErase[] = { M25P16_INSTRUCTION_BULK_ERASE };
 
-    busSegment_t segments[] = {
-            {.u.buffers = {readStatus, readyStatus}, sizeof(readStatus), true, m25p16_callbackReady},
-            {.u.buffers = {writeEnable, NULL}, sizeof(writeEnable), true, m25p16_callbackWriteEnable},
-            {.u.buffers = {bulkErase, NULL}, sizeof(bulkErase), true, NULL},
-            {.u.link = {NULL, NULL}, 0, true, NULL},
-    };
+    // Poll WIP bit before issuing write-enable — spiSequence BUS_BUSY is ignored
+    // in the M.1 sync/polled path; use direct polled wait instead.
+    m25p16_waitForReady(fdevice);
 
-    spiSequence(fdevice->io.handle.dev, segments);
+    spiReadWriteBuf(fdevice->io.handle.dev, writeEnable, NULL, sizeof(writeEnable));
+    fdevice->couldBeBusy = true;
 
-    // Block pending completion of SPI access, but the erase will be ongoing
-    spiWait(fdevice->io.handle.dev);
+    spiReadWriteBuf(fdevice->io.handle.dev, bulkErase, NULL, sizeof(bulkErase));
+    // Chip is now erasing autonomously; caller polls flashIsReady()
+    fdevice->couldBeBusy = true;
 }
 
 #ifdef USE_QUADSPI
@@ -417,66 +407,49 @@ static void m25p16_pageProgramBegin(flashDevice_t *fdevice, uint32_t address, vo
 
 static uint32_t m25p16_pageProgramContinue(flashDevice_t *fdevice, uint8_t const **buffers, const uint32_t *bufferSizes, uint32_t bufferCount)
 {
-    // The segment list cannot be in automatic storage as this routine is non-blocking
-    STATIC_DMA_DATA_AUTO uint8_t readStatus[2] = { M25P16_INSTRUCTION_READ_STATUS_REG, 0 };
-    STATIC_DMA_DATA_AUTO uint8_t readyStatus[2];
-    STATIC_DMA_DATA_AUTO uint8_t writeEnable[] = { M25P16_INSTRUCTION_WRITE_ENABLE };
-    STATIC_DMA_DATA_AUTO uint8_t pageProgram[5] = { M25P16_INSTRUCTION_PAGE_PROGRAM };
-
-    static busSegment_t segments[] = {
-            {.u.buffers = {readStatus, readyStatus}, sizeof(readStatus), true, m25p16_callbackReady},
-            {.u.buffers = {writeEnable, NULL}, sizeof(writeEnable), true, m25p16_callbackWriteEnable},
-            {.u.buffers = {pageProgram, NULL}, 0, false, NULL},
-            {.u.link = {NULL, NULL}, 0, true, NULL},
-            {.u.link = {NULL, NULL}, 0, true, NULL},
-            {.u.link = {NULL, NULL}, 0, true, NULL},
-    };
-
-    // Ensure any prior DMA has completed before continuing
-    spiWait(fdevice->io.handle.dev);
-
-    // Patch the pageProgram segment
-    segments[PAGE_PROGRAM].len = fdevice->isLargeFlash ? 5 : 4;
-    m25p16_setCommandAddress(&pageProgram[1], fdevice->currentWriteAddress, fdevice->isLargeFlash);
-
-    // Patch the data segments
-    segments[DATA1].u.buffers.txData = (uint8_t *)buffers[0];
-    segments[DATA1].len = bufferSizes[0];
-    fdevice->callbackArg = bufferSizes[0];
-
-    /* As the DATA2 segment may be used as the terminating segment, the rxData and txData may be overwritten
-     * with a link to the following transaction (u.link.dev and u.link.segments respectively) so ensure that
-     * rxData is reinitialised otherwise it will remain pointing at a chained u.link.segments structure which
-     * would result in it being corrupted.
-     */
-    segments[DATA2].u.buffers.rxData = (uint8_t *)NULL;
-
-    if (bufferCount == 1) {
-        segments[DATA1].negateCS = true;
-        segments[DATA1].callback = m25p16_callbackWriteComplete;
-        // Mark segment following data as being of zero length
-        segments[DATA2].u.buffers.txData = (uint8_t *)NULL;
-        segments[DATA2].len = 0;
-    } else if (bufferCount == 2) {
-        segments[DATA1].negateCS = false;
-        segments[DATA1].callback = NULL;
-        segments[DATA2].u.buffers.txData = (uint8_t *)buffers[1];
-        segments[DATA2].len = bufferSizes[1];
-        fdevice->callbackArg += bufferSizes[1];
-        segments[DATA2].negateCS = true;
-        segments[DATA2].callback = m25p16_callbackWriteComplete;
-    } else {
+    if (bufferCount == 0 || bufferCount > 2) {
         return 0;
     }
 
-    spiSequence(fdevice->io.handle.dev, fdevice->couldBeBusy ? &segments[READ_STATUS] : &segments[WRITE_ENABLE]);
+    uint8_t writeEnable[] = { M25P16_INSTRUCTION_WRITE_ENABLE };
+    uint8_t pageProgram[5] = { M25P16_INSTRUCTION_PAGE_PROGRAM };
 
-    if (fdevice->callback == NULL) {
-        // No callback was provided so block
-        spiWait(fdevice->io.handle.dev);
+    m25p16_setCommandAddress(&pageProgram[1], fdevice->currentWriteAddress, fdevice->isLargeFlash);
+
+    uint32_t bytesWritten = bufferSizes[0];
+    if (bufferCount == 2) {
+        bytesWritten += bufferSizes[1];
     }
 
-    return fdevice->callbackArg;
+    // Poll WIP bit — spiSequence BUS_BUSY is ignored on M.1 sync path;
+    // use direct polled wait matching the erase path fix.
+    m25p16_waitForReady(fdevice);
+
+    spiReadWriteBuf(fdevice->io.handle.dev, writeEnable, NULL, sizeof(writeEnable));
+    fdevice->couldBeBusy = true;
+
+    // Page program: command+address then data, all within one CS assertion.
+    // spiReadWriteBuf de-asserts CS after each call so we use spiSequence
+    // only for the contiguous command+data phase (no ready-poll segment, no callbacks).
+    busSegment_t ppSegments[] = {
+        {.u.buffers = {pageProgram, NULL}, fdevice->isLargeFlash ? 5 : 4, false, NULL},
+        {.u.buffers = {(uint8_t *)buffers[0], NULL}, bufferSizes[0], (bufferCount == 1), NULL},
+        {.u.buffers = {(uint8_t *)(bufferCount == 2 ? buffers[1] : NULL), NULL},
+                      (bufferCount == 2 ? bufferSizes[1] : 0), true, NULL},
+        {.u.link = {NULL, NULL}, 0, true, NULL},
+    };
+
+    spiSequence(fdevice->io.handle.dev, ppSegments);
+    spiWait(fdevice->io.handle.dev);
+
+    fdevice->couldBeBusy = true;
+    fdevice->currentWriteAddress += bytesWritten;
+
+    if (fdevice->callback) {
+        fdevice->callback(bytesWritten);
+    }
+
+    return bytesWritten;
 }
 
 static void m25p16_pageProgramFinish(flashDevice_t *fdevice)

@@ -113,7 +113,8 @@ static uint32_t spiDivisorToBRbits(SPI_TypeDef *instance, uint16_t divisor)
 #else
     UNUSED(instance);
 #endif
-    // divisor | 0x100 ensures non-zero; ffs maps power-of-2 divisor to prescaler index.
+    // BF parity: clamp to valid range — divisor=1 after /=2 gives prescaler 256 via ffs(-1)<<3
+    divisor = (divisor < 2) ? 2 : divisor;
     return (ffs(divisor | 0x100) - 2) << SPI_CR1_BR_Pos;
 }
 
