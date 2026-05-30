@@ -345,12 +345,11 @@ void spiInternalInitStream(const extDevice_t *dev, bool preInit)
             initRx->DMA_Memory0BaseAddr = (uint32_t)&dummyRxByte;
             initRx->DMA_MemoryInc = DMA_MemoryInc_Disable;
         }
-        /* Use 16-bit memory writes where possible to prevent atomic access issues on gyro data */
-        if ((initRx->DMA_Memory0BaseAddr & 0x1) || (len & 0x1)) {
-            initRx->DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-        } else {
-            initRx->DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
-        }
+        /* Always use byte-width DMA writes. HalfWord mode zero-pads each SPI byte
+         * to 16 bits (0xAB → 0x00AB), corrupting any even-length even-aligned
+         * receive buffer (e.g. flash reads). Gyro bursts use odd lengths and were
+         * unaffected, masking this bug. */
+        initRx->DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
         initRx->DMA_BufferSize = len;
     }
 }
