@@ -354,7 +354,9 @@ static void m25p16_eraseSector(flashDevice_t *fdevice, uint32_t address)
 
     // Poll WIP bit before issuing write-enable — spiSequence BUS_BUSY is ignored
     // in the M.1 sync/polled path; use direct polled wait instead.
-    m25p16_waitForReady(fdevice);
+    if (!m25p16_waitForReady(fdevice)) {
+        return;
+    }
 
     spiReadWriteBuf(fdevice->io.handle.dev, writeEnable, NULL, sizeof(writeEnable));
     fdevice->couldBeBusy = true;
@@ -429,7 +431,9 @@ static uint32_t m25p16_pageProgramContinue(flashDevice_t *fdevice, uint8_t const
 
     // Poll WIP bit — spiSequence BUS_BUSY is ignored on M.1 sync path;
     // use direct polled wait matching the erase path fix.
-    m25p16_waitForReady(fdevice);
+    if (!m25p16_waitForReady(fdevice)) {
+        return 0;
+    }
 
     spiReadWriteBuf(fdevice->io.handle.dev, writeEnable, NULL, sizeof(writeEnable));
     fdevice->couldBeBusy = true;

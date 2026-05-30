@@ -428,11 +428,11 @@ void spiInternalStopDMA(const extDevice_t *dev)
 void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {
 #define BR_BITS ((BIT(5) | BIT(4) | BIT(3)))
 #if !(defined(STM32F1) || defined(STM32F3))
-    // SPI2 and SPI3 are on APB1/AHB1 which PCLK is half that of APB2/AHB2.
     if (instance == SPI2 || instance == SPI3) {
-        divisor /= 2; // Safe for divisor == 0 or 1
+        divisor /= 2;
     }
 #endif
+    divisor = (divisor < 2) ? 2 : divisor;
     SPI_Cmd(instance, DISABLE);
     const uint16_t tempRegister = (instance->CR1 & ~BR_BITS);
     instance->CR1 = tempRegister | (divisor ? ((ffs(divisor | 0x100) - 2) << 3) : 0);
