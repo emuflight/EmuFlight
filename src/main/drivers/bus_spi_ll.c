@@ -156,44 +156,6 @@ bool spiIsBusBusy(SPI_TypeDef *instance) {
            || LL_SPI_IsActiveFlag_BSY(instance);
 }
 
-// BF 4.5-m parity: private polled transfer for spiSequenceStart.
-// Uses 16-bit FIFO on F7 (8-bit data frame, low byte first = correct SPI byte order).
-// No timeout — avoids silent truncation when spiSequenceStart ignores the return value.
-FAST_CODE static bool spiInternalReadWriteBufPolled(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, int len)
-{
-    // set 16-bit transfer (8-bit data frame, 16-bit FIFO access for throughput)
-    CLEAR_BIT(instance->CR2, SPI_RXFIFO_THRESHOLD);
-    while (len > 1) {
-        while (!LL_SPI_IsActiveFlag_TXE(instance));
-        uint16_t w;
-        if (txData) {
-            w = *((uint16_t *)txData);
-            txData += 2;
-        } else {
-            w = 0xFFFF;
-        }
-        LL_SPI_TransmitData16(instance, w);
-        while (!LL_SPI_IsActiveFlag_RXNE(instance));
-        w = LL_SPI_ReceiveData16(instance);
-        if (rxData) {
-            *((uint16_t *)rxData) = w;
-            rxData += 2;
-        }
-        len -= 2;
-    }
-    // set 8-bit transfer for odd byte
-    SET_BIT(instance->CR2, SPI_RXFIFO_THRESHOLD);
-    if (len) {
-        while (!LL_SPI_IsActiveFlag_TXE(instance));
-        uint8_t b = txData ? *(txData++) : 0xFF;
-        LL_SPI_TransmitData8(instance, b);
-        while (!LL_SPI_IsActiveFlag_RXNE(instance));
-        b = LL_SPI_ReceiveData8(instance);
-        if (rxData) *(rxData++) = b;
-    }
-    return true;
-}
-
 bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, int len) {
     // set 16-bit transfer
     CLEAR_BIT(instance->CR2, SPI_RXFIFO_THRESHOLD);
@@ -321,8 +283,7 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
                 IOLo(dev->busType_u.spi.csnPin);
             }
 
-            spiInternalReadWriteBufPolled(
-                        instance,
+            spiTransfer(instance,
                         bus->curSegment->u.buffers.txData,
                         bus->curSegment->u.buffers.rxData,
                         bus->curSegment->len);

@@ -157,24 +157,6 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
     return true;
 }
 
-// BF 4.5-m parity: private polled transfer used inside spiSequenceStart.
-// No DR flush, no timeout — distinct from public spiTransfer() which has both.
-// spiSequenceStart ignores spiTransfer()'s return value, so a timeout there
-// silently truncates transfers; this function avoids that risk.
-static bool spiInternalReadWriteBufPolled(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, int len)
-{
-    uint8_t b;
-    while (len--) {
-        b = txData ? *(txData++) : 0xFF;
-        while (SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_TXE) == RESET);
-        SPI_I2S_SendData(instance, b);
-        while (SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_RXNE) == RESET);
-        b = SPI_I2S_ReceiveData(instance);
-        if (rxData) *(rxData++) = b;
-    }
-    return true;
-}
-
 #define SPI_DMA_THRESHOLD 8
 
 // DMA transfer setup and start (BF 4.5-maintenance parity, stdperiph API).
@@ -244,8 +226,7 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
                 IOLo(dev->busType_u.spi.csnPin);
             }
 
-            spiInternalReadWriteBufPolled(
-                        instance,
+            spiTransfer(instance,
                         bus->curSegment->u.buffers.txData,
                         bus->curSegment->u.buffers.rxData,
                         bus->curSegment->len);
