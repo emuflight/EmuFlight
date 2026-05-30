@@ -1091,8 +1091,10 @@ void dyad_vwritef(dyad_Stream *stream, const char *fmt, va_list args) {
         default:
           f[1] = *fmt;
           switch (*fmt) {
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
             case 'f':
             case 'g': sprintf(buf, f, va_arg(args, double));    break;
             case 'd':
@@ -1100,7 +1102,9 @@ void dyad_vwritef(dyad_Stream *stream, const char *fmt, va_list args) {
             case 'x':
             case 'X': sprintf(buf, f, va_arg(args, unsigned));  break;
             case 'p': sprintf(buf, f, va_arg(args, void*));     break;
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
+#endif
             default : buf[0] = *fmt; buf[1] = '\0';
           }
           str = buf;

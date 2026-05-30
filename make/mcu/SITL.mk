@@ -40,6 +40,8 @@ MCU_EXCLUDES = \
 
 TARGET_MAP  = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).map
 
+# TODO: --no-warn-rwx-segments suppresses a host-ELF linker warning; remove once
+#       the SITL linker script assigns proper section permissions (no RWX segments).
 LD_FLAGS    := \
               -lm \
               -lpthread \
