@@ -5,6 +5,12 @@
  * under the terms of the MIT license. See LICENSE for details.
  */
 
+#if __GNUC__ > 6
+#define FALLTHROUGH __attribute__ ((fallthrough))
+#else
+#define FALLTHROUGH do {} while(0)
+#endif
+
 #ifdef _WIN32
   #define _WIN32_WINNT 0x501
   #ifndef _CRT_SECURE_NO_WARNINGS
@@ -741,8 +747,7 @@ void dyad_update(void) {
             break;
           }
         }
-        /* Fall through */
-
+        FALLTHROUGH;
       case DYAD_STATE_CLOSING:
         if (select_has(&dyad_selectSet, SELECT_WRITE, stream->sockfd)) {
           stream_flushWriteBuffer(stream);
@@ -1086,6 +1091,10 @@ void dyad_vwritef(dyad_Stream *stream, const char *fmt, va_list args) {
         default:
           f[1] = *fmt;
           switch (*fmt) {
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
             case 'f':
             case 'g': sprintf(buf, f, va_arg(args, double));    break;
             case 'd':
@@ -1093,6 +1102,9 @@ void dyad_vwritef(dyad_Stream *stream, const char *fmt, va_list args) {
             case 'x':
             case 'X': sprintf(buf, f, va_arg(args, unsigned));  break;
             case 'p': sprintf(buf, f, va_arg(args, void*));     break;
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
             default : buf[0] = *fmt; buf[1] = '\0';
           }
           str = buf;
