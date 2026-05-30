@@ -107,10 +107,9 @@ void stmWriteCommand(serialStruct_t *s, char *msb, char *lsb, char *len, char *d
 	char lenPlusData[128];
 	char c;
 
-	strncpy(startAddress, msb, sizeof(startAddress));
-	strcat(startAddress, lsb);
+	snprintf(startAddress, sizeof(startAddress), "%s%s", msb, lsb);
 
-	sprintf(lenPlusData, "%02x%s", stmHexToChar(len) - 1, data);
+	snprintf(lenPlusData, sizeof(lenPlusData), "%02x%s", stmHexToChar(len) - 1, data);
 
 	write:
 	// send WRITE MEMORY command
@@ -163,11 +162,11 @@ char *stmHexLoader(serialStruct_t *s, FILE *fp) {
 				break;
 			case 0x04:
 				// MSB of destination 32 bit address
-				strncpy(addressMSB, hexData, 4);
+				snprintf(addressMSB, sizeof(addressMSB), "%.4s", hexData);
 				break;
 			case 0x05:
 				// 32 bit address to run after load
-				strncpy(addressJump, hexData, 8);
+				snprintf(addressJump, sizeof(addressJump), "%.8s", hexData);
 				break;
 		}
 	}
