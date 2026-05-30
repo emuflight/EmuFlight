@@ -90,6 +90,10 @@ SPIDevice spiDeviceByInstance(SPI_TypeDef *instance) {
     if (instance == SPI4)
         return SPIDEV_4;
 #endif
+#ifdef USE_SPI_DEVICE_5
+    if (instance == SPI5)
+        return SPIDEV_5;
+#endif
     return SPIINVALID;
 }
 

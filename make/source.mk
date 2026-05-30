@@ -322,6 +322,21 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             io/spektrum_vtx_control.c \
             pg/pg.h
 
+# H7-only low-frequency drivers compiled at -Os to reclaim flash budget
+ifneq ($(filter $(TARGET),$(H7_TARGETS)),)
+SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
+            drivers/audio_stm32h7xx.c \
+            drivers/bus_i2c_timing.c \
+            drivers/bus_octospi_stm32h7xx.c \
+            drivers/bus_quadspi.c \
+            drivers/bus_quadspi_stm32h7xx.c \
+            drivers/can_stm32h7xx.c \
+            pg/bus_quadspi.c \
+            drivers/sdio_h7xx.c \
+            drivers/memprot_hal.c \
+            drivers/memprot_stm32h7xx.c
+endif # H7_TARGETS
+
 # F4 and F7 optimizations
 ifneq ($(TARGET),$(filter $(TARGET),$(F3_TARGETS)))
 SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
@@ -350,9 +365,8 @@ SRC += \
             drivers/flash.c \
             drivers/flash_m25p16.c \
             drivers/flash_w25m.c \
-            drivers/flash_w25n.c \
-            drivers/flash_w25q128fv.c \
             io/flashfs.c \
+            pg/flash.c \
             $(MSC_SRC)
 endif
 

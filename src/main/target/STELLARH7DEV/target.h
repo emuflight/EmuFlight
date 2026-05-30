@@ -101,7 +101,6 @@
 // Flash: Winbond W25M02G (2×W25N01G NAND dies) on SPI4, CS=PC13.
 // Do NOT use DEFAULT_BLACKBOX_DEVICE — use ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 // to avoid redefinition conflict with the fallback in blackbox.c.
-#define USE_FLASH
 #define USE_FLASH_W25M02G
 #define FLASH_CS_PIN                    PC13
 #define FLASH_SPI_INSTANCE              SPI4

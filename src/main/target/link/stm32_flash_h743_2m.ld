@@ -272,7 +272,7 @@ SECTIONS
   .persistent_data (NOLOAD) :
   {
     __persistent_data_start__ = .;
-    *(.persistent_data)
+    KEEP(*(.persistent_data))
     . = ALIGN(4);
     __persistent_data_end__ = .;
   } >RAM

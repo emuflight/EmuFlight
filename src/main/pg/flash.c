@@ -41,6 +41,8 @@ void pgResetFn_flashConfig(flashConfig_t *flashConfig) {
 #else
     flashConfig->csTag = IO_TAG_NONE;
 #endif
+#ifdef FLASH_SPI_INSTANCE
     flashConfig->spiDevice = SPI_DEV_TO_CFG(spiDeviceByInstance(FLASH_SPI_INSTANCE));
+#endif
 }
 #endif

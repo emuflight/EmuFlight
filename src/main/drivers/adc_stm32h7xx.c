@@ -196,7 +196,11 @@ static void adcInitInternalInjected(void)
     adcVREFINTCAL = *VREFINT_CAL_ADDR >> VREFINT_CAL_SHIFT;
     adcTSCAL1 = *TEMPSENSOR_CAL1_ADDR >> VREFINT_CAL_SHIFT;
     adcTSCAL2 = *TEMPSENSOR_CAL2_ADDR >> VREFINT_CAL_SHIFT;
-    adcTSSlopeK = (TEMPSENSOR_CAL2_TEMP - TEMPSENSOR_CAL1_TEMP) * 1000 / (adcTSCAL2 - adcTSCAL1);
+    if (adcTSCAL2 != adcTSCAL1) {
+        adcTSSlopeK = (TEMPSENSOR_CAL2_TEMP - TEMPSENSOR_CAL1_TEMP) * 1000 / (adcTSCAL2 - adcTSCAL1);
+    } else {
+        adcTSSlopeK = 0;
+    }
 }
 
 bool adcInternalIsBusy(void)
@@ -296,6 +300,9 @@ void adcInit(const adcConfig_t *config)
 
             ADC_ChannelConfTypeDef sConfig;
             sConfig.Channel      = h7channel;
+            if (rank >= (int)ARRAYLEN(adcRegularRankMap)) {
+                break;
+            }
             sConfig.Rank         = adcRegularRankMap[rank++];
             sConfig.SamplingTime = adcOperatingConfig[i].sampleTime;
             sConfig.SingleDiff   = ADC_SINGLE_ENDED;
