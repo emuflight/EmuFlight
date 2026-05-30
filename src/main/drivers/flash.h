@@ -36,72 +36,25 @@ typedef enum {
     FLASH_TYPE_NAND
 } flashType_e;
 
-typedef uint16_t flashSector_t;
-
 typedef struct flashGeometry_s {
-    flashSector_t sectors; // Count of the number of erasable blocks on the device
+    uint16_t sectors; // Count of the number of erasable blocks on the device
     uint16_t pageSize; // In bytes
     uint32_t sectorSize; // This is just pagesPerSector * pageSize
     uint32_t totalSize;  // This is just sectorSize * sectors
     uint16_t pagesPerSector;
     flashType_e flashType;
-    uint32_t jedecId;
 } flashGeometry_t;
 
-typedef enum {
-    /*
-     * When set it indicates the system was booted in memory mapped mode, flash chip is already configured by
-     * the bootloader and does not need re-configuration.
-     * When un-set the system was booted normally and the flash chip needs configuration before use.
-     */
-    FLASH_CF_SYSTEM_IS_MEMORY_MAPPED  = (1 << 0),
-} flashConfigurationFlags_e;
-
-void flashPreInit(const flashConfig_t *flashConfig);
 bool flashInit(const flashConfig_t *flashConfig);
 
 bool flashIsReady(void);
-bool flashWaitForReady(void);
+bool flashWaitForReady(uint32_t timeoutMillis);
 void flashEraseSector(uint32_t address);
 void flashEraseCompletely(void);
-void flashPageProgramBegin(uint32_t address, void (*callback)(uint32_t arg));
-uint32_t flashPageProgramContinue(const uint8_t **buffers, uint32_t *bufferSizes, uint32_t bufferCount);
+void flashPageProgramBegin(uint32_t address);
+void flashPageProgramContinue(const uint8_t *data, int length);
 void flashPageProgramFinish(void);
-void flashPageProgram(uint32_t address, const uint8_t *data, uint32_t length, void (*callback)(uint32_t length));
-int flashReadBytes(uint32_t address, uint8_t *buffer, uint32_t length);
+void flashPageProgram(uint32_t address, const uint8_t *data, int length);
+int flashReadBytes(uint32_t address, uint8_t *buffer, int length);
 void flashFlush(void);
 const flashGeometry_t *flashGetGeometry(void);
-
-//
-// flash partitioning api
-//
-
-typedef struct flashPartition_s {
-    uint8_t type;
-    flashSector_t startSector;
-    flashSector_t endSector;
-} flashPartition_t;
-
-#define FLASH_PARTITION_SECTOR_COUNT(partition) (partition->endSector + 1 - partition->startSector) // + 1 for inclusive, start and end sector can be the same sector.
-
-// Must be in sync with flashPartitionTypeNames[]
-// Should not be deleted or reordered once the code is writing a table to a flash.
-typedef enum {
-    FLASH_PARTITION_TYPE_UNKNOWN = 0,
-    FLASH_PARTITION_TYPE_PARTITION_TABLE,
-    FLASH_PARTITION_TYPE_FLASHFS,
-    FLASH_PARTITION_TYPE_BADBLOCK_MANAGEMENT,
-    FLASH_PARTITION_TYPE_FIRMWARE,
-    FLASH_PARTITION_TYPE_CONFIG,
-    FLASH_MAX_PARTITIONS
-} flashPartitionType_e;
-
-typedef struct flashPartitionTable_s {
-    flashPartition_t partitions[FLASH_MAX_PARTITIONS];
-} flashPartitionTable_t;
-
-void flashPartitionSet(uint8_t index, uint32_t startSector, uint32_t endSector);
-flashPartition_t *flashPartitionFindByType(flashPartitionType_e type);
-const flashPartition_t *flashPartitionFindByIndex(uint8_t index);
-const char *flashPartitionGetTypeName(flashPartitionType_e type);
-int flashPartitionCount(void);
