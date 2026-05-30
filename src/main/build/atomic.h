@@ -127,11 +127,7 @@ static inline uint8_t __basepriSetRetVal(uint8_t prio) {
 // this macro can be used only ONCE PER LINE, but multiple uses per block are fine
 
 #if (__GNUC__ > 9)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcpp"
-# warning "Please verify that ATOMIC_BARRIER works as intended"
-#pragma GCC diagnostic pop
-// increment version number if BARRIER works
+#pragma message "ATOMIC_BARRIER: please verify that cleanup-based barrier works as intended on this GCC version"
 // TODO - use flag to disable ATOMIC_BARRIER and use full barrier instead
 // you should check that local variable scope with cleanup spans entire block
 #endif
