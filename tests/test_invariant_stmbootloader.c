@@ -20,7 +20,7 @@
 
 /* Mirror the buffer sizes from the original code */
 #define START_ADDRESS_BUF_SIZE  9   /* e.g., "AABBCCDD\0" = 8 hex chars + null */
-#define LEN_PLUS_DATA_BUF_SIZE  256 /* typical small stack buffer */
+#define LEN_PLUS_DATA_BUF_SIZE  128 /* must mirror production lenPlusData[128] */
 #define MSB_SIZE                5
 #define LSB_SIZE                5
 
@@ -151,7 +151,7 @@ START_TEST(test_len_plus_data_no_overflow)
     const char *data_payloads[] = {
         /* Normal */
         "AABBCC",
-        /* Exactly at boundary (LEN_PLUS_DATA_BUF_SIZE - 2 - 1 = 253 chars) */
+        /* Oversized for 128-byte buffer (128-2-1=125 char max); will be rejected */
         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
@@ -245,3 +245,85 @@ START_TEST(test_len_plus_data_no_overflow)
 END_TEST
 
 START_TEST(test_combined_address_and_data_no_overflow)
+
+{
+    /* Invariant: both startAddress and lenPlusData must stay within their
+     * respective buffer boundaries even when combined extreme inputs are used */
+    struct {
+        const char *msb;
+        const char *lsb;
+        const char *data;
+        uint8_t     len_val;
+    } cases[] = {
+        /* Normal: msb(4)+lsb(4)=8 chars fits in 9-byte startAddress */
+        { "0800", "0000", "AABBCCDD", 0x04 },
+        /* Normal: different values */
+        { "0800", "FFFF", "DEADBEEF", 0x04 },
+        /* Oversized msb+lsb -> startAddress must be rejected */
+        { "080000FF", "FFFF0000", "AABBCCDD", 0x04 },
+        /* Oversized data -> lenPlusData must be rejected */
+        { "0800", "0000",
+          "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+          "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          0x10 },
+    };
+
+    int num_cases = (int)(sizeof(cases) / sizeof(cases[0]));
+
+    for (int i = 0; i < num_cases; i++) {
+        char startAddress[START_ADDRESS_BUF_SIZE];
+        char lenPlusData[LEN_PLUS_DATA_BUF_SIZE];
+        memset(startAddress, 0xAB, sizeof(startAddress));
+        memset(lenPlusData,  0xCD, sizeof(lenPlusData));
+
+        int r1 = safe_build_start_address(startAddress, sizeof(startAddress),
+                                           cases[i].msb, cases[i].lsb);
+        int r2 = safe_build_len_plus_data(lenPlusData, sizeof(lenPlusData),
+                                           cases[i].len_val, cases[i].data);
+
+        if (r1 == 0) {
+            size_t alen = strlen(startAddress);
+            ck_assert_msg(alen < START_ADDRESS_BUF_SIZE,
+                "INVARIANT VIOLATED: startAddress overflow in combined case %d", i);
+        } else {
+            ck_assert_msg(r1 == -1,
+                "INVARIANT VIOLATED: unexpected r1=%d in combined case %d", r1, i);
+        }
+
+        if (r2 == 0) {
+            size_t dlen = strlen(lenPlusData);
+            ck_assert_msg(dlen < LEN_PLUS_DATA_BUF_SIZE,
+                "INVARIANT VIOLATED: lenPlusData overflow in combined case %d", i);
+        } else {
+            ck_assert_msg(r2 == -1,
+                "INVARIANT VIOLATED: unexpected r2=%d in combined case %d", r2, i);
+        }
+    }
+}
+END_TEST
+
+Suite *stmbootloader_suite(void)
+{
+    Suite *s  = suite_create("stmbootloader_invariants");
+    TCase *tc = tcase_create("buffer_bounds");
+
+    tcase_add_test(tc, test_start_address_no_overflow);
+    tcase_add_test(tc, test_len_plus_data_no_overflow);
+    tcase_add_test(tc, test_combined_address_and_data_no_overflow);
+
+    suite_add_tcase(s, tc);
+    return s;
+}
+
+int main(void)
+{
+    int      number_failed;
+    Suite   *s  = stmbootloader_suite();
+    SRunner *sr = srunner_create(s);
+
+    srunner_run_all(sr, CK_NORMAL);
+    number_failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+}

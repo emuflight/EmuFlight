@@ -107,9 +107,17 @@ void stmWriteCommand(serialStruct_t *s, char *msb, char *lsb, char *len, char *d
 	char lenPlusData[128];
 	char c;
 
-	snprintf(startAddress, sizeof(startAddress), "%s%s", msb, lsb);
+	int start_len = snprintf(startAddress, sizeof(startAddress), "%s%s", msb, lsb);
+	if (start_len < 0 || (size_t)start_len >= sizeof(startAddress)) {
+		fprintf(stderr, "stmWriteCommand: startAddress truncated, aborting write\n");
+		return;
+	}
 
-	snprintf(lenPlusData, sizeof(lenPlusData), "%02x%s", stmHexToChar(len) - 1, data);
+	int data_len = snprintf(lenPlusData, sizeof(lenPlusData), "%02x%s", stmHexToChar(len) - 1, data);
+	if (data_len < 0 || (size_t)data_len >= sizeof(lenPlusData)) {
+		fprintf(stderr, "stmWriteCommand: lenPlusData truncated, aborting write\n");
+		return;
+	}
 
 	write:
 	// send WRITE MEMORY command
