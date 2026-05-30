@@ -60,6 +60,8 @@
 #define M25P16_STATUS_FLAG_WRITE_IN_PROGRESS 0x01
 #define M25P16_STATUS_FLAG_WRITE_ENABLED     0x02
 
+#define M25P16_TIMEOUT_MILLIS               500
+
 #define W25Q256_INSTRUCTION_ENTER_4BYTE_ADDRESS_MODE 0xB7
 
 #define M25P16_FAST_READ_DUMMY_CYCLES       8
@@ -195,8 +197,12 @@ static bool m25p16_isReady(flashDevice_t *fdevice)
 
 static bool m25p16_waitForReady(flashDevice_t *fdevice)
 {
-    while (!m25p16_isReady(fdevice));
-
+    uint32_t timeoutAt = millis() + M25P16_TIMEOUT_MILLIS;
+    while (!m25p16_isReady(fdevice)) {
+        if (millis() >= timeoutAt) {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -620,6 +626,7 @@ const flashVTable_t m25p16_vTable = {
 
 #ifdef USE_QUADSPI
 const flashVTable_t m25p16Qspi_vTable = {
+    .configure = m25p16_configure,
     .isReady = m25p16_isReady,
     .waitForReady = m25p16_waitForReady,
     .eraseSector = m25p16_eraseSectorQspi,

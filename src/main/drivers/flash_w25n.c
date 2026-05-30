@@ -1018,8 +1018,8 @@ busStatus_e w25n_readBBLUTCallback(uint32_t arg)
     uint8_t *rxData = fdevice->io.handle.dev->bus->curSegment->u.buffers.rxData;
 
 
-    cb_context->bblut->pba = (rxData[0] << 16)|rxData[1];
-    cb_context->bblut->lba = (rxData[2] << 16)|rxData[3];
+    cb_context->bblut->pba = (rxData[0] << 8)|rxData[1];
+    cb_context->bblut->lba = (rxData[2] << 8)|rxData[3];
 
     if (++cb_context->lutindex < cb_context->lutsize) {
         cb_context->bblut++;

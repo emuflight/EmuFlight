@@ -204,7 +204,7 @@ void w25m_pageProgramBegin(flashDevice_t *fdevice, uint32_t address, void (*call
     currentWriteDie = address / dieSize;
     w25m_dieSelect(fdevice->io.handle.dev, currentWriteDie);
     currentWriteAddress = address % dieSize;
-    dieDevice[currentWriteDie].vTable->pageProgramBegin(&dieDevice[currentWriteDie], address, callback);
+    dieDevice[currentWriteDie].vTable->pageProgramBegin(&dieDevice[currentWriteDie], currentWriteAddress, callback);
 }
 
 uint32_t w25m_pageProgramContinue(flashDevice_t *fdevice, uint8_t const **buffers, const uint32_t *bufferSizes, uint32_t bufferCount)
