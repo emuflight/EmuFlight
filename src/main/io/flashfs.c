@@ -126,12 +126,16 @@ static void flashfsSetTailAddress(uint32_t address)
 void flashfsEraseCompletely(void)
 {
     if (flashGeometry->sectors > 0 && flashPartitionCount() > 0) {
-        // if there's a single FLASHFS partition and it uses the entire flash then do a full erase
-        const bool doFullErase = (flashPartitionCount() == 1) && (FLASH_PARTITION_SECTOR_COUNT(flashPartition) == flashGeometry->sectors);
+        // NOR: single full-partition can use hardware bulk erase (near-instant, non-blocking).
+        // NAND: no bulk-erase command; block-by-block is required and takes 10–30 s.
+        //       Always use the async sector-by-sector path to avoid blocking the scheduler.
+        const bool doFullErase = (flashPartitionCount() == 1) &&
+                                 (FLASH_PARTITION_SECTOR_COUNT(flashPartition) == flashGeometry->sectors) &&
+                                 (flashGeometry->flashType == FLASH_TYPE_NOR);
         if (doFullErase) {
             flashEraseCompletely();
         } else {
-            // start asynchronous erase of all sectors
+            // start asynchronous erase of all sectors (always used for NAND)
             eraseSectorCurrent = flashPartition->startSector;
             flashfsState = FLASHFS_ERASING;
         }

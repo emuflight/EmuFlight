@@ -131,6 +131,9 @@ static void taskMain(timeUs_t currentTimeUs) {
 #ifdef USE_SDCARD
     afatfs_poll();
 #endif
+#ifdef USE_FLASHFS
+    flashfsEraseAsync();
+#endif
 }
 
 #ifdef USE_OSD_SLAVE
