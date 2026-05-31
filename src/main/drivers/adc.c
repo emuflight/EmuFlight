@@ -40,7 +40,11 @@
 
 adcOperatingConfig_t adcOperatingConfig[ADC_CHANNEL_COUNT];
 
-#if defined(STM32F7)
+#if defined(STM32H7)
+// In AXI SRAM (.dmaram_bss): DMA1/2-accessible, D-cached; invalidate before CPU read.
+// DMA_DATA_ZERO_INIT provides 32-byte alignment so no adjacent variable shares a cache line.
+DMA_DATA_ZERO_INIT volatile uint16_t adcValues[ADC_CHANNEL_COUNT];
+#elif defined(STM32F7)
 volatile FAST_RAM_ZERO_INIT uint16_t adcValues[ADC_CHANNEL_COUNT];
 #else
 volatile uint16_t adcValues[ADC_CHANNEL_COUNT];
@@ -65,7 +69,7 @@ ADCDevice adcDeviceByInstance(ADC_TypeDef *instance) {
     if (instance == ADC1) {
         return ADCDEV_1;
     }
-#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     if (instance == ADC2) {
         return ADCDEV_2;
     }
@@ -82,6 +86,9 @@ ADCDevice adcDeviceByInstance(ADC_TypeDef *instance) {
 }
 
 uint16_t adcGetChannel(uint8_t channel) {
+#if defined(STM32H7)
+    SCB_InvalidateDCache_by_Addr((uint32_t*)adcValues, (sizeof(adcValues) + 31U) & ~31U);
+#endif
 #ifdef DEBUG_ADC_CHANNELS
     if (adcOperatingConfig[0].enabled) {
         debug[0] = adcValues[adcOperatingConfig[0].dmaIndex];

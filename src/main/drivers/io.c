@@ -80,6 +80,24 @@ const struct ioPortDef_s ioPortDefs[] = {
     { RCC_AHB1(GPIOE) },
     { RCC_AHB1(GPIOF) },
 };
+#elif defined(STM32H7)
+const struct ioPortDef_s ioPortDefs[] = {
+    { RCC_AHB4(GPIOA) },
+    { RCC_AHB4(GPIOB) },
+    { RCC_AHB4(GPIOC) },
+    { RCC_AHB4(GPIOD) },
+    { RCC_AHB4(GPIOE) },
+    { RCC_AHB4(GPIOF) },
+    { RCC_AHB4(GPIOG) },
+    { RCC_AHB4(GPIOH) },
+#if defined(GPIOI)
+    { RCC_AHB4(GPIOI) },
+#else
+    { 0 }, // no GPIOI on this variant; keep array indexed by port letter
+#endif
+    { RCC_AHB4(GPIOJ) },
+    { RCC_AHB4(GPIOK) },
+};
 #endif
 
 ioRec_t* IO_Rec(IO_t io) {
@@ -139,7 +157,7 @@ uint32_t IO_EXTI_Line(IO_t io) {
     return IO_GPIOPinIdx(io);
 #elif defined(STM32F4)
     return 1 << IO_GPIOPinIdx(io);
-#elif defined(STM32F7)
+#elif defined(STM32F7) || defined(STM32H7)
     return 1 << IO_GPIOPinIdx(io);
 #elif defined(SIMULATOR_BUILD)
     return 0;
@@ -290,6 +308,29 @@ void IOConfigGPIOAF(IO_t io, ioConfig_t cfg, uint8_t af) {
     }
     const rccPeriphTag_t rcc = ioPortDefs[IO_GPIOPortIdx(io)].rcc;
     RCC_ClockCmd(rcc, ENABLE);
+    LL_GPIO_InitTypeDef init = {
+        .Pin = IO_Pin(io),
+        .Mode = (cfg >> 0) & 0x03,
+        .Speed = (cfg >> 2) & 0x03,
+        .OutputType = (cfg >> 4) & 0x01,
+        .Pull = (cfg >> 5) & 0x03,
+        .Alternate = af
+    };
+    LL_GPIO_Init(IO_GPIO(io), &init);
+}
+
+#elif defined(STM32H7)
+
+void IOConfigGPIO(IO_t io, ioConfig_t cfg) {
+    IOConfigGPIOAF(io, cfg, 0);
+}
+
+void IOConfigGPIOAF(IO_t io, ioConfig_t cfg, uint8_t af) {
+    if (!io) {
+        return;
+    }
+    // Enable GPIO clock: H7 GPIOs are on AHB4; GPIOA=bit0, GPIOB=bit1, ...
+    LL_AHB4_GRP1_EnableClock(1U << IO_GPIOPortIdx(io));
     LL_GPIO_InitTypeDef init = {
         .Pin = IO_Pin(io),
         .Mode = (cfg >> 0) & 0x03,

@@ -1,0 +1,322 @@
+#
+# H7 Make file include
+#
+
+ifeq ($(DEBUG_HARDFAULTS),H7)
+CFLAGS          += -DDEBUG_HARDFAULTS
+endif
+
+#CMSIS
+CMSIS_DIR      := $(ROOT)/lib/main/CMSIS
+
+#STDPERIPH
+STDPERIPH_DIR   = $(ROOT)/lib/main/STM32H7/Drivers/STM32H7xx_HAL_Driver
+STDPERIPH_SRC   = $(notdir $(wildcard $(STDPERIPH_DIR)/Src/*.c))
+
+EXCLUDES        = \
+                stm32h7xx_hal_cec.c \
+                stm32h7xx_hal_comp.c \
+                stm32h7xx_hal_crc.c \
+                stm32h7xx_hal_crc_ex.c \
+                stm32h7xx_hal_cryp.c \
+                stm32h7xx_hal_cryp_ex.c \
+                stm32h7xx_hal_dcmi.c \
+                stm32h7xx_hal_dfsdm.c \
+                stm32h7xx_hal_dma2d.c \
+                stm32h7xx_hal_dsi.c \
+                stm32h7xx_hal_eth.c \
+                stm32h7xx_hal_eth_ex.c \
+                stm32h7xx_hal_fdcan.c \
+                stm32h7xx_hal_hash.c \
+                stm32h7xx_hal_hash_ex.c \
+                stm32h7xx_hal_hcd.c \
+                stm32h7xx_hal_hrtim.c \
+                stm32h7xx_hal_hsem.c \
+                stm32h7xx_hal_i2s.c \
+                stm32h7xx_hal_i2s_ex.c \
+                stm32h7xx_hal_irda.c \
+                stm32h7xx_hal_iwdg.c \
+                stm32h7xx_hal_jpeg.c \
+                stm32h7xx_hal_lptim.c \
+                stm32h7xx_hal_ltdc.c \
+                stm32h7xx_hal_ltdc_ex.c \
+                stm32h7xx_hal_mdios.c \
+                stm32h7xx_hal_mdma.c \
+                stm32h7xx_hal_mmc.c \
+                stm32h7xx_hal_mmc_ex.c \
+                stm32h7xx_hal_msp_template.c \
+                stm32h7xx_hal_nand.c \
+                stm32h7xx_hal_nor.c \
+                stm32h7xx_hal_opamp.c \
+                stm32h7xx_hal_opamp_ex.c \
+                stm32h7xx_hal_ramecc.c \
+                stm32h7xx_hal_rng.c \
+                stm32h7xx_hal_sai.c \
+                stm32h7xx_hal_sai_ex.c \
+                stm32h7xx_hal_sd_ex.c \
+                stm32h7xx_hal_sdram.c \
+                stm32h7xx_hal_smartcard.c \
+                stm32h7xx_hal_smartcard_ex.c \
+                stm32h7xx_hal_smbus.c \
+                stm32h7xx_hal_spdifrx.c \
+                stm32h7xx_hal_spi.c \
+                stm32h7xx_hal_sram.c \
+                stm32h7xx_hal_swpmi.c \
+                stm32h7xx_hal_usart.c \
+                stm32h7xx_hal_usart_ex.c \
+                stm32h7xx_hal_wwdg.c \
+                stm32h7xx_ll_adc.c \
+                stm32h7xx_ll_bdma.c \
+                stm32h7xx_ll_comp.c \
+                stm32h7xx_ll_crc.c \
+                stm32h7xx_ll_dac.c \
+                stm32h7xx_ll_delayblock.c \
+                stm32h7xx_ll_dma2d.c \
+                stm32h7xx_ll_exti.c \
+                stm32h7xx_ll_fmc.c \
+                stm32h7xx_ll_hrtim.c \
+                stm32h7xx_ll_i2c.c \
+                stm32h7xx_ll_lptim.c \
+                stm32h7xx_ll_lpuart.c \
+                stm32h7xx_ll_mdma.c \
+                stm32h7xx_ll_opamp.c \
+                stm32h7xx_ll_pwr.c \
+                stm32h7xx_ll_rcc.c \
+                stm32h7xx_ll_rng.c \
+                stm32h7xx_ll_rtc.c \
+                stm32h7xx_ll_swpmi.c \
+                stm32h7xx_ll_usart.c \
+                stm32h7xx_ll_utils.c
+
+STDPERIPH_SRC   := $(filter-out ${EXCLUDES}, $(STDPERIPH_SRC))
+
+#USB
+USBCORE_DIR = $(ROOT)/lib/main/STM32H7/Middlewares/ST/STM32_USB_Device_Library/Core
+USBCORE_SRC = $(notdir $(wildcard $(USBCORE_DIR)/Src/*.c))
+EXCLUDES    = usbd_conf_template.c
+USBCORE_SRC := $(filter-out ${EXCLUDES}, $(USBCORE_SRC))
+
+USBCDC_DIR = $(ROOT)/lib/main/STM32H7/Middlewares/ST/STM32_USB_Device_Library/Class/CDC
+USBCDC_SRC = $(notdir $(wildcard $(USBCDC_DIR)/Src/*.c))
+EXCLUDES   = usbd_cdc_if_template.c
+USBCDC_SRC := $(filter-out ${EXCLUDES}, $(USBCDC_SRC))
+
+USBHID_DIR = $(ROOT)/lib/main/STM32H7/Middlewares/ST/STM32_USB_Device_Library/Class/HID
+USBHID_SRC = $(notdir $(wildcard $(USBHID_DIR)/Src/*.c))
+
+USBMSC_DIR = $(ROOT)/lib/main/STM32H7/Middlewares/ST/STM32_USB_Device_Library/Class/MSC
+USBMSC_SRC = $(notdir $(wildcard $(USBMSC_DIR)/Src/*.c))
+EXCLUDES   = usbd_msc_storage_template.c
+USBMSC_SRC := $(filter-out ${EXCLUDES}, $(USBMSC_SRC))
+
+VPATH := $(VPATH):$(USBCDC_DIR)/Src:$(USBCORE_DIR)/Src:$(USBHID_DIR)/Src:$(USBMSC_DIR)/Src
+
+DEVICE_STDPERIPH_SRC := $(STDPERIPH_SRC) \
+                        $(USBCORE_SRC) \
+                        $(USBCDC_SRC) \
+                        $(USBHID_SRC) \
+                        $(USBMSC_SRC)
+
+#CMSIS
+VPATH           := $(VPATH):$(CMSIS_DIR)/Include:$(CMSIS_DIR)/Device/ST/STM32H7xx
+VPATH           := $(VPATH):$(STDPERIPH_DIR)/Src
+CMSIS_SRC       :=
+INCLUDE_DIRS    := $(INCLUDE_DIRS) \
+                   $(STDPERIPH_DIR)/Inc \
+                   $(USBCORE_DIR)/Inc \
+                   $(USBCDC_DIR)/Inc \
+                   $(USBHID_DIR)/Inc \
+                   $(USBMSC_DIR)/Inc \
+                   $(CMSIS_DIR)/Core/Include \
+                   $(ROOT)/src/main/vcp_hal
+
+#Flags
+ARCH_FLAGS      = -mthumb -mcpu=cortex-m7 -mfloat-abi=hard -mfpu=fpv5-sp-d16 -fsingle-precision-constant -Wdouble-promotion
+
+# Flags that are used in the STM32 libraries
+DEVICE_FLAGS    = -DUSE_HAL_DRIVER -DUSE_FULL_LL_DRIVER -DSTM32H7
+
+#
+# H743xI : 2M FLASH, 512K AXI SRAM + 512K D2 & D3 SRAM (H753xI also)
+#
+ifeq ($(TARGET),$(filter $(TARGET),$(H743_TARGETS)))
+DEVICE_FLAGS   += -DSTM32H743xx
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h743_2m.ld
+STARTUP_SRC     = startup_stm32h743xx.s
+TARGET_FLASH   := 2048
+DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
+
+#
+# H750xB : 128K FLASH, 512K AXI SRAM + 512K D2 & D3 SRAM
+# EXST: firmware loaded to AXI SRAM at 0x24010000 by bootloader (448K)
+#
+else ifeq ($(TARGET),$(filter $(TARGET),$(H750_TARGETS)))
+DEVICE_FLAGS   += -DSTM32H750xx
+ifeq ($(EXST),yes)
+LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h750_exst.ld
+DEVICE_FLAGS   += -DEXST -DUSE_EXST
+TARGET_FLAGS   += -DEXST
+else
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h750_128k.ld
+endif
+STARTUP_SRC     = startup_stm32h750xx.s
+TARGET_FLASH   := 128
+DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
+
+#
+# H723xG / H725xG : 1M FLASH, 320K AXI SRAM + 32K D2 SRAM
+# EXST: firmware runs in-place from OCTOSPI at 0x90100000 (memory-mapped)
+#
+else ifeq ($(TARGET),$(filter $(TARGET),$(H723_TARGETS)))
+DEVICE_FLAGS   += -DSTM32H723xx
+ifeq ($(EXST),yes)
+LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h723_exst.ld
+LD_SCRIPTS      = $(LINKER_DIR)/stm32_h723_common.ld $(LINKER_DIR)/stm32_h723_common_post.ld
+DEVICE_FLAGS   += -DEXST -DUSE_EXST
+TARGET_FLAGS   += -DEXST
+else
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h723_1m.ld
+endif
+STARTUP_SRC     = startup_stm32h723xx.s
+TARGET_FLASH   := 1024
+DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
+
+else ifeq ($(TARGET),$(filter $(TARGET),$(H725_TARGETS)))
+DEVICE_FLAGS   += -DSTM32H725xx
+ifeq ($(EXST),yes)
+LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h723_exst.ld
+DEVICE_FLAGS   += -DEXST -DUSE_EXST
+TARGET_FLAGS   += -DEXST
+else
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h723_1m.ld
+endif
+STARTUP_SRC     = startup_stm32h723xx.s
+TARGET_FLASH   := 1024
+DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
+
+#
+# H730xB : 128K FLASH, 320K AXI SRAM + 32K D2 SRAM
+# EXST: firmware runs in-place from OCTOSPI at 0x90100000 (memory-mapped)
+#
+else ifeq ($(TARGET),$(filter $(TARGET),$(H730_TARGETS)))
+DEVICE_FLAGS   += -DSTM32H730xx
+ifeq ($(EXST),yes)
+LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h730_exst.ld
+LD_SCRIPTS      = $(LINKER_DIR)/stm32_h730_common.ld $(LINKER_DIR)/stm32_h730_common_post.ld
+DEVICE_FLAGS   += -DEXST -DUSE_EXST
+TARGET_FLAGS   += -DEXST
+else
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h730_128k.ld
+endif
+STARTUP_SRC     = startup_stm32h730xx.s
+TARGET_FLASH   := 128
+DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
+
+#
+# H735xG : 1M FLASH, 320K AXI SRAM + 32K D2 SRAM
+# EXST: firmware runs in-place from OCTOSPI at 0x90100000 (memory-mapped)
+#
+else ifeq ($(TARGET),$(filter $(TARGET),$(H735_TARGETS)))
+DEVICE_FLAGS   += -DSTM32H735xx
+ifeq ($(EXST),yes)
+LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h735_exst.ld
+LD_SCRIPTS      = $(LINKER_DIR)/stm32_h735_common.ld $(LINKER_DIR)/stm32_h735_common_post.ld
+DEVICE_FLAGS   += -DEXST -DUSE_EXST
+TARGET_FLAGS   += -DEXST
+else
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h735_1m.ld
+endif
+STARTUP_SRC     = startup_stm32h735xx.s
+TARGET_FLASH   := 1024
+DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
+
+#
+# H7A3xI : 2M FLASH, 1MB AXI SRAM + 160K AHB & SRD SRAM
+#
+else ifeq ($(TARGET),$(filter $(TARGET),$(H7A3_TARGETS)))
+DEVICE_FLAGS   += -DSTM32H7A3xx
+LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h7a3_2m.ld
+STARTUP_SRC     = startup_stm32h7a3xx.s
+TARGET_FLASH   := 2048
+DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
+
+else
+$(error Unknown MCU for H7 target)
+endif
+
+DEVICE_FLAGS    += -DHSE_VALUE=$(HSE_VALUE) -DHSE_STARTUP_TIMEOUT=1000 -DSTM32
+
+TARGET_FLAGS   += -D$(shell echo $(TARGET) | sed 's/^[0-9]/_&/')
+
+VCP_SRC = \
+            vcp_hal/usbd_desc.c \
+            vcp_hal/usbd_conf_stm32h7xx.c \
+            vcp_hal/usbd_cdc_interface.c \
+            drivers/serial_usb_vcp.c \
+            drivers/usb_io.c
+
+MCU_COMMON_SRC = \
+            startup/system_stm32h7xx.c \
+            drivers/accgyro/accgyro_mpu.c \
+            drivers/adc_stm32h7xx.c \
+            drivers/audio_stm32h7xx.c \
+            drivers/bus_i2c_hal.c \
+            drivers/bus_i2c_timing.c \
+            drivers/bus_octospi_stm32h7xx.c \
+            drivers/bus_quadspi.c \
+            drivers/bus_quadspi_stm32h7xx.c \
+            drivers/can_stm32h7xx.c \
+            pg/bus_quadspi.c \
+            drivers/dma_stm32h7xx.c \
+            drivers/dma_reqmap_mcu.c \
+            drivers/light_ws2811strip_hal.c \
+            drivers/transponder_ir_io_hal.c \
+            drivers/bus_spi_ll.c \
+            drivers/pwm_output_dshot_hal.c \
+            drivers/sdio_h7xx.c \
+            drivers/timer_hal.c \
+            drivers/timer_stm32h7xx.c \
+            drivers/system_stm32h7xx.c \
+            drivers/serial_uart_stm32h7xx.c \
+            drivers/serial_uart_hal.c \
+            drivers/memprot_hal.c \
+            drivers/memprot_stm32h7xx.c \
+            drivers/persistent.c
+
+MCU_EXCLUDES = \
+            drivers/bus_i2c.c \
+            drivers/timer.c \
+            drivers/serial_uart.c
+
+MSC_SRC = \
+            drivers/usb_msc_h7xx.c \
+            msc/usbd_storage.c
+
+ifneq ($(filter SDCARD,$(FEATURES)),)
+MSC_SRC += \
+            msc/usbd_storage_sd_spi.c
+endif
+
+ifneq ($(filter SDCARD_SDIO,$(FEATURES)),)
+MSC_SRC += \
+            msc/usbd_storage_sdio.c
+endif
+
+ifneq ($(filter ONBOARDFLASH,$(FEATURES)),)
+MSC_SRC += \
+            msc/usbd_storage_emfat.c \
+            msc/emfat.c \
+            msc/emfat_file.c
+endif
+
+DSP_LIB := $(ROOT)/lib/main/CMSIS/DSP
+DEVICE_FLAGS += -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1 -DUNALIGNED_SUPPORT_DISABLE -DARM_MATH_CM7
+
+# STM32H7 vendor HAL/LL sources have identical branches that GCC flags.
+# Suppress -Wduplicated-branches only for those files; EF source keeps the check.
+$(OBJECT_DIR)/$(TARGET)/stm32h7xx_hal_%.o: CFLAGS += -Wno-duplicated-branches
+$(OBJECT_DIR)/$(TARGET)/stm32h7xx_ll_%.o:  CFLAGS += -Wno-duplicated-branches
+
+# Use -isystem for the CMSIS device headers so GCC suppresses redefinition
+# warnings that arise because the Makefile also defines FLASH_SIZE via -D.
+CFLAGS += -isystem $(ROOT)/lib/main/STM32H7/Drivers/CMSIS/Device/ST/STM32H7xx/Include

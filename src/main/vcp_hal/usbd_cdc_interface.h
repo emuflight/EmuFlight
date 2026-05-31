@@ -53,7 +53,11 @@
 #include "common/maths.h"
 
 #include "usbd_cdc.h"
+#if defined(STM32H7)
+#include "stm32h7xx_hal.h"
+#else
 #include "stm32f7xx_hal.h"
+#endif
 #include "usbd_core.h"
 #include "usbd_desc.h"
 

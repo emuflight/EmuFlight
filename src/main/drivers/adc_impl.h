@@ -21,10 +21,13 @@
 #pragma once
 
 #include "drivers/adc.h"
+#include "drivers/dma.h"
 #include "drivers/io_types.h"
 #include "drivers/rcc_types.h"
 
 #if defined(STM32F4) || defined(STM32F7)
+#define ADC_TAG_MAP_COUNT 16
+#elif defined(STM32H7)
 #define ADC_TAG_MAP_COUNT 16
 #elif defined(STM32F3)
 #define ADC_TAG_MAP_COUNT 39
@@ -37,7 +40,10 @@ typedef struct adcTagMap_s {
 #if !defined(STM32F1) // F1 pins have uniform connection to ADC instances
     uint8_t devices;
 #endif
-    uint8_t channel;
+    uint32_t channel;
+#if defined(STM32H7)
+    uint8_t channelOrdinal;
+#endif
 } adcTagMap_t;
 
 // Encoding for adcTagMap_t.devices
@@ -53,7 +59,14 @@ typedef struct adcTagMap_s {
 typedef struct adcDevice_s {
     ADC_TypeDef* ADCx;
     rccPeriphTag_t rccADC;
-#if defined(STM32F4) || defined(STM32F7)
+#if defined(STM32H7)
+    dmaResource_t *dmaResource;
+    uint32_t channel;
+    ADC_HandleTypeDef ADCHandle;
+    DMA_HandleTypeDef DmaHandle;
+    uint8_t irq;
+    uint32_t channelBits;
+#elif defined(STM32F4) || defined(STM32F7)
     DMA_Stream_TypeDef* DMAy_Streamx;
     uint32_t channel;
 #else

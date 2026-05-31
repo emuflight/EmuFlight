@@ -53,6 +53,7 @@
 #define BEEPER_INVERTED
 #define CAMERA_CONTROL_PIN   PB7
 #define USE_USB_DETECT
+#define USB_DETECT_PIN       PC5
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -136,11 +137,8 @@
 #define ENABLE_DSHOT_DMAR true
 
 #define PINIO2_PIN           PB3
-#define PINIO1_CONFIG 129
-#define PINIO1_BOX 0
+#define PINIO2_CONFIG 129
 #define PINIO2_BOX 40
-#define PINIO3_BOX 41
-#define PINIO4_BOX 42
 
 #define TARGET_IO_PORTA 0xffff
 #define TARGET_IO_PORTB 0xffff

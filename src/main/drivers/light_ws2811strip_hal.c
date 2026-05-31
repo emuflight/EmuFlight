@@ -40,7 +40,7 @@ bool ws2811Initialised = false;
 static TIM_HandleTypeDef TimHandle;
 static uint16_t timerChannel = 0;
 
-void WS2811_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
+FAST_IRQ_HANDLER void WS2811_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
     HAL_DMA_IRQHandler(TimHandle.hdma[descriptor->userParam]);
     TIM_DMACmd(&TimHandle, timerChannel, DISABLE);
     ws2811LedDataTransferInProgress = 0;
@@ -73,10 +73,16 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag) {
     static DMA_HandleTypeDef hdma_tim;
     ws2811IO = IOGetByTag(ioTag);
     IOInit(ws2811IO, OWNER_LED_STRIP, 0);
+    // H7 LED strip uses VERY_HIGH (unlike motor DShot which uses LOW to suppress ringing).
+    // LED strips need fast edges to meet WS2811 bit timing on longer cable runs.
     IOConfigGPIOAF(ws2811IO, IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_VERY_HIGH, GPIO_PULLDOWN), timerHardware->alternateFunction);
     __DMA1_CLK_ENABLE();
     /* Set the parameters to be configured */
+#if defined(STM32H7)
+    hdma_tim.Init.Request = timerHardware->dmaChannel;
+#else
     hdma_tim.Init.Channel = timerHardware->dmaChannel;
+#endif
     hdma_tim.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_tim.Init.PeriphInc = DMA_PINC_DISABLE;
     hdma_tim.Init.MemInc = DMA_MINC_ENABLE;

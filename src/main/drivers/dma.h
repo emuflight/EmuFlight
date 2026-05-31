@@ -31,7 +31,7 @@ typedef void (*dmaCallbackHandlerFuncPtr)(struct dmaChannelDescriptor_s *channel
 
 typedef struct dmaChannelDescriptor_s {
     DMA_TypeDef*                dma;
-#if defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     DMA_Stream_TypeDef*         ref;
     uint8_t                     stream;
     uint32_t                    channel;
@@ -55,7 +55,7 @@ typedef struct dmaChannelDescriptor_s {
 
 #define DMA_IDENTIFIER_TO_INDEX(x) ((x) - 1)
 
-#if defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
 
 typedef enum {
     DMA_NONE = 0,
@@ -96,7 +96,7 @@ typedef enum {
     .resourceIndex = 0 \
     }
 
-#define DEFINE_DMA_IRQ_HANDLER(d, s, i) void DMA ## d ## _Stream ## s ## _IRQHandler(void) {\
+#define DEFINE_DMA_IRQ_HANDLER(d, s, i) FAST_IRQ_HANDLER void DMA ## d ## _Stream ## s ## _IRQHandler(void) {\
                                                                 const uint8_t index = DMA_IDENTIFIER_TO_INDEX(i); \
                                                                 if (dmaDescriptors[index].irqHandlerCallback)\
                                                                     dmaDescriptors[index].irqHandlerCallback(&dmaDescriptors[index]);\

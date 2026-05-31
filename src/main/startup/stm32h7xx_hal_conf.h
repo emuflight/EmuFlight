@@ -39,6 +39,13 @@
 #ifndef __STM32H7xx_HAL_CONF_H
 #define __STM32H7xx_HAL_CONF_H
 
+/* stm32h7xx.h redefines FLASH_SIZE (bytes) over the Makefile KB value.
+ * platform.h handles this for firmware TUs. Only undefine here for HAL-only
+ * TUs that include this file without going through platform.h. */
+#ifndef STM32H7xx_H
+#undef FLASH_SIZE
+#endif
+
 #ifdef __cplusplus
  extern "C" {
 #endif

@@ -322,7 +322,11 @@ void configTimeBase(TIM_TypeDef *tim, uint16_t period, uint32_t hz) {
     timerHandle[timerIndex].Handle.Init.CounterMode = TIM_COUNTERMODE_UP;
     timerHandle[timerIndex].Handle.Init.RepetitionCounter = 0x0000;
     HAL_TIM_Base_Init(&timerHandle[timerIndex].Handle);
+#if defined(STM32H7)
+    if (tim == TIM1 || tim == TIM2 || tim == TIM3 || tim == TIM4 || tim == TIM5 || tim == TIM8) {
+#else
     if (tim == TIM1 || tim == TIM2 || tim == TIM3 || tim == TIM4 || tim == TIM5 || tim == TIM8 || tim == TIM9) {
+#endif
         TIM_ClockConfigTypeDef sClockSourceConfig;
         memset(&sClockSourceConfig, 0, sizeof(sClockSourceConfig));
         sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
@@ -353,7 +357,11 @@ void timerConfigure(const timerHardware_t *timerHardwarePtr, uint16_t period, ui
     // HACK - enable second IRQ on timers that need it
     switch (irq) {
     case TIM1_CC_IRQn:
-        timerNVICConfigure(TIM1_UP_TIM10_IRQn);
+#if defined(STM32H7)
+        timerNVICConfigure(TIM1_UP_IRQn);      // H7: TIM1_UP is standalone (no TIM10 on H7)
+#else
+        timerNVICConfigure(TIM1_UP_TIM10_IRQn); // F4/F7: shared with TIM10
+#endif
         break;
     case TIM8_CC_IRQn:
         timerNVICConfigure(TIM8_UP_TIM13_IRQn);
@@ -699,10 +707,12 @@ static void timCCxHandler(TIM_TypeDef *tim, timerConfig_t *timerConfig) {
 
 #if USED_TIMERS & TIM_N(1)
 _TIM_IRQ_HANDLER(TIM1_CC_IRQHandler, 1);
-#  if USED_TIMERS & TIM_N(10)
-_TIM_IRQ_HANDLER2(TIM1_UP_TIM10_IRQHandler, 1, 10);  // both timers are in use
+#  if defined(STM32H7)
+_TIM_IRQ_HANDLER(TIM1_UP_IRQHandler, 1);            // H7: TIM1_UP standalone (no TIM10 on H7)
+#  elif USED_TIMERS & TIM_N(10)
+_TIM_IRQ_HANDLER2(TIM1_UP_TIM10_IRQHandler, 1, 10); // F4/F7: both timers in use
 #  else
-_TIM_IRQ_HANDLER(TIM1_UP_TIM10_IRQHandler, 1);     // timer10 is not used
+_TIM_IRQ_HANDLER(TIM1_UP_TIM10_IRQHandler, 1);      // F4/F7: timer10 not used
 #  endif
 #endif
 
@@ -738,14 +748,29 @@ _TIM_IRQ_HANDLER(TIM1_TRG_COM_TIM11_IRQHandler, 11);
 #if USED_TIMERS & TIM_N(12)
 _TIM_IRQ_HANDLER(TIM8_BRK_TIM12_IRQHandler, 12);
 #endif
-#if USED_TIMERS & TIM_N(15)
-_TIM_IRQ_HANDLER(TIM1_BRK_TIM15_IRQHandler, 15);
+#if USED_TIMERS & TIM_N(14)
+_TIM_IRQ_HANDLER(TIM8_TRG_COM_TIM14_IRQHandler, 14);
 #endif
-#if defined(STM32F303xC) && ((USED_TIMERS & (TIM_N(1)|TIM_N(16))) == (TIM_N(16)))
+#if USED_TIMERS & TIM_N(15)
+#  if defined(STM32H7)
+_TIM_IRQ_HANDLER(TIM15_IRQHandler, 15);
+#  else
+_TIM_IRQ_HANDLER(TIM1_BRK_TIM15_IRQHandler, 15);
+#  endif
+#endif
+#if USED_TIMERS & TIM_N(16)
+#  if defined(STM32H7)
+_TIM_IRQ_HANDLER(TIM16_IRQHandler, 16);
+#  elif defined(STM32F303xC) && ((USED_TIMERS & (TIM_N(1)|TIM_N(16))) == (TIM_N(16)))
 _TIM_IRQ_HANDLER(TIM1_UP_TIM16_IRQHandler, 16);    // only timer16 is used, not timer1
+#  endif
 #endif
 #if USED_TIMERS & TIM_N(17)
+#  if defined(STM32H7)
+_TIM_IRQ_HANDLER(TIM17_IRQHandler, 17);
+#  else
 _TIM_IRQ_HANDLER(TIM1_TRG_COM_TIM17_IRQHandler, 17);
+#  endif
 #endif
 
 void timerInit(void) {
@@ -805,7 +830,7 @@ void timerInit(void) {
     for (int i = 0; i < USABLE_TIMER_CHANNEL_COUNT; i++) {
         RCC_ClockCmd(timerRCC(timerHardware[i].tim), ENABLE);
     }
-#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     for (unsigned timerIndex = 0; timerIndex < USABLE_TIMER_CHANNEL_COUNT; timerIndex++) {
         const timerHardware_t *timerHardwarePtr = &timerHardware[timerIndex];
         if (timerHardwarePtr->usageFlags == TIM_USE_NONE) {

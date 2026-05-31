@@ -27,7 +27,7 @@
 // Various serial routines return the buffer occupied size as uint8_t which would need to be extended in order to
 // increase size further.
 
-#if defined(USE_UART1) || defined(USE_UART2) || defined(USE_UART3) || defined(USE_UART4) || defined(USE_UART5) || defined(USE_UART6) || defined(USE_UART7) || defined(USE_UART8)
+#if defined(USE_UART1) || defined(USE_UART2) || defined(USE_UART3) || defined(USE_UART4) || defined(USE_UART5) || defined(USE_UART6) || defined(USE_UART7) || defined(USE_UART8) || defined(USE_UART9) || defined(USE_UART10) || defined(USE_LPUART1)
 #define USE_UART
 #endif
 
@@ -39,17 +39,20 @@ typedef enum {
     UARTDEV_5 = 4,
     UARTDEV_6 = 5,
     UARTDEV_7 = 6,
-    UARTDEV_8 = 7
+    UARTDEV_8 = 7,
+    UARTDEV_9 = 8,
+    UARTDEV_10 = 9,
+    LPUARTDEV_1 = 10
 } UARTDevice_e;
 
 typedef struct uartPort_s {
     serialPort_t port;
 
-#if defined(STM32F7)
+#if defined(STM32F7) || defined(STM32H7)
     DMA_HandleTypeDef rxDMAHandle;
     DMA_HandleTypeDef txDMAHandle;
 #endif
-#if defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     DMA_Stream_TypeDef *rxDMAStream;
     DMA_Stream_TypeDef *txDMAStream;
     uint32_t rxDMAChannel;
@@ -72,6 +75,9 @@ typedef struct uartPort_s {
 #endif
     USART_TypeDef *USARTx;
     bool txDMAEmpty;
+#if defined(STM32H7)
+    bool (*checkUsartTxOutput)(struct uartPort_s *s);
+#endif
 } uartPort_t;
 
 void uartPinConfigure(const serialPinConfig_t *pSerialPinConfig);

@@ -20,6 +20,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "platform.h"
 
@@ -188,3 +189,32 @@ void failureMode(failureMode_e mode) {
     systemResetToBootloader();
 #endif
 }
+
+void initialiseMemorySections(void)
+{
+#ifdef USE_ITCM_RAM
+    extern uint8_t tcm_code_start;
+    extern uint8_t tcm_code_end;
+    extern uint8_t tcm_code;
+    memcpy(&tcm_code_start, &tcm_code, (size_t) ((uintptr_t)&tcm_code_end - (uintptr_t)&tcm_code_start));
+#endif
+#ifdef USE_FAST_DATA
+    extern uint8_t _sfastram_data;
+    extern uint8_t _efastram_data;
+    extern uint8_t _sfastram_idata;
+    memcpy(&_sfastram_data, &_sfastram_idata, (size_t) ((uintptr_t)&_efastram_data - (uintptr_t)&_sfastram_data));
+#endif
+}
+
+#ifdef STM32H7
+void initialiseD2MemorySections(void)
+{
+    extern uint8_t _sdmaram_bss;
+    extern uint8_t _edmaram_bss;
+    extern uint8_t _sdmaram_data;
+    extern uint8_t _edmaram_data;
+    extern uint8_t _sdmaram_idata;
+    memset(&_sdmaram_bss, 0, (size_t) ((uintptr_t)&_edmaram_bss - (uintptr_t)&_sdmaram_bss));
+    memcpy(&_sdmaram_data, &_sdmaram_idata, (size_t) ((uintptr_t)&_edmaram_data - (uintptr_t)&_sdmaram_data));
+}
+#endif

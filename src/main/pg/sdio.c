@@ -22,14 +22,50 @@
 
 #if defined(USE_SDCARD_SDIO)
 
+#include "drivers/io.h"
 #include "pg/pg_ids.h"
 #include "pg/sdio.h"
+
+#ifndef SDIO_USE_4BIT
+#define SDIO_USE_4BIT false
+#endif
+#ifndef SDIO_CK_PIN
+#define SDIO_CK_PIN NONE
+#endif
+#ifndef SDIO_CMD_PIN
+#define SDIO_CMD_PIN NONE
+#endif
+#ifndef SDIO_D0_PIN
+#define SDIO_D0_PIN NONE
+#endif
+#ifndef SDIO_D1_PIN
+#define SDIO_D1_PIN NONE
+#endif
+#ifndef SDIO_D2_PIN
+#define SDIO_D2_PIN NONE
+#endif
+#ifndef SDIO_D3_PIN
+#define SDIO_D3_PIN NONE
+#endif
 
 PG_REGISTER_WITH_RESET_TEMPLATE(sdioConfig_t, sdioConfig, PG_SDIO_CONFIG, 0);
 
 PG_RESET_TEMPLATE(sdioConfig_t, sdioConfig,
                   .clockBypass = 0,
                   .useCache = 0,
+                  .use4BitWidth = SDIO_USE_4BIT,
+                  .device = 1     // default SDMMC1
+                 );
+
+PG_REGISTER_WITH_RESET_TEMPLATE(sdioPinConfig_t, sdioPinConfig, PG_SDIO_PIN_CONFIG, 0);
+
+PG_RESET_TEMPLATE(sdioPinConfig_t, sdioPinConfig,
+                  .CKPin  = IO_TAG(SDIO_CK_PIN),
+                  .CMDPin = IO_TAG(SDIO_CMD_PIN),
+                  .D0Pin  = IO_TAG(SDIO_D0_PIN),
+                  .D1Pin  = IO_TAG(SDIO_D1_PIN),
+                  .D2Pin  = IO_TAG(SDIO_D2_PIN),
+                  .D3Pin  = IO_TAG(SDIO_D3_PIN),
                  );
 
 #endif

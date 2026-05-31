@@ -34,6 +34,7 @@ typedef enum {
     BUS_TYPE_SPI,
     BUS_TYPE_MPU_SLAVE, // Slave I2C on SPI master
     BUS_TYPE_GYRO_AUTO, // Only used by acc/gyro bus auto detection code
+    BUS_TYPE_QSPI,
 } busType_e;
 
 typedef enum {
@@ -66,6 +67,11 @@ typedef struct busDevice_s {
         struct busMpuSlave_s {
             const struct extDevice_s *master;
         } mpuSlave;
+#ifdef USE_QUADSPI
+        struct busQSpi_s {
+            struct quadSpiResource_s *instance;
+        } qspi;
+#endif
     } busType_u;
     bool useDMA;
     uint8_t deviceCount;
@@ -73,7 +79,7 @@ typedef struct busDevice_s {
     // dmaChannelDescriptor_t requires dma.h which is not available in unit test / SITL builds
     dmaChannelDescriptor_t *dmaTx;
     dmaChannelDescriptor_t *dmaRx;
-#if defined(STM32F7)
+#if defined(STM32F7) || defined(STM32H7)
     LL_DMA_InitTypeDef *initTx;
     LL_DMA_InitTypeDef *initRx;
 #else
@@ -112,7 +118,7 @@ typedef struct extDevice_s {
     // Per-device DMA init cache — reduces inter-segment setup time (BF 4.5-m pattern).
     // Pointer stored in bus->initTx/initRx so the bus driver always references the
     // current device's cache.
-#if defined(STM32F7)
+#if defined(STM32F7) || defined(STM32H7)
     LL_DMA_InitTypeDef initTx;
     LL_DMA_InitTypeDef initRx;
 #else

@@ -1390,11 +1390,11 @@ bool SD_GetState(void) {
 
 
 /** -----------------------------------------------------------------------------------------------------------------*/
-bool SD_Init(void) {
+SD_Error_t SD_Init(void) {
     SD_Error_t ErrorState;
     // Check if SD card is present
     if(SD_IsDetected() != SD_PRESENT) {
-        return false;
+        return SD_NOT_CONFIGURED;
     }
     // Initialize SDIO peripheral interface with default configuration for SD card initialization
     MODIFY_REG(SDIO->CLKCR, CLKCR_CLEAR_MASK, (uint32_t) SDIO_INIT_CLK_DIV);
@@ -1412,7 +1412,7 @@ bool SD_Init(void) {
         // Enable wide operation
         ErrorState = SD_WideBusOperationConfig(SD_BUS_WIDE_4B);
         if (ErrorState == SD_OK && sdioConfig()->clockBypass) {
-            if (SD_HighSpeed()) {
+            if (SD_HighSpeed() == SD_OK) {
                 SDIO->CLKCR |= SDIO_CLKCR_BYPASS;
                 SDIO->CLKCR |= SDIO_CLKCR_NEGEDGE;
             }

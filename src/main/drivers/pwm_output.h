@@ -130,7 +130,7 @@ typedef struct {
     DMA_Stream_TypeDef *dmaBurstRef;
 #endif
     uint16_t dmaBurstLength;
-    uint32_t dmaBurstBuffer[DSHOT_DMA_BUFFER_SIZE * 4];
+    uint32_t dmaBurstBuffer[DSHOT_DMA_BUFFER_SIZE * 4] __attribute__((aligned(32)));
 #endif
     uint16_t timerDmaSources;
 } motorDmaTimer_t;
@@ -145,8 +145,8 @@ typedef struct {
 #endif
     motorDmaTimer_t *timer;
     volatile bool requestTelemetry;
-#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7)
-    uint32_t dmaBuffer[DSHOT_DMA_BUFFER_SIZE];
+#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+    uint32_t dmaBuffer[DSHOT_DMA_BUFFER_SIZE] __attribute__((aligned(32)));
 #else
     uint8_t dmaBuffer[DSHOT_DMA_BUFFER_SIZE];
 #endif

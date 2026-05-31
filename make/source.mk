@@ -332,6 +332,21 @@ SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
 endif #!F3
 endif #!F1
 
+# H7-only low-frequency drivers compiled at -Os to reclaim flash budget
+ifneq ($(filter $(TARGET),$(H7_TARGETS)),)
+SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
+            drivers/audio_stm32h7xx.c \
+            drivers/bus_i2c_timing.c \
+            drivers/bus_octospi_stm32h7xx.c \
+            drivers/bus_quadspi.c \
+            drivers/bus_quadspi_stm32h7xx.c \
+            drivers/can_stm32h7xx.c \
+            pg/bus_quadspi.c \
+            drivers/sdio_h7xx.c \
+            drivers/memprot_hal.c \
+            drivers/memprot_stm32h7xx.c
+endif # H7_TARGETS
+
 # check if target.mk supplied
 SRC := $(STARTUP_SRC) $(MCU_COMMON_SRC) $(TARGET_SRC) $(VARIANT_SRC)
 

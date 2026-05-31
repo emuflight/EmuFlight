@@ -52,7 +52,7 @@
 
 // Use this to speed up writing to SDCARD... asyncfatfs has limited support for multiblock write
 #define FATFS_BLOCK_CACHE_SIZE 16
-uint8_t writeCache[512 * FATFS_BLOCK_CACHE_SIZE] __attribute__ ((aligned (4)));
+uint8_t writeCache[512 * FATFS_BLOCK_CACHE_SIZE] __attribute__ ((aligned (32)));
 uint32_t cacheCount = 0;
 
 void cache_write(uint8_t *buffer) {
@@ -268,10 +268,13 @@ void sdcard_init(const sdcardConfig_t *config) {
         return;
     }
     sdcard.dma = config->dmaIdentifier;
+#if !defined(STM32H7)
+    // H7 uses SDMMC IDMA — no external DMA stream needed; dmaIdentifier is 0 by design.
     if (sdcard.dma == 0) {
         sdcard.state = SDCARD_STATE_NOT_PRESENT;
         return;
     }
+#endif
     if (config->cardDetectTag) {
         sdcard.cardDetectPin = IOGetByTag(config->cardDetectTag);
     } else {
@@ -282,7 +285,11 @@ void sdcard_init(const sdcardConfig_t *config) {
     } else {
         sdcard.useCache = 0;
     }
+#if defined(STM32H7)
+    SD_Initialize_LL(NULL);
+#else
     SD_Initialize_LL(dmaGetRefByIdentifier(sdcard.dma));
+#endif
     if (SD_IsDetected()) {
         if (SD_Init() != 0) {
             sdcard.state = SDCARD_STATE_NOT_PRESENT;

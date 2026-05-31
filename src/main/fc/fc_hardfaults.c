@@ -31,8 +31,9 @@
 
 #include "flight/mixer.h"
 
-#ifdef STM32F7
+#if defined(STM32F7) || defined(STM32H7)
 void MemManage_Handler(void) {
+
     LED2_ON;
     // fall out of the sky
     uint8_t requiredStateForMotors = SYSTEM_STATE_CONFIG_LOADED | SYSTEM_STATE_MOTORS_READY;

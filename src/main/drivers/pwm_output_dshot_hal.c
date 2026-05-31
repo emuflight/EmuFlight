@@ -35,8 +35,8 @@
 #include "rcc.h"
 
 static FAST_RAM_ZERO_INIT uint8_t dmaMotorTimerCount = 0;
-static FAST_RAM_ZERO_INIT motorDmaTimer_t dmaMotorTimers[MAX_DMA_TIMERS];
-static FAST_RAM_ZERO_INIT motorDmaOutput_t dmaMotors[MAX_SUPPORTED_MOTORS];
+static DMA_DATA_ZERO_INIT motorDmaTimer_t dmaMotorTimers[MAX_DMA_TIMERS];
+static DMA_DATA_ZERO_INIT motorDmaOutput_t dmaMotors[MAX_SUPPORTED_MOTORS];
 
 motorDmaOutput_t *getMotorDmaOutput(uint8_t index) {
     return &dmaMotors[index];
@@ -148,7 +148,12 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     const IO_t motorIO = IOGetByTag(timerHardware->tag);
     const uint8_t timerIndex = getTimerIndex(timer);
     const bool configureTimer = (timerIndex == dmaMotorTimerCount - 1);
+#if defined(STM32H7)
+    // H7 GPIO driver is significantly stronger than F4/F7; VERY_HIGH causes ringing on DShot lines
+    IOConfigGPIOAF(motorIO, IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_LOW, GPIO_PULLDOWN), timerHardware->alternateFunction);
+#else
     IOConfigGPIOAF(motorIO, IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_VERY_HIGH, GPIO_PULLDOWN), timerHardware->alternateFunction);
+#endif
     if (configureTimer) {
         LL_TIM_InitTypeDef init;
         LL_TIM_StructInit(&init);
@@ -221,7 +226,11 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     if (useBurstDshot) {
         dmaInit(timerHardware->dmaTimUPIrqHandler, OWNER_TIMUP, timerGetTIMNumber(timerHardware->tim));
         dmaSetHandler(timerHardware->dmaTimUPIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
+#if defined(STM32H7)
+        dma_init.PeriphRequest = timerHardware->dmaTimUPChannel;
+#else
         dma_init.Channel = timerHardware->dmaTimUPChannel;
+#endif
         dma_init.MemoryOrM2MDstAddress = (uint32_t)motor->timer->dmaBurstBuffer;
         dma_init.FIFOThreshold = LL_DMA_FIFOTHRESHOLD_FULL;
         dma_init.PeriphOrM2MSrcAddress = (uint32_t)&timerHardware->tim->DMAR;
@@ -230,7 +239,11 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     {
         dmaInit(timerHardware->dmaIrqHandler, OWNER_MOTOR, RESOURCE_INDEX(motorIndex));
         dmaSetHandler(timerHardware->dmaIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
+#if defined(STM32H7)
+        dma_init.PeriphRequest = timerHardware->dmaChannel;
+#else
         dma_init.Channel = timerHardware->dmaChannel;
+#endif
         dma_init.MemoryOrM2MDstAddress = (uint32_t)motor->dmaBuffer;
         dma_init.FIFOThreshold = LL_DMA_FIFOTHRESHOLD_1_4;
         dma_init.PeriphOrM2MSrcAddress = (uint32_t)timerChCCR(timerHardware);

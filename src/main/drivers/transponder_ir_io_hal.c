@@ -43,25 +43,37 @@ volatile uint8_t transponderIrDataTransferInProgress = 0;
 static IO_t transponderIO = IO_NONE;
 static TIM_HandleTypeDef TimHandle;
 static uint16_t timerChannel = 0;
+static const timerHardware_t *transponderTimerHardware = NULL;
 
-#if !defined(STM32F7)
+#if !defined(STM32F7) && !defined(STM32H7)
 #error "Transponder (via HAL) not supported on this MCU."
 #endif
 
+#if defined(STM32H7)
+// H7: .bss is in DTCM which DMA cannot access; place in AXI SRAM via .dmaram_bss.
+DMA_DATA_ZERO_INIT transponder_t transponder;
+#else
 transponder_t transponder;
+#endif
 bool transponderInitialised = false;
 
-static void TRANSPONDER_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
+FAST_IRQ_HANDLER static void TRANSPONDER_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
     HAL_DMA_IRQHandler(TimHandle.hdma[descriptor->userParam]);
     TIM_DMACmd(&TimHandle, timerChannel, DISABLE);
     transponderIrDataTransferInProgress = 0;
 }
 
 void transponderIrHardwareInit(ioTag_t ioTag, transponder_t *transponder) {
+    transponderInitialised = false;
+    transponderTimerHardware = NULL;
     if (!ioTag) {
         return;
     }
     const timerHardware_t *timerHardware = timerGetByTag(ioTag);
+    if (!timerHardware) {
+        return;
+    }
+    transponderTimerHardware = timerHardware;
     TIM_TypeDef *timer = timerHardware->tim;
     timerChannel = timerHardware->channel;
     if (timerHardware->dmaRef == NULL) {
@@ -84,10 +96,18 @@ void transponderIrHardwareInit(ioTag_t ioTag, transponder_t *transponder) {
     static DMA_HandleTypeDef hdma_tim;
     transponderIO = IOGetByTag(ioTag);
     IOInit(transponderIO, OWNER_TRANSPONDER, 0);
+#if defined(STM32H7)
+    IOConfigGPIOAF(transponderIO, IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_LOW, GPIO_PULLDOWN), timerHardware->alternateFunction);
+#else
     IOConfigGPIOAF(transponderIO, IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_VERY_HIGH, GPIO_PULLDOWN), timerHardware->alternateFunction);
+#endif
     __DMA1_CLK_ENABLE();
     /* Set the parameters to be configured */
+#if defined(STM32H7)
+    hdma_tim.Init.Request = timerHardware->dmaChannel;
+#else
     hdma_tim.Init.Channel = timerHardware->dmaChannel;
+#endif
     hdma_tim.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_tim.Init.PeriphInc = DMA_PINC_DISABLE;
     hdma_tim.Init.MemInc = DMA_MINC_ENABLE;
@@ -157,7 +177,7 @@ bool transponderIrInit(const ioTag_t ioTag, const transponderProvider_e provider
         return false;
     }
     transponderIrHardwareInit(ioTag, &transponder);
-    return true;
+    return transponderInitialised;
 }
 
 bool isTransponderIrReady(void) {
@@ -198,7 +218,7 @@ void transponderIrDisable(void) {
         return;
     }
     TIM_DMACmd(&TimHandle, timerChannel, DISABLE);
-    if (timerHardware->output & TIMER_OUTPUT_N_CHANNEL) {
+    if (transponderTimerHardware->output & TIMER_OUTPUT_N_CHANNEL) {
         HAL_TIMEx_PWMN_Stop(&TimHandle, timerChannel);
     } else {
         HAL_TIM_PWM_Stop(&TimHandle, timerChannel);
@@ -209,7 +229,11 @@ void transponderIrDisable(void) {
 #else
     IOLo(transponderIO);
 #endif
-    IOConfigGPIOAF(transponderIO, IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_VERY_HIGH, GPIO_PULLDOWN), timerHardware->alternateFunction);
+#if defined(STM32H7)
+    IOConfigGPIOAF(transponderIO, IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_LOW, GPIO_PULLDOWN), transponderTimerHardware->alternateFunction);
+#else
+    IOConfigGPIOAF(transponderIO, IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_VERY_HIGH, GPIO_PULLDOWN), transponderTimerHardware->alternateFunction);
+#endif
 }
 
 void transponderIrTransmit(void) {

@@ -100,7 +100,11 @@ void uartReconfigure(uartPort_t *uartPort) {
     if (uartPort->port.mode & MODE_RX) {
         if (uartPort->rxDMAStream) {
             uartPort->rxDMAHandle.Instance = uartPort->rxDMAStream;
+#if defined(STM32H7)
+            uartPort->rxDMAHandle.Init.Request = uartPort->rxDMAChannel;
+#else
             uartPort->rxDMAHandle.Init.Channel = uartPort->rxDMAChannel;
+#endif
             uartPort->rxDMAHandle.Init.Direction = DMA_PERIPH_TO_MEMORY;
             uartPort->rxDMAHandle.Init.PeriphInc = DMA_PINC_DISABLE;
             uartPort->rxDMAHandle.Init.MemInc = DMA_MINC_ENABLE;
@@ -118,6 +122,9 @@ void uartReconfigure(uartPort_t *uartPort) {
             __HAL_LINKDMA(&uartPort->Handle, hdmarx, uartPort->rxDMAHandle);
             HAL_UART_Receive_DMA(&uartPort->Handle, (uint8_t*)uartPort->port.rxBuffer, uartPort->port.rxBufferSize);
             uartPort->rxDMAPos = __HAL_DMA_GET_COUNTER(&uartPort->rxDMAHandle);
+            // NOTE(STM32H7): DMA RX is now active. uartRead() calls SCB_InvalidateDCache_by_Addr
+            // before reading each byte so the D-cache does not return stale data after DMA writes.
+            // rxDMAStream is currently always NULL in H7 board configs (path unreachable at runtime).
         } else {
             /* Enable the UART Parity Error Interrupt */
             SET_BIT(uartPort->USARTx->CR1, USART_CR1_PEIE);
@@ -133,7 +140,11 @@ void uartReconfigure(uartPort_t *uartPort) {
     if (uartPort->port.mode & MODE_TX) {
         if (uartPort->txDMAStream) {
             uartPort->txDMAHandle.Instance = uartPort->txDMAStream;
+#if defined(STM32H7)
+            uartPort->txDMAHandle.Init.Request = uartPort->txDMAChannel;
+#else
             uartPort->txDMAHandle.Init.Channel = uartPort->txDMAChannel;
+#endif
             uartPort->txDMAHandle.Init.Direction = DMA_MEMORY_TO_PERIPH;
             uartPort->txDMAHandle.Init.PeriphInc = DMA_PINC_DISABLE;
             uartPort->txDMAHandle.Init.MemInc = DMA_MINC_ENABLE;
@@ -270,6 +281,9 @@ uint8_t uartRead(serialPort_t *instance) {
     uint8_t ch;
     uartPort_t *s = (uartPort_t *)instance;
     if (s->rxDMAStream) {
+#if defined(STM32H7)
+        SCB_InvalidateDCache_by_Addr((uint32_t *)&s->port.rxBuffer[s->port.rxBufferSize - s->rxDMAPos], sizeof(uint8_t));
+#endif
         ch = s->port.rxBuffer[s->port.rxBufferSize - s->rxDMAPos];
         if (--s->rxDMAPos == 0)
             s->rxDMAPos = s->port.rxBufferSize;
@@ -319,7 +333,7 @@ const struct serialPortVTable uartVTable[] = {
 
 #ifdef USE_UART1
 // USART1 Rx/Tx IRQ Handler
-void USART1_IRQHandler(void) {
+FAST_IRQ_HANDLER void USART1_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_1]->port);
     uartIrqHandler(s);
 }
@@ -327,7 +341,7 @@ void USART1_IRQHandler(void) {
 
 #ifdef USE_UART2
 // USART2 Rx/Tx IRQ Handler
-void USART2_IRQHandler(void) {
+FAST_IRQ_HANDLER void USART2_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_2]->port);
     uartIrqHandler(s);
 }
@@ -335,7 +349,7 @@ void USART2_IRQHandler(void) {
 
 #ifdef USE_UART3
 // USART3 Rx/Tx IRQ Handler
-void USART3_IRQHandler(void) {
+FAST_IRQ_HANDLER void USART3_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_3]->port);
     uartIrqHandler(s);
 }
@@ -343,7 +357,7 @@ void USART3_IRQHandler(void) {
 
 #ifdef USE_UART4
 // UART4 Rx/Tx IRQ Handler
-void UART4_IRQHandler(void) {
+FAST_IRQ_HANDLER void UART4_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_4]->port);
     uartIrqHandler(s);
 }
@@ -351,7 +365,7 @@ void UART4_IRQHandler(void) {
 
 #ifdef USE_UART5
 // UART5 Rx/Tx IRQ Handler
-void UART5_IRQHandler(void) {
+FAST_IRQ_HANDLER void UART5_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_5]->port);
     uartIrqHandler(s);
 }
@@ -359,7 +373,7 @@ void UART5_IRQHandler(void) {
 
 #ifdef USE_UART6
 // USART6 Rx/Tx IRQ Handler
-void USART6_IRQHandler(void) {
+FAST_IRQ_HANDLER void USART6_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_6]->port);
     uartIrqHandler(s);
 }
@@ -367,7 +381,7 @@ void USART6_IRQHandler(void) {
 
 #ifdef USE_UART7
 // UART7 Rx/Tx IRQ Handler
-void UART7_IRQHandler(void) {
+FAST_IRQ_HANDLER void UART7_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_7]->port);
     uartIrqHandler(s);
 }
@@ -375,8 +389,32 @@ void UART7_IRQHandler(void) {
 
 #ifdef USE_UART8
 // UART8 Rx/Tx IRQ Handler
-void UART8_IRQHandler(void) {
+FAST_IRQ_HANDLER void UART8_IRQHandler(void) {
     uartPort_t *s = &(uartDevmap[UARTDEV_8]->port);
+    uartIrqHandler(s);
+}
+#endif
+
+#ifdef USE_UART9
+// UART9 Rx/Tx IRQ Handler
+FAST_IRQ_HANDLER void UART9_IRQHandler(void) {
+    uartPort_t *s = &(uartDevmap[UARTDEV_9]->port);
+    uartIrqHandler(s);
+}
+#endif
+
+#ifdef USE_UART10
+// USART10 Rx/Tx IRQ Handler
+FAST_IRQ_HANDLER void USART10_IRQHandler(void) {
+    uartPort_t *s = &(uartDevmap[UARTDEV_10]->port);
+    uartIrqHandler(s);
+}
+#endif
+
+#ifdef USE_LPUART1
+// LPUART1 Rx/Tx IRQ Handler
+FAST_IRQ_HANDLER void LPUART1_IRQHandler(void) {
+    uartPort_t *s = &(uartDevmap[LPUARTDEV_1]->port);
     uartIrqHandler(s);
 }
 #endif
