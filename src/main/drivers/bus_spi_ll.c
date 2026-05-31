@@ -169,6 +169,13 @@ void spiInitDevice(SPIDevice device) {
 }
 
 uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t txByte) {
+#if defined(STM32H7)
+    // H7 SPI requires SetTransferSize+Enable+StartMasterTransfer per transfer.
+    // Delegate to spiTransfer which handles the full H7 sequence correctly.
+    uint8_t rxByte = 0;
+    spiTransfer(instance, &txByte, &rxByte, 1);
+    return rxByte;
+#else
     uint16_t spiTimeout = 1000;
     while (!LL_SPI_IsActiveFlag_TXE(instance))
         if ((spiTimeout--) == 0)
@@ -179,6 +186,7 @@ uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t txByte) {
         if ((spiTimeout--) == 0)
             return spiTimeoutUserCallback(instance);
     return (uint8_t)LL_SPI_ReceiveData8(instance);
+#endif
 }
 
 /**
