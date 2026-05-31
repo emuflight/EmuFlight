@@ -27,14 +27,27 @@
 #include "drivers/io.h"
 #include "interface/msp_box.h"
 
-PG_REGISTER_WITH_RESET_TEMPLATE(pinioBoxConfig_t, pinioBoxConfig, PG_PINIOBOX_CONFIG, 1);
+#ifndef PINIO1_BOX
+#define PINIO1_BOX PERMANENT_ID_NONE
+#endif
+#ifndef PINIO2_BOX
+#define PINIO2_BOX PERMANENT_ID_NONE
+#endif
+#ifndef PINIO3_BOX
+#define PINIO3_BOX PERMANENT_ID_NONE
+#endif
+#ifndef PINIO4_BOX
+#define PINIO4_BOX PERMANENT_ID_NONE
+#endif
 
-// Default: all slots unassigned (PERMANENT_ID_NONE) — VTX/load-switch always ON.
-// BF parity: BF's pgResetFn_pinioBoxConfig also always defaults to NONE regardless
-// of PINIOx_BOX target defines. PINIOx_BOX in target.h is informational only —
-// it names the recommended box for switch control (e.g. USER1=40 for pit mode)
-// but is not applied automatically. Pilot configures it in the Modes tab if needed.
-PG_RESET_TEMPLATE(pinioBoxConfig_t, pinioBoxConfig,
-{ PERMANENT_ID_NONE, PERMANENT_ID_NONE, PERMANENT_ID_NONE, PERMANENT_ID_NONE }
-                 );
+PG_REGISTER_WITH_RESET_FN(pinioBoxConfig_t, pinioBoxConfig, PG_PINIOBOX_CONFIG, 1);
+
+void pgResetFn_pinioBoxConfig(pinioBoxConfig_t *config)
+{
+    config->permanentId[0] = PINIO1_BOX;
+    config->permanentId[1] = PINIO2_BOX;
+    config->permanentId[2] = PINIO3_BOX;
+    config->permanentId[3] = PINIO4_BOX;
+}
+
 #endif
