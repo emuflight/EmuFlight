@@ -10,5 +10,13 @@ all:
 				stmbootloader.c \
 				-Wall
 
+test:
+		$(CC) -g -o test_invariant_stmbootloader \
+				../../tests/test_invariant_stmbootloader.c \
+				-Wall \
+				$(shell pkg-config --cflags --libs check) \
+				-lm
+		./test_invariant_stmbootloader
+
 clean:
-		rm -f stmloader; rm -rf stmloader.dSYM
+		rm -f stmloader test_invariant_stmbootloader; rm -rf stmloader.dSYM
