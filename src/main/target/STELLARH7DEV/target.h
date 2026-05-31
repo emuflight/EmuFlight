@@ -99,12 +99,13 @@
 #define I2C2_SDA                        PB11
 
 // Flash: Winbond W25M02G (2×W25N01G NAND dies) on SPI4, CS=PC13.
-// Do NOT use DEFAULT_BLACKBOX_DEVICE — use ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-// to avoid redefinition conflict with the fallback in blackbox.c.
-#define USE_FLASH_W25M02G
-#define FLASH_CS_PIN                    PC13
-#define FLASH_SPI_INSTANCE              SPI4
-#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+// Disabled pending resolution of #1209 (W25M02G NAND erase disconnects FC;
+// flashfsIdentifyStartOfFreeSpace hangs on bad-state chip, preventing boot).
+// Uncomment when H7 NAND flash is fixed:
+//#define USE_FLASH_W25M02G
+//#define FLASH_CS_PIN                    PC13
+//#define FLASH_SPI_INSTANCE              SPI4
+//#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
 #define MAX7456_SPI_CS_PIN              PB8
 #define MAX7456_SPI_INSTANCE            SPI2
