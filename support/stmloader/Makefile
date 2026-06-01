@@ -19,4 +19,4 @@ test:
 		./test_invariant_stmbootloader
 
 clean:
-		rm -f stmloader test_invariant_stmbootloader; rm -rf stmloader.dSYM
+		rm -f stmloader test_invariant_stmbootloader; rm -rf stmloader.dSYM test_invariant_stmbootloader.dSYM
