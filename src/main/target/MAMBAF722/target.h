@@ -176,6 +176,7 @@
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
+#define USE_FLASH_W25Q128FV
 #define FLASH_CS_PIN            SPI3_NSS_PIN
 #define FLASH_SPI_INSTANCE      SPI3
 
