@@ -705,12 +705,6 @@ uint32_t w25n_pageProgramContinue(flashDevice_t *fdevice, uint8_t const **buffer
         {.u.link = {NULL, NULL}, 0, true, NULL},
     };
 
-    // Second buffer segment for wrap-around writes (bufferCount == 2)
-    static busSegment_t segmentsBuffer2[] = {
-        {.u.buffers = {NULL, NULL}, 0, true, NULL},
-        {.u.link = {NULL, NULL}, 0, true, NULL},
-    };
-
     static busSegment_t segmentsFlash[] = {
         {.u.buffers = {readStatus, readyStatus}, sizeof(readStatus), true, w25n_callbackReady},
         {.u.buffers = {writeEnable, NULL}, sizeof(writeEnable), true, w25n_callbackWriteEnable},
@@ -740,27 +734,15 @@ uint32_t w25n_pageProgramContinue(flashDevice_t *fdevice, uint8_t const **buffer
         programSegment = segmentsDataLoad;
     }
 
-    // Add the data buffer(s); bufferCount==2 for wrap-around writes in flashfs
-    uint32_t bytesWritten = bufferSizes[0];
+    // Add the data buffer
     segmentsBuffer[0].u.buffers.txData = (uint8_t *)buffers[0];
     segmentsBuffer[0].len = bufferSizes[0];
     segmentsBuffer[0].callback = NULL;
 
-    if (bufferCount >= 2 && bufferSizes[1] > 0) {
-        segmentsBuffer2[0].u.buffers.txData = (uint8_t *)buffers[1];
-        segmentsBuffer2[0].len = bufferSizes[1];
-        segmentsBuffer2[0].callback = NULL;
-        bytesWritten += bufferSizes[1];
-        spiLinkSegments(fdevice->io.handle.dev, segmentsBuffer, segmentsBuffer2);
-        spiLinkSegments(fdevice->io.handle.dev, programSegment, segmentsBuffer);
-    } else {
-        spiLinkSegments(fdevice->io.handle.dev, programSegment, segmentsBuffer);
-    }
+    spiLinkSegments(fdevice->io.handle.dev, programSegment, segmentsBuffer);
 
     bufferDirty = true;
-    programLoadAddress += bytesWritten;
-
-    busSegment_t *lastDataSegment = (bufferCount >= 2 && bufferSizes[1] > 0) ? segmentsBuffer2 : segmentsBuffer;
+    programLoadAddress += bufferSizes[0];
 
     if (W25N_LINEAR_TO_COLUMN(programLoadAddress) == 0) {
         // Flash the loaded data
@@ -769,14 +751,14 @@ uint32_t w25n_pageProgramContinue(flashDevice_t *fdevice, uint8_t const **buffer
         progExecCmd[2] = (currentPage >> 8) & 0xff;
         progExecCmd[3] = currentPage & 0xff;
 
-        spiLinkSegments(fdevice->io.handle.dev, lastDataSegment, segmentsFlash);
+        spiLinkSegments(fdevice->io.handle.dev, segmentsBuffer, segmentsFlash);
 
         bufferDirty = false;
 
         programStartAddress = programLoadAddress;
     } else {
         // Callback on completion of data load
-        lastDataSegment[0].callback = w25n_callbackWriteComplete;
+        segmentsBuffer[0].callback = w25n_callbackWriteComplete;
     }
 
     if (!fdevice->couldBeBusy) {
@@ -784,7 +766,7 @@ uint32_t w25n_pageProgramContinue(flashDevice_t *fdevice, uint8_t const **buffer
         programSegment++;
     }
 
-    fdevice->callbackArg = bytesWritten;
+    fdevice->callbackArg = bufferSizes[0];
 
     spiSequence(fdevice->io.handle.dev, programSegment);
 
