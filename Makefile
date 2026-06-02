@@ -415,7 +415,8 @@ targets-group-rest: $(GROUP_OTHER_TARGETS)
 
 $(VALID_TARGETS):
 	$(V0) @echo "Building $@" && \
-	$(MAKE) binary hex TARGET=$@ && \
+	$(MAKE) binary TARGET=$@ && \
+	$(MAKE) hex TARGET=$@ && \
 	echo "Building $@ succeeded."
 
 $(NOBUILD_TARGETS):
