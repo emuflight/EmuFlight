@@ -298,6 +298,7 @@ TARGET_LST      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).lst
 TARGET_OBJS     = $(addsuffix .o,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $(SRC))))
 TARGET_DEPS     = $(addsuffix .d,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $(SRC))))
 TARGET_MAP      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).map
+TARGET_DIRS     := $(sort $(dir $(TARGET_OBJS)))
 
 CLEAN_ARTIFACTS := $(TARGET_BIN)
 CLEAN_ARTIFACTS += $(TARGET_HEX)
@@ -309,6 +310,10 @@ $(OBJECT_DIR)/$(TARGET)/build/version.o : FORCE
 
 .PHONY: FORCE clean clean_test clean_all all_clean
 FORCE:
+
+# Build each output directory once, not once-per-file, for parallel-safe compilation
+$(TARGET_DIRS):
+	@mkdir -p $@
 
 # List of buildable ELF files and their object dependencies.
 # It would be nice to compute these lists, but that seems to be just beyond make.
@@ -329,15 +334,17 @@ $(TARGET_ELF):  $(TARGET_OBJS) $(LD_SCRIPT) $(LD_SCRIPTS)
 	$(V1) $(CROSS_CC) -o $@ $(filter %.o,$^) $(LD_FLAGS)
 	$(V1) $(SIZE) $(TARGET_ELF)
 
+# .SECONDEXPANSION allows $$(dir $$@) in prerequisites — expands to the target's
+# directory at rule instantiation time, wiring each .o to its pre-created dir.
+.SECONDEXPANSION:
+
 # Compile
 ifeq ($(DEBUG),GDB)
-$(OBJECT_DIR)/$(TARGET)/%.o: %.c
-	$(V1) mkdir -p $(dir $@)
+$(OBJECT_DIR)/$(TARGET)/%.o: %.c | $$(dir $$@)
 	$(V1) echo "%% (debug) $(notdir $<)" "$(STDOUT)" && \
 	$(CROSS_CC) -c -o $@ $(CFLAGS) $(CC_DEBUG_OPTIMISATION) $<
 else
-$(OBJECT_DIR)/$(TARGET)/%.o: %.c
-	$(V1) mkdir -p $(dir $@)
+$(OBJECT_DIR)/$(TARGET)/%.o: %.c | $$(dir $$@)
 	$(V1) $(if $(findstring $(subst ./src/main/,,$<),$(SPEED_OPTIMISED_SRC)), \
 	echo "%% (speed optimised) $(notdir $<)" "$(STDOUT)" && \
 	$(CROSS_CC) -c -o $@ $(CFLAGS) $(CC_SPEED_OPTIMISATION) $<, \
@@ -349,13 +356,11 @@ $(OBJECT_DIR)/$(TARGET)/%.o: %.c
 endif
 
 # Assemble
-$(OBJECT_DIR)/$(TARGET)/%.o: %.s
-	$(V1) mkdir -p $(dir $@)
+$(OBJECT_DIR)/$(TARGET)/%.o: %.s | $$(dir $$@)
 	@echo "%% $(notdir $<)" "$(STDOUT)"
 	$(V1) $(CROSS_CC) -c -o $@ $(ASFLAGS) $<
 
-$(OBJECT_DIR)/$(TARGET)/%.o: %.S
-	$(V1) mkdir -p $(dir $@)
+$(OBJECT_DIR)/$(TARGET)/%.o: %.S | $$(dir $$@)
 	@echo "%% $(notdir $<)" "$(STDOUT)"
 	$(V1) $(CROSS_CC) -c -o $@ $(ASFLAGS) $<
 
