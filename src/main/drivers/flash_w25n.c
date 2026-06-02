@@ -886,7 +886,7 @@ int w25n_readBytes(flashDevice_t *fdevice, uint32_t address, uint8_t *buffer, ui
 
         busSegment_t segments[] = {
                 {.u.buffers = {cmd, NULL}, sizeof(cmd), false, NULL},
-                {.u.buffers = {NULL, buffer}, length, true, NULL},
+                {.u.buffers = {NULL, buffer}, transferLength, true, NULL},
                 {.u.link = {NULL, NULL}, 0, true, NULL},
         };
 
@@ -1041,10 +1041,7 @@ void w25n_readBBLUT(flashDevice_t *fdevice, bblut_t *bblut, int lutsize)
     if (fdevice->io.mode == FLASHIO_SPI) {
         extDevice_t *dev = fdevice->io.handle.dev;
 
-        uint8_t cmd[4];
-
-        cmd[0] = W25N_INSTRUCTION_READ_BBM_LUT;
-        cmd[1] = 0;
+        uint8_t cmd[2] = { W25N_INSTRUCTION_READ_BBM_LUT, 0 };
 
         cb_context.bblut = &bblut[0];
         cb_context.lutsize = lutsize;

@@ -429,7 +429,7 @@ void flashPartitionSet(uint8_t type, uint32_t startSector, uint32_t endSector)
     flashPartition_t *entry = flashPartitionFindByType(type);
 
     if (!entry) {
-        if (flashPartitions == FLASH_MAX_PARTITIONS - 1) {
+        if (flashPartitions >= FLASH_MAX_PARTITIONS) {
             return;
         }
         entry = &flashPartitionTable.partitions[flashPartitions++];
