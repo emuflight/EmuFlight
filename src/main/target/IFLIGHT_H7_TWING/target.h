@@ -117,9 +117,7 @@
 #define I2C1_SCL PB8
 #define I2C1_SDA PB9
 
-// TODO: FLASH_CS_PIN and FLASH_SPI_INSTANCE unknown — research iFlight H7 Twing hardware
-// #define FLASH_CS_PIN         ??
-// #define FLASH_SPI_INSTANCE   SPI?
+// Note: FLASH_CS_PIN/FLASH_SPI_INSTANCE absent in BF configs (config/configs/IFLIGHT_H7_TWING)
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
 #define MAX7456_SPI_CS_PIN   PE11

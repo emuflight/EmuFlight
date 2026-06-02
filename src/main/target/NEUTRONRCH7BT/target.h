@@ -28,7 +28,7 @@
 #define USE_GYRO
 #define USE_ACC
 #define USE_ACCGYRO_BMI270
-// TODO: FLASH_CS_PIN and FLASH_SPI_INSTANCE unknown — research Neutron RC H7BT hardware
+// Note: FLASH_CS_PIN/FLASH_SPI_INSTANCE absent in BF configs (config/configs/NEUTRONRCH7BT)
 #define USE_FLASH
 #define USE_FLASH_W25N01G
 #define USE_MAX7456
