@@ -122,7 +122,7 @@
 
 #define TARGET_IO_PORTA (0xffff & ~(BIT(13)))
 #define TARGET_IO_PORTB (0xffff & ~(BIT(2)))
-#define TARGET_IO_PORTC (0xffff & ~(BIT(15)|BIT(14)|BIT(13)))
+#define TARGET_IO_PORTC (0xffff & ~(BIT(15)|BIT(14)))
 #define TARGET_IO_PORTD BIT(2)
 
 // DEFINE TIMERS
