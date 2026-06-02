@@ -17,5 +17,7 @@ reviews:
   tools:
     infer:
       enabled: false
+    cppcheck:
+      enabled: false
 chat:
   auto_reply: true
