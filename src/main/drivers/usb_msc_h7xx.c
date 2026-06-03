@@ -87,9 +87,7 @@ uint8_t mscStart(void)
     switch (blackboxConfig()->device) {
 #ifdef USE_SDCARD
     case BLACKBOX_DEVICE_SDCARD:
-#ifdef USE_SDCARD_SDIO
-        USBD_MSC_RegisterStorage(&USBD_Device, &USBD_MSC_MICRO_SDIO_fops);
-#elif defined(USE_SDCARD_SPI)
+#if defined(USE_SDCARD_SDIO) || defined(USE_SDCARD_SPI)
         USBD_MSC_RegisterStorage(&USBD_Device, &USBD_MSC_MICRO_SDIO_fops);
 #else
         return 1;
