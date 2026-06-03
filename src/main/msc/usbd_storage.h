@@ -30,7 +30,7 @@
 #ifdef USE_HAL_DRIVER
 extern USBD_StorageTypeDef *USBD_STORAGE_fops;
 #ifdef USE_SDCARD
-extern USBD_StorageTypeDef USBD_MSC_MICRO_SDIO_fops;
+extern USBD_StorageTypeDef USBD_MSC_MICRO_SD_SPI_fops;
 #endif
 #ifdef USE_FLASHFS
 extern USBD_StorageTypeDef USBD_MSC_EMFAT_fops;
@@ -38,7 +38,7 @@ extern USBD_StorageTypeDef USBD_MSC_EMFAT_fops;
 #else
 extern USBD_STORAGE_cb_TypeDef *USBD_STORAGE_fops;
 #ifdef USE_SDCARD
-extern USBD_STORAGE_cb_TypeDef USBD_MSC_MICRO_SDIO_fops;
+extern USBD_STORAGE_cb_TypeDef USBD_MSC_MICRO_SD_SPI_fops;
 #endif
 #ifdef USE_FLASHFS
 extern USBD_STORAGE_cb_TypeDef USBD_MSC_EMFAT_fops;
