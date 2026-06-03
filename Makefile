@@ -305,11 +305,10 @@ CLEAN_ARTIFACTS += $(TARGET_HEX)
 CLEAN_ARTIFACTS += $(TARGET_ELF) $(TARGET_OBJS) $(TARGET_MAP)
 CLEAN_ARTIFACTS += $(TARGET_LST)
 
-# Make sure build date and revision is updated on every incremental build
-$(OBJECT_DIR)/$(TARGET)/build/version.o : FORCE
+# Rebuild version.o whenever any source changes so the embedded timestamp stays current
+$(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC)
 
-.PHONY: FORCE clean clean_test clean_all all_clean
-FORCE:
+.PHONY: clean clean_test clean_all all_clean
 
 # Build each output directory once, not once-per-file, for parallel-safe compilation
 $(TARGET_DIRS):
