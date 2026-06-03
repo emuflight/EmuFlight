@@ -308,7 +308,7 @@ CLEAN_ARTIFACTS += $(TARGET_LST)
 # Rebuild version.o whenever any source changes so the embedded timestamp stays current
 $(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC)
 
-.PHONY: clean clean_test clean_all all_clean
+.PHONY: clean clean_test clean_all all_clean binary_hex
 
 # Build each output directory once, not once-per-file, for parallel-safe compilation
 $(TARGET_DIRS):
@@ -414,8 +414,7 @@ targets-group-rest: $(GROUP_OTHER_TARGETS)
 
 $(VALID_TARGETS):
 	$(V0) @echo "Building $@" && \
-	$(MAKE) binary TARGET=$@ && \
-	$(MAKE) hex TARGET=$@ && \
+	$(MAKE) binary_hex TARGET=$@ && \
 	echo "Building $@ succeeded."
 
 $(NOBUILD_TARGETS):
@@ -485,6 +484,9 @@ binary:
 
 hex:
 	$(V0) $(MAKE) $(TARGET_HEX)
+
+## binary_hex         : build both binary and hex in one sub-make (ELF linked once; BIN+HEX via parallel objcopy)
+binary_hex: $(TARGET_BIN) $(TARGET_HEX)
 
 unbrick_$(TARGET): $(TARGET_HEX)
 	$(V0) stty -F $(SERIAL_DEVICE) raw speed 115200 -crtscts cs8 -parenb -cstopb -ixon
