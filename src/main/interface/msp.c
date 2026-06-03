@@ -140,6 +140,8 @@ enum {
     MSP_REBOOT_FIRMWARE = 0,
     MSP_REBOOT_BOOTLOADER,
     MSP_REBOOT_MSC,
+    MSP_REBOOT_MSC_UTC,
+    MSP_REBOOT_BOOTLOADER_FLASH,
     MSP_REBOOT_COUNT,
 };
 
@@ -262,7 +264,8 @@ static void mspRebootFn(serialPort_t *serialPort) {
         break;
 #if defined(USE_USB_MSC)
     case MSP_REBOOT_MSC:
-        systemResetToMsc();
+    case MSP_REBOOT_MSC_UTC:
+        systemResetToMsc(0);
         break;
 #endif
     default:
@@ -1460,6 +1463,7 @@ static mspResult_e mspFcProcessOutCommandWithArg(mspDescriptor_t srcDesc, uint8_
             if (rebootMode >= MSP_REBOOT_COUNT
 #if !defined(USE_USB_MSC)
                     || rebootMode == MSP_REBOOT_MSC
+                    || rebootMode == MSP_REBOOT_MSC_UTC
 #endif
                ) {
                 return MSP_RESULT_ERROR;
@@ -1469,7 +1473,7 @@ static mspResult_e mspFcProcessOutCommandWithArg(mspDescriptor_t srcDesc, uint8_
         }
         sbufWriteU8(dst, rebootMode);
 #if defined(USE_USB_MSC)
-        if (rebootMode == MSP_REBOOT_MSC) {
+        if (rebootMode == MSP_REBOOT_MSC || rebootMode == MSP_REBOOT_MSC_UTC) {
             if (mscCheckFilesystemReady()) {
                 sbufWriteU8(dst, 1);
             } else {
