@@ -85,7 +85,7 @@
 #define GYRO_1_ALIGN         CW270_DEG_FLIP
 #define GYRO_1_CS_PIN        PD7    // ICM-42688-P SPI6_NSS
 #define GYRO_1_EXTI_PIN      PC13   // ICM-42688-P INT
-#define GYRO_1_SPI_BUS                 SPIDEV_6
+#define GYRO_1_SPI_BUS                 SPI6
 
 #define USE_DUAL_GYRO
 
