@@ -34,7 +34,6 @@
 #define USE_ACC_SPI_ICM42605
 #define USE_BARO_DPS310
 #define USE_FLASH
-#define USE_FLASH_M25P16
 #define USE_FLASH_W25N01G
 #define USE_MAX7456
 #define USE_BARO
