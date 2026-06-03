@@ -74,7 +74,8 @@ typedef enum SPIDevice {
     SPIDEV_2,
     SPIDEV_3,
     SPIDEV_4,
-    SPIDEV_5
+    SPIDEV_5,
+    SPIDEV_6
 } SPIDevice;
 
 #if defined(STM32F1)
@@ -85,7 +86,7 @@ typedef enum SPIDevice {
 #define SPIDEV_COUNT 4
 #elif defined(STM32H7)
 #if defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx)
-#define SPIDEV_COUNT 5
+#define SPIDEV_COUNT 6
 #else
 #define SPIDEV_COUNT 4
 #endif

@@ -379,6 +379,23 @@ const spiHardware_t spiHardware[] = {
         .rcc = RCC_APB2(SPI5),
         .dmaIrqHandler = DMA2_ST2_HANDLER,
     },
+    {
+        .device = SPIDEV_6,
+        .reg = SPI6,
+        .sckPins = {
+            { DEFIO_TAG_E(PA5), GPIO_AF8_SPI6 },
+            { DEFIO_TAG_E(PB3), GPIO_AF8_SPI6 },
+        },
+        .misoPins = {
+            { DEFIO_TAG_E(PA6), GPIO_AF8_SPI6 },
+            { DEFIO_TAG_E(PB4), GPIO_AF8_SPI6 },
+        },
+        .mosiPins = {
+            { DEFIO_TAG_E(PA7), GPIO_AF8_SPI6 },
+            { DEFIO_TAG_E(PB5), GPIO_AF8_SPI6 },
+        },
+        .rcc = RCC_APB4(SPI6),
+    },
 #endif
 #endif
 };
