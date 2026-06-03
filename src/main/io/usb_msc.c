@@ -36,7 +36,7 @@ bool mscCheckFilesystemReady(void) {
            || (blackboxConfig()->device == BLACKBOX_DEVICE_SDCARD && sdcard_isFunctional())
 #endif
 #if defined(USE_FLASHFS)
-           || (flashfsGetSize() > 0)
+           || (blackboxConfig()->device == BLACKBOX_DEVICE_FLASH && flashfsGetSize() > 0)
 #endif
            ;
 }
