@@ -126,7 +126,6 @@
 #define I2C2_SCL PB10
 #define I2C2_SDA PB11
 
-#define USE_SDCARD_SDIO
 #define SDCARD_SPI_CS_PIN    PA15
 #define SDCARD_SPI_INSTANCE             SPI3
 //notice - NEED: #define SDCARD_DMA_CHANNEL          X            // please verify
