@@ -60,8 +60,7 @@
 #define REUSE_TX_PL   0xE3
 #define NOP           0xFF
 
-static void NRF24L01_InitGpio(void)
-{
+static void NRF24L01_InitGpio(void) {
     // CE as OUTPUT
     const SPIDevice rxSPIDevice = spiDeviceByInstance(RX_SPI_INSTANCE);
     IOInit(DEFIO_IO(RX_CE_PIN), OWNER_RX_SPI_CS, rxSPIDevice + 1);
@@ -69,13 +68,11 @@ static void NRF24L01_InitGpio(void)
     NRF24_CE_LO();
 }
 
-uint8_t NRF24L01_WriteReg(uint8_t reg, uint8_t data)
-{
+uint8_t NRF24L01_WriteReg(uint8_t reg, uint8_t data) {
     return rxSpiWriteCommand(W_REGISTER | (REGISTER_MASK & reg), data);
 }
 
-uint8_t NRF24L01_WriteRegisterMulti(uint8_t reg, const uint8_t *data, uint8_t length)
-{
+uint8_t NRF24L01_WriteRegisterMulti(uint8_t reg, const uint8_t *data, uint8_t length) {
     return rxSpiWriteCommandMulti(W_REGISTER | ( REGISTER_MASK & reg), data, length);
 }
 
@@ -84,60 +81,51 @@ uint8_t NRF24L01_WriteRegisterMulti(uint8_t reg, const uint8_t *data, uint8_t le
  * Packets in the TX FIFO are transmitted when the
  * nRF24L01 next enters TX mode
  */
-uint8_t NRF24L01_WritePayload(const uint8_t *data, uint8_t length)
-{
+uint8_t NRF24L01_WritePayload(const uint8_t *data, uint8_t length) {
     return rxSpiWriteCommandMulti(W_TX_PAYLOAD, data, length);
 }
 
-uint8_t NRF24L01_WriteAckPayload(const uint8_t *data, uint8_t length, uint8_t pipe)
-{
+uint8_t NRF24L01_WriteAckPayload(const uint8_t *data, uint8_t length, uint8_t pipe) {
     return rxSpiWriteCommandMulti(W_ACK_PAYLOAD | (pipe & 0x07), data, length);
 }
 
-uint8_t NRF24L01_ReadReg(uint8_t reg)
-{
+uint8_t NRF24L01_ReadReg(uint8_t reg) {
     return rxSpiReadCommand(R_REGISTER | (REGISTER_MASK & reg), NOP);
 }
 
-uint8_t NRF24L01_ReadRegisterMulti(uint8_t reg, uint8_t *data, uint8_t length)
-{
+uint8_t NRF24L01_ReadRegisterMulti(uint8_t reg, uint8_t *data, uint8_t length) {
     return rxSpiReadCommandMulti(R_REGISTER | (REGISTER_MASK & reg), NOP, data, length);
 }
 
 /*
  * Read a packet from the nRF24L01 RX FIFO.
  */
-uint8_t NRF24L01_ReadPayload(uint8_t *data, uint8_t length)
-{
+uint8_t NRF24L01_ReadPayload(uint8_t *data, uint8_t length) {
     return rxSpiReadCommandMulti(R_RX_PAYLOAD, NOP, data, length);
 }
 
 /*
  * Empty the transmit FIFO buffer.
  */
-void NRF24L01_FlushTx(void)
-{
+void NRF24L01_FlushTx(void) {
     rxSpiWriteByte(FLUSH_TX);
 }
 
 /*
  * Empty the receive FIFO buffer.
  */
-void NRF24L01_FlushRx(void)
-{
+void NRF24L01_FlushRx(void) {
     rxSpiWriteByte(FLUSH_RX);
 }
 
-uint8_t NRF24L01_Activate(uint8_t code)
-{
+uint8_t NRF24L01_Activate(uint8_t code) {
     return rxSpiWriteCommand(ACTIVATE, code);
 }
 
 // standby configuration, used to simplify switching between RX, TX, and Standby modes
 static uint8_t standbyConfig;
 
-void NRF24L01_Initialize(uint8_t baseConfig)
-{
+void NRF24L01_Initialize(uint8_t baseConfig) {
     standbyConfig = BV(NRF24L01_00_CONFIG_PWR_UP) | baseConfig;
     NRF24L01_InitGpio();
     // nRF24L01+ needs 100 milliseconds settling time from PowerOnReset to PowerDown mode
@@ -156,8 +144,7 @@ void NRF24L01_Initialize(uint8_t baseConfig)
 /*
  * Common setup of registers
  */
-void NRF24L01_SetupBasic(void)
-{
+void NRF24L01_SetupBasic(void) {
     NRF24L01_WriteReg(NRF24L01_01_EN_AA, 0x00); // No auto acknowledgment
     NRF24L01_WriteReg(NRF24L01_02_EN_RXADDR, BV(NRF24L01_02_EN_RXADDR_ERX_P0));
     NRF24L01_WriteReg(NRF24L01_03_SETUP_AW, NRF24L01_03_SETUP_AW_5BYTES); // 5-byte RX/TX address
@@ -167,8 +154,7 @@ void NRF24L01_SetupBasic(void)
 /*
  * Enter standby mode
  */
-void NRF24L01_SetStandbyMode(void)
-{
+void NRF24L01_SetStandbyMode(void) {
     // set CE low and clear the PRIM_RX bit to enter standby mode
     NRF24_CE_LO();
     NRF24L01_WriteReg(NRF24L01_00_CONFIG, standbyConfig);
@@ -177,8 +163,7 @@ void NRF24L01_SetStandbyMode(void)
 /*
  * Enter receive mode
  */
-void NRF24L01_SetRxMode(void)
-{
+void NRF24L01_SetRxMode(void) {
     NRF24_CE_LO(); // drop into standby mode
     // set the PRIM_RX bit
     NRF24L01_WriteReg(NRF24L01_00_CONFIG, standbyConfig | BV(NRF24L01_00_CONFIG_PRIM_RX));
@@ -191,8 +176,7 @@ void NRF24L01_SetRxMode(void)
 /*
  * Enter transmit mode. Anything in the transmit FIFO will be transmitted.
  */
-void NRF24L01_SetTxMode(void)
-{
+void NRF24L01_SetTxMode(void) {
     // Ensure in standby mode, since can only enter TX mode from standby mode
     NRF24L01_SetStandbyMode();
     NRF24L01_ClearAllInterrupts();
@@ -204,19 +188,16 @@ void NRF24L01_SetTxMode(void)
     // Transmission will then begin and continue until TX FIFO is empty.
 }
 
-void NRF24L01_ClearAllInterrupts(void)
-{
+void NRF24L01_ClearAllInterrupts(void) {
     // Writing to the STATUS register clears the specified interrupt bits
     NRF24L01_WriteReg(NRF24L01_07_STATUS, BV(NRF24L01_07_STATUS_RX_DR) | BV(NRF24L01_07_STATUS_TX_DS) | BV(NRF24L01_07_STATUS_MAX_RT));
 }
 
-void NRF24L01_SetChannel(uint8_t channel)
-{
+void NRF24L01_SetChannel(uint8_t channel) {
     NRF24L01_WriteReg(NRF24L01_05_RF_CH, channel);
 }
 
-bool NRF24L01_ReadPayloadIfAvailable(uint8_t *data, uint8_t length)
-{
+bool NRF24L01_ReadPayloadIfAvailable(uint8_t *data, uint8_t length) {
     if (NRF24L01_ReadReg(NRF24L01_17_FIFO_STATUS) & BV(NRF24L01_17_FIFO_STATUS_RX_EMPTY)) {
         return false;
     }
@@ -230,8 +211,7 @@ bool NRF24L01_ReadPayloadIfAvailable(uint8_t *data, uint8_t length)
 /*
  * Fast read of payload, for use in interrupt service routine
  */
-bool NRF24L01_ReadPayloadIfAvailableFast(uint8_t *data, uint8_t length)
-{
+bool NRF24L01_ReadPayloadIfAvailableFast(uint8_t *data, uint8_t length) {
     // number of bits transferred = 8 * (3 + length)
     // for 16 byte payload, that is 8*19 = 152
     // at 50MHz clock rate that is approximately 3 microseconds

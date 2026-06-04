@@ -51,14 +51,29 @@ void systemResetToBootloader(void);
 void checkForBootLoaderRequest(void);
 bool isMPUSoftReset(void);
 void cycleCounterInit(void);
+uint32_t getCycleCounter(void);
+uint32_t clockMicrosToCycles(uint32_t micros);
+
+static inline int32_t cmpTimeCycles(uint32_t a, uint32_t b)
+{
+    return (int32_t)(a - b);
+}
 
 void enableGPIOPowerUsageAndNoiseReductions(void);
 // current crystal frequency - 8 or 12MHz
+
+void initialiseMemorySections(void);
+#ifdef STM32H7
+void initialiseD2MemorySections(void);
+void systemResetWithoutDisablingCaches(void);
+void systemProcessResetReason(void);
+#endif
 
 extern uint32_t hse_value;
 extern uint32_t cachedRccCsrValue;
 
 typedef void extiCallbackHandlerFunc(void);
 
-void registerExtiCallbackHandler(IRQn_Type irqn, extiCallbackHandlerFunc *fn);void unregisterExtiCallbackHandler(IRQn_Type irqn, extiCallbackHandlerFunc *fn);
+void registerExtiCallbackHandler(IRQn_Type irqn, extiCallbackHandlerFunc *fn);
+void unregisterExtiCallbackHandler(IRQn_Type irqn, extiCallbackHandlerFunc *fn);
 

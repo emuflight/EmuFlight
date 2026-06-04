@@ -65,6 +65,8 @@
 #include "io/vtx_control.h"
 #include "io/vtx_rtc6705.h"
 
+#include "common/olc.h"
+
 #include "pg/adc.h"
 #include "pg/beeper.h"
 #include "pg/beeper_dev.h"
@@ -107,13 +109,13 @@
 const char * const lookupTableAccHardware[] = {
     "AUTO", "NONE", "ADXL345", "MPU6050", "MMA8452", "BMA280", "LSM303DLHC",
     "MPU6000", "MPU6500", "MPU9250", "ICM20601", "ICM20602", "ICM20608G", "ICM20649", "ICM20689",
-    "BMI160", "ACC_IMUF9001", "FAKE"
+    "ICM42605", "ICM42688P", "BMI160", "BMI270", "ACC_IMUF9001", "FAKE"
 };
 // sync with gyroSensor_e
 const char * const lookupTableGyroHardware[] = {
     "AUTO", "NONE", "MPU6050", "L3G4200D", "MPU3050", "L3GD20",
     "MPU6000", "MPU6500", "MPU9250", "ICM20601", "ICM20602", "ICM20608G", "ICM20649", "ICM20689",
-    "BMI160", "GYRO_IMUF9001", "FAKE"
+    "ICM42605", "ICM42688P", "BMI160", "BMI270", "GYRO_IMUF9001", "FAKE"
 };
 
 #if defined(USE_SENSOR_NAMES) || defined(USE_BARO)
@@ -138,12 +140,20 @@ static const char * const lookupTableOffOn[] = {
     "OFF", "ON"
 };
 
+static const char * const lookupTableOffOnAuto[] = {
+    "OFF", "ON", "AUTO"
+};
+
 static const char * const lookupTableCrashRecovery[] = {
-    "OFF", "ON" ,"BEEP"
+    "OFF", "ON", "BEEP"
 };
 
 static const char * const lookupTableUnit[] = {
     "IMPERIAL", "METRIC"
+};
+
+static const char * const lookupTableCrsfformat[] = {
+    "SCALED", "MODE", "FREQ", "SIMPLE", "TBS"
 };
 
 static const char * const lookupTableAlignment[] = {
@@ -215,6 +225,7 @@ static const char * const lookupTableSerialRX[] = {
     "SRXL",
     "CUSTOM",
     "FPORT",
+    "GHST"
 };
 #endif
 
@@ -234,14 +245,23 @@ static const char * const lookupTableRxSpi[] = {
     "FLYSKY",
     "FLYSKY_2A",
     "KN",
-    "SFHSS"
+    "SFHSS",
+    "REDPINE"
 };
 #endif
 
 static const char * const lookupTableGyroHardwareLpf[] = {
     "NORMAL",
+#if defined(USE_GYRO_SPI_ICM42605) || defined(USE_GYRO_SPI_ICM42688P) || defined(USE_ACCGYRO_BMI270)
+    "OPTION1",
+    "OPTION2",
+#if ( defined(USE_GYRO_SPI_ICM42688P) || defined(USE_ACCGYRO_BMI270) ) && defined(USE_GYRO_DLPF_EXPERIMENTAL) // icm42688p & bmi270 experimental
+    "EXPERIMENTAL",
+#endif
+#else
     "EXPERIMENTAL",
     "1KHZ_SAMPLING"
+#endif
 };
 
 #ifdef USE_32K_CAPABLE_GYRO
@@ -262,7 +282,7 @@ static const char * const lookupTableCameraControlMode[] = {
 static const char * const lookupTablePwmProtocol[] = {
     "OFF", "ONESHOT125", "ONESHOT42", "MULTISHOT", "BRUSHED",
 #ifdef USE_DSHOT
-    "DSHOT150", "DSHOT300", "DSHOT600", "DSHOT1200", "PROSHOT1000"
+    "DSHOT150", "DSHOT300", "DSHOT600", "DSHOT1200", "DSHOT2400", "DSHOT4800", "PROSHOT1000"
 #endif
 };
 
@@ -273,14 +293,9 @@ static const char * const lookupTableRcInterpolation[] = {
 static const char * const lookupTableRcInterpolationChannels[] = {
     "RP", "RPY", "RPYT", "T", "RPT",
 };
-static const char * const lookupTableFilterType[] = {
-    "PT1",
-    "BIQUAD"
-  };
 
-static const char * const lookupTableAntiGravityMode[] = {
-    "SMOOTH",
-    "STEP",
+static const char * const lookupTableFilterType[] = {
+    "PT1", "BIQUAD", "PT2", "PT3", "PT4",
 };
 
 #if defined(USE_GYRO_IMUF9001)
@@ -314,7 +329,7 @@ static const char * const lookupTableGyroOverflowCheck[] = {
 #endif
 
 static const char * const lookupTableRatesType[] = {
-    "BETAFLIGHT", "RACEFLIGHT"
+    "BETAFLIGHT", "RACEFLIGHT", "KISS", "ACTUAL"
 };
 
 #ifdef USE_OVERCLOCK
@@ -331,9 +346,9 @@ static const char * const lookupOverclock[] = {
 #endif
 
 #ifdef USE_LED_STRIP
-    static const char * const lookupLedStripFormatRGB[] = {
-        "GRB", "RGB"
-    };
+static const char * const lookupLedStripFormatRGB[] = {
+    "GRB", "RGB"
+};
 #endif
 
 static const char * const lookupTableThrottleLimitType[] = {
@@ -353,18 +368,9 @@ static const char * const lookupTableRescueSanityType[] = {
 
 #ifdef USE_MAX7456
 static const char * const lookupTableVideoSystem[] = {
-    "AUTO", "PAL", "NTSC"
+    "AUTO", "PAL", "NTSC", "HD"
 };
 #endif // USE_MAX7456
-
-#if defined(USE_ITERM_RELAX)
-static const char * const lookupTableItermRelax[] = {
-    "OFF", "RP", "RPY", "RP_INC", "RPY_INC"
-};
-static const char * const lookupTableItermRelaxType[] = {
-    "GYRO", "SETPOINT"
-};
-#endif
 
 #ifdef USE_RC_SMOOTHING_FILTER
 static const char * const lookupTableRcSmoothingType[] = {
@@ -374,18 +380,31 @@ static const char * const lookupTableRcSmoothingDebug[] = {
     "ROLL", "PITCH", "YAW", "THROTTLE"
 };
 static const char * const lookupTableRcSmoothingInputType[] = {
-    "PT1", "BIQUAD"
+    "PT1", "BIQUAD", "PT2", "PT3", "PT4"
 };
-static const char * const lookupTableRcSmoothingDerivativeType[] = {
-    "OFF", "PT1", "BIQUAD"
+#endif
+
+#ifdef USE_OSD
+static const char * const lookupTableOsdLogoOnArming[] = {
+    "OFF", "ON", "FIRST_ARMING",
 };
-#endif // USE_RC_SMOOTHING_FILTER
+#endif
+
+static const char *const lookupTableMixerImplType[] = {
+    "LEGACY", "SMOOTH", "2PASS"
+};
+
+static const char *const lookupTableDynNotchAxisType[] = {
+    "RP", "RPY"
+};
 
 #define LOOKUP_TABLE_ENTRY(name) { name, ARRAYLEN(name) }
 
 const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableOffOn),
+    LOOKUP_TABLE_ENTRY(lookupTableOffOnAuto),
     LOOKUP_TABLE_ENTRY(lookupTableUnit),
+    LOOKUP_TABLE_ENTRY(lookupTableCrsfformat),
     LOOKUP_TABLE_ENTRY(lookupTableAlignment),
 #ifdef USE_GPS
     LOOKUP_TABLE_ENTRY(lookupTableGPSProvider),
@@ -428,7 +447,6 @@ const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableRcInterpolation),
     LOOKUP_TABLE_ENTRY(lookupTableRcInterpolationChannels),
     LOOKUP_TABLE_ENTRY(lookupTableFilterType),
-    LOOKUP_TABLE_ENTRY(lookupTableAntiGravityMode),
     LOOKUP_TABLE_ENTRY(lookupTableFailsafe),
     LOOKUP_TABLE_ENTRY(lookupTableFailsafeSwitchMode),
     LOOKUP_TABLE_ENTRY(lookupTableCrashRecovery),
@@ -459,17 +477,17 @@ const lookupTableEntry_t lookupTables[] = {
 #ifdef USE_MAX7456
     LOOKUP_TABLE_ENTRY(lookupTableVideoSystem),
 #endif // USE_MAX7456
-#if defined(USE_ITERM_RELAX)
-    LOOKUP_TABLE_ENTRY(lookupTableItermRelax),
-    LOOKUP_TABLE_ENTRY(lookupTableItermRelaxType),
-#endif
 #ifdef USE_RC_SMOOTHING_FILTER
     LOOKUP_TABLE_ENTRY(lookupTableRcSmoothingType),
     LOOKUP_TABLE_ENTRY(lookupTableRcSmoothingDebug),
     LOOKUP_TABLE_ENTRY(lookupTableRcSmoothingInputType),
-    LOOKUP_TABLE_ENTRY(lookupTableRcSmoothingDerivativeType),
 #endif // USE_RC_SMOOTHING_FILTER
-    LOOKUP_TABLE_ENTRY(lookupTableThrottleVbatCompType)
+    LOOKUP_TABLE_ENTRY(lookupTableThrottleVbatCompType),
+#ifdef USE_OSD
+    LOOKUP_TABLE_ENTRY(lookupTableOsdLogoOnArming),
+#endif
+    LOOKUP_TABLE_ENTRY(lookupTableMixerImplType),
+    LOOKUP_TABLE_ENTRY(lookupTableDynNotchAxisType),
 };
 
 #undef LOOKUP_TABLE_ENTRY
@@ -491,10 +509,16 @@ const clivalue_t valueTable[] = {
     { "gyro_lowpass_hz_pitch",      VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass_hz[PITCH]) },
     { "gyro_lowpass_hz_yaw",        VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass_hz[YAW]) },
 
+#ifdef USE_GYRO_LPF2
     { "gyro_lowpass2_type",         VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_FILTER_TYPE }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass2_type) },
     { "gyro_lowpass2_hz_roll",      VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass2_hz[ROLL]) },
     { "gyro_lowpass2_hz_pitch",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass2_hz[PITCH]) },
     { "gyro_lowpass2_hz_yaw",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_lowpass2_hz[YAW]) },
+#endif
+
+    { "gyro_abg_alpha",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_ABG_alpha) },
+    { "gyro_abg_boost",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0,  2000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_ABG_boost) },
+    { "gyro_abg_half_life",         VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0,  250 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_ABG_half_life) },
 
     { "gyro_notch1_hz",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_soft_notch_hz_1) },
     { "gyro_notch1_cutoff",         VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_soft_notch_cutoff_1) },
@@ -506,43 +530,49 @@ const clivalue_t valueTable[] = {
     { "gyro_offset_yaw",            VAR_INT16  | MASTER_VALUE, .config.minmax = { -1000, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_offset_yaw) },
 #ifdef USE_GYRO_IMUF9001
     { "imuf_rate",                  VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_IMUF_RATE }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_rate) },
-    { "imuf_roll_q",                VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_roll_q) },
-    { "imuf_pitch_q",               VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_pitch_q) },
-    { "imuf_yaw_q",                 VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_yaw_q) },
-    { "imuf_w",                     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 3, 1024  }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_w) },
+    { "imuf_roll_q",                VAR_UINT16 | MASTER_VALUE, .config.minmax = { 100, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_roll_q) },
+    { "imuf_pitch_q",               VAR_UINT16 | MASTER_VALUE, .config.minmax = { 100, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_pitch_q) },
+    { "imuf_yaw_q",                 VAR_UINT16 | MASTER_VALUE, .config.minmax = { 100, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_yaw_q) },
+    { "imuf_w",                     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 3, 512   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_w) },
     { "imuf_pitch_lpf_cutoff_hz",   VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 450   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_pitch_lpf_cutoff_hz) },
     { "imuf_roll_lpf_cutoff_hz",    VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 450   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_roll_lpf_cutoff_hz) },
     { "imuf_yaw_lpf_cutoff_hz",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 450   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_yaw_lpf_cutoff_hz) },
     { "imuf_acc_lpf_cutoff_hz",     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 180  }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_acc_lpf_cutoff_hz) },
-    { "imuf_sharpness",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 5000  }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_sharpness) },
+    { "imuf_ptn_order",             VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, 4     }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_ptn_order) },
 #else
     { "imuf_roll_q",                VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_roll_q) },
     { "imuf_pitch_q",               VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_pitch_q) },
     { "imuf_yaw_q",                 VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 16000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_yaw_q) },
-    { "imuf_w",                     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 3, 512   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_w) },
-    { "imuf_sharpness",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 5000  }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_sharpness) },
+    { "imuf_w",                     VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 512   }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, imuf_w) },
 #endif
-    { "gyro_average_roll",          VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 10    }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, averagedGyro[ROLL]) },
-    { "gyro_average_pitch",         VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 10    }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, averagedGyro[PITCH]) },
-    { "gyro_average_yaw",           VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 10    }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, averagedGyro[YAW]) },
+
 #ifdef USE_GYRO_OVERFLOW_CHECK
     { "gyro_overflow_detect",       VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO_OVERFLOW_CHECK }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, checkOverflow) },
 #endif
 #ifdef USE_YAW_SPIN_RECOVERY
-    { "yaw_spin_recovery",          VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, yaw_spin_recovery) },
-    { "yaw_spin_threshold",         VAR_UINT16 | MASTER_VALUE, .config.minmax = { 500,  1950 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, yaw_spin_threshold) },
+    { "yaw_spin_recovery",          VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON_AUTO }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, yaw_spin_recovery) },
+    { "yaw_spin_threshold",         VAR_UINT16 | MASTER_VALUE, .config.minmax = { YAW_SPIN_RECOVERY_THRESHOLD_MIN,  YAW_SPIN_RECOVERY_THRESHOLD_MAX }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, yaw_spin_threshold) },
 #endif
 
-#if defined(GYRO_USES_SPI) && defined(USE_32K_CAPABLE_GYRO)
+#if defined(GYRO_USES_SPI) && defined(USE_32K_CAPABLE_GYRO) || defined(USE_GYRO_IMUF9001)
     { "gyro_use_32khz",             VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_use_32khz) },
 #endif
 #ifdef USE_DUAL_GYRO
     { "gyro_to_use",                VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyro_to_use) },
 #endif
 #if defined(USE_GYRO_DATA_ANALYSE)
-    { "dyn_notch_quality",          VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, 70 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_quality) },
-    { "dyn_notch_width_percent",    VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, 99 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_width_percent) },
+    { "dynamic_gyro_notch_axis",    VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_DYN_NOTCH_AXIS_TYPE }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_axis) },
+    { "dynamic_gyro_notch_q",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_q) },
+    { "dynamic_gyro_notch_count",   VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, 5 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_count) },
+    { "dynamic_gyro_notch_min_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 30, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_min_hz) },
+    { "dynamic_gyro_notch_max_hz",  VAR_UINT16 | MASTER_VALUE, .config.minmax = { 400, 1000 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, dyn_notch_max_hz) },
 #endif
+#ifdef USE_SMITH_PREDICTOR
+    { "smith_predict_enabled",      VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorEnabled) },
+    { "smith_predict_str",          VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 100 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorStrength) },
+    { "smith_predict_delay",        VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 120 },    PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorDelay) },
+    { "smith_predict_filt_hz",      VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, 250 },  PG_GYRO_CONFIG, offsetof(gyroConfig_t, smithPredictorFilterHz) },
+#endif // USE_SMITH_PREDICTOR
 
 // PG_ACCELEROMETER_CONFIG
     { "align_acc",                  VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ALIGNMENT }, PG_ACCELEROMETER_CONFIG, offsetof(accelerometerConfig_t, acc_align) },
@@ -574,10 +604,10 @@ const clivalue_t valueTable[] = {
     { "baro_i2c_device",            VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 5 }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_i2c_device) },
     { "baro_i2c_address",           VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, I2C_ADDR7_MAX }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_i2c_address) },
     { "baro_hardware",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_BARO_HARDWARE }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_hardware) },
-    { "baro_tab_size",              VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, BARO_SAMPLE_COUNT_MAX }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_sample_count) },
-    { "baro_noise_lpf",             VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, 1000 }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_noise_lpf) },
-    { "baro_cf_vel",                VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, 1000 }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_cf_vel) },
-    { "baro_cf_alt",                VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, 1000 }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_cf_alt) },
+    { "baro_tab_size",              VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, BARO_SAMPLE_COUNT_MAX }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_sample_count) },
+    { "baro_noise_lpf",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 1000 }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_noise_lpf) },
+    { "baro_cf_vel",                VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 1000 }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_cf_vel) },
+    { "baro_cf_alt",                VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 1000 }, PG_BAROMETER_CONFIG, offsetof(barometerConfig_t, baro_cf_alt) },
 #endif
 
 // PG_RX_CONFIG
@@ -596,10 +626,8 @@ const clivalue_t valueTable[] = {
 #ifdef USE_RC_SMOOTHING_FILTER
     { "rc_smoothing_type",          VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RC_SMOOTHING_TYPE }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_type) },
     { "rc_smoothing_input_hz",      VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_input_cutoff) },
-    { "rc_smoothing_derivative_hz", VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_derivative_cutoff) },
     { "rc_smoothing_debug_axis",    VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RC_SMOOTHING_DEBUG }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_debug_axis) },
     { "rc_smoothing_input_type",    VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RC_SMOOTHING_INPUT_TYPE }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_input_type) },
-    { "rc_smoothing_derivative_type",VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RC_SMOOTHING_DERIVATIVE_TYPE }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_derivative_type) },
 #endif // USE_RC_SMOOTHING_FILTER
 
     { "fpv_mix_degrees",            VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 90 }, PG_RX_CONFIG, offsetof(rxConfig_t, fpvCamAngleDegrees) },
@@ -611,15 +639,19 @@ const clivalue_t valueTable[] = {
 #endif
 #ifdef USE_SPEKTRUM_BIND
     { "spektrum_sat_bind",          VAR_UINT8  | MASTER_VALUE, .config.minmax = { SPEKTRUM_SAT_BIND_DISABLED, SPEKTRUM_SAT_BIND_MAX}, PG_RX_CONFIG, offsetof(rxConfig_t, spektrum_sat_bind) },
-    { "spektrum_sat_bind_autoreset",VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_RX_CONFIG, offsetof(rxConfig_t, spektrum_sat_bind_autoreset) },
+    { "spektrum_sat_bind_autoreset", VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_RX_CONFIG, offsetof(rxConfig_t, spektrum_sat_bind_autoreset) },
+    #endif
+#if defined(USE_SERIALRX_SBUS)
+    { "sbus_baud_fast",           VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_RX_CONFIG, offsetof(rxConfig_t, sbus_baud_fast) },
 #endif
     { "airmode_start_throttle_percent",     VAR_UINT8 | MASTER_VALUE, .config.minmax = { 0, 100 }, PG_RX_CONFIG, offsetof(rxConfig_t, airModeActivateThreshold) },
     { "rx_min_usec",                VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_PULSE_MIN, PWM_PULSE_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rx_min_usec) },
     { "rx_max_usec",                VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_PULSE_MIN, PWM_PULSE_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rx_max_usec) },
     { "serialrx_halfduplex",        VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_RX_CONFIG, offsetof(rxConfig_t, halfDuplex) },
+    { "show_altered_rc",            VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_RX_CONFIG, offsetof(rxConfig_t, showAlteredRc) },
 #ifdef USE_RX_SPI
     { "rx_spi_protocol",            VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RX_SPI }, PG_RX_SPI_CONFIG, offsetof(rxSpiConfig_t, rx_spi_protocol) },
-    { "rx_spi_bus",                 VAR_UINT8   | MASTER_VALUE, .config.minmax = { 0, SPIDEV_COUNT }, PG_RX_SPI_CONFIG, offsetof(rxSpiConfig_t, spibus) },
+    { "rx_spi_bus",                 VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, SPIDEV_COUNT }, PG_RX_SPI_CONFIG, offsetof(rxSpiConfig_t, spibus) },
 #endif
 
 // PG_ADC_CONFIG
@@ -645,7 +677,7 @@ const clivalue_t valueTable[] = {
     { "max_throttle",               VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_PULSE_MIN, PWM_PULSE_MAX }, PG_MOTOR_CONFIG, offsetof(motorConfig_t, maxthrottle) },
     { "min_command",                VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_PULSE_MIN, PWM_PULSE_MAX }, PG_MOTOR_CONFIG, offsetof(motorConfig_t, mincommand) },
 #ifdef USE_DSHOT
-    { "dshot_idle_value",           VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, 2000 }, PG_MOTOR_CONFIG, offsetof(motorConfig_t, digitalIdleOffsetValue) },
+    { "dshot_idle_value",           VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 2000 }, PG_MOTOR_CONFIG, offsetof(motorConfig_t, digitalIdleOffsetValue) },
 #ifdef USE_DSHOT_DMAR
     { "dshot_burst",                VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_MOTOR_CONFIG, offsetof(motorConfig_t, dev.useBurstDshot) },
 #endif
@@ -665,7 +697,7 @@ const clivalue_t valueTable[] = {
     { "failsafe_off_delay",         VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 200 }, PG_FAILSAFE_CONFIG, offsetof(failsafeConfig_t, failsafe_off_delay) },
     { "failsafe_throttle",          VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_PULSE_MIN, PWM_PULSE_MAX }, PG_FAILSAFE_CONFIG, offsetof(failsafeConfig_t, failsafe_throttle) },
     { "failsafe_switch_mode",       VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_FAILSAFE_SWITCH_MODE }, PG_FAILSAFE_CONFIG, offsetof(failsafeConfig_t, failsafe_switch_mode) },
-    { "failsafe_throttle_low_delay",VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 300 }, PG_FAILSAFE_CONFIG, offsetof(failsafeConfig_t, failsafe_throttle_low_delay) },
+    { "failsafe_throttle_low_delay", VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 300 }, PG_FAILSAFE_CONFIG, offsetof(failsafeConfig_t, failsafe_throttle_low_delay) },
     { "failsafe_procedure",         VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_FAILSAFE }, PG_FAILSAFE_CONFIG, offsetof(failsafeConfig_t, failsafe_procedure) },
 
 // PG_BOARDALIGNMENT_CONFIG
@@ -722,8 +754,9 @@ const clivalue_t valueTable[] = {
 #endif // USE_BEEPER
 
 // PG_MIXER_CONFIG
-    { "yaw_motors_reversed",        VAR_INT8   | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_MIXER_CONFIG, offsetof(mixerConfig_t, yaw_motors_reversed) },
+    { "yaw_motors_reversed",        VAR_INT8  |  MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_MIXER_CONFIG, offsetof(mixerConfig_t, yaw_motors_reversed) },
     { "crashflip_motor_percent",    VAR_UINT8 |  MASTER_VALUE,  .config.minmax = { 0, 100 }, PG_MIXER_CONFIG, offsetof(mixerConfig_t, crashflip_motor_percent) },
+    { "crashflip_power_percent",    VAR_UINT8 |  MASTER_VALUE,  .config.minmax = { 25, 100 }, PG_MIXER_CONFIG, offsetof(mixerConfig_t, crashflip_power_percent) },
 
 // PG_MOTOR_3D_CONFIG
     { "3d_deadband_low",            VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_PULSE_MIN, PWM_RANGE_MIDDLE }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, deadband3d_low) },
@@ -732,7 +765,7 @@ const clivalue_t valueTable[] = {
     { "3d_deadband_throttle",       VAR_UINT16 | MASTER_VALUE, .config.minmax = { 1, 100 }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, deadband3d_throttle) },
     { "3d_limit_low",               VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_PULSE_MIN, PWM_RANGE_MIDDLE }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, limit3d_low) },
     { "3d_limit_high",              VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_RANGE_MIDDLE, PWM_PULSE_MAX }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, limit3d_high) },
-    { "3d_switched_mode",           VAR_UINT8 | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, switched_mode3d) },
+    { "3d_switched_mode",           VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_MOTOR_3D_CONFIG, offsetof(flight3DConfig_t, switched_mode3d) },
 
 // PG_SERVO_CONFIG
 #ifdef USE_SERVOS
@@ -756,6 +789,18 @@ const clivalue_t valueTable[] = {
     { "roll_srate",                 VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, CONTROL_RATE_CONFIG_RATE_MAX }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rates[FD_ROLL]) },
     { "pitch_srate",                VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, CONTROL_RATE_CONFIG_RATE_MAX }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rates[FD_PITCH]) },
     { "yaw_srate",                  VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, CONTROL_RATE_CONFIG_RATE_MAX }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rates[FD_YAW]) },
+    { "das_yaw_with_roll_input",    VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, addRollToYawRc) },
+    { "das_roll_with_yaw_input",    VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, addYawToRollRc) },
+    { "roll_pitch_mag_expo",        VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 250 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rollPitchMagExpo) },
+
+// rateDynamics
+    { "rate_center_sensitivity",   VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 25, 175 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateSensCenter) },
+    { "rate_end_sensitivity",      VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 25, 175 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateSensEnd) },
+    { "rate_center_correction",    VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 10, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateCorrectionCenter) },
+    { "rate_end_correction",       VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 10, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateCorrectionEnd) },
+    { "rate_center_weight",        VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateWeightCenter) },
+    { "rate_end_weight",           VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 95 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, rateDynamics.rateWeightEnd) },
+
     { "tpa_rate_p",                 VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, CONTROL_RATE_CONFIG_TPA_MAX}, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, dynThrP) },
     { "tpa_rate_i",                 VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, CONTROL_RATE_CONFIG_TPA_MAX}, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, dynThrI) },
     { "tpa_rate_d",                 VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, CONTROL_RATE_CONFIG_TPA_MAX}, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, dynThrD) },
@@ -765,8 +810,6 @@ const clivalue_t valueTable[] = {
 
     { "vbat_comp_type",             VAR_UINT8  | PROFILE_RATE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_VBAT_COMP_TYPE }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, vbat_comp_type) },
     { "vbat_comp_ref"         ,     VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { VBAT_CELL_VOTAGE_RANGE_MIN, VBAT_CELL_VOTAGE_RANGE_MAX }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, vbat_comp_ref) },
-    { "vbat_comp_throttle_level",   VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, vbat_comp_throttle_level) },
-    { "vbat_comp_pid_level",        VAR_UINT8  | PROFILE_RATE_VALUE, .config.minmax = { 0, 100 }, PG_CONTROL_RATE_PROFILES, offsetof(controlRateConfig_t, vbat_comp_pid_level) },
 
 // PG_SERIAL_CONFIG
     { "reboot_character",           VAR_UINT8  | MASTER_VALUE, .config.minmax = { 48, 126 }, PG_SERIAL_CONFIG, offsetof(serialConfig_t, reboot_character) },
@@ -783,6 +826,7 @@ const clivalue_t valueTable[] = {
 // PG_ARMING_CONFIG
     { "auto_disarm_delay",          VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 60 }, PG_ARMING_CONFIG, offsetof(armingConfig_t, auto_disarm_delay) },
     { "gyro_cal_on_first_arm",      VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_ARMING_CONFIG, offsetof(armingConfig_t, gyro_cal_on_first_arm) },
+    { "prearm_allow_rearm",         VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_ARMING_CONFIG, offsetof(armingConfig_t, prearm_allow_rearm) },
     { "use_stick_arming",           VAR_INT8   | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_ARMING_CONFIG, offsetof(armingConfig_t, isUsingSticksForArming) },
 
 
@@ -829,24 +873,22 @@ const clivalue_t valueTable[] = {
     { "runaway_takeoff_deactivate_throttle_percent",  VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 100 }, PG_PID_CONFIG, offsetof(pidConfig_t, runaway_takeoff_deactivate_throttle) }, // minimum throttle percentage during deactivation phase
 #endif
 // PG_PID_PROFILE
+#ifdef USE_GYRO_DATA_ANALYSE
+    { "dterm_dyn_notch_enable",     VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermDynNotch) },
+    { "dterm_dyn_notch_q",          VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 1, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_dyn_notch_q) },
+#endif
+    { "dterm_abg_alpha",            VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_ABG_alpha) },
+    { "dterm_abg_boost",            VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_ABG_boost) },
+    { "dterm_abg_half_life",        VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_ABG_half_life) },
     { "dterm_lowpass_type",         VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_FILTER_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter_type) },
     { "dterm_lowpass_hz_roll",      VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[ROLL].dLpf) },
     { "dterm_lowpass_hz_pitch",     VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].dLpf) },
     { "dterm_lowpass_hz_yaw",       VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[YAW].dLpf) },
+    { "dterm_lowpass2_type",        VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_FILTER_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, dterm_filter2_type) },
     { "dterm_lowpass2_hz_roll",     VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[ROLL].dLpf2) },
     { "dterm_lowpass2_hz_pitch",    VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].dLpf2) },
     { "dterm_lowpass2_hz_yaw",      VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 16000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[YAW].dLpf2) },
-    { "smart_dterm_smoothing_roll", VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[ROLL].smartSmoothing) },
-    { "smart_dterm_smoothing_pitch",VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].smartSmoothing) },
-    { "smart_dterm_smoothing_yaw",  VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[YAW].smartSmoothing) },
-    { "witchcraft_roll",            VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[ROLL].Wc) },
-    { "witchcraft_pitch",           VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[PITCH].Wc) },
-    { "witchcraft_yaw",             VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, dFilter[YAW].Wc) },
     { "pid_at_min_throttle",        VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, pidAtMinThrottle) },
-    { "anti_gravity_mode",          VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ANTI_GRAVITY_MODE }, PG_PID_PROFILE, offsetof(pidProfile_t, antiGravityMode) },
-    { "anti_gravity_threshold",     VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 20, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermThrottleThreshold) },
-    { "anti_gravity_gain",          VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 1000, 30000 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermAcceleratorGain) },
-    { "feedforward_transition",     VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, feedForwardTransition) },
     { "spa_roll_p",                 VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250}, PG_PID_PROFILE, offsetof(pidProfile_t, setPointPTransition[ROLL]) },
     { "spa_roll_i",                 VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250}, PG_PID_PROFILE, offsetof(pidProfile_t, setPointITransition[ROLL]) },
     { "spa_roll_d",                 VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250}, PG_PID_PROFILE, offsetof(pidProfile_t, setPointDTransition[ROLL]) },
@@ -868,13 +910,13 @@ const clivalue_t valueTable[] = {
     { "crash_limit_yaw",            VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, crash_limit_yaw) },
     { "crash_recovery",             VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_CRASH_RECOVERY }, PG_PID_PROFILE, offsetof(pidProfile_t, crash_recovery) },
     { "iterm_rotation",             VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_rotation) },
-
 #if defined(USE_ITERM_RELAX)
-    { "iterm_relax",                VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ITERM_RELAX }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax) },
-    { "iterm_relax_type",           VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_ITERM_RELAX_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_type) },
-    { "iterm_relax_cutoff",         VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 1, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_cutoff) },
+    { "iterm_relax_cutoff",         VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_cutoff) },
+    { "iterm_relax_cutoff_yaw",     VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_cutoff_yaw) },
+    { "iterm_relax_threshold",      VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 10, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_threshold) },
+    { "iterm_relax_threshold_yaw",  VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 10, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, iterm_relax_threshold_yaw) },
 #endif
-    { "iterm_windup",               VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 30, 99 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermWindupPointPercent) },
+    { "iterm_windup",               VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermWindupPointPercent) },
     { "iterm_limit",                VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 500 }, PG_PID_PROFILE, offsetof(pidProfile_t, itermLimit) },
     { "pidsum_limit",               VAR_UINT16 | PROFILE_VALUE, .config.minmax = { PIDSUM_LIMIT_MIN, PIDSUM_LIMIT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, pidSumLimit) },
     { "pidsum_limit_yaw",           VAR_UINT16 | PROFILE_VALUE, .config.minmax = { PIDSUM_LIMIT_MIN, PIDSUM_LIMIT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, pidSumLimitYaw) },
@@ -884,48 +926,55 @@ const clivalue_t valueTable[] = {
     { "throttle_boost_cutoff",      VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { 5, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, throttle_boost_cutoff) },
 #endif
 
-    { "feathered_pids",             VAR_UINT8  | PROFILE_VALUE,  .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, feathered_pids) },
+    { "feathered_pids",             VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, feathered_pids) },
     { "i_decay",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 1, 10 },  PG_PID_PROFILE, offsetof(pidProfile_t, i_decay) },
-    { "emu_boost",                  VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, errorBoost) },
-    { "emu_boost_yaw",              VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 1000 }, PG_PID_PROFILE, offsetof(pidProfile_t, errorBoostYaw) },
+    { "i_decay_cutoff",             VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 1, 250 },  PG_PID_PROFILE, offsetof(pidProfile_t, i_decay_cutoff) },
+    { "emu_boost",                  VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 }, PG_PID_PROFILE, offsetof(pidProfile_t, errorBoost) },
+    { "emu_boost_yaw",              VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 }, PG_PID_PROFILE, offsetof(pidProfile_t, errorBoostYaw) },
     { "emu_boost_limit",            VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, errorBoostLimit) },
     { "emu_boost_limit_yaw",        VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, errorBoostLimitYaw) },
-    { "nfe_racermode",              VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, nfe_racermode) },
-    { "cinematic_setpoint",         VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, cinematic_setpoint) },
+    { "dterm_boost",                VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermBoost) },
+    { "dterm_boost_limit",          VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 250 }, PG_PID_PROFILE, offsetof(pidProfile_t, dtermBoostLimit) },
+    { "emu_gravity",                VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, emuGravityGain) },
+    { "axis_lock_multiplier",       VAR_UINT8 | PROFILE_VALUE, .config.minmax = { 0, 10 }, PG_PID_PROFILE, offsetof(pidProfile_t, axis_lock_multiplier) },
+    { "axis_lock_hz",               VAR_UINT8 | PROFILE_VALUE, .config.minmax = { 1, 50 }, PG_PID_PROFILE, offsetof(pidProfile_t, axis_lock_hz) },
 
     { "p_pitch",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].P) },
     { "i_pitch",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].I) },
     { "d_pitch",                    VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].D) },
-    { "f_pitch",                    VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 },PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_PITCH].F) },
     { "p_roll",                     VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_ROLL].P) },
     { "i_roll",                     VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_ROLL].I) },
     { "d_roll",                     VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_ROLL].D) },
-    { "f_roll",                     VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 },PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_ROLL].F) },
     { "p_yaw",                      VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_YAW].P) },
     { "i_yaw",                      VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_YAW].I) },
     { "d_yaw",                      VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_YAW].D) },
-    { "f_yaw",                      VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 },PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_YAW].F) },
+    { "df_yaw",                     VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, directFF_yaw) },
 
     { "p_angle_low",                VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_LEVEL_LOW].P) },
     { "d_angle_low",                VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_LEVEL_LOW].D) },
     { "p_angle_high",               VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_LEVEL_HIGH].P) },
     { "d_angle_high",               VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_LEVEL_HIGH].D) },
-    { "f_angle",                VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_LEVEL_LOW].F) },
+    { "f_angle",                    VAR_UINT16 | PROFILE_VALUE, .config.minmax = { 0, 2000 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_LEVEL_LOW].F) },
+    { "df_angle_low",               VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_LEVEL_LOW].I) },
+    { "df_angle_high",              VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 200 }, PG_PID_PROFILE, offsetof(pidProfile_t, pid[PID_LEVEL_HIGH].I) },
 
     { "level_limit",                VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 10, 90 }, PG_PID_PROFILE, offsetof(pidProfile_t, levelAngleLimit) },
-    { "angle_expo",                VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, angleExpo) },
+    { "angle_expo",                 VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, angleExpo) },
+    { "angle_filter",               VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, angle_filter) },
 
     { "horizon_transition",         VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0,  200 }, PG_PID_PROFILE, offsetof(pidProfile_t, horizonTransition) },
     { "horizon_tilt_effect",        VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0,  180 }, PG_PID_PROFILE, offsetof(pidProfile_t, horizon_tilt_effect) },
+    { "horizon_strength",           VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0,  200 }, PG_PID_PROFILE, offsetof(pidProfile_t, horizonStrength) },
 
-#if defined(USE_ABSOLUTE_CONTROL)
-    { "abs_control_gain",           VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { 0, 20 }, PG_PID_PROFILE, offsetof(pidProfile_t, abs_control_gain) },
-    { "abs_control_limit",          VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { 10, 255 }, PG_PID_PROFILE, offsetof(pidProfile_t, abs_control_limit) },
-    { "abs_control_error_limit",    VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { 1, 45 }, PG_PID_PROFILE, offsetof(pidProfile_t, abs_control_error_limit) },
-#endif
+    { "motor_output_limit",          VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { MOTOR_OUTPUT_LIMIT_PERCENT_MIN, MOTOR_OUTPUT_LIMIT_PERCENT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, motor_output_limit) },
+    { "auto_profile_cell_count",     VAR_INT8  | PROFILE_VALUE,  .config.minmax = { AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT }, PG_PID_PROFILE, offsetof(pidProfile_t, auto_profile_cell_count) },
 
-    { "motor_output_limit",        VAR_UINT8 | PROFILE_VALUE,  .config.minmax = { MOTOR_OUTPUT_LIMIT_PERCENT_MIN, MOTOR_OUTPUT_LIMIT_PERCENT_MAX }, PG_PID_PROFILE, offsetof(pidProfile_t, motor_output_limit) },
-    { "auto_profile_cell_count",   VAR_INT8  | PROFILE_VALUE,  .config.minmax = { AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT }, PG_PID_PROFILE, offsetof(pidProfile_t, auto_profile_cell_count) },
+    { "linear_thrust_low_output",  VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, linear_thrust_low_output) },
+    { "linear_thrust_high_output", VAR_UINT8  | PROFILE_VALUE, .config.minmax = { 0, 100 }, PG_PID_PROFILE, offsetof(pidProfile_t, linear_thrust_high_output) },
+    { "linear_throttle",           VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, linear_throttle) },
+    { "mixer_impl",                VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_MIXER_IMPL_TYPE }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_impl) },
+    { "mixer_laziness",            VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_laziness) },
+    { "mixer_yaw_throttle_comp",   VAR_UINT8  | PROFILE_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_PID_PROFILE, offsetof(pidProfile_t, mixer_yaw_throttle_comp) },
 
 
 // PG_TELEMETRY_CONFIG
@@ -978,10 +1027,14 @@ const clivalue_t valueTable[] = {
     { "osd_warn_visual_beeper",     VAR_UINT16  | MASTER_VALUE | MODE_BITSET, .config.bitpos = OSD_WARNING_VISUAL_BEEPER,    PG_OSD_CONFIG, offsetof(osdConfig_t, enabledWarnings)},
     { "osd_warn_crash_flip",        VAR_UINT16  | MASTER_VALUE | MODE_BITSET, .config.bitpos = OSD_WARNING_CRASH_FLIP,       PG_OSD_CONFIG, offsetof(osdConfig_t, enabledWarnings)},
     { "osd_warn_esc_fail",          VAR_UINT16  | MASTER_VALUE | MODE_BITSET, .config.bitpos = OSD_WARNING_ESC_FAIL,         PG_OSD_CONFIG, offsetof(osdConfig_t, enabledWarnings)},
+    { "osd_task_frequency",         VAR_UINT16 | MASTER_VALUE, .config.minmax = { OSD_TASK_FREQUENCY_MIN, OSD_TASK_FREQUENCY_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, task_frequency) },
 #ifdef USE_ADC_INTERNAL
     { "osd_warn_core_temp",         VAR_UINT16  | MASTER_VALUE | MODE_BITSET, .config.bitpos = OSD_WARNING_CORE_TEMPERATURE, PG_OSD_CONFIG, offsetof(osdConfig_t, enabledWarnings)},
 #endif
-
+    { "osd_warn_rc_smoothing",      VAR_UINT16  | MASTER_VALUE | MODE_BITSET, .config.bitpos = OSD_WARNING_RC_SMOOTHING,     PG_OSD_CONFIG, offsetof(osdConfig_t, enabledWarnings)},
+    { "osd_warn_dji",               VAR_UINT16  | MASTER_VALUE | MODE_BITSET, .config.bitpos = OSD_WARNING_DJI,              PG_OSD_CONFIG, offsetof(osdConfig_t, enabledWarnings)},
+    { "osd_lq_format",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_CRSFFORMAT }, PG_OSD_CONFIG, offsetof(osdConfig_t, lq_format) },
+    { "osd_lq_alarm",               VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, 300 }, PG_OSD_CONFIG, offsetof(osdConfig_t, lq_alarm) },
     { "osd_rssi_alarm",             VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 100 }, PG_OSD_CONFIG, offsetof(osdConfig_t, rssi_alarm) },
     { "osd_cap_alarm",              VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 20000 }, PG_OSD_CONFIG, offsetof(osdConfig_t, cap_alarm) },
     { "osd_alt_alarm",              VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 10000 }, PG_OSD_CONFIG, offsetof(osdConfig_t, alt_alarm) },
@@ -992,20 +1045,26 @@ const clivalue_t valueTable[] = {
 #ifdef USE_ADC_INTERNAL
     { "osd_core_temp_alarm",        VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, UINT8_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, core_temp_alarm) },
 #endif
+    { "osd_stat_show_cell_value",   VAR_UINT8   | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_OSD_CONFIG, offsetof(osdConfig_t, stat_show_cell_value) },
 
     { "osd_ah_max_pit",             VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 90 }, PG_OSD_CONFIG, offsetof(osdConfig_t, ahMaxPitch) },
     { "osd_ah_max_rol",             VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 90 }, PG_OSD_CONFIG, offsetof(osdConfig_t, ahMaxRoll) },
+
+    { "osd_logo_on_arming",         VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OSD_LOGO_ON_ARMING }, PG_OSD_CONFIG, offsetof(osdConfig_t, logo_on_arming) },
+    { "osd_logo_on_arming_duration",VAR_UINT8  | MASTER_VALUE, .config.minmax = { 5, 50 }, PG_OSD_CONFIG, offsetof(osdConfig_t, logo_on_arming_duration) },
 
     { "osd_tim1",                   VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, INT16_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, timers[OSD_TIMER_1]) },
     { "osd_tim2",                   VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, INT16_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, timers[OSD_TIMER_2]) },
 
     { "osd_vbat_pos",               VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_MAIN_BATT_VOLTAGE]) },
     { "osd_rssi_pos",               VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_RSSI_VALUE]) },
+    { "osd_crsf_tx_pos",               VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_CRSF_TX]) },
+    { "osd_crsf_snr_pos",               VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_CRSF_SNR]) },
+    { "osd_crsf_rssi_pos",               VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_CRSF_RSSI]) },
     { "osd_tim_1_pos",              VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_ITEM_TIMER_1]) },
     { "osd_tim_2_pos",              VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_ITEM_TIMER_2]) },
     { "osd_remaining_time_estimate_pos",        VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_REMAINING_TIME_ESTIMATE]) },
     { "osd_flymode_pos",            VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_FLYMODE]) },
-    { "osd_anti_gravity_pos",       VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_ANTI_GRAVITY]) },
     { "osd_g_force_pos",            VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_G_FORCE]) },
     { "osd_throttle_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_THROTTLE_POS]) },
     { "osd_vtx_channel_pos",        VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_VTX_CHANNEL]) },
@@ -1019,6 +1078,9 @@ const clivalue_t valueTable[] = {
     { "osd_gps_lon_pos",            VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_GPS_LON]) },
     { "osd_gps_lat_pos",            VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_GPS_LAT]) },
     { "osd_gps_sats_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_GPS_SATS]) },
+    { "osd_plus_code_pos",          VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_PLUS_CODE]) },
+    { "plus_code_digits",           VAR_UINT8  | MASTER_VALUE, .config.minmax = { 10, 13 }, PG_OSD_CONFIG, offsetof(osdConfig_t, plus_code_digits) },
+    { "plus_code_short",            VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_OSD_CONFIG, offsetof(osdConfig_t, plus_code_short) },
     { "osd_home_dir_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_HOME_DIR]) },
     { "osd_home_dist_pos",          VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_HOME_DIST]) },
     { "osd_compass_bar_pos",        VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_COMPASS_BAR]) },
@@ -1041,6 +1103,7 @@ const clivalue_t valueTable[] = {
     { "osd_esc_rpm_pos",            VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_ESC_RPM]) },
     { "osd_rtc_date_time_pos",      VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_RTC_DATETIME]) },
     { "osd_adjustment_range_pos",   VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_ADJUSTMENT_RANGE]) },
+    { "osd_mah_percent_pos",        VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_MAH_PERCENT]) },
 #ifdef USE_ADC_INTERNAL
     { "osd_core_temp_pos",          VAR_UINT16  | MASTER_VALUE, .config.minmax = { 0, OSD_POSCFG_MAX }, PG_OSD_CONFIG, offsetof(osdConfig_t, item_pos[OSD_CORE_TEMPERATURE]) },
 #endif
@@ -1079,7 +1142,7 @@ const clivalue_t valueTable[] = {
 #ifdef USE_VTX_COMMON
     { "vtx_band",                   VAR_UINT8  | MASTER_VALUE, .config.minmax = { VTX_SETTINGS_NO_BAND, VTX_SETTINGS_MAX_BAND }, PG_VTX_SETTINGS_CONFIG, offsetof(vtxSettingsConfig_t, band) },
     { "vtx_channel",                VAR_UINT8  | MASTER_VALUE, .config.minmax = { VTX_SETTINGS_MIN_CHANNEL, VTX_SETTINGS_MAX_CHANNEL }, PG_VTX_SETTINGS_CONFIG, offsetof(vtxSettingsConfig_t, channel) },
-    { "vtx_power",                  VAR_UINT8  | MASTER_VALUE, .config.minmax = { VTX_SETTINGS_MIN_POWER, VTX_SETTINGS_POWER_COUNT-1 }, PG_VTX_SETTINGS_CONFIG, offsetof(vtxSettingsConfig_t, power) },
+    { "vtx_power",                  VAR_UINT8  | MASTER_VALUE, .config.minmax = { VTX_SETTINGS_MIN_POWER, VTX_SETTINGS_POWER_COUNT - 1 }, PG_VTX_SETTINGS_CONFIG, offsetof(vtxSettingsConfig_t, power) },
     { "vtx_low_power_disarm",       VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_VTX_SETTINGS_CONFIG, offsetof(vtxSettingsConfig_t, lowPowerDisarm) },
 #ifdef VTX_SETTINGS_FREQCMD
     { "vtx_freq",                   VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, VTX_SETTINGS_MAX_FREQUENCY_MHZ }, PG_VTX_SETTINGS_CONFIG, offsetof(vtxSettingsConfig_t, freq) },
@@ -1113,11 +1176,11 @@ const clivalue_t valueTable[] = {
 
 // PG_DISPLAY_PORT_MSP_CONFIG
 #ifdef USE_MAX7456
-    { "displayport_max7456_col_adjust", VAR_INT8| MASTER_VALUE, .config.minmax = { -6, 0 }, PG_DISPLAY_PORT_MAX7456_CONFIG, offsetof(displayPortProfile_t, colAdjust) },
-    { "displayport_max7456_row_adjust", VAR_INT8| MASTER_VALUE, .config.minmax = { -3, 0 }, PG_DISPLAY_PORT_MAX7456_CONFIG, offsetof(displayPortProfile_t, rowAdjust) },
-    { "displayport_max7456_inv",        VAR_UINT8| MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_DISPLAY_PORT_MAX7456_CONFIG, offsetof(displayPortProfile_t, invert) },
-    { "displayport_max7456_blk",        VAR_UINT8| MASTER_VALUE, .config.minmax = { 0, 3 }, PG_DISPLAY_PORT_MAX7456_CONFIG, offsetof(displayPortProfile_t, blackBrightness) },
-    { "displayport_max7456_wht",        VAR_UINT8| MASTER_VALUE, .config.minmax = { 0, 3 }, PG_DISPLAY_PORT_MAX7456_CONFIG, offsetof(displayPortProfile_t, whiteBrightness) },
+    { "displayport_max7456_col_adjust", VAR_INT8  | MASTER_VALUE, .config.minmax = { -6, 0 }, PG_DISPLAY_PORT_MAX7456_CONFIG, offsetof(displayPortProfile_t, colAdjust) },
+    { "displayport_max7456_row_adjust", VAR_INT8  | MASTER_VALUE, .config.minmax = { -3, 0 }, PG_DISPLAY_PORT_MAX7456_CONFIG, offsetof(displayPortProfile_t, rowAdjust) },
+    { "displayport_max7456_inv",        VAR_UINT8 | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_DISPLAY_PORT_MAX7456_CONFIG, offsetof(displayPortProfile_t, invert) },
+    { "displayport_max7456_blk",        VAR_UINT8 | MASTER_VALUE, .config.minmax = { 0, 3 }, PG_DISPLAY_PORT_MAX7456_CONFIG, offsetof(displayPortProfile_t, blackBrightness) },
+    { "displayport_max7456_wht",        VAR_UINT8 | MASTER_VALUE, .config.minmax = { 0, 3 }, PG_DISPLAY_PORT_MAX7456_CONFIG, offsetof(displayPortProfile_t, whiteBrightness) },
 #endif
 
 #ifdef USE_ESC_SENSOR
@@ -1145,6 +1208,7 @@ const clivalue_t valueTable[] = {
     { "camera_control_ref_voltage", VAR_UINT16 | MASTER_VALUE, .config.minmax = { 200, 400 }, PG_CAMERA_CONTROL_CONFIG, offsetof(cameraControlConfig_t, refVoltage) },
     { "camera_control_key_delay", VAR_UINT16 | MASTER_VALUE, .config.minmax = { 100, 500 }, PG_CAMERA_CONTROL_CONFIG, offsetof(cameraControlConfig_t, keyDelayMs) },
     { "camera_control_internal_resistance", VAR_UINT16 | MASTER_VALUE, .config.minmax = { 10, 1000 }, PG_CAMERA_CONTROL_CONFIG, offsetof(cameraControlConfig_t, internalResistance) },
+    { "camera_control_button_resistance",   VAR_UINT16 | MASTER_VALUE | MODE_ARRAY, .config.array.length = CAMERA_CONTROL_KEYS_COUNT, PG_CAMERA_CONTROL_CONFIG, offsetof(cameraControlConfig_t, buttonResistanceValues) },
     { "camera_control_inverted", VAR_UINT8 | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_CAMERA_CONTROL_CONFIG, offsetof(cameraControlConfig_t, inverted) },
 #endif
 

@@ -62,15 +62,12 @@ static vtxDevice_t vtxRTC6705 = {
 static void vtxRTC6705SetBandAndChannel(vtxDevice_t *vtxDevice, uint8_t band, uint8_t channel);
 static void vtxRTC6705SetFrequency(vtxDevice_t *vtxDevice, uint16_t frequency);
 
-bool vtxRTC6705Init(void)
-{
+bool vtxRTC6705Init(void) {
     vtxCommonSetDevice(&vtxRTC6705);
-
     return true;
 }
 
-bool vtxRTC6705CanUpdate(void)
-{
+bool vtxRTC6705CanUpdate(void) {
 #if defined(MAX7456_SPI_INSTANCE) && defined(RTC6705_SPI_INSTANCE) && defined(SPI_SHARED_MAX7456_AND_RTC6705)
     if (feature(FEATURE_OSD)) {
         return !max7456DmaInProgress();
@@ -80,26 +77,20 @@ bool vtxRTC6705CanUpdate(void)
 }
 
 #ifdef RTC6705_POWER_PIN
-static void vtxRTC6705Configure(vtxDevice_t *vtxDevice)
-{
+static void vtxRTC6705Configure(vtxDevice_t *vtxDevice) {
     rtc6705SetRFPower(vtxDevice->powerIndex);
     vtxRTC6705SetBandAndChannel(vtxDevice, vtxDevice->band, vtxDevice->channel);
 }
 
-static void vtxRTC6705EnableAndConfigure(vtxDevice_t *vtxDevice)
-{
+static void vtxRTC6705EnableAndConfigure(vtxDevice_t *vtxDevice) {
     while (!vtxRTC6705CanUpdate());
-
     rtc6705Enable();
-
     delay(VTX_RTC6705_BOOT_DELAY);
-
     vtxRTC6705Configure(vtxDevice);
 }
 #endif
 
-static void vtxRTC6705Process(vtxDevice_t *vtxDevice, timeUs_t now)
-{
+static void vtxRTC6705Process(vtxDevice_t *vtxDevice, timeUs_t now) {
     UNUSED(vtxDevice);
     UNUSED(now);
 }
@@ -107,34 +98,28 @@ static void vtxRTC6705Process(vtxDevice_t *vtxDevice, timeUs_t now)
 #ifdef USE_VTX_COMMON
 // Interface to common VTX API
 
-static vtxDevType_e vtxRTC6705GetDeviceType(const vtxDevice_t *vtxDevice)
-{
+static vtxDevType_e vtxRTC6705GetDeviceType(const vtxDevice_t *vtxDevice) {
     UNUSED(vtxDevice);
     return VTXDEV_RTC6705;
 }
 
-static bool vtxRTC6705IsReady(const vtxDevice_t *vtxDevice)
-{
+static bool vtxRTC6705IsReady(const vtxDevice_t *vtxDevice) {
     return vtxDevice != NULL;
 }
 
-static void vtxRTC6705SetBandAndChannel(vtxDevice_t *vtxDevice, uint8_t band, uint8_t channel)
-{
+static void vtxRTC6705SetBandAndChannel(vtxDevice_t *vtxDevice, uint8_t band, uint8_t channel) {
     while (!vtxRTC6705CanUpdate());
-
     if (band >= 1 && band <= VTX_SETTINGS_BAND_COUNT && channel >= 1 && channel <= VTX_SETTINGS_CHANNEL_COUNT) {
         if (vtxDevice->powerIndex > 0) {
             vtxDevice->band = band;
             vtxDevice->channel = channel;
-            vtxRTC6705SetFrequency(vtxDevice, vtx58frequencyTable[band-1][channel-1]);
+            vtxRTC6705SetFrequency(vtxDevice, vtx58frequencyTable[band - 1][channel - 1]);
         }
     }
 }
 
-static void vtxRTC6705SetPowerByIndex(vtxDevice_t *vtxDevice, uint8_t index)
-{
+static void vtxRTC6705SetPowerByIndex(vtxDevice_t *vtxDevice, uint8_t index) {
     while (!vtxRTC6705CanUpdate());
-
 #ifdef RTC6705_POWER_PIN
     if (index == 0) {
         // power device off
@@ -166,14 +151,12 @@ static void vtxRTC6705SetPowerByIndex(vtxDevice_t *vtxDevice, uint8_t index)
 #endif
 }
 
-static void vtxRTC6705SetPitMode(vtxDevice_t *vtxDevice, uint8_t onoff)
-{
+static void vtxRTC6705SetPitMode(vtxDevice_t *vtxDevice, uint8_t onoff) {
     UNUSED(vtxDevice);
     UNUSED(onoff);
 }
 
-static void vtxRTC6705SetFrequency(vtxDevice_t *vtxDevice, uint16_t frequency)
-{
+static void vtxRTC6705SetFrequency(vtxDevice_t *vtxDevice, uint16_t frequency) {
     if (frequency >= VTX_RTC6705_FREQ_MIN &&  frequency <= VTX_RTC6705_FREQ_MAX) {
         frequency = constrain(frequency, VTX_RTC6705_FREQ_MIN, VTX_RTC6705_FREQ_MAX);
         vtxDevice->frequency = frequency;
@@ -181,28 +164,24 @@ static void vtxRTC6705SetFrequency(vtxDevice_t *vtxDevice, uint16_t frequency)
     }
 }
 
-static bool vtxRTC6705GetBandAndChannel(const vtxDevice_t *vtxDevice, uint8_t *pBand, uint8_t *pChannel)
-{
+static bool vtxRTC6705GetBandAndChannel(const vtxDevice_t *vtxDevice, uint8_t *pBand, uint8_t *pChannel) {
     *pBand = vtxDevice->band;
     *pChannel = vtxDevice->channel;
     return true;
 }
 
-static bool vtxRTC6705GetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex)
-{
+static bool vtxRTC6705GetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex) {
     *pIndex = vtxDevice->powerIndex;
     return true;
 }
 
-static bool vtxRTC6705GetPitMode(const vtxDevice_t *vtxDevice, uint8_t *pOnOff)
-{
+static bool vtxRTC6705GetPitMode(const vtxDevice_t *vtxDevice, uint8_t *pOnOff) {
     UNUSED(vtxDevice);
     UNUSED(pOnOff);
     return false;
 }
 
-static bool vtxRTC6705GetFreq(const vtxDevice_t *vtxDevice, uint16_t *pFrequency)
-{
+static bool vtxRTC6705GetFreq(const vtxDevice_t *vtxDevice, uint16_t *pFrequency) {
     *pFrequency = vtxDevice->frequency;
     return true;
 }

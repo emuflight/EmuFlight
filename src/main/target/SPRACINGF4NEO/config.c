@@ -41,8 +41,7 @@ static targetSerialPortFunction_t targetSerialPortFunction[] = {
 };
 
 #ifdef USE_TARGET_CONFIG
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     targetSerialPortFunctionConfig(targetSerialPortFunction, ARRAYLEN(targetSerialPortFunction));
     telemetryConfigMutable()->halfDuplex = false;
 }

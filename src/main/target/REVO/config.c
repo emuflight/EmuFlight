@@ -32,8 +32,7 @@
 #ifdef USE_TARGET_CONFIG
 #include "pg/pg.h"
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     rxConfigMutable()->halfDuplex = true;
     pinioBoxConfigMutable()->permanentId[0] = 40;
     pinioBoxConfigMutable()->permanentId[1] = 41;

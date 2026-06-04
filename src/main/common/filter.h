@@ -41,17 +41,26 @@ typedef struct biquadFilter_s {
     float x1, x2, y1, y2;
 } biquadFilter_t;
 
-typedef struct laggedMovingAverage_s {
-    uint16_t movingWindowIndex;
-    uint16_t windowSize;
-    float movingSum;
-    float *buf;
-    bool primed;
-} laggedMovingAverage_t;
+typedef struct alphaBetaGammaFilter_s {
+    float a, b, g, e;
+    float ak, vk, xk, jk, rk;
+    float dT, dT2, dT3;
+    float halfLife, boost;
+    pt1Filter_t boostFilter, velFilter, accFilter, jerkFilter;
+} alphaBetaGammaFilter_t;
+
+typedef struct ptnFilter_s {
+    float state[5];
+    float k;
+    uint8_t order;
+} ptnFilter_t;
 
 typedef enum {
     FILTER_PT1 = 0,
     FILTER_BIQUAD,
+    FILTER_PT2,
+    FILTER_PT3,
+    FILTER_PT4,
 } lowpassFilterType_e;
 
 typedef enum {
@@ -80,3 +89,10 @@ float pt1FilterApply(pt1Filter_t *filter, float input);
 
 void slewFilterInit(slewFilter_t *filter, float slewLimit, float threshold);
 float slewFilterApply(slewFilter_t *filter, float input);
+
+void ABGInit(alphaBetaGammaFilter_t *filter, float alpha, int boostGain, int halfLife, float dT);
+float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input);
+
+void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT);
+void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float ScaleF, float dt);
+float ptnFilterApply(ptnFilter_t *filter, float input);

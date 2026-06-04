@@ -60,8 +60,7 @@
 
 static bool useFifo = false;
 
-static void adxl345Init(accDev_t *acc)
-{
+static void adxl345Init(accDev_t *acc) {
     if (useFifo) {
         uint8_t fifoDepth = 16;
         i2cWrite(MPU_I2C_INSTANCE, ADXL345_ADDRESS, ADXL345_POWER_CTL, ADXL345_POWER_MEAS);
@@ -78,24 +77,19 @@ static void adxl345Init(accDev_t *acc)
 
 uint8_t acc_samples = 0;
 
-static bool adxl345Read(accDev_t *acc)
-{
+static bool adxl345Read(accDev_t *acc) {
     uint8_t buf[8];
-
     if (useFifo) {
         int32_t x = 0;
         int32_t y = 0;
         int32_t z = 0;
         uint8_t i = 0;
         uint8_t samples_remaining;
-
         do {
             i++;
-
             if (!i2cRead(MPU_I2C_INSTANCE, ADXL345_ADDRESS, ADXL345_DATA_OUT, 8, buf)) {
                 return false;
             }
-
             x += (int16_t)(buf[0] + (buf[1] << 8));
             y += (int16_t)(buf[2] + (buf[3] << 8));
             z += (int16_t)(buf[4] + (buf[5] << 8));
@@ -106,30 +100,23 @@ static bool adxl345Read(accDev_t *acc)
         acc->ADCRaw[2] = z / i;
         acc_samples = i;
     } else {
-
         if (!i2cRead(MPU_I2C_INSTANCE, ADXL345_ADDRESS, ADXL345_DATA_OUT, 6, buf)) {
             return false;
         }
-
         acc->ADCRaw[0] = buf[0] + (buf[1] << 8);
         acc->ADCRaw[1] = buf[2] + (buf[3] << 8);
         acc->ADCRaw[2] = buf[4] + (buf[5] << 8);
     }
-
     return true;
 }
 
-bool adxl345Detect(drv_adxl345_config_t *init, accDev_t *acc)
-{
+bool adxl345Detect(drv_adxl345_config_t *init, accDev_t *acc) {
     uint8_t sig = 0;
     bool ack = i2cRead(MPU_I2C_INSTANCE, ADXL345_ADDRESS, 0x00, 1, &sig);
-
     if (!ack || sig != 0xE5)
         return false;
-
     // use ADXL345's fifo to filter data or not
     useFifo = init->useFifo;
-
     acc->initFn = adxl345Init;
     acc->readFn = adxl345Read;
     return true;

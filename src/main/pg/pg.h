@@ -41,7 +41,7 @@ typedef enum {
 } pgRegistryInternal_e;
 
 // function that resets a single parameter group instance
-typedef void (pgResetFunc)(void * /* base */, int /* size */);
+typedef void (pgResetFunc)(void * /* base */);
 
 typedef struct pgRegistry_s {
     pgn_t pgn;             // The parameter group number, the top 4 bits are reserved for version
@@ -55,9 +55,15 @@ typedef struct pgRegistry_s {
     } reset;
 } pgRegistry_t;
 
-static inline uint16_t pgN(const pgRegistry_t* reg) {return reg->pgn & PGR_PGN_MASK;}
-static inline uint8_t pgVersion(const pgRegistry_t* reg) {return (uint8_t)(reg->pgn >> 12);}
-static inline uint16_t pgSize(const pgRegistry_t* reg) {return reg->size & PGR_SIZE_MASK;}
+static inline uint16_t pgN(const pgRegistry_t* reg) {
+    return reg->pgn & PGR_PGN_MASK;
+}
+static inline uint8_t pgVersion(const pgRegistry_t* reg) {
+    return (uint8_t)(reg->pgn >> 12);
+}
+static inline uint16_t pgSize(const pgRegistry_t* reg) {
+    return reg->size & PGR_SIZE_MASK;
+}
 
 #define PG_PACKED __attribute__((packed))
 

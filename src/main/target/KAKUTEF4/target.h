@@ -62,7 +62,7 @@
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
 #define  ICM20689_CS_PIN          PC4
-#define ICM20689_SPI_INSTANCE    SPI1
+#define ICM20689_SPI_BUS    SPIDEV_1
 
 #define USE_ACC
 #define USE_ACC_SPI_ICM20689
@@ -72,13 +72,13 @@
 #define USE_GYRO_SPI_ICM20689
 #define GYRO_ICM20689_ALIGN      CW270_DEG
 
-#if defined(FLYWOOF405)
+#if defined(FLYWOOF405) || defined(KAKUTEF4V2)
 //------MPU6000
-#define MPU6000_CS_PIN           PC4 
-#define MPU6000_SPI_INSTANCE     SPI1
+#define MPU6000_CS_PIN           PC4
+#define MPU6000_SPI_BUS     SPIDEV_1
 #define USE_GYRO_SPI_MPU6000
 #define GYRO_MPU6000_ALIGN      CW270_DEG
-#define USE_ACC_SPI_MPU6000								  
+#define USE_ACC_SPI_MPU6000
 #define ACC_MPU6000_ALIGN       CW270_DEG
 #endif
 
@@ -112,6 +112,7 @@
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
+#define USE_FLASH_W25Q128FV
 
 #define USE_VCP
 #define USB_DETECT_PIN          PA8
@@ -120,7 +121,7 @@
 #define USE_UART1
 #define UART1_RX_PIN            PA10
 
-#if defined (FLYWOOF405)  
+#if defined (FLYWOOF405)
 #define UART1_TX_PIN            PB6 //SCL/UART1_TX/TIM4_CH1
 #else
 #define UART1_TX_PIN            PA9
@@ -156,11 +157,11 @@
 #define USE_ESCSERIAL
 
 #if defined(FLYWOOF405)
-#define ESCSERIAL_TIMER_TX_PIN  PB8 
+#define ESCSERIAL_TIMER_TX_PIN  PB8
 #else
 #define ESCSERIAL_TIMER_TX_PIN  PC7  // (HARDARE=0,PPM)
-#endif	
-									   
+#endif
+
 #define USE_SPI
 #define USE_SPI_DEVICE_1 //ICM20689
 #define SPI1_NSS_PIN            PC4
@@ -176,9 +177,10 @@
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define USE_ADC
-#define ADC1_DMA_STREAM 			DMA2_Stream0
+#define ADC1_DMA_STREAM             DMA2_Stream0
 #define VBAT_ADC_PIN                PC3
 #define CURRENT_METER_ADC_PIN       PC2
+#define DEFAULT_CURRENT_METER_SCALE        275
 #define RSSI_ADC_PIN                PC1
 
 #define DEFAULT_FEATURES        ( FEATURE_TELEMETRY | FEATURE_OSD )

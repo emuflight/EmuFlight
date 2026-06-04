@@ -1,0 +1,1 @@
+# HMBF41S_FRSKY_INTL is used mou6000, frsky and vtx not lock

@@ -51,14 +51,14 @@
 
 #define USE_DUAL_GYRO
 
-#define GYRO_1_SPI_INSTANCE     SPI3
+#define GYRO_1_SPI_BUS     SPIDEV_3
 #define GYRO_1_CS_PIN           SPI3_NSS_PIN
 #define GYRO_1_EXTI_PIN         NONE
 #define GYRO_1_ALIGN            CW90_DEG
 #define ACC_1_ALIGN             CW90_DEG
 
-#define GYRO_2_SPI_INSTANCE     SPI1
-#define GYRO_2_CS_PIN           PC4        
+#define GYRO_2_SPI_BUS     SPIDEV_1
+#define GYRO_2_CS_PIN           PC4
 #define GYRO_2_EXTI_PIN         NONE
 #define GYRO_2_ALIGN            CW0_DEG
 #define ACC_2_ALIGN             CW0_DEG
@@ -87,6 +87,7 @@
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
+#define USE_FLASH_W25Q128FV
 #define FLASH_CS_PIN            PA3
 #define FLASH_SPI_INSTANCE      SPI1
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
@@ -136,7 +137,7 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define I2C1_SCL                PB8
-#define I2C1_SDA                PB9 
+#define I2C1_SDA                PB9
 
 // *************** ADC *****************************
 #define USE_ADC
@@ -144,7 +145,7 @@
 #define VBAT_ADC_PIN            PC0
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
-#define CURRENT_METER_SCALE_DEFAULT 179
+#define DEFAULT_CURRENT_METER_SCALE 179
 
 #define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
 

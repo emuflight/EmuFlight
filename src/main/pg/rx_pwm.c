@@ -35,8 +35,7 @@
 #ifdef USE_PWM
 PG_REGISTER_WITH_RESET_FN(pwmConfig_t, pwmConfig, PG_PWM_CONFIG, 0);
 
-void pgResetFn_pwmConfig(pwmConfig_t *pwmConfig)
-{
+void pgResetFn_pwmConfig(pwmConfig_t *pwmConfig) {
     pwmConfig->inputFilteringMode = INPUT_FILTERING_DISABLED;
     for (unsigned inputIndex = 0; inputIndex < PWM_INPUT_PORT_COUNT; inputIndex++) {
         pwmConfig->ioTags[inputIndex] = timerioTagGetByUsage(TIM_USE_PWM, inputIndex);
@@ -47,8 +46,7 @@ void pgResetFn_pwmConfig(pwmConfig_t *pwmConfig)
 #ifdef USE_PPM
 PG_REGISTER_WITH_RESET_FN(ppmConfig_t, ppmConfig, PG_PPM_CONFIG, 0);
 
-void pgResetFn_ppmConfig(ppmConfig_t *ppmConfig)
-{
+void pgResetFn_ppmConfig(ppmConfig_t *ppmConfig) {
     ppmConfig->ioTag = timerioTagGetByUsage(TIM_USE_PPM, 0);
 }
 #endif

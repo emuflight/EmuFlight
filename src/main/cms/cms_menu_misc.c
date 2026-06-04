@@ -56,8 +56,7 @@
 // Misc
 //
 
-static long cmsx_menuRcConfirmBack(const OSD_Entry *self)
-{
+static long cmsx_menuRcConfirmBack(const OSD_Entry *self) {
     if (self && self->type == OME_Back)
         return 0;
     else
@@ -67,8 +66,7 @@ static long cmsx_menuRcConfirmBack(const OSD_Entry *self)
 //
 // RC preview
 //
-static OSD_Entry cmsx_menuRcEntries[] =
-{
+static OSD_Entry cmsx_menuRcEntries[] = {
     { "-- RC PREV --", OME_Label, NULL, NULL, 0},
 
     { "ROLL",  OME_INT16, NULL, &(OSD_INT16_t){ &rcData[ROLL],     1, 2500, 0 }, DYNAMIC },
@@ -99,28 +97,22 @@ static uint16_t motorConfig_minthrottle;
 static uint8_t motorConfig_digitalIdleOffsetValue;
 static debugType_e systemConfig_debug_mode;
 
-static long cmsx_menuMiscOnEnter(void)
-{
+static long cmsx_menuMiscOnEnter(void) {
     motorConfig_minthrottle = motorConfig()->minthrottle;
     motorConfig_digitalIdleOffsetValue = motorConfig()->digitalIdleOffsetValue / 10;
     systemConfig_debug_mode = systemConfig()->debug_mode;
-
     return 0;
 }
 
-static long cmsx_menuMiscOnExit(const OSD_Entry *self)
-{
+static long cmsx_menuMiscOnExit(const OSD_Entry *self) {
     UNUSED(self);
-
     motorConfigMutable()->minthrottle = motorConfig_minthrottle;
     motorConfigMutable()->digitalIdleOffsetValue = 10 * motorConfig_digitalIdleOffsetValue;
     systemConfigMutable()->debug_mode = systemConfig_debug_mode;
-
     return 0;
 }
 
-static OSD_Entry menuMiscEntries[]=
-{
+static OSD_Entry menuMiscEntries[] = {
     { "-- MISC --", OME_Label, NULL, NULL, 0 },
 
     { "MIN THR",      OME_UINT16,  NULL,          &(OSD_UINT16_t){ &motorConfig_minthrottle,              1000, 2000, 1 },      0 },

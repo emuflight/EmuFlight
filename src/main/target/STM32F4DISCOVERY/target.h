@@ -37,7 +37,7 @@
 //#define DEBUG_MPU_DATA_READY_INTERRUPT
 
 #define MPU6500_CS_PIN          PC4
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 
 // ACC section -- start
 #define USE_ACC

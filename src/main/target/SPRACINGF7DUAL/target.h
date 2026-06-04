@@ -113,7 +113,7 @@
 #define UART5_RX_PIN            PD2
 
 #if (SPRACINGF7DUAL_REV <= 1)
-    #define TARGET_USART_CONFIG
+#define TARGET_USART_CONFIG
 #endif
 
 // TODO
@@ -178,9 +178,9 @@
 #define RTC6705_POWER_PIN                   PB7  // Shared with PWM6
 
 #define GYRO_1_CS_PIN                       SPI1_NSS_PIN
-#define GYRO_1_SPI_INSTANCE                 SPI1
+#define GYRO_1_SPI_BUS                 SPIDEV_1
 #define GYRO_2_CS_PIN                       PB2
-#define GYRO_2_SPI_INSTANCE                 SPI1
+#define GYRO_2_SPI_BUS                 SPIDEV_1
 
 #define USE_ADC
 // It's possible to use ADC1 or ADC3 on this target, same pins.
@@ -195,7 +195,7 @@
 #define CURRENT_METER_ADC_PIN               PC2
 #define RSSI_ADC_PIN                        PC0
 
-#define CURRENT_METER_SCALE_DEFAULT         300
+#define DEFAULT_CURRENT_METER_SCALE         300
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC

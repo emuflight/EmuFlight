@@ -61,11 +61,11 @@ typedef enum {
 typedef enum {
     FAILSAFE_PROCEDURE_AUTO_LANDING = 0,
     FAILSAFE_PROCEDURE_DROP_IT,
-    #ifdef USE_GPS_RESCUE
-      FAILSAFE_PROCEDURE_GPS_RESCUE,
-  #endif
-      FAILSAFE_PROCEDURE_COUNT   // must be last
-  } failsafeProcedure_e;
+#ifdef USE_GPS_RESCUE
+    FAILSAFE_PROCEDURE_GPS_RESCUE,
+#endif
+    FAILSAFE_PROCEDURE_COUNT   // must be last
+} failsafeProcedure_e;
 
 extern const char * const failsafeProcedureNames[FAILSAFE_PROCEDURE_COUNT];
 

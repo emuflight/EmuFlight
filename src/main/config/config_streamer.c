@@ -29,6 +29,14 @@
 #ifndef EEPROM_IN_RAM
 extern uint8_t __config_start;   // configured via linker script when building binaries.
 extern uint8_t __config_end;
+#elif !defined(SITL)
+// RAM-based config: eepromData[] is the backing store; __config_start/__config_end
+// are macro-aliased to it in common_fc_post.h. SITL defines eepromData in target.c.
+#if defined(PERSISTENT)
+PERSISTENT uint8_t eepromData[EEPROM_SIZE];
+#else
+uint8_t eepromData[EEPROM_SIZE];
+#endif
 #endif
 
 #if !defined(FLASH_PAGE_SIZE)
@@ -56,6 +64,11 @@ extern uint8_t __config_end;
 #  define FLASH_PAGE_SIZE                 ((uint32_t)0x8000) // 32K sectors
 # elif defined(STM32F746xx)
 #  define FLASH_PAGE_SIZE                 ((uint32_t)0x8000)
+// H7
+# elif defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx)
+#  define FLASH_PAGE_SIZE                 ((uint32_t)0x20000) // 128K sectors
+# elif defined(STM32H7A3xx) || defined(STM32H7A3xxQ)
+#  define FLASH_PAGE_SIZE                 ((uint32_t)0x2000)  // 8K sectors
 # elif defined(UNIT_TEST)
 #  define FLASH_PAGE_SIZE                 (0x400)
 // SIMULATOR
@@ -66,37 +79,62 @@ extern uint8_t __config_end;
 # endif
 #endif
 
-void config_streamer_init(config_streamer_t *c)
-{
+#if defined(STM32H7) && !defined(EEPROM_IN_RAM)
+// H7 flash minimum write size is 256-bit (32 bytes = 8 x uint32_t).
+// Buffer individual 32-bit writes until a full flash word is ready.
+static uint32_t  h7FlashWriteBuf[FLASH_NB_32BITWORD_IN_FLASHWORD];
+static int       h7FlashWriteBufIdx;
+static uintptr_t h7FlashBlockAddr;
+
+static uint32_t h7GetFlashSector(uint32_t addr) {
+    const uint32_t bankBase = (addr >= 0x08100000U) ? 0x08100000U : 0x08000000U;
+    return (addr - bankBase) / FLASH_PAGE_SIZE;
+}
+
+static uint32_t h7GetFlashBank(void) {
+#if defined(DUAL_BANK)
+    return ((uint32_t)&__config_start >= 0x08100000U) ? FLASH_BANK_2 : FLASH_BANK_1;
+#else
+    return FLASH_BANK_1;
+#endif
+}
+#endif
+
+void config_streamer_init(config_streamer_t *c) {
     memset(c, 0, sizeof(*c));
 }
 
-void config_streamer_start(config_streamer_t *c, uintptr_t base, int size)
-{
+void config_streamer_start(config_streamer_t *c, uintptr_t base, int size) {
     // base must start at FLASH_PAGE_SIZE boundary
     c->address = base;
     c->size = size;
     if (!c->unlocked) {
-#if defined(STM32F7)
+#if !defined(EEPROM_IN_RAM)
+#if defined(STM32F7) || defined(STM32H7)
         HAL_FLASH_Unlock();
 #else
         FLASH_Unlock();
 #endif
+#endif
         c->unlocked = true;
     }
-
 #if defined(STM32F10X)
     FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPRTERR);
 #elif defined(STM32F303)
     FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
 #elif defined(STM32F4)
     FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
-#elif defined(STM32F7)
+#elif defined(STM32F7) || defined(STM32H7)
     // NOP
 #elif defined(UNIT_TEST) || defined(SIMULATOR_BUILD)
     // NOP
 #else
 # error "Unsupported CPU"
+#endif
+#if defined(STM32H7) && !defined(EEPROM_IN_RAM)
+    // Reset H7 flash word buffer state at start of each config save
+    h7FlashWriteBufIdx = 0;
+    memset(h7FlashWriteBuf, 0, sizeof(h7FlashWriteBuf));
 #endif
     c->err = 0;
 }
@@ -113,8 +151,7 @@ Sector 6    0x08080000 - 0x080BFFFF 256 Kbytes
 Sector 7    0x080C0000 - 0x080FFFFF 256 Kbytes
 */
 
-static uint32_t getFLASHSectorForEEPROM(void)
-{
+static uint32_t getFLASHSectorForEEPROM(void) {
     if ((uint32_t)&__config_start <= 0x08007FFF)
         return FLASH_SECTOR_0;
     if ((uint32_t)&__config_start <= 0x0800FFFF)
@@ -131,7 +168,6 @@ static uint32_t getFLASHSectorForEEPROM(void)
         return FLASH_SECTOR_6;
     if ((uint32_t)&__config_start <= 0x080FFFFF)
         return FLASH_SECTOR_7;
-
     // Not good
     while (1) {
         failureMode(FAILURE_FLASH_WRITE_FAILED);
@@ -150,8 +186,7 @@ Sector 6    0x08040000 - 0x0805FFFF 128 Kbytes
 Sector 7    0x08060000 - 0x0807FFFF 128 Kbytes
 */
 
-static uint32_t getFLASHSectorForEEPROM(void)
-{
+static uint32_t getFLASHSectorForEEPROM(void) {
     if ((uint32_t)&__config_start <= 0x08003FFF)
         return FLASH_SECTOR_0;
     if ((uint32_t)&__config_start <= 0x08007FFF)
@@ -168,7 +203,6 @@ static uint32_t getFLASHSectorForEEPROM(void)
         return FLASH_SECTOR_6;
     if ((uint32_t)&__config_start <= 0x0807FFFF)
         return FLASH_SECTOR_7;
-
     // Not good
     while (1) {
         failureMode(FAILURE_FLASH_WRITE_FAILED);
@@ -191,8 +225,7 @@ Sector 10   0x080C0000 - 0x080DFFFF 128 Kbytes
 Sector 11   0x080E0000 - 0x080FFFFF 128 Kbytes
 */
 
-static uint32_t getFLASHSectorForEEPROM(void)
-{
+static uint32_t getFLASHSectorForEEPROM(void) {
     if ((uint32_t)&__config_start <= 0x08003FFF)
         return FLASH_Sector_0;
     if ((uint32_t)&__config_start <= 0x08007FFF)
@@ -217,7 +250,6 @@ static uint32_t getFLASHSectorForEEPROM(void)
         return FLASH_Sector_10;
     if ((uint32_t)&__config_start <= 0x080FFFFF)
         return FLASH_Sector_11;
-
     // Not good
     while (1) {
         failureMode(FAILURE_FLASH_WRITE_FAILED);
@@ -225,12 +257,48 @@ static uint32_t getFLASHSectorForEEPROM(void)
 }
 #endif
 
-static int write_word(config_streamer_t *c, uint32_t value)
-{
+static int write_word(config_streamer_t *c, uint32_t value) {
     if (c->err != 0) {
         return c->err;
     }
-#if defined(STM32F7)
+#if defined(EEPROM_IN_RAM)
+    // RAM-based config: direct memory write, no flash erase/program needed.
+    memcpy((void *)c->address, &value, sizeof(value));
+    c->address += sizeof(value);
+    return 0;
+#elif defined(STM32H7)
+    // H7: sector erase at page boundary, then buffer into 32-byte flash words
+    if (c->address % FLASH_PAGE_SIZE == 0) {
+        FLASH_EraseInitTypeDef EraseInitStruct = {
+            .TypeErase = FLASH_TYPEERASE_SECTORS,
+            .Banks     = h7GetFlashBank(),
+            .Sector    = h7GetFlashSector(c->address),
+            .NbSectors = 1
+        };
+        uint32_t SECTORError;
+        const HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&EraseInitStruct, &SECTORError);
+        if (status != HAL_OK) {
+            return -1;
+        }
+    }
+    // Capture the base address of this 32-byte flash word on first word of the block
+    if (h7FlashWriteBufIdx == 0) {
+        if ((c->address & 31U) != 0U) {
+            return -3; // FLASHWORD address must be 32-byte aligned
+        }
+        h7FlashBlockAddr = c->address;
+    }
+    h7FlashWriteBuf[h7FlashWriteBufIdx++] = value;
+    // Write when the 32-byte buffer is full
+    if (h7FlashWriteBufIdx == (int)ARRAYLEN(h7FlashWriteBuf)) {
+        const HAL_StatusTypeDef status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, h7FlashBlockAddr, (uint32_t)h7FlashWriteBuf);
+        if (status != HAL_OK) {
+            return -2;
+        }
+        h7FlashWriteBufIdx = 0;
+        memset(h7FlashWriteBuf, 0, sizeof(h7FlashWriteBuf));
+    }
+#elif defined(STM32F7)
     if (c->address % FLASH_PAGE_SIZE == 0) {
         FLASH_EraseInitTypeDef EraseInitStruct = {
             .TypeErase     = FLASH_TYPEERASE_SECTORS,
@@ -268,11 +336,9 @@ static int write_word(config_streamer_t *c, uint32_t value)
     return 0;
 }
 
-int config_streamer_write(config_streamer_t *c, const uint8_t *p, uint32_t size)
-{
+int config_streamer_write(config_streamer_t *c, const uint8_t *p, uint32_t size) {
     for (const uint8_t *pat = p; pat != (uint8_t*)p + size; pat++) {
         c->buffer.b[c->at++] = *pat;
-
         if (c->at == sizeof(c->buffer)) {
             c->err = write_word(c, c->buffer.w);
             c->at = 0;
@@ -281,28 +347,39 @@ int config_streamer_write(config_streamer_t *c, const uint8_t *p, uint32_t size)
     return c->err;
 }
 
-int config_streamer_status(config_streamer_t *c)
-{
+int config_streamer_status(config_streamer_t *c) {
     return c->err;
 }
 
-int config_streamer_flush(config_streamer_t *c)
-{
+int config_streamer_flush(config_streamer_t *c) {
     if (c->at != 0) {
         memset(c->buffer.b + c->at, 0, sizeof(c->buffer) - c->at);
         c->err = write_word(c, c->buffer.w);
         c->at = 0;
     }
-    return c-> err;
+#if defined(STM32H7) && !defined(EEPROM_IN_RAM)
+    // Flush any partial 32-byte flash word that hasn't been written yet
+    if (h7FlashWriteBufIdx > 0) {
+        if (c->err == 0) {
+            memset(h7FlashWriteBuf + h7FlashWriteBufIdx, 0, (ARRAYLEN(h7FlashWriteBuf) - h7FlashWriteBufIdx) * sizeof(uint32_t));
+            if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, h7FlashBlockAddr, (uint32_t)h7FlashWriteBuf) != HAL_OK) {
+                c->err = -2;
+            }
+        }
+        h7FlashWriteBufIdx = 0;
+    }
+#endif
+    return c->err;
 }
 
-int config_streamer_finish(config_streamer_t *c)
-{
+int config_streamer_finish(config_streamer_t *c) {
     if (c->unlocked) {
-#if defined(STM32F7)
+#if !defined(EEPROM_IN_RAM)
+#if defined(STM32F7) || defined(STM32H7)
         HAL_FLASH_Lock();
 #else
         FLASH_Lock();
+#endif
 #endif
         c->unlocked = false;
     }

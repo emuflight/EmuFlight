@@ -58,16 +58,16 @@ const adcDevice_t adcHardware[] = {
 
 /* note these could be packed up for saving space */
 const adcTagMap_t adcTagMap[] = {
-/*
-    { DEFIO_TAG_E__PF3, ADC_DEVICES_3,   ADC_Channel_9  },
-    { DEFIO_TAG_E__PF4, ADC_DEVICES_3,   ADC_Channel_14 },
-    { DEFIO_TAG_E__PF5, ADC_DEVICES_3,   ADC_Channel_15 },
-    { DEFIO_TAG_E__PF6, ADC_DEVICES_3,   ADC_Channel_4  },
-    { DEFIO_TAG_E__PF7, ADC_DEVICES_3,   ADC_Channel_5  },
-    { DEFIO_TAG_E__PF8, ADC_DEVICES_3,   ADC_Channel_6  },
-    { DEFIO_TAG_E__PF9, ADC_DEVICES_3,   ADC_Channel_7  },
-    { DEFIO_TAG_E__PF10,ADC_DEVICES_3,   ADC_Channel_8  },
-*/
+    /*
+        { DEFIO_TAG_E__PF3, ADC_DEVICES_3,   ADC_Channel_9  },
+        { DEFIO_TAG_E__PF4, ADC_DEVICES_3,   ADC_Channel_14 },
+        { DEFIO_TAG_E__PF5, ADC_DEVICES_3,   ADC_Channel_15 },
+        { DEFIO_TAG_E__PF6, ADC_DEVICES_3,   ADC_Channel_4  },
+        { DEFIO_TAG_E__PF7, ADC_DEVICES_3,   ADC_Channel_5  },
+        { DEFIO_TAG_E__PF8, ADC_DEVICES_3,   ADC_Channel_6  },
+        { DEFIO_TAG_E__PF9, ADC_DEVICES_3,   ADC_Channel_7  },
+        { DEFIO_TAG_E__PF10,ADC_DEVICES_3,   ADC_Channel_8  },
+    */
 #if defined(STM32F411xE)
     { DEFIO_TAG_E__PC0, ADC_DEVICES_1,   ADC_Channel_10 },
     { DEFIO_TAG_E__PC1, ADC_DEVICES_1,   ADC_Channel_11 },
@@ -109,19 +109,15 @@ const adcTagMap_t adcTagMap[] = {
 #define TS_CAL1_ADDR      0x1FFF7A2C
 #define TS_CAL2_ADDR      0x1FFF7A2E
 
-void adcInitDevice(ADC_TypeDef *adcdev, int channelCount)
-{
+void adcInitDevice(ADC_TypeDef *adcdev, int channelCount) {
     ADC_InitTypeDef ADC_InitStructure;
-
     ADC_StructInit(&ADC_InitStructure);
-
     ADC_InitStructure.ADC_ContinuousConvMode       = ENABLE;
     ADC_InitStructure.ADC_Resolution               = ADC_Resolution_12b;
     ADC_InitStructure.ADC_ExternalTrigConv         = ADC_ExternalTrigConv_T1_CC1;
     ADC_InitStructure.ADC_ExternalTrigConvEdge     = ADC_ExternalTrigConvEdge_None;
     ADC_InitStructure.ADC_DataAlign                = ADC_DataAlign_Right;
     ADC_InitStructure.ADC_NbrOfConversion          = channelCount;
-
     // Multiple injected channel seems to require scan conversion mode to be
     // enabled even if main (non-injected) channel count is 1.
 #ifdef USE_ADC_INTERNAL
@@ -133,14 +129,12 @@ void adcInitDevice(ADC_TypeDef *adcdev, int channelCount)
 }
 
 #ifdef USE_ADC_INTERNAL
-void adcInitInternalInjected(void)
-{
+void adcInitInternalInjected(void) {
     ADC_TempSensorVrefintCmd(ENABLE);
     ADC_InjectedDiscModeCmd(ADC1, DISABLE);
     ADC_InjectedSequencerLengthConfig(ADC1, 2);
     ADC_InjectedChannelConfig(ADC1, ADC_Channel_Vrefint, 1, ADC_SampleTime_480Cycles);
     ADC_InjectedChannelConfig(ADC1, ADC_Channel_TempSensor, 2, ADC_SampleTime_480Cycles);
-
     adcVREFINTCAL = *(uint16_t *)VREFINT_CAL_ADDR;
     adcTSCAL1 = *(uint16_t *)TS_CAL1_ADDR;
     adcTSCAL2 = *(uint16_t *)TS_CAL2_ADDR;
@@ -157,71 +151,55 @@ void adcInitInternalInjected(void)
 
 static bool adcInternalConversionInProgress = false;
 
-bool adcInternalIsBusy(void)
-{
+bool adcInternalIsBusy(void) {
     if (adcInternalConversionInProgress) {
         if (ADC_GetFlagStatus(ADC1, ADC_FLAG_JEOC) != RESET) {
             adcInternalConversionInProgress = false;
         }
     }
-
     return adcInternalConversionInProgress;
 }
 
-void adcInternalStartConversion(void)
-{
+void adcInternalStartConversion(void) {
     ADC_ClearFlag(ADC1, ADC_FLAG_JEOC);
     ADC_SoftwareStartInjectedConv(ADC1);
-
     adcInternalConversionInProgress = true;
 }
 
-uint16_t adcInternalReadVrefint(void)
-{
+uint16_t adcInternalReadVrefint(void) {
     return ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_1);
 }
 
-uint16_t adcInternalReadTempsensor(void)
-{
+uint16_t adcInternalReadTempsensor(void) {
     return ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_2);
 }
 #endif
 
-void adcInit(const adcConfig_t *config)
-{
+void adcInit(const adcConfig_t *config) {
     uint8_t i;
     uint8_t configuredAdcChannels = 0;
-
     memset(&adcOperatingConfig, 0, sizeof(adcOperatingConfig));
-
     if (config->vbat.enabled) {
         adcOperatingConfig[ADC_BATTERY].tag = config->vbat.ioTag;
     }
-
     if (config->rssi.enabled) {
         adcOperatingConfig[ADC_RSSI].tag = config->rssi.ioTag;  //RSSI_ADC_CHANNEL;
     }
-
     if (config->external1.enabled) {
         adcOperatingConfig[ADC_EXTERNAL1].tag = config->external1.ioTag; //EXTERNAL1_ADC_CHANNEL;
     }
-
     if (config->current.enabled) {
         adcOperatingConfig[ADC_CURRENT].tag = config->current.ioTag;  //CURRENT_METER_ADC_CHANNEL;
     }
-
     ADCDevice device = ADC_CFG_TO_DEV(config->device);
     if (device == ADCINVALID)
         return;
-
     adcDevice_t adc = adcHardware[device];
-
     bool adcActive = false;
     for (int i = 0; i < ADC_CHANNEL_COUNT; i++) {
         if (!adcVerifyPin(adcOperatingConfig[i].tag, device)) {
             continue;
         }
-
         adcActive = true;
         IOInit(IOGetByTag(adcOperatingConfig[i].tag), OWNER_ADC_BATT + i, 0);
         IOConfigGPIO(IOGetByTag(adcOperatingConfig[i].tag), IO_CONFIG(GPIO_Mode_AN, 0, GPIO_OType_OD, GPIO_PuPd_NOPULL));
@@ -230,24 +208,19 @@ void adcInit(const adcConfig_t *config)
         adcOperatingConfig[i].sampleTime = ADC_SampleTime_480Cycles;
         adcOperatingConfig[i].enabled = true;
     }
-
 #ifndef USE_ADC_INTERNAL
     if (!adcActive) {
         return;
     }
 #endif
-
     RCC_ClockCmd(adc.rccADC, ENABLE);
-
     ADC_CommonInitTypeDef ADC_CommonInitStructure;
-
     ADC_CommonStructInit(&ADC_CommonInitStructure);
     ADC_CommonInitStructure.ADC_Mode             = ADC_Mode_Independent;
     ADC_CommonInitStructure.ADC_Prescaler        = ADC_Prescaler_Div8;
     ADC_CommonInitStructure.ADC_DMAAccessMode    = ADC_DMAAccessMode_Disabled;
     ADC_CommonInitStructure.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles;
     ADC_CommonInit(&ADC_CommonInitStructure);
-
 #ifdef USE_ADC_INTERNAL
     // If device is not ADC1 or there's no active channel, then initialize ADC1 separately
     if (device != ADCDEV_1 || !adcActive) {
@@ -255,17 +228,13 @@ void adcInit(const adcConfig_t *config)
         adcInitDevice(ADC1, 2);
         ADC_Cmd(ADC1, ENABLE);
     }
-
     // Initialize for injected conversion
     adcInitInternalInjected();
-
     if (!adcActive) {
         return;
     }
 #endif
-
     adcInitDevice(adc.ADCx, configuredAdcChannels);
-
     uint8_t rank = 1;
     for (i = 0; i < ADC_CHANNEL_COUNT; i++) {
         if (!adcOperatingConfig[i].enabled) {
@@ -274,17 +243,11 @@ void adcInit(const adcConfig_t *config)
         ADC_RegularChannelConfig(adc.ADCx, adcOperatingConfig[i].adcChannel, rank++, adcOperatingConfig[i].sampleTime);
     }
     ADC_DMARequestAfterLastTransferCmd(adc.ADCx, ENABLE);
-
     ADC_DMACmd(adc.ADCx, ENABLE);
     ADC_Cmd(adc.ADCx, ENABLE);
-
-
     dmaInit(dmaGetIdentifier(adc.DMAy_Streamx), OWNER_ADC, 0);
-
     DMA_DeInit(adc.DMAy_Streamx);
-
     DMA_InitTypeDef DMA_InitStructure;
-
     DMA_StructInit(&DMA_InitStructure);
     DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&adc.ADCx->DR;
     DMA_InitStructure.DMA_Channel = adc.channel;
@@ -298,9 +261,7 @@ void adcInit(const adcConfig_t *config)
     DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
     DMA_InitStructure.DMA_Priority = DMA_Priority_High;
     DMA_Init(adc.DMAy_Streamx, &DMA_InitStructure);
-
     DMA_Cmd(adc.DMAy_Streamx, ENABLE);
-
     ADC_SoftwareStartConv(adc.ADCx);
 }
 #endif

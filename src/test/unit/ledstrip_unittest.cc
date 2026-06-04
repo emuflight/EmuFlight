@@ -300,7 +300,7 @@ uint8_t stateFlags = 0;
 uint16_t flightModeFlags = 0;
 float rcCommand[4];
 int16_t rcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
-boxBitmask_t rcModeActivationMask;
+extern boxBitmask_t rcModeActivationMask;
 gpsSolutionData_t gpsSol;
 
 batteryState_e getBatteryState(void) {
@@ -388,4 +388,5 @@ bool isArmingDisabled(void) { return false; }
 
 uint8_t getRssiPercent(void) { return 0; }
 
+void pinioBoxTaskControl(void) {}
 }

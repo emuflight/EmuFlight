@@ -20,13 +20,19 @@
 
 #pragma once
 
+#define FC_TARGET_MCU                   STM32F745  // not used in EmuF
+#define TARGET_BOARD_IDENTIFIER        "S745"      // generic ID
+#define TARGET_MANUFACTURER_IDENTIFIER "HBRO"
+
 //#define USE_TARGET_CONFIG
-#if defined(KAKUTEF7MINI)
-#define TARGET_BOARD_IDENTIFIER "KF7M"
-#define USBD_PRODUCT_STRING "KakuteF7-Mini"
+#if defined(KAKUTEF7MINIV2)
+#define USBD_PRODUCT_STRING "KAKUTEF7MINIV2"
+#elif defined(KAKUTEF7V2)
+#define USBD_PRODUCT_STRING "KAKUTEF7V2"
+#elif defined(KAKUTEF7V15)
+#define USBD_PRODUCT_STRING "KAKUTEF7V15"
 #else
-#define TARGET_BOARD_IDENTIFIER "KTF7"
-#define USBD_PRODUCT_STRING "KakuteF7"
+#define USBD_PRODUCT_STRING "KAKUTEF7HDV"
 #endif
 
 #define LED0_PIN                PA2
@@ -38,7 +44,15 @@
 #define USE_ACC
 #define USE_GYRO
 
-// ICM-20689
+//ICM20689
+#define USE_ACC_SPI_ICM20689
+#define USE_GYRO_SPI_ICM20689
+#define ACC_ICM20689_ALIGN         CW270_DEG
+#define GYRO_ICM20689_ALIGN        CW270_DEG
+#define ICM20689_CS_PIN            PE4
+#define ICM20689_SPI_BUS      SPIDEV_4
+
+// MPU6000
 #define USE_ACC_SPI_MPU6000
 #define USE_GYRO_SPI_MPU6000
 #define GYRO_MPU6000_ALIGN      CW270_DEG
@@ -46,9 +60,9 @@
 #define MPU_INT_EXTI               PE1
 
 #define MPU6000_CS_PIN          SPI4_NSS_PIN
-#define MPU6000_SPI_INSTANCE    SPI4
+#define MPU6000_SPI_BUS    SPIDEV_4
 #define GYRO_1_CS_PIN            MPU6000_CS_PIN
-#define GYRO_1_SPI_INSTANCE      MPU6000_SPI_INSTANCE
+#define GYRO_1_SPI_BUS      MPU6000_SPI_BUS
 
 #define ACC_1_ALIGN              ACC_MPU6000_ALIGN
 #define GYRO_1_ALIGN             GYRO_MPU6000_ALIGN
@@ -113,13 +127,16 @@
 #define SPI4_MISO_PIN           PE5
 #define SPI4_MOSI_PIN           PE6
 
+#if defined(KAKUTEF7V15) || defined(KAKUTEF7V2) ||defined(KAKUTEF7MINIV2)
+#define CAMERA_CONTROL_PIN      PB3
+
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      SPI2_NSS_PIN
 #define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
 #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
-
-#if defined(KAKUTEF7MINI)
+#endif
+#if defined(KAKUTEF7MINIV2)
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
@@ -139,6 +156,7 @@
 
 #define SDCARD_DMA_STREAM_TX_FULL             DMA2_Stream5
 #define SDCARD_DMA_CHANNEL                    3
+#define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 #endif
 
 #define USE_I2C
@@ -149,6 +167,7 @@
 
 #define USE_BARO
 #define USE_BARO_BMP280
+#define USE_BARO_DPS310
 #define BARO_I2C_INSTANCE     I2C_DEVICE
 
 #define USE_MAG
@@ -164,9 +183,10 @@
 #define USE_ADC
 #define CURRENT_METER_ADC_PIN   PC2
 #define VBAT_ADC_PIN            PC3
+#define DEFAULT_CURRENT_METER_SCALE        275
 #define RSSI_ADC_PIN            PC5
 
-#define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
+
 
 #define DEFAULT_FEATURES        (FEATURE_OSD)
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL

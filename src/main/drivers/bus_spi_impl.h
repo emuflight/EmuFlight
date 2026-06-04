@@ -20,6 +20,12 @@
 
 #pragma once
 
+#include "bus.h"
+#include "dma.h"
+
+// Sentinel value stored in bus->curSegment when no DMA transfer is in progress.
+#define BUS_SPI_FREE 0x0
+
 #if defined(STM32F1) || defined(STM32F3) || defined(STM32F4)
 #define MAX_SPI_PIN_SEL 2
 #else
@@ -28,7 +34,7 @@
 
 typedef struct spiPinDef_s {
     ioTag_t pin;
-#ifdef STM32F7
+#if defined(STM32F7) || defined(STM32H7)
     uint8_t af;
 #endif
 } spiPinDef_t;
@@ -39,7 +45,7 @@ typedef struct spiHardware_s {
     spiPinDef_t sckPins[MAX_SPI_PIN_SEL];
     spiPinDef_t misoPins[MAX_SPI_PIN_SEL];
     spiPinDef_t mosiPins[MAX_SPI_PIN_SEL];
-#ifndef STM32F7
+#if !defined(STM32F7) && !defined(STM32H7)
     uint8_t af;
 #endif
     rccPeriphTag_t rcc;
@@ -55,7 +61,7 @@ typedef struct SPIDevice_s {
     ioTag_t sck;
     ioTag_t miso;
     ioTag_t mosi;
-#ifdef STM32F7
+#if defined(STM32F7) || defined(STM32H7)
     uint8_t sckAF;
     uint8_t misoAF;
     uint8_t mosiAF;
@@ -76,3 +82,12 @@ extern spiDevice_t spiDevice[SPIDEV_COUNT];
 
 void spiInitDevice(SPIDevice device);
 uint32_t spiTimeoutUserCallback(SPI_TypeDef *instance);
+
+// Platform-internal DMA functions — implemented in bus_spi_ll.c / bus_spi_stdperiph.c.
+// Stage M.1: these are stubs; Stage M.3 will provide full DMA implementations.
+void spiSequenceStart(const extDevice_t *dev);
+void spiInternalInitStream(const extDevice_t *dev, bool preInit);
+void spiInternalStartDMA(const extDevice_t *dev);
+void spiInternalStopDMA(const extDevice_t *dev);
+void spiInternalResetStream(dmaChannelDescriptor_t *descriptor);
+void spiInternalResetDescriptors(busDevice_t *bus);

@@ -41,4 +41,4 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
 
     //DEF_TIM(TIM3,   CH2,  PB5,  TIM_USE_ANY,   0, 0 ), // FC CAM – DMA1_ST5
 
-}; 
+};

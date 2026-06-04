@@ -23,30 +23,43 @@
 #include "common/axis.h"
 #include "common/time.h"
 #include "common/maths.h"
+#include "common/filter.h"
 #include "pg/pg.h"
 #include "drivers/bus.h"
 #include "drivers/sensor.h"
 
+#ifdef USE_SMITH_PREDICTOR
+#define MAX_SMITH_SAMPLES 12 * 32
+#endif // USE_SMITH_PREDICTOR
+
+#ifdef USE_YAW_SPIN_RECOVERY
+#define YAW_SPIN_RECOVERY_THRESHOLD_MIN 500
+#define YAW_SPIN_RECOVERY_THRESHOLD_MAX 1950
+#endif
+
 extern float vGyroStdDevModulus;
- typedef enum {
-     GYRO_NONE = 0,
-     GYRO_DEFAULT,
-     GYRO_MPU6050,
-     GYRO_L3G4200D,
-     GYRO_MPU3050,
-     GYRO_L3GD20,
-     GYRO_MPU6000,
-     GYRO_MPU6500,
-     GYRO_MPU9250,
-     GYRO_ICM20601,
-     GYRO_ICM20602,
-     GYRO_ICM20608G,
-     GYRO_ICM20649,
-     GYRO_ICM20689,
-     GYRO_BMI160,
-     GYRO_IMUF9001,
-     GYRO_FAKE
- } gyroSensor_e;
+typedef enum {
+    GYRO_NONE = 0,
+    GYRO_DEFAULT,
+    GYRO_MPU6050,
+    GYRO_L3G4200D,
+    GYRO_MPU3050,
+    GYRO_L3GD20,
+    GYRO_MPU6000,
+    GYRO_MPU6500,
+    GYRO_MPU9250,
+    GYRO_ICM20601,
+    GYRO_ICM20602,
+    GYRO_ICM20608G,
+    GYRO_ICM20649,
+    GYRO_ICM20689,
+    GYRO_ICM42605,
+    GYRO_ICM42688P,
+    GYRO_BMI160,
+    GYRO_BMI270,
+    GYRO_IMUF9001,
+    GYRO_FAKE
+} gyroSensor_e;
 
 typedef struct gyro_s {
     uint32_t targetLooptime;
@@ -61,16 +74,21 @@ typedef enum {
     GYRO_OVERFLOW_CHECK_ALL_AXES
 } gyroOverflowCheck_e;
 
+typedef enum {
+    YAW_SPIN_RECOVERY_OFF,
+    YAW_SPIN_RECOVERY_ON,
+    YAW_SPIN_RECOVERY_AUTO
+} yawSpinRecoveryMode_e;
+
 #define GYRO_CONFIG_USE_GYRO_1      0
 #define GYRO_CONFIG_USE_GYRO_2      1
 #define GYRO_CONFIG_USE_GYRO_BOTH   2
-
-#define AVERAGED_GYRO_DATA_BUFFER_SIZE 10
 
 typedef enum {
     FILTER_LOWPASS = 0,
     FILTER_LOWPASS2
 } filterSlots;
+
 #if defined(USE_GYRO_IMUF9001)
 typedef enum {
     IMUF_RATE_32K = 0,
@@ -81,6 +99,24 @@ typedef enum {
     IMUF_RATE_1K = 5
 } imufRate_e;
 #endif
+
+#ifdef USE_SMITH_PREDICTOR
+typedef struct smithPredictor_s {
+    uint8_t enabled;
+    uint8_t samples;
+    uint8_t idx;
+    float data[MAX_SMITH_SAMPLES + 1]; // This is gonna be a ring buffer. Max of 8ms delay at 8khz
+    pt1Filter_t smithPredictorFilter; // filter the smith predictor output for RPY
+    float smithPredictorStrength;
+} smithPredictor_t;
+
+float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered);
+#endif // USE_SMITH_PREDICTOR
+
+typedef enum {
+    RP = 0,
+    RPY = 1
+} dynamicGyroAxisType_e;
 
 typedef struct gyroConfig_s {
     uint8_t  gyro_align;                       // gyro alignment
@@ -95,6 +131,10 @@ typedef struct gyroConfig_s {
 
     uint16_t gyro_lowpass_hz[XYZ_AXIS_COUNT];
     uint16_t gyro_lowpass2_hz[XYZ_AXIS_COUNT];
+
+    uint16_t gyro_ABG_alpha;
+    uint16_t gyro_ABG_boost;
+    uint8_t gyro_ABG_half_life;
 
     uint16_t gyro_soft_notch_hz_1;
     uint16_t gyro_soft_notch_cutoff_1;
@@ -111,8 +151,11 @@ typedef struct gyroConfig_s {
     int16_t  yaw_spin_threshold;
 
     uint16_t gyroCalibrationDuration;  // Gyro calibration duration in 1/100 second
-    uint8_t dyn_notch_quality; // bandpass quality factor, 100 for steep sided bandpass
-    uint8_t dyn_notch_width_percent;
+    uint8_t dyn_notch_axis;
+    uint16_t dyn_notch_q;
+    uint8_t dyn_notch_count;
+    uint16_t dyn_notch_min_hz;
+    uint16_t dyn_notch_max_hz;
 #if defined(USE_GYRO_IMUF9001)
     uint16_t imuf_mode;
     uint16_t imuf_rate;
@@ -120,14 +163,21 @@ typedef struct gyroConfig_s {
     uint16_t imuf_roll_lpf_cutoff_hz;
     uint16_t imuf_yaw_lpf_cutoff_hz;
     uint16_t imuf_acc_lpf_cutoff_hz;
+    uint8_t imuf_ptn_order;
 #endif
     uint16_t imuf_pitch_q;
     uint16_t imuf_roll_q;
     uint16_t imuf_yaw_q;
     uint16_t imuf_w;
-    uint16_t imuf_sharpness;
 
-    uint8_t averagedGyro[XYZ_AXIS_COUNT];
+    uint8_t smithPredictorEnabled;
+    uint8_t smithPredictorStrength;
+    uint8_t smithPredictorDelay;
+    uint8_t smithPredictorFilterHz;
+
+    //MSP 1.54
+    uint16_t gyroSampleRateHz;
+    //End MSP 1.54
 } gyroConfig_t;
 
 PG_DECLARE(gyroConfig_t, gyroConfig);
@@ -142,7 +192,8 @@ void gyroDmaSpiStartRead(void);
 #endif
 void gyroUpdate(timeUs_t currentTimeUs);
 bool gyroGetAverage(quaternion *vAverage);
-const busDevice_t *gyroSensorBus(void);
+const extDevice_t *gyroSensorBus(void);
+struct gyroDev_s *gyroSensorGetDev(void);
 struct mpuConfiguration_s;
 const struct mpuConfiguration_s *gyroMpuConfiguration(void);
 struct mpuDetectionResult_s;
@@ -157,3 +208,9 @@ bool gyroOverflowDetected(void);
 bool gyroYawSpinDetected(void);
 uint16_t gyroAbsRateDps(int axis);
 uint8_t gyroReadRegister(uint8_t whichSensor, uint8_t reg);
+#ifdef USE_GYRO_DATA_ANALYSE
+bool isDynamicFilterActive(void);
+#endif
+#ifdef USE_YAW_SPIN_RECOVERY
+void initYawSpinRecovery(int maxYawRate);
+#endif

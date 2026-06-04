@@ -80,7 +80,23 @@
 #define USE_USB_MSC
 #endif
 
-#if defined(STM32F4) || defined(STM32F7)
+#ifdef STM32H7
+#define USE_ITCM_RAM
+// Note: USE_FAST_RAM intentionally omitted — DTCM is not DMA-accessible on H7;
+// DShot and SPI DMA buffers must stay in AXI SRAM where DMA controllers can reach them
+#define USE_DMA_RAM
+#define USE_DSHOT
+#define USE_GYRO_DATA_ANALYSE
+#define USE_ADC_INTERNAL
+// Note: USE_USB_CDC_HID intentionally omitted — fc_tasks.c pulls in
+// vcpf4/usbd_cdc_vcp.h (F4-specific) under that guard; not yet ported for H7.
+// common_fc_post.h strips USE_USB_MSC if no SDCARD/FLASHFS or no BLACKBOX.
+#define USE_USB_MSC
+#define I2C3_OVERCLOCK true
+#define I2C4_OVERCLOCK true
+#endif
+
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
 #define TASK_GYROPID_DESIRED_PERIOD     125 // 125us = 8kHz
 #define SCHEDULER_DELAY_LIMIT           10
 #else
@@ -102,6 +118,23 @@
 #define FAST_CODE_NOINLINE
 #endif // USE_ITCM_RAM
 
+// On H7, ISR handlers in ITCM execute from fastest memory (zero flash latency).
+#if defined(STM32H7)
+#define FAST_IRQ_HANDLER            FAST_CODE
+#else
+#define FAST_IRQ_HANDLER
+#endif
+
+// OctoSPI memory-mapped mode: code that runs while MM is disabled must be in RAM
+// (not in the external OctoSPI flash which is inaccessible during MM-off window).
+#ifdef USE_OCTOSPI
+#define MMFLASH_CODE            FAST_CODE
+#define MMFLASH_CODE_NOINLINE   FAST_CODE NOINLINE
+#else
+#define MMFLASH_CODE
+#define MMFLASH_CODE_NOINLINE
+#endif
+
 #ifdef USE_FAST_RAM
 #define FAST_RAM_ZERO_INIT             __attribute__ ((section(".fastram_bss"), aligned(4)))
 #define FAST_RAM                    __attribute__ ((section(".fastram_data"), aligned(4)))
@@ -110,7 +143,25 @@
 #define FAST_RAM
 #endif // USE_FAST_RAM
 
-#ifdef STM32F4
+// DMA buffer placement macros.
+// H7: DMA cannot access DTCM; place DMA buffers in AXI SRAM (.dmaram sections).
+// F7: DTCM is DMA-accessible, so FAST_RAM (DTCM) works.
+// Others: no special placement required.
+#if defined(STM32H7)
+#define DMA_DATA_ZERO_INIT          __attribute__ ((section(".dmaram_bss"),  aligned(32)))
+#define DMA_DATA                    __attribute__ ((section(".dmaram_data"), aligned(32)))
+#define STATIC_DMA_DATA_AUTO        static DMA_DATA
+#elif defined(STM32F7)
+#define DMA_DATA_ZERO_INIT          FAST_RAM_ZERO_INIT
+#define DMA_DATA                    FAST_RAM
+#define STATIC_DMA_DATA_AUTO        static DMA_DATA
+#else
+#define DMA_DATA_ZERO_INIT
+#define DMA_DATA
+#define STATIC_DMA_DATA_AUTO        static
+#endif
+
+#if defined(STM32F4) || defined(STM32H7)
 // Data in RAM which is guaranteed to not be reset on hot reboot
 #define PERSISTENT                  __attribute__ ((section(".persistent_data"), aligned(4)))
 #endif
@@ -128,6 +179,7 @@
 #define USE_PWM
 #define USE_SERIAL_RX
 #define USE_SERIALRX_CRSF       // Team Black Sheep Crossfire protocol
+#define USE_SERIALRX_GHST       // ImmersionRC Ghost Protocol
 #define USE_SERIALRX_IBUS       // FlySky and Turnigy receivers
 #define USE_SERIALRX_SBUS       // Frsky and Futaba receivers
 #define USE_SERIALRX_SPEKTRUM   // SRXL, DSM2 and DSMX protocol
@@ -154,6 +206,8 @@
 #endif
 
 #if (FLASH_SIZE > 128)
+#define USE_PEGASUS_UI
+#define USE_SMITH_PREDICTOR
 #define USE_SERIALRX_SUMH       // Graupner legacy protocol
 #define USE_CAMERA_CONTROL
 #define USE_CMS
@@ -167,6 +221,7 @@
 #define MSP_OVER_CLI
 #define USE_OSD
 #define USE_OSD_OVER_MSP_DISPLAYPORT
+#define USE_HDZERO_OSD
 #define USE_PINIO
 #define USE_PINIOBOX
 #define USE_RCDEVICE
@@ -174,6 +229,7 @@
 #define USE_RX_MSP
 #define USE_SERIALRX_FPORT      // FrSky FPort
 #define USE_TELEMETRY_CRSF
+#define USE_TELEMETRY_GHST
 #define USE_TELEMETRY_SRXL
 #define USE_VIRTUAL_CURRENT_METER
 #define USE_VTX_COMMON
@@ -189,7 +245,6 @@
 #define USE_THROTTLE_BOOST
 #define USE_RC_SMOOTHING_FILTER
 #define USE_ITERM_RELAX
-
 #ifdef USE_SERIALRX_SPEKTRUM
 #define USE_SPEKTRUM_BIND
 #define USE_SPEKTRUM_BIND_PLUG
@@ -222,7 +277,9 @@
 #define USE_TELEMETRY_MAVLINK
 #define USE_UNCOMMON_MIXERS
 #define USE_SIGNATURE
-#define USE_ABSOLUTE_CONTROL
 #define USE_CMS_FAILSAFE_MENU
 #define USE_CMS_GPS_RESCUE_MENU
 #endif
+
+// ICM42688P & BMI270 experimental define 
+#define USE_GYRO_DLPF_EXPERIMENTAL

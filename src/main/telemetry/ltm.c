@@ -89,36 +89,31 @@ static bool ltmEnabled;
 static portSharing_e ltmPortSharing;
 static uint8_t ltm_crc;
 
-static void ltm_initialise_packet(uint8_t ltm_id)
-{
+static void ltm_initialise_packet(uint8_t ltm_id) {
     ltm_crc = 0;
     serialWrite(ltmPort, '$');
     serialWrite(ltmPort, 'T');
     serialWrite(ltmPort, ltm_id);
 }
 
-static void ltm_serialise_8(uint8_t v)
-{
+static void ltm_serialise_8(uint8_t v) {
     serialWrite(ltmPort, v);
     ltm_crc ^= v;
 }
 
-static void ltm_serialise_16(uint16_t v)
-{
+static void ltm_serialise_16(uint16_t v) {
     ltm_serialise_8((uint8_t)v);
     ltm_serialise_8((v >> 8));
 }
 
-static void ltm_serialise_32(uint32_t v)
-{
+static void ltm_serialise_32(uint32_t v) {
     ltm_serialise_8((uint8_t)v);
     ltm_serialise_8((v >> 8));
     ltm_serialise_8((v >> 16));
     ltm_serialise_8((v >> 24));
 }
 
-static void ltm_finalise(void)
-{
+static void ltm_finalise(void) {
     serialWrite(ltmPort, ltm_crc);
 }
 
@@ -126,27 +121,22 @@ static void ltm_finalise(void)
  * GPS G-frame 5Hhz at > 2400 baud
  * LAT LON SPD ALT SAT/FIX
  */
-static void ltm_gframe(void)
-{
+static void ltm_gframe(void) {
 #if defined(USE_GPS)
     uint8_t gps_fix_type = 0;
     int32_t ltm_alt;
-
     if (!sensors(SENSOR_GPS))
         return;
-
     if (!STATE(GPS_FIX))
         gps_fix_type = 1;
     else if (gpsSol.numSat < 5)
         gps_fix_type = 2;
     else
         gps_fix_type = 3;
-
     ltm_initialise_packet('G');
     ltm_serialise_32(gpsSol.llh.lat);
     ltm_serialise_32(gpsSol.llh.lon);
     ltm_serialise_8((uint8_t)(gpsSol.groundSpeed / 100));
-
 #if defined(USE_BARO) || defined(USE_RANGEFINDER)
     ltm_alt = (sensors(SENSOR_RANGEFINDER) || sensors(SENSOR_BARO)) ? getEstimatedAltitude() : gpsSol.llh.alt * 100;
 #else
@@ -169,8 +159,7 @@ static void ltm_gframe(void)
  *     15: LAND, 16:FlybyWireA, 17: FlybywireB, 18: Cruise, 19: Unknown
  */
 
-static void ltm_sframe(void)
-{
+static void ltm_sframe(void) {
     uint8_t lt_flightmode;
     uint8_t lt_statemode;
     if (FLIGHT_MODE(PASSTHRU_MODE))
@@ -189,7 +178,6 @@ static void ltm_sframe(void)
         lt_flightmode = 3;
     else
         lt_flightmode = 1;      // Rate mode
-
     lt_statemode = (ARMING_FLAG(ARMED)) ? 1 : 0;
     if (failsafeIsActive())
         lt_statemode |= 2;
@@ -206,8 +194,7 @@ static void ltm_sframe(void)
  * Attitude A-frame - 10 Hz at > 2400 baud
  *  PITCH ROLL HEADING
  */
-static void ltm_aframe(void)
-{
+static void ltm_aframe(void) {
     ltm_initialise_packet('A');
     ltm_serialise_16(DECIDEGREES_TO_DEGREES(attitude.values.pitch));
     ltm_serialise_16(DECIDEGREES_TO_DEGREES(attitude.values.roll));
@@ -220,8 +207,7 @@ static void ltm_aframe(void)
  *  This frame will be ignored by Ghettostation, but processed by GhettOSD if it is used as standalone onboard OSD
  *  home pos, home alt, direction to home
  */
-static void ltm_oframe(void)
-{
+static void ltm_oframe(void) {
     ltm_initialise_packet('O');
 #if defined(USE_GPS)
     ltm_serialise_32(GPS_home[LAT]);
@@ -236,8 +222,7 @@ static void ltm_oframe(void)
     ltm_finalise();
 }
 
-static void process_ltm(void)
-{
+static void process_ltm(void) {
     static uint8_t ltm_scheduler;
     ltm_aframe();
     if (ltm_scheduler & 1)
@@ -250,8 +235,7 @@ static void process_ltm(void)
     ltm_scheduler %= 10;
 }
 
-void handleLtmTelemetry(void)
-{
+void handleLtmTelemetry(void) {
     static uint32_t ltm_lastCycleTime;
     uint32_t now;
     if (!ltmEnabled)
@@ -265,21 +249,18 @@ void handleLtmTelemetry(void)
     }
 }
 
-void freeLtmTelemetryPort(void)
-{
+void freeLtmTelemetryPort(void) {
     closeSerialPort(ltmPort);
     ltmPort = NULL;
     ltmEnabled = false;
 }
 
-void initLtmTelemetry(void)
-{
+void initLtmTelemetry(void) {
     portConfig = findSerialPortConfig(FUNCTION_TELEMETRY_LTM);
     ltmPortSharing = determinePortSharing(portConfig, FUNCTION_TELEMETRY_LTM);
 }
 
-void configureLtmTelemetryPort(void)
-{
+void configureLtmTelemetryPort(void) {
     if (!portConfig) {
         return;
     }
@@ -293,8 +274,7 @@ void configureLtmTelemetryPort(void)
     ltmEnabled = true;
 }
 
-void checkLtmTelemetryState(void)
-{
+void checkLtmTelemetryState(void) {
     if (portConfig && telemetryCheckRxPortShared(portConfig)) {
         if (!ltmEnabled && telemetrySharedPort != NULL) {
             ltmPort = telemetrySharedPort;

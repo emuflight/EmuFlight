@@ -44,8 +44,7 @@ static targetSerialPortFunction_t targetSerialPortFunction[] = {
     { TELEMETRY_UART,     FUNCTION_TELEMETRY_SMARTPORT },
 };
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     barometerConfigMutable()->baro_hardware = BARO_DEFAULT;
     targetSerialPortFunctionConfig(targetSerialPortFunction, ARRAYLEN(targetSerialPortFunction));
     telemetryConfigMutable()->halfDuplex = 0;

@@ -65,14 +65,14 @@
 
 #if defined(OMNIBUSF4V6)
 #define GYRO_1_CS_PIN           PA4   // Onboard IMU
-#define GYRO_1_SPI_INSTANCE     SPI1
+#define GYRO_1_SPI_BUS     SPIDEV_1
 #define GYRO_2_CS_PIN           PC14  // External IMU
-#define GYRO_2_SPI_INSTANCE     SPI1
+#define GYRO_2_SPI_BUS     SPIDEV_1
 #else
 #define GYRO_1_CS_PIN           PD2
-#define GYRO_1_SPI_INSTANCE     SPI3
+#define GYRO_1_SPI_BUS     SPIDEV_3
 #define GYRO_2_CS_PIN           PA4
-#define GYRO_2_SPI_INSTANCE     SPI1
+#define GYRO_2_SPI_BUS     SPIDEV_1
 #endif
 
 #define GYRO_1_ALIGN            CW180_DEG
@@ -113,6 +113,7 @@
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
+#define USE_FLASH_W25Q128FV
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define FLASH_SPI_INSTANCE      SPI2
 #define FLASH_CS_PIN            PB12
@@ -195,7 +196,7 @@
 
 // Allegro Systems ACS781KLRTR-150U-T
 #if !defined(OMNIBUSF4V6)
-#define CURRENT_METER_SCALE_DEFAULT  176
+#define DEFAULT_CURRENT_METER_SCALE  176
 #define CURRENT_METER_OFFSET_DEFAULT -18500
 #endif
 

@@ -37,26 +37,21 @@
 
 uint8_t hardwareRevision = UNKNOWN;
 
-void detectHardwareRevision(void)
-{
+void detectHardwareRevision(void) {
     IO_t pin1 = IOGetByTag(IO_TAG(PB12));
     IOInit(pin1, OWNER_SYSTEM, 1);
     IOConfigGPIO(pin1, IOCFG_IPU);
-
     // Check hardware revision
     delayMicroseconds(10);  // allow configuration to settle
-
     /*
         if both PB12 and 13 are tied to GND then it is Rev3A (mini)
         if only PB12 is tied to GND then it is a Rev3 (full size)
     */
     if (!IORead(pin1)) {
         hardwareRevision = BJF4_REV3;
-
         IO_t pin2 = IOGetByTag(IO_TAG(PB13));
         IOInit(pin2, OWNER_SYSTEM, 2);
         IOConfigGPIO(pin2, IOCFG_IPU);
-
         if (!IORead(pin2)) {
             hardwareRevision = BJF4_REV4;
         }
@@ -64,26 +59,21 @@ void detectHardwareRevision(void)
         IO_t pin2 = IOGetByTag(IO_TAG(PB13));
         IOInit(pin2, OWNER_SYSTEM, 2);
         IOConfigGPIO(pin2, IOCFG_OUT_PP);
-
         IOWrite(pin2, false);
-
         if (!IORead(pin1)) {
             hardwareRevision = BJF4_MINI_REV3A;
         }
     }
-
     if (hardwareRevision == UNKNOWN) {
         hardwareRevision = BJF4_REV2;
         return;
     }
 }
 
-void updateHardwareRevision(void)
-{
+void updateHardwareRevision(void) {
     if (hardwareRevision != BJF4_REV2) {
         return;
     }
-
     /*
         if flash exists on PB3 then Rev1
     */

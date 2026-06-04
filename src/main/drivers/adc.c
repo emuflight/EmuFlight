@@ -40,7 +40,11 @@
 
 adcOperatingConfig_t adcOperatingConfig[ADC_CHANNEL_COUNT];
 
-#if defined(STM32F7)
+#if defined(STM32H7)
+// In AXI SRAM (.dmaram_bss): DMA1/2-accessible, D-cached; invalidate before CPU read.
+// DMA_DATA_ZERO_INIT provides 32-byte alignment so no adjacent variable shares a cache line.
+DMA_DATA_ZERO_INIT volatile uint16_t adcValues[ADC_CHANNEL_COUNT];
+#elif defined(STM32F7)
 volatile FAST_RAM_ZERO_INIT uint16_t adcValues[ADC_CHANNEL_COUNT];
 #else
 volatile uint16_t adcValues[ADC_CHANNEL_COUNT];
@@ -53,8 +57,7 @@ uint16_t adcTSSlopeK;
 uint16_t adcVREFINTCAL;
 #endif
 
-uint8_t adcChannelByTag(ioTag_t ioTag)
-{
+uint8_t adcChannelByTag(ioTag_t ioTag) {
     for (uint8_t i = 0; i < ARRAYLEN(adcTagMap); i++) {
         if (ioTag == adcTagMap[i].tag)
             return adcTagMap[i].channel;
@@ -62,33 +65,30 @@ uint8_t adcChannelByTag(ioTag_t ioTag)
     return 0;
 }
 
-ADCDevice adcDeviceByInstance(ADC_TypeDef *instance)
-{
+ADCDevice adcDeviceByInstance(ADC_TypeDef *instance) {
     if (instance == ADC1) {
         return ADCDEV_1;
     }
-
-#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     if (instance == ADC2) {
         return ADCDEV_2;
     }
-
     if (instance == ADC3) {
         return ADCDEV_3;
     }
 #endif
-
 #ifdef STM32F3
     if (instance == ADC4) {
         return ADCDEV_4;
     }
 #endif
-
     return ADCINVALID;
 }
 
-uint16_t adcGetChannel(uint8_t channel)
-{
+uint16_t adcGetChannel(uint8_t channel) {
+#if defined(STM32H7)
+    SCB_InvalidateDCache_by_Addr((uint32_t*)adcValues, (sizeof(adcValues) + 31U) & ~31U);
+#endif
 #ifdef DEBUG_ADC_CHANNELS
     if (adcOperatingConfig[0].enabled) {
         debug[0] = adcValues[adcOperatingConfig[0].dmaIndex];
@@ -108,12 +108,10 @@ uint16_t adcGetChannel(uint8_t channel)
 
 // Verify a pin designated by tag has connection to an ADC instance designated by device
 
-bool adcVerifyPin(ioTag_t tag, ADCDevice device)
-{
+bool adcVerifyPin(ioTag_t tag, ADCDevice device) {
     if (!tag) {
         return false;
     }
-
     for (int map = 0 ; map < ADC_TAG_MAP_COUNT ; map++) {
 #if defined(STM32F1)
         UNUSED(device);
@@ -126,13 +124,11 @@ bool adcVerifyPin(ioTag_t tag, ADCDevice device)
         }
 #endif
     }
-
     return false;
 }
 
 #else
-uint16_t adcGetChannel(uint8_t channel)
-{
+uint16_t adcGetChannel(uint8_t channel) {
     UNUSED(channel);
     return 0;
 }

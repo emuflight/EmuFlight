@@ -34,7 +34,7 @@
 
 
 
-#define LED0_PIN                PB5  
+#define LED0_PIN                PB5
 
 #define USE_BEEPER
 #define BEEPER_PIN              PB4
@@ -81,10 +81,10 @@
 
 /*----------Gyro Config--------*/
 #define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 
 #define MPU6500_CS_PIN          PA4
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 
 #define USE_GYRO
 #define USE_ACC

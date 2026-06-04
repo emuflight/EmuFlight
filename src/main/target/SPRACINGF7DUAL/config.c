@@ -63,10 +63,8 @@ static targetSerialPortFunction_t targetSerialPortFunction[] = {
 };
 #endif
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     barometerConfigMutable()->baro_hardware = BARO_DEFAULT;
-
 #ifdef USE_TELEMETRY
     targetSerialPortFunctionConfig(targetSerialPortFunction, ARRAYLEN(targetSerialPortFunction));
     // change telemetry settings

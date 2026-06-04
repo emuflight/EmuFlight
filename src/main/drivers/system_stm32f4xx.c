@@ -32,12 +32,10 @@
 #define AIRCR_VECTKEY_MASK    ((uint32_t)0x05FA0000)
 void SetSysClock(void);
 
-void systemReset(void)
-{
+void systemReset(void) {
     if (mpuResetFn) {
         mpuResetFn();
     }
-
     __disable_irq();
     NVIC_SystemReset();
 }
@@ -45,14 +43,11 @@ void systemReset(void)
 PERSISTENT uint32_t bootloaderRequest = 0;
 #define BOOTLOADER_REQUEST_COOKIE 0xDEADBEEF
 
-void systemResetToBootloader(void)
-{
+void systemResetToBootloader(void) {
     if (mpuResetFn) {
         mpuResetFn();
     }
-
     bootloaderRequest = BOOTLOADER_REQUEST_COOKIE;
-
     __disable_irq();
     NVIC_SystemReset();
 }
@@ -64,24 +59,18 @@ typedef struct isrVector_s {
     resetHandler_t *resetHandler;
 } isrVector_t;
 
-void checkForBootLoaderRequest(void)
-{
+void checkForBootLoaderRequest(void) {
     if (bootloaderRequest != BOOTLOADER_REQUEST_COOKIE) {
         return;
     }
-
     bootloaderRequest = 0;
-
     extern isrVector_t system_isr_vector_table_base;
-
     __set_MSP(system_isr_vector_table_base.stackEnd);
     system_isr_vector_table_base.resetHandler();
     while (1);
 }
 
-void enableGPIOPowerUsageAndNoiseReductions(void)
-{
-
+void enableGPIOPowerUsageAndNoiseReductions(void) {
     RCC_AHB1PeriphClockCmd(
         RCC_AHB1Periph_GPIOA |
         RCC_AHB1Periph_GPIOB |
@@ -103,7 +92,6 @@ void enableGPIOPowerUsageAndNoiseReductions(void)
         RCC_AHB1Periph_DMA2 |
         0, ENABLE
     );
-
     RCC_AHB2PeriphClockCmd(0, ENABLE);
 #ifdef STM32F40_41xxx
     RCC_AHB3PeriphClockCmd(0, ENABLE);
@@ -133,7 +121,6 @@ void enableGPIOPowerUsageAndNoiseReductions(void)
         RCC_APB1Periph_PWR |
         RCC_APB1Periph_DAC |
         0, ENABLE);
-
     RCC_APB2PeriphClockCmd(
         RCC_APB2Periph_TIM1 |
         RCC_APB2Periph_TIM8 |
@@ -150,64 +137,48 @@ void enableGPIOPowerUsageAndNoiseReductions(void)
         RCC_APB2Periph_TIM10 |
         RCC_APB2Periph_TIM11 |
         0, ENABLE);
-
     GPIO_InitTypeDef GPIO_InitStructure;
     GPIO_StructInit(&GPIO_InitStructure);
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP; // default is un-pulled input
-
     GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_All;
     GPIO_InitStructure.GPIO_Pin &= ~(GPIO_Pin_11 | GPIO_Pin_12); // leave USB D+/D- alone
-
     GPIO_InitStructure.GPIO_Pin &= ~(GPIO_Pin_13 | GPIO_Pin_14); // leave JTAG pins alone
     GPIO_Init(GPIOA, &GPIO_InitStructure);
-
     GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_All;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
-
     GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_All;
     GPIO_Init(GPIOC, &GPIO_InitStructure);
     GPIO_Init(GPIOD, &GPIO_InitStructure);
     GPIO_Init(GPIOE, &GPIO_InitStructure);
-
 #ifdef STM32F40_41xxx
     GPIO_Init(GPIOF, &GPIO_InitStructure);
     GPIO_Init(GPIOG, &GPIO_InitStructure);
     GPIO_Init(GPIOH, &GPIO_InitStructure);
     GPIO_Init(GPIOI, &GPIO_InitStructure);
 #endif
-
 }
 
-bool isMPUSoftReset(void)
-{
+bool isMPUSoftReset(void) {
     if (cachedRccCsrValue & RCC_CSR_SFTRSTF)
         return true;
     else
         return false;
 }
 
-void systemInit(void)
-{
+void systemInit(void) {
     SetSysClock();
-
     // Configure NVIC preempt/priority groups
     NVIC_PriorityGroupConfig(NVIC_PRIORITY_GROUPING);
-
     // cache RCC->CSR value to use it in isMPUSoftReset() and others
     cachedRccCsrValue = RCC->CSR;
-
     /* Accounts for OP Bootloader, set the Vector Table base address as specified in .ld file */
     extern void *isr_vector_table_base;
     NVIC_SetVectorTable((uint32_t)&isr_vector_table_base, 0x0);
     RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_OTG_FS, DISABLE);
-
     RCC_ClearFlag();
-
     enableGPIOPowerUsageAndNoiseReductions();
-
     // Init cycle counter
     cycleCounterInit();
-
     // SysTick
     SysTick_Config(SystemCoreClock / 1000);
 }

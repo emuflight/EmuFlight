@@ -44,23 +44,19 @@ char trampCmsStatusString[31] = "- -- ---- ----";
 //                               m bc ffff tppp
 //                               01234567890123
 
-void trampCmsUpdateStatusString(void)
-{
+void trampCmsUpdateStatusString(void) {
     trampCmsStatusString[0] = '*';
     trampCmsStatusString[1] = ' ';
     trampCmsStatusString[2] = vtx58BandLetter[trampBand];
     trampCmsStatusString[3] = vtx58ChannelNames[trampChannel][0];
     trampCmsStatusString[4] = ' ';
-
     if (trampCurFreq)
         tfp_sprintf(&trampCmsStatusString[5], "%4d", trampCurFreq);
     else
         tfp_sprintf(&trampCmsStatusString[5], "----");
-
     if (trampPower) {
         tfp_sprintf(&trampCmsStatusString[9], " %c%3d", (trampPower == trampConfiguredPower) ? ' ' : '*', trampPower);
-    }
-    else
+    } else
         tfp_sprintf(&trampCmsStatusString[9], " ----");
 }
 
@@ -79,49 +75,39 @@ static uint8_t trampCmsPower = 1;
 
 static OSD_TAB_t trampCmsEntPower = { &trampCmsPower, sizeof(trampPowerTable), trampPowerNames };
 
-static void trampCmsUpdateFreqRef(void)
-{
+static void trampCmsUpdateFreqRef(void) {
     if (trampCmsBand > 0 && trampCmsChan > 0)
         trampCmsFreqRef = vtx58frequencyTable[trampCmsBand - 1][trampCmsChan - 1];
 }
 
-static long trampCmsConfigBand(displayPort_t *pDisp, const void *self)
-{
+static long trampCmsConfigBand(displayPort_t *pDisp, const void *self) {
     UNUSED(pDisp);
     UNUSED(self);
-
     if (trampCmsBand == 0)
         // Bounce back
         trampCmsBand = 1;
     else
         trampCmsUpdateFreqRef();
-
     return 0;
 }
 
-static long trampCmsConfigChan(displayPort_t *pDisp, const void *self)
-{
+static long trampCmsConfigChan(displayPort_t *pDisp, const void *self) {
     UNUSED(pDisp);
     UNUSED(self);
-
     if (trampCmsChan == 0)
         // Bounce back
         trampCmsChan = 1;
     else
         trampCmsUpdateFreqRef();
-
     return 0;
 }
 
-static long trampCmsConfigPower(displayPort_t *pDisp, const void *self)
-{
+static long trampCmsConfigPower(displayPort_t *pDisp, const void *self) {
     UNUSED(pDisp);
     UNUSED(self);
-
     if (trampCmsPower == 0)
         // Bounce back
         trampCmsPower = 1;
-
     return 0;
 }
 
@@ -133,51 +119,39 @@ static const char * const trampCmsPitModeNames[] = {
 
 static OSD_TAB_t trampCmsEntPitMode = { &trampCmsPitMode, 2, trampCmsPitModeNames };
 
-static long trampCmsSetPitMode(displayPort_t *pDisp, const void *self)
-{
+static long trampCmsSetPitMode(displayPort_t *pDisp, const void *self) {
     UNUSED(pDisp);
     UNUSED(self);
-
     if (trampCmsPitMode == 0) {
         // Bouce back
         trampCmsPitMode = 1;
     } else {
         trampSetPitMode(trampCmsPitMode - 1);
     }
-
     return 0;
 }
 
-static long trampCmsCommence(displayPort_t *pDisp, const void *self)
-{
+static long trampCmsCommence(displayPort_t *pDisp, const void *self) {
     UNUSED(pDisp);
     UNUSED(self);
-
     trampSetBandAndChannel(trampCmsBand, trampCmsChan);
-    trampSetRFPower(trampPowerTable[trampCmsPower-1]);
-
+    trampSetRFPower(trampPowerTable[trampCmsPower - 1]);
     // If it fails, the user should retry later
     trampCommitChanges();
-
     // update'vtx_' settings
     vtxSettingsConfigMutable()->band = trampCmsBand;
     vtxSettingsConfigMutable()->channel = trampCmsChan;
     vtxSettingsConfigMutable()->power = trampCmsPower;
     vtxSettingsConfigMutable()->freq = vtx58_Bandchan2Freq(trampCmsBand, trampCmsChan);
-
     saveConfigAndNotify();
-
     return MENU_CHAIN_BACK;
 }
 
-static void trampCmsInitSettings(void)
-{
+static void trampCmsInitSettings(void) {
     if (trampBand > 0) trampCmsBand = trampBand;
     if (trampChannel > 0) trampCmsChan = trampChannel;
-
     trampCmsUpdateFreqRef();
     trampCmsPitMode = trampPitMode + 1;
-
     if (trampConfiguredPower > 0) {
         for (uint8_t i = 0; i < VTX_TRAMP_POWER_COUNT; i++) {
             if (trampConfiguredPower <= trampPowerTable[i]) {
@@ -188,8 +162,7 @@ static void trampCmsInitSettings(void)
     }
 }
 
-static long trampCmsOnEnter(void)
-{
+static long trampCmsOnEnter(void) {
     trampCmsInitSettings();
     return 0;
 }
@@ -211,8 +184,7 @@ static CMS_Menu trampCmsMenuCommence = {
     .entries = trampCmsMenuCommenceEntries,
 };
 
-static OSD_Entry trampMenuEntries[] =
-{
+static OSD_Entry trampMenuEntries[] = {
     { "- TRAMP -", OME_Label, NULL, NULL, 0 },
 
     { "",       OME_Label,   NULL,                   trampCmsStatusString,  DYNAMIC },

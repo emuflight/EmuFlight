@@ -48,6 +48,7 @@ extern "C" {
 
     extern bool crsfFrameDone;
     extern crsfFrame_t crsfFrame;
+    extern crsfFrame_t crsfChannelDataFrame;
     extern uint32_t crsfChannelData[CRSF_MAX_CHANNEL];
 
     uint32_t dummyTimeUs;
@@ -176,6 +177,7 @@ TEST(CrossFireTest, TestCrsfFrameStatusUnpacking)
     const uint8_t crc = crsfFrameCRC();
     crsfFrame.frame.payload[CRSF_FRAME_RC_CHANNELS_PAYLOAD_SIZE] = crc;
 
+    memcpy(&crsfChannelDataFrame, &crsfFrame, sizeof(crsfFrame));
     const uint8_t status = crsfFrameStatus();
     EXPECT_EQ(RX_FRAME_COMPLETE, status);
     EXPECT_EQ(false, crsfFrameDone);
@@ -202,8 +204,8 @@ TEST(CrossFireTest, TestCrsfFrameStatusUnpacking)
 }
 
 const uint8_t capturedData[] = {
-    0x00,0x18,0x16,0xBD,0x08,0x9F,0xF4,0xAE,0xF7,0xBD,0xEF,0x7D,0xEF,0xFB,0xAD,0xFD,0x45,0x2B,0x5A,0x01,0x00,0x00,0x00,0x00,0x00,0x6C,
-    0x00,0x18,0x16,0xBD,0x08,0x9F,0xF4,0xAA,0xF7,0xBD,0xEF,0x7D,0xEF,0xFB,0xAD,0xFD,0x45,0x2B,0x5A,0x01,0x00,0x00,0x00,0x00,0x00,0x94,
+    0xC8,0x18,0x16,0xBD,0x08,0x9F,0xF4,0xAE,0xF7,0xBD,0xEF,0x7D,0xEF,0xFB,0xAD,0xFD,0x45,0x2B,0x5A,0x01,0x00,0x00,0x00,0x00,0x00,0x6C,
+    0xC8,0x18,0x16,0xBD,0x08,0x9F,0xF4,0xAA,0xF7,0xBD,0xEF,0x7D,0xEF,0xFB,0xAD,0xFD,0x45,0x2B,0x5A,0x01,0x00,0x00,0x00,0x00,0x00,0x94,
 };
 
 typedef struct crsfRcChannelsFrame_s {
@@ -220,12 +222,13 @@ TEST(CrossFireTest, TestCapturedData)
     const crsfRcChannelsFrame_t *framePtr = (const crsfRcChannelsFrame_t*)capturedData;
     crsfFrame = *(const crsfFrame_t*)framePtr;
     crsfFrameDone = true;
+    memcpy(&crsfChannelDataFrame, &crsfFrame, sizeof(crsfFrame));
     uint8_t status = crsfFrameStatus();
     EXPECT_EQ(RX_FRAME_COMPLETE, status);
     EXPECT_EQ(false, crsfFrameDone);
     EXPECT_EQ(RX_FRAME_COMPLETE, status);
     EXPECT_EQ(false, crsfFrameDone);
-    EXPECT_EQ(CRSF_ADDRESS_BROADCAST, crsfFrame.frame.deviceAddress);
+    EXPECT_EQ(CRSF_ADDRESS_FLIGHT_CONTROLLER, crsfFrame.frame.deviceAddress);  // Updated: firmware now requires FC address
     EXPECT_EQ(CRSF_FRAME_RC_CHANNELS_PAYLOAD_SIZE + CRSF_FRAME_LENGTH_TYPE_CRC, crsfFrame.frame.frameLength);
     EXPECT_EQ(CRSF_FRAMETYPE_RC_CHANNELS_PACKED, crsfFrame.frame.type);
     EXPECT_EQ(189, crsfChannelData[0]);
@@ -242,12 +245,13 @@ TEST(CrossFireTest, TestCapturedData)
     ++framePtr;
     crsfFrame = *(const crsfFrame_t*)framePtr;
     crsfFrameDone = true;
+    memcpy(&crsfChannelDataFrame, &crsfFrame, sizeof(crsfFrame));
     status = crsfFrameStatus();
     EXPECT_EQ(RX_FRAME_COMPLETE, status);
     EXPECT_EQ(false, crsfFrameDone);
     EXPECT_EQ(RX_FRAME_COMPLETE, status);
     EXPECT_EQ(false, crsfFrameDone);
-    EXPECT_EQ(CRSF_ADDRESS_BROADCAST, crsfFrame.frame.deviceAddress);
+    EXPECT_EQ(CRSF_ADDRESS_FLIGHT_CONTROLLER, crsfFrame.frame.deviceAddress);  // Updated: firmware now requires FC address
     EXPECT_EQ(CRSF_FRAME_RC_CHANNELS_PAYLOAD_SIZE + CRSF_FRAME_LENGTH_TYPE_CRC, crsfFrame.frame.frameLength);
     EXPECT_EQ(CRSF_FRAMETYPE_RC_CHANNELS_PACKED, crsfFrame.frame.type);
     EXPECT_EQ(189, crsfChannelData[0]);
@@ -267,7 +271,7 @@ TEST(CrossFireTest, TestCrsfDataReceive)
         crsfDataReceive(*pData++);
     }
     EXPECT_EQ(true, crsfFrameDone);
-    EXPECT_EQ(CRSF_ADDRESS_BROADCAST, crsfFrame.frame.deviceAddress);
+    EXPECT_EQ(CRSF_ADDRESS_FLIGHT_CONTROLLER, crsfFrame.frame.deviceAddress);  // Updated: firmware now requires FC address
     EXPECT_EQ(CRSF_FRAME_RC_CHANNELS_PAYLOAD_SIZE + CRSF_FRAME_LENGTH_TYPE_CRC, crsfFrame.frame.frameLength);
     EXPECT_EQ(CRSF_FRAMETYPE_RC_CHANNELS_PACKED, crsfFrame.frame.type);
     uint8_t crc = crsfFrameCRC();
@@ -292,4 +296,16 @@ void crsfScheduleMspResponse(void) {};
 bool bufferMspFrame(uint8_t *, int) {return true;}
 bool isBatteryVoltageAvailable(void) { return true; }
 bool isAmperageAvailable(void) { return true; }
+
+// CRSF telemetry stubs
+void CRSFsetLQ(uint16_t crsflqValue) { (void)crsflqValue; }
+void CRSFsetRFMode(uint8_t crsfrfValue) { (void)crsfrfValue; }
+void CRSFsetSnR(uint16_t crsfsnrValue) { (void)crsfsnrValue; }
+void CRSFsetTXPower(uint16_t crsftxpValue) { (void)crsftxpValue; }
+void CRSFsetRSSI(uint8_t crsfrssiValue) { (void)crsfrssiValue; }
+uint8_t CRSFgetRSSI(void) { return 0; }
+uint16_t CRSFgetLQ(void) { return 0; }
+uint8_t CRSFgetRFMode(void) { return 0; }
+uint8_t CRSFgetSnR(void) { return 0; }
+uint16_t CRSFgetTXPower(void) { return 0; }
 }

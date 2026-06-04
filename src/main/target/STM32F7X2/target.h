@@ -45,7 +45,7 @@
 
 // Should be gone
 #define MPU6500_CS_PIN          PC4  // XXX Should be gone
-#define MPU6500_SPI_INSTANCE    SPI1 // XXX Should be gone
+#define MPU6500_SPI_BUS    SPIDEV_1 // XXX Should be gone
 #define ACC_MPU6500_ALIGN CW0_DEG
 #define GYRO_MPU6500_ALIGN CW0_DEG
 

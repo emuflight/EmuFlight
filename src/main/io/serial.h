@@ -42,6 +42,7 @@ typedef enum {
     FUNCTION_TELEMETRY_SMARTPORT = (1 << 5),  // 32
     FUNCTION_RX_SERIAL           = (1 << 6),  // 64
     FUNCTION_BLACKBOX            = (1 << 7),  // 128
+    FUNCTION_VTX_BEESIGN         = (1 << 8),  // 256
     FUNCTION_TELEMETRY_MAVLINK   = (1 << 9),  // 512
     FUNCTION_ESC_SENSOR          = (1 << 10), // 1024
     FUNCTION_VTX_SMARTAUDIO      = (1 << 11), // 2048
@@ -49,6 +50,7 @@ typedef enum {
     FUNCTION_VTX_TRAMP           = (1 << 13), // 8192
     FUNCTION_RCDEVICE            = (1 << 14), // 16384
     FUNCTION_LIDAR_TF            = (1 << 15), // 32768
+    FUNCTION_HDZERO_OSD          = (1 << 16)  // 65536
 } serialPortFunction_e;
 
 #define TELEMETRY_SHAREABLE_PORT_FUNCTIONS_MASK (FUNCTION_TELEMETRY_FRSKY_HUB | FUNCTION_TELEMETRY_LTM | FUNCTION_TELEMETRY_MAVLINK)
@@ -106,13 +108,13 @@ typedef struct serialPortUsage_s {
     serialPortIdentifier_e identifier;
 } serialPortUsage_t;
 
-serialPort_t *findSharedSerialPort(uint16_t functionMask, serialPortFunction_e sharedWithFunction);
+serialPort_t *findSharedSerialPort(uint32_t functionMask, serialPortFunction_e sharedWithFunction);
 
 //
 // configuration
 //
 typedef struct serialPortConfig_s {
-    uint16_t functionMask;
+    uint32_t functionMask;
     serialPortIdentifier_e identifier;
     uint8_t msp_baudrateIndex;
     uint8_t gps_baudrateIndex;
@@ -144,7 +146,7 @@ serialPortConfig_t *findSerialPortConfig(serialPortFunction_e function);
 serialPortConfig_t *findNextSerialPortConfig(serialPortFunction_e function);
 
 portSharing_e determinePortSharing(const serialPortConfig_t *portConfig, serialPortFunction_e function);
-bool isSerialPortShared(const serialPortConfig_t *portConfig, uint16_t functionMask, serialPortFunction_e sharedWithFunction);
+bool isSerialPortShared(const serialPortConfig_t *portConfig, uint32_t functionMask, serialPortFunction_e sharedWithFunction);
 
 void pgResetFn_serialConfig(serialConfig_t *serialConfig); //!!TODO remove need for this
 serialPortUsage_t *findSerialPortUsageByIdentifier(serialPortIdentifier_e identifier);

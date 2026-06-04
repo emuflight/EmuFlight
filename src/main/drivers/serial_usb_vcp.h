@@ -22,7 +22,7 @@
 
 #include "drivers/serial.h"
 
-#if defined(STM32F7)
+#if defined(STM32F7) || defined(STM32H7)
 #include "common/maths.h"
 
 #include "usbd_cdc.h"

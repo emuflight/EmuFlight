@@ -20,16 +20,21 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include "resource.h"
+
+// Opaque DMA engine handle used by dma_reqmap (matches BF 4.5-maintenance).
+typedef struct dmaResource_s dmaResource_t;
 
 struct dmaChannelDescriptor_s;
 typedef void (*dmaCallbackHandlerFuncPtr)(struct dmaChannelDescriptor_s *channelDescriptor);
 
 typedef struct dmaChannelDescriptor_s {
     DMA_TypeDef*                dma;
-#if defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     DMA_Stream_TypeDef*         ref;
     uint8_t                     stream;
+    uint32_t                    channel;
 #else
     DMA_Channel_TypeDef*        ref;
 #endif
@@ -50,7 +55,7 @@ typedef struct dmaChannelDescriptor_s {
 
 #define DMA_IDENTIFIER_TO_INDEX(x) ((x) - 1)
 
-#if defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
 
 typedef enum {
     DMA_NONE = 0,
@@ -89,9 +94,9 @@ typedef enum {
     .userParam = 0, \
     .owner = 0, \
     .resourceIndex = 0 \
-    } 
+    }
 
-#define DEFINE_DMA_IRQ_HANDLER(d, s, i) void DMA ## d ## _Stream ## s ## _IRQHandler(void) {\
+#define DEFINE_DMA_IRQ_HANDLER(d, s, i) FAST_IRQ_HANDLER void DMA ## d ## _Stream ## s ## _IRQHandler(void) {\
                                                                 const uint8_t index = DMA_IDENTIFIER_TO_INDEX(i); \
                                                                 if (dmaDescriptors[index].irqHandlerCallback)\
                                                                     dmaDescriptors[index].irqHandlerCallback(&dmaDescriptors[index]);\
@@ -111,6 +116,8 @@ dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef* stream);
 dmaChannelDescriptor_t* dmaGetDmaDescriptor(const DMA_Stream_TypeDef* stream);
 DMA_Stream_TypeDef* dmaGetRefByIdentifier(const dmaIdentifier_e identifier);
 uint32_t dmaGetChannel(const uint8_t channel);
+bool dmaAllocate(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex);
+void dmaEnable(dmaIdentifier_e identifier);
 
 #else
 
@@ -129,8 +136,8 @@ typedef enum {
     DMA2_CH3_HANDLER,
     DMA2_CH4_HANDLER,
     DMA2_CH5_HANDLER,
-    DMA_LAST_HANDLER = DMA2_CH5_HANDLER 
-#else 
+    DMA_LAST_HANDLER = DMA2_CH5_HANDLER
+#else
     DMA_LAST_HANDLER = DMA1_CH7_HANDLER
 #endif
 } dmaIdentifier_e;

@@ -26,8 +26,7 @@
 #ifdef USE_TARGET_CONFIG
 #include "telemetry/telemetry.h"
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     telemetryConfigMutable()->halfDuplex = false;
 }
 #endif

@@ -58,8 +58,7 @@
 
 static IO_t mscButton;
 
-void mscInit(void)
-{
+void mscInit(void) {
     if (usbDevConfig()->mscButtonPin) {
         mscButton = IOGetByTag(usbDevConfig()->mscButtonPin);
         IOInit(mscButton, OWNER_USB_MSC_PIN, 0);
@@ -71,23 +70,18 @@ void mscInit(void)
     }
 }
 
-uint8_t mscStart(void)
-{
+uint8_t mscStart(void) {
     ledInit(statusLedConfig());
-
     //Start USB
     usbGenerateDisconnectPulse();
-
     IOInit(IOGetByTag(IO_TAG(PA11)), OWNER_USB, 0);
     IOInit(IOGetByTag(IO_TAG(PA12)), OWNER_USB, 0);
-
     switch (blackboxConfig()->device) {
 #ifdef USE_SDCARD
     case BLACKBOX_DEVICE_SDCARD:
         USBD_STORAGE_fops = &USBD_MSC_MICRO_SDIO_fops;
         break;
 #endif
-
 #ifdef USE_FLASHFS
     case BLACKBOX_DEVICE_FLASH:
         USBD_STORAGE_fops = &USBD_MSC_EMFAT_fops;
@@ -96,27 +90,22 @@ uint8_t mscStart(void)
     default:
         return 1;
     }
-
     USBD_Init(&USB_OTG_dev, USB_OTG_FS_CORE_ID, &MSC_desc, &USBD_MSC_cb, &USR_cb);
-
     // NVIC configuration for SYSTick
     NVIC_DisableIRQ(SysTick_IRQn);
     NVIC_SetPriority(SysTick_IRQn, NVIC_BUILD_PRIORITY(0, 0));
     NVIC_EnableIRQ(SysTick_IRQn);
-
     return 0;
 }
 
-bool mscCheckBoot(void)
-{
+bool mscCheckBoot(void) {
     if (*((uint32_t *)0x2001FFF0) == MSC_MAGIC) {
         return true;
     }
     return false;
 }
 
-bool mscCheckButton(void)
-{
+bool mscCheckButton(void) {
     bool result = false;
     if (mscButton) {
         uint8_t state = IORead(mscButton);
@@ -126,12 +115,10 @@ bool mscCheckButton(void)
             result = state == 1;
         }
     }
-
     return result;
 }
 
-void mscWaitForButton(void)
-{
+void mscWaitForButton(void) {
     // In order to exit MSC mode simply disconnect the board, or push the button again.
     while (mscCheckButton());
     delay(DEBOUNCE_TIME_MS);
@@ -143,20 +130,16 @@ void mscWaitForButton(void)
     }
 }
 
-void systemResetToMsc(void)
-{
+void systemResetToMsc(void) {
     if (mpuResetFn) {
         mpuResetFn();
     }
-
     *((uint32_t *)0x2001FFF0) = MSC_MAGIC;
-
     __disable_irq();
     NVIC_SystemReset();
 }
 
-void systemResetFromMsc(void)
-{
+void systemResetFromMsc(void) {
     *((uint32_t *)0x2001FFF0) = 0xFFFFFFFF;
     delay(1);
     __disable_irq();

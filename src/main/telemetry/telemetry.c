@@ -1,13 +1,13 @@
 /*
- * This file is part of Cleanflight and Betaflight.
+ * This file is part of Cleanflight, Emuflight and Betaflight.
  *
- * Cleanflight and Betaflight are free software. You can redistribute
+ * Cleanflight, Emuflight and Betaflight are free software. You can redistribute
  * this software and/or modify this software under the terms of the
  * GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option)
  * any later version.
  *
- * Cleanflight and Betaflight are distributed in the hope that they
+ * Cleanflight, Emuflight and Betaflight are distributed in the hope that they
  * will be useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
@@ -54,6 +54,7 @@
 #include "telemetry/jetiexbus.h"
 #include "telemetry/mavlink.h"
 #include "telemetry/crsf.h"
+#include "telemetry/ghst.h"
 #include "telemetry/srxl.h"
 #include "telemetry/ibus.h"
 #include "telemetry/msp_shared.h"
@@ -61,26 +62,25 @@
 PG_REGISTER_WITH_RESET_TEMPLATE(telemetryConfig_t, telemetryConfig, PG_TELEMETRY_CONFIG, 2);
 
 PG_RESET_TEMPLATE(telemetryConfig_t, telemetryConfig,
-    .telemetry_inverted = false,
-    .halfDuplex = 1,
-    .gpsNoFixLatitude = 0,
-    .gpsNoFixLongitude = 0,
-    .frsky_coordinate_format = FRSKY_FORMAT_DMS,
-    .frsky_unit = FRSKY_UNIT_METRICS,
-    .frsky_vfas_precision = 0,
-    .hottAlarmSoundInterval = 5,
-    .pidValuesAsTelemetry = 0,
-    .report_cell_voltage = false,
-    .flysky_sensors = {
-            IBUS_SENSOR_TYPE_TEMPERATURE,
-            IBUS_SENSOR_TYPE_RPM_FLYSKY,
-            IBUS_SENSOR_TYPE_EXTERNAL_VOLTAGE
-    },
-    .smartport_use_extra_sensors = false,
-);
+                  .telemetry_inverted = false,
+                  .halfDuplex = 1,
+                  .gpsNoFixLatitude = 0,
+                  .gpsNoFixLongitude = 0,
+                  .frsky_coordinate_format = FRSKY_FORMAT_DMS,
+                  .frsky_unit = FRSKY_UNIT_METRICS,
+                  .frsky_vfas_precision = 0,
+                  .hottAlarmSoundInterval = 5,
+                  .pidValuesAsTelemetry = 0,
+                  .report_cell_voltage = false,
+.flysky_sensors = {
+    IBUS_SENSOR_TYPE_TEMPERATURE,
+    IBUS_SENSOR_TYPE_RPM_FLYSKY,
+    IBUS_SENSOR_TYPE_EXTERNAL_VOLTAGE
+},
+.smartport_use_extra_sensors = false,
+                 );
 
-void telemetryInit(void)
-{
+void telemetryInit(void) {
 #ifdef USE_TELEMETRY_FRSKY_HUB
     initFrSkyHubTelemetry();
 #endif
@@ -99,6 +99,9 @@ void telemetryInit(void)
 #ifdef USE_TELEMETRY_MAVLINK
     initMAVLinkTelemetry();
 #endif
+#ifdef USE_TELEMETRY_GHST
+    initGhstTelemetry();
+#endif
 #ifdef USE_TELEMETRY_CRSF
     initCrsfTelemetry();
 #if defined(USE_MSP_OVER_TELEMETRY)
@@ -114,42 +117,36 @@ void telemetryInit(void)
 #if defined(USE_MSP_OVER_TELEMETRY)
     initSharedMsp();
 #endif
-
     telemetryCheckState();
 }
 
-bool telemetryDetermineEnabledState(portSharing_e portSharing)
-{
+bool telemetryDetermineEnabledState(portSharing_e portSharing) {
     bool enabled = portSharing == PORTSHARING_NOT_SHARED;
-
     if (portSharing == PORTSHARING_SHARED) {
         if (isModeActivationConditionPresent(BOXTELEMETRY))
             enabled = IS_RC_MODE_ACTIVE(BOXTELEMETRY);
         else
             enabled = ARMING_FLAG(ARMED);
     }
-
     return enabled;
 }
 
-bool telemetryCheckRxPortShared(const serialPortConfig_t *portConfig)
-{
+bool telemetryCheckRxPortShared(const serialPortConfig_t *portConfig) {
     if (portConfig->functionMask & FUNCTION_RX_SERIAL && portConfig->functionMask & TELEMETRY_SHAREABLE_PORT_FUNCTIONS_MASK &&
-        (rxConfig()->serialrx_provider == SERIALRX_SPEKTRUM1024 ||
-        rxConfig()->serialrx_provider == SERIALRX_SPEKTRUM2048 ||
-        rxConfig()->serialrx_provider == SERIALRX_SBUS ||
-        rxConfig()->serialrx_provider == SERIALRX_SUMD ||
-        rxConfig()->serialrx_provider == SERIALRX_SUMH ||
-        rxConfig()->serialrx_provider == SERIALRX_XBUS_MODE_B ||
-        rxConfig()->serialrx_provider == SERIALRX_XBUS_MODE_B_RJ01 ||
-        rxConfig()->serialrx_provider == SERIALRX_IBUS)) {
-
+            (rxConfig()->serialrx_provider == SERIALRX_SPEKTRUM1024 ||
+             rxConfig()->serialrx_provider == SERIALRX_SPEKTRUM2048 ||
+             rxConfig()->serialrx_provider == SERIALRX_SBUS ||
+             rxConfig()->serialrx_provider == SERIALRX_SUMD ||
+             rxConfig()->serialrx_provider == SERIALRX_SUMH ||
+             rxConfig()->serialrx_provider == SERIALRX_XBUS_MODE_B ||
+             rxConfig()->serialrx_provider == SERIALRX_XBUS_MODE_B_RJ01 ||
+             rxConfig()->serialrx_provider == SERIALRX_IBUS)) {
         return true;
     }
 #ifdef USE_TELEMETRY_IBUS
     if (   portConfig->functionMask & FUNCTION_TELEMETRY_IBUS
-        && portConfig->functionMask & FUNCTION_RX_SERIAL
-        && rxConfig()->serialrx_provider == SERIALRX_IBUS) {
+            && portConfig->functionMask & FUNCTION_RX_SERIAL
+            && rxConfig()->serialrx_provider == SERIALRX_IBUS) {
         // IBUS serial RX & telemetry
         return true;
     }
@@ -159,8 +156,7 @@ bool telemetryCheckRxPortShared(const serialPortConfig_t *portConfig)
 
 serialPort_t *telemetrySharedPort = NULL;
 
-void telemetryCheckState(void)
-{
+void telemetryCheckState(void) {
 #ifdef USE_TELEMETRY_FRSKY_HUB
     checkFrSkyHubTelemetryState();
 #endif
@@ -179,6 +175,9 @@ void telemetryCheckState(void)
 #ifdef USE_TELEMETRY_MAVLINK
     checkMAVLinkTelemetryState();
 #endif
+#ifdef USE_TELEMETRY_GHST
+    checkGhstTelemetryState();
+#endif
 #ifdef USE_TELEMETRY_CRSF
     checkCrsfTelemetryState();
 #endif
@@ -190,8 +189,7 @@ void telemetryCheckState(void)
 #endif
 }
 
-void telemetryProcess(uint32_t currentTime)
-{
+void telemetryProcess(uint32_t currentTime) {
 #ifdef USE_TELEMETRY_FRSKY_HUB
     handleFrSkyHubTelemetry(currentTime);
 #else
@@ -213,6 +211,9 @@ void telemetryProcess(uint32_t currentTime)
 #endif
 #ifdef USE_TELEMETRY_MAVLINK
     handleMAVLinkTelemetry();
+#endif
+#ifdef USE_TELEMETRY_GHST
+    handleGhstTelemetry(currentTime);
 #endif
 #ifdef USE_TELEMETRY_CRSF
     handleCrsfTelemetry(currentTime);

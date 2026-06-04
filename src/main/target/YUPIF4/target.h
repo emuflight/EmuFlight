@@ -45,7 +45,7 @@
 
 //ICM 20689
 #define ICM20689_CS_PIN         PA4
-#define ICM20689_SPI_INSTANCE   SPI1
+#define ICM20689_SPI_BUS   SPIDEV_1
 
 #define USE_ACC
 #define USE_ACC_SPI_ICM20689
@@ -57,7 +57,7 @@
 
 // MPU 6500
 #define MPU6500_CS_PIN          PA4
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 
 #define USE_ACC
 #define USE_ACC_MPU6500
@@ -143,7 +143,7 @@
 #define RSSI_ADC_PIN            PC0
 #define VBAT_ADC_PIN            PC1
 #define CURRENT_METER_ADC_PIN   PC2
-#define CURRENT_METER_SCALE_DEFAULT 150
+#define DEFAULT_CURRENT_METER_SCALE 150
 
 // Default configuration
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL

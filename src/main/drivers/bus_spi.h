@@ -22,7 +22,6 @@
 
 #include "drivers/bus.h"
 #include "drivers/io_types.h"
-#include "drivers/bus.h"
 #include "drivers/rcc_types.h"
 
 #include "pg/pg.h"
@@ -33,7 +32,7 @@
 #define SPI_IO_AF_SCK_CFG       IO_CONFIG(GPIO_Mode_AF,  GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_DOWN)
 #define SPI_IO_AF_MISO_CFG      IO_CONFIG(GPIO_Mode_AF,  GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_UP)
 #define SPI_IO_CS_CFG           IO_CONFIG(GPIO_Mode_OUT, GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_NOPULL)
-#elif defined(STM32F7)
+#elif defined(STM32F7) || defined(STM32H7)
 #define SPI_IO_AF_CFG           IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_VERY_HIGH, GPIO_NOPULL)
 #define SPI_IO_AF_SCK_CFG_HIGH  IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_VERY_HIGH, GPIO_PULLUP)
 #define SPI_IO_AF_SCK_CFG_LOW   IO_CONFIG(GPIO_MODE_AF_PP, GPIO_SPEED_FREQ_VERY_HIGH, GPIO_PULLDOWN)
@@ -50,13 +49,13 @@
   Flash M25p16 tolerates 20mhz, SPI_CLOCK_FAST should sit around 20 or less.
 */
 typedef enum {
-    SPI_CLOCK_INITIALIZATON = 256,
+    SPI_CLOCK_INITIALIZATION = 256,
 #if defined(STM32F4)
     SPI_CLOCK_SLOW          = 128, //00.65625 MHz
     SPI_CLOCK_STANDARD      = 8,   //10.50000 MHz
     SPI_CLOCK_FAST          = 4,   //21.00000 MHz
     SPI_CLOCK_ULTRAFAST     = 2    //42.00000 MHz
-#elif defined(STM32F7)
+#elif defined(STM32F7) || defined(STM32H7)
     SPI_CLOCK_SLOW          = 256, //00.42188 MHz
     SPI_CLOCK_STANDARD      = 16,  //06.57500 MHz
     SPI_CLOCK_FAST          = 8,   //13.50000 MHz
@@ -74,7 +73,9 @@ typedef enum SPIDevice {
     SPIDEV_1   = 0,
     SPIDEV_2,
     SPIDEV_3,
-    SPIDEV_4
+    SPIDEV_4,
+    SPIDEV_5,
+    SPIDEV_6
 } SPIDevice;
 
 #if defined(STM32F1)
@@ -83,9 +84,14 @@ typedef enum SPIDevice {
 #define SPIDEV_COUNT 3
 #elif defined(STM32F7)
 #define SPIDEV_COUNT 4
+#elif defined(STM32H7)
+#if defined(STM32H743xx) || defined(STM32H750xx) || defined(STM32H723xx) || defined(STM32H725xx) || defined(STM32H730xx) || defined(STM32H735xx)
+#define SPIDEV_COUNT 6
 #else
 #define SPIDEV_COUNT 4
-
+#endif
+#else
+#define SPIDEV_COUNT 4
 #endif
 
 // Macros to convert between CLI bus number and SPIDevice.
@@ -112,12 +118,73 @@ void spiResetErrorCounter(SPI_TypeDef *instance);
 SPIDevice spiDeviceByInstance(SPI_TypeDef *instance);
 SPI_TypeDef *spiInstanceByDevice(SPIDevice device);
 
-bool spiBusTransfer(const busDevice_t *bus, const uint8_t *txData, uint8_t *rxData, int length);
+// Bus-abstraction accessor. Returns a pointer to the shared busDevice_t that
+// represents the given SPI peripheral (populated by spiInit()). Returns NULL
+// for invalid devices.
+busDevice_t *spiBusByDevice(SPIDevice device);
 
-bool spiBusWriteRegister(const busDevice_t *bus, uint8_t reg, uint8_t data);
-bool spiBusReadRegisterBuffer(const busDevice_t *bus, uint8_t reg, uint8_t *data, uint8_t length);
-uint8_t spiBusReadRegister(const busDevice_t *bus, uint8_t reg);
-void spiBusSetInstance(busDevice_t *bus, SPI_TypeDef *instance);
+// Mark an extDevice_t as belonging to an SPI bus, using the 1-based CLI device id.
+// Returns false if device is 0 (disabled), out of range, or the peripheral is absent.
+bool spiSetBusInstance(extDevice_t *dev, uint32_t device);
+
+// Called after all devices are initialised to enable SPI DMA where channels are available.
+// Stage M.1: stub — DMA channel allocation requires dma_reqmap (Stage M.3).
+void spiInitBusDMA(void);
+
+// Determine the divisor / clock for a given frequency
+uint16_t spiCalculateDivider(uint32_t freq);
+uint32_t spiCalculateClock(uint16_t spiClkDivisor);
+
+// Per-device clock and phase settings; hardware applied at spiSequenceStart time.
+void spiSetClkDivisor(const extDevice_t *dev, uint16_t divider);
+void spiSetClkPhasePolarity(const extDevice_t *dev, bool leadingEdge);
+
+// Enable/disable DMA on a specific device. Enabled by default; a no-op in Stage M.1
+// (DMA transfers are not yet active; bus->useDMA stays false until spiInitBusDMA).
+void spiDmaEnable(const extDevice_t *dev, bool enable);
+
+// Segment-based SPI API (matches BF 4.5-maintenance).
+// Dispatches via spiSequenceStart: polled when bus->useDMA is false,
+// DMA when enabled by spiInitBusDMA.
+void spiSequence(const extDevice_t *dev, busSegment_t *segments);
+void spiWait(const extDevice_t *dev);
+void spiRelease(const extDevice_t *dev);
+bool spiIsBusy(const extDevice_t *dev);
+void spiLinkSegments(const extDevice_t *dev, busSegment_t *firstSegment, busSegment_t *secondSegment);
+
+/*
+ * Routine naming convention:
+ *  spi[Read][Write][Reg][Msk][Buf][RB]
+ *
+ *  Read:      Perform a read, returning the value read unless 'Buf'
+ *  Write:     Perform a write
+ *  ReadWrite: Perform both, returning the value read unless 'Buf'
+ *  Reg:       Register number 'reg' written first
+ *  Msk:       Register OR'd with 0x80 (device signals read via bit 7)
+ *  Buf:       Pass data of given length by reference
+ *  RB:        Return false immediately if bus busy, else complete and return true
+ */
+uint8_t spiReadReg(const extDevice_t *dev, uint8_t reg);
+uint8_t spiReadRegMsk(const extDevice_t *dev, uint8_t reg);
+void spiReadRegBuf(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint8_t length);
+bool spiReadRegBufRB(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint8_t length);
+bool spiReadRegMskBufRB(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint8_t length);
+
+void spiWrite(const extDevice_t *dev, uint8_t data);
+void spiWriteReg(const extDevice_t *dev, uint8_t reg, uint8_t data);
+bool spiWriteRegRB(const extDevice_t *dev, uint8_t reg, uint8_t data);
+void spiWriteRegBuf(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint32_t length);
+
+uint8_t spiReadWrite(const extDevice_t *dev, uint8_t data);
+uint8_t spiReadWriteReg(const extDevice_t *dev, uint8_t reg, uint8_t data);
+void spiReadWriteBuf(const extDevice_t *dev, uint8_t *txData, uint8_t *rxData, int len);
+bool spiReadWriteBufRB(const extDevice_t *dev, uint8_t *txData, uint8_t *rxData, int length);
+
+bool spiUseDMA(const extDevice_t *dev);
+bool spiUseSDO_DMA(const extDevice_t *dev);
+void spiBusDeviceRegister(const extDevice_t *dev);
+uint8_t spiGetRegisteredDeviceCount(void);
+uint8_t spiGetExtDeviceCount(const extDevice_t *dev);
 
 struct spiPinConfig_s;
 void spiPinConfigure(const struct spiPinConfig_s *pConfig);

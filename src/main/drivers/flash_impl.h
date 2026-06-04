@@ -22,14 +22,52 @@
  * Author: jflyper
  */
 
+/*
+ * Each flash chip should:
+ *
+ * * expose a public `identify` method.
+ *   - return true if the driver supports the passed JEDEC ID and false otherwise.
+ *   - configure the `geometry` member of the flashDevice_t or set all `geometry` members to 0 if driver doesn't support the JEDEC ID.
+ *   - configure the `vTable` member, with an appropriate API.
+ *   - configure remaining flashDevice_t members, as appropriate.
+ * * not reconfigure the bus or flash chip when in memory mapped mode.
+ *   - the firmware is free to do whatever it wants when memory mapped mode is disabled
+ *   - when memory mapped mode is restored, e.g. after saving config to external flash, it should be in
+ *     the same state that firmware found it in before the firmware disabled memory mapped mode.
+ */
 #pragma once
 
 #include "drivers/bus.h"
+#include "drivers/dma.h"
 
 struct flashVTable_s;
 
+typedef enum {
+    FLASHIO_NONE = 0,
+    FLASHIO_SPI,
+    FLASHIO_QUADSPI,
+} flashDeviceIoMode_e;
+
+typedef struct flashDeviceIO_s {
+    union {
+#ifdef USE_FLASH_SPI
+        extDevice_t *dev; // Device interface dependent handle (spi/i2c)
+#endif
+#ifdef USE_FLASH_QUADSPI
+        QUADSPI_TypeDef *quadSpi;
+#endif
+#if !defined(USE_FLASH_SPI) && !defined(USE_FLASH_QUADSPI)
+        extDevice_t *dev; // Default SPI device handle
+#endif
+    } handle;
+    flashDeviceIoMode_e mode;
+} flashDeviceIO_t;
+
 typedef struct flashDevice_s {
-    busDevice_t *busdev;
+    //
+    // members to be configured by the flash chip implementation
+    //
+
     const struct flashVTable_s *vTable;
     flashGeometry_t geometry;
     uint32_t currentWriteAddress;
@@ -38,18 +76,34 @@ typedef struct flashDevice_s {
     // for writes. This allows us to avoid polling for writable status
     // when it is definitely ready already.
     bool couldBeBusy;
+    uint32_t timeoutAt;
+
+    //
+    // members configured by the flash detection system, read-only from the flash chip implementation's perspective.
+    //
+
+    flashDeviceIO_t io;
+    void (*callback)(uint32_t arg);
+    uint32_t callbackArg;
 } flashDevice_t;
 
 typedef struct flashVTable_s {
+    void (*configure)(flashDevice_t *fdevice, uint32_t configurationFlags);
+
     bool (*isReady)(flashDevice_t *fdevice);
-    bool (*waitForReady)(flashDevice_t *fdevice, uint32_t timeoutMillis);
+    bool (*waitForReady)(flashDevice_t *fdevice);
+
     void (*eraseSector)(flashDevice_t *fdevice, uint32_t address);
     void (*eraseCompletely)(flashDevice_t *fdevice);
-    void (*pageProgramBegin)(flashDevice_t *fdevice, uint32_t address);
-    void (*pageProgramContinue)(flashDevice_t *fdevice, const uint8_t *data, int length);
+
+    void (*pageProgramBegin)(flashDevice_t *fdevice, uint32_t address, void (*callback)(uint32_t length));
+    uint32_t (*pageProgramContinue)(flashDevice_t *fdevice, uint8_t const **buffers, const uint32_t *bufferSizes, uint32_t bufferCount);
     void (*pageProgramFinish)(flashDevice_t *fdevice);
-    void (*pageProgram)(flashDevice_t *fdevice, uint32_t address, const uint8_t *data, int length);
+    void (*pageProgram)(flashDevice_t *fdevice, uint32_t address, const uint8_t *data, uint32_t length, void (*callback)(uint32_t length));
+
     void (*flush)(flashDevice_t *fdevice);
-    int (*readBytes)(flashDevice_t *fdevice, uint32_t address, uint8_t *buffer, int length);
+
+    int (*readBytes)(flashDevice_t *fdevice, uint32_t address, uint8_t *buffer, uint32_t length);
+
     const flashGeometry_t *(*getGeometry)(flashDevice_t *fdevice);
 } flashVTable_t;

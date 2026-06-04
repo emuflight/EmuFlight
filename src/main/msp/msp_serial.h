@@ -22,6 +22,7 @@
 
 #include "drivers/time.h"
 #include "interface/msp.h"
+#include "io/serial.h"
 
 // Each MSP port requires state and a receive buffer, revisit this default if someone needs more than 3 MSP ports.
 #define MAX_MSP_PORT_COUNT 3
@@ -79,17 +80,20 @@ typedef enum {
 typedef struct __attribute__((packed)) {
     uint8_t size;
     uint8_t cmd;
-} mspHeaderV1_t;
+}
+mspHeaderV1_t;
 
 typedef struct __attribute__((packed)) {
     uint16_t size;
-} mspHeaderJUMBO_t;
+}
+mspHeaderJUMBO_t;
 
 typedef struct __attribute__((packed)) {
     uint8_t  flags;
     uint16_t cmd;
     uint16_t size;
-} mspHeaderV2_t;
+}
+mspHeaderV2_t;
 
 #define MSP_MAX_HEADER_SIZE     9
 
@@ -109,6 +113,7 @@ typedef struct mspPort_s {
     uint8_t checksum1;
     uint8_t checksum2;
     bool sharedWithTelemetry;
+    mspDescriptor_t descriptor;
 } mspPort_t;
 
 void mspSerialInit(void);
@@ -119,3 +124,6 @@ void mspSerialReleasePortIfAllocated(struct serialPort_s *serialPort);
 void mspSerialReleaseSharedTelemetryPorts(void);
 int mspSerialPush(uint8_t cmd, uint8_t *data, int datalen, mspDirection_e direction);
 uint32_t mspSerialTxBytesFree(void);
+int mspSerialPushPort(uint16_t cmd, const uint8_t *data, int datalen, mspPort_t *mspPort, mspVersion_e version);
+void resetMspPort(mspPort_t *mspPortToReset, serialPort_t *serialPort);
+void mspSerialProcessOnePort(mspPort_t * const mspPort, mspEvaluateNonMspData_e evaluateNonMspData, mspProcessCommandFnPtr mspProcessCommandFn);

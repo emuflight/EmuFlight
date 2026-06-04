@@ -68,7 +68,7 @@
 
 #if !defined(FF_FORTINIF4_REV03)
 #define MPU6000_CS_PIN          SPI1_NSS_PIN
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 
 #define USE_GYRO_SPI_MPU6000
 #define GYRO_MPU6000_ALIGN      CW180_DEG
@@ -77,7 +77,7 @@
 #define ACC_MPU6000_ALIGN       CW180_DEG
 
 #define ICM20689_CS_PIN         SPI1_NSS_PIN
-#define ICM20689_SPI_INSTANCE   SPI1
+#define ICM20689_SPI_BUS   SPIDEV_1
 
 #define USE_GYRO_SPI_ICM20689
 #define GYRO_ICM20689_ALIGN     CW180_DEG
@@ -87,7 +87,7 @@
 #endif
 
 #define MPU6500_CS_PIN          SPI1_NSS_PIN
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 
 #define USE_GYRO_MPU6500
 #define USE_GYRO_SPI_MPU6500
@@ -105,6 +105,7 @@
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
+#define USE_FLASH_W25Q128FV
 /*---------------------------------*/
 #endif
 
@@ -129,9 +130,9 @@
 #define USE_UART1
 #if defined(FF_FORTINIF4_REV03)
 #define UART1_RX_PIN            PB7
-#else 
+#else
 #define UART1_RX_PIN            PA10
-#endif	
+#endif
 #define UART1_TX_PIN            PA9
 
 #define USE_UART4

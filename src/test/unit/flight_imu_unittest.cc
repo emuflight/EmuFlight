@@ -70,7 +70,7 @@ extern "C" {
 // STUBS
 
 extern "C" {
-boxBitmask_t rcModeActivationMask;
+extern boxBitmask_t rcModeActivationMask;
 float rcCommand[4];
 int16_t rcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
 float vGyroStdDevModulus;
@@ -119,4 +119,5 @@ bool accGetAverage(quaternion *) { return false; }
 bool accIsHealthy(quaternion *) { return false; }
 bool compassGetAverage(quaternion *) { return false; }
 bool isBeeperOn(void){ return true; }
+void pinioBoxTaskControl(void) {}
 }

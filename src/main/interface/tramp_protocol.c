@@ -30,8 +30,7 @@
 #define TRAMP_COMMAND_ACTIVE_STATE  'I' // 0x49
 #define TRAMP_COMMAND_GET_CONFIG    'v' // 0x76
 
-static uint8_t trampCrc(const trampFrame_t *frame)
-{
+static uint8_t trampCrc(const trampFrame_t *frame) {
     uint8_t crc = 0;
     const uint8_t *p = (const uint8_t *)frame;
     const uint8_t *pEnd = p + (TRAMP_HEADER_LENGTH + TRAMP_PAYLOAD_LENGTH);
@@ -41,49 +40,42 @@ static uint8_t trampCrc(const trampFrame_t *frame)
     return crc;
 }
 
-static void trampFrameInit(uint8_t frameType, trampFrame_t *frame)
-{
+static void trampFrameInit(uint8_t frameType, trampFrame_t *frame) {
     frame->header.syncStart = TRAMP_SYNC_START;
     frame->header.command = frameType;
     const uint8_t emptyPayload[TRAMP_PAYLOAD_LENGTH] = { 0 };
     memcpy(frame->payload.buf, emptyPayload, sizeof(frame->payload.buf));
 }
 
-static void trampFrameClose(trampFrame_t *frame)
-{
+static void trampFrameClose(trampFrame_t *frame) {
     frame->footer.crc = trampCrc(frame);
     frame->footer.syncStop = TRAMP_SYNC_STOP;
 }
 
-void trampFrameGetSettings(trampFrame_t *frame)
-{
+void trampFrameGetSettings(trampFrame_t *frame) {
     trampFrameInit(TRAMP_COMMAND_GET_CONFIG, frame);
     trampFrameClose(frame);
 }
 
-void trampFrameSetFrequency(trampFrame_t *frame, const uint16_t frequency)
-{
+void trampFrameSetFrequency(trampFrame_t *frame, const uint16_t frequency) {
     trampFrameInit(TRAMP_COMMAND_SET_FREQ, frame);
     frame->payload.frequency = frequency;
     trampFrameClose(frame);
 }
 
-void trampFrameSetPower(trampFrame_t *frame, const uint16_t power)
-{
+void trampFrameSetPower(trampFrame_t *frame, const uint16_t power) {
     trampFrameInit(TRAMP_COMMAND_SET_POWER, frame);
     frame->payload.power = power;
     trampFrameClose(frame);
 }
 
-void trampFrameSetActiveState(trampFrame_t *frame, const bool active)
-{
+void trampFrameSetActiveState(trampFrame_t *frame, const bool active) {
     trampFrameInit(TRAMP_COMMAND_ACTIVE_STATE, frame);
     frame->payload.active = (uint8_t) active;
     trampFrameClose(frame);
 }
 
-bool trampParseResponseBuffer(trampSettings_t *settings, const uint8_t *buffer, size_t bufferLen)
-{
+bool trampParseResponseBuffer(trampSettings_t *settings, const uint8_t *buffer, size_t bufferLen) {
     if (bufferLen != TRAMP_FRAME_LENGTH) {
         return false;
     }

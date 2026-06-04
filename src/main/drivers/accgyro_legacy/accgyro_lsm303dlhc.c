@@ -118,57 +118,41 @@ int32_t accelSummedSamples100Hz[3];
 
 int32_t accelSummedSamples500Hz[3];
 
-void lsm303dlhcAccInit(accDev_t *acc)
-{
+void lsm303dlhcAccInit(accDev_t *acc) {
     i2cWrite(MPU_I2C_INSTANCE, LSM303DLHC_ACCEL_ADDRESS, CTRL_REG5_A, BOOT);
-
     delay(100);
-
     i2cWrite(MPU_I2C_INSTANCE, LSM303DLHC_ACCEL_ADDRESS, CTRL_REG1_A, ODR_1344_HZ | AXES_ENABLE);
-
     delay(10);
-
     i2cWrite(MPU_I2C_INSTANCE, LSM303DLHC_ACCEL_ADDRESS, CTRL_REG4_A, FULLSCALE_4G);
-
     delay(100);
-
     acc->acc_1G = 512 * 8;
 }
 
 // Read 3 gyro values into user-provided buffer. No overrun checking is done.
-static bool lsm303dlhcAccRead(accDev_t *acc)
-{
+static bool lsm303dlhcAccRead(accDev_t *acc) {
     uint8_t buf[6];
-
     bool ack = i2cRead(MPU_I2C_INSTANCE, LSM303DLHC_ACCEL_ADDRESS, AUTO_INCREMENT_ENABLE | OUT_X_L_A, 6, buf);
-
     if (!ack) {
         return false;
     }
-
     // the values range from -8192 to +8191
     acc->ADCRaw[X] = (int16_t)((buf[1] << 8) | buf[0]) / 2;
     acc->ADCRaw[Y] = (int16_t)((buf[3] << 8) | buf[2]) / 2;
     acc->ADCRaw[Z] = (int16_t)((buf[5] << 8) | buf[4]) / 2;
-
 #if 0
     debug[0] = (int16_t)((buf[1] << 8) | buf[0]);
     debug[1] = (int16_t)((buf[3] << 8) | buf[2]);
     debug[2] = (int16_t)((buf[5] << 8) | buf[4]);
 #endif
-
     return true;
 }
 
-bool lsm303dlhcAccDetect(accDev_t *acc)
-{
+bool lsm303dlhcAccDetect(accDev_t *acc) {
     bool ack;
     uint8_t status;
-
     ack = i2cRead(MPU_I2C_INSTANCE, LSM303DLHC_ACCEL_ADDRESS, LSM303DLHC_STATUS_REG_A, 1, &status);
     if (!ack)
         return false;
-
     acc->initFn = lsm303dlhcAccInit;
     acc->readFn = lsm303dlhcAccRead;
     return true;

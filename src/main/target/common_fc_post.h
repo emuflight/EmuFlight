@@ -71,6 +71,7 @@
 #if !defined(USE_TELEMETRY)
 #undef USE_CRSF_CMS_TELEMETRY
 #undef USE_TELEMETRY_CRSF
+#undef USE_TELEMETRY_GHST
 #undef USE_TELEMETRY_FRSKY_HUB
 #undef USE_TELEMETRY_HOTT
 #undef USE_TELEMETRY_IBUS
@@ -81,6 +82,10 @@
 #undef USE_TELEMETRY_SMARTPORT
 #undef USE_TELEMETRY_SRXL
 #undef USE_SERIALRX_FPORT
+#endif
+
+#if !defined(USE_SERIALRX_GHST)
+#undef USE_TELEMETRY_GHST
 #endif
 
 #if !defined(USE_SERIALRX_CRSF)
@@ -124,7 +129,7 @@
 #undef USE_VTX_SMARTAUDIO
 #endif
 
-#if defined(USE_RX_FRSKY_SPI_D) || defined(USE_RX_FRSKY_SPI_X)
+#if defined(USE_RX_FRSKY_SPI_D) || defined(USE_RX_FRSKY_SPI_X) || defined(USE_RX_REDPINE_SPI)
 #define USE_RX_CC2500
 #define USE_RX_CC2500_BIND
 #define USE_RX_FRSKY_SPI
@@ -145,11 +150,11 @@
 #undef USE_ADC_INTERNAL
 #endif
 
-#if (!defined(USE_SDCARD) && !defined(USE_FLASHFS)) || !(defined(STM32F4) || defined(STM32F7))
+#if (!defined(USE_SDCARD) && !defined(USE_FLASHFS)) || !(defined(STM32F4) || defined(STM32F7) || defined(STM32H7))
 #undef USE_USB_MSC
 #endif
 
-#if !defined(USE_VCP) || defined(STM32F7)
+#if !defined(USE_VCP) || defined(STM32F7) || defined(STM32H7)
 #undef USE_USB_CDC_HID
 #endif
 
@@ -162,13 +167,59 @@
 #define USE_32K_CAPABLE_GYRO
 #endif
 
-#if defined(USE_FLASH_W25M512)
-#define USE_FLASH_W25M
+// Flash chip-variant → NOR interface (flash_m25p16.c guard)
+#if (defined(USE_FLASH_W25M512) || defined(USE_FLASH_W25Q128FV) || defined(USE_FLASH_PY25Q128HA)) && !defined(USE_FLASH_M25P16)
 #define USE_FLASH_M25P16
 #endif
 
-#if defined(USE_FLASH_M25P16)
+// W25M02G is two stacked W25N01G NAND dies; activate the per-die driver
+#if defined(USE_FLASH_W25M02G) && !defined(USE_FLASH_W25N01G)
+#define USE_FLASH_W25N01G
+#endif
+
+// W25N01G or W25N02K → USE_FLASH_W25N (flash_w25n.c guard)
+#if defined(USE_FLASH_W25N02K) || defined(USE_FLASH_W25N01G)
+#define USE_FLASH_W25N
+#endif
+
+// M25P16 or W25N → USE_FLASH_W25M (flash_w25m.c dispatcher guard)
+#if (defined(USE_FLASH_M25P16) || defined(USE_FLASH_W25N)) && !defined(USE_FLASH_W25M)
+#define USE_FLASH_W25M
+#endif
+
+// Aggregate: any valid chip driver present → USE_FLASH_CHIP
+#if defined(USE_FLASH_M25P16) || defined(USE_FLASH_W25M) || defined(USE_FLASH_W25N) || defined(USE_FLASH_W25Q128FV)
+#if !defined(USE_FLASH_CHIP)
+#define USE_FLASH_CHIP
+#endif
+#endif
+
+// Derive USE_FLASH for targets that omit it in target.h
+#if (defined(USE_FLASH_M25P16) || defined(USE_FLASH_W25N) || defined(USE_FLASH_W25Q128FV)) && !defined(USE_FLASH)
 #define USE_FLASH
+#endif
+
+// SPI bus selector used by flash_impl.h
+#if defined(USE_SPI) && (defined(USE_FLASH_M25P16) || defined(USE_FLASH_W25M512) || defined(USE_FLASH_W25N) || defined(USE_FLASH_W25M02G))
+#if !defined(USE_FLASH_SPI)
+#define USE_FLASH_SPI
+#endif
+#endif
+
+// Auto-enable tools and filesystem when flash is present
+#ifdef USE_FLASH
+#if !defined(USE_FLASH_TOOLS)
+#define USE_FLASH_TOOLS
+#endif
+#if !defined(USE_FLASHFS)
+#define USE_FLASHFS
+#endif
+#endif
+
+// Roll back tools/fs if no valid chip driver was activated
+#ifndef USE_FLASH_CHIP
+#undef USE_FLASH_TOOLS
+#undef USE_FLASHFS
 #endif
 
 #if defined(USE_MAX7456)
@@ -204,4 +255,21 @@
 #undef  USE_SERIAL_4WAY_BLHELI_INTERFACE
 #elif !defined(USE_SERIAL_4WAY_BLHELI_INTERFACE) && (defined(USE_SERIAL_4WAY_BLHELI_BOOTLOADER) || defined(USE_SERIAL_4WAY_SK_BOOTLOADER))
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
+#endif
+
+// CONFIG_IN_RAM: firmware uses a RAM array as config storage (no flash write needed).
+// Required for EXST targets where the linker script has no FLASH_CONFIG section
+// (e.g. H730 running from OctoSPI, bootloader-managed memory-mapped mode).
+// Aliases __config_start/__config_end to eepromData[] so config_eeprom.c and
+// config_streamer.c see valid addresses without linker-script symbols.
+#if defined(CONFIG_IN_RAM)
+#ifndef EEPROM_IN_RAM
+#define EEPROM_IN_RAM
+#endif
+#ifndef EEPROM_SIZE
+#define EEPROM_SIZE     4096
+#endif
+extern uint8_t eepromData[EEPROM_SIZE];
+#define __config_start  (*eepromData)
+#define __config_end    (*(eepromData + EEPROM_SIZE))
 #endif

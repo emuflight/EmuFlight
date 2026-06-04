@@ -66,40 +66,29 @@ const adcTagMap_t adcTagMap[] = {
 // NAZE rev.5 hardware has PA5 (ADC1_IN5) on breakout pad on bottom of board
 //
 
-void adcInit(const adcConfig_t *config)
-{
-
+void adcInit(const adcConfig_t *config) {
     uint8_t configuredAdcChannels = 0;
-
     memset(&adcOperatingConfig, 0, sizeof(adcOperatingConfig));
-
     if (config->vbat.enabled) {
         adcOperatingConfig[ADC_BATTERY].tag = config->vbat.ioTag;
     }
-
     if (config->rssi.enabled) {
         adcOperatingConfig[ADC_RSSI].tag = config->rssi.ioTag;  //RSSI_ADC_CHANNEL;
     }
-
     if (config->external1.enabled) {
         adcOperatingConfig[ADC_EXTERNAL1].tag = config->external1.ioTag; //EXTERNAL1_ADC_CHANNEL;
     }
-
     if (config->current.enabled) {
         adcOperatingConfig[ADC_CURRENT].tag = config->current.ioTag;  //CURRENT_METER_ADC_CHANNEL;
     }
-
     ADCDevice device = adcDeviceByInstance(ADC_INSTANCE);
     if (device == ADCINVALID)
         return;
-
     const adcDevice_t adc = adcHardware[device];
-
     bool adcActive = false;
     for (int i = 0; i < ADC_CHANNEL_COUNT; i++) {
         if (!adcOperatingConfig[i].tag)
             continue;
-
         adcActive = true;
         IOInit(IOGetByTag(adcOperatingConfig[i].tag), OWNER_ADC_BATT + i, 0);
         IOConfigGPIO(IOGetByTag(adcOperatingConfig[i].tag), IO_CONFIG(GPIO_Mode_AIN, 0));
@@ -108,16 +97,12 @@ void adcInit(const adcConfig_t *config)
         adcOperatingConfig[i].sampleTime = ADC_SampleTime_239Cycles5;
         adcOperatingConfig[i].enabled = true;
     }
-
     if (!adcActive) {
         return;
     }
-
     RCC_ADCCLKConfig(RCC_PCLK2_Div8);  // 9MHz from 72MHz APB2 clock(HSE), 8MHz from 64MHz (HSI)
     RCC_ClockCmd(adc.rccADC, ENABLE);
-
     dmaInit(dmaGetIdentifier(adc.DMAy_Channelx), OWNER_ADC, 0);
-
     DMA_DeInit(adc.DMAy_Channelx);
     DMA_InitTypeDef DMA_InitStructure;
     DMA_StructInit(&DMA_InitStructure);
@@ -134,7 +119,6 @@ void adcInit(const adcConfig_t *config)
     DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
     DMA_Init(adc.DMAy_Channelx, &DMA_InitStructure);
     DMA_Cmd(adc.DMAy_Channelx, ENABLE);
-
     ADC_InitTypeDef ADC_InitStructure;
     ADC_StructInit(&ADC_InitStructure);
     ADC_InitStructure.ADC_Mode = ADC_Mode_Independent;
@@ -144,7 +128,6 @@ void adcInit(const adcConfig_t *config)
     ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
     ADC_InitStructure.ADC_NbrOfChannel = configuredAdcChannels;
     ADC_Init(adc.ADCx, &ADC_InitStructure);
-
     uint8_t rank = 1;
     for (int i = 0; i < ADC_CHANNEL_COUNT; i++) {
         if (!adcOperatingConfig[i].enabled) {
@@ -152,15 +135,12 @@ void adcInit(const adcConfig_t *config)
         }
         ADC_RegularChannelConfig(adc.ADCx, adcOperatingConfig[i].adcChannel, rank++, adcOperatingConfig[i].sampleTime);
     }
-
     ADC_DMACmd(adc.ADCx, ENABLE);
     ADC_Cmd(adc.ADCx, ENABLE);
-
     ADC_ResetCalibration(adc.ADCx);
     while (ADC_GetResetCalibrationStatus(adc.ADCx));
     ADC_StartCalibration(adc.ADCx);
     while (ADC_GetCalibrationStatus(adc.ADCx));
-
     ADC_SoftwareStartConvCmd(adc.ADCx, ENABLE);
 }
 #endif

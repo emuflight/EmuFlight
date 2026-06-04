@@ -88,6 +88,8 @@ typedef enum {
     PWM_TYPE_DSHOT300,
     PWM_TYPE_DSHOT600,
     PWM_TYPE_DSHOT1200,
+    PWM_TYPE_DSHOT2400,
+    PWM_TYPE_DSHOT4800,
     PWM_TYPE_PROSHOT1000,
 #endif
     PWM_TYPE_MAX
@@ -98,6 +100,8 @@ typedef enum {
 #ifdef USE_DSHOT
 #define MAX_DMA_TIMERS        8
 
+#define MOTOR_DSHOT4800_HZ    MHZ_TO_HZ(96)
+#define MOTOR_DSHOT2400_HZ    MHZ_TO_HZ(48)
 #define MOTOR_DSHOT1200_HZ    MHZ_TO_HZ(24)
 #define MOTOR_DSHOT600_HZ     MHZ_TO_HZ(12)
 #define MOTOR_DSHOT300_HZ     MHZ_TO_HZ(6)
@@ -105,7 +109,7 @@ typedef enum {
 
 #define MOTOR_BIT_0           7
 #define MOTOR_BIT_1           14
-#define MOTOR_BITLENGTH       19
+#define MOTOR_BITLENGTH       20
 
 #define MOTOR_PROSHOT1000_HZ         MHZ_TO_HZ(24)
 #define PROSHOT_BASE_SYMBOL          24 // 1uS
@@ -126,7 +130,7 @@ typedef struct {
     DMA_Stream_TypeDef *dmaBurstRef;
 #endif
     uint16_t dmaBurstLength;
-    uint32_t dmaBurstBuffer[DSHOT_DMA_BUFFER_SIZE * 4];
+    uint32_t dmaBurstBuffer[DSHOT_DMA_BUFFER_SIZE * 4] __attribute__((aligned(32)));
 #endif
     uint16_t timerDmaSources;
 } motorDmaTimer_t;
@@ -141,8 +145,8 @@ typedef struct {
 #endif
     motorDmaTimer_t *timer;
     volatile bool requestTelemetry;
-#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7)
-    uint32_t dmaBuffer[DSHOT_DMA_BUFFER_SIZE];
+#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+    uint32_t dmaBuffer[DSHOT_DMA_BUFFER_SIZE] __attribute__((aligned(32)));
 #else
     uint8_t dmaBuffer[DSHOT_DMA_BUFFER_SIZE];
 #endif

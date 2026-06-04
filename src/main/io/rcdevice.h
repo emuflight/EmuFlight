@@ -95,8 +95,8 @@ typedef enum {
 
 typedef enum {
     RCDEVICE_PROTOCOL_RCSPLIT_VERSION = 0x00, // this is used to indicate the
-                                              // device that using rcsplit
-                                              // firmware version that <= 1.1.0
+    // device that using rcsplit
+    // firmware version that <= 1.1.0
     RCDEVICE_PROTOCOL_VERSION_1_0 = 0x01,
     RCDEVICE_PROTOCOL_UNKNOWN
 } rcdevice_protocol_version_e;

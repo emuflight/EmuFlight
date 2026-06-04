@@ -80,8 +80,7 @@ Channels vs Band according to spektrum spec.
 #define SPEKTRUM_VTX_PITMODE_OFF  0 // Power on, race
 #define SPEKTRUM_VTX_PITMODE_ON   1 // Power off, pit
 
-typedef struct
-{
+typedef struct {
     uint8_t band;
     uint8_t channel;
     uint8_t power;
@@ -96,6 +95,7 @@ extern const uint8_t spek2commonBand[SPEKTRUM_VTX_BAND_COUNT];
 extern const uint8_t vtxTrampPi[SPEKTRUM_VTX_POWER_COUNT];
 extern const uint8_t vtxRTC6705Pi[SPEKTRUM_VTX_POWER_COUNT];
 extern const uint8_t vtxSaPi[SPEKTRUM_VTX_POWER_COUNT];
+extern const uint8_t vtxBsPi[SPEKTRUM_VTX_POWER_COUNT];
 extern uint8_t SpektrumRegion;
 
 void spektrumHandleVtxControl(uint32_t vtxControl);

@@ -19,12 +19,15 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER "AIKO"
-#define USBD_PRODUCT_STRING     "AIKONF7"
+
+#define BOARD_NAME        AIKONF7
+#define MANUFACTURER_ID   AIKO
+#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
 
 #define ENABLE_DSHOT_DMAR       true
 
-#define LED0_PIN                  PB0
+#define LED0_PIN                  PC13
 #define USE_BEEPER
 #define BEEPER_PIN                PC15
 #define BEEPER_INVERTED
@@ -38,16 +41,20 @@
 #define USE_EXTI
 #define MPU_INT_EXTI              PC4
 #define USE_MPU_DATA_READY_SIGNAL
-//MPU-6000
+
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
+#define USE_ACC_SPI_ICM42688P
+#define USE_ACCGYRO_BMI270
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
+#define USE_GYRO_SPI_ICM42688P
 
+//MPU-6000
 #define GYRO_MPU6000_ALIGN      CW0_DEG
 #define ACC_MPU6000_ALIGN       CW0_DEG
 #define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 
 // ICM-20602
 #define USE_ACC_MPU6500
@@ -58,7 +65,19 @@
 #define ACC_MPU6500_ALIGN       CW0_DEG
 #define GYRO_MPU6500_ALIGN      CW0_DEG
 #define MPU6500_CS_PIN          SPI1_NSS_PIN
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
+
+// ICM42688P
+#define ACC_ICM42688P_ALIGN      CW0_DEG
+#define GYRO_ICM42688P_ALIGN     CW0_DEG
+#define ICM42688P_CS_PIN         PA4
+#define ICM42688P_SPI_BUS   SPIDEV_1
+
+// BMI270
+#define ACC_BMI270_ALIGN         CW0_DEG
+#define GYRO_BMI270_ALIGN        CW0_DEG
+#define BMI270_CS_PIN            PA4
+#define BMI270_SPI_BUS      SPIDEV_1
 
 #define USE_MAG
 #define USE_MAG_HMC5883
@@ -75,7 +94,7 @@
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
 #define FLASH_CS_PIN            PB0
-#define FLASH_SPI_INSTANCE      SPI2
+#define FLASH_SPI_INSTANCE      SPI3
 
 #define USE_VCP
 
@@ -99,11 +118,8 @@
 #define UART5_RX_PIN            PD2
 #define UART5_TX_PIN            PC12
 
-#define USE_UART6
-#define UART6_RX_PIN            PC7
-#define UART6_TX_PIN            PC6
+#define USE_SOFTSERIAL1
 
-//#define USE_SOFTSERIAL1
 #define SERIAL_PORT_COUNT       7 //VCP, USART1, USART2,USART3,USART4,USART5,USART6
 
 #define USE_ESCSERIAL
@@ -112,13 +128,15 @@
 #define USE_I2C
 #define I2C_DEVICE_2               (I2CDEV_2)
 #define USE_I2C_DEVICE_2
-#define I2C2_SCL                PB0
+#define I2C2_SCL                PB10
 #define I2C2_SDA                PB11
 
+/*
 #define USE_BARO
+#define USE_BARO_DPS310
 #define BMP280_SPI_INSTANCE     SPI3
 #define BMP280_CS_PIN           PB2
-
+*/
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 #define USE_SPI_DEVICE_2
@@ -134,7 +152,7 @@
 #define SPI2_MISO_PIN            PC2
 #define SPI2_MOSI_PIN            PB15
 
-#define SPI3_NSS_PIN             PA15
+#define SPI3_NSS_PIN             PB0
 #define SPI3_SCK_PIN             PB3
 #define SPI3_MISO_PIN            PB4
 #define SPI3_MOSI_PIN            PB5
@@ -145,7 +163,7 @@
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC0
 #define RSSI_ADC_PIN            PC3
-#define CURRENT_METER_SCALE_DEFAULT 250                     // 3.3/120A  = 25mv/A
+#define DEFAULT_CURRENT_METER_SCALE 250                     // 3.3/120A  = 25mv/A
 
 #define BINDPLUG_PIN            PB2
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL

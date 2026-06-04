@@ -214,7 +214,7 @@
 
 // Throttle Position (%)
 #define SYM_THR   0x04
-#define SYM_THR1  0x04
+#define SYM_THR1  0x20 //avoid double throttle display, yet retain spacing alignment
 
 // RSSI
 #define SYM_RSSI 0x01

@@ -24,13 +24,19 @@
 
 #define ENABLE_DSHOT_DMAR       true
 
-#define LED0_PIN                PB0
+#define USE_LED_STRIP
+#define LED0_PIN                PB3
+
 #define USE_BEEPER
 #define BEEPER_PIN                  PB4
 #define BEEPER_INVERTED
 
 //define camera control
-#define CAMERA_CONTROL_PIN PB3
+//#define CAMERA_CONTROL_PIN PB3
+
+#define USE_PINIO
+#define PINIO1_PIN                                       PA14                   // VTX power switcher
+#define USE_PINIOBOX
 
 #define USE_EXTI
 #define MPU_INT_EXTI            PC4
@@ -44,7 +50,7 @@
 #define GYRO_MPU6000_ALIGN      CW0_DEG
 #define ACC_MPU6000_ALIGN       CW0_DEG
 #define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 
 // ICM-20602
 #define USE_ACC_MPU6500
@@ -55,7 +61,7 @@
 #define ACC_MPU6500_ALIGN       CW0_DEG
 #define GYRO_MPU6500_ALIGN      CW0_DEG
 #define MPU6500_CS_PIN          SPI1_NSS_PIN
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 
 #define USE_MAG
 #define USE_MAG_HMC5883
@@ -70,7 +76,9 @@
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
-#define USE_FLASH_M25P16
+#define USE_FLASH_W25Q128FV
+#define USE_FLASH_M25P16    // 16MB Micron M25P16 driver; drives all unless QSPI
+#define USE_FLASH_W25N01G
 #define FLASH_CS_PIN            PB12
 #define FLASH_SPI_INSTANCE      SPI2
 
@@ -136,7 +144,7 @@
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
 #define RSSI_ADC_PIN            PC3
-#define CURRENT_METER_SCALE_DEFAULT 250                     // 3.3/120A  = 25mv/A
+#define DEFAULT_CURRENT_METER_SCALE 250                     // 3.3/120A  = 25mv/A
 
 #define BINDPLUG_PIN            PB2
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
@@ -148,4 +156,4 @@
 #define TARGET_IO_PORTD         (BIT(2))
 
 #define USABLE_TIMER_CHANNEL_COUNT                      9                       //updated timer count to compensate for Nf Motor 4
-#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5)  | TIM_N(8)   ) 
+#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5)  | TIM_N(8)   )

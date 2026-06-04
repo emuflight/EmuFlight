@@ -36,8 +36,7 @@ static bool beeperInverted = false;
 static uint16_t beeperFrequency = 0;
 #endif
 
-void systemBeep(bool onoff)
-{
+void systemBeep(bool onoff) {
 #ifdef USE_BEEPER
     if (beeperFrequency == 0) {
         IOWrite(beeperIO, beeperInverted ? onoff : !onoff);
@@ -49,8 +48,7 @@ void systemBeep(bool onoff)
 #endif
 }
 
-void systemBeepToggle(void)
-{
+void systemBeepToggle(void) {
 #ifdef USE_BEEPER
     if (beeperFrequency == 0) {
         IOToggle(beeperIO);
@@ -60,8 +58,7 @@ void systemBeepToggle(void)
 #endif
 }
 
-void beeperInit(const beeperDevConfig_t *config)
-{
+void beeperInit(const beeperDevConfig_t *config) {
 #ifdef USE_BEEPER
     beeperFrequency = config->frequency;
     if (beeperFrequency == 0) {

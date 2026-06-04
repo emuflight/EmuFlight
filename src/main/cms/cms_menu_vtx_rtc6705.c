@@ -48,43 +48,34 @@ static OSD_TAB_t entryVtxBand =         {&cmsx_vtxBand, VTX_RTC6705_BAND_COUNT -
 static OSD_UINT8_t entryVtxChannel =    {&cmsx_vtxChannel, 1, VTX_SETTINGS_CHANNEL_COUNT, 1};
 static OSD_TAB_t entryVtxPower =        {&cmsx_vtxPower, VTX_RTC6705_POWER_COUNT - 1 - VTX_RTC6705_MIN_POWER, &rtc6705PowerNames[VTX_RTC6705_MIN_POWER]};
 
-static void cmsx_Vtx_ConfigRead(void)
-{
+static void cmsx_Vtx_ConfigRead(void) {
     cmsx_vtxBand = vtxSettingsConfig()->band - 1;
     cmsx_vtxChannel = vtxSettingsConfig()->channel;
     cmsx_vtxPower = vtxSettingsConfig()->power - VTX_RTC6705_MIN_POWER;
 }
 
-static void cmsx_Vtx_ConfigWriteback(void)
-{
+static void cmsx_Vtx_ConfigWriteback(void) {
     // update vtx_ settings
     vtxSettingsConfigMutable()->band = cmsx_vtxBand + 1;
     vtxSettingsConfigMutable()->channel = cmsx_vtxChannel;
     vtxSettingsConfigMutable()->power = cmsx_vtxPower + VTX_RTC6705_MIN_POWER;
     vtxSettingsConfigMutable()->freq = vtx58_Bandchan2Freq(cmsx_vtxBand + 1, cmsx_vtxChannel);
-
     saveConfigAndNotify();
 }
 
-static long cmsx_Vtx_onEnter(void)
-{
+static long cmsx_Vtx_onEnter(void) {
     cmsx_Vtx_ConfigRead();
-
     return 0;
 }
 
-static long cmsx_Vtx_onExit(const OSD_Entry *self)
-{
+static long cmsx_Vtx_onExit(const OSD_Entry *self) {
     UNUSED(self);
-
     cmsx_Vtx_ConfigWriteback();
-
     return 0;
 }
 
 
-static OSD_Entry cmsx_menuVtxEntries[] =
-{
+static OSD_Entry cmsx_menuVtxEntries[] = {
     {"--- VTX ---", OME_Label, NULL, NULL, 0},
     {"BAND", OME_TAB, NULL, &entryVtxBand, 0},
     {"CHANNEL", OME_UINT8, NULL, &entryVtxChannel, 0},
@@ -99,7 +90,7 @@ CMS_Menu cmsx_menuVtxRTC6705 = {
     .GUARD_type = OME_MENU,
 #endif
     .onEnter = cmsx_Vtx_onEnter,
-    .onExit= cmsx_Vtx_onExit,
+    .onExit = cmsx_Vtx_onExit,
     .entries = cmsx_menuVtxEntries
 };
 

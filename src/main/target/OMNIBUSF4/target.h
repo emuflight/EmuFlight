@@ -83,7 +83,7 @@
 #define USE_GYRO_SPI_MPU6000
 
 #define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 
 // MPU6000 interrupts
 #define USE_EXTI
@@ -111,7 +111,7 @@
 #define USE_ACC_SPI_MPU6500
 #define USE_GYRO_SPI_MPU6500
 #define MPU6500_CS_PIN          MPU6000_CS_PIN
-#define MPU6500_SPI_INSTANCE    MPU6000_SPI_INSTANCE
+#define MPU6500_SPI_BUS    MPU6000_SPI_BUS
 #define GYRO_MPU6500_ALIGN      GYRO_MPU6000_ALIGN
 #define ACC_MPU6500_ALIGN       ACC_MPU6000_ALIGN
 #endif
@@ -238,9 +238,9 @@
 
 #define USE_SPI_DEVICE_3
 #if defined(OMNIBUSF4SD)
-  #define SPI3_NSS_PIN          PA15
+#define SPI3_NSS_PIN          PA15
 #else
-  #define SPI3_NSS_PIN          PB3
+#define SPI3_NSS_PIN          PB3
 #endif
 #define SPI3_SCK_PIN            PC10
 #define SPI3_MISO_PIN           PC11

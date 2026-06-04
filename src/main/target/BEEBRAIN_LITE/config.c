@@ -67,17 +67,14 @@
 #define BB_LITE_RSSI_CH_IDX     9
 #endif
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     if (hardwareMotorType == MOTOR_BRUSHED) {
         motorConfigMutable()->dev.motorPwmRate = BRUSHED_MOTORS_PWM_RATE;
         motorConfigMutable()->minthrottle = 1030;
         pidConfigMutable()->pid_process_denom = 1;
     }
-
     for (uint8_t pidProfileIndex = 0; pidProfileIndex < 3; pidProfileIndex++) {
         pidProfile_t *pidProfile = pidProfilesMutable(pidProfileIndex);
-
         pidProfile->pid[PID_ROLL].P  = 86;
         pidProfile->pid[PID_ROLL].I  = 50;
         pidProfile->pid[PID_ROLL].D  = 60;
@@ -88,10 +85,8 @@ void targetConfiguration(void)
         pidProfile->pid[PID_YAW].I   = 75;
         pidProfile->pid[PID_YAW].D   = 20;
     }
-
     for (uint8_t rateProfileIndex = 0; rateProfileIndex < CONTROL_RATE_PROFILE_COUNT; rateProfileIndex++) {
         controlRateConfig_t *controlRateConfig = controlRateProfilesMutable(rateProfileIndex);
-
         controlRateConfig->rcRates[FD_YAW] = 100;
         controlRateConfig->rcExpo[FD_ROLL] = 15;
         controlRateConfig->rcExpo[FD_PITCH] = 15;
@@ -100,7 +95,6 @@ void targetConfiguration(void)
         controlRateConfig->rates[FD_PITCH] = 80;
         controlRateConfig->rates[FD_YAW] = 80;
     }
-
     osdConfigMutable()->item_pos[OSD_CRAFT_NAME]        = OSD_POS(9, 10) | VISIBLE_FLAG;
     osdConfigMutable()->item_pos[OSD_MAIN_BATT_VOLTAGE] = OSD_POS(23, 9) | VISIBLE_FLAG;
     osdConfigMutable()->item_pos[OSD_ITEM_TIMER_2]      = OSD_POS(2,  9) | VISIBLE_FLAG;
@@ -108,59 +102,47 @@ void targetConfiguration(void)
     osdConfigMutable()->item_pos[OSD_VTX_CHANNEL]       = OSD_POS(10, 9) | VISIBLE_FLAG;
     osdConfigMutable()->item_pos[OSD_RSSI_VALUE]        = OSD_POS(2, 10) | VISIBLE_FLAG;
     osdConfigMutable()->item_pos[OSD_WARNINGS]          = OSD_POS(9, 10);
-
     vtxSettingsConfigMutable()->band = 5;
     vtxSettingsConfigMutable()->channel = 1;
-
     batteryConfigMutable()->batteryCapacity = 250;
     batteryConfigMutable()->vbatmincellvoltage = 28;
     batteryConfigMutable()->vbatwarningcellvoltage = 32;
-
     imuConfigMutable()->small_angle = 180;
-
     modeActivationConditionsMutable(0)->modeId           = BOXARM;
     modeActivationConditionsMutable(0)->auxChannelIndex  = AUX1 - NON_AUX_CHANNEL_COUNT;
     modeActivationConditionsMutable(0)->range.startStep  = CHANNEL_VALUE_TO_STEP(1700);
     modeActivationConditionsMutable(0)->range.endStep    = CHANNEL_VALUE_TO_STEP(2100);
-
     modeActivationConditionsMutable(1)->modeId           = BOXANGLE;
     modeActivationConditionsMutable(1)->auxChannelIndex  = AUX2 - NON_AUX_CHANNEL_COUNT;
     modeActivationConditionsMutable(1)->range.startStep  = CHANNEL_VALUE_TO_STEP(900);
     modeActivationConditionsMutable(1)->range.endStep    = CHANNEL_VALUE_TO_STEP(1300);
-
     modeActivationConditionsMutable(2)->modeId           = BOXHORIZON;
     modeActivationConditionsMutable(2)->auxChannelIndex  = AUX2 - NON_AUX_CHANNEL_COUNT;
     modeActivationConditionsMutable(2)->range.startStep  = CHANNEL_VALUE_TO_STEP(1300);
     modeActivationConditionsMutable(2)->range.endStep    = CHANNEL_VALUE_TO_STEP(1700);
-
     modeActivationConditionsMutable(3)->modeId           = BOXAIRMODE;
     modeActivationConditionsMutable(3)->auxChannelIndex  = AUX2 - NON_AUX_CHANNEL_COUNT;
     modeActivationConditionsMutable(3)->range.startStep  = CHANNEL_VALUE_TO_STEP(1700);
     modeActivationConditionsMutable(3)->range.endStep    = CHANNEL_VALUE_TO_STEP(2100);
-
     ledStripConfigMutable()->ledConfigs[0] = DEFINE_LED(7, 7,  8, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
     ledStripConfigMutable()->ledConfigs[1] = DEFINE_LED(8, 7, 13, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
     ledStripConfigMutable()->ledConfigs[2] = DEFINE_LED(9, 7, 11, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
-
     strcpy(pilotConfigMutable()->name, "BeeBrain Lite");
-
 #if defined(BEEBRAIN_LITED)
     // DSM version
     rxConfigMutable()->rssi_channel = BB_LITE_RSSI_CH_IDX;
     rxFailsafeChannelConfig_t *channelFailsafeConfig = rxFailsafeChannelConfigsMutable(BB_LITE_RSSI_CH_IDX - 1);
     channelFailsafeConfig->mode = RX_FAILSAFE_MODE_SET;
     channelFailsafeConfig->step = CHANNEL_VALUE_TO_RXFAIL_STEP(1000);
-
     for (uint8_t rxRangeIndex = 0; rxRangeIndex < NON_AUX_CHANNEL_COUNT; rxRangeIndex++) {
         rxChannelRangeConfig_t *channelRangeConfig = rxChannelRangeConfigsMutable(rxRangeIndex);
-
         channelRangeConfig->min = 1160;
         channelRangeConfig->max = 1840;
     }
 #else
     do {
         // T8SG
-        uint8_t defaultTXHopTable[50] = {0,30,60,91,120,150,180,210,5,35,65,95,125,155,185,215,10,40,70,100,130,160,190,221,15,45,75,105,135,165,195,225,20,50,80,110,140,170,200,230,25,55,85,115,145,175,205,0,0,0};
+        uint8_t defaultTXHopTable[50] = {0, 30, 60, 91, 120, 150, 180, 210, 5, 35, 65, 95, 125, 155, 185, 215, 10, 40, 70, 100, 130, 160, 190, 221, 15, 45, 75, 105, 135, 165, 195, 225, 20, 50, 80, 110, 140, 170, 200, 230, 25, 55, 85, 115, 145, 175, 205, 0, 0, 0};
         rxFrSkySpiConfigMutable()->bindOffset  = -42;
         rxFrSkySpiConfigMutable()->bindTxId[0] = 0;
         rxFrSkySpiConfigMutable()->bindTxId[1] = 191;

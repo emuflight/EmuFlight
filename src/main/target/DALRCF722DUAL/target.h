@@ -38,10 +38,10 @@
 #define GYRO_2_EXTI_PIN         PC4
 #define MPU_INT_EXTI
 
-#define GYRO_1_CS_PIN                       PB0   
-#define GYRO_1_SPI_INSTANCE                 SPI1
+#define GYRO_1_CS_PIN                       PB0
+#define GYRO_1_SPI_BUS                 SPIDEV_1
 #define GYRO_2_CS_PIN                       PA4
-#define GYRO_2_SPI_INSTANCE                 SPI1
+#define GYRO_2_SPI_BUS                 SPIDEV_1
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
@@ -61,10 +61,10 @@
 
 #define ACC_MPU6500_2_ALIGN         CW0_DEG
 #define GYRO_MPU6500_2_ALIGN        CW0_DEG
-#define GYRO_2_ALIGN                GYRO_MPU6500_2_ALIGN 
+#define GYRO_2_ALIGN                GYRO_MPU6500_2_ALIGN
 #define ACC_2_ALIGN                 ACC_MPU6500_2_ALIGN
 
-#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1 
+#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
 
 #define USE_BARO
 #define USE_BARO_MS5611
@@ -93,7 +93,7 @@
 
 #define UART5_TX_PIN            PC12
 #define UART5_RX_PIN            PD2
-#define SERIAL_PORT_COUNT       6 
+#define SERIAL_PORT_COUNT       6
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
@@ -126,6 +126,7 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
+#define USE_FLASH_W25Q128FV
 #define FLASH_CS_PIN            PB2
 #define FLASH_SPI_INSTANCE      SPI3
 
@@ -137,8 +138,8 @@
 #define CURRENT_METER_ADC_PIN               PC0
 #define RSSI_ADC_PIN                        PA0
 
-#define CURRENT_METER_SCALE_DEFAULT         166
-#define VBAT_SCALE_DEFAULT          160
+#define DEFAULT_CURRENT_METER_SCALE         166
+#define DEFAULT_VOLTAGE_METER_SCALE          160
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC

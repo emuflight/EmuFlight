@@ -35,8 +35,7 @@
 
 #include "fc/config.h"
 
-void targetPreInit(void)
-{
+void targetPreInit(void) {
     IO_t mcoPin = IOGetByTag(IO_TAG(PA8));
     IOInit(mcoPin, OWNER_SYSTEM, 1);
     IOConfigGPIOAF(mcoPin, IO_CONFIG(GPIO_Mode_AF,  GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_NOPULL), GPIO_AF_MCO);

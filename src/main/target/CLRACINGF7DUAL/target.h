@@ -40,9 +40,9 @@
 #define GYRO_1_EXTI_PIN         PC4
 #define GYRO_2_EXTI_PIN         PC14
 #define GYRO_1_CS_PIN           PA4
-#define GYRO_1_SPI_INSTANCE     SPI1
+#define GYRO_1_SPI_BUS     SPIDEV_1
 #define GYRO_2_CS_PIN           PC13
-#define GYRO_2_SPI_INSTANCE     SPI1
+#define GYRO_2_SPI_BUS     SPIDEV_1
 
 #define ACC_MPU6000_1_ALIGN         CW0_DEG
 #define GYRO_MPU6000_1_ALIGN        CW0_DEG
@@ -54,7 +54,7 @@
 #define GYRO_2_ALIGN                GYRO_MPU6500_2_ALIGN
 #define ACC_2_ALIGN                 ACC_MPU6500_2_ALIGN
 
-#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
+#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_BOTH
 
 //MPU-6000
 #define USE_ACC
@@ -149,7 +149,7 @@
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
 #define RSSI_ADC_PIN            PC3
-#define CURRENT_METER_SCALE_DEFAULT 250                     // 3.3/120A  = 25mv/A
+#define DEFAULT_CURRENT_METER_SCALE 250                     // 3.3/120A  = 25mv/A
 
 #define BINDPLUG_PIN            PB2
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL

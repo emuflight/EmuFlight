@@ -62,15 +62,27 @@ static uint8_t pidProfileIndex;
 static char pidProfileIndexString[] = " p";
 static uint8_t feathered_pids;
 static uint8_t i_decay;
+static uint8_t i_decay_cutoff;
 static uint16_t errorBoost;
 static uint8_t errorBoostLimit;
 static uint16_t errorBoostYaw;
 static uint8_t errorBoostLimitYaw;
+static uint8_t itermRelaxCutoff;
+static uint8_t itermRelaxCutoffYaw;
+static uint8_t itermRelaxThreshold;
+static uint8_t itermRelaxThresholdYaw;
+static uint8_t itermWindup;
+static uint16_t dtermBoost;
+static uint8_t dtermBoostLimit;
+static uint8_t emuGravityGain;
 static uint8_t tempPid[3][3];
-static uint16_t tempPidF[3];
-static uint8_t tempPidWc[3];
-
-
+static uint8_t directYawFF;
+static uint8_t linear_thrust_low_output;
+static uint8_t linear_thrust_high_output;
+static uint8_t linear_throttle;
+static mixerImplType_e mixer_impl;
+static uint8_t mixer_laziness;
+static uint8_t mixer_yaw_throttle_comp;
 static uint8_t tmpRateProfileIndex;
 static uint8_t rateProfileIndex;
 static char rateProfileIndexString[] = " p-r";
@@ -84,126 +96,203 @@ static const char * const cms_throttleVbatCompTypeLabels[] = {
     "OFF", "BOOST", "LIMIT", "BOTH"
 };
 
-static long cmsx_menuImu_onEnter(void)
-{
+static const char * const cms_mixerImplTypeLabels[] = {
+    "LEGACY", "SMOOTH", "2PASS"
+};
+
+static const char * const cms_FilterType[] = {
+    "PT1", "BIQUAD", "PT2", "PT3", "PT4",
+};
+
+#ifdef USE_GYRO_DATA_ANALYSE
+static const char * const cms_dynNotchAxisType[] = {
+    "RP", "RPY"
+};
+#endif
+
+static long cmsx_menuImu_onEnter(void) {
     pidProfileIndex = getCurrentPidProfileIndex();
     tmpPidProfileIndex = pidProfileIndex + 1;
-
     rateProfileIndex = getCurrentControlRateProfileIndex();
     tmpRateProfileIndex = rateProfileIndex + 1;
-
     return 0;
 }
 
-static long cmsx_menuImu_onExit(const OSD_Entry *self)
-{
+static long cmsx_menuImu_onExit(const OSD_Entry *self) {
     UNUSED(self);
-
     changePidProfile(pidProfileIndex);
     changeControlRateProfile(rateProfileIndex);
-
     return 0;
 }
 
-static long cmsx_profileIndexOnChange(displayPort_t *displayPort, const void *ptr)
-{
+static long cmsx_profileIndexOnChange(displayPort_t *displayPort, const void *ptr) {
     UNUSED(displayPort);
     UNUSED(ptr);
-
     pidProfileIndex = tmpPidProfileIndex - 1;
     changePidProfile(pidProfileIndex);
-
     return 0;
 }
 
-static long cmsx_rateProfileIndexOnChange(displayPort_t *displayPort, const void *ptr)
-{
+static long cmsx_rateProfileIndexOnChange(displayPort_t *displayPort, const void *ptr) {
     UNUSED(displayPort);
     UNUSED(ptr);
-
     rateProfileIndex = tmpRateProfileIndex - 1;
     changeControlRateProfile(rateProfileIndex);
-
     return 0;
 }
 
-static long cmsx_PidRead(void)
-{
-
+static long cmsx_PidAdvancedRead(void) {
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
     feathered_pids = pidProfile->feathered_pids;
     i_decay = pidProfile->i_decay;
+    i_decay_cutoff = pidProfile->i_decay_cutoff;
     errorBoost = pidProfile->errorBoost;
     errorBoostLimit = pidProfile->errorBoostLimit;
     errorBoostYaw = pidProfile->errorBoostYaw;
     errorBoostLimitYaw = pidProfile->errorBoostLimitYaw;
-    for (uint8_t i = 0; i < 3; i++) {
-        tempPid[i][0] = pidProfile->pid[i].P;
-        tempPid[i][1] = pidProfile->pid[i].I;
-        tempPid[i][2] = pidProfile->pid[i].D;
-        tempPidF[i] = pidProfile->pid[i].F;
-    }
-
+    dtermBoost = pidProfile->dtermBoost;
+    dtermBoostLimit = pidProfile->dtermBoostLimit;
+    itermRelaxCutoff = pidProfile->iterm_relax_cutoff;
+    itermRelaxCutoffYaw = pidProfile->iterm_relax_cutoff_yaw;
+    itermRelaxThreshold = pidProfile->iterm_relax_threshold;
+    itermRelaxThresholdYaw = pidProfile->iterm_relax_threshold_yaw;
+    itermWindup = pidProfile->itermWindupPointPercent;
+    emuGravityGain = pidProfile->emuGravityGain;
+    linear_thrust_low_output = pidProfile->linear_thrust_low_output;
+    linear_thrust_high_output = pidProfile->linear_thrust_high_output;
+    linear_throttle = pidProfile->linear_throttle;
+    mixer_impl = pidProfile->mixer_impl;
+    mixer_laziness = pidProfile->mixer_laziness;
+    mixer_yaw_throttle_comp = pidProfile->mixer_yaw_throttle_comp;
     return 0;
 }
 
-static long cmsx_PidOnEnter(void)
-{
+static long cmsx_PidAdvancedOnEnter(void) {
     pidProfileIndexString[1] = '0' + tmpPidProfileIndex;
-    cmsx_PidRead();
-
+    cmsx_PidAdvancedRead();
     return 0;
 }
 
-static long cmsx_PidWriteback(const OSD_Entry *self)
-{
+static long cmsx_PidAdvancedWriteback(const OSD_Entry *self) {
     UNUSED(self);
-
     pidProfile_t *pidProfile = currentPidProfile;
-    for (uint8_t i = 0; i < 3; i++) {
-        pidProfile->pid[i].P = tempPid[i][0];
-        pidProfile->pid[i].I = tempPid[i][1];
-        pidProfile->pid[i].D = tempPid[i][2];
-        pidProfile->pid[i].F = tempPidF[i];
-    }
     pidProfile->feathered_pids = feathered_pids;
     pidProfile->errorBoost = errorBoost;
     pidProfile->errorBoostLimit = errorBoostLimit;
     pidProfile->errorBoostYaw = errorBoostYaw;
     pidProfile->errorBoostLimitYaw = errorBoostLimitYaw;
+    pidProfile->dtermBoost = dtermBoost;
+    pidProfile->dtermBoostLimit = dtermBoostLimit;
     pidProfile->i_decay = i_decay;
+    pidProfile->i_decay_cutoff = i_decay_cutoff;
+    pidProfile->iterm_relax_cutoff = itermRelaxCutoff;
+    pidProfile->iterm_relax_cutoff_yaw = itermRelaxCutoffYaw;
+    pidProfile->iterm_relax_threshold = itermRelaxThreshold;
+    pidProfile->iterm_relax_threshold_yaw = itermRelaxThresholdYaw;
+    pidProfile->itermWindupPointPercent = itermWindup;
+    pidProfile->emuGravityGain = emuGravityGain;
+    pidProfile->linear_thrust_low_output = linear_thrust_low_output;
+    pidProfile->linear_thrust_high_output = linear_thrust_high_output;
+    pidProfile->linear_throttle = linear_throttle;
+    pidProfile->mixer_impl = mixer_impl;
+    pidProfile->mixer_laziness = mixer_laziness;
+    pidProfile->mixer_yaw_throttle_comp = mixer_yaw_throttle_comp;
     pidInitConfig(currentPidProfile);
-
     return 0;
 }
 
-static OSD_Entry cmsx_menuPidEntries[] =
-{
+static OSD_Entry cmsx_menuPidAdvancedEntries[] = {
+    { "-- ADVANCED PIDS --", OME_Label, NULL, pidProfileIndexString, 0},
+
+    { "FEATHERED",         OME_UINT8, NULL, &(OSD_UINT8_t){ &feathered_pids,           0, 100,   1}, 0 },
+
+    { "EMU BOOST",         OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,             0,  2000, 5}, 0 },
+    { "BOOST LIMIT",       OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,          0,  250,  1}, 0 },
+    { "EMU BOOST YAW",     OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoostYaw,          0,  2000, 5}, 0 },
+    { "BOOST LIMIT YAW",   OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimitYaw,       0,  250,  1}, 0 },
+
+    { "DTERM BOOST",       OME_UINT16, NULL, &(OSD_UINT16_t){ &dtermBoost,             0,  2000, 5}, 0 },
+    { "DTERM LIMIT",       OME_UINT8, NULL, &(OSD_UINT8_t){ &dtermBoostLimit,          0,  250,  1}, 0 },
+
+    { "I DECAY",           OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,                  1, 10,  1 }, 0 },
+    { "I DECAY CUTOFF",    OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay_cutoff,           1, 250, 1 }, 0 },
+    { "I RELAX CUTOFF",    OME_UINT8, NULL, &(OSD_UINT8_t){ &itermRelaxCutoff,         10, 100, 1 }, 0 },
+    { "I RELAX CUTOFF YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &itermRelaxCutoffYaw,      10, 100, 1 }, 0 },
+    { "I RELAX THRESH",    OME_UINT8, NULL, &(OSD_UINT8_t){ &itermRelaxThreshold,      0, 100, 1 }, 0 },
+    { "I RELAX THRESH YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &itermRelaxThresholdYaw,   0, 100, 1 }, 0 },
+    { "I WINDUP",          OME_UINT8, NULL, &(OSD_UINT8_t){ &itermWindup,              0, 100, 1 }, 0 },
+
+    { "EMU GRAVITY",       OME_UINT8, NULL, &(OSD_UINT8_t){ &emuGravityGain,         0,  255, 1}, 0 },
+
+    { "LINEAR THRUST LOW",  OME_UINT8, NULL, &(OSD_UINT8_t) { &linear_thrust_low_output, 0, 100,  1}, 0 },
+    { "LINEAR THRUST HIGH", OME_UINT8, NULL, &(OSD_UINT8_t) { &linear_thrust_high_output, 0, 100,  1}, 0 },
+    { "LINEAR THROTTLE",   OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &linear_throttle, 1, cms_offOnLabels }, 0 },
+    { "MIXER IMPL",        OME_TAB,   NULL, &(OSD_TAB_t)   { &mixer_impl, MIXER_IMPL_COUNT - 1, cms_mixerImplTypeLabels }, 0 },
+    { "MIXER LAZINESS",    OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &mixer_laziness, 1, cms_offOnLabels }, 0 },
+    { "MIXER YAW THR COMP", OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &mixer_yaw_throttle_comp, 1, cms_offOnLabels }, 0 },
+
+    { "SAVE&EXIT",         OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
+    { "BACK",              OME_Back, NULL, NULL, 0 },
+    { NULL,                OME_END, NULL, NULL, 0 }
+};
+
+static CMS_Menu cmsx_menuPidAdvanced = {
+#ifdef CMS_MENU_DEBUG
+    .GUARD_text = "XPIDADVANCED",
+    .GUARD_type = OME_MENU,
+#endif
+    .onEnter = cmsx_PidAdvancedOnEnter,
+    .onExit = cmsx_PidAdvancedWriteback,
+    .entries = cmsx_menuPidAdvancedEntries
+};
+
+static long cmsx_PidRead(void) {
+    const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
+    for (uint8_t i = 0; i < 3; i++) {
+        tempPid[i][0] = pidProfile->pid[i].P;
+        tempPid[i][1] = pidProfile->pid[i].I;
+        tempPid[i][2] = pidProfile->pid[i].D;
+    }
+    directYawFF = pidProfile->directFF_yaw;
+    return 0;
+}
+
+static long cmsx_PidOnEnter(void) {
+    pidProfileIndexString[1] = '0' + tmpPidProfileIndex;
+    cmsx_PidRead();
+    return 0;
+}
+
+static long cmsx_PidWriteback(const OSD_Entry *self) {
+    UNUSED(self);
+    pidProfile_t *pidProfile = currentPidProfile;
+    for (uint8_t i = 0; i < 3; i++) {
+        pidProfile->pid[i].P = tempPid[i][0];
+        pidProfile->pid[i].I = tempPid[i][1];
+        pidProfile->pid[i].D = tempPid[i][2];
+    }
+    pidProfile->directFF_yaw = directYawFF;
+    pidInitConfig(currentPidProfile);
+    return 0;
+}
+
+static OSD_Entry cmsx_menuPidEntries[] = {
     { "-- EMUFLIGHT PIDS --", OME_Label, NULL, pidProfileIndexString, 0},
-
-    { "FEATHERED", OME_UINT8, NULL, &(OSD_UINT8_t){ &feathered_pids,         0, 100, 1}, 0 },
-
-    { "EMU BOOST", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoost,        0,  1000,  5}, 0 },
-    { "BOOST LIMIT", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimit,   0,  250,  1}, 0 },
+    { "PID ADVANCED", OME_Submenu, cmsMenuChange, &cmsx_menuPidAdvanced, 0},
 
     { "ROLL  P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][0],  0, 200, 1 }, 0 },
     { "ROLL  I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][1],  0, 200, 1 }, 0 },
     { "ROLL  D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_ROLL][2],  0, 200, 1 }, 0 },
-    { "ROLL  F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_ROLL],  0, 2000, 1 }, 0 },
 
     { "PITCH P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][0], 0, 200, 1 }, 0 },
     { "PITCH I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][1], 0, 200, 1 }, 0 },
     { "PITCH D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_PITCH][2], 0, 200, 1 }, 0 },
-    { "PITCH F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_PITCH], 0, 2000, 1 }, 0 },
 
     { "YAW   P", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][0],   0, 200, 1 }, 0 },
     { "YAW   I", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][1],   0, 200, 1 }, 0 },
     { "YAW   D", OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPid[PID_YAW][2],   0, 200, 1 }, 0 },
-    { "YAW   F", OME_UINT16, NULL, &(OSD_UINT16_t){ &tempPidF[PID_YAW],   0, 2000, 1 }, 0 },
-    { "EMU BOOST YAW", OME_UINT16, NULL, &(OSD_UINT16_t){ &errorBoostYaw,        0,  1000,  5}, 0 },
-    { "BOOST LIMIT YAW", OME_UINT8, NULL, &(OSD_UINT8_t){ &errorBoostLimitYaw,   0,  250,  1}, 0 },
+    { "YAW DIR FF", OME_UINT8, NULL, &(OSD_UINT8_t){ &directYawFF,         0, 200, 1 }, 0 },
 
-    { "I_DECAY", OME_UINT8, NULL, &(OSD_UINT8_t){ &i_decay,  1, 10, 1 }, 0 },
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }
@@ -223,34 +312,33 @@ static CMS_Menu cmsx_menuPid = {
 // Rate & Expo
 //
 
-static long cmsx_RateProfileRead(void)
-{
+static long cmsx_RateProfileRead(void) {
     memcpy(&rateProfile, controlRateProfiles(rateProfileIndex), sizeof(controlRateConfig_t));
-
     return 0;
 }
 
-static long cmsx_RateProfileWriteback(const OSD_Entry *self)
-{
+static long cmsx_RateProfileWriteback(const OSD_Entry *self) {
     UNUSED(self);
-
     memcpy(controlRateProfilesMutable(rateProfileIndex), &rateProfile, sizeof(controlRateConfig_t));
-
     return 0;
 }
 
-static long cmsx_RateProfileOnEnter(void)
-{
+static long cmsx_RateProfileOnEnter(void) {
     rateProfileIndexString[1] = '0' + tmpPidProfileIndex;
     rateProfileIndexString[3] = '0' + tmpRateProfileIndex;
     cmsx_RateProfileRead();
-
     return 0;
 }
 
-static OSD_Entry cmsx_menuRateProfileEntries[] =
-{
+static OSD_Entry cmsx_menuRateProfileEntries[] = {
     { "-- RATE --", OME_Label, NULL, rateProfileIndexString, 0 },
+
+    { "RC CENTER SENS",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateDynamics.rateSensCenter,        25, 175, 1, 10 }, 0 },
+    { "RC END SENS",      OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateDynamics.rateSensEnd,           25, 175, 1, 10 }, 0 },
+    { "RC CENTER CORR",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateDynamics.rateCorrectionCenter,  0,   95, 1, 10 }, 0 },
+    { "RC END CORR",      OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateDynamics.rateCorrectionEnd,     0,   95, 1, 10 }, 0 },
+    { "RC CENTER WEIGHT", OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateDynamics.rateWeightCenter,      0,   95, 1, 10 }, 0 },
+    { "RC END WEIGHT",    OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rateDynamics.rateWeightEnd,         0,   95, 1, 10 }, 0 },
 
     { "RC R RATE",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcRates[FD_ROLL],     0, 255, 1, 10 }, 0 },
     { "RC P RATE",   OME_FLOAT,  NULL, &(OSD_FLOAT_t) { &rateProfile.rcRates[FD_PITCH],    0, 255, 1, 10 }, 0 },
@@ -273,8 +361,7 @@ static OSD_Entry cmsx_menuRateProfileEntries[] =
 
     { "VBAT COMP TYPE",  OME_TAB,   NULL, &(OSD_TAB_t)    { &rateProfile.vbat_comp_type, VBAT_COMP_TYPE_COUNT - 1, cms_throttleVbatCompTypeLabels}, 0 },
     { "VBAT COMP REF",   OME_UINT8, NULL, &(OSD_UINT8_t)  { &rateProfile.vbat_comp_ref, VBAT_CELL_VOTAGE_RANGE_MIN, VBAT_CELL_VOTAGE_RANGE_MAX,  1}, 0 },
-    { "VBAT COMP THR %", OME_UINT8, NULL, &(OSD_UINT8_t)  { &rateProfile.vbat_comp_throttle_level, 0,  100,  1}, 0 },
-    { "VBAT COMP PID %", OME_UINT8, NULL, &(OSD_UINT8_t)  { &rateProfile.vbat_comp_pid_level, 0,  100,  1}, 0 },
+    { "THROTTLE LIMIT %", OME_UINT8, NULL, &(OSD_UINT8_t)  { &rateProfile.throttle_limit_percent, 25,  100,  1}, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
@@ -291,7 +378,8 @@ static CMS_Menu cmsx_menuRateProfile = {
     .entries = cmsx_menuRateProfileEntries
 };
 
-static uint8_t  cmsx_feedForwardTransition;
+static uint8_t  cmsx_axis_lock_hz;
+static uint8_t  cmsx_axis_lock_mult;
 static uint8_t  cmsx_setPointPTransition[3];
 static uint8_t  cmsx_setPointITransition[3];
 static uint8_t  cmsx_setPointDTransition[3];
@@ -301,21 +389,15 @@ static uint8_t  cmsx_P_angle_high;
 static uint8_t  cmsx_D_angle_high;
 static uint16_t cmsx_F_angle;
 static uint8_t  cmsx_horizonTransition;
-static uint8_t  cmsx_nfe_racermode;
-static uint8_t  cmsx_cinematic_setpoint;
 static uint8_t  cmsx_throttleBoost;
-static uint16_t cmsx_itermAcceleratorGain;
-static uint16_t cmsx_itermThrottleThreshold;
 static uint8_t  cmsx_motorOutputLimit;
 static int8_t   cmsx_autoProfileCellCount;
 
-static long cmsx_profileOtherOnEnter(void)
-{
+static long cmsx_profileOtherOnEnter(void) {
     pidProfileIndexString[1] = '0' + tmpPidProfileIndex;
-
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
-
-    cmsx_feedForwardTransition  =  pidProfile->feedForwardTransition;
+    cmsx_axis_lock_hz = pidProfile->axis_lock_hz;
+    cmsx_axis_lock_mult = pidProfile->axis_lock_multiplier;
     cmsx_setPointPTransition[ROLL]  =    pidProfile->setPointPTransition[ROLL];
     cmsx_setPointITransition[ROLL]  =    pidProfile->setPointITransition[ROLL];
     cmsx_setPointDTransition[ROLL]  =    pidProfile->setPointDTransition[ROLL];
@@ -325,33 +407,23 @@ static long cmsx_profileOtherOnEnter(void)
     cmsx_setPointPTransition[YAW]  =     pidProfile->setPointPTransition[YAW];
     cmsx_setPointITransition[YAW]  =     pidProfile->setPointITransition[YAW];
     cmsx_setPointDTransition[YAW]  =     pidProfile->setPointDTransition[YAW];
-
     cmsx_P_angle_low =       pidProfile->pid[PID_LEVEL_LOW].P;
     cmsx_D_angle_low =       pidProfile->pid[PID_LEVEL_LOW].D;
     cmsx_P_angle_high =      pidProfile->pid[PID_LEVEL_HIGH].P;
     cmsx_D_angle_high =      pidProfile->pid[PID_LEVEL_HIGH].D;
     cmsx_F_angle =       pidProfile->pid[PID_LEVEL_LOW].F;
     cmsx_horizonTransition = pidProfile->horizonTransition;
-
-    cmsx_nfe_racermode = pidProfile->nfe_racermode;
-    cmsx_cinematic_setpoint = pidProfile->cinematic_setpoint;
-
-    cmsx_itermAcceleratorGain   = pidProfile->itermAcceleratorGain;
-    cmsx_itermThrottleThreshold = pidProfile->itermThrottleThreshold;
-
     cmsx_throttleBoost = pidProfile->throttle_boost;
     cmsx_motorOutputLimit = pidProfile->motor_output_limit;
     cmsx_autoProfileCellCount = pidProfile->auto_profile_cell_count;
-
     return 0;
 }
 
-static long cmsx_profileOtherOnExit(const OSD_Entry *self)
-{
+static long cmsx_profileOtherOnExit(const OSD_Entry *self) {
     UNUSED(self);
-
     pidProfile_t *pidProfile = pidProfilesMutable(pidProfileIndex);
-    pidProfile->feedForwardTransition = cmsx_feedForwardTransition;
+    pidProfile->axis_lock_hz = cmsx_axis_lock_hz;
+    pidProfile->axis_lock_multiplier = cmsx_axis_lock_mult;
     pidProfile->setPointPTransition[ROLL] = cmsx_setPointPTransition[ROLL];
     pidProfile->setPointITransition[ROLL] = cmsx_setPointITransition[ROLL];
     pidProfile->setPointDTransition[ROLL] = cmsx_setPointDTransition[ROLL];
@@ -361,25 +433,16 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
     pidProfile->setPointPTransition[YAW] = cmsx_setPointPTransition[YAW];
     pidProfile->setPointITransition[YAW] = cmsx_setPointITransition[YAW];
     pidProfile->setPointDTransition[YAW] = cmsx_setPointDTransition[YAW];
-    pidInitConfig(currentPidProfile);
-
     pidProfile->pid[PID_LEVEL_LOW].P = cmsx_P_angle_low;
     pidProfile->pid[PID_LEVEL_LOW].D = cmsx_D_angle_low;
     pidProfile->pid[PID_LEVEL_HIGH].P = cmsx_P_angle_high;
     pidProfile->pid[PID_LEVEL_HIGH].D = cmsx_D_angle_high;
     pidProfile->pid[PID_LEVEL_LOW].F = cmsx_F_angle;
     pidProfile->horizonTransition = cmsx_horizonTransition;
-
-    pidProfile->nfe_racermode = cmsx_nfe_racermode;
-    pidProfile->cinematic_setpoint = cmsx_cinematic_setpoint;
-
-    pidProfile->itermAcceleratorGain   = cmsx_itermAcceleratorGain;
-    pidProfile->itermThrottleThreshold = cmsx_itermThrottleThreshold;
-
     pidProfile->throttle_boost = cmsx_throttleBoost;
     pidProfile->motor_output_limit = cmsx_motorOutputLimit;
     pidProfile->auto_profile_cell_count = cmsx_autoProfileCellCount;
-
+    pidInitConfig(currentPidProfile);
     initEscEndpoints();
     return 0;
 }
@@ -387,28 +450,26 @@ static long cmsx_profileOtherOnExit(const OSD_Entry *self)
 static OSD_Entry cmsx_menuProfileOtherEntries[] = {
     { "-- OTHER PP --", OME_Label, NULL, pidProfileIndexString, 0 },
 
-    { "FF TRANS",        OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_feedForwardTransition,     0,    100,   1, 10 }, 0 },
+    { "AXIS LOCK HZ",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_axis_lock_hz,                 1,    50,   1  }, 0 },
+    { "AXIS LOCK MULT",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_axis_lock_mult,               0,    10,   1  }, 0 },
+
     { "SPA ROLL P",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransition[ROLL], 0,    250,   1, 10 }, 0 },
     { "SPA ROLL I",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition[ROLL], 0,    250,   1, 10 }, 0 },
     { "SPA ROLL D",      OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransition[ROLL], 0,    250,   1, 10 }, 0 },
-    { "SPA PITCH P",     OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransition[PITCH],0,    250,   1, 10 }, 0 },
-    { "SPA PITCH I",     OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition[PITCH],0,    250,   1, 10 }, 0 },
-    { "SPA PITCH D",     OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransition[PITCH],0,    250,   1, 10 }, 0 },
+    { "SPA PITCH P",     OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransition[PITCH], 0,    250,   1, 10 }, 0 },
+    { "SPA PITCH I",     OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition[PITCH], 0,    250,   1, 10 }, 0 },
+    { "SPA PITCH D",     OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransition[PITCH], 0,    250,   1, 10 }, 0 },
     { "SPA YAW P",       OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointPTransition[YAW],  0,    250,   1, 10 }, 0 },
     { "SPA YAW I",       OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointITransition[YAW],  0,    250,   1, 10 }, 0 },
     { "SPA YAW D",       OME_FLOAT,  NULL, &(OSD_FLOAT_t)  { &cmsx_setPointDTransition[YAW],  0,    250,   1, 10 }, 0 },
-    { "ANGLE P LOW",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_P_angle_low,               0,    200,   1  }   , 0 },
-    { "ANGLE D LOW",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_D_angle_low,               0,    200,   1  }   , 0 },
-    { "ANGLE P HIGH",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_P_angle_high,              0,    200,   1  }   , 0 },
-    { "ANGLE D HIGH",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_D_angle_high,              0,    200,   1  }   , 0 },
-    { "ANGLE F",         OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_F_angle,                   0,    2000,  1  }   , 0 },
-    { "HORZN TRS",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonTransition,         0,    200,   1  }   , 0 },
-    { "NFE RACERMODE",   OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_nfe_racermode, 1, cms_offOnLabels }, 0 },
-    { "CINE SETPOINT",   OME_TAB, NULL, &(OSD_TAB_t)  { &cmsx_cinematic_setpoint, 1, cms_offOnLabels }, 0 },
-    { "AG GAIN",         OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_itermAcceleratorGain,      1000, 30000, 10 }   , 0 },
-    { "AG THR",          OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_itermThrottleThreshold,    20,   1000,  1  }   , 0 },
+    { "ANGLE P LOW",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_P_angle_low,               0,    200,   1  }, 0 },
+    { "ANGLE D LOW",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_D_angle_low,               0,    200,   1  }, 0 },
+    { "ANGLE P HIGH",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_P_angle_high,              0,    200,   1  }, 0 },
+    { "ANGLE D HIGH",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_D_angle_high,              0,    200,   1  }, 0 },
+    { "ANGLE F",         OME_UINT16, NULL, &(OSD_UINT16_t) { &cmsx_F_angle,                   0,    2000,  1  }, 0 },
+    { "HORZN TRS",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_horizonTransition,         0,    200,   1  }, 0 },
 #ifdef USE_THROTTLE_BOOST
-    { "THR BOOST",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_throttleBoost,             0,    100,   1  }   , 0 },
+    { "THR BOOST",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &cmsx_throttleBoost,             0,    100,   1  }, 0 },
 #endif
     { "MTR OUT LIM %",   OME_UINT8, NULL, &(OSD_UINT8_t) { &cmsx_motorOutputLimit, MOTOR_OUTPUT_LIMIT_PERCENT_MIN,  MOTOR_OUTPUT_LIMIT_PERCENT_MAX,  1}, 0 },
     { "AUTO CELL CNT",   OME_INT8, NULL, &(OSD_INT8_t) { &cmsx_autoProfileCellCount, AUTO_PROFILE_CELL_COUNT_CHANGE, MAX_AUTO_DETECT_CELL_COUNT, 1}, 0 },
@@ -428,108 +489,151 @@ static CMS_Menu cmsx_menuProfileOther = {
     .entries = cmsx_menuProfileOtherEntries,
 };
 
-
+static uint8_t gyroConfig_gyro_lowpass1_type;
 static uint16_t gyroConfig_gyro_lowpass_hz_roll;
 static uint16_t gyroConfig_gyro_lowpass_hz_pitch;
 static uint16_t gyroConfig_gyro_lowpass_hz_yaw;
+#ifdef USE_GYRO_LPF2
+static uint8_t gyroConfig_gyro_lowpass2_type;
 static uint16_t gyroConfig_gyro_lowpass2_hz_roll;
 static uint16_t gyroConfig_gyro_lowpass2_hz_pitch;
 static uint16_t gyroConfig_gyro_lowpass2_hz_yaw;
-static uint8_t  gyroConfig_gyro_average_roll;
-static uint8_t  gyroConfig_gyro_average_pitch;
-static uint8_t  gyroConfig_gyro_average_yaw;
-static uint16_t gyroConfig_gyro_soft_notch_hz_1;
-static uint16_t gyroConfig_gyro_soft_notch_cutoff_1;
-static uint16_t gyroConfig_gyro_soft_notch_hz_2;
-static uint16_t gyroConfig_gyro_soft_notch_cutoff_2;
+#endif
+#ifdef USE_GYRO_DATA_ANALYSE
+static uint16_t gyroConfig_gyro_q;
+static uint8_t gyroConfig_gyro_notch_count;
+static uint16_t gyroConfig_gyro_notch_min_hz;
+static uint16_t gyroConfig_gyro_notch_max_hz;
+static uint8_t gyroConfig_gyro_notch_axis;
+#endif
+static uint16_t gyroConfig_gyro_abg_alpha;
+static uint16_t gyroConfig_gyro_abg_boost;
+static uint8_t gyroConfig_gyro_abg_half_life;
 #ifndef USE_GYRO_IMUF9001
 static uint16_t gyroConfig_imuf_roll_q;
 static uint16_t gyroConfig_imuf_pitch_q;
 static uint16_t gyroConfig_imuf_yaw_q;
 static uint16_t gyroConfig_imuf_w;
-static uint16_t gyroConfig_imuf_sharpness;
 #endif
+#ifdef USE_SMITH_PREDICTOR
+static uint8_t smithPredictor_enabled;
+static uint8_t smithPredictor_strength;
+static uint8_t smithPredictor_delay;
+static uint8_t smithPredictor_filt_hz;
+#endif // USE_SMITH_PREDICTOR
 
-static long cmsx_menuGyro_onEnter(void)
-{
+static long cmsx_menuGyro_onEnter(void) {
+    gyroConfig_gyro_lowpass1_type =  gyroConfig()->gyro_lowpass_type;
     gyroConfig_gyro_lowpass_hz_roll =  gyroConfig()->gyro_lowpass_hz[ROLL];
     gyroConfig_gyro_lowpass_hz_pitch =  gyroConfig()->gyro_lowpass_hz[PITCH];
     gyroConfig_gyro_lowpass_hz_yaw =  gyroConfig()->gyro_lowpass_hz[YAW];
+#ifdef USE_GYRO_LPF2
+    gyroConfig_gyro_lowpass2_type =  gyroConfig()->gyro_lowpass2_type;
     gyroConfig_gyro_lowpass2_hz_roll =  gyroConfig()->gyro_lowpass2_hz[ROLL];
     gyroConfig_gyro_lowpass2_hz_pitch =  gyroConfig()->gyro_lowpass2_hz[PITCH];
     gyroConfig_gyro_lowpass2_hz_yaw =  gyroConfig()->gyro_lowpass2_hz[YAW];
-    gyroConfig_gyro_average_roll = gyroConfig()->averagedGyro[ROLL];
-    gyroConfig_gyro_average_pitch = gyroConfig()->averagedGyro[PITCH];
-    gyroConfig_gyro_average_yaw = gyroConfig()->averagedGyro[YAW];
-    gyroConfig_gyro_soft_notch_hz_1 = gyroConfig()->gyro_soft_notch_hz_1;
-    gyroConfig_gyro_soft_notch_cutoff_1 = gyroConfig()->gyro_soft_notch_cutoff_1;
-    gyroConfig_gyro_soft_notch_hz_2 = gyroConfig()->gyro_soft_notch_hz_2;
-    gyroConfig_gyro_soft_notch_cutoff_2 = gyroConfig()->gyro_soft_notch_cutoff_2;
-
+#endif
+#ifdef USE_GYRO_DATA_ANALYSE
+    gyroConfig_gyro_q = gyroConfig()->dyn_notch_q;
+    gyroConfig_gyro_notch_count = gyroConfig()->dyn_notch_count;
+    gyroConfig_gyro_notch_min_hz = gyroConfig()->dyn_notch_min_hz;
+    gyroConfig_gyro_notch_max_hz = gyroConfig()->dyn_notch_max_hz;
+    gyroConfig_gyro_notch_axis = gyroConfig()->dyn_notch_axis;
+#endif
+    gyroConfig_gyro_abg_alpha = gyroConfig()->gyro_ABG_alpha;
+    gyroConfig_gyro_abg_boost = gyroConfig()->gyro_ABG_boost;
+    gyroConfig_gyro_abg_half_life = gyroConfig()->gyro_ABG_half_life;
 #ifndef USE_GYRO_IMUF9001
     gyroConfig_imuf_roll_q = gyroConfig()->imuf_roll_q;
     gyroConfig_imuf_pitch_q = gyroConfig()->imuf_pitch_q;
     gyroConfig_imuf_yaw_q = gyroConfig()->imuf_yaw_q;
     gyroConfig_imuf_w = gyroConfig()->imuf_w;
-    gyroConfig_imuf_sharpness = gyroConfig()->imuf_sharpness;
+#endif
+#ifdef USE_SMITH_PREDICTOR
+    smithPredictor_enabled   = gyroConfig()->smithPredictorEnabled;
+    smithPredictor_strength  = gyroConfig()->smithPredictorStrength;
+    smithPredictor_delay     = gyroConfig()->smithPredictorDelay;
+    smithPredictor_filt_hz   = gyroConfig()->smithPredictorFilterHz;
 #endif
     return 0;
 }
 
-static long cmsx_menuGyro_onExit(const OSD_Entry *self)
-{
+static long cmsx_menuGyro_onExit(const OSD_Entry *self) {
     UNUSED(self);
-
+    gyroConfigMutable()->gyro_lowpass_type =  gyroConfig_gyro_lowpass1_type;
     gyroConfigMutable()->gyro_lowpass_hz[ROLL] =  gyroConfig_gyro_lowpass_hz_roll;
     gyroConfigMutable()->gyro_lowpass_hz[PITCH] =  gyroConfig_gyro_lowpass_hz_pitch;
     gyroConfigMutable()->gyro_lowpass_hz[YAW] =  gyroConfig_gyro_lowpass_hz_yaw;
+#ifdef USE_GYRO_LPF2
+    gyroConfigMutable()->gyro_lowpass2_type =  gyroConfig_gyro_lowpass2_type;
     gyroConfigMutable()->gyro_lowpass2_hz[ROLL] =  gyroConfig_gyro_lowpass2_hz_roll;
     gyroConfigMutable()->gyro_lowpass2_hz[PITCH] =  gyroConfig_gyro_lowpass2_hz_pitch;
-    gyroConfigMutable()->gyro_lowpass2_hz[YAW] =  gyroConfig_gyro_lowpass2_hz_pitch;
-    gyroConfigMutable()->averagedGyro[ROLL] = gyroConfig_gyro_average_roll;
-    gyroConfigMutable()->averagedGyro[PITCH] = gyroConfig_gyro_average_pitch;
-    gyroConfigMutable()->averagedGyro[YAW] = gyroConfig_gyro_average_yaw;
-    gyroConfigMutable()->gyro_soft_notch_hz_1 = gyroConfig_gyro_soft_notch_hz_1;
-    gyroConfigMutable()->gyro_soft_notch_cutoff_1 = gyroConfig_gyro_soft_notch_cutoff_1;
-    gyroConfigMutable()->gyro_soft_notch_hz_2 = gyroConfig_gyro_soft_notch_hz_2;
-    gyroConfigMutable()->gyro_soft_notch_cutoff_2 = gyroConfig_gyro_soft_notch_cutoff_2;
-
+    gyroConfigMutable()->gyro_lowpass2_hz[YAW] =  gyroConfig_gyro_lowpass2_hz_yaw;
+#endif
+#ifdef USE_GYRO_DATA_ANALYSE
+    gyroConfigMutable()->dyn_notch_q = gyroConfig_gyro_q;
+    gyroConfigMutable()->dyn_notch_count = gyroConfig_gyro_notch_count;
+    gyroConfigMutable()->dyn_notch_min_hz = gyroConfig_gyro_notch_min_hz;
+    gyroConfigMutable()->dyn_notch_max_hz = gyroConfig_gyro_notch_max_hz;
+    gyroConfigMutable()->dyn_notch_axis = gyroConfig_gyro_notch_axis;
+#endif
+    gyroConfigMutable()->gyro_ABG_alpha = gyroConfig_gyro_abg_alpha;
+    gyroConfigMutable()->gyro_ABG_boost = gyroConfig_gyro_abg_boost;
+    gyroConfigMutable()->gyro_ABG_half_life = gyroConfig_gyro_abg_half_life;
 #ifndef USE_GYRO_IMUF9001
     gyroConfigMutable()->imuf_roll_q = gyroConfig_imuf_roll_q;
     gyroConfigMutable()->imuf_pitch_q = gyroConfig_imuf_pitch_q;
     gyroConfigMutable()->imuf_yaw_q = gyroConfig_imuf_yaw_q;
     gyroConfigMutable()->imuf_w = gyroConfig_imuf_w;
-    gyroConfigMutable()->imuf_sharpness = gyroConfig_imuf_sharpness;
+#endif
+#ifdef USE_SMITH_PREDICTOR
+    gyroConfigMutable()->smithPredictorEnabled = smithPredictor_enabled;
+    gyroConfigMutable()->smithPredictorStrength = smithPredictor_strength;
+    gyroConfigMutable()->smithPredictorDelay = smithPredictor_delay;
+    gyroConfigMutable()->smithPredictorFilterHz = smithPredictor_filt_hz;
 #endif
     return 0;
 }
 
-static OSD_Entry cmsx_menuFilterGlobalEntries[] =
-{
+static OSD_Entry cmsx_menuFilterGlobalEntries[] = {
     { "-- FILTER GLB  --", OME_Label, NULL, NULL, 0 },
 
-    { "GYRO LPF ROLL",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_roll, 0, 16000, 1 }, 0 },
-    { "GYRO LPF PITCH",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_pitch, 0, 16000, 1 }, 0 },
-    { "GYRO LPF YAW",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_yaw, 0, 16000, 1 }, 0 },
+    { "GYRO LPF TYPE",    OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &gyroConfig_gyro_lowpass1_type, 4, cms_FilterType }, 0 },
+    { "GYRO LPF ROLL",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_roll,     0, 16000, 1 }, 0 },
+    { "GYRO LPF PITCH",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_pitch,    0, 16000, 1 }, 0 },
+    { "GYRO LPF YAW",     OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass_hz_yaw,      0, 16000, 1 }, 0 },
 #ifdef USE_GYRO_LPF2
-    { "GYRO LPF2 ROLL",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_roll,  0, 16000, 1 }, 0 },
-    { "GYRO LPF2 PITCH",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_pitch,  0, 16000, 1 }, 0 },
-    { "GYRO LPF2 YAW",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_yaw,  0, 16000, 1 }, 0 },
+    { "GYRO LPF2 TYPE",   OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &gyroConfig_gyro_lowpass2_type, 4, cms_FilterType }, 0 },
+    { "GYRO LPF2 ROLL",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_roll,    0, 16000, 1 }, 0 },
+    { "GYRO LPF2 PITCH",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_pitch,   0, 16000, 1 }, 0 },
+    { "GYRO LPF2 YAW",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_lowpass2_hz_yaw,     0, 16000, 1 }, 0 },
 #endif
-    { "GYRO AVG ROLL",  OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_average_roll,        0, 10, 1 }, 0 },
-    { "GYRO AVG PITCH", OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_average_pitch,        0, 10, 1 }, 0 },
-    { "GYRO AVG YAW",   OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_average_yaw,        0, 10, 1 }, 0 },
-    { "GYRO NF1",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_1,     0, 500, 1 }, 0 },
-    { "GYRO NF1C",      OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_1, 0, 500, 1 }, 0 },
-    { "GYRO NF2",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_hz_2,     0, 500, 1 }, 0 },
-    { "GYRO NF2C",      OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_soft_notch_cutoff_2, 0, 500, 1 }, 0 },
-    #ifndef USE_GYRO_IMUF9001
-    { "IMUF W",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,                   3, 512,    1 }, 0 },
-    { "ROLL Q",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,              0, 16000, 100 }, 0 },
-    { "PITCH Q",        OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,             0, 16000, 100 }, 0 },
-    { "YAW Q",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,               0, 16000, 100 }, 0 },
-    { "IMUF SHARPNESS", OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness,           1, 5000,    5 }, 0 },
-    #endif
+#ifdef USE_GYRO_DATA_ANALYSE
+    { "DYN NOTCH Q",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_q,        0, 1000, 1 }, 0 },
+    { "DYN NOTCH COUNT",     OME_UINT8, NULL, &(OSD_UINT8_t) { &gyroConfig_gyro_notch_count,        1, 5, 1 }, 0 },
+    { "DYN NOTCH MIN HZ",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_notch_min_hz,       30, 1000, 1 }, 0 },
+    { "DYN NOTCH MAX HZ",    OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_notch_max_hz,       200, 1000, 1 }, 0 },
+    { "DYN NOTCH AXIS",      OME_TAB, NULL, &(OSD_TAB_t) { (uint8_t *) &gyroConfig_gyro_notch_axis, 1, cms_dynNotchAxisType }, 0 },
+#endif
+#ifndef USE_GYRO_IMUF9001
+    { "IMUF W",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,                   0, 512,     1 }, 0 },
+    { "ROLL Q",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,              100, 16000, 100 }, 0 },
+    { "PITCH Q",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,             100, 16000, 100 }, 0 },
+    { "YAW Q",            OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,               100, 16000, 100 }, 0 },
+
+#endif
+
+    { "GYRO ABG ALPHA",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_abg_alpha,           0, 1000, 1 }, 0 },
+    { "GYRO ABG BOOST",   OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_gyro_abg_boost,           0, 2000, 1 }, 0 },
+    { "GYRO ABG HL",      OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_gyro_abg_half_life,       0, 250, 1 }, 0 },
+
+#ifdef USE_SMITH_PREDICTOR
+    { "SMITH ENABLED",   OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &smithPredictor_enabled, 1, cms_offOnLabels }, 0 },
+    { "SMITH STR",       OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_strength,    0, 100, 1 }, 0 },
+    { "SMITH DELAY",     OME_UINT8,  NULL, &(OSD_UINT8_t)  { &smithPredictor_delay,       0, 120, 1 }, 0 },
+    { "SMITH FILT HZ",   OME_UINT8, NULL, &(OSD_UINT8_t) { &smithPredictor_filt_hz,   1, 250, 1 }, 0 },
+#endif
+
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
     { NULL, OME_END, NULL, NULL, 0 }
@@ -545,13 +649,6 @@ static CMS_Menu cmsx_menuFilterGlobal = {
     .entries = cmsx_menuFilterGlobalEntries,
 };
 
-static uint16_t cmsx_dterm_lowpass_hz_roll;
-static uint16_t cmsx_dterm_lowpass_hz_pitch;
-static uint16_t cmsx_dterm_lowpass_hz_yaw;
-static uint16_t cmsx_dterm_lowpass2_hz_roll;
-static uint16_t cmsx_dterm_lowpass2_hz_pitch;
-static uint16_t cmsx_dterm_lowpass2_hz_yaw;
-
 //
 // SPRING Imuf
 //
@@ -565,12 +662,11 @@ static uint16_t gyroConfig_imuf_pitch_lpf_cutoff_hz;
 static uint16_t gyroConfig_imuf_roll_lpf_cutoff_hz;
 static uint16_t gyroConfig_imuf_yaw_lpf_cutoff_hz;
 static uint16_t gyroConfig_imuf_acc_lpf_cutoff_hz;
-static uint16_t gyroConfig_imuf_sharpness;
+static uint8_t gyroConfig_imuf_ptn_order;
 #endif
 
 #if defined(USE_GYRO_IMUF9001)
-static long cmsx_menuImuf_onEnter(void)
-{
+static long cmsx_menuImuf_onEnter(void) {
     gyroConfig_imuf_roll_q = gyroConfig()->imuf_roll_q;
     gyroConfig_imuf_pitch_q = gyroConfig()->imuf_pitch_q;
     gyroConfig_imuf_yaw_q = gyroConfig()->imuf_yaw_q;
@@ -579,18 +675,14 @@ static long cmsx_menuImuf_onEnter(void)
     gyroConfig_imuf_roll_lpf_cutoff_hz = gyroConfig()->imuf_roll_lpf_cutoff_hz;
     gyroConfig_imuf_yaw_lpf_cutoff_hz = gyroConfig()->imuf_yaw_lpf_cutoff_hz;
     gyroConfig_imuf_acc_lpf_cutoff_hz = gyroConfig()->imuf_acc_lpf_cutoff_hz;
-    gyroConfig_imuf_sharpness = gyroConfig()->imuf_sharpness;
-
-
+    gyroConfig_imuf_ptn_order = gyroConfig()->imuf_ptn_order;
     return 0;
 }
 #endif
 
 #if defined(USE_GYRO_IMUF9001)
-static long cmsx_menuImuf_onExit(const OSD_Entry *self)
-{
+static long cmsx_menuImuf_onExit(const OSD_Entry *self) {
     UNUSED(self);
-
     gyroConfigMutable()->imuf_roll_q = gyroConfig_imuf_roll_q;
     gyroConfigMutable()->imuf_pitch_q = gyroConfig_imuf_pitch_q;
     gyroConfigMutable()->imuf_yaw_q = gyroConfig_imuf_yaw_q;
@@ -599,28 +691,27 @@ static long cmsx_menuImuf_onExit(const OSD_Entry *self)
     gyroConfigMutable()->imuf_pitch_lpf_cutoff_hz = gyroConfig_imuf_pitch_lpf_cutoff_hz;
     gyroConfigMutable()->imuf_yaw_lpf_cutoff_hz = gyroConfig_imuf_yaw_lpf_cutoff_hz;
     gyroConfigMutable()->imuf_acc_lpf_cutoff_hz = gyroConfig_imuf_acc_lpf_cutoff_hz;
-    gyroConfigMutable()->imuf_sharpness = gyroConfig_imuf_sharpness;
+    gyroConfigMutable()->imuf_ptn_order = gyroConfig_imuf_ptn_order;
     return 0;
 }
 #endif
 
 #if defined(USE_GYRO_IMUF9001)
-static OSD_Entry cmsx_menuImufEntries[] =
-{
+static OSD_Entry cmsx_menuImufEntries[] = {
     { "-- SPRING IMU-F --", OME_Label, NULL, NULL, 0 },
     { "-- CHANGES REQUIRE REBOOT --", OME_Label, NULL, NULL, 0 },
-    { "IMUF W",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,                   3, 1024,    1 }, 0 },
+    { "IMUF W",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_w,                   3, 512,     1 }, 0 },
     { "ROLL Q",          OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_q,              0, 16000, 100 }, 0 },
     { "PITCH Q",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_q,             0, 16000, 100 }, 0 },
     { "YAW Q",           OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_q,               0, 16000, 100 }, 0 },
-    { "IMUF SHARPNESS",  OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_sharpness,           1, 5000,    5 }, 0 },
+    { "IMUF PTN ORD",    OME_UINT8,  NULL, &(OSD_UINT8_t)  { &gyroConfig_imuf_ptn_order,           1, 4,       1 }, 0 },
     { "ROLL LPF",        OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_roll_lpf_cutoff_hz,  0, 450,     1 }, 0 },
     { "PITCH LPF",       OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_pitch_lpf_cutoff_hz, 0, 450,     1 }, 0 },
     { "YAW LPF",         OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_yaw_lpf_cutoff_hz,   0, 450,     1 }, 0 },
     { "IMUF ACC",        OME_UINT16, NULL, &(OSD_UINT16_t) { &gyroConfig_imuf_acc_lpf_cutoff_hz,   0, 450,     1 }, 0 },
 
     { "SAVE&REBOOT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVEREBOOT, 0},
-	  { "BACK",        OME_Back,            NULL,   NULL,             0},
+    { "BACK",        OME_Back,            NULL,   NULL,             0},
     { NULL, OME_END, NULL, NULL, 0 }
 };
 #endif
@@ -637,70 +728,81 @@ static CMS_Menu cmsx_menuImuf = {
 };
 #endif
 
+static uint16_t cmsx_dterm_lowpass_type;
+static uint16_t cmsx_dterm_lowpass_hz_roll;
+static uint16_t cmsx_dterm_lowpass_hz_pitch;
+static uint16_t cmsx_dterm_lowpass_hz_yaw;
+static uint16_t cmsx_dterm_lowpass2_type;
+static uint16_t cmsx_dterm_lowpass2_hz_roll;
+static uint16_t cmsx_dterm_lowpass2_hz_pitch;
+static uint16_t cmsx_dterm_lowpass2_hz_yaw;
+#ifdef USE_GYRO_DATA_ANALYSE
+static uint8_t cmsx_dterm_dyn_notch_enable ;
+static uint16_t cmsx_dterm_dyn_notch_q;
+#endif
+static uint16_t cmsx_dterm_abg_alpha;
+static uint16_t cmsx_dterm_abg_boost;
+static uint8_t cmsx_dterm_abg_half_life;
 
-static uint8_t cmsx_smart_dterm_smoothing_roll;
-static uint8_t cmsx_smart_dterm_smoothing_pitch;
-static uint8_t cmsx_smart_dterm_smoothing_yaw;
-
-static long cmsx_FilterPerProfileRead(void)
-{
+static long cmsx_FilterPerProfileRead(void) {
     const pidProfile_t *pidProfile = pidProfiles(pidProfileIndex);
-    for (uint8_t i = 0; i < 3; i++) {
-        tempPidWc[i] = pidProfile->dFilter[i].Wc;
-    }
+    cmsx_dterm_lowpass_type      = pidProfile->dterm_filter_type;
     cmsx_dterm_lowpass_hz_roll   = pidProfile->dFilter[ROLL].dLpf;
     cmsx_dterm_lowpass_hz_pitch  = pidProfile->dFilter[PITCH].dLpf;
     cmsx_dterm_lowpass_hz_yaw    = pidProfile->dFilter[YAW].dLpf;
+    cmsx_dterm_lowpass2_type     = pidProfile->dterm_filter2_type;
     cmsx_dterm_lowpass2_hz_roll  = pidProfile->dFilter[ROLL].dLpf2;
     cmsx_dterm_lowpass2_hz_pitch = pidProfile->dFilter[PITCH].dLpf2;
     cmsx_dterm_lowpass2_hz_yaw   = pidProfile->dFilter[YAW].dLpf2;
-
-    cmsx_smart_dterm_smoothing_roll   = pidProfile->dFilter[ROLL].smartSmoothing;
-    cmsx_smart_dterm_smoothing_pitch  = pidProfile->dFilter[PITCH].smartSmoothing;
-    cmsx_smart_dterm_smoothing_yaw    = pidProfile->dFilter[YAW].smartSmoothing;
+#ifdef USE_GYRO_DATA_ANALYSE
+    cmsx_dterm_dyn_notch_enable  = pidProfile->dtermDynNotch;
+    cmsx_dterm_dyn_notch_q       = pidProfile->dterm_dyn_notch_q;
+#endif
+    cmsx_dterm_abg_alpha = pidProfile->dterm_ABG_alpha;
+    cmsx_dterm_abg_boost = pidProfile->dterm_ABG_boost;
+    cmsx_dterm_abg_half_life = pidProfile->dterm_ABG_half_life;
     return 0;
 }
 
-static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self)
-{
+static long cmsx_FilterPerProfileWriteback(const OSD_Entry *self) {
     UNUSED(self);
-
     pidProfile_t *pidProfile = currentPidProfile;
-
-    for (uint8_t i = 0; i < 3; i++) {
-        pidProfile->dFilter[i].Wc = tempPidWc[i];
-    }
-
+    pidProfile->dterm_filter_type    = cmsx_dterm_lowpass_type;
     pidProfile->dFilter[ROLL].dLpf   = cmsx_dterm_lowpass_hz_roll;
     pidProfile->dFilter[PITCH].dLpf  = cmsx_dterm_lowpass_hz_pitch;
     pidProfile->dFilter[YAW].dLpf    = cmsx_dterm_lowpass_hz_yaw;
+    pidProfile->dterm_filter2_type   = cmsx_dterm_lowpass2_type;
     pidProfile->dFilter[ROLL].dLpf2  = cmsx_dterm_lowpass2_hz_roll;
     pidProfile->dFilter[PITCH].dLpf2 = cmsx_dterm_lowpass2_hz_pitch;
     pidProfile->dFilter[YAW].dLpf2   = cmsx_dterm_lowpass2_hz_yaw;
-
-    pidProfile->dFilter[ROLL].smartSmoothing   = cmsx_smart_dterm_smoothing_roll;
-    pidProfile->dFilter[PITCH].smartSmoothing  = cmsx_smart_dterm_smoothing_pitch;
-    pidProfile->dFilter[YAW].smartSmoothing    = cmsx_smart_dterm_smoothing_yaw;
+#ifdef USE_GYRO_DATA_ANALYSE
+    pidProfile->dtermDynNotch        = cmsx_dterm_dyn_notch_enable;
+    pidProfile->dterm_dyn_notch_q    = cmsx_dterm_dyn_notch_q;
+#endif
+    pidProfile->dterm_ABG_alpha = cmsx_dterm_abg_alpha;
+    pidProfile->dterm_ABG_boost = cmsx_dterm_abg_boost;
+    pidProfile->dterm_ABG_half_life = cmsx_dterm_abg_half_life;
     return 0;
 }
 
-static OSD_Entry cmsx_menuFilterPerProfileEntries[] =
-{
+static OSD_Entry cmsx_menuFilterPerProfileEntries[] = {
     { "-- FILTER PP  --", OME_Label, NULL, NULL, 0 },
 
+    { "DTERM LPF TYPE",    OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &cmsx_dterm_lowpass_type, 4, cms_FilterType }, 0 },
     { "DTERM LPF ROLL",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz_roll,     0, 500, 1 }, 0 },
     { "DTERM LPF PITCH",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz_pitch,     0, 500, 1 }, 0 },
     { "DTERM LPF YAW",  OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass_hz_yaw,     0, 500, 1 }, 0 },
+    { "DTERM LPF2 TYPE",    OME_TAB,    NULL, &(OSD_TAB_t)    { (uint8_t *) &cmsx_dterm_lowpass2_type, 4, cms_FilterType }, 0 },
     { "DTERM LPF2 ROLL", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_roll,    0, 500, 1 }, 0 },
     { "DTERM LPF2 PITCH", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_pitch,    0, 500, 1 }, 0 },
     { "DTERM LPF2 YAW", OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_lowpass2_hz_yaw,    0, 500, 1 }, 0 },
-
-    { "SMART SMOOTHING ROLL",    OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_smart_dterm_smoothing_roll,       0, 250, 1 }, 0 },
-    { "SMART SMOOTHING PITCH",    OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_smart_dterm_smoothing_pitch,       0, 250, 1 }, 0 },
-    { "SMART SMOOTHING YAW",    OME_UINT8, NULL, &(OSD_UINT8_t){ &cmsx_smart_dterm_smoothing_yaw,       0, 250, 1 }, 0 },
-    { "ROLL WITCHCRAFT",    OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[ROLL], 0, 10, 1 }, 0 },
-    { "PITCH WITCHCRAFT",   OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[PITCH], 0, 10, 1 }, 0 },
-    { "YAW WITCHCRAFT",     OME_UINT8, NULL, &(OSD_UINT8_t){ &tempPidWc[YAW], 0, 10, 1 }, 0 },
+#ifdef USE_GYRO_DATA_ANALYSE
+    { "DTERM DYN ENABLE",   OME_TAB,   NULL, &(OSD_TAB_t)   { (uint8_t *) &cmsx_dterm_dyn_notch_enable, 1, cms_offOnLabels }, 0 },
+    { "DTERM DYN NOT Q",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_dyn_notch_q,    0, 2000, 1 }, 0 },
+#endif
+    { "DTERM ABG ALPHA",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_abg_alpha,       0, 1000, 1 }, 0 },
+    { "DTERM ABG BOOST",    OME_UINT16, NULL, &(OSD_UINT16_t){ &cmsx_dterm_abg_boost,       0, 2000, 1 }, 0 },
+    { "DTERM ABG HL",       OME_UINT8,  NULL, &(OSD_UINT8_t) { &cmsx_dterm_abg_half_life,   0, 250, 1 }, 0 },
 
     { "SAVE&EXIT",   OME_OSD_Exit, cmsMenuExit,   (void *)CMS_EXIT_SAVE, 0},
     { "BACK", OME_Back, NULL, NULL, 0 },
@@ -732,40 +834,31 @@ static const char * const cmsx_ProfileNames[] = {
 static OSD_TAB_t cmsx_PidProfileTable = { &cmsx_dstPidProfile, 3, cmsx_ProfileNames };
 static OSD_TAB_t cmsx_ControlRateProfileTable = { &cmsx_dstControlRateProfile, 3, cmsx_ProfileNames };
 
-static long cmsx_menuCopyProfile_onEnter(void)
-{
+static long cmsx_menuCopyProfile_onEnter(void) {
     cmsx_dstPidProfile = 0;
     cmsx_dstControlRateProfile = 0;
-
     return 0;
 }
 
-static long cmsx_CopyPidProfile(displayPort_t *pDisplay, const void *ptr)
-{
+static long cmsx_CopyPidProfile(displayPort_t *pDisplay, const void *ptr) {
     UNUSED(pDisplay);
     UNUSED(ptr);
-
     if (cmsx_dstPidProfile > 0) {
         pidCopyProfile(cmsx_dstPidProfile - 1, getCurrentPidProfileIndex());
     }
-
     return 0;
 }
 
-static long cmsx_CopyControlRateProfile(displayPort_t *pDisplay, const void *ptr)
-{
+static long cmsx_CopyControlRateProfile(displayPort_t *pDisplay, const void *ptr) {
     UNUSED(pDisplay);
     UNUSED(ptr);
-
     if (cmsx_dstControlRateProfile > 0) {
         copyControlRateProfile(cmsx_dstControlRateProfile - 1, getCurrentControlRateProfileIndex());
     }
-
     return 0;
 }
 
-static OSD_Entry cmsx_menuCopyProfileEntries[] =
-{
+static OSD_Entry cmsx_menuCopyProfileEntries[] = {
     { "-- COPY PROFILE --", OME_Label, NULL, NULL, 0},
 
     { "CPY PID PROF TO",   OME_TAB,      NULL,                        &cmsx_PidProfileTable, 0 },
@@ -790,8 +883,7 @@ CMS_Menu cmsx_menuCopyProfile = {
 
 #endif
 
-static OSD_Entry cmsx_menuImuEntries[] =
-{
+static OSD_Entry cmsx_menuImuEntries[] = {
     { "-- PROFILE --", OME_Label, NULL, NULL, 0},
 
     {"PID PROF",  OME_UINT8,   cmsx_profileIndexOnChange,     &(OSD_UINT8_t){ &tmpPidProfileIndex, 1, PID_PROFILE_COUNT, 1},    0},

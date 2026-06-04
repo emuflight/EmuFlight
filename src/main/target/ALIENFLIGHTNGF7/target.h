@@ -19,13 +19,16 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER "AFF7"
+
 #define USE_TARGET_CONFIG
+
+#define BOARD_NAME        ALIENFLIGHTNGF7
+#define MANUFACTURER_ID   AFNG
+#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
+#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
 
 #define USE_HARDWARE_REVISION_DETECTION
 #define HW_PIN                  PC13
-
-#define USBD_PRODUCT_STRING "AlienFlightNG F7"
 
 #define LED0_PIN                PC12
 #define LED1_PIN                PD2
@@ -41,16 +44,25 @@
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
-#define MPU6500_CS_PIN          SPI1_NSS_PIN
-#define MPU6500_SPI_INSTANCE    SPI1
+// ICM2060x detected by MPU6500 driver
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6500
-#define ACC_MPU6500_ALIGN       CW270_DEG
+#define USE_ACC_SPI_MPU9250
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6500
+#define USE_GYRO_SPI_MPU9250
+
+#define ACC_MPU6500_ALIGN       CW270_DEG
 #define GYRO_MPU6500_ALIGN      CW270_DEG
+#define MPU6500_CS_PIN          SPI1_NSS_PIN
+#define MPU6500_SPI_BUS    SPIDEV_1
+
+#define ACC_MPU9250_ALIGN       CW270_DEG
+#define GYRO_MPU9250_ALIGN      CW270_DEG
+#define MPU9250_CS_PIN          PA4
+#define MPU9250_SPI_BUS    SPIDEV_1
 
 #define USE_MAG
 #define USE_MAG_HMC5883
@@ -98,11 +110,12 @@
 // Performance logging for SD card operations:
 // #define AFATFS_USE_INTROSPECTIVE_LOGGING
 
-#define FLASH_CS_PIN         SPI2_NSS_PIN
+#define FLASH_CS_PIN         PB12
 #define FLASH_SPI_INSTANCE   SPI2
 
 #define USE_FLASHFS
-#define USE_FLASH_M25P16
+#define USE_FLASH_W25N01G
+#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
 #define USE_VCP
 
@@ -172,7 +185,7 @@
 #define RSSI_ADC_PIN            PC4
 
 #define CURRENT_METER_OFFSET_DEFAULT 2500                      // ACS712/714-30A - 0A = 2.5V
-#define CURRENT_METER_SCALE_DEFAULT -667                       // ACS712/714-30A - 66.666 mV/A inverted mode
+#define DEFAULT_CURRENT_METER_SCALE -667                       // ACS712/714-30A - 66.666 mV/A inverted mode
 
 #define BINDPLUG_PIN            PB2
 

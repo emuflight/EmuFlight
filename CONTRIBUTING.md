@@ -1,13 +1,13 @@
-# Issues and Support.
+# Issues and Support
 
-Please remember the issue tracker on github is _not_ for user support.  Please also do not email developers directly for support.  Instead please use IRC or the forums first, then if the problem is confirmed create an issue that details how to repeat the problem so it can be investigated.
+The issue tracker is _not_ for user support. Do not email developers directly for support — all support must be public so others can benefit from the discussion.
 
-Issues created without steps to repeat are likely to be closed.  E-mail requests for support will go un-answered; All support needs to be public so that other people can read the problems and solutions.
+If you have a configuration, wiring, or setup problem, please search existing issues and community resources before opening a new issue.
 
-Remember that issues that are due to mis-configuration, wiring or failure to read documentation just takes time away from the developers and can often be solved without developer interaction by other users.
+Issues without clear steps to reproduce are likely to be closed.
 
 Please search for existing issues *before* creating new ones.
 
 # Developers
 
-Please refer to the development section in the `docs/development` folder.
+Please open a discussion or refer to existing pull requests for development guidance.

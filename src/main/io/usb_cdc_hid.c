@@ -59,8 +59,7 @@ const uint8_t hidChannelMapping[] = {
     AUX2,     // Wheel
 };
 
-void sendRcDataToHid(void)
-{
+void sendRcDataToHid(void) {
     int8_t report[8];
     for (unsigned i = 0; i < USB_CDC_HID_NUM_AXES; i++) {
         const uint8_t channel = hidChannelMapping[i];

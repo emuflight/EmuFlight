@@ -33,7 +33,7 @@ uint16_t flightModeFlags = 0;
 static uint32_t enabledSensors = 0;
 
 // Must be shorter than OSD_WARNINGS_MAX_SIZE (11) to be displayed fully in OSD
-const char *armingDisableFlagNames[]= {
+const char *armingDisableFlagNames[] = {
     "NOGYRO",
     "FAILSAFE",
     "RXLOSS",
@@ -58,23 +58,19 @@ const char *armingDisableFlagNames[]= {
 
 static armingDisableFlags_e armingDisableFlags = 0;
 
-void setArmingDisabled(armingDisableFlags_e flag)
-{
+void setArmingDisabled(armingDisableFlags_e flag) {
     armingDisableFlags = armingDisableFlags | flag;
 }
 
-void unsetArmingDisabled(armingDisableFlags_e flag)
-{
+void unsetArmingDisabled(armingDisableFlags_e flag) {
     armingDisableFlags = armingDisableFlags & ~flag;
 }
 
-bool isArmingDisabled(void)
-{
+bool isArmingDisabled(void) {
     return armingDisableFlags;
 }
 
-armingDisableFlags_e getArmingDisableFlags(void)
-{
+armingDisableFlags_e getArmingDisableFlags(void) {
     return armingDisableFlags;
 }
 
@@ -82,10 +78,8 @@ armingDisableFlags_e getArmingDisableFlags(void)
  * Enables the given flight mode.  A beep is sounded if the flight mode
  * has changed.  Returns the new 'flightModeFlags' value.
  */
-uint16_t enableFlightMode(flightModeFlags_e mask)
-{
+uint16_t enableFlightMode(flightModeFlags_e mask) {
     uint16_t oldVal = flightModeFlags;
-
     flightModeFlags |= (mask);
     if (flightModeFlags != oldVal)
         beeperConfirmationBeeps(1);
@@ -96,32 +90,26 @@ uint16_t enableFlightMode(flightModeFlags_e mask)
  * Disables the given flight mode.  A beep is sounded if the flight mode
  * has changed.  Returns the new 'flightModeFlags' value.
  */
-uint16_t disableFlightMode(flightModeFlags_e mask)
-{
+uint16_t disableFlightMode(flightModeFlags_e mask) {
     uint16_t oldVal = flightModeFlags;
-
     flightModeFlags &= ~(mask);
     if (flightModeFlags != oldVal)
         beeperConfirmationBeeps(1);
     return flightModeFlags;
 }
 
-bool sensors(uint32_t mask)
-{
+bool sensors(uint32_t mask) {
     return enabledSensors & mask;
 }
 
-void sensorsSet(uint32_t mask)
-{
+void sensorsSet(uint32_t mask) {
     enabledSensors |= mask;
 }
 
-void sensorsClear(uint32_t mask)
-{
+void sensorsClear(uint32_t mask) {
     enabledSensors &= ~(mask);
 }
 
-uint32_t sensorsMask(void)
-{
+uint32_t sensorsMask(void) {
     return enabledSensors;
 }

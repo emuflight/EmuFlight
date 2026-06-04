@@ -20,6 +20,9 @@
 
 #pragma once
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #define FLASHFS_WRITE_BUFFER_SIZE 128
 #define FLASHFS_WRITE_BUFFER_USABLE (FLASHFS_WRITE_BUFFER_SIZE - 1)
 
@@ -38,15 +41,15 @@ struct flashGeometry_s;
 const struct flashGeometry_s* flashfsGetGeometry(void);
 
 void flashfsSeekAbs(uint32_t offset);
-void flashfsSeekRel(int32_t offset);
 
 void flashfsWriteByte(uint8_t byte);
 void flashfsWrite(const uint8_t *data, unsigned int len, bool sync);
 
 int flashfsReadAbs(uint32_t offset, uint8_t *data, unsigned int len);
 
-bool flashfsFlushAsync(void);
+bool flashfsFlushAsync(bool force);
 void flashfsFlushSync(void);
+void flashfsEraseAsync(void);
 
 void flashfsClose(void);
 void flashfsInit(void);
@@ -54,3 +57,6 @@ bool flashfsIsSupported(void);
 
 bool flashfsIsReady(void);
 bool flashfsIsEOF(void);
+
+bool flashfsVerifyEntireFlash(void);
+

@@ -22,6 +22,7 @@
 
 #include "common/time.h"
 #include "pg/pg.h"
+#include "pg/vcd.h"
 
 #define OSD_NUM_TIMER_TYPES 3
 extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
@@ -30,15 +31,22 @@ extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
 
 #define VISIBLE_FLAG  0x0800
 #define VISIBLE(x)    (x & VISIBLE_FLAG)
-#define OSD_POS_MAX   0x3FF
-#define OSD_POSCFG_MAX   (VISIBLE_FLAG|0x3FF) // For CLI values
+
+#define OSD_POS_MAX    0x7FF
+#define OSD_POSCFG_MAX   (VISIBLE_FLAG|0x7FF) // For CLI values
 
 // Character coordinate
-#define OSD_POSITION_BITS 5 // 5 bits gives a range 0-31
-#define OSD_POSITION_XY_MASK ((1 << OSD_POSITION_BITS) - 1)
-#define OSD_POS(x,y)  ((x & OSD_POSITION_XY_MASK) | ((y & OSD_POSITION_XY_MASK) << OSD_POSITION_BITS))
-#define OSD_X(x)      (x & OSD_POSITION_XY_MASK)
+#define OSD_POSITION_BITS       5       // 5 bits gives a range 0-31
+#define OSD_POSITION_BIT_XHD    10      // extra bit used to extend X range in a backward compatible manner for HD displays
+#define OSD_POSITION_XHD_MASK   (1 << OSD_POSITION_BIT_XHD)
+#define OSD_POSITION_XY_MASK    ((1 << OSD_POSITION_BITS) - 1)
+#define OSD_POS(x,y)  ((x & OSD_POSITION_XY_MASK) | ((x << (OSD_POSITION_BIT_XHD - OSD_POSITION_BITS)) & OSD_POSITION_XHD_MASK) | \
+                       ((y & OSD_POSITION_XY_MASK) << OSD_POSITION_BITS))
+#define OSD_X(x)      ((x & OSD_POSITION_XY_MASK) | ((x & OSD_POSITION_XHD_MASK) >> (OSD_POSITION_BIT_XHD - OSD_POSITION_BITS)))
 #define OSD_Y(x)      ((x >> OSD_POSITION_BITS) & OSD_POSITION_XY_MASK)
+
+#define SDINDENT      0   //Analog leftmost character for OSD Init and Menus
+#define HDINDENT     10   //HD leftmost character for OSD Init and Menus
 
 // Timer configuration
 // Stored as 15[alarm:8][precision:4][source:4]0
@@ -46,6 +54,9 @@ extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
 #define OSD_TIMER_SRC(timer)        (timer & 0x0F)
 #define OSD_TIMER_PRECISION(timer)  ((timer >> 4) & 0x0F)
 #define OSD_TIMER_ALARM(timer)      ((timer >> 8) & 0xFF)
+
+#define OSD_TASK_FREQUENCY_MIN 30
+#define OSD_TASK_FREQUENCY_MAX 300
 
 // NB: to ensure backwards compatibility, new enum values must be appended at the end but before the OSD_XXXX_COUNT entry.
 
@@ -94,10 +105,23 @@ typedef enum {
     OSD_RTC_DATETIME,
     OSD_ADJUSTMENT_RANGE,
     OSD_CORE_TEMPERATURE,
-    OSD_ANTI_GRAVITY,
     OSD_G_FORCE,
+    OSD_CRSF_SNR,
+    OSD_CRSF_TX,
+    OSD_CRSF_RSSI,
+    OSD_MAH_PERCENT,
+    OSD_PLUS_CODE,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
+
+typedef enum {
+    SCALED = 0,
+    MODE,
+    FREQ,
+    SIMPLE,
+    TBS,
+    FORMAT_COUNT
+} crsfformat_e;
 
 // *** IMPORTANT ***
 // The order of the OSD stats enumeration *must* match the order they're displayed on-screen
@@ -163,8 +187,10 @@ typedef enum {
     OSD_WARNING_ESC_FAIL,
     OSD_WARNING_CORE_TEMPERATURE,
     OSD_WARNING_RC_SMOOTHING,
+    OSD_WARNING_DJI,
     OSD_WARNING_COUNT // MUST BE LAST
 } osdWarningsFlags_e;
+
 
 // Make sure the number of warnings do not exceed the available 16bit storage
 STATIC_ASSERT(OSD_WARNING_COUNT <= 16, osdwarnings_overflow);
@@ -175,30 +201,36 @@ STATIC_ASSERT(OSD_WARNING_COUNT <= 16, osdwarnings_overflow);
 
 typedef struct osdConfig_s {
     uint16_t item_pos[OSD_ITEM_COUNT];
-
-    // Alarms
-    uint16_t cap_alarm;
-    uint16_t alt_alarm;
-    uint8_t rssi_alarm;
-uint16_t distance_alarm;
-
-    osd_unit_e units;
-
     uint16_t timers[OSD_TIMER_COUNT];
     uint16_t enabledWarnings;
-
+    uint32_t enabled_stats;
+    osd_unit_e units;
+    crsfformat_e lq_format;
+    uint8_t plus_code_digits;
+    bool plus_code_short;
+    // Alarms
+    int16_t esc_current_alarm;
+    int16_t esc_rpm_alarm;
+    int8_t esc_temp_alarm;
+    uint16_t alt_alarm;
+    uint16_t cap_alarm;
+    uint16_t distance_alarm;
+    uint16_t lq_alarm;
+    uint8_t core_temp_alarm;
+    uint8_t rssi_alarm;
     uint8_t ahMaxPitch;
     uint8_t ahMaxRoll;
-    uint32_t enabled_stats;
-    int8_t esc_temp_alarm;
-    int16_t esc_rpm_alarm;
-    int16_t esc_current_alarm;
-    uint8_t core_temp_alarm;
+    uint16_t task_frequency;
+    uint8_t logo_on_arming;                   // show the logo on arming
+    uint8_t logo_on_arming_duration;          // display duration in 0.1s units
+    bool stat_show_cell_value;
 } osdConfig_t;
 
 PG_DECLARE(osdConfig_t, osdConfig);
 
+#ifdef USE_OSD
 extern timeUs_t resumeRefreshAt;
+extern char djiWarningBuffer[12];
 
 struct displayPort_s;
 void osdInit(struct displayPort_s *osdDisplayPort);
@@ -209,3 +241,13 @@ void osdStatSetState(uint8_t statIndex, bool enabled);
 bool osdStatGetState(uint8_t statIndex);
 void osdWarnSetState(uint8_t warningIndex, bool enabled);
 bool osdWarnGetState(uint8_t warningIndex);
+void setCrsfRssi(bool b);
+#else
+extern char djiWarningBuffer[12];  // stub for when OSD is disabled
+static inline void osdUpdate(timeUs_t currentTimeUs) { (void)currentTimeUs; }
+static inline bool osdWarnGetState(uint8_t warningIndex) { (void)warningIndex; return false; }
+static inline void osdWarnSetState(uint8_t warningIndex, bool enabled) { (void)warningIndex; (void)enabled; }
+static inline bool osdStatGetState(uint8_t statIndex) { (void)statIndex; return false; }
+static inline void osdStatSetState(uint8_t statIndex, bool enabled) { (void)statIndex; (void)enabled; }
+static inline void setCrsfRssi(bool b) { (void)b; }
+#endif

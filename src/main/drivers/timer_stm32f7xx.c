@@ -79,8 +79,7 @@ const timerDef_t timerDefinitions[HARDWARE_TIMER_DEFINITION_COUNT] = {
     7                               TIM8_CH1    TIM8_CH2    TIM8_CH3                            TIM8_CH4
 */
 
-uint32_t timerClock(TIM_TypeDef *tim)
-{
+uint32_t timerClock(TIM_TypeDef *tim) {
     UNUSED(tim);
     return SystemCoreClock;
 }

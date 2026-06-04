@@ -35,13 +35,13 @@
 
 #define USE_EXTI
 #define MPU_INT_EXTI PC4
-#define USE_MPU_DATA_READY_SIGNAL                   
+#define USE_MPU_DATA_READY_SIGNAL
 
 #define USE_ACC
 #define USE_GYRO
 //------MPU6000
-#define MPU6000_CS_PIN           PA4 
-#define MPU6000_SPI_INSTANCE     SPI1
+#define MPU6000_CS_PIN           PA4
+#define MPU6000_SPI_BUS     SPIDEV_1
 
 #define USE_GYRO_SPI_MPU6000
 #define GYRO_MPU6000_ALIGN      CW270_DEG_FLIP
@@ -55,8 +55,8 @@
 #define USE_GYRO_SPI_MPU6000
 
 //------ICM20602
-#define MPU6500_CS_PIN          PA4 
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_CS_PIN          PA4
+#define MPU6500_SPI_BUS    SPIDEV_1
 
 #define USE_GYRO_SPI_MPU6500
 #define GYRO_MPU6500_ALIGN      CW270_DEG_FLIP
@@ -91,12 +91,12 @@
 
 #define UART5_TX_PIN            PC12
 #define UART5_RX_PIN            PD2
-#define SERIAL_PORT_COUNT       6 
+#define SERIAL_PORT_COUNT       6
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE              I2CDEV_1
-#define I2C1_SCL                PB8      
+#define I2C1_SCL                PB8
 #define I2C1_SDA                PB9
 
 #define USE_SPI
@@ -122,6 +122,7 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
+#define USE_FLASH_W25Q128FV
 #define FLASH_CS_PIN            PC15
 #define FLASH_SPI_INSTANCE      SPI3
 

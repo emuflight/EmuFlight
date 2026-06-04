@@ -61,15 +61,13 @@ STATIC_UNIT_TESTED FAST_RAM_ZERO_INIT int taskQueueSize = 0;
 
 STATIC_UNIT_TESTED FAST_RAM_ZERO_INIT cfTask_t* taskQueueArray[TASK_COUNT + 1]; // extra item for NULL pointer at end of queue
 
-void queueClear(void)
-{
+void queueClear(void) {
     memset(taskQueueArray, 0, sizeof(taskQueueArray));
     taskQueuePos = 0;
     taskQueueSize = 0;
 }
 
-bool queueContains(cfTask_t *task)
-{
+bool queueContains(cfTask_t *task) {
     for (int ii = 0; ii < taskQueueSize; ++ii) {
         if (taskQueueArray[ii] == task) {
             return true;
@@ -78,14 +76,13 @@ bool queueContains(cfTask_t *task)
     return false;
 }
 
-bool queueAdd(cfTask_t *task)
-{
+bool queueAdd(cfTask_t *task) {
     if ((taskQueueSize >= TASK_COUNT) || queueContains(task)) {
         return false;
     }
     for (int ii = 0; ii <= taskQueueSize; ++ii) {
         if (taskQueueArray[ii] == NULL || taskQueueArray[ii]->staticPriority < task->staticPriority) {
-            memmove(&taskQueueArray[ii+1], &taskQueueArray[ii], sizeof(task) * (taskQueueSize - ii));
+            memmove(&taskQueueArray[ii + 1], &taskQueueArray[ii], sizeof(task) * (taskQueueSize - ii));
             taskQueueArray[ii] = task;
             ++taskQueueSize;
             return true;
@@ -94,11 +91,10 @@ bool queueAdd(cfTask_t *task)
     return false;
 }
 
-bool queueRemove(cfTask_t *task)
-{
+bool queueRemove(cfTask_t *task) {
     for (int ii = 0; ii < taskQueueSize; ++ii) {
         if (taskQueueArray[ii] == task) {
-            memmove(&taskQueueArray[ii], &taskQueueArray[ii+1], sizeof(task) * (taskQueueSize - ii));
+            memmove(&taskQueueArray[ii], &taskQueueArray[ii + 1], sizeof(task) * (taskQueueSize - ii));
             --taskQueueSize;
             return true;
         }
@@ -109,8 +105,7 @@ bool queueRemove(cfTask_t *task)
 /*
  * Returns first item queue or NULL if queue empty
  */
-FAST_CODE cfTask_t *queueFirst(void)
-{
+FAST_CODE cfTask_t *queueFirst(void) {
     taskQueuePos = 0;
     return taskQueueArray[0]; // guaranteed to be NULL if queue is empty
 }
@@ -118,15 +113,12 @@ FAST_CODE cfTask_t *queueFirst(void)
 /*
  * Returns next item in queue or NULL if at end of queue
  */
-FAST_CODE cfTask_t *queueNext(void)
-{
+FAST_CODE cfTask_t *queueNext(void) {
     return taskQueueArray[++taskQueuePos]; // guaranteed to be NULL at end of queue
 }
 
-void taskSystemLoad(timeUs_t currentTimeUs)
-{
+void taskSystemLoad(timeUs_t currentTimeUs) {
     UNUSED(currentTimeUs);
-
     // Calculate system load
     if (totalWaitingTasksSamples > 0) {
         averageSystemLoadPercent = 100 * totalWaitingTasks / totalWaitingTasksSamples;
@@ -144,15 +136,13 @@ timeUs_t checkFuncMaxExecutionTime;
 timeUs_t checkFuncTotalExecutionTime;
 timeUs_t checkFuncMovingSumExecutionTime;
 
-void getCheckFuncInfo(cfCheckFuncInfo_t *checkFuncInfo)
-{
+void getCheckFuncInfo(cfCheckFuncInfo_t *checkFuncInfo) {
     checkFuncInfo->maxExecutionTime = checkFuncMaxExecutionTime;
     checkFuncInfo->totalExecutionTime = checkFuncTotalExecutionTime;
     checkFuncInfo->averageExecutionTime = checkFuncMovingSumExecutionTime / MOVING_SUM_COUNT;
 }
 
-void getTaskInfo(cfTaskId_e taskId, cfTaskInfo_t * taskInfo)
-{
+void getTaskInfo(cfTaskId_e taskId, cfTaskInfo_t * taskInfo) {
     taskInfo->taskName = cfTasks[taskId].taskName;
     taskInfo->subTaskName = cfTasks[taskId].subTaskName;
     taskInfo->isEnabled = queueContains(&cfTasks[taskId]);
@@ -165,8 +155,7 @@ void getTaskInfo(cfTaskId_e taskId, cfTaskInfo_t * taskInfo)
 }
 #endif
 
-void rescheduleTask(cfTaskId_e taskId, uint32_t newPeriodMicros)
-{
+void rescheduleTask(cfTaskId_e taskId, uint32_t newPeriodMicros) {
     if (taskId == TASK_SELF) {
         cfTask_t *task = currentTask;
         task->desiredPeriod = MAX(SCHEDULER_DELAY_LIMIT, (timeDelta_t)newPeriodMicros);  // Limit delay to 100us (10 kHz) to prevent scheduler clogging
@@ -176,8 +165,7 @@ void rescheduleTask(cfTaskId_e taskId, uint32_t newPeriodMicros)
     }
 }
 
-void setTaskEnabled(cfTaskId_e taskId, bool enabled)
-{
+void setTaskEnabled(cfTaskId_e taskId, bool enabled) {
     if (taskId == TASK_SELF || taskId < TASK_COUNT) {
         cfTask_t *task = taskId == TASK_SELF ? currentTask : &cfTasks[taskId];
         if (enabled && task->taskFunc) {
@@ -188,8 +176,7 @@ void setTaskEnabled(cfTaskId_e taskId, bool enabled)
     }
 }
 
-timeDelta_t getTaskDeltaTime(cfTaskId_e taskId)
-{
+timeDelta_t getTaskDeltaTime(cfTaskId_e taskId) {
     if (taskId == TASK_SELF) {
         return currentTask->taskLatestDeltaTime;
     } else if (taskId < TASK_COUNT) {
@@ -199,13 +186,11 @@ timeDelta_t getTaskDeltaTime(cfTaskId_e taskId)
     }
 }
 
-void schedulerSetCalulateTaskStatistics(bool calculateTaskStatisticsToUse)
-{
+void schedulerSetCalulateTaskStatistics(bool calculateTaskStatisticsToUse) {
     calculateTaskStatistics = calculateTaskStatisticsToUse;
 }
 
-void schedulerResetTaskStatistics(cfTaskId_e taskId)
-{
+void schedulerResetTaskStatistics(cfTaskId_e taskId) {
 #ifdef SKIP_TASK_STATISTICS
     UNUSED(taskId);
 #else
@@ -221,8 +206,7 @@ void schedulerResetTaskStatistics(cfTaskId_e taskId)
 #endif
 }
 
-void schedulerResetTaskMaxExecutionTime(cfTaskId_e taskId)
-{
+void schedulerResetTaskMaxExecutionTime(cfTaskId_e taskId) {
 #ifdef SKIP_TASK_STATISTICS
     UNUSED(taskId);
 #else
@@ -234,18 +218,15 @@ void schedulerResetTaskMaxExecutionTime(cfTaskId_e taskId)
 #endif
 }
 
-void schedulerInit(void)
-{
+void schedulerInit(void) {
     calculateTaskStatistics = true;
     queueClear();
     queueAdd(&cfTasks[TASK_SYSTEM]);
 }
 
-FAST_CODE void scheduler(void)
-{
+FAST_CODE void scheduler(void) {
     // Cache currentTime
     const timeUs_t currentTimeUs = micros();
-
     // Check for realtime tasks
     bool outsideRealtimeGuardInterval = true;
     for (const cfTask_t *task = queueFirst(); task != NULL && task->staticPriority == TASK_PRIORITY_REALTIME; task = queueNext()) {
@@ -255,11 +236,9 @@ FAST_CODE void scheduler(void)
             break;
         }
     }
-
     // The task to be invoked
     cfTask_t *selectedTask = NULL;
     uint16_t selectedTaskDynamicPriority = 0;
-
     // Update task dynamic priorities
     uint16_t waitingTasks = 0;
     for (cfTask_t *task = queueFirst(); task != NULL; task = queueNext()) {
@@ -271,22 +250,17 @@ FAST_CODE void scheduler(void)
             const timeUs_t currentTimeBeforeCheckFuncCall = currentTimeUs;
 #endif
             // Increase priority for event driven tasks
-            if (task->staticPriority == TASK_PRIORITY_TRIGGER)
-            {
+            if (task->staticPriority == TASK_PRIORITY_TRIGGER) {
                 if (task->checkFunc(currentTimeBeforeCheckFuncCall, currentTimeBeforeCheckFuncCall - task->lastExecutedAt)) {
                     task->taskAgeCycles = ((currentTimeUs - task->lastExecutedAt) / task->desiredPeriod);
                     if (task->taskAgeCycles > 0) {
                         task->dynamicPriority = 1 + task->staticPriority * task->taskAgeCycles;
                         waitingTasks++;
                     }
-                }
-                else
-                {
+                } else {
                     task->taskAgeCycles = 0;
                 }
-            }
-            else if (task->dynamicPriority > 0) 
-            {
+            } else if (task->dynamicPriority > 0) {
                 task->taskAgeCycles = 1 + ((currentTimeUs - task->lastSignaledAt) / task->desiredPeriod);
                 task->dynamicPriority = 1 + task->staticPriority * task->taskAgeCycles;
                 waitingTasks++;
@@ -318,7 +292,6 @@ FAST_CODE void scheduler(void)
                 waitingTasks++;
             }
         }
-
         if (task->dynamicPriority > selectedTaskDynamicPriority) {
             const bool taskCanBeChosenForScheduling =
                 (outsideRealtimeGuardInterval) ||
@@ -330,18 +303,14 @@ FAST_CODE void scheduler(void)
             }
         }
     }
-
     totalWaitingTasksSamples++;
     totalWaitingTasks += waitingTasks;
-
     currentTask = selectedTask;
-
     if (selectedTask) {
         // Found a task that should be run
         selectedTask->taskLatestDeltaTime = currentTimeUs - selectedTask->lastExecutedAt;
         selectedTask->lastExecutedAt = currentTimeUs;
         selectedTask->dynamicPriority = 0;
-
         // Execute task
 #ifdef SKIP_TASK_STATISTICS
         selectedTask->taskFunc(currentTimeUs);
@@ -356,7 +325,6 @@ FAST_CODE void scheduler(void)
         } else {
             selectedTask->taskFunc(currentTimeUs);
         }
-
 #endif
 #if defined(SCHEDULER_DEBUG)
         DEBUG_SET(DEBUG_SCHEDULER, 2, micros() - currentTimeUs - taskExecutionTime); // time spent in scheduler
@@ -364,6 +332,5 @@ FAST_CODE void scheduler(void)
         DEBUG_SET(DEBUG_SCHEDULER, 2, micros() - currentTimeUs);
 #endif
     }
-
     GET_SCHEDULER_LOCALS();
 }

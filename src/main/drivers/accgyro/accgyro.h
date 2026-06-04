@@ -31,20 +31,29 @@
 #pragma GCC diagnostic push
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
 #include <pthread.h>
-#elif !defined(UNIT_TEST)
-#pragma GCC diagnostic warning "-Wpadded"
 #endif
+
+#define GYRO_SCALE_2000DPS (2000.0f / (1 << 15))   // 16.384 dps/lsb scalefactor for 2000dps sensors
+#define GYRO_SCALE_4000DPS (4000.0f / (1 << 15))   //  8.192 dps/lsb scalefactor for 4000dps sensor
 
 #ifndef MPU_I2C_INSTANCE
 #define MPU_I2C_INSTANCE I2C_DEVICE
 #endif
 
 #define GYRO_HARDWARE_LPF_NORMAL       0
-#define GYRO_HARDWARE_LPF_EXPERIMENTAL 1
 #define GYRO_HARDWARE_LPF_1KHZ_SAMPLE  2
+
+#if defined(USE_GYRO_SPI_ICM42688P) || defined(USE_ACCGYRO_BMI270)
+#define GYRO_HARDWARE_LPF_EXPERIMENTAL 3
+#else
+#define GYRO_HARDWARE_LPF_EXPERIMENTAL 1
+#endif
 
 #define GYRO_32KHZ_HARDWARE_LPF_NORMAL       0
 #define GYRO_32KHZ_HARDWARE_LPF_EXPERIMENTAL 1
+
+#define GYRO_HARDWARE_LPF_OPTION_1 1
+#define GYRO_HARDWARE_LPF_OPTION_2 2
 
 #define GYRO_LPF_256HZ      0
 #define GYRO_LPF_188HZ      1
@@ -55,15 +64,23 @@
 #define GYRO_LPF_5HZ        6
 #define GYRO_LPF_NONE       7
 
-//This optimizes the frequencies instead of calculating them 
+//This optimizes the frequencies instead of calculating them
 //in the case of 1100 and 9000, they would divide as irrational numbers.
 #define GYRO_RATE_1_kHz     1000.0f
 #define GYRO_RATE_1100_Hz   909.09f
 #define GYRO_RATE_3200_Hz   312.5f
+#define GYRO_RATE_6400_Hz   156.25f
 #define GYRO_RATE_8_kHz     125.0f
 #define GYRO_RATE_9_kHz     111.11f
 #define GYRO_RATE_16_kHz    64.0f
 #define GYRO_RATE_32_kHz    32.0f
+
+typedef enum {
+    GYRO_EXTI_INIT = 0,
+    GYRO_EXTI_INT_DMA,
+    GYRO_EXTI_INT,
+    GYRO_EXTI_NO_INT
+} gyroModeSPI_e;
 
 typedef struct gyroDev_s {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
@@ -73,7 +90,7 @@ typedef struct gyroDev_s {
     sensorGyroReadFuncPtr readFn;                             // read 3 axis data function
     sensorGyroReadDataFuncPtr temperatureFn;                  // read temperature if available
     extiCallbackRec_t exti;
-    busDevice_t bus;
+    extDevice_t dev;
     float scale;                                            // scalefactor
     float gyroZero[XYZ_AXIS_COUNT];
     float gyroADC[XYZ_AXIS_COUNT];                        // gyro data after calibration and alignment
@@ -93,7 +110,16 @@ typedef struct gyroDev_s {
     ioTag_t mpuIntExtiTag;
     uint8_t gyroHasOverflowProtection;
     gyroSensor_e gyroHardware;
-}  __attribute__((packed)) gyroDev_t;
+    uint8_t accDataReg;
+    uint8_t gyroDataReg;
+    gyroModeSPI_e gyroModeSPI;
+    uint32_t detectedEXTI;
+    uint32_t gyroLastEXTI;
+    uint32_t gyroSyncEXTI;
+    int32_t gyroShortPeriod;
+    int32_t gyroDmaMaxDuration;
+    busSegment_t segments[2];
+} gyroDev_t;
 
 typedef struct accDev_s {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
@@ -101,7 +127,8 @@ typedef struct accDev_s {
 #endif
     sensorAccInitFuncPtr initFn;                              // initialize function
     sensorAccReadFuncPtr readFn;                              // read 3 axis data function
-    busDevice_t bus;
+    extDevice_t dev;
+    struct gyroDev_s *gyro;
     uint16_t acc_1G;
     int16_t ADCRaw[XYZ_AXIS_COUNT];
     mpuDetectionResult_t mpuDetectionResult;
@@ -109,10 +136,9 @@ typedef struct accDev_s {
     bool dataReady;
     bool acc_high_fsr;
     char revisionCode;                                      // a revision code for the sensor, if known
-}  __attribute__((packed)) accDev_t;
+} accDev_t;
 
-static inline void accDevLock(accDev_t *acc)
-{
+static inline void accDevLock(accDev_t *acc) {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
     pthread_mutex_lock(&acc->lock);
 #else
@@ -120,8 +146,7 @@ static inline void accDevLock(accDev_t *acc)
 #endif
 }
 
-static inline void accDevUnLock(accDev_t *acc)
-{
+static inline void accDevUnLock(accDev_t *acc) {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
     pthread_mutex_unlock(&acc->lock);
 #else
@@ -129,8 +154,7 @@ static inline void accDevUnLock(accDev_t *acc)
 #endif
 }
 
-static inline void gyroDevLock(gyroDev_t *gyro)
-{
+static inline void gyroDevLock(gyroDev_t *gyro) {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
     pthread_mutex_lock(&gyro->lock);
 #else
@@ -138,8 +162,7 @@ static inline void gyroDevLock(gyroDev_t *gyro)
 #endif
 }
 
-static inline void gyroDevUnLock(gyroDev_t *gyro)
-{
+static inline void gyroDevUnLock(gyroDev_t *gyro) {
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
     pthread_mutex_unlock(&gyro->lock);
 #else

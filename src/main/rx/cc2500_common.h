@@ -23,6 +23,10 @@
 #include "pg/pg.h"
 
 #include "rx/rx_spi.h"
+typedef struct cc2500RegisterConfigElement_s {
+    uint8_t registerID;
+    uint8_t registerValue;
+} cc2500RegisterConfigElement_t;
 
 uint16_t cc2500getRssiDbm(void);
 void cc2500setRssiDbm(uint8_t value);
@@ -38,5 +42,7 @@ void cc2500TxDisable(void);
 #endif
 void cc2500LedOn(void);
 void cc2500LedOff(void);
+void cc2500LedToggle(void);
 void cc2500LedBlink(timeMs_t blinkms);
 bool cc2500SpiInit(void);
+void cc2500ApplyRegisterConfig(const cc2500RegisterConfigElement_t *configArrayPtr, int configSize);

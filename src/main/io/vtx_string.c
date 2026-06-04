@@ -32,8 +32,7 @@
 #define VTX_STRING_BAND_COUNT 5
 #define VTX_STRING_CHAN_COUNT 8
 
-const uint16_t vtx58frequencyTable[VTX_STRING_BAND_COUNT][VTX_STRING_CHAN_COUNT] =
-{
+const uint16_t vtx58frequencyTable[VTX_STRING_BAND_COUNT][VTX_STRING_CHAN_COUNT] = {
     { 5865, 5845, 5825, 5805, 5785, 5765, 5745, 5725 }, // Boscam A
     { 5733, 5752, 5771, 5790, 5809, 5828, 5847, 5866 }, // Boscam B
     { 5705, 5685, 5665, 5645, 5885, 5905, 5925, 5945 }, // Boscam E
@@ -57,8 +56,7 @@ const char * const vtx58ChannelNames[] = {
 };
 
 //Converts frequency (in MHz) to band and channel values.
-bool vtx58_Freq2Bandchan(uint16_t freq, uint8_t *pBand, uint8_t *pChannel)
-{
+bool vtx58_Freq2Bandchan(uint16_t freq, uint8_t *pBand, uint8_t *pChannel) {
     // Use reverse lookup order so that 5880Mhz
     // get Raceband 7 instead of Fatshark 8.
     for (int band = VTX_STRING_BAND_COUNT - 1 ; band >= 0 ; band--) {
@@ -70,10 +68,8 @@ bool vtx58_Freq2Bandchan(uint16_t freq, uint8_t *pBand, uint8_t *pChannel)
             }
         }
     }
-
     *pBand = 0;
     *pChannel = 0;
-
     return false;
 }
 
@@ -81,10 +77,9 @@ bool vtx58_Freq2Bandchan(uint16_t freq, uint8_t *pBand, uint8_t *pChannel)
 // band:  Band value (1 to 5).
 // channel:  Channel value (1 to 8).
 // Returns frequency value (in MHz), or 0 if band/channel out of range.
-uint16_t vtx58_Bandchan2Freq(uint8_t band, uint8_t channel)
-{
+uint16_t vtx58_Bandchan2Freq(uint8_t band, uint8_t channel) {
     if (band > 0 && band <= VTX_STRING_BAND_COUNT &&
-                          channel > 0 && channel <= VTX_STRING_CHAN_COUNT) {
+            channel > 0 && channel <= VTX_STRING_CHAN_COUNT) {
         return vtx58frequencyTable[band - 1][channel - 1];
     }
     return 0;

@@ -29,7 +29,7 @@
 //#define DEBUG_MPU_DATA_READY_INTERRUPT
 
 #if defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU6000) ||  defined(USE_GYRO_SPI_MPU9250) || defined(USE_GYRO_SPI_ICM20649) \
- || defined(USE_GYRO_SPI_ICM20689)
+ || defined(USE_GYRO_SPI_ICM20689) || defined(USE_GYRO_SPI_ICM42605) || defined(USE_GYRO_SPI_ICM42688P) || defined(USE_ACCGYRO_BMI160) || defined(USE_ACCGYRO_BMI270)
 #define GYRO_USES_SPI
 #endif
 
@@ -47,6 +47,8 @@
 #define ICM20608G_WHO_AM_I_CONST            (0xAF)
 #define ICM20649_WHO_AM_I_CONST             (0xE1)
 #define ICM20689_WHO_AM_I_CONST             (0x98)
+#define ICM42605_WHO_AM_I_CONST             (0x42)
+#define ICM42688P_WHO_AM_I_CONST            (0x47)
 
 // RA = Register Address
 
@@ -214,7 +216,10 @@ typedef enum {
     ICM_20608_SPI,
     ICM_20649_SPI,
     ICM_20689_SPI,
+    ICM_42605_SPI,
+    ICM_42688P_SPI,
     BMI_160_SPI,
+    BMI_270_SPI,
     IMUF_9001_SPI,
 } mpuSensor_e;
 
@@ -231,10 +236,13 @@ struct gyroDev_s;
 void mpuGyroInit(struct gyroDev_s *gyro);
 bool mpuGyroRead(struct gyroDev_s *gyro);
 bool mpuGyroReadSPI(struct gyroDev_s *gyro);
+#if defined(MPU_INT_EXTI)
+busStatus_e mpuIntCallback(uint32_t arg);
+#endif
 void mpuDetect(struct gyroDev_s *gyro);
 uint8_t mpuGyroDLPF(struct gyroDev_s *gyro);
 uint8_t mpuGyroFCHOICE(struct gyroDev_s *gyro);
-uint8_t mpuGyroReadRegister(const busDevice_t *bus, uint8_t reg);
+uint8_t mpuGyroReadRegister(const extDevice_t *dev, uint8_t reg);
 
 struct accDev_s;
 bool mpuAccRead(struct accDev_s *acc);

@@ -53,7 +53,11 @@
 #include "common/maths.h"
 
 #include "usbd_cdc.h"
+#if defined(STM32H7)
+#include "stm32h7xx_hal.h"
+#else
 #include "stm32f7xx_hal.h"
+#endif
 #include "usbd_core.h"
 #include "usbd_desc.h"
 
@@ -71,13 +75,13 @@
 /* The following structures groups all needed parameters to be configured for the
    ComPort. These parameters can modified on the fly by the host through CDC class
    command class requests. */
-typedef struct __attribute__ ((packed))
-{
-  uint32_t bitrate;
-  uint8_t  format;
-  uint8_t  paritytype;
-  uint8_t  datatype;
-} LINE_CODING;
+typedef struct __attribute__ ((packed)) {
+    uint32_t bitrate;
+    uint8_t  format;
+    uint8_t  paritytype;
+    uint8_t  datatype;
+}
+LINE_CODING;
 
 extern USBD_CDC_ItfTypeDef  USBD_CDC_fops;
 

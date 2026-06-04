@@ -45,18 +45,15 @@
 static bool featureRead = false;
 static uint8_t cmsx_FeatureLedstrip;
 
-static long cmsx_Ledstrip_FeatureRead(void)
-{
+static long cmsx_Ledstrip_FeatureRead(void) {
     if (!featureRead) {
         cmsx_FeatureLedstrip = feature(FEATURE_LED_STRIP) ? 1 : 0;
         featureRead = true;
     }
-
     return 0;
 }
 
-static long cmsx_Ledstrip_FeatureWriteback(const OSD_Entry *self)
-{
+static long cmsx_Ledstrip_FeatureWriteback(const OSD_Entry *self) {
     UNUSED(self);
     if (featureRead) {
         if (cmsx_FeatureLedstrip)
@@ -64,12 +61,10 @@ static long cmsx_Ledstrip_FeatureWriteback(const OSD_Entry *self)
         else
             featureClear(FEATURE_LED_STRIP);
     }
-
     return 0;
 }
 
-static OSD_Entry cmsx_menuLedstripEntries[] =
-{
+static OSD_Entry cmsx_menuLedstripEntries[] = {
     { "-- LED STRIP --", OME_Label, NULL, NULL, 0 },
     { "ENABLED",         OME_Bool,  NULL, &cmsx_FeatureLedstrip, 0 },
 

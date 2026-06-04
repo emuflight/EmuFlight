@@ -27,6 +27,8 @@
 #endif
 #define power3(x) ((x)*(x)*(x))
 
+#define SIGN(x) ((x > 0.0f) - (x < 0.0f))
+
 // Undefine this for use libc sinf/cosf. Keep this defined to use fast sin/cos approximations
 #define FAST_MATH             // order 9 approximation
 #define VERY_FAST_MATH      // order 7 approximation
@@ -34,6 +36,10 @@
 // Use floating point M_PI instead explicitly.
 #define M_PIf       3.14159265358979323846f
 #define M_PI_HALFf  3.14159265358979323846f/2
+#define M_EULERf    2.71828182845904523536f
+#define M_SQRT2f    1.41421356237309504880f
+#define M_LN2f      0.69314718055994530942f
+
 
 #define RAD    (M_PIf / 180.0f)
 #define DEGREES_TO_DECIDEGREES(angle) ((angle) * 10)
@@ -41,21 +47,27 @@
 #define DECIDEGREES_TO_RADIANS(angle) ((angle) / 10.0f * 0.0174532925f)
 #define DEGREES_TO_RADIANS(angle) ((angle) * 0.0174532925f)
 #define RADIANS_TO_DECIDEGREES(angle) (((angle) * 10.0f) / RAD)
+#define RADIANS_TO_DEGREES(angle) (((angle)) / RAD)
 
 #define CM_S_TO_KM_H(centimetersPerSecond) ((centimetersPerSecond) * 36 / 1000)
 #define CM_S_TO_MPH(centimetersPerSecond) ((centimetersPerSecond) * 10000 / 5080 / 88)
 
+#ifndef MIN
 #define MIN(a,b) \
   __extension__ ({ __typeof__ (a) _a = (a); \
   __typeof__ (b) _b = (b); \
   _a < _b ? _a : _b; })
+#endif
+#ifndef MAX
 #define MAX(a,b) \
   __extension__ ({ __typeof__ (a) _a = (a); \
   __typeof__ (b) _b = (b); \
   _a > _b ? _a : _b; })
+#endif
 #define ABS(x) \
   __extension__ ({ __typeof__ (x) _x = (x); \
   _x > 0 ? _x : -_x; })
+#define SCALE_UNITARY_RANGE(x, from, to) ((1.0f - (x)) * (from) + (x) * (to))
 
 #define Q12 (1 << 12)
 
@@ -63,8 +75,7 @@
 
 typedef int32_t fix12_t;
 
-typedef struct stdev_s
-{
+typedef struct stdev_s {
     float m_oldM, m_newM, m_oldS, m_newS;
     int m_n;
 } stdev_t;
@@ -94,8 +105,8 @@ typedef union {
     fp_angles_def angles;
 } fp_angles_t;
 
+float fast_fsqrtf(const double value);
 int gcd(int num, int denom);
-float powerf(float base, int exp);
 int32_t applyDeadband(int32_t value, int32_t deadband);
 float fapplyDeadband(float value, float deadband);
 
@@ -108,9 +119,6 @@ float degreesToRadians(int16_t degrees);
 int scaleRange(int x, int srcFrom, int srcTo, int destFrom, int destTo);
 float scaleRangef(float x, float srcFrom, float srcTo, float destFrom, float destTo);
 
-void normalizeV(struct fp_vector *src, struct fp_vector *dest);
-
-void rotateV(struct fp_vector *v, fp_angles_t *delta);
 void buildRotationMatrix(fp_angles_t *delta, float matrix[3][3]);
 
 int32_t quickMedianFilter3(int32_t * v);
@@ -149,8 +157,7 @@ int16_t qPercent(fix12_t q);
 int16_t qMultiply(fix12_t q, int16_t input);
 fix12_t qConstruct(int16_t num, int16_t den);
 
-static inline int constrain(int amt, int low, int high)
-{
+static inline int constrain(int amt, int low, int high) {
     if (amt < low)
         return low;
     else if (amt > high)
@@ -159,8 +166,7 @@ static inline int constrain(int amt, int low, int high)
         return amt;
 }
 
-static inline float constrainf(float amt, float low, float high)
-{
+static inline float constrainf(float amt, float low, float high) {
     if (amt < low)
         return low;
     else if (amt > high)
@@ -171,13 +177,13 @@ static inline float constrainf(float amt, float low, float high)
 
 // quaternions
 typedef struct {
-    float w,x,y,z;
+    float w, x, y, z;
 } quaternion;
 #define QUATERNION_INITIALIZE   {.w=1, .x=0, .y=0,.z=0}
 #define VECTOR_INITIALIZE       {.w=0, .x=0, .y=0,.z=0}
 
 typedef struct {
-    float ww,wx,wy,wz,xx,xy,xz,yy,yz,zz;
+    float ww, wx, wy, wz, xx, xy, xz, yy, yz, zz;
 } quaternionProducts;
 #define QUATERNION_PRODUCTS_INITIALIZE  {.ww=1, .wx=0, .wy=0, .wz=0, .xx=0, .xy=0, .xz=0, .yy=0, .yz=0, .zz=0}
 

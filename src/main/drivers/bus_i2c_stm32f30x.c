@@ -75,39 +75,29 @@ i2cDevice_t i2cDevice[I2CDEV_COUNT];
 // I2C TimeoutUserCallback
 ///////////////////////////////////////////////////////////////////////////////
 
-uint32_t i2cTimeoutUserCallback(void)
-{
+uint32_t i2cTimeoutUserCallback(void) {
     i2cErrorCount++;
     return false;
 }
 
-void i2cInit(I2CDevice device)
-{
+void i2cInit(I2CDevice device) {
     if (device == I2CINVALID || device > I2CDEV_COUNT) {
         return;
     }
-
     i2cDevice_t *pDev = &i2cDevice[device];
     const i2cHardware_t *hw = pDev->hardware;
-
     if (!hw) {
         return;
     }
-
     I2C_TypeDef *I2Cx = pDev->reg;
-
     IO_t scl = pDev->scl;
     IO_t sda = pDev->sda;
-
     RCC_ClockCmd(hw->rcc, ENABLE);
     RCC_I2CCLKConfig(I2Cx == I2C2 ? RCC_I2C2CLK_SYSCLK : RCC_I2C1CLK_SYSCLK);
-
     IOInit(scl, OWNER_I2C_SCL, RESOURCE_INDEX(device));
     IOConfigGPIOAF(scl, pDev->pullUp ? IOCFG_I2C_PU : IOCFG_I2C, GPIO_AF_4);
-
     IOInit(sda, OWNER_I2C_SDA, RESOURCE_INDEX(device));
     IOConfigGPIOAF(sda, pDev->pullUp ? IOCFG_I2C_PU : IOCFG_I2C, GPIO_AF_4);
-
     I2C_InitTypeDef i2cInit = {
         .I2C_Mode = I2C_Mode_I2C,
         .I2C_AnalogFilter = I2C_AnalogFilter_Enable,
@@ -117,33 +107,24 @@ void i2cInit(I2CDevice device)
         .I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit,
         .I2C_Timing = (pDev->overClock ? I2C_HIGHSPEED_TIMING : I2C_STANDARD_TIMING)
     };
-
     I2C_Init(I2Cx, &i2cInit);
-
     I2C_StretchClockCmd(I2Cx, ENABLE);
-
     I2C_Cmd(I2Cx, ENABLE);
 }
 
-uint16_t i2cGetErrorCounter(void)
-{
+uint16_t i2cGetErrorCounter(void) {
     return i2cErrorCount;
 }
 
-bool i2cWrite(I2CDevice device, uint8_t addr_, uint8_t reg, uint8_t data)
-{
+bool i2cWrite(I2CDevice device, uint8_t addr_, uint8_t reg, uint8_t data) {
     if (device == I2CINVALID || device > I2CDEV_COUNT) {
         return false;
     }
-
     I2C_TypeDef *I2Cx = i2cDevice[device].reg;
-
     if (!I2Cx) {
         return false;
     }
-
     addr_ <<= 1;
-
     /* Test on BUSY Flag */
     i2cTimeout = I2C_LONG_TIMEOUT;
     while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET) {
@@ -151,10 +132,8 @@ bool i2cWrite(I2CDevice device, uint8_t addr_, uint8_t reg, uint8_t data)
             return i2cTimeoutUserCallback();
         }
     }
-
     /* Configure slave address, nbytes, reload, end mode and start or stop generation */
     I2C_TransferHandling(I2Cx, addr_, 1, I2C_Reload_Mode, I2C_Generate_Start_Write);
-
     /* Wait until TXIS flag is set */
     i2cTimeout = I2C_LONG_TIMEOUT;
     while (I2C_GetFlagStatus(I2Cx, I2C_ISR_TXIS) == RESET) {
@@ -162,22 +141,17 @@ bool i2cWrite(I2CDevice device, uint8_t addr_, uint8_t reg, uint8_t data)
             return i2cTimeoutUserCallback();
         }
     }
-
     /* Send Register address */
     I2C_SendData(I2Cx, (uint8_t) reg);
-
     /* Wait until TCR flag is set */
     i2cTimeout = I2C_LONG_TIMEOUT;
-    while (I2C_GetFlagStatus(I2Cx, I2C_ISR_TCR) == RESET)
-    {
+    while (I2C_GetFlagStatus(I2Cx, I2C_ISR_TCR) == RESET) {
         if ((i2cTimeout--) == 0) {
             return i2cTimeoutUserCallback();
         }
     }
-
     /* Configure slave address, nbytes, reload, end mode and start or stop generation */
     I2C_TransferHandling(I2Cx, addr_, 1, I2C_AutoEnd_Mode, I2C_No_StartStop);
-
     /* Wait until TXIS flag is set */
     i2cTimeout = I2C_LONG_TIMEOUT;
     while (I2C_GetFlagStatus(I2Cx, I2C_ISR_TXIS) == RESET) {
@@ -185,10 +159,8 @@ bool i2cWrite(I2CDevice device, uint8_t addr_, uint8_t reg, uint8_t data)
             return i2cTimeoutUserCallback();
         }
     }
-
     /* Write data to TXDR */
     I2C_SendData(I2Cx, data);
-
     /* Wait until STOPF flag is set */
     i2cTimeout = I2C_LONG_TIMEOUT;
     while (I2C_GetFlagStatus(I2Cx, I2C_ISR_STOPF) == RESET) {
@@ -196,27 +168,20 @@ bool i2cWrite(I2CDevice device, uint8_t addr_, uint8_t reg, uint8_t data)
             return i2cTimeoutUserCallback();
         }
     }
-
     /* Clear STOPF flag */
     I2C_ClearFlag(I2Cx, I2C_ICR_STOPCF);
-
     return true;
 }
 
-bool i2cRead(I2CDevice device, uint8_t addr_, uint8_t reg, uint8_t len, uint8_t* buf)
-{
+bool i2cRead(I2CDevice device, uint8_t addr_, uint8_t reg, uint8_t len, uint8_t* buf) {
     if (device == I2CINVALID || device > I2CDEV_COUNT) {
         return false;
     }
-
     I2C_TypeDef *I2Cx = i2cDevice[device].reg;
-
     if (!I2Cx) {
         return false;
     }
-
     addr_ <<= 1;
-
     /* Test on BUSY Flag */
     i2cTimeout = I2C_LONG_TIMEOUT;
     while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET) {
@@ -224,10 +189,8 @@ bool i2cRead(I2CDevice device, uint8_t addr_, uint8_t reg, uint8_t len, uint8_t*
             return i2cTimeoutUserCallback();
         }
     }
-
     /* Configure slave address, nbytes, reload, end mode and start or stop generation */
     I2C_TransferHandling(I2Cx, addr_, 1, I2C_SoftEnd_Mode, I2C_Generate_Start_Write);
-
     /* Wait until TXIS flag is set */
     i2cTimeout = I2C_LONG_TIMEOUT;
     while (I2C_GetFlagStatus(I2Cx, I2C_ISR_TXIS) == RESET) {
@@ -235,10 +198,8 @@ bool i2cRead(I2CDevice device, uint8_t addr_, uint8_t reg, uint8_t len, uint8_t*
             return i2cTimeoutUserCallback();
         }
     }
-
     /* Send Register address */
     I2C_SendData(I2Cx, (uint8_t) reg);
-
     /* Wait until TC flag is set */
     i2cTimeout = I2C_LONG_TIMEOUT;
     while (I2C_GetFlagStatus(I2Cx, I2C_ISR_TC) == RESET) {
@@ -246,10 +207,8 @@ bool i2cRead(I2CDevice device, uint8_t addr_, uint8_t reg, uint8_t len, uint8_t*
             return i2cTimeoutUserCallback();
         }
     }
-
     /* Configure slave address, nbytes, reload, end mode and start or stop generation */
     I2C_TransferHandling(I2Cx, addr_, len, I2C_AutoEnd_Mode, I2C_Generate_Start_Read);
-
     /* Wait until all data are received */
     while (len) {
         /* Wait until RXNE flag is set */
@@ -259,16 +218,13 @@ bool i2cRead(I2CDevice device, uint8_t addr_, uint8_t reg, uint8_t len, uint8_t*
                 return i2cTimeoutUserCallback();
             }
         }
-
         /* Read data from RXDR */
         *buf = I2C_ReceiveData(I2Cx);
         /* Point to the next location where the byte read will be saved */
         buf++;
-
         /* Decrement the read bytes counter */
         len--;
     }
-
     /* Wait until STOPF flag is set */
     i2cTimeout = I2C_LONG_TIMEOUT;
     while (I2C_GetFlagStatus(I2Cx, I2C_ISR_STOPF) == RESET) {
@@ -276,10 +232,8 @@ bool i2cRead(I2CDevice device, uint8_t addr_, uint8_t reg, uint8_t len, uint8_t*
             return i2cTimeoutUserCallback();
         }
     }
-
     /* Clear STOPF flag */
     I2C_ClearFlag(I2Cx, I2C_ICR_STOPCF);
-
     /* If all operations OK */
     return true;
 }

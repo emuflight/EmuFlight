@@ -42,10 +42,10 @@
 #define GYRO_2_EXTI_PIN         PC3
 
 #define GYRO_1_CS_PIN           PB2
-#define GYRO_1_SPI_INSTANCE     SPI1
+#define GYRO_1_SPI_BUS     SPIDEV_1
 
 #define GYRO_2_CS_PIN           PA4
-#define GYRO_2_SPI_INSTANCE     SPI1
+#define GYRO_2_SPI_BUS     SPIDEV_1
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
@@ -53,20 +53,25 @@
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
 #define USE_GYRO_SPI_ICM20689
+#define USE_GYRO_SPI_ICM42688P
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define USE_ACC_SPI_ICM20689
+#define USE_ACC_SPI_ICM42688P
 
 #define ACC_ICM20689_1_ALIGN    CW90_DEG
 #define GYRO_ICM20689_1_ALIGN   CW90_DEG
-#define GYRO_1_ALIGN            GYRO_ICM20689_1_ALIGN 
+#define GYRO_1_ALIGN            GYRO_ICM20689_1_ALIGN
 #define ACC_1_ALIGN             ACC_ICM20689_1_ALIGN
 
 #define ACC_MPU6000_2_ALIGN     CW90_DEG
 #define GYRO_MPU6000_2_ALIGN    CW90_DEG
 #define GYRO_2_ALIGN            GYRO_MPU6000_2_ALIGN
 #define ACC_2_ALIGN             ACC_MPU6000_2_ALIGN
+
+#define ACC_ICM42688P_ALIGN     CW90_DEG
+#define GYRO_ICM42688P_ALIGN    CW90_DEG
 
 #define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
 
@@ -81,6 +86,7 @@
 
 #define USE_BARO
 #define USE_BARO_BMP280
+#define USE_BARO_DPS310
 
 #define USE_VCP
 
@@ -140,13 +146,13 @@
 
 #define USE_ADC
 #define ADC_INSTANCE            ADC3
-#define ADC3_DMA_OPT            0  // DMA 2 Stream 0 Channel 2 
+#define ADC3_DMA_OPT            0  // DMA 2 Stream 0 Channel 2
 
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
 #define RSSI_ADC_PIN            PC0
 
-#define CURRENT_METER_SCALE_DEFAULT         450
+#define DEFAULT_CURRENT_METER_SCALE         450
 #define DEFAULT_VOLTAGE_METER_SOURCE        VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE        CURRENT_METER_ADC
 

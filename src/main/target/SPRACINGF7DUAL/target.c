@@ -70,8 +70,7 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
 #include "drivers/serial.h"
 #include "drivers/serial_uart.h"
 
-void usartTargetConfigure(uartPort_t *uartPort)
-{
+void usartTargetConfigure(uartPort_t *uartPort) {
     if (uartPort->USARTx == USART3) {
         uartPort->Handle.AdvancedInit.AdvFeatureInit |= UART_ADVFEATURE_SWAP_INIT;
         uartPort->Handle.AdvancedInit.Swap = UART_ADVFEATURE_SWAP_ENABLE;

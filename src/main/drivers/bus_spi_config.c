@@ -45,8 +45,7 @@
 // while the OPU array is initialized from target dependent config.c.
 // With generic targets, both arrays are setup with resource commands.
 
-static void spiPreInitCsIPU(ioTag_t iotag, int index)
-{
+static void spiPreInitCsIPU(ioTag_t iotag, int index) {
     IO_t io = IOGetByTag(iotag);
     if (io) {
         IOInit(io, OWNER_SPI_PREINIT_IPU, index);
@@ -55,8 +54,7 @@ static void spiPreInitCsIPU(ioTag_t iotag, int index)
     }
 }
 
-static void spiPreInitCsOPU(ioTag_t iotag, int index)
-{
+static void spiPreInitCsOPU(ioTag_t iotag, int index) {
     IO_t io = IOGetByTag(iotag);
     if (io) {
         IOInit(io, OWNER_SPI_PREINIT_OPU, index);
@@ -65,14 +63,12 @@ static void spiPreInitCsOPU(ioTag_t iotag, int index)
     }
 }
 
-void spiPreInit(void)
-{
+void spiPreInit(void) {
     for (int i = 0 ; i < SPI_PREINIT_IPU_COUNT ; i++) {
         if (spiPreinitIPUConfig(i)->csnTag) {
             spiPreInitCsIPU(spiPreinitIPUConfig(i)->csnTag, i);
         }
     }
-
     for (int i = 0 ; i < SPI_PREINIT_OPU_COUNT ; i++) {
         if (spiPreinitOPUConfig(i)->csnTag) {
             spiPreInitCsOPU(spiPreinitOPUConfig(i)->csnTag, i);
@@ -82,15 +78,13 @@ void spiPreInit(void)
 
 // Back to pre-init state
 
-void spiPreinitCsByIO(IO_t io)
-{
+void spiPreinitCsByIO(IO_t io) {
     for (int i = 0 ; i < SPI_PREINIT_IPU_COUNT ; i++) {
         if (IOGetByTag(spiPreinitIPUConfig(i)->csnTag) == io) {
             spiPreInitCsIPU(spiPreinitIPUConfig(i)->csnTag, i);
             return;
         }
     }
-
     for (int i = 0 ; i < SPI_PREINIT_OPU_COUNT ; i++) {
         if (IOGetByTag(spiPreinitOPUConfig(i)->csnTag) == io) {
             spiPreInitCsOPU(spiPreinitOPUConfig(i)->csnTag, i);
@@ -99,8 +93,7 @@ void spiPreinitCsByIO(IO_t io)
     }
 }
 
-void spiPreinitCsByTag(ioTag_t iotag)
-{
+void spiPreinitCsByTag(ioTag_t iotag) {
     spiPreinitCsByIO(IOGetByTag(iotag));
 }
 

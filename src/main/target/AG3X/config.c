@@ -35,8 +35,7 @@ static targetSerialPortFunction_t targetSerialPortFunction[] = {
     // { SERIAL_PORT_SOFTSERIAL1, FUNCTION_VTX_SMARTAUDIO },
 };
 
-void targetConfiguration(void)
-{
+void targetConfiguration(void) {
     targetSerialPortFunctionConfig(targetSerialPortFunction, ARRAYLEN(targetSerialPortFunction));
 }
 #endif

@@ -61,7 +61,7 @@
 #define USE_ACC_SPI_MPU6000
 
 #define MPU6000_CS_PIN                  PA4
-#define MPU6000_SPI_INSTANCE            SPI3
+#define MPU6000_SPI_BUS            SPIDEV_3
 
 #define USE_EXTI
 #define MPU_INT_EXTI                    PB0

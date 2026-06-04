@@ -89,8 +89,7 @@ static uint8_t ckSumOut;
 #define IRQ_OFF // dummy
 #define IRQ_ON  // dummy
 
-static void StkSendByte(uint8_t dat)
-{
+static void StkSendByte(uint8_t dat) {
     ckSumOut ^= dat;
     for (uint8_t i = 0; i < 8; i++)    {
         if (dat & 0x01) {
@@ -114,8 +113,7 @@ static void StkSendByte(uint8_t dat)
     }
 }
 
-static void StkSendPacketHeader(void)
-{
+static void StkSendPacketHeader(void) {
     IRQ_OFF;
     ESC_OUTPUT;
     StkSendByte(0xFF);
@@ -126,8 +124,7 @@ static void StkSendPacketHeader(void)
     StkSendByte(++SeqNumber);
 }
 
-static void StkSendPacketFooter(void)
-{
+static void StkSendPacketFooter(void) {
     StkSendByte(ckSumOut);
     ESC_SET_HI;
     delay_us(BIT_LO_US);
@@ -137,8 +134,7 @@ static void StkSendPacketFooter(void)
 
 
 
-static int8_t ReadBit(void)
-{
+static int8_t ReadBit(void) {
     uint32_t btimer = micros();
     uint32_t timeout_timer = btimer + STK_BIT_TIMEOUT;
     WaitPinLo;
@@ -157,8 +153,7 @@ timeout:
     return -1;
 }
 
-static uint8_t ReadByte(uint8_t *bt)
-{
+static uint8_t ReadByte(uint8_t *bt) {
     *bt = 0;
     for (uint8_t i = 0; i < 8; i++) {
         int8_t bit = ReadBit();
@@ -167,45 +162,37 @@ static uint8_t ReadByte(uint8_t *bt)
             *bt |= (1 << i);
         }
     }
-    ckSumIn ^=*bt;
+    ckSumIn ^= *bt;
     return 1;
 timeout:
     return 0;
 }
 
-static uint8_t StkReadLeader(void)
-{
-
+static uint8_t StkReadLeader(void) {
     // Reset learned timing
     HiLoTsh = BIT_HI_US + BIT_LO_US;
-
     // Wait for the first bit
     uint32_t waitcycl; //250uS each
-
     if ((StkCmd == CMD_PROGRAM_EEPROM_ISP) || (StkCmd == CMD_CHIP_ERASE_ISP)) {
-         waitcycl = STK_WAITCYLCES_EXT;
+        waitcycl = STK_WAITCYLCES_EXT;
     } else if (StkCmd == CMD_SIGN_ON) {
         waitcycl = STK_WAITCYLCES_START;
     } else {
-        waitcycl= STK_WAITCYLCES;
+        waitcycl = STK_WAITCYLCES;
     }
-    for ( ; waitcycl >0 ; waitcycl--) {
+    for ( ; waitcycl > 0 ; waitcycl--) {
         //check is not timeout
-        if (ReadBit() >- 1) break;
+        if (ReadBit() > - 1) break;
     }
-
     //Skip the first bits
     if (waitcycl == 0) {
         goto timeout;
     }
-
     for (uint8_t i = 0; i < 10; i++) {
         if (ReadBit() == -1) goto timeout;
     }
-
     // learn timing
     HiLoTsh = (LastBitTime >> 1) + (LastBitTime >> 2);
-
     // Read until we get a 0 bit
     int8_t bit;
     do {
@@ -217,14 +204,12 @@ timeout:
     return 0;
 }
 
-static uint8_t StkRcvPacket(uint8_t *pstring)
-{
+static uint8_t StkRcvPacket(uint8_t *pstring) {
     uint8_t bt = 0;
     uint8_16_u Len;
-
     IRQ_OFF;
     if (!StkReadLeader()) goto Err;
-    ckSumIn=0;
+    ckSumIn = 0;
     if (!ReadByte(&bt) || (bt != MESSAGE_START)) goto Err;
     if (!ReadByte(&bt) || (bt != SeqNumber)) goto Err;
     ReadByte(&Len.bytes[1]);
@@ -234,10 +219,9 @@ static uint8_t StkRcvPacket(uint8_t *pstring)
     if (!ReadByte(&bt) || (bt != TOKEN)) goto Err;
     if (!ReadByte(&bt) || (bt != StkCmd)) goto Err;
     if (!ReadByte(&bt) || (bt != STATUS_CMD_OK)) goto Err;
-    for (uint16_t i = 0; i < (Len.word - 2); i++)
-    {
-         if (!ReadByte(pstring)) goto Err;
-         pstring++;
+    for (uint16_t i = 0; i < (Len.word - 2); i++) {
+        if (!ReadByte(pstring)) goto Err;
+        pstring++;
     }
     ReadByte(&bt);
     if (ckSumIn != 0) goto Err;
@@ -248,9 +232,8 @@ Err:
     return 0;
 }
 
-static uint8_t _CMD_SPI_MULTI_EX(volatile uint8_t * ResByte,uint8_t Cmd,uint8_t AdrHi,uint8_t AdrLo)
-{
-    StkCmd= CMD_SPI_MULTI;
+static uint8_t _CMD_SPI_MULTI_EX(volatile uint8_t * ResByte, uint8_t Cmd, uint8_t AdrHi, uint8_t AdrLo) {
+    StkCmd = CMD_SPI_MULTI;
     StkSendPacketHeader();
     StkSendByte(0); // hi byte Msg len
     StkSendByte(8); // lo byte Msg len
@@ -265,16 +248,15 @@ static uint8_t _CMD_SPI_MULTI_EX(volatile uint8_t * ResByte,uint8_t Cmd,uint8_t 
     StkSendByte(0); // {TxData} 0
     StkSendPacketFooter();
     if (StkRcvPacket((void *)StkInBuf)) { // NumRX + 3
-         if ((StkInBuf[0] == 0x00) && ((StkInBuf[1] == Cmd)||(StkInBuf[1] == 0x00)/* ignore  zero returns */) &&(StkInBuf[2] == 0x00)) {
+        if ((StkInBuf[0] == 0x00) && ((StkInBuf[1] == Cmd) || (StkInBuf[1] == 0x00)/* ignore  zero returns */) && (StkInBuf[2] == 0x00)) {
             *ResByte = StkInBuf[3];
-         }
-         return 1;
+        }
+        return 1;
     }
     return 0;
 }
 
-static uint8_t _CMD_LOAD_ADDRESS(ioMem_t *pMem)
-{
+static uint8_t _CMD_LOAD_ADDRESS(ioMem_t *pMem) {
     // ignore 0xFFFF
     // assume address is set before and we read or write the immediately following package
     if ((pMem->D_FLASH_ADDR_H == 0xFF) && (pMem->D_FLASH_ADDR_L == 0xFF)) return 1;
@@ -292,13 +274,12 @@ static uint8_t _CMD_LOAD_ADDRESS(ioMem_t *pMem)
     return (StkRcvPacket((void *)StkInBuf));
 }
 
-static uint8_t _CMD_READ_MEM_ISP(ioMem_t *pMem)
-{
+static uint8_t _CMD_READ_MEM_ISP(ioMem_t *pMem) {
     uint8_t LenHi;
-    if (pMem->D_NUM_BYTES>0) {
-        LenHi=0;
+    if (pMem->D_NUM_BYTES > 0) {
+        LenHi = 0;
     } else {
-        LenHi=1;
+        LenHi = 1;
     }
     StkSendPacketHeader();
     StkSendByte(0); // hi byte Msg len
@@ -312,8 +293,7 @@ static uint8_t _CMD_READ_MEM_ISP(ioMem_t *pMem)
     return (StkRcvPacket(pMem->D_PTR_I));
 }
 
-static uint8_t _CMD_PROGRAM_MEM_ISP(ioMem_t *pMem)
-{
+static uint8_t _CMD_PROGRAM_MEM_ISP(ioMem_t *pMem) {
     uint8_16_u Len;
     uint8_t LenLo = pMem->D_NUM_BYTES;
     uint8_t LenHi;
@@ -347,9 +327,8 @@ static uint8_t _CMD_PROGRAM_MEM_ISP(ioMem_t *pMem)
     return StkRcvPacket((void *)StkInBuf);
 }
 
-uint8_t Stk_SignOn(void)
-{
-    StkCmd=CMD_SIGN_ON;
+uint8_t Stk_SignOn(void) {
+    StkCmd = CMD_SIGN_ON;
     StkSendPacketHeader();
     StkSendByte(0); // hi byte Msg len
     StkSendByte(1); // lo byte Msg len
@@ -359,11 +338,10 @@ uint8_t Stk_SignOn(void)
     return (StkRcvPacket((void *) StkInBuf));
 }
 
-uint8_t Stk_ConnectEx(uint8_32_u *pDeviceInfo)
-{
+uint8_t Stk_ConnectEx(uint8_32_u *pDeviceInfo) {
     if (Stk_SignOn()) {
-        if (_CMD_SPI_MULTI_EX(&pDeviceInfo->bytes[1], signature_r,0,1)) {
-            if (_CMD_SPI_MULTI_EX(&pDeviceInfo->bytes[0], signature_r,0,2)) {
+        if (_CMD_SPI_MULTI_EX(&pDeviceInfo->bytes[1], signature_r, 0, 1)) {
+            if (_CMD_SPI_MULTI_EX(&pDeviceInfo->bytes[0], signature_r, 0, 2)) {
                 return 1;
             }
         }
@@ -371,8 +349,7 @@ uint8_t Stk_ConnectEx(uint8_32_u *pDeviceInfo)
     return 0;
 }
 
-uint8_t Stk_Chip_Erase(void)
-{
+uint8_t Stk_Chip_Erase(void) {
     StkCmd = CMD_CHIP_ERASE_ISP;
     StkSendPacketHeader();
     StkSendByte(0); // high byte Msg len
@@ -389,8 +366,7 @@ uint8_t Stk_Chip_Erase(void)
     return (StkRcvPacket(StkInBuf));
 }
 
-uint8_t Stk_ReadFlash(ioMem_t *pMem)
-{
+uint8_t Stk_ReadFlash(ioMem_t *pMem) {
     if (_CMD_LOAD_ADDRESS(pMem)) {
         StkCmd = CMD_READ_FLASH_ISP;
         return (_CMD_READ_MEM_ISP(pMem));
@@ -399,8 +375,7 @@ uint8_t Stk_ReadFlash(ioMem_t *pMem)
 }
 
 
-uint8_t Stk_ReadEEprom(ioMem_t *pMem)
-{
+uint8_t Stk_ReadEEprom(ioMem_t *pMem) {
     if (_CMD_LOAD_ADDRESS(pMem)) {
         StkCmd = CMD_READ_EEPROM_ISP;
         return (_CMD_READ_MEM_ISP(pMem));
@@ -408,8 +383,7 @@ uint8_t Stk_ReadEEprom(ioMem_t *pMem)
     return 0;
 }
 
-uint8_t Stk_WriteFlash(ioMem_t *pMem)
-{
+uint8_t Stk_WriteFlash(ioMem_t *pMem) {
     if (_CMD_LOAD_ADDRESS(pMem)) {
         StkCmd = CMD_PROGRAM_FLASH_ISP;
         return (_CMD_PROGRAM_MEM_ISP(pMem));
@@ -417,8 +391,7 @@ uint8_t Stk_WriteFlash(ioMem_t *pMem)
     return 0;
 }
 
-uint8_t Stk_WriteEEprom(ioMem_t *pMem)
-{
+uint8_t Stk_WriteEEprom(ioMem_t *pMem) {
     if (_CMD_LOAD_ADDRESS(pMem)) {
         StkCmd = CMD_PROGRAM_EEPROM_ISP;
         return (_CMD_PROGRAM_MEM_ISP(pMem));

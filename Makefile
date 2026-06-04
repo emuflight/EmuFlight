@@ -73,7 +73,6 @@ include $(ROOT)/make/system-id.mk
 ifndef TOOLS_DIR
 TOOLS_DIR := $(ROOT)/tools
 endif
-BUILD_DIR := $(ROOT)/build
 DL_DIR    := $(ROOT)/downloads
 
 export RM := rm
@@ -92,7 +91,19 @@ FEATURES        =
 
 include $(ROOT)/make/targets.mk
 
-REVISION := $(shell git log -1 --format="%h")
+# build number - default for local builds
+BUILDNO := local
+
+# github actions build
+ifneq ($(GITHUBBUILDNUMBER),)
+BUILDNO := $(GITHUBBUILDNUMBER)
+endif
+
+BUILDDATETIME := $(shell date +'%Y%m%d%Z')
+REVISION := uncommitted_$(BUILDDATETIME)
+ifeq ($(shell git diff --shortstat),)
+REVISION := $(shell git rev-parse HEAD | cut -c1-7)
+endif
 
 FC_VER_MAJOR := $(shell grep " FC_VERSION_MAJOR" src/main/build/version.h | awk '{print $$3}' )
 FC_VER_MINOR := $(shell grep " FC_VERSION_MINOR" src/main/build/version.h | awk '{print $$3}' )
@@ -109,7 +120,7 @@ FATFS_SRC       = $(notdir $(wildcard $(FATFS_DIR)/*.c))
 
 CSOURCES        := $(shell find $(SRC_DIR) -name '*.c')
 
-LD_FLAGS         :=
+LD_FLAGS        :=
 
 #
 # Default Tool options - can be overridden in {mcu}.mk files.
@@ -118,10 +129,10 @@ ifeq ($(DEBUG),GDB)
 OPTIMISE_DEFAULT      := -Og
 
 LTO_FLAGS             := $(OPTIMISE_DEFAULT)
-DEBUG_FLAGS            = -ggdb3 -DDEBUG
+DEBUG_FLAGS           = -ggdb3 -DDEBUG
 else
 ifeq ($(DEBUG),INFO)
-DEBUG_FLAGS            = -ggdb3
+DEBUG_FLAGS           = -ggdb3
 endif
 OPTIMISATION_BASE     := -flto -fuse-linker-plugin -ffast-math
 OPTIMISE_DEFAULT      := -O2
@@ -186,6 +197,9 @@ ifeq ($(CCACHE_CHECK),0)
 	CCACHE := ccache
 endif
 
+# suit ccache
+CROSS_COMPILE := $(ARM_SDK_PREFIX)
+
 # Tool names
 CROSS_CC    := $(CCACHE) $(ARM_SDK_PREFIX)gcc
 CROSS_CXX   := $(CCACHE) $(ARM_SDK_PREFIX)g++
@@ -224,9 +238,10 @@ CFLAGS     += $(ARCH_FLAGS) \
               $(DEVICE_FLAGS) \
               -D_GNU_SOURCE \
               -DUSE_STDPERIPH_DRIVER \
-              -D$(TARGET) \
+              -D$(shell echo $(TARGET) | sed 's/^[0-9]/_&/') \
               $(TARGET_FLAGS) \
               -D'__FORKNAME__="$(FORKNAME)"' \
+              -D'__BUILDNO__="$(BUILDNO)"' \
               -D'__TARGET__="$(TARGET)"' \
               -D'__REVISION__="$(REVISION)"' \
               -save-temps=obj \
@@ -235,6 +250,7 @@ CFLAGS     += $(ARCH_FLAGS) \
               $(EXTRA_FLAGS)
 
 ASFLAGS     = $(ARCH_FLAGS) \
+			  $(DEBUG_FLAGS) \
               -x assembler-with-cpp \
               $(addprefix -I,$(INCLUDE_DIRS)) \
               -MMD -MP
@@ -266,25 +282,37 @@ CPPCHECK        = cppcheck $(CSOURCES) --enable=all --platform=unix64 \
                   $(addprefix -I,$(INCLUDE_DIRS)) \
                   -I/usr/include -I/usr/include/linux
 
+ifneq ($(BUILDNO),local)
+TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET)_Build_$(BUILDNO)_$(REVISION)
+else
+TARGET_BASENAME = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET)_Build_$(REVISION)
+endif
+
 #
 # Things we will build
 #
-TARGET_BIN      = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET).bin
-TARGET_HEX      = $(BIN_DIR)/$(FORKNAME)_$(FC_VER)_$(TARGET).hex
+TARGET_BIN      = $(TARGET_BASENAME).bin
+TARGET_HEX      = $(TARGET_BASENAME).hex
 TARGET_ELF      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).elf
 TARGET_LST      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).lst
 TARGET_OBJS     = $(addsuffix .o,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $(SRC))))
 TARGET_DEPS     = $(addsuffix .d,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $(SRC))))
 TARGET_MAP      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).map
-
+TARGET_DIRS     := $(sort $(dir $(TARGET_OBJS)))
 
 CLEAN_ARTIFACTS := $(TARGET_BIN)
 CLEAN_ARTIFACTS += $(TARGET_HEX)
 CLEAN_ARTIFACTS += $(TARGET_ELF) $(TARGET_OBJS) $(TARGET_MAP)
 CLEAN_ARTIFACTS += $(TARGET_LST)
 
-# Make sure build date and revision is updated on every incremental build
+# Rebuild version.o whenever any source changes so the embedded timestamp stays current
 $(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC)
+
+.PHONY: clean clean_test clean_all all_clean binary_hex
+
+# Build each output directory once, not once-per-file, for parallel-safe compilation
+$(TARGET_DIRS):
+	@mkdir -p $@
 
 # List of buildable ELF files and their object dependencies.
 # It would be nice to compute these lists, but that seems to be just beyond make.
@@ -300,20 +328,22 @@ $(TARGET_BIN): $(TARGET_ELF)
 	@echo "Creating BIN $(TARGET_BIN)" "$(STDOUT)"
 	$(V1) $(OBJCOPY) -O binary $< $@
 
-$(TARGET_ELF):  $(TARGET_OBJS)
+$(TARGET_ELF):  $(TARGET_OBJS) $(LD_SCRIPT) $(LD_SCRIPTS)
 	@echo "Linking $(TARGET)" "$(STDOUT)"
-	$(V1) $(CROSS_CC) -o $@ $^ $(LD_FLAGS)
+	$(V1) $(CROSS_CC) -o $@ $(filter %.o,$^) $(LD_FLAGS)
 	$(V1) $(SIZE) $(TARGET_ELF)
+
+# .SECONDEXPANSION allows $$(dir $$@) in prerequisites — expands to the target's
+# directory at rule instantiation time, wiring each .o to its pre-created dir.
+.SECONDEXPANSION:
 
 # Compile
 ifeq ($(DEBUG),GDB)
-$(OBJECT_DIR)/$(TARGET)/%.o: %.c
-	$(V1) mkdir -p $(dir $@)
+$(OBJECT_DIR)/$(TARGET)/%.o: %.c | $$(dir $$@)
 	$(V1) echo "%% (debug) $(notdir $<)" "$(STDOUT)" && \
 	$(CROSS_CC) -c -o $@ $(CFLAGS) $(CC_DEBUG_OPTIMISATION) $<
 else
-$(OBJECT_DIR)/$(TARGET)/%.o: %.c
-	$(V1) mkdir -p $(dir $@)
+$(OBJECT_DIR)/$(TARGET)/%.o: %.c | $$(dir $$@)
 	$(V1) $(if $(findstring $(subst ./src/main/,,$<),$(SPEED_OPTIMISED_SRC)), \
 	echo "%% (speed optimised) $(notdir $<)" "$(STDOUT)" && \
 	$(CROSS_CC) -c -o $@ $(CFLAGS) $(CC_SPEED_OPTIMISATION) $<, \
@@ -325,19 +355,17 @@ $(OBJECT_DIR)/$(TARGET)/%.o: %.c
 endif
 
 # Assemble
-$(OBJECT_DIR)/$(TARGET)/%.o: %.s
-	$(V1) mkdir -p $(dir $@)
+$(OBJECT_DIR)/$(TARGET)/%.o: %.s | $$(dir $$@)
 	@echo "%% $(notdir $<)" "$(STDOUT)"
 	$(V1) $(CROSS_CC) -c -o $@ $(ASFLAGS) $<
 
-$(OBJECT_DIR)/$(TARGET)/%.o: %.S
-	$(V1) mkdir -p $(dir $@)
+$(OBJECT_DIR)/$(TARGET)/%.o: %.S | $$(dir $$@)
 	@echo "%% $(notdir $<)" "$(STDOUT)"
 	$(V1) $(CROSS_CC) -c -o $@ $(ASFLAGS) $<
 
 
 ## all               : Build all targets (excluding unsupported)
-all: $(SUPPORTED_TARGETS)
+all supported: $(SUPPORTED_TARGETS)
 
 ## all_with_unsupported : Build all targets (including unsupported)
 all_with_unsupported: $(VALID_TARGETS)
@@ -354,15 +382,36 @@ targets-group-2: $(GROUP_2_TARGETS)
 ## targets-group-3   : build some targets
 targets-group-3: $(GROUP_3_TARGETS)
 
-## targets-group-3   : build some targets
+## targets-group-4   : build some targets
 targets-group-4: $(GROUP_4_TARGETS)
 
-## targets-group-rest: build the rest of the targets (not listed in group 1, 2 or 3)
+## targets-group-5   : build some targets
+targets-group-5: $(GROUP_5_TARGETS)
+
+## targets-group-6   : build some targets
+targets-group-6: $(GROUP_6_TARGETS)
+
+## targets-group-7   : build some targets
+targets-group-7: $(GROUP_7_TARGETS)
+
+## targets-group-8   : build some targets
+targets-group-8: $(GROUP_8_TARGETS)
+
+## targets-group-9   : build some targets
+targets-group-9: $(GROUP_9_TARGETS)
+
+## targets-group-10  : build some targets
+targets-group-10: $(GROUP_10_TARGETS)
+
+## targets-group-11  : build some targets
+targets-group-11: $(GROUP_11_TARGETS)
+
+## targets-group-rest: build the rest of the targets (not listed in groups 1-11)
 targets-group-rest: $(GROUP_OTHER_TARGETS)
 
 $(VALID_TARGETS):
 	$(V0) @echo "Building $@" && \
-	$(MAKE) binary hex TARGET=$@ && \
+	$(MAKE) binary_hex TARGET=$@ && \
 	echo "Building $@ succeeded."
 
 $(NOBUILD_TARGETS):
@@ -371,12 +420,19 @@ $(NOBUILD_TARGETS):
 CLEAN_TARGETS = $(addprefix clean_,$(VALID_TARGETS) )
 TARGETS_CLEAN = $(addsuffix _clean,$(VALID_TARGETS) )
 
-## clean             : clean up temporary / machine-generated files
+## clean             : clean one target (TARGET=<name>), or all targets if TARGET is unspecified
 clean:
+# $(origin TARGET) returns "file" when TARGET comes from the ?= default on line 19 (no command-line override)
+# → delegate to clean_all. Returns "command line" or "environment" when the user sets TARGET explicitly
+# → perform the standard per-target clean of $(CLEAN_ARTIFACTS) and $(OBJECT_DIR)/$(TARGET).
+ifeq ($(origin TARGET), file)
+	$(MAKE) clean_all
+else
 	@echo "Cleaning $(TARGET)"
 	$(V0) rm -f $(CLEAN_ARTIFACTS)
 	$(V0) rm -rf $(OBJECT_DIR)/$(TARGET)
 	@echo "Cleaning $(TARGET) succeeded."
+endif
 
 ## clean_test        : clean up temporary / machine-generated files (tests)
 clean_test:
@@ -384,17 +440,21 @@ clean_test:
 
 ## clean_<TARGET>    : clean up one specific target
 $(CLEAN_TARGETS):
-	$(V0) $(MAKE) -j TARGET=$(subst clean_,,$@) clean
+	$(V0) $(MAKE) TARGET=$(subst clean_,,$@) clean
 
 ## <TARGET>_clean    : clean up one specific target (alias for above)
 $(TARGETS_CLEAN):
-	$(V0) $(MAKE) -j TARGET=$(subst _clean,,$@) clean
+	$(V0) $(MAKE) TARGET=$(subst _clean,,$@) clean
 
-## clean_all         : clean all valid targets
-clean_all: $(CLEAN_TARGETS)
+## clean_all         : clean all targets (compiled objects only; obj/*.hex and obj/*.bin preserved)
+clean_all:
+	@echo "Cleaning all targets"
+	$(V0) rm -rf $(OBJECT_DIR)
+	$(V0) cd src/test && $(MAKE) clean || true
+	@echo "All targets cleaned."
 
-## all_clean         : clean all valid targets (alias for above)
-all_clean: $(TARGETS_CLEAN)
+## all_clean         : clean all targets (alias for clean_all)
+all_clean: clean_all
 
 
 flash_$(TARGET): $(TARGET_HEX)
@@ -417,10 +477,13 @@ openocd-gdb: $(TARGET_ELF)
 endif
 
 binary:
-	$(V0) $(MAKE) -j $(TARGET_BIN)
+	$(V0) $(MAKE) $(TARGET_BIN)
 
 hex:
-	$(V0) $(MAKE) -j $(TARGET_HEX)
+	$(V0) $(MAKE) $(TARGET_HEX)
+
+## binary_hex         : build both binary and hex in one sub-make (ELF linked once; BIN+HEX via parallel objcopy)
+binary_hex: $(TARGET_BIN) $(TARGET_HEX)
 
 unbrick_$(TARGET): $(TARGET_HEX)
 	$(V0) stty -F $(SERIAL_DEVICE) raw speed 115200 -crtscts cs8 -parenb -cstopb -ixon
@@ -438,13 +501,10 @@ cppcheck-result.xml: $(CSOURCES)
 
 # mkdirs
 $(DL_DIR):
-	mkdir -p $@
+	$(V1) mkdir -p $@
 
 $(TOOLS_DIR):
-	mkdir -p $@
-
-$(BUILD_DIR):
-	mkdir -p $@
+	$(V1) mkdir -p $@
 
 ## version           : print firmware version
 version:
@@ -473,14 +533,10 @@ targets:
 	@echo "Base target:         $(BASE_TARGET)"
 	@echo "targets-group-1:     $(GROUP_1_TARGETS)"
 	@echo "targets-group-2:     $(GROUP_2_TARGETS)"
-	@echo "targets-group-3:     $(GROUP_3_TARGETS)"
-	@echo "targets-group-4:     $(GROUP_4_TARGETS)"
 	@echo "targets-group-rest:  $(GROUP_OTHER_TARGETS)"
 
 	@echo "targets-group-1:     $(words $(GROUP_1_TARGETS)) targets"
 	@echo "targets-group-2:     $(words $(GROUP_2_TARGETS)) targets"
-	@echo "targets-group-3:     $(words $(GROUP_3_TARGETS)) targets"
-	@echo "targets-group-4:     $(words $(GROUP_4_TARGETS)) targets"
 	@echo "targets-group-rest:  $(words $(GROUP_OTHER_TARGETS)) targets"
 	@echo "total in all groups  $(words $(SUPPORTED_TARGETS)) targets"
 

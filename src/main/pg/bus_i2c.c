@@ -61,10 +61,8 @@ static const i2cDefaultConfig_t i2cDefaultConfig[] = {
 #endif
 };
 
-void pgResetFn_i2cConfig(i2cConfig_t *i2cConfig)
-{
+void pgResetFn_i2cConfig(i2cConfig_t *i2cConfig) {
     memset(i2cConfig, 0, sizeof(*i2cConfig));
-
     for (size_t index = 0 ; index < ARRAYLEN(i2cDefaultConfig) ; index++) {
         const i2cDefaultConfig_t *defconf = &i2cDefaultConfig[index];
         int device = defconf->device;

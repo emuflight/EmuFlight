@@ -29,8 +29,7 @@
 
 #include "telemetry/telemetry.h"
 
-void targetConfiguration(void)
-{
-	telemetryConfigMutable()->halfDuplex = 0;
+void targetConfiguration(void) {
+    telemetryConfigMutable()->halfDuplex = 0;
 }
 #endif

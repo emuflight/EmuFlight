@@ -96,6 +96,7 @@ COMMON_SRC = \
             rx/rx.c \
             rx/rx_spi.c \
             rx/crsf.c \
+            rx/ghst.c \
             rx/sbus.c \
             rx/sbus_channels.c \
             rx/spektrum.c \
@@ -124,9 +125,11 @@ COMMON_SRC = \
             cms/cms_menu_misc.c \
             cms/cms_menu_osd.c \
             cms/cms_menu_power.c \
+            cms/cms_menu_vtx_beesign.c\
             cms/cms_menu_vtx_rtc6705.c \
             cms/cms_menu_vtx_smartaudio.c \
             cms/cms_menu_vtx_tramp.c \
+            drivers/beesign.c \
             drivers/display_ug2864hsweg01.c \
             drivers/light_ws2811strip.c \
             drivers/rangefinder/rangefinder_hcsr04.c \
@@ -136,6 +139,7 @@ COMMON_SRC = \
             io/dashboard.c \
             io/displayport_max7456.c \
             io/displayport_msp.c \
+            io/displayport_hdzero_osd.c \
             io/displayport_oled.c \
             io/displayport_srxl.c \
             io/displayport_crsf.c \
@@ -149,6 +153,7 @@ COMMON_SRC = \
             sensors/rangefinder.c \
             telemetry/telemetry.c \
             telemetry/crsf.c \
+            telemetry/ghst.c \
             telemetry/srxl.c \
             telemetry/frsky_hub.c \
             telemetry/hott.c \
@@ -162,6 +167,7 @@ COMMON_SRC = \
             sensors/esc_sensor.c \
             io/vtx_string.c \
             io/vtx.c \
+            io/vtx_beesign.c \
             io/vtx_rtc6705.c \
             io/vtx_smartaudio.c \
             io/vtx_tramp.c \
@@ -185,6 +191,7 @@ SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
             common/encoding.c \
             common/filter.c \
             common/maths.c \
+						common/sdft.c \
             common/typeconversion.c \
             drivers/accgyro/accgyro_fake.c \
             drivers/accgyro/accgyro_mpu.c \
@@ -192,6 +199,7 @@ SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
             drivers/accgyro/accgyro_mpu6050.c \
             drivers/accgyro/accgyro_mpu6500.c \
             drivers/accgyro/accgyro_spi_bmi160.c \
+            drivers/accgyro/accgyro_spi_bmi270.c \
             drivers/accgyro/accgyro_spi_icm20689.c \
             drivers/accgyro/accgyro_spi_mpu6000.c \
             drivers/accgyro/accgyro_spi_mpu6500.c \
@@ -239,15 +247,18 @@ SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
             sensors/gyroanalyse.c \
             $(CMSIS_SRC) \
             $(DEVICE_STDPERIPH_SRC) \
+            common/kalman.c \
 
 SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             bus_bst_stm32f30x.c \
             drivers/barometer/barometer_bmp085.c \
             drivers/barometer/barometer_bmp280.c \
+            drivers/barometer/barometer_dps310.c \
             drivers/barometer/barometer_fake.c \
             drivers/barometer/barometer_ms5611.c \
             drivers/barometer/barometer_lps.c \
             drivers/barometer/barometer_qmp6988.c \
+            drivers/beesign.c \
             drivers/bus_i2c_config.c \
             drivers/bus_spi_config.c \
             drivers/bus_spi_pinconfig.c \
@@ -297,6 +308,7 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             cms/cms_menu_misc.c \
             cms/cms_menu_osd.c \
             cms/cms_menu_power.c \
+            cms/cms_menu_vtx_beesign.c\
             cms/cms_menu_vtx_rtc6705.c \
             cms/cms_menu_vtx_smartaudio.c \
             cms/cms_menu_vtx_tramp.c \
@@ -320,6 +332,21 @@ SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
 endif #!F3
 endif #!F1
 
+# H7-only low-frequency drivers compiled at -Os to reclaim flash budget
+ifneq ($(filter $(TARGET),$(H7_TARGETS)),)
+SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
+            drivers/audio_stm32h7xx.c \
+            drivers/bus_i2c_timing.c \
+            drivers/bus_octospi_stm32h7xx.c \
+            drivers/bus_quadspi.c \
+            drivers/bus_quadspi_stm32h7xx.c \
+            drivers/can_stm32h7xx.c \
+            pg/bus_quadspi.c \
+            drivers/sdio_h7xx.c \
+            drivers/memprot_hal.c \
+            drivers/memprot_stm32h7xx.c
+endif # H7_TARGETS
+
 # check if target.mk supplied
 SRC := $(STARTUP_SRC) $(MCU_COMMON_SRC) $(TARGET_SRC) $(VARIANT_SRC)
 
@@ -327,14 +354,6 @@ ifneq ($(DSP_LIB),)
 
 INCLUDE_DIRS += $(DSP_LIB)/Include
 
-SRC += $(DSP_LIB)/Source/BasicMathFunctions/arm_mult_f32.c
-SRC += $(DSP_LIB)/Source/TransformFunctions/arm_rfft_fast_f32.c
-SRC += $(DSP_LIB)/Source/TransformFunctions/arm_cfft_f32.c
-SRC += $(DSP_LIB)/Source/TransformFunctions/arm_rfft_fast_init_f32.c
-SRC += $(DSP_LIB)/Source/TransformFunctions/arm_cfft_radix8_f32.c
-SRC += $(DSP_LIB)/Source/CommonTables/arm_common_tables.c
-
-SRC += $(DSP_LIB)/Source/ComplexMathFunctions/arm_cmplx_mag_f32.c
 SRC += $(DSP_LIB)/Source/StatisticsFunctions/arm_max_f32.c
 
 SRC += $(wildcard $(DSP_LIB)/Source/*/*.S)
@@ -345,8 +364,9 @@ SRC += \
             drivers/flash.c \
             drivers/flash_m25p16.c \
             drivers/flash_w25m.c \
+            drivers/flash_w25n.c \
+            drivers/flash_w25q128fv.c \
             io/flashfs.c \
-            pg/flash.c \
             $(MSC_SRC)
 endif
 

@@ -49,9 +49,9 @@
 #define USE_GYRO
 #define USE_ACC
 #define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 #define ICM20689_CS_PIN          PA4
-#define ICM20689_SPI_INSTANCE    SPI1
+#define ICM20689_SPI_BUS    SPIDEV_1
 
 #define USE_GYRO_SPI_MPU6000
 #define GYRO_MPU6000_ALIGN      CW90_DEG
@@ -78,7 +78,7 @@
 #define USE_BARO_MS5611
 
 #define USE_MAG
-#define MAG_I2C_INSTANCE        (I2CDEV_1) 
+#define MAG_I2C_INSTANCE        (I2CDEV_1)
 #define USE_MAG_HMC5883
 
 #define USE_SPI_DEVICE_2

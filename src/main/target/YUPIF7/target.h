@@ -43,7 +43,7 @@
 #define SPI1_MOSI_PIN           PA7
 
 #define ICM20689_CS_PIN         PA4
-#define ICM20689_SPI_INSTANCE   SPI1
+#define ICM20689_SPI_BUS   SPIDEV_1
 
 #define USE_EXTI
 #define MPU_INT_EXTI            PC4
@@ -128,7 +128,7 @@
 #define RSSI_ADC_PIN                    PC0
 #define VBAT_ADC_PIN                    PC1
 #define CURRENT_METER_ADC_PIN           PC2
-#define CURRENT_METER_SCALE_DEFAULT     235
+#define DEFAULT_CURRENT_METER_SCALE     235
 
 
 // *************** Target Config *******************

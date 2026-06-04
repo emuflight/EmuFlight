@@ -57,16 +57,16 @@
 
 #if defined(FF_PIKOF4OSD)
 #define MPU6000_CS_PIN          PA15
-#define MPU6000_SPI_INSTANCE    SPI3
+#define MPU6000_SPI_BUS    SPIDEV_3
 
 #define MPU6500_CS_PIN          PA15
-#define MPU6500_SPI_INSTANCE    SPI3
+#define MPU6500_SPI_BUS    SPIDEV_3
 #else
 #define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 
 #define MPU6500_CS_PIN          PA4
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 #endif
 
 #define USE_GYRO
@@ -99,6 +99,7 @@
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
+#define USE_FLASH_W25Q128FV
 /*---------------------------------*/
 #endif
 
@@ -160,7 +161,7 @@
 #if defined(FF_PIKOF4OSD)
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN           PC1
-#define CURRENT_METER_SCALE_DEFAULT     250
+#define DEFAULT_CURRENT_METER_SCALE     250
 #endif
 /*---------------------------------*/
 

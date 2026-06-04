@@ -40,7 +40,7 @@
 #define INVERTER_PIN_UART6      PB12
 
 #define MPU6000_CS_PIN          PB2
-#define MPU6000_SPI_INSTANCE    SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
 
 // MPU6000 interrupts
 #define USE_EXTI
@@ -94,7 +94,7 @@
 #define CURRENT_METER_ADC_PIN   PC2
 #define RSSI_ADC_PIN            PC0
 
-#define CURRENT_METER_SCALE_DEFAULT    1000
+#define DEFAULT_CURRENT_METER_SCALE    1000
 #define CURRENT_METER_OFFSET_DEFAULT   0
 
 #define USE_VCP

@@ -287,7 +287,7 @@ uint8_t  USBD_MSC_Init (void  *pdev,
   /* Open EP OUT */
   DCD_EP_Open(pdev,
               MSC_OUT_EP,
-              MSC_EPOUT_SIZE,
+              MSC_EPIN_SIZE,
               USB_OTG_EP_BULK);
 
   /* Init the BOT  layer */
@@ -399,20 +399,10 @@ uint8_t  USBD_MSC_Setup (void  *pdev, USB_SETUP_REQ *req)
 
       /* Re-activate the EP */
       DCD_EP_Close (pdev , (uint8_t)req->wIndex);
-      if((((uint8_t)req->wIndex) & 0x80) == 0x80)
-      {
-        DCD_EP_Open(pdev,
-                    ((uint8_t)req->wIndex),
-                    MSC_EPIN_SIZE,
-                    USB_OTG_EP_BULK);
-      }
-      else
-      {
-        DCD_EP_Open(pdev,
-                    ((uint8_t)req->wIndex),
-                    MSC_EPOUT_SIZE,
-                    USB_OTG_EP_BULK);
-      }
+      DCD_EP_Open(pdev,
+                  ((uint8_t)req->wIndex),
+                  MSC_EPIN_SIZE,
+                  USB_OTG_EP_BULK);
 
       /* Handle BOT error */
       MSC_BOT_CplClrFeature(pdev, (uint8_t)req->wIndex);

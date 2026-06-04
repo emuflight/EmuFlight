@@ -54,8 +54,7 @@ __IO uint32_t receiveLength;             // HJI
  * Return         : None.
  *******************************************************************************/
 
-void EP1_IN_Callback(void)
-{
+void EP1_IN_Callback(void) {
     packetSent = 0;  // HJI
 }
 
@@ -66,8 +65,7 @@ void EP1_IN_Callback(void)
  * Output         : None.
  * Return         : None.
  *******************************************************************************/
-void EP3_OUT_Callback(void)
-{
+void EP3_OUT_Callback(void) {
     receiveLength = GetEPRxCount(ENDP3);                                              // HJI
     PMAToUserBufferCopy((unsigned char*)receiveBuffer, ENDP3_RXADDR, receiveLength);  // HJI
 }

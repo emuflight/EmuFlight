@@ -42,13 +42,15 @@ extern ioMem_t ioMem;
 typedef union __attribute__ ((packed)) {
     uint8_t bytes[2];
     uint16_t word;
-} uint8_16_u;
+}
+uint8_16_u;
 
 typedef union __attribute__ ((packed)) {
     uint8_t bytes[4];
     uint16_t words[2];
     uint32_t dword;
-} uint8_32_u;
+}
+uint8_32_u;
 
 //extern uint8_32_u DeviceInfo;
 

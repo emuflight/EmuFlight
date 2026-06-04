@@ -35,6 +35,7 @@ extern "C" {
     #include "flight/imu.h"
     #include "flight/mixer.h"
     #include "flight/pid.h"
+    // pragma weak inputSource_e removed - firmware bug fixed (changed enum to typedef enum)
     #include "flight/servos.h"
     #include "io/beeper.h"
     #include "io/gps.h"
@@ -43,6 +44,15 @@ extern "C" {
     #include "sensors/acceleration.h"
     #include "sensors/gyro.h"
     #include "telemetry/telemetry.h"
+
+    // Global variable definitions
+    // rcCommand is defined in rc_controls.c and provided at link time
+    // (not via header inclusion - this is an extern declaration)
+    extern float rcCommand[4];
+    
+    // rcData is normally defined in rx.c, but since rx.c is not linked in this test,
+    // we define it here to satisfy the link dependency
+    int16_t rcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
 
     PG_REGISTER(accelerometerConfig_t, accelerometerConfig, PG_ACCELEROMETER_CONFIG, 0);
     PG_REGISTER(blackboxConfig_t, blackboxConfig, PG_BLACKBOX_CONFIG, 0);
@@ -55,8 +65,6 @@ extern "C" {
     PG_REGISTER(telemetryConfig_t, telemetryConfig, PG_TELEMETRY_CONFIG, 0);
     PG_REGISTER(failsafeConfig_t, failsafeConfig, PG_FAILSAFE_CONFIG, 0);
 
-    float rcCommand[4];
-    int16_t rcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
     uint16_t averageSystemLoadPercent = 0;
     uint8_t cliMode = 0;
     uint8_t debugMode = 0;
@@ -771,7 +779,7 @@ TEST(ArmingPreventionTest, Paralyze)
     // expect
     EXPECT_TRUE(IS_RC_MODE_ACTIVE(BOXVTXPITMODE));
     EXPECT_TRUE(IS_RC_MODE_ACTIVE(BOXBEEPERON));
-    
+
     // given
     // try exiting paralyze mode and ensure arming and pit mode are still disabled
     rcData[AUX2] = 1000;
@@ -811,7 +819,7 @@ extern "C" {
     bool isFirstArmingGyroCalibrationRunning(void) { return false; }
     void pidController(const pidProfile_t *, const rollAndPitchTrims_t *, timeUs_t) {}
     void pidStabilisationState(pidStabilisationState_e) {}
-    void mixTable(timeUs_t , uint8_t) {};
+    void mixTable(timeUs_t) {};
     void writeMotors(void) {};
     void writeServos(void) {};
     bool calculateRxChannelsAndUpdateFailsafe(timeUs_t) { return true; }
@@ -850,5 +858,6 @@ extern "C" {
     void rescheduleTask(cfTaskId_e, uint32_t) {}
     bool usbCableIsInserted(void) { return false; }
     bool usbVcpIsConnected(void) { return false; }
-    void pidSetAntiGravityState(bool) {}
+    void pinioBoxTaskControl(void) {}
+    void updateRcRefreshRate(timeUs_t) {}
 }

@@ -144,8 +144,12 @@ static serialPortStub_t serialReadStub;
 #define SERIAL_PORT_DUMMY_IDENTIFIER  (serialPortIdentifier_e)0x1234
 serialPort_t serialTestInstance;
 serialPortConfig_t serialTestInstanceConfig = {
+    .functionMask = 0,
     .identifier = SERIAL_PORT_DUMMY_IDENTIFIER,
-    .functionMask = 0
+    .msp_baudrateIndex = 0,
+    .gps_baudrateIndex = 0,
+    .blackbox_baudrateIndex = 0,
+    .telemetry_baudrateIndex = 0
 };
 
 static serialPortConfig_t *findSerialPortConfig_stub_retval;
@@ -185,7 +189,7 @@ bool telemetryDetermineEnabledState(portSharing_e portSharing)
 
 
 bool isSerialPortShared(const serialPortConfig_t *portConfig,
-                        uint16_t functionMask,
+                        uint32_t functionMask,
                         serialPortFunction_e sharedWithFunction)
 {
     EXPECT_EQ(findSerialPortConfig_stub_retval, portConfig);

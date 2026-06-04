@@ -135,6 +135,33 @@
 #endif
 #endif // STM32F7
 
+#ifdef STM32H7
+#ifndef I2C1_SCL
+#define I2C1_SCL PB6
+#endif
+#ifndef I2C1_SDA
+#define I2C1_SDA PB7
+#endif
+#ifndef I2C2_SCL
+#define I2C2_SCL PB10
+#endif
+#ifndef I2C2_SDA
+#define I2C2_SDA PB11
+#endif
+#ifndef I2C3_SCL
+#define I2C3_SCL PA8
+#endif
+#ifndef I2C3_SDA
+#define I2C3_SDA PB4
+#endif
+#ifndef I2C4_SCL
+#define I2C4_SCL PD12
+#endif
+#ifndef I2C4_SDA
+#define I2C4_SDA PD13
+#endif
+#endif // STM32H7
+
 #endif // I2C_FULL_RECONFIGURABILITY
 
 // Default values for internal pullup
@@ -210,7 +237,7 @@
 #define RX_SPI_DEFAULT_PROTOCOL 0
 #endif
 #ifndef SERIALRX_PROVIDER
-#define SERIALRX_PROVIDER 0
+#define SERIALRX_PROVIDER SERIALRX_CRSF
 #endif
 
 #define RX_MIN_USEC 885
@@ -223,4 +250,8 @@
 
 #ifndef BINDPLUG_PIN
 #define BINDPLUG_PIN NONE
+#endif
+
+#ifndef DEFAULT_RX_FEATURE
+#define DEFAULT_RX_FEATURE FEATURE_RX_SERIAL
 #endif

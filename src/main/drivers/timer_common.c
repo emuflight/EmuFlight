@@ -24,8 +24,7 @@
 #include "pg/timerio.h"
 #endif
 
-uint8_t timerIndexByTag(ioTag_t ioTag)
-{
+uint8_t timerIndexByTag(ioTag_t ioTag) {
 #ifdef USE_TIMER_MGMT
     for (unsigned i = 0; i < MAX_TIMER_PINMAP_COUNT; i++) {
         if (timerIOConfig(i)->ioTag == ioTag) {
@@ -38,18 +37,15 @@ uint8_t timerIndexByTag(ioTag_t ioTag)
     return 0;
 }
 
-const timerHardware_t *timerGetByTag(ioTag_t ioTag)
-{
+const timerHardware_t *timerGetByTag(ioTag_t ioTag) {
     if (!ioTag) {
         return NULL;
     }
-
     uint8_t timerIndex = timerIndexByTag(ioTag);
     uint8_t index = 1;
-
     for (int i = 0; i < (int)USABLE_TIMER_CHANNEL_COUNT; i++) {
         if (timerHardware[i].tag == ioTag) {
-            if (index == timerIndex || timerIndex == 0) {                
+            if (index == timerIndex || timerIndex == 0) {
                 return &timerHardware[i];
             }
             index++;
@@ -58,8 +54,7 @@ const timerHardware_t *timerGetByTag(ioTag_t ioTag)
     return NULL;
 }
 
-ioTag_t timerioTagGetByUsage(timerUsageFlag_e usageFlag, uint8_t index)
-{
+ioTag_t timerioTagGetByUsage(timerUsageFlag_e usageFlag, uint8_t index) {
     uint8_t currentIndex = 0;
     for (int i = 0; i < (int)USABLE_TIMER_CHANNEL_COUNT; i++) {
         if ((timerHardware[i].usageFlags & usageFlag) == usageFlag) {

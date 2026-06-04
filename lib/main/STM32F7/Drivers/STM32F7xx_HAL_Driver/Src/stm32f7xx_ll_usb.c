@@ -817,7 +817,7 @@ HAL_StatusTypeDef USB_WritePacket(USB_OTG_GlobalTypeDef *USBx, uint8_t *src, uin
     count32b =  (len + 3) / 4;
     for (i = 0; i < count32b; i++, src += 4)
     {
-      USBx_DFIFO(ch_ep_num) = *((__packed uint32_t *)src);
+      USBx_DFIFO((uint32_t)ch_ep_num) = *((uint32_t *)src);
     }
   }
   return HAL_OK;
@@ -843,7 +843,7 @@ void *USB_ReadPacket(USB_OTG_GlobalTypeDef *USBx, uint8_t *dest, uint16_t len)
   
   for ( i = 0; i < count32b; i++, dest += 4 )
   {
-    *(__packed uint32_t *)dest = USBx_DFIFO(0);
+    *(uint32_t *)dest = USBx_DFIFO(0);
     
   }
   return ((void *)dest);

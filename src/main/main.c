@@ -29,17 +29,13 @@
 
 void run(void);
 
-int main(void)
-{
+int main(void) {
     init();
-
     run();
-
     return 0;
 }
 
-void FAST_CODE FAST_CODE_NOINLINE run(void)
-{
+void FAST_CODE FAST_CODE_NOINLINE run(void) {
     while (true) {
         scheduler();
         processLoopback();

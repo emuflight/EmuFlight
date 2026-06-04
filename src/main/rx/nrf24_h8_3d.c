@@ -109,8 +109,7 @@ STATIC_UNIT_TESTED uint8_t h8_3dRfChannels[H8_3D_RF_CHANNEL_COUNT];
 static uint32_t hopTimeout = BIND_HOP_TIMEOUT;
 static uint32_t timeOfLastHop;
 
-STATIC_UNIT_TESTED bool h8_3dCheckBindPacket(const uint8_t *payload)
-{
+STATIC_UNIT_TESTED bool h8_3dCheckBindPacket(const uint8_t *payload) {
     bool bindPacket = false;
     if ((payload[5] == 0x00) && (payload[6] == 0x00) && (payload[7] == 0x01)) {
         const uint32_t checkSumTxId = (payload[1] + payload[2] + payload[3] + payload[4]) & 0xff;
@@ -129,24 +128,20 @@ STATIC_UNIT_TESTED bool h8_3dCheckBindPacket(const uint8_t *payload)
     return bindPacket;
 }
 
-STATIC_UNIT_TESTED uint16_t h8_3dConvertToPwm(uint8_t val, int16_t _min, int16_t _max)
-{
+STATIC_UNIT_TESTED uint16_t h8_3dConvertToPwm(uint8_t val, int16_t _min, int16_t _max) {
 #define PWM_RANGE (PWM_RANGE_MAX - PWM_RANGE_MIN)
-
     int32_t ret = val;
     const int32_t range = _max - _min;
-    ret = PWM_RANGE_MIN + ((ret - _min) * PWM_RANGE)/range;
+    ret = PWM_RANGE_MIN + ((ret - _min) * PWM_RANGE) / range;
     return (uint16_t)ret;
 }
 
-void h8_3dNrf24SetRcDataFromPayload(uint16_t *rcData, const uint8_t *payload)
-{
+void h8_3dNrf24SetRcDataFromPayload(uint16_t *rcData, const uint8_t *payload) {
     rcData[RC_SPI_ROLL] = h8_3dConvertToPwm(payload[12], 0xbb, 0x43); // aileron
     rcData[RC_SPI_PITCH] = h8_3dConvertToPwm(payload[11], 0x43, 0xbb); // elevator
     rcData[RC_SPI_THROTTLE] = h8_3dConvertToPwm(payload[9], 0, 0xff); // throttle
     const int8_t yawByte = payload[10]; // rudder
     rcData[RC_SPI_YAW] = yawByte >= 0 ? h8_3dConvertToPwm(yawByte, -0x3c, 0x3c) : h8_3dConvertToPwm(yawByte, 0xbc, 0x44);
-
     const uint8_t flags = payload[17];
     const uint8_t flags2 = payload[18];
     if (flags & FLAG_RATE_HIGH) {
@@ -156,13 +151,11 @@ void h8_3dNrf24SetRcDataFromPayload(uint16_t *rcData, const uint8_t *payload)
     } else {
         rcData[RC_CHANNEL_RATE] = PWM_RANGE_MIN;
     }
-
     rcData[RC_CHANNEL_FLIP] = flags & FLAG_FLIP ? PWM_RANGE_MAX : PWM_RANGE_MIN;
     rcData[RC_CHANNEL_PICTURE] = flags2 & FLAG_PICTURE ? PWM_RANGE_MAX : PWM_RANGE_MIN;
     rcData[RC_CHANNEL_VIDEO] = flags2 & FLAG_VIDEO ? PWM_RANGE_MAX : PWM_RANGE_MIN;
     rcData[RC_CHANNEL_HEADLESS] = flags & FLAG_HEADLESS ? PWM_RANGE_MAX : PWM_RANGE_MIN;
     rcData[RC_CHANNEL_RTH] = flags & FLAG_RTH ? PWM_RANGE_MAX : PWM_RANGE_MIN;
-
     if (flags2 & FLAG_CAMERA_UP) {
         rcData[RC_SPI_AUX7] = PWM_RANGE_MAX;
     } else if (flags2 & FLAG_CAMERA_DOWN) {
@@ -175,8 +168,7 @@ void h8_3dNrf24SetRcDataFromPayload(uint16_t *rcData, const uint8_t *payload)
     rcData[RC_SPI_AUX10] = h8_3dConvertToPwm(payload[16], 0x10, 0x30);
 }
 
-static void h8_3dHopToNextChannel(void)
-{
+static void h8_3dHopToNextChannel(void) {
     ++h8_3dRfChannelIndex;
     if (protocolState == STATE_BIND) {
         if (h8_3dRfChannelIndex > H8_3D_RF_BIND_CHANNEL_END) {
@@ -192,15 +184,13 @@ static void h8_3dHopToNextChannel(void)
 }
 
 // The hopping channels are determined by the txId
-static void h8_3dSetHoppingChannels(const uint8_t *txId)
-{
+static void h8_3dSetHoppingChannels(const uint8_t *txId) {
     for (int ii = 0; ii < H8_3D_RF_CHANNEL_COUNT; ++ii) {
         h8_3dRfChannels[ii] = 0x06 + (0x0f * ii) + ((txId[ii] >> 4) + (txId[ii] & 0x0f)) % 0x0f;
     }
 }
 
-static void h8_3dSetBound(const uint8_t *txId)
-{
+static void h8_3dSetBound(const uint8_t *txId) {
     protocolState = STATE_DATA;
     h8_3dSetHoppingChannels(txId);
     hopTimeout = DATA_HOP_TIMEOUT;
@@ -209,8 +199,7 @@ static void h8_3dSetBound(const uint8_t *txId)
     NRF24L01_SetChannel(h8_3dRfChannels[0]);
 }
 
-static bool h8_3dCrcOK(uint16_t crc, const uint8_t *payload)
-{
+static bool h8_3dCrcOK(uint16_t crc, const uint8_t *payload) {
     if (payload[payloadSize] != (crc >> 8)) {
         return false;
     }
@@ -224,8 +213,7 @@ static bool h8_3dCrcOK(uint16_t crc, const uint8_t *payload)
  * This is called periodically by the scheduler.
  * Returns NRF24L01_RECEIVED_DATA if a data packet was received.
  */
-rx_spi_received_e h8_3dNrf24DataReceived(uint8_t *payload)
-{
+rx_spi_received_e h8_3dNrf24DataReceived(uint8_t *payload) {
     rx_spi_received_e ret = RX_SPI_RECEIVED_NONE;
     bool payloadReceived = false;
     if (NRF24L01_ReadPayloadIfAvailable(payload, payloadSize + CRC_LEN)) {
@@ -258,14 +246,11 @@ rx_spi_received_e h8_3dNrf24DataReceived(uint8_t *payload)
     return ret;
 }
 
-static void h8_3dNrf24Setup(rx_spi_protocol_e protocol, const uint32_t *rxSpiId)
-{
+static void h8_3dNrf24Setup(rx_spi_protocol_e protocol, const uint32_t *rxSpiId) {
     UNUSED(protocol);
     protocolState = STATE_BIND;
-
     NRF24L01_Initialize(0); // sets PWR_UP, no CRC - hardware CRC not used for XN297
     NRF24L01_SetupBasic();
-
     NRF24L01_WriteReg(NRF24L01_06_RF_SETUP, NRF24L01_06_RF_SETUP_RF_DR_1Mbps | NRF24L01_06_RF_SETUP_RF_PWR_n12dbm);
     // RX_ADDR for pipes P1-P5 are left at default values
     NRF24L01_WriteRegisterMulti(NRF24L01_0A_RX_ADDR_P0, rxTxAddrXN297, RX_TX_ADDR_LEN);
@@ -276,18 +261,14 @@ static void h8_3dNrf24Setup(rx_spi_protocol_e protocol, const uint32_t *rxSpiId)
     } else {
         h8_3dSetBound((uint8_t*)rxSpiId);
     }
-
     payloadSize = H8_3D_PROTOCOL_PAYLOAD_SIZE;
     NRF24L01_WriteReg(NRF24L01_11_RX_PW_P0, payloadSize + CRC_LEN); // payload + 2 bytes CRC
-
     NRF24L01_SetRxMode(); // enter receive mode to start listening for packets
 }
 
-bool h8_3dNrf24Init(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeConfig)
-{
+bool h8_3dNrf24Init(const rxSpiConfig_t *rxSpiConfig, rxRuntimeConfig_t *rxRuntimeConfig) {
     rxRuntimeConfig->channelCount = RC_CHANNEL_COUNT;
     h8_3dNrf24Setup((rx_spi_protocol_e)rxSpiConfig->rx_spi_protocol, &rxSpiConfig->rx_spi_id);
-
     return true;
 }
 #endif

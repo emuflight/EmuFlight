@@ -18,9 +18,10 @@
 #pragma once
 
 #include <string.h>
+#include <stdarg.h>  // Required for va_list, va_start, va_end
 
 extern "C" {
-    #include "drivers/display.h"
+#include "drivers/display.h"
 }
 
 #include "unittest_macros.h"
@@ -36,39 +37,33 @@ char testDisplayPortBuffer[UNITTEST_DISPLAYPORT_BUFFER_LEN];
 
 static displayPort_t testDisplayPort;
 
-static int displayPortTestGrab(displayPort_t *displayPort)
-{
+static int displayPortTestGrab(displayPort_t *displayPort) {
     UNUSED(displayPort);
     return 0;
 }
 
-static int displayPortTestRelease(displayPort_t *displayPort)
-{
+static int displayPortTestRelease(displayPort_t *displayPort) {
     UNUSED(displayPort);
     return 0;
 }
 
-static int displayPortTestClearScreen(displayPort_t *displayPort)
-{
+static int displayPortTestClearScreen(displayPort_t *displayPort) {
     UNUSED(displayPort);
     memset(testDisplayPortBuffer, ' ', UNITTEST_DISPLAYPORT_BUFFER_LEN);
     return 0;
 }
 
-static int displayPortTestDrawScreen(displayPort_t *displayPort)
-{
+static int displayPortTestDrawScreen(displayPort_t *displayPort) {
     UNUSED(displayPort);
     return 0;
 }
 
-static int displayPortTestScreenSize(const displayPort_t *displayPort)
-{
+static int displayPortTestScreenSize(const displayPort_t *displayPort) {
     UNUSED(displayPort);
     return 0;
 }
 
-static int displayPortTestWriteString(displayPort_t *displayPort, uint8_t x, uint8_t y, const char *s)
-{
+static int displayPortTestWriteString(displayPort_t *displayPort, uint8_t x, uint8_t y, const char *s) {
     UNUSED(displayPort);
     for (unsigned int i = 0; i < strlen(s); i++) {
         testDisplayPortBuffer[(y * UNITTEST_DISPLAYPORT_COLS) + x + i] = s[i];
@@ -76,34 +71,34 @@ static int displayPortTestWriteString(displayPort_t *displayPort, uint8_t x, uin
     return 0;
 }
 
-static int displayPortTestWriteChar(displayPort_t *displayPort, uint8_t x, uint8_t y, uint8_t c)
-{
+static int displayPortTestWriteChar(displayPort_t *displayPort, uint8_t x, uint8_t y, uint8_t c) {
     UNUSED(displayPort);
     testDisplayPortBuffer[(y * UNITTEST_DISPLAYPORT_COLS) + x] = c;
     return 0;
 }
 
-static bool displayPortTestIsTransferInProgress(const displayPort_t *displayPort)
-{
+static bool displayPortTestIsTransferInProgress(const displayPort_t *displayPort) {
     UNUSED(displayPort);
     return 0;
 }
 
-static int displayPortTestHeartbeat(displayPort_t *displayPort)
-{
+static int displayPortTestHeartbeat(displayPort_t *displayPort) {
     UNUSED(displayPort);
     return 0;
 }
 
-static void displayPortTestResync(displayPort_t *displayPort)
-{
+static void displayPortTestResync(displayPort_t *displayPort) {
     UNUSED(displayPort);
 }
 
-static uint32_t displayPortTestTxBytesFree(const displayPort_t *displayPort)
-{
+static uint32_t displayPortTestTxBytesFree(const displayPort_t *displayPort) {
     UNUSED(displayPort);
     return 0;
+}
+
+static bool displayPortTestIsSynced(const displayPort_t *displayPort) {
+    UNUSED(displayPort);
+    return true;
 }
 
 static const displayPortVTable_t testDisplayPortVTable = {
@@ -117,19 +112,18 @@ static const displayPortVTable_t testDisplayPortVTable = {
     .isTransferInProgress = displayPortTestIsTransferInProgress,
     .heartbeat = displayPortTestHeartbeat,
     .resync = displayPortTestResync,
+    .isSynced = displayPortTestIsSynced,
     .txBytesFree = displayPortTestTxBytesFree
 };
 
-displayPort_t *displayPortTestInit(void)
-{
+displayPort_t *displayPortTestInit(void) {
     displayInit(&testDisplayPort, &testDisplayPortVTable);
     testDisplayPort.rows = UNITTEST_DISPLAYPORT_ROWS;
     testDisplayPort.cols = UNITTEST_DISPLAYPORT_COLS;
     return &testDisplayPort;
 }
 
-void displayPortTestPrint(void)
-{
+void displayPortTestPrint(void) {
     for (int i = 0; i < UNITTEST_DISPLAYPORT_BUFFER_LEN; i++) {
         if (i > 0 && i % UNITTEST_DISPLAYPORT_COLS == 0) {
             printf("\n");
@@ -139,8 +133,7 @@ void displayPortTestPrint(void)
     printf("\n\n");
 }
 
-void displayPortTestBufferIsEmpty()
-{
+void displayPortTestBufferIsEmpty() {
     for (size_t i = 0; i < UNITTEST_DISPLAYPORT_BUFFER_LEN; i++) {
         EXPECT_EQ(' ', testDisplayPortBuffer[i]);
         if (testDisplayPortBuffer[i] != ' ') {
@@ -152,19 +145,15 @@ void displayPortTestBufferIsEmpty()
     }
 }
 
-void displayPortTestBufferSubstring(int x, int y, const char * expectedFormat, ...)
-{
+void displayPortTestBufferSubstring(int x, int y, const char * expectedFormat, ...) {
     char expected[UNITTEST_DISPLAYPORT_BUFFER_LEN];
-
     va_list args;
     va_start(args, expectedFormat);
     vsnprintf(expected, UNITTEST_DISPLAYPORT_BUFFER_LEN, expectedFormat, args);
     va_end(args);
-
 #ifdef DEBUG_OSD
     displayPortTestPrint();
 #endif
-
     for (size_t i = 0; i < strlen(expected); i++) {
         EXPECT_EQ(expected[i], testDisplayPortBuffer[(y * testDisplayPort.cols) + x + i]);
     }

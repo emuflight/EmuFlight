@@ -27,8 +27,6 @@
 
 #define LED0_PIN                PC13
 
-#define CAMERA_CONTROL_PIN      PB10
-
 #define USE_BEEPER
 #define BEEPER_PIN              PC14
 #define BEEPER_INVERTED
@@ -43,8 +41,8 @@
 
 #define MPU6000_CS_PIN          PA4
 #define ICM20689_CS_PIN         PA4
-#define MPU6000_SPI_INSTANCE    SPI1
-#define ICM20689_SPI_INSTANCE   SPI1
+#define MPU6000_SPI_BUS    SPIDEV_1
+#define ICM20689_SPI_BUS   SPIDEV_1
 
 #define USE_EXTI
 #define USE_GYRO_EXTI
@@ -62,7 +60,6 @@
 #define ACC_MPU6000_ALIGN       CW180_DEG
 #define USE_ACC_SPI_ICM20689
 #define ACC_ICM20689_ALIGN       CW180_DEG
-
 // *************** Baro **************************
 #define USE_I2C
 
@@ -117,13 +114,14 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
+#define USE_FLASH_W25Q128FV
 #define FLASH_CS_PIN            PB2
 #define FLASH_SPI_INSTANCE      SPI2
 
 // *************** ADC *****************************
 #define USE_ADC
-#define ADC_INSTANCE         ADC1  
-#define ADC1_DMA_OPT            0  // DMA 2 Stream 0 Channel 0 
+#define ADC_INSTANCE         ADC1
+#define ADC1_DMA_OPT            0  // DMA 2 Stream 0 Channel 0
 
 #define VBAT_ADC_PIN            PA0
 #define CURRENT_METER_ADC_PIN   PA1
@@ -134,13 +132,14 @@
 
 #define USE_LED_STRIP
 
+#define ENABLE_DSHOT_DMAR       true
 #define USE_PINIO
 #define PINIO1_PIN              PB5  // VTX  switcher
-#define PINIO2_PIN              PA15 // Camera switcher
+//#define PINIO2_PIN              PA15 // Camera switcher
 #define USE_PINIOBOX
 
 #define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL | FEATURE_LED_STRIP)
-#define CURRENT_METER_SCALE_DEFAULT         170
+#define DEFAULT_CURRENT_METER_SCALE         170
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
@@ -151,4 +150,3 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 10
 #define USED_TIMERS             ( TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(5)|TIM_N(9) )
-

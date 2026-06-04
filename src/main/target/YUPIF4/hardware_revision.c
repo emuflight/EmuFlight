@@ -33,23 +33,18 @@
 
 uint8_t hardwareRevision = UNKNOWN;
 
-void detectHardwareRevision(void)
-{
+void detectHardwareRevision(void) {
     IO_t pin1 = IOGetByTag(IO_TAG(PC13));
     IOInit(pin1, OWNER_SYSTEM, 1);
     IOConfigGPIO(pin1, IOCFG_IPU);
-
     IO_t pin2 = IOGetByTag(IO_TAG(PC14));
     IOInit(pin2, OWNER_SYSTEM, 1);
     IOConfigGPIO(pin2, IOCFG_IPU);
-
     IO_t pin3 = IOGetByTag(IO_TAG(PC15));
     IOInit(pin3, OWNER_SYSTEM, 1);
     IOConfigGPIO(pin3, IOCFG_IPU);
-
     // Check hardware revision
     delayMicroseconds(10);  // allow configuration to settle
-
     /*
         Hardware pins : Pin1 = PC13 / Pin2 = PC14 / Pin3 = PC15
         no Hardware pins tied to ground => Race V1

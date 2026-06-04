@@ -47,7 +47,7 @@
 
 //  MPU 6000
 #define MPU6000_CS_PIN            PA4
-#define MPU6000_SPI_INSTANCE      SPI1
+#define MPU6000_SPI_BUS      SPIDEV_1
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
 #define USE_GYRO
@@ -64,7 +64,7 @@
 #define ACC_MPU6500_ALIGN       CW0_DEG
 #define GYRO_MPU6500_ALIGN      CW0_DEG
 #define MPU6500_CS_PIN          PA4
-#define MPU6500_SPI_INSTANCE    SPI1
+#define MPU6500_SPI_BUS    SPIDEV_1
 
 
 #define USE_MAX7456
@@ -145,7 +145,7 @@
 
 #define DEFAULT_RX_FEATURE          FEATURE_RX_SERIAL
 #define DEFAULT_FEATURES            ( FEATURE_OSD  )
-#define CURRENT_METER_SCALE_DEFAULT 250
+#define DEFAULT_CURRENT_METER_SCALE 250
 
 #define TARGET_IO_PORTA (0xffff & ~(BIT(14)|BIT(13)))
 #define TARGET_IO_PORTB (0xffff & ~(BIT(2)))

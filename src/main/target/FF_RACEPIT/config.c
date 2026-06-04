@@ -29,10 +29,8 @@
 
 #include "pg/piniobox.h"
 
-void targetConfiguration(void)
-{	
+void targetConfiguration(void) {
     telemetryConfigMutable()->halfDuplex = false;
-	
     pinioBoxConfigMutable()->permanentId[0] = 40;
 }
 #endif

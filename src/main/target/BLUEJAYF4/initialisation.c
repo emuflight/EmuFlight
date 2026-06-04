@@ -37,8 +37,7 @@
 
 #include "hardware_revision.h"
 
-void targetPreInit(void)
-{
+void targetPreInit(void) {
     switch (hardwareRevision) {
     case BJF4_REV3:
     case BJF4_MINI_REV3A:
@@ -47,11 +46,9 @@ void targetPreInit(void)
     default:
         return;
     }
-
     IO_t inverter = IOGetByTag(IO_TAG(UART1_INVERTER));
     IOInit(inverter, OWNER_INVERTER, 1);
     IOConfigGPIO(inverter, IOCFG_OUT_PP);
-
     bool high = false;
     serialPortConfig_t *portConfig = serialFindPortConfiguration(SERIAL_PORT_USART1);
     if (portConfig) {
@@ -65,13 +62,11 @@ void targetPreInit(void)
         high = !high;
     }
     IOWrite(inverter, high);
-
     /* ensure the CS pin for the flash is pulled hi so any SD card initialisation does not impact the chip */
     if (hardwareRevision == BJF4_REV3) {
         IO_t flashIo = IOGetByTag(IO_TAG(FLASH_CS_PIN));
         IOConfigGPIO(flashIo, IOCFG_OUT_PP);
         IOHi(flashIo);
-
         IO_t sdcardIo = IOGetByTag(IO_TAG(SDCARD_SPI_CS_PIN));
         IOConfigGPIO(sdcardIo, IOCFG_OUT_PP);
         IOHi(sdcardIo);

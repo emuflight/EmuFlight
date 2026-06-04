@@ -50,9 +50,9 @@
 #define USE_EXTI
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define MPU_INT_EXTI                                     PC4                    //GYRO_1_EXTI_PIN
+#define MPU_INT_EXTI                                     PC4                    //MPU_INT_EXTI
 #define MPU6000_CS_PIN                                   PA4                    //GYRO_1_CS_PIN
-#define MPU6000_SPI_INSTANCE                             SPI1                   //GYRO_1_SPI_INSTANCE
+#define MPU6000_SPI_BUS                             SPIDEV_1                   //GYRO_1_SPI_BUS
 #define GYRO_MPU6000_ALIGN                               CW0_DEG
 #define ACC_MPU6000_ALIGN                                CW0_DEG
 
@@ -67,6 +67,7 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
+#define USE_FLASH_W25Q128FV
 #define FLASH_CS_PIN                                     PB12
 #define FLASH_SPI_INSTANCE                               SPI2
 
@@ -99,15 +100,14 @@
 #define SERIAL_PORT_COUNT                                7                      //VCP, USART1, USART2,USART3,USART4,USART5,USART6
 
 // ESC
-#define USE_ESCSERIAL
 #define USE_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE                     VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE                     CURRENT_METER_ADC
-#define ESCSERIAL_TIMER_TX_PIN                           PB8                    // (Hardware=0, PPM)
 #define CURRENT_METER_ADC_PIN                            PC1
 #define VBAT_ADC_PIN                                     PC2
 #define RSSI_ADC_PIN                                     PC3
-#define CURRENT_METER_SCALE_DEFAULT                      250                    // 3.3/120A  = 25mv/A
+#define DEFAULT_CURRENT_METER_SCALE                      150                    // 3.3/120A  = 25mv/A
+#define DEFAULT_VOLTAGE_METER_SCALE                                       160                    //configurator tab voltage scale
 
 // SPI devices
 #define USE_SPI
@@ -136,6 +136,7 @@
 #define DEFAULT_RX_FEATURE                              FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER                               SERIALRX_SBUS
 #define SERIALRX_UART                                   SERIAL_PORT_USART3
+#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE )
 
 // IO Ports
 #define TARGET_IO_PORTA                                 0xffff
