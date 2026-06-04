@@ -125,7 +125,7 @@ jobs:
     # Build HEX
     - name: Compile Code
       run: |
-        make ${{ matrix.targets }}
+        make ${{ matrix.targets }} -j$(nproc) --output-sync=recurse --keep-going
 
     # Upload the Builds to ZIP file with existing SHA in .hex names
     - name: Upload Artifacts

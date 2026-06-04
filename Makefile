@@ -298,17 +298,21 @@ TARGET_LST      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).lst
 TARGET_OBJS     = $(addsuffix .o,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $(SRC))))
 TARGET_DEPS     = $(addsuffix .d,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $(SRC))))
 TARGET_MAP      = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).map
+TARGET_DIRS     := $(sort $(dir $(TARGET_OBJS)))
 
 CLEAN_ARTIFACTS := $(TARGET_BIN)
 CLEAN_ARTIFACTS += $(TARGET_HEX)
 CLEAN_ARTIFACTS += $(TARGET_ELF) $(TARGET_OBJS) $(TARGET_MAP)
 CLEAN_ARTIFACTS += $(TARGET_LST)
 
-# Make sure build date and revision is updated on every incremental build
-$(OBJECT_DIR)/$(TARGET)/build/version.o : FORCE
+# Rebuild version.o whenever any source changes so the embedded timestamp stays current
+$(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC)
 
-.PHONY: FORCE clean clean_test clean_all all_clean
-FORCE:
+.PHONY: clean clean_test clean_all all_clean binary_hex
+
+# Build each output directory once, not once-per-file, for parallel-safe compilation
+$(TARGET_DIRS):
+	@mkdir -p $@
 
 # List of buildable ELF files and their object dependencies.
 # It would be nice to compute these lists, but that seems to be just beyond make.
@@ -329,15 +333,17 @@ $(TARGET_ELF):  $(TARGET_OBJS) $(LD_SCRIPT) $(LD_SCRIPTS)
 	$(V1) $(CROSS_CC) -o $@ $(filter %.o,$^) $(LD_FLAGS)
 	$(V1) $(SIZE) $(TARGET_ELF)
 
+# .SECONDEXPANSION allows $$(dir $$@) in prerequisites — expands to the target's
+# directory at rule instantiation time, wiring each .o to its pre-created dir.
+.SECONDEXPANSION:
+
 # Compile
 ifeq ($(DEBUG),GDB)
-$(OBJECT_DIR)/$(TARGET)/%.o: %.c
-	$(V1) mkdir -p $(dir $@)
+$(OBJECT_DIR)/$(TARGET)/%.o: %.c | $$(dir $$@)
 	$(V1) echo "%% (debug) $(notdir $<)" "$(STDOUT)" && \
 	$(CROSS_CC) -c -o $@ $(CFLAGS) $(CC_DEBUG_OPTIMISATION) $<
 else
-$(OBJECT_DIR)/$(TARGET)/%.o: %.c
-	$(V1) mkdir -p $(dir $@)
+$(OBJECT_DIR)/$(TARGET)/%.o: %.c | $$(dir $$@)
 	$(V1) $(if $(findstring $(subst ./src/main/,,$<),$(SPEED_OPTIMISED_SRC)), \
 	echo "%% (speed optimised) $(notdir $<)" "$(STDOUT)" && \
 	$(CROSS_CC) -c -o $@ $(CFLAGS) $(CC_SPEED_OPTIMISATION) $<, \
@@ -349,13 +355,11 @@ $(OBJECT_DIR)/$(TARGET)/%.o: %.c
 endif
 
 # Assemble
-$(OBJECT_DIR)/$(TARGET)/%.o: %.s
-	$(V1) mkdir -p $(dir $@)
+$(OBJECT_DIR)/$(TARGET)/%.o: %.s | $$(dir $$@)
 	@echo "%% $(notdir $<)" "$(STDOUT)"
 	$(V1) $(CROSS_CC) -c -o $@ $(ASFLAGS) $<
 
-$(OBJECT_DIR)/$(TARGET)/%.o: %.S
-	$(V1) mkdir -p $(dir $@)
+$(OBJECT_DIR)/$(TARGET)/%.o: %.S | $$(dir $$@)
 	@echo "%% $(notdir $<)" "$(STDOUT)"
 	$(V1) $(CROSS_CC) -c -o $@ $(ASFLAGS) $<
 
@@ -410,7 +414,7 @@ targets-group-rest: $(GROUP_OTHER_TARGETS)
 
 $(VALID_TARGETS):
 	$(V0) @echo "Building $@" && \
-	$(MAKE) binary hex TARGET=$@ && \
+	$(MAKE) binary_hex TARGET=$@ && \
 	echo "Building $@ succeeded."
 
 $(NOBUILD_TARGETS):
@@ -480,6 +484,9 @@ binary:
 
 hex:
 	$(V0) $(MAKE) $(TARGET_HEX)
+
+## binary_hex         : build both binary and hex in one sub-make (ELF linked once; BIN+HEX via parallel objcopy)
+binary_hex: $(TARGET_BIN) $(TARGET_HEX)
 
 unbrick_$(TARGET): $(TARGET_HEX)
 	$(V0) stty -F $(SERIAL_DEVICE) raw speed 115200 -crtscts cs8 -parenb -cstopb -ixon

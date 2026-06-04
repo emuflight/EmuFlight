@@ -94,6 +94,10 @@ SPIDevice spiDeviceByInstance(SPI_TypeDef *instance) {
     if (instance == SPI5)
         return SPIDEV_5;
 #endif
+#ifdef USE_SPI_DEVICE_6
+    if (instance == SPI6)
+        return SPIDEV_6;
+#endif
     return SPIINVALID;
 }
 
@@ -135,6 +139,12 @@ bool spiInit(SPIDevice device) {
         break;
     case SPIDEV_5:
 #if defined(USE_SPI_DEVICE_5)
+        spiInitDevice(device);
+        ok = true;
+#endif
+        break;
+    case SPIDEV_6:
+#if defined(USE_SPI_DEVICE_6)
         spiInitDevice(device);
         ok = true;
 #endif
