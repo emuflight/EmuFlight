@@ -110,11 +110,12 @@
 // Performance logging for SD card operations:
 // #define AFATFS_USE_INTROSPECTIVE_LOGGING
 
-#define FLASH_CS_PIN         SPI2_NSS_PIN
+#define FLASH_CS_PIN         PB12
 #define FLASH_SPI_INSTANCE   SPI2
 
 #define USE_FLASHFS
-#define USE_FLASH_M25P16
+#define USE_FLASH_W25N01G
+#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
 #define USE_VCP
 
