@@ -274,3 +274,40 @@ FAST_CODE float ptnFilterApply(ptnFilter_t *filter, float input) {
 
 	  return filter->state[filter->order];
 } // ptnFilterApply
+
+// 1€ (One Euro) adaptive low-pass filter
+// Reference: Géry Casiez et al. "1€ Filter: A Simple Speed-based Low-pass Filter for Noisy Input"
+void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float beta, float dT)
+{
+    filter->x_prev  = 0.0f;
+    filter->dx_prev = 0.0f;
+    filter->fc_min  = fc_min;
+    filter->beta    = beta;
+    filter->dT      = dT;
+}
+
+// Update parameters without resetting filter state
+void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float beta)
+{
+    filter->fc_min = fc_min;
+    filter->beta   = beta;
+}
+
+FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)
+{
+    // Derivative estimate via PT1 at fixed 1 Hz cutoff
+    const float rc_d   = 0.5f / M_PIf;                                     // RC for 1 Hz
+    const float alpha_d = filter->dT / (rc_d + filter->dT);
+    const float dx      = (input - filter->x_prev) / filter->dT;
+    const float dx_hat  = filter->dx_prev + alpha_d * (dx - filter->dx_prev);
+
+    // Adaptive cutoff and main PT1
+    const float cutoff = filter->fc_min + filter->beta * fabsf(dx_hat);
+    const float rc     = 0.5f / (M_PIf * cutoff);
+    const float alpha  = filter->dT / (rc + filter->dT);
+    const float x_hat  = filter->x_prev + alpha * (input - filter->x_prev);
+
+    filter->dx_prev = dx_hat;
+    filter->x_prev  = x_hat;
+    return x_hat;
+}

@@ -71,7 +71,7 @@ typedef enum {
     RC_SMOOTHING_INPUT_BIQUAD,
     RC_SMOOTHING_INPUT_PT2,
     RC_SMOOTHING_INPUT_PT3,
-    RC_SMOOTHING_INPUT_PT4
+    RC_SMOOTHING_INPUT_1EURO
 } rcSmoothingInputFilter_e;
 
 typedef enum {
@@ -114,6 +114,7 @@ typedef union rcSmoothingFilterTypes_u {
     pt1Filter_t pt1Filter;
     biquadFilter_t biquadFilter;
     ptnFilter_t ptnFilter;
+    oneEuroFilter_t oneEuroFilter;
 } rcSmoothingFilterTypes_t;
 
 typedef struct rcSmoothingFilter_s {

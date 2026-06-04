@@ -65,6 +65,7 @@ void pgResetFn_rxConfig(rxConfig_t *rxConfig) {
                    .rc_smoothing_input_cutoff = 50,      // automatically calculate the cutoff by default
                    .rc_smoothing_debug_axis = ROLL,     // default to debug logging for the roll axis
                    .rc_smoothing_input_type = RC_SMOOTHING_INPUT_PT2,
+                   .rc_smoothing_1euro_beta = 7,            // beta = 7/1000 = 0.007
                    .showAlteredRc = 0,
                    .sbus_baud_fast = false,
                   );

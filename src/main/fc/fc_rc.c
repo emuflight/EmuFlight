@@ -364,13 +364,15 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                         ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 1.961459177f, dT);
                     }
                     break;
-                case RC_SMOOTHING_INPUT_PT4:
+                case RC_SMOOTHING_INPUT_1EURO: {
+                    const float beta = rxConfig()->rc_smoothing_1euro_beta / 1000.0f;
                     if (!smoothingData->filterInitialized) {
-                        ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], FILTER_PT4, smoothingData->inputCutoffFrequency, dT);
+                        oneEuroFilterInit((oneEuroFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, beta, dT);
                     } else {
-                        ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 2.298959223f, dT);
+                        oneEuroFilterUpdate((oneEuroFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, beta);
                     }
                     break;
+                }
                 }
             }
         }
@@ -512,8 +514,10 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
                     break;
                 case RC_SMOOTHING_INPUT_PT2:
                 case RC_SMOOTHING_INPUT_PT3:
-                case RC_SMOOTHING_INPUT_PT4:
                     rcCommand[updatedChannel] = ptnFilterApply((ptnFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
+                    break;
+                case RC_SMOOTHING_INPUT_1EURO:
+                    rcCommand[updatedChannel] = oneEuroFilterApply((oneEuroFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
                     break;
                   }
             } else {

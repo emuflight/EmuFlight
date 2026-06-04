@@ -1069,7 +1069,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
 #if defined(USE_RC_SMOOTHING_FILTER)
         sbufWriteU8(dst, rxConfig()->rc_smoothing_type);
         sbufWriteU8(dst, rxConfig()->rc_smoothing_input_cutoff);
-        sbufWriteU8(dst, 0); // was rc_smoothing_derivative_cutoff
+        sbufWriteU8(dst, rxConfig()->rc_smoothing_1euro_beta); // was rc_smoothing_derivative_cutoff
         sbufWriteU8(dst, rxConfig()->rc_smoothing_input_type);
         sbufWriteU8(dst, 0); // was rc_smoothing_derivative_type
 #else
@@ -2218,7 +2218,8 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
 #if defined(USE_RC_SMOOTHING_FILTER)
         rxConfigMutable()->rc_smoothing_type = sbufReadU8(src);
         rxConfigMutable()->rc_smoothing_input_cutoff = sbufReadU8(src);
-        sbufReadU8(src); // was rc_smoothing_derivative_cutoff
+        const uint8_t beta = sbufReadU8(src); // was rc_smoothing_derivative_cutoff
+        rxConfigMutable()->rc_smoothing_1euro_beta = (beta > 0) ? beta : 7;
         rxConfigMutable()->rc_smoothing_input_type = sbufReadU8(src);
         sbufReadU8(src); // was rc_smoothing_derivative_type
 #else

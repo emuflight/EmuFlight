@@ -96,3 +96,16 @@ float alphaBetaGammaApply(alphaBetaGammaFilter_t *filter, float input);
 void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT);
 void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float ScaleF, float dt);
 float ptnFilterApply(ptnFilter_t *filter, float input);
+
+// 1€ (One Euro) adaptive low-pass filter — cutoff rises with signal velocity
+typedef struct oneEuroFilter_s {
+    float x_prev;   // previous filtered value
+    float dx_prev;  // previous derivative estimate
+    float fc_min;   // minimum cutoff frequency (Hz)
+    float beta;     // speed coefficient
+    float dT;       // time step (seconds)
+} oneEuroFilter_t;
+
+void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float beta, float dT);
+void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float beta);
+float oneEuroFilterApply(oneEuroFilter_t *filter, float input);
