@@ -62,6 +62,12 @@ float cos_approx(float x) {
     return sin_approx(x + (0.5f * M_PIf));
 }
 
+void sincosf_approx(float x, float *out_s, float *out_c)
+{
+    *out_s = sin_approx(x);
+    *out_c = cos_approx(x);
+}
+
 // Initial implementation by Crashpilot1000 (https://github.com/Crashpilot1000/HarakiriWebstore1/blob/396715f73c6fcf859e0db0f34e12fe44bace6483/src/mw.c#L1292)
 // Polynomial coefficients by Andor (http://www.dsprelated.com/showthread/comp.dsp/21872-1.php) optimized by Ledvinap to save one multiplication
 // Max absolute error 0,000027 degree

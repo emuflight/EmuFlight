@@ -41,6 +41,24 @@ typedef struct biquadFilter_s {
     float x1, x2, y1, y2;
 } biquadFilter_t;
 
+// SVF filter in TPT form — lowpass (Q fixed to Butterworth = 1/sqrt(2))
+typedef struct svfLowpassFilter_s {
+    float f;
+    float a1;
+    float a2;
+    float ic1;
+    float ic2;
+} svfLowpassFilter_t;
+
+// SVF filter in TPT form — notch (Q must remain constant across updates)
+typedef struct svfNotchFilter_s {
+    float a1;
+    float a2q;  // a2 * q
+    float fq;   // f * Q
+    float ic1q; // state 1 scaled by q
+    float ic2;
+} svfNotchFilter_t;
+
 typedef struct alphaBetaGammaFilter_s {
     float a, b, g, e;
     float ak, vk, xk, jk, rk;
@@ -57,11 +75,12 @@ typedef struct ptnFilter_s {
 
 typedef enum {
     FILTER_PT1 = 0,
-    FILTER_BIQUAD,
+    FILTER_SVF,      // replaces FILTER_BIQUAD at index 1 — same EEPROM value, CLI string stays "BIQUAD"
     FILTER_PT2,
     FILTER_PT3,
     FILTER_PT4,
 } lowpassFilterType_e;
+#define FILTER_BIQUAD FILTER_SVF  // backwards-compat alias for EF-specific code
 
 typedef enum {
     FILTER_LPF,    // 2nd order Butterworth section
@@ -82,6 +101,15 @@ void biquadFilterUpdateLPF(biquadFilter_t *filter, float filterFreq, uint32_t re
 float biquadFilterApplyDF1(biquadFilter_t *filter, float input);
 float biquadFilterApply(biquadFilter_t *filter, float input);
 float filterGetNotchQ(float centerFreq, float cutoffFreq);
+
+void svfLowpassFilterInit(svfLowpassFilter_t *filter, float filterFreq, float dt);
+void svfLowpassFilterUpdate(svfLowpassFilter_t *filter, float filterFreq, float dt);
+float svfLowpassFilterApply(svfLowpassFilter_t *filter, float input);
+
+void svfNotchInit(svfNotchFilter_t *filter, float filterFreq, float dt, float Q);
+void svfNotchUpdate(svfNotchFilter_t *filter, float filterFreq, float dt, float Q);
+float svfNotchApply(svfNotchFilter_t *filter, float input);
+
 float pt1FilterGain(uint16_t f_cut, float dT);
 void pt1FilterInit(pt1Filter_t *filter, float k);
 void pt1FilterUpdateCutoff(pt1Filter_t *filter, float k);

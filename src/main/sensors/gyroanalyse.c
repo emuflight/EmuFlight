@@ -354,10 +354,11 @@ static FAST_CODE_NOINLINE void gyroDataAnalyseUpdate(gyroAnalyseState_t *state)
         }
         case STEP_UPDATE_FILTERS: // 7us @ F722
         {
+            const float dt = gyro.targetLooptime * 1e-6f;
             for (int p = 0; p < gyroConfig()->dyn_notch_count; p++) {
                 // Only update notch filter coefficients if the corresponding peak got its center frequency updated in the previous step
                 if (peaks[p].bin != 0 && peaks[p].value > sdftMeanSq) {
-                    biquadFilterUpdate(&state->notchFilterDyn[state->updateAxis][p], state->centerFreq[state->updateAxis][p], gyro.targetLooptime, dynNotchQ, FILTER_NOTCH);
+                    svfNotchUpdate(&state->notchFilterDyn[state->updateAxis][p], state->centerFreq[state->updateAxis][p], dt, dynNotchQ);
                     centerFreq[state->updateAxis][p] = state->centerFreq[state->updateAxis][p];
                 }
             }
