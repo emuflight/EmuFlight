@@ -279,11 +279,12 @@ FAST_CODE float ptnFilterApply(ptnFilter_t *filter, float input) {
 // Reference: Géry Casiez et al. "1€ Filter: A Simple Speed-based Low-pass Filter for Noisy Input"
 void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float beta, float dT)
 {
-    filter->x_prev  = 0.0f;
-    filter->dx_prev = 0.0f;
-    filter->fc_min  = fc_min;
-    filter->beta    = beta;
-    filter->dT      = dT;
+    filter->x_prev      = 0.0f;
+    filter->dx_prev     = 0.0f;
+    filter->fc_min      = fc_min;
+    filter->beta        = beta;
+    filter->dT          = dT;
+    filter->initialized = false;
 }
 
 // Update parameters without resetting filter state
@@ -295,6 +296,18 @@ void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float beta)
 
 FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)
 {
+    if (filter->dT <= 0.0f) {
+        return input;
+    }
+
+    // Prime state on first call to avoid a large initial derivative transient
+    if (!filter->initialized) {
+        filter->x_prev    = input;
+        filter->dx_prev   = 0.0f;
+        filter->initialized = true;
+        return input;
+    }
+
     // Derivative estimate via PT1 at fixed 1 Hz cutoff
     const float rc_d   = 0.5f / M_PIf;                                     // RC for 1 Hz
     const float alpha_d = filter->dT / (rc_d + filter->dT);

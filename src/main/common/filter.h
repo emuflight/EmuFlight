@@ -99,11 +99,12 @@ float ptnFilterApply(ptnFilter_t *filter, float input);
 
 // 1€ (One Euro) adaptive low-pass filter — cutoff rises with signal velocity
 typedef struct oneEuroFilter_s {
-    float x_prev;   // previous filtered value
-    float dx_prev;  // previous derivative estimate
-    float fc_min;   // minimum cutoff frequency (Hz)
-    float beta;     // speed coefficient
-    float dT;       // time step (seconds)
+    float x_prev;       // previous filtered value
+    float dx_prev;      // previous derivative estimate
+    float fc_min;       // minimum cutoff frequency (Hz)
+    float beta;         // speed coefficient
+    float dT;           // time step (seconds)
+    bool  initialized;  // true after first sample primes x_prev
 } oneEuroFilter_t;
 
 void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float beta, float dT);
