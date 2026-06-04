@@ -150,16 +150,8 @@
 #undef USE_ADC_INTERNAL
 #endif
 
-#if (!defined(USE_SDCARD) && !defined(USE_FLASHFS)) || !(defined(STM32F4) || defined(STM32F7) || defined(STM32H7))
-#undef USE_USB_MSC
-#endif
-
 #if !defined(USE_VCP) || defined(STM32F7) || defined(STM32H7)
 #undef USE_USB_CDC_HID
-#endif
-
-#if defined(USE_USB_CDC_HID) || defined(USE_USB_MSC)
-#define USE_USB_ADVANCED_PROFILES
 #endif
 
 // Determine if the target could have a 32KHz capable gyro
@@ -220,6 +212,17 @@
 #ifndef USE_FLASH_CHIP
 #undef USE_FLASH_TOOLS
 #undef USE_FLASHFS
+#endif
+
+// USE_USB_MSC requires a storage backend (SDCARD or FLASHFS, after auto-derivation) and F4/F7/H7 MCU.
+// This check must come after the flash auto-derivation above so that targets using USE_FLASH_W25*
+// (which auto-derive USE_FLASHFS) are not incorrectly stripped.
+#if (!defined(USE_SDCARD) && !defined(USE_FLASHFS)) || !(defined(STM32F4) || defined(STM32F7) || defined(STM32H7))
+#undef USE_USB_MSC
+#endif
+
+#if defined(USE_USB_CDC_HID) || defined(USE_USB_MSC)
+#define USE_USB_ADVANCED_PROFILES
 #endif
 
 #if defined(USE_MAX7456)
