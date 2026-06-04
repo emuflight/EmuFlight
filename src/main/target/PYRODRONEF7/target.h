@@ -60,6 +60,10 @@
 #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 
 #define USE_VCP
+#define USE_FLASH_M25P16    // 16MB Micron M25P16 driver; drives all unless QSPI
+#define FLASH_CS_PIN         PB12
+#define FLASH_SPI_INSTANCE   SPI2
+#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
 #define USE_UART1
 #define UART1_RX_PIN            PA10

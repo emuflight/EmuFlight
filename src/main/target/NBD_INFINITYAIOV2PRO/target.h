@@ -123,11 +123,6 @@
 #define FLASH_CS_PIN            PB0
 #define FLASH_SPI_INSTANCE      SPI1
 
-#define USE_FLASH_M25P16    // testing // 16MB Micron M25P16 and others (ref: https://github.com/betaflight/betaflight/blob/master/src/main/drivers/flash_m25p16.c)
-#define USE_FLASH_W25M      // testing // 1Gb NAND flash support
-#define USE_FLASH_W25M512   // testing // 16, 32, 64 or 128MB Winbond stacked die support
-#define USE_FLASH_W25Q      // testing // 512Kb (256Kb x 2 stacked) NOR flash support
-
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE_1           (I2CDEV_1)

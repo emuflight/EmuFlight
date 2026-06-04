@@ -42,10 +42,6 @@
 
 #define USE_VCP
 #define USE_FLASHFS
-#define USE_FLASH_M25P16  //testing
-#define USE_FLASH_W25M    //testing
-#define USE_FLASH_W25M512 //testing
-#define USE_FLASH_W25Q    //testing
 #define USE_OSD
 
 #define USE_LED

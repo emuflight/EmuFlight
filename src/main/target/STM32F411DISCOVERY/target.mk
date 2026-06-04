@@ -1,5 +1,5 @@
 F411_TARGETS    += $(TARGET)
-FEATURES        += VCP SDCARD_SPI ONBOARDFLASH
+FEATURES        += VCP SDCARD_SPI
 
 TARGET_SRC = \
             drivers/accgyro_legacy/accgyro_l3gd20.c \

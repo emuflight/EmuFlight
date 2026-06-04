@@ -116,7 +116,7 @@
 #define I2C1_SCL          PB8
 #define I2C1_SDA          PB9
 
-//#define USE_FLASH //breaks CLI resources (need support in .mk? or not valid at all?)
+#define USE_FLASH_M25P16
 #define FLASH_CS_PIN          PD2
 #define FLASH_SPI_INSTANCE    SPI3
 

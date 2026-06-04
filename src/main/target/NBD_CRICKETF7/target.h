@@ -32,6 +32,9 @@
 #define USE_MAX7456
 
 #define USE_VCP
+#define USE_FLASH_M25P16    // 16MB Micron M25P16 driver; drives all unless QSPI
+#define FLASH_CS_PIN         PA4
+#define FLASH_SPI_INSTANCE   SPI1
 #define USE_OSD
 
 #define USE_LED
