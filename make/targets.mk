@@ -14,7 +14,6 @@ $(error The target specified, $(TARGET), cannot be built. Use one of the ALT tar
 endif
 
 UNSUPPORTED_TARGETS := \
-    OMNIBUS \
     SITL \
     STM32F411DISCOVERY \
     STM32F4DISCOVERY \
