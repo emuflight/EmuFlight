@@ -141,6 +141,9 @@ enum {
     MSP_REBOOT_BOOTLOADER,
     MSP_REBOOT_MSC,
     MSP_REBOOT_MSC_UTC,
+    // MSP_REBOOT_BOOTLOADER_FLASH = 4 exists in BF for QUADSPI/OctoSPI external-flash firmware
+    // execution targets. Add here (with mspRebootFn case + systemResetToBootloaderViaDFU or
+    // equivalent) when QUADSPI/OctoSPI bootloader support is backported to EF.
     MSP_REBOOT_COUNT,
 };
 
