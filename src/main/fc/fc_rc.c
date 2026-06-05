@@ -363,6 +363,13 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                         ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 1.553773974f, dT);
                     }
                     break;
+                case RC_SMOOTHING_INPUT_PT3:
+                    if (!smoothingData->filterInitialized) {
+                        ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], FILTER_PT3, smoothingData->inputCutoffFrequency, dT);
+                    } else {
+                        ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 1.961459177f, dT);
+                    }
+                    break;
                 case RC_SMOOTHING_INPUT_1EURO:
                 default: {
                     // Use RC frame time for derivative — correct time scale for stick velocity
@@ -523,6 +530,7 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
                     rcCommand[updatedChannel] = pt1FilterApply((pt1Filter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
                     break;
                 case RC_SMOOTHING_INPUT_PT2:
+                case RC_SMOOTHING_INPUT_PT3:
                     rcCommand[updatedChannel] = ptnFilterApply((ptnFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
                     break;
                 case RC_SMOOTHING_INPUT_1EURO:

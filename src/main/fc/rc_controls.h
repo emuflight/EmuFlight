@@ -70,6 +70,7 @@ typedef enum {
     RC_SMOOTHING_INPUT_PT1,    // 0 — light smoothing, low latency
     RC_SMOOTHING_INPUT_1EURO,  // 1 — adaptive (was BIQUAD; also default fallback)
     RC_SMOOTHING_INPUT_PT2,    // 2 — standard fixed-cutoff (BF-equivalent default)
+    RC_SMOOTHING_INPUT_PT3,    // 3 — BF parity
 } rcSmoothingInputFilter_e;
 
 typedef enum {
