@@ -115,7 +115,7 @@ uint8_t mscStart(void)
     return 0;
 }
 
-bool mscCheckBoot(void)
+bool mscCheckBootAndReset(void)
 {
     static bool checked = false;
     static bool mscMode = false;
@@ -124,9 +124,10 @@ bool mscCheckBoot(void)
         checked = true;
         if (persistentObjectRead(PERSISTENT_OBJECT_RESET_REASON) == RESET_MSC_REQUEST) {
             mscMode = true;
-            // Clear so a power cycle exits MSC mode (H7 RTC backup registers survive reset)
-            persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_NONE);
         }
+        // Always clear on first check: H7 RTC backup registers survive power cycles,
+        // so a stale RESET_MSC_REQUEST would cause MSC mode on every subsequent boot.
+        persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_NONE);
     }
     return mscMode;
 }
@@ -158,8 +159,9 @@ void mscWaitForButton(void)
     }
 }
 
-void systemResetToMsc(void)
+void systemResetToMsc(int timezoneOffsetMinutes)
 {
+    UNUSED(timezoneOffsetMinutes);
     persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_MSC_REQUEST);
     __disable_irq();
     NVIC_SystemReset();

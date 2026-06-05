@@ -383,7 +383,7 @@ void init(void) {
     /* MSC mode will start after init, but will not allow scheduler to run,
      *  so there is no bottleneck in reading and writing data */
     mscInit();
-    if (mscCheckBoot() || mscCheckButton()) {
+    if (mscCheckBootAndReset() || mscCheckButton()) {
         if (mscStart() == 0) {
             mscWaitForButton();
         } else {

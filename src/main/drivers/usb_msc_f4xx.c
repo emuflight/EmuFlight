@@ -98,7 +98,7 @@ uint8_t mscStart(void) {
     return 0;
 }
 
-bool mscCheckBoot(void) {
+bool mscCheckBootAndReset(void) {
     if (*((uint32_t *)0x2001FFF0) == MSC_MAGIC) {
         return true;
     }
@@ -130,7 +130,8 @@ void mscWaitForButton(void) {
     }
 }
 
-void systemResetToMsc(void) {
+void systemResetToMsc(int timezoneOffsetMinutes) {
+    UNUSED(timezoneOffsetMinutes);
     if (mpuResetFn) {
         mpuResetFn();
     }

@@ -184,7 +184,7 @@ static void Get_SerialNum(void);
 uint8_t *USBD_VCP_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length) {
     (void)speed;
 #ifdef USE_USB_MSC
-    if (mscCheckBoot()) {
+    if (mscCheckBootAndReset()) {
         *length = sizeof(USBD_MSC_DeviceDesc);
         return USBD_MSC_DeviceDesc;
     }

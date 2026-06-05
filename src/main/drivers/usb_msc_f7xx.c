@@ -101,7 +101,7 @@ uint8_t mscStart(void) {
     return 0;
 }
 
-bool mscCheckBoot(void) {
+bool mscCheckBootAndReset(void) {
     if (*((__IO uint32_t *)BKPSRAM_BASE + 16) == MSC_MAGIC) {
         return true;
     }
@@ -133,7 +133,8 @@ void mscWaitForButton(void) {
     }
 }
 
-void systemResetToMsc(void) {
+void systemResetToMsc(int timezoneOffsetMinutes) {
+    UNUSED(timezoneOffsetMinutes);
     if (mpuResetFn) {
         mpuResetFn();
     }
