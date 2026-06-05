@@ -221,6 +221,7 @@ const angle_index_t rcAliasToAngleIndexMap[] = {AI_ROLL, AI_PITCH};
 typedef union dtermLowpass_u {
     pt1Filter_t pt1Filter;
     biquadFilter_t biquadFilter;
+    svfLowpassFilter_t svfLowpassFilter;
     ptnFilter_t ptnFilter;
 } dtermLowpass_t;
 
@@ -258,9 +259,9 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
     for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
         if (pidProfile->dFilter[axis].dLpf && pidProfile->dFilter[axis].dLpf <= pidFrequencyNyquist) {
             switch (pidProfile->dterm_filter_type) {
-            case FILTER_BIQUAD:
-                dtermLowpassApplyFn = (filterApplyFnPtr)biquadFilterApply;
-                biquadFilterInitLPF(&dtermLowpass[axis].biquadFilter, pidProfile->dFilter[axis].dLpf, targetPidLooptime);
+            case FILTER_SVF:
+                dtermLowpassApplyFn = (filterApplyFnPtr)svfLowpassFilterApply;
+                svfLowpassFilterInit(&dtermLowpass[axis].svfLowpassFilter, pidProfile->dFilter[axis].dLpf, dT);
                 break;
             case FILTER_PT4:
                 dtermLowpassApplyFn = (filterApplyFnPtr)ptnFilterApply;
@@ -283,9 +284,9 @@ void pidInitFilters(const pidProfile_t *pidProfile) {
 
         if (pidProfile->dFilter[axis].dLpf2 && pidProfile->dFilter[axis].dLpf2 <= pidFrequencyNyquist) {
             switch (pidProfile->dterm_filter2_type) {
-            case FILTER_BIQUAD:
-                dtermLowpass2ApplyFn = (filterApplyFnPtr)biquadFilterApply;
-                biquadFilterInitLPF(&dtermLowpass2[axis].biquadFilter, pidProfile->dFilter[axis].dLpf2, targetPidLooptime);
+            case FILTER_SVF:
+                dtermLowpass2ApplyFn = (filterApplyFnPtr)svfLowpassFilterApply;
+                svfLowpassFilterInit(&dtermLowpass2[axis].svfLowpassFilter, pidProfile->dFilter[axis].dLpf2, dT);
                 break;
             case FILTER_PT4:
                 dtermLowpass2ApplyFn = (filterApplyFnPtr)ptnFilterApply;

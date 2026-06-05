@@ -4271,7 +4271,7 @@ static void cliMsc(char *cmdline) {
         bufWriterFlush(cliWriter);
         waitForSerialPortToFinishTransmitting(cliPort);
         stopPwmAllMotors();
-        systemResetToMsc();
+        systemResetToMsc(0);
     } else {
         cliPrintHashLine("Storage not present or failed to initialize!");
     }

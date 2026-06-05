@@ -149,6 +149,7 @@ bool firstArmingCalibrationWasStarted = false;
 typedef union gyroLowpassFilter_u {
     pt1Filter_t pt1FilterState;
     biquadFilter_t biquadFilterState;
+    svfLowpassFilter_t svfLowpassFilterState;
     ptnFilter_t ptnFilterState;
 } gyroLowpassFilter_t;
 
@@ -172,10 +173,10 @@ typedef struct gyroSensor_s {
 
     // notch filters
     filterApplyFnPtr notchFilter1ApplyFn;
-    biquadFilter_t notchFilter1[XYZ_AXIS_COUNT];
+    svfNotchFilter_t notchFilter1[XYZ_AXIS_COUNT];
 
     filterApplyFnPtr notchFilter2ApplyFn;
-    biquadFilter_t notchFilter2[XYZ_AXIS_COUNT];
+    svfNotchFilter_t notchFilter2[XYZ_AXIS_COUNT];
 
     filterApplyFnPtr notchFilterDynApplyFn;
 
@@ -811,9 +812,9 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
         float gain = pt1FilterGain(lpfHz[axis], gyroDt);
         if (lpfHz[axis] && lpfHz[axis] <= gyroFrequencyNyquist) {
             switch (type) {
-            case FILTER_BIQUAD:
-                *lowpassFilterApplyFn = (filterApplyFnPtr) biquadFilterApply;
-                biquadFilterInitLPF(&lowpassFilter[axis].biquadFilterState, lpfHz[axis], gyro.targetLooptime);
+            case FILTER_SVF:
+                *lowpassFilterApplyFn = (filterApplyFnPtr) svfLowpassFilterApply;
+                svfLowpassFilterInit(&lowpassFilter[axis].svfLowpassFilterState, lpfHz[axis], gyroDt);
                 break;
             case FILTER_PT4:
                 *lowpassFilterApplyFn = (filterApplyFnPtr) ptnFilterApply;
@@ -860,10 +861,11 @@ static void gyroInitFilterNotch1(gyroSensor_t *gyroSensor, uint16_t notchHz, uin
     gyroSensor->notchFilter1ApplyFn = nullFilterApply;
     notchHz = calculateNyquistAdjustedNotchHz(notchHz, notchCutoffHz);
     if (notchHz != 0 && notchCutoffHz != 0) {
-        gyroSensor->notchFilter1ApplyFn = (filterApplyFnPtr)biquadFilterApply;
+        gyroSensor->notchFilter1ApplyFn = (filterApplyFnPtr)svfNotchApply;
         const float notchQ = filterGetNotchQ(notchHz, notchCutoffHz);
+        const float dt = gyro.targetLooptime * 1e-6f;
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            biquadFilterInit(&gyroSensor->notchFilter1[axis], notchHz, gyro.targetLooptime, notchQ, FILTER_NOTCH);
+            svfNotchInit(&gyroSensor->notchFilter1[axis], notchHz, dt, notchQ);
         }
     }
 }
@@ -872,10 +874,11 @@ static void gyroInitFilterNotch2(gyroSensor_t *gyroSensor, uint16_t notchHz, uin
     gyroSensor->notchFilter2ApplyFn = nullFilterApply;
     notchHz = calculateNyquistAdjustedNotchHz(notchHz, notchCutoffHz);
     if (notchHz != 0 && notchCutoffHz != 0) {
-        gyroSensor->notchFilter2ApplyFn = (filterApplyFnPtr)biquadFilterApply;
+        gyroSensor->notchFilter2ApplyFn = (filterApplyFnPtr)svfNotchApply;
         const float notchQ = filterGetNotchQ(notchHz, notchCutoffHz);
+        const float dt = gyro.targetLooptime * 1e-6f;
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            biquadFilterInit(&gyroSensor->notchFilter2[axis], notchHz, gyro.targetLooptime, notchQ, FILTER_NOTCH);
+            svfNotchInit(&gyroSensor->notchFilter2[axis], notchHz, dt, notchQ);
         }
     }
 }
@@ -888,10 +891,11 @@ bool isDynamicFilterActive(void) {
 static void gyroInitFilterDynamicNotch(gyroSensor_t *gyroSensor) {
     gyroSensor->notchFilterDynApplyFn = nullFilterApply;
     if (isDynamicFilterActive()) {
-        gyroSensor->notchFilterDynApplyFn = (filterApplyFnPtr)biquadFilterApplyDF1; // must be this function, not DF2
+        gyroSensor->notchFilterDynApplyFn = (filterApplyFnPtr)svfNotchApply;
+        const float dt = gyro.targetLooptime * 1e-6f;
         for (int axis = 0; axis < gyroConfig()->dyn_notch_axis+1; axis++) {
             for (int axis2 = 0; axis2 < gyroConfig()->dyn_notch_count; axis2++) {
-                biquadFilterInit(&gyroSensor->gyroAnalyseState.notchFilterDyn[axis][axis2], 400, gyro.targetLooptime, gyroConfig()->dyn_notch_q / 100.0f, FILTER_NOTCH);
+                svfNotchInit(&gyroSensor->gyroAnalyseState.notchFilterDyn[axis][axis2], 400, dt, gyroConfig()->dyn_notch_q / 100.0f);
             }
         }
     }

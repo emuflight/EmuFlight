@@ -91,6 +91,75 @@ float filterGetNotchQ(float centerFreq, float cutoffFreq) {
     return centerFreq * cutoffFreq / (centerFreq * centerFreq - cutoffFreq * cutoffFreq);
 }
 
+// SVF filters (TPT form)
+
+void svfLowpassFilterInit(svfLowpassFilter_t *filter, float filterFreq, float dt)
+{
+    svfLowpassFilterUpdate(filter, filterFreq, dt);
+    filter->ic1 = 0.0f;
+    filter->ic2 = 0.0f;
+}
+
+FAST_CODE void svfLowpassFilterUpdate(svfLowpassFilter_t *filter, float filterFreq, float dt)
+{
+    // Q fixed to Butterworth: 1/sqrt(2)
+    const float inv_butterworth_q = 1.41421356237f;
+    float sn, cs;
+    sincosf_approx(M_PIf * filterFreq * dt, &sn, &cs);
+    const float f = sn / cs;
+    const float inv_denom = 1.0f / (1.0f + f * (f + inv_butterworth_q));
+    filter->a1 = inv_denom;
+    filter->a2 = f * inv_denom;
+    filter->f  = f;
+}
+
+FAST_CODE float svfLowpassFilterApply(svfLowpassFilter_t *filter, float input)
+{
+    const float a1  = filter->a1;
+    const float a2  = filter->a2;
+    const float f   = filter->f;
+    const float ic1 = filter->ic1;
+    const float ic2 = filter->ic2;
+    const float v3  = input - ic2;
+    const float v1  = a1 * ic1 + a2 * v3;
+    const float v2  = ic2 + f * v1;
+    filter->ic1 = 2.0f * v1 - ic1;
+    filter->ic2 = 2.0f * v2 - ic2;
+    return v2;
+}
+
+void svfNotchInit(svfNotchFilter_t *filter, float filterFreq, float dt, float Q)
+{
+    svfNotchUpdate(filter, filterFreq, dt, Q);
+    filter->ic1q = 0.0f;
+    filter->ic2  = 0.0f;
+}
+
+FAST_CODE void svfNotchUpdate(svfNotchFilter_t *filter, float filterFreq, float dt, float Q)
+{
+    float sn, cs;
+    sincosf_approx(M_PIf * filterFreq * dt, &sn, &cs);
+    const float f         = sn / cs;
+    const float q         = 1.0f / Q;
+    const float invDenom  = 1.0f / (1.0f + f * (f + q));
+    filter->a1  = invDenom;
+    filter->a2q = (f * invDenom) * q;
+    filter->fq  = f * Q;
+}
+
+FAST_CODE float svfNotchApply(svfNotchFilter_t *filter, float input)
+{
+    const float a1  = filter->a1;
+    const float a2q = filter->a2q;
+    const float fq  = filter->fq;
+    const float v3  = input - filter->ic2;
+    const float v1q = a1 * filter->ic1q + a2q * v3;
+    const float v2  = filter->ic2 + fq * v1q;
+    filter->ic1q = 2.0f * v1q - filter->ic1q;
+    filter->ic2  = 2.0f * v2  - filter->ic2;
+    return input - v1q;
+}
+
 /* sets up a biquad filter as a 2nd order butterworth LPF */
 void biquadFilterInitLPF(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate) {
     biquadFilterInit(filter, filterFreq, refreshRate, BIQUAD_Q, FILTER_LPF);
