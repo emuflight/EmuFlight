@@ -327,16 +327,23 @@ FAST_CODE bool rcSmoothingRxRateValid(int currentRxRefreshRate) {
 FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothingData) {
     const float dT = targetPidLooptime * 1e-6f;
     uint16_t oldCutoff = smoothingData->inputCutoffFrequency;
-    if (rxConfig()->rc_smoothing_input_cutoff == 0) {
-        if (rxConfig()->rc_smoothing_input_type == RC_SMOOTHING_INPUT_1EURO) {
-            // Auto fc_min: rx_hz / 12, clamped [6, 40] Hz. Falls back to 15 Hz until RX rate is known.
+
+    if (rxConfig()->rc_smoothing_input_type == RC_SMOOTHING_INPUT_1EURO) {
+        // 1EURO uses its own fc_min field — fully independent of rc_smoothing_input_cutoff.
+        // Store computed fc_min in inputCutoffFrequency for change detection.
+        if (rxConfig()->rc_smoothing_1euro_fc_min == 0) {
+            // Auto: rx_hz / 12 clamped [6, 40] Hz; 180 Hz fallback gives 15 Hz before RX is known
             const float rx_hz = (smoothingData->averageFrameTimeUs > 0)
                                 ? 1e6f / smoothingData->averageFrameTimeUs : 180.0f;
             smoothingData->inputCutoffFrequency = (uint16_t)constrainf(rx_hz / 12.0f, 6.0f, 40.0f);
         } else {
-            smoothingData->inputCutoffFrequency = calcRcSmoothingCutoff(smoothingData->averageFrameTimeUs, (rxConfig()->rc_smoothing_input_type == RC_SMOOTHING_INPUT_PT1));
+            smoothingData->inputCutoffFrequency = rxConfig()->rc_smoothing_1euro_fc_min;
         }
+    } else if (rxConfig()->rc_smoothing_input_cutoff == 0) {
+        smoothingData->inputCutoffFrequency = calcRcSmoothingCutoff(smoothingData->averageFrameTimeUs,
+                                               rxConfig()->rc_smoothing_input_type == RC_SMOOTHING_INPUT_PT1);
     }
+
     // initialize or update the input filter
     if ((smoothingData->inputCutoffFrequency != oldCutoff) || !smoothingData->filterInitialized) {
         for (int i = 0; i < PRIMARY_CHANNEL_COUNT; i++) {
@@ -349,14 +356,6 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                         pt1FilterUpdateCutoff((pt1Filter_t*) &smoothingData->filter[i], pt1FilterGain(smoothingData->inputCutoffFrequency, dT));
                     }
                     break;
-                case RC_SMOOTHING_INPUT_BIQUAD:
-                default:
-                    if (!smoothingData->filterInitialized) {
-                        biquadFilterInitLPF((biquadFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, targetPidLooptime);
-                    } else {
-                        biquadFilterUpdateLPF((biquadFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, targetPidLooptime);
-                    }
-                    break;
                 case RC_SMOOTHING_INPUT_PT2:
                     if (!smoothingData->filterInitialized) {
                         ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], FILTER_PT2, smoothingData->inputCutoffFrequency, dT);
@@ -364,19 +363,17 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                         ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 1.553773974f, dT);
                     }
                     break;
-                case RC_SMOOTHING_INPUT_PT3:
+                case RC_SMOOTHING_INPUT_1EURO:
+                default: {
+                    // Use RC frame time for derivative — correct time scale for stick velocity
+                    const float rc_dT = (smoothingData->averageFrameTimeUs > 0)
+                                        ? smoothingData->averageFrameTimeUs * 1e-6f : dT;
+                    const float fc_min = (float)smoothingData->inputCutoffFrequency; // already computed above
+                    const float beta   = rxConfig()->rc_smoothing_1euro_beta / 1000.0f;
                     if (!smoothingData->filterInitialized) {
-                        ptnFilterInit((ptnFilter_t*) &smoothingData->filter[i], FILTER_PT3, smoothingData->inputCutoffFrequency, dT);
+                        oneEuroFilterInit((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, beta, rc_dT);
                     } else {
-                        ptnFilterUpdate((ptnFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, 1.961459177f, dT);
-                    }
-                    break;
-                case RC_SMOOTHING_INPUT_1EURO: {
-                    const float beta = rxConfig()->rc_smoothing_1euro_beta / 1000.0f;
-                    if (!smoothingData->filterInitialized) {
-                        oneEuroFilterInit((oneEuroFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, beta, dT);
-                    } else {
-                        oneEuroFilterUpdate((oneEuroFilter_t*) &smoothingData->filter[i], smoothingData->inputCutoffFrequency, beta);
+                        oneEuroFilterUpdate((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, beta, rc_dT);
                     }
                     break;
                 }
@@ -515,18 +512,14 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
                 case RC_SMOOTHING_INPUT_PT1:
                     rcCommand[updatedChannel] = pt1FilterApply((pt1Filter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
                     break;
-                case RC_SMOOTHING_INPUT_BIQUAD:
-                default:
-                    rcCommand[updatedChannel] = biquadFilterApplyDF1((biquadFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
-                    break;
                 case RC_SMOOTHING_INPUT_PT2:
-                case RC_SMOOTHING_INPUT_PT3:
                     rcCommand[updatedChannel] = ptnFilterApply((ptnFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
                     break;
                 case RC_SMOOTHING_INPUT_1EURO:
+                default:
                     rcCommand[updatedChannel] = oneEuroFilterApply((oneEuroFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
                     break;
-                  }
+                }
             } else {
                 // If filter isn't initialized yet then use the actual unsmoothed rx channel data
                 rcCommand[updatedChannel] = lastRxData[updatedChannel];

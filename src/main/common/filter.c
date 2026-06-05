@@ -287,11 +287,12 @@ void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float beta, float 
     filter->initialized = false;
 }
 
-// Update parameters without resetting filter state
-void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float beta)
+// Update parameters without resetting filter state (call when RX rate or config changes)
+void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float beta, float dT)
 {
     filter->fc_min = fc_min;
     filter->beta   = beta;
+    filter->dT     = dT;
 }
 
 FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)

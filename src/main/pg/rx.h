@@ -54,8 +54,9 @@ typedef struct rxConfig_s {
     uint8_t rc_smoothing_type;              // Determines the smoothing algorithm to use: INTERPOLATION or FILTER
     uint8_t rc_smoothing_input_cutoff;      // Filter cutoff frequency for the input filter (0 = auto)
     uint8_t rc_smoothing_debug_axis;        // Axis to log as debug values when debug_mode = RC_SMOOTHING
-    uint8_t rc_smoothing_input_type;        // Input filter type (0 = PT1, 1 = BIQUAD)
+    uint8_t rc_smoothing_input_type;        // Input filter type (0 = PT1, 1 = 1EURO, 2 = PT2)
     uint8_t rc_smoothing_1euro_beta;        // 1€ filter speed coefficient: beta = field / 1000.0f
+    uint8_t rc_smoothing_1euro_fc_min;      // 1€ filter min cutoff Hz; 0 = auto (rx_hz/12, clamped [6,40])
 
     uint8_t showAlteredRc;               // allow you to see rate dynamics in the configurator
     uint8_t sbus_baud_fast; // Select SBus fast baud rate

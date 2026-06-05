@@ -108,5 +108,5 @@ typedef struct oneEuroFilter_s {
 } oneEuroFilter_t;
 
 void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float beta, float dT);
-void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float beta);
+void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float beta, float dT);
 float oneEuroFilterApply(oneEuroFilter_t *filter, float input);

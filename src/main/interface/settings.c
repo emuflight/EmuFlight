@@ -380,7 +380,7 @@ static const char * const lookupTableRcSmoothingDebug[] = {
     "ROLL", "PITCH", "YAW", "THROTTLE"
 };
 static const char * const lookupTableRcSmoothingInputType[] = {
-    "PT1", "BIQUAD", "PT2", "PT3", "1EURO"
+    "PT1", "1EURO", "PT2"
 };
 #endif
 
@@ -629,6 +629,7 @@ const clivalue_t valueTable[] = {
     { "rc_smoothing_debug_axis",    VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RC_SMOOTHING_DEBUG }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_debug_axis) },
     { "rc_smoothing_input_type",    VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RC_SMOOTHING_INPUT_TYPE }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_input_type) },
     { "rc_smoothing_1euro_beta",    VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_1euro_beta) },
+    { "rc_smoothing_1euro_fc_min", VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, UINT8_MAX }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_1euro_fc_min) },
 #endif // USE_RC_SMOOTHING_FILTER
 
     { "fpv_mix_degrees",            VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 90 }, PG_RX_CONFIG, offsetof(rxConfig_t, fpvCamAngleDegrees) },

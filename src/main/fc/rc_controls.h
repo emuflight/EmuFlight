@@ -67,11 +67,9 @@ typedef enum {
 } rcSmoothingType_e;
 
 typedef enum {
-    RC_SMOOTHING_INPUT_PT1,
-    RC_SMOOTHING_INPUT_BIQUAD,
-    RC_SMOOTHING_INPUT_PT2,
-    RC_SMOOTHING_INPUT_PT3,
-    RC_SMOOTHING_INPUT_1EURO
+    RC_SMOOTHING_INPUT_PT1,    // 0 — light smoothing, low latency
+    RC_SMOOTHING_INPUT_1EURO,  // 1 — adaptive (was BIQUAD; also default fallback)
+    RC_SMOOTHING_INPUT_PT2,    // 2 — standard fixed-cutoff (BF-equivalent default)
 } rcSmoothingInputFilter_e;
 
 typedef enum {
@@ -112,7 +110,6 @@ typedef struct rcSmoothingFilterTraining_s {
 
 typedef union rcSmoothingFilterTypes_u {
     pt1Filter_t pt1Filter;
-    biquadFilter_t biquadFilter;
     ptnFilter_t ptnFilter;
     oneEuroFilter_t oneEuroFilter;
 } rcSmoothingFilterTypes_t;

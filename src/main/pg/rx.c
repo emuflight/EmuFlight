@@ -66,6 +66,7 @@ void pgResetFn_rxConfig(rxConfig_t *rxConfig) {
                    .rc_smoothing_debug_axis = ROLL,     // default to debug logging for the roll axis
                    .rc_smoothing_input_type = RC_SMOOTHING_INPUT_PT2,
                    .rc_smoothing_1euro_beta = 5,            // beta = 5/1000 = 0.005
+                   .rc_smoothing_1euro_fc_min = 0,          // 0 = auto (rx_hz/12 clamped [6,40] Hz)
                    .showAlteredRc = 0,
                    .sbus_baud_fast = false,
                   );
