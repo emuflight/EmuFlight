@@ -367,7 +367,7 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev) {
     HAL_PCD_Init(&hpcd);
 #ifdef USE_USB_CDC_HID
 #ifdef USE_USB_MSC
-    if (usbDevConfig()->type == COMPOSITE && !mscCheckBoot()) {
+    if (usbDevConfig()->type == COMPOSITE && !mscCheckBootAndReset()) {
 #else
     if (usbDevConfig()->type == COMPOSITE) {
 #endif
