@@ -366,14 +366,17 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                 case RC_SMOOTHING_INPUT_1EURO:
                 default: {
                     // Use RC frame time for derivative — correct time scale for stick velocity
-                    const float rc_dT = (smoothingData->averageFrameTimeUs > 0)
-                                        ? smoothingData->averageFrameTimeUs * 1e-6f : dT;
+                    const float rc_dT  = (smoothingData->averageFrameTimeUs > 0)
+                                         ? smoothingData->averageFrameTimeUs * 1e-6f : dT;
                     const float fc_min = (float)smoothingData->inputCutoffFrequency; // already computed above
+                    const float fc_max = (float)rxConfig()->rc_smoothing_1euro_fc_max;
                     const float beta   = rxConfig()->rc_smoothing_1euro_beta / 1000.0f;
+                    const float fc_d   = (rxConfig()->rc_smoothing_1euro_deriv_hz > 0)
+                                         ? (float)rxConfig()->rc_smoothing_1euro_deriv_hz : 1.0f;
                     if (!smoothingData->filterInitialized) {
-                        oneEuroFilterInit((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, beta, rc_dT);
+                        oneEuroFilterInit((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, rc_dT);
                     } else {
-                        oneEuroFilterUpdate((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, beta, rc_dT);
+                        oneEuroFilterUpdate((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, rc_dT);
                     }
                     break;
                 }

@@ -57,6 +57,8 @@ typedef struct rxConfig_s {
     uint8_t rc_smoothing_input_type;        // Input filter type (0 = PT1, 1 = 1EURO, 2 = PT2)
     uint8_t rc_smoothing_1euro_beta;        // 1€ filter speed coefficient: beta = field / 1000.0f
     uint8_t rc_smoothing_1euro_fc_min;      // 1€ filter min cutoff Hz; 0 = auto (rx_hz/12, clamped [6,40])
+    uint8_t rc_smoothing_1euro_fc_max;      // 1€ filter max cutoff Hz; 0 = no cap
+    uint8_t rc_smoothing_1euro_deriv_hz;    // 1€ derivative filter cutoff Hz; default 1
 
     uint8_t showAlteredRc;               // allow you to see rate dynamics in the configurator
     uint8_t sbus_baud_fast; // Select SBus fast baud rate
