@@ -380,7 +380,7 @@ static const char * const lookupTableRcSmoothingDebug[] = {
     "ROLL", "PITCH", "YAW", "THROTTLE"
 };
 static const char * const lookupTableRcSmoothingInputType[] = {
-    "PT1", "SVF", "PT2", "PT3", "PT4"
+    "PT1", "BIQUAD", "PT2", "PT3", "PT4"
 };
 #endif
 
