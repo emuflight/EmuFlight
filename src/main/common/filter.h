@@ -104,6 +104,7 @@ typedef struct oneEuroFilter_s {
     float fc_min;       // minimum cutoff frequency (Hz)
     float beta;         // speed coefficient
     float dT;           // time step (seconds)
+    float lastCutoff;   // last computed adaptive cutoff Hz (for blackbox debug)
     bool  initialized;  // true after first sample primes x_prev
 } oneEuroFilter_t;
 

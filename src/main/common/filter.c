@@ -317,6 +317,7 @@ FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)
 
     // Adaptive cutoff and main PT1
     const float cutoff = filter->fc_min + filter->beta * fabsf(dx_hat);
+    filter->lastCutoff = cutoff;
     const float rc     = 0.5f / (M_PIf * cutoff);
     const float alpha  = filter->dT / (rc + filter->dT);
     const float x_hat  = filter->x_prev + alpha * (input - filter->x_prev);

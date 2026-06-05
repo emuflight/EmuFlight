@@ -499,9 +499,16 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
         }
     }
     if (rcSmoothingData.filterInitialized && (debugMode == DEBUG_RC_SMOOTHING)) {
-        // after training has completed then log the raw rc channel and the calculated
-        // average rx frame rate that was used to calculate the automatic filter cutoffs
-        DEBUG_SET(DEBUG_RC_SMOOTHING, 0, lrintf(lastRxData[rxConfig()->rc_smoothing_debug_axis]));
+        const uint8_t dbgAxis = rxConfig()->rc_smoothing_debug_axis;
+        // [0] raw input, [1] filtered output, [2] adaptive cutoff x10 (1EURO only), [3] avg frame µs
+        DEBUG_SET(DEBUG_RC_SMOOTHING, 0, lrintf(lastRxData[dbgAxis]));
+        DEBUG_SET(DEBUG_RC_SMOOTHING, 1, lrintf(rcCommand[dbgAxis]));
+        if (rxConfig()->rc_smoothing_input_type == RC_SMOOTHING_INPUT_1EURO) {
+            const oneEuroFilter_t *f = (const oneEuroFilter_t*) &rcSmoothingData.filter[dbgAxis];
+            DEBUG_SET(DEBUG_RC_SMOOTHING, 2, lrintf(f->lastCutoff * 10.0f)); // Hz × 10 for resolution
+        } else {
+            DEBUG_SET(DEBUG_RC_SMOOTHING, 2, rcSmoothingData.inputCutoffFrequency);
+        }
         DEBUG_SET(DEBUG_RC_SMOOTHING, 3, rcSmoothingData.averageFrameTimeUs);
     }
     // each pid loop continue to apply the last received channel value to the filter
