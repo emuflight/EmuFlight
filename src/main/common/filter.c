@@ -348,16 +348,16 @@ FAST_CODE float ptnFilterApply(ptnFilter_t *filter, float input) {
 // Reference: Géry Casiez et al. "1€ Filter: A Simple Speed-based Low-pass Filter for Noisy Input"
 void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float dT)
 {
-    filter->fc_min = fc_min;
-    filter->fc_max = fc_max;
-    filter->beta   = beta;
-    filter->fc_d   = fc_d;
-    filter->dT     = dT;
+    filter->fc_min  = fc_min;
+    filter->fc_max  = fc_max;
+    filter->beta    = beta;
+    filter->fc_d    = fc_d;
+    filter->dT_inv  = (dT > 0.0f) ? 1.0f / dT : 0.0f;
     filter->lastCutoff = fc_min;
-    const float k_d = dT / (0.5f / (M_PIf * fc_d) + dT);
-    pt1FilterInit(&filter->d_filter, k_d);
-    const float k_x = dT / (0.5f / (M_PIf * fc_min) + dT);
-    pt1FilterInit(&filter->x_filter, k_x);
+    const float two_pi_fc_d  = 2.0f * M_PIf * fc_d;
+    pt1FilterInit(&filter->d_filter, two_pi_fc_d / (two_pi_fc_d + filter->dT_inv));
+    const float two_pi_fc_min = 2.0f * M_PIf * fc_min;
+    pt1FilterInit(&filter->x_filter, two_pi_fc_min / (two_pi_fc_min + filter->dT_inv));
 }
 
 // Update parameters without resetting filter state (call when RX rate or config changes)
@@ -367,19 +367,19 @@ void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float fc_max, fl
     filter->fc_max = fc_max;
     filter->beta   = beta;
     filter->fc_d   = fc_d;
-    filter->dT     = dT;
-    const float k_d = dT / (0.5f / (M_PIf * fc_d) + dT);
-    pt1FilterUpdateCutoff(&filter->d_filter, k_d);
+    filter->dT_inv = (dT > 0.0f) ? 1.0f / dT : 0.0f;
+    const float two_pi_fc_d = 2.0f * M_PIf * fc_d;
+    pt1FilterUpdateCutoff(&filter->d_filter, two_pi_fc_d / (two_pi_fc_d + filter->dT_inv));
 }
 
 FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)
 {
-    if (filter->dT <= 0.0f) {
+    if (filter->dT_inv <= 0.0f) {
         return input;
     }
 
-    // Derivative estimate via PT1 at fc_d
-    const float dx = (input - filter->x_filter.state) / filter->dT;
+    // Derivative estimate via PT1 at fc_d — multiply by freq instead of dividing by dT
+    const float dx = (input - filter->x_filter.state) * filter->dT_inv;
     const float dx_hat = pt1FilterApply(&filter->d_filter, dx);
 
     // Adaptive cutoff: fc_min + beta*|dx_hat|, optionally capped by fc_max
@@ -389,8 +389,8 @@ FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)
     }
     filter->lastCutoff = cutoff;
 
-    // Main PT1 at adaptive cutoff
-    const float k = filter->dT / (0.5f / (M_PIf * cutoff) + filter->dT);
-    pt1FilterUpdateCutoff(&filter->x_filter, k);
+    // Main PT1 at adaptive cutoff — k = 2π*fc / (2π*fc + 1/dT), no divide on hot path
+    const float two_pi_fc = 2.0f * M_PIf * cutoff;
+    pt1FilterUpdateCutoff(&filter->x_filter, two_pi_fc / (two_pi_fc + filter->dT_inv));
     return pt1FilterApply(&filter->x_filter, input);
 }

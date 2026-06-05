@@ -372,7 +372,7 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                     const float fc_max = (float)rxConfig()->rc_smoothing_1euro_fc_max;
                     const float beta   = rxConfig()->rc_smoothing_1euro_beta / 1000.0f;
                     const float fc_d   = (rxConfig()->rc_smoothing_1euro_deriv_hz > 0)
-                                         ? (float)rxConfig()->rc_smoothing_1euro_deriv_hz : 1.0f;
+                                         ? rxConfig()->rc_smoothing_1euro_deriv_hz / 10.0f : 1.0f;
                     if (!smoothingData->filterInitialized) {
                         oneEuroFilterInit((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, rc_dT);
                     } else {

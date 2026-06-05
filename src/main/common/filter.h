@@ -133,7 +133,7 @@ typedef struct oneEuroFilter_s {
     float fc_max;           // maximum cutoff frequency Hz; 0 = no cap
     float beta;             // speed coefficient
     float fc_d;             // derivative filter cutoff (Hz)
-    float dT;               // time step (seconds)
+    float dT_inv;           // 1/dT — stored as frequency to avoid per-sample divide
     float lastCutoff;       // last computed adaptive cutoff Hz (for blackbox debug)
 } oneEuroFilter_t;
 
