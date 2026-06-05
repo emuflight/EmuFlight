@@ -75,7 +75,7 @@ typedef struct ptnFilter_s {
 
 typedef enum {
     FILTER_PT1 = 0,
-    FILTER_SVF,      // replaces FILTER_BIQUAD at index 1 — same EEPROM value, CLI string stays "BIQUAD"
+    FILTER_SVF,      // replaces FILTER_BIQUAD at index 1 — same EEPROM value, CLI string renamed to "SVF"
     FILTER_PT2,
     FILTER_PT3,
     FILTER_PT4,
