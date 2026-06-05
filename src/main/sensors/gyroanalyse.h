@@ -39,7 +39,7 @@ typedef struct gyroAnalyseState_s {
     uint8_t updateAxis;
 
     float centerFreq[XYZ_AXIS_COUNT][DYN_NOTCH_COUNT_MAX];
-    biquadFilter_t notchFilterDyn[XYZ_AXIS_COUNT][5];
+    svfNotchFilter_t notchFilterDyn[XYZ_AXIS_COUNT][DYN_NOTCH_COUNT_MAX];
 
 } gyroAnalyseState_t;
 
