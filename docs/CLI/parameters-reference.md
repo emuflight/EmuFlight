@@ -1,7 +1,7 @@
 # CLI Parameters Reference
 
 > **Auto-generated** — do not edit manually.
-> Source: `src/main/interface/settings.c` | Generated: 2026-05-16 | Commit: `790f6f9f2d`
+> Source: `src/main/interface/settings.c` | Generated: 2026-06-06 | Commit: `b475485306`
 
 ---
 
@@ -74,11 +74,11 @@
 | `gyro_32khz_hardware_lpf` | uint8 | master | `NORMAL`, `EXPERIMENTAL` |
 | `gyro_high_range` | uint8 | master | `OFF`, `ON` |
 | `gyro_sync_denom` | uint8 | master | `1` – `32` |
-| `gyro_lowpass_type` | uint8 | master | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |
+| `gyro_lowpass_type` | uint8 | master | `PT1`, `SVF`, `PT2`, `PT3`, `PT4` |
 | `gyro_lowpass_hz_roll` | uint16 | master | `0` – `16000` |
 | `gyro_lowpass_hz_pitch` | uint16 | master | `0` – `16000` |
 | `gyro_lowpass_hz_yaw` | uint16 | master | `0` – `16000` |
-| `gyro_lowpass2_type` | uint8 | master | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |
+| `gyro_lowpass2_type` | uint8 | master | `PT1`, `SVF`, `PT2`, `PT3`, `PT4` |
 | `gyro_lowpass2_hz_roll` | uint16 | master | `0` – `16000` |
 | `gyro_lowpass2_hz_pitch` | uint16 | master | `0` – `16000` |
 | `gyro_lowpass2_hz_yaw` | uint16 | master | `0` – `16000` |
@@ -178,7 +178,11 @@
 | `rc_smoothing_type` | uint8 | master | `INTERPOLATION`, `FILTER` |
 | `rc_smoothing_input_hz` | uint8 | master | `0` – `UINT8_MAX` |
 | `rc_smoothing_debug_axis` | uint8 | master | `ROLL`, `PITCH`, `YAW`, `THROTTLE` |
-| `rc_smoothing_input_type` | uint8 | master | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |
+| `rc_smoothing_input_type` | uint8 | master | `PT1`, `1EURO`, `PT2`, `PT3` |
+| `rc_smoothing_1euro_beta` | uint8 | master | `1` – `20` |
+| `rc_smoothing_1euro_fc_min` | uint8 | master | `0` – `100` |
+| `rc_smoothing_1euro_fc_max` | uint8 | master | `0` – `200` |
+| `rc_smoothing_1euro_deriv_hz` | uint8 | master | `1` – `50` |
 | `fpv_mix_degrees` | uint8 | master | `0` – `90` |
 | `cinematic_yaw` | uint8 | master | `OFF`, `ON` |
 | `max_aux_channels` | uint8 | master | `0` – `MAX_AUX_CHANNEL_COUNT` |
@@ -470,11 +474,11 @@
 | `dterm_abg_alpha` | uint16 | profile | `0` – `1000` |
 | `dterm_abg_boost` | uint16 | profile | `0` – `2000` |
 | `dterm_abg_half_life` | uint8 | profile | `0` – `250` |
-| `dterm_lowpass_type` | uint8 | profile | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |
+| `dterm_lowpass_type` | uint8 | profile | `PT1`, `SVF`, `PT2`, `PT3`, `PT4` |
 | `dterm_lowpass_hz_roll` | uint16 | profile | `0` – `16000` |
 | `dterm_lowpass_hz_pitch` | uint16 | profile | `0` – `16000` |
 | `dterm_lowpass_hz_yaw` | uint16 | profile | `0` – `16000` |
-| `dterm_lowpass2_type` | uint8 | profile | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |
+| `dterm_lowpass2_type` | uint8 | profile | `PT1`, `SVF`, `PT2`, `PT3`, `PT4` |
 | `dterm_lowpass2_hz_roll` | uint16 | profile | `0` – `16000` |
 | `dterm_lowpass2_hz_pitch` | uint16 | profile | `0` – `16000` |
 | `dterm_lowpass2_hz_yaw` | uint16 | profile | `0` – `16000` |
