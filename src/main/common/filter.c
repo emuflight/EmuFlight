@@ -378,19 +378,28 @@ FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)
         return input;
     }
 
-    // Derivative estimate via PT1 at fc_d — multiply by freq instead of dividing by dT
-    const float dx = (input - filter->x_filter.state) * filter->dT_inv;
-    const float dx_hat = pt1FilterApply(&filter->d_filter, dx);
+    // Only recompute derivative and adaptive cutoff when a new RC sample arrives.
+    // Between RC frames input is constant; recomputing dx would fabricate a spurious
+    // decaying velocity as x_filter converges, incorrectly lowering the cutoff.
+    // When no new sample: act as a fixed PT1 at the last computed cutoff.
+    if (input != filter->lastInput) {
+        filter->lastInput = input;
 
-    // Adaptive cutoff: fc_min + beta*|dx_hat|, optionally capped by fc_max
-    float cutoff = filter->fc_min + filter->beta * fabsf(dx_hat);
-    if (filter->fc_max > 0.0f) {
-        cutoff = fminf(cutoff, filter->fc_max);
+        // Derivative estimate via PT1 at fc_d — multiply by freq instead of dividing by dT
+        const float dx = (input - filter->x_filter.state) * filter->dT_inv;
+        const float dx_hat = pt1FilterApply(&filter->d_filter, dx);
+
+        // Adaptive cutoff: fc_min + beta*|dx_hat|, optionally capped by fc_max
+        float cutoff = filter->fc_min + filter->beta * fabsf(dx_hat);
+        if (filter->fc_max > 0.0f) {
+            cutoff = fminf(cutoff, filter->fc_max);
+        }
+        filter->lastCutoff = cutoff;
+
+        // Update main PT1 gain — k = 2π*fc / (2π*fc + 1/dT)
+        const float two_pi_fc = 2.0f * M_PIf * cutoff;
+        pt1FilterUpdateCutoff(&filter->x_filter, two_pi_fc / (two_pi_fc + filter->dT_inv));
     }
-    filter->lastCutoff = cutoff;
 
-    // Main PT1 at adaptive cutoff — k = 2π*fc / (2π*fc + 1/dT), no divide on hot path
-    const float two_pi_fc = 2.0f * M_PIf * cutoff;
-    pt1FilterUpdateCutoff(&filter->x_filter, two_pi_fc / (two_pi_fc + filter->dT_inv));
     return pt1FilterApply(&filter->x_filter, input);
 }
