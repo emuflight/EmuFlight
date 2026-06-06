@@ -420,12 +420,17 @@ FAST_CODE bool rcSmoothingAccumulateSample(rcSmoothingFilter_t *smoothingData, i
 // Determine if we need to caclulate filter cutoffs. If not then we can avoid
 // examining the rx frame times completely
 FAST_CODE_NOINLINE bool rcSmoothingAutoCalculate(void) {
-    bool ret = false;
-    // if the input cutoff is 0 (auto) then we need to calculate cutoffs
+    // PT1/PT2: auto when input_cutoff == 0
     if (rxConfig()->rc_smoothing_input_cutoff == 0) {
-        ret = true;
+        return true;
     }
-    return ret;
+    // 1EURO with auto fc_min (== 0) needs training to get averageFrameTimeUs
+    // rc_smoothing_input_cutoff is irrelevant for 1EURO so cannot gate training
+    if (rxConfig()->rc_smoothing_input_type == RC_SMOOTHING_INPUT_1EURO &&
+        rxConfig()->rc_smoothing_1euro_fc_min == 0) {
+        return true;
+    }
+    return false;
 }
 
 FAST_CODE uint8_t processRcSmoothingFilter(void) {
