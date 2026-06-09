@@ -188,10 +188,15 @@
 
 
 
+#ifndef PID_PROFILE_COUNT
 #if (FLASH_SIZE > 64)
 #define PID_PROFILE_COUNT 3
 #else
 #define PID_PROFILE_COUNT 2
+#endif
+#endif
+#if PID_PROFILE_COUNT < 1 || PID_PROFILE_COUNT > 8
+#error "PID_PROFILE_COUNT must be between 1 and 8"
 #endif
 
 #if (FLASH_SIZE > 64)
