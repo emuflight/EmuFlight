@@ -775,6 +775,9 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         // 4 bytes, flags
         const uint32_t armingDisableFlags = getArmingDisableFlags();
         sbufWriteU32(dst, armingDisableFlags);
+        if (cmdMSP == MSP_STATUS_EX) {
+            sbufWriteU8(dst, CONTROL_RATE_PROFILE_COUNT);
+        }
     }
     break;
     case MSP_RAW_IMU: {
