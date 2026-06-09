@@ -24,7 +24,12 @@
 
 #include "pg/pg.h"
 
+#ifndef CONTROL_RATE_PROFILE_COUNT
 #define CONTROL_RATE_PROFILE_COUNT  6
+#endif
+#if CONTROL_RATE_PROFILE_COUNT < 1 || CONTROL_RATE_PROFILE_COUNT > 8
+#error "CONTROL_RATE_PROFILE_COUNT must be between 1 and 8"
+#endif
 
 typedef enum {
     RATES_TYPE_BETAFLIGHT = 0,
