@@ -33,10 +33,18 @@
 #include "flight/imu.h"
 #include "flight/pid.h"
 
+#include "pg/pg_ids.h"
+
 #include "io/gps.h"
 
 #include "sensors/sensors.h"
 #include "sensors/barometer.h"
+
+PG_REGISTER_WITH_RESET_TEMPLATE(positionConfig_t, positionConfig, PG_POSITION_CONFIG, 0);
+
+PG_RESET_TEMPLATE(positionConfig_t, positionConfig,
+    .altitude_limit = 120,
+);
 
 static int32_t estimatedAltitude = 0;                // in cm
 static int16_t estimatedVario = 0;                   // in cm/s

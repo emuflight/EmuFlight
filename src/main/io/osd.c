@@ -926,6 +926,17 @@ static bool osdDrawSingleElement(uint8_t item) {
             osdFormatMessage(buff, OSD_FORMAT_MESSAGE_BUFFER_SIZE, "BATT < FULL");
             break;
         }
+        // Altitude limit warning
+#if defined(USE_BARO) || defined(USE_GPS)
+        if (osdWarnGetState(OSD_WARNING_ALTITUDE)
+                && positionConfig()->altitude_limit > 0
+                && ARMING_FLAG(ARMED)
+                && isAltitudeOffset()
+                && getEstimatedAltitude() >= (int32_t)positionConfig()->altitude_limit * 100) {
+            osdFormatMessage(buff, OSD_FORMAT_MESSAGE_BUFFER_SIZE, "ALT WARNING");
+            break;
+        }
+#endif
         // Visual beeper
         if (osdWarnGetState(OSD_WARNING_VISUAL_BEEPER) && showVisualBeeper) {
             osdFormatMessage(buff, OSD_FORMAT_MESSAGE_BUFFER_SIZE, "  * * * *");
