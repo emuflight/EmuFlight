@@ -29,9 +29,10 @@ typedef struct positionConfig_s {
 } positionConfig_t;
 
 PG_DECLARE(positionConfig_t, positionConfig);
-#endif
 
 bool isAltitudeOffset(void);
 void calculateEstimatedAltitude(timeUs_t currentTimeUs);
+#endif
+
 int32_t getEstimatedAltitude(void);
 int16_t getEstimatedVario(void);
