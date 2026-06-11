@@ -353,6 +353,7 @@ typedef struct pidCoefficient_s {
 
 static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float directFF[3];
+static FAST_RAM_ZERO_INIT float angleModeP[2];
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feathered_pids;
 static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
@@ -540,6 +541,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
     attitudePrevious[axis] = getAngleModeAngles(axis);
 
     currentPidSetpoint = p_term_low + p_term_high;
+    angleModeP[axis] = p_term_low + p_term_high;
     currentPidSetpoint += d_term_low + d_term_high;
     currentPidSetpoint += f_term_low;
 
@@ -853,7 +855,12 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // this feedforward is literally setpoint * feedforward
         // since yaw acts different this will only work for yaw
         // actually this also works in angle mode so pitch and roll have angle mode values
-        float directFeedForward = currentPidSetpoint * directFF[axis];
+        float directFeedForward;
+        if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && axis <= FD_PITCH) {
+            directFeedForward = angleModeP[axis] * directFF[axis];
+        } else {
+            directFeedForward = currentPidSetpoint * directFF[axis];
+        }
 
 #ifdef USE_YAW_SPIN_RECOVERY
         if (gyroYawSpinDetected()) {
