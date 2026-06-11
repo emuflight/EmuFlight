@@ -40,11 +40,13 @@
 #include "sensors/sensors.h"
 #include "sensors/barometer.h"
 
+#if defined(USE_BARO) || defined(USE_GPS)
 PG_REGISTER_WITH_RESET_TEMPLATE(positionConfig_t, positionConfig, PG_POSITION_CONFIG, 0);
 
 PG_RESET_TEMPLATE(positionConfig_t, positionConfig,
     .altitude_limit = 120,
 );
+#endif
 
 static int32_t estimatedAltitude = 0;                // in cm
 static int16_t estimatedVario = 0;                   // in cm/s
