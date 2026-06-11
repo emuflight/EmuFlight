@@ -53,8 +53,7 @@ SECTIONS
     _etext = .;        /* define a global symbols at end of code */
   } >FLASH1 AT >AXIM_FLASH1
 
-  /* Critical program code goes into ITCM RAM */
-  /* Copy specific fast-executing code to ITCM RAM */ 
+  /* Fast-executing code linked to ITCM_FLASH1 (flash via ITCM bus); executes in-place, no RAM copy at boot */
   tcm_code = LOADADDR(.tcm_code); 
   .tcm_code :
   {
@@ -64,7 +63,7 @@ SECTIONS
     *(.tcm_code*)
     . = ALIGN(4);
     tcm_code_end = .; 
-  } >ITCM_RAM AT >AXIM_FLASH1
+  } >ITCM_FLASH1 AT >AXIM_FLASH1
 
   .ARM.extab   : 
   { 
