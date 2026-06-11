@@ -64,7 +64,7 @@ SECTIONS
     *(.tcm_code*)
     . = ALIGN(4);
     tcm_code_end = .; 
-  } >ITCM_RAM AT >AXIM_FLASH1
+  } >ITCM_FLASH1 AT >AXIM_FLASH1
 
   .ARM.extab   : 
   { 
