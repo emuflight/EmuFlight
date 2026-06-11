@@ -196,7 +196,10 @@ void initialiseMemorySections(void)
     extern uint8_t tcm_code_start;
     extern uint8_t tcm_code_end;
     extern uint8_t tcm_code;
-    memcpy(&tcm_code_start, &tcm_code, (size_t) ((uintptr_t)&tcm_code_end - (uintptr_t)&tcm_code_start));
+    // ITCM_FLASH1 (ITCM_FLASH_ALIAS_BASE+) is a read-only flash alias — data stores fault; skip copy, code runs from flash via ITCM bus
+    if ((uintptr_t)&tcm_code_start < ITCM_FLASH_ALIAS_BASE) {
+        memcpy(&tcm_code_start, &tcm_code, (size_t) ((uintptr_t)&tcm_code_end - (uintptr_t)&tcm_code_start));
+    }
 #endif
 #ifdef USE_FAST_DATA
     extern uint8_t _sfastram_data;
