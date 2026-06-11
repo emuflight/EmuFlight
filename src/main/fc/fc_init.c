@@ -210,7 +210,10 @@ void init(void) {
     extern uint8_t tcm_code_start;
     extern uint8_t tcm_code_end;
     extern uint8_t tcm_code;
-    memcpy(&tcm_code_start, &tcm_code, (size_t) (&tcm_code_end - &tcm_code_start));
+    // ITCM_FLASH1 (0x00200000+) is a read-only flash alias — data stores fault; skip copy, code runs from flash via ITCM bus
+    if ((uintptr_t)&tcm_code_start < 0x00200000U) {
+        memcpy(&tcm_code_start, &tcm_code, (size_t) (&tcm_code_end - &tcm_code_start));
+    }
 #endif
 #ifdef USE_FAST_RAM
     /* Load FAST_RAM variable intializers into DTCM RAM */
