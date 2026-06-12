@@ -382,8 +382,13 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                     const float fc_min = (float)smoothingData->inputCutoffFrequency; // already computed above
                     const float fc_max = (float)rxConfig()->rc_smoothing_1euro_fc_max;
                     const float beta   = rxConfig()->rc_smoothing_1euro_beta / 1000.0f;
+                    // fc_d auto: rx_hz/19 keeps derivative detection at ~3 RC frames at all rates.
+                    // Manual override: rc_smoothing_1euro_deriv_hz > 0 (stored in tenths of Hz).
                     const float fc_d   = (rxConfig()->rc_smoothing_1euro_deriv_hz > 0)
-                                         ? rxConfig()->rc_smoothing_1euro_deriv_hz / 10.0f : 1.0f;
+                                         ? rxConfig()->rc_smoothing_1euro_deriv_hz / 10.0f
+                                         : (smoothingData->averageFrameTimeUs > 0)
+                                           ? 1e6f / smoothingData->averageFrameTimeUs / 19.0f
+                                           : 180.0f / 19.0f;
                     if (!smoothingData->filterInitialized) {
                         oneEuroFilterInit((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, rc_dT);
                     } else {
