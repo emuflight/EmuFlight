@@ -332,13 +332,14 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
         // 1EURO uses its own fc_min field — fully independent of rc_smoothing_input_cutoff.
         // Store computed fc_min in inputCutoffFrequency for change detection.
         if (rxConfig()->rc_smoothing_1euro_fc_min == 0) {
-            // Auto: rx_hz / 12 clamped [6, 25] Hz; 180 Hz fallback gives 15 Hz before RX is known.
-            // Ceiling is 25 Hz (not 40) so fc_min stays below PT2's typical 40 Hz fixed cutoff
-            // at all RC link rates (50-1000 Hz). Without this cap, 500+ Hz links compute 40+ Hz
-            // which matches or exceeds PT2 at rest and eliminates the smoothing advantage.
+            // Auto: rx_hz / 12 clamped [6, 40] Hz; 180 Hz fallback gives 15 Hz before RX is known.
+            // The /12 divisor keeps PT2 Nyquist attenuation consistent across RC rates — at each
+            // rate, fc_min ≈ Nyquist/6, giving ~97% noise attenuation at the Nyquist frequency.
+            // Ceiling of 40 Hz is correct with PT2 output: at 500+ Hz RC, fc_min = 40 Hz gives
+            // the same Nyquist attenuation as the validated 250 Hz case (fc_min = 20.8 Hz).
             const float rx_hz = (smoothingData->averageFrameTimeUs > 0)
                                 ? 1e6f / smoothingData->averageFrameTimeUs : 180.0f;
-            smoothingData->inputCutoffFrequency = (uint16_t)constrainf(rx_hz / 12.0f, 6.0f, 25.0f);
+            smoothingData->inputCutoffFrequency = (uint16_t)constrainf(rx_hz / 12.0f, 6.0f, 40.0f);
         } else {
             smoothingData->inputCutoffFrequency = rxConfig()->rc_smoothing_1euro_fc_min;
         }
