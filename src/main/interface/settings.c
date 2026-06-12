@@ -631,7 +631,7 @@ const clivalue_t valueTable[] = {
     { "rc_smoothing_1euro_beta",     VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, 20 }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_1euro_beta) },
     { "rc_smoothing_1euro_fc_min",   VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 100 }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_1euro_fc_min) },
     { "rc_smoothing_1euro_fc_max",   VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 200 }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_1euro_fc_max) },
-    { "rc_smoothing_1euro_deriv_hz", VAR_UINT8  | MASTER_VALUE, .config.minmax = { 1, 50 }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_1euro_deriv_hz) },
+    { "rc_smoothing_1euro_deriv_hz", VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 50 }, PG_RX_CONFIG, offsetof(rxConfig_t, rc_smoothing_1euro_deriv_hz) },
 #endif // USE_RC_SMOOTHING_FILTER
 
     { "fpv_mix_degrees",            VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 90 }, PG_RX_CONFIG, offsetof(rxConfig_t, fpvCamAngleDegrees) },

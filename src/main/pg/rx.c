@@ -68,7 +68,7 @@ void pgResetFn_rxConfig(rxConfig_t *rxConfig) {
                    .rc_smoothing_1euro_beta = 5,            // beta = 5/1000 = 0.005
                    .rc_smoothing_1euro_fc_min = 0,          // 0 = auto (rx_hz/12 clamped [6,40] Hz)
                    .rc_smoothing_1euro_fc_max = 200,        // 200 Hz cap on adaptive cutoff (safety ceiling)
-                   .rc_smoothing_1euro_deriv_hz = 10,       // derivative filter cutoff: 10 = 1.0 Hz (units: tenths of Hz)
+                   .rc_smoothing_1euro_deriv_hz = 0,        // 0 = auto (rx_hz/19); manual: tenths of Hz, e.g. 10 = 1.0 Hz
                    .showAlteredRc = 0,
                    .sbus_baud_fast = false,
                   );
