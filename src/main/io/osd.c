@@ -933,7 +933,7 @@ static bool osdDrawSingleElement(uint8_t item) {
                 && ARMING_FLAG(ARMED)
                 && isAltitudeOffset()
                 && getEstimatedAltitude() >= (int32_t)positionConfig()->altitude_limit * 100) {
-            osdFormatMessage(buff, OSD_FORMAT_MESSAGE_BUFFER_SIZE, "ALT WARNING");
+            osdFormatMessage(buff, OSD_FORMAT_MESSAGE_BUFFER_SIZE, "ALTITUDE HI");
             break;
         }
 #endif
