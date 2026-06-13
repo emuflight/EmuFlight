@@ -357,9 +357,12 @@ def _format_requires(ifdef_conds):
     return ', '.join(f'`{c}`' for c in dict.fromkeys(simple))  # deduplicated, ordered
 
 
-def generate_markdown(entries, table_map, settings_c_path, git_hash=None):
+def generate_markdown(entries, table_map, settings_c_path, git_hash=None,
+                      fw_version=None, msp_version=None):
     today = date.today().isoformat()
     ref = git_hash or 'unknown'
+    fw_str  = f' | Firmware: `{fw_version}`'  if fw_version  else ''
+    msp_str = f' | MSP: `{msp_version}`'      if msp_version else ''
 
     # Group by PG, preserving first-seen order
     sections = OrderedDict()
@@ -370,7 +373,7 @@ def generate_markdown(entries, table_map, settings_c_path, git_hash=None):
         '# CLI Parameters Reference',
         '',
         '> **Auto-generated** — do not edit manually.',
-        f'> Source: `{settings_c_path}` | Generated: {today} | Commit: `{ref}`',
+        f'> Source: `{settings_c_path}` | Generated: {today} | Commit: `{ref}`{fw_str}{msp_str}',
         '',
         '---',
         '',
@@ -434,6 +437,41 @@ def _git_hash(path):
         return None
 
 
+def _firmware_version(repo_root: Path):
+    """Return 'MAJOR.MINOR.PATCH' from src/main/build/version.h, or None."""
+    vh = repo_root / 'src' / 'main' / 'build' / 'version.h'
+    if not vh.exists():
+        return None
+    text = vh.read_text()
+    def _def(name):
+        m = re.search(rf'#define\s+{name}\s+(\d+)', text)
+        return m.group(1) if m else None
+    major = _def('FC_VERSION_MAJOR')
+    minor = _def('FC_VERSION_MINOR')
+    patch = _def('FC_VERSION_PATCH_LEVEL')
+    if major and minor and patch:
+        return f'{major}.{minor}.{patch}'
+    return None
+
+
+def _msp_version(repo_root: Path):
+    """Return 'PROTO.MAJOR.MINOR' MSP version from msp_protocol.h, or None."""
+    mh = repo_root / 'src' / 'main' / 'interface' / 'msp_protocol.h'
+    if not mh.exists():
+        return None
+    text = mh.read_text()
+    def _def(name):
+        m = re.search(rf'#define\s+{name}\s+(\d+)', text)
+        return m.group(1) if m else None
+    proto = _def('MSP_PROTOCOL_VERSION')
+    major = _def('API_VERSION_MAJOR')
+    minor = _def('API_VERSION_MINOR')
+    if major and minor:
+        proto = proto or '0'
+        return f'{proto}.{major}.{minor}'
+    return None
+
+
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -491,11 +529,26 @@ def main():
     if not entries:
         sys.exit("ERROR: no entries parsed — check settings.c path and format")
 
-    git_hash = _git_hash(c_path.parent)
+    # Resolve repo root: walk up from settings.c until we find version.h
+    repo_root = c_path.resolve().parent
+    while repo_root != repo_root.parent:
+        if (repo_root / 'src' / 'main' / 'build' / 'version.h').exists():
+            break
+        repo_root = repo_root.parent
+
+    git_hash   = _git_hash(repo_root)
+    fw_version = _firmware_version(repo_root)
+    msp_version = _msp_version(repo_root)
+
+    if fw_version:
+        print(f"Firmware version: {fw_version}")
+    if msp_version:
+        print(f"MSP version:      {msp_version}")
 
     print(f"Generating {out_path}...")
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    md = generate_markdown(entries, table_map, str(c_path), git_hash)
+    md = generate_markdown(entries, table_map, str(c_path), git_hash,
+                           fw_version=fw_version, msp_version=msp_version)
     out_path.write_text(md)
 
     n_sections = len({e['pg'] for e in entries})
