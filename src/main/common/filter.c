@@ -100,7 +100,7 @@ void svfLowpassFilterInit(svfLowpassFilter_t *filter, float filterFreq, float dt
     filter->ic2 = 0.0f;
 }
 
-FAST_CODE void svfLowpassFilterUpdate(svfLowpassFilter_t *filter, float filterFreq, float dt)
+void svfLowpassFilterUpdate(svfLowpassFilter_t *filter, float filterFreq, float dt)
 {
     // Q fixed to Butterworth: 1/sqrt(2)
     const float inv_butterworth_q = 1.41421356237f;
@@ -135,7 +135,7 @@ void svfNotchInit(svfNotchFilter_t *filter, float filterFreq, float dt, float Q)
     filter->ic2  = 0.0f;
 }
 
-FAST_CODE void svfNotchUpdate(svfNotchFilter_t *filter, float filterFreq, float dt, float Q)
+void svfNotchUpdate(svfNotchFilter_t *filter, float filterFreq, float dt, float Q)
 {
     float sn, cs;
     sincosf_approx(M_PIf * filterFreq * dt, &sn, &cs);
@@ -173,7 +173,7 @@ void biquadFilterInit(biquadFilter_t *filter, float filterFreq, uint32_t refresh
     filter->y1 = filter->y2 = 0;
 }
 
-FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate, float Q, biquadFilterType_e filterType) {
+void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate, float Q, biquadFilterType_e filterType) {
     // setup variables
     const float omega = 2.0f * M_PIf * filterFreq * refreshRate * 0.000001f;
     const float sn = sin_approx(omega);
@@ -216,7 +216,7 @@ FAST_CODE void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint
     filter->a2 /= a0;
 }
 
-FAST_CODE void biquadFilterUpdateLPF(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate) {
+void biquadFilterUpdateLPF(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate) {
     biquadFilterUpdate(filter, filterFreq, refreshRate, BIQUAD_Q, FILTER_LPF);
 }
 
