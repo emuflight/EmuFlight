@@ -4,7 +4,7 @@
 * This fork differs from Baseflight, Cleanflight and Betaflight in that it focuses on flight performance, innovative filtering, and leading-edge features.
 
 > [!WARNING]
-> Always remove propellers and use a smoke-stopper when testing. Never arm with propellers attached while connected to a computer.
+> Always remove propellers and use a smoke-stopper when bench-testing. Never arm with propellers attached while connected to a computer.
 
 ## EmuFlight Releases
 
