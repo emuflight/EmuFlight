@@ -3,13 +3,11 @@
 ## EmuFlight is flight controller software (firmware) used to fly multi-rotor aircraft.
 * This fork differs from Baseflight, Cleanflight and Betaflight in that it focuses on flight performance, innovative filtering, and leading-edge features.
 
-## WARNING
-
-* **DJI components bypass Configurator safety-checks. Do not attempt arming while connected to Configurator with LiPo plugged.  Always remove propellers and use a smoke-stopper for extra safety.**
+> [!WARNING]
+> Always remove propellers and use a smoke-stopper when testing. Never arm with propellers attached while connected to a computer.
 
 ## EmuFlight Releases
 
-* [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5422b54319254b6f9b6d01464ae9380c)](https://www.codacy.com/gh/emuflight/EmuFlight?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emuflight/EmuFlight&amp;utm_campaign=Badge_Grade)
 * https://github.com/emuflight/EmuConfigurator/releases
 * https://github.com/emuflight/EmuFlight/releases
 
@@ -20,7 +18,7 @@
 
 ## Features
 
-* Support for targets that use the STM32 F7 and F4 processors
+* Support for targets that use the STM32 H7, F7, and F4 processors
 * Support for HelioRC Spring FC's
 * IMUF (Kalman-based) Filtering for all FC's
 * Additional DShot levels: 1200, 2400, 4800
@@ -50,15 +48,20 @@
 ## Installation & Documentation
 
 * See: https://github.com/emuflight/EmuFlight/wiki
+* CLI parameter reference: [docs/CLI/parameters-reference.md](docs/CLI/parameters-reference.md)
 
 ## Configuration Tool
 
 * To configure EmuFlight you should use the EmuFlight-Configurator GUI tool (Windows/OSX/Linux) which can be found here: 
 * https://github.com/emuflight/EmuConfigurator
 
-## DJI OSD [In]Compatibility
+## HD Video System Compatibility
 
-* Setting PIDs and Rates (except for Feed Forward) is supported with the DJI OSD. The filtering menus (MISC PP, FILT PP, FILT GLB) are not currently supported and may result in unintended problems.
+> [!CAUTION]
+> Do not use HD video systems (HDZero, Walksnail, or DJI) to configure EmuFlight. These systems send Betaflight-formatted MSP; EmuFlight's PID, rate, and filter structs differ significantly from Betaflight's, and MSP configuration writes are not source-gated. Sending configuration from any of these devices may silently corrupt your tune. Use **EmuConfigurator**, the **CLI**, or the **EmuFlight OSD** for all configuration.
+
+> [!TIP]
+> Stock DJI goggles do not display OSD. [WTFOS](https://github.com/fpv-wtf/wtfos) enables EmuFlight OSD passthrough on DJI hardware and is the recommended solution for DJI users.
 
 ## Contributing
 
@@ -76,12 +79,34 @@
 
 * Before creating new issues please check to see if there is an existing one.
 
-* If you want to contribute financially on an ongoing basis, please consider becoming a Patreon member (https://www.patreon.com/EmuFlight).
+## Build Environment
+
+| Requirement | Version |
+|-------------|---------|
+| ARM GCC toolchain | 9.x – 13.x (xPack ARM GCC recommended) |
+| Python | 3.12+ |
+| GNU Make | 4.x+ |
+
+Automated builds and unit tests run via **GitHub Actions** on every push and pull request — see [`.github/workflows/`](.github/workflows/) for CI configuration.
+
+To install the ARM toolchain:
+```bash
+make arm_sdk_install   # downloads xPack ARM GCC into tools/
+make test              # run unit tests
+```
+
+## Development Guidelines
+
+EmuFlight development guidance lives in [`.github/instructions/`](.github/instructions/):
+
+- Unit test development best practices
+
+Read these before opening a pull request.
 
 ## Developers
 
 Contribution of bugfixes and new features is encouraged. Please be aware that we have a thorough review process for pull requests. Be prepared to explain what you want to achieve with your pull request.
-Before starting to write code, please read our [development guidelines](docs/development/Development.md ) and [coding style definition](docs/development/CodingStyle.md).
+Before starting to write code, review the [Development Guidelines](#development-guidelines) section above.
 
 ## Open Source / Contributors
 

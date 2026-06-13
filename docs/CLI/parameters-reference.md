@@ -1,7 +1,7 @@
 # CLI Parameters Reference
 
 > **Auto-generated** — do not edit manually.
-> Source: `src/main/interface/settings.c` | Generated: 2026-05-16 | Commit: `790f6f9f2d`
+> Source: `src/main/interface/settings.c` | Generated: 2026-06-13 | Commit: `47a13a7155` | Firmware: `0.4.3` | MSP: `0.1.54`
 
 ---
 
@@ -74,11 +74,11 @@
 | `gyro_32khz_hardware_lpf` | uint8 | master | `NORMAL`, `EXPERIMENTAL` |
 | `gyro_high_range` | uint8 | master | `OFF`, `ON` |
 | `gyro_sync_denom` | uint8 | master | `1` – `32` |
-| `gyro_lowpass_type` | uint8 | master | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |
+| `gyro_lowpass_type` | uint8 | master | `PT1`, `SVF`, `PT2`, `PT3`, `PT4` |
 | `gyro_lowpass_hz_roll` | uint16 | master | `0` – `16000` |
 | `gyro_lowpass_hz_pitch` | uint16 | master | `0` – `16000` |
 | `gyro_lowpass_hz_yaw` | uint16 | master | `0` – `16000` |
-| `gyro_lowpass2_type` | uint8 | master | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |
+| `gyro_lowpass2_type` | uint8 | master | `PT1`, `SVF`, `PT2`, `PT3`, `PT4` |
 | `gyro_lowpass2_hz_roll` | uint16 | master | `0` – `16000` |
 | `gyro_lowpass2_hz_pitch` | uint16 | master | `0` – `16000` |
 | `gyro_lowpass2_hz_yaw` | uint16 | master | `0` – `16000` |
@@ -470,11 +470,11 @@
 | `dterm_abg_alpha` | uint16 | profile | `0` – `1000` |
 | `dterm_abg_boost` | uint16 | profile | `0` – `2000` |
 | `dterm_abg_half_life` | uint8 | profile | `0` – `250` |
-| `dterm_lowpass_type` | uint8 | profile | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |
+| `dterm_lowpass_type` | uint8 | profile | `PT1`, `SVF`, `PT2`, `PT3`, `PT4` |
 | `dterm_lowpass_hz_roll` | uint16 | profile | `0` – `16000` |
 | `dterm_lowpass_hz_pitch` | uint16 | profile | `0` – `16000` |
 | `dterm_lowpass_hz_yaw` | uint16 | profile | `0` – `16000` |
-| `dterm_lowpass2_type` | uint8 | profile | `PT1`, `BIQUAD`, `PT2`, `PT3`, `PT4` |
+| `dterm_lowpass2_type` | uint8 | profile | `PT1`, `SVF`, `PT2`, `PT3`, `PT4` |
 | `dterm_lowpass2_hz_roll` | uint16 | profile | `0` – `16000` |
 | `dterm_lowpass2_hz_pitch` | uint16 | profile | `0` – `16000` |
 | `dterm_lowpass2_hz_yaw` | uint16 | profile | `0` – `16000` |
