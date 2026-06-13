@@ -1,7 +1,7 @@
 # CLI Parameters Reference
 
 > **Auto-generated** — do not edit manually.
-> Source: `src/main/interface/settings.c` | Generated: 2026-06-12 | Commit: `7bf8279b08`
+> Source: `src/main/interface/settings.c` | Generated: 2026-06-13 | Commit: `47a13a7155` | Firmware: `0.4.3` | MSP: `0.1.54`
 
 ---
 

@@ -62,9 +62,6 @@ static inline int32_t cmpTimeCycles(uint32_t a, uint32_t b)
 void enableGPIOPowerUsageAndNoiseReductions(void);
 // current crystal frequency - 8 or 12MHz
 
-// STM32F7 ITCM flash alias base: 0x00200000+ is flash (read-only for data stores); below is ITCM_RAM SRAM
-#define ITCM_FLASH_ALIAS_BASE 0x00200000U
-
 void initialiseMemorySections(void);
 #ifdef STM32H7
 void initialiseD2MemorySections(void);

@@ -571,6 +571,10 @@ targets-f4:
 targets-f7:
 	$(V1) $(MAKE) -s targets-by-mcu MCU_TYPE=STM32F7
 
+## targets-h7        : make all H7 targets
+targets-h7:
+	$(V1) $(MAKE) -s targets-by-mcu MCU_TYPE=STM32H7
+
 ## test              : run the cleanflight test suite
 ## junittest         : run the cleanflight test suite, producing Junit XML result files.
 test junittest:
