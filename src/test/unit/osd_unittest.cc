@@ -46,6 +46,7 @@ extern "C" {
 
     #include "flight/pid.h"
     #include "flight/imu.h"
+    #include "flight/position.h"
 
     #include "io/beeper.h"
     #include "io/gps.h"
@@ -81,6 +82,7 @@ extern "C" {
     PG_REGISTER(blackboxConfig_t, blackboxConfig, PG_BLACKBOX_CONFIG, 0);
     PG_REGISTER(systemConfig_t, systemConfig, PG_SYSTEM_CONFIG, 0);
     PG_REGISTER(pilotConfig_t, pilotConfig, PG_PILOT_CONFIG, 0);
+    PG_REGISTER(positionConfig_t, positionConfig, PG_POSITION_CONFIG, 0);
 
     timeUs_t simulationTime = 0;
     batteryState_e simulationBatteryState;
@@ -1107,8 +1109,12 @@ extern "C" {
         return simulationAltitude;
     }
 
-    int32_t getEstimatedVario() {
-        return simulationVerticalSpeed;
+    bool isAltitudeOffset() {
+        return true;
+    }
+
+    int16_t getEstimatedVario() {
+        return (int16_t)simulationVerticalSpeed;
     }
 
     unsigned int blackboxGetLogNumber() {

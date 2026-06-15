@@ -865,6 +865,11 @@ const clivalue_t valueTable[] = {
 #endif
 #endif
 
+// PG_POSITION_CONFIG
+#if defined(USE_BARO) || defined(USE_GPS)
+    { "altitude_limit",             VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 10000 }, PG_POSITION_CONFIG, offsetof(positionConfig_t, altitude_limit) },
+#endif
+
     { "deadband",                   VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 32 }, PG_RC_CONTROLS_CONFIG, offsetof(rcControlsConfig_t, deadband) },
     { "yaw_deadband",               VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 100 }, PG_RC_CONTROLS_CONFIG, offsetof(rcControlsConfig_t, yaw_deadband) },
     { "yaw_control_reversed",       VAR_INT8   | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_RC_CONTROLS_CONFIG, offsetof(rcControlsConfig_t, yaw_control_reversed) },
