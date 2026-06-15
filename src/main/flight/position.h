@@ -21,8 +21,18 @@
 #pragma once
 
 #include "common/time.h"
+#include "pg/pg.h"
+
+#if defined(USE_BARO) || defined(USE_GPS)
+typedef struct positionConfig_s {
+    uint16_t altitude_limit;    // meters AGL above arm point, 0 = disabled
+} positionConfig_t;
+
+PG_DECLARE(positionConfig_t, positionConfig);
 
 bool isAltitudeOffset(void);
 void calculateEstimatedAltitude(timeUs_t currentTimeUs);
+#endif
+
 int32_t getEstimatedAltitude(void);
 int16_t getEstimatedVario(void);

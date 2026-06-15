@@ -138,6 +138,9 @@
 #define PG_QUADSPI_CONFIG           548
 #define PG_SDIO_PIN_CONFIG          550
 
+// EmuFlight-specific parameter group ids start at 551
+#define PG_EMUFLIGHT_START 551
+#define PG_POSITION_CONFIG 551
 
 // OSD configuration (subject to change)
 #define PG_OSD_FONT_CONFIG 2047
