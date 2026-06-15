@@ -127,8 +127,7 @@ float ptnFilterApply(ptnFilter_t *filter, float input);
 
 // 1€ (One Euro) adaptive low-pass filter — cutoff rises with signal velocity
 typedef struct oneEuroFilter_s {
-    pt1Filter_t x_filter;   // main signal PT1 stage 1 (adaptive cutoff)
-    pt1Filter_t x_filter2;  // main signal PT1 stage 2 (same adaptive cutoff — PT2 output)
+    pt1Filter_t x_filter;   // signal PT1 (adaptive cutoff)
     pt1Filter_t d_filter;   // derivative estimator PT1 (fixed cutoff fc_d)
     float fc_min;           // minimum cutoff frequency (Hz)
     float fc_max;           // maximum cutoff frequency Hz; 0 = no cap
