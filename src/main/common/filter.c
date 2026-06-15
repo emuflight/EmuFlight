@@ -358,7 +358,8 @@ void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float fc_max, floa
     pt1FilterInit(&filter->d_filter, two_pi_fc_d / (two_pi_fc_d + filter->dT_inv));
     const float two_pi_fc_min = 2.0f * M_PIf * fc_min;
     const float k = two_pi_fc_min / (two_pi_fc_min + filter->dT_inv);
-    pt1FilterInit(&filter->x_filter, k);
+    pt1FilterInit(&filter->x_filter,  k);
+    pt1FilterInit(&filter->x_filter2, k);
 }
 
 void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float dT)
@@ -396,10 +397,16 @@ FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)
         }
         filter->lastCutoff = cutoff;
 
+        // Drive both output stages at the same adaptive cutoff (PT2 response).
+        // Cascaded PT1s at identical fc square the step transmission fraction —
+        // ~4× better quantization suppression vs single PT1 at every adaptive cutoff.
+        // This keeps rcCommand quantization steps from reaching the P term during
+        // fast flips and rolls where the cutoff is partially open.
         const float two_pi_fc = 2.0f * M_PIf * cutoff;
         const float k = two_pi_fc / (two_pi_fc + filter->dT_inv);
-        pt1FilterUpdateCutoff(&filter->x_filter, k);
+        pt1FilterUpdateCutoff(&filter->x_filter,  k);
+        pt1FilterUpdateCutoff(&filter->x_filter2, k);
     }
 
-    return pt1FilterApply(&filter->x_filter, input);
+    return pt1FilterApply(&filter->x_filter2, pt1FilterApply(&filter->x_filter, input));
 }

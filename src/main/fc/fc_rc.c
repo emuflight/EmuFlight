@@ -333,10 +333,10 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
         // Store computed fc_min in inputCutoffFrequency for change detection.
         if (rxConfig()->rc_smoothing_1euro_fc_min == 0) {
             // Auto: rx_hz / 12 clamped [6, 40] Hz; 180 Hz fallback gives 15 Hz before RX is known.
-            // The /12 divisor gives fc_min ≈ Nyquist/6. For single PT1 this yields ~92% attenuation
-            // of a 1-tick jitter component at the RC frame rate — sufficient for practical use.
-            // Ceiling of 40 Hz keeps centre-stick latency bounded at 500+ Hz links (τ ≈ 4 ms)
-            // while giving the same jitter rejection ratio as the 250 Hz case (fc_min = 20.8 Hz).
+            // The /12 divisor keeps PT2 Nyquist attenuation consistent across RC rates — at each
+            // rate, fc_min ≈ Nyquist/6, giving ~97% noise attenuation at the Nyquist frequency.
+            // Ceiling of 40 Hz is correct with PT2 output: at 500+ Hz RC, fc_min = 40 Hz gives
+            // the same Nyquist attenuation as the validated 250 Hz case (fc_min = 20.8 Hz).
             const float rx_hz = (smoothingData->averageFrameTimeUs > 0)
                                 ? 1e6f / smoothingData->averageFrameTimeUs : 180.0f;
             smoothingData->inputCutoffFrequency = (uint16_t)constrainf(rx_hz / 12.0f, 6.0f, 40.0f);
