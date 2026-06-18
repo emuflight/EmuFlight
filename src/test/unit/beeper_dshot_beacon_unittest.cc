@@ -82,10 +82,11 @@ extern "C" {
 
 #include "gtest/gtest.h"
 
-// Helper: run beeperUpdate() enough times to advance through a full beep sequence
-// starting from beeperIsOn==0 so the DShot block fires.
-static void runBeeperUpdate(timeUs_t timeUs) {
-    beeperUpdate(timeUs);
+// Helper: run beeperUpdate() several times to advance through a full beep sequence.
+// Multiple iterations guard against future changes to beeperSilence() that might
+// leave beeperIsOn in an unexpected state on the first tick.
+static void runBeeperUpdate(timeUs_t timeUs, int iterations = 3) {
+    for (int i = 0; i < iterations; ++i) beeperUpdate(timeUs);
 }
 
 class DshotBeaconPriorityTest : public ::testing::Test {
