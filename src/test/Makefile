@@ -93,6 +93,14 @@ cli_unittest_DEFINES := \
 		USE_CLI \
 		SystemCoreClock=1000000
 
+beeper_dshot_beacon_unittest_SRC := \
+		$(USER_DIR)/io/beeper.c \
+		$(USER_DIR)/pg/beeper.c \
+		$(USER_DIR)/pg/pg.c
+
+beeper_dshot_beacon_unittest_DEFINES := \
+		USE_DSHOT
+
 cms_unittest_SRC := \
 		$(USER_DIR)/cms/cms.c \
 		$(USER_DIR)/common/typeconversion.c \
