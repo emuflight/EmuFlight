@@ -270,17 +270,19 @@ void beeper(beeperMode_e mode) {
         }
         break;
     }
+    // Capture beacon request before the priority-loss early-return so the DShot motor tone
+    // fires even when a higher-priority alarm (e.g. BAT_CRIT_LOW) owns the physical buzzer.
+#ifdef USE_DSHOT
+    if (mode == BEEPER_RX_SET || mode == BEEPER_RX_LOST) {
+        dshotBeaconPendingMode = mode;
+    }
+#endif
     if (!selectedCandidate) {
         return;
     }
     currentBeeperEntry = selectedCandidate;
     beeperPos = 0;
     beeperNextToggleTime = 0;
-#ifdef USE_DSHOT
-    if (mode == BEEPER_RX_SET || mode == BEEPER_RX_LOST) {
-        dshotBeaconPendingMode = mode;
-    }
-#endif
 }
 
 void beeperSilence(void) {
