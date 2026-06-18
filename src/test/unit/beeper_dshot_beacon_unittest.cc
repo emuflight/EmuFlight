@@ -201,6 +201,25 @@ TEST_F(DshotBeaconPriorityTest, BeaconFiresOnRxLost)
     EXPECT_GE(dshotBeaconCallCount, 1);
 }
 
+// beeperSilence() must clear dshotBeaconPendingMode so a silenced beeper
+// cannot fire a motor beacon on the next tick.
+TEST_F(DshotBeaconPriorityTest, BeeperSilenceClearsPendingMode)
+{
+    // given: pending mode is primed directly (RC mode is OFF so beeperUpdate()
+    // cannot re-arm it after the silence)
+    stubRcModeBeeper = false;
+    beeper(BEEPER_RX_SET);
+    const timeUs_t t = 1200000U + 1000;
+
+    // when: beeperSilence() is called before beeperUpdate() consumes the pending mode
+    beeperSilence();
+
+    // then: beeperUpdate() must NOT fire the motor beacon
+    runBeeperUpdate(t);
+    EXPECT_EQ(0, dshotBeaconCallCount)
+        << "beeperSilence() failed to clear dshotBeaconPendingMode";
+}
+
 // STUBS — satisfy link dependencies not covered above
 
 extern "C" {

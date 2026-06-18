@@ -293,6 +293,9 @@ void beeperSilence(void) {
     beeperNextToggleTime = 0;
     beeperPos = 0;
     currentBeeperEntry = NULL;
+#ifdef USE_DSHOT
+    dshotBeaconPendingMode = BEEPER_SILENCE;
+#endif
 }
 
 /*
