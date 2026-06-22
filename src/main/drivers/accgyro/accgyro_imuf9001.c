@@ -33,7 +33,6 @@
 #include "common/maths.h"
 #include "drivers/serial.h"
 #include "drivers/bus_spi.h"
-#include "drivers/dma_spi.h"
 #include "drivers/exti.h"
 #include "drivers/io.h"
 #include "drivers/light_led.h"
@@ -198,6 +197,12 @@ void initImuf9001(void) {
 
 FAST_CODE static bool imufSendReceiveSpi(const extDevice_t *dev, uint8_t *dataTx, uint8_t *daRx, uint8_t length) {
     return spiReadWriteBufRB(dev, dataTx, daRx, length);
+}
+
+// Trivial readFn: real-time data is populated by imufIntCallback (DMA completion).
+FAST_CODE static bool imufSpiGyroRead(gyroDev_t *gyro) {
+    UNUSED(gyro);
+    return true;
 }
 
 FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroCommands_t commandToSend, imufCommand_t *reply, imufCommand_t *data) {
@@ -491,6 +496,7 @@ void imufSpiGyroInit(gyroDev_t *gyro) {
         if (imuf9001SendReceiveCommand(gyro, IMUF_COMMAND_SETUP, &txData, &rxData)) {
             //enable EXTI
             mpuGyroInit(gyro);
+            mpuImufSetupDma(gyro);
             return;
         }
     }
@@ -517,6 +523,7 @@ bool imufSpiGyroDetect(gyroDev_t *gyro) {
         return false;
     }
     gyro->initFn = imufSpiGyroInit;
+    gyro->readFn = imufSpiGyroRead;
     gyro->scale = 1.0f;
     gyro->mpuConfiguration.resetFn = resetImuf9001;
     return true;

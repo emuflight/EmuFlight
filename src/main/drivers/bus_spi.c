@@ -50,14 +50,6 @@
 #include "drivers/exti.h"
 #include "drivers/io.h"
 #include "drivers/rcc.h"
-#ifdef USE_DMA_SPI_DEVICE
-#ifndef GYRO_READ_TIMEOUT
-#define GYRO_READ_TIMEOUT 20
-#endif
-#include "drivers/dma_spi.h"
-#include "drivers/time.h"
-#endif
-
 static uint8_t spiRegisteredDeviceCount = 0;
 
 FAST_RAM_ZERO_INIT spiDevice_t spiDevice[SPIDEV_COUNT];
@@ -452,45 +444,6 @@ void spiLinkSegments(const extDevice_t *dev, busSegment_t *firstSegment, busSegm
 
 void spiSequence(const extDevice_t *dev, busSegment_t *segments) {
     busDevice_t *bus = dev->bus;
-
-#ifdef USE_DMA_SPI_DEVICE
-    if (dev->bus->busType_u.spi.instance == USE_DMA_SPI_DEVICE) {
-        // IMUF9001 blocking custom DMA — incompatible with non-blocking segment queuing.
-        spiWait(dev);
-        bus->curSegment = segments;
-        if (segments[0].len > 0 && segments[1].len == 0) {
-            uint8_t *txData = segments[0].u.buffers.txData;
-            uint8_t *rxData = segments[0].u.buffers.rxData;
-            int len = segments[0].len;
-            if ((size_t)len > sizeof(dmaTxBuffer)) {
-                len = sizeof(dmaTxBuffer);
-            }
-            uint32_t timeoutCheck = millis();
-            if (txData) {
-                memcpy(dmaTxBuffer, txData, len);
-            } else {
-                memset(dmaTxBuffer, 0xFF, len);
-            }
-            dmaSpiTransmitReceive(dmaTxBuffer, dmaRxBuffer, len, 1);
-            while (dmaSpiReadStatus != DMA_SPI_READ_DONE) {
-                if (millis() - timeoutCheck > GYRO_READ_TIMEOUT) {
-                    IOHi(dev->busType_u.spi.csnPin);
-                    break;
-                }
-            }
-            if (rxData) {
-                memcpy(rxData, dmaRxBuffer, len);
-            }
-            if (segments[0].callback) {
-                segments[0].callback(dev->callbackArg);
-            }
-            bus->curSegment = (busSegment_t *)BUS_SPI_FREE;
-            return;
-        }
-        spiSequenceStart(dev);
-        return;
-    }
-#endif
 
     ATOMIC_BLOCK(NVIC_PRIO_MAX) {
         if (spiIsBusy(dev)) {

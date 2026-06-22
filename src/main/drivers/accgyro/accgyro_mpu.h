@@ -247,7 +247,8 @@ uint8_t mpuGyroReadRegister(const extDevice_t *dev, uint8_t reg);
 struct accDev_s;
 bool mpuAccRead(struct accDev_s *acc);
 
-#ifdef USE_DMA_SPI_DEVICE
-extern bool mpuGyroDmaSpiReadStart(struct gyroDev_s *gyro);
-extern void mpuGyroDmaSpiReadFinish(struct gyroDev_s *gyro);
+#ifdef USE_GYRO_IMUF9001
+extern void mpuImufSetupDma(struct gyroDev_s *gyro);
+extern void imufPrepareDmaRead(struct gyroDev_s *gyro);
+extern volatile uint32_t crcErrorCount;
 #endif
