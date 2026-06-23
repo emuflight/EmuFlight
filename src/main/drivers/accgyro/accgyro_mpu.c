@@ -144,8 +144,8 @@ FAST_CODE static void mpuIntExtiHandler(extiCallbackRec_t *cb) {
     }
     gyro->gyroLastEXTI = nowCycles;
 #if defined(USE_GYRO_IMUF9001)
-    imufPrepareDmaRead(gyro);
-    spiSequence(&gyro->dev, gyro->segments);
+    // Keep EXTI ISR < 1 µs: SPI transfer is done by imufSpiGyroRead in GYROPID task context.
+    imufTransferPending = true;
 #elif defined(GYRO_USES_SPI)
     if (gyro->gyroModeSPI == GYRO_EXTI_INT_DMA) {
         spiSequence(&gyro->dev, gyro->segments);
@@ -186,9 +186,14 @@ bool mpuAccRead(accDev_t *acc) {
 }
 
 #ifdef USE_GYRO_IMUF9001
-FAST_RAM_ZERO_INIT static uint8_t imufTxBuf[58];
-FAST_RAM_ZERO_INIT static uint8_t imufRxBuf[58];
+// NOTE: NOT in CCM (FAST_RAM_ZERO_INIT) because the polling SPI path in spiSequenceStart
+// checks IS_CCM() and falls through to a slow path; keep in regular SRAM for normal access.
+static uint8_t imufTxBuf[58];
+static uint8_t imufRxBuf[58];
 FAST_RAM_ZERO_INIT volatile uint32_t crcErrorCount = 0;
+// Set by EXTI ISR; consumed (cleared then SPI executed) by imufSpiGyroRead in GYROPID task.
+// Keeps EXTI ISR duration < 1 µs; moves 15–20 µs SPI polling out of interrupt context.
+FAST_RAM_ZERO_INIT volatile bool imufTransferPending;
 
 // DMA completion callback: copy data into gyroADCf and acc.dev.ADCRaw.
 // CRC is tallied for diagnostics only — always use data (matches original dma_spi behavior).

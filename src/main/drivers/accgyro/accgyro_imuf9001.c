@@ -199,12 +199,18 @@ FAST_CODE static bool imufSendReceiveSpi(const extDevice_t *dev, uint8_t *dataTx
     return spiReadWriteBufRB(dev, dataTx, daRx, length);
 }
 
-// Gate GYROPID on new data: mirrors the old TASK_PRIORITY_TRIGGER + isDmaSpiDataReady behavior.
-// Returns true only when imufIntCallback has deposited a fresh sample; gyroUpdateSensor clears
-// dataReady after consuming it, so duplicate PID cycles on stale data cannot occur.
-// This is what allows 32kHz operation: if imuf_rate = IMUF_32000 the GYROPID runs at 32kHz;
-// if imuf_rate = IMUF_16000 (HELIOSPRING default) the GYROPID naturally caps at 16kHz.
+// Called by gyroUpdateSensor each GYROPID cycle.
+// If the EXTI ISR signalled a pending IMUF sample, execute the SPI transfer HERE (task context)
+// rather than in ISR context.  This keeps the EXTI ISR < 1 µs and frees ~32% of the F405
+// CPU that was previously consumed by 15–20 µs polling SPI running at 16 kHz inside the ISR.
+// imufIntCallback (called synchronously from spiSequence polling path) sets dataReady = true;
+// gyroUpdateSensor clears it, so the GYROPID naturally runs at IMUF's actual data rate.
 FAST_CODE static bool imufSpiGyroRead(gyroDev_t *gyro) {
+    if (imufTransferPending) {
+        imufTransferPending = false;      // clear before SPI so a racing EXTI re-sets it
+        imufPrepareDmaRead(gyro);
+        spiSequence(&gyro->dev, gyro->segments);
+    }
     return gyro->dataReady;
 }
 
