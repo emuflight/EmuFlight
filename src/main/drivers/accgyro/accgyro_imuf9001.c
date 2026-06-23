@@ -199,10 +199,13 @@ FAST_CODE static bool imufSendReceiveSpi(const extDevice_t *dev, uint8_t *dataTx
     return spiReadWriteBufRB(dev, dataTx, daRx, length);
 }
 
-// Trivial readFn: real-time data is populated by imufIntCallback (DMA completion).
+// Gate GYROPID on new data: mirrors the old TASK_PRIORITY_TRIGGER + isDmaSpiDataReady behavior.
+// Returns true only when imufIntCallback has deposited a fresh sample; gyroUpdateSensor clears
+// dataReady after consuming it, so duplicate PID cycles on stale data cannot occur.
+// This is what allows 32kHz operation: if imuf_rate = IMUF_32000 the GYROPID runs at 32kHz;
+// if imuf_rate = IMUF_16000 (HELIOSPRING default) the GYROPID naturally caps at 16kHz.
 FAST_CODE static bool imufSpiGyroRead(gyroDev_t *gyro) {
-    UNUSED(gyro);
-    return true;
+    return gyro->dataReady;
 }
 
 FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroCommands_t commandToSend, imufCommand_t *reply, imufCommand_t *data) {
