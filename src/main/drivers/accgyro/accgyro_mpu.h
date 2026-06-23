@@ -250,6 +250,4 @@ bool mpuAccRead(struct accDev_s *acc);
 #ifdef USE_GYRO_IMUF9001
 extern void mpuImufSetupDma(struct gyroDev_s *gyro);
 extern void imufPrepareDmaRead(struct gyroDev_s *gyro);
-extern volatile uint32_t crcErrorCount;
-extern volatile bool imufTransferPending;
 #endif

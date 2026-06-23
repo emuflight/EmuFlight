@@ -189,6 +189,7 @@ typedef enum gpioState {
 extern volatile imuFrame_t imufQuat;
 extern volatile uint32_t isImufCalibrating;
 extern volatile uint32_t crcErrorCount;
+extern volatile bool imufTransferPending;
 
 extern void initImuf9001(void);
 extern uint32_t getCrcImuf9001(uint32_t* data, uint32_t size);
