@@ -383,6 +383,8 @@ static void mspProcessPendingRequest(mspPort_t * mspPort) {
         break;
 #ifdef USE_CLI
     case MSP_PENDING_CLI:
+        mspPort->pendingRequest = MSP_PENDING_NONE;
+        waitForSerialPortToFinishTransmitting(mspPort->port);
         cliEnter(mspPort->port);
         break;
 #endif
