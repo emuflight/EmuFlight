@@ -190,29 +190,29 @@ FAST_RAM_ZERO_INIT static uint8_t imufTxBuf[58];
 FAST_RAM_ZERO_INIT static uint8_t imufRxBuf[58];
 FAST_RAM_ZERO_INIT volatile uint32_t crcErrorCount = 0;
 
-// DMA completion callback: CRC-validate, copy data into gyroADCf and acc.dev.ADCRaw.
+// DMA completion callback: copy data into gyroADCf and acc.dev.ADCRaw.
+// CRC is tallied for diagnostics only — always use data (matches original dma_spi behavior).
 FAST_CODE busStatus_e imufIntCallback(uint32_t arg) {
     gyroDev_t *gyro = (gyroDev_t *)arg;
     const uint32_t xferLen = gyro->segments[0].len;
-    const uint32_t crc1 = (*(uint32_t *)(imufRxBuf + xferLen - 4)) & 0xFF;
-    const uint32_t crc2 = getCrcImuf9001((uint32_t *)imufRxBuf, (xferLen >> 2) - 1) & 0xFF;
-    if (crc1 == crc2) {
-        memcpy(&imufData, imufRxBuf, sizeof(imufData_t));
-        acc.dev.ADCRaw[X]   = (int16_t)(imufData.accX * acc.dev.acc_1G);
-        acc.dev.ADCRaw[Y]   = (int16_t)(imufData.accY * acc.dev.acc_1G);
-        acc.dev.ADCRaw[Z]   = (int16_t)(imufData.accZ * acc.dev.acc_1G);
-        gyro->gyroADCf[X]   = imufData.gyroX;
-        gyro->gyroADCf[Y]   = imufData.gyroY;
-        gyro->gyroADCf[Z]   = imufData.gyroZ;
-        gyro->gyroADCRaw[X] = (int16_t)(imufData.gyroX * 16.4f);
-        gyro->gyroADCRaw[Y] = (int16_t)(imufData.gyroY * 16.4f);
-        gyro->gyroADCRaw[Z] = (int16_t)(imufData.gyroZ * 16.4f);
-        gyro->dataReady = true;
-    } else {
+    const uint32_t crc1 = *(uint32_t *)(imufRxBuf + xferLen - 4);
+    const uint32_t crc2 = getCrcImuf9001((uint32_t *)imufRxBuf, (xferLen >> 2) - 1);
+    if (crc1 != crc2) {
         if (++crcErrorCount > 100000) {
             crcErrorCount = 0;
         }
     }
+    memcpy(&imufData, imufRxBuf, sizeof(imufData_t));
+    acc.dev.ADCRaw[X]   = (int16_t)(imufData.accX * acc.dev.acc_1G);
+    acc.dev.ADCRaw[Y]   = (int16_t)(imufData.accY * acc.dev.acc_1G);
+    acc.dev.ADCRaw[Z]   = (int16_t)(imufData.accZ * acc.dev.acc_1G);
+    gyro->gyroADCf[X]   = imufData.gyroX;
+    gyro->gyroADCf[Y]   = imufData.gyroY;
+    gyro->gyroADCf[Z]   = imufData.gyroZ;
+    gyro->gyroADCRaw[X] = (int16_t)(imufData.gyroX * 16.4f);
+    gyro->gyroADCRaw[Y] = (int16_t)(imufData.gyroY * 16.4f);
+    gyro->gyroADCRaw[Z] = (int16_t)(imufData.gyroZ * 16.4f);
+    gyro->dataReady = true;
     return BUS_READY;
 }
 

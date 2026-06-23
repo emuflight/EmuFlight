@@ -408,6 +408,9 @@ uint8_t imuf9001SpiDetect(const gyroDev_t *gyro) {
     IOInit(gyro->dev.busType_u.spi.csnPin, OWNER_MPU_CS, 0);
     IOConfigGPIO(gyro->dev.busType_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(gyro->dev.busType_u.spi.csnPin);
+    // IMUF9001 uses SPI Mode 0 (CPOL_Low/CPHA_1Edge) at 21 MHz — match dmaSpiInit settings
+    spiSetClkPhasePolarity(&gyro->dev, true);
+    spiSetClkDivisor(&gyro->dev, 4);
     hardwareInitialised = true;
     for (int x = 0; x < 3; x++) {
         if (x) {
