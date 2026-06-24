@@ -369,10 +369,8 @@ uint32_t CDC_Send_FreeBytes(void) {
  *         (host slow or disconnected). Callers must not assume a full write.
  */
 uint32_t CDC_Send_DATA(const uint8_t *ptrBuffer, uint32_t sendLength) {
+    uint32_t deadline = millis() + 2;
     for (uint32_t i = 0; i < sendLength; i++) {
-        // Wait up to 2 ms per byte for space; return partial count on timeout
-        // to prevent an indefinite spin that would trigger WWDG reset.
-        uint32_t deadline = millis() + 2;
         while (CDC_Send_FreeBytes() == 0) {
             if (millis() >= deadline) {
                 return i;

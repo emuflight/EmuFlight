@@ -32,6 +32,8 @@
 #include "io/serial.h"
 #include "msp/msp_serial.h"
 
+#include "scheduler/scheduler.h"
+
 #ifdef USE_GYRO_IMUF9001
 #include "drivers/light_led.h"
 #include "drivers/accgyro/accgyro.h"
@@ -430,6 +432,7 @@ void mspSerialProcess(mspEvaluateNonMspData_e evaluateNonMspData, mspProcessComm
                 }
                 if (mspPort->c_state == MSP_COMMAND_RECEIVED) {
                     if (mspPort->packetType == MSP_PACKET_COMMAND) {
+                        schedulerIgnoreTaskExecTime();
                         mspPostProcessFn = mspSerialProcessReceivedCommand(mspPort, mspProcessCommandFn);
                     } else if (mspPort->packetType == MSP_PACKET_REPLY) {
                         mspSerialProcessReceivedReply(mspPort, mspProcessReplyFn);
@@ -544,6 +547,7 @@ void mspSerialProcessOnePort(mspPort_t * const mspPort, mspEvaluateNonMspData_e 
             }
 
             if (mspPort->c_state == MSP_COMMAND_RECEIVED) {
+                schedulerIgnoreTaskExecTime();
                 mspPostProcessFn = mspSerialProcessReceivedCommand(mspPort, mspProcessCommandFn);
                 break; // process one command at a time so as not to block.
             }
