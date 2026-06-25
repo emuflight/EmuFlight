@@ -312,14 +312,15 @@ $(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC)
 
 BUILD_SUMMARY_PASSED        := $(BIN_DIR)/.build_passed
 BUILD_SUMMARY_FAILED        := $(BIN_DIR)/.build_failed
-BUILD_SUMMARY_FAIL_LIST_MAX ?= 10
 
 # Detect direct multi-target invocations: `make T1 T2 T3`.
-# When 2+ of the MAKECMDGOALS are VALID_TARGETS, set IN_SUMMARY_OUTER so the
-# build graph is restructured (_auto_summary does the real work; individual
-# targets become no-ops).  Unknown goals are silenced in the outer make and
-# reported via the inner make's exit code so the overall exit is still non-zero.
-# IN_SUMMARY_BUILD is the recursion guard passed to sub-makes.
+# When 2+ goals are on the command line and at least 1 is a valid target,
+# set IN_SUMMARY_OUTER to restructure the build graph: all goals become
+# no-ops that depend on _auto_summary, which does the real work via a
+# sub-make.  Unknown goals (e.g. typos) are passed through to the sub-make
+# where "no rule to make target" is reported; _exit captures that non-zero
+# code so the outer make exits non-zero too.
+# IN_SUMMARY_BUILD=1 is the recursion guard passed to sub-makes.
 ifndef IN_SUMMARY_BUILD
 _DIRECT_VALID := $(filter $(VALID_TARGETS), $(MAKECMDGOALS))
 ifneq ($(words $(MAKECMDGOALS)), 0)
@@ -335,8 +336,9 @@ endif
 # Run TARGET_LIST through make (inheriting -k/-j from MAKEFLAGS), then print
 # a pass/fail summary.  Always runs the report even when targets fail.
 # IN_SUMMARY_BUILD=1 guards the sub-make from triggering IN_SUMMARY_OUTER.
-# _exit captures the inner make exit code (non-zero for recipe failures AND
-# for "no rule to make target" errors from unknown goals).
+# _exit captures the inner make exit code — non-zero for both recipe
+# failures (tracked via markers) and "no rule to make target" errors from
+# unknown goals (not written to any marker but still cause exit != 0).
 define summary_build
 @rm -f $(BUILD_SUMMARY_PASSED) $(BUILD_SUMMARY_FAILED)
 @_exit=0; \
@@ -345,7 +347,7 @@ passed=$$(cat $(BUILD_SUMMARY_PASSED) 2>/dev/null | wc -l); \
 failed=$$(cat $(BUILD_SUMMARY_FAILED) 2>/dev/null | wc -l); \
 echo ""; \
 echo "=== Build summary: $$passed succeeded, $$failed failed ==="; \
-if [ "$$failed" -gt 0 ] && [ "$$failed" -le $(BUILD_SUMMARY_FAIL_LIST_MAX) ]; then \
+if [ "$$failed" -gt 0 ]; then \
 	echo "Failed targets:"; \
 	cat $(BUILD_SUMMARY_FAILED); \
 fi; \
@@ -469,24 +471,16 @@ targets-group-rest:
 
 ifdef IN_SUMMARY_OUTER
 # Outer intercepted invocation: real work happens inside _auto_summary's
-# sub-make; individual target recipes are no-ops to avoid double-building.
-# Unknown goals are also made no-ops here so make doesn't emit a second
-# "no rule" error — the inner make already reported it and _exit captures it.
-_INVALID_GOALS := $(filter-out $(VALID_TARGETS), $(MAKECMDGOALS))
-
+# sub-make.  Every command-line goal (valid or not) becomes a no-op that
+# depends on _auto_summary, so if _auto_summary exits non-zero ALL goals
+# fail and make exits non-zero.  Unknown goals are silenced here; the inner
+# make reports the "no rule" error and _exit propagates it.
 .PHONY: _auto_summary
 _auto_summary:
 	$(call summary_build,$(MAKECMDGOALS))
 
-$(firstword $(MAKECMDGOALS)): _auto_summary
-
-$(VALID_TARGETS):
+$(MAKECMDGOALS): _auto_summary
 	@:
-
-ifneq ($(_INVALID_GOALS),)
-$(_INVALID_GOALS):
-	@:
-endif
 
 else
 # Normal invocation (single target, named group, or inner sub-make).
