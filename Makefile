@@ -310,8 +310,9 @@ $(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC)
 
 .PHONY: clean clean_test clean_all all_clean binary_hex build_summary_init build_summary
 
-BUILD_SUMMARY_PASSED := $(BIN_DIR)/.build_passed
-BUILD_SUMMARY_FAILED := $(BIN_DIR)/.build_failed
+BUILD_SUMMARY_PASSED        := $(BIN_DIR)/.build_passed
+BUILD_SUMMARY_FAILED        := $(BIN_DIR)/.build_failed
+BUILD_SUMMARY_FAIL_LIST_MAX ?= 10
 
 # Build each output directory once, not once-per-file, for parallel-safe compilation
 $(TARGET_DIRS):
@@ -368,7 +369,11 @@ $(OBJECT_DIR)/$(TARGET)/%.o: %.S | $$(dir $$@)
 
 
 ## all               : Build all targets (excluding unsupported); prints pass/fail summary
-all supported: build_summary
+##                     pass -k to continue on failure; summary always printed
+all supported:
+	@$(MAKE) build_summary_init
+	-@$(MAKE) $(SUPPORTED_TARGETS)
+	@$(MAKE) build_summary
 
 ## all_with_unsupported : Build all targets (including unsupported)
 all_with_unsupported: $(VALID_TARGETS)
@@ -412,8 +417,6 @@ targets-group-11: $(GROUP_11_TARGETS)
 ## targets-group-rest: build the rest of the targets (not listed in groups 1-11)
 targets-group-rest: $(GROUP_OTHER_TARGETS)
 
-$(SUPPORTED_TARGETS): | build_summary_init
-
 $(VALID_TARGETS):
 	$(V0) @echo "Building $@"; \
 	if $(MAKE) binary_hex TARGET=$@; then \
@@ -422,17 +425,18 @@ $(VALID_TARGETS):
 	else \
 		echo "Building $@ FAILED."; \
 		echo "$@" >> $(BUILD_SUMMARY_FAILED); \
+		exit 1; \
 	fi
 
 build_summary_init:
 	@rm -f $(BUILD_SUMMARY_PASSED) $(BUILD_SUMMARY_FAILED)
 
-build_summary: $(SUPPORTED_TARGETS)
+build_summary:
 	@passed=$$(cat $(BUILD_SUMMARY_PASSED) 2>/dev/null | wc -l); \
 	failed=$$(cat $(BUILD_SUMMARY_FAILED) 2>/dev/null | wc -l); \
 	echo ""; \
 	echo "=== Build summary: $$passed succeeded, $$failed failed ==="; \
-	if [ "$$failed" -gt 0 ] && [ "$$failed" -le 10 ]; then \
+	if [ "$$failed" -gt 0 ] && [ "$$failed" -le $(BUILD_SUMMARY_FAIL_LIST_MAX) ]; then \
 		echo "Failed targets:"; \
 		cat $(BUILD_SUMMARY_FAILED); \
 	fi; \
