@@ -308,7 +308,10 @@ CLEAN_ARTIFACTS += $(TARGET_LST)
 # Rebuild version.o whenever any source changes so the embedded timestamp stays current
 $(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC)
 
-.PHONY: clean clean_test clean_all all_clean binary_hex
+.PHONY: clean clean_test clean_all all_clean binary_hex build_summary_init build_summary
+
+BUILD_SUMMARY_PASSED := $(BIN_DIR)/.build_passed
+BUILD_SUMMARY_FAILED := $(BIN_DIR)/.build_failed
 
 # Build each output directory once, not once-per-file, for parallel-safe compilation
 $(TARGET_DIRS):
@@ -364,8 +367,8 @@ $(OBJECT_DIR)/$(TARGET)/%.o: %.S | $$(dir $$@)
 	$(V1) $(CROSS_CC) -c -o $@ $(ASFLAGS) $<
 
 
-## all               : Build all targets (excluding unsupported)
-all supported: $(SUPPORTED_TARGETS)
+## all               : Build all targets (excluding unsupported); prints pass/fail summary
+all supported: build_summary
 
 ## all_with_unsupported : Build all targets (including unsupported)
 all_with_unsupported: $(VALID_TARGETS)
@@ -409,10 +412,31 @@ targets-group-11: $(GROUP_11_TARGETS)
 ## targets-group-rest: build the rest of the targets (not listed in groups 1-11)
 targets-group-rest: $(GROUP_OTHER_TARGETS)
 
+$(SUPPORTED_TARGETS): | build_summary_init
+
 $(VALID_TARGETS):
-	$(V0) @echo "Building $@" && \
-	$(MAKE) binary_hex TARGET=$@ && \
-	echo "Building $@ succeeded."
+	$(V0) @echo "Building $@"; \
+	if $(MAKE) binary_hex TARGET=$@; then \
+		echo "Building $@ succeeded."; \
+		echo "$@" >> $(BUILD_SUMMARY_PASSED); \
+	else \
+		echo "Building $@ FAILED."; \
+		echo "$@" >> $(BUILD_SUMMARY_FAILED); \
+	fi
+
+build_summary_init:
+	@rm -f $(BUILD_SUMMARY_PASSED) $(BUILD_SUMMARY_FAILED)
+
+build_summary: $(SUPPORTED_TARGETS)
+	@passed=$$(cat $(BUILD_SUMMARY_PASSED) 2>/dev/null | wc -l); \
+	failed=$$(cat $(BUILD_SUMMARY_FAILED) 2>/dev/null | wc -l); \
+	echo ""; \
+	echo "=== Build summary: $$passed succeeded, $$failed failed ==="; \
+	if [ "$$failed" -gt 0 ] && [ "$$failed" -le 10 ]; then \
+		echo "Failed targets:"; \
+		cat $(BUILD_SUMMARY_FAILED); \
+	fi; \
+	[ "$$failed" -eq 0 ]
 
 $(NOBUILD_TARGETS):
 	$(MAKE) TARGET=$@
@@ -450,6 +474,7 @@ $(TARGETS_CLEAN):
 clean_all:
 	@echo "Cleaning all targets"
 	$(V0) rm -rf $(OBJECT_DIR)
+	$(V0) rm -f $(BUILD_SUMMARY_PASSED) $(BUILD_SUMMARY_FAILED)
 	$(V0) cd src/test && $(MAKE) clean || true
 	@echo "All targets cleaned."
 
