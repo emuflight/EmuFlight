@@ -308,7 +308,7 @@ CLEAN_ARTIFACTS += $(TARGET_LST)
 # Rebuild version.o whenever any source changes so the embedded timestamp stays current
 $(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC)
 
-.PHONY: clean clean_test clean_all all_clean binary_hex build_summary_init build_summary
+.PHONY: clean clean_test clean_all all_clean binary_hex
 
 BUILD_SUMMARY_PASSED        := $(BIN_DIR)/.build_passed
 BUILD_SUMMARY_FAILED        := $(BIN_DIR)/.build_failed
@@ -371,9 +371,17 @@ $(OBJECT_DIR)/$(TARGET)/%.o: %.S | $$(dir $$@)
 ## all               : Build all targets (excluding unsupported); prints pass/fail summary
 ##                     pass -k to continue on failure; summary always printed
 all supported:
-	@$(MAKE) build_summary_init
+	@rm -f $(BUILD_SUMMARY_PASSED) $(BUILD_SUMMARY_FAILED)
 	-@$(MAKE) $(SUPPORTED_TARGETS)
-	@$(MAKE) build_summary
+	@passed=$$(cat $(BUILD_SUMMARY_PASSED) 2>/dev/null | wc -l); \
+	failed=$$(cat $(BUILD_SUMMARY_FAILED) 2>/dev/null | wc -l); \
+	echo ""; \
+	echo "=== Build summary: $$passed succeeded, $$failed failed ==="; \
+	if [ "$$failed" -gt 0 ] && [ "$$failed" -le $(BUILD_SUMMARY_FAIL_LIST_MAX) ]; then \
+		echo "Failed targets:"; \
+		cat $(BUILD_SUMMARY_FAILED); \
+	fi; \
+	[ "$$failed" -eq 0 ]
 
 ## all_with_unsupported : Build all targets (including unsupported)
 all_with_unsupported: $(VALID_TARGETS)
@@ -428,19 +436,6 @@ $(VALID_TARGETS):
 		exit 1; \
 	fi
 
-build_summary_init:
-	@rm -f $(BUILD_SUMMARY_PASSED) $(BUILD_SUMMARY_FAILED)
-
-build_summary:
-	@passed=$$(cat $(BUILD_SUMMARY_PASSED) 2>/dev/null | wc -l); \
-	failed=$$(cat $(BUILD_SUMMARY_FAILED) 2>/dev/null | wc -l); \
-	echo ""; \
-	echo "=== Build summary: $$passed succeeded, $$failed failed ==="; \
-	if [ "$$failed" -gt 0 ] && [ "$$failed" -le $(BUILD_SUMMARY_FAIL_LIST_MAX) ]; then \
-		echo "Failed targets:"; \
-		cat $(BUILD_SUMMARY_FAILED); \
-	fi; \
-	[ "$$failed" -eq 0 ]
 
 $(NOBUILD_TARGETS):
 	$(MAKE) TARGET=$@
