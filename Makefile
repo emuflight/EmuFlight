@@ -314,12 +314,29 @@ BUILD_SUMMARY_PASSED        := $(BIN_DIR)/.build_passed
 BUILD_SUMMARY_FAILED        := $(BIN_DIR)/.build_failed
 BUILD_SUMMARY_FAIL_LIST_MAX ?= 10
 
+# Detect direct multi-valid-target invocations: `make T1 T2 T3`.
+# When all MAKECMDGOALS are VALID_TARGETS and there are 2+, set IN_SUMMARY_OUTER
+# so the build graph can be restructured (targets become no-ops; _auto_summary
+# does the real work).  IN_SUMMARY_BUILD is the recursion guard passed to the
+# sub-make so that inner invocations skip this block and run real recipes.
+ifndef IN_SUMMARY_BUILD
+_DIRECT_VALID := $(filter $(VALID_TARGETS), $(MAKECMDGOALS))
+ifeq ($(words $(_DIRECT_VALID)), $(words $(MAKECMDGOALS)))
+ifneq ($(words $(MAKECMDGOALS)), 1)
+ifneq ($(words $(MAKECMDGOALS)), 0)
+IN_SUMMARY_OUTER := 1
+endif
+endif
+endif
+endif
+
 # $(call summary_build, TARGET_LIST)
 # Run TARGET_LIST through make (inheriting -k/-j from MAKEFLAGS), then print
 # a pass/fail summary.  Always runs the report even when targets fail.
+# IN_SUMMARY_BUILD=1 guards the sub-make from triggering IN_SUMMARY_OUTER.
 define summary_build
 @rm -f $(BUILD_SUMMARY_PASSED) $(BUILD_SUMMARY_FAILED)
--@$(MAKE) $(1)
+-@$(MAKE) IN_SUMMARY_BUILD=1 $(1)
 @passed=$$(cat $(BUILD_SUMMARY_PASSED) 2>/dev/null | wc -l); \
 failed=$$(cat $(BUILD_SUMMARY_FAILED) 2>/dev/null | wc -l); \
 echo ""; \
@@ -446,6 +463,20 @@ targets-group-11:
 targets-group-rest:
 	$(call summary_build,$(GROUP_OTHER_TARGETS))
 
+ifdef IN_SUMMARY_OUTER
+# Outer intercepted invocation: real work happens inside _auto_summary's
+# sub-make; individual target recipes are no-ops to avoid double-building.
+.PHONY: _auto_summary
+_auto_summary:
+	$(call summary_build,$(_DIRECT_VALID))
+
+$(firstword $(MAKECMDGOALS)): _auto_summary
+
+$(VALID_TARGETS):
+	@:
+
+else
+# Normal invocation (single target, named group, or inner sub-make).
 $(VALID_TARGETS):
 	$(V0) @echo "Building $@"; \
 	if $(MAKE) binary_hex TARGET=$@; then \
@@ -456,6 +487,7 @@ $(VALID_TARGETS):
 		echo "$@" >> $(BUILD_SUMMARY_FAILED); \
 		exit 1; \
 	fi
+endif
 
 
 $(NOBUILD_TARGETS):
