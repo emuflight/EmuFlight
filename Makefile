@@ -314,6 +314,23 @@ BUILD_SUMMARY_PASSED        := $(BIN_DIR)/.build_passed
 BUILD_SUMMARY_FAILED        := $(BIN_DIR)/.build_failed
 BUILD_SUMMARY_FAIL_LIST_MAX ?= 10
 
+# $(call summary_build, TARGET_LIST)
+# Run TARGET_LIST through make (inheriting -k/-j from MAKEFLAGS), then print
+# a pass/fail summary.  Always runs the report even when targets fail.
+define summary_build
+@rm -f $(BUILD_SUMMARY_PASSED) $(BUILD_SUMMARY_FAILED)
+-@$(MAKE) $(1)
+@passed=$$(cat $(BUILD_SUMMARY_PASSED) 2>/dev/null | wc -l); \
+failed=$$(cat $(BUILD_SUMMARY_FAILED) 2>/dev/null | wc -l); \
+echo ""; \
+echo "=== Build summary: $$passed succeeded, $$failed failed ==="; \
+if [ "$$failed" -gt 0 ] && [ "$$failed" -le $(BUILD_SUMMARY_FAIL_LIST_MAX) ]; then \
+	echo "Failed targets:"; \
+	cat $(BUILD_SUMMARY_FAILED); \
+fi; \
+[ "$$failed" -eq 0 ]
+endef
+
 # Build each output directory once, not once-per-file, for parallel-safe compilation
 $(TARGET_DIRS):
 	@mkdir -p $@
@@ -371,59 +388,63 @@ $(OBJECT_DIR)/$(TARGET)/%.o: %.S | $$(dir $$@)
 ## all               : Build all targets (excluding unsupported); prints pass/fail summary
 ##                     pass -k to continue on failure; summary always printed
 all supported:
-	@rm -f $(BUILD_SUMMARY_PASSED) $(BUILD_SUMMARY_FAILED)
-	-@$(MAKE) $(SUPPORTED_TARGETS)
-	@passed=$$(cat $(BUILD_SUMMARY_PASSED) 2>/dev/null | wc -l); \
-	failed=$$(cat $(BUILD_SUMMARY_FAILED) 2>/dev/null | wc -l); \
-	echo ""; \
-	echo "=== Build summary: $$passed succeeded, $$failed failed ==="; \
-	if [ "$$failed" -gt 0 ] && [ "$$failed" -le $(BUILD_SUMMARY_FAIL_LIST_MAX) ]; then \
-		echo "Failed targets:"; \
-		cat $(BUILD_SUMMARY_FAILED); \
-	fi; \
-	[ "$$failed" -eq 0 ]
+	$(call summary_build,$(SUPPORTED_TARGETS))
 
 ## all_with_unsupported : Build all targets (including unsupported)
-all_with_unsupported: $(VALID_TARGETS)
+all_with_unsupported:
+	$(call summary_build,$(VALID_TARGETS))
 
 ## unsupported : Build unsupported targets
-unsupported: $(UNSUPPORTED_TARGETS)
+unsupported:
+	$(call summary_build,$(UNSUPPORTED_TARGETS))
 
 ## targets-group-1   : build some targets
-targets-group-1: $(GROUP_1_TARGETS)
+targets-group-1:
+	$(call summary_build,$(GROUP_1_TARGETS))
 
 ## targets-group-2   : build some targets
-targets-group-2: $(GROUP_2_TARGETS)
+targets-group-2:
+	$(call summary_build,$(GROUP_2_TARGETS))
 
 ## targets-group-3   : build some targets
-targets-group-3: $(GROUP_3_TARGETS)
+targets-group-3:
+	$(call summary_build,$(GROUP_3_TARGETS))
 
 ## targets-group-4   : build some targets
-targets-group-4: $(GROUP_4_TARGETS)
+targets-group-4:
+	$(call summary_build,$(GROUP_4_TARGETS))
 
 ## targets-group-5   : build some targets
-targets-group-5: $(GROUP_5_TARGETS)
+targets-group-5:
+	$(call summary_build,$(GROUP_5_TARGETS))
 
 ## targets-group-6   : build some targets
-targets-group-6: $(GROUP_6_TARGETS)
+targets-group-6:
+	$(call summary_build,$(GROUP_6_TARGETS))
 
 ## targets-group-7   : build some targets
-targets-group-7: $(GROUP_7_TARGETS)
+targets-group-7:
+	$(call summary_build,$(GROUP_7_TARGETS))
 
 ## targets-group-8   : build some targets
-targets-group-8: $(GROUP_8_TARGETS)
+targets-group-8:
+	$(call summary_build,$(GROUP_8_TARGETS))
 
 ## targets-group-9   : build some targets
-targets-group-9: $(GROUP_9_TARGETS)
+targets-group-9:
+	$(call summary_build,$(GROUP_9_TARGETS))
 
 ## targets-group-10  : build some targets
-targets-group-10: $(GROUP_10_TARGETS)
+targets-group-10:
+	$(call summary_build,$(GROUP_10_TARGETS))
 
 ## targets-group-11  : build some targets
-targets-group-11: $(GROUP_11_TARGETS)
+targets-group-11:
+	$(call summary_build,$(GROUP_11_TARGETS))
 
 ## targets-group-rest: build the rest of the targets (not listed in groups 1-11)
-targets-group-rest: $(GROUP_OTHER_TARGETS)
+targets-group-rest:
+	$(call summary_build,$(GROUP_OTHER_TARGETS))
 
 $(VALID_TARGETS):
 	$(V0) @echo "Building $@"; \
