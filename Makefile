@@ -470,18 +470,18 @@ targets-group-rest:
 	$(call summary_build,$(GROUP_OTHER_TARGETS))
 
 ifdef IN_SUMMARY_OUTER
-# Outer intercepted invocation: real work happens inside _auto_summary's
-# sub-make.  Every command-line goal (valid or not) becomes a no-op that
-# depends on _auto_summary.  Goals must be declared .PHONY so that GNU Make
-# propagates _auto_summary's failure through to the outer make's exit code;
-# non-phony targets with @: recipes are silently considered "up to date" and
-# do not cause a non-zero exit even when a prerequisite failed (Make 4.4+).
-.PHONY: _auto_summary $(MAKECMDGOALS)
-_auto_summary:
-	$(call summary_build,$(MAKECMDGOALS))
+# Outer intercepted invocation: real work happens in the first goal's recipe.
+# Remaining goals are @: no-ops so make doesn't error on unknown targets.
+# summary_build exits non-zero on any failure, which causes the first goal's
+# recipe to fail — make reliably propagates a goal's own recipe failure to
+# the outer exit code (unlike prerequisite failure propagation in Make 4.4+).
+.PHONY: $(MAKECMDGOALS)
 
-$(MAKECMDGOALS): _auto_summary
+$(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS)):
 	@:
+
+$(firstword $(MAKECMDGOALS)):
+	$(call summary_build,$(MAKECMDGOALS))
 
 else
 # Normal invocation (single target, named group, or inner sub-make).
