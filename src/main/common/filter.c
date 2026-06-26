@@ -365,15 +365,19 @@ void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float fc_max, floa
     pt1FilterInit(&filter->x_filter_fixed, k_fixed);
 }
 
-void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float dT)
+void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float dT)
 {
-    filter->fc_min = fc_min;
-    filter->fc_max = fc_max;
-    filter->beta   = beta;
-    filter->fc_d   = fc_d;
-    filter->dT_inv = (dT > 0.0f) ? 1.0f / dT : 0.0f;
+    filter->fc_min   = fc_min;
+    filter->fc_max   = fc_max;
+    filter->beta     = beta;
+    filter->fc_d     = fc_d;
+    filter->fc_fixed = fc_fixed;
+    filter->dT_inv   = (dT > 0.0f) ? 1.0f / dT : 0.0f;
     const float two_pi_fc_d = 2.0f * M_PIf * fc_d;
     pt1FilterUpdateCutoff(&filter->d_filter, two_pi_fc_d / (two_pi_fc_d + filter->dT_inv));
+    // fc_fixed scales with link rate; recompute k whenever dT changes
+    const float two_pi_fc_fixed = 2.0f * M_PIf * filter->fc_fixed;
+    pt1FilterUpdateCutoff(&filter->x_filter_fixed, two_pi_fc_fixed / (two_pi_fc_fixed + filter->dT_inv));
 }
 
 FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)
@@ -401,12 +405,12 @@ FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)
         filter->lastCutoff = cutoff;
 
         // Stage 1 (adaptive): cutoff follows stick velocity — transparent at full stick,
-        // fc_min at rest. Stage 2 (fixed) runs at fc_fixed=40 Hz always; it provides a
-        // constant quantization floor regardless of how open stage 1 becomes.
+        // fc_min at rest. Stage 2 (fixed) runs at fc_fixed (auto: rx_hz/12 clamped [6,40] Hz);
+        // it provides a constant quantization floor regardless of how open stage 1 becomes.
         const float two_pi_fc = 2.0f * M_PIf * cutoff;
         const float k = two_pi_fc / (two_pi_fc + filter->dT_inv);
         pt1FilterUpdateCutoff(&filter->x_filter, k);
-        // x_filter_fixed cutoff is constant — no update needed
+        // x_filter_fixed k is maintained by oneEuroFilterUpdate; no per-sample update needed
     }
 
     return pt1FilterApply(&filter->x_filter_fixed, pt1FilterApply(&filter->x_filter, input));

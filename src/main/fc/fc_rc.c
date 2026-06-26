@@ -389,10 +389,16 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                                          : (smoothingData->averageFrameTimeUs > 0)
                                            ? 1e6f / smoothingData->averageFrameTimeUs / 19.0f
                                            : 180.0f / 19.0f;
+                    // fc_fixed auto: same formula as fc_min — scales with link rate so
+                    // the fixed floor is meaningful at all rates (Crossfire 50 Hz → 6 Hz,
+                    // ELRS 500 Hz → 40 Hz).  Uses same [6, 40] Hz clamp as fc_min_auto.
+                    const float fc_fixed = (smoothingData->averageFrameTimeUs > 0)
+                                           ? constrainf(1e6f / smoothingData->averageFrameTimeUs / 12.0f, 6.0f, 40.0f)
+                                           : 15.0f;
                     if (!smoothingData->filterInitialized) {
-                        oneEuroFilterInit((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, 40.0f, rc_dT);
+                        oneEuroFilterInit((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, fc_fixed, rc_dT);
                     } else {
-                        oneEuroFilterUpdate((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, rc_dT);
+                        oneEuroFilterUpdate((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, fc_fixed, rc_dT);
                     }
                     break;
                 }

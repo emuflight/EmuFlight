@@ -141,5 +141,5 @@ typedef struct oneEuroFilter_s {
 } oneEuroFilter_t;
 
 void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float dT);
-void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float dT);
+void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float dT);
 float oneEuroFilterApply(oneEuroFilter_t *filter, float input);
