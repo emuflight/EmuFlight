@@ -112,7 +112,9 @@ uint8_t icm20689SpiDetect(const extDevice_t *dev) {
         }
     } while (attemptsRemaining--);
 
-    // We now know the device is recognised so it's safe to perform device-specific register accesses
+    // We now know the device is recognised so it's safe to perform device-specific register accesses.
+    // ICM-20689 SPI write clock max is 8 MHz (datasheet s6.1). SPI_CLOCK_STANDARD exceeds this on
+    // F4 (~10.5 MHz) and H7 (~9 MHz); SPI_CLOCK_SLOW (~0.65 MHz) is the nearest enum within spec.
     spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_SLOW);
 
     // Disable Primary I2C Interface
@@ -147,7 +149,8 @@ void icm20689GyroInit(gyroDev_t *gyro) {
     mpuGyroInit(gyro);
     spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_SLOW);
 
-    // Device was already reset during detection so proceed with configuration
+    // Device was reset and I2C_IF_DIS + SIGNAL_PATH_RESET applied during detection; proceed
+    // directly with configuration. This function assumes icm20689SpiDetect() has already run.
     spiWriteReg(&gyro->dev, MPU_RA_PWR_MGMT_1, INV_CLK_PLL);
     delayMicroseconds(ICM20689_CLKSEL_SETTLE_US);
     spiWriteReg(&gyro->dev, MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | mpuGyroFCHOICE(gyro));
