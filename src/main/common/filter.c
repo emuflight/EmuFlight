@@ -405,8 +405,8 @@ FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)
         filter->lastCutoff = cutoff;
 
         // Stage 1 (adaptive): cutoff follows stick velocity — transparent at full stick,
-        // fc_min at rest. Stage 2 (fixed) runs at fc_fixed (auto: rx_hz/12 clamped [6,40] Hz);
-        // it provides a constant quantization floor regardless of how open stage 1 becomes.
+        // fc_min at rest. Stage 2 (fixed) at fc_fixed provides a constant quantization
+        // floor regardless of how open stage 1 becomes.
         const float two_pi_fc = 2.0f * M_PIf * cutoff;
         const float k = two_pi_fc / (two_pi_fc + filter->dT_inv);
         pt1FilterUpdateCutoff(&filter->x_filter, k);
