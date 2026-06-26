@@ -497,7 +497,10 @@ $(firstword $(MAKECMDGOALS)):
 	$(call summary_build,$(MAKECMDGOALS),$(_INVALID_GOALS))
 
 else
-# Normal invocation (single target, named group, or inner sub-make).
+# Normal invocation: named group, inner sub-make, or direct single target.
+ifdef IN_SUMMARY_BUILD
+# Inner sub-make (called from summary_build): run the actual build and
+# record pass/fail in the per-invocation marker files.
 $(VALID_TARGETS):
 	@echo "Building $@"; \
 	if $(MAKE) binary_hex TARGET=$@; then \
@@ -508,6 +511,13 @@ $(VALID_TARGETS):
 		echo "$@" >> $(BUILD_SUMMARY_FAILED); \
 		exit 1; \
 	fi
+else
+# Direct single-target invocation: route through summary_build so output
+# format (=== Build summary: N succeeded, M failed ===) is consistent
+# with multi-target and named-group invocations.
+$(VALID_TARGETS):
+	$(call summary_build,$@)
+endif
 endif
 
 
