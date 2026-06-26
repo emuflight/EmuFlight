@@ -89,6 +89,9 @@ imufData_t imufData;
 
 #define MPU_INQUIRY_MASK   0x7E
 
+// Allow 100ms before attempting to access SPI bus
+#define GYRO_SPI_STARTUP_MS 100
+
 #define GYRO_EXTI_DETECT_THRESHOLD 1000
 
 #if defined(USE_I2C) && !defined(USE_DMA_SPI_DEVICE)
@@ -367,6 +370,10 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
     UNUSED(gyro); // since there are FCs which have gyro on I2C but other devices on SPI
     uint8_t sensor = MPU_NONE;
     UNUSED(sensor);
+
+    // Allow 100ms before attempting to access gyro's SPI bus
+    while (millis() < GYRO_SPI_STARTUP_MS);
+
     // note, when USE_DUAL_GYRO is enabled the gyro->dev must already be initialised.
 #ifdef USE_GYRO_SPI_MPU6000
 #ifndef USE_DUAL_GYRO

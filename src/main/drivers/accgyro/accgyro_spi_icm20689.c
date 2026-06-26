@@ -36,6 +36,29 @@
 #include "drivers/sensor.h"
 #include "drivers/time.h"
 
+// Register 0x37 - INT_PIN_CFG
+#define ICM20689_INT_ANYRD_2CLEAR   0x10
+
+// Register 0x68 - SIGNAL_PATH_RESET
+#define ICM20689_ACCEL_RST          0x02
+#define ICM20689_TEMP_RST           0x01
+
+// Register 0x6a - USER_CTRL
+#define ICM20689_I2C_IF_DIS         0x10
+
+// Register 0x6b - PWR_MGMT_1
+#define ICM20689_BIT_RESET          0x80
+
+/* Allow CLKSEL setting time to settle when PLL is selected.
+ * Testing has shown that 60us is required, so double to allow a margin.
+ */
+#define ICM20689_CLKSEL_SETTLE_US   120
+
+/* MPU-6000 datasheet (section 4.28) suggests 100ms after a reset */
+#define ICM20689_RESET_DELAY_MS     100
+
+/* MPU-6000 datasheet (section 4.28) suggests 100ms after a path reset */
+#define ICM20689_PATH_RESET_DELAY_MS 100
 
 static void icm20689SpiInit(const extDevice_t *dev) {
     static bool hardwareInitialised = false;
@@ -53,12 +76,16 @@ static void icm20689SpiInit(const extDevice_t *dev) {
 
 uint8_t icm20689SpiDetect(const extDevice_t *dev) {
     icm20689SpiInit(dev);
-    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION); //low speed
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
+
+    // Note that the following reset is being done repeatedly by each MPU6000
+    // compatible device being probed
     spiWriteReg(dev, MPU_RA_PWR_MGMT_1, ICM20689_BIT_RESET);
+
     uint8_t icmDetected = MPU_NONE;
     uint8_t attemptsRemaining = 20;
     do {
-        delay(150);
+        delay(ICM20689_RESET_DELAY_MS);
         const uint8_t whoAmI = spiReadRegMsk(dev, MPU_RA_WHO_AM_I);
         switch (whoAmI) {
         case ICM20601_WHO_AM_I_CONST:
@@ -84,7 +111,17 @@ uint8_t icm20689SpiDetect(const extDevice_t *dev) {
             return MPU_NONE;
         }
     } while (attemptsRemaining--);
+
+    // We now know the device is recognised so it's safe to perform device-specific register accesses
     spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+
+    // Disable Primary I2C Interface
+    spiWriteReg(dev, MPU_RA_USER_CTRL, ICM20689_I2C_IF_DIS);
+
+    // Reset the device signal paths
+    spiWriteReg(dev, MPU_RA_SIGNAL_PATH_RESET, ICM20689_ACCEL_RST | ICM20689_TEMP_RST);
+    delay(ICM20689_PATH_RESET_DELAY_MS);
+
     return icmDetected;
 }
 
@@ -107,30 +144,22 @@ bool icm20689SpiAccDetect(accDev_t *acc) {
 
 void icm20689GyroInit(gyroDev_t *gyro) {
     mpuGyroInit(gyro);
-    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
-    spiWriteReg(&gyro->dev, MPU_RA_PWR_MGMT_1, ICM20689_BIT_RESET);
-    delay(100);
-    spiWriteReg(&gyro->dev, MPU_RA_SIGNAL_PATH_RESET, 0x03);
-    delay(100);
-//    spiWriteReg(&gyro->dev, MPU_RA_PWR_MGMT_1, 0);
-//    delay(100);
+
+    // Device was already reset during detection so proceed with configuration
     spiWriteReg(&gyro->dev, MPU_RA_PWR_MGMT_1, INV_CLK_PLL);
-    delay(15);
+    delayMicroseconds(ICM20689_CLKSEL_SETTLE_US);
     spiWriteReg(&gyro->dev, MPU_RA_GYRO_CONFIG, INV_FSR_2000DPS << 3 | mpuGyroFCHOICE(gyro));
-    delay(15);
     spiWriteReg(&gyro->dev, MPU_RA_ACCEL_CONFIG, INV_FSR_16G << 3);
-    delay(15);
     spiWriteReg(&gyro->dev, MPU_RA_CONFIG, mpuGyroDLPF(gyro));
-    delay(15);
-    spiWriteReg(&gyro->dev, MPU_RA_SMPLRT_DIV, gyro->mpuDividerDrops); // Get Divider Drops
-    delay(100);
+    spiWriteReg(&gyro->dev, MPU_RA_SMPLRT_DIV, gyro->mpuDividerDrops);
+
     // Data ready interrupt configuration
-//    spiWriteReg(&gyro->dev, MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 1 << 4 | 0 << 3 | 0 << 2 | 0 << 1 | 0 << 0);  // INT_ANYRD_2CLEAR, BYPASS_EN
-    spiWriteReg(&gyro->dev, MPU_RA_INT_PIN_CFG, 0x10);  // INT_ANYRD_2CLEAR, BYPASS_EN
-    delay(15);
+    spiWriteReg(&gyro->dev, MPU_RA_INT_PIN_CFG, ICM20689_INT_ANYRD_2CLEAR);
+
 #ifdef USE_MPU_DATA_READY_SIGNAL
-    spiWriteReg(&gyro->dev, MPU_RA_INT_ENABLE, 0x01); // RAW_RDY_EN interrupt enable
+    spiWriteReg(&gyro->dev, MPU_RA_INT_ENABLE, MPU_RF_DATA_RDY_EN);
 #endif
+
     spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
 }
 
