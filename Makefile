@@ -499,7 +499,7 @@ $(firstword $(MAKECMDGOALS)):
 else
 # Normal invocation (single target, named group, or inner sub-make).
 $(VALID_TARGETS):
-	$(V0) echo "Building $@"; \
+	@echo "Building $@"; \
 	if $(MAKE) binary_hex TARGET=$@; then \
 		echo "Building $@ succeeded."; \
 		echo "$@" >> $(BUILD_SUMMARY_PASSED); \
