@@ -324,7 +324,18 @@ BUILD_SUMMARY_FAILED        := $(BIN_DIR)/.build_failed
 # IN_SUMMARY_BUILD=1 is the recursion guard passed to sub-makes.
 ifndef IN_SUMMARY_BUILD
 _DIRECT_VALID       := $(filter $(VALID_TARGETS), $(MAKECMDGOALS))
-_SUMMARY_SKIP_GOALS := clean clean_test clean_all all_clean binary_hex test $(NOBUILD_TARGETS)
+# All known non-board-build targets.  If any appear in MAKECMDGOALS,
+# IN_SUMMARY_OUTER is suppressed so make handles them normally.
+_SUMMARY_SKIP_GOALS := \
+    clean clean_test clean_all all_clean binary_hex test \
+    all supported all_with_unsupported unsupported \
+    targets-group-1 targets-group-2 targets-group-3 targets-group-4 \
+    targets-group-5 targets-group-6 targets-group-7 targets-group-8 \
+    targets-group-9 targets-group-10 targets-group-11 targets-group-rest \
+    flash st-flash binary hex unbrick version help targets \
+    target-mcu targets-by-mcu cppcheck \
+    check-target-independence check-fastram-usage-correctness \
+    $(NOBUILD_TARGETS)
 _DIRECT_NON_BUILD   := $(filter $(_SUMMARY_SKIP_GOALS), $(MAKECMDGOALS))
 ifneq ($(words $(MAKECMDGOALS)), 0)
 ifneq ($(words $(MAKECMDGOALS)), 1)
