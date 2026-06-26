@@ -430,6 +430,9 @@ $(OBJECT_DIR)/$(TARGET)/%.o: %.S | $$(dir $$@)
 	$(V1) $(CROSS_CC) -c -o $@ $(ASFLAGS) $<
 
 
+# Note: invoking multiple group targets in one command (e.g. make all targets-group-1)
+# is not detected and may result in overlapping parallel builds and failures.
+
 ## all               : Build all targets (excluding unsupported); prints pass/fail summary
 ##                     pass -k to continue on failure; summary always printed
 all supported:
