@@ -89,7 +89,7 @@ imufData_t imufData;
 
 #define MPU_INQUIRY_MASK   0x7E
 
-// Allow 100ms before attempting to access SPI bus
+// Minimum system uptime (ms) before SPI bus access — boot-time guard, not a relative delay
 #define GYRO_SPI_STARTUP_MS 100
 
 #define GYRO_EXTI_DETECT_THRESHOLD 1000
@@ -371,7 +371,7 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
     uint8_t sensor = MPU_NONE;
     UNUSED(sensor);
 
-    // Allow 100ms before attempting to access gyro's SPI bus
+    // Spin until system uptime reaches GYRO_SPI_STARTUP_MS; no-op if already past that point.
     // Do this once here rather than in each detection routine to speed boot
     while (millis() < GYRO_SPI_STARTUP_MS);
 
