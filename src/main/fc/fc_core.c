@@ -286,7 +286,8 @@ void disarm(void) {
 #endif
         BEEP_OFF;
 #ifdef USE_DSHOT
-        if (isMotorProtocolDshot() && flipOverAfterCrashMode && !feature(FEATURE_3D)) {
+        if (isMotorProtocolDshot() && flipOverAfterCrashMode &&
+            (!feature(FEATURE_3D) || IS_RC_MODE_ACTIVE(BOX3D) || flight3DConfig()->switched_mode3d)) {
             pwmWriteDshotCommand(ALL_MOTORS, getMotorCount(), DSHOT_CMD_SPIN_DIRECTION_NORMAL, false);
         }
 #endif
@@ -322,7 +323,7 @@ void tryArm(void) {
         if (isMotorProtocolDshot() && isModeActivationConditionPresent(BOXFLIPOVERAFTERCRASH)) {
             if (!(IS_RC_MODE_ACTIVE(BOXFLIPOVERAFTERCRASH) || (tryingToArm == ARMING_DELAYED_CRASHFLIP))) {
                 flipOverAfterCrashMode = false;
-                if (!feature(FEATURE_3D)) {
+                if (!feature(FEATURE_3D) || IS_RC_MODE_ACTIVE(BOX3D) || flight3DConfig()->switched_mode3d) {
                     pwmWriteDshotCommand(ALL_MOTORS, getMotorCount(), DSHOT_CMD_SPIN_DIRECTION_NORMAL, false);
                 }
             } else {
@@ -330,7 +331,7 @@ void tryArm(void) {
 #ifdef USE_RUNAWAY_TAKEOFF
                 runawayTakeoffCheckDisabled = false;
 #endif
-                if (!feature(FEATURE_3D)) {
+                if (!feature(FEATURE_3D) || IS_RC_MODE_ACTIVE(BOX3D) || flight3DConfig()->switched_mode3d) {
                     pwmWriteDshotCommand(ALL_MOTORS, getMotorCount(), DSHOT_CMD_SPIN_DIRECTION_REVERSED, false);
                 }
             }
