@@ -314,42 +314,52 @@ BUILD_SUMMARY_PASSED        := $(BIN_DIR)/.build_passed
 BUILD_SUMMARY_FAILED        := $(BIN_DIR)/.build_failed
 
 # Detect direct multi-target invocations: `make T1 T2 T3`.
-# When 2+ goals are on the command line and at least 1 is a valid target,
+# When 2+ goals are on the command line, at least 1 is a valid target,
+# AND no goal is a known non-build target (clean, test, etc.),
 # set IN_SUMMARY_OUTER to restructure the build graph: all goals become
-# no-ops that depend on _auto_summary, which does the real work via a
-# sub-make.  Unknown goals (e.g. typos) are passed through to the sub-make
-# where "no rule to make target" is reported; _exit captures that non-zero
-# code so the outer make exits non-zero too.
+# no-ops, the first goal's recipe runs summary_build (which does the real
+# work via a sub-make).  Unknown goals (e.g. typos) are passed through to
+# the sub-make where "no rule to make target" is reported; they are also
+# pre-populated into the failed marker so they appear in the summary count.
 # IN_SUMMARY_BUILD=1 is the recursion guard passed to sub-makes.
 ifndef IN_SUMMARY_BUILD
-_DIRECT_VALID := $(filter $(VALID_TARGETS), $(MAKECMDGOALS))
+_DIRECT_VALID       := $(filter $(VALID_TARGETS), $(MAKECMDGOALS))
+_SUMMARY_SKIP_GOALS := clean clean_test clean_all all_clean binary_hex test $(NOBUILD_TARGETS)
+_DIRECT_NON_BUILD   := $(filter $(_SUMMARY_SKIP_GOALS), $(MAKECMDGOALS))
 ifneq ($(words $(MAKECMDGOALS)), 0)
 ifneq ($(words $(MAKECMDGOALS)), 1)
 ifneq ($(words $(_DIRECT_VALID)), 0)
+ifeq ($(_DIRECT_NON_BUILD),)
 IN_SUMMARY_OUTER := 1
 endif
 endif
 endif
 endif
+endif
 
-# $(call summary_build, TARGET_LIST)
-# Run TARGET_LIST through make (inheriting -k/-j from MAKEFLAGS), then print
-# a pass/fail summary.  Always runs the report even when targets fail.
-# IN_SUMMARY_BUILD=1 guards the sub-make from triggering IN_SUMMARY_OUTER.
-# _exit captures the inner make exit code — non-zero for both recipe
-# failures (tracked via markers) and "no rule to make target" errors from
-# unknown goals (not written to any marker but still cause exit != 0).
+# $(call summary_build, TARGET_LIST[, INVALID_GOALS])
+# $(1) TARGET_LIST    — targets forwarded to the sub-make.
+# $(2) INVALID_GOALS  — goals with no rule; pre-populated into the failed
+#         marker so they appear in the summary count.
+# Marker files live in a per-invocation mktemp directory — avoids collisions
+# when concurrent `make` invocations run in parallel (e.g. in CI).
+# _exit captures the inner make exit code — non-zero for recipe failures
+# (tracked via markers) and "no rule to make target" errors (not in markers).
 define summary_build
-@rm -f $(BUILD_SUMMARY_PASSED) $(BUILD_SUMMARY_FAILED)
-@_exit=0; \
-$(MAKE) IN_SUMMARY_BUILD=1 $(1) || _exit=$$?; \
-passed=$$(cat $(BUILD_SUMMARY_PASSED) 2>/dev/null | wc -l); \
-failed=$$(cat $(BUILD_SUMMARY_FAILED) 2>/dev/null | wc -l); \
+@mkdir -p $(BIN_DIR); \
+_sumdir=$$(mktemp -d "$(BIN_DIR)/.build_summary.XXXXXX"); \
+trap 'rm -rf "$$_sumdir"' EXIT; \
+_passed="$$_sumdir/passed"; \
+_failed="$$_sumdir/failed"; \
+$(foreach t,$(2),echo "$(t)" >> "$$_failed"; )_exit=0; \
+$(MAKE) IN_SUMMARY_BUILD=1 BUILD_SUMMARY_PASSED="$$_passed" BUILD_SUMMARY_FAILED="$$_failed" $(1) || _exit=$$?; \
+passed=$$(cat "$$_passed" 2>/dev/null | wc -l); \
+failed=$$(cat "$$_failed" 2>/dev/null | wc -l); \
 echo ""; \
 echo "=== Build summary: $$passed succeeded, $$failed failed ==="; \
 if [ "$$failed" -gt 0 ]; then \
 	echo "Failed targets:"; \
-	cat $(BUILD_SUMMARY_FAILED); \
+	cat "$$_failed"; \
 fi; \
 [ "$$_exit" -eq 0 ] && [ "$$failed" -eq 0 ]
 endef
@@ -475,18 +485,21 @@ ifdef IN_SUMMARY_OUTER
 # summary_build exits non-zero on any failure, which causes the first goal's
 # recipe to fail — make reliably propagates a goal's own recipe failure to
 # the outer exit code (unlike prerequisite failure propagation in Make 4.4+).
+# _INVALID_GOALS are pre-populated into the failed marker so they appear in
+# the summary count even though they produce no marker entry themselves.
+_INVALID_GOALS := $(filter-out $(VALID_TARGETS), $(MAKECMDGOALS))
 .PHONY: $(MAKECMDGOALS)
 
 $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS)):
 	@:
 
 $(firstword $(MAKECMDGOALS)):
-	$(call summary_build,$(MAKECMDGOALS))
+	$(call summary_build,$(MAKECMDGOALS),$(_INVALID_GOALS))
 
 else
 # Normal invocation (single target, named group, or inner sub-make).
 $(VALID_TARGETS):
-	$(V0) @echo "Building $@"; \
+	$(V0) echo "Building $@"; \
 	if $(MAKE) binary_hex TARGET=$@; then \
 		echo "Building $@ succeeded."; \
 		echo "$@" >> $(BUILD_SUMMARY_PASSED); \
