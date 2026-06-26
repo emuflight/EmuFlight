@@ -339,7 +339,9 @@ BUILD_SUMMARY_FAILED        := $(BIN_DIR)/.build_failed
 ifndef IN_SUMMARY_BUILD
 _DIRECT_VALID       := $(filter $(VALID_TARGETS), $(MAKECMDGOALS))
 _SUMMARY_SKIP_GOALS := $(SUMMARY_PHONY_GOALS) $(NOBUILD_TARGETS)
-_DIRECT_NON_BUILD   := $(filter $(_SUMMARY_SKIP_GOALS), $(MAKECMDGOALS))
+# clean_% and %_clean are per-target clean aliases (not in SUMMARY_PHONY_GOALS).
+# $(filter) supports % wildcards, so these patterns match clean_HELIOSPRING etc.
+_DIRECT_NON_BUILD   := $(filter $(_SUMMARY_SKIP_GOALS) clean_% %_clean, $(MAKECMDGOALS))
 ifneq ($(words $(MAKECMDGOALS)), 0)
 ifneq ($(words $(MAKECMDGOALS)), 1)
 ifneq ($(words $(_DIRECT_VALID)), 0)
@@ -504,6 +506,11 @@ ifdef IN_SUMMARY_OUTER
 # the outer exit code (unlike prerequisite failure propagation in Make 4.4+).
 # _INVALID_GOALS are pre-populated into the failed marker so they appear in
 # the summary count even though they produce no marker entry themselves.
+# Only valid goals are forwarded to the inner make — invalid goals are
+# pre-counted in the failed marker and do not need to reach the sub-make.
+# Forwarding them caused the inner make to stop on the first bad goal
+# (without -k) before building the valid targets that followed it.
+_VALID_GOALS   := $(filter $(VALID_TARGETS), $(MAKECMDGOALS))
 _INVALID_GOALS := $(filter-out $(VALID_TARGETS), $(MAKECMDGOALS))
 .PHONY: $(MAKECMDGOALS)
 
@@ -511,7 +518,7 @@ $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS)):
 	@:
 
 $(firstword $(MAKECMDGOALS)):
-	$(call summary_build,$(MAKECMDGOALS),$(_INVALID_GOALS))
+	$(call summary_build,$(_VALID_GOALS),$(_INVALID_GOALS))
 
 else
 # Normal invocation: named group, inner sub-make, or direct single target.
