@@ -679,17 +679,14 @@ target-mcu:
 ## targets-by-mcu    : make all targets that have a MCU_TYPE mcu
 targets-by-mcu:
 	@echo "Building all $(MCU_TYPE) targets..."
-	$(V1) for target in $(VALID_TARGETS); do \
+	$(V1) _targets=""; \
+	for target in $(VALID_TARGETS); do \
 		TARGET_MCU_TYPE=$$($(MAKE) -s TARGET=$${target} target-mcu); \
 		if [ "$${TARGET_MCU_TYPE}" = "$${MCU_TYPE}" ]; then \
-			echo "Building target $${target}..."; \
-			$(MAKE) TARGET=$${target}; \
-			if [ $$? -ne 0 ]; then \
-				echo "Building target $${target} failed, aborting."; \
-				exit 1; \
-			fi; \
+			_targets="$$_targets $$target"; \
 		fi; \
-	done
+	done; \
+	[ -n "$$_targets" ] && $(MAKE) $$_targets
 
 ## targets-f3        : make all F3 targets
 targets-f3:
