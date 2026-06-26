@@ -390,7 +390,7 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                                            ? 1e6f / smoothingData->averageFrameTimeUs / 19.0f
                                            : 180.0f / 19.0f;
                     if (!smoothingData->filterInitialized) {
-                        oneEuroFilterInit((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, rc_dT);
+                        oneEuroFilterInit((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, 40.0f, rc_dT);
                     } else {
                         oneEuroFilterUpdate((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, rc_dT);
                     }

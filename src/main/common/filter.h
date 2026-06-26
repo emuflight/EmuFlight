@@ -127,18 +127,19 @@ float ptnFilterApply(ptnFilter_t *filter, float input);
 
 // 1€ (One Euro) adaptive low-pass filter — cutoff rises with signal velocity
 typedef struct oneEuroFilter_s {
-    pt1Filter_t x_filter;   // main signal PT1 stage 1 (adaptive cutoff)
-    pt1Filter_t x_filter2;  // main signal PT1 stage 2 (same adaptive cutoff — PT2 output)
-    pt1Filter_t d_filter;   // derivative estimator PT1 (fixed cutoff fc_d)
-    float fc_min;           // minimum cutoff frequency (Hz)
-    float fc_max;           // maximum cutoff frequency Hz; 0 = no cap
-    float beta;             // speed coefficient
-    float fc_d;             // derivative filter cutoff (Hz)
-    float dT_inv;           // 1/dT — stored as frequency to avoid per-sample divide
-    float lastInput;        // last RC input — cutoff only updated when input changes
-    float lastCutoff;       // last computed adaptive cutoff Hz (for blackbox debug)
+    pt1Filter_t x_filter;        // main signal PT1 stage 1 (adaptive cutoff)
+    pt1Filter_t x_filter_fixed;  // main signal PT1 stage 2 (fixed cutoff fc_fixed — always-on step floor)
+    pt1Filter_t d_filter;        // derivative estimator PT1 (fixed cutoff fc_d)
+    float fc_min;                // minimum cutoff frequency (Hz)
+    float fc_max;                // maximum cutoff frequency Hz; 0 = no cap
+    float beta;                  // speed coefficient
+    float fc_d;                  // derivative filter cutoff (Hz)
+    float fc_fixed;              // fixed cutoff for stage 2 (Hz) — set at init, never changes
+    float dT_inv;                // 1/dT — stored as frequency to avoid per-sample divide
+    float lastInput;             // last RC input — cutoff only updated when input changes
+    float lastCutoff;            // last computed adaptive cutoff Hz (for blackbox debug)
 } oneEuroFilter_t;
 
-void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float dT);
+void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float dT);
 void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float dT);
 float oneEuroFilterApply(oneEuroFilter_t *filter, float input);

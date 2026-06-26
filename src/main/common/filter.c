@@ -346,20 +346,23 @@ FAST_CODE float ptnFilterApply(ptnFilter_t *filter, float input) {
 
 // 1€ (One Euro) adaptive low-pass filter
 // Reference: Géry Casiez et al. "1€ Filter: A Simple Speed-based Low-pass Filter for Noisy Input"
-void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float dT)
+void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float dT)
 {
-    filter->fc_min  = fc_min;
-    filter->fc_max  = fc_max;
-    filter->beta    = beta;
-    filter->fc_d    = fc_d;
-    filter->dT_inv  = (dT > 0.0f) ? 1.0f / dT : 0.0f;
+    filter->fc_min   = fc_min;
+    filter->fc_max   = fc_max;
+    filter->beta     = beta;
+    filter->fc_d     = fc_d;
+    filter->fc_fixed = fc_fixed;
+    filter->dT_inv   = (dT > 0.0f) ? 1.0f / dT : 0.0f;
     filter->lastCutoff = fc_min;
     const float two_pi_fc_d  = 2.0f * M_PIf * fc_d;
     pt1FilterInit(&filter->d_filter, two_pi_fc_d / (two_pi_fc_d + filter->dT_inv));
     const float two_pi_fc_min = 2.0f * M_PIf * fc_min;
-    const float k = two_pi_fc_min / (two_pi_fc_min + filter->dT_inv);
-    pt1FilterInit(&filter->x_filter,  k);
-    pt1FilterInit(&filter->x_filter2, k);
+    const float k_adaptive = two_pi_fc_min / (two_pi_fc_min + filter->dT_inv);
+    pt1FilterInit(&filter->x_filter, k_adaptive);
+    const float two_pi_fc_fixed = 2.0f * M_PIf * fc_fixed;
+    const float k_fixed = two_pi_fc_fixed / (two_pi_fc_fixed + filter->dT_inv);
+    pt1FilterInit(&filter->x_filter_fixed, k_fixed);
 }
 
 void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float dT)
@@ -382,7 +385,7 @@ FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)
     // Only recompute derivative and adaptive cutoff when a new RC sample arrives.
     // Between RC frames input is constant; recomputing dx would fabricate a spurious
     // decaying velocity as x_filter converges, incorrectly lowering the cutoff.
-    // When no new sample: both stages run as fixed PT1s at the last computed cutoff.
+    // When no new sample: stage 1 holds its last adaptive cutoff; stage 2 is always fixed.
     if (input != filter->lastInput) {
         filter->lastInput = input;
 
@@ -397,16 +400,14 @@ FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)
         }
         filter->lastCutoff = cutoff;
 
-        // Drive both output stages at the same adaptive cutoff (PT2 response).
-        // Cascaded PT1s at identical fc square the step transmission fraction —
-        // ~4× better quantization suppression vs single PT1 at every adaptive cutoff.
-        // This keeps rcCommand quantization steps from reaching the P term during
-        // fast flips and rolls where the cutoff is partially open.
+        // Stage 1 (adaptive): cutoff follows stick velocity — transparent at full stick,
+        // fc_min at rest. Stage 2 (fixed) runs at fc_fixed=40 Hz always; it provides a
+        // constant quantization floor regardless of how open stage 1 becomes.
         const float two_pi_fc = 2.0f * M_PIf * cutoff;
         const float k = two_pi_fc / (two_pi_fc + filter->dT_inv);
-        pt1FilterUpdateCutoff(&filter->x_filter,  k);
-        pt1FilterUpdateCutoff(&filter->x_filter2, k);
+        pt1FilterUpdateCutoff(&filter->x_filter, k);
+        // x_filter_fixed cutoff is constant — no update needed
     }
 
-    return pt1FilterApply(&filter->x_filter2, pt1FilterApply(&filter->x_filter, input));
+    return pt1FilterApply(&filter->x_filter_fixed, pt1FilterApply(&filter->x_filter, input));
 }
