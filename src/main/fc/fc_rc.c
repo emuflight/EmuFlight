@@ -381,7 +381,9 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                                          ? smoothingData->averageFrameTimeUs * 1e-6f : dT;
                     const float fc_min = (float)smoothingData->inputCutoffFrequency; // already computed above
                     const float fc_max = (float)rxConfig()->rc_smoothing_1euro_fc_max;
-                    const float beta   = rxConfig()->rc_smoothing_1euro_beta / 1000.0f;
+                    const float rcRate = (float)MAX(currentControlRateProfile->rcRates[FD_ROLL], 10);
+                    const float sRate  = 1.0f + currentControlRateProfile->rates[FD_ROLL] * 0.005f;
+                    const float beta   = 0.5f / (rcRate * sRate);
                     // fc_d auto: rx_hz/19 keeps derivative detection at ~3 RC frames at all rates.
                     // Manual override: rc_smoothing_1euro_deriv_hz > 0 (stored in tenths of Hz).
                     const float fc_d   = (rxConfig()->rc_smoothing_1euro_deriv_hz > 0)
@@ -450,6 +452,7 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
     static FAST_RAM_ZERO_INIT bool initialized;
     static FAST_RAM_ZERO_INIT timeMs_t validRxFrameTimeMs;
     static FAST_RAM_ZERO_INIT bool calculateCutoffs;
+    static FAST_RAM_ZERO_INIT bool wasArmed;
     // first call initialization
     if (!initialized) {
         initialized = true;
@@ -464,6 +467,13 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
             rcSmoothingData.filterInitialized = true;
         }
     }
+    // recalculate beta on arm so rate-profile changes between flights are picked up
+    const bool isArmed = ARMING_FLAG(ARMED);
+    if (isArmed && !wasArmed) {
+        rcSmoothingSetFilterCutoffs(&rcSmoothingData);
+    }
+    wasArmed = isArmed;
+
     if (isRXDataNew) {
         // store the new raw channel values
         for (int i = 0; i < PRIMARY_CHANNEL_COUNT; i++) {
