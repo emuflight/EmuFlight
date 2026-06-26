@@ -372,6 +372,7 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
     UNUSED(sensor);
 
     // Allow 100ms before attempting to access gyro's SPI bus
+    // Do this once here rather than in each detection routine to speed boot
     while (millis() < GYRO_SPI_STARTUP_MS);
 
     // note, when USE_DUAL_GYRO is enabled the gyro->dev must already be initialised.

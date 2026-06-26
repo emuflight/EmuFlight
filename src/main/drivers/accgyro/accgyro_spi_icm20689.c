@@ -113,7 +113,7 @@ uint8_t icm20689SpiDetect(const extDevice_t *dev) {
     } while (attemptsRemaining--);
 
     // We now know the device is recognised so it's safe to perform device-specific register accesses
-    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_SLOW);
 
     // Disable Primary I2C Interface
     spiWriteReg(dev, MPU_RA_USER_CTRL, ICM20689_I2C_IF_DIS);
@@ -122,6 +122,7 @@ uint8_t icm20689SpiDetect(const extDevice_t *dev) {
     spiWriteReg(dev, MPU_RA_SIGNAL_PATH_RESET, ICM20689_ACCEL_RST | ICM20689_TEMP_RST);
     delay(ICM20689_PATH_RESET_DELAY_MS);
 
+    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
     return icmDetected;
 }
 
@@ -144,6 +145,7 @@ bool icm20689SpiAccDetect(accDev_t *acc) {
 
 void icm20689GyroInit(gyroDev_t *gyro) {
     mpuGyroInit(gyro);
+    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_SLOW);
 
     // Device was already reset during detection so proceed with configuration
     spiWriteReg(&gyro->dev, MPU_RA_PWR_MGMT_1, INV_CLK_PLL);
