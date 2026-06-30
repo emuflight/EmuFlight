@@ -190,6 +190,8 @@ bool mpuAccRead(accDev_t *acc) {
 // checks IS_CCM() and falls through to a slow path; keep in regular SRAM for normal access.
 static uint8_t imufTxBuf[58];
 static uint8_t imufRxBuf[58];
+STATIC_ASSERT(sizeof(imufTxBuf) >= sizeof(imufCommand_t), imuf_tx_buffer_too_small);
+STATIC_ASSERT(sizeof(imufRxBuf) >= sizeof(imufData_t), imuf_rx_buffer_too_small);
 FAST_RAM_ZERO_INIT volatile uint32_t crcErrorCount = 0;
 // Set by EXTI ISR; consumed (cleared then SPI executed) by imufSpiGyroRead in GYROPID task.
 // Keeps EXTI ISR duration < 1 µs; moves 15–20 µs SPI polling out of interrupt context.
@@ -224,14 +226,12 @@ FAST_CODE busStatus_e imufIntCallback(uint32_t arg) {
 // Prepare TX command and transfer length before each real-time DMA read.
 FAST_CODE void imufPrepareDmaRead(gyroDev_t *gyro) {
     imufCommand_t *txCmd = (imufCommand_t *)imufTxBuf;
+    memset(imufTxBuf, 0, sizeof(imufCommand_t));
     if (isImufCalibrating == IMUF_IS_CALIBRATING) {
-        memset(imufTxBuf, 0, sizeof(imufCommand_t));
         txCmd->command = IMUF_COMMAND_CALIBRATE;
         txCmd->crc     = getCrcImuf9001((uint32_t *)imufTxBuf, 11);
         isImufCalibrating = IMUF_DONE_CALIBRATING;
     } else if (isImufCalibrating == IMUF_DONE_CALIBRATING) {
-        txCmd->command = 0;
-        txCmd->crc     = 0;
         imufEndCalibration();
     } else if (isSetpointNew) {
         txCmd->command = IMUF_COMMAND_SETPOINT;
