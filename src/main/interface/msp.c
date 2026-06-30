@@ -1526,6 +1526,7 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, 
         readEEPROM();
         break;
     case MSP_EEPROM_WRITE:
+        schedulerIgnoreTaskStateTime(); // EEPROM write is slow; don't inflate task maxload
         writeEEPROM();
         readEEPROM();
         break;
@@ -2043,6 +2044,7 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
         if (ARMING_FLAG(ARMED)) {
         return MSP_RESULT_ERROR;
         }
+        schedulerIgnoreTaskStateTime(); // EEPROM write is slow; don't inflate task maxload
         writeEEPROM();
         readEEPROM();
         break;
