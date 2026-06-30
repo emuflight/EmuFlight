@@ -45,6 +45,7 @@
 
 #include "fc/config.h"
 #include "fc/controlrate_profile.h"
+#include "fc/fc_rc.h"
 #include "fc/rc_controls.h"
 #include "fc/runtime_config.h"
 
@@ -320,6 +321,7 @@ static long cmsx_RateProfileRead(void) {
 static long cmsx_RateProfileWriteback(const OSD_Entry *self) {
     UNUSED(self);
     memcpy(controlRateProfilesMutable(rateProfileIndex), &rateProfile, sizeof(controlRateConfig_t));
+    initRcProcessing();
     return 0;
 }
 

@@ -454,7 +454,6 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
     static FAST_RAM_ZERO_INIT bool initialized;
     static FAST_RAM_ZERO_INIT timeMs_t validRxFrameTimeMs;
     static FAST_RAM_ZERO_INIT bool calculateCutoffs;
-    static FAST_RAM_ZERO_INIT bool wasArmed;
     // first call initialization
     if (!initialized) {
         initialized = true;
@@ -469,13 +468,6 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
             rcSmoothingData.filterInitialized = true;
         }
     }
-    // recalculate beta on arm so rate-profile changes between flights are picked up
-    const bool isArmed = ARMING_FLAG(ARMED);
-    if (isArmed && !wasArmed) {
-        rcSmoothingSetFilterCutoffs(&rcSmoothingData);
-    }
-    wasArmed = isArmed;
-
     if (isRXDataNew) {
         // store the new raw channel values
         for (int i = 0; i < PRIMARY_CHANNEL_COUNT; i++) {
@@ -882,6 +874,12 @@ void initRcProcessing(void) {
 #ifdef USE_YAW_SPIN_RECOVERY
     const int maxYawRate = (int)applyRates(FD_YAW, 1.0f, 1.0f);
     initYawSpinRecovery(maxYawRate);
+#endif
+#ifdef USE_RC_SMOOTHING_FILTER
+    // recalculate 1euro auto-beta whenever the active rate profile changes
+    if (rcSmoothingData.filterInitialized) {
+        rcSmoothingSetFilterCutoffs(&rcSmoothingData);
+    }
 #endif
 }
 
