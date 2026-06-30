@@ -76,10 +76,6 @@
 #include "drivers/usb_msc.h"
 #endif
 
-#ifdef USE_DMA_SPI_DEVICE
-#include "drivers/dma_spi.h"
-#endif //USE_DMA_SPI_DEVICE
-
 #ifdef USE_GYRO_IMUF9001
 #include "drivers/accgyro/accgyro_imuf9001.h"
 #endif //USE_GYRO_IMUF9001
@@ -361,9 +357,6 @@ void init(void) {
     spiPreInit();
 #ifdef USE_SPI_DEVICE_1
     spiInit(SPIDEV_1);
-#endif
-#ifdef USE_DMA_SPI_DEVICE
-    dmaSpiInit();
 #endif
 #ifdef USE_SPI_DEVICE_2
     spiInit(SPIDEV_2);

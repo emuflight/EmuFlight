@@ -68,7 +68,6 @@
 #endif //USE_GYRO_IMUF9001
 #include "drivers/accgyro/gyro_sync.h"
 #include "drivers/bus_spi.h"
-#include "drivers/dma_spi.h"
 #include "drivers/io.h"
 #include "drivers/time.h"
 #include "drivers/accgyro/gyro_sync.h"
@@ -1209,11 +1208,9 @@ float applySmithPredictor(smithPredictor_t *smithPredictor, float gyroFiltered) 
 
 
 static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs_t currentTimeUs) {
-#ifndef USE_DMA_SPI_DEVICE
     if (!gyroSensor->gyroDev.readFn(&gyroSensor->gyroDev)) {
         return;
     }
-#endif
     gyroSensor->gyroDev.dataReady = false;
 #ifdef USE_GYRO_IMUF9001
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
@@ -1271,18 +1268,6 @@ static FAST_CODE_NOINLINE void gyroUpdateSensor(gyroSensor_t* gyroSensor, timeUs
     UNUSED(currentTimeUs);
 #endif
 }
-
-#ifdef USE_DMA_SPI_DEVICE
-FAST_CODE_NOINLINE void gyroDmaSpiFinishRead(void) {
-    //called by dma callback
-    mpuGyroDmaSpiReadFinish(&gyroSensor1.gyroDev);
-}
-
-FAST_CODE_NOINLINE void gyroDmaSpiStartRead(void) {
-    //called by exti
-    mpuGyroDmaSpiReadStart(&gyroSensor1.gyroDev);
-}
-#endif
 
 FAST_CODE_NOINLINE void gyroUpdate(timeUs_t currentTimeUs) {
 #ifdef USE_DUAL_GYRO
