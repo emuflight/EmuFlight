@@ -179,10 +179,9 @@
 | `rc_smoothing_input_hz` | uint8 | master | `0` – `UINT8_MAX` |
 | `rc_smoothing_debug_axis` | uint8 | master | `ROLL`, `PITCH`, `YAW`, `THROTTLE` |
 | `rc_smoothing_input_type` | uint8 | master | `PT1`, `1EURO`, `PT2`, `PT3` |
-| `rc_smoothing_1euro_beta` | uint8 | master | `1` – `20` |
 | `rc_smoothing_1euro_fc_min` | uint8 | master | `0` – `100` |
 | `rc_smoothing_1euro_fc_max` | uint8 | master | `0` – `200` |
-| `rc_smoothing_1euro_deriv_hz` | uint8 | master | `0` – `50` |
+| `rc_smoothing_1euro_deriv_hz` | uint8 | master | `0` – `255` (tenths of Hz; 0 = auto) |
 | `fpv_mix_degrees` | uint8 | master | `0` – `90` |
 | `cinematic_yaw` | uint8 | master | `OFF`, `ON` |
 | `max_aux_channels` | uint8 | master | `0` – `MAX_AUX_CHANNEL_COUNT` |

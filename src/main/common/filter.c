@@ -346,38 +346,42 @@ FAST_CODE float ptnFilterApply(ptnFilter_t *filter, float input) {
 
 // 1€ (One Euro) adaptive low-pass filter
 // Reference: Géry Casiez et al. "1€ Filter: A Simple Speed-based Low-pass Filter for Noisy Input"
-void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float dT)
+void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float rc_dT, float pid_dT)
 {
-    filter->fc_min   = fc_min;
-    filter->fc_max   = fc_max;
-    filter->beta     = beta;
-    filter->fc_d     = fc_d;
-    filter->fc_fixed = fc_fixed;
-    filter->dT_inv   = (dT > 0.0f) ? 1.0f / dT : 0.0f;
+    filter->fc_min     = fc_min;
+    filter->fc_max     = fc_max;
+    filter->beta       = beta;
+    filter->fc_d       = fc_d;
+    filter->fc_fixed   = fc_fixed;
+    // rc_dT: for dx velocity estimate and d_filter k (d_filter called once per RC frame)
+    filter->dT_inv     = (rc_dT > 0.0f) ? 1.0f / rc_dT : 0.0f;
+    // pid_dT: for x_filter and x_filter_fixed k (applied every PID loop)
+    filter->pid_dT_inv = (pid_dT > 0.0f) ? 1.0f / pid_dT : 0.0f;
     filter->lastCutoff = fc_min;
     const float two_pi_fc_d  = 2.0f * M_PIf * fc_d;
     pt1FilterInit(&filter->d_filter, two_pi_fc_d / (two_pi_fc_d + filter->dT_inv));
     const float two_pi_fc_min = 2.0f * M_PIf * fc_min;
-    const float k_adaptive = two_pi_fc_min / (two_pi_fc_min + filter->dT_inv);
+    const float k_adaptive = two_pi_fc_min / (two_pi_fc_min + filter->pid_dT_inv);
     pt1FilterInit(&filter->x_filter, k_adaptive);
     const float two_pi_fc_fixed = 2.0f * M_PIf * fc_fixed;
-    const float k_fixed = two_pi_fc_fixed / (two_pi_fc_fixed + filter->dT_inv);
+    const float k_fixed = two_pi_fc_fixed / (two_pi_fc_fixed + filter->pid_dT_inv);
     pt1FilterInit(&filter->x_filter_fixed, k_fixed);
 }
 
-void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float dT)
+void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float rc_dT, float pid_dT)
 {
-    filter->fc_min   = fc_min;
-    filter->fc_max   = fc_max;
-    filter->beta     = beta;
-    filter->fc_d     = fc_d;
-    filter->fc_fixed = fc_fixed;
-    filter->dT_inv   = (dT > 0.0f) ? 1.0f / dT : 0.0f;
+    filter->fc_min     = fc_min;
+    filter->fc_max     = fc_max;
+    filter->beta       = beta;
+    filter->fc_d       = fc_d;
+    filter->fc_fixed   = fc_fixed;
+    filter->dT_inv     = (rc_dT > 0.0f) ? 1.0f / rc_dT : 0.0f;
+    filter->pid_dT_inv = (pid_dT > 0.0f) ? 1.0f / pid_dT : 0.0f;
     const float two_pi_fc_d = 2.0f * M_PIf * fc_d;
     pt1FilterUpdateCutoff(&filter->d_filter, two_pi_fc_d / (two_pi_fc_d + filter->dT_inv));
     // fc_fixed scales with link rate; recompute k whenever dT changes
     const float two_pi_fc_fixed = 2.0f * M_PIf * filter->fc_fixed;
-    pt1FilterUpdateCutoff(&filter->x_filter_fixed, two_pi_fc_fixed / (two_pi_fc_fixed + filter->dT_inv));
+    pt1FilterUpdateCutoff(&filter->x_filter_fixed, two_pi_fc_fixed / (two_pi_fc_fixed + filter->pid_dT_inv));
 }
 
 FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)
@@ -407,8 +411,9 @@ FAST_CODE float oneEuroFilterApply(oneEuroFilter_t *filter, float input)
         // Stage 1 (adaptive): cutoff follows stick velocity — transparent at full stick,
         // fc_min at rest. Stage 2 (fixed) at fc_fixed provides a constant quantization
         // floor regardless of how open stage 1 becomes.
+        // x_filter is applied every PID loop, so k uses pid_dT_inv (not rc dT_inv)
         const float two_pi_fc = 2.0f * M_PIf * cutoff;
-        const float k = two_pi_fc / (two_pi_fc + filter->dT_inv);
+        const float k = two_pi_fc / (two_pi_fc + filter->pid_dT_inv);
         pt1FilterUpdateCutoff(&filter->x_filter, k);
         // x_filter_fixed k is maintained by oneEuroFilterUpdate; no per-sample update needed
     }

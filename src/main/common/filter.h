@@ -135,11 +135,12 @@ typedef struct oneEuroFilter_s {
     float beta;                  // speed coefficient
     float fc_d;                  // derivative filter cutoff (Hz)
     float fc_fixed;              // fixed cutoff for stage 2 (Hz) — 2× fc_min; ~1 RC-frame group delay per stage
-    float dT_inv;                // 1/dT — stored as frequency to avoid per-sample divide
+    float dT_inv;                // 1/rc_dT — for dx velocity estimate and d_filter k (d_filter runs once per RC frame)
+    float pid_dT_inv;            // 1/pid_dT — for x_filter and x_filter_fixed k (applied every PID loop)
     float lastInput;             // last RC input — cutoff only updated when input changes
     float lastCutoff;            // last computed adaptive cutoff Hz (for blackbox debug)
 } oneEuroFilter_t;
 
-void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float dT);
-void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float dT);
+void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float rc_dT, float pid_dT);
+void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float rc_dT, float pid_dT);
 float oneEuroFilterApply(oneEuroFilter_t *filter, float input);

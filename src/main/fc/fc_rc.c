@@ -348,8 +348,11 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                                                rxConfig()->rc_smoothing_input_type == RC_SMOOTHING_INPUT_PT1);
     }
 
+    const bool is1Euro = rxConfig()->rc_smoothing_input_type == RC_SMOOTHING_INPUT_1EURO;
     // initialize or update the input filter
-    if ((smoothingData->inputCutoffFrequency != oldCutoff) || !smoothingData->filterInitialized) {
+    // For 1EURO: always recompute when called — beta depends on rate profile (not just fc_min),
+    // so a rate-profile change must update beta even when fc_min (and thus inputCutoffFrequency) is unchanged.
+    if ((smoothingData->inputCutoffFrequency != oldCutoff) || !smoothingData->filterInitialized || is1Euro) {
         for (int i = 0; i < PRIMARY_CHANNEL_COUNT; i++) {
             if ((1 << i) & interpolationChannels) {  // only update channels specified by rc_interp_ch
                 switch (rxConfig()->rc_smoothing_input_type) {
@@ -396,9 +399,9 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                     // fc_fixed: 2× fc_min → fixed stage ~1 RC-frame group delay per stage at any link rate.
                     const float fc_fixed = fc_min * 2.0f;
                     if (!smoothingData->filterInitialized) {
-                        oneEuroFilterInit((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, fc_fixed, rc_dT);
+                        oneEuroFilterInit((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, fc_fixed, rc_dT, dT);
                     } else {
-                        oneEuroFilterUpdate((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, fc_fixed, rc_dT);
+                        oneEuroFilterUpdate((oneEuroFilter_t*) &smoothingData->filter[i], fc_min, fc_max, beta, fc_d, fc_fixed, rc_dT, dT);
                     }
                     break;
                 }
