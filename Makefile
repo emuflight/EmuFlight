@@ -308,7 +308,77 @@ CLEAN_ARTIFACTS += $(TARGET_LST)
 # Rebuild version.o whenever any source changes so the embedded timestamp stays current
 $(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC)
 
-.PHONY: clean clean_test clean_all all_clean binary_hex
+# All known non-board phony targets.  Used as the single source of truth
+# for both .PHONY and _SUMMARY_SKIP_GOALS — add new phony targets here only.
+SUMMARY_PHONY_GOALS := \
+    clean clean_test clean_all all_clean binary_hex \
+    all supported all_with_unsupported unsupported \
+    targets-group-1 targets-group-2 targets-group-3 targets-group-4 \
+    targets-group-5 targets-group-6 targets-group-7 targets-group-8 \
+    targets-group-9 targets-group-10 targets-group-11 targets-group-rest \
+    flash st-flash binary hex unbrick openocd-gdb \
+    version help targets target-mcu targets-by-mcu \
+    targets-f3 targets-f4 targets-f7 targets-h7 \
+    cppcheck test junittest \
+    check-target-independence check-fastram-usage-correctness
+
+.PHONY: $(SUMMARY_PHONY_GOALS)
+
+BUILD_SUMMARY_PASSED        := $(BIN_DIR)/.build_passed
+BUILD_SUMMARY_FAILED        := $(BIN_DIR)/.build_failed
+
+# Detect direct multi-target invocations: `make T1 T2 T3`.
+# When 2+ goals are on the command line, at least 1 is a valid target,
+# AND no goal is a known non-build target (clean, test, etc.),
+# set IN_SUMMARY_OUTER to restructure the build graph: all goals become
+# no-ops, the first goal's recipe runs summary_build (which does the real
+# work via a sub-make).  Unknown goals (e.g. typos) are passed through to
+# the sub-make where "no rule to make target" is reported; they are also
+# pre-populated into the failed marker so they appear in the summary count.
+# IN_SUMMARY_BUILD=1 is the recursion guard passed to sub-makes.
+ifndef IN_SUMMARY_BUILD
+_DIRECT_VALID       := $(filter $(VALID_TARGETS), $(MAKECMDGOALS))
+_SUMMARY_SKIP_GOALS := $(SUMMARY_PHONY_GOALS) $(NOBUILD_TARGETS)
+# clean_% and %_clean are per-target clean aliases (not in SUMMARY_PHONY_GOALS).
+# $(filter) supports % wildcards, so these patterns match clean_HELIOSPRING etc.
+_DIRECT_NON_BUILD   := $(filter $(_SUMMARY_SKIP_GOALS) clean_% %_clean, $(MAKECMDGOALS))
+ifneq ($(words $(MAKECMDGOALS)), 0)
+ifneq ($(words $(MAKECMDGOALS)), 1)
+ifneq ($(words $(_DIRECT_VALID)), 0)
+ifeq ($(_DIRECT_NON_BUILD),)
+IN_SUMMARY_OUTER := 1
+endif
+endif
+endif
+endif
+endif
+
+# $(call summary_build, TARGET_LIST[, INVALID_GOALS])
+# $(1) TARGET_LIST    — targets forwarded to the sub-make.
+# $(2) INVALID_GOALS  — goals with no rule; pre-populated into the failed
+#         marker so they appear in the summary count.
+# Marker files live in a per-invocation mktemp directory — avoids collisions
+# when concurrent `make` invocations run in parallel (e.g. in CI).
+# _exit captures the inner make exit code — non-zero for recipe failures
+# (tracked via markers) and "no rule to make target" errors (not in markers).
+define summary_build
+@mkdir -p $(BIN_DIR); \
+_sumdir=$$(mktemp -d "$(BIN_DIR)/.build_summary.XXXXXX"); \
+trap 'rm -rf "$$_sumdir"' EXIT; \
+_passed="$$_sumdir/passed"; \
+_failed="$$_sumdir/failed"; \
+$(foreach t,$(2),echo "$(t)" >> "$$_failed"; )_exit=0; \
+$(MAKE) IN_SUMMARY_BUILD=1 BUILD_SUMMARY_PASSED="$$_passed" BUILD_SUMMARY_FAILED="$$_failed" $(1) || _exit=$$?; \
+passed=$$(cat "$$_passed" 2>/dev/null | wc -l); \
+failed=$$(cat "$$_failed" 2>/dev/null | wc -l); \
+echo ""; \
+echo "=== Build summary: $$passed succeeded, $$failed failed ==="; \
+if [ "$$failed" -gt 0 ]; then \
+	echo "Failed targets:"; \
+	cat "$$_failed"; \
+fi; \
+[ "$$_exit" -eq 0 ] && [ "$$failed" -eq 0 ]
+endef
 
 # Build each output directory once, not once-per-file, for parallel-safe compilation
 $(TARGET_DIRS):
@@ -364,55 +434,116 @@ $(OBJECT_DIR)/$(TARGET)/%.o: %.S | $$(dir $$@)
 	$(V1) $(CROSS_CC) -c -o $@ $(ASFLAGS) $<
 
 
-## all               : Build all targets (excluding unsupported)
-all supported: $(SUPPORTED_TARGETS)
+# Note: invoking multiple group targets in one command (e.g. make all targets-group-1)
+# is not detected and may result in overlapping parallel builds and failures.
+
+## all               : Build all targets (excluding unsupported); prints pass/fail summary
+##                     pass -k to continue on failure; summary always printed
+all supported:
+	$(call summary_build,$(SUPPORTED_TARGETS))
 
 ## all_with_unsupported : Build all targets (including unsupported)
-all_with_unsupported: $(VALID_TARGETS)
+all_with_unsupported:
+	$(call summary_build,$(VALID_TARGETS))
 
 ## unsupported : Build unsupported targets
-unsupported: $(UNSUPPORTED_TARGETS)
+unsupported:
+	$(call summary_build,$(UNSUPPORTED_TARGETS))
 
 ## targets-group-1   : build some targets
-targets-group-1: $(GROUP_1_TARGETS)
+targets-group-1:
+	$(call summary_build,$(GROUP_1_TARGETS))
 
 ## targets-group-2   : build some targets
-targets-group-2: $(GROUP_2_TARGETS)
+targets-group-2:
+	$(call summary_build,$(GROUP_2_TARGETS))
 
 ## targets-group-3   : build some targets
-targets-group-3: $(GROUP_3_TARGETS)
+targets-group-3:
+	$(call summary_build,$(GROUP_3_TARGETS))
 
 ## targets-group-4   : build some targets
-targets-group-4: $(GROUP_4_TARGETS)
+targets-group-4:
+	$(call summary_build,$(GROUP_4_TARGETS))
 
 ## targets-group-5   : build some targets
-targets-group-5: $(GROUP_5_TARGETS)
+targets-group-5:
+	$(call summary_build,$(GROUP_5_TARGETS))
 
 ## targets-group-6   : build some targets
-targets-group-6: $(GROUP_6_TARGETS)
+targets-group-6:
+	$(call summary_build,$(GROUP_6_TARGETS))
 
 ## targets-group-7   : build some targets
-targets-group-7: $(GROUP_7_TARGETS)
+targets-group-7:
+	$(call summary_build,$(GROUP_7_TARGETS))
 
 ## targets-group-8   : build some targets
-targets-group-8: $(GROUP_8_TARGETS)
+targets-group-8:
+	$(call summary_build,$(GROUP_8_TARGETS))
 
 ## targets-group-9   : build some targets
-targets-group-9: $(GROUP_9_TARGETS)
+targets-group-9:
+	$(call summary_build,$(GROUP_9_TARGETS))
 
 ## targets-group-10  : build some targets
-targets-group-10: $(GROUP_10_TARGETS)
+targets-group-10:
+	$(call summary_build,$(GROUP_10_TARGETS))
 
 ## targets-group-11  : build some targets
-targets-group-11: $(GROUP_11_TARGETS)
+targets-group-11:
+	$(call summary_build,$(GROUP_11_TARGETS))
 
 ## targets-group-rest: build the rest of the targets (not listed in groups 1-11)
-targets-group-rest: $(GROUP_OTHER_TARGETS)
+targets-group-rest:
+	$(call summary_build,$(GROUP_OTHER_TARGETS))
 
+ifdef IN_SUMMARY_OUTER
+# Outer intercepted invocation: real work happens in the first goal's recipe.
+# Remaining goals are @: no-ops so make doesn't error on unknown targets.
+# summary_build exits non-zero on any failure, which causes the first goal's
+# recipe to fail — make reliably propagates a goal's own recipe failure to
+# the outer exit code (unlike prerequisite failure propagation in Make 4.4+).
+# _INVALID_GOALS are pre-populated into the failed marker so they appear in
+# the summary count even though they produce no marker entry themselves.
+# Only valid goals are forwarded to the inner make — invalid goals are
+# pre-counted in the failed marker and do not need to reach the sub-make.
+# Forwarding them caused the inner make to stop on the first bad goal
+# (without -k) before building the valid targets that followed it.
+_VALID_GOALS   := $(filter $(VALID_TARGETS), $(MAKECMDGOALS))
+_INVALID_GOALS := $(filter-out $(VALID_TARGETS), $(MAKECMDGOALS))
+.PHONY: $(MAKECMDGOALS)
+
+$(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS)):
+	@:
+
+$(firstword $(MAKECMDGOALS)):
+	$(call summary_build,$(_VALID_GOALS),$(_INVALID_GOALS))
+
+else
+# Normal invocation: named group, inner sub-make, or direct single target.
+ifdef IN_SUMMARY_BUILD
+# Inner sub-make (called from summary_build): run the actual build and
+# record pass/fail in the per-invocation marker files.
 $(VALID_TARGETS):
-	$(V0) @echo "Building $@" && \
-	$(MAKE) binary_hex TARGET=$@ && \
-	echo "Building $@ succeeded."
+	@echo "Building $@"; \
+	if $(MAKE) binary_hex TARGET=$@; then \
+		echo "Building $@ succeeded."; \
+		echo "$@" >> $(BUILD_SUMMARY_PASSED); \
+	else \
+		echo "Building $@ FAILED."; \
+		echo "$@" >> $(BUILD_SUMMARY_FAILED); \
+		exit 1; \
+	fi
+else
+# Direct single-target invocation: route through summary_build so output
+# format (=== Build summary: N succeeded, M failed ===) is consistent
+# with multi-target and named-group invocations.
+$(VALID_TARGETS):
+	$(call summary_build,$@)
+endif
+endif
+
 
 $(NOBUILD_TARGETS):
 	$(MAKE) TARGET=$@
@@ -450,6 +581,7 @@ $(TARGETS_CLEAN):
 clean_all:
 	@echo "Cleaning all targets"
 	$(V0) rm -rf $(OBJECT_DIR)
+	$(V0) rm -f $(BUILD_SUMMARY_PASSED) $(BUILD_SUMMARY_FAILED)
 	$(V0) cd src/test && $(MAKE) clean || true
 	@echo "All targets cleaned."
 
@@ -547,17 +679,14 @@ target-mcu:
 ## targets-by-mcu    : make all targets that have a MCU_TYPE mcu
 targets-by-mcu:
 	@echo "Building all $(MCU_TYPE) targets..."
-	$(V1) for target in $(VALID_TARGETS); do \
+	$(V1) _targets=""; \
+	for target in $(VALID_TARGETS); do \
 		TARGET_MCU_TYPE=$$($(MAKE) -s TARGET=$${target} target-mcu); \
 		if [ "$${TARGET_MCU_TYPE}" = "$${MCU_TYPE}" ]; then \
-			echo "Building target $${target}..."; \
-			$(MAKE) TARGET=$${target}; \
-			if [ $$? -ne 0 ]; then \
-				echo "Building target $${target} failed, aborting."; \
-				exit 1; \
-			fi; \
+			_targets="$$_targets $$target"; \
 		fi; \
-	done
+	done; \
+	[ -n "$$_targets" ] && $(MAKE) $$_targets
 
 ## targets-f3        : make all F3 targets
 targets-f3:
