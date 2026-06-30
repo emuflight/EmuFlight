@@ -381,8 +381,10 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                                          ? smoothingData->averageFrameTimeUs * 1e-6f : dT;
                     const float fc_min = (float)smoothingData->inputCutoffFrequency; // already computed above
                     const float fc_max = (float)rxConfig()->rc_smoothing_1euro_fc_max;
-                    const float rcRate = (float)MAX(currentControlRateProfile->rcRates[FD_ROLL], 10);
-                    const float sRate  = 1.0f + currentControlRateProfile->rates[FD_ROLL] * 0.005f;
+                    const float rcRate = (float)MAX(MAX(currentControlRateProfile->rcRates[FD_ROLL],
+                                                        currentControlRateProfile->rcRates[FD_PITCH]), 10);
+                    const float sRate  = 1.0f + MAX(currentControlRateProfile->rates[FD_ROLL],
+                                                    currentControlRateProfile->rates[FD_PITCH]) * 0.005f;
                     const float beta   = 0.5f / (rcRate * sRate);
                     // fc_d auto: rx_hz/19 keeps derivative detection at ~3 RC frames at all rates.
                     // Manual override: rc_smoothing_1euro_deriv_hz > 0 (stored in tenths of Hz).
