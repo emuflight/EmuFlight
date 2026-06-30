@@ -224,7 +224,7 @@ void schedulerInit(void) {
     queueAdd(&cfTasks[TASK_SYSTEM]);
 }
 
-FAST_CODE void scheduler(void) {
+FAST_CODE GCC_OPTIMIZE_SIZE void scheduler(void) {
     // Cache currentTime
     const timeUs_t currentTimeUs = micros();
     // Check for realtime tasks

@@ -126,7 +126,7 @@ static inline uint8_t __basepriSetRetVal(uint8_t prio) {
 // On gcc 5 and higher, this protects only memory passed as parameter (any type can be used)
 // this macro can be used only ONCE PER LINE, but multiple uses per block are fine
 
-#if (__GNUC__ > 9)
+#if (__GNUC__ > 13)
 #pragma message "ATOMIC_BARRIER: please verify that cleanup-based barrier works as intended on this GCC version"
 // TODO - use flag to disable ATOMIC_BARRIER and use full barrier instead
 // you should check that local variable scope with cleanup spans entire block

@@ -1073,7 +1073,7 @@ SD_Error_t SD_GetStatus(void) {
         else if(CardState == SD_CARD_ERROR)     ErrorState = SD_ERROR;
         else                                    ErrorState = SD_BUSY;
     } else {
-        ErrorState = SD_CARD_ERROR;
+        ErrorState = SD_ERROR;
     }
     return ErrorState;
 }
