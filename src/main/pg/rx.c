@@ -62,16 +62,16 @@ void pgResetFn_rxConfig(rxConfig_t *rxConfig) {
                    .airModeActivateThreshold = 32,
                    .max_aux_channel = DEFAULT_AUX_CHANNEL_COUNT,
                    // TESTING DEFAULT — DO NOT MERGE: rc_smoothing_type/input_type below are set for
-                   // 1EURO flight validation on this design-variant branch. Mergeable defaults are
+                   // 2EURO flight validation on this design-variant branch. Mergeable defaults are
                    // rc_smoothing_type = RC_SMOOTHING_TYPE_INTERPOLATION and
-                   // rc_smoothing_input_type = RC_SMOOTHING_INPUT_PT2 (see CONTEXT_1euro.md).
+                   // rc_smoothing_input_type = RC_SMOOTHING_INPUT_PT2 (see CONTEXT_2euro.md).
                    .rc_smoothing_type = RC_SMOOTHING_TYPE_FILTER,
                    .rc_smoothing_input_cutoff = 50,      // automatically calculate the cutoff by default
                    .rc_smoothing_debug_axis = ROLL,     // default to debug logging for the roll axis
-                   .rc_smoothing_input_type = RC_SMOOTHING_INPUT_1EURO,
-                   .rc_smoothing_1euro_fc_min = 0,          // 0 = auto (rx_hz/12 clamped [6,40] Hz)
-                   .rc_smoothing_1euro_fc_max = 200,        // 200 Hz cap on adaptive cutoff (safety ceiling)
-                   .rc_smoothing_1euro_deriv_hz = 0,        // 0 = auto (rx_hz/19); manual: tenths of Hz, e.g. 10 = 1.0 Hz
+                   .rc_smoothing_input_type = RC_SMOOTHING_INPUT_2EURO,
+                   .rc_smoothing_2euro_fc_min = 0,          // 0 = auto (rx_hz/12 clamped [6,40] Hz)
+                   .rc_smoothing_2euro_fc_max = 200,        // 200 Hz cap on adaptive cutoff (safety ceiling)
+                   .rc_smoothing_2euro_deriv_hz = 0,        // 0 = auto (rx_hz/19); manual: tenths of Hz, e.g. 10 = 1.0 Hz
                    .showAlteredRc = 0,
                    .sbus_baud_fast = false,
                   );

@@ -125,9 +125,14 @@ void ptnFilterInit(ptnFilter_t *filter, uint8_t order, uint16_t f_cut, float dT)
 void ptnFilterUpdate(ptnFilter_t *filter, float f_cut, float ScaleF, float dt);
 float ptnFilterApply(ptnFilter_t *filter, float input);
 
-// 1€ (One Euro) adaptive low-pass filter — cutoff rises with signal velocity
-typedef struct oneEuroFilter_s {
-    pt1Filter_t x_filter;        // main signal PT1 stage 1 (adaptive cutoff)
+// 2€ filter — dual-stage adaptive + fixed low-pass, derived from the 1€ filter (Casiez et al.)
+// Stage 1 (x_filter) is the original 1€ adaptive PT1: cutoff rises with signal velocity,
+// transparent at full stick, tight at rest. Stage 2 (x_filter_fixed) is a static PT1 at a
+// fixed cutoff (fc_fixed = 2 × fc_min) cascaded after stage 1 — an always-on quantization
+// floor that stage 1 alone cannot provide, since stage 1's own cutoff opens during fast
+// input precisely when a fixed floor is most needed to suppress RC-frame steps.
+typedef struct twoEuroFilter_s {
+    pt1Filter_t x_filter;        // main signal PT1 stage 1 (1€ adaptive cutoff)
     pt1Filter_t x_filter_fixed;  // main signal PT1 stage 2 (fixed cutoff fc_fixed — always-on step floor)
     pt1Filter_t d_filter;        // derivative estimator PT1 (fixed cutoff fc_d)
     float fc_min;                // minimum cutoff frequency (Hz)
@@ -139,8 +144,8 @@ typedef struct oneEuroFilter_s {
     float pid_dT_inv;            // 1/pid_dT — for x_filter and x_filter_fixed k (applied every PID loop)
     float lastInput;             // last RC input — cutoff only updated when input changes
     float lastCutoff;            // last computed adaptive cutoff Hz (for blackbox debug)
-} oneEuroFilter_t;
+} twoEuroFilter_t;
 
-void oneEuroFilterInit(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float rc_dT, float pid_dT);
-void oneEuroFilterUpdate(oneEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float rc_dT, float pid_dT);
-float oneEuroFilterApply(oneEuroFilter_t *filter, float input);
+void twoEuroFilterInit(twoEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float rc_dT, float pid_dT);
+void twoEuroFilterUpdate(twoEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float rc_dT, float pid_dT);
+float twoEuroFilterApply(twoEuroFilter_t *filter, float input);
