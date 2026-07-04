@@ -332,17 +332,24 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
         // 2EURO uses its own fc_min field — fully independent of rc_smoothing_input_cutoff.
         // Store computed fc_min in inputCutoffFrequency for change detection.
         if (rxConfig()->rc_smoothing_2euro_fc_min == 0) {
-            // Auto: rx_hz / 12 clamped [6, 40] Hz; 180 Hz fallback gives 15 Hz before RX is known.
+            // Auto: rx_hz / 12, floored at 6 Hz; 180 Hz fallback gives 15 Hz before RX is known.
             // The /12 divisor sizes fc_min so the dual-stage cascade (fc_min, fc_fixed=2×fc_min)
-            // gives ~95% attenuation at the Nyquist frequency in the unclamped [72,480] Hz link-rate
-            // range (Nyquist/fc_min = 6 by construction), falling to ~90% at the 50 Hz floor (6 Hz) —
-            // floor/ceiling trade attenuation for bounded group delay at extreme link rates.
-            // Ceiling of 40 Hz is exact: at 500+ Hz RC, fc_min=40/fc_fixed=80 reproduces the same
-            // 6:1 Nyquist ratio (and thus the same ~95% attenuation) as the validated 250 Hz case
-            // (fc_min=20.8, fc_fixed=41.6).
+            // gives ~95% attenuation at the Nyquist frequency (Nyquist/fc_min = 6 by construction).
+            // Floor of 6 Hz trades attenuation for bounded group delay at very slow links (SBUS/50Hz:
+            // ~90% attenuation instead of the ~95% the unclamped formula would give — deliberate).
+            // No fixed upper Hz value: fc_min scales as rx_hz/12 for ANY link rate (72 Hz through
+            // 1000+ Hz ELRS full-rate and beyond), keeping the 6:1 ratio — and thus ~95% attenuation
+            // and proportionally shrinking group delay — mathematically consistent across the whole
+            // range, rather than freezing at a fixed Hz value above some cutoff rate. The only upper
+            // bound is fc_max itself (the pilot's own configured runtime adaptive-cutoff ceiling,
+            // default 200 Hz; 0 = no cap) — this only matters for RX rates so implausibly fast
+            // (rx_hz > fc_max*12, e.g. >2400 Hz at the 200 Hz default) that fc_min would otherwise
+            // exceed the ceiling meant to bound the adaptive cutoff above it.
             const float rx_hz = (smoothingData->averageFrameTimeUs > 0)
                                 ? 1e6f / smoothingData->averageFrameTimeUs : 180.0f;
-            smoothingData->inputCutoffFrequency = (uint16_t)constrainf(rx_hz / 12.0f, 6.0f, 40.0f);
+            const float fc_max_cfg = (float)rxConfig()->rc_smoothing_2euro_fc_max;
+            const float fc_min_ceiling = (fc_max_cfg > 0.0f) ? fc_max_cfg : 1e6f;
+            smoothingData->inputCutoffFrequency = (uint16_t)constrainf(rx_hz / 12.0f, 6.0f, fc_min_ceiling);
         } else {
             smoothingData->inputCutoffFrequency = rxConfig()->rc_smoothing_2euro_fc_min;
         }
