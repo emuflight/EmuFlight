@@ -34,7 +34,7 @@
 #include "rx/rx.h"
 #include "rx/rx_spi.h"
 
-PG_REGISTER_WITH_RESET_FN(rxConfig_t, rxConfig, PG_RX_CONFIG, 4);
+PG_REGISTER_WITH_RESET_FN(rxConfig_t, rxConfig, PG_RX_CONFIG, 5);
 void pgResetFn_rxConfig(rxConfig_t *rxConfig) {
     RESET_CONFIG_2(rxConfig_t, rxConfig,
                    .halfDuplex = 0,
@@ -69,9 +69,6 @@ void pgResetFn_rxConfig(rxConfig_t *rxConfig) {
                    .rc_smoothing_input_cutoff = 50,      // automatically calculate the cutoff by default
                    .rc_smoothing_debug_axis = ROLL,     // default to debug logging for the roll axis
                    .rc_smoothing_input_type = RC_SMOOTHING_INPUT_2EURO,
-                   .rc_smoothing_2euro_fc_min = 0,          // 0 = auto (rx_hz/12 clamped [6,40] Hz)
-                   .rc_smoothing_2euro_fc_max = 200,        // 200 Hz cap on adaptive cutoff (safety ceiling)
-                   .rc_smoothing_2euro_deriv_hz = 0,        // 0 = auto (rx_hz/19); manual: tenths of Hz, e.g. 10 = 1.0 Hz
                    .showAlteredRc = 0,
                    .sbus_baud_fast = false,
                   );

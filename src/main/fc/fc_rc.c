@@ -324,35 +324,33 @@ FAST_CODE bool rcSmoothingRxRateValid(int currentRxRefreshRate) {
 
 // Initialize or update the filters base on either the manually selected cutoff, or
 // the auto-calculated cutoff frequency based on detected rx frame rate.
+// 2EURO stage-1 adaptive-cutoff safety ceiling (Hz). Fully internal/computed-only — no CLI field.
+// Also bounds fc_min itself (see rcSmoothingSetFilterCutoffs()) so fc_min can never exceed the
+// ceiling meant to bound the cutoff above it, for RX rates so implausibly fast (>2400 Hz) that
+// rx_hz/12 alone would otherwise push fc_min past this value.
+#define RC_SMOOTHING_2EURO_FC_MAX 200.0f
+
 FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothingData) {
     const float dT = targetPidLooptime * 1e-6f;
     uint16_t oldCutoff = smoothingData->inputCutoffFrequency;
 
     if (rxConfig()->rc_smoothing_input_type == RC_SMOOTHING_INPUT_2EURO) {
-        // 2EURO uses its own fc_min field — fully independent of rc_smoothing_input_cutoff.
+        // 2EURO fc_min is fully internal/computed-only — no CLI field, no manual override.
         // Store computed fc_min in inputCutoffFrequency for change detection.
-        if (rxConfig()->rc_smoothing_2euro_fc_min == 0) {
-            // Auto: rx_hz / 12, floored at 6 Hz; 180 Hz fallback gives 15 Hz before RX is known.
-            // The /12 divisor sizes fc_min so the dual-stage cascade (fc_min, fc_fixed=2×fc_min)
-            // gives ~95% attenuation at the Nyquist frequency (Nyquist/fc_min = 6 by construction).
-            // Floor of 6 Hz trades attenuation for bounded group delay at very slow links (SBUS/50Hz:
-            // ~90% attenuation instead of the ~95% the unclamped formula would give — deliberate).
-            // No fixed upper Hz value: fc_min scales as rx_hz/12 for ANY link rate (72 Hz through
-            // 1000+ Hz ELRS full-rate and beyond), keeping the 6:1 ratio — and thus ~95% attenuation
-            // and proportionally shrinking group delay — mathematically consistent across the whole
-            // range, rather than freezing at a fixed Hz value above some cutoff rate. The only upper
-            // bound is fc_max itself (the pilot's own configured runtime adaptive-cutoff ceiling,
-            // default 200 Hz; 0 = no cap) — this only matters for RX rates so implausibly fast
-            // (rx_hz > fc_max*12, e.g. >2400 Hz at the 200 Hz default) that fc_min would otherwise
-            // exceed the ceiling meant to bound the adaptive cutoff above it.
-            const float rx_hz = (smoothingData->averageFrameTimeUs > 0)
-                                ? 1e6f / smoothingData->averageFrameTimeUs : 180.0f;
-            const float fc_max_cfg = (float)rxConfig()->rc_smoothing_2euro_fc_max;
-            const float fc_min_ceiling = (fc_max_cfg > 0.0f) ? fc_max_cfg : 1e6f;
-            smoothingData->inputCutoffFrequency = (uint16_t)constrainf(rx_hz / 12.0f, 6.0f, fc_min_ceiling);
-        } else {
-            smoothingData->inputCutoffFrequency = rxConfig()->rc_smoothing_2euro_fc_min;
-        }
+        // rx_hz / 12, floored at 6 Hz; 180 Hz fallback gives 15 Hz before RX is known.
+        // The /12 divisor sizes fc_min so the dual-stage cascade (fc_min, fc_fixed=2×fc_min)
+        // gives ~95% attenuation at the Nyquist frequency (Nyquist/fc_min = 6 by construction).
+        // Floor of 6 Hz trades attenuation for bounded group delay at very slow links (SBUS/50Hz:
+        // ~90% attenuation instead of the ~95% the unclamped formula would give — deliberate).
+        // No fixed upper Hz value: fc_min scales as rx_hz/12 for ANY link rate (72 Hz through
+        // 1000+ Hz ELRS full-rate and beyond), keeping the 6:1 ratio — and thus ~95% attenuation
+        // and proportionally shrinking group delay — mathematically consistent across the whole
+        // range, rather than freezing at a fixed Hz value above some cutoff rate. The only upper
+        // bound is RC_SMOOTHING_2EURO_FC_MAX itself, which only matters for RX rates so
+        // implausibly fast (rx_hz > 2400 Hz) that fc_min would otherwise exceed it.
+        const float rx_hz = (smoothingData->averageFrameTimeUs > 0)
+                            ? 1e6f / smoothingData->averageFrameTimeUs : 180.0f;
+        smoothingData->inputCutoffFrequency = (uint16_t)constrainf(rx_hz / 12.0f, 6.0f, RC_SMOOTHING_2EURO_FC_MAX);
     } else if (rxConfig()->rc_smoothing_input_cutoff == 0) {
         smoothingData->inputCutoffFrequency = calcRcSmoothingCutoff(smoothingData->averageFrameTimeUs,
                                                rxConfig()->rc_smoothing_input_type == RC_SMOOTHING_INPUT_PT1);
@@ -393,19 +391,17 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
                     const float rc_dT  = (smoothingData->averageFrameTimeUs > 0)
                                          ? smoothingData->averageFrameTimeUs * 1e-6f : dT;
                     const float fc_min = (float)smoothingData->inputCutoffFrequency; // already computed above
-                    const float fc_max = (float)rxConfig()->rc_smoothing_2euro_fc_max;
+                    const float fc_max = RC_SMOOTHING_2EURO_FC_MAX; // fully internal/computed-only
                     const float rcRate = (float)MAX(MAX(currentControlRateProfile->rcRates[FD_ROLL],
                                                         currentControlRateProfile->rcRates[FD_PITCH]), 10);
                     const float sRate  = 1.0f + MAX(currentControlRateProfile->rates[FD_ROLL],
                                                     currentControlRateProfile->rates[FD_PITCH]) * 0.005f;
                     const float beta   = 0.5f / (rcRate * sRate);
                     // fc_d auto: rx_hz/19 keeps derivative detection at ~3 RC frames at all rates.
-                    // Manual override: rc_smoothing_2euro_deriv_hz > 0 (stored in tenths of Hz).
-                    const float fc_d   = (rxConfig()->rc_smoothing_2euro_deriv_hz > 0)
-                                         ? rxConfig()->rc_smoothing_2euro_deriv_hz / 10.0f
-                                         : (smoothingData->averageFrameTimeUs > 0)
-                                           ? 1e6f / smoothingData->averageFrameTimeUs / 19.0f
-                                           : 180.0f / 19.0f;
+                    // Fully internal/computed-only — no CLI field, no manual override.
+                    const float fc_d   = (smoothingData->averageFrameTimeUs > 0)
+                                         ? 1e6f / smoothingData->averageFrameTimeUs / 19.0f
+                                         : 180.0f / 19.0f;
                     // fc_fixed: 2× fc_min → fixed stage ~1 RC-frame group delay per stage at any link rate.
                     const float fc_fixed = fc_min * 2.0f;
                     if (!smoothingData->filterInitialized) {
@@ -452,10 +448,9 @@ FAST_CODE_NOINLINE bool rcSmoothingAutoCalculate(void) {
     if (rxConfig()->rc_smoothing_input_cutoff == 0) {
         return true;
     }
-    // 2EURO with auto fc_min (== 0) needs training to get averageFrameTimeUs
-    // rc_smoothing_input_cutoff is irrelevant for 2EURO so cannot gate training
-    if (rxConfig()->rc_smoothing_input_type == RC_SMOOTHING_INPUT_2EURO &&
-        rxConfig()->rc_smoothing_2euro_fc_min == 0) {
+    // 2EURO fc_min is always auto-calculated (no CLI override), so it always needs training
+    // to get averageFrameTimeUs. rc_smoothing_input_cutoff is irrelevant for 2EURO.
+    if (rxConfig()->rc_smoothing_input_type == RC_SMOOTHING_INPUT_2EURO) {
         return true;
     }
     return false;

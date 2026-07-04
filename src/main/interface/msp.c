@@ -1076,7 +1076,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU8(dst, rxConfig()->rc_smoothing_input_cutoff);
         sbufWriteU8(dst, 0); // was rc_smoothing_2euro_beta — now auto-calculated from rate profile
         sbufWriteU8(dst, rxConfig()->rc_smoothing_input_type);
-        sbufWriteU8(dst, 0); // was rc_smoothing_derivative_type — fc_min is CLI-only, not MSP-exposed
+        sbufWriteU8(dst, 0); // was rc_smoothing_derivative_type — 2EURO fc_min is fully internal, not MSP-exposed
 #else
         sbufWriteU8(dst, 0);
         sbufWriteU8(dst, 0);
@@ -2226,7 +2226,7 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
         rxConfigMutable()->rc_smoothing_input_cutoff = sbufReadU8(src);
         sbufReadU8(src); // was rc_smoothing_2euro_beta — now auto-calculated from rate profile; consumed for wire compat
         rxConfigMutable()->rc_smoothing_input_type = sbufReadU8(src);
-        sbufReadU8(src); // was rc_smoothing_derivative_type — fc_min is CLI-only, not MSP-exposed
+        sbufReadU8(src); // was rc_smoothing_derivative_type — 2EURO fc_min is fully internal, not MSP-exposed
 #else
         sbufReadU8(src);
         sbufReadU8(src);
