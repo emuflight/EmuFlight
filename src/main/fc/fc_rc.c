@@ -350,7 +350,9 @@ FAST_CODE_NOINLINE void rcSmoothingSetFilterCutoffs(rcSmoothingFilter_t *smoothi
         // implausibly fast (rx_hz > 2400 Hz) that fc_min would otherwise exceed it.
         const float rx_hz = (smoothingData->averageFrameTimeUs > 0)
                             ? 1e6f / smoothingData->averageFrameTimeUs : 180.0f;
-        smoothingData->inputCutoffFrequency = (uint16_t)constrainf(rx_hz / 12.0f, 6.0f, RC_SMOOTHING_2EURO_FC_MAX);
+        // Round (not truncate) to nearest Hz — truncation was silently discarding up to ~1 Hz
+        // of the intended value (e.g. 500/12=41.67 truncated to 41, not the nearest 42).
+        smoothingData->inputCutoffFrequency = (uint16_t)lrintf(constrainf(rx_hz / 12.0f, 6.0f, RC_SMOOTHING_2EURO_FC_MAX));
     } else if (rxConfig()->rc_smoothing_input_cutoff == 0) {
         smoothingData->inputCutoffFrequency = calcRcSmoothingCutoff(smoothingData->averageFrameTimeUs,
                                                rxConfig()->rc_smoothing_input_type == RC_SMOOTHING_INPUT_PT1);
@@ -563,7 +565,7 @@ FAST_CODE uint8_t processRcSmoothingFilter(void) {
                     break;
                 case RC_SMOOTHING_INPUT_2EURO:
                 default:
-                    rcCommand[updatedChannel] = twoEuroFilterApply((twoEuroFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel]);
+                    rcCommand[updatedChannel] = twoEuroFilterApply((twoEuroFilter_t*) &rcSmoothingData.filter[updatedChannel], lastRxData[updatedChannel], isRXDataNew);
                     break;
                 }
             } else {

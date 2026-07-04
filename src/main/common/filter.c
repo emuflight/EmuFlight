@@ -384,19 +384,22 @@ void twoEuroFilterUpdate(twoEuroFilter_t *filter, float fc_min, float fc_max, fl
     pt1FilterUpdateCutoff(&filter->x_filter_fixed, two_pi_fc_fixed / (two_pi_fc_fixed + filter->pid_dT_inv));
 }
 
-FAST_CODE float twoEuroFilterApply(twoEuroFilter_t *filter, float input)
+FAST_CODE float twoEuroFilterApply(twoEuroFilter_t *filter, float input, bool newSample)
 {
     if (filter->dT_inv <= 0.0f) {
         return input;
     }
 
-    // Only recompute derivative and adaptive cutoff when a new RC sample arrives.
-    // Between RC frames input is constant; recomputing dx would fabricate a spurious
-    // decaying velocity as x_filter converges, incorrectly lowering the cutoff.
-    // When no new sample: stage 1 holds its last adaptive cutoff; stage 2 is always fixed.
-    if (input != filter->lastInput) {
-        filter->lastInput = input;
-
+    // Recompute derivative and adaptive cutoff once per genuine new RX frame (newSample),
+    // not once per PID loop and not merely when the raw value changes. Gating on value-change
+    // (the prior approach) lets the adaptive cutoff freeze indefinitely: if the stick lands on
+    // a new value and then holds it with zero further jitter, d_filter never receives another
+    // sample to decay toward zero, so a post-flick elevated cutoff can stick open forever
+    // instead of settling back to fc_min at rest. Gating on newSample instead still avoids the
+    // original concern this replaces (recomputing every PID loop would sample x_filter's own
+    // convergence transient as if it were stick velocity) since newSample fires only once per
+    // RC frame, matching dT_inv's intended sampling rate — same as d_filter always did.
+    if (newSample) {
         // Derivative estimate via PT1 at fc_d — dx in RC units/s (rate-normalised by dT_inv)
         const float dx = (input - filter->x_filter.state) * filter->dT_inv;
         const float dx_hat = pt1FilterApply(&filter->d_filter, dx);

@@ -142,10 +142,12 @@ typedef struct twoEuroFilter_s {
     float fc_fixed;              // fixed cutoff for stage 2 (Hz) — 2× fc_min; ~1 RC-frame group delay per stage
     float dT_inv;                // 1/rc_dT — for dx velocity estimate and d_filter k (d_filter runs once per RC frame)
     float pid_dT_inv;            // 1/pid_dT — for x_filter and x_filter_fixed k (applied every PID loop)
-    float lastInput;             // last RC input — cutoff only updated when input changes
     float lastCutoff;            // last computed adaptive cutoff Hz (for blackbox debug)
 } twoEuroFilter_t;
 
 void twoEuroFilterInit(twoEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float rc_dT, float pid_dT);
 void twoEuroFilterUpdate(twoEuroFilter_t *filter, float fc_min, float fc_max, float beta, float fc_d, float fc_fixed, float rc_dT, float pid_dT);
-float twoEuroFilterApply(twoEuroFilter_t *filter, float input);
+// newSample: true exactly once per genuine new RX frame (not once per PID loop, not on raw-value
+// change). Derivative/cutoff recompute is gated on this, not on input != previous input — see
+// twoEuroFilterApply() for why value-based gating lets the adaptive cutoff freeze indefinitely.
+float twoEuroFilterApply(twoEuroFilter_t *filter, float input, bool newSample);
