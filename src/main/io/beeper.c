@@ -180,6 +180,12 @@ static uint8_t beep_multiBeeps[MAX_MULTI_BEEPS + 1];
 // Beeper off = 0 Beeper on = 1
 static uint8_t beeperIsOn = 0;
 
+#ifdef USE_DSHOT
+// Tracks whether BEEPER_RX_SET or BEEPER_RX_LOST was requested this cycle so the DShot
+// motor beacon fires even when a higher-priority alarm (e.g. BAT_CRIT_LOW) owns the buzzer.
+static beeperMode_e dshotBeaconPendingMode = BEEPER_SILENCE;
+#endif
+
 // Place in current sequence
 static uint16_t beeperPos = 0;
 // Time when beeper routine must act next time
@@ -264,6 +270,13 @@ void beeper(beeperMode_e mode) {
         }
         break;
     }
+    // Capture beacon request before the priority-loss early-return so the DShot motor tone
+    // fires even when a higher-priority alarm (e.g. BAT_CRIT_LOW) owns the physical buzzer.
+#ifdef USE_DSHOT
+    if (mode == BEEPER_RX_SET || mode == BEEPER_RX_LOST) {
+        dshotBeaconPendingMode = mode;
+    }
+#endif
     if (!selectedCandidate) {
         return;
     }
@@ -280,6 +293,9 @@ void beeperSilence(void) {
     beeperNextToggleTime = 0;
     beeperPos = 0;
     currentBeeperEntry = NULL;
+#ifdef USE_DSHOT
+    dshotBeaconPendingMode = BEEPER_SILENCE;
+#endif
 }
 
 /*
@@ -372,9 +388,13 @@ void beeperUpdate(timeUs_t currentTimeUs) {
     if (!beeperIsOn) {
         beeperIsOn = 1;
 #ifdef USE_DSHOT
+        // Use dshotBeaconPendingMode rather than currentBeeperEntry->mode so the motor beacon
+        // fires even when a higher-priority buzzer alarm (e.g. BAT_CRIT_LOW) owns the beeper.
+        const beeperMode_e beaconMode = dshotBeaconPendingMode;
+        dshotBeaconPendingMode = BEEPER_SILENCE;
         if (!areMotorsRunning()
-                && ((currentBeeperEntry->mode == BEEPER_RX_SET && !(beeperConfig()->dshotBeaconOffFlags & BEEPER_GET_FLAG(BEEPER_RX_SET)))
-                    || (currentBeeperEntry->mode == BEEPER_RX_LOST && !(beeperConfig()->dshotBeaconOffFlags & BEEPER_GET_FLAG(BEEPER_RX_LOST))))) {
+                && ((beaconMode == BEEPER_RX_SET && !(beeperConfig()->dshotBeaconOffFlags & BEEPER_GET_FLAG(BEEPER_RX_SET)))
+                    || (beaconMode == BEEPER_RX_LOST && !(beeperConfig()->dshotBeaconOffFlags & BEEPER_GET_FLAG(BEEPER_RX_LOST))))) {
             if ((currentTimeUs - getLastDisarmTimeUs() > DSHOT_BEACON_GUARD_DELAY_US) && !isTryingToArm()) {
                 lastDshotBeaconCommandTimeUs = currentTimeUs;
                 pwmWriteDshotCommand(ALL_MOTORS, getMotorCount(), beeperConfig()->dshotBeaconTone, false);
