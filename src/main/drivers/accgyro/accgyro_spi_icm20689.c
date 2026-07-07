@@ -113,8 +113,9 @@ uint8_t icm20689SpiDetect(const extDevice_t *dev) {
     } while (attemptsRemaining--);
 
     // We now know the device is recognised so it's safe to perform device-specific register accesses.
-    // ICM-20689 SPI write clock max is 8 MHz (datasheet s6.1). SPI_CLOCK_STANDARD exceeds this on
-    // F4 (~10.5 MHz) and H7 (~9 MHz); SPI_CLOCK_SLOW (~0.65 MHz) is the nearest enum within spec.
+    // ICM-20689 max SPI clock is 8 MHz (datasheet s6.1). SPI_CLOCK_STANDARD exceeds this on F4
+    // (~10.5 MHz) only (F7/H7 STANDARD is ~6.58 MHz, already within spec). SPI_CLOCK_SLOW (~0.65 MHz)
+    // is used uniformly across all MCUs for a single safe code path.
     spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_SLOW);
 
     // Disable Primary I2C Interface
