@@ -83,6 +83,9 @@ imufData_t imufData;
 
 #define MPU_INQUIRY_MASK   0x7E
 
+// Minimum system uptime (ms) before SPI bus access — boot-time guard, not a relative delay
+#define GYRO_SPI_STARTUP_MS 100
+
 #define GYRO_EXTI_DETECT_THRESHOLD 1000
 
 #if defined(USE_I2C)
@@ -364,6 +367,11 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
     UNUSED(gyro); // since there are FCs which have gyro on I2C but other devices on SPI
     uint8_t sensor = MPU_NONE;
     UNUSED(sensor);
+
+    // Spin until system uptime reaches GYRO_SPI_STARTUP_MS; no-op if already past that point.
+    // Do this once here rather than in each detection routine to speed boot
+    while (millis() < GYRO_SPI_STARTUP_MS);
+
     // note, when USE_DUAL_GYRO is enabled the gyro->dev must already be initialised.
 #ifdef USE_GYRO_SPI_MPU6000
 #ifndef USE_DUAL_GYRO
