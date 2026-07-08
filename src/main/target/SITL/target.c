@@ -42,6 +42,8 @@
 const timerHardware_t timerHardware[1]; // unused
 
 #include "drivers/accgyro/accgyro_fake.h"
+#include "drivers/barometer/barometer_fake.h"
+#include "drivers/compass/compass_fake.h"
 #include "flight/imu.h"
 
 #include "config/feature.h"
@@ -109,6 +111,25 @@ void updateState(const fdm_packet* pkt) {
     z = constrain(-pkt->imu_angular_velocity_rpy[2] * GYRO_SCALE * RAD2DEG, -32767, 32767);
     fakeGyroSet(fakeGyroDev, x, y, z);
 //    printf("[gyr]%lf,%lf,%lf\n", pkt->imu_angular_velocity_rpy[0], pkt->imu_angular_velocity_rpy[1], pkt->imu_angular_velocity_rpy[2]);
+
+    // fake baro: derive pressure/temperature from NED altitude via ISA standard atmosphere
+    const float altM = -(float)pkt->position_xyz[2]; // NED z is down; negate for altitude up
+    const float baroBase = fmaxf(1.0f - 2.25577e-5f * altM, 0.0f); // avoid negative base -> NaN above ~44.3km
+    const int32_t pressurePa = (int32_t)(101325.0f * powf(baroBase, 5.25588f));
+    const int32_t tempCentiC = (int32_t)((15.0f - 0.0065f * altM) * 100.0f);
+    fakeBaroSet(pressurePa, tempCentiC);
+
+    // fake mag: rotate a fixed world-frame North vector into body frame using the attitude quaternion
+    // (no field strength/dip modeled — sufficient to exercise heading hold / mag fusion in SITL)
+    const double magQw = pkt->imu_orientation_quat[0];
+    const double magQx = pkt->imu_orientation_quat[1];
+    const double magQy = pkt->imu_orientation_quat[2];
+    const double magQz = pkt->imu_orientation_quat[3];
+    const double magScale = 4096.0; // matches compass_fake.c default full-scale reading
+    x = constrain((1.0 - 2.0 * (magQy * magQy + magQz * magQz)) * magScale, -32767, 32767);
+    y = constrain(2.0 * (magQx * magQy - magQw * magQz) * magScale, -32767, 32767);
+    z = constrain(2.0 * (magQx * magQz + magQw * magQy) * magScale, -32767, 32767);
+    fakeMagSet(x, y, z);
 #if defined(SKIP_IMU_CALC)
 #if defined(SET_IMU_FROM_EULER)
     // set from Euler
