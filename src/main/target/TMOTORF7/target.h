@@ -23,9 +23,6 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "TMTR"
 #define USBD_PRODUCT_STRING "TMOTORF7"
 
-#define BOARD_NAME        TMOTORF7
-#define MANUFACTURER_ID   TMTR
-
 #define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
 #define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
 

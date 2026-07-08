@@ -22,10 +22,6 @@
 #pragma once
 #define TARGET_BOARD_IDENTIFIER "PYDR"
 #define USBD_PRODUCT_STRING "PYRODRONEF7"
-
-#define BOARD_NAME        PYRODRONEF7
-#define MANUFACTURER_ID   PYDR
-
 #define USE_TARGET_CONFIG
 
 #define ENABLE_DSHOT_DMAR       true
