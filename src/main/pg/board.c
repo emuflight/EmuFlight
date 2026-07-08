@@ -26,6 +26,8 @@
 #if defined(USE_BOARD_INFO)
 #include "build/version.h"
 
+#include "common/utils.h"
+
 #include "fc/board_info.h"
 
 #include "pg/pg.h"
@@ -42,8 +44,19 @@ void pgResetFn_boardConfig(boardConfig_t *boardConfig) {
         boardConfig->boardInformationSet = true;
     } else {
 #if !defined(GENERIC_TARGET)
+        // Prefer BF-style BOARD_NAME/MANUFACTURER_ID (bare tokens, stringified);
+        // fall back to EF-style USBD_PRODUCT_STRING/TARGET_MANUFACTURER_IDENTIFIER
+        // for targets that don't define the BF-style macros yet.
+#if defined(BOARD_NAME)
+        strncpy(boardConfig->boardName, STR(BOARD_NAME), MAX_BOARD_NAME_LENGTH + 1);
+#elif defined(USBD_PRODUCT_STRING)
+        strncpy(boardConfig->boardName, USBD_PRODUCT_STRING, MAX_BOARD_NAME_LENGTH + 1);
+#else
         strncpy(boardConfig->boardName, targetName, MAX_BOARD_NAME_LENGTH + 1);
-#if defined(TARGET_MANUFACTURER_IDENTIFIER)
+#endif
+#if defined(MANUFACTURER_ID)
+        strncpy(boardConfig->manufacturerId, STR(MANUFACTURER_ID), MAX_MANUFACTURER_ID_LENGTH + 1);
+#elif defined(TARGET_MANUFACTURER_IDENTIFIER)
         strncpy(boardConfig->manufacturerId, TARGET_MANUFACTURER_IDENTIFIER, MAX_MANUFACTURER_ID_LENGTH + 1);
 #endif
         boardConfig->boardInformationSet = true;
