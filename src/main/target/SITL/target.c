@@ -114,7 +114,8 @@ void updateState(const fdm_packet* pkt) {
 
     // fake baro: derive pressure/temperature from NED altitude via ISA standard atmosphere
     const float altM = -(float)pkt->position_xyz[2]; // NED z is down; negate for altitude up
-    const int32_t pressurePa = (int32_t)(101325.0f * powf(1.0f - 2.25577e-5f * altM, 5.25588f));
+    const float baroBase = fmaxf(1.0f - 2.25577e-5f * altM, 0.0f); // avoid negative base -> NaN above ~44.3km
+    const int32_t pressurePa = (int32_t)(101325.0f * powf(baroBase, 5.25588f));
     const int32_t tempCentiC = (int32_t)((15.0f - 0.0065f * altM) * 100.0f);
     fakeBaroSet(pressurePa, tempCentiC);
 
