@@ -227,6 +227,9 @@ void init(void) {
     initEEPROM();
     ensureEEPROMStructureIsValid();
     readEEPROM();
+#if defined(USE_BOARD_INFO)
+    initBoardInformation();
+#endif
 #ifdef USE_GYRO_IMUF9001
     if (isMPUSoftReset()) {
         // reset imuf before befhal mucks with the pins
