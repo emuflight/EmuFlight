@@ -417,7 +417,7 @@ void pwmWriteDshotCommand(uint8_t index, uint8_t motorCount, uint8_t command, bo
         }
         delayMicroseconds(delayAfterCommandUs);
     } else {
-        const uint8_t safeCount = MIN(motorCount, ARRAYLEN(dshotCommandControl.command));
+        const uint8_t safeCount = MIN(motorCount, (uint8_t)ARRAYLEN(dshotCommandControl.command));
         dshotCommandControl.repeats = repeats;
         dshotCommandControl.nextCommandAtUs = timeNowUs + DSHOT_INITIAL_DELAY_US;
         dshotCommandControl.delayAfterCommandUs = delayAfterCommandUs;
