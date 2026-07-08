@@ -120,14 +120,14 @@ void updateState(const fdm_packet* pkt) {
 
     // fake mag: rotate a fixed world-frame North vector into body frame using the attitude quaternion
     // (no field strength/dip modeled — sufficient to exercise heading hold / mag fusion in SITL)
-    const double qw = pkt->imu_orientation_quat[0];
-    const double qx = pkt->imu_orientation_quat[1];
-    const double qy = pkt->imu_orientation_quat[2];
-    const double qz = pkt->imu_orientation_quat[3];
+    const double magQw = pkt->imu_orientation_quat[0];
+    const double magQx = pkt->imu_orientation_quat[1];
+    const double magQy = pkt->imu_orientation_quat[2];
+    const double magQz = pkt->imu_orientation_quat[3];
     const double magScale = 4096.0; // matches compass_fake.c default full-scale reading
-    x = constrain((1.0 - 2.0 * (qy * qy + qz * qz)) * magScale, -32767, 32767);
-    y = constrain(2.0 * (qx * qy - qw * qz) * magScale, -32767, 32767);
-    z = constrain(2.0 * (qx * qz + qw * qy) * magScale, -32767, 32767);
+    x = constrain((1.0 - 2.0 * (magQy * magQy + magQz * magQz)) * magScale, -32767, 32767);
+    y = constrain(2.0 * (magQx * magQy - magQw * magQz) * magScale, -32767, 32767);
+    z = constrain(2.0 * (magQx * magQz + magQw * magQy) * magScale, -32767, 32767);
     fakeMagSet(x, y, z);
 #if defined(SKIP_IMU_CALC)
 #if defined(SET_IMU_FROM_EULER)
