@@ -44,12 +44,16 @@ void pgResetFn_boardConfig(boardConfig_t *boardConfig) {
         boardConfig->boardInformationSet = true;
     } else {
 #if !defined(GENERIC_TARGET)
-        // Prefer BF-style BOARD_NAME/MANUFACTURER_ID (bare tokens, stringified);
-        // fall back to EF-style USBD_PRODUCT_STRING/TARGET_MANUFACTURER_IDENTIFIER
-        // for targets that don't define the BF-style macros yet.
-#if defined(BOARD_NAME)
-        strncpy(boardConfig->boardName, STR(BOARD_NAME), MAX_BOARD_NAME_LENGTH + 1);
-#elif defined(USBD_PRODUCT_STRING)
+        // BOARD_NAME (bare-token, BF-style) is intentionally NOT consumed here:
+        // EF's build system passes -D$(TARGET) (bare, unquoted) for every target
+        // (Makefile, plus -D$(BASE_TARGET) for shared-target.h sub-variants), so
+        // for any target whose BOARD_NAME value matches its own target name (the
+        // expected/standard convention), STR(BOARD_NAME) fully macro-expands
+        // through that collision down to "1" instead of the intended name.
+        // MANUFACTURER_ID doesn't have this problem (its value never matches a
+        // target name), so it's safe to prefer as-is. Fall back to EF-style
+        // USBD_PRODUCT_STRING/TARGET_MANUFACTURER_IDENTIFIER otherwise.
+#if defined(USBD_PRODUCT_STRING)
         strncpy(boardConfig->boardName, USBD_PRODUCT_STRING, MAX_BOARD_NAME_LENGTH + 1);
 #else
         strncpy(boardConfig->boardName, targetName, MAX_BOARD_NAME_LENGTH + 1);

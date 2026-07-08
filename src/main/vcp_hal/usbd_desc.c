@@ -224,11 +224,16 @@ uint8_t *USBD_VCP_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
   * @retval Pointer to descriptor buffer
   */
 uint8_t *USBD_VCP_ProductStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length) {
+#ifdef USBD_PRODUCT_STRING
+    (void)speed;
+    USBD_GetString((uint8_t *)USBD_PRODUCT_STRING, USBD_StrDesc, length);
+#else
     if (speed == USBD_SPEED_HIGH) {
         USBD_GetString((uint8_t *)USBD_PRODUCT_HS_STRING, USBD_StrDesc, length);
     } else {
         USBD_GetString((uint8_t *)USBD_PRODUCT_FS_STRING, USBD_StrDesc, length);
     }
+#endif
     return USBD_StrDesc;
 }
 
