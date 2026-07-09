@@ -46,25 +46,11 @@ void pgResetFn_boardConfig(boardConfig_t *boardConfig) {
         boardConfig->boardInformationSet = true;
     } else {
 #if !defined(GENERIC_TARGET)
-        // BOARD_NAME (bare-token, BF-style) is intentionally NOT consumed here:
-        // EF's build system passes -D$(TARGET) (bare, unquoted) for every target
-        // (Makefile, plus -D$(BASE_TARGET) for shared-target.h sub-variants), so
-        // for any target whose BOARD_NAME value matches its own target name (the
-        // expected/standard convention), STR(BOARD_NAME) fully macro-expands
-        // through that collision down to "1" instead of the intended name.
-        // MANUFACTURER_ID doesn't have this problem (its value never matches a
-        // target name), so it's safe to prefer as-is. Fall back to EF-style
-        // USBD_PRODUCT_STRING/TARGET_MANUFACTURER_IDENTIFIER otherwise.
-        //
-        // strncpy() truncates at MAX_*_LENGTH and the trailing NUL is set
-        // explicitly: some values (e.g. HGLRCF405V2's MANUFACTURER_ID, exactly
-        // MAX_MANUFACTURER_ID_LENGTH chars; CRAZYFLIE2's USBD_PRODUCT_STRING
-        // "Crazyflie 2.0 (BigQuad Deck)", far longer than MAX_BOARD_NAME_LENGTH)
-        // are compile-time string literals GCC can prove are >= n chars, so it
-        // correctly flags plain strncpy() here as -Wstringop-truncation -- the
-        // explicit assignment resolves that unconditionally, for any macro
-        // value, without depending on the PG reset buffer's memset(0) (which
-        // fc/board_info.c's copies of runtime-length values rely on instead).
+        // BOARD_NAME is not consumed: its value is conventionally the target
+        // name itself, and the build passes -D<TARGETNAME> (bare) for every
+        // target, so STR(BOARD_NAME) collides and expands to "1". MANUFACTURER_ID
+        // has no such collision. strncpy() is explicitly NUL-terminated since
+        // macro values aren't guaranteed to fit MAX_*_LENGTH.
 #if defined(USBD_PRODUCT_STRING)
         strncpy(boardConfig->boardName, USBD_PRODUCT_STRING, MAX_BOARD_NAME_LENGTH);
 #else
