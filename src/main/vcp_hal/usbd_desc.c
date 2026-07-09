@@ -64,8 +64,14 @@
 #define USBD_PID                      0x5740
 #define USBD_LANGID_STRING            0x409
 #define USBD_MANUFACTURER_STRING      FC_FIRMWARE_NAME
+
+#ifdef USBD_PRODUCT_STRING
+#define USBD_PRODUCT_HS_STRING        USBD_PRODUCT_STRING
+#define USBD_PRODUCT_FS_STRING        USBD_PRODUCT_STRING
+#else
 #define USBD_PRODUCT_HS_STRING        "STM32 Virtual ComPort in HS Mode"
 #define USBD_PRODUCT_FS_STRING        "STM32 Virtual ComPort in FS Mode"
+#endif
 #define USBD_CONFIGURATION_HS_STRING  "VCP Config in HS Mode"
 #define USBD_INTERFACE_HS_STRING      "VCP Interface in HS Mode"
 #define USBD_CONFIGURATION_FS_STRING  "VCP Config in FS Mode"
@@ -218,11 +224,16 @@ uint8_t *USBD_VCP_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
   * @retval Pointer to descriptor buffer
   */
 uint8_t *USBD_VCP_ProductStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length) {
+#ifdef USBD_PRODUCT_STRING
+    (void)speed;
+    USBD_GetString((uint8_t *)USBD_PRODUCT_STRING, USBD_StrDesc, length);
+#else
     if (speed == USBD_SPEED_HIGH) {
         USBD_GetString((uint8_t *)USBD_PRODUCT_HS_STRING, USBD_StrDesc, length);
     } else {
         USBD_GetString((uint8_t *)USBD_PRODUCT_FS_STRING, USBD_StrDesc, length);
     }
+#endif
     return USBD_StrDesc;
 }
 
