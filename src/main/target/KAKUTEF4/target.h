@@ -19,10 +19,10 @@
  */
 
 #pragma once
-#if defined(KAKUTEF4V2)
+#if defined(EF_VARIANT_KAKUTEF4V2)
 #define TARGET_BOARD_IDENTIFIER "KTV2"
 #define USBD_PRODUCT_STRING "KakuteF4-V2"
-#elif defined(FLYWOOF405)
+#elif defined(EF_VARIANT_FLYWOOF405)
 #define TARGET_BOARD_IDENTIFIER "FWF4"
 #define USBD_PRODUCT_STRING "FLYWOOF405"
 #else
@@ -32,7 +32,7 @@
 
 #define USE_TARGET_CONFIG
 
-#if defined(FLYWOOF405)
+#if defined(EF_VARIANT_FLYWOOF405)
 #define LED0_PIN                PC14
 #else
 #define LED0_PIN                PB5
@@ -43,7 +43,7 @@
 
 #define USE_BEEPER
 
-#if defined(FLYWOOF405)
+#if defined(EF_VARIANT_FLYWOOF405)
 //define camera control
 #define CAMERA_CONTROL_PIN      PA9
 #define BEEPER_PIN              PC13
@@ -72,7 +72,7 @@
 #define USE_GYRO_SPI_ICM20689
 #define GYRO_ICM20689_ALIGN      CW270_DEG
 
-#if defined(FLYWOOF405) || defined(KAKUTEF4V2)
+#if defined(EF_VARIANT_FLYWOOF405) || defined(EF_VARIANT_KAKUTEF4V2)
 //------MPU6000
 #define MPU6000_CS_PIN           PC4
 #define MPU6000_SPI_BUS     SPIDEV_1
@@ -82,7 +82,7 @@
 #define ACC_MPU6000_ALIGN       CW270_DEG
 #endif
 
-#if defined(KAKUTEF4V2) || defined(FLYWOOF405)       // There is invertor on RXD3(PB11), so PB10/PB11 can't be used as I2C2.
+#if defined(EF_VARIANT_KAKUTEF4V2) || defined(EF_VARIANT_FLYWOOF405)       // There is invertor on RXD3(PB11), so PB10/PB11 can't be used as I2C2.
 #define USE_I2C          //No other I2C pins are  fanned out, So V1 don't support I2C  peripherals.
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE              (I2CDEV_1)
@@ -121,7 +121,7 @@
 #define USE_UART1
 #define UART1_RX_PIN            PA10
 
-#if defined (FLYWOOF405)
+#if defined (EF_VARIANT_FLYWOOF405)
 #define UART1_TX_PIN            PB6 //SCL/UART1_TX/TIM4_CH1
 #else
 #define UART1_TX_PIN            PA9
@@ -137,7 +137,7 @@
 #define UART6_RX_PIN            PC7
 #define UART6_TX_PIN            PC6
 
-#if defined (KAKUTEF4V2) || defined(FLYWOOF405)               // Uart4 and Uart5 are fanned out on v2
+#if defined (EF_VARIANT_KAKUTEF4V2) || defined(EF_VARIANT_FLYWOOF405)               // Uart4 and Uart5 are fanned out on v2
 #define USE_UART4                // Uart4 can be used for GPS or  RunCam Split
 #define UART4_RX_PIN            PA1
 #define UART4_TX_PIN            PA0
@@ -156,7 +156,7 @@
 
 #define USE_ESCSERIAL
 
-#if defined(FLYWOOF405)
+#if defined(EF_VARIANT_FLYWOOF405)
 #define ESCSERIAL_TIMER_TX_PIN  PB8
 #else
 #define ESCSERIAL_TIMER_TX_PIN  PC7  // (HARDARE=0,PPM)
@@ -193,10 +193,10 @@
 #define TARGET_IO_PORTC 0xffff
 #define TARGET_IO_PORTD        (BIT(2))
 
-#if defined (KAKUTEF4V2)
+#if defined (EF_VARIANT_KAKUTEF4V2)
 #define USABLE_TIMER_CHANNEL_COUNT 6
 #define USED_TIMERS  ( TIM_N(2) | TIM_N(3) |  TIM_N(8))
-#elif defined(FLYWOOF405)
+#elif defined(EF_VARIANT_FLYWOOF405)
 #define USABLE_TIMER_CHANNEL_COUNT 11
 #define USED_TIMERS  ( TIM_N(2) | TIM_N(3) | TIM_N(4)|  TIM_N(8))
 #else

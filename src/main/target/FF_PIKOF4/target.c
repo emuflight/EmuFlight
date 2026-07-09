@@ -28,7 +28,7 @@
 #include "drivers/timer_def.h"
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
-#if defined(FF_PIKOF4OSD)
+#if defined(EF_VARIANT_FF_PIKOF4OSD)
     DEF_TIM(TIM5, CH4, PA3, TIM_USE_MOTOR, 0, 0 ), // S1_OUT - DMA1_ST7
     DEF_TIM(TIM3, CH3, PB1, TIM_USE_MOTOR, 0, 0 ), // S2_OUT - DMA1_ST1
     DEF_TIM(TIM5, CH3, PA2, TIM_USE_MOTOR, 0, 0 ), // S3_OUT - DMA1_ST6

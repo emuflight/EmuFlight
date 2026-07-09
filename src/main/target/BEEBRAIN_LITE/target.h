@@ -74,7 +74,7 @@
 #define ACC_MPU6500_ALIGN               CW90_DEG
 
 // *************** RX ******************************
-#if defined(BEEBRAIN_LITED)
+#if defined(EF_VARIANT_BEEBRAIN_LITED)
 #define SERIALRX_PROVIDER           SERIALRX_SPEKTRUM2048
 #undef  USE_SPEKTRUM_REAL_RSSI
 #undef  USE_SPEKTRUM_FAKE_RSSI
@@ -142,7 +142,7 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_NONE
 
 // *************** FLASH ***************************
-#if defined(BEEBRAIN_LITED)
+#if defined(EF_VARIANT_BEEBRAIN_LITED)
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
 #define FLASH_CS_PIN                    SPI2_NSS_PIN

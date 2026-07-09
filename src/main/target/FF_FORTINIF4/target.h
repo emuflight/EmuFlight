@@ -19,7 +19,7 @@
  */
 
 #pragma once
-#if defined(FF_FORTINIF4_REV03)
+#if defined(EF_VARIANT_FF_FORTINIF4_REV03)
 #define TARGET_BOARD_IDENTIFIER "FOR3"
 #define USBD_PRODUCT_STRING     "FortiniF4_Rev03"
 #else
@@ -32,7 +32,7 @@
 #define HW_PIN_B                PC8
 /*--------------LED----------------*/
 #define LED0_PIN                PB5
-#if defined(FF_FORTINIF4_REV03)
+#if defined(EF_VARIANT_FF_FORTINIF4_REV03)
 #define LED1_PIN                PB4
 #else
 #define LED1_PIN                PB6
@@ -41,7 +41,7 @@
 
 /*------------BEEPER---------------*/
 #define USE_BEEPER
-#if defined(FF_FORTINIF4_REV03)
+#if defined(EF_VARIANT_FF_FORTINIF4_REV03)
 #define BEEPER_PIN              PB3
 #else
 #define BEEPER_PIN              PB4
@@ -50,7 +50,7 @@
 /*---------------------------------*/
 
 /*----------CAMERA CONTROL---------*/
-#if defined(FF_FORTINIF4_REV03)
+#if defined(EF_VARIANT_FF_FORTINIF4_REV03)
 #define CAMERA_CONTROL_PIN      PA10 //PB7
 #endif
 /*---------------------------------*/
@@ -66,7 +66,7 @@
 #define USE_GYRO
 #define USE_ACC
 
-#if !defined(FF_FORTINIF4_REV03)
+#if !defined(EF_VARIANT_FF_FORTINIF4_REV03)
 #define MPU6000_CS_PIN          SPI1_NSS_PIN
 #define MPU6000_SPI_BUS    SPIDEV_1
 
@@ -98,7 +98,7 @@
 #define ACC_MPU6500_ALIGN       CW180_DEG
 /*---------------------------------*/
 
-#if !defined(FF_FORTINIF4_REV03)
+#if !defined(EF_VARIANT_FF_FORTINIF4_REV03)
 /*------------FLASH----------------*/
 #define FLASH_CS_PIN            PB3
 #define FLASH_SPI_INSTANCE      SPI3
@@ -111,7 +111,7 @@
 
 /*-------------OSD-----------------*/
 #define USE_MAX7456
-#if defined(FF_FORTINIF4_REV03)
+#if defined(EF_VARIANT_FF_FORTINIF4_REV03)
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      SPI2_NSS_PIN
 #else
@@ -128,7 +128,7 @@
 //#define USE_USB_DETECT
 
 #define USE_UART1
-#if defined(FF_FORTINIF4_REV03)
+#if defined(EF_VARIANT_FF_FORTINIF4_REV03)
 #define UART1_RX_PIN            PB7
 #else
 #define UART1_RX_PIN            PA10
@@ -147,7 +147,7 @@
 #define UART6_RX_PIN            PC7
 #define UART6_TX_PIN            PC6
 
-#if defined(FF_FORTINIF4_REV03)
+#if defined(EF_VARIANT_FF_FORTINIF4_REV03)
 #define USE_UART2
 #define UART2_RX_PIN            PA3
 #define UART2_TX_PIN            PA2
@@ -172,7 +172,7 @@
 #define USE_SPI
 
 #define USE_SPI_DEVICE_1
-#if defined(FF_FORTINIF4_REV03)
+#if defined(EF_VARIANT_FF_FORTINIF4_REV03)
 #define SPI1_NSS_PIN            PA4
 #else
 #define SPI1_NSS_PIN            PA8
@@ -181,7 +181,7 @@
 #define SPI1_MISO_PIN           PA6
 #define SPI1_MOSI_PIN           PA7
 
-#if defined(FF_FORTINIF4_REV03)
+#if defined(EF_VARIANT_FF_FORTINIF4_REV03)
 #define USE_SPI_DEVICE_2
 #define SPI2_NSS_PIN            PB12
 #define SPI2_SCK_PIN            PB13
@@ -196,7 +196,7 @@
 #endif
 /*---------------------------------*/
 
-#if defined(FF_FORTINIF4_REV03)
+#if defined(EF_VARIANT_FF_FORTINIF4_REV03)
 /*-------------I2C-----------------*/
 #define USE_I2C
 #define USE_I2C_PULLUP
@@ -232,7 +232,7 @@
 /*---------------------------------*/
 
 /*--------------TIMERS-------------*/
-#if defined(FF_FORTINIF4_REV03)
+#if defined(EF_VARIANT_FF_FORTINIF4_REV03)
 #define USABLE_TIMER_CHANNEL_COUNT  7
 #define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) )
 #else

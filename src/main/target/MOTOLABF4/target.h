@@ -23,7 +23,7 @@
 #define USE_TARGET_CONFIG
 #undef USE_MSP_DISPLAYPORT
 
-#ifdef MLTEMPF4
+#ifdef EF_VARIANT_MLTEMPF4
 #define TARGET_BOARD_IDENTIFIER "MLTE"
 #else
 #define TARGET_BOARD_IDENTIFIER "MLTY"
@@ -94,7 +94,7 @@
 #define UART5_RX_PIN            PD2
 #define UART5_TX_PIN            PC12    // not connected
 
-#ifdef MLTEMPF4
+#ifdef EF_VARIANT_MLTEMPF4
 #define USE_UART6
 #define UART6_RX_PIN            PC7
 #define UART6_TX_PIN            PC6

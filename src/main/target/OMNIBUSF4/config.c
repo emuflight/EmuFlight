@@ -32,7 +32,7 @@
 #include "pg/max7456.h"
 #include "pg/pg.h"
 
-#ifdef SYNERGYF4
+#ifdef EF_VARIANT_SYNERGYF4
 #include "io/vtx.h"
 #include "io/ledstrip.h"
 
@@ -57,7 +57,7 @@ static targetSerialPortFunction_t targetSerialPortFunction[] = {
 };
 #endif
 
-#ifdef EXUAVF4PRO
+#ifdef EF_VARIANT_EXUAVF4PRO
 static targetSerialPortFunction_t targetSerialPortFunction[] = {
     { SERIAL_PORT_USART1, FUNCTION_TELEMETRY_SMARTPORT },
     { SERIAL_PORT_USART3, FUNCTION_VTX_TRAMP },
@@ -71,10 +71,10 @@ void targetConfiguration(void) {
     // OMNIBUS F4 AIO (1st gen) has a AB7456 chip that is detected as MAX7456
     max7456ConfigMutable()->clockConfig = MAX7456_CLOCK_CONFIG_FULL;
 #endif
-#ifdef EXUAVF4PRO
+#ifdef EF_VARIANT_EXUAVF4PRO
     targetSerialPortFunctionConfig(targetSerialPortFunction, ARRAYLEN(targetSerialPortFunction));
 #endif
-#ifdef SYNERGYF4
+#ifdef EF_VARIANT_SYNERGYF4
     pinioBoxConfigMutable()->permanentId[0] = 39;
     vtxSettingsConfigMutable()->pitModeFreq = 0;
     ledStripConfigMutable()->ledConfigs[0] = DEFINE_LED(0, 0, 0, 0, LF(COLOR), LO(VTX), 0);

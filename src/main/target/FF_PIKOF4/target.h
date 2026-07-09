@@ -19,7 +19,7 @@
  */
 
 #pragma once
-#if defined(FF_PIKOF4OSD)
+#if defined(EF_VARIANT_FF_PIKOF4OSD)
 #define TARGET_BOARD_IDENTIFIER "PKOS"
 #define USBD_PRODUCT_STRING     "PikoF4OSD"
 #else
@@ -28,7 +28,7 @@
 #endif
 #define USE_TARGET_CONFIG
 /*--------------LED----------------*/
-#if defined(FF_PIKOF4OSD)
+#if defined(EF_VARIANT_FF_PIKOF4OSD)
 #define LED0_PIN                PB5
 #define LED1_PIN                PB4
 #else
@@ -55,7 +55,7 @@
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
-#if defined(FF_PIKOF4OSD)
+#if defined(EF_VARIANT_FF_PIKOF4OSD)
 #define MPU6000_CS_PIN          PA15
 #define MPU6000_SPI_BUS    SPIDEV_3
 
@@ -84,7 +84,7 @@
 #define ACC_MPU6500_ALIGN       CW180_DEG
 /*---------------------------------*/
 
-#if defined(FF_PIKOF4OSD)
+#if defined(EF_VARIANT_FF_PIKOF4OSD)
 /*-------------OSD-----------------*/
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI1
@@ -115,7 +115,7 @@
 #define USE_UART3
 #define UART3_RX_PIN            PB11
 #define UART3_TX_PIN            PB10
-#if defined(FF_PIKOF4OSD)
+#if defined(EF_VARIANT_FF_PIKOF4OSD)
 #define INVERTER_PIN_UART3      PC3
 #else
 #define INVERTER_PIN_UART3      PC8
@@ -144,7 +144,7 @@
 #define SPI1_MOSI_PIN           PA7
 
 #define USE_SPI_DEVICE_3
-#if defined(FF_PIKOF4OSD)
+#if defined(EF_VARIANT_FF_PIKOF4OSD)
 #define SPI3_NSS_PIN            PA15
 #else
 #define SPI3_NSS_PIN            PB3
@@ -158,7 +158,7 @@
 #define USE_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define VBAT_ADC_PIN                    PC2
-#if defined(FF_PIKOF4OSD)
+#if defined(EF_VARIANT_FF_PIKOF4OSD)
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN           PC1
 #define DEFAULT_CURRENT_METER_SCALE     250
@@ -172,7 +172,7 @@
 
 /*--------DEFAULT VALUES-----------*/
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
-#if defined(FF_PIKOF4OSD)
+#if defined(EF_VARIANT_FF_PIKOF4OSD)
 #define DEFAULT_FEATURES        ( FEATURE_TELEMETRY | FEATURE_OSD )
 #endif
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
@@ -185,7 +185,7 @@
 /*---------------------------------*/
 
 /*--------------TIMERS-------------*/
-#if defined(FF_PIKOF4OSD)
+#if defined(EF_VARIANT_FF_PIKOF4OSD)
 #define USABLE_TIMER_CHANNEL_COUNT  7
 #define USED_TIMERS             ( TIM_N(1) | TIM_N(3) | TIM_N(5) | TIM_N(8) )
 #else

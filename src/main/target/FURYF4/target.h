@@ -20,7 +20,7 @@
 
 #pragma once
 
-#ifdef FURYF4OSD
+#ifdef EF_VARIANT_FURYF4OSD
 #define TARGET_BOARD_IDENTIFIER "FY4O"
 #define USBD_PRODUCT_STRING     "FuryF4OSD"
 #else
@@ -80,7 +80,7 @@
 #define USE_BARO_MS5611
 #define MS5611_I2C_INSTANCE     I2CDEV_1
 
-#ifdef FURYF4OSD
+#ifdef EF_VARIANT_FURYF4OSD
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      PB12

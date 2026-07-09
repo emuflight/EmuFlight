@@ -20,7 +20,7 @@
 
 #pragma once
 
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 
 #define TARGET_BOARD_IDENTIFIER "PIRX"
 #define USBD_PRODUCT_STRING     "Pirx F4"
@@ -33,7 +33,7 @@
 #endif
 
 //LEDs
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 #define LED0_PIN                PC13
 #define LED1_PIN                PC14
 #else
@@ -44,14 +44,14 @@
 #define ENABLE_DSHOT_DMAR       true
 
 //define camera control
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 #define USE_CAMERA_CONTROL
 #define CAMERA_CONTROL_PIN PA4
 #endif
 
 //BEEPER
 #define USE_BEEPER
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 #define BEEPER_PIN              PA15
 #else
 #define BEEPER_PIN              PB14
@@ -60,7 +60,7 @@
 
 // MPU6500 interrupt
 #define USE_EXTI
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 #define MPU_INT_EXTI            PC5
 #else
 #define MPU_INT_EXTI            PC4
@@ -68,7 +68,7 @@
 #define USE_MPU_DATA_READY_SIGNAL
 //#define DEBUG_MPU_DATA_READY_INTERRUPT
 
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 #define MPU6500_CS_PIN          PC4
 #else
 #define MPU6500_CS_PIN          PA4
@@ -79,7 +79,7 @@
 #define USE_ACC
 #define USE_ACC_MPU6500
 #define USE_ACC_SPI_MPU6500
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 #define ACC_MPU6500_ALIGN       CW0_DEG
 #else
 #define ACC_MPU6500_ALIGN       CW180_DEG_FLIP
@@ -90,7 +90,7 @@
 #define USE_GYRO
 #define USE_GYRO_MPU6500
 #define USE_GYRO_SPI_MPU6500
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 #define GYRO_MPU6500_ALIGN      CW0_DEG
 #else
 #define GYRO_MPU6500_ALIGN      CW180_DEG_FLIP
@@ -98,7 +98,7 @@
 // GYRO section -- end
 
 //BARO
-#if !defined(PIRXF4)
+#if !defined(EF_VARIANT_PIRXF4)
 #define USE_BARO
 #define USE_BARO_SPI_LPS
 #define LPS_SPI_INSTANCE SPI3
@@ -106,7 +106,7 @@
 #endif
 
 //UARTs
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 #define INVERTER_PIN_UART6      PA8
 #define INVERTER_PIN_UART3      PB1
 #else
@@ -122,7 +122,7 @@
 #define UART1_RX_PIN            PB7
 #define UART1_TX_PIN            PB6
 
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 #define USE_UART2
 #define UART2_RX_PIN            PA3
 #define UART2_TX_PIN            PA2
@@ -140,7 +140,7 @@
 #define UART6_RX_PIN            PC7
 #define UART6_TX_PIN            PC6
 
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 #define SERIAL_PORT_COUNT       6 //VCP, USART1, USART2, USART3, USART4, USART6
 #else
 #define SERIAL_PORT_COUNT       5 //VCP, USART1, USART3, USART4, USART6
@@ -154,7 +154,7 @@
 
 #define USE_SPI_DEVICE_1
 
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 #define USE_SPI_DEVICE_2
 #else
 #define USE_SPI_DEVICE_3
@@ -165,7 +165,7 @@
 
 //OSD
 #define USE_MAX7456
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      PB12
 #else
@@ -179,7 +179,7 @@
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define BOARD_HAS_VOLTAGE_DIVIDER
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 #define VBAT_ADC_PIN            PC2
 #define RSSI_ADC_PIN            PC1
 #define CURRENT_METER_ADC_PIN   PC3
@@ -198,7 +198,7 @@
 #define USE_SDCARD_SDIO
 #define SDIO_DMA          DMA2_Stream3
 #define SDCARD_SPI_CS_PIN NONE //This is not used on SDIO, has to be kept for now to keep compiler happy
-#if defined(PIRXF4)
+#if defined(EF_VARIANT_PIRXF4)
 #define SDCARD_DETECT_PIN PC15
 #else
 #define SDCARD_DETECT_PIN PB15

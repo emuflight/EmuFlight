@@ -27,7 +27,7 @@
 // (Not a valid target, .mk file must be supplied by a user)
 // OMNIBUSF4V6
 
-#if defined(OMNIBUSF4V6)
+#if defined(EF_VARIANT_OMNIBUSF4V6)
 #define TARGET_BOARD_IDENTIFIER "OBV6"
 #elif defined(OMNIBUSF4FW1)
 #define TARGET_BOARD_IDENTIFIER "OFW1"
@@ -37,7 +37,7 @@
 
 #if defined(OMNIBUSF4FW1)
 #define USBD_PRODUCT_STRING "OmnibusF4 FWProto1"
-#elif defined(OMNIBUSF4V6)
+#elif defined(EF_VARIANT_OMNIBUSF4V6)
 #define USBD_PRODUCT_STRING "OmnibusF4 V6"
 #else
 #define USBD_PRODUCT_STRING "OmnibusF4 Fireworks"
@@ -63,7 +63,7 @@
 
 #define USE_DUAL_GYRO
 
-#if defined(OMNIBUSF4V6)
+#if defined(EF_VARIANT_OMNIBUSF4V6)
 #define GYRO_1_CS_PIN           PA4   // Onboard IMU
 #define GYRO_1_SPI_BUS     SPIDEV_1
 #define GYRO_2_CS_PIN           PC14  // External IMU
@@ -78,7 +78,7 @@
 #define GYRO_1_ALIGN            CW180_DEG
 #define ACC_1_ALIGN             CW180_DEG
 
-#if defined(OMNIBUSF4V6)
+#if defined(EF_VARIANT_OMNIBUSF4V6)
 #define GYRO_2_ALIGN            CW0_DEG
 #define ACC_2_ALIGN             CW0_DEG
 #else
@@ -170,7 +170,7 @@
 #define SPI3_MOSI_PIN           PC12
 
 #define USE_I2C
-#if defined(OMNIBUSF4V6)
+#if defined(EF_VARIANT_OMNIBUSF4V6)
 #define USE_I2C_DEVICE_1
 #define I2C1_SCL                PB8 // SCL PIN,alt MST8
 #define I2C1_SDA                PB9 // SDA PIN,alt MST7
@@ -182,7 +182,7 @@
 #define I2C_DEVICE              (I2CDEV_2)
 #endif
 
-#if defined(OMNIBUSF4V6)
+#if defined(EF_VARIANT_OMNIBUSF4V6)
 #define CAMERA_CONTROL_PIN      PB7
 #else
 #define CAMERA_CONTROL_PIN      PB9
@@ -195,7 +195,7 @@
 #define RSSI_ADC_PIN            PA0  // Direct from RSSI pad
 
 // Allegro Systems ACS781KLRTR-150U-T
-#if !defined(OMNIBUSF4V6)
+#if !defined(EF_VARIANT_OMNIBUSF4V6)
 #define DEFAULT_CURRENT_METER_SCALE  176
 #define CURRENT_METER_OFFSET_DEFAULT -18500
 #endif

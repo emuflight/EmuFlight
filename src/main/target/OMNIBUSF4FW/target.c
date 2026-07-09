@@ -42,7 +42,7 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM4,  CH1, PB6,  TIM_USE_LED,   0, 0), // D(1,0)
     DEF_TIM(TIM10, CH1, PB8,  TIM_USE_PPM,   0, 0), // PPM
 
-#if defined(OMNIBUSF4V6)
+#if defined(EF_VARIANT_OMNIBUSF4V6)
     DEF_TIM(TIM11, CH1, PB7,  TIM_USE_ANY,   0, 0), // CAM_CTL,timer collision with I2C1_SDA
 #else
     DEF_TIM(TIM11, CH1, PB9,  TIM_USE_ANY,   0, 0), // CAM_CTL

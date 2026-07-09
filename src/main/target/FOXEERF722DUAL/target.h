@@ -21,7 +21,7 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER "FXF7"
-#if defined (FOXEERF722V2)
+#if defined (EF_VARIANT_FOXEERF722V2)
 #define USBD_PRODUCT_STRING  "FOXEERF722V2"
 
 #define USE_GYRO

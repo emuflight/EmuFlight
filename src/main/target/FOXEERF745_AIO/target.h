@@ -23,7 +23,7 @@
  #define TARGET_BOARD_IDENTIFIER "FOXE"
  #define TARGET_MANUFACTURER_IDENTIFIER "FOXE"
 
- #if defined(FOXEERF745_AIO_V2)
+ #if defined(EF_VARIANT_FOXEERF745_AIO_V2)
  #define USBD_PRODUCT_STRING "FOXEERF745_AIO_V2"
  #else
  #define USBD_PRODUCT_STRING "FOXEERF745_AIO"
@@ -61,7 +61,7 @@
  //#define MAG_HMC5883_ALIGN CW270_DEG_FLIP
  //#define MAG_ALIGN CW180_DEG  //not sure if this command will work or if should be more specific to mag
 
- #if defined(FOXEERF745_AIO_V2)
+ #if defined(EF_VARIANT_FOXEERF745_AIO_V2)
  //BMI270
  #define USE_SPI_GYRO
  #define USE_ACCGYRO_BMI270

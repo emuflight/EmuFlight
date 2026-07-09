@@ -25,11 +25,11 @@
 #define TARGET_BOARD_IDENTIFIER         "S411"         // generic ID
 #define FC_TARGET_MCU                   STM32F411      // not used in EmuF
 
-#if defined(BEEBRAIN_PRO_DSM_US)
+#if defined(EF_VARIANT_BEEBRAIN_PRO_DSM_US)
 #define BOARD_NAME                      BEEBRAIN_PRO_DSM_US
-#elif defined(BEEBRAIN_PRO_DSM_INTL)
+#elif defined(EF_VARIANT_BEEBRAIN_PRO_DSM_INTL)
 #define BOARD_NAME                      BEEBRAIN_PRO_DSM_INTL
-#elif defined(BEEBRAIN_PRO_FRSKY_US)
+#elif defined(EF_VARIANT_BEEBRAIN_PRO_FRSKY_US)
 #define BOARD_NAME                      BEEBRAIN_PRO_FRSKY_US
 #else
 #define BOARD_NAME                      BEEBRAINPRO
@@ -85,7 +85,7 @@
 #define GYRO_MPU6000_ALIGN              CW90_DEG
 #define ACC_MPU6000_ALIGN               CW90_DEG
 
-#if (defined(BEEBRAIN_PRO_DSM_US) || defined(BEEBRAIN_PRO_DSM_INTL))
+#if (defined(EF_VARIANT_BEEBRAIN_PRO_DSM_US) || defined(EF_VARIANT_BEEBRAIN_PRO_DSM_INTL))
 #define USE_ACCGYRO_BMI160
 #define BMI160_SPI_DIVISOR              16
 #define BMI160_INT_EXTI                 PB0
@@ -95,7 +95,7 @@
 #endif
 
 // *************** RX ******************************
-#if (defined(BEEBRAIN_PRO_DSM_US) || defined(BEEBRAIN_PRO_DSM_INTL))
+#if (defined(EF_VARIANT_BEEBRAIN_PRO_DSM_US) || defined(EF_VARIANT_BEEBRAIN_PRO_DSM_INTL))
 #define SERIALRX_PROVIDER           SERIALRX_SPEKTRUM2048
 #undef  USE_SPEKTRUM_REAL_RSSI
 #undef  USE_SPEKTRUM_FAKE_RSSI
@@ -144,7 +144,7 @@
 #define RTC6705_POWER_PIN               PA6
 #define RTC6705_POWER_PIN_HIGH_ENABLE
 #define USE_RTC6705_PITMODE_CTRL
-#if (defined(BEEBRAIN_PRO_DSM_US) || defined(BEEBRAIN_PRO_FRSKY_US) || defined(BEEBRAIN_PRO))
+#if (defined(EF_VARIANT_BEEBRAIN_PRO_DSM_US) || defined(EF_VARIANT_BEEBRAIN_PRO_FRSKY_US) || defined(EF_VARIANT_BEEBRAIN_PRO))
 #define USE_VTX_LOCK_FREQ
 #endif
 

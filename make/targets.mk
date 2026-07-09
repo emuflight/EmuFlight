@@ -120,7 +120,7 @@ $(error Unknown target MCU specified.)
 endif
 
 ifneq ($(BASE_TARGET), $(TARGET))
-TARGET_FLAGS  	:= $(TARGET_FLAGS) -D$(BASE_TARGET)
+TARGET_FLAGS  	:= $(TARGET_FLAGS) -DEF_VARIANT_$(BASE_TARGET)
 endif
 
 TARGET_FLAGS  	:= $(TARGET_FLAGS) -D$(TARGET_MCU)

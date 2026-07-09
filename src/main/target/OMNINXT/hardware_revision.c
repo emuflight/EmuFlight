@@ -63,17 +63,17 @@ typedef struct idDetect_s {
 #define IDDET_ERROR 12
 
 static idDetect_t idDetectTable[] = {
-#ifdef OMNINXT7
+#ifdef EF_VARIANT_OMNINXT7
     { IDDET_RATIO(10000, 10000), 1 },
 #endif
-#ifdef OMNINXT4
+#ifdef EF_VARIANT_OMNINXT4
     { IDDET_RATIO(10000, 10000), 1 },
 #endif
 };
 
 ioTag_t idDetectTag;
 
-#if defined(OMNINXT4)
+#if defined(EF_VARIANT_OMNINXT4)
 
 #define VREFINT_CAL_ADDR  0x1FFF7A2A
 
@@ -134,7 +134,7 @@ static uint16_t adcIDDetectReadVrefint(void) {
 }
 #endif
 
-#if defined(OMNINXT7)
+#if defined(EF_VARIANT_OMNINXT7)
 #define VREFINT_CAL_ADDR  0x1FF07A2A
 
 #include "drivers/adc_impl.h"

@@ -29,7 +29,7 @@
 
 #pragma once
 
-#if defined(CRAZYFLIE2BQ)
+#if defined(EF_VARIANT_CRAZYFLIE2BQ)
 #define TARGET_BOARD_IDENTIFIER "CFBQ"
 #define USBD_PRODUCT_STRING     "Crazyflie 2.0 (BigQuad Deck)"
 #else
@@ -39,7 +39,7 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 14
 
-#if defined(CRAZYFLIE2BQ)
+#if defined(EF_VARIANT_CRAZYFLIE2BQ)
 #define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(14) )
 #else
 #define USED_TIMERS             ( TIM_N(2) | TIM_N(4) )
@@ -58,7 +58,7 @@
 
 #define USE_VCP
 
-#if defined(CRAZYFLIE2BQ)
+#if defined(EF_VARIANT_CRAZYFLIE2BQ)
 #define USE_UART1
 #define UART1_TX_PIN            PB6
 #define UART1_RX_PIN            PB7
@@ -72,7 +72,7 @@
 #define UART6_TX_PIN            PC6
 #define UART6_RX_PIN            PC7
 
-#if defined(CRAZYFLIE2BQ)
+#if defined(EF_VARIANT_CRAZYFLIE2BQ)
 #define SERIAL_PORT_COUNT       4
 #else
 #define SERIAL_PORT_COUNT       2
@@ -107,13 +107,13 @@
 #define SERIALRX_PROVIDER       SERIALRX_TARGET_CUSTOM
 #define RX_CHANNELS_TAER
 
-#if defined(CRAZYFLIE2BQ)
+#if defined(EF_VARIANT_CRAZYFLIE2BQ)
 #define DEFAULT_RX_FEATURE      FEATURE_RX_PPM
 #else
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #endif
 
-#if defined(CRAZYFLIE2BQ)
+#if defined(EF_VARIANT_CRAZYFLIE2BQ)
 
 #define USE_BEEPER
 #define BEEPER_PIN              PC12

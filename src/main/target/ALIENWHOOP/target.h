@@ -41,7 +41,7 @@
 
 #define TARGET_MANUFACTURER_IDENTIFIER  "ALWH"
 
-#if defined(ALIENWHOOPF4)
+#if defined(EF_VARIANT_ALIENWHOOPF4)
 #define USBD_PRODUCT_STRING             "ALIENWHOOPF4"
 #define FC_TARGET_MCU                   STM32F405     // not used in EmuF
 #define TARGET_BOARD_IDENTIFIER         "S405"        // generic ID
@@ -72,7 +72,7 @@
 #define USE_SPI_DEVICE_1 // SPI1 can communicate at up to 42 Mbits/s on F4
 #define USE_SPI_DEVICE_2 // SPI2 and SPI3 can communicate at up to 21 Mbit/s on F4
 #define USE_SPI_DEVICE_3 // All SPIs can be served by the DMA controller.
-#if defined(ALIENWHOOPF7)
+#if defined(EF_VARIANT_ALIENWHOOPF7)
 //TODO:
 //#define USE_SPI_DEVICE_4
 //#define USE_SPI_DEVICE_5
@@ -96,7 +96,7 @@
 #define SPI3_MISO_PIN           PB4  // LQFP64 pin 56 (PB4)
 #define SPI3_MOSI_PIN           PB5  // LQFP64 pin 57 (PB5)
 
-#if defined(ALIENWHOOPF7)
+#if defined(EF_VARIANT_ALIENWHOOPF7)
 //TODO: define SPI4 and SPI5 for F7 target
 //#define SPI4_NSS_PIN
 //#define SPI4_SCK_PIN
@@ -235,7 +235,7 @@
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
 #define TARGET_IO_PORTC         0xffff
-#if defined(ALIENWHOOPF4)
+#if defined(EF_VARIANT_ALIENWHOOPF4)
 // STM32F405RGT
 #define TARGET_IO_PORTD         (BIT(2))
 #else

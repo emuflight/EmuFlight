@@ -22,17 +22,17 @@
 
 #define USE_TARGET_CONFIG
 
-#if defined(OMNIBUSF4SD)
+#if defined(EF_VARIANT_OMNIBUSF4SD)
 #define TARGET_BOARD_IDENTIFIER "OBSD"
-#elif defined(LUXF4OSD)
+#elif defined(EF_VARIANT_LUXF4OSD)
 #define TARGET_BOARD_IDENTIFIER "LUX4"
-#elif defined(DYSF4PRO)
+#elif defined(EF_VARIANT_DYSF4PRO)
 #define TARGET_BOARD_IDENTIFIER "DYS4"
-#elif defined(XRACERF4)
+#elif defined(EF_VARIANT_XRACERF4)
 #define TARGET_BOARD_IDENTIFIER "XRF4"
-#elif defined(EXUAVF4PRO)
+#elif defined(EF_VARIANT_EXUAVF4PRO)
 #define TARGET_BOARD_IDENTIFIER "EXF4"
-#elif defined(SYNERGYF4)
+#elif defined(EF_VARIANT_SYNERGYF4)
 #define TARGET_BOARD_IDENTIFIER "SYN4"
 #define TARGET_MANUFACTURER_IDENTIFIER "KLEE"
 #else
@@ -42,15 +42,15 @@
 #define OMNIBUSF4BASE // For config.c
 #endif
 
-#if defined(LUXF4OSD)
+#if defined(EF_VARIANT_LUXF4OSD)
 #define USBD_PRODUCT_STRING "LuxF4osd"
-#elif defined(DYSF4PRO)
+#elif defined(EF_VARIANT_DYSF4PRO)
 #define USBD_PRODUCT_STRING "DysF4Pro"
-#elif defined(XRACERF4)
+#elif defined(EF_VARIANT_XRACERF4)
 #define USBD_PRODUCT_STRING "XRACERF4"
-#elif defined(EXUAVF4PRO)
+#elif defined(EF_VARIANT_EXUAVF4PRO)
 #define USBD_PRODUCT_STRING "ExuavF4Pro"
-#elif defined(SYNERGYF4)
+#elif defined(EF_VARIANT_SYNERGYF4)
 #define USBD_PRODUCT_STRING "SynergyF4"
 #else
 #define USBD_PRODUCT_STRING "OmnibusF4"
@@ -61,16 +61,16 @@
 #define BEEPER_PIN              PB4
 #define BEEPER_INVERTED
 
-#if defined(OMNIBUSF4SD) || defined(DYSF4PRO)
+#if defined(EF_VARIANT_OMNIBUSF4SD) || defined(EF_VARIANT_DYSF4PRO)
 #define ENABLE_DSHOT_DMAR       true
 #endif
 
-#ifdef OMNIBUSF4SD
+#ifdef EF_VARIANT_OMNIBUSF4SD
 // These inverter control pins collide with timer channels on CH5 and CH6 pads.
 // Users of these timers/pads must un-map the inverter assignment explicitly.
 #define INVERTER_PIN_UART6      PC8 // Omnibus F4 V3 and later
 #define INVERTER_PIN_UART3      PC9 // Omnibus F4 Pro Corners
-#elif defined(EXUAVF4PRO)
+#elif defined(EF_VARIANT_EXUAVF4PRO)
 #define INVERTER_PIN_UART6      PC8
 #else
 #define INVERTER_PIN_UART1      PC0 // DYS F4 Pro; Omnibus F4 AIO (1st gen) have a FIXED inverter on UART1
@@ -90,13 +90,13 @@
 #define MPU_INT_EXTI            PC4
 #define USE_MPU_DATA_READY_SIGNAL
 
-#if defined(OMNIBUSF4SD)
+#if defined(EF_VARIANT_OMNIBUSF4SD)
 #define GYRO_MPU6000_ALIGN       CW270_DEG
 #define ACC_MPU6000_ALIGN        CW270_DEG
-#elif defined(XRACERF4) || defined(EXUAVF4PRO)
+#elif defined(EF_VARIANT_XRACERF4) || defined(EF_VARIANT_EXUAVF4PRO)
 #define GYRO_MPU6000_ALIGN       CW90_DEG
 #define ACC_MPU6000_ALIGN        CW90_DEG
-#elif defined(SYNERGYF4)
+#elif defined(EF_VARIANT_SYNERGYF4)
 #define GYRO_MPU6000_ALIGN       CW0_DEG_FLIP
 #define ACC_MPU6000_ALIGN        CW0_DEG_FLIP
 #else
@@ -107,7 +107,7 @@
 // Support for iFlight OMNIBUS F4 V3
 // Has ICM20608 instead of MPU6000
 // OMNIBUSF4SD is linked with both MPU6000 and MPU6500 drivers
-#if defined (OMNIBUSF4SD) || defined(OMNIBUSF4BASE)
+#if defined (EF_VARIANT_OMNIBUSF4SD) || defined(OMNIBUSF4BASE)
 #define USE_ACC_SPI_MPU6500
 #define USE_GYRO_SPI_MPU6500
 #define MPU6500_CS_PIN          MPU6000_CS_PIN
@@ -116,16 +116,16 @@
 #define ACC_MPU6500_ALIGN       ACC_MPU6000_ALIGN
 #endif
 
-#if !defined(SYNERGYF4) //No mag sensor on SYNERGYF4
+#if !defined(EF_VARIANT_SYNERGYF4) //No mag sensor on EF_VARIANT_SYNERGYF4
 #define USE_MAG
 #define USE_MAG_HMC5883
 #define USE_MAG_QMC5883
 #define MAG_HMC5883_ALIGN       CW90_DEG
 #endif
 
-#if !defined(SYNERGYF4) //No baro sensor on SYNERGYF4
+#if !defined(EF_VARIANT_SYNERGYF4) //No baro sensor on EF_VARIANT_SYNERGYF4
 #define USE_BARO
-#if defined(OMNIBUSF4SD)
+#if defined(EF_VARIANT_OMNIBUSF4SD)
 #define USE_BARO_SPI_BMP280
 #define BMP280_SPI_INSTANCE     SPI3
 #define BMP280_CS_PIN           PB3 // v1
@@ -135,7 +135,7 @@
 #define USE_BARO_MS5611
 #define BARO_I2C_INSTANCE       (I2CDEV_2)
 
-#if defined(OMNIBUSF4SD)
+#if defined(EF_VARIANT_OMNIBUSF4SD)
 #define DEFAULT_BARO_SPI_BMP280
 #else
 #define DEFAULT_BARO_BMP280
@@ -153,7 +153,7 @@
 #define USE_FLASH_M25P16
 #define USE_FLASH_W25M512
 
-#if defined(OMNIBUSF4SD)
+#if defined(EF_VARIANT_OMNIBUSF4SD)
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 #define USE_SDCARD
 #define SDCARD_DETECT_INVERTED
@@ -172,7 +172,7 @@
 #define FLASH_CS_PIN            SDCARD_SPI_CS_PIN
 #define FLASH_SPI_INSTANCE      SDCARD_SPI_INSTANCE
 
-#elif defined(LUXF4OSD)
+#elif defined(EF_VARIANT_LUXF4OSD)
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define FLASH_CS_PIN            PB12
 #define FLASH_SPI_INSTANCE      SPI2
@@ -199,7 +199,7 @@
 #define UART3_RX_PIN            PB11
 #define UART3_TX_PIN            PB10
 
-#if defined(EXUAVF4PRO)
+#if defined(EF_VARIANT_EXUAVF4PRO)
 #define USE_UART4
 #define UART4_RX_PIN            PA1
 #define UART4_TX_PIN            PA0
@@ -212,14 +212,14 @@
 #define USE_SOFTSERIAL1
 #define USE_SOFTSERIAL2
 
-#if defined(EXUAVF4PRO)
+#if defined(EF_VARIANT_EXUAVF4PRO)
 #define SERIAL_PORT_COUNT       7 // VCP, USART1, USART3, USART4, USART6, SOFTSERIAL x 2
 #else
 #define SERIAL_PORT_COUNT       6 // VCP, USART1, USART3, USART6, SOFTSERIAL x 2
 #endif
 
 #define USE_ESCSERIAL
-#if defined(OMNIBUSF4SD)
+#if defined(EF_VARIANT_OMNIBUSF4SD)
 #define ESCSERIAL_TIMER_TX_PIN  PB8  // (Hardware=0)
 #else
 #define ESCSERIAL_TIMER_TX_PIN  PB14 // (Hardware=0)
@@ -228,7 +228,7 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 
-#if defined(OMNIBUSF4SD) || defined(LUXF4OSD)
+#if defined(EF_VARIANT_OMNIBUSF4SD) || defined(EF_VARIANT_LUXF4OSD)
 #define USE_SPI_DEVICE_2
 #define SPI2_NSS_PIN            PB12
 #define SPI2_SCK_PIN            PB13
@@ -237,7 +237,7 @@
 #endif
 
 #define USE_SPI_DEVICE_3
-#if defined(OMNIBUSF4SD)
+#if defined(EF_VARIANT_OMNIBUSF4SD)
 #define SPI3_NSS_PIN          PA15
 #else
 #define SPI3_NSS_PIN          PB3
@@ -250,7 +250,7 @@
 #define USE_I2C_DEVICE_2
 #define I2C2_SCL                NONE // PB10, shared with UART3TX
 #define I2C2_SDA                NONE // PB11, shared with UART3RX
-#if defined(OMNIBUSF4BASE) || defined(OMNIBUSF4SD)
+#if defined(OMNIBUSF4BASE) || defined(EF_VARIANT_OMNIBUSF4SD)
 #define USE_I2C_DEVICE_3
 #define I2C3_SCL                NONE // PA8, PWM6
 #define I2C3_SDA                NONE // PC9, CH6
@@ -263,7 +263,7 @@
 
 #define CURRENT_METER_ADC_PIN   PC1  // Direct from CRNT pad (part of onboard sensor for Pro)
 #define VBAT_ADC_PIN            PC2  // 11:1 (10K + 1K) divider
-#ifdef DYSF4PRO
+#ifdef EF_VARIANT_DYSF4PRO
 #define RSSI_ADC_PIN            PC3  // Direct from RSSI pad
 #else
 #define RSSI_ADC_PIN            PA0  // Direct from RSSI pad
@@ -277,7 +277,7 @@
 #define RANGEFINDER_HCSR04_ECHO_PIN        PA8
 #define USE_RANGEFINDER_TF
 
-#if defined(SYNERGYF4)
+#if defined(EF_VARIANT_SYNERGYF4)
 #define DEFAULT_FEATURES        (FEATURE_LED_STRIP | FEATURE_OSD | FEATURE_AIRMODE)
 #else
 #define DEFAULT_FEATURES        (FEATURE_OSD)
@@ -291,7 +291,7 @@
 #define TARGET_IO_PORTC (0xffff & ~(BIT(15)|BIT(14)|BIT(13)))
 #define TARGET_IO_PORTD BIT(2)
 
-#if defined(OMNIBUSF4SD) || defined(EXUAVF4PRO)
+#if defined(EF_VARIANT_OMNIBUSF4SD) || defined(EF_VARIANT_EXUAVF4PRO)
 #define USABLE_TIMER_CHANNEL_COUNT 15
 #define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(10) | TIM_N(12) | TIM_N(8) | TIM_N(9))
 #else
@@ -299,7 +299,7 @@
 #define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(12) | TIM_N(8) | TIM_N(9))
 #endif
 
-#if defined(SYNERGYF4)
+#if defined(EF_VARIANT_SYNERGYF4)
 #define USE_PINIO
 #define PINIO1_PIN              PB15 // VTX power switcher
 #define USE_PINIOBOX

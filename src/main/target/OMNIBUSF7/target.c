@@ -29,7 +29,7 @@
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
 
-#ifdef FPVM_BETAFLIGHTF7
+#ifdef EF_VARIANT_FPVM_BETAFLIGHTF7
     DEF_TIM(TIM8, CH3, PC8, TIM_USE_ANY,   0, 0), // USED FOR CAMERA CONTROL
 #endif
     DEF_TIM(TIM1, CH3, PE13, TIM_USE_NONE,  0, 1 ), // RC1 / PPM, unusable

@@ -63,7 +63,7 @@
 
 #define BRUSHED_MOTORS_PWM_RATE 25000           // 25kHz
 
-#if defined(BEEBRAIN_LITED)
+#if defined(EF_VARIANT_BEEBRAIN_LITED)
 #define BB_LITE_RSSI_CH_IDX     9
 #endif
 
@@ -128,7 +128,7 @@ void targetConfiguration(void) {
     ledStripConfigMutable()->ledConfigs[1] = DEFINE_LED(8, 7, 13, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
     ledStripConfigMutable()->ledConfigs[2] = DEFINE_LED(9, 7, 11, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
     strcpy(pilotConfigMutable()->name, "BeeBrain Lite");
-#if defined(BEEBRAIN_LITED)
+#if defined(EF_VARIANT_BEEBRAIN_LITED)
     // DSM version
     rxConfigMutable()->rssi_channel = BB_LITE_RSSI_CH_IDX;
     rxFailsafeChannelConfig_t *channelFailsafeConfig = rxFailsafeChannelConfigsMutable(BB_LITE_RSSI_CH_IDX - 1);

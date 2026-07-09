@@ -53,7 +53,7 @@
 void targetConfiguration(void) {
     pinioConfigMutable()->config[1] = PINIO_CONFIG_OUT_INVERTED | PINIO_CONFIG_MODE_OUT_PP;
     pinioBoxConfigMutable()->permanentId[0] = 40;
-#if defined (TRANSTECF411HD)
+#if defined (EF_VARIANT_TRANSTECF411HD)
     boardAlignmentMutable()->rollDegrees = 180;
 #endif
 }

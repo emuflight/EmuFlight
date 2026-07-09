@@ -21,7 +21,7 @@
 #pragma once
 
 
-#if defined(REVOLTOSD)
+#if defined(EF_VARIANT_REVOLTOSD)
 #define TARGET_BOARD_IDENTIFIER "ROSD"
 #define USBD_PRODUCT_STRING     "RevoltOSD"
 #else
@@ -105,7 +105,7 @@
 /*----------Flash Config--------*/
 #define FLASH_CS_PIN            PB3
 
-#if defined(REVOLTOSD)
+#if defined(EF_VARIANT_REVOLTOSD)
 #define FLASH_SPI_INSTANCE      SPI2
 #else
 #define FLASH_SPI_INSTANCE      SPI3
@@ -115,7 +115,7 @@
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
 
-#if defined(REVOLTOSD)
+#if defined(EF_VARIANT_REVOLTOSD)
 /*----------OSD Config--------*/
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2

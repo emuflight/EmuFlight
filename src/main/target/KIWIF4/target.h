@@ -20,11 +20,11 @@
 
 #pragma once
 
-#if defined(PLUMF4)
+#if defined(EF_VARIANT_PLUMF4)
 #define TARGET_BOARD_IDENTIFIER "PLUM"
 #define USBD_PRODUCT_STRING     "PLUMF4"
 
-#elif defined(KIWIF4V2)
+#elif defined(EF_VARIANT_KIWIF4V2)
 #define TARGET_BOARD_IDENTIFIER "KIW2"
 #define USBD_PRODUCT_STRING     "KIWIF4V2"
 
@@ -34,7 +34,7 @@
 
 #endif
 
-#if defined(PLUMF4) || defined(KIWIF4V2)
+#if defined(EF_VARIANT_PLUMF4) || defined(EF_VARIANT_KIWIF4V2)
 #define LED0_PIN                PB4
 
 #else
@@ -66,11 +66,11 @@
 #define USE_ACC_SPI_MPU6000
 #define ACC_MPU6000_ALIGN       CW180_DEG
 
-#if defined(KIWIF4) || defined(KIWIF4V2)
+#if defined(EF_VARIANT_KIWIF4) || defined(EF_VARIANT_KIWIF4V2)
 #define USE_MAX7456
 #endif
 
-#if defined(KIWIF4V2)
+#if defined(EF_VARIANT_KIWIF4V2)
 #define MAX7456_SPI_INSTANCE                SPI3
 #define MAX7456_SPI_CS_PIN                  PA15
 
@@ -82,7 +82,7 @@
 //#define MAX7456_DMA_IRQ_HANDLER_ID          DMA1_ST0_HANDLER
 #endif
 
-#if defined(KIWIF4V2)
+#if defined(EF_VARIANT_KIWIF4V2)
 #define USE_SDCARD
 
 
@@ -138,7 +138,7 @@
 
 #define USE_SPI_DEVICE_1
 
-#ifdef KIWIF4
+#ifdef EF_VARIANT_KIWIF4
 #define USE_SPI_DEVICE_2
 #define SPI2_NSS_PIN            PB12
 #define SPI2_SCK_PIN            PB13

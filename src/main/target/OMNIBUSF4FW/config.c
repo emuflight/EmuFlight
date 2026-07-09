@@ -32,7 +32,7 @@
 #include "config_helper.h"
 
 static targetSerialPortFunction_t targetSerialPortFunction[] = {
-#ifdef OMNIBUSF4V6
+#ifdef EF_VARIANT_OMNIBUSF4V6
     { SERIAL_PORT_USART6, FUNCTION_RX_SERIAL },
 #else
     { SERIAL_PORT_USART1, FUNCTION_RX_SERIAL },

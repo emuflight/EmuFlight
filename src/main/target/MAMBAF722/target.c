@@ -28,7 +28,7 @@
 #include "drivers/timer_def.h"
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
-  #if defined(MAMBAF722_X8)
+  #if defined(EF_VARIANT_MAMBAF722_X8)
     DEF_TIM(TIM11,  CH1,  PB9,   TIM_USE_PPM,   0, 0 ), // PPM IN
     DEF_TIM(TIM8,   CH3,  PC8,   TIM_USE_MOTOR, 0, 0 ), // S1_OUT – UP2-1
     DEF_TIM(TIM8,   CH4,  PC9,   TIM_USE_MOTOR, 0, 0 ), // S2_OUT – UP2-1
