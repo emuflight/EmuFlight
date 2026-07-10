@@ -74,28 +74,12 @@
 #define ACC_MPU6500_ALIGN               CW90_DEG
 
 // *************** RX ******************************
-#define USE_RX_SPI
-#define RX_SPI_INSTANCE             SPI2
-#define RX_SCK_PIN                  SPI2_SCK_PIN
-#define RX_MISO_PIN                 SPI2_MISO_PIN
-#define RX_MOSI_PIN                 SPI2_MOSI_PIN
-#define RX_NSS_PIN                  SPI2_NSS_PIN
-#define RX_CC2500_SPI_GDO_0_PIN      PB2
-#define RX_CC2500_SPI_LED_PIN        PA13
-#define RX_CC2500_SPI_LED_PIN_INVERTED
-#define RX_CC2500_SPI_TX_EN_PIN      PB10
-#define RX_CC2500_SPI_ANT_SEL_PIN    PA7
-#define BINDPLUG_PIN                PC15
-#define RX_CC2500_SPI_LNA_EN_PIN     NONE
-#define DEFAULT_RX_FEATURE          FEATURE_RX_SPI
-#define RX_SPI_DEFAULT_PROTOCOL     RX_SPI_FRSKY_D
-#define USE_RX_FRSKY_SPI_TELEMETRY
-#define USE_RX_CC2500_SPI_DIVERSITY
-#define USE_RX_CC2500_SPI_PA_LNA
-#define USE_RX_FRSKY_SPI_D
-#define USE_RX_FRSKY_SPI_X
-#define USE_RX_REDPINE_SPI
-#define USE_RX_SFHSS_SPI
+#define SERIALRX_PROVIDER           SERIALRX_SPEKTRUM2048
+#undef  USE_SPEKTRUM_REAL_RSSI
+#undef  USE_SPEKTRUM_FAKE_RSSI
+#define DEFAULT_RX_FEATURE          FEATURE_RX_SERIAL
+#define SERIALRX_UART               SERIAL_PORT_USART2
+#define RX_CHANNELS_TAER
 
 // *************** OSD *****************************
 #define USE_MAX7456
@@ -132,6 +116,12 @@
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_NONE
 
+// *************** FLASH ***************************
+#define USE_FLASHFS
+#define USE_FLASH_M25P16
+#define FLASH_CS_PIN                    SPI2_NSS_PIN
+#define FLASH_SPI_INSTANCE              SPI2
+#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 // *************** OTHERS **************************
 #define LED0_PIN                        PC13
 #define LED1_PIN                        PC14
