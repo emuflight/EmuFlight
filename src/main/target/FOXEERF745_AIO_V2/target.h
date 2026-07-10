@@ -23,7 +23,7 @@
  #define TARGET_BOARD_IDENTIFIER "FOXE"
  #define TARGET_MANUFACTURER_IDENTIFIER "FOXE"
 
- #define USBD_PRODUCT_STRING "FOXEERF745_AIO"
+ #define USBD_PRODUCT_STRING "FOXEERF745_AIO_V2"
 
  #define LED0_PIN   PC13
 
@@ -54,6 +54,13 @@
  #define USE_MAG_QMC5883
  #define USE_MAG_LIS3MDL
  #define MAG_I2C_INSTANCE           (I2CDEV_1)
+ //BMI270
+ #define USE_SPI_GYRO
+ #define USE_ACCGYRO_BMI270
+ #define BMI270_CS_PIN           PA15
+ #define BMI270_SPI_BUS     SPIDEV_3
+ #define ACC_BMI270_ALIGN        CW180_DEG
+ #define GYRO_BMI270_ALIGN       CW180_DEG
  //#define MAG_HMC5883_ALIGN CW270_DEG_FLIP
  //#define MAG_ALIGN CW180_DEG  //not sure if this command will work or if should be more specific to mag
 
