@@ -20,13 +20,18 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "ELIN"
-#define USBD_PRODUCT_STRING     "ElinF405"
+#define TARGET_BOARD_IDENTIFIER "REVO"
+#define USBD_PRODUCT_STRING     "Revolution"
+
+#define USBD_SERIALNUMBER_STRING "0x8020000"
 
 #define LED0_PIN                PB5
 
+// Disable LED1, conflicts with AirbotF4/Flip32F4 beeper
+#define LED1_PIN                PB4
+// Leave beeper here but with none as io - so disabled unless mapped.
 #define USE_BEEPER
-#define BEEPER_PIN              PB4
+#define BEEPER_PIN              NONE
 
 // PC0 used as inverter select GPIO
 #define INVERTER_PIN_UART1      PC0
@@ -40,28 +45,35 @@
 #define USE_GYRO
 #define USE_ACC
 
-#define USE_GYRO_SPI_MPU6500
-#define GYRO_MPU6500_ALIGN            CW0_DEG
-#define MPU6500_CS_PIN           PA4
-#define MPU6500_SPI_BUS     SPIDEV_1
+#define USE_GYRO_SPI_MPU6000
+#define GYRO_MPU6000_ALIGN      CW270_DEG
 
+#define USE_GYRO_MPU6500
+#define USE_GYRO_SPI_MPU6500
+#define GYRO_MPU6500_ALIGN      CW270_DEG
+
+#define USE_ACC_SPI_MPU6000
+#define ACC_MPU6000_ALIGN       CW270_DEG
+
+#define USE_ACC_MPU6500
 #define USE_ACC_SPI_MPU6500
-#define ACC_MPU6500_ALIGN             CW0_DEG
+#define ACC_MPU6500_ALIGN       CW270_DEG
 
 // MPU6000 interrupts
 #define USE_EXTI
 #define MPU_INT_EXTI            PC4
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define CAMERA_CONTROL_PIN      PB7
+// Configure MAG and BARO unconditionally.
+#define USE_MAG
+#define USE_MAG_HMC5883
+#define USE_MAG_QMC5883
+#define MAG_HMC5883_ALIGN       CW90_DEG
 
-#define USE_OSD
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_SOFTSERIAL)
-#define USE_MAX7456
-#define MAX7456_SPI_INSTANCE    SPI2
-#define MAX7456_SPI_CS_PIN      PC8
-#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD)
-#define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
+#define USE_BARO
+#define USE_BARO_MS5611
+#define USE_BARO_BMP085
+#define USE_BARO_BMP280
 
 #define FLASH_CS_PIN            PB3
 #define FLASH_SPI_INSTANCE      SPI3
@@ -89,14 +101,7 @@
 #define UART6_RX_PIN            PC7
 #define UART6_TX_PIN            PC6
 
-#define PINIO1_PIN              PC13
-#define PINIO2_PIN              PC14
-
-#define DEFAULT_MIXER           MIXER_QUADX
-#define ENABLE_DSHOT_DMAR       true
-#define USE_TARGET_CONFIG
-#define SOFTSERIAL1_TX_PIN      PC9
-#define SOFTSERIAL2_RX_PIN      PA8
+#define PINIO1_PIN              PC8 // DTR pin
 
 #define USE_SOFTSERIAL1
 #define USE_SOFTSERIAL2
@@ -104,21 +109,11 @@
 #define SERIAL_PORT_COUNT       7 //VCP, USART1, USART3, UART4,  USART6, SOFTSERIAL x 2
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_PIN  PB6
+#define ESCSERIAL_TIMER_TX_PIN  PB14  // (HARDARE=0,PPM)
 
 #define USE_SPI
 
 #define USE_SPI_DEVICE_1
-#define SPI1_NSS_PIN            PA4
-#define SPI1_SCK_PIN            PA5
-#define SPI1_MISO_PIN           PA6
-#define SPI1_MOSI_PIN           PA7
-
-#define USE_SPI_DEVICE_2
-#define SPI2_NSS_PIN            PB12
-#define SPI2_SCK_PIN            PB13
-#define SPI2_MISO_PIN           PB14
-#define SPI2_MOSI_PIN           PB15
 
 #define USE_SPI_DEVICE_3
 #define SPI3_NSS_PIN            PB3
@@ -136,19 +131,14 @@
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
 
-#define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
-#define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
-
 #define USE_TRANSPONDER
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
-#define SERIALRX_PROVIDER       SERIALRX_SBUS
-#define SERIALRX_UART           SERIAL_PORT_USART1
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(11) )
+#define USABLE_TIMER_CHANNEL_COUNT 12
+#define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(5) | TIM_N(8) | TIM_N(12) )

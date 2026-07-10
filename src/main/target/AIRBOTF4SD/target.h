@@ -20,18 +20,18 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "SOUL"
-#define USBD_PRODUCT_STRING     "DemonSoulF4"
+#define TARGET_BOARD_IDENTIFIER "A4SD"
+#define USBD_PRODUCT_STRING     "AirbotF4SD"
 
 #define LED0_PIN                PB5
 
 // Disable LED1, conflicts with AirbotF4/Flip32F4 beeper
 #define USE_BEEPER
-#define BEEPER_PIN              PB6
+#define BEEPER_PIN              PB4
 #define BEEPER_INVERTED
 
 // PC0 used as inverter select GPIO
-#define INVERTER_PIN_UART1      PC0
+#define INVERTER_PIN_UART6      PD2
 
 #define MPU6000_CS_PIN          PA4
 #define MPU6000_SPI_BUS    SPIDEV_1
@@ -42,11 +42,32 @@
 #define USE_GYRO
 #define USE_ACC
 
+#undef MPU6000_CS_PIN
+#define MPU6000_CS_PIN          PB13
+#define USE_GYRO_SPI_ICM20601
+#define ICM20601_CS_PIN         PA4 // served through MPU6500 code
+#define ICM20601_SPI_BUS   SPIDEV_1
+#define USE_DUAL_GYRO
+#define GYRO_1_CS_PIN           MPU6000_CS_PIN
+#define GYRO_2_CS_PIN           ICM20601_CS_PIN
+#define GYRO_1_SPI_BUS     MPU6000_SPI_BUS
+#define GYRO_2_SPI_BUS     ICM20601_SPI_BUS
+#define ACC_1_ALIGN             ALIGN_DEFAULT
+#define ACC_2_ALIGN             ALIGN_DEFAULT
+
 #define USE_GYRO_SPI_MPU6000
-#define GYRO_MPU6000_ALIGN      CW180_DEG
+#define GYRO_MPU6000_ALIGN      CW270_DEG
+
+#define USE_GYRO_MPU6500
+#define USE_GYRO_SPI_MPU6500
+#define GYRO_MPU6500_ALIGN      CW270_DEG
 
 #define USE_ACC_SPI_MPU6000
-#define ACC_MPU6000_ALIGN       CW180_DEG
+#define ACC_MPU6000_ALIGN       CW270_DEG
+
+#define USE_ACC_MPU6500
+#define USE_ACC_SPI_MPU6500
+#define ACC_MPU6500_ALIGN       CW270_DEG
 
 // MPU6000 interrupts
 #define USE_EXTI
@@ -64,10 +85,25 @@
 #define USE_BARO_BMP085
 #define USE_BARO_BMP280
 
-#define FLASH_CS_PIN            PB3
-#define FLASH_SPI_INSTANCE      SPI3
-#define USE_FLASHFS
-#define USE_FLASH_M25P16
+#define USE_BARO_SPI_BMP280
+#define BMP280_SPI_INSTANCE     SPI1
+#define BMP280_CS_PIN           PC13
+
+// SDCARD support for AIRBOTF4SD
+#define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
+#define USE_SDCARD
+#define SDCARD_DETECT_INVERTED
+#define SDCARD_DETECT_PIN       PC0
+#define SDCARD_SPI_INSTANCE     SPI3
+#define SDCARD_SPI_CS_PIN       SPI3_NSS_PIN
+
+// SPI2 is on the APB1 bus whose clock runs at 84MHz. Divide to under 400kHz for init:
+#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256 // 328kHz
+// Divide to under 25MHz for normal operation:
+#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 4 // 21MHz
+
+#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream5
+#define SDCARD_DMA_CHANNEL                  0
 
 #define USE_VCP
 #define USE_USB_DETECT
@@ -111,14 +147,19 @@
 #define SPI3_MOSI_PIN           PC12
 
 #define USE_I2C
-#define USE_I2C_DEVICE_1
-#define I2C_DEVICE              (I2CDEV_1)
-#define I2C1_SCL                PB8
-#define I2C1_SDA                PB9
+// On AIRBOTF4 and AIRBOTF4SD, I2C2 and I2C3 are configurable
+#define USE_I2C_DEVICE_2
+#define I2C2_SCL                NONE // PB10, shared with UART3TX
+#define I2C2_SDA                NONE // PB11, shared with UART3RX
+#define USE_I2C_DEVICE_3
+#define I2C3_SCL                NONE // PA8, PWM6
+#define I2C3_SDA                NONE // PC9, CH6
+#define I2C_DEVICE              (I2CDEV_2)
 
 #define USE_ADC
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
+#define RSSI_ADC_PIN            PA0
 
 #define USE_TRANSPONDER
 
@@ -129,5 +170,5 @@
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(5) | TIM_N(8) | TIM_N(12) )
+#define USABLE_TIMER_CHANNEL_COUNT 13
+#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(5) | TIM_N(8) | TIM_N(12) )
