@@ -85,6 +85,8 @@
 #define MAG_I2C_INSTANCE        (I2CDEV_1)
 
 // ******* SERIAL ********
+#define USB_DETECT_PIN          PC13
+#define USE_USB_DETECT
 
 #define USE_VCP
 #define USE_UART1
@@ -148,7 +150,6 @@
 #define VBAT_ADC_PIN            PC1
 #define RSSI_ADC_PIN            PC2
 #define CURRENT_METER_ADC_PIN   PC3
-#define EXTERNAL1_ADC_PIN       PC0
 
 // ******* OSD ********
 
@@ -179,12 +180,12 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_PIN NONE
+#define ESCSERIAL_TIMER_TX_PIN PB9
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(11) )
+#define USABLE_TIMER_CHANNEL_COUNT 7
+#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(4) | TIM_N(8) | TIM_N(11) )
