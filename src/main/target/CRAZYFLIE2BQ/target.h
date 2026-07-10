@@ -29,12 +29,12 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "CF20"
-#define USBD_PRODUCT_STRING     "Crazyflie 2.0"
+#define TARGET_BOARD_IDENTIFIER "CFBQ"
+#define USBD_PRODUCT_STRING     "Crazyflie 2.0 (BigQuad Deck)"
 
 #define USABLE_TIMER_CHANNEL_COUNT 14
 
-#define USED_TIMERS             ( TIM_N(2) | TIM_N(4) )
+#define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(14) )
 
 #define LED0_PIN                PD2
 #define LED1_PIN                PC0
@@ -49,11 +49,19 @@
 
 #define USE_VCP
 
+#define USE_UART1
+#define UART1_TX_PIN            PB6
+#define UART1_RX_PIN            PB7
+
+#define USE_UART3
+#define UART3_TX_PIN            PC10
+#define UART3_RX_PIN            PC11
+
 #define USE_UART6
 #define UART6_TX_PIN            PC6
 #define UART6_RX_PIN            PC7
 
-#define SERIAL_PORT_COUNT       2
+#define SERIAL_PORT_COUNT       4
 
 #define USE_I2C
 #define USE_I2C_DEVICE_3
@@ -84,6 +92,14 @@
 #define SERIALRX_PROVIDER       SERIALRX_TARGET_CUSTOM
 #define RX_CHANNELS_TAER
 
-#define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
+#define DEFAULT_RX_FEATURE      FEATURE_RX_PPM
 
-#define BRUSHED_MOTORS
+#define USE_BEEPER
+#define BEEPER_PIN              PC12
+
+#define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
+#define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
+#define USE_ADC
+#define ADC_INSTANCE            ADC1
+#define CURRENT_METER_ADC_PIN   PA5
+#define VBAT_ADC_PIN            PA6
