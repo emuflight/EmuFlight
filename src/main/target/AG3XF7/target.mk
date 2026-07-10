@@ -1,13 +1,4 @@
-ifeq ($(TARGET), AG3XF4)
-F405_TARGETS    += $(TARGET)
-else
-ifeq ($(TARGET), AG3XF7)
 F7X2RE_TARGETS  += $(TARGET)
-else
-# Nothing to do for generic target
-endif
-endif
-
 FEATURES       += VCP ONBOARDFLASH
 TARGET_SRC = \
             drivers/accgyro/accgyro_mpu6500.c \
