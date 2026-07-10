@@ -30,7 +30,8 @@
 #include "io/serial.h"
 
 static targetSerialPortFunction_t targetSerialPortFunction[] = {
-    { SERIAL_PORT_NONE, FUNCTION_NONE },
+    // OMNIBUS F7 V2 has an option to connect UART7_RX to ESC telemetry
+    { ESC_SENSOR_UART, FUNCTION_ESC_SENSOR },
 };
 
 void targetConfiguration(void) {

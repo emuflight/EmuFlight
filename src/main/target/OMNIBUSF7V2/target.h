@@ -22,8 +22,8 @@
 
 //OMNIBUSF7 TARGETS-------------------------
 #define USE_TARGET_CONFIG
-#define TARGET_BOARD_IDENTIFIER "OBF7"
-#define USBD_PRODUCT_STRING "OmnibusF7"
+#define TARGET_BOARD_IDENTIFIER "OB72"
+#define USBD_PRODUCT_STRING "OmnibusF7V2"
 
 //LED & BEEPER------------------------------
 #define LED0_PIN                PE0
@@ -50,18 +50,22 @@
 #define USE_GYRO_SPI_MPU6000
 //#define MPU_INT_EXTI            PD0
 
-#define MPU6000_CS_PIN          SPI3_NSS_PIN
-#define MPU6000_SPI_BUS    SPIDEV_3
-#define MPU6500_CS_PIN          SPI1_NSS_PIN
-#define MPU6500_SPI_BUS    SPIDEV_1
-#define GYRO_1_CS_PIN           MPU6000_CS_PIN
-#define GYRO_2_CS_PIN           MPU6500_CS_PIN
-#define ACC_1_ALIGN             ALIGN_DEFAULT
-#define ACC_2_ALIGN             ALIGN_DEFAULT
-#define GYRO_1_ALIGN            ALIGN_DEFAULT
-#define GYRO_2_ALIGN            ALIGN_DEFAULT
-#define GYRO_1_SPI_BUS     MPU6000_SPI_BUS
-#define GYRO_2_SPI_BUS     MPU6500_SPI_BUS
+#define MPU6000_CS_PIN          SPI1_NSS_PIN
+#define MPU6000_SPI_BUS    SPIDEV_1
+#define MPU6500_CS_PIN          SPI3_NSS_PIN
+#define MPU6500_SPI_BUS    SPIDEV_3
+#define GYRO_1_CS_PIN           MPU6500_CS_PIN
+#define GYRO_2_CS_PIN           MPU6000_CS_PIN
+#define GYRO_MPU6500_ALIGN      CW90_DEG
+#define ACC_MPU6500_ALIGN       CW90_DEG
+#define GYRO_MPU6000_ALIGN      ALIGN_DEFAULT
+#define ACC_MPU6000_ALIGN       ALIGN_DEFAULT
+#define ACC_1_ALIGN             ACC_MPU6500_ALIGN
+#define ACC_2_ALIGN             ACC_MPU6000_ALIGN
+#define GYRO_1_ALIGN            GYRO_MPU6500_ALIGN
+#define GYRO_2_ALIGN            GYRO_MPU6000_ALIGN
+#define GYRO_1_SPI_BUS     MPU6500_SPI_BUS
+#define GYRO_2_SPI_BUS     MPU6000_SPI_BUS
 
 // TODO: dual gyro support
 //#define USE_MPU_DATA_READY_SIGNAL
@@ -90,10 +94,13 @@
 #define UART6_RX_PIN            PC7
 #define UART6_TX_PIN            PC6
 
+#define USE_UART7
+#define UART7_RX_PIN            PE7
+
 #define USE_SOFTSERIAL1
 #define USE_SOFTSERIAL2
 
-#define SERIAL_PORT_COUNT 7
+#define SERIAL_PORT_COUNT 8
 
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PA2 // (Unwired UART2_TX)
