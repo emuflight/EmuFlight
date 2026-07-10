@@ -23,9 +23,6 @@
 #define USE_TARGET_CONFIG
 #define TARGET_MANUFACTURER_IDENTIFIER      "TTRH"
 #define TARGET_BOARD_IDENTIFIER             "TT41"
-#if defined (TRANSTECF411HD)
-#define USBD_PRODUCT_STRING                 "TransTECF411HD"
-#else
 #define USBD_PRODUCT_STRING                 "TransTECF411"
 
 // *************** OSD *****************************
@@ -37,7 +34,6 @@
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE                SPI2
 #define MAX7456_SPI_CS_PIN                  PB12
-#endif
 
 #define LED0_PIN                            PA14
 
