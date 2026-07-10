@@ -23,11 +23,7 @@
 #define USE_TARGET_CONFIG
 #undef USE_MSP_DISPLAYPORT
 
-#ifdef MLTEMPF4
-#define TARGET_BOARD_IDENTIFIER "MLTE"
-#else
 #define TARGET_BOARD_IDENTIFIER "MLTY"
-#endif
 
 #define USBD_PRODUCT_STRING "MotoLabF4"
 
@@ -94,19 +90,12 @@
 #define UART5_RX_PIN            PD2
 #define UART5_TX_PIN            PC12    // not connected
 
-#ifdef MLTEMPF4
-#define USE_UART6
-#define UART6_RX_PIN            PC7
-#define UART6_TX_PIN            PC6
-#define SERIAL_PORT_COUNT       6 //VCP, USART1, USART2, UART4, UART5, USART6
-#else
 #define SERIAL_PORT_COUNT       5 //VCP, USART1, USART2, UART4, UART5
 #define USE_VTX_RTC6705
 #define USE_VTX_RTC6705_SOFTSPI
 #define RTC6705_SPI_MOSI_PIN    PC6
 #define RTC6705_SPICLK_PIN      PC2
 #define RTC6705_CS_PIN          PC7
-#endif
 
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PB8
