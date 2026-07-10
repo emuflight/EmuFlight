@@ -21,21 +21,6 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER "FXF7"
-#if defined (FOXEERF722V2)
-#define USBD_PRODUCT_STRING  "FOXEERF722V2"
-
-#define USE_GYRO
-#define USE_ACC
-#define USE_EXTI
-#define USE_GYRO_SPI_MPU6000
-#define USE_ACC_SPI_MPU6000
-
-#define MPU_INT_EXTI                PC4
-#define MPU6000_CS_PIN              PB2
-#define MPU6000_SPI_BUS        SPIDEV_1
-#define GYRO_MPU6000_ALIGN          CW270_DEG
-#define ACC_MPU6000_ALIGN           CW270_DEG
-#else
 #define USBD_PRODUCT_STRING  "FOXEERF722DUAL"
 
 #define USE_DUAL_GYRO
@@ -71,9 +56,6 @@
 #define ACC_2_ALIGN                 ACC_MPU6500_2_ALIGN
 
 #define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
-
-
-#endif
 
 #define ENABLE_DSHOT_DMAR       true
 #define LED0_PIN                PC15
