@@ -142,5 +142,15 @@ void targetConfiguration(void) {
     ledStripConfigMutable()->ledConfigs[1] = DEFINE_LED(8, 7, 13, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
     ledStripConfigMutable()->ledConfigs[2] = DEFINE_LED(9, 7, 11, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
     strcpy(pilotConfigMutable()->name, "BeeBrain Pro");
+    do {
+        // T8SG
+        uint8_t defaultTXHopTable[50] = {0, 30, 60, 91, 120, 150, 180, 210, 5, 35, 65, 95, 125, 155, 185, 215, 10, 40, 70, 100, 130, 160, 190, 221, 15, 45, 75, 105, 135, 165, 195, 225, 20, 50, 80, 110, 140, 170, 200, 230, 25, 55, 85, 115, 145, 175, 205, 0, 0, 0};
+        rxFrSkySpiConfigMutable()->bindOffset  = -42;
+        rxFrSkySpiConfigMutable()->bindTxId[0] = 0;
+        rxFrSkySpiConfigMutable()->bindTxId[1] = 191;
+        for (uint8_t i = 0; i < 50; i++) {
+            rxFrSkySpiConfigMutable()->bindHopData[i] = defaultTXHopTable[i];
+        }
+    } while (0);
 }
 #endif

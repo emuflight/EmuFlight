@@ -69,6 +69,8 @@
 
 #define BRUSHED_MOTORS_PWM_RATE 25000           // 25kHz
 
+#define BB_LITE_RSSI_CH_IDX     9
+
 void targetConfiguration(void) {
     pinioConfigMutable()->config[0] = PINIO_CONFIG_MODE_OUT_PP;
     pinioBoxConfigMutable()->permanentId[0] = 40;
@@ -142,5 +144,15 @@ void targetConfiguration(void) {
     ledStripConfigMutable()->ledConfigs[1] = DEFINE_LED(8, 7, 13, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
     ledStripConfigMutable()->ledConfigs[2] = DEFINE_LED(9, 7, 11, 0, LF(COLOR), LO(LARSON_SCANNER) | LO(THROTTLE), 0);
     strcpy(pilotConfigMutable()->name, "BeeBrain Pro");
+    // DSM version
+    rxConfigMutable()->rssi_channel = BB_LITE_RSSI_CH_IDX;
+    rxFailsafeChannelConfig_t *channelFailsafeConfig = rxFailsafeChannelConfigsMutable(BB_LITE_RSSI_CH_IDX - 1);
+    channelFailsafeConfig->mode = RX_FAILSAFE_MODE_SET;
+    channelFailsafeConfig->step = CHANNEL_VALUE_TO_RXFAIL_STEP(1000);
+    for (uint8_t rxRangeIndex = 0; rxRangeIndex < NON_AUX_CHANNEL_COUNT; rxRangeIndex++) {
+        rxChannelRangeConfig_t *channelRangeConfig = rxChannelRangeConfigsMutable(rxRangeIndex);
+        channelRangeConfig->min = 1160;
+        channelRangeConfig->max = 1840;
+    }
 }
 #endif

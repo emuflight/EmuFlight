@@ -25,7 +25,7 @@
 #define TARGET_BOARD_IDENTIFIER         "S411"         // generic ID
 #define FC_TARGET_MCU                   STM32F411      // not used in EmuF
 
-#define BOARD_NAME                      BEEBRAINPRO
+#define BOARD_NAME                      BEEBRAIN_PRO_FRSKY_US
 
 #define USE_TARGET_CONFIG
 #define TARGET_PREINIT
