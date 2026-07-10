@@ -32,8 +32,14 @@
 #include "pg/max7456.h"
 #include "pg/pg.h"
 
+static targetSerialPortFunction_t targetSerialPortFunction[] = {
+    { SERIAL_PORT_USART1, FUNCTION_TELEMETRY_SMARTPORT },
+    { SERIAL_PORT_USART3, FUNCTION_VTX_TRAMP },
+    { SERIAL_PORT_UART4,  FUNCTION_RCDEVICE },
+    { SERIAL_PORT_USART6, FUNCTION_RX_SERIAL },
+};
+
 void targetConfiguration(void) {
-    // OMNIBUS F4 AIO (1st gen) has a AB7456 chip that is detected as MAX7456
-    max7456ConfigMutable()->clockConfig = MAX7456_CLOCK_CONFIG_FULL;
+    targetSerialPortFunctionConfig(targetSerialPortFunction, ARRAYLEN(targetSerialPortFunction));
 }
 #endif

@@ -22,16 +22,21 @@
 
 #define USE_TARGET_CONFIG
 
-#define TARGET_BOARD_IDENTIFIER "XRF4"
+#define TARGET_BOARD_IDENTIFIER "OBSD"
 
-#define USBD_PRODUCT_STRING "XRACERF4"
+#define USBD_PRODUCT_STRING "OmnibusF4"
 
 #define LED0_PIN                PB5
 #define USE_BEEPER
 #define BEEPER_PIN              PB4
 #define BEEPER_INVERTED
 
-#define INVERTER_PIN_UART1      PC0 // DYS F4 Pro; Omnibus F4 AIO (1st gen) have a FIXED inverter on UART1
+#define ENABLE_DSHOT_DMAR       true
+
+// These inverter control pins collide with timer channels on CH5 and CH6 pads.
+// Users of these timers/pads must un-map the inverter assignment explicitly.
+#define INVERTER_PIN_UART6      PC8 // Omnibus F4 V3 and later
+#define INVERTER_PIN_UART3      PC9 // Omnibus F4 Pro Corners
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
@@ -47,8 +52,18 @@
 #define MPU_INT_EXTI            PC4
 #define USE_MPU_DATA_READY_SIGNAL
 
-#define GYRO_MPU6000_ALIGN       CW90_DEG
-#define ACC_MPU6000_ALIGN        CW90_DEG
+#define GYRO_MPU6000_ALIGN       CW270_DEG
+#define ACC_MPU6000_ALIGN        CW270_DEG
+
+// Support for iFlight OMNIBUS F4 V3
+// Has ICM20608 instead of MPU6000
+// OMNIBUSF4SD is linked with both MPU6000 and MPU6500 drivers
+#define USE_ACC_SPI_MPU6500
+#define USE_GYRO_SPI_MPU6500
+#define MPU6500_CS_PIN          MPU6000_CS_PIN
+#define MPU6500_SPI_BUS    MPU6000_SPI_BUS
+#define GYRO_MPU6500_ALIGN      GYRO_MPU6000_ALIGN
+#define ACC_MPU6500_ALIGN       ACC_MPU6000_ALIGN
 
 #define USE_MAG
 #define USE_MAG_HMC5883
@@ -56,12 +71,15 @@
 #define MAG_HMC5883_ALIGN       CW90_DEG
 
 #define USE_BARO
+#define USE_BARO_SPI_BMP280
+#define BMP280_SPI_INSTANCE     SPI3
+#define BMP280_CS_PIN           PB3 // v1
 #define USE_BARO_BMP085
 #define USE_BARO_BMP280
 #define USE_BARO_MS5611
 #define BARO_I2C_INSTANCE       (I2CDEV_2)
 
-#define DEFAULT_BARO_BMP280
+#define DEFAULT_BARO_SPI_BMP280
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI3
@@ -74,11 +92,23 @@
 #define USE_FLASH_M25P16
 #define USE_FLASH_W25M512
 
-#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-#define FLASH_CS_PIN            SPI3_NSS_PIN
-#define FLASH_SPI_INSTANCE      SPI3
-#define USE_FLASHFS
-#define USE_FLASH_M25P16
+#define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
+#define USE_SDCARD
+#define SDCARD_DETECT_INVERTED
+#define SDCARD_DETECT_PIN               PB7
+#define SDCARD_SPI_INSTANCE             SPI2
+#define SDCARD_SPI_CS_PIN               SPI2_NSS_PIN
+// SPI2 is on the APB1 bus whose clock runs at 84MHz. Divide to under 400kHz for init:
+#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256 // 328kHz
+// Divide to under 25MHz for normal operation:
+#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 4 // 21MHz
+
+#define SDCARD_DMA_CHANNEL_TX                   DMA1_Stream4
+#define SDCARD_DMA_CHANNEL                      0
+
+// For variants with SDcard replaced with flash chip
+#define FLASH_CS_PIN            SDCARD_SPI_CS_PIN
+#define FLASH_SPI_INSTANCE      SDCARD_SPI_INSTANCE
 
 #define USE_VCP
 #define USE_USB_DETECT
@@ -102,13 +132,19 @@
 #define SERIAL_PORT_COUNT       6 // VCP, USART1, USART3, USART6, SOFTSERIAL x 2
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_PIN  PB14 // (Hardware=0)
+#define ESCSERIAL_TIMER_TX_PIN  PB8  // (Hardware=0)
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 
+#define USE_SPI_DEVICE_2
+#define SPI2_NSS_PIN            PB12
+#define SPI2_SCK_PIN            PB13
+#define SPI2_MISO_PIN           PB14
+#define SPI2_MOSI_PIN           PB15
+
 #define USE_SPI_DEVICE_3
-#define SPI3_NSS_PIN          PB3
+#define SPI3_NSS_PIN          PA15
 #define SPI3_SCK_PIN            PC10
 #define SPI3_MISO_PIN           PC11
 #define SPI3_MOSI_PIN           PC12
@@ -117,6 +153,9 @@
 #define USE_I2C_DEVICE_2
 #define I2C2_SCL                NONE // PB10, shared with UART3TX
 #define I2C2_SDA                NONE // PB11, shared with UART3RX
+#define USE_I2C_DEVICE_3
+#define I2C3_SCL                NONE // PA8, PWM6
+#define I2C3_SDA                NONE // PC9, CH6
 #define I2C_DEVICE              (I2CDEV_2)
 
 #define USE_ADC
@@ -145,5 +184,5 @@
 #define TARGET_IO_PORTC (0xffff & ~(BIT(15)|BIT(14)|BIT(13)))
 #define TARGET_IO_PORTD BIT(2)
 
-#define USABLE_TIMER_CHANNEL_COUNT 14
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(12) | TIM_N(8) | TIM_N(9))
+#define USABLE_TIMER_CHANNEL_COUNT 15
+#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(10) | TIM_N(12) | TIM_N(8) | TIM_N(9))

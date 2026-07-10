@@ -32,8 +32,36 @@
 #include "pg/max7456.h"
 #include "pg/pg.h"
 
+#include "io/vtx.h"
+#include "io/ledstrip.h"
+
+#include "fc/config.h"
+
+#include "pg/piniobox.h"
+
+#include "common/axis.h"
+
+#include "sensors/barometer.h"
+#include "sensors/compass.h"
+#include "sensors/gyro.h"
+
+#include "flight/mixer.h"
+#include "flight/pid.h"
+
+#include "drivers/pwm_output.h"
+
+static targetSerialPortFunction_t targetSerialPortFunction[] = {
+    { SERIAL_PORT_USART1, FUNCTION_RX_SERIAL },
+    { SERIAL_PORT_USART3,  FUNCTION_VTX_SMARTAUDIO },
+};
+
 void targetConfiguration(void) {
-    // OMNIBUS F4 AIO (1st gen) has a AB7456 chip that is detected as MAX7456
-    max7456ConfigMutable()->clockConfig = MAX7456_CLOCK_CONFIG_FULL;
+    pinioBoxConfigMutable()->permanentId[0] = 39;
+    vtxSettingsConfigMutable()->pitModeFreq = 0;
+    ledStripConfigMutable()->ledConfigs[0] = DEFINE_LED(0, 0, 0, 0, LF(COLOR), LO(VTX), 0);
+    targetSerialPortFunctionConfig(targetSerialPortFunction, ARRAYLEN(targetSerialPortFunction));
+    motorConfigMutable()->dev.motorPwmProtocol = PWM_TYPE_DSHOT600;
+    gyroConfigMutable()->gyro_sync_denom = 1;  // 8kHz gyro
+    pidConfigMutable()->pid_process_denom = 1; // 8kHz PID
 }
 #endif
