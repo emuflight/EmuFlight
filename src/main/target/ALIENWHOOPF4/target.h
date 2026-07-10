@@ -36,20 +36,14 @@
 
 #pragma once
 
-/* Multi-Arch Support for 168MHz or 216MHz ARM Cortex processors - STM32F405RGT or STM32F7RET
+/* STM32F405RGT
  */
 
 #define TARGET_MANUFACTURER_IDENTIFIER  "ALWH"
 
-#if defined(ALIENWHOOPF4)
 #define USBD_PRODUCT_STRING             "ALIENWHOOPF4"
 #define FC_TARGET_MCU                   STM32F405     // not used in EmuF
 #define TARGET_BOARD_IDENTIFIER         "S405"        // generic ID
-#else
-#define USBD_PRODUCT_STRING            "ALIENWHOOPF7"
-#define FC_TARGET_MCU                  STM32F7X2     // not used in EmuF
-#define TARGET_BOARD_IDENTIFIER        "S7X2"
-#endif
 
 #define USE_TARGET_CONFIG // see config.c for target specific customizations
 
@@ -72,11 +66,6 @@
 #define USE_SPI_DEVICE_1 // SPI1 can communicate at up to 42 Mbits/s on F4
 #define USE_SPI_DEVICE_2 // SPI2 and SPI3 can communicate at up to 21 Mbit/s on F4
 #define USE_SPI_DEVICE_3 // All SPIs can be served by the DMA controller.
-#if defined(ALIENWHOOPF7)
-//TODO:
-//#define USE_SPI_DEVICE_4
-//#define USE_SPI_DEVICE_5
-#endif
 
 #define SPI1_NSS_PIN            PA4 // LQFP64 pin 20 (PA4)
 #define SPI1_SCK_PIN            PA5 // LQFP64 pin 21 (PA5)
@@ -95,18 +84,6 @@
 #define SPI3_SCK_PIN            PB3  // LQFP64 pin 55 (PB3)
 #define SPI3_MISO_PIN           PB4  // LQFP64 pin 56 (PB4)
 #define SPI3_MOSI_PIN           PB5  // LQFP64 pin 57 (PB5)
-
-#if defined(ALIENWHOOPF7)
-//TODO: define SPI4 and SPI5 for F7 target
-//#define SPI4_NSS_PIN
-//#define SPI4_SCK_PIN
-//#define SPI4_MISO_PIN
-//#define SPI4_MOSI_PIN
-//#define SPI5_NSS_PIN
-//#define SPI5_SCK_PIN
-//#define SPI5_MISO_PIN
-//#define SPI5_MOSI_PIN
-#endif
 
 /* OSD MAX7456E */
 #define USE_MAX7456
@@ -235,14 +212,8 @@
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
 #define TARGET_IO_PORTC         0xffff
-#if defined(ALIENWHOOPF4)
 // STM32F405RGT
 #define TARGET_IO_PORTD         (BIT(2))
-#else
-// STM32F722RET
-#define TARGET_IO_PORTD         0xffff
-#define TARGET_IO_PORTE         0xffff
-#endif
 
 #define USE_ADC
 #define ADC1_DMA_OPT        1
