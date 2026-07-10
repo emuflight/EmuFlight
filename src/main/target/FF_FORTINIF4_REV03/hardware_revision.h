@@ -18,20 +18,17 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdint.h>
+#pragma once
 
-#include "platform.h"
-#include "drivers/io.h"
+typedef enum ftf4HardwareRevision_t {
+    FORTINIF4_UNKNOWN = 0,
+    FORTINIF4_REV_1, // SPI Flash
+    FORTINIF4_REV_2, // OSD
+    FORTINIF4_REV_3, // OSD Rev3
+    FORTINIF4_REV_4  // actually not used
+} ftf4HardwareRevision_e;
 
-#include "drivers/dma.h"
-#include "drivers/timer.h"
-#include "drivers/timer_def.h"
+extern uint8_t hardwareRevision;
 
-const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
-    DEF_TIM(TIM3, CH3, PB0, TIM_USE_MOTOR, 0, 0 ), // S1_OUT - DMA1_ST7
-    DEF_TIM(TIM3, CH4, PB1, TIM_USE_MOTOR, 0, 0 ), // S2_OUT - DMA1_ST2
-    DEF_TIM(TIM2, CH4, PA3, TIM_USE_MOTOR, 0, 1 ), // S3_OUT - DMA1_ST6
-    DEF_TIM(TIM2, CH3, PA2, TIM_USE_MOTOR, 0, 0 ), // S4_OUT - DMA1_ST1
-    DEF_TIM(TIM4, CH4, PB9, TIM_USE_PPM,   0, 0 ), // PPM IN
-    DEF_TIM(TIM4, CH2, PB7, TIM_USE_LED,   0, 0 ), // LED    - DMA1_ST3
-};
+void updateHardwareRevision(void);
+void detectHardwareRevision(void);
