@@ -20,27 +20,11 @@
 
 #pragma once
 
-#if defined(PLUMF4)
-#define TARGET_BOARD_IDENTIFIER "PLUM"
-#define USBD_PRODUCT_STRING     "PLUMF4"
-
-#elif defined(KIWIF4V2)
-#define TARGET_BOARD_IDENTIFIER "KIW2"
-#define USBD_PRODUCT_STRING     "KIWIF4V2"
-
-#else
 #define TARGET_BOARD_IDENTIFIER "KIWI"
 #define USBD_PRODUCT_STRING     "KIWIF4"
 
-#endif
-
-#if defined(PLUMF4) || defined(KIWIF4V2)
-#define LED0_PIN                PB4
-
-#else
 #define LED0_PIN                PB5
 #define LED1_PIN                PB4
-#endif
 
 #define USE_BEEPER
 #define BEEPER_PIN              PA8
@@ -66,48 +50,17 @@
 #define USE_ACC_SPI_MPU6000
 #define ACC_MPU6000_ALIGN       CW180_DEG
 
-#if defined(KIWIF4) || defined(KIWIF4V2)
 #define USE_MAX7456
-#endif
-
-#if defined(KIWIF4V2)
-#define MAX7456_SPI_INSTANCE                SPI3
-#define MAX7456_SPI_CS_PIN                  PA15
-
-#else
 #define MAX7456_SPI_INSTANCE                SPI2
 #define MAX7456_SPI_CS_PIN                  PB12
 //#define MAX7456_DMA_CHANNEL_TX              DMA1_Stream5
 //#define MAX7456_DMA_CHANNEL_RX              DMA1_Stream0
 //#define MAX7456_DMA_IRQ_HANDLER_ID          DMA1_ST0_HANDLER
-#endif
 
-#if defined(KIWIF4V2)
-#define USE_SDCARD
-
-
-//#define SDCARD_DETECT_PIN                   PB9
-#define SDCARD_SPI_INSTANCE                 SPI2
-#define SDCARD_SPI_CS_PIN                   PB12
-
-// SPI2 is on the APB1 bus whose clock runs at 84MHz. Divide to under 400kHz for init:
-#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256 // 328kHz
-// Divide to under 25MHz for normal operation:
-#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
-
-
-//#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream5
-//#define SDCARD_DMA_CHANNEL                  0
-
-#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream4
-#define SDCARD_DMA_CHANNEL                  0
-
-#else
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
 #define FLASH_CS_PIN            SPI3_NSS_PIN
 #define FLASH_SPI_INSTANCE      SPI3
-#endif
 
 #define USE_VCP
 #define USB_DETECT_PIN          PC5
@@ -138,13 +91,11 @@
 
 #define USE_SPI_DEVICE_1
 
-#ifdef KIWIF4
 #define USE_SPI_DEVICE_2
 #define SPI2_NSS_PIN            PB12
 #define SPI2_SCK_PIN            PB13
 #define SPI2_MISO_PIN           PB14
 #define SPI2_MOSI_PIN           PB15
-#endif
 
 #define USE_SPI_DEVICE_3
 #define SPI3_NSS_PIN            PA15

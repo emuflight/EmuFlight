@@ -19,161 +19,143 @@
  */
 
 #pragma once
+#define TARGET_BOARD_IDENTIFIER "FWF4"
+#define USBD_PRODUCT_STRING "FLYWOOF405"
 
-#define BOARD_NAME        FLYWOOF405
-#define MANUFACTURER_ID   FLWO
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
-
-//----------------------------------------
 #define USE_TARGET_CONFIG
-//LED & BEE-------------------------------
+
 #define LED0_PIN                PC14
 
+
 #define USE_BEEPER
-#define BEEPER_PIN              PC13
-#define BEEPER_INVERTED
 
 //define camera control
 #define CAMERA_CONTROL_PIN      PA9
+#define BEEPER_PIN              PC13
 
-#define USE_PINIO
-#define USE_PINIOBOX
-#define PINIO1_PIN           PB12
-#define PINIO2_PIN           PB13
-#define PINIO1_BOX 40
-#define PINIO2_BOX 41
+#define BEEPER_INVERTED
+#define INVERTER_PIN_UART3      PB15
 
-//SPI DEVICE-------------------------------
-#define USE_SPI
-#define USE_SPI_DEVICE_1
-#define USE_SPI_DEVICE_2
-
-#define SPI1_SCK_PIN            PA5
-#define SPI1_MISO_PIN           PA6
-#define SPI1_MOSI_PIN           PA7
-
-#define USE_SPI_DEVICE_3
-#define SPI3_SCK_PIN            PC10
-#define SPI3_MISO_PIN           PC11
-#define SPI3_MOSI_PIN           PC12
-//Gyro & ACC-------------------------------
-
-#define USE_SPI_GYRO
+// ICM20689 interrupt
 #define USE_EXTI
-#define USE_GYRO_EXTI
+#define MPU_INT_EXTI            PC5
+//#define DEBUG_MPU_DATA_READY_INTERRUPT
 #define USE_MPU_DATA_READY_SIGNAL
+#define ENSURE_MPU_DATA_READY_IS_LOW
 
-//MPU-6000
-#define USE_GYRO
+#define  ICM20689_CS_PIN          PC4
+#define ICM20689_SPI_BUS    SPIDEV_1
+
 #define USE_ACC
-#define USE_ACC_SPI_MPU6000
-#define USE_GYRO_SPI_MPU6000
-#define USE_GYRO_SPI_ICM20689
 #define USE_ACC_SPI_ICM20689
-#define USE_GYRO_SPI_ICM42688P
-#define USE_ACC_SPI_ICM42688P
+#define ACC_ICM20689_ALIGN       CW270_DEG
 
-#define ACC_1_ALIGN          CW270_DEG
-#define GYRO_1_ALIGN         CW270_DEG
-#define GYRO_1_CS_PIN        PC4
-#define GYRO_1_EXTI_PIN      PC5
-#define GYRO_1_SPI_BUS  SPIDEV_1
+#define USE_GYRO
+#define USE_GYRO_SPI_ICM20689
+#define GYRO_ICM20689_ALIGN      CW270_DEG
 
-#define USE_DUAL_GYRO
+//------MPU6000
+#define MPU6000_CS_PIN           PC4
+#define MPU6000_SPI_BUS     SPIDEV_1
+#define USE_GYRO_SPI_MPU6000
+#define GYRO_MPU6000_ALIGN      CW270_DEG
+#define USE_ACC_SPI_MPU6000
+#define ACC_MPU6000_ALIGN       CW270_DEG
 
-#define ACC_2_ALIGN          CW0_DEG
-#define GYRO_2_ALIGN         CW0_DEG
-#define GYRO_2_SPI_BUS  SPIDEV_1
-
-//Baro & MAG-------------------------------
-#define USE_I2C
+#define USE_I2C          //No other I2C pins are  fanned out, So V1 don't support I2C  peripherals.
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE              (I2CDEV_1)
-#define I2C1_SCL                PB8
-#define I2C1_SDA                PB9
-#define BARO_I2C_INSTANCE       (I2CDEV_1)
-#define MAG_I2C_INSTANCE        (I2CDEV_1)
 
-#define USE_BARO
-#define USE_BARO_BMP280
-#define USE_BARO_MS5611
-#define USE_BARO_BMP085
-#define USE_BARO_DPS310
+#define I2C1_SCL                PB8        // SCL pad
+#define I2C1_SDA                PB9        // SDA pad
+#define BARO_I2C_INSTANCE       I2C_DEVICE
+#define MAG_I2C_INSTANCE        I2C_DEVICE
 
 #define USE_MAG
-#define USE_MAG_HMC5883
+#define USE_MAG_HMC5883                   //External, connect to I2C1
 #define USE_MAG_QMC5883
+#define MAG_HMC5883_ALIGN       CW180_DEG
 
-//ON BOARD FLASH -----------------------------------
-#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-#define USE_FLASHFS
-#define USE_FLASH_M25P16
-#define FLASH_CS_PIN            PB3
-#define FLASH_SPI_INSTANCE      SPI3
-
-//OSD ----------------------------------------------
+#define USE_BARO
+#define USE_BARO_MS5611                  //External, connect to I2C1
+#define USE_BARO_BMP280                  //onboard
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI3
 #define MAX7456_SPI_CS_PIN      PB14
+#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD)
+#define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
+#define FLASH_CS_PIN            PB3
+#define FLASH_SPI_INSTANCE      SPI3
 
-//UART ----------------------------------------------
+#define USE_FLASHFS
+#define USE_FLASH_M25P16
+#define USE_FLASH_W25Q128FV
+
 #define USE_VCP
 #define USB_DETECT_PIN          PA8
 #define USE_USB_DETECT
 
 #define USE_UART1
 #define UART1_RX_PIN            PA10
-#define UART1_TX_PIN            PB6
+
+#define UART1_TX_PIN            PB6 //SCL/UART1_TX/TIM4_CH1
+
+#define UART1_AHB1_PERIPHERALS  RCC_AHB1Periph_DMA2
 
 #define USE_UART3
 #define UART3_RX_PIN            PB11
 #define UART3_TX_PIN            PB10
 
-#define USE_UART4
-#define UART4_RX_PIN            PA1
-#define UART4_TX_PIN            PA0
-
-#define USE_UART5
-#define UART5_RX_PIN            PD2
-
 #define USE_UART6
 #define UART6_RX_PIN            PC7
 #define UART6_TX_PIN            PC6
 
-#define SERIAL_PORT_COUNT       6
+#define USE_UART4                // Uart4 can be used for GPS or  RunCam Split
+#define UART4_RX_PIN            PA1
+#define UART4_TX_PIN            PA0
 
-#define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
-#define SERIALRX_PROVIDER       SERIALRX_SBUS
+#define USE_UART5               //Uart5 can be used for ESC sensor
+#define UART5_RX_PIN            PD2
+#define UART5_TX_PIN            NONE
 
-//ADC ----------------------------------------------
-#define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
-#define VBAT_ADC_PIN            PC3
-#define CURRENT_METER_ADC_PIN   PC2
-#define RSSI_ADC_PIN            PC1
-
-#define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
-#define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
-
-#define DEFAULT_CURRENT_METER_SCALE     170
-#define DEFAULT_VOLTAGE_METER_SCALE                      110
-
-#define ENABLE_DSHOT_DMAR       true
+#define USE_SOFTSERIAL1         //M1~M4 and LedTrip can be redefined as Softserial
+#define SERIAL_PORT_COUNT 7     //vcp, uart1, uart3, uart4, uart5, uart6, softSerial1
 
 #define USE_ESCSERIAL
+
 #define ESCSERIAL_TIMER_TX_PIN  PB8
 
-#define USE_INVERTER
-#define INVERTER_PIN            PB15
+#define USE_SPI
+#define USE_SPI_DEVICE_1 //ICM20689
+#define SPI1_NSS_PIN            PC4
+#define SPI1_SCK_PIN            PA5
+#define SPI1_MISO_PIN           PA6
+#define SPI1_MOSI_PIN           PA7
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
+#define USE_SPI_DEVICE_3 //dataflash
+#define SPI3_NSS_PIN            PB3
+#define SPI3_SCK_PIN            PC10
+#define SPI3_MISO_PIN           PC11
+#define SPI3_MOSI_PIN           PC12
 
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
+#define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
+#define USE_ADC
+#define ADC1_DMA_STREAM             DMA2_Stream0
+#define VBAT_ADC_PIN                PC3
+#define CURRENT_METER_ADC_PIN       PC2
+#define DEFAULT_CURRENT_METER_SCALE        275
+#define RSSI_ADC_PIN                PC1
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) )
+#define DEFAULT_FEATURES        ( FEATURE_TELEMETRY | FEATURE_OSD )
+#define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
+#define SERIALRX_PROVIDER       SERIALRX_SBUS
+#define SERIALRX_UART           SERIAL_PORT_USART3
+
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTD        (BIT(2))
+
+#define USABLE_TIMER_CHANNEL_COUNT 11
+#define USED_TIMERS  ( TIM_N(2) | TIM_N(3) | TIM_N(4)|  TIM_N(8))
