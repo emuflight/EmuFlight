@@ -119,7 +119,7 @@
 #define SPI4_MISO_PIN           PE5
 #define SPI4_MOSI_PIN           PE6
 
-#define CAMERA_CONTROL_PIN      PB3
+#define CAMERA_CONTROL_PIN      PE13
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
