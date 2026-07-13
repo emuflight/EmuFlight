@@ -115,6 +115,9 @@
 
 #define SERIAL_PORT_COUNT        8 //VCP, USART1, USART3,USART4, USART6, SOFT_SERIAL1
 
+// ESCSERIAL_TIMER_TX_PIN shares PB9 with I2C1_SDA above - matches
+// Betaflight's own config for this board (ESCSERIAL_PIN PB9 alongside
+// I2C1_SDA_PIN PB9), not a conflict to fix.
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN    PB9
 
