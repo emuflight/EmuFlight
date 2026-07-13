@@ -38,13 +38,13 @@
 #define LED0_PIN                            PA14
 
 #define USE_BEEPER
-#define BEEPER_PIN                          PB5
+#define BEEPER_PIN                          PB6
 #define BEEPER_INVERTED
 
 #define ENABLE_DSHOT_DMAR                                true
 
 #define USE_PINIO
-#define PINIO1_PIN                          PB6         //VTX Power Switch
+#define PINIO1_PIN                          PB5         //VTX Power Switch
 #define USE_PINIOBOX
 
 // *************** Gyro & ACC **********************
