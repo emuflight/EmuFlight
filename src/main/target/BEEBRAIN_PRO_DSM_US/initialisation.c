@@ -35,6 +35,10 @@
 
 #include "fc/config.h"
 
+// PA8 is also PINIO1_PIN (turtle-switch relay, target.h); pinioInit() runs
+// after targetPreInit() at boot and overwrites this MCO config. SYSCLK is
+// 96MHz on this MCU: RCC_MCO1Source_HSE/Div_5 = 1.6MHz, not the 19.2MHz
+// below; RCC_MCO1Source_PLLCLK/Div_5 = 19.2MHz.
 void targetPreInit(void) {
     IO_t mcoPin = IOGetByTag(IO_TAG(PA8));
     IOInit(mcoPin, OWNER_SYSTEM, 1);

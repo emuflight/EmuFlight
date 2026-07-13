@@ -116,7 +116,7 @@
 #define LED1_PIN                        PC14
 
 #define USE_BEEPER
-#define BEEPER_PIN                      PB10
+#define BEEPER_PIN                      PC0
 #define BEEPER_INVERTED
 
 #define USE_ESCSERIAL

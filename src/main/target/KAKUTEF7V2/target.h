@@ -96,6 +96,9 @@
 
 #define SERIAL_PORT_COUNT 9 //VCP,UART1,UART2,UART3,UAER4,UART6,UART7
 
+// ESCSERIAL_TIMER_TX_PIN shares PE13 with CAMERA_CONTROL_PIN above. Base
+// KAKUTEF7 has the same ESCSERIAL_TIMER_TX_PIN=PE13 conflicting with its
+// PPM pin. Betaflight has no ESCSERIAL_PIN defined for either board.
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PE13 // ( Hardware=0)
 
@@ -119,7 +122,7 @@
 #define SPI4_MISO_PIN           PE5
 #define SPI4_MOSI_PIN           PE6
 
-#define CAMERA_CONTROL_PIN      PB3
+#define CAMERA_CONTROL_PIN      PE13
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2

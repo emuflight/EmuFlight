@@ -138,6 +138,10 @@
 #define LED1_PIN                        PC14
 
 #define USE_BEEPER
+// BEEPER_PIN shares PB10 with RX_CC2500_SPI_TX_EN_PIN above. Sibling
+// BEEBRAIN_BL_V3_WHOOP boards use PA6 for RX_CC2500_SPI_TX_EN_PIN instead
+// (no conflict there), but V3's RTC6705_POWER_PIN is PA8, not this board's
+// PA6 - the two revisions do not share an identical pinout.
 #define BEEPER_PIN                      PB10
 #define BEEPER_INVERTED
 
