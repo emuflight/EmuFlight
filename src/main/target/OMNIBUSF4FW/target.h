@@ -57,10 +57,11 @@
 
 #define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
 
-// MPU6000 interrupts
-#define USE_EXTI
-#define MPU_INT_EXTI            PC4
-#define USE_MPU_DATA_READY_SIGNAL
+// Gyro 1 (SPIDEV_3) shares its SPI bus with the MAX7456 OSD (also SPI3);
+// interrupt-driven gyro reads conflict with OSD SPI transactions on this
+// shared bus, so polling is used instead (confirmed via Betaflight's own
+// unified-targets history for this board: "Disabling GYRO_EXTI since gyro
+// and OSD are on same SPI bus").
 
 #define USE_MAG
 #define MAG_I2C_INSTANCE        (I2CDEV_1)

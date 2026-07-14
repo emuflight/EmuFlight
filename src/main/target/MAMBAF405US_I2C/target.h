@@ -38,7 +38,7 @@
 
 #define ENABLE_DSHOT_DMAR        true
 
-#define CAMERA_CONTROL_PIN        PB8
+#define CAMERA_CONTROL_PIN        NONE  // define dedicated camera osd pin
 #define INVERTER_PIN_UART1        PC0
 
 #define USE_EXTI
@@ -73,11 +73,11 @@
 #define USE_BARO_BMP085
 
 #define USE_I2C
-#define USE_I2C_DEVICE_2
-#define I2C_DEVICE              (I2CDEV_2)
-#define I2C2_SCL                PB8        // SCL pad  PB10, shared with UART3TX
-#define I2C2_SDA                PB9        // SDA pad  PB11, shared with UART3RX
-#define BARO_I2C_INSTANCE       (I2CDEV_2)
+#define USE_I2C_DEVICE_1
+#define I2C_DEVICE              (I2CDEV_1)
+#define I2C1_SCL                PB8        // SCL pad  PB10, shared with UART3TX
+#define I2C1_SDA                PB9        // SDA pad  PB11, shared with UART3RX
+#define BARO_I2C_INSTANCE       (I2CDEV_1)
 
 #define USE_MAG
 #define USE_MAG_HMC5883
@@ -115,6 +115,9 @@
 
 #define SERIAL_PORT_COUNT        8 //VCP, USART1, USART3,USART4, USART6, SOFT_SERIAL1
 
+// ESCSERIAL_TIMER_TX_PIN shares PB9 with I2C1_SDA above - matches
+// Betaflight's own config for this board (ESCSERIAL_PIN PB9 alongside
+// I2C1_SDA_PIN PB9), not a conflict to fix.
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN    PB9
 
