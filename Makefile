@@ -238,7 +238,6 @@ CFLAGS     += $(ARCH_FLAGS) \
               $(DEVICE_FLAGS) \
               -D_GNU_SOURCE \
               -DUSE_STDPERIPH_DRIVER \
-              -DEF_VARIANT_$(shell echo $(TARGET) | sed 's/^[0-9]/_&/') \
               $(TARGET_FLAGS) \
               -D'__FORKNAME__="$(FORKNAME)"' \
               -D'__BUILDNO__="$(BUILDNO)"' \

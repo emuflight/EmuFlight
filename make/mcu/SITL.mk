@@ -10,7 +10,6 @@ DEVICE_FLAGS    =
 LD_SCRIPT       = src/main/target/SITL/pg.ld
 STARTUP_SRC     =
 
-TARGET_FLAGS    = -DEF_VARIANT_$(TARGET)
 TARGET_FLASH   := 2048
 
 ARM_SDK_PREFIX  =

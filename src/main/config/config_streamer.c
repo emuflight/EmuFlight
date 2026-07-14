@@ -29,7 +29,7 @@
 #ifndef EEPROM_IN_RAM
 extern uint8_t __config_start;   // configured via linker script when building binaries.
 extern uint8_t __config_end;
-#elif !defined(EF_VARIANT_SITL)
+#elif !defined(SIMULATOR_BUILD)
 // RAM-based config: eepromData[] is the backing store; __config_start/__config_end
 // are macro-aliased to it in common_fc_post.h. SITL defines eepromData in target.c.
 #if defined(PERSISTENT)

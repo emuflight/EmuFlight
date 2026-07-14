@@ -63,17 +63,10 @@ typedef struct idDetect_s {
 #define IDDET_ERROR 12
 
 static idDetect_t idDetectTable[] = {
-#ifdef EF_VARIANT_OMNINXT7
     { IDDET_RATIO(10000, 10000), 1 },
-#endif
-#ifdef EF_VARIANT_OMNINXT4
-    { IDDET_RATIO(10000, 10000), 1 },
-#endif
 };
 
 ioTag_t idDetectTag;
-
-#if defined(EF_VARIANT_OMNINXT4)
 
 #define VREFINT_CAL_ADDR  0x1FFF7A2A
 
@@ -132,90 +125,6 @@ static uint16_t adcIDDetectReadIDDet(void) {
 static uint16_t adcIDDetectReadVrefint(void) {
     return ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_2);
 }
-#endif
-
-#if defined(EF_VARIANT_OMNINXT7)
-#define VREFINT_CAL_ADDR  0x1FF07A2A
-
-#include "drivers/adc_impl.h"
-
-static adcDevice_t adcIDDetHardware =
-{ .ADCx = ADC1, .rccADC = RCC_APB2(ADC1), .DMAy_Streamx = ADC1_DMA_STREAM, .channel = DMA_CHANNEL_0 };
-
-// XXX adcIDDetectInitDevice is an exact copy of adcInitDevice() from adc_stm32f7xx.c. Export and use?
-
-static void adcIDDetectInitDevice(adcDevice_t *adcdev, int channelCount) {
-    adcdev->ADCHandle.Init.ClockPrescaler        = ADC_CLOCK_SYNC_PCLK_DIV8;
-    adcdev->ADCHandle.Init.ContinuousConvMode    = ENABLE;
-    adcdev->ADCHandle.Init.Resolution            = ADC_RESOLUTION_12B;
-    adcdev->ADCHandle.Init.ExternalTrigConv      = ADC_EXTERNALTRIGCONV_T1_CC1;
-    adcdev->ADCHandle.Init.ExternalTrigConvEdge  = ADC_EXTERNALTRIGCONVEDGE_NONE;
-    adcdev->ADCHandle.Init.DataAlign             = ADC_DATAALIGN_RIGHT;
-    adcdev->ADCHandle.Init.NbrOfConversion       = channelCount;
-#ifdef USE_ADC_INTERNAL
-    // Multiple injected channel seems to require scan conversion mode to be
-    // enabled even if main (non-injected) channel count is 1.
-    adcdev->ADCHandle.Init.ScanConvMode          = ENABLE;
-#else
-    adcdev->ADCHandle.Init.ScanConvMode          = channelCount > 1 ? ENABLE : DISABLE; // 1=scan more that one channel in group
-#endif
-    adcdev->ADCHandle.Init.DiscontinuousConvMode = DISABLE;
-    adcdev->ADCHandle.Init.NbrOfDiscConversion   = 0;
-    adcdev->ADCHandle.Init.DMAContinuousRequests = ENABLE;
-    adcdev->ADCHandle.Init.EOCSelection          = DISABLE;
-    adcdev->ADCHandle.Instance = adcdev->ADCx;
-    if (HAL_ADC_Init(&adcdev->ADCHandle) != HAL_OK) {
-        /* Initialization Error */
-    }
-}
-
-static void adcIDDetectInit(void) {
-    idDetectTag = IO_TAG(ADC_ID_DETECT_PIN);
-    IOConfigGPIO(IOGetByTag(idDetectTag), IO_CONFIG(GPIO_MODE_ANALOG, 0, GPIO_NOPULL));
-    adcIDDetectInitDevice(&adcIDDetHardware, 2);
-    ADC_InjectionConfTypeDef iConfig;
-    iConfig.InjectedSamplingTime = ADC_SAMPLETIME_480CYCLES;
-    iConfig.InjectedOffset       = 0;
-    iConfig.InjectedNbrOfConversion = 2;
-    iConfig.InjectedDiscontinuousConvMode = DISABLE;
-    iConfig.AutoInjectedConv     = DISABLE;
-    iConfig.ExternalTrigInjecConv = 0;     // Don't care
-    iConfig.ExternalTrigInjecConvEdge = 0; // Don't care
-    iConfig.InjectedChannel      = ADC_CHANNEL_VREFINT;
-    iConfig.InjectedRank         = 1;
-    if (HAL_ADCEx_InjectedConfigChannel(&adcIDDetHardware.ADCHandle, &iConfig) != HAL_OK) {
-        /* Channel Configuration Error */
-    }
-    iConfig.InjectedChannel      = adcChannelByTag(idDetectTag);
-    iConfig.InjectedRank         = 2;
-    if (HAL_ADCEx_InjectedConfigChannel(&adcIDDetHardware.ADCHandle, &iConfig) != HAL_OK) {
-        /* Channel Configuration Error */
-    }
-}
-
-static void adcIDDetectDeinit(void) {
-    HAL_ADC_DeInit(&adcIDDetHardware.ADCHandle);
-    IOConfigGPIO(IOGetByTag(idDetectTag), IOCFG_IPU);
-}
-
-static void adcIDDetectStart(void) {
-    HAL_ADCEx_InjectedStart(&adcIDDetHardware.ADCHandle);
-}
-
-static void adcIDDetectWait(void) {
-    while (HAL_ADCEx_InjectedPollForConversion(&adcIDDetHardware.ADCHandle, 0) != HAL_OK) {
-        // Empty
-    }
-}
-
-static uint16_t adcIDDetectReadVrefint(void) {
-    return HAL_ADCEx_InjectedGetValue(&adcIDDetHardware.ADCHandle, ADC_INJECTED_RANK_1);
-}
-
-static uint16_t adcIDDetectReadIDDet(void) {
-    return HAL_ADCEx_InjectedGetValue(&adcIDDetHardware.ADCHandle, ADC_INJECTED_RANK_2);
-}
-#endif
 
 void detectHardwareRevision(void) {
     adcIDDetectInit();
