@@ -102,8 +102,14 @@ static void routeIncommingPacket(syslinkPacket_t* slp) {
                 channelData[2] = crtpCppmPacket->channelPitch;
                 channelData[3] = crtpCppmPacket->channelYaw;
                 // Write the rest of the auxiliary channels
-                uint8_t i;
-                for (i = 0; i < crtpCppmPacket->hdr.numAuxChannels; i++) {
+                // numAuxChannels is a 4-bit field (0-15) but channelAux[] / channelData[]
+                // only have room for CRTP_CPPM_EMU_MAX_AUX_CHANNELS entries; clamp to avoid
+                // an out-of-bounds read/write from a malformed or malicious packet.
+                uint8_t numAuxChannels = crtpCppmPacket->hdr.numAuxChannels;
+                if (numAuxChannels > CRTP_CPPM_EMU_MAX_AUX_CHANNELS) {
+                    numAuxChannels = CRTP_CPPM_EMU_MAX_AUX_CHANNELS;
+                }
+                for (uint8_t i = 0; i < numAuxChannels; i++) {
                     channelData[i + 4] = crtpCppmPacket->channelAux[i];
                 }
             }
