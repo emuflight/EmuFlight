@@ -63,78 +63,11 @@ typedef struct idDetect_s {
 #define IDDET_ERROR 12
 
 static idDetect_t idDetectTable[] = {
-#ifdef OMNINXT7
     { IDDET_RATIO(10000, 10000), 1 },
-#endif
-#ifdef OMNINXT4
-    { IDDET_RATIO(10000, 10000), 1 },
-#endif
 };
 
 ioTag_t idDetectTag;
 
-#if defined(OMNINXT4)
-
-#define VREFINT_CAL_ADDR  0x1FFF7A2A
-
-static void adcIDDetectInit(void) {
-    idDetectTag = IO_TAG(ADC_ID_DETECT_PIN);
-    IOConfigGPIO(IOGetByTag(idDetectTag), IO_CONFIG(GPIO_Mode_AN, 0, GPIO_OType_OD, GPIO_PuPd_NOPULL));
-    RCC_ClockCmd(RCC_APB2(ADC1), ENABLE);
-    ADC_CommonInitTypeDef ADC_CommonInitStructure;
-    ADC_CommonStructInit(&ADC_CommonInitStructure);
-    ADC_CommonInitStructure.ADC_Mode             = ADC_Mode_Independent;
-    ADC_CommonInitStructure.ADC_Prescaler        = ADC_Prescaler_Div8;
-    ADC_CommonInitStructure.ADC_DMAAccessMode    = ADC_DMAAccessMode_Disabled;
-    ADC_CommonInitStructure.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles;
-    ADC_CommonInit(&ADC_CommonInitStructure);
-    ADC_InitTypeDef ADC_InitStructure;
-    ADC_StructInit(&ADC_InitStructure);
-    ADC_InitStructure.ADC_ContinuousConvMode       = ENABLE;
-    ADC_InitStructure.ADC_Resolution               = ADC_Resolution_12b;
-    ADC_InitStructure.ADC_ExternalTrigConv         = ADC_ExternalTrigConv_T1_CC1;
-    ADC_InitStructure.ADC_ExternalTrigConvEdge     = ADC_ExternalTrigConvEdge_None;
-    ADC_InitStructure.ADC_DataAlign                = ADC_DataAlign_Right;
-    ADC_InitStructure.ADC_NbrOfConversion          = 2; // Not used
-    ADC_InitStructure.ADC_ScanConvMode             = ENABLE;
-    ADC_Init(ADC1, &ADC_InitStructure);
-    ADC_Cmd(ADC1, ENABLE);
-    ADC_TempSensorVrefintCmd(ENABLE);
-    delayMicroseconds(10); // Maximum startup time for internal sensors (DM00037051 5.3.22 & 24)
-    uint32_t channel = adcChannelByTag(idDetectTag);
-    ADC_InjectedDiscModeCmd(ADC1, DISABLE);
-    ADC_InjectedSequencerLengthConfig(ADC1, 2);
-    ADC_InjectedChannelConfig(ADC1, channel, 1, ADC_SampleTime_480Cycles);
-    ADC_InjectedChannelConfig(ADC1, ADC_Channel_Vrefint, 2, ADC_SampleTime_480Cycles);
-}
-
-static void adcIDDetectDeinit(void) {
-    ADC_Cmd(ADC1, DISABLE);
-    ADC_DeInit();
-    IOConfigGPIO(IOGetByTag(idDetectTag), IOCFG_IPU);
-}
-
-static void adcIDDetectStart(void) {
-    ADC_ClearFlag(ADC1, ADC_FLAG_JEOC);
-    ADC_SoftwareStartInjectedConv(ADC1);
-}
-
-static void adcIDDetectWait(void) {
-    while (ADC_GetFlagStatus(ADC1, ADC_FLAG_JEOC) == RESET) {
-        // Empty
-    }
-}
-
-static uint16_t adcIDDetectReadIDDet(void) {
-    return ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_1);
-}
-
-static uint16_t adcIDDetectReadVrefint(void) {
-    return ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_2);
-}
-#endif
-
-#if defined(OMNINXT7)
 #define VREFINT_CAL_ADDR  0x1FF07A2A
 
 #include "drivers/adc_impl.h"
@@ -215,7 +148,6 @@ static uint16_t adcIDDetectReadVrefint(void) {
 static uint16_t adcIDDetectReadIDDet(void) {
     return HAL_ADCEx_InjectedGetValue(&adcIDDetHardware.ADCHandle, ADC_INJECTED_RANK_2);
 }
-#endif
 
 void detectHardwareRevision(void) {
     adcIDDetectInit();
