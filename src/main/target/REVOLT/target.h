@@ -21,13 +21,8 @@
 #pragma once
 
 
-#if defined(EF_VARIANT_REVOLTOSD)
-#define TARGET_BOARD_IDENTIFIER "ROSD"
-#define USBD_PRODUCT_STRING     "RevoltOSD"
-#else
 #define TARGET_BOARD_IDENTIFIER "RVLT"
 #define USBD_PRODUCT_STRING     "Revolt"
-#endif
 
 
 #define TARGET_DEFAULT_MIXER    MIXER_QUADX_1234
@@ -105,24 +100,11 @@
 /*----------Flash Config--------*/
 #define FLASH_CS_PIN            PB3
 
-#if defined(EF_VARIANT_REVOLTOSD)
-#define FLASH_SPI_INSTANCE      SPI2
-#else
 #define FLASH_SPI_INSTANCE      SPI3
-#endif
 
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
-
-#if defined(EF_VARIANT_REVOLTOSD)
-/*----------OSD Config--------*/
-#define USE_MAX7456
-#define MAX7456_SPI_INSTANCE    SPI2
-#define MAX7456_SPI_CS_PIN      PD2
-#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
-#define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
-#endif
 
 
 
@@ -168,5 +150,5 @@
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
+#define USABLE_TIMER_CHANNEL_COUNT 6
 #define USED_TIMERS             ( TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(11) )

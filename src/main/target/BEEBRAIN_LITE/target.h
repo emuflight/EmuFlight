@@ -74,14 +74,6 @@
 #define ACC_MPU6500_ALIGN               CW90_DEG
 
 // *************** RX ******************************
-#if defined(EF_VARIANT_BEEBRAIN_LITED)
-#define SERIALRX_PROVIDER           SERIALRX_SPEKTRUM2048
-#undef  USE_SPEKTRUM_REAL_RSSI
-#undef  USE_SPEKTRUM_FAKE_RSSI
-#define DEFAULT_RX_FEATURE          FEATURE_RX_SERIAL
-#define SERIALRX_UART               SERIAL_PORT_USART2
-#define RX_CHANNELS_TAER
-#else
 #define USE_RX_SPI
 #define RX_SPI_INSTANCE             SPI2
 #define RX_SCK_PIN                  SPI2_SCK_PIN
@@ -104,7 +96,6 @@
 #define USE_RX_FRSKY_SPI_X
 #define USE_RX_REDPINE_SPI
 #define USE_RX_SFHSS_SPI
-#endif
 
 // *************** OSD *****************************
 #define USE_MAX7456
@@ -141,14 +132,6 @@
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_NONE
 
-// *************** FLASH ***************************
-#if defined(EF_VARIANT_BEEBRAIN_LITED)
-#define USE_FLASHFS
-#define USE_FLASH_M25P16
-#define FLASH_CS_PIN                    SPI2_NSS_PIN
-#define FLASH_SPI_INSTANCE              SPI2
-#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-#endif
 // *************** OTHERS **************************
 #define LED0_PIN                        PC13
 #define LED1_PIN                        PC14

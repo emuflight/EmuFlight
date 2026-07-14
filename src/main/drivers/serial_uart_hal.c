@@ -43,6 +43,12 @@
 #include "drivers/serial_uart.h"
 #include "drivers/serial_uart_impl.h"
 
+// Cache-line constants for DMA buffer maintenance (32-byte L1D cache lines on Cortex-M7).
+#if defined(STM32H7)
+#define CACHE_LINE_SIZE  32
+#define CACHE_LINE_MASK  (CACHE_LINE_SIZE - 1)
+#endif
+
 static void usartConfigurePinInversion(uartPort_t *uartPort) {
     bool inverted = uartPort->port.options & SERIAL_INVERTED;
     if (inverted) {
@@ -282,7 +288,11 @@ uint8_t uartRead(serialPort_t *instance) {
     uartPort_t *s = (uartPort_t *)instance;
     if (s->rxDMAStream) {
 #if defined(STM32H7)
-        SCB_InvalidateDCache_by_Addr((uint32_t *)&s->port.rxBuffer[s->port.rxBufferSize - s->rxDMAPos], sizeof(uint8_t));
+        // SCB_InvalidateDCache_by_Addr requires a 32-byte aligned address; align
+        // down to the enclosing cache line and invalidate the whole line so a
+        // stale D-cache line can't mask the byte DMA just wrote to RAM.
+        const uint32_t rawAddr = (uint32_t)&s->port.rxBuffer[s->port.rxBufferSize - s->rxDMAPos];
+        SCB_InvalidateDCache_by_Addr((uint32_t *)(rawAddr & ~CACHE_LINE_MASK), CACHE_LINE_SIZE);
 #endif
         ch = s->port.rxBuffer[s->port.rxBufferSize - s->rxDMAPos];
         if (--s->rxDMAPos == 0)

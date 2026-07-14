@@ -20,13 +20,8 @@
 
 #pragma once
 
-#ifdef EF_VARIANT_FURYF4OSD
-#define TARGET_BOARD_IDENTIFIER "FY4O"
-#define USBD_PRODUCT_STRING     "FuryF4OSD"
-#else
 #define TARGET_BOARD_IDENTIFIER "FYF4"
 #define USBD_PRODUCT_STRING     "FuryF4"
-#endif
 
 #define LED0_PIN                PB5
 #define LED1_PIN                PB4
@@ -80,19 +75,6 @@
 #define USE_BARO_MS5611
 #define MS5611_I2C_INSTANCE     I2CDEV_1
 
-#ifdef EF_VARIANT_FURYF4OSD
-#define USE_MAX7456
-#define MAX7456_SPI_INSTANCE    SPI2
-#define MAX7456_SPI_CS_PIN      PB12
-#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
-#define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
-
-#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-
-#define DEFAULT_FEATURES        FEATURE_OSD
-
-#else
-
 #define USE_SDCARD
 
 #define SDCARD_DETECT_INVERTED
@@ -113,8 +95,6 @@
 #define SDCARD_DMA_CHANNEL                  0
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
-
-#endif
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16

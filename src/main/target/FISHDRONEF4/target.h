@@ -20,13 +20,8 @@
 
 #pragma once
 
-#if defined(EF_VARIANT_STACKX)
-#define TARGET_BOARD_IDENTIFIER "SXF4"
-#define USBD_PRODUCT_STRING     "Stack-X F4"
-#else
 #define TARGET_BOARD_IDENTIFIER "FDF4"
 #define USBD_PRODUCT_STRING     "FishDroneF4"
-#endif
 
 #define LED0_PIN                PC13
 #define LED1_PIN                PC14
@@ -131,11 +126,6 @@
 #define USE_ADC
 #define VBAT_ADC_PIN            PC0
 #define RSSI_ADC_PIN            PC1
-#if defined(EF_VARIANT_STACKX)
-#define CURRENT_METER_ADC_PIN   PA1
-#define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
-#define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
-#endif
 
 // *************** FEATURES ************************
 #define DEFAULT_FEATURES        (FEATURE_OSD)

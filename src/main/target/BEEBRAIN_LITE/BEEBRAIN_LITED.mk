@@ -1,1 +1,0 @@
-# BEEBRAIN_LITED is a variant of BEEBRAIN_LITE with DSM receiver

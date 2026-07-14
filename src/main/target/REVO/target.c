@@ -28,17 +28,6 @@
 #include "drivers/timer_def.h"
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
-#if defined(EF_VARIANT_ELINF405)
-    DEF_TIM(TIM11, CH1,  PB9, TIM_USE_ANY,   0, 0),
-    DEF_TIM(TIM8,  CH2N, PB0, TIM_USE_MOTOR, 0, 0),
-    DEF_TIM(TIM8,  CH3N, PB1, TIM_USE_MOTOR, 0, 0),
-    DEF_TIM(TIM2,  CH4,  PA3, TIM_USE_MOTOR, 0, 0),
-    DEF_TIM(TIM2,  CH3,  PA2, TIM_USE_MOTOR, 0, 0),
-    DEF_TIM(TIM1,  CH1,  PA8, TIM_USE_ANY,   0, 0),
-    DEF_TIM(TIM3,  CH4,  PC9, TIM_USE_ANY,   0, 0),
-    DEF_TIM(TIM4,  CH1,  PB6, TIM_USE_PPM | TIM_USE_LED,   0, 0),
-    DEF_TIM(TIM4,  CH2,  PB7, TIM_USE_ANY, 0, 0), // Camera control
-#else
     DEF_TIM(TIM12, CH1, PB14, TIM_USE_PWM | TIM_USE_PPM,   0, 0), // PPM (5th pin on FlexiIO port)
     DEF_TIM(TIM12, CH2, PB15, TIM_USE_PWM,                 0, 0), // S2_IN
     DEF_TIM(TIM8,  CH1, PC6,  TIM_USE_PWM,                 0, 0), // S3_IN
@@ -49,15 +38,6 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM3,  CH4, PB1,  TIM_USE_MOTOR,               0, 0), // S2_OUT D1_ST2
     DEF_TIM(TIM2,  CH4, PA3,  TIM_USE_MOTOR,               0, 1), // S3_OUT D1_ST6
     DEF_TIM(TIM2,  CH3, PA2,  TIM_USE_MOTOR,               0, 0), // S4_OUT D1_ST1
-#ifdef EF_VARIANT_REVOLT
-    DEF_TIM(TIM4,  CH1, PB6,  TIM_USE_LED,                 0, 0), // LED for REVOLT D1_ST0
-#elif defined(EF_VARIANT_AIRBOTF4) || defined(EF_VARIANT_AIRBOTF4SD)
-    DEF_TIM(TIM5,  CH2, PA1,  TIM_USE_MOTOR,               0, 0), // S5_OUT
-    DEF_TIM(TIM1,  CH1, PA8,  TIM_USE_MOTOR,               0, 0), // S6_OUT
-    DEF_TIM(TIM4,  CH1, PB6,  TIM_USE_LED,                 0, 0), // LED D1_ST0, n/a on older AIRBOTF4
-#else
     DEF_TIM(TIM5,  CH2, PA1,  TIM_USE_MOTOR | TIM_USE_LED, 0, 0), // S5_OUT / LED
     DEF_TIM(TIM5,  CH1, PA0,  TIM_USE_MOTOR,               0, 0), // S6_OUT D1_ST2
-#endif
-#endif
 };

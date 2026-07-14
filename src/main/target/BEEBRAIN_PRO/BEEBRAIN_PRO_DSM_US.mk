@@ -1,1 +1,0 @@
-# BEEBRAIN_PRO_DSM_US is a variant of BEEBRAIN_PRO with DSM receiver and vtx lock
