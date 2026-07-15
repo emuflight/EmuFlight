@@ -46,12 +46,11 @@ void pgResetFn_boardConfig(boardConfig_t *boardConfig) {
         boardConfig->boardInformationSet = true;
     } else {
 #if !defined(GENERIC_TARGET)
-        // BOARD_NAME is not consumed: its value is conventionally the target
-        // name itself, and the build passes -D<TARGETNAME> (bare) for every
-        // target, so STR(BOARD_NAME) collides and expands to "1". MANUFACTURER_ID
-        // has no such collision. strncpy() is explicitly NUL-terminated since
-        // macro values aren't guaranteed to fit MAX_*_LENGTH.
-#if defined(USBD_PRODUCT_STRING)
+        // strncpy() is explicitly NUL-terminated since macro values aren't
+        // guaranteed to fit MAX_*_LENGTH.
+#if defined(BOARD_NAME)
+        strncpy(boardConfig->boardName, STR(BOARD_NAME), MAX_BOARD_NAME_LENGTH);
+#elif defined(USBD_PRODUCT_STRING)
         strncpy(boardConfig->boardName, USBD_PRODUCT_STRING, MAX_BOARD_NAME_LENGTH);
 #else
         strncpy(boardConfig->boardName, targetName, MAX_BOARD_NAME_LENGTH);
