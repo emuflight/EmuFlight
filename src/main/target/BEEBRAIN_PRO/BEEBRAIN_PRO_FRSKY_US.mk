@@ -1,1 +1,0 @@
-# BEEBRAIN_PRO_FRSKY_US is a variant of BEEBRAIN_PRO with frsky receiver and vtx lock

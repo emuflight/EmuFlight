@@ -967,6 +967,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, motorConfig()->minthrottle);
         sbufWriteU16(dst, motorConfig()->maxthrottle);
         sbufWriteU16(dst, motorConfig()->mincommand);
+        sbufWriteU8(dst, getMotorCount());
         break;
 #ifdef USE_MAG
     case MSP_COMPASS_CONFIG:

@@ -119,8 +119,4 @@ else
 $(error Unknown target MCU specified.)
 endif
 
-ifneq ($(BASE_TARGET), $(TARGET))
-TARGET_FLAGS  	:= $(TARGET_FLAGS) -D$(BASE_TARGET)
-endif
-
 TARGET_FLAGS  	:= $(TARGET_FLAGS) -D$(TARGET_MCU)

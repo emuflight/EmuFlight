@@ -20,13 +20,8 @@
 
 #pragma once
 
-#if defined(MAMBAF405US_I2C)
-#define TARGET_BOARD_IDENTIFIER "S405"
-#define USBD_PRODUCT_STRING "MAMBAF405US I2C"
-#else
 #define TARGET_BOARD_IDENTIFIER "S405"
 #define USBD_PRODUCT_STRING "MAMBAF405US"
-#endif
 
 #define USE_TARGET_CONFIG
 
@@ -80,13 +75,8 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_2
 #define I2C_DEVICE              (I2CDEV_2)
-#if defined(MAMBAF405US_I2C)
-#define I2C2_SCL                PB8        // SCL pad  PB10, shared with UART3TX
-#define I2C2_SDA                PB9        // SDA pad  PB11, shared with UART3RX
-#else
 #define I2C2_SCL                NONE        // SCL pad  PB10, shared with UART3TX
 #define I2C2_SDA                NONE        // SDA pad  PB11, shared with UART3RX
-#endif
 #define BARO_I2C_INSTANCE       (I2CDEV_2)
 
 #define USE_MAG
@@ -163,5 +153,5 @@
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
+#define USABLE_TIMER_CHANNEL_COUNT 7
 #define USED_TIMERS  (  TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(11))

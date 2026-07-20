@@ -26,6 +26,8 @@
 #if defined(USE_BOARD_INFO)
 #include "build/version.h"
 
+#include "common/utils.h"
+
 #include "fc/board_info.h"
 
 #include "pg/pg.h"
@@ -37,15 +39,29 @@ PG_REGISTER_WITH_RESET_FN(boardConfig_t, boardConfig, PG_BOARD_CONFIG, 0);
 
 void pgResetFn_boardConfig(boardConfig_t *boardConfig) {
     if (boardInformationIsSet()) {
-        strncpy(boardConfig->manufacturerId, getManufacturerId(), MAX_MANUFACTURER_ID_LENGTH + 1);
-        strncpy(boardConfig->boardName, getBoardName(), MAX_BOARD_NAME_LENGTH + 1);
+        strncpy(boardConfig->manufacturerId, getManufacturerId(), MAX_MANUFACTURER_ID_LENGTH);
+        boardConfig->manufacturerId[MAX_MANUFACTURER_ID_LENGTH] = '\0';
+        strncpy(boardConfig->boardName, getBoardName(), MAX_BOARD_NAME_LENGTH);
+        boardConfig->boardName[MAX_BOARD_NAME_LENGTH] = '\0';
         boardConfig->boardInformationSet = true;
     } else {
 #if !defined(GENERIC_TARGET)
-        strncpy(boardConfig->boardName, targetName, MAX_BOARD_NAME_LENGTH + 1);
-#if defined(TARGET_MANUFACTURER_IDENTIFIER)
-        strncpy(boardConfig->manufacturerId, TARGET_MANUFACTURER_IDENTIFIER, MAX_MANUFACTURER_ID_LENGTH + 1);
+        // strncpy() is explicitly NUL-terminated since macro values aren't
+        // guaranteed to fit MAX_*_LENGTH.
+#if defined(BOARD_NAME)
+        strncpy(boardConfig->boardName, STR(BOARD_NAME), MAX_BOARD_NAME_LENGTH);
+#elif defined(USBD_PRODUCT_STRING)
+        strncpy(boardConfig->boardName, USBD_PRODUCT_STRING, MAX_BOARD_NAME_LENGTH);
+#else
+        strncpy(boardConfig->boardName, targetName, MAX_BOARD_NAME_LENGTH);
 #endif
+        boardConfig->boardName[MAX_BOARD_NAME_LENGTH] = '\0';
+#if defined(MANUFACTURER_ID)
+        strncpy(boardConfig->manufacturerId, STR(MANUFACTURER_ID), MAX_MANUFACTURER_ID_LENGTH);
+#elif defined(TARGET_MANUFACTURER_IDENTIFIER)
+        strncpy(boardConfig->manufacturerId, TARGET_MANUFACTURER_IDENTIFIER, MAX_MANUFACTURER_ID_LENGTH);
+#endif
+        boardConfig->manufacturerId[MAX_MANUFACTURER_ID_LENGTH] = '\0';
         boardConfig->boardInformationSet = true;
 #else
         boardConfig->boardInformationSet = false;

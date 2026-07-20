@@ -246,8 +246,6 @@ endif
 
 DEVICE_FLAGS    += -DHSE_VALUE=$(HSE_VALUE) -DHSE_STARTUP_TIMEOUT=1000 -DSTM32
 
-TARGET_FLAGS   += -D$(shell echo $(TARGET) | sed 's/^[0-9]/_&/')
-
 VCP_SRC = \
             vcp_hal/usbd_desc.c \
             vcp_hal/usbd_conf_stm32h7xx.c \
