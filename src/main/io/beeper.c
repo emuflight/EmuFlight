@@ -39,6 +39,8 @@
 #include "fc/fc_core.h"
 #include "fc/runtime_config.h"
 
+#include "scheduler/scheduler.h"
+
 #include "io/statusindicator.h"
 #include "io/vtx_control.h"
 
@@ -383,6 +385,7 @@ void beeperUpdate(timeUs_t currentTimeUs) {
         return;
     }
     if (beeperNextToggleTime > currentTimeUs) {
+        schedulerIgnoreTaskExecTime();
         return;
     }
     if (!beeperIsOn) {

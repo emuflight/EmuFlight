@@ -23,31 +23,12 @@
 #define USE_TARGET_CONFIG
 
 // OMNIBUSF4FW for Version 2
-// OMNIBUSF4FW1/OFW1 for Public Test Version
-// (Not a valid target, .mk file must be supplied by a user)
-// OMNIBUSF4V6
 
-#if defined(OMNIBUSF4V6)
-#define TARGET_BOARD_IDENTIFIER "OBV6"
-#elif defined(OMNIBUSF4FW1)
-#define TARGET_BOARD_IDENTIFIER "OFW1"
-#else
 #define TARGET_BOARD_IDENTIFIER "OBFW"
-#endif
 
-#if defined(OMNIBUSF4FW1)
-#define USBD_PRODUCT_STRING "OmnibusF4 FWProto1"
-#elif defined(OMNIBUSF4V6)
-#define USBD_PRODUCT_STRING "OmnibusF4 V6"
-#else
 #define USBD_PRODUCT_STRING "OmnibusF4 Fireworks"
-#endif
 
-#if defined(OMNIBUSF4FW1)
-#define LED0_PIN                PB5
-#else
 #define LED0_PIN                PA8
-#endif
 
 #define USE_BEEPER
 #define BEEPER_PIN              PB4
@@ -63,35 +44,24 @@
 
 #define USE_DUAL_GYRO
 
-#if defined(OMNIBUSF4V6)
-#define GYRO_1_CS_PIN           PA4   // Onboard IMU
-#define GYRO_1_SPI_BUS     SPIDEV_1
-#define GYRO_2_CS_PIN           PC14  // External IMU
-#define GYRO_2_SPI_BUS     SPIDEV_1
-#else
 #define GYRO_1_CS_PIN           PD2
 #define GYRO_1_SPI_BUS     SPIDEV_3
 #define GYRO_2_CS_PIN           PA4
 #define GYRO_2_SPI_BUS     SPIDEV_1
-#endif
 
 #define GYRO_1_ALIGN            CW180_DEG
 #define ACC_1_ALIGN             CW180_DEG
 
-#if defined(OMNIBUSF4V6)
-#define GYRO_2_ALIGN            CW0_DEG
-#define ACC_2_ALIGN             CW0_DEG
-#else
 #define GYRO_2_ALIGN            CW0_DEG_FLIP
 #define ACC_2_ALIGN             CW0_DEG_FLIP
-#endif
 
 #define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
 
-// MPU6000 interrupts
-#define USE_EXTI
-#define MPU_INT_EXTI            PC4
-#define USE_MPU_DATA_READY_SIGNAL
+// Gyro 1 (SPIDEV_3) shares its SPI bus with the MAX7456 OSD (also SPI3);
+// interrupt-driven gyro reads conflict with OSD SPI transactions on this
+// shared bus, so polling is used instead (confirmed via Betaflight's own
+// unified-targets history for this board: "Disabling GYRO_EXTI since gyro
+// and OSD are on same SPI bus").
 
 #define USE_MAG
 #define MAG_I2C_INSTANCE        (I2CDEV_1)
@@ -170,23 +140,12 @@
 #define SPI3_MOSI_PIN           PC12
 
 #define USE_I2C
-#if defined(OMNIBUSF4V6)
-#define USE_I2C_DEVICE_1
-#define I2C1_SCL                PB8 // SCL PIN,alt MST8
-#define I2C1_SDA                PB9 // SDA PIN,alt MST7
-#define I2C_DEVICE              (I2CDEV_1)
-#else
 #define USE_I2C_DEVICE_2
 #define I2C2_SCL                NONE // PB10, shared with UART3TX
 #define I2C2_SDA                NONE // PB11, shared with UART3RX
 #define I2C_DEVICE              (I2CDEV_2)
-#endif
 
-#if defined(OMNIBUSF4V6)
-#define CAMERA_CONTROL_PIN      PB7
-#else
 #define CAMERA_CONTROL_PIN      PB9
-#endif
 
 #define USE_ADC
 #define ADC_INSTANCE            ADC2
@@ -195,10 +154,8 @@
 #define RSSI_ADC_PIN            PA0  // Direct from RSSI pad
 
 // Allegro Systems ACS781KLRTR-150U-T
-#if !defined(OMNIBUSF4V6)
 #define DEFAULT_CURRENT_METER_SCALE  176
 #define CURRENT_METER_OFFSET_DEFAULT -18500
-#endif
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC

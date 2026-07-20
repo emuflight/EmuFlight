@@ -68,6 +68,7 @@ extern "C" {
     }
 
     // minimal stubs for beeper.c dependencies
+    void schedulerIgnoreTaskExecTime(void) {}
     void BEEP_ON_stub(void) {}
     void BEEP_OFF_stub(void) {}
     void warningLedEnable(void) {}

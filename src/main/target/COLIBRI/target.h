@@ -23,9 +23,6 @@
 #define TARGET_BOARD_IDENTIFIER "COLI"
 
 #define USBD_PRODUCT_STRING "Colibri"
-#ifdef OPBL
-#define USBD_SERIALNUMBER_STRING "0x8020000"
-#endif
 
 #define TARGET_XTAL_MHZ         16
 

@@ -22,7 +22,7 @@
 
 #define BOARD_NAME        PLUMF4
 #define MANUFACTURER_ID   FLLF
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
+#define TARGET_BOARD_IDENTIFIER "PLUM"
 #define FC_TARGET_MCU     STM32F405     // not used in EmuF
 
 #define USE_ACC
