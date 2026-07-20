@@ -1,9 +1,5 @@
 F405_TARGETS   += $(TARGET)
-ifeq ($(TARGET), AIRBOTF4SD)
-FEATURES       = VCP SDCARD
-else
 FEATURES       = VCP ONBOARDFLASH
-endif
 
 TARGET_SRC = \
             drivers/accgyro/accgyro_spi_mpu6000.c \

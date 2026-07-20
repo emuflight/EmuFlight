@@ -147,8 +147,6 @@ $(error Unknown MCU for F7 target)
 endif
 DEVICE_FLAGS    += -DHSE_VALUE=$(HSE_VALUE)
 
-TARGET_FLAGS    = -D$(TARGET)
-
 VCP_SRC = \
             vcp_hal/usbd_desc.c \
             vcp_hal/usbd_conf.c \

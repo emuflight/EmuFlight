@@ -51,6 +51,7 @@ static FAST_RAM_ZERO_INIT uint32_t totalWaitingTasks;
 static FAST_RAM_ZERO_INIT uint32_t totalWaitingTasksSamples;
 
 static FAST_RAM_ZERO_INIT bool calculateTaskStatistics;
+static FAST_RAM_ZERO_INIT bool ignoreCurrentTaskExecTime;
 FAST_RAM_ZERO_INIT uint16_t averageSystemLoadPercent = 0;
 
 
@@ -218,6 +219,29 @@ void schedulerResetTaskMaxExecutionTime(cfTaskId_e taskId) {
 #endif
 }
 
+// Called by tasks executing what are known to be short states
+void schedulerIgnoreTaskStateTime(void)
+{
+    ignoreCurrentTaskExecTime = true;
+}
+
+// Called by tasks with state machines to only count one state as determining rate.
+// EF scheduler does not track a delta-time moving sum, so this is a no-op here.
+void schedulerIgnoreTaskExecRate(void)
+{
+}
+
+// Called by tasks without state machines executing in what is known to be a shorter time than peak
+void schedulerIgnoreTaskExecTime(void)
+{
+    ignoreCurrentTaskExecTime = true;
+}
+
+bool schedulerGetIgnoreTaskExecTime(void)
+{
+    return ignoreCurrentTaskExecTime;
+}
+
 void schedulerInit(void) {
     calculateTaskStatistics = true;
     queueClear();
@@ -311,6 +335,7 @@ FAST_CODE GCC_OPTIMIZE_SIZE void scheduler(void) {
         selectedTask->taskLatestDeltaTime = currentTimeUs - selectedTask->lastExecutedAt;
         selectedTask->lastExecutedAt = currentTimeUs;
         selectedTask->dynamicPriority = 0;
+        ignoreCurrentTaskExecTime = false;
         // Execute task
 #ifdef SKIP_TASK_STATISTICS
         selectedTask->taskFunc(currentTimeUs);
@@ -321,7 +346,9 @@ FAST_CODE GCC_OPTIMIZE_SIZE void scheduler(void) {
             const timeUs_t taskExecutionTime = micros() - currentTimeBeforeTaskCall;
             selectedTask->movingSumExecutionTime += taskExecutionTime - selectedTask->movingSumExecutionTime / MOVING_SUM_COUNT;
             selectedTask->totalExecutionTime += taskExecutionTime;   // time consumed by scheduler + task
-            selectedTask->maxExecutionTime = MAX(selectedTask->maxExecutionTime, taskExecutionTime);
+            if (!ignoreCurrentTaskExecTime) {
+                selectedTask->maxExecutionTime = MAX(selectedTask->maxExecutionTime, taskExecutionTime);
+            }
         } else {
             selectedTask->taskFunc(currentTimeUs);
         }

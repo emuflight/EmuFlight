@@ -171,9 +171,8 @@ uint32_t CDC_Send_DATA(const uint8_t *ptrBuffer, uint32_t sendLength) {
             return 0;
         }
     }
+    uint32_t deadline = millis() + 2;
     for (uint32_t i = 0; i < sendLength; i++) {
-        // Wait up to 2 ms per byte for ring-buffer space; return partial count on timeout.
-        uint32_t deadline = millis() + 2;
         while (CDC_Send_FreeBytes() == 0) {
             if (millis() >= deadline) {
                 return i;

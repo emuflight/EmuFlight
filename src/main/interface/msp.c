@@ -967,6 +967,7 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         sbufWriteU16(dst, motorConfig()->minthrottle);
         sbufWriteU16(dst, motorConfig()->maxthrottle);
         sbufWriteU16(dst, motorConfig()->mincommand);
+        sbufWriteU8(dst, getMotorCount());
         break;
 #ifdef USE_MAG
     case MSP_COMPASS_CONFIG:
@@ -1526,6 +1527,7 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, 
         readEEPROM();
         break;
     case MSP_EEPROM_WRITE:
+        schedulerIgnoreTaskStateTime(); // EEPROM write is slow; don't inflate task maxload
         writeEEPROM();
         readEEPROM();
         break;
@@ -2043,6 +2045,7 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
         if (ARMING_FLAG(ARMED)) {
         return MSP_RESULT_ERROR;
         }
+        schedulerIgnoreTaskStateTime(); // EEPROM write is slow; don't inflate task maxload
         writeEEPROM();
         readEEPROM();
         break;

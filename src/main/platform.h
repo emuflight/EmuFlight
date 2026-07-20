@@ -174,6 +174,15 @@
 
 #include "target/common_fc_pre.h"
 #include "target.h"
+
+// USB product name: prefer BOARD_NAME from target.h; otherwise fall back to
+// the target-specific USBD_PRODUCT_STRING defined in target.h.
+#if defined(BOARD_NAME) && !defined(USBD_PRODUCT_STRING)
+#define USBD_PRODUCT_STRINGIFY_(x) #x
+#define USBD_PRODUCT_STRINGIFY(x) USBD_PRODUCT_STRINGIFY_(x)
+#define USBD_PRODUCT_STRING "EmuFlight - " USBD_PRODUCT_STRINGIFY(BOARD_NAME)
+#endif
+
 #include "target/common_fc_post.h"
 #include "target/common_defaults_post.h"
 
