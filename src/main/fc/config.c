@@ -59,6 +59,8 @@
 
 #include "rx/rx.h"
 
+#include "scheduler/scheduler.h"
+
 #include "sensors/acceleration.h"
 #include "sensors/battery.h"
 #include "sensors/gyro.h"
@@ -547,6 +549,8 @@ void ensureEEPROMStructureIsValid(void) {
 }
 
 void saveConfigAndNotify(void) {
+    // The write to EEPROM will cause a big delay in the current task, so ignore
+    schedulerIgnoreTaskExecTime();
     writeEEPROM();
     readEEPROM();
     beeperConfirmationBeeps(1);
@@ -574,6 +578,8 @@ void changePidProfileFromCellCount(uint8_t cellCount) {
 
 #ifndef USE_OSD_SLAVE
 void changePidProfile(uint8_t pidProfileIndex) {
+    // The config switch will cause a big enough delay in the current task to upset the scheduler
+    schedulerIgnoreTaskExecTime();
     if (pidProfileIndex < PID_PROFILE_COUNT) {
         systemConfigMutable()->pidProfileIndex = pidProfileIndex;
         loadPidProfile();

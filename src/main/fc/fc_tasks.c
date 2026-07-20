@@ -150,6 +150,18 @@ static void taskHandleSerial(timeUs_t currentTimeUs) {
 #if defined(USE_VCP)
     DEBUG_SET(DEBUG_USB, 0, usbCableIsInserted());
     DEBUG_SET(DEBUG_USB, 1, usbVcpIsConnected());
+    // Reset maxExecutionTime on USB connect so the tasks output reflects
+    // post-connect steady-state rather than any pre-connect accumulation.
+    // Ticks blocked on CDC TX backpressure are suppressed in usbVcpFlush /
+    // usbVcpWriteBuf so the initial-connect spike never inflates maxload.
+    {
+        static bool vcpWasConnected = false;
+        const bool vcpConnected = usbVcpIsConnected();
+        if (vcpConnected && !vcpWasConnected) {
+            schedulerResetTaskMaxExecutionTime(TASK_SELF);
+        }
+        vcpWasConnected = vcpConnected;
+    }
 #endif
 #ifdef USE_CLI
     // in cli mode, all serial stuff goes to here. enter cli mode by sending #

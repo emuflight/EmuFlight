@@ -38,6 +38,8 @@
 
 #include "fc/runtime_config.h"
 
+#include "scheduler/scheduler.h"
+
 #include "flight/imu.h"
 #include "flight/mixer.h"
 #include "flight/pid.h"
@@ -370,6 +372,7 @@ void imuUpdateAttitude(timeUs_t currentTimeUs) {
         acc.accADC[X] = 0;
         acc.accADC[Y] = 0;
         acc.accADC[Z] = 0;
+        schedulerIgnoreTaskStateTime();
     }
 }
 

@@ -56,6 +56,7 @@ USBD_HandleTypeDef USBD_Device;
 #endif
 
 #include "drivers/time.h"
+#include "scheduler/scheduler.h"
 
 #include "serial.h"
 #include "serial_usb_vcp.h"
@@ -119,6 +120,12 @@ static void usbVcpWriteBuf(serialPort_t *instance, const void *data, int count) 
         uint32_t txed = CDC_Send_DATA(p, count);
         count -= txed;
         p += txed;
+        if (count > 0) {
+            // CDC TX is backing up — USB_Tx_State stuck or ring buffer full.
+            // Exclude this tick from maxExecutionTime: USB I/O wait is not
+            // task execution time and would permanently inflate maxload.
+            schedulerIgnoreTaskExecTime();
+        }
         if (millis() - start > USB_TIMEOUT) {
             break;
         }
@@ -140,6 +147,12 @@ static bool usbVcpFlush(vcpPort_t *port) {
         uint32_t txed = CDC_Send_DATA(p, count);
         count -= txed;
         p += txed;
+        if (count > 0) {
+            // CDC TX is backing up — USB_Tx_State stuck or ring buffer full.
+            // Exclude this tick from maxExecutionTime: USB I/O wait is not
+            // task execution time and would permanently inflate maxload.
+            schedulerIgnoreTaskExecTime();
+        }
         if (millis() - start > USB_TIMEOUT) {
             break;
         }

@@ -120,4 +120,5 @@ bool accIsHealthy(quaternion *) { return false; }
 bool compassGetAverage(quaternion *) { return false; }
 bool isBeeperOn(void){ return true; }
 void pinioBoxTaskControl(void) {}
+void schedulerIgnoreTaskStateTime(void) {}
 }
