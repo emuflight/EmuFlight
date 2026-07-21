@@ -33,7 +33,6 @@
 #include "common/maths.h"
 #include "drivers/serial.h"
 #include "drivers/bus_spi.h"
-#include "drivers/dma_spi.h"
 #include "drivers/exti.h"
 #include "drivers/io.h"
 #include "drivers/light_led.h"
@@ -198,6 +197,21 @@ void initImuf9001(void) {
 
 FAST_CODE static bool imufSendReceiveSpi(const extDevice_t *dev, uint8_t *dataTx, uint8_t *daRx, uint8_t length) {
     return spiReadWriteBufRB(dev, dataTx, daRx, length);
+}
+
+// Called by gyroUpdateSensor each GYROPID cycle.
+// If the EXTI ISR signalled a pending IMUF sample, execute the SPI transfer HERE (task context)
+// rather than in ISR context.  This keeps the EXTI ISR < 1 µs and frees ~32% of the F405
+// CPU that was previously consumed by 15–20 µs polling SPI running at 16 kHz inside the ISR.
+// imufIntCallback (called synchronously from spiSequence polling path) sets dataReady = true;
+// gyroUpdateSensor clears it, so the GYROPID naturally runs at IMUF's actual data rate.
+FAST_CODE static bool imufSpiGyroRead(gyroDev_t *gyro) {
+    if (imufTransferPending) {
+        imufTransferPending = false;      // clear before SPI so a racing EXTI re-sets it
+        imufPrepareDmaRead(gyro);
+        spiSequence(&gyro->dev, gyro->segments);
+    }
+    return gyro->dataReady;
 }
 
 FAST_CODE static int imuf9001SendReceiveCommand(const gyroDev_t *gyro, gyroCommands_t commandToSend, imufCommand_t *reply, imufCommand_t *data) {
@@ -403,6 +417,9 @@ uint8_t imuf9001SpiDetect(const gyroDev_t *gyro) {
     IOInit(gyro->dev.busType_u.spi.csnPin, OWNER_MPU_CS, 0);
     IOConfigGPIO(gyro->dev.busType_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(gyro->dev.busType_u.spi.csnPin);
+    // IMUF9001 uses SPI Mode 0 (CPOL_Low/CPHA_1Edge) at 21 MHz — match dmaSpiInit settings
+    spiSetClkPhasePolarity(&gyro->dev, true);
+    spiSetClkDivisor(&gyro->dev, 4);
     hardwareInitialised = true;
     for (int x = 0; x < 3; x++) {
         if (x) {
@@ -491,6 +508,7 @@ void imufSpiGyroInit(gyroDev_t *gyro) {
         if (imuf9001SendReceiveCommand(gyro, IMUF_COMMAND_SETUP, &txData, &rxData)) {
             //enable EXTI
             mpuGyroInit(gyro);
+            mpuImufSetupDma(gyro);
             return;
         }
     }
@@ -517,6 +535,7 @@ bool imufSpiGyroDetect(gyroDev_t *gyro) {
         return false;
     }
     gyro->initFn = imufSpiGyroInit;
+    gyro->readFn = imufSpiGyroRead;
     gyro->scale = 1.0f;
     gyro->mpuConfiguration.resetFn = resetImuf9001;
     return true;

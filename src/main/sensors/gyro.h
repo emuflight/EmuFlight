@@ -186,10 +186,6 @@ bool gyroInit(void);
 
 void gyroInitFilters(void);
 
-#ifdef USE_DMA_SPI_DEVICE
-void gyroDmaSpiFinishRead(void);
-void gyroDmaSpiStartRead(void);
-#endif
 void gyroUpdate(timeUs_t currentTimeUs);
 bool gyroGetAverage(quaternion *vAverage);
 const extDevice_t *gyroSensorBus(void);
