@@ -3637,10 +3637,8 @@ static void cliTasks(char *cmdline) {
             }
             const int maxLoad = taskInfo.maxExecutionTime == 0 ? 0 : (taskInfo.maxExecutionTime * taskFrequency) / 1000;
             const int averageLoad = taskInfo.averageExecutionTime == 0 ? 0 : (taskInfo.averageExecutionTime * taskFrequency) / 1000;
-            if (taskId != TASK_SERIAL) {
-                maxLoadSum += maxLoad;
-                averageLoadSum += averageLoad;
-            }
+            maxLoadSum += maxLoad;
+            averageLoadSum += averageLoad;
             if (systemConfig()->task_statistics) {
                 cliPrintLinef("%6d %7d %7d %4d.%1d%% %4d.%1d%% %9d",
                               taskFrequency, taskInfo.maxExecutionTime, taskInfo.averageExecutionTime,
@@ -3658,7 +3656,7 @@ static void cliTasks(char *cmdline) {
         cfCheckFuncInfo_t checkFuncInfo;
         getCheckFuncInfo(&checkFuncInfo);
         cliPrintLinef("RX Check Function %19d %7d %25d", checkFuncInfo.maxExecutionTime, checkFuncInfo.averageExecutionTime, checkFuncInfo.totalExecutionTime / 1000);
-        cliPrintLinef("Total (excluding SERIAL) %25d.%1d%% %4d.%1d%%", maxLoadSum / 10, maxLoadSum % 10, averageLoadSum / 10, averageLoadSum % 10);
+        cliPrintLinef("Total %44d.%1d%% %4d.%1d%%", maxLoadSum / 10, maxLoadSum % 10, averageLoadSum / 10, averageLoadSum % 10);
     }
 }
 #endif
