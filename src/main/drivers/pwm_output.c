@@ -24,6 +24,8 @@
 #include <math.h>
 
 #include "platform.h"
+#include "common/maths.h"
+#include "common/utils.h"
 #include "drivers/time.h"
 
 #include "drivers/io.h"
@@ -415,17 +417,18 @@ void pwmWriteDshotCommand(uint8_t index, uint8_t motorCount, uint8_t command, bo
         }
         delayMicroseconds(delayAfterCommandUs);
     } else {
+        const uint8_t safeCount = MIN(motorCount, (uint8_t)ARRAYLEN(dshotCommandControl.command));
         dshotCommandControl.repeats = repeats;
         dshotCommandControl.nextCommandAtUs = timeNowUs + DSHOT_INITIAL_DELAY_US;
         dshotCommandControl.delayAfterCommandUs = delayAfterCommandUs;
-        for (unsigned i = 0; i < motorCount; i++) {
+        for (unsigned i = 0; i < safeCount; i++) {
             if (index == i || index == ALL_MOTORS) {
                 dshotCommandControl.command[i] = command;
             } else {
                 dshotCommandControl.command[i] = DSHOT_CMD_MOTOR_STOP;
             }
         }
-        dshotCommandControl.waitingForIdle = !allMotorsAreIdle(motorCount);
+        dshotCommandControl.waitingForIdle = !allMotorsAreIdle(safeCount);
     }
 }
 
