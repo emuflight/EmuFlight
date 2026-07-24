@@ -321,6 +321,51 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             io/spektrum_vtx_control.c \
             pg/pg.h
 
+# Init/config/telemetry paths not on the main control loop (issue #1221)
+SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
+            drivers/flash.c \
+            drivers/flash_m25p16.c \
+            drivers/flash_w25m.c \
+            drivers/flash_w25n.c \
+            drivers/flash_w25q128fv.c \
+            telemetry/telemetry.c \
+            telemetry/crsf.c \
+            telemetry/ghst.c \
+            telemetry/srxl.c \
+            telemetry/frsky_hub.c \
+            telemetry/hott.c \
+            telemetry/jetiexbus.c \
+            telemetry/smartport.c \
+            telemetry/ltm.c \
+            telemetry/mavlink.c \
+            telemetry/msp_shared.c \
+            telemetry/ibus.c \
+            telemetry/ibus_shared.c \
+            io/gps.c \
+            flight/gps_rescue.c \
+            flight/position.c \
+            drivers/rangefinder/rangefinder_hcsr04.c \
+            drivers/rangefinder/rangefinder_lidartf.c \
+            sensors/rangefinder.c \
+            sensors/initialisation.c \
+            sensors/barometer.c \
+            sensors/compass.c \
+            io/ledstrip.c \
+            io/pidaudio.c \
+            io/rcdevice.c \
+            io/rcdevice_cam.c \
+            io/displayport_max7456.c \
+            io/displayport_msp.c \
+            io/displayport_hdzero_osd.c \
+            io/displayport_oled.c \
+            io/displayport_srxl.c \
+            io/displayport_crsf.c \
+            cms/cms_menu_failsafe.c \
+            cms/cms_menu_gps_rescue.c \
+            sensors/esc_sensor.c \
+            drivers/camera_control.c \
+            io/vtx_beesign.c
+
 # F4 and F7 optimizations
 ifneq ($(TARGET),$(filter $(TARGET),$(F3_TARGETS)))
 SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
