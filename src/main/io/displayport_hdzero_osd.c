@@ -377,7 +377,7 @@ displayPort_t* hdzeroOsdDisplayPortInit(void)
  * VTX sends an MSP command every 125ms or so.
  * VTX will have be marked as not ready if no commands received within VTX_TIMEOUT.
  */
-static mspResult_e hdZeroProcessMspCommand(mspPacket_t *cmd, mspPacket_t *reply, mspPostProcessFnPtr *mspPostProcessFn)
+static mspResult_e hdZeroProcessMspCommand(mspDescriptor_t srcDesc, mspPacket_t *cmd, mspPacket_t *reply, mspPostProcessFnPtr *mspPostProcessFn)
 {
     if (vtxSeen && !vtxActive) {
         vtxReset = true;
@@ -409,7 +409,7 @@ static mspResult_e hdZeroProcessMspCommand(mspPacket_t *cmd, mspPacket_t *reply,
     }
 
     // Process MSP command
-    return mspProcessCommand(cmd, reply, mspPostProcessFn);
+    return mspProcessCommand(srcDesc, cmd, reply, mspPostProcessFn);
 }
 
 void hdzeroOsdSerialProcess(mspProcessCommandFnPtr mspProcessCommandFn)
