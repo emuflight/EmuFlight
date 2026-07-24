@@ -154,7 +154,7 @@ static int mspDescriptorCounter = 0;
 mspDescriptor_t mspDescriptorAlloc(void)
 {
     if (mspDescriptorCounter >= (int)(sizeof(uint32_t) * 8)) {
-        return (mspDescriptor_t)0;
+        return MSP_DESCRIPTOR_INVALID;
     }
     return (mspDescriptor_t)mspDescriptorCounter++;
 }
@@ -163,11 +163,17 @@ static uint32_t mspArmingDisableFlags = 0;
 
 static void mspArmingDisableByDescriptor(mspDescriptor_t desc)
 {
+    if (desc < 0 || desc >= (int)(sizeof(uint32_t) * 8)) {
+        return;
+    }
     mspArmingDisableFlags |= ((uint32_t)1 << desc);
 }
 
 static void mspArmingEnableByDescriptor(mspDescriptor_t desc)
 {
+    if (desc < 0 || desc >= (int)(sizeof(uint32_t) * 8)) {
+        return;
+    }
     mspArmingDisableFlags &= ~((uint32_t)1 << desc);
 }
 
@@ -2113,6 +2119,9 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
     break;
 #endif
         case MSP_SET_ARMING_DISABLED: {
+    if (srcDesc < 0 || srcDesc >= (int)(sizeof(uint32_t) * 8)) {
+    return MSP_RESULT_ERROR;
+    }
     const uint8_t command = sbufReadU8(src);
     uint8_t disableRunawayTakeoff = 0;
 #ifndef USE_RUNAWAY_TAKEOFF
