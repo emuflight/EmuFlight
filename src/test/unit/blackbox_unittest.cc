@@ -410,3 +410,51 @@ bool rxIsReceivingSignal(void) {return false;}
 bool isRssiConfigured(void) {return false;}
 
 }
+
+TEST(BlackboxTest, TestFieldMasking)
+{
+    // NONZERO_PID_D_x dereferences currentPidProfile; give it real, nonzero-D backing storage, not the stub's NULL.
+    static pidProfile_t testPidProfile = {};
+    testPidProfile.pid[PID_ROLL].D = 1;
+    testPidProfile.pid[PID_PITCH].D = 1;
+    testPidProfile.pid[PID_YAW].D = 1;
+    currentPidProfile = &testPidProfile;
+
+    // All fields enabled by default (fields_disabled_mask == 0)
+    blackboxConfigMutable()->fields_disabled_mask = 0;
+    blackboxBuildConditionCache();
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYRO));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_RC_COMMANDS));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_SETPOINT));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_PID));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_NONZERO_PID_D_0));
+
+    // Disabling GYRO via the mask must not affect unrelated fields (RC_COMMANDS, SETPOINT)
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_GYRO);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYRO));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_RC_COMMANDS));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_SETPOINT));
+
+    // Disabling a different field (RC_COMMANDS) must re-enable GYRO and leave SETPOINT untouched
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_RC_COMMANDS);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYRO));
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_RC_COMMANDS));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_SETPOINT));
+
+    // Multiple bits combine (PID + SETPOINT disabled simultaneously); disabling PID also masks nonzero D-term
+    blackboxConfigMutable()->fields_disabled_mask =
+        (1 << FLIGHT_LOG_FIELD_SELECT_PID) | (1 << FLIGHT_LOG_FIELD_SELECT_SETPOINT);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_PID));
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_NONZERO_PID_D_0));
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_SETPOINT));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_RC_COMMANDS));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYRO));
+
+    // Reset global stub state so no later test observes this fixture through the shared pointer/mask
+    blackboxConfigMutable()->fields_disabled_mask = 0;
+    blackboxBuildConditionCache();
+    currentPidProfile = NULL;
+}
