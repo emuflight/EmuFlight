@@ -55,6 +55,7 @@ typedef struct mspPacket_s {
 } mspPacket_t;
 
 typedef int mspDescriptor_t;
+#define MSP_DESCRIPTOR_INVALID ((mspDescriptor_t)-1)
 
 struct serialPort_s;
 typedef void (*mspPostProcessFnPtr)(struct serialPort_s *port); // msp post process function, used for gracefully handling reboots, etc.
