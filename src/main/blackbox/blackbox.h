@@ -55,6 +55,7 @@ typedef struct blackboxConfig_s {
     uint8_t device;
     uint8_t record_acc;
     uint8_t mode;
+    uint8_t record_gyro_unfilt;
 } blackboxConfig_t;
 
 PG_DECLARE(blackboxConfig_t, blackboxConfig);

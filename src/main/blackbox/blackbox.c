@@ -88,13 +88,14 @@
 #define DEFAULT_BLACKBOX_DEVICE     BLACKBOX_DEVICE_SERIAL
 #endif
 
-PG_REGISTER_WITH_RESET_TEMPLATE(blackboxConfig_t, blackboxConfig, PG_BLACKBOX_CONFIG, 1);
+PG_REGISTER_WITH_RESET_TEMPLATE(blackboxConfig_t, blackboxConfig, PG_BLACKBOX_CONFIG, 2);
 
 PG_RESET_TEMPLATE(blackboxConfig_t, blackboxConfig,
                   .p_ratio = 48,
                   .device = DEFAULT_BLACKBOX_DEVICE,
                   .record_acc = 1,
-                  .mode = BLACKBOX_MODE_NORMAL
+                  .mode = BLACKBOX_MODE_NORMAL,
+                  .record_gyro_unfilt = 0
                  );
 
 #define BLACKBOX_SHUTDOWN_TIMEOUT_MILLIS 200
@@ -222,6 +223,9 @@ static const blackboxDeltaFieldDefinition_t blackboxMainFields[] = {
     {"gyroADC",     0, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(AVERAGE_2),     .Pencode = ENCODING(SIGNED_VB), CONDITION(ALWAYS)},
     {"gyroADC",     1, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(AVERAGE_2),     .Pencode = ENCODING(SIGNED_VB), CONDITION(ALWAYS)},
     {"gyroADC",     2, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(AVERAGE_2),     .Pencode = ENCODING(SIGNED_VB), CONDITION(ALWAYS)},
+    {"gyroUnfilt",  0, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(AVERAGE_2),     .Pencode = ENCODING(SIGNED_VB), CONDITION(GYROUNFILT)},
+    {"gyroUnfilt",  1, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(AVERAGE_2),     .Pencode = ENCODING(SIGNED_VB), CONDITION(GYROUNFILT)},
+    {"gyroUnfilt",  2, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(AVERAGE_2),     .Pencode = ENCODING(SIGNED_VB), CONDITION(GYROUNFILT)},
     {"accSmooth",   0, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(AVERAGE_2),     .Pencode = ENCODING(SIGNED_VB), FLIGHT_LOG_FIELD_CONDITION_ACC},
     {"accSmooth",   1, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(AVERAGE_2),     .Pencode = ENCODING(SIGNED_VB), FLIGHT_LOG_FIELD_CONDITION_ACC},
     {"accSmooth",   2, SIGNED,   .Ipredict = PREDICT(0),       .Iencode = ENCODING(SIGNED_VB),   .Ppredict = PREDICT(AVERAGE_2),     .Pencode = ENCODING(SIGNED_VB), FLIGHT_LOG_FIELD_CONDITION_ACC},
@@ -303,6 +307,7 @@ typedef struct blackboxMainState_s {
     int16_t rcCommand[4];
     int16_t setpoint[4];
     int16_t gyroADC[XYZ_AXIS_COUNT];
+    int16_t gyroUnfilt[XYZ_AXIS_COUNT];
     int16_t accADC[XYZ_AXIS_COUNT];
     int16_t debug[DEBUG16_VALUE_COUNT];
     int16_t motor[MAX_SUPPORTED_MOTORS];
@@ -452,6 +457,8 @@ static bool testBlackboxConditionUncached(FlightLogFieldCondition condition) {
         return blackboxConfig()->p_ratio != 1;
     case FLIGHT_LOG_FIELD_CONDITION_ACC:
         return sensors(SENSOR_ACC) && blackboxConfig()->record_acc;
+    case FLIGHT_LOG_FIELD_CONDITION_GYROUNFILT:
+        return blackboxConfig()->record_gyro_unfilt;
     case FLIGHT_LOG_FIELD_CONDITION_DEBUG:
         return debugMode != DEBUG_NONE;
     case FLIGHT_LOG_FIELD_CONDITION_NEVER:
@@ -562,6 +569,9 @@ static void writeIntraframe(void) {
         blackboxWriteUnsignedVB(blackboxCurrent->rssi);
     }
     blackboxWriteSigned16VBArray(blackboxCurrent->gyroADC, XYZ_AXIS_COUNT);
+    if (testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYROUNFILT)) {
+        blackboxWriteSigned16VBArray(blackboxCurrent->gyroUnfilt, XYZ_AXIS_COUNT);
+    }
     if (testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_ACC)) {
         blackboxWriteSigned16VBArray(blackboxCurrent->accADC, XYZ_AXIS_COUNT);
     }
@@ -672,6 +682,9 @@ static void writeInterframe(void) {
     blackboxWriteTag8_8SVB(deltas, optionalFieldCount);
     //Since gyros, accs and motors are noisy, base their predictions on the average of the history:
     blackboxWriteMainStateArrayUsingAveragePredictor(offsetof(blackboxMainState_t, gyroADC),   XYZ_AXIS_COUNT);
+    if (testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYROUNFILT)) {
+        blackboxWriteMainStateArrayUsingAveragePredictor(offsetof(blackboxMainState_t, gyroUnfilt), XYZ_AXIS_COUNT);
+    }
     if (testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_ACC)) {
         blackboxWriteMainStateArrayUsingAveragePredictor(offsetof(blackboxMainState_t, accADC), XYZ_AXIS_COUNT);
     }
@@ -912,6 +925,7 @@ static void loadMainState(timeUs_t currentTimeUs) {
         blackboxCurrent->axisPID_I[i] = pidData[i].I;
         blackboxCurrent->axisPID_D[i] = pidData[i].D;
         blackboxCurrent->gyroADC[i] = lrintf(gyro.gyroADCf[i]);
+        blackboxCurrent->gyroUnfilt[i] = lrintf(gyro.gyroADC[i]);
 #if defined(USE_ACC)
         blackboxCurrent->accADC[i] = lrintf(acc.accADC[i]);
 #endif
