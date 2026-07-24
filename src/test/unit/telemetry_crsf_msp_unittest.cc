@@ -273,7 +273,8 @@ extern "C" {
 
     bool isAirmodeActive(void) {return true;}
 
-    mspResult_e mspFcProcessCommand(mspPacket_t *cmd, mspPacket_t *reply, mspPostProcessFnPtr *mspPostProcessFn) {
+    mspResult_e mspFcProcessCommand(mspDescriptor_t srcDesc, mspPacket_t *cmd, mspPacket_t *reply, mspPostProcessFnPtr *mspPostProcessFn) {
+        UNUSED(srcDesc);
 
         UNUSED(mspPostProcessFn);
 
@@ -297,4 +298,6 @@ extern "C" {
     int32_t getMAhDrawn(void) {
       return testmAhDrawn;
     }
+
+    mspDescriptor_t mspDescriptorAlloc(void) { return 0; }
 }

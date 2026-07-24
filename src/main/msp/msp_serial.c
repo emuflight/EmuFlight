@@ -44,6 +44,7 @@ static mspPort_t mspPorts[MAX_MSP_PORT_COUNT];
 void resetMspPort(mspPort_t *mspPortToReset, serialPort_t *serialPort) {
     memset(mspPortToReset, 0, sizeof(mspPort_t));
     mspPortToReset->port = serialPort;
+    mspPortToReset->descriptor = mspDescriptorAlloc();
 }
 
 void mspSerialAllocatePorts(void) {
@@ -344,7 +345,7 @@ static mspPostProcessFnPtr mspSerialProcessReceivedCommand(mspPort_t *msp, mspPr
         .direction = MSP_DIRECTION_REQUEST,
     };
     mspPostProcessFnPtr mspPostProcessFn = NULL;
-    const mspResult_e status = mspProcessCommandFn(&command, &reply, &mspPostProcessFn);
+    const mspResult_e status = mspProcessCommandFn(msp->descriptor, &command, &reply, &mspPostProcessFn);
     if (status != MSP_RESULT_NO_REPLY) {
         sbufSwitchToReader(&reply.buf, outBufHead); // change streambuf direction
         mspSerialEncode(msp, &reply, msp->mspVersion);
