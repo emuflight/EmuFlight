@@ -259,7 +259,7 @@ TEST(MathsUnittest, TestSincosfApproxMatchesSeparateCalls)
     // Combined-call result must match independent sin_approx/cos_approx calls on the same angle.
     const float epsilon = 1e-6f;
     for (float x = -20 * M_PIf; x < 20 * M_PIf; x += M_PIf / 97) {
-        float sinCombined, cosCombined;
+        float sinCombined = 0.0f, cosCombined = 0.0f;
         sincosf_approx(x, &sinCombined, &cosCombined);
         EXPECT_NEAR(sinCombined, sin_approx(x), epsilon);
         EXPECT_NEAR(cosCombined, cos_approx(x), epsilon);
