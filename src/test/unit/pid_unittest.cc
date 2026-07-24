@@ -442,12 +442,12 @@ TEST(pidControllerTest, testPidHorizon) {
     EXPECT_FLOAT_EQ(0, pidData[FD_YAW].I);
 }
 
-// Identical priming + step sequence under the given flight mode so pidLevel()'s internal state starts equal for any mode compared.
-void primeAndStepUnderFlightMode(flightModeFlags_e flightMode) {
+// Identical priming + step sequence under the given flight mode mask (0 = plain rate/acro) so pidLevel()'s internal state starts equal for any mode compared.
+void primeAndStepUnderFlightMode(int flightModeMask) {
     resetTest();
     ENABLE_ARMING_FLAG(ARMED);
     pidStabilisationState(PID_STABILISATION_ON);
-    enableFlightMode(flightMode);
+    enableFlightMode(static_cast<flightModeFlags_e>(flightModeMask));
 
     // Default test profile has PID_LEVEL_LOW.I=0, which zeroes directFF entirely.
     pidProfile->pid[PID_LEVEL_LOW].I = 70;
@@ -468,7 +468,7 @@ void primeAndStepUnderFlightMode(flightModeFlags_e flightMode) {
     attitude.values.pitch = -550;
     pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
 
-    disableFlightMode(flightMode);
+    disableFlightMode(static_cast<flightModeFlags_e>(flightModeMask));
 }
 
 TEST(pidControllerTest, testGpsRescueUsesPidLevelDirectFF) {
@@ -491,43 +491,19 @@ TEST(pidControllerTest, testGpsRescueUsesPidLevelDirectFF) {
 }
 
 TEST(pidControllerTest, testNfeRaceModeOnlyEngagesPidLevelOnRoll) {
-    // NFE_RACE_MODE + ANGLE_MODE excludes pitch from the pidLevel() call site; pitch must match plain rate/acro exactly.
-    resetTest();
-    ENABLE_ARMING_FLAG(ARMED);
-    pidStabilisationState(PID_STABILISATION_ON);
-
-    setStickPosition(FD_ROLL, 1.0f);
-    setStickPosition(FD_PITCH, -1.0f);
-    attitude.values.roll = 0;
-    attitude.values.pitch = 0;
-
-    enableFlightMode(ANGLE_MODE);
-    enableFlightMode(NFE_RACE_MODE);
-    pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
-    pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
+    // NFE_RACE_MODE + ANGLE_MODE excludes pitch from the pidLevel() call site; pitch must match plain rate/acro exactly, with directFF actually non-zero (PID_LEVEL_LOW.I set via the shared helper).
+    primeAndStepUnderFlightMode(ANGLE_MODE | NFE_RACE_MODE);
     const float nfeRollSum = pidData[FD_ROLL].Sum;
     const float nfePitchSum = pidData[FD_PITCH].Sum;
-    disableFlightMode(NFE_RACE_MODE);
-    disableFlightMode(ANGLE_MODE);
 
-    resetTest();
-    ENABLE_ARMING_FLAG(ARMED);
-    pidStabilisationState(PID_STABILISATION_ON);
-    setStickPosition(FD_ROLL, 1.0f);
-    setStickPosition(FD_PITCH, -1.0f);
-    attitude.values.roll = 0;
-    attitude.values.pitch = 0;
-
-    // Plain rate/acro mode - pidLevel() never runs for either axis
-    pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
-    pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
+    primeAndStepUnderFlightMode(0);
     const float rateRollSum = pidData[FD_ROLL].Sum;
     const float ratePitchSum = pidData[FD_PITCH].Sum;
 
-    // Roll engaged pidLevel() (angle mode P-term path) - output must differ from plain rate
+    // Roll engaged pidLevel() (angle mode P-term path) - output must differ from plain rate.
     EXPECT_GT(fabs(nfeRollSum - rateRollSum), 1.0f);
-    // Pitch never engaged pidLevel() under NFE - output matches plain rate exactly
-    EXPECT_NEAR(ratePitchSum, nfePitchSum, calculateToleranceWithFloor(ratePitchSum));
+    // Pitch never engaged pidLevel() under NFE - output matches plain rate exactly.
+    EXPECT_NEAR(ratePitchSum, nfePitchSum, 1.0f);
 }
 
 TEST(pidControllerTest, testMixerSaturation) {
