@@ -36,6 +36,8 @@
 #include "drivers/sensor.h"
 #include "drivers/time.h"
 
+// Matches BF 4.5-maintenance ICM20649_MAX_SPI_CLK_HZ; not currently reachable by any EF target
+#define ICM20649_MAX_SPI_CLK_HZ 8000000
 
 static void icm20649SpiInit(const extDevice_t *dev) {
     static bool hardwareInitialised = false;
@@ -47,15 +49,13 @@ static void icm20649SpiInit(const extDevice_t *dev) {
     IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(dev->busType_u.spi.csnPin);
 #endif
-    // all registers can be read/written at full speed (7MHz +-10%)
-    // TODO verify that this works at 9MHz and 10MHz on non F7
-    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, spiCalculateDivider(ICM20649_MAX_SPI_CLK_HZ));
     hardwareInitialised = true;
 }
 
 uint8_t icm20649SpiDetect(const extDevice_t *dev) {
     icm20649SpiInit(dev);
-    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, spiCalculateDivider(ICM20649_MAX_SPI_CLK_HZ));
     spiWriteReg(dev, ICM20649_RA_REG_BANK_SEL, 0 << 4); // select bank 0 just to be safe
     delay(15);
     spiWriteReg(dev, ICM20649_RA_PWR_MGMT_1, ICM20649_BIT_RESET);
@@ -83,7 +83,7 @@ void icm20649AccInit(accDev_t *acc) {
     // 2,048 LSB/g 16g
     // 1,024 LSB/g 30g
     acc->acc_1G = acc->acc_high_fsr ? 1024 : 2048;
-    spiSetDivisor(acc->dev.bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(acc->dev.bus->busType_u.spi.instance, spiCalculateDivider(ICM20649_MAX_SPI_CLK_HZ));
     spiWriteReg(&acc->dev, ICM20649_RA_REG_BANK_SEL, 2 << 4); // config in bank 2
     delay(15);
     const uint8_t acc_fsr = acc->acc_high_fsr ? ICM20649_FSR_30G : ICM20649_FSR_16G;
@@ -105,7 +105,7 @@ bool icm20649SpiAccDetect(accDev_t *acc) {
 
 void icm20649GyroInit(gyroDev_t *gyro) {
     mpuGyroInit(gyro);
-    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_STANDARD); // ensure proper speed
+    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, spiCalculateDivider(ICM20649_MAX_SPI_CLK_HZ));
     spiWriteReg(&gyro->dev, ICM20649_RA_REG_BANK_SEL, 0 << 4); // select bank 0 just to be safe
     delay(15);
     spiWriteReg(&gyro->dev, ICM20649_RA_PWR_MGMT_1, ICM20649_BIT_RESET);
