@@ -50,8 +50,7 @@
 #include "usb_io.h"
 #include "usbd_msc.h"
 #include "msc/usbd_storage.h"
-
-USBD_HandleTypeDef USBD_Device;
+#include "drivers/serial_usb_vcp.h"
 
 #define DEBOUNCE_TIME_MS 20
 

@@ -27,6 +27,7 @@
 #define U_ID_2 2
 
 #define NOINLINE
+#define GCC_OPTIMIZE_SIZE
 #define FAST_CODE
 #define FAST_CODE_NOINLINE
 #define FAST_RAM_ZERO_INIT
