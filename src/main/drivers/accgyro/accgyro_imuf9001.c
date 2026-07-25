@@ -97,7 +97,7 @@ FAST_CODE void appendCrcToData(uint32_t* data, uint32_t size) {
 FAST_CODE static void gpio_write_pin(GPIO_TypeDef * GPIOx, uint16_t GPIO_Pin, gpioState_t pinState) {
     //GPIO manipulation should go into a fast GPIO driver and should be separate from the befhal
 #ifdef USE_HAL_F7_CRC
-    HAL_GPIO_WritePin(GPIOx, GPIO_Pin, pinState);
+    HAL_GPIO_WritePin(GPIOx, GPIO_Pin, (GPIO_PinState)pinState);
 #else
     if (pinState == GPIO_HI) {
         GPIOx->BSRRL = (uint32_t)GPIO_Pin;
