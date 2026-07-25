@@ -17,7 +17,7 @@ arm_sdk_version:
 .NOTPARALLEL .PHONY: arm_sdk_install
 
 # source: https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases
-XPACK_VERSION     := 9.3.1-1.1
+XPACK_VERSION     := 13.3.1-1.1
 ARM_SDK_URL_BASE  := https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases/download/v$(XPACK_VERSION)/xpack-arm-none-eabi-gcc-$(XPACK_VERSION)
 
 # Set up ARM (STM32) SDK
@@ -28,7 +28,11 @@ ifdef LINUX
 endif
 
 ifdef MACOSX
-  ARM_SDK_URL := $(ARM_SDK_URL_BASE)-darwin-x64.tar.gz
+  ifeq ($(ARCHFAMILY), arm64)
+    ARM_SDK_URL := $(ARM_SDK_URL_BASE)-darwin-arm64.tar.gz
+  else
+    ARM_SDK_URL := $(ARM_SDK_URL_BASE)-darwin-x64.tar.gz
+  endif
 endif
 
 ifdef WINDOWS
@@ -46,7 +50,7 @@ CURL_PROGRESS := $(if $(filter true 1 yes,$(CI)),-sS,--progress-bar)
 export PATH := $(ARM_SDK_DIR)/bin:$(PATH)
 
 # Checked below, Should match the output of $(shell arm-none-eabi-gcc -dumpversion)
-GCC_REQUIRED_VERSION ?= 9.3.1
+GCC_REQUIRED_VERSION ?= 13.3.1
 
 SDK_INSTALL_MARKER := $(ARM_SDK_DIR)/bin/arm-none-eabi-gcc-$(GCC_REQUIRED_VERSION)
 
