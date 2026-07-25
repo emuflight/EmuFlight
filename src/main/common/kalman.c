@@ -94,7 +94,7 @@ void update_kalman_covariance(float rate, int axis) {
     kalmanFilterStateRate[axis].r = squirt * VARIANCE_SCALE;
 }
 
-FAST_CODE float kalman_process(kalman_t* kalmanState, float input) {
+FAST_CODE __attribute__((noinline)) float kalman_process(kalman_t* kalmanState, float input) {
     //project the state ahead using acceleration
     kalmanState->x += (kalmanState->x - kalmanState->lastX) * kalmanState->k;
     //figure out how much to boost or reduce our error in the estimate based on setpoint target.

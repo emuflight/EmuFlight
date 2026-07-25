@@ -354,6 +354,7 @@ typedef struct pidCoefficient_s {
 static FAST_RAM_ZERO_INIT pidCoefficient_t pidCoefficient[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float directFF[3];
 static FAST_RAM_ZERO_INIT float angleModeP[2];
+static FAST_RAM_ZERO_INIT bool pidLevelActive[2]; // true when pidLevel() ran for this axis this cycle, regardless of which flight mode triggered it
 static FAST_RAM_ZERO_INIT float maxVelocity[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float feathered_pids;
 static FAST_RAM_ZERO_INIT float setPointPTransition[XYZ_AXIS_COUNT];
@@ -542,6 +543,7 @@ static float pidLevel(int axis, const pidProfile_t *pidProfile, const rollAndPit
 
     currentPidSetpoint = p_term_low + p_term_high;
     angleModeP[axis] = p_term_low + p_term_high;
+    pidLevelActive[axis] = true;
     currentPidSetpoint += d_term_low + d_term_high;
     currentPidSetpoint += f_term_low;
 
@@ -712,6 +714,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // disable directFF for pitch and roll while not in angle
         if (axis != FD_YAW) {
             directFF[axis] = 0.0f;
+            pidLevelActive[axis] = false;
         }
 
         if (axis == FD_YAW) {
@@ -856,7 +859,7 @@ void pidController(const pidProfile_t *pidProfile, const rollAndPitchTrims_t *an
         // since yaw acts different this will only work for yaw
         // actually this also works in angle mode so pitch and roll have angle mode values
         float directFeedForward;
-        if ((FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) && axis <= FD_PITCH) {
+        if (axis <= FD_PITCH && pidLevelActive[axis]) {
             directFeedForward = angleModeP[axis] * directFF[axis];
         } else {
             directFeedForward = currentPidSetpoint * directFF[axis];
