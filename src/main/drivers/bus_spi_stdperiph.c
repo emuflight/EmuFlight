@@ -37,8 +37,6 @@
 #include "drivers/io.h"
 #include "drivers/rcc.h"
 
-spiDevice_t spiDevice[SPIDEV_COUNT];
-
 void spiInitDevice(SPIDevice device) {
     spiDevice_t *spi = &(spiDevice[device]);
 #ifdef SDCARD_SPI_INSTANCE
