@@ -1299,9 +1299,9 @@ FAST_CODE_NOINLINE void gyroUpdate(timeUs_t currentTimeUs) {
             gyro.gyroADCf[X] = gyroSensor1.gyroDev.gyroADCf[X];
             gyro.gyroADCf[Y] = gyroSensor1.gyroDev.gyroADCf[Y];
             gyro.gyroADCf[Z] = gyroSensor1.gyroDev.gyroADCf[Z];
-            gyro.gyroADC[X] = gyroSensor1.gyroDev.gyroADC[X];
-            gyro.gyroADC[Y] = gyroSensor1.gyroDev.gyroADC[Y];
-            gyro.gyroADC[Z] = gyroSensor1.gyroDev.gyroADC[Z];
+            gyro.gyroADC[X] = gyroSensor1.gyroDev.gyroADC[X] * gyroSensor1.gyroDev.scale;
+            gyro.gyroADC[Y] = gyroSensor1.gyroDev.gyroADC[Y] * gyroSensor1.gyroDev.scale;
+            gyro.gyroADC[Z] = gyroSensor1.gyroDev.gyroADC[Z] * gyroSensor1.gyroDev.scale;
 #ifdef USE_GYRO_OVERFLOW_CHECK
             overflowDetected = gyroSensor1.overflowDetected;
 #endif
@@ -1322,9 +1322,9 @@ FAST_CODE_NOINLINE void gyroUpdate(timeUs_t currentTimeUs) {
             gyro.gyroADCf[X] = gyroSensor2.gyroDev.gyroADCf[X];
             gyro.gyroADCf[Y] = gyroSensor2.gyroDev.gyroADCf[Y];
             gyro.gyroADCf[Z] = gyroSensor2.gyroDev.gyroADCf[Z];
-            gyro.gyroADC[X] = gyroSensor2.gyroDev.gyroADC[X];
-            gyro.gyroADC[Y] = gyroSensor2.gyroDev.gyroADC[Y];
-            gyro.gyroADC[Z] = gyroSensor2.gyroDev.gyroADC[Z];
+            gyro.gyroADC[X] = gyroSensor2.gyroDev.gyroADC[X] * gyroSensor2.gyroDev.scale;
+            gyro.gyroADC[Y] = gyroSensor2.gyroDev.gyroADC[Y] * gyroSensor2.gyroDev.scale;
+            gyro.gyroADC[Z] = gyroSensor2.gyroDev.gyroADC[Z] * gyroSensor2.gyroDev.scale;
 #ifdef USE_GYRO_OVERFLOW_CHECK
             overflowDetected = gyroSensor2.overflowDetected;
 #endif
@@ -1346,9 +1346,9 @@ FAST_CODE_NOINLINE void gyroUpdate(timeUs_t currentTimeUs) {
             gyro.gyroADCf[X] = (gyroSensor1.gyroDev.gyroADCf[X] + gyroSensor2.gyroDev.gyroADCf[X]) * 0.5f;
             gyro.gyroADCf[Y] = (gyroSensor1.gyroDev.gyroADCf[Y] + gyroSensor2.gyroDev.gyroADCf[Y]) * 0.5f;
             gyro.gyroADCf[Z] = (gyroSensor1.gyroDev.gyroADCf[Z] + gyroSensor2.gyroDev.gyroADCf[Z]) * 0.5f;
-            gyro.gyroADC[X] = (gyroSensor1.gyroDev.gyroADC[X] + gyroSensor2.gyroDev.gyroADC[X]) * 0.5f;
-            gyro.gyroADC[Y] = (gyroSensor1.gyroDev.gyroADC[Y] + gyroSensor2.gyroDev.gyroADC[Y]) * 0.5f;
-            gyro.gyroADC[Z] = (gyroSensor1.gyroDev.gyroADC[Z] + gyroSensor2.gyroDev.gyroADC[Z]) * 0.5f;
+            gyro.gyroADC[X] = ((gyroSensor1.gyroDev.gyroADC[X] * gyroSensor1.gyroDev.scale) + (gyroSensor2.gyroDev.gyroADC[X] * gyroSensor2.gyroDev.scale)) * 0.5f;
+            gyro.gyroADC[Y] = ((gyroSensor1.gyroDev.gyroADC[Y] * gyroSensor1.gyroDev.scale) + (gyroSensor2.gyroDev.gyroADC[Y] * gyroSensor2.gyroDev.scale)) * 0.5f;
+            gyro.gyroADC[Z] = ((gyroSensor1.gyroDev.gyroADC[Z] * gyroSensor1.gyroDev.scale) + (gyroSensor2.gyroDev.gyroADC[Z] * gyroSensor2.gyroDev.scale)) * 0.5f;
 #ifdef USE_GYRO_OVERFLOW_CHECK
             overflowDetected = gyroSensor1.overflowDetected || gyroSensor2.overflowDetected;
 #endif
@@ -1376,9 +1376,9 @@ FAST_CODE_NOINLINE void gyroUpdate(timeUs_t currentTimeUs) {
     gyro.gyroADCf[X] = gyroSensor1.gyroDev.gyroADCf[X];
     gyro.gyroADCf[Y] = gyroSensor1.gyroDev.gyroADCf[Y];
     gyro.gyroADCf[Z] = gyroSensor1.gyroDev.gyroADCf[Z];
-    gyro.gyroADC[X] = gyroSensor1.gyroDev.gyroADC[X];
-    gyro.gyroADC[Y] = gyroSensor1.gyroDev.gyroADC[Y];
-    gyro.gyroADC[Z] = gyroSensor1.gyroDev.gyroADC[Z];
+    gyro.gyroADC[X] = gyroSensor1.gyroDev.gyroADC[X] * gyroSensor1.gyroDev.scale;
+    gyro.gyroADC[Y] = gyroSensor1.gyroDev.gyroADC[Y] * gyroSensor1.gyroDev.scale;
+    gyro.gyroADC[Z] = gyroSensor1.gyroDev.gyroADC[Z] * gyroSensor1.gyroDev.scale;
 #ifdef USE_GYRO_OVERFLOW_CHECK
     overflowDetected = gyroSensor1.overflowDetected;
 #endif
