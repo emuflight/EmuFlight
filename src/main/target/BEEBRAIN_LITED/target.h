@@ -58,8 +58,6 @@
 #define USE_MSP_UART
 
 // *************** Gyro & ACC **********************
-#define GYRO
-#define ACC
 #define USE_GYRO_SPI_MPU6500
 #define USE_ACC_SPI_MPU6500
 
