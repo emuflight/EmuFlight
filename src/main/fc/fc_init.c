@@ -370,7 +370,6 @@ void init(void) {
 #ifdef USE_SPI_DEVICE_4
     spiInit(SPIDEV_4);
 #endif
-    spiInitBusDMA();
 #endif // USE_SPI
 #if defined(USE_SDCARD_SDIO) && !defined(CONFIG_IN_SDCARD) && defined(STM32H7)
     sdioPinConfigure();
