@@ -226,7 +226,7 @@
 #define TARGET_IO_PORTB         0xffff
 #define TARGET_IO_PORTC         0xffff
 // STM32F722RET
-#define TARGET_IO_PORTD         0xffff
+#define TARGET_IO_PORTD         (BIT(2))
 #define TARGET_IO_PORTE         0xffff
 
 #define USE_ADC
