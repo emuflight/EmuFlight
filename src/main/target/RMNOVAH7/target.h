@@ -129,7 +129,7 @@
 #define TARGET_IO_PORTA 0xffff
 #define TARGET_IO_PORTB 0xffff
 #define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
+#define TARGET_IO_PORTD (BIT(7))
 #define TARGET_IO_PORTE 0xffff
 // notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
 

@@ -36,6 +36,9 @@
 #include "drivers/sensor.h"
 #include "drivers/time.h"
 
+// Datasheet DS-000143 s6.1: 8 MHz max SPI frequency, matches BF 4.5-maintenance ICM20689_MAX_SPI_CLK_HZ
+#define ICM20689_MAX_SPI_CLK_HZ 8000000
+
 // Register 0x37 - INT_PIN_CFG
 #define ICM20689_INT_ANYRD_2CLEAR   0x10
 
@@ -125,7 +128,7 @@ uint8_t icm20689SpiDetect(const extDevice_t *dev) {
     spiWriteReg(dev, MPU_RA_SIGNAL_PATH_RESET, ICM20689_ACCEL_RST | ICM20689_TEMP_RST);
     delay(ICM20689_PATH_RESET_DELAY_MS);
 
-    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(dev->bus->busType_u.spi.instance, spiCalculateDivider(ICM20689_MAX_SPI_CLK_HZ));
     return icmDetected;
 }
 
@@ -166,7 +169,7 @@ void icm20689GyroInit(gyroDev_t *gyro) {
     spiWriteReg(&gyro->dev, MPU_RA_INT_ENABLE, MPU_RF_DATA_RDY_EN);
 #endif
 
-    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, spiCalculateDivider(ICM20689_MAX_SPI_CLK_HZ));
 }
 
 bool icm20689SpiGyroDetect(gyroDev_t *gyro) {

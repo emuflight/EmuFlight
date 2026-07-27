@@ -102,7 +102,7 @@
 #define TARGET_IO_PORTB         0xffff
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         0xffff
-#define TARGET_IO_PORTE         0xffff
+#define TARGET_IO_PORTE         (BIT(3))
 #define TARGET_IO_PORTH         0xffff
 
 #define USABLE_TIMER_CHANNEL_COUNT 8
