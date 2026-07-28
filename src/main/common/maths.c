@@ -230,12 +230,9 @@ float scaleRangef(float x, float srcFrom, float srcTo, float destFrom, float des
 void buildRotationMatrix(fp_angles_t *delta, float matrix[3][3]) {
     float cosx, sinx, cosy, siny, cosz, sinz;
     float coszcosx, sinzcosx, coszsinx, sinzsinx;
-    cosx = cos_approx(delta->angles.roll);
-    sinx = sin_approx(delta->angles.roll);
-    cosy = cos_approx(delta->angles.pitch);
-    siny = sin_approx(delta->angles.pitch);
-    cosz = cos_approx(delta->angles.yaw);
-    sinz = sin_approx(delta->angles.yaw);
+    sincosf_approx(delta->angles.roll, &sinx, &cosx);
+    sincosf_approx(delta->angles.pitch, &siny, &cosy);
+    sincosf_approx(delta->angles.yaw, &sinz, &cosz);
     coszcosx = cosz * cosx;
     sinzcosx = sinz * cosx;
     coszsinx = sinx * cosz;

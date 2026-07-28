@@ -229,12 +229,10 @@ static void scaleRcCommandToFpvCamAngle(void) {
         if (currentPitchAngle > rxConfig()->fpvCamAngleDegrees) {
             currentPitchAngle = rxConfig()->fpvCamAngleDegrees;
         }
-        cosFactor = cos_approx(currentPitchAngle * RAD);
-        sinFactor = sin_approx(currentPitchAngle * RAD);
+        sincosf_approx(currentPitchAngle * RAD, &sinFactor, &cosFactor);
     } else if (lastFpvCamAngleDegrees != rxConfig()->fpvCamAngleDegrees) {
         lastFpvCamAngleDegrees = rxConfig()->fpvCamAngleDegrees;
-        cosFactor = cos_approx(rxConfig()->fpvCamAngleDegrees * RAD);
-        sinFactor = sin_approx(rxConfig()->fpvCamAngleDegrees * RAD);
+        sincosf_approx(rxConfig()->fpvCamAngleDegrees * RAD, &sinFactor, &cosFactor);
     }
     float roll = setpointRate[ROLL];
     float yaw = setpointRate[YAW];

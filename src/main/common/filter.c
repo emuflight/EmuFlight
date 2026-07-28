@@ -176,8 +176,8 @@ void biquadFilterInit(biquadFilter_t *filter, float filterFreq, uint32_t refresh
 void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate, float Q, biquadFilterType_e filterType) {
     // setup variables
     const float omega = 2.0f * M_PIf * filterFreq * refreshRate * 0.000001f;
-    const float sn = sin_approx(omega);
-    const float cs = cos_approx(omega);
+    float sn, cs;
+    sincosf_approx(omega, &sn, &cs);
     const float alpha = sn / (2.0f * Q);
 
     switch (filterType) {
