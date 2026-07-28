@@ -36,6 +36,8 @@
 #include "drivers/bus_i2c.h"
 #include "drivers/bus_i2c_busdev.h"
 #include "drivers/bus_spi.h"
+#include "drivers/dma.h"
+#include "drivers/dma_reqmap.h"
 #include "drivers/exti.h"
 #include "drivers/io.h"
 #include "drivers/nvic.h"
@@ -249,18 +251,207 @@ FAST_CODE void imufPrepareDmaRead(gyroDev_t *gyro) {
     gyro->segments[0].len = xferLen;
 }
 
-// Set up gyro->segments for DMA reads; called once from imufSpiGyroInit after mpuGyroInit.
-void mpuImufSetupDma(gyroDev_t *gyro) {
-    gyro->dev.callbackArg        = (uint32_t)gyro;
-    gyro->segments[0].u.buffers.txData = imufTxBuf;
-    gyro->segments[0].u.buffers.rxData = imufRxBuf;
-    gyro->segments[0].len              = gyroConfig()->imuf_mode;
-    gyro->segments[0].negateCS         = true;
-    gyro->segments[0].callback         = imufIntCallback;
-    gyro->segments[1].len              = 0;
-    gyro->segments[1].u.link.dev       = NULL;
-    gyro->segments[1].u.link.segments  = NULL;
+// Dedicated DMA state for the SPI1/IMUF9001 link. Deliberately separate from
+// busDevice_t/spiInitBusDMA()'s shared multi-device bus machinery - see
+// accgyro_mpu.h comment on imufDmaStartTransfer for why. HELIOSPRING/MODE2FLUX
+// are F405 (stdperiph DMA API, matches bus_spi_stdperiph.c); STRIXF10 is F722
+// (LL DMA API, matches bus_spi_ll.c) - these are genuinely different vendor
+// library APIs, not just naming, so the two are implemented separately below
+// rather than pretending one covers both.
+static dmaChannelDescriptor_t *imufDmaTx;
+static dmaChannelDescriptor_t *imufDmaRx;
+static gyroDev_t *imufDmaGyro;
+// Defined per-MCU below (F4/F7 have different register-level APIs); declared
+// here since imufDmaAllocateChannels() registers it before either definition.
+static void imufDmaCompleteIsr(dmaChannelDescriptor_t *descriptor);
+
+// Resolves and allocates SPI1's TX/RX DMA channel via the existing, already-
+// correct per-target mapping in dma_reqmap_mcu.c (DMA2 Stream3/Stream0 on
+// F405; F722 uses the same assignment - only F745/F746/F765 differ, and none
+// of the three IMUF9001 targets are those chips). Shared by both MCU branches
+// below; only the register-level DMA_Init/DMA_Cmd API differs after this.
+static bool imufDmaAllocateChannels(gyroDev_t *gyro) {
+    const dmaChannelSpec_t *txSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SPI_SDO, SPIDEV_1, 0);
+    const dmaChannelSpec_t *rxSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SPI_SDI, SPIDEV_1, 0);
+    // This target's SPI1 DMA entry is fixed and verified-correct in dma_reqmap_mcu.c -
+    // should never be NULL. Guarded anyway (matches spiInitBusDMA()'s own defensive
+    // pattern) rather than assuming the target table can't regress.
+    if (!txSpec || !rxSpec) {
+        failureMode(FAILURE_GYRO_INIT_FAILED);
+        return false;
+    }
+
+    const dmaIdentifier_e txId = dmaGetIdentifier((DMA_Stream_TypeDef *)txSpec->ref);
+    const dmaIdentifier_e rxId = dmaGetIdentifier((DMA_Stream_TypeDef *)rxSpec->ref);
+    // dmaAllocate() itself guards identifier == DMA_NONE, but its return value must be
+    // checked before touching the descriptor via dmaGetDescriptorByIdentifier() - matches
+    // the defensive pattern spiInitBusDMA() already uses for this exact sequence.
+    if (!dmaAllocate(txId, OWNER_SPI_SDO, SPIDEV_1 + 1) || !dmaAllocate(rxId, OWNER_SPI_SDI, SPIDEV_1 + 1)) {
+        failureMode(FAILURE_GYRO_INIT_FAILED);
+        return false;
+    }
+    imufDmaTx = dmaGetDescriptorByIdentifier(txId);
+    imufDmaRx = dmaGetDescriptorByIdentifier(rxId);
+    imufDmaTx->stream  = DMA_DEVICE_INDEX(txId);
+    imufDmaTx->channel = txSpec->channel;
+    imufDmaRx->stream  = DMA_DEVICE_INDEX(rxId);
+    imufDmaRx->channel = rxSpec->channel;
+    dmaEnable(txId);
+    dmaEnable(rxId);
+    dmaSetHandler(rxId, imufDmaCompleteIsr, NVIC_PRIO_SPI_DMA, 0);
+    (void)gyro;
+    return true;
 }
+
+#if defined(STM32F4)
+
+static DMA_InitTypeDef imufDmaInitTx;
+static DMA_InitTypeDef imufDmaInitRx;
+
+// RX stream transfer-complete ISR: SPI operation is done once RX completes
+// (matches the reasoning already used by the generic path's own comment).
+FAST_CODE static void imufDmaCompleteIsr(dmaChannelDescriptor_t *descriptor) {
+    DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF);
+    ((DMA_Stream_TypeDef *)imufDmaTx->ref)->CR = 0U;
+    ((DMA_Stream_TypeDef *)imufDmaRx->ref)->CR = 0U;
+    SPI_I2S_DMACmd(imufDmaGyro->dev.bus->busType_u.spi.instance, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, DISABLE);
+    IOHi(imufDmaGyro->dev.busType_u.spi.csnPin);
+    imufIntCallback((uint32_t)imufDmaGyro);
+}
+
+// One-time setup: allocate DMA channels for SPI1 and register our own
+// completion handler. Called once from imufSpiGyroInit after mpuGyroInit
+// (gyro->dev.bus is valid by then).
+void mpuImufSetupDma(gyroDev_t *gyro) {
+    imufDmaGyro = gyro;
+    gyro->segments[0].len = gyroConfig()->imuf_mode;
+
+    if (!imufDmaAllocateChannels(gyro)) {
+        return;
+    }
+
+    DMA_StructInit(&imufDmaInitTx);
+    imufDmaInitTx.DMA_Channel            = imufDmaTx->channel;
+    imufDmaInitTx.DMA_DIR                = DMA_DIR_MemoryToPeripheral;
+    imufDmaInitTx.DMA_PeripheralBaseAddr = (uint32_t)&gyro->dev.bus->busType_u.spi.instance->DR;
+    imufDmaInitTx.DMA_PeripheralInc      = DMA_PeripheralInc_Disable;
+    imufDmaInitTx.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+    imufDmaInitTx.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;
+    imufDmaInitTx.DMA_MemoryInc          = DMA_MemoryInc_Enable;
+    imufDmaInitTx.DMA_Priority           = DMA_Priority_Low;
+
+    imufDmaInitRx              = imufDmaInitTx;
+    imufDmaInitRx.DMA_DIR      = DMA_DIR_PeripheralToMemory;
+    imufDmaInitRx.DMA_Priority = DMA_Priority_Medium;
+}
+
+// Kick off one DMA transfer for the current imufTxBuf/imufRxBuf contents and
+// segment length (already prepared by imufPrepareDmaRead). Non-blocking -
+// completion arrives asynchronously via imufDmaCompleteIsr.
+FAST_CODE void imufDmaStartTransfer(gyroDev_t *gyro) {
+    DMA_Stream_TypeDef *streamTx = (DMA_Stream_TypeDef *)imufDmaTx->ref;
+    DMA_Stream_TypeDef *streamRx = (DMA_Stream_TypeDef *)imufDmaRx->ref;
+    const uint32_t len = gyro->segments[0].len;
+
+    DMA_CLEAR_FLAG(imufDmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
+    DMA_CLEAR_FLAG(imufDmaRx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
+    streamTx->CR = 0U;
+    streamRx->CR = 0U;
+
+    imufDmaInitTx.DMA_Memory0BaseAddr = (uint32_t)imufTxBuf;
+    imufDmaInitTx.DMA_BufferSize      = len;
+    imufDmaInitRx.DMA_Memory0BaseAddr = (uint32_t)imufRxBuf;
+    imufDmaInitRx.DMA_BufferSize      = len;
+
+    DMA_ITConfig(streamRx, DMA_IT_TC, ENABLE);
+    DMA_Init(streamTx, &imufDmaInitTx);
+    DMA_Init(streamRx, &imufDmaInitRx);
+    DMA_Cmd(streamTx, ENABLE);
+    DMA_Cmd(streamRx, ENABLE);
+
+    IOLo(gyro->dev.busType_u.spi.csnPin);
+    SPI_I2S_DMACmd(gyro->dev.bus->busType_u.spi.instance, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
+}
+
+#elif defined(STM32F7)
+
+// File-local in bus_spi_ll.c, not exposed via a shared header - redefined here
+// for the same reason (F7 D-cache line size, needed for cache maintenance below).
+#define CACHE_LINE_SIZE  32
+#define CACHE_LINE_MASK  (CACHE_LINE_SIZE - 1)
+
+static LL_DMA_InitTypeDef imufDmaInitTx;
+static LL_DMA_InitTypeDef imufDmaInitRx;
+
+FAST_CODE static void imufDmaCompleteIsr(dmaChannelDescriptor_t *descriptor) {
+    DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF);
+    LL_DMA_DisableStream(imufDmaTx->dma, imufDmaTx->stream);
+    LL_DMA_DisableStream(imufDmaRx->dma, imufDmaRx->stream);
+    CLEAR_BIT(imufDmaGyro->dev.bus->busType_u.spi.instance->CR2, SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN);
+    IOHi(imufDmaGyro->dev.busType_u.spi.csnPin);
+    imufIntCallback((uint32_t)imufDmaGyro);
+}
+
+void mpuImufSetupDma(gyroDev_t *gyro) {
+    imufDmaGyro = gyro;
+    gyro->segments[0].len = gyroConfig()->imuf_mode;
+
+    if (!imufDmaAllocateChannels(gyro)) {
+        return;
+    }
+
+    LL_DMA_StructInit(&imufDmaInitTx);
+    imufDmaInitTx.Channel                = imufDmaTx->channel;
+    imufDmaInitTx.Mode                   = LL_DMA_MODE_NORMAL;
+    imufDmaInitTx.Direction               = LL_DMA_DIRECTION_MEMORY_TO_PERIPH;
+    imufDmaInitTx.PeriphOrM2MSrcAddress   = (uint32_t)&gyro->dev.bus->busType_u.spi.instance->DR;
+    imufDmaInitTx.Priority                = LL_DMA_PRIORITY_LOW;
+    imufDmaInitTx.PeriphOrM2MSrcIncMode   = LL_DMA_PERIPH_NOINCREMENT;
+    imufDmaInitTx.PeriphOrM2MSrcDataSize  = LL_DMA_PDATAALIGN_BYTE;
+    imufDmaInitTx.MemoryOrM2MDstDataSize  = LL_DMA_MDATAALIGN_BYTE;
+    imufDmaInitTx.MemoryOrM2MDstIncMode   = LL_DMA_MEMORY_INCREMENT;
+
+    imufDmaInitRx                        = imufDmaInitTx;
+    imufDmaInitRx.Channel                = imufDmaRx->channel;
+    imufDmaInitRx.Direction               = LL_DMA_DIRECTION_PERIPH_TO_MEMORY;
+}
+
+// Kick off one DMA transfer. F7 has a D-cache that DMA bypasses - imufTxBuf/
+// imufRxBuf are plain SRAM (not DTCM), so cache maintenance is mandatory here:
+// clean (writeback) TX before the DMA reads it, invalidate RX after so the CPU
+// doesn't read stale cached data once the DMA has written fresh bytes. F4 has
+// no cache, hence no equivalent step in the STM32F4 branch above.
+FAST_CODE void imufDmaStartTransfer(gyroDev_t *gyro) {
+    const uint32_t len = gyro->segments[0].len;
+
+    DMA_CLEAR_FLAG(imufDmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
+    DMA_CLEAR_FLAG(imufDmaRx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
+    LL_DMA_WriteReg(imufDmaTx->ref, CR, 0U);
+    LL_DMA_WriteReg(imufDmaRx->ref, CR, 0U);
+
+    imufDmaInitTx.MemoryOrM2MDstAddress = (uint32_t)imufTxBuf;
+    imufDmaInitTx.NbData                = len;
+    imufDmaInitRx.MemoryOrM2MDstAddress = (uint32_t)imufRxBuf;
+    imufDmaInitRx.NbData                = len;
+
+#ifdef __DCACHE_PRESENT
+    SCB_CleanDCache_by_Addr((uint32_t *)((uint32_t)imufTxBuf & ~CACHE_LINE_MASK),
+        (((uint32_t)imufTxBuf & CACHE_LINE_MASK) + len - 1 + CACHE_LINE_SIZE) & ~CACHE_LINE_MASK);
+    SCB_CleanInvalidateDCache_by_Addr((uint32_t *)((uint32_t)imufRxBuf & ~CACHE_LINE_MASK),
+        (((uint32_t)imufRxBuf & CACHE_LINE_MASK) + len - 1 + CACHE_LINE_SIZE) & ~CACHE_LINE_MASK);
+#endif
+
+    LL_EX_DMA_EnableIT_TC(imufDmaRx->ref);
+    LL_DMA_Init(imufDmaTx->dma, imufDmaTx->stream, &imufDmaInitTx);
+    LL_DMA_Init(imufDmaRx->dma, imufDmaRx->stream, &imufDmaInitRx);
+    LL_DMA_EnableStream(imufDmaTx->dma, imufDmaTx->stream);
+    LL_DMA_EnableStream(imufDmaRx->dma, imufDmaRx->stream);
+
+    IOLo(gyro->dev.busType_u.spi.csnPin);
+    SET_BIT(gyro->dev.bus->busType_u.spi.instance->CR2, SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN);
+}
+
+#endif // STM32F4 / STM32F7
 #endif // USE_GYRO_IMUF9001
 
 

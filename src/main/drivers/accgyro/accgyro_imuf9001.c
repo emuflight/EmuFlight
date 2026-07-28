@@ -203,13 +203,14 @@ FAST_CODE static bool imufSendReceiveSpi(const extDevice_t *dev, uint8_t *dataTx
 // If the EXTI ISR signalled a pending IMUF sample, execute the SPI transfer HERE (task context)
 // rather than in ISR context.  This keeps the EXTI ISR < 1 µs and frees ~32% of the F405
 // CPU that was previously consumed by 15–20 µs polling SPI running at 16 kHz inside the ISR.
-// imufIntCallback (called synchronously from spiSequence polling path) sets dataReady = true;
+// imufDmaStartTransfer is non-blocking (dedicated DMA2 Stream0/3, see accgyro_mpu.c) -
+// imufIntCallback fires asynchronously from imufDmaCompleteIsr and sets dataReady = true;
 // gyroUpdateSensor clears it, so the GYROPID naturally runs at IMUF's actual data rate.
 FAST_CODE static bool imufSpiGyroRead(gyroDev_t *gyro) {
     if (imufTransferPending) {
         imufTransferPending = false;      // clear before SPI so a racing EXTI re-sets it
         imufPrepareDmaRead(gyro);
-        spiSequence(&gyro->dev, gyro->segments);
+        imufDmaStartTransfer(gyro);
     }
     return gyro->dataReady;
 }
