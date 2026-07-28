@@ -235,7 +235,7 @@ static FAST_RAM_ZERO_INIT pt1Filter_t angleSetpointFilter[2];
 static FAST_RAM filterApplyFnPtr dtermABGapplyFn = nullFilterApply;
 static FAST_RAM_ZERO_INIT alphaBetaGammaFilter_t dtermABG[XYZ_AXIS_COUNT];
 #ifdef USE_GYRO_DATA_ANALYSE
-static FAST_RAM_ZERO_INIT svfNotchFilter_t dtermNotch[XYZ_AXIS_COUNT][5];
+STATIC_UNIT_TESTED FAST_RAM_ZERO_INIT svfNotchFilter_t dtermNotch[XYZ_AXIS_COUNT][5];
 #endif
 
 #if defined(USE_ITERM_RELAX)
@@ -677,7 +677,7 @@ static FAST_RAM_ZERO_INIT float lastRcDeflectionAbs[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousError[XYZ_AXIS_COUNT];
 static FAST_RAM_ZERO_INIT float previousMeasurement[XYZ_AXIS_COUNT];
 #ifdef USE_GYRO_DATA_ANALYSE
-static FAST_RAM_ZERO_INIT float previousNotchCenterFreq[XYZ_AXIS_COUNT][5];
+STATIC_UNIT_TESTED FAST_RAM_ZERO_INIT float previousNotchCenterFreq[XYZ_AXIS_COUNT][5];
 #endif
 static FAST_RAM_ZERO_INIT timeUs_t crashDetectedAtUs;
 

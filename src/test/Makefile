@@ -342,6 +342,9 @@ pid_unittest_SRC :=  \
 		$(USER_DIR)/pg/pg.c \
 		$(USER_DIR)/fc/runtime_config.c
 
+pid_unittest_DEFINES := \
+		USE_GYRO_DATA_ANALYSE
+
 rcdevice_unittest_DEFINES := \
 		USE_RCDEVICE
 
