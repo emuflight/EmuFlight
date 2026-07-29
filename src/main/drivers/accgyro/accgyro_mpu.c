@@ -310,18 +310,23 @@ static DMA_InitTypeDef imufDmaInitRx;
 
 // RX stream transfer-complete ISR: SPI operation is done once RX completes
 // (matches the reasoning already used by the generic path's own comment).
+// Clears only the stream-enable bit, not the whole CR - the rest of CR
+// (channel/direction/inc-mode/priority) is programmed once in
+// mpuImufSetupDma() and must survive across transfers so imufDmaStartTransfer
+// never needs to call DMA_Init() again.
 FAST_CODE static void imufDmaCompleteIsr(dmaChannelDescriptor_t *descriptor) {
     DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF);
-    ((DMA_Stream_TypeDef *)imufDmaTx->ref)->CR = 0U;
-    ((DMA_Stream_TypeDef *)imufDmaRx->ref)->CR = 0U;
+    ((DMA_Stream_TypeDef *)imufDmaTx->ref)->CR &= ~(uint32_t)DMA_SxCR_EN;
+    ((DMA_Stream_TypeDef *)imufDmaRx->ref)->CR &= ~(uint32_t)DMA_SxCR_EN;
     SPI_I2S_DMACmd(imufDmaGyro->dev.bus->busType_u.spi.instance, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, DISABLE);
     IOHi(imufDmaGyro->dev.busType_u.spi.csnPin);
     imufIntCallback((uint32_t)imufDmaGyro);
 }
 
-// One-time setup: allocate DMA channels for SPI1 and register our own
-// completion handler. Called once from imufSpiGyroInit after mpuGyroInit
-// (gyro->dev.bus is valid by then).
+// One-time setup: allocate DMA channels for SPI1, program the full stream
+// configuration once (channel/direction/inc-mode/data-size/priority plus an
+// initial address/length), and register our own completion handler. Called
+// once from imufSpiGyroInit after mpuGyroInit (gyro->dev.bus is valid by then).
 void mpuImufSetupDma(gyroDev_t *gyro) {
     imufDmaGyro = gyro;
     gyro->segments[0].len = gyroConfig()->imuf_mode;
@@ -334,20 +339,31 @@ void mpuImufSetupDma(gyroDev_t *gyro) {
     imufDmaInitTx.DMA_Channel            = imufDmaTx->channel;
     imufDmaInitTx.DMA_DIR                = DMA_DIR_MemoryToPeripheral;
     imufDmaInitTx.DMA_PeripheralBaseAddr = (uint32_t)&gyro->dev.bus->busType_u.spi.instance->DR;
+    imufDmaInitTx.DMA_Memory0BaseAddr    = (uint32_t)imufTxBuf;
+    imufDmaInitTx.DMA_BufferSize         = gyro->segments[0].len;
     imufDmaInitTx.DMA_PeripheralInc      = DMA_PeripheralInc_Disable;
     imufDmaInitTx.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
     imufDmaInitTx.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;
     imufDmaInitTx.DMA_MemoryInc          = DMA_MemoryInc_Enable;
     imufDmaInitTx.DMA_Priority           = DMA_Priority_Low;
 
-    imufDmaInitRx              = imufDmaInitTx;
-    imufDmaInitRx.DMA_DIR      = DMA_DIR_PeripheralToMemory;
-    imufDmaInitRx.DMA_Priority = DMA_Priority_Medium;
+    imufDmaInitRx                     = imufDmaInitTx;
+    imufDmaInitRx.DMA_DIR             = DMA_DIR_PeripheralToMemory;
+    imufDmaInitRx.DMA_Memory0BaseAddr = (uint32_t)imufRxBuf;
+    imufDmaInitRx.DMA_Priority        = DMA_Priority_Medium;
+
+    DMA_Init((DMA_Stream_TypeDef *)imufDmaTx->ref, &imufDmaInitTx);
+    DMA_Init((DMA_Stream_TypeDef *)imufDmaRx->ref, &imufDmaInitRx);
+    DMA_ITConfig((DMA_Stream_TypeDef *)imufDmaRx->ref, DMA_IT_TC, ENABLE);
 }
 
 // Kick off one DMA transfer for the current imufTxBuf/imufRxBuf contents and
 // segment length (already prepared by imufPrepareDmaRead). Non-blocking -
-// completion arrives asynchronously via imufDmaCompleteIsr.
+// completion arrives asynchronously via imufDmaCompleteIsr. Stream
+// configuration (channel/direction/inc-mode/priority/IT enable) was already
+// programmed once in mpuImufSetupDma() and is preserved by
+// imufDmaCompleteIsr's EN-only clear, so only the per-transfer address
+// (M0AR) and length (NDTR) need updating here - no DMA_Init() re-run.
 FAST_CODE void imufDmaStartTransfer(gyroDev_t *gyro) {
     DMA_Stream_TypeDef *streamTx = (DMA_Stream_TypeDef *)imufDmaTx->ref;
     DMA_Stream_TypeDef *streamRx = (DMA_Stream_TypeDef *)imufDmaRx->ref;
@@ -355,17 +371,14 @@ FAST_CODE void imufDmaStartTransfer(gyroDev_t *gyro) {
 
     DMA_CLEAR_FLAG(imufDmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
     DMA_CLEAR_FLAG(imufDmaRx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
-    streamTx->CR = 0U;
-    streamRx->CR = 0U;
 
-    imufDmaInitTx.DMA_Memory0BaseAddr = (uint32_t)imufTxBuf;
-    imufDmaInitTx.DMA_BufferSize      = len;
-    imufDmaInitRx.DMA_Memory0BaseAddr = (uint32_t)imufRxBuf;
-    imufDmaInitRx.DMA_BufferSize      = len;
+    // NDTR/M0AR may only be written while EN=0 (RM0090) - already true here
+    // since imufDmaCompleteIsr cleared EN at the end of the prior transfer.
+    streamTx->M0AR = (uint32_t)imufTxBuf;
+    streamTx->NDTR = len;
+    streamRx->M0AR = (uint32_t)imufRxBuf;
+    streamRx->NDTR = len;
 
-    DMA_ITConfig(streamRx, DMA_IT_TC, ENABLE);
-    DMA_Init(streamTx, &imufDmaInitTx);
-    DMA_Init(streamRx, &imufDmaInitRx);
     DMA_Cmd(streamTx, ENABLE);
     DMA_Cmd(streamRx, ENABLE);
 
@@ -392,6 +405,10 @@ FAST_CODE static void imufDmaCompleteIsr(dmaChannelDescriptor_t *descriptor) {
     imufIntCallback((uint32_t)imufDmaGyro);
 }
 
+// One-time setup: allocate DMA channels for SPI1, program the full stream
+// configuration once (channel/direction/inc-mode/data-size/priority plus an
+// initial address/length), and enable the TC interrupt. Called once from
+// imufSpiGyroInit after mpuGyroInit (gyro->dev.bus is valid by then).
 void mpuImufSetupDma(gyroDev_t *gyro) {
     imufDmaGyro = gyro;
     gyro->segments[0].len = gyroConfig()->imuf_mode;
@@ -405,6 +422,8 @@ void mpuImufSetupDma(gyroDev_t *gyro) {
     imufDmaInitTx.Mode                   = LL_DMA_MODE_NORMAL;
     imufDmaInitTx.Direction               = LL_DMA_DIRECTION_MEMORY_TO_PERIPH;
     imufDmaInitTx.PeriphOrM2MSrcAddress   = (uint32_t)&gyro->dev.bus->busType_u.spi.instance->DR;
+    imufDmaInitTx.MemoryOrM2MDstAddress   = (uint32_t)imufTxBuf;
+    imufDmaInitTx.NbData                  = gyro->segments[0].len;
     imufDmaInitTx.Priority                = LL_DMA_PRIORITY_LOW;
     imufDmaInitTx.PeriphOrM2MSrcIncMode   = LL_DMA_PERIPH_NOINCREMENT;
     imufDmaInitTx.PeriphOrM2MSrcDataSize  = LL_DMA_PDATAALIGN_BYTE;
@@ -414,6 +433,11 @@ void mpuImufSetupDma(gyroDev_t *gyro) {
     imufDmaInitRx                        = imufDmaInitTx;
     imufDmaInitRx.Channel                = imufDmaRx->channel;
     imufDmaInitRx.Direction               = LL_DMA_DIRECTION_PERIPH_TO_MEMORY;
+    imufDmaInitRx.MemoryOrM2MDstAddress   = (uint32_t)imufRxBuf;
+
+    LL_DMA_Init(imufDmaTx->dma, imufDmaTx->stream, &imufDmaInitTx);
+    LL_DMA_Init(imufDmaRx->dma, imufDmaRx->stream, &imufDmaInitRx);
+    LL_EX_DMA_EnableIT_TC(imufDmaRx->ref);
 }
 
 // Kick off one DMA transfer. F7 has a D-cache that DMA bypasses - imufTxBuf/
@@ -421,18 +445,17 @@ void mpuImufSetupDma(gyroDev_t *gyro) {
 // clean (writeback) TX before the DMA reads it, invalidate RX after so the CPU
 // doesn't read stale cached data once the DMA has written fresh bytes. F4 has
 // no cache, hence no equivalent step in the STM32F4 branch above.
+//
+// Stream configuration (channel/direction/inc-mode/priority/IT enable) was
+// already programmed once in mpuImufSetupDma() and is preserved by
+// imufDmaCompleteIsr's LL_DMA_DisableStream() (EN-bit-only, per the LL
+// driver), so only the per-transfer address and length need updating here -
+// no LL_DMA_Init() re-run.
 FAST_CODE void imufDmaStartTransfer(gyroDev_t *gyro) {
     const uint32_t len = gyro->segments[0].len;
 
     DMA_CLEAR_FLAG(imufDmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
     DMA_CLEAR_FLAG(imufDmaRx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
-    LL_DMA_WriteReg(imufDmaTx->ref, CR, 0U);
-    LL_DMA_WriteReg(imufDmaRx->ref, CR, 0U);
-
-    imufDmaInitTx.MemoryOrM2MDstAddress = (uint32_t)imufTxBuf;
-    imufDmaInitTx.NbData                = len;
-    imufDmaInitRx.MemoryOrM2MDstAddress = (uint32_t)imufRxBuf;
-    imufDmaInitRx.NbData                = len;
 
 #ifdef __DCACHE_PRESENT
     SCB_CleanDCache_by_Addr((uint32_t *)((uint32_t)imufTxBuf & ~CACHE_LINE_MASK),
@@ -441,9 +464,14 @@ FAST_CODE void imufDmaStartTransfer(gyroDev_t *gyro) {
         (((uint32_t)imufRxBuf & CACHE_LINE_MASK) + len - 1 + CACHE_LINE_SIZE) & ~CACHE_LINE_MASK);
 #endif
 
-    LL_EX_DMA_EnableIT_TC(imufDmaRx->ref);
-    LL_DMA_Init(imufDmaTx->dma, imufDmaTx->stream, &imufDmaInitTx);
-    LL_DMA_Init(imufDmaRx->dma, imufDmaRx->stream, &imufDmaInitRx);
+    // NbData/MemoryAddress may only be written while EN=0 (RM0431) - already
+    // true here since imufDmaCompleteIsr disabled the stream at the end of
+    // the prior transfer.
+    LL_DMA_SetMemoryAddress(imufDmaTx->dma, imufDmaTx->stream, (uint32_t)imufTxBuf);
+    LL_DMA_SetDataLength(imufDmaTx->dma, imufDmaTx->stream, len);
+    LL_DMA_SetMemoryAddress(imufDmaRx->dma, imufDmaRx->stream, (uint32_t)imufRxBuf);
+    LL_DMA_SetDataLength(imufDmaRx->dma, imufDmaRx->stream, len);
+
     LL_DMA_EnableStream(imufDmaTx->dma, imufDmaTx->stream);
     LL_DMA_EnableStream(imufDmaRx->dma, imufDmaRx->stream);
 
