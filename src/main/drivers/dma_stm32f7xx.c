@@ -83,8 +83,13 @@ static void enableDmaClock(int index) {
     } while (0);
 }
 
+// guards dmaDescriptors[] indexing against out-of-range/stale identifiers
+static inline bool dmaIdentifierIsValid(dmaIdentifier_e identifier) {
+    return identifier > DMA_NONE && identifier <= DMA_LAST_HANDLER;
+}
+
 bool dmaAllocate(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex) {
-    if (identifier == DMA_NONE) {
+    if (!dmaIdentifierIsValid(identifier)) {
         return false;
     }
     const int index = DMA_IDENTIFIER_TO_INDEX(identifier);
@@ -97,7 +102,7 @@ bool dmaAllocate(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t reso
 }
 
 void dmaEnable(dmaIdentifier_e identifier) {
-    if (identifier == DMA_NONE) {
+    if (!dmaIdentifierIsValid(identifier)) {
         return;
     }
     const int index = DMA_IDENTIFIER_TO_INDEX(identifier);
@@ -105,6 +110,9 @@ void dmaEnable(dmaIdentifier_e identifier) {
 }
 
 void dmaInit(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex) {
+    if (!dmaIdentifierIsValid(identifier)) {
+        return;
+    }
     const int index = DMA_IDENTIFIER_TO_INDEX(identifier);
     enableDmaClock(index);
     dmaDescriptors[index].owner = owner;
@@ -112,6 +120,9 @@ void dmaInit(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resource
 }
 
 void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback, uint32_t priority, uint32_t userParam) {
+    if (!dmaIdentifierIsValid(identifier)) {
+        return;
+    }
     const int index = DMA_IDENTIFIER_TO_INDEX(identifier);
     enableDmaClock(index);
     dmaDescriptors[index].irqHandlerCallback = callback;
@@ -121,10 +132,16 @@ void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callbac
 }
 
 resourceOwner_e dmaGetOwner(dmaIdentifier_e identifier) {
+    if (!dmaIdentifierIsValid(identifier)) {
+        return OWNER_FREE;
+    }
     return dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].owner;
 }
 
 uint8_t dmaGetResourceIndex(dmaIdentifier_e identifier) {
+    if (!dmaIdentifierIsValid(identifier)) {
+        return 0;
+    }
     return dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].resourceIndex;
 }
 
@@ -138,10 +155,16 @@ dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef* stream) {
 }
 
 DMA_Stream_TypeDef* dmaGetRefByIdentifier(const dmaIdentifier_e identifier) {
+    if (!dmaIdentifierIsValid(identifier)) {
+        return NULL;
+    }
     return dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].ref;
 }
 
 dmaChannelDescriptor_t* dmaGetDescriptorByIdentifier(const dmaIdentifier_e identifier) {
+    if (!dmaIdentifierIsValid(identifier)) {
+        return NULL;
+    }
     return &dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)];
 }
 
