@@ -85,7 +85,7 @@ static void enableDmaClock(int index) {
     } while (0);
 }
 
-// guards dmaDescriptors[] indexing against out-of-range/stale identifiers (issue #1341)
+// guards dmaDescriptors[] indexing against out-of-range/stale identifiers
 static inline bool dmaIdentifierIsValid(dmaIdentifier_e identifier) {
     return identifier > DMA_NONE && identifier <= DMA_LAST_HANDLER;
 }

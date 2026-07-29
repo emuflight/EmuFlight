@@ -75,7 +75,7 @@ DEFINE_DMA_IRQ_HANDLER(2, 7, DMA2_ST7_HANDLER)
 
 #define DMA_RCC(x) ((x) == DMA1 ? RCC_AHB1Periph_DMA1 : RCC_AHB1Periph_DMA2)
 
-// guards dmaDescriptors[] indexing against out-of-range/stale identifiers (issue #1341)
+// guards dmaDescriptors[] indexing against out-of-range/stale identifiers
 static inline bool dmaIdentifierIsValid(dmaIdentifier_e identifier) {
     return identifier > DMA_NONE && identifier <= DMA_LAST_HANDLER;
 }
