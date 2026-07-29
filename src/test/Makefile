@@ -112,6 +112,10 @@ common_filter_unittest_SRC := \
 		$(USER_DIR)/common/maths.c
 
 
+dma_bounds_unittest_DEFINES := \
+		STM32F4
+
+
 encoding_unittest_SRC := \
 		$(USER_DIR)/common/encoding.c
 
