@@ -689,7 +689,6 @@ const clivalue_t valueTable[] = {
 #ifdef USE_GPS
     { "blackbox_disable_gps",       VAR_UINT32 | MASTER_VALUE | MODE_BITSET, .config.bitpos = FLIGHT_LOG_FIELD_SELECT_GPS,          PG_BLACKBOX_CONFIG, offsetof(blackboxConfig_t, fields_disabled_mask) },
 #endif
-    // No-op until #1251/#1331 merges and wires FLIGHT_LOG_FIELD_CONDITION_GYROUNFILT to this bit
     { "blackbox_disable_gyrounfilt", VAR_UINT32 | MASTER_VALUE | MODE_BITSET, .config.bitpos = FLIGHT_LOG_FIELD_SELECT_GYROUNFILT, PG_BLACKBOX_CONFIG, offsetof(blackboxConfig_t, fields_disabled_mask) },
 #endif
 

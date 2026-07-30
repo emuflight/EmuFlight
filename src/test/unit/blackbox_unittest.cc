@@ -434,12 +434,19 @@ TEST(BlackboxTest, TestFieldMasking)
     EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_PID));
     EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_NONZERO_PID_D_0));
 
-    // Disabling GYRO via the mask must not affect unrelated fields (RC_COMMANDS, SETPOINT)
+    // Disabling GYRO via the mask must not affect unrelated fields (RC_COMMANDS, SETPOINT, GYROUNFILT)
     blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_GYRO);
     blackboxBuildConditionCache();
     EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYRO));
     EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_RC_COMMANDS));
     EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_SETPOINT));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYROUNFILT));
+
+    // Disabling GYROUNFILT independently must leave GYRO untouched (merged in from PR #1331)
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_GYROUNFILT);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYROUNFILT));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYRO));
 
     // Disabling a different field (RC_COMMANDS) must re-enable GYRO and leave SETPOINT untouched
     blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_RC_COMMANDS);

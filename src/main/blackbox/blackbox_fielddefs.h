@@ -50,6 +50,7 @@ typedef enum FlightLogFieldCondition {
     FLIGHT_LOG_FIELD_CONDITION_NOT_LOGGING_EVERY_FRAME,
 
     FLIGHT_LOG_FIELD_CONDITION_GYRO,
+    FLIGHT_LOG_FIELD_CONDITION_GYROUNFILT,
     FLIGHT_LOG_FIELD_CONDITION_ACC,
     FLIGHT_LOG_FIELD_CONDITION_DEBUG,
 
@@ -59,7 +60,7 @@ typedef enum FlightLogFieldCondition {
     FLIGHT_LOG_FIELD_CONDITION_LAST = FLIGHT_LOG_FIELD_CONDITION_NEVER
 } FlightLogFieldCondition;
 
-// BF 4.5-m parity mask (issue #1254); GYROUNFILT reserved for #1251/#1331, not yet wired to a condition case.
+// BF 4.5-m parity mask (issue #1254)
 typedef enum FlightLogFieldSelect {
     FLIGHT_LOG_FIELD_SELECT_PID = 0,
     FLIGHT_LOG_FIELD_SELECT_RC_COMMANDS,
