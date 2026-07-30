@@ -72,7 +72,7 @@ typedef struct imufData {
     float quaternionZ;
     uint32_t crc;
     uint32_t tail;
-} __attribute__((__packed__)) imufData_t;
+} __attribute__((__packed__, aligned(4))) imufData_t;
 
 typedef enum gyroCommands {
     BL_ERASE_ALL                 = 22,

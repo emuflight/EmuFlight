@@ -72,9 +72,6 @@
 
 mpuResetFnPtr mpuResetFn;
 
-#ifdef USE_GYRO_IMUF9001
-imufData_t imufData;
-#endif
 #ifndef MPU_I2C_INSTANCE
 #define MPU_I2C_INSTANCE I2C_DEVICE
 #endif
@@ -193,8 +190,10 @@ bool mpuAccRead(accDev_t *acc) {
 #ifdef USE_GYRO_IMUF9001
 // NOTE: NOT in CCM (FAST_RAM_ZERO_INIT) because the polling SPI path in spiSequenceStart
 // checks IS_CCM() and falls through to a slow path; keep in regular SRAM for normal access.
-static uint8_t imufTxBuf[58];
-static uint8_t imufRxBuf[58];
+// aligned(4): both buffers are accessed via direct cast to imufCommand_t/imufData_t
+// (both aligned(4)), not memcpy'd into a separate aligned struct first.
+static uint8_t imufTxBuf[58] __attribute__((aligned(4)));
+static uint8_t imufRxBuf[58] __attribute__((aligned(4)));
 STATIC_ASSERT(sizeof(imufTxBuf) >= sizeof(imufCommand_t), imuf_tx_buffer_too_small);
 STATIC_ASSERT(sizeof(imufRxBuf) >= sizeof(imufData_t), imuf_rx_buffer_too_small);
 FAST_RAM_ZERO_INIT volatile uint32_t crcErrorCount = 0;
@@ -202,7 +201,8 @@ FAST_RAM_ZERO_INIT volatile uint32_t crcErrorCount = 0;
 // Keeps EXTI ISR duration < 1 µs; moves 15–20 µs SPI polling out of interrupt context.
 FAST_RAM_ZERO_INIT volatile bool imufTransferPending;
 
-// DMA completion callback: copy data into gyroADCf and acc.dev.ADCRaw.
+// DMA completion callback: read directly out of imufRxBuf (no copy) into gyroADCf
+// and acc.dev.ADCRaw, same direct-cast pattern already used for imufTxBuf above.
 // CRC is tallied for diagnostics only — always use data (matches original dma_spi behavior).
 FAST_CODE busStatus_e imufIntCallback(uint32_t arg) {
     gyroDev_t *gyro = (gyroDev_t *)arg;
@@ -214,16 +214,16 @@ FAST_CODE busStatus_e imufIntCallback(uint32_t arg) {
             crcErrorCount = 0;
         }
     }
-    memcpy(&imufData, imufRxBuf, sizeof(imufData_t));
-    acc.dev.ADCRaw[X]   = (int16_t)(imufData.accX * acc.dev.acc_1G);
-    acc.dev.ADCRaw[Y]   = (int16_t)(imufData.accY * acc.dev.acc_1G);
-    acc.dev.ADCRaw[Z]   = (int16_t)(imufData.accZ * acc.dev.acc_1G);
-    gyro->gyroADCf[X]   = imufData.gyroX;
-    gyro->gyroADCf[Y]   = imufData.gyroY;
-    gyro->gyroADCf[Z]   = imufData.gyroZ;
-    gyro->gyroADCRaw[X] = (int16_t)(imufData.gyroX * 16.4f);
-    gyro->gyroADCRaw[Y] = (int16_t)(imufData.gyroY * 16.4f);
-    gyro->gyroADCRaw[Z] = (int16_t)(imufData.gyroZ * 16.4f);
+    const imufData_t *rxData = (const imufData_t *)imufRxBuf;
+    acc.dev.ADCRaw[X]   = (int16_t)(rxData->accX * acc.dev.acc_1G);
+    acc.dev.ADCRaw[Y]   = (int16_t)(rxData->accY * acc.dev.acc_1G);
+    acc.dev.ADCRaw[Z]   = (int16_t)(rxData->accZ * acc.dev.acc_1G);
+    gyro->gyroADCf[X]   = rxData->gyroX;
+    gyro->gyroADCf[Y]   = rxData->gyroY;
+    gyro->gyroADCf[Z]   = rxData->gyroZ;
+    gyro->gyroADCRaw[X] = (int16_t)(rxData->gyroX * 16.4f);
+    gyro->gyroADCRaw[Y] = (int16_t)(rxData->gyroY * 16.4f);
+    gyro->gyroADCRaw[Z] = (int16_t)(rxData->gyroZ * 16.4f);
     gyro->dataReady = true;
     return BUS_READY;
 }
