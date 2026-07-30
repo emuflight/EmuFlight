@@ -418,6 +418,16 @@ bool isRssiConfigured(void) {return stubRssiConfigured;}
 
 TEST(BlackboxTest, TestFieldMasking)
 {
+    // Reset shared global stub state before use, not just at teardown — a fatal failure earlier
+    // in the file (or in this test) must not leave these dirty for whatever runs next.
+    batteryConfigMutable()->voltageMeterSource = VOLTAGE_METER_NONE;
+    batteryConfigMutable()->currentMeterSource = CURRENT_METER_NONE;
+    blackboxConfigMutable()->record_acc = 0;
+    stubSensorsPresent = false;
+    stubFeatureEnabled = false;
+    stubRssiConfigured = false;
+    debugMode = 0;
+
     // NONZERO_PID_D_x dereferences currentPidProfile; give it real, nonzero-D backing storage, not the stub's NULL.
     static pidProfile_t testPidProfile = {};
     testPidProfile.pid[PID_ROLL].D = 1;
@@ -507,7 +517,9 @@ TEST(BlackboxTest, TestFieldMasking)
     blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_ALTITUDE);
     blackboxBuildConditionCache();
     EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_BARO));
+#ifdef USE_RANGEFINDER
     EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_RANGEFINDER));
+#endif
     EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_MAG));
 
     // Disabling RSSI masks only RSSI
