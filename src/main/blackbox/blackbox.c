@@ -601,12 +601,14 @@ static void writeIntraframe(void) {
     if (testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_DEBUG)) {
         blackboxWriteSigned16VBArray(blackboxCurrent->debug, DEBUG16_VALUE_COUNT);
     }
-    //Motors can be below minimum output when disarmed, but that doesn't happen much
-    blackboxWriteUnsignedVB(blackboxCurrent->motor[0] - motorOutputLow);
-    //Motors tend to be similar to each other so use the first motor's value as a predictor of the others
-    const int motorCount = getMotorCount();
-    for (int x = 1; x < motorCount; x++) {
-        blackboxWriteSignedVB(blackboxCurrent->motor[x] - blackboxCurrent->motor[0]);
+    if (testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_AT_LEAST_MOTORS_1)) {
+        //Motors can be below minimum output when disarmed, but that doesn't happen much
+        blackboxWriteUnsignedVB(blackboxCurrent->motor[0] - motorOutputLow);
+        //Motors tend to be similar to each other so use the first motor's value as a predictor of the others
+        const int motorCount = getMotorCount();
+        for (int x = 1; x < motorCount; x++) {
+            blackboxWriteSignedVB(blackboxCurrent->motor[x] - blackboxCurrent->motor[0]);
+        }
     }
     if (testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_TRICOPTER)) {
         //Assume the tail spends most of its time around the center
@@ -724,7 +726,9 @@ static void writeInterframe(void) {
     if (testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_DEBUG)) {
         blackboxWriteMainStateArrayUsingAveragePredictor(offsetof(blackboxMainState_t, debug), DEBUG16_VALUE_COUNT);
     }
-    blackboxWriteMainStateArrayUsingAveragePredictor(offsetof(blackboxMainState_t, motor),     getMotorCount());
+    if (testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_AT_LEAST_MOTORS_1)) {
+        blackboxWriteMainStateArrayUsingAveragePredictor(offsetof(blackboxMainState_t, motor),     getMotorCount());
+    }
     if (testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_TRICOPTER)) {
         blackboxWriteSignedVB(blackboxCurrent->servo[5] - blackboxLast->servo[5]);
     }
