@@ -393,11 +393,16 @@ bool areMotorsRunning(void) { return false; }
 bool IS_RC_MODE_ACTIVE(boxId_e) {return false;}
 bool isModeActivationConditionPresent(boxId_e) {return false;}
 uint32_t millis(void) {return 0;}
-bool sensors(uint32_t) {return false;}
+// Defaults preserve every pre-existing test's assumption (sensor/feature/RSSI absent);
+// only TestFieldMasking flips these, and resets them before returning.
+static bool stubSensorsPresent = false;
+static bool stubFeatureEnabled = false;
+static bool stubRssiConfigured = false;
+bool sensors(uint32_t) {return stubSensorsPresent;}
 void serialWrite(serialPort_t *, uint8_t) {}
 uint32_t serialTxBytesFree(const serialPort_t *) {return 0;}
 bool isSerialTransmitBufferEmpty(const serialPort_t *) {return false;}
-bool feature(uint32_t) {return false;}
+bool feature(uint32_t) {return stubFeatureEnabled;}
 void mspSerialReleasePortIfAllocated(serialPort_t *) {}
 serialPortConfig_t *findSerialPortConfig(serialPortFunction_e ) {return NULL;}
 serialPort_t *findSharedSerialPort(uint32_t, serialPortFunction_e ) {return NULL;}
@@ -407,6 +412,148 @@ portSharing_e determinePortSharing(const serialPortConfig_t *, serialPortFunctio
 failsafePhase_e failsafePhase(void) {return FAILSAFE_IDLE;}
 bool rxAreFlightChannelsValid(void) {return false;}
 bool rxIsReceivingSignal(void) {return false;}
-bool isRssiConfigured(void) {return false;}
+bool isRssiConfigured(void) {return stubRssiConfigured;}
 
+}
+
+TEST(BlackboxTest, TestFieldMasking)
+{
+    // Reset shared global stub state before use, not just at teardown — a fatal failure earlier
+    // in the file (or in this test) must not leave these dirty for whatever runs next.
+    batteryConfigMutable()->voltageMeterSource = VOLTAGE_METER_NONE;
+    batteryConfigMutable()->currentMeterSource = CURRENT_METER_NONE;
+    blackboxConfigMutable()->record_acc = 0;
+    stubSensorsPresent = false;
+    stubFeatureEnabled = false;
+    stubRssiConfigured = false;
+    debugMode = 0;
+
+    // NONZERO_PID_D_x dereferences currentPidProfile; give it real, nonzero-D backing storage, not the stub's NULL.
+    static pidProfile_t testPidProfile = {};
+    testPidProfile.pid[PID_ROLL].D = 1;
+    testPidProfile.pid[PID_PITCH].D = 1;
+    testPidProfile.pid[PID_YAW].D = 1;
+    currentPidProfile = &testPidProfile;
+
+    // All fields enabled by default (fields_disabled_mask == 0)
+    blackboxConfigMutable()->fields_disabled_mask = 0;
+    blackboxBuildConditionCache();
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYRO));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_RC_COMMANDS));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_SETPOINT));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_PID));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_NONZERO_PID_D_0));
+
+    // Disabling GYRO via the mask must not affect unrelated fields (RC_COMMANDS, SETPOINT, GYROUNFILT)
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_GYRO);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYRO));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_RC_COMMANDS));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_SETPOINT));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYROUNFILT));
+
+    // Disabling GYROUNFILT independently must leave GYRO untouched (merged in from PR #1331)
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_GYROUNFILT);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYROUNFILT));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYRO));
+
+    // Disabling a different field (RC_COMMANDS) must re-enable GYRO and leave SETPOINT untouched
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_RC_COMMANDS);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYRO));
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_RC_COMMANDS));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_SETPOINT));
+
+    // Multiple bits combine (PID + SETPOINT disabled simultaneously); disabling PID also masks nonzero D-term
+    blackboxConfigMutable()->fields_disabled_mask =
+        (1 << FLIGHT_LOG_FIELD_SELECT_PID) | (1 << FLIGHT_LOG_FIELD_SELECT_SETPOINT);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_PID));
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_NONZERO_PID_D_0));
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_SETPOINT));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_RC_COMMANDS));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_GYRO));
+
+    // Sensor-gated fields: give each underlying sensor/feature a "present" reading so the
+    // mask bit is what actually flips true->false, not the pre-existing sensor-absent default.
+    batteryConfigMutable()->voltageMeterSource = VOLTAGE_METER_ADC;
+    batteryConfigMutable()->currentMeterSource = CURRENT_METER_ADC;
+    blackboxConfigMutable()->record_acc = 1; // ACC condition also requires this, independent of the mask
+    stubSensorsPresent = true; // backs MAG, BARO, RANGEFINDER, ACC conditions
+    stubRssiConfigured = true;
+    debugMode = 1; // != DEBUG_NONE
+
+    blackboxConfigMutable()->fields_disabled_mask = 0;
+    blackboxBuildConditionCache();
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_VBAT));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_AMPERAGE_ADC));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_MAG));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_BARO));
+#ifdef USE_RANGEFINDER
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_RANGEFINDER));
+#endif
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_RSSI));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_ACC));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_DEBUG));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_AT_LEAST_MOTORS_1));
+
+    // Disabling BATTERY masks both VBAT and AMPERAGE_ADC, leaves the others untouched
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_BATTERY);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_VBAT));
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_AMPERAGE_ADC));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_MAG));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_ACC));
+
+    // Disabling MAG masks only MAG
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_MAG);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_MAG));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_BARO));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_VBAT));
+
+    // Disabling ALTITUDE masks both BARO and RANGEFINDER together
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_ALTITUDE);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_BARO));
+#ifdef USE_RANGEFINDER
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_RANGEFINDER));
+#endif
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_MAG));
+
+    // Disabling RSSI masks only RSSI
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_RSSI);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_RSSI));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_ACC));
+
+    // Disabling ACC masks only ACC
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_ACC);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_ACC));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_DEBUG));
+
+    // Disabling DEBUG masks only DEBUG
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_DEBUG);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_DEBUG));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_AT_LEAST_MOTORS_1));
+
+    // Disabling MOTOR masks the motor-count-gated condition
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_MOTOR);
+    blackboxBuildConditionCache();
+    EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_AT_LEAST_MOTORS_1));
+    EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_DEBUG));
+
+    // Reset all global stub state so no later test observes this fixture
+    blackboxConfigMutable()->fields_disabled_mask = 0;
+    blackboxBuildConditionCache();
+    currentPidProfile = NULL;
+    batteryConfigMutable()->voltageMeterSource = VOLTAGE_METER_NONE;
+    batteryConfigMutable()->currentMeterSource = CURRENT_METER_NONE;
+    stubSensorsPresent = false;
+    stubFeatureEnabled = false;
+    stubRssiConfigured = false;
+    debugMode = 0;
 }
