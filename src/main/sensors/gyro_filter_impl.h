@@ -19,7 +19,11 @@
  */
 
 static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor) {
+#ifndef USE_GYRO_IMUF9001
+    // kalman_update() (the only other writer of DEBUG_KALMAN slots 1-3) never runs on IMUF9001,
+    // so this slot must stay unset there too instead of leaking real data next to permanent zeros.
     DEBUG_SET(DEBUG_KALMAN, 0, gyroSensor->gyroDev.gyroADC[X] * gyroSensor->gyroDev.scale); //Gyro input
+#endif
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
         GYRO_FILTER_DEBUG_SET(DEBUG_GYRO_RAW, axis, gyroSensor->gyroDev.gyroADCRaw[axis] * gyroSensor->gyroDev.scale);
         // scale gyro output to degrees per second
