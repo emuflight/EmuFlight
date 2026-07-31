@@ -207,7 +207,10 @@ FAST_CODE static bool imufSendReceiveSpi(const extDevice_t *dev, uint8_t *dataTx
 // imufIntCallback fires asynchronously from imufDmaCompleteIsr and sets dataReady = true;
 // gyroUpdateSensor clears it, so the GYROPID naturally runs at IMUF's actual data rate.
 FAST_CODE static bool imufSpiGyroRead(gyroDev_t *gyro) {
-    if (imufTransferPending) {
+    // imufDmaTransferInFlight guards against starting a new transfer while the
+    // previous one hasn't completed - leaves imufTransferPending set so this
+    // retries on the next call once imufDmaCompleteIsr clears the in-flight flag.
+    if (imufTransferPending && !imufDmaTransferInFlight) {
         imufTransferPending = false;      // clear before SPI so a racing EXTI re-sets it
         imufPrepareDmaRead(gyro);
         imufDmaStartTransfer(gyro);

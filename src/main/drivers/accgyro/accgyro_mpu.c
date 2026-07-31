@@ -200,6 +200,10 @@ FAST_RAM_ZERO_INIT volatile uint32_t crcErrorCount = 0;
 // Set by EXTI ISR; consumed (cleared then SPI executed) by imufSpiGyroRead in GYROPID task.
 // Keeps EXTI ISR duration < 1 µs; moves 15–20 µs SPI polling out of interrupt context.
 FAST_RAM_ZERO_INIT volatile bool imufTransferPending;
+// Set at the end of imufDmaStartTransfer, cleared at the start of imufDmaCompleteIsr.
+// Guards against imufSpiGyroRead starting a new transfer while the DMA from the
+// previous cycle hasn't completed yet (margin is tight at the highest loop rates).
+FAST_RAM_ZERO_INIT volatile bool imufDmaTransferInFlight;
 
 // DMA completion callback: read directly out of imufRxBuf (no copy) into gyroADCf
 // and acc.dev.ADCRaw, same direct-cast pattern already used for imufTxBuf above.
@@ -316,6 +320,7 @@ static DMA_InitTypeDef imufDmaInitRx;
 // never needs to call DMA_Init() again.
 FAST_CODE static void imufDmaCompleteIsr(dmaChannelDescriptor_t *descriptor) {
     DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF);
+    imufDmaTransferInFlight = false;
     ((DMA_Stream_TypeDef *)imufDmaTx->ref)->CR &= ~(uint32_t)DMA_SxCR_EN;
     ((DMA_Stream_TypeDef *)imufDmaRx->ref)->CR &= ~(uint32_t)DMA_SxCR_EN;
     SPI_I2S_DMACmd(imufDmaGyro->dev.bus->busType_u.spi.instance, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, DISABLE);
@@ -348,6 +353,7 @@ void mpuImufSetupDma(gyroDev_t *gyro) {
     imufDmaInitTx.DMA_Priority           = DMA_Priority_Low;
 
     imufDmaInitRx                     = imufDmaInitTx;
+    imufDmaInitRx.DMA_Channel         = imufDmaRx->channel;
     imufDmaInitRx.DMA_DIR             = DMA_DIR_PeripheralToMemory;
     imufDmaInitRx.DMA_Memory0BaseAddr = (uint32_t)imufRxBuf;
     imufDmaInitRx.DMA_Priority        = DMA_Priority_Medium;
@@ -381,6 +387,7 @@ FAST_CODE void imufDmaStartTransfer(gyroDev_t *gyro) {
 
     DMA_Cmd(streamTx, ENABLE);
     DMA_Cmd(streamRx, ENABLE);
+    imufDmaTransferInFlight = true;
 
     IOLo(gyro->dev.busType_u.spi.csnPin);
     SPI_I2S_DMACmd(gyro->dev.bus->busType_u.spi.instance, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
@@ -398,10 +405,19 @@ static LL_DMA_InitTypeDef imufDmaInitRx;
 
 FAST_CODE static void imufDmaCompleteIsr(dmaChannelDescriptor_t *descriptor) {
     DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF);
+    imufDmaTransferInFlight = false;
     LL_DMA_DisableStream(imufDmaTx->dma, imufDmaTx->stream);
     LL_DMA_DisableStream(imufDmaRx->dma, imufDmaRx->stream);
     CLEAR_BIT(imufDmaGyro->dev.bus->busType_u.spi.instance->CR2, SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN);
     IOHi(imufDmaGyro->dev.busType_u.spi.csnPin);
+#ifdef __DCACHE_PRESENT
+    // Invalidate here, after the DMA write completes and before imufIntCallback
+    // reads imufRxBuf below - invalidating earlier (before the transfer starts)
+    // leaves a window where the CPU could still read stale cached data.
+    const uint32_t len = imufDmaGyro->segments[0].len;
+    SCB_InvalidateDCache_by_Addr((uint32_t *)((uint32_t)imufRxBuf & ~CACHE_LINE_MASK),
+        (((uint32_t)imufRxBuf & CACHE_LINE_MASK) + len - 1 + CACHE_LINE_SIZE) & ~CACHE_LINE_MASK);
+#endif
     imufIntCallback((uint32_t)imufDmaGyro);
 }
 
@@ -458,10 +474,10 @@ FAST_CODE void imufDmaStartTransfer(gyroDev_t *gyro) {
     DMA_CLEAR_FLAG(imufDmaRx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
 
 #ifdef __DCACHE_PRESENT
+    // Clean (writeback) TX only here - DMA reads imufTxBuf right after this.
+    // RX invalidate happens in imufDmaCompleteIsr, after the write completes.
     SCB_CleanDCache_by_Addr((uint32_t *)((uint32_t)imufTxBuf & ~CACHE_LINE_MASK),
         (((uint32_t)imufTxBuf & CACHE_LINE_MASK) + len - 1 + CACHE_LINE_SIZE) & ~CACHE_LINE_MASK);
-    SCB_CleanInvalidateDCache_by_Addr((uint32_t *)((uint32_t)imufRxBuf & ~CACHE_LINE_MASK),
-        (((uint32_t)imufRxBuf & CACHE_LINE_MASK) + len - 1 + CACHE_LINE_SIZE) & ~CACHE_LINE_MASK);
 #endif
 
     // NbData/MemoryAddress may only be written while EN=0 (RM0431) - already
@@ -474,6 +490,7 @@ FAST_CODE void imufDmaStartTransfer(gyroDev_t *gyro) {
 
     LL_DMA_EnableStream(imufDmaTx->dma, imufDmaTx->stream);
     LL_DMA_EnableStream(imufDmaRx->dma, imufDmaRx->stream);
+    imufDmaTransferInFlight = true;
 
     IOLo(gyro->dev.busType_u.spi.csnPin);
     SET_BIT(gyro->dev.bus->busType_u.spi.instance->CR2, SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN);
