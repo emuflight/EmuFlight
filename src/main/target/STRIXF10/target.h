@@ -93,7 +93,7 @@
 
 #define USE_SPI
 
-//#define USE_SPI_DEVICE_1
+#define USE_SPI_DEVICE_1
 #define SPI1_NSS_PIN            PB1
 #define SPI1_SCK_PIN            PB3
 #define SPI1_MISO_PIN           PA6
