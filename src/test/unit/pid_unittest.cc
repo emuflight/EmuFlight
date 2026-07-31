@@ -784,3 +784,59 @@ TEST(pidControllerTest, testDtermDynNotchSvfWiring) {
     // otherwise the assertions above would pass vacuously regardless of which Q is used.
     EXPECT_NE(expectedAfterInit.a2q, expectedAfterUpdate.a2q);
 }
+
+// Runs a sustained sine-wave "vibration" through the real pidInit()/pidController() path for
+// several hundred iterations, simulating continuous motor/prop noise at a fixed frequency, and
+// measures the settled D-term amplitude at that frequency with the D-term SVF dynamic notch
+// enabled vs disabled. Complements testDtermDynNotchSvfWiring's coefficient-level check with a
+// behavioral one: does the notch actually suppress the vibration it is tuned to, through the
+// production call path. Not a substitute for real-aircraft flight testing (no ESC/motor/airframe
+// dynamics, no real gyro noise floor) — a bounded simulated-signal check only.
+static float runSimulatedVibration(bool dynNotchEnabled, float loopHz, float vibrationHz, float vibrationAmplitude) {
+    resetTest();
+
+    gyro.targetLooptime = static_cast<uint32_t>(1000000.0f / loopHz);
+    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
+        pidProfile->dFilter[axis].dLpf = 0;
+        pidProfile->dFilter[axis].dLpf2 = 0;
+    }
+    pidProfile->dtermDynNotch = dynNotchEnabled;
+    pidProfile->dterm_dyn_notch_q = 250;
+    gyroConfig_System.dyn_notch_axis = RPY;
+    gyroConfig_System.dyn_notch_count = 1;
+    pidInit(pidProfile);
+
+    simulatedCenterFreq[FD_ROLL][0] = vibrationHz;
+
+    ENABLE_ARMING_FLAG(ARMED);
+    pidStabilisationState(PID_STABILISATION_ON);
+
+    const float dT = gyro.targetLooptime * pidConfig()->pid_process_denom * 1e-6f;
+    const int settleSamples = 100;
+    const int measureSamples = 200;
+    float maxAbsD = 0.0f;
+    for (int i = 0; i < settleSamples + measureSamples; i++) {
+        const float t = i * dT;
+        gyro.gyroADCf[FD_ROLL] = vibrationAmplitude * sinf(2.0f * M_PIf * vibrationHz * t);
+        pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
+        if (i >= settleSamples) {
+            maxAbsD = fmaxf(maxAbsD, fabsf(pidData[FD_ROLL].D));
+        }
+    }
+    return maxAbsD;
+}
+
+TEST(pidControllerTest, testDtermDynNotchSvfAttenuatesSimulatedVibration) {
+    const float loopHz = 1000.0f;              // 1kHz PID loop, clear of #1335's Nyquist-proximity gap
+    const float vibrationHz = 120.0f;          // representative low-order motor/prop vibration frequency
+    const float vibrationAmplitude = 200.0f;   // deg/s
+
+    const float dNotchOff = runSimulatedVibration(false, loopHz, vibrationHz, vibrationAmplitude);
+    const float dNotchOn  = runSimulatedVibration(true,  loopHz, vibrationHz, vibrationAmplitude);
+
+    EXPECT_NE(0.0f, dNotchOff) << "Baseline (no dynamic notch) D-term should react to injected vibration";
+    EXPECT_LT(dNotchOn, dNotchOff * 0.3f)
+        << "D-term SVF dynamic notch tuned to the injected vibration frequency (" << vibrationHz
+        << "Hz) should attenuate settled D-term amplitude by at least 70% vs no notch: "
+        << "dNotchOn=" << dNotchOn << " dNotchOff=" << dNotchOff;
+}
