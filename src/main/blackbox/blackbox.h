@@ -50,11 +50,14 @@ typedef enum FlightLogEvent {
     FLIGHT_LOG_EVENT_LOG_END = 255
 } FlightLogEvent;
 
+#include "blackbox_fielddefs.h"
+
 typedef struct blackboxConfig_s {
     uint16_t p_ratio; // I-frame interval / P-frame interval
     uint8_t device;
     uint8_t record_acc;
     uint8_t mode;
+    uint32_t fields_disabled_mask; // bitmask of FlightLogFieldSelect_e, BF 4.5-m parity
 } blackboxConfig_t;
 
 PG_DECLARE(blackboxConfig_t, blackboxConfig);
@@ -78,6 +81,8 @@ STATIC_UNIT_TESTED bool blackboxShouldLogGpsHomeFrame(void);
 STATIC_UNIT_TESTED bool writeSlowFrameIfNeeded(void);
 // Called once every FC loop in order to keep track of how many FC loop iterations have passed
 STATIC_UNIT_TESTED void blackboxAdvanceIterationTimers(void);
+STATIC_UNIT_TESTED void blackboxBuildConditionCache(void);
+STATIC_UNIT_TESTED bool testBlackboxCondition(FlightLogFieldCondition condition);
 extern int32_t blackboxSInterval;
 extern int32_t blackboxSlowFrameIterationTimer;
 #endif
