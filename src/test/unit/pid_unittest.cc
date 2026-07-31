@@ -176,6 +176,7 @@ void resetTest(void) {
 
     simulatedDynamicFilterActive = true;
     memset(simulatedCenterFreq, 0, sizeof(simulatedCenterFreq));
+    memset(dtermNotch, 0, sizeof(dtermNotch));
     memset(previousNotchCenterFreq, 0, sizeof(float) * XYZ_AXIS_COUNT * 5);
 
     pidStabilisationState(PID_STABILISATION_OFF);
