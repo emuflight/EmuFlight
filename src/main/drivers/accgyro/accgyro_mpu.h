@@ -247,7 +247,14 @@ uint8_t mpuGyroReadRegister(const extDevice_t *dev, uint8_t reg);
 struct accDev_s;
 bool mpuAccRead(struct accDev_s *acc);
 
-#ifdef USE_DMA_SPI_DEVICE
-extern bool mpuGyroDmaSpiReadStart(struct gyroDev_s *gyro);
-extern void mpuGyroDmaSpiReadFinish(struct gyroDev_s *gyro);
+#ifdef USE_GYRO_IMUF9001
+extern void mpuImufSetupDma(struct gyroDev_s *gyro);
+extern void imufPrepareDmaRead(struct gyroDev_s *gyro);
+// Dedicated DMA2 Stream0/Stream3 transfer for SPI1 (IMUF9001/F301 link) only -
+// deliberately NOT routed through spiSequence()/spiInitBusDMA()'s generic
+// multi-device bus arbitration. See PR #1283 / issue #1281 discussion: this
+// link is a dedicated single-device bus, and the generic shared-bus DMA path
+// has zero production history anywhere in EmuFlight and broke real hardware
+// in two independent attempts to activate it for reasons never fully isolated.
+extern void imufDmaStartTransfer(struct gyroDev_s *gyro);
 #endif
