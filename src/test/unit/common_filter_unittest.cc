@@ -193,6 +193,68 @@ TEST(FilterUnittest, TestBiquadFilterNotchDCPass)
         << "Notch filter must pass DC (f=0) with gain~1; output=" << output;
 }
 
+// ---- SVF notch filter tests ----
+
+TEST(FilterUnittest, TestSvfNotchFilterInit)
+{
+    svfNotchFilter_t filter;
+    const float notchHz  = 200.0f;
+    const float cutoffHz = 180.0f;
+    const float Q = filterGetNotchQ(notchHz, cutoffHz);
+    const float dt = 0.001f; // 1 kHz loop rate
+    svfNotchInit(&filter, notchHz, dt, Q);
+
+    // States must be zeroed after init
+    EXPECT_FLOAT_EQ(0.0f, filter.ic1q);
+    EXPECT_FLOAT_EQ(0.0f, filter.ic2);
+
+    // Coefficients must be non-trivial (filter is actually doing something)
+    EXPECT_NE(0.0f, filter.a1);
+    EXPECT_NE(0.0f, filter.a2q);
+    EXPECT_NE(0.0f, filter.fq);
+}
+
+TEST(FilterUnittest, TestSvfNotchFilterDCPass)
+{
+    // A notch filter passes DC (gain = 1 at f=0), same invariant as the biquad notch
+    svfNotchFilter_t filter;
+    const float notchHz  = 200.0f;
+    const float cutoffHz = 180.0f;
+    const float Q = filterGetNotchQ(notchHz, cutoffHz);
+    svfNotchInit(&filter, notchHz, 0.001f, Q);
+
+    float output = 0.0f;
+    for (int i = 0; i < 200; i++) {
+        output = svfNotchApply(&filter, 1.0f);
+    }
+    EXPECT_NEAR(1.0f, output, 0.001f)
+        << "SVF notch filter must pass DC (f=0) with gain~1; output=" << output;
+}
+
+TEST(FilterUnittest, TestSvfNotchFilterAttenuatesCenterFreq)
+{
+    // Feeding a sine wave at the notch's own center frequency must attenuate its amplitude toward 0
+    svfNotchFilter_t filter;
+    const float notchHz  = 200.0f;
+    const float cutoffHz = 180.0f;
+    const float Q = filterGetNotchQ(notchHz, cutoffHz);
+    const float dt = 0.001f; // 1 kHz sample rate, well above 2x notchHz (Nyquist = 500 Hz)
+    svfNotchInit(&filter, notchHz, dt, Q);
+
+    float maxOutput = 0.0f;
+    const int numSamples = 500;
+    for (int i = 0; i < numSamples; i++) {
+        const float t = i * dt;
+        const float input = sinf(2.0f * (float)M_PI * notchHz * t);
+        const float output = svfNotchApply(&filter, input);
+        if (i > 100) { // skip startup transient before measuring settled amplitude
+            maxOutput = fmaxf(maxOutput, fabsf(output));
+        }
+    }
+    EXPECT_LT(maxOutput, 0.1f)
+        << "SVF notch should strongly attenuate a sine wave at its own center frequency; maxOutput=" << maxOutput;
+}
+
 TEST(FilterUnittest, TestFilterGetNotchQ)
 {
     // Q = f0 * f1 / (f0^2 - f1^2)
