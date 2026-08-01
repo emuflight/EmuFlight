@@ -30,6 +30,12 @@
 #undef USE_VTX_TRAMP
 #endif
 
+// IMUF9001 boards drive SPI1 DMA directly (accgyro_mpu.c); the generic path
+// must not also claim those streams.
+#if defined(USE_GYRO_IMUF9001)
+#undef USE_SPI_DMA_ENABLE_LATE
+#endif
+
 #ifndef USE_DSHOT
 #undef USE_ESC_SENSOR
 #endif
