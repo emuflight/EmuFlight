@@ -59,10 +59,7 @@
 #define USE_ADC_INTERNAL
 #define USE_USB_CDC_HID
 #define USE_USB_MSC
-// SPI DMA must claim its streams after every dmaInit() caller (motors, ADC, LED
-// strip, transponder, SD card) has already run — dmaInit() overwrites ownership
-// unconditionally, unlike dmaAllocate(). common_fc_post.h strips this for
-// USE_GYRO_IMUF9001 boards, which own SPI1 DMA directly.
+// dmaInit() (used elsewhere in fc_init.c) has no ownership check, unlike dmaAllocate(), so SPI must claim last.
 #define USE_SPI_DMA_ENABLE_LATE
 
 #if defined(STM32F40_41xxx) || defined(STM32F411xE)

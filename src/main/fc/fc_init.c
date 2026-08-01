@@ -672,9 +672,7 @@ void init(void) {
     pwmEnableMotors();
     setArmingDisabled(ARMING_DISABLED_BOOT_GRACE_TIME);
 #if defined(USE_SPI) && defined(USE_SPI_DMA_ENABLE_LATE)
-    // Must run after every dmaInit() caller above (motors, ADC, LED strip,
-    // transponder, SD card) and before fcTasksInit(), which triggers the first
-    // gyro read that latches GYRO_EXTI_INT_DMA vs GYRO_EXTI_INT (accgyro_mpu.c).
+    // Must run after every dmaInit() caller above and before fcTasksInit()'s first gyro read.
     spiInitBusDMA();
 #endif
     fcTasksInit();
