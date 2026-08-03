@@ -90,9 +90,20 @@ extern "C" {
         return (axis < XYZ_AXIS_COUNT) ? testAngleModeAngles[axis] : 0.0f;
     }
     
-    float howUpsideDown(void) { 
-        return 0.0f; 
+    float howUpsideDown(void) {
+        return 0.0f;
     }
+
+    // Test-controlled stubs for the D-term SVF dynamic notch (USE_GYRO_DATA_ANALYSE),
+    // whose real implementations live in gyro.c/gyroanalyse.c, neither of which is linked here.
+    bool simulatedDynamicFilterActive = true;
+    bool isDynamicFilterActive(void) { return simulatedDynamicFilterActive; }
+
+    static float simulatedCenterFreq[XYZ_AXIS_COUNT][5] = { { 0.0f } };
+    float getCenterFreq(int axis, int peak) { return simulatedCenterFreq[axis][peak]; }
+
+    extern svfNotchFilter_t dtermNotch[XYZ_AXIS_COUNT][5];
+    extern float previousNotchCenterFreq[XYZ_AXIS_COUNT][5];
 }
 
 pidProfile_t *pidProfile;
@@ -158,9 +169,15 @@ void resetTest(void) {
     testAngleModeAngles[FD_PITCH] = 0.0f;
     testAngleModeAngles[FD_YAW] = 0.0f;
 
-    // Explicitly initialize gyroConfig_System to zeroed state for deterministic testing
-    // Firmware defaults would be applied via pgResetAll(), but we define defaults here for test isolation
+    // gyro.c is not linked into this test binary, so its PG_REGISTER for gyroConfig never
+    // runs; pgResetAll() cannot apply real firmware defaults to gyroConfig_System here.
+    // Zeroed for isolation; tests that need it set fields explicitly.
     memset(&gyroConfig_System, 0, sizeof(gyroConfig_t));
+
+    simulatedDynamicFilterActive = true;
+    memset(simulatedCenterFreq, 0, sizeof(simulatedCenterFreq));
+    memset(dtermNotch, 0, sizeof(dtermNotch));
+    memset(previousNotchCenterFreq, 0, sizeof(float) * XYZ_AXIS_COUNT * 5);
 
     pidStabilisationState(PID_STABILISATION_OFF);
     DISABLE_ARMING_FLAG(ARMED);
@@ -719,4 +736,107 @@ TEST(pidControllerTest, testItermRotationHandling) {
         << " (pitchItermWithRotation=" << pitchItermWithRotation << ")";
     EXPECT_GT(fabsf(pitchItermWithRotation), fabsf(pitchItermNoRotation))
         << "iterm_rotation=true must produce larger |PITCH iterm| than rotation=false";
+}
+
+TEST(pidControllerTest, testDtermDynNotchSvfWiring) {
+    // Exercises the D-term SVF dynamic notch end-to-end through pidInit()/pidController(),
+    // rather than calling svfNotch* directly (the gap CodeRabbit flagged on PR #1329).
+    // Verifies: (1) pidInitFilters() seeds dtermNotch at the fixed 400Hz using a real
+    // seconds-based dT and gyroConfig()->dyn_notch_q; (2) the runtime update inside
+    // pidController() re-seeds it using pidProfile->dterm_dyn_notch_q, not gyroConfig's Q.
+    resetTest();
+
+    gyroConfig_System.dyn_notch_axis = RPY;
+    gyroConfig_System.dyn_notch_count = 1;
+    gyroConfig_System.dyn_notch_q = 350;
+    simulatedCenterFreq[FD_ROLL][0] = 300.0f;
+
+    pidProfile->dtermDynNotch = true;
+    pidProfile->dterm_dyn_notch_q = 250; // deliberately distinct from gyroConfig_System.dyn_notch_q
+
+    pidInit(pidProfile);
+
+    // dT per pidSetTargetLooptime(): gyro.targetLooptime * pidConfig()->pid_process_denom * 1e-6f
+    const float dT = gyro.targetLooptime * pidConfig()->pid_process_denom * 1e-6f;
+
+    // --- Init path: fixed 400Hz notch seeded with gyroConfig()->dyn_notch_q ---
+    svfNotchFilter_t expectedAfterInit;
+    svfNotchInit(&expectedAfterInit, 400.0f, dT, gyroConfig_System.dyn_notch_q / 100.0f);
+    EXPECT_FLOAT_EQ(expectedAfterInit.a1,  dtermNotch[FD_ROLL][0].a1)
+        << "dtermNotch init a1 must match svfNotchInit(400Hz, dT, gyroConfig dyn_notch_q)";
+    EXPECT_FLOAT_EQ(expectedAfterInit.a2q, dtermNotch[FD_ROLL][0].a2q);
+    EXPECT_FLOAT_EQ(expectedAfterInit.fq,  dtermNotch[FD_ROLL][0].fq);
+
+    ENABLE_ARMING_FLAG(ARMED);
+    pidStabilisationState(PID_STABILISATION_ON);
+    pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
+
+    // --- Runtime path: re-seeded at the simulated center freq using pidProfile->dterm_dyn_notch_q ---
+    svfNotchFilter_t expectedAfterUpdate;
+    svfNotchUpdate(&expectedAfterUpdate, simulatedCenterFreq[FD_ROLL][0], dT, pidProfile->dterm_dyn_notch_q / 100.0f);
+    EXPECT_FLOAT_EQ(expectedAfterUpdate.a1,  dtermNotch[FD_ROLL][0].a1)
+        << "dtermNotch runtime update a1 must match svfNotchUpdate() called with pidProfile->dterm_dyn_notch_q";
+    EXPECT_FLOAT_EQ(expectedAfterUpdate.a2q, dtermNotch[FD_ROLL][0].a2q);
+    EXPECT_FLOAT_EQ(expectedAfterUpdate.fq,  dtermNotch[FD_ROLL][0].fq);
+    EXPECT_FLOAT_EQ(300.0f, previousNotchCenterFreq[FD_ROLL][0]);
+
+    // Sanity: the two distinct Q values must actually produce distinct coefficients,
+    // otherwise the assertions above would pass vacuously regardless of which Q is used.
+    EXPECT_NE(expectedAfterInit.a2q, expectedAfterUpdate.a2q);
+}
+
+// Runs a sustained sine-wave "vibration" through the real pidInit()/pidController() path for
+// several hundred iterations, simulating continuous motor/prop noise at a fixed frequency, and
+// measures the settled D-term amplitude at that frequency with the D-term SVF dynamic notch
+// enabled vs disabled. Complements testDtermDynNotchSvfWiring's coefficient-level check with a
+// behavioral one: does the notch actually suppress the vibration it is tuned to, through the
+// production call path. Not a substitute for real-aircraft flight testing (no ESC/motor/airframe
+// dynamics, no real gyro noise floor) — a bounded simulated-signal check only.
+static float runSimulatedVibration(bool dynNotchEnabled, float loopHz, float vibrationHz, float vibrationAmplitude) {
+    resetTest();
+
+    gyro.targetLooptime = static_cast<uint32_t>(1000000.0f / loopHz);
+    for (int axis = FD_ROLL; axis <= FD_YAW; axis++) {
+        pidProfile->dFilter[axis].dLpf = 0;
+        pidProfile->dFilter[axis].dLpf2 = 0;
+    }
+    pidProfile->dtermDynNotch = dynNotchEnabled;
+    pidProfile->dterm_dyn_notch_q = 250;
+    gyroConfig_System.dyn_notch_axis = RPY;
+    gyroConfig_System.dyn_notch_count = 1;
+    pidInit(pidProfile);
+
+    simulatedCenterFreq[FD_ROLL][0] = vibrationHz;
+
+    ENABLE_ARMING_FLAG(ARMED);
+    pidStabilisationState(PID_STABILISATION_ON);
+
+    const float dT = gyro.targetLooptime * pidConfig()->pid_process_denom * 1e-6f;
+    const int settleSamples = 100;
+    const int measureSamples = 200;
+    float maxAbsD = 0.0f;
+    for (int i = 0; i < settleSamples + measureSamples; i++) {
+        const float t = i * dT;
+        gyro.gyroADCf[FD_ROLL] = vibrationAmplitude * sinf(2.0f * M_PIf * vibrationHz * t);
+        pidController(pidProfile, &rollAndPitchTrims, currentTestTime());
+        if (i >= settleSamples) {
+            maxAbsD = fmaxf(maxAbsD, fabsf(pidData[FD_ROLL].D));
+        }
+    }
+    return maxAbsD;
+}
+
+TEST(pidControllerTest, testDtermDynNotchSvfAttenuatesSimulatedVibration) {
+    const float loopHz = 1000.0f;              // 1kHz PID loop, clear of #1335's Nyquist-proximity gap
+    const float vibrationHz = 120.0f;          // representative low-order motor/prop vibration frequency
+    const float vibrationAmplitude = 200.0f;   // deg/s
+
+    const float dNotchOff = runSimulatedVibration(false, loopHz, vibrationHz, vibrationAmplitude);
+    const float dNotchOn  = runSimulatedVibration(true,  loopHz, vibrationHz, vibrationAmplitude);
+
+    EXPECT_NE(0.0f, dNotchOff) << "Baseline (no dynamic notch) D-term should react to injected vibration";
+    EXPECT_LT(dNotchOn, dNotchOff * 0.3f)
+        << "D-term SVF dynamic notch tuned to the injected vibration frequency (" << vibrationHz
+        << "Hz) should attenuate settled D-term amplitude by at least 70% vs no notch: "
+        << "dNotchOn=" << dNotchOn << " dNotchOff=" << dNotchOff;
 }
