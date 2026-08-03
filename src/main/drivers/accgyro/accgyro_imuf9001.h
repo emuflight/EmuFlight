@@ -72,7 +72,7 @@ typedef struct imufData {
     float quaternionZ;
     uint32_t crc;
     uint32_t tail;
-} __attribute__((__packed__)) imufData_t;
+} __attribute__((__packed__, aligned(4))) imufData_t;
 
 typedef enum gyroCommands {
     BL_ERASE_ALL                 = 22,
@@ -188,6 +188,9 @@ typedef enum gpioState {
 
 extern volatile imuFrame_t imufQuat;
 extern volatile uint32_t isImufCalibrating;
+extern volatile uint32_t crcErrorCount;
+extern volatile bool imufTransferPending;
+extern volatile bool imufDmaTransferInFlight;
 
 extern void initImuf9001(void);
 extern uint32_t getCrcImuf9001(uint32_t* data, uint32_t size);

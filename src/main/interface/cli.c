@@ -70,7 +70,6 @@ extern uint8_t __config_end;
 #include "drivers/compass/compass.h"
 #include "drivers/display.h"
 #include "drivers/dma.h"
-#include "drivers/dma_spi.h"
 #include "drivers/flash.h"
 #include "drivers/inverter.h"
 #include "drivers/io.h"
