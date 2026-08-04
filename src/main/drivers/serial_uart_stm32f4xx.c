@@ -217,7 +217,6 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
         if (uartDmaClaim(identifier, OWNER_SERIAL_RX, RESOURCE_INDEX(device))) {
             s->rxDMAChannel = hardware->DMAChannel;
             s->rxDMAStream = hardware->rxDMAStream;
-            s->rxDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->DR;
         } else {
             // stream owned by another peripheral (e.g. SPI DMA): fall back to IRQ-driven RX.
             s->rxDMAChannel = 0;
@@ -230,13 +229,14 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
             dmaSetHandler(identifier, dmaIRQHandler, hardware->txPriority, (uint32_t)uart);
             s->txDMAChannel = hardware->DMAChannel;
             s->txDMAStream = hardware->txDMAStream;
-            s->txDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->DR;
         } else {
             // stream owned by another peripheral (e.g. SPI DMA): fall back to IRQ-driven TX.
             s->txDMAChannel = 0;
             s->txDMAStream = NULL;
         }
     }
+    s->rxDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->DR;
+    s->txDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->DR;
     IO_t txIO = IOGetByTag(uart->tx);
     IO_t rxIO = IOGetByTag(uart->rx);
     if (hardware->rcc) {
