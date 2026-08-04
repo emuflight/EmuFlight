@@ -60,7 +60,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
         .rcc_ahb1 = UART1_AHB1_PERIPHERALS,
 #endif
         .rcc_apb2 = RCC_APB2(USART1),
-        .txIrq = DMA2_ST7_HANDLER,
         .rxIrq = USART1_IRQn,
         .txPriority = NVIC_PRIO_SERIALUART1_TXDMA,
         .rxPriority = NVIC_PRIO_SERIALUART1
@@ -85,7 +84,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
         .rcc_ahb1 = UART2_AHB1_PERIPHERALS,
 #endif
         .rcc_apb1 = RCC_APB1(USART2),
-        .txIrq = DMA1_ST6_HANDLER,
         .rxIrq = USART2_IRQn,
         .txPriority = NVIC_PRIO_SERIALUART2_TXDMA,
         .rxPriority = NVIC_PRIO_SERIALUART2
@@ -110,7 +108,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
         .rcc_ahb1 = UART3_AHB1_PERIPHERALS,
 #endif
         .rcc_apb1 = RCC_APB1(USART3),
-        .txIrq = DMA1_ST3_HANDLER,
         .rxIrq = USART3_IRQn,
         .txPriority = NVIC_PRIO_SERIALUART3_TXDMA,
         .rxPriority = NVIC_PRIO_SERIALUART3
@@ -135,7 +132,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
         .rcc_ahb1 = UART4_AHB1_PERIPHERALS,
 #endif
         .rcc_apb1 = RCC_APB1(UART4),
-        .txIrq = DMA1_ST4_HANDLER,
         .rxIrq = UART4_IRQn,
         .txPriority = NVIC_PRIO_SERIALUART4_TXDMA,
         .rxPriority = NVIC_PRIO_SERIALUART4
@@ -160,7 +156,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
         .rcc_ahb1 = UART5_AHB1_PERIPHERALS,
 #endif
         .rcc_apb1 = RCC_APB1(UART5),
-        .txIrq = DMA1_ST7_HANDLER,
         .rxIrq = UART5_IRQn,
         .txPriority = NVIC_PRIO_SERIALUART5_TXDMA,
         .rxPriority = NVIC_PRIO_SERIALUART5
@@ -185,7 +180,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
         .rcc_ahb1 = UART6_AHB1_PERIPHERALS,
 #endif
         .rcc_apb2 = RCC_APB2(USART6),
-        .txIrq = DMA2_ST6_HANDLER,
         .rxIrq = USART6_IRQn,
         .txPriority = NVIC_PRIO_SERIALUART6_TXDMA,
         .rxPriority = NVIC_PRIO_SERIALUART6
@@ -210,7 +204,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
         .rcc_ahb1 = UART7_AHB1_PERIPHERALS,
 #endif
         .rcc_apb1 = RCC_APB1(UART7),
-        .txIrq = DMA1_ST1_HANDLER,
         .rxIrq = UART7_IRQn,
         .txPriority = NVIC_PRIO_SERIALUART7_TXDMA,
         .rxPriority = NVIC_PRIO_SERIALUART7
@@ -235,7 +228,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
         .rcc_ahb1 = UART8_AHB1_PERIPHERALS,
 #endif
         .rcc_apb1 = RCC_APB1(UART8),
-        .txIrq = DMA1_ST0_HANDLER,
         .rxIrq = UART8_IRQn,
         .txPriority = NVIC_PRIO_SERIALUART8_TXDMA,
         .rxPriority = NVIC_PRIO_SERIALUART8
@@ -348,7 +340,7 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
     const uartHardware_t *hardware = uartdev->hardware;
     s->USARTx = hardware->reg;
     if (hardware->rxDMAStream) {
-        // hardware->rxIrq is a USARTx_IRQn (NVIC), not a DMA identifier -- unlike txIrq, which is one.
+        // hardware->rxIrq is a USARTx_IRQn (NVIC), not a DMA identifier.
         const dmaIdentifier_e identifier = dmaGetIdentifier(hardware->rxDMAStream);
         if (uartDmaClaim(identifier, OWNER_SERIAL_RX, RESOURCE_INDEX(device))) {
             s->rxDMAChannel = hardware->DMAChannel;
@@ -360,10 +352,11 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
         }
     }
     if (hardware->txDMAStream) {
-        if (uartDmaClaim(hardware->txIrq, OWNER_SERIAL_TX, RESOURCE_INDEX(device))) {
+        const dmaIdentifier_e identifier = dmaGetIdentifier(hardware->txDMAStream);
+        if (uartDmaClaim(identifier, OWNER_SERIAL_TX, RESOURCE_INDEX(device))) {
             s->txDMAChannel = hardware->DMAChannel;
             s->txDMAStream = hardware->txDMAStream;
-            dmaSetHandler(hardware->txIrq, dmaIRQHandler, hardware->txPriority, (uint32_t)uartdev);
+            dmaSetHandler(identifier, dmaIRQHandler, hardware->txPriority, (uint32_t)uartdev);
         } else {
             // stream owned by another peripheral (e.g. SPI DMA): fall back to IRQ-driven TX.
             s->txDMAChannel = 0;
