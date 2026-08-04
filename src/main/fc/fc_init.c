@@ -671,6 +671,10 @@ void init(void) {
     latchActiveFeatures();
     pwmEnableMotors();
     setArmingDisabled(ARMING_DISABLED_BOOT_GRACE_TIME);
+#if defined(USE_SPI) && defined(USE_SPI_DMA_ENABLE_LATE)
+    // Must run after every dmaInit() caller above and before fcTasksInit()'s first gyro read.
+    spiInitBusDMA();
+#endif
     fcTasksInit();
     systemState |= SYSTEM_STATE_READY;
 }

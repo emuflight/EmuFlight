@@ -59,6 +59,8 @@
 #define USE_ADC_INTERNAL
 #define USE_USB_CDC_HID
 #define USE_USB_MSC
+// dmaInit() (used elsewhere in fc_init.c) has no ownership check, unlike dmaAllocate(), so SPI must claim last.
+#define USE_SPI_DMA_ENABLE_LATE
 
 #if defined(STM32F40_41xxx) || defined(STM32F411xE)
 #define USE_OVERCLOCK
@@ -78,6 +80,7 @@
 #define USE_ADC_INTERNAL
 #define USE_USB_CDC_HID
 #define USE_USB_MSC
+#define USE_SPI_DMA_ENABLE_LATE
 #endif
 
 #ifdef STM32H7
