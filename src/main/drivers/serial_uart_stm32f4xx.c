@@ -255,7 +255,8 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
             IOConfigGPIOAF(rxIO, IOCFG_AF_PP_UP, hardware->af);
         }
     }
-    if (!(s->rxDMAChannel)) {
+    // Either side can now fall back to IRQ-driven mode independently (uartDmaClaim() conflict); enable the NVIC line whenever either does.
+    if (!(s->rxDMAChannel) || !(s->txDMAChannel)) {
         NVIC_InitTypeDef NVIC_InitStructure;
         NVIC_InitStructure.NVIC_IRQChannel = hardware->irqn;
         NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(hardware->rxPriority);

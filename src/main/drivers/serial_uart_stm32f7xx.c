@@ -348,7 +348,9 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
     const uartHardware_t *hardware = uartdev->hardware;
     s->USARTx = hardware->reg;
     if (hardware->rxDMAStream) {
-        if (uartDmaClaim(hardware->rxIrq, OWNER_SERIAL_RX, RESOURCE_INDEX(device))) {
+        // hardware->rxIrq is a USARTx_IRQn (NVIC), not a DMA identifier -- unlike txIrq, which is one.
+        const dmaIdentifier_e identifier = dmaGetIdentifier(hardware->rxDMAStream);
+        if (uartDmaClaim(identifier, OWNER_SERIAL_RX, RESOURCE_INDEX(device))) {
             s->rxDMAChannel = hardware->DMAChannel;
             s->rxDMAStream = hardware->rxDMAStream;
         } else {
@@ -391,7 +393,8 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
             IOConfigGPIOAF(rxIO, IOCFG_AF_PP, hardware->af);
         }
     }
-    if (!s->rxDMAChannel) {
+    // Either side can now fall back to IRQ-driven mode independently (uartDmaClaim() conflict); enable the NVIC line whenever either does.
+    if (!s->rxDMAChannel || !s->txDMAChannel) {
         HAL_NVIC_SetPriority(hardware->rxIrq, NVIC_PRIORITY_BASE(hardware->rxPriority), NVIC_PRIORITY_SUB(hardware->rxPriority));
         HAL_NVIC_EnableIRQ(hardware->rxIrq);
     }
