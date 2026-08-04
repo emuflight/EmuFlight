@@ -119,8 +119,8 @@ SPIDevice spiDeviceByInstance(SPI_TypeDef *instance);
 SPI_TypeDef *spiInstanceByDevice(SPIDevice device);
 
 // Bus-abstraction accessor. Returns a pointer to the shared busDevice_t that
-// represents the given SPI peripheral (populated by spiInit()). Returns NULL
-// for invalid devices.
+// represents the given SPI peripheral (populated by spiSetBusInstance() on
+// first device registration). Returns NULL for invalid devices.
 busDevice_t *spiBusByDevice(SPIDevice device);
 
 // Mark an extDevice_t as belonging to an SPI bus, using the 1-based CLI device id.
