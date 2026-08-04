@@ -142,17 +142,7 @@ bool spiInit(SPIDevice device) {
 #endif
         break;
     }
-    if (ok) {
-        busDevice_t *bus = spiBusByDevice(device);
-        if (bus) {
-            bus->busType = BUS_TYPE_SPI;
-            bus->busType_u.spi.instance = spiDevice[device].dev;
-#if defined(USE_HAL_DRIVER)
-            bus->busType_u.spi.handle = &spiDevice[device].hspi;
-#endif
-            bus->curSegment = (busSegment_t *)BUS_SPI_FREE;
-        }
-    }
+    // busDevice_t bookkeeping belongs to spiSetBusInstance()'s first-registration branch, not here.
     return ok;
 }
 
