@@ -159,9 +159,12 @@ namespace {
 SPI_TypeDef fakeSpi1;
 SPI_TypeDef fakeSpi2;
 
-// spiBusDevice[]/spiDevice[] are module statics that persist across TEST() bodies otherwise.
+// spiBusDevice[]/spiDevice[]/fakeSpi{1,2} are module statics that persist across TEST() bodies otherwise.
 void resetSpiTestState()
 {
+    memset(&fakeSpi1, 0, sizeof(fakeSpi1));
+    memset(&fakeSpi2, 0, sizeof(fakeSpi2));
+
     for (int device = 0; device < SPIDEV_COUNT; device++) {
         busDevice_t *bus = spiBusByDevice(static_cast<SPIDevice>(device));
         memset(bus, 0, sizeof(*bus));
