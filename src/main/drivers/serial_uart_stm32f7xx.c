@@ -325,6 +325,14 @@ void dmaIRQHandler(dmaChannelDescriptor_t* descriptor) {
 
 // XXX Should serialUART be consolidated?
 
+// uartOpen() re-invokes serialUART() on every reopen, so a stream already held by this same owner must be re-claimable.
+static bool uartDmaClaim(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex) {
+    if (dmaGetOwner(identifier) == owner && dmaGetResourceIndex(identifier) == resourceIndex) {
+        return true;
+    }
+    return dmaAllocate(identifier, owner, resourceIndex);
+}
+
 uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, portOptions_e options) {
     uartDevice_t *uartdev = uartDevmap[device];
     if (!uartdev) {
@@ -340,15 +348,25 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
     const uartHardware_t *hardware = uartdev->hardware;
     s->USARTx = hardware->reg;
     if (hardware->rxDMAStream) {
-        s->rxDMAChannel = hardware->DMAChannel;
-        s->rxDMAStream = hardware->rxDMAStream;
+        if (uartDmaClaim(hardware->rxIrq, OWNER_SERIAL_RX, RESOURCE_INDEX(device))) {
+            s->rxDMAChannel = hardware->DMAChannel;
+            s->rxDMAStream = hardware->rxDMAStream;
+        } else {
+            // stream owned by another peripheral (e.g. SPI DMA): fall back to IRQ-driven RX.
+            s->rxDMAChannel = 0;
+            s->rxDMAStream = NULL;
+        }
     }
     if (hardware->txDMAStream) {
-        s->txDMAChannel = hardware->DMAChannel;
-        s->txDMAStream = hardware->txDMAStream;
-        // DMA TX Interrupt
-        dmaInit(hardware->txIrq, OWNER_SERIAL_TX, RESOURCE_INDEX(device));
-        dmaSetHandler(hardware->txIrq, dmaIRQHandler, hardware->txPriority, (uint32_t)uartdev);
+        if (uartDmaClaim(hardware->txIrq, OWNER_SERIAL_TX, RESOURCE_INDEX(device))) {
+            s->txDMAChannel = hardware->DMAChannel;
+            s->txDMAStream = hardware->txDMAStream;
+            dmaSetHandler(hardware->txIrq, dmaIRQHandler, hardware->txPriority, (uint32_t)uartdev);
+        } else {
+            // stream owned by another peripheral (e.g. SPI DMA): fall back to IRQ-driven TX.
+            s->txDMAChannel = 0;
+            s->txDMAStream = NULL;
+        }
     }
     s->txDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->TDR;
     s->rxDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->RDR;
