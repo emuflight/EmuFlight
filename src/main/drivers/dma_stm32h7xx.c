@@ -96,7 +96,7 @@ void dmaEnable(dmaIdentifier_e identifier)
     enableDmaClock(index);
 }
 
-void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback, uint32_t priority, uint32_t userParam)
+void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback, uint32_t priority, uintptr_t userParam)
 {
     if (!dmaIdentifierIsValid(identifier)) {
         return;

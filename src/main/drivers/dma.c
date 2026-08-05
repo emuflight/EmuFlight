@@ -92,7 +92,7 @@ void dmaInit(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resource
     dmaDescriptors[index].resourceIndex = resourceIndex;
 }
 
-void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback, uint32_t priority, uint32_t userParam) {
+void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback, uint32_t priority, uintptr_t userParam) {
     NVIC_InitTypeDef NVIC_InitStructure;
     const int index = DMA_IDENTIFIER_TO_INDEX(identifier);
     /* TODO: remove this - enforce the init */

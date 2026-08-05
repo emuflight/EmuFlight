@@ -41,7 +41,7 @@ typedef struct dmaChannelDescriptor_s {
     dmaCallbackHandlerFuncPtr   irqHandlerCallback;
     uint8_t                     flagsShift;
     IRQn_Type                   irqN;
-    uint32_t                    userParam;
+    uintptr_t                   userParam;
     resourceOwner_e             owner;
     uint8_t                     resourceIndex;
     uint32_t                    completeFlag;
@@ -178,7 +178,7 @@ DMA_Channel_TypeDef* dmaGetRefByIdentifier(const dmaIdentifier_e identifier);
 #endif
 
 void dmaInit(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex);
-void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback, uint32_t priority, uint32_t userParam);
+void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback, uint32_t priority, uintptr_t userParam);
 
 resourceOwner_e dmaGetOwner(dmaIdentifier_e identifier);
 uint8_t dmaGetResourceIndex(dmaIdentifier_e identifier);

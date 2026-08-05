@@ -364,7 +364,7 @@ void spiInternalStartDMA(const extDevice_t *dev)
     if (dmaRx) {
         DMA_Stream_TypeDef *streamRegsRx = (DMA_Stream_TypeDef *)dmaRx->ref;
 
-        dmaRx->userParam = (uint32_t)dev;
+        dmaRx->userParam = (uintptr_t)dev;
 
         DMA_CLEAR_FLAG(dmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
         DMA_CLEAR_FLAG(dmaRx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
@@ -385,7 +385,7 @@ void spiInternalStartDMA(const extDevice_t *dev)
 
         SPI_I2S_DMACmd(dev->bus->busType_u.spi.instance, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
     } else {
-        dmaTx->userParam = (uint32_t)dev;
+        dmaTx->userParam = (uintptr_t)dev;
 
         DMA_CLEAR_FLAG(dmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
 

@@ -191,6 +191,14 @@ void dmaIRQHandler(dmaChannelDescriptor_t* descriptor) {
 
 // XXX Should serialUART be consolidated?
 
+// uartOpen() re-invokes serialUART() on every reopen, so a stream already held by this same owner must be re-claimable.
+static bool uartDmaClaim(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex) {
+    if (dmaGetOwner(identifier) == owner && dmaGetResourceIndex(identifier) == resourceIndex) {
+        return true;
+    }
+    return dmaAllocate(identifier, owner, resourceIndex);
+}
+
 uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, portOptions_e options) {
     uartDevice_t *uart = uartDevmap[device];
     if (!uart) return NULL;
@@ -205,19 +213,32 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
     s->port.txBufferSize = sizeof(uart->txBuffer);
     s->USARTx = hardware->reg;
     if (hardware->rxDMAStream) {
-        dmaInit(dmaGetIdentifier(hardware->rxDMAStream), OWNER_SERIAL_RX, RESOURCE_INDEX(device));
-        s->rxDMAChannel = hardware->DMAChannel;
-        s->rxDMAStream = hardware->rxDMAStream;
-        s->rxDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->DR;
+        const dmaIdentifier_e identifier = dmaGetIdentifier(hardware->rxDMAStream);
+        if (uartDmaClaim(identifier, OWNER_SERIAL_RX, RESOURCE_INDEX(device))) {
+            dmaEnable(identifier);
+            s->rxDMAChannel = hardware->DMAChannel;
+            s->rxDMAStream = hardware->rxDMAStream;
+        } else {
+            // stream owned by another peripheral (e.g. SPI DMA): fall back to IRQ-driven RX.
+            s->rxDMAChannel = 0;
+            s->rxDMAStream = NULL;
+        }
     }
     if (hardware->txDMAStream) {
         const dmaIdentifier_e identifier = dmaGetIdentifier(hardware->txDMAStream);
-        dmaInit(identifier, OWNER_SERIAL_TX, RESOURCE_INDEX(device));
-        dmaSetHandler(identifier, dmaIRQHandler, hardware->txPriority, (uint32_t)uart);
-        s->txDMAChannel = hardware->DMAChannel;
-        s->txDMAStream = hardware->txDMAStream;
-        s->txDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->DR;
+        if (uartDmaClaim(identifier, OWNER_SERIAL_TX, RESOURCE_INDEX(device))) {
+            dmaEnable(identifier);
+            dmaSetHandler(identifier, dmaIRQHandler, hardware->txPriority, (uint32_t)uart);
+            s->txDMAChannel = hardware->DMAChannel;
+            s->txDMAStream = hardware->txDMAStream;
+        } else {
+            // stream owned by another peripheral (e.g. SPI DMA): fall back to IRQ-driven TX.
+            s->txDMAChannel = 0;
+            s->txDMAStream = NULL;
+        }
     }
+    s->rxDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->DR;
+    s->txDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->DR;
     IO_t txIO = IOGetByTag(uart->tx);
     IO_t rxIO = IOGetByTag(uart->rx);
     if (hardware->rcc) {
@@ -236,7 +257,8 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
             IOConfigGPIOAF(rxIO, IOCFG_AF_PP_UP, hardware->af);
         }
     }
-    if (!(s->rxDMAChannel)) {
+    // Either side can now fall back to IRQ-driven mode independently (uartDmaClaim() conflict); enable the NVIC line whenever either does.
+    if (!(s->rxDMAChannel) || !(s->txDMAChannel)) {
         NVIC_InitTypeDef NVIC_InitStructure;
         NVIC_InitStructure.NVIC_IRQChannel = hardware->irqn;
         NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(hardware->rxPriority);
