@@ -255,8 +255,7 @@ FAST_CODE static void spiIrqHandler(const extDevice_t *dev)
 // Negates CS, stops DMA, invalidates cache on F7, then advances the segment list.
 FAST_CODE static void spiRxIrqHandler(dmaChannelDescriptor_t *descriptor)
 {
-    // uintptr_t avoids a -Wint-to-pointer-cast error under -Werror on 64-bit hosts (UNIT_TEST).
-    const extDevice_t *dev = (const extDevice_t *)(uintptr_t)descriptor->userParam;
+    const extDevice_t *dev = (const extDevice_t *)descriptor->userParam;
 
     if (!dev) {
         return;
@@ -286,8 +285,7 @@ FAST_CODE static void spiRxIrqHandler(dmaChannelDescriptor_t *descriptor)
 // DMA Tx TC IRQ handler — used for Tx-only DMA buses (no Rx channel).
 FAST_CODE static void spiTxIrqHandler(dmaChannelDescriptor_t *descriptor)
 {
-    // uintptr_t avoids a -Wint-to-pointer-cast error under -Werror on 64-bit hosts (UNIT_TEST).
-    const extDevice_t *dev = (const extDevice_t *)(uintptr_t)descriptor->userParam;
+    const extDevice_t *dev = (const extDevice_t *)descriptor->userParam;
 
     if (!dev) {
         return;

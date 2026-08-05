@@ -45,6 +45,7 @@ static bool txAllocSucceeds;
 static bool rxAllocSucceeds;
 static int dmaSetHandlerCallCount;
 static dmaIdentifier_e lastHandlerIdentifier;
+static dmaCallbackHandlerFuncPtr lastHandlerCallback;
 
 static dmaChannelSpec_t txSpec;
 static dmaChannelSpec_t rxSpec;
@@ -102,12 +103,12 @@ void dmaEnable(dmaIdentifier_e identifier) {
     UNUSED(identifier);
 }
 
-void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback, uint32_t priority, uint32_t userParam) {
-    UNUSED(callback);
+void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callback, uint32_t priority, uintptr_t userParam) {
     UNUSED(priority);
     UNUSED(userParam);
     dmaSetHandlerCallCount++;
     lastHandlerIdentifier = identifier;
+    lastHandlerCallback = callback;
 }
 
 // spiInitBusDMA() calls these directly on its DMA-enabled paths; real versions touch LL/StdPeriph registers.
@@ -179,6 +180,7 @@ void resetSpiTestState()
     rxAllocSucceeds = true;
     dmaSetHandlerCallCount = 0;
     lastHandlerIdentifier = DMA_NONE;
+    lastHandlerCallback = NULL;
 
     txSpec = { 0, (dmaResource_t *)&dmaTxStreamMarker, 0 };
     rxSpec = { 0, (dmaResource_t *)&dmaRxStreamMarker, 0 };
@@ -300,4 +302,49 @@ TEST(BusSpiUnittest, InitBusDmaSkipsBusesNotConfiguredForSpi)
         EXPECT_FALSE(bus->useDMA);
     }
     EXPECT_EQ(dmaSetHandlerCallCount, 0);
+}
+
+// --- DMA completion IRQ handlers: userParam device-pointer round-trip ---
+// dmaSetHandler()'s registered callback is a static function in bus_spi.c, reachable
+// here only via the pointer the mock above captures; both handlers reconstruct the
+// extDevice_t* from descriptor->userParam, so a truncating field width would corrupt
+// dev before bus->curSegment is ever read.
+
+TEST(BusSpiUnittest, RxIrqHandlerPreservesDevicePointerThroughUserParam)
+{
+    resetSpiTestState();
+    extDevice_t dev = {};
+    ASSERT_TRUE(spiSetBusInstance(&dev, SPI_DEV_TO_CFG(SPIDEV_1)));
+    spiInitBusDMA();
+    ASSERT_EQ(dmaSetHandlerCallCount, 1);
+    ASSERT_NE(lastHandlerCallback, nullptr);
+
+    busSegment_t segments[2] = {}; // segments[0]: one-shot transfer; segments[1]: list terminator (len == 0)
+    segments[0].len = 1;
+    dev.bus->curSegment = segments;
+    rxDescriptor.userParam = (uintptr_t)&dev;
+
+    lastHandlerCallback(&rxDescriptor);
+
+    EXPECT_EQ((uintptr_t)dev.bus->curSegment, (uintptr_t)BUS_SPI_FREE);
+}
+
+TEST(BusSpiUnittest, TxIrqHandlerPreservesDevicePointerThroughUserParam)
+{
+    resetSpiTestState();
+    rxSpecAvailable = false; // forces the Tx-only path, which registers spiTxIrqHandler instead
+    extDevice_t dev = {};
+    ASSERT_TRUE(spiSetBusInstance(&dev, SPI_DEV_TO_CFG(SPIDEV_1)));
+    spiInitBusDMA();
+    ASSERT_EQ(dmaSetHandlerCallCount, 1);
+    ASSERT_NE(lastHandlerCallback, nullptr);
+
+    busSegment_t segments[2] = {};
+    segments[0].len = 1;
+    dev.bus->curSegment = segments;
+    txDescriptor.userParam = (uintptr_t)&dev;
+
+    lastHandlerCallback(&txDescriptor);
+
+    EXPECT_EQ((uintptr_t)dev.bus->curSegment, (uintptr_t)BUS_SPI_FREE);
 }
