@@ -63,6 +63,20 @@ battery_unittest_SRC := \
 		$(USER_DIR)/common/maths.c
 
 
+bus_spi_unittest_SRC := \
+		$(USER_DIR)/drivers/bus_spi.c \
+		$(USER_DIR)/build/atomic.c
+
+bus_spi_unittest_DEFINES := \
+		STM32F4 \
+		USE_SPI \
+		USE_SPI_DEVICE_1 \
+		USE_SPI_DEVICE_2 \
+		SPI1=\(SPI_TypeDef*\)0x40013000 \
+		SPI2=\(SPI_TypeDef*\)0x40003800 \
+		SystemCoreClock=1000000
+
+
 blackbox_unittest_SRC :=  \
 		$(USER_DIR)/blackbox/blackbox.c \
 		$(USER_DIR)/blackbox/blackbox_encoding.c \
