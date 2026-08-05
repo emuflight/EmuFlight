@@ -24,7 +24,7 @@
 
 #include "drivers/bus_i2c.h"
 #include "drivers/io_types.h"
-#ifndef UNIT_TEST
+#ifndef SIMULATOR_BUILD
 #include "drivers/dma.h"
 #endif
 
@@ -75,10 +75,13 @@ typedef struct busDevice_s {
     } busType_u;
     bool useDMA;
     uint8_t deviceCount;
-#if !defined(UNIT_TEST) && !defined(SIMULATOR_BUILD)
-    // dmaChannelDescriptor_t requires dma.h which is not available in unit test / SITL builds
+#ifndef SIMULATOR_BUILD
+    // dmaChannelDescriptor_t requires dma.h which is not available in SITL builds
     dmaChannelDescriptor_t *dmaTx;
     dmaChannelDescriptor_t *dmaRx;
+#endif // !SIMULATOR_BUILD
+#if !defined(UNIT_TEST) && !defined(SIMULATOR_BUILD)
+    // LL_DMA_InitTypeDef/DMA_InitTypeDef come from CMSIS headers unavailable on host
 #if defined(STM32F7) || defined(STM32H7)
     LL_DMA_InitTypeDef *initTx;
     LL_DMA_InitTypeDef *initRx;
