@@ -343,6 +343,7 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
         // hardware->rxIrq is a USARTx_IRQn (NVIC), not a DMA identifier.
         const dmaIdentifier_e identifier = dmaGetIdentifier(hardware->rxDMAStream);
         if (uartDmaClaim(identifier, OWNER_SERIAL_RX, RESOURCE_INDEX(device))) {
+            dmaEnable(identifier);
             s->rxDMAChannel = hardware->DMAChannel;
             s->rxDMAStream = hardware->rxDMAStream;
         } else {
@@ -354,6 +355,7 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
     if (hardware->txDMAStream) {
         const dmaIdentifier_e identifier = dmaGetIdentifier(hardware->txDMAStream);
         if (uartDmaClaim(identifier, OWNER_SERIAL_TX, RESOURCE_INDEX(device))) {
+            dmaEnable(identifier);
             s->txDMAChannel = hardware->DMAChannel;
             s->txDMAStream = hardware->txDMAStream;
             dmaSetHandler(identifier, dmaIRQHandler, hardware->txPriority, (uint32_t)uartdev);
