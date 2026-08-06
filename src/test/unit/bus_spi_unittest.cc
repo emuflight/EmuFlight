@@ -348,3 +348,24 @@ TEST(BusSpiUnittest, TxIrqHandlerPreservesDevicePointerThroughUserParam)
 
     EXPECT_EQ((uintptr_t)dev.bus->curSegment, (uintptr_t)BUS_SPI_FREE);
 }
+
+// --- spiDmaEnable(): per-device flag, independent of bus-level useDMA ---
+
+TEST(BusSpiUnittest, DmaEnableSetsPerDeviceFlagIndependentOfBus)
+{
+    resetSpiTestState();
+    extDevice_t dev = {};
+    ASSERT_TRUE(spiSetBusInstance(&dev, SPI_DEV_TO_CFG(SPIDEV_1)));
+    spiInitBusDMA();
+    busDevice_t *bus = spiBusByDevice(SPIDEV_1);
+    ASSERT_TRUE(bus->useDMA);
+
+    spiDmaEnable(&dev, false);
+
+    EXPECT_FALSE(dev.useDMA); // gates this device only
+    EXPECT_TRUE(bus->useDMA); // other devices sharing the bus keep DMA
+
+    spiDmaEnable(&dev, true);
+
+    EXPECT_TRUE(dev.useDMA);
+}
