@@ -325,6 +325,8 @@ void ak8963BusInit(const extDevice_t *dev) {
 #if defined(USE_MAG_AK8963) && (defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU9250))
     case BUS_TYPE_MPU_SLAVE:
         rescheduleTask(TASK_COMPASS, TASK_PERIOD_HZ(40));
+        // gyro DMA completion timing upsets I2C-master slave access
+        spiDmaEnable(dev->busType_u.mpuSlave.master, false);
         // initialze I2C master via SPI bus
         ak8963SpiWriteRegisterDelay(dev->busType_u.mpuSlave.master, MPU_RA_INT_PIN_CFG, MPU6500_BIT_INT_ANYRD_2CLEAR | MPU6500_BIT_BYPASS_EN);
         ak8963SpiWriteRegisterDelay(dev->busType_u.mpuSlave.master, MPU_RA_I2C_MST_CTRL, 0x0D); // I2C multi-master / 400kHz
