@@ -103,7 +103,7 @@ static uint32_t spiDivisorToBRbits(SPI_TypeDef *instance, uint16_t divisor)
     // APB1 halving for SPI2/SPI3. If a target later overrides SPI123ClockSelection to
     // D2PCLK1, reinstate the divisor/=2 compensation for SPI2/SPI3.
     UNUSED(instance);
-#elif !(defined(STM32F1) || defined(STM32F3))
+#elif !defined(STM32F3)
     // On F4/F7 SPI2/SPI3 are on APB1 (half the APB2 rate), so halve divisor to compensate.
     if (instance == SPI2 || instance == SPI3) {
         divisor /= 2;

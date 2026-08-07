@@ -341,11 +341,7 @@ void pwmRxInit(const pwmConfig_t *pwmConfig) {
         port->timerHardware = timer;
         IO_t io = IOGetByTag(pwmConfig->ioTags[channel]);
         IOInit(io, OWNER_PWMINPUT, RESOURCE_INDEX(channel));
-#ifdef STM32F1
-        IOConfigGPIO(io, IOCFG_IPD);
-#else
         IOConfigGPIOAF(io, IOCFG_AF_PP, timer->alternateFunction);
-#endif
         timerConfigure(timer, (uint16_t)PWM_TIMER_PERIOD, PWM_TIMER_1MHZ);
         timerChCCHandlerInit(&port->edgeCb, pwmEdgeCallback);
         timerChOvrHandlerInit(&port->overflowCb, pwmOverflowCallback);
@@ -384,11 +380,7 @@ void ppmRxInit(const ppmConfig_t *ppmConfig) {
     port->timerHardware = timer;
     IO_t io = IOGetByTag(ppmConfig->ioTag);
     IOInit(io, OWNER_PPMINPUT, 0);
-#ifdef STM32F1
-    IOConfigGPIO(io, IOCFG_IPD);
-#else
     IOConfigGPIOAF(io, IOCFG_AF_PP, timer->alternateFunction);
-#endif
     timerConfigure(timer, (uint16_t)PPM_TIMER_PERIOD, PWM_TIMER_1MHZ);
     timerChCCHandlerInit(&port->edgeCb, ppmEdgeCallback);
     timerChOvrHandlerInit(&port->overflowCb, ppmOverflowCallback);
