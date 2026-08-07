@@ -28,44 +28,92 @@
 #include "arm_math.h"
 #endif 
 
-#if defined(FAST_MATH) || defined(VERY_FAST_MATH)
-#if defined(VERY_FAST_MATH)
+#if defined(FAST_MATH)
 
-// http://lolengine.net/blog/2011/12/21/better-function-approximations
-// Chebyshev http://stackoverflow.com/questions/345085/how-do-trigonometric-functions-work/345117#345117
-// Thanks for ledvinap for making such accuracy possible! See: https://github.com/cleanflight/cleanflight/issues/940#issuecomment-110323384
-// https://github.com/Crashpilot1000/HarakiriWebstore1/blob/master/src/mw.c#L1235
-// sin_approx maximum absolute error = 2.305023e-06
-// cos_approx maximum absolute error = 2.857298e-06
-#define sinPolyCoef3 -1.666568107e-1f
-#define sinPolyCoef5  8.312366210e-3f
-#define sinPolyCoef7 -1.849218155e-4f
-#define sinPolyCoef9  0
-#else
-#define sinPolyCoef3 -1.666665710e-1f                                          // Double: -1.666665709650470145824129400050267289858e-1
-#define sinPolyCoef5  8.333017292e-3f                                          // Double:  8.333017291562218127986291618761571373087e-3
-#define sinPolyCoef7 -1.980661520e-4f                                          // Double: -1.980661520135080504411629636078917643846e-4
-#define sinPolyCoef9  2.600054768e-6f                                          // Double:  2.600054767890361277123254766503271638682e-6
-#endif
-float sin_approx(float x) {
-    int32_t xint = x;
-    if (xint < -32 || xint > 32) return 0.0f;                               // Stop here on error input (5 * 360 Deg)
-    while (x >  M_PIf) x -= (2.0f * M_PIf);                                 // always wrap input angle to -PI..PI
-    while (x < -M_PIf) x += (2.0f * M_PIf);
-    if (x >  (0.5f * M_PIf)) x =  (0.5f * M_PIf) - (x - (0.5f * M_PIf));   // We just pick -90..+90 Degree
-    else if (x < -(0.5f * M_PIf)) x = -(0.5f * M_PIf) - ((0.5f * M_PIf) + x);
-    float x2 = x * x;
-    return x + x * x2 * (sinPolyCoef3 + x2 * (sinPolyCoef5 + x2 * (sinPolyCoef7 + x2 * sinPolyCoef9)));
+// Backport of betaflight/betaflight#14790 (ledvinap): O(1) roundf-based range reduction, no while loop.
+static inline float sin_poly5_r(float r)
+{
+    const float c0 =  0x1.921f1cp0f;  // 1.5707871913909912109375
+    const float c1 = -0x1.4a974p-1f;  // -0.6456851959228515625
+    const float c2 =  0x1.3db294p-4f; // 7.756288349628448486328125e-2
+    float s = r * r;
+    return r * ((c2 * s + c1) * s + c0);
 }
 
-float cos_approx(float x) {
-    return sin_approx(x + (0.5f * M_PIf));
+static inline float cos_poly6_r(float r)
+{
+    const float d1 = -0x1.3bd39cp0f;  // -1.2336976528167724609375
+    const float d2 =  0x1.03bp-2f;    // 0.25360107421875
+    const float d3 = -0x1.4e5eecp-6f; // -2.04083733260631561279296875e-2
+    float s = r * r;
+    return ((d3 * s + d2) * s + d1) * s + 1.0f;
+}
+
+// r in [-0.5, 0.5], q is quadrant index (..., -1, 0, 1, 2, 3, 4, ...).
+static inline float sinf_quadrant_r(float r, int q)
+{
+    q &= 3;
+    if (q & 1) {
+        float v = cos_poly6_r(r);
+        return (q & 2) ? -v : v;
+    } else {
+        float v = sin_poly5_r(r);
+        return (q & 2) ? -v : v;
+    }
+}
+
+static inline float cosf_quadrant_r(float r, int q)
+{
+    q &= 3;
+    if (q & 1) {
+        float v = -sin_poly5_r(r);
+        return (q & 2) ? -v : v;
+    } else {
+        float v = cos_poly6_r(r);
+        return (q & 2) ? -v : v;
+    }
+}
+
+static inline void sincosf_quadrant_r(float r, int q, float *out_s, float *out_c)
+{
+    q &= 3;
+    float sb = sin_poly5_r(r);
+    float cb = cos_poly6_r(r);
+
+    float s = (q & 1) ? cb  : sb;
+    float c = (q & 1) ? -sb : cb;
+
+    if (q & 2) { s = -s; c = -c; }
+
+    *out_s = s;
+    *out_c = c;
+}
+
+float sin_approx(float x)
+{
+    float t = x * INV_PIO2;
+    float qf = roundf(t);
+    int   q  = (int)qf;
+    float r  = t - qf;
+    return sinf_quadrant_r(r, q);
+}
+
+float cos_approx(float x)
+{
+    float t = x * INV_PIO2;
+    float qf = roundf(t);
+    int   q  = (int)qf;
+    float r  = t - qf;
+    return cosf_quadrant_r(r, q);
 }
 
 void sincosf_approx(float x, float *out_s, float *out_c)
 {
-    *out_s = sin_approx(x);
-    *out_c = cos_approx(x);
+    float t = x * INV_PIO2;
+    float qf = roundf(t);
+    int   q  = (int)qf;
+    float r  = t - qf;
+    sincosf_quadrant_r(r, q, out_s, out_c);
 }
 
 // Initial implementation by Crashpilot1000 (https://github.com/Crashpilot1000/HarakiriWebstore1/blob/396715f73c6fcf859e0db0f34e12fe44bace6483/src/mw.c#L1292)
@@ -182,12 +230,9 @@ float scaleRangef(float x, float srcFrom, float srcTo, float destFrom, float des
 void buildRotationMatrix(fp_angles_t *delta, float matrix[3][3]) {
     float cosx, sinx, cosy, siny, cosz, sinz;
     float coszcosx, sinzcosx, coszsinx, sinzsinx;
-    cosx = cos_approx(delta->angles.roll);
-    sinx = sin_approx(delta->angles.roll);
-    cosy = cos_approx(delta->angles.pitch);
-    siny = sin_approx(delta->angles.pitch);
-    cosz = cos_approx(delta->angles.yaw);
-    sinz = sin_approx(delta->angles.yaw);
+    sincosf_approx(delta->angles.roll, &sinx, &cosx);
+    sincosf_approx(delta->angles.pitch, &siny, &cosy);
+    sincosf_approx(delta->angles.yaw, &sinz, &cosz);
     coszcosx = cosz * cosx;
     sinzcosx = sinz * cosx;
     coszsinx = sinx * cosz;
