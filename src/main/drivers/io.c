@@ -124,7 +124,7 @@ int IO_GPIO_PinSource(IO_t io) {
     return IO_GPIOPinIdx(io);
 }
 
-// mask on stm32f103, bit index on stm32f303
+// bit index (not a bitmask) on stm32f303
 uint32_t IO_EXTI_Line(IO_t io) {
     if (!io) {
         return 0;
