@@ -34,13 +34,6 @@
 #define I2C1_OVERCLOCK true
 #define I2C2_OVERCLOCK true
 
-#ifdef STM32F1
-#define MINIMAL_CLI
-// Using RX DMA disables the use of receive callbacks
-#define USE_UART1_RX_DMA
-#define USE_UART1_TX_DMA
-#endif
-
 #ifdef STM32F3
 #define MINIMAL_CLI
 #define USE_DSHOT

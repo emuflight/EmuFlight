@@ -79,9 +79,9 @@ void Set_System(void) {
 #endif /* USB_USE_EXTERNAL_PULLUP */
     /*!< At this stage the microcontroller clock setting is already configured,
      this is done through SystemInit() function which is called from startup
-     file (startup_stm32f10x_xx.s) before to branch to application main.
+     file (the vendor startup assembly for this MCU) before to branch to application main.
      To reconfigure the default setting of SystemInit() function, refer to
-     system_stm32f10x.c file
+     the vendor system_<mcu>.c file for this target
      */
 #if defined(STM32L1XX_MD) || defined(STM32L1XX_HD)|| defined(STM32L1XX_MD_PLUS) || defined(STM32F37X) || defined(STM32F303xC)
     /* Enable the SYSCFG module clock */
@@ -101,13 +101,6 @@ void Set_System(void) {
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_14);
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_14);
 #endif /* STM32F37X  && STM32F303xC)*/
-#if defined(STM32F10X)
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_12;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_OD;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
-#endif
     // Initialise callbacks
     ctrlLineStateCb = NULL;
     baudRateCb = NULL;
@@ -184,27 +177,6 @@ void USB_Interrupts_Config(void) {
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_SUB(NVIC_PRIO_USB_WUP);
     NVIC_Init(&NVIC_InitStructure);
 }
-
-#ifdef STM32F10X
-
-/*******************************************************************************
- * Function Name  : USB_Interrupts_Disable
- * Description    : Disables the USB interrupts
- * Input          : None.
- * Return         : None.
- *******************************************************************************/
-void USB_Interrupts_Disable(void) {
-    NVIC_InitTypeDef NVIC_InitStructure;
-    /* Disable the USB interrupt */
-    NVIC_InitStructure.NVIC_IRQChannel    = USB_LP_CAN1_RX0_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE;
-    NVIC_Init(&NVIC_InitStructure);
-    /* Disable the USB Wake-up interrupt */
-    NVIC_InitStructure.NVIC_IRQChannel    = USBWakeUp_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE;
-    NVIC_Init(&NVIC_InitStructure);
-}
-#endif
 
 /*******************************************************************************
  * Function Name  : USB_Cable_Config

@@ -40,8 +40,6 @@ typedef struct i2cPinDef_s {
 
 #if defined(STM32F4)
 #define I2CPINDEF(pin, af) { DEFIO_TAG_E(pin), af }
-#elif defined(STM32F1)
-#define I2CPINDEF(pin, af) { DEFIO_TAG_E(pin) }
 #else
 #define I2CPINDEF(pin) { DEFIO_TAG_E(pin) }
 #endif
@@ -60,7 +58,7 @@ typedef struct i2cHardware_s {
 
 extern const i2cHardware_t i2cHardware[];
 
-#if defined(STM32F1) || defined(STM32F4)
+#if defined(STM32F4)
 typedef struct i2cState_s {
     volatile bool error;
     volatile bool busy;
@@ -87,7 +85,7 @@ typedef struct i2cDevice_s {
     bool pullUp;
 
     // MCU/Driver dependent member follows
-#if defined(STM32F1) || defined(STM32F4)
+#if defined(STM32F4)
     i2cState_t state;
 #endif
 #ifdef USE_HAL_DRIVER
