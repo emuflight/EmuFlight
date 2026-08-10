@@ -47,9 +47,7 @@ typedef struct adcTagMap_s {
 #define ADC_DEVICES_1   (1 << ADCDEV_1)
 #define ADC_DEVICES_2   (1 << ADCDEV_2)
 #define ADC_DEVICES_3   (1 << ADCDEV_3)
-#define ADC_DEVICES_4   (1 << ADCDEV_4)
 #define ADC_DEVICES_12  ((1 << ADCDEV_1)|(1 << ADCDEV_2))
-#define ADC_DEVICES_34  ((1 << ADCDEV_3)|(1 << ADCDEV_4))
 #define ADC_DEVICES_123 ((1 << ADCDEV_1)|(1 << ADCDEV_2)|(1 << ADCDEV_3))
 
 typedef struct adcDevice_s {

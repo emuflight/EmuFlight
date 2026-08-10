@@ -70,7 +70,8 @@
  * ISR to generate the output signal dynamically based on state would be more memory efficient and would likely be more appropriate for
  * other targets.  However this approach requires very little CPU time and is just fire-and-forget.
  *
- * On an STM32F303CC 720 bytes is currently fine and that is the target for which this code was designed for.
+ * The byte-packed union below (originally sized for an STM32F303CC target) now applies only to
+ * UNIT_TEST; every real build target uses the word-packed union in the #elif arm below.
  */
 #if defined(UNIT_TEST)
 
