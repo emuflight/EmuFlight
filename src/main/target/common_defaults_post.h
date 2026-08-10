@@ -240,3 +240,126 @@
 #ifndef DEFAULT_RX_FEATURE
 #define DEFAULT_RX_FEATURE FEATURE_RX_SERIAL
 #endif
+
+// pg/serial_uart
+//
+// F4/F7: each UART has exactly one silicon-fixed DMA stream/channel (no alternates to
+// choose between), so the fleet-wide default activates DMA unconditionally (opt 0).
+// H7: dmaopt selects which of 16 DMAMUX-routable streams to claim -- a real allocation
+// decision, not a fixed mapping -- so it stays DMA_OPT_UNUSED (deferred, not this PR).
+#if defined(STM32F4) || defined(STM32F7)
+#ifndef UART1_TX_DMA_OPT
+#define UART1_TX_DMA_OPT 0
+#endif
+#ifndef UART1_RX_DMA_OPT
+#define UART1_RX_DMA_OPT 0
+#endif
+#ifndef UART2_TX_DMA_OPT
+#define UART2_TX_DMA_OPT 0
+#endif
+#ifndef UART2_RX_DMA_OPT
+#define UART2_RX_DMA_OPT 0
+#endif
+#ifndef UART3_TX_DMA_OPT
+#define UART3_TX_DMA_OPT 0
+#endif
+#ifndef UART3_RX_DMA_OPT
+#define UART3_RX_DMA_OPT 0
+#endif
+#ifndef UART4_TX_DMA_OPT
+#define UART4_TX_DMA_OPT 0
+#endif
+#ifndef UART4_RX_DMA_OPT
+#define UART4_RX_DMA_OPT 0
+#endif
+#ifndef UART5_TX_DMA_OPT
+#define UART5_TX_DMA_OPT 0
+#endif
+#ifndef UART5_RX_DMA_OPT
+#define UART5_RX_DMA_OPT 0
+#endif
+#ifndef UART6_TX_DMA_OPT
+#define UART6_TX_DMA_OPT 0
+#endif
+#ifndef UART6_RX_DMA_OPT
+#define UART6_RX_DMA_OPT 0
+#endif
+#endif // STM32F4 || STM32F7
+
+#if defined(STM32F7)
+#ifndef UART7_TX_DMA_OPT
+#define UART7_TX_DMA_OPT 0
+#endif
+#ifndef UART7_RX_DMA_OPT
+#define UART7_RX_DMA_OPT 0
+#endif
+#ifndef UART8_TX_DMA_OPT
+#define UART8_TX_DMA_OPT 0
+#endif
+#ifndef UART8_RX_DMA_OPT
+#define UART8_RX_DMA_OPT 0
+#endif
+#endif // STM32F7
+
+#if defined(STM32H7)
+#ifndef UART1_TX_DMA_OPT
+#define UART1_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART1_RX_DMA_OPT
+#define UART1_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART2_TX_DMA_OPT
+#define UART2_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART2_RX_DMA_OPT
+#define UART2_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART3_TX_DMA_OPT
+#define UART3_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART3_RX_DMA_OPT
+#define UART3_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART4_TX_DMA_OPT
+#define UART4_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART4_RX_DMA_OPT
+#define UART4_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART5_TX_DMA_OPT
+#define UART5_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART5_RX_DMA_OPT
+#define UART5_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART6_TX_DMA_OPT
+#define UART6_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART6_RX_DMA_OPT
+#define UART6_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART7_TX_DMA_OPT
+#define UART7_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART7_RX_DMA_OPT
+#define UART7_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART8_TX_DMA_OPT
+#define UART8_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART8_RX_DMA_OPT
+#define UART8_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART9_TX_DMA_OPT
+#define UART9_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART9_RX_DMA_OPT
+#define UART9_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART10_TX_DMA_OPT
+#define UART10_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef UART10_RX_DMA_OPT
+#define UART10_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#endif // STM32H7

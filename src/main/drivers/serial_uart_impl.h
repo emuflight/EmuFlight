@@ -145,10 +145,6 @@ typedef struct uartHardware_s {
 #if defined(STM32F3)
     DMA_Channel_TypeDef *txDMAChannel;
     DMA_Channel_TypeDef *rxDMAChannel;
-#elif defined(STM32F4) || defined(STM32F7)
-    uint32_t DMAChannel;
-    DMA_Stream_TypeDef *txDMAStream;
-    DMA_Stream_TypeDef *rxDMAStream;
 #elif defined(STM32H7)
 #ifdef USE_DMA
     dmaResource_t *txDMAResource;

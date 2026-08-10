@@ -313,6 +313,28 @@ static const dmaPeripheralMapping_t dmaPeripheralMapping[] = {
     { DMA_PERIPH_SPI_SDO, SPIDEV_4, { DMA(2, 1, 4), DMA(2, 4, 5) } },
     { DMA_PERIPH_SPI_SDI, SPIDEV_4, { DMA(2, 0, 4), DMA(2, 3, 5) } },
 #endif
+
+    // UART DMA: each entry lists every valid alternate stream/channel for that UART;
+    // dmaGetChannelSpecByPeripheral() tries them in order until one is allocatable.
+    // UART7/8 (F7-only) have exactly one known-valid option each.
+    { DMA_PERIPH_UART_RX, UARTDEV_1, { DMA(2, 5, 4), DMA(2, 2, 4) } },
+    { DMA_PERIPH_UART_TX, UARTDEV_1, { DMA(2, 7, 4) } },
+    { DMA_PERIPH_UART_RX, UARTDEV_2, { DMA(1, 5, 4) } },
+    { DMA_PERIPH_UART_TX, UARTDEV_2, { DMA(1, 6, 4) } },
+    { DMA_PERIPH_UART_RX, UARTDEV_3, { DMA(1, 1, 4) } },
+    { DMA_PERIPH_UART_TX, UARTDEV_3, { DMA(1, 3, 4) } },
+    { DMA_PERIPH_UART_RX, UARTDEV_4, { DMA(1, 2, 4) } },
+    { DMA_PERIPH_UART_TX, UARTDEV_4, { DMA(1, 4, 4) } },
+    { DMA_PERIPH_UART_RX, UARTDEV_5, { DMA(1, 0, 4) } },
+    { DMA_PERIPH_UART_TX, UARTDEV_5, { DMA(1, 7, 4) } },
+    { DMA_PERIPH_UART_RX, UARTDEV_6, { DMA(2, 1, 5), DMA(2, 2, 5) } },
+    { DMA_PERIPH_UART_TX, UARTDEV_6, { DMA(2, 6, 5), DMA(2, 7, 5) } },
+#if defined(STM32F7)
+    { DMA_PERIPH_UART_RX, UARTDEV_7, { DMA(1, 3, 5) } },
+    { DMA_PERIPH_UART_TX, UARTDEV_7, { DMA(1, 1, 5) } },
+    { DMA_PERIPH_UART_RX, UARTDEV_8, { DMA(1, 6, 5) } },
+    { DMA_PERIPH_UART_TX, UARTDEV_8, { DMA(1, 0, 5) } },
+#endif
 };
 
 #undef DMA
