@@ -90,6 +90,7 @@
 #define USE_USB_MSC
 #define I2C3_OVERCLOCK true
 #define I2C4_OVERCLOCK true
+#define USE_SPI_DMA_ENABLE_LATE
 #endif
 
 #if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
