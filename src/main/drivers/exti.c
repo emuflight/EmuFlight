@@ -52,23 +52,13 @@ static const uint8_t extiGroupIRQn[EXTI_IRQ_GROUPS] = {
     EXTI9_5_IRQn,
     EXTI15_10_IRQn
 };
-#elif defined(STM32F3)
-static const uint8_t extiGroupIRQn[EXTI_IRQ_GROUPS] = {
-    EXTI0_IRQn,
-    EXTI1_IRQn,
-    EXTI2_TS_IRQn,
-    EXTI3_IRQn,
-    EXTI4_IRQn,
-    EXTI9_5_IRQn,
-    EXTI15_10_IRQn
-};
 #else
 # warning "Unknown CPU"
 #endif
 
 
 void EXTIInit(void) {
-#if defined(STM32F3) || defined(STM32F4)
+#if defined(STM32F4)
     /* Enable SYSCFG clock otherwise the EXTI irq handlers are not called */
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 #ifdef REMAP_TIM16_DMA
@@ -128,7 +118,7 @@ void EXTIConfig(IO_t io, extiCallbackRec_t *cb, int irqPriority, ioConfig_t conf
     extiChannelRec_t *rec = &extiChannelRecs[chIdx];
     int group = extiGroups[chIdx];
     rec->handler = cb;
-#if defined(STM32F303xC) || defined(STM32F4)
+#if defined(STM32F4)
     SYSCFG_EXTILineConfig(IO_EXTI_PortSourceGPIO(io), IO_EXTI_PinSource(io));
 #else
 # warning "Unknown CPU"
@@ -179,15 +169,6 @@ void EXTIEnable(IO_t io, bool enable) {
         *imrReg |= extiLine;
     else
         *imrReg &= ~extiLine;
-#elif defined(STM32F303xC)
-    int extiLine = IO_EXTI_Line(io);
-    if (extiLine < 0)
-        return;
-    // assume extiLine < 32 (valid for all EXTI pins)
-    if (enable)
-        EXTI->IMR |= 1 << extiLine;
-    else
-        EXTI->IMR &= ~(1 << extiLine);
 #else
 # error "Unsupported target"
 #endif
@@ -230,8 +211,6 @@ _EXTI_IRQ_HANDLER(EXTI0_IRQHandler);
 _EXTI_IRQ_HANDLER(EXTI1_IRQHandler);
 #if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
 _EXTI_IRQ_HANDLER(EXTI2_IRQHandler);
-#elif defined(STM32F3)
-_EXTI_IRQ_HANDLER(EXTI2_TS_IRQHandler);
 #else
 # warning "Unknown CPU"
 #endif

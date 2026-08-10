@@ -55,7 +55,7 @@ void spiInitDevice(SPIDevice device) {
     IOInit(IOGetByTag(spi->sck),  OWNER_SPI_SCK,  RESOURCE_INDEX(device));
     IOInit(IOGetByTag(spi->miso), OWNER_SPI_MISO, RESOURCE_INDEX(device));
     IOInit(IOGetByTag(spi->mosi), OWNER_SPI_MOSI, RESOURCE_INDEX(device));
-#if defined(STM32F3) || defined(STM32F4)
+#if defined(STM32F4)
     IOConfigGPIOAF(IOGetByTag(spi->sck),  SPI_IO_AF_CFG, spi->af);
     IOConfigGPIOAF(IOGetByTag(spi->miso), SPI_IO_AF_CFG, spi->af);
     IOConfigGPIOAF(IOGetByTag(spi->mosi), SPI_IO_AF_CFG, spi->af);
@@ -79,10 +79,6 @@ void spiInitDevice(SPIDevice device) {
         spiInit.SPI_CPOL = SPI_CPOL_High;
         spiInit.SPI_CPHA = SPI_CPHA_2Edge;
     }
-#ifdef STM32F303xC
-    // Configure for 8-bit reads.
-    SPI_RxFIFOThresholdConfig(spi->dev, SPI_RxFIFOThreshold_QF);
-#endif
     SPI_Init(spi->dev, &spiInit);
     SPI_Cmd(spi->dev, ENABLE);
 }
@@ -93,31 +89,19 @@ uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t txByte) {
     while (SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_TXE) == RESET)
         if ((spiTimeout--) == 0)
             return spiTimeoutUserCallback(instance);
-#ifdef STM32F303xC
-    SPI_SendData8(instance, txByte);
-#else
     SPI_I2S_SendData(instance, txByte);
-#endif
     spiTimeout = 1000;
     while (SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_RXNE) == RESET)
         if ((spiTimeout--) == 0)
             return spiTimeoutUserCallback(instance);
-#ifdef STM32F303xC
-    return ((uint8_t)SPI_ReceiveData8(instance));
-#else
     return ((uint8_t)SPI_I2S_ReceiveData(instance));
-#endif
 }
 
 /**
  * Return true if the bus is currently in the middle of a transmission.
  */
 bool spiIsBusBusy(SPI_TypeDef *instance) {
-#ifdef STM32F303xC
-    return SPI_GetTransmissionFIFOStatus(instance) != SPI_TransmissionFIFOStatus_Empty || SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_BSY) == SET;
-#else
     return SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_TXE) == RESET || SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_BSY) == SET;
-#endif
 }
 
 bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, int len) {
@@ -130,21 +114,13 @@ bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, 
             if ((spiTimeout--) == 0)
                 return spiTimeoutUserCallback(instance);
         }
-#ifdef STM32F303xC
-        SPI_SendData8(instance, b);
-#else
         SPI_I2S_SendData(instance, b);
-#endif
         spiTimeout = 1000;
         while (SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_RXNE) == RESET) {
             if ((spiTimeout--) == 0)
                 return spiTimeoutUserCallback(instance);
         }
-#ifdef STM32F303xC
-        b = SPI_ReceiveData8(instance);
-#else
         b = SPI_I2S_ReceiveData(instance);
-#endif
         if (rxData)
             *(rxData++) = b;
     }
@@ -171,11 +147,9 @@ FAST_CODE void spiSequenceStart(const extDevice_t *dev)
     if (dev->busType_u.spi.speed != bus->busType_u.spi.speed) {
 #define BR_BITS ((BIT(5) | BIT(4) | BIT(3)))
         uint16_t divisor = dev->busType_u.spi.speed;
-#if !defined(STM32F3)
         if (instance == SPI2 || instance == SPI3) {
             divisor /= 2;
         }
-#endif
         // BF parity: constrain after halving — divisor=1 after /=2 gives prescaler 256
         // via ffs(-1)<<3, causing SPI at ~164kHz which overruns spiTransfer timeout (1000 iters).
         divisor = (divisor < 2) ? 2 : divisor;
@@ -421,11 +395,9 @@ void spiInternalStopDMA(const extDevice_t *dev)
 
 void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {
 #define BR_BITS ((BIT(5) | BIT(4) | BIT(3)))
-#if !defined(STM32F3)
     if (instance == SPI2 || instance == SPI3) {
         divisor /= 2;
     }
-#endif
     divisor = (divisor < 2) ? 2 : divisor;
     SPI_Cmd(instance, DISABLE);
     const uint16_t tempRegister = (instance->CR1 & ~BR_BITS);

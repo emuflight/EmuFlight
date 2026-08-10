@@ -72,7 +72,7 @@
  *
  * On an STM32F303CC 720 bytes is currently fine and that is the target for which this code was designed for.
  */
-#if defined(STM32F3) || defined(UNIT_TEST)
+#if defined(UNIT_TEST)
 
 typedef union transponderIrDMABuffer_s {
     uint8_t arcitimer[TRANSPONDER_DMA_BUFFER_SIZE_ARCITIMER]; // 620
@@ -96,7 +96,7 @@ typedef struct transponder_s {
     uint16_t bitToggleOne;
     uint32_t dma_buffer_size;
 
-#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(UNIT_TEST)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(UNIT_TEST)
     transponderIrDMABuffer_t transponderIrDMABuffer;
 #endif
 

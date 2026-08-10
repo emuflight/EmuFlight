@@ -124,11 +124,7 @@ typedef enum {
 typedef struct {
     TIM_TypeDef *timer;
 #if defined(USE_DSHOT) && defined(USE_DSHOT_DMAR)
-#ifdef STM32F3
-    DMA_Channel_TypeDef *dmaBurstRef;
-#else
     DMA_Stream_TypeDef *dmaBurstRef;
-#endif
     uint16_t dmaBurstLength;
     uint32_t dmaBurstBuffer[DSHOT_DMA_BUFFER_SIZE * 4] __attribute__((aligned(32)));
 #endif
@@ -145,7 +141,7 @@ typedef struct {
 #endif
     motorDmaTimer_t *timer;
     volatile bool requestTelemetry;
-#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     uint32_t dmaBuffer[DSHOT_DMA_BUFFER_SIZE] __attribute__((aligned(32)));
 #else
     uint8_t dmaBuffer[DSHOT_DMA_BUFFER_SIZE];

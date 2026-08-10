@@ -31,16 +31,7 @@ struct ioPortDef_s {
     rccPeriphTag_t rcc;
 };
 
-#if defined(STM32F3)
-const struct ioPortDef_s ioPortDefs[] = {
-    { RCC_AHB(GPIOA) },
-    { RCC_AHB(GPIOB) },
-    { RCC_AHB(GPIOC) },
-    { RCC_AHB(GPIOD) },
-    { RCC_AHB(GPIOE) },
-    { RCC_AHB(GPIOF) },
-};
-#elif defined(STM32F4)
+#if defined(STM32F4)
 const struct ioPortDef_s ioPortDefs[] = {
     { RCC_AHB1(GPIOA) },
     { RCC_AHB1(GPIOB) },
@@ -124,14 +115,12 @@ int IO_GPIO_PinSource(IO_t io) {
     return IO_GPIOPinIdx(io);
 }
 
-// bit index (not a bitmask) on stm32f303
+// returns an EXTI line bitmask (1 << pin index)
 uint32_t IO_EXTI_Line(IO_t io) {
     if (!io) {
         return 0;
     }
-#if defined(STM32F3)
-    return IO_GPIOPinIdx(io);
-#elif defined(STM32F4)
+#if defined(STM32F4)
     return 1 << IO_GPIOPinIdx(io);
 #elif defined(STM32F7) || defined(STM32H7)
     return 1 << IO_GPIOPinIdx(io);
@@ -302,7 +291,7 @@ void IOConfigGPIOAF(IO_t io, ioConfig_t cfg, uint8_t af) {
     LL_GPIO_Init(IO_GPIO(io), &init);
 }
 
-#elif defined(STM32F3) || defined(STM32F4)
+#elif defined(STM32F4)
 
 void IOConfigGPIO(IO_t io, ioConfig_t cfg) {
     if (!io) {

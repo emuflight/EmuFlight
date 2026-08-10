@@ -29,8 +29,6 @@
 #define ADC_TAG_MAP_COUNT 16
 #elif defined(STM32H7)
 #define ADC_TAG_MAP_COUNT 16
-#elif defined(STM32F3)
-#define ADC_TAG_MAP_COUNT 39
 #else
 #define ADC_TAG_MAP_COUNT 10
 #endif
