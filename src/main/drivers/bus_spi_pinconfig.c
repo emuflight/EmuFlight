@@ -38,45 +38,6 @@
 #include "pg/bus_spi.h"
 
 const spiHardware_t spiHardware[] = {
-#ifdef STM32F1
-    // Remapping is not supported and corresponding lines are commented out.
-    // There also is some errata that may prevent these assignments from working:
-    // http://www.st.com/content/ccc/resource/technical/document/errata_sheet/7d/02/75/64/17/fc/4d/fd/CD00190234.pdf/files/CD00190234.pdf/jcr:content/translations/en.CD00190234.pdf
-    {
-        .device = SPIDEV_1,
-        .reg = SPI1,
-        .sckPins = {
-            { DEFIO_TAG_E(PA5) },
-            // { DEFIO_TAG_E(PB3) },
-        },
-        .misoPins = {
-            { DEFIO_TAG_E(PA6) },
-            // { DEFIO_TAG_E(PB4) },
-        },
-        .mosiPins = {
-            { DEFIO_TAG_E(PA7) },
-            // { DEFIO_TAG_E(PB5) },
-        },
-        .rcc = RCC_APB2(SPI1),
-    },
-    {
-        .device = SPIDEV_2,
-        .reg = SPI2,
-        .sckPins = {
-            { DEFIO_TAG_E(PB13) },
-            // { DEFIO_TAG_E(PB3) },
-        },
-        .misoPins = {
-            { DEFIO_TAG_E(PB14) },
-            // { DEFIO_TAG_E(PB4) },
-        },
-        .mosiPins = {
-            { DEFIO_TAG_E(PB15) },
-            // { DEFIO_TAG_E(PB5) },
-        },
-        .rcc = RCC_APB1(SPI2),
-    },
-#endif
 #ifdef STM32F3
 
 #ifndef GPIO_AF_SPI1

@@ -293,11 +293,7 @@ void motorDevInit(const motorDevConfig_t *motorConfig, uint16_t idlePulse, uint8
             continue;
         }
 #endif
-#if defined(STM32F1)
-        IOConfigGPIO(motors[motorIndex].io, IOCFG_AF_PP);
-#else
         IOConfigGPIOAF(motors[motorIndex].io, IOCFG_AF_PP, timerHardware->alternateFunction);
-#endif
         /* standard PWM outputs */
         // margin of safety is 4 periods when unsynced
         const unsigned pwmRateHz = useUnsyncedPwm ? motorConfig->motorPwmRate : ceilf(1 / ((sMin + sLen) * 4));
@@ -501,11 +497,7 @@ void servoDevInit(const servoDevConfig_t *servoConfig) {
             /* flag failure and disable ability to arm */
             break;
         }
-#if defined(STM32F1)
-        IOConfigGPIO(servos[servoIndex].io, IOCFG_AF_PP);
-#else
         IOConfigGPIOAF(servos[servoIndex].io, IOCFG_AF_PP, timer->alternateFunction);
-#endif
         pwmOutConfig(&servos[servoIndex].channel, timer, PWM_TIMER_1MHZ, PWM_TIMER_1MHZ / servoConfig->servoPwmRate, servoConfig->servoCenterPulse, 0);
         servos[servoIndex].enabled = true;
     }
