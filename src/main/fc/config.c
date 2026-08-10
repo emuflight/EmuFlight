@@ -411,12 +411,6 @@ void validateAndFixGyroConfig(void) {
         gyroConfigMutable()->gyro_sync_denom = 1;
         gyroConfigMutable()->gyro_use_32khz = false;
     }
-    if (gyroConfig()->gyro_use_32khz) {
-        // F3 can't handle high sample speed.
-#if defined(STM32F3)
-        gyroConfigMutable()->gyro_sync_denom = MAX(gyroConfig()->gyro_sync_denom, 4);
-#endif
-    }
     float samplingTime;
     switch (gyroMpuDetectionResult()->sensor) {
     case ICM_20649_SPI:

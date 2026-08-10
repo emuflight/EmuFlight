@@ -84,7 +84,7 @@ extern bool linearThrustEnabled;
 
 PG_REGISTER_WITH_RESET_TEMPLATE(pidConfig_t, pidConfig, PG_PID_CONFIG, 2);
 
-#if defined(STM32F3) || defined(STM32F411xE)
+#if defined(STM32F411xE)
 #define PID_PROCESS_DENOM_DEFAULT 2
 #else
 #define PID_PROCESS_DENOM_DEFAULT 1
