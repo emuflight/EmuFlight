@@ -49,8 +49,8 @@
  *
  * As noticed by Skrebber the GR-12 (and probably GR-16/24, too) are based on a PIC 24FJ64GA-002, which has 5V tolerant digital pins.
  *
- * Note: The softserial ports are not listed as 5V tolerant in the STM32F103xx data sheet pinouts and pin description
- * section.  Verify if you require a 5v/3.3v level shifters.  The softserial port should not be inverted.
+ * Note: Softserial port 5V tolerance varies by MCU - verify your target's datasheet
+ * before wiring.  Level shifters (5V/3.3V) may be required.  The softserial port should not be inverted.
  *
  * There is a technical discussion (in German) about HoTT here
  * http://www.rc-network.de/forum/showthread.php/281496-Graupner-HoTT-Telemetrie-Sensoren-Eigenbau-DIY-Telemetrie-Protokoll-entschl%C3%BCsselt/page21

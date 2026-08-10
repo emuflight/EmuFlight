@@ -1,4 +1,4 @@
-# AlienFlight (ALIENFLIGHTF1, ALIENFLIGHTF3, ALIENFLIGHTF4 and ALIENFLIGHTNGF7 target)
+# AlienFlight (ALIENFLIGHTF4 and ALIENFLIGHTNGF7 targets — F1/F3 variants existed historically but are unsupported)
 
 AlienWii is now AlienFlight. This designs are released partially for public (CC BY-SA 4.0) and some for noncommercial use (CC BY-NC-SA 4.0) at:
 
@@ -21,8 +21,8 @@ https://micro-motor-warehouse.com
 
 Here are the general hardware specifications for this boards:
 
-- STM32F103CBT6 MCU (ALIENFLIGHTF1)
-- STM32F303CCT6 MCU (ALIENFLIGHTF3)
+- STM32F103CBT6 MCU (ALIENFLIGHTF1, unsupported)
+- STM32F303CCT6 MCU (ALIENFLIGHTF3, unsupported)
 - STM32F405RGT6 MCU (ALIENFLIGHTF4)
 - STM32F711RET6 MCU (ALIENFLIGHTNGF7)
 - MPU6050/6500/9250/ICM-20602 accelerometer/gyro(/mag) sensor unit

@@ -130,7 +130,7 @@ typedef enum {
     DMA1_CH5_HANDLER,
     DMA1_CH6_HANDLER,
     DMA1_CH7_HANDLER,
-#if defined(STM32F3) || defined(STM32F10X_CL)
+#if defined(STM32F3)
     DMA2_CH1_HANDLER,
     DMA2_CH2_HANDLER,
     DMA2_CH3_HANDLER,
