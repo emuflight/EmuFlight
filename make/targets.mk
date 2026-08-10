@@ -94,7 +94,7 @@ $(error Target '$(TARGET)' is not valid, must be one of $(VALID_TARGETS). Have y
 endif
 
 ifeq ($(filter $(TARGET),$(F4_TARGETS) $(F7_TARGETS) $(H7_TARGETS) $(SITL_TARGETS)),)
-$(error Target '$(TARGET)' has not specified a valid STM group, must be one of F405, F411, F7x5, F7x6, H743, H750, H723, H725, H730, H735, or H7A3. Have you prepared a valid target.mk?)
+$(error Target '$(TARGET)' has not specified a valid STM group, must be one of F405, F411, F446, F7x5, F7x6, H743, H750, H723, H725, H730, H735, H7A3, or SITL. Have you prepared a valid target.mk?)
 endif
 
 ifeq ($(TARGET),$(filter $(TARGET), $(F4_TARGETS)))
