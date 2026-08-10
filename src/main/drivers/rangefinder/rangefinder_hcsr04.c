@@ -142,10 +142,6 @@ int32_t hcsr04_get_distance(rangefinderDev_t *dev) {
 
 bool hcsr04Detect(rangefinderDev_t *dev, const sonarConfig_t * rangefinderHardwarePins) {
     bool detected = false;
-#ifdef STM32F10X
-    // enable AFIO for EXTI support
-    RCC_ClockCmd(RCC_APB2(AFIO), ENABLE);
-#endif
 #if defined(STM32F3) || defined(STM32F4)
     RCC_ClockCmd(RCC_APB2(SYSCFG), ENABLE); // XXX Do we need this?
 #endif

@@ -40,7 +40,7 @@ static IO_t ws2811IO = IO_NONE;
 bool ws2811Initialised = false;
 #if defined(STM32F4)
 static DMA_Stream_TypeDef *dmaRef = NULL;
-#elif defined(STM32F3) || defined(STM32F1)
+#elif defined(STM32F3)
 static DMA_Channel_TypeDef *dmaRef = NULL;
 #else
 #error "No MCU definition in light_ws2811strip_stdperiph.c"
@@ -69,11 +69,7 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag) {
     }
     ws2811IO = IOGetByTag(ioTag);
     IOInit(ws2811IO, OWNER_LED_STRIP, 0);
-#ifdef STM32F1
-    IOConfigGPIO(ws2811IO, IO_CONFIG(GPIO_Speed_50MHz, GPIO_Mode_AF_PP));
-#else
     IOConfigGPIOAF(ws2811IO, IO_CONFIG(GPIO_Mode_AF, GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_UP), timerHardware->alternateFunction);
-#endif
     RCC_ClockCmd(timerRCC(timer), ENABLE);
     // Stop timer
     TIM_Cmd(timer, DISABLE);
@@ -131,7 +127,7 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag) {
     DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
     DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Word;
     DMA_InitStructure.DMA_Priority = DMA_Priority_VeryHigh;
-#elif defined(STM32F3) || defined(STM32F1)
+#elif defined(STM32F3)
     DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)ledStripDMABuffer;
     DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
     DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;

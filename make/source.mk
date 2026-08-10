@@ -186,7 +186,6 @@ endif
 SPEED_OPTIMISED_SRC := ""
 SIZE_OPTIMISED_SRC  := ""
 
-ifneq ($(TARGET),$(filter $(TARGET),$(F1_TARGETS)))
 SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
             common/encoding.c \
             common/filter.c \
@@ -375,7 +374,6 @@ SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
             drivers/pwm_output_dshot.c \
             drivers/pwm_output_dshot_hal.c
 endif #!F3
-endif #!F1
 
 # H7-only low-frequency drivers compiled at -Os to reclaim flash budget
 ifneq ($(filter $(TARGET),$(H7_TARGETS)),)

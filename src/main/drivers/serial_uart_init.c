@@ -74,12 +74,7 @@ void uartReconfigure(uartPort_t *uartPort) {
     USART_InitStructure.USART_BaudRate = uartPort->port.baudRate;
     // according to the stm32 documentation wordlen has to be 9 for parity bits
     // this does not seem to matter for rx but will give bad data on tx!
-    // This seems to cause RX to break on STM32F1, see https://github.com/betaflight/betaflight/pull/1654
-    if (
-#if defined(STM32F1)
-        false &&
-#endif
-        (uartPort->port.options & SERIAL_PARITY_EVEN)) {
+    if (uartPort->port.options & SERIAL_PARITY_EVEN) {
         USART_InitStructure.USART_WordLength = USART_WordLength_9b;
     } else {
         USART_InitStructure.USART_WordLength = USART_WordLength_8b;

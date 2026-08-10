@@ -26,16 +26,7 @@
 
 // Configuration constants
 
-#if defined(STM32F1)
-#define UARTDEV_COUNT_MAX 3
-#define UARTHARDWARE_MAX_PINS 3
-#ifndef UART_RX_BUFFER_SIZE
-#define UART_RX_BUFFER_SIZE     128
-#endif
-#ifndef UART_TX_BUFFER_SIZE
-#define UART_TX_BUFFER_SIZE     256
-#endif
-#elif defined(STM32F3)
+#if defined(STM32F3)
 #define UARTDEV_COUNT_MAX 5
 #define UARTHARDWARE_MAX_PINS 4
 #ifndef UART_RX_BUFFER_SIZE
@@ -151,7 +142,7 @@ typedef struct uartPinDef_s {
 typedef struct uartHardware_s {
     UARTDevice_e device;    // XXX Not required for full allocation
     USART_TypeDef* reg;
-#if defined(STM32F1) || defined(STM32F3)
+#if defined(STM32F3)
     DMA_Channel_TypeDef *txDMAChannel;
     DMA_Channel_TypeDef *rxDMAChannel;
 #elif defined(STM32F4) || defined(STM32F7)

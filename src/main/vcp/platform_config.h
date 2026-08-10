@@ -30,9 +30,7 @@
 #define __PLATFORM_CONFIG_H
 
 /* Includes ------------------------------------------------------------------*/
-#if defined (STM32F10X_MD) || defined (STM32F10X_HD)
-#include "stm32f10x.h"
-#elif defined (STM32F303xC)
+#if defined (STM32F303xC)
 #include "stm32f30x.h"
 #endif
 
@@ -46,12 +44,6 @@
 #define         ID1          (0x1FFFF7AC)
 #define         ID2          (0x1FFFF7B0)
 #define         ID3          (0x1FFFF7B4)
-
-#else /*STM32F1x*/
-
-#define         ID1          (0x1FFFF7E8)
-#define         ID2          (0x1FFFF7EC)
-#define         ID3          (0x1FFFF7F0)
 
 #endif
 

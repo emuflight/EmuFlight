@@ -35,28 +35,6 @@
 
 // Backward compatibility for exisiting targets
 
-// F1 targets don't explicitly define pins.
-
-#ifdef STM32F1
-#ifdef USE_UART1
-#ifndef UART1_RX_PIN
-#define UART1_RX_PIN        PA10
-#endif
-#ifndef UART1_TX_PIN
-#define UART1_TX_PIN        PA9
-#endif
-#endif // USE_UART1
-
-#ifdef USE_UART2
-#ifndef UART2_RX_PIN
-#define UART2_RX_PIN        PA3
-#endif
-#ifndef UART2_TX_PIN
-#define UART2_TX_PIN        PA2
-#endif
-#endif // USE_UART2
-#endif // STM32F1
-
 // XXX Is there an F3 target that does not define UART pins?
 
 #ifdef STM32F3

@@ -170,12 +170,8 @@ extern uint8_t __config_end;
 static serialPort_t *cliPort;
 static mspDescriptor_t cliMspDescriptor;
 
-#ifdef STM32F1
-#define CLI_IN_BUFFER_SIZE 128
-#else
 // Space required to set array parameters
 #define CLI_IN_BUFFER_SIZE 256
-#endif
 #define CLI_OUT_BUFFER_SIZE 64
 
 static bufWriter_t *cliWriter;
