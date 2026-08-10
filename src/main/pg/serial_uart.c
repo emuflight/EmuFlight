@@ -39,6 +39,12 @@
 
 PG_REGISTER_ARRAY_WITH_RESET_FN(serialUartConfig_t, UARTDEV_COUNT_MAX, serialUartConfig, PG_SERIAL_UART_CONFIG, 0);
 
+// F4/F7 serialUART() resolves DMA via serialUartConfig()/dmaGetChannelSpecByPeripheral();
+// H7's serial_uart_stm32h7xx.c uses its own pre-existing UARTn_{TX,RX}_DMA_STREAM macros
+// and never reads this PG array for UART -- no per-UART default table exists for it here,
+// only the blanket DMA_OPT_UNUSED below. Neither F4 nor F7 wire up UARTDEV_9/10 in their
+// uartHardware[] tables, so those two are intentionally absent from this table.
+#if defined(STM32F4) || defined(STM32F7)
 typedef struct uartDmaopt_s {
     UARTDevice_e device;
     int8_t txDmaopt;
@@ -70,13 +76,8 @@ static const uartDmaopt_t uartDmaoptDefault[] = {
 #ifdef USE_UART8
     { UARTDEV_8, UART8_TX_DMA_OPT, UART8_RX_DMA_OPT },
 #endif
-#ifdef USE_UART9
-    { UARTDEV_9, UART9_TX_DMA_OPT, UART9_RX_DMA_OPT },
-#endif
-#ifdef USE_UART10
-    { UARTDEV_10, UART10_TX_DMA_OPT, UART10_RX_DMA_OPT },
-#endif
 };
+#endif // STM32F4 || STM32F7
 
 void pgResetFn_serialUartConfig(serialUartConfig_t *config)
 {
@@ -85,11 +86,13 @@ void pgResetFn_serialUartConfig(serialUartConfig_t *config)
         config[i].rxDmaopt = DMA_OPT_UNUSED;
     }
 
+#if defined(STM32F4) || defined(STM32F7)
     for (unsigned i = 0; i < ARRAYLEN(uartDmaoptDefault); i++) {
         const int device = uartDmaoptDefault[i].device;
         config[device].txDmaopt = uartDmaoptDefault[i].txDmaopt;
         config[device].rxDmaopt = uartDmaoptDefault[i].rxDmaopt;
     }
+#endif
 }
 
 #endif

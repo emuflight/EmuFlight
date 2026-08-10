@@ -314,8 +314,11 @@ static const dmaPeripheralMapping_t dmaPeripheralMapping[] = {
     { DMA_PERIPH_SPI_SDI, SPIDEV_4, { DMA(2, 0, 4), DMA(2, 3, 5) } },
 #endif
 
-    // UART DMA: each entry lists every valid alternate stream/channel for that UART;
-    // dmaGetChannelSpecByPeripheral() tries them in order until one is allocatable.
+    // UART DMA: each entry lists every silicon-valid stream/channel for that UART.
+    // Unlike spiInitBusDMA()'s caller-side loop over opt, serialUART() resolves a
+    // single, PG-config-selected opt with no automatic retry of the other alternate on
+    // allocation failure -- picking an opt still requires checking it doesn't collide
+    // with another peripheral's (SPI or another UART's) DMA usage on the target board.
     // UART7/8 (F7-only) have exactly one known-valid option each.
     { DMA_PERIPH_UART_RX, UARTDEV_1, { DMA(2, 5, 4), DMA(2, 2, 4) } },
     { DMA_PERIPH_UART_TX, UARTDEV_1, { DMA(2, 7, 4) } },
