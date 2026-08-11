@@ -32,8 +32,6 @@
 #include "timer.h"
 #if defined(STM32F4)
 #include "stm32f4xx.h"
-#elif defined(STM32F3)
-#include "stm32f30x.h"
 #endif
 #include "pwm_output.h"
 #include "drivers/nvic.h"
@@ -214,10 +212,6 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     if (useBurstDshot) {
         dmaInit(timerHardware->dmaTimUPIrqHandler, OWNER_TIMUP, timerGetTIMNumber(timerHardware->tim));
         dmaSetHandler(timerHardware->dmaTimUPIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
-#if defined(STM32F3)
-        DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)motor->timer->dmaBurstBuffer;
-        DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
-#else
         DMA_InitStructure.DMA_Channel = timerHardware->dmaTimUPChannel;
         DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)motor->timer->dmaBurstBuffer;
         DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
@@ -225,7 +219,6 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
         DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
         DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
         DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
-#endif
         DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&timerHardware->tim->DMAR;
         DMA_InitStructure.DMA_BufferSize = (pwmProtocolType == PWM_TYPE_PROSHOT1000) ? PROSHOT_DMA_BUFFER_SIZE : DSHOT_DMA_BUFFER_SIZE; // XXX
         DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
@@ -239,11 +232,7 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     {
         dmaInit(timerHardware->dmaIrqHandler, OWNER_MOTOR, RESOURCE_INDEX(motorIndex));
         dmaSetHandler(timerHardware->dmaIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
-#if defined(STM32F3)
-        DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)motor->dmaBuffer;
-        DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
-        DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
-#elif defined(STM32F4)
+#if defined(STM32F4)
         DMA_InitStructure.DMA_Channel = timerHardware->dmaChannel;
         DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)motor->dmaBuffer;
         DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;

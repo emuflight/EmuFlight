@@ -45,7 +45,7 @@
 #include "drivers/serial_uart_impl.h"
 
 static void usartConfigurePinInversion(uartPort_t *uartPort) {
-#if !defined(USE_INVERTER) && !defined(STM32F303xC)
+#if !defined(USE_INVERTER)
     UNUSED(uartPort);
 #else
     bool inverted = uartPort->port.options & SERIAL_INVERTED;
@@ -54,16 +54,6 @@ static void usartConfigurePinInversion(uartPort_t *uartPort) {
         // Enable hardware inverter if available.
         enableInverter(uartPort->USARTx, true);
     }
-#endif
-#ifdef STM32F303xC
-    uint32_t inversionPins = 0;
-    if (uartPort->port.mode & MODE_TX) {
-        inversionPins |= USART_InvPin_Tx;
-    }
-    if (uartPort->port.mode & MODE_RX) {
-        inversionPins |= USART_InvPin_Rx;
-    }
-    USART_InvPinCmd(uartPort->USARTx, inversionPins, inverted ? ENABLE : DISABLE);
 #endif
 #endif
 }

@@ -50,10 +50,8 @@ typedef struct i2cHardware_s {
     i2cPinDef_t sclPins[I2C_PIN_SEL_MAX];
     i2cPinDef_t sdaPins[I2C_PIN_SEL_MAX];
     rccPeriphTag_t rcc;
-#if !defined(STM32F303xC)
     uint8_t ev_irq;
     uint8_t er_irq;
-#endif
 } i2cHardware_t;
 
 extern const i2cHardware_t i2cHardware[];
