@@ -317,7 +317,7 @@ SUMMARY_PHONY_GOALS := \
     targets-group-9 targets-group-10 targets-group-11 targets-group-rest \
     flash st-flash binary hex unbrick openocd-gdb \
     version help targets target-mcu targets-by-mcu \
-    targets-f3 targets-f4 targets-f7 targets-h7 \
+    targets-f4 targets-f7 targets-h7 \
     cppcheck test junittest \
     check-target-independence check-fastram-usage-correctness
 
@@ -686,10 +686,6 @@ targets-by-mcu:
 		fi; \
 	done; \
 	[ -n "$$_targets" ] && $(MAKE) $$_targets
-
-## targets-f3        : make all F3 targets
-targets-f3:
-	$(V1) $(MAKE) -s targets-by-mcu MCU_TYPE=STM32F3
 
 ## targets-f4        : make all F4 targets
 targets-f4:

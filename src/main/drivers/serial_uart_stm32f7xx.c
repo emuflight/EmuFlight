@@ -36,6 +36,9 @@
 #include "drivers/serial.h"
 #include "drivers/serial_uart.h"
 #include "drivers/serial_uart_impl.h"
+#include "drivers/dma_reqmap.h"
+
+#include "pg/serial_uart.h"
 
 #ifdef USE_UART
 
@@ -46,13 +49,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
     {
         .device = UARTDEV_1,
         .reg = USART1,
-        .DMAChannel = DMA_CHANNEL_4,
-#ifdef USE_UART1_RX_DMA
-        .rxDMAStream = DMA2_Stream5,
-#endif
-#ifdef USE_UART1_TX_DMA
-        .txDMAStream = DMA2_Stream7,
-#endif
         .rxPins = { DEFIO_TAG_E(PA10), DEFIO_TAG_E(PB7), IO_TAG_NONE },
         .txPins = { DEFIO_TAG_E(PA9), DEFIO_TAG_E(PB6), IO_TAG_NONE },
         .af = GPIO_AF7_USART1,
@@ -70,13 +66,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
     {
         .device = UARTDEV_2,
         .reg = USART2,
-        .DMAChannel = DMA_CHANNEL_4,
-#ifdef USE_UART2_RX_DMA
-        .rxDMAStream = DMA1_Stream5,
-#endif
-#ifdef USE_UART2_TX_DMA
-        .txDMAStream = DMA1_Stream6,
-#endif
         .rxPins = { DEFIO_TAG_E(PA3), DEFIO_TAG_E(PD6), IO_TAG_NONE },
         .txPins = { DEFIO_TAG_E(PA2), DEFIO_TAG_E(PD5), IO_TAG_NONE },
         .af = GPIO_AF7_USART2,
@@ -94,13 +83,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
     {
         .device = UARTDEV_3,
         .reg = USART3,
-        .DMAChannel = DMA_CHANNEL_4,
-#ifdef USE_UART3_RX_DMA
-        .rxDMAStream = DMA1_Stream1,
-#endif
-#ifdef USE_UART3_TX_DMA
-        .txDMAStream = DMA1_Stream3,
-#endif
         .rxPins = { DEFIO_TAG_E(PB11), DEFIO_TAG_E(PC11), DEFIO_TAG_E(PD9) },
         .txPins = { DEFIO_TAG_E(PB10), DEFIO_TAG_E(PC10), DEFIO_TAG_E(PD8) },
         .af = GPIO_AF7_USART3,
@@ -118,13 +100,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
     {
         .device = UARTDEV_4,
         .reg = UART4,
-        .DMAChannel = DMA_CHANNEL_4,
-#ifdef USE_UART4_RX_DMA
-        .rxDMAStream = DMA1_Stream2,
-#endif
-#ifdef USE_UART4_TX_DMA
-        .txDMAStream = DMA1_Stream4,
-#endif
         .rxPins = { DEFIO_TAG_E(PA1), DEFIO_TAG_E(PC11), IO_TAG_NONE },
         .txPins = { DEFIO_TAG_E(PA0), DEFIO_TAG_E(PC10), IO_TAG_NONE },
         .af = GPIO_AF8_UART4,
@@ -142,13 +117,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
     {
         .device = UARTDEV_5,
         .reg = UART5,
-        .DMAChannel = DMA_CHANNEL_4,
-#ifdef USE_UART5_RX_DMA
-        .rxDMAStream = DMA1_Stream0,
-#endif
-#ifdef USE_UART5_TX_DMA
-        .txDMAStream = DMA1_Stream7,
-#endif
         .rxPins = { DEFIO_TAG_E(PD2), IO_TAG_NONE, IO_TAG_NONE },
         .txPins = { DEFIO_TAG_E(PC12), IO_TAG_NONE, IO_TAG_NONE },
         .af = GPIO_AF8_UART5,
@@ -166,13 +134,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
     {
         .device = UARTDEV_6,
         .reg = USART6,
-        .DMAChannel = DMA_CHANNEL_5,
-#ifdef USE_UART6_RX_DMA
-        .rxDMAStream = DMA2_Stream1,
-#endif
-#ifdef USE_UART6_TX_DMA
-        .txDMAStream = DMA2_Stream6,
-#endif
         .rxPins = { DEFIO_TAG_E(PC7), DEFIO_TAG_E(PG9), IO_TAG_NONE },
         .txPins = { DEFIO_TAG_E(PC6), DEFIO_TAG_E(PG14), IO_TAG_NONE },
         .af = GPIO_AF8_USART6,
@@ -190,13 +151,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
     {
         .device = UARTDEV_7,
         .reg = UART7,
-        .DMAChannel = DMA_CHANNEL_5,
-#ifdef USE_UART7_RX_DMA
-        .rxDMAStream = DMA1_Stream3,
-#endif
-#ifdef USE_UART7_TX_DMA
-        .txDMAStream = DMA1_Stream1,
-#endif
         .rxPins = { DEFIO_TAG_E(PE7), DEFIO_TAG_E(PF6), IO_TAG_NONE },
         .txPins = { DEFIO_TAG_E(PE8), DEFIO_TAG_E(PF7), IO_TAG_NONE },
         .af = GPIO_AF8_UART7,
@@ -214,13 +168,6 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
     {
         .device = UARTDEV_8,
         .reg = UART8,
-        .DMAChannel = DMA_CHANNEL_5,
-#ifdef USE_UART8_RX_DMA
-        .rxDMAStream = DMA1_Stream6,
-#endif
-#ifdef USE_UART8_TX_DMA
-        .txDMAStream = DMA1_Stream0,
-#endif
         .rxPins = { DEFIO_TAG_E(PE0), IO_TAG_NONE, IO_TAG_NONE },
         .txPins = { DEFIO_TAG_E(PE1), IO_TAG_NONE, IO_TAG_NONE },
         .af = GPIO_AF8_UART8,
@@ -339,31 +286,39 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
     s->port.txBufferSize = ARRAYLEN(uartdev->txBuffer);
     const uartHardware_t *hardware = uartdev->hardware;
     s->USARTx = hardware->reg;
-    if (hardware->rxDMAStream) {
+    const dmaChannelSpec_t *rxDmaSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_UART_RX, device, serialUartConfig(device)->rxDmaopt);
+    if (rxDmaSpec) {
         // hardware->rxIrq is a USARTx_IRQn (NVIC), not a DMA identifier.
-        const dmaIdentifier_e identifier = dmaGetIdentifier(hardware->rxDMAStream);
+        const dmaIdentifier_e identifier = dmaGetIdentifier((DMA_Stream_TypeDef *)rxDmaSpec->ref);
         if (uartDmaClaim(identifier, OWNER_SERIAL_RX, RESOURCE_INDEX(device))) {
             dmaEnable(identifier);
-            s->rxDMAChannel = hardware->DMAChannel;
-            s->rxDMAStream = hardware->rxDMAStream;
+            s->rxDMAChannel = rxDmaSpec->channel;
+            s->rxDMAStream = (DMA_Stream_TypeDef *)rxDmaSpec->ref;
         } else {
             // stream owned by another peripheral (e.g. SPI DMA): fall back to IRQ-driven RX.
             s->rxDMAChannel = 0;
             s->rxDMAStream = NULL;
         }
+    } else {
+        s->rxDMAChannel = 0;
+        s->rxDMAStream = NULL;
     }
-    if (hardware->txDMAStream) {
-        const dmaIdentifier_e identifier = dmaGetIdentifier(hardware->txDMAStream);
+    const dmaChannelSpec_t *txDmaSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_UART_TX, device, serialUartConfig(device)->txDmaopt);
+    if (txDmaSpec) {
+        const dmaIdentifier_e identifier = dmaGetIdentifier((DMA_Stream_TypeDef *)txDmaSpec->ref);
         if (uartDmaClaim(identifier, OWNER_SERIAL_TX, RESOURCE_INDEX(device))) {
             dmaEnable(identifier);
-            s->txDMAChannel = hardware->DMAChannel;
-            s->txDMAStream = hardware->txDMAStream;
+            s->txDMAChannel = txDmaSpec->channel;
+            s->txDMAStream = (DMA_Stream_TypeDef *)txDmaSpec->ref;
             dmaSetHandler(identifier, dmaIRQHandler, hardware->txPriority, (uint32_t)uartdev);
         } else {
             // stream owned by another peripheral (e.g. SPI DMA): fall back to IRQ-driven TX.
             s->txDMAChannel = 0;
             s->txDMAStream = NULL;
         }
+    } else {
+        s->txDMAChannel = 0;
+        s->txDMAStream = NULL;
     }
     s->txDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->TDR;
     s->rxDMAPeripheralBaseAddr = (uint32_t)&s->USARTx->RDR;

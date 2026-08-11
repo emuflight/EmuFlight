@@ -310,14 +310,10 @@ void cliPrintLine(const char *str) {
     cliPrintLinefeed();
 }
 
-#ifdef MINIMAL_CLI
-#define cliPrintHashLine(str)
-#else
 static void cliPrintHashLine(const char *str) {
     cliPrint("\r\n# ");
     cliPrintLine(str);
 }
-#endif
 
 static void cliPutp(void *p, char ch) {
     bufWriterAppend(p, ch);
@@ -669,7 +665,7 @@ static void cliSetVar(const clivalue_t *var, const int16_t value) {
     }
 }
 
-#if defined(USE_RESOURCE_MGMT) && !defined(MINIMAL_CLI)
+#if defined(USE_RESOURCE_MGMT)
 static void cliRepeat(char ch, uint8_t len) {
     for (int i = 0; i < len; i++) {
         bufWriterAppend(cliWriter, ch);
@@ -1919,23 +1915,17 @@ static void cliFlashErase(char *cmdline) {
     if (!flashfsIsSupported()) {
         return;
     }
-#ifndef MINIMAL_CLI
     uint32_t i = 0;
     cliPrintLine("Erasing, please wait ... ");
-#else
-    cliPrintLine("Erasing,");
-#endif
     bufWriterFlush(cliWriter);
     flashfsEraseCompletely();
     while (!flashfsIsReady()) {
-#ifndef MINIMAL_CLI
         cliPrintf(".");
         if (i++ > 120) {
             i = 0;
             cliPrintLinefeed();
         }
         bufWriterFlush(cliWriter);
-#endif
         delay(100);
     }
     beeper(BEEPER_BLACKBOX_ERASE);
@@ -3027,7 +3017,6 @@ static void cliMotor(char *cmdline) {
     }
 }
 
-#ifndef MINIMAL_CLI
 static void cliPlaySound(char *cmdline) {
     int i;
     const char *name;
@@ -3058,7 +3047,6 @@ static void cliPlaySound(char *cmdline) {
     cliPrintLinef("Playing sound %d: %s", i, name);
     beeper(beeperModeForTableIndex(i));
 }
-#endif
 
 static void cliProfile(char *cmdline) {
     if (isEmpty(cmdline)) {
@@ -3604,13 +3592,11 @@ static void cliTasks(char *cmdline) {
     UNUSED(cmdline);
     int maxLoadSum = 0;
     int averageLoadSum = 0;
-#ifndef MINIMAL_CLI
     if (systemConfig()->task_statistics) {
         cliPrintLine("Task list             rate/hz  max/us  avg/us maxload avgload     total/ms");
     } else {
         cliPrintLine("Task list");
     }
-#endif
     for (cfTaskId_e taskId = 0; taskId < TASK_COUNT; taskId++) {
         cfTaskInfo_t taskInfo;
         getTaskInfo(taskId, &taskInfo);
@@ -3924,12 +3910,8 @@ static void cliResource(char *cmdline) {
         printResource(DUMP_MASTER | HIDE_UNUSED);
         return;
     } else if (strncasecmp(cmdline, "list", len) == 0) {
-#ifdef MINIMAL_CLI
-        cliPrintLine("IO");
-#else
         cliPrintLine("Currently active IO resource assignments:\r\n(reboot to update)");
         cliRepeat('-', 20);
-#endif
         for (int i = 0; i < DEFIO_IO_USED_COUNT; i++) {
             const char* owner;
             owner = ownerNames[ioRecs[i].owner];
@@ -3939,9 +3921,7 @@ static void cliResource(char *cmdline) {
             }
             cliPrintLinefeed();
         }
-#ifndef MINIMAL_CLI
         cliPrintLine("\r\nUse: 'resource' to see how to change resources.");
-#endif
         return;
     }
     uint8_t resourceIndex = 0;
@@ -3972,21 +3952,13 @@ static void cliResource(char *cmdline) {
     if (strlen(pch) > 0) {
         if (strToPin(pch, tag)) {
             if (*tag == IO_TAG_NONE) {
-#ifdef MINIMAL_CLI
-                cliPrintLine("Freed");
-#else
                 cliPrintLine("Resource is freed");
-#endif
                 return;
             } else {
                 ioRec_t *rec = IO_Rec(IOGetByTag(*tag));
                 if (rec) {
                     resourceCheck(resourceIndex, index, *tag);
-#ifdef MINIMAL_CLI
-                    cliPrintLinef(" %c%02d set", IO_GPIOPortIdx(rec) + 'A', IO_GPIOPinIdx(rec));
-#else
                     cliPrintLinef("\r\nResource is set to %c%02d", IO_GPIOPortIdx(rec) + 'A', IO_GPIOPinIdx(rec));
-#endif
                 } else {
                     cliShowParseError();
                 }
@@ -3999,12 +3971,8 @@ static void cliResource(char *cmdline) {
 
 static void printDma(void) {
     cliPrintLinefeed();
-#ifdef MINIMAL_CLI
-    cliPrintLine("DMA:");
-#else
     cliPrintLine("Currently active DMA:");
     cliRepeat('-', 20);
-#endif
     for (int i = 1; i <= DMA_LAST_HANDLER; i++) {
         const char* owner;
         owner = ownerNames[dmaGetOwner(i)];
@@ -4273,14 +4241,11 @@ static void cliMsc(char *cmdline) {
 
 typedef struct {
     const char *name;
-#ifndef MINIMAL_CLI
     const char *description;
     const char *args;
-#endif
     void (*func)(char *cmdline);
 } clicmd_t;
 
-#ifndef MINIMAL_CLI
 #define CLI_COMMAND_DEF(name, description, args, method) \
 { \
     name , \
@@ -4288,13 +4253,6 @@ typedef struct {
     args , \
     method \
 }
-#else
-#define CLI_COMMAND_DEF(name, description, args, method) \
-{ \
-    name, \
-    method \
-}
-#endif
 
 #ifdef USE_GYRO_IMUF9001
 static void cliReportImufErrors(char *cmdline);
@@ -4393,9 +4351,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("msc", "switch into msc mode", NULL, cliMsc),
 #endif
     CLI_COMMAND_DEF("name", "name of craft", NULL, cliName),
-#ifndef MINIMAL_CLI
     CLI_COMMAND_DEF("play_sound", NULL, "[<index>]", cliPlaySound),
-#endif
     CLI_COMMAND_DEF("profile", "change profile", "[<index>]", cliProfile),
     CLI_COMMAND_DEF("rateprofile", "change rate profile", "[<index>]", cliRateProfile),
 #ifdef USE_RC_SMOOTHING_FILTER
@@ -4452,14 +4408,12 @@ static void cliHelp(char *cmdline) {
     UNUSED(cmdline);
     for (uint32_t i = 0; i < ARRAYLEN(cmdTable); i++) {
         cliPrint(cmdTable[i].name);
-#ifndef MINIMAL_CLI
         if (cmdTable[i].description) {
             cliPrintf(" - %s", cmdTable[i].description);
         }
         if (cmdTable[i].args) {
             cliPrintf("\r\n\t%s", cmdTable[i].args);
         }
-#endif
         cliPrintLinefeed();
     }
 }
@@ -4570,11 +4524,7 @@ void cliEnter(serialPort_t *serialPort) {
     setPrintfSerialPort(cliPort);
     cliWriter = bufWriterInit(cliWriteBuffer, sizeof(cliWriteBuffer), (bufWrite_t)serialWriteBufShim, serialPort);
     schedulerSetCalulateTaskStatistics(systemConfig()->task_statistics);
-#ifndef MINIMAL_CLI
     cliPrintLine("\r\nEntering CLI Mode, type 'exit' to return, or 'help'");
-#else
-    cliPrintLine("\r\nCLI");
-#endif
     cliPrompt();
     setArmingDisabled(ARMING_DISABLED_CLI);
 }

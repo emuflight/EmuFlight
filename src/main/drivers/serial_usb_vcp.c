@@ -49,10 +49,6 @@
 #include "pg/usb.h"
 #endif
 USBD_HandleTypeDef USBD_Device;
-#else
-#include "usb_core.h"
-#include "usb_init.h"
-#include "hw_config.h"
 #endif
 
 #include "drivers/time.h"
@@ -239,11 +235,6 @@ serialPort_t *usbVcpOpen(void) {
     USBD_CDC_RegisterInterface(&USBD_Device, &USBD_CDC_fops);
     /* Start Device Process */
     USBD_Start(&USBD_Device);
-#else
-    Set_System();
-    Set_USBClock();
-    USB_Init();
-    USB_Interrupts_Config();
 #endif
     s = &vcpPort;
     s->port.vTable = usbVTable;

@@ -249,7 +249,6 @@ SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
             common/kalman.c \
 
 SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
-            bus_bst_stm32f30x.c \
             drivers/barometer/barometer_bmp085.c \
             drivers/barometer/barometer_bmp280.c \
             drivers/barometer/barometer_dps310.c \
@@ -321,14 +320,12 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             pg/pg.h
 
 # F4 and F7 optimizations
-ifneq ($(TARGET),$(filter $(TARGET),$(F3_TARGETS)))
 SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
             drivers/bus_i2c_hal.c \
             drivers/bus_spi_ll.c \
             drivers/max7456.c \
             drivers/pwm_output_dshot.c \
             drivers/pwm_output_dshot_hal.c
-endif #!F3
 
 # H7-only low-frequency drivers compiled at -Os to reclaim flash budget
 ifneq ($(filter $(TARGET),$(H7_TARGETS)),)
