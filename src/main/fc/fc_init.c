@@ -504,10 +504,10 @@ void init(void) {
 #ifdef USE_CMS
     cmsInit();
 #endif
-#if (defined(USE_OSD) || (defined(USE_MSP_DISPLAYPORT) && defined(USE_CMS)) || defined(USE_OSD_SLAVE))
+#if (defined(USE_OSD) || (defined(USE_MSP_DISPLAYPORT) && defined(USE_CMS)))
     displayPort_t *osdDisplayPort = NULL;
 #endif
-#if defined(USE_OSD) && !defined(USE_OSD_SLAVE)
+#if defined(USE_OSD)
     //The OSD need to be initialised after GYRO to avoid GYRO initialisation failure on some targets
     if (feature(FEATURE_OSD)) {
 #if defined(USE_OSD_BEESIGN)
@@ -535,14 +535,6 @@ void init(void) {
         // osdInit  will register with CMS by itself.
         osdInit(osdDisplayPort);
     }
-#endif
-#if defined(USE_OSD_SLAVE) && !defined(USE_OSD)
-#if defined(USE_MAX7456)
-    // If there is a max7456 chip for the OSD then use it
-    osdDisplayPort = max7456DisplayPortInit(vcdProfile());
-    // osdInit  will register with CMS by itself.
-    osdSlaveInit(osdDisplayPort);
-#endif
 #endif
 #if defined(USE_CMS) && defined(USE_MSP_DISPLAYPORT)
     // If BFOSD is not active, then register MSP_DISPLAYPORT as a CMS device.

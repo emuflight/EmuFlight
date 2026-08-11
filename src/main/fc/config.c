@@ -69,9 +69,7 @@
 #include "drivers/accgyro/accgyro_imuf9001.h"
 #endif
 
-#ifndef USE_OSD_SLAVE
 pidProfile_t *currentPidProfile;
-#endif
 
 #ifndef RX_SPI_DEFAULT_PROTOCOL
 #define RX_SPI_DEFAULT_PROTOCOL 0
@@ -97,7 +95,6 @@ PG_RESET_TEMPLATE(systemConfig_t, systemConfig,
                   .boardIdentifier = TARGET_BOARD_IDENTIFIER
                  );
 
-#ifndef USE_OSD_SLAVE
 uint8_t getCurrentPidProfileIndex(void) {
     return systemConfig()->pidProfileIndex;
 }
@@ -113,7 +110,6 @@ uint8_t getCurrentControlRateProfileIndex(void) {
 uint16_t getCurrentMinthrottle(void) {
     return motorConfig()->minthrottle;
 }
-#endif // USE_OSD_SLAVE
 
 void resetConfigs(void) {
     pgResetAll();
@@ -123,7 +119,6 @@ void resetConfigs(void) {
 }
 
 static void activateConfig(void) {
-#ifndef USE_OSD_SLAVE
     loadPidProfile();
     loadControlRateProfile();
     initRcProcessing();
@@ -134,14 +129,13 @@ static void activateConfig(void) {
     setAccelerationTrims(&accelerometerConfigMutable()->accZero);
     accInitFilters();
     imuConfigure(throttleCorrectionConfig()->throttle_correction_angle);
-#endif // USE_OSD_SLAVE
 #ifdef USE_LED_STRIP
     reevaluateLedConfig();
 #endif
 }
 
 static void validateAndFixConfig(void) {
-#if !defined(USE_QUAD_MIXER_ONLY) && !defined(USE_OSD_SLAVE)
+#if !defined(USE_QUAD_MIXER_ONLY)
     // Reset unsupported mixer mode to default.
     // This check will be gone when motor/servo mixers are loaded dynamically
     // by configurator as a part of configuration procedure.
@@ -165,7 +159,6 @@ static void validateAndFixConfig(void) {
         true) {
         featureClear(FEATURE_GPS);
     }
-#ifndef USE_OSD_SLAVE
     if (systemConfig()->activeRateProfile >= CONTROL_RATE_PROFILE_COUNT) {
         systemConfigMutable()->activeRateProfile = 0;
     }
@@ -256,7 +249,6 @@ static void validateAndFixConfig(void) {
             removeModeActivationCondition(BOXGPSRESCUE);
         }
     }
-#endif // USE_OSD_SLAVE
 #if defined(USE_ESC_SENSOR)
     if (!findSerialPortConfig(FUNCTION_ESC_SENSOR)) {
         featureClear(FEATURE_ESC_SENSOR);
@@ -385,7 +377,6 @@ int getImufRateFromGyroSyncDenom(int gyroSyncDenom) {
 }
 #endif
 
-#ifndef USE_OSD_SLAVE
 void validateAndFixGyroConfig(void) {
 #ifdef USE_GYRO_DATA_ANALYSE
     // Disable dynamic filter if gyro loop is less than 2KHz
@@ -487,31 +478,22 @@ void validateAndFixGyroConfig(void) {
 #endif // USE_SDCARD
 #endif // USE_BLACKBOX
 }
-#endif // USE_OSD_SLAVE
 
 bool readEEPROM(void) {
-#ifndef USE_OSD_SLAVE
     suspendRxPwmPpmSignal();
-#endif
     // Sanity check, read flash
     bool success = loadEEPROM();
     validateAndFixConfig();
     activateConfig();
-#ifndef USE_OSD_SLAVE
     resumeRxPwmPpmSignal();
-#endif
     return success;
 }
 
 void writeEEPROM(void) {
     validateAndFixConfig();
-#ifndef USE_OSD_SLAVE
     suspendRxPwmPpmSignal();
-#endif
     writeConfigToEEPROM();
-#ifndef USE_OSD_SLAVE
     resumeRxPwmPpmSignal();
-#endif
 }
 
 void resetEEPROM(void) {
@@ -555,7 +537,6 @@ void changePidProfileFromCellCount(uint8_t cellCount) {
     }
 }
 
-#ifndef USE_OSD_SLAVE
 void changePidProfile(uint8_t pidProfileIndex) {
     // The config switch will cause a big enough delay in the current task to upset the scheduler
     schedulerIgnoreTaskExecTime();
@@ -568,4 +549,3 @@ void changePidProfile(uint8_t pidProfileIndex) {
     }
     beeperConfirmationBeeps(pidProfileIndex + 1);
 }
-#endif
