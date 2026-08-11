@@ -58,12 +58,6 @@ void RCC_ClockCmd(rccPeriphTag_t periphTag, FunctionalState NewState)
         __HAL_RCC_CLK(AHB1, NOSUFFIX, mask, NewState);
         break;
 
-#ifdef STM32H7
-    case RCC_AHB2:
-        __HAL_RCC_CLK(AHB2, NOSUFFIX, mask, NewState);
-        break;
-#endif
-
 #if !(defined(STM32H7) || defined(STM32G4))
     case RCC_APB1:
         __HAL_RCC_CLK(APB1, NOSUFFIX, mask, NewState);
@@ -92,10 +86,6 @@ void RCC_ClockCmd(rccPeriphTag_t periphTag, FunctionalState NewState)
         __HAL_RCC_CLK(APB1H, NOSUFFIX, mask, NewState);
         break;
 
-    case RCC_APB3:
-        __HAL_RCC_CLK(APB3, NOSUFFIX, mask, NewState);
-        break;
-
     case RCC_APB4:
         __HAL_RCC_CLK(APB4, NOSUFFIX, mask, NewState);
         break;
@@ -107,11 +97,6 @@ void RCC_ClockCmd(rccPeriphTag_t periphTag, FunctionalState NewState)
 #else /* !USE_HAL_DRIVER */
 
     switch (tag) {
-#if defined(STM32F3)
-    case RCC_AHB:
-        RCC_AHBPeriphClockCmd(mask, NewState);
-        break;
-#endif
     case RCC_APB2:
         RCC_APB2PeriphClockCmd(mask, NewState);
         break;
@@ -151,12 +136,6 @@ void RCC_ResetCmd(rccPeriphTag_t periphTag, FunctionalState NewState)
         __HAL_RCC_RESET(AHB1, NOSUFFIX, mask, NewState);
         break;
 
-#ifdef STM32H7
-    case RCC_AHB2:
-        __HAL_RCC_RESET(AHB2, NOSUFFIX, mask, NewState);
-        break;
-#endif
-
 #if !(defined(STM32H7) || defined(STM32G4))
     case RCC_APB1:
         __HAL_RCC_RESET(APB1, NOSUFFIX, mask, NewState);
@@ -185,10 +164,6 @@ void RCC_ResetCmd(rccPeriphTag_t periphTag, FunctionalState NewState)
         __HAL_RCC_RESET(APB1H, NOSUFFIX, mask, NewState);
         break;
 
-    case RCC_APB3:
-        __HAL_RCC_RESET(APB3, NOSUFFIX, mask, NewState);
-        break;
-
     case RCC_APB4:
         __HAL_RCC_RESET(APB4, NOSUFFIX, mask, NewState);
         break;
@@ -200,11 +175,6 @@ void RCC_ResetCmd(rccPeriphTag_t periphTag, FunctionalState NewState)
 #else /* !USE_HAL_DRIVER */
 
     switch (tag) {
-#if defined(STM32F3)
-    case RCC_AHB:
-        RCC_AHBPeriphResetCmd(mask, NewState);
-        break;
-#endif
     case RCC_APB2:
         RCC_APB2PeriphResetCmd(mask, NewState);
         break;

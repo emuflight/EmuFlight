@@ -67,9 +67,7 @@
 #define USBD_MANUFACTURER_STRING        FC_FIRMWARE_NAME
 
 #ifndef USBD_PRODUCT_STRING
-#if defined STM32F3
-#define USBD_PRODUCT_STRING        "EmuFlight STM32F3"
-#elif defined STM32F4
+#if defined STM32F4
 #define USBD_PRODUCT_STRING        "EmuFlight STM32F4"
 #elif defined STM32F7
 #define USBD_PRODUCT_STRING        "EmuFlight STM32F7"

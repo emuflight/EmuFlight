@@ -40,11 +40,8 @@ uint8_t eepromData[EEPROM_SIZE];
 #endif
 
 #if !defined(FLASH_PAGE_SIZE)
-// F3
-# if defined(STM32F303xC)
-#  define FLASH_PAGE_SIZE                 (0x800)
 // F4
-# elif defined(STM32F40_41xxx)
+# if defined(STM32F40_41xxx)
 #  define FLASH_PAGE_SIZE                 ((uint32_t)0x4000) // 16K sectors
 # elif defined (STM32F411xE)
 #  define FLASH_PAGE_SIZE                 ((uint32_t)0x4000)
@@ -113,9 +110,7 @@ void config_streamer_start(config_streamer_t *c, uintptr_t base, int size) {
 #endif
         c->unlocked = true;
     }
-#if defined(STM32F303)
-    FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
-#elif defined(STM32F4)
+#if defined(STM32F4)
     FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
 #elif defined(STM32F7) || defined(STM32H7)
     // NOP

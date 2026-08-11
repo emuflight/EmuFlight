@@ -141,6 +141,7 @@
 // EmuFlight-specific parameter group ids start at 551
 #define PG_EMUFLIGHT_START 551
 #define PG_POSITION_CONFIG 551
+#define PG_SERIAL_UART_CONFIG 552
 
 // OSD configuration (subject to change)
 #define PG_OSD_FONT_CONFIG 2047

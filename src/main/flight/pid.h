@@ -159,9 +159,7 @@ typedef struct pidProfile_s {
     uint16_t dterm_dyn_notch_q;
 } pidProfile_t;
 
-#ifndef USE_OSD_SLAVE
 PG_DECLARE_ARRAY(pidProfile_t, PID_PROFILE_COUNT, pidProfiles);
-#endif
 
 typedef struct pidConfig_s {
     uint8_t pid_process_denom;                   // Processing denominator for PID controller vs gyro sampling rate

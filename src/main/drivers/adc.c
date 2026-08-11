@@ -69,17 +69,12 @@ ADCDevice adcDeviceByInstance(ADC_TypeDef *instance) {
     if (instance == ADC1) {
         return ADCDEV_1;
     }
-#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     if (instance == ADC2) {
         return ADCDEV_2;
     }
     if (instance == ADC3) {
         return ADCDEV_3;
-    }
-#endif
-#ifdef STM32F3
-    if (instance == ADC4) {
-        return ADCDEV_4;
     }
 #endif
     return ADCINVALID;
