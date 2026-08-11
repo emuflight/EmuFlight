@@ -25,7 +25,6 @@
 enum rcc_reg {
     RCC_EMPTY = 0,   // make sure that default value (0) does not enable anything
 #ifdef STM32H7
-    RCC_AHB,
     RCC_APB2,
     RCC_APB1L,
     RCC_APB1H,
@@ -36,7 +35,6 @@ enum rcc_reg {
     RCC_AHB4,
     RCC_APB4,
 #else
-    RCC_AHB,
     RCC_APB2,
     RCC_APB1,
     RCC_AHB1,
@@ -47,7 +45,6 @@ enum rcc_reg {
 #define RCC_ENCODE(reg, mask) (((reg) << 5) | LOG2_32BIT(mask))
 
 #ifdef STM32H7
-#define RCC_AHB(periph)   RCC_ENCODE(RCC_AHB,   RCC_AHBENR_ ## periph ## EN)
 #define RCC_APB2(periph)  RCC_ENCODE(RCC_APB2,  RCC_APB2ENR_ ## periph ## EN)
 #define RCC_AHB1(periph)  RCC_ENCODE(RCC_AHB1,  RCC_AHB1ENR_ ## periph ## EN)
 #define RCC_AHB2(periph)  RCC_ENCODE(RCC_AHB2,  RCC_AHB2ENR_ ## periph ## EN)
@@ -61,7 +58,6 @@ enum rcc_reg {
 // Must not delegate to RCC_APB1L() — that would macro-expand 'periph' before ## pasting.
 #define RCC_APB1(periph)  RCC_ENCODE(RCC_APB1L, RCC_APB1LENR_ ## periph ## EN)
 #else
-#define RCC_AHB(periph)   RCC_ENCODE(RCC_AHB,  RCC_AHBENR_ ## periph ## EN)
 #define RCC_APB2(periph)  RCC_ENCODE(RCC_APB2, RCC_APB2ENR_ ## periph ## EN)
 #define RCC_APB1(periph)  RCC_ENCODE(RCC_APB1, RCC_APB1ENR_ ## periph ## EN)
 #define RCC_AHB1(periph)  RCC_ENCODE(RCC_AHB1, RCC_AHB1ENR_ ## periph ## EN)
