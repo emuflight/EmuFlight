@@ -182,8 +182,6 @@ static bool mspIsMspArmingEnabled(void)
     return mspArmingDisableFlags == 0;
 }
 
-#ifndef USE_OSD_SLAVE
-
 typedef enum {
     MSP_SDCARD_STATE_NOT_PRESENT = 0,
     MSP_SDCARD_STATE_FATAL       = 1,
@@ -202,7 +200,6 @@ typedef enum {
 } mspFlashFsFlags_e;
 
 #define RATEPROFILE_MASK (1 << 7)
-#endif //USE_OSD_SLAVE
 
 #define RTC_NOT_SUPPORTED 0xff
 
@@ -260,9 +257,7 @@ static void mspFc4waySerialCommand(sbuf_t *dst, sbuf_t *src, mspPostProcessFnPtr
 
 static void mspRebootFn(serialPort_t *serialPort) {
     UNUSED(serialPort);
-#ifndef USE_OSD_SLAVE
     stopPwmAllMotors();
-#endif
     switch (rebootMode) {
     case MSP_REBOOT_FIRMWARE:
         systemReset();
@@ -283,7 +278,6 @@ static void mspRebootFn(serialPort_t *serialPort) {
     while (true) ;
 }
 
-#ifndef USE_OSD_SLAVE
 static void serializeSDCardSummaryReply(sbuf_t *dst) {
 #ifdef USE_SDCARD
     uint8_t flags = MSP_SDCARD_FLAG_SUPPORTTED;
@@ -431,7 +425,6 @@ static void serializeDataflashReadReply(sbuf_t *dst, uint32_t address, const uin
     }
 }
 #endif // USE_FLASHFS
-#endif // USE_OSD_SLAVE
 
 /*
  * Returns true if the command was processd, false otherwise.
@@ -460,14 +453,10 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
 #else
         sbufWriteU16(dst, 0); // No other build targets currently have hardware revision detection.
 #endif
-#ifdef USE_OSD_SLAVE
-        sbufWriteU8(dst, 1);  // 1 == OSD
-#else
 #if defined(USE_OSD) && (defined(USE_MAX7456)  || defined(USE_USE_BEESIGN))
         sbufWriteU8(dst, 2);  // 2 == FC with OSD
 #else
         sbufWriteU8(dst, 0);  // 0 == FC
-#endif
 #endif
         // Board communication capabilities (uint8)
         // Bit 0: 1 iff the board has VCP
@@ -510,11 +499,7 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
     case MSP_ANALOG:
         sbufWriteU8(dst, (uint8_t)constrain(getBatteryVoltage(), 0, 255));
         sbufWriteU16(dst, (uint16_t)constrain(getMAhDrawn(), 0, 0xFFFF)); // milliamp hours drawn from battery
-#ifdef USE_OSD_SLAVE
-        sbufWriteU16(dst, 0); // rssi
-#else
         sbufWriteU16(dst, getRssi());
-#endif
         sbufWriteU16(dst, (int16_t)constrain(getAmperage(), -0x8000, 0x7FFF)); // send current in 0.01 A steps, range is -320A to 320A
         sbufWriteU16(dst, getBatteryVoltage() * 10);
         break;
@@ -658,7 +643,6 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
     }
     case MSP_OSD_CONFIG: {
 #define OSD_FLAGS_OSD_FEATURE           (1 << 0)
-#define OSD_FLAGS_OSD_SLAVE             (1 << 1)
 #define OSD_FLAGS_RESERVED_1            (1 << 2)
 #define OSD_FLAGS_RESERVED_2            (1 << 3)
 #define OSD_FLAGS_OSD_HARDWARE_MAX_7456 (1 << 4)
@@ -666,9 +650,6 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
         uint8_t osdFlags = 0;
 #if defined(USE_OSD)
         osdFlags |= OSD_FLAGS_OSD_FEATURE;
-#endif
-#if defined(USE_OSD_SLAVE)
-        osdFlags |= OSD_FLAGS_OSD_SLAVE;
 #endif
 #ifdef USE_MAX7456
         osdFlags |= OSD_FLAGS_OSD_HARDWARE_MAX_7456;
@@ -715,36 +696,6 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
     }
     return true;
 }
-
-#ifdef USE_OSD_SLAVE
-bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
-    switch (cmdMSP) {
-    case MSP_STATUS_EX:
-    case MSP_STATUS:
-        sbufWriteU16(dst, getTaskDeltaTime(TASK_SERIAL));
-#ifdef USE_I2C
-        sbufWriteU16(dst, i2cGetErrorCounter());
-#else
-        sbufWriteU16(dst, 0);
-#endif
-        sbufWriteU16(dst, 0); // sensors
-        sbufWriteU32(dst, 0); // flight modes
-        sbufWriteU8(dst, 0); // profile
-        sbufWriteU16(dst, constrain(averageSystemLoadPercent, 0, 100));
-        if (cmdMSP == MSP_STATUS_EX) {
-            sbufWriteU8(dst, 1); // max profiles
-            sbufWriteU8(dst, 0); // control rate profile
-        } else {
-            sbufWriteU16(dst, 0); // gyro cycle time
-        }
-        break;
-    default:
-        return false;
-    }
-    return true;
-}
-
-#else
 
 bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
     bool unsupportedCommand = false;
@@ -1446,15 +1397,10 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
         }
         return !unsupportedCommand;
         }
-#endif // USE_OSD_SLAVE
 
 static mspResult_e mspFcProcessOutCommandWithArg(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t *src, sbuf_t *dst, mspPostProcessFnPtr *mspPostProcessFn) {
     UNUSED(srcDesc);
-#if defined(USE_OSD_SLAVE)
-    UNUSED(dst);
-#endif
     switch (cmdMSP) {
-#if !defined(USE_OSD_SLAVE)
     case MSP_BOXNAMES: {
         const int page = sbufBytesRemaining(src) ? sbufReadU8(src) : 0;
         serializeBoxReply(dst, page, &serializeBoxNameFn);
@@ -1465,7 +1411,6 @@ static mspResult_e mspFcProcessOutCommandWithArg(mspDescriptor_t srcDesc, uint8_
         serializeBoxReply(dst, page, &serializeBoxPermanentIdFn);
     }
     break;
-#endif
     case MSP_REBOOT:
         if (sbufBytesRemaining(src)) {
             rebootMode = sbufReadU8(src);
@@ -1521,30 +1466,6 @@ static void mspFcDataFlashReadCommand(sbuf_t *dst, sbuf_t *src) {
     serializeDataflashReadReply(dst, readAddress, readLength, useLegacyFormat, allowCompression);
 }
 #endif
-
-#ifdef USE_OSD_SLAVE
-static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t *src) {
-    UNUSED(srcDesc);
-    UNUSED(cmdMSP);
-    UNUSED(src);
-    switch(cmdMSP) {
-    case MSP_RESET_CONF:
-        resetEEPROM();
-        readEEPROM();
-        break;
-    case MSP_EEPROM_WRITE:
-        schedulerIgnoreTaskStateTime(); // EEPROM write is slow; don't inflate task maxload
-        writeEEPROM();
-        readEEPROM();
-        break;
-    default:
-        // we do not know how to handle the (valid) message, indicate error MSP $M!
-        return MSP_RESULT_ERROR;
-    }
-    return MSP_RESULT_ACK;
-}
-
-#else
 
 mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t *src) {
     uint32_t i;
@@ -2403,7 +2324,6 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
         }
         return MSP_RESULT_ACK;
         }
-#endif // USE_OSD_SLAVE
 
 mspResult_e mspCommonProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t *src, mspPostProcessFnPtr *mspPostProcessFn) {
     UNUSED(mspPostProcessFn);
@@ -2489,7 +2409,7 @@ mspResult_e mspCommonProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, s
         batteryConfigMutable()->voltageMeterSource = sbufReadU8(src);
         batteryConfigMutable()->currentMeterSource = sbufReadU8(src);
         break;
-#if defined(USE_OSD) || defined (USE_OSD_SLAVE)
+#if defined(USE_OSD)
     case MSP_SET_OSD_CONFIG: {
         const uint8_t addr = sbufReadU8(src);
         if ((int8_t)addr == -1) {
@@ -2556,7 +2476,7 @@ mspResult_e mspCommonProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, s
 #else
     return MSP_RESULT_ERROR;
 #endif
-#endif // OSD || USE_OSD_SLAVE
+#endif // USE_OSD
     default:
         return mspProcessInCommand(srcDesc, cmdMSP, src);
     }
@@ -2605,7 +2525,6 @@ void mspFcProcessReply(mspPacket_t *reply) {
     sbuf_t *src = &reply->buf;
     UNUSED(src); // potentially unused depending on compile options.
     switch (reply->cmd) {
-#ifndef OSD_SLAVE
     case MSP_ANALOG: {
         uint8_t batteryVoltage = sbufReadU8(src);
         uint16_t mAhDrawn = sbufReadU16(src);
@@ -2620,44 +2539,9 @@ void mspFcProcessReply(mspPacket_t *reply) {
 #endif
     }
     break;
-#endif
-#ifdef USE_OSD_SLAVE
-    case MSP_DISPLAYPORT: {
-        osdSlaveIsLocked = true; // lock it as soon as a MSP_DISPLAYPORT message is received to prevent accidental CLI/DFU mode.
-        const int subCmd = sbufReadU8(src);
-        switch (subCmd) {
-        case 0: // HEARTBEAT
-            osdSlaveHeartbeat();
-            break;
-        case 1: // RELEASE
-            break;
-        case 2: // CLEAR
-            osdSlaveClearScreen();
-            break;
-        case 3: {
-#define MSP_OSD_MAX_STRING_LENGTH 30 // FIXME move this
-            const uint8_t y = sbufReadU8(src); // row
-            const uint8_t x = sbufReadU8(src); // column
-            sbufReadU8(src); // reserved
-            char buf[MSP_OSD_MAX_STRING_LENGTH + 1];
-            const int len = MIN(sbufBytesRemaining(src), MSP_OSD_MAX_STRING_LENGTH);
-            sbufReadData(src, &buf, len);
-            buf[len] = 0;
-            osdSlaveWrite(x, y, buf);
-        }
-        break;
-        case 4:
-            osdSlaveDrawScreen();
-            break;
-        }
-    }
-    break;
-#endif
     }
 }
 
 void mspInit(void) {
-#ifndef USE_OSD_SLAVE
     initActiveBoxIds();
-#endif
 }

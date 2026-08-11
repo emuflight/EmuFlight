@@ -136,14 +136,6 @@ static void taskMain(timeUs_t currentTimeUs) {
 #endif
 }
 
-#ifdef USE_OSD_SLAVE
-static bool taskSerialCheck(timeUs_t currentTimeUs, timeDelta_t currentDeltaTimeUs) {
-    UNUSED(currentTimeUs);
-    UNUSED(currentDeltaTimeUs);
-    return mspSerialWaiting();
-}
-#endif
-
 static void taskHandleSerial(timeUs_t currentTimeUs) {
     UNUSED(currentTimeUs);
 #if defined(USE_VCP)
@@ -169,11 +161,7 @@ static void taskHandleSerial(timeUs_t currentTimeUs) {
         return;
     }
 #endif
-#ifndef OSD_SLAVE
     bool evaluateMspData = ARMING_FLAG(ARMED) ? MSP_SKIP_NON_MSP_DATA : MSP_EVALUATE_NON_MSP_DATA;
-#else
-    bool evaluateMspData = osdSlaveIsLocked ?  MSP_SKIP_NON_MSP_DATA : MSP_EVALUATE_NON_MSP_DATA;;
-#endif
     mspSerialProcess(evaluateMspData, mspFcProcessCommand, mspFcProcessReply);
 
 #ifdef USE_HDZERO_OSD
@@ -191,7 +179,6 @@ static void taskBatteryAlerts(timeUs_t currentTimeUs) {
     batteryUpdateAlarms();
 }
 
-#ifndef USE_OSD_SLAVE
 static void taskUpdateAccelerometer(timeUs_t currentTimeUs) {
     accUpdate(currentTimeUs, &accelerometerConfigMutable()->accelerometerTrims);
 }
@@ -218,7 +205,6 @@ static void taskUpdateRxMain(timeUs_t currentTimeUs) {
     updateRcCommands();
     updateArmingStatus();
 }
-#endif
 
 #ifdef USE_BARO
 static void taskUpdateBaro(timeUs_t currentTimeUs) {
@@ -265,11 +251,7 @@ void fcTasksInit(void) {
     setTaskEnabled(TASK_BATTERY_VOLTAGE, useBatteryVoltage);
     const bool useBatteryCurrent = batteryConfig()->currentMeterSource != CURRENT_METER_NONE;
     setTaskEnabled(TASK_BATTERY_CURRENT, useBatteryCurrent);
-#ifdef USE_OSD_SLAVE
-    const bool useBatteryAlerts = batteryConfig()->useVBatAlerts || batteryConfig()->useConsumptionAlerts;
-#else
     const bool useBatteryAlerts = batteryConfig()->useVBatAlerts || batteryConfig()->useConsumptionAlerts || feature(FEATURE_OSD);
-#endif
     setTaskEnabled(TASK_BATTERY_ALERTS, (useBatteryVoltage || useBatteryCurrent) && useBatteryAlerts);
 #ifdef USE_TRANSPONDER
     setTaskEnabled(TASK_TRANSPONDER, feature(FEATURE_TRANSPONDER));
@@ -277,9 +259,6 @@ void fcTasksInit(void) {
 #ifdef STACK_CHECK
     setTaskEnabled(TASK_STACK_CHECK, true);
 #endif
-#ifdef USE_OSD_SLAVE
-    setTaskEnabled(TASK_OSD_SLAVE, osdSlaveInitialized());
-#else
     if (sensors(SENSOR_GYRO)) {
         rescheduleTask(TASK_GYROPID, gyro.targetLooptime);
         setTaskEnabled(TASK_GYROPID, true);
@@ -364,7 +343,6 @@ void fcTasksInit(void) {
 #ifdef USE_RCDEVICE
     setTaskEnabled(TASK_RCDEVICE, rcdeviceIsEnabled());
 #endif
-#endif
 }
 
 FAST_RAM cfTask_t cfTasks[TASK_COUNT] = {
@@ -387,14 +365,8 @@ FAST_RAM cfTask_t cfTasks[TASK_COUNT] = {
     [TASK_SERIAL] = {
         .taskName = "SERIAL",
         .taskFunc = taskHandleSerial,
-#ifdef USE_OSD_SLAVE
-        .checkFunc = taskSerialCheck,
-        .desiredPeriod = TASK_PERIOD_HZ(100),
-        .staticPriority = TASK_PRIORITY_REALTIME,
-#else
         .desiredPeriod = TASK_PERIOD_HZ(100),       // 100 Hz should be enough to flush up to 115 bytes @ 115200 baud
         .staticPriority = TASK_PRIORITY_LOW,
-#endif
     },
 
     [TASK_BATTERY_ALERTS] = {
@@ -434,17 +406,6 @@ FAST_RAM cfTask_t cfTasks[TASK_COUNT] = {
         .staticPriority = TASK_PRIORITY_IDLE,
     },
 #endif
-
-#ifdef USE_OSD_SLAVE
-    [TASK_OSD_SLAVE] = {
-        .taskName = "OSD_SLAVE",
-        .checkFunc = osdSlaveCheck,
-        .taskFunc = osdSlaveUpdate,
-        .desiredPeriod = TASK_PERIOD_HZ(60),        // 60 Hz
-        .staticPriority = TASK_PRIORITY_HIGH,
-    },
-
-#else
 
     [TASK_GYROPID] = {
         .taskName = "PID",
@@ -645,5 +606,4 @@ FAST_RAM cfTask_t cfTasks[TASK_COUNT] = {
     },
 #endif
 
-#endif
 };
