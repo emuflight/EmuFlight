@@ -70,9 +70,10 @@
  * ISR to generate the output signal dynamically based on state would be more memory efficient and would likely be more appropriate for
  * other targets.  However this approach requires very little CPU time and is just fire-and-forget.
  *
- * On an STM32F303CC 720 bytes is currently fine and that is the target for which this code was designed for.
+ * The byte-packed union below (originally sized for an STM32F303CC target) now applies only to
+ * UNIT_TEST; every real build target uses the word-packed union in the #elif arm below.
  */
-#if defined(STM32F3) || defined(UNIT_TEST)
+#if defined(UNIT_TEST)
 
 typedef union transponderIrDMABuffer_s {
     uint8_t arcitimer[TRANSPONDER_DMA_BUFFER_SIZE_ARCITIMER]; // 620
@@ -96,7 +97,7 @@ typedef struct transponder_s {
     uint16_t bitToggleOne;
     uint32_t dma_buffer_size;
 
-#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(UNIT_TEST)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(UNIT_TEST)
     transponderIrDMABuffer_t transponderIrDMABuffer;
 #endif
 

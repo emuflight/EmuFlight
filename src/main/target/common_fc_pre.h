@@ -34,12 +34,6 @@
 #define I2C1_OVERCLOCK true
 #define I2C2_OVERCLOCK true
 
-#ifdef STM32F3
-#define MINIMAL_CLI
-#define USE_DSHOT
-#define USE_GYRO_DATA_ANALYSE
-#endif
-
 #ifdef STM32F4
 #define USE_SRAM2
 #if defined(STM32F40_41xxx)

@@ -57,21 +57,6 @@
 
 // Backward compatibility for exisiting targets
 
-#ifdef STM32F3
-#ifndef I2C1_SCL
-#define I2C1_SCL PB6
-#endif
-#ifndef I2C1_SDA
-#define I2C1_SDA PB7
-#endif
-#ifndef I2C2_SCL
-#define I2C2_SCL PA9
-#endif
-#ifndef I2C2_SDA
-#define I2C2_SDA PA10
-#endif
-#endif // STM32F3
-
 #ifdef STM32F4
 #ifndef I2C1_SCL
 #define I2C1_SCL PB6

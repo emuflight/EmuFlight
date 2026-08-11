@@ -761,8 +761,6 @@ _TIM_IRQ_HANDLER(TIM1_BRK_TIM15_IRQHandler, 15);
 #if USED_TIMERS & TIM_N(16)
 #  if defined(STM32H7)
 _TIM_IRQ_HANDLER(TIM16_IRQHandler, 16);
-#  elif defined(STM32F303xC) && ((USED_TIMERS & (TIM_N(1)|TIM_N(16))) == (TIM_N(16)))
-_TIM_IRQ_HANDLER(TIM1_UP_TIM16_IRQHandler, 16);    // only timer16 is used, not timer1
 #  endif
 #endif
 #if USED_TIMERS & TIM_N(17)
@@ -830,7 +828,7 @@ void timerInit(void) {
     for (int i = 0; i < USABLE_TIMER_CHANNEL_COUNT; i++) {
         RCC_ClockCmd(timerRCC(timerHardware[i].tim), ENABLE);
     }
-#if defined(STM32F3) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     for (unsigned timerIndex = 0; timerIndex < USABLE_TIMER_CHANNEL_COUNT; timerIndex++) {
         const timerHardware_t *timerHardwarePtr = &timerHardware[timerIndex];
         if (timerHardwarePtr->usageFlags == TIM_USE_NONE) {

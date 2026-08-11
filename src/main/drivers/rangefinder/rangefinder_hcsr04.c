@@ -142,7 +142,7 @@ int32_t hcsr04_get_distance(rangefinderDev_t *dev) {
 
 bool hcsr04Detect(rangefinderDev_t *dev, const sonarConfig_t * rangefinderHardwarePins) {
     bool detected = false;
-#if defined(STM32F3) || defined(STM32F4)
+#if defined(STM32F4)
     RCC_ClockCmd(RCC_APB2(SYSCFG), ENABLE); // XXX Do we need this?
 #endif
     triggerIO = IOGetByTag(rangefinderHardwarePins->triggerTag);
