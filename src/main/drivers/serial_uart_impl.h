@@ -133,11 +133,7 @@ typedef struct uartPinDef_s {
 typedef struct uartHardware_s {
     UARTDevice_e device;    // XXX Not required for full allocation
     USART_TypeDef* reg;
-#if defined(STM32F4) || defined(STM32F7)
-    uint32_t DMAChannel;
-    DMA_Stream_TypeDef *txDMAStream;
-    DMA_Stream_TypeDef *rxDMAStream;
-#elif defined(STM32H7)
+#if defined(STM32H7)
 #ifdef USE_DMA
     dmaResource_t *txDMAResource;
     dmaResource_t *rxDMAResource;
