@@ -430,7 +430,9 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
     }
 
 #ifdef USE_DMA
-    if (!s->rxDMAStream)
+    // Either side can fall back to IRQ-driven mode independently (uartDmaClaim()
+    // conflict); enable the shared NVIC line whenever either does, matching F4/F7.
+    if (!s->rxDMAStream || !s->txDMAStream)
 #endif
     {
         HAL_NVIC_SetPriority(hardware->rxIrq, NVIC_PRIORITY_BASE(hardware->rxPriority), NVIC_PRIORITY_SUB(hardware->rxPriority));
