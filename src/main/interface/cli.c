@@ -4045,12 +4045,20 @@ static const dmaoptEntry_t *findDmaoptEntry(const char *name) {
 
 static dmaoptValue_t *dmaoptAddr(const dmaoptEntry_t *entry, int index) {
     const pgRegistry_t *pg = pgFind(entry->pgn);
+    if (!pg) {
+        return NULL;
+    }
     uint8_t *base = CONST_CAST(uint8_t *, configIsInCopy ? pg->copy : pg->address);
     return (dmaoptValue_t *)(base + entry->stride * index + entry->offset);
 }
 
 static void printDmaoptEntry(const dmaoptEntry_t *entry, int index) {
-    const dmaoptValue_t dmaopt = *dmaoptAddr(entry, index);
+    const dmaoptValue_t *addr = dmaoptAddr(entry, index);
+    if (!addr) {
+        cliPrintErrorLinef("%s CONFIG NOT AVAILABLE", entry->device);
+        return;
+    }
+    const dmaoptValue_t dmaopt = *addr;
     if (dmaopt != DMA_OPT_UNUSED) {
         cliPrintLinef("dma %s %d %d", entry->device, index + 1, dmaopt);
         const dmaChannelSpec_t *dmaChannelSpec = dmaGetChannelSpecByPeripheral(entry->peripheral, index, dmaopt);
@@ -4097,6 +4105,10 @@ static void cliDmaopt(char *cmdline) {
     }
 
     dmaoptValue_t *optaddr = dmaoptAddr(entry, index);
+    if (!optaddr) {
+        cliPrintErrorLinef("%s CONFIG NOT AVAILABLE", entry->device);
+        return;
+    }
     const dmaoptValue_t orgval = *optaddr;
 
     pch = strtok_r(NULL, " ", &saveptr);
@@ -4117,7 +4129,8 @@ static void cliDmaopt(char *cmdline) {
         optval = DMA_OPT_UNUSED;
     } else {
         optval = atoi(pch);
-        if (!dmaGetChannelSpecByPeripheral(entry->peripheral, index, optval)) {
+        // reject out-of-range input before it silently truncates to the int8_t dmaoptValue_t parameter
+        if (optval < INT8_MIN || optval > INT8_MAX || !dmaGetChannelSpecByPeripheral(entry->peripheral, index, optval)) {
             cliPrintErrorLinef("INVALID DMA OPTION FOR %s %d: '%s'", entry->device, index + 1, pch);
             return;
         }
