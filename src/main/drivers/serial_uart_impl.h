@@ -20,10 +20,6 @@
 
 #pragma once
 
-#if defined(STM32H7)
-#include "drivers/dma.h"
-#endif
-
 // Configuration constants
 
 #if defined(STM32F4)
@@ -133,14 +129,6 @@ typedef struct uartPinDef_s {
 typedef struct uartHardware_s {
     UARTDevice_e device;    // XXX Not required for full allocation
     USART_TypeDef* reg;
-#if defined(STM32H7)
-#ifdef USE_DMA
-    dmaResource_t *txDMAResource;
-    dmaResource_t *rxDMAResource;
-    uint32_t txDMAChannel;   // DMAMUX request ID (DMA_REQUEST_USARTx_TX)
-    uint32_t rxDMAChannel;   // DMAMUX request ID (DMA_REQUEST_USARTx_RX)
-#endif
-#endif
 #if defined(STM32H7)
     uartPinDef_t rxPins[UARTHARDWARE_MAX_PINS];
     uartPinDef_t txPins[UARTHARDWARE_MAX_PINS];
