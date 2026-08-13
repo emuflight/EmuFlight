@@ -228,10 +228,11 @@
 
 // pg/serial_uart
 //
-// F4/F7 only -- serialUART() is the only consumer of these macros (via
-// serialUartConfig()); H7 has its own separate, pre-existing UARTn_{TX,RX}_DMA_STREAM
-// mechanism in serial_uart_stm32h7xx.c and never reads this PG array for UART, so no
-// default macros are defined for it here.
+// F4/F7/H7 serialUART() all resolve DMA via serialUartConfig(); these UARTn_TX/RX_DMA_OPT
+// macros are the only default-value mechanism, so no per-target macro exists for H7 here
+// (unlike F4/F7's block below) -- every H7 UART gets the blanket DMA_OPT_UNUSED default
+// from pg/serial_uart.c's reset function unconditionally, since H7's dmaopt selects among
+// 16 DMAMUX-routable streams rather than a small fixed set (see issue #1373).
 //
 // Every UARTn_TX/RX_DMA_OPT below defaults to DMA_OPT_UNUSED (off) fleet-wide. A single
 // valid stream/channel per UART removes ambiguity about which option to try, but not

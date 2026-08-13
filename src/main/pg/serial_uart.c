@@ -39,11 +39,14 @@
 
 PG_REGISTER_ARRAY_WITH_RESET_FN(serialUartConfig_t, UARTDEV_COUNT_MAX, serialUartConfig, PG_SERIAL_UART_CONFIG, 0);
 
-// F4/F7 serialUART() resolves DMA via serialUartConfig()/dmaGetChannelSpecByPeripheral();
-// H7's serial_uart_stm32h7xx.c uses its own pre-existing UARTn_{TX,RX}_DMA_STREAM macros
-// and never reads this PG array for UART -- no per-UART default table exists for it here,
-// only the blanket DMA_OPT_UNUSED below. Neither F4 nor F7 wire up UARTDEV_9/10 in their
-// uartHardware[] tables, so those two are intentionally absent from this table.
+// F4/F7/H7 serialUART() all resolve DMA via serialUartConfig()/
+// dmaGetChannelSpecByPeripheral(). This override table supplies F4/F7's per-target
+// UARTn_TX/RX_DMA_OPT defaults; H7 has no override table of its own, so every H7 UART
+// gets the blanket DMA_OPT_UNUSED default below unconditionally -- setting one requires
+// a per-target macro or future CLI support (tracked in issue #1373), not a fleet
+// default, since H7's dmaopt selects among 16 DMAMUX-routable streams rather than a
+// small fixed set. Neither F4 nor F7 wire up UARTDEV_9/10 in their uartHardware[]
+// tables, so those two are intentionally absent from this table.
 #if defined(STM32F4) || defined(STM32F7)
 typedef struct uartDmaopt_s {
     UARTDevice_e device;
