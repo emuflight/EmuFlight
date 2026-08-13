@@ -4099,7 +4099,17 @@ static void cliDmaopt(char *cmdline) {
     }
 
     pch = strtok_r(NULL, " ", &saveptr);
-    const int index = pch ? (atoi(pch) - 1) : -1;
+    int index = -1;
+    if (pch) {
+        char *endptr;
+        // bounds-checked in long arithmetic before the int cast below to avoid overflow UB
+        long parsedIndex = strtol(pch, &endptr, 10) - 1;
+        // reject non-numeric/trailing-garbage input (e.g. "1abc" -> atoi would silently
+        // parse it as valid index 1)
+        if (endptr != pch && *endptr == '\0' && parsedIndex >= 0 && parsedIndex < entry->maxIndex) {
+            index = (int)parsedIndex;
+        }
+    }
     if (index < 0 || index >= entry->maxIndex) {
         cliShowArgumentRangeError("index", 1, entry->maxIndex);
         return;
