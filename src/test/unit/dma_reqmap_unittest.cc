@@ -19,8 +19,10 @@
  */
 
 // Compiles the real dma_reqmap_mcu.c (F4/F7 branch) under UNIT_TEST; pure table lookup,
-// no register access, so only fake DMAx_Streamy/channel literals are needed. F7 shares
-// this exact source branch, so an F4 compile exercises F7's logic too.
+// no register access, so only fake DMAx_Streamy/channel literals are needed. This file
+// covers the F4 compile only: F4 and F7 share the outer #elif guard but diverge inside it
+// -- the DMA() macro itself differs (DMA_Channel_x vs DMA_CHANNEL_x) and UARTDEV_7/8 exist
+// only under #if defined(STM32F7). See dma_reqmap_f7_unittest.cc for that coverage.
 
 extern "C" {
 

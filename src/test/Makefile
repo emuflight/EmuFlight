@@ -220,6 +220,35 @@ dma_reqmap_unittest_DEFINES := \
 		DMA2_Stream7=\(void*\)0x400264B8
 
 
+dma_reqmap_f7_unittest_SRC := \
+		$(USER_DIR)/drivers/dma_reqmap_mcu.c
+
+dma_reqmap_f7_unittest_DEFINES := \
+		STM32F7 \
+		USE_SPI \
+		DMA_HandleTypeDef=DMA_Channel_TypeDef \
+		DMA_CHANNEL_0=0 \
+		DMA_CHANNEL_3=3 \
+		DMA_CHANNEL_4=4 \
+		DMA_CHANNEL_5=5 \
+		DMA1_Stream0=\(void*\)0x40026010 \
+		DMA1_Stream1=\(void*\)0x40026028 \
+		DMA1_Stream2=\(void*\)0x40026040 \
+		DMA1_Stream3=\(void*\)0x40026058 \
+		DMA1_Stream4=\(void*\)0x40026070 \
+		DMA1_Stream5=\(void*\)0x40026088 \
+		DMA1_Stream6=\(void*\)0x400260A0 \
+		DMA1_Stream7=\(void*\)0x400260B8 \
+		DMA2_Stream0=\(void*\)0x40026410 \
+		DMA2_Stream1=\(void*\)0x40026428 \
+		DMA2_Stream2=\(void*\)0x40026440 \
+		DMA2_Stream3=\(void*\)0x40026458 \
+		DMA2_Stream4=\(void*\)0x40026470 \
+		DMA2_Stream5=\(void*\)0x40026488 \
+		DMA2_Stream6=\(void*\)0x400264A0 \
+		DMA2_Stream7=\(void*\)0x400264B8
+
+
 dma_reqmap_h7_unittest_SRC := \
 		$(USER_DIR)/drivers/dma_reqmap_mcu.c
 
