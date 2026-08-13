@@ -4027,7 +4027,8 @@ static const dmaoptEntry_t dmaoptEntryTable[] = {
 
 static const char *dmaoptValueToString(dmaoptValue_t opt, char *buf) {
     if (opt == DMA_OPT_UNUSED) {
-        strcpy(buf, "NONE");
+        // fixed-size copy, not strcpy -- matches BF's own optToString() (cli.c:5360, 4.5-maintenance)
+        memcpy(buf, "NONE", DMA_OPT_STRING_BUFSIZE);
     } else {
         tfp_sprintf(buf, "%d", opt);
     }
@@ -4128,12 +4129,16 @@ static void cliDmaopt(char *cmdline) {
     if (strcasecmp(pch, "none") == 0) {
         optval = DMA_OPT_UNUSED;
     } else {
-        optval = atoi(pch);
-        // reject out-of-range input before it silently truncates to the int8_t dmaoptValue_t parameter
-        if (optval < INT8_MIN || optval > INT8_MAX || !dmaGetChannelSpecByPeripheral(entry->peripheral, index, optval)) {
+        char *endptr;
+        long parsed = strtol(pch, &endptr, 10);
+        // reject non-numeric input (atoi would silently parse it as 0, a value indistinguishable
+        // from an explicit "0") and out-of-range input before it truncates to int8_t
+        if (*endptr != '\0' || endptr == pch || parsed < INT8_MIN || parsed > INT8_MAX
+            || !dmaGetChannelSpecByPeripheral(entry->peripheral, index, (int)parsed)) {
             cliPrintErrorLinef("INVALID DMA OPTION FOR %s %d: '%s'", entry->device, index + 1, pch);
             return;
         }
+        optval = (int)parsed;
     }
 
     char optvalString[DMA_OPT_STRING_BUFSIZE];
@@ -4151,8 +4156,7 @@ static void cliDmaopt(char *cmdline) {
 #endif // STM32F4 || STM32F7 || STM32H7
 
 static void cliDma(char* cmdLine) {
-    const int len = strlen(cmdLine);
-    if (len == 0 || strncasecmp(cmdLine, "show", len) == 0) {
+    if (*cmdLine == '\0' || strcasecmp(cmdLine, "show") == 0) {
         printDma();
         return;
     }
