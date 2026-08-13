@@ -18,13 +18,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-// STM32H7 counterpart to bus_spi_unittest.cc, whose mocks only ever stood up an STM32F4
-// configuration (see that file's own gap note and fix/spi-dma-unittest-infra/CONTEXT).
-// H7's spiInitBusDMA() (bus_spi.c:306) shares the same source lines as F4/F7 -- but
-// USE_TX_IRQ_HANDLER (bus_spi.c:33-35) is only defined for STM32F4/STM32F7, so H7 has no
-// Tx-only-DMA fallback branch: a Tx-succeeds/Rx-fails allocation falls through to the
-// "neither" else-branch and discards the already-allocated Tx descriptor. That divergence
-// was previously unexercised by any test; ReconfirmsTxOnlyDoesNotEnableDma below covers it.
+// STM32H7 counterpart to bus_spi_unittest.cc, which only ever stood up STM32F4.
+// H7 has no USE_TX_IRQ_HANDLER (bus_spi.c:33-35), so Tx-only success discards dmaTx instead of falling back.
 
 extern "C" {
 
@@ -151,8 +146,7 @@ void IOLo(IO_t io) {
     UNUSED(io);
 }
 
-// spiRxIrqHandler()'s cache-invalidate call on F7/H7; never reached by the tests below
-// (none drive the real DMA IRQ handler), but must still resolve to satisfy the TU.
+// link-only: spiRxIrqHandler()'s F7/H7 cache-invalidate call, never reached by these tests.
 void SCB_InvalidateDCache_by_Addr(uint32_t *addr, int32_t dsize) {
     UNUSED(addr);
     UNUSED(dsize);
@@ -211,9 +205,7 @@ TEST(BusSpiH7Unittest, FullDuplexEnablesDmaSameAsF4)
 
 TEST(BusSpiH7Unittest, TxOnlySuccessDoesNotEnableDmaUnlikeF4F7)
 {
-    // H7 has no USE_TX_IRQ_HANDLER fallback (bus_spi.c:33-35): a Tx-only allocation success
-    // still leaves the bus fully polled, and the already-allocated Tx descriptor is discarded
-    // rather than retained -- the opposite of F4/F7's InitBusDmaFallsBackToTxOnlyWhenNoRxChannel.
+    // H7 has no Tx-only fallback: bus stays polled and dmaTx is discarded, unlike F4/F7.
     resetSpiTestState();
     rxSpecAvailable = false;
     extDevice_t dev = {};

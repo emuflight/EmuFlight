@@ -18,12 +18,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Compiles the real src/main/drivers/dma_stm32f4xx.c under UNIT_TEST, mocking only the
-// register-level surface it touches (RCC_AHB1PeriphClockCmd, NVIC_Init) -- unlike
-// dma_bounds_unittest.cc, which mirrors dmaIdentifierIsValid() locally rather than linking
-// the production file. dmaDescriptors[] is file-static inside the real .c file (no reset
-// hook exists), so each TEST() below claims its own dedicated, never-reused DMA identifier
-// instead of resetting shared state between cases.
+// Compiles the real dma_stm32f4xx.c under UNIT_TEST, mocking only its register surface.
+// resetDmaTestState() clears dmaDescriptors[] via a UNIT_TEST-only hook added for this file.
 
 extern "C" {
 
@@ -51,7 +47,8 @@ void RCC_AHB1PeriphClockCmd(uint32_t periph, FunctionalState state) {
 #include "gtest/gtest.h"
 
 namespace {
-void resetRegisterMockCounters() {
+void resetDmaTestState() {
+    dmaResetAllocationsForTest();
     nvicInitCallCount = 0;
     rccClockCmdCallCount = 0;
     lastRccPeriph = 0;
@@ -62,6 +59,7 @@ void resetRegisterMockCounters() {
 
 TEST(DmaStm32F4xxUnittest, AllocateOnFreeStreamSucceedsAndRecordsOwner)
 {
+    resetDmaTestState();
     const dmaIdentifier_e id = DMA1_ST2_HANDLER;
     ASSERT_EQ(dmaGetOwner(id), OWNER_FREE);
 
@@ -72,6 +70,7 @@ TEST(DmaStm32F4xxUnittest, AllocateOnFreeStreamSucceedsAndRecordsOwner)
 
 TEST(DmaStm32F4xxUnittest, DoubleAllocateSameStreamByDifferentOwnerFails)
 {
+    resetDmaTestState();
     const dmaIdentifier_e id = DMA1_ST3_HANDLER;
     ASSERT_TRUE(dmaAllocate(id, OWNER_SPI_SDI, 1));
 
@@ -83,6 +82,7 @@ TEST(DmaStm32F4xxUnittest, DoubleAllocateSameStreamByDifferentOwnerFails)
 
 TEST(DmaStm32F4xxUnittest, AllocateRejectsInvalidIdentifier)
 {
+    resetDmaTestState();
     // adversarial: DMA_NONE and past-the-end identifiers must not index dmaDescriptors[].
     EXPECT_FALSE(dmaAllocate(DMA_NONE, OWNER_SPI_SDO, 0));
     EXPECT_FALSE(dmaAllocate(static_cast<dmaIdentifier_e>(DMA_LAST_HANDLER + 1), OWNER_SPI_SDO, 0));
@@ -92,24 +92,28 @@ TEST(DmaStm32F4xxUnittest, AllocateRejectsInvalidIdentifier)
 
 TEST(DmaStm32F4xxUnittest, GetIdentifierResolvesRealStreamPointer)
 {
+    resetDmaTestState();
     EXPECT_EQ(dmaGetIdentifier(DMA1_Stream4), DMA1_ST4_HANDLER);
     EXPECT_EQ(dmaGetIdentifier(DMA2_Stream6), DMA2_ST6_HANDLER);
 }
 
 TEST(DmaStm32F4xxUnittest, GetIdentifierRejectsUnknownStreamPointer)
 {
-    DMA_Stream_TypeDef unknownStream;
+    resetDmaTestState();
+    DMA_Stream_TypeDef unknownStream = {};
     EXPECT_EQ(dmaGetIdentifier(&unknownStream), DMA_NONE);
 }
 
 TEST(DmaStm32F4xxUnittest, GetDescriptorByIdentifierRejectsInvalidIdentifier)
 {
+    resetDmaTestState();
     EXPECT_EQ(dmaGetDescriptorByIdentifier(DMA_NONE), nullptr);
     EXPECT_EQ(dmaGetDescriptorByIdentifier(static_cast<dmaIdentifier_e>(DMA_LAST_HANDLER + 1)), nullptr);
 }
 
 TEST(DmaStm32F4xxUnittest, GetDescriptorByIdentifierReturnsMatchingStream)
 {
+    resetDmaTestState();
     dmaChannelDescriptor_t *descriptor = dmaGetDescriptorByIdentifier(DMA1_ST5_HANDLER);
     ASSERT_NE(descriptor, nullptr);
     EXPECT_EQ(descriptor->ref, DMA1_Stream5);
@@ -120,7 +124,7 @@ TEST(DmaStm32F4xxUnittest, GetDescriptorByIdentifierReturnsMatchingStream)
 
 TEST(DmaStm32F4xxUnittest, EnableOnValidIdentifierClocksTheControllerOnce)
 {
-    resetRegisterMockCounters();
+    resetDmaTestState();
     dmaEnable(DMA1_ST6_HANDLER);
     EXPECT_EQ(rccClockCmdCallCount, 1);
     EXPECT_EQ(lastRccPeriph, RCC_AHB1Periph_DMA1);
@@ -129,7 +133,7 @@ TEST(DmaStm32F4xxUnittest, EnableOnValidIdentifierClocksTheControllerOnce)
 TEST(DmaStm32F4xxUnittest, EnableOnInvalidIdentifierNeverTouchesRegisters)
 {
     // adversarial: guard must reject before the register write, not after.
-    resetRegisterMockCounters();
+    resetDmaTestState();
     dmaEnable(DMA_NONE);
     dmaEnable(static_cast<dmaIdentifier_e>(DMA_LAST_HANDLER + 1));
     EXPECT_EQ(rccClockCmdCallCount, 0);
@@ -137,7 +141,7 @@ TEST(DmaStm32F4xxUnittest, EnableOnInvalidIdentifierNeverTouchesRegisters)
 
 TEST(DmaStm32F4xxUnittest, SetHandlerRegistersCallbackAndEnablesInterrupt)
 {
-    resetRegisterMockCounters();
+    resetDmaTestState();
     const dmaIdentifier_e id = DMA2_ST0_HANDLER;
     dmaChannelDescriptor_t *descriptor = dmaGetDescriptorByIdentifier(id);
     ASSERT_NE(descriptor, nullptr);
@@ -153,7 +157,7 @@ TEST(DmaStm32F4xxUnittest, SetHandlerRegistersCallbackAndEnablesInterrupt)
 TEST(DmaStm32F4xxUnittest, SetHandlerOnInvalidIdentifierNeverTouchesRegisters)
 {
     // adversarial: same guard as dmaEnable(), exercised via the other register-touching entry point.
-    resetRegisterMockCounters();
+    resetDmaTestState();
     dmaSetHandler(DMA_NONE, nullptr, 0, 0);
     EXPECT_EQ(nvicInitCallCount, 0);
     EXPECT_EQ(rccClockCmdCallCount, 0);
@@ -163,6 +167,7 @@ TEST(DmaStm32F4xxUnittest, SetHandlerOnInvalidIdentifierNeverTouchesRegisters)
 
 TEST(DmaStm32F4xxUnittest, InitOverwritesExistingOwnerWithNoOwnershipCheck)
 {
+    resetDmaTestState();
     const dmaIdentifier_e id = DMA1_ST7_HANDLER;
     ASSERT_TRUE(dmaAllocate(id, OWNER_SPI_SDO, 1));
 

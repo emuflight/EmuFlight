@@ -18,13 +18,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Compiles the real src/main/drivers/dma_reqmap_mcu.c (F4/F7 branch) under UNIT_TEST.
-// dmaGetChannelSpecByPeripheral() is a pure static-table lookup here -- no CMSIS register
-// access at all -- so it needs no register mocking, only fake DMAx_Streamy pointer/channel
-// literals to stand in for the real stream identities the table is built from.
-// F7 shares this exact source branch (`(STM32F4 || STM32F7) && USE_SPI`), so an F4 compile
-// exercises the same logic F7 would; see the analogous reasoning already recorded for
-// serial_uart_dma_claim_unittest.cc in fix/dmainit-ownership-check/CONTEXT.
+// Compiles the real dma_reqmap_mcu.c (F4/F7 branch) under UNIT_TEST; pure table lookup,
+// no register access, so only fake DMAx_Streamy/channel literals are needed. F7 shares
+// this exact source branch, so an F4 compile exercises F7's logic too.
 
 extern "C" {
 
@@ -64,8 +60,7 @@ TEST(DmaReqmapUnittest, Uart1RxAndTxResolveToDistinctStreams)
 
 TEST(DmaReqmapUnittest, Uart1RxHasASecondAlternateOption)
 {
-    // UARTDEV_1 RX has two known-valid streams (see dma_reqmap_mcu.c); opt 1 must resolve
-    // to a stream distinct from opt 0, giving serialUART() a real fallback to try.
+    // UARTDEV_1 RX opt 1 must resolve to a different stream, giving serialUART() a real fallback.
     const dmaChannelSpec_t *opt0 = dmaGetChannelSpecByPeripheral(DMA_PERIPH_UART_RX, UARTDEV_1, 0);
     const dmaChannelSpec_t *opt1 = dmaGetChannelSpecByPeripheral(DMA_PERIPH_UART_RX, UARTDEV_1, 1);
 
