@@ -77,6 +77,18 @@ bus_spi_unittest_DEFINES := \
 		SystemCoreClock=1000000
 
 
+bus_spi_h7_unittest_SRC := \
+		$(USER_DIR)/drivers/bus_spi.c \
+		$(USER_DIR)/build/atomic.c
+
+bus_spi_h7_unittest_DEFINES := \
+		STM32H7 \
+		USE_SPI \
+		USE_SPI_DEVICE_1 \
+		SPI1=\(SPI_TypeDef*\)0x40013000 \
+		SystemCoreClock=1000000
+
+
 blackbox_unittest_SRC :=  \
 		$(USER_DIR)/blackbox/blackbox.c \
 		$(USER_DIR)/blackbox/blackbox_encoding.c \
@@ -128,6 +140,172 @@ common_filter_unittest_SRC := \
 
 dma_bounds_unittest_DEFINES := \
 		STM32F4
+
+
+dma_stm32f4xx_unittest_SRC := \
+		$(USER_DIR)/drivers/dma_stm32f4xx.c
+
+dma_stm32f4xx_unittest_DEFINES := \
+		STM32F4 \
+		UNIT_TEST_DMA_REGISTER_MOCKS \
+		DMA1=\(DMA_TypeDef*\)0x40026000 \
+		DMA2=\(DMA_TypeDef*\)0x40026400 \
+		DMA1_Stream0=\(DMA_Stream_TypeDef*\)0x40026010 \
+		DMA1_Stream1=\(DMA_Stream_TypeDef*\)0x40026028 \
+		DMA1_Stream2=\(DMA_Stream_TypeDef*\)0x40026040 \
+		DMA1_Stream3=\(DMA_Stream_TypeDef*\)0x40026058 \
+		DMA1_Stream4=\(DMA_Stream_TypeDef*\)0x40026070 \
+		DMA1_Stream5=\(DMA_Stream_TypeDef*\)0x40026088 \
+		DMA1_Stream6=\(DMA_Stream_TypeDef*\)0x400260A0 \
+		DMA1_Stream7=\(DMA_Stream_TypeDef*\)0x400260B8 \
+		DMA2_Stream0=\(DMA_Stream_TypeDef*\)0x40026410 \
+		DMA2_Stream1=\(DMA_Stream_TypeDef*\)0x40026428 \
+		DMA2_Stream2=\(DMA_Stream_TypeDef*\)0x40026440 \
+		DMA2_Stream3=\(DMA_Stream_TypeDef*\)0x40026458 \
+		DMA2_Stream4=\(DMA_Stream_TypeDef*\)0x40026470 \
+		DMA2_Stream5=\(DMA_Stream_TypeDef*\)0x40026488 \
+		DMA2_Stream6=\(DMA_Stream_TypeDef*\)0x400264A0 \
+		DMA2_Stream7=\(DMA_Stream_TypeDef*\)0x400264B8 \
+		DMA1_Stream0_IRQn=1 \
+		DMA1_Stream1_IRQn=2 \
+		DMA1_Stream2_IRQn=3 \
+		DMA1_Stream3_IRQn=4 \
+		DMA1_Stream4_IRQn=5 \
+		DMA1_Stream5_IRQn=6 \
+		DMA1_Stream6_IRQn=7 \
+		DMA1_Stream7_IRQn=8 \
+		DMA2_Stream0_IRQn=9 \
+		DMA2_Stream1_IRQn=10 \
+		DMA2_Stream2_IRQn=11 \
+		DMA2_Stream3_IRQn=12 \
+		DMA2_Stream4_IRQn=13 \
+		DMA2_Stream5_IRQn=14 \
+		DMA2_Stream6_IRQn=15 \
+		DMA2_Stream7_IRQn=16 \
+		DMA_IT_TCIF0=0x20 \
+		DMA_IT_TCIF1=0x800 \
+		DMA_IT_TCIF2=0x200000 \
+		DMA_IT_TCIF3=0x8000000 \
+		DMA_IT_TCIF4=0x20 \
+		DMA_IT_TCIF5=0x800 \
+		DMA_IT_TCIF6=0x200000 \
+		DMA_IT_TCIF7=0x8000000
+
+
+dma_reqmap_unittest_SRC := \
+		$(USER_DIR)/drivers/dma_reqmap_mcu.c
+
+dma_reqmap_unittest_DEFINES := \
+		STM32F4 \
+		USE_SPI \
+		DMA_Channel_0=0 \
+		DMA_Channel_3=3 \
+		DMA_Channel_4=4 \
+		DMA_Channel_5=5 \
+		DMA1_Stream0=\(void*\)0x40026010 \
+		DMA1_Stream1=\(void*\)0x40026028 \
+		DMA1_Stream2=\(void*\)0x40026040 \
+		DMA1_Stream3=\(void*\)0x40026058 \
+		DMA1_Stream4=\(void*\)0x40026070 \
+		DMA1_Stream5=\(void*\)0x40026088 \
+		DMA1_Stream6=\(void*\)0x400260A0 \
+		DMA1_Stream7=\(void*\)0x400260B8 \
+		DMA2_Stream0=\(void*\)0x40026410 \
+		DMA2_Stream1=\(void*\)0x40026428 \
+		DMA2_Stream2=\(void*\)0x40026440 \
+		DMA2_Stream3=\(void*\)0x40026458 \
+		DMA2_Stream4=\(void*\)0x40026470 \
+		DMA2_Stream5=\(void*\)0x40026488 \
+		DMA2_Stream6=\(void*\)0x400264A0 \
+		DMA2_Stream7=\(void*\)0x400264B8
+
+
+dma_reqmap_h7_unittest_SRC := \
+		$(USER_DIR)/drivers/dma_reqmap_mcu.c
+
+dma_reqmap_h7_unittest_DEFINES := \
+		STM32H7 \
+		USE_SPI \
+		DMA_HandleTypeDef=DMA_Channel_TypeDef \
+		DMA1_Stream0=\(void*\)0x40020000 \
+		DMA1_Stream1=\(void*\)0x40020018 \
+		DMA1_Stream2=\(void*\)0x40020030 \
+		DMA1_Stream3=\(void*\)0x40020048 \
+		DMA1_Stream4=\(void*\)0x40020060 \
+		DMA1_Stream5=\(void*\)0x40020078 \
+		DMA1_Stream6=\(void*\)0x40020090 \
+		DMA1_Stream7=\(void*\)0x400200A8 \
+		DMA2_Stream0=\(void*\)0x40020400 \
+		DMA2_Stream1=\(void*\)0x40020418 \
+		DMA2_Stream2=\(void*\)0x40020430 \
+		DMA2_Stream3=\(void*\)0x40020448 \
+		DMA2_Stream4=\(void*\)0x40020460 \
+		DMA2_Stream5=\(void*\)0x40020478 \
+		DMA2_Stream6=\(void*\)0x40020490 \
+		DMA2_Stream7=\(void*\)0x400204A8 \
+		DMA_REQUEST_SPI1_TX=1 \
+		DMA_REQUEST_SPI1_RX=2 \
+		DMA_REQUEST_SPI2_TX=3 \
+		DMA_REQUEST_SPI2_RX=4 \
+		DMA_REQUEST_SPI3_TX=5 \
+		DMA_REQUEST_SPI3_RX=6 \
+		DMA_REQUEST_SPI4_TX=7 \
+		DMA_REQUEST_SPI4_RX=8 \
+		DMA_REQUEST_USART1_TX=9 \
+		DMA_REQUEST_USART1_RX=10 \
+		DMA_REQUEST_USART2_TX=11 \
+		DMA_REQUEST_USART2_RX=12 \
+		DMA_REQUEST_USART3_TX=13 \
+		DMA_REQUEST_USART3_RX=14 \
+		DMA_REQUEST_UART4_TX=15 \
+		DMA_REQUEST_UART4_RX=16 \
+		DMA_REQUEST_UART5_TX=17 \
+		DMA_REQUEST_UART5_RX=18 \
+		DMA_REQUEST_USART6_TX=19 \
+		DMA_REQUEST_USART6_RX=20 \
+		DMA_REQUEST_UART7_TX=21 \
+		DMA_REQUEST_UART7_RX=22 \
+		DMA_REQUEST_UART8_TX=23 \
+		DMA_REQUEST_UART8_RX=24 \
+		TIM1=\(void*\)0x40010000 \
+		TIM2=\(void*\)0x40010400 \
+		TIM3=\(void*\)0x40010800 \
+		TIM4=\(void*\)0x40010C00 \
+		TIM5=\(void*\)0x40011000 \
+		TIM8=\(void*\)0x40011400 \
+		TIM15=\(void*\)0x40011800 \
+		TIM16=\(void*\)0x40011C00 \
+		TIM17=\(void*\)0x40012000 \
+		TIM_CHANNEL_1=1 \
+		TIM_CHANNEL_2=2 \
+		TIM_CHANNEL_3=3 \
+		TIM_CHANNEL_4=4 \
+		DMA_REQUEST_TIM1_CH1=25 \
+		DMA_REQUEST_TIM1_CH2=26 \
+		DMA_REQUEST_TIM1_CH3=27 \
+		DMA_REQUEST_TIM1_CH4=28 \
+		DMA_REQUEST_TIM2_CH1=29 \
+		DMA_REQUEST_TIM2_CH2=30 \
+		DMA_REQUEST_TIM2_CH3=31 \
+		DMA_REQUEST_TIM2_CH4=32 \
+		DMA_REQUEST_TIM3_CH1=33 \
+		DMA_REQUEST_TIM3_CH2=34 \
+		DMA_REQUEST_TIM3_CH3=35 \
+		DMA_REQUEST_TIM3_CH4=36 \
+		DMA_REQUEST_TIM4_CH1=37 \
+		DMA_REQUEST_TIM4_CH2=38 \
+		DMA_REQUEST_TIM4_CH3=39 \
+		DMA_REQUEST_TIM5_CH1=40 \
+		DMA_REQUEST_TIM5_CH2=41 \
+		DMA_REQUEST_TIM5_CH3=42 \
+		DMA_REQUEST_TIM5_CH4=43 \
+		DMA_REQUEST_TIM8_CH1=44 \
+		DMA_REQUEST_TIM8_CH2=45 \
+		DMA_REQUEST_TIM8_CH3=46 \
+		DMA_REQUEST_TIM8_CH4=47 \
+		DMA_REQUEST_TIM15_CH1=48 \
+		DMA_REQUEST_TIM16_CH1=49 \
+		DMA_REQUEST_TIM17_CH1=50
 
 
 encoding_unittest_SRC := \
