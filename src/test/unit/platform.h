@@ -30,6 +30,7 @@
 #define GCC_OPTIMIZE_SIZE
 #define FAST_CODE
 #define FAST_CODE_NOINLINE
+#define FAST_IRQ_HANDLER
 #define FAST_RAM_ZERO_INIT
 #define FAST_RAM
 #define DMA_DATA_ZERO_INIT
@@ -86,6 +87,7 @@ typedef struct {
 uint8_t DMA_GetFlagStatus(void *);
 void DMA_Cmd(DMA_Channel_TypeDef*, FunctionalState );
 void DMA_ClearFlag(uint32_t);
+void SCB_InvalidateDCache_by_Addr(uint32_t *addr, int32_t dsize);
 
 typedef struct {
     void* test;
@@ -106,6 +108,23 @@ typedef struct {
 #define WS2811_DMA_TC_FLAG (void *)1
 #define WS2811_DMA_HANDLER_IDENTIFER 0
 #define NVIC_PriorityGroup_2 0x500
+
+// StdPeriph register-level surface for compiling a real dma_stm32f4xx.c under UNIT_TEST.
+// Opt-in only (see dma_stm32f4xx_unittest_DEFINES) so other tests are unaffected.
+#ifdef UNIT_TEST_DMA_REGISTER_MOCKS
+typedef struct {
+    IRQn_Type       NVIC_IRQChannel;
+    uint8_t         NVIC_IRQChannelPreemptionPriority;
+    uint8_t         NVIC_IRQChannelSubPriority;
+    FunctionalState NVIC_IRQChannelCmd;
+} NVIC_InitTypeDef;
+
+void NVIC_Init(NVIC_InitTypeDef *initStruct);
+void RCC_AHB1PeriphClockCmd(uint32_t periph, FunctionalState state);
+
+#define RCC_AHB1Periph_DMA1 ((uint32_t)0x00000001)
+#define RCC_AHB1Periph_DMA2 ((uint32_t)0x00000002)
+#endif
 
 #include "target.h"
 
