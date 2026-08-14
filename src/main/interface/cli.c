@@ -70,6 +70,7 @@ extern uint8_t __config_end;
 #include "drivers/compass/compass.h"
 #include "drivers/display.h"
 #include "drivers/dma.h"
+#include "drivers/dma_reqmap.h"
 #include "drivers/flash.h"
 #include "drivers/inverter.h"
 #include "drivers/io.h"
@@ -142,6 +143,10 @@ extern uint8_t __config_end;
 #include "pg/rx.h"
 #include "pg/rx_spi.h"
 #include "pg/rx_pwm.h"
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#include "drivers/serial_uart.h"
+#include "pg/serial_uart.h"
+#endif
 #include "pg/timerio.h"
 #include "pg/usb.h"
 
@@ -3986,9 +3991,190 @@ static void printDma(void) {
     }
 }
 
+// dmaopt maps a peripheral's DMA stream/channel selection to a PG field, distinct from resourceTable's pin ownership.
+// pg/serial_uart.c is MCU_EXCLUDES'd on SITL, so this subsystem is guarded to F4/F7/H7 only.
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+
+typedef struct dmaoptEntry_s {
+    const char *device;
+    dmaPeripheral_e peripheral;
+    pgn_t pgn;
+    uint8_t stride;
+    uint8_t offset;
+    uint8_t maxIndex;
+} dmaoptEntry_t;
+
+// DEFW : array-of-structs entry (stride = sizeof(type)); mirrors resourceTable's macro family above.
+#define DEFW(device, peripheral, pgn, type, member, max) \
+    { device, peripheral, pgn, sizeof(type), offsetof(type, member), max }
+
+static const dmaoptEntry_t dmaoptEntryTable[] = {
+    DEFW("UART_TX", DMA_PERIPH_UART_TX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, txDmaopt, UARTDEV_COUNT_MAX),
+    DEFW("UART_RX", DMA_PERIPH_UART_RX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, rxDmaopt, UARTDEV_COUNT_MAX),
+};
+
+#undef DEFW
+
+#define DMA_OPT_STRING_BUFSIZE 5
+
+// H7's DMAMUX selects by request number, not a fixed channel -- label the option accordingly.
+#if defined(STM32H7)
+#define DMA_CHANREQ_STRING "Request"
+#else
+#define DMA_CHANREQ_STRING "Channel"
+#endif
+#define DMASPEC_FORMAT_STRING "DMA%d Stream %d " DMA_CHANREQ_STRING " %d"
+
+static const char *dmaoptValueToString(dmaoptValue_t opt, char *buf) {
+    if (opt == DMA_OPT_UNUSED) {
+        // fixed-size copy, not strcpy -- matches BF's own optToString() (cli.c:5360, 4.5-maintenance)
+        memcpy(buf, "NONE", DMA_OPT_STRING_BUFSIZE);
+    } else {
+        tfp_sprintf(buf, "%d", opt);
+    }
+    return buf;
+}
+
+static const dmaoptEntry_t *findDmaoptEntry(const char *name) {
+    for (unsigned i = 0; i < ARRAYLEN(dmaoptEntryTable); i++) {
+        if (strcasecmp(name, dmaoptEntryTable[i].device) == 0) {
+            return &dmaoptEntryTable[i];
+        }
+    }
+    return NULL;
+}
+
+static dmaoptValue_t *dmaoptAddr(const dmaoptEntry_t *entry, int index) {
+    const pgRegistry_t *pg = pgFind(entry->pgn);
+    if (!pg) {
+        return NULL;
+    }
+    uint8_t *base = CONST_CAST(uint8_t *, configIsInCopy ? pg->copy : pg->address);
+    return (dmaoptValue_t *)(base + entry->stride * index + entry->offset);
+}
+
+static void printDmaoptEntry(const dmaoptEntry_t *entry, int index) {
+    const dmaoptValue_t *addr = dmaoptAddr(entry, index);
+    if (!addr) {
+        cliPrintErrorLinef("%s CONFIG NOT AVAILABLE", entry->device);
+        return;
+    }
+    const dmaoptValue_t dmaopt = *addr;
+    if (dmaopt != DMA_OPT_UNUSED) {
+        cliPrintLinef("dma %s %d %d", entry->device, index + 1, dmaopt);
+        const dmaChannelSpec_t *dmaChannelSpec = dmaGetChannelSpecByPeripheral(entry->peripheral, index, dmaopt);
+        if (dmaChannelSpec) {
+            cliPrintLinef("# %s %d: " DMASPEC_FORMAT_STRING, entry->device, index + 1,
+                          DMA_CODE_CONTROLLER(dmaChannelSpec->code), DMA_CODE_STREAM(dmaChannelSpec->code), DMA_CODE_CHANNEL(dmaChannelSpec->code));
+        }
+    } else {
+        cliPrintLinef("dma %s %d NONE", entry->device, index + 1);
+    }
+}
+
+static void printDmaoptAll(void) {
+    for (unsigned i = 0; i < ARRAYLEN(dmaoptEntryTable); i++) {
+        const dmaoptEntry_t *entry = &dmaoptEntryTable[i];
+        for (int index = 0; index < entry->maxIndex; index++) {
+            printDmaoptEntry(entry, index);
+        }
+    }
+}
+
+static void cliDmaopt(char *cmdline) {
+    char *saveptr;
+    char *pch = strtok_r(cmdline, " ", &saveptr);
+    if (!pch) {
+        cliShowParseError();
+        return;
+    } else if (strcasecmp(pch, "list") == 0) {
+        printDmaoptAll();
+        return;
+    }
+
+    const dmaoptEntry_t *entry = findDmaoptEntry(pch);
+    if (!entry) {
+        cliPrintErrorLinef("BAD DEVICE: %s", pch);
+        return;
+    }
+
+    pch = strtok_r(NULL, " ", &saveptr);
+    int index = -1;
+    if (pch) {
+        char *endptr;
+        // bounds-checked in long arithmetic before the int cast below to avoid overflow UB
+        long parsedIndex = strtol(pch, &endptr, 10) - 1;
+        // reject non-numeric/trailing-garbage input (e.g. "1abc" -> atoi would silently
+        // parse it as valid index 1)
+        if (endptr != pch && *endptr == '\0' && parsedIndex >= 0 && parsedIndex < entry->maxIndex) {
+            index = (int)parsedIndex;
+        }
+    }
+    if (index < 0 || index >= entry->maxIndex) {
+        cliShowArgumentRangeError("index", 1, entry->maxIndex);
+        return;
+    }
+
+    dmaoptValue_t *optaddr = dmaoptAddr(entry, index);
+    if (!optaddr) {
+        cliPrintErrorLinef("%s CONFIG NOT AVAILABLE", entry->device);
+        return;
+    }
+    const dmaoptValue_t orgval = *optaddr;
+
+    pch = strtok_r(NULL, " ", &saveptr);
+    if (!pch) {
+        printDmaoptEntry(entry, index);
+        return;
+    } else if (strcasecmp(pch, "list") == 0) {
+        const dmaChannelSpec_t *dmaChannelSpec;
+        for (int opt = 0; (dmaChannelSpec = dmaGetChannelSpecByPeripheral(entry->peripheral, index, opt)); opt++) {
+            cliPrintLinef("# %d: " DMASPEC_FORMAT_STRING, opt,
+                          DMA_CODE_CONTROLLER(dmaChannelSpec->code), DMA_CODE_STREAM(dmaChannelSpec->code), DMA_CODE_CHANNEL(dmaChannelSpec->code));
+        }
+        return;
+    }
+
+    int optval;
+    if (strcasecmp(pch, "none") == 0) {
+        optval = DMA_OPT_UNUSED;
+    } else {
+        char *endptr;
+        long parsed = strtol(pch, &endptr, 10);
+        // reject non-numeric input (atoi would silently parse it as 0, a value indistinguishable
+        // from an explicit "0") and out-of-range input before it truncates to int8_t
+        if (*endptr != '\0' || endptr == pch || parsed < INT8_MIN || parsed > INT8_MAX
+            || !dmaGetChannelSpecByPeripheral(entry->peripheral, index, (int)parsed)) {
+            cliPrintErrorLinef("INVALID DMA OPTION FOR %s %d: '%s'", entry->device, index + 1, pch);
+            return;
+        }
+        optval = (int)parsed;
+    }
+
+    char optvalString[DMA_OPT_STRING_BUFSIZE];
+    dmaoptValueToString(optval, optvalString);
+    char orgvalString[DMA_OPT_STRING_BUFSIZE];
+    dmaoptValueToString(orgval, orgvalString);
+
+    if (optval != orgval) {
+        *optaddr = optval;
+        cliPrintLinef("# dma %s %d: changed from %s to %s", entry->device, index + 1, orgvalString, optvalString);
+    } else {
+        cliPrintLinef("# dma %s %d: no change: %s", entry->device, index + 1, orgvalString);
+    }
+}
+#endif // STM32F4 || STM32F7 || STM32H7
+
 static void cliDma(char* cmdLine) {
-    UNUSED(cmdLine);
-    printDma();
+    if (*cmdLine == '\0' || strcasecmp(cmdLine, "show") == 0) {
+        printDma();
+        return;
+    }
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+    cliDmaopt(cmdLine);
+#else
+    cliShowParseError();
+#endif
 }
 #endif /* USE_RESOURCE_MGMT */
 
@@ -4282,7 +4468,8 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("defaults", "reset to defaults and reboot", "[nosave]", cliDefaults),
     CLI_COMMAND_DEF("diff", "list configuration changes from default", "[master|profile|rates|all] {defaults}", cliDiff),
 #ifdef USE_RESOURCE_MGMT
-    CLI_COMMAND_DEF("dma", "list dma utilisation", NULL, cliDma),
+    CLI_COMMAND_DEF("dma", "list dma utilisation, or get/set/list a peripheral's dmaopt",
+                    "[show] | list | <device> <index> [<option>|none|list]", cliDma),
 #endif
 #ifdef USE_DSHOT
     CLI_COMMAND_DEF("dshotprog", "program DShot ESC(s)", "<index> <command>+", cliDshotProg),
