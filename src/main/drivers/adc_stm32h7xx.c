@@ -314,32 +314,31 @@ void adcInit(const adcConfig_t *config)
         }
 
         dmaIdentifier_e dmaId = dmaGetIdentifier((DMA_Stream_TypeDef *)adc.dmaResource);
-        if (!dmaAllocate(dmaId, OWNER_ADC, 0)) {
-            return;
-        }
-        dmaEnable(dmaId);
+        if (dmaAllocate(dmaId, OWNER_ADC, 0)) {
+            dmaEnable(dmaId);
 
-        adc.DmaHandle.Instance               = (DMA_Stream_TypeDef *)adc.dmaResource;
-        adc.DmaHandle.Init.Request           = adc.channel;
-        adc.DmaHandle.Init.Direction         = DMA_PERIPH_TO_MEMORY;
-        adc.DmaHandle.Init.PeriphInc         = DMA_PINC_DISABLE;
-        adc.DmaHandle.Init.MemInc            = configuredAdcChannels > 1 ? DMA_MINC_ENABLE : DMA_MINC_DISABLE;
-        adc.DmaHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-        adc.DmaHandle.Init.MemDataAlignment  = DMA_MDATAALIGN_HALFWORD;
-        adc.DmaHandle.Init.Mode              = DMA_CIRCULAR;
-        adc.DmaHandle.Init.Priority          = DMA_PRIORITY_HIGH;
-        adc.DmaHandle.Init.FIFOMode          = DMA_FIFOMODE_DISABLE;
-        adc.DmaHandle.Init.FIFOThreshold     = DMA_FIFO_THRESHOLD_FULL;
-        adc.DmaHandle.Init.MemBurst          = DMA_MBURST_SINGLE;
-        adc.DmaHandle.Init.PeriphBurst       = DMA_PBURST_SINGLE;
+            adc.DmaHandle.Instance               = (DMA_Stream_TypeDef *)adc.dmaResource;
+            adc.DmaHandle.Init.Request           = adc.channel;
+            adc.DmaHandle.Init.Direction         = DMA_PERIPH_TO_MEMORY;
+            adc.DmaHandle.Init.PeriphInc         = DMA_PINC_DISABLE;
+            adc.DmaHandle.Init.MemInc            = configuredAdcChannels > 1 ? DMA_MINC_ENABLE : DMA_MINC_DISABLE;
+            adc.DmaHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+            adc.DmaHandle.Init.MemDataAlignment  = DMA_MDATAALIGN_HALFWORD;
+            adc.DmaHandle.Init.Mode              = DMA_CIRCULAR;
+            adc.DmaHandle.Init.Priority          = DMA_PRIORITY_HIGH;
+            adc.DmaHandle.Init.FIFOMode          = DMA_FIFOMODE_DISABLE;
+            adc.DmaHandle.Init.FIFOThreshold     = DMA_FIFO_THRESHOLD_FULL;
+            adc.DmaHandle.Init.MemBurst          = DMA_MBURST_SINGLE;
+            adc.DmaHandle.Init.PeriphBurst       = DMA_PBURST_SINGLE;
 
-        if (HAL_DMA_Init(&adc.DmaHandle) != HAL_OK) {
-            return;
-        }
-        __HAL_LINKDMA(&adc.ADCHandle, DMA_Handle, adc.DmaHandle);
+            if (HAL_DMA_Init(&adc.DmaHandle) != HAL_OK) {
+                return;
+            }
+            __HAL_LINKDMA(&adc.ADCHandle, DMA_Handle, adc.DmaHandle);
 
-        if (HAL_ADC_Start_DMA(&adc.ADCHandle, (uint32_t *)&adcValues, configuredAdcChannels) != HAL_OK) {
-            return;
+            if (HAL_ADC_Start_DMA(&adc.ADCHandle, (uint32_t *)&adcValues, configuredAdcChannels) != HAL_OK) {
+                return;
+            }
         }
     }
 
