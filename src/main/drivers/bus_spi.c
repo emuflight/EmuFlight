@@ -271,9 +271,10 @@ FAST_CODE static void spiRxIrqHandler(dmaChannelDescriptor_t *descriptor)
 
 #if defined(STM32F7) || defined(STM32H7)
     if (bus->curSegment->u.buffers.rxData) {
+        // uintptr_t widening: host build has 64-bit pointers; identical on the 32-bit target.
         SCB_InvalidateDCache_by_Addr(
-            (uint32_t *)((uint32_t)bus->curSegment->u.buffers.rxData & ~CACHE_LINE_MASK),
-            (((uint32_t)bus->curSegment->u.buffers.rxData & CACHE_LINE_MASK) +
+            (uint32_t *)((uintptr_t)bus->curSegment->u.buffers.rxData & ~CACHE_LINE_MASK),
+            (((uintptr_t)bus->curSegment->u.buffers.rxData & CACHE_LINE_MASK) +
               bus->curSegment->len - 1 + CACHE_LINE_SIZE) & ~CACHE_LINE_MASK);
     }
 #endif
