@@ -189,3 +189,12 @@ dmaChannelDescriptor_t* dmaGetDescriptorByIdentifier(const dmaIdentifier_e ident
 uint32_t dmaGetChannel(const uint8_t channel) {
     return ((uint32_t)channel * 2) << 24;
 }
+
+#ifdef UNIT_TEST
+void dmaResetAllocationsForTest(void) {
+    for (int i = 0; i < DMA_LAST_HANDLER; i++) {
+        dmaDescriptors[i].owner = OWNER_FREE;
+        dmaDescriptors[i].resourceIndex = 0;
+    }
+}
+#endif

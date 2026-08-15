@@ -174,3 +174,8 @@ void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callbac
 resourceOwner_e dmaGetOwner(dmaIdentifier_e identifier);
 uint8_t dmaGetResourceIndex(dmaIdentifier_e identifier);
 dmaChannelDescriptor_t* dmaGetDescriptorByIdentifier(const dmaIdentifier_e identifier);
+
+#ifdef UNIT_TEST
+// resets the file-static dmaDescriptors[] ownership state; host tests have no other access to it.
+void dmaResetAllocationsForTest(void);
+#endif
