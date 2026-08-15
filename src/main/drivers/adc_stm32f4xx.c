@@ -245,7 +245,10 @@ void adcInit(const adcConfig_t *config) {
     ADC_DMARequestAfterLastTransferCmd(adc.ADCx, ENABLE);
     ADC_DMACmd(adc.ADCx, ENABLE);
     ADC_Cmd(adc.ADCx, ENABLE);
-    dmaInit(dmaGetIdentifier(adc.DMAy_Streamx), OWNER_ADC, 0);
+    if (!dmaAllocate(dmaGetIdentifier(adc.DMAy_Streamx), OWNER_ADC, 0)) {
+        return;
+    }
+    dmaEnable(dmaGetIdentifier(adc.DMAy_Streamx));
     DMA_DeInit(adc.DMAy_Streamx);
     DMA_InitTypeDef DMA_InitStructure;
     DMA_StructInit(&DMA_InitStructure);

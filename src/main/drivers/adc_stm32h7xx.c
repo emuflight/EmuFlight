@@ -314,7 +314,10 @@ void adcInit(const adcConfig_t *config)
         }
 
         dmaIdentifier_e dmaId = dmaGetIdentifier((DMA_Stream_TypeDef *)adc.dmaResource);
-        dmaInit(dmaId, OWNER_ADC, 0);
+        if (!dmaAllocate(dmaId, OWNER_ADC, 0)) {
+            return;
+        }
+        dmaEnable(dmaId);
 
         adc.DmaHandle.Instance               = (DMA_Stream_TypeDef *)adc.dmaResource;
         adc.DmaHandle.Init.Request           = adc.channel;

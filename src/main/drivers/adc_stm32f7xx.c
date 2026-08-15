@@ -263,7 +263,10 @@ void adcInit(const adcConfig_t *config) {
             /* Channel Configuration Error */
         }
     }
-    dmaInit(dmaGetIdentifier(adc.DMAy_Streamx), OWNER_ADC, 0);
+    if (!dmaAllocate(dmaGetIdentifier(adc.DMAy_Streamx), OWNER_ADC, 0)) {
+        return;
+    }
+    dmaEnable(dmaGetIdentifier(adc.DMAy_Streamx));
     adc.DmaHandle.Init.Channel = adc.channel;
     adc.DmaHandle.Init.Direction = DMA_PERIPH_TO_MEMORY;
     adc.DmaHandle.Init.PeriphInc = DMA_PINC_DISABLE;
