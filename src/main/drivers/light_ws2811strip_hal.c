@@ -53,7 +53,7 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag) {
     const timerHardware_t *timerHardware = timerGetByTag(ioTag);
     TIM_TypeDef *timer = timerHardware->tim;
     timerChannel = timerHardware->channel;
-    if (timerHardware->dmaRef == NULL) {
+    if (timerHardware->dmaRef == NULL || !dmaAllocate(timerHardware->dmaIrqHandler, OWNER_LED_STRIP, 0)) {
         return;
     }
     TimHandle.Instance = timer;
@@ -99,9 +99,6 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag) {
     uint16_t dmaIndex = timerDmaIndex(timerChannel);
     /* Link hdma_tim to hdma[x] (channelx) */
     __HAL_LINKDMA(&TimHandle, hdma[dmaIndex], hdma_tim);
-    if (!dmaAllocate(timerHardware->dmaIrqHandler, OWNER_LED_STRIP, 0)) {
-        return;
-    }
     dmaEnable(timerHardware->dmaIrqHandler);
     dmaSetHandler(timerHardware->dmaIrqHandler, WS2811_DMA_IRQHandler, NVIC_PRIO_WS2811_DMA, dmaIndex);
     /* Initialize TIMx DMA handle */
