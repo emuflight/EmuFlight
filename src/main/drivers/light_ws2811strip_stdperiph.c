@@ -106,7 +106,10 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag) {
         TIM_CCxCmd(timer, timerHardware->channel, TIM_CCx_Enable);
     }
     TIM_Cmd(timer, ENABLE);
-    dmaInit(timerHardware->dmaIrqHandler, OWNER_LED_STRIP, 0);
+    if (!dmaAllocate(timerHardware->dmaIrqHandler, OWNER_LED_STRIP, 0)) {
+        return;
+    }
+    dmaEnable(timerHardware->dmaIrqHandler);
     dmaSetHandler(timerHardware->dmaIrqHandler, WS2811_DMA_IRQHandler, NVIC_PRIO_WS2811_DMA, 0);
     dmaRef = timerHardware->dmaRef;
     DMA_DeInit(dmaRef);
