@@ -73,6 +73,7 @@ void transponderIrHardwareInit(ioTag_t ioTag, transponder_t *transponder) {
     transponderIO = IOGetByTag(ioTag);
     IOInit(transponderIO, OWNER_TRANSPONDER, 0);
     IOConfigGPIOAF(transponderIO, IO_CONFIG(GPIO_Mode_AF, GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_DOWN), timerHardware->alternateFunction);
+    dmaRef = timerHardware->dmaRef;
     if (!dmaAllocate(timerHardware->dmaIrqHandler, OWNER_TRANSPONDER, 0)) {
         return;
     }
@@ -105,7 +106,6 @@ void transponderIrHardwareInit(ioTag_t ioTag, transponder_t *transponder) {
     timerOCPreloadConfig(timer, timerHardware->channel, TIM_OCPreload_Enable);
     TIM_CtrlPWMOutputs(timer, ENABLE);
     /* configure DMA */
-    dmaRef = timerHardware->dmaRef;
     DMA_Cmd(dmaRef, DISABLE);
     DMA_DeInit(dmaRef);
     DMA_StructInit(&DMA_InitStructure);
