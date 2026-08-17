@@ -73,7 +73,10 @@ void transponderIrHardwareInit(ioTag_t ioTag, transponder_t *transponder) {
     transponderIO = IOGetByTag(ioTag);
     IOInit(transponderIO, OWNER_TRANSPONDER, 0);
     IOConfigGPIOAF(transponderIO, IO_CONFIG(GPIO_Mode_AF, GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_DOWN), timerHardware->alternateFunction);
-    dmaInit(timerHardware->dmaIrqHandler, OWNER_TRANSPONDER, 0);
+    if (!dmaAllocate(timerHardware->dmaIrqHandler, OWNER_TRANSPONDER, 0)) {
+        return;
+    }
+    dmaEnable(timerHardware->dmaIrqHandler);
     dmaSetHandler(timerHardware->dmaIrqHandler, TRANSPONDER_DMA_IRQHandler, NVIC_PRIO_TRANSPONDER_DMA, 0);
     RCC_ClockCmd(timerRCC(timer), ENABLE);
     uint16_t prescaler = timerGetPrescalerByDesiredMhz(timer, transponder->timer_hz);
