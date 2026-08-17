@@ -42,6 +42,7 @@ volatile uint8_t transponderIrDataTransferInProgress = 0;
 
 static IO_t transponderIO = IO_NONE;
 static TIM_TypeDef *timer = NULL;
+static bool transponderInitialised = false;
 #if defined(STM32F4)
 static DMA_Stream_TypeDef *dmaRef = NULL;
 #else
@@ -59,6 +60,7 @@ static void TRANSPONDER_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
 }
 
 void transponderIrHardwareInit(ioTag_t ioTag, transponder_t *transponder) {
+    transponderInitialised = false;
     if (!ioTag) {
         return;
     }
@@ -127,6 +129,7 @@ void transponderIrHardwareInit(ioTag_t ioTag, transponder_t *transponder) {
     DMA_Init(dmaRef, &DMA_InitStructure);
     TIM_DMACmd(timer, timerDmaSource(timerHardware->channel), ENABLE);
     DMA_ITConfig(dmaRef, DMA_IT_TC, ENABLE);
+    transponderInitialised = true;
 }
 
 bool transponderIrInit(const ioTag_t ioTag, const transponderProvider_e provider) {
@@ -147,7 +150,7 @@ bool transponderIrInit(const ioTag_t ioTag, const transponderProvider_e provider
         return false;
     }
     transponderIrHardwareInit(ioTag, &transponder);
-    return true;
+    return transponderInitialised;
 }
 
 bool isTransponderIrReady(void) {
@@ -169,6 +172,9 @@ void transponderIrUpdateData(const uint8_t* transponderData) {
 }
 
 void transponderIrDMAEnable(transponder_t *transponder) {
+    if (!transponderInitialised) {
+        return;
+    }
     DMA_SetCurrDataCounter(dmaRef, transponder->dma_buffer_size);  // load number of bytes to be transferred
     TIM_SetCounter(timer, 0);
     TIM_Cmd(timer, ENABLE);
@@ -176,6 +182,9 @@ void transponderIrDMAEnable(transponder_t *transponder) {
 }
 
 void transponderIrDisable(void) {
+    if (!transponderInitialised) {
+        return;
+    }
     DMA_Cmd(dmaRef, DISABLE);
     TIM_Cmd(timer, DISABLE);
     IOInit(transponderIO, OWNER_TRANSPONDER, 0);
