@@ -1326,11 +1326,24 @@ static SD_Error_t SD_IsCardProgramming(uint8_t *pStatus)
 }
 */
 
+// SD_Initialize_LL() can be called from both the sdcard driver's own init and the USB MSC
+// passthrough path -- a stream already held by this same owner must be re-claimable.
+static bool sdioDmaClaim(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex) {
+    if (dmaGetOwner(identifier) == owner && dmaGetResourceIndex(identifier) == resourceIndex) {
+        return true;
+    }
+    return dmaAllocate(identifier, owner, resourceIndex);
+}
+
 /** -----------------------------------------------------------------------------------------------------------------*/
 /**
   * @brief  Initialize the SDMMC1 module, DMA, and IO
   */
-void SD_Initialize_LL(DMA_Stream_TypeDef *dma) {
+bool SD_Initialize_LL(DMA_Stream_TypeDef *dma) {
+    if (!(dma == DMA2_Stream3 || dma == DMA2_Stream6) || !sdioDmaClaim(dmaGetIdentifier(dma), OWNER_SDCARD, 0)) {
+        return false;
+    }
+    dmaEnable(dmaGetIdentifier(dma));
     // Reset SDMMC1 Module
     RCC->APB2RSTR |=  RCC_APB2RSTR_SDMMC1RST;
     delay(1);
@@ -1386,7 +1399,6 @@ void SD_Initialize_LL(DMA_Stream_TypeDef *dma) {
                               DMA_MBURST_INC4      | DMA_PBURST_INC4        |
                               DMA_MEMORY_TO_PERIPH);
         DMA2_Stream3->FCR  = (DMA_SxFCR_DMDIS | DMA_SxFCR_FTH);                 // Configuration FIFO control register
-        dmaInit(dmaGetIdentifier(DMA2_Stream3), OWNER_SDCARD, 0);
         dmaSetHandler(dmaGetIdentifier(DMA2_Stream3), SDMMC_DMA_ST3_IRQHandler, 1, 0);
     } else {
         // Initialize DMA2 channel 6
@@ -1399,9 +1411,9 @@ void SD_Initialize_LL(DMA_Stream_TypeDef *dma) {
                               DMA_MBURST_INC4      | DMA_PBURST_INC4        |
                               DMA_MEMORY_TO_PERIPH);
         DMA2_Stream6->FCR  = (DMA_SxFCR_DMDIS | DMA_SxFCR_FTH);                 // Configuration FIFO control register
-        dmaInit(dmaGetIdentifier(DMA2_Stream6), OWNER_SDCARD, 0);
         dmaSetHandler(dmaGetIdentifier(DMA2_Stream6), SDMMC_DMA_ST6_IRQHandler, 1, 0);
     }
+    return true;
 }
 
 
