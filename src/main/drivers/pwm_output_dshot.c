@@ -156,6 +156,20 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     if (dmaRef == NULL) {
         return;
     }
+#ifdef USE_DSHOT_DMAR
+    if (useBurstDshot) {
+        if (!dshotDmaClaim(timerHardware->dmaTimUPIrqHandler, OWNER_TIMUP, timerGetTIMNumber(timerHardware->tim))) {
+            return;
+        }
+        dmaEnable(timerHardware->dmaTimUPIrqHandler);
+    } else
+#endif
+    {
+        if (!dmaAllocate(timerHardware->dmaIrqHandler, OWNER_MOTOR, RESOURCE_INDEX(motorIndex))) {
+            return;
+        }
+        dmaEnable(timerHardware->dmaIrqHandler);
+    }
     TIM_OCInitTypeDef TIM_OCInitStructure;
     DMA_InitTypeDef DMA_InitStructure;
     motorDmaOutput_t * const motor = &dmaMotors[motorIndex];
@@ -208,18 +222,10 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     motor->timer = &dmaMotorTimers[timerIndex];
 #ifdef USE_DSHOT_DMAR
     if (useBurstDshot) {
-        if (!dshotDmaClaim(timerHardware->dmaTimUPIrqHandler, OWNER_TIMUP, timerGetTIMNumber(timerHardware->tim))) {
-            return;
-        }
-        dmaEnable(timerHardware->dmaTimUPIrqHandler);
         motor->timer->dmaBurstRef = dmaRef;
     } else
 #endif
     {
-        if (!dmaAllocate(timerHardware->dmaIrqHandler, OWNER_MOTOR, RESOURCE_INDEX(motorIndex))) {
-            return;
-        }
-        dmaEnable(timerHardware->dmaIrqHandler);
         motor->timerDmaSource = timerDmaSource(timerHardware->channel);
         motor->timer->timerDmaSources &= ~motor->timerDmaSource;
     }
