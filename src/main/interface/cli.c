@@ -4056,6 +4056,11 @@ static dmaoptValue_t *dmaoptAddr(const dmaoptEntry_t *entry, int index) {
 // Surfaces serialUART()'s otherwise-silent IRQ-driven fallback via dmaAllocate()'s live ownership state.
 static void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int index, const dmaChannelSpec_t *dmaChannelSpec) {
     const dmaIdentifier_e identifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaChannelSpec->ref);
+    if (identifier == DMA_NONE) {
+        // reqmap table points at a stream absent from dmaDescriptors[] -- a map bug, not a live contention case.
+        cliPrintLinef("# %s %d: DMA MAP ERROR", entry->device, index + 1);
+        return;
+    }
     const resourceOwner_e expectedOwner = (entry->peripheral == DMA_PERIPH_UART_TX) ? OWNER_SERIAL_TX : OWNER_SERIAL_RX;
     const resourceOwner_e actualOwner = dmaGetOwner(identifier);
     const uint8_t actualIndex = dmaGetResourceIndex(identifier);
@@ -4066,13 +4071,11 @@ static void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int index, const 
     if (actualOwner == OWNER_FREE) {
         return;
     }
+    char idxSuffix[DMA_OPT_STRING_BUFSIZE] = "";
     if (actualIndex > 0) {
-        cliPrintLinef("# %s %d: WARNING stream held by %s %d, not this UART -- expect IRQ-driven fallback",
-                      entry->device, index + 1, ownerNames[actualOwner], actualIndex);
-    } else {
-        cliPrintLinef("# %s %d: WARNING stream held by %s, not this UART -- expect IRQ-driven fallback",
-                      entry->device, index + 1, ownerNames[actualOwner]);
+        tfp_sprintf(idxSuffix, " %d", actualIndex);
     }
+    cliPrintLinef("# %s %d: CLAIMED BY %s%s", entry->device, index + 1, ownerNames[actualOwner], idxSuffix);
 }
 
 static void printDmaoptEntry(const dmaoptEntry_t *entry, int index) {
