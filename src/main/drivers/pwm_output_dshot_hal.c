@@ -234,6 +234,10 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     } else
 #endif
     {
+        if (!dmaAllocate(timerHardware->dmaIrqHandler, OWNER_MOTOR, RESOURCE_INDEX(motorIndex))) {
+            return;
+        }
+        dmaEnable(timerHardware->dmaIrqHandler);
         motor->timerDmaSource = timerDmaSource(timerHardware->channel);
         motor->timer->timerDmaSources &= ~motor->timerDmaSource;
     }
@@ -253,10 +257,6 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     } else
 #endif
     {
-        if (!dmaAllocate(timerHardware->dmaIrqHandler, OWNER_MOTOR, RESOURCE_INDEX(motorIndex))) {
-            return;
-        }
-        dmaEnable(timerHardware->dmaIrqHandler);
         dmaSetHandler(timerHardware->dmaIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
 #if defined(STM32H7)
         dma_init.PeriphRequest = timerHardware->dmaChannel;
