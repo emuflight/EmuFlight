@@ -1,7 +1,7 @@
 # CLI Parameters Reference
 
 > **Auto-generated** — do not edit manually.
-> Source: `src/main/interface/settings.c` | Generated: 2026-06-13 | Commit: `47a13a7155` | Firmware: `0.4.3` | MSP: `0.1.54`
+> Source: `src/main/interface/settings.c` | Generated: 2026-08-18 | Commit: `b50c475a7` | Firmware: `0.4.3` | MSP: `0.1.54`
 
 ---
 
@@ -36,6 +36,7 @@
 - [Arming Config](#arming-config)
 - [GPS Config](#gps-config)
 - [GPS Rescue](#gps-rescue)
+- [Position Config](#position-config)
 - [RC Controls Config](#rc-controls-config)
 - [PID Config](#pid-config)
 - [PID Profile](#pid-profile)
@@ -220,6 +221,19 @@
 | `blackbox_device` | uint8 | master | `NONE`, `SPIFLASH`, `SDCARD`, `SERIAL` |
 | `blackbox_record_acc` | uint8 | master | `OFF`, `ON` |
 | `blackbox_mode` | uint8 | master | `NORMAL`, `MOTOR_TEST`, `ALWAYS` |
+| `blackbox_disable_pids` | uint32 | master | bitflag |
+| `blackbox_disable_rc` | uint32 | master | bitflag |
+| `blackbox_disable_setpoint` | uint32 | master | bitflag |
+| `blackbox_disable_bat` | uint32 | master | bitflag |
+| `blackbox_disable_mag` | uint32 | master | bitflag |
+| `blackbox_disable_alt` | uint32 | master | bitflag |
+| `blackbox_disable_rssi` | uint32 | master | bitflag |
+| `blackbox_disable_gyro` | uint32 | master | bitflag |
+| `blackbox_disable_acc` | uint32 | master | bitflag |
+| `blackbox_disable_debug` | uint32 | master | bitflag |
+| `blackbox_disable_motors` | uint32 | master | bitflag |
+| `blackbox_disable_gps` | uint32 | master | bitflag |
+| `blackbox_disable_gyrounfilt` | uint32 | master | bitflag |
 
 ## Motor Config
 
@@ -446,6 +460,12 @@
 | `gps_rescue_throttle_hover` | uint16 | master | `1000` – `2000` |
 | `gps_rescue_sanity_checks` | uint8 | master | `RESCUE_SANITY_OFF`, `RESCUE_SANITY_ON`, `RESCUE_SANITY_FS_ONLY` |
 | `gps_rescue_min_sats` | uint8 | master | `0` – `50` |
+
+## Position Config
+
+| Parameter | Type | Scope | Range / Values |
+|-----------|------|-------|----------------|
+| `altitude_limit` | uint16 | master | `0` – `10000` |
 
 ## RC Controls Config
 
