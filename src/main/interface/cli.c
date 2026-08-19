@@ -3832,7 +3832,7 @@ static void printResource(uint8_t dumpMask) {
         }
         for (int index = 0; index < MAX_RESOURCE_INDEX(resourceTable[i].maxIndex); index++) {
             const ioTag_t ioTag = *(ioTag_t *)((const uint8_t *)currentConfig + resourceTable[i].stride * index + resourceTable[i].offset);
-            ioTag_t ioTagDefault = NULL;
+            ioTag_t ioTagDefault = 0;
             if (defaultConfig) {
                 ioTagDefault = *(ioTag_t *)((const uint8_t *)defaultConfig + resourceTable[i].stride * index + resourceTable[i].offset);
             }
@@ -4035,7 +4035,7 @@ static const char *dmaoptValueToString(dmaoptValue_t opt, char *buf) {
     return buf;
 }
 
-static const dmaoptEntry_t *findDmaoptEntry(const char *name) {
+STATIC_UNIT_TESTED const dmaoptEntry_t *findDmaoptEntry(const char *name) {
     for (unsigned i = 0; i < ARRAYLEN(dmaoptEntryTable); i++) {
         if (strcasecmp(name, dmaoptEntryTable[i].device) == 0) {
             return &dmaoptEntryTable[i];
@@ -4054,7 +4054,7 @@ static dmaoptValue_t *dmaoptAddr(const dmaoptEntry_t *entry, int index) {
 }
 
 // Surfaces serialUART()'s otherwise-silent IRQ-driven fallback via dmaAllocate()'s live ownership state.
-static void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int index, const dmaChannelSpec_t *dmaChannelSpec) {
+STATIC_UNIT_TESTED void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int index, const dmaChannelSpec_t *dmaChannelSpec) {
     const dmaIdentifier_e identifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaChannelSpec->ref);
     if (identifier == DMA_NONE) {
         // reqmap table points at a stream absent from dmaDescriptors[] -- a map bug, not a live contention case.
