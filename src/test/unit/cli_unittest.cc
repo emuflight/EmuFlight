@@ -33,6 +33,9 @@ extern "C" {
     #include "pg/pg_ids.h"
     #include "pg/rx.h"
     #include "drivers/buf_writer.h"
+    #include "drivers/dma.h"
+    #include "drivers/dma_reqmap.h"
+    #include "drivers/io_impl.h"
     #include "drivers/vtx_common.h"
     #include "fc/config.h"
     #include "fc/rc_adjustments.h"
@@ -59,6 +62,14 @@ extern "C" {
     void cliSet(char *cmdline);
     void cliGet(char *cmdline);
     void cliVtx(char *cmdline);
+
+    // dmaoptEntry_t stays opaque here -- its definition is private to cli.c; the test
+    // only ever forwards a pointer obtained from findDmaoptEntry() back into
+    // printDmaoptClaimStatus(), never dereferences a field directly.
+    struct dmaoptEntry_s;
+    typedef struct dmaoptEntry_s dmaoptEntry_t;
+    const dmaoptEntry_t *findDmaoptEntry(const char *name);
+    void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int index, const dmaChannelSpec_t *dmaChannelSpec);
 
     static const int UNIT_TEST_DATA_LENGTH = 3;
 
@@ -219,8 +230,112 @@ TEST(CLIUnittest, TestCliVtxInvalidArgumentCount)
 
 #pragma GCC diagnostic pop
 
+// dmaGetIdentifier/dmaGetOwner/dmaGetResourceIndex are stubbed (below) as test-controllable
+// fakes; these globals select what each call returns for the current test case.
+static dmaIdentifier_e fakeDmaIdentifier;
+static resourceOwner_e fakeDmaOwner;
+static uint8_t fakeDmaResourceIndex;
+
+class DmaoptClaimStatusTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        cliMode = 1;
+        fakeDmaIdentifier = static_cast<dmaIdentifier_e>(1); // any identifier != DMA_NONE
+        fakeDmaOwner = OWNER_FREE;
+        fakeDmaResourceIndex = 0;
+        entry = findDmaoptEntry("UART_TX");
+    }
+
+    const dmaoptEntry_t *entry;
+    dmaChannelSpec_t spec = {};
+};
+
+TEST_F(DmaoptClaimStatusTest, FindsUartTxEntry)
+{
+    ASSERT_NE(nullptr, entry);
+}
+
+TEST_F(DmaoptClaimStatusTest, OwnClaimPrintsNothing)
+{
+    fakeDmaOwner = OWNER_SERIAL_TX;
+    fakeDmaResourceIndex = RESOURCE_INDEX(0);
+
+    testing::internal::CaptureStdout();
+    printDmaoptClaimStatus(entry, 0, &spec);
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(output.empty());
+}
+
+TEST_F(DmaoptClaimStatusTest, FreeOwnerPrintsNothing)
+{
+    fakeDmaOwner = OWNER_FREE;
+
+    testing::internal::CaptureStdout();
+    printDmaoptClaimStatus(entry, 0, &spec);
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(output.empty());
+}
+
+TEST_F(DmaoptClaimStatusTest, ConflictWithResourceIndexPrintsIndexSuffix)
+{
+    fakeDmaOwner = OWNER_SPI_SDI;
+    fakeDmaResourceIndex = 3;
+
+    testing::internal::CaptureStdout();
+    printDmaoptClaimStatus(entry, 0, &spec);
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    EXPECT_NE(std::string::npos, output.find("# UART_TX 1: CLAIMED BY SPI_SDI 3"));
+}
+
+TEST_F(DmaoptClaimStatusTest, ConflictWithoutResourceIndexOmitsSuffix)
+{
+    fakeDmaOwner = OWNER_ADC;
+    fakeDmaResourceIndex = 0;
+
+    testing::internal::CaptureStdout();
+    printDmaoptClaimStatus(entry, 0, &spec);
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    EXPECT_NE(std::string::npos, output.find("# UART_TX 1: CLAIMED BY ADC\r\n"));
+}
+
+TEST_F(DmaoptClaimStatusTest, InvalidIdentifierPrintsMapError)
+{
+    fakeDmaIdentifier = DMA_NONE;
+
+    testing::internal::CaptureStdout();
+    printDmaoptClaimStatus(entry, 0, &spec);
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    EXPECT_NE(std::string::npos, output.find("# UART_TX 1: DMA MAP ERROR"));
+}
+
 // STUBS
 extern "C" {
+
+// USE_RESOURCE_MGMT (enabled for this test to reach cliDma/dmaopt) also compiles
+// cliResource()/printResource(), which this test suite does not exercise -- link-only stubs.
+ioRec_t ioRecs[1];
+int IO_GPIOPortIdx(IO_t) { return 0; }
+int IO_GPIOPinIdx(IO_t) { return 0; }
+IO_t IOGetByTag(ioTag_t) { return NULL; }
+ioRec_t *IO_Rec(IO_t) { return &ioRecs[0]; }
+
+int tfp_sprintf(char *s, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    const int ret = vsnprintf(s, 16, fmt, args);
+    va_end(args);
+    return ret;
+}
+
+dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef *) { return fakeDmaIdentifier; }
+resourceOwner_e dmaGetOwner(dmaIdentifier_e) { return fakeDmaOwner; }
+uint8_t dmaGetResourceIndex(dmaIdentifier_e) { return fakeDmaResourceIndex; }
+const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e, uint8_t, int8_t) { return NULL; }
 
 float motor_disarmed[MAX_SUPPORTED_MOTORS];
 
