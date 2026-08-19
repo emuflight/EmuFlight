@@ -42,6 +42,16 @@ motorDmaOutput_t *getMotorDmaOutput(uint8_t index) {
     return &dmaMotors[index];
 }
 
+// configureTimer stays true for every consecutive channel of the same shared timer
+// (see comment in pwmDshotMotorHardwareConfig), so a burst-mode TIM_UP claim is
+// attempted once per channel; a stream already held by this same owner must be re-claimable.
+static bool dshotDmaClaim(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex) {
+    if (dmaGetOwner(identifier) == owner && dmaGetResourceIndex(identifier) == resourceIndex) {
+        return true;
+    }
+    return dmaAllocate(identifier, owner, resourceIndex);
+}
+
 uint8_t getTimerIndex(TIM_TypeDef *timer) {
     for (int i = 0; i < dmaMotorTimerCount; i++) {
         if (dmaMotorTimers[i].timer == timer) {
@@ -140,6 +150,20 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     if (dmaRef == NULL) {
         return;
     }
+#ifdef USE_DSHOT_DMAR
+    if (useBurstDshot) {
+        if (!dshotDmaClaim(timerHardware->dmaTimUPIrqHandler, OWNER_TIMUP, timerGetTIMNumber(timerHardware->tim))) {
+            return;
+        }
+        dmaEnable(timerHardware->dmaTimUPIrqHandler);
+    } else
+#endif
+    {
+        if (!dmaAllocate(timerHardware->dmaIrqHandler, OWNER_MOTOR, RESOURCE_INDEX(motorIndex))) {
+            return;
+        }
+        dmaEnable(timerHardware->dmaIrqHandler);
+    }
     LL_TIM_OC_InitTypeDef oc_init;
     LL_DMA_InitTypeDef dma_init;
     motorDmaOutput_t * const motor = &dmaMotors[motorIndex];
@@ -147,6 +171,9 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     TIM_TypeDef *timer = timerHardware->tim;
     const IO_t motorIO = IOGetByTag(timerHardware->tag);
     const uint8_t timerIndex = getTimerIndex(timer);
+    // configureTimer is true for every channel of a timer processed consecutively,
+    // not just the first -- dmaMotorTimerCount only advances when a different, new
+    // timer is registered in between (see getTimerIndex above).
     const bool configureTimer = (timerIndex == dmaMotorTimerCount - 1);
 #if defined(STM32H7)
     // H7 GPIO driver is significantly stronger than F4/F7; VERY_HIGH causes ringing on DShot lines
@@ -224,7 +251,6 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     LL_DMA_StructInit(&dma_init);
 #ifdef USE_DSHOT_DMAR
     if (useBurstDshot) {
-        dmaInit(timerHardware->dmaTimUPIrqHandler, OWNER_TIMUP, timerGetTIMNumber(timerHardware->tim));
         dmaSetHandler(timerHardware->dmaTimUPIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
 #if defined(STM32H7)
         dma_init.PeriphRequest = timerHardware->dmaTimUPChannel;
@@ -237,7 +263,6 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     } else
 #endif
     {
-        dmaInit(timerHardware->dmaIrqHandler, OWNER_MOTOR, RESOURCE_INDEX(motorIndex));
         dmaSetHandler(timerHardware->dmaIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
 #if defined(STM32H7)
         dma_init.PeriphRequest = timerHardware->dmaChannel;
