@@ -264,8 +264,7 @@ TEST_F(DmaoptClaimStatusTest, OwnClaimPrintsNothing)
     printDmaoptClaimStatus(entry, 0, &spec);
     const std::string output = testing::internal::GetCapturedStdout();
 
-    EXPECT_EQ(std::string::npos, output.find("CLAIMED BY"));
-    EXPECT_EQ(std::string::npos, output.find("DMA MAP ERROR"));
+    EXPECT_TRUE(output.empty());
 }
 
 TEST_F(DmaoptClaimStatusTest, FreeOwnerPrintsNothing)
@@ -276,8 +275,7 @@ TEST_F(DmaoptClaimStatusTest, FreeOwnerPrintsNothing)
     printDmaoptClaimStatus(entry, 0, &spec);
     const std::string output = testing::internal::GetCapturedStdout();
 
-    EXPECT_EQ(std::string::npos, output.find("CLAIMED BY"));
-    EXPECT_EQ(std::string::npos, output.find("DMA MAP ERROR"));
+    EXPECT_TRUE(output.empty());
 }
 
 TEST_F(DmaoptClaimStatusTest, ConflictWithResourceIndexPrintsIndexSuffix)
