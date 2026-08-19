@@ -4053,6 +4053,31 @@ static dmaoptValue_t *dmaoptAddr(const dmaoptEntry_t *entry, int index) {
     return (dmaoptValue_t *)(base + entry->stride * index + entry->offset);
 }
 
+// Surfaces serialUART()'s otherwise-silent IRQ-driven fallback via dmaAllocate()'s live ownership state.
+static void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int index, const dmaChannelSpec_t *dmaChannelSpec) {
+    const dmaIdentifier_e identifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaChannelSpec->ref);
+    if (identifier == DMA_NONE) {
+        // reqmap table points at a stream absent from dmaDescriptors[] -- a map bug, not a live contention case.
+        cliPrintLinef("# %s %d: DMA MAP ERROR", entry->device, index + 1);
+        return;
+    }
+    const resourceOwner_e expectedOwner = (entry->peripheral == DMA_PERIPH_UART_TX) ? OWNER_SERIAL_TX : OWNER_SERIAL_RX;
+    const resourceOwner_e actualOwner = dmaGetOwner(identifier);
+    const uint8_t actualIndex = dmaGetResourceIndex(identifier);
+    if (actualOwner == expectedOwner && actualIndex == RESOURCE_INDEX(index)) {
+        return;
+    }
+    // OWNER_FREE is indistinguishable from "this UART not opened this boot" (unassigned serial function) -- skip to avoid false positives on every unused UART slot.
+    if (actualOwner == OWNER_FREE) {
+        return;
+    }
+    char idxSuffix[DMA_OPT_STRING_BUFSIZE] = "";
+    if (actualIndex > 0) {
+        tfp_sprintf(idxSuffix, " %d", actualIndex);
+    }
+    cliPrintLinef("# %s %d: CLAIMED BY %s%s", entry->device, index + 1, ownerNames[actualOwner], idxSuffix);
+}
+
 static void printDmaoptEntry(const dmaoptEntry_t *entry, int index) {
     const dmaoptValue_t *addr = dmaoptAddr(entry, index);
     if (!addr) {
@@ -4066,6 +4091,7 @@ static void printDmaoptEntry(const dmaoptEntry_t *entry, int index) {
         if (dmaChannelSpec) {
             cliPrintLinef("# %s %d: " DMASPEC_FORMAT_STRING, entry->device, index + 1,
                           DMA_CODE_CONTROLLER(dmaChannelSpec->code), DMA_CODE_STREAM(dmaChannelSpec->code), DMA_CODE_CHANNEL(dmaChannelSpec->code));
+            printDmaoptClaimStatus(entry, index, dmaChannelSpec);
         }
     } else {
         cliPrintLinef("dma %s %d NONE", entry->device, index + 1);
@@ -4161,6 +4187,13 @@ static void cliDmaopt(char *cmdline) {
         cliPrintLinef("# dma %s %d: changed from %s to %s", entry->device, index + 1, orgvalString, optvalString);
     } else {
         cliPrintLinef("# dma %s %d: no change: %s", entry->device, index + 1, orgvalString);
+    }
+
+    if (optval != DMA_OPT_UNUSED) {
+        const dmaChannelSpec_t *dmaChannelSpec = dmaGetChannelSpecByPeripheral(entry->peripheral, index, optval);
+        if (dmaChannelSpec) {
+            printDmaoptClaimStatus(entry, index, dmaChannelSpec);
+        }
     }
 }
 #endif // STM32F4 || STM32F7 || STM32H7
