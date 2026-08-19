@@ -109,6 +109,7 @@ cli_unittest_SRC := \
 		$(USER_DIR)/interface/cli.c \
 		$(USER_DIR)/config/feature.c \
 		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/drivers/resource.c \
                 $(USER_DIR)/common/typeconversion.c
 
 cli_unittest_DEFINES := \
@@ -117,6 +118,8 @@ cli_unittest_DEFINES := \
 		USE_VTX_SMARTAUDIO \
 		USE_OSD \
 		USE_CLI \
+		USE_RESOURCE_MGMT \
+		STM32F4 \
 		SystemCoreClock=1000000
 
 beeper_dshot_beacon_unittest_SRC := \
