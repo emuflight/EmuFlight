@@ -152,7 +152,7 @@ static int8_t STORAGE_Init (uint8_t lun) {
 #endif
     UNUSED(lun);
     LED0_OFF;
-    SD_Initialize_LL(SDIO_DMA);
+    if (!SD_Initialize_LL(SDIO_DMA)) return 1;
     if (SD_Init() != 0) return 1;
     LED0_ON;
     return 0;
