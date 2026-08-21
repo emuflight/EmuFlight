@@ -126,9 +126,9 @@ struct {
     uint16_t        pagesPerSector;
     uint16_t        pageSize;
 } w25nFlashConfig[] = {
-    // Winbond W25N01GV
+    // Winbond W25N01GV: 1,024 blocks x 64 pages x 2,048-byte pages (datasheet General Descriptions)
     // Datasheet: https://www.winbond.com/resource-files/W25N01GV%20Rev%20R%20070323.pdf
-    { 0xEFAA21, 2048, 64, 1024 },
+    { 0xEFAA21, 1024, 64, 2048 },
     // Winbond W25N02KV
     // Datasheet: https://www.winbond.com/resource-files/W25N02KVxxIRU_Datasheet_RevM.pdf
     { 0xEFAA22, 2048, 64, 2048 },
