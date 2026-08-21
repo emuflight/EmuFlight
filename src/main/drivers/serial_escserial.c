@@ -565,7 +565,10 @@ static serialPort_t *openEscSerial(escSerialPortIndex_e portIndex, serialReceive
 #endif
     }
     escSerial->mode = mode;
-    escSerial->txTimerHardware = timerGetByTag(escSerialConfig()->ioTag);
+    escSerial->txTimerHardware = timerAllocate(escSerialConfig()->ioTag, OWNER_MOTOR, 0);
+    if (escSerial->txTimerHardware == NULL) {
+        return NULL;
+    }
 #ifdef USE_HAL_DRIVER
     escSerial->txTimerHandle = timerFindTimerHandle(escSerial->txTimerHardware->tim);
 #endif
