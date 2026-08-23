@@ -47,6 +47,16 @@ motorDmaOutput_t *getMotorDmaOutput(uint8_t index) {
     return &dmaMotors[index];
 }
 
+// configureTimer is true for every channel of a shared burst-DMA timer, not just the
+// first, so this claim is attempted once per channel; a stream already held by this
+// same owner must be re-claimable.
+static bool dshotDmaClaim(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex) {
+    if (dmaGetOwner(identifier) == owner && dmaGetResourceIndex(identifier) == resourceIndex) {
+        return true;
+    }
+    return dmaAllocate(identifier, owner, resourceIndex);
+}
+
 uint8_t getTimerIndex(TIM_TypeDef *timer) {
     for (int i = 0; i < dmaMotorTimerCount; i++) {
         if (dmaMotorTimers[i].timer == timer) {
@@ -146,6 +156,20 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     if (dmaRef == NULL) {
         return;
     }
+#ifdef USE_DSHOT_DMAR
+    if (useBurstDshot) {
+        if (!dshotDmaClaim(timerHardware->dmaTimUPIrqHandler, OWNER_TIMUP, timerGetTIMNumber(timerHardware->tim))) {
+            return;
+        }
+        dmaEnable(timerHardware->dmaTimUPIrqHandler);
+    } else
+#endif
+    {
+        if (!dmaAllocate(timerHardware->dmaIrqHandler, OWNER_MOTOR, RESOURCE_INDEX(motorIndex))) {
+            return;
+        }
+        dmaEnable(timerHardware->dmaIrqHandler);
+    }
     TIM_OCInitTypeDef TIM_OCInitStructure;
     DMA_InitTypeDef DMA_InitStructure;
     motorDmaOutput_t * const motor = &dmaMotors[motorIndex];
@@ -210,7 +234,6 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     DMA_StructInit(&DMA_InitStructure);
 #ifdef USE_DSHOT_DMAR
     if (useBurstDshot) {
-        dmaInit(timerHardware->dmaTimUPIrqHandler, OWNER_TIMUP, timerGetTIMNumber(timerHardware->tim));
         dmaSetHandler(timerHardware->dmaTimUPIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
         DMA_InitStructure.DMA_Channel = timerHardware->dmaTimUPChannel;
         DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)motor->timer->dmaBurstBuffer;
@@ -230,7 +253,6 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     } else
 #endif
     {
-        dmaInit(timerHardware->dmaIrqHandler, OWNER_MOTOR, RESOURCE_INDEX(motorIndex));
         dmaSetHandler(timerHardware->dmaIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
 #if defined(STM32F4)
         DMA_InitStructure.DMA_Channel = timerHardware->dmaChannel;
