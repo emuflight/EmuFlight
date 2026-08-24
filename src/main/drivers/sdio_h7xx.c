@@ -734,9 +734,10 @@ bool SD_IsDetected(void) {
     return status;
 }
 
-void SD_Initialize_LL(DMA_Stream_TypeDef *dma) {
+bool SD_Initialize_LL(DMA_Stream_TypeDef *dma) {
     UNUSED(dma);
     // H7 uses SDMMC internal DMA (IDMA) — no external DMA stream configuration needed.
+    return true;
 }
 
 void SDMMC1_IRQHandler(void)
