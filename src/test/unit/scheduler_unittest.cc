@@ -51,7 +51,10 @@ extern "C" {
     void taskMainPidLoop(timeUs_t) { simulatedTime += TEST_PID_LOOP_TIME; }
     void taskUpdateAccelerometer(timeUs_t) { simulatedTime += TEST_UPDATE_ACCEL_TIME; }
     void taskHandleSerial(timeUs_t) {
-        simulatedTime += TEST_HANDLE_SERIAL_TIME;
+        // Ignored run must differ from baseline, or a regression that drops the
+        // gate entirely would still pass by coincidence (max/movingSum would
+        // equal the baseline value either way).
+        simulatedTime += triggerIgnoreTaskExecTime ? TEST_HANDLE_SERIAL_TIME * 2 : TEST_HANDLE_SERIAL_TIME;
         if (triggerIgnoreTaskExecTime) {
             // simulates serial_usb_vcp.c flagging a CDC-backpressure stall mid-task
             schedulerIgnoreTaskExecTime();
@@ -523,7 +526,7 @@ TEST(SchedulerUnittest, TestIgnoredExecutionTimeExcludedFromMovingSumAndMax)
     EXPECT_EQ(&cfTasks[TASK_SERIAL], unittest_scheduler_selectedTask);
     EXPECT_EQ(movingSumBaseline, cfTasks[TASK_SERIAL].movingSumExecutionTime);
     EXPECT_EQ(maxBaseline, cfTasks[TASK_SERIAL].maxExecutionTime);
-    EXPECT_EQ(totalBaseline + TEST_HANDLE_SERIAL_TIME, cfTasks[TASK_SERIAL].totalExecutionTime);
+    EXPECT_EQ(totalBaseline + TEST_HANDLE_SERIAL_TIME * 2, cfTasks[TASK_SERIAL].totalExecutionTime);
 
     triggerIgnoreTaskExecTime = false;
 }
