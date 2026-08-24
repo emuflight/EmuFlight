@@ -348,6 +348,10 @@ serial_uart_dma_claim_unittest_DEFINES := \
 		STM32F4
 
 
+sdcard_dma_claim_unittest_DEFINES := \
+		STM32F4
+
+
 flight_failsafe_unittest_SRC := \
 		$(USER_DIR)/common/bitarray.c \
 		$(USER_DIR)/fc/rc_modes.c \
