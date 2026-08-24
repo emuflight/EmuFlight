@@ -473,6 +473,15 @@ static bool sdcard_checkInitDone(void) {
     return status == 0x00;
 }
 
+// sdcard_init() can be called from both boot init and the USB MSC passthrough path -- a
+// stream already held by this same owner must be re-claimable.
+static bool sdcardDmaClaim(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex) {
+    if (dmaGetOwner(identifier) == owner && dmaGetResourceIndex(identifier) == resourceIndex) {
+        return true;
+    }
+    return dmaAllocate(identifier, owner, resourceIndex);
+}
+
 /**
  * Begin the initialization process for the SD card. This must be called first before any other sdcard_ routine.
  */
@@ -489,11 +498,17 @@ void sdcard_init(const sdcardConfig_t *config) {
     sdcard.useDMAForTx = config->useDma;
 #endif
     if (sdcard.useDMAForTx) {
+        if (sdcardDmaClaim(config->dmaIdentifier, OWNER_SDCARD, 0)) {
 #if defined(STM32F4) || defined(STM32F7)
-        sdcard.dmaChannel = config->dmaChannel;
+            sdcard.dmaChannel = config->dmaChannel;
 #endif
-        sdcard.dma = dmaGetDescriptorByIdentifier(config->dmaIdentifier);
-        dmaInit(config->dmaIdentifier, OWNER_SDCARD, 0);
+            sdcard.dma = dmaGetDescriptorByIdentifier(config->dmaIdentifier);
+            dmaEnable(config->dmaIdentifier);
+        } else {
+            // Stream already owned by another peripheral -- fall back to polled SPI
+            // rather than losing the card (and blackbox logging) entirely.
+            sdcard.useDMAForTx = false;
+        }
     }
     if (config->chipSelectTag) {
         sdcard.chipSelectPin = IOGetByTag(config->chipSelectTag);
