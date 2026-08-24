@@ -286,10 +286,14 @@ void sdcard_init(const sdcardConfig_t *config) {
         sdcard.useCache = 0;
     }
 #if defined(STM32H7)
-    SD_Initialize_LL(NULL);
+    if (!SD_Initialize_LL(NULL)) {
 #else
-    SD_Initialize_LL(dmaGetRefByIdentifier(sdcard.dma));
+    if (!SD_Initialize_LL(dmaGetRefByIdentifier(sdcard.dma))) {
 #endif
+        sdcard.state = SDCARD_STATE_NOT_PRESENT;
+        sdcard.failureCount++;
+        return;
+    }
     if (SD_IsDetected()) {
         if (SD_Init() != 0) {
             sdcard.state = SDCARD_STATE_NOT_PRESENT;
