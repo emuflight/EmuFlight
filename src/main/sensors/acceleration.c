@@ -141,6 +141,7 @@ void pgResetFn_accelerometerConfig(accelerometerConfig_t *instance) {
 }
 
 bool accDetect(accDev_t *dev, accelerationSensor_e accHardwareToUse) {
+    UNUSED(dev); // unused when no USE_ACC_* chip is compiled in (e.g. a bare GENERIC_TARGET)
     accelerationSensor_e accHardware = ACC_NONE;
 #ifdef USE_ACC_ADXL345
     drv_adxl345_config_t acc_params;

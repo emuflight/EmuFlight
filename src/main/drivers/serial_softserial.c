@@ -203,8 +203,9 @@ serialPort_t *openSoftSerial(softSerialPortIndex_e portIndex, serialReceiveCallb
     int pinCfgIndex = portIndex + RESOURCE_SOFT_OFFSET;
     ioTag_t tagRx = serialPinConfig()->ioTagRx[pinCfgIndex];
     ioTag_t tagTx = serialPinConfig()->ioTagTx[pinCfgIndex];
-    const timerHardware_t *timerRx = timerGetByTag(tagRx);
-    const timerHardware_t *timerTx = timerGetByTag(tagTx);
+    const timerHardware_t *timerTx = timerAllocate(tagTx, OWNER_SERIAL_TX, RESOURCE_INDEX(portIndex + RESOURCE_SOFT_OFFSET));
+    // Same tag claimed twice under different owners would falsely conflict in bidir/duplex mode.
+    const timerHardware_t *timerRx = (tagRx == tagTx) ? timerTx : timerAllocate(tagRx, OWNER_SERIAL_RX, RESOURCE_INDEX(portIndex + RESOURCE_SOFT_OFFSET));
     IO_t rxIO = IOGetByTag(tagRx);
     IO_t txIO = IOGetByTag(tagTx);
     if (options & SERIAL_BIDIR) {

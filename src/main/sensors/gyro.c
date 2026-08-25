@@ -33,6 +33,7 @@
 #include "common/axis.h"
 #include "common/maths.h"
 #include "common/filter.h"
+#include "common/utils.h"
 
 #include "config/feature.h"
 
@@ -391,6 +392,7 @@ const mpuDetectionResult_t *gyroMpuDetectionResult(void) {
 }
 
 STATIC_UNIT_TESTED gyroSensor_e gyroDetect(gyroDev_t *dev) {
+    UNUSED(dev); // unused when no USE_*_GYRO_* chip is compiled in (e.g. a bare GENERIC_TARGET)
     gyroSensor_e gyroHardware = GYRO_DEFAULT;
     switch (gyroHardware) {
     case GYRO_DEFAULT:
