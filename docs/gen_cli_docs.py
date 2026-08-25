@@ -583,7 +583,7 @@ def _format_cmd_args(args):
     if not args:
         return ''
     flat = ' '.join(l.strip() for l in args.splitlines() if l.strip())
-    return f'`{flat.replace("|", "&#124;")}`'
+    return f'`{flat.replace("|", "\\|")}`'
 
 
 # ---------------------------------------------------------------------------

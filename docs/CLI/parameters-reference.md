@@ -1,7 +1,7 @@
 # CLI Reference
 
 > **Auto-generated** — do not edit manually.
-> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-08-25 | Commit: `e3b00c249` | Firmware: `0.4.3` | MSP: `0.1.54`
+> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-08-25 | Commit: `49081206a` | Firmware: `0.4.3` | MSP: `0.1.54`
 
 Settings parameters (`valueTable[]`) and CLI commands that persist config through
 their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered here.
@@ -861,14 +861,14 @@ handler instead of `valueTable[]`.
 | `adjrange` | configure adjustment ranges |  |  |
 | `aux` | configure modes | `<index> <mode> <aux> <start> <end> <logic>` |  |
 | `color` | configure colors |  | `USE_LED_STRIP` |
-| `dma` | list dma utilisation, or get/set/list a peripheral's dmaopt | `[show] &#124; list &#124; <device> <index> [<option>&#124;none&#124;list]` | `USE_RESOURCE_MGMT` |
+| `dma` | list dma utilisation, or get/set/list a peripheral's dmaopt | `[show] \| list \| <device> <index> [<option>\|none\|list]` | `USE_RESOURCE_MGMT` |
 | `led` | configure leds |  | `USE_LED_STRIP` |
 | `mmix` | custom motor mixer |  |  |
 | `mode_color` | configure mode and special colors |  | `USE_LED_STRIP` |
 | `rxfail` | show/set rx failsafe settings |  |  |
 | `rxrange` | configure rx channel ranges |  |  |
 | `serial` | configure serial ports |  |  |
-| `smix` | servo mixer | `<rule> <servo> <source> <rate> <speed> <min> <max> <box> reset load <mixer> reverse <servo> <source> r&#124;n` | `USE_SERVOS` |
+| `smix` | servo mixer | `<rule> <servo> <source> <rate> <speed> <min> <max> <box> reset load <mixer> reverse <servo> <source> r\|n` | `USE_SERVOS` |
 | `vtx` | vtx channels on switch | `<index> <aux_channel> <vtx_band> <vtx_channel> <vtx_power> <start_range> <end_range>` | `USE_VTX_CONTROL` |
 
 ---
