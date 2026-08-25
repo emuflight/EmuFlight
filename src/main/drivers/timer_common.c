@@ -54,6 +54,37 @@ const timerHardware_t *timerGetByTag(ioTag_t ioTag) {
     return NULL;
 }
 
+#ifdef USE_TIMER_MGMT
+static resourceOwner_e timerOwners[MAX_TIMER_PINMAP_COUNT];
+
+const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8_t resourceIndex) {
+    UNUSED(resourceIndex); // tracked by BF's resourceOwner_t for its timerGetOwner() accessor; no equivalent consumer exists in EF yet
+    if (!ioTag) {
+        return NULL;
+    }
+    for (unsigned i = 0; i < MAX_TIMER_PINMAP_COUNT; i++) {
+        if (timerIOConfig(i)->ioTag == ioTag) {
+            if (timerOwners[i]) {
+                return NULL;
+            }
+            const timerHardware_t *timer = timerGetByTag(ioTag);
+            if (!timer) {
+                return NULL;
+            }
+            timerOwners[i] = owner;
+            return timer;
+        }
+    }
+    return NULL;
+}
+#else
+const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8_t resourceIndex) {
+    UNUSED(owner);
+    UNUSED(resourceIndex);
+    return timerGetByTag(ioTag);
+}
+#endif
+
 ioTag_t timerioTagGetByUsage(timerUsageFlag_e usageFlag, uint8_t index) {
     uint8_t currentIndex = 0;
     for (int i = 0; i < (int)USABLE_TIMER_CHANNEL_COUNT; i++) {

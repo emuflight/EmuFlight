@@ -273,7 +273,7 @@ void motorDevInit(const motorDevConfig_t *motorConfig, uint16_t idlePulse, uint8
     }
     for (int motorIndex = 0; motorIndex < MAX_SUPPORTED_MOTORS && motorIndex < motorCount; motorIndex++) {
         const ioTag_t tag = motorConfig->ioTags[motorIndex];
-        const timerHardware_t *timerHardware = timerGetByTag(tag);
+        const timerHardware_t *timerHardware = timerAllocate(tag, OWNER_MOTOR, RESOURCE_INDEX(motorIndex));
         if (timerHardware == NULL) {
             /* not enough motors initialised for the mixer or a break in the motors */
             pwmWrite = &pwmWriteUnused;
@@ -492,7 +492,7 @@ void servoDevInit(const servoDevConfig_t *servoConfig) {
         }
         servos[servoIndex].io = IOGetByTag(tag);
         IOInit(servos[servoIndex].io, OWNER_SERVO, RESOURCE_INDEX(servoIndex));
-        const timerHardware_t *timer = timerGetByTag(tag);
+        const timerHardware_t *timer = timerAllocate(tag, OWNER_SERVO, RESOURCE_INDEX(servoIndex));
         if (timer == NULL) {
             /* flag failure and disable ability to arm */
             break;
@@ -524,7 +524,7 @@ void pwmToggleBeeper(void) {
 }
 
 void beeperPwmInit(const ioTag_t tag, uint16_t frequency) {
-    const timerHardware_t *timer = timerGetByTag(tag);
+    const timerHardware_t *timer = timerAllocate(tag, OWNER_BEEPER, 0);
     IO_t beeperIO = IOGetByTag(tag);
     if (beeperIO && timer) {
         beeperPwm.io = beeperIO;
