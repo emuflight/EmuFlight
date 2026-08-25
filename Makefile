@@ -304,8 +304,21 @@ CLEAN_ARTIFACTS += $(TARGET_HEX)
 CLEAN_ARTIFACTS += $(TARGET_ELF) $(TARGET_OBJS) $(TARGET_MAP)
 CLEAN_ARTIFACTS += $(TARGET_LST)
 
-# Rebuild version.o whenever any source changes so the embedded timestamp stays current
-$(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC)
+# Rebuild version.o whenever any source changes, or REVISION itself changes (e.g. a dirty-tree
+# build followed by a clean-tree build with no source diff) so REVISION never goes stale in the
+# embedded firmware string. REVISION_STAMP's mtime only advances when its content actually
+# changes, so a same-REVISION incremental build still skips the recompile. check_revision_stamp
+# is phony so the recipe always runs when REVISION_STAMP is pulled in as a prerequisite, but only
+# then -- non-build goals like 'make help' never touch it.
+REVISION_STAMP  := $(OBJECT_DIR)/$(TARGET)/build/.revision_stamp
+$(OBJECT_DIR)/$(TARGET)/build/version.o : $(SRC) $(REVISION_STAMP)
+
+$(REVISION_STAMP): check_revision_stamp
+	$(V1) mkdir -p $(dir $@)
+	$(V1) [ "$$(cat $@ 2>/dev/null)" = "$(REVISION)" ] || echo "$(REVISION)" > $@
+
+.PHONY: check_revision_stamp
+check_revision_stamp:
 
 # All known non-board phony targets.  Used as the single source of truth
 # for both .PHONY and _SUMMARY_SKIP_GOALS — add new phony targets here only.

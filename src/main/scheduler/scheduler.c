@@ -344,9 +344,9 @@ FAST_CODE GCC_OPTIMIZE_SIZE void scheduler(void) {
             const timeUs_t currentTimeBeforeTaskCall = micros();
             selectedTask->taskFunc(currentTimeBeforeTaskCall);
             const timeUs_t taskExecutionTime = micros() - currentTimeBeforeTaskCall;
-            selectedTask->movingSumExecutionTime += taskExecutionTime - selectedTask->movingSumExecutionTime / MOVING_SUM_COUNT;
             selectedTask->totalExecutionTime += taskExecutionTime;   // time consumed by scheduler + task
             if (!ignoreCurrentTaskExecTime) {
+                selectedTask->movingSumExecutionTime += taskExecutionTime - selectedTask->movingSumExecutionTime / MOVING_SUM_COUNT;
                 selectedTask->maxExecutionTime = MAX(selectedTask->maxExecutionTime, taskExecutionTime);
             }
         } else {
