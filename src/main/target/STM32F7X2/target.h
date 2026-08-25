@@ -30,6 +30,11 @@
 
 #define USE_BEEPER
 
+// No IMU/gyro selected: this file carries no board-specific sensor wiring, and
+// EF has no CLI/resource path to add one at runtime (no OWNER_MPU_CS/OWNER_MPU_EXTI
+// resourceTable entries). To use this target with a real board's gyro, add its
+// USE_*_SPI_*/USE_*_I2C_* chip macro plus the matching *_CS_PIN/*_SPI_BUS/*_EXTI_PIN
+// (or GYRO_1_* equivalents) here, matching that board's actual wiring.
 #define USE_EXTI
 
 #define USE_MAG
