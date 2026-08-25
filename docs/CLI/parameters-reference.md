@@ -1,7 +1,7 @@
 # CLI Reference
 
 > **Auto-generated** — do not edit manually.
-> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-08-25 | Commit: `49081206a` | Firmware: `0.4.3` | MSP: `0.1.54`
+> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-08-25 | Commit: `d3864d8bd` | Firmware: `0.4.3` | MSP: `0.1.54`
 
 Settings parameters (`valueTable[]`) and CLI commands that persist config through
 their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered here.

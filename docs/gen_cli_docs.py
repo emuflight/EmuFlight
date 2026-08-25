@@ -582,8 +582,9 @@ def generate_markdown(entries, table_map, settings_c_path, cmd_entries, cli_c_pa
 def _format_cmd_args(args):
     if not args:
         return ''
-    flat = ' '.join(l.strip() for l in args.splitlines() if l.strip())
-    return f'`{flat.replace("|", "\\|")}`'
+    flat = ' '.join(line.strip() for line in args.splitlines() if line.strip())
+    escaped = flat.replace('|', '\\|')
+    return f'`{escaped}`'
 
 
 # ---------------------------------------------------------------------------
