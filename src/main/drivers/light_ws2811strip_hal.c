@@ -50,7 +50,10 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag) {
     if (!ioTag) {
         return;
     }
-    const timerHardware_t *timerHardware = timerGetByTag(ioTag);
+    const timerHardware_t *timerHardware = timerAllocate(ioTag, OWNER_LED_STRIP, 0);
+    if (timerHardware == NULL) {
+        return;
+    }
     TIM_TypeDef *timer = timerHardware->tim;
     timerChannel = timerHardware->channel;
     if (timerHardware->dmaRef == NULL || !dmaAllocate(timerHardware->dmaIrqHandler, OWNER_LED_STRIP, 0)) {

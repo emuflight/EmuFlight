@@ -24,6 +24,7 @@
 #include <stdint.h>
 
 #include "drivers/io_types.h"
+#include "drivers/resource.h"
 #include "rcc_types.h"
 #include "drivers/timer_def.h"
 
@@ -183,6 +184,7 @@ rccPeriphTag_t timerRCC(TIM_TypeDef *tim);
 uint8_t timerInputIrq(TIM_TypeDef *tim);
 
 const timerHardware_t *timerGetByTag(ioTag_t ioTag);
+const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8_t resourceIndex);
 ioTag_t timerioTagGetByUsage(timerUsageFlag_e usageFlag, uint8_t index);
 
 #if defined(USE_HAL_DRIVER)
