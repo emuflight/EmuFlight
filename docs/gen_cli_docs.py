@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 """
-gen_cli_docs.py — Generate docs/CLI/parameters-reference.md from settings.c
+gen_cli_docs.py — Generate the CLI reference docs under docs/CLI/
 
 Parses valueTable[], lookupTables[], and section comments from settings.c/h
-to produce a complete, always-current CLI parameter reference in Markdown.
+to produce docs/CLI/parameters-reference.md, and separately parses cmdTable[]
+in cli.c to produce docs/CLI/pg-commands-reference.md for commands that
+persist Parameter Group config through their own dedicated table/handler
+instead of valueTable[].
 
 No external dependencies (Python 3.6+ stdlib only).
 
 Usage (from repo root):
     python3 docs/gen_cli_docs.py
     python3 docs/gen_cli_docs.py --settings src/main/interface/settings.c
+    python3 docs/gen_cli_docs.py --cli src/main/interface/cli.c
     python3 docs/gen_cli_docs.py --output docs/CLI/parameters-reference.md
+    python3 docs/gen_cli_docs.py --commands-output docs/CLI/pg-commands-reference.md
 """
 
 import re
@@ -33,6 +38,15 @@ _ACRONYMS = {
     'OSD', 'PID', 'PWM', 'RC', 'RCDEVICE', 'RPM', 'RTC', 'RX', 'SDCARD', 'SDIO',
     'SPI', 'TX', 'USB', 'VCD', 'VTX',
 }
+
+# Commands whose settings persist through their own dedicated table + handler
+# resolving into PG storage (pgFind()), not through settings.c's valueTable[] --
+# invisible to the settings-based parser above. Names must match cmdTable[]
+# entries in cli.c exactly.
+PG_BACKED_COMMANDS = [
+    'adjrange', 'aux', 'color', 'dma', 'led', 'mmix',
+    'mode_color', 'rxfail', 'rxrange', 'serial', 'smix', 'vtx',
+]
 
 
 def pg_to_human(pg_name):
@@ -306,6 +320,125 @@ def _decode_config(flags_str, config_part):
 
 
 # ---------------------------------------------------------------------------
+# cmdTable[] parsing (CLI_COMMAND_DEF entries)
+# ---------------------------------------------------------------------------
+
+def _split_top_level_args(s):
+    """Split a CLI_COMMAND_DEF(...) argument list on commas outside quotes."""
+    fields = []
+    depth = 0
+    in_str = False
+    cur = ''
+    i = 0
+    while i < len(s):
+        c = s[i]
+        if in_str:
+            cur += c
+            if c == '\\' and i + 1 < len(s):
+                i += 1
+                cur += s[i]
+            elif c == '"':
+                in_str = False
+        elif c == '"':
+            in_str = True
+            cur += c
+        elif c == '(':
+            depth += 1
+            cur += c
+        elif c == ')':
+            depth -= 1
+            cur += c
+        elif c == ',' and depth == 0:
+            fields.append(cur.strip())
+            cur = ''
+        else:
+            cur += c
+        i += 1
+    if cur.strip():
+        fields.append(cur.strip())
+    return fields
+
+
+def _extract_c_string(field):
+    """Join adjacent string literals in a field; None for a bare NULL."""
+    if field.strip() == 'NULL':
+        return None
+    parts = re.findall(r'"((?:[^"\\]|\\.)*)"', field)
+    joined = ''.join(parts)
+    return joined.replace('\\r\\n', '\n').replace('\\t', '\t').replace('\\"', '"')
+
+
+def parse_cmd_table(c_text):
+    """Returns list of entry dicts (name, description, args, ifdef_conds) from cmdTable[]."""
+    start = c_text.find('const clicmd_t cmdTable[] = {')
+    if start == -1:
+        sys.exit("ERROR: cannot find 'const clicmd_t cmdTable[]' in cli.c")
+
+    end = c_text.find('\n};', start)
+    block = c_text[start: end if end != -1 else len(c_text)]
+
+    entries = []
+    ifdef_stack = []
+    lines = block.splitlines()
+    idx = 0
+    while idx < len(lines):
+        line = lines[idx].strip()
+
+        m = re.match(r'#ifdef\s+(\w+)', line)
+        if m:
+            ifdef_stack.append(m.group(1))
+            idx += 1
+            continue
+        m = re.match(r'#ifndef\s+(\w+)', line)
+        if m:
+            ifdef_stack.append('!' + m.group(1))
+            idx += 1
+            continue
+        if re.match(r'#if\s+', line):
+            ifdef_stack.append(line[3:].strip())
+            idx += 1
+            continue
+        if line.startswith('#endif'):
+            if ifdef_stack:
+                ifdef_stack.pop()
+            idx += 1
+            continue
+        if line.startswith('#else'):
+            if ifdef_stack:
+                top = ifdef_stack[-1]
+                ifdef_stack[-1] = top[1:] if top.startswith('!') else ('!' + top)
+            idx += 1
+            continue
+        if re.match(r'#elif\s', line):
+            if ifdef_stack:
+                ifdef_stack.pop()
+            ifdef_stack.append(line[5:].strip())
+            idx += 1
+            continue
+
+        if line.startswith('CLI_COMMAND_DEF('):
+            text = line
+            depth = text.count('(') - text.count(')')
+            while depth > 0 and idx + 1 < len(lines):
+                idx += 1
+                text += ' ' + lines[idx].strip()
+                depth += lines[idx].count('(') - lines[idx].count(')')
+
+            inner = text[text.index('(') + 1: text.rindex(')')]
+            fields = _split_top_level_args(inner)
+            if len(fields) == 4:
+                entries.append({
+                    'name':        fields[0].strip().strip('"'),
+                    'description': _extract_c_string(fields[1]),
+                    'args':        _extract_c_string(fields[2]),
+                    'ifdef_conds': list(ifdef_stack),
+                })
+        idx += 1
+
+    return entries
+
+
+# ---------------------------------------------------------------------------
 # Markdown generation
 # ---------------------------------------------------------------------------
 
@@ -338,7 +471,7 @@ def _extract_use_conditions(cond):
     """Extract all USE_* symbols from a condition, preserving negation."""
     out = []
     # Match negated or plain USE_* tokens, including defined() forms
-    for m in re.finditer(r'(!)?\\s*(?:defined\\()?\\s*(USE_[A-Z0-9_]+)\\s*\\)?', cond):
+    for m in re.finditer(r'(!)?\s*(?:defined\()?\s*(USE_[A-Z0-9_]+)\s*\)?', cond):
         neg, sym = m.groups()
         out.append(f'!{sym}' if neg else sym)
     return out
@@ -350,7 +483,7 @@ def _format_requires(ifdef_conds):
     for c in ifdef_conds:
         simple.extend(_extract_use_conditions(c))
         # Also catch standalone simple forms
-        if re.match(r'!?USE_\\w+$', c):
+        if re.match(r'!?USE_\w+$', c):
             simple.append(c)
     if not simple:
         return ''
@@ -374,6 +507,9 @@ def generate_markdown(entries, table_map, settings_c_path, git_hash=None,
         '',
         '> **Auto-generated** — do not edit manually.',
         f'> Source: `{settings_c_path}` | Generated: {today} | Commit: `{ref}`{fw_str}{msp_str}',
+        '',
+        'Commands that persist config through their own dedicated table instead of',
+        '`valueTable[]` are documented separately: `docs/CLI/pg-commands-reference.md`.',
         '',
         '---',
         '',
@@ -417,6 +553,56 @@ def generate_markdown(entries, table_map, settings_c_path, git_hash=None,
     lines += [
         '---',
         f'*Generated by `docs/gen_cli_docs.py` from `{settings_c_path}`*',
+        '',
+    ]
+    return '\n'.join(lines)
+
+
+def _format_cmd_args(args):
+    if not args:
+        return ''
+    flat = ' '.join(l.strip() for l in args.splitlines() if l.strip())
+    return f'`{flat.replace("|", "&#124;")}`'
+
+
+def generate_commands_markdown(cmd_entries, cli_c_path, git_hash=None,
+                               fw_version=None, msp_version=None):
+    today = date.today().isoformat()
+    ref = git_hash or 'unknown'
+    fw_str  = f' | Firmware: `{fw_version}`'  if fw_version  else ''
+    msp_str = f' | MSP: `{msp_version}`'      if msp_version else ''
+
+    by_name = {e['name']: e for e in cmd_entries}
+    missing = [n for n in PG_BACKED_COMMANDS if n not in by_name]
+    if missing:
+        print(f"  WARNING: PG-backed commands not found in cmdTable[]: {', '.join(missing)}")
+    rows = [by_name[n] for n in PG_BACKED_COMMANDS if n in by_name]
+
+    lines = [
+        '# CLI PG-Backed Commands Reference',
+        '',
+        '> **Auto-generated** — do not edit manually.',
+        f'> Source: `{cli_c_path}` | Generated: {today} | Commit: `{ref}`{fw_str}{msp_str}',
+        '',
+        'Commands that persist Parameter Group config through their own dedicated table',
+        'and handler instead of `valueTable[]` — out of scope for `parameters-reference.md`.',
+        '',
+        '---',
+        '',
+        '| Command | Description | Args | Requires |',
+        '|---------|-------------|------|----------|',
+    ]
+
+    for e in rows:
+        desc = (e['description'] or '').replace('|', '\\|')
+        args = _format_cmd_args(e['args'])
+        req  = _format_requires(e['ifdef_conds'])
+        lines.append(f'| `{e["name"]}` | {desc} | {args} | {req} |')
+
+    lines += [
+        '',
+        '---',
+        f'*Generated by `docs/gen_cli_docs.py` from `{cli_c_path}`*',
         '',
     ]
     return '\n'.join(lines)
@@ -489,13 +675,23 @@ def main():
         '--output', default='docs/CLI/parameters-reference.md',
         help='Output path (default: docs/CLI/parameters-reference.md)'
     )
+    parser.add_argument(
+        '--cli', default='src/main/interface/cli.c',
+        help='Path to cli.c (default: src/main/interface/cli.c)'
+    )
+    parser.add_argument(
+        '--commands-output', default='docs/CLI/pg-commands-reference.md',
+        help='PG-backed commands output path (default: docs/CLI/pg-commands-reference.md)'
+    )
     args = parser.parse_args()
 
     c_path  = Path(args.settings)
     h_path  = Path(args.header)
     out_path = Path(args.output)
+    cli_path = Path(args.cli)
+    commands_out_path = Path(args.commands_output)
 
-    for p in (c_path, h_path):
+    for p in (c_path, h_path, cli_path):
         if not p.exists():
             sys.exit(f"ERROR: {p} not found. Run from repo root.")
 
@@ -553,6 +749,23 @@ def main():
 
     n_sections = len({e['pg'] for e in entries})
     print(f"Done: {len(entries)} parameters across {n_sections} sections -> {out_path}")
+
+    print("Parsing cmdTable[]...")
+    cli_text = strip_block_comments(cli_path.read_text())
+    cmd_entries = parse_cmd_table(cli_text)
+    print(f"  {len(cmd_entries)} commands found")
+
+    if not cmd_entries:
+        sys.exit("ERROR: no entries parsed — check cli.c path and format")
+
+    print(f"Generating {commands_out_path}...")
+    commands_out_path.parent.mkdir(parents=True, exist_ok=True)
+    cmd_md = generate_commands_markdown(cmd_entries, str(cli_path), git_hash,
+                                        fw_version=fw_version, msp_version=msp_version)
+    commands_out_path.write_text(cmd_md)
+
+    n_pg_commands = len([n for n in PG_BACKED_COMMANDS if n in {e['name'] for e in cmd_entries}])
+    print(f"Done: {n_pg_commands} PG-backed commands -> {commands_out_path}")
 
 
 if __name__ == '__main__':
