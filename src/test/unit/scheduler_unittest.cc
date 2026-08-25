@@ -47,9 +47,19 @@ extern "C" {
     uint32_t micros(void) { return simulatedTime; }
 
     // set up tasks to take a simulated representative time to execute
+    bool triggerIgnoreTaskExecTime = false;
     void taskMainPidLoop(timeUs_t) { simulatedTime += TEST_PID_LOOP_TIME; }
     void taskUpdateAccelerometer(timeUs_t) { simulatedTime += TEST_UPDATE_ACCEL_TIME; }
-    void taskHandleSerial(timeUs_t) { simulatedTime += TEST_HANDLE_SERIAL_TIME; }
+    void taskHandleSerial(timeUs_t) {
+        // Ignored run must differ from baseline, or a regression that drops the
+        // gate entirely would still pass by coincidence (max/movingSum would
+        // equal the baseline value either way).
+        simulatedTime += triggerIgnoreTaskExecTime ? TEST_HANDLE_SERIAL_TIME * 2 : TEST_HANDLE_SERIAL_TIME;
+        if (triggerIgnoreTaskExecTime) {
+            // simulates serial_usb_vcp.c flagging a CDC-backpressure stall mid-task
+            schedulerIgnoreTaskExecTime();
+        }
+    }
     void taskUpdateBatteryVoltage(timeUs_t) { simulatedTime += TEST_UPDATE_BATTERY_TIME; }
     bool rxUpdateCheck(timeUs_t, timeDelta_t) { simulatedTime += TEST_UPDATE_RX_CHECK_TIME; return false; }
     void taskUpdateRxMain(timeUs_t) { simulatedTime += TEST_UPDATE_RX_MAIN_TIME; }
@@ -485,4 +495,38 @@ TEST(SchedulerUnittest, TestTwoTasks)
     // and finally TASK_ACCEL should now run
     scheduler();
     EXPECT_EQ(&cfTasks[TASK_ACCEL], unittest_scheduler_selectedTask);
+}
+
+TEST(SchedulerUnittest, TestIgnoredExecutionTimeExcludedFromMovingSumAndMax)
+{
+    schedulerInit();
+    for (int taskId = 0; taskId < TASK_COUNT; ++taskId) {
+        setTaskEnabled(static_cast<cfTaskId_e>(taskId), false);
+    }
+    setTaskEnabled(TASK_SERIAL, true);
+
+    // Baseline run: normal execution establishes a moving sum and max.
+    // desiredPeriod (10000us, 100Hz) must fully elapse for taskAgeCycles to be nonzero.
+    triggerIgnoreTaskExecTime = false;
+    cfTasks[TASK_SERIAL].lastExecutedAt = 1000;
+    simulatedTime = cfTasks[TASK_SERIAL].lastExecutedAt + cfTasks[TASK_SERIAL].desiredPeriod;
+    scheduler();
+    EXPECT_EQ(&cfTasks[TASK_SERIAL], unittest_scheduler_selectedTask);
+    const uint32_t movingSumBaseline = cfTasks[TASK_SERIAL].movingSumExecutionTime;
+    const uint32_t maxBaseline = cfTasks[TASK_SERIAL].maxExecutionTime;
+    const uint32_t totalBaseline = cfTasks[TASK_SERIAL].totalExecutionTime;
+    EXPECT_EQ(static_cast<uint32_t>(TEST_HANDLE_SERIAL_TIME), maxBaseline);
+
+    // Second run: task itself flags ignoreCurrentTaskExecTime mid-execution, as
+    // serial_usb_vcp.c does on CDC-backpressure. movingSum/max must not absorb this
+    // run; totalExecutionTime is a genuine cumulative counter and must still grow.
+    triggerIgnoreTaskExecTime = true;
+    simulatedTime = cfTasks[TASK_SERIAL].lastExecutedAt + cfTasks[TASK_SERIAL].desiredPeriod;
+    scheduler();
+    EXPECT_EQ(&cfTasks[TASK_SERIAL], unittest_scheduler_selectedTask);
+    EXPECT_EQ(movingSumBaseline, cfTasks[TASK_SERIAL].movingSumExecutionTime);
+    EXPECT_EQ(maxBaseline, cfTasks[TASK_SERIAL].maxExecutionTime);
+    EXPECT_EQ(totalBaseline + TEST_HANDLE_SERIAL_TIME * 2, cfTasks[TASK_SERIAL].totalExecutionTime);
+
+    triggerIgnoreTaskExecTime = false;
 }
