@@ -48,6 +48,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "drivers/serial_usb_vcp.h"
 #include "drivers/time.h"
+#include "scheduler/scheduler.h"
 
 #if defined(STM32H7)
 #include "stm32h7xx_hal.h"
@@ -372,6 +373,12 @@ uint32_t CDC_Send_DATA(const uint8_t *ptrBuffer, uint32_t sendLength) {
     uint32_t deadline = millis() + 2;
     for (uint32_t i = 0; i < sendLength; i++) {
         while (CDC_Send_FreeBytes() == 0) {
+            // Host not draining yet (e.g. just after connect): this wait can
+            // clear within the deadline and return a full count below, so the
+            // caller's partial-count check never sees it. Exclude it here too,
+            // otherwise many small sub-deadline waits during one task tick sum
+            // to a large, uncounted execution time.
+            schedulerIgnoreTaskExecTime();
             if (millis() >= deadline) {
                 return i;
             }

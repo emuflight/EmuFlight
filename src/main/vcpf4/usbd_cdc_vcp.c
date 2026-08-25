@@ -30,6 +30,7 @@
 #include "drivers/nvic.h"
 #include "drivers/time.h"
 #include "build/atomic.h"
+#include "scheduler/scheduler.h"
 
 __ALIGN_BEGIN USB_OTG_CORE_HANDLE  USB_OTG_dev __ALIGN_END;
 
@@ -167,6 +168,10 @@ uint32_t CDC_Send_DATA(const uint8_t *ptrBuffer, uint32_t sendLength) {
     // Wait up to 2 ms for any in-flight USB packet to finish; bail early on timeout.
     uint32_t txStateDeadline = millis() + 2;
     while (USB_Tx_State != 0) {
+        // See CDC_Send_FreeBytes wait below: a sub-deadline wait here still
+        // returns a full/expected result, so the partial-count gate never
+        // sees it unless we flag it directly.
+        schedulerIgnoreTaskExecTime();
         if (millis() >= txStateDeadline) {
             return 0;
         }
@@ -174,6 +179,12 @@ uint32_t CDC_Send_DATA(const uint8_t *ptrBuffer, uint32_t sendLength) {
     uint32_t deadline = millis() + 2;
     for (uint32_t i = 0; i < sendLength; i++) {
         while (CDC_Send_FreeBytes() == 0) {
+            // Host not draining yet (e.g. just after connect): this wait can
+            // clear within the deadline and return a full count below, so the
+            // caller's partial-count check never sees it. Exclude it here too,
+            // otherwise many small sub-deadline waits during one task tick sum
+            // to a large, uncounted execution time.
+            schedulerIgnoreTaskExecTime();
             if (millis() >= deadline) {
                 return i;
             }
