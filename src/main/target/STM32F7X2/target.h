@@ -30,25 +30,7 @@
 
 #define USE_BEEPER
 
-// MPU interrupt
 #define USE_EXTI
-#define USE_MPU_DATA_READY_SIGNAL
-//#define DEBUG_MPU_DATA_READY_INTERRUPT
-#define MPU_INT_EXTI PB15 // XXX Should be gone
-
-#define USE_ACC
-#define USE_GYRO
-
-#define USE_ACC_SPI_MPU6500
-#define USE_GYRO_SPI_MPU6500
-// Other USE_ACCs and USE_GYROs should follow
-
-// Should be gone
-#define MPU6500_CS_PIN          PC4  // XXX Should be gone
-#define MPU6500_SPI_BUS    SPIDEV_1 // XXX Should be gone
-#define ACC_MPU6500_ALIGN CW0_DEG
-#define GYRO_MPU6500_ALIGN CW0_DEG
-
 
 #define USE_MAG
 #define USE_MAG_HMC5883
