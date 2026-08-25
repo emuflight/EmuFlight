@@ -30,8 +30,7 @@
 #define SIGN(x) ((x > 0.0f) - (x < 0.0f))
 
 // Undefine this for use libc sinf/cosf. Keep this defined to use fast sin/cos approximations
-#define FAST_MATH             // order 9 approximation
-#define VERY_FAST_MATH      // order 7 approximation
+#define FAST_MATH
 
 // Use floating point M_PI instead explicitly.
 #define M_PIf       3.14159265358979323846f
@@ -39,6 +38,7 @@
 #define M_EULERf    2.71828182845904523536f
 #define M_SQRT2f    1.41421356237309504880f
 #define M_LN2f      0.69314718055994530942f
+#define INV_PIO2    (2.0f / M_PIf)
 
 
 #define RAD    (M_PIf / 180.0f)
@@ -131,7 +131,7 @@ float quickMedianFilter5f(float * v);
 float quickMedianFilter7f(float * v);
 float quickMedianFilter9f(float * v);
 
-#if defined(FAST_MATH) || defined(VERY_FAST_MATH)
+#if defined(FAST_MATH)
 float sin_approx(float x);
 float cos_approx(float x);
 void sincosf_approx(float x, float *out_s, float *out_c);
