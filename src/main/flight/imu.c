@@ -231,7 +231,9 @@ static void __attribute__((unused)) applySensorCorrection(quaternion *vError) {
         // (Rxx; Ryx) - measured (estimated) heading vector (EF)
         // (cos(COG), sin(COG)) - reference heading vector (EF)
         // error is cross product between reference heading and estimated heading (calculated in EF)
-        courseOverGround = -(float)sin_approx(courseOverGround) * (1.0f - 2.0f * qpAttitude.yy - 2.0f * qpAttitude.zz) - cos_approx(courseOverGround) * (2.0f * (qpAttitude.xy - -qpAttitude.wz));
+        float sinCourseOverGround, cosCourseOverGround;
+        sincosf_approx(courseOverGround, &sinCourseOverGround, &cosCourseOverGround);
+        courseOverGround = -sinCourseOverGround * (1.0f - 2.0f * qpAttitude.yy - 2.0f * qpAttitude.zz) - cosCourseOverGround * (2.0f * (qpAttitude.xy - -qpAttitude.wz));
         applyVectorError(courseOverGround, vError);
     }
 #endif
@@ -427,10 +429,12 @@ void imuSetHasNewData(uint32_t dt) {
 bool imuQuaternionHeadfreeOffsetSet(void) {
     if ((ABS(getCosTiltAngle()) > 0.8f)) {
         const float yawHalf = atan2_approx((+2.0f * (qpAttitude.wz + qpAttitude.xy)), (+1.0f - 2.0f * (qpAttitude.yy + qpAttitude.zz))) / 2.0f;
-        qOffset.w = cos_approx(yawHalf);
+        float sinYawHalf, cosYawHalf;
+        sincosf_approx(yawHalf, &sinYawHalf, &cosYawHalf);
+        qOffset.w = cosYawHalf;
         qOffset.x = 0;
         qOffset.y = 0;
-        qOffset.z = sin_approx(yawHalf);
+        qOffset.z = sinYawHalf;
         quaternionConjugate(&qOffset, &qOffset);
         return (true);
     } else {

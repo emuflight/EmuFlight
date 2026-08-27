@@ -43,7 +43,9 @@ void sdftInit(sdft_t *sdft, const uint8_t startBin, const uint8_t endBin, const 
         for (uint8_t i = 0; i < SDFT_BIN_COUNT; i++) {
             float phi = 0.0f;
             phi = c * i;
-            twiddle[i] = SDFT_R * (cos_approx(phi) + _Complex_I * sin_approx(phi));
+            float sinPhi, cosPhi;
+            sincosf_approx(phi, &sinPhi, &cosPhi);
+            twiddle[i] = SDFT_R * (cosPhi + _Complex_I * sinPhi);
         }
         isInitialized = true;
     }
