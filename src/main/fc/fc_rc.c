@@ -222,19 +222,17 @@ static void calculateSetpointRate(int axis) {
 static void scaleRcCommandToFpvCamAngle(void) {
     float currentPitchAngle = attitude.raw[FD_PITCH] * 0.1f;
     //recalculate sin/cos only when rxConfig()->fpvCamAngleDegrees changed
-    static uint8_t lastFpvCamAngleDegrees = 0;
+    static int16_t lastFpvCamAngleDegrees = -1;
     static float cosFactor = 1.0;
     static float sinFactor = 0.0;
     if (rxConfig()->cinematicYaw) {
         if (currentPitchAngle > rxConfig()->fpvCamAngleDegrees) {
             currentPitchAngle = rxConfig()->fpvCamAngleDegrees;
         }
-        cosFactor = cos_approx(currentPitchAngle * RAD);
-        sinFactor = sin_approx(currentPitchAngle * RAD);
+        sincosf_approx(currentPitchAngle * RAD, &sinFactor, &cosFactor);
     } else if (lastFpvCamAngleDegrees != rxConfig()->fpvCamAngleDegrees) {
         lastFpvCamAngleDegrees = rxConfig()->fpvCamAngleDegrees;
-        cosFactor = cos_approx(rxConfig()->fpvCamAngleDegrees * RAD);
-        sinFactor = sin_approx(rxConfig()->fpvCamAngleDegrees * RAD);
+        sincosf_approx(rxConfig()->fpvCamAngleDegrees * RAD, &sinFactor, &cosFactor);
     }
     float roll = setpointRate[ROLL];
     float yaw = setpointRate[YAW];

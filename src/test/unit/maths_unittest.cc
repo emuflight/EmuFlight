@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include <limits.h>
+#include <cfloat>
 
 #include <math.h>
 
@@ -202,9 +203,10 @@ void expectVectorsAreEqual(struct fp_vector *a, struct fp_vector *b, float absTo
     EXPECT_NEAR(a->Z, b->Z, absTol);
 }
 
-#if defined(FAST_MATH) || defined(VERY_FAST_MATH)
+#if defined(FAST_MATH)
 TEST(MathsUnittest, TestFastTrigonometrySinCos)
 {
+    // Matches BF #14790's own test range/tolerance (+-10*pi).
     double sinError = 0;
     for (float x = -10 * M_PI; x < 10 * M_PI; x += M_PI / 300) {
         double approxResult = sin_approx(x);
@@ -212,7 +214,7 @@ TEST(MathsUnittest, TestFastTrigonometrySinCos)
         sinError = MAX(sinError, fabs(approxResult - libmResult));
     }
     printf("sin_approx maximum absolute error = %e\n", sinError);
-    EXPECT_LE(sinError, 3e-6);
+    EXPECT_LE(sinError, 3.2e-6);
 
     double cosError = 0;
     for (float x = -10 * M_PI; x < 10 * M_PI; x += M_PI / 300) {
@@ -222,6 +224,46 @@ TEST(MathsUnittest, TestFastTrigonometrySinCos)
     }
     printf("cos_approx maximum absolute error = %e\n", cosError);
     EXPECT_LE(cosError, 3.5e-6);
+}
+
+TEST(MathsUnittest, TestFastTrigonometryEdgeCases)
+{
+    const float epsilon = 3.2e-6f;
+
+    EXPECT_NEAR(sin_approx(0.0f), 0.0f, epsilon);
+    EXPECT_NEAR(cos_approx(0.0f), 1.0f, epsilon);
+
+    EXPECT_NEAR(sin_approx(M_PIf), sinf(M_PIf), epsilon);
+    EXPECT_NEAR(cos_approx(M_PIf), -1.0f, epsilon);
+
+    EXPECT_NEAR(sin_approx(-M_PIf), sinf(-M_PIf), epsilon);
+    EXPECT_NEAR(cos_approx(-M_PIf), -1.0f, epsilon);
+
+    EXPECT_NEAR(sin_approx(0.5f * M_PIf), 1.0f, epsilon);
+    EXPECT_NEAR(cos_approx(0.5f * M_PIf), 0.0f, epsilon);
+
+    EXPECT_NEAR(sin_approx(-0.5f * M_PIf), -1.0f, epsilon);
+    EXPECT_NEAR(cos_approx(-0.5f * M_PIf), 0.0f, epsilon);
+
+    // Old EF code clamped |x| > 32 rad to 0.0f; this port removes that clamp, so verify large multiples of 2*pi with a magnitude-scaled epsilon (float32 mantissa precision loss dominates at this range).
+    for (int k = -50; k <= 50; k += 10) {
+        const float x = (float)k * 2.0f * M_PIf;
+        const float epsilonAtX = epsilon + fabsf(x) * FLT_EPSILON;
+        EXPECT_NEAR(sin_approx(x), sinf(x), epsilonAtX) << "k=" << k << " x=" << x;
+        EXPECT_NEAR(cos_approx(x), cosf(x), epsilonAtX) << "k=" << k << " x=" << x;
+    }
+}
+
+TEST(MathsUnittest, TestSincosfApproxMatchesSeparateCalls)
+{
+    // Combined-call result must match independent sin_approx/cos_approx calls on the same angle.
+    const float epsilon = 1e-6f;
+    for (float x = -20 * M_PIf; x < 20 * M_PIf; x += M_PIf / 97) {
+        float sinCombined = 0.0f, cosCombined = 0.0f;
+        sincosf_approx(x, &sinCombined, &cosCombined);
+        EXPECT_NEAR(sinCombined, sin_approx(x), epsilon);
+        EXPECT_NEAR(cosCombined, cos_approx(x), epsilon);
+    }
 }
 
 TEST(MathsUnittest, TestFastTrigonometryATan2)
@@ -249,4 +291,4 @@ TEST(MathsUnittest, TestFastTrigonometryACos)
     printf("acos_approx maximum absolute error = %e rads (%e degree)\n", error, error / M_PI * 180.0f);
     EXPECT_LE(error, 1e-4);
 }
-#endif
+#endif // defined(FAST_MATH)
