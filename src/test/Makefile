@@ -691,6 +691,14 @@ endif
 TEST_SRC = $(sort $(wildcard $(TEST_DIR)/*.cc))
 TESTS = $(TEST_SRC:$(TEST_DIR)/%.cc=%)
 
+# sdcard_unittest relies on a uint32_t<->pointer round-trip that is only lossless when the
+# process image sits under 4GB (forced via -fno-pie/-no-pie on Linux/ELF). macOS's ld64 does not
+# honor that flag the same way and offers no equivalent guarantee, so the test cannot run
+# reliably there; excluded rather than risk a silent wrong-pointer segfault.
+ifdef MACOSX
+TESTS := $(filter-out sdcard_unittest, $(TESTS))
+endif
+
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
 GTEST_HEADERS = $(GTEST_DIR)/inc/gtest/*.h
