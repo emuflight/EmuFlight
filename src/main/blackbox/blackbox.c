@@ -758,6 +758,18 @@ STATIC_UNIT_TESTED void unitTestWriteInterframe(void) {
     unitTestResetHistory();
     writeInterframe();
 }
+
+// Counts "motor" entries in blackboxMainFields[] whose condition currently evaluates true —
+// the same header-visible field count sendFieldDefinition() would emit for that field name.
+STATIC_UNIT_TESTED int unitTestCountVisibleMotorHeaderFields(void) {
+    int count = 0;
+    for (size_t i = 0; i < ARRAYLEN(blackboxMainFields); i++) {
+        if (strcmp(blackboxMainFields[i].name, "motor") == 0 && testBlackboxCondition(blackboxMainFields[i].condition)) {
+            count++;
+        }
+    }
+    return count;
+}
 #endif
 
 /* Write the contents of the global "slowHistory" to the log as an "S" frame. Because this data is logged so

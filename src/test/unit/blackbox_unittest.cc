@@ -574,6 +574,15 @@ TEST(BlackboxTest, TestMotorFieldByteSync)
     // Regression test for a header/data-write desync class: a mask that hides a field's
     // header must also stop write*Frame() emitting that field's bytes, not just flip the
     // condition-cache bit.
+
+    // Reset shared global stub state before use, not just at teardown — matches TestFieldMasking.
+    batteryConfigMutable()->voltageMeterSource = VOLTAGE_METER_NONE;
+    batteryConfigMutable()->currentMeterSource = CURRENT_METER_NONE;
+    stubSensorsPresent = false;
+    stubFeatureEnabled = false;
+    stubRssiConfigured = false;
+    debugMode = 0;
+
     static pidProfile_t testPidProfile = {};
     testPidProfile.pid[PID_ROLL].D = 1;
     testPidProfile.pid[PID_PITCH].D = 1;
@@ -582,6 +591,7 @@ TEST(BlackboxTest, TestMotorFieldByteSync)
 
     blackboxConfigMutable()->fields_disabled_mask = 0;
     blackboxBuildConditionCache();
+    const int headerFieldsWithMotor = unitTestCountVisibleMotorHeaderFields();
     capturedSerialByteCount = 0;
     unitTestWriteIntraframe();
     const int intraBytesWithMotor = capturedSerialByteCount;
@@ -592,6 +602,7 @@ TEST(BlackboxTest, TestMotorFieldByteSync)
 
     blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_MOTOR);
     blackboxBuildConditionCache();
+    const int headerFieldsWithoutMotor = unitTestCountVisibleMotorHeaderFields();
     capturedSerialByteCount = 0;
     unitTestWriteIntraframe();
     const int intraBytesWithoutMotor = capturedSerialByteCount;
@@ -604,6 +615,12 @@ TEST(BlackboxTest, TestMotorFieldByteSync)
     // for both intraframe's raw encoding and interframe's average-predictor encoding.
     EXPECT_EQ(4, intraBytesWithMotor - intraBytesWithoutMotor);
     EXPECT_EQ(4, interBytesWithMotor - interBytesWithoutMotor);
+
+    // Header field count (blackboxMainFields[], same table sendFieldDefinition() emits from)
+    // must drop in lockstep with the serialized byte count, not just the byte count alone.
+    EXPECT_EQ(4, headerFieldsWithMotor);
+    EXPECT_EQ(0, headerFieldsWithoutMotor);
+    EXPECT_EQ(headerFieldsWithMotor - headerFieldsWithoutMotor, intraBytesWithMotor - intraBytesWithoutMotor);
 
     blackboxConfigMutable()->fields_disabled_mask = 0;
     blackboxBuildConditionCache();
