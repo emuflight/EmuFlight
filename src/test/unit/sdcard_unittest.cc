@@ -311,3 +311,20 @@ TEST(SdcardUnittest, SilentBusNeverReachesReadyAndEscalatesToNotPresent) {
     EXPECT_FALSE(sdcard_isFunctional());
     EXPECT_FALSE(sdcard_isInitialized());
 }
+
+TEST(SdcardUnittest, PersistentlyBusyBusBeforeCmd0DoesNotAdvancePastReset) {
+    resetSdcardTestState();
+    // 8 non-idle bytes exhausts the idle-wait budget before CMD0's command and R1-reply
+    // segments ever run: sdcard_sendCommand()'s BUS_ABORT-before-transmission path still lets
+    // SDCARD_COMMAND_GO_IDLE_STATE fall through to `return cmdResponse`, so this must not
+    // return a stale/undefined byte that could be misread as SDCARD_R1_STATUS_BIT_IDLE.
+    static const uint8_t busyPreamble[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    scriptBytes(busyPreamble, sizeof(busyPreamble));
+
+    sdcard_init(&testConfig);
+    ASSERT_TRUE(sdcard_isFunctional());
+
+    EXPECT_FALSE(sdcard_poll());
+    EXPECT_FALSE(sdcard_isInitialized());
+    EXPECT_TRUE(sdcard_isFunctional()); // one failed attempt is not yet NOT_PRESENT
+}

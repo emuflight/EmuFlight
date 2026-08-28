@@ -285,7 +285,10 @@ static uint8_t sdcard_sendCommand(uint8_t commandCode, uint32_t commandArgument)
     };
 
     uint8_t idleByte;
-    uint8_t cmdResponse;
+    // Stays at this sentinel if the pre-command idle-wait aborts, which skips the command and
+    // reply segments below entirely -- reachable for SDCARD_COMMAND_GO_IDLE_STATE, the one
+    // command sent regardless of idle-wait outcome.
+    uint8_t cmdResponse = SDCARD_IDLE_TOKEN;
 
     // Note that this does not release the CS at the end of the transaction
     busSegment_t segments[] = {
