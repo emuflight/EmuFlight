@@ -428,7 +428,12 @@ void initEscEndpoints(void) {
 }
 
 void mixerInit(mixerMode_e mixerMode) {
+#ifdef USE_QUAD_MIXER_ONLY
+    UNUSED(mixerMode);
+    currentMixerMode = MIXER_QUADX;
+#else
     currentMixerMode = mixerMode;
+#endif
     initEscEndpoints();
     if (mixerIsTricopter()) {
         mixerTricopterInit();
