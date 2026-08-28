@@ -214,7 +214,11 @@ int servoDirection(int servoIndex, int inputSource) {
 
 void servosInit(void) {
     // enable servos for mixes that require them. note, this shifts motor counts.
+#ifndef USE_QUAD_MIXER_ONLY
     useServo = mixers[currentMixerMode].useServo;
+#else
+    useServo = 0;
+#endif
     // if we want camstab/trig, that also enables servos, even if mixer doesn't
     if (feature(FEATURE_SERVO_TILT) || feature(FEATURE_CHANNEL_FORWARDING)) {
         useServo = 1;
