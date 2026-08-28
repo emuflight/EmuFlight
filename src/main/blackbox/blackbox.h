@@ -83,6 +83,10 @@ STATIC_UNIT_TESTED bool writeSlowFrameIfNeeded(void);
 STATIC_UNIT_TESTED void blackboxAdvanceIterationTimers(void);
 STATIC_UNIT_TESTED void blackboxBuildConditionCache(void);
 STATIC_UNIT_TESTED bool testBlackboxCondition(FlightLogFieldCondition condition);
+STATIC_UNIT_TESTED bool isFieldEnabled(FlightLogFieldSelect_e field);
+STATIC_UNIT_TESTED void unitTestWriteIntraframe(void);
+STATIC_UNIT_TESTED void unitTestWriteInterframe(void);
+STATIC_UNIT_TESTED int unitTestCountVisibleMotorHeaderFields(void);
 extern int32_t blackboxSInterval;
 extern int32_t blackboxSlowFrameIterationTimer;
 #endif
