@@ -201,6 +201,8 @@ typedef struct sdcardCSD_t {
 #define SDCARD_MULTIPLE_BLOCK_WRITE_START_TOKEN 0xFC
 #define SDCARD_MULTIPLE_BLOCK_WRITE_STOP_TOKEN  0xFD
 
+#define SDCARD_IDLE_TOKEN                       0xFF
+
 #define SDCARD_BLOCK_SIZE 512
 
 // Idle bit is set to 1 only when idle during intialization phase:

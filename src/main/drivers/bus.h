@@ -139,8 +139,8 @@ typedef struct extDevice_s {
  * negateCS controls whether CS is deasserted between segments.
  * callback (if non-NULL) is called after each segment completes; its return value
  * may request BUS_BUSY (repeat), BUS_ABORT (skip remaining), or BUS_READY (advance).
- * Stage M.1 sync path advances unconditionally; BUS_ABORT/BUS_BUSY only honored
- * by the async DMA path (Stage M.3).
+ * Both the polled path (bus_spi_ll.c) and the async DMA path (bus_spi.c) honor all
+ * three return values.
  */
 typedef struct busSegment_s {
     union {

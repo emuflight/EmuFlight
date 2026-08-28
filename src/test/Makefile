@@ -21,6 +21,8 @@ include $(ROOT)/make/system-id.mk
 #   <test_name>_SRC
 #   <test_name>_DEFINES
 #   <test_name>_INCLUDE_DIRS
+#   <test_name>_CFLAGS
+#   <test_name>_LDFLAGS
 
 
 alignsensor_unittest_SRC := \
@@ -350,6 +352,35 @@ serial_uart_dma_claim_unittest_DEFINES := \
 
 sdcard_dma_claim_unittest_DEFINES := \
 		STM32F4
+
+
+sdcard_unittest_SRC := \
+		$(USER_DIR)/drivers/sdcard.c \
+		$(USER_DIR)/drivers/sdcard_standard.c
+
+sdcard_unittest_DEFINES := \
+		STM32F4 \
+		USE_SDCARD \
+		SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER=256 \
+		SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER=4 \
+		GPIO_Mode_IN=0 \
+		GPIO_Mode_OUT=1 \
+		GPIO_PuPd_NOPULL=0 \
+		GPIO_PuPd_UP=1 \
+		GPIO_OType_PP=0 \
+		GPIO_Speed_50MHz=0
+
+# extDevice_t.callbackArg is uint32_t (matches every 32-bit MCU target); the host test build is
+# 64-bit, so the driver's dev.callbackArg <-> sdcard_t* round-trip needs a lossless cast here:
+# -fno-pie/-no-pie keeps static addresses under 4GB so the uint32_t round-trip stays exact,
+# matching what's always true on the real 32-bit target.
+sdcard_unittest_CFLAGS := \
+		-Wno-int-to-pointer-cast \
+		-Wno-pointer-to-int-cast \
+		-fno-pie
+
+sdcard_unittest_LDFLAGS := \
+		-no-pie
 
 
 flight_failsafe_unittest_SRC := \
@@ -768,7 +799,7 @@ $$1_OBJS = $$(patsubst $$(TEST_DIR)%,$$(OBJECT_DIR)/$1%, $$(patsubst $$(USER_DIR
 $(OBJECT_DIR)/$1/%.c.o: $(USER_DIR)/%.c
 	@echo "compiling $$<" "$(STDOUT)"
 	$(V1) mkdir -p $$(dir $$@)
-	$(V1) $(CC) $(C_FLAGS) $(TEST_CFLAGS) \
+	$(V1) $(CC) $(C_FLAGS) $(TEST_CFLAGS) $($1_CFLAGS) \
                 $(foreach def,$($1_INCLUDE_DIRS),-I $(def)) \
                 $(foreach def,$($1_DEFINES),-D $(def)) \
                 -c $$< -o $$@
@@ -776,7 +807,7 @@ $(OBJECT_DIR)/$1/%.c.o: $(USER_DIR)/%.c
 $(OBJECT_DIR)/$1/%.c.o: $(TEST_DIR)/%.c
 	@echo "compiling test c file: $$<" "$(STDOUT)"
 	$(V1) mkdir -p $$(dir $$@)
-	$(V1) $(CC) $(C_FLAGS) $(TEST_CFLAGS) \
+	$(V1) $(CC) $(C_FLAGS) $(TEST_CFLAGS) $($1_CFLAGS) \
                 $(foreach def,$($1_INCLUDE_DIRS),-I $(def)) \
                 $(foreach def,$($1_DEFINES),-D $(def)) \
                 -c $$< -o $$@
@@ -784,7 +815,7 @@ $(OBJECT_DIR)/$1/%.c.o: $(TEST_DIR)/%.c
 $(OBJECT_DIR)/$1/$1.o: $(TEST_DIR)/$1.cc
 	@echo "compiling $$<" "$(STDOUT)"
 	$(V1) mkdir -p $$(dir $$@)
-	$(V1) $(CXX) $(CXX_FLAGS) $(TEST_CFLAGS)  \
+	$(V1) $(CXX) $(CXX_FLAGS) $(TEST_CFLAGS) $($1_CFLAGS) \
                 $(foreach def,$($1_INCLUDE_DIRS),-I $(def)) \
                 $(foreach def,$($1_DEFINES),-D $(def)) \
                 -c $$< -o $$@
@@ -796,7 +827,7 @@ $(OBJECT_DIR)/$1/$1 : $$($$1_OBJS) \
 
 	@echo "linking $$@" "$(STDOUT)"
 	$(V1) mkdir -p $(dir $$@)
-	$(V1) $(CXX) $(CXX_FLAGS) $(LDFLAGS) $$^ -o $$@
+	$(V1) $(CXX) $(CXX_FLAGS) $(LDFLAGS) $($1_LDFLAGS) $$^ -o $$@
 
 test_$1: $(OBJECT_DIR)/$1/$1
 	$(V1) $$< $$(EXEC_OPTS) "$(STDOUT)" && echo "running $$@: PASS"

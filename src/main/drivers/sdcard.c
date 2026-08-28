@@ -27,7 +27,6 @@
 
 #include "drivers/nvic.h"
 #include "drivers/io.h"
-#include "dma.h"
 
 #include "drivers/bus_spi.h"
 #include "drivers/time.h"
@@ -38,9 +37,6 @@
 #ifdef AFATFS_USE_INTROSPECTIVE_LOGGING
 #define SDCARD_PROFILING
 #endif
-
-#define SET_CS_HIGH                                 IOHi(sdcard.chipSelectPin)
-#define SET_CS_LOW                                  IOLo(sdcard.chipSelectPin)
 
 #define SDCARD_INIT_NUM_DUMMY_BYTES                 10
 #define SDCARD_MAXIMUM_BYTE_DELAY_FOR_CMD_REPLY     8
@@ -103,14 +99,11 @@ typedef struct sdcard_t {
 #ifdef SDCARD_PROFILING
     sdcard_profilerCallback_c profiler;
 #endif
-    SPI_TypeDef *instance;
+    extDevice_t dev;
+    int8_t idleCount;
     bool enabled;
     bool detectionInverted;
-    bool useDMAForTx;
     IO_t cardDetectPin;
-    IO_t chipSelectPin;
-    dmaChannelDescriptor_t * dma;
-    uint8_t dmaChannel;
 } sdcard_t;
 
 static sdcard_t sdcard;
@@ -153,16 +146,12 @@ bool sdcard_isFunctional(void) {
     return sdcard.state != SDCARD_STATE_NOT_PRESENT;
 }
 
-static void sdcard_select(void) {
-    SET_CS_LOW;
-}
-
 static void sdcard_deselect(void) {
     // As per the SD-card spec, give the card 8 dummy clocks so it can finish its operation
-    //spiTransferByte(sdcard.instance, 0xFF);
-    while (spiIsBusBusy(sdcard.instance)) {
-    }
-    SET_CS_HIGH;
+    spiWait(&sdcard.dev);
+    delayMicroseconds(10);
+    // Negate CS
+    spiRelease(&sdcard.dev);
 }
 
 /**
@@ -177,7 +166,7 @@ static void sdcard_reset(void) {
         return;
     }
     if (sdcard.state >= SDCARD_STATE_READY) {
-        spiSetDivisor(sdcard.instance, SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER);
+        spiSetClkDivisor(&sdcard.dev, SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER);
     }
     sdcard.failureCount++;
     if (sdcard.failureCount >= SDCARD_MAX_CONSECUTIVE_FAILURES) {
@@ -188,35 +177,93 @@ static void sdcard_reset(void) {
     }
 }
 
+// Called in ISR context
+// Wait until idle indicated by a read value of SDCARD_IDLE_TOKEN
+busStatus_e sdcard_callbackIdle(uint32_t arg) {
+    sdcard_t *sdcard = (sdcard_t *)arg;
+    extDevice_t *dev = &sdcard->dev;
+
+    uint8_t idleByte = dev->bus->curSegment->u.buffers.rxData[0];
+
+    if (idleByte == SDCARD_IDLE_TOKEN) {
+        // Default for next call to sdcard_callbackNotIdle()
+        sdcard->idleCount = SDCARD_MAXIMUM_BYTE_DELAY_FOR_CMD_REPLY;
+        return BUS_READY;
+    }
+
+    if (--sdcard->idleCount <= 0) {
+        dev->bus->curSegment->u.buffers.rxData[0] = 0x00;
+        return BUS_ABORT;
+    }
+
+    return BUS_BUSY;
+}
+
+// Called in ISR context
+// Wait until idle is no longer indicated by a read value of SDCARD_IDLE_TOKEN
+busStatus_e sdcard_callbackNotIdle(uint32_t arg) {
+    sdcard_t *sdcard = (sdcard_t *)arg;
+    extDevice_t *dev = &sdcard->dev;
+
+    uint8_t idleByte = dev->bus->curSegment->u.buffers.rxData[0];
+
+    if (idleByte != SDCARD_IDLE_TOKEN) {
+        return BUS_READY;
+    }
+
+    if (sdcard->idleCount-- <= 0) {
+        return BUS_ABORT;
+    }
+
+    return BUS_BUSY;
+}
+
 /**
  * The SD card spec requires 8 clock cycles to be sent by us on the bus after most commands so it can finish its
  * processing of that command. The easiest way for us to do this is to just wait for the bus to become idle before
  * we transmit a command, sending at least 8-bits onto the bus when we do so.
  */
 static bool sdcard_waitForIdle(int maxBytesToWait) {
-    while (maxBytesToWait > 0) {
-        uint8_t b = spiTransferByte(sdcard.instance, 0xFF);
-        if (b == 0xFF) {
-            return true;
-        }
-        maxBytesToWait--;
-    }
-    return false;
+    uint8_t idleByte;
+
+    // Note that this does not release the CS at the end of the transaction
+    busSegment_t segments[] = {
+        {.u.buffers = {NULL, &idleByte}, sizeof(idleByte), false, sdcard_callbackIdle},
+        {.u.link = {NULL, NULL}, 0, true, NULL},
+    };
+
+    sdcard.idleCount = maxBytesToWait;
+
+    spiSequence(&sdcard.dev, &segments[0]);
+
+    // Block pending completion of SPI access
+    spiWait(&sdcard.dev);
+
+    return (idleByte == SDCARD_IDLE_TOKEN);
 }
 
 /**
- * Wait for up to maxDelay 0xFF idle bytes to arrive from the card, returning the first non-idle byte found.
+ * Wait for up to maxDelay SDCARD_IDLE_TOKEN idle bytes to arrive from the card, returning the first non-idle byte found.
  *
- * Returns 0xFF on failure.
+ * Returns SDCARD_IDLE_TOKEN on failure.
  */
 static uint8_t sdcard_waitForNonIdleByte(int maxDelay) {
-    for (int i = 0; i < maxDelay + 1; i++) { // + 1 so we can wait for maxDelay '0xFF' bytes before reading a response byte afterwards
-        uint8_t response = spiTransferByte(sdcard.instance, 0xFF);
-        if (response != 0xFF) {
-            return response;
-        }
-    }
-    return 0xFF;
+    uint8_t idleByte;
+
+    // Note that this does not release the CS at the end of the transaction
+    busSegment_t segments[] = {
+        {.u.buffers = {NULL, &idleByte}, sizeof(idleByte), false, sdcard_callbackNotIdle},
+        {.u.link = {NULL, NULL}, 0, true, NULL},
+    };
+
+    sdcard.idleCount = maxDelay;
+
+    spiSequence(&sdcard.dev, &segments[0]);
+
+    // Block pending completion of SPI access
+    spiWait(&sdcard.dev);
+
+    return idleByte;
 }
 
 /**
@@ -224,12 +271,10 @@ static uint8_t sdcard_waitForNonIdleByte(int maxDelay) {
  * with the given argument, waits up to SDCARD_MAXIMUM_BYTE_DELAY_FOR_CMD_REPLY bytes for a reply, and returns the
  * first non-0xFF byte of the reply.
  *
- * You must select the card first with sdcard_select() and deselect it afterwards with sdcard_deselect().
- *
- * Upon failure, 0xFF is returned.
+ * Upon failure, SDCARD_IDLE_TOKEN is returned.
  */
 static uint8_t sdcard_sendCommand(uint8_t commandCode, uint32_t commandArgument) {
-    const uint8_t command[6] = {
+    uint8_t command[6] = {
         0x40 | commandCode,
         commandArgument >> 24,
                         commandArgument >> 16,
@@ -238,15 +283,31 @@ static uint8_t sdcard_sendCommand(uint8_t commandCode, uint32_t commandArgument)
                         0x95 /* Static CRC. This CRC is valid for CMD0 with a 0 argument, and CMD8 with 0x1AB argument, which are the only
         commands that require a CRC */
     };
+
+    uint8_t idleByte;
+    uint8_t cmdResponse;
+
+    // Note that this does not release the CS at the end of the transaction
+    busSegment_t segments[] = {
+        {.u.buffers = {NULL, &idleByte}, sizeof(idleByte), false, sdcard_callbackIdle},
+        {.u.buffers = {command, NULL}, sizeof(command), false, NULL},
+        {.u.buffers = {NULL, &cmdResponse}, sizeof(cmdResponse), false, sdcard_callbackNotIdle},
+        {.u.link = {NULL, NULL}, 0, true, NULL},
+    };
+
+    sdcard.idleCount = SDCARD_MAXIMUM_BYTE_DELAY_FOR_CMD_REPLY;
+
+    spiSequence(&sdcard.dev, &segments[0]);
+
+    // Block pending completion of SPI access
+    spiWait(&sdcard.dev);
+
     // Go ahead and send the command even if the card isn't idle if this is the reset command
-    if (!sdcard_waitForIdle(SDCARD_MAXIMUM_BYTE_DELAY_FOR_CMD_REPLY) && commandCode != SDCARD_COMMAND_GO_IDLE_STATE)
-        return 0xFF;
-    spiTransfer(sdcard.instance, command, NULL, sizeof(command));
-    /*
-     * The card can take up to SDCARD_MAXIMUM_BYTE_DELAY_FOR_CMD_REPLY bytes to send the response, in the meantime
-     * it'll transmit 0xFF filler bytes.
-     */
-    return sdcard_waitForNonIdleByte(SDCARD_MAXIMUM_BYTE_DELAY_FOR_CMD_REPLY);
+    if ((idleByte != SDCARD_IDLE_TOKEN) && commandCode != SDCARD_COMMAND_GO_IDLE_STATE) {
+        return SDCARD_IDLE_TOKEN;
+    }
+
+    return cmdResponse;
 }
 
 static uint8_t sdcard_sendAppCommand(uint8_t commandCode, uint32_t commandArgument) {
@@ -261,14 +322,23 @@ static uint8_t sdcard_sendAppCommand(uint8_t commandCode, uint32_t commandArgume
 static bool sdcard_validateInterfaceCondition(void) {
     uint8_t ifCondReply[4];
     sdcard.version = 0;
-    sdcard_select();
     uint8_t status = sdcard_sendCommand(SDCARD_COMMAND_SEND_IF_COND, (SDCARD_VOLTAGE_ACCEPTED_2_7_to_3_6 << 8) | SDCARD_IF_COND_CHECK_PATTERN);
     // Don't deselect the card right away, because we'll want to read the rest of its reply if it's a V2 card
     if (status == (SDCARD_R1_STATUS_BIT_ILLEGAL_COMMAND | SDCARD_R1_STATUS_BIT_IDLE)) {
         // V1 cards don't support this command
         sdcard.version = 1;
     } else if (status == SDCARD_R1_STATUS_BIT_IDLE) {
-        spiTransfer(sdcard.instance, NULL, ifCondReply, sizeof(ifCondReply));
+        // Note that this does not release the CS at the end of the transaction
+        busSegment_t segments[] = {
+            {.u.buffers = {NULL, ifCondReply}, sizeof(ifCondReply), false, NULL},
+            {.u.link = {NULL, NULL}, 0, true, NULL},
+        };
+
+        spiSequence(&sdcard.dev, &segments[0]);
+
+        // Block pending completion of SPI access
+        spiWait(&sdcard.dev);
+
         /*
          * We don't bother to validate the SDCard's operating voltage range since the spec requires it to accept our
          * 3.3V, but do check that it echoed back our check pattern properly.
@@ -282,10 +352,20 @@ static bool sdcard_validateInterfaceCondition(void) {
 }
 
 static bool sdcard_readOCRRegister(uint32_t *result) {
-    sdcard_select();
     uint8_t status = sdcard_sendCommand(SDCARD_COMMAND_READ_OCR, 0);
     uint8_t response[4];
-    spiTransfer(sdcard.instance, NULL, response, sizeof(response));
+
+    // Note that this does not release the CS at the end of the transaction
+    busSegment_t segments[] = {
+        {.u.buffers = {NULL, response}, sizeof(response), false, NULL},
+        {.u.link = {NULL, NULL}, 0, true, NULL},
+    };
+
+    spiSequence(&sdcard.dev, &segments[0]);
+
+    // Block pending completion of SPI access
+    spiWait(&sdcard.dev);
+
     if (status == 0) {
         sdcard_deselect();
         *result = (response[0] << 24) | (response[1] << 16) | (response[2] << 8) | response[3];
@@ -302,38 +382,79 @@ typedef enum {
     SDCARD_RECEIVE_ERROR
 } sdcardReceiveBlockStatus_e;
 
+// Called in ISR context
+// Wait until the arrival of the SDCARD_SINGLE_BLOCK_READ_START_TOKEN token
+busStatus_e sdcard_callbackNotIdleDataBlock(uint32_t arg) {
+    sdcard_t *sdcard = (sdcard_t *)arg;
+    extDevice_t *dev = &sdcard->dev;
+
+    uint8_t idleByte = dev->bus->curSegment->u.buffers.rxData[0];
+
+    if (idleByte == SDCARD_SINGLE_BLOCK_READ_START_TOKEN) {
+        return BUS_READY;
+    }
+
+    if (idleByte != SDCARD_IDLE_TOKEN) {
+        return BUS_ABORT;
+    }
+
+    if (sdcard->idleCount-- <= 0) {
+        return BUS_ABORT;
+    }
+
+    return BUS_BUSY;
+}
+
 /**
  * Attempt to receive a data block from the SD card.
  *
  * Return true on success, otherwise the card has not responded yet and you should retry later.
  */
 static sdcardReceiveBlockStatus_e sdcard_receiveDataBlock(uint8_t *buffer, int count) {
-    uint8_t dataToken = sdcard_waitForNonIdleByte(8);
-    if (dataToken == 0xFF) {
+    uint8_t dataToken;
+
+    sdcard.idleCount = SDCARD_MAXIMUM_BYTE_DELAY_FOR_CMD_REPLY;
+
+    // Note that this does not release the CS at the end of the transaction
+    busSegment_t segments[] = {
+        {.u.buffers = {NULL, &dataToken}, sizeof(dataToken), false, sdcard_callbackNotIdleDataBlock},
+        {.u.buffers = {NULL, buffer}, count, false, NULL},
+        // Discard trailing CRC, we don't care
+        {.u.buffers = {NULL, NULL}, 2, false, NULL},
+        {.u.link = {NULL, NULL}, 0, true, NULL},
+    };
+
+    spiSequence(&sdcard.dev, &segments[0]);
+
+    // Block pending completion of SPI access
+    spiWait(&sdcard.dev);
+
+    switch (dataToken) {
+    case SDCARD_IDLE_TOKEN:
         return SDCARD_RECEIVE_BLOCK_IN_PROGRESS;
-    }
-    if (dataToken != SDCARD_SINGLE_BLOCK_READ_START_TOKEN) {
+    case SDCARD_SINGLE_BLOCK_READ_START_TOKEN:
+        return SDCARD_RECEIVE_SUCCESS;
+    default:
         return SDCARD_RECEIVE_ERROR;
     }
-    spiTransfer(sdcard.instance, NULL, buffer, count);
-    // Discard trailing CRC, we don't care
-    spiTransferByte(sdcard.instance, 0xFF);
-    spiTransferByte(sdcard.instance, 0xFF);
-    return SDCARD_RECEIVE_SUCCESS;
 }
 
 static bool sdcard_sendDataBlockFinish(void) {
-#if defined(USE_HAL_DRIVER) && !defined(STM32H7)
-    // Drain anything left in the Rx FIFO (we didn't read it during the write)
-    //This is necessary here as when using msc there is timing issue
-    while (LL_SPI_IsActiveFlag_RXNE(sdcard.instance)) {
-        sdcard.instance->DR;
-    }
-#endif
-    // Send a dummy CRC
-    spiTransferByte(sdcard.instance, 0x00);
-    spiTransferByte(sdcard.instance, 0x00);
-    uint8_t dataResponseToken = spiTransferByte(sdcard.instance, 0xFF);
+    uint16_t dummyCRC = 0;
+    uint8_t dataResponseToken;
+
+    // Note that this does not release the CS at the end of the transaction
+    busSegment_t segments[] = {
+        {.u.buffers = {(uint8_t *)&dummyCRC, NULL}, sizeof(dummyCRC), false, NULL},
+        {.u.buffers = {NULL, &dataResponseToken}, sizeof(dataResponseToken), false, NULL},
+        {.u.link = {NULL, NULL}, 0, true, NULL},
+    };
+
+    spiSequence(&sdcard.dev, &segments[0]);
+
+    // Block pending completion of SPI access
+    spiWait(&sdcard.dev);
+
     /*
      * Check if the card accepted the write (no CRC error / no address error)
      *
@@ -352,58 +473,26 @@ static bool sdcard_sendDataBlockFinish(void) {
 /**
  * Begin sending a buffer of SDCARD_BLOCK_SIZE bytes to the SD card.
  */
-static void sdcard_sendDataBlockBegin(const uint8_t *buffer, bool multiBlockWrite) {
-    // Card wants 8 dummy clock cycles between the write command's response and a data block beginning:
-    spiTransferByte(sdcard.instance, 0xFF);
-    spiTransferByte(sdcard.instance, multiBlockWrite ? SDCARD_MULTIPLE_BLOCK_WRITE_START_TOKEN : SDCARD_SINGLE_BLOCK_WRITE_START_TOKEN);
-    if (sdcard.useDMAForTx) {
-#if defined(USE_HAL_DRIVER) && !defined(STM32H7)
-        LL_DMA_InitTypeDef init;
-        LL_DMA_StructInit(&init);
-        init.Channel = dmaGetChannel(sdcard.dmaChannel);
-        init.Mode = LL_DMA_MODE_NORMAL;
-        init.Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH;
-        init.PeriphOrM2MSrcAddress = (uint32_t)&sdcard.instance->DR;
-        init.Priority = LL_DMA_PRIORITY_LOW;
-        init.PeriphOrM2MSrcIncMode  = LL_DMA_PERIPH_NOINCREMENT;
-        init.PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_BYTE;
-        init.MemoryOrM2MDstAddress = (uint32_t)buffer;
-        init.MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT;
-        init.MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_BYTE;
-        init.NbData = SDCARD_BLOCK_SIZE;
-        LL_DMA_DeInit(sdcard.dma->dma, sdcard.dma->stream);
-        LL_DMA_Init(sdcard.dma->dma, sdcard.dma->stream, &init);
-        LL_DMA_EnableStream(sdcard.dma->dma, sdcard.dma->stream);
-        LL_SPI_EnableDMAReq_TX(sdcard.instance);
-#elif !defined(STM32H7)
-        DMA_InitTypeDef init;
-        DMA_StructInit(&init);
-#ifdef STM32F4
-        init.DMA_Channel = dmaGetChannel(sdcard.dmaChannel);
-        init.DMA_Memory0BaseAddr = (uint32_t) buffer;
-        init.DMA_DIR = DMA_DIR_MemoryToPeripheral;
-#else
-        init.DMA_M2M = DMA_M2M_Disable;
-        init.DMA_MemoryBaseAddr = (uint32_t) buffer;
-        init.DMA_DIR = DMA_DIR_PeripheralDST;
-#endif
-        init.DMA_PeripheralBaseAddr = (uint32_t) &sdcard.instance->DR;
-        init.DMA_Priority = DMA_Priority_Low;
-        init.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-        init.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-        init.DMA_MemoryInc = DMA_MemoryInc_Enable;
-        init.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-        init.DMA_BufferSize = SDCARD_BLOCK_SIZE;
-        init.DMA_Mode = DMA_Mode_Normal;
-        DMA_DeInit(sdcard.dma->ref);
-        DMA_Init(sdcard.dma->ref, &init);
-        DMA_Cmd(sdcard.dma->ref, ENABLE);
-        SPI_I2S_DMACmd(sdcard.instance, SPI_I2S_DMAReq_Tx, ENABLE);
-#endif
-    } else {
-        // Send the first chunk now
-        spiTransfer(sdcard.instance, buffer, NULL, SDCARD_NON_DMA_CHUNK_SIZE);
-    }
+static void sdcard_sendDataBlockBegin(uint8_t *buffer, bool multiBlockWrite) {
+    static uint8_t token;
+
+    token = multiBlockWrite ? SDCARD_MULTIPLE_BLOCK_WRITE_START_TOKEN : SDCARD_SINGLE_BLOCK_WRITE_START_TOKEN;
+
+    // Note that this does not release the CS at the end of the transaction
+    static busSegment_t segments[] = {
+        // Write a single 0xff
+        {.u.buffers = {NULL, NULL}, 1, false, NULL},
+        {.u.buffers = {&token, NULL}, sizeof(token), false, NULL},
+        {.u.buffers = {NULL, NULL}, 0, false, NULL},
+        {.u.link = {NULL, NULL}, 0, true, NULL},
+    };
+
+    segments[2].u.buffers.txData = buffer;
+    segments[2].len = spiUseDMA(&sdcard.dev) ? SDCARD_BLOCK_SIZE : SDCARD_NON_DMA_CHUNK_SIZE;
+
+    spiSequence(&sdcard.dev, &segments[0]);
+
+    // Don't block pending completion of SPI access
 }
 
 static bool sdcard_receiveCID(void) {
@@ -429,7 +518,6 @@ static bool sdcard_receiveCID(void) {
 static bool sdcard_fetchCSD(void) {
     uint32_t readBlockLen, blockCount, blockCountMult;
     uint64_t capacityBytes;
-    sdcard_select();
     /* The CSD command's data block should always arrive within 8 idle clock cycles (SD card spec). This is because
      * the information about card latency is stored in the CSD register itself, so we can't use that yet!
      */
@@ -466,20 +554,10 @@ static bool sdcard_fetchCSD(void) {
  * Returns true if the card has finished its init process.
  */
 static bool sdcard_checkInitDone(void) {
-    sdcard_select();
     uint8_t status = sdcard_sendAppCommand(SDCARD_ACOMMAND_SEND_OP_COND, sdcard.version == 2 ? 1 << 30 /* We support high capacity cards */ : 0);
     sdcard_deselect();
     // When card init is complete, the idle bit in the response becomes zero.
     return status == 0x00;
-}
-
-// sdcard_init() can be called from both boot init and the USB MSC passthrough path -- a
-// stream already held by this same owner must be re-claimable.
-static bool sdcardDmaClaim(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex) {
-    if (dmaGetOwner(identifier) == owner && dmaGetResourceIndex(identifier) == resourceIndex) {
-        return true;
-    }
-    return dmaAllocate(identifier, owner, resourceIndex);
 }
 
 /**
@@ -491,32 +569,16 @@ void sdcard_init(const sdcardConfig_t *config) {
         sdcard.state = SDCARD_STATE_NOT_PRESENT;
         return;
     }
-    sdcard.instance = spiInstanceByDevice(config->device);
-#if defined(STM32H7)
-    sdcard.useDMAForTx = false;
-#else
-    sdcard.useDMAForTx = config->useDma;
-#endif
-    if (sdcard.useDMAForTx) {
-        if (sdcardDmaClaim(config->dmaIdentifier, OWNER_SDCARD, 0)) {
-#if defined(STM32F4) || defined(STM32F7)
-            sdcard.dmaChannel = config->dmaChannel;
-#endif
-            sdcard.dma = dmaGetDescriptorByIdentifier(config->dmaIdentifier);
-            dmaEnable(config->dmaIdentifier);
-        } else {
-            // Stream already owned by another peripheral -- fall back to polled SPI
-            // rather than losing the card (and blackbox logging) entirely.
-            sdcard.useDMAForTx = false;
-        }
-    }
+    spiSetBusInstance(&sdcard.dev, config->device);
     if (config->chipSelectTag) {
-        sdcard.chipSelectPin = IOGetByTag(config->chipSelectTag);
-        IOInit(sdcard.chipSelectPin, OWNER_SDCARD_CS, 0);
-        IOConfigGPIO(sdcard.chipSelectPin, SPI_IO_CS_CFG);
+        sdcard.dev.busType_u.spi.csnPin = IOGetByTag(config->chipSelectTag);
+        IOInit(sdcard.dev.busType_u.spi.csnPin, OWNER_SDCARD_CS, 0);
+        IOConfigGPIO(sdcard.dev.busType_u.spi.csnPin, SPI_IO_CS_CFG);
     } else {
-        sdcard.chipSelectPin = IO_NONE;
+        sdcard.dev.busType_u.spi.csnPin = IO_NONE;
     }
+    // Set the callback argument when calling back to this driver for DMA completion
+    sdcard.dev.callbackArg = (uint32_t)&sdcard;
     if (config->cardDetectTag) {
         sdcard.cardDetectPin = IOGetByTag(config->cardDetectTag);
         sdcard.detectionInverted = config->cardDetectInverted;
@@ -525,15 +587,23 @@ void sdcard_init(const sdcardConfig_t *config) {
         sdcard.detectionInverted = false;
     }
     // Max frequency is initially 400kHz
-    spiSetDivisor(sdcard.instance, SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER);
+    spiSetClkDivisor(&sdcard.dev, SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER);
     // SDCard wants 1ms minimum delay after power is applied to it
     delay(1000);
     // Transmit at least 74 dummy clock cycles with CS high so the SD card can start up
-    SET_CS_HIGH;
-    spiTransfer(sdcard.instance, NULL, NULL, SDCARD_INIT_NUM_DUMMY_BYTES);
+    IOHi(sdcard.dev.busType_u.spi.csnPin);
+
+    // Note that CS is not asserted for this transaction
+    busSegment_t segments[] = {
+        {.u.buffers = {NULL, NULL}, SDCARD_INIT_NUM_DUMMY_BYTES, true, NULL},
+        {.u.link = {NULL, NULL}, 0, true, NULL},
+    };
+
+    spiSequence(&sdcard.dev, &segments[0]);
+
     // Wait for that transmission to finish before we enable the SDCard, so it receives the required number of cycles:
     int time = 100000;
-    while (spiIsBusBusy(sdcard.instance)) {
+    while (spiIsBusy(&sdcard.dev)) {
         if (time-- == 0) {
             sdcard.state = SDCARD_STATE_NOT_PRESENT;
             sdcard.failureCount++;
@@ -546,7 +616,6 @@ void sdcard_init(const sdcardConfig_t *config) {
 }
 
 static bool sdcard_setBlockLength(uint32_t blockLen) {
-    sdcard_select();
     uint8_t status = sdcard_sendCommand(SDCARD_COMMAND_SET_BLOCKLEN, blockLen);
     sdcard_deselect();
     return status == 0;
@@ -570,12 +639,24 @@ static bool sdcard_isReady(void) {
  *
  */
 static sdcardOperationStatus_e sdcard_endWriteBlocks(void) {
+    uint8_t token = SDCARD_MULTIPLE_BLOCK_WRITE_STOP_TOKEN;
     sdcard.multiWriteBlocksRemain = 0;
-    // 8 dummy clocks to guarantee N_WR clocks between the last card response and this token
-    spiTransferByte(sdcard.instance, 0xFF);
-    spiTransferByte(sdcard.instance, SDCARD_MULTIPLE_BLOCK_WRITE_STOP_TOKEN);
+
+    // Note that this does not release the CS at the end of the transaction
+    busSegment_t segments[] = {
+        // 8 dummy clocks to guarantee N_WR clocks between the last card response and this token
+        {.u.buffers = {NULL, NULL}, 1, false, NULL},
+        {.u.buffers = {&token, NULL}, sizeof(token), false, NULL},
+        {.u.link = {NULL, NULL}, 0, true, NULL},
+    };
+
+    spiSequence(&sdcard.dev, &segments[0]);
+
+    // Block pending completion of SPI access
+    spiWait(&sdcard.dev);
+
     // Card may choose to raise a busy (non-0xFF) signal after at most N_BR (1 byte) delay
-    if (sdcard_waitForNonIdleByte(1) == 0xFF) {
+    if (sdcard_waitForNonIdleByte(1) == SDCARD_IDLE_TOKEN) {
         sdcard.state = SDCARD_STATE_READY;
         return SDCARD_OPERATION_SUCCESS;
     } else {
@@ -603,7 +684,6 @@ bool sdcard_poll(void) {
 doMore:
     switch (sdcard.state) {
     case SDCARD_STATE_RESET:
-        sdcard_select();
         initStatus = sdcard_sendCommand(SDCARD_COMMAND_GO_IDLE_STATE, 0);
         sdcard_deselect();
         if (initStatus == SDCARD_R1_STATUS_BIT_IDLE) {
@@ -633,7 +713,6 @@ doMore:
             }
             // Now fetch the CSD and CID registers
             if (sdcard_fetchCSD()) {
-                sdcard_select();
                 uint8_t status = sdcard_sendCommand(SDCARD_COMMAND_SEND_CID, 0);
                 if (status == 0) {
                     // Keep the card selected to receive the response block
@@ -658,7 +737,7 @@ doMore:
                 goto doMore;
             }
             // Now we're done with init and we can switch to the full speed clock (<25MHz)
-            spiSetDivisor(sdcard.instance, SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER);
+            spiSetClkDivisor(&sdcard.dev, SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER);
             sdcard.multiWriteBlocksRemain = 0;
             sdcard.state = SDCARD_STATE_READY;
             goto doMore;
@@ -666,45 +745,10 @@ doMore:
         break;
     case SDCARD_STATE_SENDING_WRITE:
         // Have we finished sending the write yet?
-        sendComplete = false;
-#if defined(USE_HAL_DRIVER) && !defined(STM32H7)
-        if (sdcard.useDMAForTx && DMA_GET_FLAG_STATUS(sdcard.dma, DMA_IT_TCIF)) {
-            //Clear both flags after transfer
-            DMA_CLEAR_FLAG(sdcard.dma, DMA_IT_TCIF);
-            DMA_CLEAR_FLAG(sdcard.dma, DMA_IT_HTIF);
-            // Drain anything left in the Rx FIFO (we didn't read it during the write)
-            while (LL_SPI_IsActiveFlag_RXNE(sdcard.instance)) {
-                sdcard.instance->DR;
-            }
-            // Wait for the final bit to be transmitted
-            while (spiIsBusBusy(sdcard.instance)) {
-            }
-            LL_SPI_DisableDMAReq_TX(sdcard.instance);
-            sendComplete = true;
-        }
-#elif !defined(STM32H7)
-#ifdef STM32F4
-        if (sdcard.useDMAForTx && DMA_GetFlagStatus(sdcard.dma->ref, sdcard.dma->completeFlag) == SET) {
-            DMA_ClearFlag(sdcard.dma->ref, sdcard.dma->completeFlag);
-#else
-        if (sdcard.useDMAForTx && DMA_GetFlagStatus(sdcard.dma->completeFlag) == SET) {
-            DMA_ClearFlag(sdcard.dma->completeFlag);
-#endif
-            DMA_Cmd(sdcard.dma->ref, DISABLE);
-            // Drain anything left in the Rx FIFO (we didn't read it during the write)
-            while (SPI_I2S_GetFlagStatus(sdcard.instance, SPI_I2S_FLAG_RXNE) == SET) {
-                sdcard.instance->DR;
-            }
-            // Wait for the final bit to be transmitted
-            while (spiIsBusBusy(sdcard.instance)) {
-            }
-            SPI_I2S_DMACmd(sdcard.instance, SPI_I2S_DMAReq_Tx, DISABLE);
-            sendComplete = true;
-        }
-#endif
-        if (!sdcard.useDMAForTx) {
+        sendComplete = !spiIsBusy(&sdcard.dev);
+        if (!spiUseDMA(&sdcard.dev)) {
             // Send another chunk
-            spiTransfer(sdcard.instance, sdcard.pendingOperation.buffer + SDCARD_NON_DMA_CHUNK_SIZE * sdcard.pendingOperation.chunkIndex, NULL, SDCARD_NON_DMA_CHUNK_SIZE);
+            spiReadWriteBuf(&sdcard.dev, sdcard.pendingOperation.buffer + SDCARD_NON_DMA_CHUNK_SIZE * sdcard.pendingOperation.chunkIndex, NULL, SDCARD_NON_DMA_CHUNK_SIZE);
             sdcard.pendingOperation.chunkIndex++;
             sendComplete = sdcard.pendingOperation.chunkIndex == SDCARD_BLOCK_SIZE / SDCARD_NON_DMA_CHUNK_SIZE;
         }
@@ -873,7 +917,6 @@ doMore:
         break;
     case SDCARD_STATE_READY:
         // We're not continuing a multi-block write so we need to send a single-block write command
-        sdcard_select();
         // Standard size cards use byte addressing, high capacity cards use block addressing
         status = sdcard_sendCommand(SDCARD_COMMAND_WRITE_BLOCK, sdcard.highCapacity ? blockIndex : blockIndex * SDCARD_BLOCK_SIZE);
         if (status != 0) {
@@ -921,7 +964,6 @@ sdcardOperationStatus_e sdcard_beginWriteBlocks(uint32_t blockIndex, uint32_t bl
             return SDCARD_OPERATION_BUSY;
         }
     }
-    sdcard_select();
     if (
         sdcard_sendAppCommand(SDCARD_ACOMMAND_SET_WR_BLOCK_ERASE_COUNT, blockCount) == 0
         && sdcard_sendCommand(SDCARD_COMMAND_WRITE_MULTIPLE_BLOCK, sdcard.highCapacity ? blockIndex : blockIndex * SDCARD_BLOCK_SIZE) == 0
@@ -963,7 +1005,6 @@ bool sdcard_readBlock(uint32_t blockIndex, uint8_t *buffer, sdcard_operationComp
 #ifdef SDCARD_PROFILING
     sdcard.pendingOperation.profileStartTime = micros();
 #endif
-    sdcard_select();
     // Standard size cards use byte addressing, high capacity cards use block addressing
     uint8_t status = sdcard_sendCommand(SDCARD_COMMAND_READ_SINGLE_BLOCK, sdcard.highCapacity ? blockIndex : blockIndex * SDCARD_BLOCK_SIZE);
     if (status == 0) {
