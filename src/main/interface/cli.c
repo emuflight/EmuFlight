@@ -1752,6 +1752,7 @@ static void cliServoMix(char *cmdline) {
             servoParamsMutable(i)->reversedSources = 0;
         }
     } else if (strncasecmp(cmdline, "load", 4) == 0) {
+#ifndef USE_QUAD_MIXER_ONLY
         const char *ptr = nextArg(cmdline);
         if (ptr) {
             len = strlen(ptr);
@@ -1768,6 +1769,9 @@ static void cliServoMix(char *cmdline) {
                 }
             }
         }
+#else
+        cliPrintErrorLinef("Invalid name");
+#endif
     } else if (strncasecmp(cmdline, "reverse", 7) == 0) {
         enum {SERVO = 0, INPUT, REVERSE, ARGS_COUNT};
         char *ptr = strchr(cmdline, ' ');
@@ -4598,10 +4602,16 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("signature", "get / set the board type signature", "[signature]", cliSignature),
 #endif
 #ifdef USE_SERVOS
+#ifndef USE_QUAD_MIXER_ONLY
     CLI_COMMAND_DEF("smix", "servo mixer", "<rule> <servo> <source> <rate> <speed> <min> <max> <box>\r\n"
                     "\treset\r\n"
                     "\tload <mixer>\r\n"
                     "\treverse <servo> <source> r|n", cliServoMix),
+#else
+    CLI_COMMAND_DEF("smix", "servo mixer", "<rule> <servo> <source> <rate> <speed> <min> <max> <box>\r\n"
+                    "\treset\r\n"
+                    "\treverse <servo> <source> r|n", cliServoMix),
+#endif
 #endif
     CLI_COMMAND_DEF("status", "show status", NULL, cliStatus),
 #ifndef SKIP_TASK_STATISTICS
