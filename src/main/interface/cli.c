@@ -4602,10 +4602,16 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("signature", "get / set the board type signature", "[signature]", cliSignature),
 #endif
 #ifdef USE_SERVOS
+#ifndef USE_QUAD_MIXER_ONLY
     CLI_COMMAND_DEF("smix", "servo mixer", "<rule> <servo> <source> <rate> <speed> <min> <max> <box>\r\n"
                     "\treset\r\n"
                     "\tload <mixer>\r\n"
                     "\treverse <servo> <source> r|n", cliServoMix),
+#else
+    CLI_COMMAND_DEF("smix", "servo mixer", "<rule> <servo> <source> <rate> <speed> <min> <max> <box>\r\n"
+                    "\treset\r\n"
+                    "\treverse <servo> <source> r|n", cliServoMix),
+#endif
 #endif
     CLI_COMMAND_DEF("status", "show status", NULL, cliStatus),
 #ifndef SKIP_TASK_STATISTICS
