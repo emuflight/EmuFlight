@@ -413,7 +413,7 @@ static bool blackboxIsOnlyLoggingIntraframes(void) {
     return blackboxConfig()->p_ratio == 0;
 }
 
-static bool isFieldEnabled(FlightLogFieldSelect_e field) {
+STATIC_UNIT_TESTED bool isFieldEnabled(FlightLogFieldSelect_e field) {
     return (blackboxConfig()->fields_disabled_mask & (1 << field)) == 0;
 }
 
@@ -738,6 +738,27 @@ static void writeInterframe(void) {
     blackboxHistory[0] = ((blackboxHistory[0] - blackboxHistoryRing + 1) % 3) + blackboxHistoryRing;
     blackboxLoggedAnyFrames = true;
 }
+
+#ifdef UNIT_TEST
+// Points the history ring at zeroed state so a test can drive write*Frame() byte output
+// directly, without a full logging-session bring-up (blackboxStart()/blackboxDeviceOpen()).
+static void unitTestResetHistory(void) {
+    memset(blackboxHistoryRing, 0, sizeof(blackboxHistoryRing));
+    blackboxHistory[0] = &blackboxHistoryRing[0];
+    blackboxHistory[1] = &blackboxHistoryRing[1];
+    blackboxHistory[2] = &blackboxHistoryRing[2];
+}
+
+STATIC_UNIT_TESTED void unitTestWriteIntraframe(void) {
+    unitTestResetHistory();
+    writeIntraframe();
+}
+
+STATIC_UNIT_TESTED void unitTestWriteInterframe(void) {
+    unitTestResetHistory();
+    writeInterframe();
+}
+#endif
 
 /* Write the contents of the global "slowHistory" to the log as an "S" frame. Because this data is logged so
  * infrequently, delta updates are not reasonable, so we log independent frames. */
