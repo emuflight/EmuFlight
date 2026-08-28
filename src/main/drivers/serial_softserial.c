@@ -227,7 +227,10 @@ serialPort_t *openSoftSerial(softSerialPortIndex_e portIndex, serialReceiveCallb
             }
             softSerial->rxIO = rxIO;
             softSerial->timerHardware = timerRx;
-            IOInit(rxIO, OWNER_SERIAL_RX, RESOURCE_INDEX(portIndex + RESOURCE_SOFT_OFFSET));
+            // TX-branch IOInit() below would otherwise overwrite this in duplex mode on a shared pin.
+            if (!((mode & MODE_TX) && rxIO == txIO)) {
+                IOInit(rxIO, OWNER_SERIAL_RX, RESOURCE_INDEX(portIndex + RESOURCE_SOFT_OFFSET));
+            }
         }
         if (mode & MODE_TX) {
             // Need a pin on TX

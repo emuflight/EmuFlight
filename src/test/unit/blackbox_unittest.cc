@@ -399,7 +399,11 @@ static bool stubSensorsPresent = false;
 static bool stubFeatureEnabled = false;
 static bool stubRssiConfigured = false;
 bool sensors(uint32_t) {return stubSensorsPresent;}
-void serialWrite(serialPort_t *, uint8_t) {}
+// TestMotorFieldByteSync resets this before each capture window; no other test writes.
+static int capturedSerialByteCount = 0;
+void serialWrite(serialPort_t *, uint8_t) {
+    capturedSerialByteCount++;
+}
 uint32_t serialTxBytesFree(const serialPort_t *) {return 0;}
 bool isSerialTransmitBufferEmpty(const serialPort_t *) {return false;}
 bool feature(uint32_t) {return stubFeatureEnabled;}
@@ -546,6 +550,13 @@ TEST(BlackboxTest, TestFieldMasking)
     EXPECT_EQ(false, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_AT_LEAST_MOTORS_1));
     EXPECT_EQ(true, testBlackboxCondition(FLIGHT_LOG_FIELD_CONDITION_DEBUG));
 
+    // GPS has no FLIGHT_LOG_FIELD_CONDITION_* wrapper; call sites check isFieldEnabled() directly
+    blackboxConfigMutable()->fields_disabled_mask = 0;
+    EXPECT_EQ(true, isFieldEnabled(FLIGHT_LOG_FIELD_SELECT_GPS));
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_GPS);
+    EXPECT_EQ(false, isFieldEnabled(FLIGHT_LOG_FIELD_SELECT_GPS));
+    EXPECT_EQ(true, isFieldEnabled(FLIGHT_LOG_FIELD_SELECT_DEBUG));
+
     // Reset all global stub state so no later test observes this fixture
     blackboxConfigMutable()->fields_disabled_mask = 0;
     blackboxBuildConditionCache();
@@ -556,4 +567,62 @@ TEST(BlackboxTest, TestFieldMasking)
     stubFeatureEnabled = false;
     stubRssiConfigured = false;
     debugMode = 0;
+}
+
+TEST(BlackboxTest, TestMotorFieldByteSync)
+{
+    // Regression test for a header/data-write desync class: a mask that hides a field's
+    // header must also stop write*Frame() emitting that field's bytes, not just flip the
+    // condition-cache bit.
+
+    // Reset shared global stub state before use, not just at teardown — matches TestFieldMasking.
+    batteryConfigMutable()->voltageMeterSource = VOLTAGE_METER_NONE;
+    batteryConfigMutable()->currentMeterSource = CURRENT_METER_NONE;
+    stubSensorsPresent = false;
+    stubFeatureEnabled = false;
+    stubRssiConfigured = false;
+    debugMode = 0;
+
+    static pidProfile_t testPidProfile = {};
+    testPidProfile.pid[PID_ROLL].D = 1;
+    testPidProfile.pid[PID_PITCH].D = 1;
+    testPidProfile.pid[PID_YAW].D = 1;
+    currentPidProfile = &testPidProfile;
+
+    blackboxConfigMutable()->fields_disabled_mask = 0;
+    blackboxBuildConditionCache();
+    const int headerFieldsWithMotor = unitTestCountVisibleMotorHeaderFields();
+    capturedSerialByteCount = 0;
+    unitTestWriteIntraframe();
+    const int intraBytesWithMotor = capturedSerialByteCount;
+
+    capturedSerialByteCount = 0;
+    unitTestWriteInterframe();
+    const int interBytesWithMotor = capturedSerialByteCount;
+
+    blackboxConfigMutable()->fields_disabled_mask = (1 << FLIGHT_LOG_FIELD_SELECT_MOTOR);
+    blackboxBuildConditionCache();
+    const int headerFieldsWithoutMotor = unitTestCountVisibleMotorHeaderFields();
+    capturedSerialByteCount = 0;
+    unitTestWriteIntraframe();
+    const int intraBytesWithoutMotor = capturedSerialByteCount;
+
+    capturedSerialByteCount = 0;
+    unitTestWriteInterframe();
+    const int interBytesWithoutMotor = capturedSerialByteCount;
+
+    // getMotorCount() stub returns 4: motor[0] (1 VB byte) + 3 deltas (1 VB byte each) = 4 bytes,
+    // for both intraframe's raw encoding and interframe's average-predictor encoding.
+    EXPECT_EQ(4, intraBytesWithMotor - intraBytesWithoutMotor);
+    EXPECT_EQ(4, interBytesWithMotor - interBytesWithoutMotor);
+
+    // Header field count (blackboxMainFields[], same table sendFieldDefinition() emits from)
+    // must drop in lockstep with the serialized byte count, not just the byte count alone.
+    EXPECT_EQ(4, headerFieldsWithMotor);
+    EXPECT_EQ(0, headerFieldsWithoutMotor);
+    EXPECT_EQ(headerFieldsWithMotor - headerFieldsWithoutMotor, intraBytesWithMotor - intraBytesWithoutMotor);
+
+    blackboxConfigMutable()->fields_disabled_mask = 0;
+    blackboxBuildConditionCache();
+    currentPidProfile = NULL;
 }
