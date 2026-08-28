@@ -1752,6 +1752,7 @@ static void cliServoMix(char *cmdline) {
             servoParamsMutable(i)->reversedSources = 0;
         }
     } else if (strncasecmp(cmdline, "load", 4) == 0) {
+#ifndef USE_QUAD_MIXER_ONLY
         const char *ptr = nextArg(cmdline);
         if (ptr) {
             len = strlen(ptr);
@@ -1768,6 +1769,9 @@ static void cliServoMix(char *cmdline) {
                 }
             }
         }
+#else
+        cliPrintErrorLinef("Invalid name");
+#endif
     } else if (strncasecmp(cmdline, "reverse", 7) == 0) {
         enum {SERVO = 0, INPUT, REVERSE, ARGS_COUNT};
         char *ptr = strchr(cmdline, ' ');
