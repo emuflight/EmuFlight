@@ -67,10 +67,8 @@
 
 
 //#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream5
-//#define SDCARD_DMA_CHANNEL                  0
 
 #define SDCARD_DMA_CHANNEL_TX               DMA1_Stream4
-#define SDCARD_DMA_CHANNEL                  0
 
 #define USE_VCP
 #define USB_DETECT_PIN          PC5
