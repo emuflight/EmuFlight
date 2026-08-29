@@ -3894,6 +3894,32 @@ static void resourceCheck(uint8_t resourceIndex, uint8_t index, ioTag_t newTag) 
     }
 }
 
+// Surfaces timerAllocate()'s otherwise-silent ownership-check rejection: resourceTable/PG state
+// reflects configured intent, not whether the timer claim for this pin actually won this boot.
+// timerGetOwner() tracks owner only, not per-instance index -- a same-owner match here can still
+// be a different instance of that owner (e.g. a different motor channel) than the one configured.
+STATIC_UNIT_TESTED void printResourceClaimStatus(uint8_t resourceIndex, uint8_t index, ioTag_t ioTag) {
+    if (!ioTag) {
+        return;
+    }
+    const resourceOwner_e expectedOwner = resourceTable[resourceIndex].owner;
+    const resourceOwner_e actualOwner = timerGetOwner(ioTag);
+    // OWNER_FREE means this pin isn't under runtime timer-pinmap management, or the owning
+    // driver never called timerAllocate() this boot -- neither is a claim conflict to report.
+    if (actualOwner == OWNER_FREE || actualOwner == expectedOwner) {
+        return;
+    }
+    cliPrintLinef("# %s %d: CLAIMED BY %s", ownerNames[expectedOwner], RESOURCE_INDEX(index), ownerNames[actualOwner]);
+}
+
+static void printResourceClaimStatusAll(void) {
+    for (unsigned int i = 0; i < ARRAYLEN(resourceTable); i++) {
+        for (int index = 0; index < MAX_RESOURCE_INDEX(resourceTable[i].maxIndex); index++) {
+            printResourceClaimStatus(i, index, *getIoTag(resourceTable[i], index));
+        }
+    }
+}
+
 static bool strToPin(char *pch, ioTag_t *tag) {
     if (strcasecmp(pch, "NONE") == 0) {
         *tag = IO_TAG_NONE;
@@ -3917,6 +3943,7 @@ static void cliResource(char *cmdline) {
     int len = strlen(cmdline);
     if (len == 0) {
         printResource(DUMP_MASTER | HIDE_UNUSED);
+        printResourceClaimStatusAll();
         return;
     } else if (strncasecmp(cmdline, "list", len) == 0) {
         cliPrintLine("Currently active IO resource assignments:\r\n(reboot to update)");
@@ -3968,6 +3995,7 @@ static void cliResource(char *cmdline) {
                 if (rec) {
                     resourceCheck(resourceIndex, index, *tag);
                     cliPrintLinef("\r\nResource is set to %c%02d", IO_GPIOPortIdx(rec) + 'A', IO_GPIOPinIdx(rec));
+                    printResourceClaimStatus(resourceIndex, index, *tag);
                 } else {
                     cliShowParseError();
                 }

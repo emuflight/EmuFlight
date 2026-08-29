@@ -70,6 +70,7 @@ extern "C" {
     typedef struct dmaoptEntry_s dmaoptEntry_t;
     const dmaoptEntry_t *findDmaoptEntry(const char *name);
     void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int index, const dmaChannelSpec_t *dmaChannelSpec);
+    void printResourceClaimStatus(uint8_t resourceIndex, uint8_t index, ioTag_t ioTag);
 
     static const int UNIT_TEST_DATA_LENGTH = 3;
 
@@ -313,6 +314,67 @@ TEST_F(DmaoptClaimStatusTest, InvalidIdentifierPrintsMapError)
     EXPECT_NE(std::string::npos, output.find("# UART_TX 1: DMA MAP ERROR"));
 }
 
+// timerGetOwner() is stubbed (below) as a test-controllable fake; this global selects what it
+// returns for the current test case.
+static resourceOwner_e fakeTimerOwner;
+
+class ResourceClaimStatusTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        cliMode = 1;
+        fakeTimerOwner = OWNER_FREE;
+    }
+
+    // resourceTable[0] is OWNER_BEEPER (USE_BEEPER is on via test/unit/target.h); MOTOR is the
+    // next unconditional entry.
+    static const uint8_t motorResourceIndex = 1;
+    static const ioTag_t fakeIoTag = 1;
+};
+
+TEST_F(ResourceClaimStatusTest, OwnClaimPrintsNothing)
+{
+    fakeTimerOwner = OWNER_MOTOR;
+
+    testing::internal::CaptureStdout();
+    printResourceClaimStatus(motorResourceIndex, 0, fakeIoTag);
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(output.empty());
+}
+
+TEST_F(ResourceClaimStatusTest, FreeOwnerPrintsNothing)
+{
+    fakeTimerOwner = OWNER_FREE;
+
+    testing::internal::CaptureStdout();
+    printResourceClaimStatus(motorResourceIndex, 0, fakeIoTag);
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(output.empty());
+}
+
+TEST_F(ResourceClaimStatusTest, UnassignedTagPrintsNothing)
+{
+    fakeTimerOwner = OWNER_LED_STRIP;
+
+    testing::internal::CaptureStdout();
+    printResourceClaimStatus(motorResourceIndex, 0, IO_TAG_NONE);
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(output.empty());
+}
+
+TEST_F(ResourceClaimStatusTest, ConflictPrintsClaimedBy)
+{
+    fakeTimerOwner = OWNER_LED_STRIP;
+
+    testing::internal::CaptureStdout();
+    printResourceClaimStatus(motorResourceIndex, 0, fakeIoTag);
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    EXPECT_NE(std::string::npos, output.find("# MOTOR 1: CLAIMED BY LED_STRIP\r\n"));
+}
+
 // STUBS
 extern "C" {
 
@@ -336,6 +398,7 @@ dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef *) { return fakeDmaIde
 resourceOwner_e dmaGetOwner(dmaIdentifier_e) { return fakeDmaOwner; }
 uint8_t dmaGetResourceIndex(dmaIdentifier_e) { return fakeDmaResourceIndex; }
 const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e, uint8_t, int8_t) { return NULL; }
+resourceOwner_e timerGetOwner(ioTag_t) { return fakeTimerOwner; }
 
 float motor_disarmed[MAX_SUPPORTED_MOTORS];
 
