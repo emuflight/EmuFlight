@@ -113,7 +113,6 @@
 #define USE_SDCARD_SDIO
 #define SDCARD_SPI_CS_PIN   PA4
 #define SDCARD_SPI_INSTANCE SPI1
-//notice - NEED: #define SDCARD_DMA_CHANNEL          X            // please verify
 //notice - NEED: #define SDCARD_DMA_CHANNEL_TX       DMAx_StreamX // please verify
 //notice - other sdcard defines maybe needed (rare?): SDCARD_DMA_STREAM_TX_FULL, SDCARD_DMA_STREAM_TX, SDCARD_DMA_CLK, SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT

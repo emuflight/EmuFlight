@@ -80,7 +80,6 @@
 
 /*
 #define SDCARD_DMA_CHANNEL_TX               DMA1_Stream4
-#define SDCARD_DMA_CHANNEL                  0
 */
 
 

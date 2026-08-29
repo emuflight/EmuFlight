@@ -139,7 +139,6 @@
 #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256 // 422kHz
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER      8 // 27MHz
 #define SDCARD_DMA_STREAM_TX_FULL             DMA2_Stream5
-#define SDCARD_DMA_CHANNEL                    3
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1

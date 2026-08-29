@@ -106,7 +106,6 @@
 #define SDCARD_SPI_INSTANCE SPI2
 // DMA1_Stream4 is shared by SPI2_TX (sdcard, ch0) and TIM3_CH1/motor1 (ch5).
 // sdcard useDma defaults to false so there is no runtime conflict; do not enable sdcard DMA.
-#define SDCARD_DMA_CHANNEL          0            // SPI2 TX: DMA1 Stream4 Channel0
 #define SDCARD_DMA_CHANNEL_TX       DMA1_Stream4 // SPI2 TX: DMA1 Stream4 Channel0
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4
