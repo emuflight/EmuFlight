@@ -314,19 +314,21 @@ TEST_F(DmaoptClaimStatusTest, InvalidIdentifierPrintsMapError)
     EXPECT_NE(std::string::npos, output.find("# UART_TX 1: DMA MAP ERROR"));
 }
 
-// timerGetOwner() is stubbed (below) as a test-controllable fake; this global selects what it
-// returns for the current test case.
+// timerGetOwner()/timerGetOwnerResourceIndex() are stubbed (below) as test-controllable fakes;
+// these globals select what each returns for the current test case.
 static resourceOwner_e fakeTimerOwner;
+static uint8_t fakeTimerOwnerIndex;
 
 class ResourceClaimStatusTest : public ::testing::Test {
 protected:
     void SetUp() override {
         cliMode = 1;
         fakeTimerOwner = OWNER_FREE;
+        fakeTimerOwnerIndex = 0;
     }
 
     // resourceTable[0] is OWNER_BEEPER (USE_BEEPER is on via test/unit/target.h); MOTOR is the
-    // next unconditional entry.
+    // next unconditional entry, and multi-instance (maxIndex == MAX_SUPPORTED_MOTORS).
     static const uint8_t motorResourceIndex = 1;
     static const ioTag_t fakeIoTag = 1;
 };
@@ -334,6 +336,7 @@ protected:
 TEST_F(ResourceClaimStatusTest, OwnClaimPrintsNothing)
 {
     fakeTimerOwner = OWNER_MOTOR;
+    fakeTimerOwnerIndex = RESOURCE_INDEX(0);
 
     testing::internal::CaptureStdout();
     printResourceClaimStatus(motorResourceIndex, 0, fakeIoTag);
@@ -367,12 +370,27 @@ TEST_F(ResourceClaimStatusTest, UnassignedTagPrintsNothing)
 TEST_F(ResourceClaimStatusTest, ConflictPrintsClaimedBy)
 {
     fakeTimerOwner = OWNER_LED_STRIP;
+    fakeTimerOwnerIndex = 0; // LED_STRIP is single-instance; its driver passes a literal 0
 
     testing::internal::CaptureStdout();
     printResourceClaimStatus(motorResourceIndex, 0, fakeIoTag);
     const std::string output = testing::internal::GetCapturedStdout();
 
     EXPECT_NE(std::string::npos, output.find("# MOTOR 1: CLAIMED BY LED_STRIP\r\n"));
+}
+
+TEST_F(ResourceClaimStatusTest, SameOwnerDifferentIndexPrintsClaimedByWithIndex)
+{
+    // Two resourceTable MOTOR entries misconfigured to the same ioTag: this entry (index 0,
+    // RESOURCE_INDEX 1) lost the timerAllocate() race to a different MOTOR instance (index 5).
+    fakeTimerOwner = OWNER_MOTOR;
+    fakeTimerOwnerIndex = 5;
+
+    testing::internal::CaptureStdout();
+    printResourceClaimStatus(motorResourceIndex, 0, fakeIoTag);
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    EXPECT_NE(std::string::npos, output.find("# MOTOR 1: CLAIMED BY MOTOR 5\r\n"));
 }
 
 // STUBS
@@ -399,6 +417,7 @@ resourceOwner_e dmaGetOwner(dmaIdentifier_e) { return fakeDmaOwner; }
 uint8_t dmaGetResourceIndex(dmaIdentifier_e) { return fakeDmaResourceIndex; }
 const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e, uint8_t, int8_t) { return NULL; }
 resourceOwner_e timerGetOwner(ioTag_t) { return fakeTimerOwner; }
+uint8_t timerGetOwnerResourceIndex(ioTag_t) { return fakeTimerOwnerIndex; }
 
 float motor_disarmed[MAX_SUPPORTED_MOTORS];
 

@@ -56,9 +56,9 @@ const timerHardware_t *timerGetByTag(ioTag_t ioTag) {
 
 #ifdef USE_TIMER_MGMT
 static resourceOwner_e timerOwners[MAX_TIMER_PINMAP_COUNT];
+static uint8_t timerOwnerResourceIndices[MAX_TIMER_PINMAP_COUNT];
 
 const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8_t resourceIndex) {
-    UNUSED(resourceIndex); // timerOwners[] tracks owner only, not per-instance index
     if (!ioTag) {
         return NULL;
     }
@@ -72,6 +72,7 @@ const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8
                 return NULL;
             }
             timerOwners[i] = owner;
+            timerOwnerResourceIndices[i] = resourceIndex;
             return timer;
         }
     }
@@ -89,6 +90,18 @@ resourceOwner_e timerGetOwner(ioTag_t ioTag) {
     }
     return OWNER_FREE;
 }
+
+uint8_t timerGetOwnerResourceIndex(ioTag_t ioTag) {
+    if (!ioTag) {
+        return 0;
+    }
+    for (unsigned i = 0; i < MAX_TIMER_PINMAP_COUNT; i++) {
+        if (timerIOConfig(i)->ioTag == ioTag) {
+            return timerOwnerResourceIndices[i];
+        }
+    }
+    return 0;
+}
 #else
 const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8_t resourceIndex) {
     UNUSED(owner);
@@ -99,6 +112,11 @@ const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8
 resourceOwner_e timerGetOwner(ioTag_t ioTag) {
     UNUSED(ioTag);
     return OWNER_FREE;
+}
+
+uint8_t timerGetOwnerResourceIndex(ioTag_t ioTag) {
+    UNUSED(ioTag);
+    return 0;
 }
 #endif
 

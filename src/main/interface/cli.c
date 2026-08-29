@@ -3896,20 +3896,28 @@ static void resourceCheck(uint8_t resourceIndex, uint8_t index, ioTag_t newTag) 
 
 // Surfaces timerAllocate()'s otherwise-silent ownership-check rejection: resourceTable/PG state
 // reflects configured intent, not whether the timer claim for this pin actually won this boot.
-// timerGetOwner() tracks owner only, not per-instance index -- a same-owner match here can still
-// be a different instance of that owner (e.g. a different motor channel) than the one configured.
 STATIC_UNIT_TESTED void printResourceClaimStatus(uint8_t resourceIndex, uint8_t index, ioTag_t ioTag) {
     if (!ioTag) {
         return;
     }
     const resourceOwner_e expectedOwner = resourceTable[resourceIndex].owner;
     const resourceOwner_e actualOwner = timerGetOwner(ioTag);
+    const uint8_t actualIndex = timerGetOwnerResourceIndex(ioTag);
+    // Single-instance owners (maxIndex == 0) pass a literal 0 resourceIndex into timerAllocate()
+    // (no instance to distinguish); only multi-instance owners (e.g. per-motor) need an exact
+    // index match to tell "this instance won" from "a same-owner sibling instance won instead".
+    const bool sameClaim = actualOwner == expectedOwner
+        && (resourceTable[resourceIndex].maxIndex == 0 || actualIndex == RESOURCE_INDEX(index));
     // OWNER_FREE means this pin isn't under runtime timer-pinmap management, or the owning
     // driver never called timerAllocate() this boot -- neither is a claim conflict to report.
-    if (actualOwner == OWNER_FREE || actualOwner == expectedOwner) {
+    if (sameClaim || actualOwner == OWNER_FREE) {
         return;
     }
-    cliPrintLinef("# %s %d: CLAIMED BY %s", ownerNames[expectedOwner], RESOURCE_INDEX(index), ownerNames[actualOwner]);
+    char idxSuffix[6] = "";
+    if (actualIndex > 0) {
+        tfp_sprintf(idxSuffix, " %d", actualIndex);
+    }
+    cliPrintLinef("# %s %d: CLAIMED BY %s%s", ownerNames[expectedOwner], RESOURCE_INDEX(index), ownerNames[actualOwner], idxSuffix);
 }
 
 static void printResourceClaimStatusAll(void) {
