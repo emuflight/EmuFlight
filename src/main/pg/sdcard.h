@@ -24,14 +24,14 @@
 #include "drivers/io.h"
 
 typedef struct sdcardConfig_s {
-    uint8_t useDma;
     uint8_t enabled;
     uint8_t device;
     ioTag_t cardDetectTag;
     ioTag_t chipSelectTag;
     uint8_t cardDetectInverted;
+    // SDIO mode only (drivers/sdcard_sdio_baremetal.c) -- the SPI-mode driver resolves its own
+    // DMA at the bus level via spiInitBusDMA(), no config-level identifier needed.
     uint8_t dmaIdentifier;
-    uint8_t dmaChannel;
 } sdcardConfig_t;
 
 PG_DECLARE(sdcardConfig_t, sdcardConfig);
