@@ -131,7 +131,6 @@
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER      8 // 27MHz
 
 #define SDCARD_DMA_STREAM_TX_FULL             DMA2_Stream5
-#define SDCARD_DMA_CHANNEL                    3
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
 #define USE_I2C

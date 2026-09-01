@@ -33,10 +33,9 @@
 #include "drivers/io.h"
 #include "drivers/dma.h"
 
-PG_REGISTER_WITH_RESET_FN(sdcardConfig_t, sdcardConfig, PG_SDCARD_CONFIG, 0);
+PG_REGISTER_WITH_RESET_FN(sdcardConfig_t, sdcardConfig, PG_SDCARD_CONFIG, 1);
 
 void pgResetFn_sdcardConfig(sdcardConfig_t *config) {
-    config->useDma = false;
 #ifdef SDCARD_SPI_INSTANCE
     config->enabled = 1;
     config->device = spiDeviceByInstance(SDCARD_SPI_INSTANCE);
@@ -67,10 +66,6 @@ void pgResetFn_sdcardConfig(sdcardConfig_t *config) {
     config->dmaIdentifier = (uint8_t)dmaGetIdentifier(SDCARD_DMA_CHANNEL_TX);
 #elif defined(SDIO_DMA)
     config->dmaIdentifier = (uint8_t)dmaGetIdentifier(SDIO_DMA);
-    config->useDma = true;
-#endif
-#if defined(SDCARD_DMA_CHANNEL)
-    config->dmaChannel = SDCARD_DMA_CHANNEL;
 #endif
 }
 #endif

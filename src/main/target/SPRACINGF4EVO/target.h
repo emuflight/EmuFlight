@@ -165,7 +165,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
 #define SDCARD_DMA_CHANNEL_TX               DMA1_Stream4
-#define SDCARD_DMA_CHANNEL                  0
 
 #ifndef USE_DUAL_GYRO
 #define MPU6500_CS_PIN          SPI1_NSS_PIN

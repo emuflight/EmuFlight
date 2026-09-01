@@ -127,7 +127,6 @@
 #define SDCARD_SPI_CS_PIN       PD2
 
 #define SDCARD_DMA_STREAM_TX_FULL           DMA1_Stream5
-#define SDCARD_DMA_CHANNEL                  0
 
 // SPI3 is on the APB1 bus whose clock runs at 84MHz. Divide to under 400kHz for init:
 #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256 // 328kHz

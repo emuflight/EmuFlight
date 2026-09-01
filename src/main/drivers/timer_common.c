@@ -56,9 +56,9 @@ const timerHardware_t *timerGetByTag(ioTag_t ioTag) {
 
 #ifdef USE_TIMER_MGMT
 static resourceOwner_e timerOwners[MAX_TIMER_PINMAP_COUNT];
+static uint8_t timerOwnerResourceIndices[MAX_TIMER_PINMAP_COUNT];
 
 const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8_t resourceIndex) {
-    UNUSED(resourceIndex); // tracked by BF's resourceOwner_t for its timerGetOwner() accessor; no equivalent consumer exists in EF yet
     if (!ioTag) {
         return NULL;
     }
@@ -72,16 +72,51 @@ const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8
                 return NULL;
             }
             timerOwners[i] = owner;
+            timerOwnerResourceIndices[i] = resourceIndex;
             return timer;
         }
     }
     return NULL;
+}
+
+resourceOwner_e timerGetOwner(ioTag_t ioTag) {
+    if (!ioTag) {
+        return OWNER_FREE;
+    }
+    for (unsigned i = 0; i < MAX_TIMER_PINMAP_COUNT; i++) {
+        if (timerIOConfig(i)->ioTag == ioTag) {
+            return timerOwners[i];
+        }
+    }
+    return OWNER_FREE;
+}
+
+uint8_t timerGetOwnerResourceIndex(ioTag_t ioTag) {
+    if (!ioTag) {
+        return 0;
+    }
+    for (unsigned i = 0; i < MAX_TIMER_PINMAP_COUNT; i++) {
+        if (timerIOConfig(i)->ioTag == ioTag) {
+            return timerOwnerResourceIndices[i];
+        }
+    }
+    return 0;
 }
 #else
 const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8_t resourceIndex) {
     UNUSED(owner);
     UNUSED(resourceIndex);
     return timerGetByTag(ioTag);
+}
+
+resourceOwner_e timerGetOwner(ioTag_t ioTag) {
+    UNUSED(ioTag);
+    return OWNER_FREE;
+}
+
+uint8_t timerGetOwnerResourceIndex(ioTag_t ioTag) {
+    UNUSED(ioTag);
+    return 0;
 }
 #endif
 
