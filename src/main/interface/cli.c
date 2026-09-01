@@ -3894,6 +3894,40 @@ static void resourceCheck(uint8_t resourceIndex, uint8_t index, ioTag_t newTag) 
     }
 }
 
+// Surfaces timerAllocate()'s otherwise-silent ownership-check rejection: resourceTable/PG state
+// reflects configured intent, not whether the timer claim for this pin actually won this boot.
+STATIC_UNIT_TESTED void printResourceClaimStatus(uint8_t resourceIndex, uint8_t index, ioTag_t ioTag) {
+    if (!ioTag) {
+        return;
+    }
+    const resourceOwner_e expectedOwner = resourceTable[resourceIndex].owner;
+    const resourceOwner_e actualOwner = timerGetOwner(ioTag);
+    const uint8_t actualIndex = timerGetOwnerResourceIndex(ioTag);
+    // Single-instance owners (maxIndex == 0) pass a literal 0 resourceIndex into timerAllocate()
+    // (no instance to distinguish); only multi-instance owners (e.g. per-motor) need an exact
+    // index match to tell "this instance won" from "a same-owner sibling instance won instead".
+    const bool sameClaim = actualOwner == expectedOwner
+        && (resourceTable[resourceIndex].maxIndex == 0 || actualIndex == RESOURCE_INDEX(index));
+    // OWNER_FREE means this pin isn't under runtime timer-pinmap management, or the owning
+    // driver never called timerAllocate() this boot -- neither is a claim conflict to report.
+    if (sameClaim || actualOwner == OWNER_FREE) {
+        return;
+    }
+    char idxSuffix[6] = "";
+    if (actualIndex > 0) {
+        tfp_sprintf(idxSuffix, " %d", actualIndex);
+    }
+    cliPrintLinef("# %s %d: CLAIMED BY %s%s", ownerNames[expectedOwner], RESOURCE_INDEX(index), ownerNames[actualOwner], idxSuffix);
+}
+
+static void printResourceClaimStatusAll(void) {
+    for (unsigned int i = 0; i < ARRAYLEN(resourceTable); i++) {
+        for (int index = 0; index < MAX_RESOURCE_INDEX(resourceTable[i].maxIndex); index++) {
+            printResourceClaimStatus(i, index, *getIoTag(resourceTable[i], index));
+        }
+    }
+}
+
 static bool strToPin(char *pch, ioTag_t *tag) {
     if (strcasecmp(pch, "NONE") == 0) {
         *tag = IO_TAG_NONE;
@@ -3917,6 +3951,7 @@ static void cliResource(char *cmdline) {
     int len = strlen(cmdline);
     if (len == 0) {
         printResource(DUMP_MASTER | HIDE_UNUSED);
+        printResourceClaimStatusAll();
         return;
     } else if (strncasecmp(cmdline, "list", len) == 0) {
         cliPrintLine("Currently active IO resource assignments:\r\n(reboot to update)");
@@ -3968,6 +4003,7 @@ static void cliResource(char *cmdline) {
                 if (rec) {
                     resourceCheck(resourceIndex, index, *tag);
                     cliPrintLinef("\r\nResource is set to %c%02d", IO_GPIOPortIdx(rec) + 'A', IO_GPIOPinIdx(rec));
+                    printResourceClaimStatus(resourceIndex, index, *tag);
                 } else {
                     cliShowParseError();
                 }

@@ -114,7 +114,6 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
 #define USE_SDCARD_SDIO
-//notice - NEED: #define SDCARD_DMA_CHANNEL          X            // please verify
 //notice - NEED: #define SDCARD_DMA_CHANNEL_TX       DMAx_StreamX // please verify
 //notice - other sdcard defines maybe needed (rare?): SDCARD_DMA_STREAM_TX_FULL, SDCARD_DMA_STREAM_TX, SDCARD_DMA_CLK, SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4    //notice - needs validation. these are hardware dependent. known options: 2, 4, 8.
