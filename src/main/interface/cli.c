@@ -2946,7 +2946,9 @@ static void cliEscPassthrough(char *cmdline) {
         pos++;
         pch = strtok_r(NULL, " ", &saveptr);
     }
-    escEnablePassthrough(cliPort, escIndex, mode);
+    if (!escEnablePassthrough(cliPort, &motorConfig()->dev, escIndex, mode)) {
+        cliPrintErrorLinef("Error starting ESC connection");
+    }
 }
 #endif
 

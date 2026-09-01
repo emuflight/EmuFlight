@@ -344,6 +344,16 @@ void configTimeBase(TIM_TypeDef *tim, uint16_t period, uint32_t hz) {
     }
 }
 
+void timerReconfigureTimeBase(TIM_TypeDef *tim, uint16_t period, uint32_t hz) {
+    TIM_HandleTypeDef *handle = timerFindTimerHandle(tim);
+    if (handle == NULL) {
+        return;
+    }
+    handle->Init.Period = (period - 1) & 0xffff; // AKA TIMx_ARR
+    handle->Init.Prescaler = (timerClock(tim) / hz) - 1;
+    TIM_Base_SetConfig(handle->Instance, &handle->Init);
+}
+
 // old interface for PWM inputs. It should be replaced
 void timerConfigure(const timerHardware_t *timerHardwarePtr, uint16_t period, uint32_t hz) {
     uint8_t timerIndex = lookupTimerIndex(timerHardwarePtr->tim);
