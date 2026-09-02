@@ -558,6 +558,14 @@ static void resetBuffers(escSerial_t *escSerial) {
 static serialPort_t *openEscSerial(const motorDevConfig_t *motorConfig, escSerialPortIndex_e portIndex, serialReceiveCallbackPtr callback, uint16_t output, uint32_t baud, portOptions_e options, uint8_t mode) {
     escSerial_t *escSerial = &(escSerialPorts[portIndex]);
     if (mode != PROTOCOL_KISSALL) {
+        // SIMONK/BLHELI/CASTLE need a fixed-baud periodic tick (TX) and a free-running
+        // edge-capture timebase (RX) on the timer channel at the same time; a shared
+        // channel can only run one of those, so RX's setup always destroys TX's.
+        // Refuse rather than open a connection that can never actually transmit.
+        if ((mode == PROTOCOL_SIMONK || mode == PROTOCOL_BLHELI || mode == PROTOCOL_CASTLE)
+            && escSerialConfig()->ioTag == IO_TAG_NONE) {
+            return NULL;
+        }
         const ioTag_t tag = motorConfig->ioTags[output];
         const timerHardware_t *timerHardware = timerAllocate(tag, OWNER_MOTOR, 0);
         if (timerHardware == NULL) {
@@ -586,7 +594,9 @@ static serialPort_t *openEscSerial(const motorDevConfig_t *motorConfig, escSeria
 #endif
             timerConfigure(escSerial->txTimerHardware, 0xffff, 1);
         } else {
-            // No separate TX pin configured - use RX pin for both TX and RX (fallback mode)
+            // No separate TX pin configured - use RX pin for both TX and RX (fallback mode).
+            // Safe here: PROTOCOL_KISS is the only mode left that reaches this without a
+            // dedicated TX pin, and it never configures the RX side of the shared channel.
             escSerial->txTimerHardware = escSerial->rxTimerHardware;
 #ifdef USE_HAL_DRIVER
             escSerial->txTimerHandle = escSerial->rxTimerHandle;
