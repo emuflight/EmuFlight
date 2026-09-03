@@ -116,7 +116,7 @@
 
 #define SERIAL_PORT_COUNT 7     //USB + 6 UARTS
 
-//#define ESCSERIAL_TIMER_TX_PIN PA3
+//#define ESCSERIAL_TIMER_TX_PIN PA3  //PPM
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
