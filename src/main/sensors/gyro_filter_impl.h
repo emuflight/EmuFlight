@@ -39,9 +39,8 @@ static FAST_CODE void GYRO_FILTER_FUNCTION_NAME(gyroSensor_t *gyroSensor) {
         gyroADCf = kalman_update(gyroADCf, axis);
 #endif
 
-        // apply static notch filters and software lowpass filters
+        // apply software lowpass filters (skipped on IMUF9001: coprocessor already applies its own onboard lowpass)
 #ifndef USE_GYRO_IMUF9001
-        // IMUF9001 coprocessor already applies its own onboard lowpass filtering
 #ifdef USE_GYRO_LPF2
         gyroADCf = gyroSensor->lowpass2FilterApplyFn((filter_t *)&gyroSensor->lowpass2Filter[axis], gyroADCf);
 #endif
