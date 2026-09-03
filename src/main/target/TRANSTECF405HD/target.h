@@ -66,7 +66,6 @@
 #define SPI1_MISO_PIN           PA6
 #define SPI1_MOSI_PIN           PA7
 
-#define USE_ESCSERIAL
 #define USE_ADC
 #define ADC_INSTANCE            ADC1 //test 1 for ADC1
 #define ADC1_DMA_STREAM         DMA2_Stream0

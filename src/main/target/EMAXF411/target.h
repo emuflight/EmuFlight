@@ -163,8 +163,6 @@
 #define RSSI_ADC_PIN            PB1
 //#define EXTERNAL1_ADC_PIN       PA4
 
-#define USE_ESCSERIAL
-
 #define USE_LED_STRIP
 
 #define CAMERA_CONTROL_PIN      PB10

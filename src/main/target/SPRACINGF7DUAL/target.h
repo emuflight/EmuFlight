@@ -117,7 +117,6 @@
 #endif
 
 // TODO
-// #define USE_ESCSERIAL
 // #define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
 
 #define USE_I2C

@@ -97,7 +97,6 @@
 #define RTC6705_SPICLK_PIN      PC2
 #define RTC6705_CS_PIN          PC7
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PB8
 
 #define USE_SPI

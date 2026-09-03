@@ -114,7 +114,6 @@
 // *************** OTHERS **************************
 #define DEFAULT_FEATURES          ( FEATURE_OSD  )
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN    NONE
 
 #define LED0_PIN                  PA15

@@ -165,6 +165,7 @@
 
 #define USE_BRUSHED_ESC_AUTODETECT  // Detect if brushed motors are connected and set defaults appropriately to avoid motors spinning on boot
 #define USE_CLI
+#define USE_ESCSERIAL           // fleet-wide default; per-board #undef only for a verified exception
 #define USE_GYRO_REGISTER_DUMP  // Adds gyroregisters command to cli to dump configured register values
 #define USE_PPM
 #define USE_PWM

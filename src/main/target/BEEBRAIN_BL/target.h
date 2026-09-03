@@ -114,7 +114,6 @@
 #define BEEPER_PIN                      PB10
 #define BEEPER_INVERTED
 
-#define USE_ESCSERIAL
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 #define ENABLE_DSHOT_DMAR               true
 

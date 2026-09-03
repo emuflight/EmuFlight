@@ -120,8 +120,6 @@
 #define CURRENT_METER_ADC_PIN   PB1
 #define RSSI_ADC_PIN            PA0
 
-#define USE_ESCSERIAL
-
 #define CAMERA_CONTROL_PIN  PA1
 
 #define USE_PINIO

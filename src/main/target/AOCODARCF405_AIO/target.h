@@ -134,7 +134,6 @@
 
 #define ENABLE_DSHOT_DMAR true
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN PC11
 
 #define PINIO1_BOX 40

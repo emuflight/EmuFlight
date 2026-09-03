@@ -132,7 +132,6 @@
 
 #define SERIAL_PORT_COUNT       7
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PC7  // (HARDARE=0,PPM)
 
 #define USE_SPI

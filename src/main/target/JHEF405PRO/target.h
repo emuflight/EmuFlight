@@ -119,7 +119,6 @@
 
 #define SERIAL_PORT_COUNT 6     //USB + 5 UARTS
 
-#define USE_ESCSERIAL                  //PPM
 #define ESCSERIAL_TIMER_TX_PIN PB8
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 

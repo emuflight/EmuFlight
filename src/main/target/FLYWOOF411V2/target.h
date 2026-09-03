@@ -55,7 +55,6 @@
 #define USE_ACC_SPI_MPU6000
 #define ACC_MPU6000_ALIGN       CW180_DEG
 
-#define USE_ESCSERIAL
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 // *************** Baro **************************

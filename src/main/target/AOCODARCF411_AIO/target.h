@@ -114,7 +114,6 @@
 #define ADC_INSTANCE ADC1
 
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN PA3
 
 
