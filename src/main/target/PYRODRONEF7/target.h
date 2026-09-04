@@ -124,7 +124,7 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
-#define DEFAULT_VOLTAGE_METER_SCALE                 160
+#define DEFAULT_VOLTAGE_METER_SCALE                 109
 #define RSSI_ADC_PIN            PC3
 #define DEFAULT_CURRENT_METER_SCALE 250                     // 3.3/120A  = 25mv/A
 
