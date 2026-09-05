@@ -157,7 +157,8 @@ typedef struct gyroSensor_s {
     gyroDev_t gyroDev;
     gyroCalibration_t calibration;
 
-    // lowpass gyro soft filter
+    // lowpass gyro soft filter (IMUF9001 coprocessor filters onboard, no host-side storage needed)
+#ifndef USE_GYRO_IMUF9001
     filterApplyFnPtr lowpassFilterApplyFn;
     gyroLowpassFilter_t lowpassFilter[XYZ_AXIS_COUNT];
 
@@ -165,6 +166,7 @@ typedef struct gyroSensor_s {
 #ifdef USE_GYRO_LPF2
     filterApplyFnPtr lowpass2FilterApplyFn;
     gyroLowpassFilter_t lowpass2Filter[XYZ_AXIS_COUNT];
+#endif
 #endif
 
     // ABG filter
@@ -208,7 +210,9 @@ STATIC_UNIT_TESTED gyroDev_t * const gyroDevPtr = &gyroSensor1.gyroDev;
 #endif
 
 static void gyroInitSensorFilters(gyroSensor_t *gyroSensor);
+#ifndef USE_GYRO_IMUF9001
 static void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type);
+#endif
 
 #define DEBUG_GYRO_CALIBRATION 3
 
@@ -775,6 +779,7 @@ bool gyroInit(void) {
     return ret;
 }
 
+#ifndef USE_GYRO_IMUF9001
 void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
     filterApplyFnPtr *lowpassFilterApplyFn;
     gyroLowpassFilter_t *lowpassFilter = NULL;
@@ -835,6 +840,7 @@ void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
         }
     }
 }
+#endif //USE_GYRO_IMUF9001
 
 static uint16_t calculateNyquistAdjustedNotchHz(uint16_t notchHz, uint16_t notchCutoffHz) {
     const uint32_t gyroFrequencyNyquist = 1000000 / 2 / gyro.targetLooptime;
@@ -931,7 +937,6 @@ static void gyroInitSensorFilters(gyroSensor_t *gyroSensor) {
 #endif
 #ifndef USE_GYRO_IMUF9001
     kalman_init();
-#endif //USE_GYRO_IMUF9001
     gyroInitLowpassFilterLpf(
         gyroSensor,
         FILTER_LOWPASS,
@@ -944,6 +949,7 @@ static void gyroInitSensorFilters(gyroSensor_t *gyroSensor) {
         gyroConfig()->gyro_lowpass2_type
     );
 #endif
+#endif //USE_GYRO_IMUF9001
     gyroInitFilterNotch1(gyroSensor, gyroConfig()->gyro_soft_notch_hz_1, gyroConfig()->gyro_soft_notch_cutoff_1);
     gyroInitFilterNotch2(gyroSensor, gyroConfig()->gyro_soft_notch_hz_2, gyroConfig()->gyro_soft_notch_cutoff_2);
 #ifdef USE_GYRO_DATA_ANALYSE
