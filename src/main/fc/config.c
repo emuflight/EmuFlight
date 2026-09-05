@@ -389,6 +389,14 @@ void validateAndFixGyroConfig(void) {
     uint8_t imuf_rate = getImufRateFromGyroSyncDenom(gyroConfigMutable()->gyro_sync_denom);
     gyroConfigMutable()->imuf_rate = imuf_rate;
     gyroConfigMutable()->imuf_mode = GTBCM_GYRO_ACC_FILTER_F;
+    // host-side lowpass has no effect on IMUF9001 (coprocessor filters onboard); force to 0
+    // so dump/MSP never shows a value the filter no longer applies
+    gyroConfigMutable()->gyro_lowpass_hz[ROLL] = 0;
+    gyroConfigMutable()->gyro_lowpass_hz[PITCH] = 0;
+    gyroConfigMutable()->gyro_lowpass_hz[YAW] = 0;
+    gyroConfigMutable()->gyro_lowpass2_hz[ROLL] = 0;
+    gyroConfigMutable()->gyro_lowpass2_hz[PITCH] = 0;
+    gyroConfigMutable()->gyro_lowpass2_hz[YAW] = 0;
 #endif
     // Prevent invalid notch cutoff
     if (gyroConfig()->gyro_soft_notch_cutoff_1 >= gyroConfig()->gyro_soft_notch_hz_1) {
