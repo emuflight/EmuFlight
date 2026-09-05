@@ -121,7 +121,6 @@
 
 #define ENABLE_DSHOT_DMAR false
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN PC11
 
 

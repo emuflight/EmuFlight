@@ -119,7 +119,6 @@
 #define BEEPER_PIN                      PC0
 #define BEEPER_INVERTED
 
-#define USE_ESCSERIAL
 #define ENABLE_DSHOT_DMAR               true
 
 #define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_LED_STRIP)

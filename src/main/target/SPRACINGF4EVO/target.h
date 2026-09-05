@@ -110,7 +110,6 @@
 #define UART5_TX_PIN            PC12
 #define UART5_RX_PIN            PD2
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PA3  // (HARDARE=0,PPM)
 
 #define USE_I2C

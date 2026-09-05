@@ -99,7 +99,6 @@
 
 #define SERIAL_PORT_COUNT       8
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PB8
 
 #define USE_I2C

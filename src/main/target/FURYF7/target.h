@@ -115,7 +115,6 @@
 
 #define SERIAL_PORT_COUNT       6 //VCP, USART1, USART3, USART6, SOFTSERIAL x 2
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PC9 // (Hardware=0, PPM)
 
 #define USE_I2C

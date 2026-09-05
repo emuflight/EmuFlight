@@ -119,8 +119,6 @@
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
-#define USE_ESCSERIAL
-
 #define PINIO1_PIN                      PA2
 #define PINIO2_PIN                      PA3
 #define PINIO3_PIN                      PB12

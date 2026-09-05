@@ -121,7 +121,6 @@
 
 #define SERIAL_PORT_COUNT       6
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PA8  // (HARDARE=0,PPM)
 
 #define USE_SPI

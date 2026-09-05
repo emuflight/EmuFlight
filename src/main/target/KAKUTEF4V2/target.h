@@ -122,8 +122,6 @@
 #define USE_SOFTSERIAL1         //M1~M4 and LedTrip can be redefined as Softserial
 #define SERIAL_PORT_COUNT 7     //vcp, uart1, uart3, uart4, uart5, uart6, softSerial1
 
-#define USE_ESCSERIAL
-
 #define ESCSERIAL_TIMER_TX_PIN  PC7  // (HARDARE=0,PPM)
 
 #define USE_SPI

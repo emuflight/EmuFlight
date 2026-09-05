@@ -81,7 +81,6 @@
 #define SERIAL_PORT_COUNT                                4                      //VCP, USART1, USART2,USART3,USART4,USART5,USART6
 
 // ESC
-#define USE_ESCSERIAL
 #define USE_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE                     VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE                     CURRENT_METER_ADC

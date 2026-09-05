@@ -145,7 +145,6 @@
 
 #define DEFAULT_FEATURES        ( FEATURE_TELEMETRY | FEATURE_OSD )
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN PA3
 
 #define TARGET_IO_PORTA         0xffff

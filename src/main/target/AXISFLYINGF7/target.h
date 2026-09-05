@@ -143,7 +143,6 @@
 #define DEFAULT_CURRENT_METER_SCALE     179
 
 #define USE_LED_STRIP
-#define USE_ESCSERIAL
 //#define ESCSERIAL_TIMER_TX_PIN NONE
 
 #define TARGET_IO_PORTA         0xffff

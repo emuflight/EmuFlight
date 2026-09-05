@@ -139,7 +139,6 @@
 
 #define SERIAL_PORT_COUNT       7
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PA8 // (Hardware=0, PPM/LED_STRIP) XXX Crash if using an LED strip.
 
 #define USE_SPI
