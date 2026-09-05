@@ -121,7 +121,6 @@
 #define ADC1_DMA_OPT        1
 #define ADC1_DMA_STREAM DMA2_Stream4 //# ADC 1: DMA2 Stream 4 Channel 0
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN PB8
 
 

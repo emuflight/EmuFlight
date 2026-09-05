@@ -118,7 +118,6 @@
 
 #define SERIAL_PORT_COUNT       8 // VCP, UART1,2,3,4,6, SOFTSERIAL x 2
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PB8  // (PPM)
 
 #define USE_SPI

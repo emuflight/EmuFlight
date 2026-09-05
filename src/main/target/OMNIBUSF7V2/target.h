@@ -102,7 +102,6 @@
 
 #define SERIAL_PORT_COUNT 8
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PA2 // (Unwired UART2_TX)
 
 //SPI---------------------------------------

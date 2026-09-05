@@ -95,7 +95,6 @@
 #define UART6_TX_PIN            PC6
 #define SERIAL_PORT_COUNT       6 //VCP, USART1, USART2, UART4, UART5, USART6
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PB8
 
 #define USE_SPI

@@ -96,7 +96,6 @@
 
 #define SERIAL_PORT_COUNT       4 //VCP, USART1, USART2, SOFTSERIAL
 
-#define USE_ESCSERIAL
 //#define ESCSERIAL_TIMER_TX_PIN  PB9  // (HARDARE=0,PPM)
 
 // ******* SPI ********

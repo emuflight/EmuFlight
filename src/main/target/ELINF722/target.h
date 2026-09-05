@@ -128,7 +128,6 @@
 
 #define DEFAULT_MIXER           MIXER_QUADX
 #define ENABLE_DSHOT_DMAR       true
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PB6
 
 #define CAMERA_CONTROL_PIN      PB7

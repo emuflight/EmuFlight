@@ -150,7 +150,6 @@
 #define USE_USB_DETECT
 #define USB_DETECT_PIN                  PA5
 
-#define USE_ESCSERIAL
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 #define ENABLE_DSHOT_DMAR               true
 

@@ -184,8 +184,6 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 179
 
-#define USE_ESCSERIAL
-
 //--------------------------------BOARD RESOURCES-----------------------------
 #define TARGET_IO_PORTA 0xffff
 #define TARGET_IO_PORTB 0xffff
