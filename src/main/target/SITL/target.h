@@ -96,6 +96,7 @@
 #undef USE_ADC
 #undef USE_VCP
 #undef USE_OSD
+#undef USE_ESCSERIAL // driver excluded from SITL build (MCU_EXCLUDES), no real timer/serial hardware to pass through
 #undef USE_PPM
 #undef USE_PWM
 #undef USE_SERIAL_RX

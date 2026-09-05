@@ -94,8 +94,6 @@
 
 #define SERIAL_PORT_COUNT       7
 
-//#define USE_ESCSERIAL
-
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 #define SPI1_SCK_PIN            PA5

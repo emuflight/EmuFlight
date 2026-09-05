@@ -168,7 +168,6 @@
 #define SERIALRX_PROVIDER                   SERIALRX_SBUS
 
 #define USE_LED_STRIP
-#define USE_ESCSERIAL
 
 #define USE_PINIO
 #define USE_PINIOBOX

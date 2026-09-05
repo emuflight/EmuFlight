@@ -159,7 +159,6 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 200
 
-#define USE_ESCSERIAL
 #define USE_LED_STRIP
 
 //--------------------------------BOARD RESOURCES-----------------------------

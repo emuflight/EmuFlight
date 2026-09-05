@@ -135,10 +135,9 @@ enum {
 #define STOP_BIT_MASK (1 << 0)
 #define START_BIT_MASK (1 << (RX_TOTAL_BITS - 1))
 
-// XXX No TIM_DeInit equivalent in HAL driver???
 #ifdef USE_HAL_DRIVER
 static void TIM_DeInit(TIM_TypeDef *tim) {
-    UNUSED(tim);
+    LL_TIM_DeInit(tim);
 }
 #endif
 
@@ -173,7 +172,7 @@ static void escSerialGPIOConfig(const timerHardware_t *timhw, ioConfig_t cfg) {
         return;
     }
     IOInit(IOGetByTag(tag), OWNER_MOTOR, 0);
-#ifdef STM32F7
+#if defined(STM32F7) || defined(STM32H7)
     IOConfigGPIOAF(IOGetByTag(tag), cfg, timhw->alternateFunction);
 #else
     IOConfigGPIO(IOGetByTag(tag), cfg);
@@ -322,6 +321,7 @@ static void serialTimerTxConfigBL(const timerHardware_t *timerHardwarePtr, uint8
             }
         }
     } while (isTimerPeriodTooLarge(timerPeriod));
+    timerReconfigureTimeBase(timerHardwarePtr->tim, timerPeriod, clock);
     timerConfigure(timerHardwarePtr, timerPeriod, clock);
     timerChCCHandlerInit(&escSerialPorts[reference].timerCb, onSerialTimerBL);
     timerChConfigCallbacks(timerHardwarePtr, &escSerialPorts[reference].timerCb, NULL);
@@ -370,6 +370,7 @@ static void onSerialRxPinChangeBL(timerCCHandlerRec_t *cbRec, captureCompare_t c
 static void serialTimerRxConfigBL(const timerHardware_t *timerHardwarePtr, uint8_t reference, portOptions_e options) {
     // start bit is usually a FALLING signal
     TIM_DeInit(timerHardwarePtr->tim);
+    timerReconfigureTimeBase(timerHardwarePtr->tim, 0xFFFF, SystemCoreClock / 2);
     timerConfigure(timerHardwarePtr, 0xFFFF, SystemCoreClock / 2);
     timerChConfigIC(timerHardwarePtr, (options & SERIAL_INVERTED) ? ICPOLARITY_RISING : ICPOLARITY_FALLING, 0);
     timerChCCHandlerInit(&escSerialPorts[reference].edgeCb, onSerialRxPinChangeBL);
@@ -467,6 +468,7 @@ static void onSerialTimerEsc(timerCCHandlerRec_t *cbRec, captureCompare_t captur
 static void escSerialTimerTxConfig(const timerHardware_t *timerHardwarePtr, uint8_t reference) {
     uint32_t timerPeriod = 34;
     TIM_DeInit(timerHardwarePtr->tim);
+    timerReconfigureTimeBase(timerHardwarePtr->tim, timerPeriod, MHZ_TO_HZ(1));
     timerConfigure(timerHardwarePtr, timerPeriod, MHZ_TO_HZ(1));
     timerChCCHandlerInit(&escSerialPorts[reference].timerCb, onSerialTimerEsc);
     timerChConfigCallbacks(timerHardwarePtr, &escSerialPorts[reference].timerCb, NULL);
@@ -535,6 +537,7 @@ static void onSerialRxPinChangeEsc(timerCCHandlerRec_t *cbRec, captureCompare_t 
 static void escSerialTimerRxConfig(const timerHardware_t *timerHardwarePtr, uint8_t reference) {
     // start bit is usually a FALLING signal
     TIM_DeInit(timerHardwarePtr->tim);
+    timerReconfigureTimeBase(timerHardwarePtr->tim, 0xFFFF, MHZ_TO_HZ(1));
     timerConfigure(timerHardwarePtr, 0xFFFF, MHZ_TO_HZ(1));
     timerChConfigIC(timerHardwarePtr, ICPOLARITY_FALLING, 0);
     timerChCCHandlerInit(&escSerialPorts[reference].edgeCb, onSerialRxPinChangeEsc);
@@ -552,10 +555,23 @@ static void resetBuffers(escSerial_t *escSerial) {
     escSerial->port.txBufferHead = 0;
 }
 
-static serialPort_t *openEscSerial(escSerialPortIndex_e portIndex, serialReceiveCallbackPtr callback, uint16_t output, uint32_t baud, portOptions_e options, uint8_t mode) {
+static serialPort_t *openEscSerial(const motorDevConfig_t *motorConfig, escSerialPortIndex_e portIndex, serialReceiveCallbackPtr callback, uint16_t output, uint32_t baud, portOptions_e options, uint8_t mode) {
     escSerial_t *escSerial = &(escSerialPorts[portIndex]);
     if (mode != PROTOCOL_KISSALL) {
-        escSerial->rxTimerHardware = &(timerHardware[output]);
+        // SIMONK/BLHELI/CASTLE need a fixed-baud periodic tick (TX) and a free-running
+        // edge-capture timebase (RX) on the timer channel at the same time; a shared
+        // channel can only run one of those, so RX's setup always destroys TX's.
+        // Refuse rather than open a connection that can never actually transmit.
+        if ((mode == PROTOCOL_SIMONK || mode == PROTOCOL_BLHELI || mode == PROTOCOL_CASTLE)
+            && escSerialConfig()->ioTag == IO_TAG_NONE) {
+            return NULL;
+        }
+        const ioTag_t tag = motorConfig->ioTags[output];
+        const timerHardware_t *timerHardware = timerAllocate(tag, OWNER_MOTOR, 0);
+        if (timerHardware == NULL) {
+            return NULL;
+        }
+        escSerial->rxTimerHardware = timerHardware;
         // N-Channels can't be used as RX.
         if (escSerial->rxTimerHardware->output & TIMER_OUTPUT_N_CHANNEL) {
             return NULL;
@@ -563,15 +579,31 @@ static serialPort_t *openEscSerial(escSerialPortIndex_e portIndex, serialReceive
 #ifdef USE_HAL_DRIVER
         escSerial->rxTimerHandle = timerFindTimerHandle(escSerial->rxTimerHardware->tim);
 #endif
+        // Workaround to ensure that the timerHandle is configured before use, timer will be reconfigured to a different frequency below
+        // this prevents a null-pointer dereference in __HAL_TIM_CLEAR_FLAG called by timerChClearCCFlag and similar accesses of timerHandle without the Instance being configured first.
+        timerConfigure(escSerial->rxTimerHardware, 0xffff, 1);
+
+        // Allocate separate TX pin if configured, otherwise use RX pin for both TX and RX
+        if (escSerialConfig()->ioTag != IO_TAG_NONE) {
+            escSerial->txTimerHardware = timerAllocate(escSerialConfig()->ioTag, OWNER_MOTOR, 0);
+            if (escSerial->txTimerHardware == NULL) {
+                return NULL;
+            }
+#ifdef USE_HAL_DRIVER
+            escSerial->txTimerHandle = timerFindTimerHandle(escSerial->txTimerHardware->tim);
+#endif
+            timerConfigure(escSerial->txTimerHardware, 0xffff, 1);
+        } else {
+            // No separate TX pin configured - use RX pin for both TX and RX (fallback mode).
+            // Safe here: PROTOCOL_KISS is the only mode left that reaches this without a
+            // dedicated TX pin, and it never configures the RX side of the shared channel.
+            escSerial->txTimerHardware = escSerial->rxTimerHardware;
+#ifdef USE_HAL_DRIVER
+            escSerial->txTimerHandle = escSerial->rxTimerHandle;
+#endif
+        }
     }
     escSerial->mode = mode;
-    escSerial->txTimerHardware = timerAllocate(escSerialConfig()->ioTag, OWNER_MOTOR, 0);
-    if (escSerial->txTimerHardware == NULL) {
-        return NULL;
-    }
-#ifdef USE_HAL_DRIVER
-    escSerial->txTimerHandle = timerFindTimerHandle(escSerial->txTimerHardware->tim);
-#endif
     escSerial->port.vTable = escSerialVTable;
     escSerial->port.baudRate = baud;
     escSerial->port.mode = MODE_RXTX;
@@ -605,21 +637,27 @@ static serialPort_t *openEscSerial(escSerialPortIndex_e portIndex, serialReceive
         memset(&escOutputs, 0, sizeof(escOutputs));
         pwmOutputPort_t *pwmMotors = pwmGetMotors();
         for (volatile uint8_t i = 0; i < MAX_SUPPORTED_MOTORS; i++) {
-            if (pwmMotors[i].enabled) {
-                if (pwmMotors[i].io != IO_NONE) {
-                    for (volatile uint8_t j = 0; j < USABLE_TIMER_CHANNEL_COUNT; j++) {
-                        if (pwmMotors[i].io == IOGetByTag(timerHardware[j].tag)) {
-                            escSerialOutputPortConfig(&timerHardware[j]);
-                            if (timerHardware[j].output & TIMER_OUTPUT_INVERTED) {
-                                escOutputs[escSerial->outputCount].inverted = 1;
-                            }
-                            break;
+            if (pwmMotors[i].enabled && pwmMotors[i].io != IO_NONE) {
+                const ioTag_t tag = motorConfig->ioTags[i];
+                if (tag != IO_TAG_NONE) {
+                    const timerHardware_t *timerHardware = timerAllocate(tag, OWNER_MOTOR, 0);
+                    if (timerHardware) {
+                        // Workaround to ensure that the timerHandle is configured before use, timer will be reconfigured to a different frequency below
+                        // this prevents a null-pointer dereference in __HAL_TIM_CLEAR_FLAG called by timerChClearCCFlag and similar accesses of timerHandle without the Instance being configured first.
+                        timerConfigure(timerHardware, 0xffff, 1);
+                        escSerialOutputPortConfig(timerHardware);
+                        escOutputs[escSerial->outputCount].io = pwmMotors[i].io;
+                        if (timerHardware->output & TIMER_OUTPUT_INVERTED) {
+                            escOutputs[escSerial->outputCount].inverted = 1;
                         }
+                        escSerial->txTimerHardware = timerHardware;
+                        escSerial->outputCount++;
                     }
-                    escOutputs[escSerial->outputCount].io = pwmMotors[i].io;
-                    escSerial->outputCount++;
                 }
             }
+        }
+        if (escSerial->outputCount == 0) {
+            return NULL;
         }
         setTxSignalEsc(escSerial, ENABLE);
         serialTimerTxConfigBL(escSerial->txTimerHardware, portIndex, baud);
@@ -780,9 +818,9 @@ static bool processExitCommand(uint8_t c) {
 }
 
 
-void escEnablePassthrough(serialPort_t *escPassthroughPort, uint16_t output, uint8_t mode) {
+bool escEnablePassthrough(serialPort_t *escPassthroughPort, const motorDevConfig_t *motorConfig, uint16_t output, uint8_t mode) {
     bool exitEsc = false;
-    uint8_t motor_output = 0;
+    uint8_t motor_output = output;
     LED0_OFF;
     LED1_OFF;
     //StopPwmAllMotors();
@@ -800,26 +838,14 @@ void escEnablePassthrough(serialPort_t *escPassthroughPort, uint16_t output, uin
         escBaudrate = BAUDRATE_NORMAL;
         break;
     }
-    if ((mode == PROTOCOL_KISS) && (output == 255)) {
-        motor_output = 255;
+    if ((mode == PROTOCOL_KISS) && (motor_output == 255)) {
         mode = PROTOCOL_KISSALL;
-    } else {
-        uint8_t first_output = 0;
-        for (unsigned i = 0; i < USABLE_TIMER_CHANNEL_COUNT; i++) {
-            if (timerHardware[i].usageFlags & TIM_USE_MOTOR) {
-                first_output = i;
-                break;
-            }
-        }
-        //doesn't work with messy timertable
-        motor_output = first_output + output;
-        if (motor_output >= USABLE_TIMER_CHANNEL_COUNT) {
-            return;
-        }
+    } else if (motor_output >= MAX_SUPPORTED_MOTORS) {
+        return false;
     }
-    escPort = openEscSerial(ESCSERIAL1, NULL, motor_output, escBaudrate, 0, mode);
+    escPort = openEscSerial(motorConfig, ESCSERIAL1, NULL, motor_output, escBaudrate, 0, mode);
     if (!escPort) {
-        return;
+        return false;
     }
     uint8_t ch;
     while (1) {
@@ -846,9 +872,9 @@ void escEnablePassthrough(serialPort_t *escPassthroughPort, uint16_t output, uin
                     serialWrite(escPassthroughPort, 0xF4);
                     serialWrite(escPassthroughPort, 0xF4);
                     closeEscSerial(ESCSERIAL1, mode);
-                    return;
+                    return true;
                 }
-                if (mode == PROTOCOL_BLHELI) {
+                if (mode == PROTOCOL_BLHELI || mode == PROTOCOL_KISS || mode == PROTOCOL_KISSALL) {
                     serialWrite(escPassthroughPort, ch); // blheli loopback
                 }
                 serialWrite(escPort, ch);

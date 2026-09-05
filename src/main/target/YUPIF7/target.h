@@ -139,8 +139,6 @@
 #define SERIALRX_UART           SERIAL_PORT_USART6
 #define DEFAULT_FEATURES        (FEATURE_OSD)
 
-#define USE_ESCSERIAL
-
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
 #define TARGET_IO_PORTC         0xffff

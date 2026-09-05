@@ -131,7 +131,6 @@
 
 #define SERIAL_PORT_COUNT       7 //VCP, USART1, USART3, UART4,  USART6, SOFTSERIAL x 2
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PC6  // UART 6
 
 /*----------ADC Config--------*/

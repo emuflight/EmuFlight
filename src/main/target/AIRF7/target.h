@@ -153,8 +153,6 @@
 
 #define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_AIRMODE)
 
-#define USE_ESCSERIAL
-
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
 #define TARGET_IO_PORTC         0xffff

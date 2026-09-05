@@ -92,7 +92,6 @@
 //#define USE_SOFTSERIAL1
 #define SERIAL_PORT_COUNT       7 //VCP, USART1, USART2,USART3,USART4,USART5,USART6
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PB8 // (Hardware=0, PPM)
 
 #define USE_I2C
@@ -124,7 +123,7 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
-#define DEFAULT_VOLTAGE_METER_SCALE                 160
+#define DEFAULT_VOLTAGE_METER_SCALE                 110
 #define RSSI_ADC_PIN            PC3
 #define DEFAULT_CURRENT_METER_SCALE 250                     // 3.3/120A  = 25mv/A
 

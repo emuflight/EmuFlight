@@ -309,6 +309,10 @@ void configTimeBase(TIM_TypeDef *tim, uint16_t period, uint32_t hz) {
     TIM_TimeBaseInit(tim, &TIM_TimeBaseStructure);
 }
 
+void timerReconfigureTimeBase(TIM_TypeDef *tim, uint16_t period, uint32_t hz) {
+    configTimeBase(tim, period, hz);
+}
+
 // old interface for PWM inputs. It should be replaced
 void timerConfigure(const timerHardware_t *timerHardwarePtr, uint16_t period, uint32_t hz) {
     configTimeBase(timerHardwarePtr->tim, period, hz);

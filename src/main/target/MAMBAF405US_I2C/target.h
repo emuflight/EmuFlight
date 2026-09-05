@@ -118,7 +118,6 @@
 // ESCSERIAL_TIMER_TX_PIN shares PB9 with I2C1_SDA above - matches
 // Betaflight's own config for this board (ESCSERIAL_PIN PB9 alongside
 // I2C1_SDA_PIN PB9), not a conflict to fix.
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN    PB9
 
 #define USE_SPI

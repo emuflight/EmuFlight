@@ -2650,7 +2650,7 @@ static void cliGpsPassthrough(char *cmdline) {
 }
 #endif
 
-#if defined(USE_GYRO_REGISTER_DUMP) && !defined(SIMULATOR_BUILD)
+#if defined(USE_GYRO_REGISTER_DUMP) && !defined(SIMULATOR_BUILD) && !defined(USE_GYRO_IMUF9001)
 static void cliPrintGyroRegisters(uint8_t whichSensor) {
     cliPrintLinef("# WHO_AM_I    0x%X", gyroReadRegister(whichSensor, MPU_RA_WHO_AM_I));
     cliPrintLinef("# CONFIG      0x%X", gyroReadRegister(whichSensor, MPU_RA_CONFIG));
@@ -2946,7 +2946,9 @@ static void cliEscPassthrough(char *cmdline) {
         pos++;
         pch = strtok_r(NULL, " ", &saveptr);
     }
-    escEnablePassthrough(cliPort, escIndex, mode);
+    if (!escEnablePassthrough(cliPort, &motorConfig()->dev, escIndex, mode)) {
+        cliPrintErrorLinef("Error starting ESC connection");
+    }
 }
 #endif
 
@@ -4583,7 +4585,7 @@ const clicmd_t cmdTable[] = {
 #ifdef USE_GPS
     CLI_COMMAND_DEF("gpspassthrough", "passthrough gps to serial", NULL, cliGpsPassthrough),
 #endif
-#if defined(USE_GYRO_REGISTER_DUMP) && !defined(SIMULATOR_BUILD)
+#if defined(USE_GYRO_REGISTER_DUMP) && !defined(SIMULATOR_BUILD) && !defined(USE_GYRO_IMUF9001)
     CLI_COMMAND_DEF("gyroregisters", "dump gyro config registers contents", NULL, cliDumpGyroRegisters),
 #endif
 #ifdef USE_GYRO_IMUF9001
