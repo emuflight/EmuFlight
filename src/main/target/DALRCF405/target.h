@@ -149,7 +149,6 @@
 
 #define ENABLE_DSHOT_DMAR       true
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN PA3
 
 #define TARGET_IO_PORTA         0xffff

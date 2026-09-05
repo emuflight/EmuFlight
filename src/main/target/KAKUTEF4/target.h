@@ -89,8 +89,6 @@
 #define USE_SOFTSERIAL2
 #define SERIAL_PORT_COUNT 6   //vcp, uart1, uart3,, uart6, softSerial1, softSerial2
 
-#define USE_ESCSERIAL
-
 #define ESCSERIAL_TIMER_TX_PIN  PC7  // (HARDARE=0,PPM)
 
 #define USE_SPI

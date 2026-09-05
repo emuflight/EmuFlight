@@ -152,7 +152,6 @@
 #define DEFAULT_CURRENT_METER_SCALE        118
 
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PA3
 
 #define TARGET_IO_PORTA         0xffff

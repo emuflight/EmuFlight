@@ -182,7 +182,6 @@
 #define DEFAULT_CURRENT_METER_SCALE        210
 
 #define USE_LED_STRIP
-#define USE_ESCSERIAL
 
 #define TARGET_IO_PORTA 0xffff
 #define TARGET_IO_PORTB 0xffff

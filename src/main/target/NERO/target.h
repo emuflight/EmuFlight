@@ -109,7 +109,6 @@
 #define SERIAL_PORT_COUNT       6
 
 #define ENABLE_DSHOT_DMAR true
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PC7 // (Hardware=0, PPM)
 
 #define USE_SPI

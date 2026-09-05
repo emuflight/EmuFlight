@@ -99,7 +99,6 @@
 
 #define SERIAL_PORT_COUNT 4
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PA3  // (HARDARE=0,PPM)
 
 #define USE_SPI

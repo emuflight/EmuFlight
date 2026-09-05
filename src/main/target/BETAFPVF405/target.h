@@ -79,7 +79,6 @@
 #define SPI3_MISO_PIN           PC11
 #define SPI3_MOSI_PIN           PC12
 
-#define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN  PB8 // (Hardware=0, PPM)
 
 #define USE_ADC

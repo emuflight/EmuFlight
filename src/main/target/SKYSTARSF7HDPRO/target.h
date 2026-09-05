@@ -197,8 +197,6 @@
 #define DEFAULT_CURRENT_METER_SCALE 290
 
 
-#define USE_ESCSERIAL
-
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff
 #define TARGET_IO_PORTC         0xffff
