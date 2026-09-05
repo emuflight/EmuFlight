@@ -146,12 +146,14 @@ typedef struct gyroCalibration_s {
 
 bool firstArmingCalibrationWasStarted = false;
 
+#ifndef USE_GYRO_IMUF9001
 typedef union gyroLowpassFilter_u {
     pt1Filter_t pt1FilterState;
     biquadFilter_t biquadFilterState;
     svfLowpassFilter_t svfLowpassFilterState;
     ptnFilter_t ptnFilterState;
 } gyroLowpassFilter_t;
+#endif
 
 typedef struct gyroSensor_s {
     gyroDev_t gyroDev;
@@ -780,7 +782,7 @@ bool gyroInit(void) {
 }
 
 #ifndef USE_GYRO_IMUF9001
-void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
+static void gyroInitLowpassFilterLpf(gyroSensor_t *gyroSensor, int slot, int type) {
     filterApplyFnPtr *lowpassFilterApplyFn;
     gyroLowpassFilter_t *lowpassFilter = NULL;
     uint16_t lpfHz[3];
