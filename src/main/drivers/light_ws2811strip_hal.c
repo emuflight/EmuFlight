@@ -29,6 +29,7 @@
 #include "light_ws2811strip.h"
 #include "drivers/nvic.h"
 #include "dma.h"
+#include "drivers/dma_reqmap.h"
 #include "drivers/io.h"
 #include "drivers/system.h"
 #include "rcc.h"
@@ -56,7 +57,18 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag) {
     }
     TIM_TypeDef *timer = timerHardware->tim;
     timerChannel = timerHardware->channel;
-    if (timerHardware->dmaRef == NULL || !dmaAllocate(timerHardware->dmaIrqHandler, OWNER_LED_STRIP, 0)) {
+
+    DMA_Stream_TypeDef *dmaRef = timerHardware->dmaRef;
+    uint32_t dmaChannel = timerHardware->dmaChannel;
+#if defined(STM32F4) || defined(STM32F7)
+    const dmaChannelSpec_t *dmaSpec = dmaGetChannelSpecByTimer(timerHardware);
+    if (dmaSpec) {
+        dmaRef = (DMA_Stream_TypeDef *)dmaSpec->ref;
+        dmaChannel = dmaSpec->channel;
+    }
+#endif
+
+    if (dmaRef == NULL || !dmaAllocate(timerHardware->dmaIrqHandler, OWNER_LED_STRIP, 0)) {
         return;
     }
     TimHandle.Instance = timer;
@@ -82,9 +94,9 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag) {
     __DMA1_CLK_ENABLE();
     /* Set the parameters to be configured */
 #if defined(STM32H7)
-    hdma_tim.Init.Request = timerHardware->dmaChannel;
+    hdma_tim.Init.Request = dmaChannel;
 #else
-    hdma_tim.Init.Channel = timerHardware->dmaChannel;
+    hdma_tim.Init.Channel = dmaChannel;
 #endif
     hdma_tim.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_tim.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -98,7 +110,7 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag) {
     hdma_tim.Init.MemBurst = DMA_MBURST_SINGLE;
     hdma_tim.Init.PeriphBurst = DMA_PBURST_SINGLE;
     /* Set hdma_tim instance */
-    hdma_tim.Instance = timerHardware->dmaRef;
+    hdma_tim.Instance = dmaRef;
     uint16_t dmaIndex = timerDmaIndex(timerChannel);
     /* Link hdma_tim to hdma[x] (channelx) */
     __HAL_LINKDMA(&TimHandle, hdma[dmaIndex], hdma_tim);
