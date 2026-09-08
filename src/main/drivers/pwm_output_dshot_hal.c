@@ -32,6 +32,7 @@
 #include "drivers/nvic.h"
 #include "drivers/time.h"
 #include "dma.h"
+#include "drivers/dma_reqmap.h"
 #include "rcc.h"
 
 static FAST_RAM_ZERO_INIT uint8_t dmaMotorTimerCount = 0;
@@ -139,6 +140,7 @@ FAST_CODE static void motor_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
 
 void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, motorPwmProtocolTypes_e pwmProtocolType, uint8_t output) {
     DMA_Stream_TypeDef *dmaRef;
+    uint32_t dmaChannel = timerHardware->dmaChannel;
 #ifdef USE_DSHOT_DMAR
     if (useBurstDshot) {
         dmaRef = timerHardware->dmaTimUPRef;
@@ -146,6 +148,13 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
 #endif
     {
         dmaRef = timerHardware->dmaRef;
+#if defined(STM32H7)
+        const dmaChannelSpec_t *dmaSpec = dmaGetChannelSpecByTimer(timerHardware);
+        if (dmaSpec) {
+            dmaRef = (DMA_Stream_TypeDef *)dmaSpec->ref;
+            dmaChannel = dmaSpec->channel;
+        }
+#endif
     }
     if (dmaRef == NULL) {
         return;
@@ -265,9 +274,9 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     {
         dmaSetHandler(timerHardware->dmaIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
 #if defined(STM32H7)
-        dma_init.PeriphRequest = timerHardware->dmaChannel;
+        dma_init.PeriphRequest = dmaChannel;
 #else
-        dma_init.Channel = timerHardware->dmaChannel;
+        dma_init.Channel = dmaChannel;
 #endif
         dma_init.MemoryOrM2MDstAddress = (uint32_t)motor->dmaBuffer;
         dma_init.FIFOThreshold = LL_DMA_FIFOTHRESHOLD_1_4;
