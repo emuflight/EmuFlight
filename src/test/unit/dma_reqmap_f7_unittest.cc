@@ -86,3 +86,51 @@ TEST(DmaReqmapF7Unittest, RejectsOptIndexPastTableWidth)
 {
     EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_UART_RX, UARTDEV_7, MAX_PERIPHERAL_DMA_OPTIONS), nullptr);
 }
+
+// --- Timer table (IT #1396): dmaGetChannelSpecByTimerValue() was a stub returning NULL
+// unconditionally on F4/F7 until this table was implemented -- verifies the real per-option
+// data, not just that a value comes back. ---
+
+TEST(DmaReqmapF7Unittest, Tim1Ch1AllThreeOptionsResolveToDistinctStreams)
+{
+    const dmaChannelSpec_t *opt0 = dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM1, TIM_CHANNEL_1, 0);
+    const dmaChannelSpec_t *opt1 = dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM1, TIM_CHANNEL_1, 1);
+    const dmaChannelSpec_t *opt2 = dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM1, TIM_CHANNEL_1, 2);
+
+    ASSERT_NE(opt0, nullptr);
+    ASSERT_NE(opt1, nullptr);
+    ASSERT_NE(opt2, nullptr);
+    EXPECT_NE(opt0->ref, opt1->ref);
+    EXPECT_NE(opt0->ref, opt2->ref);
+    EXPECT_NE(opt1->ref, opt2->ref);
+}
+
+TEST(DmaReqmapF7Unittest, Tim8Ch1SameStreamDifferentChannelOptionsAreDistinguishable)
+{
+    // TIM8_CH1's two options (DMA(2,2,0) and DMA(2,2,7)) share one physical DMA2_Stream2 --
+    // only .channel (the mux selector) tells them apart. A table or lookup bug that ignores
+    // .channel would make these two options indistinguishable.
+    const dmaChannelSpec_t *opt0 = dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM8, TIM_CHANNEL_1, 0);
+    const dmaChannelSpec_t *opt1 = dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM8, TIM_CHANNEL_1, 1);
+
+    ASSERT_NE(opt0, nullptr);
+    ASSERT_NE(opt1, nullptr);
+    EXPECT_EQ(opt0->ref, opt1->ref);
+    EXPECT_NE(opt0->channel, opt1->channel);
+}
+
+TEST(DmaReqmapF7Unittest, RejectsUnmappedTimerChannel)
+{
+    // TIM6/TIM7 have no channel-capture DMA entries in the table at all (UP-only on other MCUs).
+    EXPECT_EQ(dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM3, TIM_CHANNEL_4 + 1, 0), nullptr);
+}
+
+TEST(DmaReqmapF7Unittest, RejectsNegativeTimerOptIndex)
+{
+    EXPECT_EQ(dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM1, TIM_CHANNEL_1, -1), nullptr);
+}
+
+TEST(DmaReqmapF7Unittest, RejectsTimerOptIndexPastTableWidth)
+{
+    EXPECT_EQ(dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM1, TIM_CHANNEL_1, MAX_TIMER_DMA_OPTIONS), nullptr);
+}
