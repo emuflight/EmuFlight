@@ -133,7 +133,7 @@ TEST(DmaReqmapUnittest, Tim8Ch1SameStreamDifferentChannelOptionsAreDistinguishab
 
 TEST(DmaReqmapUnittest, RejectsUnmappedTimerChannel)
 {
-    // TIM6/TIM7 have no channel-capture DMA entries in the table at all (UP-only on other MCUs).
+    // TIM3 is in the table, but a channel value past TIM_Channel_4 has no entry.
     EXPECT_EQ(dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM3, TIM_Channel_4 + 1, 0), nullptr);
 }
 
