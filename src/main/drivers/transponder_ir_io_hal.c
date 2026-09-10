@@ -80,7 +80,7 @@ void transponderIrHardwareInit(ioTag_t ioTag, transponder_t *transponder) {
 
     DMA_Stream_TypeDef *dmaRef = timerHardware->dmaRef;
     uint32_t dmaChannel = timerHardware->dmaChannel;
-#if defined(STM32H7)
+#if defined(STM32H7) || defined(STM32F7)
     const dmaChannelSpec_t *dmaSpec = dmaGetChannelSpecByTimer(timerHardware);
     if (dmaSpec) {
         dmaRef = (DMA_Stream_TypeDef *)dmaSpec->ref;
