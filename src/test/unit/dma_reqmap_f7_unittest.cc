@@ -29,6 +29,7 @@ extern "C" {
 #include "drivers/dma_reqmap.h"
 #include "drivers/serial.h"
 #include "drivers/serial_uart.h"
+#include "drivers/timer.h"
 
 }
 
@@ -121,7 +122,7 @@ TEST(DmaReqmapF7Unittest, Tim8Ch1SameStreamDifferentChannelOptionsAreDistinguish
 
 TEST(DmaReqmapF7Unittest, RejectsUnmappedTimerChannel)
 {
-    // TIM6/TIM7 have no channel-capture DMA entries in the table at all (UP-only on other MCUs).
+    // TIM3 is in the table, but a channel value past TIM_CHANNEL_4 has no entry.
     EXPECT_EQ(dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM3, TIM_CHANNEL_4 + 1, 0), nullptr);
 }
 
@@ -133,4 +134,57 @@ TEST(DmaReqmapF7Unittest, RejectsNegativeTimerOptIndex)
 TEST(DmaReqmapF7Unittest, RejectsTimerOptIndexPastTableWidth)
 {
     EXPECT_EQ(dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM1, TIM_CHANNEL_1, MAX_TIMER_DMA_OPTIONS), nullptr);
+}
+
+// --- dmaGetOptionByTimer()/dmaGetChannelSpecByTimer(): exercise the actual timerHardware_t
+// matching path CodeRabbit flagged as untested -- the tests above only call
+// dmaGetChannelSpecByTimerValue() with a hand-picked option index, never resolving that index
+// from a timerHardware_t the way real call sites do. ---
+
+TEST(DmaReqmapF7Unittest, GetOptionByTimerDisambiguatesSameStreamDifferentChannel)
+{
+    // TIM8_CH1's two table options (DMA(2,2,0) and DMA(2,2,7)) share DMA2_Stream2 -- only
+    // .channel differs. A timer already configured with dmaChannel=7 must resolve to option 1,
+    // not option 0, even though both share the same .ref.
+    timerHardware_t timerOpt0 = {};
+    timerOpt0.tim = (TIM_TypeDef *)TIM8;
+    timerOpt0.channel = TIM_CHANNEL_1;
+    timerOpt0.dmaRef = (DMA_Stream_TypeDef *)DMA2_Stream2;
+    timerOpt0.dmaChannel = 0;
+
+    timerHardware_t timerOpt1 = timerOpt0;
+    timerOpt1.dmaChannel = 7;
+
+    EXPECT_EQ(dmaGetOptionByTimer(&timerOpt0), 0);
+    EXPECT_EQ(dmaGetOptionByTimer(&timerOpt1), 1);
+
+    const dmaChannelSpec_t *spec0 = dmaGetChannelSpecByTimer(&timerOpt0);
+    const dmaChannelSpec_t *spec1 = dmaGetChannelSpecByTimer(&timerOpt1);
+    ASSERT_NE(spec0, nullptr);
+    ASSERT_NE(spec1, nullptr);
+    EXPECT_EQ(spec0->ref, spec1->ref);
+    EXPECT_NE(spec0->channel, spec1->channel);
+    EXPECT_EQ(spec0->channel, 0u);
+    EXPECT_EQ(spec1->channel, 7u);
+}
+
+TEST(DmaReqmapF7Unittest, GetOptionByTimerRejectsNullTimer)
+{
+    EXPECT_EQ(dmaGetOptionByTimer(nullptr), DMA_OPT_UNUSED);
+    EXPECT_EQ(dmaGetChannelSpecByTimer(nullptr), nullptr);
+}
+
+TEST(DmaReqmapF7Unittest, GetOptionByTimerIgnoresZeroInitializedSlots)
+{
+    // TIM4_CH2 has only one populated table option (DMA(1,3,2)) -- options 1 and 2 are
+    // zero-initialized (.ref == NULL, .channel == 0). A timer with dmaRef == NULL and
+    // dmaChannel == 0 must not falsely match one of those empty slots.
+    timerHardware_t timer = {};
+    timer.tim = (TIM_TypeDef *)TIM4;
+    timer.channel = TIM_CHANNEL_2;
+    timer.dmaRef = nullptr;
+    timer.dmaChannel = 0;
+
+    EXPECT_EQ(dmaGetOptionByTimer(&timer), DMA_OPT_UNUSED);
+    EXPECT_EQ(dmaGetChannelSpecByTimer(&timer), nullptr);
 }

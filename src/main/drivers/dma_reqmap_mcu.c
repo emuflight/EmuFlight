@@ -382,9 +382,11 @@ dmaoptValue_t dmaoptByTag(ioTag_t ioTag)
 #define TC(chan) TC_ ## chan
 
 // Every silicon-valid DMA stream/channel option per timer/channel, ported verbatim from
-// BF 4.5-maintenance's stm32/dma_reqmap_mcu.c -- matches EF's own timer_def.h
-// DEF_TIM_DMA__BTCH_TIMx_CHy compile-time table entry-for-entry (same fleet-wide silicon
-// data, not per-board), so no target's compile-time dmaopt selection can disagree with it.
+// BF 4.5-maintenance's stm32/dma_reqmap_mcu.c. Contains the same silicon-valid option sets
+// as EF's timer_def.h DEF_TIM_DMA__BTCH_TIMx_CHy tables (fleet-wide silicon data, not
+// per-board) -- but option ORDER can differ between F4 and F7 (e.g. TIM8_CH1). Lookup here
+// matches by value (.ref/.channel), never by index, so this is safe; do not assume a given
+// dmaopt index means the same physical option in both tables.
 static const dmaTimerMapping_t dmaTimerMapping[] = {
     { TIM1, TC(CH1), { DMA(2, 6, 0), DMA(2, 1, 6), DMA(2, 3, 6) } },
     { TIM1, TC(CH2), { DMA(2, 6, 0), DMA(2, 2, 6) } },
@@ -444,12 +446,16 @@ const dmaChannelSpec_t *dmaGetChannelSpecByTimerValue(TIM_TypeDef *tim, uint8_t 
 // DMA(2,2,0) and DMA(2,2,7) both use DMA2_Stream2), so .ref alone cannot disambiguate.
 dmaoptValue_t dmaGetOptionByTimer(const timerHardware_t *timer)
 {
+    if (!timer) {
+        return DMA_OPT_UNUSED;
+    }
+
     for (unsigned i = 0; i < ARRAYLEN(dmaTimerMapping); i++) {
         const dmaTimerMapping_t *timerMapping = &dmaTimerMapping[i];
         if (timerMapping->tim == timer->tim && timerMapping->channel == timer->channel) {
             for (unsigned opt = 0; opt < MAX_TIMER_DMA_OPTIONS; opt++) {
                 const dmaChannelSpec_t *dma = &timerMapping->channelSpec[opt];
-                if (dma->ref == (dmaResource_t *)timer->dmaRef && dma->channel == timer->dmaChannel) {
+                if (dma->ref && dma->ref == (dmaResource_t *)timer->dmaRef && dma->channel == timer->dmaChannel) {
                     return (dmaoptValue_t)opt;
                 }
             }
