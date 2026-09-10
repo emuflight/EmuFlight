@@ -364,24 +364,115 @@ dmaoptValue_t dmaoptByTag(ioTag_t ioTag)
     return DMA_OPT_UNUSED;
 }
 
+// F4 uses STDPERIPH's TIM_Channel_x; F7 uses HAL's TIM_CHANNEL_x -- different naming,
+// same enum values (matches timer_def.h's own DEF_TIM_CHANNEL__D split per family).
+#if defined(STM32F4)
+#define TC_CH1  TIM_Channel_1
+#define TC_CH2  TIM_Channel_2
+#define TC_CH3  TIM_Channel_3
+#define TC_CH4  TIM_Channel_4
+#define DMA(d, s, c) { DMA_CODE(d, s, c), (dmaResource_t *)DMA ## d ## _Stream ## s, DMA_Channel_ ## c }
+#elif defined(STM32F7)
+#define TC_CH1  TIM_CHANNEL_1
+#define TC_CH2  TIM_CHANNEL_2
+#define TC_CH3  TIM_CHANNEL_3
+#define TC_CH4  TIM_CHANNEL_4
+#define DMA(d, s, c) { DMA_CODE(d, s, c), (dmaResource_t *)DMA ## d ## _Stream ## s, DMA_CHANNEL_ ## c }
+#endif
+#define TC(chan) TC_ ## chan
+
+// Every silicon-valid DMA stream/channel option per timer/channel, ported verbatim from
+// BF 4.5-maintenance's stm32/dma_reqmap_mcu.c. Contains the same silicon-valid option sets
+// as EF's timer_def.h DEF_TIM_DMA__BTCH_TIMx_CHy tables (fleet-wide silicon data, not
+// per-board) -- but option ORDER can differ between F4 and F7 (e.g. TIM8_CH1). Lookup here
+// matches by value (.ref/.channel), never by index, so this is safe; do not assume a given
+// dmaopt index means the same physical option in both tables.
+static const dmaTimerMapping_t dmaTimerMapping[] = {
+    { TIM1, TC(CH1), { DMA(2, 6, 0), DMA(2, 1, 6), DMA(2, 3, 6) } },
+    { TIM1, TC(CH2), { DMA(2, 6, 0), DMA(2, 2, 6) } },
+    { TIM1, TC(CH3), { DMA(2, 6, 0), DMA(2, 6, 6) } },
+    { TIM1, TC(CH4), { DMA(2, 4, 6) } },
+
+    { TIM2, TC(CH1), { DMA(1, 5, 3) } },
+    { TIM2, TC(CH2), { DMA(1, 6, 3) } },
+    { TIM2, TC(CH3), { DMA(1, 1, 3) } },
+    { TIM2, TC(CH4), { DMA(1, 7, 3), DMA(1, 6, 3) } },
+
+    { TIM3, TC(CH1), { DMA(1, 4, 5) } },
+    { TIM3, TC(CH2), { DMA(1, 5, 5) } },
+    { TIM3, TC(CH3), { DMA(1, 7, 5) } },
+    { TIM3, TC(CH4), { DMA(1, 2, 5) } },
+
+    { TIM4, TC(CH1), { DMA(1, 0, 2) } },
+    { TIM4, TC(CH2), { DMA(1, 3, 2) } },
+    { TIM4, TC(CH3), { DMA(1, 7, 2) } },
+
+    { TIM5, TC(CH1), { DMA(1, 2, 6) } },
+    { TIM5, TC(CH2), { DMA(1, 4, 6) } },
+    { TIM5, TC(CH3), { DMA(1, 0, 6) } },
+    { TIM5, TC(CH4), { DMA(1, 1, 6), DMA(1, 3, 6) } },
+
+    { TIM8, TC(CH1), { DMA(2, 2, 0), DMA(2, 2, 7) } },
+    { TIM8, TC(CH2), { DMA(2, 2, 0), DMA(2, 3, 7) } },
+    { TIM8, TC(CH3), { DMA(2, 2, 0), DMA(2, 4, 7) } },
+    { TIM8, TC(CH4), { DMA(2, 7, 7) } },
+};
+
+#undef TC_CH1
+#undef TC_CH2
+#undef TC_CH3
+#undef TC_CH4
+#undef TC
+#undef DMA
+
 const dmaChannelSpec_t *dmaGetChannelSpecByTimerValue(TIM_TypeDef *tim, uint8_t channel, dmaoptValue_t dmaopt)
 {
-    UNUSED(tim);
-    UNUSED(channel);
-    UNUSED(dmaopt);
+    if (dmaopt < 0 || dmaopt >= MAX_TIMER_DMA_OPTIONS) {
+        return NULL;
+    }
+
+    for (unsigned i = 0; i < ARRAYLEN(dmaTimerMapping); i++) {
+        const dmaTimerMapping_t *timerMapping = &dmaTimerMapping[i];
+        if (timerMapping->tim == tim && timerMapping->channel == channel && timerMapping->channelSpec[dmaopt].ref) {
+            return &timerMapping->channelSpec[dmaopt];
+        }
+    }
+
     return NULL;
+}
+
+// Matches both .ref and .channel -- some timer/channel entries share one physical DMA
+// stream across two options distinguished only by mux channel (e.g. TIM8_CH1's
+// DMA(2,2,0) and DMA(2,2,7) both use DMA2_Stream2), so .ref alone cannot disambiguate.
+dmaoptValue_t dmaGetOptionByTimer(const timerHardware_t *timer)
+{
+    if (!timer) {
+        return DMA_OPT_UNUSED;
+    }
+
+    for (unsigned i = 0; i < ARRAYLEN(dmaTimerMapping); i++) {
+        const dmaTimerMapping_t *timerMapping = &dmaTimerMapping[i];
+        if (timerMapping->tim == timer->tim && timerMapping->channel == timer->channel) {
+            for (unsigned opt = 0; opt < MAX_TIMER_DMA_OPTIONS; opt++) {
+                const dmaChannelSpec_t *dma = &timerMapping->channelSpec[opt];
+                if (dma->ref && dma->ref == (dmaResource_t *)timer->dmaRef && dma->channel == timer->dmaChannel) {
+                    return (dmaoptValue_t)opt;
+                }
+            }
+        }
+    }
+
+    return DMA_OPT_UNUSED;
 }
 
 const dmaChannelSpec_t *dmaGetChannelSpecByTimer(const timerHardware_t *timer)
 {
-    UNUSED(timer);
-    return NULL;
-}
+    if (!timer) {
+        return NULL;
+    }
 
-dmaoptValue_t dmaGetOptionByTimer(const timerHardware_t *timer)
-{
-    UNUSED(timer);
-    return DMA_OPT_UNUSED;
+    dmaoptValue_t dmaopt = dmaGetOptionByTimer(timer);
+    return dmaGetChannelSpecByTimerValue(timer->tim, timer->channel, dmaopt);
 }
 
 #else  // F1/F3 or no SPI → stubs
