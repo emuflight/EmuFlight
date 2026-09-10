@@ -138,6 +138,9 @@ typedef struct {
 #ifdef USE_DSHOT
     uint16_t timerDmaSource;
     bool configured;
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+    DMA_Stream_TypeDef *dmaRef;
+#endif
 #endif
     motorDmaTimer_t *timer;
     volatile bool requestTelemetry;
