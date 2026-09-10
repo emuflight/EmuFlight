@@ -87,8 +87,8 @@ FAST_CODE void pwmWriteDshotInt(uint8_t index, uint16_t value) {
     {
         bufferSize = loadDmaBuffer(motor->dmaBuffer, 1, packet);
         motor->timer->timerDmaSources |= motor->timerDmaSource;
-        LL_EX_DMA_SetDataLength(motor->timerHardware->dmaRef, bufferSize);
-        LL_EX_DMA_EnableStream(motor->timerHardware->dmaRef);
+        LL_EX_DMA_SetDataLength(motor->dmaRef, bufferSize);
+        LL_EX_DMA_EnableStream(motor->dmaRef);
     }
 }
 
@@ -131,7 +131,7 @@ FAST_CODE static void motor_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
         } else
 #endif
         {
-            LL_EX_DMA_DisableStream(motor->timerHardware->dmaRef);
+            LL_EX_DMA_DisableStream(motor->dmaRef);
             LL_EX_TIM_DisableIT(motor->timerHardware->tim, motor->timerDmaSource);
         }
         DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF);
@@ -177,6 +177,7 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     LL_DMA_InitTypeDef dma_init;
     motorDmaOutput_t * const motor = &dmaMotors[motorIndex];
     motor->timerHardware = timerHardware;
+    motor->dmaRef = dmaRef;
     TIM_TypeDef *timer = timerHardware->tim;
     const IO_t motorIO = IOGetByTag(timerHardware->tag);
     const uint8_t timerIndex = getTimerIndex(timer);
