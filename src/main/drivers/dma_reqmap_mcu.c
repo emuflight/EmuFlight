@@ -444,12 +444,16 @@ const dmaChannelSpec_t *dmaGetChannelSpecByTimerValue(TIM_TypeDef *tim, uint8_t 
 // DMA(2,2,0) and DMA(2,2,7) both use DMA2_Stream2), so .ref alone cannot disambiguate.
 dmaoptValue_t dmaGetOptionByTimer(const timerHardware_t *timer)
 {
+    if (!timer) {
+        return DMA_OPT_UNUSED;
+    }
+
     for (unsigned i = 0; i < ARRAYLEN(dmaTimerMapping); i++) {
         const dmaTimerMapping_t *timerMapping = &dmaTimerMapping[i];
         if (timerMapping->tim == timer->tim && timerMapping->channel == timer->channel) {
             for (unsigned opt = 0; opt < MAX_TIMER_DMA_OPTIONS; opt++) {
                 const dmaChannelSpec_t *dma = &timerMapping->channelSpec[opt];
-                if (dma->ref == (dmaResource_t *)timer->dmaRef && dma->channel == timer->dmaChannel) {
+                if (dma->ref && dma->ref == (dmaResource_t *)timer->dmaRef && dma->channel == timer->dmaChannel) {
                     return (dmaoptValue_t)opt;
                 }
             }
