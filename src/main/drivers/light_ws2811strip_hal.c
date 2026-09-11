@@ -60,7 +60,7 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag) {
 
     DMA_Stream_TypeDef *dmaRef = timerHardware->dmaRef;
     uint32_t dmaChannel = timerHardware->dmaChannel;
-#if defined(STM32F4) || defined(STM32F7)
+#if defined(STM32H7) || defined(STM32F4) || defined(STM32F7)
     const dmaChannelSpec_t *dmaSpec = dmaGetChannelSpecByTimer(timerHardware);
     if (dmaSpec) {
         dmaRef = (DMA_Stream_TypeDef *)dmaSpec->ref;

@@ -148,7 +148,7 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
 #endif
     {
         dmaRef = timerHardware->dmaRef;
-#if defined(STM32F4) || defined(STM32F7)
+#if defined(STM32H7) || defined(STM32F4) || defined(STM32F7)
         const dmaChannelSpec_t *dmaSpec = dmaGetChannelSpecByTimer(timerHardware);
         if (dmaSpec) {
             dmaRef = (DMA_Stream_TypeDef *)dmaSpec->ref;
