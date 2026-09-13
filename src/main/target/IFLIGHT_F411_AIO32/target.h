@@ -42,7 +42,7 @@
 
 
 #define USE_EXTI
-#define MPU_INT_EXTI              PC4
+#define MPU_INT_EXTI              PA1
 #define USE_MPU_DATA_READY_SIGNAL
 
 //  MPU 6000
@@ -53,8 +53,8 @@
 #define USE_ACC_SPI_MPU6000
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
-#define GYRO_MPU6000_ALIGN        CW0_DEG
-#define ACC_MPU6000_ALIGN         CW0_DEG
+#define GYRO_MPU6000_ALIGN        CW180_DEG
+#define ACC_MPU6000_ALIGN         CW180_DEG
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE      SPI2
@@ -102,8 +102,8 @@
 #define SPI3_MOSI_PIN             PC12
 
 #define USE_ADC
-#define CURRENT_METER_ADC_PIN     PC1
-#define VBAT_ADC_PIN              PC2
+#define CURRENT_METER_ADC_PIN     PB1
+#define VBAT_ADC_PIN              PB0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
