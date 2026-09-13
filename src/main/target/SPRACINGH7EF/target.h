@@ -148,6 +148,12 @@
 #define RX_SPI_EXPRESSLRS_BUSY_PIN  PC7
 #define BINDPLUG_PIN         NONE
 
+// PB2/PB10/PE7-PE10 carry OCTOSPI flash the MCU executes firmware from (EXST, bootloader-mapped);
+// reassigning them via the resource CLI would disrupt live code fetches.
+#undef TARGET_IO_PORTB
+#define TARGET_IO_PORTB (0xffff & ~(BIT(2)|BIT(10)))
+#undef TARGET_IO_PORTE
+#define TARGET_IO_PORTE (0xffff & ~(BIT(7)|BIT(8)|BIT(9)|BIT(10)))
 
 #define USABLE_TIMER_CHANNEL_COUNT      10
 #define USED_TIMERS                     ( TIM_N(3) | TIM_N(5) | TIM_N(16) | TIM_N(17) )
