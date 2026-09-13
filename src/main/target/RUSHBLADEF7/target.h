@@ -140,8 +140,6 @@
 
 #define ENABLE_DSHOT_DMAR true
 
-//#define TARGET_IO_PORTD (BIT(2)) //old defines used this instead
-
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
