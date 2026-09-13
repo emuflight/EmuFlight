@@ -91,7 +91,6 @@
 #define RX_SPI_LED_PIN PB9
 #define BINDPLUG_PIN PB2
 
-
 #define FLASH_CS_PIN PA14
 #define FLASH_SPI_INSTANCE SPI2
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
@@ -109,11 +108,6 @@
 #define DEFAULT_CURRENT_METER_SCALE 1175
 
 
-
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
 
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SPI)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SPI

@@ -162,10 +162,6 @@
 #define SERIALRX_UART           SERIAL_PORT_USART3
 #define DEFAULT_FEATURES        ( FEATURE_LED_STRIP | FEATURE_OSD | FEATURE_MOTOR_STOP )
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 /*---------------------------------*/
 
 /*--------------TIMERS-------------*/

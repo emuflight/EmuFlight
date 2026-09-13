@@ -209,11 +209,7 @@
 
 /* MCU Pin Mapping - LPFQ64 Flags
  */
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
 // STM32F405RGT
-#define TARGET_IO_PORTD         (BIT(2))
 
 #define USE_ADC
 #define ADC1_DMA_OPT        1

@@ -133,10 +133,6 @@
 #define ESCSERIAL_TIMER_TX_PIN  NONE  // (HARDARE=0,PPM)
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
 #define USABLE_TIMER_CHANNEL_COUNT 7
 #define USED_TIMERS             ( TIM_N(1) | TIM_N(8) | TIM_N(4) | TIM_N(12) )

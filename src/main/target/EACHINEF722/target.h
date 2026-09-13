@@ -76,7 +76,6 @@
 #define MPU6000_CS_PIN           PB2
 #define MPU6000_SPI_BUS     SPIDEV_1
 
-
 #define USE_UART1
 #define UART1_TX_PIN         PA9
 #define UART1_RX_PIN         PA10
@@ -128,12 +127,6 @@
 #define PINIO2_PIN           PC9
 #define PINIO1_BOX 40
 #define PINIO2_BOX 41
-
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
 
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL

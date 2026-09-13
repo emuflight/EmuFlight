@@ -143,10 +143,6 @@
 //#define SERIALRX_UART                                   SERIAL_PORT_USART2
 
 // IO Ports
-#define TARGET_IO_PORTA                                 0xffff
-#define TARGET_IO_PORTB                                 0xffff
-#define TARGET_IO_PORTC                                 0xffff
-#define TARGET_IO_PORTD                                 (BIT(2))
 
 // timers
 #define USABLE_TIMER_CHANNEL_COUNT                      10

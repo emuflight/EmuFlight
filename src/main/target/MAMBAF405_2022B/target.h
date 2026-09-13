@@ -144,12 +144,6 @@
 #define PINIO2_BOX 40
 // notice - this file was programmatically generated and may not have accounted for any config instance of "#define TLM_INVERTED ON", etc.
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 // notice - incomplete; may need additional DEFAULT_FEATURES; e.g. FEATURE_SOFTSERIAL | FEATURE_RX_SPI

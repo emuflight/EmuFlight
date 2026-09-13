@@ -187,10 +187,6 @@
 // FIXME While it's possible to use the button on the OSD/VTX board for binding enabling it here will break binding unless you have the OSD/VTX connected.
 //#define BINDPLUG_PIN                        BUTTON_A_PIN
 
-#define TARGET_IO_PORTA                     0xffff
-#define TARGET_IO_PORTB                     0xffff
-#define TARGET_IO_PORTC                     0xffff
-#define TARGET_IO_PORTD                     (BIT(2))
 
 #define USABLE_TIMER_CHANNEL_COUNT          14 // 4xPWM, 6xESC, 2xESC via UART3 RX/TX, 1xLED Strip, 1xIR.
 #define USED_TIMERS                         (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(8) | TIM_N(9))

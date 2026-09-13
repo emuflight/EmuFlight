@@ -119,10 +119,6 @@
 #define DEFAULT_RX_FEATURE          FEATURE_RX_SERIAL
 #define DEFAULT_FEATURES            FEATURE_OSD
 
-#define TARGET_IO_PORTA (0xffff & ~(BIT(13)))
-#define TARGET_IO_PORTB (0xffff & ~(BIT(2)))
-#define TARGET_IO_PORTC (0xffff & ~(BIT(15)|BIT(14)))
-#define TARGET_IO_PORTD BIT(2)
 
 // DEFINE TIMERS
 #define USABLE_TIMER_CHANNEL_COUNT 6

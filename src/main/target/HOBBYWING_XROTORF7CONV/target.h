@@ -167,10 +167,6 @@
 #define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE )
 
 // IO Ports
-#define TARGET_IO_PORTA                                 0xffff
-#define TARGET_IO_PORTB                                 0xffff
-#define TARGET_IO_PORTC                                 0xffff
-#define TARGET_IO_PORTD                                 (BIT(2))
 
 // timers
 #define USABLE_TIMER_CHANNEL_COUNT                     12                      //updated timer count to compensate for Nf Motor 4

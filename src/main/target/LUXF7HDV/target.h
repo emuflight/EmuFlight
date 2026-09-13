@@ -101,12 +101,6 @@
 
 #define ENABLE_DSHOT_DMAR true
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 

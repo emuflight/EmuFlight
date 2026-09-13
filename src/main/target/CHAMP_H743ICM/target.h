@@ -90,7 +90,6 @@
 #define SERIALRX_UART SERIAL_PORT_USART6
 #define SERIAL_PORT_COUNT 6
 
-
 #define FLASH_CS_PIN PD4
 #define FLASH_SPI_INSTANCE SPI3
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
@@ -114,13 +113,6 @@
 #define PINIO1_PIN PD13
 #define PINIO1_CONFIG 129
 #define PINIO1_BOX 40
-
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
 
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL

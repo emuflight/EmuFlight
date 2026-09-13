@@ -200,10 +200,6 @@
 #define SERIALRX_UART           SERIAL_PORT_USART2
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
 #define USABLE_TIMER_CHANNEL_COUNT 16 // 4xPWM, 8xESC, 2xESC via UART3 RX/TX, 1xLED Strip, 1xIR.
 #define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(9))

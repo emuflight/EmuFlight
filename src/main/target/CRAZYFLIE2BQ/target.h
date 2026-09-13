@@ -42,10 +42,6 @@
 
 // Using STM32F405RG, 64 pin package (LQFP64)
 // 16 pins per port, ports A, B, C, and also PD2
-#define TARGET_IO_PORTA         0xFFFF
-#define TARGET_IO_PORTB         0xFFFF
-#define TARGET_IO_PORTC         0xFFFF
-#define TARGET_IO_PORTD         (BIT(2))
 
 #define USE_VCP
 

@@ -160,11 +160,6 @@
  #define SERIALRX_UART           SERIAL_PORT_USART1
  #define USE_DSHOT
 
- #define TARGET_IO_PORTA 0xffff
- #define TARGET_IO_PORTB 0xffff
- #define TARGET_IO_PORTC 0xffff
- #define TARGET_IO_PORTD 0xffff
- #define TARGET_IO_PORTE 0xffff
 
  #define USABLE_TIMER_CHANNEL_COUNT 6
 
