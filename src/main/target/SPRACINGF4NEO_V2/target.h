@@ -26,7 +26,6 @@
 #define USBD_PRODUCT_STRING                 "SP Racing F4 NEO (rev 2)"
 
 #define LED0_PIN                        PB9
-#define LED1_PIN                        PB2
 
 #define USE_BEEPER
 #define BEEPER_PIN                          PC15
