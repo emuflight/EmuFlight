@@ -26,10 +26,8 @@
 #define FC_TARGET_MCU     STM32F411     // not used in EmuF
 #define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
 
-#define LED0_PIN                  PB5
-
 #define USE_BEEPER
-#define BEEPER_PIN                PB4
+#define BEEPER_PIN                PB2
 #define BEEPER_INVERTED
 
 #define USE_PINIO
@@ -44,7 +42,7 @@
 
 
 #define USE_EXTI
-#define MPU_INT_EXTI              PC4
+#define MPU_INT_EXTI              PA1
 #define USE_MPU_DATA_READY_SIGNAL
 
 //  MPU 6000
@@ -55,8 +53,8 @@
 #define USE_ACC_SPI_MPU6000
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
-#define GYRO_MPU6000_ALIGN        CW0_DEG
-#define ACC_MPU6000_ALIGN         CW0_DEG
+#define GYRO_MPU6000_ALIGN        CW180_DEG
+#define ACC_MPU6000_ALIGN         CW180_DEG
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE      SPI2
@@ -82,19 +80,7 @@
 #define UART2_RX_PIN              PA3
 #define UART2_TX_PIN              PA2
 
-#define USE_UART3
-#define UART3_RX_PIN              PB11
-#define UART3_TX_PIN              PB10
-
-#define USE_UART4
-#define UART4_RX_PIN              PA1
-#define UART4_TX_PIN              PA0
-
-#define USE_UART6
-#define UART6_RX_PIN              PC7
-#define UART6_TX_PIN              PC6
-
-#define SERIAL_PORT_COUNT        6 //VCP, USART1, USART3,USART4, USART6, SOFT_SERIAL1
+#define SERIAL_PORT_COUNT        3 //VCP, USART1, USART2
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -116,8 +102,8 @@
 #define SPI3_MOSI_PIN             PC12
 
 #define USE_ADC
-#define CURRENT_METER_ADC_PIN     PC1
-#define VBAT_ADC_PIN              PC2
+#define CURRENT_METER_ADC_PIN     PB1
+#define VBAT_ADC_PIN              PB0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
@@ -131,4 +117,4 @@
 #define TARGET_IO_PORTD         (BIT(2))
 
 #define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS  ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) )
+#define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) )
