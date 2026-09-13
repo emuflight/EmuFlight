@@ -95,7 +95,6 @@
 #define INVERTER_PIN_UART1   PC0
 #define SERIAL_PORT_COUNT 7
 
-
 #define FLASH_CS_PIN         PA15
 #define FLASH_SPI_INSTANCE SPI3
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
@@ -116,8 +115,6 @@
 #define ESCSERIAL_TIMER_TX_PIN PB9
 
 #define PINIO1_PIN           PB0
-
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
 
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL

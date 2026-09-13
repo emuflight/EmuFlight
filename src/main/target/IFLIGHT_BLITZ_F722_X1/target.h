@@ -127,13 +127,10 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 200
 
-
 #define PINIO1_PIN           PC0
 #define PINIO2_PIN           PC14
 #define PINIO1_BOX 40
 #define PINIO2_BOX 41
-
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
 
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL

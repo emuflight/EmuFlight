@@ -75,7 +75,6 @@
 #define MPU6000_CS_PIN           PE4
 #define MPU6000_SPI_BUS     SPIDEV_4
 
-
 #define USE_UART1
 #define UART1_TX_PIN         PA9
 #define UART1_RX_PIN         PA10
@@ -130,8 +129,6 @@
 #define DEFAULT_CURRENT_METER_SCALE 175
 
 #define PINIO1_PIN           PC0
-
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
 
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
