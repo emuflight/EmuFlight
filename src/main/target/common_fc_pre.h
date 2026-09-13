@@ -163,6 +163,23 @@
 #define SRAM2
 #endif
 
+// Fleet-wide default matching BF's family-header model (every port fully open); per-board
+// #undef + redefine only for a verified exception (real reserved-pin hardware fact, e.g. an
+// OCTOSPI/QUADSPI flash-bus pin) - matches BF's own rare per-board TARGET_IO_PORTx overrides.
+// Meaningless (and actively harmful) for SIMULATOR_BUILD: SITL has no real GPIO, IOConfigGPIO()
+// isn't implemented for it, and giving it real port values makes an otherwise-unreachable PINIO
+// call site linkage-reachable, breaking the SITL link with an undefined reference.
+#ifndef SIMULATOR_BUILD
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTD 0xffff
+#define TARGET_IO_PORTE 0xffff
+#define TARGET_IO_PORTF 0xffff
+#define TARGET_IO_PORTG 0xffff
+#define TARGET_IO_PORTH 0xffff
+#endif
+
 #define USE_BRUSHED_ESC_AUTODETECT  // Detect if brushed motors are connected and set defaults appropriately to avoid motors spinning on boot
 #define USE_CLI
 #define USE_ESCSERIAL           // fleet-wide default; per-board #undef only for a verified exception

@@ -149,10 +149,12 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define DEFAULT_FEATURES        ( FEATURE_OSD | FEATURE_SOFTSERIAL )
 
+#undef TARGET_IO_PORTA
 #define TARGET_IO_PORTA         ( BIT(15) | BIT(12) | BIT(11) | BIT(10) | BIT(9) | BIT(7) | BIT(6) | BIT(5) | BIT(4) | BIT(3) | BIT(2) | BIT(1) | BIT(0) )
+#undef TARGET_IO_PORTB
 #define TARGET_IO_PORTB         ( BIT(15) | BIT(14) | BIT(13) | BIT(12) | BIT(11) | BIT(10) | BIT(9) | BIT(8) | BIT(6) | BIT(5) | BIT(4) | BIT(3) | BIT(1) | BIT(0) )
+#undef TARGET_IO_PORTC
 #define TARGET_IO_PORTC         ( BIT(12) | BIT(11) | BIT(10) | BIT(9) | BIT(8) | BIT(7) | BIT(6) | BIT(4) | BIT(3) | BIT(2) | BIT(1) | BIT(0) )
-#define TARGET_IO_PORTD         ( BIT(2) )
 
 #define USABLE_TIMER_CHANNEL_COUNT 16
 #define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9) )

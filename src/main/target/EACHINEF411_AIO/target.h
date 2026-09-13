@@ -97,8 +97,11 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
 
+#undef TARGET_IO_PORTA
 #define TARGET_IO_PORTA 0xffff
+#undef TARGET_IO_PORTB
 #define TARGET_IO_PORTB 0xffff
+#undef TARGET_IO_PORTC
 #define TARGET_IO_PORTC (BIT(13))
 // notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
 

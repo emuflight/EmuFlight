@@ -120,9 +120,12 @@
 
 #define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_SOFTSERIAL | FEATURE_ESC_SENSOR)
 
-#define TARGET_IO_PORTA (0xffff & ~(BIT(14)|BIT(13)))
-#define TARGET_IO_PORTB (0xffff & ~(BIT(2)|BIT(11)))
-#define TARGET_IO_PORTC (BIT(13)|BIT(14)|BIT(15))
+// PORTA's old (0xffff & ~(BIT(14)|BIT(13))) SWD exclusion is redundant now that
+// debugInit()/OWNER_SWD protects PA13/PA14 at runtime (see drivers/debug.c) - dropped.
+#undef TARGET_IO_PORTB
+#define TARGET_IO_PORTB (0xffff & ~(BIT(11))) // real board-specific exclusion, not BOOT1-related
+#undef TARGET_IO_PORTC
+#define TARGET_IO_PORTC (BIT(13)|BIT(14)|BIT(15)) // only these 3 Port C pins are routed out
 
 #define USABLE_TIMER_CHANNEL_COUNT 8
 #define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(9) )

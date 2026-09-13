@@ -45,7 +45,6 @@
 #define TARGET_IO_PORTA         0xFFFF
 #define TARGET_IO_PORTB         0xFFFF
 #define TARGET_IO_PORTC         0xFFFF
-#define TARGET_IO_PORTD         (BIT(2))
 
 #define USE_VCP
 

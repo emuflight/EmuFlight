@@ -98,8 +98,11 @@
 
 
 
+#undef TARGET_IO_PORTA
 #define TARGET_IO_PORTA 0xffff
+#undef TARGET_IO_PORTB
 #define TARGET_IO_PORTB 0xffff
+#undef TARGET_IO_PORTC
 #define TARGET_IO_PORTC (BIT(13))
 // notice - masks were programmatically generated - PORTC verified as (BIT(13))
 

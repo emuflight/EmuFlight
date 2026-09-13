@@ -148,10 +148,12 @@
 #define SERIALRX_UART                                   SERIAL_PORT_USART2
 
 // IO Ports
+#undef TARGET_IO_PORTA
 #define TARGET_IO_PORTA                                 0xffff
+#undef TARGET_IO_PORTB
 #define TARGET_IO_PORTB                                 0xffff
+#undef TARGET_IO_PORTC
 #define TARGET_IO_PORTC                                 (BIT(2))
-#define TARGET_IO_PORTD                                 (BIT(2))
 
 // timers
 #define USABLE_TIMER_CHANNEL_COUNT                      6                       //updated timer count to compensate for Nf Motor 4

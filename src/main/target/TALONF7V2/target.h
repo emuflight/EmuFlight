@@ -142,7 +142,6 @@
 #define TARGET_IO_PORTA                                 0xffff
 #define TARGET_IO_PORTB                                 0xffff
 #define TARGET_IO_PORTC                                 0xffff
-#define TARGET_IO_PORTD                                 (BIT(2))
 
 // timers
 #define USABLE_TIMER_CHANNEL_COUNT                      9                       //updated timer count to compensate for Nf Motor 4
