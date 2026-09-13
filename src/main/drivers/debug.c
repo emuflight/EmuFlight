@@ -24,9 +24,8 @@
 
 void debugInit(void)
 {
-    // A handful of boards have real, board-specific TARGET_IO_PORTA masks that don't include
-    // PA13/PA14 at all (e.g. AIKONF4 - the physical package doesn't route them out as usable
-    // GPIO). IO_TAG() on an excluded pin is a hard compile error, so each pin is guarded here.
+    // A board with a genuine hardware fact excluding PA13/PA14 from TARGET_IO_PORTA would hit
+    // a hard compile error from IO_TAG() on the excluded pin without this guard.
 #if (TARGET_IO_PORTA) & BIT(13)
     IO_t io = IOGetByTag(IO_TAG(PA13)); // SWDIO
     if (IOGetOwner(io) == OWNER_FREE) {
