@@ -162,9 +162,12 @@ const timerHardware_t fullTimerHardware[FULL_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM12, CH1, PH6, 0, 0, 0, NONE),
     DEF_TIM(TIM12, CH2, PH9, 0, 0, 0, NONE),
 
-// Port I: BF master added these (commit 9ab3aa104) but EF's io_def_generated.h has no
-// DEFIO_TAG__PIx entries at all - Port I isn't part of EF's io-port enumeration on any MCU.
-// Needs that prerequisite before these can be added; not attempted here.
+// Port I
+    DEF_TIM(TIM5, CH4, PI0, 0, 0, 0, NONE),
+    DEF_TIM(TIM8, CH4, PI2, 0, 0, 0, NONE),
+    DEF_TIM(TIM8, CH1, PI5, 0, 0, 0, NONE),
+    DEF_TIM(TIM8, CH2, PI6, 0, 0, 0, NONE),
+    DEF_TIM(TIM8, CH3, PI7, 0, 0, 0, NONE),
 };
 #endif
 

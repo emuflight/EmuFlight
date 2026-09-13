@@ -178,6 +178,7 @@
 #define TARGET_IO_PORTF 0xffff
 #define TARGET_IO_PORTG 0xffff
 #define TARGET_IO_PORTH 0xffff
+#define TARGET_IO_PORTI 0xffff
 #endif
 
 #define USE_BRUSHED_ESC_AUTODETECT  // Detect if brushed motors are connected and set defaults appropriately to avoid motors spinning on boot
