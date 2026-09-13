@@ -115,7 +115,6 @@ END2
 # define DEFIO_PORT_USED_LIST /* empty */
 # define DEFIO_PORT_OFFSET_LIST /* empty */
 #endif
-
 END
 
 exit; # only IO code is merged now
