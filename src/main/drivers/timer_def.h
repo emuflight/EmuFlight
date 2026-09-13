@@ -340,7 +340,7 @@
 #define DEF_TIM_AF__PA8__TCH_TIM1_CH1     D(1, 1)
 #define DEF_TIM_AF__PA9__TCH_TIM1_CH2     D(1, 1)
 #define DEF_TIM_AF__PA10__TCH_TIM1_CH3    D(1, 1)
-#define DEF_TIM_AF__PA11__TCH_TIM1_CH1N   D(1, 1)
+#define DEF_TIM_AF__PA11__TCH_TIM1_CH4    D(1, 1)
 #define DEF_TIM_AF__PA15__TCH_TIM2_CH1    D(1, 2)
 
 #define DEF_TIM_AF__PA0__TCH_TIM5_CH1     D(2, 5)
@@ -632,6 +632,11 @@
 #define DEF_TIM_AF__PB14__TCH_TIM12_CH1   D(2, 12)
 #define DEF_TIM_AF__PB15__TCH_TIM12_CH2   D(2, 12)
 
+#define DEF_TIM_AF__PB0__TCH_TIM8_CH2N    D(3, 8)
+#define DEF_TIM_AF__PB1__TCH_TIM8_CH3N    D(3, 8)
+#define DEF_TIM_AF__PB14__TCH_TIM8_CH2N   D(3, 8)
+#define DEF_TIM_AF__PB15__TCH_TIM8_CH3N   D(3, 8)
+
 //PORTC
 #define DEF_TIM_AF__PC6__TCH_TIM3_CH1     D(2, 3)
 #define DEF_TIM_AF__PC7__TCH_TIM3_CH2     D(2, 3)
@@ -668,8 +673,8 @@
 #define DEF_TIM_AF__PF8__TCH_TIM16_CH1N   D(1, 16)
 #define DEF_TIM_AF__PF9__TCH_TIM17_CH1N   D(1, 17)
 
-#define DEF_TIM_AF__PF8__TCH_TIM13_CH1N   D(9, 13)
-#define DEF_TIM_AF__PF9__TCH_TIM14_CH1N   D(9, 14)
+#define DEF_TIM_AF__PF8__TCH_TIM13_CH1    D(9, 13)
+#define DEF_TIM_AF__PF9__TCH_TIM14_CH1    D(9, 14)
 
 
 //PORTH
@@ -707,7 +712,7 @@
 
 #elif defined(STM32H7)
 
-#define FULL_TIMER_CHANNEL_COUNT 78
+#define FULL_TIMER_CHANNEL_COUNT 86
 #define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(6) | TIM_N(7) | TIM_N(8) | TIM_N(12) | TIM_N(13) | TIM_N(14) | TIM_N(15) | TIM_N(16) | TIM_N(17) )
 
 #else

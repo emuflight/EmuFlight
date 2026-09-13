@@ -108,6 +108,11 @@ const timerHardware_t fullTimerHardware[FULL_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM12, CH1, PB14, 0, 0, 0, NONE),
     DEF_TIM(TIM12, CH2, PB15, 0, 0, 0, NONE),
 
+    DEF_TIM(TIM8, CH2N, PB0, 0, 0, 0, NONE),
+    DEF_TIM(TIM8, CH3N, PB1, 0, 0, 0, NONE),
+    DEF_TIM(TIM8, CH2N, PB14, 0, 0, 0, NONE),
+    DEF_TIM(TIM8, CH3N, PB15, 0, 0, 0, NONE),
+
 // Port C
     DEF_TIM(TIM3, CH1, PC6, 0, 0, 0, NONE),
     DEF_TIM(TIM3, CH2, PC7, 0, 0, 0, NONE),
@@ -144,19 +149,22 @@ const timerHardware_t fullTimerHardware[FULL_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM16, CH1N, PF8, 0, 0, 0, NONE),
     DEF_TIM(TIM17, CH1N, PF9, 0, 0, 0, NONE),
 
-    DEF_TIM(TIM13, CH1N, PF8, 0, 0, 0, NONE),
-    DEF_TIM(TIM14, CH1N, PF9, 0, 0, 0, NONE),
+    DEF_TIM(TIM13, CH1,  PF8, 0, 0, 0, NONE),
+    DEF_TIM(TIM14, CH1,  PF9, 0, 0, 0, NONE),
 
 // Port H
-// Port H is not available for LPQFP-100 or 144 and TFBGA-100 package
-//    DEF_TIM(TIM12, CH1, PH6, 0, 0, 0, NONE),
-//    DEF_TIM(TIM12, CH2, PH9, 0, 0, 0, NONE),
-//    DEF_TIM(TIM5, CH1, PH10, 0, 0, 0, NONE),
-//    DEF_TIM(TIM5, CH2, PH11, 0, 0, 0, NONE),
-//    DEF_TIM(TIM5, CH3, PH12, 0, 0, 0, NONE),
-//    DEF_TIM(TIM8, CH1N, PH13, 0, 0, 0, NONE),
-//    DEF_TIM(TIM8, CH2N, PH14, 0, 0, 0, NONE),
-//    DEF_TIM(TIM8, CH3N, PH15, 0, 0, 0, NONE),
+    DEF_TIM(TIM5, CH1, PH10, 0, 0, 0, NONE),
+    DEF_TIM(TIM5, CH2, PH11, 0, 0, 0, NONE),
+    DEF_TIM(TIM5, CH3, PH12, 0, 0, 0, NONE),
+    DEF_TIM(TIM8, CH1N, PH13, 0, 0, 0, NONE),
+    DEF_TIM(TIM8, CH2N, PH14, 0, 0, 0, NONE),
+    DEF_TIM(TIM8, CH3N, PH15, 0, 0, 0, NONE),
+    DEF_TIM(TIM12, CH1, PH6, 0, 0, 0, NONE),
+    DEF_TIM(TIM12, CH2, PH9, 0, 0, 0, NONE),
+
+// Port I: BF master added these (commit 9ab3aa104) but EF's io_def_generated.h has no
+// DEFIO_TAG__PIx entries at all - Port I isn't part of EF's io-port enumeration on any MCU.
+// Needs that prerequisite before these can be added; not attempted here.
 };
 #endif
 
