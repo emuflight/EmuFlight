@@ -23,9 +23,6 @@
 #define TARGET_BOARD_IDENTIFIER "SP4E"
 #define USE_TARGET_CONFIG
 
-#ifndef SPRACINGF4EVO_REV
-#define SPRACINGF4EVO_REV 2
-#endif
 #ifdef SPRACINGF4EVODG
 #define USE_DUAL_GYRO
 #endif
@@ -115,13 +112,8 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE              (I2CDEV_1)
-#if (SPRACINGF4EVO_REV >= 2)
 #define I2C1_SCL                PB8
 #define I2C1_SDA                PB9
-#else
-#define I2C1_SCL                PB6
-#define I2C1_SDA                PB7
-#endif
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1 // MPU
@@ -214,14 +206,5 @@
 #define TARGET_IO_PORTD         (BIT(2))
 
 #define USABLE_TIMER_CHANNEL_COUNT 16 // 4xPWM, 8xESC, 2xESC via UART3 RX/TX, 1xLED Strip, 1xIR.
-#if (SPRACINGF4NEO_REV >= 2)
 #define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(9))
-#else
-#define USE_TIM10_TIM11_FOR_MOTORS
-#ifdef USE_TIM10_TIM11_FOR_MOTORS
-#define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(9) | TIM_N(10) | TIM_N(11))
-#else
-#define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(9))
-#endif
-#endif
 

@@ -38,18 +38,8 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM8,  CH4, PC9,  TIM_USE_MOTOR,               0, 0), // ESC 3
     DEF_TIM(TIM8,  CH3, PC8,  TIM_USE_MOTOR,               0, 1), // ESC 4
 
-#if defined(SPRACINGF4EVO_REV) && (SPRACINGF4EVO_REV >= 2)
     DEF_TIM(TIM4,  CH1, PB6,  TIM_USE_MOTOR,               0, 0), // ESC 5 / Conflicts with USART5_RX / SPI3_RX - SPI3_RX can be mapped to DMA1_ST3_CH0
     DEF_TIM(TIM4,  CH2, PB7,  TIM_USE_MOTOR,               0, 0), // ESC 6 / Conflicts with USART3_RX
-#else
-#ifdef USE_TIM10_TIM11_FOR_MOTORS
-    DEF_TIM(TIM10, CH1, PB8,  TIM_USE_MOTOR,               0, 0), // ESC 5
-    DEF_TIM(TIM11, CH1, PB9,  TIM_USE_MOTOR,               0, 0), // ESC 6
-#else
-    DEF_TIM(TIM4,  CH3, PB8,  TIM_USE_MOTOR,               0, 0), // ESC 5
-    DEF_TIM(TIM4,  CH4, PB9,  TIM_USE_MOTOR,               0, 0), // ESC 6
-#endif
-#endif
     DEF_TIM(TIM3,  CH4, PB1,  TIM_USE_MOTOR,               0, 0), // ESC 7
     DEF_TIM(TIM3,  CH3, PB0,  TIM_USE_MOTOR,               0, 0), // ESC 8
 
