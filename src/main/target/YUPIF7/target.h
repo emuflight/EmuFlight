@@ -139,9 +139,6 @@
 #define SERIALRX_UART           SERIAL_PORT_USART6
 #define DEFAULT_FEATURES        (FEATURE_OSD)
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
 
 #define USABLE_TIMER_CHANNEL_COUNT 9
 #define USED_TIMERS             (TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(12))

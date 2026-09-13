@@ -98,9 +98,6 @@
 #define ENABLE_DSHOT_DMAR       true
 #define DEFAULT_FEATURES        ( FEATURE_TELEMETRY | FEATURE_OSD )
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
 
 #define USABLE_TIMER_CHANNEL_COUNT 5
 #define USED_TIMERS             ( TIM_N(3) | TIM_N(4) | TIM_N(8) )

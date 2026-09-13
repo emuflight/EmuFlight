@@ -151,9 +151,6 @@
 
 #define ESCSERIAL_TIMER_TX_PIN PA3
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
 
 
 #define USABLE_TIMER_CHANNEL_COUNT 11

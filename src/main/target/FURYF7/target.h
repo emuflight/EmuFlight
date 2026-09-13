@@ -143,11 +143,6 @@
 // If PB11 is critical for this target, please resurrect this line.
 //#define SPEKTRUM_BIND_PIN       PB11
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         0xffff
-#define TARGET_IO_PORTE         0xffff
 
 #define USABLE_TIMER_CHANNEL_COUNT 5
 #define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(8))

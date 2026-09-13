@@ -97,12 +97,8 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
 // Buses & Timers
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         0xffff
+#undef TARGET_IO_PORTE
 #define TARGET_IO_PORTE         (BIT(3))
-#define TARGET_IO_PORTH         0xffff
 
 #define USABLE_TIMER_CHANNEL_COUNT 8
 #define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) )

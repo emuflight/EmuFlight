@@ -126,9 +126,6 @@
 #define PINIO1_BOX                      40
 #define PINIO1_CONFIG                   1
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
 // notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
 
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)

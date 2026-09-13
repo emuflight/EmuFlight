@@ -142,9 +142,6 @@
 #define DEFAULT_RX_FEATURE                              FEATURE_RX_SERIAL
 
 // IO Ports
-#define TARGET_IO_PORTA                                 0xffff
-#define TARGET_IO_PORTB                                 0xffff
-#define TARGET_IO_PORTC                                 0xffff
 
 // timers
 #define USABLE_TIMER_CHANNEL_COUNT                      7                       //updated timer count to compensate for Nf Motor 4

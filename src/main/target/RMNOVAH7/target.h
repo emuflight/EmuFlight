@@ -126,11 +126,8 @@
 #define PINIO2_CONFIG                   129
 #define PINIO3_BOX                      42
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
+#undef TARGET_IO_PORTD
 #define TARGET_IO_PORTD (BIT(7))
-#define TARGET_IO_PORTE 0xffff
 // notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
 
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)

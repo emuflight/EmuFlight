@@ -153,9 +153,6 @@
 
 #define ESCSERIAL_TIMER_TX_PIN    PA3
 
-#define TARGET_IO_PORTA           0xffff
-#define TARGET_IO_PORTB           0xffff
-#define TARGET_IO_PORTC           0xffff
 
 // *************** activate/deactivate Bluetooth When disarmed/armed using PINIO_BOX *****************************
 #define PINIO1_PIN                PA15

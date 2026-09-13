@@ -127,11 +127,6 @@
 
 #define PINIO1_PIN           PC0
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
 // notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
 
 #define ENABLE_DSHOT_DMAR       true

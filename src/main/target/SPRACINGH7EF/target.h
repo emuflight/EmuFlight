@@ -148,11 +148,6 @@
 #define RX_SPI_EXPRESSLRS_BUSY_PIN  PC7
 #define BINDPLUG_PIN         NONE
 
-#define TARGET_IO_PORTA                 0xffff
-#define TARGET_IO_PORTB                 0xffff
-#define TARGET_IO_PORTC                 0xffff
-#define TARGET_IO_PORTD                 0xffff
-#define TARGET_IO_PORTE                 0xffff
 
 #define USABLE_TIMER_CHANNEL_COUNT      10
 #define USED_TIMERS                     ( TIM_N(3) | TIM_N(5) | TIM_N(16) | TIM_N(17) )

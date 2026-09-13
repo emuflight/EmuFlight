@@ -171,9 +171,7 @@
 #define DEFAULT_CURRENT_METER_SCALE 179
 
 //--------------------------------BOARD RESOURCES-----------------------------
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
+#undef TARGET_IO_PORTD
 #define TARGET_IO_PORTD 0x0007
 
 #define USABLE_TIMER_CHANNEL_COUNT 8
