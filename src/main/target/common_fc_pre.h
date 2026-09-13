@@ -166,9 +166,10 @@
 // Fleet-wide default matching BF's family-header model (every port fully open); per-board
 // #undef + redefine only for a verified exception (real reserved-pin hardware fact, e.g. an
 // OCTOSPI/QUADSPI flash-bus pin) - matches BF's own rare per-board TARGET_IO_PORTx overrides.
-// Meaningless (and actively harmful) for SIMULATOR_BUILD: SITL has no real GPIO, IOConfigGPIO()
-// isn't implemented for it, and giving it real port values makes an otherwise-unreachable PINIO
-// call site linkage-reachable, breaking the SITL link with an undefined reference.
+// Meaningless (and actively harmful) for SIMULATOR_BUILD: no real GPIO exists there,
+// IOConfigGPIO() isn't implemented for it, and giving it real port values makes an
+// otherwise-unreachable PINIO call site linkage-reachable, breaking the link with an
+// undefined reference.
 #ifndef SIMULATOR_BUILD
 #define TARGET_IO_PORTA 0xffff
 #define TARGET_IO_PORTB 0xffff
