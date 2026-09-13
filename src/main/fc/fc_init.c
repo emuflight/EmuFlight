@@ -47,6 +47,7 @@
 #include "drivers/buttons.h"
 #include "drivers/camera_control.h"
 #include "drivers/compass/compass.h"
+#include "drivers/debug.h"
 #include "drivers/dma.h"
 #include "drivers/exti.h"
 #include "drivers/flash.h"
@@ -667,6 +668,7 @@ void init(void) {
     // Must run after every dmaInit() caller above and before fcTasksInit()'s first gyro read.
     spiInitBusDMA();
 #endif
+    debugInit();
     fcTasksInit();
     systemState |= SYSTEM_STATE_READY;
 }
