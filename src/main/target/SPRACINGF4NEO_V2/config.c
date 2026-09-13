@@ -18,25 +18,31 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "platform.h"
-#include "drivers/io.h"
 
-#include "drivers/dma.h"
-#include "drivers/timer.h"
-#include "drivers/timer_def.h"
+#include "drivers/serial.h"
 
-const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
+#include "telemetry/telemetry.h"
 
-    DEF_TIM(TIM2,  CH4,   PA3, TIM_USE_PPM,       0, 0),
+#include "fc/config.h"
 
-    DEF_TIM(TIM3,  CH1,   PB4, TIM_USE_MOTOR,     0, 0),
-    DEF_TIM(TIM3,  CH2,   PB5, TIM_USE_MOTOR,     0, 0),
-    DEF_TIM(TIM4,  CH1,   PB6, TIM_USE_MOTOR,     0, 0),
-    DEF_TIM(TIM4,  CH2,   PB7, TIM_USE_MOTOR,     0, 0),
+#include "config_helper.h"
 
-    DEF_TIM(TIM1,  CH1,   PA8, TIM_USE_LED,       0, 0),
-    DEF_TIM(TIM2,  CH1,   PA0, TIM_USE_ANY,       0, 0)
+#define GPS_UART                            SERIAL_PORT_USART3
+#define TELEMETRY_UART                      SERIAL_PORT_UART5
+#define TELEMETRY_PROVIDER_DEFAULT          FUNCTION_TELEMETRY_SMARTPORT
 
+static targetSerialPortFunction_t targetSerialPortFunction[] = {
+    { GPS_UART,           FUNCTION_GPS },
+    { TELEMETRY_UART,     TELEMETRY_PROVIDER_DEFAULT },
 };
+
+#ifdef USE_TARGET_CONFIG
+void targetConfiguration(void) {
+    targetSerialPortFunctionConfig(targetSerialPortFunction, ARRAYLEN(targetSerialPortFunction));
+    telemetryConfigMutable()->halfDuplex = false;
+}
+#endif

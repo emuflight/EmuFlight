@@ -20,13 +20,13 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER             "SP4N"
+#define TARGET_BOARD_IDENTIFIER             "SP42"
 #define USE_TARGET_CONFIG
 
-#define USBD_PRODUCT_STRING                 "SP Racing F4 NEO"
+#define USBD_PRODUCT_STRING                 "SP Racing F4 NEO (rev 2)"
 
-#define LED0_PIN                        PA0
-#define LED1_PIN                        PB1
+#define LED0_PIN                        PB9
+#define LED1_PIN                        PB2
 
 #define USE_BEEPER
 #define BEEPER_PIN                          PC15
@@ -92,8 +92,8 @@
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE                          (I2CDEV_1) // PB6/SCL, PB7/SDA
 
-#define I2C1_SCL                        PB8
-#define I2C1_SDA                        PB9
+#define I2C1_SCL                        PB6
+#define I2C1_SDA                        PB7
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1 // MPU
@@ -182,7 +182,7 @@
 #define TELEMETRY_PROVIDER_DEFAULT          FUNCTION_TELEMETRY_SMARTPORT
 
 #define USE_BUTTONS // Physically located on the optional OSD/VTX board.
-#define BUTTON_A_PIN                    PB0
+#define BUTTON_A_PIN                    PB8
 
 // FIXME While it's possible to use the button on the OSD/VTX board for binding enabling it here will break binding unless you have the OSD/VTX connected.
 //#define BINDPLUG_PIN                        BUTTON_A_PIN

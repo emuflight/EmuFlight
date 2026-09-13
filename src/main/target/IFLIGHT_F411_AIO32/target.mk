@@ -1,4 +1,4 @@
-F405_TARGETS   += $(TARGET)
+F411_TARGETS   += $(TARGET)
 FEATURES       = VCP ONBOARDFLASH
 TARGET_SRC = \
             drivers/accgyro/accgyro_mpu.c \

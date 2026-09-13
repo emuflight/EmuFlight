@@ -18,25 +18,36 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "platform.h"
-#include "drivers/io.h"
 
-#include "drivers/dma.h"
-#include "drivers/timer.h"
-#include "drivers/timer_def.h"
+#ifdef USE_TARGET_CONFIG
 
-const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
+#include "io/serial.h"
 
-    DEF_TIM(TIM2,  CH4,   PA3, TIM_USE_PPM,       0, 0),
+#include "pg/rx.h"
 
-    DEF_TIM(TIM3,  CH1,   PB4, TIM_USE_MOTOR,     0, 0),
-    DEF_TIM(TIM3,  CH2,   PB5, TIM_USE_MOTOR,     0, 0),
-    DEF_TIM(TIM4,  CH1,   PB6, TIM_USE_MOTOR,     0, 0),
-    DEF_TIM(TIM4,  CH2,   PB7, TIM_USE_MOTOR,     0, 0),
+#include "rx/rx.h"
 
-    DEF_TIM(TIM1,  CH1,   PA8, TIM_USE_LED,       0, 0),
-    DEF_TIM(TIM2,  CH1,   PA0, TIM_USE_ANY,       0, 0)
+#include "sensors/barometer.h"
 
+#include "telemetry/telemetry.h"
+
+#include "config_helper.h"
+
+#define TELEMETRY_UART                      SERIAL_PORT_UART5
+
+static targetSerialPortFunction_t targetSerialPortFunction[] = {
+    { SERIAL_PORT_USART1, FUNCTION_MSP                 },  // So SPRacingF3OSD users don't have to change anything.
+    { TELEMETRY_UART,     FUNCTION_TELEMETRY_SMARTPORT },
 };
+
+void targetConfiguration(void) {
+    barometerConfigMutable()->baro_hardware = BARO_DEFAULT;
+    targetSerialPortFunctionConfig(targetSerialPortFunction, ARRAYLEN(targetSerialPortFunction));
+    telemetryConfigMutable()->halfDuplex = 0;
+    telemetryConfigMutable()->telemetry_inverted = true;
+}
+#endif

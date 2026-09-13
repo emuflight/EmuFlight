@@ -20,14 +20,14 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "SP4E"
+#define TARGET_BOARD_IDENTIFIER "SP4V"
 #define USE_TARGET_CONFIG
 
 #ifdef SPRACINGF4EVODG
 #define USE_DUAL_GYRO
 #endif
 
-#define USBD_PRODUCT_STRING     "SP Racing F4 EVO"
+#define USBD_PRODUCT_STRING     "SP Racing F4 EVO (rev 1)"
 
 #define LED0_PIN                PA0
 
@@ -112,8 +112,8 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE              (I2CDEV_1)
-#define I2C1_SCL                PB8
-#define I2C1_SDA                PB9
+#define I2C1_SCL                PB6
+#define I2C1_SDA                PB7
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1 // MPU
@@ -206,5 +206,5 @@
 #define TARGET_IO_PORTD         (BIT(2))
 
 #define USABLE_TIMER_CHANNEL_COUNT 16 // 4xPWM, 8xESC, 2xESC via UART3 RX/TX, 1xLED Strip, 1xIR.
-#define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(9))
+#define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(9) | TIM_N(10) | TIM_N(11))
 

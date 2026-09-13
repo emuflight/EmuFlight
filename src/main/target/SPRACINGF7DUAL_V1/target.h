@@ -20,10 +20,10 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "SP7D"
+#define TARGET_BOARD_IDENTIFIER "SP71"
 #define USE_TARGET_CONFIG
 
-#define USBD_PRODUCT_STRING     "SP Racing F7 DUAL"
+#define USBD_PRODUCT_STRING     "SP Racing F7 DUAL (rev 1)"
 
 #define TEST_SOUND // for factory testing audio output
 
@@ -54,8 +54,8 @@
 #define USE_ACC
 #define USE_ACC_SPI_MPU6500
 
-#define ACC_MPU6500_1_ALIGN           CW0_DEG
-#define GYRO_MPU6500_1_ALIGN          CW0_DEG
+#define ACC_MPU6500_1_ALIGN           CW180_DEG
+#define GYRO_MPU6500_1_ALIGN          CW180_DEG
 
 #define ACC_MPU6500_2_ALIGN         CW270_DEG
 #define GYRO_MPU6500_2_ALIGN        CW270_DEG
@@ -99,6 +99,8 @@
 
 #define UART5_TX_PIN            PC12
 #define UART5_RX_PIN            PD2
+
+#define TARGET_USART_CONFIG
 
 // TODO
 // #define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1

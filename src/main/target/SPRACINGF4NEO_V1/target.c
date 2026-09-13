@@ -36,8 +36,8 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM8,  CH4, PC9,  TIM_USE_MOTOR,               0, 0), // D(2,7,7) ESC 3
     DEF_TIM(TIM8,  CH1, PC6,  TIM_USE_MOTOR,               0, 1), // D(2,2,7) ESC 4
 
-    DEF_TIM(TIM4,  CH1, PB6,  TIM_USE_MOTOR,               0, 0), // D(1,0,2) ESC 5 / Conflicts with USART5_RX / SPI3_RX - SPI3_RX can be mapped to DMA1_ST3_CH0
-    DEF_TIM(TIM4,  CH2, PB7,  TIM_USE_MOTOR,               0, 0), // D(1,3,2) ESC 6 / Conflicts with USART3_RX
+    DEF_TIM(TIM3,  CH3, PB0,  TIM_USE_MOTOR,               0, 0), // D(1,7,5) ESC 5
+    DEF_TIM(TIM3,  CH4, PB1,  TIM_USE_MOTOR,               0, 0), // D(1,2,5) ESC 6
     DEF_TIM(TIM2,  CH2, PA1,  TIM_USE_LED,                 0, 0), // D(1,6,3) LED Strip
     // Additional 2 PWM channels available on UART3 RX/TX pins
     // However, when using led strip the timer cannot be used, but no code appears to prevent that right now
