@@ -96,12 +96,6 @@
 #define DEFAULT_VOLTAGE_METER_SCALE                 122
 #define DEFAULT_CURRENT_METER_SCALE 500
 
-
-
-#undef TARGET_IO_PORTC
-#define TARGET_IO_PORTC (BIT(13))
-// notice - masks were programmatically generated - PORTC verified as (BIT(13))
-
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 

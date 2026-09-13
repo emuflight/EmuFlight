@@ -170,9 +170,5 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 179
 
-//--------------------------------BOARD RESOURCES-----------------------------
-#undef TARGET_IO_PORTD
-#define TARGET_IO_PORTD 0x0007
-
 #define USABLE_TIMER_CHANNEL_COUNT 8
 #define USED_TIMERS    (TIM_N(1)|TIM_N(3)|TIM_N(8))

@@ -103,8 +103,5 @@
 #define VBAT_ADC_PIN            PA6
 #define RSSI_ADC_PIN            PA5
 
-#undef TARGET_IO_PORTC
-#define TARGET_IO_PORTC         (BIT(13) | BIT(14) | BIT(15))
-
 #define USABLE_TIMER_CHANNEL_COUNT 12
 #define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) )
