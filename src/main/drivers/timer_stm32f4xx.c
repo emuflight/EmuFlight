@@ -22,6 +22,7 @@
 
 #include "common/utils.h"
 
+#include "drivers/dma.h"
 #include "drivers/io.h"
 
 #include "stm32f4xx.h"
