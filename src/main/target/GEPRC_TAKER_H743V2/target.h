@@ -143,8 +143,6 @@
 #define PINIO2_BOX                      41
 #define PINIO3_BOX                      42
 
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
-
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 

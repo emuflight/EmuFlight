@@ -136,8 +136,6 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
 
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
-
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 

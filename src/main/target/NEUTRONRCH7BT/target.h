@@ -125,7 +125,6 @@
 #define I2C2_SCL PB10
 #define I2C2_SDA PB11
 
-
 //notice - NEED: #define SDCARD_DMA_CHANNEL_TX       DMAx_StreamX // please verify
 //notice - other sdcard defines maybe needed (rare?): SDCARD_DMA_STREAM_TX_FULL, SDCARD_DMA_STREAM_TX, SDCARD_DMA_CLK, SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
@@ -155,8 +154,6 @@
 #define PINIO2_BOX 40
 #define PINIO3_BOX 41
 #define PINIO4_BOX 42
-
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
 
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
