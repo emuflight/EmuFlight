@@ -885,7 +885,7 @@ int w25n_readBytes(flashDevice_t *fdevice, uint32_t address, uint8_t *buffer, ui
         QUADSPI_TypeDef *quadSpi = fdevice->io.handle.quadSpi;
 
         //quadSpiReceiveWithAddress1LINE(quadSpi, W25N_INSTRUCTION_READ_DATA, 8, column, W25N_STATUS_COLUMN_ADDRESS_SIZE, buffer, length);
-        quadSpiReceiveWithAddress4LINES(quadSpi, W25N_INSTRUCTION_FAST_READ_QUAD_OUTPUT, 8, column, W25N_STATUS_COLUMN_ADDRESS_SIZE, buffer, length);
+        quadSpiReceiveWithAddress4LINES(quadSpi, W25N_INSTRUCTION_FAST_READ_QUAD_OUTPUT, 8, column, W25N_STATUS_COLUMN_ADDRESS_SIZE, buffer, transferLength);
     }
 #endif
 
