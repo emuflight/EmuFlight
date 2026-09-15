@@ -41,8 +41,8 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     // Backdoor timers
     DEF_TIM(TIM2, CH3, PB10, TIM_USE_NONE,  0, 0 ), // UART3_TX, I2C2_SCL
     DEF_TIM(TIM2, CH4, PB11, TIM_USE_NONE,  0, 0 ), // UART3_RX, I2C2_SDA
-    DEF_TIM(TIM8, CH1, PC6,  TIM_USE_NONE,  0, 0 ), // UART6_TX
-    DEF_TIM(TIM8, CH2, PC7,  TIM_USE_NONE,  0, 0 ), // UART6_RX
+    DEF_TIM(TIM8, CH1, PC6,  TIM_USE_NONE,  0, 1 ), // UART6_TX
+    DEF_TIM(TIM8, CH2, PC7,  TIM_USE_NONE,  0, 1 ), // UART6_RX
     DEF_TIM(TIM2, CH4, PA3,  TIM_USE_PPM,   0, 0 ), // UART2_RX, joined with PE13
 
     // For ESC serial

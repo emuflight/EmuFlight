@@ -31,7 +31,7 @@
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM8, CH4, PC9, TIM_USE_MOTOR, 0, 0), // motor 1
-    DEF_TIM(TIM8, CH3, PC8, TIM_USE_MOTOR, 0, 0), // motor 2
+    DEF_TIM(TIM8, CH3, PC8, TIM_USE_MOTOR, 0, 1), // motor 2
     DEF_TIM(TIM3, CH3, PB0, TIM_USE_MOTOR, 0, 0), // motor 3
     DEF_TIM(TIM3, CH4, PB1, TIM_USE_MOTOR, 0, 0), // motor 4
     DEF_TIM(TIM2, CH1, PA15, TIM_USE_LED, 0, 0), // led

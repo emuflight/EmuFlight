@@ -34,13 +34,13 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM3, CH4, PB1, TIM_USE_MOTOR, 0, 0), // motor 2
     DEF_TIM(TIM1, CH1, PE9, TIM_USE_MOTOR, 0, 2), // motor 3
     DEF_TIM(TIM1, CH2, PE11, TIM_USE_MOTOR, 0, 1), // motor 4
-    DEF_TIM(TIM8, CH3, PC8, TIM_USE_ANY, 0, 1), // cam ctrl
+    DEF_TIM(TIM8, CH3, PC8, TIM_USE_ANY, 0, 0), // cam ctrl
     DEF_TIM(TIM1, CH3, PE13, TIM_USE_ANY, 0, 1), // could not determine TIM_USE_xxxxx - please check
     DEF_TIM(TIM4, CH1, PD12, TIM_USE_LED, 0, 0), // led
     DEF_TIM(TIM2, CH3, PB10, TIM_USE_ANY, 0, 0), // could not determine TIM_USE_xxxxx - please check
     DEF_TIM(TIM2, CH4, PB11, TIM_USE_ANY, 0, 0), // could not determine TIM_USE_xxxxx - please check
-    DEF_TIM(TIM8, CH1, PC6, TIM_USE_ANY, 0, 0), // could not determine TIM_USE_xxxxx - please check
-    DEF_TIM(TIM8, CH2, PC7, TIM_USE_ANY, 0, 1), // could not determine TIM_USE_xxxxx - please check
+    DEF_TIM(TIM8, CH1, PC6, TIM_USE_ANY, 0, 1), // could not determine TIM_USE_xxxxx - please check
+    DEF_TIM(TIM8, CH2, PC7, TIM_USE_ANY, 0, 0), // could not determine TIM_USE_xxxxx - please check
     DEF_TIM(TIM2, CH4, PA3, TIM_USE_PPM, 0, 0), // ppm RX_PPM_PIN
     DEF_TIM(TIM9, CH1, PA2, TIM_USE_ANY, 0, 0), // could not determine TIM_USE_xxxxx - please check; dma 0 assumed, please verify
 };
