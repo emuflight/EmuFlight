@@ -29,7 +29,7 @@
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
 
-    DEF_TIM(TIM8, CH3, PC8,   TIM_USE_MOTOR, 0, 1),   // S1   UP1-2
+    DEF_TIM(TIM8, CH3, PC8,   TIM_USE_MOTOR, 0, 0),   // S1   UP1-2
     DEF_TIM(TIM8, CH4, PC9,   TIM_USE_MOTOR, 0, 0),   // S2   UP1-2
     DEF_TIM(TIM3, CH1, PB4,   TIM_USE_MOTOR, 0, 0),   // S3   UP1-2
     DEF_TIM(TIM3, CH2, PB5,   TIM_USE_MOTOR, 0, 0),   // S4   UP1-2

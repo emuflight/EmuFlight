@@ -41,8 +41,8 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     //resource MOTOR 6 B05 + pin B05: TIM3 CH2 (AF2)
     DEF_TIM(TIM3,  CH2, PB5,  TIM_USE_MOTOR,               0, 0 ),
 
-    DEF_TIM(TIM8,  CH2, PC7,  TIM_USE_ANY,               0, 1 ),
-    DEF_TIM(TIM8,  CH3, PC8,  TIM_USE_ANY,               0, 1 ), //cam control
+    DEF_TIM(TIM8,  CH2, PC7,  TIM_USE_ANY,               0, 0 ),
+    DEF_TIM(TIM8,  CH3, PC8,  TIM_USE_ANY,               0, 0 ), //cam control
     DEF_TIM(TIM1,  CH3, PE13,  TIM_USE_ANY,              0, 1 ),
 
 };
