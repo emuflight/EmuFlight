@@ -32,7 +32,7 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     // Motors
     DEF_TIM(TIM8,  CH1, PC6,  TIM_USE_MOTOR,               0, 1), // S1_OUT D1_ST7
     DEF_TIM(TIM8,  CH2, PC7,  TIM_USE_MOTOR,               0, 1), // S2_OUT D1_ST2
-    DEF_TIM(TIM8,  CH3, PC8,  TIM_USE_MOTOR,               0, 1), // S3_OUT D1_ST6
+    DEF_TIM(TIM8,  CH3, PC8,  TIM_USE_MOTOR,               0, 0), // S3_OUT D1_ST6
     DEF_TIM(TIM8,  CH4, PC9,  TIM_USE_MOTOR,               0, 0), // S4_OUT D1_ST1
 
     // LED strip
