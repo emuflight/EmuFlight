@@ -27,6 +27,8 @@
 #define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
 #define FC_TARGET_MCU     STM32F405     // not used in EmuF
 
+#define ENABLE_DSHOT_DMAR       true
+
 #define USE_HARDWARE_REVISION_DETECTION
 #define HW_PIN                  PC13
 
