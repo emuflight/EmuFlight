@@ -40,7 +40,10 @@ Details of the TIMER_PIN_MAP macro:
 #define TIMER_PIN_MAP(i, p, o, d)  \
         { config[i].ioTag = IO_TAG(p); config[i].index = o; config[i].dmaopt = d; }
 
-PG_REGISTER_ARRAY_WITH_RESET_FN(timerIOConfig_t, MAX_TIMER_PINMAP_COUNT, timerIOConfig, PG_TIMER_IO_CONFIG, 0);
+// version bumped 0->1: entry layout grew from 2 to 3 bytes (dmaopt added) and
+// MAX_TIMER_PINMAP_COUNT from 10 to 21; a stale version-0 EEPROM record must not be
+// byte-copied into the new layout (pgLoad() only compares version, not entry size).
+PG_REGISTER_ARRAY_WITH_RESET_FN(timerIOConfig_t, MAX_TIMER_PINMAP_COUNT, timerIOConfig, PG_TIMER_IO_CONFIG, 1);
 
 void pgResetFn_timerIOConfig(timerIOConfig_t *config)
 {
