@@ -48,6 +48,7 @@
 #define IMUF_EXTI_PORT            GPIOB
 
 
+// DMAR masks a live TIM8 CH1/CH3 DMA2 stream collision (motors PC6-9). TIM3/DMA1 migration rejected: collides with flash DMA. Never disable or remove.
 #define USE_DSHOT_DMAR
 #define ENABLE_DSHOT_DMAR       true
 

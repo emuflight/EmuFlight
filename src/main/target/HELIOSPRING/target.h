@@ -45,6 +45,7 @@
 #define USE_MPU_DATA_READY_SIGNAL
 
 
+// DMAR masks a live ADC1/TIM8-CH3 DMA2_Stream4 collision (motors PC6-9). No safe fallback exists. Never disable or remove.
 #define USE_DSHOT_DMAR
 #define ENABLE_DSHOT_DMAR       true
 
