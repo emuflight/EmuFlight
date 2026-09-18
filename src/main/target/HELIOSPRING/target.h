@@ -130,7 +130,7 @@
 #define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP(0, PB6, 1, 0) \
-    TIMER_PIN_MAP(1, PB14, 1, 0) \
+    TIMER_PIN_MAP(1, PB14, 3, 0) \
     TIMER_PIN_MAP(2, PC6, 2, 0) \
     TIMER_PIN_MAP(3, PC7, 2, 0) \
     TIMER_PIN_MAP(4, PC8, 2, 1) \
