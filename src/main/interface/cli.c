@@ -4316,12 +4316,12 @@ static void cliTimer(char *cmdline) {
         if (strcasecmp(pch, "list") == 0) {
             /* output the list of available options */
             uint8_t index = 1;
-            for (unsigned i = 0; i < USABLE_TIMER_CHANNEL_COUNT; i++) {
-                if (timerHardware[i].tag == ioTag) {
+            for (unsigned i = 0; i < TIMER_CHANNEL_COUNT; i++) {
+                if (TIMER_HARDWARE[i].tag == ioTag) {
                     cliPrintLinef("# %d. TIM%d CH%d",
                                   index,
-                                  timerGetTIMNumber(timerHardware[i].tim),
-                                  CC_INDEX_FROM_CHANNEL(timerHardware[i].channel)
+                                  timerGetTIMNumber(TIMER_HARDWARE[i].tim),
+                                  CC_INDEX_FROM_CHANNEL(TIMER_HARDWARE[i].channel)
                                  );
                     index++;
                 }

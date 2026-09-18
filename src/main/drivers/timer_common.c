@@ -37,21 +37,38 @@ uint8_t timerIndexByTag(ioTag_t ioTag) {
     return 0;
 }
 
-const timerHardware_t *timerGetByTag(ioTag_t ioTag) {
-    if (!ioTag) {
+#ifdef USE_TIMER_MGMT
+const timerHardware_t *timerGetByTagAndIndex(ioTag_t ioTag, unsigned timerIndex) {
+    if (!ioTag || !timerIndex) {
         return NULL;
     }
-    uint8_t timerIndex = timerIndexByTag(ioTag);
     uint8_t index = 1;
-    for (int i = 0; i < (int)USABLE_TIMER_CHANNEL_COUNT; i++) {
-        if (timerHardware[i].tag == ioTag) {
-            if (index == timerIndex || timerIndex == 0) {
-                return &timerHardware[i];
+    for (unsigned i = 0; i < TIMER_CHANNEL_COUNT; i++) {
+        if (TIMER_HARDWARE[i].tag == ioTag) {
+            if (index == timerIndex) {
+                return &TIMER_HARDWARE[i];
             }
             index++;
         }
     }
     return NULL;
+}
+#endif
+
+const timerHardware_t *timerGetByTag(ioTag_t ioTag) {
+    if (!ioTag) {
+        return NULL;
+    }
+#ifdef USE_TIMER_MGMT
+    return timerGetByTagAndIndex(ioTag, timerIndexByTag(ioTag));
+#else
+    for (int i = 0; i < (int)TIMER_CHANNEL_COUNT; i++) {
+        if (TIMER_HARDWARE[i].tag == ioTag) {
+            return &TIMER_HARDWARE[i];
+        }
+    }
+    return NULL;
+#endif
 }
 
 #ifdef USE_TIMER_MGMT

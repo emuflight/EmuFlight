@@ -133,6 +133,15 @@ typedef enum {
 extern const timerHardware_t timerHardware[];
 extern const timerDef_t timerDefinitions[];
 
+#ifdef USE_TIMER_MGMT
+extern const timerHardware_t fullTimerHardware[];
+#define TIMER_HARDWARE fullTimerHardware
+#define TIMER_CHANNEL_COUNT FULL_TIMER_CHANNEL_COUNT
+#else
+#define TIMER_HARDWARE timerHardware
+#define TIMER_CHANNEL_COUNT USABLE_TIMER_CHANNEL_COUNT
+#endif
+
 typedef enum {
     TYPE_FREE,
     TYPE_PWMINPUT,
@@ -185,6 +194,9 @@ rccPeriphTag_t timerRCC(TIM_TypeDef *tim);
 uint8_t timerInputIrq(TIM_TypeDef *tim);
 
 const timerHardware_t *timerGetByTag(ioTag_t ioTag);
+#ifdef USE_TIMER_MGMT
+const timerHardware_t *timerGetByTagAndIndex(ioTag_t ioTag, unsigned timerIndex);
+#endif
 const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8_t resourceIndex);
 resourceOwner_e timerGetOwner(ioTag_t ioTag);
 uint8_t timerGetOwnerResourceIndex(ioTag_t ioTag);
