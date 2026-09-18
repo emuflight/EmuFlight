@@ -300,6 +300,6 @@
 
 #ifdef USE_TIMER_MGMT
 #ifndef MAX_TIMER_PINMAP_COUNT
-#define MAX_TIMER_PINMAP_COUNT 21 // Largest known for F405RG (OMNINXT)
+#define MAX_TIMER_PINMAP_COUNT 21 // largest known F405RG pinmap count
 #endif
 #endif
