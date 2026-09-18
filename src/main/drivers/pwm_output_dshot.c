@@ -92,8 +92,8 @@ void pwmWriteDshotInt(uint8_t index, uint16_t value) {
     {
         bufferSize = loadDmaBuffer(motor->dmaBuffer, 1, packet);
         motor->timer->timerDmaSources |= motor->timerDmaSource;
-        DMA_SetCurrDataCounter(motor->timerHardware->dmaRef, bufferSize);
-        DMA_Cmd(motor->timerHardware->dmaRef, ENABLE);
+        DMA_SetCurrDataCounter(motor->dmaRef, bufferSize);
+        DMA_Cmd(motor->dmaRef, ENABLE);
     }
 }
 
@@ -132,7 +132,7 @@ static void motor_DMA_IRQHandler(dmaChannelDescriptor_t *descriptor) {
         } else
 #endif
         {
-            DMA_Cmd(motor->timerHardware->dmaRef, DISABLE);
+            DMA_Cmd(motor->dmaRef, DISABLE);
             TIM_DMACmd(motor->timerHardware->tim, motor->timerDmaSource, DISABLE);
         }
         DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF);
@@ -189,6 +189,10 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     DMA_InitTypeDef DMA_InitStructure;
     motorDmaOutput_t * const motor = &dmaMotors[motorIndex];
     motor->timerHardware = timerHardware;
+    // Runtime write/IRQ paths (pwmWriteDshotInt(), motor_DMA_IRQHandler()) must use this
+    // resolved stream, not timerHardware->dmaRef -- that field is the baked default and can
+    // differ from what was actually configured and armed above via dmaGetChannelSpecByTimer().
+    motor->dmaRef = dmaRef;
     TIM_TypeDef *timer = timerHardware->tim;
     const IO_t motorIO = IOGetByTag(timerHardware->tag);
     // Boolean configureTimer is always true when different channels of the same timer are processed in sequence,
