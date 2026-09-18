@@ -127,7 +127,15 @@
 
 
 #define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(8) | TIM_N(4) | TIM_N(12) )
+#define USE_TIMER_MGMT
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP(0, PB6, 1, 0) \
+    TIMER_PIN_MAP(1, PB14, 1, 0) \
+    TIMER_PIN_MAP(2, PC6, 2, 0) \
+    TIMER_PIN_MAP(3, PC7, 2, 0) \
+    TIMER_PIN_MAP(4, PC8, 2, 1) \
+    TIMER_PIN_MAP(5, PC9, 2, 0) \
+    TIMER_PIN_MAP(6, PA8, 1, 0)
 
 #define USE_ACC_IMUF9001
 #define IMUF_RST_PIN              GPIO_Pin_4
