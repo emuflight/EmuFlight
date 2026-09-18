@@ -295,3 +295,11 @@
 #define UART8_RX_DMA_OPT (DMA_OPT_UNUSED)
 #endif
 #endif // STM32F7
+
+// pg/timerio
+
+#ifdef USE_TIMER_MGMT
+#ifndef MAX_TIMER_PINMAP_COUNT
+#define MAX_TIMER_PINMAP_COUNT 21 // largest known F405RG pinmap count
+#endif
+#endif
