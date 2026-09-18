@@ -4262,6 +4262,8 @@ static void printTimer(uint8_t dumpMask) {
     cliPrintLinef(format, 'A', 1, 1);
     cliPrint("#");
     cliPrintLinef(format, 'A', 1, 0);
+    cliPrintLine("#timer list");
+    cliPrintLinef("#timer %c%02d list", 'A', 1);
     for (unsigned int i = 0; i < MAX_TIMER_PINMAP_COUNT; i++) {
         const ioTag_t ioTag = timerIOConfig(i)->ioTag;
         const uint8_t timerIndex = timerIOConfig(i)->index;
