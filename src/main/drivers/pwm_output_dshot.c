@@ -30,6 +30,7 @@
 
 #include "drivers/io.h"
 #include "timer.h"
+#include "drivers/dma_reqmap.h"
 #if defined(STM32F4)
 #include "stm32f4xx.h"
 #endif
@@ -145,6 +146,8 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     typedef DMA_Channel_TypeDef dmaStream_t;
 #endif
     dmaStream_t *dmaRef;
+    uint32_t dmaChannel = timerHardware->dmaChannel;
+    dmaIdentifier_e dmaIrqIdentifier = timerHardware->dmaIrqHandler;
 #ifdef USE_DSHOT_DMAR
     if (useBurstDshot) {
         dmaRef = timerHardware->dmaTimUPRef;
@@ -152,6 +155,18 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
 #endif
     {
         dmaRef = timerHardware->dmaRef;
+        // dmaRef/dmaChannel/dmaIrqHandler are baked into fullTimerHardware[] at a single
+        // fixed dmaopt; dmaGetChannelSpecByTimer() resolves the board's real configured
+        // option (falling back to that same baked value when none is configured), and the
+        // IRQ identifier must be re-derived from whichever stream was actually resolved so
+        // ownership claim and IRQ registration target the same physical stream as the DMA
+        // transfer itself.
+        const dmaChannelSpec_t *dmaSpec = dmaGetChannelSpecByTimer(timerHardware);
+        if (dmaSpec) {
+            dmaRef = (dmaStream_t *)dmaSpec->ref;
+            dmaChannel = dmaSpec->channel;
+            dmaIrqIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaSpec->ref);
+        }
     }
     if (dmaRef == NULL) {
         return;
@@ -165,10 +180,10 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     } else
 #endif
     {
-        if (!dmaAllocate(timerHardware->dmaIrqHandler, OWNER_MOTOR, RESOURCE_INDEX(motorIndex))) {
+        if (!dmaAllocate(dmaIrqIdentifier, OWNER_MOTOR, RESOURCE_INDEX(motorIndex))) {
             return;
         }
-        dmaEnable(timerHardware->dmaIrqHandler);
+        dmaEnable(dmaIrqIdentifier);
     }
     TIM_OCInitTypeDef TIM_OCInitStructure;
     DMA_InitTypeDef DMA_InitStructure;
@@ -253,9 +268,9 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     } else
 #endif
     {
-        dmaSetHandler(timerHardware->dmaIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
+        dmaSetHandler(dmaIrqIdentifier, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
 #if defined(STM32F4)
-        DMA_InitStructure.DMA_Channel = timerHardware->dmaChannel;
+        DMA_InitStructure.DMA_Channel = dmaChannel;
         DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)motor->dmaBuffer;
         DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
         DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Enable;

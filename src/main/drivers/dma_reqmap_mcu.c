@@ -28,6 +28,9 @@
 #include "drivers/adc.h"
 #include "drivers/bus_spi.h"
 #include "drivers/dma_reqmap.h"
+#ifdef USE_TIMER_MGMT
+#include "pg/timerio.h"
+#endif
 #include "drivers/serial.h"
 #include "drivers/serial_uart.h"
 #include "drivers/timer.h"
@@ -245,7 +248,15 @@ const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e device, ui
 
 dmaoptValue_t dmaoptByTag(ioTag_t ioTag)
 {
+#ifdef USE_TIMER_MGMT
+    for (unsigned i = 0; i < MAX_TIMER_PINMAP_COUNT; i++) {
+        if (timerIOConfig(i)->ioTag == ioTag) {
+            return timerIOConfig(i)->dmaopt;
+        }
+    }
+#else
     UNUSED(ioTag);
+#endif
     return DMA_OPT_UNUSED;
 }
 
@@ -267,6 +278,10 @@ const dmaChannelSpec_t *dmaGetChannelSpecByTimerValue(TIM_TypeDef *tim, uint8_t 
     return NULL;
 }
 
+// Reverse lookup: given an already-resolved dmaRef, find which option index produced it.
+// Not used by dmaGetChannelSpecByTimer -- that resolves forward from the board's configured
+// dmaopt via dmaoptByTag(). Kept for parity with the reference architecture's own use of this
+// shape (deriving a default pinmap dmaopt from a pre-existing hardware selection).
 dmaoptValue_t dmaGetOptionByTimer(const timerHardware_t *timer)
 {
     for (unsigned opt = 0; opt < ARRAYLEN(dmaChannelSpec); opt++) {
@@ -284,7 +299,15 @@ const dmaChannelSpec_t *dmaGetChannelSpecByTimer(const timerHardware_t *timer)
         return NULL;
     }
 
-    dmaoptValue_t dmaopt = dmaGetOptionByTimer(timer);
+    // A pin with a real TIMER_PIN_MAPPING entry gets its board-configured option; a pin with
+    // none (every board on the legacy, non-USE_TIMER_MGMT path, or a USE_TIMER_MGMT pin the
+    // board's pinmap doesn't cover) falls back to reverse-deriving the option already baked
+    // into this resolved timer's own dmaRef/dmaChannel -- preserves the pre-existing behavior
+    // for every board this table lookup must not regress.
+    dmaoptValue_t dmaopt = dmaoptByTag(timer->tag);
+    if (dmaopt == DMA_OPT_UNUSED) {
+        dmaopt = dmaGetOptionByTimer(timer);
+    }
     return dmaGetChannelSpecByTimerValue(timer->tim, timer->channel, dmaopt);
 }
 
@@ -360,7 +383,15 @@ const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e device, ui
 
 dmaoptValue_t dmaoptByTag(ioTag_t ioTag)
 {
+#ifdef USE_TIMER_MGMT
+    for (unsigned i = 0; i < MAX_TIMER_PINMAP_COUNT; i++) {
+        if (timerIOConfig(i)->ioTag == ioTag) {
+            return timerIOConfig(i)->dmaopt;
+        }
+    }
+#else
     UNUSED(ioTag);
+#endif
     return DMA_OPT_UNUSED;
 }
 
@@ -444,6 +475,10 @@ const dmaChannelSpec_t *dmaGetChannelSpecByTimerValue(TIM_TypeDef *tim, uint8_t 
 // Matches both .ref and .channel -- some timer/channel entries share one physical DMA
 // stream across two options distinguished only by mux channel (e.g. TIM8_CH1's
 // DMA(2,2,0) and DMA(2,2,7) both use DMA2_Stream2), so .ref alone cannot disambiguate.
+// Reverse lookup only -- not used by dmaGetChannelSpecByTimer, which resolves forward from
+// the board's configured dmaopt via dmaoptByTag(). Kept for parity with the reference
+// architecture's own use of this shape (deriving a default pinmap dmaopt from a
+// pre-existing hardware selection).
 dmaoptValue_t dmaGetOptionByTimer(const timerHardware_t *timer)
 {
     if (!timer) {
@@ -471,7 +506,15 @@ const dmaChannelSpec_t *dmaGetChannelSpecByTimer(const timerHardware_t *timer)
         return NULL;
     }
 
-    dmaoptValue_t dmaopt = dmaGetOptionByTimer(timer);
+    // A pin with a real TIMER_PIN_MAPPING entry gets its board-configured option; a pin with
+    // none (every board on the legacy, non-USE_TIMER_MGMT path, or a USE_TIMER_MGMT pin the
+    // board's pinmap doesn't cover) falls back to reverse-deriving the option already baked
+    // into this resolved timer's own dmaRef/dmaChannel -- preserves the pre-existing behavior
+    // for every board this table lookup must not regress.
+    dmaoptValue_t dmaopt = dmaoptByTag(timer->tag);
+    if (dmaopt == DMA_OPT_UNUSED) {
+        dmaopt = dmaGetOptionByTimer(timer);
+    }
     return dmaGetChannelSpecByTimerValue(timer->tim, timer->channel, dmaopt);
 }
 

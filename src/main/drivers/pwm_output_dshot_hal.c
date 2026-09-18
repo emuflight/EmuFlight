@@ -141,6 +141,7 @@ FAST_CODE static void motor_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
 void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, motorPwmProtocolTypes_e pwmProtocolType, uint8_t output) {
     DMA_Stream_TypeDef *dmaRef;
     uint32_t dmaChannel = timerHardware->dmaChannel;
+    dmaIdentifier_e dmaIrqIdentifier = timerHardware->dmaIrqHandler;
 #ifdef USE_DSHOT_DMAR
     if (useBurstDshot) {
         dmaRef = timerHardware->dmaTimUPRef;
@@ -153,6 +154,12 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
         if (dmaSpec) {
             dmaRef = (DMA_Stream_TypeDef *)dmaSpec->ref;
             dmaChannel = dmaSpec->channel;
+            // dmaIrqHandler is baked into fullTimerHardware[] at the same fixed dmaopt as
+            // dmaRef/dmaChannel; once dmaSpec resolves a board-specific option that differs,
+            // the stale baked identifier no longer matches the stream actually claimed here.
+            // Re-derive it from the resolved ref so ownership claim and IRQ registration
+            // target the same physical stream as the DMA transfer itself.
+            dmaIrqIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaSpec->ref);
         }
 #endif
     }
@@ -168,10 +175,10 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     } else
 #endif
     {
-        if (!dmaAllocate(timerHardware->dmaIrqHandler, OWNER_MOTOR, RESOURCE_INDEX(motorIndex))) {
+        if (!dmaAllocate(dmaIrqIdentifier, OWNER_MOTOR, RESOURCE_INDEX(motorIndex))) {
             return;
         }
-        dmaEnable(timerHardware->dmaIrqHandler);
+        dmaEnable(dmaIrqIdentifier);
     }
     LL_TIM_OC_InitTypeDef oc_init;
     LL_DMA_InitTypeDef dma_init;
@@ -273,7 +280,7 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     } else
 #endif
     {
-        dmaSetHandler(timerHardware->dmaIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
+        dmaSetHandler(dmaIrqIdentifier, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
 #if defined(STM32H7)
         dma_init.PeriphRequest = dmaChannel;
 #else
