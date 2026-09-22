@@ -38,6 +38,7 @@
 #include "pg/pg_ids.h"
 #include "pg/rx.h"
 
+#include "drivers/io.h"
 #include "drivers/pwm_output.h"
 
 #include "fc/config.h"
@@ -65,9 +66,46 @@ void pgResetFn_servoConfig(servoConfig_t *servoConfig) {
     servoConfig->tri_unarmed_servo = 1;
     servoConfig->servo_lowpass_freq = 0;
     servoConfig->channelForwardingStartChannel = AUX1;
-    for (unsigned servoIndex = 0; servoIndex < MAX_SUPPORTED_SERVOS; servoIndex++) {
-        servoConfig->dev.ioTags[servoIndex] = timerioTagGetByUsage(TIM_USE_SERVO, servoIndex);
-    }
+#ifdef SERVO1_PIN
+    servoConfig->dev.ioTags[0] = IO_TAG(SERVO1_PIN);
+#else
+    servoConfig->dev.ioTags[0] = timerioTagGetByUsage(TIM_USE_SERVO, 0);
+#endif
+#ifdef SERVO2_PIN
+    servoConfig->dev.ioTags[1] = IO_TAG(SERVO2_PIN);
+#else
+    servoConfig->dev.ioTags[1] = timerioTagGetByUsage(TIM_USE_SERVO, 1);
+#endif
+#ifdef SERVO3_PIN
+    servoConfig->dev.ioTags[2] = IO_TAG(SERVO3_PIN);
+#else
+    servoConfig->dev.ioTags[2] = timerioTagGetByUsage(TIM_USE_SERVO, 2);
+#endif
+#ifdef SERVO4_PIN
+    servoConfig->dev.ioTags[3] = IO_TAG(SERVO4_PIN);
+#else
+    servoConfig->dev.ioTags[3] = timerioTagGetByUsage(TIM_USE_SERVO, 3);
+#endif
+#ifdef SERVO5_PIN
+    servoConfig->dev.ioTags[4] = IO_TAG(SERVO5_PIN);
+#else
+    servoConfig->dev.ioTags[4] = timerioTagGetByUsage(TIM_USE_SERVO, 4);
+#endif
+#ifdef SERVO6_PIN
+    servoConfig->dev.ioTags[5] = IO_TAG(SERVO6_PIN);
+#else
+    servoConfig->dev.ioTags[5] = timerioTagGetByUsage(TIM_USE_SERVO, 5);
+#endif
+#ifdef SERVO7_PIN
+    servoConfig->dev.ioTags[6] = IO_TAG(SERVO7_PIN);
+#else
+    servoConfig->dev.ioTags[6] = timerioTagGetByUsage(TIM_USE_SERVO, 6);
+#endif
+#ifdef SERVO8_PIN
+    servoConfig->dev.ioTags[7] = IO_TAG(SERVO8_PIN);
+#else
+    servoConfig->dev.ioTags[7] = timerioTagGetByUsage(TIM_USE_SERVO, 7);
+#endif
 }
 
 PG_REGISTER_ARRAY(servoMixer_t, MAX_SERVO_RULES, customServoMixers, PG_SERVO_MIXER, 0);

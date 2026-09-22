@@ -33,6 +33,7 @@
 #include "pg/pg.h"
 #include "pg/pg_ids.h"
 
+#include "drivers/io.h"
 #include "drivers/timer.h"
 #include "drivers/transponder_ir.h"
 #include "drivers/system.h"
@@ -51,12 +52,16 @@ void pgResetFn_transponderConfig(transponderConfig_t *transponderConfig) {
                    .data = { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0x0, 0x0, 0x0 }, // Note, this is NOT a valid transponder code, it's just for testing production hardware
                    .ioTag = IO_TAG_NONE
                   );
+#ifdef TRANSPONDER_PIN
+    transponderConfig->ioTag = IO_TAG(TRANSPONDER_PIN);
+#else
     for (int i = 0; i < USABLE_TIMER_CHANNEL_COUNT; i++) {
         if (timerHardware[i].usageFlags & TIM_USE_TRANSPONDER) {
             transponderConfig->ioTag = timerHardware[i].tag;
             break;
         }
     }
+#endif
 }
 
 static bool transponderInitialised = false;
