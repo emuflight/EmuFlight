@@ -81,5 +81,8 @@
 
 
 #define USABLE_TIMER_CHANNEL_COUNT 70
+#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9) | TIM_N(10) | TIM_N(11) | TIM_N(12) | TIM_N(13) | TIM_N(14) )
 
-#define USE_TIMER_MGMT
+// USE_TIMER_MGMT intentionally not defined: this generic target's pin count exceeds
+// MAX_TIMER_PINMAP_COUNT, so it cannot carry a TIMER_PIN_MAPPING without truncating the
+// set of pins available for runtime CLI configuration.
