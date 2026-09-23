@@ -113,6 +113,30 @@ void pgResetFn_motorConfig(motorConfig_t *motorConfig) {
     for (int motorIndex = 0; motorIndex < MAX_SUPPORTED_MOTORS; motorIndex++) {
         motorConfig->dev.ioTags[motorIndex] = timerioTagGetByUsage(TIM_USE_MOTOR, motorIndex);
     }
+#ifdef MOTOR1_PIN
+    motorConfig->dev.ioTags[0] = IO_TAG(MOTOR1_PIN);
+#endif
+#ifdef MOTOR2_PIN
+    motorConfig->dev.ioTags[1] = IO_TAG(MOTOR2_PIN);
+#endif
+#ifdef MOTOR3_PIN
+    motorConfig->dev.ioTags[2] = IO_TAG(MOTOR3_PIN);
+#endif
+#ifdef MOTOR4_PIN
+    motorConfig->dev.ioTags[3] = IO_TAG(MOTOR4_PIN);
+#endif
+#ifdef MOTOR5_PIN
+    motorConfig->dev.ioTags[4] = IO_TAG(MOTOR5_PIN);
+#endif
+#ifdef MOTOR6_PIN
+    motorConfig->dev.ioTags[5] = IO_TAG(MOTOR6_PIN);
+#endif
+#ifdef MOTOR7_PIN
+    motorConfig->dev.ioTags[6] = IO_TAG(MOTOR7_PIN);
+#endif
+#ifdef MOTOR8_PIN
+    motorConfig->dev.ioTags[7] = IO_TAG(MOTOR8_PIN);
+#endif
     motorConfig->motorPoleCount = 14;   // Most brushes motors that we use are 14 poles
 }
 

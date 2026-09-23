@@ -42,6 +42,7 @@
 #include "pg/pg_ids.h"
 #include "pg/rx.h"
 
+#include "drivers/io.h"
 #include "drivers/light_ws2811strip.h"
 #include "drivers/serial.h"
 #include "drivers/vtx_common.h"
@@ -179,7 +180,11 @@ void pgResetFn_ledStripConfig(ledStripConfig_t *ledStripConfig) {
     ledStripConfig->ledstrip_visual_beeper = 0;
     ledStripConfig->ledstrip_aux_channel = THROTTLE;
 #ifndef UNIT_TEST
+#ifdef LED_STRIP_PIN
+    ledStripConfig->ioTag = IO_TAG(LED_STRIP_PIN);
+#else
     ledStripConfig->ioTag = timerioTagGetByUsage(TIM_USE_LED, 0);
+#endif
 #endif
 }
 

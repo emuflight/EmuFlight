@@ -40,6 +40,30 @@ void pgResetFn_pwmConfig(pwmConfig_t *pwmConfig) {
     for (unsigned inputIndex = 0; inputIndex < PWM_INPUT_PORT_COUNT; inputIndex++) {
         pwmConfig->ioTags[inputIndex] = timerioTagGetByUsage(TIM_USE_PWM, inputIndex);
     }
+#ifdef RX_PWM1_PIN
+    pwmConfig->ioTags[0] = IO_TAG(RX_PWM1_PIN);
+#endif
+#ifdef RX_PWM2_PIN
+    pwmConfig->ioTags[1] = IO_TAG(RX_PWM2_PIN);
+#endif
+#ifdef RX_PWM3_PIN
+    pwmConfig->ioTags[2] = IO_TAG(RX_PWM3_PIN);
+#endif
+#ifdef RX_PWM4_PIN
+    pwmConfig->ioTags[3] = IO_TAG(RX_PWM4_PIN);
+#endif
+#ifdef RX_PWM5_PIN
+    pwmConfig->ioTags[4] = IO_TAG(RX_PWM5_PIN);
+#endif
+#ifdef RX_PWM6_PIN
+    pwmConfig->ioTags[5] = IO_TAG(RX_PWM6_PIN);
+#endif
+#ifdef RX_PWM7_PIN
+    pwmConfig->ioTags[6] = IO_TAG(RX_PWM7_PIN);
+#endif
+#ifdef RX_PWM8_PIN
+    pwmConfig->ioTags[7] = IO_TAG(RX_PWM8_PIN);
+#endif
 }
 #endif
 
@@ -47,7 +71,11 @@ void pgResetFn_pwmConfig(pwmConfig_t *pwmConfig) {
 PG_REGISTER_WITH_RESET_FN(ppmConfig_t, ppmConfig, PG_PPM_CONFIG, 0);
 
 void pgResetFn_ppmConfig(ppmConfig_t *ppmConfig) {
+#ifdef RX_PPM_PIN
+    ppmConfig->ioTag = IO_TAG(RX_PPM_PIN);
+#else
     ppmConfig->ioTag = timerioTagGetByUsage(TIM_USE_PPM, 0);
+#endif
 }
 #endif
 
