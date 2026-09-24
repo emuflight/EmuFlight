@@ -30,6 +30,13 @@
 # define DEF_TIM_DMA_COND(...)
 #endif
 
+// USE_TIMER_MGMT boards resolve pins not on this board's TARGET_IO_PORTx to IO_TAG_NONE
+// instead of a compile error, since TIMER_PIN_MAPPING can list channels a board doesn't wire.
+#if defined(USE_TIMER_MGMT)
+#define TIMER_GET_IO_TAG(pin) DEFIO_TAG_E(pin)
+#else
+#define TIMER_GET_IO_TAG(pin) DEFIO_TAG(pin)
+#endif
 
 // map to base channel (strip N from channel); works only when channel N exists
 #define DEF_TIM_TCH2BTCH(timch) CONCAT(B, timch)
@@ -120,7 +127,7 @@
 
 #define DEF_TIM(tim, chan, pin, flags, out, dmaopt) {           \
     tim,                                                        \
-    IO_TAG(pin),                                                \
+    TIMER_GET_IO_TAG(pin),                                                \
     DEF_TIM_CHANNEL(CH_ ## chan),                               \
     flags,                                                      \
     (DEF_TIM_OUTPUT(CH_ ## chan) | out),                        \
@@ -226,7 +233,7 @@
 #elif defined(STM32F7)
 #define DEF_TIM(tim, chan, pin, flags, out, dmaopt) {                   \
     tim,                                                                \
-    IO_TAG(pin),                                                        \
+    TIMER_GET_IO_TAG(pin),                                                        \
     DEF_TIM_CHANNEL(CH_ ## chan),                                       \
     flags,                                                              \
     (DEF_TIM_OUTPUT(CH_ ## chan) | out),                                \
@@ -447,7 +454,7 @@
 // DMAMUX routes the actual peripheral request at init via DEF_TIM_DMA_REQUEST.
 #define DEF_TIM(tim, chan, pin, flags, out, dmaopt, upopt) {            \
     tim,                                                                \
-    IO_TAG(pin),                                                        \
+    TIMER_GET_IO_TAG(pin),                                                        \
     DEF_TIM_CHANNEL(CH_ ## chan),                                       \
     flags,                                                              \
     (DEF_TIM_OUTPUT(CH_ ## chan) | out),                                \
