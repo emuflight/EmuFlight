@@ -133,4 +133,20 @@
 
 
 #define USABLE_TIMER_CHANNEL_COUNT      15
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) |TIM_N(5) | TIM_N(8) | TIM_N(9) )
+#define USE_TIMER_MGMT
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB3 , 1,  0) \
+    TIMER_PIN_MAP( 1, PB6 , 1,  0) \
+    TIMER_PIN_MAP( 2, PB7 , 1,  0) \
+    TIMER_PIN_MAP( 3, PB8 , 1,  0) \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) \
+    TIMER_PIN_MAP( 5, PA1 , 2,  0) \
+    TIMER_PIN_MAP( 6, PB9 , 1,  0) \
+    TIMER_PIN_MAP( 7, PC9 , 2,  0) \
+    TIMER_PIN_MAP( 8, PB1 , 2,  0) \
+    TIMER_PIN_MAP( 9, PA3 , 3,  0) \
+    TIMER_PIN_MAP( 10, PB0 , 1,  0) \
+    TIMER_PIN_MAP( 11, PA0 , 2,  0) \
+    TIMER_PIN_MAP( 12, PC6 , 1,  0) \
+    TIMER_PIN_MAP( 13, PC7 , 2,  1) \
+    TIMER_PIN_MAP( 14, PB5 , 1,  0)

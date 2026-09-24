@@ -187,4 +187,13 @@
 //--------------------------------BOARD RESOURCES-----------------------------
 
 #define USABLE_TIMER_CHANNEL_COUNT 8
-#define USED_TIMERS    (TIM_N(1)|TIM_N(3)|TIM_N(8))
+#define USE_TIMER_MGMT
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC7 , 2,  0) \
+    TIMER_PIN_MAP( 1, PA8 , 1,  1) \
+    TIMER_PIN_MAP( 2, PA9 , 1,  1) \
+    TIMER_PIN_MAP( 3, PA10 , 1,  1) \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) \
+    TIMER_PIN_MAP( 6, PB0 , 2,  0) \
+    TIMER_PIN_MAP( 7, PB1 , 2,  0)
