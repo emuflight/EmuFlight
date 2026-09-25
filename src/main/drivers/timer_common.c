@@ -96,6 +96,16 @@ const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8
     return NULL;
 }
 
+const timerHardware_t *timerGetAllocatedByNumberAndChannel(int8_t timerNumber, uint16_t timerChannel) {
+    for (unsigned i = 0; i < MAX_TIMER_PINMAP_COUNT; i++) {
+        const timerHardware_t *timer = timerGetByTagAndIndex(timerIOConfig(i)->ioTag, timerIOConfig(i)->index);
+        if (timer && timerGetTIMNumber(timer->tim) == timerNumber && timer->channel == timerChannel && timerOwners[i]) {
+            return timer;
+        }
+    }
+    return NULL;
+}
+
 resourceOwner_e timerGetOwner(ioTag_t ioTag) {
     if (!ioTag) {
         return OWNER_FREE;
