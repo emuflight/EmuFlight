@@ -142,4 +142,10 @@
     TIMER_PIN_MAP( 5, PD12 , 1,  0) \
     TIMER_PIN_MAP( 6, PB3 , 1,  0)
 
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PE9
+#define MOTOR4_PIN              PE11
+#define RX_PPM_PIN              PA10
+
 // notice - this file was programmatically generated and may be incomplete.

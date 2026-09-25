@@ -185,3 +185,13 @@
     TIMER_PIN_MAP( 11, PA3 , 3,  0) \
     TIMER_PIN_MAP( 12, PA2 , 2,  0) \
     TIMER_PIN_MAP( 13, PB15 , 3,  0)
+
+#define MOTOR1_PIN              PC8
+#define MOTOR2_PIN              PC9
+#define MOTOR3_PIN              PB4
+#define MOTOR4_PIN              PB5
+#define MOTOR5_PIN              PB0
+#define MOTOR6_PIN              PB1
+#define MOTOR7_PIN              PB10
+#define MOTOR8_PIN              PB11
+#define LED_STRIP_PIN           PA8
