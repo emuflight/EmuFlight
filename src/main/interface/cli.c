@@ -3949,13 +3949,19 @@ static bool strToPin(char *pch, ioTag_t *tag) {
     return false;
 }
 
+#ifdef USE_TIMER_MGMT
+static void showTimers(void);
+#endif
+static void printDma(void);
+
 static void cliResource(char *cmdline) {
     int len = strlen(cmdline);
+    const bool showAll = strcasecmp(cmdline, "show all") == 0 || strcasecmp(cmdline, "list all") == 0;
     if (len == 0) {
         printResource(DUMP_MASTER | HIDE_UNUSED);
         printResourceClaimStatusAll();
         return;
-    } else if (strncasecmp(cmdline, "list", len) == 0) {
+    } else if (showAll || strcasecmp(cmdline, "show") == 0 || strncasecmp(cmdline, "list", len) == 0) {
         cliPrintLine("Currently active IO resource assignments:\r\n(reboot to update)");
         cliRepeat('-', 20);
         for (int i = 0; i < DEFIO_IO_USED_COUNT; i++) {
@@ -3966,6 +3972,12 @@ static void cliResource(char *cmdline) {
                 cliPrintf(" %d", ioRecs[i].index);
             }
             cliPrintLinefeed();
+        }
+        if (showAll) {
+#ifdef USE_TIMER_MGMT
+            showTimers();
+#endif
+            printDma();
         }
         cliPrintLine("\r\nUse: 'resource' to see how to change resources.");
         return;
@@ -4896,7 +4908,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("rc_smoothing_info", "show rc_smoothing operational settings", NULL, cliRcSmoothing),
 #endif // USE_RC_SMOOTHING_FILTER
 #ifdef USE_RESOURCE_MGMT
-    CLI_COMMAND_DEF("resource", "show/set resources", NULL, cliResource),
+    CLI_COMMAND_DEF("resource", "show/set resources", "<> | <resource name> <index> [<pin>|none] | show [all]", cliResource),
 #endif
     CLI_COMMAND_DEF("rxfail", "show/set rx failsafe settings", NULL, cliRxFailsafe),
     CLI_COMMAND_DEF("rxrange", "configure rx channel ranges", NULL, cliRxRange),
