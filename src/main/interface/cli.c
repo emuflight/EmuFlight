@@ -3939,8 +3939,10 @@ static bool strToPin(char *pch, ioTag_t *tag) {
         unsigned port = (*pch >= 'a') ? *pch - 'a' : *pch - 'A';
         if (port < 8) {
             pch++;
-            pin = atoi(pch);
-            if (pin < 16) {
+            char *end;
+            const long parsedPin = strtol(pch, &end, 10);
+            if (end != pch && parsedPin >= 0 && parsedPin < 16) {
+                pin = (unsigned)parsedPin;
                 *tag = DEFIO_TAG_MAKE(port, pin);
                 return true;
             }
