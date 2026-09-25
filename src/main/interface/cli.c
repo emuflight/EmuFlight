@@ -4061,15 +4061,75 @@ typedef struct dmaoptEntry_s {
     uint8_t stride;
     uint8_t offset;
     uint8_t maxIndex;
+    uint32_t presenceMask;  // bit n set = index n exists on this target; 0 = every index below maxIndex exists
 } dmaoptEntry_t;
 
 // DEFW : array-of-structs entry (stride = sizeof(type)); mirrors resourceTable's macro family above.
-#define DEFW(device, peripheral, pgn, type, member, max) \
-    { device, peripheral, pgn, sizeof(type), offsetof(type, member), max }
+#define DEFW(device, peripheral, pgn, type, member, max, mask) \
+    { device, peripheral, pgn, sizeof(type), offsetof(type, member), max, mask }
+
+// Config slots are sized per MCU family; only UARTs enabled by the target exist.
+#ifdef USE_UART1
+#define UART1_PRESENT BIT(0)
+#else
+#define UART1_PRESENT 0
+#endif
+#ifdef USE_UART2
+#define UART2_PRESENT BIT(1)
+#else
+#define UART2_PRESENT 0
+#endif
+#ifdef USE_UART3
+#define UART3_PRESENT BIT(2)
+#else
+#define UART3_PRESENT 0
+#endif
+#ifdef USE_UART4
+#define UART4_PRESENT BIT(3)
+#else
+#define UART4_PRESENT 0
+#endif
+#ifdef USE_UART5
+#define UART5_PRESENT BIT(4)
+#else
+#define UART5_PRESENT 0
+#endif
+#ifdef USE_UART6
+#define UART6_PRESENT BIT(5)
+#else
+#define UART6_PRESENT 0
+#endif
+#ifdef USE_UART7
+#define UART7_PRESENT BIT(6)
+#else
+#define UART7_PRESENT 0
+#endif
+#ifdef USE_UART8
+#define UART8_PRESENT BIT(7)
+#else
+#define UART8_PRESENT 0
+#endif
+#ifdef USE_UART9
+#define UART9_PRESENT BIT(8)
+#else
+#define UART9_PRESENT 0
+#endif
+#ifdef USE_UART10
+#define UART10_PRESENT BIT(9)
+#else
+#define UART10_PRESENT 0
+#endif
+#ifdef USE_LPUART1
+#define LPUART1_PRESENT BIT(10)
+#else
+#define LPUART1_PRESENT 0
+#endif
+#define UART_PRESENT_MASK (UART1_PRESENT | UART2_PRESENT | UART3_PRESENT | UART4_PRESENT | UART5_PRESENT | \
+                           UART6_PRESENT | UART7_PRESENT | UART8_PRESENT | UART9_PRESENT | UART10_PRESENT | LPUART1_PRESENT)
 
 static const dmaoptEntry_t dmaoptEntryTable[] = {
-    DEFW("UART_TX", DMA_PERIPH_UART_TX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, txDmaopt, UARTDEV_COUNT_MAX),
-    DEFW("UART_RX", DMA_PERIPH_UART_RX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, rxDmaopt, UARTDEV_COUNT_MAX),
+    DEFW("UART_TX", DMA_PERIPH_UART_TX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, txDmaopt, UARTDEV_COUNT_MAX, UART_PRESENT_MASK),
+    DEFW("UART_RX", DMA_PERIPH_UART_RX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, rxDmaopt, UARTDEV_COUNT_MAX, UART_PRESENT_MASK),
 };
 
 #undef DEFW
@@ -4216,6 +4276,9 @@ static void printDmaopt(uint8_t dumpMask) {
     for (unsigned i = 0; i < ARRAYLEN(dmaoptEntryTable); i++) {
         const dmaoptEntry_t *entry = &dmaoptEntryTable[i];
         for (int index = 0; index < entry->maxIndex; index++) {
+            if (entry->presenceMask && !(entry->presenceMask & BIT(index))) {
+                continue;
+            }
             printDmaoptPeripheral(entry, index, dumpMask);
         }
     }
@@ -4284,6 +4347,10 @@ static void cliDmaopt(char *cmdline) {
         }
         if (index < 0 || index >= entry->maxIndex) {
             cliShowArgumentRangeError("index", 1, entry->maxIndex);
+            return;
+        }
+        if (entry->presenceMask && !(entry->presenceMask & BIT(index))) {
+            cliPrintErrorLinef("BAD INDEX: '%s'", pch);
             return;
         }
         optaddr = dmaoptAddr(entry, index);
