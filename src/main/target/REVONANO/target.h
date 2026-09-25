@@ -104,4 +104,17 @@
 #define RSSI_ADC_PIN            PA5
 
 #define USABLE_TIMER_CHANNEL_COUNT 12
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) )
+#define USE_TIMER_MGMT
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB10 , 1,  0) \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) \
+    TIMER_PIN_MAP( 3, PA7 , 2,  0) \
+    TIMER_PIN_MAP( 4, PA6 , 1,  0) \
+    TIMER_PIN_MAP( 5, PA5 , 1,  0) \
+    TIMER_PIN_MAP( 6, PA10 , 1,  0) \
+    TIMER_PIN_MAP( 7, PB3 , 1,  0) \
+    TIMER_PIN_MAP( 8, PB8 , 1,  0) \
+    TIMER_PIN_MAP( 9, PB9 , 1,  0) \
+    TIMER_PIN_MAP( 10, PA0 , 2,  0) \
+    TIMER_PIN_MAP( 11, PA1 , 2,  0)
