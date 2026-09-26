@@ -205,6 +205,8 @@ LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h730_exst.ld
 LD_SCRIPTS      = $(LINKER_DIR)/stm32_h730_common.ld $(LINKER_DIR)/stm32_h730_common_post.ld
 DEVICE_FLAGS   += -DEXST -DUSE_EXST
 TARGET_FLAGS   += -DEXST
+FIRMWARE_SIZE   := 1024
+EXST_ADJUST_VMA ?= 0x90100000
 else
 LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h730_128k.ld
 endif
