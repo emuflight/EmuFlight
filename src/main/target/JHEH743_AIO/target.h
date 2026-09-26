@@ -145,6 +145,23 @@
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
 #define USABLE_TIMER_CHANNEL_COUNT 16
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) )
+#define USE_TIMER_MGMT
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA8 , 1,  10) \
+    TIMER_PIN_MAP( 1, PB3 , 1,  0) \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) \
+    TIMER_PIN_MAP( 3, PB1 , 2,  1) \
+    TIMER_PIN_MAP( 4, PD12 , 1,  10) \
+    TIMER_PIN_MAP( 5, PD13 , 1,  5) \
+    TIMER_PIN_MAP( 6, PC8 , 2,  0) \
+    TIMER_PIN_MAP( 7, PC9 , 2,  7) \
+    TIMER_PIN_MAP( 8, PA0 , 2,  0) \
+    TIMER_PIN_MAP( 9, PA1 , 2,  0) \
+    TIMER_PIN_MAP( 10, PA2 , 2,  0) \
+    TIMER_PIN_MAP( 11, PA3 , 1,  0) \
+    TIMER_PIN_MAP( 12, PB10 , 1,  0) \
+    TIMER_PIN_MAP( 13, PB11 , 1,  0) \
+    TIMER_PIN_MAP( 14, PE9 , 1,  2) \
+    TIMER_PIN_MAP( 15, PE11 , 1,  3)
 
 // notice - this file was programmatically generated and may be incomplete.

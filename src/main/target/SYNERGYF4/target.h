@@ -132,7 +132,22 @@
 
 
 #define USABLE_TIMER_CHANNEL_COUNT 14
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(12) | TIM_N(8) | TIM_N(9))
+#define USE_TIMER_MGMT
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB14 , 3,  0) \
+    TIMER_PIN_MAP( 1, PB15 , 3,  0) \
+    TIMER_PIN_MAP( 2, PC6 , 2,  0) \
+    TIMER_PIN_MAP( 3, PC7 , 2,  0) \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) \
+    TIMER_PIN_MAP( 6, PB0 , 2,  0) \
+    TIMER_PIN_MAP( 7, PB1 , 2,  0) \
+    TIMER_PIN_MAP( 8, PA3 , 1,  1) \
+    TIMER_PIN_MAP( 9, PA2 , 1,  0) \
+    TIMER_PIN_MAP( 10, PA1 , 2,  0) \
+    TIMER_PIN_MAP( 11, PA8 , 1,  0) \
+    TIMER_PIN_MAP( 12, PA9 , 1,  0) \
+    TIMER_PIN_MAP( 13, PA10 , 1,  0)
 
 #define USE_PINIO
 #define PINIO1_PIN              PB15 // VTX power switcher

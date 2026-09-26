@@ -160,4 +160,21 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
 
-#define USED_TIMERS  ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(12) | TIM_N(8) | TIM_N(9) | TIM_N(10) | TIM_N(11))
+#define USE_TIMER_MGMT
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB14 , 3,  0) \
+    TIMER_PIN_MAP( 1, PB15 , 3,  0) \
+    TIMER_PIN_MAP( 2, PC6 , 2,  1) \
+    TIMER_PIN_MAP( 3, PC7 , 2,  1) \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) \
+    TIMER_PIN_MAP( 6, PB8 , 1,  0) \
+    TIMER_PIN_MAP( 7, PA2 , 2,  0) \
+    TIMER_PIN_MAP( 8, PA1 , 2,  0) \
+    TIMER_PIN_MAP( 9, PA3 , 2,  0) \
+    TIMER_PIN_MAP( 10, PB5 , 1,  0) \
+    TIMER_PIN_MAP( 11, PA0 , 2,  0) \
+    TIMER_PIN_MAP( 12, PB9 , 1,  0) \
+    TIMER_PIN_MAP( 13, PE6 , 1,  0) \
+    TIMER_PIN_MAP( 14, PB3 , 1,  0) \
+    TIMER_PIN_MAP( 15, PB4 , 1,  0)
