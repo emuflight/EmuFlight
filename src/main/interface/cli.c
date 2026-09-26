@@ -3941,7 +3941,7 @@ static bool strToPin(char *pch, ioTag_t *tag) {
             pch++;
             char *end;
             const long parsedPin = strtol(pch, &end, 10);
-            if (end != pch && parsedPin >= 0 && parsedPin < 16) {
+            if (end != pch && *end == '\0' && parsedPin >= 0 && parsedPin < 16) {
                 pin = (unsigned)parsedPin;
                 *tag = DEFIO_TAG_MAKE(port, pin);
                 return true;
@@ -4898,7 +4898,11 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("diff", "list configuration changes from default", "[master|profile|rates|all] {defaults}", cliDiff),
 #ifdef USE_RESOURCE_MGMT
 #ifdef CLI_DMAOPT
+#ifdef USE_TIMER_MGMT
+    CLI_COMMAND_DEF("dma", "show/set DMA assignments", "<> | <device> <index> list | <device> <index> [<option>|none] | pin <pin> list | pin <pin> [<option>|none] | list | show", cliDma),
+#else
     CLI_COMMAND_DEF("dma", "show/set DMA assignments", "<> | <device> <index> list | <device> <index> [<option>|none] | list | show", cliDma),
+#endif
 #else
     CLI_COMMAND_DEF("dma", "show DMA assignments", "show", cliDma),
 #endif
