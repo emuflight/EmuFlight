@@ -3952,7 +3952,7 @@ static bool strToPin(char *pch, ioTag_t *tag) {
 }
 
 #ifdef USE_TIMER_MGMT
-static void showTimers(void);
+static void showTimers(bool rebootNote);
 #endif
 static void printDma(void);
 
@@ -3977,7 +3977,7 @@ static void cliResource(char *cmdline) {
         }
         if (showAll) {
 #ifdef USE_TIMER_MGMT
-            showTimers();
+            showTimers(false);
 #endif
             printDma();
         }
@@ -4557,9 +4557,12 @@ static void alternateFunctionToString(ioTag_t ioTag, int index, char *buf) {
     }
 }
 
-static void showTimers(void) {
+static void showTimers(bool rebootNote) {
     cliPrintLinefeed();
     cliPrintLine("Currently active Timers:");
+    if (rebootNote) {
+        cliPrintLine("(reboot to update)");
+    }
     cliRepeat('-', 23);
 
     int8_t timerNumber;
@@ -4596,7 +4599,7 @@ static void cliTimer(char *cmdline) {
         printTimer(DUMP_MASTER);
         return;
     } else if (strncasecmp(cmdline, "show", len) == 0 || strncasecmp(cmdline, "list", len) == 0) {
-        showTimers();
+        showTimers(true);
         return;
     }
 
