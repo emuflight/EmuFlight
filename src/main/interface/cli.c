@@ -4255,18 +4255,20 @@ static void printDmaoptPin(const timerIOConfig_t *currentConfig, const timerIOCo
     const dmaoptValue_t dmaopt = currentConfig[index].dmaopt;
 
     dmaoptValue_t defaultDmaopt = DMA_OPT_UNUSED;
+    const timerHardware_t *defaultTimer = timer;
     bool equalsDefault = defaultDmaopt == dmaopt;
     if (defaultConfig) {
         for (unsigned i = 0; i < MAX_TIMER_PINMAP_COUNT; i++) {
             if (defaultConfig[i].ioTag == ioTag) {
                 defaultDmaopt = defaultConfig[i].dmaopt;
+                defaultTimer = timerGetByTagAndIndex(ioTag, defaultConfig[i].index);
                 // a non-default timer resets the option, so compare the timer index too
                 equalsDefault = (defaultDmaopt == dmaopt) && (defaultConfig[i].index == currentConfig[index].index || dmaopt == DMA_OPT_UNUSED);
                 tagsInUse[i] = true;
                 break;
             }
         }
-        printDmaoptPinDetails(ioTag, timer, defaultDmaopt, equalsDefault, dumpMask, cliDefaultPrintLinef);
+        printDmaoptPinDetails(ioTag, defaultTimer, defaultDmaopt, equalsDefault, dumpMask, cliDefaultPrintLinef);
     }
     printDmaoptPinDetails(ioTag, timer, dmaopt, equalsDefault, dumpMask, cliDumpPrintLinef);
 }
