@@ -259,13 +259,16 @@ const int8_t timerNumbers[USED_TIMER_COUNT] = {
 #undef _DEF
 };
 
-int8_t timerGetTIMNumber(const TIM_TypeDef *tim) {
-    uint8_t index = lookupTimerIndex(tim);
+int8_t timerGetNumberByIndex(uint8_t index) {
     if (index < USED_TIMER_COUNT) {
         return timerNumbers[index];
     } else {
         return 0;
     }
+}
+
+int8_t timerGetTIMNumber(const TIM_TypeDef *tim) {
+    return timerGetNumberByIndex(lookupTimerIndex(tim));
 }
 
 static inline uint8_t lookupChannelIndex(const uint16_t channel) {

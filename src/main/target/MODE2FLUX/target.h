@@ -137,6 +137,14 @@
     TIMER_PIN_MAP( 5, PC9 , 2,  0) \
     TIMER_PIN_MAP( 6, PA8 , 1,  0)
 
+#define MOTOR1_PIN              PC6
+#define MOTOR2_PIN              PC7
+#define MOTOR3_PIN              PC8
+#define MOTOR4_PIN              PC9
+#define RX_PWM1_PIN             PB14
+#define RX_PPM_PIN              PB14
+#define LED_STRIP_PIN           PA8
+
 #define USE_ACC_IMUF9001
 #define IMUF_RST_PIN              GPIO_Pin_4
 #define IMUF_RST_PORT             GPIOA

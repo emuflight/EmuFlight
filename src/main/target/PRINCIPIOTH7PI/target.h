@@ -159,4 +159,13 @@
     TIMER_PIN_MAP( 8, PA8 , 1,  8) \
     TIMER_PIN_MAP( 9, PA15 , 1,  0)
 
+#define MOTOR1_PIN              PA0
+#define MOTOR2_PIN              PA1
+#define MOTOR3_PIN              PA2
+#define MOTOR4_PIN              PA3
+#define MOTOR5_PIN              PB0
+#define MOTOR6_PIN              PB1
+#define SERVO1_PIN              PE5
+#define SERVO2_PIN              PE6
+
 // notice - this file was programmatically generated and may be incomplete.
