@@ -2476,26 +2476,60 @@ static char *checkCommand(char *cmdLine, const char *command) {
     }
 }
 
-static void cliRebootEx(bool bootLoader) {
+typedef enum {
+    REBOOT_TARGET_FIRMWARE,
+    REBOOT_TARGET_BOOTLOADER_ROM,
+#if defined(USE_FLASH_BOOT_LOADER)
+    REBOOT_TARGET_BOOTLOADER_FLASH,
+#endif
+} rebootTarget_e;
+
+static void cliRebootEx(rebootTarget_e rebootTarget) {
     cliPrint("\r\nRebooting");
     bufWriterFlush(cliWriter);
     waitForSerialPortToFinishTransmitting(cliPort);
     stopPwmAllMotors();
-    if (bootLoader) {
-        systemResetToBootloader();
+    switch (rebootTarget) {
+    case REBOOT_TARGET_BOOTLOADER_ROM:
+        systemResetToBootloader(BOOTLOADER_REQUEST_ROM);
+        return;
+#if defined(USE_FLASH_BOOT_LOADER)
+    case REBOOT_TARGET_BOOTLOADER_FLASH:
+        systemResetToBootloader(BOOTLOADER_REQUEST_FLASH);
+        return;
+#endif
+    case REBOOT_TARGET_FIRMWARE:
+    default:
+        systemReset();
         return;
     }
-    systemReset();
 }
 
 static void cliReboot(void) {
-    cliRebootEx(false);
+    cliRebootEx(REBOOT_TARGET_FIRMWARE);
 }
 
 static void cliBootloader(char *cmdLine) {
-    UNUSED(cmdLine);
-    cliPrintHashLine("restarting in bootloader mode");
-    cliRebootEx(true);
+    rebootTarget_e rebootTarget;
+
+    if (
+#if !defined(USE_FLASH_BOOT_LOADER)
+        isEmpty(cmdLine) ||
+#endif
+        strncasecmp(cmdLine, "rom", 3) == 0) {
+        rebootTarget = REBOOT_TARGET_BOOTLOADER_ROM;
+        cliPrintHashLine("restarting in ROM bootloader mode");
+#if defined(USE_FLASH_BOOT_LOADER)
+    } else if (isEmpty(cmdLine) || strncasecmp(cmdLine, "flash", 5) == 0) {
+        rebootTarget = REBOOT_TARGET_BOOTLOADER_FLASH;
+        cliPrintHashLine("restarting in flash bootloader mode");
+#endif
+    } else {
+        cliShowParseError();
+        return;
+    }
+
+    cliRebootEx(rebootTarget);
 }
 
 
@@ -4891,7 +4925,11 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("beeper", "enable/disable beeper for a condition", "list\r\n"
                     "\t<->[name]", cliBeeper),
 #endif // USE_BEEPER
-    CLI_COMMAND_DEF("bl", "reboot into bootloader", NULL, cliBootloader),
+#if defined(USE_FLASH_BOOT_LOADER)
+    CLI_COMMAND_DEF("bl", "reboot into bootloader", "[flash|rom]", cliBootloader),
+#else
+    CLI_COMMAND_DEF("bl", "reboot into bootloader", "[rom]", cliBootloader),
+#endif
 #if defined(USE_BOARD_INFO)
     CLI_COMMAND_DEF("board_name", "get / set the name of the board model", "[board name]", cliBoardName),
 #endif

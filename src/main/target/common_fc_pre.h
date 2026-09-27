@@ -21,6 +21,14 @@
 #pragma once
 
 #define USE_PARAMETER_GROUPS
+
+// A board whose firmware runs from external flash (EXST) needs its own bootloader
+// re-entered specially on reboot-to-DFU requests, instead of the MCU's own silicon
+// bootloader, which has no knowledge of the external flash.
+#if defined(USE_EXST)
+#define USE_FLASH_BOOT_LOADER
+#endif
+
 // type conversion warnings.
 // -Wconversion can be turned on to enable the process of eliminating these warnings
 //#pragma GCC diagnostic warning "-Wconversion"

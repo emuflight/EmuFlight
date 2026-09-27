@@ -141,9 +141,7 @@ enum {
     MSP_REBOOT_BOOTLOADER,
     MSP_REBOOT_MSC,
     MSP_REBOOT_MSC_UTC,
-    // MSP_REBOOT_BOOTLOADER_FLASH = 4 exists in BF for QUADSPI/OctoSPI external-flash firmware
-    // execution targets. Add here (with mspRebootFn case + systemResetToBootloaderViaDFU or
-    // equivalent) when QUADSPI/OctoSPI bootloader support is backported to EF.
+    MSP_REBOOT_BOOTLOADER_FLASH,
     MSP_REBOOT_COUNT,
 };
 
@@ -263,8 +261,13 @@ static void mspRebootFn(serialPort_t *serialPort) {
         systemReset();
         break;
     case MSP_REBOOT_BOOTLOADER:
-        systemResetToBootloader();
+        systemResetToBootloader(BOOTLOADER_REQUEST_ROM);
         break;
+#if defined(USE_FLASH_BOOT_LOADER)
+    case MSP_REBOOT_BOOTLOADER_FLASH:
+        systemResetToBootloader(BOOTLOADER_REQUEST_FLASH);
+        break;
+#endif
 #if defined(USE_USB_MSC)
     case MSP_REBOOT_MSC:
     case MSP_REBOOT_MSC_UTC:
@@ -461,12 +464,16 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
         // Board communication capabilities (uint8)
         // Bit 0: 1 iff the board has VCP
         // Bit 1: 1 iff the board supports software serial
+        // Bit 3: 1 iff the board has a flash-resident bootloader (external-flash/EXST targets)
         uint8_t commCapabilities = 0;
 #ifdef USE_VCP
         commCapabilities |= 1 << 0;
 #endif
 #if defined(USE_SOFTSERIAL1) || defined(USE_SOFTSERIAL2)
         commCapabilities |= 1 << 1;
+#endif
+#if defined(USE_FLASH_BOOT_LOADER)
+        commCapabilities |= 1 << 3;
 #endif
         sbufWriteU8(dst, commCapabilities);
         // Target name with explicit length
@@ -1418,6 +1425,9 @@ static mspResult_e mspFcProcessOutCommandWithArg(mspDescriptor_t srcDesc, uint8_
 #if !defined(USE_USB_MSC)
                     || rebootMode == MSP_REBOOT_MSC
                     || rebootMode == MSP_REBOOT_MSC_UTC
+#endif
+#if !defined(USE_FLASH_BOOT_LOADER)
+                    || rebootMode == MSP_REBOOT_BOOTLOADER_FLASH
 #endif
                ) {
                 return MSP_RESULT_ERROR;

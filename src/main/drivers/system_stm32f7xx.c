@@ -44,7 +44,10 @@ void systemReset(void) {
     NVIC_SystemReset();
 }
 
-void systemResetToBootloader(void) {
+void systemResetToBootloader(bootloaderRequestType_e requestType) {
+    // No F7 target runs firmware from external flash; every request lands in the
+    // MCU's own silicon bootloader, same as always.
+    UNUSED(requestType);
     if (mpuResetFn) {
         mpuResetFn();
     }

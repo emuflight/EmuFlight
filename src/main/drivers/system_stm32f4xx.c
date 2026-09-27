@@ -43,7 +43,10 @@ void systemReset(void) {
 PERSISTENT uint32_t bootloaderRequest = 0;
 #define BOOTLOADER_REQUEST_COOKIE 0xDEADBEEF
 
-void systemResetToBootloader(void) {
+void systemResetToBootloader(bootloaderRequestType_e requestType) {
+    // No F4 target runs firmware from external flash; every request lands in the
+    // MCU's own silicon bootloader, same as always.
+    UNUSED(requestType);
     if (mpuResetFn) {
         mpuResetFn();
     }
