@@ -28,6 +28,7 @@
 #define MANUFACTURER_ID         SPRO
 #define TARGET_BOARD_IDENTIFIER "SP7E"
 #define FC_TARGET_MCU           STM32H730     // not used in EmuF
+#define EEPROM_SIZE             8192
 
 // Config storage: OctoSPI flash is configured by bootloader (memory-mapped mode);
 // firmware runs from OctoSPI but does not configure it. CONFIG_IN_EXTERNAL_FLASH
@@ -111,6 +112,7 @@
 #define EXTERNAL1_ADC_PIN       PC1
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
+#define DEFAULT_FEATURES        (FEATURE_TELEMETRY | FEATURE_OSD | FEATURE_LED_STRIP)
 
 #define USE_SPI_GYRO
 #define USE_EXTI
@@ -158,13 +160,13 @@
 #define UART10_RX_PIN        PE2
 #define SERIAL_PORT_COUNT    9
 
-// RX_SPI_CS_PIN shares PB12 with GYRO_2_CS_PIN (SPI2_NSS_PIN) — BF parity.
-// Hardware design: USE_RX_SPI and dual-gyro are mutually exclusive on this board.
-#define RX_SPI_CS_PIN        PB12
-#define RX_SPI_BIND_PIN      NONE
-#define RX_SPI_LED_PIN       NONE
-#define RX_SPI_EXPRESSLRS_RESET_PIN PD10
-#define RX_SPI_EXPRESSLRS_BUSY_PIN  PC7
+// RX-SPI pins present in BF's reference config, kept for BF parity, but not enabled
+// (USE_RX_SPI is never defined for this board): this board has no ELRS RX-SPI hardware.
+// #define RX_SPI_CS_PIN        PB12
+// #define RX_SPI_BIND_PIN      NONE
+// #define RX_SPI_LED_PIN       NONE
+// #define RX_SPI_EXPRESSLRS_RESET_PIN PD10
+// #define RX_SPI_EXPRESSLRS_BUSY_PIN  PC7
 #define BINDPLUG_PIN         NONE
 
 // PB2/PB10/PE7-PE10 carry OCTOSPI flash the MCU executes firmware from (EXST, bootloader-mapped);

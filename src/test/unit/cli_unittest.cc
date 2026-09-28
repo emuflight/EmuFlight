@@ -36,6 +36,7 @@ extern "C" {
     #include "drivers/dma.h"
     #include "drivers/dma_reqmap.h"
     #include "drivers/io_impl.h"
+    #include "drivers/system.h"
     #include "drivers/vtx_common.h"
     #include "fc/config.h"
     #include "fc/rc_adjustments.h"
@@ -560,7 +561,7 @@ void setArmingDisabled(armingDisableFlags_e) {}
 
 void waitForSerialPortToFinishTransmitting(serialPort_t *) {}
 void stopPwmAllMotors(void) {}
-void systemResetToBootloader(void) {}
+void systemResetToBootloader(bootloaderRequestType_e) {}
 void resetConfigs(void) {}
 void systemReset(void) {}
 
