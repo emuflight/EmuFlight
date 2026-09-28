@@ -1,6 +1,6 @@
 H730_TARGETS   += $(TARGET)
 EXST            = yes
-FEATURES       += VCP
+FEATURES       += VCP ONBOARDFLASH
 
 TARGET_SRC = \
 drivers/accgyro/accgyro_spi_icm426xx.c \

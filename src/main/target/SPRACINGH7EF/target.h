@@ -36,11 +36,14 @@
 
 #define USE_SPRACING_PERSISTENT_RTC_WORKAROUND
 #define USE_BUTTONS
+#define BUTTON_A_PIN            PD10
+#define BUTTON_A_PIN_INVERTED
+#define BUTTON_B_PIN            PD10
+#define BUTTON_B_PIN_INVERTED
 #define USE_SPI
 #define USE_SPI_DEVICE_2
 #define USE_SPI_DEVICE_3
-// SPI6 is on D3 domain (requires BDMA, not yet implemented in EF)
-//#define USE_SPI_DEVICE_6
+#define USE_SPI_DEVICE_6
 #define USE_I2C
 // I2C1 (PB6/PB7) shares pins with UART1 — hardware design; mutually exclusive at runtime.
 // Disable USE_I2C_DEVICE_1 if UART1 is needed, and vice versa.
@@ -54,6 +57,8 @@
 #define MAG_I2C_INSTANCE                I2CDEV_4
 #define USE_PINIO
 #define USE_PINIOBOX
+#define PINIO1_PIN              PB11 // VTX enable
+#define PINIO1_BOX              40
 #define USE_ACC
 #define USE_ACC_SPI_ICM42605
 #define USE_ACC_SPI_ICM42688P
@@ -88,10 +93,24 @@
 #define SPI3_MISO_PIN           PC11
 #define SPI3_MOSI_PIN           PC12
 #define SPI3_NSS_PIN            PA15
-// SPI6 pins disabled (D3/BDMA not supported yet)
-//#define SPI6_SCK_PIN          PB3
-//#define SPI6_MISO_PIN         PB4
-//#define SPI6_MOSI_PIN         PB5
+#define SPI6_SCK_PIN            PB3
+#define SPI6_MISO_PIN           PB4
+#define SPI6_MOSI_PIN           PB5
+
+// SPI6 has no DMA on H7; the SPI driver falls back to polled transfers.
+#define USE_FLASH_M25P16
+#define FLASH_CS_PIN            PD7 // software CS, not SPI6_NSS
+#define FLASH_SPI_INSTANCE      SPI6
+#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+
+#define USE_ADC
+#define ADC_INSTANCE            ADC3
+#define ADC3_DMA_STREAM         DMA2_Stream2
+#define VBAT_ADC_PIN            PC3
+#define CURRENT_METER_ADC_PIN   PC0
+#define EXTERNAL1_ADC_PIN       PC1
+#define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
+#define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
 #define USE_SPI_GYRO
 #define USE_EXTI
@@ -156,4 +175,15 @@
 #define TARGET_IO_PORTE (0xffff & ~(BIT(7)|BIT(8)|BIT(9)|BIT(10)))
 
 #define USABLE_TIMER_CHANNEL_COUNT      10
-#define USED_TIMERS                     ( TIM_N(3) | TIM_N(5) | TIM_N(16) | TIM_N(17) )
+#define USE_TIMER_MGMT
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP(0, PA0, 2, 0) \
+    TIMER_PIN_MAP(1, PA1, 2, 1) \
+    TIMER_PIN_MAP(2, PA2, 2, 2) \
+    TIMER_PIN_MAP(3, PA3, 2, 3) \
+    TIMER_PIN_MAP(4, PA6, 1, 4) \
+    TIMER_PIN_MAP(5, PA7, 2, 5) \
+    TIMER_PIN_MAP(6, PB0, 2, 6) \
+    TIMER_PIN_MAP(7, PB1, 2, 7) \
+    TIMER_PIN_MAP(8, PB8, 1, 8) \
+    TIMER_PIN_MAP(9, PB9, 1, 9)
