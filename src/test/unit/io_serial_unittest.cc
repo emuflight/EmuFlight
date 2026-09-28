@@ -26,6 +26,7 @@ extern "C" {
     #include "drivers/serial.h"
     #include "drivers/serial_softserial.h"
     #include "drivers/serial_uart.h"
+    #include "drivers/system.h"
 
     #include "io/serial.h"
 
@@ -54,7 +55,7 @@ extern "C" {
 
     bool isSerialTransmitBufferEmpty(const serialPort_t *) { return true; }
 
-    void systemResetToBootloader(void) {}
+    void systemResetToBootloader(bootloaderRequestType_e) {}
 
     bool telemetryCheckRxPortShared(const serialPortConfig_t *) { return false; }
 
