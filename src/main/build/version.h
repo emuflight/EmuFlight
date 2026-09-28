@@ -24,10 +24,12 @@
 
 #define FC_FIRMWARE_NAME            "EmuFlight"
 #define FC_VERSION_MAJOR            0  // increment when a major release is made (big new feature, etc)
-#define FC_VERSION_MINOR            4  // increment when a minor release is made (small new feature, change etc)
-#define FC_VERSION_PATCH_LEVEL      3 // increment when a bug is fixed
+#define FC_VERSION_MINOR            5  // increment when a minor release is made (small new feature, change etc)
+#define FC_VERSION_PATCH_LEVEL      0 // increment when a bug is fixed
 
-#define FC_VERSION_STRING STR(FC_VERSION_MAJOR) "." STR(FC_VERSION_MINOR) "." STR(FC_VERSION_PATCH_LEVEL)
+#define FC_VERSION_SUFFIX           "-dev"  // empty string on release builds
+
+#define FC_VERSION_STRING STR(FC_VERSION_MAJOR) "." STR(FC_VERSION_MINOR) "." STR(FC_VERSION_PATCH_LEVEL) FC_VERSION_SUFFIX
 
 extern const char* const targetName;
 
