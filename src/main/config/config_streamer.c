@@ -287,7 +287,10 @@ static int write_word(config_streamer_t *c, uint32_t value) {
 
         const uint8_t *buffers[1] = { (const uint8_t *)&value };
         uint32_t bufferSizes[1] = { sizeof(value) };
-        flashPageProgramContinue(buffers, bufferSizes, 1);
+        const uint32_t bytesWritten = flashPageProgramContinue(buffers, bufferSizes, 1);
+        if (bytesWritten != sizeof(value)) {
+            return -2;
+        }
     }
 #elif defined(STM32H7)
     // H7: sector erase at page boundary, then buffer into 32-byte flash words
