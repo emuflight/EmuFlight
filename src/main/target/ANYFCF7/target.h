@@ -162,8 +162,8 @@
 
 #define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB14 , 3,  0) \
-    TIMER_PIN_MAP( 1, PB15 , 3,  0) \
+    TIMER_PIN_MAP( 0, PB14 , 3, -1) \
+    TIMER_PIN_MAP( 1, PB15 , 3, -1) \
     TIMER_PIN_MAP( 2, PC6 , 2,  1) \
     TIMER_PIN_MAP( 3, PC7 , 2,  1) \
     TIMER_PIN_MAP( 4, PC8 , 2,  1) \
@@ -174,8 +174,8 @@
     TIMER_PIN_MAP( 9, PA3 , 2,  0) \
     TIMER_PIN_MAP( 10, PB5 , 1,  0) \
     TIMER_PIN_MAP( 11, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 12, PB9 , 1,  0) \
-    TIMER_PIN_MAP( 13, PE6 , 1,  0) \
+    TIMER_PIN_MAP( 12, PB9 , 1, -1) \
+    TIMER_PIN_MAP( 13, PE6 , 1, -1) \
     TIMER_PIN_MAP( 14, PB3 , 1,  0) \
     TIMER_PIN_MAP( 15, PB4 , 1,  0)
 

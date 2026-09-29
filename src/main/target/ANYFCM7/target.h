@@ -138,8 +138,8 @@
 
 #define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB14 , 3,  0) \
-    TIMER_PIN_MAP( 1, PB15 , 3,  0) \
+    TIMER_PIN_MAP( 0, PB14 , 3, -1) \
+    TIMER_PIN_MAP( 1, PB15 , 3, -1) \
     TIMER_PIN_MAP( 2, PC6 , 2,  1) \
     TIMER_PIN_MAP( 3, PC7 , 2,  1) \
     TIMER_PIN_MAP( 4, PC8 , 2,  1) \

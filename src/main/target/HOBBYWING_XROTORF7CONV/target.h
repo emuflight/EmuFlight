@@ -182,7 +182,7 @@
     TIMER_PIN_MAP( 7, PB10 , 1,  0) \
     TIMER_PIN_MAP( 8, PA2 , 2,  0) \
     TIMER_PIN_MAP( 9, PA3 , 2,  1) \
-    TIMER_PIN_MAP( 10, PB8 , 2,  0) \
+    TIMER_PIN_MAP( 10, PB8 , 2, -1) \
     TIMER_PIN_MAP( 11, PA8 , 1,  0)
 
 #define MOTOR1_PIN              PB1

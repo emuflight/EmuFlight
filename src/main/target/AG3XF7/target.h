@@ -168,12 +168,12 @@
     TIMER_PIN_MAP( 4, PB7 , 1,  0) \
     TIMER_PIN_MAP( 5, PB8 , 1,  0) \
     TIMER_PIN_MAP( 6, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 7, PB14 , 3,  0) \
-    TIMER_PIN_MAP( 8, PB15 , 3,  0) \
+    TIMER_PIN_MAP( 7, PB14 , 3, -1) \
+    TIMER_PIN_MAP( 8, PB15 , 3, -1) \
     TIMER_PIN_MAP( 9, PA9 , 1,  1) \
     TIMER_PIN_MAP( 10, PA10 , 1,  0) \
     TIMER_PIN_MAP( 11, PA2 , 2,  0) \
-    TIMER_PIN_MAP( 12, PA3 , 3,  0) \
+    TIMER_PIN_MAP( 12, PA3 , 3, -1) \
     TIMER_PIN_MAP( 13, PB10 , 1,  0) \
     TIMER_PIN_MAP( 14, PB11 , 1,  0)
 

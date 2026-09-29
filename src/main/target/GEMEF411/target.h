@@ -123,7 +123,7 @@
     TIMER_PIN_MAP( 3, PB5 , 1,  0) \
     TIMER_PIN_MAP( 4, PA9 , 1,  0) \
     TIMER_PIN_MAP( 5, PA10 , 1,  0) \
-    TIMER_PIN_MAP( 6, PA2 , 3,  0) \
+    TIMER_PIN_MAP( 6, PA2 , 3, -1) \
     TIMER_PIN_MAP( 7, PA0 , 2,  0) \
     TIMER_PIN_MAP( 8, PB6 , 1,  0) \
     TIMER_PIN_MAP( 9, PB10 , 1,  0)
