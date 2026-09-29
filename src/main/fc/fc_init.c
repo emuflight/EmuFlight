@@ -627,7 +627,7 @@ void init(void) {
     }
 #endif
 #ifdef USE_FLASHFS
-#if defined(USE_FLASH)
+#if defined(USE_FLASH) && !defined(CONFIG_IN_EXTERNAL_FLASH)
     flashInit(flashConfig());
 #endif
     flashfsInit();
