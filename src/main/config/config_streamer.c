@@ -22,16 +22,19 @@
 
 #include "platform.h"
 
+#include "drivers/flash.h"
 #include "drivers/system.h"
 
 #include "config/config_streamer.h"
 
-#ifndef EEPROM_IN_RAM
+#if !defined(EEPROM_IN_RAM) && !defined(CONFIG_IN_EXTERNAL_FLASH)
 extern uint8_t __config_start;   // configured via linker script when building binaries.
 extern uint8_t __config_end;
 #elif !defined(SIMULATOR_BUILD)
 // RAM-based config: eepromData[] is the backing store; __config_start/__config_end
 // are macro-aliased to it in common_fc_post.h. SITL defines eepromData in target.c.
+// CONFIG_IN_EXTERNAL_FLASH stages the same array here, then write_word() below streams
+// it out to a flash chip partition instead of leaving it as the only copy.
 #if defined(PERSISTENT)
 PERSISTENT uint8_t eepromData[EEPROM_SIZE];
 #else
@@ -71,7 +74,7 @@ uint8_t eepromData[EEPROM_SIZE];
 # endif
 #endif
 
-#if defined(STM32H7) && !defined(EEPROM_IN_RAM)
+#if defined(STM32H7) && !defined(EEPROM_IN_RAM) && !defined(CONFIG_IN_EXTERNAL_FLASH)
 // H7 flash minimum write size is 256-bit (32 bytes = 8 x uint32_t).
 // Buffer individual 32-bit writes until a full flash word is ready.
 static uint32_t  h7FlashWriteBuf[FLASH_NB_32BITWORD_IN_FLASHWORD];
@@ -101,7 +104,7 @@ void config_streamer_start(config_streamer_t *c, uintptr_t base, int size) {
     c->address = base;
     c->size = size;
     if (!c->unlocked) {
-#if !defined(EEPROM_IN_RAM)
+#if !defined(EEPROM_IN_RAM) && !defined(CONFIG_IN_EXTERNAL_FLASH)
 #if defined(STM32F7) || defined(STM32H7)
         HAL_FLASH_Unlock();
 #else
@@ -119,7 +122,7 @@ void config_streamer_start(config_streamer_t *c, uintptr_t base, int size) {
 #else
 # error "Unsupported CPU"
 #endif
-#if defined(STM32H7) && !defined(EEPROM_IN_RAM)
+#if defined(STM32H7) && !defined(EEPROM_IN_RAM) && !defined(CONFIG_IN_EXTERNAL_FLASH)
     // Reset H7 flash word buffer state at start of each config save
     h7FlashWriteBufIdx = 0;
     memset(h7FlashWriteBuf, 0, sizeof(h7FlashWriteBuf));
@@ -254,6 +257,38 @@ static int write_word(config_streamer_t *c, uint32_t value) {
     memcpy((void *)c->address, &value, sizeof(value));
     c->address += sizeof(value);
     return 0;
+#elif defined(CONFIG_IN_EXTERNAL_FLASH)
+    // Config lives in a partition of the same flash chip blackbox logging uses. Erase on
+    // sector boundary, (re-)start a page program on page boundary, then push this word.
+    {
+        const uint32_t dataOffset = (uint32_t)(c->address - (uintptr_t)&eepromData[0]);
+
+        const flashPartition_t *flashPartition = flashPartitionFindByType(FLASH_PARTITION_TYPE_CONFIG);
+        const flashGeometry_t *flashGeometry = flashGetGeometry();
+
+        const uint32_t flashStartAddress = flashPartition->startSector * flashGeometry->sectorSize;
+        const uint32_t flashOverflowAddress = (flashPartition->endSector + 1) * flashGeometry->sectorSize;
+
+        const uint32_t flashAddress = flashStartAddress + dataOffset;
+        if (flashAddress + sizeof(value) > flashOverflowAddress) {
+            return -3; // address is past end of partition
+        }
+
+        const bool onPageBoundary = (flashAddress % flashGeometry->pageSize == 0);
+        if (onPageBoundary) {
+            if (flashAddress != flashStartAddress) {
+                flashPageProgramFinish();
+            }
+            if (flashAddress % flashGeometry->sectorSize == 0) {
+                flashEraseSector(flashAddress);
+            }
+            flashPageProgramBegin(flashAddress, NULL);
+        }
+
+        const uint8_t *buffers[1] = { (const uint8_t *)&value };
+        uint32_t bufferSizes[1] = { sizeof(value) };
+        flashPageProgramContinue(buffers, bufferSizes, 1);
+    }
 #elif defined(STM32H7)
     // H7: sector erase at page boundary, then buffer into 32-byte flash words
     if (c->address % FLASH_PAGE_SIZE == 0) {
@@ -345,7 +380,7 @@ int config_streamer_flush(config_streamer_t *c) {
         c->err = write_word(c, c->buffer.w);
         c->at = 0;
     }
-#if defined(STM32H7) && !defined(EEPROM_IN_RAM)
+#if defined(STM32H7) && !defined(EEPROM_IN_RAM) && !defined(CONFIG_IN_EXTERNAL_FLASH)
     // Flush any partial 32-byte flash word that hasn't been written yet
     if (h7FlashWriteBufIdx > 0) {
         if (c->err == 0) {
@@ -362,7 +397,9 @@ int config_streamer_flush(config_streamer_t *c) {
 
 int config_streamer_finish(config_streamer_t *c) {
     if (c->unlocked) {
-#if !defined(EEPROM_IN_RAM)
+#if defined(CONFIG_IN_EXTERNAL_FLASH)
+        flashFlush();
+#elif !defined(EEPROM_IN_RAM)
 #if defined(STM32F7) || defined(STM32H7)
         HAL_FLASH_Lock();
 #else
