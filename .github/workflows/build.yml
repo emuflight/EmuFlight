@@ -122,6 +122,13 @@ jobs:
         echo "outputs.version: ${{ steps.ids.outputs.version }}"
       continue-on-error: true
 
+    # Tags containing 'releas' ship without the -dev display suffix
+    - name: Clear -dev version suffix
+      if: contains(github.ref, 'releas')
+      run: |
+        sed -i -E 's|^(#define FC_VERSION_SUFFIX[[:space:]]+)"[^"]*"|\1""|' src/main/build/version.h
+        grep -E '^#define FC_VERSION_SUFFIX[[:space:]]+""' src/main/build/version.h
+
     # Build HEX
     - name: Compile Code
       run: |
