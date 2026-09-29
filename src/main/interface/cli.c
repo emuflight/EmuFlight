@@ -1916,6 +1916,22 @@ static void cliFlashInfo(char *cmdline) {
     UNUSED(cmdline);
     cliPrintLinef("Flash sectors=%u, sectorSize=%u, pagesPerSector=%u, pageSize=%u, totalSize=%u, usedSize=%u",
                   layout->sectors, layout->sectorSize, layout->pagesPerSector, layout->pageSize, layout->totalSize, flashfsGetOffset());
+
+    static const char *stageNames[] = {
+        "NOT_RUN", "NO_CS_TAG", "CS_NOT_FREE", "BUS_INSTANCE_FAILED", "TRANSFER_DONE"
+    };
+    uint8_t stage;
+    uint8_t rawId[4];
+    flashGetLastProbeDiag(&stage, rawId);
+    ioTag_t csTag = flashConfig()->csTag;
+    if (csTag) {
+        cliPrintLinef("Flash cfg csTag=%c%02d spiDevice=%u probeStage=%s rawRDID=%02X %02X %02X %02X",
+                      IO_GPIOPortIdxByTag(csTag) + 'A', IO_GPIOPinIdxByTag(csTag),
+                      flashConfig()->spiDevice, stageNames[stage], rawId[0], rawId[1], rawId[2], rawId[3]);
+    } else {
+        cliPrintLinef("Flash cfg csTag=NONE spiDevice=%u probeStage=%s rawRDID=%02X %02X %02X %02X",
+                      flashConfig()->spiDevice, stageNames[stage], rawId[0], rawId[1], rawId[2], rawId[3]);
+    }
 }
 
 

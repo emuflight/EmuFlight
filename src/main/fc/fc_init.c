@@ -371,6 +371,12 @@ void init(void) {
 #ifdef USE_SPI_DEVICE_4
     spiInit(SPIDEV_4);
 #endif
+#ifdef USE_SPI_DEVICE_5
+    spiInit(SPIDEV_5);
+#endif
+#ifdef USE_SPI_DEVICE_6
+    spiInit(SPIDEV_6);
+#endif
 #endif // USE_SPI
 #if defined(USE_SDCARD_SDIO) && !defined(CONFIG_IN_SDCARD) && defined(STM32H7)
     sdioPinConfigure();

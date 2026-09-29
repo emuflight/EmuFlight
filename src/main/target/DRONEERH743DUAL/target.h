@@ -71,7 +71,6 @@
 #define SPI4_SCK_PIN                    PE2  //SPI4_SCK
 #define SPI4_MISO_PIN        PE5
 #define SPI4_MOSI_PIN        PE6
-#define USE_SPI_DEVICE_6
 
 #define USE_SPI_GYRO
 #define USE_EXTI

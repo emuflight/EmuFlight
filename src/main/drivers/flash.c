@@ -54,6 +54,26 @@ static flashDevice_t flashDevice;
 static flashPartitionTable_t flashPartitionTable;
 static int flashPartitions = 0;
 
+// Distinguishes a probe that never reached the SPI bus (config/ownership gate) from one
+// that transacted but got no recognized reply, so a CLI dump of the last attempt can tell
+// the two apart without a logic analyzer.
+typedef enum {
+    FLASH_PROBE_NOT_RUN = 0,
+    FLASH_PROBE_NO_CS_TAG,
+    FLASH_PROBE_CS_NOT_FREE,
+    FLASH_PROBE_BUS_INSTANCE_FAILED,
+    FLASH_PROBE_TRANSFER_DONE,
+} flashProbeStage_e;
+
+static flashProbeStage_e lastFlashProbeStage = FLASH_PROBE_NOT_RUN;
+static uint8_t lastFlashRawId[4];
+
+void flashGetLastProbeDiag(uint8_t *stageOut, uint8_t out[4])
+{
+    *stageOut = (uint8_t)lastFlashProbeStage;
+    memcpy(out, lastFlashRawId, sizeof(lastFlashRawId));
+}
+
 #define FLASH_INSTRUCTION_RDID 0x9F
 
 #ifdef USE_FLASH_QUADSPI
@@ -144,14 +164,17 @@ static bool flashSpiInit(const flashConfig_t *flashConfig)
     if (flashConfig->csTag) {
         dev->busType_u.spi.csnPin = IOGetByTag(flashConfig->csTag);
     } else {
+        lastFlashProbeStage = FLASH_PROBE_NO_CS_TAG;
         return false;
     }
 
     if (!IOIsFreeOrPreinit(dev->busType_u.spi.csnPin)) {
+        lastFlashProbeStage = FLASH_PROBE_CS_NOT_FREE;
         return false;
     }
 
     if (!spiSetBusInstance(dev, flashConfig->spiDevice)) {
+        lastFlashProbeStage = FLASH_PROBE_BUS_INSTANCE_FAILED;
         return false;
     }
 
@@ -177,6 +200,9 @@ static bool flashSpiInit(const flashConfig_t *flashConfig)
     uint8_t readIdResponse[4] = { 0 };
 
     spiReadRegBuf(dev, FLASH_INSTRUCTION_RDID, readIdResponse, sizeof(readIdResponse));
+
+    lastFlashProbeStage = FLASH_PROBE_TRANSFER_DONE;
+    memcpy(lastFlashRawId, readIdResponse, sizeof(lastFlashRawId));
 
     // Manufacturer, memory type, and capacity
     uint32_t jedecID = (readIdResponse[0] << 16) | (readIdResponse[1] << 8) | (readIdResponse[2]);
