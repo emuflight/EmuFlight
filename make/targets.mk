@@ -27,54 +27,29 @@ UNSUPPORTED_TARGETS := \
 SUPPORTED_TARGETS := $(filter-out $(UNSUPPORTED_TARGETS), $(VALID_TARGETS))
 
 TARGETS_TOTAL := $(words $(SUPPORTED_TARGETS))
-TARGET_GROUPS := 12
-TARGETS_PER_GROUP := $(shell expr $(TARGETS_TOTAL) / $(TARGET_GROUPS) )
+TARGET_GROUPS := 16
 
-ST := 1
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_1_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
+# Group K takes every TARGET_GROUPS-th target starting at K. Contiguous slices
+# cluster same-MCU boards and unbalance the CI jobs.
+group_slice = $(foreach i,$(shell seq $(1) $(TARGET_GROUPS) $(TARGETS_TOTAL)),$(word $(i),$(SUPPORTED_TARGETS)))
 
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_2_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
+GROUP_1_TARGETS := $(call group_slice,1)
+GROUP_2_TARGETS := $(call group_slice,2)
+GROUP_3_TARGETS := $(call group_slice,3)
+GROUP_4_TARGETS := $(call group_slice,4)
+GROUP_5_TARGETS := $(call group_slice,5)
+GROUP_6_TARGETS := $(call group_slice,6)
+GROUP_7_TARGETS := $(call group_slice,7)
+GROUP_8_TARGETS := $(call group_slice,8)
+GROUP_9_TARGETS := $(call group_slice,9)
+GROUP_10_TARGETS := $(call group_slice,10)
+GROUP_11_TARGETS := $(call group_slice,11)
+GROUP_12_TARGETS := $(call group_slice,12)
+GROUP_13_TARGETS := $(call group_slice,13)
+GROUP_14_TARGETS := $(call group_slice,14)
+GROUP_15_TARGETS := $(call group_slice,15)
 
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_3_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_4_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_5_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_6_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_7_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_8_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_9_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_10_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_11_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-GROUP_OTHER_TARGETS := $(filter-out $(GROUP_1_TARGETS) $(GROUP_2_TARGETS) $(GROUP_3_TARGETS) $(GROUP_4_TARGETS) $(GROUP_5_TARGETS) $(GROUP_6_TARGETS) $(GROUP_7_TARGETS) $(GROUP_8_TARGETS) $(GROUP_9_TARGETS) $(GROUP_10_TARGETS) $(GROUP_11_TARGETS), $(SUPPORTED_TARGETS))
+GROUP_OTHER_TARGETS := $(filter-out $(GROUP_1_TARGETS) $(GROUP_2_TARGETS) $(GROUP_3_TARGETS) $(GROUP_4_TARGETS) $(GROUP_5_TARGETS) $(GROUP_6_TARGETS) $(GROUP_7_TARGETS) $(GROUP_8_TARGETS) $(GROUP_9_TARGETS) $(GROUP_10_TARGETS) $(GROUP_11_TARGETS) $(GROUP_12_TARGETS) $(GROUP_13_TARGETS) $(GROUP_14_TARGETS) $(GROUP_15_TARGETS), $(SUPPORTED_TARGETS))
 
 ifeq ($(filter $(TARGET),$(ALT_TARGETS)), $(TARGET))
 BASE_TARGET    := $(firstword $(subst /,, $(subst ./src/main/target/,, $(dir $(wildcard $(ROOT)/src/main/target/*/$(TARGET).mk)))))

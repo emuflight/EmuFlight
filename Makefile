@@ -331,7 +331,8 @@ SUMMARY_PHONY_GOALS := \
     all supported all_with_unsupported unsupported \
     targets-group-1 targets-group-2 targets-group-3 targets-group-4 \
     targets-group-5 targets-group-6 targets-group-7 targets-group-8 \
-    targets-group-9 targets-group-10 targets-group-11 targets-group-rest \
+    targets-group-9 targets-group-10 targets-group-11 targets-group-12 \
+    targets-group-13 targets-group-14 targets-group-15 targets-group-rest \
     flash st-flash binary hex unbrick openocd-gdb \
     version help targets target-mcu targets-by-mcu \
     targets-f4 targets-f7 targets-h7 \
@@ -555,7 +556,23 @@ targets-group-10:
 targets-group-11:
 	$(call summary_build,$(GROUP_11_TARGETS))
 
-## targets-group-rest: build the rest of the targets (not listed in groups 1-11)
+## targets-group-12  : build some targets
+targets-group-12:
+	$(call summary_build,$(GROUP_12_TARGETS))
+
+## targets-group-13  : build some targets
+targets-group-13:
+	$(call summary_build,$(GROUP_13_TARGETS))
+
+## targets-group-14  : build some targets
+targets-group-14:
+	$(call summary_build,$(GROUP_14_TARGETS))
+
+## targets-group-15  : build some targets
+targets-group-15:
+	$(call summary_build,$(GROUP_15_TARGETS))
+
+## targets-group-rest: build the rest of the targets (not listed in groups 1-15)
 targets-group-rest:
 	$(call summary_build,$(GROUP_OTHER_TARGETS))
 
