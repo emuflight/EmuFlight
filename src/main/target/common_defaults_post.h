@@ -176,6 +176,18 @@
 #define SPI4_MOSI_PIN   NONE
 #endif
 
+#ifdef USE_SPI_DEVICE_5
+#define SPI5_SCK_PIN    NONE
+#define SPI5_MISO_PIN   NONE
+#define SPI5_MOSI_PIN   NONE
+#endif
+
+#ifdef USE_SPI_DEVICE_6
+#define SPI6_SCK_PIN    NONE
+#define SPI6_MISO_PIN   NONE
+#define SPI6_MOSI_PIN   NONE
+#endif
+
 #else
 
 // Pin defaults for backward compatibility
