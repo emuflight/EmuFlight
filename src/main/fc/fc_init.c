@@ -221,6 +221,38 @@ void init(void) {
 #endif
     printfSupportInit();
     systemInit();
+#if defined(CONFIG_IN_EXTERNAL_FLASH)
+    // Config lives on an external flash chip that needs its own pins/bus brought up before
+    // it can be read - use compiled-in defaults for those, since the real config (which
+    // would normally supply them) isn't loaded yet.
+    pgResetAll();
+    IOInitGlobal();
+#ifdef USE_SPI
+    spiPinConfigure(spiPinConfig(0));
+    spiPreInit();
+#ifdef USE_SPI_DEVICE_1
+    spiInit(SPIDEV_1);
+#endif
+#ifdef USE_SPI_DEVICE_2
+    spiInit(SPIDEV_2);
+#endif
+#ifdef USE_SPI_DEVICE_3
+    spiInit(SPIDEV_3);
+#endif
+#ifdef USE_SPI_DEVICE_4
+    spiInit(SPIDEV_4);
+#endif
+#ifdef USE_SPI_DEVICE_5
+    spiInit(SPIDEV_5);
+#endif
+#ifdef USE_SPI_DEVICE_6
+    spiInit(SPIDEV_6);
+#endif
+#endif // USE_SPI
+    if (!flashInit(flashConfig())) {
+        failureMode(FAILURE_EXTERNAL_FLASH_INIT_FAILED);
+    }
+#endif // CONFIG_IN_EXTERNAL_FLASH
     initEEPROM();
     ensureEEPROMStructureIsValid();
     readEEPROM();
@@ -352,9 +384,13 @@ void init(void) {
 #if defined(USE_INVERTER) && !defined(SIMULATOR_BUILD)
     initInverters(serialPinConfig());
 #endif
+#if defined(TARGET_BUS_INIT) && defined(CONFIG_IN_EXTERNAL_FLASH)
+#error "CONFIG_IN_EXTERNAL_FLASH and TARGET_BUS_INIT are mutually exclusive"
+#endif
 #ifdef TARGET_BUS_INIT
     targetBusInit();
 #else
+#if !defined(CONFIG_IN_EXTERNAL_FLASH)
 #ifdef USE_SPI
     spiPinConfigure(spiPinConfig(0));
     // Initialize CS lines and keep them high
@@ -378,6 +414,7 @@ void init(void) {
     spiInit(SPIDEV_6);
 #endif
 #endif // USE_SPI
+#endif // !CONFIG_IN_EXTERNAL_FLASH
 #if defined(USE_SDCARD_SDIO) && !defined(CONFIG_IN_SDCARD) && defined(STM32H7)
     sdioPinConfigure();
     sdioInitialize();
@@ -590,7 +627,7 @@ void init(void) {
     }
 #endif
 #ifdef USE_FLASHFS
-#if defined(USE_FLASH)
+#if defined(USE_FLASH) && !defined(CONFIG_IN_EXTERNAL_FLASH)
     flashInit(flashConfig());
 #endif
     flashfsInit();

@@ -34,9 +34,10 @@
 #include "pg/pg.h"
 #include "fc/config.h"
 
+#include "drivers/flash.h"
 #include "drivers/system.h"
 
-#ifndef EEPROM_IN_RAM
+#if !defined(EEPROM_IN_RAM) && !defined(CONFIG_IN_EXTERNAL_FLASH)
 extern uint8_t __config_start;   // configured via linker script when building binaries.
 extern uint8_t __config_end;
 #endif
@@ -83,6 +84,30 @@ typedef struct {
     uint32_t word;
 } PG_PACKED packingTest_t;
 
+#if defined(CONFIG_IN_EXTERNAL_FLASH)
+// Config lives in a partition of the same flash chip blackbox logging uses; read it into
+// the eepromData[] staging buffer that __config_start/__config_end alias to.
+static bool loadEEPROMFromExternalFlash(void) {
+    const flashPartition_t *flashPartition = flashPartitionFindByType(FLASH_PARTITION_TYPE_CONFIG);
+    const flashGeometry_t *flashGeometry = flashGetGeometry();
+
+    const uint32_t flashStartAddress = flashPartition->startSector * flashGeometry->sectorSize;
+
+    uint32_t totalBytesRead = 0;
+    int bytesRead = 0;
+    bool success = false;
+    do {
+        bytesRead = flashReadBytes(flashStartAddress + totalBytesRead, &eepromData[totalBytesRead], EEPROM_SIZE - totalBytesRead);
+        if (bytesRead > 0) {
+            totalBytesRead += bytesRead;
+            success = (totalBytesRead == EEPROM_SIZE);
+        }
+    } while (!success && bytesRead > 0);
+
+    return success;
+}
+#endif
+
 void initEEPROM(void) {
     // Verify that this architecture packs as expected.
     BUILD_BUG_ON(offsetof(packingTest_t, byte) != 0);
@@ -90,6 +115,12 @@ void initEEPROM(void) {
     BUILD_BUG_ON(sizeof(packingTest_t) != 5);
     BUILD_BUG_ON(sizeof(configFooter_t) != 2);
     BUILD_BUG_ON(sizeof(configRecord_t) != 6);
+
+#if defined(CONFIG_IN_EXTERNAL_FLASH)
+    if (!loadEEPROMFromExternalFlash()) {
+        failureMode(FAILURE_FLASH_READ_FAILED);
+    }
+#endif
 }
 
 bool isEEPROMVersionValid(void) {
@@ -225,7 +256,13 @@ void writeConfigToEEPROM(void) {
     // write it
     for (int attempt = 0; attempt < 3 && !success; attempt++) {
         if (writeSettingsToEEPROM()) {
+#if defined(CONFIG_IN_EXTERNAL_FLASH)
+            // write_word() never touches eepromData[] itself - refresh it from what was
+            // actually written to flash before the version/structure checks below run.
+            success = loadEEPROMFromExternalFlash();
+#else
             success = true;
+#endif
         }
     }
     if (success && isEEPROMVersionValid() && isEEPROMStructureValid()) {

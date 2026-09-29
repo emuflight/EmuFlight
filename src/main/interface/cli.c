@@ -31,7 +31,7 @@
 // FIXME remove this for targets that don't need a CLI.  Perhaps use a no-op macro when USE_CLI is not enabled
 // signal that we're in cli mode
 uint8_t cliMode = 0;
-#ifndef EEPROM_IN_RAM
+#if !defined(EEPROM_IN_RAM) && !defined(CONFIG_IN_EXTERNAL_FLASH)
 extern uint8_t __config_start;   // configured via linker script when building binaries.
 extern uint8_t __config_end;
 #endif

@@ -267,10 +267,13 @@
 // CONFIG_IN_RAM: firmware uses a RAM array as config storage (no flash write needed).
 // Required for EXST targets where the linker script has no FLASH_CONFIG section
 // (e.g. H730 running from OctoSPI, bootloader-managed memory-mapped mode).
+// CONFIG_IN_EXTERNAL_FLASH stages config in the same RAM array, then streams it out to a
+// partition on an external SPI flash chip (see config_eeprom.c/config_streamer.c) - it does
+// NOT define EEPROM_IN_RAM, since a real backing store exists.
 // Aliases __config_start/__config_end to eepromData[] so config_eeprom.c and
 // config_streamer.c see valid addresses without linker-script symbols.
-#if defined(CONFIG_IN_RAM)
-#ifndef EEPROM_IN_RAM
+#if defined(CONFIG_IN_RAM) || defined(CONFIG_IN_EXTERNAL_FLASH)
+#if defined(CONFIG_IN_RAM) && !defined(EEPROM_IN_RAM)
 #define EEPROM_IN_RAM
 #endif
 #ifndef EEPROM_SIZE

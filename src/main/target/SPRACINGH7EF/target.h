@@ -30,10 +30,10 @@
 #define FC_TARGET_MCU           STM32H730     // not used in EmuF
 #define EEPROM_SIZE             8192
 
-// Config storage: OctoSPI flash is configured by bootloader (memory-mapped mode);
-// firmware runs from OctoSPI but does not configure it. CONFIG_IN_EXTERNAL_FLASH
-// requires flash driver + config_streamer work not yet implemented in EF.
-#define CONFIG_IN_RAM
+// Config storage: a partition of the SPI6 onboard flash chip (same chip blackbox logging
+// uses), matching BF's real config for this board - not OctoSPI, which is bootloader-
+// configured (memory-mapped mode) and never touched by firmware.
+#define CONFIG_IN_EXTERNAL_FLASH
 
 #define USE_SPRACING_PERSISTENT_RTC_WORKAROUND
 #define USE_BUTTONS
