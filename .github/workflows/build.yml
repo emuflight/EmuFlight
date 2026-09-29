@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        targets: [targets-group-1, targets-group-2, targets-group-3, targets-group-4, targets-group-5, targets-group-6, targets-group-7, targets-group-8, targets-group-9, targets-group-10, targets-group-11, targets-group-12, targets-group-13, targets-group-14, targets-group-15, targets-group-rest]
+        targets: [targets-group-1, targets-group-2, targets-group-3, targets-group-4, targets-group-5, targets-group-6, targets-group-7, targets-group-8, targets-group-9, targets-group-10, targets-group-11, targets-group-12, targets-group-13, targets-group-14, targets-group-15, targets-group-16]
     outputs:
       buildtag: ${{ steps.ids.outputs.buildtag }}
       shortsha: ${{ steps.ids.outputs.shortsha }}

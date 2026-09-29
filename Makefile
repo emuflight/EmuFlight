@@ -332,7 +332,7 @@ SUMMARY_PHONY_GOALS := \
     targets-group-1 targets-group-2 targets-group-3 targets-group-4 \
     targets-group-5 targets-group-6 targets-group-7 targets-group-8 \
     targets-group-9 targets-group-10 targets-group-11 targets-group-12 \
-    targets-group-13 targets-group-14 targets-group-15 targets-group-rest \
+    targets-group-13 targets-group-14 targets-group-15 targets-group-16 \
     flash st-flash binary hex unbrick openocd-gdb \
     version help targets target-mcu targets-by-mcu \
     targets-f4 targets-f7 targets-h7 \
@@ -572,9 +572,9 @@ targets-group-14:
 targets-group-15:
 	$(call summary_build,$(GROUP_15_TARGETS))
 
-## targets-group-rest: build the rest of the targets (not listed in groups 1-15)
-targets-group-rest:
-	$(call summary_build,$(GROUP_OTHER_TARGETS))
+## targets-group-16  : build some targets
+targets-group-16:
+	$(call summary_build,$(GROUP_16_TARGETS))
 
 ifdef IN_SUMMARY_OUTER
 # Outer intercepted invocation: real work happens in the first goal's recipe.
@@ -743,11 +743,11 @@ targets:
 	@echo "Base target:         $(BASE_TARGET)"
 	@echo "targets-group-1:     $(GROUP_1_TARGETS)"
 	@echo "targets-group-2:     $(GROUP_2_TARGETS)"
-	@echo "targets-group-rest:  $(GROUP_OTHER_TARGETS)"
+	@echo "targets-group-16:    $(GROUP_16_TARGETS)"
 
 	@echo "targets-group-1:     $(words $(GROUP_1_TARGETS)) targets"
 	@echo "targets-group-2:     $(words $(GROUP_2_TARGETS)) targets"
-	@echo "targets-group-rest:  $(words $(GROUP_OTHER_TARGETS)) targets"
+	@echo "targets-group-16:    $(words $(GROUP_16_TARGETS)) targets"
 	@echo "total in all groups  $(words $(SUPPORTED_TARGETS)) targets"
 
 ## target-mcu        : print the MCU type of the target

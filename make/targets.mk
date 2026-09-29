@@ -49,7 +49,11 @@ GROUP_13_TARGETS := $(call group_slice,13)
 GROUP_14_TARGETS := $(call group_slice,14)
 GROUP_15_TARGETS := $(call group_slice,15)
 
-GROUP_OTHER_TARGETS := $(filter-out $(GROUP_1_TARGETS) $(GROUP_2_TARGETS) $(GROUP_3_TARGETS) $(GROUP_4_TARGETS) $(GROUP_5_TARGETS) $(GROUP_6_TARGETS) $(GROUP_7_TARGETS) $(GROUP_8_TARGETS) $(GROUP_9_TARGETS) $(GROUP_10_TARGETS) $(GROUP_11_TARGETS) $(GROUP_12_TARGETS) $(GROUP_13_TARGETS) $(GROUP_14_TARGETS) $(GROUP_15_TARGETS), $(SUPPORTED_TARGETS))
+GROUP_16_TARGETS := $(call group_slice,16)
+
+ifneq ($(words $(GROUP_1_TARGETS) $(GROUP_2_TARGETS) $(GROUP_3_TARGETS) $(GROUP_4_TARGETS) $(GROUP_5_TARGETS) $(GROUP_6_TARGETS) $(GROUP_7_TARGETS) $(GROUP_8_TARGETS) $(GROUP_9_TARGETS) $(GROUP_10_TARGETS) $(GROUP_11_TARGETS) $(GROUP_12_TARGETS) $(GROUP_13_TARGETS) $(GROUP_14_TARGETS) $(GROUP_15_TARGETS) $(GROUP_16_TARGETS)),$(TARGETS_TOTAL))
+$(error Target groups do not cover all supported targets)
+endif
 
 ifeq ($(filter $(TARGET),$(ALT_TARGETS)), $(TARGET))
 BASE_TARGET    := $(firstword $(subst /,, $(subst ./src/main/target/,, $(dir $(wildcard $(ROOT)/src/main/target/*/$(TARGET).mk)))))
