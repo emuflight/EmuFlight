@@ -160,7 +160,7 @@
     TIMER_PIN_MAP( 6, PA3 , 2,  6) \
     TIMER_PIN_MAP( 7, PA2 , 2,  7) \
     TIMER_PIN_MAP( 8, PE5 , 1,  0) \
-    TIMER_PIN_MAP( 9, PE6 , 1,  0) \
+    TIMER_PIN_MAP( 9, PE6 , 1, -1) \
     TIMER_PIN_MAP( 10, PA8 , 1,  8) \
     TIMER_PIN_MAP( 11, PA15 , 1,  0)
 

@@ -133,7 +133,7 @@
     TIMER_PIN_MAP( 4, PB6 , 2,  0) \
     TIMER_PIN_MAP( 5, PB7 , 2,  0) \
     TIMER_PIN_MAP( 6, PD14 , 1,  0) \
-    TIMER_PIN_MAP( 7, PD15 , 1,  0) \
+    TIMER_PIN_MAP( 7, PD15 , 1, -1) \
     TIMER_PIN_MAP( 8, PB5 , 1,  4) \
     TIMER_PIN_MAP( 9, PB3 , 1,  0) \
     TIMER_PIN_MAP( 10, PA8 , 1,  0)
