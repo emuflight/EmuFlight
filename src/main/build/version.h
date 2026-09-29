@@ -45,4 +45,4 @@ extern const char* const buildTime; // "HH:MM:SS"
 #define BUILD_NUMBER_LENGTH 6
 extern const char* const buildNumber; // 999999
 
-#define MSP_API_VERSION_STRING STR(API_VERSION_MAJOR) "." STR(API_VERSION_MINOR)
+#define MSP_API_VERSION_STRING STR(API_VERSION_MAJOR) "." STR(API_VERSION_MINOR) "." STR(API_VERSION_PATCH)

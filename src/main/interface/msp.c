@@ -440,6 +440,7 @@ bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFnPtr
         sbufWriteU8(dst, MSP_PROTOCOL_VERSION);
         sbufWriteU8(dst, API_VERSION_MAJOR);
         sbufWriteU8(dst, API_VERSION_MINOR);
+        sbufWriteU8(dst, API_VERSION_PATCH);
         break;
     case MSP_FC_VARIANT:
         sbufWriteData(dst, flightControllerIdentifier, FLIGHT_CONTROLLER_IDENTIFIER_LENGTH);
