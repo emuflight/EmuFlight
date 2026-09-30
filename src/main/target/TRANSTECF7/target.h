@@ -120,7 +120,7 @@
 // *************** ADC ****************************
 #define USE_ADC
 #define ADC_INSTANCE                    ADC1    // Default added
-#define ADC1_DMA_OPT                    1       // DMA 2 Stream 0 Channel 0
+#define ADC1_DMA_OPT                    1       // DMA 2 Stream 4 Channel 0
 
 #define VBAT_ADC_PIN                    PC0
 #define CURRENT_METER_ADC_PIN           PC1
