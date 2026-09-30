@@ -43,6 +43,7 @@ motorDmaOutput_t *getMotorDmaOutput(uint8_t index) {
     return &dmaMotors[index];
 }
 
+#ifdef USE_DSHOT_DMAR
 // configureTimer stays true for every consecutive channel of the same shared timer
 // (see comment in pwmDshotMotorHardwareConfig), so a burst-mode TIM_UP claim is
 // attempted once per channel; a stream already held by this same owner must be re-claimable.
@@ -52,6 +53,7 @@ static bool dshotDmaClaim(dmaIdentifier_e identifier, resourceOwner_e owner, uin
     }
     return dmaAllocate(identifier, owner, resourceIndex);
 }
+#endif
 
 uint8_t getTimerIndex(TIM_TypeDef *timer) {
     for (int i = 0; i < dmaMotorTimerCount; i++) {
