@@ -58,7 +58,7 @@
 #define USE_FAKE_BARO
 #define USE_BARO_MS5611
 
-#define USABLE_TIMER_CHANNEL_COUNT 16
+#define USABLE_TIMER_CHANNEL_COUNT 11
 
 #define USE_VCP
 #define USE_USB_DETECT
@@ -146,4 +146,16 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define USED_TIMERS  ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(12) | TIM_N(8) | TIM_N(9) | TIM_N(10) | TIM_N(11))
+#define USE_TIMER_MGMT
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB15 , 3,  -1) \
+    TIMER_PIN_MAP( 1, PC6 , 2,  1) \
+    TIMER_PIN_MAP( 2, PC7 , 2,  1) \
+    TIMER_PIN_MAP( 3, PC9 , 2,  0) \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) \
+    TIMER_PIN_MAP( 5, PB8 , 1,  0) \
+    TIMER_PIN_MAP( 6, PA3 , 1,  1) \
+    TIMER_PIN_MAP( 7, PB5 , 1,  0) \
+    TIMER_PIN_MAP( 8, PB9 , 1,  -1) \
+    TIMER_PIN_MAP( 9, PE6 , 1,  -1) \
+    TIMER_PIN_MAP( 10, PB4 , 1,  0)

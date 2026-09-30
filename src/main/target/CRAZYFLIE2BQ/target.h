@@ -32,9 +32,15 @@
 #define TARGET_BOARD_IDENTIFIER "CFBQ"
 #define USBD_PRODUCT_STRING     "Crazyflie 2.0 (BigQuad Deck)"
 
-#define USABLE_TIMER_CHANNEL_COUNT 14
+#define USABLE_TIMER_CHANNEL_COUNT 5
 
-#define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(14) )
+#define USE_TIMER_MGMT
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA7 , 4,  -1) \
+    TIMER_PIN_MAP( 1, PB4 , 1,  0) \
+    TIMER_PIN_MAP( 2, PA2 , 1,  0) \
+    TIMER_PIN_MAP( 3, PB5 , 1,  0) \
+    TIMER_PIN_MAP( 4, PA3 , 1,  0)
 
 #define LED0_PIN                PD2
 #define LED1_PIN                PC0

@@ -146,5 +146,15 @@
 #define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
 
 
-#define USABLE_TIMER_CHANNEL_COUNT      6
-#define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8)   )
+#define USABLE_TIMER_CHANNEL_COUNT      9
+#define USE_TIMER_MGMT
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB6 , 1,  0) \
+    TIMER_PIN_MAP( 1, PB7 , 1,  0) \
+    TIMER_PIN_MAP( 2, PB8 , 1,  0) \
+    TIMER_PIN_MAP( 3, PC8 , 2,  0) \
+    TIMER_PIN_MAP( 4, PA1 , 2,  0) \
+    TIMER_PIN_MAP( 5, PB9 , 1, -1) \
+    TIMER_PIN_MAP( 6, PC9 , 2,  0) \
+    TIMER_PIN_MAP( 7, PB1 , 2,  0) \
+    TIMER_PIN_MAP( 8, PB3 , 1,  0)
