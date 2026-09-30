@@ -408,6 +408,9 @@ static void serializeDataflashReadReply(sbuf_t *dst, uint32_t address, const uin
         while (state.bytesWritten < state.outBufLen && address + bytesReadTotal < flashfsSize) {
             const int bytesRead = flashfsReadAbs(address + bytesReadTotal, readBuffer,
                                                  MIN(sizeof(readBuffer), flashfsSize - address - bytesReadTotal));
+            if (bytesRead <= 0) {
+                break;
+            }
             const int status = huffmanEncodeBufStreaming(&state, readBuffer, bytesRead, huffmanTable);
             if (status == -1) {
                 // overflow
