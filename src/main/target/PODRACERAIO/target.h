@@ -89,9 +89,13 @@
 #define UART2_TX_PIN            PA2
 #define UART2_RX_PIN            PA3
 
+// Soft-serial is off by default. Vendor GPS install remaps the LED pad (PA8) and the
+// SmartAudio pad (PA9, shared with UART1_TX) to soft-serial and disables LED and SmartAudio.
+// To follow it, wire the GPS per the vendor diagram, then in the CLI:
+//   feature SOFTSERIAL
+//   resource SERIAL_RX 11 A09   (and SERIAL_TX 11 A08 if the GPS needs TX)
+// PA9 stays in TIMER_PIN_MAPPING so this remap can claim the pin.
 #define USE_SOFTSERIAL1
-#define SOFTSERIAL1_RX_PIN      PA9
-#define SOFTSERIAL1_TX_PIN      PA8
 //#define USE_SOFTSERIAL2
 
 #define SERIAL_PORT_COUNT       4 //VCP, USART1, USART2, SOFTSERIAL
@@ -132,9 +136,17 @@
 #define SERIALRX_UART           SERIAL_PORT_USART2
 #define SERIALRX_PROVIDER       SERIALRX_CRSF
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
+#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY)
 #define DEFAULT_CURRENT_METER_SCALE                      250                    // 3.3/120A  = 25mv/A
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(4) | TIM_N(9) )
+#define USABLE_TIMER_CHANNEL_COUNT 7
+#define USE_TIMER_MGMT
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA0 , 1,  0) \
+    TIMER_PIN_MAP( 1, PA1 , 1,  0) \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) \
+    TIMER_PIN_MAP( 3, PB7 , 1,  0) \
+    TIMER_PIN_MAP( 4, PA3 , 3, -1) \
+    TIMER_PIN_MAP( 5, PA8 , 1,  0) \
+    TIMER_PIN_MAP( 6, PA9 , 1,  0)
