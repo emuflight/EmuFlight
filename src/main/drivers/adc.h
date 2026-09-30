@@ -29,17 +29,32 @@
 #define ADC_INSTANCE                ADC1
 #endif
 
+// Per-device DMA option; a target.h overrides these. Meaning differs by MCU family:
+// F4/F7 pick one of two fixed streams per ADC, H7 picks a pool stream (0-7 DMA1, 8-15 DMA2).
 #if defined(STM32F4) || defined(STM32F7)
-#ifndef ADC1_DMA_STREAM
-#define ADC1_DMA_STREAM DMA2_Stream4 // ST0 or ST4
+#ifndef ADC1_DMA_OPT
+#define ADC1_DMA_OPT 1 // DMA2 ST4 (0: ST0)
 #endif
 
-#ifndef ADC2_DMA_STREAM
-#define ADC2_DMA_STREAM DMA2_Stream3 // ST2 or ST3
+#ifndef ADC2_DMA_OPT
+#define ADC2_DMA_OPT 1 // DMA2 ST3 (0: ST2)
 #endif
 
-#ifndef ADC3_DMA_STREAM
-#define ADC3_DMA_STREAM DMA2_Stream0 // ST0 or ST1
+#ifndef ADC3_DMA_OPT
+#define ADC3_DMA_OPT 0 // DMA2 ST0 (1: ST1)
+#endif
+#elif defined(STM32H7)
+// DMA1 is reserved for timer-based DMA, so the defaults stay on DMA2.
+#ifndef ADC1_DMA_OPT
+#define ADC1_DMA_OPT 9 // DMA2 ST1
+#endif
+
+#ifndef ADC2_DMA_OPT
+#define ADC2_DMA_OPT 10 // DMA2 ST2
+#endif
+
+#ifndef ADC3_DMA_OPT
+#define ADC3_DMA_OPT 11 // DMA2 ST3
 #endif
 #endif
 

@@ -121,6 +121,7 @@ cli_unittest_DEFINES := \
 		USE_OSD \
 		USE_CLI \
 		USE_RESOURCE_MGMT \
+		USE_ADC \
 		STM32F4 \
 		SystemCoreClock=1000000
 
@@ -203,7 +204,9 @@ dma_reqmap_unittest_SRC := \
 dma_reqmap_unittest_DEFINES := \
 		STM32F4 \
 		USE_SPI \
+		USE_ADC \
 		DMA_Channel_0=0 \
+		DMA_Channel_1=1 \
 		DMA_Channel_2=2 \
 		DMA_Channel_3=3 \
 		DMA_Channel_4=4 \
@@ -238,14 +241,32 @@ dma_reqmap_unittest_DEFINES := \
 		DMA2_Stream7=\(void*\)0x400264B8
 
 
+dma_reqmap_nospi_unittest_SRC := \
+		$(USER_DIR)/drivers/dma_reqmap_mcu.c
+
+dma_reqmap_nospi_unittest_DEFINES := \
+		STM32F4 \
+		USE_ADC \
+		DMA_Channel_0=0 \
+		DMA_Channel_1=1 \
+		DMA_Channel_2=2 \
+		DMA2_Stream0=\(void*\)0x40026410 \
+		DMA2_Stream1=\(void*\)0x40026428 \
+		DMA2_Stream2=\(void*\)0x40026440 \
+		DMA2_Stream3=\(void*\)0x40026458 \
+		DMA2_Stream4=\(void*\)0x40026470
+
+
 dma_reqmap_f7_unittest_SRC := \
 		$(USER_DIR)/drivers/dma_reqmap_mcu.c
 
 dma_reqmap_f7_unittest_DEFINES := \
 		STM32F7 \
 		USE_SPI \
+		USE_ADC \
 		DMA_HandleTypeDef=DMA_Channel_TypeDef \
 		DMA_CHANNEL_0=0 \
+		DMA_CHANNEL_1=1 \
 		DMA_CHANNEL_2=2 \
 		DMA_CHANNEL_3=3 \
 		DMA_CHANNEL_4=4 \
@@ -286,6 +307,9 @@ dma_reqmap_h7_unittest_SRC := \
 dma_reqmap_h7_unittest_DEFINES := \
 		STM32H7 \
 		USE_SPI \
+		USE_ADC \
+		DMA_REQUEST_ADC1=41 \
+		DMA_REQUEST_ADC2=42 \
 		DMA_HandleTypeDef=DMA_Channel_TypeDef \
 		DMA1_Stream0=\(void*\)0x40020000 \
 		DMA1_Stream1=\(void*\)0x40020018 \

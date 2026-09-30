@@ -34,10 +34,15 @@
 #include "pg/adc.h"
 
 
-PG_REGISTER_WITH_RESET_FN(adcConfig_t, adcConfig, PG_ADC_CONFIG, 0);
+PG_REGISTER_WITH_RESET_FN(adcConfig_t, adcConfig, PG_ADC_CONFIG, 1);
 
 void pgResetFn_adcConfig(adcConfig_t *adcConfig) {
     adcConfig->device = ADC_DEV_TO_CFG(adcDeviceByInstance(ADC_INSTANCE));
+    adcConfig->dmaopt[ADCDEV_1] = ADC1_DMA_OPT;
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+    adcConfig->dmaopt[ADCDEV_2] = ADC2_DMA_OPT;
+    adcConfig->dmaopt[ADCDEV_3] = ADC3_DMA_OPT;
+#endif
 #ifdef VBAT_ADC_PIN
     adcConfig->vbat.enabled = true;
     adcConfig->vbat.ioTag = IO_TAG(VBAT_ADC_PIN);

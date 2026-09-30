@@ -159,7 +159,7 @@
 
 #define USE_ADC
 #define ADC_INSTANCE            ADC2
-#define ADC2_DMA_STREAM         DMA2_Stream3
+#define ADC2_DMA_OPT 1
 
 #define VBAT_ADC_PIN            PC1
 #define RSSI_ADC_PIN            PC2

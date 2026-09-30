@@ -103,7 +103,6 @@
 #define ADC_INSTANCE                    ADC1
 #define VBAT_ADC_PIN                    PB1
 #define CURRENT_METER_ADC_PIN           PA5
-#define ADC1_DMA_STREAM           DMA2_Stream0
 #define ADC1_DMA_OPT                    0
 #define DEFAULT_CURRENT_METER_SCALE     1020
 #define CURRENT_METER_OFFSET_DEFAULT    -50

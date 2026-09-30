@@ -152,10 +152,8 @@
 
 #define USE_ADC
 #define ADC_INSTANCE            ADC3           //Mambaf722 settings verified work for this fc
-#define ADC3_DMA_STREAM         DMA2_Stream0    //Mambaf722 settings verified work for this fc
+#define ADC3_DMA_OPT 0
 //#define ADC_INSTANCE            ADC2        //Recommended BF Config Settings
-//#define ADC2_DMA_STREAM         DMA2_Stream3    //Recommended BF Config Settings
-//#define ADC2_DMA_STREAM         DMA2_Stream2    //Based off a guys BF dump online that was used to fix timer/channels as bfconfig wrong
 
 
 

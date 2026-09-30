@@ -26,6 +26,7 @@
 extern "C" {
 
 #include "platform.h"
+#include "drivers/adc.h"
 #include "drivers/dma_reqmap.h"
 #include "drivers/serial.h"
 #include "drivers/serial_uart.h"
@@ -187,4 +188,41 @@ TEST(DmaReqmapF7Unittest, GetOptionByTimerIgnoresZeroInitializedSlots)
 
     EXPECT_EQ(dmaGetOptionByTimer(&timer), DMA_OPT_UNUSED);
     EXPECT_EQ(dmaGetChannelSpecByTimer(&timer), nullptr);
+}
+
+// --- ADC entries (IT #1462): per-device two-option table, values from the DMA2 request map in the reference manual ---
+
+TEST(DmaReqmapF7Unittest, AdcDevicesResolveToTheirFixedStreamAndChannelPairs)
+{
+    // ADC1: ST0/ST4 ch0. ADC2: ST2/ST3 ch1. ADC3: ST0/ST1 ch2.
+    struct { int device; int opt; dmaResource_t *ref; uint32_t channel; } expected[] = {
+        { ADCDEV_1, 0, (dmaResource_t *)DMA2_Stream0, 0 },
+        { ADCDEV_1, 1, (dmaResource_t *)DMA2_Stream4, 0 },
+        { ADCDEV_2, 0, (dmaResource_t *)DMA2_Stream2, 1 },
+        { ADCDEV_2, 1, (dmaResource_t *)DMA2_Stream3, 1 },
+        { ADCDEV_3, 0, (dmaResource_t *)DMA2_Stream0, 2 },
+        { ADCDEV_3, 1, (dmaResource_t *)DMA2_Stream1, 2 },
+    };
+
+    for (const auto &e : expected) {
+        const dmaChannelSpec_t *spec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, e.device, e.opt);
+        ASSERT_NE(spec, nullptr) << "device " << e.device << " opt " << e.opt;
+        EXPECT_EQ(spec->ref, e.ref) << "device " << e.device << " opt " << e.opt;
+        EXPECT_EQ(spec->channel, e.channel) << "device " << e.device << " opt " << e.opt;
+    }
+}
+
+TEST(DmaReqmapF7Unittest, AdcRejectsUnusedAndOutOfRangeOpt)
+{
+    for (int device = ADCDEV_1; device <= ADCDEV_3; device++) {
+        EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, device, DMA_OPT_UNUSED), nullptr);
+        EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, device, 2), nullptr);
+        EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, device, INT8_MAX), nullptr);
+        EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, device, INT8_MIN), nullptr);
+    }
+}
+
+TEST(DmaReqmapF7Unittest, AdcRejectsDeviceWithNoTableEntry)
+{
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, ADCDEV_COUNT, 0), nullptr);
 }

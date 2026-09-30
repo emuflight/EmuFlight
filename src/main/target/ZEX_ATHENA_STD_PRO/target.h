@@ -134,8 +134,6 @@
 #define CURRENT_METER_ADC_PIN PC1
 #define ADC1_DMA_OPT                    9 /*# ADC 1: DMA2 Stream 0 Request 9*/
 #define ADC3_DMA_OPT                    10 /*# ADC 3: DMA2 Stream 1 Request 115*/
-#define ADC1_DMA_STREAM DMA2_Stream1 // ADC1 opt9
-#define ADC3_DMA_STREAM DMA2_Stream2 // ADC3 opt10
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
