@@ -578,6 +578,9 @@ static int m25p16_readBytes(flashDevice_t *fdevice, uint32_t address, uint8_t *b
     // Patch the readBytes command
     m25p16_setCommandAddress(&readBytes[1], address, fdevice->isLargeFlash);
 
+    SPI_TypeDef *spiInstance = fdevice->io.handle.dev->bus->busType_u.spi.instance;
+    const uint16_t spiErrorsBefore = spiGetErrorCounter(spiInstance);
+
     spiSetClkDivisor(fdevice->io.handle.dev, spiCalculateDivider(maxReadClkSPIHz));
 
     spiSequence(fdevice->io.handle.dev, fdevice->couldBeBusy ? &segments[0] : &segments[1]);
@@ -586,6 +589,11 @@ static int m25p16_readBytes(flashDevice_t *fdevice, uint32_t address, uint8_t *b
     spiWait(fdevice->io.handle.dev);
 
     spiSetClkDivisor(fdevice->io.handle.dev, spiCalculateDivider(maxClkSPIHz));
+
+    // A polled-transfer timeout leaves the buffer partly unfilled
+    if (spiGetErrorCounter(spiInstance) != spiErrorsBefore) {
+        return 0;
+    }
 
     return length;
 }
