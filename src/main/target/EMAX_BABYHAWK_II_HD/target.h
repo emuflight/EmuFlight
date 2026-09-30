@@ -121,7 +121,7 @@
     TIMER_PIN_MAP( 2, PA10 , 1,  1) \
     TIMER_PIN_MAP( 3, PB0 , 2,  0) \
     TIMER_PIN_MAP( 4, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 5, PA2 , 3,  0) \
+    TIMER_PIN_MAP( 5, PA2 , 3, -1) \
     TIMER_PIN_MAP( 6, PB1 , 2,  0) \
     TIMER_PIN_MAP( 7, PA3 , 2,  1) \
     TIMER_PIN_MAP( 8, PB10 , 1,  0) \

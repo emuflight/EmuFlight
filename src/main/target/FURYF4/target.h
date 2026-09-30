@@ -166,7 +166,7 @@
     TIMER_PIN_MAP( 3, PB1 , 1,  0) \
     TIMER_PIN_MAP( 4, PA2 , 1,  0) \
     TIMER_PIN_MAP( 5, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 6, PB9 , 2,  0)
+    TIMER_PIN_MAP( 6, PB9 , 2, -1)
 
 #define MOTOR1_PIN              PA3
 #define MOTOR2_PIN              PB0

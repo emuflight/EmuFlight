@@ -191,8 +191,8 @@
 #define USABLE_TIMER_CHANNEL_COUNT          14 // 4xPWM, 6xESC, 2xESC via UART3 RX/TX, 1xLED Strip, 1xIR.
 #define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA3 , 3,  0) \
-    TIMER_PIN_MAP( 1, PA2 , 3,  0) \
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) \
+    TIMER_PIN_MAP( 1, PA2 , 3, -1) \
     TIMER_PIN_MAP( 2, PC8 , 2,  1) \
     TIMER_PIN_MAP( 3, PC7 , 2,  1) \
     TIMER_PIN_MAP( 4, PC9 , 2,  0) \

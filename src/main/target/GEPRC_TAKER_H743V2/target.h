@@ -158,7 +158,7 @@
     TIMER_PIN_MAP( 6, PE11 , 1,  6) \
     TIMER_PIN_MAP( 7, PE13 , 1,  7) \
     TIMER_PIN_MAP( 8, PE14 , 1,  8) \
-    TIMER_PIN_MAP( 9, PB14 , 2,  0) \
+    TIMER_PIN_MAP( 9, PB14 , 2, -1) \
     TIMER_PIN_MAP( 10, PD13 , 1,  0) \
     TIMER_PIN_MAP( 11, PD14 , 1,  0) \
     TIMER_PIN_MAP( 12, PA3 , 2,  0)

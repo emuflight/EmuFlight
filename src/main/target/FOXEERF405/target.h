@@ -152,7 +152,7 @@
 #define USABLE_TIMER_CHANNEL_COUNT 9
 #define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB15 , 3,  0) \
+    TIMER_PIN_MAP( 0, PB15 , 3, -1) \
     TIMER_PIN_MAP( 1, PB0 , 2,  0) \
     TIMER_PIN_MAP( 2, PB4 , 1,  0) \
     TIMER_PIN_MAP( 3, PC8 , 2,  0) \
