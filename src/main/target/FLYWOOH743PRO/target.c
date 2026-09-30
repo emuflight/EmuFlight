@@ -30,20 +30,21 @@
 #include "drivers/timer_def.h"
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
+    // motors: dmaopt 0-7 = DMA1_S0-7; led strip DMA2_S5; ADC1 holds DMA2_S0; SPI buses take the free streams
     DEF_TIM(TIM3, CH3, PB0, TIM_USE_MOTOR, 0, 0, NONE), // motor 1
-    DEF_TIM(TIM3, CH4, PB1, TIM_USE_MOTOR, 0, 0, NONE), // motor 2
-    DEF_TIM(TIM5, CH1, PA0, TIM_USE_MOTOR, 0, 0, NONE), // motor 3
-    DEF_TIM(TIM5, CH2, PA1, TIM_USE_MOTOR, 0, 0, NONE), // motor 4
-    DEF_TIM(TIM5, CH3, PA2, TIM_USE_MOTOR, 0, 0, NONE), // motor 5
-    DEF_TIM(TIM5, CH4, PA3, TIM_USE_MOTOR, 0, 0, NONE), // motor 6
-    DEF_TIM(TIM4, CH1, PD12, TIM_USE_MOTOR, 0, 0, NONE), // motor 7
-    DEF_TIM(TIM4, CH2, PD13, TIM_USE_MOTOR, 0, 0, NONE), // motor 8
-    DEF_TIM(TIM4, CH3, PD14, TIM_USE_SERVO, 0, 0, NONE), // servo 1; dma -1 in config (input only)
-    DEF_TIM(TIM4, CH4, PD15, TIM_USE_SERVO, 0, 0, NONE), // servo 2; dma -1 in config (input only)
-    DEF_TIM(TIM15, CH1, PE5, TIM_USE_SERVO, 0, 0, NONE), // servo 3; dma -1 in config (input only)
-    DEF_TIM(TIM15, CH2, PE6, TIM_USE_SERVO, 0, 0, NONE), // servo 4; dma -1 in config (input only)
-    DEF_TIM(TIM1, CH1, PA8, TIM_USE_LED, 0, 0, NONE), // led strip
-    DEF_TIM(TIM8, CH2, PC7, TIM_USE_PPM, 0, 0, NONE), // ppm; dma -1 in config (input only)
+    DEF_TIM(TIM3, CH4, PB1, TIM_USE_MOTOR, 0, 1, NONE), // motor 2
+    DEF_TIM(TIM5, CH1, PA0, TIM_USE_MOTOR, 0, 2, NONE), // motor 3
+    DEF_TIM(TIM5, CH2, PA1, TIM_USE_MOTOR, 0, 3, NONE), // motor 4
+    DEF_TIM(TIM5, CH3, PA2, TIM_USE_MOTOR, 0, 4, NONE), // motor 5
+    DEF_TIM(TIM5, CH4, PA3, TIM_USE_MOTOR, 0, 5, NONE), // motor 6
+    DEF_TIM(TIM4, CH1, PD12, TIM_USE_MOTOR, 0, 6, NONE), // motor 7
+    DEF_TIM(TIM4, CH2, PD13, TIM_USE_MOTOR, 0, 7, NONE), // motor 8
+    DEF_TIM(TIM4, CH3, PD14, TIM_USE_SERVO, 0, NONE, NONE), // servo 1; dma -1 in config (input only)
+    DEF_TIM(TIM4, CH4, PD15, TIM_USE_SERVO, 0, NONE, NONE), // servo 2; dma -1 in config (input only)
+    DEF_TIM(TIM15, CH1, PE5, TIM_USE_SERVO, 0, NONE, NONE), // servo 3; dma -1 in config (input only)
+    DEF_TIM(TIM15, CH2, PE6, TIM_USE_SERVO, 0, NONE, NONE), // servo 4; dma -1 in config (input only)
+    DEF_TIM(TIM1, CH1, PA8, TIM_USE_LED, 0, 13, NONE), // led strip
+    DEF_TIM(TIM8, CH2, PC7, TIM_USE_PPM, 0, NONE, NONE), // ppm; dma -1 in config (input only)
 };
 
 // notice - this file was programmatically generated and may be incomplete.
