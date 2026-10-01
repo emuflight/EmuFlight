@@ -93,16 +93,19 @@ static bool loadEEPROMFromExternalFlash(void) {
 
     const uint32_t flashStartAddress = flashPartition->startSector * flashGeometry->sectorSize;
 
-    uint32_t totalBytesRead = 0;
-    int bytesRead = 0;
+    // A read that returns 0 means a bus timeout; retry before failing boot
     bool success = false;
-    do {
-        bytesRead = flashReadBytes(flashStartAddress + totalBytesRead, &eepromData[totalBytesRead], EEPROM_SIZE - totalBytesRead);
-        if (bytesRead > 0) {
-            totalBytesRead += bytesRead;
-            success = (totalBytesRead == EEPROM_SIZE);
-        }
-    } while (!success && bytesRead > 0);
+    for (int attempt = 0; attempt < 3 && !success; attempt++) {
+        uint32_t totalBytesRead = 0;
+        int bytesRead = 0;
+        do {
+            bytesRead = flashReadBytes(flashStartAddress + totalBytesRead, &eepromData[totalBytesRead], EEPROM_SIZE - totalBytesRead);
+            if (bytesRead > 0) {
+                totalBytesRead += bytesRead;
+                success = (totalBytesRead == EEPROM_SIZE);
+            }
+        } while (!success && bytesRead > 0);
+    }
 
     return success;
 }

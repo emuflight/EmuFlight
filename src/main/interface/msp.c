@@ -378,18 +378,19 @@ static void serializeDataflashReadReply(sbuf_t *dst, uint32_t address, const uin
     UNUSED(allowCompression);
 #endif
     if (compressionMethod == NO_COMPRESSION) {
-        if (!useLegacyFormat) {
-            // new format supports variable read lengths
-            sbufWriteU16(dst, readLen);
-            sbufWriteU8(dst, 0); // placeholder for compression format
-        }
-        const int bytesRead = flashfsReadAbs(address, sbufPtr(dst), readLen);
-        sbufAdvance(dst, bytesRead);
         if (useLegacyFormat) {
+            const int bytesRead = flashfsReadAbs(address, sbufPtr(dst), readLen);
+            sbufAdvance(dst, bytesRead);
             // pad the buffer with zeros
             for (int i = bytesRead; i < size; i++) {
                 sbufWriteU8(dst, 0);
             }
+        } else {
+            // new format supports variable read lengths; the header carries the length actually read
+            const int bytesRead = flashfsReadAbs(address, sbufPtr(dst) + sizeof(uint16_t) + sizeof(uint8_t), readLen);
+            sbufWriteU16(dst, (uint16_t)bytesRead);
+            sbufWriteU8(dst, NO_COMPRESSION);
+            sbufAdvance(dst, bytesRead);
         }
     } else {
 #ifdef USE_HUFFMAN
@@ -408,6 +409,9 @@ static void serializeDataflashReadReply(sbuf_t *dst, uint32_t address, const uin
         while (state.bytesWritten < state.outBufLen && address + bytesReadTotal < flashfsSize) {
             const int bytesRead = flashfsReadAbs(address + bytesReadTotal, readBuffer,
                                                  MIN(sizeof(readBuffer), flashfsSize - address - bytesReadTotal));
+            if (bytesRead <= 0) {
+                break;
+            }
             const int status = huffmanEncodeBufStreaming(&state, readBuffer, bytesRead, huffmanTable);
             if (status == -1) {
                 // overflow
