@@ -172,6 +172,9 @@
     TIMER_PIN_MAP( 6, PC8 , 2,  6) \
     TIMER_PIN_MAP( 7, PC9 , 2,  7) \
     TIMER_PIN_MAP( 8, PA8 , 1,  13)
+#define TIMUP2_DMA_OPT 10
+#define TIMUP3_DMA_OPT 11
+#define TIMUP8_DMA_OPT 12
 
 #define MOTOR1_PIN              PA0
 #define MOTOR2_PIN              PA1
