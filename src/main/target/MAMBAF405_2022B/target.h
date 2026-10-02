@@ -144,7 +144,7 @@
 #define PINIO2_BOX 40
 // notice - this file was programmatically generated and may not have accounted for any config instance of "#define TLM_INVERTED ON", etc.
 
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_RX_SERIAL)
+#define DEFAULT_FEATURES       (FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 // notice - incomplete; may need additional DEFAULT_FEATURES; e.g. FEATURE_SOFTSERIAL | FEATURE_RX_SPI
 

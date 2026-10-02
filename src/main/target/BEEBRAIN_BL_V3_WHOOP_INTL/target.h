@@ -144,7 +144,7 @@
 
 #define ENABLE_DSHOT_DMAR               true
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_LED_STRIP)
+#define DEFAULT_FEATURES                (FEATURE_LED_STRIP)
 
 
 #define USABLE_TIMER_CHANNEL_COUNT      5

@@ -200,7 +200,7 @@
 /* Defaults - What do we want out of the box?
  */
 #if defined(BREADBOARD)
-#define DEFAULT_FEATURES        (FEATURE_RX_SERIAL | FEATURE_MOTOR_STOP | FEATURE_LED_STRIP | FEATURE_OSD )
+#define DEFAULT_FEATURES        (FEATURE_RX_SERIAL | FEATURE_MOTOR_STOP | FEATURE_LED_STRIP)
 #else
 #define DEFAULT_FEATURES        (FEATURE_RX_SERIAL | FEATURE_MOTOR_STOP )  // TODO FEATURE_OSD for V3 board ... FEATURE_TELEMETRY changes bind pin from rx to tx
 #endif
