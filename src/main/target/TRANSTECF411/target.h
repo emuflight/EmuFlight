@@ -98,7 +98,7 @@
 #define VBAT_ADC_PIN                        PA0
 #define CURRENT_METER_ADC_PIN               PB4
 
-#define DEFAULT_FEATURES                    (FEATURE_OSD | FEATURE_AIRMODE)
+#define DEFAULT_FEATURES                    (FEATURE_OSD)
 #define DEFAULT_VOLTAGE_METER_SOURCE        VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE        CURRENT_METER_ADC
 
