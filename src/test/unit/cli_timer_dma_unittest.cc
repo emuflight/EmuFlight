@@ -1013,10 +1013,7 @@ ioRec_t *IO_Rec(IO_t) { return &ioRecs[0]; }
 int tfp_sprintf(char *s, const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    const int ret = vsprintf(s, fmt, args);
-#pragma GCC diagnostic pop
+    const int ret = vsnprintf(s, 16, fmt, args);
     va_end(args);
     return ret;
 }
