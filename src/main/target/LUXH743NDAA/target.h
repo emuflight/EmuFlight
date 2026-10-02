@@ -153,8 +153,6 @@
 #define RSSI_ADC_PIN PC5
 #define ADC1_DMA_OPT                        8
 #define ADC3_DMA_OPT                        10
-#define ADC1_DMA_STREAM DMA2_Stream0 // ADC1 opt8
-#define ADC3_DMA_STREAM DMA2_Stream2 // ADC3 opt10
 #define DEFAULT_VOLTAGE_METER_SOURCE        VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE        CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 85

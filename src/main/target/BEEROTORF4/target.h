@@ -132,7 +132,7 @@
 #define I2C1_SDA                PB7
 
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 0
 
 #define VBAT_ADC_PIN            PC0
 

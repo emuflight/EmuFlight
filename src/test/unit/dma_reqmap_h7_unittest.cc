@@ -24,6 +24,7 @@
 extern "C" {
 
 #include "platform.h"
+#include "drivers/adc.h"
 #include "drivers/dma_reqmap.h"
 #include "drivers/serial.h"
 #include "drivers/serial_uart.h"
@@ -88,4 +89,46 @@ TEST(DmaReqmapH7Unittest, RejectsUnmappedPeripheral)
 {
     // adversarial: TIMUP requires USE_TIMER (undefined here); must fail closed, not read past the table.
     EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_TIMUP, 0, 0), nullptr);
+}
+
+// --- ADC entries (IT #1462): H7 selects any pool stream; the DMAMUX request is fixed per ADC ---
+
+TEST(DmaReqmapH7Unittest, AdcOptSelectsStreamAndKeepsFixedRequest)
+{
+    const dmaChannelSpec_t *opt0 = dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, ADCDEV_1, 0);
+    ASSERT_NE(opt0, nullptr);
+    const dmaResource_t *opt0Ref = opt0->ref;
+    const uint32_t opt0Channel = opt0->channel;
+
+    const dmaChannelSpec_t *opt9 = dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, ADCDEV_1, 9);
+    ASSERT_NE(opt9, nullptr);
+
+    EXPECT_EQ(opt0Ref, (dmaResource_t *)DMA1_Stream0);
+    EXPECT_EQ(opt9->ref, (dmaResource_t *)DMA2_Stream1);
+    EXPECT_EQ(opt0Channel, static_cast<uint32_t>(DMA_REQUEST_ADC1));
+    EXPECT_EQ(opt9->channel, static_cast<uint32_t>(DMA_REQUEST_ADC1));
+}
+
+TEST(DmaReqmapH7Unittest, AdcDevicesUseTheirOwnRequestCodes)
+{
+    const dmaChannelSpec_t *adc1 = dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, ADCDEV_1, 9);
+    ASSERT_NE(adc1, nullptr);
+    const uint32_t adc1Channel = adc1->channel;
+    const dmaChannelSpec_t *adc2 = dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, ADCDEV_2, 10);
+    ASSERT_NE(adc2, nullptr);
+
+    EXPECT_NE(adc1Channel, adc2->channel);
+    EXPECT_EQ(adc2->ref, (dmaResource_t *)DMA2_Stream2);
+}
+
+TEST(DmaReqmapH7Unittest, AdcRejectsUnusedAndOutOfRangeOpt)
+{
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, ADCDEV_1, DMA_OPT_UNUSED), nullptr);
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, ADCDEV_1, MAX_PERIPHERAL_DMA_OPTIONS), nullptr);
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, ADCDEV_1, INT8_MAX), nullptr);
+}
+
+TEST(DmaReqmapH7Unittest, AdcRejectsDeviceWithNoTableEntry)
+{
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, ADCDEV_COUNT, 0), nullptr);
 }

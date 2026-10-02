@@ -132,7 +132,7 @@
 #define MAX7456_SPI_CS_PIN      PA15
 
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 0
 #define VBAT_ADC_PIN            PC1
 #define CURRENT_METER_ADC_PIN   PC2
 #define RSSI_ADC_PIN            PC0

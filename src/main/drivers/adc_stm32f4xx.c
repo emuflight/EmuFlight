@@ -35,6 +35,7 @@
 #include "io_impl.h"
 #include "rcc.h"
 #include "dma.h"
+#include "dma_reqmap.h"
 
 #include "drivers/sensor.h"
 
@@ -49,10 +50,10 @@
 #endif
 
 const adcDevice_t adcHardware[] = {
-    { .ADCx = ADC1, .rccADC = RCC_APB2(ADC1), .DMAy_Streamx = ADC1_DMA_STREAM, .channel = DMA_Channel_0 },
+    { .ADCx = ADC1, .rccADC = RCC_APB2(ADC1) },
 #if !defined(STM32F411xE)
-    { .ADCx = ADC2, .rccADC = RCC_APB2(ADC2), .DMAy_Streamx = ADC2_DMA_STREAM, .channel = DMA_Channel_1 },
-    { .ADCx = ADC3, .rccADC = RCC_APB2(ADC3), .DMAy_Streamx = ADC3_DMA_STREAM, .channel = DMA_Channel_2 }
+    { .ADCx = ADC2, .rccADC = RCC_APB2(ADC2) },
+    { .ADCx = ADC3, .rccADC = RCC_APB2(ADC3) }
 #endif
 };
 
@@ -245,15 +246,20 @@ void adcInit(const adcConfig_t *config) {
     ADC_DMARequestAfterLastTransferCmd(adc.ADCx, ENABLE);
     ADC_DMACmd(adc.ADCx, ENABLE);
     ADC_Cmd(adc.ADCx, ENABLE);
-    if (!dmaAllocate(dmaGetIdentifier(adc.DMAy_Streamx), OWNER_ADC, 0)) {
+    const dmaChannelSpec_t *dmaspec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, device, config->dmaopt[device]);
+    if (!dmaspec) {
         return;
     }
-    dmaEnable(dmaGetIdentifier(adc.DMAy_Streamx));
-    DMA_DeInit(adc.DMAy_Streamx);
+    DMA_Stream_TypeDef *dmaStream = (DMA_Stream_TypeDef *)dmaspec->ref;
+    if (!dmaAllocate(dmaGetIdentifier(dmaStream), OWNER_ADC, 0)) {
+        return;
+    }
+    dmaEnable(dmaGetIdentifier(dmaStream));
+    DMA_DeInit(dmaStream);
     DMA_InitTypeDef DMA_InitStructure;
     DMA_StructInit(&DMA_InitStructure);
     DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&adc.ADCx->DR;
-    DMA_InitStructure.DMA_Channel = adc.channel;
+    DMA_InitStructure.DMA_Channel = dmaspec->channel;
     DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)adcValues;
     DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
     DMA_InitStructure.DMA_BufferSize = configuredAdcChannels;
@@ -263,8 +269,8 @@ void adcInit(const adcConfig_t *config) {
     DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
     DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
     DMA_InitStructure.DMA_Priority = DMA_Priority_High;
-    DMA_Init(adc.DMAy_Streamx, &DMA_InitStructure);
-    DMA_Cmd(adc.DMAy_Streamx, ENABLE);
+    DMA_Init(dmaStream, &DMA_InitStructure);
+    DMA_Cmd(dmaStream, ENABLE);
     ADC_SoftwareStartConv(adc.ADCx);
 }
 #endif

@@ -32,6 +32,7 @@
 #include "io_impl.h"
 #include "rcc.h"
 #include "dma.h"
+#include "dma_reqmap.h"
 #include "drivers/sensor.h"
 #include "adc.h"
 #include "adc_impl.h"
@@ -41,24 +42,11 @@
 #define ADC_INSTANCE ADC1
 #endif
 
-// Default DMA streams for H7 ADC.
-// DMA1 is reserved for timer-based DMA (DShot motors S0-3, LED strip, etc.).
-// ADC defaults to DMA2 to avoid any overlap. Targets can override via target.h.
-#ifndef ADC1_DMA_STREAM
-#define ADC1_DMA_STREAM DMA2_Stream1
-#endif
-#ifndef ADC2_DMA_STREAM
-#define ADC2_DMA_STREAM DMA2_Stream2
-#endif
-#ifndef ADC3_DMA_STREAM
-#define ADC3_DMA_STREAM DMA2_Stream3
-#endif
-
 const adcDevice_t adcHardware[] = {
-    { .ADCx = ADC1, .rccADC = RCC_AHB1(ADC12), .dmaResource = (dmaResource_t *)ADC1_DMA_STREAM, .channel = DMA_REQUEST_ADC1 },
-    { .ADCx = ADC2, .rccADC = RCC_AHB1(ADC12), .dmaResource = (dmaResource_t *)ADC2_DMA_STREAM, .channel = DMA_REQUEST_ADC2 },
+    { .ADCx = ADC1, .rccADC = RCC_AHB1(ADC12) },
+    { .ADCx = ADC2, .rccADC = RCC_AHB1(ADC12) },
 #if !(defined(STM32H7A3xx) || defined(STM32H7A3xxQ))
-    { .ADCx = ADC3, .rccADC = RCC_AHB4(ADC3),  .dmaResource = (dmaResource_t *)ADC3_DMA_STREAM, .channel = DMA_REQUEST_ADC3 },
+    { .ADCx = ADC3, .rccADC = RCC_AHB4(ADC3) },
 #endif
 };
 
@@ -313,12 +301,13 @@ void adcInit(const adcConfig_t *config)
             }
         }
 
-        dmaIdentifier_e dmaId = dmaGetIdentifier((DMA_Stream_TypeDef *)adc.dmaResource);
-        if (dmaAllocate(dmaId, OWNER_ADC, 0)) {
+        const dmaChannelSpec_t *dmaSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, device, config->dmaopt[device]);
+        const dmaIdentifier_e dmaId = dmaSpec ? dmaGetIdentifier((DMA_Stream_TypeDef *)dmaSpec->ref) : DMA_NONE;
+        if (dmaSpec && dmaAllocate(dmaId, OWNER_ADC, 0)) {
             dmaEnable(dmaId);
 
-            adc.DmaHandle.Instance               = (DMA_Stream_TypeDef *)adc.dmaResource;
-            adc.DmaHandle.Init.Request           = adc.channel;
+            adc.DmaHandle.Instance               = (DMA_Stream_TypeDef *)dmaSpec->ref;
+            adc.DmaHandle.Init.Request           = dmaSpec->channel;
             adc.DmaHandle.Init.Direction         = DMA_PERIPH_TO_MEMORY;
             adc.DmaHandle.Init.PeriphInc         = DMA_PINC_DISABLE;
             adc.DmaHandle.Init.MemInc            = configuredAdcChannels > 1 ? DMA_MINC_ENABLE : DMA_MINC_DISABLE;

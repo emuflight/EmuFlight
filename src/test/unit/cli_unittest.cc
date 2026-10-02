@@ -315,6 +315,60 @@ TEST_F(DmaoptClaimStatusTest, InvalidIdentifierPrintsMapError)
     EXPECT_NE(std::string::npos, output.find("# UART_TX 1: DMA MAP ERROR"));
 }
 
+class DmaoptAdcClaimStatusTest : public DmaoptClaimStatusTest {
+protected:
+    void SetUp() override {
+        DmaoptClaimStatusTest::SetUp();
+        entry = findDmaoptEntry("ADC");
+    }
+};
+
+TEST_F(DmaoptAdcClaimStatusTest, FindsAdcEntryCaseInsensitively)
+{
+    ASSERT_NE(nullptr, entry);
+    EXPECT_EQ(entry, findDmaoptEntry("adc"));
+}
+
+TEST_F(DmaoptAdcClaimStatusTest, OwnClaimPrintsNothingForAnyDeviceIndex)
+{
+    // adcInit() claims its stream with resource index 0 regardless of which ADC device it drives.
+    ASSERT_NE(nullptr, entry);
+    fakeDmaOwner = OWNER_ADC;
+    fakeDmaResourceIndex = 0;
+
+    testing::internal::CaptureStdout();
+    printDmaoptClaimStatus(entry, 0, &spec);
+    printDmaoptClaimStatus(entry, 2, &spec);
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(output.empty());
+}
+
+TEST_F(DmaoptAdcClaimStatusTest, ForeignClaimNamesTheOtherOwner)
+{
+    ASSERT_NE(nullptr, entry);
+    fakeDmaOwner = OWNER_SPI_SDI;
+    fakeDmaResourceIndex = 2;
+
+    testing::internal::CaptureStdout();
+    printDmaoptClaimStatus(entry, 0, &spec);
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    EXPECT_NE(std::string::npos, output.find("# ADC 1: CLAIMED BY SPI_SDI 2"));
+}
+
+TEST_F(DmaoptAdcClaimStatusTest, FreeOwnerPrintsNothing)
+{
+    ASSERT_NE(nullptr, entry);
+    fakeDmaOwner = OWNER_FREE;
+
+    testing::internal::CaptureStdout();
+    printDmaoptClaimStatus(entry, 1, &spec);
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(output.empty());
+}
+
 // timerGetOwner()/timerGetOwnerResourceIndex() are stubbed (below) as test-controllable fakes;
 // these globals select what each returns for the current test case.
 static resourceOwner_e fakeTimerOwner;

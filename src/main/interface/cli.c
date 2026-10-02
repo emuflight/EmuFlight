@@ -4117,6 +4117,9 @@ typedef struct dmaoptEntry_s {
 // DEFW : array-of-structs entry (stride = sizeof(type)); mirrors resourceTable's macro family above.
 #define DEFW(device, peripheral, pgn, type, member, max, mask) \
     { device, peripheral, pgn, sizeof(type), offsetof(type, member), max, mask }
+// DEFA : plain array member (stride = element size).
+#define DEFA(device, peripheral, pgn, type, member, max, mask) \
+    { device, peripheral, pgn, sizeof(((type *)0)->member[0]), offsetof(type, member), max, mask }
 
 // Config slots are sized per MCU family; only UARTs enabled by the target exist.
 #ifdef USE_UART1
@@ -4180,9 +4183,13 @@ typedef struct dmaoptEntry_s {
 static const dmaoptEntry_t dmaoptEntryTable[] = {
     DEFW("UART_TX", DMA_PERIPH_UART_TX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, txDmaopt, UARTDEV_COUNT_MAX, UART_PRESENT_MASK),
     DEFW("UART_RX", DMA_PERIPH_UART_RX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, rxDmaopt, UARTDEV_COUNT_MAX, UART_PRESENT_MASK),
+#ifdef USE_ADC
+    DEFA("ADC", DMA_PERIPH_ADC, PG_ADC_CONFIG, adcConfig_t, dmaopt, ADCDEV_COUNT, 0),
+#endif
 };
 
 #undef DEFW
+#undef DEFA
 
 #define DMA_OPT_STRING_BUFSIZE 5
 
@@ -4222,7 +4229,7 @@ static dmaoptValue_t *dmaoptAddr(const dmaoptEntry_t *entry, int index) {
     return (dmaoptValue_t *)(base + entry->stride * index + entry->offset);
 }
 
-// Surfaces serialUART()'s otherwise-silent IRQ-driven fallback via dmaAllocate()'s live ownership state.
+// Surfaces serialUART()'s and adcInit()'s otherwise-silent DMA fallback/abort via dmaAllocate()'s live ownership state.
 STATIC_UNIT_TESTED void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int index, const dmaChannelSpec_t *dmaChannelSpec) {
     const dmaIdentifier_e identifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaChannelSpec->ref);
     if (identifier == DMA_NONE) {
@@ -4230,13 +4237,20 @@ STATIC_UNIT_TESTED void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int i
         cliPrintLinef("# %s %d: DMA MAP ERROR", entry->device, index + 1);
         return;
     }
-    const resourceOwner_e expectedOwner = (entry->peripheral == DMA_PERIPH_UART_TX) ? OWNER_SERIAL_TX : OWNER_SERIAL_RX;
+    resourceOwner_e expectedOwner = OWNER_SERIAL_RX;
+    if (entry->peripheral == DMA_PERIPH_UART_TX) {
+        expectedOwner = OWNER_SERIAL_TX;
+    } else if (entry->peripheral == DMA_PERIPH_ADC) {
+        expectedOwner = OWNER_ADC;
+    }
     const resourceOwner_e actualOwner = dmaGetOwner(identifier);
     const uint8_t actualIndex = dmaGetResourceIndex(identifier);
-    if (actualOwner == expectedOwner && actualIndex == RESOURCE_INDEX(index)) {
+    // The ADC driver claims its stream with resource index 0 regardless of device.
+    const bool indexMatches = entry->peripheral == DMA_PERIPH_ADC || actualIndex == RESOURCE_INDEX(index);
+    if (actualOwner == expectedOwner && indexMatches) {
         return;
     }
-    // OWNER_FREE is indistinguishable from "this UART not opened this boot" (unassigned serial function) -- skip to avoid false positives on every unused UART slot.
+    // OWNER_FREE is indistinguishable from "this peripheral not opened this boot" (unassigned serial function, unused ADC) -- skip to avoid false positives on every unused slot.
     if (actualOwner == OWNER_FREE) {
         return;
     }

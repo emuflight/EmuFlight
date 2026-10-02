@@ -89,7 +89,7 @@
 // ESC
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 0
 #define DEFAULT_VOLTAGE_METER_SOURCE                     VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE                     CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN                            PB1

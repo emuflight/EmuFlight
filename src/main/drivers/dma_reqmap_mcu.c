@@ -337,6 +337,12 @@ static const dmaPeripheralMapping_t dmaPeripheralMapping[] = {
     { DMA_PERIPH_SPI_SDI, SPIDEV_4, { DMA(2, 0, 4), DMA(2, 3, 5) } },
 #endif
 
+#ifdef USE_ADC
+    { DMA_PERIPH_ADC, ADCDEV_1, { DMA(2, 0, 0), DMA(2, 4, 0) } },
+    { DMA_PERIPH_ADC, ADCDEV_2, { DMA(2, 2, 1), DMA(2, 3, 1) } },
+    { DMA_PERIPH_ADC, ADCDEV_3, { DMA(2, 0, 2), DMA(2, 1, 2) } },
+#endif
+
     // UART DMA: each entry lists every silicon-valid stream/channel for that UART.
     // Unlike spiInitBusDMA()'s caller-side loop over opt, serialUART() resolves a
     // single, PG-config-selected opt with no automatic retry of the other alternate on
@@ -520,11 +526,41 @@ const dmaChannelSpec_t *dmaGetChannelSpecByTimer(const timerHardware_t *timer)
 
 #else  // F1/F3 or no SPI → stubs
 
+#if (defined(STM32F4) || defined(STM32F7)) && defined(USE_ADC)
+// Targets without SPI skip the full table above but still need the ADC rows.
+#if defined(STM32F4)
+#define DMA(d, s, c) { DMA_CODE(d, s, c), (dmaResource_t *)DMA ## d ## _Stream ## s, DMA_Channel_ ## c }
+#elif defined(STM32F7)
+#define DMA(d, s, c) { DMA_CODE(d, s, c), (dmaResource_t *)DMA ## d ## _Stream ## s, DMA_CHANNEL_ ## c }
+#endif
+
+static const dmaPeripheralMapping_t dmaPeripheralMapping[] = {
+    { DMA_PERIPH_ADC, ADCDEV_1, { DMA(2, 0, 0), DMA(2, 4, 0) } },
+    { DMA_PERIPH_ADC, ADCDEV_2, { DMA(2, 2, 1), DMA(2, 3, 1) } },
+    { DMA_PERIPH_ADC, ADCDEV_3, { DMA(2, 0, 2), DMA(2, 1, 2) } },
+};
+
+#undef DMA
+#endif
+
 const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e device, uint8_t index, int8_t opt)
 {
+#if (defined(STM32F4) || defined(STM32F7)) && defined(USE_ADC)
+    if (opt < 0 || opt >= MAX_PERIPHERAL_DMA_OPTIONS) {
+        return NULL;
+    }
+
+    for (unsigned i = 0; i < ARRAYLEN(dmaPeripheralMapping); i++) {
+        const dmaPeripheralMapping_t *periph = &dmaPeripheralMapping[i];
+        if (periph->device == device && periph->index == index && periph->channelSpec[opt].ref) {
+            return &periph->channelSpec[opt];
+        }
+    }
+#else
     UNUSED(device);
     UNUSED(index);
     UNUSED(opt);
+#endif
     return NULL;
 }
 

@@ -111,7 +111,7 @@
 #define MAX7456_SPI_CS_PIN      PB12
 
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 0
 #define VBAT_ADC_PIN            PA0
 #define CURRENT_METER_ADC_PIN   PA1
 

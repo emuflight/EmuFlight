@@ -124,7 +124,6 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE                    ADC1
-#define ADC1_DMA_STREAM                 DMA2_Stream0
 #define ADC1_DMA_OPT                    0
 #define VBAT_ADC_PIN                    PB1
 #define CURRENT_METER_ADC_PIN           PA5

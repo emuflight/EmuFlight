@@ -121,7 +121,6 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE            ADC1 //test 1 for ADC1
-#define ADC2_DMA_STREAM         DMA2_Stream4
 //#define ADC1_DMA_OPT            0  // DMA 2 Stream 0 Channel 0
 
 #define VBAT_ADC_PIN            PB1

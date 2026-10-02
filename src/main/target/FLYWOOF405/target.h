@@ -139,7 +139,7 @@
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define USE_ADC
-#define ADC1_DMA_STREAM             DMA2_Stream0
+#define ADC1_DMA_OPT 0
 #define VBAT_ADC_PIN                PC3
 #define CURRENT_METER_ADC_PIN       PC2
 #define DEFAULT_CURRENT_METER_SCALE        275

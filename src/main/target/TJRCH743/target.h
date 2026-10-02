@@ -108,9 +108,6 @@
 #define ADC1_DMA_OPT                        9
 #define ADC2_DMA_OPT                        10
 #define ADC3_DMA_OPT                        11
-#define ADC1_DMA_STREAM DMA2_Stream1 // ADC1 opt9
-#define ADC2_DMA_STREAM DMA2_Stream2 // ADC2 opt10
-#define ADC3_DMA_STREAM DMA2_Stream3 // ADC3 opt11
 #define DEFAULT_VOLTAGE_METER_SOURCE        VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE        CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 350
