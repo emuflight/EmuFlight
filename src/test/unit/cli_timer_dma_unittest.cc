@@ -962,9 +962,22 @@ TEST_F(CliTimerDmaTest, DiffReplayRestoresTheChangedConfig)
     EXPECT_LINE(out, "dma UART_TX 2 1");
 
     pgResetAll();
-    run("timer C08 AF3");
-    run("dma pin C08 2");
-    run("dma UART_TX 2 1");
+    // Replay the emitted lines in the order `diff` printed them.
+    size_t pos = 0;
+    int replayed = 0;
+    while (pos < out.size()) {
+        size_t eol = out.find("\r\n", pos);
+        if (eol == std::string::npos) {
+            eol = out.size();
+        }
+        const std::string line = out.substr(pos, eol - pos);
+        pos = eol + 2;
+        if (line.compare(0, 6, "timer ") == 0 || line.compare(0, 4, "dma ") == 0) {
+            run(line);
+            replayed++;
+        }
+    }
+    EXPECT_EQ(3, replayed);
     EXPECT_EQ(2, timerIOConfig(0)->index);
     EXPECT_EQ(2, timerIOConfig(0)->dmaopt);
     EXPECT_EQ(1, serialUartConfig(1)->txDmaopt);
