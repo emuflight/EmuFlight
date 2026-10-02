@@ -195,7 +195,7 @@ TEST(DmaReqmapF7Unittest, GetOptionByTimerIgnoresZeroInitializedSlots)
 TEST(DmaReqmapF7Unittest, AdcDevicesResolveToTheirFixedStreamAndChannelPairs)
 {
     // ADC1: ST0/ST4 ch0. ADC2: ST2/ST3 ch1. ADC3: ST0/ST1 ch2.
-    struct { int device; int opt; dmaResource_t *ref; uint32_t channel; } expected[] = {
+    const struct { int device; int opt; dmaResource_t *ref; uint32_t channel; } expected[] = {
         { ADCDEV_1, 0, (dmaResource_t *)DMA2_Stream0, 0 },
         { ADCDEV_1, 1, (dmaResource_t *)DMA2_Stream4, 0 },
         { ADCDEV_2, 0, (dmaResource_t *)DMA2_Stream2, 1 },
