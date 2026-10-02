@@ -30,16 +30,17 @@
 #include "drivers/timer_def.h"
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
+    // motors: dmaopt 0-7 = DMA1_S0-7; led strip DMA2_S5; ADC1 holds DMA2_S0; the three SPI buses use the six remaining DMA2 streams
     DEF_TIM(TIM3, CH1, PB4, TIM_USE_MOTOR, 0, 0, NONE), // motor 1
-    DEF_TIM(TIM3, CH2, PB5, TIM_USE_MOTOR, 0, 0, NONE), // motor 2
-    DEF_TIM(TIM3, CH3, PB0, TIM_USE_MOTOR, 0, 0, NONE), // motor 3
-    DEF_TIM(TIM3, CH4, PB1, TIM_USE_MOTOR, 0, 0, NONE), // motor 4
-    DEF_TIM(TIM4, CH1, PB6, TIM_USE_MOTOR, 0, 0, NONE), // motor 5
-    DEF_TIM(TIM4, CH2, PB7, TIM_USE_MOTOR, 0, 0, NONE), // motor 6
-    DEF_TIM(TIM2, CH3, PB10, TIM_USE_MOTOR, 0, 0, NONE), // motor 7
-    DEF_TIM(TIM2, CH4, PB11, TIM_USE_MOTOR, 0, 0, NONE), // motor 8
-    DEF_TIM(TIM1, CH1, PA8, TIM_USE_LED, 0, 0, NONE), // led strip
-    DEF_TIM(TIM2, CH2, PB3, TIM_USE_ANY, 0, 0, NONE), // cam ctrl; dma -1 in config (input only)
+    DEF_TIM(TIM3, CH2, PB5, TIM_USE_MOTOR, 0, 1, NONE), // motor 2
+    DEF_TIM(TIM3, CH3, PB0, TIM_USE_MOTOR, 0, 2, NONE), // motor 3
+    DEF_TIM(TIM3, CH4, PB1, TIM_USE_MOTOR, 0, 3, NONE), // motor 4
+    DEF_TIM(TIM4, CH1, PB6, TIM_USE_MOTOR, 0, 4, NONE), // motor 5
+    DEF_TIM(TIM4, CH2, PB7, TIM_USE_MOTOR, 0, 5, NONE), // motor 6
+    DEF_TIM(TIM2, CH3, PB10, TIM_USE_MOTOR, 0, 6, NONE), // motor 7
+    DEF_TIM(TIM2, CH4, PB11, TIM_USE_MOTOR, 0, 7, NONE), // motor 8
+    DEF_TIM(TIM1, CH1, PA8, TIM_USE_LED, 0, 13, NONE), // led strip
+    DEF_TIM(TIM2, CH2, PB3, TIM_USE_ANY, 0, NONE, NONE), // cam ctrl; dma -1 in config (input only)
 };
 
 // notice - this file was programmatically generated and may be incomplete.

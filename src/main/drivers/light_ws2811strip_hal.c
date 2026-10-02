@@ -60,15 +60,18 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag) {
 
     DMA_Stream_TypeDef *dmaRef = timerHardware->dmaRef;
     uint32_t dmaChannel = timerHardware->dmaChannel;
+    dmaIdentifier_e dmaIrqIdentifier = timerHardware->dmaIrqHandler;
 #if defined(STM32H7) || defined(STM32F4) || defined(STM32F7)
     const dmaChannelSpec_t *dmaSpec = dmaGetChannelSpecByTimer(timerHardware);
     if (dmaSpec) {
         dmaRef = (DMA_Stream_TypeDef *)dmaSpec->ref;
         dmaChannel = dmaSpec->channel;
+        // The baked dmaIrqHandler follows the table's fixed dmaopt, not the resolved one.
+        dmaIrqIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaSpec->ref);
     }
 #endif
 
-    if (dmaRef == NULL || !dmaAllocate(timerHardware->dmaIrqHandler, OWNER_LED_STRIP, 0)) {
+    if (dmaRef == NULL || !dmaAllocate(dmaIrqIdentifier, OWNER_LED_STRIP, 0)) {
         return;
     }
     TimHandle.Instance = timer;
@@ -114,8 +117,8 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag) {
     uint16_t dmaIndex = timerDmaIndex(timerChannel);
     /* Link hdma_tim to hdma[x] (channelx) */
     __HAL_LINKDMA(&TimHandle, hdma[dmaIndex], hdma_tim);
-    dmaEnable(timerHardware->dmaIrqHandler);
-    dmaSetHandler(timerHardware->dmaIrqHandler, WS2811_DMA_IRQHandler, NVIC_PRIO_WS2811_DMA, dmaIndex);
+    dmaEnable(dmaIrqIdentifier);
+    dmaSetHandler(dmaIrqIdentifier, WS2811_DMA_IRQHandler, NVIC_PRIO_WS2811_DMA, dmaIndex);
     /* Initialize TIMx DMA handle */
     if (HAL_DMA_Init(TimHandle.hdma[dmaIndex]) != HAL_OK) {
         /* Initialization Error */
