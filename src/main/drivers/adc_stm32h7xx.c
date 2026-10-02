@@ -38,10 +38,6 @@
 #include "adc_impl.h"
 #include "pg/adc.h"
 
-#ifndef ADC_INSTANCE
-#define ADC_INSTANCE ADC1
-#endif
-
 const adcDevice_t adcHardware[] = {
     { .ADCx = ADC1, .rccADC = RCC_AHB1(ADC12) },
     { .ADCx = ADC2, .rccADC = RCC_AHB1(ADC12) },
@@ -71,14 +67,18 @@ const adcTagMap_t adcTagMap[] = {
 };
 
 // Map 0-based rank index to HAL ADC_REGULAR_RANK_x constant
+#define RANK(n) ADC_REGULAR_RANK_ ## n
+
 static const uint32_t adcRegularRankMap[] = {
-    ADC_REGULAR_RANK_1,
-    ADC_REGULAR_RANK_2,
-    ADC_REGULAR_RANK_3,
-    ADC_REGULAR_RANK_4,
+    RANK(1), RANK(2), RANK(3), RANK(4), RANK(5), RANK(6), RANK(7), RANK(8),
+    RANK(9), RANK(10), RANK(11), RANK(12), RANK(13), RANK(14), RANK(15), RANK(16),
 };
 
-static void adcInitDevice(adcDevice_t *adcdev, int channelCount)
+#undef RANK
+
+static adcDevice_t adcDevice[ADCDEV_COUNT];
+
+static bool adcInitDevice(adcDevice_t *adcdev, int channelCount)
 {
     adcdev->ADCHandle.Instance                       = adcdev->ADCx;
     adcdev->ADCHandle.Init.ClockPrescaler            = ADC_CLOCK_ASYNC_DIV2;
@@ -104,17 +104,12 @@ static void adcInitDevice(adcDevice_t *adcdev, int channelCount)
     adcdev->ADCHandle.Init.Overrun                   = ADC_OVR_DATA_OVERWRITTEN;
     adcdev->ADCHandle.Init.OversamplingMode          = DISABLE;
     if (HAL_ADC_Init(&adcdev->ADCHandle) != HAL_OK) {
-        return;
+        return false;
     }
-    HAL_ADCEx_Calibration_Start(&adcdev->ADCHandle, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
+    return HAL_ADCEx_Calibration_Start(&adcdev->ADCHandle, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED) == HAL_OK;
 }
 
-static adcDevice_t adc;
-
-#ifdef USE_ADC_INTERNAL
-// ADC3 injected channels: VREFINT = rank1 (ch19), TEMPSENSOR = rank2 (ch18) — RM0433 Table 205
-// H7A3/H7B3 do not have ADC3; guard accordingly.
-#if !(defined(STM32H7A3xx) || defined(STM32H7A3xxQ))
+#ifdef ADC_INTERNAL_IN_SCAN
 
 // H743/H750/H7A3 factory-calibrate VREFINT at 16-bit precision; H723/H725/H730 use 12-bit.
 // ADC runs at 12-bit here, so shift 16-bit cal values right by 4 to match the live sample domain.
@@ -126,61 +121,14 @@ static adcDevice_t adc;
 #error Unknown STM32H7 variant — add VREFINT_CAL_SHIFT definition
 #endif
 
-static ADC_HandleTypeDef adcInternalHandle;
-static bool adcInternalConversionInProgress = false;
+// The temperature sensor needs a long sample time (minimum 9 us); external inputs keep the shorter one.
+#define ADC_SAMPLETIME_INTERNAL ADC_SAMPLETIME_810CYCLES_5
 
-static void adcInitInternalInjected(void)
+// Upper bound for the first scan of all ADC3 ranks, including two 810.5-cycle conversions.
+#define ADC_FIRST_SCAN_TIMEOUT_US 10000
+
+static void adcInitCalibrationValues(void)
 {
-    __HAL_RCC_ADC3_CLK_ENABLE();
-
-    adcInternalHandle.Instance                      = ADC3;
-    adcInternalHandle.Init.ClockPrescaler           = ADC_CLOCK_ASYNC_DIV2;
-    adcInternalHandle.Init.Resolution               = ADC_RESOLUTION_12B;
-    adcInternalHandle.Init.ScanConvMode             = DISABLE;
-    adcInternalHandle.Init.EOCSelection             = ADC_EOC_SINGLE_CONV;
-    adcInternalHandle.Init.LowPowerAutoWait         = DISABLE;
-    adcInternalHandle.Init.ContinuousConvMode       = DISABLE;
-    adcInternalHandle.Init.NbrOfConversion          = 1;
-    adcInternalHandle.Init.DiscontinuousConvMode    = DISABLE;
-    adcInternalHandle.Init.NbrOfDiscConversion      = 1;
-    adcInternalHandle.Init.ExternalTrigConv         = ADC_SOFTWARE_START;
-    adcInternalHandle.Init.ExternalTrigConvEdge     = ADC_EXTERNALTRIGCONVEDGE_NONE;
-    // No DMA for injected internal channels — CPU reads directly from data register
-    adcInternalHandle.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DR;
-    adcInternalHandle.Init.Overrun                  = ADC_OVR_DATA_OVERWRITTEN;
-    adcInternalHandle.Init.OversamplingMode         = DISABLE;
-    if (HAL_ADC_Init(&adcInternalHandle) != HAL_OK) {
-        return;
-    }
-    HAL_ADCEx_Calibration_Start(&adcInternalHandle, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
-
-    // VREFINT on ADC3 injected rank 1; TEMPSENSOR on injected rank 2
-    // HAL automatically enables internal voltage reference / temp sensor paths for these channels
-    ADC_InjectionConfTypeDef iConfig;
-    memset(&iConfig, 0, sizeof(iConfig));
-    iConfig.InjectedChannel               = ADC_CHANNEL_VREFINT;
-    iConfig.InjectedRank                  = ADC_INJECTED_RANK_1;
-    iConfig.InjectedSamplingTime          = ADC_SAMPLETIME_810CYCLES_5;
-    iConfig.InjectedSingleDiff            = ADC_SINGLE_ENDED;
-    iConfig.InjectedOffsetNumber          = ADC_OFFSET_NONE;
-    iConfig.InjectedOffset                = 0;
-    iConfig.InjectedNbrOfConversion       = 2;
-    iConfig.InjectedDiscontinuousConvMode = DISABLE;
-    iConfig.AutoInjectedConv              = DISABLE;
-    iConfig.QueueInjectedContext          = DISABLE;
-    iConfig.ExternalTrigInjecConv         = ADC_INJECTED_SOFTWARE_START;
-    iConfig.ExternalTrigInjecConvEdge     = ADC_EXTERNALTRIGINJECCONV_EDGE_NONE;
-    iConfig.InjecOversamplingMode         = DISABLE;
-    if (HAL_ADCEx_InjectedConfigChannel(&adcInternalHandle, &iConfig) != HAL_OK) {
-        return;
-    }
-
-    iConfig.InjectedChannel = ADC_CHANNEL_TEMPSENSOR;
-    iConfig.InjectedRank    = ADC_INJECTED_RANK_2;
-    if (HAL_ADCEx_InjectedConfigChannel(&adcInternalHandle, &iConfig) != HAL_OK) {
-        return;
-    }
-
     adcVREFINTCAL = *VREFINT_CAL_ADDR >> VREFINT_CAL_SHIFT;
     adcTSCAL1 = *TEMPSENSOR_CAL1_ADDR >> VREFINT_CAL_SHIFT;
     adcTSCAL2 = *TEMPSENSOR_CAL2_ADDR >> VREFINT_CAL_SHIFT;
@@ -191,150 +139,234 @@ static void adcInitInternalInjected(void)
     }
 }
 
+// The scan runs continuously; there is no conversion to wait for or to start.
 bool adcInternalIsBusy(void)
 {
-    if (adcInternalConversionInProgress) {
-        if (HAL_ADCEx_InjectedPollForConversion(&adcInternalHandle, 0) == HAL_OK) {
-            adcInternalConversionInProgress = false;
-        }
-    }
-    return adcInternalConversionInProgress;
+    return false;
 }
 
 void adcInternalStartConversion(void)
 {
-    HAL_ADCEx_InjectedStart(&adcInternalHandle);
-    adcInternalConversionInProgress = true;
+}
+
+static uint16_t adcInternalRead(AdcChannel source)
+{
+    if (!adcOperatingConfig[source].enabled) {
+        return 0;
+    }
+    SCB_InvalidateDCache_by_Addr((uint32_t *)adcValues, (sizeof(adcValues) + 31U) & ~31U);
+    return adcValues[adcOperatingConfig[source].dmaIndex];
 }
 
 uint16_t adcInternalReadVrefint(void)
 {
-    return HAL_ADCEx_InjectedGetValue(&adcInternalHandle, ADC_INJECTED_RANK_1);
+    return adcInternalRead(ADC_VREFINT);
 }
 
 uint16_t adcInternalReadTempsensor(void)
 {
-    return HAL_ADCEx_InjectedGetValue(&adcInternalHandle, ADC_INJECTED_RANK_2);
+    return adcInternalRead(ADC_TEMPSENSOR);
 }
 
-#endif // !(STM32H7A3xx || STM32H7A3xxQ)
-#endif // USE_ADC_INTERNAL
+// adcinternal.c divides by the first Vref sample, so it must not see the zero-filled buffer.
+static void adcWaitForInternalSamples(void)
+{
+    const timeUs_t start = micros();
+    while (cmpTimeUs(micros(), start) < ADC_FIRST_SCAN_TIMEOUT_US) {
+        if (adcInternalReadVrefint() && adcInternalReadTempsensor()) {
+            return;
+        }
+    }
+}
+#endif // ADC_INTERNAL_IN_SCAN
+
+static void adcDisableDevice(ADCDevice dev)
+{
+    for (int i = 0; i < ADC_CHANNEL_COUNT; i++) {
+        if (adcOperatingConfig[i].enabled && adcOperatingConfig[i].adcDevice == dev) {
+            adcOperatingConfig[i].enabled = false;
+        }
+    }
+}
 
 void adcInit(const adcConfig_t *config)
 {
     memset(&adcOperatingConfig, 0, sizeof(adcOperatingConfig));
+    memset(adcDevice, 0, sizeof(adcDevice));
+    memcpy(adcDevice, adcHardware, sizeof(adcHardware));
 
     if (config->vbat.enabled) {
         adcOperatingConfig[ADC_BATTERY].tag = config->vbat.ioTag;
+        adcOperatingConfig[ADC_BATTERY].adcDevice = ADC_CFG_TO_DEV(config->vbat.device);
     }
     if (config->rssi.enabled) {
         adcOperatingConfig[ADC_RSSI].tag = config->rssi.ioTag;
+        adcOperatingConfig[ADC_RSSI].adcDevice = ADC_CFG_TO_DEV(config->rssi.device);
     }
     if (config->external1.enabled) {
         adcOperatingConfig[ADC_EXTERNAL1].tag = config->external1.ioTag;
+        adcOperatingConfig[ADC_EXTERNAL1].adcDevice = ADC_CFG_TO_DEV(config->external1.device);
     }
     if (config->current.enabled) {
         adcOperatingConfig[ADC_CURRENT].tag = config->current.ioTag;
+        adcOperatingConfig[ADC_CURRENT].adcDevice = ADC_CFG_TO_DEV(config->current.device);
     }
 
-    ADCDevice device = adcDeviceByInstance(ADC_INSTANCE);
-    if (device == ADCINVALID) {
-        return;
-    }
-    adc = adcHardware[device];
-
-    bool adcActive = false;
-    uint8_t configuredAdcChannels = 0;
-
-    for (int i = 0; i < ADC_CHANNEL_COUNT; i++) {
-        if (!adcVerifyPin(adcOperatingConfig[i].tag, device)) {
-            continue;
-        }
-        adcActive = true;
-        IOInit(IOGetByTag(adcOperatingConfig[i].tag), OWNER_ADC_BATT + i, 0);
-        IOConfigGPIO(IOGetByTag(adcOperatingConfig[i].tag), IO_CONFIG(GPIO_MODE_ANALOG, 0, GPIO_NOPULL));
-        // adcChannel holds tagmap index — full 32-bit H7 channel constant lives in adcTagMap[].channel
-        adcOperatingConfig[i].adcChannel = adcChannelByTag(adcOperatingConfig[i].tag);
-        adcOperatingConfig[i].dmaIndex   = configuredAdcChannels++;
-        adcOperatingConfig[i].sampleTime = ADC_SAMPLETIME_387CYCLES_5;
-        adcOperatingConfig[i].enabled    = true;
-    }
-
-#ifndef USE_ADC_INTERNAL
-    if (!adcActive) {
-        return;
-    }
+#ifdef ADC_INTERNAL_IN_SCAN
+    adcInitCalibrationValues();
 #endif
 
-    if (adcActive) {
-        RCC_ClockCmd(adc.rccADC, ENABLE);
+    // An ADC is usable for a fallback only when its DMA option resolves to a stream.
+    uint8_t usableDevices = 0;
+    for (int dev = 0; dev < (int)ARRAYLEN(adcHardware); dev++) {
+        if (dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, dev, config->dmaopt[dev])) {
+            usableDevices |= 1U << dev;
+        }
+    }
 
-        adcInitDevice(&adc, configuredAdcChannels);
+    for (int i = 0; i < ADC_CHANNEL_COUNT; i++) {
+        adcOperatingConfig_t *input = &adcOperatingConfig[i];
+        ADCDevice dev;
+        uint32_t channel;
+        uint8_t sampleTime;
 
-        uint8_t rank = 0;
-        for (int i = 0; i < ADC_CHANNEL_COUNT; i++) {
-            if (!adcOperatingConfig[i].enabled) {
+#ifdef ADC_INTERNAL_IN_SCAN
+        if (i >= ADC_CHANNEL_INTERNAL_FIRST_ID) {
+            dev = ADCDEV_3;
+            channel = (i == ADC_VREFINT) ? ADC_CHANNEL_VREFINT : ADC_CHANNEL_TEMPSENSOR;
+            sampleTime = ADC_SAMPLETIME_INTERNAL;
+        } else
+#endif
+        {
+            if (!input->tag) {
                 continue;
             }
-
-            // Look up the full 32-bit H7 channel constant from tagmap
-            uint32_t h7channel = 0;
-            for (int j = 0; j < ADC_TAG_MAP_COUNT; j++) {
-                if (adcTagMap[j].tag == adcOperatingConfig[i].tag) {
-                    h7channel = adcTagMap[j].channel;
+            const adcTagMap_t *map = NULL;
+            for (unsigned j = 0; j < ARRAYLEN(adcTagMap); j++) {
+                if (adcTagMap[j].tag == input->tag) {
+                    map = &adcTagMap[j];
                     break;
                 }
             }
+            if (!map) {
+                continue;
+            }
+            dev = adcSelectDevice(map->devices, input->adcDevice, usableDevices);
+            if (dev == ADCINVALID) {
+                continue;
+            }
+            channel = map->channel;
+            sampleTime = ADC_SAMPLETIME_387CYCLES_5;
+        }
+
+        input->adcDevice = dev;
+        input->adcChannel = channel;
+        input->sampleTime = sampleTime;
+        input->enabled = true;
+    }
+
+    // Claim each stream before touching its ADC so a lost claim leaves that ADC and its pins untouched.
+    uint8_t channelCount[ADCDEV_COUNT] = { 0 };
+    for (int dev = 0; dev < ADCDEV_COUNT; dev++) {
+        for (int i = 0; i < ADC_CHANNEL_COUNT; i++) {
+            if (adcOperatingConfig[i].enabled && adcOperatingConfig[i].adcDevice == dev) {
+                channelCount[dev]++;
+            }
+        }
+        if (!channelCount[dev]) {
+            continue;
+        }
+
+        const dmaChannelSpec_t *dmaSpec = adcDevice[dev].ADCx ? dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, dev, config->dmaopt[dev]) : NULL;
+        const dmaIdentifier_e dmaId = dmaSpec ? dmaGetIdentifier((DMA_Stream_TypeDef *)dmaSpec->ref) : DMA_NONE;
+        if (!dmaSpec || !dmaAllocate(dmaId, OWNER_ADC, 0)) {
+            adcDisableDevice(dev);
+            channelCount[dev] = 0;
+            continue;
+        }
+        // The spec is shared scratch; copy its fields before the next lookup overwrites them.
+        adcDevice[dev].DmaHandle.Instance     = (DMA_Stream_TypeDef *)dmaSpec->ref;
+        adcDevice[dev].DmaHandle.Init.Request = dmaSpec->channel;
+        dmaEnable(dmaId);
+    }
+
+    // Each ADC's DMA writes consecutive samples, so inputs index the shared buffer device by device.
+    uint8_t bufferOffset[ADCDEV_COUNT] = { 0 };
+    uint8_t nextIndex = 0;
+    for (int dev = 0; dev < ADCDEV_COUNT; dev++) {
+        bufferOffset[dev] = nextIndex;
+        for (int i = 0; i < ADC_CHANNEL_COUNT; i++) {
+            if (adcOperatingConfig[i].enabled && adcOperatingConfig[i].adcDevice == dev) {
+                adcOperatingConfig[i].dmaIndex = nextIndex++;
+                if (adcOperatingConfig[i].tag) {
+                    IOInit(IOGetByTag(adcOperatingConfig[i].tag), OWNER_ADC_BATT + i, 0);
+                    IOConfigGPIO(IOGetByTag(adcOperatingConfig[i].tag), IO_CONFIG(GPIO_MODE_ANALOG, 0, GPIO_NOPULL));
+                }
+            }
+        }
+    }
+
+    // Configure every ADC before starting any: internal channels cannot be set up once a sibling ADC is enabled.
+    for (int dev = 0; dev < ADCDEV_COUNT; dev++) {
+        adcDevice_t *adc = &adcDevice[dev];
+        if (!channelCount[dev]) {
+            continue;
+        }
+
+        RCC_ClockCmd(adc->rccADC, ENABLE);
+
+        bool ok = adcInitDevice(adc, channelCount[dev]);
+
+        unsigned rank = 0;
+        for (int i = 0; ok && i < ADC_CHANNEL_COUNT; i++) {
+            if (!adcOperatingConfig[i].enabled || adcOperatingConfig[i].adcDevice != dev) {
+                continue;
+            }
 
             ADC_ChannelConfTypeDef sConfig;
-            sConfig.Channel      = h7channel;
-            if (rank >= (int)ARRAYLEN(adcRegularRankMap)) {
-                break;
-            }
+            memset(&sConfig, 0, sizeof(sConfig));
+            sConfig.Channel      = adcOperatingConfig[i].adcChannel;
             sConfig.Rank         = adcRegularRankMap[rank++];
             sConfig.SamplingTime = adcOperatingConfig[i].sampleTime;
             sConfig.SingleDiff   = ADC_SINGLE_ENDED;
             sConfig.OffsetNumber = ADC_OFFSET_NONE;
             sConfig.Offset       = 0;
-            if (HAL_ADC_ConfigChannel(&adc.ADCHandle, &sConfig) != HAL_OK) {
-                return;
-            }
+            ok = HAL_ADC_ConfigChannel(&adc->ADCHandle, &sConfig) == HAL_OK;
         }
 
-        const dmaChannelSpec_t *dmaSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, device, config->dmaopt[device]);
-        const dmaIdentifier_e dmaId = dmaSpec ? dmaGetIdentifier((DMA_Stream_TypeDef *)dmaSpec->ref) : DMA_NONE;
-        if (dmaSpec && dmaAllocate(dmaId, OWNER_ADC, 0)) {
-            dmaEnable(dmaId);
+        if (ok) {
+            adc->DmaHandle.Init.Direction           = DMA_PERIPH_TO_MEMORY;
+            adc->DmaHandle.Init.PeriphInc           = DMA_PINC_DISABLE;
+            adc->DmaHandle.Init.MemInc              = channelCount[dev] > 1 ? DMA_MINC_ENABLE : DMA_MINC_DISABLE;
+            adc->DmaHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+            adc->DmaHandle.Init.MemDataAlignment    = DMA_MDATAALIGN_HALFWORD;
+            adc->DmaHandle.Init.Mode                = DMA_CIRCULAR;
+            adc->DmaHandle.Init.Priority            = DMA_PRIORITY_HIGH;
+            adc->DmaHandle.Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
+            adc->DmaHandle.Init.FIFOThreshold       = DMA_FIFO_THRESHOLD_FULL;
+            adc->DmaHandle.Init.MemBurst            = DMA_MBURST_SINGLE;
+            adc->DmaHandle.Init.PeriphBurst         = DMA_PBURST_SINGLE;
+            ok = HAL_DMA_Init(&adc->DmaHandle) == HAL_OK;
+        }
 
-            adc.DmaHandle.Instance               = (DMA_Stream_TypeDef *)dmaSpec->ref;
-            adc.DmaHandle.Init.Request           = dmaSpec->channel;
-            adc.DmaHandle.Init.Direction         = DMA_PERIPH_TO_MEMORY;
-            adc.DmaHandle.Init.PeriphInc         = DMA_PINC_DISABLE;
-            adc.DmaHandle.Init.MemInc            = configuredAdcChannels > 1 ? DMA_MINC_ENABLE : DMA_MINC_DISABLE;
-            adc.DmaHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-            adc.DmaHandle.Init.MemDataAlignment  = DMA_MDATAALIGN_HALFWORD;
-            adc.DmaHandle.Init.Mode              = DMA_CIRCULAR;
-            adc.DmaHandle.Init.Priority          = DMA_PRIORITY_HIGH;
-            adc.DmaHandle.Init.FIFOMode          = DMA_FIFOMODE_DISABLE;
-            adc.DmaHandle.Init.FIFOThreshold     = DMA_FIFO_THRESHOLD_FULL;
-            adc.DmaHandle.Init.MemBurst          = DMA_MBURST_SINGLE;
-            adc.DmaHandle.Init.PeriphBurst       = DMA_PBURST_SINGLE;
-
-            if (HAL_DMA_Init(&adc.DmaHandle) != HAL_OK) {
-                return;
-            }
-            __HAL_LINKDMA(&adc.ADCHandle, DMA_Handle, adc.DmaHandle);
-
-            if (HAL_ADC_Start_DMA(&adc.ADCHandle, (uint32_t *)&adcValues, configuredAdcChannels) != HAL_OK) {
-                return;
-            }
+        if (ok) {
+            __HAL_LINKDMA(&adc->ADCHandle, DMA_Handle, adc->DmaHandle);
+        } else {
+            adcDisableDevice(dev);
+            channelCount[dev] = 0;
         }
     }
 
-#ifdef USE_ADC_INTERNAL
-#if !(defined(STM32H7A3xx) || defined(STM32H7A3xxQ))
-    adcInitInternalInjected();
-#endif
+    for (int dev = 0; dev < ADCDEV_COUNT; dev++) {
+        if (channelCount[dev] && HAL_ADC_Start_DMA(&adcDevice[dev].ADCHandle, (uint32_t *)&adcValues[bufferOffset[dev]], channelCount[dev]) != HAL_OK) {
+            adcDisableDevice(dev);
+        }
+    }
+
+#ifdef ADC_INTERNAL_IN_SCAN
+    if (adcOperatingConfig[ADC_VREFINT].enabled && adcOperatingConfig[ADC_TEMPSENSOR].enabled) {
+        adcWaitForInternalSamples();
+    }
 #endif
 }
 

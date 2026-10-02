@@ -71,21 +71,52 @@ typedef enum ADCDevice {
 #define ADC_CFG_TO_DEV(x) ((x) - 1)
 #define ADC_DEV_TO_CFG(x) ((x) + 1)
 
+// H7 reads VREFINT and the temperature sensor in the ADC3 DMA scan; H7A3 has no ADC3.
+#if defined(STM32H7) && defined(USE_ADC_INTERNAL) && !(defined(STM32H7A3xx) || defined(STM32H7A3xxQ))
+#define ADC_INTERNAL_IN_SCAN
+#endif
+
 typedef enum {
     ADC_BATTERY = 0,
     ADC_CURRENT = 1,
     ADC_EXTERNAL1 = 2,
     ADC_RSSI = 3,
+#ifdef ADC_INTERNAL_IN_SCAN
+    ADC_CHANNEL_INTERNAL_FIRST_ID = 4,
+    ADC_TEMPSENSOR = 4,
+    ADC_VREFINT = 5,
+#endif
     ADC_CHANNEL_COUNT
 } AdcChannel;
 
 typedef struct adcOperatingConfig_s {
     ioTag_t tag;
+#if defined(STM32H7)
+    ADCDevice adcDevice;        // ADCDEV_x serving this input
+    uint32_t adcChannel;        // H7 HAL channel constant, wider than 8 bits
+#else
     uint8_t adcChannel;         // ADC1_INxx channel number
+#endif
     uint8_t dmaIndex;           // index into DMA buffer in case of sparse channels
     bool enabled;
     uint8_t sampleTime;
 } adcOperatingConfig_t;
+
+#if defined(STM32H7)
+// Keep the configured ADC when it can read the pin, else take the first usable ADC that can.
+static inline ADCDevice adcSelectDevice(uint8_t pinDevices, ADCDevice configured, uint8_t usableDevices)
+{
+    if (configured >= 0 && configured < ADCDEV_COUNT && (pinDevices & (1U << configured))) {
+        return configured;
+    }
+    for (int dev = 0; dev < ADCDEV_COUNT; dev++) {
+        if ((pinDevices & usableDevices) & (1U << dev)) {
+            return (ADCDevice)dev;
+        }
+    }
+    return ADCINVALID;
+}
+#endif
 
 struct adcConfig_s;
 void adcInit(const struct adcConfig_s *config);
