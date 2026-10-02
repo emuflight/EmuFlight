@@ -126,8 +126,6 @@
 #define DEFAULT_CURRENT_METER_SCALE 1052
 #define ADC_INSTANCE ADC1
 
-#define ENABLE_DSHOT_DMAR true
-
 
 #define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
@@ -136,15 +134,15 @@
 #define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 3, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 4, PB6 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB7 , 2,  0) \
-    TIMER_PIN_MAP( 6, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 7, PB11 , 1,  0) \
-    TIMER_PIN_MAP( 8, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 9, PB3 , 1,  0)
+    TIMER_PIN_MAP( 1, PB5 , 1,  1) \
+    TIMER_PIN_MAP( 2, PB0 , 2,  2) \
+    TIMER_PIN_MAP( 3, PB1 , 2,  3) \
+    TIMER_PIN_MAP( 4, PB6 , 2,  4) \
+    TIMER_PIN_MAP( 5, PB7 , 2,  5) \
+    TIMER_PIN_MAP( 6, PB10 , 1,  6) \
+    TIMER_PIN_MAP( 7, PB11 , 1,  7) \
+    TIMER_PIN_MAP( 8, PA8 , 1,  13) \
+    TIMER_PIN_MAP( 9, PB3 , 1, -1)
 
 #define MOTOR1_PIN              PB4
 #define MOTOR2_PIN              PB5
