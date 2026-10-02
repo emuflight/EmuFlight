@@ -413,6 +413,40 @@ dma_reqmap_h7_unittest_DEFINES := \
 		DMA_REQUEST_TIM16_CH1=49 \
 		DMA_REQUEST_TIM17_CH1=50
 
+# Same real dma_reqmap_mcu.c H7 branch, with USE_TIMER so the TIMUP rows are compiled in.
+dma_reqmap_h7_timup_unittest_SRC := \
+		$(USER_DIR)/drivers/dma_reqmap_mcu.c
+
+dma_reqmap_h7_timup_unittest_DEFINES := \
+		$(dma_reqmap_h7_unittest_DEFINES) \
+		USE_TIMER \
+		DMA_REQUEST_TIM1_UP=101 \
+		DMA_REQUEST_TIM2_UP=102 \
+		DMA_REQUEST_TIM3_UP=103 \
+		DMA_REQUEST_TIM4_UP=104 \
+		DMA_REQUEST_TIM5_UP=105 \
+		DMA_REQUEST_TIM6_UP=106 \
+		DMA_REQUEST_TIM7_UP=107 \
+		DMA_REQUEST_TIM8_UP=108 \
+		DMA_REQUEST_TIM15_UP=115 \
+		DMA_REQUEST_TIM16_UP=116 \
+		DMA_REQUEST_TIM17_UP=117
+
+# Real pg/timerup.c reset function; TIMUP20 is past the 14-slot array and must be ignored.
+timerup_pg_unittest_SRC := \
+		$(USER_DIR)/pg/timerup.c \
+		$(USER_DIR)/pg/pg.c
+
+timerup_pg_unittest_DEFINES := \
+		$(dma_reqmap_h7_timup_unittest_DEFINES) \
+		USE_TIMER_MGMT \
+		USE_TIMER_UP_CONFIG \
+		TIMUP1_DMA_OPT=0 \
+		TIMUP3_DMA_OPT=2 \
+		TIMUP8_DMA_OPT=11 \
+		TIMUP15_DMA_OPT=5 \
+		TIMUP20_DMA_OPT=7
+
 
 encoding_unittest_SRC := \
 		$(USER_DIR)/common/encoding.c
