@@ -128,6 +128,28 @@ cli_unittest_DEFINES := \
 		STM32F4 \
 		SystemCoreClock=1000000
 
+# Separate target: USE_TIMER_MGMT compiles in the timer/dma-pin CLI paths of cli.c without
+# changing the define set of cli_unittest. timer_common.c is the real implementation.
+cli_timer_dma_unittest_SRC := \
+		$(USER_DIR)/interface/cli.c \
+		$(USER_DIR)/config/feature.c \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/drivers/resource.c \
+		$(USER_DIR)/drivers/timer_common.c \
+		$(USER_DIR)/common/typeconversion.c
+
+cli_timer_dma_unittest_DEFINES := \
+		USE_VTX_COMMON \
+		USE_VTX_CONTROL \
+		USE_VTX_SMARTAUDIO \
+		USE_OSD \
+		USE_CLI \
+		USE_RESOURCE_MGMT \
+		USE_TIMER_MGMT \
+		USE_ADC \
+		STM32F4 \
+		SystemCoreClock=1000000
+
 beeper_dshot_beacon_unittest_SRC := \
 		$(USER_DIR)/io/beeper.c \
 		$(USER_DIR)/pg/beeper.c \
