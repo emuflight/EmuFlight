@@ -1946,6 +1946,7 @@ static void cliFlashErase(char *cmdline) {
     bufWriterFlush(cliWriter);
     flashfsEraseCompletely();
     while (!flashfsIsReady()) {
+        flashfsEraseAsync();
         cliPrintf(".");
         if (i++ > 120) {
             i = 0;
