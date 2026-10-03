@@ -157,7 +157,6 @@
 #define PINIO1_BOX                      40
 #define PINIO2_BOX                      41
 
-#define DEFAULT_FEATURES       (FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
 #define USABLE_TIMER_CHANNEL_COUNT 9

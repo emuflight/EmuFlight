@@ -136,7 +136,6 @@
 
 #define USE_LED_STRIP
 
-#define DEFAULT_FEATURES       (FEATURE_RX_SERIAL)
 
 #define DEFAULT_RX_FEATURE                              FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER                               SERIALRX_SBUS
