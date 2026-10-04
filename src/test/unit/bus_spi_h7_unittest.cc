@@ -36,6 +36,11 @@ extern "C" {
 #include "drivers/dma_reqmap.h"
 #include "drivers/nvic.h"
 
+#include "pg/bus_spi.h"
+#include "pg/pg_ids.h"
+
+PG_REGISTER_ARRAY(spiPinConfig_t, SPIDEV_COUNT, spiPinConfig, PG_SPI_PIN_CONFIG, 2);
+
 static int dmaTxStreamMarker;
 static int dmaRxStreamMarker;
 
@@ -174,6 +179,10 @@ void resetSpiTestState()
 
     txSpecAvailable = true;
     rxSpecAvailable = true;
+    for (int device = 0; device < SPIDEV_COUNT; device++) {
+        spiPinConfigMutable(device)->txDmaopt = DMA_OPT_UNUSED;
+        spiPinConfigMutable(device)->rxDmaopt = DMA_OPT_UNUSED;
+    }
     txAllocSucceeds = true;
     rxAllocSucceeds = true;
     dmaSetHandlerCallCount = 0;

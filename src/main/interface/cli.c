@@ -4181,9 +4181,48 @@ typedef struct dmaoptEntry_s {
 #define UART_PRESENT_MASK (UART1_PRESENT | UART2_PRESENT | UART3_PRESENT | UART4_PRESENT | UART5_PRESENT | \
                            UART6_PRESENT | UART7_PRESENT | UART8_PRESENT | UART9_PRESENT | UART10_PRESENT | LPUART1_PRESENT)
 
+#ifdef USE_SPI
+// IMUF9001 claims SPI1 DMA itself, so a stored SPI1 option would have no effect.
+#if defined(USE_SPI_DEVICE_1) && !defined(USE_GYRO_IMUF9001)
+#define SPI1_PRESENT BIT(0)
+#else
+#define SPI1_PRESENT 0
+#endif
+#ifdef USE_SPI_DEVICE_2
+#define SPI2_PRESENT BIT(1)
+#else
+#define SPI2_PRESENT 0
+#endif
+#ifdef USE_SPI_DEVICE_3
+#define SPI3_PRESENT BIT(2)
+#else
+#define SPI3_PRESENT 0
+#endif
+#ifdef USE_SPI_DEVICE_4
+#define SPI4_PRESENT BIT(3)
+#else
+#define SPI4_PRESENT 0
+#endif
+#ifdef USE_SPI_DEVICE_5
+#define SPI5_PRESENT BIT(4)
+#else
+#define SPI5_PRESENT 0
+#endif
+#ifdef USE_SPI_DEVICE_6
+#define SPI6_PRESENT BIT(5)
+#else
+#define SPI6_PRESENT 0
+#endif
+#define SPI_PRESENT_MASK (SPI1_PRESENT | SPI2_PRESENT | SPI3_PRESENT | SPI4_PRESENT | SPI5_PRESENT | SPI6_PRESENT)
+#endif
+
 static const dmaoptEntry_t dmaoptEntryTable[] = {
     DEFW("UART_TX", DMA_PERIPH_UART_TX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, txDmaopt, UARTDEV_COUNT_MAX, UART_PRESENT_MASK),
     DEFW("UART_RX", DMA_PERIPH_UART_RX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, rxDmaopt, UARTDEV_COUNT_MAX, UART_PRESENT_MASK),
+#ifdef USE_SPI
+    DEFW("SPI_SDO", DMA_PERIPH_SPI_SDO, PG_SPI_PIN_CONFIG, spiPinConfig_t, txDmaopt, SPIDEV_COUNT, SPI_PRESENT_MASK),
+    DEFW("SPI_SDI", DMA_PERIPH_SPI_SDI, PG_SPI_PIN_CONFIG, spiPinConfig_t, rxDmaopt, SPIDEV_COUNT, SPI_PRESENT_MASK),
+#endif
 #ifdef USE_ADC
     DEFA("ADC", DMA_PERIPH_ADC, PG_ADC_CONFIG, adcConfig_t, dmaopt, ADCDEV_COUNT, 0),
 #endif
@@ -4243,6 +4282,10 @@ STATIC_UNIT_TESTED void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int i
         expectedOwner = OWNER_SERIAL_TX;
     } else if (entry->peripheral == DMA_PERIPH_ADC) {
         expectedOwner = OWNER_ADC;
+    } else if (entry->peripheral == DMA_PERIPH_SPI_SDO) {
+        expectedOwner = OWNER_SPI_SDO;
+    } else if (entry->peripheral == DMA_PERIPH_SPI_SDI) {
+        expectedOwner = OWNER_SPI_SDI;
     }
     const resourceOwner_e actualOwner = dmaGetOwner(identifier);
     const uint8_t actualIndex = dmaGetResourceIndex(identifier);

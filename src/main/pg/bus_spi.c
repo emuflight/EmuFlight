@@ -22,6 +22,7 @@
 
 #ifdef USE_SPI
 
+#include "drivers/dma_reqmap.h"
 #include "drivers/io.h"
 
 #include "pg/pg.h"
@@ -57,9 +58,14 @@ const spiDefaultConfig_t spiDefaultConfig[] = {
 #endif
 };
 
-PG_REGISTER_ARRAY_WITH_RESET_FN(spiPinConfig_t, SPIDEV_COUNT, spiPinConfig, PG_SPI_PIN_CONFIG, 1);
+PG_REGISTER_ARRAY_WITH_RESET_FN(spiPinConfig_t, SPIDEV_COUNT, spiPinConfig, PG_SPI_PIN_CONFIG, 2);
 
 void pgResetFn_spiPinConfig(spiPinConfig_t *spiPinConfig) {
+    // Zero would pin option 0 on devices absent from spiDefaultConfig[].
+    for (size_t i = 0 ; i < SPIDEV_COUNT ; i++) {
+        spiPinConfig[i].txDmaopt = DMA_OPT_UNUSED;
+        spiPinConfig[i].rxDmaopt = DMA_OPT_UNUSED;
+    }
     for (size_t i = 0 ; i < ARRAYLEN(spiDefaultConfig) ; i++) {
         const spiDefaultConfig_t *defconf = &spiDefaultConfig[i];
         spiPinConfig[defconf->device].ioTagSck = defconf->sck;
