@@ -136,7 +136,6 @@
 #define SERIALRX_UART           SERIAL_PORT_USART2
 #define SERIALRX_PROVIDER       SERIALRX_CRSF
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY)
 #define DEFAULT_CURRENT_METER_SCALE                      250                    // 3.3/120A  = 25mv/A
 
 
