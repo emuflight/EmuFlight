@@ -86,6 +86,7 @@
 #define USE_DSHOT
 #define USE_GYRO_DATA_ANALYSE
 #define USE_ADC_INTERNAL
+#define USE_TIMER_UP_CONFIG
 // Note: USE_USB_CDC_HID intentionally omitted — fc_tasks.c pulls in
 // vcpf4/usbd_cdc_vcp.h (F4-specific) under that guard; not yet ported for H7.
 // common_fc_post.h strips USE_USB_MSC if no SDCARD/FLASHFS or no BLACKBOX.
