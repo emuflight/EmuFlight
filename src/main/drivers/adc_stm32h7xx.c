@@ -124,7 +124,7 @@ static bool adcInitDevice(adcDevice_t *adcdev, int channelCount)
 // The temperature sensor needs a long sample time (minimum 9 us); external inputs keep the shorter one.
 #define ADC_SAMPLETIME_INTERNAL ADC_SAMPLETIME_810CYCLES_5
 
-// Upper bound for the first scan of all ADC3 ranks, including two 810.5-cycle conversions.
+// Upper bound for the first scan of all ADC3 ranks, including two internal-channel conversions at the long sample time.
 #define ADC_FIRST_SCAN_TIMEOUT_US 10000
 
 static void adcInitCalibrationValues(void)
