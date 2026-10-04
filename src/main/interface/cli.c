@@ -3991,6 +3991,9 @@ static bool strToPin(char *pch, ioTag_t *tag) {
         if (port < 8) {
             pch++;
             char *end;
+            if (!isdigit((unsigned char)*pch)) {
+                return false;  // strtol() would accept a leading sign or whitespace
+            }
             const long parsedPin = strtol(pch, &end, 10);
             if (end != pch && *end == '\0' && parsedPin >= 0 && parsedPin < 16) {
                 pin = (unsigned)parsedPin;
@@ -4050,6 +4053,10 @@ static void cliResource(char *cmdline) {
         }
     }
     pch = strtok_r(NULL, " ", &saveptr);
+    if (!pch) {
+        cliShowParseError();
+        return;
+    }
     index = atoi(pch);
     if (resourceTable[resourceIndex].maxIndex > 0 || index > 0) {
         if (index <= 0 || index > MAX_RESOURCE_INDEX(resourceTable[resourceIndex].maxIndex)) {
@@ -4058,6 +4065,10 @@ static void cliResource(char *cmdline) {
         }
         index -= 1;
         pch = strtok_r(NULL, " ", &saveptr);
+        if (!pch) {
+            cliShowParseError();
+            return;
+        }
     }
     ioTag_t *tag = getIoTag(resourceTable[resourceIndex], index);
     if (strlen(pch) > 0) {
