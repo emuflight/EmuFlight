@@ -146,6 +146,7 @@ extern uint8_t __config_end;
 #if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
 #include "drivers/serial_uart.h"
 #include "pg/serial_uart.h"
+#include "pg/sdio.h"
 #endif
 #include "pg/timerio.h"
 #include "pg/usb.h"
@@ -4121,6 +4122,9 @@ typedef struct dmaoptEntry_s {
 // DEFA : plain array member (stride = element size).
 #define DEFA(device, peripheral, pgn, type, member, max, mask) \
     { device, peripheral, pgn, sizeof(((type *)0)->member[0]), offsetof(type, member), max, mask }
+// DEF1 : single scalar member, one index.
+#define DEF1(device, peripheral, pgn, type, member) \
+    { device, peripheral, pgn, 0, offsetof(type, member), 1, 0 }
 
 // Config slots are sized per MCU family; only UARTs enabled by the target exist.
 #ifdef USE_UART1
@@ -4187,10 +4191,14 @@ static const dmaoptEntry_t dmaoptEntryTable[] = {
 #ifdef USE_ADC
     DEFA("ADC", DMA_PERIPH_ADC, PG_ADC_CONFIG, adcConfig_t, dmaopt, ADCDEV_COUNT, 0),
 #endif
+#if defined(USE_SDCARD_SDIO) && (defined(STM32F4) || defined(STM32F7))
+    DEF1("SDIO", DMA_PERIPH_SDIO, PG_SDIO_CONFIG, sdioConfig_t, dmaopt),
+#endif
 };
 
 #undef DEFW
 #undef DEFA
+#undef DEF1
 
 #define DMA_OPT_STRING_BUFSIZE 5
 
@@ -4243,11 +4251,13 @@ STATIC_UNIT_TESTED void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int i
         expectedOwner = OWNER_SERIAL_TX;
     } else if (entry->peripheral == DMA_PERIPH_ADC) {
         expectedOwner = OWNER_ADC;
+    } else if (entry->peripheral == DMA_PERIPH_SDIO) {
+        expectedOwner = OWNER_SDCARD;
     }
     const resourceOwner_e actualOwner = dmaGetOwner(identifier);
     const uint8_t actualIndex = dmaGetResourceIndex(identifier);
-    // The ADC driver claims its stream with resource index 0 regardless of device.
-    const bool indexMatches = entry->peripheral == DMA_PERIPH_ADC || actualIndex == RESOURCE_INDEX(index);
+    // The ADC and SDIO drivers claim their stream with resource index 0.
+    const bool indexMatches = entry->peripheral == DMA_PERIPH_ADC || entry->peripheral == DMA_PERIPH_SDIO || actualIndex == RESOURCE_INDEX(index);
     if (actualOwner == expectedOwner && indexMatches) {
         return;
     }
