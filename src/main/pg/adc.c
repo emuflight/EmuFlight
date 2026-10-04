@@ -34,7 +34,7 @@
 #include "pg/adc.h"
 
 
-PG_REGISTER_WITH_RESET_FN(adcConfig_t, adcConfig, PG_ADC_CONFIG, 1);
+PG_REGISTER_WITH_RESET_FN(adcConfig_t, adcConfig, PG_ADC_CONFIG, 2);
 
 void pgResetFn_adcConfig(adcConfig_t *adcConfig) {
     adcConfig->device = ADC_DEV_TO_CFG(adcDeviceByInstance(ADC_INSTANCE));
@@ -46,18 +46,46 @@ void pgResetFn_adcConfig(adcConfig_t *adcConfig) {
 #ifdef VBAT_ADC_PIN
     adcConfig->vbat.enabled = true;
     adcConfig->vbat.ioTag = IO_TAG(VBAT_ADC_PIN);
+#if defined(STM32H7)
+#ifdef VBAT_ADC_INSTANCE
+    adcConfig->vbat.device = ADC_DEV_TO_CFG(adcDeviceByInstance(VBAT_ADC_INSTANCE));
+#else
+    adcConfig->vbat.device = adcConfig->device;
+#endif
+#endif
 #endif
 #ifdef EXTERNAL1_ADC_PIN
     adcConfig->external1.enabled = true;
     adcConfig->external1.ioTag = IO_TAG(EXTERNAL1_ADC_PIN);
+#if defined(STM32H7)
+#ifdef EXTERNAL1_ADC_INSTANCE
+    adcConfig->external1.device = ADC_DEV_TO_CFG(adcDeviceByInstance(EXTERNAL1_ADC_INSTANCE));
+#else
+    adcConfig->external1.device = adcConfig->device;
+#endif
+#endif
 #endif
 #ifdef CURRENT_METER_ADC_PIN
     adcConfig->current.enabled = true;
     adcConfig->current.ioTag = IO_TAG(CURRENT_METER_ADC_PIN);
+#if defined(STM32H7)
+#ifdef CURRENT_METER_ADC_INSTANCE
+    adcConfig->current.device = ADC_DEV_TO_CFG(adcDeviceByInstance(CURRENT_METER_ADC_INSTANCE));
+#else
+    adcConfig->current.device = adcConfig->device;
+#endif
+#endif
 #endif
 #ifdef RSSI_ADC_PIN
     adcConfig->rssi.enabled = true;
     adcConfig->rssi.ioTag = IO_TAG(RSSI_ADC_PIN);
+#if defined(STM32H7)
+#ifdef RSSI_ADC_INSTANCE
+    adcConfig->rssi.device = ADC_DEV_TO_CFG(adcDeviceByInstance(RSSI_ADC_INSTANCE));
+#else
+    adcConfig->rssi.device = adcConfig->device;
+#endif
+#endif
 #endif
 }
 #endif // USE_ADC
