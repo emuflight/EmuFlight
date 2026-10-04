@@ -111,7 +111,6 @@
 #define DEFAULT_RX_FEATURE        FEATURE_RX_SERIAL
 
 // *************** OTHERS **************************
-#define DEFAULT_FEATURES          ( FEATURE_OSD  )
 
 #define ESCSERIAL_TIMER_TX_PIN    NONE
 
