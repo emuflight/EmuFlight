@@ -50,8 +50,10 @@ static const uint32_t dieSize = FAKE_DIE_SIZE;
 static int dieReadCalls;
 static uint32_t dieReadLength[16];
 static uint32_t dieReadAddress[16];
-static int failOnCall; // 1-based call number that returns 0, 0 = never
+static int failOnCall; // 1-based call number that fails, 0 = never
+static int failReturnValue; // what the failing call returns (0 or negative)
 static uint32_t overReturnBy; // makes the fake die driver report more bytes than it was asked for
+static int overReturnOnCall; // 1-based call number that over-returns, 0 = every call
 
 extern "C" {
 
@@ -70,7 +72,7 @@ static int fakeReadBytes(flashDevice_t *fdevice, uint32_t address, uint8_t *buff
     dieReadCalls++;
 
     if (failOnCall == dieReadCalls) {
-        return 0;
+        return failReturnValue;
     }
 
     const uint32_t column = address % pageSize;
@@ -86,7 +88,7 @@ static int fakeReadBytes(flashDevice_t *fdevice, uint32_t address, uint8_t *buff
         buffer[i] = patternAt(base + address + i);
     }
 
-    return transfer + overReturnBy;
+    return transfer + ((overReturnOnCall == 0 || overReturnOnCall == dieReadCalls) ? overReturnBy : 0);
 }
 
 static flashVTable_t fakeVTable;
@@ -137,7 +139,9 @@ protected:
         registeredCount = 0;
         dieReadCalls = 0;
         failOnCall = 0;
+        failReturnValue = 0;
         overReturnBy = 0;
+        overReturnOnCall = 0;
         memset(dieReadLength, 0, sizeof(dieReadLength));
         memset(dieReadAddress, 0, sizeof(dieReadAddress));
         memset(buffer, 0xEE, sizeof(buffer));
@@ -231,6 +235,41 @@ TEST_F(W25mReadTest, FailureOnFirstRoundReturnsZero)
 TEST_F(W25mReadTest, FailureOnLaterRoundReturnsBytesAlreadyRead)
 {
     failOnCall = 2;
+
+    const uint32_t address = pageSize - 100;
+    const int n = flash.vTable->readBytes(&flash, address, buffer, 300);
+
+    EXPECT_EQ(100, n);
+    EXPECT_EQ(2, dieReadCalls);
+    expectData(address, 100);
+}
+
+TEST_F(W25mReadTest, NegativeReturnOnFirstRoundReturnsZero)
+{
+    failOnCall = 1;
+    failReturnValue = -5;
+
+    EXPECT_EQ(0, flash.vTable->readBytes(&flash, 0, buffer, 100));
+    EXPECT_EQ(1, dieReadCalls);
+}
+
+TEST_F(W25mReadTest, NegativeReturnOnLaterRoundKeepsBytesAlreadyRead)
+{
+    failOnCall = 2;
+    failReturnValue = -5;
+
+    const uint32_t address = pageSize - 100;
+    const int n = flash.vTable->readBytes(&flash, address, buffer, 300);
+
+    EXPECT_EQ(100, n);
+    EXPECT_EQ(2, dieReadCalls);
+    expectData(address, 100);
+}
+
+TEST_F(W25mReadTest, OverLongReturnOnLaterRoundKeepsBytesAlreadyRead)
+{
+    overReturnBy = 1;
+    overReturnOnCall = 2;
 
     const uint32_t address = pageSize - 100;
     const int n = flash.vTable->readBytes(&flash, address, buffer, 300);
