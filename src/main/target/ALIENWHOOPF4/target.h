@@ -189,7 +189,7 @@
 #if defined(BREADBOARD)
 #define DEFAULT_FEATURES        (FEATURE_MOTOR_STOP | FEATURE_LED_STRIP)
 #else
-#define DEFAULT_FEATURES        (FEATURE_MOTOR_STOP)  // TODO FEATURE_OSD for V3 board ... FEATURE_TELEMETRY changes bind pin from rx to tx
+#define DEFAULT_FEATURES        (FEATURE_MOTOR_STOP)  // OSD is cleared in config.c until the V3 board
 #endif
 
 /* OLED Support
