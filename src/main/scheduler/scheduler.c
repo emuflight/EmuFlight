@@ -39,9 +39,8 @@
 
 #include "drivers/time.h"
 
-// DEBUG_SCHEDULER, timings for:
-// 0 - gyroUpdate()
-// 1 - pidController()
+// DEBUG_SCHEDULER, timings (only with SCHEDULER_DEBUG defined; slots 0/1 unused,
+// gyroUpdate()/pidController() timing is in DEBUG_PIDLOOP):
 // 2 - time spent in scheduler
 // 3 - time spent executing check function
 
