@@ -264,12 +264,12 @@ jobs:
           prerelease: true
           allowUpdates: true
           # tag: use the build Number, but we MUST manually change to version so that it creates a version-tag on release
-          tag: ${{ env.VERSION }}
+          tag: ${{ needs.build.outputs.version }}
           artifacts: obj/*.hex
           artifactContentType: raw
-          name:  DRAFT / EmuFlight ${{ env.VERSION }} / GitHub Build ${{ github.run_number }}
+          name:  DRAFT / EmuFlight ${{ needs.build.outputs.version }} / GitHub Build ${{ github.run_number }}
           body: |
-            ## EmuFlight ${{ env.VERSION }}
+            ## EmuFlight ${{ needs.build.outputs.version }}
             ### Build ${{ github.run_number }}
             ### Commit SHA: ${{ needs.build.outputs.shortsha }} (${{ github.sha }})
             ### BuildTag: ${{ needs.build.outputs.buildtag }}
