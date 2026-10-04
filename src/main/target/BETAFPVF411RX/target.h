@@ -154,7 +154,6 @@
 //#define PINIO2_PIN              PA15 // Camera switcher
 //#define USE_PINIOBOX
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE)
 
 
 #define USABLE_TIMER_CHANNEL_COUNT 7

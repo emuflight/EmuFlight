@@ -112,7 +112,7 @@
 
 
 #define USE_OSD
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_SOFTSERIAL)
+#define DEFAULT_FEATURES                (FEATURE_SOFTSERIAL)
 #define DEFAULT_RX_FEATURE              FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER               SERIALRX_SBUS
 #define SERIALRX_UART                   SERIAL_PORT_UART5

@@ -149,7 +149,6 @@
 #define I2C1_SDA                PB9
 
 //-------------------------------------FEATURES-------------------------------
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
 
 #define DEFAULT_RX_FEATURE     	FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
