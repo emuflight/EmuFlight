@@ -4185,13 +4185,17 @@ typedef struct dmaoptEntry_s {
 #define UART_PRESENT_MASK (UART1_PRESENT | UART2_PRESENT | UART3_PRESENT | UART4_PRESENT | UART5_PRESENT | \
                            UART6_PRESENT | UART7_PRESENT | UART8_PRESENT | UART9_PRESENT | UART10_PRESENT | LPUART1_PRESENT)
 
+#if defined(USE_SDCARD_SDIO) && (defined(STM32F4) || defined(STM32F7))
+#define CLI_DMAOPT_SDIO
+#endif
+
 static const dmaoptEntry_t dmaoptEntryTable[] = {
     DEFW("UART_TX", DMA_PERIPH_UART_TX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, txDmaopt, UARTDEV_COUNT_MAX, UART_PRESENT_MASK),
     DEFW("UART_RX", DMA_PERIPH_UART_RX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, rxDmaopt, UARTDEV_COUNT_MAX, UART_PRESENT_MASK),
 #ifdef USE_ADC
     DEFA("ADC", DMA_PERIPH_ADC, PG_ADC_CONFIG, adcConfig_t, dmaopt, ADCDEV_COUNT, 0),
 #endif
-#if defined(USE_SDCARD_SDIO) && (defined(STM32F4) || defined(STM32F7))
+#ifdef CLI_DMAOPT_SDIO
     DEF1("SDIO", DMA_PERIPH_SDIO, PG_SDIO_CONFIG, sdioConfig_t, dmaopt),
 #endif
 };
@@ -4251,13 +4255,19 @@ STATIC_UNIT_TESTED void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int i
         expectedOwner = OWNER_SERIAL_TX;
     } else if (entry->peripheral == DMA_PERIPH_ADC) {
         expectedOwner = OWNER_ADC;
+#ifdef CLI_DMAOPT_SDIO
     } else if (entry->peripheral == DMA_PERIPH_SDIO) {
         expectedOwner = OWNER_SDCARD;
+#endif
     }
     const resourceOwner_e actualOwner = dmaGetOwner(identifier);
     const uint8_t actualIndex = dmaGetResourceIndex(identifier);
     // The ADC and SDIO drivers claim their stream with resource index 0.
+#ifdef CLI_DMAOPT_SDIO
     const bool indexMatches = entry->peripheral == DMA_PERIPH_ADC || entry->peripheral == DMA_PERIPH_SDIO || actualIndex == RESOURCE_INDEX(index);
+#else
+    const bool indexMatches = entry->peripheral == DMA_PERIPH_ADC || actualIndex == RESOURCE_INDEX(index);
+#endif
     if (actualOwner == expectedOwner && indexMatches) {
         return;
     }
