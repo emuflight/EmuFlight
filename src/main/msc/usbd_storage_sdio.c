@@ -32,7 +32,9 @@
 
 #include "platform.h"
 
+#include "drivers/dma_reqmap.h"
 #include "drivers/sdmmc_sdio.h"
+#include "pg/sdio.h"
 #include "drivers/light_led.h"
 #include "drivers/io.h"
 #include "common/utils.h"
@@ -152,7 +154,13 @@ static int8_t STORAGE_Init (uint8_t lun) {
 #endif
     UNUSED(lun);
     LED0_OFF;
-    if (!SD_Initialize_LL(SDIO_DMA)) return 1;
+#if defined(STM32H7)
+    // H7 SDMMC uses IDMA, no external DMA stream.
+    if (!SD_Initialize_LL(NULL)) return 1;
+#else
+    const dmaChannelSpec_t *dmaSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, sdioConfig()->dmaopt);
+    if (!dmaSpec || !SD_Initialize_LL((DMA_Stream_TypeDef *)dmaSpec->ref)) return 1;
+#endif
     if (SD_Init() != 0) return 1;
     LED0_ON;
     return 0;

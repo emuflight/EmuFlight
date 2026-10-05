@@ -146,6 +146,7 @@ extern uint8_t __config_end;
 #if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
 #include "drivers/serial_uart.h"
 #include "pg/serial_uart.h"
+#include "pg/sdio.h"
 #endif
 #include "pg/timerio.h"
 #include "pg/timerup.h"
@@ -4122,6 +4123,9 @@ typedef struct dmaoptEntry_s {
 // DEFA : plain array member (stride = element size).
 #define DEFA(device, peripheral, pgn, type, member, max, mask) \
     { device, peripheral, pgn, sizeof(((type *)0)->member[0]), offsetof(type, member), max, mask }
+// DEF1 : single scalar member, one index.
+#define DEF1(device, peripheral, pgn, type, member) \
+    { device, peripheral, pgn, 0, offsetof(type, member), 1, 0 }
 
 // Config slots are sized per MCU family; only UARTs enabled by the target exist.
 #ifdef USE_UART1
@@ -4219,6 +4223,9 @@ typedef struct dmaoptEntry_s {
 #endif
 #define SPI_PRESENT_MASK (SPI1_PRESENT | SPI2_PRESENT | SPI3_PRESENT | SPI4_PRESENT | SPI5_PRESENT | SPI6_PRESENT)
 #endif
+#if defined(USE_SDCARD_SDIO) && (defined(STM32F4) || defined(STM32F7))
+#define CLI_DMAOPT_SDIO
+#endif
 
 static const dmaoptEntry_t dmaoptEntryTable[] = {
     DEFW("UART_TX", DMA_PERIPH_UART_TX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, txDmaopt, UARTDEV_COUNT_MAX, UART_PRESENT_MASK),
@@ -4230,6 +4237,9 @@ static const dmaoptEntry_t dmaoptEntryTable[] = {
 #ifdef USE_ADC
     DEFA("ADC", DMA_PERIPH_ADC, PG_ADC_CONFIG, adcConfig_t, dmaopt, ADCDEV_COUNT, 0),
 #endif
+#ifdef CLI_DMAOPT_SDIO
+    DEF1("SDIO", DMA_PERIPH_SDIO, PG_SDIO_CONFIG, sdioConfig_t, dmaopt),
+#endif
 #if defined(USE_TIMER_MGMT) && defined(USE_TIMER_UP_CONFIG)
     DEFW("TIMUP", DMA_PERIPH_TIMUP, PG_TIMER_UP_CONFIG, timerUpConfig_t, dmaopt, HARDWARE_TIMER_DEFINITION_COUNT, TIMUP_PRESENT_MASK),
 #endif
@@ -4237,6 +4247,7 @@ static const dmaoptEntry_t dmaoptEntryTable[] = {
 
 #undef DEFW
 #undef DEFA
+#undef DEF1
 
 #define DMA_OPT_STRING_BUFSIZE 5
 
@@ -4293,13 +4304,21 @@ STATIC_UNIT_TESTED void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int i
         expectedOwner = OWNER_SPI_SDO;
     } else if (entry->peripheral == DMA_PERIPH_SPI_SDI) {
         expectedOwner = OWNER_SPI_SDI;
+#ifdef CLI_DMAOPT_SDIO
+    } else if (entry->peripheral == DMA_PERIPH_SDIO) {
+        expectedOwner = OWNER_SDCARD;
+#endif
     } else if (entry->peripheral == DMA_PERIPH_TIMUP) {
         expectedOwner = OWNER_TIMUP;
     }
     const resourceOwner_e actualOwner = dmaGetOwner(identifier);
     const uint8_t actualIndex = dmaGetResourceIndex(identifier);
-    // The ADC driver claims its stream with resource index 0 regardless of device.
+    // The ADC and SDIO drivers claim their stream with resource index 0.
+#ifdef CLI_DMAOPT_SDIO
+    const bool indexMatches = entry->peripheral == DMA_PERIPH_ADC || entry->peripheral == DMA_PERIPH_SDIO || actualIndex == RESOURCE_INDEX(index);
+#else
     const bool indexMatches = entry->peripheral == DMA_PERIPH_ADC || actualIndex == RESOURCE_INDEX(index);
+#endif
     if (actualOwner == expectedOwner && indexMatches) {
         return;
     }

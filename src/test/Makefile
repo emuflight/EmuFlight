@@ -305,6 +305,7 @@ cli_timer_dma_unittest_DEFINES := \
 		USE_RESOURCE_MGMT \
 		USE_TIMER_MGMT \
 		USE_ADC \
+		USE_SDCARD_SDIO \
 		STM32F4 \
 		SystemCoreClock=1000000
 
@@ -388,6 +389,7 @@ dma_reqmap_unittest_DEFINES := \
 		STM32F4 \
 		USE_SPI \
 		USE_ADC \
+		USE_SDCARD_SDIO \
 		DMA_Channel_0=0 \
 		DMA_Channel_1=1 \
 		DMA_Channel_2=2 \
@@ -440,6 +442,16 @@ dma_reqmap_nospi_unittest_DEFINES := \
 		DMA2_Stream4=\(void*\)0x40026470
 
 
+dma_reqmap_nospi_sdio_unittest_SRC := \
+		$(USER_DIR)/drivers/dma_reqmap_mcu.c
+
+dma_reqmap_nospi_sdio_unittest_DEFINES := \
+		$(filter-out USE_ADC,$(dma_reqmap_nospi_unittest_DEFINES)) \
+		USE_SDCARD_SDIO \
+		DMA_Channel_4=4 \
+		DMA2_Stream6=\(void*\)0x400264A0
+
+
 dma_reqmap_f7_unittest_SRC := \
 		$(USER_DIR)/drivers/dma_reqmap_mcu.c
 
@@ -447,6 +459,7 @@ dma_reqmap_f7_unittest_DEFINES := \
 		STM32F7 \
 		USE_SPI \
 		USE_ADC \
+		USE_SDCARD_SDIO \
 		DMA_HandleTypeDef=DMA_Channel_TypeDef \
 		DMA_CHANNEL_0=0 \
 		DMA_CHANNEL_1=1 \
@@ -713,6 +726,21 @@ osd_unittest_DEFINES := \
 		USE_RTC_TIME \
 		USE_ADC_INTERNAL
 
+
+pg_sdio_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdio.c
+
+pg_sdio_unittest_DEFINES := \
+		USE_SDCARD_SDIO
+
+pg_sdio_opt_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdio.c
+
+pg_sdio_opt_unittest_DEFINES := \
+		USE_SDCARD_SDIO \
+		SDCARD_SDIO_DMA_OPT=0
 
 pg_unittest_SRC := \
 		$(USER_DIR)/pg/pg.c

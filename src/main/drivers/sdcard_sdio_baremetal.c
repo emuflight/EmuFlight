@@ -32,6 +32,7 @@
 #include "drivers/nvic.h"
 #include "drivers/io.h"
 #include "drivers/dma.h"
+#include "drivers/dma_reqmap.h"
 
 #include "drivers/time.h"
 
@@ -122,7 +123,6 @@ typedef struct sdcard_t {
 #endif
     bool enabled;
     IO_t cardDetectPin;
-    dmaIdentifier_e dma;
     uint8_t dmaChannel;
     uint8_t useCache;
 } sdcard_t;
@@ -267,10 +267,10 @@ void sdcard_init(const sdcardConfig_t *config) {
         sdcard.state = SDCARD_STATE_NOT_PRESENT;
         return;
     }
-    sdcard.dma = config->dmaIdentifier;
 #if !defined(STM32H7)
-    // H7 uses SDMMC IDMA — no external DMA stream needed; dmaIdentifier is 0 by design.
-    if (sdcard.dma == 0) {
+    // H7 uses SDMMC IDMA — no external DMA stream needed.
+    const dmaChannelSpec_t *sdioDmaSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, sdioConfig()->dmaopt);
+    if (!sdioDmaSpec) {
         sdcard.state = SDCARD_STATE_NOT_PRESENT;
         return;
     }
@@ -288,7 +288,7 @@ void sdcard_init(const sdcardConfig_t *config) {
 #if defined(STM32H7)
     if (!SD_Initialize_LL(NULL)) {
 #else
-    if (!SD_Initialize_LL(dmaGetRefByIdentifier(sdcard.dma))) {
+    if (!SD_Initialize_LL((DMA_Stream_TypeDef *)sdioDmaSpec->ref)) {
 #endif
         sdcard.state = SDCARD_STATE_NOT_PRESENT;
         sdcard.failureCount++;
