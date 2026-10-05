@@ -125,7 +125,7 @@
 #define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 1, PA0 , 2,  0) \
+    TIMER_PIN_MAP( 1, PA0 , 1,  0) \
     TIMER_PIN_MAP( 2, PB10 , 1,  0) \
     TIMER_PIN_MAP( 3, PB6 , 1,  0) \
     TIMER_PIN_MAP( 4, PB7 , 1,  0) \

@@ -135,7 +135,7 @@
 #define SBUS_TELEMETRY_UART     SERIAL_PORT_USART3
 
 #define USE_ADC
-#define ADC1_DMA_OPT 0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PC2
 #define CURRENT_METER_ADC_PIN   PC1
 #define RSSI_ADC_PIN            PA0
