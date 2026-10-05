@@ -373,10 +373,35 @@ TEST_F(CliTimerDmaTest, StrToPinRejectsMalformedPin)
     }
 }
 
-// Not tested: a signed pin number ("C+1", "C-0"). IT #1482 lists "C+1" as rejected, but strToPin()
-// passes the digits to strtol(), which accepts a leading sign, so "C+1" currently parses as C01.
-// Fixing that needs a cli.c change (reject a non-digit first character after the port letter);
-// this stage does not edit cli.c, so no assertion for it is committed.
+TEST_F(CliTimerDmaTest, StrToPinRejectsSignedOrSpacedPinNumber)
+{
+    // A pin number is digits only: a sign or whitespace after the port letter is invalid.
+    const char *bad[] = { "C+1", "C-0", "C-1", "C+0", "c+1", "C+", "C-", "C+01", "C 1" };
+    for (size_t i = 0; i < ARRAYLEN(bad); i++) {
+        const std::string out = run(std::string("timer ") + bad[i]);
+        EXPECT_HAS(out, "Parse error") << "pin: " << bad[i];
+        EXPECT_LACKS(out, "\r\ntimer ") << "pin: " << bad[i];
+    }
+}
+
+TEST_F(CliTimerDmaTest, StrToPinRejectsVeryLongPinString)
+{
+    const std::string out = run("timer C" + std::string(4096, '1'));
+    EXPECT_HAS(out, "Parse error");
+    EXPECT_LACKS(out, "\r\ntimer ");
+}
+
+// `resource <name>` with a missing pin (or index) token must report a parse error, not crash.
+TEST_F(CliTimerDmaTest, ResourceWithoutPinReportsParseError)
+{
+    EXPECT_HAS(run("resource LED_STRIP"), "Parse error");
+}
+
+TEST_F(CliTimerDmaTest, ResourceIndexedWithoutPinReportsParseError)
+{
+    EXPECT_HAS(run("resource MOTOR 1"), "Parse error");
+    EXPECT_HAS(run("resource LED_STRIP 1"), "Parse error");
+}
 
 TEST_F(CliTimerDmaTest, StrToPinRejectsOverflowingPinNumber)
 {
