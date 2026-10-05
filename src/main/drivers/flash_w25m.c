@@ -232,30 +232,35 @@ void w25m_pageProgram(flashDevice_t *fdevice, uint32_t address, const uint8_t *d
 
 int w25m_readBytes(flashDevice_t *fdevice, uint32_t address, uint8_t *buffer, uint32_t length)
 {
-    int rlen; // remaining length
-    int tlen; // transfer length for a round
-    int rbytes;
+    uint32_t remaining = length;
 
-    // Divide a read that spans multiple dies into two.
-    // The loop is executed twice at the most for decent 'length'.
+    // Each round clamps to the current die, then advances by the byte count the die driver
+    // returned; a NAND die driver also clamps to its page, so one round may read less than asked.
+    while (remaining) {
+        const uint32_t dieNumber = address / dieSize;
 
-    for (rlen = length; rlen; rlen -= tlen) {
-        int dieNumber = address / dieSize;
-        uint32_t dieAddress = address % dieSize;
-        tlen = MIN(dieAddress + rlen, dieSize) - dieAddress;
+        if (dieNumber >= (uint32_t)dieCount) {
+            break;
+        }
+
+        const uint32_t dieAddress = address % dieSize;
+        const uint32_t tlen = MIN(remaining, dieSize - dieAddress);
 
         w25m_dieSelect(fdevice->io.handle.dev, dieNumber);
 
-        rbytes = dieDevice[dieNumber].vTable->readBytes(&dieDevice[dieNumber], dieAddress, buffer, tlen);
+        const int rbytes = dieDevice[dieNumber].vTable->readBytes(&dieDevice[dieNumber], dieAddress, buffer, tlen);
 
-        if (!rbytes) {
-            return 0;
+        if (rbytes <= 0 || (uint32_t)rbytes > tlen) {
+            break;
         }
 
-        address += tlen;
-        buffer += tlen;
+        address += rbytes;
+        buffer += rbytes;
+        remaining -= rbytes;
     }
-    return length;
+
+    // Bytes read so far; 0 only when the first round failed, as with a single-die read.
+    return length - remaining;
 }
 
 const flashGeometry_t* w25m_getGeometry(flashDevice_t *fdevice)
