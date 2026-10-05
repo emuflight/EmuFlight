@@ -20,28 +20,19 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
-
 #include "pg/pg.h"
-#include "drivers/adc.h"
-#include "drivers/io_types.h"
+#include "pg/pg_ids.h"
 
-typedef struct adcChannelConfig_t {
-    bool enabled;
-    ioTag_t ioTag;
-#if defined(STM32H7)
-    int8_t device; // ADCDevice
+#include "drivers/dma_reqmap.h"
+#include "drivers/io.h"
+#include "drivers/timer.h" // For HARDWARE_TIMER_DEFINITION_COUNT
+
+#if defined(USE_TIMER_MGMT) && defined(USE_TIMER_UP_CONFIG)
+
+typedef struct timerUpConfig_s {
+    int8_t dmaopt;
+} timerUpConfig_t;
+
+PG_DECLARE_ARRAY(timerUpConfig_t, HARDWARE_TIMER_DEFINITION_COUNT, timerUpConfig);
+
 #endif
-} adcChannelConfig_t;
-
-typedef struct adcConfig_s {
-    adcChannelConfig_t vbat;
-    adcChannelConfig_t rssi;
-    adcChannelConfig_t current;
-    adcChannelConfig_t external1;
-    int8_t device; // ADCDevice
-    int8_t dmaopt[ADCDEV_COUNT]; // One per ADCDEV_x
-} adcConfig_t;
-
-PG_DECLARE(adcConfig_t, adcConfig);

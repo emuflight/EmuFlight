@@ -149,6 +149,7 @@ extern uint8_t __config_end;
 #include "pg/sdio.h"
 #endif
 #include "pg/timerio.h"
+#include "pg/timerup.h"
 #include "pg/usb.h"
 
 #include "rx/rx.h"
@@ -4182,6 +4183,9 @@ typedef struct dmaoptEntry_s {
 #else
 #define LPUART1_PRESENT 0
 #endif
+#if defined(USE_TIMER_MGMT) && defined(USE_TIMER_UP_CONFIG)
+#define TIMUP_PRESENT_MASK 0xFF // TIM1-TIM8; TIM15-17 have no config slot
+#endif
 #define UART_PRESENT_MASK (UART1_PRESENT | UART2_PRESENT | UART3_PRESENT | UART4_PRESENT | UART5_PRESENT | \
                            UART6_PRESENT | UART7_PRESENT | UART8_PRESENT | UART9_PRESENT | UART10_PRESENT | LPUART1_PRESENT)
 
@@ -4197,6 +4201,9 @@ static const dmaoptEntry_t dmaoptEntryTable[] = {
 #endif
 #ifdef CLI_DMAOPT_SDIO
     DEF1("SDIO", DMA_PERIPH_SDIO, PG_SDIO_CONFIG, sdioConfig_t, dmaopt),
+#endif
+#if defined(USE_TIMER_MGMT) && defined(USE_TIMER_UP_CONFIG)
+    DEFW("TIMUP", DMA_PERIPH_TIMUP, PG_TIMER_UP_CONFIG, timerUpConfig_t, dmaopt, HARDWARE_TIMER_DEFINITION_COUNT, TIMUP_PRESENT_MASK),
 #endif
 };
 
@@ -4242,7 +4249,7 @@ static dmaoptValue_t *dmaoptAddr(const dmaoptEntry_t *entry, int index) {
     return (dmaoptValue_t *)(base + entry->stride * index + entry->offset);
 }
 
-// Surfaces serialUART()'s and adcInit()'s otherwise-silent DMA fallback/abort via dmaAllocate()'s live ownership state.
+// Surfaces serialUART()'s, adcInit()'s and burst DShot's otherwise-silent DMA fallback/abort via dmaAllocate()'s live ownership state.
 STATIC_UNIT_TESTED void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int index, const dmaChannelSpec_t *dmaChannelSpec) {
     const dmaIdentifier_e identifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaChannelSpec->ref);
     if (identifier == DMA_NONE) {
@@ -4259,6 +4266,8 @@ STATIC_UNIT_TESTED void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int i
     } else if (entry->peripheral == DMA_PERIPH_SDIO) {
         expectedOwner = OWNER_SDCARD;
 #endif
+    } else if (entry->peripheral == DMA_PERIPH_TIMUP) {
+        expectedOwner = OWNER_TIMUP;
     }
     const resourceOwner_e actualOwner = dmaGetOwner(identifier);
     const uint8_t actualIndex = dmaGetResourceIndex(identifier);
