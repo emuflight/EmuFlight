@@ -5074,7 +5074,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("rc_smoothing_info", "show rc_smoothing operational settings", NULL, cliRcSmoothing),
 #endif // USE_RC_SMOOTHING_FILTER
 #ifdef USE_RESOURCE_MGMT
-    CLI_COMMAND_DEF("resource", "show/set resources", "<> | <resource name> <index> [<pin>|none] | show [all]", cliResource),
+    CLI_COMMAND_DEF("resource", "show/set resources", "<> | <resource name> <index> <pin>|none | show [all]", cliResource),
 #endif
     CLI_COMMAND_DEF("rxfail", "show/set rx failsafe settings", NULL, cliRxFailsafe),
     CLI_COMMAND_DEF("rxrange", "configure rx channel ranges", NULL, cliRxRange),
