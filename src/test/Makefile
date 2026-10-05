@@ -569,6 +569,19 @@ osd_unittest_DEFINES := \
 		USE_ADC_INTERNAL
 
 
+pg_sdcard_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+# The legacy SD DMA macros expand to undeclared symbols: compiling fails if pg/sdcard.c reads them.
+pg_sdcard_unittest_DEFINES := \
+		USE_SDCARD \
+		USE_SDCARD_SDIO \
+		SDCARD_DETECT_INVERTED \
+		SDCARD_DMA_STREAM_TX_FULL=legacySdDmaMacroMustBeUnused \
+		SDCARD_DMA_CHANNEL_TX=legacySdDmaMacroMustBeUnused \
+		SDIO_DMA=legacySdDmaMacroMustBeUnused
+
 pg_sdio_unittest_SRC := \
 		$(USER_DIR)/pg/pg.c \
 		$(USER_DIR)/pg/sdio.c

@@ -106,7 +106,6 @@
 #define I2C1_SCL PB8
 #define I2C1_SDA PB9
 
-#define USE_SDCARD_SDIO
 #define SDCARD_SPI_CS_PIN PC14
 #define SDCARD_SPI_INSTANCE SPI3
 #define SDCARD_DMA_CHANNEL_TX       DMA1_Stream5 //# SPI_MOSI 3: DMA1 Stream 5 Channel 0
