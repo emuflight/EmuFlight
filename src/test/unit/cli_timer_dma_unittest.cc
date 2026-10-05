@@ -41,6 +41,7 @@ extern "C" {
     #include "pg/pg_ids.h"
     #include "pg/adc.h"
     #include "pg/rx.h"
+    #include "pg/sdio.h"
     #include "pg/timerio.h"
     #include "drivers/buf_writer.h"
     #include "drivers/dma.h"
@@ -169,6 +170,7 @@ extern "C" {
     // here use a fixed fake board instead.
     PG_REGISTER_ARRAY_WITH_RESET_FN(timerIOConfig_t, MAX_TIMER_PINMAP_COUNT, timerIOConfig, PG_TIMER_IO_CONFIG, 1);
     PG_REGISTER_WITH_RESET_FN(adcConfig_t, adcConfig, PG_ADC_CONFIG, 1);
+    PG_REGISTER_WITH_RESET_FN(sdioConfig_t, sdioConfig, PG_SDIO_CONFIG, 1);
     PG_REGISTER_ARRAY_WITH_RESET_FN(serialUartConfig_t, UARTDEV_COUNT_MAX, serialUartConfig, PG_SERIAL_UART_CONFIG, 0);
 }
 
@@ -187,7 +189,7 @@ extern "C" {
 //
 // DMA options (what dmaGetChannelSpecByTimerValue()/ByPeripheral() accept):
 //   TIM3 CH3: 0..1   TIM8 CH3: 0..2   TIM2 CH2: 0..0   TIM1 CH1: none
-//   UART_TX/UART_RX: 0..1   ADC: 0..2
+//   UART_TX/UART_RX: 0..1   ADC: 0..2   SDIO: 0..1
 // ---------------------------------------------------------------------------------------------
 
 static const ioTag_t TAG_C08 = DEFIO_TAG_MAKE(2, 8);
@@ -238,6 +240,11 @@ void pgResetFn_adcConfig(adcConfig_t *config)
     }
 }
 
+void pgResetFn_sdioConfig(sdioConfig_t *config)
+{
+    config->dmaopt = DMA_OPT_UNUSED;
+}
+
 void pgResetFn_serialUartConfig(serialUartConfig_t *config)
 {
     for (int i = 0; i < UARTDEV_COUNT_MAX; i++) {
@@ -263,6 +270,7 @@ static dmaChannelSpec_t makeSpec(unsigned controller, unsigned stream, unsigned 
 
 static const dmaChannelSpec_t uartSpecs[] = { makeSpec(1, 3, 4), makeSpec(1, 4, 7) };
 static const dmaChannelSpec_t adcSpecs[] = { makeSpec(2, 0, 0), makeSpec(2, 4, 0), makeSpec(2, 2, 1) };
+static const dmaChannelSpec_t sdioSpecs[] = { makeSpec(2, 3, 4), makeSpec(2, 6, 4) };
 static const dmaChannelSpec_t tim3Ch3Specs[] = { makeSpec(1, 7, 5), makeSpec(2, 4, 5) };
 static const dmaChannelSpec_t tim8Ch3Specs[] = { makeSpec(2, 1, 7), makeSpec(2, 2, 0), makeSpec(2, 3, 6) };
 static const dmaChannelSpec_t tim2Ch2Specs[] = { makeSpec(1, 6, 3) };
@@ -274,6 +282,8 @@ class CliTimerDmaTest : public ::testing::Test {
 protected:
     void SetUp() override {
         pgResetAll();
+        // dump indexes mixerNames[mixerMode - 1]; a zeroed PG reads one slot before the table.
+        mixerConfigMutable()->mixerMode = MIXER_QUADX;
         fakeDmaOwner = OWNER_FREE;
         fakeRx.clear();
         fakeRxPos = 0;
@@ -599,6 +609,62 @@ TEST_F(CliTimerDmaTest, DmaAdcRowsAppearInDumpAndDiff)
     EXPECT_LINE(out, "dma ADC 3 1");
     EXPECT_NO_LINE(out, "dma ADC 1 NONE");
     EXPECT_NO_LINE(out, "dma ADC 2 NONE");
+}
+
+// ---------------------------------------------------------------------------------------------
+// dma SDIO rows (IT #1477): one device, `dma SDIO 1 [opt|list|none]`, options 0..1
+// ---------------------------------------------------------------------------------------------
+
+TEST_F(CliTimerDmaTest, DmaSdioRowShowsSetsAndLists)
+{
+    std::string out = run("dma SDIO 1");
+    EXPECT_LINE(out, "dma SDIO 1 NONE");
+
+    out = run("dma SDIO 1 1");
+    EXPECT_HAS(out, "# dma SDIO 1: changed from NONE to 1");
+    EXPECT_EQ(1, sdioConfig()->dmaopt);
+
+    out = run("dma SDIO 1");
+    EXPECT_LINE(out, "dma SDIO 1 1");
+    EXPECT_LINE(out, "# SDIO 1: DMA2 Stream 6 Channel 4");
+
+    run("dma SDIO 1 0");
+    EXPECT_EQ(0, sdioConfig()->dmaopt);
+    EXPECT_LINE(run("dma SDIO 1"), "# SDIO 1: DMA2 Stream 3 Channel 4");
+
+    run("dma SDIO 1 none");
+    EXPECT_EQ(DMA_OPT_UNUSED, sdioConfig()->dmaopt);
+}
+
+TEST_F(CliTimerDmaTest, DmaSdioRowRejectsBadIndexAndOption)
+{
+    const std::string range = "index not between 1 and 1";
+    EXPECT_HAS(run("dma SDIO 0"), range);
+    EXPECT_HAS(run("dma SDIO 2"), range);
+    EXPECT_HAS(run("dma SDIO 1x"), range);
+
+    EXPECT_HAS(run("dma SDIO 1 2"), "INVALID DMA OPTION FOR SDIO 1: '2'");
+    EXPECT_HAS(run("dma SDIO 1 -2"), "INVALID DMA OPTION FOR SDIO 1: '-2'");
+    EXPECT_HAS(run("dma SDIO 1 x"), "INVALID DMA OPTION FOR SDIO 1: 'x'");
+    EXPECT_EQ(DMA_OPT_UNUSED, sdioConfig()->dmaopt);
+}
+
+TEST_F(CliTimerDmaTest, DmaSdioRowReportsForeignStreamOwnerButNotItsOwnClaim)
+{
+    fakeDmaOwner = OWNER_SPI_SDI;
+    EXPECT_HAS(run("dma SDIO 1 1"), "# SDIO 1: CLAIMED BY SPI_SDI");
+
+    // The SD driver claims its stream as OWNER_SDCARD index 0 (RESOURCE_INDEX(0) is 1).
+    fakeDmaOwner = OWNER_SDCARD;
+    EXPECT_NO_LINE(run("dma SDIO 1 0"), "# SDIO 1: CLAIMED BY SDCARD");
+}
+
+TEST_F(CliTimerDmaTest, DmaSdioRowAppearsInDumpAndDiff)
+{
+    EXPECT_LINE(run("dump"), "dma SDIO 1 NONE");
+    run("dma SDIO 1 1");
+    const std::string out = run("diff");
+    EXPECT_LINE(out, "dma SDIO 1 1");
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1055,6 +1121,8 @@ const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e device, ui
         return ARRAY_SPEC(uartSpecs, opt);
     case DMA_PERIPH_ADC:
         return ARRAY_SPEC(adcSpecs, opt);
+    case DMA_PERIPH_SDIO:
+        return ARRAY_SPEC(sdioSpecs, opt);
     default:
         return NULL;
     }
