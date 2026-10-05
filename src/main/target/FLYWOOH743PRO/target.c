@@ -30,7 +30,7 @@
 #include "drivers/timer_def.h"
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
-    // motors: dmaopt 0-7 = DMA1_S0-7; led strip DMA2_S5; ADC1 holds DMA2_S0; SPI1/2/4 take DMA2_S1-4,6-7
+    // motors: dmaopt 0-7 = DMA1_S0-7; led strip DMA2_S5; ADC1 holds DMA2_S0, ADC3 DMA2_S1; SPI takes the free rest
     DEF_TIM(TIM3, CH3, PB0, TIM_USE_MOTOR, 0, 0, NONE), // motor 1
     DEF_TIM(TIM3, CH4, PB1, TIM_USE_MOTOR, 0, 1, NONE), // motor 2
     DEF_TIM(TIM5, CH1, PA0, TIM_USE_MOTOR, 0, 2, NONE), // motor 3
