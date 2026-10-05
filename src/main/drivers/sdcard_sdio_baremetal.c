@@ -123,7 +123,6 @@ typedef struct sdcard_t {
 #endif
     bool enabled;
     IO_t cardDetectPin;
-    uint8_t dmaChannel;
     uint8_t useCache;
 } sdcard_t;
 
