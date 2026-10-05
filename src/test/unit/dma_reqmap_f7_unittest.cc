@@ -226,3 +226,33 @@ TEST(DmaReqmapF7Unittest, AdcRejectsDeviceWithNoTableEntry)
 {
     EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, ADCDEV_COUNT, 0), nullptr);
 }
+
+// --- SDIO entry (IT #1477): one device (index 0), two options. Spec: DMA2 Stream3 ch4 (opt 0), DMA2 Stream6 ch4 (opt 1) ---
+
+TEST(DmaReqmapF7Unittest, SdioOptionsResolveToTheirFixedStreamAndChannel)
+{
+    const dmaChannelSpec_t *opt0 = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, 0);
+    ASSERT_NE(opt0, nullptr);
+    EXPECT_EQ(opt0->ref, (dmaResource_t *)DMA2_Stream3);
+    EXPECT_EQ(opt0->channel, 4u);
+
+    const dmaChannelSpec_t *opt1 = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, 1);
+    ASSERT_NE(opt1, nullptr);
+    EXPECT_EQ(opt1->ref, (dmaResource_t *)DMA2_Stream6);
+    EXPECT_EQ(opt1->channel, 4u);
+}
+
+TEST(DmaReqmapF7Unittest, SdioRejectsUnusedAndOutOfRangeOpt)
+{
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, DMA_OPT_UNUSED), nullptr);
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, 2), nullptr);
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, MAX_PERIPHERAL_DMA_OPTIONS), nullptr);
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, INT8_MAX), nullptr);
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, INT8_MIN), nullptr);
+}
+
+TEST(DmaReqmapF7Unittest, SdioHasOnlyDeviceIndexZero)
+{
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 1, 0), nullptr);
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, UINT8_MAX, 0), nullptr);
+}

@@ -122,7 +122,6 @@
 
 #define USE_SDCARD
 #define USE_SDCARD_SPI
-#define USE_SDCARD_SDIO
 #define SDCARD_SPI_CS_PIN     PD2
 #define SDCARD_SPI_INSTANCE   SPI3
 #define SDCARD_DMA_CHANNEL_TX DMA1_Stream5 //# SPI_MOSI 3: DMA1 Stream 5 Channel 0

@@ -33,7 +33,7 @@
 #include "drivers/io.h"
 #include "drivers/dma.h"
 
-PG_REGISTER_WITH_RESET_FN(sdcardConfig_t, sdcardConfig, PG_SDCARD_CONFIG, 1);
+PG_REGISTER_WITH_RESET_FN(sdcardConfig_t, sdcardConfig, PG_SDCARD_CONFIG, 2);
 
 void pgResetFn_sdcardConfig(sdcardConfig_t *config) {
 #ifdef SDCARD_SPI_INSTANCE
@@ -59,13 +59,6 @@ void pgResetFn_sdcardConfig(sdcardConfig_t *config) {
     config->cardDetectInverted = 1;
 #else
     config->cardDetectInverted = 0;
-#endif
-#if defined(SDCARD_DMA_STREAM_TX_FULL)
-    config->dmaIdentifier = (uint8_t)dmaGetIdentifier(SDCARD_DMA_STREAM_TX_FULL);
-#elif defined(SDCARD_DMA_CHANNEL_TX)
-    config->dmaIdentifier = (uint8_t)dmaGetIdentifier(SDCARD_DMA_CHANNEL_TX);
-#elif defined(SDIO_DMA)
-    config->dmaIdentifier = (uint8_t)dmaGetIdentifier(SDIO_DMA);
 #endif
 }
 #endif

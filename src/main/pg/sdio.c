@@ -22,10 +22,14 @@
 
 #if defined(USE_SDCARD_SDIO)
 
+#include "drivers/dma_reqmap.h"
 #include "drivers/io.h"
 #include "pg/pg_ids.h"
 #include "pg/sdio.h"
 
+#ifndef SDCARD_SDIO_DMA_OPT
+#define SDCARD_SDIO_DMA_OPT DMA_OPT_UNUSED
+#endif
 #ifndef SDIO_USE_4BIT
 #define SDIO_USE_4BIT false
 #endif
@@ -48,12 +52,13 @@
 #define SDIO_D3_PIN NONE
 #endif
 
-PG_REGISTER_WITH_RESET_TEMPLATE(sdioConfig_t, sdioConfig, PG_SDIO_CONFIG, 0);
+PG_REGISTER_WITH_RESET_TEMPLATE(sdioConfig_t, sdioConfig, PG_SDIO_CONFIG, 1);
 
 PG_RESET_TEMPLATE(sdioConfig_t, sdioConfig,
                   .clockBypass = 0,
                   .useCache = 0,
                   .use4BitWidth = SDIO_USE_4BIT,
+                  .dmaopt = SDCARD_SDIO_DMA_OPT,
                   .device = 1     // default SDMMC1
                  );
 

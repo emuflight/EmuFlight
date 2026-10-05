@@ -60,3 +60,9 @@ TEST(DmaReqmapNoSpiUnittest, NonAdcPeripheralsStayUnresolved)
     EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_UART_RX, UARTDEV_1, 0), nullptr);
     EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SPI_SDI, 0, 0), nullptr);
 }
+
+TEST(DmaReqmapNoSpiUnittest, SdioStaysUnresolvedWhenTargetHasNoSdio)
+{
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, 0), nullptr);
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, 1), nullptr);
+}
