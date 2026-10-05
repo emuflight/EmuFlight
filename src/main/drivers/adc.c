@@ -98,6 +98,9 @@ uint16_t adcGetChannel(uint8_t channel) {
         debug[3] = adcValues[adcOperatingConfig[3].dmaIndex];
     }
 #endif
+    if (!adcOperatingConfig[channel].enabled) {
+        return 0; // an input whose ADC failed to start must not read another input's sample
+    }
     return adcValues[adcOperatingConfig[channel].dmaIndex];
 }
 

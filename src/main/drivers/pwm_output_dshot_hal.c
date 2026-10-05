@@ -34,6 +34,9 @@
 #include "dma.h"
 #include "drivers/dma_reqmap.h"
 #include "rcc.h"
+#if defined(USE_TIMER_MGMT) && defined(USE_TIMER_UP_CONFIG)
+#include "pg/timerup.h"
+#endif
 
 static FAST_RAM_ZERO_INIT uint8_t dmaMotorTimerCount = 0;
 static DMA_DATA_ZERO_INIT motorDmaTimer_t dmaMotorTimers[MAX_DMA_TIMERS];
@@ -52,6 +55,17 @@ static bool dshotDmaClaim(dmaIdentifier_e identifier, resourceOwner_e owner, uin
     }
     return dmaAllocate(identifier, owner, resourceIndex);
 }
+
+#if defined(USE_DSHOT_DMAR) && defined(USE_TIMER_MGMT) && defined(USE_TIMER_UP_CONFIG)
+// The board's TIMUPn_DMA_OPT picks the TIM_UP stream; unset (NULL) keeps the table's upopt stream.
+static const dmaChannelSpec_t *timerUpDmaSpec(const timerHardware_t *timerHardware) {
+    const int8_t timNumber = timerGetTIMNumber(timerHardware->tim);
+    if (timNumber < 1 || timNumber > HARDWARE_TIMER_DEFINITION_COUNT) {
+        return NULL;
+    }
+    return dmaGetChannelSpecByPeripheral(DMA_PERIPH_TIMUP, timNumber - 1, timerUpConfig(timNumber - 1)->dmaopt);
+}
+#endif
 
 uint8_t getTimerIndex(TIM_TypeDef *timer) {
     for (int i = 0; i < dmaMotorTimerCount; i++) {
@@ -126,7 +140,7 @@ FAST_CODE static void motor_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
         motorDmaOutput_t * const motor = &dmaMotors[descriptor->userParam];
 #ifdef USE_DSHOT_DMAR
         if (useBurstDshot) {
-            LL_EX_DMA_DisableStream(motor->timerHardware->dmaTimUPRef);
+            LL_EX_DMA_DisableStream(motor->timer->dmaBurstRef);
             LL_TIM_DisableDMAReq_UPDATE(motor->timerHardware->tim);
         } else
 #endif
@@ -143,8 +157,20 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     uint32_t dmaChannel = timerHardware->dmaChannel;
     dmaIdentifier_e dmaIrqIdentifier = timerHardware->dmaIrqHandler;
 #ifdef USE_DSHOT_DMAR
+    dmaIdentifier_e dmaUpIrqIdentifier = timerHardware->dmaTimUPIrqHandler;
     if (useBurstDshot) {
         dmaRef = timerHardware->dmaTimUPRef;
+#if defined(USE_TIMER_MGMT) && defined(USE_TIMER_UP_CONFIG)
+        const dmaChannelSpec_t *upSpec = timerUpDmaSpec(timerHardware);
+        if (upSpec) {
+            dmaRef = (DMA_Stream_TypeDef *)upSpec->ref;
+            // Re-derive the identifier so the claim and IRQ target the stream actually used.
+            dmaUpIrqIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)upSpec->ref);
+            if (dmaUpIrqIdentifier == DMA_NONE) {
+                return;
+            }
+        }
+#endif
     } else
 #endif
     {
@@ -168,10 +194,10 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     }
 #ifdef USE_DSHOT_DMAR
     if (useBurstDshot) {
-        if (!dshotDmaClaim(timerHardware->dmaTimUPIrqHandler, OWNER_TIMUP, timerGetTIMNumber(timerHardware->tim))) {
+        if (!dshotDmaClaim(dmaUpIrqIdentifier, OWNER_TIMUP, timerGetTIMNumber(timerHardware->tim))) {
             return;
         }
-        dmaEnable(timerHardware->dmaTimUPIrqHandler);
+        dmaEnable(dmaUpIrqIdentifier);
     } else
 #endif
     {
@@ -268,7 +294,7 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     LL_DMA_StructInit(&dma_init);
 #ifdef USE_DSHOT_DMAR
     if (useBurstDshot) {
-        dmaSetHandler(timerHardware->dmaTimUPIrqHandler, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
+        dmaSetHandler(dmaUpIrqIdentifier, motor_DMA_IRQHandler, NVIC_BUILD_PRIORITY(1, 2), motorIndex);
 #if defined(STM32H7)
         dma_init.PeriphRequest = timerHardware->dmaTimUPChannel;
 #else

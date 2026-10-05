@@ -150,6 +150,9 @@
     TIMER_PIN_MAP( 8, PD14 , 1,  0) \
     TIMER_PIN_MAP( 9, PD15 , 1, -1) \
     TIMER_PIN_MAP( 10, PA15 , 1,  0)
+#define TIMUP3_DMA_OPT 10
+#define TIMUP4_DMA_OPT 11
+#define TIMUP5_DMA_OPT 12
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1
