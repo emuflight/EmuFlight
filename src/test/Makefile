@@ -49,6 +49,9 @@ baro_bmp085_unittest_SRC := \
 adc_h7_unittest_DEFINES := \
 		STM32H7
 
+adc_internal_unittest_DEFINES := \
+		USE_ADC_INTERNAL
+
 baro_bmp280_unittest_SRC := \
 		$(USER_DIR)/drivers/barometer/barometer_bmp280.c
 
