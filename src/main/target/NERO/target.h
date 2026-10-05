@@ -68,7 +68,6 @@
 #define GYRO_MPU6500_ALIGN      CW0_DEG
 
 #define USE_SDCARD
-#define USE_SDCARD_SDIO
 #define SDCARD_DETECT_INVERTED
 #define SDCARD_DETECT_PIN                   PD2
 #define SDCARD_SPI_INSTANCE                 SPI3

@@ -27,9 +27,6 @@
 #include "pg/pg_ids.h"
 #include "pg/sdio.h"
 
-#if defined(SDIO_DMA) && !defined(SDCARD_SDIO_DMA_OPT)
-#error "SDIO_DMA no longer selects the stream: define SDCARD_SDIO_DMA_OPT"
-#endif
 #ifndef SDCARD_SDIO_DMA_OPT
 #define SDCARD_SDIO_DMA_OPT DMA_OPT_UNUSED
 #endif
