@@ -450,7 +450,7 @@
 #elif defined(STM32H7)
 
 // H7: dmaopt is a direct pool stream index (0-7 = DMA1_S0..S7, 8-15 = DMA2_S0..S7).
-// upopt is the pool stream index for TIM_UP burst DShot (NONE = burst not available).
+// upopt is the fallback pool stream index for TIM_UP burst DShot (NONE = burst not available).
 // DMAMUX routes the actual peripheral request at init via DEF_TIM_DMA_REQUEST.
 #define DEF_TIM(tim, chan, pin, flags, out, dmaopt, upopt) {            \
     tim,                                                                \
