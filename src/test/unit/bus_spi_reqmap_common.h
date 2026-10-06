@@ -307,6 +307,7 @@ TEST(BusSpiReqmapUnittest, PinnedStreamOwnedElsewhereLeavesBusPolled)
     EXPECT_EQ(txId(SPIDEV_1), (int)DMA_NONE);
     EXPECT_FALSE(dmaOn(SPIDEV_1));
     // Only the pinned Rx stream (option 3 = DMA1 S3) is taken: Tx did not fall back to the lowest free stream.
+    // The Rx claim stays although the bus is polled: this documents the legacy behavior, see IT #1529.
     EXPECT_EQ(claimedStreams, owned | (1u << DMA_IDENTIFIER_TO_INDEX(streamId(1, 3))));
 }
 
