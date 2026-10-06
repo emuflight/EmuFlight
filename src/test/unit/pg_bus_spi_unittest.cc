@@ -44,16 +44,31 @@ namespace {
 constexpr uint8_t kLegacyStride = 3; // sck, miso, mosi
 }
 
-TEST(PgBusSpiUnittest, ResetSetsEveryDeviceOptionToUnset)
+TEST(PgBusSpiUnittest, ResetSetsEveryUnconfiguredDeviceOptionToUnset)
 {
     memset(spiPinConfigMutable(0), 0, sizeof(spiPinConfig_t) * SPIDEV_COUNT);
     pgResetAll();
 
     // SPIDEV_3 has no entry in spiDefaultConfig[] on this target; zero would pin option 0 there.
     for (int device = 0; device < SPIDEV_COUNT; device++) {
+        if (device == SPIDEV_2) {
+            continue; // carries a board default, see the next test
+        }
         EXPECT_EQ(spiPinConfig(device)->txDmaopt, DMA_OPT_UNUSED) << "device " << device;
         EXPECT_EQ(spiPinConfig(device)->rxDmaopt, DMA_OPT_UNUSED) << "device " << device;
     }
+}
+
+TEST(PgBusSpiUnittest, ResetAppliesBoardDmaOptionDefaults)
+{
+    memset(spiPinConfigMutable(0), 0xFF, sizeof(spiPinConfig_t) * SPIDEV_COUNT);
+    pgResetAll();
+
+    // The target defines SPI2_TX_DMA_OPT=1 and SPI2_RX_DMA_OPT=0; SPI1 defines neither.
+    EXPECT_EQ(spiPinConfig(SPIDEV_2)->txDmaopt, 1);
+    EXPECT_EQ(spiPinConfig(SPIDEV_2)->rxDmaopt, 0);
+    EXPECT_EQ(spiPinConfig(SPIDEV_1)->txDmaopt, DMA_OPT_UNUSED);
+    EXPECT_EQ(spiPinConfig(SPIDEV_1)->rxDmaopt, DMA_OPT_UNUSED);
 }
 
 TEST(PgBusSpiUnittest, ResetKeepsBoardPinsAndLeavesAbsentDevicePinsEmpty)
@@ -82,8 +97,9 @@ TEST(PgBusSpiUnittest, VersionOneRecordIsRejectedAndLeavesDefaults)
     EXPECT_FALSE(pgLoad(reg, legacy, sizeof(legacy), 1));
 
     for (int device = 0; device < SPIDEV_COUNT; device++) {
-        EXPECT_EQ(spiPinConfig(device)->txDmaopt, DMA_OPT_UNUSED) << "device " << device;
-        EXPECT_EQ(spiPinConfig(device)->rxDmaopt, DMA_OPT_UNUSED) << "device " << device;
+        const bool boardDefault = (device == SPIDEV_2); // SPI2_TX_DMA_OPT=1, SPI2_RX_DMA_OPT=0
+        EXPECT_EQ(spiPinConfig(device)->txDmaopt, boardDefault ? 1 : DMA_OPT_UNUSED) << "device " << device;
+        EXPECT_EQ(spiPinConfig(device)->rxDmaopt, boardDefault ? 0 : DMA_OPT_UNUSED) << "device " << device;
     }
     EXPECT_EQ(spiPinConfig(SPIDEV_1)->ioTagSck, IO_TAG(SPI1_SCK_PIN)); // pins back at board defaults
 }
@@ -91,8 +107,8 @@ TEST(PgBusSpiUnittest, VersionOneRecordIsRejectedAndLeavesDefaults)
 TEST(PgBusSpiUnittest, CurrentVersionRecordRoundTripsOptions)
 {
     pgResetAll();
-    spiPinConfigMutable(SPIDEV_2)->txDmaopt = 1;
-    spiPinConfigMutable(SPIDEV_2)->rxDmaopt = 0;
+    spiPinConfigMutable(SPIDEV_2)->txDmaopt = 0;   // differs from the board default (1)
+    spiPinConfigMutable(SPIDEV_2)->rxDmaopt = 1;   // differs from the board default (0)
 
     const pgRegistry_t *reg = pgFind(PG_SPI_PIN_CONFIG);
     uint8_t stored[sizeof(spiPinConfig_t) * SPIDEV_COUNT];
@@ -100,9 +116,9 @@ TEST(PgBusSpiUnittest, CurrentVersionRecordRoundTripsOptions)
     pgStore(reg, stored, sizeof(stored));
 
     pgResetAll();
-    ASSERT_EQ(spiPinConfig(SPIDEV_2)->txDmaopt, DMA_OPT_UNUSED);
+    ASSERT_EQ(spiPinConfig(SPIDEV_2)->txDmaopt, 1);
     EXPECT_TRUE(pgLoad(reg, stored, sizeof(stored), pgVersion(reg)));
-    EXPECT_EQ(spiPinConfig(SPIDEV_2)->txDmaopt, 1);
-    EXPECT_EQ(spiPinConfig(SPIDEV_2)->rxDmaopt, 0);
+    EXPECT_EQ(spiPinConfig(SPIDEV_2)->txDmaopt, 0);
+    EXPECT_EQ(spiPinConfig(SPIDEV_2)->rxDmaopt, 1);
     EXPECT_EQ(spiPinConfig(SPIDEV_1)->txDmaopt, DMA_OPT_UNUSED);
 }

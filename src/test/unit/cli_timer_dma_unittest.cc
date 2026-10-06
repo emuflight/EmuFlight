@@ -629,6 +629,23 @@ TEST_F(CliTimerDmaTest, DmaAdcRowsAppearInDumpAndDiff)
 // dma SPI_SDO / SPI_SDI rows (IT #1476): `dma SPI_SDO <1-3> [opt|list|none]`, SPI1 and SPI2 present
 // ---------------------------------------------------------------------------------------------
 
+TEST_F(CliTimerDmaTest, DmaLegacySpiTxRxNamesAliasSdoSdi)
+{
+    std::string out = run("dma SPI_TX 1 1");
+    EXPECT_HAS(out, "# dma SPI_TX 1: changed from NONE to 1");
+    EXPECT_EQ(1, spiPinConfig(SPIDEV_1)->txDmaopt);
+    EXPECT_EQ(DMA_OPT_UNUSED, spiPinConfig(SPIDEV_1)->rxDmaopt);
+    EXPECT_LINE(run("dma SPI_SDO 1"), "dma SPI_SDO 1 1");   // same storage as the canonical name
+
+    out = run("dma spi_rx 2 0");
+    EXPECT_HAS(out, "# dma SPI_RX 2: changed from NONE to 0");
+    EXPECT_EQ(0, spiPinConfig(SPIDEV_2)->rxDmaopt);
+    EXPECT_EQ(DMA_OPT_UNUSED, spiPinConfig(SPIDEV_2)->txDmaopt);
+
+    EXPECT_HAS(run("dma SPI_TX 3"), "BAD INDEX: '3'");      // SPI3 absent on this target
+    EXPECT_HAS(run("dma SPI_RX 1 9"), "INVALID DMA OPTION FOR SPI_RX 1: '9'");
+}
+
 TEST_F(CliTimerDmaTest, DmaSpiRowsShowSetListAndClear)
 {
     std::string out = run("dma SPI_SDO 1");

@@ -772,7 +772,9 @@ pg_bus_spi_unittest_DEFINES := \
 		SPI1_MOSI_PIN=PA7 \
 		SPI2_SCK_PIN=PB13 \
 		SPI2_MISO_PIN=PB14 \
-		SPI2_MOSI_PIN=PB15
+		SPI2_MOSI_PIN=PB15 \
+		SPI2_TX_DMA_OPT=1 \
+		SPI2_RX_DMA_OPT=0
 
 
 rc_controls_unittest_SRC := \

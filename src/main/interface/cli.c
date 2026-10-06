@@ -4244,6 +4244,8 @@ static const dmaoptEntry_t dmaoptEntryTable[] = {
 #ifdef USE_SPI
     DEFW("SPI_SDO", DMA_PERIPH_SPI_SDO, PG_SPI_PIN_CONFIG, spiPinConfig_t, txDmaopt, SPIDEV_COUNT, SPI_PRESENT_MASK),
     DEFW("SPI_SDI", DMA_PERIPH_SPI_SDI, PG_SPI_PIN_CONFIG, spiPinConfig_t, rxDmaopt, SPIDEV_COUNT, SPI_PRESENT_MASK),
+    DEFW("SPI_TX", DMA_PERIPH_SPI_SDO, PG_SPI_PIN_CONFIG, spiPinConfig_t, txDmaopt, SPIDEV_COUNT, SPI_PRESENT_MASK),
+    DEFW("SPI_RX", DMA_PERIPH_SPI_SDI, PG_SPI_PIN_CONFIG, spiPinConfig_t, rxDmaopt, SPIDEV_COUNT, SPI_PRESENT_MASK),
 #endif
 #ifdef USE_ADC
     DEFA("ADC", DMA_PERIPH_ADC, PG_ADC_CONFIG, adcConfig_t, dmaopt, ADCDEV_COUNT, 0),
