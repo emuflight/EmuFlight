@@ -72,6 +72,32 @@ TEST(AdcInternalUnittest, TemperatureIsIndependentOfSupplyVoltage)
     EXPECT_EQ(adcInternalComputeTemperature(1265, 3000, TS_CAL1, SLOPE_K), 70);
 }
 
+// Physical model: at supply Vdda the ADC counts scale by 3.3 V / Vdda. Both samples are built from
+// the model, not from the code under test, then run through the real Vref -> temperature chain.
+TEST(AdcInternalUnittest, PipelineRecoversSupplyAndTemperatureAcrossSupplyRange)
+{
+    static constexpr uint16_t VREFINT_CAL = 1500;
+    static constexpr int32_t TS_CAL2_MINUS_CAL1 = 300; // counts between 30 and 110 degC
+    for (int vddaMv = 2800; vddaMv <= 3600; vddaMv += 100) {
+        const uint16_t vrefintSample = (uint16_t)(VREFINT_CAL * 3300.0 / vddaMv);
+        const uint16_t vrefMv = adcInternalCompensateVref(VREFINT_CAL, vrefintSample);
+        EXPECT_NEAR(vrefMv, vddaMv, 3);
+        for (int tempC = -10; tempC <= 110; tempC += 20) {
+            const double countsAt3v3 = TS_CAL1 + (tempC - 30) * TS_CAL2_MINUS_CAL1 / 80.0;
+            const uint16_t tempSample = (uint16_t)(countsAt3v3 * 3300.0 / vddaMv);
+            EXPECT_NEAR(adcInternalComputeTemperature(tempSample, vrefMv, TS_CAL1, SLOPE_K), tempC, 2)
+                << "Vdda " << vddaMv << " mV, " << tempC << " degC";
+        }
+    }
+}
+
+TEST(AdcInternalUnittest, MaximumInputsDoNotOverflow)
+{
+    // 16-bit samples, maximum Vref, zero calibration offset: the intermediate product must not wrap.
+    const int16_t temp = adcInternalComputeTemperature(UINT16_MAX, UINT16_MAX, 0, 1);
+    EXPECT_GT(temp, 30);
+}
+
 TEST(AdcInternalUnittest, ZeroSlopeGivesThirtyDegrees)
 {
     // Equal calibration words set slopeK to 0; the result stays finite.
