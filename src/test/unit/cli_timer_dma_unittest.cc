@@ -40,6 +40,7 @@ extern "C" {
     #include "pg/pg.h"
     #include "pg/pg_ids.h"
     #include "pg/adc.h"
+    #include "pg/bus_spi.h"
     #include "pg/rx.h"
     #include "pg/sdio.h"
     #include "pg/timerio.h"
@@ -130,7 +131,6 @@ extern "C" {
     FAKE_RESOURCE_PG(fakeTransponderConfig, PG_TRANSPONDER_CONFIG);
 #endif
 #ifdef USE_SPI
-    FAKE_RESOURCE_PG(fakeSpiPinConfig, PG_SPI_PIN_CONFIG);
     FAKE_RESOURCE_PG(fakeSpiPreinitIpuConfig, PG_SPI_PREINIT_IPU_CONFIG);
     FAKE_RESOURCE_PG(fakeSpiPreinitOpuConfig, PG_SPI_PREINIT_OPU_CONFIG);
 #endif
@@ -172,6 +172,7 @@ extern "C" {
     PG_REGISTER_WITH_RESET_FN(adcConfig_t, adcConfig, PG_ADC_CONFIG, 1);
     PG_REGISTER_WITH_RESET_FN(sdioConfig_t, sdioConfig, PG_SDIO_CONFIG, 1);
     PG_REGISTER_ARRAY_WITH_RESET_FN(serialUartConfig_t, UARTDEV_COUNT_MAX, serialUartConfig, PG_SERIAL_UART_CONFIG, 0);
+    PG_REGISTER_ARRAY_WITH_RESET_FN(spiPinConfig_t, SPIDEV_COUNT, spiPinConfig, PG_SPI_PIN_CONFIG, 2);
 }
 
 #include "unittest_macros.h"
@@ -189,7 +190,8 @@ extern "C" {
 //
 // DMA options (what dmaGetChannelSpecByTimerValue()/ByPeripheral() accept):
 //   TIM3 CH3: 0..1   TIM8 CH3: 0..2   TIM2 CH2: 0..0   TIM1 CH1: none
-//   UART_TX/UART_RX: 0..1   ADC: 0..2   SDIO: 0..1
+//   UART_TX/UART_RX: 0..1   ADC: 0..2   SPI_SDO/SPI_SDI: 0..1 (SPI1 and SPI2 present, SPI3 absent)
+//   SDIO: 0..1
 // ---------------------------------------------------------------------------------------------
 
 static const ioTag_t TAG_C08 = DEFIO_TAG_MAKE(2, 8);
@@ -240,6 +242,14 @@ void pgResetFn_adcConfig(adcConfig_t *config)
     }
 }
 
+void pgResetFn_spiPinConfig(spiPinConfig_t *config)
+{
+    for (int i = 0; i < SPIDEV_COUNT; i++) {
+        config[i].txDmaopt = DMA_OPT_UNUSED;
+        config[i].rxDmaopt = DMA_OPT_UNUSED;
+    }
+}
+
 void pgResetFn_sdioConfig(sdioConfig_t *config)
 {
     config->dmaopt = DMA_OPT_UNUSED;
@@ -256,6 +266,7 @@ void pgResetFn_serialUartConfig(serialUartConfig_t *config)
 
 // Controllable fakes used by the stubs at the end of the file.
 static resourceOwner_e fakeDmaOwner = OWNER_FREE;
+static uint8_t fakeDmaResourceIndex = 0;
 static std::string fakeRx;
 static size_t fakeRxPos = 0;
 static ioTag_t fakeLastIoTag = 0;
@@ -269,6 +280,8 @@ static dmaChannelSpec_t makeSpec(unsigned controller, unsigned stream, unsigned 
 }
 
 static const dmaChannelSpec_t uartSpecs[] = { makeSpec(1, 3, 4), makeSpec(1, 4, 7) };
+static const dmaChannelSpec_t spiSdoSpecs[] = { makeSpec(2, 3, 3), makeSpec(2, 5, 3) };
+static const dmaChannelSpec_t spiSdiSpecs[] = { makeSpec(2, 0, 3), makeSpec(2, 2, 3) };
 static const dmaChannelSpec_t adcSpecs[] = { makeSpec(2, 0, 0), makeSpec(2, 4, 0), makeSpec(2, 2, 1) };
 static const dmaChannelSpec_t sdioSpecs[] = { makeSpec(2, 3, 4), makeSpec(2, 6, 4) };
 static const dmaChannelSpec_t tim3Ch3Specs[] = { makeSpec(1, 7, 5), makeSpec(2, 4, 5) };
@@ -285,6 +298,7 @@ protected:
         // dump indexes mixerNames[mixerMode - 1]; a zeroed PG reads one slot before the table.
         mixerConfigMutable()->mixerMode = MIXER_QUADX;
         fakeDmaOwner = OWNER_FREE;
+        fakeDmaResourceIndex = 0;
         fakeRx.clear();
         fakeRxPos = 0;
         static serialPort_t port = {};
@@ -609,6 +623,116 @@ TEST_F(CliTimerDmaTest, DmaAdcRowsAppearInDumpAndDiff)
     EXPECT_LINE(out, "dma ADC 3 1");
     EXPECT_NO_LINE(out, "dma ADC 1 NONE");
     EXPECT_NO_LINE(out, "dma ADC 2 NONE");
+}
+
+// ---------------------------------------------------------------------------------------------
+// dma SPI_SDO / SPI_SDI rows (IT #1476): `dma SPI_SDO <1-3> [opt|list|none]`, SPI1 and SPI2 present
+// ---------------------------------------------------------------------------------------------
+
+TEST_F(CliTimerDmaTest, DmaLegacySpiTxRxNamesAliasSdoSdi)
+{
+    std::string out = run("dma SPI_TX 1 1");
+    EXPECT_HAS(out, "# dma SPI_TX 1: changed from NONE to 1");
+    EXPECT_EQ(1, spiPinConfig(SPIDEV_1)->txDmaopt);
+    EXPECT_EQ(DMA_OPT_UNUSED, spiPinConfig(SPIDEV_1)->rxDmaopt);
+    EXPECT_LINE(run("dma SPI_SDO 1"), "dma SPI_SDO 1 1");   // same storage as the canonical name
+
+    out = run("dma spi_rx 2 0");
+    EXPECT_HAS(out, "# dma SPI_RX 2: changed from NONE to 0");
+    EXPECT_EQ(0, spiPinConfig(SPIDEV_2)->rxDmaopt);
+    EXPECT_EQ(DMA_OPT_UNUSED, spiPinConfig(SPIDEV_2)->txDmaopt);
+
+    EXPECT_HAS(run("dma SPI_TX 3"), "BAD INDEX: '3'");      // SPI3 absent on this target
+    EXPECT_HAS(run("dma SPI_RX 1 9"), "INVALID DMA OPTION FOR SPI_RX 1: '9'");
+}
+
+TEST_F(CliTimerDmaTest, DmaSpiRowsShowSetListAndClear)
+{
+    std::string out = run("dma SPI_SDO 1");
+    EXPECT_LINE(out, "dma SPI_SDO 1 NONE");
+
+    out = run("dma SPI_SDO 1 1");
+    EXPECT_HAS(out, "# dma SPI_SDO 1: changed from NONE to 1");
+    EXPECT_EQ(1, spiPinConfig(SPIDEV_1)->txDmaopt);
+    EXPECT_EQ(DMA_OPT_UNUSED, spiPinConfig(SPIDEV_1)->rxDmaopt);   // the sibling field is untouched
+    EXPECT_EQ(DMA_OPT_UNUSED, spiPinConfig(SPIDEV_2)->txDmaopt);   // so is the next bus
+
+    out = run("dma spi_sdi 2 0");
+    EXPECT_HAS(out, "# dma SPI_SDI 2: changed from NONE to 0");
+    EXPECT_EQ(0, spiPinConfig(SPIDEV_2)->rxDmaopt);
+    EXPECT_EQ(DMA_OPT_UNUSED, spiPinConfig(SPIDEV_2)->txDmaopt);
+    EXPECT_EQ(DMA_OPT_UNUSED, spiPinConfig(SPIDEV_1)->rxDmaopt);
+
+    out = run("dma SPI_SDO 1");
+    EXPECT_LINE(out, "dma SPI_SDO 1 1");
+    EXPECT_LINE(out, "# SPI_SDO 1: DMA2 Stream 5 Channel 3");
+
+    out = run("dma SPI_SDO 1 list");
+    EXPECT_LINE(out, "# 0: DMA2 Stream 3 Channel 3");
+    EXPECT_LINE(out, "# 1: DMA2 Stream 5 Channel 3");
+    EXPECT_LACKS(out, "# 2:");
+
+    out = run("dma SPI_SDO 1 none");
+    EXPECT_HAS(out, "# dma SPI_SDO 1: changed from 1 to NONE");
+    EXPECT_EQ(DMA_OPT_UNUSED, spiPinConfig(SPIDEV_1)->txDmaopt);
+}
+
+TEST_F(CliTimerDmaTest, DmaSpiRowsRejectBadIndexAndOption)
+{
+    const std::string range = "index not between 1 and " + std::to_string((int)SPIDEV_COUNT);
+    EXPECT_HAS(run("dma SPI_SDO 0"), range);
+    EXPECT_HAS(run("dma SPI_SDO " + std::to_string((int)SPIDEV_COUNT + 1)), range);
+    EXPECT_HAS(run("dma SPI_SDI -1"), range);
+    EXPECT_HAS(run("dma SPI_SDI 1x"), range);
+    EXPECT_HAS(run("dma SPI_SDO 3"), "BAD INDEX: '3'");   // slot exists, SPI3 does not on this target
+
+    const char *bad[] = { "2", "3", "16", "-2", "127", "-128", "abc", "1x", "99999999999999999999" };
+    for (size_t i = 0; i < ARRAYLEN(bad); i++) {
+        EXPECT_HAS(run(std::string("dma SPI_SDO 1 ") + bad[i]), std::string("INVALID DMA OPTION FOR SPI_SDO 1: '") + bad[i] + "'") << "option: " << bad[i];
+        EXPECT_HAS(run(std::string("dma SPI_SDI 2 ") + bad[i]), std::string("INVALID DMA OPTION FOR SPI_SDI 2: '") + bad[i] + "'") << "option: " << bad[i];
+    }
+    for (int i = 0; i < SPIDEV_COUNT; i++) {
+        EXPECT_EQ(DMA_OPT_UNUSED, spiPinConfig(i)->txDmaopt);
+        EXPECT_EQ(DMA_OPT_UNUSED, spiPinConfig(i)->rxDmaopt);
+    }
+}
+
+TEST_F(CliTimerDmaTest, DmaSpiRowReportsForeignAndOwnStreamClaim)
+{
+    fakeDmaOwner = OWNER_ADC;
+    std::string out = run("dma SPI_SDO 1 0");
+    EXPECT_HAS(out, "# SPI_SDO 1: CLAIMED BY ADC");
+
+    out = run("dma SPI_SDI 1 0");
+    EXPECT_HAS(out, "# SPI_SDI 1: CLAIMED BY ADC");
+
+    // spiInitBusDMA() claims with resource index bus + 1: owner and index must both match the row.
+    fakeDmaOwner = OWNER_SPI_SDO;
+    fakeDmaResourceIndex = 1;
+    EXPECT_LACKS(run("dma SPI_SDO 1 0"), "CLAIMED BY");
+    EXPECT_HAS(run("dma SPI_SDI 1 0"), "# SPI_SDI 1: CLAIMED BY SPI_SDO 1");   // Tx owner on an Rx row
+    EXPECT_HAS(run("dma SPI_SDO 2 0"), "# SPI_SDO 2: CLAIMED BY SPI_SDO 1");   // right owner, other bus
+
+    fakeDmaOwner = OWNER_SPI_SDI;
+    EXPECT_LACKS(run("dma SPI_SDI 1 0"), "CLAIMED BY");
+    EXPECT_HAS(run("dma SPI_SDO 1 0"), "# SPI_SDO 1: CLAIMED BY SPI_SDI 1");
+}
+
+TEST_F(CliTimerDmaTest, DmaSpiRowsAppearInDumpAndDiffOnlyWhenChanged)
+{
+    std::string out = run("dump");
+    EXPECT_LINE(out, "dma SPI_SDO 1 NONE");
+    EXPECT_LINE(out, "dma SPI_SDI 2 NONE");
+    EXPECT_NO_LINE(out, "dma SPI_SDO 3 NONE");   // absent bus is not listed
+
+    out = run("diff");
+    EXPECT_LACKS(out, "dma SPI_");               // defaults produce no diff lines
+
+    run("dma SPI_SDI 2 1");
+    out = run("diff");
+    EXPECT_LINE(out, "dma SPI_SDI 2 1");
+    EXPECT_NO_LINE(out, "dma SPI_SDO 1 NONE");
+    EXPECT_NO_LINE(out, "dma SPI_SDI 1 NONE");
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1111,7 +1235,7 @@ int tfp_sprintf(char *s, const char *fmt, ...) {
 
 dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef *) { return static_cast<dmaIdentifier_e>(1); }
 resourceOwner_e dmaGetOwner(dmaIdentifier_e) { return fakeDmaOwner; }
-uint8_t dmaGetResourceIndex(dmaIdentifier_e) { return 0; }
+uint8_t dmaGetResourceIndex(dmaIdentifier_e) { return fakeDmaResourceIndex; }
 
 const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e device, uint8_t, int8_t opt)
 {
@@ -1121,6 +1245,10 @@ const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e device, ui
         return ARRAY_SPEC(uartSpecs, opt);
     case DMA_PERIPH_ADC:
         return ARRAY_SPEC(adcSpecs, opt);
+    case DMA_PERIPH_SPI_SDO:
+        return ARRAY_SPEC(spiSdoSpecs, opt);
+    case DMA_PERIPH_SPI_SDI:
+        return ARRAY_SPEC(spiSdiSpecs, opt);
     case DMA_PERIPH_SDIO:
         return ARRAY_SPEC(sdioSpecs, opt);
     default:
