@@ -3993,6 +3993,9 @@ static bool strToPin(char *pch, ioTag_t *tag) {
         if (port < 8) {
             pch++;
             char *end;
+            if (!isdigit((unsigned char)*pch)) {
+                return false;  // strtol() would accept a leading sign or whitespace
+            }
             const long parsedPin = strtol(pch, &end, 10);
             if (end != pch && *end == '\0' && parsedPin >= 0 && parsedPin < 16) {
                 pin = (unsigned)parsedPin;
@@ -4052,6 +4055,10 @@ static void cliResource(char *cmdline) {
         }
     }
     pch = strtok_r(NULL, " ", &saveptr);
+    if (!pch) {
+        cliShowParseError();
+        return;
+    }
     index = atoi(pch);
     if (resourceTable[resourceIndex].maxIndex > 0 || index > 0) {
         if (index <= 0 || index > MAX_RESOURCE_INDEX(resourceTable[resourceIndex].maxIndex)) {
@@ -4060,6 +4067,10 @@ static void cliResource(char *cmdline) {
         }
         index -= 1;
         pch = strtok_r(NULL, " ", &saveptr);
+        if (!pch) {
+            cliShowParseError();
+            return;
+        }
     }
     ioTag_t *tag = getIoTag(resourceTable[resourceIndex], index);
     if (strlen(pch) > 0) {
@@ -5125,7 +5136,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("rc_smoothing_info", "show rc_smoothing operational settings", NULL, cliRcSmoothing),
 #endif // USE_RC_SMOOTHING_FILTER
 #ifdef USE_RESOURCE_MGMT
-    CLI_COMMAND_DEF("resource", "show/set resources", "<> | <resource name> <index> [<pin>|none] | show [all]", cliResource),
+    CLI_COMMAND_DEF("resource", "show/set resources", "<> | <resource name> <index> <pin>|none | show [all]", cliResource),
 #endif
     CLI_COMMAND_DEF("rxfail", "show/set rx failsafe settings", NULL, cliRxFailsafe),
     CLI_COMMAND_DEF("rxrange", "configure rx channel ranges", NULL, cliRxRange),
