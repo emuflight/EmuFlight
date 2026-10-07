@@ -158,7 +158,7 @@
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA15 , 1,  0) \
     TIMER_PIN_MAP( 1, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 2, PC8 , 2,  1) \
+    TIMER_PIN_MAP( 2, PC8 , 2,  0) \
     TIMER_PIN_MAP( 3, PC9 , 2,  0) \
     TIMER_PIN_MAP( 4, PB0 , 2,  0) \
     TIMER_PIN_MAP( 5, PB1 , 2,  0)
