@@ -177,14 +177,14 @@
     TIMER_PIN_MAP( 5, PC7 , 2,  5) \
     TIMER_PIN_MAP( 6, PC8 , 2,  6) \
     TIMER_PIN_MAP( 7, PC9 , 2,  7) \
-    TIMER_PIN_MAP( 8, PD12 , 1,  0) \
-    TIMER_PIN_MAP( 9, PD13 , 1,  0) \
-    TIMER_PIN_MAP( 10, PD14 , 1,  0) \
+    TIMER_PIN_MAP( 8, PD12 , 1,  -1) \
+    TIMER_PIN_MAP( 9, PD13 , 1,  -1) \
+    TIMER_PIN_MAP( 10, PD14 , 1,  -1) \
     TIMER_PIN_MAP( 11, PD15 , 1, -1) \
-    TIMER_PIN_MAP( 12, PA2 , 1,  0) \
+    TIMER_PIN_MAP( 12, PA2 , 1,  -1) \
     TIMER_PIN_MAP( 13, PB0 , 2,  11) \
     TIMER_PIN_MAP( 14, PB15 , 2, -1) \
-    TIMER_PIN_MAP( 15, PA3 , 2,  0)
+    TIMER_PIN_MAP( 15, PA3 , 2,  -1)
 #define TIMUP1_DMA_OPT 12
 #define TIMUP8_DMA_OPT 13
 

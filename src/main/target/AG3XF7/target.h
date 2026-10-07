@@ -160,6 +160,7 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 15
 #define USE_TIMER_MGMT
+// PB0 and PB8 share DMA1 Stream 7; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA8 , 1,  0) \
     TIMER_PIN_MAP( 1, PC8 , 2,  0) \
