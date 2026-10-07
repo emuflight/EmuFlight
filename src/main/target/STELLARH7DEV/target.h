@@ -136,9 +136,9 @@
     TIMER_PIN_MAP(1, PC7, 2, 1) \
     TIMER_PIN_MAP(2, PC8, 2, 2) \
     TIMER_PIN_MAP(3, PC9, 2, 3) \
-    TIMER_PIN_MAP(4, PD12, 1, 0) \
-    TIMER_PIN_MAP(5, PD13, 1, 0) \
-    TIMER_PIN_MAP(6, PA15, 1, 13) \
+    TIMER_PIN_MAP(4, PD12, 1, -1) \
+    TIMER_PIN_MAP(5, PD13, 1, -1) \
+    TIMER_PIN_MAP(6, PA15, 1, 4) \
     TIMER_PIN_MAP(7, PB4, 1, -1)
 #define TIMUP8_DMA_OPT 8
 

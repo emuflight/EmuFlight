@@ -149,6 +149,7 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 13
 #define USE_TIMER_MGMT
+// PA0, PA1, PA2, PA3, PA8, PB0, PB1, PD12 and PD13 share DMA1 Stream 0; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB0 , 2,  0) \
     TIMER_PIN_MAP( 1, PB1 , 2,  0) \
@@ -158,9 +159,9 @@
     TIMER_PIN_MAP( 5, PA3 , 2,  0) \
     TIMER_PIN_MAP( 6, PD12 , 1,  0) \
     TIMER_PIN_MAP( 7, PD13 , 1,  0) \
-    TIMER_PIN_MAP( 8, PD14 , 1,  0) \
+    TIMER_PIN_MAP( 8, PD14 , 1,  -1) \
     TIMER_PIN_MAP( 9, PD15 , 1, -1) \
-    TIMER_PIN_MAP( 10, PE5 , 1,  0) \
+    TIMER_PIN_MAP( 10, PE5 , 1,  -1) \
     TIMER_PIN_MAP( 11, PE6 , 1, -1) \
     TIMER_PIN_MAP( 12, PA8 , 1,  0)
 

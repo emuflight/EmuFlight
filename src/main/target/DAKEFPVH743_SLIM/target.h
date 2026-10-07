@@ -181,11 +181,11 @@
     TIMER_PIN_MAP( 5, PA1 , 1,  5) \
     TIMER_PIN_MAP( 6, PA2 , 1,  6) \
     TIMER_PIN_MAP( 7, PA3 , 1,  7) \
-    TIMER_PIN_MAP( 8, PD12 , 1,  0) \
-    TIMER_PIN_MAP( 9, PD13 , 1,  0) \
-    TIMER_PIN_MAP( 10, PD14 , 1,  0) \
+    TIMER_PIN_MAP( 8, PD12 , 1,  -1) \
+    TIMER_PIN_MAP( 9, PD13 , 1,  -1) \
+    TIMER_PIN_MAP( 10, PD14 , 1,  -1) \
     TIMER_PIN_MAP( 11, PD15 , 1, -1) \
-    TIMER_PIN_MAP( 12, PC8 , 2,  0) \
+    TIMER_PIN_MAP( 12, PC8 , 2,  -1) \
     TIMER_PIN_MAP( 13, PB0 , 2,  8)
 #define TIMUP1_DMA_OPT 11
 #define TIMUP2_DMA_OPT 12

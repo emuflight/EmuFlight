@@ -139,6 +139,7 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 11
 #define USE_TIMER_MGMT
+// PA8 and TIM8 burst share DMA2 Stream 1; with DShot burst on only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB0 , 2,  0) \
     TIMER_PIN_MAP( 1, PB1 , 2,  0) \

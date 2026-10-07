@@ -145,12 +145,13 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 7
 #define USE_TIMER_MGMT
+// ADC3 and TIM8 burst share DMA2 Stream 1; with DShot burst on only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PC6 , 2,  0) \
     TIMER_PIN_MAP( 1, PC7 , 2,  1) \
     TIMER_PIN_MAP( 2, PC8 , 2,  1) \
     TIMER_PIN_MAP( 3, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 4, PB7 , 1,  0) \
+    TIMER_PIN_MAP( 4, PB7 , 1,  -1) \
     TIMER_PIN_MAP( 5, PB10 , 1,  0) \
     TIMER_PIN_MAP( 6, PB11 , 1,  0)
 
