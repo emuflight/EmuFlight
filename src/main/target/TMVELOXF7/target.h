@@ -134,6 +134,7 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 12
 #define USE_TIMER_MGMT
+// PC6 and PC8 share DMA2 Stream 2; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB1 , 2,  0) \
     TIMER_PIN_MAP( 1, PB4 , 1,  0) \
