@@ -211,6 +211,57 @@
 #endif
 #endif
 
+#ifdef USE_SPI
+#ifdef USE_SPI_DEVICE_1
+#ifndef SPI1_TX_DMA_OPT
+#define SPI1_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef SPI1_RX_DMA_OPT
+#define SPI1_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#endif
+#ifdef USE_SPI_DEVICE_2
+#ifndef SPI2_TX_DMA_OPT
+#define SPI2_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef SPI2_RX_DMA_OPT
+#define SPI2_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#endif
+#ifdef USE_SPI_DEVICE_3
+#ifndef SPI3_TX_DMA_OPT
+#define SPI3_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef SPI3_RX_DMA_OPT
+#define SPI3_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#endif
+#ifdef USE_SPI_DEVICE_4
+#ifndef SPI4_TX_DMA_OPT
+#define SPI4_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef SPI4_RX_DMA_OPT
+#define SPI4_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#endif
+#ifdef USE_SPI_DEVICE_5
+#ifndef SPI5_TX_DMA_OPT
+#define SPI5_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef SPI5_RX_DMA_OPT
+#define SPI5_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#endif
+#ifdef USE_SPI_DEVICE_6
+#ifndef SPI6_TX_DMA_OPT
+#define SPI6_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef SPI6_RX_DMA_OPT
+#define SPI6_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#endif
+#endif
+
 // Extracted from rx/rx.c and rx/rx.h
 
 #define RX_MAPPABLE_CHANNEL_COUNT 8

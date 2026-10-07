@@ -132,6 +132,25 @@ bool adcInternalIsBusy(void);
 void adcInternalStartConversion(void);
 uint16_t adcInternalReadVrefint(void);
 uint16_t adcInternalReadTempsensor(void);
+
+#define ADC_INTERNAL_CAL_VREF_MV 3300U // Vdda during factory calibration of VREFINT and the temperature sensor
+
+// Vdda in mV. A higher supply gives a lower VREFINT sample. Returns 0 when an input is zero.
+static inline uint16_t adcInternalCompensateVref(uint16_t vrefintCal, uint16_t vrefintSample)
+{
+    if (vrefintCal == 0 || vrefintSample == 0) {
+        return 0;
+    }
+    const uint32_t mv = (uint32_t)vrefintCal * ADC_INTERNAL_CAL_VREF_MV / vrefintSample;
+    return mv > UINT16_MAX ? UINT16_MAX : (uint16_t)mv;
+}
+
+// Core temperature in degC. The sample is scaled to the calibration Vdda first.
+static inline int16_t adcInternalComputeTemperature(uint16_t tempSample, uint16_t vrefMv, uint16_t tsCal1, int32_t slopeK)
+{
+    const int32_t adjusted = (int32_t)((uint32_t)tempSample * vrefMv / ADC_INTERNAL_CAL_VREF_MV);
+    return (int16_t)(((adjusted - tsCal1) * slopeK + 30 * 1000 + 500) / 1000);
+}
 #endif
 
 #if !defined(SIMULATOR_BUILD)
