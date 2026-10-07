@@ -101,7 +101,7 @@
 #define USABLE_TIMER_CHANNEL_COUNT 5
 #define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB1 , 2,  0) \
+    TIMER_PIN_MAP( 0, PB1 , 1,  0) \
     TIMER_PIN_MAP( 1, PB0 , 2,  0) \
     TIMER_PIN_MAP( 2, PA3 , 1,  1) \
     TIMER_PIN_MAP( 3, PA2 , 1,  0) \
