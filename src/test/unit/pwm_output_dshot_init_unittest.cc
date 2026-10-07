@@ -1,21 +1,18 @@
 /*
- * This file is part of Cleanflight and Betaflight.
+ * This file is part of EmuFlight.
  *
- * Cleanflight and Betaflight are free software. You can redistribute
- * this software and/or modify this software under the terms of the
- * GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option)
- * any later version.
+ * EmuFlight is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * Cleanflight and Betaflight are distributed in the hope that they
- * will be useful, but WITHOUT ANY WARRANTY; without even the implied
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * EmuFlight is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this software.
- *
- * If not, see <http://www.gnu.org/licenses/>.
+ * along with EmuFlight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <stdint.h>
@@ -60,16 +57,14 @@ void initMotors(uint8_t count) {
 
 } // namespace
 
-// The DShot command queue is static state in pwm_output.c, so the rejection test runs first
-// (it needs an empty queue) and the acceptance test after it.
-TEST(PwmOutputDshotInit, FailedInitRejectsDshotCommands) {
+// The DShot command queue is static state in pwm_output.c and only drains in flight, so one test
+// checks rejection first (empty queue), then acceptance, instead of depending on test order.
+TEST(PwmOutputDshotInit, DshotCommandsRejectedAfterFailedInitAcceptedAfterSuccess) {
     resetFakes(1);
     initMotors(MOTORS);
     pwmWriteDshotCommand(ALL_MOTORS, MOTORS, DSHOT_CMD_BEACON1, false);
     EXPECT_FALSE(pwmDshotCommandIsQueued());
-}
 
-TEST(PwmOutputDshotInit, SuccessfulInitAcceptsDshotCommands) {
     resetFakes(-1);
     initMotors(MOTORS);
     pwmWriteDshotCommand(ALL_MOTORS, MOTORS, DSHOT_CMD_BEACON1, false);
