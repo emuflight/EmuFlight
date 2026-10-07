@@ -29,6 +29,7 @@
 #include "drivers/exti.h"
 #include "drivers/nvic.h"
 #include "drivers/system.h"
+#include "drivers/usb_io.h"
 
 #include "stm32f7xx_ll_cortex.h"
 
@@ -52,6 +53,9 @@ void systemResetToBootloader(bootloaderRequestType_e requestType) {
         mpuResetFn();
     }
     (*(__IO uint32_t *) (BKPSRAM_BASE + 4)) = 0xDEADBEEF;   // flag that will be readable after reboot
+#ifdef USE_VCP
+    usbGenerateDisconnectPulse(); // host must see D+ drop, else it keeps the old device across the reset
+#endif
     __disable_irq();
     NVIC_SystemReset();
 }
