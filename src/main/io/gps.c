@@ -1074,10 +1074,10 @@ static bool UBLOX_parse_gps(void) {
         break;
     case MSG_PVT:
         // NAV-SOL is removed on M10; PVT supplies the satellite count there. Fix and position stay with STATUS/POSLLH.
-        *gpsPacketLogChar = LOG_UBLOX_SOL;
         if (_class != CLASS_NAV || _payload_length < sizeof(ubx_nav_pvt)) {
             break;
         }
+        *gpsPacketLogChar = LOG_UBLOX_SOL;
         gpsSol.numSat = _buffer.pvt.satellites;
         gpsSol.hdop = _buffer.pvt.position_DOP;
         break;
