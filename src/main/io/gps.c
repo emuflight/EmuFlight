@@ -171,6 +171,7 @@ static const uint8_t ubloxInit[] = {
     0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x02, 0x01, 0x0E, 0x47,           // set POSLLH MSG rate
     0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x03, 0x01, 0x0F, 0x49,           // set STATUS MSG rate
     0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x06, 0x01, 0x12, 0x4F,           // set SOL MSG rate
+    0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x07, 0x01, 0x13, 0x51,           // set PVT MSG rate (only source of satellite count on receivers without SOL)
     //0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x30, 0x01, 0x3C, 0xA3,           // set SVINFO MSG rate (every cycle - high bandwidth)
     0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x30, 0x05, 0x40, 0xA7,           // set SVINFO MSG rate (evey 5 cycles - low bandwidth)
     0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x12, 0x01, 0x1E, 0x67,           // set VELNED MSG rate
@@ -874,6 +875,43 @@ typedef struct {
 
 typedef struct {
     uint32_t time;              // GPS msToW
+    uint16_t year;
+    uint8_t month;
+    uint8_t day;
+    uint8_t hour;
+    uint8_t min;
+    uint8_t sec;
+    uint8_t valid;
+    uint32_t time_accuracy;
+    int32_t nano;
+    uint8_t fix_type;
+    uint8_t flags;
+    uint8_t flags2;
+    uint8_t satellites;
+    int32_t longitude;
+    int32_t latitude;
+    int32_t altitude_ellipsoid;
+    int32_t altitude_msl;
+    uint32_t horizontal_accuracy;
+    uint32_t vertical_accuracy;
+    int32_t ned_north;
+    int32_t ned_east;
+    int32_t ned_down;
+    int32_t ground_speed;
+    int32_t heading_motion;
+    uint32_t speed_accuracy;
+    uint32_t heading_accuracy;
+    uint16_t position_DOP;
+    uint8_t res[6];
+    int32_t heading_vehicle;
+    int16_t magnetic_declination;
+    uint16_t magnetic_accuracy;
+} ubx_nav_pvt;
+
+STATIC_ASSERT(sizeof(ubx_nav_pvt) == 92, ubx_nav_pvt_size_must_match_payload);
+
+typedef struct {
+    uint32_t time;              // GPS msToW
     int32_t ned_north;
     int32_t ned_east;
     int32_t ned_down;
@@ -914,6 +952,7 @@ enum {
     MSG_POSLLH = 0x2,
     MSG_STATUS = 0x3,
     MSG_SOL = 0x6,
+    MSG_PVT = 0x7,
     MSG_VELNED = 0x12,
     MSG_SVINFO = 0x30,
     MSG_CFG_PRT = 0x00,
@@ -979,6 +1018,7 @@ static union {
     ubx_nav_posllh posllh;
     ubx_nav_status status;
     ubx_nav_solution solution;
+    ubx_nav_pvt pvt;
     ubx_nav_velned velned;
     ubx_nav_svinfo svinfo;
     uint8_t bytes[UBLOX_PAYLOAD_SIZE];
@@ -1031,6 +1071,15 @@ static bool UBLOX_parse_gps(void) {
             rtcSet(&temp_time);
         }
 #endif
+        break;
+    case MSG_PVT:
+        // NAV-SOL is removed on M10; PVT supplies the satellite count there. Fix and position stay with STATUS/POSLLH.
+        *gpsPacketLogChar = LOG_UBLOX_SOL;
+        if (_class != CLASS_NAV || _payload_length < sizeof(ubx_nav_pvt)) {
+            break;
+        }
+        gpsSol.numSat = _buffer.pvt.satellites;
+        gpsSol.hdop = _buffer.pvt.position_DOP;
         break;
     case MSG_VELNED:
         *gpsPacketLogChar = LOG_UBLOX_VELNED;
