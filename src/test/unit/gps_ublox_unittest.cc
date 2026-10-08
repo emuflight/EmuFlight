@@ -133,6 +133,24 @@ TEST_F(GpsUbloxTest, NavPvtShortPayloadIsRejected)
     EXPECT_EQ(3, gpsSol.numSat);
 }
 
+TEST_F(GpsUbloxTest, NavPvt84ByteU7VariantIsAccepted)
+{
+    std::vector<uint8_t> p = navPvtPayload(9, 77);
+    p.resize(84);             // u-blox 7 NAV-PVT length per its protocol spec
+    feed(ubxFrame(0x01, 0x07, p));
+    EXPECT_EQ(9, gpsSol.numSat);
+    EXPECT_EQ(77, gpsSol.hdop);
+}
+
+TEST_F(GpsUbloxTest, NavPvtOneByteTooShortForPdopIsRejected)
+{
+    std::vector<uint8_t> p = navPvtPayload(9, 77);
+    p.resize(77);             // pDOP occupies bytes 76-77 of the payload; 77 bytes cuts it
+    gpsSol.numSat = 3;
+    feed(ubxFrame(0x01, 0x07, p));
+    EXPECT_EQ(3, gpsSol.numSat);
+}
+
 TEST_F(GpsUbloxTest, MessageId7InOtherClassIsIgnored)
 {
     gpsSol.numSat = 3;

@@ -19,6 +19,7 @@
  */
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <ctype.h>
 #include <string.h>
@@ -909,6 +910,11 @@ typedef struct {
 } ubx_nav_pvt;
 
 STATIC_ASSERT(sizeof(ubx_nav_pvt) == 92, ubx_nav_pvt_size_must_match_payload);
+STATIC_ASSERT(offsetof(ubx_nav_pvt, satellites) == 23, ubx_nav_pvt_numSV_offset);
+STATIC_ASSERT(offsetof(ubx_nav_pvt, position_DOP) == 76, ubx_nav_pvt_pDOP_offset);
+
+// u-blox 7 sends an 84-byte NAV-PVT, M8 and later 92; both carry numSV and pDOP at the same offsets.
+#define UBX_NAV_PVT_MIN_LENGTH (offsetof(ubx_nav_pvt, position_DOP) + sizeof(uint16_t))
 
 typedef struct {
     uint32_t time;              // GPS msToW
@@ -1074,7 +1080,7 @@ static bool UBLOX_parse_gps(void) {
         break;
     case MSG_PVT:
         // NAV-SOL is removed on M10; PVT supplies the satellite count there. Fix and position stay with STATUS/POSLLH.
-        if (_class != CLASS_NAV || _payload_length < sizeof(ubx_nav_pvt)) {
+        if (_class != CLASS_NAV || _payload_length < UBX_NAV_PVT_MIN_LENGTH) {
             break;
         }
         *gpsPacketLogChar = LOG_UBLOX_SOL;
