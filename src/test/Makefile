@@ -743,6 +743,58 @@ pg_sdcard_unittest_DEFINES := \
 		SDCARD_DMA_CHANNEL_TX=legacySdDmaMacroMustBeUnused \
 		SDIO_DMA=legacySdDmaMacroMustBeUnused
 
+pg_sdcard_spi_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_unittest_DEFINES := \
+		USE_SDCARD \
+		SDCARD_SPI_INSTANCE=0 \
+		SDCARD_SPI_CS_PIN=PA4
+
+pg_sdcard_spi_sdio_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_sdio_unittest_DEFINES := \
+		USE_SDCARD \
+		USE_SDCARD_SDIO \
+		SDCARD_SPI_INSTANCE=0 \
+		SDCARD_SPI_CS_PIN=PA4
+
+pg_sdcard_spi_nocs_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_nocs_unittest_DEFINES := \
+		USE_SDCARD \
+		SDCARD_SPI_INSTANCE=0
+
+pg_sdcard_spi_nocs_sdio_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_nocs_sdio_unittest_DEFINES := \
+		USE_SDCARD \
+		USE_SDCARD_SDIO \
+		SDCARD_SPI_INSTANCE=0
+
+pg_sdcard_spi_invalid_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_invalid_unittest_DEFINES := \
+		USE_SDCARD \
+		SDCARD_SPI_INSTANCE=0 \
+		SDCARD_SPI_CS_PIN=PA4
+
+pg_sdcard_none_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_none_unittest_DEFINES := \
+		USE_SDCARD
+
 pg_sdio_unittest_SRC := \
 		$(USER_DIR)/pg/pg.c \
 		$(USER_DIR)/pg/sdio.c

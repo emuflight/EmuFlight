@@ -210,6 +210,12 @@ static const char * const lookupTableBlackboxMode[] = {
 };
 #endif
 
+#ifdef USE_SDCARD
+static const char * const lookupTableSdcardMode[] = {
+    "OFF", "SPI", "SDIO"
+};
+#endif
+
 #ifdef USE_SERIAL_RX
 static const char * const lookupTableSerialRX[] = {
     "SPEK1024",
@@ -416,6 +422,9 @@ const lookupTableEntry_t lookupTables[] = {
 #ifdef USE_BLACKBOX
     LOOKUP_TABLE_ENTRY(lookupTableBlackboxDevice),
     LOOKUP_TABLE_ENTRY(lookupTableBlackboxMode),
+#endif
+#ifdef USE_SDCARD
+    LOOKUP_TABLE_ENTRY(lookupTableSdcardMode),
 #endif
     LOOKUP_TABLE_ENTRY(currentMeterSourceNames),
     LOOKUP_TABLE_ENTRY(voltageMeterSourceNames),
@@ -1030,6 +1039,10 @@ const clivalue_t valueTable[] = {
 #ifdef USE_LED_STRIP
     { "ledstrip_visual_beeper",     VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_LED_STRIP_CONFIG, offsetof(ledStripConfig_t, ledstrip_visual_beeper) },
     { "ledstrip_grb_rgb",           VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_RGB_GRB }, PG_LED_STRIP_CONFIG, offsetof(ledStripConfig_t, ledstrip_grb_rgb) },
+#endif
+
+#ifdef USE_SDCARD
+    { "sdcard_mode",                VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_SDCARD_MODE }, PG_SDCARD_CONFIG, offsetof(sdcardConfig_t, mode) },
 #endif
 
 #ifdef USE_SDCARD_SDIO

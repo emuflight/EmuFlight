@@ -34,25 +34,26 @@ extern "C" {
 #include "unittest_macros.h"
 #include "gtest/gtest.h"
 
-// Five one-byte fields: enabled, device, cardDetectTag, chipSelectTag, cardDetectInverted.
+// Layout is device, cardDetectTag, chipSelectTag, cardDetectInverted, then mode: four one-byte
+// fields before the enum. The firmware toolchain makes the enum one byte; the host makes it wider.
 static_assert(sizeof(ioTag_t) == 1, "ioTag_t width changed: recheck sdcardConfig_t layout");
-static_assert(sizeof(sdcardConfig_t) == 5, "sdcardConfig_t layout changed: bump PG_SDCARD_CONFIG");
+static_assert(offsetof(sdcardConfig_t, mode) == 4, "sdcardConfig_t layout changed: bump PG_SDCARD_CONFIG");
 
 static void expectResetDefaults(void)
 {
-    EXPECT_EQ(sdcardConfig()->enabled, 1);
+    EXPECT_EQ(sdcardConfig()->mode, SDCARD_MODE_SDIO);
     EXPECT_EQ(sdcardConfig()->device, 0);
     EXPECT_EQ(sdcardConfig()->cardDetectTag, IO_TAG_NONE);
     EXPECT_EQ(sdcardConfig()->chipSelectTag, IO_TAG_NONE);
     EXPECT_EQ(sdcardConfig()->cardDetectInverted, 1);
 }
 
-TEST(PgSdcardUnittest, VersionIsOneAboveTheLayoutWithDmaIdentifier)
+TEST(PgSdcardUnittest, VersionIsOneAboveTheLayoutWithLeadingEnabledByte)
 {
     const pgRegistry_t *reg = pgFind(PG_SDCARD_CONFIG);
     ASSERT_NE(reg, nullptr);
-    EXPECT_EQ(pgVersion(reg), 2);
-    EXPECT_EQ(pgSize(reg), 5);
+    EXPECT_EQ(pgVersion(reg), 3);
+    EXPECT_EQ(pgSize(reg), sizeof(sdcardConfig_t));
 }
 
 TEST(PgSdcardUnittest, ResetDefaultsForSdioTargetWithoutSpiInstance)
@@ -67,13 +68,18 @@ TEST(PgSdcardUnittest, CurrentVersionRecordLoadsEachFieldAtItsOffset)
     const pgRegistry_t *reg = pgFind(PG_SDCARD_CONFIG);
     ASSERT_NE(reg, nullptr);
 
-    const uint8_t record[5] = { 0, 3, 0x12, 0x34, 0 };
-    EXPECT_TRUE(pgLoad(reg, record, sizeof(record), 2));
-    EXPECT_EQ(sdcardConfig()->enabled, 0);
+    sdcardConfig_t record = {};
+    record.device = 3;
+    record.cardDetectTag = 0x12;
+    record.chipSelectTag = 0x34;
+    record.cardDetectInverted = 0;
+    record.mode = SDCARD_MODE_SPI;
+    EXPECT_TRUE(pgLoad(reg, &record, sizeof(record), 3));
     EXPECT_EQ(sdcardConfig()->device, 3);
     EXPECT_EQ(sdcardConfig()->cardDetectTag, 0x12);
     EXPECT_EQ(sdcardConfig()->chipSelectTag, 0x34);
     EXPECT_EQ(sdcardConfig()->cardDetectInverted, 0);
+    EXPECT_EQ(sdcardConfig()->mode, SDCARD_MODE_SPI);
 }
 
 TEST(PgSdcardUnittest, StaleVersionOneRecordIsRejectedAndLeavesDefaults)
@@ -85,5 +91,17 @@ TEST(PgSdcardUnittest, StaleVersionOneRecordIsRejectedAndLeavesDefaults)
     // A version-1 record is 6 bytes: the five fields above plus the removed dmaIdentifier.
     const uint8_t oldRecord[6] = { 0, 3, 0x12, 0x34, 0, 7 };
     EXPECT_FALSE(pgLoad(reg, oldRecord, sizeof(oldRecord), 1));
+    expectResetDefaults();
+}
+
+TEST(PgSdcardUnittest, StaleVersionTwoRecordWithLeadingEnabledByteIsRejected)
+{
+    pgResetAll();
+    const pgRegistry_t *reg = pgFind(PG_SDCARD_CONFIG);
+    ASSERT_NE(reg, nullptr);
+
+    // Version 2 stored {enabled, device, cardDetectTag, chipSelectTag, cardDetectInverted}.
+    const uint8_t oldRecord[5] = { 0, 3, 0x12, 0x34, 0 };
+    EXPECT_FALSE(pgLoad(reg, oldRecord, sizeof(oldRecord), 2));
     expectResetDefaults();
 }

@@ -635,7 +635,7 @@ void init(void) {
 #ifdef USE_BLACKBOX
 #ifdef USE_SDCARD
     if (blackboxConfig()->device == BLACKBOX_DEVICE_SDCARD) {
-        if (sdcardConfig()->enabled) {
+        if (sdcardConfig()->mode != SDCARD_MODE_NONE) {
             sdcardInsertionDetectInit();
             sdcard_init(sdcardConfig());
             afatfs_init();
