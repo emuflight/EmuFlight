@@ -700,6 +700,15 @@ gps_conversion_unittest_SRC := \
 		$(USER_DIR)/common/gps_conversion.c
 
 
+gps_ublox_unittest_SRC := \
+		$(USER_DIR)/io/gps.c \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/common/gps_conversion.c \
+		$(USER_DIR)/common/maths.c
+
+gps_ublox_unittest_CFLAGS := -DUSE_GPS_UBLOX -DUSE_GPS_NMEA
+
+
 io_serial_unittest_SRC := \
 		$(USER_DIR)/io/serial.c \
 		$(USER_DIR)/drivers/serial_pinconfig.c
