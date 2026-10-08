@@ -743,6 +743,8 @@ pg_sdcard_unittest_DEFINES := \
 		SDCARD_DMA_CHANNEL_TX=legacySdDmaMacroMustBeUnused \
 		SDIO_DMA=legacySdDmaMacroMustBeUnused
 
+motor_output_reordering_unittest_SRC :=
+
 pg_sdio_unittest_SRC := \
 		$(USER_DIR)/pg/pg.c \
 		$(USER_DIR)/pg/sdio.c

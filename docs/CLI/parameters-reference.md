@@ -253,6 +253,7 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 | `motor_pwm_rate` | uint16 | master | `200` – `32000` |  |
 | `motor_pwm_inversion` | uint8 | master | `OFF`, `ON` |  |
 | `motor_poles` | uint8 | master | `4` – `UINT8_MAX` |  |
+| `motor_output_reordering` | uint8 | master | array\[MAX_SUPPORTED_MOTORS\] |  |
 
 ## Throttle Correction Config
 

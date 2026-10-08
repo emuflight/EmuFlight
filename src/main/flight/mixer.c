@@ -77,7 +77,7 @@ PG_RESET_TEMPLATE(mixerConfig_t, mixerConfig,
                   .crashflip_power_percent = 70,
                  );
 
-PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 1);
+PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 2);
 
 void pgResetFn_motorConfig(motorConfig_t *motorConfig) {
 #ifdef BRUSHED_MOTORS
@@ -138,6 +138,9 @@ void pgResetFn_motorConfig(motorConfig_t *motorConfig) {
     motorConfig->dev.ioTags[7] = IO_TAG(MOTOR8_PIN);
 #endif
     motorConfig->motorPoleCount = 14;   // Most brushes motors that we use are 14 poles
+    for (int motorIndex = 0; motorIndex < MAX_SUPPORTED_MOTORS; motorIndex++) {
+        motorConfig->dev.motorOutputReordering[motorIndex] = motorIndex;
+    }
 }
 
 PG_REGISTER_ARRAY(motorMixer_t, MAX_SUPPORTED_MOTORS, customMotorMixer, PG_MOTOR_MIXER, 0);

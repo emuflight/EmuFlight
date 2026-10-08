@@ -152,7 +152,7 @@ FAST_CODE static void motor_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
     }
 }
 
-void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, motorPwmProtocolTypes_e pwmProtocolType, uint8_t output) {
+void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint8_t reorderedMotorIndex, motorPwmProtocolTypes_e pwmProtocolType, uint8_t output) {
     DMA_Stream_TypeDef *dmaRef;
     uint32_t dmaChannel = timerHardware->dmaChannel;
     dmaIdentifier_e dmaIrqIdentifier = timerHardware->dmaIrqHandler;
@@ -201,7 +201,7 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     } else
 #endif
     {
-        if (!dmaAllocate(dmaIrqIdentifier, OWNER_MOTOR, RESOURCE_INDEX(motorIndex))) {
+        if (!dmaAllocate(dmaIrqIdentifier, OWNER_MOTOR, RESOURCE_INDEX(reorderedMotorIndex))) {
             return;
         }
         dmaEnable(dmaIrqIdentifier);
