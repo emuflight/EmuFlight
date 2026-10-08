@@ -39,7 +39,6 @@ EXCLUDES        = stm32f7xx_hal_can.c \
                   stm32f7xx_hal_nor.c \
                   stm32f7xx_hal_qspi.c \
                   stm32f7xx_hal_rng.c \
-                  stm32f7xx_hal_rtc.c \
                   stm32f7xx_hal_sai.c \
                   stm32f7xx_hal_sai_ex.c \
                   stm32f7xx_hal_sd.c \
@@ -202,3 +201,7 @@ endif
 
 DSP_LIB := $(ROOT)/lib/main/CMSIS/DSP
 DEVICE_FLAGS += -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1 -DUNALIGNED_SUPPORT_DISABLE -DARM_MATH_CM7
+
+# STM32F7 vendor RTC HAL has identical branches that GCC flags.
+# Suppress -Wduplicated-branches only for that file; EF source keeps the check.
+$(OBJECT_DIR)/$(TARGET)/stm32f7xx_hal_rtc.o: CFLAGS += -Wno-duplicated-branches
