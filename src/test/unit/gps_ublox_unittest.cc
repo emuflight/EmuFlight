@@ -87,6 +87,8 @@ protected:
     void SetUp() override {
         gpsConfigMutable()->provider = GPS_UBLOX;
         memset(&gpsSol, 0, sizeof(gpsSol));
+        stateFlags = 0;
+        armingFlags = 0;
     }
 };
 
