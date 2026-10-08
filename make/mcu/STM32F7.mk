@@ -40,7 +40,6 @@ EXCLUDES        = stm32f7xx_hal_can.c \
                   stm32f7xx_hal_qspi.c \
                   stm32f7xx_hal_rng.c \
                   stm32f7xx_hal_rtc.c \
-                  stm32f7xx_hal_rtc_ex.c \
                   stm32f7xx_hal_sai.c \
                   stm32f7xx_hal_sai_ex.c \
                   stm32f7xx_hal_sd.c \
@@ -170,7 +169,8 @@ MCU_COMMON_SRC = \
             drivers/timer_stm32f7xx.c \
             drivers/system_stm32f7xx.c \
             drivers/serial_uart_stm32f7xx.c \
-            drivers/serial_uart_hal.c
+            drivers/serial_uart_hal.c \
+            drivers/persistent.c
 
 MCU_EXCLUDES = \
             drivers/bus_i2c.c \
