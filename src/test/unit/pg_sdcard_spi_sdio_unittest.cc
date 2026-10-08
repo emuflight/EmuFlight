@@ -19,8 +19,6 @@
  */
 
 // Compiles the real pg/sdcard.c: SPI instance with chip-select and a valid device, also built with SDIO: SPI takes precedence
-// Expected values follow the reference reset order (mode NONE, SDIO when built with SDIO, then
-// SPI only when the SPI device resolves and a chip-select tag exists), not the code's own output.
 
 extern "C" {
 

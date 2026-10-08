@@ -34,10 +34,10 @@ extern "C" {
 #include "unittest_macros.h"
 #include "gtest/gtest.h"
 
-// Layout is device, cardDetectTag, chipSelectTag, cardDetectInverted, then mode: four one-byte
-// fields before the enum. The firmware toolchain makes the enum one byte; the host makes it wider.
+// Built with -fshort-enums, as the firmware toolchain does by default, so the layout matches the target.
 static_assert(sizeof(ioTag_t) == 1, "ioTag_t width changed: recheck sdcardConfig_t layout");
-static_assert(offsetof(sdcardConfig_t, mode) == 4, "sdcardConfig_t layout changed: bump PG_SDCARD_CONFIG");
+static_assert(sizeof(sdcardConfig_t) == 5, "sdcardConfig_t layout changed: bump PG_SDCARD_CONFIG");
+static_assert(offsetof(sdcardConfig_t, mode) == 4, "mode is no longer the last field: bump PG_SDCARD_CONFIG");
 
 static void expectResetDefaults(void)
 {
@@ -48,12 +48,12 @@ static void expectResetDefaults(void)
     EXPECT_EQ(sdcardConfig()->cardDetectInverted, 1);
 }
 
-TEST(PgSdcardUnittest, VersionIsOneAboveTheLayoutWithLeadingEnabledByte)
+TEST(PgSdcardUnittest, VersionIsThreeAfterTheLeadingEnabledByteLayout)
 {
     const pgRegistry_t *reg = pgFind(PG_SDCARD_CONFIG);
     ASSERT_NE(reg, nullptr);
     EXPECT_EQ(pgVersion(reg), 3);
-    EXPECT_EQ(pgSize(reg), sizeof(sdcardConfig_t));
+    EXPECT_EQ(pgSize(reg), 5);
 }
 
 TEST(PgSdcardUnittest, ResetDefaultsForSdioTargetWithoutSpiInstance)

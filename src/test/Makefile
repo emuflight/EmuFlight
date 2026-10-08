@@ -734,6 +734,8 @@ pg_sdcard_unittest_SRC := \
 		$(USER_DIR)/pg/pg.c \
 		$(USER_DIR)/pg/sdcard.c
 
+pg_sdcard_unittest_CFLAGS := -fshort-enums
+
 # The legacy SD DMA macros expand to undeclared symbols: compiling fails if pg/sdcard.c reads them.
 pg_sdcard_unittest_DEFINES := \
 		USE_SDCARD \
