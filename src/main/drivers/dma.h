@@ -102,8 +102,16 @@ typedef enum {
                                                                     dmaDescriptors[index].irqHandlerCallback(&dmaDescriptors[index]);\
                                                             }
 
-#define DMA_CLEAR_FLAG(d, flag) if (d->flagsShift > 31) d->dma->HIFCR = (flag << (d->flagsShift - 32)); else d->dma->LIFCR = (flag << d->flagsShift)
-#define DMA_GET_FLAG_STATUS(d, flag) (d->flagsShift > 31 ? d->dma->HISR & (flag << (d->flagsShift - 32)): d->dma->LISR & (flag << d->flagsShift))
+// Parenthesised: callers pass OR-ed masks, and `A | B << shift` would shift only B.
+#define DMA_CLEAR_FLAG(d, flag) \
+    do { \
+        if ((d)->flagsShift > 31) { \
+            (d)->dma->HIFCR = ((flag) << ((d)->flagsShift - 32)); \
+        } else { \
+            (d)->dma->LIFCR = ((flag) << (d)->flagsShift); \
+        } \
+    } while (0)
+#define DMA_GET_FLAG_STATUS(d, flag) ((d)->flagsShift > 31 ? (d)->dma->HISR & ((flag) << ((d)->flagsShift - 32)) : (d)->dma->LISR & ((flag) << (d)->flagsShift))
 
 
 #define DMA_IT_TCIF         ((uint32_t)0x00000020)
@@ -156,8 +164,9 @@ typedef enum {
                                                                             dmaDescriptors[index].irqHandlerCallback(&dmaDescriptors[index]);\
                                                                     }
 
-#define DMA_CLEAR_FLAG(d, flag) d->dma->IFCR = (flag << d->flagsShift)
-#define DMA_GET_FLAG_STATUS(d, flag) (d->dma->ISR & (flag << d->flagsShift))
+// Parenthesised: callers pass OR-ed masks, and `A | B << shift` would shift only B.
+#define DMA_CLEAR_FLAG(d, flag) ((d)->dma->IFCR = ((flag) << (d)->flagsShift))
+#define DMA_GET_FLAG_STATUS(d, flag) ((d)->dma->ISR & ((flag) << (d)->flagsShift))
 
 #define DMA_IT_TCIF         ((uint32_t)0x00000002)
 #define DMA_IT_HTIF         ((uint32_t)0x00000004)
