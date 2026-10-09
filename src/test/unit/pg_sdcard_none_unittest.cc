@@ -18,23 +18,24 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+// Compiles the real pg/sdcard.c for a USE_SDCARD target with neither an SPI instance nor SDIO.
 
-#include "pg/pg.h"
+extern "C" {
+
+#include "platform.h"
 #include "drivers/io.h"
+#include "pg/pg.h"
+#include "pg/pg_ids.h"
+#include "pg/sdcard.h"
 
-typedef enum {
-    SDCARD_MODE_NONE = 0,
-    SDCARD_MODE_SPI,
-    SDCARD_MODE_SDIO
-} sdcardMode_e;
+}
 
-typedef struct sdcardConfig_s {
-    uint8_t device;
-    ioTag_t cardDetectTag;
-    ioTag_t chipSelectTag;
-    uint8_t cardDetectInverted;
-    sdcardMode_e mode;
-} sdcardConfig_t;
+#include "unittest_macros.h"
+#include "gtest/gtest.h"
 
-PG_DECLARE(sdcardConfig_t, sdcardConfig);
+TEST(PgSdcardNoneUnittest, ResetLeavesModeNone)
+{
+    pgResetAll();
+    EXPECT_EQ(sdcardConfig()->mode, SDCARD_MODE_NONE);
+    EXPECT_EQ(sdcardConfig()->device, 0);
+}

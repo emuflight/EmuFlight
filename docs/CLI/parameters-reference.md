@@ -607,6 +607,7 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 | Parameter | Type | Scope | Range / Values | Requires |
 |-----------|------|-------|----------------|----------|
 | `sdcard_dma` | uint8 | master | `OFF`, `ON` | `USE_SDCARD` |
+| `sdcard_mode` | uint8 | master | `OFF`, `SPI`, `SDIO` | `USE_SDCARD` |
 
 ## SDIO Config
 

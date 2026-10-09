@@ -18,23 +18,29 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+// Compiles the real pg/sdcard.c: SPI instance without a chip-select pin, built with SDIO: SDIO stays
 
-#include "pg/pg.h"
+extern "C" {
+
+#include "platform.h"
+#include "drivers/bus_spi.h"
 #include "drivers/io.h"
+#include "pg/pg.h"
+#include "pg/pg_ids.h"
+#include "pg/sdcard.h"
 
-typedef enum {
-    SDCARD_MODE_NONE = 0,
-    SDCARD_MODE_SPI,
-    SDCARD_MODE_SDIO
-} sdcardMode_e;
+SPIDevice spiDeviceByInstance(SPI_TypeDef *)
+{
+    return SPIDEV_3;
+}
 
-typedef struct sdcardConfig_s {
-    uint8_t device;
-    ioTag_t cardDetectTag;
-    ioTag_t chipSelectTag;
-    uint8_t cardDetectInverted;
-    sdcardMode_e mode;
-} sdcardConfig_t;
+}
 
-PG_DECLARE(sdcardConfig_t, sdcardConfig);
+#include "unittest_macros.h"
+#include "gtest/gtest.h"
+
+TEST(PgSdcardSpiNoCsSdioUnittest, ResetSelectsExpectedMode)
+{
+    pgResetAll();
+    EXPECT_EQ(sdcardConfig()->mode, SDCARD_MODE_SDIO);
+}
