@@ -3592,7 +3592,7 @@ static void cliStatus(char *cmdline) {
 #ifdef USE_ADC_INTERNAL
     uint16_t vrefintMv = getVrefMv();
     int16_t coretemp = getCoreTemperatureCelsius();
-    cliPrintf(", Vref=%d.%2dV, Core temp=%ddegC", vrefintMv / 1000, (vrefintMv % 1000) / 10, coretemp);
+    cliPrintf(", Vref=%d.%02dV, Core temp=%ddegC", vrefintMv / 1000, (vrefintMv % 1000) / 10, coretemp);
 #endif
 #if defined(USE_SENSOR_NAMES) && !defined(USE_GYRO_IMUF9001)
     const uint32_t detectedSensorsMask = sensorsMask();
@@ -3993,6 +3993,9 @@ static bool strToPin(char *pch, ioTag_t *tag) {
         if (port < 8) {
             pch++;
             char *end;
+            if (!isdigit((unsigned char)*pch)) {
+                return false;  // strtol() would accept a leading sign or whitespace
+            }
             const long parsedPin = strtol(pch, &end, 10);
             if (end != pch && *end == '\0' && parsedPin >= 0 && parsedPin < 16) {
                 pin = (unsigned)parsedPin;
@@ -4052,6 +4055,10 @@ static void cliResource(char *cmdline) {
         }
     }
     pch = strtok_r(NULL, " ", &saveptr);
+    if (!pch) {
+        cliShowParseError();
+        return;
+    }
     index = atoi(pch);
     if (resourceTable[resourceIndex].maxIndex > 0 || index > 0) {
         if (index <= 0 || index > MAX_RESOURCE_INDEX(resourceTable[resourceIndex].maxIndex)) {
@@ -4060,6 +4067,10 @@ static void cliResource(char *cmdline) {
         }
         index -= 1;
         pch = strtok_r(NULL, " ", &saveptr);
+        if (!pch) {
+            cliShowParseError();
+            return;
+        }
     }
     ioTag_t *tag = getIoTag(resourceTable[resourceIndex], index);
     if (strlen(pch) > 0) {
@@ -4189,6 +4200,40 @@ typedef struct dmaoptEntry_s {
 #define UART_PRESENT_MASK (UART1_PRESENT | UART2_PRESENT | UART3_PRESENT | UART4_PRESENT | UART5_PRESENT | \
                            UART6_PRESENT | UART7_PRESENT | UART8_PRESENT | UART9_PRESENT | UART10_PRESENT | LPUART1_PRESENT)
 
+#ifdef USE_SPI
+// IMUF9001 claims SPI1 DMA itself, so a stored SPI1 option would have no effect.
+#if defined(USE_SPI_DEVICE_1) && !defined(USE_GYRO_IMUF9001)
+#define SPI1_PRESENT BIT(0)
+#else
+#define SPI1_PRESENT 0
+#endif
+#ifdef USE_SPI_DEVICE_2
+#define SPI2_PRESENT BIT(1)
+#else
+#define SPI2_PRESENT 0
+#endif
+#ifdef USE_SPI_DEVICE_3
+#define SPI3_PRESENT BIT(2)
+#else
+#define SPI3_PRESENT 0
+#endif
+#ifdef USE_SPI_DEVICE_4
+#define SPI4_PRESENT BIT(3)
+#else
+#define SPI4_PRESENT 0
+#endif
+#ifdef USE_SPI_DEVICE_5
+#define SPI5_PRESENT BIT(4)
+#else
+#define SPI5_PRESENT 0
+#endif
+#ifdef USE_SPI_DEVICE_6
+#define SPI6_PRESENT BIT(5)
+#else
+#define SPI6_PRESENT 0
+#endif
+#define SPI_PRESENT_MASK (SPI1_PRESENT | SPI2_PRESENT | SPI3_PRESENT | SPI4_PRESENT | SPI5_PRESENT | SPI6_PRESENT)
+#endif
 #if defined(USE_SDCARD_SDIO) && (defined(STM32F4) || defined(STM32F7))
 #define CLI_DMAOPT_SDIO
 #endif
@@ -4196,6 +4241,12 @@ typedef struct dmaoptEntry_s {
 static const dmaoptEntry_t dmaoptEntryTable[] = {
     DEFW("UART_TX", DMA_PERIPH_UART_TX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, txDmaopt, UARTDEV_COUNT_MAX, UART_PRESENT_MASK),
     DEFW("UART_RX", DMA_PERIPH_UART_RX, PG_SERIAL_UART_CONFIG, serialUartConfig_t, rxDmaopt, UARTDEV_COUNT_MAX, UART_PRESENT_MASK),
+#ifdef USE_SPI
+    DEFW("SPI_SDO", DMA_PERIPH_SPI_SDO, PG_SPI_PIN_CONFIG, spiPinConfig_t, txDmaopt, SPIDEV_COUNT, SPI_PRESENT_MASK),
+    DEFW("SPI_SDI", DMA_PERIPH_SPI_SDI, PG_SPI_PIN_CONFIG, spiPinConfig_t, rxDmaopt, SPIDEV_COUNT, SPI_PRESENT_MASK),
+    DEFW("SPI_TX", DMA_PERIPH_SPI_SDO, PG_SPI_PIN_CONFIG, spiPinConfig_t, txDmaopt, SPIDEV_COUNT, SPI_PRESENT_MASK),
+    DEFW("SPI_RX", DMA_PERIPH_SPI_SDI, PG_SPI_PIN_CONFIG, spiPinConfig_t, rxDmaopt, SPIDEV_COUNT, SPI_PRESENT_MASK),
+#endif
 #ifdef USE_ADC
     DEFA("ADC", DMA_PERIPH_ADC, PG_ADC_CONFIG, adcConfig_t, dmaopt, ADCDEV_COUNT, 0),
 #endif
@@ -4262,6 +4313,10 @@ STATIC_UNIT_TESTED void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int i
         expectedOwner = OWNER_SERIAL_TX;
     } else if (entry->peripheral == DMA_PERIPH_ADC) {
         expectedOwner = OWNER_ADC;
+    } else if (entry->peripheral == DMA_PERIPH_SPI_SDO) {
+        expectedOwner = OWNER_SPI_SDO;
+    } else if (entry->peripheral == DMA_PERIPH_SPI_SDI) {
+        expectedOwner = OWNER_SPI_SDI;
 #ifdef CLI_DMAOPT_SDIO
     } else if (entry->peripheral == DMA_PERIPH_SDIO) {
         expectedOwner = OWNER_SDCARD;
@@ -5083,7 +5138,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("rc_smoothing_info", "show rc_smoothing operational settings", NULL, cliRcSmoothing),
 #endif // USE_RC_SMOOTHING_FILTER
 #ifdef USE_RESOURCE_MGMT
-    CLI_COMMAND_DEF("resource", "show/set resources", "<> | <resource name> <index> [<pin>|none] | show [all]", cliResource),
+    CLI_COMMAND_DEF("resource", "show/set resources", "<> | <resource name> <index> <pin>|none | show [all]", cliResource),
 #endif
     CLI_COMMAND_DEF("rxfail", "show/set rx failsafe settings", NULL, cliRxFailsafe),
     CLI_COMMAND_DEF("rxrange", "configure rx channel ranges", NULL, cliRxRange),

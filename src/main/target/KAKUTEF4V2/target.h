@@ -139,7 +139,7 @@
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define USE_ADC
-#define ADC1_DMA_OPT 0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN                PC3
 #define CURRENT_METER_ADC_PIN       PC2
 #define DEFAULT_CURRENT_METER_SCALE        275
@@ -153,7 +153,7 @@
 #define USABLE_TIMER_CHANNEL_COUNT 6
 #define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC7 , 2,  0) \
+    TIMER_PIN_MAP( 0, PC7 , 2, -1) \
     TIMER_PIN_MAP( 1, PB0 , 2,  0) \
     TIMER_PIN_MAP( 2, PB1 , 2,  0) \
     TIMER_PIN_MAP( 3, PA3 , 1,  1) \

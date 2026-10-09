@@ -135,7 +135,7 @@
 #define SBUS_TELEMETRY_UART     SERIAL_PORT_USART3
 
 #define USE_ADC
-#define ADC1_DMA_OPT 0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PC2
 #define CURRENT_METER_ADC_PIN   PC1
 #define RSSI_ADC_PIN            PA0
@@ -149,6 +149,7 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 11
 #define USE_TIMER_MGMT
+// PC6 and PC8 share DMA2 Stream 2; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB15 , 3, -1) \
     TIMER_PIN_MAP( 1, PB0 , 2,  0) \

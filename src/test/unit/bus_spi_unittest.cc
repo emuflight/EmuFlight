@@ -35,34 +35,65 @@ extern "C" {
 #include "drivers/dma_reqmap.h"
 #include "drivers/nvic.h"
 
+#include "pg/bus_spi.h"
+#include "pg/pg_ids.h"
+
+PG_REGISTER_ARRAY(spiPinConfig_t, SPIDEV_COUNT, spiPinConfig, PG_SPI_PIN_CONFIG, 2);
+
 // Stand-ins for real DMA_Stream_TypeDef addresses; only pointer identity matters here.
 static int dmaTxStreamMarker;
 static int dmaRxStreamMarker;
+static int dmaTxStreamMarker1; // second table option per direction (F4/F7 rows list two)
+static int dmaRxStreamMarker1;
 
 static bool txSpecAvailable;
 static bool rxSpecAvailable;
+static bool txSpec1Available;
+static bool rxSpec1Available;
 static bool txAllocSucceeds;
 static bool rxAllocSucceeds;
+static bool txAlloc1Succeeds;
+static bool rxAlloc1Succeeds;
+static int txProbeCount;
+static int rxProbeCount;
+static int8_t txProbes[8];
+static int8_t rxProbes[8];
 static int dmaSetHandlerCallCount;
 static dmaIdentifier_e lastHandlerIdentifier;
 static dmaCallbackHandlerFuncPtr lastHandlerCallback;
 
 static dmaChannelSpec_t txSpec;
 static dmaChannelSpec_t rxSpec;
+static dmaChannelSpec_t txSpec1;
+static dmaChannelSpec_t rxSpec1;
 static dmaChannelDescriptor_t txDescriptor;
 static dmaChannelDescriptor_t rxDescriptor;
+static dmaChannelDescriptor_t txDescriptor1;
+static dmaChannelDescriptor_t rxDescriptor1;
 
 // Scripts spiInitBusDMA()'s DMA-registration boundary; the real implementation touches RCC/NVIC registers absent on host.
 const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e device, uint8_t index, int8_t opt) {
     UNUSED(index);
-    if (opt != 0) {
-        return NULL;
+    if (device == DMA_PERIPH_SPI_SDO && txProbeCount < 8) {
+        txProbes[txProbeCount++] = opt;
+    }
+    if (device == DMA_PERIPH_SPI_SDI && rxProbeCount < 8) {
+        rxProbes[rxProbeCount++] = opt;
+    }
+    if (opt != 0 && opt != 1) {
+        return NULL; // like the real table: an option outside the row is absent
     }
     if (device == DMA_PERIPH_SPI_SDO) {
-        return txSpecAvailable ? &txSpec : NULL;
+        if (opt == 0) {
+            return txSpecAvailable ? &txSpec : NULL;
+        }
+        return txSpec1Available ? &txSpec1 : NULL;
     }
     if (device == DMA_PERIPH_SPI_SDI) {
-        return rxSpecAvailable ? &rxSpec : NULL;
+        if (opt == 0) {
+            return rxSpecAvailable ? &rxSpec : NULL;
+        }
+        return rxSpec1Available ? &rxSpec1 : NULL;
     }
     return NULL;
 }
@@ -73,6 +104,12 @@ dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef *stream) {
     }
     if ((const void *)stream == (const void *)&dmaRxStreamMarker) {
         return DMA1_ST1_HANDLER;
+    }
+    if ((const void *)stream == (const void *)&dmaTxStreamMarker1) {
+        return DMA1_ST2_HANDLER;
+    }
+    if ((const void *)stream == (const void *)&dmaRxStreamMarker1) {
+        return DMA1_ST3_HANDLER;
     }
     return DMA_NONE;
 }
@@ -86,6 +123,12 @@ bool dmaAllocate(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t reso
     if (identifier == DMA1_ST1_HANDLER) {
         return rxAllocSucceeds;
     }
+    if (identifier == DMA1_ST2_HANDLER) {
+        return txAlloc1Succeeds;
+    }
+    if (identifier == DMA1_ST3_HANDLER) {
+        return rxAlloc1Succeeds;
+    }
     return false;
 }
 
@@ -95,6 +138,12 @@ dmaChannelDescriptor_t *dmaGetDescriptorByIdentifier(const dmaIdentifier_e ident
     }
     if (identifier == DMA1_ST1_HANDLER) {
         return &rxDescriptor;
+    }
+    if (identifier == DMA1_ST2_HANDLER) {
+        return &txDescriptor1;
+    }
+    if (identifier == DMA1_ST3_HANDLER) {
+        return &rxDescriptor1;
     }
     return NULL;
 }
@@ -178,14 +227,28 @@ void resetSpiTestState()
     rxSpecAvailable = true;
     txAllocSucceeds = true;
     rxAllocSucceeds = true;
+    txSpec1Available = false;
+    rxSpec1Available = false;
+    txAlloc1Succeeds = true;
+    rxAlloc1Succeeds = true;
+    txProbeCount = 0;
+    rxProbeCount = 0;
+    for (int device = 0; device < SPIDEV_COUNT; device++) {
+        spiPinConfigMutable(device)->txDmaopt = DMA_OPT_UNUSED;
+        spiPinConfigMutable(device)->rxDmaopt = DMA_OPT_UNUSED;
+    }
     dmaSetHandlerCallCount = 0;
     lastHandlerIdentifier = DMA_NONE;
     lastHandlerCallback = NULL;
 
     txSpec = { 0, (dmaResource_t *)&dmaTxStreamMarker, 0 };
     rxSpec = { 0, (dmaResource_t *)&dmaRxStreamMarker, 0 };
+    txSpec1 = { 0, (dmaResource_t *)&dmaTxStreamMarker1, 0 };
+    rxSpec1 = { 0, (dmaResource_t *)&dmaRxStreamMarker1, 0 };
     memset(&txDescriptor, 0, sizeof(txDescriptor));
     memset(&rxDescriptor, 0, sizeof(rxDescriptor));
+    memset(&txDescriptor1, 0, sizeof(txDescriptor1));
+    memset(&rxDescriptor1, 0, sizeof(rxDescriptor1));
 }
 
 } // namespace
@@ -368,4 +431,131 @@ TEST(BusSpiUnittest, DmaEnableSetsPerDeviceFlagIndependentOfBus)
     spiDmaEnable(&dev, true);
 
     EXPECT_TRUE(dev.useDMA);
+}
+
+// --- spiInitBusDMA(): stored txDmaopt/rxDmaopt (pin-or-scan) ---
+// Spec: -1 scans options 0..MAX-1 and the first that allocates wins; 0..MAX-1 probes that option only;
+// anything else leaves that direction without DMA. The F4/F7 row has two options (MAX_PERIPHERAL_DMA_OPTIONS == 2).
+
+static void initDevice1WithOptions(int8_t tx, int8_t rx)
+{
+    extDevice_t dev = {};
+    ASSERT_TRUE(spiSetBusInstance(&dev, SPI_DEV_TO_CFG(SPIDEV_1)));
+    spiPinConfigMutable(SPIDEV_1)->txDmaopt = tx;
+    spiPinConfigMutable(SPIDEV_1)->rxDmaopt = rx;
+    spiInitBusDMA();
+}
+
+TEST(BusSpiUnittest, UnsetOptionsScanAndStopAtFirstFreeOption)
+{
+    resetSpiTestState();
+    txSpec1Available = true;
+    rxSpec1Available = true;
+    initDevice1WithOptions(DMA_OPT_UNUSED, DMA_OPT_UNUSED);
+
+    EXPECT_EQ(txProbeCount, 1); // option 0 allocates, no further probe
+    EXPECT_EQ(rxProbeCount, 1);
+    EXPECT_EQ(txProbes[0], 0);
+    EXPECT_EQ(rxProbes[0], 0);
+    EXPECT_EQ(spiBusByDevice(SPIDEV_1)->dmaTx, &txDescriptor);
+}
+
+TEST(BusSpiUnittest, UnsetOptionsFallBackToSecondOptionWhenFirstIsClaimed)
+{
+    resetSpiTestState();
+    txSpec1Available = true;
+    txAllocSucceeds = false; // option 0 held elsewhere
+    initDevice1WithOptions(DMA_OPT_UNUSED, DMA_OPT_UNUSED);
+
+    EXPECT_EQ(txProbeCount, 2);
+    EXPECT_EQ(txProbes[0], 0);
+    EXPECT_EQ(txProbes[1], 1);
+    EXPECT_EQ(spiBusByDevice(SPIDEV_1)->dmaTx, &txDescriptor1);
+    EXPECT_TRUE(spiBusByDevice(SPIDEV_1)->useDMA);
+}
+
+TEST(BusSpiUnittest, PinnedTxOptionProbesOnlyThatOption)
+{
+    resetSpiTestState();
+    txSpec1Available = true;
+    initDevice1WithOptions(1, DMA_OPT_UNUSED);
+
+    EXPECT_EQ(txProbeCount, 1);
+    EXPECT_EQ(txProbes[0], 1);
+    EXPECT_EQ(spiBusByDevice(SPIDEV_1)->dmaTx, &txDescriptor1); // option 1 even though option 0 was free
+    EXPECT_EQ(spiBusByDevice(SPIDEV_1)->dmaRx, &rxDescriptor);  // Rx still auto
+}
+
+TEST(BusSpiUnittest, PinnedOptionHeldElsewhereDoesNotFallBackToOtherOption)
+{
+    resetSpiTestState();
+    txSpec1Available = true;
+    txAlloc1Succeeds = false; // pinned stream already owned; option 0 is free
+    initDevice1WithOptions(1, DMA_OPT_UNUSED);
+
+    EXPECT_EQ(txProbeCount, 1);
+    EXPECT_EQ(txProbes[0], 1);
+    busDevice_t *bus = spiBusByDevice(SPIDEV_1);
+    EXPECT_FALSE(bus->useDMA); // no Tx stream: polled, option 0 never taken
+    EXPECT_EQ(bus->dmaTx, nullptr);
+}
+
+TEST(BusSpiUnittest, PinnedRxOptionIsIndependentOfTx)
+{
+    resetSpiTestState();
+    rxSpec1Available = true;
+    initDevice1WithOptions(DMA_OPT_UNUSED, 1);
+
+    EXPECT_EQ(txProbes[0], 0);
+    EXPECT_EQ(rxProbeCount, 1);
+    EXPECT_EQ(rxProbes[0], 1);
+    EXPECT_EQ(spiBusByDevice(SPIDEV_1)->dmaTx, &txDescriptor);
+    EXPECT_EQ(spiBusByDevice(SPIDEV_1)->dmaRx, &rxDescriptor1);
+}
+
+TEST(BusSpiUnittest, PinnedOptionOnlyAffectsItsOwnDevice)
+{
+    resetSpiTestState();
+    txSpec1Available = true;
+    extDevice_t dev1 = {};
+    extDevice_t dev2 = {};
+    ASSERT_TRUE(spiSetBusInstance(&dev1, SPI_DEV_TO_CFG(SPIDEV_1)));
+    ASSERT_TRUE(spiSetBusInstance(&dev2, SPI_DEV_TO_CFG(SPIDEV_2)));
+    spiPinConfigMutable(SPIDEV_2)->txDmaopt = 1;
+    spiInitBusDMA();
+
+    ASSERT_GE(txProbeCount, 2);
+    EXPECT_EQ(txProbes[0], 0); // SPIDEV_1 unset: first probe is option 0
+    EXPECT_EQ(txProbes[txProbeCount - 1], 1); // SPIDEV_2 pinned
+}
+
+TEST(BusSpiUnittest, OutOfRangePinnedOptionLeavesBusPolledWithoutProbing)
+{
+    // Adversarial: values a corrupted or hand-edited config could hold. None may allocate DMA,
+    // wrap into a valid option, or probe past the table.
+    const int8_t bad[] = { -2, -128, 2, 3, 16, 127 };
+    for (size_t i = 0; i < sizeof(bad); i++) {
+        resetSpiTestState();
+        txSpec1Available = true;
+        rxSpec1Available = true;
+        initDevice1WithOptions(bad[i], bad[i]);
+
+        busDevice_t *bus = spiBusByDevice(SPIDEV_1);
+        EXPECT_FALSE(bus->useDMA) << "opt " << (int)bad[i];
+        EXPECT_EQ(bus->dmaTx, nullptr) << "opt " << (int)bad[i];
+        EXPECT_EQ(bus->dmaRx, nullptr) << "opt " << (int)bad[i];
+        EXPECT_EQ(txProbeCount, 0) << "opt " << (int)bad[i];
+        EXPECT_EQ(rxProbeCount, 0) << "opt " << (int)bad[i];
+    }
+}
+
+TEST(BusSpiUnittest, OutOfRangeTxOptionKeepsValidRxOptionWorking)
+{
+    resetSpiTestState();
+    initDevice1WithOptions(2, DMA_OPT_UNUSED);
+
+    busDevice_t *bus = spiBusByDevice(SPIDEV_1);
+    EXPECT_EQ(bus->dmaTx, nullptr);
+    EXPECT_EQ(rxProbeCount, 1);
+    EXPECT_FALSE(bus->useDMA); // Tx missing and Rx present: Rx alone is not used, and the Tx-only path needs Tx
 }

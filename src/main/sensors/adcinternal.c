@@ -60,7 +60,7 @@ uint16_t getVrefMv(void) {
 #ifdef ADC_VOLTAGE_REFERENCE_MV
     return ADC_VOLTAGE_REFERENCE_MV;
 #else
-    return 3300 * adcVrefintValue / adcVREFINTCAL;
+    return adcInternalCompensateVref(adcVREFINTCAL, adcVrefintValue);
 #endif
 }
 
@@ -82,8 +82,7 @@ void adcInternalProcess(timeUs_t currentTimeUs) {
         adcInternalStartConversion();
         return;
     }
-    int32_t adcTempsensorAdjusted = (int32_t)adcTempsensorValue * 3300 / vrefMv;
-    coreTemperature = ((adcTempsensorAdjusted - adcTSCAL1) * adcTSSlopeK + 30 * 1000 + 500) / 1000;
+    coreTemperature = adcInternalComputeTemperature(adcTempsensorValue, vrefMv, adcTSCAL1, adcTSSlopeK);
     DEBUG_SET(DEBUG_CORE_TEMP, 0, coreTemperature);
     adcInternalStartConversion(); // Start next conversion
 }
