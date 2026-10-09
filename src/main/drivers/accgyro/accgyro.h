@@ -65,13 +65,10 @@
 #define GYRO_LPF_NONE       7
 
 //This optimizes the frequencies instead of calculating them
-//in the case of 1100 and 9000, they would divide as irrational numbers.
 #define GYRO_RATE_1_kHz     1000.0f
-#define GYRO_RATE_1100_Hz   909.09f
 #define GYRO_RATE_3200_Hz   312.5f
 #define GYRO_RATE_6400_Hz   156.25f
 #define GYRO_RATE_8_kHz     125.0f
-#define GYRO_RATE_9_kHz     111.11f
 #define GYRO_RATE_16_kHz    64.0f
 #define GYRO_RATE_32_kHz    32.0f
 
