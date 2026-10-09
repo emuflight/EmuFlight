@@ -628,6 +628,9 @@ timerup_pg_unittest_DEFINES := \
 encoding_unittest_SRC := \
 		$(USER_DIR)/common/encoding.c
 
+streambuf_unittest_SRC := \
+		$(USER_DIR)/common/streambuf.c
+
 
 serial_uart_dma_claim_unittest_DEFINES := \
 		STM32F4
