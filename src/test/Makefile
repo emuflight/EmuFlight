@@ -335,6 +335,11 @@ dma_bounds_unittest_DEFINES := \
 		STM32F4
 
 
+dma_flag_macro_unittest_DEFINES := \
+		STM32F4 \
+		UNIT_TEST_DMA_FLAG_REGS
+
+
 dma_stm32f4xx_unittest_SRC := \
 		$(USER_DIR)/drivers/dma_stm32f4xx.c
 
