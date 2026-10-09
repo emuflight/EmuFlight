@@ -466,23 +466,23 @@ def _format_range(entry, table_map):
     return ''
 
 
-def _extract_use_conditions(cond):
-    """Extract all USE_* symbols from a condition, preserving negation."""
+def _extract_use_conditions(cond, prefix='USE'):
+    """Extract all <prefix>_* symbols from a condition, preserving negation."""
     out = []
-    # Match negated or plain USE_* tokens, including defined() forms
-    for m in re.finditer(r'(!)?\s*(?:defined\()?\s*(USE_[A-Z0-9_]+)\s*\)?', cond):
+    # Match negated or plain tokens, including defined() forms
+    for m in re.finditer(rf'(!)?\s*(?:defined\()?\s*({prefix}_[A-Z0-9_]+)\s*\)?', cond):
         neg, sym = m.groups()
         out.append(f'!{sym}' if neg else sym)
     return out
 
 
-def _format_requires(ifdef_conds):
-    """Return USE_xxx requirements, including negated/defined forms."""
+def _format_requires(ifdef_conds, prefix='USE'):
+    """Return <prefix>_xxx requirements, including negated/defined forms."""
     simple = []
     for c in ifdef_conds:
-        simple.extend(_extract_use_conditions(c))
+        simple.extend(_extract_use_conditions(c, prefix))
         # Also catch standalone simple forms
-        if re.match(r'!?USE_\w+$', c):
+        if re.match(rf'!?{prefix}_\w+$', c):
             simple.append(c)
     if not simple:
         return ''
@@ -556,18 +556,22 @@ def generate_markdown(entries, table_map, settings_c_path, cmd_entries, cli_c_pa
     lines.append('handler instead of `valueTable[]`.')
     lines.append('')
 
-    by_name = {e['name']: e for e in cmd_entries}
+    # A command can have several #if-selected definitions; keep every variant.
+    by_name = {}
+    for e in cmd_entries:
+        by_name.setdefault(e['name'], []).append(e)
     missing = [n for n in PG_BACKED_COMMANDS if n not in by_name]
     if missing:
         print(f"  WARNING: PG-backed commands not found in cmdTable[]: {', '.join(missing)}")
-    rows = [by_name[n] for n in PG_BACKED_COMMANDS if n in by_name]
+    rows = [e for n in PG_BACKED_COMMANDS for e in by_name.get(n, [])]
 
     lines.append('| Command | Description | Args | Requires |')
     lines.append('|---------|-------------|------|----------|')
     for e in rows:
         desc = (e['description'] or '').replace('|', '\\|')
         args = _format_cmd_args(e['args'])
-        req  = _format_requires(e['ifdef_conds'])
+        req  = ', '.join(r for r in (_format_requires(e['ifdef_conds']),
+                                      _format_requires(e['ifdef_conds'], 'CLI')) if r)
         lines.append(f'| `{e["name"]}` | {desc} | {args} | {req} |')
     lines.append('')
 
