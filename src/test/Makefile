@@ -637,6 +637,13 @@ sdcard_dma_claim_unittest_DEFINES := \
 		STM32F4
 
 
+flashfs_unittest_SRC := \
+		$(USER_DIR)/io/flashfs.c
+
+flashfs_unittest_DEFINES := \
+		USE_FLASHFS
+
+
 flash_w25m_unittest_SRC := \
 		$(USER_DIR)/drivers/flash_w25m.c
 

@@ -298,6 +298,10 @@ static uint32_t flashfsWriteBuffers(uint8_t const **buffers, uint32_t *bufferSiz
 
     bytesWritten = flashPageProgramContinue(buffers, bufferSizes, bufferCount);
 
+    if (bytesWritten == 0) {
+        dataWritten = true; // driver accepted nothing, no completion callback will come
+    }
+
 #ifdef CHECK_FLASH
     checkFlashLen = bytesWritten;
 #endif
@@ -421,6 +425,9 @@ void flashfsFlushSync(void)
         return; // Nothing to flush
     }
 
+    // a write still in flight leaves bufferTail stale, so the same bytes would be presented twice
+    while (!flashfsNewData());
+
     bufCount = flashfsGetDirtyDataBuffers(buffers, bufferSizes);
     if (bufCount) {
         flashfsWriteBuffers(buffers, bufferSizes, bufCount, true);
@@ -494,6 +501,13 @@ void flashfsWrite(const uint8_t *data, unsigned int len, bool sync)
     // Buffer up the data the user supplied instead of writing it right away
     for (unsigned int i = 0; i < len; i++) {
         flashfsWriteByte(data[i]);
+    }
+
+    // must precede the buffer capture below: an in-flight write leaves bufferTail stale
+    if (sync) {
+        while (!flashfsNewData());
+    } else if (!flashfsNewData()) {
+        return;
     }
 
     // There could be two dirty buffers to write out already:
