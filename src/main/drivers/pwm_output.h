@@ -179,11 +179,34 @@ typedef struct motorDevConfig_s {
     uint8_t  useUnsyncedPwm;
     uint8_t  useBurstDshot;
     ioTag_t  ioTags[MAX_SUPPORTED_MOTORS];
+    uint8_t  motorOutputReordering[MAX_SUPPORTED_MOTORS]; // logical motor index -> ioTags[] slot
 } motorDevConfig_t;
 
 extern bool useBurstDshot;
 
 void motorDevInit(const motorDevConfig_t *motorDevConfig, uint16_t idlePulse, uint8_t motorCount);
+
+// Restore the identity mapping unless the array is a permutation of 0..size-1.
+static inline void validateAndfixMotorOutputReordering(uint8_t *array, const unsigned size) {
+    bool invalid = false;
+    for (unsigned i = 0; i < size && !invalid; i++) {
+        if (array[i] >= size) {
+            invalid = true;
+            break;
+        }
+        for (unsigned j = 0; j < i; j++) {
+            if (array[j] == array[i]) {
+                invalid = true;
+                break;
+            }
+        }
+    }
+    if (invalid) {
+        for (unsigned i = 0; i < size; i++) {
+            array[i] = i;
+        }
+    }
+}
 
 typedef struct servoDevConfig_s {
     // PWM values, in milliseconds, common range is 1000-2000 (1ms to 2ms)
@@ -209,7 +232,7 @@ uint32_t getDshotHz(motorPwmProtocolTypes_e pwmProtocolType);
 void pwmWriteDshotCommandControl(uint8_t index);
 void pwmWriteDshotCommand(uint8_t index, uint8_t motorCount, uint8_t command, bool blocking);
 void pwmWriteDshotInt(uint8_t index, uint16_t value);
-void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, motorPwmProtocolTypes_e pwmProtocolType, uint8_t output);
+void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint8_t reorderedMotorIndex, motorPwmProtocolTypes_e pwmProtocolType, uint8_t output);
 void pwmCompleteDshotMotorUpdate(uint8_t motorCount);
 
 bool pwmDshotCommandIsQueued(void);
