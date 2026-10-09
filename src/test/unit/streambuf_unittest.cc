@@ -126,8 +126,8 @@ TEST(StreambufTest, BoardInfoParseKeepsFieldsAlignedForAnyLength)
 
             const size_t expectedName = nameLen < NAME_MAX_LEN ? nameLen : NAME_MAX_LEN;
             const size_t expectedId = idLen < ID_MAX_LEN ? idLen : ID_MAX_LEN;
-            EXPECT_EQ(expectedName, strlen(nameBuf)) << "nameLen=" << (int)nameLen;
-            EXPECT_EQ(expectedId, strlen(idBuf)) << "idLen=" << (int)idLen;
+            EXPECT_EQ(expectedName, strnlen(nameBuf, sizeof(nameBuf))) << "nameLen=" << (int)nameLen;
+            EXPECT_EQ(expectedId, strnlen(idBuf, sizeof(idBuf))) << "idLen=" << (int)idLen;
             EXPECT_EQ((uint8_t)GUARD_BYTE, (uint8_t)nameBuf[NAME_MAX_LEN + 1]);
             EXPECT_EQ((uint8_t)GUARD_BYTE, (uint8_t)idBuf[ID_MAX_LEN + 1]);
             // reader consumed the whole record: only the sentinel remains
