@@ -139,6 +139,8 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 9
 #define USE_TIMER_MGMT
+// Burst DShot shares one TIM_UP stream per timer, so motors need no per-channel stream
+#define ENABLE_DSHOT_DMAR true
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PC8 , 2,  0) \
     TIMER_PIN_MAP( 1, PC9 , 2,  0) \
