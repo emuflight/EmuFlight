@@ -39,6 +39,16 @@ int configCalls;
 int failMotor; // index whose hardware config returns false; -1 = none
 timerHardware_t fakeTimerHardware[MOTORS];
 
+uint32_t fakeMicros = 0;
+
+// The queue only drains through pwmDshotCommandOutputIsEnabled() as time advances.
+void drainDshotCommandQueue() {
+    for (int guard = 0; guard < 100 && pwmDshotCommandIsQueued(); guard++) {
+        fakeMicros += 1000000;
+        pwmDshotCommandOutputIsEnabled(MOTORS);
+    }
+}
+
 void resetFakes(int failAt) {
     configCalls = 0;
     failMotor = failAt;
@@ -57,9 +67,11 @@ void initMotors(uint8_t count) {
 
 } // namespace
 
-// The DShot command queue is static state in pwm_output.c and only drains in flight, so one test
-// checks rejection first (empty queue), then acceptance, instead of depending on test order.
+// The DShot command queue is static state in pwm_output.c, so the test drains it first and then
+// checks rejection (empty queue) before acceptance, independent of test order and repeats.
 TEST(PwmOutputDshotInit, DshotCommandsRejectedAfterFailedInitAcceptedAfterSuccess) {
+    drainDshotCommandQueue();
+    ASSERT_FALSE(pwmDshotCommandIsQueued());
     resetFakes(1);
     initMotors(MOTORS);
     pwmWriteDshotCommand(ALL_MOTORS, MOTORS, DSHOT_CMD_BEACON1, false);
@@ -131,7 +143,7 @@ void IOConfigGPIOAF(IO_t, ioConfig_t, uint8_t) {}
 void pwmWriteDshotInt(uint8_t, uint16_t) {}
 void pwmCompleteDshotMotorUpdate(uint8_t) {}
 uint32_t timerClock(TIM_TypeDef *) { return 0; }
-uint32_t micros(void) { return 0; }
+uint32_t micros(void) { return fakeMicros; }
 void delayMicroseconds(uint32_t) {}
 void TIM_OCStructInit(TIM_OCInitTypeDef *) {}
 void configTimeBase(TIM_TypeDef *, uint16_t, uint32_t) {}
