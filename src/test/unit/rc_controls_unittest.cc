@@ -64,9 +64,17 @@ void unsetArmingDisabled(armingDisableFlags_e flag) {
   UNUSED(flag);
 }
 
+static void clearModeActivationConditions(void)
+{
+    for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
+        memset(modeActivationConditionsMutable(i), 0, sizeof(modeActivationCondition_t));
+    }
+}
+
 class RcControlsModesTest : public ::testing::Test {
 protected:
     virtual void SetUp() {
+        clearModeActivationConditions();
     }
 };
 
@@ -100,13 +108,6 @@ TEST_F(RcControlsModesTest, updateActivatedModesWithAllInputsAtMidde)
 
 // Expected values follow the updateMasksForMac() logic table: an active OR mac latches true,
 // AND macs require every AND mac active, a linked mac is active while its target mode is active.
-static void clearModeActivationConditions(void)
-{
-    for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
-        memset(modeActivationConditionsMutable(i), 0, sizeof(modeActivationCondition_t));
-    }
-}
-
 static void setRangeMac(int index, boxId_e modeId, int auxChannel, modeLogic_e logic)
 {
     modeActivationCondition_t *mac = modeActivationConditionsMutable(index);
