@@ -139,7 +139,7 @@ static void motor_DMA_IRQHandler(dmaChannelDescriptor_t *descriptor) {
     }
 }
 
-void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, motorPwmProtocolTypes_e pwmProtocolType, uint8_t output) {
+bool pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, motorPwmProtocolTypes_e pwmProtocolType, uint8_t output) {
 #if defined(STM32F4) || defined(STM32F7)
     typedef DMA_Stream_TypeDef dmaStream_t;
 #else
@@ -169,19 +169,19 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
         }
     }
     if (dmaRef == NULL) {
-        return;
+        return false;
     }
 #ifdef USE_DSHOT_DMAR
     if (useBurstDshot) {
         if (!dshotDmaClaim(timerHardware->dmaTimUPIrqHandler, OWNER_TIMUP, timerGetTIMNumber(timerHardware->tim))) {
-            return;
+            return false;
         }
         dmaEnable(timerHardware->dmaTimUPIrqHandler);
     } else
 #endif
     {
         if (!dmaAllocate(dmaIrqIdentifier, OWNER_MOTOR, RESOURCE_INDEX(motorIndex))) {
-            return;
+            return false;
         }
         dmaEnable(dmaIrqIdentifier);
     }
@@ -295,6 +295,7 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     DMA_Init(dmaRef, &DMA_InitStructure);
     DMA_ITConfig(dmaRef, DMA_IT_TC, ENABLE);
     motor->configured = true;
+    return true;
 }
 
 #endif

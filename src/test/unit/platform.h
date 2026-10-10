@@ -70,7 +70,30 @@ typedef struct {
 
 typedef struct {
     void* test;
+    uint16_t TIM_OCMode;
+    uint16_t TIM_OutputState;
+    uint16_t TIM_OutputNState;
+    uint32_t TIM_Pulse;
+    uint16_t TIM_OCPolarity;
+    uint16_t TIM_OCNPolarity;
+    uint16_t TIM_OCIdleState;
+    uint16_t TIM_OCNIdleState;
 } TIM_OCInitTypeDef;
+
+#define TIM_OCMode_PWM1 0x0060
+#define TIM_OutputState_Enable 0x0001
+#define TIM_OutputNState_Enable 0x0004
+#define TIM_OCPolarity_High 0x0000
+#define TIM_OCPolarity_Low 0x0002
+#define TIM_OCNPolarity_High 0x0000
+#define TIM_OCNPolarity_Low 0x0008
+#define TIM_OCIdleState_Set 0x0100
+#define TIM_OCNIdleState_Reset 0x0000
+#define TIM_OCPreload_Enable 0x0008
+
+void TIM_OCStructInit(TIM_OCInitTypeDef *init);
+void TIM_Cmd(TIM_TypeDef *tim, FunctionalState state);
+void TIM_CtrlPWMOutputs(TIM_TypeDef *tim, FunctionalState state);
 
 typedef struct {
     void* test;
