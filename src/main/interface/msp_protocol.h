@@ -65,7 +65,7 @@
 
 #define API_VERSION_MAJOR                   1  // increment when major changes are made
 #define API_VERSION_MINOR                   55 // increment after a release, to set the version for all changes to go into the following release (if no changes to MSP are made between the releases, this can be reverted before the release)
-#define API_VERSION_PATCH                   1  // increment once per backward-compatible MSP feature; reset to 0 on a minor bump
+#define API_VERSION_PATCH                   0  // increment once per backward-compatible MSP feature; reset to 0 on a minor bump
 
 #define API_VERSION_LENGTH                  3
 
