@@ -140,14 +140,14 @@
 #define USABLE_TIMER_CHANNEL_COUNT 9
 #define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC8 , 2,  1) \
+    TIMER_PIN_MAP( 0, PC8 , 2,  0) \
     TIMER_PIN_MAP( 1, PC9 , 2,  0) \
     TIMER_PIN_MAP( 2, PA8 , 1,  0) \
     TIMER_PIN_MAP( 3, PA9 , 1,  0) \
     TIMER_PIN_MAP( 4, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB1 , 2,  0) \
+    TIMER_PIN_MAP( 5, PB1 , 2, -1) \
     TIMER_PIN_MAP( 6, PA10 , 1,  0) \
-    TIMER_PIN_MAP( 7, PB4 , 1,  0) \
+    TIMER_PIN_MAP( 7, PB4 , 1, -1) \
     TIMER_PIN_MAP( 8, PB3 , 1,  0)
 
 #define MOTOR1_PIN              PC8
