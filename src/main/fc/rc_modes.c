@@ -162,6 +162,16 @@ bool isModeActivationConditionPresent(boxId_e modeId) {
     return false;
 }
 
+bool isModeActivationConditionLinked(boxId_e modeId) {
+    for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
+        const modeActivationCondition_t *mac = modeActivationConditions(i);
+        if (mac->modeId == modeId && mac->linkedTo != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void removeModeActivationCondition(const boxId_e modeId) {
     unsigned offset = 0;
     for (unsigned i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {

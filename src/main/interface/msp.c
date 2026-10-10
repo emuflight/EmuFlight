@@ -1591,6 +1591,9 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
                     return MSP_RESULT_ERROR;
                 }
                 linkedTo = linkedBox->boxId;
+                if (linkedTo && box->boxId == BOXARM) {
+                    return MSP_RESULT_ERROR; // ARM may not be driven by a link
+                }
             } else if (extraBytes != 0) {
                 return MSP_RESULT_ERROR;
             }

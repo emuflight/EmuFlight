@@ -183,6 +183,17 @@ TEST_F(RcControlsModesTest, linkedAndModeRequiresRangeAndTarget)
     }
 }
 
+TEST_F(RcControlsModesTest, isModeActivationConditionLinkedReportsOnlyLinkedModes)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_OR);
+
+    EXPECT_FALSE(isModeActivationConditionLinked((boxId_e)1)); // range mac only
+    EXPECT_TRUE(isModeActivationConditionLinked((boxId_e)2));  // linked mac
+    EXPECT_FALSE(isModeActivationConditionLinked((boxId_e)3)); // not configured
+}
+
 TEST_F(RcControlsModesTest, linkToModeWithNoRangeStaysInactive)
 {
     clearModeActivationConditions();
