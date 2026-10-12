@@ -5256,7 +5256,16 @@ static const char *cliArgPickDynamic(cliArgDyn_e dyn, uint32_t *n) {
         break;
     case CLI_ARG_DYN_FEATURE:
         for (uint32_t i = 0; featureNames[i]; i++) {
-            if (featureNames[i][0] && (*n)-- == 0) {
+            const uint32_t mask = 1U << i;
+            bool available = featureNames[i][0] != '\0';
+#ifndef USE_GPS
+            available = available && !(mask & FEATURE_GPS);
+#endif
+#ifndef USE_RANGEFINDER
+            available = available && !(mask & FEATURE_RANGEFINDER);
+#endif
+            UNUSED(mask);
+            if (available && (*n)-- == 0) {
                 return featureNames[i];
             }
         }
@@ -5318,8 +5327,10 @@ static const char *cliArgCandidate(const char *cmd, unsigned arg, const char *fi
     static const char * const nosaveWord[] = { "nosave", NULL };
     static const char * const escWords[] = { "sk", "bl", "ki", "cc", NULL };
     static const char * const resetWord[] = { "reset", NULL };
+#ifndef USE_QUAD_MIXER_ONLY
     static const char * const mixLoadWords[] = { "reset", "load", NULL };
     static const char * const smixWords[] = { "reset", "load", "reverse", NULL };
+#endif
     const char * const *words = noWords;
     cliArgDyn_e dyn = CLI_ARG_DYN_NONE;
 
@@ -5367,12 +5378,14 @@ static const char *cliArgCandidate(const char *cmd, unsigned arg, const char *fi
             words = listWord;
             dyn = CLI_ARG_DYN_MIXER;
         }
+#ifndef USE_QUAD_MIXER_ONLY
     } else if (strcasecmp(cmd, "mmix") == 0 || strcasecmp(cmd, "smix") == 0) {
         if (arg == 0) {
             words = strcasecmp(cmd, "smix") == 0 ? smixWords : mixLoadWords;
         } else if (arg == 1 && strcasecmp(first, "load") == 0) {
             dyn = CLI_ARG_DYN_MIXER;
         }
+#endif
     } else if (strcasecmp(cmd, "beeper") == 0 || strcasecmp(cmd, "beacon") == 0) {
         if (arg == 0) {
             words = listWord;
@@ -5410,6 +5423,13 @@ static void cliCompleteArgument(bool listAll) {
             tokenStart = p + 1;
         }
     }
+    bool known = false;
+    for (const clicmd_t *c = cmdTable; c < cmdTable + ARRAYLEN(cmdTable); c++) {
+        known = known || strcasecmp(c->name, cmd) == 0;
+    }
+    if (!known || tokens == 0) {
+        return;
+    }
     const bool atBoundary = bufferIndex && cliBuffer[bufferIndex - 1] == ' ';
     const char *prefix = atBoundary ? cliBuffer + bufferIndex : tokenStart;
     const unsigned arg = atBoundary ? tokens - 1 : tokens - 2;
@@ -5417,13 +5437,14 @@ static void cliCompleteArgument(bool listAll) {
     if (dashable && *prefix == '-') {
         prefix++;
     }
+    const bool dashed = dashable && prefix != tokenStart && *tokenStart == '-';
     const size_t prefixLen = strlen(prefix);
     const char *firstMatch = NULL;
     size_t commonLen = 0;
     uint32_t matches = 0;
     const char *name;
     for (uint32_t n = 0; (name = cliArgCandidate(cmd, arg, first, n)) != NULL; n++) {
-        if (strncasecmp(name, prefix, prefixLen) != 0) {
+        if (strncasecmp(name, prefix, prefixLen) != 0 || (dashed && strcasecmp(name, "list") == 0)) {
             continue;
         }
         if (!matches) {
@@ -5452,7 +5473,7 @@ static void cliCompleteArgument(bool listAll) {
     if (matches > 1 && (listAll || bufferIndex == oldIndex)) {
         cliPrint("\r\033[K");
         for (uint32_t n = 0; (name = cliArgCandidate(cmd, arg, first, n)) != NULL; n++) {
-            if (strncasecmp(name, prefix, prefixLen) == 0) {
+            if (strncasecmp(name, prefix, prefixLen) == 0 && !(dashed && strcasecmp(name, "list") == 0)) {
                 cliPrint(name);
                 cliWrite('\t');
             }

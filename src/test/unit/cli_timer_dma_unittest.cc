@@ -1297,6 +1297,11 @@ TEST_F(CliTimerDmaTest, TabOnUnknownArgumentOrCommandChangesNothing)
     EXPECT_EQ("nosuchcmd a", pressTab("nosuchcmd a"));
 }
 
+TEST_F(CliTimerDmaTest, TabDoesNotOfferListAfterADash)
+{
+    EXPECT_EQ("feature -li", pressTab("feature -li"));
+}
+
 TEST_F(CliTimerDmaTest, TabOnAFullLineBufferChangesNothing)
 {
     // CLI_IN_BUFFER_SIZE is 256; fill the line buffer completely, then Tab must not write past it.
