@@ -609,6 +609,18 @@ dma_reqmap_h7_timup_unittest_DEFINES := \
 		DMA_REQUEST_TIM16_UP=116 \
 		DMA_REQUEST_TIM17_UP=117
 
+# Real pwm_output.c motorDevInit(); the per-motor DShot hardware config is mocked.
+pwm_output_dshot_init_unittest_SRC := \
+		$(USER_DIR)/drivers/pwm_output.c
+
+pwm_output_dshot_init_unittest_DEFINES := \
+		STM32F4 \
+		USE_DSHOT \
+		USE_TIMER \
+		GPIO_Mode_AF=2 \
+		GPIO_OType_PP=0 \
+		GPIO_PuPd_NOPULL=0
+
 # Real pg/timerup.c reset function; TIMUP20 is past the 14-slot array and must be ignored.
 timerup_pg_unittest_SRC := \
 		$(USER_DIR)/pg/timerup.c \
