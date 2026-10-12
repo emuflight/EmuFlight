@@ -131,6 +131,7 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 17
 #define USE_TIMER_MGMT
+// Motor pads PB15, PB14, PB8 and PB9 sit on timers without DMA, so DShot cannot drive them
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA10 , 1,  0) \
     TIMER_PIN_MAP( 1, PC6 , 2,  0) \

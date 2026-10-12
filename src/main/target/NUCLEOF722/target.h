@@ -154,13 +154,15 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
 #define USE_TIMER_MGMT
+// Burst DShot shares one TIM_UP stream per timer, so motors need no per-channel stream
+#define ENABLE_DSHOT_DMAR true
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 1, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 2, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB9 , 1, -1) \
-    TIMER_PIN_MAP( 4, PE6 , 1, -1) \
-    TIMER_PIN_MAP( 5, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 6, PB15, 3, -1) \
-    TIMER_PIN_MAP( 7, PC6 , 2,  0) \
-    TIMER_PIN_MAP( 8, PC7 , 2,  1)
+    TIMER_PIN_MAP( 0, PB15, 3, -1) \
+    TIMER_PIN_MAP( 1, PC6 , 2,  0) \
+    TIMER_PIN_MAP( 2, PC7 , 2,  1) \
+    TIMER_PIN_MAP( 3, PB8 , 1,  0) \
+    TIMER_PIN_MAP( 4, PA3 , 1,  1) \
+    TIMER_PIN_MAP( 5, PB5 , 1,  0) \
+    TIMER_PIN_MAP( 6, PB9 , 1, -1) \
+    TIMER_PIN_MAP( 7, PE6 , 1, -1) \
+    TIMER_PIN_MAP( 8, PB4 , 1,  0)
