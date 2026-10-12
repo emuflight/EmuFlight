@@ -5298,6 +5298,11 @@ static const char *cliArgPickDynamic(cliArgDyn_e dyn, uint32_t *n) {
 // arg = 0-based argument position being completed; first = argument 0 text when arg > 0.
 static const char *cliArgCandidate(const char *cmd, unsigned arg, const char *first, uint32_t n) {
     static const char * const noWords[] = { NULL };
+#if defined(USE_TIMER_MGMT) && defined(CLI_DMAOPT)
+    static const char * const dmaWords[] = { "show", "list", "pin", NULL };
+#else
+    static const char * const dmaWords[] = { "show", "list", NULL };
+#endif
     static const char * const showList[] = { "show", "list", NULL };
     static const char * const listNone[] = { "list", "none", NULL };
     static const char * const sections[] = { "master", "profile", "rates", "all", "defaults", NULL };
@@ -5305,7 +5310,11 @@ static const char *cliArgCandidate(const char *cmd, unsigned arg, const char *fi
     static const char * const listWord[] = { "list", NULL };
     static const char * const allWord[] = { "all", NULL };
     static const char * const noneWord[] = { "none", NULL };
+#ifdef USE_FLASH_BOOT_LOADER
     static const char * const blWords[] = { "rom", "flash", NULL };
+#else
+    static const char * const blWords[] = { "rom", NULL };
+#endif
     static const char * const nosaveWord[] = { "nosave", NULL };
     static const char * const escWords[] = { "sk", "bl", "ki", "cc", NULL };
     static const char * const resetWord[] = { "reset", NULL };
@@ -5316,7 +5325,7 @@ static const char *cliArgCandidate(const char *cmd, unsigned arg, const char *fi
 
     if (strcasecmp(cmd, "dma") == 0) {
         if (arg == 0) {
-            words = showList;
+            words = dmaWords;
             dyn = CLI_ARG_DYN_DMA_DEVICE;
         } else if (arg == 2) {
             words = listNone;

@@ -1245,6 +1245,11 @@ TEST_F(CliTimerDmaTest, TabCompletesDmaSubcommandsAndDevices)
     EXPECT_EQ("dma ADC 1 n" "one ", pressTab("dma ADC 1 n"));
 }
 
+TEST_F(CliTimerDmaTest, TabCompletesDmaPinWhenTimerMgmtIsEnabled)
+{
+    EXPECT_EQ("dma p" "in ", pressTab("dma p"));
+}
+
 TEST_F(CliTimerDmaTest, TabCompletesTimerAndResourceKeywords)
 {
     EXPECT_EQ("timer li" "st ", pressTab("timer li"));
