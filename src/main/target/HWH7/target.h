@@ -161,11 +161,11 @@
     TIMER_PIN_MAP( 5, PD13 , 1,  6) \
     TIMER_PIN_MAP( 6, PD14 , 1,  7) \
     TIMER_PIN_MAP( 7, PD15 , 1, -1) \
-    TIMER_PIN_MAP( 8, PE5 , 1,  0) \
+    TIMER_PIN_MAP( 8, PE5 , 1,  -1) \
     TIMER_PIN_MAP( 9, PE6 , 1, -1) \
-    TIMER_PIN_MAP( 10, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 11, PB9 , 1,  0) \
-    TIMER_PIN_MAP( 12, PA1 , 2,  0) \
+    TIMER_PIN_MAP( 10, PB8 , 1,  -1) \
+    TIMER_PIN_MAP( 11, PB9 , 1,  -1) \
+    TIMER_PIN_MAP( 12, PA1 , 2,  -1) \
     TIMER_PIN_MAP( 13, PA0 , 1,  0)
 #define TIMUP1_DMA_OPT 8
 #define TIMUP4_DMA_OPT 9
