@@ -135,7 +135,7 @@
 
 #define USE_ADC
 
-#define ADC1_DMA_OPT 0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN PC2
 #define CURRENT_METER_ADC_PIN PC1
 #define RSSI_ADC_PIN PC0
@@ -152,6 +152,7 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 10
 #define USE_TIMER_MGMT
+// PA15 and PB5 share DMA1 Stream 5; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA10 , 1,  0) \
     TIMER_PIN_MAP( 1, PB4 , 1,  0) \

@@ -147,10 +147,11 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 21
 #define USE_TIMER_MGMT
+// PC8 needs a stream apart from PB0, and each timer TIM_UP (burst) stream must differ
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PD12 , 1,  6) \
     TIMER_PIN_MAP( 1, PA3 , 2,  1) \
-    TIMER_PIN_MAP( 2, PC8 , 2,  0) \
+    TIMER_PIN_MAP( 2, PC8 , 2,  3) \
     TIMER_PIN_MAP( 3, PB0 , 2,  0) \
     TIMER_PIN_MAP( 4, PB1 , 2,  1) \
     TIMER_PIN_MAP( 5, PE9 , 1,  0) \
@@ -169,6 +170,9 @@
     TIMER_PIN_MAP( 18, PE6 , 1, -1) \
     TIMER_PIN_MAP( 19, PA8 , 1,  14) \
     TIMER_PIN_MAP( 20, PA15 , 1,  0)
+#define TIMUP3_DMA_OPT 0
+#define TIMUP4_DMA_OPT 1
+#define TIMUP8_DMA_OPT 2
 
 #define MOTOR1_PIN              PD12
 #define MOTOR2_PIN              PC8
