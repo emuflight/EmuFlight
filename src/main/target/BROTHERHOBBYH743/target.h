@@ -157,7 +157,7 @@
     TIMER_PIN_MAP( 5, PA3 , 2,  5) \
     TIMER_PIN_MAP( 6, PD12 , 1,  6) \
     TIMER_PIN_MAP( 7, PD13 , 1,  7) \
-    TIMER_PIN_MAP( 8, PE5 , 1,  0) \
+    TIMER_PIN_MAP( 8, PE5 , 1,  -1) \
     TIMER_PIN_MAP( 9, PE6 , 1, -1) \
     TIMER_PIN_MAP( 10, PA8 , 1,  14)
 #define TIMUP3_DMA_OPT 10

@@ -147,8 +147,8 @@
     TIMER_PIN_MAP( 2, PA1 , 2,  2) \
     TIMER_PIN_MAP( 3, PA2 , 2,  3) \
     TIMER_PIN_MAP( 4, PA3 , 2,  4) \
-    TIMER_PIN_MAP( 5, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 6, PA15 , 1,  0)
+    TIMER_PIN_MAP( 5, PB0 , 2,  -1) \
+    TIMER_PIN_MAP( 6, PA15 , 1,  -1)
 #define TIMUP5_DMA_OPT 10
 
 #define MOTOR1_PIN              PA0

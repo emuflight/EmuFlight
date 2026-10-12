@@ -172,11 +172,11 @@
     TIMER_PIN_MAP( 5, PE11 , 1,  5) \
     TIMER_PIN_MAP( 6, PC8 , 1,  6) \
     TIMER_PIN_MAP( 7, PC9 , 1,  7) \
-    TIMER_PIN_MAP( 8, PD12 , 1,  0) \
-    TIMER_PIN_MAP( 9, PD13 , 1,  0) \
-    TIMER_PIN_MAP( 10, PD14 , 1,  0) \
+    TIMER_PIN_MAP( 8, PD12 , 1,  -1) \
+    TIMER_PIN_MAP( 9, PD13 , 1,  -1) \
+    TIMER_PIN_MAP( 10, PD14 , 1,  -1) \
     TIMER_PIN_MAP( 11, PD15 , 1, -1) \
-    TIMER_PIN_MAP( 12, PE5 , 1,  0) \
+    TIMER_PIN_MAP( 12, PE5 , 1,  -1) \
     TIMER_PIN_MAP( 13, PE6 , 1, -1) \
     TIMER_PIN_MAP( 14, PB0 , 2,  8)
 
