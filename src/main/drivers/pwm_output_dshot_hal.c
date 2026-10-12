@@ -152,7 +152,7 @@ FAST_CODE static void motor_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
     }
 }
 
-void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, motorPwmProtocolTypes_e pwmProtocolType, uint8_t output) {
+bool pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, motorPwmProtocolTypes_e pwmProtocolType, uint8_t output) {
     DMA_Stream_TypeDef *dmaRef;
     uint32_t dmaChannel = timerHardware->dmaChannel;
     dmaIdentifier_e dmaIrqIdentifier = timerHardware->dmaIrqHandler;
@@ -167,7 +167,7 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
             // Re-derive the identifier so the claim and IRQ target the stream actually used.
             dmaUpIrqIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)upSpec->ref);
             if (dmaUpIrqIdentifier == DMA_NONE) {
-                return;
+                return false;
             }
         }
 #endif
@@ -190,19 +190,19 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
 #endif
     }
     if (dmaRef == NULL) {
-        return;
+        return false;
     }
 #ifdef USE_DSHOT_DMAR
     if (useBurstDshot) {
         if (!dshotDmaClaim(dmaUpIrqIdentifier, OWNER_TIMUP, timerGetTIMNumber(timerHardware->tim))) {
-            return;
+            return false;
         }
         dmaEnable(dmaUpIrqIdentifier);
     } else
 #endif
     {
         if (!dmaAllocate(dmaIrqIdentifier, OWNER_MOTOR, RESOURCE_INDEX(motorIndex))) {
-            return;
+            return false;
         }
         dmaEnable(dmaIrqIdentifier);
     }
@@ -282,7 +282,7 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
         motor->timer->dmaBurstRef = dmaRef;
         if (!configureTimer) {
             motor->configured = true;
-            return;
+            return true;
         }
     } else
 #endif
@@ -330,5 +330,6 @@ void pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     LL_EX_DMA_Init(dmaRef, &dma_init);
     LL_EX_DMA_EnableIT_TC(dmaRef);
     motor->configured = true;
+    return true;
 }
 #endif
