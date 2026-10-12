@@ -127,13 +127,13 @@
     TIMER_PIN_MAP( 1, PC7 , 2,  1) \
     TIMER_PIN_MAP( 2, PC8 , 2,  2) \
     TIMER_PIN_MAP( 3, PC9 , 2,  3) \
-    TIMER_PIN_MAP( 4, PB6 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB7 , 2,  0) \
-    TIMER_PIN_MAP( 6, PD14 , 1,  0) \
+    TIMER_PIN_MAP( 4, PB6 , 2,  -1) \
+    TIMER_PIN_MAP( 5, PB7 , 2,  -1) \
+    TIMER_PIN_MAP( 6, PD14 , 1,  -1) \
     TIMER_PIN_MAP( 7, PD15 , 1, -1) \
     TIMER_PIN_MAP( 8, PB5 , 1,  4) \
-    TIMER_PIN_MAP( 9, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 10, PA8 , 1,  0)
+    TIMER_PIN_MAP( 9, PB3 , 1,  -1) \
+    TIMER_PIN_MAP( 10, PA8 , 1,  -1)
 #define TIMUP8_DMA_OPT 11
 
 #define MOTOR1_PIN              PC6
