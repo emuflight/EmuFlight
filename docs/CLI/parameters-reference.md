@@ -1,7 +1,7 @@
 # CLI Reference
 
 > **Auto-generated** — do not edit manually.
-> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-08-25 | Commit: `656865145` | Firmware: `0.4.3` | MSP: `0.1.54`
+> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-10-09 | Commit: `558fe9201` | Firmware: `0.5.0` | MSP: `0.1.55`
 
 Settings parameters (`valueTable[]`) and CLI commands that persist config through
 their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered here.
@@ -45,7 +45,6 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 - [PID Profile](#pid-profile)
 - [Telemetry Config](#telemetry-config)
 - [LED Strip Config](#led-strip-config)
-- [SDCARD Config](#sdcard-config)
 - [SDIO Config](#sdio-config)
 - [OSD Config](#osd-config)
 - [System Config](#system-config)
@@ -602,12 +601,6 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 | `ledstrip_visual_beeper` | uint8 | master | `OFF`, `ON` | `USE_LED_STRIP` |
 | `ledstrip_grb_rgb` | uint8 | master | `GRB`, `RGB` | `USE_LED_STRIP` |
 
-## SDCARD Config
-
-| Parameter | Type | Scope | Range / Values | Requires |
-|-----------|------|-------|----------------|----------|
-| `sdcard_dma` | uint8 | master | `OFF`, `ON` | `USE_SDCARD` |
-
 ## SDIO Config
 
 | Parameter | Type | Scope | Range / Values | Requires |
@@ -861,14 +854,17 @@ handler instead of `valueTable[]`.
 | `adjrange` | configure adjustment ranges |  |  |
 | `aux` | configure modes | `<index> <mode> <aux> <start> <end> <logic>` |  |
 | `color` | configure colors |  | `USE_LED_STRIP` |
-| `dma` | list dma utilisation, or get/set/list a peripheral's dmaopt | `[show] \| list \| <device> <index> [<option>\|none\|list]` | `USE_RESOURCE_MGMT` |
+| `dma` | show/set DMA assignments | `<> \| <device> <index> list \| <device> <index> [<option>\|none] \| pin <pin> list \| pin <pin> [<option>\|none] \| list \| show` | `USE_RESOURCE_MGMT`, `USE_TIMER_MGMT`, `CLI_DMAOPT` |
+| `dma` | show/set DMA assignments | `<> \| <device> <index> list \| <device> <index> [<option>\|none] \| list \| show` | `USE_RESOURCE_MGMT`, `!USE_TIMER_MGMT`, `CLI_DMAOPT` |
+| `dma` | show DMA assignments | `show` | `USE_RESOURCE_MGMT`, `!CLI_DMAOPT` |
 | `led` | configure leds |  | `USE_LED_STRIP` |
 | `mmix` | custom motor mixer |  |  |
 | `mode_color` | configure mode and special colors |  | `USE_LED_STRIP` |
 | `rxfail` | show/set rx failsafe settings |  |  |
 | `rxrange` | configure rx channel ranges |  |  |
 | `serial` | configure serial ports |  |  |
-| `smix` | servo mixer | `<rule> <servo> <source> <rate> <speed> <min> <max> <box> reset load <mixer> reverse <servo> <source> r\|n` | `USE_SERVOS` |
+| `smix` | servo mixer | `<rule> <servo> <source> <rate> <speed> <min> <max> <box> reset load <mixer> reverse <servo> <source> r\|n` | `USE_SERVOS`, `!USE_QUAD_MIXER_ONLY` |
+| `smix` | servo mixer | `<rule> <servo> <source> <rate> <speed> <min> <max> <box> reset reverse <servo> <source> r\|n` | `USE_SERVOS`, `USE_QUAD_MIXER_ONLY` |
 | `vtx` | vtx channels on switch | `<index> <aux_channel> <vtx_band> <vtx_channel> <vtx_power> <start_range> <end_range>` | `USE_VTX_CONTROL` |
 
 ---

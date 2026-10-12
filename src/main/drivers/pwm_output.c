@@ -285,10 +285,15 @@ void motorDevInit(const motorDevConfig_t *motorConfig, uint16_t idlePulse, uint8
         IOInit(motors[motorIndex].io, OWNER_MOTOR, RESOURCE_INDEX(motorIndex));
 #ifdef USE_DSHOT
         if (isDshot) {
-            pwmDshotMotorHardwareConfig(timerHardware,
-                                        motorIndex,
-                                        motorConfig->motorPwmProtocol,
-                                        motorConfig->motorPwmInversion ? timerHardware->output ^ TIMER_OUTPUT_INVERTED : timerHardware->output);
+            if (!pwmDshotMotorHardwareConfig(timerHardware,
+                                             motorIndex,
+                                             motorConfig->motorPwmProtocol,
+                                             motorConfig->motorPwmInversion ? timerHardware->output ^ TIMER_OUTPUT_INVERTED : timerHardware->output)) {
+                // a motor without DMA must not leave the others running
+                pwmWrite = &pwmWriteUnused;
+                pwmCompleteWrite = &pwmCompleteWriteUnused;
+                return;
+            }
             motors[motorIndex].enabled = true;
             continue;
         }
@@ -373,7 +378,7 @@ FAST_CODE bool pwmDshotCommandIsProcessing(void) {
 
 void pwmWriteDshotCommand(uint8_t index, uint8_t motorCount, uint8_t command, bool blocking) {
     timeUs_t timeNowUs = micros();
-    if (!isMotorProtocolDshot() || (command > DSHOT_MAX_COMMAND) || pwmDshotCommandIsQueued()) {
+    if (!isMotorProtocolDshot() || pwmWrite == &pwmWriteUnused || (command > DSHOT_MAX_COMMAND) || pwmDshotCommandIsQueued()) {
         return;
     }
     uint8_t repeats = 1;

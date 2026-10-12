@@ -152,6 +152,7 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT                      9                       //updated timer count to compensate for Nf Motor 4
 #define USE_TIMER_MGMT
+// PB3 and TIM4 burst share DMA1 Stream 6; with DShot burst on only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB3 , 1,  0) \
     TIMER_PIN_MAP( 1, PB6 , 1,  0) \
