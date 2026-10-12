@@ -1211,6 +1211,100 @@ TEST_F(CliTimerDmaTest, HelpListsDmaPinFormsWhenTimerMgmtIsEnabled)
     EXPECT_HAS(out, "<pin> [af<alternate function>|none]");
 }
 
+// ---------------------------------------------------------------------------------------------
+// argument Tab completion (IT #1552)
+// ---------------------------------------------------------------------------------------------
+
+// Feed `line` followed by one Tab (or '?') and return what the CLI printed: the echoed input
+// followed by the completion text.
+static std::string pressTab(const std::string &line, char key = '\t')
+{
+    // The CLI line buffer outlives a session; backspaces drain whatever an earlier call left.
+    fakeRx = std::string(512, '\x7f');
+    fakeRxPos = 0;
+    testing::internal::CaptureStdout();
+    cliProcess();
+    testing::internal::GetCapturedStdout();
+    fakeRx = line + key;
+    fakeRxPos = 0;
+    testing::internal::CaptureStdout();
+    cliProcess();
+    return testing::internal::GetCapturedStdout();
+}
+
+TEST_F(CliTimerDmaTest, TabStillCompletesCommandNames)
+{
+    EXPECT_EQ("dm" "a ", pressTab("dm"));
+}
+
+TEST_F(CliTimerDmaTest, TabCompletesDmaSubcommandsAndDevices)
+{
+    EXPECT_EQ("dma sh" "ow ", pressTab("dma sh"));
+    EXPECT_EQ("dma UART_T" "X ", pressTab("dma UART_T"));
+    EXPECT_EQ("dma uart_t" "X ", pressTab("dma uart_t"));
+    EXPECT_EQ("dma ADC 1 n" "one ", pressTab("dma ADC 1 n"));
+}
+
+TEST_F(CliTimerDmaTest, TabCompletesTimerAndResourceKeywords)
+{
+    EXPECT_EQ("timer li" "st ", pressTab("timer li"));
+    EXPECT_EQ("timer C08 n" "one ", pressTab("timer C08 n"));
+    EXPECT_EQ("resource sh" "ow ", pressTab("resource sh"));
+    EXPECT_EQ("resource show a" "ll ", pressTab("resource show a"));
+    EXPECT_EQ("resource MOTOR 1 n" "one ", pressTab("resource MOTOR 1 n"));
+}
+
+TEST_F(CliTimerDmaTest, TabCompletesResourceOwnerNames)
+{
+    EXPECT_EQ("resource MOTO" "R ", pressTab("resource MOTO"));
+}
+
+TEST_F(CliTimerDmaTest, TabCompletesFixedKeywordCommands)
+{
+    EXPECT_EQ("diff pr" "ofile ", pressTab("diff pr"));
+    EXPECT_EQ("dump master d" "efaults ", pressTab("dump master d"));
+    EXPECT_EQ("defaults nos" "ave ", pressTab("defaults nos"));
+    EXPECT_EQ("bl ro" "m ", pressTab("bl ro"));
+    EXPECT_EQ("feature -TELE" "METRY ", pressTab("feature -TELE"));
+}
+
+TEST_F(CliTimerDmaTest, TabListsAmbiguousChoicesWithoutChangingTheLine)
+{
+    const std::string out = pressTab("diff ");
+    for (const char *word : { "master", "profile", "rates", "all", "defaults" }) {
+        EXPECT_HAS(out, std::string(word) + "\t");
+    }
+    // The prompt and the typed line are redrawn after the list.
+    EXPECT_HAS(out, "# diff ");
+}
+
+TEST_F(CliTimerDmaTest, QuestionMarkListsAmbiguousChoices)
+{
+    const std::string out = pressTab("dma s", '?');
+    EXPECT_HAS(out, "show\t");
+    EXPECT_HAS(out, "# dma s");
+}
+
+TEST_F(CliTimerDmaTest, TabOnUnknownArgumentOrCommandChangesNothing)
+{
+    EXPECT_EQ("dma zzz", pressTab("dma zzz"));
+    EXPECT_EQ("timer C08 list x", pressTab("timer C08 list x"));
+    EXPECT_EQ("nosuchcmd a", pressTab("nosuchcmd a"));
+}
+
+TEST_F(CliTimerDmaTest, TabOnAFullLineBufferChangesNothing)
+{
+    // CLI_IN_BUFFER_SIZE is 256; fill the line buffer completely, then Tab must not write past it.
+    const std::string line = "dma " + std::string(256 - 4, 'a');
+    EXPECT_EQ(line, pressTab(line));
+}
+
+TEST_F(CliTimerDmaTest, TabDoesNotRunTheCommand)
+{
+    const std::string out = pressTab("resource show");
+    EXPECT_LACKS(out, "Currently active IO resource assignments");
+}
+
 // STUBS
 extern "C" {
 
