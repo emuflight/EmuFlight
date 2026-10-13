@@ -5333,21 +5333,23 @@ static const char *cliArgCandidate(const char *cmd, unsigned arg, const char *fi
 #endif
     const char * const *words = noWords;
     cliArgDyn_e dyn = CLI_ARG_DYN_NONE;
+    // 'show' and 'list' take no further keyword argument except 'resource ... all'.
+    const bool firstIsShow = strcasecmp(first, "show") == 0 || strcasecmp(first, "list") == 0;
 
     if (strcasecmp(cmd, "dma") == 0) {
         if (arg == 0) {
             words = dmaWords;
             dyn = CLI_ARG_DYN_DMA_DEVICE;
-        } else if (arg == 2) {
+        } else if (arg == 2 && !firstIsShow) {
             words = listNone;
         }
     } else if (strcasecmp(cmd, "resource") == 0) {
         if (arg == 0) {
             words = showList;
             dyn = CLI_ARG_DYN_RESOURCE;
-        } else if (arg == 1 && (strcasecmp(first, "show") == 0 || strcasecmp(first, "list") == 0)) {
+        } else if (arg == 1 && firstIsShow) {
             words = allWord;
-        } else if (arg == 1 || arg == 2) {
+        } else if ((arg == 1 || arg == 2) && !firstIsShow) {
             // Single-instance resources take the pin as the second token, indexed ones as the third.
             unsigned pinArg = 2;
 #ifdef USE_RESOURCE_MGMT
@@ -5365,7 +5367,7 @@ static const char *cliArgCandidate(const char *cmd, unsigned arg, const char *fi
     } else if (strcasecmp(cmd, "timer") == 0) {
         if (arg == 0) {
             words = showList;
-        } else if (arg == 1) {
+        } else if (arg == 1 && !firstIsShow) {
             words = listNone;
         }
     } else if (strcasecmp(cmd, "bl") == 0) {

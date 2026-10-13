@@ -1266,6 +1266,15 @@ TEST_F(CliTimerDmaTest, TabOffersNoneAtTheResourcePinPosition)
     EXPECT_EQ("resource MOTOR n", pressTab("resource MOTOR n"));
 }
 
+TEST_F(CliTimerDmaTest, TabOffersNothingAfterShowOrListForms)
+{
+    EXPECT_EQ("timer list n", pressTab("timer list n"));
+    EXPECT_EQ("timer show n", pressTab("timer show n"));
+    EXPECT_EQ("resource show all n", pressTab("resource show all n"));
+    EXPECT_EQ("dma show n", pressTab("dma show n"));
+    EXPECT_EQ("dma list 1 n", pressTab("dma list 1 n"));
+}
+
 TEST_F(CliTimerDmaTest, TabCompletesResourceOwnerNames)
 {
     EXPECT_EQ("resource MOTO" "R ", pressTab("resource MOTO"));
