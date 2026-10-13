@@ -5334,15 +5334,20 @@ static const char *cliArgCandidate(const char *cmd, unsigned arg, const char *fi
     const char * const *words = noWords;
     cliArgDyn_e dyn = CLI_ARG_DYN_NONE;
     // 'show' and 'list' take no further keyword argument except 'resource ... all'.
-    const bool firstIsShow = strcasecmp(first, "show") == 0 || strcasecmp(first, "list") == 0;
+    // The handlers accept any prefix of 'show' and 'list'; no pin, device or owner name is such a prefix.
+    const size_t firstLen = strlen(first);
+    const bool firstIsShow = firstLen > 0 && (strncasecmp("show", first, firstLen) == 0 || strncasecmp("list", first, firstLen) == 0);
 
     if (strcasecmp(cmd, "dma") == 0) {
         if (arg == 0) {
             words = dmaWords;
             dyn = CLI_ARG_DYN_DMA_DEVICE;
-        } else if (arg == 2 && !firstIsShow) {
+        }
+#ifdef CLI_DMAOPT
+        else if (arg == 2 && !firstIsShow) {
             words = listNone;
         }
+#endif
     } else if (strcasecmp(cmd, "resource") == 0) {
         if (arg == 0) {
             words = showList;
@@ -5445,6 +5450,9 @@ static void cliCompleteArgument(bool listAll) {
         return;
     }
     const bool atBoundary = bufferIndex && cliBuffer[bufferIndex - 1] == ' ';
+    if (!atBoundary && tokens < 2) {
+        return; // no argument token to complete; keeps the argument index below from wrapping
+    }
     const char *prefix = atBoundary ? cliBuffer + bufferIndex : tokenStart;
     const unsigned arg = atBoundary ? tokens - 1 : tokens - 2;
     const bool dashable = strcasecmp(cmd, "feature") == 0 || strcasecmp(cmd, "beeper") == 0 || strcasecmp(cmd, "beacon") == 0;
@@ -5475,6 +5483,9 @@ static void cliCompleteArgument(bool listAll) {
     }
     if (!matches) {
         return;
+    }
+    if (bufferIndex + (commonLen - prefixLen) > sizeof(cliBuffer) - 2) {
+        return; // the extension would not fit; a silently truncated name could select another entry
     }
     const uint32_t oldIndex = bufferIndex;
     for (size_t k = prefixLen; k < commonLen && bufferIndex < sizeof(cliBuffer) - 2; k++) {

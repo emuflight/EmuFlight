@@ -1396,8 +1396,17 @@ TEST_F(CliTimerDmaTest, TabNearBufferCapacityCompletesOrTruncatesWithoutGrowingT
 
     const std::string tooTight = "dma" + std::string(248, ' ') + "sh";
     const std::string out = pressTab(tooTight);
-    EXPECT_EQ(0u, out.find(tooTight));
-    EXPECT_LE(out.size(), 256u);
+    // The "ow" extension does not fit, so the line is left unchanged instead of truncated.
+    EXPECT_EQ(tooTight, out);
+}
+
+TEST_F(CliTimerDmaTest, TabOffersNothingAfterAbbreviatedShowOrListForms)
+{
+    // The handlers accept 'sh' and 'l' as show and list.
+    EXPECT_EQ("timer sh n", pressTab("timer sh n"));
+    EXPECT_EQ("timer l n", pressTab("timer l n"));
+    EXPECT_EQ("dma s 1 n", pressTab("dma s 1 n"));
+    EXPECT_EQ("resource li all n", pressTab("resource li all n"));
 }
 
 TEST_F(CliTimerDmaTest, TabOnAFullLineBufferChangesNothing)
