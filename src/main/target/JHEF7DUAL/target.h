@@ -73,7 +73,7 @@
 #define ACC_ICM42688P_ALIGN     CW90_DEG
 #define GYRO_ICM42688P_ALIGN    CW90_DEG
 
-#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
+#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_2
 
 // *************** Baro **************************
 #define USE_I2C
