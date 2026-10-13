@@ -66,6 +66,7 @@
 #include "stm32f7xx.h"
 #include "system_stm32f7xx.h"
 #include "platform.h"
+#include "drivers/persistent.h"
 
 #if !defined  (HSE_VALUE)
 #define HSE_VALUE    ((uint32_t)8000000) /*!< Default value of the External oscillator in Hz */
@@ -287,6 +288,11 @@ void OverclockRebootIfNecessary(uint32_t overclockLevel) {
   * @retval None
   */
 void SystemInit(void) {
+    // The ROM bootloader leaves USB and NVIC state that a clean reset clears.
+    if (persistentObjectRead(PERSISTENT_OBJECT_RESET_REASON) == RESET_BOOTLOADER_POST) {
+        persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_NONE);
+        NVIC_SystemReset();
+    }
     SystemInitOC();
     SystemCoreClock = (pll_n / pll_p) * 1000000;
     /* FPU settings ------------------------------------------------------------*/
