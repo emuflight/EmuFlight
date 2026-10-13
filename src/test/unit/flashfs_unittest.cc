@@ -48,7 +48,7 @@ static uint32_t pendingBytes;
 static int programCalls;
 static uint32_t presentedTotal;
 static bool acceptNothing;
-static bool callbackSync; // models a driver that completes inside flashPageProgramContinue(), as the in-tree drivers do
+static bool callbackSync; // models a driver that completes inside flashPageProgramContinue()
 static bool callbackOnZero; // models a driver that reports zero bytes through its callback
 
 extern "C" {
@@ -189,8 +189,9 @@ TEST_F(FlashfsInterlock, ZeroByteAcceptReleasesInterlock)
     EXPECT_EQ(sizeof(data), flashfsGetOffset());
 }
 
-// In-tree drivers complete inside flashPageProgramContinue(); every write path must behave as before
-// the interlock waits existed: no hang, every byte presented exactly once.
+// Synchronous drivers complete inside flashPageProgramContinue(); this path must behave as before
+// the interlock waits existed: no hang, every byte presented exactly once. W25N and W25M02G over
+// SPI can complete through a deferred callback; the asynchronous tests above model that timing.
 TEST_F(FlashfsInterlock, SynchronousCompletionPresentsEveryByteOnce)
 {
     uint8_t data[200];
