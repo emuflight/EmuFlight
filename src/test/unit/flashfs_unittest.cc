@@ -18,10 +18,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <atomic>
-#include <chrono>
+#include <csignal>
 #include <cstring>
-#include <thread>
+#include <sys/time.h>
 
 extern "C" {
 
@@ -109,6 +108,9 @@ void flashPageProgramFinish(void) {}
 
 }
 
+// Calls seen by the completion interrupt when it fired (-1 if it has not fired).
+static volatile sig_atomic_t callsAtInterrupt;
+
 class FlashfsInterlock : public ::testing::Test {
 protected:
     void SetUp() override
@@ -138,6 +140,9 @@ protected:
 
     void TearDown() override
     {
+        struct itimerval off;
+        memset(&off, 0, sizeof(off));
+        setitimer(ITIMER_REAL, &off, NULL);
         completePending();
     }
 
@@ -148,6 +153,30 @@ protected:
             pendingBytes = 0;
             pendingCallback(bytes);
         }
+    }
+
+    // A one-shot timer signal runs on the thread that is spinning in the code under test, like a
+    // device interrupt completing a write while the main loop waits.
+    static void completionInterrupt(int)
+    {
+        callsAtInterrupt = programCalls;
+        completePending();
+    }
+
+    static void armCompletionInterrupt()
+    {
+        callsAtInterrupt = -1;
+
+        struct sigaction action;
+        memset(&action, 0, sizeof(action));
+        action.sa_handler = completionInterrupt;
+        sigemptyset(&action.sa_mask);
+        sigaction(SIGALRM, &action, NULL);
+
+        struct itimerval timer;
+        memset(&timer, 0, sizeof(timer));
+        timer.it_value.tv_usec = 100000;
+        setitimer(ITIMER_REAL, &timer, NULL);
     }
 };
 
@@ -180,17 +209,10 @@ TEST_F(FlashfsInterlock, FlushSyncWaitsForInFlightWrite)
     flashfsWrite(data, sizeof(data), false);
     ASSERT_EQ(1, programCalls);
 
-    std::atomic<int> callsAtCompletion(-1);
-    std::thread completer([&callsAtCompletion]() {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        callsAtCompletion = programCalls;
-        completePending();
-    });
-
+    armCompletionInterrupt();
     flashfsFlushSync();
-    completer.join();
 
-    EXPECT_EQ(1, callsAtCompletion);
+    EXPECT_EQ(1, callsAtInterrupt);
     EXPECT_EQ(2, programCalls);
     completePending();
 
@@ -207,17 +229,10 @@ TEST_F(FlashfsInterlock, SyncWriteWaitsForInFlightWrite)
     flashfsWrite(data, 64, false);
     ASSERT_EQ(1, programCalls);
 
-    std::atomic<int> callsAtCompletion(-1);
-    std::thread completer([&callsAtCompletion]() {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        callsAtCompletion = programCalls;
-        completePending();
-    });
-
+    armCompletionInterrupt();
     flashfsWrite(data, 64, true);
-    completer.join();
 
-    EXPECT_EQ(1, callsAtCompletion);
+    EXPECT_EQ(1, callsAtInterrupt);
     completePending();
 
     EXPECT_EQ(128u, presentedTotal);

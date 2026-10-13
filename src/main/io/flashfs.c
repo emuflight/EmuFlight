@@ -299,7 +299,7 @@ static uint32_t flashfsWriteBuffers(uint8_t const **buffers, uint32_t *bufferSiz
     bytesWritten = flashPageProgramContinue(buffers, bufferSizes, bufferCount);
 
     if (bytesWritten == 0) {
-        dataWritten = true; // driver accepted nothing, no completion callback will come
+        dataWritten = true; // accepted nothing: release the interlock (a Finish() callback sets it again, harmlessly)
     }
 
 #ifdef CHECK_FLASH
