@@ -73,7 +73,7 @@
 #define ACC_ICM42688P_ALIGN     CW90_DEG
 #define GYRO_ICM42688P_ALIGN    CW90_DEG
 
-#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
+#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_2
 
 // *************** Baro **************************
 #define USE_I2C
@@ -146,7 +146,7 @@
 
 #define USE_ADC
 #define ADC_INSTANCE            ADC3
-#define ADC3_DMA_OPT            0  // DMA 2 Stream 0 Channel 2
+#define ADC3_DMA_OPT            1  // DMA 2 Stream 1 Channel 2
 
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
@@ -180,7 +180,7 @@
     TIMER_PIN_MAP( 3, PB4 , 1,  0) \
     TIMER_PIN_MAP( 4, PB3 , 1,  0) \
     TIMER_PIN_MAP( 5, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 6, PC8 , 2,  1) \
+    TIMER_PIN_MAP( 6, PC8 , 2,  0) \
     TIMER_PIN_MAP( 7, PA8 , 1,  0) \
     TIMER_PIN_MAP( 8, PB8 , 1,  0)
 
