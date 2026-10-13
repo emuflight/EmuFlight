@@ -5351,17 +5351,16 @@ static const char *cliArgCandidate(const char *cmd, unsigned arg, const char *fi
             words = allWord;
         } else if ((arg == 1 || arg == 2) && !firstIsShow) {
             // Single-instance resources take the pin as the second token, indexed ones as the third.
-            unsigned pinArg = 2;
+            unsigned pinArg = 0; // 0 = unknown owner: offer nothing
 #ifdef USE_RESOURCE_MGMT
             for (unsigned i = 0; i < ARRAYLEN(resourceTable); i++) {
-                // cliResource() matches the owner by prefix, so an abbreviated name selects the same entry.
-                if (strncasecmp(ownerNames[resourceTable[i].owner], first, strlen(first)) == 0) {
+                if (strcasecmp(ownerNames[resourceTable[i].owner], first) == 0) {
                     pinArg = resourceTable[i].maxIndex == 0 ? 1 : 2;
                     break;
                 }
             }
 #endif
-            if (arg == pinArg) {
+            if (pinArg && arg == pinArg) {
                 words = noneWord;
             }
         }
