@@ -5354,7 +5354,8 @@ static const char *cliArgCandidate(const char *cmd, unsigned arg, const char *fi
             unsigned pinArg = 2;
 #ifdef USE_RESOURCE_MGMT
             for (unsigned i = 0; i < ARRAYLEN(resourceTable); i++) {
-                if (strcasecmp(ownerNames[resourceTable[i].owner], first) == 0) {
+                // cliResource() matches the owner by prefix, so an abbreviated name selects the same entry.
+                if (strncasecmp(ownerNames[resourceTable[i].owner], first, strlen(first)) == 0) {
                     pinArg = resourceTable[i].maxIndex == 0 ? 1 : 2;
                     break;
                 }
@@ -5375,7 +5376,7 @@ static const char *cliArgCandidate(const char *cmd, unsigned arg, const char *fi
     } else if (strcasecmp(cmd, "defaults") == 0) {
         words = arg == 0 ? nosaveWord : noWords;
     } else if (strcasecmp(cmd, "diff") == 0 || strcasecmp(cmd, "dump") == 0) {
-        words = arg == 0 ? sections : (arg == 1 ? defaultsWord : noWords);
+        words = arg == 0 ? sections : (arg == 1 && strcasecmp(first, "defaults") != 0 ? defaultsWord : noWords);
     } else if (strcasecmp(cmd, "escprog") == 0) {
         words = arg == 0 ? escWords : noWords;
     } else if (strcasecmp(cmd, "rxrange") == 0) {

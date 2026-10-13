@@ -1275,6 +1275,14 @@ TEST_F(CliTimerDmaTest, TabOffersNothingAfterShowOrListForms)
     EXPECT_EQ("dma list 1 n", pressTab("dma list 1 n"));
 }
 
+TEST_F(CliTimerDmaTest, TabHandlesAbbreviatedOwnerAndRepeatedDefaults)
+{
+    // cliResource() matches owners by prefix: BEEP selects BEEPER (pin is the second token).
+    EXPECT_EQ("resource BEEP n" "one ", pressTab("resource BEEP n"));
+    EXPECT_EQ("resource MOT n", pressTab("resource MOT n"));
+    EXPECT_EQ("diff defaults d", pressTab("diff defaults d"));
+}
+
 TEST_F(CliTimerDmaTest, TabCompletesResourceOwnerNames)
 {
     EXPECT_EQ("resource MOTO" "R ", pressTab("resource MOTO"));
