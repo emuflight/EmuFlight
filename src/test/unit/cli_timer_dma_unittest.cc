@@ -1358,11 +1358,46 @@ TEST_F(CliTimerDmaTest, QuestionMarkOnAUniqueMatchCompletesWithoutListing)
 
 TEST_F(CliTimerDmaTest, TabListsEachDmaCandidateExactlyOnce)
 {
+    // Keywords plus every device name the dma command accepts in this build.
     const std::string out = pressTab("dma ");
-    EXPECT_EQ(1u, count(out, "show\t"));
-    EXPECT_EQ(1u, count(out, "list\t"));
+    for (const char *word : { "show", "list", "pin", "UART_TX", "UART_RX", "SPI_SDO", "SPI_SDI", "SPI_TX", "SPI_RX", "ADC", "SDIO" }) {
+        EXPECT_EQ(1u, count(out, std::string(word) + "\t")) << word;
+    }
+}
+
+TEST_F(CliTimerDmaTest, QuestionMarkOnAnExtendableAmbiguousPrefixExtendsAndLists)
+{
+    const std::string out = pressTab("dma UART", '?');
     EXPECT_EQ(1u, count(out, "UART_TX\t"));
     EXPECT_EQ(1u, count(out, "UART_RX\t"));
+    // The list is followed by the prompt and the stored line; the common prefix was appended.
+    EXPECT_HAS(out, "# dma UART_");
+}
+
+TEST_F(CliTimerDmaTest, CompletedLineIsStoredAndRunsOnEnter)
+{
+    // Output alone cannot show what the buffer holds: submit the completed line without clearing it.
+    EXPECT_EQ("dma sh" "ow ", pressTab("dma sh"));
+    fakeRx = "\r";
+    fakeRxPos = 0;
+    testing::internal::CaptureStdout();
+    cliProcess();
+    const std::string out = testing::internal::GetCapturedStdout();
+    EXPECT_HAS(out, "Currently active DMA:");
+    EXPECT_LACKS(out, "Unknown command");
+}
+
+TEST_F(CliTimerDmaTest, TabNearBufferCapacityCompletesOrTruncatesWithoutGrowingTheLine)
+{
+    // CLI_IN_BUFFER_SIZE is 256 and the line is NUL terminated, so a completion may add at most
+    // what still fits. Repeated spaces between tokens pad the line to the wanted length.
+    const std::string fits = "dma" + std::string(245, ' ') + "sh";
+    EXPECT_EQ(fits + "ow ", pressTab(fits));
+
+    const std::string tooTight = "dma" + std::string(248, ' ') + "sh";
+    const std::string out = pressTab(tooTight);
+    EXPECT_EQ(0u, out.find(tooTight));
+    EXPECT_LE(out.size(), 256u);
 }
 
 TEST_F(CliTimerDmaTest, TabOnAFullLineBufferChangesNothing)
