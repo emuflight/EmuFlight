@@ -1326,6 +1326,45 @@ TEST_F(CliTimerDmaTest, TabDoesNotOfferListAfterADash)
     EXPECT_EQ("feature -li", pressTab("feature -li"));
 }
 
+TEST_F(CliTimerDmaTest, TabCompletesMixerKeywordsAndNames)
+{
+    EXPECT_EQ("mixer li" "st ", pressTab("mixer li"));
+    EXPECT_EQ("mixer CUSTOMA" "IRPLANE ", pressTab("mixer CUSTOMA"));
+    EXPECT_EQ("mmix lo" "ad ", pressTab("mmix lo"));
+    EXPECT_EQ("mmix load QUADX1" "234 ", pressTab("mmix load QUADX1"));
+    EXPECT_EQ("rxrange re" "set ", pressTab("rxrange re"));
+    EXPECT_EQ("feature li" "st ", pressTab("feature li"));
+}
+
+TEST_F(CliTimerDmaTest, TabOffersNothingForUnknownMixerAndRxrangeArguments)
+{
+    EXPECT_EQ("mixer zzz", pressTab("mixer zzz"));
+    EXPECT_EQ("mmix load zzz", pressTab("mmix load zzz"));
+    EXPECT_EQ("mmix zzz", pressTab("mmix zzz"));
+    EXPECT_EQ("rxrange reset r", pressTab("rxrange reset r"));
+    EXPECT_EQ("feature zzz", pressTab("feature zzz"));
+}
+
+TEST_F(CliTimerDmaTest, TabExtendsToTheCommonPrefixWithoutListing)
+{
+    // UART_TX and UART_RX share "UART_": the line extends and no candidate list is printed.
+    EXPECT_EQ("dma UART" "_", pressTab("dma UART"));
+}
+
+TEST_F(CliTimerDmaTest, QuestionMarkOnAUniqueMatchCompletesWithoutListing)
+{
+    EXPECT_EQ("dma sh" "ow ", pressTab("dma sh", '?'));
+}
+
+TEST_F(CliTimerDmaTest, TabListsEachDmaCandidateExactlyOnce)
+{
+    const std::string out = pressTab("dma ");
+    EXPECT_EQ(1u, count(out, "show\t"));
+    EXPECT_EQ(1u, count(out, "list\t"));
+    EXPECT_EQ(1u, count(out, "UART_TX\t"));
+    EXPECT_EQ(1u, count(out, "UART_RX\t"));
+}
+
 TEST_F(CliTimerDmaTest, TabOnAFullLineBufferChangesNothing)
 {
     // CLI_IN_BUFFER_SIZE is 256; fill the line buffer completely, then Tab must not write past it.
