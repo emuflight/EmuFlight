@@ -95,9 +95,21 @@ void TIM_OCStructInit(TIM_OCInitTypeDef *init);
 void TIM_Cmd(TIM_TypeDef *tim, FunctionalState state);
 void TIM_CtrlPWMOutputs(TIM_TypeDef *tim, FunctionalState state);
 
+#ifdef UNIT_TEST_DMA_FLAG_REGS
+// Plain-RAM stand-in for the DMA status/clear registers, so a test can read back what a macro wrote.
+typedef struct {
+    uint32_t LISR;
+    uint32_t HISR;
+    uint32_t LIFCR;
+    uint32_t HIFCR;
+    uint32_t ISR;
+    uint32_t IFCR;
+} DMA_TypeDef;
+#else
 typedef struct {
     void* test;
 } DMA_TypeDef;
+#endif
 
 typedef struct {
     void* test;
