@@ -5352,8 +5352,8 @@ static const char *cliArgCandidate(const char *cmd, unsigned arg, const char *fi
         if (arg == 0) {
             words = showList;
             dyn = CLI_ARG_DYN_RESOURCE;
-        } else if (arg == 1 && firstIsShow) {
-            words = allWord;
+        } else if (arg == 1 && (strcasecmp(first, "show") == 0 || strcasecmp(first, "list") == 0)) {
+            words = allWord; // 'all' is accepted only after the full verb
         } else if ((arg == 1 || arg == 2) && !firstIsShow) {
             // Single-instance resources take the pin as the second token, indexed ones as the third.
             unsigned pinArg = 0; // 0 = unknown owner: offer nothing

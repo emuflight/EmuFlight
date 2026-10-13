@@ -1407,6 +1407,9 @@ TEST_F(CliTimerDmaTest, TabOffersNothingAfterAbbreviatedShowOrListForms)
     EXPECT_EQ("timer l n", pressTab("timer l n"));
     EXPECT_EQ("dma s 1 n", pressTab("dma s 1 n"));
     EXPECT_EQ("resource li all n", pressTab("resource li all n"));
+    // cliResource() accepts 'all' only after the full verb, so an abbreviation offers nothing.
+    EXPECT_EQ("resource sh a", pressTab("resource sh a"));
+    EXPECT_EQ("resource li a", pressTab("resource li a"));
 }
 
 TEST_F(CliTimerDmaTest, TabOnAFullLineBufferChangesNothing)
