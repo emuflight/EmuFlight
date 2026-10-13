@@ -189,9 +189,9 @@ TEST_F(FlashfsInterlock, ZeroByteAcceptReleasesInterlock)
     EXPECT_EQ(sizeof(data), flashfsGetOffset());
 }
 
-// Synchronous drivers complete inside flashPageProgramContinue(); this path must behave as before
-// the interlock waits existed: no hang, every byte presented exactly once. W25N and W25M02G over
-// SPI can complete through a deferred callback; the asynchronous tests above model that timing.
+// This test models completion inside flashPageProgramContinue(); the path must behave as before the
+// interlock waits existed: no hang, total presented length equals the bytes written. W25N and
+// W25M02G over SPI can complete through a deferred callback; the asynchronous tests above model that timing.
 TEST_F(FlashfsInterlock, SynchronousCompletionPresentsEveryByteOnce)
 {
     uint8_t data[200];
