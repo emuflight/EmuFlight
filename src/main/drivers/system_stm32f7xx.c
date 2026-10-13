@@ -28,6 +28,7 @@
 #include "drivers/accgyro/accgyro_mpu.h"
 #include "drivers/exti.h"
 #include "drivers/nvic.h"
+#include "drivers/persistent.h"
 #include "drivers/system.h"
 
 #include "stm32f7xx_ll_cortex.h"
@@ -51,7 +52,7 @@ void systemResetToBootloader(bootloaderRequestType_e requestType) {
     if (mpuResetFn) {
         mpuResetFn();
     }
-    (*(__IO uint32_t *) (BKPSRAM_BASE + 4)) = 0xDEADBEEF;   // flag that will be readable after reboot
+    persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_BOOTLOADER_REQUEST_ROM);
     __disable_irq();
     NVIC_SystemReset();
 }
@@ -154,6 +155,7 @@ bool isMPUSoftReset(void) {
 }
 
 void systemInit(void) {
+    persistentObjectInit();
     checkForBootLoaderRequest();
     //  Mark ITCM-RAM as read-only
     LL_MPU_ConfigRegion(LL_MPU_REGION_NUMBER0, 0, RAMITCM_BASE, LL_MPU_REGION_SIZE_16KB | LL_MPU_REGION_PRIV_RO_URO);
@@ -179,23 +181,15 @@ void systemInit(void) {
 
 void(*bootJump)(void);
 void checkForBootLoaderRequest(void) {
-    uint32_t bt;
-    __PWR_CLK_ENABLE();
-    __BKPSRAM_CLK_ENABLE();
-    HAL_PWR_EnableBkUpAccess();
-    bt = (*(__IO uint32_t *) (BKPSRAM_BASE + 4)) ;
-    if ( bt == 0xDEADBEEF ) {
-        (*(__IO uint32_t *) (BKPSRAM_BASE + 4)) =  0xCAFEFEED; // Reset our trigger
-        // Backup SRAM is write-back by default, ensure value actually reaches memory
-        // Another solution would be marking BKPSRAM as write-through in Memory Protection Unit settings
-        SCB_CleanDCache_by_Addr((uint32_t *) (BKPSRAM_BASE + 4), sizeof(uint32_t));
-        void (*SysMemBootJump)(void);
-        __SYSCFG_CLK_ENABLE();
-        SYSCFG->MEMRMP |= SYSCFG_MEM_BOOT_ADD0 ;
-        uint32_t p =  (*((uint32_t *) 0x1ff00000));
-        __set_MSP(p); //Set the main stack pointer to its defualt values
-        SysMemBootJump = (void (*)(void)) (*((uint32_t *) 0x1ff00004)); // Point the PC to the System Memory reset vector (+4)
-        SysMemBootJump();
-        while (1);
+    if (persistentObjectRead(PERSISTENT_OBJECT_RESET_REASON) != RESET_BOOTLOADER_REQUEST_ROM) {
+        return;
     }
+    persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_BOOTLOADER_POST);
+    __SYSCFG_CLK_ENABLE();
+    SYSCFG->MEMRMP |= SYSCFG_MEM_BOOT_ADD0 ;
+    uint32_t p =  (*((uint32_t *) 0x1ff00000));
+    __set_MSP(p); //Set the main stack pointer to its defualt values
+    void (*SysMemBootJump)(void) = (void (*)(void)) (*((uint32_t *) 0x1ff00004)); // Point the PC to the System Memory reset vector (+4)
+    SysMemBootJump();
+    while (1);
 }
