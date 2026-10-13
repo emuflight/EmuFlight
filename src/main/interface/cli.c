@@ -5347,8 +5347,20 @@ static const char *cliArgCandidate(const char *cmd, unsigned arg, const char *fi
             dyn = CLI_ARG_DYN_RESOURCE;
         } else if (arg == 1 && (strcasecmp(first, "show") == 0 || strcasecmp(first, "list") == 0)) {
             words = allWord;
-        } else if (arg == 2) {
-            words = noneWord;
+        } else if (arg == 1 || arg == 2) {
+            // Single-instance resources take the pin as the second token, indexed ones as the third.
+            unsigned pinArg = 2;
+#ifdef USE_RESOURCE_MGMT
+            for (unsigned i = 0; i < ARRAYLEN(resourceTable); i++) {
+                if (strcasecmp(ownerNames[resourceTable[i].owner], first) == 0) {
+                    pinArg = resourceTable[i].maxIndex == 0 ? 1 : 2;
+                    break;
+                }
+            }
+#endif
+            if (arg == pinArg) {
+                words = noneWord;
+            }
         }
     } else if (strcasecmp(cmd, "timer") == 0) {
         if (arg == 0) {

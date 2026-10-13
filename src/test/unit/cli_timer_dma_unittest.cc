@@ -1259,6 +1259,13 @@ TEST_F(CliTimerDmaTest, TabCompletesTimerAndResourceKeywords)
     EXPECT_EQ("resource MOTOR 1 n" "one ", pressTab("resource MOTOR 1 n"));
 }
 
+TEST_F(CliTimerDmaTest, TabOffersNoneAtTheResourcePinPosition)
+{
+    // BEEPER has maxIndex 0 (pin is the second token); MOTOR is indexed (pin is the third).
+    EXPECT_EQ("resource BEEPER n" "one ", pressTab("resource BEEPER n"));
+    EXPECT_EQ("resource MOTOR n", pressTab("resource MOTOR n"));
+}
+
 TEST_F(CliTimerDmaTest, TabCompletesResourceOwnerNames)
 {
     EXPECT_EQ("resource MOTO" "R ", pressTab("resource MOTO"));
