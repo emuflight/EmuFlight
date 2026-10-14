@@ -175,3 +175,15 @@
     TIMER_PIN_MAP( 7, PE11, 1,  0) \
     TIMER_PIN_MAP( 8, PE13, 1,  0) \
     TIMER_PIN_MAP( 9, PE14, 1,  0)
+
+#define MOTOR1_PIN              PA1
+#define MOTOR2_PIN              PA2
+#define MOTOR3_PIN              PA3
+#define MOTOR4_PIN              PB5
+#define MOTOR5_PIN              PB0
+#define MOTOR6_PIN              PB1
+#define RX_PWM1_PIN             PE9
+#define RX_PWM2_PIN             PE11
+#define RX_PWM3_PIN             PE13
+#define RX_PWM4_PIN             PE14
+#define RX_PPM_PIN              PE9
