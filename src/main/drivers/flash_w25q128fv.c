@@ -425,7 +425,6 @@ MMFLASH_CODE static uint32_t w25q128fv_pageProgramContinue(flashDevice_t *fdevic
         } while (!writable && !w25q128fv_hasTimedOut(fdevice));
 
         if (!writable) {
-            fdevice->callbackArg = 0; // Finish() calls back with this: nothing was written
             return 0;
         }
 
