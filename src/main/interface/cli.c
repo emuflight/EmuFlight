@@ -5204,6 +5204,316 @@ static void cliHelp(char *cmdline) {
     }
 }
 
+typedef enum {
+    CLI_ARG_DYN_NONE,
+    CLI_ARG_DYN_DMA_DEVICE,
+    CLI_ARG_DYN_RESOURCE,
+    CLI_ARG_DYN_VALUE,
+    CLI_ARG_DYN_FEATURE,
+    CLI_ARG_DYN_MIXER,
+    CLI_ARG_DYN_BEEPER,
+    CLI_ARG_DYN_BEACON,
+} cliArgDyn_e;
+
+static const char *cliArgPickStatic(const char * const *list, uint32_t *n) {
+    for (; *list; list++) {
+        if (*n == 0) {
+            return *list;
+        }
+        (*n)--;
+    }
+    return NULL;
+}
+
+// Returns the n-th named value of a table-backed source; *n counts down across sources.
+static const char *cliArgPickDynamic(cliArgDyn_e dyn, uint32_t *n) {
+    const char *name = NULL;
+    switch (dyn) {
+#if defined(USE_RESOURCE_MGMT) && defined(CLI_DMAOPT)
+    case CLI_ARG_DYN_DMA_DEVICE:
+        for (unsigned i = 0; i < ARRAYLEN(dmaoptEntryTable); i++) {
+            if ((*n)-- == 0) {
+                return dmaoptEntryTable[i].device;
+            }
+        }
+        break;
+#endif
+#ifdef USE_RESOURCE_MGMT
+    case CLI_ARG_DYN_RESOURCE:
+        for (unsigned i = 0; i < ARRAYLEN(resourceTable); i++) {
+            if ((*n)-- == 0) {
+                return ownerNames[resourceTable[i].owner];
+            }
+        }
+        break;
+#endif
+    case CLI_ARG_DYN_VALUE:
+        for (uint32_t i = 0; i < valueTableEntryCount; i++) {
+            if ((*n)-- == 0) {
+                return valueTable[i].name;
+            }
+        }
+        break;
+    case CLI_ARG_DYN_FEATURE:
+        for (uint32_t i = 0; featureNames[i]; i++) {
+            const uint32_t mask = 1U << i;
+            bool available = featureNames[i][0] != '\0';
+#ifndef USE_GPS
+            available = available && !(mask & FEATURE_GPS);
+#endif
+#ifndef USE_RANGEFINDER
+            available = available && !(mask & FEATURE_RANGEFINDER);
+#endif
+            UNUSED(mask);
+            if (available && (*n)-- == 0) {
+                return featureNames[i];
+            }
+        }
+        break;
+#ifndef USE_QUAD_MIXER_ONLY
+    case CLI_ARG_DYN_MIXER:
+        for (uint32_t i = 0; mixerNames[i]; i++) {
+            if ((*n)-- == 0) {
+                return mixerNames[i];
+            }
+        }
+        break;
+#endif
+#ifdef USE_BEEPER
+    case CLI_ARG_DYN_BEEPER:
+#ifdef USE_DSHOT
+    case CLI_ARG_DYN_BEACON:
+#endif
+        for (uint8_t i = 0; i < beeperTableEntryCount(); i++) {
+#ifdef USE_DSHOT
+            const uint32_t allowed = (dyn == CLI_ARG_DYN_BEACON) ? DSHOT_BEACON_ALLOWED_MODES : BEEPER_ALLOWED_MODES;
+#else
+            const uint32_t allowed = BEEPER_ALLOWED_MODES;
+#endif
+            name = beeperNameForTableIndex(i);
+            if (name && (beeperModeMaskForTableIndex(i) & (allowed | BEEPER_GET_FLAG(BEEPER_ALL))) && (*n)-- == 0) {
+                return name;
+            }
+        }
+        break;
+#endif
+    default:
+        break;
+    }
+    UNUSED(name);
+    return NULL;
+}
+
+// arg = 0-based argument position being completed; first = argument 0 text when arg > 0.
+static const char *cliArgCandidate(const char *cmd, unsigned arg, const char *first, uint32_t n) {
+    static const char * const noWords[] = { NULL };
+#if defined(USE_TIMER_MGMT) && defined(CLI_DMAOPT)
+    static const char * const dmaWords[] = { "show", "list", "pin", NULL };
+#else
+    static const char * const dmaWords[] = { "show", "list", NULL };
+#endif
+    static const char * const showList[] = { "show", "list", NULL };
+    static const char * const listNone[] = { "list", "none", NULL };
+    static const char * const sections[] = { "master", "profile", "rates", "all", "defaults", NULL };
+    static const char * const defaultsWord[] = { "defaults", NULL };
+    static const char * const listWord[] = { "list", NULL };
+    static const char * const allWord[] = { "all", NULL };
+    static const char * const noneWord[] = { "none", NULL };
+#ifdef USE_FLASH_BOOT_LOADER
+    static const char * const blWords[] = { "rom", "flash", NULL };
+#else
+    static const char * const blWords[] = { "rom", NULL };
+#endif
+    static const char * const nosaveWord[] = { "nosave", NULL };
+    static const char * const escWords[] = { "sk", "bl", "ki", "cc", NULL };
+    static const char * const resetWord[] = { "reset", NULL };
+#ifndef USE_QUAD_MIXER_ONLY
+    static const char * const mixLoadWords[] = { "reset", "load", NULL };
+    static const char * const smixWords[] = { "reset", "load", "reverse", NULL };
+#endif
+    const char * const *words = noWords;
+    cliArgDyn_e dyn = CLI_ARG_DYN_NONE;
+    // 'show' and 'list' take no further keyword argument except 'resource ... all'.
+    // The handlers accept any prefix of 'show' and 'list'; no pin, device or owner name is such a prefix.
+    const size_t firstLen = strlen(first);
+    const bool firstIsShow = firstLen > 0 && (strncasecmp("show", first, firstLen) == 0 || strncasecmp("list", first, firstLen) == 0);
+
+    if (strcasecmp(cmd, "dma") == 0) {
+        if (arg == 0) {
+            words = dmaWords;
+            dyn = CLI_ARG_DYN_DMA_DEVICE;
+        }
+#ifdef CLI_DMAOPT
+        else if (arg == 2 && !firstIsShow) {
+            words = listNone;
+        }
+#endif
+    } else if (strcasecmp(cmd, "resource") == 0) {
+        if (arg == 0) {
+            words = showList;
+            dyn = CLI_ARG_DYN_RESOURCE;
+        } else if (arg == 1 && (strcasecmp(first, "show") == 0 || strcasecmp(first, "list") == 0)) {
+            words = allWord; // 'all' is accepted only after the full verb
+        } else if ((arg == 1 || arg == 2) && !firstIsShow) {
+            // Single-instance resources take the pin as the second token, indexed ones as the third.
+            unsigned pinArg = 0; // 0 = unknown owner: offer nothing
+#ifdef USE_RESOURCE_MGMT
+            for (unsigned i = 0; i < ARRAYLEN(resourceTable); i++) {
+                if (strcasecmp(ownerNames[resourceTable[i].owner], first) == 0) {
+                    pinArg = resourceTable[i].maxIndex == 0 ? 1 : 2;
+                    break;
+                }
+            }
+#endif
+            if (pinArg && arg == pinArg) {
+                words = noneWord;
+            }
+        }
+    } else if (strcasecmp(cmd, "timer") == 0) {
+        if (arg == 0) {
+            words = showList;
+        } else if (arg == 1 && !firstIsShow) {
+            words = listNone;
+        }
+    } else if (strcasecmp(cmd, "bl") == 0) {
+        words = arg == 0 ? blWords : noWords;
+    } else if (strcasecmp(cmd, "defaults") == 0) {
+        words = arg == 0 ? nosaveWord : noWords;
+    } else if (strcasecmp(cmd, "diff") == 0 || strcasecmp(cmd, "dump") == 0) {
+        words = arg == 0 ? sections : (arg == 1 && strcasecmp(first, "defaults") != 0 ? defaultsWord : noWords);
+    } else if (strcasecmp(cmd, "escprog") == 0) {
+        words = arg == 0 ? escWords : noWords;
+    } else if (strcasecmp(cmd, "rxrange") == 0) {
+        words = arg == 0 ? resetWord : noWords;
+    } else if (strcasecmp(cmd, "get") == 0 || strcasecmp(cmd, "set") == 0) {
+        dyn = arg == 0 ? CLI_ARG_DYN_VALUE : CLI_ARG_DYN_NONE;
+    } else if (strcasecmp(cmd, "feature") == 0) {
+        if (arg == 0) {
+            words = listWord;
+            dyn = CLI_ARG_DYN_FEATURE;
+        }
+    } else if (strcasecmp(cmd, "mixer") == 0) {
+        if (arg == 0) {
+            words = listWord;
+            dyn = CLI_ARG_DYN_MIXER;
+        }
+#ifndef USE_QUAD_MIXER_ONLY
+    } else if (strcasecmp(cmd, "mmix") == 0 || strcasecmp(cmd, "smix") == 0) {
+        if (arg == 0) {
+            words = strcasecmp(cmd, "smix") == 0 ? smixWords : mixLoadWords;
+        } else if (arg == 1 && strcasecmp(first, "load") == 0) {
+            dyn = CLI_ARG_DYN_MIXER;
+        }
+#endif
+    } else if (strcasecmp(cmd, "beeper") == 0 || strcasecmp(cmd, "beacon") == 0) {
+        if (arg == 0) {
+            words = listWord;
+            dyn = strcasecmp(cmd, "beacon") == 0 ? CLI_ARG_DYN_BEACON : CLI_ARG_DYN_BEEPER;
+        }
+    }
+    const char *name = cliArgPickStatic(words, &n);
+    return name ? name : cliArgPickDynamic(dyn, &n);
+}
+
+// Tab/'?' completion of the argument under the cursor; the command name is already complete.
+static void cliCompleteArgument(bool listAll) {
+    if (bufferIndex >= sizeof(cliBuffer)) {
+        return;
+    }
+    cliBuffer[bufferIndex] = '\0';
+    char cmd[16] = "";
+    char first[16] = "";
+    unsigned tokens = 0;
+    const char *tokenStart = cliBuffer;
+    for (const char *p = cliBuffer; ; p++) {
+        if (*p == ' ' || *p == '\0') {
+            const size_t len = (size_t)(p - tokenStart);
+            if (len && tokens < 2) {
+                char *dst = tokens == 0 ? cmd : first;
+                memcpy(dst, tokenStart, MIN(len, sizeof(cmd) - 1));
+                dst[MIN(len, sizeof(cmd) - 1)] = '\0';
+            }
+            if (len) {
+                tokens++;
+            }
+            if (*p == '\0') {
+                break;
+            }
+            tokenStart = p + 1;
+        }
+    }
+    bool known = false;
+    for (const clicmd_t *c = cmdTable; c < cmdTable + ARRAYLEN(cmdTable); c++) {
+        known = known || strcasecmp(c->name, cmd) == 0;
+    }
+    if (!known || tokens == 0) {
+        return;
+    }
+    const bool atBoundary = bufferIndex && cliBuffer[bufferIndex - 1] == ' ';
+    if (!atBoundary && tokens < 2) {
+        return; // no argument token to complete; keeps the argument index below from wrapping
+    }
+    const char *prefix = atBoundary ? cliBuffer + bufferIndex : tokenStart;
+    const unsigned arg = atBoundary ? tokens - 1 : tokens - 2;
+    const bool dashable = strcasecmp(cmd, "feature") == 0 || strcasecmp(cmd, "beeper") == 0 || strcasecmp(cmd, "beacon") == 0;
+    if (dashable && *prefix == '-') {
+        prefix++;
+    }
+    const bool dashed = dashable && prefix != tokenStart && *tokenStart == '-';
+    const size_t prefixLen = strlen(prefix);
+    const char *firstMatch = NULL;
+    size_t commonLen = 0;
+    uint32_t matches = 0;
+    const char *name;
+    for (uint32_t n = 0; (name = cliArgCandidate(cmd, arg, first, n)) != NULL; n++) {
+        if (strncasecmp(name, prefix, prefixLen) != 0 || (dashed && strcasecmp(name, "list") == 0)) {
+            continue;
+        }
+        if (!matches) {
+            firstMatch = name;
+            commonLen = strlen(name);
+        } else {
+            size_t k = 0;
+            while (k < commonLen && tolower((unsigned char)name[k]) == tolower((unsigned char)firstMatch[k])) {
+                k++;
+            }
+            commonLen = k;
+        }
+        matches++;
+    }
+    if (!matches) {
+        return;
+    }
+    if (bufferIndex + (commonLen - prefixLen) > sizeof(cliBuffer) - 2) {
+        return; // the extension would not fit; a silently truncated name could select another entry
+    }
+    const uint32_t oldIndex = bufferIndex;
+    for (size_t k = prefixLen; k < commonLen && bufferIndex < sizeof(cliBuffer) - 2; k++) {
+        cliBuffer[bufferIndex++] = firstMatch[k];
+    }
+    if (matches == 1 && commonLen == strlen(firstMatch) && strcasecmp(cmd, "set") != 0 && bufferIndex < sizeof(cliBuffer) - 2) {
+        cliBuffer[bufferIndex++] = ' ';
+    }
+    cliBuffer[bufferIndex] = '\0';
+    if (matches > 1 && (listAll || bufferIndex == oldIndex)) {
+        cliPrint("\r\033[K");
+        for (uint32_t n = 0; (name = cliArgCandidate(cmd, arg, first, n)) != NULL; n++) {
+            if (strncasecmp(name, prefix, prefixLen) == 0 && !(dashed && strcasecmp(name, "list") == 0)) {
+                cliPrint(name);
+                cliWrite('\t');
+            }
+        }
+        cliPrompt();
+        for (uint32_t i = 0; i < bufferIndex; i++) {
+            cliWrite(cliBuffer[i]);
+        }
+        return;
+    }
+    for (uint32_t i = oldIndex; i < bufferIndex; i++) {
+        cliWrite(cliBuffer[i]);
+    }
+}
+
 void cliProcess(void) {
     if (!cliWriter) {
         return;
@@ -5212,7 +5522,9 @@ void cliProcess(void) {
     bufWriterFlush(cliWriter);
     while (serialRxBytesWaiting(cliPort)) {
         uint8_t c = serialRead(cliPort);
-        if (c == '\t' || c == '?') {
+        if ((c == '\t' || c == '?') && memchr(cliBuffer, ' ', bufferIndex)) {
+            cliCompleteArgument(c == '?');
+        } else if (c == '\t' || c == '?') {
             // do tab completion
             const clicmd_t *cmd, *pstart = NULL, *pend = NULL;
             uint32_t i = bufferIndex;

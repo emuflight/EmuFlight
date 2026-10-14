@@ -318,7 +318,8 @@ beeper_dshot_beacon_unittest_SRC := \
 		$(USER_DIR)/pg/pg.c
 
 beeper_dshot_beacon_unittest_DEFINES := \
-		USE_DSHOT
+		USE_DSHOT \
+		BEEPER_NAMES
 
 cms_unittest_SRC := \
 		$(USER_DIR)/cms/cms.c \
