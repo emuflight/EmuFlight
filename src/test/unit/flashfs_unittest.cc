@@ -167,8 +167,8 @@ TEST_F(FlashfsInterlock, AsyncWriteDoesNotRepresentInFlightBytes)
     EXPECT_EQ(sizeof(data), flashfsGetOffset());
 }
 
-// A driver that accepts nothing never calls back, so the interlock must be released at once and
-// the dirty bytes presented again on the next flush instead of stalling every later write.
+// A driver that accepts nothing and does not call back must release the interlock at once. The dirty
+// bytes are presented again on the next flush instead of stalling every later write.
 TEST_F(FlashfsInterlock, ZeroByteAcceptReleasesInterlock)
 {
     uint8_t data[64];
@@ -189,9 +189,9 @@ TEST_F(FlashfsInterlock, ZeroByteAcceptReleasesInterlock)
     EXPECT_EQ(sizeof(data), flashfsGetOffset());
 }
 
-// This test models completion inside flashPageProgramContinue(); the path must behave as before the
-// interlock waits existed: no hang, total presented length equals the bytes written. W25N and
-// W25M02G over SPI can complete through a deferred callback; the asynchronous tests above model that timing.
+// This test models completion inside flashPageProgramContinue(): no hang, and the total presented
+// length equals the bytes written. W25N and W25M02G over SPI can complete through a deferred
+// callback; the asynchronous tests above model that timing.
 TEST_F(FlashfsInterlock, SynchronousCompletionPresentsEveryByteOnce)
 {
     uint8_t data[200];
