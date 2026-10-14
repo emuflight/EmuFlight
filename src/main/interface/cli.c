@@ -2370,6 +2370,9 @@ static void processBeeperCommand(char *cmdline, uint32_t *offFlags, const uint32
             cmdline++;
             len--;
         }
+        if (strcasecmp(cmdline, "CRASH FLIP") == 0) {
+            cmdline[5] = '_'; // legacy spelling kept in saved diffs
+        }
         for (uint32_t i = 0; ; i++) {
             if (i == beeperCount) {
                 cliPrintErrorLinef("Invalid name");
