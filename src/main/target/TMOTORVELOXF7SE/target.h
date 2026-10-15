@@ -135,7 +135,7 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 10
 #define USE_TIMER_MGMT
-// PA8, PA9 (motors 7, 8) and PA10 (LED strip) share TIM1; do not use the LED strip with motors 7 or 8
+// With DShot burst on, TIM3_UP and TIM5_UP take both SPI3 RX DMA options, so SPI3 runs polled; PA8, PA9 and PA10 share TIM1: do not use the LED strip with motors 7 or 8
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA1 , 2,  0) \
     TIMER_PIN_MAP( 1, PB0 , 2,  0) \
