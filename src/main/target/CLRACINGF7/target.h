@@ -172,4 +172,4 @@
 #define MOTOR6_PIN              PC8
 #define MOTOR7_PIN              PC9
 #define MOTOR8_PIN              PB1
-#define LED_STRIP_PIN           PB3
+#define LED_STRIP_PIN           PB1

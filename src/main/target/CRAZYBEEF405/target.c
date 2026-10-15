@@ -34,7 +34,7 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM3, CH4, PB1, TIM_USE_MOTOR, 0, 0), // motor 2
     DEF_TIM(TIM8, CH4, PC9, TIM_USE_MOTOR, 0, 0), // motor 3
     DEF_TIM(TIM8, CH3, PC8, TIM_USE_MOTOR, 0, 0), // motor 4
-    DEF_TIM(TIM10, CH1, PB8, TIM_USE_PPM, 0, 0), // ppm RX_PPM_PIN; dma 0 assumed, please verify
+    DEF_TIM(TIM10, CH1, PB8, TIM_USE_PPM | TIM_USE_PWM, 0, 0), // ppm RX_PPM_PIN; dma 0 assumed, please verify
     DEF_TIM(TIM1, CH2, PA9, TIM_USE_ANY, 0, 0), // could not determine TIM_USE_xxxxx - please check
     DEF_TIM(TIM1, CH3, PA10, TIM_USE_ANY, 0, 0), // could not determine TIM_USE_xxxxx - please check
     DEF_TIM(TIM5, CH3, PA2, TIM_USE_ANY, 0, 0), // could not determine TIM_USE_xxxxx - please check

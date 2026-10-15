@@ -146,7 +146,7 @@
 #define MOTOR2_PIN              PB1
 #define MOTOR3_PIN              PC6
 #define MOTOR4_PIN              PC7
-#define RX_PWM1_PIN             PB3
-#define RX_PWM2_PIN             PB4
-#define RX_PWM3_PIN             PB8
+#define MOTOR5_PIN PB3
+#define MOTOR6_PIN PB4
+#define RX_PWM1_PIN             PB8
 #define LED_STRIP_PIN           PA15
