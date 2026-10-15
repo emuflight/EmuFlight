@@ -137,8 +137,9 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 7
 #define USE_TIMER_MGMT
+// PC8 and the second SPI1 receive option share DMA2 Stream 2; only one of them gets DMA
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC8 , 2,  1) \
+    TIMER_PIN_MAP( 0, PC8 , 2,  0) \
     TIMER_PIN_MAP( 1, PC9 , 2,  0) \
     TIMER_PIN_MAP( 2, PA8 , 1,  0) \
     TIMER_PIN_MAP( 3, PA9 , 1,  0) \

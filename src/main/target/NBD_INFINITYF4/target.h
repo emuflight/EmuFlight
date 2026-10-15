@@ -43,6 +43,7 @@
 #define LED_STRIP_PIN        PB8
 #define USE_BEEPER
 #define BEEPER_PIN           PB6
+#define BEEPER_PWM_HZ        1000
 #define CAMERA_CONTROL_PIN   PB9
 
 #define USE_SPI

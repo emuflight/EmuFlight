@@ -102,6 +102,7 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_2
 #define I2C_DEVICE_2      (I2CDEV_2)
+#define BARO_I2C_INSTANCE (I2CDEV_2)
 #define MAG_I2C_INSTANCE (I2CDEV_2)
 #define I2C2_SCL PB10
 #define I2C2_SDA PB11
@@ -137,7 +138,7 @@
 #define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 1, PC6 , 2,  1) \
+    TIMER_PIN_MAP( 1, PC6 , 2,  0) \
     TIMER_PIN_MAP( 2, PC9 , 2,  0) \
     TIMER_PIN_MAP( 3, PC7 , 2,  1) \
     TIMER_PIN_MAP( 4, PB6 , 1,  0) \
