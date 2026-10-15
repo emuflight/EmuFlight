@@ -161,4 +161,6 @@
 #define MOTOR4_PIN              PC9
 #define RX_PPM_PIN              PB7
 
+#define SERVO1_PIN            PB11
+#define SERVO2_PIN            PB10
 // notice - this file was programmatically generated and may be incomplete.

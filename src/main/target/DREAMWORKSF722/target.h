@@ -161,4 +161,5 @@
 #define MOTOR5_PIN              PC9
 #define MOTOR6_PIN              PC8
 
+#define RX_PPM_PIN            PA3
 // notice - this file was programmatically generated and may be incomplete.

@@ -157,4 +157,5 @@
 #define MOTOR7_PIN              PB6
 #define MOTOR8_PIN              PB7
 
+#define LED_STRIP_PIN         PA8
 // notice - this file was programmatically generated and may be incomplete.
