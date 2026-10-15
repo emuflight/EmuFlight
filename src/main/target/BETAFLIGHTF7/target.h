@@ -20,7 +20,7 @@
 
 #pragma once
 
-#define BOARD_NAME        FPVM_BETAFLIGHTF7
+#define BOARD_NAME        BETAFLIGHTF7
 #define MANUFACTURER_ID   FPVM
 #define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
 #define FC_TARGET_MCU     STM32F745     // not used in EmuF
@@ -131,13 +131,13 @@
     TIMER_PIN_MAP( 1, PB1 , 2,  0) \
     TIMER_PIN_MAP( 2, PE9 , 1,  2) \
     TIMER_PIN_MAP( 3, PE11 , 1,  1) \
-    TIMER_PIN_MAP( 4, PC8 , 2,  0) \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) \
     TIMER_PIN_MAP( 5, PE13 , 1,  1) \
     TIMER_PIN_MAP( 6, PD12 , 1,  0) \
     TIMER_PIN_MAP( 7, PB10 , 1,  0) \
     TIMER_PIN_MAP( 8, PB11 , 1,  0) \
-    TIMER_PIN_MAP( 9, PC6 , 2,  1) \
-    TIMER_PIN_MAP( 10, PC7 , 2,  0) \
+    TIMER_PIN_MAP( 9, PC6 , 2,  0) \
+    TIMER_PIN_MAP( 10, PC7 , 2,  1) \
     TIMER_PIN_MAP( 11, PA3 , 1,  0) \
     TIMER_PIN_MAP( 12, PA2 , 3, -1)
 

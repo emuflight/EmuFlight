@@ -43,6 +43,8 @@
 #define LED_STRIP_PIN        PB8
 #define USE_BEEPER
 #define BEEPER_PIN           PB6
+// PB6 beeper PWM and PB8 LED strip share TIM4; only one can run at its frequency
+#define BEEPER_PWM_HZ        1000
 #define CAMERA_CONTROL_PIN   PB9
 
 #define USE_SPI
