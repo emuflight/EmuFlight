@@ -76,6 +76,8 @@
 
 #define ACC_ICM42688P_ALIGN      CW90_DEG
 #define GYRO_ICM42688P_ALIGN     CW90_DEG
+#define ICM42688P_CS_PIN         PA4
+#define ICM42688P_SPI_BUS        SPIDEV_1
 
 #define USE_UART1
 #define UART1_TX_PIN         PB6
@@ -133,6 +135,7 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 10
 #define USE_TIMER_MGMT
+// PA8, PA9 (motors 7, 8) and PA10 (LED strip) share TIM1; do not use the LED strip with motors 7 or 8
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA1 , 2,  0) \
     TIMER_PIN_MAP( 1, PB0 , 2,  0) \
