@@ -136,9 +136,10 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 11
 #define USE_TIMER_MGMT
+// PC6 uses DMA2 Stream 2 channel 7; channel 0 would also take TIM8 CH2 and CH3 requests
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 1, PC6 , 2,  0) \
+    TIMER_PIN_MAP( 1, PC6 , 2,  1) \
     TIMER_PIN_MAP( 2, PC9 , 2,  0) \
     TIMER_PIN_MAP( 3, PC7 , 2,  1) \
     TIMER_PIN_MAP( 4, PB6 , 1,  0) \
