@@ -150,7 +150,7 @@
     TIMER_PIN_MAP( 0, PC9 , 2,  0) \
     TIMER_PIN_MAP( 1, PC8 , 2,  1) \
     TIMER_PIN_MAP( 2, PC7 , 2,  1) \
-    TIMER_PIN_MAP( 3, PC6 , 2,  0) \
+    TIMER_PIN_MAP( 3, PC6 , 2,  1) \
     TIMER_PIN_MAP( 4, PB7 , 1,  -1) \
     TIMER_PIN_MAP( 5, PB10 , 1,  0) \
     TIMER_PIN_MAP( 6, PB11 , 1,  0)
@@ -161,4 +161,6 @@
 #define MOTOR4_PIN              PC6
 #define RX_PPM_PIN              PB7
 
+#define SERVO1_PIN            PB11
+#define SERVO2_PIN            PB10
 // notice - this file was programmatically generated and may be incomplete.

@@ -173,3 +173,4 @@
 #define MOTOR3_PIN              PC7
 #define MOTOR4_PIN              PC6
 #define LED_STRIP_PIN           PA1
+#define RX_PPM_PIN            PA3

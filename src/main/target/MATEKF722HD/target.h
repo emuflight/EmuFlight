@@ -187,3 +187,7 @@
 #define MOTOR7_PIN              PB10
 #define MOTOR8_PIN              PB11
 #define LED_STRIP_PIN           PA8
+#define RX_PPM_PIN            PA3
+#define RX_PWM1_PIN           PA2
+#define SERVO1_PIN            PB6
+#define SERVO2_PIN            PB7

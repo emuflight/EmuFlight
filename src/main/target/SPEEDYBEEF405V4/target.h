@@ -160,4 +160,5 @@
 #define MOTOR8_PIN              PA15
 #define RX_PPM_PIN              PA3
 
+#define SERVO1_PIN            PB15
 // notice - this file was programmatically generated and may be incomplete.
