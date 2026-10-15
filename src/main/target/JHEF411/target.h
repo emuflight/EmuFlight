@@ -155,6 +155,7 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 10
 #define USE_TIMER_MGMT
+// PB1 PWM input shares TIM3 with motors 4 and 5; parallel PWM input with DShot output resets the shared timer base
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA2 , 3, -1) \
     TIMER_PIN_MAP( 1, PA8 , 1,  1) \

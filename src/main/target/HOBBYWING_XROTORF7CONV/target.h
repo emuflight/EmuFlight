@@ -170,6 +170,7 @@
 // timers
 #define USABLE_TIMER_CHANNEL_COUNT                     12                      //updated timer count to compensate for Nf Motor 4
 #define USE_TIMER_MGMT
+// PB10 PWM input shares TIM2 with motors 3 and 4; parallel PWM input with DShot output resets the shared timer base
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB1 , 2,  0) \
     TIMER_PIN_MAP( 1, PB4 , 1,  0) \
