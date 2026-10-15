@@ -185,3 +185,6 @@
 #define MOTOR4_PIN              PB8
 #define RX_PPM_PIN              PA3
 #define LED_STRIP_PIN           PA0
+#define RX_PWM1_PIN           PA2
+#define RX_PWM2_PIN           PA9
+#define RX_PWM3_PIN           PA10

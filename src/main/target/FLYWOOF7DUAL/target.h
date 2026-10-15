@@ -202,5 +202,5 @@
 #define RX_PWM1_PIN             PB10
 #define RX_PWM2_PIN             PA2
 #define RX_PWM3_PIN             PA3
-#define RX_PPM_PIN              PB9
+#define RX_PPM_PIN              PC6
 #define LED_STRIP_PIN           PA8
