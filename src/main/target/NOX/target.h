@@ -22,8 +22,10 @@
 
 #define USE_TARGET_CONFIG
 
+#define BOARD_NAME        NOX
+#define MANUFACTURER_ID   AIRB
 #define TARGET_BOARD_IDENTIFIER "NOX1"
-#define USBD_PRODUCT_STRING "NoxF4V1"
+#define USBD_PRODUCT_STRING "NOX"
 
 #define LED0_PIN                PA4
 
