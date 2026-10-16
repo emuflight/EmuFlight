@@ -57,11 +57,7 @@ typedef enum {
 } quadSpiDevice_e;
 
 #ifndef QUADSPIDEV_COUNT
-#ifdef USE_QUADSPI_DEVICE_1
-#define QUADSPIDEV_COUNT 1
-#else
 #define QUADSPIDEV_COUNT 0
-#endif
 #endif
 
 // Macros to convert between CLI bus number and spiDevice_e.
