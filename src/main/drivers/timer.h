@@ -201,7 +201,6 @@ const timerHardware_t *timerGetAllocatedByNumberAndChannel(int8_t timerNumber, u
 const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8_t resourceIndex);
 resourceOwner_e timerGetOwner(ioTag_t ioTag);
 uint8_t timerGetOwnerResourceIndex(ioTag_t ioTag);
-ioTag_t timerioTagGetByUsage(timerUsageFlag_e usageFlag, uint8_t index);
 
 #if defined(USE_HAL_DRIVER)
 TIM_HandleTypeDef* timerFindTimerHandle(TIM_TypeDef *tim);

@@ -54,13 +54,6 @@ void pgResetFn_transponderConfig(transponderConfig_t *transponderConfig) {
                   );
 #ifdef TRANSPONDER_PIN
     transponderConfig->ioTag = IO_TAG(TRANSPONDER_PIN);
-#else
-    for (int i = 0; i < USABLE_TIMER_CHANNEL_COUNT; i++) {
-        if (timerHardware[i].usageFlags & TIM_USE_TRANSPONDER) {
-            transponderConfig->ioTag = timerHardware[i].tag;
-            break;
-        }
-    }
 #endif
 }
 
