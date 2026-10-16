@@ -167,7 +167,7 @@ static uint8_t m25p16_readStatus(flashDevice_t *fdevice)
     } else {
 #ifdef USE_QUADSPI
         if (fdevice->io.mode == FLASHIO_QUADSPI) {
-            quadSpiReceive1LINE(fdevice->io.handle.dev, M25P16_INSTRUCTION_READ_STATUS_REG, 0, &status, 1);
+            quadSpiReceive1LINE(fdevice->io.handle.quadSpi, M25P16_INSTRUCTION_READ_STATUS_REG, 0, &status, 1);
         }
 #endif
     }
@@ -277,7 +277,7 @@ void m25p16_configure(flashDevice_t *fdevice, uint32_t configurationFlags)
         }
 #ifdef USE_QUADSPI
         else if (fdevice->io.mode == FLASHIO_QUADSPI) {
-            quadSpiTransmit1LINE(fdevice->io.handle.dev, W25Q256_INSTRUCTION_ENTER_4BYTE_ADDRESS_MODE, 0, NULL, 0);
+            quadSpiTransmit1LINE(fdevice->io.handle.quadSpi, W25Q256_INSTRUCTION_ENTER_4BYTE_ADDRESS_MODE, 0, NULL, 0);
         }
 #endif
     }
@@ -370,8 +370,8 @@ static void m25p16_eraseSectorQspi(flashDevice_t *fdevice, uint32_t address)
 {
     m25p16_waitForReady(fdevice);
 
-    quadSpiTransmit1LINE(fdevice->io.handle.dev, M25P16_INSTRUCTION_WRITE_ENABLE, 0, NULL, 0);
-    quadSpiInstructionWithAddress1LINE(fdevice->io.handle.dev, M25P16_INSTRUCTION_SECTOR_ERASE, 0, address, fdevice->isLargeFlash ? 32 : 24);
+    quadSpiTransmit1LINE(fdevice->io.handle.quadSpi, M25P16_INSTRUCTION_WRITE_ENABLE, 0, NULL, 0);
+    quadSpiInstructionWithAddress1LINE(fdevice->io.handle.quadSpi, M25P16_INSTRUCTION_SECTOR_ERASE, 0, address, fdevice->isLargeFlash ? 32 : 24);
 
     fdevice->couldBeBusy = true;
 }
@@ -399,8 +399,8 @@ static void m25p16_eraseCompletelyQspi(flashDevice_t *fdevice)
 {
     m25p16_waitForReady(fdevice);
 
-    quadSpiTransmit1LINE(fdevice->io.handle.dev, M25P16_INSTRUCTION_WRITE_ENABLE, 0, NULL, 0);
-    quadSpiTransmit1LINE(fdevice->io.handle.dev, M25P16_INSTRUCTION_BULK_ERASE, 0, NULL, 0);
+    quadSpiTransmit1LINE(fdevice->io.handle.quadSpi, M25P16_INSTRUCTION_WRITE_ENABLE, 0, NULL, 0);
+    quadSpiTransmit1LINE(fdevice->io.handle.quadSpi, M25P16_INSTRUCTION_BULK_ERASE, 0, NULL, 0);
 
     fdevice->couldBeBusy = true;
 }
@@ -526,9 +526,9 @@ static uint32_t m25p16_pageProgramContinueQspi(flashDevice_t *fdevice, uint8_t c
 
     m25p16_waitForReady(fdevice);
 
-    quadSpiTransmit1LINE(fdevice->io.handle.dev, M25P16_INSTRUCTION_WRITE_ENABLE, 0, NULL, 0);
+    quadSpiTransmit1LINE(fdevice->io.handle.quadSpi, M25P16_INSTRUCTION_WRITE_ENABLE, 0, NULL, 0);
 
-    quadSpiTransmitWithAddress4LINES(fdevice->io.handle.dev, M25P16_INSTRUCTION_QPAGE_PROGRAM, 0,
+    quadSpiTransmitWithAddress4LINES(fdevice->io.handle.quadSpi, M25P16_INSTRUCTION_QPAGE_PROGRAM, 0,
                                      fdevice->currentWriteAddress, fdevice->isLargeFlash ? 32 : 24, pData, dataSize);
 
     fdevice->currentWriteAddress += dataSize;
@@ -605,7 +605,7 @@ static int m25p16_readBytesQspi(flashDevice_t *fdevice, uint32_t address, uint8_
 {
     m25p16_waitForReady(fdevice);
 
-    quadSpiReceiveWithAddress4LINES(fdevice->io.handle.dev, M25P16_INSTRUCTION_QUAD_READ, M25P16_FAST_READ_DUMMY_CYCLES,
+    quadSpiReceiveWithAddress4LINES(fdevice->io.handle.quadSpi, M25P16_INSTRUCTION_QUAD_READ, M25P16_FAST_READ_DUMMY_CYCLES,
                                     address, fdevice->isLargeFlash ? 32 : 24, buffer, length);
 
     return length;

@@ -26,7 +26,6 @@
 #ifdef USE_FLASHFS
 
 #include "drivers/bus_spi.h"
-#include "drivers/bus_quadspi.h"
 #include "drivers/io.h"
 
 #include "pg/pg.h"
@@ -34,7 +33,7 @@
 
 #include "flash.h"
 
-PG_REGISTER_WITH_RESET_FN(flashConfig_t, flashConfig, PG_FLASH_CONFIG, 1);
+PG_REGISTER_WITH_RESET_FN(flashConfig_t, flashConfig, PG_FLASH_CONFIG, 0);
 
 void pgResetFn_flashConfig(flashConfig_t *flashConfig) {
 #ifdef FLASH_CS_PIN
@@ -44,9 +43,6 @@ void pgResetFn_flashConfig(flashConfig_t *flashConfig) {
 #endif
 #ifdef FLASH_SPI_INSTANCE
     flashConfig->spiDevice = SPI_DEV_TO_CFG(spiDeviceByInstance(FLASH_SPI_INSTANCE));
-#endif
-#if defined(USE_FLASH_QUADSPI) && defined(FLASH_QUADSPI_INSTANCE)
-    flashConfig->quadSpiDevice = QUADSPI_DEV_TO_CFG(quadSpiDeviceByInstance((quadSpiResource_t *)FLASH_QUADSPI_INSTANCE));
 #endif
 }
 #endif
