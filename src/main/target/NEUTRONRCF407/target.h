@@ -151,7 +151,8 @@
     TIMER_PIN_MAP( 6, PA2 , 3, -1) /* could not determine TIM_USE_xxxxx - please check; dma 0 assumed, please verify */ \
     TIMER_PIN_MAP( 7, PC6 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
     TIMER_PIN_MAP( 8, PA3 , 1,  0) /* ppm RX_PPM_PIN */ \
-    TIMER_PIN_MAP( 9, PB6 , 1,  0) /* led */
+    TIMER_PIN_MAP( 9, PB6 , 1,  0) /* led */ \
+    TIMER_PIN_MAP( 10, PB7 , 1, -1) /* camera control, TIM4 shared with LED strip PB6 */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

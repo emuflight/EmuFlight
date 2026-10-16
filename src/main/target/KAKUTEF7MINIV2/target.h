@@ -175,7 +175,8 @@
     TIMER_PIN_MAP( 4, PE11 , 1,  1) /* M4 , DMA2_ST4 */ \
     TIMER_PIN_MAP( 5, PC9 , 2,  0) /* M5 , DMA2_ST7 */ \
     TIMER_PIN_MAP( 6, PA3 , 2,  0) /* M6 , DMA1_ST1 */ \
-    TIMER_PIN_MAP( 7, PD12 , 1,  0) /* LED_TRIP, DMA1_ST0 */
+    TIMER_PIN_MAP( 7, PD12 , 1,  0) /* LED_TRIP, DMA1_ST0 */ \
+    TIMER_PIN_MAP( 8, PB3 , 1, -1) /* camera control, TIM2 CH2 unshared */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

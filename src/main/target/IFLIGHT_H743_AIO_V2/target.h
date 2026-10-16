@@ -155,7 +155,8 @@
     TIMER_PIN_MAP( 6, PD12 , 1,  6) /* motor 5 */ \
     TIMER_PIN_MAP( 7, PD13 , 1,  7) /* motor 6 */ \
     TIMER_PIN_MAP( 8, PC8 , 2,  2) /* motor 7 */ \
-    TIMER_PIN_MAP( 9, PC9 , 2,  3) /* motor 8 */
+    TIMER_PIN_MAP( 9, PC9 , 2,  3) /* motor 8 */ \
+    TIMER_PIN_MAP( 10, PB3 , 1, -1) /* camera control, TIM2 shared with PPM PA3 */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

@@ -34,7 +34,7 @@
 #define BEEPER_PIN                                       PB2
 #define BEEPER_INVERTED
 //define camera control
-#define CAMERA_CONTROL_PIN                               PB10
+#define CAMERA_CONTROL_PIN                               PB10 // PB10 is TIM2 CH3 only; TIM2 also drives motor 5 (PB3), so no mapping row
 
 //MPU-6000
 #define USE_GYRO

@@ -27,7 +27,7 @@
 #define LED0_PIN                PB14
 #define LED1_PIN                PB15
 
-#define CAMERA_CONTROL_PIN      PB3
+#define CAMERA_CONTROL_PIN      PB3 // PB3 is TIM2 CH2 only; TIM2 also drives LED strip PA15 and motor 7 PA3, so no mapping row
 
 #define USE_BEEPER
 #define BEEPER_PIN              PB2

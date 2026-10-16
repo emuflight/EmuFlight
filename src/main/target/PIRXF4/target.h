@@ -31,7 +31,7 @@
 
 //define camera control
 #define USE_CAMERA_CONTROL
-#define CAMERA_CONTROL_PIN PA4
+#define CAMERA_CONTROL_PIN PA4 // PA4 has no timer alternate function, so camera control cannot run on this pin
 
 //BEEPER
 #define USE_BEEPER

@@ -175,7 +175,8 @@
     TIMER_PIN_MAP(10, PA9 , 1,  0) /* UART1_TX */ \
     TIMER_PIN_MAP(11, PA10, 1,  0) /* UART1_RX */ \
     TIMER_PIN_MAP(12, PA1 , 2,  0) /* UART4_RX */ \
-    TIMER_PIN_MAP(13, PA2 , 3, -1) /* UART2_TX */
+    TIMER_PIN_MAP(13, PA2 , 3, -1) /* UART2_TX */ \
+    TIMER_PIN_MAP( 14, PB7 , 1, -1) /* camera control, TIM4 shared with LED strip PB6 */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

@@ -144,7 +144,7 @@
 
 
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* CAMERA_CONTROL_PIN */ \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) \
     TIMER_PIN_MAP( 1, PB1 , 2,  0) /* M1 - D2_ST6 */ \
     TIMER_PIN_MAP( 2, PA3 , 1,  1) /* M2_OUT D2_ST2 */ \
     TIMER_PIN_MAP( 3, PB5 , 1,  0) /* M3_OUT D1_ST6 */ \
@@ -157,7 +157,8 @@
     TIMER_PIN_MAP( 10, PA9 , 1,  0) /* M3_OUT D1_ST6 */ \
     TIMER_PIN_MAP( 11, PA10 , 1,  0) /* M4_OUT D1_ST1 */ \
     TIMER_PIN_MAP( 12, PA1 , 2,  0) /* BEEPER PWM */ \
-    TIMER_PIN_MAP( 13, PA2 , 3, -1) /* LED & MOTOR5 D1_ST7 */
+    TIMER_PIN_MAP( 13, PA2 , 3, -1) /* LED & MOTOR5 D1_ST7 */ \
+    TIMER_PIN_MAP( 14, PB7 , 1, -1) /* camera control, TIM4 shared with LED strip PB6 */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

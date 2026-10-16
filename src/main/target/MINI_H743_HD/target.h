@@ -46,7 +46,7 @@
 #define LED_STRIP_PIN        PA8
 #define USE_BEEPER
 #define BEEPER_PIN           PB3
-#define CAMERA_CONTROL_PIN   PD9
+#define CAMERA_CONTROL_PIN   PD9 // PD9 has no timer alternate function, so camera control cannot run on this pin
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
