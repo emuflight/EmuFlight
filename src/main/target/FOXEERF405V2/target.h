@@ -162,4 +162,5 @@
 #define MOTOR7_PIN              PB11
 #define MOTOR8_PIN              PB10
 
+#define SERVO1_PIN            PB1
 // notice - this file was programmatically generated and may be incomplete.

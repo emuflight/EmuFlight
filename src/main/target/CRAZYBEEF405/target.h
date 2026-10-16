@@ -146,4 +146,5 @@
 #define MOTOR4_PIN              PC8
 #define RX_PPM_PIN              PB8
 
+#define RX_PWM1_PIN PB8
 // notice - this file was programmatically generated and may be incomplete.

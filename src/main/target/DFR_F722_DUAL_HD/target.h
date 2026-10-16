@@ -102,6 +102,7 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_2
 #define I2C_DEVICE_2      (I2CDEV_2)
+#define BARO_I2C_INSTANCE (I2CDEV_2)
 #define MAG_I2C_INSTANCE (I2CDEV_2)
 #define I2C2_SCL PB10
 #define I2C2_SDA PB11
@@ -135,6 +136,7 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 11
 #define USE_TIMER_MGMT
+// PC6 uses DMA2 Stream 2 channel 7; channel 0 would also take TIM8 CH2 and CH3 requests
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PC8 , 2,  1) \
     TIMER_PIN_MAP( 1, PC6 , 2,  1) \

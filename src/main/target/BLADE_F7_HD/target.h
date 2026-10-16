@@ -21,6 +21,8 @@
 #pragma once
 //#define USE_TARGET_CONFIG
 
+#define BOARD_NAME        BLADE_F7_HD
+#define MANUFACTURER_ID   RUSH
 #define TARGET_BOARD_IDENTIFIER "RUSH"
 #define USBD_PRODUCT_STRING "BLADE_F7_HD"
 
