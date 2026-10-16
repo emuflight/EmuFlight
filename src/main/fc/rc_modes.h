@@ -132,4 +132,5 @@ bool isRangeActive(uint8_t auxChannelIndex, const channelRange_t *range);
 void updateActivatedModes(void);
 bool isModeActivationConditionPresent(boxId_e modeId);
 bool isModeActivationConditionLinked(boxId_e modeId);
+void clearInvalidModeLinks(void);
 void removeModeActivationCondition(boxId_e modeId);

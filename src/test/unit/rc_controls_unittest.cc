@@ -195,6 +195,98 @@ TEST_F(RcControlsModesTest, isModeActivationConditionLinkedReportsOnlyLinkedMode
     EXPECT_FALSE(isModeActivationConditionLinked((boxId_e)3)); // not configured
 }
 
+// Expected values follow the rule: a link may not drive ARM and may not target a linked mode;
+// an entry with a usable range loses only the link, an entry without one is cleared.
+TEST_F(RcControlsModesTest, clearInvalidModeLinksClearsLinkToLinkedMode)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_OR);
+    setLinkMac(2, (boxId_e)3, (boxId_e)2, MODELOGIC_OR); // targets mode 2, which is linked
+
+    clearInvalidModeLinks();
+
+    EXPECT_EQ(1, modeActivationConditions(1)->linkedTo); // valid link kept
+    EXPECT_EQ(0, modeActivationConditions(2)->linkedTo);
+    EXPECT_EQ(0, modeActivationConditions(2)->modeId);   // entry without a range is cleared
+}
+
+TEST_F(RcControlsModesTest, clearInvalidModeLinksKeepsRangeOfEntryWithBadLink)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_OR);
+    setRangeMac(2, (boxId_e)3, AUX2, MODELOGIC_AND);
+    modeActivationConditionsMutable(2)->linkedTo = (boxId_e)2; // bad link on an entry with a range
+
+    clearInvalidModeLinks();
+
+    EXPECT_EQ(0, modeActivationConditions(2)->linkedTo);
+    EXPECT_EQ(3, modeActivationConditions(2)->modeId);
+    EXPECT_EQ(MODELOGIC_AND, modeActivationConditions(2)->modeLogic);
+    EXPECT_EQ(CHANNEL_VALUE_TO_STEP(1700), modeActivationConditions(2)->range.startStep);
+    EXPECT_EQ(CHANNEL_VALUE_TO_STEP(2100), modeActivationConditions(2)->range.endStep);
+}
+
+TEST_F(RcControlsModesTest, clearInvalidModeLinksClearsLinkOnArm)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, BOXARM, (boxId_e)1, MODELOGIC_OR);
+    setRangeMac(2, BOXARM, AUX2, MODELOGIC_OR);
+    modeActivationConditionsMutable(2)->linkedTo = (boxId_e)1;
+
+    clearInvalidModeLinks();
+
+    EXPECT_EQ(0, modeActivationConditions(1)->linkedTo);
+    EXPECT_FALSE(IS_RANGE_USABLE(&modeActivationConditions(1)->range));
+    EXPECT_EQ(0, modeActivationConditions(2)->linkedTo);
+    EXPECT_TRUE(IS_RANGE_USABLE(&modeActivationConditions(2)->range)); // ARM range stays
+}
+
+TEST_F(RcControlsModesTest, clearInvalidModeLinksCleansAdjacentInvalidEntries)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_OR);
+    setLinkMac(2, (boxId_e)3, (boxId_e)2, MODELOGIC_OR);
+    setLinkMac(3, (boxId_e)4, (boxId_e)2, MODELOGIC_OR);
+
+    clearInvalidModeLinks();
+
+    EXPECT_EQ(0, modeActivationConditions(2)->linkedTo);
+    EXPECT_EQ(0, modeActivationConditions(3)->linkedTo);
+    EXPECT_EQ(1, modeActivationConditions(1)->linkedTo);
+}
+
+TEST_F(RcControlsModesTest, clearInvalidModeLinksKeepsOtherEntriesOfSameMode)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_OR);
+    setLinkMac(2, (boxId_e)3, (boxId_e)2, MODELOGIC_OR); // invalid link of mode 3
+    setRangeMac(3, (boxId_e)3, AUX2, MODELOGIC_OR);      // valid range of mode 3
+
+    clearInvalidModeLinks();
+
+    EXPECT_EQ(3, modeActivationConditions(3)->modeId);
+    EXPECT_TRUE(IS_RANGE_USABLE(&modeActivationConditions(3)->range));
+}
+
+TEST_F(RcControlsModesTest, clearInvalidModeLinksLeavesValidConfigUnchanged)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_AND);
+
+    clearInvalidModeLinks();
+
+    EXPECT_EQ(1, modeActivationConditions(1)->linkedTo);
+    EXPECT_EQ(2, modeActivationConditions(1)->modeId);
+    EXPECT_EQ(MODELOGIC_AND, modeActivationConditions(1)->modeLogic);
+    EXPECT_EQ(1, modeActivationConditions(0)->modeId);
+}
+
 TEST_F(RcControlsModesTest, linkToModeWithNoRangeStaysInactive)
 {
     clearModeActivationConditions();

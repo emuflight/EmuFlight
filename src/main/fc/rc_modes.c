@@ -172,6 +172,19 @@ bool isModeActivationConditionLinked(boxId_e modeId) {
     return false;
 }
 
+void clearInvalidModeLinks(void) {
+    for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
+        modeActivationCondition_t *mac = modeActivationConditionsMutable(i);
+        if (mac->linkedTo && (mac->modeId == BOXARM || isModeActivationConditionLinked(mac->linkedTo))) {
+            if (IS_RANGE_USABLE(&mac->range)) {
+                mac->linkedTo = 0;
+            } else {
+                memset(mac, 0, sizeof(*mac));
+            }
+        }
+    }
+}
+
 void removeModeActivationCondition(const boxId_e modeId) {
     unsigned offset = 0;
     for (unsigned i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
