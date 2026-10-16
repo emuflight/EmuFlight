@@ -47,11 +47,11 @@
 #define USE_OSD
 #define USE_MAX7456
 #define USE_CAMERA_CONTROL
-#define USE_TRANSPONDER
 
 // QUADSPI bank 2 carries the W25N01G flash (CS PB10, software CS).
 #define USE_QUADSPI
 #define USE_QUADSPI_DEVICE_1
+#define QUADSPIDEV_COUNT        1
 #define QUADSPI1_SCK_PIN        PB2
 #define QUADSPI1_BK1_IO0_PIN    PD11
 #define QUADSPI1_BK1_IO1_PIN    PD12
@@ -67,7 +67,6 @@
 #define QUADSPI1_CS_FLAGS       (QUADSPI_BK1_CS_NONE | QUADSPI_BK2_CS_SOFTWARE | QUADSPI_CS_MODE_SEPARATE)
 #define USE_FLASH
 #define USE_FLASH_W25N01G
-// Excluded (.nomk): the QUADSPI flash path does not build; flashConfig_t has no quadSpiDevice (flash.c:87, flash.c:265).
 #define USE_FLASH_QUADSPI
 #define FLASH_QUADSPI_INSTANCE  QUADSPI
 #define USE_FLASHFS
@@ -123,7 +122,7 @@
 #define GYRO_2_SPI_BUS          SPIDEV_3
 
 #define USE_BARO
-#define USE_BARO_BMP388
+// BMP388 (reference) has no EF driver.
 #define USE_BARO_BMP280
 #define USE_BARO_MS5611
 #define USE_MAG
@@ -212,5 +211,6 @@
 #define RX_PPM_PIN              PB15
 #define RX_PWM1_PIN             PB15
 #define LED_STRIP_PIN           PA8
+// EF has no transponder driver for H7; the pad stays mapped.
 #define TRANSPONDER_PIN         PB11
 #define CAMERA_CONTROL_PIN      PE5

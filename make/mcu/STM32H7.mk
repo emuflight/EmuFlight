@@ -156,6 +156,7 @@ ifeq ($(EXST),yes)
 LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h750_exst.ld
 DEVICE_FLAGS   += -DEXST -DUSE_EXST
 TARGET_FLAGS   += -DEXST
+FIRMWARE_SIZE   := 448
 else
 LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h750_128k.ld
 endif
