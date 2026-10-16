@@ -121,8 +121,6 @@
 // IO Ports
 
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                      9                       //updated timer count to compensate for Nf Motor 4
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA3 , 3, -1) \
     TIMER_PIN_MAP( 1, PB4 , 1,  0) \

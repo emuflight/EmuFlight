@@ -128,13 +128,11 @@
 #define SDCARD_DETECT_PIN PC15
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 4
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB9 , 1, -1)
+    TIMER_PIN_MAP( 0, PB4 , 1,  0) /* S1_OUT - TIM3_UP - BURST */ \
+    TIMER_PIN_MAP( 1, PB5 , 1,  0) /* S2_OUT - TIM3_UP - BURST */ \
+    TIMER_PIN_MAP( 2, PB8 , 1,  0) /* S3_OUT - TIM2_UP - BURST */ \
+    TIMER_PIN_MAP( 3, PB9 , 1, -1) /* S4_OUT - TIM2_UP - BURST */
 
 #define MOTOR1_PIN              PB4
 #define MOTOR2_PIN              PB5

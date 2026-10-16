@@ -122,17 +122,15 @@
 
 #define DEFAULT_FEATURES        (FEATURE_SOFTSERIAL | FEATURE_ESC_SENSOR)
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 1, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 2, PA7 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 5, PA0 , 1,  0) \
-    TIMER_PIN_MAP( 6, PA2 , 3, -1) \
-    TIMER_PIN_MAP( 7, PA3 , 3, -1)
+    TIMER_PIN_MAP( 0, PB10 , 1,  0) /* T2C3 */ \
+    TIMER_PIN_MAP( 1, PA1 , 2,  0) /* T2C2(1,6,3), T5C2(1,4,6) */ \
+    TIMER_PIN_MAP( 2, PA7 , 1,  0) /* T1C1N(2,3,6), T3C2(1,5,5) */ \
+    TIMER_PIN_MAP( 3, PB8 , 1,  0) /* T4C3(1,7,2), T10C1(X) */ \
+    TIMER_PIN_MAP( 4, PB1 , 2,  0) /* T1C3N(2,6,6), T3C4(1,7,5) */ \
+    TIMER_PIN_MAP( 5, PA0 , 1,  0) /* T2C1(1,5,3) */ \
+    TIMER_PIN_MAP( 6, PA2 , 3, -1) /* UART2_TX */ \
+    TIMER_PIN_MAP( 7, PA3 , 3, -1) /* UART2_RX */
 
 #define MOTOR1_PIN              PA1
 #define MOTOR2_PIN              PA7

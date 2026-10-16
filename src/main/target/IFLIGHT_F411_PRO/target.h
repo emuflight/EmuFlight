@@ -148,15 +148,13 @@
 #define SERIALRX_UART                                   SERIAL_PORT_USART2
 
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                      6                       //updated timer count to compensate for Nf Motor 4
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA0 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 4, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 5, PA8 , 1,  0)
+    TIMER_PIN_MAP( 0, PA0 , 1,  0) /* S1_OUT 2,1 */ \
+    TIMER_PIN_MAP( 1, PB10 , 1,  0) /* S2_OUT 2,2 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* S3_OUT 2,6 */ \
+    TIMER_PIN_MAP( 3, PB7 , 1,  0) /* S4_OUT 1,7 */ \
+    TIMER_PIN_MAP( 4, PA3 , 3, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 5, PA8 , 1,  0) /* S5_OUT 1,4 */
 
 #define MOTOR1_PIN              PA0
 #define MOTOR2_PIN              PB10

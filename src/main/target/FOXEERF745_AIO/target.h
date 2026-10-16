@@ -153,16 +153,14 @@
  #define USE_DSHOT
 
 
- #define USABLE_TIMER_CHANNEL_COUNT 6
 
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB0 , 2,  0)
+    TIMER_PIN_MAP( 0, PA8 , 1,  0) /* LED_STRIP, */ \
+    TIMER_PIN_MAP( 1, PB3 , 1,  0) /* CAMCONTR, */ \
+    TIMER_PIN_MAP( 2, PB4 , 1,  0) /* M1 */ \
+    TIMER_PIN_MAP( 3, PB5 , 1,  0) /* M2 */ \
+    TIMER_PIN_MAP( 4, PB1 , 2,  0) /* M3 */ \
+    TIMER_PIN_MAP( 5, PB0 , 2,  0) /* M4 */
 
 #define MOTOR1_PIN              PB4
 #define MOTOR2_PIN              PB5

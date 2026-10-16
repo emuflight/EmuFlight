@@ -160,23 +160,21 @@
 #define DEFAULT_CURRENT_METER_SCALE 179
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 14
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 1, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 6, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 7, PB11 , 1,  1) \
-    TIMER_PIN_MAP( 8, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 9, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 10, PA8 , 1,  2) \
-    TIMER_PIN_MAP( 11, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 12, PA2 , 2,  0) \
-    TIMER_PIN_MAP( 13, PB15 , 3, -1)
+    TIMER_PIN_MAP( 0, PC8 , 2,  0) /* S1   UP1-2 */ \
+    TIMER_PIN_MAP( 1, PC9 , 2,  0) /* S2   UP1-2 */ \
+    TIMER_PIN_MAP( 2, PB4 , 1,  0) /* S3   UP1-2 */ \
+    TIMER_PIN_MAP( 3, PB5 , 1,  0) /* S4   UP1-2 */ \
+    TIMER_PIN_MAP( 4, PB0 , 2,  0) /* S5   UP1-7 */ \
+    TIMER_PIN_MAP( 5, PB1 , 2,  0) /* S6   UP1-7 */ \
+    TIMER_PIN_MAP( 6, PB10 , 1,  0) /* S7   UP1-6 */ \
+    TIMER_PIN_MAP( 7, PB11 , 1,  1) /* S8   UP1-6 */ \
+    TIMER_PIN_MAP( 8, PB6 , 1,  0) /* SERVO */ \
+    TIMER_PIN_MAP( 9, PB7 , 1,  0) /* servo */ \
+    TIMER_PIN_MAP( 10, PA8 , 1,  2) /* led */ \
+    TIMER_PIN_MAP( 11, PA3 , 3, -1) /* RX4, ppm */ \
+    TIMER_PIN_MAP( 12, PA2 , 2,  0) /* TX2, pwm */ \
+    TIMER_PIN_MAP( 13, PB15 , 3, -1) /* camera */
 
 #define MOTOR1_PIN              PC8
 #define MOTOR2_PIN              PC9

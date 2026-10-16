@@ -185,17 +185,15 @@
 
 //--------------------------------BOARD RESOURCES-----------------------------
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC7 , 2,  0) \
-    TIMER_PIN_MAP( 1, PA8 , 1,  1) \
-    TIMER_PIN_MAP( 2, PA9 , 1,  1) \
-    TIMER_PIN_MAP( 3, PA10 , 1,  1) \
-    TIMER_PIN_MAP( 4, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 5, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 6, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 7, PB1 , 2,  0)
+    TIMER_PIN_MAP( 0, PC7 , 2,  0) /* PPM */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  1) /* S1 */ \
+    TIMER_PIN_MAP( 2, PA9 , 1,  1) /* S2 */ \
+    TIMER_PIN_MAP( 3, PA10 , 1,  1) /* S3 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) /* S4 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* S5 */ \
+    TIMER_PIN_MAP( 6, PB0 , 2,  0) /* S6 | TIM_USE_CAMERA_CONTROL */ \
+    TIMER_PIN_MAP( 7, PB1 , 2,  0) /* S7 /LED_STRIP */
 
 #define MOTOR1_PIN              PA8
 #define MOTOR2_PIN              PA9

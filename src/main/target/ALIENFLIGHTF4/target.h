@@ -174,22 +174,24 @@
 #define RX_CHANNELS_TAER
 
 
-#define USABLE_TIMER_CHANNEL_COUNT      13
-#define USE_TIMER_MGMT
+// DSHOT will work for motor 1,3,4,5,6,7 and 8.
+// Motor 2 pin timers have no DMA channel assigned in the hardware. Remapping of the pin is needed.
+// If SDCard or UART4 DMA is used motor 4 will not work.
+// If UART1 DMA is used motor 8 will not work.
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA8 , 1,  1) \
-    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 3, PB14 , 1,  1) \
-    TIMER_PIN_MAP( 4, PB15 , 1,  0) \
-    TIMER_PIN_MAP( 5, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 6, PB9 , 1, -1) \
-    TIMER_PIN_MAP( 7, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 8, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 9, PC6 , 2,  0) \
-    TIMER_PIN_MAP( 10, PC7 , 2,  0) \
-    TIMER_PIN_MAP( 11, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 12, PC9 , 2,  0)
+    TIMER_PIN_MAP( 0, PA8 , 1,  1) /* PWM1  - PA8  RC1  - DMA2_ST6, *DMA2_ST1, DMA2_ST3 */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* PWM2  - PB0  RC2  - DMA1_ST5 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* PWM3  - PB1  RC3  - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 3, PB14 , 1,  1) /* PWM4  - PA14 RC4  - DMA2_ST6, *DMA2_ST2 */ \
+    TIMER_PIN_MAP( 4, PB15 , 1,  0) /* PWM5  - PA15 RC5  - DMA2_ST6, DMA2_ST6 */ \
+    TIMER_PIN_MAP( 5, PB8 , 1,  0) /* PWM6  - PB8  OUT1 - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 6, PB9 , 1, -1) /* PWM7  - PB9  OUT2 - DMA_NONE */ \
+    TIMER_PIN_MAP( 7, PA0 , 2,  0) /* PWM8  - PA0  OUT3 - DMA1_ST2 */ \
+    TIMER_PIN_MAP( 8, PA1 , 2,  0) /* PWM9  - PA1  OUT4 - DMA1_ST4 */ \
+    TIMER_PIN_MAP( 9, PC6 , 2,  0) /* PWM10 - PC6  OUT5 - DMA2_ST2, DMA2_ST2 */ \
+    TIMER_PIN_MAP( 10, PC7 , 2,  0) /* PWM11 - PC7  OUT6 - DMA2_ST3, DMA2_ST2 */ \
+    TIMER_PIN_MAP( 11, PC8 , 2,  1) /* PWM13 - PC8  OUT7 - DMA2_ST2, *DMA2_ST4 */ \
+    TIMER_PIN_MAP( 12, PC9 , 2,  0) /* PWM13 - PC9  OUT8 - DMA2_ST7 */
 
 #define MOTOR1_PIN              PB8
 #define MOTOR2_PIN              PB9

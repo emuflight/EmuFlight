@@ -138,17 +138,15 @@
 #define DEFAULT_CURRENT_METER_SCALE 140
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 4, PA2 , 2,  0) \
-    TIMER_PIN_MAP( 5, PA3 , 2,  0) \
-    TIMER_PIN_MAP( 6, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 7, PB8 , 1,  0)
+    TIMER_PIN_MAP( 0, PB5 , 1,  0) /* PWM1 */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* PWM2 */ \
+    TIMER_PIN_MAP( 2, PB3 , 1,  0) /* PWM3 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* PWM4 */ \
+    TIMER_PIN_MAP( 4, PA2 , 2,  0) /* PWM5, UART 2 TX */ \
+    TIMER_PIN_MAP( 5, PA3 , 2,  0) /* PWM6, UART 2 RX */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  0) /* Serial LED */ \
+    TIMER_PIN_MAP( 7, PB8 , 1,  0) /* ESC serial (unwired) */
 
 #define MOTOR1_PIN              PB5
 #define MOTOR2_PIN              PB0
