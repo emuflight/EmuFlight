@@ -77,8 +77,3 @@
 #define FAST_CODE_PREF
 
 // compile-sanity target only -- no real motor/timer pins.
-// USE_TIMER_MGMT pulls USED_TIMERS/FULL_TIMER_CHANNEL_COUNT fleet defaults from
-// common_defaults_post.h; USABLE_TIMER_CHANNEL_COUNT/timerHardware[] (target.c) still cover
-// timerioTagGetByUsage()'s legacy scan, which isn't USE_TIMER_MGMT-gated.
-#define USE_TIMER_MGMT
-#define USABLE_TIMER_CHANNEL_COUNT 0

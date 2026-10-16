@@ -217,7 +217,6 @@ static timerHardware_t makeTimer(TIM_TypeDef *tim, ioTag_t tag, uint16_t channel
 }
 
 extern "C" {
-const timerHardware_t timerHardware[1] = {};
 const timerHardware_t fullTimerHardware[FULL_TIMER_CHANNEL_COUNT] = {
     makeTimer(&fakeTim3, TAG_C08, 2, false, 2),
     makeTimer(&fakeTim8, TAG_C08, 2, false, 3),

@@ -130,17 +130,11 @@ typedef enum {
 
 #define MHZ_TO_HZ(x) ((x) * 1000000)
 
-extern const timerHardware_t timerHardware[];
 extern const timerDef_t timerDefinitions[];
 
-#ifdef USE_TIMER_MGMT
 extern const timerHardware_t fullTimerHardware[];
 #define TIMER_HARDWARE fullTimerHardware
 #define TIMER_CHANNEL_COUNT FULL_TIMER_CHANNEL_COUNT
-#else
-#define TIMER_HARDWARE timerHardware
-#define TIMER_CHANNEL_COUNT USABLE_TIMER_CHANNEL_COUNT
-#endif
 
 typedef enum {
     TYPE_FREE,
