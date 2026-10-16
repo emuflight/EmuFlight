@@ -30,7 +30,6 @@
 
 // Config lives in the external QUADSPI flash (partition), same chip as blackbox.
 #define CONFIG_IN_EXTERNAL_FLASH
-#define USE_FIRMWARE_PARTITION // the EXST firmware image (FIRMWARE_SIZE) lives in the same flash
 
 #define USE_SPRACING_PERSISTENT_RTC_WORKAROUND
 #define USE_BUTTONS
@@ -40,7 +39,6 @@
 #define BUTTON_B_PIN_INVERTED
 
 #define USE_VCP
-#define USE_USB_ID
 #define USE_LED
 #define LED0_PIN                PE3
 #define USE_BEEPER
@@ -100,7 +98,6 @@
 #define USE_I2C_DEVICE_4
 #define I2C4_SCL                PB6 // shared with motor outputs 5 and 6
 #define I2C4_SDA                PB7
-#define I2C_DEVICE              (I2CDEV_1)
 #define MAG_I2C_INSTANCE        I2CDEV_1
 #define BARO_I2C_INSTANCE       I2CDEV_1
 
@@ -113,11 +110,10 @@
 #define USE_SPI_GYRO
 #define USE_EXTI
 #define USE_GYRO_EXTI
-#define ENSURE_MPU_DATA_READY_IS_LOW
-#define ACC_1_ALIGN             CW0_DEG_FLIP
-#define GYRO_1_ALIGN            CW0_DEG_FLIP
-#define ACC_2_ALIGN             CW0_DEG_FLIP
-#define GYRO_2_ALIGN            CW0_DEG_FLIP
+#define ACC_1_ALIGN             CW0_DEG
+#define GYRO_1_ALIGN            CW0_DEG
+#define ACC_2_ALIGN             CW0_DEG
+#define GYRO_2_ALIGN            CW0_DEG
 #define GYRO_1_CS_PIN           PB12
 #define GYRO_1_EXTI_PIN         PE15
 #define GYRO_1_SPI_BUS          SPIDEV_2

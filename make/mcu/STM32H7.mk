@@ -247,10 +247,6 @@ else
 $(error Unknown MCU for H7 target)
 endif
 
-ifneq ($(FIRMWARE_SIZE),)
-DEVICE_FLAGS   += -DFIRMWARE_SIZE=$(FIRMWARE_SIZE)
-endif
-
 DEVICE_FLAGS    += -DHSE_VALUE=$(HSE_VALUE) -DHSE_STARTUP_TIMEOUT=1000 -DSTM32
 
 VCP_SRC = \
