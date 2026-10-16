@@ -67,6 +67,7 @@
 
 #define ACC_ICM42688P_ALIGN             CW180_DEG
 #define GYRO_ICM42688P_ALIGN            CW180_DEG
+// SPI1 and SPI3 also carry alternate gyro pads (CS/EXTI: PA2/PA4, PC0/PC4 on SPI1; PD5/PA9 on SPI3) for ICM40609D, ICM45605 and ICM45686; no driver here.
 #define ICM42688P_CS_PIN                PE3
 #define ICM42688P_SPI_BUS               SPIDEV_3
 
@@ -140,7 +141,10 @@
     TIMER_PIN_MAP(5, PD13, 1, -1) \
     TIMER_PIN_MAP(6, PA15, 1, 4) \
     TIMER_PIN_MAP(7, PB4, 1, -1)
-#define TIMUP8_DMA_OPT 8
+// ADC1 on DMA2_S0 and ADC3 on DMA2_S2; TIM8_UP burst on DMA2_S3; motors DMA1_S0-3, LED strip DMA1_S4
+#define ADC1_DMA_OPT 8
+#define ADC3_DMA_OPT 10
+#define TIMUP8_DMA_OPT 11
 
 #define MOTOR1_PIN              PC6
 #define MOTOR2_PIN              PC7
