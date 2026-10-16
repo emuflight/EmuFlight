@@ -195,6 +195,16 @@ TEST_F(RcControlsModesTest, isModeActivationConditionLinkedReportsOnlyLinkedMode
     EXPECT_FALSE(isModeActivationConditionLinked((boxId_e)3)); // not configured
 }
 
+static void expectMacEquals(const modeActivationCondition_t *actual, const modeActivationCondition_t &expected)
+{
+    EXPECT_EQ(expected.modeId, actual->modeId);
+    EXPECT_EQ(expected.auxChannelIndex, actual->auxChannelIndex);
+    EXPECT_EQ(expected.range.startStep, actual->range.startStep);
+    EXPECT_EQ(expected.range.endStep, actual->range.endStep);
+    EXPECT_EQ(expected.modeLogic, actual->modeLogic);
+    EXPECT_EQ(expected.linkedTo, actual->linkedTo);
+}
+
 // Expected values follow the rule: a link may not drive ARM and may not target a linked mode;
 // an entry with a usable range loses only the link, an entry without one is cleared.
 TEST_F(RcControlsModesTest, clearInvalidModeLinksClearsLinkToLinkedMode)
@@ -202,13 +212,16 @@ TEST_F(RcControlsModesTest, clearInvalidModeLinksClearsLinkToLinkedMode)
     clearModeActivationConditions();
     setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
     setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_OR);
-    setLinkMac(2, (boxId_e)3, (boxId_e)2, MODELOGIC_OR); // targets mode 2, which is linked
+    setLinkMac(2, (boxId_e)3, (boxId_e)2, MODELOGIC_AND); // targets mode 2, which is linked
+    modeActivationConditionsMutable(2)->auxChannelIndex = 3;
+    modeActivationConditionsMutable(2)->range.startStep = 5; // equal endpoints: not usable
+    modeActivationConditionsMutable(2)->range.endStep = 5;
 
     clearInvalidModeLinks();
 
     EXPECT_EQ(1, modeActivationConditions(1)->linkedTo); // valid link kept
-    EXPECT_EQ(0, modeActivationConditions(2)->linkedTo);
-    EXPECT_EQ(0, modeActivationConditions(2)->modeId);   // entry without a range is cleared
+    const modeActivationCondition_t cleared = {};
+    expectMacEquals(modeActivationConditions(2), cleared); // every field cleared
 }
 
 TEST_F(RcControlsModesTest, clearInvalidModeLinksKeepsRangeOfEntryWithBadLink)
@@ -224,6 +237,7 @@ TEST_F(RcControlsModesTest, clearInvalidModeLinksKeepsRangeOfEntryWithBadLink)
     EXPECT_EQ(0, modeActivationConditions(2)->linkedTo);
     EXPECT_EQ(3, modeActivationConditions(2)->modeId);
     EXPECT_EQ(MODELOGIC_AND, modeActivationConditions(2)->modeLogic);
+    EXPECT_EQ(AUX2 - NON_AUX_CHANNEL_COUNT, modeActivationConditions(2)->auxChannelIndex);
     EXPECT_EQ(CHANNEL_VALUE_TO_STEP(1700), modeActivationConditions(2)->range.startStep);
     EXPECT_EQ(CHANNEL_VALUE_TO_STEP(2100), modeActivationConditions(2)->range.endStep);
 }
@@ -241,7 +255,10 @@ TEST_F(RcControlsModesTest, clearInvalidModeLinksClearsLinkOnArm)
     EXPECT_EQ(0, modeActivationConditions(1)->linkedTo);
     EXPECT_FALSE(IS_RANGE_USABLE(&modeActivationConditions(1)->range));
     EXPECT_EQ(0, modeActivationConditions(2)->linkedTo);
-    EXPECT_TRUE(IS_RANGE_USABLE(&modeActivationConditions(2)->range)); // ARM range stays
+    EXPECT_EQ(BOXARM, modeActivationConditions(2)->modeId);
+    EXPECT_EQ(AUX2 - NON_AUX_CHANNEL_COUNT, modeActivationConditions(2)->auxChannelIndex);
+    EXPECT_EQ(CHANNEL_VALUE_TO_STEP(1700), modeActivationConditions(2)->range.startStep); // ARM range stays
+    EXPECT_EQ(CHANNEL_VALUE_TO_STEP(2100), modeActivationConditions(2)->range.endStep);
 }
 
 TEST_F(RcControlsModesTest, clearInvalidModeLinksCleansAdjacentInvalidEntries)
@@ -266,11 +283,13 @@ TEST_F(RcControlsModesTest, clearInvalidModeLinksKeepsOtherEntriesOfSameMode)
     setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_OR);
     setLinkMac(2, (boxId_e)3, (boxId_e)2, MODELOGIC_OR); // invalid link of mode 3
     setRangeMac(3, (boxId_e)3, AUX2, MODELOGIC_OR);      // valid range of mode 3
+    const modeActivationCondition_t before = *modeActivationConditions(3);
 
     clearInvalidModeLinks();
 
-    EXPECT_EQ(3, modeActivationConditions(3)->modeId);
-    EXPECT_TRUE(IS_RANGE_USABLE(&modeActivationConditions(3)->range));
+    const modeActivationCondition_t cleared = {};
+    expectMacEquals(modeActivationConditions(2), cleared);
+    expectMacEquals(modeActivationConditions(3), before);
 }
 
 TEST_F(RcControlsModesTest, clearInvalidModeLinksLeavesValidConfigUnchanged)
@@ -278,13 +297,13 @@ TEST_F(RcControlsModesTest, clearInvalidModeLinksLeavesValidConfigUnchanged)
     clearModeActivationConditions();
     setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
     setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_AND);
+    const modeActivationCondition_t before0 = *modeActivationConditions(0);
+    const modeActivationCondition_t before1 = *modeActivationConditions(1);
 
     clearInvalidModeLinks();
 
-    EXPECT_EQ(1, modeActivationConditions(1)->linkedTo);
-    EXPECT_EQ(2, modeActivationConditions(1)->modeId);
-    EXPECT_EQ(MODELOGIC_AND, modeActivationConditions(1)->modeLogic);
-    EXPECT_EQ(1, modeActivationConditions(0)->modeId);
+    expectMacEquals(modeActivationConditions(0), before0);
+    expectMacEquals(modeActivationConditions(1), before1);
 }
 
 TEST_F(RcControlsModesTest, linkToModeWithNoRangeStaysInactive)
