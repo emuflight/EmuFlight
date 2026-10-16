@@ -141,6 +141,7 @@
 #define I2C1_SDA                PB9 // SDA PIN,alt MST7
 #define I2C_DEVICE              (I2CDEV_1)
 
+// no timer-map row: TIM4 is shared with the LED strip pad PB6; camera control stays inactive
 #define CAMERA_CONTROL_PIN      PB7
 
 #define USE_ADC
@@ -175,8 +176,7 @@
     TIMER_PIN_MAP(10, PA9 , 1,  0) /* UART1_TX */ \
     TIMER_PIN_MAP(11, PA10, 1,  0) /* UART1_RX */ \
     TIMER_PIN_MAP(12, PA1 , 2,  0) /* UART4_RX */ \
-    TIMER_PIN_MAP(13, PA2 , 3, -1) /* UART2_TX */ \
-    TIMER_PIN_MAP( 14, PB7 , 1, -1) /* camera control, TIM4 shared with LED strip PB6 */
+    TIMER_PIN_MAP(13, PA2 , 3, -1) /* UART2_TX */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

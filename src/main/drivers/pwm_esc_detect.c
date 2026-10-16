@@ -37,9 +37,6 @@ uint8_t hardwareMotorType = MOTOR_UNKNOWN;
 void detectBrushedESC(void) {
 #ifdef MOTOR1_PIN
     IO_t MotorDetectPin = IOGetByTag(IO_TAG(MOTOR1_PIN));
-#else
-    IO_t MotorDetectPin = IOGetByTag(IO_TAG_NONE);
-#endif
     IOInit(MotorDetectPin, OWNER_SYSTEM, 0);
     IOConfigGPIO(MotorDetectPin, IOCFG_IPU);
     delayMicroseconds(10);  // allow configuration to settle
@@ -49,5 +46,6 @@ void detectBrushedESC(void) {
     } else {
         hardwareMotorType = MOTOR_BRUSHED;
     }
+#endif
 }
 #endif
