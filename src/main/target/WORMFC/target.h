@@ -128,16 +128,15 @@
 #define SDCARD_DETECT_PIN PB15
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USE_TIMER_MGMT
+// PB9: the removed legacy table marked this pad TIMER_OUTPUT_INVERTED; the full table applies no inversion.
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB9 , 1, -1) \
-    TIMER_PIN_MAP( 1, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 3, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 4, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 5, PA10 , 1,  1) \
-    TIMER_PIN_MAP( 6, PA8 , 1,  1)
+    TIMER_PIN_MAP( 0, PB9 , 1, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* S1_OUT - TIM3_UP - BURST */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* S2_OUT - TIM3_UP - BURST */ \
+    TIMER_PIN_MAP( 3, PA2 , 1,  0) /* S3_OUT - TIM2_UP - BURST */ \
+    TIMER_PIN_MAP( 4, PA3 , 1,  1) /* S4_OUT - TIM2_UP - BURST */ \
+    TIMER_PIN_MAP( 5, PA10 , 1,  1) /* S5_OUT - TIM1_UP - BURST */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  1) /* S6_OUT - TIM1_UP - BURST */
 
 #define MOTOR1_PIN              PB1
 #define MOTOR2_PIN              PB0

@@ -152,18 +152,16 @@
 
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 1, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 5, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 6, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 7, PA2 , 2,  0) \
-    TIMER_PIN_MAP( 8, PA8 , 1,  0)
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB4 , 1,  0) /* S1_OUT */ \
+    TIMER_PIN_MAP( 2, PB5 , 1,  0) /* S2_OUT */ \
+    TIMER_PIN_MAP( 3, PB6 , 1,  0) /* S3_OUT */ \
+    TIMER_PIN_MAP( 4, PB7 , 1,  0) /* S4_OUT */ \
+    TIMER_PIN_MAP( 5, PA0 , 2,  0) /* S5, SOFTSERIAL */ \
+    TIMER_PIN_MAP( 6, PB10 , 1,  0) /* S6, SOFTSERIAL */ \
+    TIMER_PIN_MAP( 7, PA2 , 2,  0) /* TX2 */ \
+    TIMER_PIN_MAP( 8, PA8 , 1,  0) /* LED */
 
 #define MOTOR1_PIN              PB4
 #define MOTOR2_PIN              PB5

@@ -140,24 +140,22 @@
 // IO Ports
 
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                      15                       //updated timer count to compensate for Nf Motor 4
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 1, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB9 , 1, -1) \
-    TIMER_PIN_MAP( 5, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 6, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 7, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 8, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 9, PB0 , 1,  0) \
-    TIMER_PIN_MAP( 10, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 11, PC6 , 1,  0) \
-    TIMER_PIN_MAP( 12, PC7 , 2,  1) \
-    TIMER_PIN_MAP( 13, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 14, PB3 , 1,  0)
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* RX 2 */ \
+    TIMER_PIN_MAP( 1, PB6 , 1,  0) /* D1-ST0                   MOTOR1 */ \
+    TIMER_PIN_MAP( 2, PB7 , 1,  0) /* D1-ST3                   MOTOR2 */ \
+    TIMER_PIN_MAP( 3, PB8 , 1,  0) /* D1-ST7                   MOTOR3 */ \
+    TIMER_PIN_MAP( 4, PB9 , 1, -1) /* D2-ST2/D2-ST4            MOTOR4 */ \
+    TIMER_PIN_MAP( 5, PA1 , 2,  0) /* D1-ST4                  MOTOR5/RX4 */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  0) /* NONE  TIM4_UP_D1-ST6     MOTOR6 */ \
+    TIMER_PIN_MAP( 7, PC9 , 2,  0) /* D2-ST7                   MOTOR7 */ \
+    TIMER_PIN_MAP( 8, PB1 , 2,  0) /* D1-ST2                   LED/MOTOR8 */ \
+    TIMER_PIN_MAP( 9, PB0 , 1,  0) /* LED 1 */ \
+    TIMER_PIN_MAP( 10, PA0 , 2,  0) /* TX4 */ \
+    TIMER_PIN_MAP( 11, PC6 , 1,  0) /* TX6 */ \
+    TIMER_PIN_MAP( 12, PC7 , 2,  1) /* RX6 */ \
+    TIMER_PIN_MAP( 13, PB5 , 1,  0) /* SPI_MOSI 3 */ \
+    TIMER_PIN_MAP( 14, PB3 , 1,  0) /* Camera Control 1 */
 
 #define MOTOR1_PIN              PB6
 #define MOTOR2_PIN              PB7

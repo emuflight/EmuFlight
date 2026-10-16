@@ -157,16 +157,18 @@
 #define DEFAULT_RX_FEATURE FEATURE_RX_SERIAL
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USE_TIMER_MGMT
+//DEF_TIM(TIM4, CH1, PB6, TIM_USE_ANY, 0, 0),	//in config but match no pins
+//DEF_TIM(TIM4, CH2, PB7, TIM_USE_ANY, 0, 0),   //pretty sure left over from
+//DEF_TIM(TIM3, CH4, PB1, TIM_USE_ANY, 0, 0),	//geprc_f722_bthd target/config
+//DEF_TIM(TIM3, CH3, PB0, TIM_USE_ANY, 0, 0),   //as match motors 5-8
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 1, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 2, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 3, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 4, PC7 , 2,  1) \
-    TIMER_PIN_MAP( 5, PC6 , 2,  1) \
-    TIMER_PIN_MAP( 6, PA1 , 1,  0)
+    TIMER_PIN_MAP( 0, PA0 , 2,  0) /* CAMERA CONTROL */ \
+    TIMER_PIN_MAP( 1, PA3 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 2, PC9 , 2,  0) /* MOTOR 1 */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  1) /* MOTOR 2 */ \
+    TIMER_PIN_MAP( 4, PC7 , 2,  1) /* MOTOR 3 */ \
+    TIMER_PIN_MAP( 5, PC6 , 2,  1) /* MOTOR 4 */ \
+    TIMER_PIN_MAP( 6, PA1 , 1,  0) /* LED */
 
 #define MOTOR1_PIN              PC9
 #define MOTOR2_PIN              PC8

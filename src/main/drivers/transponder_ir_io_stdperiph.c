@@ -42,6 +42,7 @@ volatile uint8_t transponderIrDataTransferInProgress = 0;
 
 static IO_t transponderIO = IO_NONE;
 static TIM_TypeDef *timer = NULL;
+static const timerHardware_t *transponderTimerHardware = NULL;
 static bool transponderInitialised = false;
 #if defined(STM32F4)
 static DMA_Stream_TypeDef *dmaRef = NULL;
@@ -61,6 +62,7 @@ static void TRANSPONDER_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
 
 void transponderIrHardwareInit(ioTag_t ioTag, transponder_t *transponder) {
     transponderInitialised = false;
+    transponderTimerHardware = NULL;
     if (!ioTag) {
         return;
     }
@@ -71,6 +73,7 @@ void transponderIrHardwareInit(ioTag_t ioTag, transponder_t *transponder) {
     if (timerHardware == NULL) {
         return;
     }
+    transponderTimerHardware = timerHardware;
     timer = timerHardware->tim;
     if (timerHardware->dmaRef == NULL) {
         return;
@@ -191,7 +194,7 @@ void transponderIrDisable(void) {
     DMA_Cmd(dmaRef, DISABLE);
     TIM_Cmd(timer, DISABLE);
     IOInit(transponderIO, OWNER_TRANSPONDER, 0);
-    IOConfigGPIOAF(transponderIO, IO_CONFIG(GPIO_Mode_AF, GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_DOWN), timerHardware->alternateFunction);
+    IOConfigGPIOAF(transponderIO, IO_CONFIG(GPIO_Mode_AF, GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_DOWN), transponderTimerHardware->alternateFunction);
 #ifdef TRANSPONDER_INVERTED
     IOHi(transponderIO);
 #else

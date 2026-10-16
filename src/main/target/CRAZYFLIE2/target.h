@@ -32,14 +32,12 @@
 #define TARGET_BOARD_IDENTIFIER "CF20"
 #define USBD_PRODUCT_STRING     "Crazyflie 2.0"
 
-#define USABLE_TIMER_CHANNEL_COUNT 4
 
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB11 , 1,  0) \
-    TIMER_PIN_MAP( 1, PA1 , 1,  0) \
-    TIMER_PIN_MAP( 2, PA15 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB9 , 1,  -1)
+    TIMER_PIN_MAP( 0, PB11 , 1,  0) /* PWM1 - OUT1 (Motor 1) */ \
+    TIMER_PIN_MAP( 1, PA1 , 1,  0) /* PWM2 - OUT2 (Motor 2) */ \
+    TIMER_PIN_MAP( 2, PA15 , 1,  0) /* PWM3 - OUT3 (Motor 3) */ \
+    TIMER_PIN_MAP( 3, PB9 , 1,  -1) /* PWM4 - OUT4 (Motor 4) */
 
 #define MOTOR1_PIN              PB11
 #define MOTOR2_PIN              PA1

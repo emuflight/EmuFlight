@@ -168,8 +168,6 @@
 #define MAX_SUPPORTED_MOTORS    12
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA8 , 1,  1) \
     TIMER_PIN_MAP( 1, PC6 , 2,  1) \

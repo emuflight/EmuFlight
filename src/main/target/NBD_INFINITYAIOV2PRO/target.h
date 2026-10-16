@@ -145,15 +145,13 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT      6
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA9 , 1,  0) \
-    TIMER_PIN_MAP( 1, PC9 , 1,  0) \
-    TIMER_PIN_MAP( 2, PC8 , 1,  0) \
-    TIMER_PIN_MAP( 3, PC7 , 1,  0) \
-    TIMER_PIN_MAP( 4, PC6 , 1,  0) \
-    TIMER_PIN_MAP( 5, PD13 , 1,  0)
+    TIMER_PIN_MAP( 0, PA9 , 1,  0) /* LED_STRIP, */ \
+    TIMER_PIN_MAP( 1, PC9 , 1,  0) /* M1 */ \
+    TIMER_PIN_MAP( 2, PC8 , 1,  0) /* M2 */ \
+    TIMER_PIN_MAP( 3, PC7 , 1,  0) /* M3 */ \
+    TIMER_PIN_MAP( 4, PC6 , 1,  0) /* M4 */ \
+    TIMER_PIN_MAP( 5, PD13 , 1,  0) /* BEEPER */
 
 #define MOTOR1_PIN              PC9
 #define MOTOR2_PIN              PC8

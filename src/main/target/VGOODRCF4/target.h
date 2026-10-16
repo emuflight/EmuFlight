@@ -169,18 +169,16 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 179
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USE_TIMER_MGMT
 // PB1 and TIM3 burst share DMA1 Stream 2; with DShot burst on only one of them gets DMA
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC7 , 2,  0) \
-    TIMER_PIN_MAP( 1, PA8 , 1,  1) \
-    TIMER_PIN_MAP( 2, PA9 , 1,  1) \
-    TIMER_PIN_MAP( 3, PA10 , 1,  1) \
-    TIMER_PIN_MAP( 4, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 5, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 6, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 7, PB1 , 2,  0)
+    TIMER_PIN_MAP( 0, PC7 , 2,  0) /* PPM */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  1) /* M1 */ \
+    TIMER_PIN_MAP( 2, PA9 , 1,  1) /* M2 */ \
+    TIMER_PIN_MAP( 3, PA10 , 1,  1) /* M3 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) /* M4 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* M5 */ \
+    TIMER_PIN_MAP( 6, PB0 , 2,  0) /* M6 */ \
+    TIMER_PIN_MAP( 7, PB1 , 2,  0) /* M7 / LED_STRIP */
 
 #define MOTOR1_PIN              PA8
 #define MOTOR2_PIN              PA9

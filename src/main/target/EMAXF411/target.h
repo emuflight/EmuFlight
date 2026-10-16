@@ -179,23 +179,21 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 14
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA2 , 3, -1) \
-    TIMER_PIN_MAP( 1, PA8 , 1,  1) \
-    TIMER_PIN_MAP( 2, PA9 , 1,  1) \
-    TIMER_PIN_MAP( 3, PA10 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 6, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 7, PA3 , 2,  1) \
-    TIMER_PIN_MAP( 8, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 9, PA15 , 1,  0) \
-    TIMER_PIN_MAP( 10, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 11, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 12, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 13, PA0 , 2,  0)
+    TIMER_PIN_MAP( 0, PA2 , 3, -1) /* PWM1   1,2 */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  1) /* S1_OUT 2,1 */ \
+    TIMER_PIN_MAP( 2, PA9 , 1,  1) /* S2_OUT PWM2 2,2 */ \
+    TIMER_PIN_MAP( 3, PA10 , 1,  0) /* S3_OUT PWM3 2,6 */ \
+    TIMER_PIN_MAP( 4, PB0 , 2,  0) /* S4_OUT 1,7 */ \
+    TIMER_PIN_MAP( 5, PB4 , 1,  0) /* S5_OUT 1,4 */ \
+    TIMER_PIN_MAP( 6, PB1 , 2,  0) /* RSSI 1,1 */ \
+    TIMER_PIN_MAP( 7, PA3 , 2,  1) /* PPM IN */ \
+    TIMER_PIN_MAP( 8, PB10 , 1,  0) /* CAM CONTROL    1,5 */ \
+    TIMER_PIN_MAP( 9, PA15 , 1,  0) /* Correct LED pad    1,5 */ \
+    TIMER_PIN_MAP( 10, PB6 , 1,  0) /* TX1    1,5 */ \
+    TIMER_PIN_MAP( 11, PB7 , 1,  0) /* RX1    1,5 */ \
+    TIMER_PIN_MAP( 12, PB8 , 1,  0) /* I2C_SCL    1,5 */ \
+    TIMER_PIN_MAP( 13, PA0 , 2,  0) /* NOT ACTUALLY LED    1,5 */
 
 #define MOTOR1_PIN              PA8
 #define MOTOR2_PIN              PA9

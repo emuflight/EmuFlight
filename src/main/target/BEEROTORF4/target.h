@@ -152,19 +152,17 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 1, PB0 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB1 , 3,  1) \
-    TIMER_PIN_MAP( 3, PA1 , 1,  0) \
-    TIMER_PIN_MAP( 4, PA0 , 1,  0) \
-    TIMER_PIN_MAP( 5, PC6 , 1,  0) \
-    TIMER_PIN_MAP( 6, PC7 , 2,  0) \
-    TIMER_PIN_MAP( 7, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB9 , 1, -1) \
-    TIMER_PIN_MAP( 9, PB8 , 1,  0)
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB0 , 1,  0) /* M1 - DMAR: DMA2_ST5 */ \
+    TIMER_PIN_MAP( 2, PB1 , 3,  1) /* M2 - DMAR: DMA2_ST1 */ \
+    TIMER_PIN_MAP( 3, PA1 , 1,  0) /* M3 - DMAR: DMA1_ST7 */ \
+    TIMER_PIN_MAP( 4, PA0 , 1,  0) /* M4 - */ \
+    TIMER_PIN_MAP( 5, PC6 , 1,  0) /* M5 - DMAR: DMA1_ST2 */ \
+    TIMER_PIN_MAP( 6, PC7 , 2,  0) /* M6 - */ \
+    TIMER_PIN_MAP( 7, PB5 , 1,  0) /* M7 - DMAR: DMA1_ST2 */ \
+    TIMER_PIN_MAP( 8, PB9 , 1, -1) /* M8 - DMAR: DMA1_ST6 */ \
+    TIMER_PIN_MAP( 9, PB8 , 1,  0) /* LED_STRIP / TRANSPONDER - DMA1_ST7 (can be used for DShot, conflicts with OSD TX) */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

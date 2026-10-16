@@ -149,26 +149,24 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 17
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC9 , 1,  0) \
-    TIMER_PIN_MAP( 1, PC8 , 1,  0) \
-    TIMER_PIN_MAP( 2, PC6 , 1,  0) \
-    TIMER_PIN_MAP( 3, PC7 , 1,  0) \
-    TIMER_PIN_MAP( 4, PD15 , 1, -1) \
-    TIMER_PIN_MAP( 5, PD14 , 1,  0) \
-    TIMER_PIN_MAP( 6, PD13 , 1,  0) \
-    TIMER_PIN_MAP( 7, PD12 , 1,  0) \
-    TIMER_PIN_MAP( 8, PA0 , 1,  0) \
-    TIMER_PIN_MAP( 9, PA1 , 1,  0) \
-    TIMER_PIN_MAP( 10, PA2 , 2,  0) \
-    TIMER_PIN_MAP( 11, PA3 , 2,  0) \
-    TIMER_PIN_MAP( 12, PE9 , 1,  0) \
-    TIMER_PIN_MAP( 13, PE11 , 1,  0) \
-    TIMER_PIN_MAP( 14, PE13 , 1,  0) \
-    TIMER_PIN_MAP( 15, PE14 , 1,  0) \
-    TIMER_PIN_MAP( 16, PE6 , 1, -1)
+    TIMER_PIN_MAP( 0, PC9 , 1,  0) /* S1_IN */ \
+    TIMER_PIN_MAP( 1, PC8 , 1,  0) /* S2_IN */ \
+    TIMER_PIN_MAP( 2, PC6 , 1,  0) /* S3_IN */ \
+    TIMER_PIN_MAP( 3, PC7 , 1,  0) /* S4_IN */ \
+    TIMER_PIN_MAP( 4, PD15 , 1, -1) /* S5_IN */ \
+    TIMER_PIN_MAP( 5, PD14 , 1,  0) /* S6_IN */ \
+    TIMER_PIN_MAP( 6, PD13 , 1,  0) /* S7_IN */ \
+    TIMER_PIN_MAP( 7, PD12 , 1,  0) /* S8_IN */ \
+    TIMER_PIN_MAP( 8, PA0 , 1,  0) /* S1_OUT */ \
+    TIMER_PIN_MAP( 9, PA1 , 1,  0) /* S2_OUT */ \
+    TIMER_PIN_MAP( 10, PA2 , 2,  0) /* S3_OUT */ \
+    TIMER_PIN_MAP( 11, PA3 , 2,  0) /* S4_OUT */ \
+    TIMER_PIN_MAP( 12, PE9 , 1,  0) /* S5_OUT */ \
+    TIMER_PIN_MAP( 13, PE11 , 1,  0) /* S6_OUT */ \
+    TIMER_PIN_MAP( 14, PE13 , 1,  0) /* S7_OUT */ \
+    TIMER_PIN_MAP( 15, PE14 , 1,  0) /* S8_OUT */ \
+    TIMER_PIN_MAP( 16, PE6 , 1, -1) /* sonar echo if needed */
 
 #define MOTOR1_PIN              PA0
 #define MOTOR2_PIN              PA1
