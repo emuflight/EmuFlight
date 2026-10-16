@@ -257,10 +257,12 @@ static void validateAndFixConfig(void) {
 
     // a link may not drive ARM, and may not target a mode that is itself linked
     for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
-        const modeActivationCondition_t *mac = modeActivationConditions(i);
-        if (mac->linkedTo) {
-            if (mac->modeId == BOXARM || isModeActivationConditionLinked(mac->linkedTo)) {
-                removeModeActivationCondition(mac->modeId);
+        modeActivationCondition_t *mac = modeActivationConditionsMutable(i);
+        if (mac->linkedTo && (mac->modeId == BOXARM || isModeActivationConditionLinked(mac->linkedTo))) {
+            if (IS_RANGE_USABLE(&mac->range)) {
+                mac->linkedTo = 0;
+            } else {
+                memset(mac, 0, sizeof(*mac));
             }
         }
     }
