@@ -181,7 +181,7 @@ extern "C" {
 // ---------------------------------------------------------------------------------------------
 // Fake board
 //
-//   pin  timerHardware occurrences (1-based, in table order)       default timerIOConfig
+//   pin  fullTimerHardware occurrences (1-based, in table order)       default timerIOConfig
 //   C08  #1 TIM3 CH3 AF2, #2 TIM8 CH3 AF3                          slot 0: occurrence 1, dmaopt 1
 //   A01  #1 TIM2 CH2 AF1                                           slot 1: occurrence 1, dmaopt NONE
 //   B13  #1 TIM1 CH1N AF1                                          no slot
