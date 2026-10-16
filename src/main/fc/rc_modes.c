@@ -75,13 +75,32 @@ bool isRangeActive(uint8_t auxChannelIndex, const channelRange_t *range) {
             channelValue < 900 + (range->endStep * 25));
 }
 
-void updateMasksForMac(const modeActivationCondition_t *mac, boxBitmask_t *andMask, boxBitmask_t *newMask) {
-    bool bAnd = (mac->modeLogic == MODELOGIC_AND) || bitArrayGet(andMask, mac->modeId);
-    bool bAct = isRangeActive(mac->auxChannelIndex, &mac->range);
-    if (bAnd)
-        bitArraySet(andMask, mac->modeId);
-    if (bAnd != bAct)
-        bitArraySet(newMask, mac->modeId);
+/*
+ *  updateMasksForMac:
+ *
+ *  The following are the possible logic states at each MAC update:
+ *      AND     NEW
+ *      ---     ---
+ *       F       F      - no previous AND macs evaluated, no previous active OR macs
+ *       F       T      - at least 1 previous active OR mac (***this state is latched True***)
+ *       T       F      - all previous AND macs active, no previous active OR macs
+ *       T       T      - at least 1 previous inactive AND mac, no previous active OR macs
+ */
+void updateMasksForMac(const modeActivationCondition_t *mac, boxBitmask_t *andMask, boxBitmask_t *newMask, bool bActive) {
+    if (bitArrayGet(andMask, mac->modeId) || !bitArrayGet(newMask, mac->modeId)) {
+        bool bAnd = mac->modeLogic == MODELOGIC_AND;
+        if (!bAnd) { // OR mac
+            if (bActive) {
+                bitArrayClr(andMask, mac->modeId);
+                bitArraySet(newMask, mac->modeId);
+            }
+        } else { // AND mac
+            bitArraySet(andMask, mac->modeId);
+            if (!bActive) {
+                bitArraySet(newMask, mac->modeId);
+            }
+        }
+    }
 }
 
 void updateMasksForStickyModes(const modeActivationCondition_t *mac, boxBitmask_t *andMask, boxBitmask_t *newMask) {
@@ -89,10 +108,11 @@ void updateMasksForStickyModes(const modeActivationCondition_t *mac, boxBitmask_
         bitArrayClr(andMask, mac->modeId);
         bitArraySet(newMask, mac->modeId);
     } else {
+        bool bActive = isRangeActive(mac->auxChannelIndex, &mac->range);
         if (bitArrayGet(&stickyModesEverDisabled, mac->modeId)) {
-            updateMasksForMac(mac, andMask, newMask);
+            updateMasksForMac(mac, andMask, newMask, bActive);
         } else {
-            if (micros() >= STICKY_MODE_BOOT_DELAY_US && !isRangeActive(mac->auxChannelIndex, &mac->range)) {
+            if (micros() >= STICKY_MODE_BOOT_DELAY_US && !bActive) {
                 bitArraySet(&stickyModesEverDisabled, mac->modeId);
             }
         }
@@ -108,25 +128,27 @@ void updateActivatedModes(void) {
     // determine which conditions set/clear the mode
     for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
         const modeActivationCondition_t *mac = modeActivationConditions(i);
-        // Skip linked macs for now to fully determine target states
+        // linked macs are evaluated after all range macs have determined their target states
         if (mac->linkedTo) {
             continue;
         }
         if (bitArrayGet(&stickyModes, mac->modeId)) {
             updateMasksForStickyModes(mac, &andMask, &newMask);
         } else if (mac->modeId < CHECKBOX_ITEM_COUNT) {
-            updateMasksForMac(mac, &andMask, &newMask);
+            bool bActive = isRangeActive(mac->auxChannelIndex, &mac->range);
+            updateMasksForMac(mac, &andMask, &newMask, bActive);
         }
     }
-    bitArrayXor(&newMask, sizeof(&newMask), &newMask, &andMask);
-    // Update linked modes
+    // update linked modes: a linked mac is active while its target mode is active
     for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
         const modeActivationCondition_t *mac = modeActivationConditions(i);
         if (!mac->linkedTo) {
             continue;
         }
-        bitArrayCopy(&newMask, mac->linkedTo, mac->modeId);
+        bool bActive = bitArrayGet(&andMask, mac->linkedTo) != bitArrayGet(&newMask, mac->linkedTo);
+        updateMasksForMac(mac, &andMask, &newMask, bActive);
     }
+    bitArrayXor(&newMask, sizeof(newMask), &newMask, &andMask);
     rcModeUpdate(&newMask);
 }
 
@@ -138,6 +160,29 @@ bool isModeActivationConditionPresent(boxId_e modeId) {
         }
     }
     return false;
+}
+
+bool isModeActivationConditionLinked(boxId_e modeId) {
+    for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
+        const modeActivationCondition_t *mac = modeActivationConditions(i);
+        if (mac->modeId == modeId && mac->linkedTo != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void clearInvalidModeLinks(void) {
+    for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
+        modeActivationCondition_t *mac = modeActivationConditionsMutable(i);
+        if (mac->linkedTo && (mac->modeId == BOXARM || isModeActivationConditionLinked(mac->linkedTo))) {
+            if (IS_RANGE_USABLE(&mac->range)) {
+                mac->linkedTo = 0;
+            } else {
+                memset(mac, 0, sizeof(*mac));
+            }
+        }
+    }
 }
 
 void removeModeActivationCondition(const boxId_e modeId) {

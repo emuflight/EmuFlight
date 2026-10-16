@@ -255,6 +255,9 @@ static void validateAndFixConfig(void) {
     }
 #endif
 
+    // a link may not drive ARM, and may not target a mode that is itself linked
+    clearInvalidModeLinks();
+
     if (currentPidProfile->horizonTransition >= currentPidProfile->horizon_tilt_effect) {
         pidProfilesMutable(systemConfig()->pidProfileIndex)->horizonTransition = MAX(currentPidProfile->horizon_tilt_effect - 20, 0);
     }
