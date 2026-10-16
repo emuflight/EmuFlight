@@ -31,14 +31,18 @@
  * upopt NONE: TIM5_UP burst DShot not used (DMAMUX request TBD for this target).
  *
  * LED strip TIM1_CH1 on PA8 (dmaopt uses DMA2).
- * Camera control: PE5 = TIM15_CH1 per BF SPRACINGH7NANO config (not PB9 — PB9 = I2C1_SDA).
- * Camera control entry not added here; needs schematic confirmation and target.h completion.
+ * Camera control: PE5 = TIM15_CH1 (TIMER_PIN_MAPPING row in target.h; PB9 is I2C1_SDA).
  */
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
-    DEF_TIM(TIM5,  CH1, PA0, TIM_USE_MOTOR, 0, 0, NONE), // M1
-    DEF_TIM(TIM5,  CH2, PA1, TIM_USE_MOTOR, 0, 1, NONE), // M2
-    DEF_TIM(TIM5,  CH3, PA2, TIM_USE_MOTOR, 0, 2, NONE), // M3
-    DEF_TIM(TIM5,  CH4, PA3, TIM_USE_MOTOR, 0, 3, NONE), // M4
-    DEF_TIM(TIM1,  CH1, PA8, TIM_USE_LED,   0, 9, NONE), // LED strip — DMA2_S1
+    DEF_TIM(TIM5,  CH1, PA0,  TIM_USE_MOTOR, 0, 0, NONE), // M1
+    DEF_TIM(TIM5,  CH2, PA1,  TIM_USE_MOTOR, 0, 1, NONE), // M2
+    DEF_TIM(TIM5,  CH3, PA2,  TIM_USE_MOTOR, 0, 2, NONE), // M3
+    DEF_TIM(TIM5,  CH4, PA3,  TIM_USE_MOTOR, 0, 3, NONE), // M4
+    DEF_TIM(TIM4,  CH1, PB6,  TIM_USE_MOTOR, 0, 4, NONE), // M5
+    DEF_TIM(TIM4,  CH2, PB7,  TIM_USE_MOTOR, 0, 5, NONE), // M6
+    DEF_TIM(TIM8,  CH1, PC6,  TIM_USE_MOTOR, 0, 6, NONE), // M7
+    DEF_TIM(TIM8,  CH2, PC7,  TIM_USE_MOTOR, 0, 7, NONE), // M8
+    DEF_TIM(TIM1,  CH1, PA8,  TIM_USE_LED,   0, 10, NONE), // LED strip
+    DEF_TIM(TIM12, CH2, PB15, TIM_USE_PPM,   0, NONE, NONE), // PPM
 };
