@@ -98,8 +98,6 @@
 #define ENABLE_DSHOT_DMAR       true
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 5
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PC6 , 1,  0) \
     TIMER_PIN_MAP( 1, PC7 , 1,  0) \

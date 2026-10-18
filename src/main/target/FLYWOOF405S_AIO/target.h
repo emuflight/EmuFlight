@@ -128,18 +128,16 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 2, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 3, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 5, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 6, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 7, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 8, PA9 , 1,  0)
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PA3 , 1,  1) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PA2 , 1,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB5 , 1,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PB7 , 1,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PC9 , 2,  0) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PC8 , 2,  0) /* motor 8 */ \
+    TIMER_PIN_MAP( 8, PA9 , 1,  0) /* led */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

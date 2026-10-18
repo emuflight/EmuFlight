@@ -150,20 +150,18 @@
 #define SERIALRX_UART           SERIAL_PORT_USART3
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB8 , 2, -1) \
-    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 3, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 4, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 5, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 6, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 7, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 8, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 9, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 10, PA9 , 1,  0)
+    TIMER_PIN_MAP( 0, PB8 , 2, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S1_OUT - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* S2_OUT - DMA1_ST2 */ \
+    TIMER_PIN_MAP( 3, PA3 , 1,  1) /* S3_OUT - DMA1_ST6 */ \
+    TIMER_PIN_MAP( 4, PA2 , 1,  0) /* S4_OUT - DMA1_ST1 */ \
+    TIMER_PIN_MAP( 5, PB5 , 1,  0) /* S5_OUT - DMA1_ST5 */ \
+    TIMER_PIN_MAP( 6, PB7 , 1,  0) /* S6_OUT - DMA1_ST3 */ \
+    TIMER_PIN_MAP( 7, PC9 , 2,  0) /* S7_OUT - DMA2_ST7 */ \
+    TIMER_PIN_MAP( 8, PB4 , 1,  0) /* S8_OUT - DMA1_ST4 */ \
+    TIMER_PIN_MAP( 9, PC8 , 2,  0) /* LED_STRIP - DMA2_ST2 */ \
+    TIMER_PIN_MAP( 10, PA9 , 1,  0) /* FC CAM */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

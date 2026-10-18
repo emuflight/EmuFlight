@@ -162,16 +162,26 @@
 //#define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA1 , 1,  0) \
-    TIMER_PIN_MAP( 1, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 2, PA3 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 6, PE9 , 1,  0) \
-    TIMER_PIN_MAP( 7, PE11, 1,  0) \
-    TIMER_PIN_MAP( 8, PE13, 1,  0) \
-    TIMER_PIN_MAP( 9, PE14, 1,  0)
+    TIMER_PIN_MAP( 0, PA1 , 1,  0) /* M1 */ \
+    TIMER_PIN_MAP( 1, PA2 , 1,  0) /* M2 */ \
+    TIMER_PIN_MAP( 2, PA3 , 1,  0) /* M3 */ \
+    TIMER_PIN_MAP( 3, PB5 , 1,  0) /* M4 */ \
+    TIMER_PIN_MAP( 4, PB0 , 2,  0) /* M5 */ \
+    TIMER_PIN_MAP( 5, PB1 , 2,  0) /* M6 */ \
+    TIMER_PIN_MAP( 6, PE9 , 1,  0) /* PPM,R1 */ \
+    TIMER_PIN_MAP( 7, PE11, 1,  0) /* R2 */ \
+    TIMER_PIN_MAP( 8, PE13, 1,  0) /* R3 */ \
+    TIMER_PIN_MAP( 9, PE14, 1,  0) /* R4 */
+
+#define MOTOR1_PIN              PA1
+#define MOTOR2_PIN              PA2
+#define MOTOR3_PIN              PA3
+#define MOTOR4_PIN              PB5
+#define MOTOR5_PIN              PB0
+#define MOTOR6_PIN              PB1
+#define RX_PWM1_PIN             PE9
+#define RX_PWM2_PIN             PE11
+#define RX_PWM3_PIN             PE13
+#define RX_PWM4_PIN             PE14
+#define RX_PPM_PIN              PE9

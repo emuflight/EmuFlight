@@ -166,17 +166,16 @@
 #define SERIALRX_UART           SERIAL_PORT_USART6
 
 
-#define USABLE_TIMER_CHANNEL_COUNT     8
-#define USE_TIMER_MGMT
+// * - Support HEXA-Dshot - S5_OUT, S6_OUT are N-channels, which are only capable of outputs. (E.g., motors, servos, LED strip, PWM outputs.) - Input is only available on DEBUG pad. See comment on SOFTSERIAL1 in target.h for details.
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC7 , 1,  0) \
-    TIMER_PIN_MAP( 1, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 3, PA2 , 2,  0) \
-    TIMER_PIN_MAP( 4, PA3 , 2,  1) \
-    TIMER_PIN_MAP( 5, PB0 , 1,  0) \
-    TIMER_PIN_MAP( 6, PB1 , 3,  0) \
-    TIMER_PIN_MAP( 7, PB3 , 1,  0)
+    TIMER_PIN_MAP( 0, PC7 , 1,  0) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PA0 , 2,  0) /* S1_OUT - DMA1_ST2 */ \
+    TIMER_PIN_MAP( 2, PA1 , 2,  0) /* S2_OUT - DMA1_ST4 */ \
+    TIMER_PIN_MAP( 3, PA2 , 2,  0) /* S3_OUT - DMA1_ST0 */ \
+    TIMER_PIN_MAP( 4, PA3 , 2,  1) /* S4_OUT - DMA1_ST3 (Could be DMA1_ST1 with dmaopt=0) */ \
+    TIMER_PIN_MAP( 5, PB0 , 1,  0) /* S5_OUT - DMA2_ST6 */ \
+    TIMER_PIN_MAP( 6, PB1 , 3,  0) /* S6_OUT - DMA2_ST2 */ \
+    TIMER_PIN_MAP( 7, PB3 , 1,  0) /* DEBUG  - DMA1_ST6 */
 
 #define MOTOR1_PIN              PA0
 #define MOTOR2_PIN              PA1

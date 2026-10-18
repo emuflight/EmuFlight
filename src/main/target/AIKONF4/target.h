@@ -149,19 +149,28 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define DEFAULT_FEATURES        (FEATURE_SOFTSERIAL)
 
-#define USABLE_TIMER_CHANNEL_COUNT 13
-#define USE_TIMER_MGMT
+// TIM8_UP (DMA2_ST1_CH7)
+// TIM3_UP (DMA1_ST2_CH5)
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 1, PC6 , 2,  0) \
-    TIMER_PIN_MAP( 2, PC7 , 2,  0) \
-    TIMER_PIN_MAP( 3, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 4, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 6, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 7, PA9 , 1,  0) \
-    TIMER_PIN_MAP( 8, PA2 , 3,  -1) \
-    TIMER_PIN_MAP( 9, PA3 , 3,  -1) \
-    TIMER_PIN_MAP( 10, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 11, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 12, PB6 , 1,  0)
+    TIMER_PIN_MAP( 0, PB3 , 1,  0) /* CAMERA_CONTROL_PIN */ \
+    TIMER_PIN_MAP( 1, PC6 , 2,  0) /* M1 */ \
+    TIMER_PIN_MAP( 2, PC7 , 2,  0) /* M2 */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  0) /* M3 */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* M4 */ \
+    TIMER_PIN_MAP( 5, PB0 , 2,  0) /* M5 */ \
+    TIMER_PIN_MAP( 6, PB1 , 2,  0) /* M6 */ \
+    TIMER_PIN_MAP( 7, PA9 , 1,  0) /* UART1_TX */ \
+    TIMER_PIN_MAP( 8, PA2 , 3,  -1) /* UART2_TX */ \
+    TIMER_PIN_MAP( 9, PA3 , 3,  -1) /* UART2_RX */ \
+    TIMER_PIN_MAP( 10, PA0 , 2,  0) /* UART4_TX */ \
+    TIMER_PIN_MAP( 11, PA1 , 2,  0) /* UART4_RX */ \
+    TIMER_PIN_MAP( 12, PB6 , 1,  0) /* LED & PPM (DMA1_ST0_CH2) */
+
+#define MOTOR1_PIN              PC6
+#define MOTOR2_PIN              PC7
+#define MOTOR3_PIN              PC8
+#define MOTOR4_PIN              PC9
+#define MOTOR5_PIN              PB0
+#define MOTOR6_PIN              PB1
+#define RX_PPM_PIN              PB6
+#define LED_STRIP_PIN           PB6

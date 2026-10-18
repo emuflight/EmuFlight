@@ -27,7 +27,7 @@
 #define LED0_PIN                PB14
 #define LED1_PIN                PB15
 
-#define CAMERA_CONTROL_PIN      PB3
+#define CAMERA_CONTROL_PIN      PB3 // PB3 is TIM2 CH2 only; TIM2 also drives LED strip PA15 and motor 7 PA3, so no mapping row
 
 #define USE_BEEPER
 #define BEEPER_PIN              PB2
@@ -127,20 +127,18 @@
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA15 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 5, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 6, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 7, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 8, PB0 , 1,  1) \
-    TIMER_PIN_MAP( 9, PB14 , 3, -1) \
-    TIMER_PIN_MAP( 10, PB15 , 3, -1)
+    TIMER_PIN_MAP( 0, PA15 , 1,  0) /* PPM&SBUS */ \
+    TIMER_PIN_MAP( 1, PB8 , 1,  0) /* S1 */ \
+    TIMER_PIN_MAP( 2, PB7 , 1,  0) /* S2 */ \
+    TIMER_PIN_MAP( 3, PB5 , 1,  0) /* S3 */ \
+    TIMER_PIN_MAP( 4, PB4 , 1,  0) /* S4 */ \
+    TIMER_PIN_MAP( 5, PA0 , 2,  0) /* S5 */ \
+    TIMER_PIN_MAP( 6, PA1 , 2,  0) /* S6 */ \
+    TIMER_PIN_MAP( 7, PA3 , 1,  1) /* S7 */ \
+    TIMER_PIN_MAP( 8, PB0 , 1,  1) /* S8 */ \
+    TIMER_PIN_MAP( 9, PB14 , 3, -1) /* led1 */ \
+    TIMER_PIN_MAP( 10, PB15 , 3, -1) /* led2 */
 
 #define MOTOR1_PIN              PB8
 #define MOTOR2_PIN              PB7

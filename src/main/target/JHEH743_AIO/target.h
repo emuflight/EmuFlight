@@ -141,30 +141,28 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 16
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA8 , 1,  10) \
-    TIMER_PIN_MAP( 1, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 3, PB1 , 2,  1) \
-    TIMER_PIN_MAP( 4, PD12 , 1,  10) \
-    TIMER_PIN_MAP( 5, PD13 , 1,  5) \
-    TIMER_PIN_MAP( 6, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 7, PC9 , 2,  7) \
-    TIMER_PIN_MAP( 8, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 9, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 10, PA2 , 2,  0) \
-    TIMER_PIN_MAP( 11, PA3 , 1,  0) \
-    TIMER_PIN_MAP( 12, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 13, PB11 , 1,  0) \
-    TIMER_PIN_MAP( 14, PE9 , 1,  2) \
-    TIMER_PIN_MAP( 15, PE11 , 1,  3)
+    TIMER_PIN_MAP( 0, PA8 , 1,  10) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 1, PB3 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  1) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PD12 , 1,  10) /* led strip */ \
+    TIMER_PIN_MAP( 5, PD13 , 1,  5) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  0) /* cam ctrl */ \
+    TIMER_PIN_MAP( 7, PC9 , 2,  7) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 8, PA0 , 2,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 9, PA1 , 2,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 10, PA2 , 2,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 11, PA3 , 1,  0) /* ppm */ \
+    TIMER_PIN_MAP( 12, PB10 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 13, PB11 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 14, PE9 , 1,  2) /* motor 1 */ \
+    TIMER_PIN_MAP( 15, PE11 , 1,  3) /* motor 3 */
 
-#define MOTOR1_PIN              PB0
-#define MOTOR2_PIN              PB1
-#define MOTOR3_PIN              PE9
-#define MOTOR4_PIN              PE11
+#define MOTOR1_PIN              PE9
+#define MOTOR2_PIN              PB0
+#define MOTOR3_PIN              PE11
+#define MOTOR4_PIN              PB1
 #define RX_PPM_PIN              PA3
 
 // notice - this file was programmatically generated and may be incomplete.

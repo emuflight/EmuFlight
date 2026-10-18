@@ -153,19 +153,19 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USE_TIMER_MGMT
+// PB1 PWM input shares TIM3 with motors 4 and 5; parallel PWM input with DShot output resets the shared timer base
+//DEF_TIM(TIM3, CH2, PB5,  TIM_USE_MOTOR, 0, 0), //  S6_OUT 1,5
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA2 , 3, -1) \
-    TIMER_PIN_MAP( 1, PA8 , 1,  1) \
-    TIMER_PIN_MAP( 2, PA9 , 1,  1) \
-    TIMER_PIN_MAP( 3, PA10 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 6, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 7, PA3 , 2,  1) \
-    TIMER_PIN_MAP( 8, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 9, PA15 , 1,  0)
+    TIMER_PIN_MAP( 0, PA2 , 3, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  1) /* S1_OUT 2,1 */ \
+    TIMER_PIN_MAP( 2, PA9 , 1,  1) /* S2_OUT 2,2 */ \
+    TIMER_PIN_MAP( 3, PA10 , 1,  0) /* S3_OUT 2,6 */ \
+    TIMER_PIN_MAP( 4, PB0 , 2,  0) /* S4_OUT 1,7 */ \
+    TIMER_PIN_MAP( 5, PB4 , 1,  0) /* S5_OUT 1,4 */ \
+    TIMER_PIN_MAP( 6, PB1 , 2,  0) /* RSSI   1,2 */ \
+    TIMER_PIN_MAP( 7, PA3 , 2,  1) /* RX2    1,0 */ \
+    TIMER_PIN_MAP( 8, PB10 , 1,  0) /* CAM CC 1,1 */ \
+    TIMER_PIN_MAP( 9, PA15 , 1,  0) /* LED    1,5 */
 
 #define MOTOR1_PIN              PA8
 #define MOTOR2_PIN              PA9
@@ -173,4 +173,6 @@
 #define MOTOR4_PIN              PB0
 #define MOTOR5_PIN              PB4
 #define RX_PPM_PIN              PA2
+#define RX_PWM1_PIN PB1
+#define RX_PWM2_PIN PA3
 #define LED_STRIP_PIN           PA15

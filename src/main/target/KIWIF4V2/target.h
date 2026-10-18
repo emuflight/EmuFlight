@@ -134,15 +134,13 @@
 #define SERIALRX_UART           SERIAL_PORT_USART1
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 5
 
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA3 , 1,  1) \
     TIMER_PIN_MAP( 1, PB0 , 2,  0) \
     TIMER_PIN_MAP( 2, PB1 , 2,  0) \
     TIMER_PIN_MAP( 3, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB7 , 1,  0)
+    TIMER_PIN_MAP( 4, PB7 , 1,  0) /* LED */
 
 #define MOTOR1_PIN              PA3
 #define MOTOR2_PIN              PB0

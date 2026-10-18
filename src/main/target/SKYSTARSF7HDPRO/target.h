@@ -198,17 +198,15 @@
 
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USE_TIMER_MGMT
 // PB3 and TIM4 burst share DMA1 Stream 6; with DShot burst on only one of them gets DMA
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB4 , 1,  -1) \
-    TIMER_PIN_MAP( 1, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 2, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 3, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 5, PA8 , 1,  -1) \
-    TIMER_PIN_MAP( 6, PB3 , 1,  0)
+    TIMER_PIN_MAP( 0, PB4 , 1,  -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PC8 , 2,  0) /* S1_OUT – UP2-1 */ \
+    TIMER_PIN_MAP( 2, PC9 , 2,  0) /* S2_OUT – UP2-1 */ \
+    TIMER_PIN_MAP( 3, PB6 , 1,  0) /* S3_OUT – UP2-5 */ \
+    TIMER_PIN_MAP( 4, PB7 , 1,  0) /* S4_OUT – UP2-5 */ \
+    TIMER_PIN_MAP( 5, PA8 , 1,  -1) /* FC CAM – DMA1_ST7 */ \
+    TIMER_PIN_MAP( 6, PB3 , 1,  0) /* LED_STRIP – DMA1_ST6 */
 
 #define MOTOR1_PIN              PC8
 #define MOTOR2_PIN              PC9

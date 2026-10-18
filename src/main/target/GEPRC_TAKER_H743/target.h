@@ -155,18 +155,16 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB0 , 2,  1) \
-    TIMER_PIN_MAP( 2, PB1 , 2,  2) \
-    TIMER_PIN_MAP( 3, PB5 , 1,  3) \
-    TIMER_PIN_MAP( 4, PB4 , 1,  4) \
-    TIMER_PIN_MAP( 5, PD12 , 1,  5) \
-    TIMER_PIN_MAP( 6, PD13 , 1,  6) \
-    TIMER_PIN_MAP( 7, PC8 , 2,  7) \
-    TIMER_PIN_MAP( 8, PC9 , 2,  8)
+    TIMER_PIN_MAP( 0, PA8 , 1,  0) /* led strip */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  1) /* motor 1 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  2) /* motor 2 */ \
+    TIMER_PIN_MAP( 3, PB5 , 1,  3) /* motor 3 */ \
+    TIMER_PIN_MAP( 4, PB4 , 1,  4) /* motor 4 */ \
+    TIMER_PIN_MAP( 5, PD12 , 1,  5) /* motor 5 */ \
+    TIMER_PIN_MAP( 6, PD13 , 1,  6) /* motor 6 */ \
+    TIMER_PIN_MAP( 7, PC8 , 2,  7) /* motor 7 */ \
+    TIMER_PIN_MAP( 8, PC9 , 2,  8) /* motor 8 */
 #define TIMUP3_DMA_OPT 11
 #define TIMUP4_DMA_OPT 12
 #define TIMUP8_DMA_OPT 13

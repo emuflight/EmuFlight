@@ -149,19 +149,17 @@
 #define RX_CHANNELS_TAER
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC7 , 2,  0) \
-    TIMER_PIN_MAP( 1, PA2 , 2,  0) \
-    TIMER_PIN_MAP( 2, PA3 , 2,  0) \
-    TIMER_PIN_MAP( 3, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 4, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 6, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 7, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB9 , 1, -1) \
-    TIMER_PIN_MAP( 9, PC6 , 2,  0)
+    TIMER_PIN_MAP( 0, PC7 , 2,  0) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PA2 , 2,  0) /* PWM1 */ \
+    TIMER_PIN_MAP( 2, PA3 , 2,  0) /* PWM2 */ \
+    TIMER_PIN_MAP( 3, PA0 , 2,  0) /* PWM3 */ \
+    TIMER_PIN_MAP( 4, PA1 , 2,  0) /* PWM4 */ \
+    TIMER_PIN_MAP( 5, PB1 , 2,  0) /* PWM5 */ \
+    TIMER_PIN_MAP( 6, PB0 , 2,  0) /* PWM6 */ \
+    TIMER_PIN_MAP( 7, PB8 , 1,  0) /* PWM7 */ \
+    TIMER_PIN_MAP( 8, PB9 , 1, -1) /* PWM8 */ \
+    TIMER_PIN_MAP( 9, PC6 , 2,  0) /* LED_STRIP */
 
 #define MOTOR1_PIN              PA2
 #define MOTOR2_PIN              PA3

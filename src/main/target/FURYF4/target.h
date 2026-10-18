@@ -157,15 +157,13 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 1, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 2, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 3, PB1 , 1,  0) \
-    TIMER_PIN_MAP( 4, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 5, PA0 , 2,  0) \
+    TIMER_PIN_MAP( 0, PC9 , 2,  0) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PA3 , 1,  1) /* S1_OUT - DMA1_ST6_CH3 */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* S2_OUT - DMA1_ST7_CH5 */ \
+    TIMER_PIN_MAP( 3, PB1 , 1,  0) /* S3_OUT - DMA2_ST6_CH0 */ \
+    TIMER_PIN_MAP( 4, PA2 , 1,  0) /* S4_OUT - DMA1_ST1_CH3 */ \
+    TIMER_PIN_MAP( 5, PA0 , 2,  0) /* LED_STRIP - DMA1_ST2_CH6 */ \
     TIMER_PIN_MAP( 6, PB9 , 2, -1)
 
 #define MOTOR1_PIN              PA3

@@ -152,15 +152,13 @@
 
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB9 , 2, -1) \
-    TIMER_PIN_MAP( 1, PB0 , 3,  0) \
-    TIMER_PIN_MAP( 2, PB1 , 3,  0) \
-    TIMER_PIN_MAP( 3, PA3 , 1,  0) \
-    TIMER_PIN_MAP( 4, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 5, PB6 , 1,  0)
+    TIMER_PIN_MAP( 0, PB9 , 2, -1) /* cam control */ \
+    TIMER_PIN_MAP( 1, PB0 , 3,  0) /* Motor 1 */ \
+    TIMER_PIN_MAP( 2, PB1 , 3,  0) /* Motor 2 */ \
+    TIMER_PIN_MAP( 3, PA3 , 1,  0) /* Motor 3 */ \
+    TIMER_PIN_MAP( 4, PA2 , 1,  0) /* Motor 4 */ \
+    TIMER_PIN_MAP( 5, PB6 , 1,  0) /* LED for REVOLT */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

@@ -104,18 +104,25 @@
 #define RX_CHANNELS_TAER
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USE_TIMER_MGMT
+// Telemetry
+// UART1 RX: DMA2_ST5
+// UART1 TX: DMA2_ST7
+// RX1
+// UART2 RX: DMA1_ST5
+// UART2 TX: DMA1_ST6
+// I2C
+// UART3 RX: DMA1_ST1
+// UART3 TX: DMA1_ST3
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 1, PC6 , 2,  0) \
-    TIMER_PIN_MAP( 2, PC7 , 2,  1) \
-    TIMER_PIN_MAP( 3, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 4, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 5, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 6, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 7, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB9 , 1, -1)
+    TIMER_PIN_MAP( 0, PA2 , 1,  0) /* PPM IN  DMA1_ST1 (shared with RX1) */ \
+    TIMER_PIN_MAP( 1, PC6 , 2,  0) /* SERVO1  DMA2_ST2 */ \
+    TIMER_PIN_MAP( 2, PC7 , 2,  1) /* SERVO2  DMA2_ST3 */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  1) /* SERVO3  DMA2_ST4 */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* SERVO4  DMA2_ST7 */ \
+    TIMER_PIN_MAP( 5, PA0 , 2,  0) /* SERVO5  DMA1_ST2 */ \
+    TIMER_PIN_MAP( 6, PA1 , 2,  0) /* SERVO6  DMA1_ST4 */ \
+    TIMER_PIN_MAP( 7, PB8 , 1,  0) /* SERVO7  DMA1_ST7 */ \
+    TIMER_PIN_MAP( 8, PB9 , 1, -1) /* SERVO8  DMA1_ST3 */
 
 #define MOTOR1_PIN              PC6
 #define MOTOR2_PIN              PC7
