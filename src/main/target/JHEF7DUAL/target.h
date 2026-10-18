@@ -60,18 +60,11 @@
 #define USE_ACC_SPI_ICM20689
 #define USE_ACC_SPI_ICM42688P
 
-#define ACC_ICM20689_1_ALIGN    CW90_DEG
-#define GYRO_ICM20689_1_ALIGN   CW90_DEG
-#define GYRO_1_ALIGN            GYRO_ICM20689_1_ALIGN
-#define ACC_1_ALIGN             ACC_ICM20689_1_ALIGN
-
-#define ACC_MPU6000_2_ALIGN     CW90_DEG
-#define GYRO_MPU6000_2_ALIGN    CW90_DEG
-#define GYRO_2_ALIGN            GYRO_MPU6000_2_ALIGN
-#define ACC_2_ALIGN             ACC_MPU6000_2_ALIGN
-
-#define ACC_ICM42688P_ALIGN     CW90_DEG
-#define GYRO_ICM42688P_ALIGN    CW90_DEG
+// per-slot alignment; a per-chip *_ALIGN macro would override these at detect
+#define GYRO_1_ALIGN            CW90_DEG
+#define ACC_1_ALIGN             CW90_DEG
+#define GYRO_2_ALIGN            CW270_DEG
+#define ACC_2_ALIGN             CW270_DEG
 
 #define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_2
 
