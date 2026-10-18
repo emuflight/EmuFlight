@@ -146,18 +146,16 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB9 , 2, -1) \
-    TIMER_PIN_MAP( 3, PA9 , 1,  0) \
-    TIMER_PIN_MAP( 4, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 5, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 6, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 7, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 8, PB1 , 2,  0)
+    TIMER_PIN_MAP( 0, PB3 , 1,  0) /* LED_STRIP, */ \
+    TIMER_PIN_MAP( 1, PB8 , 1,  0) /* baro/mag // no dps310 in EmuFlight, */ \
+    TIMER_PIN_MAP( 2, PB9 , 2, -1) /* baro/mag // no dps310 in EmuFlight, */ \
+    TIMER_PIN_MAP( 3, PA9 , 1,  0) /* M1 */ \
+    TIMER_PIN_MAP( 4, PA8 , 1,  0) /* M2 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* M3 */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  0) /* M4 */ \
+    TIMER_PIN_MAP( 7, PB0 , 2,  0) /* M5 */ \
+    TIMER_PIN_MAP( 8, PB1 , 2,  0) /* M6 */
 
 #define MOTOR1_PIN              PA9
 #define MOTOR2_PIN              PA8

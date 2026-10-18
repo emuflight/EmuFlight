@@ -165,15 +165,13 @@
 #define DEFAULT_RX_FEATURE FEATURE_RX_SERIAL
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 5
-#define USE_TIMER_MGMT
 // PA8 and PA9 share DMA2 Stream 6; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 1, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 2, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 3, PA9 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB3 , 1,  0)
+    TIMER_PIN_MAP( 0, PC8 , 2,  0) /* MOTOR4 */ \
+    TIMER_PIN_MAP( 1, PC9 , 2,  0) /* MOTOR3 */ \
+    TIMER_PIN_MAP( 2, PA8 , 1,  0) /* MOTOR 2 */ \
+    TIMER_PIN_MAP( 3, PA9 , 1,  0) /* MOTOR 1 */ \
+    TIMER_PIN_MAP( 4, PB3 , 1,  0) /* LED */
 
 #define MOTOR1_PIN              PA9
 #define MOTOR2_PIN              PA8

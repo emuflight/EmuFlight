@@ -175,21 +175,19 @@
 #define ESCSERIAL_TIMER_TX_PIN PA3
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA3 , 2,  0) \
-    TIMER_PIN_MAP( 1, PC6 , 1,  0) \
-    TIMER_PIN_MAP( 2, PC7 , 2,  1) \
-    TIMER_PIN_MAP( 3, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 4, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 5, PA15 , 1,  0) \
-    TIMER_PIN_MAP( 6, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 7, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 9, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 10, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 11, PA2 , 3, -1)
+    TIMER_PIN_MAP( 0, PA3 , 2,  0) /* PPM */ \
+    TIMER_PIN_MAP( 1, PC6 , 1,  0) /* S1  UP(1,2) */ \
+    TIMER_PIN_MAP( 2, PC7 , 2,  1) /* S2  UP(2,1) */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  1) /* S3  UP(2,1) */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* S4  UP(2,1) */ \
+    TIMER_PIN_MAP( 5, PA15 , 1,  0) /* S5  UP(1,7) */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  0) /* S6  UP(2,5) */ \
+    TIMER_PIN_MAP( 7, PB8 , 1,  0) /* S7  D(1,7)!S5 UP(2,6) */ \
+    TIMER_PIN_MAP( 8, PB6 , 1,  0) /* LED D(1,0) UP(2,6) */ \
+    TIMER_PIN_MAP( 9, PA0 , 2,  0) /* TX4 UP(1,6) D(1,2)!S1 */ \
+    TIMER_PIN_MAP( 10, PA1 , 2,  0) /* RX4 UP(1,6) D(1,4) */ \
+    TIMER_PIN_MAP( 11, PA2 , 3, -1) /* TX2 */
 
 #define MOTOR1_PIN              PC6
 #define MOTOR2_PIN              PC7

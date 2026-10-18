@@ -168,22 +168,20 @@
 // IO Ports
 
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                     12                      //updated timer count to compensate for Nf Motor 4
-#define USE_TIMER_MGMT
 // PB10 PWM input shares TIM2 with motors 3 and 4; parallel PWM input with DShot output resets the shared timer base
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 3, PA15 , 1,  0) \
-    TIMER_PIN_MAP( 4, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 5, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 6, PC6 , 2,  1) \
-    TIMER_PIN_MAP( 7, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 8, PA2 , 2,  0) \
-    TIMER_PIN_MAP( 9, PA3 , 2,  1) \
-    TIMER_PIN_MAP( 10, PB8 , 2, -1) \
-    TIMER_PIN_MAP( 11, PA8 , 1,  0)
+    TIMER_PIN_MAP( 0, PB1 , 2,  0) /* D1-ST0                   MOTOR1 */ \
+    TIMER_PIN_MAP( 1, PB4 , 1,  0) /* D1-ST3                   MOTOR2 */ \
+    TIMER_PIN_MAP( 2, PB3 , 1,  0) /* D1-ST7                   MOTOR3 */ \
+    TIMER_PIN_MAP( 3, PA15 , 1,  0) /* D2-ST2/D2-ST4            MOTOR4 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) /* D1-ST4                   MOTOR5 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* NONE  TIM4_UP_D1-ST6     MOTOR6    DEF_TIM(TIM8,  CH4,  PC9, TIM_USE_MOTOR,               0, 0), // D2-ST7                   MOTOR7 */ \
+    TIMER_PIN_MAP( 6, PC6 , 2,  1) /* D1-ST2                   LED/MOTOR5 */ \
+    TIMER_PIN_MAP( 7, PB10 , 1,  0) /* D1-ST2                   LED/MOTOR5 */ \
+    TIMER_PIN_MAP( 8, PA2 , 2,  0) /* D1-ST2                   LED/MOTOR5 */ \
+    TIMER_PIN_MAP( 9, PA3 , 2,  1) /* D1-ST2                   LED/MOTOR5 */ \
+    TIMER_PIN_MAP( 10, PB8 , 2, -1) /* D1-ST2                   LED/MOTOR5 */ \
+    TIMER_PIN_MAP( 11, PA8 , 1,  0) /* D1-ST2                   LED/MOTOR5 */
 
 #define MOTOR1_PIN              PB1
 #define MOTOR2_PIN              PB4

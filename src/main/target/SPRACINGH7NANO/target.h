@@ -28,9 +28,6 @@
 #define FC_TARGET_MCU           STM32H750     // not used in EmuF
 #define EEPROM_SIZE             8192
 
-#define USE_TIMER_MGMT
-#define USABLE_TIMER_CHANNEL_COUNT 10
-
 // Config lives in the external QUADSPI flash (partition), same chip as blackbox.
 #define CONFIG_IN_EXTERNAL_FLASH
 #define USE_FIRMWARE_PARTITION // the EXST firmware image (FIRMWARE_SIZE) lives in the same flash

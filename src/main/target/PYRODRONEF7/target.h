@@ -132,24 +132,22 @@
 #define SERIALRX_UART           SERIAL_PORT_UART5
 
 
-#define USABLE_TIMER_CHANNEL_COUNT      15
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 4, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 5, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 6, PB9 , 1, -1) \
-    TIMER_PIN_MAP( 7, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 8, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 9, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 10, PB0 , 1,  0) \
-    TIMER_PIN_MAP( 11, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 12, PC6 , 1,  0) \
-    TIMER_PIN_MAP( 13, PC7 , 2,  1) \
-    TIMER_PIN_MAP( 14, PB5 , 1,  0)
+    TIMER_PIN_MAP( 0, PB3 , 1,  0) /* pin B03: TIM2 CH2 (AF1) // USE FOR CAMERA CONTROL */ \
+    TIMER_PIN_MAP( 1, PB6 , 1,  0) /* pin B06: TIM4 CH1 (AF2) // D1-ST0                   MOTOR1 */ \
+    TIMER_PIN_MAP( 2, PB7 , 1,  0) /* pin B07: TIM4 CH2 (AF2) // D1-ST3                   MOTOR2 */ \
+    TIMER_PIN_MAP( 3, PB8 , 1,  0) /* pin B08: TIM4 CH3 (AF2) // D1-ST7                   MOTOR3 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) /* pin C08: TIM8 CH3 (AF3) // D2-ST2/D2-ST4            MOTOR4 */ \
+    TIMER_PIN_MAP( 5, PA1 , 2,  0) /* pin A01: TIM5 CH2 (AF2) // D1-ST4                   MOTOR5 */ \
+    TIMER_PIN_MAP( 6, PB9 , 1, -1) /* pin B09: TIM4 CH4 (AF2) // NONE  TIM4_UP_D1-ST6     MOTOR6 */ \
+    TIMER_PIN_MAP( 7, PC9 , 2,  0) /* pin C09: TIM8 CH4 (AF3) // D2-ST7                   MOTOR7 */ \
+    TIMER_PIN_MAP( 8, PB1 , 2,  0) /* pin B01: TIM3 CH4 (AF2) // D1-ST2                   LED/MOTOR5 */ \
+    TIMER_PIN_MAP( 9, PA3 , 3, -1) /* pin A03: TIM9 CH2 (AF3) */ \
+    TIMER_PIN_MAP( 10, PB0 , 1,  0) /* pin B00: TIM1 CH2N (AF1) */ \
+    TIMER_PIN_MAP( 11, PA0 , 2,  0) /* pin A00: TIM5 CH1 (AF2) */ \
+    TIMER_PIN_MAP( 12, PC6 , 1,  0) /* pin C06: TIM3 CH1 (AF2) */ \
+    TIMER_PIN_MAP( 13, PC7 , 2,  1) /* pin C07: TIM8 CH2 (AF3) */ \
+    TIMER_PIN_MAP( 14, PB5 , 1,  0) /* pin B05: TIM3 CH2 (AF2) */
 
 #define MOTOR1_PIN              PB6
 #define MOTOR2_PIN              PB7

@@ -166,18 +166,16 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 1, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 5, PA2 , 3, -1) \
-    TIMER_PIN_MAP( 6, PA9 , 1,  0) \
-    TIMER_PIN_MAP( 7, PA10 , 1,  0) \
-    TIMER_PIN_MAP( 8, PA0 , 2,  0)
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM, TX2 */ \
+    TIMER_PIN_MAP( 1, PB10 , 1,  0) /* S1 UP1-2 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* S2 UP1-2 */ \
+    TIMER_PIN_MAP( 3, PB7 , 1,  0) /* S3 UP1-2 */ \
+    TIMER_PIN_MAP( 4, PB8 , 1,  0) /* S4 UP1-2 */ \
+    TIMER_PIN_MAP( 5, PA2 , 3, -1) /* PWM1 */ \
+    TIMER_PIN_MAP( 6, PA9 , 1,  0) /* PWM2 */ \
+    TIMER_PIN_MAP( 7, PA10 , 1,  0) /* PWM3 */ \
+    TIMER_PIN_MAP( 8, PA0 , 2,  0) /* LED */
 
 #define MOTOR1_PIN              PB10
 #define MOTOR2_PIN              PB6

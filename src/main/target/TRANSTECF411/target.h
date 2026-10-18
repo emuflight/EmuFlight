@@ -102,14 +102,12 @@
 #define DEFAULT_CURRENT_METER_SOURCE        CURRENT_METER_ADC
 
 
-#define USABLE_TIMER_CHANNEL_COUNT          5
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB9 , 1, -1) \
-    TIMER_PIN_MAP( 4, PA8 , 1,  0)
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* S1_OUT */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* S2_OUT */ \
+    TIMER_PIN_MAP( 2, PB10 , 1,  0) /* S3_OUT */ \
+    TIMER_PIN_MAP( 3, PB9 , 1, -1) /* S4_OUT */ \
+    TIMER_PIN_MAP( 4, PA8 , 1,  0) /* LED_Strip */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1
