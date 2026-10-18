@@ -164,6 +164,7 @@
 #define USE_PINIOBOX
 
 
+// With six-motor burst DShot, TIM8 update DMA and ADC3 both use DMA2 Stream1; ADC3 then gets no DMA.
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM */ \
     TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S1 */ \
