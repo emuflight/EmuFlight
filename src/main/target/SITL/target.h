@@ -69,7 +69,7 @@
 #define USE_BARO
 #define USE_FAKE_BARO
 
-#define USABLE_TIMER_CHANNEL_COUNT 0
+#define FULL_TIMER_CHANNEL_COUNT 0
 
 #define USE_UART1
 #define USE_UART2

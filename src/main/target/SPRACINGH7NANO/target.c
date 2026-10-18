@@ -19,10 +19,6 @@
 
 #include <stdint.h>
 #include "platform.h"
-#include "drivers/io.h"
-#include "drivers/dma.h"
-#include "drivers/timer.h"
-#include "drivers/timer_def.h"
 
 /*
  * Motor pin → timer mapping (TIM5 CH1-4, PA0-PA3):
@@ -33,12 +29,11 @@
  * LED strip TIM1_CH1 on PA8 (dmaopt uses DMA2).
  * Camera control: PE5 = TIM15_CH1 per BF SPRACINGH7NANO config (not PB9 — PB9 = I2C1_SDA).
  * Camera control entry not added here; needs schematic confirmation and target.h completion.
+ *
+ * Motor and LED entries (legacy DEF_TIM, timer/channel/pin, usage, output, dmaopt, upopt):
+ *   DEF_TIM(TIM5,  CH1, PA0, TIM_USE_MOTOR, 0, 0, NONE), // M1
+ *   DEF_TIM(TIM5,  CH2, PA1, TIM_USE_MOTOR, 0, 1, NONE), // M2
+ *   DEF_TIM(TIM5,  CH3, PA2, TIM_USE_MOTOR, 0, 2, NONE), // M3
+ *   DEF_TIM(TIM5,  CH4, PA3, TIM_USE_MOTOR, 0, 3, NONE), // M4
+ *   DEF_TIM(TIM1,  CH1, PA8, TIM_USE_LED,   0, 9, NONE), // LED strip — DMA2_S1
  */
-
-const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
-    DEF_TIM(TIM5,  CH1, PA0, TIM_USE_MOTOR, 0, 0, NONE), // M1
-    DEF_TIM(TIM5,  CH2, PA1, TIM_USE_MOTOR, 0, 1, NONE), // M2
-    DEF_TIM(TIM5,  CH3, PA2, TIM_USE_MOTOR, 0, 2, NONE), // M3
-    DEF_TIM(TIM5,  CH4, PA3, TIM_USE_MOTOR, 0, 3, NONE), // M4
-    DEF_TIM(TIM1,  CH1, PA8, TIM_USE_LED,   0, 9, NONE), // LED strip — DMA2_S1
-};

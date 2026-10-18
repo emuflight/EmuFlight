@@ -168,20 +168,18 @@
 #define DEFAULT_RX_FEATURE FEATURE_RX_SERIAL
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 5, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 6, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 7, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 8, PA3 , 2,  0) \
-    TIMER_PIN_MAP( 9, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 10, PA8 , 1,  0)
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* MOTOR 1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* MOTOR 2 */ \
+    TIMER_PIN_MAP( 2, PB4 , 1,  0) /* MOTOR3 */ \
+    TIMER_PIN_MAP( 3, PB5 , 1,  0) /* MOTOR4 */ \
+    TIMER_PIN_MAP( 4, PB6 , 1,  0) /* MOTOR5 */ \
+    TIMER_PIN_MAP( 5, PB7 , 1,  0) /* MOTOR6 */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  1) /* MOTOR7 */ \
+    TIMER_PIN_MAP( 7, PC9 , 2,  0) /* MOTOR8 */ \
+    TIMER_PIN_MAP( 8, PA3 , 2,  0) /* PPM */ \
+    TIMER_PIN_MAP( 9, PB3 , 1,  0) /* CAMERA CONTROL */ \
+    TIMER_PIN_MAP( 10, PA8 , 1,  0) /* LED */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

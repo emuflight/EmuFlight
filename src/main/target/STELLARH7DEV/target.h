@@ -130,16 +130,15 @@
 
 #define DEFAULT_RX_FEATURE              FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT      8
-#define USE_TIMER_MGMT
+// motors: TIM8 CH1-4, DShot via DMA1_S0-3; burst (TIM8_UP) via DMA2_S3 (upopt=11)
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP(0, PC6, 2, 0) \
-    TIMER_PIN_MAP(1, PC7, 2, 1) \
-    TIMER_PIN_MAP(2, PC8, 2, 2) \
-    TIMER_PIN_MAP(3, PC9, 2, 3) \
+    TIMER_PIN_MAP(0, PC6, 2, 0) /* motor 1 */ \
+    TIMER_PIN_MAP(1, PC7, 2, 1) /* motor 2 */ \
+    TIMER_PIN_MAP(2, PC8, 2, 2) /* motor 3 */ \
+    TIMER_PIN_MAP(3, PC9, 2, 3) /* motor 4 */ \
     TIMER_PIN_MAP(4, PD12, 1, -1) \
     TIMER_PIN_MAP(5, PD13, 1, -1) \
-    TIMER_PIN_MAP(6, PA15, 1, 4) \
+    TIMER_PIN_MAP(6, PA15, 1, 4) /* led strip, DMA1_S4 */ \
     TIMER_PIN_MAP(7, PB4, 1, -1)
 // ADC1 on DMA2_S0 and ADC3 on DMA2_S2; TIM8_UP burst on DMA2_S3; motors DMA1_S0-3, LED strip DMA1_S4
 #define ADC1_DMA_OPT 8

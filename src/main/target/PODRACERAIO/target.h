@@ -139,16 +139,14 @@
 #define DEFAULT_CURRENT_METER_SCALE                      250                    // 3.3/120A  = 25mv/A
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA0 , 1,  0) \
-    TIMER_PIN_MAP( 1, PA1 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 4, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 5, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 6, PA9 , 1,  0)
+    TIMER_PIN_MAP( 0, PA0 , 1,  0) /* M1 */ \
+    TIMER_PIN_MAP( 1, PA1 , 1,  0) /* M2 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* M3 */ \
+    TIMER_PIN_MAP( 3, PB7 , 1,  0) /* M4 */ \
+    TIMER_PIN_MAP( 4, PA3 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 5, PA8 , 1,  0) /* LED */ \
+    TIMER_PIN_MAP( 6, PA9 , 1,  0) /* vendor GPS soft-serial remap */
 
 #define MOTOR1_PIN              PA0
 #define MOTOR2_PIN              PA1

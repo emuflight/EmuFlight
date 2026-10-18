@@ -169,8 +169,6 @@
 #define SERIALRX_UART           SERIAL_PORT_UART5
 
 
-#define USABLE_TIMER_CHANNEL_COUNT      10
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB14 , 3, -1) \
     TIMER_PIN_MAP( 1, PC6 , 2,  1) \

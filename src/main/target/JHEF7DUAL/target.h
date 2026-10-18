@@ -171,18 +171,16 @@
 #define USE_PINIOBOX
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 3, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 5, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 6, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 7, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB8 , 1,  0)
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S1 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* S2 */ \
+    TIMER_PIN_MAP( 3, PB4 , 1,  0) /* S3 */ \
+    TIMER_PIN_MAP( 4, PB3 , 1,  0) /* S4 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* S5 */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  1) /* S6 */ \
+    TIMER_PIN_MAP( 7, PA8 , 1,  0) /* LED STRIP */ \
+    TIMER_PIN_MAP( 8, PB8 , 1,  0) /* FC CAM */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

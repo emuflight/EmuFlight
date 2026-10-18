@@ -111,23 +111,21 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 14
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA8 , 1,  1) \
-    TIMER_PIN_MAP( 1, PA9 , 1,  1) \
-    TIMER_PIN_MAP( 2, PA10 , 1,  1) \
-    TIMER_PIN_MAP( 3, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 4, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 5, PA2 , 3, -1) \
-    TIMER_PIN_MAP( 6, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 7, PA3 , 2,  -1) \
-    TIMER_PIN_MAP( 8, PB10 , 1,  -1) \
-    TIMER_PIN_MAP( 9, PA15 , 1,  0) \
-    TIMER_PIN_MAP( 10, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 11, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 12, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 13, PA0 , 2,  0)
+    TIMER_PIN_MAP( 0, PA8 , 1,  1) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PA9 , 1,  1) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PA10 , 1,  1) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB0 , 2,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB4 , 1,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PA2 , 3, -1) /* pwm RX_PWM1_PIN; dma 0 assumed, please verify */ \
+    TIMER_PIN_MAP( 6, PB1 , 2,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 7, PA3 , 2,  -1) /* ppm RX_PPM_PIN */ \
+    TIMER_PIN_MAP( 8, PB10 , 1,  -1) /* cam ctrl */ \
+    TIMER_PIN_MAP( 9, PA15 , 1,  0) /* led */ \
+    TIMER_PIN_MAP( 10, PB6 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 11, PB7 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 12, PB8 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 13, PA0 , 2,  0) /* could not determine TIM_USE_xxxxx - please check */
 
 #define MOTOR1_PIN              PA8
 #define MOTOR2_PIN              PA9

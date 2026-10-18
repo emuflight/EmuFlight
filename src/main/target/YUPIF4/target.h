@@ -150,19 +150,17 @@
 
 // Target IO and timers
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 1, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 3, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 4, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 5, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 6, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 7, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 8, PC9 , 1,  0) \
-    TIMER_PIN_MAP( 9, PB14 , 3, -1)
+    TIMER_PIN_MAP( 0, PC8 , 2,  0) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PA0 , 2,  0) /* S1_OUT - DMA1_ST2 */ \
+    TIMER_PIN_MAP( 2, PA1 , 2,  0) /* S2_OUT - DMA1_ST4 */ \
+    TIMER_PIN_MAP( 3, PA2 , 1,  0) /* S3_OUT - DMA1_ST1 */ \
+    TIMER_PIN_MAP( 4, PA3 , 1,  1) /* S4_OUT - DMA1_ST6 */ \
+    TIMER_PIN_MAP( 5, PB0 , 2,  0) /* S5_OUT - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 6, PB7 , 1,  0) /* S6_OUT - DMA1_ST3 */ \
+    TIMER_PIN_MAP( 7, PB1 , 2,  0) /* Camera control */ \
+    TIMER_PIN_MAP( 8, PC9 , 1,  0) /* BEEPER PWM */ \
+    TIMER_PIN_MAP( 9, PB14 , 3, -1) /* BEEPER PWM OPT */
 
 #define MOTOR1_PIN              PA0
 #define MOTOR2_PIN              PA1

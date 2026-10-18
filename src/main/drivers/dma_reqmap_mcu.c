@@ -300,8 +300,7 @@ const dmaChannelSpec_t *dmaGetChannelSpecByTimer(const timerHardware_t *timer)
     }
 
     // A pin with a real TIMER_PIN_MAPPING entry gets its board-configured option; a pin with
-    // none (every board on the legacy, non-USE_TIMER_MGMT path, or a USE_TIMER_MGMT pin the
-    // board's pinmap doesn't cover) falls back to reverse-deriving the option already baked
+    // none (a pin the board's pinmap doesn't cover) falls back to reverse-deriving the option already baked
     // into this resolved timer's own dmaRef/dmaChannel -- preserves the pre-existing behavior
     // for every board this table lookup must not regress.
     dmaoptValue_t dmaopt = dmaoptByTag(timer->tag);
@@ -517,8 +516,7 @@ const dmaChannelSpec_t *dmaGetChannelSpecByTimer(const timerHardware_t *timer)
     }
 
     // A pin with a real TIMER_PIN_MAPPING entry gets its board-configured option; a pin with
-    // none (every board on the legacy, non-USE_TIMER_MGMT path, or a USE_TIMER_MGMT pin the
-    // board's pinmap doesn't cover) falls back to reverse-deriving the option already baked
+    // none (a pin the board's pinmap doesn't cover) falls back to reverse-deriving the option already baked
     // into this resolved timer's own dmaRef/dmaChannel -- preserves the pre-existing behavior
     // for every board this table lookup must not regress.
     dmaoptValue_t dmaopt = dmaoptByTag(timer->tag);

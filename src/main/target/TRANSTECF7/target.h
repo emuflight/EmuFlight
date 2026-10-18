@@ -37,7 +37,7 @@
 
 #define USE_BEEPER
 // XXX CAMERA_CONTROL_PIN is deprecated.
-// XXX Target maintainer must create a valid timerHardware[] array entry for PB8 with TIM_USE_CAMERA_CONTROL
+// XXX Target maintainer must add a TIMER_PIN_MAPPING entry for PB8 and define CAMERA_CONTROL_PIN
 //#define CAMERA_CONTROL_PIN              PB8         //Camera OSD
 
 
@@ -130,17 +130,15 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
 
-#define USABLE_TIMER_CHANNEL_COUNT      8
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 2, PC6 , 2,  1) \
-    TIMER_PIN_MAP( 3, PC7 , 2,  1) \
-    TIMER_PIN_MAP( 4, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 5, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 6, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 7, PA15 , 1,  0)
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* S1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* S2 */ \
+    TIMER_PIN_MAP( 2, PC6 , 2,  1) /* S3 */ \
+    TIMER_PIN_MAP( 3, PC7 , 2,  1) /* S4 */ \
+    TIMER_PIN_MAP( 4, PB3 , 1,  0) /* S5 */ \
+    TIMER_PIN_MAP( 5, PB4 , 1,  0) /* S6 */ \
+    TIMER_PIN_MAP( 6, PB8 , 1,  0) /* Cam Control */ \
+    TIMER_PIN_MAP( 7, PA15 , 1,  0) /* LED STRIP */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

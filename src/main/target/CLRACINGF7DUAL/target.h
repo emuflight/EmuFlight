@@ -155,15 +155,13 @@
 #define SERIALRX_UART           SERIAL_PORT_UART5
 
 
-#define USABLE_TIMER_CHANNEL_COUNT      6
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB9 , 1, -1) \
-    TIMER_PIN_MAP( 5, PB1 , 2,  0)
+    TIMER_PIN_MAP( 0, PB3 , 1,  0) /* USE FOR CAMERA CONTROL */ \
+    TIMER_PIN_MAP( 1, PB6 , 1,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 2, PB7 , 1,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 3, PB8 , 1,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 4, PB9 , 1, -1) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 5, PB1 , 2,  0) /* D1-ST2 */
 
 #define MOTOR1_PIN              PB6
 #define MOTOR2_PIN              PB7

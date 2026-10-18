@@ -157,21 +157,19 @@
 #define DEFAULT_CURRENT_METER_SCALE 179
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 1, PC6 , 2,  1) \
-    TIMER_PIN_MAP( 2, PC7 , 2,  1) \
-    TIMER_PIN_MAP( 3, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 4, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 6, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 7, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 8, PA2 , 2,  0) \
-    TIMER_PIN_MAP( 9, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 10, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 11, PA15 , 1,  0)
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 1, PC6 , 2,  1) /* S1   DMA1_ST4 */ \
+    TIMER_PIN_MAP( 2, PC7 , 2,  1) /* S2   DMA2_ST3 */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  1) /* S3   DMA2_ST4 */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* S4   DMA2_ST7 */ \
+    TIMER_PIN_MAP( 5, PB1 , 2,  0) /* S5   DMA1_ST2 */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  0) /* S6   DMA2_ST6 */ \
+    TIMER_PIN_MAP( 7, PB8 , 1,  0) /* pwm/S7  DMA1_ST7 */ \
+    TIMER_PIN_MAP( 8, PA2 , 2,  0) /* TX2/S8  DMA1_ST0 */ \
+    TIMER_PIN_MAP( 9, PA0 , 2,  0) /* TX4 */ \
+    TIMER_PIN_MAP( 10, PA1 , 2,  0) /* RX4 */ \
+    TIMER_PIN_MAP( 11, PA15 , 1,  0) /* LED STRIP  DMA1_ST5 */
 
 #define MOTOR1_PIN              PC6
 #define MOTOR2_PIN              PC7

@@ -147,21 +147,19 @@
 #define ESCSERIAL_TIMER_TX_PIN PA3
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USE_TIMER_MGMT
 // PC6 and PC8 share DMA2 Stream 2; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB15 , 3, -1) \
-    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 3, PC7 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 5, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 6, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 7, PC6 , 2,  0) \
-    TIMER_PIN_MAP( 8, PA8 , 1,  1) \
-    TIMER_PIN_MAP( 9, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 10, PB3 , 1,  0)
+    TIMER_PIN_MAP( 0, PB15 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S1 (1,7) */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* S2 (2,2) */ \
+    TIMER_PIN_MAP( 3, PC7 , 1,  0) /* S3 (2,4)  (2.2) */ \
+    TIMER_PIN_MAP( 4, PB4 , 1,  0) /* S4 (2,7) */ \
+    TIMER_PIN_MAP( 5, PC8 , 2,  0) /* S5 (1,2) */ \
+    TIMER_PIN_MAP( 6, PC9 , 2,  0) /* S6 (1,5) */ \
+    TIMER_PIN_MAP( 7, PC6 , 2,  0) /* S7 (2,6) */ \
+    TIMER_PIN_MAP( 8, PA8 , 1,  1) /* S8 (2,1)  (2.3 2.6) */ \
+    TIMER_PIN_MAP( 9, PB6 , 1,  0) /* LED STRIP(1,0) */ \
+    TIMER_PIN_MAP( 10, PB3 , 1,  0) /* FC CAM */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

@@ -46,7 +46,7 @@
 #define LED_STRIP_PIN        PA8
 #define USE_BEEPER
 #define BEEPER_PIN           PB3
-#define CAMERA_CONTROL_PIN   PD9
+#define CAMERA_CONTROL_PIN   PD9 // PD9 has no timer alternate function, so camera control cannot run on this pin
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -145,31 +145,29 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 21
-#define USE_TIMER_MGMT
 // PC8 needs a stream apart from PB0, and each timer TIM_UP (burst) stream must differ
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PD12 , 1,  6) \
-    TIMER_PIN_MAP( 1, PA3 , 2,  1) \
-    TIMER_PIN_MAP( 2, PC8 , 2,  3) \
-    TIMER_PIN_MAP( 3, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 4, PB1 , 2,  1) \
-    TIMER_PIN_MAP( 5, PE9 , 1,  0) \
-    TIMER_PIN_MAP( 6, PE11 , 1,  0) \
-    TIMER_PIN_MAP( 7, PB4 , 1,  4) \
-    TIMER_PIN_MAP( 8, PB5 , 1,  5) \
-    TIMER_PIN_MAP( 9, PE13 , 1,  6) \
-    TIMER_PIN_MAP( 10, PE14 , 1,  7) \
-    TIMER_PIN_MAP( 11, PA0 , 2,  2) \
-    TIMER_PIN_MAP( 12, PA1 , 2,  4) \
-    TIMER_PIN_MAP( 13, PA2 , 2,  0) \
-    TIMER_PIN_MAP( 14, PD13 , 1,  7) \
-    TIMER_PIN_MAP( 15, PD14 , 1,  12) \
-    TIMER_PIN_MAP( 16, PD15 , 1, -1) \
-    TIMER_PIN_MAP( 17, PE5 , 1,  0) \
-    TIMER_PIN_MAP( 18, PE6 , 1, -1) \
-    TIMER_PIN_MAP( 19, PA8 , 1,  14) \
-    TIMER_PIN_MAP( 20, PA15 , 1,  0)
+    TIMER_PIN_MAP( 0, PD12 , 1,  6) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PA3 , 2,  1) /* ppm */ \
+    TIMER_PIN_MAP( 2, PC8 , 2,  3) /* motor 5 */ \
+    TIMER_PIN_MAP( 3, PB0 , 2,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 4, PB1 , 2,  1) /* motor 4 */ \
+    TIMER_PIN_MAP( 5, PE9 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 6, PE11 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 7, PB4 , 1,  4) /* motor 7 */ \
+    TIMER_PIN_MAP( 8, PB5 , 1,  5) /* motor 8 */ \
+    TIMER_PIN_MAP( 9, PE13 , 1,  6) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 10, PE14 , 1,  7) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 11, PA0 , 2,  2) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 12, PA1 , 2,  4) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 13, PA2 , 2,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 14, PD13 , 1,  7) /* motor 2 */ \
+    TIMER_PIN_MAP( 15, PD14 , 1,  12) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 16, PD15 , 1, -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 17, PE5 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 18, PE6 , 1, -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 19, PA8 , 1,  14) /* led strip */ \
+    TIMER_PIN_MAP( 20, PA15 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */
 #define TIMUP3_DMA_OPT 0
 #define TIMUP4_DMA_OPT 1
 #define TIMUP8_DMA_OPT 2

@@ -145,8 +145,6 @@
 #define SERIALRX_UART           SERIAL_PORT_USART1
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USE_TIMER_MGMT
 // PB0 and PB1 share DMA2 Stream 2; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB9 , 2, -1) \
@@ -157,7 +155,7 @@
     TIMER_PIN_MAP( 5, PA8 , 1,  0) \
     TIMER_PIN_MAP( 6, PC9 , 1,  0) \
     TIMER_PIN_MAP( 7, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB7 , 1,  0)
+    TIMER_PIN_MAP( 8, PB7 , 1,  0) /* Camera control */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1
