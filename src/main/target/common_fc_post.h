@@ -283,3 +283,7 @@ extern uint8_t eepromData[EEPROM_SIZE];
 #define __config_start  (*eepromData)
 #define __config_end    (*(eepromData + EEPROM_SIZE))
 #endif
+
+#ifdef USABLE_TIMER_CHANNEL_COUNT
+#error "The per-board timerHardware[] array was removed: define TIMER_PIN_MAPPING and the MOTORn_PIN, SERVOn_PIN, RX_PPM_PIN, LED_STRIP_PIN macros in target.h"
+#endif
