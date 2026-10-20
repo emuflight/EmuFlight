@@ -144,7 +144,7 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-/* PC6, PC7 and PC8 (TIM8 CH1, CH2, CH3) all use DMA2 Stream 2; with DShot burst off only one of the three gets DMA. PC6 is a CH1 motor, so it stays on option 1. */
+/* PC6, PC7 and PC8 (TIM8 CH1, CH2, CH3) all use DMA2 Stream 2; DShot burst is on by default here; with burst off only one of the three gets DMA. PC6 is a CH1 motor, so it stays on option 1. */
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PC8 , 2,  0) /* motor 1 */ \
     TIMER_PIN_MAP( 1, PC9 , 2,  0) /* motor 2 */ \

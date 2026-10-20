@@ -147,7 +147,7 @@
 #define DEFAULT_CURRENT_METER_SCALE 179
 
 
-/* PC6, PC7 and PC8 (TIM8 CH1, CH2, CH3) all use DMA2 Stream 2; with DShot burst off only one of the three gets DMA. PC6 is a CH1 motor, so it stays on option 1. */
+/* PC6, PC7 and PC8 (TIM8 CH1, CH2, CH3) all use DMA2 Stream 2; DShot burst is on by default here; with burst off only one of the three gets DMA. PC6 is a CH1 motor, so it stays on option 1. */
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA15 , 1,  0) /* LED */ \
     TIMER_PIN_MAP( 1, PA8 , 1,  0) \
