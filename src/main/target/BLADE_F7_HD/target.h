@@ -83,7 +83,7 @@
 #define USE_BARO_MS5611
 #define USE_BARO_BMP085
 
-//#define MAG_I2C_INSTANCE (I2CDEV_1)
+#define MAG_I2C_INSTANCE (I2CDEV_1)
 //#define USE_MAG
 //#define USE_MAG_HMC5883
 //#define USE_MAG_QMC5883
@@ -135,6 +135,7 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define VBAT_ADC_PIN PC0
+#define ADC1_DMA_OPT 1
 #define CURRENT_METER_ADC_PIN PC1
 //#define RSSI_ADC_PIN PC1
 
@@ -146,14 +147,15 @@
 #define DEFAULT_CURRENT_METER_SCALE 179
 
 
+/* PC6, PC7 and PC8 (TIM8 CH1, CH2, CH3) all use DMA2 Stream 2; with DShot burst off only one of the three gets DMA. PC6 is a CH1 motor, so it stays on option 1. */
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA15 , 1,  0) /* LED */ \
     TIMER_PIN_MAP( 1, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 2, PC8 , 2,  1) /* S1 UP1-2 */ \
+    TIMER_PIN_MAP( 2, PC8 , 2,  0) /* S1 UP1-2 */ \
     TIMER_PIN_MAP( 3, PC9 , 2,  0) /* S2 UP1-2 */ \
     TIMER_PIN_MAP( 4, PB1 , 2,  0) /* S3 UP1-2 */ \
     TIMER_PIN_MAP( 5, PB0 , 2,  0) /* S4 UP1-2 */ \
-    TIMER_PIN_MAP( 6, PC7 , 2,  1) /* S5 UP1-7 */ \
+    TIMER_PIN_MAP( 6, PC7 , 2,  0) /* S5 UP1-7 */ \
     TIMER_PIN_MAP( 7, PC6 , 2,  1) /* S6 UP1-7 */ \
     TIMER_PIN_MAP( 8, PB6 , 1,  0) /* S7 UP1-6 */ \
     TIMER_PIN_MAP( 9, PB7 , 1,  0) /* S8 UP1-6 */

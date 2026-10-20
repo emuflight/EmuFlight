@@ -50,7 +50,7 @@
 #define MPU6000_SPI_BUS    SPIDEV_2
 
 #define USE_EXTI
-#define MPU_INT_EXTI            PA8
+#define MPU_INT_EXTI            PA8 // gyro INT pad; kept for EXTI-driven gyro reads
 #define USE_MPU_DATA_READY_SIGNAL
 
 #define USE_BARO
@@ -109,6 +109,7 @@
 #define USE_ADC
 #define CURRENT_METER_ADC_PIN   NONE // PA6 Available from TP33
 #define VBAT_ADC_PIN            PA5  // 11:1 (10K + 1K) divider
+#define ADC1_DMA_OPT            1
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ESC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ESC
