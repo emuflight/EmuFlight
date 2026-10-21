@@ -60,6 +60,29 @@
 #endif
 #endif
 
+// Compass: every board with an I2C bus compiles the whole driver suite and detects the chip at run time.
+#if defined(USE_I2C) && (FLASH_SIZE > 128) && !defined(USE_MAG)
+#define USE_MAG
+#endif
+
+#if defined(USE_MAG)
+#ifndef USE_MAG_HMC5883
+#define USE_MAG_HMC5883
+#endif
+#ifndef USE_MAG_QMC5883
+#define USE_MAG_QMC5883
+#endif
+#ifndef USE_MAG_LIS3MDL
+#define USE_MAG_LIS3MDL
+#endif
+#ifndef USE_MAG_AK8963
+#define USE_MAG_AK8963
+#endif
+#ifndef USE_MAG_AK8975
+#define USE_MAG_AK8975
+#endif
+#endif
+
 #if !defined(USE_SERIAL_RX)
 #undef USE_SERIALRX_CRSF
 #undef USE_SERIALRX_IBUS
