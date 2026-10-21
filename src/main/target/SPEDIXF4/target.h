@@ -135,9 +135,9 @@
 #define I2C_DEVICE              (I2CDEV_2)
 
 #define USE_ADC
-#define CURRENT_METER_ADC_PIN   PC1
-#define VBAT_ADC_PIN            PC2
-#define RSSI_ADC_PIN            PC3
+#define CURRENT_METER_ADC_PIN   PC3
+#define VBAT_ADC_PIN            PC1
+#define RSSI_ADC_PIN            PC2
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 

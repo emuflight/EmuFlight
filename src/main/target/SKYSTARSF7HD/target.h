@@ -165,7 +165,7 @@
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
-#define MAX7456_CS_PIN          PB12
+#define MAX7456_SPI_CS_PIN      PB12
 
 //******* FLASH ********
 
