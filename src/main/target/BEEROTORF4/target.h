@@ -174,4 +174,4 @@
 #define MOTOR8_PIN              PB9
 #define RX_PPM_PIN              PA3
 #define LED_STRIP_PIN           PB8
-#define TRANSPONDER_PIN         PB8
+#define TRANSPONDER_PIN         PB8 // EF-only: not in the reference config

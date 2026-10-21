@@ -120,6 +120,6 @@
 #define MOTOR4_PIN              PB7
 #define MOTOR5_PIN              PB3
 #define MOTOR6_PIN              PB10
-#define RX_PPM_PIN              PA3
+#define RX_PPM_PIN              PA3 // EF-only: not in the reference config
 
 // notice - this file was programmatically generated and may be incomplete.

@@ -175,7 +175,7 @@
 #define MOTOR6_PIN              PB1
 #define MOTOR7_PIN              PC7
 #define MOTOR8_PIN              PC9
-#define RX_PWM1_PIN             PA5
+#define RX_PWM1_PIN             PA5 // EF-only: not in the reference config
 #define RX_PPM_PIN              PB15
 #define LED_STRIP_PIN           PB6
 

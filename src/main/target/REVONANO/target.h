@@ -132,4 +132,4 @@
 #define RX_PWM5_PIN             PA6
 #define RX_PWM6_PIN             PA5
 #define RX_PPM_PIN              PB10
-#define LED_STRIP_PIN           PA0
+#define LED_STRIP_PIN           PA0 // EF-only: not in the reference config
