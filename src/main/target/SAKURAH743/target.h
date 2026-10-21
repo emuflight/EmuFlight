@@ -168,10 +168,10 @@
 
 #define MOTOR1_PIN              PA2
 #define MOTOR2_PIN              PA3
-#define MOTOR3_PIN              PB0
-#define MOTOR4_PIN              PB1
-#define MOTOR5_PIN              PA0
-#define MOTOR6_PIN              PA1
+#define MOTOR3_PIN              PB1
+#define MOTOR4_PIN              PB0
+#define MOTOR5_PIN              PA1
+#define MOTOR6_PIN              PA0
 #define MOTOR7_PIN              PE5
 #define MOTOR8_PIN              PE6
 #define SERVO1_PIN              PD12

@@ -152,7 +152,7 @@
 #define MOTOR7_PIN              PB10
 #define MOTOR8_PIN              PA15
 #define SERVO1_PIN              PB15
-#define RX_PWM1_PIN             PB15
+#define RX_PWM1_PIN             PB15 // EF-only: not in the reference config
 #define RX_PPM_PIN              PA3
 
 // notice - this file was programmatically generated and may be incomplete.

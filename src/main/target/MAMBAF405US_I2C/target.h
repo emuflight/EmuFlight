@@ -167,9 +167,9 @@
 #define MOTOR2_PIN              PA8
 #define MOTOR3_PIN              PC9
 #define MOTOR4_PIN              PC8
-#define MOTOR5_PIN              PB0
-#define MOTOR6_PIN              PB1
-#define MOTOR7_PIN              PA10
-#define MOTOR8_PIN              PB4
-#define RX_PPM_PIN              PB9
+#define MOTOR5_PIN              PB0 // EF-only: not in the reference config
+#define MOTOR6_PIN              PB1 // EF-only: not in the reference config
+#define MOTOR7_PIN              PA10 // EF-only: not in the reference config
+#define MOTOR8_PIN              PB4 // EF-only: not in the reference config
+#define RX_PPM_PIN              PB9 // EF-only: not in the reference config
 #define LED_STRIP_PIN           PB3
