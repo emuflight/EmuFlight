@@ -145,6 +145,7 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
+#define MAX_TIMER_PINMAP_COUNT 22 // 22 map entries; the fleet default is 21
 // PC8 needs a stream apart from PB0, and each timer TIM_UP (burst) stream must differ; PC9 uses the free DMA2 Stream 3
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PD12 , 1,  6) /* motor 1 */ \
