@@ -162,6 +162,7 @@
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC0
 #define RSSI_ADC_PIN            PC3
+#define ADC1_DMA_OPT            0
 #define DEFAULT_CURRENT_METER_SCALE 250                     // 3.3/120A  = 25mv/A
 
 #define BINDPLUG_PIN            PB2
@@ -179,7 +180,8 @@
     TIMER_PIN_MAP( 6, PB8 , 1,  0) \
     TIMER_PIN_MAP( 7, PB7 , 1,  0) \
     TIMER_PIN_MAP( 8, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 9, PA15 , 1,  0)
+    TIMER_PIN_MAP( 9, PA15 , 1,  0) \
+    TIMER_PIN_MAP( 10, PB9 , 2, -1) /* ppm */
 
 #define MOTOR1_PIN              PC6
 #define MOTOR2_PIN              PC7
@@ -190,3 +192,4 @@
 #define MOTOR7_PIN              PB7
 #define MOTOR8_PIN              PB1
 #define LED_STRIP_PIN           PA15
+#define RX_PPM_PIN              PB9

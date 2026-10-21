@@ -145,7 +145,7 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-// PC8 needs a stream apart from PB0, and each timer TIM_UP (burst) stream must differ
+// PC8 needs a stream apart from PB0, and each timer TIM_UP (burst) stream must differ; PC9 uses the free DMA2 Stream 3
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PD12 , 1,  6) /* motor 1 */ \
     TIMER_PIN_MAP( 1, PA3 , 2,  1) /* ppm */ \
@@ -167,18 +167,20 @@
     TIMER_PIN_MAP( 17, PE5 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
     TIMER_PIN_MAP( 18, PE6 , 1, -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */ \
     TIMER_PIN_MAP( 19, PA8 , 1,  14) /* led strip */ \
-    TIMER_PIN_MAP( 20, PA15 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */
+    TIMER_PIN_MAP( 20, PA15 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 21, PC9 , 2,  11) /* motor 6 */
 #define TIMUP3_DMA_OPT 0
 #define TIMUP4_DMA_OPT 1
 #define TIMUP8_DMA_OPT 2
 
 #define MOTOR1_PIN              PD12
-#define MOTOR2_PIN              PC8
+#define MOTOR2_PIN              PD13
 #define MOTOR3_PIN              PB0
 #define MOTOR4_PIN              PB1
-#define MOTOR5_PIN              PB4
-#define MOTOR6_PIN              PB5
-#define MOTOR7_PIN              PD13
+#define MOTOR5_PIN              PC8
+#define MOTOR6_PIN              PC9
+#define MOTOR7_PIN              PB4
+#define MOTOR8_PIN              PB5
 #define RX_PPM_PIN              PA3
 
 // notice - this file was programmatically generated and may be incomplete.
