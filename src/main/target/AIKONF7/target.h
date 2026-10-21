@@ -162,7 +162,7 @@
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC0
 #define RSSI_ADC_PIN            PC3
-#define ADC1_DMA_OPT            0
+#define ADC1_DMA_OPT            1 // DMA2 Stream 4; Stream 0 would leave SPI1 RX (gyro) without DMA
 #define DEFAULT_CURRENT_METER_SCALE 250                     // 3.3/120A  = 25mv/A
 
 #define BINDPLUG_PIN            PB2
