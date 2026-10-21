@@ -148,12 +148,12 @@
 // PB0 and PB1 share DMA2 Stream 2; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB9 , 2, -1) \
-    TIMER_PIN_MAP( 1, PB0 , 3,  0) \
-    TIMER_PIN_MAP( 2, PB1 , 3,  0) \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) \
     TIMER_PIN_MAP( 3, PA3 , 1,  1) \
     TIMER_PIN_MAP( 4, PA2 , 1,  0) \
     TIMER_PIN_MAP( 5, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 6, PC9 , 1,  0) \
+    TIMER_PIN_MAP( 6, PC9 , 2,  0) \
     TIMER_PIN_MAP( 7, PB6 , 1,  0) \
     TIMER_PIN_MAP( 8, PB7 , 1,  0) /* Camera control */
 
