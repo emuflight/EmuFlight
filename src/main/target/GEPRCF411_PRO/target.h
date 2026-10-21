@@ -69,8 +69,8 @@
 #define USE_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE                     VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE                     CURRENT_METER_ADC
-#define CURRENT_METER_ADC_PIN                            PB0
-#define VBAT_ADC_PIN                                     PB1
+#define CURRENT_METER_ADC_PIN                            PB1
+#define VBAT_ADC_PIN                                     PB0
 #define DEFAULT_CURRENT_METER_SCALE                      250                    // 3.3/120A  = 25mv/A
 
 //I2C
