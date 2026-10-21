@@ -145,7 +145,6 @@
 #define SERIALRX_UART           SERIAL_PORT_USART1
 
 
-// PB0 and PB1 share DMA2 Stream 2; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB9 , 2, -1) \
     TIMER_PIN_MAP( 1, PB0 , 2,  0) \

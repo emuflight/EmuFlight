@@ -135,7 +135,7 @@
     TIMER_PIN_MAP( 0, PB6 , 2,  1) /* motor 1 */ \
     TIMER_PIN_MAP( 1, PB7 , 2,  2) /* motor 2 */ \
     TIMER_PIN_MAP( 2, PB8 , 2,  3) /* motor 3 */ \
-    TIMER_PIN_MAP( 3, PB9 , 2, 4) /* motor 4 */ \
+    TIMER_PIN_MAP( 3, PB9 , 2, -1) /* motor 4 */ \
     TIMER_PIN_MAP( 4, PB4 , 1,  5) /* motor 5 */ \
     TIMER_PIN_MAP( 5, PB5 , 1,  6) /* motor 6 */ \
     TIMER_PIN_MAP( 6, PB3 , 1,  7) /* motor 7 */ \

@@ -168,7 +168,7 @@
     TIMER_PIN_MAP( 4, PD12 , 1,  4) /* motor 5 */ \
     TIMER_PIN_MAP( 5, PD13 , 1,  5) /* motor 6 */ \
     TIMER_PIN_MAP( 6, PD14 , 1,  6) /* motor 7 */ \
-    TIMER_PIN_MAP( 7, PD15 , 1, 7) /* motor 8 */ \
+    TIMER_PIN_MAP( 7, PD15 , 1, -1) /* motor 8 */ \
     TIMER_PIN_MAP( 8, PE5 , 1,  -1) /* servo 1; dma -1 in config (input only) */ \
     TIMER_PIN_MAP( 9, PE6 , 1, -1) /* servo 2; dma -1 in config (input only) */ \
     TIMER_PIN_MAP( 10, PC8 , 1,  -1) /* servo 3; dma -1 in config (input only) */ \
