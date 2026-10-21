@@ -46,7 +46,7 @@
 #define ICM20689_SPI_BUS   SPIDEV_1
 
 #define USE_EXTI
-#define MPU_INT_EXTI            PC4
+#define GYRO_1_EXTI_PIN         NONE
 #define USE_MPU_DATA_READY_SIGNAL
 
 #define USE_GYRO

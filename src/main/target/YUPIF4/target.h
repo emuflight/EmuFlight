@@ -41,8 +41,7 @@
 // Gyro interrupt
 #define USE_EXTI
 #define USE_MPU_DATA_READY_SIGNAL
-#define MPU_INT_EXTI            PC4
-
+#define GYRO_1_EXTI_PIN         NONE
 //ICM 20689
 #define ICM20689_CS_PIN         PA4
 #define ICM20689_SPI_BUS   SPIDEV_1
