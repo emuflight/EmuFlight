@@ -60,8 +60,9 @@
 #endif
 #endif
 
-// Compass: every board with an I2C bus compiles the whole driver suite and detects the chip at run time.
-#if defined(USE_I2C) && (FLASH_SIZE > 128) && !defined(USE_MAG)
+// Compass: a board with a configured compass bus (MAG_I2C_INSTANCE or I2C_DEVICE) and more than 128 KB of
+// flash gets the whole driver suite and detects the chip at run time.
+#if defined(USE_I2C) && (defined(MAG_I2C_INSTANCE) || defined(I2C_DEVICE)) && (FLASH_SIZE > 128) && !defined(USE_MAG)
 #define USE_MAG
 #endif
 
