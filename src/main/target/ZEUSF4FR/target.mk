@@ -16,4 +16,4 @@ TARGET_SRC = \
             rx/cc2500_frsky_x.c \
             rx/cc2500_redpine.c \
             rx/cc2500_sfhss.c \
-            drivers/rx/rx_a7105.c \
+            drivers/rx/rx_a7105.c
