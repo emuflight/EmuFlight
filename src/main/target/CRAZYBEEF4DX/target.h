@@ -88,6 +88,7 @@
 // *************** FLASH *****************************
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define USE_FLASHFS
+#define USE_FLASH_W25Q128FV
 #define USE_FLASH_M25P16
 #define FLASH_CS_PIN            PA14
 #define FLASH_SPI_INSTANCE      SPI2
