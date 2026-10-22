@@ -8,5 +8,4 @@ drivers/accgyro/accgyro_spi_icm426xx.c \
 drivers/barometer/barometer_ms5611.c \
 drivers/barometer/barometer_bmp280.c \
 drivers/barometer/barometer_bmp085.c \
-drivers/light_ws2811strip.c \
 drivers/max7456.c

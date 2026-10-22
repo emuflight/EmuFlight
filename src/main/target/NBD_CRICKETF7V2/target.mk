@@ -3,8 +3,6 @@ FEATURES       += VCP
 
 TARGET_SRC = \
 drivers/accgyro/accgyro_spi_bmi270.c \
-drivers/light_led.h \
-drivers/light_ws2811strip.c \
 drivers/max7456.c \
 
 # notice - this file was programmatically generated and may be incomplete.
