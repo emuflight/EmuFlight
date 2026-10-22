@@ -412,9 +412,6 @@ void validateAndFixGyroConfig(void) {
     }
     float samplingTime;
     switch (gyroMpuDetectionResult()->sensor) {
-    case ICM_20649_SPI:
-        samplingTime = 1.0f / 9000.0f;
-        break;
     case BMI_160_SPI:
     case BMI_270_SPI:
         samplingTime = 0.0003125f;
@@ -425,9 +422,6 @@ void validateAndFixGyroConfig(void) {
     }
     if (gyroConfig()->gyro_hardware_lpf != GYRO_HARDWARE_LPF_NORMAL && gyroConfig()->gyro_hardware_lpf != GYRO_HARDWARE_LPF_EXPERIMENTAL) {
         switch (gyroMpuDetectionResult()->sensor) {
-        case ICM_20649_SPI:
-            samplingTime = 1.0f / 1100.0f;
-            break;
         default:
             samplingTime = 0.001f;
             break;
