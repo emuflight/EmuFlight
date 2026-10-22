@@ -265,6 +265,7 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             drivers/compass/compass_ak8975.c \
             drivers/compass/compass_fake.c \
             drivers/compass/compass_hmc5883l.c \
+            drivers/compass/compass_lis3mdl.c \
             drivers/compass/compass_qmc5883l.c \
             drivers/display_ug2864hsweg01.c \
             drivers/inverter.c \
@@ -412,6 +413,16 @@ SRC += \
 endif
 
 SRC += $(COMMON_SRC)
+
+# Every target compiles the compass drivers; USE_MAG_* in common_fc_post.h selects the chips.
+COMPASS_SRC = \
+            drivers/compass/compass_ak8963.c \
+            drivers/compass/compass_ak8975.c \
+            drivers/compass/compass_fake.c \
+            drivers/compass/compass_hmc5883l.c \
+            drivers/compass/compass_lis3mdl.c \
+            drivers/compass/compass_qmc5883l.c
+SRC := $(filter-out $(COMPASS_SRC),$(SRC)) $(COMPASS_SRC)
 
 #excludes
 SRC   := $(filter-out $(MCU_EXCLUDES), $(SRC))
