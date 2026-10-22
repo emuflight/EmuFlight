@@ -9,8 +9,6 @@ drivers/barometer/barometer_ms5611.c \
 drivers/barometer/barometer_bmp280.c \
 drivers/barometer/barometer_dps310.c \
 drivers/compass/compass_hmc5883l.c \
-drivers/light_led.h \
-drivers/light_ws2811strip.c \
 drivers/max7456.c \
 
 # notice - this file was programmatically generated and may be incomplete.
