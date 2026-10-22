@@ -114,6 +114,10 @@
 #define SPI2_MOSI_PIN           PB15
 
 #define SPI4_NSS_PIN            PE4
+
+#define USE_MAX7456
+#define MAX7456_SPI_INSTANCE    SPI2
+#define MAX7456_SPI_CS_PIN      PB12
 #define SPI4_SCK_PIN            PE2
 #define SPI4_MISO_PIN           PE5
 #define SPI4_MOSI_PIN           PE6
