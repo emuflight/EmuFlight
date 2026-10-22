@@ -148,7 +148,7 @@
     TIMER_PIN_MAP( 0, PA2 , 3, -1) /* PPM IN */ \
     TIMER_PIN_MAP( 1, PA8 , 1,  1) /* S1_OUT 2,1 */ \
     TIMER_PIN_MAP( 2, PA9 , 1,  1) /* S2_OUT 2,2 */ \
-    TIMER_PIN_MAP( 3, PA10 , 1,  0) /* S3_OUT 2,6 */ \
+    TIMER_PIN_MAP( 3, PA10 , 1,  1) /* S3_OUT 2,6 */ \
     TIMER_PIN_MAP( 4, PB0 , 2,  0) /* S4_OUT 1,7 */ \
     TIMER_PIN_MAP( 5, PB4 , 1,  0) /* S5_OUT 1,4 */ \
     TIMER_PIN_MAP( 6, PB1 , 2,  0) /* RSSI   1,2 */ \

@@ -175,7 +175,7 @@
     TIMER_PIN_MAP( 3, PB5 , 1,  0) /* MOTOR4 */ \
     TIMER_PIN_MAP( 4, PB6 , 1,  0) /* MOTOR5 */ \
     TIMER_PIN_MAP( 5, PB7 , 1,  0) /* MOTOR6 */ \
-    TIMER_PIN_MAP( 6, PC8 , 2,  1) /* MOTOR7 */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  0) /* MOTOR7 */ \
     TIMER_PIN_MAP( 7, PC9 , 2,  0) /* MOTOR8 */ \
     TIMER_PIN_MAP( 8, PA3 , 2,  0) /* PPM */ \
     TIMER_PIN_MAP( 9, PB3 , 1,  0) /* CAMERA CONTROL */ \
