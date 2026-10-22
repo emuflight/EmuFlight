@@ -6,9 +6,6 @@ drivers/accgyro/accgyro_spi_icm20689.c \
 drivers/barometer/barometer_bmp280.c \
 drivers/barometer/barometer_dps310.c \
 $(addprefix drivers/compass/,$(notdir $(wildcard $(SRC_DIR)/drivers/compass/*.c))) \
-drivers/light_led.h \
-drivers/light_ws2811strip.c \
-drivers/pinio.c \
 drivers/max7456.c \
 
 # notice - this file was programmatically generated and may be incomplete.

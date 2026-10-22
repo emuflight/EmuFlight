@@ -50,6 +50,7 @@
 #define LED0_PIN             PC14
 #define LED1_PIN             PC15
 #define LED_STRIP_PIN        PB3
+#define CAMERA_CONTROL_PIN   PA8
 #define USE_BEEPER
 #define BEEPER_PIN           PC3
 #define BEEPER_INVERTED
@@ -163,7 +164,8 @@
     TIMER_PIN_MAP( 7, PA1 , 2,  0) /* could not determine TIM_USE_xxxxx - please check */ \
     TIMER_PIN_MAP( 8, PA9 , 1,  -1) /* could not determine TIM_USE_xxxxx - please check; dma 0 assumed, please verify */ \
     TIMER_PIN_MAP( 9, PA10 , 1,  -1) /* could not determine TIM_USE_xxxxx - please check; dma 0 assumed, please verify */ \
-    TIMER_PIN_MAP( 10, PB3 , 1,  0) /* led */
+    TIMER_PIN_MAP( 10, PB3 , 1,  0) /* led */ \
+    TIMER_PIN_MAP( 11, PA8 , 1, -1) /* camera control, TIM1 CH1 */
 
 #define MOTOR1_PIN              PC8
 #define MOTOR2_PIN              PC9
