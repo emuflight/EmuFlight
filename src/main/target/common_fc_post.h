@@ -60,10 +60,11 @@
 #endif
 #endif
 
-// Compass: a board with a configured compass bus (MAG_I2C_INSTANCE or I2C_DEVICE) and more than 128 KB of
-// flash gets the whole driver suite and detects the chip at run time.
-#if defined(USE_I2C) && (defined(MAG_I2C_INSTANCE) || defined(I2C_DEVICE)) && (FLASH_SIZE > 128) && !defined(USE_MAG)
-#define USE_MAG
+// Compass: a board with no compass bus and no named compass driver cannot use a compass.
+#if defined(USE_MAG) && !(defined(USE_I2C) && (defined(MAG_I2C_INSTANCE) || defined(I2C_DEVICE))) \
+    && !defined(USE_MAG_HMC5883) && !defined(USE_MAG_QMC5883) && !defined(USE_MAG_LIS3MDL) \
+    && !defined(USE_MAG_AK8963) && !defined(USE_MAG_AK8975) && !defined(USE_MAG_SPI_HMC5883)
+#undef USE_MAG
 #endif
 
 // A target that names its own compass driver keeps its choice (compass.c picks the bus from these defines).
