@@ -534,6 +534,7 @@ bool isProgramming = false;
 void w25n_pageProgramBegin(flashDevice_t *fdevice, uint32_t address, void (*callback)(uint32_t length))
 {
     fdevice->callback = callback;
+    fdevice->currentWriteAddress = address;
 
     if (bufferDirty) {
         if (address != programLoadAddress) {
@@ -547,6 +548,8 @@ void w25n_pageProgramBegin(flashDevice_t *fdevice, uint32_t address, void (*call
 
             bufferDirty = false;
             isProgramming = true;
+
+            programStartAddress = programLoadAddress = address;
         }
     } else {
         programStartAddress = programLoadAddress = address;
@@ -576,6 +579,7 @@ uint32_t w25n_pageProgramContinue(flashDevice_t *fdevice, uint8_t const **buffer
 
     bufferDirty = true;
     programLoadAddress += bufferSizes[0];
+    fdevice->currentWriteAddress += bufferSizes[0];
 
     if (fdevice->callback) {
         fdevice->callback(bufferSizes[0]);
