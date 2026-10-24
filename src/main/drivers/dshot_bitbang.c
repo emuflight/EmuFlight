@@ -50,7 +50,7 @@ typedef struct bbPacerRow_s {
     int8_t dmaopt;
 } bbPacerRow_t;
 
-// A timer channel only paces the DMA; it needs no pin. dmaopt picks the DMA stream.
+// A timer channel only paces the DMA; it needs no pin. dmaopt picks the DMA stream, -1 tries all.
 static const bbPacerRow_t bbPacerRows[] = {
 #if defined(STM32F4) || defined(STM32F7)
 #if !defined(STM32F411xE)
@@ -65,14 +65,14 @@ static const bbPacerRow_t bbPacerRows[] = {
     { TIM1, BB_CH(3), 1 },
     { TIM1, BB_CH(4), 0 },
 #elif defined(STM32H7)
-    { TIM8, BB_CH(1), 0 },
-    { TIM8, BB_CH(2), 1 },
-    { TIM8, BB_CH(3), 2 },
-    { TIM8, BB_CH(4), 3 },
-    { TIM1, BB_CH(1), 0 },
-    { TIM1, BB_CH(2), 1 },
-    { TIM1, BB_CH(3), 2 },
-    { TIM1, BB_CH(4), 3 },
+    { TIM8, BB_CH(1), -1 },
+    { TIM8, BB_CH(2), -1 },
+    { TIM8, BB_CH(3), -1 },
+    { TIM8, BB_CH(4), -1 },
+    { TIM1, BB_CH(1), -1 },
+    { TIM1, BB_CH(2), -1 },
+    { TIM1, BB_CH(3), -1 },
+    { TIM1, BB_CH(4), -1 },
 #else
 #error MCU dependent code required
 #endif
@@ -204,31 +204,37 @@ static bool bbFindPacer(bbPort_t *bbPort, uint8_t timerSelect)
             continue;
         }
 
-        // the H7 spec table is shared between options: read it before the next lookup
-        const dmaChannelSpec_t *dmaSpec = dmaGetChannelSpecByTimerValue(tim, channel, bbPacerRows[row].dmaopt);
-        if (!dmaSpec || !dmaSpec->ref) {
-            continue;
-        }
-        DMA_Stream_TypeDef *dmaRef = (DMA_Stream_TypeDef *)dmaSpec->ref;
-        const uint32_t dmaChannel = dmaSpec->channel;
-        const dmaIdentifier_e dmaIdentifier = dmaGetIdentifier(dmaRef);
-        if (dmaIdentifier == DMA_NONE || dmaGetOwner(dmaIdentifier) != OWNER_FREE) {
-            continue;
-        }
-        for (int i = 0; i < usedMotorPorts && !conflict; i++) {
-            conflict = &bbPorts[i] != bbPort && bbPorts[i].dmaIdentifier == dmaIdentifier;
-        }
-        if (conflict) {
-            continue;
-        }
+        // a negative dmaopt tries every option: H7 DMAMUX lets any free stream serve the request
+        const int8_t firstOpt = bbPacerRows[row].dmaopt < 0 ? 0 : bbPacerRows[row].dmaopt;
+        const int8_t lastOpt = bbPacerRows[row].dmaopt < 0 ? MAX_TIMER_DMA_OPTIONS - 1 : bbPacerRows[row].dmaopt;
+        for (int8_t opt = firstOpt; opt <= lastOpt; opt++) {
+            // the H7 spec table is shared between options: read it before the next lookup
+            const dmaChannelSpec_t *dmaSpec = dmaGetChannelSpecByTimerValue(tim, channel, opt);
+            if (!dmaSpec || !dmaSpec->ref) {
+                continue;
+            }
+            DMA_Stream_TypeDef *dmaRef = (DMA_Stream_TypeDef *)dmaSpec->ref;
+            const uint32_t dmaChannel = dmaSpec->channel;
+            const dmaIdentifier_e dmaIdentifier = dmaGetIdentifier(dmaRef);
+            if (dmaIdentifier == DMA_NONE || dmaGetOwner(dmaIdentifier) != OWNER_FREE) {
+                continue;
+            }
+            bool streamTaken = false;
+            for (int i = 0; i < usedMotorPorts && !streamTaken; i++) {
+                streamTaken = &bbPorts[i] != bbPort && bbPorts[i].dmaIdentifier == dmaIdentifier;
+            }
+            if (streamTaken) {
+                continue;
+            }
 
-        bbPort->tim = tim;
-        bbPort->timChannel = channel;
-        bbPort->dmaRef = dmaRef;
-        bbPort->dmaChannel = dmaChannel;
-        bbPort->dmaIdentifier = dmaIdentifier;
-        bbPort->dmaSource = timerDmaSource(channel);
-        return true;
+            bbPort->tim = tim;
+            bbPort->timChannel = channel;
+            bbPort->dmaRef = dmaRef;
+            bbPort->dmaChannel = dmaChannel;
+            bbPort->dmaIdentifier = dmaIdentifier;
+            bbPort->dmaSource = timerDmaSource(channel);
+            return true;
+        }
     }
     return false;
 }
