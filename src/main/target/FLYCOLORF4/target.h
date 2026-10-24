@@ -129,6 +129,7 @@
 
 // PB0 and PB8 share DMA1 Stream 7; with DShot burst off only one of them gets DMA
 // PB14 and PC8 share DMA2 Stream 2; with DShot burst off only one of them gets DMA
+// PA3 stays on TIM5 CH4; TIM2 CH4 would share TIM2 with motor 8 on PA15 and PPM would reset its time base
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB6 , 1,  0) /* motor 1 */ \
     TIMER_PIN_MAP( 1, PB7 , 1,  0) /* motor 2 */ \

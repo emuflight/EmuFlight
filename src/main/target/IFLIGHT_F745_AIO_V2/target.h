@@ -179,6 +179,7 @@
 
 
 
+// PC8 and ADC1 share DMA2 Stream 4; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA8 , 1,  0) /* LED */ \
     TIMER_PIN_MAP( 1, PB3 , 1,  0) /* CAM */ \
@@ -188,7 +189,7 @@
     TIMER_PIN_MAP( 5, PB5 , 1,  0) /* M4 */ \
     TIMER_PIN_MAP( 6, PD12 , 1,  0) /* M5 */ \
     TIMER_PIN_MAP( 7, PD13 , 1,  0) /* M6 */ \
-    TIMER_PIN_MAP( 8, PC8 , 2,  0) /* M7 */ \
+    TIMER_PIN_MAP( 8, PC8 , 2,  1) /* M7 */ \
     TIMER_PIN_MAP( 9, PC9 , 2,  0) /* M8 */
 
 #define MOTOR1_PIN              PB0
