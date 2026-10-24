@@ -283,7 +283,8 @@ bool dshotBitbangMotorInit(uint8_t motorIndex, uint8_t reorderedMotorIndex, ioTa
 {
     const IO_t io = IOGetByTag(tag);
 
-    if (!io || !IOIsFreeOrPreinit(io)) {
+    // brushed ESC autodetect leaves motor 1 owned by SYSTEM; classic DShot overwrites that too
+    if (!io || !(IOIsFreeOrPreinit(io) || IOGetOwner(io) == OWNER_SYSTEM)) {
         bbStatus = DSHOT_BITBANG_STATUS_MOTOR_PIN_CONFLICT;
         return false;
     }
