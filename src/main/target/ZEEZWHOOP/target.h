@@ -91,6 +91,7 @@
 // *************** ADC *****************************
 
 #define USE_ADC
+#define ADC1_DMA_OPT 0
 #define DEFAULT_VOLTAGE_METER_SOURCE                     VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE                     CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN                            PA4

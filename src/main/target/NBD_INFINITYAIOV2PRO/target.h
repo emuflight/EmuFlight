@@ -131,6 +131,7 @@
 #define I2C1_SDA               PB9
 
 #define USE_ADC
+#define ADC1_DMA_OPT 0
 #define VBAT_ADC_PIN                PC1
 #define CURRENT_METER_ADC_PIN       PC2
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
