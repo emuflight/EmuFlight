@@ -112,7 +112,7 @@
 #define VBAT_ADC_PIN PC2
 #define CURRENT_METER_ADC_PIN PC1
 #define RSSI_ADC_PIN PC3
-#define ADC3_DMA_OPT        1
+#define ADC3_DMA_OPT        0
 #define ADC1_DMA_OPT 0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
@@ -126,7 +126,6 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-// PA8 and ADC3 share DMA2 Stream 1
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PC6 , 2,  1) /* motor 1 */ \
     TIMER_PIN_MAP( 1, PC7 , 2,  1) /* motor 2 */ \
