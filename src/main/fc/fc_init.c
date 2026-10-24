@@ -44,6 +44,7 @@
 #include "drivers/bus.h"
 #include "drivers/bus_i2c.h"
 #include "drivers/bus_spi.h"
+#include "drivers/bus_quadspi.h"
 #include "drivers/buttons.h"
 #include "drivers/camera_control.h"
 #include "drivers/compass/compass.h"
@@ -98,6 +99,7 @@
 #include "pg/beeper_dev.h"
 #include "pg/bus_i2c.h"
 #include "pg/bus_spi.h"
+#include "pg/bus_quadspi.h"
 #include "pg/flash.h"
 #include "pg/pinio.h"
 #include "pg/piniobox.h"
@@ -199,6 +201,16 @@ void busSwitchInit(void) {
 }
 #endif
 
+#ifdef USE_QUADSPI
+static void configureQuadSPIBusses(void)
+{
+    quadSpiPinConfigure(quadSpiConfig(0));
+#ifdef USE_QUADSPI_DEVICE_1
+    quadSpiInit(QUADSPIDEV_1);
+#endif
+}
+#endif
+
 void init(void) {
 #if defined(USE_ITCM_RAM) && !defined(STM32H7)
     /* Load functions into ITCM RAM */
@@ -249,6 +261,9 @@ void init(void) {
     spiInit(SPIDEV_6);
 #endif
 #endif // USE_SPI
+#ifdef USE_QUADSPI
+    configureQuadSPIBusses();
+#endif
     if (!flashInit(flashConfig())) {
         failureMode(FAILURE_EXTERNAL_FLASH_INIT_FAILED);
     }
@@ -414,6 +429,9 @@ void init(void) {
     spiInit(SPIDEV_6);
 #endif
 #endif // USE_SPI
+#ifdef USE_QUADSPI
+    configureQuadSPIBusses();
+#endif
 #endif // !CONFIG_IN_EXTERNAL_FLASH
 #if defined(USE_SDCARD_SDIO) && !defined(CONFIG_IN_SDCARD) && defined(STM32H7)
     sdioPinConfigure();
