@@ -474,24 +474,10 @@ void pwmWriteDshotCommand(uint8_t index, uint8_t motorCount, uint8_t command, bo
                 if ((i == index) || (index == ALL_MOTORS)) {
                     motorDmaOutput_t *const motor = getMotorDmaOutput(i);
                     motor->requestTelemetry = true;
-#ifdef USE_DSHOT_BITBANG
-                    if (useBitbang) {
-                        dshotBitbangWriteInt(i, command);
-                    } else
-#endif
-                    {
-                        pwmWriteDshotInt(i, command);
-                    }
+                    pwmWrite(i, command);
                 }
             }
-#ifdef USE_DSHOT_BITBANG
-            if (useBitbang) {
-                dshotBitbangUpdateComplete(motorCount);
-            } else
-#endif
-            {
-                pwmCompleteDshotMotorUpdate(0);
-            }
+            pwmCompleteWrite(0);
         }
         delayMicroseconds(delayAfterCommandUs);
     } else {

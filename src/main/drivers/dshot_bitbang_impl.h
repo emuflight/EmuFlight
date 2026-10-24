@@ -25,6 +25,7 @@
 #include "drivers/dma.h"
 #include "drivers/dshot_bitbang.h"
 #include "drivers/io_types.h"
+#include "common/time.h"
 #include "drivers/timer.h"
 
 #define MAX_SUPPORTED_MOTOR_PORTS 4 // one pacer channel per GPIO port group
@@ -55,6 +56,8 @@ typedef struct bbPort_s {
     uint32_t dmaChannel;
     dmaIdentifier_e dmaIdentifier;
     bbDmaRegs_t dmaRegs;
+    timeUs_t startUs;           // last frame start
+    uint32_t frameUs;           // frame duration at the configured protocol
     uint16_t outputARR;
     uint32_t *portOutputBuffer;
     uint32_t portOutputCount;
@@ -72,7 +75,5 @@ typedef struct bbMotor_s {
 // MCU specific, dshot_bitbang_ll.c (F7/H7) or dshot_bitbang_stdperiph.c (F4)
 void bbTimerChannelInit(const bbPort_t *bbPort);
 void bbDMAPreconfigure(bbPort_t *bbPort);
-void bbDMALoadRegs(const bbPort_t *bbPort);
 void bbDMACmd(const bbPort_t *bbPort, bool enable);
-bool bbDMAIsEnabled(const bbPort_t *bbPort);
 void bbTIMDMACmd(TIM_TypeDef *tim, uint16_t dmaSources, bool enable);

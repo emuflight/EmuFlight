@@ -40,8 +40,7 @@
 // A stream disable takes a few AHB cycles to show in EN
 #define BB_DMA_STOP_SPINS 100
 
-// Port buffers are padded to 32 bytes so cache maintenance never spans two ports
-#define BB_PORT_BUF_WORDS ((((MOTOR_DSHOT_BUF_LENGTH * 4) + 31) / 32) * 8)
+#define BB_PORT_BUF_WORDS MOTOR_DSHOT_BUF_LENGTH
 
 #define BB_CH(n) CC_CHANNEL_FROM_INDEX((n) - 1)
 
@@ -133,6 +132,40 @@ static bbPort_t *bbFindMotorPort(int portIndex)
     return NULL;
 }
 
+static void bbDMASaveRegs(bbPort_t *bbPort)
+{
+    const DMA_Stream_TypeDef *stream = bbPort->dmaRef;
+
+    bbPort->dmaRegs.CR = stream->CR;
+    bbPort->dmaRegs.FCR = stream->FCR;
+    bbPort->dmaRegs.NDTR = stream->NDTR;
+    bbPort->dmaRegs.PAR = stream->PAR;
+    bbPort->dmaRegs.M0AR = stream->M0AR;
+}
+
+// The stream registers are rewritten each frame because NDTR is spent and a transfer error may leave the stream half-configured
+static void bbDMALoadRegs(const bbPort_t *bbPort)
+{
+    DMA_Stream_TypeDef *stream = bbPort->dmaRef;
+
+    stream->CR = bbPort->dmaRegs.CR;
+    stream->FCR = bbPort->dmaRegs.FCR;
+    stream->NDTR = bbPort->dmaRegs.NDTR;
+    stream->PAR = bbPort->dmaRegs.PAR;
+    stream->M0AR = bbPort->dmaRegs.M0AR;
+}
+
+static bool bbDMAIsEnabled(const bbPort_t *bbPort)
+{
+    return (bbPort->dmaRef->CR & DMA_SxCR_EN) != 0;
+}
+
+// A stream still enabled well past its frame time is stuck, not sending
+static bool bbPortIsSending(const bbPort_t *bbPort)
+{
+    return bbDMAIsEnabled(bbPort) && cmpTimeUs(micros(), bbPort->startUs) < (int32_t)(2 * bbPort->frameUs);
+}
+
 static uint32_t getDshotBaseFrequency(uint8_t protocol)
 {
     switch (protocol) {
@@ -206,8 +239,12 @@ FAST_IRQ_HANDLER void bbDMAIrqHandler(dmaChannelDescriptor_t *descriptor)
 
     bbDMACmd(bbPort, false);
     bbTIMDMACmd(bbPort->tim, bbPort->dmaSource, false);
-    // a transfer error is cleared here; the next frame reloads every register
-    DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF | DMA_IT_TEIF);
+    // every event flag must be clear before the stream is enabled again; the next frame reloads every register
+#ifdef DMA_IT_FEIF
+    DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF | DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_DMEIF | DMA_IT_FEIF);
+#else
+    DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF | DMA_IT_HTIF | DMA_IT_TEIF);
+#endif
 }
 
 static bool bbSetupPort(bbPort_t *bbPort, IO_t io, const motorDevConfig_t *motorConfig)
@@ -230,11 +267,14 @@ static bool bbSetupPort(bbPort_t *bbPort, IO_t io, const motorDevConfig_t *motor
     bbPort->gpio = IO_GPIO(io);
     bbPort->portOutputCount = MOTOR_DSHOT_BUF_LENGTH;
     bbPort->portOutputBuffer = &bbOutputBuffer[(bbPort - bbPorts) * BB_PORT_BUF_WORDS];
-    bbPort->outputARR = timerClock(bbPort->tim) / (getDshotBaseFrequency(motorConfig->motorPwmProtocol)) - 1;
+    const uint32_t baseFrequency = getDshotBaseFrequency(motorConfig->motorPwmProtocol);
+    bbPort->outputARR = timerClock(bbPort->tim) / baseFrequency - 1;
+    bbPort->frameUs = (1000000ull * MOTOR_DSHOT_BUF_LENGTH) / baseFrequency + 1;
 
     bbTimerChannelInit(bbPort);
     dmaEnable(bbPort->dmaIdentifier);
     bbDMAPreconfigure(bbPort);
+    bbDMASaveRegs(bbPort);
     dmaSetHandler(bbPort->dmaIdentifier, bbDMAIrqHandler, NVIC_BUILD_PRIORITY(2, 1), (uintptr_t)bbPort);
     return true;
 }
@@ -307,6 +347,11 @@ void dshotBitbangWriteInt(uint8_t motorIndex, uint16_t value)
         return;
     }
 
+    // rewriting the buffer under a running frame would corrupt it; this motor repeats its packet
+    if (bbPortIsSending(bbMotor->bbPort)) {
+        return;
+    }
+
     motorDmaOutput_t *const motor = getMotorDmaOutput(motorIndex);
     if (pwmDshotCommandIsProcessing()) {
         value = pwmGetDshotCommand(motorIndex);
@@ -329,13 +374,18 @@ void dshotBitbangUpdateComplete(uint8_t motorCount)
     }
 
     for (int i = 0; i < usedMotorPorts; i++) {
-        const bbPort_t *bbPort = &bbPorts[i];
+        bbPort_t *bbPort = &bbPorts[i];
 
-        // a frame still running would be cut short and leave EN set
+        if (bbPortIsSending(bbPort)) {
+            continue; // the frame in flight finishes; this update is skipped for the port
+        }
+
+        // a stuck stream is stopped before its registers are written
         bbDMACmd(bbPort, false);
         for (int spin = 0; spin < BB_DMA_STOP_SPINS && bbDMAIsEnabled(bbPort); spin++) {
         }
         bbDMALoadRegs(bbPort);
+        bbPort->startUs = micros();
         bbDMACmd(bbPort, true);
     }
 

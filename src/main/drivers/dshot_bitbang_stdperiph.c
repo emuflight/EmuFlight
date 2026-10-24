@@ -83,34 +83,11 @@ void bbDMAPreconfigure(bbPort_t *bbPort)
     DMA_DeInit(stream);
     DMA_Init(stream, &init);
     DMA_ITConfig(stream, DMA_IT_TC | DMA_IT_TE, ENABLE);
-
-    bbPort->dmaRegs.CR = stream->CR;
-    bbPort->dmaRegs.FCR = stream->FCR;
-    bbPort->dmaRegs.NDTR = stream->NDTR;
-    bbPort->dmaRegs.PAR = stream->PAR;
-    bbPort->dmaRegs.M0AR = stream->M0AR;
-}
-
-// The stream registers are rewritten each frame because NDTR is spent and a transfer error may leave the stream half-configured
-void bbDMALoadRegs(const bbPort_t *bbPort)
-{
-    DMA_Stream_TypeDef *stream = bbPort->dmaRef;
-
-    stream->CR = bbPort->dmaRegs.CR;
-    stream->FCR = bbPort->dmaRegs.FCR;
-    stream->NDTR = bbPort->dmaRegs.NDTR;
-    stream->PAR = bbPort->dmaRegs.PAR;
-    stream->M0AR = bbPort->dmaRegs.M0AR;
 }
 
 void bbDMACmd(const bbPort_t *bbPort, bool enable)
 {
     DMA_Cmd(bbPort->dmaRef, enable ? ENABLE : DISABLE);
-}
-
-bool bbDMAIsEnabled(const bbPort_t *bbPort)
-{
-    return (bbPort->dmaRef->CR & DMA_SxCR_EN) != 0;
 }
 
 void bbTIMDMACmd(TIM_TypeDef *tim, uint16_t dmaSources, bool enable)

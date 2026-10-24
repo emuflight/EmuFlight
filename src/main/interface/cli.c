@@ -3696,7 +3696,11 @@ static void cliStatus(char *cmdline) {
     cliPrintLinefeed();
 #ifdef USE_DSHOT_BITBANG
     if (motorConfig()->dev.useDshotBitbang == DSHOT_BITBANG_ON) {
-        cliPrintLinef("DShot bitbang: %s, status %d", dshotBitbangIsRunning() ? "on" : "off", dshotBitbangGetStatus());
+        if (dshotBitbangProtocolSupported(motorConfig()->dev.motorPwmProtocol)) {
+            cliPrintLinef("DShot bitbang: %s, status %d", dshotBitbangIsRunning() ? "on" : "off", dshotBitbangGetStatus());
+        } else {
+            cliPrintLine("DShot bitbang: off, protocol");
+        }
     }
 #endif
 }
