@@ -711,6 +711,9 @@ void init(void) {
     // Must run after every dmaInit() caller above and before fcTasksInit()'s first gyro read.
     spiInitBusDMA();
 #endif
+#ifdef USE_DSHOT_BITBANG
+    motorDevPostInit();
+#endif
     debugInit();
     fcTasksInit();
     systemState |= SYSTEM_STATE_READY;

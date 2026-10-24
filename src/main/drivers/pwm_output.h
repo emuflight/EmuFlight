@@ -180,11 +180,14 @@ typedef struct motorDevConfig_s {
     uint8_t  useBurstDshot;
     ioTag_t  ioTags[MAX_SUPPORTED_MOTORS];
     uint8_t  motorOutputReordering[MAX_SUPPORTED_MOTORS]; // logical motor index -> ioTags[] slot
+    uint8_t  useDshotBitbang;               // dshotBitbangMode_e
+    uint8_t  useDshotBitbangedTimer;        // dshotBitbangedTimer_e
 } motorDevConfig_t;
 
 extern bool useBurstDshot;
 
 void motorDevInit(const motorDevConfig_t *motorDevConfig, uint16_t idlePulse, uint8_t motorCount);
+void motorDevPostInit(void);
 
 // Restore the identity mapping unless the array is a permutation of 0..size-1.
 static inline void validateAndfixMotorOutputReordering(uint8_t *array, const unsigned size) {
