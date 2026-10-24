@@ -102,6 +102,7 @@
 #define SPI3_MOSI_PIN             PC12
 
 #define USE_ADC
+#define ADC1_DMA_OPT 0
 #define CURRENT_METER_ADC_PIN     PB1
 #define VBAT_ADC_PIN              PB0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC

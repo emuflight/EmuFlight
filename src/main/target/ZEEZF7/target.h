@@ -100,6 +100,8 @@
 
 // ESC
 #define USE_ADC
+#define ADC_INSTANCE ADC3
+#define ADC3_DMA_OPT 1
 #define DEFAULT_VOLTAGE_METER_SOURCE                     VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE                     CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN                            PC3
