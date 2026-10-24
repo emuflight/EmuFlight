@@ -185,13 +185,14 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
 
+// PC8 and ADC1 share DMA2 Stream 4; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB5 , 1,  0) /* M1 */ \
     TIMER_PIN_MAP( 1, PB4 , 1,  0) /* M2 */ \
     TIMER_PIN_MAP( 2, PB0 , 2,  0) /* M3 */ \
     TIMER_PIN_MAP( 3, PB1 , 2,  0) /* M4 */ \
     TIMER_PIN_MAP( 4, PC9 , 2,  0) /* MST5 Collision with TX/RX6 (useful for OCTO) */ \
-    TIMER_PIN_MAP( 5, PC8 , 2,  0) /* MST6 Collision with TX/RX6 (useful for OCTO) */ \
+    TIMER_PIN_MAP( 5, PC8 , 2,  1) /* MST6 Collision with TX/RX6 (useful for OCTO) */ \
     TIMER_PIN_MAP( 6, PB9 , 2, -1) /* I2C1_SDA, MST7 */ \
     TIMER_PIN_MAP( 7, PB8 , 2, -1) /* I2C1_SCL, MST8 */ \
     TIMER_PIN_MAP( 8, PB7 , 1,  0) /* Overloaded with UART1_RX */ \
@@ -205,7 +206,7 @@
     TIMER_PIN_MAP( 16, PA0 , 2,  0) /* UART4_TX */ \
     TIMER_PIN_MAP( 17, PA1 , 2,  0) /* UART4_RX */ \
     TIMER_PIN_MAP( 18, PC6 , 2,  0) /* UART6_TX Collision with MS1&2 (useful for OCTO) */ \
-    TIMER_PIN_MAP( 19, PC7 , 2,  0) /* UART6_RX Collision with MS1&2 (useful for OCTO) */ \
+    TIMER_PIN_MAP( 19, PC7 , 2,  1) /* UART6_RX Collision with MS1&2 (useful for OCTO) */ \
     TIMER_PIN_MAP( 20, PA10 , 1,  0) /* CS_ExtIMU, Collision with LED_STRIP */
 
 #define MOTOR1_PIN              PB5
