@@ -143,6 +143,7 @@
 
 // *************** ADC *****************************
 #define USE_ADC
+#define ADC1_DMA_OPT            0
 #define VBAT_ADC_PIN            PC2
 #define CURRENT_METER_ADC_PIN   PC1
 #define RSSI_ADC_PIN            PC0
@@ -161,7 +162,7 @@
 
 
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC8 , 2,  0) /* S1   UP1-2 */ \
+    TIMER_PIN_MAP( 0, PC8 , 2,  1) /* S1   UP1-2 */ \
     TIMER_PIN_MAP( 1, PC9 , 2,  0) /* S2   UP1-2 */ \
     TIMER_PIN_MAP( 2, PB4 , 1,  0) /* S3   UP1-2 */ \
     TIMER_PIN_MAP( 3, PB5 , 1,  0) /* S4   UP1-2 */ \

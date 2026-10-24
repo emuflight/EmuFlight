@@ -127,8 +127,9 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-// PB0 and PB8 share DMA1 Stream 7; with DShot burst off only one of them gets DMA
+// PA3, PB0 and PB8 share DMA1 Stream 7; with DShot burst off only one of them gets DMA
 // PB14 and PC8 share DMA2 Stream 2; with DShot burst off only one of them gets DMA
+// PA3 (PPM) and PA15 (motor 8) share TIM2; PPM receive with eight DShot motors sets one time base for both
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB6 , 1,  0) /* motor 1 */ \
     TIMER_PIN_MAP( 1, PB7 , 1,  0) /* motor 2 */ \
@@ -138,7 +139,7 @@
     TIMER_PIN_MAP( 5, PB1 , 2,  0) /* motor 6 */ \
     TIMER_PIN_MAP( 6, PC8 , 2,  0) /* motor 7 */ \
     TIMER_PIN_MAP( 7, PA15 , 1,  0) /* motor 8 */ \
-    TIMER_PIN_MAP( 8, PA3 , 2,  0) /* ppm RX_PPM_PIN */ \
+    TIMER_PIN_MAP( 8, PA3 , 1,  0) /* ppm RX_PPM_PIN */ \
     TIMER_PIN_MAP( 9, PB14 , 1,  1) /* led */ \
     TIMER_PIN_MAP( 10, PB15 , 3, -1) /* cam ctrl; dma 0 assumed, please verify */
 

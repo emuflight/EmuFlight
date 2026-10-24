@@ -143,6 +143,8 @@
 #define CURRENT_METER_ADC_PIN     PC3
 #define VBAT_ADC_PIN              PC1
 #define RSSI_ADC_PIN              PC2
+#define ADC_INSTANCE              ADC3
+#define ADC3_DMA_OPT              0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
@@ -153,9 +155,9 @@
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB8 , 1,  0) \
     TIMER_PIN_MAP( 1, PA9 , 1,  0) \
-    TIMER_PIN_MAP( 2, PA8 , 1,  0) \
+    TIMER_PIN_MAP( 2, PA8 , 1,  1) \
     TIMER_PIN_MAP( 3, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 4, PC8 , 2,  0) \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) \
     TIMER_PIN_MAP( 5, PB0 , 2,  0) \
     TIMER_PIN_MAP( 6, PB1 , 2,  0) \
     TIMER_PIN_MAP( 7, PA10 , 1,  0) \
