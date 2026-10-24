@@ -132,7 +132,7 @@ const timerHardware_t *timerAllocate(ioTag_t, resourceOwner_e, uint8_t resourceI
     return &fakeTimerHardware[resourceIndex];
 }
 
-bool pwmDshotMotorHardwareConfig(const timerHardware_t *, uint8_t motorIndex, motorPwmProtocolTypes_e, uint8_t) {
+bool pwmDshotMotorHardwareConfig(const timerHardware_t *, uint8_t motorIndex, uint8_t, motorPwmProtocolTypes_e, uint8_t) {
     configCalls++;
     return failMotor != motorIndex;
 }

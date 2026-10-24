@@ -638,7 +638,7 @@ static serialPort_t *openEscSerial(const motorDevConfig_t *motorConfig, escSeria
         pwmOutputPort_t *pwmMotors = pwmGetMotors();
         for (volatile uint8_t i = 0; i < MAX_SUPPORTED_MOTORS; i++) {
             if (pwmMotors[i].enabled && pwmMotors[i].io != IO_NONE) {
-                const ioTag_t tag = motorConfig->ioTags[i];
+                const ioTag_t tag = motorConfig->ioTags[motorConfig->motorOutputReordering[i]]; // pairs with pwmMotors[i].io
                 if (tag != IO_TAG_NONE) {
                     const timerHardware_t *timerHardware = timerAllocate(tag, OWNER_MOTOR, 0);
                     if (timerHardware) {
