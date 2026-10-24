@@ -460,10 +460,18 @@ def _format_range(entry, table_map):
             return f'`{mn}` – `{mx}`'
         return ''
     if mode == 'array':
-        return f'array\\[{entry["array_len"]}\\]'
+        base = f'array\\[{entry["array_len"]}\\]'
+        note = ARRAY_NOTES.get(entry['name'])
+        return f'{base}; {note}' if note else base
     if mode == 'bitset':
         return 'bitflag'
     return ''
+
+
+# Hand-written range text for array settings the parser cannot describe from valueTable[].
+ARRAY_NOTES = {
+    'motor_output_reordering': 'logical motor N drives `ioTags` slot `array[N]`; zero-based, each value 0 to `MAX_SUPPORTED_MOTORS - 1` exactly once, otherwise reset to identity',
+}
 
 
 def _extract_use_conditions(cond, prefix='USE'):
