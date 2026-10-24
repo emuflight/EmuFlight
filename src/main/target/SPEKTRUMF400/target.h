@@ -121,20 +121,18 @@
 #define TARGET_XTAL_MHZ         12
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 4, PC6 , 2,  0) \
-    TIMER_PIN_MAP( 5, PA9 , 1,  0) \
-    TIMER_PIN_MAP( 6, PA10 , 1,  0) \
-    TIMER_PIN_MAP( 7, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 8, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 9, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 10, PA1 , 2,  0)
+    TIMER_PIN_MAP( 0, PB1 , 2,  0) /* pin 27 - M1 - DMA1_ST2 */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* pin 26 - M2 - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 2, PB5 , 1,  0) /* pin 57 - M3 - DMA1_ST5 */ \
+    TIMER_PIN_MAP( 3, PB4 , 1,  0) /* pin 56 - M4 - DMA1_ST4 */ \
+    TIMER_PIN_MAP( 4, PC6 , 2,  0) /* LED_STRIP - DMA2_ST2 */ \
+    TIMER_PIN_MAP( 5, PA9 , 1,  0) /* UART1_TX T1C2 */ \
+    TIMER_PIN_MAP( 6, PA10 , 1,  0) /* UART1_RX T1C3 */ \
+    TIMER_PIN_MAP( 7, PA2 , 1,  0) /* UART2_TX T5C3,T9C1,T2C3 */ \
+    TIMER_PIN_MAP( 8, PA3 , 3, -1) /* UART2_RX T5C4,T9C2,T2C4 */ \
+    TIMER_PIN_MAP( 9, PA0 , 2,  0) /* UART4_TX T5C1 */ \
+    TIMER_PIN_MAP( 10, PA1 , 2,  0) /* UART4_RX T5C2,T2C2 */
 
 #define MOTOR1_PIN              PB1
 #define MOTOR2_PIN              PB0

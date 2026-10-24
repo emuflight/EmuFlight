@@ -148,20 +148,18 @@
 #define SERIALRX_PROVIDER                   SERIALRX_SBUS
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 1, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 2, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 3, PC6 , 2,  1) \
-    TIMER_PIN_MAP( 4, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 5, PC7 , 2,  1) \
-    TIMER_PIN_MAP( 6, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 7, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 9, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 10, PA1 , 1,  0)
+    TIMER_PIN_MAP( 1, PA3 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 2, PC8 , 2,  1) /* ESC 1 */ \
+    TIMER_PIN_MAP( 3, PC6 , 2,  1) /* ESC 2 */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* ESC 3 */ \
+    TIMER_PIN_MAP( 5, PC7 , 2,  1) /* ESC 4 */ \
+    TIMER_PIN_MAP( 6, PB6 , 1,  0) /* ESC 5 */ \
+    TIMER_PIN_MAP( 7, PB7 , 1,  0) /* ESC 6 */ \
+    TIMER_PIN_MAP( 8, PB1 , 2,  0) /* ESC 7 */ \
+    TIMER_PIN_MAP( 9, PB0 , 2,  0) /* ESC 8 */ \
+    TIMER_PIN_MAP( 10, PA1 , 1,  0) /* LED Strip */
 
 #define MOTOR1_PIN              PC8
 #define MOTOR2_PIN              PC6

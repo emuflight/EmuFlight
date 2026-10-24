@@ -174,18 +174,16 @@
 #define ESC_SENSOR_UART         SERIAL_PORT_USART7
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
 
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PE13 , 1,  1) \
-    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 3, PE9 , 1,  2) \
-    TIMER_PIN_MAP( 4, PE11 , 1,  1) \
-    TIMER_PIN_MAP( 5, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 6, PA3 , 2,  0) \
-    TIMER_PIN_MAP( 7, PD12 , 1,  0)
+    TIMER_PIN_MAP( 0, PE13 , 1,  1) /* PPM, DMA2_ST6 */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* M1 , DMA1_ST7 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* M2 , DMA1_ST2 */ \
+    TIMER_PIN_MAP( 3, PE9 , 1,  2) /* M3 , DMA2_ST2 */ \
+    TIMER_PIN_MAP( 4, PE11 , 1,  1) /* M4 , DMA2_ST4 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* M5 , DMA2_ST7 */ \
+    TIMER_PIN_MAP( 6, PA3 , 2,  0) /* M6 , DMA1_ST1 */ \
+    TIMER_PIN_MAP( 7, PD12 , 1,  0) /* LED_TRIP, DMA1_ST0 */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

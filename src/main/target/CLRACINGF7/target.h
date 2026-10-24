@@ -150,18 +150,17 @@
 #define SERIALRX_UART           SERIAL_PORT_UART5
 
 
-#define USABLE_TIMER_CHANNEL_COUNT                      9                       //updated timer count to compensate for Nf Motor 4
-#define USE_TIMER_MGMT
+// PB1 is both motor 8 and the LED strip pad; only one of them can own it
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB9 , 1, -1) \
-    TIMER_PIN_MAP( 5, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 6, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 7, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 8, PB1 , 2,  0)
+    TIMER_PIN_MAP( 0, PB3 , 1,  0) /* USE FOR CAMERA CONTROL */ \
+    TIMER_PIN_MAP( 1, PB6 , 1,  0) /* D1-ST0                   MOTOR1 */ \
+    TIMER_PIN_MAP( 2, PB7 , 1,  0) /* D1-ST3                   MOTOR2 */ \
+    TIMER_PIN_MAP( 3, PB8 , 1,  0) /* D1-ST7                   MOTOR3 */ \
+    TIMER_PIN_MAP( 4, PB9 , 1, -1) /* NONE  TIM4_UP_D1-ST6     MOTOR4 */ \
+    TIMER_PIN_MAP( 5, PA1 , 2,  0) /* D1-ST4                   MOTOR5 */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  0) /* D2-ST2/D2-ST4            MOTOR6 */ \
+    TIMER_PIN_MAP( 7, PC9 , 2,  0) /* D2-ST7                   MOTOR7 */ \
+    TIMER_PIN_MAP( 8, PB1 , 2,  0) /* D1-ST2                   LED/MOTOR5 */
 
 #define MOTOR1_PIN              PB6
 #define MOTOR2_PIN              PB7
@@ -171,4 +170,4 @@
 #define MOTOR6_PIN              PC8
 #define MOTOR7_PIN              PC9
 #define MOTOR8_PIN              PB1
-#define LED_STRIP_PIN           PB3
+#define LED_STRIP_PIN           PB1

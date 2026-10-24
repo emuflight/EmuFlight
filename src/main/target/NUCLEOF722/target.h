@@ -58,7 +58,6 @@
 #define USE_FAKE_BARO
 #define USE_BARO_MS5611
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
 
 #define USE_VCP
 #define USE_USB_DETECT
@@ -153,14 +152,26 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define USE_TIMER_MGMT
+// Burst DShot shares one TIM_UP stream per timer, so motors need no per-channel stream
+#define ENABLE_DSHOT_DMAR true
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 1, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 2, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB9 , 1, -1) \
-    TIMER_PIN_MAP( 4, PE6 , 1, -1) \
-    TIMER_PIN_MAP( 5, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 6, PB15, 3, -1) \
-    TIMER_PIN_MAP( 7, PC6 , 2,  0) \
-    TIMER_PIN_MAP( 8, PC7 , 2,  1)
+    TIMER_PIN_MAP( 0, PB15, 3, -1) /* PPM,R1 */ \
+    TIMER_PIN_MAP( 1, PC6 , 2,  0) /* R2 */ \
+    TIMER_PIN_MAP( 2, PC7 , 2,  1) /* R3 */ \
+    TIMER_PIN_MAP( 3, PB8 , 1,  0) /* M1 */ \
+    TIMER_PIN_MAP( 4, PA3 , 1,  1) /* M2 */ \
+    TIMER_PIN_MAP( 5, PB5 , 1,  0) /* M3 */ \
+    TIMER_PIN_MAP( 6, PB9 , 1, -1) /* M4 */ \
+    TIMER_PIN_MAP( 7, PE6 , 1, -1) /* M5 */ \
+    TIMER_PIN_MAP( 8, PB4 , 1,  0) /* M6 */
+
+#define MOTOR1_PIN              PB8
+#define MOTOR2_PIN              PA3
+#define MOTOR3_PIN              PB5
+#define MOTOR4_PIN              PB9
+#define MOTOR5_PIN              PE6
+#define MOTOR6_PIN              PB4
+#define RX_PWM1_PIN             PB15
+#define RX_PWM2_PIN             PC6
+#define RX_PWM3_PIN             PC7
+#define RX_PPM_PIN              PB15

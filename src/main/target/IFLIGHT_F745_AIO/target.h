@@ -62,7 +62,6 @@
 #define USE_BARO_DPS310
 #define BARO_I2C_INSTANCE           (I2CDEV_1)
 
-#define USABLE_TIMER_CHANNEL_COUNT 15
 
 #define USE_VCP
 #define USE_USB_DETECT
@@ -142,20 +141,27 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
 
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 2, PE9 , 1,  2) \
-    TIMER_PIN_MAP( 3, PE11, 1,  1) \
-    TIMER_PIN_MAP( 4, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 5, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 6, PC8 , 2,  1) \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* M1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* M2 */ \
+    TIMER_PIN_MAP( 2, PE9 , 1,  2) /* M3 */ \
+    TIMER_PIN_MAP( 3, PE11, 1,  1) /* M4 */ \
+    TIMER_PIN_MAP( 4, PB4 , 1,  0) /* M5 */ \
+    TIMER_PIN_MAP( 5, PB5 , 1,  0) /* M6 */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  1) /* ANY */ \
     TIMER_PIN_MAP( 7, PE13, 1,  1) \
-    TIMER_PIN_MAP( 8, PD12, 1,  0) \
-    TIMER_PIN_MAP( 9, PB10, 1,  0) \
-    TIMER_PIN_MAP(10, PB11, 1,  0) \
+    TIMER_PIN_MAP( 8, PD12, 1,  0) /* LED */ \
+    TIMER_PIN_MAP( 9, PB10, 1,  0) /* UART3_TX */ \
+    TIMER_PIN_MAP(10, PB11, 1,  0) /* UART3_RX */ \
     TIMER_PIN_MAP(11, PC6 , 2,  0) \
     TIMER_PIN_MAP(12, PC7 , 2,  1) \
-    TIMER_PIN_MAP(13, PA3 , 1,  0) \
-    TIMER_PIN_MAP(14, PA2 , 3, -1)
+    TIMER_PIN_MAP(13, PA3 , 1,  0) /* UART2_RX */ \
+    TIMER_PIN_MAP(14, PA2 , 3, -1) /* UART2_TX */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PE9
+#define MOTOR4_PIN              PE11
+#define MOTOR5_PIN              PB4
+#define MOTOR6_PIN              PB5
+#define LED_STRIP_PIN           PD12

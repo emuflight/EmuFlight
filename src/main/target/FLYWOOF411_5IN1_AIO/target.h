@@ -158,7 +158,7 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE         ADC1
-#define ADC1_DMA_OPT            1  // DMA 2 Stream 4 Channel 0
+#define ADC1_DMA_OPT            0  // DMA 2 Stream 0 Channel 0
 
 #define VBAT_ADC_PIN            PB1
 #define CURRENT_METER_ADC_PIN   PA1
@@ -179,19 +179,17 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA2 , 3, -1) \
-    TIMER_PIN_MAP( 1, PA8 , 1,  1) \
-    TIMER_PIN_MAP( 2, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 5, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 6, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 7, PA15 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 9, PA0 , 2,  0)
+    TIMER_PIN_MAP( 0, PA2 , 3, -1) /* PPM, TX2 */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  1) /* S1 UP1-2 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* S2 UP1-2 */ \
+    TIMER_PIN_MAP( 3, PB10 , 1,  0) /* S3 UP1-2 */ \
+    TIMER_PIN_MAP( 4, PB7 , 1,  0) /* S4 UP1-2 */ \
+    TIMER_PIN_MAP( 5, PB4 , 1,  0) /* SPI3_MISO */ \
+    TIMER_PIN_MAP( 6, PB3 , 1,  0) /* SPI3_SCK */ \
+    TIMER_PIN_MAP( 7, PA15 , 1,  0) /* RX_SPI_CS */ \
+    TIMER_PIN_MAP( 8, PB0 , 2,  0) /* RX_SPI_EXTI */ \
+    TIMER_PIN_MAP( 9, PA0 , 2,  0) /* LED */
 
 #define MOTOR1_PIN              PA8
 #define MOTOR2_PIN              PB6

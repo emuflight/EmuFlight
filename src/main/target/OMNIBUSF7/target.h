@@ -184,22 +184,20 @@
 
 //PORT'S & TIMERS---------------------------
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
 
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PE13 , 1,  1) \
-    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 3, PE9 , 1,  2) \
-    TIMER_PIN_MAP( 4, PE11 , 1,  1) \
-    TIMER_PIN_MAP( 5, PD12 , 1,  0) \
-    TIMER_PIN_MAP( 6, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 7, PB11 , 1,  0) \
-    TIMER_PIN_MAP( 8, PC6 , 2,  1) \
-    TIMER_PIN_MAP( 9, PC7 , 2,  1) \
-    TIMER_PIN_MAP( 10, PA3 , 1,  0) \
-    TIMER_PIN_MAP( 11, PA2 , 3, -1)
+    TIMER_PIN_MAP( 0, PE13 , 1,  1) /* RC1 / PPM, unusable */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* M1 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* M2 */ \
+    TIMER_PIN_MAP( 3, PE9 , 1,  2) /* M3 */ \
+    TIMER_PIN_MAP( 4, PE11 , 1,  1) /* M4 */ \
+    TIMER_PIN_MAP( 5, PD12 , 1,  0) /* LED */ \
+    TIMER_PIN_MAP( 6, PB10 , 1,  0) /* UART3_TX, I2C2_SCL */ \
+    TIMER_PIN_MAP( 7, PB11 , 1,  0) /* UART3_RX, I2C2_SDA */ \
+    TIMER_PIN_MAP( 8, PC6 , 2,  1) /* UART6_TX */ \
+    TIMER_PIN_MAP( 9, PC7 , 2,  1) /* UART6_RX */ \
+    TIMER_PIN_MAP( 10, PA3 , 1,  0) /* UART2_RX, joined with PE13 */ \
+    TIMER_PIN_MAP( 11, PA2 , 3, -1) /* UART2_TX (unwired) */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

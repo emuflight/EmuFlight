@@ -135,7 +135,7 @@
 
 #define USE_ADC
 
-#define ADC1_DMA_OPT 0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN PC2
 #define CURRENT_METER_ADC_PIN PC1
 #define RSSI_ADC_PIN PC0
@@ -150,19 +150,18 @@
 #define DEFAULT_RX_FEATURE FEATURE_RX_SERIAL
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USE_TIMER_MGMT
+// PA15 and PB5 share DMA1 Stream 5; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA10 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 4, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 6, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 7, PA15 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 9, PA8 , 1,  2)
+    TIMER_PIN_MAP( 0, PA10 , 1,  0) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB4 , 1,  0) /* MOTOR1 */ \
+    TIMER_PIN_MAP( 2, PB5 , 1,  0) /* MOTOR2 */ \
+    TIMER_PIN_MAP( 3, PB0 , 2,  0) /* MOTOR 3 */ \
+    TIMER_PIN_MAP( 4, PB1 , 2,  0) /* MOTOR 4 */ \
+    TIMER_PIN_MAP( 5, PB6 , 1,  0) /* MOTOR6 */ \
+    TIMER_PIN_MAP( 6, PB3 , 1,  0) /* MOTOR7 */ \
+    TIMER_PIN_MAP( 7, PA15 , 1,  0) /* MOTOR7 */ \
+    TIMER_PIN_MAP( 8, PB7 , 1,  0) /* MOTOR8 */ \
+    TIMER_PIN_MAP( 9, PA8 , 1,  2) /* LED */
 
 #define MOTOR1_PIN              PB4
 #define MOTOR2_PIN              PB5

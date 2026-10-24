@@ -127,19 +127,18 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USE_TIMER_MGMT
+// motors: dmaopt 0-7 = DMA1_S0-7; led strip DMA2_S5; ADC1 holds DMA2_S0, ADC3 DMA2_S1; the SPI buses take the free rest
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB5 , 1,  1) \
-    TIMER_PIN_MAP( 2, PB0 , 2,  2) \
-    TIMER_PIN_MAP( 3, PB1 , 2,  3) \
-    TIMER_PIN_MAP( 4, PB6 , 2,  4) \
-    TIMER_PIN_MAP( 5, PB7 , 2,  5) \
-    TIMER_PIN_MAP( 6, PB10 , 1,  6) \
-    TIMER_PIN_MAP( 7, PB11 , 1,  7) \
-    TIMER_PIN_MAP( 8, PA8 , 1,  13) \
-    TIMER_PIN_MAP( 9, PB3 , 1, -1)
+    TIMER_PIN_MAP( 0, PB4 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB5 , 1,  1) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  2) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  3) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB6 , 2,  4) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PB7 , 2,  5) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PB10 , 1,  6) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PB11 , 1,  7) /* motor 8 */ \
+    TIMER_PIN_MAP( 8, PA8 , 1,  13) /* led strip */ \
+    TIMER_PIN_MAP( 9, PB3 , 1, -1) /* cam ctrl; dma -1 in config (input only) */
 
 #define MOTOR1_PIN              PB4
 #define MOTOR2_PIN              PB5

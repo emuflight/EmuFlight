@@ -125,20 +125,20 @@
 #define SERIALRX_UART           SERIAL_PORT_USART6
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USE_TIMER_MGMT
+// Burst DShot shares one TIM_UP stream per timer, so motors need no per-channel stream
+#define ENABLE_DSHOT_DMAR true
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC7 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB14 , 3, -1) \
-    TIMER_PIN_MAP( 2, PB15 , 3, -1) \
-    TIMER_PIN_MAP( 3, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 4, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 6, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 7, PA3 , 1,  0) \
-    TIMER_PIN_MAP( 8, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 9, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 10, PA0 , 2,  0)
+    TIMER_PIN_MAP( 0, PC7 , 2,  0) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB14 , 3, -1) /* S2_IN */ \
+    TIMER_PIN_MAP( 2, PB15 , 3, -1) /* S3_IN - GPIO_PartialRemap_TIM3 */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  0) /* S4_IN */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* S5_IN */ \
+    TIMER_PIN_MAP( 5, PB0 , 2,  0) /* S1_OUT */ \
+    TIMER_PIN_MAP( 6, PB1 , 2,  0) /* S2_OUT */ \
+    TIMER_PIN_MAP( 7, PA3 , 1,  0) /* S3_OUT */ \
+    TIMER_PIN_MAP( 8, PA2 , 1,  0) /* S4_OUT */ \
+    TIMER_PIN_MAP( 9, PA1 , 2,  0) /* S5_OUT - GPIO_PartialRemap_TIM3 */ \
+    TIMER_PIN_MAP( 10, PA0 , 2,  0) /* S6_OUT */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

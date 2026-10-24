@@ -133,20 +133,19 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USE_TIMER_MGMT
+// PD12 and TIM5 burst share DMA1 Stream 0; with DShot burst on only one of them gets DMA
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 2, PE9 , 1,  2) \
-    TIMER_PIN_MAP( 3, PE11 , 1,  1) \
-    TIMER_PIN_MAP( 4, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 5, PA3 , 2,  0) \
-    TIMER_PIN_MAP( 6, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 7, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 8, PE13 , 1,  1) \
-    TIMER_PIN_MAP( 9, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 10, PD12 , 1,  0)
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PE9 , 1,  2) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PE11 , 1,  1) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PA3 , 2,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PB4 , 1,  0) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PB5 , 1,  0) /* motor 8 */ \
+    TIMER_PIN_MAP( 8, PE13 , 1,  -1) /* ppm RX_PPM_PIN */ \
+    TIMER_PIN_MAP( 9, PB3 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 10, PD12 , 1,  0) /* led */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

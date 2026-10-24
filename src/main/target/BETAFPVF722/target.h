@@ -170,16 +170,14 @@
 // IO Ports
 
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                      7
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 2, PA1 , 1,  0) \
-    TIMER_PIN_MAP( 3, PA0 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 5, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 6, PA8 , 1,  0)
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* D1-ST0                   MOTOR1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* D1-ST3                   MOTOR2 */ \
+    TIMER_PIN_MAP( 2, PA1 , 1,  0) /* D1-ST7                   MOTOR3 */ \
+    TIMER_PIN_MAP( 3, PA0 , 1,  0) /* D2-ST2/D2-ST4            MOTOR4 */ \
+    TIMER_PIN_MAP( 4, PB6 , 1,  0) /* D1-ST4                   MOTOR5 */ \
+    TIMER_PIN_MAP( 5, PB7 , 1,  0) /* NONE  TIM4_UP_D1-ST6     MOTOR6 */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  0) /* D1-ST2                   LED/MOTOR5 */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

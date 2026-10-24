@@ -145,21 +145,19 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB1 , 2,  1) \
-    TIMER_PIN_MAP( 2, PA0 , 2,  2) \
-    TIMER_PIN_MAP( 3, PA1 , 2,  3) \
-    TIMER_PIN_MAP( 4, PD13 , 1,  4) \
-    TIMER_PIN_MAP( 5, PD12 , 1,  5) \
-    TIMER_PIN_MAP( 6, PA3 , 2,  6) \
-    TIMER_PIN_MAP( 7, PA2 , 2,  7) \
-    TIMER_PIN_MAP( 8, PE5 , 1,  0) \
-    TIMER_PIN_MAP( 9, PE6 , 1, -1) \
-    TIMER_PIN_MAP( 10, PA8 , 1,  8) \
-    TIMER_PIN_MAP( 11, PA15 , 1,  0)
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  1) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PA0 , 2,  2) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PA1 , 2,  3) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PD13 , 1,  4) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PD12 , 1,  5) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PA3 , 2,  6) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PA2 , 2,  7) /* motor 8 */ \
+    TIMER_PIN_MAP( 8, PE5 , 1,  -1) /* servo 1; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 9, PE6 , 1, -1) /* servo 2; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 10, PA8 , 1,  8) /* led strip */ \
+    TIMER_PIN_MAP( 11, PA15 , 1,  -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */
 #define TIMUP3_DMA_OPT 11
 #define TIMUP4_DMA_OPT 12
 #define TIMUP5_DMA_OPT 13

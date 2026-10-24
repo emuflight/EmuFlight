@@ -120,15 +120,13 @@
 
 
 // DEFINE TIMERS
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB9 , 2, -1) \
-    TIMER_PIN_MAP( 1, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB0 , 3,  0) \
-    TIMER_PIN_MAP( 3, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 4, PA8 , 1,  1) \
-    TIMER_PIN_MAP( 5, PB8 , 1,  0)
+    TIMER_PIN_MAP( 0, PB9 , 2, -1) /* CAMERA_CONTROL_PIN */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* M1_OUT - D1_ST2_CH5 */ \
+    TIMER_PIN_MAP( 2, PB0 , 3,  0) /* M2_OUT - D2_ST3_CH7 */ \
+    TIMER_PIN_MAP( 3, PC9 , 2,  0) /* M3_OUT - D2_ST7_CH7 */ \
+    TIMER_PIN_MAP( 4, PA8 , 1,  1) /* M4_OUT - D2_ST1_CH6 */ \
+    TIMER_PIN_MAP( 5, PB8 , 1,  0) /* LED & MOTOR5 D1_ST7_CH2 */
 
 #define MOTOR1_PIN              PB1
 #define MOTOR2_PIN              PB0

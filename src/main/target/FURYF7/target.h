@@ -144,14 +144,12 @@
 //#define SPEKTRUM_BIND_PIN       PB11
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 5
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 3, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 4, PA2 , 1,  0)
+    TIMER_PIN_MAP( 0, PC9 , 2,  0) /* PPM_IN */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S1_OUT */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* S2_OUT */ \
+    TIMER_PIN_MAP( 3, PA3 , 1,  1) /* S3_OUT */ \
+    TIMER_PIN_MAP( 4, PA2 , 1,  0) /* S4_OUT */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

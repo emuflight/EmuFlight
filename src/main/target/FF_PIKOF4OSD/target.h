@@ -138,14 +138,20 @@
 /*---------------------------------*/
 
 /*--------------TIMERS-------------*/
-#define USABLE_TIMER_CHANNEL_COUNT  7
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 4, PB14, 2,  0) \
-    TIMER_PIN_MAP( 5, PB15, 1,  0) \
-    TIMER_PIN_MAP( 6, PB7 , 1,  0)
+    TIMER_PIN_MAP( 0, PA3 , 1,  1) /* M1 */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* M2 */ \
+    TIMER_PIN_MAP( 2, PA2 , 1,  0) /* M3 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* M4 */ \
+    TIMER_PIN_MAP( 4, PB14, 2,  0) /* M5 */ \
+    TIMER_PIN_MAP( 5, PB15, 1,  0) /* M6 */ \
+    TIMER_PIN_MAP( 6, PB7 , 1,  0) /* LED */
+
+#define MOTOR1_PIN              PA3
+#define MOTOR2_PIN              PB0
+#define MOTOR3_PIN              PA2
+#define MOTOR4_PIN              PB1
+#define MOTOR5_PIN              PB14
+#define MOTOR6_PIN              PB15
+#define LED_STRIP_PIN           PB7
 /*---------------------------------*/
