@@ -85,6 +85,14 @@
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      PB12
 
+// *************** FLASH *****************************
+#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+#define USE_FLASHFS
+#define USE_FLASH_W25Q128FV
+#define USE_FLASH_M25P16
+#define FLASH_CS_PIN            PA14
+#define FLASH_SPI_INSTANCE      SPI2
+
 // *************** SPI3 CC2500 ***************************
 #define USE_SPI_DEVICE_3
 #define SPI3_SCK_PIN            PB3

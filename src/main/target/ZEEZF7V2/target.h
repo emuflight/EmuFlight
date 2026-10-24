@@ -158,7 +158,7 @@
     TIMER_PIN_MAP( 3, PB3 , 1,  0) /* D2-ST2/D2-ST4            MOTOR4 */ \
     TIMER_PIN_MAP( 4, PC8 , 1,  0) /* D1-ST0                   MOTOR1 */ \
     TIMER_PIN_MAP( 5, PC7 , 1,  0) /* D1-ST3                   MOTOR2 */ \
-    TIMER_PIN_MAP( 6, PC6 , 2,  0) /* D1-ST7                   MOTOR3 */ \
+    TIMER_PIN_MAP( 6, PC6 , 2,  1) /* D1-ST7                   MOTOR3 */ \
     TIMER_PIN_MAP( 7, PB1 , 2,  0) /* D2-ST2/D2-ST4            MOTOR4 */ \
     TIMER_PIN_MAP( 8, PB0 , 1,  0) /* D1-ST4                   MOTOR5 */ \
     TIMER_PIN_MAP( 9, PB15 , 3, -1) /* NONE  TIM4_UP_D1-ST6     MOTOR6 */

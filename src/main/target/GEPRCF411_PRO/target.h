@@ -69,8 +69,8 @@
 #define USE_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE                     VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE                     CURRENT_METER_ADC
-#define CURRENT_METER_ADC_PIN                            PB0
-#define VBAT_ADC_PIN                                     PB1
+#define CURRENT_METER_ADC_PIN                            PB1
+#define VBAT_ADC_PIN                                     PB0
 #define DEFAULT_CURRENT_METER_SCALE                      250                    // 3.3/120A  = 25mv/A
 
 //I2C
@@ -123,7 +123,7 @@
 // timers
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 1, PA0 , 2,  0) \
+    TIMER_PIN_MAP( 1, PA0 , 1,  0) \
     TIMER_PIN_MAP( 2, PB10 , 1,  0) \
     TIMER_PIN_MAP( 3, PB6 , 1,  0) \
     TIMER_PIN_MAP( 4, PB7 , 1,  0) \

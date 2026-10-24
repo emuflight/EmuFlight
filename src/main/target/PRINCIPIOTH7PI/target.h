@@ -160,8 +160,8 @@
 #define MOTOR2_PIN              PA1
 #define MOTOR3_PIN              PA2
 #define MOTOR4_PIN              PA3
-#define MOTOR5_PIN              PB0
-#define MOTOR6_PIN              PB1
+#define MOTOR5_PIN              PB1
+#define MOTOR6_PIN              PB0
 #define SERVO1_PIN              PE5
 #define SERVO2_PIN              PE6
 

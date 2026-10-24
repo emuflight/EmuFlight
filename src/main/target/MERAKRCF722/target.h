@@ -126,7 +126,7 @@
     TIMER_PIN_MAP( 3, PA1 , 2,  0) /* motor 4 */ \
     TIMER_PIN_MAP( 4, PB0 , 2,  0) /* motor 5 */ \
     TIMER_PIN_MAP( 5, PB1 , 1,  0) /* motor 6 */ \
-    TIMER_PIN_MAP( 6, PC8 , 2,  1) /* ppm RX_PPM_PIN */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  0) /* ppm RX_PPM_PIN */ \
     TIMER_PIN_MAP( 7, PB8 , 1,  0) /* led */ \
     TIMER_PIN_MAP( 8, PB9 , 2, -1) /* cam ctrl; dma 0 assumed, please verify */
 
