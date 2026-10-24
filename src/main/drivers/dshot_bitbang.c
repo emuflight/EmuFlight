@@ -160,10 +160,38 @@ static bool bbDMAIsEnabled(const bbPort_t *bbPort)
     return (bbPort->dmaRef->CR & DMA_SxCR_EN) != 0;
 }
 
-// A stream still enabled well past its frame time is stuck, not sending
-static bool bbPortIsSending(const bbPort_t *bbPort)
+// Every event flag must be clear before the stream is enabled again
+#ifdef DMA_IT_FEIF
+#define BB_DMA_ALL_FLAGS (DMA_IT_TCIF | DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_DMEIF | DMA_IT_FEIF)
+#else
+#define BB_DMA_ALL_FLAGS (DMA_IT_TCIF | DMA_IT_HTIF | DMA_IT_TEIF)
+#endif
+
+static void bbDMAClearFlags(const bbPort_t *bbPort)
 {
-    return bbDMAIsEnabled(bbPort) && cmpTimeUs(micros(), bbPort->startUs) < (int32_t)(2 * bbPort->frameUs);
+    dmaChannelDescriptor_t *descriptor = dmaGetDescriptorByIdentifier(bbPort->dmaIdentifier);
+
+    DMA_CLEAR_FLAG(descriptor, BB_DMA_ALL_FLAGS);
+}
+
+// True while the port's buffer and registers must stay untouched. A stream still enabled
+// after twice the frame time is stuck: it is stopped here, before anything changes.
+static bool bbPortIsBusy(const bbPort_t *bbPort)
+{
+    if (!bbDMAIsEnabled(bbPort)) {
+        return false;
+    }
+    if (cmpTimeUs(micros(), bbPort->startUs) < (int32_t)(2 * bbPort->frameUs)) {
+        return true;
+    }
+    bbDMACmd(bbPort, false);
+    for (int spin = 0; spin < BB_DMA_STOP_SPINS && bbDMAIsEnabled(bbPort); spin++) {
+    }
+    if (bbDMAIsEnabled(bbPort)) {
+        return true;
+    }
+    bbDMAClearFlags(bbPort);
+    return false;
 }
 
 static uint32_t getDshotBaseFrequency(uint8_t protocol)
@@ -245,12 +273,8 @@ FAST_IRQ_HANDLER void bbDMAIrqHandler(dmaChannelDescriptor_t *descriptor)
 
     bbDMACmd(bbPort, false);
     bbTIMDMACmd(bbPort->tim, bbPort->dmaSource, false);
-    // every event flag must be clear before the stream is enabled again; the next frame reloads every register
-#ifdef DMA_IT_FEIF
-    DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF | DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_DMEIF | DMA_IT_FEIF);
-#else
-    DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF | DMA_IT_HTIF | DMA_IT_TEIF);
-#endif
+    // the next frame reloads every register, so an error flag is only cleared here
+    DMA_CLEAR_FLAG(descriptor, BB_DMA_ALL_FLAGS);
 }
 
 static bool bbSetupPort(bbPort_t *bbPort, IO_t io, const motorDevConfig_t *motorConfig)
@@ -290,7 +314,12 @@ bool dshotBitbangMotorInit(uint8_t motorIndex, uint8_t reorderedMotorIndex, ioTa
     const IO_t io = IOGetByTag(tag);
 
     // brushed ESC autodetect leaves motor 1 owned by SYSTEM; classic DShot overwrites that too
-    if (!io || !(IOIsFreeOrPreinit(io) || IOGetOwner(io) == OWNER_SYSTEM)) {
+#if defined(USE_BRUSHED_ESC_AUTODETECT) && defined(MOTOR1_PIN)
+    const bool autodetectPin = tag == IO_TAG(MOTOR1_PIN);
+#else
+    const bool autodetectPin = false;
+#endif
+    if (!io || !(IOIsFreeOrPreinit(io) || (autodetectPin && IOGetOwner(io) == OWNER_SYSTEM))) {
         bbStatus = DSHOT_BITBANG_STATUS_MOTOR_PIN_CONFLICT;
         return false;
     }
@@ -355,7 +384,7 @@ void dshotBitbangWriteInt(uint8_t motorIndex, uint16_t value)
     }
 
     // rewriting the buffer under a running frame would corrupt it; this motor repeats its packet
-    if (bbPortIsSending(bbMotor->bbPort)) {
+    if (bbPortIsBusy(bbMotor->bbPort)) {
         return;
     }
 
@@ -383,14 +412,11 @@ void dshotBitbangUpdateComplete(uint8_t motorCount)
     for (int i = 0; i < usedMotorPorts; i++) {
         bbPort_t *bbPort = &bbPorts[i];
 
-        if (bbPortIsSending(bbPort)) {
+        if (bbPortIsBusy(bbPort)) {
             continue; // the frame in flight finishes; this update is skipped for the port
         }
 
-        // a stuck stream is stopped before its registers are written
-        bbDMACmd(bbPort, false);
-        for (int spin = 0; spin < BB_DMA_STOP_SPINS && bbDMAIsEnabled(bbPort); spin++) {
-        }
+        bbDMAClearFlags(bbPort);
         bbDMALoadRegs(bbPort);
         bbPort->startUs = micros();
         bbDMACmd(bbPort, true);

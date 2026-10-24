@@ -189,6 +189,28 @@ TEST(DshotBitbangTest, InitWithoutSetIsAllOnesFrame)
     }
 }
 
+// Production order: each motor runs Init then Set, one after the other on the same port.
+TEST(DshotBitbangTest, LaterInitKeepsEarlierPinsStopPacket)
+{
+    uint32_t buffer[WORDS];
+    memset(buffer, 0, sizeof(buffer));
+    dshotBitbangOutputDataInit(buffer, 0x0001);
+    dshotBitbangOutputDataSet(buffer, 0, 0x0000);
+    dshotBitbangOutputDataInit(buffer, 0x0002);
+    dshotBitbangOutputDataSet(buffer, 1, 0x0000);
+    dshotBitbangOutputDataInit(buffer, 0x0004);
+    dshotBitbangOutputDataSet(buffer, 2, 0x0000);
+
+    for (int pos = 0; pos < MOTOR_DSHOT_FRAME_BITS; pos++) {
+        EXPECT_EQ(resetWord(0x0007), buffer[pos * 3 + 1]) << pos; // every pin sends the stop packet
+        EXPECT_EQ(setWord(0x0007), buffer[pos * 3 + 0]);
+        EXPECT_EQ(resetWord(0x0007), buffer[pos * 3 + 2]);
+    }
+    EXPECT_EQ(resetWord(0x0007), buffer[HOLD]);
+    EXPECT_EQ(0u, buffer[HOLD + 1]);
+    EXPECT_EQ(0u, buffer[HOLD + 2]);
+}
+
 TEST(DshotBitbangTest, SetNeverTouchesHoldStates)
 {
     uint32_t buffer[WORDS];

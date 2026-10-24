@@ -66,6 +66,8 @@ static inline bool dshotBitbangIsActiveFor(uint8_t mode, uint8_t protocol)
 
 // One BSRR word per state: states 0 and 2 of every symbol set and reset all pins of the port,
 // state 1 resets the pins whose bit is 0. The hold states keep the line idle.
+// The buffer starts zeroed; Init only adds a pin to the set and reset words, so pins already
+// set up on the same port keep their packets.
 static inline void dshotBitbangOutputDataInit(uint32_t *buffer, uint16_t portMask)
 {
     const uint32_t resetMask = (uint32_t)portMask << 16;
@@ -73,14 +75,11 @@ static inline void dshotBitbangOutputDataInit(uint32_t *buffer, uint16_t portMas
 
     for (int symbol = 0; symbol < MOTOR_DSHOT_FRAME_BITS; symbol++) {
         buffer[symbol * MOTOR_DSHOT_STATE_PER_SYMBOL + 0] |= setMask;
-        buffer[symbol * MOTOR_DSHOT_STATE_PER_SYMBOL + 1] = 0;
         buffer[symbol * MOTOR_DSHOT_STATE_PER_SYMBOL + 2] |= resetMask;
     }
 
     const int holdIndex = MOTOR_DSHOT_FRAME_BITS * MOTOR_DSHOT_STATE_PER_SYMBOL;
     buffer[holdIndex + 0] |= resetMask;
-    buffer[holdIndex + 1] = 0;
-    buffer[holdIndex + 2] = 0;
 }
 
 static inline void dshotBitbangOutputDataSet(uint32_t *buffer, int pinNumber, uint16_t packet)

@@ -146,11 +146,11 @@ FAST_CODE static void pwmWriteStandard(uint8_t index, float value) {
 
 #ifdef USE_DSHOT
 #ifdef USE_DSHOT_BITBANG
-static FAST_CODE void pwmWriteDshotBitbang(uint8_t index, float value) {
+static void pwmWriteDshotBitbang(uint8_t index, float value) {
     dshotBitbangWriteInt(index, lrintf(value));
 }
 
-static FAST_CODE void pwmCompleteDshotBitbangUpdate(uint8_t motorCount) {
+static void pwmCompleteDshotBitbangUpdate(uint8_t motorCount) {
     dshotBitbangUpdateComplete(motorCount);
 }
 #endif
