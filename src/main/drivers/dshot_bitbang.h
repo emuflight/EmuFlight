@@ -87,18 +87,14 @@ static inline void dshotBitbangOutputDataSet(uint32_t *buffer, int pinNumber, ui
 {
     const uint32_t middleBit = 1u << (pinNumber + 16);
 
+    // only this pin's bit is rewritten, so a motor not written this frame repeats its last packet
     for (int pos = 0; pos < MOTOR_DSHOT_FRAME_BITS; pos++) {
+        uint32_t *middle = &buffer[pos * MOTOR_DSHOT_STATE_PER_SYMBOL + 1];
+        *middle &= ~middleBit;
         if (!(packet & 0x8000)) {
-            buffer[pos * MOTOR_DSHOT_STATE_PER_SYMBOL + 1] |= middleBit;
+            *middle |= middleBit;
         }
         packet <<= 1;
-    }
-}
-
-static inline void dshotBitbangOutputDataClear(uint32_t *buffer)
-{
-    for (int pos = 0; pos < MOTOR_DSHOT_FRAME_BITS; pos++) {
-        buffer[pos * MOTOR_DSHOT_STATE_PER_SYMBOL + 1] = 0;
     }
 }
 

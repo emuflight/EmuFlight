@@ -162,20 +162,31 @@ TEST(DshotBitbangTest, AllSixteenPinsOfAPortFit)
     }
 }
 
-TEST(DshotBitbangTest, ClearRestoresNoChangeButKeepsSetAndReset)
+TEST(DshotBitbangTest, SetReplacesThePreviousPacketOfThatPinOnly)
 {
     uint32_t buffer[WORDS];
     memset(buffer, 0, sizeof(buffer));
-    dshotBitbangOutputDataInit(buffer, 0x0010);
-    dshotBitbangOutputDataSet(buffer, 4, 0x0000);
-    dshotBitbangOutputDataClear(buffer);
+    dshotBitbangOutputDataInit(buffer, 0x0003);
+    dshotBitbangOutputDataSet(buffer, 0, 0x0000);
+    dshotBitbangOutputDataSet(buffer, 1, 0x0000);
+    dshotBitbangOutputDataSet(buffer, 0, 0xFFFF); // pin 0 rewritten, pin 1 untouched
 
     for (int pos = 0; pos < MOTOR_DSHOT_FRAME_BITS; pos++) {
-        EXPECT_EQ(setWord(0x0010), buffer[pos * 3 + 0]);
-        EXPECT_EQ(0u, buffer[pos * 3 + 1]);
-        EXPECT_EQ(resetWord(0x0010), buffer[pos * 3 + 2]);
+        EXPECT_EQ(resetWord(0x0002), buffer[pos * 3 + 1]) << pos;
+        EXPECT_EQ(setWord(0x0003), buffer[pos * 3 + 0]);
+        EXPECT_EQ(resetWord(0x0003), buffer[pos * 3 + 2]);
     }
-    EXPECT_EQ(resetWord(0x0010), buffer[HOLD]);
+}
+
+// A pin never written would send 0xFFFF, which is max throttle.
+TEST(DshotBitbangTest, InitWithoutSetIsAllOnesFrame)
+{
+    uint32_t buffer[WORDS];
+    memset(buffer, 0, sizeof(buffer));
+    dshotBitbangOutputDataInit(buffer, 0x0001);
+    for (int pos = 0; pos < MOTOR_DSHOT_FRAME_BITS; pos++) {
+        EXPECT_EQ(0u, buffer[pos * 3 + 1]);
+    }
 }
 
 TEST(DshotBitbangTest, SetNeverTouchesHoldStates)

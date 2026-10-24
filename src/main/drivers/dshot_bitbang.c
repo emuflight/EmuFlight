@@ -87,7 +87,6 @@ static bbMotor_t bbMotors[MAX_SUPPORTED_MOTORS];
 static DMA_DATA_ZERO_INIT uint32_t bbOutputBuffer[BB_PORT_BUF_WORDS * MAX_SUPPORTED_MOTOR_PORTS];
 static dshotBitbangStatus_e bbStatus;
 static bool bbRunning;
-static bool bbFrameOpen;
 
 dshotBitbangStatus_e dshotBitbangGetStatus(void)
 {
@@ -291,6 +290,8 @@ bool dshotBitbangPostInit(const motorDevConfig_t *motorConfig, uint8_t motorCoun
         }
         bbMotor->bbPort = bbPort;
         dshotBitbangOutputDataInit(bbPort->portOutputBuffer, 1 << bbMotor->pinIndex);
+        // a motor starts on the stop packet, never on an all-ones frame (full throttle)
+        dshotBitbangOutputDataSet(bbPort->portOutputBuffer, bbMotor->pinIndex, 0);
         bbMotor->configured = true;
     }
 
@@ -304,14 +305,6 @@ void dshotBitbangWriteInt(uint8_t motorIndex, uint16_t value)
 
     if (!bbRunning || !bbMotor->configured) {
         return;
-    }
-
-    // the middle words are rebuilt from scratch for each frame
-    if (!bbFrameOpen) {
-        for (int i = 0; i < usedMotorPorts; i++) {
-            dshotBitbangOutputDataClear(bbPorts[i].portOutputBuffer);
-        }
-        bbFrameOpen = true;
     }
 
     motorDmaOutput_t *const motor = getMotorDmaOutput(motorIndex);
@@ -332,7 +325,6 @@ void dshotBitbangUpdateComplete(uint8_t motorCount)
     }
 
     if (pwmDshotCommandIsQueued() && !pwmDshotCommandOutputIsEnabled(motorCount)) {
-        bbFrameOpen = false;
         return;
     }
 
@@ -350,7 +342,6 @@ void dshotBitbangUpdateComplete(uint8_t motorCount)
     for (int i = 0; i < usedMotorPacers; i++) {
         bbTIMDMACmd(bbPacers[i].tim, bbPacers[i].dmaSources, true);
     }
-    bbFrameOpen = false;
 }
 
 #endif // USE_DSHOT_BITBANG

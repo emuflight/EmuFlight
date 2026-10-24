@@ -3597,6 +3597,7 @@ STATIC_UNIT_TESTED void cliSet(char *cmdline) {
                     cliPrintVar(val, 0);
 #ifdef USE_DSHOT_BITBANG
                     if (val->pgn == PG_MOTOR_CONFIG && val->offset == offsetof(motorConfig_t, dev.useDshotBitbang) && value == DSHOT_BITBANG_ON) {
+                        cliPrintLinefeed();
                         cliPrintLine("max DSHOT600");
                     }
 #endif
