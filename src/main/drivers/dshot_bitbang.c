@@ -99,6 +99,17 @@ bool dshotBitbangIsRunning(void)
     return bbRunning;
 }
 
+bool dshotBitbangSupported(void)
+{
+#if defined(STM32F4) && defined(USE_GYRO_IMUF9001)
+    // the IMU-F SPI DMA sits on DMA2, and bitbang writes GPIO through DMA2 (F4 errata 2.1.10)
+    bbStatus = DSHOT_BITBANG_STATUS_SPI_DMA2;
+    return false;
+#else
+    return true;
+#endif
+}
+
 static bbPacer_t *bbFindMotorPacer(TIM_TypeDef *tim)
 {
     for (int i = 0; i < usedMotorPacers; i++) {

@@ -43,6 +43,7 @@ typedef enum {
     DSHOT_BITBANG_STATUS_NO_PACER,
     DSHOT_BITBANG_STATUS_TOO_MANY_PORTS,
     DSHOT_BITBANG_STATUS_DMA_CLAIM,
+    DSHOT_BITBANG_STATUS_SPI_DMA2,
 } dshotBitbangStatus_e;
 
 #define MOTOR_DSHOT_FRAME_BITS       16
@@ -103,6 +104,8 @@ static inline void dshotBitbangOutputDataClear(uint32_t *buffer)
 
 struct motorDevConfig_s;
 
+// false on hardware that cannot run bitbang safely; classic DShot runs instead
+bool dshotBitbangSupported(void);
 // Pin-level setup before DMA is claimed. false means the motor pin cannot be used.
 bool dshotBitbangMotorInit(uint8_t motorIndex, uint8_t reorderedMotorIndex, ioTag_t tag);
 // DMA and pacer claim, after SPI took its DMA. false stops all DShot output.

@@ -280,7 +280,7 @@ void motorDevInit(const motorDevConfig_t *motorConfig, uint16_t idlePulse, uint8
         isDshot = true;
 #ifdef USE_DSHOT_BITBANG
         // bitbang replaces classic and burst; its late DMA claim runs in motorDevPostInit()
-        useBitbang = dshotBitbangIsActiveFor(motorConfig->useDshotBitbang, motorConfig->motorPwmProtocol);
+        useBitbang = dshotBitbangIsActiveFor(motorConfig->useDshotBitbang, motorConfig->motorPwmProtocol) && dshotBitbangSupported();
         if (useBitbang) {
             pwmWrite = &pwmWriteDshotBitbang;
             pwmCompleteWrite = &pwmCompleteDshotBitbangUpdate;
