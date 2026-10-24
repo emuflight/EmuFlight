@@ -615,6 +615,13 @@ dma_reqmap_h7_timup_unittest_DEFINES := \
 		DMA_REQUEST_TIM16_UP=116 \
 		DMA_REQUEST_TIM17_UP=117
 
+# Header-only frame buffer encoding and activation rules.
+dshot_bitbang_unittest_SRC :=
+
+dshot_bitbang_unittest_DEFINES := \
+		STM32F4 \
+		USE_DSHOT
+
 # Real pwm_output.c motorDevInit(); the per-motor DShot hardware config is mocked.
 pwm_output_dshot_init_unittest_SRC := \
 		$(USER_DIR)/drivers/pwm_output.c
