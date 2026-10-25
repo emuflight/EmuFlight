@@ -126,11 +126,11 @@
 #define USE_ADC
 #define VBAT_ADC_PIN PC1
 #define CURRENT_METER_ADC_PIN PC0
-#define ADC3_DMA_OPT 1
+#define ADC1_DMA_OPT 1
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 182
-#define ADC_INSTANCE ADC3
+#define ADC_INSTANCE ADC1
 
 #define ENABLE_DSHOT_DMAR true
 
@@ -143,7 +143,7 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-// ADC3 and TIM8 burst share DMA2 Stream 1; with DShot burst on only one of them gets DMA
+// PC8 and ADC1 share DMA2 Stream 4; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PC9 , 2,  0) /* motor 1 */ \
     TIMER_PIN_MAP( 1, PC8 , 2,  1) /* motor 2 */ \

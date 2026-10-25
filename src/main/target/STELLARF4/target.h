@@ -121,6 +121,7 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
+// PC9 stays on TIM8 CH4; TIM3 CH4 on PC9 would repeat the motor 6 output on PB1
 // PB0 and PB8 share DMA1 Stream 7; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB6 , 1,  0) /* motor 1 */ \

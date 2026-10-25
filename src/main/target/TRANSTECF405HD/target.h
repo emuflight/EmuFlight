@@ -68,7 +68,7 @@
 
 #define USE_ADC
 #define ADC_INSTANCE            ADC1 //test 1 for ADC1
-#define ADC1_DMA_OPT 0
+#define ADC1_DMA_OPT 1
 #define RSSI_ADC_PIN            PB1
 #define CURRENT_METER_ADC_PIN   PC4
 #define VBAT_ADC_PIN            PC5
@@ -98,6 +98,7 @@
 #define ENABLE_DSHOT_DMAR       true
 
 
+// PC8 and ADC1 share DMA2 Stream 4
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PC6 , 1,  0) \
     TIMER_PIN_MAP( 1, PC7 , 1,  0) \
