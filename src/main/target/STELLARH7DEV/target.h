@@ -67,6 +67,7 @@
 
 #define ACC_ICM42688P_ALIGN             CW180_DEG
 #define GYRO_ICM42688P_ALIGN            CW180_DEG
+// SPI1 and SPI3 also carry alternate gyro pads (CS/EXTI: PA2/PA4, PC0/PC4 on SPI1; PD5/PA9 on SPI3) for ICM40609D, ICM45605 and ICM45686; no driver here.
 #define ICM42688P_CS_PIN                PE3
 #define ICM42688P_SPI_BUS               SPIDEV_3
 
@@ -129,18 +130,20 @@
 
 #define DEFAULT_RX_FEATURE              FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT      8
-#define USE_TIMER_MGMT
+// motors: TIM8 CH1-4, DShot via DMA1_S0-3; burst (TIM8_UP) via DMA2_S3 (upopt=11)
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP(0, PC6, 2, 0) \
-    TIMER_PIN_MAP(1, PC7, 2, 1) \
-    TIMER_PIN_MAP(2, PC8, 2, 2) \
-    TIMER_PIN_MAP(3, PC9, 2, 3) \
+    TIMER_PIN_MAP(0, PC6, 2, 0) /* motor 1 */ \
+    TIMER_PIN_MAP(1, PC7, 2, 1) /* motor 2 */ \
+    TIMER_PIN_MAP(2, PC8, 2, 2) /* motor 3 */ \
+    TIMER_PIN_MAP(3, PC9, 2, 3) /* motor 4 */ \
     TIMER_PIN_MAP(4, PD12, 1, -1) \
     TIMER_PIN_MAP(5, PD13, 1, -1) \
-    TIMER_PIN_MAP(6, PA15, 1, 4) \
+    TIMER_PIN_MAP(6, PA15, 1, 4) /* led strip, DMA1_S4 */ \
     TIMER_PIN_MAP(7, PB4, 1, -1)
-#define TIMUP8_DMA_OPT 8
+// ADC1 on DMA2_S0 and ADC3 on DMA2_S2; TIM8_UP burst on DMA2_S3; motors DMA1_S0-3, LED strip DMA1_S4
+#define ADC1_DMA_OPT 8
+#define ADC3_DMA_OPT 10
+#define TIMUP8_DMA_OPT 11
 
 #define MOTOR1_PIN              PC6
 #define MOTOR2_PIN              PC7

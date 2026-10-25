@@ -145,15 +145,23 @@
 #define SERIALRX_UART           SERIAL_PORT_UART5
 
 
-#define USABLE_TIMER_CHANNEL_COUNT      9
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 3, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 4, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB9 , 1, -1) \
-    TIMER_PIN_MAP( 6, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 7, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 8, PB3 , 1,  0)
+    TIMER_PIN_MAP( 0, PB6 , 1,  0) /* M1 */ \
+    TIMER_PIN_MAP( 1, PB7 , 1,  0) /* M2 */ \
+    TIMER_PIN_MAP( 2, PB8 , 1,  0) /* M3 */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  0) /* M4 */ \
+    TIMER_PIN_MAP( 4, PA1 , 2,  0) /* M5 */ \
+    TIMER_PIN_MAP( 5, PB9 , 1, -1) /* M6 */ \
+    TIMER_PIN_MAP( 6, PC9 , 2,  0) /* M7 */ \
+    TIMER_PIN_MAP( 7, PB1 , 2,  0) /* LED,M8 */ \
+    TIMER_PIN_MAP( 8, PB3 , 1,  0) /* ANY */
+
+#define MOTOR1_PIN              PB6
+#define MOTOR2_PIN              PB7
+#define MOTOR3_PIN              PB8
+#define MOTOR4_PIN              PC8
+#define MOTOR5_PIN              PA1
+#define MOTOR6_PIN              PB9
+#define MOTOR7_PIN              PC9
+#define MOTOR8_PIN              PB1
+#define LED_STRIP_PIN           PB1

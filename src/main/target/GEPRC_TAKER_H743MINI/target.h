@@ -138,19 +138,17 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PD12 , 1,  0) \
-    TIMER_PIN_MAP( 1, PC6 , 2,  1) \
-    TIMER_PIN_MAP( 2, PC7 , 2,  2) \
-    TIMER_PIN_MAP( 3, PC8 , 2,  3) \
-    TIMER_PIN_MAP( 4, PC9 , 2,  4) \
-    TIMER_PIN_MAP( 5, PE9 , 1,  5) \
-    TIMER_PIN_MAP( 6, PE11 , 1,  6) \
-    TIMER_PIN_MAP( 7, PE13 , 1,  7) \
-    TIMER_PIN_MAP( 8, PE14 , 1,  8) \
-    TIMER_PIN_MAP( 9, PB0 , 2,  -1)
+    TIMER_PIN_MAP( 0, PD12 , 1,  0) /* led strip */ \
+    TIMER_PIN_MAP( 1, PC6 , 2,  1) /* motor 1 */ \
+    TIMER_PIN_MAP( 2, PC7 , 2,  2) /* motor 2 */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  3) /* motor 3 */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  4) /* motor 4 */ \
+    TIMER_PIN_MAP( 5, PE9 , 1,  5) /* motor 5 */ \
+    TIMER_PIN_MAP( 6, PE11 , 1,  6) /* motor 6 */ \
+    TIMER_PIN_MAP( 7, PE13 , 1,  7) /* motor 7 */ \
+    TIMER_PIN_MAP( 8, PE14 , 1,  8) /* motor 8 */ \
+    TIMER_PIN_MAP( 9, PB0 , 2,  -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */
 
 #define MOTOR1_PIN              PC6
 #define MOTOR2_PIN              PC7

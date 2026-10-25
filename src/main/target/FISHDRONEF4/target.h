@@ -134,15 +134,13 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 2, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 3, PA15 , 1,  0) \
-    TIMER_PIN_MAP( 4, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 5, PA0 , 2,  0)
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB8 , 1,  0) /* S1_OUT - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 2, PA2 , 1,  0) /* S2_OUT - DMA1_ST1 */ \
+    TIMER_PIN_MAP( 3, PA15 , 1,  0) /* S3_OUT - DMA1_ST5 */ \
+    TIMER_PIN_MAP( 4, PA3 , 1,  1) /* S4_OUT - DMA1_ST6 */ \
+    TIMER_PIN_MAP( 5, PA0 , 2,  0) /* LED_STRIP - DMA1_ST2 */
 
 #define MOTOR1_PIN              PB8
 #define MOTOR2_PIN              PA2

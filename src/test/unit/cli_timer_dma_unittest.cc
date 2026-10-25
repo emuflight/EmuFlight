@@ -181,7 +181,7 @@ extern "C" {
 // ---------------------------------------------------------------------------------------------
 // Fake board
 //
-//   pin  timerHardware occurrences (1-based, in table order)       default timerIOConfig
+//   pin  fullTimerHardware occurrences (1-based, in table order)       default timerIOConfig
 //   C08  #1 TIM3 CH3 AF2, #2 TIM8 CH3 AF3                          slot 0: occurrence 1, dmaopt 1
 //   A01  #1 TIM2 CH2 AF1                                           slot 1: occurrence 1, dmaopt NONE
 //   B13  #1 TIM1 CH1N AF1                                          no slot
@@ -217,7 +217,6 @@ static timerHardware_t makeTimer(TIM_TypeDef *tim, ioTag_t tag, uint16_t channel
 }
 
 extern "C" {
-const timerHardware_t timerHardware[1] = {};
 const timerHardware_t fullTimerHardware[FULL_TIMER_CHANNEL_COUNT] = {
     makeTimer(&fakeTim3, TAG_C08, 2, false, 2),
     makeTimer(&fakeTim8, TAG_C08, 2, false, 3),
@@ -1209,6 +1208,220 @@ TEST_F(CliTimerDmaTest, HelpListsDmaPinFormsWhenTimerMgmtIsEnabled)
     EXPECT_HAS(out, "pin <pin> list | pin <pin> [<option>|none]");
     EXPECT_HAS(out, "timer - show/set timers");
     EXPECT_HAS(out, "<pin> [af<alternate function>|none]");
+}
+
+// ---------------------------------------------------------------------------------------------
+// argument Tab completion (IT #1552)
+// ---------------------------------------------------------------------------------------------
+
+// Feed `line` followed by one Tab (or '?') and return what the CLI printed: the echoed input
+// followed by the completion text.
+static std::string pressTab(const std::string &line, char key = '\t')
+{
+    // The CLI line buffer outlives a session; backspaces drain whatever an earlier call left.
+    fakeRx = std::string(512, '\x7f');
+    fakeRxPos = 0;
+    testing::internal::CaptureStdout();
+    cliProcess();
+    testing::internal::GetCapturedStdout();
+    fakeRx = line + key;
+    fakeRxPos = 0;
+    testing::internal::CaptureStdout();
+    cliProcess();
+    return testing::internal::GetCapturedStdout();
+}
+
+TEST_F(CliTimerDmaTest, TabStillCompletesCommandNames)
+{
+    EXPECT_EQ("dm" "a ", pressTab("dm"));
+}
+
+TEST_F(CliTimerDmaTest, TabCompletesDmaSubcommandsAndDevices)
+{
+    EXPECT_EQ("dma sh" "ow ", pressTab("dma sh"));
+    EXPECT_EQ("dma UART_T" "X ", pressTab("dma UART_T"));
+    EXPECT_EQ("dma uart_t" "X ", pressTab("dma uart_t"));
+    EXPECT_EQ("dma ADC 1 n" "one ", pressTab("dma ADC 1 n"));
+}
+
+TEST_F(CliTimerDmaTest, TabCompletesDmaPinWhenTimerMgmtIsEnabled)
+{
+    EXPECT_EQ("dma p" "in ", pressTab("dma p"));
+}
+
+TEST_F(CliTimerDmaTest, TabCompletesTimerAndResourceKeywords)
+{
+    EXPECT_EQ("timer li" "st ", pressTab("timer li"));
+    EXPECT_EQ("timer C08 n" "one ", pressTab("timer C08 n"));
+    EXPECT_EQ("resource sh" "ow ", pressTab("resource sh"));
+    EXPECT_EQ("resource show a" "ll ", pressTab("resource show a"));
+    EXPECT_EQ("resource MOTOR 1 n" "one ", pressTab("resource MOTOR 1 n"));
+}
+
+TEST_F(CliTimerDmaTest, TabOffersNoneAtTheResourcePinPosition)
+{
+    // BEEPER has maxIndex 0 (pin is the second token); MOTOR is indexed (pin is the third).
+    EXPECT_EQ("resource BEEPER n" "one ", pressTab("resource BEEPER n"));
+    EXPECT_EQ("resource MOTOR n", pressTab("resource MOTOR n"));
+}
+
+TEST_F(CliTimerDmaTest, TabOffersNothingAfterShowOrListForms)
+{
+    EXPECT_EQ("timer list n", pressTab("timer list n"));
+    EXPECT_EQ("timer show n", pressTab("timer show n"));
+    EXPECT_EQ("resource show all n", pressTab("resource show all n"));
+    EXPECT_EQ("dma show n", pressTab("dma show n"));
+    EXPECT_EQ("dma list 1 n", pressTab("dma list 1 n"));
+}
+
+TEST_F(CliTimerDmaTest, TabOffersNothingForUnknownOrAbbreviatedResourceOwner)
+{
+    // cliResource() compares the owner token over the whole line length, so 'resource BEEP none' is rejected.
+    EXPECT_EQ("resource BEEP n", pressTab("resource BEEP n"));
+    EXPECT_EQ("resource FOO 1 n", pressTab("resource FOO 1 n"));
+    EXPECT_EQ("diff defaults d", pressTab("diff defaults d"));
+}
+
+TEST_F(CliTimerDmaTest, TabCompletesResourceOwnerNames)
+{
+    EXPECT_EQ("resource MOTO" "R ", pressTab("resource MOTO"));
+}
+
+TEST_F(CliTimerDmaTest, TabCompletesFixedKeywordCommands)
+{
+    EXPECT_EQ("diff pr" "ofile ", pressTab("diff pr"));
+    EXPECT_EQ("dump master d" "efaults ", pressTab("dump master d"));
+    EXPECT_EQ("defaults nos" "ave ", pressTab("defaults nos"));
+    EXPECT_EQ("bl ro" "m ", pressTab("bl ro"));
+    EXPECT_EQ("feature -TELE" "METRY ", pressTab("feature -TELE"));
+}
+
+TEST_F(CliTimerDmaTest, TabListsAmbiguousChoicesWithoutChangingTheLine)
+{
+    const std::string out = pressTab("diff ");
+    for (const char *word : { "master", "profile", "rates", "all", "defaults" }) {
+        EXPECT_HAS(out, std::string(word) + "\t");
+    }
+    // The prompt and the typed line are redrawn after the list.
+    EXPECT_HAS(out, "# diff ");
+}
+
+TEST_F(CliTimerDmaTest, QuestionMarkListsAmbiguousChoices)
+{
+    const std::string out = pressTab("dma s", '?');
+    EXPECT_HAS(out, "show\t");
+    EXPECT_HAS(out, "# dma s");
+}
+
+TEST_F(CliTimerDmaTest, TabOnUnknownArgumentOrCommandChangesNothing)
+{
+    EXPECT_EQ("dma zzz", pressTab("dma zzz"));
+    EXPECT_EQ("timer C08 list x", pressTab("timer C08 list x"));
+    EXPECT_EQ("nosuchcmd a", pressTab("nosuchcmd a"));
+}
+
+TEST_F(CliTimerDmaTest, TabDoesNotOfferListAfterADash)
+{
+    EXPECT_EQ("feature -li", pressTab("feature -li"));
+}
+
+TEST_F(CliTimerDmaTest, TabCompletesMixerKeywordsAndNames)
+{
+    EXPECT_EQ("mixer li" "st ", pressTab("mixer li"));
+    EXPECT_EQ("mixer CUSTOMA" "IRPLANE ", pressTab("mixer CUSTOMA"));
+    EXPECT_EQ("mmix lo" "ad ", pressTab("mmix lo"));
+    EXPECT_EQ("mmix load QUADX1" "234 ", pressTab("mmix load QUADX1"));
+    EXPECT_EQ("rxrange re" "set ", pressTab("rxrange re"));
+    EXPECT_EQ("feature li" "st ", pressTab("feature li"));
+}
+
+TEST_F(CliTimerDmaTest, TabOffersNothingForUnknownMixerAndRxrangeArguments)
+{
+    EXPECT_EQ("mixer zzz", pressTab("mixer zzz"));
+    EXPECT_EQ("mmix load zzz", pressTab("mmix load zzz"));
+    EXPECT_EQ("mmix zzz", pressTab("mmix zzz"));
+    EXPECT_EQ("rxrange reset r", pressTab("rxrange reset r"));
+    EXPECT_EQ("feature zzz", pressTab("feature zzz"));
+}
+
+TEST_F(CliTimerDmaTest, TabExtendsToTheCommonPrefixWithoutListing)
+{
+    // UART_TX and UART_RX share "UART_": the line extends and no candidate list is printed.
+    EXPECT_EQ("dma UART" "_", pressTab("dma UART"));
+}
+
+TEST_F(CliTimerDmaTest, QuestionMarkOnAUniqueMatchCompletesWithoutListing)
+{
+    EXPECT_EQ("dma sh" "ow ", pressTab("dma sh", '?'));
+}
+
+TEST_F(CliTimerDmaTest, TabListsEachDmaCandidateExactlyOnce)
+{
+    // Keywords plus every device name the dma command accepts in this build.
+    const std::string out = pressTab("dma ");
+    for (const char *word : { "show", "list", "pin", "UART_TX", "UART_RX", "SPI_SDO", "SPI_SDI", "SPI_TX", "SPI_RX", "ADC", "SDIO" }) {
+        EXPECT_EQ(1u, count(out, std::string(word) + "\t")) << word;
+    }
+}
+
+TEST_F(CliTimerDmaTest, QuestionMarkOnAnExtendableAmbiguousPrefixExtendsAndLists)
+{
+    const std::string out = pressTab("dma UART", '?');
+    EXPECT_EQ(1u, count(out, "UART_TX\t"));
+    EXPECT_EQ(1u, count(out, "UART_RX\t"));
+    // The list is followed by the prompt and the stored line; the common prefix was appended.
+    EXPECT_HAS(out, "# dma UART_");
+}
+
+TEST_F(CliTimerDmaTest, CompletedLineIsStoredAndRunsOnEnter)
+{
+    // Output alone cannot show what the buffer holds: submit the completed line without clearing it.
+    EXPECT_EQ("dma sh" "ow ", pressTab("dma sh"));
+    fakeRx = "\r";
+    fakeRxPos = 0;
+    testing::internal::CaptureStdout();
+    cliProcess();
+    const std::string out = testing::internal::GetCapturedStdout();
+    EXPECT_HAS(out, "Currently active DMA:");
+    EXPECT_LACKS(out, "Unknown command");
+}
+
+TEST_F(CliTimerDmaTest, TabNearBufferCapacityCompletesOrTruncatesWithoutGrowingTheLine)
+{
+    // CLI_IN_BUFFER_SIZE is 256 and the line is NUL terminated, so a completion may add at most
+    // what still fits. Repeated spaces between tokens pad the line to the wanted length.
+    const std::string fits = "dma" + std::string(245, ' ') + "sh";
+    EXPECT_EQ(fits + "ow ", pressTab(fits));
+
+    const std::string tooTight = "dma" + std::string(248, ' ') + "sh";
+    const std::string out = pressTab(tooTight);
+    // The "ow" extension does not fit, so the line is left unchanged instead of truncated.
+    EXPECT_EQ(tooTight, out);
+}
+
+TEST_F(CliTimerDmaTest, TabOffersNothingAfterAbbreviatedShowOrListForms)
+{
+    // The handlers accept 'sh' and 'l' as show and list.
+    EXPECT_EQ("timer sh n", pressTab("timer sh n"));
+    EXPECT_EQ("timer l n", pressTab("timer l n"));
+    EXPECT_EQ("dma s 1 n", pressTab("dma s 1 n"));
+    EXPECT_EQ("resource li all n", pressTab("resource li all n"));
+    // cliResource() accepts 'all' only after the full verb, so an abbreviation offers nothing.
+    EXPECT_EQ("resource sh a", pressTab("resource sh a"));
+    EXPECT_EQ("resource li a", pressTab("resource li a"));
+}
+
+TEST_F(CliTimerDmaTest, TabOnAFullLineBufferChangesNothing)
+{
+    // CLI_IN_BUFFER_SIZE is 256; fill the line buffer completely, then Tab must not write past it.
+    const std::string line = "dma " + std::string(256 - 4, 'a');
+    EXPECT_EQ(line, pressTab(line));
+}
+
+TEST_F(CliTimerDmaTest, TabDoesNotRunTheCommand)
+{
+    const std::string out = pressTab("resource show");
+    EXPECT_LACKS(out, "Currently active IO resource assignments");
 }
 
 // STUBS

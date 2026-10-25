@@ -150,30 +150,28 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 14
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA2 , 2,  0) \
-    TIMER_PIN_MAP( 1, PA3 , 2,  1) \
-    TIMER_PIN_MAP( 2, PB0 , 2,  2) \
-    TIMER_PIN_MAP( 3, PB1 , 2,  3) \
-    TIMER_PIN_MAP( 4, PA0 , 2,  4) \
-    TIMER_PIN_MAP( 5, PA1 , 2,  5) \
-    TIMER_PIN_MAP( 6, PE5 , 1,  6) \
-    TIMER_PIN_MAP( 7, PE6 , 1, -1) \
-    TIMER_PIN_MAP( 8, PD12 , 1,  -1) \
-    TIMER_PIN_MAP( 9, PD13 , 1,  -1) \
-    TIMER_PIN_MAP( 10, PD14 , 1,  -1) \
-    TIMER_PIN_MAP( 11, PD15 , 1, -1) \
-    TIMER_PIN_MAP( 12, PB8 , 1,  -1) \
-    TIMER_PIN_MAP( 13, PA8 , 1,  7)
+    TIMER_PIN_MAP( 0, PA2 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PA3 , 2,  1) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  2) /* motor 4 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  3) /* motor 3 */ \
+    TIMER_PIN_MAP( 4, PA0 , 2,  4) /* motor 6 */ \
+    TIMER_PIN_MAP( 5, PA1 , 2,  5) /* motor 5 */ \
+    TIMER_PIN_MAP( 6, PE5 , 1,  6) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PE6 , 1, -1) /* motor 8; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 8, PD12 , 1,  -1) /* servo 1; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 9, PD13 , 1,  -1) /* servo 2; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 10, PD14 , 1,  -1) /* servo 3; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 11, PD15 , 1, -1) /* servo 4; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 12, PB8 , 1,  -1) /* ppm; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 13, PA8 , 1,  7) /* led strip */
 
 #define MOTOR1_PIN              PA2
 #define MOTOR2_PIN              PA3
-#define MOTOR3_PIN              PB0
-#define MOTOR4_PIN              PB1
-#define MOTOR5_PIN              PA0
-#define MOTOR6_PIN              PA1
+#define MOTOR3_PIN              PB1
+#define MOTOR4_PIN              PB0
+#define MOTOR5_PIN              PA1
+#define MOTOR6_PIN              PA0
 #define MOTOR7_PIN              PE5
 #define MOTOR8_PIN              PE6
 #define SERVO1_PIN              PD12

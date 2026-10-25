@@ -151,9 +151,8 @@
 // ******* ADC ********
 
 #define USE_ADC
-#define ADC_INSTANCE            ADC3           //Mambaf722 settings verified work for this fc
-#define ADC3_DMA_OPT 0
-//#define ADC_INSTANCE            ADC2        //Recommended BF Config Settings
+#define ADC2_DMA_OPT 0
+#define ADC_INSTANCE            ADC2
 
 
 
@@ -165,7 +164,7 @@
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
-#define MAX7456_CS_PIN          PB12
+#define MAX7456_SPI_CS_PIN      PB12
 
 //******* FLASH ********
 
@@ -190,17 +189,15 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USE_TIMER_MGMT
 // PA8 and PA9 share DMA2 Stream 6; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB4 , 1,  -1) \
-    TIMER_PIN_MAP( 1, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 2, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 3, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 4, PA9 , 1,  0) \
-    TIMER_PIN_MAP( 5, PA10 , 1,  0) \
-    TIMER_PIN_MAP( 6, PB3 , 1,  0)
+    TIMER_PIN_MAP( 0, PB4 , 1,  -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PC8 , 2,  1) /* S1_OUT – UP2-1 */ \
+    TIMER_PIN_MAP( 2, PC9 , 2,  0) /* S2_OUT – UP2-1 */ \
+    TIMER_PIN_MAP( 3, PA8 , 1,  0) /* S3_OUT – UP2-5 */ \
+    TIMER_PIN_MAP( 4, PA9 , 1,  0) /* S4_OUT – UP2-5 */ \
+    TIMER_PIN_MAP( 5, PA10 , 1,  0) /* FC CAM – DMA1_ST7 */ \
+    TIMER_PIN_MAP( 6, PB3 , 1,  0) /* LED_STRIP – DMA1_ST6 */
 
 #define MOTOR1_PIN              PC8
 #define MOTOR2_PIN              PC9

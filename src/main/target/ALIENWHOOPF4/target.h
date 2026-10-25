@@ -216,8 +216,7 @@
 
 /* Timers
  */
-#define USABLE_TIMER_CHANNEL_COUNT 5
-#define USE_TIMER_MGMT
+// Currently only supporting brushed quad configuration e.g. Tiny Whoop. Care must be taken to ensure functionality on both F4 and F7 (STM32F405RGT and STM32F722RET)
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PC9 , 2,  0) \
     TIMER_PIN_MAP( 1, PC8 , 1,  0) \
