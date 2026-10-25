@@ -97,8 +97,13 @@ bool dshotBitbangIsRunning(void)
     return bbRunning;
 }
 
-bool dshotBitbangSupported(void)
+bool dshotBitbangSupported(uint8_t motorPwmInversion)
 {
+    // the bitbang frame is never inverted: keep classic DShot, which honors motor_pwm_inversion
+    if (motorPwmInversion) {
+        bbStatus = DSHOT_BITBANG_STATUS_INVERSION;
+        return false;
+    }
 #if defined(STM32F4) && defined(USE_GYRO_IMUF9001)
     // the IMU-F SPI DMA sits on DMA2, and bitbang writes GPIO through DMA2 (F4 errata 2.1.10)
     bbStatus = DSHOT_BITBANG_STATUS_SPI_DMA2;

@@ -335,7 +335,7 @@ void spiInitBusDMA(void)
 #if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7)) && defined(USE_SPI)
 #if defined(STM32F4) && defined(USE_DSHOT_BITBANG)
     // F4 errata 2.1.10: DMA2 corrupts when AHB GPIO and APB SPI are accessed together. Bitbang writes GPIO through DMA2.
-    const bool dshotBitbangActive = dshotBitbangIsActiveFor(motorConfig()->dev.useDshotBitbang, motorConfig()->dev.motorPwmProtocol) && dshotBitbangSupported();
+    const bool dshotBitbangActive = dshotBitbangIsActiveFor(motorConfig()->dev.useDshotBitbang, motorConfig()->dev.motorPwmProtocol) && dshotBitbangSupported(motorConfig()->dev.motorPwmInversion);
 #endif
     for (uint32_t device = 0; device < SPIDEV_COUNT; device++) {
 #if defined(USE_GYRO_IMUF9001)
