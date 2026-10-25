@@ -622,6 +622,19 @@ dshot_bitbang_unittest_DEFINES := \
 		STM32F4 \
 		USE_DSHOT
 
+# Real pwm_output.c bitbang seam; the bitbang driver and the classic per-motor config are fakes.
+pwm_output_dshot_bitbang_seam_unittest_SRC := \
+		$(USER_DIR)/drivers/pwm_output.c
+
+pwm_output_dshot_bitbang_seam_unittest_DEFINES := \
+		STM32F4 \
+		USE_DSHOT \
+		USE_DSHOT_BITBANG \
+		USE_TIMER \
+		GPIO_Mode_AF=2 \
+		GPIO_OType_PP=0 \
+		GPIO_PuPd_NOPULL=0
+
 # Real pwm_output.c motorDevInit(); the per-motor DShot hardware config is mocked.
 pwm_output_dshot_init_unittest_SRC := \
 		$(USER_DIR)/drivers/pwm_output.c
