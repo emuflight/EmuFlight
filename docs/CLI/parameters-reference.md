@@ -1,7 +1,7 @@
 # CLI Reference
 
 > **Auto-generated** — do not edit manually.
-> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-10-09 | Commit: `558fe9201` | Firmware: `0.5.0` | MSP: `0.1.55`
+> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-10-25 | Commit: `fb94a99ec` | Firmware: `0.5.0` | MSP: `0.1.55`
 
 Settings parameters (`valueTable[]`) and CLI commands that persist config through
 their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered here.
@@ -156,7 +156,7 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 | `baro_spi_device` | uint8 | master | `0` – `5` | `USE_BARO` |
 | `baro_i2c_device` | uint8 | master | `0` – `5` | `USE_BARO` |
 | `baro_i2c_address` | uint8 | master | `0` – `I2C_ADDR7_MAX` | `USE_BARO` |
-| `baro_hardware` | uint8 | master | `AUTO`, `NONE`, `BMP085`, `MS5611`, `BMP280`, `LPS`, `QMP6988` | `USE_BARO` |
+| `baro_hardware` | uint8 | master | `AUTO`, `NONE`, `BMP085`, `MS5611`, `BMP280`, `LPS`, `QMP6988`, `DPS310` | `USE_BARO` |
 | `baro_tab_size` | uint8 | master | `1` – `BARO_SAMPLE_COUNT_MAX` | `USE_BARO` |
 | `baro_noise_lpf` | uint16 | master | `0` – `1000` | `USE_BARO` |
 | `baro_cf_vel` | uint16 | master | `0` – `1000` | `USE_BARO` |
@@ -250,6 +250,7 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 | `motor_pwm_rate` | uint16 | master | `200` – `32000` |  |
 | `motor_pwm_inversion` | uint8 | master | `OFF`, `ON` |  |
 | `motor_poles` | uint8 | master | `4` – `UINT8_MAX` |  |
+| `motor_output_reordering` | uint8 | master | array\[MAX_SUPPORTED_MOTORS\]; logical motor N drives `ioTags` slot `array[N]`; zero-based, each value 0 to `MAX_SUPPORTED_MOTORS - 1` at most once; a shorter list is completed with the lowest unused slots; a repeated or out-of-range value is rejected |  |
 
 ## Throttle Correction Config
 

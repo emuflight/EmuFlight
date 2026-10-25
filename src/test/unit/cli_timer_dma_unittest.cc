@@ -81,6 +81,9 @@ extern "C" {
     const uint16_t valueTableEntryCount = ARRAYLEN(valueTable);
     const lookupTableEntry_t lookupTables[] = {};
 
+    // storage only: cliSet() compares a value pointer against motorConfigMutable()
+    motorConfig_t motorConfig_System;
+
     PG_REGISTER(osdConfig_t, osdConfig, PG_OSD_CONFIG, 0);
     PG_REGISTER(batteryConfig_t, batteryConfig, PG_BATTERY_CONFIG, 0);
     PG_REGISTER(ledStripConfig_t, ledStripConfig, PG_LED_STRIP_CONFIG, 0);
