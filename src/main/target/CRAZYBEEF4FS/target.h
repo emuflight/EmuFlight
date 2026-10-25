@@ -128,7 +128,7 @@
 
 // *************** ADC *****************************
 #define USE_ADC
-#define ADC1_DMA_OPT 0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PB0
 #define CURRENT_METER_ADC_PIN   PB1
 
@@ -139,18 +139,16 @@
 
 //#define  USE_DSHOT_DMA
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 1, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 5, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 6, PA2 , 3, -1) \
-    TIMER_PIN_MAP( 7, PA9 , 1,  0) \
-    TIMER_PIN_MAP( 8, PA10 , 1,  0)
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM/RX2 */ \
+    TIMER_PIN_MAP( 1, PB10 , 1,  0) /* S1_OUT - DMA1_ST1 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* S2_OUT - DMA1_ST0 */ \
+    TIMER_PIN_MAP( 3, PB7 , 1,  0) /* S3_OUT - DMA1_ST3 */ \
+    TIMER_PIN_MAP( 4, PB8 , 1,  0) /* S4_OUT - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 5, PA0 , 2,  0) /* 2812LED - DMA1_ST2 */ \
+    TIMER_PIN_MAP( 6, PA2 , 3, -1) /* TX2 */ \
+    TIMER_PIN_MAP( 7, PA9 , 1,  0) /* TX1 */ \
+    TIMER_PIN_MAP( 8, PA10 , 1,  0) /* RX1 */
 
 #define MOTOR1_PIN              PB10
 #define MOTOR2_PIN              PB6

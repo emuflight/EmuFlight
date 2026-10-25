@@ -43,6 +43,8 @@
 #define LED_STRIP_PIN        PB8
 #define USE_BEEPER
 #define BEEPER_PIN           PB6
+// PB6 beeper PWM and PB8 LED strip share TIM4; only one can run at its frequency
+#define BEEPER_PWM_HZ        1000
 #define CAMERA_CONTROL_PIN   PB9
 
 #define USE_SPI
@@ -115,16 +117,14 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB0 , 3,  0) \
-    TIMER_PIN_MAP( 2, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 3, PA8 , 1,  1) \
-    TIMER_PIN_MAP( 4, PB9 , 2, -1) \
-    TIMER_PIN_MAP( 5, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 6, PB6 , 1,  0)
+    TIMER_PIN_MAP( 0, PB1 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB0 , 3,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PC9 , 2,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PA8 , 1,  1) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB9 , 2, -1) /* cam ctrl; dma 0 assumed, please verify */ \
+    TIMER_PIN_MAP( 5, PB8 , 1,  0) /* led */ \
+    TIMER_PIN_MAP( 6, PB6 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */
 
 #define MOTOR1_PIN              PB1
 #define MOTOR2_PIN              PB0

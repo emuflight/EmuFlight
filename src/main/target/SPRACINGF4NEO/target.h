@@ -188,23 +188,25 @@
 //#define BINDPLUG_PIN                        BUTTON_A_PIN
 
 
-#define USABLE_TIMER_CHANNEL_COUNT          14 // 4xPWM, 6xESC, 2xESC via UART3 RX/TX, 1xLED Strip, 1xIR.
-#define USE_TIMER_MGMT
+// Additional 2 PWM channels available on UART3 RX/TX pins
+// However, when using led strip the timer cannot be used, but no code appears to prevent that right now
+// Additional 2 PWM channels available on UART1 RX/TX pins
+// However, when using transponder the timer cannot be used, but no code appears to prevent that right now
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 1, PA2 , 3, -1) \
-    TIMER_PIN_MAP( 2, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 3, PC7 , 2,  1) \
-    TIMER_PIN_MAP( 4, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 5, PC6 , 2,  1) \
-    TIMER_PIN_MAP( 6, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 7, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 8, PA1 , 1,  0) \
-    TIMER_PIN_MAP( 9, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 10, PB11 , 1,  1) \
-    TIMER_PIN_MAP( 11, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 12, PA9 , 1,  0) \
-    TIMER_PIN_MAP( 13, PA10 , 1,  0)
+    TIMER_PIN_MAP( 1, PA2 , 3, -1) /* PPM / PWM1 / UART2 RX */ \
+    TIMER_PIN_MAP( 2, PC8 , 2,  1) /* D(2,4,7) ESC 1 */ \
+    TIMER_PIN_MAP( 3, PC7 , 2,  1) /* D(2,3,7) ESC 2 */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* D(2,7,7) ESC 3 */ \
+    TIMER_PIN_MAP( 5, PC6 , 2,  1) /* D(2,2,7) ESC 4 */ \
+    TIMER_PIN_MAP( 6, PB6 , 1,  0) /* D(1,0,2) ESC 5 / Conflicts with USART5_RX / SPI3_RX - SPI3_RX can be mapped to DMA1_ST3_CH0 */ \
+    TIMER_PIN_MAP( 7, PB7 , 1,  0) /* D(1,3,2) ESC 6 / Conflicts with USART3_RX */ \
+    TIMER_PIN_MAP( 8, PA1 , 1,  0) /* D(1,6,3) LED Strip */ \
+    TIMER_PIN_MAP( 9, PB10 , 1,  0) /* D(1,1,3) ESC 7 / Shared with UART3 TX PIN and SPI3 TX (OSD) */ \
+    TIMER_PIN_MAP( 10, PB11 , 1,  1) /* D(1,6,3) ESC 8 / Shared with UART3 RX PIN */ \
+    TIMER_PIN_MAP( 11, PA8 , 1,  0) /* D(2,6,0) Transponder */ \
+    TIMER_PIN_MAP( 12, PA9 , 1,  0) /* PWM3 */ \
+    TIMER_PIN_MAP( 13, PA10 , 1,  0) /* PWM3 */
 
 #define MOTOR1_PIN              PC8
 #define MOTOR2_PIN              PC7

@@ -318,7 +318,8 @@ beeper_dshot_beacon_unittest_SRC := \
 		$(USER_DIR)/pg/pg.c
 
 beeper_dshot_beacon_unittest_DEFINES := \
-		USE_DSHOT
+		USE_DSHOT \
+		BEEPER_NAMES
 
 cms_unittest_SRC := \
 		$(USER_DIR)/cms/cms.c \
@@ -333,6 +334,11 @@ common_filter_unittest_SRC := \
 
 dma_bounds_unittest_DEFINES := \
 		STM32F4
+
+
+dma_flag_macro_unittest_DEFINES := \
+		STM32F4 \
+		UNIT_TEST_DMA_FLAG_REGS
 
 
 dma_stm32f4xx_unittest_SRC := \
@@ -609,6 +615,18 @@ dma_reqmap_h7_timup_unittest_DEFINES := \
 		DMA_REQUEST_TIM16_UP=116 \
 		DMA_REQUEST_TIM17_UP=117
 
+# Real pwm_output.c motorDevInit(); the per-motor DShot hardware config is mocked.
+pwm_output_dshot_init_unittest_SRC := \
+		$(USER_DIR)/drivers/pwm_output.c
+
+pwm_output_dshot_init_unittest_DEFINES := \
+		STM32F4 \
+		USE_DSHOT \
+		USE_TIMER \
+		GPIO_Mode_AF=2 \
+		GPIO_OType_PP=0 \
+		GPIO_PuPd_NOPULL=0
+
 # Real pg/timerup.c reset function; TIMUP20 is past the 14-slot array and must be ignored.
 timerup_pg_unittest_SRC := \
 		$(USER_DIR)/pg/timerup.c \
@@ -628,6 +646,9 @@ timerup_pg_unittest_DEFINES := \
 encoding_unittest_SRC := \
 		$(USER_DIR)/common/encoding.c
 
+streambuf_unittest_SRC := \
+		$(USER_DIR)/common/streambuf.c
+
 
 serial_uart_dma_claim_unittest_DEFINES := \
 		STM32F4
@@ -635,6 +656,13 @@ serial_uart_dma_claim_unittest_DEFINES := \
 
 sdcard_dma_claim_unittest_DEFINES := \
 		STM32F4
+
+
+flashfs_unittest_SRC := \
+		$(USER_DIR)/io/flashfs.c
+
+flashfs_unittest_DEFINES := \
+		USE_FLASHFS
 
 
 flash_w25m_unittest_SRC := \

@@ -124,16 +124,16 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USE_TIMER_MGMT
+// DEF_TIM(TIM2, CH2, PB3,  TIM_USE_MOTOR, 0, 0), // motor 5 disabled; PB3 used for SOFTSERIAL1 TX/RX — mutually exclusive (BF: MOTOR 5 B03 / SERIAL_TX|RX 11 B03)
+// DEF_TIM(TIM2, CH3, PB10, TIM_USE_MOTOR, 0, 0), // motor 6 disabled; motor 5 disabled leaves 5 motor slots (odd count — invalid); motor 6 also disabled for even 4-motor count
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 5, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 6, PA8 , 1,  0)
+    TIMER_PIN_MAP( 0, PB4 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB5 , 1,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB7 , 1,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB3 , 1,  0) /* SOFTSERIAL1 TX/RX (half-duplex; shared with motor 5 — motor 5 disabled) */ \
+    TIMER_PIN_MAP( 5, PA3 , 3, -1) /* PPM; shared with UART2_RX — mutually exclusive (BF: PPM 1 A03 / SERIAL_RX 2 A03) */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  0) /* led */
 
 #define MOTOR1_PIN              PB4
 #define MOTOR2_PIN              PB5

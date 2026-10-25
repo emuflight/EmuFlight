@@ -127,7 +127,8 @@
 #define USE_ADC
 #define VBAT_ADC_PIN PC1
 #define CURRENT_METER_ADC_PIN PC3
-#define ADC3_DMA_OPT 1
+// ADC3 on DMA2 Stream0 so burst DShot keeps DMA2 Stream1 (TIM8_UP)
+#define ADC3_DMA_OPT 0
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 #define ADC_INSTANCE                    ADC3
@@ -139,19 +140,19 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USE_TIMER_MGMT
+// Burst DShot shares one TIM_UP stream per timer, so motors need no per-channel stream
+#define ENABLE_DSHOT_DMAR true
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 1, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 2, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 3, PA9 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 6, PA10 , 1,  0) \
-    TIMER_PIN_MAP( 7, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 9, PB3 , 1,  0)
+    TIMER_PIN_MAP( 0, PB7 , 1,  0) /* ppm RX_PPM_PIN */ \
+    TIMER_PIN_MAP( 1, PC8 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 2, PC9 , 2,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 3, PA8 , 1,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 4, PA9 , 1,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 5, PB0 , 2,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 6, PB1 , 2,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 7, PA10, 1,  0) /* motor 7 */ \
+    TIMER_PIN_MAP( 8, PB4 , 1,  0) /* motor 8 */ \
+    TIMER_PIN_MAP( 9, PB3 , 1,  0) /* led */
 
 #define MOTOR1_PIN              PC8
 #define MOTOR2_PIN              PC9

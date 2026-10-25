@@ -47,6 +47,7 @@
 #define USE_BEEPER
 #define BEEPER_PIN           PD2
 #define BEEPER_INVERTED
+// no timer-map row: TIM2 is shared with the PPM pad PA3; camera control stays inactive
 #define CAMERA_CONTROL_PIN   PB3
 
 #define USE_SPI
@@ -145,19 +146,17 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA8 , 1,  14) \
-    TIMER_PIN_MAP( 1, PA3 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 3, PB1 , 2,  1) \
-    TIMER_PIN_MAP( 4, PB4 , 1,  4) \
-    TIMER_PIN_MAP( 5, PB5 , 1,  5) \
-    TIMER_PIN_MAP( 6, PD12 , 1,  6) \
-    TIMER_PIN_MAP( 7, PD13 , 1,  7) \
-    TIMER_PIN_MAP( 8, PC8 , 2,  2) \
-    TIMER_PIN_MAP( 9, PC9 , 2,  3)
+    TIMER_PIN_MAP( 0, PA8 , 1,  14) /* led strip */ \
+    TIMER_PIN_MAP( 1, PA3 , 1,  0) /* ppm */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  1) /* motor 2 */ \
+    TIMER_PIN_MAP( 4, PB4 , 1,  4) /* motor 3 */ \
+    TIMER_PIN_MAP( 5, PB5 , 1,  5) /* motor 4 */ \
+    TIMER_PIN_MAP( 6, PD12 , 1,  6) /* motor 5 */ \
+    TIMER_PIN_MAP( 7, PD13 , 1,  7) /* motor 6 */ \
+    TIMER_PIN_MAP( 8, PC8 , 2,  2) /* motor 7 */ \
+    TIMER_PIN_MAP( 9, PC9 , 2,  3) /* motor 8 */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

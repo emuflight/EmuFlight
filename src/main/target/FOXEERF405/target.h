@@ -149,19 +149,17 @@
 
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USE_TIMER_MGMT
 // PC6, PC7 and PC8 share DMA2 Stream 2; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB15 , 3, -1) \
-    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 3, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 4, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 5, PC6 , 2,  0) \
-    TIMER_PIN_MAP( 6, PC7 , 2,  0) \
-    TIMER_PIN_MAP( 7, PA10 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB3 , 1,  0)
+    TIMER_PIN_MAP( 0, PB15 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S1 (1,7) */ \
+    TIMER_PIN_MAP( 2, PB4 , 1,  0) /* S2 (1,4) */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  0) /* S3 (2,4) */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* S4 (2,7) */ \
+    TIMER_PIN_MAP( 5, PC6 , 2,  0) /* S5 (2,2) */ \
+    TIMER_PIN_MAP( 6, PC7 , 2,  0) /* S6 (2,3) */ \
+    TIMER_PIN_MAP( 7, PA10 , 1,  0) /* LED STRIP(2,6) */ \
+    TIMER_PIN_MAP( 8, PB3 , 1,  0) /* FC CAM */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB4
@@ -169,7 +167,7 @@
 #define MOTOR4_PIN              PC9
 #define MOTOR5_PIN              PC6
 #define MOTOR6_PIN              PC7
-#define RX_PWM1_PIN             PB3
+#define RX_PWM1_PIN             PB3 // EF-only: not in the reference config
 #define RX_PPM_PIN              PB15
 #define LED_STRIP_PIN           PA10
 

@@ -40,7 +40,7 @@
 #define BARO_I2C_INSTANCE       (I2CDEV_1)
 #define DEFAULT_BARO_QMP6988
 
-#define CAMERA_CONTROL_PIN  PB5
+#define CAMERA_CONTROL_PIN  PB5 // PB5 is TIM3 CH2 only; TIM3 also drives motors 3 and 4 (PB1, PB0), so no mapping row
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -111,7 +111,7 @@
 #define MAX7456_SPI_CS_PIN      PB12
 
 #define USE_ADC
-#define ADC1_DMA_OPT 0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PA0
 #define CURRENT_METER_ADC_PIN   PA1
 
@@ -132,8 +132,6 @@
 
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB7 , 1,  0) \
     TIMER_PIN_MAP( 1, PA8 , 1,  0) \

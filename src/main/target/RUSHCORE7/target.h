@@ -149,18 +149,17 @@
 
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USE_TIMER_MGMT
+//DEF_TIM(TIM3, CH4, PB1,  TIM_USE_BEEPER, 0, 0 ), // BEEPER PWM
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 1, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 2, PC6 , 2,  1) \
-    TIMER_PIN_MAP( 3, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 4, PC7 , 2,  1) \
-    TIMER_PIN_MAP( 5, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 6, PA9 , 1,  0) \
-    TIMER_PIN_MAP( 7, PB11 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB0 , 2,  0)
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM&SBUS */ \
+    TIMER_PIN_MAP( 1, PC8 , 2,  1) /* S1 */ \
+    TIMER_PIN_MAP( 2, PC6 , 2,  1) /* S2 */ \
+    TIMER_PIN_MAP( 3, PC9 , 2,  0) /* S3 */ \
+    TIMER_PIN_MAP( 4, PC7 , 2,  1) /* S4 */ \
+    TIMER_PIN_MAP( 5, PA8 , 1,  0) /* S5 */ \
+    TIMER_PIN_MAP( 6, PA9 , 1,  0) /* S6 */ \
+    TIMER_PIN_MAP( 7, PB11 , 1,  0) /* LED STRIP */ \
+    TIMER_PIN_MAP( 8, PB0 , 2,  0) /* FC CAM */
 
 #define MOTOR1_PIN              PC8
 #define MOTOR2_PIN              PC6

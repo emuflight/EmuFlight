@@ -106,7 +106,7 @@
 #define USE_ADC
 #define VBAT_ADC_PIN PB0
 #define CURRENT_METER_ADC_PIN PB1
-#define ADC1_DMA_OPT        0
+#define ADC1_DMA_OPT        1
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
@@ -118,15 +118,13 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA0 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 4, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 5, PA8 , 1,  0)
+    TIMER_PIN_MAP( 0, PA0 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB10 , 1,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB7 , 1,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PA3 , 3, -1) /* ppm RX_PPM_PIN; dma 0 assumed, please verify */ \
+    TIMER_PIN_MAP( 5, PA8 , 1,  0) /* led */
 
 #define MOTOR1_PIN              PA0
 #define MOTOR2_PIN              PB10

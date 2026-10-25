@@ -131,7 +131,7 @@
 
 // *************** ADC *****************************
 #define USE_ADC
-#define ADC1_DMA_OPT 0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PC0
 #define CURRENT_METER_ADC_PIN   PC1
 
@@ -149,15 +149,14 @@
 #define CAMERA_CONTROL_PIN PA8
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USE_TIMER_MGMT
+// PC8 and ADC1 share DMA2 Stream 4
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 1, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 3, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 4, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 5, PA15 , 1,  0)
+    TIMER_PIN_MAP( 0, PC8 , 2,  1) /* S1   UP1-2 */ \
+    TIMER_PIN_MAP( 1, PC9 , 2,  0) /* S2   UP1-2 */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* S3   UP1-2 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* S4   UP1-2 */ \
+    TIMER_PIN_MAP( 4, PA8 , 1,  0) /* CAM CONTROL */ \
+    TIMER_PIN_MAP( 5, PA15 , 1,  0) /* LED */
 
 #define MOTOR1_PIN              PC8
 #define MOTOR2_PIN              PC9

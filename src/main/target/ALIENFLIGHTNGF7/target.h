@@ -195,22 +195,26 @@
 #define RX_CHANNELS_TAER
 
 
-#define USABLE_TIMER_CHANNEL_COUNT      13
-#define USE_TIMER_MGMT
+// PA0 and PB1 share DMA1 Stream 2; with DShot burst off only one of them gets DMA
+// PB0 and PB8 share DMA1 Stream 7; with DShot burst off only one of them gets DMA
+// PA8 and TIM8 burst share DMA2 Stream 1; with DShot burst on only one of them gets DMA
+// DSHOT will work for motor 1-8.
+// If SDCard or UART4 DMA is used motor 7 will not work.
+// If UART1 DMA is used motor 8 will not work.
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA8 , 1,  1) \
-    TIMER_PIN_MAP( 1, PC6 , 2,  1) \
-    TIMER_PIN_MAP( 2, PC7 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB14 , 2,  1) \
-    TIMER_PIN_MAP( 4, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 5, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 6, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 7, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 8, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 9, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 10, PB15 , 1,  0) \
-    TIMER_PIN_MAP( 11, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 12, PB9 , 1, -1)
+    TIMER_PIN_MAP( 0, PA8 , 1,  1) /* PPM   - DMA2_ST6, *DMA2_ST1, DMA2_ST3 */ \
+    TIMER_PIN_MAP( 1, PC6 , 2,  1) /* PWM1  - DMA2_ST2, DMA2_ST2 */ \
+    TIMER_PIN_MAP( 2, PC7 , 1,  0) /* PWM2  - DMA1_ST5 */ \
+    TIMER_PIN_MAP( 3, PB14 , 2,  1) /* PWM3  - DMA2_ST3, DMA2_ST2 */ \
+    TIMER_PIN_MAP( 4, PB0 , 2,  0) /* PWM4  - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 5, PA0 , 2,  0) /* PWM5  - DMA1_ST2 */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  1) /* PWM6  - (DMA2_ST4) DMA2_ST2 */ \
+    TIMER_PIN_MAP( 7, PA1 , 2,  0) /* PWM7  - (DMA1_ST4)             - DMA SDCard, DMA Serial_TX4 */ \
+    TIMER_PIN_MAP( 8, PC9 , 2,  0) /* PWM8  - (DMA2_ST7)             - DMA Serial_TX1 */ \
+    TIMER_PIN_MAP( 9, PB1 , 2,  0) /* PWM9  - (DMA1_ST2)             - Collision */ \
+    TIMER_PIN_MAP( 10, PB15 , 1,  0) /* PWM10 - (DMA2_ST6), (DMA2_ST6) - Collision */ \
+    TIMER_PIN_MAP( 11, PB8 , 1,  0) /* PWM11 - (DMA1_ST7)             - Collision */ \
+    TIMER_PIN_MAP( 12, PB9 , 1, -1) /* PWM12 - DMA_NONE */
 
 #define MOTOR1_PIN              PC6
 #define MOTOR2_PIN              PC7

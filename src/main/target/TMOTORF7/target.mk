@@ -9,7 +9,4 @@ TARGET_SRC = \
             drivers/barometer/barometer_bmp280.c \
             drivers/compass/compass_hmc5883l.c \
             drivers/compass/compass_qmc5883l.c \
-            drivers/light_led.h \
-            drivers/light_ws2811strip.c \
-            drivers/pinio.c \
             drivers/max7456.c \

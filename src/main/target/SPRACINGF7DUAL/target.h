@@ -206,27 +206,29 @@
 #define BUTTON_A_PIN_INVERTED
 
 
-//#define USABLE_TIMER_CHANNEL_COUNT 17 // 4xPWM, 8xESC, 2xESC via UART3 RX/TX, 1xLED Strip, 1xIR, CAM_C
-#define USABLE_TIMER_CHANNEL_COUNT 17
-#define USE_TIMER_MGMT
+// Pad budget (17): 4xPWM, 8xESC, 2xESC via UART3 RX/TX, 1xLED Strip, 1xIR, CAM_C
+// Additional 2 PWM channels available on UART3 RX/TX pins
+// However, when using led strip the timer cannot be used, but no code appears to prevent that right now
+// Additional 2 PWM channels available on UART1 RX/TX pins
+// However, when using transponder the timer cannot be used, but no code appears to prevent that right now
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 1, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 2, PA2 , 3, -1) \
-    TIMER_PIN_MAP( 3, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 4, PC6 , 2,  1) \
-    TIMER_PIN_MAP( 5, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 6, PC7 , 2,  1) \
-    TIMER_PIN_MAP( 7, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 9, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 10, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 11, PA1 , 1,  0) \
-    TIMER_PIN_MAP( 12, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 13, PB11 , 1,  0) \
-    TIMER_PIN_MAP( 14, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 15, PA9 , 1,  1) \
-    TIMER_PIN_MAP( 16, PA10 , 1,  1)
+    TIMER_PIN_MAP( 1, PA3 , 3, -1) /* PPM / PWM1 / UART2 RX */ \
+    TIMER_PIN_MAP( 2, PA2 , 3, -1) /* PPM / PWM2 / UART2 TX */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  1) /* ESC 1 */ \
+    TIMER_PIN_MAP( 4, PC6 , 2,  1) /* ESC 2 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* ESC 3 */ \
+    TIMER_PIN_MAP( 6, PC7 , 2,  1) /* ESC 4 */ \
+    TIMER_PIN_MAP( 7, PB6 , 1,  0) /* ESC 5 / Conflicts with USART5_RX / SPI3_RX - SPI3_RX can be mapped to DMA1_ST3_CH0 */ \
+    TIMER_PIN_MAP( 8, PB7 , 1,  0) /* ESC 6 / Conflicts with USART3_RX */ \
+    TIMER_PIN_MAP( 9, PB1 , 2,  0) /* ESC 7 */ \
+    TIMER_PIN_MAP( 10, PB0 , 2,  0) /* ESC 8 */ \
+    TIMER_PIN_MAP( 11, PA1 , 1,  0) /* LED Strip */ \
+    TIMER_PIN_MAP( 12, PB10 , 1,  0) /* Shared with UART3 TX PIN and SPI3 TX (OSD) */ \
+    TIMER_PIN_MAP( 13, PB11 , 1,  0) /* Shared with UART3 RX PIN */ \
+    TIMER_PIN_MAP( 14, PA8 , 1,  0) /* Transponder */ \
+    TIMER_PIN_MAP( 15, PA9 , 1,  1) /* PWM 3 */ \
+    TIMER_PIN_MAP( 16, PA10 , 1,  1) /* PWM 4 */
 
 #define MOTOR1_PIN              PC8
 #define MOTOR2_PIN              PC6

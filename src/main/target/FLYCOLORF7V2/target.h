@@ -136,21 +136,20 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#define USE_TIMER_MGMT
+// ADC3 and TIM8 burst share DMA2 Stream 1; with DShot burst on only one of them gets DMA
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 3, PA15 , 1,  0) \
-    TIMER_PIN_MAP( 4, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 5, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 6, PC6 , 2,  1) \
-    TIMER_PIN_MAP( 7, PA8 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 9, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 10, PA2 , 2,  0) \
-    TIMER_PIN_MAP( 11, PA3 , 2,  1)
+    TIMER_PIN_MAP( 0, PB1 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB4 , 1,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB3 , 1,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PA15 , 1,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PC6 , 2,  1) /* ppm RX_PPM_PIN */ \
+    TIMER_PIN_MAP( 7, PA8 , 1,  0) /* led */ \
+    TIMER_PIN_MAP( 8, PB8 , 1,  0) /* cam ctrl */ \
+    TIMER_PIN_MAP( 9, PB10 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 10, PA2 , 2,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 11, PA3 , 2,  1) /* could not determine TIM_USE_xxxxx - please check */
 
 #define MOTOR1_PIN              PB1
 #define MOTOR2_PIN              PB4

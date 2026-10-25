@@ -52,6 +52,10 @@
 #define SPI3_MISO_PIN        PC11
 #define SPI3_MOSI_PIN        PC12
 
+#define USE_MAX7456
+#define MAX7456_SPI_INSTANCE SPI3
+#define MAX7456_SPI_CS_PIN   PC13
+
 #define USE_EXTI
 #define USE_GYRO_EXTI
 
@@ -98,14 +102,12 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 5
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB4 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB3 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 4, PA8 , 1,  0)
+    TIMER_PIN_MAP( 0, PB4 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB3 , 1,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB0 , 2,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PA8 , 1,  0) /* led */
 
 #define MOTOR1_PIN              PB4
 #define MOTOR2_PIN              PB1
