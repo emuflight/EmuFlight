@@ -3527,6 +3527,10 @@ STATIC_UNIT_TESTED void cliSet(char *cmdline) {
                             while (*valPtr >= '0' && *valPtr <= '9' && number < 256) {
                                 number = number * 10 + (*valPtr++ - '0');
                             }
+                            if (number >= arrayLength) {
+                                ok = false;
+                                break;
+                            }
                             given[count++] = number;
                             valPtr = skipSpace(valPtr);
                             if (*valPtr == '\0') {
