@@ -3540,8 +3540,6 @@ STATIC_UNIT_TESTED void cliSet(char *cmdline) {
                         }
                         if (ok && completeMotorOutputReordering(motorConfigMutable()->dev.motorOutputReordering, arrayLength, given, count)) {
                             valueChanged = true;
-                        } else {
-                            cliPrintErrorLinef("Use 1 to %d values, each 0 to %d once", arrayLength, arrayLength - 1);
                         }
                         break;
                     }
