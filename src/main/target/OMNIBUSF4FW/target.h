@@ -167,25 +167,23 @@
 
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 15
 
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 1, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 2, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 3, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 4, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 5, PB8 , 2, -1) \
-    TIMER_PIN_MAP( 6, PB9 , 2, -1) \
-    TIMER_PIN_MAP( 7, PC6 , 2,  0) \
-    TIMER_PIN_MAP( 8, PC7 , 2,  0) \
-    TIMER_PIN_MAP( 9, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 10, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 11, PA9 , 1,  0) \
-    TIMER_PIN_MAP( 12, PA10 , 1,  0) \
-    TIMER_PIN_MAP( 13, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 14, PA2 , 3, -1)
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* D(1,7) U(1,2) */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* D(1,2) U(1,2) */ \
+    TIMER_PIN_MAP( 2, PA3 , 1,  1) /* D(1,6) U(1,7) */ \
+    TIMER_PIN_MAP( 3, PB5 , 1,  0) /* D(1,5) U(1,2) */ \
+    TIMER_PIN_MAP( 4, PB6 , 1,  0) /* D(1,0) */ \
+    TIMER_PIN_MAP( 5, PB8 , 2, -1) /* PPM */ \
+    TIMER_PIN_MAP( 6, PB9 , 2, -1) /* CAM_CTL */ \
+    TIMER_PIN_MAP( 7, PC6 , 2,  0) /* UART6_TX */ \
+    TIMER_PIN_MAP( 8, PC7 , 2,  0) /* UART6_RX */ \
+    TIMER_PIN_MAP( 9, PC8 , 2,  0) /* SJ1 */ \
+    TIMER_PIN_MAP( 10, PC9 , 2,  0) /* SJ2 */ \
+    TIMER_PIN_MAP( 11, PA9 , 1,  0) /* UART1_TX */ \
+    TIMER_PIN_MAP( 12, PA10 , 1,  0) /* UART1_RX */ \
+    TIMER_PIN_MAP( 13, PA1 , 2,  0) /* UART4_RX */ \
+    TIMER_PIN_MAP( 14, PA2 , 3, -1) /* UART2_TX */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

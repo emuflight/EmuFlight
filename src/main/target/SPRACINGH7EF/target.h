@@ -176,16 +176,23 @@
 #undef TARGET_IO_PORTE
 #define TARGET_IO_PORTE (0xffff & ~(BIT(7)|BIT(8)|BIT(9)|BIT(10)))
 
-#define USABLE_TIMER_CHANNEL_COUNT      10
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP(0, PA0, 2, 0) \
-    TIMER_PIN_MAP(1, PA1, 2, 1) \
-    TIMER_PIN_MAP(2, PA2, 2, 2) \
-    TIMER_PIN_MAP(3, PA3, 2, 3) \
-    TIMER_PIN_MAP(4, PA6, 1, 4) \
-    TIMER_PIN_MAP(5, PA7, 2, 5) \
-    TIMER_PIN_MAP(6, PB0, 2, 6) \
-    TIMER_PIN_MAP(7, PB1, 2, 7) \
-    TIMER_PIN_MAP(8, PB8, 1, 8) \
-    TIMER_PIN_MAP(9, PB9, 1, 9)
+    TIMER_PIN_MAP(0, PA0, 2, 0) /* motor 1 */ \
+    TIMER_PIN_MAP(1, PA1, 2, 1) /* motor 2 */ \
+    TIMER_PIN_MAP(2, PA2, 2, 2) /* motor 3 */ \
+    TIMER_PIN_MAP(3, PA3, 2, 3) /* motor 4 */ \
+    TIMER_PIN_MAP(4, PA6, 1, 4) /* motor 5 */ \
+    TIMER_PIN_MAP(5, PA7, 2, 5) /* motor 6 */ \
+    TIMER_PIN_MAP(6, PB0, 2, 6) /* motor 7 */ \
+    TIMER_PIN_MAP(7, PB1, 2, 7) /* motor 8 */ \
+    TIMER_PIN_MAP(8, PB8, 1, 8) /* led strip */ \
+    TIMER_PIN_MAP(9, PB9, 1, 9) /* camera control (TIM17_CH1/PB9 per BF config; TIM_USE_CAMERA_CONTROL not yet in EF timer.h) */
+
+#define MOTOR1_PIN              PA0
+#define MOTOR2_PIN              PA1
+#define MOTOR3_PIN              PA2
+#define MOTOR4_PIN              PA3
+#define MOTOR5_PIN              PA6
+#define MOTOR6_PIN              PA7
+#define MOTOR7_PIN              PB0
+#define MOTOR8_PIN              PB1

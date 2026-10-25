@@ -162,15 +162,13 @@
 
 //--------------------------------BOARD RESOURCES-----------------------------
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 3, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 4, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 5, PA8 , 1,  0)
+    TIMER_PIN_MAP( 0, PA3 , 1,  1) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S1 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* S2 */ \
+    TIMER_PIN_MAP( 3, PC9 , 2,  0) /* S3 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) /* S4 */ \
+    TIMER_PIN_MAP( 5, PA8 , 1,  0) /* LED */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

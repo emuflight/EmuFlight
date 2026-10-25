@@ -125,16 +125,14 @@
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP(0, PB6, 1, 0) \
+    TIMER_PIN_MAP(0, PB6, 1, 0) /* CAMERA_CONTROL_PIN */ \
     TIMER_PIN_MAP(1, PB14, 3, -1) \
-    TIMER_PIN_MAP(2, PC6, 2, 0) \
-    TIMER_PIN_MAP(3, PC7, 2, 0) \
-    TIMER_PIN_MAP(4, PC8, 2, 1) \
-    TIMER_PIN_MAP(5, PC9, 2, 0) \
-    TIMER_PIN_MAP(6, PA8, 1, 0)
+    TIMER_PIN_MAP(2, PC6, 2, 0) /* S1_OUT D1_ST7 */ \
+    TIMER_PIN_MAP(3, PC7, 2, 0) /* S2_OUT D1_ST2 */ \
+    TIMER_PIN_MAP(4, PC8, 2, 1) /* S3_OUT D1_ST6 */ \
+    TIMER_PIN_MAP(5, PC9, 2, 0) /* S4_OUT D1_ST1 */ \
+    TIMER_PIN_MAP(6, PA8, 1, 0) /* D1_ST0 */
 
 #define MOTOR1_PIN              PC6
 #define MOTOR2_PIN              PC7

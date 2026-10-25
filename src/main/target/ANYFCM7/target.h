@@ -56,7 +56,6 @@
 #define USE_BARO
 #define USE_BARO_MS5611
 
-#define USABLE_TIMER_CHANNEL_COUNT 16
 
 #define USE_VCP
 #define USE_USB_DETECT
@@ -136,24 +135,23 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
 
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB14 , 3, -1) \
-    TIMER_PIN_MAP( 1, PB15 , 3, -1) \
-    TIMER_PIN_MAP( 2, PC6 , 2,  1) \
-    TIMER_PIN_MAP( 3, PC7 , 2,  1) \
-    TIMER_PIN_MAP( 4, PC8 , 2,  1) \
-    TIMER_PIN_MAP( 5, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 6, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 7, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 8, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 9, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 10, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 11, PB0 , 1,  1) \
-    TIMER_PIN_MAP( 12, PB5 , 1,  0) \
-    TIMER_PIN_MAP( 13, PA0 , 2,  0) \
-    TIMER_PIN_MAP( 14, PB1 , 1,  0) \
-    TIMER_PIN_MAP( 15, PB4 , 1,  0)
+    TIMER_PIN_MAP( 0, PB14 , 3, -1) /* S1_IN */ \
+    TIMER_PIN_MAP( 1, PB15 , 3, -1) /* S2_IN */ \
+    TIMER_PIN_MAP( 2, PC6 , 2,  1) /* S3_IN DMA2_ST2 DMA2_ST2 */ \
+    TIMER_PIN_MAP( 3, PC7 , 2,  1) /* S4_IN DMA2_ST3 DMA2_ST2 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) /* S5_IN DMA2_ST4 DMA2_ST2 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* S6_IN DMA2_ST7 */ \
+    TIMER_PIN_MAP( 6, PB8 , 1,  0) /* S10_OUT 1 DMA1_ST7 */ \
+    TIMER_PIN_MAP( 7, PA2 , 1,  0) /* S6_OUT  2 DMA1_ST1 */ \
+    TIMER_PIN_MAP( 8, PB7 , 1,  0) /* S5_OUT  3 DMA1_ST3 */ \
+    TIMER_PIN_MAP( 9, PA3 , 1,  1) /* S1_OUT  4 DMA1_ST7 DMA1_ST6 */ \
+    TIMER_PIN_MAP( 10, PA1 , 2,  0) /* S2_OUT DMA1_ST4 */ \
+    TIMER_PIN_MAP( 11, PB0 , 1,  1) /* S3_OUT DMA2_ST6 DMA2_ST2 */ \
+    TIMER_PIN_MAP( 12, PB5 , 1,  0) /* S4_OUT DMA1_ST5 */ \
+    TIMER_PIN_MAP( 13, PA0 , 2,  0) /* S7_OUT DMA1_ST2 */ \
+    TIMER_PIN_MAP( 14, PB1 , 1,  0) /* S8_OUT DMA2_ST6 */ \
+    TIMER_PIN_MAP( 15, PB4 , 1,  0) /* S9_OUT DMA1_ST4 */
 
 #define MOTOR1_PIN              PB8
 #define MOTOR2_PIN              PA2

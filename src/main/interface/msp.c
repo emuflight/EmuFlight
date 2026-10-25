@@ -2307,6 +2307,7 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
         sbufReadData(src, boardName, MIN(length, MAX_BOARD_NAME_LENGTH));
         if (length > MAX_BOARD_NAME_LENGTH) {
         sbufAdvance(src, length - MAX_BOARD_NAME_LENGTH);
+        length = MAX_BOARD_NAME_LENGTH;
         }
         boardName[length] = '\0';
         length = sbufReadU8(src);
@@ -2314,6 +2315,7 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
         sbufReadData(src, manufacturerId, MIN(length, MAX_MANUFACTURER_ID_LENGTH));
         if (length > MAX_MANUFACTURER_ID_LENGTH) {
         sbufAdvance(src, length - MAX_MANUFACTURER_ID_LENGTH);
+        length = MAX_MANUFACTURER_ID_LENGTH;
         }
         manufacturerId[length] = '\0';
         setBoardName(boardName);
