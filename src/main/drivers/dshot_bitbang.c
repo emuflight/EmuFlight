@@ -271,6 +271,11 @@ FAST_IRQ_HANDLER void bbDMAIrqHandler(dmaChannelDescriptor_t *descriptor)
 {
     bbPort_t *bbPort = (bbPort_t *)descriptor->userParam;
 
+    // a stream stopped by software raises TC; a pending interrupt left after its flags were cleared must not cut the next frame
+    if (!DMA_GET_FLAG_STATUS(descriptor, DMA_IT_TCIF | DMA_IT_TEIF)) {
+        return;
+    }
+
     bbDMACmd(bbPort, false);
     bbTIMDMACmd(bbPort->tim, bbPort->dmaSource, false);
     // the next frame reloads every register, so an error flag is only cleared here
@@ -373,6 +378,34 @@ bool dshotBitbangPostInit(const motorDevConfig_t *motorConfig, uint8_t motorCoun
 
     bbRunning = true;
     return true;
+}
+
+// Passthrough leaves the motor pins, pacer timers and DMA streams in other modes: set them up again.
+void dshotBitbangRestore(void)
+{
+    if (!bbRunning) {
+        return;
+    }
+
+    for (int i = 0; i < usedMotorPorts; i++) {
+        bbDMACmd(&bbPorts[i], false);
+        bbTIMDMACmd(bbPorts[i].tim, bbPorts[i].dmaSource, false);
+    }
+    for (int i = 0; i < MAX_SUPPORTED_MOTORS; i++) {
+        if (bbMotors[i].configured) {
+            IOConfigGPIO(bbMotors[i].io, bbMotors[i].iocfg);
+            IOLo(bbMotors[i].io);
+        }
+    }
+    for (int i = 0; i < usedMotorPorts; i++) {
+        bbPort_t *bbPort = &bbPorts[i];
+
+        bbTimerChannelInit(bbPort);
+        bbDMAPreconfigure(bbPort);
+        bbDMASaveRegs(bbPort);
+        bbDMAClearFlags(bbPort);
+        bbPort->startUs = 0;
+    }
 }
 
 void dshotBitbangWriteInt(uint8_t motorIndex, uint16_t value)

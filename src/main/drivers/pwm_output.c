@@ -201,6 +201,12 @@ void pwmDisableMotors(void) {
 }
 
 void pwmEnableMotors(void) {
+#ifdef USE_DSHOT_BITBANG
+    // a passthrough or a command run left the pins and timers in other modes
+    if (useBitbang && !pwmMotorsEnabled) {
+        dshotBitbangRestore();
+    }
+#endif
     /* check motors can be enabled */
     pwmMotorsEnabled = (pwmWrite != &pwmWriteUnused);
 }

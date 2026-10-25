@@ -109,3 +109,4 @@ void dshotBitbangWriteInt(uint8_t motorIndex, uint16_t value);
 void dshotBitbangUpdateComplete(uint8_t motorCount);
 dshotBitbangStatus_e dshotBitbangGetStatus(void);
 bool dshotBitbangIsRunning(void);
+void dshotBitbangRestore(void);
