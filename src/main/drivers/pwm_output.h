@@ -211,6 +211,33 @@ static inline void validateAndfixMotorOutputReordering(uint8_t *array, const uns
     }
 }
 
+// Complete a partial list of slots to a full permutation: given entries first, then the lowest unused slots.
+// Returns false and leaves array untouched when a given entry is out of range or repeated.
+static inline bool completeMotorOutputReordering(uint8_t *array, const unsigned size, const uint8_t *given, const unsigned count) {
+    if (count == 0 || count > size) {
+        return false;
+    }
+    bool used[MAX_SUPPORTED_MOTORS] = { false };
+    for (unsigned i = 0; i < count; i++) {
+        if (given[i] >= size || used[given[i]]) {
+            return false;
+        }
+        used[given[i]] = true;
+    }
+    for (unsigned i = 0; i < count; i++) {
+        array[i] = given[i];
+    }
+    unsigned next = 0;
+    for (unsigned i = count; i < size; i++) {
+        while (used[next]) {
+            next++;
+        }
+        array[i] = next;
+        used[next] = true;
+    }
+    return true;
+}
+
 typedef struct servoDevConfig_s {
     // PWM values, in milliseconds, common range is 1000-2000 (1ms to 2ms)
     uint16_t servoCenterPulse;              // This is the value for servos when they should be in the middle. e.g. 1500.
