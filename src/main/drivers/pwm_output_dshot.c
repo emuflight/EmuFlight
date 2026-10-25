@@ -139,7 +139,7 @@ static void motor_DMA_IRQHandler(dmaChannelDescriptor_t *descriptor) {
     }
 }
 
-bool pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, motorPwmProtocolTypes_e pwmProtocolType, uint8_t output) {
+bool pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t motorIndex, uint8_t reorderedMotorIndex, motorPwmProtocolTypes_e pwmProtocolType, uint8_t output) {
 #if defined(STM32F4) || defined(STM32F7)
     typedef DMA_Stream_TypeDef dmaStream_t;
 #else
@@ -180,7 +180,7 @@ bool pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
     } else
 #endif
     {
-        if (!dmaAllocate(dmaIrqIdentifier, OWNER_MOTOR, RESOURCE_INDEX(motorIndex))) {
+        if (!dmaAllocate(dmaIrqIdentifier, OWNER_MOTOR, RESOURCE_INDEX(reorderedMotorIndex))) {
             return false;
         }
         dmaEnable(dmaIrqIdentifier);
