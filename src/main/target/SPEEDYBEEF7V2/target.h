@@ -163,11 +163,12 @@
 // *************** activate/deactivate Bluetooth When disarmed/armed using PINIO_BOX *****************************
 #define PINIO1_PIN PA15
 
+// PA9 and PB0 share DMA2 Stream 2; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PB7 , 1,  0) /* PPM, RX1 */ \
-    TIMER_PIN_MAP( 1, PA8 , 1,  0) /* S1 */ \
-    TIMER_PIN_MAP( 2, PA9 , 1,  0) /* S2 */ \
-    TIMER_PIN_MAP( 3, PA10 , 1,  0) /* S3 */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  1) /* S1 */ \
+    TIMER_PIN_MAP( 2, PA9 , 1,  1) /* S2 */ \
+    TIMER_PIN_MAP( 3, PA10 , 1,  1) /* S3 */ \
     TIMER_PIN_MAP( 4, PC9 , 1,  0) /* S4 */ \
     TIMER_PIN_MAP( 5, PB0 , 3,  0) /* LED */ \
     TIMER_PIN_MAP( 6, PA0 , 2,  0) /* BF Camera Control */
