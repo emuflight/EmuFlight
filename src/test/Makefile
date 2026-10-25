@@ -318,7 +318,8 @@ beeper_dshot_beacon_unittest_SRC := \
 		$(USER_DIR)/pg/pg.c
 
 beeper_dshot_beacon_unittest_DEFINES := \
-		USE_DSHOT
+		USE_DSHOT \
+		BEEPER_NAMES
 
 cms_unittest_SRC := \
 		$(USER_DIR)/cms/cms.c \
@@ -645,6 +646,9 @@ timerup_pg_unittest_DEFINES := \
 encoding_unittest_SRC := \
 		$(USER_DIR)/common/encoding.c
 
+streambuf_unittest_SRC := \
+		$(USER_DIR)/common/streambuf.c
+
 
 serial_uart_dma_claim_unittest_DEFINES := \
 		STM32F4
@@ -652,6 +656,13 @@ serial_uart_dma_claim_unittest_DEFINES := \
 
 sdcard_dma_claim_unittest_DEFINES := \
 		STM32F4
+
+
+flashfs_unittest_SRC := \
+		$(USER_DIR)/io/flashfs.c
+
+flashfs_unittest_DEFINES := \
+		USE_FLASHFS
 
 
 flash_w25m_unittest_SRC := \

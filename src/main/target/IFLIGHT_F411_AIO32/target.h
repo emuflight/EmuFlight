@@ -102,6 +102,7 @@
 #define SPI3_MOSI_PIN             PC12
 
 #define USE_ADC
+#define ADC1_DMA_OPT 0
 #define CURRENT_METER_ADC_PIN     PB1
 #define VBAT_ADC_PIN              PB0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
@@ -111,8 +112,6 @@
 #define DEFAULT_CURRENT_METER_SCALE 250
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA3 , 1,  0) \
     TIMER_PIN_MAP( 1, PB4 , 1,  0) \

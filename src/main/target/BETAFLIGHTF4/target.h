@@ -147,22 +147,20 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
 
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB8 , 2, -1) \
-    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 2, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 3, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 4, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 6, PA9 , 1,  0) \
-    TIMER_PIN_MAP( 7, PA10 , 1,  0) \
-    TIMER_PIN_MAP( 8, PA2 , 2,  0) \
-    TIMER_PIN_MAP( 9, PA3 , 3, -1) \
-    TIMER_PIN_MAP( 10, PB10 , 1,  0) \
-    TIMER_PIN_MAP( 11, PB11 , 1,  0)
+    TIMER_PIN_MAP( 0, PB8 , 2, -1) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S1_OUT D1_ST7 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* S2_OUT D1_ST2 */ \
+    TIMER_PIN_MAP( 3, PC9 , 2,  0) /* S3_OUT D1_ST6 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) /* S4_OUT D1_ST1 */ \
+    TIMER_PIN_MAP( 5, PB6 , 1,  0) /* D1_ST0 */ \
+    TIMER_PIN_MAP( 6, PA9 , 1,  0) /* TX1 Bidir */ \
+    TIMER_PIN_MAP( 7, PA10 , 1,  0) /* RX1 Bidir */ \
+    TIMER_PIN_MAP( 8, PA2 , 2,  0) /* TX2 TX only */ \
+    TIMER_PIN_MAP( 9, PA3 , 3, -1) /* RX2 RX only */ \
+    TIMER_PIN_MAP( 10, PB10 , 1,  0) /* TX3 Bidir */ \
+    TIMER_PIN_MAP( 11, PB11 , 1,  0) /* RX3 Bidir */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1

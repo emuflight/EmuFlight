@@ -135,9 +135,9 @@
 #define I2C_DEVICE              (I2CDEV_2)
 
 #define USE_ADC
-#define CURRENT_METER_ADC_PIN   PC1
-#define VBAT_ADC_PIN            PC2
-#define RSSI_ADC_PIN            PC3
+#define CURRENT_METER_ADC_PIN   PC3
+#define VBAT_ADC_PIN            PC1
+#define RSSI_ADC_PIN            PC2
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
@@ -148,17 +148,15 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB6 , 1,  0) \
-    TIMER_PIN_MAP( 1, PB7 , 1,  0) \
-    TIMER_PIN_MAP( 2, PB8 , 1,  0) \
-    TIMER_PIN_MAP( 3, PB9 , 1, -1) \
-    TIMER_PIN_MAP( 4, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 5, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 6, PC6 , 1,  0) \
-    TIMER_PIN_MAP( 7, PC7 , 1,  0) \
+    TIMER_PIN_MAP( 0, PB6 , 1,  0) /* M1 */ \
+    TIMER_PIN_MAP( 1, PB7 , 1,  0) /* M2 */ \
+    TIMER_PIN_MAP( 2, PB8 , 1,  0) /* M3 */ \
+    TIMER_PIN_MAP( 3, PB9 , 1, -1) /* M4 */ \
+    TIMER_PIN_MAP( 4, PB0 , 2,  0) /* M5 */ \
+    TIMER_PIN_MAP( 5, PB1 , 2,  0) /* M6 */ \
+    TIMER_PIN_MAP( 6, PC6 , 1,  0) /* UART6_TX, M7 */ \
+    TIMER_PIN_MAP( 7, PC7 , 1,  0) /* UART6_RX, M8 */ \
     TIMER_PIN_MAP( 8, PA8 , 1,  0) \
     TIMER_PIN_MAP( 9, PA15 , 1,  0) \
     TIMER_PIN_MAP( 10, PC9 , 2,  0)

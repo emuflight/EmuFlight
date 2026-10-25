@@ -133,21 +133,19 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#define USE_TIMER_MGMT
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PB14 , 3, -1) \
-    TIMER_PIN_MAP( 1, PB15 , 3, -1) \
-    TIMER_PIN_MAP( 2, PC6 , 2,  0) \
-    TIMER_PIN_MAP( 3, PC7 , 2,  0) \
-    TIMER_PIN_MAP( 4, PC8 , 2,  0) \
-    TIMER_PIN_MAP( 5, PC9 , 2,  0) \
-    TIMER_PIN_MAP( 6, PB0 , 2,  0) \
-    TIMER_PIN_MAP( 7, PB1 , 2,  0) \
-    TIMER_PIN_MAP( 8, PA3 , 1,  1) \
-    TIMER_PIN_MAP( 9, PA2 , 1,  0) \
-    TIMER_PIN_MAP( 10, PA1 , 2,  0) \
-    TIMER_PIN_MAP( 11, PA0 , 2,  0)
+    TIMER_PIN_MAP( 0, PB14 , 3, -1) /* PPM (5th pin on FlexiIO port) */ \
+    TIMER_PIN_MAP( 1, PB15 , 3, -1) /* S2_IN */ \
+    TIMER_PIN_MAP( 2, PC6 , 2,  0) /* S3_IN */ \
+    TIMER_PIN_MAP( 3, PC7 , 2,  0) /* S4_IN */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) /* S5_IN */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* S6_IN */ \
+    TIMER_PIN_MAP( 6, PB0 , 2,  0) /* S1_OUT D1_ST7 */ \
+    TIMER_PIN_MAP( 7, PB1 , 2,  0) /* S2_OUT D1_ST2 */ \
+    TIMER_PIN_MAP( 8, PA3 , 1,  1) /* S3_OUT D1_ST6 */ \
+    TIMER_PIN_MAP( 9, PA2 , 1,  0) /* S4_OUT D1_ST1 */ \
+    TIMER_PIN_MAP( 10, PA1 , 2,  0) /* S5_OUT / LED */ \
+    TIMER_PIN_MAP( 11, PA0 , 2,  0) /* S6_OUT D1_ST2 */
 
 #define MOTOR1_PIN              PB0
 #define MOTOR2_PIN              PB1
