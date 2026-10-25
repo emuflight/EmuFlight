@@ -105,3 +105,52 @@ TEST(MotorOutputReorderingUnittest, OtherSizes)
 
     validateAndfixMotorOutputReordering(one, 0);
 }
+
+TEST(MotorOutputReorderingUnittest, PartialListIsCompletedWithLowestUnusedSlots)
+{
+    uint8_t a[8] = {7, 7, 7, 7, 7, 7, 7, 7};
+    const uint8_t given[] = {3, 2, 1, 0};
+    EXPECT_TRUE(completeMotorOutputReordering(a, 8, given, 4));
+    const uint8_t expected[8] = {3, 2, 1, 0, 4, 5, 6, 7};
+    for (int i = 0; i < 8; i++) {
+        EXPECT_EQ(a[i], expected[i]) << "index " << i;
+    }
+}
+
+TEST(MotorOutputReorderingUnittest, ShortPartialListSkipsUsedSlots)
+{
+    uint8_t a[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+    const uint8_t given[] = {3, 2};
+    EXPECT_TRUE(completeMotorOutputReordering(a, 8, given, 2));
+    const uint8_t expected[8] = {3, 2, 0, 1, 4, 5, 6, 7};
+    for (int i = 0; i < 8; i++) {
+        EXPECT_EQ(a[i], expected[i]) << "index " << i;
+    }
+}
+
+TEST(MotorOutputReorderingUnittest, FullListIsStoredAsGiven)
+{
+    uint8_t a[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+    const uint8_t given[] = {7, 6, 5, 4, 3, 2, 1, 0};
+    EXPECT_TRUE(completeMotorOutputReordering(a, 8, given, 8));
+    for (int i = 0; i < 8; i++) {
+        EXPECT_EQ(a[i], given[i]);
+    }
+}
+
+TEST(MotorOutputReorderingUnittest, InvalidPartialListStoresNothing)
+{
+    const uint8_t original[8] = {1, 0, 2, 3, 4, 5, 6, 7};
+    const uint8_t duplicate[] = {3, 3};
+    const uint8_t outOfRange[] = {3, 8};
+    const uint8_t tooLong[9] = {0, 1, 2, 3, 4, 5, 6, 7, 0};
+    uint8_t a[8];
+    memcpy(a, original, 8);
+    EXPECT_FALSE(completeMotorOutputReordering(a, 8, duplicate, 2));
+    EXPECT_FALSE(completeMotorOutputReordering(a, 8, outOfRange, 2));
+    EXPECT_FALSE(completeMotorOutputReordering(a, 8, tooLong, 9));
+    EXPECT_FALSE(completeMotorOutputReordering(a, 8, duplicate, 0));
+    for (int i = 0; i < 8; i++) {
+        EXPECT_EQ(a[i], original[i]) << "index " << i;
+    }
+}

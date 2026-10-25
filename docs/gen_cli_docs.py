@@ -470,7 +470,7 @@ def _format_range(entry, table_map):
 
 # Hand-written range text for array settings the parser cannot describe from valueTable[].
 ARRAY_NOTES = {
-    'motor_output_reordering': 'logical motor N drives `ioTags` slot `array[N]`; zero-based, each value 0 to `MAX_SUPPORTED_MOTORS - 1` exactly once, otherwise reset to identity',
+    'motor_output_reordering': 'logical motor N drives `ioTags` slot `array[N]`; zero-based, each value 0 to `MAX_SUPPORTED_MOTORS - 1` at most once; a shorter list is completed with the lowest unused slots; a repeated or out-of-range value is rejected',
 }
 
 
