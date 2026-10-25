@@ -1,7 +1,7 @@
 # CLI Reference
 
 > **Auto-generated** — do not edit manually.
-> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-10-25 | Commit: `27b1c12aa` | Firmware: `0.5.0` | MSP: `0.1.55`
+> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-10-25 | Commit: `46fc1b194` | Firmware: `0.5.0` | MSP: `0.1.55`
 
 Settings parameters (`valueTable[]`) and CLI commands that persist config through
 their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered here.
@@ -253,6 +253,7 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 | `motor_pwm_rate` | uint16 | master | `200` – `32000` |  |
 | `motor_pwm_inversion` | uint8 | master | `OFF`, `ON` |  |
 | `motor_poles` | uint8 | master | `4` – `UINT8_MAX` |  |
+| `motor_output_reordering` | uint8 | master | array\[MAX_SUPPORTED_MOTORS\]; logical motor N drives `ioTags` slot `array[N]`; zero-based, each value 0 to `MAX_SUPPORTED_MOTORS - 1` at most once; a shorter list is completed with the lowest unused slots; a repeated or out-of-range value is rejected |  |
 
 ## Throttle Correction Config
 

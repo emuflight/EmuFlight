@@ -37,7 +37,11 @@ namespace {
 constexpr int MOTORS = 4;
 int configCalls;
 int failMotor; // index whose hardware config returns false; -1 = none
-timerHardware_t fakeTimerHardware[MOTORS];
+timerHardware_t fakeTimerHardware[MOTORS + 1]; // indexed by RESOURCE_INDEX(slot), which is 1-based
+int allocCalls;
+ioTag_t allocTag[MOTORS];
+uint8_t allocIndex[MOTORS];
+uint8_t configReordered[MOTORS];
 
 uint32_t fakeMicros = 0;
 
@@ -53,6 +57,10 @@ void resetFakes(int failAt) {
     configCalls = 0;
     failMotor = failAt;
     memset(fakeTimerHardware, 0, sizeof(fakeTimerHardware));
+    allocCalls = 0;
+    memset(allocTag, 0, sizeof(allocTag));
+    memset(allocIndex, 0xFF, sizeof(allocIndex));
+    memset(configReordered, 0xFF, sizeof(configReordered));
 }
 
 void initMotors(uint8_t count) {
@@ -60,6 +68,7 @@ void initMotors(uint8_t count) {
     config.motorPwmProtocol = PWM_TYPE_DSHOT600;
     for (int i = 0; i < MOTORS; i++) {
         config.ioTags[i] = IO_TAG(PA0) + i;
+        config.motorOutputReordering[i] = MOTORS - 1 - i;
     }
     motorDevInit(&config, 0, count);
     pwmEnableMotors();
@@ -120,6 +129,20 @@ TEST(PwmOutputDshotInit, FailureBeyondMotorCountIsNotReached) {
     EXPECT_TRUE(pwmAreMotorsEnabled());
 }
 
+// Expected values come from the mapping's definition: logical motor N uses pad slot array[N]
+// (here the reversed order), so both the allocation and the hardware config see MOTORS - 1 - N.
+TEST(PwmOutputDshotInit, ReorderedPadSlotIsUsedForAllocationAndHardwareConfig) {
+    resetFakes(-1);
+    initMotors(MOTORS);
+    ASSERT_EQ(MOTORS, allocCalls);
+    for (int i = 0; i < MOTORS; i++) {
+        const int slot = MOTORS - 1 - i;
+        EXPECT_EQ(RESOURCE_INDEX(slot), allocIndex[i]) << "motor " << i;
+        EXPECT_EQ(IO_TAG(PA0) + slot, allocTag[i]) << "motor " << i;
+        EXPECT_EQ(slot, configReordered[i]) << "motor " << i;
+    }
+}
+
 TEST(PwmOutputDshotInit, ZeroMotorsConfiguresNothing) {
     resetFakes(0);
     initMotors(0);
@@ -128,12 +151,20 @@ TEST(PwmOutputDshotInit, ZeroMotorsConfiguresNothing) {
 
 extern "C" {
 
-const timerHardware_t *timerAllocate(ioTag_t, resourceOwner_e, uint8_t resourceIndex) {
+const timerHardware_t *timerAllocate(ioTag_t tag, resourceOwner_e, uint8_t resourceIndex) {
+    if (allocCalls < MOTORS) {
+        allocTag[allocCalls] = tag;
+        allocIndex[allocCalls] = resourceIndex;
+    }
+    allocCalls++;
     return &fakeTimerHardware[resourceIndex];
 }
 
-bool pwmDshotMotorHardwareConfig(const timerHardware_t *, uint8_t motorIndex, motorPwmProtocolTypes_e, uint8_t) {
+bool pwmDshotMotorHardwareConfig(const timerHardware_t *, uint8_t motorIndex, uint8_t reorderedMotorIndex, motorPwmProtocolTypes_e, uint8_t) {
     configCalls++;
+    if (motorIndex < MOTORS) {
+        configReordered[motorIndex] = reorderedMotorIndex;
+    }
     return failMotor != motorIndex;
 }
 

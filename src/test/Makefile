@@ -825,6 +825,8 @@ pg_sdcard_none_unittest_SRC := \
 pg_sdcard_none_unittest_DEFINES := \
 		USE_SDCARD
 
+motor_output_reordering_unittest_SRC :=
+
 pg_sdio_unittest_SRC := \
 		$(USER_DIR)/pg/pg.c \
 		$(USER_DIR)/pg/sdio.c

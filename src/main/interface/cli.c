@@ -3516,6 +3516,41 @@ STATIC_UNIT_TESTED void cliSet(char *cmdline) {
                 case MODE_ARRAY: {
                     const uint8_t arrayLength = val->config.array.length;
                     char *valPtr = eqptr;
+                    if (cliGetValuePointer(val) == motorConfigMutable()->dev.motorOutputReordering) {
+                        // a partial list is completed to a full permutation; an invalid list stores nothing
+                        uint8_t given[MAX_SUPPORTED_MOTORS];
+                        unsigned count = 0;
+                        bool ok = true;
+                        while (ok) {
+                            valPtr = skipSpace(valPtr);
+                            if (*valPtr < '0' || *valPtr > '9' || count >= MAX_SUPPORTED_MOTORS) {
+                                ok = false;
+                                break;
+                            }
+                            unsigned number = 0;
+                            while (*valPtr >= '0' && *valPtr <= '9' && number < 256) {
+                                number = number * 10 + (*valPtr++ - '0');
+                            }
+                            if (number >= arrayLength) {
+                                ok = false;
+                                break;
+                            }
+                            given[count++] = number;
+                            valPtr = skipSpace(valPtr);
+                            if (*valPtr == '\0') {
+                                break;
+                            }
+                            if (*valPtr != ',') {
+                                ok = false;
+                                break;
+                            }
+                            valPtr++;
+                        }
+                        if (ok && completeMotorOutputReordering(motorConfigMutable()->dev.motorOutputReordering, arrayLength, given, count)) {
+                            valueChanged = true;
+                        }
+                        break;
+                    }
                     int i = 0;
                     while (i < arrayLength && valPtr != NULL) {
                         // skip spaces
