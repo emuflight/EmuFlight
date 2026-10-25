@@ -133,7 +133,7 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
 #define USE_ADC
-#define ADC1_DMA_OPT 0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PC0
 #define CURRENT_METER_ADC_PIN   PC1
 //#define RSSI_ADC_PIN            NONE
@@ -146,6 +146,7 @@
 //#define ESCSERIAL_TIMER_TX_PIN NONE
 
 
+// PC8 and ADC1 share DMA2 Stream 4
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PC9 , 2,  0) /* S1 */ \
     TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S2 */ \

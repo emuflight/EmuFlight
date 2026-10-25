@@ -372,17 +372,14 @@ bool quadSpiTransmit1LINE(const extDevice_t *dev, uint8_t instruction, uint8_t d
     cmd.DdrHoldHalfCycle  = QSPI_DDR_HHC_ANALOG_DELAY;
     cmd.SIOOMode          = QSPI_SIOO_INST_EVERY_CMD;
     cmd.Instruction       = instruction;
-    if (!out || length <= 0) {
-        return false;
-    }
     cmd.NbData            = length;
-    cmd.DataMode          = QSPI_DATA_1_LINE;
+    cmd.DataMode          = out ? QSPI_DATA_1_LINE : QSPI_DATA_NONE;
 
     quadSpiSelectDevice(dev->bus->busType_u.qspi.instance);
 
     status = HAL_QSPI_Command(&quadSpiDevice[device].halHandle->hal, &cmd, QUADSPI_DEFAULT_TIMEOUT);
     bool timeout = (status != HAL_OK);
-    if (!timeout) {
+    if (!timeout && out && length > 0) {
         status = HAL_QSPI_Transmit(&quadSpiDevice[device].halHandle->hal, (uint8_t *)out, QUADSPI_DEFAULT_TIMEOUT);
         timeout = (status != HAL_OK);
     }

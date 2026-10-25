@@ -156,6 +156,7 @@ ifeq ($(EXST),yes)
 LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h750_exst.ld
 DEVICE_FLAGS   += -DEXST -DUSE_EXST
 TARGET_FLAGS   += -DEXST
+FIRMWARE_SIZE   := 448
 else
 LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h750_128k.ld
 endif
@@ -244,6 +245,10 @@ DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
 
 else
 $(error Unknown MCU for H7 target)
+endif
+
+ifneq ($(FIRMWARE_SIZE),)
+DEVICE_FLAGS   += -DFIRMWARE_SIZE=$(FIRMWARE_SIZE)
 endif
 
 DEVICE_FLAGS    += -DHSE_VALUE=$(HSE_VALUE) -DHSE_STARTUP_TIMEOUT=1000 -DSTM32
