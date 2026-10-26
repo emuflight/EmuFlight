@@ -56,6 +56,12 @@ uint8_t bbWriteIndex[16];
 uint16_t bbWriteValue[16];
 int bbCompleteCalls;
 int bbMotorInitFailAt;
+bool bbSupportedForce;
+bool bbSupportedForceValue;
+const motorDevConfig_t *bbPostInitConfig;
+uint8_t bbPostInitCount;
+int classicWriteCalls;
+int classicCompleteCalls;
 uint8_t bbSupportedInversionArg;
 timerHardware_t fakeTimerHardware[MOTORS + 1];
 uint32_t fakeMicros;
@@ -64,6 +70,11 @@ void resetFakes() {
     classicConfigCalls = allocCalls = bbMotorInitCalls = bbPostInitCalls = bbRestoreCalls = bbWriteCalls = bbCompleteCalls = 0;
     bbPostInitResult = true;
     bbMotorInitFailAt = -1;
+    bbSupportedForce = false;
+    bbSupportedForceValue = true;
+    bbPostInitConfig = nullptr;
+    bbPostInitCount = 0;
+    classicWriteCalls = classicCompleteCalls = 0;
     bbSupportedInversionArg = 0xFF;
     memset(bbMotorInitIndex, 0xFF, sizeof(bbMotorInitIndex));
     memset(bbMotorInitReordered, 0xFF, sizeof(bbMotorInitReordered));
@@ -72,7 +83,8 @@ void resetFakes() {
 }
 
 void initMotors(uint8_t mode, uint8_t protocol, uint8_t inversion = 0) {
-    motorDevConfig_t config = {};
+    static motorDevConfig_t config; // production keeps the pointer for the late post-init
+    config = motorDevConfig_t();
     config.motorPwmProtocol = protocol;
     config.useDshotBitbang = mode;
     config.motorPwmInversion = inversion;
@@ -150,6 +162,8 @@ TEST(PwmOutputBitbangSeam, PostInitSuccessRoutesWritesToBitbang) {
     initMotors(DSHOT_BITBANG_ON, PWM_TYPE_DSHOT600);
     motorDevPostInit();
     EXPECT_EQ(1, bbPostInitCalls);
+    EXPECT_NE(nullptr, bbPostInitConfig);   // the configuration outlives motorDevInit()
+    EXPECT_EQ(MOTORS, bbPostInitCount);
     EXPECT_TRUE(pwmAreMotorsEnabled());
 
     pwmWriteMotor(2, 1234.6f);        // the float is rounded to the nearest DShot value
@@ -191,6 +205,36 @@ TEST(PwmOutputBitbangSeam, PinSetupFailureStopsAllOutputAndEndsInit) {
     EXPECT_FALSE(pwmAreMotorsEnabled());
 
     pwmWriteMotor(0, 1100.0f);
+    pwmCompleteMotorUpdate(MOTORS);
+    motorDevPostInit();
+    EXPECT_EQ(0, bbWriteCalls);
+    EXPECT_EQ(0, bbCompleteCalls);
+    EXPECT_EQ(0, classicWriteCalls);
+    EXPECT_EQ(0, classicCompleteCalls);
+    EXPECT_EQ(0, bbPostInitCalls);     // no late claim after a failed pin
+}
+
+TEST(PwmOutputBitbangSeam, HardwareRefusalKeepsClassicDshot) {
+    resetFakes();
+    bbSupportedForce = true;
+    bbSupportedForceValue = false;     // for example the F4 IMU-F rejection
+    initMotors(DSHOT_BITBANG_ON, PWM_TYPE_DSHOT600);
+    EXPECT_EQ(0, bbMotorInitCalls);
+    EXPECT_EQ(MOTORS, classicConfigCalls);
+    motorDevPostInit();
+    EXPECT_EQ(0, bbPostInitCalls);
+    EXPECT_TRUE(pwmAreMotorsEnabled());
+}
+
+TEST(PwmOutputBitbangSeam, EnableAfterFailedPostInitStaysDisabled) {
+    resetFakes();
+    bbPostInitResult = false;
+    initMotors(DSHOT_BITBANG_ON, PWM_TYPE_DSHOT600);
+    motorDevPostInit();
+    ASSERT_FALSE(pwmAreMotorsEnabled());
+    pwmEnableMotors();
+    EXPECT_FALSE(pwmAreMotorsEnabled());   // writes stay unused after the failed claim
+    pwmWriteMotor(1, 1100.0f);
     EXPECT_EQ(0, bbWriteCalls);
 }
 
@@ -252,6 +296,9 @@ extern "C" {
 // bitbang driver fakes
 bool dshotBitbangSupported(uint8_t motorPwmInversion) {
     bbSupportedInversionArg = motorPwmInversion;
+    if (bbSupportedForce) {
+        return bbSupportedForceValue;
+    }
     return motorPwmInversion == 0;
 }
 
@@ -266,7 +313,9 @@ bool dshotBitbangMotorInit(uint8_t motorIndex, uint8_t reorderedMotorIndex, ioTa
     return ok;
 }
 
-bool dshotBitbangPostInit(const motorDevConfig_t *, uint8_t) {
+bool dshotBitbangPostInit(const motorDevConfig_t *config, uint8_t count) {
+    bbPostInitConfig = config;
+    bbPostInitCount = count;
     bbPostInitCalls++;
     return bbPostInitResult;
 }
@@ -296,8 +345,8 @@ bool pwmDshotMotorHardwareConfig(const timerHardware_t *, uint8_t, uint8_t, moto
 IO_t IOGetByTag(ioTag_t) { return nullptr; }
 void IOInit(IO_t, resourceOwner_e, uint8_t) {}
 void IOConfigGPIOAF(IO_t, ioConfig_t, uint8_t) {}
-void pwmWriteDshotInt(uint8_t, uint16_t) {}
-void pwmCompleteDshotMotorUpdate(uint8_t) {}
+void pwmWriteDshotInt(uint8_t, uint16_t) { classicWriteCalls++; }
+void pwmCompleteDshotMotorUpdate(uint8_t) { classicCompleteCalls++; }
 uint32_t timerClock(TIM_TypeDef *) { return 0; }
 uint32_t micros(void) { return fakeMicros; }
 void delayMicroseconds(uint32_t) {}

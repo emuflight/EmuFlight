@@ -179,6 +179,16 @@ static void bbDMAClearFlags(const bbPort_t *bbPort)
     DMA_CLEAR_FLAG(descriptor, BB_DMA_ALL_FLAGS);
 }
 
+// Stops the stream and its pacer request, then waits for EN to clear. False if it did not clear.
+static bool bbPortStop(const bbPort_t *bbPort)
+{
+    bbDMACmd(bbPort, false);
+    bbTIMDMACmd(bbPort->tim, bbPort->dmaSource, false);
+    for (int spin = 0; spin < BB_DMA_STOP_SPINS && bbDMAIsEnabled(bbPort); spin++) {
+    }
+    return !bbDMAIsEnabled(bbPort);
+}
+
 // True while the port's buffer and registers must stay untouched. A stream still enabled
 // after twice the frame time is stuck: it is stopped here, before anything changes.
 static bool bbPortIsBusy(const bbPort_t *bbPort)
@@ -189,10 +199,7 @@ static bool bbPortIsBusy(const bbPort_t *bbPort)
     if (cmpTimeUs(micros(), bbPort->startUs) < (int32_t)(2 * bbPort->frameUs)) {
         return true;
     }
-    bbDMACmd(bbPort, false);
-    for (int spin = 0; spin < BB_DMA_STOP_SPINS && bbDMAIsEnabled(bbPort); spin++) {
-    }
-    if (bbDMAIsEnabled(bbPort)) {
+    if (!bbPortStop(bbPort)) {
         return true;
     }
     bbDMAClearFlags(bbPort);
@@ -392,9 +399,10 @@ void dshotBitbangRestore(void)
         return;
     }
 
+    // a frame may still be running: the timer and DMA are only rebuilt once each stream has stopped
+    bool stopped[MAX_SUPPORTED_MOTOR_PORTS];
     for (int i = 0; i < usedMotorPorts; i++) {
-        bbDMACmd(&bbPorts[i], false);
-        bbTIMDMACmd(bbPorts[i].tim, bbPorts[i].dmaSource, false);
+        stopped[i] = bbPortStop(&bbPorts[i]);
     }
     for (int i = 0; i < MAX_SUPPORTED_MOTORS; i++) {
         if (bbMotors[i].configured) {
@@ -405,6 +413,9 @@ void dshotBitbangRestore(void)
     for (int i = 0; i < usedMotorPorts; i++) {
         bbPort_t *bbPort = &bbPorts[i];
 
+        if (!stopped[i]) {
+            continue; // the next update sees it as busy and handles it
+        }
         bbTimerChannelInit(bbPort);
         bbDMAPreconfigure(bbPort);
         bbDMASaveRegs(bbPort);
