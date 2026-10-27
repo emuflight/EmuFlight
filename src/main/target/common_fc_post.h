@@ -74,8 +74,6 @@
     && !defined(USE_MAG_SPI_AK8963) && !defined(USE_FAKE_MAG)
 #define USE_MAG_HMC5883
 #define USE_MAG_QMC5883
-#define USE_MAG_AK8963
-#define USE_MAG_AK8975
 #endif
 
 #if !defined(USE_SERIAL_RX)
