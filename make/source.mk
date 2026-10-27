@@ -265,6 +265,7 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             drivers/compass/compass_ak8975.c \
             drivers/compass/compass_fake.c \
             drivers/compass/compass_hmc5883l.c \
+            drivers/compass/compass_lis3mdl.c \
             drivers/compass/compass_qmc5883l.c \
             drivers/display_ug2864hsweg01.c \
             drivers/inverter.c \
@@ -412,6 +413,12 @@ SRC += \
 endif
 
 SRC += $(COMMON_SRC)
+
+# Every target compiles the compass and barometer drivers; USE_MAG_* / USE_BARO_* select the chips.
+SENSOR_SRC = \
+            $(addprefix drivers/compass/,$(notdir $(wildcard $(SRC_DIR)/drivers/compass/*.c))) \
+            $(addprefix drivers/barometer/,$(notdir $(wildcard $(SRC_DIR)/drivers/barometer/*.c)))
+SRC := $(filter-out $(SENSOR_SRC),$(SRC)) $(SENSOR_SRC)
 
 #excludes
 SRC   := $(filter-out $(MCU_EXCLUDES), $(SRC))
