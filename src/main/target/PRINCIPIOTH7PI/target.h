@@ -34,8 +34,8 @@
 #define USE_BARO
 #define USE_BARO_DPS310 // DPS368, but it's equivalent
 #define USE_MAG
-// Not supported in EF yet: not compiled or used until a driver is added.
 #define USE_MAG_LIS2MDL
+#define MAG_LIS2MDL_ALIGN CW90_DEG
 
 #define USE_VCP
 

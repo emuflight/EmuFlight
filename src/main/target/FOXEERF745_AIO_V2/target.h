@@ -50,9 +50,6 @@
  #define USE_EXTI
 
  #define USE_MAG
- #define USE_MAG_HMC5883
- #define USE_MAG_QMC5883
- #define USE_MAG_LIS3MDL
  #define MAG_I2C_INSTANCE           (I2CDEV_1)
  //BMI270
  #define USE_SPI_GYRO
@@ -61,8 +58,11 @@
  #define BMI270_SPI_BUS     SPIDEV_3
  #define ACC_BMI270_ALIGN        CW180_DEG
  #define GYRO_BMI270_ALIGN       CW180_DEG
- //#define MAG_HMC5883_ALIGN CW270_DEG_FLIP
- //#define MAG_ALIGN CW180_DEG  //not sure if this command will work or if should be more specific to mag
+ #define MAG_HMC5883_ALIGN CW180_DEG
+ #define MAG_QMC5883L_ALIGN CW180_DEG
+ #define MAG_LIS2MDL_ALIGN CW180_DEG
+ #define MAG_LIS3MDL_ALIGN CW180_DEG
+ #define MAG_IST8310_ALIGN CW180_DEG
 
  #define USE_BARO
  #define USE_BARO_BMP280

@@ -33,7 +33,6 @@
 #define USE_BARO_BMP280
 #define USE_BARO_MS5611
 #define USE_MAG
-// Not supported in EF yet: not compiled or used until a driver is added.
 #define USE_MAG_IST8310
 #define USE_MAX7456
 #define USE_SDCARD
