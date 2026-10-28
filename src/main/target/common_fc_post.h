@@ -70,12 +70,14 @@
 #endif
 
 // A target that names its own compass driver keeps its choice (compass.c picks the bus from these defines).
-#if defined(USE_MAG) && !defined(USE_MAG_HMC5883) && !defined(USE_MAG_QMC5883) && !defined(USE_MAG_LIS3MDL) \
-    && !defined(USE_MAG_LIS2MDL) && !defined(USE_MAG_IST8310) \
+#if defined(USE_MAG) && !defined(USE_MAG_HMC5883) && !defined(USE_MAG_QMC5883) \
     && !defined(USE_MAG_AK8963) && !defined(USE_MAG_AK8975) && !defined(USE_MAG_SPI_HMC5883) \
     && !defined(USE_MAG_SPI_AK8963) && !defined(USE_FAKE_MAG)
 #define USE_MAG_HMC5883
 #define USE_MAG_QMC5883
+#define USE_MAG_LIS2MDL
+#define USE_MAG_LIS3MDL
+#define USE_MAG_IST8310
 #endif
 
 #if !defined(USE_SERIAL_RX)

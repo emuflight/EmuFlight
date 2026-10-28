@@ -73,10 +73,6 @@
 #define I2C2_SDA                PB11
 
 #define USE_MAG
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-// No detect case in EF yet: not used until one is added.
-#define USE_MAG_LIS3MDL
 #define MAG_I2C_INSTANCE         (I2CDEV_2)
 
 // *************** Flash **************************
