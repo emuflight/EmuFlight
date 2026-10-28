@@ -203,8 +203,6 @@ bool compassDetect(magDev_t *dev) {
         }
 #endif
         FALLTHROUGH;
-    case MAG_MPU925X_AK8963:
-        FALLTHROUGH;
     case MAG_AK8963:
 #if defined(USE_MAG_AK8963) || defined(USE_MAG_SPI_AK8963)
         if (extDev->bus->busType == BUS_TYPE_I2C) {
