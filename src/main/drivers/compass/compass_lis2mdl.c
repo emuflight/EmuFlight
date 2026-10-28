@@ -45,6 +45,7 @@
 #define LIS2MDL_ADDR_CFG_REG_C  0x62
 #define LIS2MDL_ADDR_STATUS_REG 0x67
 #define LIS2MDL_ADDR_OUTX_L_REG 0x68
+#define LIS2MDL_SUB_AUTO_INC    0x80 // sub-address MSb: auto-increment for multi-byte reads
 #define LIS2MDL_ADDR_WHO_AM_I   0x4F
 
 // LIS2MDL Definitions
@@ -72,7 +73,7 @@ static bool lis2mdlRead(magDev_t *mag, int16_t *magData)
     uint8_t buf[6];
     extDevice_t *dev = &mag->dev;
 
-    if (!busReadRegisterBuffer(dev, LIS2MDL_ADDR_OUTX_L_REG, buf, sizeof(buf))) {
+    if (!busReadRegisterBuffer(dev, LIS2MDL_ADDR_OUTX_L_REG | LIS2MDL_SUB_AUTO_INC, buf, sizeof(buf))) {
         return false;
     }
 
