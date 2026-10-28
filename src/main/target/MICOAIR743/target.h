@@ -33,6 +33,7 @@
 #define USE_SDCARD
 #define USE_MAX7456
 #define USE_MAG
+// Not supported in EF yet: not compiled or used until a driver is added.
 #define USE_MAG_IST8310
 
 #define USE_VCP
