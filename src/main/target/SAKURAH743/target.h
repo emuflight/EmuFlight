@@ -33,6 +33,7 @@
 #define USE_BARO
 #define USE_BARO_SPI_DPS310
 #define USE_MAG
+// Not supported in EF yet: not compiled or used until a driver is added.
 #define USE_MAG_IST8310
 #define USE_SDCARD
 #define USE_I2C_PULLUP

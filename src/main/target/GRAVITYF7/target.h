@@ -77,6 +77,7 @@
 #define USE_MAG
 #define USE_MAG_HMC5883
 #define USE_MAG_QMC5883
+// No detect case in EF yet: not used until one is added.
 #define USE_MAG_LIS3MDL
 
 // USB

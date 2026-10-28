@@ -4,8 +4,6 @@ FEATURES       += VCP ONBOARDFLASH
 TARGET_SRC = \
 drivers/accgyro/accgyro_spi_icm426xx.c \
 drivers/accgyro/accgyro_spi_bmi270.c \
-drivers/barometer/barometer_qmp6988.c \
-drivers/barometer/barometer_dps310.c \
 drivers/max7456.c \
 
 # notice - this file was programmatically generated and may be incomplete.
