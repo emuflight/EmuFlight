@@ -63,6 +63,7 @@
 // Compass: a board with no compass bus and no named compass driver cannot use a compass.
 #if defined(USE_MAG) && !(defined(USE_I2C) && (defined(MAG_I2C_INSTANCE) || defined(I2C_DEVICE))) \
     && !defined(USE_MAG_HMC5883) && !defined(USE_MAG_QMC5883) && !defined(USE_MAG_LIS3MDL) \
+    && !defined(USE_MAG_LIS2MDL) && !defined(USE_MAG_IST8310) \
     && !defined(USE_MAG_AK8963) && !defined(USE_MAG_AK8975) && !defined(USE_MAG_SPI_HMC5883) \
     && !defined(USE_MAG_SPI_AK8963) && !defined(USE_FAKE_MAG)
 #undef USE_MAG
@@ -70,6 +71,7 @@
 
 // A target that names its own compass driver keeps its choice (compass.c picks the bus from these defines).
 #if defined(USE_MAG) && !defined(USE_MAG_HMC5883) && !defined(USE_MAG_QMC5883) && !defined(USE_MAG_LIS3MDL) \
+    && !defined(USE_MAG_LIS2MDL) && !defined(USE_MAG_IST8310) \
     && !defined(USE_MAG_AK8963) && !defined(USE_MAG_AK8975) && !defined(USE_MAG_SPI_HMC5883) \
     && !defined(USE_MAG_SPI_AK8963) && !defined(USE_FAKE_MAG)
 #define USE_MAG_HMC5883

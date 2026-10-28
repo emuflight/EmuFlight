@@ -40,6 +40,9 @@
 #include "drivers/compass/compass_ak8963.h"
 #include "drivers/compass/compass_fake.h"
 #include "drivers/compass/compass_hmc5883l.h"
+#include "drivers/compass/compass_ist8310.h"
+#include "drivers/compass/compass_lis2mdl.h"
+#include "drivers/compass/compass_lis3mdl.h"
 #include "drivers/compass/compass_qmc5883l.h"
 #include "drivers/io.h"
 #include "drivers/light_led.h"
@@ -87,7 +90,7 @@ void pgResetFn_compassConfig(compassConfig_t *compassConfig) {
 #endif
     compassConfig->mag_i2c_device = I2C_DEV_TO_CFG(I2CINVALID);
     compassConfig->mag_i2c_address = 0;
-#elif defined(USE_MAG_HMC5883) || defined(USE_MAG_QMC5883) || defined(USE_MAG_AK8975) || (defined(USE_MAG_AK8963) && !(defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU9250)))
+#elif defined(USE_MAG_HMC5883) || defined(USE_MAG_QMC5883) || defined(USE_MAG_LIS2MDL) || defined(USE_MAG_LIS3MDL) || defined(USE_MAG_IST8310) || defined(USE_MAG_AK8975) || (defined(USE_MAG_AK8963) && !(defined(USE_GYRO_SPI_MPU6500) || defined(USE_GYRO_SPI_MPU9250)))
     compassConfig->mag_bustype = BUS_TYPE_I2C;
     compassConfig->mag_i2c_device = I2C_DEV_TO_CFG(MAG_I2C_INSTANCE);
     compassConfig->mag_i2c_address = 0;
@@ -200,6 +203,8 @@ bool compassDetect(magDev_t *dev) {
         }
 #endif
         FALLTHROUGH;
+    case MAG_MPU925X_AK8963:
+        FALLTHROUGH;
     case MAG_AK8963:
 #if defined(USE_MAG_AK8963) || defined(USE_MAG_SPI_AK8963)
         if (extDev->bus->busType == BUS_TYPE_I2C) {
@@ -216,6 +221,48 @@ bool compassDetect(magDev_t *dev) {
             dev->magAlign = MAG_AK8963_ALIGN;
 #endif
             magHardware = MAG_AK8963;
+            break;
+        }
+#endif
+        FALLTHROUGH;
+    case MAG_LIS2MDL:
+#ifdef USE_MAG_LIS2MDL
+        if (extDev->bus->busType == BUS_TYPE_I2C) {
+            extDev->busType_u.i2c.address = compassConfig()->mag_i2c_address;
+        }
+        if (lis2mdlDetect(dev)) {
+#ifdef MAG_LIS2MDL_ALIGN
+            dev->magAlign = MAG_LIS2MDL_ALIGN;
+#endif
+            magHardware = MAG_LIS2MDL;
+            break;
+        }
+#endif
+        FALLTHROUGH;
+    case MAG_LIS3MDL:
+#ifdef USE_MAG_LIS3MDL
+        if (extDev->bus->busType == BUS_TYPE_I2C) {
+            extDev->busType_u.i2c.address = compassConfig()->mag_i2c_address;
+        }
+        if (lis3mdlDetect(dev)) {
+#ifdef MAG_LIS3MDL_ALIGN
+            dev->magAlign = MAG_LIS3MDL_ALIGN;
+#endif
+            magHardware = MAG_LIS3MDL;
+            break;
+        }
+#endif
+        FALLTHROUGH;
+    case MAG_IST8310:
+#ifdef USE_MAG_IST8310
+        if (extDev->bus->busType == BUS_TYPE_I2C) {
+            extDev->busType_u.i2c.address = compassConfig()->mag_i2c_address;
+        }
+        if (ist8310Detect(dev)) {
+#ifdef MAG_IST8310_ALIGN
+            dev->magAlign = MAG_IST8310_ALIGN;
+#endif
+            magHardware = MAG_IST8310;
             break;
         }
 #endif
