@@ -29,6 +29,7 @@
 #define BEEPER_PIN              PB3
 #define BEEPER_INVERTED
 
+// Burst required: per-channel DShot puts M4 and M7 on DMA1_ST5, shared with OSD TX
 #define ENABLE_DSHOT_DMAR       true
 
 // ICM20689 interrupt
@@ -157,7 +158,7 @@
     TIMER_PIN_MAP( 1, PB0 , 1,  0) /* M1 - DMAR: DMA2_ST5 */ \
     TIMER_PIN_MAP( 2, PB1 , 3,  1) /* M2 - DMAR: DMA2_ST1 */ \
     TIMER_PIN_MAP( 3, PA1 , 1,  0) /* M3 - DMAR: DMA1_ST7 */ \
-    TIMER_PIN_MAP( 4, PA0 , 1,  0) /* M4 - */ \
+    TIMER_PIN_MAP( 4, PA0 , 1,  0) /* M4 - per-channel DMA1_ST5 (conflicts with M7, OSD TX); TIM5_CH1 burst conflicts with OSD RX */ \
     TIMER_PIN_MAP( 5, PC6 , 1,  0) /* M5 - DMAR: DMA1_ST2 */ \
     TIMER_PIN_MAP( 6, PC7 , 2,  0) /* M6 - */ \
     TIMER_PIN_MAP( 7, PB5 , 1,  0) /* M7 - DMAR: DMA1_ST2 */ \
