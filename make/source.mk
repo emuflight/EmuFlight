@@ -70,6 +70,9 @@ COMMON_SRC = \
             drivers/rx/rx_spi.c \
             drivers/rx/rx_xn297.c \
             drivers/rx/rx_pwm.c \
+            drivers/rx/rx_cc2500.c \
+            drivers/rx/rx_a7105.c \
+            drivers/rx/rx_nrf24l01.c \
             drivers/serial_softserial.c \
             fc/fc_core.c \
             fc/fc_rc.c \
@@ -96,6 +99,18 @@ COMMON_SRC = \
             rx/pwm.c \
             rx/rx.c \
             rx/rx_spi.c \
+            rx/cc2500_common.c \
+            rx/cc2500_frsky_d.c \
+            rx/cc2500_frsky_shared.c \
+            rx/cc2500_frsky_x.c \
+            rx/cc2500_redpine.c \
+            rx/cc2500_sfhss.c \
+            rx/flysky.c \
+            rx/nrf24_cx10.c \
+            rx/nrf24_h8_3d.c \
+            rx/nrf24_inav.c \
+            rx/nrf24_syma.c \
+            rx/nrf24_v202.c \
             rx/crsf.c \
             rx/ghst.c \
             rx/sbus.c \
