@@ -673,6 +673,29 @@ flash_w25m_unittest_DEFINES := \
 		USE_FLASH_W25M02G
 
 
+msc_sd_spi_unittest_SRC := \
+		$(USER_DIR)/msc/usbd_storage_sd_spi.c
+
+msc_sd_spi_unittest_DEFINES := \
+		STM32F4 \
+		USE_SDCARD
+
+msc_sd_spi_unittest_INCLUDE_DIRS := \
+		$(TEST_DIR)/msc_stub
+
+
+msc_sdio_unittest_SRC := \
+		$(USER_DIR)/msc/usbd_storage_sdio.c
+
+msc_sdio_unittest_DEFINES := \
+		STM32F4 \
+		USE_SDCARD \
+		USE_SDCARD_SDIO
+
+msc_sdio_unittest_INCLUDE_DIRS := \
+		$(TEST_DIR)/msc_stub
+
+
 sdcard_unittest_SRC := \
 		$(USER_DIR)/drivers/sdcard.c \
 		$(USER_DIR)/drivers/sdcard_standard.c

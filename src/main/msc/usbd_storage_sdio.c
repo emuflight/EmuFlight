@@ -37,6 +37,7 @@
 #include "pg/sdio.h"
 #include "drivers/light_led.h"
 #include "drivers/io.h"
+#include "drivers/time.h"
 #include "common/utils.h"
 
 #ifdef USE_HAL_DRIVER
@@ -63,6 +64,10 @@
 #define STORAGE_LUN_NBR                  1
 #define STORAGE_BLK_NBR                  0x10000
 #define STORAGE_BLK_SIZ                  0x200
+
+// SD spec limits are 100 ms read and 250 ms write busy per block; margins keep slow cards working.
+#define STORAGE_READ_TIMEOUT_MS          500
+#define STORAGE_WRITE_TIMEOUT_MS         1000
 
 static int8_t STORAGE_Init (uint8_t lun);
 
@@ -235,8 +240,20 @@ static int8_t STORAGE_Read (uint8_t lun,
     LED1_ON;
     //buf should be 32bit aligned, but usually is so we don't do byte alignment
     if (SD_ReadBlocks_DMA(blk_addr, (uint32_t*) buf, 512, blk_len) == 0) {
-        while (SD_CheckRead());
-        while(SD_GetState() == false);
+        const timeMs_t start = millis();
+        const timeMs_t timeout = (timeMs_t)blk_len * STORAGE_READ_TIMEOUT_MS;
+        while (SD_CheckRead()) {
+            if ((timeMs_t)(millis() - start) > timeout) {
+                LED1_OFF;
+                return -1;
+            }
+        }
+        while (SD_GetState() == false) {
+            if ((timeMs_t)(millis() - start) > timeout) {
+                LED1_OFF;
+                return -1;
+            }
+        }
         LED1_OFF;
         return 0;
     }
@@ -261,8 +278,20 @@ static int8_t STORAGE_Write (uint8_t lun,
     LED1_ON;
     //buf should be 32bit aligned, but usually is so we don't do byte alignment
     if (SD_WriteBlocks_DMA(blk_addr, (uint32_t*) buf, 512, blk_len) == 0) {
-        while (SD_CheckWrite());
-        while(SD_GetState() == false);
+        const timeMs_t start = millis();
+        const timeMs_t timeout = (timeMs_t)blk_len * STORAGE_WRITE_TIMEOUT_MS;
+        while (SD_CheckWrite()) {
+            if ((timeMs_t)(millis() - start) > timeout) {
+                LED1_OFF;
+                return -1;
+            }
+        }
+        while (SD_GetState() == false) {
+            if ((timeMs_t)(millis() - start) > timeout) {
+                LED1_OFF;
+                return -1;
+            }
+        }
         LED1_OFF;
         return 0;
     }
