@@ -414,6 +414,23 @@ endif
 
 SRC += $(COMMON_SRC)
 
+# The simulator has no accelerometer or gyro hardware.
+ifneq ($(SIMULATOR_BUILD),yes)
+SRC += \
+            drivers/accgyro/accgyro_imuf9001.c \
+            drivers/accgyro/accgyro_mpu.c \
+            drivers/accgyro/accgyro_mpu3050.c \
+            drivers/accgyro/accgyro_mpu6050.c \
+            drivers/accgyro/accgyro_mpu6500.c \
+            drivers/accgyro/accgyro_spi_bmi160.c \
+            drivers/accgyro/accgyro_spi_bmi270.c \
+            drivers/accgyro/accgyro_spi_icm20689.c \
+            drivers/accgyro/accgyro_spi_icm426xx.c \
+            drivers/accgyro/accgyro_spi_mpu6000.c \
+            drivers/accgyro/accgyro_spi_mpu6500.c \
+            drivers/accgyro/accgyro_spi_mpu9250.c
+endif
+
 # Every target compiles the compass and barometer drivers; USE_MAG_* / USE_BARO_* select the chips.
 SRC += \
             $(addprefix drivers/compass/,$(notdir $(wildcard $(SRC_DIR)/drivers/compass/*.c))) \
