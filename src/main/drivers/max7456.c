@@ -642,7 +642,7 @@ void max7456RefreshAll(void) {
 }
 
 void max7456WriteNvm(uint8_t char_address, const uint8_t *font_data) {
-    // The bus is set only after max7456Init() succeeds.
+    // dev->bus stays NULL until max7456Init() passes its pin and SPI checks.
     if (dev->bus == NULL) {
         return;
     }
