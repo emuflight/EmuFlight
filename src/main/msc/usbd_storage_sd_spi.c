@@ -39,6 +39,7 @@
 #include "drivers/light_led.h"
 #include "drivers/io.h"
 #include "drivers/bus_spi.h"
+#include "drivers/time.h"
 
 #include "pg/sdcard.h"
 #include "pg/bus_spi.h"
@@ -58,6 +59,11 @@
 #define STORAGE_LUN_NBR                  1
 #define STORAGE_BLK_NBR                  0x10000
 #define STORAGE_BLK_SIZ                  0x200
+
+// SD spec limits are 1 s card init, 100 ms read and 250 ms write busy; margins keep slow cards working.
+#define STORAGE_INIT_TIMEOUT_MS          2000
+#define STORAGE_READ_TIMEOUT_MS          500
+#define STORAGE_WRITE_TIMEOUT_MS         1000
 
 static int8_t STORAGE_Init (uint8_t lun);
 
@@ -144,7 +150,12 @@ static int8_t STORAGE_Init (uint8_t lun) {
     UNUSED(lun);
     LED0_OFF;
     sdcard_init(sdcardConfig());
-    while (sdcard_poll() == 0);
+    const timeMs_t start = millis();
+    while (sdcard_poll() == 0) {
+        if ((timeMs_t)(millis() - start) > STORAGE_INIT_TIMEOUT_MS) {
+            return -1;
+        }
+    }
     LED0_ON;
     return 0;
 }
@@ -210,8 +221,19 @@ static int8_t STORAGE_Read (uint8_t lun,
     UNUSED(lun);
     LED1_ON;
     for (int i = 0; i < blk_len; i++) {
-        while (sdcard_readBlock(blk_addr + i, buf + (512 * i), NULL, NULL) == 0);
-        while (sdcard_poll() == 0);
+        const timeMs_t start = millis();
+        while (sdcard_readBlock(blk_addr + i, buf + (512 * i), NULL, 0) == 0) {
+            if ((timeMs_t)(millis() - start) > STORAGE_READ_TIMEOUT_MS) {
+                LED1_OFF;
+                return -1;
+            }
+        }
+        while (sdcard_poll() == 0) {
+            if ((timeMs_t)(millis() - start) > STORAGE_READ_TIMEOUT_MS) {
+                LED1_OFF;
+                return -1;
+            }
+        }
     }
     LED1_OFF;
     return 0;
@@ -230,10 +252,20 @@ static int8_t STORAGE_Write (uint8_t lun,
     UNUSED(lun);
     LED1_ON;
     for (int i = 0; i < blk_len; i++) {
-        while (sdcard_writeBlock(blk_addr + i, buf + (i * 512), NULL, NULL) != SDCARD_OPERATION_IN_PROGRESS) {
+        const timeMs_t start = millis();
+        while (sdcard_writeBlock(blk_addr + i, buf + (i * 512), NULL, 0) != SDCARD_OPERATION_IN_PROGRESS) {
             sdcard_poll();
+            if ((timeMs_t)(millis() - start) > STORAGE_WRITE_TIMEOUT_MS) {
+                LED1_OFF;
+                return -1;
+            }
         }
-        while (sdcard_poll() == 0);
+        while (sdcard_poll() == 0) {
+            if ((timeMs_t)(millis() - start) > STORAGE_WRITE_TIMEOUT_MS) {
+                LED1_OFF;
+                return -1;
+            }
+        }
     }
     LED1_OFF;
     return 0;
