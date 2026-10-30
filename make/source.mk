@@ -65,6 +65,18 @@ COMMON_SRC = \
             fc/controlrate_profile.c \
             drivers/camera_control.c \
             drivers/accgyro/gyro_sync.c \
+            drivers/accgyro/accgyro_imuf9001.c \
+            drivers/accgyro/accgyro_mpu.c \
+            drivers/accgyro/accgyro_mpu3050.c \
+            drivers/accgyro/accgyro_mpu6050.c \
+            drivers/accgyro/accgyro_mpu6500.c \
+            drivers/accgyro/accgyro_spi_bmi160.c \
+            drivers/accgyro/accgyro_spi_bmi270.c \
+            drivers/accgyro/accgyro_spi_icm20689.c \
+            drivers/accgyro/accgyro_spi_icm426xx.c \
+            drivers/accgyro/accgyro_spi_mpu6000.c \
+            drivers/accgyro/accgyro_spi_mpu6500.c \
+            drivers/accgyro/accgyro_spi_mpu9250.c \
             drivers/pwm_esc_detect.c \
             drivers/pwm_output.c \
             drivers/rx/rx_spi.c \
