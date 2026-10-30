@@ -642,6 +642,10 @@ void max7456RefreshAll(void) {
 }
 
 void max7456WriteNvm(uint8_t char_address, const uint8_t *font_data) {
+    // The bus is set only after max7456Init() succeeds.
+    if (dev->bus == NULL) {
+        return;
+    }
 #ifdef MAX7456_DMA_CHANNEL_TX
     while (dmaTransactionInProgress);
 #endif
