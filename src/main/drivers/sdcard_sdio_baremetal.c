@@ -29,6 +29,8 @@
 #define USE_SDCARD_SDIO
 #ifdef USE_SDCARD_SDIO
 
+#include "common/utils.h"
+
 #include "drivers/nvic.h"
 #include "drivers/io.h"
 #include "drivers/dma.h"
@@ -472,6 +474,7 @@ doMore:
                 break; // Timeout not reached yet so keep waiting
             }
         // Timeout has expired, so fall through to convert to a fatal error
+            FALLTHROUGH;
         case SDCARD_RECEIVE_ERROR:
             sdcard_reset();
             if (sdcard.pendingOperation.callback) {
