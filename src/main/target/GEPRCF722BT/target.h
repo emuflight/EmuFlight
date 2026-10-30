@@ -26,7 +26,7 @@
 #define BOARD_NAME        GEPRCF722BT
 #define MANUFACTURER_ID   GEPR
 #define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define LED0_PIN PC15
 #define LED1_PIN PC14

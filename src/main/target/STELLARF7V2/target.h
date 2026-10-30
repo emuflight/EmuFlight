@@ -23,7 +23,7 @@
 #define BOARD_NAME STELLARF7V2
 #define MANUFACTURER_ID FLMO
 #define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU STM32F7X2
 
 #define USE_ACC
 #define USE_BARO

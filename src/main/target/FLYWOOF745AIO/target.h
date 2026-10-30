@@ -23,7 +23,7 @@
 #define BOARD_NAME        FLYWOOF745AIO
 #define MANUFACTURER_ID   FLWO
 #define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
-#define FC_TARGET_MCU     STM32F745     // not used in EmuF
+#define FC_TARGET_MCU     STM32F745
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000

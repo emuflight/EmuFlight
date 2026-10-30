@@ -23,7 +23,7 @@
 #define BOARD_NAME SPEEDYBEEF405MINI
 #define MANUFACTURER_ID SPBE
 #define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 
 #define USE_ACC
 #define USE_GYRO

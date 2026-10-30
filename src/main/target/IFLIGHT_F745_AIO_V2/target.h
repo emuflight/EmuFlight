@@ -23,7 +23,7 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "IFRC"
 #define USBD_PRODUCT_STRING "IFLIGHT_F745_AIO_V2"
 
-#define FC_TARGET_MCU     STM32F745     // not used in EmuF
+#define FC_TARGET_MCU     STM32F745
 #define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
 
 #define ENABLE_DSHOT_DMAR       true

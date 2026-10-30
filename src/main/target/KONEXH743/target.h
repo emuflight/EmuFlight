@@ -23,7 +23,7 @@
 #define BOARD_NAME        KONEXH743
 #define MANUFACTURER_ID   KONX
 #define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU     STM32H743     // not used in EmuF
+#define FC_TARGET_MCU     STM32H743
 
 #define USE_GYRO
 // #define USE_GYRO_CLKIN // not supported in EmuFlight
