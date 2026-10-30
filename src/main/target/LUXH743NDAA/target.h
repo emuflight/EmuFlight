@@ -135,7 +135,7 @@
 #define FLASH_SPI_INSTANCE                  SPI1
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
-#define USE_SDCARD_SDIO
+#define USE_SDCARD_SPI
 #define SDCARD_SPI_CS_PIN    PB11   // SPI2_NSS
 #define SDCARD_SPI_INSTANCE                 SPI2
 //notice - NEED: #define SDCARD_DMA_CHANNEL_TX       DMAx_StreamX // please verify
