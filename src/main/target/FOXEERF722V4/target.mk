@@ -5,7 +5,6 @@ TARGET_SRC = \
 drivers/accgyro/accgyro_mpu.c \
 drivers/accgyro/accgyro_spi_mpu6000.c \
 drivers/accgyro/accgyro_spi_icm426xx.c \
-drivers/max7456.c \
 
 # notice - this file was programmatically generated and may be incomplete.
 # eg: flash, compass, barometer, vtx6705, ledstrip, pinio, etc.   especially mag/baro

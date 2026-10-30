@@ -4,7 +4,6 @@ FEATURES       += VCP
 TARGET_SRC = \
 drivers/accgyro/accgyro_spi_mpu6000.c \
 drivers/accgyro/accgyro_spi_bmi270.c \
-drivers/max7456.c \
 drivers/rx/rx_cc2500.c \
 rx/cc2500_common.c \
 rx/cc2500_frsky_shared.c \
