@@ -67,6 +67,11 @@
 
 static int8_t STORAGE_Init (uint8_t lun);
 
+// A timed-out operation still holds the USB buffer in the driver; re-init drops it so a late poll cannot touch it.
+static void STORAGE_AbortPending(void) {
+    sdcard_init(sdcardConfig());
+}
+
 #ifdef USE_HAL_DRIVER
 static int8_t STORAGE_GetCapacity (uint8_t lun,
                                    uint32_t *block_num,
@@ -224,12 +229,14 @@ static int8_t STORAGE_Read (uint8_t lun,
         const timeMs_t start = millis();
         while (sdcard_readBlock(blk_addr + i, buf + (512 * i), NULL, 0) == 0) {
             if ((timeMs_t)(millis() - start) > STORAGE_READ_TIMEOUT_MS) {
+                STORAGE_AbortPending();
                 LED1_OFF;
                 return -1;
             }
         }
         while (sdcard_poll() == 0) {
             if ((timeMs_t)(millis() - start) > STORAGE_READ_TIMEOUT_MS) {
+                STORAGE_AbortPending();
                 LED1_OFF;
                 return -1;
             }
@@ -256,12 +263,14 @@ static int8_t STORAGE_Write (uint8_t lun,
         while (sdcard_writeBlock(blk_addr + i, buf + (i * 512), NULL, 0) != SDCARD_OPERATION_IN_PROGRESS) {
             sdcard_poll();
             if ((timeMs_t)(millis() - start) > STORAGE_WRITE_TIMEOUT_MS) {
+                STORAGE_AbortPending();
                 LED1_OFF;
                 return -1;
             }
         }
         while (sdcard_poll() == 0) {
             if ((timeMs_t)(millis() - start) > STORAGE_WRITE_TIMEOUT_MS) {
+                STORAGE_AbortPending();
                 LED1_OFF;
                 return -1;
             }

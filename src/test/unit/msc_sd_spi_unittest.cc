@@ -41,6 +41,7 @@ constexpr uint32_t MAX_CALLS = 100000;
 
 uint32_t fakeNowMs;
 uint32_t pollCalls;
+uint32_t initCalls;
 uint32_t pollReadyAfter;     // poll returns true once this many calls were made; UINT32_MAX = never
 bool readStartReady;         // sdcard_readBlock result
 sdcardOperationStatus_e writeStartResult;
@@ -48,6 +49,7 @@ sdcardOperationStatus_e writeStartResult;
 void setUpFakeCard(uint32_t startMs) {
     fakeNowMs = startMs;
     pollCalls = 0;
+    initCalls = 0;
     pollReadyAfter = UINT32_MAX;
     readStartReady = true;
     writeStartResult = SDCARD_OPERATION_IN_PROGRESS;
@@ -67,7 +69,7 @@ uint32_t millis(void) {
     return fakeNowMs++;
 }
 
-void sdcard_init(const sdcardConfig_t *) {}
+void sdcard_init(const sdcardConfig_t *) { initCalls++; }
 
 bool sdcard_poll(void) {
     pollCalls++;
@@ -126,6 +128,7 @@ TEST(MscSdSpiTest, ReadReturnsErrorWhenCardNeverFinishesRead) {
     EXPECT_EQ(-1, USBD_MSC_MICRO_SDIO_fops.Read(0, buf, 0, 1));
     EXPECT_GE(elapsed(start), SPEC_READ_MS);
     EXPECT_LT(pollCalls, MAX_CALLS);
+    EXPECT_EQ(1u, initCalls);  // the pending read is dropped before the USB buffer is handed back
 }
 
 TEST(MscSdSpiTest, ReadSucceedsWhenCardAnswers) {
@@ -133,6 +136,7 @@ TEST(MscSdSpiTest, ReadSucceedsWhenCardAnswers) {
     pollReadyAfter = 0;
     uint8_t buf[512];
     EXPECT_EQ(0, USBD_MSC_MICRO_SDIO_fops.Read(0, buf, 0, 1));
+    EXPECT_EQ(0u, initCalls);  // a healthy transfer never resets the driver
 }
 
 TEST(MscSdSpiTest, WriteReturnsErrorWhenCardStaysBusy) {
@@ -142,6 +146,7 @@ TEST(MscSdSpiTest, WriteReturnsErrorWhenCardStaysBusy) {
     uint8_t buf[512] = {};
     EXPECT_EQ(-1, USBD_MSC_MICRO_SDIO_fops.Write(0, buf, 0, 1));
     EXPECT_GE(elapsed(start), SPEC_WRITE_MS);
+    EXPECT_EQ(1u, initCalls);
 }
 
 TEST(MscSdSpiTest, WriteReturnsErrorWhenCardNeverFinishesWrite) {
