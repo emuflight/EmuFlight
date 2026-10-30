@@ -22,7 +22,6 @@ COMMON_SRC = \
             drivers/exti.c \
             drivers/io.c \
             drivers/light_led.c \
-            drivers/max7456.c \
             drivers/pinio.c \
             drivers/resource.c \
             drivers/rcc.c \
@@ -414,6 +413,11 @@ SRC += \
 endif
 
 SRC += $(COMMON_SRC)
+
+# nbd7456.c replaces max7456.c and defines the same symbols.
+ifeq ($(filter drivers/nbd7456.c,$(TARGET_SRC)),)
+SRC += drivers/max7456.c
+endif
 
 # Every target compiles the compass and barometer drivers; USE_MAG_* / USE_BARO_* select the chips.
 SRC += \
