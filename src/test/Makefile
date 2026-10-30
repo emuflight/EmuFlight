@@ -701,6 +701,11 @@ sdcard_unittest_CFLAGS := \
 sdcard_unittest_LDFLAGS := \
 		-no-pie
 
+sdcard_sdio_unittest_SRC :=
+
+sdcard_sdio_unittest_DEFINES := \
+		USE_SDCARD
+
 
 flight_failsafe_unittest_SRC := \
 		$(USER_DIR)/common/bitarray.c \
