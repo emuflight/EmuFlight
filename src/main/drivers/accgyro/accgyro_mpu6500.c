@@ -27,9 +27,7 @@
 #if defined(USE_ACC_MPU6500) \
     || defined(USE_GYRO_MPU6500) \
     || defined(USE_ACC_SPI_MPU6500) \
-    || defined(USE_GYRO_SPI_MPU6500) \
-    || defined(USE_ACC_SPI_MPU9250) \
-    || defined(USE_GYRO_SPI_MPU9250)
+    || defined(USE_GYRO_SPI_MPU6500)
 
 #include "common/axis.h"
 #include "common/maths.h"
