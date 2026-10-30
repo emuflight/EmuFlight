@@ -23,7 +23,7 @@
 #define BOARD_NAME        FOXEERF745V2_AIO
 #define MANUFACTURER_ID   FOXE
 #define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
-#define FC_TARGET_MCU     STM32F745     // not used in EmuF
+#define FC_TARGET_MCU     STM32F745
 
 #define USE_GYRO
 #define USE_ACC

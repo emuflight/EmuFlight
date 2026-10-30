@@ -1,4 +1,3 @@
-F411_TARGETS    += $(TARGET)
 FEATURES        += SDCARD VCP
 
 TARGET_SRC = \

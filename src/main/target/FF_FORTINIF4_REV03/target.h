@@ -19,6 +19,7 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F405
 #define TARGET_BOARD_IDENTIFIER "FOR3"
 #define USBD_PRODUCT_STRING     "FortiniF4_Rev03"
 #define USE_TARGET_CONFIG

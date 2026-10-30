@@ -20,7 +20,7 @@
 #define BOARD_NAME        FULLSPEEDF411
 #define MANUFACTURER_ID   CUST
 #define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define FC_TARGET_MCU     STM32F411
 
 #define LED0_PIN                PC13
 #define LED1_PIN                PC14

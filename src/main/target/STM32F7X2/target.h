@@ -21,6 +21,7 @@
 #pragma once
 
 #ifndef TARGET_BOARD_IDENTIFIER
+#define FC_TARGET_MCU     STM32F7X2
 #define TARGET_BOARD_IDENTIFIER "S7X2"
 #endif
 

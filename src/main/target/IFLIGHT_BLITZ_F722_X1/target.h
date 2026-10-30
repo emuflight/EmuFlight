@@ -23,7 +23,7 @@
 #define BOARD_NAME        IFLIGHT_BLITZ_F722_X1
 #define MANUFACTURER_ID   IFRC
 #define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define USE_ACCGYRO_BMI270
 #define USE_GYRO

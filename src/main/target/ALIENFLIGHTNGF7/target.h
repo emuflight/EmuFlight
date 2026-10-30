@@ -25,7 +25,7 @@
 #define BOARD_NAME        ALIENFLIGHTNGF7
 #define MANUFACTURER_ID   AFNG
 #define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define USE_HARDWARE_REVISION_DETECTION
 #define HW_PIN                  PC13

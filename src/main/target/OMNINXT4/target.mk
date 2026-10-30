@@ -1,4 +1,3 @@
-F405_TARGETS    += $(TARGET)
 FEATURES       += VCP ONBOARDFLASH
 
 # XXX Remove fake drivers for final production

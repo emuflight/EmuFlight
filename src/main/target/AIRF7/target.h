@@ -23,7 +23,7 @@
 #define MANUFACTURER_ID RAST
 #define BOARD_NAME AIRF7
 #define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define LED0_PIN                PA3
 

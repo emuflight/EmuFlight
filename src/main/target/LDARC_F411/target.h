@@ -19,6 +19,7 @@
  */
 
  #pragma once
+#define FC_TARGET_MCU     STM32F411
  #define TARGET_BOARD_IDENTIFIER "LDAR"
  	#define USBD_PRODUCT_STRING "LDARC_F411"
 

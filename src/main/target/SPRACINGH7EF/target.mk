@@ -1,4 +1,3 @@
-H730_TARGETS   += $(TARGET)
 EXST            = yes
 FEATURES       += VCP ONBOARDFLASH
 

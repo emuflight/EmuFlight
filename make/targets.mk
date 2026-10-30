@@ -69,6 +69,25 @@ endif
 # silently ignore if the file is not present. Allows for target specific.
 -include $(ROOT)/src/main/target/$(BASE_TARGET)/target.mk
 
+# The MCU group comes from FC_TARGET_MCU in the target header.
+FC_TARGET_MCU := $(strip $(shell sed -n 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*FC_TARGET_MCU[[:space:]][[:space:]]*\([A-Za-z0-9_]*\).*/\1/p' $(ROOT)/src/main/target/$(BASE_TARGET)/target.h | head -n 1))
+
+MCU_GROUP_STM32F405 := F405
+MCU_GROUP_STM32F411 := F411
+MCU_GROUP_STM32F446 := F446
+MCU_GROUP_STM32F7X2 := F7X2RE
+MCU_GROUP_STM32F745 := F7X5XG
+MCU_GROUP_STM32H743 := H743
+MCU_GROUP_STM32H723 := H723
+MCU_GROUP_STM32H725 := H723
+MCU_GROUP_STM32H730 := H730
+MCU_GROUP_STM32H750 := H750
+MCU_GROUP_SITL      := SITL
+
+ifneq ($(MCU_GROUP_$(FC_TARGET_MCU)),)
+$(eval $(MCU_GROUP_$(FC_TARGET_MCU))_TARGETS += $(TARGET))
+endif
+
 F4_TARGETS      := $(F405_TARGETS) $(F411_TARGETS) $(F446_TARGETS)
 F7_TARGETS      := $(F7X2RE_TARGETS) $(F7X5XE_TARGETS) $(F7X5XG_TARGETS) $(F7X5XI_TARGETS) $(F7X6XG_TARGETS)
 H7_TARGETS      := $(H743_TARGETS) $(H750_TARGETS) $(H723_TARGETS) $(H725_TARGETS) $(H730_TARGETS) $(H735_TARGETS) $(H7A3_TARGETS)
