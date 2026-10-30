@@ -1,7 +1,7 @@
 # CLI Reference
 
 > **Auto-generated** — do not edit manually.
-> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-10-25 | Commit: `46fc1b194` | Firmware: `0.5.0` | MSP: `0.1.55`
+> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-10-30 | Commit: `e112aae36` | Firmware: `0.5.0` | MSP: `0.1.55`
 
 Settings parameters (`valueTable[]`) and CLI commands that persist config through
 their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered here.
@@ -147,7 +147,7 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 | `mag_i2c_device` | uint8 | master | `0` – `I2CDEV_COUNT` | `USE_MAG` |
 | `mag_i2c_address` | uint8 | master | `0` – `I2C_ADDR7_MAX` | `USE_MAG` |
 | `mag_spi_device` | uint8 | master | `0` – `SPIDEV_COUNT` | `USE_MAG` |
-| `mag_hardware` | uint8 | master | `AUTO`, `NONE`, `HMC5883`, `AK8975`, `AK8963`, `QMC5883` | `USE_MAG` |
+| `mag_hardware` | uint8 | master | `AUTO`, `NONE`, `HMC5883`, `AK8975`, `AK8963`, `QMC5883`, `LIS2MDL`, `LIS3MDL`, `MPU925X_AK8963`, `IST8310` | `USE_MAG` |
 | `mag_declination` | int16 | master | `-18000` – `18000` | `USE_MAG` |
 | `mag_calibration` | int16 | master | array\[XYZ_AXIS_COUNT\] | `USE_MAG` |
 
