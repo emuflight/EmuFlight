@@ -924,6 +924,17 @@ bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst) {
             sbufWriteU8(dst, mac->range.endStep);
         }
         break;
+    case MSP_MODE_RANGES_EXTRA:
+        sbufWriteU8(dst, MAX_MODE_ACTIVATION_CONDITION_COUNT); // number of elements, aligned with MSP_MODE_RANGES
+        for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
+            const modeActivationCondition_t *mac = modeActivationConditions(i);
+            const box_t *box = findBoxByBoxId(mac->modeId);
+            const box_t *linkedBox = findBoxByBoxId(mac->linkedTo);
+            sbufWriteU8(dst, box ? box->permanentId : 0);
+            sbufWriteU8(dst, mac->modeLogic);
+            sbufWriteU8(dst, linkedBox ? linkedBox->permanentId : 0);
+        }
+        break;
     case MSP_ADJUSTMENT_RANGES:
         for (int i = 0; i < MAX_ADJUSTMENT_RANGE_COUNT; i++) {
             const adjustmentRange_t *adjRange = adjustmentRanges(i);
@@ -1560,22 +1571,40 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
         pidInitConfig(currentPidProfile);
         break;
     case MSP_SET_MODE_RANGE:
-        i = sbufReadU8(src);
-        if (i < MAX_MODE_ACTIVATION_CONDITION_COUNT) {
-            modeActivationCondition_t *mac = modeActivationConditionsMutable(i);
-            i = sbufReadU8(src);
-            const box_t *box = findBoxByPermanentId(i);
-            if (box) {
-                mac->modeId = box->boxId;
-                mac->auxChannelIndex = sbufReadU8(src);
-                mac->range.startStep = sbufReadU8(src);
-                mac->range.endStep = sbufReadU8(src);
-                rcControlsInit();
-            } else {
+        {
+            const int index = sbufReadU8(src);
+            const box_t *box = findBoxByPermanentId(sbufReadU8(src));
+            if (index >= MAX_MODE_ACTIVATION_CONDITION_COUNT || !box || sbufBytesRemaining(src) < 3) {
                 return MSP_RESULT_ERROR;
             }
-        } else {
-            return MSP_RESULT_ERROR;
+            const uint8_t auxChannelIndex = sbufReadU8(src);
+            const uint8_t startStep = sbufReadU8(src);
+            const uint8_t endStep = sbufReadU8(src);
+            // optional trailing modeLogic and linkedTo; a client that omits both has no links
+            uint8_t modeLogic = MODELOGIC_OR;
+            boxId_e linkedTo = 0;
+            const unsigned extraBytes = sbufBytesRemaining(src);
+            if (extraBytes == 2) {
+                modeLogic = sbufReadU8(src);
+                const box_t *linkedBox = findBoxByPermanentId(sbufReadU8(src));
+                if ((modeLogic != MODELOGIC_OR && modeLogic != MODELOGIC_AND) || !linkedBox) {
+                    return MSP_RESULT_ERROR;
+                }
+                linkedTo = linkedBox->boxId;
+                if (linkedTo && box->boxId == BOXARM) {
+                    return MSP_RESULT_ERROR; // ARM may not be driven by a link
+                }
+            } else if (extraBytes != 0) {
+                return MSP_RESULT_ERROR;
+            }
+            modeActivationCondition_t *mac = modeActivationConditionsMutable(index);
+            mac->modeId = box->boxId;
+            mac->auxChannelIndex = auxChannelIndex;
+            mac->range.startStep = startStep;
+            mac->range.endStep = endStep;
+            mac->modeLogic = modeLogic;
+            mac->linkedTo = linkedTo;
+            rcControlsInit();
         }
         break;
     case MSP_SET_ADJUSTMENT_RANGE:
