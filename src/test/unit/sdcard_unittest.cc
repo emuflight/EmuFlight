@@ -218,7 +218,7 @@ void resetSdcardTestState() {
     resetResponseScript();
     memset(&fakeBus, 0, sizeof(fakeBus));
     memset(&testConfig, 0, sizeof(testConfig));
-    testConfig.enabled = 1;
+    testConfig.mode = SDCARD_MODE_SPI;
     testConfig.device = 0;
     testConfig.chipSelectTag = 0;
     testConfig.cardDetectTag = 0; // no detect pin -> sdcard_isInserted() always true
@@ -289,6 +289,21 @@ TEST(SdcardUnittest, HighCapacityCardReachesReadyInOnePoll) {
     EXPECT_EQ(0x544D, metadata->oemID);
     EXPECT_EQ(2024, metadata->productionYear);
     EXPECT_EQ(6, metadata->productionMonth);
+}
+
+TEST(SdcardUnittest, ModeOtherThanSpiLeavesTheSpiDriverDisabled) {
+    const sdcardMode_e modes[] = { SDCARD_MODE_NONE, SDCARD_MODE_SDIO };
+    for (sdcardMode_e mode : modes) {
+        resetSdcardTestState();
+        scriptSuccessfulHighCapacityInit();
+        testConfig.mode = mode;
+
+        sdcard_init(&testConfig);
+
+        EXPECT_FALSE(sdcard_isFunctional());
+        EXPECT_FALSE(sdcard_poll());
+        EXPECT_FALSE(sdcard_isInitialized());
+    }
 }
 
 TEST(SdcardUnittest, SilentBusNeverReachesReadyAndEscalatesToNotPresent) {

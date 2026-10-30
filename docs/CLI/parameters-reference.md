@@ -1,7 +1,7 @@
 # CLI Reference
 
 > **Auto-generated** — do not edit manually.
-> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-10-28 | Commit: `4e4857a32` | Firmware: `0.5.0` | MSP: `0.1.55`
+> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-10-30 | Commit: `e112aae36` | Firmware: `0.5.0` | MSP: `0.1.55`
 
 Settings parameters (`valueTable[]`) and CLI commands that persist config through
 their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered here.
@@ -45,6 +45,7 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 - [PID Profile](#pid-profile)
 - [Telemetry Config](#telemetry-config)
 - [LED Strip Config](#led-strip-config)
+- [SDCARD Config](#sdcard-config)
 - [SDIO Config](#sdio-config)
 - [OSD Config](#osd-config)
 - [System Config](#system-config)
@@ -601,6 +602,12 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 |-----------|------|-------|----------------|----------|
 | `ledstrip_visual_beeper` | uint8 | master | `OFF`, `ON` | `USE_LED_STRIP` |
 | `ledstrip_grb_rgb` | uint8 | master | `GRB`, `RGB` | `USE_LED_STRIP` |
+
+## SDCARD Config
+
+| Parameter | Type | Scope | Range / Values | Requires |
+|-----------|------|-------|----------------|----------|
+| `sdcard_mode` | uint8 | master | `OFF`, `SPI`, `SDIO` | `USE_SDCARD` |
 
 ## SDIO Config
 

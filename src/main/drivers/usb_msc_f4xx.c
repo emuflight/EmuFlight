@@ -46,6 +46,7 @@
 
 #include "drivers/accgyro/accgyro_mpu.h"
 
+#include "pg/sdcard.h"
 #include "pg/usb.h"
 
 #include "usb_core.h"
@@ -79,6 +80,9 @@ uint8_t mscStart(void) {
     switch (blackboxConfig()->device) {
 #ifdef USE_SDCARD
     case BLACKBOX_DEVICE_SDCARD:
+        if (sdcardConfig()->mode == SDCARD_MODE_NONE) {
+            return 1;
+        }
         USBD_STORAGE_fops = &USBD_MSC_MICRO_SDIO_fops;
         break;
 #endif

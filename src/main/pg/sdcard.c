@@ -33,17 +33,13 @@
 #include "drivers/io.h"
 #include "drivers/dma.h"
 
-PG_REGISTER_WITH_RESET_FN(sdcardConfig_t, sdcardConfig, PG_SDCARD_CONFIG, 2);
+PG_REGISTER_WITH_RESET_FN(sdcardConfig_t, sdcardConfig, PG_SDCARD_CONFIG, 3);
 
 void pgResetFn_sdcardConfig(sdcardConfig_t *config) {
-#ifdef SDCARD_SPI_INSTANCE
-    config->enabled = 1;
-    config->device = spiDeviceByInstance(SDCARD_SPI_INSTANCE);
-#elif defined(USE_SDCARD_SDIO)
-    config->enabled = 1;
-#else
-    config->enabled = 0;
+    config->mode = SDCARD_MODE_NONE;
     config->device = 0;
+#ifdef USE_SDCARD_SDIO
+    config->mode = SDCARD_MODE_SDIO;
 #endif
 #ifdef SDCARD_DETECT_PIN
     config->cardDetectTag = IO_TAG(SDCARD_DETECT_PIN);
@@ -59,6 +55,13 @@ void pgResetFn_sdcardConfig(sdcardConfig_t *config) {
     config->cardDetectInverted = 1;
 #else
     config->cardDetectInverted = 0;
+#endif
+#ifdef SDCARD_SPI_INSTANCE
+    const SPIDevice spidevice = spiDeviceByInstance(SDCARD_SPI_INSTANCE);
+    config->device = spidevice;
+    if (spidevice != SPIINVALID && config->chipSelectTag) {
+        config->mode = SDCARD_MODE_SPI;
+    }
 #endif
 }
 #endif
