@@ -48,7 +48,7 @@
 #define SDCARD_PROFILING
 #endif
 
-#define SDCARD_TIMEOUT_INIT_MILLIS      200
+#define SDCARD_TIMEOUT_INIT_MILLIS      1000
 #define SDCARD_MAX_CONSECUTIVE_FAILURES 8
 
 // Use this to speed up writing to SDCARD... asyncfatfs has limited support for multiblock write
