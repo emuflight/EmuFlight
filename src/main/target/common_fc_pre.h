@@ -238,6 +238,9 @@
 #define USE_CMS
 #define USE_EXTENDED_CMS_MENUS
 #define USE_DSHOT_DMAR
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#define USE_DSHOT_BITBANG
+#endif
 #define USE_GYRO_OVERFLOW_CHECK
 #define USE_YAW_SPIN_RECOVERY
 #define USE_HUFFMAN

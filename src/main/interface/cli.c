@@ -58,6 +58,9 @@ extern uint8_t __config_end;
 #include "config/config_eeprom.h"
 #include "config/feature.h"
 
+#ifdef USE_DSHOT_BITBANG
+#include "drivers/dshot_bitbang.h"
+#endif
 #include "drivers/accgyro/accgyro.h"
 #ifdef USE_GYRO_IMUF9001
 #include "drivers/accgyro/accgyro_imuf9001.h"
@@ -3457,6 +3460,27 @@ static uint8_t getWordLength(char *bufBegin, char *bufEnd) {
     return bufEnd - bufBegin;
 }
 
+#ifdef USE_DSHOT_BITBANG
+// Bitbang cannot make the fast protocols, so a pilot who turned it ON must not be left on classic output silently.
+static bool cliDshotBitbangRejects(const clivalue_t *val, int value) {
+    uint8_t mode;
+    uint8_t protocol;
+    if (val->pgn != PG_MOTOR_CONFIG) {
+        return false;
+    }
+    if (val->offset == offsetof(motorConfig_t, dev.useDshotBitbang)) {
+        mode = value;
+        protocol = motorConfig()->dev.motorPwmProtocol;
+    } else if (val->offset == offsetof(motorConfig_t, dev.motorPwmProtocol)) {
+        mode = motorConfig()->dev.useDshotBitbang;
+        protocol = value;
+    } else {
+        return false;
+    }
+    return mode == DSHOT_BITBANG_ON && protocol > PWM_TYPE_DSHOT600 && protocol < PWM_TYPE_MAX;
+}
+#endif
+
 STATIC_UNIT_TESTED void cliSet(char *cmdline) {
     const uint32_t len = strlen(cmdline);
     char *eqptr;
@@ -3479,6 +3503,9 @@ STATIC_UNIT_TESTED void cliSet(char *cmdline) {
             // ensure exact match when setting to prevent setting variables with shorter names
             if (strncasecmp(cmdline, val->name, strlen(val->name)) == 0 && variableNameLength == strlen(val->name)) {
                 bool valueChanged = false;
+#ifdef USE_DSHOT_BITBANG
+                bool bitbangRejected = false;
+#endif
                 int16_t value  = 0;
                 switch (val->type & VALUE_MODE_MASK) {
                 case MODE_DIRECT: {
@@ -3503,6 +3530,12 @@ STATIC_UNIT_TESTED void cliSet(char *cmdline) {
                         matched = tableEntry->values[tableValueIndex] && strcasecmp(tableEntry->values[tableValueIndex], eqptr) == 0;
                         if (matched) {
                             value = tableValueIndex;
+#ifdef USE_DSHOT_BITBANG
+                            if (cliDshotBitbangRejects(val, value)) {
+                                bitbangRejected = true;
+                                break;
+                            }
+#endif
                             cliSetVar(val, value);
                             valueChanged = true;
                         }
@@ -3597,7 +3630,19 @@ STATIC_UNIT_TESTED void cliSet(char *cmdline) {
                 if (valueChanged) {
                     cliPrintf("%s set to ", val->name);
                     cliPrintVar(val, 0);
+#ifdef USE_DSHOT_BITBANG
+                    if (val->pgn == PG_MOTOR_CONFIG && val->offset == offsetof(motorConfig_t, dev.useDshotBitbang) && value == DSHOT_BITBANG_ON) {
+                        cliPrintLinefeed();
+                        cliPrintLine("max DSHOT600");
+                    }
+#endif
                 } else {
+#ifdef USE_DSHOT_BITBANG
+                    if (bitbangRejected) {
+                        cliPrintErrorLinef("max DSHOT600");
+                        return;
+                    }
+#endif
                     cliPrintErrorLinef("Invalid value");
                     cliPrintVarRange(val);
                 }
@@ -3684,6 +3729,15 @@ static void cliStatus(char *cmdline) {
         cliPrintf(" %s", armingDisableFlagNames[bitpos]);
     }
     cliPrintLinefeed();
+#ifdef USE_DSHOT_BITBANG
+    if (motorConfig()->dev.useDshotBitbang == DSHOT_BITBANG_ON) {
+        if (dshotBitbangProtocolSupported(motorConfig()->dev.motorPwmProtocol)) {
+            cliPrintLinef("DShot bitbang: %s, status %d", dshotBitbangIsRunning() ? "on" : "off", dshotBitbangGetStatus());
+        } else {
+            cliPrintLine("DShot bitbang: off, protocol");
+        }
+    }
+#endif
 }
 
 #ifndef SKIP_TASK_STATISTICS
