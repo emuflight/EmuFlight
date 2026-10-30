@@ -99,6 +99,7 @@
 
 // *************** OSD *****************************
 #define USE_MAX7456
+#define USE_NBD7456
 
 
 #define MAX7456_SPI_INSTANCE            SPI3
