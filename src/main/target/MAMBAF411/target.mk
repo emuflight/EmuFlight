@@ -1,3 +1,2 @@
 F411_TARGETS    += $(TARGET)
 FEATURES        += VCP
-
