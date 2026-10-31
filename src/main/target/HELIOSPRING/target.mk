@@ -1,5 +1,4 @@
 F405_TARGETS   += $(TARGET)
 FEATURES       += VCP ONBOARDFLASH
 
-TARGET_SRC = stm32f4xx_crc.c \
-             drivers/accgyro/accgyro_imuf9001.c
+TARGET_SRC = stm32f4xx_crc.c

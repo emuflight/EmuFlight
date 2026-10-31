@@ -1,9 +1,6 @@
 F405_TARGETS   += $(TARGET)
 FEATURES       += VCP ONBOARDFLASH
 
-TARGET_SRC = \
-drivers/accgyro/accgyro_spi_icm20689.c \
-drivers/accgyro/accgyro_spi_icm426xx.c \
 
 # notice - this file was programmatically generated and may be incomplete.
 
