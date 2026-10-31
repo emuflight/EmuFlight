@@ -23,7 +23,7 @@
 #define BOARD_NAME        AOCODAF405V2MPU6000
 #define MANUFACTURER_ID   SJET
 #define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000

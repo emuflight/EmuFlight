@@ -1,4 +1,3 @@
-F405_TARGETS    += $(TARGET)
 FEATURES        += VCP
 HSE_VALUE       = 25000000
 

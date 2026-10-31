@@ -20,6 +20,7 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F411
 #define TARGET_BOARD_IDENTIFIER         "BBL" // BeeBrain Lite
 #define USBD_PRODUCT_STRING             "BeeBrain Lite"
 

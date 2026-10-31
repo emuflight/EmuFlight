@@ -19,6 +19,7 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F7X2
 #define TARGET_BOARD_IDENTIFIER "IFRC"
 #define USBD_PRODUCT_STRING "JBF7_DJI"
 

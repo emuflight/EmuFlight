@@ -23,7 +23,7 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "HBRO"
 #define USBD_PRODUCT_STRING            "KAKUTEF7MINIV3"
 
-#define FC_TARGET_MCU                  STM32F7X2  // not used in EmuF
+#define FC_TARGET_MCU                  STM32F7X2
 #define TARGET_BOARD_IDENTIFIER        "S7X2"     // generic ID
 
 #define LED0_PIN                  PD2

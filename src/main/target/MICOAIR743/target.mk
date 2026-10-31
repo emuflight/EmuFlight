@@ -1,4 +1,3 @@
-H743_TARGETS   += $(TARGET)
 FEATURES       += VCP SDCARD
 
 

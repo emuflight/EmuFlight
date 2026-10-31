@@ -23,7 +23,7 @@
 #define BOARD_NAME                      SUB250F411
 #define MANUFACTURER_ID                 SU25
 #define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
-#define FC_TARGET_MCU                   STM32F411     // not used in EmuF
+#define FC_TARGET_MCU                   STM32F411
 
 #define USE_ACC
 #define USE_ACC_SPI_ICM42688P

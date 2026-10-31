@@ -20,6 +20,7 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
 #define TARGET_BOARD_IDENTIFIER "SP7D"
 #define USE_TARGET_CONFIG
 

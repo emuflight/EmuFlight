@@ -23,7 +23,7 @@
 #define BOARD_NAME        AXISFLYINGF7PRO
 #define MANUFACTURER_ID   AXFL
 #define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define USE_ACC
 #define USE_GYRO

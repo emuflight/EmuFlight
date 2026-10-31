@@ -25,7 +25,7 @@
 #define MANUFACTURER_ID         SPRO
 #define TARGET_BOARD_IDENTIFIER "SP7N"
 #define USBD_PRODUCT_STRING     "SPRacingH7NANO"
-#define FC_TARGET_MCU           STM32H750     // not used in EmuF
+#define FC_TARGET_MCU           STM32H750
 #define EEPROM_SIZE             8192
 
 // Config lives in the external QUADSPI flash (partition), same chip as blackbox.

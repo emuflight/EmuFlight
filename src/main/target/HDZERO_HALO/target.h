@@ -23,7 +23,7 @@
 #define BOARD_NAME        HDZERO_HALO
 #define MANUFACTURER_ID   HDZO
 #define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU     STM32H743     // not used in EmuF
+#define FC_TARGET_MCU     STM32H743
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
