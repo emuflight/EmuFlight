@@ -416,6 +416,26 @@ endif
 
 SRC += $(COMMON_SRC)
 
+# The simulator has no SPI receiver hardware.
+ifneq ($(SIMULATOR_BUILD),yes)
+SRC += \
+            drivers/rx/rx_cc2500.c \
+            drivers/rx/rx_a7105.c \
+            drivers/rx/rx_nrf24l01.c \
+            rx/cc2500_common.c \
+            rx/cc2500_frsky_d.c \
+            rx/cc2500_frsky_shared.c \
+            rx/cc2500_frsky_x.c \
+            rx/cc2500_redpine.c \
+            rx/cc2500_sfhss.c \
+            rx/flysky.c \
+            rx/nrf24_cx10.c \
+            rx/nrf24_h8_3d.c \
+            rx/nrf24_inav.c \
+            rx/nrf24_syma.c \
+            rx/nrf24_v202.c
+endif
+
 # Every target compiles the compass and barometer drivers; USE_MAG_* / USE_BARO_* select the chips.
 SRC += \
             $(addprefix drivers/compass/,$(notdir $(wildcard $(SRC_DIR)/drivers/compass/*.c))) \
