@@ -42,13 +42,17 @@
 
 #define USE_LED
 #define LED0_PIN                        PE5
-#define LED1_PIN                        PE4
+#define LED1_PIN                        PE2
 #define LED_STRIP_PIN                   PA5
 #define USE_BEEPER
 #define BEEPER_PIN                      PA7
 #define BEEPER_INVERTED
 
 #define USE_SPI
+#define USE_SPI_DEVICE_1
+#define SPI1_SCK_PIN                    PB3
+#define SPI1_MISO_PIN        PB4
+#define SPI1_MOSI_PIN        PB5
 #define USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN                    PB13
 #define SPI2_MISO_PIN        PB14
@@ -57,6 +61,10 @@
 #define SPI3_SCK_PIN                    PC10
 #define SPI3_MISO_PIN        PC11
 #define SPI3_MOSI_PIN        PB2
+
+#define USE_MAX7456
+#define MAX7456_SPI_INSTANCE  SPI1
+#define MAX7456_SPI_CS_PIN   PE4
 
 #define USE_SPI_GYRO
 #define USE_EXTI

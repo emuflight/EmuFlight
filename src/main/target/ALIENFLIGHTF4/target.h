@@ -126,6 +126,7 @@
 #define ESCSERIAL_TIMER_TX_PIN  PA8  // (HARDARE=0,PPM)
 
 #define USE_SPI
+#define USE_MAX7456
 #define USE_SPI_DEVICE_1
 #define USE_SPI_DEVICE_2
 #define USE_SPI_DEVICE_3
