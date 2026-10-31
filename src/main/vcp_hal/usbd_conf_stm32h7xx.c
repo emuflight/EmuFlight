@@ -64,6 +64,8 @@
 #include "drivers/usb_msc.h"
 #endif
 
+#ifdef USE_VCP
+
 /* Private typedef ----------------------------------------------------------- */
 /* Private define ------------------------------------------------------------ */
 /* Private macro ------------------------------------------------------------- */
@@ -777,5 +779,7 @@ void USBD_LL_Delay(uint32_t Delay)
 {
     HAL_Delay(Delay);
 }
+
+#endif // USE_VCP
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

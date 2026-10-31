@@ -483,9 +483,8 @@ SRC += \
             $(MSC_SRC)
 endif
 
-ifneq ($(filter VCP,$(FEATURES)),)
+# Each VCP file is guarded as a whole by USE_VCP.
 SRC += $(VCP_SRC)
-endif
 
 ifneq ($(filter MSC,$(FEATURES)),)
 SRC += $(MSC_SRC)
