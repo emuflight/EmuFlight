@@ -642,6 +642,10 @@ void max7456RefreshAll(void) {
 }
 
 void max7456WriteNvm(uint8_t char_address, const uint8_t *font_data) {
+    // dev->bus stays NULL until max7456Init() passes its pin and SPI checks.
+    if (dev->bus == NULL) {
+        return;
+    }
 #ifdef MAX7456_DMA_CHANNEL_TX
     while (dmaTransactionInProgress);
 #endif

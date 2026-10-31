@@ -124,6 +124,7 @@
 
 
 #define USE_SPI
+#define USE_MAX7456
 
 #define USE_SPI_DEVICE_1
 

@@ -41,6 +41,7 @@
 // *************** SPI1 Gyro & ACC *******************
 
 #define USE_SPI
+#define USE_MAX7456
 #define USE_SPI_DEVICE_1
 #define SPI1_SCK_PIN PA5
 #define SPI1_MISO_PIN PA6
