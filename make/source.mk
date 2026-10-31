@@ -37,6 +37,8 @@ COMMON_SRC = \
             drivers/transponder_ir_arcitimer.c \
             drivers/transponder_ir_ilap.c \
             drivers/transponder_ir_erlt.c \
+            drivers/vtx_rtc6705.c \
+            drivers/vtx_rtc6705_soft_spi.c \
             fc/board_info.c \
             fc/config.c \
             fc/fc_dispatch.c \
