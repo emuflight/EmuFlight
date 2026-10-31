@@ -135,13 +135,14 @@
 #define FLASH_SPI_INSTANCE                  SPI1
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
-#define USE_SDCARD_SDIO
+#define USE_SDCARD_SPI
 #define SDCARD_SPI_CS_PIN    PB11   // SPI2_NSS
 #define SDCARD_SPI_INSTANCE                 SPI2
 //notice - NEED: #define SDCARD_DMA_CHANNEL_TX       DMAx_StreamX // please verify
 //notice - other sdcard defines maybe needed (rare?): SDCARD_DMA_STREAM_TX_FULL, SDCARD_DMA_STREAM_TX, SDCARD_DMA_CLK, SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4    //notice - needs validation. these are hardware dependent. known options: 2, 4, 8.
 #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256  //notice - needs validation. these are hardware dependent. known options: 128, 256
+#define SDCARD_DETECT_PIN    PE15
 #define SDCARD_DETECT_INVERTED
 
 #define MAX7456_SPI_CS_PIN   PE4    // SPI4_NSS
