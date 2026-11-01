@@ -23,7 +23,7 @@
 #define BOARD_NAME        DFR_F722_DUAL_HD
 #define MANUFACTURER_ID   DFRA
 #define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define USE_ACC
 #define USE_BARO

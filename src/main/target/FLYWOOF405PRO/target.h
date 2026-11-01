@@ -23,7 +23,7 @@
 #define BOARD_NAME        FLYWOOF405PRO
 #define MANUFACTURER_ID   FLWO
 #define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 
 #define USE_GYRO
 #define USE_GYRO_SPI_ICM20689

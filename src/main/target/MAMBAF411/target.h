@@ -20,6 +20,7 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F411
 #define TARGET_BOARD_IDENTIFIER "MB41"
 #define USBD_PRODUCT_STRING     "MAMBA411"
 

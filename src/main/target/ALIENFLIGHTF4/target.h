@@ -25,7 +25,7 @@
 #define BOARD_NAME        ALIENFLIGHTF4
 #define MANUFACTURER_ID   AFNG
 #define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 
 #define ENABLE_DSHOT_DMAR       true
 
@@ -126,6 +126,7 @@
 #define ESCSERIAL_TIMER_TX_PIN  PA8  // (HARDARE=0,PPM)
 
 #define USE_SPI
+#define USE_MAX7456
 #define USE_SPI_DEVICE_1
 #define USE_SPI_DEVICE_2
 #define USE_SPI_DEVICE_3

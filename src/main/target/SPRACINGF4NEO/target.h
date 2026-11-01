@@ -20,6 +20,7 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
 #define TARGET_BOARD_IDENTIFIER             "SP4N"
 #define USE_TARGET_CONFIG
 

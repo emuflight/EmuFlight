@@ -19,6 +19,7 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F405
 #define TARGET_BOARD_IDENTIFIER "ELL0"
 
 #define TARGET_XTAL_MHZ         25

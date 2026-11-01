@@ -23,7 +23,7 @@
 #define BOARD_NAME        MAMBAF405_2022A
 #define MANUFACTURER_ID   DIAT
 #define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000

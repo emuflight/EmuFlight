@@ -20,6 +20,7 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
 #define TARGET_BOARD_IDENTIFIER "TTRH"
 #define USBD_PRODUCT_STRING     "Transtec f405 HD"
 
@@ -61,6 +62,7 @@
 #define LED0_PIN                PB9
 
 #define USE_SPI
+#define USE_MAX7456
 #define USE_SPI_DEVICE_1
 #define SPI1_SCK_PIN            PA5
 #define SPI1_MISO_PIN           PA6

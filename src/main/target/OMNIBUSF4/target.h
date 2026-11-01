@@ -22,6 +22,7 @@
 
 #define USE_TARGET_CONFIG
 
+#define FC_TARGET_MCU     STM32F405
 #define TARGET_BOARD_IDENTIFIER "OBF4"
 // Example of a manufacturer ID to be persisted as part of the config:
 #define TARGET_MANUFACTURER_IDENTIFIER "AIRB"

@@ -27,7 +27,8 @@
 #define BOARD_NAME              SPRACINGH7EF
 #define MANUFACTURER_ID         SPRO
 #define TARGET_BOARD_IDENTIFIER "SP7E"
-#define FC_TARGET_MCU           STM32H730     // not used in EmuF
+#define FC_TARGET_MCU           STM32H730
+#define FC_VMA_ADDRESS          0x90100000
 #define EEPROM_SIZE             8192
 
 // Config storage: a partition of the SPI6 onboard flash chip (same chip blackbox logging

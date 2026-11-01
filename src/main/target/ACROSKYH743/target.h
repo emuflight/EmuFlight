@@ -23,7 +23,7 @@
 #define BOARD_NAME        ACROSKYH743
 #define MANUFACTURER_ID   ASKY
 #define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU     STM32H743     // not used in EmuF
+#define FC_TARGET_MCU     STM32H743
 
 #define USE_GYRO
 #define USE_ACC
