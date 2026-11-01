@@ -58,6 +58,8 @@
 #include "drivers/usb_msc.h"
 #endif
 
+#ifdef USE_VCP
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define USBD_VID                      0x0483
@@ -329,4 +331,6 @@ static void IntToUnicode (uint32_t value, uint8_t *pbuf, uint8_t len) {
         pbuf[ 2 * idx + 1] = 0;
     }
 }
+#endif // USE_VCP
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
