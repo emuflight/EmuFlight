@@ -175,6 +175,9 @@ bool sdcard_isFunctional(void) {
  * When the count gets to the failure limit, the card is disabled.
  */
 static void sdcard_reset(void) {
+    // Drop cached blocks of an aborted multi-block write, or the next sequence appends to them.
+    cache_reset();
+
     if (!sdcard_isInserted()) {
         sdcard.state = SDCARD_STATE_NOT_PRESENT;
         return;

@@ -106,6 +106,7 @@ protected:
     void SetUp() override
     {
         std::memset(&sdcard, 0, sizeof(sdcard));
+        cacheCount = 0;
         std::memset(buffer, 0, sizeof(buffer));
         sdcard.enabled = true;
         sdcard.pendingOperation.buffer = buffer;
@@ -216,6 +217,34 @@ TEST_F(SdcardSdioTest, TimesOutBusyWriteAndReportsFailure)
     EXPECT_EQ(SDCARD_STATE_RESET, sdcard.state);
     EXPECT_EQ(1u, callbackCalls);
     EXPECT_EQ(nullptr, callbackBuffer);
+}
+
+TEST_F(SdcardSdioTest, ResetAfterFailedCachedWriteDropsCachedBlocks)
+{
+    // Three blocks cached for a multi-block write that then fails with a write timeout.
+    cacheCount = 3 * 512;
+    sdcard.useCache = true;
+    sdcard.state = SDCARD_STATE_SENDING_WRITE;
+    sdcard.operationStartTime = mockTimeMs - SDCARD_TIMEOUT_WRITE_MSEC - 1;
+    mockWriteStatus = SD_BUSY;
+
+    EXPECT_FALSE(sdcard_poll());
+
+    EXPECT_EQ(SDCARD_STATE_RESET, sdcard.state);
+    EXPECT_EQ(0u, cache_getCount());
+}
+
+TEST_F(SdcardSdioTest, ResetWithCardRemovedStillDropsCachedBlocks)
+{
+    cacheCount = 5 * 512;
+    sdcard.useCache = true;
+    sdcard.state = SDCARD_STATE_SENDING_WRITE;
+    sdcard.operationStartTime = mockTimeMs - SDCARD_TIMEOUT_WRITE_MSEC - 1;
+    mockWriteStatus = SD_ERROR;
+
+    EXPECT_FALSE(sdcard_poll());
+
+    EXPECT_EQ(0u, cache_getCount());
 }
 
 TEST_F(SdcardSdioTest, LeavesBusyWritePendingBeforeTimeout)
