@@ -20,6 +20,7 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F411
 #define TARGET_BOARD_IDENTIFIER         "BeeBrain BL V2" // BeeBrain BL
 #define USBD_PRODUCT_STRING             "BeeBrain BL V2"
 
@@ -99,6 +100,7 @@
 
 // *************** OSD *****************************
 #define USE_MAX7456
+#define USE_NBD7456
 
 
 #define MAX7456_SPI_INSTANCE            SPI3

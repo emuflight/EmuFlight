@@ -23,7 +23,7 @@
 #define BOARD_NAME        IFLIGHT_DEFENDER_F411
 #define MANUFACTURER_ID   IFRC
 #define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define FC_TARGET_MCU     STM32F411
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000

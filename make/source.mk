@@ -22,6 +22,7 @@ COMMON_SRC = \
             drivers/exti.c \
             drivers/io.c \
             drivers/light_led.c \
+            drivers/max7456.c \
             drivers/pinio.c \
             drivers/resource.c \
             drivers/rcc.c \
@@ -37,6 +38,8 @@ COMMON_SRC = \
             drivers/transponder_ir_arcitimer.c \
             drivers/transponder_ir_ilap.c \
             drivers/transponder_ir_erlt.c \
+            drivers/vtx_rtc6705.c \
+            drivers/vtx_rtc6705_soft_spi.c \
             fc/board_info.c \
             fc/config.c \
             fc/fc_dispatch.c \
@@ -401,18 +404,57 @@ SRC += $(DSP_LIB)/Source/StatisticsFunctions/arm_max_f32.c
 SRC += $(wildcard $(DSP_LIB)/Source/*/*.S)
 endif
 
-ifneq ($(filter ONBOARDFLASH,$(FEATURES)),)
+# Each flash file is guarded as a whole by its USE_FLASH* / USE_FLASHFS define.
 SRC += \
             drivers/flash.c \
             drivers/flash_m25p16.c \
             drivers/flash_w25m.c \
             drivers/flash_w25n.c \
             drivers/flash_w25q128fv.c \
-            io/flashfs.c \
-            $(MSC_SRC)
+            io/flashfs.c
+
+ifneq ($(filter ONBOARDFLASH,$(FEATURES)),)
+SRC += $(MSC_SRC)
 endif
 
 SRC += $(COMMON_SRC)
+
+# The simulator has no accelerometer or gyro hardware.
+ifneq ($(SIMULATOR_BUILD),yes)
+SRC += \
+            drivers/accgyro/accgyro_imuf9001.c \
+            drivers/accgyro/accgyro_mpu.c \
+            drivers/accgyro/accgyro_mpu3050.c \
+            drivers/accgyro/accgyro_mpu6050.c \
+            drivers/accgyro/accgyro_mpu6500.c \
+            drivers/accgyro/accgyro_spi_bmi160.c \
+            drivers/accgyro/accgyro_spi_bmi270.c \
+            drivers/accgyro/accgyro_spi_icm20689.c \
+            drivers/accgyro/accgyro_spi_icm426xx.c \
+            drivers/accgyro/accgyro_spi_mpu6000.c \
+            drivers/accgyro/accgyro_spi_mpu6500.c \
+            drivers/accgyro/accgyro_spi_mpu9250.c
+endif
+
+# The simulator has no SPI receiver hardware.
+ifneq ($(SIMULATOR_BUILD),yes)
+SRC += \
+            drivers/rx/rx_cc2500.c \
+            drivers/rx/rx_a7105.c \
+            drivers/rx/rx_nrf24l01.c \
+            rx/cc2500_common.c \
+            rx/cc2500_frsky_d.c \
+            rx/cc2500_frsky_shared.c \
+            rx/cc2500_frsky_x.c \
+            rx/cc2500_redpine.c \
+            rx/cc2500_sfhss.c \
+            rx/flysky.c \
+            rx/nrf24_cx10.c \
+            rx/nrf24_h8_3d.c \
+            rx/nrf24_inav.c \
+            rx/nrf24_syma.c \
+            rx/nrf24_v202.c
+endif
 
 # Every target compiles the compass and barometer drivers; USE_MAG_* / USE_BARO_* select the chips.
 SRC += \
@@ -441,9 +483,8 @@ SRC += \
             $(MSC_SRC)
 endif
 
-ifneq ($(filter VCP,$(FEATURES)),)
+# Each VCP file is guarded as a whole by USE_VCP.
 SRC += $(VCP_SRC)
-endif
 
 ifneq ($(filter MSC,$(FEATURES)),)
 SRC += $(MSC_SRC)

@@ -23,7 +23,7 @@
 #define MANUFACTURER_ID                 NEBD
 #define USBD_PRODUCT_STRING             "BeeBrain PRO"
 #define TARGET_BOARD_IDENTIFIER         "S411"         // generic ID
-#define FC_TARGET_MCU                   STM32F411      // not used in EmuF
+#define FC_TARGET_MCU                   STM32F411
 
 #define BOARD_NAME                      BEEBRAIN_PRO_FRSKY_US
 
@@ -101,6 +101,7 @@
 
 // *************** OSD *****************************
 #define USE_MAX7456
+#define USE_NBD7456
 #define MAX7456_SPI_INSTANCE            SPI3
 #define MAX7456_SPI_CS_PIN              SPI3_NSS_PIN
 

@@ -25,6 +25,8 @@
 
 #include "platform.h"
 
+#ifdef USE_GYRO_MPU3050
+
 #include "common/maths.h"
 #include "common/utils.h"
 
@@ -107,3 +109,5 @@ bool mpu3050Detect(gyroDev_t *gyro) {
     gyro->scale = 1.0f / 16.4f;
     return true;
 }
+
+#endif // USE_GYRO_MPU3050

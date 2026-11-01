@@ -19,6 +19,7 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F405
 #define TARGET_BOARD_IDENTIFIER "PKOS"
 #define USBD_PRODUCT_STRING     "PikoF4OSD"
 #define USE_TARGET_CONFIG

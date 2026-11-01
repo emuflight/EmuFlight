@@ -20,6 +20,7 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F411
 #define TARGET_BOARD_IDENTIFIER "MK41"
 #define USBD_PRODUCT_STRING     "MatekF411SE"
 

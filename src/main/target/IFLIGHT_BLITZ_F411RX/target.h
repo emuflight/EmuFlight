@@ -23,7 +23,7 @@
 #define BOARD_NAME        IFLIGHT_BLITZ_F411RX
 #define MANUFACTURER_ID   IFRC
 #define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define FC_TARGET_MCU     STM32F411
 
 #define USE_GYRO
 #define USE_ACC
