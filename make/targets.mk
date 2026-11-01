@@ -88,6 +88,14 @@ ifneq ($(MCU_GROUP_$(FC_TARGET_MCU)),)
 $(eval $(MCU_GROUP_$(FC_TARGET_MCU))_TARGETS += $(TARGET))
 endif
 
+# FC_VMA_ADDRESS in the target header selects an EXST build and its load address.
+FC_VMA_ADDRESS := $(strip $(shell sed -n 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*FC_VMA_ADDRESS[[:space:]][[:space:]]*\(0[xX][0-9A-Fa-f][0-9A-Fa-f]*\).*/\1/p' $(ROOT)/src/main/target/$(BASE_TARGET)/target.h | head -n 1))
+
+ifneq ($(FC_VMA_ADDRESS),)
+EXST = yes
+EXST_ADJUST_VMA := $(FC_VMA_ADDRESS)
+endif
+
 F4_TARGETS      := $(F405_TARGETS) $(F411_TARGETS) $(F446_TARGETS)
 F7_TARGETS      := $(F7X2RE_TARGETS) $(F7X5XE_TARGETS) $(F7X5XG_TARGETS) $(F7X5XI_TARGETS) $(F7X6XG_TARGETS)
 H7_TARGETS      := $(H743_TARGETS) $(H750_TARGETS) $(H723_TARGETS) $(H725_TARGETS) $(H730_TARGETS) $(H735_TARGETS) $(H7A3_TARGETS)
