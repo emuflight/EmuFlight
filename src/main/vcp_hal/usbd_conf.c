@@ -63,6 +63,8 @@
 #include "drivers/usb_msc.h"
 #endif
 
+#ifdef USE_VCP
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -588,5 +590,7 @@ uint32_t USBD_LL_GetRxDataSize(USBD_HandleTypeDef *pdev, uint8_t ep_addr) {
 void USBD_LL_Delay(uint32_t Delay) {
     HAL_Delay(Delay);
 }
+
+#endif // USE_VCP
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
