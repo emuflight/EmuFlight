@@ -1,4 +1,3 @@
-EXST            = yes
 FEATURES       += VCP ONBOARDFLASH
 
 
