@@ -404,15 +404,17 @@ SRC += $(DSP_LIB)/Source/StatisticsFunctions/arm_max_f32.c
 SRC += $(wildcard $(DSP_LIB)/Source/*/*.S)
 endif
 
-ifneq ($(filter ONBOARDFLASH,$(FEATURES)),)
+# Each flash file is guarded as a whole by its USE_FLASH* / USE_FLASHFS define.
 SRC += \
             drivers/flash.c \
             drivers/flash_m25p16.c \
             drivers/flash_w25m.c \
             drivers/flash_w25n.c \
             drivers/flash_w25q128fv.c \
-            io/flashfs.c \
-            $(MSC_SRC)
+            io/flashfs.c
+
+ifneq ($(filter ONBOARDFLASH,$(FEATURES)),)
+SRC += $(MSC_SRC)
 endif
 
 SRC += $(COMMON_SRC)
