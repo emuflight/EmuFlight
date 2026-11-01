@@ -41,7 +41,9 @@ PG_RESET_TEMPLATE(motorConfig_t, motorConfig,
         .useUnsyncedPwm = 0,
         .useBurstDshot = 0,
         .ioTags = {0},
-        .motorOutputReordering = {0, 1, 2, 3, 4, 5, 6, 7}
+        .motorOutputReordering = {0, 1, 2, 3, 4, 5, 6, 7},
+        .useDshotBitbang = 0,
+        .useDshotBitbangedTimer = 0
     },
     .digitalIdleOffsetValue = 0,
     .minthrottle = 1150,

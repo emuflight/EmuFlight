@@ -144,6 +144,12 @@ static const char * const lookupTableOffOnAuto[] = {
     "OFF", "ON", "AUTO"
 };
 
+#ifdef USE_DSHOT_BITBANG
+static const char * const lookupTableDshotBitbangedTimer[] = {
+    "AUTO", "TIM1", "TIM8"
+};
+#endif
+
 static const char * const lookupTableCrashRecovery[] = {
     "OFF", "ON", "BEEP"
 };
@@ -403,6 +409,9 @@ static const char *const lookupTableDynNotchAxisType[] = {
 const lookupTableEntry_t lookupTables[] = {
     LOOKUP_TABLE_ENTRY(lookupTableOffOn),
     LOOKUP_TABLE_ENTRY(lookupTableOffOnAuto),
+#ifdef USE_DSHOT_BITBANG
+    LOOKUP_TABLE_ENTRY(lookupTableDshotBitbangedTimer),
+#endif
     LOOKUP_TABLE_ENTRY(lookupTableUnit),
     LOOKUP_TABLE_ENTRY(lookupTableCrsfformat),
     LOOKUP_TABLE_ENTRY(lookupTableAlignment),
@@ -698,6 +707,10 @@ const clivalue_t valueTable[] = {
     { "min_command",                VAR_UINT16 | MASTER_VALUE, .config.minmax = { PWM_PULSE_MIN, PWM_PULSE_MAX }, PG_MOTOR_CONFIG, offsetof(motorConfig_t, mincommand) },
 #ifdef USE_DSHOT
     { "dshot_idle_value",           VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 2000 }, PG_MOTOR_CONFIG, offsetof(motorConfig_t, digitalIdleOffsetValue) },
+#ifdef USE_DSHOT_BITBANG
+    { "dshot_bitbang",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON_AUTO }, PG_MOTOR_CONFIG, offsetof(motorConfig_t, dev.useDshotBitbang) },
+    { "dshot_bitbang_timer",        VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_DSHOT_BITBANGED_TIMER }, PG_MOTOR_CONFIG, offsetof(motorConfig_t, dev.useDshotBitbangedTimer) },
+#endif
 #ifdef USE_DSHOT_DMAR
     { "dshot_burst",                VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_MOTOR_CONFIG, offsetof(motorConfig_t, dev.useBurstDshot) },
 #endif

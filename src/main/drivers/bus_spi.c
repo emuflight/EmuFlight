@@ -51,6 +51,11 @@
 #include "drivers/io.h"
 #include "drivers/rcc.h"
 
+#if defined(STM32F4) && defined(USE_DSHOT_BITBANG)
+#include "drivers/dshot_bitbang.h"
+#include "flight/mixer.h"
+#endif
+
 #include "pg/bus_spi.h"
 
 static uint8_t spiRegisteredDeviceCount = 0;
@@ -328,6 +333,10 @@ static bool spiDmaoptRange(int8_t pinned, uint8_t *first, uint8_t *last)
 void spiInitBusDMA(void)
 {
 #if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7)) && defined(USE_SPI)
+#if defined(STM32F4) && defined(USE_DSHOT_BITBANG)
+    // F4 errata 2.1.10: DMA2 corrupts when AHB GPIO and APB SPI are accessed together. Bitbang writes GPIO through DMA2.
+    const bool dshotBitbangActive = dshotBitbangIsActiveFor(motorConfig()->dev.useDshotBitbang, motorConfig()->dev.motorPwmProtocol) && dshotBitbangSupported(motorConfig()->dev.motorPwmInversion);
+#endif
     for (uint32_t device = 0; device < SPIDEV_COUNT; device++) {
 #if defined(USE_GYRO_IMUF9001)
         // SPI1 is claimed by accgyro_mpu.c's dedicated IMUF9001 DMA path; leave it alone here.
@@ -351,6 +360,12 @@ void spiInitBusDMA(void)
             const dmaChannelSpec_t *dmaTxChannelSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SPI_SDO, device, opt);
             if (dmaTxChannelSpec) {
                 dmaTxIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaTxChannelSpec->ref);
+#if defined(STM32F4) && defined(USE_DSHOT_BITBANG)
+                if (dshotBitbangActive && DMA_DEVICE_NO(dmaTxIdentifier) == 2) {
+                    dmaTxIdentifier = DMA_NONE;
+                    continue;
+                }
+#endif
                 if (!dmaAllocate(dmaTxIdentifier, OWNER_SPI_SDO, device + 1)) {
                     dmaTxIdentifier = DMA_NONE;
                     continue;
@@ -368,6 +383,12 @@ void spiInitBusDMA(void)
             const dmaChannelSpec_t *dmaRxChannelSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SPI_SDI, device, opt);
             if (dmaRxChannelSpec) {
                 dmaRxIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaRxChannelSpec->ref);
+#if defined(STM32F4) && defined(USE_DSHOT_BITBANG)
+                if (dshotBitbangActive && DMA_DEVICE_NO(dmaRxIdentifier) == 2) {
+                    dmaRxIdentifier = DMA_NONE;
+                    continue;
+                }
+#endif
                 if (!dmaAllocate(dmaRxIdentifier, OWNER_SPI_SDI, device + 1)) {
                     dmaRxIdentifier = DMA_NONE;
                     continue;

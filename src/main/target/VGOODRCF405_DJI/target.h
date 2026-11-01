@@ -126,6 +126,9 @@
     TIMER_PIN_MAP( 5, PB8 , 1,  0) /* cam ctrl */ \
     TIMER_PIN_MAP( 6, PB3 , 1,  0) /* led */
 
+// PA9 and PA8 share DMA2 Stream 6, so per-channel DShot cannot run; burst DShot uses one stream per timer
+#define ENABLE_DSHOT_DMAR       true
+
 #define MOTOR1_PIN              PA9
 #define MOTOR2_PIN              PA8
 #define MOTOR3_PIN              PC9

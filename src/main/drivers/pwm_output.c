@@ -29,6 +29,7 @@
 #include "drivers/time.h"
 
 #include "drivers/io.h"
+#include "drivers/dshot_bitbang.h"
 #include "pwm_output.h"
 #include "timer.h"
 #include "drivers/pwm_output.h"
@@ -36,6 +37,11 @@
 static FAST_RAM_ZERO_INIT pwmWriteFn *pwmWrite;
 static FAST_RAM_ZERO_INIT pwmOutputPort_t motors[MAX_SUPPORTED_MOTORS];
 static FAST_RAM_ZERO_INIT pwmCompleteWriteFn *pwmCompleteWrite = NULL;
+#ifdef USE_DSHOT_BITBANG
+static bool useBitbang;
+static const motorDevConfig_t *bitbangConfig;
+static uint8_t bitbangMotorCount;
+#endif
 
 #ifdef USE_DSHOT
 FAST_RAM_ZERO_INIT loadDmaBufferFn *loadDmaBuffer;
@@ -139,6 +145,16 @@ FAST_CODE static void pwmWriteStandard(uint8_t index, float value) {
 }
 
 #ifdef USE_DSHOT
+#ifdef USE_DSHOT_BITBANG
+static void pwmWriteDshotBitbang(uint8_t index, float value) {
+    dshotBitbangWriteInt(index, lrintf(value));
+}
+
+static void pwmCompleteDshotBitbangUpdate(uint8_t motorCount) {
+    dshotBitbangUpdateComplete(motorCount);
+}
+#endif
+
 static FAST_CODE void pwmWriteDshot(uint8_t index, float value) {
     pwmWriteDshotInt(index, lrintf(value));
 }
@@ -185,6 +201,12 @@ void pwmDisableMotors(void) {
 }
 
 void pwmEnableMotors(void) {
+#ifdef USE_DSHOT_BITBANG
+    // a passthrough or a command run left the pins and timers in other modes
+    if (useBitbang && !pwmMotorsEnabled) {
+        dshotBitbangRestore();
+    }
+#endif
     /* check motors can be enabled */
     pwmMotorsEnabled = (pwmWrite != &pwmWriteUnused);
 }
@@ -214,6 +236,9 @@ void pwmCompleteMotorUpdate(uint8_t motorCount) {
 
 void motorDevInit(const motorDevConfig_t *motorConfig, uint16_t idlePulse, uint8_t motorCount) {
     memset(motors, 0, sizeof(motors));
+#ifdef USE_DSHOT_BITBANG
+    useBitbang = false;
+#endif
     bool useUnsyncedPwm = motorConfig->useUnsyncedPwm;
     float sMin = 0;
     float sLen = 0;
@@ -259,8 +284,22 @@ void motorDevInit(const motorDevConfig_t *motorConfig, uint16_t idlePulse, uint8
         loadDmaBuffer = &loadDmaBufferDshot;
         pwmCompleteWrite = &pwmCompleteDshotMotorUpdate;
         isDshot = true;
+#ifdef USE_DSHOT_BITBANG
+        // bitbang replaces classic and burst; its late DMA claim runs in motorDevPostInit()
+        useBitbang = dshotBitbangIsActiveFor(motorConfig->useDshotBitbang, motorConfig->motorPwmProtocol) && dshotBitbangSupported(motorConfig->motorPwmInversion);
+        if (useBitbang) {
+            pwmWrite = &pwmWriteDshotBitbang;
+            pwmCompleteWrite = &pwmCompleteDshotBitbangUpdate;
+            bitbangConfig = motorConfig;
+            bitbangMotorCount = motorCount;
+        }
+#endif
 #ifdef USE_DSHOT_DMAR
-        if (motorConfig->useBurstDshot) {
+        if (motorConfig->useBurstDshot
+#ifdef USE_DSHOT_BITBANG
+            && !useBitbang
+#endif
+           ) {
             useBurstDshot = true;
         }
 #endif
@@ -274,6 +313,19 @@ void motorDevInit(const motorDevConfig_t *motorConfig, uint16_t idlePulse, uint8
     for (int motorIndex = 0; motorIndex < MAX_SUPPORTED_MOTORS && motorIndex < motorCount; motorIndex++) {
         const unsigned reorderedMotorIndex = motorConfig->motorOutputReordering[motorIndex];
         const ioTag_t tag = motorConfig->ioTags[reorderedMotorIndex];
+#ifdef USE_DSHOT_BITBANG
+        if (useBitbang) {
+            // the pin is plain GPIO; its timer stays free so it can pace another port group
+            if (!dshotBitbangMotorInit(motorIndex, reorderedMotorIndex, tag)) {
+                pwmWrite = &pwmWriteUnused;
+                pwmCompleteWrite = &pwmCompleteWriteUnused;
+                return;
+            }
+            motors[motorIndex].io = IOGetByTag(tag);
+            motors[motorIndex].enabled = true;
+            continue;
+        }
+#endif
         const timerHardware_t *timerHardware = timerAllocate(tag, OWNER_MOTOR, RESOURCE_INDEX(reorderedMotorIndex));
         if (timerHardware == NULL) {
             /* not enough motors initialised for the mixer or a break in the motors */
@@ -329,6 +381,21 @@ void motorDevInit(const motorDevConfig_t *motorConfig, uint16_t idlePulse, uint8
     }
     pwmMotorsEnabled = true;
 }
+
+#ifdef USE_DSHOT_BITBANG
+// Runs after every earlier DMA claimant, so SPI keeps its streams and bitbang takes what is left.
+void motorDevPostInit(void) {
+    if (!useBitbang || pwmWrite == &pwmWriteUnused) {
+        return;
+    }
+    if (!dshotBitbangPostInit(bitbangConfig, bitbangMotorCount)) {
+        // a port group without DMA must not leave the others running
+        pwmWrite = &pwmWriteUnused;
+        pwmCompleteWrite = &pwmCompleteWriteUnused;
+        pwmMotorsEnabled = false;
+    }
+}
+#endif
 
 pwmOutputPort_t *pwmGetMotors(void) {
     return motors;
@@ -413,10 +480,10 @@ void pwmWriteDshotCommand(uint8_t index, uint8_t motorCount, uint8_t command, bo
                 if ((i == index) || (index == ALL_MOTORS)) {
                     motorDmaOutput_t *const motor = getMotorDmaOutput(i);
                     motor->requestTelemetry = true;
-                    pwmWriteDshotInt(i, command);
+                    pwmWrite(i, command);
                 }
             }
-            pwmCompleteDshotMotorUpdate(0);
+            pwmCompleteWrite(0);
         }
         delayMicroseconds(delayAfterCommandUs);
     } else {

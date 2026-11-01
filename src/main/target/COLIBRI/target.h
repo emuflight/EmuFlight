@@ -130,7 +130,9 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 
 
-// Motor pads PB15, PB14, PB8 and PB9 sit on timers without DMA, so DShot cannot drive them
+// Motor pads PB15, PB14, PB8 and PB9 sit on timers without DMA; only bitbang DShot can drive them
+#define DEFAULT_DSHOT_BITBANG   DSHOT_BITBANG_ON
+
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PA10 , 1,  0) /* S1_IN */ \
     TIMER_PIN_MAP( 1, PC6 , 2,  0) /* S2_IN */ \
