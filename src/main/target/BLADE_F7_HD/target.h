@@ -23,6 +23,7 @@
 
 #define BOARD_NAME        BLADE_F7_HD
 #define MANUFACTURER_ID   RUSH
+#define FC_TARGET_MCU     STM32F7X2
 #define TARGET_BOARD_IDENTIFIER "RUSH"
 #define USBD_PRODUCT_STRING "BLADE_F7_HD"
 
@@ -40,6 +41,7 @@
 // *************** SPI1 Gyro & ACC *******************
 
 #define USE_SPI
+#define USE_MAX7456
 #define USE_SPI_DEVICE_1
 #define SPI1_SCK_PIN PA5
 #define SPI1_MISO_PIN PA6

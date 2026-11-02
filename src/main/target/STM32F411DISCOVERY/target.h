@@ -20,6 +20,7 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F411
 #define TARGET_BOARD_IDENTIFIER "S411" // STM Discovery F411
 #define USBD_PRODUCT_STRING     "DISCF411"
 
