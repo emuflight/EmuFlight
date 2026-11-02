@@ -23,7 +23,7 @@
 #define BOARD_NAME        TBS_LUCID_H7
 #define MANUFACTURER_ID   TEBS
 #define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU     STM32H743     // not used in EmuF
+#define FC_TARGET_MCU     STM32H743
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000

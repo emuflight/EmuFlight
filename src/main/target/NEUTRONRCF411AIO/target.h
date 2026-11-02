@@ -23,7 +23,7 @@
 #define BOARD_NAME        NEUTRONRCF411AIO
 #define MANUFACTURER_ID   NERC
 #define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define FC_TARGET_MCU     STM32F411
 
 #define USE_GYRO
 #define USE_GYRO_SPI_ICM42688P

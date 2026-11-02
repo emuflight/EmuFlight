@@ -22,6 +22,7 @@
 
 //OMNIBUSF7 TARGETS-------------------------
 #define USE_TARGET_CONFIG
+#define FC_TARGET_MCU     STM32F745
 #define TARGET_BOARD_IDENTIFIER "OB72"
 #define USBD_PRODUCT_STRING "OmnibusF7V2"
 

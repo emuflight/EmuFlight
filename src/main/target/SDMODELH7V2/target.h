@@ -23,7 +23,7 @@
 #define BOARD_NAME       SDMODELH7V2
 #define MANUFACTURER_ID  SDRC
 #define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU   STM32H743     // not used in EmuF
+#define FC_TARGET_MCU   STM32H743
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
@@ -33,7 +33,6 @@
 #define USE_BARO_BMP280
 #define USE_BARO_MS5611
 #define USE_MAG
-// Not supported in EF yet: not compiled or used until a driver is added.
 #define USE_MAG_IST8310
 #define USE_MAX7456
 #define USE_SDCARD

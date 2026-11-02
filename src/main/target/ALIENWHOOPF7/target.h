@@ -42,7 +42,7 @@
 #define TARGET_MANUFACTURER_IDENTIFIER  "ALWH"
 
 #define USBD_PRODUCT_STRING            "ALIENWHOOPF7"
-#define FC_TARGET_MCU                  STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU                  STM32F7X2
 #define TARGET_BOARD_IDENTIFIER        "S7X2"
 
 #define USE_TARGET_CONFIG // see config.c for target specific customizations

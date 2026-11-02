@@ -22,7 +22,7 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "BKMN"
 #define USBD_PRODUCT_STRING "NERO"
 
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 #define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
 
 #define USE_ACC

@@ -23,7 +23,7 @@
 #define BOARD_NAME           PRINCIPIOTH7PI
 #define MANUFACTURER_ID      PRIN
 #define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU        STM32H743     // not used in EmuF
+#define FC_TARGET_MCU        STM32H743
 
 #define USE_SDCARD
 #define USE_ACC
@@ -34,8 +34,8 @@
 #define USE_BARO
 #define USE_BARO_DPS310 // DPS368, but it's equivalent
 #define USE_MAG
-// Not supported in EF yet: not compiled or used until a driver is added.
 #define USE_MAG_LIS2MDL
+#define MAG_LIS2MDL_ALIGN CW90_DEG
 
 #define USE_VCP
 
