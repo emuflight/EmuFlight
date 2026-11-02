@@ -21,6 +21,7 @@
 #pragma once
 
 
+#define FC_TARGET_MCU     STM32F405
 #define TARGET_BOARD_IDENTIFIER "RVLT"
 #define USBD_PRODUCT_STRING     "Revolt"
 

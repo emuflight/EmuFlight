@@ -23,7 +23,7 @@
 #define BOARD_NAME      MICOAIR743
 #define MANUFACTURER_ID MICO
 #define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU   STM32H743     // not used in EmuF
+#define FC_TARGET_MCU   STM32H743
 
 #define USE_ACC
 #define USE_GYRO
@@ -33,8 +33,8 @@
 #define USE_SDCARD
 #define USE_MAX7456
 #define USE_MAG
-// Not supported in EF yet: not compiled or used until a driver is added.
 #define USE_MAG_IST8310
+#define MAG_IST8310_ALIGN CW90_DEG
 
 #define USE_VCP
 #define USE_OSD

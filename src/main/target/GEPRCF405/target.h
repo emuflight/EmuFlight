@@ -24,7 +24,7 @@
 #define BOARD_NAME        GEPRCF405
 #define MANUFACTURER_ID   GEPR
 #define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 
 #define LED0_PIN                PC14
 #define LED1_PIN                PC15

@@ -30,6 +30,9 @@
 
 #include "platform.h"
 
+#if defined(USE_ACC_SPI_MPU9250) \
+    || defined(USE_GYRO_SPI_MPU9250)
+
 #include "build/debug.h"
 
 #include "common/axis.h"
@@ -179,3 +182,5 @@ bool mpu9250SpiGyroDetect(gyroDev_t *gyro) {
     gyro->scale = 1.0f / 16.4f;
     return true;
 }
+
+#endif // USE_ACC_SPI_MPU9250 / USE_GYRO_SPI_MPU9250

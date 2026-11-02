@@ -1863,6 +1863,10 @@ static void cliWriteBytes(const uint8_t *buffer, int count) {
 static void cliSdInfo(char *cmdline) {
     UNUSED(cmdline);
     cliPrint("SD card: ");
+    if (sdcardConfig()->mode == SDCARD_MODE_NONE) {
+        cliPrintLine("Not configured");
+        return;
+    }
     if (!sdcard_isInserted()) {
         cliPrintLine("None inserted");
         return;

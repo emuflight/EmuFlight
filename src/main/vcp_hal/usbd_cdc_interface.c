@@ -64,6 +64,10 @@
 #include "drivers/nvic.h"
 #include "build/atomic.h"
 
+#include "platform.h"
+
+#ifdef USE_VCP
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define APP_RX_DATA_SIZE  2048
@@ -449,5 +453,7 @@ void CDC_SetCtrlLineStateCb(void (*cb)(void *context, uint16_t ctrlLineState), v
     ctrlLineStateCbContext = context;
     ctrlLineStateCb = cb;
 }
+
+#endif // USE_VCP
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

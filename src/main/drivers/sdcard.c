@@ -567,7 +567,7 @@ static bool sdcard_checkInitDone(void) {
  * Begin the initialization process for the SD card. This must be called first before any other sdcard_ routine.
  */
 void sdcard_init(const sdcardConfig_t *config) {
-    sdcard.enabled = config->enabled;
+    sdcard.enabled = config->mode == SDCARD_MODE_SPI;
     if (!sdcard.enabled) {
         sdcard.state = SDCARD_STATE_NOT_PRESENT;
         return;
