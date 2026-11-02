@@ -24,6 +24,9 @@
 
 #include "platform.h"
 
+#if defined(USE_ACC_SPI_ICM20689) \
+    || defined(USE_GYRO_SPI_ICM20689)
+
 #include "common/axis.h"
 #include "common/maths.h"
 
@@ -188,3 +191,5 @@ bool icm20689SpiGyroDetect(gyroDev_t *gyro) {
     gyro->scale = 1.0f / 16.4f;
     return true;
 }
+
+#endif // USE_ACC_SPI_ICM20689 / USE_GYRO_SPI_ICM20689

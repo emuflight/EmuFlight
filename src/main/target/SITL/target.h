@@ -27,6 +27,7 @@
 
 #include "common/utils.h"
 
+#define FC_TARGET_MCU     SITL
 #define TARGET_BOARD_IDENTIFIER "SITL"
 
 #define SIMULATOR_MULTITHREAD

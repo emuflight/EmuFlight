@@ -23,7 +23,7 @@
 #define BOARD_NAME        HAKRCF722V2
 #define MANUFACTURER_ID   HARC
 #define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000

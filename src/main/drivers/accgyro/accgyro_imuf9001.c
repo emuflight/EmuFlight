@@ -23,6 +23,9 @@
 
 #include "platform.h"
 
+#if defined(USE_GYRO_IMUF9001) \
+    || defined(USE_ACC_IMUF9001)
+
 #include "sensors/gyro.h"
 #include "accgyro.h"
 #include "accgyro_mpu.h"
@@ -554,3 +557,5 @@ FAST_CODE void imufEndCalibration(void) {
 }
 
 #endif
+
+#endif // USE_GYRO_IMUF9001 / USE_ACC_IMUF9001

@@ -23,7 +23,7 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "HAMO"
 #define USBD_PRODUCT_STRING            "CRAZYBEEF4FR"
 
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define FC_TARGET_MCU     STM32F411
 #define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
 
 #define LED0_PIN                PC13

@@ -21,6 +21,7 @@
 #pragma once
 
 #ifndef TARGET_BOARD_IDENTIFIER
+#define FC_TARGET_MCU     STM32F405
 #define TARGET_BOARD_IDENTIFIER "S405"
 #endif
 

@@ -17,6 +17,7 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
 #define TARGET_BOARD_IDENTIFIER "SX10"
 #define USBD_PRODUCT_STRING     "STRIX Binary F10 by Helio"
 

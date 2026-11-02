@@ -19,6 +19,7 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F7X2
 #define TARGET_BOARD_IDENTIFIER "TALN"
 #define USBD_PRODUCT_STRING "TALONF7FUSION"
 

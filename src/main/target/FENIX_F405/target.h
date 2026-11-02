@@ -23,7 +23,7 @@
 #define BOARD_NAME        FENIX_F405
 #define MANUFACTURER_ID   FOSS
 #define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000

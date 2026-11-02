@@ -24,6 +24,9 @@
 
 #include "platform.h"
 
+#if defined(USE_ACC_SPI_ICM20649) \
+    || defined(USE_GYRO_SPI_ICM20649)
+
 #include "common/axis.h"
 #include "common/maths.h"
 
@@ -172,3 +175,5 @@ bool icm20649AccRead(accDev_t *acc) {
     acc->ADCRaw[Z] = (int16_t)((data[4] << 8) | data[5]);
     return true;
 }
+
+#endif // USE_ACC_SPI_ICM20649 / USE_GYRO_SPI_ICM20649
