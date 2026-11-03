@@ -82,7 +82,8 @@ uint8_t mscStart(void) {
     switch (blackboxConfig()->device) {
 #ifdef USE_SDCARD
     case BLACKBOX_DEVICE_SDCARD:
-        if (sdcardConfig()->mode == SDCARD_MODE_NONE) {
+        // Mode NONE, or a backend this build did not compile, has no storage to serve.
+        if (sdcardConfig()->mode != USBD_MSC_MICRO_SD_MODE) {
             return 1;
         }
         USBD_MSC_RegisterStorage(&USBD_Device, &USBD_MSC_MICRO_SDIO_fops);

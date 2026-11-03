@@ -91,6 +91,13 @@ sdcardOperationStatus_e sdcard_writeBlock(uint32_t, uint8_t *, sdcard_operationC
 
 }
 
+TEST(MscSdSpiTest, BackendServesSpiMode) {
+    // mscStart() serves SD storage only when `sdcard_mode` equals this backend's mode.
+    EXPECT_EQ(SDCARD_MODE_SPI, USBD_MSC_MICRO_SD_MODE);
+    EXPECT_NE(SDCARD_MODE_NONE, USBD_MSC_MICRO_SD_MODE);
+    EXPECT_NE(SDCARD_MODE_SDIO, USBD_MSC_MICRO_SD_MODE);
+}
+
 TEST(MscSdSpiTest, InitReturnsErrorWhenCardNeverReady) {
     const uint32_t start = 5;
     setUpFakeCard(start);
