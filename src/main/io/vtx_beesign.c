@@ -125,6 +125,10 @@ static void vtxBSSetPowerIndex(vtxDevice_t *vtxDevice, uint8_t index) {
 static void vtxBSSetFreq(vtxDevice_t *vtxDevice, uint16_t freq) {
     UNUSED(vtxDevice);
     if (bsValidateFreq(freq)) {
+        // VTX ignores a raw frequency outside manual mode (CLI/MSP set band 0 without the CMS mode switch).
+        if (bsDevice.mode != BEESIGN_VTX_MODE_MANU) {
+            bsSetVtxMode(BEESIGN_VTX_MODE_MANU);
+        }
         bsSetFreq(freq);
     }
 }
