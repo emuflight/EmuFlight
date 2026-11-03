@@ -120,6 +120,9 @@ static uint8_t  STORAGE_Inquirydata[] = {//36
     '0', '.', '0', '1',                     /* Version      : 4 Bytes */
 };
 
+// The SD backend this file serves; mscStart() compares it with `sdcard_mode`.
+const sdcardMode_e USBD_MSC_MICRO_SD_MODE = SDCARD_MODE_SPI;
+
 #ifdef USE_HAL_DRIVER
 USBD_StorageTypeDef USBD_MSC_MICRO_SDIO_fops = {
     STORAGE_Init,

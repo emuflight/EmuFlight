@@ -83,6 +83,13 @@ SD_Error_t SD_WriteBlocks_DMA(uint64_t, uint32_t *, uint32_t, uint32_t) { return
 
 }
 
+TEST(MscSdioTest, BackendServesSdioMode) {
+    // mscStart() serves SD storage only when `sdcard_mode` equals this backend's mode.
+    EXPECT_EQ(SDCARD_MODE_SDIO, USBD_MSC_MICRO_SD_MODE);
+    EXPECT_NE(SDCARD_MODE_NONE, USBD_MSC_MICRO_SD_MODE);
+    EXPECT_NE(SDCARD_MODE_SPI, USBD_MSC_MICRO_SD_MODE);
+}
+
 TEST(MscSdioTest, ReadReturnsErrorWhenTransferNeverCompletes) {
     const uint32_t start = 0;
     const uint16_t blocks = 8;
