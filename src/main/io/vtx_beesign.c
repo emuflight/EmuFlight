@@ -123,9 +123,10 @@ static void vtxBSSetPowerIndex(vtxDevice_t *vtxDevice, uint8_t index) {
 }
 
 static void vtxBSSetFreq(vtxDevice_t *vtxDevice, uint16_t freq) {
-    UNUSED(vtxDevice);
-    if (bsValidateFreq(freq)) {
-        bsSetFreq(freq);
+    // No frequency mode: a table frequency is sent as band/channel, any other is ignored.
+    uint8_t band, channel;
+    if (vtx58_Freq2Bandchan(freq, &band, &channel)) {
+        vtxBSSetBandAndChannel(vtxDevice, band, channel);
     }
 }
 
@@ -174,6 +175,18 @@ bool beesignVtxInit(void) {
         return false;
     }
     vtxCommonSetDevice(&vtxBeesign);
+    // No frequency mode: band 0 becomes the matching band/channel, or the default.
+    if (vtxSettingsConfig()->band == 0) {
+        uint8_t band, channel;
+        if (vtx58_Freq2Bandchan(vtxSettingsConfig()->freq, &band, &channel)) {
+            vtxSettingsConfigMutable()->band = band;
+            vtxSettingsConfigMutable()->channel = channel;
+        } else {
+            vtxSettingsConfigMutable()->band = VTX_SETTINGS_DEFAULT_BAND;
+            vtxSettingsConfigMutable()->channel = VTX_SETTINGS_DEFAULT_CHANNEL;
+            vtxSettingsConfigMutable()->freq = VTX_SETTINGS_DEFAULT_FREQ;
+        }
+    }
     // bsSetVTxUnlock();
     return true;
 }
