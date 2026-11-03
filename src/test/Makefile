@@ -727,7 +727,8 @@ sdcard_unittest_LDFLAGS := \
 sdcard_sdio_unittest_SRC :=
 
 sdcard_sdio_unittest_DEFINES := \
-		USE_SDCARD
+		USE_SDCARD \
+		USE_SDCARD_SDIO
 
 
 flight_failsafe_unittest_SRC := \
