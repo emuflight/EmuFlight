@@ -27,10 +27,12 @@
 
 
 /* Includes ------------------------------------------------------------------*/
+#include "platform.h"
+
+#if defined(USE_SDCARD_SDIO)
+
 #include <stdio.h>
 #include <stdbool.h>
-
-#include "platform.h"
 
 #include "drivers/dma_reqmap.h"
 #include "drivers/sdmmc_sdio.h"
@@ -314,3 +316,4 @@ static int8_t STORAGE_GetMaxLun (void) {
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 
+#endif

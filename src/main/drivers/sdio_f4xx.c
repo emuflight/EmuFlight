@@ -28,12 +28,15 @@
 
 /* Include(s) -------------------------------------------------------------------------------------------------------*/
 
+#include "platform.h"
+
+#if defined(USE_SDCARD_SDIO)
+
 #include "stdbool.h"
 #include <string.h>
 
 #include "sdmmc_sdio.h"
 
-#include "platform.h"
 #include "stm32f4xx_gpio.h"
 
 #include "pg/pg.h"
@@ -1589,3 +1592,5 @@ void SDIO_DMA_ST6_IRQHandler(dmaChannelDescriptor_t *dma) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------*/
+
+#endif

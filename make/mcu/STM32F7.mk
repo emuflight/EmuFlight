@@ -113,11 +113,9 @@ INCLUDE_DIRS    := $(INCLUDE_DIRS) \
                    $(ROOT)/lib/main/STM32F7/Drivers/CMSIS/Device/ST/STM32F7xx/Include \
                    $(ROOT)/src/main/vcp_hal
 
-ifneq ($(filter SDCARD,$(FEATURES)),)
 INCLUDE_DIRS    := $(INCLUDE_DIRS) \
                    $(FATFS_DIR)
 VPATH           := $(VPATH):$(FATFS_DIR)
-endif
 
 #Flags
 ARCH_FLAGS      = -mthumb -mcpu=cortex-m7 -mfloat-abi=hard -mfpu=fpv5-sp-d16 -fsingle-precision-constant -Wdouble-promotion
@@ -178,26 +176,15 @@ MCU_EXCLUDES = \
 
 MSC_SRC = \
             drivers/usb_msc_f7xx.c \
-            msc/usbd_storage.c
-
-ifneq ($(filter SDIO,$(FEATURES)),)
-MCU_COMMON_SRC += \
-            drivers/sdio_f7xx.c            
-MSC_SRC += \
-            msc/usbd_storage_sdio.c
-endif
-
-ifneq ($(filter SDCARD,$(FEATURES)),)
-MSC_SRC += \
-            msc/usbd_storage_sd_spi.c
-endif
-
-ifneq ($(filter ONBOARDFLASH,$(FEATURES)),)
-MSC_SRC += \
+            msc/usbd_storage.c \
+            msc/usbd_storage_sd_spi.c \
+            msc/usbd_storage_sdio.c \
             msc/usbd_storage_emfat.c \
             msc/emfat.c \
             msc/emfat_file.c
-endif
+
+MCU_COMMON_SRC += \
+            drivers/sdio_f7xx.c
 
 DSP_LIB := $(ROOT)/lib/main/CMSIS/DSP
 DEVICE_FLAGS += -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1 -DUNALIGNED_SUPPORT_DISABLE -DARM_MATH_CM7

@@ -27,10 +27,13 @@
 
 
 /* Includes ------------------------------------------------------------------*/
+#include "platform.h"
+
+#if defined(USE_SDCARD) && !defined(USE_SDCARD_SDIO)
+
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "platform.h"
 #include "common/utils.h"
 
 #include "usbd_storage.h"
@@ -295,3 +298,4 @@ static int8_t STORAGE_GetMaxLun (void) {
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 
+#endif

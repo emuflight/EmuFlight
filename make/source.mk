@@ -413,9 +413,8 @@ SRC += \
             drivers/flash_w25q128fv.c \
             io/flashfs.c
 
-ifneq ($(filter ONBOARDFLASH,$(FEATURES)),)
+# Each MSC file is guarded as a whole by USE_USB_MSC, USE_FLASHFS, USE_SDCARD or USE_SDCARD_SDIO.
 SRC += $(MSC_SRC)
-endif
 
 SRC += $(COMMON_SRC)
 
@@ -464,31 +463,16 @@ SRC += \
 #excludes
 SRC   := $(filter-out $(MCU_EXCLUDES), $(SRC))
 
-ifneq ($(filter SDCARD,$(FEATURES)),)
+# Each SD file is guarded as a whole by USE_SDCARD or USE_SDCARD_SDIO.
 SRC += \
             drivers/sdcard.c \
-            drivers/sdcard_standard.c \
-            io/asyncfatfs/asyncfatfs.c \
-            io/asyncfatfs/fat_standard.c \
-            $(MSC_SRC)
-endif
-
-ifneq ($(filter SDIO,$(FEATURES)),)
-SRC += \
             drivers/sdcard_sdio_baremetal.c \
             drivers/sdcard_standard.c \
             io/asyncfatfs/asyncfatfs.c \
-            io/asyncfatfs/fat_standard.c \
-            pg/sdio.c \
-            $(MSC_SRC)
-endif
+            io/asyncfatfs/fat_standard.c
 
 # Each VCP file is guarded as a whole by USE_VCP.
 SRC += $(VCP_SRC)
-
-ifneq ($(filter MSC,$(FEATURES)),)
-SRC += $(MSC_SRC)
-endif
 # end target specific make file checks
 
 # Search path and source files for the ST stdperiph library
