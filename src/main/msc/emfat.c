@@ -28,6 +28,10 @@
  * SOFTWARE.
  */
 
+#include "platform.h"
+
+#if defined(USE_FLASHFS)
+
 #include "common/utils.h"
 
 #include "emfat.h"
@@ -667,4 +671,6 @@ uint32_t emfat_cma_time_from_unix(uint32_t tim) {
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

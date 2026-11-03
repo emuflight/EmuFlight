@@ -33,11 +33,13 @@
  * size, which we get from the directory entry). This allows for extremely fast append-only logging.
  */
 
+#include "platform.h"
+
+#if defined(USE_SDCARD)
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "platform.h"
 
 #ifdef AFATFS_DEBUG
 #include <signal.h>
@@ -3202,3 +3204,5 @@ uint32_t afatfs_getFreeBufferSpace(void) {
     }
     return result;
 }
+
+#endif
