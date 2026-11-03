@@ -98,6 +98,10 @@ static bool vtxBSIsReady(const vtxDevice_t *vtxDevice) {
 static void vtxBSSetBandAndChannel(vtxDevice_t *vtxDevice, uint8_t band, uint8_t channel) {
     UNUSED(vtxDevice);
     if (bsValidateBandAndChannel(band, channel)) {
+        // A reboot can drop a queued race-mode command; re-send it when the VTX reports another mode.
+        if (bsDevice.mode != BEESIGN_VTX_MODE_RACE) {
+            bsSetVtxMode(BEESIGN_VTX_MODE_RACE);
+        }
         bsSetBandAndChannel(band - 1, channel - 1);
     }
 }
@@ -124,12 +128,14 @@ static void vtxBSSetPowerIndex(vtxDevice_t *vtxDevice, uint8_t index) {
 
 static void vtxBSSetFreq(vtxDevice_t *vtxDevice, uint16_t freq) {
     UNUSED(vtxDevice);
-    if (bsValidateFreq(freq)) {
-        // VTX ignores a raw frequency outside manual mode (CLI/MSP set band 0 without the CMS mode switch).
-        if (bsDevice.mode != BEESIGN_VTX_MODE_MANU) {
-            bsSetVtxMode(BEESIGN_VTX_MODE_MANU);
+    // Race mode only: a table frequency goes out as band/channel, any other frequency is ignored.
+    for (uint8_t band = 0; band < BEESIGN_BAND_COUNT; band++) {
+        for (uint8_t channel = 0; channel < BEESIGN_CHANNEL_COUNT; channel++) {
+            if (vtx58frequencyTable[band][channel] == freq) {
+                bsSetBandAndChannel(band, channel);
+                return;
+            }
         }
-        bsSetFreq(freq);
     }
 }
 
