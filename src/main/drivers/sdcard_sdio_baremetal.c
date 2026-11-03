@@ -26,7 +26,6 @@
 
 #include "platform.h"
 
-#define USE_SDCARD_SDIO
 #ifdef USE_SDCARD_SDIO
 
 #include "common/utils.h"

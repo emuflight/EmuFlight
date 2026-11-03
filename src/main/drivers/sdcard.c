@@ -23,7 +23,7 @@
 
 #include "platform.h"
 
-#ifdef USE_SDCARD
+#if defined(USE_SDCARD) && !defined(USE_SDCARD_SDIO)
 
 #include "drivers/nvic.h"
 #include "drivers/io.h"

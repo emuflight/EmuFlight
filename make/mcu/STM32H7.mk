@@ -295,24 +295,12 @@ MCU_EXCLUDES = \
 
 MSC_SRC = \
             drivers/usb_msc_h7xx.c \
-            msc/usbd_storage.c
-
-ifneq ($(filter SDCARD,$(FEATURES)),)
-MSC_SRC += \
-            msc/usbd_storage_sd_spi.c
-endif
-
-ifneq ($(filter SDCARD_SDIO,$(FEATURES)),)
-MSC_SRC += \
-            msc/usbd_storage_sdio.c
-endif
-
-ifneq ($(filter ONBOARDFLASH,$(FEATURES)),)
-MSC_SRC += \
+            msc/usbd_storage.c \
+            msc/usbd_storage_sd_spi.c \
+            msc/usbd_storage_sdio.c \
             msc/usbd_storage_emfat.c \
             msc/emfat.c \
             msc/emfat_file.c
-endif
 
 DSP_LIB := $(ROOT)/lib/main/CMSIS/DSP
 DEVICE_FLAGS += -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1 -DUNALIGNED_SUPPORT_DISABLE -DARM_MATH_CM7

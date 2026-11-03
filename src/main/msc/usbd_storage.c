@@ -22,6 +22,10 @@
  * Author: jflyper (https://github.com/jflyper)
  */
 
+#include "platform.h"
+
+#if defined(USE_USB_MSC)
+
 #ifdef USE_HAL_DRIVER
 #include "usbd_msc.h"
 #else
@@ -35,4 +39,6 @@
 USBD_StorageTypeDef *USBD_STORAGE_fops;
 #else
 USBD_STORAGE_cb_TypeDef *USBD_STORAGE_fops;
+#endif
+
 #endif
