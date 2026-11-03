@@ -724,6 +724,11 @@ sdcard_unittest_CFLAGS := \
 sdcard_unittest_LDFLAGS := \
 		-no-pie
 
+sdcard_sdio_unittest_SRC :=
+
+sdcard_sdio_unittest_DEFINES := \
+		USE_SDCARD
+
 
 flight_failsafe_unittest_SRC := \
 		$(USER_DIR)/common/bitarray.c \
@@ -864,6 +869,22 @@ pg_sdio_opt_unittest_SRC := \
 pg_sdio_opt_unittest_DEFINES := \
 		USE_SDCARD_SDIO \
 		SDCARD_SDIO_DMA_OPT=0
+
+pg_sdio_dev1_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdio.c
+
+pg_sdio_dev1_unittest_DEFINES := \
+		USE_SDCARD_SDIO \
+		SDIO_DEVICE=SDIODEV_1
+
+pg_sdio_dev2_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdio.c
+
+pg_sdio_dev2_unittest_DEFINES := \
+		USE_SDCARD_SDIO \
+		SDIO_DEVICE=SDIODEV_2
 
 pg_unittest_SRC := \
 		$(USER_DIR)/pg/pg.c

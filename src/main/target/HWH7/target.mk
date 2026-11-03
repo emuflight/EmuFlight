@@ -1,4 +1,4 @@
-FEATURES       += VCP SDCARD
+FEATURES       += VCP SDIO SDCARD_SDIO
 
 
 # notice - this file was programmatically generated and may be incomplete.
