@@ -175,7 +175,9 @@ bool beesignVtxInit(void) {
         return false;
     }
     vtxCommonSetDevice(&vtxBeesign);
-    // No frequency mode: band 0 becomes the matching band/channel, or the default.
+    // No frequency mode: no pit-mode frequency either (it would make the effective band 0).
+    vtxSettingsConfigMutable()->pitModeFreq = 0;
+    // Band 0 becomes the matching band/channel, or the default.
     if (vtxSettingsConfig()->band == 0) {
         uint8_t band, channel;
         if (vtx58_Freq2Bandchan(vtxSettingsConfig()->freq, &band, &channel)) {
