@@ -20,6 +20,7 @@
 
  #pragma once
 
+#define FC_TARGET_MCU     STM32F745
  #define TARGET_BOARD_IDENTIFIER "FLWO"
  #define USBD_PRODUCT_STRING "FLYWOOF745"
 

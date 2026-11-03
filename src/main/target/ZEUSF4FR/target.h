@@ -23,7 +23,7 @@
 #define BOARD_NAME        ZEUSF4FR
 #define MANUFACTURER_ID   HGLR
 #define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define FC_TARGET_MCU     STM32F411
 
 #define LED0_PIN PC13
 

@@ -25,7 +25,7 @@
 #define BOARD_NAME        XILOF4
 #define MANUFACTURER_ID   GEFP
 #define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 
 #define LED0_PIN                PC15
 #define USE_BEEPER

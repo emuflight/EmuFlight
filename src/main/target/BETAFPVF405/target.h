@@ -23,7 +23,7 @@
 #define BOARD_NAME        BETAFPVF405
 #define MANUFACTURER_ID   BEFH
 #define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 
 #define USE_BEEPER
 #define BEEPER_PIN              PB4

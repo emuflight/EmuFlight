@@ -20,6 +20,7 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
 #define TARGET_BOARD_IDENTIFIER "PODI"
 #define USBD_PRODUCT_STRING     "PodiumF4"
 
@@ -105,6 +106,7 @@
 #define ESCSERIAL_TIMER_TX_PIN  PB14  // (HARDARE=0,PPM)
 
 #define USE_SPI
+#define USE_MAX7456
 
 #define USE_SPI_DEVICE_1
 

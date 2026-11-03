@@ -20,6 +20,7 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
 #define TARGET_BOARD_IDENTIFIER "SB72"
 #define USBD_PRODUCT_STRING  "SpeedyBeeF7V2"
 #define USE_TARGET_CONFIG

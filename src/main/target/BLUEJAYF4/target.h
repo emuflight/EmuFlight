@@ -19,6 +19,7 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F405
 #define TARGET_BOARD_IDENTIFIER "BJF4"
 #define USE_TARGET_CONFIG
 #define TARGET_VALIDATECONFIG

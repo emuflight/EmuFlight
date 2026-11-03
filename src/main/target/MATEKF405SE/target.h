@@ -23,7 +23,7 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "MTKS"
 #define USBD_PRODUCT_STRING "MATEKF405SE"
 
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 #define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
 
 #define LED0_PIN                PA14
