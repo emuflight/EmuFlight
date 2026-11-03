@@ -27,12 +27,12 @@
 
 
 /* Includes ------------------------------------------------------------------*/
+#include <stdio.h>
+#include <stdbool.h>
+
 #include "platform.h"
 
 #if defined(USE_SDCARD) && !defined(USE_SDCARD_SDIO)
-
-#include <stdio.h>
-#include <stdbool.h>
 
 #include "common/utils.h"
 
