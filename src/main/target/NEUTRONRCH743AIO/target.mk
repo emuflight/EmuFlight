@@ -1,4 +1,4 @@
-FEATURES       += VCP SDCARD ONBOARDFLASH
+FEATURES       += VCP SDIO SDCARD_SDIO ONBOARDFLASH
 
 
 # notice - this file was programmatically generated and may be incomplete.

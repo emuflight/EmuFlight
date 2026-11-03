@@ -457,7 +457,6 @@ typedef struct afatfs_t {
     } initState;
 #endif
 
-    uint8_t cache[AFATFS_SECTOR_SIZE * AFATFS_NUM_CACHE_SECTORS];
     afatfsCacheBlockDescriptor_t cacheDescriptor[AFATFS_NUM_CACHE_SECTORS];
     uint32_t cacheTimer;
 
@@ -506,6 +505,9 @@ typedef struct afatfs_t {
     uint32_t rootDirectoryCluster; // Present on FAT32 and set to zero for FAT16
     uint32_t rootDirectorySectors; // Zero on FAT32, for FAT16 the number of sectors that the root directory occupies
 } afatfs_t;
+
+// SDIO DMA needs a 32-byte aligned buffer in DMA-capable RAM (H7: AXI SRAM, not DTCM).
+static DMA_DATA_ZERO_INIT uint8_t afatfs_cache[AFATFS_SECTOR_SIZE * AFATFS_NUM_CACHE_SECTORS] __attribute__((aligned(32)));
 
 static afatfs_t afatfs;
 
@@ -582,11 +584,11 @@ static uint32_t afatfs_sectorIndexInCluster(uint32_t byteOffset) {
 
 // Get the buffer memory for the cache entry of the given index.
 static uint8_t *afatfs_cacheSectorGetMemory(int cacheEntryIndex) {
-    return afatfs.cache + cacheEntryIndex * AFATFS_SECTOR_SIZE;
+    return afatfs_cache + cacheEntryIndex * AFATFS_SECTOR_SIZE;
 }
 
 static int afatfs_getCacheDescriptorIndexForBuffer(uint8_t *memory) {
-    int index = (memory - afatfs.cache) / AFATFS_SECTOR_SIZE;
+    int index = (memory - afatfs_cache) / AFATFS_SECTOR_SIZE;
     if (afatfs_assert(index >= 0 && index < AFATFS_NUM_CACHE_SECTORS)) {
         return index;
     } else {
