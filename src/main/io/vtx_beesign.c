@@ -39,6 +39,8 @@
 #include "drivers/beesign.h"
 #include "drivers/vtx_common.h"
 
+#include "fc/config.h"
+
 #include "io/serial.h"
 #include "io/vtx_tramp.h"
 #include "io/vtx_control.h"
@@ -98,10 +100,6 @@ static bool vtxBSIsReady(const vtxDevice_t *vtxDevice) {
 static void vtxBSSetBandAndChannel(vtxDevice_t *vtxDevice, uint8_t band, uint8_t channel) {
     UNUSED(vtxDevice);
     if (bsValidateBandAndChannel(band, channel)) {
-        // A reboot can drop a queued race-mode command; re-send it when the VTX reports another mode.
-        if (bsDevice.mode != BEESIGN_VTX_MODE_RACE) {
-            bsSetVtxMode(BEESIGN_VTX_MODE_RACE);
-        }
         bsSetBandAndChannel(band - 1, channel - 1);
     }
 }
@@ -126,16 +124,25 @@ static void vtxBSSetPowerIndex(vtxDevice_t *vtxDevice, uint8_t index) {
     bsSetPower(index);
 }
 
-static void vtxBSSetFreq(vtxDevice_t *vtxDevice, uint16_t freq) {
-    UNUSED(vtxDevice);
-    // Race mode only: a table frequency goes out as band/channel, any other frequency is ignored.
+static bool bsFreqToBandChannel(uint16_t freq, uint8_t *pBand, uint8_t *pChannel) {
     for (uint8_t band = 0; band < BEESIGN_BAND_COUNT; band++) {
         for (uint8_t channel = 0; channel < BEESIGN_CHANNEL_COUNT; channel++) {
             if (vtx58frequencyTable[band][channel] == freq) {
-                bsSetBandAndChannel(band, channel);
-                return;
+                *pBand = band;
+                *pChannel = channel;
+                return true;
             }
         }
+    }
+    return false;
+}
+
+static void vtxBSSetFreq(vtxDevice_t *vtxDevice, uint16_t freq) {
+    UNUSED(vtxDevice);
+    // Race mode only: a table frequency goes out as band/channel, any other frequency is ignored.
+    uint8_t band, channel;
+    if (bsFreqToBandChannel(freq, &band, &channel)) {
+        bsSetBandAndChannel(band, channel);
     }
 }
 
@@ -184,6 +191,19 @@ bool beesignVtxInit(void) {
         return false;
     }
     vtxCommonSetDevice(&vtxBeesign);
+    // No frequency mode: band 0 becomes the matching band/channel, or the default when not in the table.
+    if (vtxSettingsConfig()->band == 0) {
+        uint8_t band, channel;
+        if (bsFreqToBandChannel(vtxSettingsConfig()->freq, &band, &channel)) {
+            vtxSettingsConfigMutable()->band = band + 1;
+            vtxSettingsConfigMutable()->channel = channel + 1;
+        } else {
+            vtxSettingsConfigMutable()->band = VTX_SETTINGS_DEFAULT_BAND;
+            vtxSettingsConfigMutable()->channel = VTX_SETTINGS_DEFAULT_CHANNEL;
+            vtxSettingsConfigMutable()->freq = VTX_SETTINGS_DEFAULT_FREQ;
+        }
+        saveConfigAndNotify();
+    }
     // bsSetVTxUnlock();
     return true;
 }

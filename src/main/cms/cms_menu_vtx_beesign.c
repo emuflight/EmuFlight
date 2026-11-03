@@ -150,7 +150,7 @@ CMS_Menu cmsx_menuVtxBsMode = {
 };
 
 static OSD_Entry bsCmsMenuRaceModeEntries[] = {
-    {"--- BEESIGN RACE---", OME_Label, NULL, NULL, 0},
+    {"--- BEESIGN ---", OME_Label, NULL, NULL, 0},
     // {"MODE",        OME_Submenu,    cmsMenuChange,          &cmsx_menuVtxBsMode,    0},
     {"BAND",        OME_TAB,        bsCmsConfigBandByGvar,  &bsEntryVtxBand,        0},
     {"CHANNEL",     OME_UINT8,      bsCmsConfigBandByGvar,  &bsEntryVtxChannel,     0},
