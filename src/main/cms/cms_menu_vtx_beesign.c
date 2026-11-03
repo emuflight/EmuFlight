@@ -55,12 +55,14 @@ static OSD_TAB_t bsEntryVtxPower =        {&bs_vtxPower, BEESIGN_POWER_COUNT - B
 CMS_Menu cmsx_menuVtxBeesign; // Forward
 
 static void bs_Vtx_ConfigRead(void) {
-    bs_vtxChannel = vtxSettingsConfig()->channel;
-    if (vtxSettingsConfig()->band == 0) {
-        bs_vtxBand = 0;
-    } else {
-        bs_vtxBand = vtxSettingsConfig()->band - 1;
+    uint8_t band = vtxSettingsConfig()->band;
+    uint8_t channel = vtxSettingsConfig()->channel;
+    if (band == 0 && !vtx58_Freq2Bandchan(vtxSettingsConfig()->freq, &band, &channel)) {
+        band = VTX_SETTINGS_DEFAULT_BAND;
+        channel = VTX_SETTINGS_DEFAULT_CHANNEL;
     }
+    bs_vtxBand = band - 1;
+    bs_vtxChannel = channel;
     bs_showFreq = vtx58frequencyTable[bs_vtxBand][bs_vtxChannel - 1];
     if (vtxSettingsConfig()->power > 1) {
         bs_vtxPower = vtxSettingsConfig()->power - BEESIGN_MIN_POWER;
