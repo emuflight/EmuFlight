@@ -65,7 +65,8 @@ timeUs_t micros(void) { return mockTimeMs * 1000; }
 IO_t IOGetByTag(ioTag_t) { return (IO_t)0; }
 void IOInit(IO_t, resourceOwner_e, uint8_t) {}
 void IOConfigGPIO(IO_t, ioConfig_t) {}
-bool IORead(IO_t) { return false; }
+static bool mockCardDetectRead;
+bool IORead(IO_t) { return mockCardDetectRead; }
 const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e, uint8_t, int8_t) { return nullptr; }
 
 bool SD_Initialize_LL(DMA_Stream_TypeDef *) { return true; }
@@ -107,6 +108,7 @@ protected:
     {
         std::memset(&sdcard, 0, sizeof(sdcard));
         cacheCount = 0;
+        mockCardDetectRead = false;
         std::memset(buffer, 0, sizeof(buffer));
         sdcard.enabled = true;
         sdcard.pendingOperation.buffer = buffer;
@@ -234,16 +236,34 @@ TEST_F(SdcardSdioTest, ResetAfterFailedCachedWriteDropsCachedBlocks)
     EXPECT_EQ(0u, cache_getCount());
 }
 
-TEST_F(SdcardSdioTest, ResetWithCardRemovedStillDropsCachedBlocks)
+TEST_F(SdcardSdioTest, ResetAfterWriteErrorDropsCachedBlocks)
 {
     cacheCount = 5 * 512;
     sdcard.useCache = true;
     sdcard.state = SDCARD_STATE_SENDING_WRITE;
-    sdcard.operationStartTime = mockTimeMs - SDCARD_TIMEOUT_WRITE_MSEC - 1;
+    sdcard.operationStartTime = mockTimeMs;
     mockWriteStatus = SD_ERROR;
 
     EXPECT_FALSE(sdcard_poll());
 
+    EXPECT_EQ(SDCARD_STATE_RESET, sdcard.state);
+    EXPECT_EQ(0u, cache_getCount());
+}
+
+TEST_F(SdcardSdioTest, ResetWithCardRemovedDropsCachedBlocks)
+{
+    // The detect pin reads high when the card is out: sdcard_isInserted() is false.
+    sdcard.cardDetectPin = (IO_t)1;
+    mockCardDetectRead = true;
+    cacheCount = 5 * 512;
+    sdcard.useCache = true;
+    sdcard.state = SDCARD_STATE_SENDING_WRITE;
+    sdcard.operationStartTime = mockTimeMs - SDCARD_TIMEOUT_WRITE_MSEC - 1;
+    mockWriteStatus = SD_BUSY;
+
+    EXPECT_FALSE(sdcard_poll());
+
+    EXPECT_EQ(SDCARD_STATE_NOT_PRESENT, sdcard.state);
     EXPECT_EQ(0u, cache_getCount());
 }
 
