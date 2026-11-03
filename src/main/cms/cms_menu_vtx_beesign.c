@@ -84,7 +84,8 @@ static long bsCmsConfigRaceSave(displayPort_t *pDisp, const void *self) {
     vtxSettingsConfigMutable()->channel = bs_vtxChannel;
     vtxSettingsConfigMutable()->power = bs_vtxPower + BEESIGN_MIN_POWER;
     vtxSettingsConfigMutable()->freq = bs_showFreq;
-    return cmsMenuExit(pDisp, (void *)CMS_EXIT_SAVEREBOOT);
+    saveConfigAndNotify();
+    return 0;
 }
 
 static long bs_Vtx_onExit(const OSD_Entry *self) {
@@ -98,7 +99,7 @@ static OSD_Entry bsCmsMenuRaceModeEntries[] = {
     {"CHANNEL",     OME_UINT8,      bsCmsConfigBandByGvar,  &bsEntryVtxChannel,     0},
     {"POWER",       OME_TAB,        NULL,                   &bsEntryVtxPower,       0},
     {"(FREQ)",      OME_UINT16,     NULL,                   &bsShowVtxFreq,         DYNAMIC },
-    {"SAVE&REBOOT", OME_Funcall,    bsCmsConfigRaceSave,    NULL,                   0},
+    {"SAVE",        OME_Funcall,    bsCmsConfigRaceSave,    NULL,                   0},
     {"BACK",        OME_Back,       NULL,                   NULL,                   0},
     {NULL,          OME_END,        NULL,                   NULL,                   0}
 };
