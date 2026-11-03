@@ -86,9 +86,6 @@ include $(ROOT)/make/tools.mk
 # default xtal value for F4 targets
 HSE_VALUE       ?= 8000000
 
-# used for turning on features like VCP and SDCARD
-FEATURES        =
-
 include $(ROOT)/make/targets.mk
 
 # build number - default for local builds
