@@ -71,16 +71,28 @@ static void testAdvanceMillis(timeMs_t delta) {
 }
 
 IO_t IOGetByTag(ioTag_t tag) {
-    UNUSED(tag);
-    return (IO_t)1;
+    return tag ? (IO_t)1 : (IO_t)0;
 }
 
+static unsigned detectInitCalls;
+static unsigned detectConfigCalls;
+static ioConfig_t lastDetectConfig;
+static bool lastInitWasDetect;
+
 void IOInit(IO_t io, resourceOwner_e owner, uint8_t index) {
-    UNUSED(io); UNUSED(owner); UNUSED(index);
+    UNUSED(io); UNUSED(index);
+    lastInitWasDetect = owner == OWNER_SDCARD_DETECT;
+    if (lastInitWasDetect) {
+        detectInitCalls++;
+    }
 }
 
 void IOConfigGPIO(IO_t io, ioConfig_t cfg) {
-    UNUSED(io); UNUSED(cfg);
+    UNUSED(io);
+    if (lastInitWasDetect) {
+        detectConfigCalls++;
+        lastDetectConfig = cfg;
+    }
 }
 
 void IOHi(IO_t io) {
@@ -218,6 +230,10 @@ void resetSdcardTestState() {
     resetResponseScript();
     memset(&fakeBus, 0, sizeof(fakeBus));
     memset(&testConfig, 0, sizeof(testConfig));
+    detectInitCalls = 0;
+    detectConfigCalls = 0;
+    lastInitWasDetect = false;
+    lastDetectConfig = static_cast<ioConfig_t>(0);
     testConfig.mode = SDCARD_MODE_SPI;
     testConfig.device = 0;
     testConfig.chipSelectTag = 0;
@@ -311,6 +327,28 @@ TEST(SdcardUnittest, SlowCardInitInsideSpecBudgetIsNotReset) {
     testAdvanceMillis(300);
     EXPECT_TRUE(sdcard_poll());
     EXPECT_TRUE(sdcard_isInitialized());
+}
+
+TEST(SdcardUnittest, InitConfiguresTheDetectPinAsPulledUpInput) {
+    resetSdcardTestState();
+    scriptSuccessfulHighCapacityInit();
+    testConfig.cardDetectTag = 1;
+
+    sdcard_init(&testConfig);
+
+    EXPECT_EQ(1u, detectInitCalls);
+    EXPECT_EQ(1u, detectConfigCalls);
+    EXPECT_EQ(IOCFG_IPU, lastDetectConfig);
+}
+
+TEST(SdcardUnittest, InitWithoutDetectTagLeavesTheDetectGpioUntouched) {
+    resetSdcardTestState();
+    scriptSuccessfulHighCapacityInit();
+
+    sdcard_init(&testConfig);
+
+    EXPECT_EQ(0u, detectInitCalls);
+    EXPECT_EQ(0u, detectConfigCalls);
 }
 
 TEST(SdcardUnittest, ModeOtherThanSpiLeavesTheSpiDriverDisabled) {

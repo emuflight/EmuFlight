@@ -43,8 +43,10 @@ uint32_t fakeNowMs;
 uint32_t checkCalls;
 uint32_t checkBusyCalls;    // SD_Check* reports busy this many times, then done
 bool stateReady;            // SD_GetState result
+bool cardInserted = true;
 
 void setUpFakeCard(uint32_t startMs) {
+    cardInserted = true;
     fakeNowMs = startMs;
     checkCalls = 0;
     checkBusyCalls = UINT32_MAX;
@@ -69,18 +71,31 @@ uint32_t millis(void) {
     return fakeNowMs++;
 }
 
-const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e, uint8_t, int8_t) { return NULL; }
+static dmaChannelSpec_t fakeDmaSpec;
+const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e, uint8_t, int8_t) { return &fakeDmaSpec; }
 bool SD_Initialize_LL(DMA_Stream_TypeDef *) { return true; }
 SD_Error_t SD_Init(void) { return SD_OK; }
 SD_CardInfo_t SD_CardInfo;
 SD_Error_t SD_GetCardInfo(void) { return SD_OK; }
-bool SD_IsDetected(void) { return true; }
+sdcardConfig_t sdcardConfig_System;
+unsigned detectConfigureCalls = 0;
+unsigned detectInitCalls = 0;
+bool sdcard_isInserted(void) { return cardInserted; }
+void sdcardDetectConfigure(const sdcardConfig_t *) { detectConfigureCalls++; }
+void sdcardInsertionDetectInit(void) { detectInitCalls++; }
 bool SD_GetState(void) { return stateReady; }
 SD_Error_t SD_CheckRead(void) { return fakeCheck(); }
 SD_Error_t SD_CheckWrite(void) { return fakeCheck(); }
 SD_Error_t SD_ReadBlocks_DMA(uint64_t, uint32_t *, uint32_t, uint32_t) { return SD_OK; }
 SD_Error_t SD_WriteBlocks_DMA(uint64_t, uint32_t *, uint32_t, uint32_t) { return SD_OK; }
 
+}
+
+TEST(MscSdioTest, BackendServesSdioMode) {
+    // mscStart() serves SD storage only when `sdcard_mode` equals this backend's mode.
+    EXPECT_EQ(SDCARD_MODE_SDIO, USBD_MSC_MICRO_SD_MODE);
+    EXPECT_NE(SDCARD_MODE_NONE, USBD_MSC_MICRO_SD_MODE);
+    EXPECT_NE(SDCARD_MODE_SPI, USBD_MSC_MICRO_SD_MODE);
 }
 
 TEST(MscSdioTest, ReadReturnsErrorWhenTransferNeverCompletes) {
@@ -134,4 +149,62 @@ TEST(MscSdioTest, WriteSucceedsWhenTransferCompletes) {
     stateReady = true;
     uint8_t buf[512] = {};
     EXPECT_EQ(0, USBD_MSC_MICRO_SDIO_fops.Write(0, buf, 0, 1));
+}
+
+TEST(MscSdioTest, EveryOperationFailsWhenNoCardIsInserted) {
+    // Card removed: capacity, ready, read and write all report an error, none touches the card.
+    setUpFakeCard(0);
+    cardInserted = false;
+    stateReady = true;
+    uint32_t blocks = 123;
+#ifdef USE_HAL_DRIVER
+    uint16_t size = 77;
+#else
+    uint32_t size = 77;
+#endif
+    uint8_t buf[512];
+    EXPECT_EQ(-1, USBD_MSC_MICRO_SDIO_fops.GetCapacity(0, &blocks, &size));
+    EXPECT_EQ(123u, blocks);
+    EXPECT_EQ(77u, size);
+    EXPECT_EQ(-1, USBD_MSC_MICRO_SDIO_fops.IsReady(0));
+    EXPECT_EQ(-1, USBD_MSC_MICRO_SDIO_fops.Read(0, buf, 0, 1));
+    EXPECT_EQ(-1, USBD_MSC_MICRO_SDIO_fops.Write(0, buf, 0, 1));
+    EXPECT_EQ(0u, checkCalls);
+}
+
+TEST(MscSdioTest, CapacityAndReadyAreServedWhenCardIsInserted) {
+    setUpFakeCard(0);
+    cardInserted = true;
+    stateReady = true;
+    SD_CardInfo.CardCapacity = 4096;
+    uint32_t blocks = 0;
+#ifdef USE_HAL_DRIVER
+    uint16_t size = 0;
+#else
+    uint32_t size = 0;
+#endif
+    EXPECT_EQ(0, USBD_MSC_MICRO_SDIO_fops.GetCapacity(0, &blocks, &size));
+    EXPECT_EQ(4096u, blocks);
+    EXPECT_EQ(512u, size);
+    EXPECT_EQ(0, USBD_MSC_MICRO_SDIO_fops.IsReady(0));
+}
+
+TEST(MscSdioTest, InitFailsWithoutACardAndSucceedsWithOne) {
+    setUpFakeCard(0);
+    cardInserted = false;
+    EXPECT_EQ(1, USBD_MSC_MICRO_SDIO_fops.Init(0));
+    cardInserted = true;
+    EXPECT_EQ(0, USBD_MSC_MICRO_SDIO_fops.Init(0));
+}
+
+TEST(MscSdioTest, InitLoadsTheDetectConfigBeforeCheckingInsertion) {
+    // Mass storage starts before sdcard_init(): Init must configure the detect pin and polarity itself,
+    // also when no card is present (the insertion check comes after).
+    setUpFakeCard(0);
+    detectConfigureCalls = 0;
+    detectInitCalls = 0;
+    cardInserted = false;
+    EXPECT_EQ(1, USBD_MSC_MICRO_SDIO_fops.Init(0));
+    EXPECT_EQ(1u, detectConfigureCalls);
+    EXPECT_EQ(1u, detectInitCalls);
 }

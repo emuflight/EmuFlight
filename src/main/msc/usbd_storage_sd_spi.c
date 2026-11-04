@@ -31,6 +31,9 @@
 #include <stdbool.h>
 
 #include "platform.h"
+
+#if defined(USE_SDCARD) && !defined(USE_SDCARD_SDIO)
+
 #include "common/utils.h"
 
 #include "usbd_storage.h"
@@ -119,6 +122,9 @@ static uint8_t  STORAGE_Inquirydata[] = {//36
     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
     '0', '.', '0', '1',                     /* Version      : 4 Bytes */
 };
+
+// The SD backend this file serves; mscStart() compares it with `sdcard_mode`.
+const sdcardMode_e USBD_MSC_MICRO_SD_MODE = SDCARD_MODE_SPI;
 
 #ifdef USE_HAL_DRIVER
 USBD_StorageTypeDef USBD_MSC_MICRO_SDIO_fops = {
@@ -292,3 +298,4 @@ static int8_t STORAGE_GetMaxLun (void) {
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 
+#endif

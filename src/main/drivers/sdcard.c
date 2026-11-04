@@ -23,7 +23,7 @@
 
 #include "platform.h"
 
-#ifdef USE_SDCARD
+#if defined(USE_SDCARD) && !defined(USE_SDCARD_SDIO)
 
 #include "drivers/nvic.h"
 #include "drivers/io.h"
@@ -589,6 +589,7 @@ void sdcard_init(const sdcardConfig_t *config) {
         sdcard.cardDetectPin = IO_NONE;
         sdcard.detectionInverted = false;
     }
+    sdcardInsertionDetectInit();
     // Max frequency is initially 400kHz
     spiSetClkDivisor(&sdcard.dev, SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER);
     // SDCard wants 1ms minimum delay after power is applied to it
