@@ -71,8 +71,7 @@ static void testAdvanceMillis(timeMs_t delta) {
 }
 
 IO_t IOGetByTag(ioTag_t tag) {
-    UNUSED(tag);
-    return (IO_t)1;
+    return tag ? (IO_t)1 : (IO_t)0;
 }
 
 static unsigned detectInitCalls;
@@ -234,6 +233,7 @@ void resetSdcardTestState() {
     detectInitCalls = 0;
     detectConfigCalls = 0;
     lastInitWasDetect = false;
+    lastDetectConfig = static_cast<ioConfig_t>(0);
     testConfig.mode = SDCARD_MODE_SPI;
     testConfig.device = 0;
     testConfig.chipSelectTag = 0;
