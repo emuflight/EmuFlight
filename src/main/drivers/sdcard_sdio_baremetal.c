@@ -302,6 +302,7 @@ void sdcard_init(const sdcardConfig_t *config) {
     }
 #endif
     sdcardDetectConfigure(config);
+    sdcardInsertionDetectInit();
     if (sdioConfig()->useCache) {
         sdcard.useCache = 1;
     } else {

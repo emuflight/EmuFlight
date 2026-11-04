@@ -63,11 +63,17 @@ timeMs_t millis(void) { return mockTimeMs; }
 timeUs_t micros(void) { return mockTimeMs * 1000; }
 
 IO_t IOGetByTag(ioTag_t tag) { return tag ? (IO_t)1 : (IO_t)0; }
-void IOInit(IO_t, resourceOwner_e, uint8_t) {}
-void IOConfigGPIO(IO_t, ioConfig_t) {}
+static unsigned ioInitCalls;
+static unsigned ioConfigCalls;
+static resourceOwner_e lastIoOwner;
+static ioConfig_t lastIoConfig;
+void IOInit(IO_t, resourceOwner_e owner, uint8_t) { ioInitCalls++; lastIoOwner = owner; }
+void IOConfigGPIO(IO_t, ioConfig_t config) { ioConfigCalls++; lastIoConfig = config; }
 static bool mockCardDetectRead;
 bool IORead(IO_t) { return mockCardDetectRead; }
-const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e, uint8_t, int8_t) { return nullptr; }
+static bool mockDmaSpecAvailable;
+static dmaChannelSpec_t mockDmaSpec;
+const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e, uint8_t, int8_t) { return mockDmaSpecAvailable ? &mockDmaSpec : nullptr; }
 
 bool SD_Initialize_LL(DMA_Stream_TypeDef *) { return true; }
 SD_Error_t SD_Init(void) { initCalls++; return mockInitStatus; }
@@ -108,6 +114,9 @@ protected:
         std::memset(&sdcard, 0, sizeof(sdcard));
         cacheCount = 0;
         mockCardDetectRead = false;
+        mockDmaSpecAvailable = false;
+        ioInitCalls = 0;
+        ioConfigCalls = 0;
         std::memset(buffer, 0, sizeof(buffer));
         sdcard.enabled = true;
         sdcard.pendingOperation.buffer = buffer;
@@ -335,6 +344,37 @@ TEST_F(SdcardSdioTest, DetectConfigureWithoutTagClearsPinAndFlag)
     EXPECT_TRUE(sdcard_isInserted());
     mockCardDetectRead = false;
     EXPECT_TRUE(sdcard_isInserted());
+}
+
+TEST_F(SdcardSdioTest, InitConfiguresTheDetectPinAsPulledUpInput)
+{
+    mockDmaSpecAvailable = true;
+    sdcardConfig_t config;
+    std::memset(&config, 0, sizeof(config));
+    config.mode = SDCARD_MODE_SDIO;
+    config.cardDetectTag = 1;
+
+    sdcard_init(&config);
+
+    EXPECT_NE((IO_t)0, sdcard.cardDetectPin);
+    EXPECT_EQ(1u, ioInitCalls);
+    EXPECT_EQ(OWNER_SDCARD_DETECT, lastIoOwner);
+    EXPECT_EQ(1u, ioConfigCalls);
+    EXPECT_EQ(IOCFG_IPU, lastIoConfig);
+}
+
+TEST_F(SdcardSdioTest, InitWithoutDetectTagLeavesTheGpioUntouched)
+{
+    mockDmaSpecAvailable = true;
+    sdcardConfig_t config;
+    std::memset(&config, 0, sizeof(config));
+    config.mode = SDCARD_MODE_SDIO;
+
+    sdcard_init(&config);
+
+    EXPECT_EQ((IO_t)0, sdcard.cardDetectPin);
+    EXPECT_EQ(0u, ioInitCalls);
+    EXPECT_EQ(0u, ioConfigCalls);
 }
 
 TEST_F(SdcardSdioTest, UnconfiguredDetectorReportsInsertedWithoutReadingThePin)
