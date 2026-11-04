@@ -260,23 +260,6 @@ void SDIO_DMA_ST6_IRQHandler(dmaChannelDescriptor_t *dma);
 //static void             SD_PowerOFF                 (void);
 
 /** -----------------------------------------------------------------------------------------------------------------*/
-/**     SD_IsDetected
-  *
-  * @brief  Test if card is present
-  * @param  bool   true or false
-  */
-bool SD_IsDetected(void) {
-    __IO uint8_t status = SD_PRESENT;
-    /*!< Check GPIO to detect SD */
-#ifdef SDCARD_DETECT_PIN
-    const IO_t sd_det = IOGetByTag(IO_TAG(SDCARD_DETECT_PIN));
-    if (IORead(sd_det) != 0) {
-        status = SD_NOT_PRESENT;
-    }
-#endif
-    return status;
-}
-
 
 /** -----------------------------------------------------------------------------------------------------------------*/
 /**     DataTransferInit
@@ -1407,10 +1390,6 @@ bool SD_GetState(void) {
 /** -----------------------------------------------------------------------------------------------------------------*/
 SD_Error_t SD_Init(void) {
     SD_Error_t ErrorState;
-    // Check if SD card is present
-    if(SD_IsDetected() != SD_PRESENT) {
-        return SD_NOT_CONFIGURED;
-    }
     // Initialize SDIO peripheral interface with default configuration for SD card initialization
     MODIFY_REG(SDIO->CLKCR, CLKCR_CLEAR_MASK, (uint32_t) SDIO_INIT_CLK_DIV);
     if((ErrorState = SD_PowerON()) == SD_OK) {                  // Identify card operating voltage

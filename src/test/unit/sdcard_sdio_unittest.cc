@@ -71,7 +71,6 @@ const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e, uint8_t, 
 
 bool SD_Initialize_LL(DMA_Stream_TypeDef *) { return true; }
 SD_Error_t SD_Init(void) { initCalls++; return mockInitStatus; }
-bool SD_IsDetected(void) { return true; }
 bool SD_GetState(void) { stateCalls++; return mockCardReady || stateCalls > cardReadyAfterCalls; }
 SD_Error_t SD_GetCardInfo(void) { cardInfoCalls++; return failCsdRead && cardInfoCalls % 2 == 0 ? SD_ERROR : SD_OK; }
 SD_Error_t SD_ReadBlocks_DMA(uint64_t, uint32_t *, uint32_t, uint32_t) { return SD_OK; }
@@ -252,8 +251,9 @@ TEST_F(SdcardSdioTest, ResetAfterWriteErrorDropsCachedBlocks)
 
 TEST_F(SdcardSdioTest, ResetWithCardRemovedDropsCachedBlocks)
 {
-    // The detect pin reads high when the card is out: sdcard_isInserted() is false.
+    // Inverted detect pin: it reads high when the card is out, so sdcard_isInserted() is false.
     sdcard.cardDetectPin = (IO_t)1;
+    sdcard.detectionInverted = true;
     mockCardDetectRead = true;
     cacheCount = 5 * 512;
     sdcard.useCache = true;
@@ -265,6 +265,42 @@ TEST_F(SdcardSdioTest, ResetWithCardRemovedDropsCachedBlocks)
 
     EXPECT_EQ(SDCARD_STATE_NOT_PRESENT, sdcard.state);
     EXPECT_EQ(0u, cache_getCount());
+}
+
+TEST_F(SdcardSdioTest, DetectPinHighMeansInsertedWhenNotInverted)
+{
+    sdcard.cardDetectPin = (IO_t)1;
+    sdcard.detectionInverted = false;
+
+    mockCardDetectRead = true;
+    EXPECT_TRUE(sdcard_isInserted());
+    mockCardDetectRead = false;
+    EXPECT_FALSE(sdcard_isInserted());
+}
+
+TEST_F(SdcardSdioTest, DetectPinLowMeansInsertedWhenInverted)
+{
+    sdcard.cardDetectPin = (IO_t)1;
+    sdcard.detectionInverted = true;
+
+    mockCardDetectRead = false;
+    EXPECT_TRUE(sdcard_isInserted());
+    mockCardDetectRead = true;
+    EXPECT_FALSE(sdcard_isInserted());
+}
+
+TEST_F(SdcardSdioTest, WithoutDetectPinTheCardCountsAsInsertedWhateverTheFlag)
+{
+    sdcard.cardDetectPin = (IO_t)0;
+
+    sdcard.detectionInverted = false;
+    mockCardDetectRead = false;
+    EXPECT_TRUE(sdcard_isInserted());
+    mockCardDetectRead = true;
+    EXPECT_TRUE(sdcard_isInserted());
+
+    sdcard.detectionInverted = true;
+    EXPECT_TRUE(sdcard_isInserted());
 }
 
 TEST_F(SdcardSdioTest, LeavesBusyWritePendingBeforeTimeout)

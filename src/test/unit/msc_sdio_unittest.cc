@@ -43,8 +43,10 @@ uint32_t fakeNowMs;
 uint32_t checkCalls;
 uint32_t checkBusyCalls;    // SD_Check* reports busy this many times, then done
 bool stateReady;            // SD_GetState result
+bool cardInserted = true;
 
 void setUpFakeCard(uint32_t startMs) {
+    cardInserted = true;
     fakeNowMs = startMs;
     checkCalls = 0;
     checkBusyCalls = UINT32_MAX;
@@ -69,12 +71,13 @@ uint32_t millis(void) {
     return fakeNowMs++;
 }
 
-const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e, uint8_t, int8_t) { return NULL; }
+static dmaChannelSpec_t fakeDmaSpec;
+const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e, uint8_t, int8_t) { return &fakeDmaSpec; }
 bool SD_Initialize_LL(DMA_Stream_TypeDef *) { return true; }
 SD_Error_t SD_Init(void) { return SD_OK; }
 SD_CardInfo_t SD_CardInfo;
 SD_Error_t SD_GetCardInfo(void) { return SD_OK; }
-bool SD_IsDetected(void) { return true; }
+bool sdcard_isInserted(void) { return cardInserted; }
 bool SD_GetState(void) { return stateReady; }
 SD_Error_t SD_CheckRead(void) { return fakeCheck(); }
 SD_Error_t SD_CheckWrite(void) { return fakeCheck(); }
@@ -141,4 +144,50 @@ TEST(MscSdioTest, WriteSucceedsWhenTransferCompletes) {
     stateReady = true;
     uint8_t buf[512] = {};
     EXPECT_EQ(0, USBD_MSC_MICRO_SDIO_fops.Write(0, buf, 0, 1));
+}
+
+TEST(MscSdioTest, EveryOperationFailsWhenNoCardIsInserted) {
+    // Card removed: capacity, ready, read and write all report an error, none touches the card.
+    setUpFakeCard(0);
+    cardInserted = false;
+    stateReady = true;
+    uint32_t blocks = 123;
+#ifdef USE_HAL_DRIVER
+    uint16_t size = 77;
+#else
+    uint32_t size = 77;
+#endif
+    uint8_t buf[512];
+    EXPECT_EQ(-1, USBD_MSC_MICRO_SDIO_fops.GetCapacity(0, &blocks, &size));
+    EXPECT_EQ(123u, blocks);
+    EXPECT_EQ(77u, size);
+    EXPECT_EQ(-1, USBD_MSC_MICRO_SDIO_fops.IsReady(0));
+    EXPECT_EQ(-1, USBD_MSC_MICRO_SDIO_fops.Read(0, buf, 0, 1));
+    EXPECT_EQ(-1, USBD_MSC_MICRO_SDIO_fops.Write(0, buf, 0, 1));
+    EXPECT_EQ(0u, checkCalls);
+}
+
+TEST(MscSdioTest, CapacityAndReadyAreServedWhenCardIsInserted) {
+    setUpFakeCard(0);
+    cardInserted = true;
+    stateReady = true;
+    SD_CardInfo.CardCapacity = 4096;
+    uint32_t blocks = 0;
+#ifdef USE_HAL_DRIVER
+    uint16_t size = 0;
+#else
+    uint32_t size = 0;
+#endif
+    EXPECT_EQ(0, USBD_MSC_MICRO_SDIO_fops.GetCapacity(0, &blocks, &size));
+    EXPECT_EQ(4096u, blocks);
+    EXPECT_EQ(512u, size);
+    EXPECT_EQ(0, USBD_MSC_MICRO_SDIO_fops.IsReady(0));
+}
+
+TEST(MscSdioTest, InitFailsWithoutACardAndSucceedsWithOne) {
+    setUpFakeCard(0);
+    cardInserted = false;
+    EXPECT_EQ(1, USBD_MSC_MICRO_SDIO_fops.Init(0));
+    cardInserted = true;
+    EXPECT_EQ(0, USBD_MSC_MICRO_SDIO_fops.Init(0));
 }

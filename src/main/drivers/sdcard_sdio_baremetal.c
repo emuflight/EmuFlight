@@ -124,6 +124,7 @@ typedef struct sdcard_t {
 #endif
     bool enabled;
     IO_t cardDetectPin;
+    bool detectionInverted;
     uint8_t useCache;
 } sdcard_t;
 
@@ -149,11 +150,14 @@ void sdcardInsertionDetectInit(void) {
  * Detect if a SD card is physically present in the memory slot.
  */
 bool sdcard_isInserted(void) {
-    bool ret = true;
+    bool result = true;
     if (sdcard.cardDetectPin) {
-        ret = IORead(sdcard.cardDetectPin) == 0;
+        result = IORead(sdcard.cardDetectPin) != 0;
+        if (sdcard.detectionInverted) {
+            result = !result;
+        }
     }
-    return ret;
+    return result;
 }
 
 /**
@@ -288,8 +292,10 @@ void sdcard_init(const sdcardConfig_t *config) {
 #endif
     if (config->cardDetectTag) {
         sdcard.cardDetectPin = IOGetByTag(config->cardDetectTag);
+        sdcard.detectionInverted = config->cardDetectInverted;
     } else {
         sdcard.cardDetectPin = IO_NONE;
+        sdcard.detectionInverted = false;
     }
     if (sdioConfig()->useCache) {
         sdcard.useCache = 1;
@@ -305,7 +311,7 @@ void sdcard_init(const sdcardConfig_t *config) {
         sdcard.failureCount++;
         return;
     }
-    if (SD_IsDetected()) {
+    if (sdcard_isInserted()) {
         if (SD_Init() != 0) {
             sdcard.state = SDCARD_STATE_NOT_PRESENT;
             sdcard.failureCount++;
