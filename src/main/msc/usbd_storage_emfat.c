@@ -30,6 +30,8 @@
 
 #include "platform.h"
 
+#if defined(USE_FLASHFS)
+
 #include "common/utils.h"
 
 #include "drivers/light_led.h"
@@ -140,3 +142,5 @@ USBD_MSC_EMFAT_fops = {
     STORAGE_GetMaxLun,
     (int8_t *)STORAGE_Inquirydata,
 };
+
+#endif

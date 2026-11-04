@@ -71,16 +71,28 @@ static void testAdvanceMillis(timeMs_t delta) {
 }
 
 IO_t IOGetByTag(ioTag_t tag) {
-    UNUSED(tag);
-    return (IO_t)1;
+    return tag ? (IO_t)1 : (IO_t)0;
 }
 
+static unsigned detectInitCalls;
+static unsigned detectConfigCalls;
+static ioConfig_t lastDetectConfig;
+static bool lastInitWasDetect;
+
 void IOInit(IO_t io, resourceOwner_e owner, uint8_t index) {
-    UNUSED(io); UNUSED(owner); UNUSED(index);
+    UNUSED(io); UNUSED(index);
+    lastInitWasDetect = owner == OWNER_SDCARD_DETECT;
+    if (lastInitWasDetect) {
+        detectInitCalls++;
+    }
 }
 
 void IOConfigGPIO(IO_t io, ioConfig_t cfg) {
-    UNUSED(io); UNUSED(cfg);
+    UNUSED(io);
+    if (lastInitWasDetect) {
+        detectConfigCalls++;
+        lastDetectConfig = cfg;
+    }
 }
 
 void IOHi(IO_t io) {
@@ -218,6 +230,10 @@ void resetSdcardTestState() {
     resetResponseScript();
     memset(&fakeBus, 0, sizeof(fakeBus));
     memset(&testConfig, 0, sizeof(testConfig));
+    detectInitCalls = 0;
+    detectConfigCalls = 0;
+    lastInitWasDetect = false;
+    lastDetectConfig = static_cast<ioConfig_t>(0);
     testConfig.mode = SDCARD_MODE_SPI;
     testConfig.device = 0;
     testConfig.chipSelectTag = 0;
@@ -227,12 +243,13 @@ void resetSdcardTestState() {
 // CMD0/CMD8/ACMD41/CMD58/CMD9/CMD10 init sequence for a version-2 (SDHC) card, scripted
 // against the SD physical layer spec's R1/R7/data-token wire format -- not copied from any
 // driver output. Each command's [idle-wait byte, R1 reply byte] pair precedes its data phase.
-void scriptSuccessfulHighCapacityInit(void) {
+void scriptSuccessfulHighCapacityInit(int busyAcmd41Polls = 0) {
     static const uint8_t cmd0[] = {0xFF, 0x01};                          // GO_IDLE_STATE -> idle
     static const uint8_t cmd8[] = {0xFF, 0x01};                          // SEND_IF_COND -> idle
     static const uint8_t ifCondReply[] = {0x00, 0x00, 0x01, 0xAB};       // echoed voltage + check pattern
     static const uint8_t cmd55[] = {0xFF, 0x01};                         // APP_CMD (response ignored)
     static const uint8_t cmd41[] = {0xFF, 0x00};                         // ACMD41 -> init done
+    static const uint8_t cmd41Busy[] = {0xFF, 0x01};                     // ACMD41 -> still idle
     static const uint8_t cmd58[] = {0xFF, 0x00};                         // READ_OCR -> ok
     static const uint8_t ocr[] = {0x40, 0x00, 0x00, 0x00};               // bit 30 set: high capacity
     static const uint8_t cmd9[] = {0xFF, 0x00};                          // SEND_CSD -> ok
@@ -257,6 +274,10 @@ void scriptSuccessfulHighCapacityInit(void) {
     scriptBytes(cmd0, sizeof(cmd0));
     scriptBytes(cmd8, sizeof(cmd8));
     scriptBytes(ifCondReply, sizeof(ifCondReply));
+    for (int i = 0; i < busyAcmd41Polls; i++) {
+        scriptBytes(cmd55, sizeof(cmd55));
+        scriptBytes(cmd41Busy, sizeof(cmd41Busy));
+    }
     scriptBytes(cmd55, sizeof(cmd55));
     scriptBytes(cmd41, sizeof(cmd41));
     scriptBytes(cmd58, sizeof(cmd58));
@@ -291,6 +312,45 @@ TEST(SdcardUnittest, HighCapacityCardReachesReadyInOnePoll) {
     EXPECT_EQ(6, metadata->productionMonth);
 }
 
+TEST(SdcardUnittest, SlowCardInitInsideSpecBudgetIsNotReset) {
+    resetSdcardTestState();
+    // SD spec: ACMD41 may stay busy up to 1000 ms. Card is busy at t=0 and t=300, ready at t=600.
+    scriptSuccessfulHighCapacityInit(2);
+
+    sdcard_init(&testConfig);
+    ASSERT_TRUE(sdcard_isFunctional());
+
+    EXPECT_FALSE(sdcard_poll());
+    testAdvanceMillis(300);
+    EXPECT_FALSE(sdcard_poll());
+    EXPECT_TRUE(sdcard_isFunctional());
+    testAdvanceMillis(300);
+    EXPECT_TRUE(sdcard_poll());
+    EXPECT_TRUE(sdcard_isInitialized());
+}
+
+TEST(SdcardUnittest, InitConfiguresTheDetectPinAsPulledUpInput) {
+    resetSdcardTestState();
+    scriptSuccessfulHighCapacityInit();
+    testConfig.cardDetectTag = 1;
+
+    sdcard_init(&testConfig);
+
+    EXPECT_EQ(1u, detectInitCalls);
+    EXPECT_EQ(1u, detectConfigCalls);
+    EXPECT_EQ(IOCFG_IPU, lastDetectConfig);
+}
+
+TEST(SdcardUnittest, InitWithoutDetectTagLeavesTheDetectGpioUntouched) {
+    resetSdcardTestState();
+    scriptSuccessfulHighCapacityInit();
+
+    sdcard_init(&testConfig);
+
+    EXPECT_EQ(0u, detectInitCalls);
+    EXPECT_EQ(0u, detectConfigCalls);
+}
+
 TEST(SdcardUnittest, ModeOtherThanSpiLeavesTheSpiDriverDisabled) {
     const sdcardMode_e modes[] = { SDCARD_MODE_NONE, SDCARD_MODE_SDIO };
     for (sdcardMode_e mode : modes) {
@@ -316,10 +376,11 @@ TEST(SdcardUnittest, SilentBusNeverReachesReadyAndEscalatesToNotPresent) {
     ASSERT_TRUE(sdcard_isFunctional());
 
     // SDCARD_MAX_CONSECUTIVE_FAILURES resets, each gated by SDCARD_TIMEOUT_INIT_MILLIS.
+    // SD spec allows up to 1000 ms for init, so step 1100 ms to exceed the budget each attempt.
     for (int attempt = 0; attempt < 8; attempt++) {
         EXPECT_FALSE(sdcard_poll());
         EXPECT_FALSE(sdcard_isInitialized());
-        testAdvanceMillis(250);
+        testAdvanceMillis(1100);
     }
     sdcard_poll();
 

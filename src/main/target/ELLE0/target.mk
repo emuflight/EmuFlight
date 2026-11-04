@@ -1,3 +1,2 @@
-FEATURES        += VCP
 HSE_VALUE       = 25000000
 
