@@ -22,6 +22,10 @@
  * Author: jflyper@github.com
  */
 
+#include "platform.h"
+
+#if defined(USE_FLASHFS)
+
 #include "common/utils.h"
 #include "common/printf.h"
 
@@ -338,3 +342,5 @@ void emfat_init_files(void) {
     entry->max_size = entry->curr_size;
     emfat_init(&emfat, "EMUF", entries);
 }
+
+#endif

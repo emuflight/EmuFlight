@@ -18,6 +18,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "platform.h"
+
+#if defined(USE_SDCARD)
+
 #include <ctype.h>
 
 #include "fat_standard.h"
@@ -81,3 +85,5 @@ void fat_convertFilenameToFATStyle(const char *filename, uint8_t *fatFilename) {
         fatFilename++;
     }
 }
+
+#endif

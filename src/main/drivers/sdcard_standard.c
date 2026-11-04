@@ -18,6 +18,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "platform.h"
+
+#if defined(USE_SDCARD)
+
 #include <stdint.h>
 
 #include "sdcard_standard.h"
@@ -44,3 +48,5 @@ uint32_t readBitfield(uint8_t *buffer, unsigned bitIndex, unsigned bitLen) {
     }
     return result;
 }
+
+#endif

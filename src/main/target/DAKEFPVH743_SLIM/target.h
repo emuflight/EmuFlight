@@ -41,6 +41,14 @@
 #define USE_MAX7456
 #define USE_SDCARD
 #define USE_SDCARD_SDIO
+#define SDIO_DEVICE      SDIODEV_2
+#define SDIO_USE_4BIT    1
+#define SDIO_CK_PIN      PC1
+#define SDIO_CMD_PIN     PD7
+#define SDIO_D0_PIN      PB14
+#define SDIO_D1_PIN      PB15
+#define SDIO_D2_PIN      PB3
+#define SDIO_D3_PIN      PB4
 // #define USE_GYRO_CLKIN // not supported in EmuFlight
 
 #define USE_VCP
@@ -136,11 +144,7 @@
 #define FLASH_CS_PIN         PA15
 #define FLASH_SPI_INSTANCE SPI3
 
-//notice - NEED: #define SDCARD_DMA_CHANNEL_TX       DMAx_StreamX // please verify
-//notice - other sdcard defines maybe needed (rare?): SDCARD_DMA_STREAM_TX_FULL, SDCARD_DMA_STREAM_TX, SDCARD_DMA_CLK, SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
-#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4    //notice - needs validation. these are hardware dependent. known options: 2, 4, 8.
-#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256  //notice - needs validation. these are hardware dependent. known options: 128, 256
 
 #define MAX7456_SPI_CS_PIN   PB12
 #define MAX7456_SPI_INSTANCE SPI2

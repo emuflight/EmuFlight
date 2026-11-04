@@ -26,8 +26,9 @@
 
 #include "platform.h"
 
-#define USE_SDCARD_SDIO
 #ifdef USE_SDCARD_SDIO
+
+#include "common/utils.h"
 
 #include "drivers/nvic.h"
 #include "drivers/io.h"
@@ -48,7 +49,7 @@
 #define SDCARD_PROFILING
 #endif
 
-#define SDCARD_TIMEOUT_INIT_MILLIS      200
+#define SDCARD_TIMEOUT_INIT_MILLIS      1000
 #define SDCARD_MAX_CONSECUTIVE_FAILURES 8
 
 // Use this to speed up writing to SDCARD... asyncfatfs has limited support for multiblock write
@@ -123,6 +124,7 @@ typedef struct sdcard_t {
 #endif
     bool enabled;
     IO_t cardDetectPin;
+    bool detectionInverted;
     uint8_t useCache;
 } sdcard_t;
 
@@ -144,15 +146,29 @@ void sdcardInsertionDetectInit(void) {
     }
 }
 
+// USB mass storage starts before sdcard_init(), so it calls this to set the detect pin and its polarity first.
+void sdcardDetectConfigure(const sdcardConfig_t *config) {
+    if (config->cardDetectTag) {
+        sdcard.cardDetectPin = IOGetByTag(config->cardDetectTag);
+        sdcard.detectionInverted = config->cardDetectInverted;
+    } else {
+        sdcard.cardDetectPin = IO_NONE;
+        sdcard.detectionInverted = false;
+    }
+}
+
 /**
  * Detect if a SD card is physically present in the memory slot.
  */
 bool sdcard_isInserted(void) {
-    bool ret = true;
+    bool result = true;
     if (sdcard.cardDetectPin) {
-        ret = IORead(sdcard.cardDetectPin) == 0;
+        result = IORead(sdcard.cardDetectPin) != 0;
+        if (sdcard.detectionInverted) {
+            result = !result;
+        }
     }
-    return ret;
+    return result;
 }
 
 /**
@@ -164,20 +180,31 @@ bool sdcard_isFunctional(void) {
 }
 
 /**
- * Handle a failure of an SD card operation by resetting the card back to its initialization phase.
+ * Handle a failure of an SD card operation. Put the card back into the initialization phase.
  *
- * Increments the failure counter, and when the failure threshold is reached, disables the card until
- * the next call to sdcard_init().
+ * Each reset is a failure, also when SD_Init() is successful. On most platforms, SD_Init() does the
+ * initialization one time only. After that, it gives the same result again.
+ * Thus a successful SD_Init() does not show that the card operates correctly.
+ * Only a completed read or write sets the count to zero.
+ * When the count gets to the failure limit, the card is disabled.
  */
 static void sdcard_reset(void) {
-    if (SD_Init() != 0) {
-        sdcard.failureCount++;
-        if (sdcard.failureCount >= SDCARD_MAX_CONSECUTIVE_FAILURES || sdcard_isInserted() == SD_NOT_PRESENT) {
-            sdcard.state = SDCARD_STATE_NOT_PRESENT;
-        } else {
-            sdcard.operationStartTime = millis();
-            sdcard.state = SDCARD_STATE_RESET;
-        }
+    // Drop cached blocks of an aborted multi-block write, or the next sequence appends to them.
+    cache_reset();
+
+    if (!sdcard_isInserted()) {
+        sdcard.state = SDCARD_STATE_NOT_PRESENT;
+        return;
+    }
+
+    SD_Init();
+
+    sdcard.failureCount++;
+    if (sdcard.failureCount >= SDCARD_MAX_CONSECUTIVE_FAILURES) {
+        sdcard.state = SDCARD_STATE_NOT_PRESENT;
+    } else {
+        sdcard.operationStartTime = millis();
+        sdcard.state = SDCARD_STATE_RESET;
     }
 }
 
@@ -274,11 +301,8 @@ void sdcard_init(const sdcardConfig_t *config) {
         return;
     }
 #endif
-    if (config->cardDetectTag) {
-        sdcard.cardDetectPin = IOGetByTag(config->cardDetectTag);
-    } else {
-        sdcard.cardDetectPin = IO_NONE;
-    }
+    sdcardDetectConfigure(config);
+    sdcardInsertionDetectInit();
     if (sdioConfig()->useCache) {
         sdcard.useCache = 1;
     } else {
@@ -293,7 +317,7 @@ void sdcard_init(const sdcardConfig_t *config) {
         sdcard.failureCount++;
         return;
     }
-    if (SD_IsDetected()) {
+    if (sdcard_isInserted()) {
         if (SD_Init() != 0) {
             sdcard.state = SDCARD_STATE_NOT_PRESENT;
             sdcard.failureCount++;
@@ -370,7 +394,6 @@ doMore:
                 goto doMore;
             } else {
                 sdcard_reset();
-                goto doMore;
             }
         }
         break;
@@ -388,9 +411,10 @@ doMore:
             goto doMore;
         } // else keep waiting for the CID to arrive
         break;
-    case SDCARD_STATE_SENDING_WRITE:
+    case SDCARD_STATE_SENDING_WRITE: {
         // Have we finished sending the write yet?
-        if (SD_CheckWrite() == SD_OK) {
+        const SD_Error_t writeStatus = SD_CheckWrite();
+        if (writeStatus == SD_OK) {
             // The SD card is now busy committing that write to the card
             sdcard.state = SDCARD_STATE_WAITING_FOR_WRITE;
             sdcard.operationStartTime = millis();
@@ -398,7 +422,13 @@ doMore:
             if (sdcard.pendingOperation.callback) {
                 sdcard.pendingOperation.callback(SDCARD_BLOCK_OPERATION_WRITE, sdcard.pendingOperation.blockIndex, sdcard.pendingOperation.buffer, sdcard.pendingOperation.callbackData);
             }
+        } else if (writeStatus != SD_BUSY || millis() > sdcard.operationStartTime + SDCARD_TIMEOUT_WRITE_MSEC) {
+            sdcard_reset();
+            if (sdcard.pendingOperation.callback) {
+                sdcard.pendingOperation.callback(SDCARD_BLOCK_OPERATION_WRITE, sdcard.pendingOperation.blockIndex, NULL, sdcard.pendingOperation.callbackData);
+            }
         }
+    }
         break;
     case SDCARD_STATE_WAITING_FOR_WRITE:
         if (SD_GetState()) {
@@ -432,7 +462,6 @@ doMore:
              * them to reuse their buffer milliseconds faster than they otherwise would.
              */
             sdcard_reset();
-            goto doMore;
         }
         break;
     case SDCARD_STATE_READING:
@@ -459,8 +488,12 @@ doMore:
                 break; // Timeout not reached yet so keep waiting
             }
         // Timeout has expired, so fall through to convert to a fatal error
+            FALLTHROUGH;
         case SDCARD_RECEIVE_ERROR:
-            goto doMore;
+            sdcard_reset();
+            if (sdcard.pendingOperation.callback) {
+                sdcard.pendingOperation.callback(SDCARD_BLOCK_OPERATION_READ, sdcard.pendingOperation.blockIndex, NULL, sdcard.pendingOperation.callbackData);
+            }
             break;
         }
         break;
@@ -474,7 +507,6 @@ doMore:
 #endif
         } else if (millis() > sdcard.operationStartTime + SDCARD_TIMEOUT_WRITE_MSEC) {
             sdcard_reset();
-            goto doMore;
         }
         break;
     case SDCARD_STATE_NOT_PRESENT:
@@ -549,6 +581,7 @@ doMore:
     sdcard.pendingOperation.callbackData = callbackData;
     sdcard.pendingOperation.chunkIndex = 1; // (for non-DMA transfers) we've sent chunk #0 already
     sdcard.state = SDCARD_STATE_SENDING_WRITE;
+    sdcard.operationStartTime = millis();
     if (SD_WriteBlocks_DMA(blockIndex, (uint32_t*) buffer, 512, block_count) != SD_OK) {
         /* Our write was rejected! This could be due to a bad address but we hope not to attempt that, so assume
          * the card is broken and needs reset.

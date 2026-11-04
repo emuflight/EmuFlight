@@ -413,11 +413,13 @@ SRC += \
             drivers/flash_w25q128fv.c \
             io/flashfs.c
 
-ifneq ($(filter ONBOARDFLASH,$(FEATURES)),)
+# Each MSC file is guarded as a whole by USE_USB_MSC, USE_FLASHFS, USE_SDCARD or USE_SDCARD_SDIO.
 SRC += $(MSC_SRC)
-endif
 
 SRC += $(COMMON_SRC)
+
+# The fake gyro and accelerometer serve the simulator and the hardware dev boards; USE_FAKE_GYRO and USE_FAKE_ACC guard the code.
+SRC += drivers/accgyro/accgyro_fake.c
 
 # The simulator has no accelerometer or gyro hardware.
 ifneq ($(SIMULATOR_BUILD),yes)
@@ -433,7 +435,9 @@ SRC += \
             drivers/accgyro/accgyro_spi_icm426xx.c \
             drivers/accgyro/accgyro_spi_mpu6000.c \
             drivers/accgyro/accgyro_spi_mpu6500.c \
-            drivers/accgyro/accgyro_spi_mpu9250.c
+            drivers/accgyro/accgyro_spi_mpu9250.c \
+            drivers/accgyro_legacy/accgyro_l3gd20.c \
+            drivers/accgyro_legacy/accgyro_lsm303dlhc.c
 endif
 
 # The simulator has no SPI receiver hardware.
@@ -464,31 +468,16 @@ SRC += \
 #excludes
 SRC   := $(filter-out $(MCU_EXCLUDES), $(SRC))
 
-ifneq ($(filter SDCARD,$(FEATURES)),)
+# Each SD file is guarded as a whole by USE_SDCARD or USE_SDCARD_SDIO.
 SRC += \
             drivers/sdcard.c \
-            drivers/sdcard_standard.c \
-            io/asyncfatfs/asyncfatfs.c \
-            io/asyncfatfs/fat_standard.c \
-            $(MSC_SRC)
-endif
-
-ifneq ($(filter SDIO,$(FEATURES)),)
-SRC += \
             drivers/sdcard_sdio_baremetal.c \
             drivers/sdcard_standard.c \
             io/asyncfatfs/asyncfatfs.c \
-            io/asyncfatfs/fat_standard.c \
-            pg/sdio.c \
-            $(MSC_SRC)
-endif
+            io/asyncfatfs/fat_standard.c
 
 # Each VCP file is guarded as a whole by USE_VCP.
 SRC += $(VCP_SRC)
-
-ifneq ($(filter MSC,$(FEATURES)),)
-SRC += $(MSC_SRC)
-endif
 # end target specific make file checks
 
 # Search path and source files for the ST stdperiph library
