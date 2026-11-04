@@ -418,6 +418,9 @@ SRC += $(MSC_SRC)
 
 SRC += $(COMMON_SRC)
 
+# The fake gyro and accelerometer serve the simulator and the hardware dev boards; USE_FAKE_GYRO and USE_FAKE_ACC guard the code.
+SRC += drivers/accgyro/accgyro_fake.c
+
 # The simulator has no accelerometer or gyro hardware.
 ifneq ($(SIMULATOR_BUILD),yes)
 SRC += \
@@ -432,7 +435,9 @@ SRC += \
             drivers/accgyro/accgyro_spi_icm426xx.c \
             drivers/accgyro/accgyro_spi_mpu6000.c \
             drivers/accgyro/accgyro_spi_mpu6500.c \
-            drivers/accgyro/accgyro_spi_mpu9250.c
+            drivers/accgyro/accgyro_spi_mpu9250.c \
+            drivers/accgyro_legacy/accgyro_l3gd20.c \
+            drivers/accgyro_legacy/accgyro_lsm303dlhc.c
 endif
 
 # The simulator has no SPI receiver hardware.
