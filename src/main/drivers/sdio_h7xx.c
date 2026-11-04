@@ -723,17 +723,6 @@ void HAL_SD_AbortCallback(SD_HandleTypeDef *hsd)
     }
 }
 
-bool SD_IsDetected(void) {
-    __IO uint8_t status = SD_PRESENT;
-#ifdef SDCARD_DETECT_PIN
-    const IO_t sd_det = IOGetByTag(IO_TAG(SDCARD_DETECT_PIN));
-    if (IORead(sd_det) != 0) {
-        status = SD_NOT_PRESENT;
-    }
-#endif
-    return status;
-}
-
 bool SD_Initialize_LL(DMA_Stream_TypeDef *dma) {
     UNUSED(dma);
     // H7 uses SDMMC internal DMA (IDMA) — no external DMA stream configuration needed.
