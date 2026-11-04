@@ -157,12 +157,9 @@ USBD_STORAGE_cb_TypeDef USBD_MSC_MICRO_SDIO_fops = {
 * Return         : None.
 *******************************************************************************/
 static int8_t STORAGE_Init (uint8_t lun) {
-    //Initialize SD_DET
-#ifdef SDCARD_DETECT_PIN
-    const IO_t sd_det = IOGetByTag(IO_TAG(SDCARD_DETECT_PIN));
-    IOInit(sd_det, OWNER_SDCARD_DETECT, 0);
-    IOConfigGPIO(sd_det, IOCFG_IPU);
-#endif
+    // Mass storage starts before sdcard_init(): load the detect pin and polarity from the card config.
+    sdcardDetectConfigure(sdcardConfig());
+    sdcardInsertionDetectInit();
     UNUSED(lun);
     LED0_OFF;
 #if defined(STM32H7)

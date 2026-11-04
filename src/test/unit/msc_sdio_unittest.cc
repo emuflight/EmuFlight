@@ -77,7 +77,12 @@ bool SD_Initialize_LL(DMA_Stream_TypeDef *) { return true; }
 SD_Error_t SD_Init(void) { return SD_OK; }
 SD_CardInfo_t SD_CardInfo;
 SD_Error_t SD_GetCardInfo(void) { return SD_OK; }
+sdcardConfig_t sdcardConfig_System;
+unsigned detectConfigureCalls = 0;
+unsigned detectInitCalls = 0;
 bool sdcard_isInserted(void) { return cardInserted; }
+void sdcardDetectConfigure(const sdcardConfig_t *) { detectConfigureCalls++; }
+void sdcardInsertionDetectInit(void) { detectInitCalls++; }
 bool SD_GetState(void) { return stateReady; }
 SD_Error_t SD_CheckRead(void) { return fakeCheck(); }
 SD_Error_t SD_CheckWrite(void) { return fakeCheck(); }
@@ -190,4 +195,16 @@ TEST(MscSdioTest, InitFailsWithoutACardAndSucceedsWithOne) {
     EXPECT_EQ(1, USBD_MSC_MICRO_SDIO_fops.Init(0));
     cardInserted = true;
     EXPECT_EQ(0, USBD_MSC_MICRO_SDIO_fops.Init(0));
+}
+
+TEST(MscSdioTest, InitLoadsTheDetectConfigBeforeCheckingInsertion) {
+    // Mass storage starts before sdcard_init(): Init must configure the detect pin and polarity itself,
+    // also when no card is present (the insertion check comes after).
+    setUpFakeCard(0);
+    detectConfigureCalls = 0;
+    detectInitCalls = 0;
+    cardInserted = false;
+    EXPECT_EQ(1, USBD_MSC_MICRO_SDIO_fops.Init(0));
+    EXPECT_EQ(1u, detectConfigureCalls);
+    EXPECT_EQ(1u, detectInitCalls);
 }

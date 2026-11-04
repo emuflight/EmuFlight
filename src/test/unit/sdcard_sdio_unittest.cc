@@ -62,7 +62,7 @@ static uint8_t *callbackBuffer;
 timeMs_t millis(void) { return mockTimeMs; }
 timeUs_t micros(void) { return mockTimeMs * 1000; }
 
-IO_t IOGetByTag(ioTag_t) { return (IO_t)0; }
+IO_t IOGetByTag(ioTag_t tag) { return tag ? (IO_t)1 : (IO_t)0; }
 void IOInit(IO_t, resourceOwner_e, uint8_t) {}
 void IOConfigGPIO(IO_t, ioConfig_t) {}
 static bool mockCardDetectRead;
@@ -300,6 +300,50 @@ TEST_F(SdcardSdioTest, WithoutDetectPinTheCardCountsAsInsertedWhateverTheFlag)
     EXPECT_TRUE(sdcard_isInserted());
 
     sdcard.detectionInverted = true;
+    EXPECT_TRUE(sdcard_isInserted());
+}
+
+TEST_F(SdcardSdioTest, DetectConfigureCopiesPinAndInvertedFlagFromTheCardConfig)
+{
+    sdcardConfig_t config;
+    std::memset(&config, 0, sizeof(config));
+    config.cardDetectTag = 1;
+    config.cardDetectInverted = 1;
+
+    sdcardDetectConfigure(&config);
+
+    EXPECT_NE((IO_t)0, sdcard.cardDetectPin);
+    EXPECT_TRUE(sdcard.detectionInverted);
+    mockCardDetectRead = false;
+    EXPECT_TRUE(sdcard_isInserted());
+    mockCardDetectRead = true;
+    EXPECT_FALSE(sdcard_isInserted());
+}
+
+TEST_F(SdcardSdioTest, DetectConfigureWithoutTagClearsPinAndFlag)
+{
+    sdcard.cardDetectPin = (IO_t)1;
+    sdcard.detectionInverted = true;
+    sdcardConfig_t config;
+    std::memset(&config, 0, sizeof(config));
+
+    sdcardDetectConfigure(&config);
+
+    EXPECT_EQ((IO_t)0, sdcard.cardDetectPin);
+    EXPECT_FALSE(sdcard.detectionInverted);
+    mockCardDetectRead = true;
+    EXPECT_TRUE(sdcard_isInserted());
+    mockCardDetectRead = false;
+    EXPECT_TRUE(sdcard_isInserted());
+}
+
+TEST_F(SdcardSdioTest, UnconfiguredDetectorReportsInsertedWithoutReadingThePin)
+{
+    // The zero state before any configuration: no pin, so the card counts as inserted whatever the pin reads.
+    // This is why mass storage must call sdcardDetectConfigure() before it uses sdcard_isInserted().
+    mockCardDetectRead = false;
+    EXPECT_TRUE(sdcard_isInserted());
+    mockCardDetectRead = true;
     EXPECT_TRUE(sdcard_isInserted());
 }
 

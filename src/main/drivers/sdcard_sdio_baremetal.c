@@ -146,6 +146,17 @@ void sdcardInsertionDetectInit(void) {
     }
 }
 
+// USB mass storage starts before sdcard_init(), so it calls this to set the detect pin and its polarity first.
+void sdcardDetectConfigure(const sdcardConfig_t *config) {
+    if (config->cardDetectTag) {
+        sdcard.cardDetectPin = IOGetByTag(config->cardDetectTag);
+        sdcard.detectionInverted = config->cardDetectInverted;
+    } else {
+        sdcard.cardDetectPin = IO_NONE;
+        sdcard.detectionInverted = false;
+    }
+}
+
 /**
  * Detect if a SD card is physically present in the memory slot.
  */
@@ -290,13 +301,7 @@ void sdcard_init(const sdcardConfig_t *config) {
         return;
     }
 #endif
-    if (config->cardDetectTag) {
-        sdcard.cardDetectPin = IOGetByTag(config->cardDetectTag);
-        sdcard.detectionInverted = config->cardDetectInverted;
-    } else {
-        sdcard.cardDetectPin = IO_NONE;
-        sdcard.detectionInverted = false;
-    }
+    sdcardDetectConfigure(config);
     if (sdioConfig()->useCache) {
         sdcard.useCache = 1;
     } else {
