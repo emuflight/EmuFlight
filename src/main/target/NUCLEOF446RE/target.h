@@ -84,9 +84,6 @@
 //#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 128
 //// Divide to under 25MHz for normal operation:
 //#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 2
-//
-//// Note, this is the same DMA channel as UART1_RX. Luckily we don't use DMA for USART Rx.
-//#define SDCARD_DMA_CHANNEL_TX               DMA1_Channel5
 
 // Performance logging for SD card operations:
 // #define AFATFS_USE_INTROSPECTIVE_LOGGING

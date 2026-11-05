@@ -103,7 +103,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 4 // 5,5MHz
 
-#define SDCARD_DMA_CHANNEL_TX                   DMA1_Stream5
 
 #define USE_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
