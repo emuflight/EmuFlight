@@ -1920,8 +1920,8 @@ static void cliSdInfo(char *cmdline) {
 static void cliFlashInfo(char *cmdline) {
     const flashGeometry_t *layout = flashfsGetGeometry();
     UNUSED(cmdline);
-    cliPrintLinef("Flash sectors=%u, sectorSize=%u, pagesPerSector=%u, pageSize=%u, totalSize=%u, usedSize=%u",
-                  layout->sectors, layout->sectorSize, layout->pagesPerSector, layout->pageSize, layout->totalSize, flashfsGetOffset());
+    cliPrintLinef("Flash type=%s, sectors=%u, sectorSize=%u, pagesPerSector=%u, pageSize=%u, totalSize=%u, usedSize=%u, JEDEC ID=0x%08x",
+                  layout->jedecId ? flashTypeGetName(layout->flashType) : "NONE", layout->sectors, layout->sectorSize, layout->pagesPerSector, layout->pageSize, layout->totalSize, flashfsGetOffset(), (unsigned)layout->jedecId);
 
     static const char *stageNames[] = {
         "NOT_RUN", "NO_CS_TAG", "CS_NOT_FREE", "BUS_INSTANCE_FAILED", "TRANSFER_DONE"
@@ -3659,6 +3659,12 @@ static void cliStatus(char *cmdline) {
     cliPrintLinefeed();
 #ifdef USE_SDCARD
     cliSdInfo(NULL);
+#endif
+#ifdef USE_FLASHFS
+    const flashGeometry_t *flashLayout = flashfsGetGeometry();
+    if (flashLayout->jedecId != 0) {
+        cliPrintLinef("FLASH: JEDEC ID=0x%08x %uM", (unsigned)flashLayout->jedecId, (unsigned)(flashLayout->totalSize >> 20));
+    }
 #endif
 #ifdef USE_I2C
     const uint16_t i2cErrorCounter = i2cGetErrorCounter();
