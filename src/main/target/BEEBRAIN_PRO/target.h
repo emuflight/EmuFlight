@@ -24,7 +24,7 @@
 #define USBD_PRODUCT_STRING             "BeeBrain PRO"
 #define FC_TARGET_MCU                   STM32F411
 
-#define BOARD_NAME                      BEEBRAINPRO
+#define BOARD_NAME                      BEEBRAIN_PRO
 
 #define USE_TARGET_CONFIG
 #define TARGET_PREINIT
