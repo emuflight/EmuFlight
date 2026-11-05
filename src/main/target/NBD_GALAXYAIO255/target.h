@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        NBD_GALAXYAIO255
 #define MANUFACTURER_ID   NEBD
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
 #define FC_TARGET_MCU     STM32H743
 
 #define USE_GYRO

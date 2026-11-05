@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        RUSRACE_F4
 #define MANUFACTURER_ID   CUST
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
 #define FC_TARGET_MCU     STM32F405
 
 #define USE_GYRO

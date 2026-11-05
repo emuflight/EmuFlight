@@ -24,7 +24,6 @@
 
 #define BOARD_NAME        ALIENFLIGHTF4
 #define MANUFACTURER_ID   AFNG
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
 #define FC_TARGET_MCU     STM32F405
 
 #define ENABLE_DSHOT_DMAR       true
