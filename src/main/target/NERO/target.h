@@ -78,7 +78,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
 
-//#define SDCARD_DMA_STREAM_TX_FULL           DMA1_Stream5
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1

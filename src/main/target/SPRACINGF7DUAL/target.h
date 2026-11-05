@@ -144,12 +144,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 54Mhz/3 = 18Mhz // FIXME currently running slower than 18mhz for testing.
 
-#define SDCARD_DMA_STREAM_TX_FULL           DMA1_Stream7
-#define SDCARD_DMA_TX                       DMA1
-#define SDCARD_DMA_STREAM_TX                7
-#define SDCARD_DMA_CLK                      LL_AHB1_GRP1_PERIPH_DMA1
-
-#define SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG DMA_FLAG_TCIF7_4
 
 #define USE_VTX_RTC6705
 #define USE_VTX_RTC6705_SOFTSPI
