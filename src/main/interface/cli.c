@@ -1917,15 +1917,6 @@ static void cliSdInfo(char *cmdline) {
 
 #ifdef USE_FLASHFS
 
-static void cliEnv(char *cmdline) {
-    UNUSED(cmdline);
-    const flashGeometry_t *layout = flashfsGetGeometry();
-    if (layout->jedecId != 0) {
-        cliPrintLinef("FLASH_JEDEC_ID=0x%08x", (unsigned)layout->jedecId);
-        cliPrintLinef("FLASH_SIZE_MB=%u", (unsigned)(layout->totalSize >> 20));
-    }
-}
-
 static void cliFlashInfo(char *cmdline) {
     const flashGeometry_t *layout = flashfsGetGeometry();
     UNUSED(cmdline);
@@ -5133,9 +5124,6 @@ const clicmd_t cmdTable[] = {
 #endif
 #ifdef MSP_OVER_CLI
     CLI_COMMAND_DEF("msp", NULL, NULL, cliMsp),
-#endif
-#ifdef USE_FLASHFS
-    CLI_COMMAND_DEF("env", "show environment as NAME=VALUE", NULL, cliEnv),
 #endif
     CLI_COMMAND_DEF("exit", NULL, NULL, cliExit),
     CLI_COMMAND_DEF("feature", "configure features",
