@@ -100,11 +100,10 @@
 #define ENABLE_DSHOT_DMAR       true
 
 
-// PC8 and ADC1 share DMA2 Stream 4
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PC6 , 1,  0) \
     TIMER_PIN_MAP( 1, PC7 , 1,  0) \
-    TIMER_PIN_MAP( 2, PC8 , 2,  1) \
+    TIMER_PIN_MAP( 2, PC8 , 2,  0) \
     TIMER_PIN_MAP( 3, PC9 , 2,  0) \
     TIMER_PIN_MAP( 4, PB6 , 1,  0)
 
