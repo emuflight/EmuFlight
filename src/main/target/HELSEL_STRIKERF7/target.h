@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        HELSEL_STRIKERF7
 #define MANUFACTURER_ID   AIRB
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
 #define FC_TARGET_MCU     STM32F7X2
 
 #define USE_ACC

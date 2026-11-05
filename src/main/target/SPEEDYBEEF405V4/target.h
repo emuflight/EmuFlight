@@ -24,7 +24,6 @@
 #define USBD_PRODUCT_STRING "SPEEDYBEEF405V4"
 
 #define FC_TARGET_MCU     STM32F405
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
 
 #define USE_ACC
 #define USE_GYRO

@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        AOCODARCH7DUAL
 #define MANUFACTURER_ID   SJET
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
 #define FC_TARGET_MCU     STM32H743
 
 #define USE_GYRO

@@ -22,7 +22,6 @@
 
 #define BOARD_NAME          HGLRC_H743_LITE
 #define MANUFACTURER_ID     HGLR
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
 #define FC_TARGET_MCU       STM32H743
 
 #define USE_ACC

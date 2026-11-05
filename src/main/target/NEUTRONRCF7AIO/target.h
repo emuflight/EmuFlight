@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        NEUTRONRCF7AIO
 #define MANUFACTURER_ID   NERC
-#define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
 #define FC_TARGET_MCU     STM32F745
 
 #define USE_ACC

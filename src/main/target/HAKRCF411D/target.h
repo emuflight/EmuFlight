@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        HAKRCF411D
 #define MANUFACTURER_ID   HARC
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
 #define FC_TARGET_MCU     STM32F411
 
 #define USE_ACC

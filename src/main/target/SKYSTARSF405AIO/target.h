@@ -27,7 +27,6 @@
 #define USBD_PRODUCT_STRING "SKYSTARSF405AIO"
 
 #define FC_TARGET_MCU     STM32F405
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
 
 #define USE_GYRO
 #define USE_ACC

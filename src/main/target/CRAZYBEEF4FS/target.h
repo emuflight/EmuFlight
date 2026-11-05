@@ -24,7 +24,6 @@
 #define USBD_PRODUCT_STRING            "CRAZYBEEF4FS"
 
 #define FC_TARGET_MCU     STM32F411
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
 
 #define LED0_PIN                PC13
 
