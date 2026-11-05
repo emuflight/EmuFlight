@@ -43,6 +43,8 @@
 
 #define USBD_PRODUCT_STRING             "ALIENWHOOPF4"
 #define FC_TARGET_MCU                   STM32F405
+#define BOARD_NAME        ALIENWHOOPF4
+#define MANUFACTURER_ID   ALWH
 
 #define USE_TARGET_CONFIG // see config.c for target specific customizations
 

@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU                   STM32F745
+#define BOARD_NAME        KAKUTEF7V2
+#define MANUFACTURER_ID   HBRO
 #define TARGET_MANUFACTURER_IDENTIFIER "HBRO"
 
 //#define USE_TARGET_CONFIG

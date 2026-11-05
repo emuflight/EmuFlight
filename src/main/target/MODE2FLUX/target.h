@@ -18,6 +18,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        MODE2FLUX
+#define MANUFACTURER_ID   MOD2
 #define TARGET_BOARD_IDENTIFIER "FLUX"
 #define USBD_PRODUCT_STRING     "MODE2FLUX"
 #define MSP_OVER_CLI

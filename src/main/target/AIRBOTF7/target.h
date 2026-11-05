@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        AIRBOTF7
+#define MANUFACTURER_ID   AIRB
 #define TARGET_BOARD_IDENTIFIER "ABF7"
 #define USBD_PRODUCT_STRING     "Airbot-F7"
 

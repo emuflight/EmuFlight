@@ -21,7 +21,7 @@
 #pragma once
 
 #define BOARD_NAME        HGLRCF405V2
-#define MANUFACTURER_ID   HGLRC
+#define MANUFACTURER_ID   HGLR
 #define FC_TARGET_MCU     STM32F405
 
 #define USE_ACC

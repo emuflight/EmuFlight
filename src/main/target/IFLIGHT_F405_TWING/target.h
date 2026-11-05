@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define BOARD_NAME        IFLIGHT_F405_TWING
+#define MANUFACTURER_ID   IFRC
+
 #if defined(IFLIGHT_F405_TWING_M)
 #define FC_TARGET_MCU     STM32F405
 #define USBD_PRODUCT_STRING "IFLIGHT_F405_TWING_M"

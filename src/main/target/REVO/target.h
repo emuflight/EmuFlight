@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        REVO
+#define MANUFACTURER_ID   OPEN
 #define TARGET_BOARD_IDENTIFIER "REVO"
 #define USBD_PRODUCT_STRING     "Revolution"
 

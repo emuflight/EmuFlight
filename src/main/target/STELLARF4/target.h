@@ -21,7 +21,7 @@
 #pragma once
 
 #define BOARD_NAME STELLARF4
-#define MANUFACTURER_ID FLMO
+#define MANUFACTURER_ID STBE
 #define FC_TARGET_MCU STM32F405
 
 #define USE_ACC

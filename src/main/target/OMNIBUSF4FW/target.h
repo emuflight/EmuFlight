@@ -25,6 +25,8 @@
 // OMNIBUSF4FW for Version 2
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        OMNIBUSF4FW
+#define MANUFACTURER_ID   AIRB
 #define TARGET_BOARD_IDENTIFIER "OBFW"
 
 #define USBD_PRODUCT_STRING "OmnibusF4 Fireworks"

@@ -24,6 +24,8 @@
 #define USBD_PRODUCT_STRING "TMOTORF7"
 
 #define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        TMOTORF7
+#define MANUFACTURER_ID   TMTR
 
 #define LED0_PIN                PB2
 

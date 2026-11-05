@@ -23,6 +23,8 @@
 //OMNIBUSF7 TARGETS-------------------------
 #define USE_TARGET_CONFIG
 #define FC_TARGET_MCU     STM32F745
+#define BOARD_NAME        OMNIBUSF7
+#define MANUFACTURER_ID   AIRB
 #define TARGET_BOARD_IDENTIFIER "OBF7"
 #define USBD_PRODUCT_STRING "OmnibusF7"
 
