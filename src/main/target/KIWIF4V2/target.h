@@ -67,9 +67,6 @@
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
 
 
-//#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream5
-
-#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream4
 
 #define USE_VCP
 #define USB_DETECT_PIN          PC5
