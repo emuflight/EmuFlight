@@ -21,6 +21,7 @@
 #pragma once
 
 #define TARGET_MANUFACTURER_IDENTIFIER "HBRO"
+#define FC_TARGET_MCU     STM32F745
 #define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
 
 //#define USE_TARGET_CONFIG

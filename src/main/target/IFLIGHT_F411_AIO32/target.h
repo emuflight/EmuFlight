@@ -23,7 +23,7 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "IFRC"
 #define USBD_PRODUCT_STRING "IFLIGHT_F411_AIO32"
 
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define FC_TARGET_MCU     STM32F411
 #define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
 
 #define USE_BEEPER
@@ -113,7 +113,7 @@
 
 
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP( 0, PA3 , 1,  0) \
+    TIMER_PIN_MAP( 0, PA3 , 1, -1) \
     TIMER_PIN_MAP( 1, PB4 , 1,  0) \
     TIMER_PIN_MAP( 2, PB5 , 1,  0) \
     TIMER_PIN_MAP( 3, PB6 , 1,  0) \

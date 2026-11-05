@@ -23,7 +23,7 @@
 #define BOARD_NAME NBD_INFINITY200RS
 #define MANUFACTURER_ID NEBD
 #define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
-#define FC_TARGET_MCU     STM32F745     // not used in EmuF
+#define FC_TARGET_MCU     STM32F745
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000

@@ -23,7 +23,7 @@
 #define BOARD_NAME        FLYWOOF7DUAL
 #define MANUFACTURER_ID   FLWO
 #define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define ENABLE_DSHOT_DMAR       true
 
@@ -186,7 +186,7 @@
     TIMER_PIN_MAP( 6, PC9 , 2,  0) /* S6 (2,1) */ \
     TIMER_PIN_MAP( 7, PC6 , 2,  1) /* ppm RX_PPM_PIN */ \
     TIMER_PIN_MAP( 8, PA8 , 1,  0) /* LED STRIP(2,6) */ \
-    TIMER_PIN_MAP( 9, PB8 , 1,  0) /* FC CAM(1,7) */ \
+    TIMER_PIN_MAP( 9, PB8 , 1, -1) /* FC CAM(1,7) */ \
     TIMER_PIN_MAP( 10, PB10 , 1,  0) /* pwm RX_PWM1_PIN */ \
     TIMER_PIN_MAP( 11, PA2 , 2,  0) /* pwm RX_PWM2_PIN */ \
     TIMER_PIN_MAP( 12, PA3 , 2,  1) /* pwm RX_PWM3_PIN */

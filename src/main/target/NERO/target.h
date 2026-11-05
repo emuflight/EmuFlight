@@ -22,7 +22,7 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "BKMN"
 #define USBD_PRODUCT_STRING "NERO"
 
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 #define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
 
 #define USE_ACC
@@ -148,7 +148,7 @@
 // PA0 and PB1 share DMA1 Stream 2; with DShot burst off only one of them gets DMA
 // ADC1 and PC8 share DMA2 Stream 4; with DShot burst off only one of them gets DMA
 #define TIMER_PIN_MAPPING \
-    TIMER_PIN_MAP(0, PC7, 1, 0) \
+    TIMER_PIN_MAP(0, PC7, 1, -1) \
     TIMER_PIN_MAP(1, PA0, 2, 0) /* motor 1 */ \
     TIMER_PIN_MAP(2, PA1, 2, 0) /* motor 2 */ \
     TIMER_PIN_MAP(3, PA2, 2, 0) /* motor 3 */ \

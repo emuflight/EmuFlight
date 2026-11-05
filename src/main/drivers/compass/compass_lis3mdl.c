@@ -45,6 +45,7 @@
 #define LIS3MDL_REG_STATUS_REG      0x27
 
 #define LIS3MDL_REG_OUT_X_L         0x28
+#define LIS3MDL_SUB_AUTO_INC        0x80  // sub-address MSb: auto-increment for multi-byte reads
 #define LIS3MDL_REG_OUT_X_H         0x29
 #define LIS3MDL_REG_OUT_Y_L         0x2A
 #define LIS3MDL_REG_OUT_Y_H         0x2B
@@ -104,7 +105,7 @@
 static bool lis3mdlRead(magDev_t * mag, int16_t *magData) {
     uint8_t buf[6];
     extDevice_t *dev = &mag->dev;
-    bool ack = busReadRegisterBuffer(dev, LIS3MDL_REG_OUT_X_L, buf, 6);
+    bool ack = busReadRegisterBuffer(dev, LIS3MDL_REG_OUT_X_L | LIS3MDL_SUB_AUTO_INC, buf, 6);
     if (!ack) {
         return false;
     }

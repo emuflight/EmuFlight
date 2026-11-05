@@ -673,6 +673,29 @@ flash_w25m_unittest_DEFINES := \
 		USE_FLASH_W25M02G
 
 
+msc_sd_spi_unittest_SRC := \
+		$(USER_DIR)/msc/usbd_storage_sd_spi.c
+
+msc_sd_spi_unittest_DEFINES := \
+		STM32F4 \
+		USE_SDCARD
+
+msc_sd_spi_unittest_INCLUDE_DIRS := \
+		$(TEST_DIR)/msc_stub
+
+
+msc_sdio_unittest_SRC := \
+		$(USER_DIR)/msc/usbd_storage_sdio.c
+
+msc_sdio_unittest_DEFINES := \
+		STM32F4 \
+		USE_SDCARD \
+		USE_SDCARD_SDIO
+
+msc_sdio_unittest_INCLUDE_DIRS := \
+		$(TEST_DIR)/msc_stub
+
+
 sdcard_unittest_SRC := \
 		$(USER_DIR)/drivers/sdcard.c \
 		$(USER_DIR)/drivers/sdcard_standard.c
@@ -700,6 +723,12 @@ sdcard_unittest_CFLAGS := \
 
 sdcard_unittest_LDFLAGS := \
 		-no-pie
+
+sdcard_sdio_unittest_SRC :=
+
+sdcard_sdio_unittest_DEFINES := \
+		USE_SDCARD \
+		USE_SDCARD_SDIO
 
 
 flight_failsafe_unittest_SRC := \
@@ -762,6 +791,8 @@ pg_sdcard_unittest_SRC := \
 		$(USER_DIR)/pg/pg.c \
 		$(USER_DIR)/pg/sdcard.c
 
+pg_sdcard_unittest_CFLAGS := -fshort-enums
+
 # The legacy SD DMA macros expand to undeclared symbols: compiling fails if pg/sdcard.c reads them.
 pg_sdcard_unittest_DEFINES := \
 		USE_SDCARD \
@@ -770,6 +801,58 @@ pg_sdcard_unittest_DEFINES := \
 		SDCARD_DMA_STREAM_TX_FULL=legacySdDmaMacroMustBeUnused \
 		SDCARD_DMA_CHANNEL_TX=legacySdDmaMacroMustBeUnused \
 		SDIO_DMA=legacySdDmaMacroMustBeUnused
+
+pg_sdcard_spi_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_unittest_DEFINES := \
+		USE_SDCARD \
+		SDCARD_SPI_INSTANCE=0 \
+		SDCARD_SPI_CS_PIN=PA4
+
+pg_sdcard_spi_sdio_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_sdio_unittest_DEFINES := \
+		USE_SDCARD \
+		USE_SDCARD_SDIO \
+		SDCARD_SPI_INSTANCE=0 \
+		SDCARD_SPI_CS_PIN=PA4
+
+pg_sdcard_spi_nocs_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_nocs_unittest_DEFINES := \
+		USE_SDCARD \
+		SDCARD_SPI_INSTANCE=0
+
+pg_sdcard_spi_nocs_sdio_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_nocs_sdio_unittest_DEFINES := \
+		USE_SDCARD \
+		USE_SDCARD_SDIO \
+		SDCARD_SPI_INSTANCE=0
+
+pg_sdcard_spi_invalid_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_invalid_unittest_DEFINES := \
+		USE_SDCARD \
+		SDCARD_SPI_INSTANCE=0 \
+		SDCARD_SPI_CS_PIN=PA4
+
+pg_sdcard_none_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_none_unittest_DEFINES := \
+		USE_SDCARD
 
 motor_output_reordering_unittest_SRC :=
 
@@ -787,6 +870,22 @@ pg_sdio_opt_unittest_SRC := \
 pg_sdio_opt_unittest_DEFINES := \
 		USE_SDCARD_SDIO \
 		SDCARD_SDIO_DMA_OPT=0
+
+pg_sdio_dev1_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdio.c
+
+pg_sdio_dev1_unittest_DEFINES := \
+		USE_SDCARD_SDIO \
+		SDIO_DEVICE=SDIODEV_1
+
+pg_sdio_dev2_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdio.c
+
+pg_sdio_dev2_unittest_DEFINES := \
+		USE_SDCARD_SDIO \
+		SDIO_DEVICE=SDIODEV_2
 
 pg_unittest_SRC := \
 		$(USER_DIR)/pg/pg.c

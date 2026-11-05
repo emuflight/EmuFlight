@@ -22,6 +22,7 @@
 #pragma once
 
 #ifndef TARGET_BOARD_IDENTIFIER
+#define FC_TARGET_MCU     STM32F446
 #define TARGET_BOARD_IDENTIFIER         "S446"
 #endif
 

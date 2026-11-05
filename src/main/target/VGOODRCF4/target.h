@@ -20,6 +20,7 @@
  #pragma once
 
 //#define USE_TARGET_CONFIG
+#define FC_TARGET_MCU     STM32F405
 #define TARGET_BOARD_IDENTIFIER	"VGF4"
 #define TARGET_MANUFACTURER_IDENTIFIER	"VGRC"
 #define USBD_PRODUCT_STRING	"VGOODRCF4"
@@ -73,11 +74,6 @@
 //-------------------------------------IIC1 MAG5883------------------------------
 #define MAG_I2C_INSTANCE        (I2CDEV_1)
 #define USE_MAG
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-// No detect case in EF yet: not used until one is added.
-#define USE_MAG_LIS3MDL
-#define MAG_HMC5883_ALIGN       CW90_DEG
 
 //-------------------------------------USART-----------------------------------
 #define USE_VCP

@@ -21,6 +21,7 @@
 #pragma once
 
 #if defined(IFLIGHT_F405_TWING_M)
+#define FC_TARGET_MCU     STM32F405
 #define TARGET_BOARD_IDENTIFIER "S405"
 #define USBD_PRODUCT_STRING "IFLIGHT_F405_TWING_M"
 #else

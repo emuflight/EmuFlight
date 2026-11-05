@@ -23,7 +23,7 @@
 #define BOARD_NAME        IFLIGHT_BLITZ_F7_AIO
 #define MANUFACTURER_ID   IFRC
 #define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
-#define FC_TARGET_MCU     STM32F745     // not used in EmuF
+#define FC_TARGET_MCU     STM32F745
 
 #define USE_ACCGYRO_BMI270
 #define USE_GYRO

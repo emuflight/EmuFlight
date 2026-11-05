@@ -23,7 +23,7 @@
 #define BOARD_NAME          2RAW_THUNDER_H7
 #define MANUFACTURER_ID     IFRC
 #define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU       STM32H743     // not used in EmuF
+#define FC_TARGET_MCU       STM32H743
 
 #define USE_ACC
 #define USE_ACC_SPI_ICM42688P
@@ -117,7 +117,6 @@
 #define I2C2_SCL PB10
 #define I2C2_SDA PB11
 
-#define USE_SDCARD_SDIO
 #define SDCARD_SPI_CS_PIN       PA15
 #define SDCARD_SPI_INSTANCE             SPI3
 //notice - NEED: #define SDCARD_DMA_CHANNEL_TX       DMAx_StreamX // please verify

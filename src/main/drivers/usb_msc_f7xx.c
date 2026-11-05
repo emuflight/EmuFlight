@@ -44,6 +44,7 @@
 
 #include "drivers/accgyro/accgyro_mpu.h"
 
+#include "pg/sdcard.h"
 #include "pg/usb.h"
 
 #include "vcp_hal/usbd_cdc_interface.h"
@@ -81,6 +82,10 @@ uint8_t mscStart(void) {
     switch (blackboxConfig()->device) {
 #ifdef USE_SDCARD
     case BLACKBOX_DEVICE_SDCARD:
+        // Mode NONE, or a backend this build did not compile, has no storage to serve.
+        if (sdcardConfig()->mode != USBD_MSC_MICRO_SD_MODE) {
+            return 1;
+        }
         USBD_MSC_RegisterStorage(&USBD_Device, &USBD_MSC_MICRO_SDIO_fops);
         break;
 #endif
