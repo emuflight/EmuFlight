@@ -361,6 +361,18 @@ static const flashGeometry_t noFlashGeometry = {
     .totalSize = 0,
 };
 
+const char *flashTypeGetName(flashType_e type)
+{
+    switch (type) {
+    case FLASH_TYPE_NOR:
+        return "NOR";
+    case FLASH_TYPE_NAND:
+        return "NAND";
+    }
+
+    return "UNKNOWN";
+}
+
 const flashGeometry_t *flashGetGeometry(void)
 {
     if (flashDevice.vTable && flashDevice.vTable->getGeometry) {
