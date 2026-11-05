@@ -88,7 +88,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 8 // 13.5MHz
 
-#define SDCARD_DMA_STREAM_TX_FULL           DMA2_Stream1
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
