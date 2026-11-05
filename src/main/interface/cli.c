@@ -1920,8 +1920,8 @@ static void cliSdInfo(char *cmdline) {
 static void cliFlashInfo(char *cmdline) {
     const flashGeometry_t *layout = flashfsGetGeometry();
     UNUSED(cmdline);
-    cliPrintLinef("Flash sectors=%u, sectorSize=%u, pagesPerSector=%u, pageSize=%u, totalSize=%u, usedSize=%u, JEDEC ID=0x%08x",
-                  layout->sectors, layout->sectorSize, layout->pagesPerSector, layout->pageSize, layout->totalSize, flashfsGetOffset(), (unsigned)layout->jedecId);
+    cliPrintLinef("Flash type=%s, sectors=%u, sectorSize=%u, pagesPerSector=%u, pageSize=%u, totalSize=%u, usedSize=%u, JEDEC ID=0x%08x",
+                  flashTypeGetName(layout->flashType), layout->sectors, layout->sectorSize, layout->pagesPerSector, layout->pageSize, layout->totalSize, flashfsGetOffset(), (unsigned)layout->jedecId);
 
     static const char *stageNames[] = {
         "NOT_RUN", "NO_CS_TAG", "CS_NOT_FREE", "BUS_INSTANCE_FAILED", "TRANSFER_DONE"
