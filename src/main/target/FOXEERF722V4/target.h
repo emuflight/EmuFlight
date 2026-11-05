@@ -142,9 +142,10 @@
 
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
+// PA9 and PA8 share DMA2 Stream 6 on option 0; motor 2 uses option 1 (DMA2 Stream 1) so each motor has its own stream with DShot burst off
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP(0, PA9, 1, 0) /* motor 1 */ \
-    TIMER_PIN_MAP(1, PA8, 1, 0) /* motor 2 */ \
+    TIMER_PIN_MAP(1, PA8, 1, 1) /* motor 2 */ \
     TIMER_PIN_MAP(2, PC9, 2, 0) /* motor 3 */ \
     TIMER_PIN_MAP(3, PC8, 2, 1) /* motor 4 */ \
     TIMER_PIN_MAP(4, PB7, 1, 0) /* ppm */ \
