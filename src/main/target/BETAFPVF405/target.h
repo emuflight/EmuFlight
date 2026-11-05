@@ -138,7 +138,6 @@
 #define SDCARD_SPI_CS_PIN             PB12
 #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER  256 // 328kHz
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER  4 // 21MHz
-#define SDCARD_DMA_CHANNEL_TX                DMA1_Stream4
 
 #define FLASH_CS_PIN            PB12
 #define FLASH_SPI_INSTANCE      SPI2
