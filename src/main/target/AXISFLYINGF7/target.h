@@ -146,11 +146,10 @@
 //#define ESCSERIAL_TIMER_TX_PIN NONE
 
 
-// PC8 and ADC1 share DMA2 Stream 4
 #define TIMER_PIN_MAPPING \
     TIMER_PIN_MAP( 0, PC9 , 2,  0) /* S1 */ \
     TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S2 */ \
-    TIMER_PIN_MAP( 2, PC8 , 2,  1) /* S3 */ \
+    TIMER_PIN_MAP( 2, PC8 , 2,  0) /* S3 */ \
     TIMER_PIN_MAP( 3, PB1 , 2,  0) /* S4 */ \
     TIMER_PIN_MAP( 4, PB6 , 1,  0) /* S5 */ \
     TIMER_PIN_MAP( 5, PB7 , 1,  0) /* S6 */ \
