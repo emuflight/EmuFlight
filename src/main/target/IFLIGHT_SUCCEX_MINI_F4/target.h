@@ -24,6 +24,8 @@
 #define USBD_PRODUCT_STRING            "IFLIGHT_SUCCEX_MINI_F4"
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        IFLIGHT_SUCCEX_MINI_F4
+#define MANUFACTURER_ID   IFRC
 
 #define LED0_PIN                      PB5
 

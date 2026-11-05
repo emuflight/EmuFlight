@@ -43,6 +43,8 @@
 
 #define USBD_PRODUCT_STRING            "ALIENWHOOPF7"
 #define FC_TARGET_MCU                  STM32F7X2
+#define BOARD_NAME        ALIENWHOOPF7
+#define MANUFACTURER_ID   ALWH
 
 #define USE_TARGET_CONFIG // see config.c for target specific customizations
 

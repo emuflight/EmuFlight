@@ -23,6 +23,8 @@
 #define USE_TARGET_CONFIG
 
 #define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        EMAXF411
+#define MANUFACTURER_ID   EMAX
 #define USBD_PRODUCT_STRING     "EMAXF411"
 
 #define LED0_PIN                PC13

@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        STM32F411DISCOVERY
+#define MANUFACTURER_ID   STMI
 #define USBD_PRODUCT_STRING     "DISCF411"
 
 #define USE_SENSOR_NAMES

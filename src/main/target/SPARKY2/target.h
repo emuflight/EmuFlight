@@ -20,6 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        SPARKY2
+#define MANUFACTURER_ID   FOSS
 #define TARGET_BOARD_IDENTIFIER "SPK2"
 
 #define USBD_PRODUCT_STRING "Sparky 2.0"

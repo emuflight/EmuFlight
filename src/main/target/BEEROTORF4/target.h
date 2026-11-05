@@ -20,6 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        BEEROTORF4
+#define MANUFACTURER_ID   RCTI
 #define TARGET_BOARD_IDENTIFIER "BRF4"
 
 #define USBD_PRODUCT_STRING "BeeRotorF4"

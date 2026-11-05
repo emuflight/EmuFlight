@@ -24,6 +24,8 @@
 #define USBD_PRODUCT_STRING            "CRAZYBEEF4FS"
 
 #define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        CRAZYBEEF4FS
+#define MANUFACTURER_ID   HAMO
 
 #define LED0_PIN                PC13
 

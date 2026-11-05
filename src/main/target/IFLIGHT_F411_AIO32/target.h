@@ -24,6 +24,8 @@
 #define USBD_PRODUCT_STRING "IFLIGHT_F411_AIO32"
 
 #define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        IFLIGHT_F411_AIO32
+#define MANUFACTURER_ID   IFRC
 
 #define USE_BEEPER
 #define BEEPER_PIN                PB2

@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F745
+#define BOARD_NAME        FURYF7
+#define MANUFACTURER_ID   DIAT
 #define TARGET_BOARD_IDENTIFIER "FYF7"
 
 #define USBD_PRODUCT_STRING "FuryF7"

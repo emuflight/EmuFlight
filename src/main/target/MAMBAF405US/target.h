@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        MAMBAF405US
+#define MANUFACTURER_ID   DIAT
 #define USBD_PRODUCT_STRING "MAMBAF405US"
 
 #define USE_TARGET_CONFIG

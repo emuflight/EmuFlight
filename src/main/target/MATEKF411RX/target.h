@@ -24,6 +24,8 @@
 #define USBD_PRODUCT_STRING            "MATEKF411RX"
 
 #define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        MATEKF411RX
+#define MANUFACTURER_ID   MTKS
 
 #define LED0_PIN                PC13
 

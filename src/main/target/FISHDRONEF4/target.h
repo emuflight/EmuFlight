@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        FISHDRONEF4
+#define MANUFACTURER_ID   LEGA
 #define TARGET_BOARD_IDENTIFIER "FDF4"
 #define USBD_PRODUCT_STRING     "FishDroneF4"
 

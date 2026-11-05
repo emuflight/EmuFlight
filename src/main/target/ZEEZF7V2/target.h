@@ -20,6 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        ZEEZF7V2
+#define MANUFACTURER_ID   ZEEZ
 #define USBD_PRODUCT_STRING                              "ZEEZF7V2"
 #define TARGET_MANUFACTURER_IDENTIFIER                   "ZEEZ"
 

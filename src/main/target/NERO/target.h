@@ -23,6 +23,8 @@
 #define USBD_PRODUCT_STRING "NERO"
 
 #define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        NERO
+#define MANUFACTURER_ID   BKMN
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6500

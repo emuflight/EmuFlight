@@ -20,6 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        YUPIF4
+#define MANUFACTURER_ID   YUPF
 #define TARGET_BOARD_IDENTIFIER "YPF4"
 #define USE_TARGET_CONFIG
 
