@@ -88,8 +88,17 @@ ifneq ($(MCU_GROUP_$(FC_TARGET_MCU)),)
 $(eval $(MCU_GROUP_$(FC_TARGET_MCU))_TARGETS += $(TARGET))
 endif
 
-# TARGET_XTAL_MHZ in the target header sets the crystal frequency; HSE_VALUE is that value in Hz.
-TARGET_XTAL_MHZ := $(strip $(shell sed -n 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([0-9][0-9]*\).*/\1/p' $(ROOT)/src/main/target/$(BASE_TARGET)/target.h | head -n 1))
+# TARGET_XTAL_MHZ (or SYSTEM_HSE_MHZ, the BF config name) in the target header sets the
+# crystal frequency; HSE_VALUE is that value in Hz. A definition that is not a plain
+# positive integer fails the build instead of falling back to the 8 MHz default.
+XTAL_HEADER := $(ROOT)/src/main/target/$(BASE_TARGET)/target.h
+TARGET_XTAL_MHZ := $(strip $(shell sed -n -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([1-9][0-9]*\)\([[:space:]/].*\)\{0,1\}$$/\1/p' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*SYSTEM_HSE_MHZ[[:space:]][[:space:]]*\([1-9][0-9]*\)\([[:space:]/].*\)\{0,1\}$$/\1/p' $(XTAL_HEADER) | head -n 1))
+
+ifeq ($(TARGET_XTAL_MHZ),)
+ifneq ($(strip $(shell grep -E '^[[:space:]]*\#[[:space:]]*define[[:space:]]+(TARGET_XTAL_MHZ|SYSTEM_HSE_MHZ)[[:space:]]' $(XTAL_HEADER))),)
+$(error $(XTAL_HEADER): TARGET_XTAL_MHZ / SYSTEM_HSE_MHZ must be a plain positive integer (MHz))
+endif
+endif
 
 ifneq ($(TARGET_XTAL_MHZ),)
 HSE_VALUE := $(TARGET_XTAL_MHZ)000000
