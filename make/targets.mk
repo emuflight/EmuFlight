@@ -88,11 +88,35 @@ ifneq ($(MCU_GROUP_$(FC_TARGET_MCU)),)
 $(eval $(MCU_GROUP_$(FC_TARGET_MCU))_TARGETS += $(TARGET))
 endif
 
-# TARGET_XTAL_MHZ in the target header sets the crystal frequency; HSE_VALUE is that value in Hz.
-TARGET_XTAL_MHZ := $(strip $(shell sed -n 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([0-9][0-9]*\).*/\1/p' $(ROOT)/src/main/target/$(BASE_TARGET)/target.h | head -n 1))
+# TARGET_XTAL_MHZ (or SYSTEM_HSE_MHZ, the BF config name) in the target header sets the
+# crystal frequency; HSE_VALUE is that value in Hz. A header may define one of the two names.
+# A definition that is not an integer from 1 to 99 (MHz), or a second definition, fails the build
+# instead of falling back to the 8 MHz default.
+XTAL_HEADER := $(ROOT)/src/main/target/$(BASE_TARGET)/target.h
+XTAL_DEFS := $(strip $(shell grep -cE '^[[:space:]]*\#[[:space:]]*define[[:space:]]+(TARGET_XTAL_MHZ|SYSTEM_HSE_MHZ)([[:space:]]|$$)' $(XTAL_HEADER)))
+TARGET_XTAL_MHZ := $(strip $(shell sed -n -e 's|/\*[^*]*\*/||g' -e 's|//.*$$||' -e 's|/\*.*$$||' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([1-9][0-9]\{0,1\}\)[[:space:]]*$$/\1/p' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*SYSTEM_HSE_MHZ[[:space:]][[:space:]]*\([1-9][0-9]\{0,1\}\)[[:space:]]*$$/\1/p' $(XTAL_HEADER)))
+
+ifneq ($(wildcard $(XTAL_HEADER)),)
+ifneq ($(XTAL_DEFS),0)
+ifneq ($(XTAL_DEFS),1)
+$(error $(XTAL_HEADER): define TARGET_XTAL_MHZ or SYSTEM_HSE_MHZ once, not both or twice)
+endif
+ifeq ($(TARGET_XTAL_MHZ),)
+$(error $(XTAL_HEADER): TARGET_XTAL_MHZ / SYSTEM_HSE_MHZ must be an integer from 1 to 99 (MHz))
+endif
+endif
+endif
 
 ifneq ($(TARGET_XTAL_MHZ),)
 HSE_VALUE := $(TARGET_XTAL_MHZ)000000
+endif
+
+# The F4 PLL divider reads TARGET_XTAL_MHZ (system_stm32f4xx.c), not SYSTEM_HSE_MHZ.
+# Pass the value through when the header uses the BF name, so HSE_VALUE and PLL_M agree.
+ifneq ($(TARGET_XTAL_MHZ),)
+ifneq ($(strip $(shell grep -cE '^[[:space:]]*\#[[:space:]]*define[[:space:]]+SYSTEM_HSE_MHZ([[:space:]]|$$)' $(XTAL_HEADER))),0)
+TARGET_FLAGS += -DTARGET_XTAL_MHZ=$(TARGET_XTAL_MHZ)
+endif
 endif
 
 # FC_VMA_ADDRESS in the target header selects an EXST build and its load address.
