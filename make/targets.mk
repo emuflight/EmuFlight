@@ -92,7 +92,7 @@ endif
 # crystal frequency; HSE_VALUE is that value in Hz. A definition that is not a plain
 # positive integer fails the build instead of falling back to the 8 MHz default.
 XTAL_HEADER := $(ROOT)/src/main/target/$(BASE_TARGET)/target.h
-TARGET_XTAL_MHZ := $(strip $(shell sed -n -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([1-9][0-9]*\)\([[:space:]/].*\)\{0,1\}$$/\1/p' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*SYSTEM_HSE_MHZ[[:space:]][[:space:]]*\([1-9][0-9]*\)\([[:space:]/].*\)\{0,1\}$$/\1/p' $(XTAL_HEADER) | head -n 1))
+TARGET_XTAL_MHZ := $(strip $(shell sed -n -e 's|//.*$$||' -e 's|/\*.*$$||' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([1-9][0-9]*\)[[:space:]]*$$/\1/p' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*SYSTEM_HSE_MHZ[[:space:]][[:space:]]*\([1-9][0-9]*\)[[:space:]]*$$/\1/p' $(XTAL_HEADER) | head -n 1))
 
 ifeq ($(TARGET_XTAL_MHZ),)
 ifneq ($(strip $(shell grep -E '^[[:space:]]*\#[[:space:]]*define[[:space:]]+(TARGET_XTAL_MHZ|SYSTEM_HSE_MHZ)[[:space:]]' $(XTAL_HEADER))),)
