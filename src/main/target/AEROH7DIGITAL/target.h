@@ -23,6 +23,7 @@
 #define BOARD_NAME        AEROH7DIGITAL
 #define MANUFACTURER_ID   AERO
 #define FC_TARGET_MCU     STM32H743
+#define TARGET_XTAL_MHZ   16 // HSE crystal; sets HSE_VALUE
 
 #define USE_ACC
 #define USE_ACC_SPI_ICM42688P
