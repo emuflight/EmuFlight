@@ -22,14 +22,10 @@
 
 #define BOARD_NAME        IFLIGHT_F405_TWING
 #define MANUFACTURER_ID   IFRC
-
-#if defined(IFLIGHT_F405_TWING_M)
 #define FC_TARGET_MCU     STM32F405
-#define USBD_PRODUCT_STRING "IFLIGHT_F405_TWING_M"
-#else
+
 #define TARGET_BOARD_IDENTIFIER "S405"
 #define USBD_PRODUCT_STRING "IFLIGHT_F405_TWING"
-#endif
 
 #define USE_DSHOT_DMAR
 #define ENABLE_DSHOT_DMAR       true
@@ -50,26 +46,6 @@
 #define PINIO1_PIN              PC14
 #define PINIO2_PIN              PC15
 
-#if defined(IFLIGHT_F405_TWING_M)
-#define USE_MPU_DATA_READY_SIGNAL
-
-#define USE_EXTI
-#define MPU_INT_EXTI            PA8
-#define MPU6000_SPI_BUS    SPIDEV_1
-#define MPU6000_CS_PIN          PA4
-
-#define USE_GYRO
-#define USE_GYRO_SPI_MPU6000
-#define USE_ACC
-#define USE_ACC_SPI_MPU6000
-
-#define GYRO_MPU6000_ALIGN      CW0_DEG
-#define ACC_MPU6000_ALIGN       CW0_DEG
-
-#define I2C1_SCL                PB10
-#define I2C1_SDA                PB11
-
-#else
 #define USE_DUAL_GYRO
 
 #define USE_EXTI
@@ -99,8 +75,6 @@
 
 #define I2C1_SCL                PB8
 #define I2C1_SDA                PB9
-
-#endif
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2

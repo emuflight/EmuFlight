@@ -26,10 +26,6 @@
 #define TARGET_BOARD_IDENTIFIER "SP4E"
 #define USE_TARGET_CONFIG
 
-#ifdef SPRACINGF4EVODG
-#define USE_DUAL_GYRO
-#endif
-
 #define USBD_PRODUCT_STRING     "SP Racing F4 EVO"
 
 #define LED0_PIN                PA0
@@ -42,15 +38,10 @@
 
 #define USE_EXTI
 #define GYRO_1_EXTI_PIN         PC13
-#ifdef USE_DUAL_GYRO
-#define GYRO_2_EXTI_PIN         PC5 // GYRO 2 / NC on prototype boards, but if it was it'd be here.
-#endif
 #define MPU_INT_EXTI
 
-#ifndef SPRACINGF4EVODG
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
-#endif
 
 #define USE_MAG_DATA_READY_SIGNAL
 #define ENSURE_MAG_DATA_READY_IS_HIGH
@@ -62,21 +53,8 @@
 #define USE_ACC
 #define USE_ACC_SPI_MPU6500
 
-#ifndef USE_DUAL_GYRO
 #define ACC_MPU6500_ALIGN           CW0_DEG
 #define GYRO_MPU6500_ALIGN          CW0_DEG
-#else
-#define ACC_MPU6500_1_ALIGN         CW0_DEG
-#define GYRO_MPU6500_1_ALIGN        CW0_DEG
-
-#define ACC_MPU6500_2_ALIGN         CW0_DEG
-#define GYRO_MPU6500_2_ALIGN        CW0_DEG
-
-#define GYRO_1_ALIGN                GYRO_MPU6500_1_ALIGN
-#define GYRO_2_ALIGN                GYRO_MPU6500_2_ALIGN
-#define ACC_1_ALIGN                 ACC_MPU6500_1_ALIGN
-#define ACC_2_ALIGN                 ACC_MPU6500_2_ALIGN
-#endif
 
 #define USE_BARO
 #define USE_BARO_BMP280
@@ -138,13 +116,11 @@
 #define SPI3_MISO_PIN           PB4
 #define SPI3_MOSI_PIN           PB5
 
-#if !defined(SPRACINGF4EVODG)
 #define USE_VTX_RTC6705
 #define VTX_RTC6705_OPTIONAL    // SPI3 on an F4 EVO may be used for RTC6705 VTX control.
 
 #define RTC6705_CS_PIN          SPI3_NSS_PIN
 #define RTC6705_SPI_INSTANCE    SPI3
-#endif
 
 #define USE_SDCARD
 
@@ -159,15 +135,8 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
 
-#ifndef USE_DUAL_GYRO
 #define MPU6500_CS_PIN          SPI1_NSS_PIN
 #define MPU6500_SPI_BUS    SPIDEV_1
-#else
-#define GYRO_1_CS_PIN           SPI1_NSS_PIN
-#define GYRO_1_SPI_BUS     SPIDEV_1
-#define GYRO_2_CS_PIN           SPI3_NSS_PIN
-#define GYRO_2_SPI_BUS     SPIDEV_3
-#endif
 
 
 #define USE_ADC
