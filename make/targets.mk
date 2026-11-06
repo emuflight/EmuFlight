@@ -2,7 +2,7 @@ ALT_TARGETS       = $(sort $(filter-out target, $(basename $(notdir $(wildcard $
 NOBUILD_TARGETS   = $(sort $(filter-out target, $(basename $(notdir $(wildcard $(ROOT)/src/main/target/*/*.nomk)))))
 OPBL_TARGETS      = $(filter %_OPBL, $(ALT_TARGETS))
 
-VALID_TARGETS   = $(dir $(wildcard $(ROOT)/src/main/target/*/target.mk))
+VALID_TARGETS   = $(dir $(wildcard $(ROOT)/src/main/target/*/target.h))
 VALID_TARGETS  := $(subst /,, $(subst ./src/main/target/,, $(VALID_TARGETS)))
 VALID_TARGETS  := $(VALID_TARGETS) $(ALT_TARGETS)
 VALID_TARGETS  := $(sort $(VALID_TARGETS))
@@ -101,7 +101,7 @@ F7_TARGETS      := $(F7X2RE_TARGETS) $(F7X5XE_TARGETS) $(F7X5XG_TARGETS) $(F7X5X
 H7_TARGETS      := $(H743_TARGETS) $(H750_TARGETS) $(H723_TARGETS) $(H725_TARGETS) $(H730_TARGETS) $(H735_TARGETS) $(H7A3_TARGETS)
 
 ifeq ($(filter $(TARGET),$(VALID_TARGETS)),)
-$(error Target '$(TARGET)' is not valid, must be one of $(VALID_TARGETS). Have you prepared a valid target.mk?)
+$(error Target '$(TARGET)' is not valid, must be one of $(VALID_TARGETS). Have you prepared a valid target.h?)
 endif
 
 ifeq ($(filter $(TARGET),$(F4_TARGETS) $(F7_TARGETS) $(H7_TARGETS) $(SITL_TARGETS)),)
