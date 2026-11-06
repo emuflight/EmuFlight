@@ -96,12 +96,14 @@ XTAL_HEADER := $(ROOT)/src/main/target/$(BASE_TARGET)/target.h
 XTAL_DEFS := $(strip $(shell grep -cE '^[[:space:]]*\#[[:space:]]*define[[:space:]]+(TARGET_XTAL_MHZ|SYSTEM_HSE_MHZ)([[:space:]]|$$)' $(XTAL_HEADER)))
 TARGET_XTAL_MHZ := $(strip $(shell sed -n -e 's|//.*$$||' -e 's|/\*.*$$||' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([1-9][0-9]\{0,1\}\)[[:space:]]*$$/\1/p' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*SYSTEM_HSE_MHZ[[:space:]][[:space:]]*\([1-9][0-9]\{0,1\}\)[[:space:]]*$$/\1/p' $(XTAL_HEADER)))
 
+ifneq ($(wildcard $(XTAL_HEADER)),)
 ifneq ($(XTAL_DEFS),0)
 ifneq ($(XTAL_DEFS),1)
 $(error $(XTAL_HEADER): define TARGET_XTAL_MHZ or SYSTEM_HSE_MHZ once, not both or twice)
 endif
 ifeq ($(TARGET_XTAL_MHZ),)
 $(error $(XTAL_HEADER): TARGET_XTAL_MHZ / SYSTEM_HSE_MHZ must be an integer from 1 to 99 (MHz))
+endif
 endif
 endif
 
