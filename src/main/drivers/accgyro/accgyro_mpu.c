@@ -56,7 +56,6 @@
 #include "drivers/accgyro/accgyro_mpu6500.h"
 #include "drivers/accgyro/accgyro_spi_bmi160.h"
 #include "drivers/accgyro/accgyro_spi_bmi270.h"
-#include "drivers/accgyro/accgyro_spi_icm20649.h"
 #include "drivers/accgyro/accgyro_spi_icm20689.h"
 #include "drivers/accgyro/accgyro_spi_icm426xx.h"
 #include "drivers/accgyro/accgyro_spi_mpu6000.h"
@@ -670,21 +669,6 @@ static bool detectSPISensorsAndUpdateDetectionResult(gyroDev_t *gyro) {
     if (sensor != MPU_NONE) {
         gyro->mpuDetectionResult.sensor = sensor;
         gyro->mpuConfiguration.resetFn = mpu9250SpiResetGyro;
-        return true;
-    }
-#endif
-#ifdef USE_GYRO_SPI_ICM20649
-#ifndef USE_DUAL_GYRO
-#ifdef ICM20649_SPI_BUS
-    spiSetBusInstance(&gyro->dev, SPI_DEV_TO_CFG(ICM20649_SPI_BUS));
-#endif
-#endif
-#ifdef ICM20649_CS_PIN
-    gyro->dev.busType_u.spi.csnPin = gyro->dev.busType_u.spi.csnPin == IO_NONE ? IOGetByTag(IO_TAG(ICM20649_CS_PIN)) : gyro->dev.busType_u.spi.csnPin;
-#endif
-    sensor = icm20649SpiDetect(&gyro->dev);
-    if (sensor != MPU_NONE) {
-        gyro->mpuDetectionResult.sensor = sensor;
         return true;
     }
 #endif
