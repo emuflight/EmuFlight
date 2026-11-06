@@ -88,6 +88,13 @@ ifneq ($(MCU_GROUP_$(FC_TARGET_MCU)),)
 $(eval $(MCU_GROUP_$(FC_TARGET_MCU))_TARGETS += $(TARGET))
 endif
 
+# TARGET_XTAL_MHZ in the target header sets the crystal frequency; HSE_VALUE is that value in Hz.
+TARGET_XTAL_MHZ := $(strip $(shell sed -n 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([0-9][0-9]*\).*/\1/p' $(ROOT)/src/main/target/$(BASE_TARGET)/target.h | head -n 1))
+
+ifneq ($(TARGET_XTAL_MHZ),)
+HSE_VALUE := $(TARGET_XTAL_MHZ)000000
+endif
+
 # FC_VMA_ADDRESS in the target header selects an EXST build and its load address.
 FC_VMA_ADDRESS := $(strip $(shell sed -n 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*FC_VMA_ADDRESS[[:space:]][[:space:]]*\(0[xX][0-9A-Fa-f][0-9A-Fa-f]*\).*/\1/p' $(ROOT)/src/main/target/$(BASE_TARGET)/target.h | head -n 1))
 
