@@ -65,7 +65,7 @@
 
 #define API_VERSION_MAJOR                   1  // increment when major changes are made
 #define API_VERSION_MINOR                   55 // increment after a release, to set the version for all changes to go into the following release (if no changes to MSP are made between the releases, this can be reverted before the release)
-#define API_VERSION_PATCH                   0  // increment once per backward-compatible MSP feature; reset to 0 on a minor bump
+#define API_VERSION_PATCH                   1  // increment once per backward-compatible MSP feature; reset to 0 on a minor bump
 
 #define API_VERSION_LENGTH                  3
 
@@ -338,6 +338,7 @@
 #define MSP_GPSSVINFO            164    //out message         get Signal Strength (only U-Blox)
 #define MSP_GPSSTATISTICS        166    //out message         get GPS debugging data
 #define MSP_ACC_TRIM             240    //out message         get acc angle trim values
+#define MSP_MODE_RANGES_EXTRA    238    //out message         Returns modeLogic and linkedTo for each mode range
 #define MSP_SET_ACC_TRIM         239    //in message          set acc angle trim values
 #define MSP_SERVO_MIX_RULES      241    //out message         Returns servo mixer configuration
 #define MSP_SET_SERVO_MIX_RULE   242    //in message          Sets servo mixer configuration
