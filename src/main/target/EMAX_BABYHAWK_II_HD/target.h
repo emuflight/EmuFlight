@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        EMAX_BABYHAWK_II_HD
 #define MANUFACTURER_ID   EMAX
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
 #define FC_TARGET_MCU     STM32F411
 
 #define USE_GYRO

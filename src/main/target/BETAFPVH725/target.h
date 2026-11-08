@@ -22,7 +22,6 @@
 
 #define BOARD_NAME           BETAFPVH725
 #define MANUFACTURER_ID      BEFH
-#define TARGET_BOARD_IDENTIFIER "SH72"  // generic ID
 #define FC_TARGET_MCU        STM32H725
 
 #define USE_GYRO

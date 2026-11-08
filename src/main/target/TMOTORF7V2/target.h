@@ -25,7 +25,6 @@
 
 #define BOARD_NAME        TMOTORF7V2
 #define MANUFACTURER_ID   TMTR
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
 #define FC_TARGET_MCU     STM32F7X2
 
 #define LED0_PIN PC14

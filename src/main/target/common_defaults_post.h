@@ -18,6 +18,26 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+// fc/config
+
+#ifndef TARGET_BOARD_IDENTIFIER
+#if defined(STM32F405xx)
+#define TARGET_BOARD_IDENTIFIER "S405"
+#elif defined(STM32F411xE)
+#define TARGET_BOARD_IDENTIFIER "S411"
+#elif defined(STM32F446xx)
+#define TARGET_BOARD_IDENTIFIER "S446"
+#elif defined(STM32F722xx)
+#define TARGET_BOARD_IDENTIFIER "S7X2"
+#elif defined(STM32F745xx)
+#define TARGET_BOARD_IDENTIFIER "S745"
+#elif defined(STM32H743xx)
+#define TARGET_BOARD_IDENTIFIER "SH74"
+#elif defined(STM32H723xx) || defined(STM32H725xx)
+#define TARGET_BOARD_IDENTIFIER "SH72"
+#endif
+#endif
+
 // pg/max7456
 
 #ifdef USE_MAX7456

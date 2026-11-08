@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        TMOTORF4HD
+#define MANUFACTURER_ID   TMTR
 #define TARGET_BOARD_IDENTIFIER "TMR4"
 #define USBD_PRODUCT_STRING     "TMOTOR F4 HD"
 

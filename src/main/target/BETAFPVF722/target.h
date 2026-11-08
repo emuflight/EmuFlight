@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        BETAFPVF722
 #define MANUFACTURER_ID   BEFH
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
 #define FC_TARGET_MCU     STM32F7X2
 
 #define ENABLE_DSHOT_DMAR                                true

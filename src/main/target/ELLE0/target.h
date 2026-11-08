@@ -20,6 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        ELLE0
+#define MANUFACTURER_ID   LEGA
 #define TARGET_BOARD_IDENTIFIER "ELL0"
 
 #define TARGET_XTAL_MHZ         25

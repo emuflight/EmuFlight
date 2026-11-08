@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        NIDICI_F4
 #define MANUFACTURER_ID   HNEC
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
 #define FC_TARGET_MCU     STM32F405
 
 #define USE_ACC

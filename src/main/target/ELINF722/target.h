@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        ELINF722
+#define MANUFACTURER_ID   DRCL
 #define TARGET_BOARD_IDENTIFIER "ELIN"
 #define USBD_PRODUCT_STRING     "ElinF722"
 

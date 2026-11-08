@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        SPEEDYBEEF4
+#define MANUFACTURER_ID   SPBE
 #define TARGET_BOARD_IDENTIFIER "SBF4"
 #define USBD_PRODUCT_STRING  "SpeedyBeeF4"
 #define USE_TARGET_CONFIG

@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        VRRACE
+#define MANUFACTURER_ID   LEGA
 #define TARGET_BOARD_IDENTIFIER "VRRA"
 
 #define USBD_PRODUCT_STRING "VRRACE"

@@ -22,6 +22,8 @@
 
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        REVOLT
+#define MANUFACTURER_ID   FLON
 #define TARGET_BOARD_IDENTIFIER "RVLT"
 #define USBD_PRODUCT_STRING     "Revolt"
 

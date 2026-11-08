@@ -22,7 +22,6 @@
 
 #define BOARD_NAME                          BROTHERHOBBYH743
 #define MANUFACTURER_ID                     BROT
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
 #define FC_TARGET_MCU                       STM32H743
 
 #define USE_ACC

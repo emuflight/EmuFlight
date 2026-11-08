@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        SPEDIXF4
+#define MANUFACTURER_ID   SPDX
 #define TARGET_BOARD_IDENTIFIER "SPD4"
 #define USBD_PRODUCT_STRING     "SPEDIXF4"
 

@@ -20,6 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        OMNIBUSF4NANOV7
+#define MANUFACTURER_ID   AIRB
 #define TARGET_BOARD_IDENTIFIER "O4V7"
 #define USBD_PRODUCT_STRING     "OmnibusF4 Nano V7"
 

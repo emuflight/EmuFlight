@@ -24,7 +24,8 @@
 #define USBD_PRODUCT_STRING            "KAKUTEF7MINIV3"
 
 #define FC_TARGET_MCU                  STM32F7X2
-#define TARGET_BOARD_IDENTIFIER        "S7X2"     // generic ID
+#define BOARD_NAME        KAKUTEF7MINIV3
+#define MANUFACTURER_ID   HBRO
 
 #define LED0_PIN                  PD2
 

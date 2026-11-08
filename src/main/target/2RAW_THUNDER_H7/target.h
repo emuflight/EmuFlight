@@ -22,7 +22,6 @@
 
 #define BOARD_NAME          2RAW_THUNDER_H7
 #define MANUFACTURER_ID     IFRC
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
 #define FC_TARGET_MCU       STM32H743
 
 #define USE_ACC

@@ -24,7 +24,8 @@
 #define USBD_PRODUCT_STRING "MATEKF405SE"
 
 #define FC_TARGET_MCU     STM32F405
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
+#define BOARD_NAME        MATEKF405SE
+#define MANUFACTURER_ID   MTKS
 
 #define LED0_PIN                PA14
 #define LED1_PIN                PA13

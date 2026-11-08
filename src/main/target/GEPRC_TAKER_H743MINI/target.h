@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        GEPRC_TAKER_H743MINI
 #define MANUFACTURER_ID   GEPR
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
 #define FC_TARGET_MCU     STM32H743
 
 #define USE_ACC
