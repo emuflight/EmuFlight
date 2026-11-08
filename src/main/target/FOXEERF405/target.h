@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        FOXEERF405
+#define MANUFACTURER_ID   FOXE
 #define TARGET_BOARD_IDENTIFIER "FXF4"
 #define USBD_PRODUCT_STRING  "FOXEERF405"
 //----------------------------------------

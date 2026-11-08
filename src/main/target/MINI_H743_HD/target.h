@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        MINI_H743_HD
 #define MANUFACTURER_ID   RAST
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
 #define FC_TARGET_MCU     STM32H743
 
 #define USE_ACC

@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        AIKONF4
 #define MANUFACTURER_ID   AIKO
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
 #define FC_TARGET_MCU     STM32F405
 
 #define LED0_PIN                PB4

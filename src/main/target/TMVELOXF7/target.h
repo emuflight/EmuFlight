@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        TMVELOXF7
 #define MANUFACTURER_ID   TMTR
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
 #define FC_TARGET_MCU     STM32F7X2
 
 #define USE_GYRO

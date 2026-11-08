@@ -2,7 +2,7 @@ ALT_TARGETS       = $(sort $(filter-out target, $(basename $(notdir $(wildcard $
 NOBUILD_TARGETS   = $(sort $(filter-out target, $(basename $(notdir $(wildcard $(ROOT)/src/main/target/*/*.nomk)))))
 OPBL_TARGETS      = $(filter %_OPBL, $(ALT_TARGETS))
 
-VALID_TARGETS   = $(dir $(wildcard $(ROOT)/src/main/target/*/target.mk))
+VALID_TARGETS   = $(dir $(wildcard $(ROOT)/src/main/target/*/target.h))
 VALID_TARGETS  := $(subst /,, $(subst ./src/main/target/,, $(VALID_TARGETS)))
 VALID_TARGETS  := $(VALID_TARGETS) $(ALT_TARGETS)
 VALID_TARGETS  := $(sort $(VALID_TARGETS))
@@ -88,6 +88,13 @@ ifneq ($(MCU_GROUP_$(FC_TARGET_MCU)),)
 $(eval $(MCU_GROUP_$(FC_TARGET_MCU))_TARGETS += $(TARGET))
 endif
 
+# TARGET_XTAL_MHZ in the target header sets the crystal frequency; HSE_VALUE is that value in Hz.
+TARGET_XTAL_MHZ := $(strip $(shell sed -n 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([0-9][0-9]*\).*/\1/p' $(ROOT)/src/main/target/$(BASE_TARGET)/target.h | head -n 1))
+
+ifneq ($(TARGET_XTAL_MHZ),)
+HSE_VALUE := $(TARGET_XTAL_MHZ)000000
+endif
+
 # FC_VMA_ADDRESS in the target header selects an EXST build and its load address.
 FC_VMA_ADDRESS := $(strip $(shell sed -n 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*FC_VMA_ADDRESS[[:space:]][[:space:]]*\(0[xX][0-9A-Fa-f][0-9A-Fa-f]*\).*/\1/p' $(ROOT)/src/main/target/$(BASE_TARGET)/target.h | head -n 1))
 
@@ -101,7 +108,7 @@ F7_TARGETS      := $(F7X2RE_TARGETS) $(F7X5XE_TARGETS) $(F7X5XG_TARGETS) $(F7X5X
 H7_TARGETS      := $(H743_TARGETS) $(H750_TARGETS) $(H723_TARGETS) $(H725_TARGETS) $(H730_TARGETS) $(H735_TARGETS) $(H7A3_TARGETS)
 
 ifeq ($(filter $(TARGET),$(VALID_TARGETS)),)
-$(error Target '$(TARGET)' is not valid, must be one of $(VALID_TARGETS). Have you prepared a valid target.mk?)
+$(error Target '$(TARGET)' is not valid, must be one of $(VALID_TARGETS). Have you prepared a valid target.h?)
 endif
 
 ifeq ($(filter $(TARGET),$(F4_TARGETS) $(F7_TARGETS) $(H7_TARGETS) $(SITL_TARGETS)),)

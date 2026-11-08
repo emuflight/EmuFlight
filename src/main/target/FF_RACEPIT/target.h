@@ -20,6 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        FF_RACEPIT
+#define MANUFACTURER_ID   FFPV
 #define TARGET_BOARD_IDENTIFIER "RACE"
 #define USBD_PRODUCT_STRING     "RacePit"
 #define USE_TARGET_CONFIG

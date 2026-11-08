@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        DALRCF405
+#define MANUFACTURER_ID   DALR
 #define TARGET_BOARD_IDENTIFIER "DLF4"
 #define USBD_PRODUCT_STRING  "DALRCF405"
 //----------------------------------------

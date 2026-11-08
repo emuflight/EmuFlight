@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        AIRBOTF4
+#define MANUFACTURER_ID   AIRB
 #define TARGET_BOARD_IDENTIFIER "AIR4"
 #define USBD_PRODUCT_STRING     "AirbotF4"
 

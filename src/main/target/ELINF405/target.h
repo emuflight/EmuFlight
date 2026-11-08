@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        ELINF405
+#define MANUFACTURER_ID   DRCL
 #define TARGET_BOARD_IDENTIFIER "ELIN"
 #define USBD_PRODUCT_STRING     "ElinF405"
 

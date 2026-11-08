@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        TMH7
 #define MANUFACTURER_ID   TMTR
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
 #define FC_TARGET_MCU     STM32H743
 
 #define USE_ACCGYRO_BMI270

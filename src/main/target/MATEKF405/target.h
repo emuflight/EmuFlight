@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        MATEKF405
+#define MANUFACTURER_ID   MTKS
 #define TARGET_BOARD_IDENTIFIER "MKF4"
 #define USBD_PRODUCT_STRING  "MatekF4"
 

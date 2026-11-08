@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        SPRACINGF7DUAL
+#define MANUFACTURER_ID   SPRO
 #define TARGET_BOARD_IDENTIFIER "SP7D"
 #define USE_TARGET_CONFIG
 

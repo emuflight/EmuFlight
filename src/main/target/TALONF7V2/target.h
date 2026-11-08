@@ -20,7 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F7X2
-#define TARGET_BOARD_IDENTIFIER                          "S7X2"
+#define BOARD_NAME        TALONF7V2
+#define MANUFACTURER_ID   HENA
 #define USBD_PRODUCT_STRING                              "TALONF7V2"
 #define TARGET_MANUFACTURER_IDENTIFIER                   "HENA"
 
