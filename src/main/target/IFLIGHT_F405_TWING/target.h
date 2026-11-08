@@ -30,9 +30,9 @@
 #define USE_DSHOT_DMAR
 #define ENABLE_DSHOT_DMAR       true
 
-#define INVERTER_PIN_UART1      PC13
+#define INVERTER_PIN_UART2      PC13
 
-#define LED0_PIN                PB6
+#define LED0_PIN                PB5
 
 #define USE_BEEPER
 #define BEEPER_PIN              PB4
@@ -45,13 +45,16 @@
 #define USE_PINIOBOX
 #define PINIO1_PIN              PC14
 #define PINIO2_PIN              PC15
+#define PINIO1_BOX              40
+#define PINIO2_BOX              41
 
 #define USE_DUAL_GYRO
 
 #define USE_EXTI
 #define USE_GYRO_EXTI
-#define MPU_INT_EXTI          PA8
-#define GYRO_2_EXTI_PIN       PC4
+#define GYRO_1_EXTI_PIN       PC4
+#define MPU_INT_EXTI
+#define GYRO_2_EXTI_PIN       PA8
 
 #define USE_MPU_DATA_READY_SIGNAL
 #define ENSURE_MPU_DATA_READY_IS_LOW
@@ -113,12 +116,11 @@
 #define UART6_RX_PIN            PC7
 #define UART6_TX_PIN            PC6
 
-#define USE_UART11
-#define UART11_RX_PIN           PB8
-#define UART11_TX_PIN           PB9
+#define USE_SOFTSERIAL1
+#define SOFTSERIAL1_RX_PIN      PB8
+#define SOFTSERIAL1_TX_PIN      PB9
 
-//#define USE_SOFTSERIAL1
-#define SERIAL_PORT_COUNT       6 //VCP, USART1, USART2,USART3,USART4,USART5,USART6
+#define SERIAL_PORT_COUNT       6 //VCP, USART1, USART2, USART3, USART6, SOFTSERIAL1
 
 #define USE_BARO
 #define USE_BARO_BMP280
@@ -157,7 +159,8 @@
 //#define RSSI_ADC_PIN            PC3
 #define DEFAULT_CURRENT_METER_SCALE        100                     // 3.3/120A  = 25mv/A
 
-#define BINDPLUG_PIN            PC5
+#define USE_USB_DETECT
+#define USB_DETECT_PIN          PC5
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_UART           SERIAL_PORT_UART5
 
