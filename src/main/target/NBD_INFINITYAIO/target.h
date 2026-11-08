@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        NBD_INFINITYAIO
 #define MANUFACTURER_ID   NEBD
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
 #define FC_TARGET_MCU     STM32F7X2
 
 #define USE_ACC

@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        AEROH7DIGITAL
 #define MANUFACTURER_ID   AERO
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
 #define FC_TARGET_MCU     STM32H743
 
 #define USE_ACC

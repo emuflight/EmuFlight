@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        SPRACINGF4EVO
+#define MANUFACTURER_ID   SPRO
 #define TARGET_BOARD_IDENTIFIER "SP4E"
 #define USE_TARGET_CONFIG
 

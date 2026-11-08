@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        KIWIF4V2
+#define MANUFACTURER_ID   FLLF
 #define TARGET_BOARD_IDENTIFIER "KIW2"
 #define USBD_PRODUCT_STRING     "KIWIF4V2"
 

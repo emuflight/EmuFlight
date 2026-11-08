@@ -20,6 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        KAKUTEF4V2
+#define MANUFACTURER_ID   HBRO
 #define TARGET_BOARD_IDENTIFIER "KTV2"
 #define USBD_PRODUCT_STRING "KakuteF4-V2"
 

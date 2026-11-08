@@ -23,7 +23,6 @@
 #define USE_TARGET_CONFIG
 #define BOARD_NAME        TRANSTECF411HD
 #define MANUFACTURER_ID   TTRH
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
 #define FC_TARGET_MCU     STM32F411
 
 #define USE_ACC

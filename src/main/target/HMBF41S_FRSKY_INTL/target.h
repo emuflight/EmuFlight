@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        HMBF41S_FRSKY_INTL
+#define MANUFACTURER_ID   NEBD
 #define TARGET_BOARD_IDENTIFIER         "HMBF4" // Humming Bird
 #define USBD_PRODUCT_STRING             "Humming Bird"
 

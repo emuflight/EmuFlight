@@ -20,7 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F411
-#define TARGET_BOARD_IDENTIFIER                          "S411"
+#define BOARD_NAME        GEPRCF411_PRO
+#define MANUFACTURER_ID   GEPR
 #define USBD_PRODUCT_STRING                              "GEPRCF411 PRO"
 #define TARGET_MANUFACTURER_IDENTIFIER                   "GEPR"
 

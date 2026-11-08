@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        DAKEFPVF411
 #define MANUFACTURER_ID   DAKE
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
 #define FC_TARGET_MCU     STM32F411
 
 #define USE_GYRO

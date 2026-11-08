@@ -20,6 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        REVONANO
+#define MANUFACTURER_ID   OPEN
 #define TARGET_BOARD_IDENTIFIER "REVN"
 
 #define USBD_PRODUCT_STRING "Revo Nano"

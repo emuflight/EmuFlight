@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        SKYSTARSH7HD
 #define MANUFACTURER_ID   SKST
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
 #define FC_TARGET_MCU     STM32H743
 
 #define USE_GYRO

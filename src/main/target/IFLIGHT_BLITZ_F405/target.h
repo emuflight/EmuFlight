@@ -25,7 +25,8 @@
 #define USBD_PRODUCT_STRING "IFLIGHT_BLITZ_F405"
 
 #define FC_TARGET_MCU     STM32F405
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
+#define BOARD_NAME        IFLIGHT_BLITZ_F405
+#define MANUFACTURER_ID   IFRC
 
 #define LED0_PIN                PC15
 

@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        ANYFCM7
+#define MANUFACTURER_ID   FOSS
 #define TARGET_BOARD_IDENTIFIER "ANYM"
 
 #define USBD_PRODUCT_STRING "AnyFCM7"

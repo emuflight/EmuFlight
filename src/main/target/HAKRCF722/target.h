@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        HAKRCF722
+#define MANUFACTURER_ID   HARC
 #define TARGET_BOARD_IDENTIFIER "HRF7"
 
 #define USBD_PRODUCT_STRING     "HAKRCF722"

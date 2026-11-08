@@ -20,6 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        YUPIF7
+#define MANUFACTURER_ID   YUPF
 #define TARGET_BOARD_IDENTIFIER "YPF7"
 
 #define USBD_PRODUCT_STRING     "YUPIF7"

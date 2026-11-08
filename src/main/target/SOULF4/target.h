@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        SOULF4
+#define MANUFACTURER_ID   DERC
 #define TARGET_BOARD_IDENTIFIER "SOUL"
 #define USBD_PRODUCT_STRING     "DemonSoulF4"
 

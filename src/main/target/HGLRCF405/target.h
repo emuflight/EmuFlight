@@ -20,7 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F405
-#define TARGET_BOARD_IDENTIFIER "S405"
+#define BOARD_NAME        HGLRCF405
+#define MANUFACTURER_ID   HGLR
 #define USBD_PRODUCT_STRING "HGLRCF405"
 
 #define ENABLE_DSHOT_DMAR       true

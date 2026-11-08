@@ -30,7 +30,6 @@
 #define USBD_PRODUCT_STRING "BLADE_F7"
 
 #define FC_TARGET_MCU     STM32F7X2
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000

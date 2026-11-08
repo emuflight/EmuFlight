@@ -19,7 +19,6 @@
 
 #define BOARD_NAME                      STELLARH7DEV
 #define MANUFACTURER_ID                 STBE
-#define TARGET_BOARD_IDENTIFIER "SH74"
 #define FC_TARGET_MCU                   STM32H743
 
 #define USE_BARO

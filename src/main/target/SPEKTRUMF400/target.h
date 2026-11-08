@@ -21,6 +21,7 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F446
+#define BOARD_NAME        SPEKTRUMF400
 #define TARGET_BOARD_IDENTIFIER "SKF4"
 
 #define USBD_PRODUCT_STRING "SpektrumF400"
