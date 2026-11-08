@@ -20,6 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        F4BY
+#define MANUFACTURER_ID   FOSS
 #define TARGET_BOARD_IDENTIFIER "F4BY"
 
 #define USBD_PRODUCT_STRING     "Swift-Flyer F4BY"

@@ -20,7 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F7X2
-#define TARGET_BOARD_IDENTIFIER                          "S7X2"
+#define BOARD_NAME        HOBBYWING_XROTORF7CONV
+#define MANUFACTURER_ID   HOWI
 #define USBD_PRODUCT_STRING                              "HOBBYWING_XROTORF7_CONV"
 #define TARGET_MANUFACTURER_IDENTIFIER                   "HOWI"
 

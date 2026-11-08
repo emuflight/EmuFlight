@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        JHEF745
 #define MANUFACTURER_ID   JHEF
-#define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
 #define FC_TARGET_MCU     STM32F745
 
 #define USE_ACC

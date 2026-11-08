@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        BEEBRAIN_BL
+#define MANUFACTURER_ID   NEBD
 #define TARGET_BOARD_IDENTIFIER         "BBBL" // BeeBrain BL
 #define USBD_PRODUCT_STRING             "BeeBrain BL"
 

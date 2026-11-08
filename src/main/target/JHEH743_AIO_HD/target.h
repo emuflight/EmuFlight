@@ -22,7 +22,6 @@
 
 #define BOARD_NAME JHEH743_AIO_HD
 #define MANUFACTURER_ID JHEF
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
 #define FC_TARGET_MCU     STM32H743
 
 #define USE_ACC

@@ -392,7 +392,6 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             drivers/memprot_stm32h7xx.c
 endif # H7_TARGETS
 
-# check if target.mk supplied
 SRC := $(STARTUP_SRC) $(MCU_COMMON_SRC) $(TARGET_SRC) $(VARIANT_SRC)
 
 ifneq ($(DSP_LIB),)

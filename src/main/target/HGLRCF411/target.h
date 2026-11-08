@@ -22,7 +22,6 @@
 
 #define BOARD_NAME        HGLRCF411
 #define MANUFACTURER_ID   HGLR
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
 #define FC_TARGET_MCU     STM32F411
 
 #define ENABLE_DSHOT_DMAR                                true

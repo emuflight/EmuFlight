@@ -21,8 +21,7 @@
 #pragma once
 
 #define BOARD_NAME        FLASHHOBBYF405
-#define MANUFACTURER_ID   FHRC
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
+#define MANUFACTURER_ID   FLHB
 #define FC_TARGET_MCU     STM32F405
 
 #define USE_ACC

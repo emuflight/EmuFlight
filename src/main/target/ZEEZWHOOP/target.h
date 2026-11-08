@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        ZEEZWHOOP
+#define MANUFACTURER_ID   ZEEZ
 #define TARGET_BOARD_IDENTIFIER "ZEEZ"
 #define USBD_PRODUCT_STRING     "ZEEZWHOOP"
 

@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        WORMFC
+#define MANUFACTURER_ID   FOSS
 #define TARGET_BOARD_IDENTIFIER "RRF4"
 #define USBD_PRODUCT_STRING     "Worm FC"
 

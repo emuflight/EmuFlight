@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        FURYF4OSD
+#define MANUFACTURER_ID   DIAT
 #define TARGET_BOARD_IDENTIFIER "FY4O"
 #define USBD_PRODUCT_STRING     "FuryF4OSD"
 

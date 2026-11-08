@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        OMNIBUSF7NANOV7
+#define MANUFACTURER_ID   AIRB
 #define TARGET_BOARD_IDENTIFIER "O7V7"
 #define USBD_PRODUCT_STRING     "OmnibusF7 Nano V7"
 

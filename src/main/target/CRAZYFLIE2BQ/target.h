@@ -30,6 +30,7 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        CRAZYFLIE2BQ
 #define TARGET_BOARD_IDENTIFIER "CFBQ"
 #define USBD_PRODUCT_STRING     "Crazyflie 2.0 (BigQuad Deck)"
 

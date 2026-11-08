@@ -20,7 +20,8 @@
 
 #pragma once
 #define FC_TARGET_MCU     STM32F405
-#define TARGET_BOARD_IDENTIFIER "S405"
+#define BOARD_NAME        VIVAF4AIO
+#define MANUFACTURER_ID   VIVA
 #define USBD_PRODUCT_STRING "VIVAF4AIO"
 
 #define ENABLE_DSHOT_DMAR       true

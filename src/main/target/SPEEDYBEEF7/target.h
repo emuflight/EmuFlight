@@ -21,6 +21,8 @@
 #pragma once
 
 #define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        SPEEDYBEEF7
+#define MANUFACTURER_ID   SPBE
 #define TARGET_BOARD_IDENTIFIER   "SBF7"
 #define USBD_PRODUCT_STRING       "SpeedyBeeF7"
 

@@ -22,6 +22,8 @@
 
 
 #define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        GRAVITYF7
+#define MANUFACTURER_ID   FLMO
 #define TARGET_BOARD_IDENTIFIER         "FLMD"
 #define USBD_PRODUCT_STRING             "GRAVITYF7"
 

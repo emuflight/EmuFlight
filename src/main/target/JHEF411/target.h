@@ -24,7 +24,6 @@
 
 #define BOARD_NAME        JHEF411
 #define MANUFACTURER_ID   JHEF
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
 #define FC_TARGET_MCU     STM32F411
 
 #define LED0_PIN                PC13
