@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        ELINF722
+#define MANUFACTURER_ID   DRCL
 #define TARGET_BOARD_IDENTIFIER "ELIN"
 #define USBD_PRODUCT_STRING     "ElinF722"
 
@@ -49,7 +52,7 @@
 #define USE_MPU_DATA_READY_SIGNAL
 
 #define USE_OSD
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_SOFTSERIAL)
+#define DEFAULT_FEATURES        (FEATURE_SOFTSERIAL)
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      PC8
@@ -134,10 +137,21 @@
 #define PINIO1_PIN              PC13
 #define PINIO2_PIN              PC14
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(11) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB9 , 2, -1) \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) \
+    TIMER_PIN_MAP( 3, PA3 , 1,  1) \
+    TIMER_PIN_MAP( 4, PA2 , 1,  0) \
+    TIMER_PIN_MAP( 5, PA8 , 1,  0) \
+    TIMER_PIN_MAP( 6, PC9 , 2,  0) \
+    TIMER_PIN_MAP( 7, PB6 , 1,  0) \
+    TIMER_PIN_MAP( 8, PB7 , 1,  0)
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA3
+#define MOTOR4_PIN              PA2
+#define RX_PPM_PIN              PB6
+#define LED_STRIP_PIN           PB6

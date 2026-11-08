@@ -19,6 +19,9 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        CLRACINGF7DUAL
+#define MANUFACTURER_ID   CLRA
 #define TARGET_BOARD_IDENTIFIER "CLR7"
 #define USBD_PRODUCT_STRING     "CLRACINGF7DUAL"
 
@@ -154,10 +157,18 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_UART           SERIAL_PORT_UART5
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT      6
-#define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(4)  )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB3 , 1,  0) /* USE FOR CAMERA CONTROL */ \
+    TIMER_PIN_MAP( 1, PB6 , 1,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 2, PB7 , 1,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 3, PB8 , 1,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 4, PB9 , 1, -1) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 5, PB1 , 2,  0) /* D1-ST2 */
+
+#define MOTOR1_PIN              PB6
+#define MOTOR2_PIN              PB7
+#define MOTOR3_PIN              PB8
+#define MOTOR4_PIN              PB9
+#define MOTOR5_PIN              PB1
+#define LED_STRIP_PIN           PB1

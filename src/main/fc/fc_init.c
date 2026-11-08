@@ -44,9 +44,11 @@
 #include "drivers/bus.h"
 #include "drivers/bus_i2c.h"
 #include "drivers/bus_spi.h"
+#include "drivers/bus_quadspi.h"
 #include "drivers/buttons.h"
 #include "drivers/camera_control.h"
 #include "drivers/compass/compass.h"
+#include "drivers/debug.h"
 #include "drivers/dma.h"
 #include "drivers/exti.h"
 #include "drivers/flash.h"
@@ -97,6 +99,7 @@
 #include "pg/beeper_dev.h"
 #include "pg/bus_i2c.h"
 #include "pg/bus_spi.h"
+#include "pg/bus_quadspi.h"
 #include "pg/flash.h"
 #include "pg/pinio.h"
 #include "pg/piniobox.h"
@@ -198,6 +201,16 @@ void busSwitchInit(void) {
 }
 #endif
 
+#ifdef USE_QUADSPI
+static void configureQuadSPIBusses(void)
+{
+    quadSpiPinConfigure(quadSpiConfig(0));
+#ifdef USE_QUADSPI_DEVICE_1
+    quadSpiInit(QUADSPIDEV_1);
+#endif
+}
+#endif
+
 void init(void) {
 #if defined(USE_ITCM_RAM) && !defined(STM32H7)
     /* Load functions into ITCM RAM */
@@ -220,6 +233,41 @@ void init(void) {
 #endif
     printfSupportInit();
     systemInit();
+#if defined(CONFIG_IN_EXTERNAL_FLASH)
+    // Config lives on an external flash chip that needs its own pins/bus brought up before
+    // it can be read - use compiled-in defaults for those, since the real config (which
+    // would normally supply them) isn't loaded yet.
+    pgResetAll();
+    IOInitGlobal();
+#ifdef USE_SPI
+    spiPinConfigure(spiPinConfig(0));
+    spiPreInit();
+#ifdef USE_SPI_DEVICE_1
+    spiInit(SPIDEV_1);
+#endif
+#ifdef USE_SPI_DEVICE_2
+    spiInit(SPIDEV_2);
+#endif
+#ifdef USE_SPI_DEVICE_3
+    spiInit(SPIDEV_3);
+#endif
+#ifdef USE_SPI_DEVICE_4
+    spiInit(SPIDEV_4);
+#endif
+#ifdef USE_SPI_DEVICE_5
+    spiInit(SPIDEV_5);
+#endif
+#ifdef USE_SPI_DEVICE_6
+    spiInit(SPIDEV_6);
+#endif
+#endif // USE_SPI
+#ifdef USE_QUADSPI
+    configureQuadSPIBusses();
+#endif
+    if (!flashInit(flashConfig())) {
+        failureMode(FAILURE_EXTERNAL_FLASH_INIT_FAILED);
+    }
+#endif // CONFIG_IN_EXTERNAL_FLASH
     initEEPROM();
     ensureEEPROMStructureIsValid();
     readEEPROM();
@@ -351,9 +399,13 @@ void init(void) {
 #if defined(USE_INVERTER) && !defined(SIMULATOR_BUILD)
     initInverters(serialPinConfig());
 #endif
+#if defined(TARGET_BUS_INIT) && defined(CONFIG_IN_EXTERNAL_FLASH)
+#error "CONFIG_IN_EXTERNAL_FLASH and TARGET_BUS_INIT are mutually exclusive"
+#endif
 #ifdef TARGET_BUS_INIT
     targetBusInit();
 #else
+#if !defined(CONFIG_IN_EXTERNAL_FLASH)
 #ifdef USE_SPI
     spiPinConfigure(spiPinConfig(0));
     // Initialize CS lines and keep them high
@@ -370,7 +422,17 @@ void init(void) {
 #ifdef USE_SPI_DEVICE_4
     spiInit(SPIDEV_4);
 #endif
+#ifdef USE_SPI_DEVICE_5
+    spiInit(SPIDEV_5);
+#endif
+#ifdef USE_SPI_DEVICE_6
+    spiInit(SPIDEV_6);
+#endif
 #endif // USE_SPI
+#ifdef USE_QUADSPI
+    configureQuadSPIBusses();
+#endif
+#endif // !CONFIG_IN_EXTERNAL_FLASH
 #if defined(USE_SDCARD_SDIO) && !defined(CONFIG_IN_SDCARD) && defined(STM32H7)
     sdioPinConfigure();
     sdioInitialize();
@@ -583,7 +645,7 @@ void init(void) {
     }
 #endif
 #ifdef USE_FLASHFS
-#if defined(USE_FLASH)
+#if defined(USE_FLASH) && !defined(CONFIG_IN_EXTERNAL_FLASH)
     flashInit(flashConfig());
 #endif
     flashfsInit();
@@ -591,7 +653,7 @@ void init(void) {
 #ifdef USE_BLACKBOX
 #ifdef USE_SDCARD
     if (blackboxConfig()->device == BLACKBOX_DEVICE_SDCARD) {
-        if (sdcardConfig()->enabled) {
+        if (sdcardConfig()->mode != SDCARD_MODE_NONE) {
             sdcardInsertionDetectInit();
             sdcard_init(sdcardConfig());
             afatfs_init();
@@ -667,6 +729,7 @@ void init(void) {
     // Must run after every dmaInit() caller above and before fcTasksInit()'s first gyro read.
     spiInitBusDMA();
 #endif
+    debugInit();
     fcTasksInit();
     systemState |= SYSTEM_STATE_READY;
 }

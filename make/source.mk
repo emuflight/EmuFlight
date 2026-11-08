@@ -17,10 +17,12 @@ COMMON_SRC = \
             drivers/bus_spi_config.c \
             drivers/bus_spi_pinconfig.c \
             drivers/buttons.c \
+            drivers/debug.c \
             drivers/display.c \
             drivers/exti.c \
             drivers/io.c \
             drivers/light_led.c \
+            drivers/max7456.c \
             drivers/pinio.c \
             drivers/resource.c \
             drivers/rcc.c \
@@ -36,6 +38,8 @@ COMMON_SRC = \
             drivers/transponder_ir_arcitimer.c \
             drivers/transponder_ir_ilap.c \
             drivers/transponder_ir_erlt.c \
+            drivers/vtx_rtc6705.c \
+            drivers/vtx_rtc6705_soft_spi.c \
             fc/board_info.c \
             fc/config.c \
             fc/fc_dispatch.c \
@@ -264,6 +268,7 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             drivers/compass/compass_ak8975.c \
             drivers/compass/compass_fake.c \
             drivers/compass/compass_hmc5883l.c \
+            drivers/compass/compass_lis3mdl.c \
             drivers/compass/compass_qmc5883l.c \
             drivers/display_ug2864hsweg01.c \
             drivers/inverter.c \
@@ -319,6 +324,51 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             io/spektrum_vtx_control.c \
             pg/pg.h
 
+# Init/config/telemetry paths not on the main control loop (issue #1221)
+SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
+            drivers/flash.c \
+            drivers/flash_m25p16.c \
+            drivers/flash_w25m.c \
+            drivers/flash_w25n.c \
+            drivers/flash_w25q128fv.c \
+            telemetry/telemetry.c \
+            telemetry/crsf.c \
+            telemetry/ghst.c \
+            telemetry/srxl.c \
+            telemetry/frsky_hub.c \
+            telemetry/hott.c \
+            telemetry/jetiexbus.c \
+            telemetry/smartport.c \
+            telemetry/ltm.c \
+            telemetry/mavlink.c \
+            telemetry/msp_shared.c \
+            telemetry/ibus.c \
+            telemetry/ibus_shared.c \
+            io/gps.c \
+            flight/gps_rescue.c \
+            flight/position.c \
+            drivers/rangefinder/rangefinder_hcsr04.c \
+            drivers/rangefinder/rangefinder_lidartf.c \
+            sensors/rangefinder.c \
+            sensors/initialisation.c \
+            sensors/barometer.c \
+            sensors/compass.c \
+            io/ledstrip.c \
+            io/pidaudio.c \
+            io/rcdevice.c \
+            io/rcdevice_cam.c \
+            io/displayport_max7456.c \
+            io/displayport_msp.c \
+            io/displayport_hdzero_osd.c \
+            io/displayport_oled.c \
+            io/displayport_srxl.c \
+            io/displayport_crsf.c \
+            cms/cms_menu_failsafe.c \
+            cms/cms_menu_gps_rescue.c \
+            sensors/esc_sensor.c \
+            drivers/camera_control.c \
+            io/vtx_beesign.c
+
 # F4 and F7 optimizations
 SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
             drivers/bus_i2c_hal.c \
@@ -342,7 +392,6 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             drivers/memprot_stm32h7xx.c
 endif # H7_TARGETS
 
-# check if target.mk supplied
 SRC := $(STARTUP_SRC) $(MCU_COMMON_SRC) $(TARGET_SRC) $(VARIANT_SRC)
 
 ifneq ($(DSP_LIB),)
@@ -354,48 +403,80 @@ SRC += $(DSP_LIB)/Source/StatisticsFunctions/arm_max_f32.c
 SRC += $(wildcard $(DSP_LIB)/Source/*/*.S)
 endif
 
-ifneq ($(filter ONBOARDFLASH,$(FEATURES)),)
+# Each flash file is guarded as a whole by its USE_FLASH* / USE_FLASHFS define.
 SRC += \
             drivers/flash.c \
             drivers/flash_m25p16.c \
             drivers/flash_w25m.c \
             drivers/flash_w25n.c \
             drivers/flash_w25q128fv.c \
-            io/flashfs.c \
-            $(MSC_SRC)
-endif
+            io/flashfs.c
+
+# Each MSC file is guarded as a whole by USE_USB_MSC, USE_FLASHFS, USE_SDCARD or USE_SDCARD_SDIO.
+SRC += $(MSC_SRC)
 
 SRC += $(COMMON_SRC)
+
+# The fake gyro and accelerometer serve the simulator and the hardware dev boards; USE_FAKE_GYRO and USE_FAKE_ACC guard the code.
+SRC += drivers/accgyro/accgyro_fake.c
+
+# The simulator has no accelerometer or gyro hardware.
+ifneq ($(SIMULATOR_BUILD),yes)
+SRC += \
+            drivers/accgyro/accgyro_imuf9001.c \
+            drivers/accgyro/accgyro_mpu.c \
+            drivers/accgyro/accgyro_mpu3050.c \
+            drivers/accgyro/accgyro_mpu6050.c \
+            drivers/accgyro/accgyro_mpu6500.c \
+            drivers/accgyro/accgyro_spi_bmi160.c \
+            drivers/accgyro/accgyro_spi_bmi270.c \
+            drivers/accgyro/accgyro_spi_icm20689.c \
+            drivers/accgyro/accgyro_spi_icm426xx.c \
+            drivers/accgyro/accgyro_spi_mpu6000.c \
+            drivers/accgyro/accgyro_spi_mpu6500.c \
+            drivers/accgyro/accgyro_spi_mpu9250.c \
+            drivers/accgyro_legacy/accgyro_l3gd20.c \
+            drivers/accgyro_legacy/accgyro_lsm303dlhc.c
+endif
+
+# The simulator has no SPI receiver hardware.
+ifneq ($(SIMULATOR_BUILD),yes)
+SRC += \
+            drivers/rx/rx_cc2500.c \
+            drivers/rx/rx_a7105.c \
+            drivers/rx/rx_nrf24l01.c \
+            rx/cc2500_common.c \
+            rx/cc2500_frsky_d.c \
+            rx/cc2500_frsky_shared.c \
+            rx/cc2500_frsky_x.c \
+            rx/cc2500_redpine.c \
+            rx/cc2500_sfhss.c \
+            rx/flysky.c \
+            rx/nrf24_cx10.c \
+            rx/nrf24_h8_3d.c \
+            rx/nrf24_inav.c \
+            rx/nrf24_syma.c \
+            rx/nrf24_v202.c
+endif
+
+# Every target compiles the compass and barometer drivers; USE_MAG_* / USE_BARO_* select the chips.
+SRC += \
+            $(addprefix drivers/compass/,$(notdir $(wildcard $(SRC_DIR)/drivers/compass/*.c))) \
+            $(addprefix drivers/barometer/,$(notdir $(wildcard $(SRC_DIR)/drivers/barometer/*.c)))
 
 #excludes
 SRC   := $(filter-out $(MCU_EXCLUDES), $(SRC))
 
-ifneq ($(filter SDCARD,$(FEATURES)),)
+# Each SD file is guarded as a whole by USE_SDCARD or USE_SDCARD_SDIO.
 SRC += \
             drivers/sdcard.c \
-            drivers/sdcard_standard.c \
-            io/asyncfatfs/asyncfatfs.c \
-            io/asyncfatfs/fat_standard.c \
-            $(MSC_SRC)
-endif
-
-ifneq ($(filter SDIO,$(FEATURES)),)
-SRC += \
             drivers/sdcard_sdio_baremetal.c \
             drivers/sdcard_standard.c \
             io/asyncfatfs/asyncfatfs.c \
-            io/asyncfatfs/fat_standard.c \
-            pg/sdio.c \
-            $(MSC_SRC)
-endif
+            io/asyncfatfs/fat_standard.c
 
-ifneq ($(filter VCP,$(FEATURES)),)
+# Each VCP file is guarded as a whole by USE_VCP.
 SRC += $(VCP_SRC)
-endif
-
-ifneq ($(filter MSC,$(FEATURES)),)
-SRC += $(MSC_SRC)
-endif
 # end target specific make file checks
 
 # Search path and source files for the ST stdperiph library

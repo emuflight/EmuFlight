@@ -27,6 +27,7 @@ typedef struct sdioConfig_s {
     uint8_t clockBypass;
     uint8_t useCache;
     uint8_t use4BitWidth;
+    int8_t dmaopt;          // DMA_PERIPH_SDIO reqmap option, -1 = none
     uint8_t device;         // 1=SDMMC1, 2=SDMMC2 (0=invalid/not configured)
 } sdioConfig_t;
 

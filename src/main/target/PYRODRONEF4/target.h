@@ -19,6 +19,9 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        PYRODRONEF4
+#define MANUFACTURER_ID   PYDR
 #define TARGET_BOARD_IDENTIFIER "PYRO"
 #define USBD_PRODUCT_STRING "PYRODRONEF4"
 
@@ -109,13 +112,19 @@
 
 // DEFINE DEFAULT FEATURE
 #define DEFAULT_RX_FEATURE          FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES            FEATURE_OSD
 
-#define TARGET_IO_PORTA (0xffff & ~(BIT(13)))
-#define TARGET_IO_PORTB (0xffff & ~(BIT(2)))
-#define TARGET_IO_PORTC (0xffff & ~(BIT(15)|BIT(14)|BIT(13)))
-#define TARGET_IO_PORTD BIT(2)
 
 // DEFINE TIMERS
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USED_TIMERS  (  TIM_N(1)  | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(11))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB9 , 2, -1) /* CAMERA_CONTROL_PIN */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* M1_OUT - D1_ST2_CH5 */ \
+    TIMER_PIN_MAP( 2, PB0 , 3,  0) /* M2_OUT - D2_ST3_CH7 */ \
+    TIMER_PIN_MAP( 3, PC9 , 2,  0) /* M3_OUT - D2_ST7_CH7 */ \
+    TIMER_PIN_MAP( 4, PA8 , 1,  1) /* M4_OUT - D2_ST1_CH6 */ \
+    TIMER_PIN_MAP( 5, PB8 , 1,  0) /* LED & MOTOR5 D1_ST7_CH2 */
+
+#define MOTOR1_PIN              PB1
+#define MOTOR2_PIN              PB0
+#define MOTOR3_PIN              PC9
+#define MOTOR4_PIN              PA8
+#define LED_STRIP_PIN           PB8

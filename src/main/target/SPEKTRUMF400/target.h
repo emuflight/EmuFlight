@@ -20,6 +20,8 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F446
+#define BOARD_NAME        SPEKTRUMF400
 #define TARGET_BOARD_IDENTIFIER "SKF4"
 
 #define USBD_PRODUCT_STRING "SpektrumF400"
@@ -120,10 +122,22 @@
 
 #define TARGET_XTAL_MHZ         12
 
-#define TARGET_IO_PORTA (0xffff & ~(BIT(14)|BIT(13)))
-#define TARGET_IO_PORTB (0xffff & ~(BIT(2)))
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD BIT(2)
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USED_TIMERS             (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(5)|TIM_N(8)|TIM_N(9))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB1 , 2,  0) /* pin 27 - M1 - DMA1_ST2 */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* pin 26 - M2 - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 2, PB5 , 1,  0) /* pin 57 - M3 - DMA1_ST5 */ \
+    TIMER_PIN_MAP( 3, PB4 , 1,  0) /* pin 56 - M4 - DMA1_ST4 */ \
+    TIMER_PIN_MAP( 4, PC6 , 2,  0) /* LED_STRIP - DMA2_ST2 */ \
+    TIMER_PIN_MAP( 5, PA9 , 1,  0) /* UART1_TX T1C2 */ \
+    TIMER_PIN_MAP( 6, PA10 , 1,  0) /* UART1_RX T1C3 */ \
+    TIMER_PIN_MAP( 7, PA2 , 1,  0) /* UART2_TX T5C3,T9C1,T2C3 */ \
+    TIMER_PIN_MAP( 8, PA3 , 3, -1) /* UART2_RX T5C4,T9C2,T2C4 */ \
+    TIMER_PIN_MAP( 9, PA0 , 2,  0) /* UART4_TX T5C1 */ \
+    TIMER_PIN_MAP( 10, PA1 , 2,  0) /* UART4_RX T5C2,T2C2 */
+
+#define MOTOR1_PIN              PB1
+#define MOTOR2_PIN              PB0
+#define MOTOR3_PIN              PB5
+#define MOTOR4_PIN              PB4
+#define LED_STRIP_PIN           PC6

@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        CHAMP_H743MPU
 #define MANUFACTURER_ID   OXBT
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU     STM32H743     // not used in EmuF
+#define FC_TARGET_MCU     STM32H743
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
@@ -92,7 +91,6 @@
 #define SERIALRX_UART SERIAL_PORT_USART6
 #define SERIAL_PORT_COUNT 6
 
-
 #define FLASH_CS_PIN PD4
 #define FLASH_SPI_INSTANCE SPI3
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
@@ -105,8 +103,6 @@
 #define CURRENT_METER_ADC_PIN PC1
 #define ADC1_DMA_OPT 5
 #define ADC3_DMA_OPT 6
-#define ADC1_DMA_STREAM DMA1_Stream5 // ADC1 opt5
-#define ADC3_DMA_STREAM DMA1_Stream6 // ADC3 opt6
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_VOLTAGE_METER_SCALE 110
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_NONE
@@ -117,17 +113,23 @@
 #define PINIO1_CONFIG 129
 #define PINIO1_BOX 40
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(15) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA0 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PA1 , 2,  1) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PA2 , 2,  2) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PA3 , 2,  3) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PC7 , 1,  -1) /* ppm; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 5, PD12 , 1,  4) /* led strip */ \
+    TIMER_PIN_MAP( 6, PE5 , 1,  -1) /* cam ctrl; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 7, PA15 , 1,  -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */
+#define TIMUP5_DMA_OPT 7
+
+#define MOTOR1_PIN              PA0
+#define MOTOR2_PIN              PA1
+#define MOTOR3_PIN              PA2
+#define MOTOR4_PIN              PA3
+#define RX_PPM_PIN              PC7
 
 // notice - this file was programmatically generated and may be incomplete.

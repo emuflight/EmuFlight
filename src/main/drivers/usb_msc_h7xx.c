@@ -46,6 +46,7 @@
 
 #include "msc/usbd_storage.h"
 
+#include "pg/sdcard.h"
 #include "pg/usb.h"
 
 #include "vcp_hal/usbd_cdc_interface.h"
@@ -88,6 +89,10 @@ uint8_t mscStart(void)
 #ifdef USE_SDCARD
     case BLACKBOX_DEVICE_SDCARD:
 #if defined(USE_SDCARD_SDIO) || defined(USE_SDCARD_SPI)
+        // Mode NONE, or a backend this build did not compile, has no storage to serve.
+        if (sdcardConfig()->mode != USBD_MSC_MICRO_SD_MODE) {
+            return 1;
+        }
         USBD_MSC_RegisterStorage(&USBD_Device, &USBD_MSC_MICRO_SDIO_fops);
 #else
         return 1;

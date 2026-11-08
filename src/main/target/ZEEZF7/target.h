@@ -19,7 +19,9 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER                          "S7X2"
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        ZEEZF7
+#define MANUFACTURER_ID   ZEEZ
 #define USBD_PRODUCT_STRING                              "ZEEZF7"
 #define TARGET_MANUFACTURER_IDENTIFIER                   "ZEEZ"
 
@@ -100,6 +102,8 @@
 
 // ESC
 #define USE_ADC
+#define ADC_INSTANCE ADC3
+#define ADC3_DMA_OPT 1
 #define DEFAULT_VOLTAGE_METER_SOURCE                     VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE                     CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN                            PC3
@@ -138,15 +142,24 @@
 #define SERIALRX_UART                                   SERIAL_PORT_USART3
 
 //FEATURE
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_ESC_SENSOR | FEATURE_LED_STRIP)
+#define DEFAULT_FEATURES        (FEATURE_ESC_SENSOR | FEATURE_LED_STRIP)
 #define DEFAULT_RX_FEATURE                              FEATURE_RX_SERIAL
 
 // IO Ports
-#define TARGET_IO_PORTA                                 0xffff
-#define TARGET_IO_PORTB                                 0xffff
-#define TARGET_IO_PORTC                                 0xffff
-#define TARGET_IO_PORTD                                 (BIT(2))
 
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                      7                       //updated timer count to compensate for Nf Motor 4
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4)   ) //update based on update CLRACINGF7 Target BF4.1+
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA1 , 1,  0) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB8 , 1,  0) /* D1-ST0                   MOTOR1 */ \
+    TIMER_PIN_MAP( 2, PB7 , 1,  0) /* D1-ST3                   MOTOR2 */ \
+    TIMER_PIN_MAP( 3, PB6 , 1,  0) /* D1-ST7                   MOTOR3 */ \
+    TIMER_PIN_MAP( 4, PB4 , 1,  0) /* D2-ST2/D2-ST4            MOTOR4 */ \
+    TIMER_PIN_MAP( 5, PB0 , 1,  0) /* D1-ST4                   MOTOR5 */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  0) /* NONE  TIM4_UP_D1-ST6     MOTOR6 */
+
+#define MOTOR1_PIN              PB8
+#define MOTOR2_PIN              PB7
+#define MOTOR3_PIN              PB6
+#define MOTOR4_PIN              PB4
+#define RX_PPM_PIN              PA1
+#define LED_STRIP_PIN           PB0

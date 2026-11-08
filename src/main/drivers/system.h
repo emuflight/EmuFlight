@@ -32,7 +32,9 @@ typedef enum {
     FAILURE_ACC_INCOMPATIBLE,
     FAILURE_INVALID_EEPROM_CONTENTS,
     FAILURE_FLASH_WRITE_FAILED,
-    FAILURE_GYRO_INIT_FAILED
+    FAILURE_GYRO_INIT_FAILED,
+    FAILURE_FLASH_READ_FAILED,
+    FAILURE_EXTERNAL_FLASH_INIT_FAILED
 } failureMode_e;
 
 #define WARNING_FLASH_DURATION_MS 50
@@ -46,8 +48,13 @@ void indicateFailure(failureMode_e mode, int repeatCount);
 void failureMode(failureMode_e mode);
 
 // bootloader/IAP
+typedef enum {
+    BOOTLOADER_REQUEST_ROM,   // the MCU's own silicon bootloader
+    BOOTLOADER_REQUEST_FLASH, // a bootloader resident in the MCU's own flash (external-flash/EXST targets)
+} bootloaderRequestType_e;
+
 void systemReset(void);
-void systemResetToBootloader(void);
+void systemResetToBootloader(bootloaderRequestType_e requestType);
 void checkForBootLoaderRequest(void);
 bool isMPUSoftReset(void);
 void cycleCounterInit(void);

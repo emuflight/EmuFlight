@@ -21,6 +21,14 @@
 #pragma once
 
 #define USE_PARAMETER_GROUPS
+
+// A board whose firmware runs from external flash (EXST) needs its own bootloader
+// re-entered specially on reboot-to-DFU requests, instead of the MCU's own silicon
+// bootloader, which has no knowledge of the external flash.
+#if defined(USE_EXST)
+#define USE_FLASH_BOOT_LOADER
+#endif
+
 // type conversion warnings.
 // -Wconversion can be turned on to enable the process of eliminating these warnings
 //#pragma GCC diagnostic warning "-Wconversion"
@@ -78,6 +86,7 @@
 #define USE_DSHOT
 #define USE_GYRO_DATA_ANALYSE
 #define USE_ADC_INTERNAL
+#define USE_TIMER_UP_CONFIG
 // Note: USE_USB_CDC_HID intentionally omitted — fc_tasks.c pulls in
 // vcpf4/usbd_cdc_vcp.h (F4-specific) under that guard; not yet ported for H7.
 // common_fc_post.h strips USE_USB_MSC if no SDCARD/FLASHFS or no BLACKBOX.
@@ -163,6 +172,25 @@
 #define SRAM2
 #endif
 
+// Fleet-wide default matching BF's family-header model (every port fully open); per-board
+// #undef + redefine only for a verified exception (real reserved-pin hardware fact, e.g. an
+// OCTOSPI/QUADSPI flash-bus pin) - matches BF's own rare per-board TARGET_IO_PORTx overrides.
+// Meaningless (and actively harmful) for SIMULATOR_BUILD: no real GPIO exists there,
+// IOConfigGPIO() isn't implemented for it, and giving it real port values makes an
+// otherwise-unreachable PINIO call site linkage-reachable, breaking the link with an
+// undefined reference.
+#ifndef SIMULATOR_BUILD
+#define TARGET_IO_PORTA 0xffff
+#define TARGET_IO_PORTB 0xffff
+#define TARGET_IO_PORTC 0xffff
+#define TARGET_IO_PORTD 0xffff
+#define TARGET_IO_PORTE 0xffff
+#define TARGET_IO_PORTF 0xffff
+#define TARGET_IO_PORTG 0xffff
+#define TARGET_IO_PORTH 0xffff
+#define TARGET_IO_PORTI 0xffff
+#endif
+
 #define USE_BRUSHED_ESC_AUTODETECT  // Detect if brushed motors are connected and set defaults appropriately to avoid motors spinning on boot
 #define USE_CLI
 #define USE_ESCSERIAL           // fleet-wide default; per-board #undef only for a verified exception
@@ -213,6 +241,7 @@
 #define USE_GYRO_OVERFLOW_CHECK
 #define USE_YAW_SPIN_RECOVERY
 #define USE_HUFFMAN
+#define USE_MAG
 #define USE_MSP_DISPLAYPORT
 #define USE_MSP_OVER_TELEMETRY
 #define MSP_OVER_CLI

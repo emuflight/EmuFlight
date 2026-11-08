@@ -21,6 +21,9 @@
  
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        MAMBAF405_2022B
+#define MANUFACTURER_ID   DIAT
 #define TARGET_BOARD_IDENTIFIER "DIAT"
 #define USBD_PRODUCT_STRING "MAMBAF405_2022B"
 
@@ -127,7 +130,7 @@
 
 #define VBAT_ADC_PIN PC1
 #define CURRENT_METER_ADC_PIN PC3
-#define ADC3_DMA_STREAM DMA2_Stream0 // # ADC 3: DMA2 Stream 0 Channel 2
+#define ADC3_DMA_OPT 0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 183
@@ -144,17 +147,24 @@
 #define PINIO2_BOX 40
 // notice - this file was programmatically generated and may not have accounted for any config instance of "#define TLM_INVERTED ON", etc.
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
-// notice - incomplete; may need additional DEFAULT_FEATURES; e.g. FEATURE_SOFTSERIAL | FEATURE_RX_SPI
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS ( TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(8)|TIM_N(11) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB3 , 1,  0) /* LED_STRIP, */ \
+    TIMER_PIN_MAP( 1, PB8 , 1,  0) /* baro/mag // no dps310 in EmuFlight, */ \
+    TIMER_PIN_MAP( 2, PB9 , 2, -1) /* baro/mag // no dps310 in EmuFlight, */ \
+    TIMER_PIN_MAP( 3, PA9 , 1,  0) /* M1 */ \
+    TIMER_PIN_MAP( 4, PA8 , 1,  0) /* M2 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* M3 */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  0) /* M4 */ \
+    TIMER_PIN_MAP( 7, PB0 , 2,  0) /* M5 */ \
+    TIMER_PIN_MAP( 8, PB1 , 2,  0) /* M6 */
+
+#define MOTOR1_PIN              PA9
+#define MOTOR2_PIN              PA8
+#define MOTOR3_PIN              PC9
+#define MOTOR4_PIN              PC8
+#define MOTOR5_PIN              PB0
+#define MOTOR6_PIN              PB1
 
 // notice - this file was programmatically generated and may be incomplete.

@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        FURYF4
+#define MANUFACTURER_ID   DIAT
 #define TARGET_BOARD_IDENTIFIER "FYF4"
 #define USBD_PRODUCT_STRING     "FuryF4"
 
@@ -88,9 +91,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
 
-//#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream5
-
-#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream4
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
@@ -156,10 +156,19 @@
 #define SERIALRX_UART           SERIAL_PORT_USART1
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(5) | TIM_N(8) | TIM_N(11) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC9 , 2,  0) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PA3 , 1,  1) /* S1_OUT - DMA1_ST6_CH3 */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* S2_OUT - DMA1_ST7_CH5 */ \
+    TIMER_PIN_MAP( 3, PB1 , 1,  0) /* S3_OUT - DMA2_ST6_CH0 */ \
+    TIMER_PIN_MAP( 4, PA2 , 1,  0) /* S4_OUT - DMA1_ST1_CH3 */ \
+    TIMER_PIN_MAP( 5, PA0 , 2,  0) /* LED_STRIP - DMA1_ST2_CH6 */ \
+    TIMER_PIN_MAP( 6, PB9 , 2, -1)
+
+#define MOTOR1_PIN              PA3
+#define MOTOR2_PIN              PB0
+#define MOTOR3_PIN              PB1
+#define MOTOR4_PIN              PA2
+#define RX_PPM_PIN              PC9
+#define LED_STRIP_PIN           PA0

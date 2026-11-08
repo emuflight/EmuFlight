@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        JHEH743_AIO
 #define MANUFACTURER_ID   JHEF
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU     STM32H743     // not used in EmuF
+#define FC_TARGET_MCU     STM32H743
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
@@ -134,24 +133,35 @@
 #define RSSI_ADC_PIN PC5
 #define ADC1_DMA_OPT        8
 #define ADC3_DMA_OPT        9
-#define ADC1_DMA_STREAM DMA2_Stream0 // ADC1 opt8
-#define ADC3_DMA_STREAM DMA2_Stream1 // ADC3 opt9
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 120
 
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 16
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA8 , 1,  10) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 1, PB3 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  1) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PD12 , 1,  10) /* led strip */ \
+    TIMER_PIN_MAP( 5, PD13 , 1,  5) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  0) /* cam ctrl */ \
+    TIMER_PIN_MAP( 7, PC9 , 2,  7) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 8, PA0 , 2,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 9, PA1 , 2,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 10, PA2 , 2,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 11, PA3 , 1,  0) /* ppm */ \
+    TIMER_PIN_MAP( 12, PB10 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 13, PB11 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 14, PE9 , 1,  2) /* motor 1 */ \
+    TIMER_PIN_MAP( 15, PE11 , 1,  3) /* motor 3 */
+
+#define MOTOR1_PIN              PE9
+#define MOTOR2_PIN              PB0
+#define MOTOR3_PIN              PE11
+#define MOTOR4_PIN              PB1
+#define RX_PPM_PIN              PA3
 
 // notice - this file was programmatically generated and may be incomplete.

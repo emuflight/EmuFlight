@@ -23,6 +23,9 @@
 #define USE_TARGET_CONFIG
 #undef USE_MSP_DISPLAYPORT
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        MLTYPHF4
+#define MANUFACTURER_ID   MOLA
 #define TARGET_BOARD_IDENTIFIER "MLTY"
 
 #define USBD_PRODUCT_STRING "MotoLabF4"
@@ -114,7 +117,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
 
-#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream4
 
 // Pins are available unless USART3 is connected, not connected
 //#define USE_I2C
@@ -133,15 +135,23 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_UART5
 #define SBUS_TELEMETRY_UART     SERIAL_PORT_UART4
-#define DEFAULT_FEATURES        (FEATURE_TELEMETRY | FEATURE_OSD)
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 140
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB5 , 1,  0) /* PWM1 */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* PWM2 */ \
+    TIMER_PIN_MAP( 2, PB3 , 1,  0) /* PWM3 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* PWM4 */ \
+    TIMER_PIN_MAP( 4, PA2 , 2,  0) /* PWM5, UART 2 TX */ \
+    TIMER_PIN_MAP( 5, PA3 , 2,  0) /* PWM6, UART 2 RX */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  0) /* Serial LED */ \
+    TIMER_PIN_MAP( 7, PB8 , 1,  0) /* ESC serial (unwired) */
+
+#define MOTOR1_PIN              PB5
+#define MOTOR2_PIN              PB0
+#define MOTOR3_PIN              PB3
+#define MOTOR4_PIN              PB1
+#define LED_STRIP_PIN           PA8

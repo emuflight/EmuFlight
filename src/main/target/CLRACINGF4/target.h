@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        CLRACINGF4
+#define MANUFACTURER_ID   CLRA
 #define TARGET_BOARD_IDENTIFIER "CLR4"
 
 #define USBD_PRODUCT_STRING "CLRACINGF4"
@@ -82,7 +85,6 @@
 #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER  256 // 328kHz
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER  4 // 21MHz
-#define SDCARD_DMA_CHANNEL_TX                DMA1_Stream4
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
@@ -142,13 +144,21 @@
 #define USE_TRANSPONDER
 
 #define DEFAULT_RX_FEATURE          FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES            ( FEATURE_OSD  )
 #define DEFAULT_CURRENT_METER_SCALE 250
 
-#define TARGET_IO_PORTA (0xffff & ~(BIT(14)|BIT(13)))
-#define TARGET_IO_PORTB (0xffff & ~(BIT(2)))
-#define TARGET_IO_PORTC (0xffff & ~(BIT(15)|BIT(14)|BIT(13)))
-#define TARGET_IO_PORTD BIT(2)
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS  (  TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(11))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB9 , 2, -1) /* CAMERA_CONTROL_PIN */ \
+    TIMER_PIN_MAP( 1, PB0 , 1,  0) /* M1 - D2_ST6 */ \
+    TIMER_PIN_MAP( 2, PB1 , 3,  0) /* M2_OUT D2_ST2 */ \
+    TIMER_PIN_MAP( 3, PA3 , 1,  1) /* M3_OUT D1_ST6 */ \
+    TIMER_PIN_MAP( 4, PA2 , 1,  0) /* M4_OUT D1_ST1 */ \
+    TIMER_PIN_MAP( 5, PB4 , 1,  0) /* BEEPER PWM */ \
+    TIMER_PIN_MAP( 6, PB8 , 1,  0) /* LED & MOTOR5 D1_ST7 */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA3
+#define MOTOR4_PIN              PA2
+#define MOTOR5_PIN              PB8
+#define LED_STRIP_PIN           PB8

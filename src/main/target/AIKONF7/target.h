@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        AIKONF7
 #define MANUFACTURER_ID   AIKO
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define ENABLE_DSHOT_DMAR       true
 
@@ -162,16 +161,34 @@
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC0
 #define RSSI_ADC_PIN            PC3
+#define ADC1_DMA_OPT            1 // DMA2 Stream 4; Stream 0 would leave SPI1 RX (gyro) without DMA
 #define DEFAULT_CURRENT_METER_SCALE 250                     // 3.3/120A  = 25mv/A
 
 #define BINDPLUG_PIN            PB2
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_UART           SERIAL_PORT_UART5
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT      9
-#define USED_TIMERS ( TIM_N(2) | TIM_N(4) | TIM_N(8) | TIM_N(9) | TIM_N(12)   ) //update based on update CLRACINGF7 Target BF4.1+
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB14 , 3, -1) \
+    TIMER_PIN_MAP( 1, PC6 , 2,  1) \
+    TIMER_PIN_MAP( 2, PC7 , 2,  1) \
+    TIMER_PIN_MAP( 3, PC8 , 2,  1) \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) \
+    TIMER_PIN_MAP( 5, PB6 , 1,  0) \
+    TIMER_PIN_MAP( 6, PB8 , 1,  0) \
+    TIMER_PIN_MAP( 7, PB7 , 1,  0) \
+    TIMER_PIN_MAP( 8, PB1 , 2,  0) \
+    TIMER_PIN_MAP( 9, PA15 , 1,  0) \
+    TIMER_PIN_MAP( 10, PB9 , 2, -1) /* ppm */
+
+#define MOTOR1_PIN              PC6
+#define MOTOR2_PIN              PC7
+#define MOTOR3_PIN              PC8
+#define MOTOR4_PIN              PC9
+#define MOTOR5_PIN              PB6
+#define MOTOR6_PIN              PB8
+#define MOTOR7_PIN              PB7
+#define MOTOR8_PIN              PB1
+#define LED_STRIP_PIN           PA15
+#define RX_PPM_PIN              PB9

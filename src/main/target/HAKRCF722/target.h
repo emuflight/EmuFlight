@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        HAKRCF722
+#define MANUFACTURER_ID   HARC
 #define TARGET_BOARD_IDENTIFIER "HRF7"
 
 #define USBD_PRODUCT_STRING     "HAKRCF722"
@@ -124,7 +127,7 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PC1
 #define CURRENT_METER_ADC_PIN   PC2
 #define RSSI_ADC_PIN            PC0
@@ -135,10 +138,24 @@
 #define ESCSERIAL_TIMER_TX_PIN PA3
 
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS             (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(8)|TIM_N(12))
+// PA10 and PA8 share DMA2 Stream 6; with DShot burst off only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB15 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* S1 */ \
+    TIMER_PIN_MAP( 2, PC6 , 2,  1) /* S2 */ \
+    TIMER_PIN_MAP( 3, PA10 , 1,  0) /* S3 */ \
+    TIMER_PIN_MAP( 4, PA8 , 1,  0) /* S4 */ \
+    TIMER_PIN_MAP( 5, PC7 , 1,  0) /* S5 */ \
+    TIMER_PIN_MAP( 6, PC9 , 2,  0) /* S6 */ \
+    TIMER_PIN_MAP( 7, PB6 , 1,  0) \
+    TIMER_PIN_MAP( 8, PA5 , 1,  0)
+
+#define MOTOR1_PIN              PB1
+#define MOTOR2_PIN              PC6
+#define MOTOR3_PIN              PA10
+#define MOTOR4_PIN              PA8
+#define MOTOR5_PIN              PC7
+#define MOTOR6_PIN              PC9
+#define RX_PPM_PIN              PB15
+#define LED_STRIP_PIN           PB6

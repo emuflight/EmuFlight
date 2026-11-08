@@ -44,6 +44,7 @@ void sbufWriteStringWithZeroTerminator(sbuf_t *dst, const char *string);
 uint8_t sbufReadU8(sbuf_t *src);
 uint16_t sbufReadU16(sbuf_t *src);
 uint32_t sbufReadU32(sbuf_t *src);
+// copies len bytes and advances the read pointer by len
 void sbufReadData(sbuf_t *dst, void *data, int len);
 
 int sbufBytesRemaining(sbuf_t *buf);

@@ -24,11 +24,15 @@
 #include <stdbool.h>
 
 #include "pg/pg.h"
+#include "drivers/adc.h"
 #include "drivers/io_types.h"
 
 typedef struct adcChannelConfig_t {
     bool enabled;
     ioTag_t ioTag;
+#if defined(STM32H7)
+    int8_t device; // ADCDevice
+#endif
 } adcChannelConfig_t;
 
 typedef struct adcConfig_s {
@@ -37,6 +41,7 @@ typedef struct adcConfig_s {
     adcChannelConfig_t current;
     adcChannelConfig_t external1;
     int8_t device; // ADCDevice
+    int8_t dmaopt[ADCDEV_COUNT]; // One per ADCDEV_x
 } adcConfig_t;
 
 PG_DECLARE(adcConfig_t, adcConfig);

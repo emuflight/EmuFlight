@@ -24,6 +24,9 @@
 
 // OMNIBUSF4FW for Version 2
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        OMNIBUSF4FW
+#define MANUFACTURER_ID   AIRB
 #define TARGET_BOARD_IDENTIFIER "OBFW"
 
 #define USBD_PRODUCT_STRING "OmnibusF4 Fireworks"
@@ -165,13 +168,29 @@
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 
-#define DEFAULT_FEATURES        (FEATURE_OSD)
 
-#define TARGET_IO_PORTA (0xffff & ~(BIT(14)|BIT(13)))
-#define TARGET_IO_PORTB (0xffff & ~(BIT(2)))
-#define TARGET_IO_PORTC  0xffff
-#define TARGET_IO_PORTD BIT(2)
 
-#define USABLE_TIMER_CHANNEL_COUNT 15
 
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9) | TIM_N(10) | TIM_N(11))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* D(1,7) U(1,2) */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* D(1,2) U(1,2) */ \
+    TIMER_PIN_MAP( 2, PA3 , 1,  1) /* D(1,6) U(1,7) */ \
+    TIMER_PIN_MAP( 3, PB5 , 1,  0) /* D(1,5) U(1,2) */ \
+    TIMER_PIN_MAP( 4, PB6 , 1,  0) /* D(1,0) */ \
+    TIMER_PIN_MAP( 5, PB8 , 2, -1) /* PPM */ \
+    TIMER_PIN_MAP( 6, PB9 , 2, -1) /* CAM_CTL */ \
+    TIMER_PIN_MAP( 7, PC6 , 2,  0) /* UART6_TX */ \
+    TIMER_PIN_MAP( 8, PC7 , 2,  0) /* UART6_RX */ \
+    TIMER_PIN_MAP( 9, PC8 , 2,  0) /* SJ1 */ \
+    TIMER_PIN_MAP( 10, PC9 , 2,  0) /* SJ2 */ \
+    TIMER_PIN_MAP( 11, PA9 , 1,  0) /* UART1_TX */ \
+    TIMER_PIN_MAP( 12, PA10 , 1,  0) /* UART1_RX */ \
+    TIMER_PIN_MAP( 13, PA1 , 2,  0) /* UART4_RX */ \
+    TIMER_PIN_MAP( 14, PA2 , 3, -1) /* UART2_TX */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA3
+#define MOTOR4_PIN              PB5
+#define RX_PPM_PIN              PB8
+#define LED_STRIP_PIN           PB6

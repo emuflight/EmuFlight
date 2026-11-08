@@ -19,7 +19,9 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER                          "S411"
+#define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        GEPRCF411_PRO
+#define MANUFACTURER_ID   GEPR
 #define USBD_PRODUCT_STRING                              "GEPRCF411 PRO"
 #define TARGET_MANUFACTURER_IDENTIFIER                   "GEPR"
 
@@ -69,8 +71,8 @@
 #define USE_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE                     VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE                     CURRENT_METER_ADC
-#define CURRENT_METER_ADC_PIN                            PB0
-#define VBAT_ADC_PIN                                     PB1
+#define CURRENT_METER_ADC_PIN                            PB1
+#define VBAT_ADC_PIN                                     PB0
 #define DEFAULT_CURRENT_METER_SCALE                      250                    // 3.3/120A  = 25mv/A
 
 //I2C
@@ -119,11 +121,19 @@
 #define SERIALRX_UART                                   SERIAL_PORT_USART2
 
 // IO Ports
-#define TARGET_IO_PORTA                                 0xffff
-#define TARGET_IO_PORTB                                 0xffff
-#define TARGET_IO_PORTC                                 0xffff
-#define TARGET_IO_PORTD                                 (BIT(2))
 
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                      6                       //updated timer count to compensate for Nf Motor 4
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(4) | TIM_N(5) | TIM_N(9)   ) //update based on update CLRACINGF7 Target BF4.1+
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) \
+    TIMER_PIN_MAP( 1, PA0 , 1,  0) \
+    TIMER_PIN_MAP( 2, PB10 , 1,  0) \
+    TIMER_PIN_MAP( 3, PB6 , 1,  0) \
+    TIMER_PIN_MAP( 4, PB7 , 1,  0) \
+    TIMER_PIN_MAP( 5, PA8 , 1,  0)
+
+#define MOTOR1_PIN              PA0
+#define MOTOR2_PIN              PB10
+#define MOTOR3_PIN              PB6
+#define MOTOR4_PIN              PB7
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA8

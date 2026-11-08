@@ -19,6 +19,9 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        REVONANO
+#define MANUFACTURER_ID   OPEN
 #define TARGET_BOARD_IDENTIFIER "REVN"
 
 #define USBD_PRODUCT_STRING "Revo Nano"
@@ -103,9 +106,33 @@
 #define VBAT_ADC_PIN            PA6
 #define RSSI_ADC_PIN            PA5
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         (BIT(13) | BIT(14) | BIT(15))
+// Burst DShot shares one TIM_UP stream per timer, so motors need no per-channel stream
+#define ENABLE_DSHOT_DMAR true
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB10 , 1,  0) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* S2_IN */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* S3_IN */ \
+    TIMER_PIN_MAP( 3, PA7 , 2,  0) /* S4_IN */ \
+    TIMER_PIN_MAP( 4, PA6 , 1,  0) /* S5_IN */ \
+    TIMER_PIN_MAP( 5, PA5 , 1,  0) /* S6_IN */ \
+    TIMER_PIN_MAP( 6, PA10 , 1,  0) /* S1_OUT */ \
+    TIMER_PIN_MAP( 7, PB3 , 1,  0) /* S2_OUT */ \
+    TIMER_PIN_MAP( 8, PB8 , 1,  0) /* S3_OUT */ \
+    TIMER_PIN_MAP( 9, PB9 , 1, -1) /* S4_OUT */ \
+    TIMER_PIN_MAP( 10, PA0 , 2,  0) /* S5_OUT */ \
+    TIMER_PIN_MAP( 11, PA1 , 2,  0) /* S6_OUT */
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) )
+#define MOTOR1_PIN              PA10
+#define MOTOR2_PIN              PB3
+#define MOTOR3_PIN              PB8
+#define MOTOR4_PIN              PB9
+#define MOTOR5_PIN              PA0
+#define MOTOR6_PIN              PA1
+#define RX_PWM1_PIN             PB10
+#define RX_PWM2_PIN             PB1
+#define RX_PWM3_PIN             PB0
+#define RX_PWM4_PIN             PA7
+#define RX_PWM5_PIN             PA6
+#define RX_PWM6_PIN             PA5
+#define RX_PPM_PIN              PB10
+#define LED_STRIP_PIN           PA0 // EF-only: not in the reference config

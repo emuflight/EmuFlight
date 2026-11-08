@@ -23,6 +23,9 @@
 #define USE_TARGET_CONFIG
 #define USE_HARDWARE_REVISION_DETECTION
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        OMNINXT7
+#define MANUFACTURER_ID   AIRB
 #define TARGET_BOARD_IDENTIFIER "ONX7"
 #define USBD_PRODUCT_STRING "OmniNXT7"
 
@@ -176,15 +179,38 @@
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_LED_STRIP)
+#define DEFAULT_FEATURES        (FEATURE_LED_STRIP)
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
-#define TARGET_IO_PORTA (0xffff & ~(BIT(14)|BIT(13))) // Less SWC and SWD
-#define TARGET_IO_PORTB (0xffff)
-#define TARGET_IO_PORTC (0xffff)
-#define TARGET_IO_PORTD BIT(2)
 
-#define USABLE_TIMER_CHANNEL_COUNT 21
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9) | TIM_N(10) | TIM_N(11) | TIM_N(12))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB5 , 1,  0) /* M1 */ \
+    TIMER_PIN_MAP( 1, PB4 , 1,  0) /* M2 */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* M3 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* M4 */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* MST5 Collision with TX/RX6 (useful for OCTO) */ \
+    TIMER_PIN_MAP( 5, PC8 , 2,  1) /* MST6 Collision with TX/RX6 (useful for OCTO) */ \
+    TIMER_PIN_MAP( 6, PB9 , 2, -1) /* I2C1_SDA, MST7 */ \
+    TIMER_PIN_MAP( 7, PB8 , 2, -1) /* I2C1_SCL, MST8 */ \
+    TIMER_PIN_MAP( 8, PB7 , 1,  0) /* Overloaded with UART1_RX */ \
+    TIMER_PIN_MAP( 9, PA9 , 1,  0) \
+    TIMER_PIN_MAP( 10, PB15 , 3, -1) \
+    TIMER_PIN_MAP( 11, PB6 , 1,  0) /* UART1_TX Collision with PPM */ \
+    TIMER_PIN_MAP( 12, PA2 , 3, -1) /* UART2_TX */ \
+    TIMER_PIN_MAP( 13, PA3 , 3, -1) /* UART2_RX */ \
+    TIMER_PIN_MAP( 14, PB10 , 1,  0) /* UART3_TX */ \
+    TIMER_PIN_MAP( 15, PB11 , 1,  0) /* UART3_RX */ \
+    TIMER_PIN_MAP( 16, PA0 , 2,  0) /* UART4_TX */ \
+    TIMER_PIN_MAP( 17, PA1 , 2,  0) /* UART4_RX */ \
+    TIMER_PIN_MAP( 18, PC6 , 2,  1) /* UART6_TX Collision with MS1&2 (useful for OCTO) */ \
+    TIMER_PIN_MAP( 19, PC7 , 2,  1) /* UART6_RX Collision with MS1&2 (useful for OCTO) */ \
+    TIMER_PIN_MAP( 20, PA10 , 1,  0) /* CS_ExtIMU, Collision with LED_STRIP */
+
+#define MOTOR1_PIN              PB5
+#define MOTOR2_PIN              PB4
+#define MOTOR3_PIN              PB0
+#define MOTOR4_PIN              PB1
+#define RX_PPM_PIN              PB7
+#define LED_STRIP_PIN           PA9

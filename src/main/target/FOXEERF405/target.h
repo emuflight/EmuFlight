@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        FOXEERF405
+#define MANUFACTURER_ID   FOXE
 #define TARGET_BOARD_IDENTIFIER "FXF4"
 #define USBD_PRODUCT_STRING  "FOXEERF405"
 //----------------------------------------
@@ -133,7 +136,7 @@
 
 //ADC ----------------------------------------------
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PC0
 #define CURRENT_METER_ADC_PIN   PC1
 #define RSSI_ADC_PIN            PA0  //TIM5_CH1 & UART4_TX & TELEMETRY & FPORT
@@ -147,14 +150,29 @@
 
 #define ESCSERIAL_TIMER_TX_PIN PA3
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS             (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(8)|TIM_N(12))
+// PC6, PC7 and PC8 share DMA2 Stream 2; with DShot burst off only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB15 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S1 (1,7) */ \
+    TIMER_PIN_MAP( 2, PB4 , 1,  0) /* S2 (1,4) */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  0) /* S3 (2,4) */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* S4 (2,7) */ \
+    TIMER_PIN_MAP( 5, PC6 , 2,  0) /* S5 (2,2) */ \
+    TIMER_PIN_MAP( 6, PC7 , 2,  0) /* S6 (2,3) */ \
+    TIMER_PIN_MAP( 7, PA10 , 1,  0) /* LED STRIP(2,6) */ \
+    TIMER_PIN_MAP( 8, PB3 , 1,  0) /* FC CAM */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB4
+#define MOTOR3_PIN              PC8
+#define MOTOR4_PIN              PC9
+#define MOTOR5_PIN              PC6
+#define MOTOR6_PIN              PC7
+#define RX_PWM1_PIN             PB3 // EF-only: not in the reference config
+#define RX_PPM_PIN              PB15
+#define LED_STRIP_PIN           PA10
 
 
 

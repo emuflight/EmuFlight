@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        FLYWOOF7DUAL
 #define MANUFACTURER_ID   FLWO
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define ENABLE_DSHOT_DMAR       true
 
@@ -152,7 +151,7 @@
 
 #define USE_ADC
 #define ADC_INSTANCE                        ADC3
-#define ADC3_DMA_STREAM                     DMA2_Stream0
+#define ADC3_DMA_OPT 0
 
 #define CURRENT_METER_ADC_PIN               PC0
 #define VBAT_ADC_PIN                        PC1
@@ -163,7 +162,7 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
 #define DEFAULT_RX_FEATURE                  FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES                    (FEATURE_RSSI_ADC | FEATURE_TELEMETRY | FEATURE_OSD | FEATURE_AIRMODE | FEATURE_LED_STRIP)
+#define DEFAULT_FEATURES                    (FEATURE_RSSI_ADC | FEATURE_LED_STRIP)
 #define SERIALRX_UART                       SERIAL_PORT_USART1
 #define SERIALRX_PROVIDER                   SERIALRX_SBUS
 
@@ -175,10 +174,30 @@
 #define PINIO2_PIN              PB9
 #define USE_TARGET_CONFIG
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 13
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(5) | TIM_N(8) | TIM_N(10) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB9 , 2, -1) /* PINIO2 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* S1 (1,2) */ \
+    TIMER_PIN_MAP( 2, PB4 , 1,  0) /* S2 (1,4) */ \
+    TIMER_PIN_MAP( 3, PB3 , 1,  0) /* S3 (1,6) */ \
+    TIMER_PIN_MAP( 4, PA15 , 1,  0) /* S4 (1,5) */ \
+    TIMER_PIN_MAP( 5, PC8 , 2,  1) /* S5 (2,4) */ \
+    TIMER_PIN_MAP( 6, PC9 , 2,  0) /* S6 (2,1) */ \
+    TIMER_PIN_MAP( 7, PC6 , 2,  1) /* ppm RX_PPM_PIN */ \
+    TIMER_PIN_MAP( 8, PA8 , 1,  0) /* LED STRIP(2,6) */ \
+    TIMER_PIN_MAP( 9, PB8 , 1, -1) /* FC CAM(1,7) */ \
+    TIMER_PIN_MAP( 10, PB10 , 1,  0) /* pwm RX_PWM1_PIN */ \
+    TIMER_PIN_MAP( 11, PA2 , 2,  0) /* pwm RX_PWM2_PIN */ \
+    TIMER_PIN_MAP( 12, PA3 , 2,  1) /* pwm RX_PWM3_PIN */
+
+#define MOTOR1_PIN              PB1
+#define MOTOR2_PIN              PB4
+#define MOTOR3_PIN              PB3
+#define MOTOR4_PIN              PA15
+#define MOTOR5_PIN              PC8
+#define MOTOR6_PIN              PC9
+#define RX_PWM1_PIN             PB10
+#define RX_PWM2_PIN             PA2
+#define RX_PWM3_PIN             PA3
+#define RX_PPM_PIN              PC6
+#define LED_STRIP_PIN           PA8

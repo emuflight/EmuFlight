@@ -24,8 +24,7 @@
 
 #define BOARD_NAME        ALIENFLIGHTNGF7
 #define MANUFACTURER_ID   AFNG
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define USE_HARDWARE_REVISION_DETECTION
 #define HW_PIN                  PC13
@@ -104,7 +103,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 8 // 27MHz
 
-#define SDCARD_DMA_STREAM_TX_FULL           DMA1_Stream4
 
 // Performance logging for SD card operations:
 // #define AFATFS_USE_INTROSPECTIVE_LOGGING
@@ -175,7 +173,7 @@
 #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 0
 //#define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 //#define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define VBAT_ADC_PIN            PC0
@@ -194,10 +192,35 @@
 #define SERIALRX_UART           SERIAL_PORT_USART2
 #define RX_CHANNELS_TAER
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT      13
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) )
+// PA0 and PB1 share DMA1 Stream 2; with DShot burst off only one of them gets DMA
+// PB0 and PB8 share DMA1 Stream 7; with DShot burst off only one of them gets DMA
+// PA8 and TIM8 burst share DMA2 Stream 1; with DShot burst on only one of them gets DMA
+// DSHOT will work for motor 1-8.
+// If SDCard or UART4 DMA is used motor 7 will not work.
+// If UART1 DMA is used motor 8 will not work.
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA8 , 1,  1) /* PPM   - DMA2_ST6, *DMA2_ST1, DMA2_ST3 */ \
+    TIMER_PIN_MAP( 1, PC6 , 2,  1) /* PWM1  - DMA2_ST2, DMA2_ST2 */ \
+    TIMER_PIN_MAP( 2, PC7 , 1,  0) /* PWM2  - DMA1_ST5 */ \
+    TIMER_PIN_MAP( 3, PB14 , 2,  1) /* PWM3  - DMA2_ST3, DMA2_ST2 */ \
+    TIMER_PIN_MAP( 4, PB0 , 2,  0) /* PWM4  - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 5, PA0 , 2,  0) /* PWM5  - DMA1_ST2 */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  1) /* PWM6  - (DMA2_ST4) DMA2_ST2 */ \
+    TIMER_PIN_MAP( 7, PA1 , 2,  0) /* PWM7  - (DMA1_ST4)             - DMA SDCard, DMA Serial_TX4 */ \
+    TIMER_PIN_MAP( 8, PC9 , 2,  0) /* PWM8  - (DMA2_ST7)             - DMA Serial_TX1 */ \
+    TIMER_PIN_MAP( 9, PB1 , 2,  0) /* PWM9  - (DMA1_ST2)             - Collision */ \
+    TIMER_PIN_MAP( 10, PB15 , 1,  0) /* PWM10 - (DMA2_ST6), (DMA2_ST6) - Collision */ \
+    TIMER_PIN_MAP( 11, PB8 , 1,  0) /* PWM11 - (DMA1_ST7)             - Collision */ \
+    TIMER_PIN_MAP( 12, PB9 , 1, -1) /* PWM12 - DMA_NONE */
+
+#define MOTOR1_PIN              PC6
+#define MOTOR2_PIN              PC7
+#define MOTOR3_PIN              PB14
+#define MOTOR4_PIN              PB0
+#define MOTOR5_PIN              PA0
+#define MOTOR6_PIN              PC8
+#define MOTOR7_PIN              PA1
+#define MOTOR8_PIN              PC9
+#define RX_PPM_PIN              PA8
+#define LED_STRIP_PIN           PA8

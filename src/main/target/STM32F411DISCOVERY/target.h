@@ -20,7 +20,9 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "S411" // STM Discovery F411
+#define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        STM32F411DISCOVERY
+#define MANUFACTURER_ID   STMI
 #define USBD_PRODUCT_STRING     "DISCF411"
 
 #define USE_SENSOR_NAMES
@@ -97,13 +99,22 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
 // Buses & Timers
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         0xffff
-#define TARGET_IO_PORTE         (BIT(3))
-#define TARGET_IO_PORTH         0xffff
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB8 , 1,  0) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PD12 , 1,  0) /* BEEPER OUT */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* S1_OUT */ \
+    TIMER_PIN_MAP( 3, PB0 , 2,  0) /* S2_OUT */ \
+    TIMER_PIN_MAP( 4, PA2 , 1,  0) /* S3_OUT */ \
+    TIMER_PIN_MAP( 5, PA3 , 1,  1) /* S4_OUT */ \
+    TIMER_PIN_MAP( 6, PA10 , 1,  1) /* S5_OUT */ \
+    TIMER_PIN_MAP( 7, PA8 , 1,  1) /* S6_OUT */
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) )
+#define MOTOR1_PIN              PB1
+#define MOTOR2_PIN              PB0
+#define MOTOR3_PIN              PA2
+#define MOTOR4_PIN              PA3
+#define MOTOR5_PIN              PA10
+#define MOTOR6_PIN              PA8
+#define RX_PPM_PIN              PB8
+#define LED_STRIP_PIN           PB8
 

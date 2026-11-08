@@ -1,0 +1,48 @@
+on:
+  push:
+    tags:
+    - '*'
+    branches:
+    - '*'
+  pull_request:
+    branches:
+    - '*'
+  repository_dispatch:
+    types: [test]
+
+name: Generic MCU Targets
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generic-targets:
+    continue-on-error: false
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Cache build toolchain
+      uses: actions/cache@v4
+      id: cache-toolchain
+      with:
+        path: tools
+        key: ${{ runner.os }}-${{ hashFiles('make/tools.mk') }}
+
+    - name: Download and install toolchain
+      if: steps.cache-toolchain.outputs.cache-hit != 'true'
+      run: make arm_sdk_install
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Compile generic MCU-family targets
+      run: make -j$(nproc) --output-sync=recurse --keep-going STM32F405 STM32F411 STM32F446 STM32F745 STM32F7X2 STM32H743

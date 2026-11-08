@@ -19,6 +19,9 @@
  */
 
  #pragma once
+#define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        LDARC_F411
+#define MANUFACTURER_ID   LDAR
  #define TARGET_BOARD_IDENTIFIER "LDAR"
  	#define USBD_PRODUCT_STRING "LDARC_F411"
 
@@ -113,19 +116,31 @@
 
  	// *************** ADC *****************************
  	#define USE_ADC
- 	#define ADC1_DMA_STREAM DMA2_Stream0
+#define ADC1_DMA_OPT 1
  	#define VBAT_ADC_PIN PB0
  	#define CURRENT_METER_ADC_PIN PB1
  	//#define RSSI_ADC_PIN PA0
 
- 	#define DEFAULT_FEATURES (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
+	#define DEFAULT_FEATURES (FEATURE_SOFTSERIAL)
  	#define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
  	#define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
- 	#define TARGET_IO_PORTA 0xffff
- 	#define TARGET_IO_PORTB 0xffff
- 	#define TARGET_IO_PORTC 0xffff
- 	#define TARGET_IO_PORTD (BIT(2))
 
- 	#define USABLE_TIMER_CHANNEL_COUNT 10
- 	#define USED_TIMERS ( TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(9) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB4 , 1,  0) /* S1_OUT */ \
+    TIMER_PIN_MAP( 2, PB5 , 1,  0) /* S2_OUT */ \
+    TIMER_PIN_MAP( 3, PB6 , 1,  0) /* S3_OUT */ \
+    TIMER_PIN_MAP( 4, PB7 , 1,  0) /* S4_OUT */ \
+    TIMER_PIN_MAP( 5, PB3 , 1,  0) /* SOFT SERIAL TX */ \
+    TIMER_PIN_MAP( 6, PB10 , 1,  0) /* SOFT SERIAL RX */ \
+    TIMER_PIN_MAP( 7, PA0 , 2,  0) /* FLASH/RSSI pad */ \
+    TIMER_PIN_MAP( 8, PA2 , 2,  0) /* TX2 */ \
+    TIMER_PIN_MAP( 9, PA8 , 1,  0) /* LED */
+
+#define MOTOR1_PIN              PB4
+#define MOTOR2_PIN              PB5
+#define MOTOR3_PIN              PB6
+#define MOTOR4_PIN              PB7
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA8

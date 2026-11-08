@@ -22,6 +22,9 @@
 
 #define USE_TARGET_CONFIG
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        MAMBAF722
+#define MANUFACTURER_ID   DIAT
 #define TARGET_BOARD_IDENTIFIER "MBF7"
 #define USBD_PRODUCT_STRING     "MAMBAF722"
 
@@ -143,7 +146,7 @@
 
 #define USE_ADC
 #define ADC_INSTANCE            ADC3
-#define ADC3_DMA_STREAM         DMA2_Stream0
+#define ADC3_DMA_OPT 0
 
 #define VBAT_ADC_PIN            PC1
 #define RSSI_ADC_PIN            PC2
@@ -173,16 +176,25 @@
 #define SERIALRX_UART           SERIAL_PORT_USART1
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
+#define DEFAULT_FEATURES                (FEATURE_SOFTSERIAL)
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
 #define ESCSERIAL_TIMER_TX_PIN PB9
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(4) | TIM_N(8) | TIM_N(11) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB9 , 2, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PC8 , 2,  1) /* S1_OUT – UP2-1 */ \
+    TIMER_PIN_MAP( 2, PC9 , 2,  0) /* S2_OUT – UP2-1 */ \
+    TIMER_PIN_MAP( 3, PA8 , 1,  0) /* S3_OUT – UP2-5 */ \
+    TIMER_PIN_MAP( 4, PA9 , 1,  0) /* S4_OUT – UP2-5 */ \
+    TIMER_PIN_MAP( 5, PB8 , 1,  0) /* FC CAM – DMA1_ST7 */ \
+    TIMER_PIN_MAP( 6, PB3 , 1,  0) /* LED_STRIP – DMA1_ST6 */
+
+#define MOTOR1_PIN              PC8
+#define MOTOR2_PIN              PC9
+#define MOTOR3_PIN              PA8
+#define MOTOR4_PIN              PA9
+#define RX_PPM_PIN              PB9
+#define LED_STRIP_PIN           PB3

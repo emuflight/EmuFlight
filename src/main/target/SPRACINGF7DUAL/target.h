@@ -20,12 +20,11 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        SPRACINGF7DUAL
+#define MANUFACTURER_ID   SPRO
 #define TARGET_BOARD_IDENTIFIER "SP7D"
 #define USE_TARGET_CONFIG
-
-#ifndef SPRACINGF7DUAL_REV
-#define SPRACINGF7DUAL_REV 2
-#endif
 
 #define USBD_PRODUCT_STRING     "SP Racing F7 DUAL"
 
@@ -58,19 +57,11 @@
 #define USE_ACC
 #define USE_ACC_SPI_MPU6500
 
-#if (SPRACINGF7DUAL_REV >= 2)
 #define ACC_MPU6500_1_ALIGN           CW0_DEG
 #define GYRO_MPU6500_1_ALIGN          CW0_DEG
 
 #define ACC_MPU6500_2_ALIGN         CW270_DEG
 #define GYRO_MPU6500_2_ALIGN        CW270_DEG
-#else
-#define ACC_MPU6500_1_ALIGN           CW180_DEG
-#define GYRO_MPU6500_1_ALIGN          CW180_DEG
-
-#define ACC_MPU6500_2_ALIGN         CW270_DEG
-#define GYRO_MPU6500_2_ALIGN        CW270_DEG
-#endif
 
 
 #define GYRO_1_ALIGN                GYRO_MPU6500_1_ALIGN
@@ -111,10 +102,6 @@
 
 #define UART5_TX_PIN            PC12
 #define UART5_RX_PIN            PD2
-
-#if (SPRACINGF7DUAL_REV <= 1)
-#define TARGET_USART_CONFIG
-#endif
 
 // TODO
 // #define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
@@ -159,12 +146,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 54Mhz/3 = 18Mhz // FIXME currently running slower than 18mhz for testing.
 
-#define SDCARD_DMA_STREAM_TX_FULL           DMA1_Stream7
-#define SDCARD_DMA_TX                       DMA1
-#define SDCARD_DMA_STREAM_TX                7
-#define SDCARD_DMA_CLK                      LL_AHB1_GRP1_PERIPH_DMA1
-
-#define SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG DMA_FLAG_TCIF7_4
 
 #define USE_VTX_RTC6705
 #define USE_VTX_RTC6705_SOFTSPI
@@ -183,11 +164,10 @@
 #define USE_ADC
 // It's possible to use ADC1 or ADC3 on this target, same pins.
 //#define ADC_INSTANCE                        ADC1
-//#define ADC1_DMA_STREAM                     DMA2_Stream0
 
 // Using ADC3 frees up DMA2_Stream0 for SPI1_RX (not necessarily, SPI1_RX has DMA2_Stream2 as well)
 #define ADC_INSTANCE                        ADC3
-#define ADC3_DMA_STREAM                     DMA2_Stream0
+#define ADC3_DMA_OPT 0
 
 #define VBAT_ADC_PIN                        PC1
 #define CURRENT_METER_ADC_PIN               PC2
@@ -209,7 +189,7 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 //#define RX_CHANNELS_TAER
 #define DEFAULT_RX_FEATURE                  FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES                    (FEATURE_TRANSPONDER | FEATURE_RSSI_ADC | FEATURE_TELEMETRY | FEATURE_OSD | FEATURE_LED_STRIP)
+#define DEFAULT_FEATURES                    (FEATURE_TRANSPONDER | FEATURE_RSSI_ADC | FEATURE_LED_STRIP)
 
 #define GPS_UART                            SERIAL_PORT_USART3
 
@@ -222,12 +202,46 @@
 #define BUTTON_A_PIN            UART5_RX_PIN
 #define BUTTON_A_PIN_INVERTED
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-//#define USABLE_TIMER_CHANNEL_COUNT 17 // 4xPWM, 8xESC, 2xESC via UART3 RX/TX, 1xLED Strip, 1xIR, CAM_C
-#define USABLE_TIMER_CHANNEL_COUNT 17
-#define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9))
+// Pad budget (17): 4xPWM, 8xESC, 2xESC via UART3 RX/TX, 1xLED Strip, 1xIR, CAM_C
+// Additional 2 PWM channels available on UART3 RX/TX pins
+// However, when using led strip the timer cannot be used, but no code appears to prevent that right now
+// Additional 2 PWM channels available on UART1 RX/TX pins
+// However, when using transponder the timer cannot be used, but no code appears to prevent that right now
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA0 , 2,  0) \
+    TIMER_PIN_MAP( 1, PA3 , 3, -1) /* PPM / PWM1 / UART2 RX */ \
+    TIMER_PIN_MAP( 2, PA2 , 3, -1) /* PPM / PWM2 / UART2 TX */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  1) /* ESC 1 */ \
+    TIMER_PIN_MAP( 4, PC6 , 2,  1) /* ESC 2 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* ESC 3 */ \
+    TIMER_PIN_MAP( 6, PC7 , 2,  1) /* ESC 4 */ \
+    TIMER_PIN_MAP( 7, PB6 , 1,  0) /* ESC 5 / Conflicts with USART5_RX / SPI3_RX - SPI3_RX can be mapped to DMA1_ST3_CH0 */ \
+    TIMER_PIN_MAP( 8, PB7 , 1,  0) /* ESC 6 / Conflicts with USART3_RX */ \
+    TIMER_PIN_MAP( 9, PB1 , 2,  0) /* ESC 7 */ \
+    TIMER_PIN_MAP( 10, PB0 , 2,  0) /* ESC 8 */ \
+    TIMER_PIN_MAP( 11, PA1 , 1,  0) /* LED Strip */ \
+    TIMER_PIN_MAP( 12, PB10 , 1,  0) /* Shared with UART3 TX PIN and SPI3 TX (OSD) */ \
+    TIMER_PIN_MAP( 13, PB11 , 1,  0) /* Shared with UART3 RX PIN */ \
+    TIMER_PIN_MAP( 14, PA8 , 1,  0) /* Transponder */ \
+    TIMER_PIN_MAP( 15, PA9 , 1,  1) /* PWM 3 */ \
+    TIMER_PIN_MAP( 16, PA10 , 1,  1) /* PWM 4 */
+
+#define MOTOR1_PIN              PC8
+#define MOTOR2_PIN              PC6
+#define MOTOR3_PIN              PC9
+#define MOTOR4_PIN              PC7
+#define MOTOR5_PIN              PB6
+#define MOTOR6_PIN              PB7
+#define MOTOR7_PIN              PB1
+#define MOTOR8_PIN              PB0
+#define SERVO1_PIN              PA9
+#define SERVO2_PIN              PA10
+#define RX_PWM1_PIN             PA3
+#define RX_PWM2_PIN             PA2
+#define RX_PWM3_PIN             PA9
+#define RX_PWM4_PIN             PA10
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA1
+#define TRANSPONDER_PIN         PA8
 

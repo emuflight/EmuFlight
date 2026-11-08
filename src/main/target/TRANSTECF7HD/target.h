@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        TRANSTECF7HD
 #define MANUFACTURER_ID   TTRH
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
@@ -96,23 +95,29 @@
 #define CURRENT_METER_ADC_PIN PC1
 #define RSSI_ADC_PIN PB5
 #define ADC1_DMA_OPT        1
-#define ADC1_DMA_STREAM DMA2_Stream4 //# ADC 1: DMA2 Stream 4 Channel 0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
 #define ENABLE_DSHOT_DMAR true
 
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PC6 , 2,  1) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PC7 , 2,  1) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB3 , 1,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PB4 , 1,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PB8 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 7, PA15 , 1,  0) /* led */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PC6
+#define MOTOR4_PIN              PC7
+#define MOTOR5_PIN              PB3
+#define MOTOR6_PIN              PB4
 
 // notice - this file was programmatically generated and may be incomplete.

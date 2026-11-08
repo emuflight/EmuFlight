@@ -21,9 +21,8 @@
 #pragma once
 
 #define BOARD_NAME STELLARF4
-#define MANUFACTURER_ID FLMO
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU STM32F405     // not used in EmuF
+#define MANUFACTURER_ID STBE
+#define FC_TARGET_MCU STM32F405
 
 #define USE_ACC
 #define USE_BARO
@@ -110,7 +109,6 @@
 #define CURRENT_METER_ADC_PIN PC1
 #define RSSI_ADC_PIN PC2
 #define ADC1_DMA_OPT 0
-#define ADC1_DMA_STREAM DMA2_Stream0 //# ADC 1: DMA2 Stream 0 Channel 0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 188
@@ -120,16 +118,34 @@
 #define PINIO1_PIN PC3
 #define PINIO1_BOX 40
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) )
+// PC9 stays on TIM8 CH4; TIM3 CH4 on PC9 would repeat the motor 6 output on PB1
+// PB0 and PB8 share DMA1 Stream 7; with DShot burst off only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB6 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB7 , 1,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB8 , 1,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB9 , 1, -1) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB0 , 2,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PB1 , 2,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PB5 , 1,  0) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PB4 , 1,  0) /* motor 8 */ \
+    TIMER_PIN_MAP( 8, PA8 , 1,  0) /* servo 1 */ \
+    TIMER_PIN_MAP( 9, PA3 , 2,  0) /* ppm RX_PPM_PIN */ \
+    TIMER_PIN_MAP( 10, PB3 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 11, PC9 , 2,  0) /* servo 2 */
 
+#define MOTOR1_PIN              PB6
+#define MOTOR2_PIN              PB7
+#define MOTOR3_PIN              PB8
+#define MOTOR4_PIN              PB9
+#define MOTOR5_PIN              PB0
+#define MOTOR6_PIN              PB1
+#define MOTOR7_PIN              PB5
+#define MOTOR8_PIN              PB4
+#define RX_PPM_PIN              PA3
+
+#define SERVO1_PIN            PA8
+#define SERVO2_PIN            PC9
 // notice - this file was programmatically generated and may be incomplete.

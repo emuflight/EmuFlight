@@ -22,8 +22,7 @@
 
 #define BOARD_NAME         AXISFLYINGH743PRO
 #define MANUFACTURER_ID    AXFL
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU      STM32H743     // not used in EmuF
+#define FC_TARGET_MCU      STM32H743
 
 #define USE_ACC
 #define USE_ACC_SPI_ICM42688P
@@ -134,8 +133,6 @@
 #define CURRENT_METER_ADC_PIN PC1
 #define ADC1_DMA_OPT                    9
 #define ADC3_DMA_OPT                    10
-#define ADC1_DMA_STREAM DMA2_Stream1 // ADC1 opt9
-#define ADC3_DMA_STREAM DMA2_Stream2 // ADC3 opt10
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
@@ -146,17 +143,38 @@
 #define PINIO2_BOX                      41
 #define PINIO2_CONFIG                   1
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 15
-#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(15) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC6 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PC7 , 2,  1) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PC8 , 2,  2) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PC9 , 2,  3) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PA0 , 1,  4) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PA1 , 1,  5) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PA2 , 1,  6) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PA3 , 1,  7) /* motor 8 */ \
+    TIMER_PIN_MAP( 8, PD12 , 1,  -1) /* servo 1; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 9, PD13 , 1,  -1) /* servo 2; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 10, PD14 , 1,  -1) /* servo 3; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 11, PD15 , 1, -1) /* servo 4; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 12, PE5 , 1,  8) /* led strip */ \
+    TIMER_PIN_MAP( 13, PB0 , 2,  -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 14, PB1 , 2,  -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */
+#define TIMUP2_DMA_OPT 12
+#define TIMUP8_DMA_OPT 11
+
+#define MOTOR1_PIN              PC6
+#define MOTOR2_PIN              PC7
+#define MOTOR3_PIN              PC8
+#define MOTOR4_PIN              PC9
+#define MOTOR5_PIN              PA0
+#define MOTOR6_PIN              PA1
+#define MOTOR7_PIN              PA2
+#define MOTOR8_PIN              PA3
+#define SERVO1_PIN              PD12
+#define SERVO2_PIN              PD13
+#define SERVO3_PIN              PD14
+#define SERVO4_PIN              PD15
 
 // notice - this file was programmatically generated and may be incomplete.

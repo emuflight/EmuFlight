@@ -27,6 +27,7 @@
 
 #include "common/utils.h"
 
+#define FC_TARGET_MCU     SITL
 #define TARGET_BOARD_IDENTIFIER "SITL"
 
 #define SIMULATOR_MULTITHREAD
@@ -69,7 +70,7 @@
 #define USE_BARO
 #define USE_FAKE_BARO
 
-#define USABLE_TIMER_CHANNEL_COUNT 0
+#define FULL_TIMER_CHANNEL_COUNT 0
 
 #define USE_UART1
 #define USE_UART2
@@ -86,7 +87,7 @@
 #define SERIAL_PORT_COUNT 8
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_MSP
-#define DEFAULT_FEATURES        (FEATURE_GPS | FEATURE_TELEMETRY)
+#define DEFAULT_FEATURES        (FEATURE_GPS)
 
 #define USE_PARAMETER_GROUPS
 

@@ -18,6 +18,26 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+// fc/config
+
+#ifndef TARGET_BOARD_IDENTIFIER
+#if defined(STM32F405xx)
+#define TARGET_BOARD_IDENTIFIER "S405"
+#elif defined(STM32F411xE)
+#define TARGET_BOARD_IDENTIFIER "S411"
+#elif defined(STM32F446xx)
+#define TARGET_BOARD_IDENTIFIER "S446"
+#elif defined(STM32F722xx)
+#define TARGET_BOARD_IDENTIFIER "S7X2"
+#elif defined(STM32F745xx)
+#define TARGET_BOARD_IDENTIFIER "S745"
+#elif defined(STM32H743xx)
+#define TARGET_BOARD_IDENTIFIER "SH74"
+#elif defined(STM32H723xx) || defined(STM32H725xx)
+#define TARGET_BOARD_IDENTIFIER "SH72"
+#endif
+#endif
+
 // pg/max7456
 
 #ifdef USE_MAX7456
@@ -27,6 +47,10 @@
 
 #ifndef MAX7456_SPI_CS_PIN
 #define MAX7456_SPI_CS_PIN              NONE
+#endif
+
+#ifndef MAX7456_SPI_INSTANCE
+#define MAX7456_SPI_INSTANCE            NULL
 #endif
 #endif
 
@@ -176,6 +200,18 @@
 #define SPI4_MOSI_PIN   NONE
 #endif
 
+#ifdef USE_SPI_DEVICE_5
+#define SPI5_SCK_PIN    NONE
+#define SPI5_MISO_PIN   NONE
+#define SPI5_MOSI_PIN   NONE
+#endif
+
+#ifdef USE_SPI_DEVICE_6
+#define SPI6_SCK_PIN    NONE
+#define SPI6_MISO_PIN   NONE
+#define SPI6_MOSI_PIN   NONE
+#endif
+
 #else
 
 // Pin defaults for backward compatibility
@@ -196,6 +232,57 @@
 #define SPI3_SCK_PIN    PB3
 #define SPI3_MISO_PIN   PB4
 #define SPI3_MOSI_PIN   PB5
+#endif
+#endif
+
+#ifdef USE_SPI
+#ifdef USE_SPI_DEVICE_1
+#ifndef SPI1_TX_DMA_OPT
+#define SPI1_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef SPI1_RX_DMA_OPT
+#define SPI1_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#endif
+#ifdef USE_SPI_DEVICE_2
+#ifndef SPI2_TX_DMA_OPT
+#define SPI2_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef SPI2_RX_DMA_OPT
+#define SPI2_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#endif
+#ifdef USE_SPI_DEVICE_3
+#ifndef SPI3_TX_DMA_OPT
+#define SPI3_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef SPI3_RX_DMA_OPT
+#define SPI3_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#endif
+#ifdef USE_SPI_DEVICE_4
+#ifndef SPI4_TX_DMA_OPT
+#define SPI4_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef SPI4_RX_DMA_OPT
+#define SPI4_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#endif
+#ifdef USE_SPI_DEVICE_5
+#ifndef SPI5_TX_DMA_OPT
+#define SPI5_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef SPI5_RX_DMA_OPT
+#define SPI5_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#endif
+#ifdef USE_SPI_DEVICE_6
+#ifndef SPI6_TX_DMA_OPT
+#define SPI6_TX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
+#ifndef SPI6_RX_DMA_OPT
+#define SPI6_RX_DMA_OPT (DMA_OPT_UNUSED)
+#endif
 #endif
 #endif
 
@@ -295,3 +382,11 @@
 #define UART8_RX_DMA_OPT (DMA_OPT_UNUSED)
 #endif
 #endif // STM32F7
+
+// pg/timerio
+
+#ifdef USE_TIMER_MGMT
+#ifndef MAX_TIMER_PINMAP_COUNT
+#define MAX_TIMER_PINMAP_COUNT 21 // largest known F405RG pinmap count
+#endif
+#endif

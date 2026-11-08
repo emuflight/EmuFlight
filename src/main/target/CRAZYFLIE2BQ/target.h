@@ -29,12 +29,24 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        CRAZYFLIE2BQ
 #define TARGET_BOARD_IDENTIFIER "CFBQ"
 #define USBD_PRODUCT_STRING     "Crazyflie 2.0 (BigQuad Deck)"
 
-#define USABLE_TIMER_CHANNEL_COUNT 14
 
-#define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(14) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA7 , 4,  -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB4 , 1,  0) /* PWM1 - OUT1 (Motor 1) */ \
+    TIMER_PIN_MAP( 2, PA2 , 1,  0) /* PWM2 - OUT2 (Motor 2) */ \
+    TIMER_PIN_MAP( 3, PB5 , 1,  0) /* PWM3 - OUT3 (Motor 3) */ \
+    TIMER_PIN_MAP( 4, PA3 , 1,  0) /* PWM4 - OUT4 (Motor 4) */
+
+#define MOTOR1_PIN              PB4
+#define MOTOR2_PIN              PA2
+#define MOTOR3_PIN              PB5
+#define MOTOR4_PIN              PA3
+#define RX_PPM_PIN              PA7
 
 #define LED0_PIN                PD2
 #define LED1_PIN                PC0
@@ -42,10 +54,6 @@
 
 // Using STM32F405RG, 64 pin package (LQFP64)
 // 16 pins per port, ports A, B, C, and also PD2
-#define TARGET_IO_PORTA         0xFFFF
-#define TARGET_IO_PORTB         0xFFFF
-#define TARGET_IO_PORTC         0xFFFF
-#define TARGET_IO_PORTD         (BIT(2))
 
 #define USE_VCP
 

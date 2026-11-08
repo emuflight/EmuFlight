@@ -23,8 +23,9 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "MTKS"
 #define USBD_PRODUCT_STRING "MATEKF405SE"
 
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        MATEKF405SE
+#define MANUFACTURER_ID   MTKS
 
 #define LED0_PIN                PA14
 #define LED1_PIN                PA13
@@ -158,21 +159,39 @@
 
 // *************** ADC *****************************
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 0
 #define VBAT_ADC_PIN            PC0
 #define CURRENT_METER_ADC_PIN   PC1
 #define RSSI_ADC_PIN            PC5
 
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
+#define DEFAULT_FEATURES        (FEATURE_SOFTSERIAL)
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE     179
 #define DEFAULT_VOLTAGE_METER_SCALE                      110
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#define USED_TIMERS             (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(8)|TIM_N(9)|TIM_N(12))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB7 , 1,  0) /* S1  UP(1,2) */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* S2  UP(2,1) */ \
+    TIMER_PIN_MAP( 3, PB0 , 2,  0) /* S3  UP(2,1) */ \
+    TIMER_PIN_MAP( 4, PB1 , 2,  0) /* S4  UP(2,1) */ \
+    TIMER_PIN_MAP( 5, PC8 , 2,  1) /* S5  UP(1,7) */ \
+    TIMER_PIN_MAP( 6, PC9 , 2,  0) /* S6  UP(2,5) */ \
+    TIMER_PIN_MAP( 7, PB14 , 3, -1) /* S7  D(1,7)!S5 UP(2,6) */ \
+    TIMER_PIN_MAP( 8, PB15 , 3, -1) /* LED D(1,0) UP(2,6) */ \
+    TIMER_PIN_MAP( 9, PA15 , 1,  0) /* TX4 UP(1,6) D(1,2)!S1 */ \
+    TIMER_PIN_MAP( 10, PA8 , 1,  0) /* RX4 UP(1,6) D(1,4) */ \
+    TIMER_PIN_MAP( 11, PA2 , 2,  0) /* TX2 */
+
+#define MOTOR1_PIN              PB7
+#define MOTOR2_PIN              PB6
+#define MOTOR3_PIN              PB0
+#define MOTOR4_PIN              PB1
+#define MOTOR5_PIN              PC8
+#define MOTOR6_PIN              PC9
+#define MOTOR7_PIN              PB14
+#define MOTOR8_PIN              PB15
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA15

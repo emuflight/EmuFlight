@@ -27,20 +27,25 @@
 #define BOARD_NAME              SPRACINGH7EF
 #define MANUFACTURER_ID         SPRO
 #define TARGET_BOARD_IDENTIFIER "SP7E"
-#define FC_TARGET_MCU           STM32H730     // not used in EmuF
+#define FC_TARGET_MCU           STM32H730
+#define FC_VMA_ADDRESS          0x90100000
+#define EEPROM_SIZE             8192
 
-// Config storage: OctoSPI flash is configured by bootloader (memory-mapped mode);
-// firmware runs from OctoSPI but does not configure it. CONFIG_IN_EXTERNAL_FLASH
-// requires flash driver + config_streamer work not yet implemented in EF.
-#define CONFIG_IN_RAM
+// Config storage: a partition of the SPI6 onboard flash chip (same chip blackbox logging
+// uses), matching BF's real config for this board - not OctoSPI, which is bootloader-
+// configured (memory-mapped mode) and never touched by firmware.
+#define CONFIG_IN_EXTERNAL_FLASH
 
 #define USE_SPRACING_PERSISTENT_RTC_WORKAROUND
 #define USE_BUTTONS
+#define BUTTON_A_PIN            PD10
+#define BUTTON_A_PIN_INVERTED
+#define BUTTON_B_PIN            PD10
+#define BUTTON_B_PIN_INVERTED
 #define USE_SPI
 #define USE_SPI_DEVICE_2
 #define USE_SPI_DEVICE_3
-// SPI6 is on D3 domain (requires BDMA, not yet implemented in EF)
-//#define USE_SPI_DEVICE_6
+#define USE_SPI_DEVICE_6
 #define USE_I2C
 // I2C1 (PB6/PB7) shares pins with UART1 — hardware design; mutually exclusive at runtime.
 // Disable USE_I2C_DEVICE_1 if UART1 is needed, and vice versa.
@@ -54,6 +59,8 @@
 #define MAG_I2C_INSTANCE                I2CDEV_4
 #define USE_PINIO
 #define USE_PINIOBOX
+#define PINIO1_PIN              PB11 // VTX enable
+#define PINIO1_BOX              40
 #define USE_ACC
 #define USE_ACC_SPI_ICM42605
 #define USE_ACC_SPI_ICM42688P
@@ -88,10 +95,25 @@
 #define SPI3_MISO_PIN           PC11
 #define SPI3_MOSI_PIN           PC12
 #define SPI3_NSS_PIN            PA15
-// SPI6 pins disabled (D3/BDMA not supported yet)
-//#define SPI6_SCK_PIN          PB3
-//#define SPI6_MISO_PIN         PB4
-//#define SPI6_MOSI_PIN         PB5
+#define SPI6_SCK_PIN            PB3
+#define SPI6_MISO_PIN           PB4
+#define SPI6_MOSI_PIN           PB5
+
+// SPI6 has no DMA on H7; the SPI driver falls back to polled transfers.
+#define USE_FLASH_M25P16
+#define FLASH_CS_PIN            PD7 // software CS, not SPI6_NSS
+#define FLASH_SPI_INSTANCE      SPI6
+#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+
+#define USE_ADC
+#define ADC_INSTANCE            ADC3
+#define ADC3_DMA_OPT 10
+#define VBAT_ADC_PIN            PC3
+#define CURRENT_METER_ADC_PIN   PC0
+#define EXTERNAL1_ADC_PIN       PC1
+#define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
+#define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
+#define DEFAULT_FEATURES        (FEATURE_LED_STRIP)
 
 #define USE_SPI_GYRO
 #define USE_EXTI
@@ -139,20 +161,39 @@
 #define UART10_RX_PIN        PE2
 #define SERIAL_PORT_COUNT    9
 
-// RX_SPI_CS_PIN shares PB12 with GYRO_2_CS_PIN (SPI2_NSS_PIN) — BF parity.
-// Hardware design: USE_RX_SPI and dual-gyro are mutually exclusive on this board.
-#define RX_SPI_CS_PIN        PB12
-#define RX_SPI_BIND_PIN      NONE
-#define RX_SPI_LED_PIN       NONE
-#define RX_SPI_EXPRESSLRS_RESET_PIN PD10
-#define RX_SPI_EXPRESSLRS_BUSY_PIN  PC7
+// RX-SPI pins present in BF's reference config, kept for BF parity, but not enabled
+// (USE_RX_SPI is never defined for this board): this board has no ELRS RX-SPI hardware.
+// #define RX_SPI_CS_PIN        PB12
+// #define RX_SPI_BIND_PIN      NONE
+// #define RX_SPI_LED_PIN       NONE
+// #define RX_SPI_EXPRESSLRS_RESET_PIN PD10
+// #define RX_SPI_EXPRESSLRS_BUSY_PIN  PC7
 #define BINDPLUG_PIN         NONE
 
-#define TARGET_IO_PORTA                 0xffff
-#define TARGET_IO_PORTB                 0xffff
-#define TARGET_IO_PORTC                 0xffff
-#define TARGET_IO_PORTD                 0xffff
-#define TARGET_IO_PORTE                 0xffff
+// PB2/PB10/PE7-PE10 carry OCTOSPI flash the MCU executes firmware from (EXST, bootloader-mapped);
+// reassigning them via the resource CLI would disrupt live code fetches.
+#undef TARGET_IO_PORTB
+#define TARGET_IO_PORTB (0xffff & ~(BIT(2)|BIT(10)))
+#undef TARGET_IO_PORTE
+#define TARGET_IO_PORTE (0xffff & ~(BIT(7)|BIT(8)|BIT(9)|BIT(10)))
 
-#define USABLE_TIMER_CHANNEL_COUNT      10
-#define USED_TIMERS                     ( TIM_N(3) | TIM_N(5) | TIM_N(16) | TIM_N(17) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP(0, PA0, 2, 0) /* motor 1 */ \
+    TIMER_PIN_MAP(1, PA1, 2, 1) /* motor 2 */ \
+    TIMER_PIN_MAP(2, PA2, 2, 2) /* motor 3 */ \
+    TIMER_PIN_MAP(3, PA3, 2, 3) /* motor 4 */ \
+    TIMER_PIN_MAP(4, PA6, 1, 4) /* motor 5 */ \
+    TIMER_PIN_MAP(5, PA7, 2, 5) /* motor 6 */ \
+    TIMER_PIN_MAP(6, PB0, 2, 6) /* motor 7 */ \
+    TIMER_PIN_MAP(7, PB1, 2, 7) /* motor 8 */ \
+    TIMER_PIN_MAP(8, PB8, 1, 8) /* led strip */ \
+    TIMER_PIN_MAP(9, PB9, 1, 9) /* camera control (TIM17_CH1/PB9 per BF config; TIM_USE_CAMERA_CONTROL not yet in EF timer.h) */
+
+#define MOTOR1_PIN              PA0
+#define MOTOR2_PIN              PA1
+#define MOTOR3_PIN              PA2
+#define MOTOR4_PIN              PA3
+#define MOTOR5_PIN              PA6
+#define MOTOR6_PIN              PA7
+#define MOTOR7_PIN              PB0
+#define MOTOR8_PIN              PB1

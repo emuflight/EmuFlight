@@ -19,6 +19,9 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        FF_PIKOF4
+#define MANUFACTURER_ID   FFPV
 #define TARGET_BOARD_IDENTIFIER "PIK4"
 #define USBD_PRODUCT_STRING     "PikoF4"
 #define USE_TARGET_CONFIG
@@ -133,13 +136,19 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART3
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 /*---------------------------------*/
 
 /*--------------TIMERS-------------*/
-#define USABLE_TIMER_CHANNEL_COUNT  5
-#define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(4) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA3 , 1,  1) /* S1_OUT - DMA1_ST6 */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S2_OUT - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 2, PA2 , 1,  0) /* S3_OUT - DMA1_ST1 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* S4_OUT - DMA1_ST2 */ \
+    TIMER_PIN_MAP( 4, PB7 , 1,  0) /* LED    - DMA1_ST3 */
+
+#define MOTOR1_PIN              PA3
+#define MOTOR2_PIN              PB0
+#define MOTOR3_PIN              PA2
+#define MOTOR4_PIN              PB1
+#define LED_STRIP_PIN           PB7
 /*---------------------------------*/

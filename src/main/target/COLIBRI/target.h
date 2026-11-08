@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        COLIBRI
+#define MANUFACTURER_ID   TEBS
 #define TARGET_BOARD_IDENTIFIER "COLI"
 
 #define USBD_PRODUCT_STRING "Colibri"
@@ -128,10 +131,42 @@
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 17
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(12) | TIM_N(8) | TIM_N(10) | TIM_N(11))
+// Motor pads PB15, PB14, PB8 and PB9 sit on timers without DMA, so DShot cannot drive them
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA10 , 1,  0) /* S1_IN */ \
+    TIMER_PIN_MAP( 1, PC6 , 2,  0) /* S2_IN */ \
+    TIMER_PIN_MAP( 2, PC7 , 2,  0) /* S3_IN */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  0) /* S4_IN */ \
+    TIMER_PIN_MAP( 4, PA15 , 1,  0) /* S5_IN */ \
+    TIMER_PIN_MAP( 5, PB3 , 1,  0) /* S6_IN */ \
+    TIMER_PIN_MAP( 6, PA0 , 2,  0) /* S7_IN */ \
+    TIMER_PIN_MAP( 7, PA1 , 2,  0) /* S8_IN */ \
+    TIMER_PIN_MAP( 8, PB0 , 2,  0) /* S1_OUT */ \
+    TIMER_PIN_MAP( 9, PB4 , 1,  0) /* S2_OUT */ \
+    TIMER_PIN_MAP( 10, PB1 , 2,  0) /* S3_OUT */ \
+    TIMER_PIN_MAP( 11, PB15 , 3, -1) /* S4_OUT */ \
+    TIMER_PIN_MAP( 12, PB5 , 1,  0) /* S5_OUT */ \
+    TIMER_PIN_MAP( 13, PB14 , 3, -1) /* S6_OUT */ \
+    TIMER_PIN_MAP( 14, PB8 , 2, -1) /* S7_OUT */ \
+    TIMER_PIN_MAP( 15, PB9 , 2, -1) /* S8_OUT */ \
+    TIMER_PIN_MAP( 16, PB7 , 1,  0) /* S8_OUT */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB4
+#define MOTOR3_PIN              PB1
+#define MOTOR4_PIN              PB15
+#define MOTOR5_PIN              PB5
+#define MOTOR6_PIN              PB14
+#define MOTOR7_PIN              PB8
+#define MOTOR8_PIN              PB9
+#define RX_PWM1_PIN             PA10
+#define RX_PWM2_PIN             PC6
+#define RX_PWM3_PIN             PC7
+#define RX_PWM4_PIN             PC8
+#define RX_PWM5_PIN             PA15
+#define RX_PWM6_PIN             PB3
+#define RX_PWM7_PIN             PA0
+#define RX_PWM8_PIN             PA1
+#define RX_PPM_PIN              PA10
+#define LED_STRIP_PIN           PB7

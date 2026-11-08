@@ -27,6 +27,12 @@
 #include "usbd_msc_core.h"
 #endif
 
+#ifdef USE_SDCARD
+#include "pg/sdcard.h"
+// The SD backend this build compiles: SDCARD_MODE_SPI or SDCARD_MODE_SDIO. The one storage file in the build defines it.
+extern const sdcardMode_e USBD_MSC_MICRO_SD_MODE;
+#endif
+
 #ifdef USE_HAL_DRIVER
 extern USBD_StorageTypeDef *USBD_STORAGE_fops;
 #ifdef USE_SDCARD

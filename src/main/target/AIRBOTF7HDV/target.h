@@ -22,6 +22,9 @@
 
 #define USE_TARGET_CONFIG
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        AIRBOTF7HDV
+#define MANUFACTURER_ID   AIRB
 #define TARGET_BOARD_IDENTIFIER "AB7V"
 #define USBD_PRODUCT_STRING  "AIRBOTF7HDV"
 
@@ -131,13 +134,12 @@
 
 // *************** ADC *****************************
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PC0
 #define CURRENT_METER_ADC_PIN   PC1
 
 // *************** Others ***************************
 
-#define DEFAULT_FEATURES        ( FEATURE_TELEMETRY )
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 179
@@ -149,10 +151,17 @@
 
 #define CAMERA_CONTROL_PIN PA8
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USED_TIMERS    (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(8))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC8 , 2,  0) /* S1   UP1-2 */ \
+    TIMER_PIN_MAP( 1, PC9 , 2,  0) /* S2   UP1-2 */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* S3   UP1-2 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* S4   UP1-2 */ \
+    TIMER_PIN_MAP( 4, PA8 , 1,  0) /* CAM CONTROL */ \
+    TIMER_PIN_MAP( 5, PA15 , 1,  0) /* LED */
+
+#define MOTOR1_PIN              PC8
+#define MOTOR2_PIN              PC9
+#define MOTOR3_PIN              PB0
+#define MOTOR4_PIN              PB1
+#define LED_STRIP_PIN           PA15

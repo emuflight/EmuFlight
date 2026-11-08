@@ -19,6 +19,9 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        YUPIF4
+#define MANUFACTURER_ID   YUPF
 #define TARGET_BOARD_IDENTIFIER "YPF4"
 #define USE_TARGET_CONFIG
 
@@ -41,8 +44,7 @@
 // Gyro interrupt
 #define USE_EXTI
 #define USE_MPU_DATA_READY_SIGNAL
-#define MPU_INT_EXTI            PC4
-
+#define GYRO_1_EXTI_PIN         NONE
 //ICM 20689
 #define ICM20689_CS_PIN         PA4
 #define ICM20689_SPI_BUS   SPIDEV_1
@@ -110,7 +112,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 4 // 21MHz
 
-#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream5
 
 // SPI Ports
 #define USE_SPI
@@ -147,13 +148,26 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART6
-#define DEFAULT_FEATURES        (FEATURE_OSD)
 
 // Target IO and timers
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USED_TIMERS             (TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(12))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC8 , 2,  0) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PA0 , 2,  0) /* S1_OUT - DMA1_ST2 */ \
+    TIMER_PIN_MAP( 2, PA1 , 2,  0) /* S2_OUT - DMA1_ST4 */ \
+    TIMER_PIN_MAP( 3, PA2 , 1,  0) /* S3_OUT - DMA1_ST1 */ \
+    TIMER_PIN_MAP( 4, PA3 , 1,  1) /* S4_OUT - DMA1_ST6 */ \
+    TIMER_PIN_MAP( 5, PB0 , 2,  0) /* S5_OUT - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 6, PB7 , 1,  0) /* S6_OUT - DMA1_ST3 */ \
+    TIMER_PIN_MAP( 7, PB1 , 2,  0) /* Camera control */ \
+    TIMER_PIN_MAP( 8, PC9 , 1,  0) /* BEEPER PWM */ \
+    TIMER_PIN_MAP( 9, PB14 , 3, -1) /* BEEPER PWM OPT */
+
+#define MOTOR1_PIN              PA0
+#define MOTOR2_PIN              PA1
+#define MOTOR3_PIN              PA2
+#define MOTOR4_PIN              PA3
+#define MOTOR5_PIN              PB0
+#define MOTOR6_PIN              PB7
+#define RX_PPM_PIN              PC8
+#define LED_STRIP_PIN           PB7

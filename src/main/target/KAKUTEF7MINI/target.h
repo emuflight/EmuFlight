@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        KAKUTEF7MINI
 #define MANUFACTURER_ID   HBRO
-#define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
-#define FC_TARGET_MCU     STM32F745     // not used in EmuF
+#define FC_TARGET_MCU     STM32F745
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
@@ -124,23 +123,31 @@
 #define CURRENT_METER_ADC_PIN PC2
 #define RSSI_ADC_PIN PC5
 #define ADC1_DMA_OPT                    1
-#define ADC1_DMA_STREAM DMA2_Stream4 //# ADC 1: DMA2 Stream 4 Channel 0
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE     275
 
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) )
+// PD12 and TIM5 burst share DMA1 Stream 0; with DShot burst on only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PE9 , 1,  2) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PE11 , 1,  1) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PA3 , 2,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PE13 , 1,  1) /* ppm RX_PPM_PIN */ \
+    TIMER_PIN_MAP( 7, PD12 , 1,  0) /* led */ \
+    TIMER_PIN_MAP( 8, PB3 , 1,  -1) /* cam ctrl */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PE9
+#define MOTOR4_PIN              PE11
+#define MOTOR5_PIN              PC9
+#define MOTOR6_PIN              PA3
+#define RX_PPM_PIN              PE13
 
 // notice - this file was programmatically generated and may be incomplete.

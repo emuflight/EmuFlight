@@ -19,6 +19,9 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        FF_RACEPIT_MINI
+#define MANUFACTURER_ID   FFPV
 #define TARGET_BOARD_IDENTIFIER "RACE"
 #define USBD_PRODUCT_STRING     "RacePit"
 #define USE_TARGET_CONFIG
@@ -150,6 +153,8 @@
 
 /*-------------ADCs----------------*/
 #define USE_ADC
+#define ADC_INSTANCE ADC2
+#define ADC2_DMA_OPT 1
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 #define VBAT_ADC_PIN                    PC2
@@ -165,15 +170,22 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART3
-#define DEFAULT_FEATURES        ( FEATURE_LED_STRIP | FEATURE_OSD | FEATURE_MOTOR_STOP )
+#define DEFAULT_FEATURES        (FEATURE_LED_STRIP | FEATURE_MOTOR_STOP)
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 /*---------------------------------*/
 
 /*--------------TIMERS-------------*/
-#define USABLE_TIMER_CHANNEL_COUNT  6
-#define USED_TIMERS             (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* S1_OUT - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* S2_OUT - DMA1_ST2 */ \
+    TIMER_PIN_MAP( 2, PB11 , 1,  1) /* S3_OUT - DMA1_ST6 */ \
+    TIMER_PIN_MAP( 3, PB10 , 1,  0) /* S4_OUT - DMA1_ST1 */ \
+    TIMER_PIN_MAP( 4, PA10 , 1,  -1) /* FC CAM - DMA1_ST3 */ \
+    TIMER_PIN_MAP( 5, PB6 , 1,  0) /* LED    - DMA1_ST3 */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PB11
+#define MOTOR4_PIN              PB10
+#define LED_STRIP_PIN           PB6
 /*---------------------------------*/

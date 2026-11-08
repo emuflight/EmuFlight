@@ -22,6 +22,9 @@
 
 #define USE_TARGET_CONFIG
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        LUXF4OSD
+#define MANUFACTURER_ID   LMNR
 #define TARGET_BOARD_IDENTIFIER "LUX4"
 
 #define USBD_PRODUCT_STRING "LuxF4osd"
@@ -140,15 +143,38 @@
 #define RANGEFINDER_HCSR04_ECHO_PIN        PA8
 #define USE_RANGEFINDER_TF
 
-#define DEFAULT_FEATURES        (FEATURE_OSD)
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
-#define TARGET_IO_PORTA (0xffff & ~(BIT(14)|BIT(13)))
-#define TARGET_IO_PORTB (0xffff & ~(BIT(2)))
-#define TARGET_IO_PORTC (0xffff & ~(BIT(15)|BIT(14)|BIT(13)))
-#define TARGET_IO_PORTD BIT(2)
 
-#define USABLE_TIMER_CHANNEL_COUNT 14
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(12) | TIM_N(8) | TIM_N(9))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB14 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB15 , 3, -1) /* S2_IN */ \
+    TIMER_PIN_MAP( 2, PC6 , 2,  0) /* S3_IN, UART6_TX */ \
+    TIMER_PIN_MAP( 3, PC7 , 2,  0) /* S4_IN, UART6_RX */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) /* S5_IN */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* S6_IN */ \
+    TIMER_PIN_MAP( 6, PB0 , 2,  0) /* S1_OUT D1_ST7 */ \
+    TIMER_PIN_MAP( 7, PB1 , 2,  0) /* S2_OUT D1_ST2 */ \
+    TIMER_PIN_MAP( 8, PA3 , 1,  1) /* S3_OUT D1_ST6 */ \
+    TIMER_PIN_MAP( 9, PA2 , 1,  0) /* S4_OUT D1_ST1 */ \
+    TIMER_PIN_MAP( 10, PA1 , 2,  0) /* S5_OUT */ \
+    TIMER_PIN_MAP( 11, PA8 , 1,  0) /* S6_OUT */ \
+    TIMER_PIN_MAP( 12, PA9 , 1,  0) /* UART1_TX */ \
+    TIMER_PIN_MAP( 13, PA10 , 1,  0) /* UART1_RX */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA3
+#define MOTOR4_PIN              PA2
+#define MOTOR5_PIN              PA1
+#define MOTOR6_PIN              PA8
+#define RX_PWM1_PIN             PB14
+#define RX_PWM2_PIN             PB15
+#define RX_PWM3_PIN             PC6
+#define RX_PWM4_PIN             PC7
+#define RX_PWM5_PIN             PC8
+#define RX_PWM6_PIN             PC9
+#define RX_PPM_PIN              PB14
+#define LED_STRIP_PIN           PA1

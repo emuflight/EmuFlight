@@ -23,8 +23,7 @@
 
 #define BOARD_NAME        GEPRC_F722_AIO
 #define MANUFACTURER_ID   GEPR
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define LED0_PIN PC4
 
@@ -142,7 +141,8 @@
 #define I2C_DEVICE (I2CDEV_2)
 
 #define USE_ADC
-#define ADC3_DMA_STREAM DMA2_Stream0
+#define ADC_INSTANCE ADC3
+#define ADC3_DMA_OPT 0
 #define VBAT_ADC_PIN PC2
 #define CURRENT_METER_ADC_PIN PC1
 //#define RSSI_ADC_PIN PC2
@@ -154,12 +154,24 @@
 //#define SERIALRX_UART SERIAL_PORT_USART2
 
 #define DEFAULT_RX_FEATURE FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES ( FEATURE_OSD | FEATURE_TELEMETRY )
 
-#define TARGET_IO_PORTA ( 0xffff )
-#define TARGET_IO_PORTB ( 0xffff )
-#define TARGET_IO_PORTC ( 0xffff )
-#define TARGET_IO_PORTD ( 0xffff )
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS ( TIM_N(2) | TIM_N(5) | TIM_N(8) | TIM_N(9) )
+//DEF_TIM(TIM4, CH1, PB6, TIM_USE_ANY, 0, 0),	//in config but match no pins
+//DEF_TIM(TIM4, CH2, PB7, TIM_USE_ANY, 0, 0),   //pretty sure left over from
+//DEF_TIM(TIM3, CH4, PB1, TIM_USE_ANY, 0, 0),	//geprc_f722_bthd target/config
+//DEF_TIM(TIM3, CH3, PB0, TIM_USE_ANY, 0, 0),   //as match motors 5-8
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA0 , 2,  0) /* CAMERA CONTROL */ \
+    TIMER_PIN_MAP( 1, PA3 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 2, PC9 , 2,  0) /* MOTOR 1 */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  1) /* MOTOR 2 */ \
+    TIMER_PIN_MAP( 4, PC7 , 2,  1) /* MOTOR 3 */ \
+    TIMER_PIN_MAP( 5, PC6 , 2,  1) /* MOTOR 4 */ \
+    TIMER_PIN_MAP( 6, PA1 , 1,  0) /* LED */
+
+#define MOTOR1_PIN              PC9
+#define MOTOR2_PIN              PC8
+#define MOTOR3_PIN              PC7
+#define MOTOR4_PIN              PC6
+#define LED_STRIP_PIN           PA1
+#define RX_PPM_PIN            PA3

@@ -21,6 +21,9 @@
 #pragma once
 
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        GRAVITYF7
+#define MANUFACTURER_ID   FLMO
 #define TARGET_BOARD_IDENTIFIER         "FLMD"
 #define USBD_PRODUCT_STRING             "GRAVITYF7"
 
@@ -75,9 +78,6 @@
 // mag
 #define MAG_I2C_INSTANCE                (I2CDEV_1)
 #define USE_MAG
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-#define USE_MAG_LIS3MDL
 
 // USB
 #define USE_VCP
@@ -144,8 +144,8 @@
 
 // ADC
 #define USE_ADC
-#define ADC_INSTANCE                     ADC3
-#define ADC3_DMA_OPT                     0  // DMA 2 Stream 0 Channel 2
+#define ADC1_DMA_OPT 1
+#define ADC_INSTANCE                     ADC1
 
 #define VBAT_ADC_PIN                     PC1
 #define CURRENT_METER_ADC_PIN            PC0
@@ -163,17 +163,25 @@
 #define DEFAULT_RX_FEATURE              FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER               SERIALRX_SBUS
 #define SERIALRX_UART                   SERIAL_PORT_USART1
-#define DEFAULT_FEATURES                ( FEATURE_OSD | FEATURE_TELEMETRY )
 
 /*--------Camera comtrol-----------*/
 #define USE_CAMERA_CONTROL
 #define CAMERA_CONTROL_PIN              PB1 //  and PC4 Hardware DAC_1
 /*---------------------------------*/
 
-#define TARGET_IO_PORTA                 0xffff
-#define TARGET_IO_PORTB                 0xffff
-#define TARGET_IO_PORTC                 0xffff
-#define TARGET_IO_PORTD                 (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) |TIM_N(8) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB7 , 1,  0) /* PPM&SBUS */ \
+    TIMER_PIN_MAP( 1, PA9 , 1,  0) /* S1 (2,1) */ \
+    TIMER_PIN_MAP( 2, PA8 , 1,  0) /* S2 (2,1) */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  0) /* S3 (2,5) */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* S4 (2,5) */ \
+    TIMER_PIN_MAP( 5, PA15 , 1,  0) /* LED STRIP(1,5) */ \
+    TIMER_PIN_MAP( 6, PB1 , 2,  0) /* FC CAM */
+
+#define MOTOR1_PIN              PA9
+#define MOTOR2_PIN              PA8
+#define MOTOR3_PIN              PC8
+#define MOTOR4_PIN              PC9
+#define RX_PPM_PIN              PB7
+#define LED_STRIP_PIN           PA15

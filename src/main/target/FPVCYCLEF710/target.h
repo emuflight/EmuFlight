@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        FPVCYCLEF710
+#define MANUFACTURER_ID   TURC
 #define TARGET_BOARD_IDENTIFIER "TURC"
 #define USBD_PRODUCT_STRING  "FPVCYCLE F710"
 
@@ -27,7 +30,7 @@
 #define LED0_PIN                PB14
 #define LED1_PIN                PB15
 
-#define CAMERA_CONTROL_PIN      PB3
+#define CAMERA_CONTROL_PIN      PB3 // PB3 is TIM2 CH2 only; TIM2 also drives LED strip PA15 and motor 7 PA3, so no mapping row
 
 #define USE_BEEPER
 #define BEEPER_PIN              PB2
@@ -109,7 +112,6 @@
 
 #define USE_ADC
 //#define ADC_INSTANCE                        ADC1
-//#define ADC1_DMA_STREAM                     DMA2_Stream4
 
 #define VBAT_ADC_PIN                        PC0
 #define CURRENT_METER_ADC_PIN               PA2
@@ -122,16 +124,31 @@
 #define USE_LED_STRIP
 
 #define DEFAULT_RX_FEATURE                  FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES                    FEATURE_OSD
 #define SERIALRX_UART                       SERIAL_PORT_USART2
 #define SERIALRX_PROVIDER                   SERIALRX_SBUS
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(12) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA15 , 1,  0) /* PPM&SBUS */ \
+    TIMER_PIN_MAP( 1, PB8 , 1,  0) /* S1 */ \
+    TIMER_PIN_MAP( 2, PB7 , 1,  0) /* S2 */ \
+    TIMER_PIN_MAP( 3, PB5 , 1,  0) /* S3 */ \
+    TIMER_PIN_MAP( 4, PB4 , 1,  0) /* S4 */ \
+    TIMER_PIN_MAP( 5, PA0 , 2,  0) /* S5 */ \
+    TIMER_PIN_MAP( 6, PA1 , 2,  0) /* S6 */ \
+    TIMER_PIN_MAP( 7, PA3 , 1,  1) /* S7 */ \
+    TIMER_PIN_MAP( 8, PB0 , 1,  1) /* S8 */ \
+    TIMER_PIN_MAP( 9, PB14 , 3, -1) /* led1 */ \
+    TIMER_PIN_MAP( 10, PB15 , 3, -1) /* led2 */
+
+#define MOTOR1_PIN              PB8
+#define MOTOR2_PIN              PB7
+#define MOTOR3_PIN              PB5
+#define MOTOR4_PIN              PB4
+#define MOTOR5_PIN              PA0
+#define MOTOR6_PIN              PA1
+#define MOTOR7_PIN              PA3
+#define MOTOR8_PIN              PB0
+#define LED_STRIP_PIN           PA15

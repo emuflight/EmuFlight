@@ -39,7 +39,7 @@
 
 #include "drivers/timer.h"
 #include "drivers/timer_def.h"
-const timerHardware_t timerHardware[1]; // unused
+const timerHardware_t fullTimerHardware[1]; // unused: SITL has no timers (FULL_TIMER_CHANNEL_COUNT 0)
 
 #include "drivers/accgyro/accgyro_fake.h"
 #include "drivers/barometer/barometer_fake.h"
@@ -245,7 +245,8 @@ void systemReset(void) {
     pthread_join(udpWorker, NULL);
     exit(0);
 }
-void systemResetToBootloader(void) {
+void systemResetToBootloader(bootloaderRequestType_e requestType) {
+    UNUSED(requestType);
     printf("[system]ResetToBootloader!\n");
     workerRunning = false;
     pthread_join(tcpWorker, NULL);

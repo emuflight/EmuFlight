@@ -71,6 +71,11 @@ void flashPageProgram(uint32_t address, const uint8_t *data, uint32_t length, vo
 int flashReadBytes(uint32_t address, uint8_t *buffer, uint32_t length);
 void flashFlush(void);
 const flashGeometry_t *flashGetGeometry(void);
+const char *flashTypeGetName(flashType_e type);
+
+// Which stage the last SPI flash probe reached (see flashProbeStage_e in flash.c) and the
+// raw 4-byte RDID response, captured regardless of whether a chip was recognized.
+void flashGetLastProbeDiag(uint8_t *stageOut, uint8_t out[4]);
 
 //
 // flash partitioning api

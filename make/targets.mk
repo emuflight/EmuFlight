@@ -2,7 +2,7 @@ ALT_TARGETS       = $(sort $(filter-out target, $(basename $(notdir $(wildcard $
 NOBUILD_TARGETS   = $(sort $(filter-out target, $(basename $(notdir $(wildcard $(ROOT)/src/main/target/*/*.nomk)))))
 OPBL_TARGETS      = $(filter %_OPBL, $(ALT_TARGETS))
 
-VALID_TARGETS   = $(dir $(wildcard $(ROOT)/src/main/target/*/target.mk))
+VALID_TARGETS   = $(dir $(wildcard $(ROOT)/src/main/target/*/target.h))
 VALID_TARGETS  := $(subst /,, $(subst ./src/main/target/,, $(VALID_TARGETS)))
 VALID_TARGETS  := $(VALID_TARGETS) $(ALT_TARGETS)
 VALID_TARGETS  := $(sort $(VALID_TARGETS))
@@ -17,59 +17,43 @@ UNSUPPORTED_TARGETS := \
     SITL \
     STM32F411DISCOVERY \
     STM32F4DISCOVERY \
-    STM32F7X2
+    STM32F405 \
+    STM32F411 \
+    STM32F446 \
+    STM32F745 \
+    STM32F7X2 \
+    STM32H743
 
 SUPPORTED_TARGETS := $(filter-out $(UNSUPPORTED_TARGETS), $(VALID_TARGETS))
 
 TARGETS_TOTAL := $(words $(SUPPORTED_TARGETS))
-TARGET_GROUPS := 12
-TARGETS_PER_GROUP := $(shell expr $(TARGETS_TOTAL) / $(TARGET_GROUPS) )
+TARGET_GROUPS := 16
 
-ST := 1
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_1_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
+# Group K takes every TARGET_GROUPS-th target starting at K. Contiguous slices
+# cluster same-MCU boards and unbalance the CI jobs.
+group_slice = $(foreach i,$(shell seq $(1) $(TARGET_GROUPS) $(TARGETS_TOTAL)),$(word $(i),$(SUPPORTED_TARGETS)))
 
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_2_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
+GROUP_1_TARGETS := $(call group_slice,1)
+GROUP_2_TARGETS := $(call group_slice,2)
+GROUP_3_TARGETS := $(call group_slice,3)
+GROUP_4_TARGETS := $(call group_slice,4)
+GROUP_5_TARGETS := $(call group_slice,5)
+GROUP_6_TARGETS := $(call group_slice,6)
+GROUP_7_TARGETS := $(call group_slice,7)
+GROUP_8_TARGETS := $(call group_slice,8)
+GROUP_9_TARGETS := $(call group_slice,9)
+GROUP_10_TARGETS := $(call group_slice,10)
+GROUP_11_TARGETS := $(call group_slice,11)
+GROUP_12_TARGETS := $(call group_slice,12)
+GROUP_13_TARGETS := $(call group_slice,13)
+GROUP_14_TARGETS := $(call group_slice,14)
+GROUP_15_TARGETS := $(call group_slice,15)
 
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_3_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
+GROUP_16_TARGETS := $(call group_slice,16)
 
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_4_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_5_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_6_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_7_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_8_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_9_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_10_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-ST := $(shell expr $(ET) + 1)
-ET := $(shell expr $(ST) + $(TARGETS_PER_GROUP))
-GROUP_11_TARGETS := $(wordlist $(ST), $(ET), $(SUPPORTED_TARGETS))
-
-GROUP_OTHER_TARGETS := $(filter-out $(GROUP_1_TARGETS) $(GROUP_2_TARGETS) $(GROUP_3_TARGETS) $(GROUP_4_TARGETS) $(GROUP_5_TARGETS) $(GROUP_6_TARGETS) $(GROUP_7_TARGETS) $(GROUP_8_TARGETS) $(GROUP_9_TARGETS) $(GROUP_10_TARGETS) $(GROUP_11_TARGETS), $(SUPPORTED_TARGETS))
+ifneq ($(words $(GROUP_1_TARGETS) $(GROUP_2_TARGETS) $(GROUP_3_TARGETS) $(GROUP_4_TARGETS) $(GROUP_5_TARGETS) $(GROUP_6_TARGETS) $(GROUP_7_TARGETS) $(GROUP_8_TARGETS) $(GROUP_9_TARGETS) $(GROUP_10_TARGETS) $(GROUP_11_TARGETS) $(GROUP_12_TARGETS) $(GROUP_13_TARGETS) $(GROUP_14_TARGETS) $(GROUP_15_TARGETS) $(GROUP_16_TARGETS)),$(TARGETS_TOTAL))
+$(error Target groups do not cover all supported targets)
+endif
 
 ifeq ($(filter $(TARGET),$(ALT_TARGETS)), $(TARGET))
 BASE_TARGET    := $(firstword $(subst /,, $(subst ./src/main/target/,, $(dir $(wildcard $(ROOT)/src/main/target/*/$(TARGET).mk)))))
@@ -85,16 +69,50 @@ endif
 # silently ignore if the file is not present. Allows for target specific.
 -include $(ROOT)/src/main/target/$(BASE_TARGET)/target.mk
 
+# The MCU group comes from FC_TARGET_MCU in the target header.
+FC_TARGET_MCU := $(strip $(shell sed -n 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*FC_TARGET_MCU[[:space:]][[:space:]]*\([A-Za-z0-9_]*\).*/\1/p' $(ROOT)/src/main/target/$(BASE_TARGET)/target.h | head -n 1))
+
+MCU_GROUP_STM32F405 := F405
+MCU_GROUP_STM32F411 := F411
+MCU_GROUP_STM32F446 := F446
+MCU_GROUP_STM32F7X2 := F7X2RE
+MCU_GROUP_STM32F745 := F7X5XG
+MCU_GROUP_STM32H743 := H743
+MCU_GROUP_STM32H723 := H723
+MCU_GROUP_STM32H725 := H725
+MCU_GROUP_STM32H730 := H730
+MCU_GROUP_STM32H750 := H750
+MCU_GROUP_SITL      := SITL
+
+ifneq ($(MCU_GROUP_$(FC_TARGET_MCU)),)
+$(eval $(MCU_GROUP_$(FC_TARGET_MCU))_TARGETS += $(TARGET))
+endif
+
+# TARGET_XTAL_MHZ in the target header sets the crystal frequency; HSE_VALUE is that value in Hz.
+TARGET_XTAL_MHZ := $(strip $(shell sed -n 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([0-9][0-9]*\).*/\1/p' $(ROOT)/src/main/target/$(BASE_TARGET)/target.h | head -n 1))
+
+ifneq ($(TARGET_XTAL_MHZ),)
+HSE_VALUE := $(TARGET_XTAL_MHZ)000000
+endif
+
+# FC_VMA_ADDRESS in the target header selects an EXST build and its load address.
+FC_VMA_ADDRESS := $(strip $(shell sed -n 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*FC_VMA_ADDRESS[[:space:]][[:space:]]*\(0[xX][0-9A-Fa-f][0-9A-Fa-f]*\).*/\1/p' $(ROOT)/src/main/target/$(BASE_TARGET)/target.h | head -n 1))
+
+ifneq ($(FC_VMA_ADDRESS),)
+EXST = yes
+EXST_ADJUST_VMA := $(FC_VMA_ADDRESS)
+endif
+
 F4_TARGETS      := $(F405_TARGETS) $(F411_TARGETS) $(F446_TARGETS)
 F7_TARGETS      := $(F7X2RE_TARGETS) $(F7X5XE_TARGETS) $(F7X5XG_TARGETS) $(F7X5XI_TARGETS) $(F7X6XG_TARGETS)
 H7_TARGETS      := $(H743_TARGETS) $(H750_TARGETS) $(H723_TARGETS) $(H725_TARGETS) $(H730_TARGETS) $(H735_TARGETS) $(H7A3_TARGETS)
 
 ifeq ($(filter $(TARGET),$(VALID_TARGETS)),)
-$(error Target '$(TARGET)' is not valid, must be one of $(VALID_TARGETS). Have you prepared a valid target.mk?)
+$(error Target '$(TARGET)' is not valid, must be one of $(VALID_TARGETS). Have you prepared a valid target.h?)
 endif
 
 ifeq ($(filter $(TARGET),$(F4_TARGETS) $(F7_TARGETS) $(H7_TARGETS) $(SITL_TARGETS)),)
-$(error Target '$(TARGET)' has not specified a valid STM group, must be one of F405, F411, F446, F7x5, F7x6, H743, H750, H723, H725, H730, H735, H7A3, or SITL. Have you prepared a valid target.mk?)
+$(error Target '$(TARGET)' has no valid FC_TARGET_MCU in its target.h, must be one of STM32F405, STM32F411, STM32F446, STM32F7X2, STM32F745, STM32H743, STM32H723, STM32H725, STM32H730, STM32H750 or SITL)
 endif
 
 ifeq ($(TARGET),$(filter $(TARGET), $(F4_TARGETS)))

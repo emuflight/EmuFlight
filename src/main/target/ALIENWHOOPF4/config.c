@@ -103,6 +103,9 @@ void targetConfiguration(void) {
     pidConfigMutable()->pid_process_denom = 1; // 16kHz PID
     pidConfigMutable()->runaway_takeoff_prevention = false;
     featureSet((FEATURE_DYNAMIC_FILTER | FEATURE_AIRMODE) ^ FEATURE_RX_PARALLEL_PWM);
+#if !defined(BREADBOARD)
+    featureClear(FEATURE_OSD); // legacy board: OSD stays opt-in (V3 pcb only), as before the fleet default
+#endif
     /* AlienWhoop PIDs tested with 6mm and 7mm motors on most frames */
     for (uint8_t pidProfileIndex = 0; pidProfileIndex < PID_PROFILE_COUNT; pidProfileIndex++) {
         pidProfile_t *pidProfile = pidProfilesMutable(pidProfileIndex);

@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        NBDBBBLV2
+#define MANUFACTURER_ID   NEBD
 #define TARGET_BOARD_IDENTIFIER         "BeeBrain BL V2" // BeeBrain BL
 #define USBD_PRODUCT_STRING             "BeeBrain BL V2"
 
@@ -99,6 +102,7 @@
 
 // *************** OSD *****************************
 #define USE_MAX7456
+#define USE_NBD7456
 
 
 #define MAX7456_SPI_INSTANCE            SPI3
@@ -122,7 +126,6 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE                    ADC1
-#define ADC1_DMA_STREAM                 DMA2_Stream0
 #define ADC1_DMA_OPT                    0
 #define VBAT_ADC_PIN                    PB1
 #define CURRENT_METER_ADC_PIN           PA5
@@ -143,12 +146,18 @@
 
 #define ENABLE_DSHOT_DMAR               true
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_LED_STRIP)
+#define DEFAULT_FEATURES                (FEATURE_LED_STRIP)
 
-#define TARGET_IO_PORTA                 0xffff
-#define TARGET_IO_PORTB                 0xffff
-#define TARGET_IO_PORTC                 0xffff
-#define TARGET_IO_PORTD                 (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT      5
-#define USED_TIMERS                     ( TIM_N(4)|TIM_N(5) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB9 , 1, -1) /* PWM1 */ \
+    TIMER_PIN_MAP( 1, PB7 , 1,  0) /* PWM2 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* PWM3 */ \
+    TIMER_PIN_MAP( 3, PB8 , 1,  0) /* PWM4 */ \
+    TIMER_PIN_MAP( 4, PA0 , 2,  0)
+
+#define MOTOR1_PIN              PB9
+#define MOTOR2_PIN              PB7
+#define MOTOR3_PIN              PB6
+#define MOTOR4_PIN              PB8
+#define LED_STRIP_PIN           PA0

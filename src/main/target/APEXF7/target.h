@@ -19,6 +19,9 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        APEXF7
+#define MANUFACTURER_ID   APEX
 #define TARGET_BOARD_IDENTIFIER "APF7"
 #define USBD_PRODUCT_STRING     "APEXF7"
 
@@ -155,14 +158,20 @@
 #define USE_MAG_QMC5883
 #define MAG_I2C_INSTANCE         (I2CDEV_1)
 
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE)
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_UART           SERIAL_PORT_USART1
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT      6
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(4) | TIM_N(8)  )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA15 , 1,  0) /* USE FOR CAMERA CONTROL */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 2, PC8 , 2,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 3, PB6 , 1,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 5, PB7 , 1,  0) /* D1-ST2 */
+
+#define MOTOR1_PIN              PC8
+#define MOTOR2_PIN              PB6
+#define MOTOR3_PIN              PC9
+#define MOTOR4_PIN              PB7
+#define LED_STRIP_PIN           PA15

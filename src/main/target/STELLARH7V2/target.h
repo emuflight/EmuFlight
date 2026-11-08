@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        STELLARH7V2
 #define MANUFACTURER_ID   STBE
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU     STM32H743     // not used in EmuF
+#define FC_TARGET_MCU     STM32H743
 
 #define USE_ACC
 #define USE_ACC_SPI_ICM42605
@@ -114,10 +113,14 @@
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
 #define USE_SDCARD_SDIO
-//notice - NEED: #define SDCARD_DMA_CHANNEL_TX       DMAx_StreamX // please verify
-//notice - other sdcard defines maybe needed (rare?): SDCARD_DMA_STREAM_TX_FULL, SDCARD_DMA_STREAM_TX, SDCARD_DMA_CLK, SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG
-#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4    //notice - needs validation. these are hardware dependent. known options: 2, 4, 8.
-#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256  //notice - needs validation. these are hardware dependent. known options: 128, 256
+#define SDIO_DEVICE      SDIODEV_1
+#define SDIO_USE_4BIT    1
+#define SDIO_CK_PIN      PC12
+#define SDIO_CMD_PIN     PD2
+#define SDIO_D0_PIN      PC8
+#define SDIO_D1_PIN      PC9
+#define SDIO_D2_PIN      PC10
+#define SDIO_D3_PIN      PC11
 
 #define MAX7456_SPI_CS_PIN   PB12
 #define MAX7456_SPI_INSTANCE SPI2
@@ -127,8 +130,6 @@
 #define CURRENT_METER_ADC_PIN PC1
 #define ADC1_DMA_OPT        8
 #define ADC3_DMA_OPT        9
-#define ADC1_DMA_STREAM DMA2_Stream0 // ADC1 opt8
-#define ADC3_DMA_STREAM DMA2_Stream1 // ADC3 opt9
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 100
@@ -136,17 +137,33 @@
 #define PINIO1_PIN           PD10
 #define PINIO1_BOX 40
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  1) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PA0 , 2,  2) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PA1 , 2,  3) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PA2 , 2,  4) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PA3 , 2,  5) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PD12 , 1,  6) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PD13 , 1,  7) /* motor 8 */ \
+    TIMER_PIN_MAP( 8, PD14 , 1,  -1) /* servo 1; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 9, PD15 , 1, -1) /* servo 2; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 10, PA15 , 1,  -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */
+#define TIMUP3_DMA_OPT 10
+#define TIMUP4_DMA_OPT 11
+#define TIMUP5_DMA_OPT 12
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA0
+#define MOTOR4_PIN              PA1
+#define MOTOR5_PIN              PA2
+#define MOTOR6_PIN              PA3
+#define MOTOR7_PIN              PD12
+#define MOTOR8_PIN              PD13
+#define SERVO1_PIN              PD14
+#define SERVO2_PIN              PD15
 
 // notice - this file was programmatically generated and may be incomplete.

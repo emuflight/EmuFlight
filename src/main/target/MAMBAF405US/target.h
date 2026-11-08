@@ -20,7 +20,9 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "S405"
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        MAMBAF405US
+#define MANUFACTURER_ID   DIAT
 #define USBD_PRODUCT_STRING "MAMBAF405US"
 
 #define USE_TARGET_CONFIG
@@ -144,13 +146,21 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
 #define DEFAULT_RX_FEATURE        FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES          ( FEATURE_OSD )
 #define DEFAULT_CURRENT_METER_SCALE 250
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS  (  TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(11))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB8 , 1,  0) \
+    TIMER_PIN_MAP( 1, PA9 , 1,  0) \
+    TIMER_PIN_MAP( 2, PA8 , 1,  0) \
+    TIMER_PIN_MAP( 3, PC9 , 2,  0) \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) \
+    TIMER_PIN_MAP( 5, PB3 , 1,  0) \
+    TIMER_PIN_MAP( 6, PB9 , 2, -1)
+
+#define MOTOR1_PIN              PA9
+#define MOTOR2_PIN              PA8
+#define MOTOR3_PIN              PC9
+#define MOTOR4_PIN              PC8
+#define RX_PPM_PIN              PB9
+#define LED_STRIP_PIN           PB3

@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        DFR_F722_DUAL_HD
 #define MANUFACTURER_ID   DFRA
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define USE_ACC
 #define USE_BARO
@@ -102,6 +101,7 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_2
 #define I2C_DEVICE_2      (I2CDEV_2)
+#define BARO_I2C_INSTANCE (I2CDEV_2)
 #define MAG_I2C_INSTANCE (I2CDEV_2)
 #define I2C2_SCL PB10
 #define I2C2_SDA PB11
@@ -118,7 +118,6 @@
 #define CURRENT_METER_ADC_PIN PC2
 #define RSSI_ADC_PIN PC0
 #define ADC3_DMA_OPT        0
-#define ADC3_DMA_STREAM DMA2_Stream0 //# ADC 3: DMA2 Stream 0 Channel 2
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 100
@@ -132,16 +131,30 @@
 #define PINIO1_CONFIG 129
 #define PINIO1_BOX 0
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9) )
+// PC6 uses DMA2 Stream 2 channel 7; channel 0 would also take TIM8 CH2 and CH3 requests
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC8 , 2,  1) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PC6 , 2,  1) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PC9 , 2,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PC7 , 2,  1) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB6 , 1,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PB7 , 1,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PB1 , 2,  0) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PB0 , 2,  0) /* motor 8 */ \
+    TIMER_PIN_MAP( 8, PA0 , 2,  0) /* cam ctrl */ \
+    TIMER_PIN_MAP( 9, PA3 , 3, -1) /* ppm RX_PPM_PIN; dma 0 assumed, please verify */ \
+    TIMER_PIN_MAP( 10, PA1 , 1,  0) /* led */
+
+#define MOTOR1_PIN              PC8
+#define MOTOR2_PIN              PC6
+#define MOTOR3_PIN              PC9
+#define MOTOR4_PIN              PC7
+#define MOTOR5_PIN              PB6
+#define MOTOR6_PIN              PB7
+#define MOTOR7_PIN              PB1
+#define MOTOR8_PIN              PB0
+#define RX_PPM_PIN              PA3
 
 // notice - this file was programmatically generated and may be incomplete.

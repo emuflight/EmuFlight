@@ -19,6 +19,9 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        JBF7
+#define MANUFACTURER_ID   IFRC
 #define TARGET_BOARD_IDENTIFIER "IFRC"
 #define USBD_PRODUCT_STRING "JBF7_DJI"
 
@@ -84,6 +87,8 @@
 #define CAMERA_CONTROL_PIN      PA0
 
 #define USE_ADC
+#define ADC_INSTANCE ADC3
+#define ADC3_DMA_OPT 0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN   PC2
@@ -100,7 +105,6 @@
 
 #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256 // 422kHz
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER      8 // 27MHz
-//#define SDCARD_DMA_STREAM_TX_FULL             DMA2_Stream5
 
 #define USE_PINIO
 #define PINIO1_PIN              PC13
@@ -151,7 +155,6 @@
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_UART           SERIAL_PORT_UART5
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
 
 #define USE_GPS
 
@@ -166,10 +169,27 @@
 
 #define SENSORS_SET (SENSOR_ACC | SENSOR_BARO)
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT  11
-#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8)| TIM_N(9) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA0 , 2,  0) /* USE FOR CAMERA CONTROL */ \
+    TIMER_PIN_MAP( 1, PC8 , 2,  1) /* D1-ST0                   MOTOR1 */ \
+    TIMER_PIN_MAP( 2, PC6 , 2,  1) /* D1-ST3                   MOTOR2 */ \
+    TIMER_PIN_MAP( 3, PC9 , 2,  0) /* D1-ST7                   MOTOR3 */ \
+    TIMER_PIN_MAP( 4, PC7 , 2,  1) /* D2-ST2/D2-ST4            MOTOR4 */ \
+    TIMER_PIN_MAP( 5, PB6 , 1,  0) /* NONE  TIM4_UP_D1-ST6     MOTOR5 */ \
+    TIMER_PIN_MAP( 6, PB7 , 1,  0) /* D1-ST4                   MOTOR6 */ \
+    TIMER_PIN_MAP( 7, PB1 , 2,  0) /* D2-ST7                   MOTOR7 */ \
+    TIMER_PIN_MAP( 8, PB0 , 2,  0) /* D1-ST2                   MOTOR8 */ \
+    TIMER_PIN_MAP( 9, PA1 , 1,  0) /* D1-ST2                   LED */ \
+    TIMER_PIN_MAP( 10, PA3 , 3, -1) /* D1-ST2                   SERIAL RX | PPM */
+
+#define MOTOR1_PIN              PC8
+#define MOTOR2_PIN              PC6
+#define MOTOR3_PIN              PC9
+#define MOTOR4_PIN              PC7
+#define MOTOR5_PIN              PB6
+#define MOTOR6_PIN              PB7
+#define MOTOR7_PIN              PB1
+#define MOTOR8_PIN              PB0
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA1

@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        FLYWOOF411V2
+#define MANUFACTURER_ID   FLWO
 #define TARGET_BOARD_IDENTIFIER "FW41"
 #define USBD_PRODUCT_STRING     "FLYWOOF411V2"
 
@@ -121,7 +124,6 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE            ADC1 //test 1 for ADC1
-#define ADC2_DMA_STREAM         DMA2_Stream4
 //#define ADC1_DMA_OPT            0  // DMA 2 Stream 0 Channel 0
 
 #define VBAT_ADC_PIN            PB1
@@ -133,15 +135,27 @@
 
 #define ENABLE_DSHOT_DMAR       true
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL | FEATURE_LED_STRIP)
+#define DEFAULT_FEATURES                (FEATURE_SOFTSERIAL | FEATURE_LED_STRIP)
 #define DEFAULT_CURRENT_METER_SCALE         170
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USED_TIMERS             ( TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(9) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA2 , 3, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  1) /* S1_OUT 2,1 */ \
+    TIMER_PIN_MAP( 2, PB3 , 1,  0) /* S2_OUT 2,2 */ \
+    TIMER_PIN_MAP( 3, PB10 , 1,  0) /* S3_OUT 2,6 */ \
+    TIMER_PIN_MAP( 4, PA15 , 1,  0) /* S4_OUT 1,7 */ \
+    TIMER_PIN_MAP( 5, PB6 , 1,  0) /* RSSI   1,2 */ \
+    TIMER_PIN_MAP( 6, PB7 , 1,  0) /* RX2    1,0 */ \
+    TIMER_PIN_MAP( 7, PB0 , 2,  0) /* CAM CC 1,1 */ \
+    TIMER_PIN_MAP( 8, PB4 , 1,  0) /* CAM CC 1,1 */ \
+    TIMER_PIN_MAP( 9, PA0 , 2,  0) /* LED    1,5 */
+
+#define MOTOR1_PIN              PA8
+#define MOTOR2_PIN              PB3
+#define MOTOR3_PIN              PB10
+#define MOTOR4_PIN              PA15
+#define RX_PPM_PIN              PA2
+#define LED_STRIP_PIN           PA0

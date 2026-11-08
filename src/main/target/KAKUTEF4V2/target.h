@@ -19,6 +19,9 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        KAKUTEF4V2
+#define MANUFACTURER_ID   HBRO
 #define TARGET_BOARD_IDENTIFIER "KTV2"
 #define USBD_PRODUCT_STRING "KakuteF4-V2"
 
@@ -139,21 +142,28 @@
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define USE_ADC
-#define ADC1_DMA_STREAM             DMA2_Stream0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN                PC3
 #define CURRENT_METER_ADC_PIN       PC2
 #define DEFAULT_CURRENT_METER_SCALE        275
 #define RSSI_ADC_PIN                PC1
 
-#define DEFAULT_FEATURES        ( FEATURE_TELEMETRY | FEATURE_OSD )
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART3
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD        (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USED_TIMERS  ( TIM_N(2) | TIM_N(3) |  TIM_N(8))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC7 , 2, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S1_OUT - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* S2_OUT - DMA1_ST2 */ \
+    TIMER_PIN_MAP( 3, PA3 , 1,  1) /* S3_OUT - DMA1_ST6 */ \
+    TIMER_PIN_MAP( 4, PA2 , 1,  0) /* S4_OUT - DMA1_ST1 */ \
+    TIMER_PIN_MAP( 5, PC8 , 2,  0) /* LED_STRIP - DMA2_ST2 */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA3
+#define MOTOR4_PIN              PA2
+#define RX_PPM_PIN              PC7
+#define LED_STRIP_PIN           PC8

@@ -54,16 +54,11 @@ typedef struct adcDevice_s {
     ADC_TypeDef* ADCx;
     rccPeriphTag_t rccADC;
 #if defined(STM32H7)
-    dmaResource_t *dmaResource;
-    uint32_t channel;
     ADC_HandleTypeDef ADCHandle;
     DMA_HandleTypeDef DmaHandle;
     uint8_t irq;
     uint32_t channelBits;
-#elif defined(STM32F4) || defined(STM32F7)
-    DMA_Stream_TypeDef* DMAy_Streamx;
-    uint32_t channel;
-#else
+#elif !(defined(STM32F4) || defined(STM32F7))
     DMA_Channel_TypeDef* DMAy_Channelx;
 #endif
 #if defined(STM32F7)

@@ -35,11 +35,8 @@
 uint8_t hardwareMotorType = MOTOR_UNKNOWN;
 
 void detectBrushedESC(void) {
-    int i = 0;
-    while (!(timerHardware[i].usageFlags & TIM_USE_MOTOR) && (i < USABLE_TIMER_CHANNEL_COUNT)) {
-        i++;
-    }
-    IO_t MotorDetectPin = IOGetByTag(timerHardware[i].tag);
+#ifdef MOTOR1_PIN
+    IO_t MotorDetectPin = IOGetByTag(IO_TAG(MOTOR1_PIN));
     IOInit(MotorDetectPin, OWNER_SYSTEM, 0);
     IOConfigGPIO(MotorDetectPin, IOCFG_IPU);
     delayMicroseconds(10);  // allow configuration to settle
@@ -49,5 +46,6 @@ void detectBrushedESC(void) {
     } else {
         hardwareMotorType = MOTOR_BRUSHED;
     }
+#endif
 }
 #endif

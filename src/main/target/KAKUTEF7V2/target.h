@@ -20,8 +20,9 @@
 
 #pragma once
 
-#define FC_TARGET_MCU                   STM32F745  // not used in EmuF
-#define TARGET_BOARD_IDENTIFIER        "S745"      // generic ID
+#define FC_TARGET_MCU                   STM32F745
+#define BOARD_NAME        KAKUTEF7V2
+#define MANUFACTURER_ID   HBRO
 #define TARGET_MANUFACTURER_IDENTIFIER "HBRO"
 
 //#define USE_TARGET_CONFIG
@@ -139,7 +140,6 @@
 
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER      8 // 27MHz
 
-#define SDCARD_DMA_STREAM_TX_FULL             DMA2_Stream5
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
 #define USE_I2C
@@ -171,18 +171,28 @@
 
 
 
-#define DEFAULT_FEATURES        (FEATURE_OSD)
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_UART           SERIAL_PORT_USART6
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define ESC_SENSOR_UART         SERIAL_PORT_USART7
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
 
-#define USED_TIMERS  ( TIM_N(1) | TIM_N(5) | TIM_N(3) | TIM_N(4) | TIM_N(8) )
+// PD12 and TIM5 burst share DMA1 Stream 0; with DShot burst on only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PE13 , 1,  -1) /* CAM CONTROL, DMA2_ST6 */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* M1 , DMA1_ST7 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* M2 , DMA1_ST2 */ \
+    TIMER_PIN_MAP( 3, PE9 , 1,  2) /* M3 , DMA2_ST2 */ \
+    TIMER_PIN_MAP( 4, PE11 , 1,  1) /* M4 , DMA2_ST4 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* M5 , DMA2_ST7 */ \
+    TIMER_PIN_MAP( 6, PA3 , 2,  0) /* M6 , DMA1_ST1 */ \
+    TIMER_PIN_MAP( 7, PD12 , 1,  0) /* LED_TRIP, DMA1_ST0 */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PE9
+#define MOTOR4_PIN              PE11
+#define MOTOR5_PIN              PC9
+#define MOTOR6_PIN              PA3
+#define LED_STRIP_PIN           PD12

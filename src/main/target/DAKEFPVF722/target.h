@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        DAKEFPVF722
 #define MANUFACTURER_ID   DAKE
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
@@ -137,7 +136,6 @@
 #define CURRENT_METER_ADC_PIN PC0
 #define RSSI_ADC_PIN PC2
 #define ADC2_DMA_OPT        1
-#define ADC2_DMA_STREAM DMA2_Stream3 //# ADC 2: DMA2 Stream 3 Channel 1
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE        120
@@ -148,16 +146,28 @@
 #define PINIO1_CONFIG 129
 #define PINIO1_BOX 40
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) )
+// PB3 and TIM4 burst share DMA1 Stream 6; with DShot burst on only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC8 , 2,  1) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PC9 , 2,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB7 , 1,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB0 , 1,  1) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PB1 , 1,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PA0 , 2,  -1) /* could not determine TIM_USE_xxxxx - please check; dma 0 assumed, please verify */ \
+    TIMER_PIN_MAP( 7, PA1 , 2,  -1) /* could not determine TIM_USE_xxxxx - please check; dma 0 assumed, please verify */ \
+    TIMER_PIN_MAP( 8, PA9 , 1,  -1) /* could not determine TIM_USE_xxxxx - please check; dma 0 assumed, please verify */ \
+    TIMER_PIN_MAP( 9, PA10 , 1,  -1) /* could not determine TIM_USE_xxxxx - please check; dma 0 assumed, please verify */ \
+    TIMER_PIN_MAP( 10, PB3 , 1,  0) /* led */ \
+    TIMER_PIN_MAP( 11, PB4 , 1,  -1) /* cam ctrl; dma 0 assumed, please verify */
+
+#define MOTOR1_PIN              PC8
+#define MOTOR2_PIN              PC9
+#define MOTOR3_PIN              PB6
+#define MOTOR4_PIN              PB7
+#define MOTOR5_PIN              PB0
+#define MOTOR6_PIN              PB1
 
 // notice - this file was programmatically generated and may be incomplete.

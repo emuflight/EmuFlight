@@ -130,8 +130,11 @@ typedef enum {
 
 #define MHZ_TO_HZ(x) ((x) * 1000000)
 
-extern const timerHardware_t timerHardware[];
 extern const timerDef_t timerDefinitions[];
+
+extern const timerHardware_t fullTimerHardware[];
+#define TIMER_HARDWARE fullTimerHardware
+#define TIMER_CHANNEL_COUNT FULL_TIMER_CHANNEL_COUNT
 
 typedef enum {
     TYPE_FREE,
@@ -185,10 +188,13 @@ rccPeriphTag_t timerRCC(TIM_TypeDef *tim);
 uint8_t timerInputIrq(TIM_TypeDef *tim);
 
 const timerHardware_t *timerGetByTag(ioTag_t ioTag);
+#ifdef USE_TIMER_MGMT
+const timerHardware_t *timerGetByTagAndIndex(ioTag_t ioTag, unsigned timerIndex);
+const timerHardware_t *timerGetAllocatedByNumberAndChannel(int8_t timerNumber, uint16_t timerChannel);
+#endif
 const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8_t resourceIndex);
 resourceOwner_e timerGetOwner(ioTag_t ioTag);
 uint8_t timerGetOwnerResourceIndex(ioTag_t ioTag);
-ioTag_t timerioTagGetByUsage(timerUsageFlag_e usageFlag, uint8_t index);
 
 #if defined(USE_HAL_DRIVER)
 TIM_HandleTypeDef* timerFindTimerHandle(TIM_TypeDef *tim);
@@ -207,5 +213,6 @@ uint16_t timerGetPrescalerByDesiredHertz(TIM_TypeDef *tim, uint32_t hz);
 uint16_t timerGetPrescalerByDesiredMhz(TIM_TypeDef *tim, uint16_t mhz);
 uint16_t timerGetPeriodByPrescaler(TIM_TypeDef *tim, uint16_t prescaler, uint32_t hz);
 
+int8_t timerGetNumberByIndex(uint8_t index);
 int8_t timerGetTIMNumber(const TIM_TypeDef *tim);
 uint8_t timerLookupChannelIndex(const uint16_t channel);

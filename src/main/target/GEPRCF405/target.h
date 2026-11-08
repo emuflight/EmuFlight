@@ -23,8 +23,7 @@
 
 #define BOARD_NAME        GEPRCF405
 #define MANUFACTURER_ID   GEPR
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 
 #define LED0_PIN                PC14
 #define LED1_PIN                PC15
@@ -132,7 +131,7 @@
 //-------------------------------------ADC METERE------------------------------
 #define USE_ADC
 #define ADC_INSTANCE			ADC1
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 0
 #define CURRENT_METER_ADC_PIN   PC0
 #define VBAT_ADC_PIN			PC1
 #define RSSI_ADC_PIN			PC2
@@ -174,7 +173,6 @@
 #define I2C2_SDA                PB11
 
 //-------------------------------------FEATURES-------------------------------
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
 
 #define DEFAULT_RX_FEATURE     	FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
@@ -185,10 +183,23 @@
 #define DEFAULT_CURRENT_METER_SCALE 179
 
 //--------------------------------BOARD RESOURCES-----------------------------
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USED_TIMERS    (TIM_N(1)|TIM_N(3)|TIM_N(8))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC7 , 2,  0) /* PPM */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  1) /* S1 */ \
+    TIMER_PIN_MAP( 2, PA9 , 1,  1) /* S2 */ \
+    TIMER_PIN_MAP( 3, PA10 , 1,  1) /* S3 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) /* S4 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* S5 */ \
+    TIMER_PIN_MAP( 6, PB0 , 2,  0) /* S6 | TIM_USE_CAMERA_CONTROL */ \
+    TIMER_PIN_MAP( 7, PB1 , 2,  0) /* S7 /LED_STRIP */
+
+#define MOTOR1_PIN              PA8
+#define MOTOR2_PIN              PA9
+#define MOTOR3_PIN              PA10
+#define MOTOR4_PIN              PC8
+#define MOTOR5_PIN              PC9
+#define MOTOR6_PIN              PB0
+#define MOTOR7_PIN              PB1
+#define RX_PPM_PIN              PC7
+#define LED_STRIP_PIN           PB1

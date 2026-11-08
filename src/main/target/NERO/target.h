@@ -22,8 +22,9 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "BKMN"
 #define USBD_PRODUCT_STRING "NERO"
 
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        NERO
+#define MANUFACTURER_ID   BKMN
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6500
@@ -68,7 +69,6 @@
 #define GYRO_MPU6500_ALIGN      CW0_DEG
 
 #define USE_SDCARD
-#define USE_SDCARD_SDIO
 #define SDCARD_DETECT_INVERTED
 #define SDCARD_DETECT_PIN                   PD2
 #define SDCARD_SPI_INSTANCE                 SPI3
@@ -79,7 +79,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
 
-//#define SDCARD_DMA_STREAM_TX_FULL           DMA1_Stream5
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
@@ -136,21 +135,34 @@
 #define CURRENT_METER_ADC_PIN PC2
 #define RSSI_ADC_PIN PA4
 #define ADC1_DMA_OPT        1
-#define ADC1_DMA_STREAM DMA2_Stream4 //# ADC 1: DMA2 Stream 4 Channel 0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART6
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
 
-#define USE_TIMER_MGMT
+// PA0 and PB1 share DMA1 Stream 2; with DShot burst off only one of them gets DMA
+// ADC1 and PC8 share DMA2 Stream 4; with DShot burst off only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP(0, PC7, 1, -1) \
+    TIMER_PIN_MAP(1, PA0, 2, 0) /* motor 1 */ \
+    TIMER_PIN_MAP(2, PA1, 2, 0) /* motor 2 */ \
+    TIMER_PIN_MAP(3, PA2, 2, 0) /* motor 3 */ \
+    TIMER_PIN_MAP(4, PA3, 2, 0) /* motor 4 */ \
+    TIMER_PIN_MAP(5, PB0, 2, 0) /* motor 5 and LED_STRIP */ \
+    TIMER_PIN_MAP(6, PB1, 2, 0) /* motor 6 */ \
+    TIMER_PIN_MAP(7, PC8, 2, 1) /* motor 7 */ \
+    TIMER_PIN_MAP(8, PC9, 2, 0) /* motor 8 */
+
+#define MOTOR1_PIN              PA0
+#define MOTOR2_PIN              PA1
+#define MOTOR3_PIN              PA2
+#define MOTOR4_PIN              PA3
+#define MOTOR6_PIN              PB1
+#define MOTOR7_PIN              PC8
+#define MOTOR8_PIN              PC9
+#define RX_PPM_PIN              PC7

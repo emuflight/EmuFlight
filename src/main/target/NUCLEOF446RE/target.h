@@ -22,6 +22,9 @@
 
 #define USE_TARGET_CONFIG
 
+#define FC_TARGET_MCU     STM32F446
+#define BOARD_NAME        NUCLEOF446RE
+#define MANUFACTURER_ID   STMI
 #define TARGET_BOARD_IDENTIFIER "N446" // STM32 Nucleo F446RE
 #define USBD_PRODUCT_STRING     "NucleoF446RE"
 
@@ -83,9 +86,6 @@
 //#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 128
 //// Divide to under 25MHz for normal operation:
 //#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 2
-//
-//// Note, this is the same DMA channel as UART1_RX. Luckily we don't use DMA for USART Rx.
-//#define SDCARD_DMA_CHANNEL_TX               DMA1_Channel5
 
 // Performance logging for SD card operations:
 // #define AFATFS_USE_INTROSPECTIVE_LOGGING
@@ -167,10 +167,17 @@
 
 #define MAX_SUPPORTED_MOTORS    12
 
-#define TARGET_IO_PORTA (0xffff & ~(BIT(14)|BIT(13)))
-#define TARGET_IO_PORTB (0xffff & ~(BIT(2)))
-#define TARGET_IO_PORTC (0xffff & ~(BIT(15)|BIT(14)|BIT(13)))
-#define TARGET_IO_PORTD BIT(2)
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#define USED_TIMERS             (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA8 , 1,  1) \
+    TIMER_PIN_MAP( 1, PC6 , 2,  1) \
+    TIMER_PIN_MAP( 2, PC7 , 2,  1) \
+    TIMER_PIN_MAP( 3, PC8 , 2,  1) \
+    TIMER_PIN_MAP( 4, PB1 , 2,  0) \
+    TIMER_PIN_MAP( 5, PA1 , 1,  0) \
+    TIMER_PIN_MAP( 6, PA2 , 1,  0)
+
+#define MOTOR1_PIN              PA8
+#define MOTOR2_PIN              PC6
+#define MOTOR3_PIN              PC7
+#define MOTOR4_PIN              PC8

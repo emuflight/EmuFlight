@@ -21,6 +21,9 @@
 #pragma once
 
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        REVOLTOSD
+#define MANUFACTURER_ID   FLON
 #define TARGET_BOARD_IDENTIFIER "ROSD"
 #define USBD_PRODUCT_STRING     "RevoltOSD"
 
@@ -151,10 +154,17 @@
 #define USB_DETECT_PIN          PC5
 
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USED_TIMERS             ( TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(11) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB9 , 2, -1) /* cam control */ \
+    TIMER_PIN_MAP( 1, PB0 , 3,  0) /* Motor 1 */ \
+    TIMER_PIN_MAP( 2, PB1 , 3,  0) /* Motor 2 */ \
+    TIMER_PIN_MAP( 3, PA3 , 1,  0) /* Motor 3 */ \
+    TIMER_PIN_MAP( 4, PA2 , 1,  0) /* Motor 4 */ \
+    TIMER_PIN_MAP( 5, PB6 , 1,  0) /* LED for REVOLT */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA3
+#define MOTOR4_PIN              PA2
+#define LED_STRIP_PIN           PB6

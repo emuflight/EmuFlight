@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        FOXEERH743V2
 #define MANUFACTURER_ID   FOXE
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU     STM32H743     // not used in EmuF
+#define FC_TARGET_MCU     STM32H743
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
@@ -136,25 +135,38 @@
 #define ADC1_DMA_OPT 8
 #define ADC2_DMA_OPT 9
 #define ADC3_DMA_OPT 10
-#define ADC1_DMA_STREAM DMA2_Stream0 // ADC1 opt8
-#define ADC2_DMA_STREAM DMA2_Stream1 // ADC2 opt9
-#define ADC3_DMA_STREAM DMA2_Stream2 // ADC3 opt10
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 100
 
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(15) )
+// Burst DShot shares one TIM_UP stream per timer, so motors need no per-channel stream
+#define ENABLE_DSHOT_DMAR true
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA8 , 1,  0) /* led strip */ \
+    TIMER_PIN_MAP( 1, PB3 , 1,  0) /* cam ctrl */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB4 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 5, PB5 , 1,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 6, PD12 , 1,  6) /* motor 5 */ \
+    TIMER_PIN_MAP( 7, PD13 , 1,  7) /* motor 6 */ \
+    TIMER_PIN_MAP( 8, PC8 , 2,  2) /* motor 7 */ \
+    TIMER_PIN_MAP( 9, PC9 , 2,  3) /* motor 8 */ \
+    TIMER_PIN_MAP( 10, PE5 , 1, -1) /* servo 1; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 11, PE6 , 1, -1) /* servo 2; dma -1 in config (input only) */
+
+#define MOTOR1_PIN              PB4
+#define MOTOR2_PIN              PB5
+#define MOTOR3_PIN              PB0
+#define MOTOR4_PIN              PB1
+#define MOTOR5_PIN              PD12
+#define MOTOR6_PIN              PD13
+#define MOTOR7_PIN              PC8
+#define MOTOR8_PIN              PC9
+#define SERVO1_PIN              PE5
+#define SERVO2_PIN              PE6
 
 // notice - this file was programmatically generated and may be incomplete.

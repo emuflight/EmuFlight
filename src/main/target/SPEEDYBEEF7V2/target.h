@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        SPEEDYBEEF7V2
+#define MANUFACTURER_ID   SPBE
 #define TARGET_BOARD_IDENTIFIER "SB72"
 #define USBD_PRODUCT_STRING  "SpeedyBeeF7V2"
 #define USE_TARGET_CONFIG
@@ -73,9 +76,6 @@
 #define I2C2_SDA                PB11
 
 #define USE_MAG
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-#define USE_MAG_LIS3MDL
 #define MAG_I2C_INSTANCE         (I2CDEV_2)
 
 // *************** Flash **************************
@@ -146,26 +146,36 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE         ADC1
-#define ADC1_DMA_OPT            0
+#define ADC1_DMA_OPT            1
 
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
 #define RSSI_ADC_PIN            PC3
 
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_ESC_SENSOR | FEATURE_LED_STRIP)
+#define DEFAULT_FEATURES        (FEATURE_ESC_SENSOR | FEATURE_LED_STRIP)
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 168
 
 #define ESCSERIAL_TIMER_TX_PIN PA3
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
 // *************** activate/deactivate Bluetooth When disarmed/armed using PINIO_BOX *****************************
 #define PINIO1_PIN PA15
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS             (TIM_N(1)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(8))
+// PA9 and PB0 share DMA2 Stream 2; with DShot burst off only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB7 , 1,  0) /* PPM, RX1 */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  1) /* S1 */ \
+    TIMER_PIN_MAP( 2, PA9 , 1,  1) /* S2 */ \
+    TIMER_PIN_MAP( 3, PA10 , 1,  1) /* S3 */ \
+    TIMER_PIN_MAP( 4, PC9 , 1,  0) /* S4 */ \
+    TIMER_PIN_MAP( 5, PB0 , 3,  0) /* LED */ \
+    TIMER_PIN_MAP( 6, PA0 , 2,  0) /* BF Camera Control */
+
+#define MOTOR1_PIN              PA8
+#define MOTOR2_PIN              PA9
+#define MOTOR3_PIN              PA10
+#define MOTOR4_PIN              PC9
+#define RX_PPM_PIN              PB7
+#define LED_STRIP_PIN           PB0

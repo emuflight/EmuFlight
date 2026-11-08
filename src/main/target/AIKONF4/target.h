@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        AIKONF4
 #define MANUFACTURER_ID   AIKO
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 
 #define LED0_PIN                PB4
 #define USE_BEEPER
@@ -147,12 +146,30 @@
 #define SERIALRX_UART           SERIAL_PORT_USART1
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES        ( FEATURE_OSD | FEATURE_SOFTSERIAL )
+#define DEFAULT_FEATURES        (FEATURE_SOFTSERIAL)
 
-#define TARGET_IO_PORTA         ( BIT(15) | BIT(12) | BIT(11) | BIT(10) | BIT(9) | BIT(7) | BIT(6) | BIT(5) | BIT(4) | BIT(3) | BIT(2) | BIT(1) | BIT(0) )
-#define TARGET_IO_PORTB         ( BIT(15) | BIT(14) | BIT(13) | BIT(12) | BIT(11) | BIT(10) | BIT(9) | BIT(8) | BIT(6) | BIT(5) | BIT(4) | BIT(3) | BIT(1) | BIT(0) )
-#define TARGET_IO_PORTC         ( BIT(12) | BIT(11) | BIT(10) | BIT(9) | BIT(8) | BIT(7) | BIT(6) | BIT(4) | BIT(3) | BIT(2) | BIT(1) | BIT(0) )
-#define TARGET_IO_PORTD         ( BIT(2) )
+// TIM8_UP (DMA2_ST1_CH7)
+// TIM3_UP (DMA1_ST2_CH5)
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB3 , 1,  0) /* CAMERA_CONTROL_PIN */ \
+    TIMER_PIN_MAP( 1, PC6 , 2,  0) /* M1 */ \
+    TIMER_PIN_MAP( 2, PC7 , 2,  0) /* M2 */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  0) /* M3 */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* M4 */ \
+    TIMER_PIN_MAP( 5, PB0 , 2,  0) /* M5 */ \
+    TIMER_PIN_MAP( 6, PB1 , 2,  0) /* M6 */ \
+    TIMER_PIN_MAP( 7, PA9 , 1,  0) /* UART1_TX */ \
+    TIMER_PIN_MAP( 8, PA2 , 3,  -1) /* UART2_TX */ \
+    TIMER_PIN_MAP( 9, PA3 , 3,  -1) /* UART2_RX */ \
+    TIMER_PIN_MAP( 10, PA0 , 2,  0) /* UART4_TX */ \
+    TIMER_PIN_MAP( 11, PA1 , 2,  0) /* UART4_RX */ \
+    TIMER_PIN_MAP( 12, PB6 , 1,  0) /* LED & PPM (DMA1_ST0_CH2) */
 
-#define USABLE_TIMER_CHANNEL_COUNT 16
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9) )
+#define MOTOR1_PIN              PC6
+#define MOTOR2_PIN              PC7
+#define MOTOR3_PIN              PC8
+#define MOTOR4_PIN              PC9
+#define MOTOR5_PIN              PB0
+#define MOTOR6_PIN              PB1
+#define RX_PPM_PIN              PB6
+#define LED_STRIP_PIN           PB6

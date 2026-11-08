@@ -25,8 +25,7 @@
 
 #define BOARD_NAME        GEPRCF722BT
 #define MANUFACTURER_ID   GEPR
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define LED0_PIN PC15
 #define LED1_PIN PC14
@@ -151,7 +150,7 @@
 #define USE_PINIOBOX
 
 #define USE_ADC
-#define ADC3_DMA_STREAM DMA2_Stream0
+#define ADC3_DMA_OPT 0
 #define VBAT_ADC_PIN PC1
 #define CURRENT_METER_ADC_PIN PC3
 #define RSSI_ADC_PIN PC2
@@ -163,12 +162,18 @@
 #define SERIALRX_UART SERIAL_PORT_USART2
 
 #define DEFAULT_RX_FEATURE FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES ( FEATURE_OSD | FEATURE_TELEMETRY )
 
-#define TARGET_IO_PORTA ( 0xffff )
-#define TARGET_IO_PORTB ( 0xffff )
-#define TARGET_IO_PORTC ( 0xffff )
-#define TARGET_IO_PORTD ( 0xffff )
 
-#define USABLE_TIMER_CHANNEL_COUNT 5
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(8) )
+// PA8 and PA9 share DMA2 Stream 6; with DShot burst off only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC8 , 2,  0) /* MOTOR4 */ \
+    TIMER_PIN_MAP( 1, PC9 , 2,  0) /* MOTOR3 */ \
+    TIMER_PIN_MAP( 2, PA8 , 1,  0) /* MOTOR 2 */ \
+    TIMER_PIN_MAP( 3, PA9 , 1,  0) /* MOTOR 1 */ \
+    TIMER_PIN_MAP( 4, PB3 , 1,  0) /* LED */
+
+#define MOTOR1_PIN              PA9
+#define MOTOR2_PIN              PA8
+#define MOTOR3_PIN              PC9
+#define MOTOR4_PIN              PC8
+#define LED_STRIP_PIN           PB3

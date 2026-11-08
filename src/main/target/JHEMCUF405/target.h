@@ -20,7 +20,9 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "S405"
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        JHEMCUF405
+#define MANUFACTURER_ID   JHEF
 #define USBD_PRODUCT_STRING     "JHEMCU405"
 
 #define LED0_PIN                PB5
@@ -126,7 +128,7 @@
 #define I2C_DEVICE              (I2CDEV_2)
 
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream4
+#define ADC1_DMA_OPT 1
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
@@ -139,13 +141,28 @@
 #define SBUS_TELEMETRY_UART     SERIAL_PORT_USART2
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-#define DEFAULT_FEATURES        ( FEATURE_TELEMETRY | FEATURE_OSD )
 
-#define TARGET_IO_PORTA (0xffff & ~(BIT(14)|BIT(13)))
-#define TARGET_IO_PORTB (0xffff & ~(BIT(2)))
-#define TARGET_IO_PORTC (0xffff & ~(BIT(15)|BIT(14)))
-#define TARGET_IO_PORTD BIT(2)
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
 
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9) | TIM_N(10) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB8 , 2, -1) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S1_OUT D1_ST7 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* S2_OUT D1_ST2 */ \
+    TIMER_PIN_MAP( 3, PC9 , 2,  0) /* S3_OUT D1_ST6 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) /* S4_OUT D1_ST1 */ \
+    TIMER_PIN_MAP( 5, PB6 , 1,  0) /* D1_ST0 */ \
+    TIMER_PIN_MAP( 6, PA9 , 1,  0) /* TX1 Bidir */ \
+    TIMER_PIN_MAP( 7, PA10 , 1,  0) /* RX1 Bidir */ \
+    TIMER_PIN_MAP( 8, PA2 , 2,  0) /* TX2 TX only */ \
+    TIMER_PIN_MAP( 9, PA3 , 3, -1) /* RX2 RX only */ \
+    TIMER_PIN_MAP( 10, PB10 , 1,  0) /* TX3 Bidir */ \
+    TIMER_PIN_MAP( 11, PB11 , 1,  0) /* RX3 Bidir */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PC9
+#define MOTOR4_PIN              PC8
+#define MOTOR5_PIN              PB6
+#define RX_PWM1_PIN             PB8
+#define RX_PPM_PIN              PB8
+#define LED_STRIP_PIN           PB6

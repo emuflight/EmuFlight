@@ -54,6 +54,26 @@ static flashDevice_t flashDevice;
 static flashPartitionTable_t flashPartitionTable;
 static int flashPartitions = 0;
 
+// Distinguishes a probe that never reached the SPI bus (config/ownership gate) from one
+// that transacted but got no recognized reply, so a CLI dump of the last attempt can tell
+// the two apart without a logic analyzer.
+typedef enum {
+    FLASH_PROBE_NOT_RUN = 0,
+    FLASH_PROBE_NO_CS_TAG,
+    FLASH_PROBE_CS_NOT_FREE,
+    FLASH_PROBE_BUS_INSTANCE_FAILED,
+    FLASH_PROBE_TRANSFER_DONE,
+} flashProbeStage_e;
+
+static flashProbeStage_e lastFlashProbeStage = FLASH_PROBE_NOT_RUN;
+static uint8_t lastFlashRawId[4];
+
+void flashGetLastProbeDiag(uint8_t *stageOut, uint8_t out[4])
+{
+    *stageOut = (uint8_t)lastFlashProbeStage;
+    memcpy(out, lastFlashRawId, sizeof(lastFlashRawId));
+}
+
 #define FLASH_INSTRUCTION_RDID 0x9F
 
 #ifdef USE_FLASH_QUADSPI
@@ -64,23 +84,31 @@ static bool flashQuadSpiInit(const flashConfig_t *flashConfig)
     enum { TRY_1LINE = 0, TRY_4LINE, BAIL };
     int phase = TRY_1LINE;
 
-    QUADSPI_TypeDef *hqspi = quadSpiInstanceByDevice(QUADSPI_CFG_TO_DEV(flashConfig->quadSpiDevice));
+    dev = &devInstance;
 
-    flashDevice.io.handle.quadSpi = hqspi;
+    // Set up the QSPI bus device
+    if (!quadSpiSetBusInstance(dev, flashConfig->quadSpiDevice)) {
+        return false;
+    }
+
+    // Set the callback argument when calling back to this driver for DMA completion
+    dev->callbackArg = (uint32_t)&flashDevice;
+
     flashDevice.io.mode = FLASHIO_QUADSPI;
+    flashDevice.io.handle.dev = dev;
 
     do {
-        quadSpiSetDivisor(hqspi, QUADSPI_CLOCK_INITIALISATION);
+        quadSpiSetDivisor(dev, QUADSPI_CLOCK_INITIALISATION);
 
         uint8_t readIdResponse[4];
 
         bool status = false;
         switch (phase) {
         case TRY_1LINE:
-            status = quadSpiReceive1LINE(hqspi, FLASH_INSTRUCTION_RDID, 0, readIdResponse, 4);
+            status = quadSpiReceive1LINE(dev, FLASH_INSTRUCTION_RDID, 0, readIdResponse, 4);
             break;
         case TRY_4LINE:
-            status = quadSpiReceive4LINES(hqspi, FLASH_INSTRUCTION_RDID, 2, readIdResponse, 3);
+            status = quadSpiReceive4LINES(dev, FLASH_INSTRUCTION_RDID, 2, readIdResponse, 3);
             break;
         default:
             break;
@@ -91,7 +119,7 @@ static bool flashQuadSpiInit(const flashConfig_t *flashConfig)
             continue;
         }
 
-        quadSpiSetDivisor(hqspi, QUADSPI_CLOCK_ULTRAFAST);
+        quadSpiSetDivisor(dev, QUADSPI_CLOCK_ULTRAFAST);
 
         for (uint8_t offset = 0; offset <= 1 && !detected; offset++) {
 
@@ -144,14 +172,17 @@ static bool flashSpiInit(const flashConfig_t *flashConfig)
     if (flashConfig->csTag) {
         dev->busType_u.spi.csnPin = IOGetByTag(flashConfig->csTag);
     } else {
+        lastFlashProbeStage = FLASH_PROBE_NO_CS_TAG;
         return false;
     }
 
     if (!IOIsFreeOrPreinit(dev->busType_u.spi.csnPin)) {
+        lastFlashProbeStage = FLASH_PROBE_CS_NOT_FREE;
         return false;
     }
 
     if (!spiSetBusInstance(dev, flashConfig->spiDevice)) {
+        lastFlashProbeStage = FLASH_PROBE_BUS_INSTANCE_FAILED;
         return false;
     }
 
@@ -177,6 +208,9 @@ static bool flashSpiInit(const flashConfig_t *flashConfig)
     uint8_t readIdResponse[4] = { 0 };
 
     spiReadRegBuf(dev, FLASH_INSTRUCTION_RDID, readIdResponse, sizeof(readIdResponse));
+
+    lastFlashProbeStage = FLASH_PROBE_TRANSFER_DONE;
+    memcpy(lastFlashRawId, readIdResponse, sizeof(lastFlashRawId));
 
     // Manufacturer, memory type, and capacity
     uint32_t jedecID = (readIdResponse[0] << 16) | (readIdResponse[1] << 8) | (readIdResponse[2]);
@@ -326,6 +360,18 @@ void flashFlush(void)
 static const flashGeometry_t noFlashGeometry = {
     .totalSize = 0,
 };
+
+const char *flashTypeGetName(flashType_e type)
+{
+    switch (type) {
+    case FLASH_TYPE_NOR:
+        return "NOR";
+    case FLASH_TYPE_NAND:
+        return "NAND";
+    }
+
+    return "UNKNOWN";
+}
 
 const flashGeometry_t *flashGetGeometry(void)
 {

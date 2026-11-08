@@ -25,8 +25,7 @@
 
 #define BOARD_NAME        TMOTORF7V2
 #define MANUFACTURER_ID   TMTR
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define LED0_PIN PC14
 
@@ -166,12 +165,28 @@
 #define SBUS_TELEMETRY_UART SERIAL_PORT_USART2
 
 #define DEFAULT_RX_FEATURE FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES ( FEATURE_OSD | FEATURE_TELEMETRY )
 
-#define TARGET_IO_PORTA ( 0xffff )
-#define TARGET_IO_PORTB ( 0xffff )
-#define TARGET_IO_PORTC ( 0xffff )
-#define TARGET_IO_PORTD ( 0x0004 )
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* MOTOR 1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* MOTOR 2 */ \
+    TIMER_PIN_MAP( 2, PB4 , 1,  0) /* MOTOR3 */ \
+    TIMER_PIN_MAP( 3, PB5 , 1,  0) /* MOTOR4 */ \
+    TIMER_PIN_MAP( 4, PB6 , 1,  0) /* MOTOR5 */ \
+    TIMER_PIN_MAP( 5, PB7 , 1,  0) /* MOTOR6 */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  0) /* MOTOR7 */ \
+    TIMER_PIN_MAP( 7, PC9 , 2,  0) /* MOTOR8 */ \
+    TIMER_PIN_MAP( 8, PA3 , 2,  0) /* PPM */ \
+    TIMER_PIN_MAP( 9, PB3 , 1,  0) /* CAMERA CONTROL */ \
+    TIMER_PIN_MAP( 10, PA8 , 1,  0) /* LED */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PB4
+#define MOTOR4_PIN              PB5
+#define MOTOR5_PIN              PB6
+#define MOTOR6_PIN              PB7
+#define MOTOR7_PIN              PC8
+#define MOTOR8_PIN              PC9
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA8

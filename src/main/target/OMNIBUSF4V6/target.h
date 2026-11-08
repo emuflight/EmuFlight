@@ -22,6 +22,9 @@
 
 #define USE_TARGET_CONFIG
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        OMNIBUSF4V6
+#define MANUFACTURER_ID   AIRB
 #define TARGET_BOARD_IDENTIFIER "OBV6"
 
 #define USBD_PRODUCT_STRING "OmnibusF4 V6"
@@ -141,6 +144,7 @@
 #define I2C1_SDA                PB9 // SDA PIN,alt MST7
 #define I2C_DEVICE              (I2CDEV_1)
 
+// no timer-map row: TIM4 is shared with the LED strip pad PB6; camera control stays inactive
 #define CAMERA_CONTROL_PIN      PB7
 
 #define USE_ADC
@@ -158,13 +162,30 @@
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 
-#define DEFAULT_FEATURES        (FEATURE_OSD)
 
-#define TARGET_IO_PORTA (0xffff & ~(BIT(14)|BIT(13)))
-#define TARGET_IO_PORTB (0xffff & ~(BIT(2)))
-#define TARGET_IO_PORTC  0xffff
-#define TARGET_IO_PORTD BIT(2)
 
-#define USABLE_TIMER_CHANNEL_COUNT 15
 
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9) | TIM_N(10) | TIM_N(11))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* M1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* M2 */ \
+    TIMER_PIN_MAP( 2, PA3 , 1,  1) /* M3 */ \
+    TIMER_PIN_MAP( 3, PB5 , 1,  0) /* M4 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) /* M5 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* M6 */ \
+    TIMER_PIN_MAP( 6, PB6 , 1,  0) /* LED */ \
+    TIMER_PIN_MAP( 7, PB8 , 2, -1) /* PPM */ \
+    TIMER_PIN_MAP( 8, PC6 , 2,  0) /* UART6_TX */ \
+    TIMER_PIN_MAP( 9, PC7 , 2,  0) /* UART6_RX */ \
+    TIMER_PIN_MAP(10, PA9 , 1,  0) /* UART1_TX */ \
+    TIMER_PIN_MAP(11, PA10, 1,  0) /* UART1_RX */ \
+    TIMER_PIN_MAP(12, PA1 , 2,  0) /* UART4_RX */ \
+    TIMER_PIN_MAP(13, PA2 , 3, -1) /* UART2_TX */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA3
+#define MOTOR4_PIN              PB5
+#define MOTOR5_PIN              PC8
+#define MOTOR6_PIN              PC9
+#define RX_PPM_PIN              PB8
+#define LED_STRIP_PIN           PB6

@@ -29,17 +29,32 @@
 #define ADC_INSTANCE                ADC1
 #endif
 
+// Per-device DMA option; a target.h overrides these. Meaning differs by MCU family:
+// F4/F7 pick one of two fixed streams per ADC, H7 picks a pool stream (0-7 DMA1, 8-15 DMA2).
 #if defined(STM32F4) || defined(STM32F7)
-#ifndef ADC1_DMA_STREAM
-#define ADC1_DMA_STREAM DMA2_Stream4 // ST0 or ST4
+#ifndef ADC1_DMA_OPT
+#define ADC1_DMA_OPT 1 // DMA2 ST4 (0: ST0)
 #endif
 
-#ifndef ADC2_DMA_STREAM
-#define ADC2_DMA_STREAM DMA2_Stream3 // ST2 or ST3
+#ifndef ADC2_DMA_OPT
+#define ADC2_DMA_OPT 1 // DMA2 ST3 (0: ST2)
 #endif
 
-#ifndef ADC3_DMA_STREAM
-#define ADC3_DMA_STREAM DMA2_Stream0 // ST0 or ST1
+#ifndef ADC3_DMA_OPT
+#define ADC3_DMA_OPT 0 // DMA2 ST0 (1: ST1)
+#endif
+#elif defined(STM32H7)
+// DMA1 is reserved for timer-based DMA, so the defaults stay on DMA2.
+#ifndef ADC1_DMA_OPT
+#define ADC1_DMA_OPT 9 // DMA2 ST1
+#endif
+
+#ifndef ADC2_DMA_OPT
+#define ADC2_DMA_OPT 10 // DMA2 ST2
+#endif
+
+#ifndef ADC3_DMA_OPT
+#define ADC3_DMA_OPT 11 // DMA2 ST3
 #endif
 #endif
 
@@ -56,21 +71,52 @@ typedef enum ADCDevice {
 #define ADC_CFG_TO_DEV(x) ((x) - 1)
 #define ADC_DEV_TO_CFG(x) ((x) + 1)
 
+// H7 reads VREFINT and the temperature sensor in the ADC3 DMA scan; H7A3 has no ADC3.
+#if defined(STM32H7) && defined(USE_ADC_INTERNAL) && !(defined(STM32H7A3xx) || defined(STM32H7A3xxQ))
+#define ADC_INTERNAL_IN_SCAN
+#endif
+
 typedef enum {
     ADC_BATTERY = 0,
     ADC_CURRENT = 1,
     ADC_EXTERNAL1 = 2,
     ADC_RSSI = 3,
+#ifdef ADC_INTERNAL_IN_SCAN
+    ADC_CHANNEL_INTERNAL_FIRST_ID = 4,
+    ADC_TEMPSENSOR = 4,
+    ADC_VREFINT = 5,
+#endif
     ADC_CHANNEL_COUNT
 } AdcChannel;
 
 typedef struct adcOperatingConfig_s {
     ioTag_t tag;
+#if defined(STM32H7)
+    ADCDevice adcDevice;        // ADCDEV_x serving this input
+    uint32_t adcChannel;        // H7 HAL channel constant, wider than 8 bits
+#else
     uint8_t adcChannel;         // ADC1_INxx channel number
+#endif
     uint8_t dmaIndex;           // index into DMA buffer in case of sparse channels
     bool enabled;
     uint8_t sampleTime;
 } adcOperatingConfig_t;
+
+#if defined(STM32H7)
+// Keep the configured ADC when it can read the pin, else take the first usable ADC that can.
+static inline ADCDevice adcSelectDevice(uint8_t pinDevices, ADCDevice configured, uint8_t usableDevices)
+{
+    if (configured >= 0 && configured < ADCDEV_COUNT && (pinDevices & (1U << configured))) {
+        return configured;
+    }
+    for (int dev = 0; dev < ADCDEV_COUNT; dev++) {
+        if ((pinDevices & usableDevices) & (1U << dev)) {
+            return (ADCDevice)dev;
+        }
+    }
+    return ADCINVALID;
+}
+#endif
 
 struct adcConfig_s;
 void adcInit(const struct adcConfig_s *config);
@@ -86,6 +132,25 @@ bool adcInternalIsBusy(void);
 void adcInternalStartConversion(void);
 uint16_t adcInternalReadVrefint(void);
 uint16_t adcInternalReadTempsensor(void);
+
+#define ADC_INTERNAL_CAL_VREF_MV 3300U // Vdda during factory calibration of VREFINT and the temperature sensor
+
+// Vdda in mV. A higher supply gives a lower VREFINT sample. Returns 0 when an input is zero.
+static inline uint16_t adcInternalCompensateVref(uint16_t vrefintCal, uint16_t vrefintSample)
+{
+    if (vrefintCal == 0 || vrefintSample == 0) {
+        return 0;
+    }
+    const uint32_t mv = (uint32_t)vrefintCal * ADC_INTERNAL_CAL_VREF_MV / vrefintSample;
+    return mv > UINT16_MAX ? UINT16_MAX : (uint16_t)mv;
+}
+
+// Core temperature in degC. The sample is scaled to the calibration Vdda first.
+static inline int16_t adcInternalComputeTemperature(uint16_t tempSample, uint16_t vrefMv, uint16_t tsCal1, int32_t slopeK)
+{
+    const int32_t adjusted = (int32_t)((uint32_t)tempSample * vrefMv / ADC_INTERNAL_CAL_VREF_MV);
+    return (int16_t)(((adjusted - tsCal1) * slopeK + 30 * 1000 + 500) / 1000);
+}
 #endif
 
 #if !defined(SIMULATOR_BUILD)

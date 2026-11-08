@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        KROOZX
+#define MANUFACTURER_ID   LEGA
 #define TARGET_BOARD_IDENTIFIER "KROOZX"
 
 #define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
@@ -45,8 +48,7 @@
 // MPU6000 interrupts
 #define USE_EXTI
 #define USE_MPU_DATA_READY_SIGNAL
-#define MPU_INT_EXTI            PA4
-
+#define GYRO_1_EXTI_PIN         NONE
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
 #define GYRO_MPU6000_ALIGN      CW90_DEG
@@ -72,7 +74,6 @@
 #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256 // 328kHz
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
 
-#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream5
 
 #ifdef USE_MSP_DISPLAYPORT
 #undef USE_MSP_DISPLAYPORT
@@ -147,12 +148,27 @@
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_PPM
 #define RX_CHANNELS_TAER
-#define DEFAULT_FEATURES        (FEATURE_OSD)
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USED_TIMERS             (TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC7 , 2,  0) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PA2 , 2,  0) /* PWM1 */ \
+    TIMER_PIN_MAP( 2, PA3 , 2,  0) /* PWM2 */ \
+    TIMER_PIN_MAP( 3, PA0 , 2,  0) /* PWM3 */ \
+    TIMER_PIN_MAP( 4, PA1 , 2,  0) /* PWM4 */ \
+    TIMER_PIN_MAP( 5, PB1 , 2,  0) /* PWM5 */ \
+    TIMER_PIN_MAP( 6, PB0 , 2,  0) /* PWM6 */ \
+    TIMER_PIN_MAP( 7, PB8 , 1,  0) /* PWM7 */ \
+    TIMER_PIN_MAP( 8, PB9 , 1, -1) /* PWM8 */ \
+    TIMER_PIN_MAP( 9, PC6 , 2,  0) /* LED_STRIP */
+
+#define MOTOR1_PIN              PA2
+#define MOTOR2_PIN              PA3
+#define MOTOR3_PIN              PA0
+#define MOTOR4_PIN              PA1
+#define MOTOR5_PIN              PB1
+#define MOTOR6_PIN              PB0
+#define MOTOR7_PIN              PB8
+#define MOTOR8_PIN              PB9
+#define RX_PPM_PIN              PC7
+#define LED_STRIP_PIN           PC6

@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        GEELANGF411
 #define MANUFACTURER_ID   GEEL
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define FC_TARGET_MCU     STM32F411
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
@@ -93,22 +92,30 @@
 #define VBAT_ADC_PIN PB0
 #define CURRENT_METER_ADC_PIN PB1
 #define ADC1_DMA_OPT        0
-#define ADC1_DMA_STREAM DMA2_Stream0 //# ADC 1: DMA2 Stream 0 Channel 0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 100
 
 
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(9) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB4 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB5 , 1,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB7 , 1,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PA0 , 2,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PB10 , 1,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PA3 , 3, -1) /* could not determine TIM_USE_xxxxx - please check; dma 0 assumed, please verify */ \
+    TIMER_PIN_MAP( 7, PA2 , 2,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 8, PA8 , 1,  0) /* led */
+
+#define MOTOR1_PIN              PB4
+#define MOTOR2_PIN              PB5
+#define MOTOR3_PIN              PB6
+#define MOTOR4_PIN              PB7
+#define MOTOR5_PIN              PA0
+#define MOTOR6_PIN              PB10
 
 // notice - this file was programmatically generated and may be incomplete.

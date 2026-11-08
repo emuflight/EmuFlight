@@ -25,8 +25,9 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "SKST"
 #define USBD_PRODUCT_STRING     "SKST7HDPRO"
 
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
-#define TARGET_BOARD_IDENTIFIER "S7X2"
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        SKYSTARSF7HDPRO
+#define MANUFACTURER_ID   SKST
 
 // ******* LEDs and BEEPER ********
 
@@ -159,7 +160,7 @@
 
 #define USE_ADC
 #define ADC_INSTANCE            ADC2
-#define ADC2_DMA_STREAM         DMA2_Stream3
+#define ADC2_DMA_OPT 1
 
 #define VBAT_ADC_PIN            PC1
 #define RSSI_ADC_PIN            PC2
@@ -191,16 +192,26 @@
 #define SERIALRX_UART           SERIAL_PORT_USART1
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
+#define DEFAULT_FEATURES                (FEATURE_SOFTSERIAL)
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 290
 
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3)| TIM_N(4) | TIM_N(8) )
+// PB3 and TIM4 burst share DMA1 Stream 6; with DShot burst on only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB4 , 1,  -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PC8 , 2,  0) /* S1_OUT – UP2-1 */ \
+    TIMER_PIN_MAP( 2, PC9 , 2,  0) /* S2_OUT – UP2-1 */ \
+    TIMER_PIN_MAP( 3, PB6 , 1,  0) /* S3_OUT – UP2-5 */ \
+    TIMER_PIN_MAP( 4, PB7 , 1,  0) /* S4_OUT – UP2-5 */ \
+    TIMER_PIN_MAP( 5, PA8 , 1,  -1) /* FC CAM – DMA1_ST7 */ \
+    TIMER_PIN_MAP( 6, PB3 , 1,  0) /* LED_STRIP – DMA1_ST6 */
+
+#define MOTOR1_PIN              PC8
+#define MOTOR2_PIN              PC9
+#define MOTOR3_PIN              PB6
+#define MOTOR4_PIN              PB7
+#define RX_PPM_PIN              PB4
+#define LED_STRIP_PIN           PB3

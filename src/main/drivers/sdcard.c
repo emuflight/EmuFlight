@@ -23,7 +23,7 @@
 
 #include "platform.h"
 
-#ifdef USE_SDCARD
+#if defined(USE_SDCARD) && !defined(USE_SDCARD_SDIO)
 
 #include "drivers/nvic.h"
 #include "drivers/io.h"
@@ -43,7 +43,7 @@
 // Chosen so that CMD8 will have the same CRC as CMD0:
 #define SDCARD_IF_COND_CHECK_PATTERN                0xAB
 
-#define SDCARD_TIMEOUT_INIT_MILLIS                  200
+#define SDCARD_TIMEOUT_INIT_MILLIS                  1000
 #define SDCARD_MAX_CONSECUTIVE_FAILURES             8
 
 /* Break up 512-byte SD card sectors into chunks of this size when writing without DMA to reduce the peak overhead
@@ -567,7 +567,7 @@ static bool sdcard_checkInitDone(void) {
  * Begin the initialization process for the SD card. This must be called first before any other sdcard_ routine.
  */
 void sdcard_init(const sdcardConfig_t *config) {
-    sdcard.enabled = config->enabled;
+    sdcard.enabled = config->mode == SDCARD_MODE_SPI;
     if (!sdcard.enabled) {
         sdcard.state = SDCARD_STATE_NOT_PRESENT;
         return;
@@ -589,6 +589,7 @@ void sdcard_init(const sdcardConfig_t *config) {
         sdcard.cardDetectPin = IO_NONE;
         sdcard.detectionInverted = false;
     }
+    sdcardInsertionDetectInit();
     // Max frequency is initially 400kHz
     spiSetClkDivisor(&sdcard.dev, SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER);
     // SDCard wants 1ms minimum delay after power is applied to it

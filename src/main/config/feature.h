@@ -23,7 +23,7 @@
 #include "pg/pg.h"
 
 #ifndef DEFAULT_FEATURES
-#define DEFAULT_FEATURES (FEATURE_OSD | FEATURE_TELEMETRY)
+#define DEFAULT_FEATURES 0
 #endif
 
 #ifndef DEFAULT_RX_FEATURE

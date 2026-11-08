@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        WORMFC
+#define MANUFACTURER_ID   FOSS
 #define TARGET_BOARD_IDENTIFIER "RRF4"
 #define USBD_PRODUCT_STRING     "Worm FC"
 
@@ -123,14 +126,26 @@
 //SD CARD
 #define USE_SDCARD
 #define USE_SDCARD_SDIO
-#define SDIO_DMA          DMA2_Stream3
+#define SDCARD_SDIO_DMA_OPT 0
 #define SDCARD_SPI_CS_PIN NONE //This is not used on SDIO, has to be kept for now to keep compiler happy
 #define SDCARD_DETECT_PIN PB15
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8))
+// PB9: the removed legacy table marked this pad TIMER_OUTPUT_INVERTED; the full table applies no inversion.
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB9 , 1, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* S1_OUT - TIM3_UP - BURST */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* S2_OUT - TIM3_UP - BURST */ \
+    TIMER_PIN_MAP( 3, PA2 , 1,  0) /* S3_OUT - TIM2_UP - BURST */ \
+    TIMER_PIN_MAP( 4, PA3 , 1,  1) /* S4_OUT - TIM2_UP - BURST */ \
+    TIMER_PIN_MAP( 5, PA10 , 1,  1) /* S5_OUT - TIM1_UP - BURST */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  1) /* S6_OUT - TIM1_UP - BURST */
+
+#define MOTOR1_PIN              PB1
+#define MOTOR2_PIN              PB0
+#define MOTOR3_PIN              PA2
+#define MOTOR4_PIN              PA3
+#define MOTOR5_PIN              PA10
+#define MOTOR6_PIN              PA8
+#define RX_PPM_PIN              PB9
+#define LED_STRIP_PIN           PA10

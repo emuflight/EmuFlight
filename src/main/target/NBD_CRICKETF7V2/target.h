@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        NBD_CRICKETF7V2
 #define MANUFACTURER_ID   NEBD
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define USE_ACC
 #define USE_GYRO
@@ -51,6 +50,10 @@
 #define SPI3_SCK_PIN         PC10
 #define SPI3_MISO_PIN        PC11
 #define SPI3_MOSI_PIN        PC12
+
+#define USE_MAX7456
+#define MAX7456_SPI_INSTANCE SPI3
+#define MAX7456_SPI_CS_PIN   PC13
 
 #define USE_EXTI
 #define USE_GYRO_EXTI
@@ -88,26 +91,26 @@
 #define UART6_RX_PIN         PC7
 #define SERIAL_PORT_COUNT 7
 
-
 #define USE_ADC
 #define VBAT_ADC_PIN PC0
 #define CURRENT_METER_ADC_PIN PC1
 #define ADC1_DMA_OPT        1
-#define ADC1_DMA_STREAM DMA2_Stream4 //# ADC 1: DMA2 Stream 4 Channel 0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 5
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB4 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB3 , 1,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB0 , 2,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PA8 , 1,  0) /* led */
+
+#define MOTOR1_PIN              PB4
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PB3
+#define MOTOR4_PIN              PB0
 
 // notice - this file was programmatically generated and may be incomplete.

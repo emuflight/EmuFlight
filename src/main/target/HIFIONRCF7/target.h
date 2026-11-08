@@ -19,7 +19,9 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER           "S7X2"
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        HIFIONRCF7
+#define MANUFACTURER_ID   HFOR
 #define USBD_PRODUCT_STRING               "HIFIONRC F722 PRO"
 
 #define USE_TARGET_CONFIG
@@ -158,12 +160,24 @@
 #define DEFAULT_RX_FEATURE                FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER                 SERIALRX_SBUS
 #define SERIALRX_UART                     SERIAL_PORT_USART3
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT        9
-#define USED_TIMERS  ( TIM_N(1) |TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(9) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* USE FOR CAMERA CONTROL */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 3, PB4 , 1,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 4, PB3 , 1,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 7, PA8 , 1,  0) /* D1-ST6 */ \
+    TIMER_PIN_MAP( 8, PB8 , 1,  0) /* D1-ST6 */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PB4
+#define MOTOR4_PIN              PB3
+#define MOTOR5_PIN              PC9
+#define MOTOR6_PIN              PC8
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA8

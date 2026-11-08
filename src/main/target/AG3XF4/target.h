@@ -22,6 +22,9 @@
 
 #define USE_TARGET_CONFIG
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        AG3XF4
+#define MANUFACTURER_ID   AIRB
 #define TARGET_BOARD_IDENTIFIER "AGX4"
 #define USBD_PRODUCT_STRING "Asgard32 F4"
 
@@ -152,15 +155,37 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_SOFTSERIAL | FEATURE_ESC_SENSOR)
+#define DEFAULT_FEATURES        (FEATURE_SOFTSERIAL | FEATURE_ESC_SENSOR)
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ESC
 
-#define TARGET_IO_PORTA (0xffff & ~(BIT(13)|BIT(14)))
-#define TARGET_IO_PORTB (0xffff & ~(BIT(2)))
-#define TARGET_IO_PORTC (0xffff)
-#define TARGET_IO_PORTD BIT(2)
 
-#define USABLE_TIMER_CHANNEL_COUNT 15
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9) | TIM_N(12))
+// DEF_TIM(TIM4,  CH1, PB6,  TIM_USE_LED, 0, 0), // LED strip XXX Collision with M4
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA8 , 1,  0) /* PPM    D(1,0) */ \
+    TIMER_PIN_MAP( 1, PC8 , 2,  0) /* MOTOR1 U(2,1) D(2,2) D(2,4) */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* MOTOR2 U(1,2) D(1,7) */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* MOTOR3 U(1,2) D(1,2) */ \
+    TIMER_PIN_MAP( 4, PB7 , 1,  0) /* MOTOR4 U(1,6) D(1,3) */ \
+    TIMER_PIN_MAP( 5, PB8 , 1,  0) /* MOTOR5 U(1,6) D(1,7) */ \
+    TIMER_PIN_MAP( 6, PC9 , 2,  0) /* MOTOR6 U(2,1) D(2,7) */ \
+    TIMER_PIN_MAP( 7, PB14 , 3, -1) /* MOTOR7 ; SS2 */ \
+    TIMER_PIN_MAP( 8, PB15 , 3, -1) /* MOTOR8 */ \
+    TIMER_PIN_MAP( 9, PA9 , 1,  1) /* TX1    D(2,6) D(2,2) ; SS1 */ \
+    TIMER_PIN_MAP( 10, PA10 , 1,  0) /* RX1    D(2,6) D(2,6) */ \
+    TIMER_PIN_MAP( 11, PA2 , 2,  0) /* TX2    D(1,0) ; SA port ---> LED */ \
+    TIMER_PIN_MAP( 12, PA3 , 3, -1) /* RX2           ; CAMC port */ \
+    TIMER_PIN_MAP( 13, PB10 , 1,  0) /* SCL2   D(1,1) */ \
+    TIMER_PIN_MAP( 14, PB11 , 1,  0) /* SDA2   D(1,7) D(1,6) */
+
+#define MOTOR1_PIN              PC8
+#define MOTOR2_PIN              PB0
+#define MOTOR3_PIN              PB1
+#define MOTOR4_PIN              PB7
+#define MOTOR5_PIN              PB8
+#define MOTOR6_PIN              PC9
+#define MOTOR7_PIN              PB14
+#define MOTOR8_PIN              PB15
+#define RX_PPM_PIN              PA8
+#define LED_STRIP_PIN           PA2

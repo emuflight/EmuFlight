@@ -19,7 +19,9 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER "S405"
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        HGLRCF405
+#define MANUFACTURER_ID   HGLR
 #define USBD_PRODUCT_STRING "HGLRCF405"
 
 #define ENABLE_DSHOT_DMAR       true
@@ -30,6 +32,7 @@
 #define BEEPER_INVERTED
 
 //define camera control
+// no timer-map row: TIM4 is shared with the LED strip pad PB6; camera control stays inactive
 #define CAMERA_CONTROL_PIN      PB7
 
 #define USE_DUAL_GYRO
@@ -132,6 +135,8 @@
 #define SPI3_MOSI_PIN            PC12
 
 #define USE_ADC
+#define ADC_INSTANCE ADC2
+#define ADC2_DMA_OPT 1
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define CURRENT_METER_ADC_PIN   PC1
@@ -142,10 +147,26 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_UART           SERIAL_PORT_UART5
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT      14
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9) | TIM_N(10)  )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* M1 - D2_ST6 */ \
+    TIMER_PIN_MAP( 2, PA3 , 1,  1) /* M2_OUT D2_ST2 */ \
+    TIMER_PIN_MAP( 3, PB5 , 1,  0) /* M3_OUT D1_ST6 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) /* M4_OUT D1_ST1 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* BEEPER PWM */ \
+    TIMER_PIN_MAP( 6, PB6 , 1,  0) /* LED & MOTOR5 D1_ST7 */ \
+    TIMER_PIN_MAP( 7, PB8 , 2, -1) /* PPM */ \
+    TIMER_PIN_MAP( 8, PC6 , 2,  0) /* M1 - D2_ST6 */ \
+    TIMER_PIN_MAP( 9, PC7 , 2,  0) /* M2_OUT D2_ST2 */ \
+    TIMER_PIN_MAP( 10, PA9 , 1,  0) /* M3_OUT D1_ST6 */ \
+    TIMER_PIN_MAP( 11, PA10 , 1,  0) /* M4_OUT D1_ST1 */ \
+    TIMER_PIN_MAP( 12, PA1 , 2,  0) /* BEEPER PWM */ \
+    TIMER_PIN_MAP( 13, PA2 , 3, -1) /* LED & MOTOR5 D1_ST7 */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA3
+#define MOTOR4_PIN              PB5
+#define RX_PPM_PIN              PB8
+#define LED_STRIP_PIN           PB6

@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        MATEKF722
+#define MANUFACTURER_ID   MTKS
 #define TARGET_BOARD_IDENTIFIER "MKF7"
 
 #define USBD_PRODUCT_STRING  "MatekF7"
@@ -101,7 +104,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
 
-#define SDCARD_DMA_STREAM_TX_FULL           DMA1_Stream7
 
 // *************** OSD *****************************
 #define USE_SPI_DEVICE_2
@@ -147,20 +149,39 @@
 
 // *************** ADC *****************************
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 0
 #define VBAT_ADC_PIN            PC0
 #define CURRENT_METER_ADC_PIN   PC4
 #define RSSI_ADC_PIN            PB0
 
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 179
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#define USED_TIMERS             (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(8)|TIM_N(9))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 1, PC6 , 2,  1) /* S1   DMA1_ST4 */ \
+    TIMER_PIN_MAP( 2, PC7 , 2,  1) /* S2   DMA2_ST3 */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  1) /* S3   DMA2_ST4 */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* S4   DMA2_ST7 */ \
+    TIMER_PIN_MAP( 5, PB1 , 2,  0) /* S5   DMA1_ST2 */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  0) /* S6   DMA2_ST6 */ \
+    TIMER_PIN_MAP( 7, PB8 , 1,  0) /* pwm/S7  DMA1_ST7 */ \
+    TIMER_PIN_MAP( 8, PA2 , 2,  0) /* TX2/S8  DMA1_ST0 */ \
+    TIMER_PIN_MAP( 9, PA0 , 2,  0) /* TX4 */ \
+    TIMER_PIN_MAP( 10, PA1 , 2,  0) /* RX4 */ \
+    TIMER_PIN_MAP( 11, PA15 , 1,  0) /* LED STRIP  DMA1_ST5 */
+
+#define MOTOR1_PIN              PC6
+#define MOTOR2_PIN              PC7
+#define MOTOR3_PIN              PC8
+#define MOTOR4_PIN              PC9
+#define MOTOR5_PIN              PB1
+#define MOTOR6_PIN              PA8
+#define MOTOR7_PIN              PB8
+#define MOTOR8_PIN              PA2
+#define RX_PWM1_PIN             PA0
+#define RX_PWM2_PIN             PA1
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA15

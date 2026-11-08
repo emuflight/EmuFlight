@@ -23,8 +23,9 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "SPBE"
 #define USBD_PRODUCT_STRING "SPEEDYBEEF405V4"
 
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        SPEEDYBEEF405V4
+#define MANUFACTURER_ID   SPBE
 
 #define USE_ACC
 #define USE_GYRO
@@ -106,10 +107,8 @@
 #define I2C1_SCL PB8
 #define I2C1_SDA PB9
 
-#define USE_SDCARD_SDIO
 #define SDCARD_SPI_CS_PIN PC14
 #define SDCARD_SPI_INSTANCE SPI3
-#define SDCARD_DMA_CHANNEL_TX       DMA1_Stream5 //# SPI_MOSI 3: DMA1 Stream 5 Channel 0
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4
 #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256
@@ -123,7 +122,6 @@
 #define CURRENT_METER_ADC_PIN PC1
 #define RSSI_ADC_PIN PC5
 #define ADC1_DMA_OPT 0
-#define ADC1_DMA_STREAM DMA2_Stream0 //# ADC 1: DMA2 Stream 0 Channel 0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 400
@@ -134,16 +132,31 @@
 #define PINIO1_CONFIG 129
 #define PINIO1_BOX 0
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(9) | TIM_N(12) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB6 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB7 , 1,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PB10 , 1,  0) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PA15 , 1,  0) /* motor 8 */ \
+    TIMER_PIN_MAP( 8, PB15 , 3, -1) /* servo 1 */ \
+    TIMER_PIN_MAP( 9, PB14 , 3, -1) /* cam ctrl */ \
+    TIMER_PIN_MAP( 10, PA8 , 1,  0) /* led */ \
+    TIMER_PIN_MAP( 11, PA3 , 3, -1) /* ppm */
 
+#define MOTOR1_PIN              PB6
+#define MOTOR2_PIN              PB7
+#define MOTOR3_PIN              PB0
+#define MOTOR4_PIN              PB1
+#define MOTOR5_PIN              PC8
+#define MOTOR6_PIN              PC9
+#define MOTOR7_PIN              PB10
+#define MOTOR8_PIN              PA15
+#define RX_PPM_PIN              PA3
+
+#define SERVO1_PIN            PB15
 // notice - this file was programmatically generated and may be incomplete.

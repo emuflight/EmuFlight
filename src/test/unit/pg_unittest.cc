@@ -31,7 +31,7 @@ extern "C" {
 
 //PG_DECLARE(motorConfig_t, motorConfig);
 
-PG_REGISTER_WITH_RESET_TEMPLATE(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 1);
+PG_REGISTER_WITH_RESET_TEMPLATE(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 2);
 
 PG_RESET_TEMPLATE(motorConfig_t, motorConfig,
     .dev = {
@@ -40,7 +40,8 @@ PG_RESET_TEMPLATE(motorConfig_t, motorConfig,
         .motorPwmInversion = 0,
         .useUnsyncedPwm = 0,
         .useBurstDshot = 0,
-        .ioTags = {0}
+        .ioTags = {0},
+        .motorOutputReordering = {0, 1, 2, 3, 4, 5, 6, 7}
     },
     .digitalIdleOffsetValue = 0,
     .minthrottle = 1150,

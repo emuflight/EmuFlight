@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        EXF722DUAL
+#define MANUFACTURER_ID   EXUA
 #define TARGET_BOARD_IDENTIFIER "EX7P"
 
 #define USBD_PRODUCT_STRING     "EXF722DUAL"
@@ -127,7 +130,7 @@
 
 #define USE_ADC
 #define ADC_INSTANCE            ADC3
-#define ADC3_DMA_STREAM         DMA2_Stream0
+#define ADC3_DMA_OPT 0
 
 #define VBAT_ADC_PIN            PC1
 #define CURRENT_METER_ADC_PIN   PC2
@@ -142,15 +145,32 @@
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 #define DEFAULT_RX_FEATURE                  FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES                    (FEATURE_TRANSPONDER | FEATURE_RSSI_ADC | FEATURE_TELEMETRY | FEATURE_OSD | FEATURE_LED_STRIP)
+#define DEFAULT_FEATURES                    (FEATURE_TRANSPONDER | FEATURE_RSSI_ADC | FEATURE_LED_STRIP)
 
 #define SERIALRX_UART                       SERIAL_PORT_USART2
 #define SERIALRX_PROVIDER                   SERIALRX_SBUS
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USED_TIMERS  (TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA0 , 2,  0) \
+    TIMER_PIN_MAP( 1, PA3 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 2, PC8 , 2,  1) /* ESC 1 */ \
+    TIMER_PIN_MAP( 3, PC6 , 2,  1) /* ESC 2 */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* ESC 3 */ \
+    TIMER_PIN_MAP( 5, PC7 , 2,  1) /* ESC 4 */ \
+    TIMER_PIN_MAP( 6, PB6 , 1,  0) /* ESC 5 */ \
+    TIMER_PIN_MAP( 7, PB7 , 1,  0) /* ESC 6 */ \
+    TIMER_PIN_MAP( 8, PB1 , 2,  0) /* ESC 7 */ \
+    TIMER_PIN_MAP( 9, PB0 , 2,  0) /* ESC 8 */ \
+    TIMER_PIN_MAP( 10, PA1 , 1,  0) /* LED Strip */
+
+#define MOTOR1_PIN              PC8
+#define MOTOR2_PIN              PC6
+#define MOTOR3_PIN              PC9
+#define MOTOR4_PIN              PC7
+#define MOTOR5_PIN              PB6
+#define MOTOR6_PIN              PB7
+#define MOTOR7_PIN              PB1
+#define MOTOR8_PIN              PB0
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA1

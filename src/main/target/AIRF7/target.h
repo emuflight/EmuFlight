@@ -22,8 +22,7 @@
 
 #define MANUFACTURER_ID RAST
 #define BOARD_NAME AIRF7
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define LED0_PIN                PA3
 
@@ -151,12 +150,18 @@
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 179
 
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_AIRMODE)
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USED_TIMERS             (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(8))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA15 , 1,  0) /* ONBOARD LED */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  0) /* CAM CONTROL */ \
+    TIMER_PIN_MAP( 2, PC8 , 2,  0) /* S1 */ \
+    TIMER_PIN_MAP( 3, PC9 , 2,  0) /* S2 */ \
+    TIMER_PIN_MAP( 4, PB0 , 2,  0) /* S3 */ \
+    TIMER_PIN_MAP( 5, PB1 , 2,  0) /* S4 */
+
+#define MOTOR1_PIN              PC8
+#define MOTOR2_PIN              PC9
+#define MOTOR3_PIN              PB0
+#define MOTOR4_PIN              PB1
+#define LED_STRIP_PIN           PA15

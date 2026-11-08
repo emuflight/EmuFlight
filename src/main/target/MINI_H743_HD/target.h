@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        MINI_H743_HD
 #define MANUFACTURER_ID   RAST
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU     STM32H743     // not used in EmuF
+#define FC_TARGET_MCU     STM32H743
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
@@ -46,7 +45,7 @@
 #define LED_STRIP_PIN        PA8
 #define USE_BEEPER
 #define BEEPER_PIN           PB3
-#define CAMERA_CONTROL_PIN   PD9
+#define CAMERA_CONTROL_PIN   PD9 // PD9 has no timer alternate function, so camera control cannot run on this pin
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -134,9 +133,6 @@
 #define ADC1_DMA_OPT        8
 #define ADC2_DMA_OPT        9
 #define ADC3_DMA_OPT       10
-#define ADC1_DMA_STREAM DMA2_Stream0 // ADC1 opt8
-#define ADC2_DMA_STREAM DMA2_Stream1 // ADC2 opt9
-#define ADC3_DMA_STREAM DMA2_Stream2 // ADC3 opt10
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 250
@@ -146,17 +142,45 @@
 #define PINIO1_BOX 40
 #define PINIO2_BOX 41
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 21
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(15) )
+#define MAX_TIMER_PINMAP_COUNT 22 // 22 map entries; the fleet default is 21
+// PC8 needs a stream apart from PB0, and each timer TIM_UP (burst) stream must differ; PC9 uses the free DMA2 Stream 3
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PD12 , 1,  6) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PA3 , 2,  1) /* ppm */ \
+    TIMER_PIN_MAP( 2, PC8 , 2,  3) /* motor 5 */ \
+    TIMER_PIN_MAP( 3, PB0 , 2,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 4, PB1 , 2,  1) /* motor 4 */ \
+    TIMER_PIN_MAP( 5, PE9 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 6, PE11 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 7, PB4 , 1,  4) /* motor 7 */ \
+    TIMER_PIN_MAP( 8, PB5 , 1,  5) /* motor 8 */ \
+    TIMER_PIN_MAP( 9, PE13 , 1,  6) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 10, PE14 , 1,  7) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 11, PA0 , 2,  2) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 12, PA1 , 2,  4) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 13, PA2 , 2,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 14, PD13 , 1,  7) /* motor 2 */ \
+    TIMER_PIN_MAP( 15, PD14 , 1,  12) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 16, PD15 , 1, -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 17, PE5 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 18, PE6 , 1, -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 19, PA8 , 1,  14) /* led strip */ \
+    TIMER_PIN_MAP( 20, PA15 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 21, PC9 , 2,  11) /* motor 6 */
+#define TIMUP3_DMA_OPT 0
+#define TIMUP4_DMA_OPT 1
+#define TIMUP8_DMA_OPT 2
+
+#define MOTOR1_PIN              PD12
+#define MOTOR2_PIN              PD13
+#define MOTOR3_PIN              PB0
+#define MOTOR4_PIN              PB1
+#define MOTOR5_PIN              PC8
+#define MOTOR6_PIN              PC9
+#define MOTOR7_PIN              PB4
+#define MOTOR8_PIN              PB5
+#define RX_PPM_PIN              PA3
 
 // notice - this file was programmatically generated and may be incomplete.

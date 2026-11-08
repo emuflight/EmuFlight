@@ -24,10 +24,12 @@
 
 #define FC_FIRMWARE_NAME            "EmuFlight"
 #define FC_VERSION_MAJOR            0  // increment when a major release is made (big new feature, etc)
-#define FC_VERSION_MINOR            4  // increment when a minor release is made (small new feature, change etc)
-#define FC_VERSION_PATCH_LEVEL      3 // increment when a bug is fixed
+#define FC_VERSION_MINOR            5  // increment when a minor release is made (small new feature, change etc)
+#define FC_VERSION_PATCH_LEVEL      0 // increment when a bug is fixed
 
-#define FC_VERSION_STRING STR(FC_VERSION_MAJOR) "." STR(FC_VERSION_MINOR) "." STR(FC_VERSION_PATCH_LEVEL)
+#define FC_VERSION_SUFFIX           "-dev"  // CI clears it for tags containing "releas"
+
+#define FC_VERSION_STRING STR(FC_VERSION_MAJOR) "." STR(FC_VERSION_MINOR) "." STR(FC_VERSION_PATCH_LEVEL) FC_VERSION_SUFFIX
 
 extern const char* const targetName;
 
@@ -43,4 +45,4 @@ extern const char* const buildTime; // "HH:MM:SS"
 #define BUILD_NUMBER_LENGTH 6
 extern const char* const buildNumber; // 999999
 
-#define MSP_API_VERSION_STRING STR(API_VERSION_MAJOR) "." STR(API_VERSION_MINOR)
+#define MSP_API_VERSION_STRING STR(API_VERSION_MAJOR) "." STR(API_VERSION_MINOR) "." STR(API_VERSION_PATCH)

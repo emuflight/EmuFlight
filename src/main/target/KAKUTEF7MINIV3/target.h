@@ -23,8 +23,9 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "HBRO"
 #define USBD_PRODUCT_STRING            "KAKUTEF7MINIV3"
 
-#define FC_TARGET_MCU                  STM32F7X2  // not used in EmuF
-#define TARGET_BOARD_IDENTIFIER        "S7X2"     // generic ID
+#define FC_TARGET_MCU                  STM32F7X2
+#define BOARD_NAME        KAKUTEF7MINIV3
+#define MANUFACTURER_ID   HBRO
 
 #define LED0_PIN                  PD2
 
@@ -162,18 +163,29 @@
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
-#define DEFAULT_FEATURES          (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE)
 #define DEFAULT_RX_FEATURE        FEATURE_RX_SERIAL
 #define SERIALRX_UART             SERIAL_PORT_USART6
 #define SERIALRX_PROVIDER         SERIALRX_SBUS
 #define ESC_SENSOR_UART           SERIAL_PORT_USART7
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-#define TARGET_IO_PORTE 0xffff
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
 
-#define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(9) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM, DMA2_ST6 */ \
+    TIMER_PIN_MAP( 1, PB3 , 1,  -1) /* CAM_CONTROL */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* M1 , DMA1_ST7 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* M2 , DMA1_ST2 */ \
+    TIMER_PIN_MAP( 4, PB4 , 1,  0) /* M3 , DMA2_ST2 */ \
+    TIMER_PIN_MAP( 5, PB5 , 1,  0) /* M4 , DMA2_ST4 */ \
+    TIMER_PIN_MAP( 6, PB6 , 1,  0) /* M5 , DMA2_ST7 */ \
+    TIMER_PIN_MAP( 7, PB7 , 1,  0) /* M6 , DMA1_ST1 */ \
+    TIMER_PIN_MAP( 8, PA8 , 1,  2) /* LED_TRIP, DMA1_ST0 */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PB4
+#define MOTOR4_PIN              PB5
+#define MOTOR5_PIN              PB6
+#define MOTOR6_PIN              PB7
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA8

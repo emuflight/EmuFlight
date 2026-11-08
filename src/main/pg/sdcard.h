@@ -23,15 +23,18 @@
 #include "pg/pg.h"
 #include "drivers/io.h"
 
+typedef enum {
+    SDCARD_MODE_NONE = 0,
+    SDCARD_MODE_SPI,
+    SDCARD_MODE_SDIO
+} sdcardMode_e;
+
 typedef struct sdcardConfig_s {
-    uint8_t enabled;
     uint8_t device;
     ioTag_t cardDetectTag;
     ioTag_t chipSelectTag;
     uint8_t cardDetectInverted;
-    // SDIO mode only (drivers/sdcard_sdio_baremetal.c) -- the SPI-mode driver resolves its own
-    // DMA at the bus level via spiInitBusDMA(), no config-level identifier needed.
-    uint8_t dmaIdentifier;
+    sdcardMode_e mode;
 } sdcardConfig_t;
 
 PG_DECLARE(sdcardConfig_t, sdcardConfig);

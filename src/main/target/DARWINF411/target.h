@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        DARWINF411
 #define MANUFACTURER_ID   DAFP
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define FC_TARGET_MCU     STM32F411
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6500
@@ -106,7 +105,6 @@
 #define SDCARD_SPI_INSTANCE SPI2
 // DMA1_Stream4 is shared by SPI2_TX (sdcard, ch0) and TIM3_CH1/motor1 (ch5).
 // sdcard useDma defaults to false so there is no runtime conflict; do not enable sdcard DMA.
-#define SDCARD_DMA_CHANNEL_TX       DMA1_Stream4 // SPI2 TX: DMA1 Stream4 Channel0
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4
 #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256
@@ -118,20 +116,27 @@
 #define VBAT_ADC_PIN PB0
 #define CURRENT_METER_ADC_PIN PB1
 #define ADC1_DMA_OPT        1
-#define ADC1_DMA_STREAM DMA2_Stream4 //# ADC 1: DMA2 Stream 4 Channel 0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 125
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(9) )
+// DEF_TIM(TIM2, CH2, PB3,  TIM_USE_MOTOR, 0, 0), // motor 5 disabled; PB3 used for SOFTSERIAL1 TX/RX — mutually exclusive (BF: MOTOR 5 B03 / SERIAL_TX|RX 11 B03)
+// DEF_TIM(TIM2, CH3, PB10, TIM_USE_MOTOR, 0, 0), // motor 6 disabled; motor 5 disabled leaves 5 motor slots (odd count — invalid); motor 6 also disabled for even 4-motor count
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB4 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB5 , 1,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB7 , 1,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB3 , 1,  0) /* SOFTSERIAL1 TX/RX (half-duplex; shared with motor 5 — motor 5 disabled) */ \
+    TIMER_PIN_MAP( 5, PA3 , 3, -1) /* PPM; shared with UART2_RX — mutually exclusive (BF: PPM 1 A03 / SERIAL_RX 2 A03) */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  0) /* led */
+
+#define MOTOR1_PIN              PB4
+#define MOTOR2_PIN              PB5
+#define MOTOR3_PIN              PB6
+#define MOTOR4_PIN              PB7
+#define RX_PPM_PIN              PA3
 
 // notice - this file was programmatically generated and may be incomplete.

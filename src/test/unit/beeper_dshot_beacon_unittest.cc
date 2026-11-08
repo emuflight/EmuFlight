@@ -221,6 +221,35 @@ TEST_F(DshotBeaconPriorityTest, BeeperSilenceClearsPendingMode)
         << "beeperSilence() failed to clear dshotBeaconPendingMode";
 }
 
+// The names are single CLI tokens: the 'beeper' command, 'dump'/'diff' output and the Configurator
+// (Beepers.js bit 19 'CRASH_FLIP') all use them verbatim.
+TEST(BeeperNameTest, EveryBeeperNameIsASingleUppercaseToken)
+{
+    ASSERT_GT(beeperTableEntryCount(), 0);
+    for (int i = 0; i < beeperTableEntryCount(); i++) {
+        const char *name = beeperNameForTableIndex(i);
+        ASSERT_NE(nullptr, name) << "index " << i;
+        ASSERT_GT(strlen(name), 0u) << "index " << i;
+        for (const char *c = name; *c; c++) {
+            EXPECT_TRUE((*c >= 'A' && *c <= 'Z') || (*c >= '0' && *c <= '9') || *c == '_')
+                << "index " << i << " name '" << name << "' has character '" << *c << "'";
+        }
+    }
+}
+
+TEST(BeeperNameTest, CrashFlipUsesAnUnderscore)
+{
+    bool found = false;
+    for (int i = 0; i < beeperTableEntryCount(); i++) {
+        const char *name = beeperNameForTableIndex(i);
+        if (name && strcmp(name, "CRASH_FLIP") == 0) {
+            found = true;
+        }
+        EXPECT_NE(0, name ? strcmp(name, "CRASH FLIP") : 1) << "legacy spelling with a space is back";
+    }
+    EXPECT_TRUE(found);
+}
+
 // STUBS — satisfy link dependencies not covered above
 
 extern "C" {

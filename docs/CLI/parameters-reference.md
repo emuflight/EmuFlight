@@ -1,7 +1,7 @@
 # CLI Reference
 
 > **Auto-generated** — do not edit manually.
-> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-08-25 | Commit: `656865145` | Firmware: `0.4.3` | MSP: `0.1.54`
+> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-10-30 | Commit: `e112aae36` | Firmware: `0.5.0` | MSP: `0.1.55`
 
 Settings parameters (`valueTable[]`) and CLI commands that persist config through
 their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered here.
@@ -147,7 +147,7 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 | `mag_i2c_device` | uint8 | master | `0` – `I2CDEV_COUNT` | `USE_MAG` |
 | `mag_i2c_address` | uint8 | master | `0` – `I2C_ADDR7_MAX` | `USE_MAG` |
 | `mag_spi_device` | uint8 | master | `0` – `SPIDEV_COUNT` | `USE_MAG` |
-| `mag_hardware` | uint8 | master | `AUTO`, `NONE`, `HMC5883`, `AK8975`, `AK8963`, `QMC5883` | `USE_MAG` |
+| `mag_hardware` | uint8 | master | `AUTO`, `NONE`, `HMC5883`, `AK8975`, `AK8963`, `QMC5883`, `LIS2MDL`, `LIS3MDL`, `MPU925X_AK8963`, `IST8310` | `USE_MAG` |
 | `mag_declination` | int16 | master | `-18000` – `18000` | `USE_MAG` |
 | `mag_calibration` | int16 | master | array\[XYZ_AXIS_COUNT\] | `USE_MAG` |
 
@@ -159,7 +159,7 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 | `baro_spi_device` | uint8 | master | `0` – `5` | `USE_BARO` |
 | `baro_i2c_device` | uint8 | master | `0` – `5` | `USE_BARO` |
 | `baro_i2c_address` | uint8 | master | `0` – `I2C_ADDR7_MAX` | `USE_BARO` |
-| `baro_hardware` | uint8 | master | `AUTO`, `NONE`, `BMP085`, `MS5611`, `BMP280`, `LPS`, `QMP6988` | `USE_BARO` |
+| `baro_hardware` | uint8 | master | `AUTO`, `NONE`, `BMP085`, `MS5611`, `BMP280`, `LPS`, `QMP6988`, `DPS310` | `USE_BARO` |
 | `baro_tab_size` | uint8 | master | `1` – `BARO_SAMPLE_COUNT_MAX` | `USE_BARO` |
 | `baro_noise_lpf` | uint16 | master | `0` – `1000` | `USE_BARO` |
 | `baro_cf_vel` | uint16 | master | `0` – `1000` | `USE_BARO` |
@@ -253,6 +253,7 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 | `motor_pwm_rate` | uint16 | master | `200` – `32000` |  |
 | `motor_pwm_inversion` | uint8 | master | `OFF`, `ON` |  |
 | `motor_poles` | uint8 | master | `4` – `UINT8_MAX` |  |
+| `motor_output_reordering` | uint8 | master | array\[MAX_SUPPORTED_MOTORS\]; logical motor N drives `ioTags` slot `array[N]`; zero-based, each value 0 to `MAX_SUPPORTED_MOTORS - 1` at most once; a shorter list is completed with the lowest unused slots; a repeated or out-of-range value is rejected |  |
 
 ## Throttle Correction Config
 
@@ -606,7 +607,7 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 
 | Parameter | Type | Scope | Range / Values | Requires |
 |-----------|------|-------|----------------|----------|
-| `sdcard_dma` | uint8 | master | `OFF`, `ON` | `USE_SDCARD` |
+| `sdcard_mode` | uint8 | master | `OFF`, `SPI`, `SDIO` | `USE_SDCARD` |
 
 ## SDIO Config
 
@@ -861,14 +862,17 @@ handler instead of `valueTable[]`.
 | `adjrange` | configure adjustment ranges |  |  |
 | `aux` | configure modes | `<index> <mode> <aux> <start> <end> <logic>` |  |
 | `color` | configure colors |  | `USE_LED_STRIP` |
-| `dma` | list dma utilisation, or get/set/list a peripheral's dmaopt | `[show] \| list \| <device> <index> [<option>\|none\|list]` | `USE_RESOURCE_MGMT` |
+| `dma` | show/set DMA assignments | `<> \| <device> <index> list \| <device> <index> [<option>\|none] \| pin <pin> list \| pin <pin> [<option>\|none] \| list \| show` | `USE_RESOURCE_MGMT`, `USE_TIMER_MGMT`, `CLI_DMAOPT` |
+| `dma` | show/set DMA assignments | `<> \| <device> <index> list \| <device> <index> [<option>\|none] \| list \| show` | `USE_RESOURCE_MGMT`, `!USE_TIMER_MGMT`, `CLI_DMAOPT` |
+| `dma` | show DMA assignments | `show` | `USE_RESOURCE_MGMT`, `!CLI_DMAOPT` |
 | `led` | configure leds |  | `USE_LED_STRIP` |
 | `mmix` | custom motor mixer |  |  |
 | `mode_color` | configure mode and special colors |  | `USE_LED_STRIP` |
 | `rxfail` | show/set rx failsafe settings |  |  |
 | `rxrange` | configure rx channel ranges |  |  |
 | `serial` | configure serial ports |  |  |
-| `smix` | servo mixer | `<rule> <servo> <source> <rate> <speed> <min> <max> <box> reset load <mixer> reverse <servo> <source> r\|n` | `USE_SERVOS` |
+| `smix` | servo mixer | `<rule> <servo> <source> <rate> <speed> <min> <max> <box> reset load <mixer> reverse <servo> <source> r\|n` | `USE_SERVOS`, `!USE_QUAD_MIXER_ONLY` |
+| `smix` | servo mixer | `<rule> <servo> <source> <rate> <speed> <min> <max> <box> reset reverse <servo> <source> r\|n` | `USE_SERVOS`, `USE_QUAD_MIXER_ONLY` |
 | `vtx` | vtx channels on switch | `<index> <aux_channel> <vtx_band> <vtx_channel> <vtx_power> <start_range> <end_range>` | `USE_VTX_CONTROL` |
 
 ---

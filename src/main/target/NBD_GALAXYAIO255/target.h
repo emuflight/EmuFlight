@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        NBD_GALAXYAIO255
 #define MANUFACTURER_ID   NEBD
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU     STM32H743     // not used in EmuF
+#define FC_TARGET_MCU     STM32H743
 
 #define USE_GYRO
 #define USE_ACC
@@ -33,6 +32,14 @@
 #define USE_BARO_DPS310
 #define USE_BARO
 #define USE_SDCARD_SDIO
+#define SDIO_DEVICE      SDIODEV_1
+#define SDIO_USE_4BIT    1
+#define SDIO_CK_PIN      PC12
+#define SDIO_CMD_PIN     PD2
+#define SDIO_D0_PIN      PC8
+#define SDIO_D1_PIN      PC9
+#define SDIO_D2_PIN      PC10
+#define SDIO_D3_PIN      PC11
 
 #define USE_VCP
 #define USE_OSD
@@ -114,11 +121,7 @@
 #define I2C2_SCL PB10
 #define I2C2_SDA PB11
 
-//notice - NEED: #define SDCARD_DMA_CHANNEL_TX       DMAx_StreamX // please verify
-//notice - other sdcard defines maybe needed (rare?): SDCARD_DMA_STREAM_TX_FULL, SDCARD_DMA_STREAM_TX, SDCARD_DMA_CLK, SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
-#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4    //notice - needs validation. these are hardware dependent. known options: 2, 4, 8.
-#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256  //notice - needs validation. these are hardware dependent. known options: 128, 256
 
 #define MAX7456_SPI_CS_PIN   PB12
 #define MAX7456_SPI_INSTANCE SPI2
@@ -129,24 +132,23 @@
 #define ADC1_DMA_OPT        8
 #define ADC2_DMA_OPT        9
 #define ADC3_DMA_OPT       10
-#define ADC1_DMA_STREAM DMA2_Stream0 // ADC1 opt8
-#define ADC2_DMA_STREAM DMA2_Stream1 // ADC2 opt9
-#define ADC3_DMA_STREAM DMA2_Stream2 // ADC3 opt10
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(5) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  1) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PA0 , 2,  2) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PA1 , 2,  3) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PA8 , 1,  4) /* led strip */ \
+    TIMER_PIN_MAP( 5, PA15 , 1,  5) /* could not determine TIM_USE_xxxxx - please check */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA0
+#define MOTOR4_PIN              PA1
 
 // notice - this file was programmatically generated and may be incomplete.

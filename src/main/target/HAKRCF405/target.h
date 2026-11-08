@@ -21,6 +21,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        HAKRCF405
+#define MANUFACTURER_ID   HARC
 #define TARGET_BOARD_IDENTIFIER "HKF4"
 #define USBD_PRODUCT_STRING  "HAKRCF405"
 
@@ -132,7 +135,7 @@
 #define MAX7456_SPI_CS_PIN      PA15
 
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PC1
 #define CURRENT_METER_ADC_PIN   PC2
 #define RSSI_ADC_PIN            PC0
@@ -147,14 +150,28 @@
 
 #define INVERTER_PIN_UART1      PB4
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USED_TIMERS             (TIM_N(1)|TIM_N(3)|TIM_N(4)|TIM_N(8)|TIM_N(12))
+// PA10 and PA8 share DMA2 Stream 6; with DShot burst off only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB15 , 3, -1) \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
+    TIMER_PIN_MAP( 2, PC6 , 2,  0) \
+    TIMER_PIN_MAP( 3, PA10 , 1,  0) \
+    TIMER_PIN_MAP( 4, PA8 , 1,  0) \
+    TIMER_PIN_MAP( 5, PC7 , 1,  0) \
+    TIMER_PIN_MAP( 6, PC9 , 2,  0) \
+    TIMER_PIN_MAP( 7, PB6 , 1,  0) \
+    TIMER_PIN_MAP( 8, PA5 , 1, -1) /* camera control, TIM2 CH1 unshared */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PC6
+#define MOTOR3_PIN              PA10
+#define MOTOR4_PIN              PA8
+#define MOTOR5_PIN              PC7
+#define MOTOR6_PIN              PC9
+#define RX_PPM_PIN              PB15
+#define LED_STRIP_PIN           PB6
 
 
 

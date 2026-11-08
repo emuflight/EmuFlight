@@ -22,6 +22,8 @@
 
 #define USE_TARGET_CONFIG
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        KISSFCV2F7
 #define TARGET_BOARD_IDENTIFIER "KISSV2"
 
 #define USBD_PRODUCT_STRING "KISSFCV2F7"
@@ -107,11 +109,24 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
 
-#define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(12) | TIM_N(8) | TIM_N(9) | TIM_N(10) | TIM_N(11))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA2 , 3, -1) \
+    TIMER_PIN_MAP( 1, PC6 , 2,  1) \
+    TIMER_PIN_MAP( 2, PA0 , 2,  0) \
+    TIMER_PIN_MAP( 3, PB8 , 1,  0) \
+    TIMER_PIN_MAP( 4, PB6 , 1,  0) \
+    TIMER_PIN_MAP( 5, PB7 , 1,  0) \
+    TIMER_PIN_MAP( 6, PC7 , 2,  1) \
+    TIMER_PIN_MAP( 7, PB3 , 1,  0)
+
+#define MOTOR1_PIN              PC6
+#define MOTOR2_PIN              PA0
+#define MOTOR3_PIN              PB8
+#define MOTOR4_PIN              PB6
+#define MOTOR5_PIN              PB7
+#define MOTOR6_PIN              PC7
+#define RX_PWM1_PIN             PA2
+#define RX_PPM_PIN              PA2
+#define LED_STRIP_PIN           PB3

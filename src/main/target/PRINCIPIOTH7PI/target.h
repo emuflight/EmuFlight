@@ -22,8 +22,7 @@
 
 #define BOARD_NAME           PRINCIPIOTH7PI
 #define MANUFACTURER_ID      PRIN
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU        STM32H743     // not used in EmuF
+#define FC_TARGET_MCU        STM32H743
 
 #define USE_SDCARD
 #define USE_ACC
@@ -35,6 +34,7 @@
 #define USE_BARO_DPS310 // DPS368, but it's equivalent
 #define USE_MAG
 #define USE_MAG_LIS2MDL
+#define MAG_LIS2MDL_ALIGN CW90_DEG
 
 #define USE_VCP
 
@@ -118,11 +118,16 @@
 #define I2C2_SDA PB11
 
 #define USE_SDCARD_SDIO
-//notice - NEED: #define SDCARD_DMA_CHANNEL_TX       DMAx_StreamX // please verify
-//notice - other sdcard defines maybe needed (rare?): SDCARD_DMA_STREAM_TX_FULL, SDCARD_DMA_STREAM_TX, SDCARD_DMA_CLK, SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG
+#define SDIO_DEVICE      SDIODEV_1
+#define SDIO_USE_4BIT    1
+#define SDIO_CK_PIN      PC12
+#define SDIO_CMD_PIN     PD2
+#define SDIO_D0_PIN      PC8
+#define SDIO_D1_PIN      PC9
+#define SDIO_D2_PIN      PC10
+#define SDIO_D3_PIN      PC11
+#define SDCARD_DETECT_PIN PD15
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
-#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4    //notice - needs validation. these are hardware dependent. known options: 2, 4, 8.
-#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256  //notice - needs validation. these are hardware dependent. known options: 128, 256
 #define SDCARD_DETECT_INVERTED
 
 #define USE_ADC
@@ -130,8 +135,6 @@
 #define CURRENT_METER_ADC_PIN PC1
 #define ADC1_DMA_OPT         9
 #define ADC3_DMA_OPT         10
-#define ADC1_DMA_STREAM DMA2_Stream1 // ADC1 opt9
-#define ADC3_DMA_STREAM DMA2_Stream2 // ADC3 opt10
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
@@ -142,17 +145,29 @@
 #define PINIO2_CONFIG        1 // PINIO_CONFIG_MODE_OUT_PP
 #define PINIO2_BOX           41 // USER2
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(5) | TIM_N(15) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA0 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PA1 , 2,  1) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PA2 , 2,  2) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PA3 , 2,  3) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB0 , 2,  4) /* motor 6 */ \
+    TIMER_PIN_MAP( 5, PB1 , 2,  5) /* motor 5 */ \
+    TIMER_PIN_MAP( 6, PE5 , 1,  -1) /* servo 1; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 7, PE6 , 1, -1) /* servo 2; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 8, PA8 , 1,  8) /* led strip */ \
+    TIMER_PIN_MAP( 9, PA15 , 1,  -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */
+#define TIMUP3_DMA_OPT 11
+#define TIMUP5_DMA_OPT 12
+
+#define MOTOR1_PIN              PA0
+#define MOTOR2_PIN              PA1
+#define MOTOR3_PIN              PA2
+#define MOTOR4_PIN              PA3
+#define MOTOR5_PIN              PB1
+#define MOTOR6_PIN              PB0
+#define SERVO1_PIN              PE5
+#define SERVO2_PIN              PE6
 
 // notice - this file was programmatically generated and may be incomplete.

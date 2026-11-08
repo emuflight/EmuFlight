@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        TRANSTECF405HD
+#define MANUFACTURER_ID   TTRH
 #define TARGET_BOARD_IDENTIFIER "TTRH"
 #define USBD_PRODUCT_STRING     "Transtec f405 HD"
 
@@ -61,6 +64,7 @@
 #define LED0_PIN                PB9
 
 #define USE_SPI
+#define USE_MAX7456
 #define USE_SPI_DEVICE_1
 #define SPI1_SCK_PIN            PA5
 #define SPI1_MISO_PIN           PA6
@@ -68,7 +72,7 @@
 
 #define USE_ADC
 #define ADC_INSTANCE            ADC1 //test 1 for ADC1
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 1
 #define RSSI_ADC_PIN            PB1
 #define CURRENT_METER_ADC_PIN   PC4
 #define VBAT_ADC_PIN            PC5
@@ -96,12 +100,17 @@
 //#define SBUS_TELEMETRY_UART     SERIAL_PORT_USART2
 
 #define ENABLE_DSHOT_DMAR       true
-#define DEFAULT_FEATURES        ( FEATURE_TELEMETRY | FEATURE_OSD )
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 5
-#define USED_TIMERS             ( TIM_N(3) | TIM_N(4) | TIM_N(8) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC6 , 1,  0) \
+    TIMER_PIN_MAP( 1, PC7 , 1,  0) \
+    TIMER_PIN_MAP( 2, PC8 , 2,  0) \
+    TIMER_PIN_MAP( 3, PC9 , 2,  0) \
+    TIMER_PIN_MAP( 4, PB6 , 1,  0)
+
+#define MOTOR1_PIN              PC6
+#define MOTOR2_PIN              PC7
+#define MOTOR3_PIN              PC8
+#define MOTOR4_PIN              PC9
+#define LED_STRIP_PIN           PB6

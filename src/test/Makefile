@@ -46,6 +46,12 @@ baro_bmp085_unittest_SRC := \
 		$(USER_DIR)/drivers/io.c
 
 
+adc_h7_unittest_DEFINES := \
+		STM32H7
+
+adc_internal_unittest_DEFINES := \
+		USE_ADC_INTERNAL
+
 baro_bmp280_unittest_SRC := \
 		$(USER_DIR)/drivers/barometer/barometer_bmp280.c
 
@@ -91,122 +97,42 @@ bus_spi_h7_unittest_DEFINES := \
 		SystemCoreClock=1000000
 
 
-blackbox_unittest_SRC :=  \
-		$(USER_DIR)/blackbox/blackbox.c \
-		$(USER_DIR)/blackbox/blackbox_encoding.c \
-		$(USER_DIR)/blackbox/blackbox_io.c \
-		$(USER_DIR)/common/encoding.c \
-		$(USER_DIR)/common/printf.c \
-		$(USER_DIR)/common/maths.c \
-		$(USER_DIR)/common/typeconversion.c \
-		$(USER_DIR)/drivers/accgyro/gyro_sync.c
+# spiInitBusDMA() against the real reqmap tables (shared body: bus_spi_reqmap_common.h).
 
-blackbox_encoding_unittest_SRC :=  \
-		$(USER_DIR)/blackbox/blackbox_encoding.c \
-		$(USER_DIR)/common/encoding.c \
-		$(USER_DIR)/common/printf.c \
-		$(USER_DIR)/common/typeconversion.c
+bus_spi_reqmap_f4_unittest_SRC := \
+		$(USER_DIR)/drivers/bus_spi.c \
+		$(USER_DIR)/drivers/dma_reqmap_mcu.c \
+		$(USER_DIR)/build/atomic.c
 
-cli_unittest_SRC := \
-		$(USER_DIR)/interface/cli.c \
-		$(USER_DIR)/config/feature.c \
-		$(USER_DIR)/pg/pg.c \
-		$(USER_DIR)/drivers/resource.c \
-                $(USER_DIR)/common/typeconversion.c
-
-cli_unittest_DEFINES := \
-		USE_VTX_COMMON \
-		USE_VTX_CONTROL \
-		USE_VTX_SMARTAUDIO \
-		USE_OSD \
-		USE_CLI \
-		USE_RESOURCE_MGMT \
-		STM32F4 \
-		SystemCoreClock=1000000
-
-beeper_dshot_beacon_unittest_SRC := \
-		$(USER_DIR)/io/beeper.c \
-		$(USER_DIR)/pg/beeper.c \
-		$(USER_DIR)/pg/pg.c
-
-beeper_dshot_beacon_unittest_DEFINES := \
-		USE_DSHOT
-
-cms_unittest_SRC := \
-		$(USER_DIR)/cms/cms.c \
-		$(USER_DIR)/common/typeconversion.c \
-		$(USER_DIR)/drivers/display.c
-
-
-common_filter_unittest_SRC := \
-		$(USER_DIR)/common/filter.c \
-		$(USER_DIR)/common/maths.c
-
-
-dma_bounds_unittest_DEFINES := \
-		STM32F4
-
-
-dma_stm32f4xx_unittest_SRC := \
-		$(USER_DIR)/drivers/dma_stm32f4xx.c
-
-dma_stm32f4xx_unittest_DEFINES := \
-		STM32F4 \
-		UNIT_TEST_DMA_REGISTER_MOCKS \
-		DMA1=\(DMA_TypeDef*\)0x40026000 \
-		DMA2=\(DMA_TypeDef*\)0x40026400 \
-		DMA1_Stream0=\(DMA_Stream_TypeDef*\)0x40026010 \
-		DMA1_Stream1=\(DMA_Stream_TypeDef*\)0x40026028 \
-		DMA1_Stream2=\(DMA_Stream_TypeDef*\)0x40026040 \
-		DMA1_Stream3=\(DMA_Stream_TypeDef*\)0x40026058 \
-		DMA1_Stream4=\(DMA_Stream_TypeDef*\)0x40026070 \
-		DMA1_Stream5=\(DMA_Stream_TypeDef*\)0x40026088 \
-		DMA1_Stream6=\(DMA_Stream_TypeDef*\)0x400260A0 \
-		DMA1_Stream7=\(DMA_Stream_TypeDef*\)0x400260B8 \
-		DMA2_Stream0=\(DMA_Stream_TypeDef*\)0x40026410 \
-		DMA2_Stream1=\(DMA_Stream_TypeDef*\)0x40026428 \
-		DMA2_Stream2=\(DMA_Stream_TypeDef*\)0x40026440 \
-		DMA2_Stream3=\(DMA_Stream_TypeDef*\)0x40026458 \
-		DMA2_Stream4=\(DMA_Stream_TypeDef*\)0x40026470 \
-		DMA2_Stream5=\(DMA_Stream_TypeDef*\)0x40026488 \
-		DMA2_Stream6=\(DMA_Stream_TypeDef*\)0x400264A0 \
-		DMA2_Stream7=\(DMA_Stream_TypeDef*\)0x400264B8 \
-		DMA1_Stream0_IRQn=1 \
-		DMA1_Stream1_IRQn=2 \
-		DMA1_Stream2_IRQn=3 \
-		DMA1_Stream3_IRQn=4 \
-		DMA1_Stream4_IRQn=5 \
-		DMA1_Stream5_IRQn=6 \
-		DMA1_Stream6_IRQn=7 \
-		DMA1_Stream7_IRQn=8 \
-		DMA2_Stream0_IRQn=9 \
-		DMA2_Stream1_IRQn=10 \
-		DMA2_Stream2_IRQn=11 \
-		DMA2_Stream3_IRQn=12 \
-		DMA2_Stream4_IRQn=13 \
-		DMA2_Stream5_IRQn=14 \
-		DMA2_Stream6_IRQn=15 \
-		DMA2_Stream7_IRQn=16 \
-		DMA_IT_TCIF0=0x20 \
-		DMA_IT_TCIF1=0x800 \
-		DMA_IT_TCIF2=0x200000 \
-		DMA_IT_TCIF3=0x8000000 \
-		DMA_IT_TCIF4=0x20 \
-		DMA_IT_TCIF5=0x800 \
-		DMA_IT_TCIF6=0x200000 \
-		DMA_IT_TCIF7=0x8000000
-
-
-dma_reqmap_unittest_SRC := \
-		$(USER_DIR)/drivers/dma_reqmap_mcu.c
-
-dma_reqmap_unittest_DEFINES := \
+bus_spi_reqmap_f4_unittest_DEFINES := \
+		USE_SPI_DEVICE_1 \
+		USE_SPI_DEVICE_2 \
+		USE_SPI_DEVICE_3 \
+		SPI1=\(SPI_TypeDef*\)0x40013000 \
+		SPI2=\(SPI_TypeDef*\)0x40003800 \
+		SPI3=\(SPI_TypeDef*\)0x40003C00 \
+		SystemCoreClock=1000000 \
 		STM32F4 \
 		USE_SPI \
+		USE_ADC \
 		DMA_Channel_0=0 \
+		DMA_Channel_1=1 \
+		DMA_Channel_2=2 \
 		DMA_Channel_3=3 \
 		DMA_Channel_4=4 \
 		DMA_Channel_5=5 \
+		DMA_Channel_6=6 \
+		DMA_Channel_7=7 \
+		TIM1=\(void*\)0x40010000 \
+		TIM2=\(void*\)0x40000000 \
+		TIM3=\(void*\)0x40000400 \
+		TIM4=\(void*\)0x40000800 \
+		TIM5=\(void*\)0x40000C00 \
+		TIM8=\(void*\)0x40010400 \
+		TIM_Channel_1=1 \
+		TIM_Channel_2=2 \
+		TIM_Channel_3=3 \
+		TIM_Channel_4=4 \
 		DMA1_Stream0=\(void*\)0x40026010 \
 		DMA1_Stream1=\(void*\)0x40026028 \
 		DMA1_Stream2=\(void*\)0x40026040 \
@@ -224,42 +150,26 @@ dma_reqmap_unittest_DEFINES := \
 		DMA2_Stream6=\(void*\)0x400264A0 \
 		DMA2_Stream7=\(void*\)0x400264B8
 
+bus_spi_reqmap_h7_unittest_SRC := \
+		$(USER_DIR)/drivers/bus_spi.c \
+		$(USER_DIR)/drivers/dma_reqmap_mcu.c \
+		$(USER_DIR)/build/atomic.c
 
-dma_reqmap_f7_unittest_SRC := \
-		$(USER_DIR)/drivers/dma_reqmap_mcu.c
-
-dma_reqmap_f7_unittest_DEFINES := \
-		STM32F7 \
-		USE_SPI \
-		DMA_HandleTypeDef=DMA_Channel_TypeDef \
-		DMA_CHANNEL_0=0 \
-		DMA_CHANNEL_3=3 \
-		DMA_CHANNEL_4=4 \
-		DMA_CHANNEL_5=5 \
-		DMA1_Stream0=\(void*\)0x40026010 \
-		DMA1_Stream1=\(void*\)0x40026028 \
-		DMA1_Stream2=\(void*\)0x40026040 \
-		DMA1_Stream3=\(void*\)0x40026058 \
-		DMA1_Stream4=\(void*\)0x40026070 \
-		DMA1_Stream5=\(void*\)0x40026088 \
-		DMA1_Stream6=\(void*\)0x400260A0 \
-		DMA1_Stream7=\(void*\)0x400260B8 \
-		DMA2_Stream0=\(void*\)0x40026410 \
-		DMA2_Stream1=\(void*\)0x40026428 \
-		DMA2_Stream2=\(void*\)0x40026440 \
-		DMA2_Stream3=\(void*\)0x40026458 \
-		DMA2_Stream4=\(void*\)0x40026470 \
-		DMA2_Stream5=\(void*\)0x40026488 \
-		DMA2_Stream6=\(void*\)0x400264A0 \
-		DMA2_Stream7=\(void*\)0x400264B8
-
-
-dma_reqmap_h7_unittest_SRC := \
-		$(USER_DIR)/drivers/dma_reqmap_mcu.c
-
-dma_reqmap_h7_unittest_DEFINES := \
+bus_spi_reqmap_h7_unittest_DEFINES := \
+		USE_SPI_DEVICE_1 \
+		USE_SPI_DEVICE_2 \
+		USE_SPI_DEVICE_3 \
+		USE_SPI_DEVICE_4 \
+		SPI1=\(SPI_TypeDef*\)0x40013000 \
+		SPI2=\(SPI_TypeDef*\)0x40003800 \
+		SPI3=\(SPI_TypeDef*\)0x40003C00 \
+		SPI4=\(SPI_TypeDef*\)0x40013400 \
+		SystemCoreClock=1000000 \
 		STM32H7 \
 		USE_SPI \
+		USE_ADC \
+		DMA_REQUEST_ADC1=41 \
+		DMA_REQUEST_ADC2=42 \
 		DMA_HandleTypeDef=DMA_Channel_TypeDef \
 		DMA1_Stream0=\(void*\)0x40020000 \
 		DMA1_Stream1=\(void*\)0x40020018 \
@@ -342,8 +252,402 @@ dma_reqmap_h7_unittest_DEFINES := \
 		DMA_REQUEST_TIM17_CH1=50
 
 
+blackbox_unittest_SRC :=  \
+		$(USER_DIR)/blackbox/blackbox.c \
+		$(USER_DIR)/blackbox/blackbox_encoding.c \
+		$(USER_DIR)/blackbox/blackbox_io.c \
+		$(USER_DIR)/common/encoding.c \
+		$(USER_DIR)/common/printf.c \
+		$(USER_DIR)/common/maths.c \
+		$(USER_DIR)/common/typeconversion.c \
+		$(USER_DIR)/drivers/accgyro/gyro_sync.c
+
+blackbox_encoding_unittest_SRC :=  \
+		$(USER_DIR)/blackbox/blackbox_encoding.c \
+		$(USER_DIR)/common/encoding.c \
+		$(USER_DIR)/common/printf.c \
+		$(USER_DIR)/common/typeconversion.c
+
+cli_unittest_SRC := \
+		$(USER_DIR)/interface/cli.c \
+		$(USER_DIR)/config/feature.c \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/drivers/resource.c \
+                $(USER_DIR)/common/typeconversion.c
+
+cli_unittest_DEFINES := \
+		USE_VTX_COMMON \
+		USE_VTX_CONTROL \
+		USE_VTX_SMARTAUDIO \
+		USE_OSD \
+		USE_CLI \
+		USE_RESOURCE_MGMT \
+		USE_ADC \
+		STM32F4 \
+		SystemCoreClock=1000000
+
+# Separate target: USE_TIMER_MGMT compiles in the timer/dma-pin CLI paths of cli.c without
+# changing the define set of cli_unittest. timer_common.c is the real implementation.
+cli_timer_dma_unittest_SRC := \
+		$(USER_DIR)/interface/cli.c \
+		$(USER_DIR)/config/feature.c \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/drivers/resource.c \
+		$(USER_DIR)/drivers/timer_common.c \
+		$(USER_DIR)/common/typeconversion.c
+
+cli_timer_dma_unittest_DEFINES := \
+			USE_SPI \
+			USE_SPI_DEVICE_1 \
+			USE_SPI_DEVICE_2 \
+		USE_VTX_COMMON \
+		USE_VTX_CONTROL \
+		USE_VTX_SMARTAUDIO \
+		USE_OSD \
+		USE_CLI \
+		USE_RESOURCE_MGMT \
+		USE_TIMER_MGMT \
+		USE_ADC \
+		USE_SDCARD_SDIO \
+		STM32F4 \
+		SystemCoreClock=1000000
+
+beeper_dshot_beacon_unittest_SRC := \
+		$(USER_DIR)/io/beeper.c \
+		$(USER_DIR)/pg/beeper.c \
+		$(USER_DIR)/pg/pg.c
+
+beeper_dshot_beacon_unittest_DEFINES := \
+		USE_DSHOT \
+		BEEPER_NAMES
+
+cms_unittest_SRC := \
+		$(USER_DIR)/cms/cms.c \
+		$(USER_DIR)/common/typeconversion.c \
+		$(USER_DIR)/drivers/display.c
+
+
+common_filter_unittest_SRC := \
+		$(USER_DIR)/common/filter.c \
+		$(USER_DIR)/common/maths.c
+
+
+dma_bounds_unittest_DEFINES := \
+		STM32F4
+
+
+dma_flag_macro_unittest_DEFINES := \
+		STM32F4 \
+		UNIT_TEST_DMA_FLAG_REGS
+
+
+dma_stm32f4xx_unittest_SRC := \
+		$(USER_DIR)/drivers/dma_stm32f4xx.c
+
+dma_stm32f4xx_unittest_DEFINES := \
+		STM32F4 \
+		UNIT_TEST_DMA_REGISTER_MOCKS \
+		DMA1=\(DMA_TypeDef*\)0x40026000 \
+		DMA2=\(DMA_TypeDef*\)0x40026400 \
+		DMA1_Stream0=\(DMA_Stream_TypeDef*\)0x40026010 \
+		DMA1_Stream1=\(DMA_Stream_TypeDef*\)0x40026028 \
+		DMA1_Stream2=\(DMA_Stream_TypeDef*\)0x40026040 \
+		DMA1_Stream3=\(DMA_Stream_TypeDef*\)0x40026058 \
+		DMA1_Stream4=\(DMA_Stream_TypeDef*\)0x40026070 \
+		DMA1_Stream5=\(DMA_Stream_TypeDef*\)0x40026088 \
+		DMA1_Stream6=\(DMA_Stream_TypeDef*\)0x400260A0 \
+		DMA1_Stream7=\(DMA_Stream_TypeDef*\)0x400260B8 \
+		DMA2_Stream0=\(DMA_Stream_TypeDef*\)0x40026410 \
+		DMA2_Stream1=\(DMA_Stream_TypeDef*\)0x40026428 \
+		DMA2_Stream2=\(DMA_Stream_TypeDef*\)0x40026440 \
+		DMA2_Stream3=\(DMA_Stream_TypeDef*\)0x40026458 \
+		DMA2_Stream4=\(DMA_Stream_TypeDef*\)0x40026470 \
+		DMA2_Stream5=\(DMA_Stream_TypeDef*\)0x40026488 \
+		DMA2_Stream6=\(DMA_Stream_TypeDef*\)0x400264A0 \
+		DMA2_Stream7=\(DMA_Stream_TypeDef*\)0x400264B8 \
+		DMA1_Stream0_IRQn=1 \
+		DMA1_Stream1_IRQn=2 \
+		DMA1_Stream2_IRQn=3 \
+		DMA1_Stream3_IRQn=4 \
+		DMA1_Stream4_IRQn=5 \
+		DMA1_Stream5_IRQn=6 \
+		DMA1_Stream6_IRQn=7 \
+		DMA1_Stream7_IRQn=8 \
+		DMA2_Stream0_IRQn=9 \
+		DMA2_Stream1_IRQn=10 \
+		DMA2_Stream2_IRQn=11 \
+		DMA2_Stream3_IRQn=12 \
+		DMA2_Stream4_IRQn=13 \
+		DMA2_Stream5_IRQn=14 \
+		DMA2_Stream6_IRQn=15 \
+		DMA2_Stream7_IRQn=16 \
+		DMA_IT_TCIF0=0x20 \
+		DMA_IT_TCIF1=0x800 \
+		DMA_IT_TCIF2=0x200000 \
+		DMA_IT_TCIF3=0x8000000 \
+		DMA_IT_TCIF4=0x20 \
+		DMA_IT_TCIF5=0x800 \
+		DMA_IT_TCIF6=0x200000 \
+		DMA_IT_TCIF7=0x8000000
+
+
+dma_reqmap_unittest_SRC := \
+		$(USER_DIR)/drivers/dma_reqmap_mcu.c
+
+dma_reqmap_unittest_DEFINES := \
+		STM32F4 \
+		USE_SPI \
+		USE_ADC \
+		USE_SDCARD_SDIO \
+		DMA_Channel_0=0 \
+		DMA_Channel_1=1 \
+		DMA_Channel_2=2 \
+		DMA_Channel_3=3 \
+		DMA_Channel_4=4 \
+		DMA_Channel_5=5 \
+		DMA_Channel_6=6 \
+		DMA_Channel_7=7 \
+		TIM1=\(void*\)0x40010000 \
+		TIM2=\(void*\)0x40000000 \
+		TIM3=\(void*\)0x40000400 \
+		TIM4=\(void*\)0x40000800 \
+		TIM5=\(void*\)0x40000C00 \
+		TIM8=\(void*\)0x40010400 \
+		TIM_Channel_1=1 \
+		TIM_Channel_2=2 \
+		TIM_Channel_3=3 \
+		TIM_Channel_4=4 \
+		DMA1_Stream0=\(void*\)0x40026010 \
+		DMA1_Stream1=\(void*\)0x40026028 \
+		DMA1_Stream2=\(void*\)0x40026040 \
+		DMA1_Stream3=\(void*\)0x40026058 \
+		DMA1_Stream4=\(void*\)0x40026070 \
+		DMA1_Stream5=\(void*\)0x40026088 \
+		DMA1_Stream6=\(void*\)0x400260A0 \
+		DMA1_Stream7=\(void*\)0x400260B8 \
+		DMA2_Stream0=\(void*\)0x40026410 \
+		DMA2_Stream1=\(void*\)0x40026428 \
+		DMA2_Stream2=\(void*\)0x40026440 \
+		DMA2_Stream3=\(void*\)0x40026458 \
+		DMA2_Stream4=\(void*\)0x40026470 \
+		DMA2_Stream5=\(void*\)0x40026488 \
+		DMA2_Stream6=\(void*\)0x400264A0 \
+		DMA2_Stream7=\(void*\)0x400264B8
+
+
+dma_reqmap_nospi_unittest_SRC := \
+		$(USER_DIR)/drivers/dma_reqmap_mcu.c
+
+dma_reqmap_nospi_unittest_DEFINES := \
+		STM32F4 \
+		USE_ADC \
+		DMA_Channel_0=0 \
+		DMA_Channel_1=1 \
+		DMA_Channel_2=2 \
+		DMA2_Stream0=\(void*\)0x40026410 \
+		DMA2_Stream1=\(void*\)0x40026428 \
+		DMA2_Stream2=\(void*\)0x40026440 \
+		DMA2_Stream3=\(void*\)0x40026458 \
+		DMA2_Stream4=\(void*\)0x40026470
+
+
+dma_reqmap_nospi_sdio_unittest_SRC := \
+		$(USER_DIR)/drivers/dma_reqmap_mcu.c
+
+dma_reqmap_nospi_sdio_unittest_DEFINES := \
+		$(filter-out USE_ADC,$(dma_reqmap_nospi_unittest_DEFINES)) \
+		USE_SDCARD_SDIO \
+		DMA_Channel_4=4 \
+		DMA2_Stream6=\(void*\)0x400264A0
+
+
+dma_reqmap_f7_unittest_SRC := \
+		$(USER_DIR)/drivers/dma_reqmap_mcu.c
+
+dma_reqmap_f7_unittest_DEFINES := \
+		STM32F7 \
+		USE_SPI \
+		USE_ADC \
+		USE_SDCARD_SDIO \
+		DMA_HandleTypeDef=DMA_Channel_TypeDef \
+		DMA_CHANNEL_0=0 \
+		DMA_CHANNEL_1=1 \
+		DMA_CHANNEL_2=2 \
+		DMA_CHANNEL_3=3 \
+		DMA_CHANNEL_4=4 \
+		DMA_CHANNEL_5=5 \
+		DMA_CHANNEL_6=6 \
+		DMA_CHANNEL_7=7 \
+		TIM1=\(void*\)0x40010000 \
+		TIM2=\(void*\)0x40000000 \
+		TIM3=\(void*\)0x40000400 \
+		TIM4=\(void*\)0x40000800 \
+		TIM5=\(void*\)0x40000C00 \
+		TIM8=\(void*\)0x40010400 \
+		TIM_CHANNEL_1=1 \
+		TIM_CHANNEL_2=2 \
+		TIM_CHANNEL_3=3 \
+		TIM_CHANNEL_4=4 \
+		DMA1_Stream0=\(void*\)0x40026010 \
+		DMA1_Stream1=\(void*\)0x40026028 \
+		DMA1_Stream2=\(void*\)0x40026040 \
+		DMA1_Stream3=\(void*\)0x40026058 \
+		DMA1_Stream4=\(void*\)0x40026070 \
+		DMA1_Stream5=\(void*\)0x40026088 \
+		DMA1_Stream6=\(void*\)0x400260A0 \
+		DMA1_Stream7=\(void*\)0x400260B8 \
+		DMA2_Stream0=\(void*\)0x40026410 \
+		DMA2_Stream1=\(void*\)0x40026428 \
+		DMA2_Stream2=\(void*\)0x40026440 \
+		DMA2_Stream3=\(void*\)0x40026458 \
+		DMA2_Stream4=\(void*\)0x40026470 \
+		DMA2_Stream5=\(void*\)0x40026488 \
+		DMA2_Stream6=\(void*\)0x400264A0 \
+		DMA2_Stream7=\(void*\)0x400264B8
+
+
+dma_reqmap_h7_unittest_SRC := \
+		$(USER_DIR)/drivers/dma_reqmap_mcu.c
+
+dma_reqmap_h7_unittest_DEFINES := \
+		STM32H7 \
+		USE_SPI \
+		USE_ADC \
+		DMA_REQUEST_ADC1=41 \
+		DMA_REQUEST_ADC2=42 \
+		DMA_HandleTypeDef=DMA_Channel_TypeDef \
+		DMA1_Stream0=\(void*\)0x40020000 \
+		DMA1_Stream1=\(void*\)0x40020018 \
+		DMA1_Stream2=\(void*\)0x40020030 \
+		DMA1_Stream3=\(void*\)0x40020048 \
+		DMA1_Stream4=\(void*\)0x40020060 \
+		DMA1_Stream5=\(void*\)0x40020078 \
+		DMA1_Stream6=\(void*\)0x40020090 \
+		DMA1_Stream7=\(void*\)0x400200A8 \
+		DMA2_Stream0=\(void*\)0x40020400 \
+		DMA2_Stream1=\(void*\)0x40020418 \
+		DMA2_Stream2=\(void*\)0x40020430 \
+		DMA2_Stream3=\(void*\)0x40020448 \
+		DMA2_Stream4=\(void*\)0x40020460 \
+		DMA2_Stream5=\(void*\)0x40020478 \
+		DMA2_Stream6=\(void*\)0x40020490 \
+		DMA2_Stream7=\(void*\)0x400204A8 \
+		DMA_REQUEST_SPI1_TX=1 \
+		DMA_REQUEST_SPI1_RX=2 \
+		DMA_REQUEST_SPI2_TX=3 \
+		DMA_REQUEST_SPI2_RX=4 \
+		DMA_REQUEST_SPI3_TX=5 \
+		DMA_REQUEST_SPI3_RX=6 \
+		DMA_REQUEST_SPI4_TX=7 \
+		DMA_REQUEST_SPI4_RX=8 \
+		DMA_REQUEST_USART1_TX=9 \
+		DMA_REQUEST_USART1_RX=10 \
+		DMA_REQUEST_USART2_TX=11 \
+		DMA_REQUEST_USART2_RX=12 \
+		DMA_REQUEST_USART3_TX=13 \
+		DMA_REQUEST_USART3_RX=14 \
+		DMA_REQUEST_UART4_TX=15 \
+		DMA_REQUEST_UART4_RX=16 \
+		DMA_REQUEST_UART5_TX=17 \
+		DMA_REQUEST_UART5_RX=18 \
+		DMA_REQUEST_USART6_TX=19 \
+		DMA_REQUEST_USART6_RX=20 \
+		DMA_REQUEST_UART7_TX=21 \
+		DMA_REQUEST_UART7_RX=22 \
+		DMA_REQUEST_UART8_TX=23 \
+		DMA_REQUEST_UART8_RX=24 \
+		TIM1=\(void*\)0x40010000 \
+		TIM2=\(void*\)0x40010400 \
+		TIM3=\(void*\)0x40010800 \
+		TIM4=\(void*\)0x40010C00 \
+		TIM5=\(void*\)0x40011000 \
+		TIM8=\(void*\)0x40011400 \
+		TIM15=\(void*\)0x40011800 \
+		TIM16=\(void*\)0x40011C00 \
+		TIM17=\(void*\)0x40012000 \
+		TIM_CHANNEL_1=1 \
+		TIM_CHANNEL_2=2 \
+		TIM_CHANNEL_3=3 \
+		TIM_CHANNEL_4=4 \
+		DMA_REQUEST_TIM1_CH1=25 \
+		DMA_REQUEST_TIM1_CH2=26 \
+		DMA_REQUEST_TIM1_CH3=27 \
+		DMA_REQUEST_TIM1_CH4=28 \
+		DMA_REQUEST_TIM2_CH1=29 \
+		DMA_REQUEST_TIM2_CH2=30 \
+		DMA_REQUEST_TIM2_CH3=31 \
+		DMA_REQUEST_TIM2_CH4=32 \
+		DMA_REQUEST_TIM3_CH1=33 \
+		DMA_REQUEST_TIM3_CH2=34 \
+		DMA_REQUEST_TIM3_CH3=35 \
+		DMA_REQUEST_TIM3_CH4=36 \
+		DMA_REQUEST_TIM4_CH1=37 \
+		DMA_REQUEST_TIM4_CH2=38 \
+		DMA_REQUEST_TIM4_CH3=39 \
+		DMA_REQUEST_TIM5_CH1=40 \
+		DMA_REQUEST_TIM5_CH2=41 \
+		DMA_REQUEST_TIM5_CH3=42 \
+		DMA_REQUEST_TIM5_CH4=43 \
+		DMA_REQUEST_TIM8_CH1=44 \
+		DMA_REQUEST_TIM8_CH2=45 \
+		DMA_REQUEST_TIM8_CH3=46 \
+		DMA_REQUEST_TIM8_CH4=47 \
+		DMA_REQUEST_TIM15_CH1=48 \
+		DMA_REQUEST_TIM16_CH1=49 \
+		DMA_REQUEST_TIM17_CH1=50
+
+# Same real dma_reqmap_mcu.c H7 branch, with USE_TIMER so the TIMUP rows are compiled in.
+dma_reqmap_h7_timup_unittest_SRC := \
+		$(USER_DIR)/drivers/dma_reqmap_mcu.c
+
+dma_reqmap_h7_timup_unittest_DEFINES := \
+		$(dma_reqmap_h7_unittest_DEFINES) \
+		USE_TIMER \
+		DMA_REQUEST_TIM1_UP=101 \
+		DMA_REQUEST_TIM2_UP=102 \
+		DMA_REQUEST_TIM3_UP=103 \
+		DMA_REQUEST_TIM4_UP=104 \
+		DMA_REQUEST_TIM5_UP=105 \
+		DMA_REQUEST_TIM6_UP=106 \
+		DMA_REQUEST_TIM7_UP=107 \
+		DMA_REQUEST_TIM8_UP=108 \
+		DMA_REQUEST_TIM15_UP=115 \
+		DMA_REQUEST_TIM16_UP=116 \
+		DMA_REQUEST_TIM17_UP=117
+
+# Real pwm_output.c motorDevInit(); the per-motor DShot hardware config is mocked.
+pwm_output_dshot_init_unittest_SRC := \
+		$(USER_DIR)/drivers/pwm_output.c
+
+pwm_output_dshot_init_unittest_DEFINES := \
+		STM32F4 \
+		USE_DSHOT \
+		USE_TIMER \
+		GPIO_Mode_AF=2 \
+		GPIO_OType_PP=0 \
+		GPIO_PuPd_NOPULL=0
+
+# Real pg/timerup.c reset function; TIMUP20 is past the 14-slot array and must be ignored.
+timerup_pg_unittest_SRC := \
+		$(USER_DIR)/pg/timerup.c \
+		$(USER_DIR)/pg/pg.c
+
+timerup_pg_unittest_DEFINES := \
+		$(dma_reqmap_h7_timup_unittest_DEFINES) \
+		USE_TIMER_MGMT \
+		USE_TIMER_UP_CONFIG \
+		TIMUP1_DMA_OPT=0 \
+		TIMUP3_DMA_OPT=2 \
+		TIMUP8_DMA_OPT=11 \
+		TIMUP15_DMA_OPT=5 \
+		TIMUP20_DMA_OPT=7
+
+
 encoding_unittest_SRC := \
 		$(USER_DIR)/common/encoding.c
+
+streambuf_unittest_SRC := \
+		$(USER_DIR)/common/streambuf.c
 
 
 serial_uart_dma_claim_unittest_DEFINES := \
@@ -352,6 +656,44 @@ serial_uart_dma_claim_unittest_DEFINES := \
 
 sdcard_dma_claim_unittest_DEFINES := \
 		STM32F4
+
+
+flashfs_unittest_SRC := \
+		$(USER_DIR)/io/flashfs.c
+
+flashfs_unittest_DEFINES := \
+		USE_FLASHFS
+
+
+flash_w25m_unittest_SRC := \
+		$(USER_DIR)/drivers/flash_w25m.c
+
+flash_w25m_unittest_DEFINES := \
+		USE_FLASH_W25M \
+		USE_FLASH_W25M02G
+
+
+msc_sd_spi_unittest_SRC := \
+		$(USER_DIR)/msc/usbd_storage_sd_spi.c
+
+msc_sd_spi_unittest_DEFINES := \
+		STM32F4 \
+		USE_SDCARD
+
+msc_sd_spi_unittest_INCLUDE_DIRS := \
+		$(TEST_DIR)/msc_stub
+
+
+msc_sdio_unittest_SRC := \
+		$(USER_DIR)/msc/usbd_storage_sdio.c
+
+msc_sdio_unittest_DEFINES := \
+		STM32F4 \
+		USE_SDCARD \
+		USE_SDCARD_SDIO
+
+msc_sdio_unittest_INCLUDE_DIRS := \
+		$(TEST_DIR)/msc_stub
 
 
 sdcard_unittest_SRC := \
@@ -381,6 +723,12 @@ sdcard_unittest_CFLAGS := \
 
 sdcard_unittest_LDFLAGS := \
 		-no-pie
+
+sdcard_sdio_unittest_SRC :=
+
+sdcard_sdio_unittest_DEFINES := \
+		USE_SDCARD \
+		USE_SDCARD_SDIO
 
 
 flight_failsafe_unittest_SRC := \
@@ -439,8 +787,126 @@ osd_unittest_DEFINES := \
 		USE_ADC_INTERNAL
 
 
+pg_sdcard_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_unittest_CFLAGS := -fshort-enums
+
+# The legacy SD DMA macros expand to undeclared symbols: compiling fails if pg/sdcard.c reads them.
+pg_sdcard_unittest_DEFINES := \
+		USE_SDCARD \
+		USE_SDCARD_SDIO \
+		SDCARD_DETECT_INVERTED \
+		SDCARD_DMA_STREAM_TX_FULL=legacySdDmaMacroMustBeUnused \
+		SDCARD_DMA_CHANNEL_TX=legacySdDmaMacroMustBeUnused \
+		SDIO_DMA=legacySdDmaMacroMustBeUnused
+
+pg_sdcard_spi_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_unittest_DEFINES := \
+		USE_SDCARD \
+		SDCARD_SPI_INSTANCE=0 \
+		SDCARD_SPI_CS_PIN=PA4
+
+pg_sdcard_spi_sdio_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_sdio_unittest_DEFINES := \
+		USE_SDCARD \
+		USE_SDCARD_SDIO \
+		SDCARD_SPI_INSTANCE=0 \
+		SDCARD_SPI_CS_PIN=PA4
+
+pg_sdcard_spi_nocs_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_nocs_unittest_DEFINES := \
+		USE_SDCARD \
+		SDCARD_SPI_INSTANCE=0
+
+pg_sdcard_spi_nocs_sdio_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_nocs_sdio_unittest_DEFINES := \
+		USE_SDCARD \
+		USE_SDCARD_SDIO \
+		SDCARD_SPI_INSTANCE=0
+
+pg_sdcard_spi_invalid_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_spi_invalid_unittest_DEFINES := \
+		USE_SDCARD \
+		SDCARD_SPI_INSTANCE=0 \
+		SDCARD_SPI_CS_PIN=PA4
+
+pg_sdcard_none_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdcard.c
+
+pg_sdcard_none_unittest_DEFINES := \
+		USE_SDCARD
+
+motor_output_reordering_unittest_SRC :=
+
+pg_sdio_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdio.c
+
+pg_sdio_unittest_DEFINES := \
+		USE_SDCARD_SDIO
+
+pg_sdio_opt_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdio.c
+
+pg_sdio_opt_unittest_DEFINES := \
+		USE_SDCARD_SDIO \
+		SDCARD_SDIO_DMA_OPT=0
+
+pg_sdio_dev1_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdio.c
+
+pg_sdio_dev1_unittest_DEFINES := \
+		USE_SDCARD_SDIO \
+		SDIO_DEVICE=SDIODEV_1
+
+pg_sdio_dev2_unittest_SRC := \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/pg/sdio.c
+
+pg_sdio_dev2_unittest_DEFINES := \
+		USE_SDCARD_SDIO \
+		SDIO_DEVICE=SDIODEV_2
+
 pg_unittest_SRC := \
 		$(USER_DIR)/pg/pg.c
+
+pg_bus_spi_unittest_SRC := \
+		$(USER_DIR)/pg/bus_spi.c \
+		$(USER_DIR)/pg/pg.c
+
+pg_bus_spi_unittest_DEFINES := \
+		STM32F4 \
+		USE_SPI \
+		USE_SPI_DEVICE_1 \
+		USE_SPI_DEVICE_2 \
+		SPI1_SCK_PIN=PA5 \
+		SPI1_MISO_PIN=PA6 \
+		SPI1_MOSI_PIN=PA7 \
+		SPI2_SCK_PIN=PB13 \
+		SPI2_MISO_PIN=PB14 \
+		SPI2_MOSI_PIN=PB15 \
+		SPI2_TX_DMA_OPT=1 \
+		SPI2_RX_DMA_OPT=0
 
 
 rc_controls_unittest_SRC := \

@@ -23,8 +23,9 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "TMTR"
 #define USBD_PRODUCT_STRING "TMOTORF7"
 
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        TMOTORF7
+#define MANUFACTURER_ID   TMTR
 
 #define LED0_PIN                PB2
 
@@ -157,7 +158,7 @@
 #define VBAT_ADC_PIN            PC1
 #define CURRENT_METER_ADC_PIN   PC2
 #define RSSI_ADC_PIN            PC3
-#define ADC1_DMA_STREAM DMA2_Stream4 //# ADC 1: DMA2 Stream 4 Channel 0
+#define ADC1_DMA_OPT 1
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
@@ -166,12 +167,28 @@
 #define SBUS_TELEMETRY_UART     SERIAL_PORT_USART1 // soft UART??
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 
-#define TARGET_IO_PORTA         ( 0xffff )
-#define TARGET_IO_PORTB         ( 0xffff )
-#define TARGET_IO_PORTC         ( 0xffff )
-#define TARGET_IO_PORTD         ( 0x0004 )
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USED_TIMERS              ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(11) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC6 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PC7 , 1,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB6 , 1,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PB8 , 1,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PB7 , 1,  0) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PC9 , 2,  0) /* motor 8 */ \
+    TIMER_PIN_MAP( 8, PA15 , 1,  0) /* ppm */ \
+    TIMER_PIN_MAP( 9, PB9 , 2, -1) /* cam ctrl */ \
+    TIMER_PIN_MAP( 10, PA8 , 1,  0) /* led */
+
+#define MOTOR1_PIN              PC6
+#define MOTOR2_PIN              PC7
+#define MOTOR3_PIN              PB0
+#define MOTOR4_PIN              PB1
+#define MOTOR5_PIN              PB6
+#define MOTOR6_PIN              PB8
+#define MOTOR7_PIN              PB7
+#define MOTOR8_PIN              PC9
+#define RX_PPM_PIN              PA15
+#define LED_STRIP_PIN           PA8

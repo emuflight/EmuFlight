@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        targets: [targets-group-1, targets-group-2, targets-group-3, targets-group-4, targets-group-5, targets-group-6, targets-group-7, targets-group-8, targets-group-9, targets-group-10, targets-group-11, targets-group-rest]
+        targets: [targets-group-1, targets-group-2, targets-group-3, targets-group-4, targets-group-5, targets-group-6, targets-group-7, targets-group-8, targets-group-9, targets-group-10, targets-group-11, targets-group-12, targets-group-13, targets-group-14, targets-group-15, targets-group-16]
     outputs:
       buildtag: ${{ steps.ids.outputs.buildtag }}
       shortsha: ${{ steps.ids.outputs.shortsha }}
@@ -121,6 +121,13 @@ jobs:
         echo "outputs.artifact: ${{ steps.ids.outputs.artifact }}"
         echo "outputs.version: ${{ steps.ids.outputs.version }}"
       continue-on-error: true
+
+    # Tags containing 'releas' ship without the -dev display suffix
+    - name: Clear -dev version suffix
+      if: contains(github.ref, 'releas')
+      run: |
+        sed -i -E 's|^(#define FC_VERSION_SUFFIX[[:space:]]+)"[^"]*"|\1""|' src/main/build/version.h
+        grep -E '^#define FC_VERSION_SUFFIX[[:space:]]+""' src/main/build/version.h
 
     # Build HEX
     - name: Compile Code
@@ -257,12 +264,12 @@ jobs:
           prerelease: true
           allowUpdates: true
           # tag: use the build Number, but we MUST manually change to version so that it creates a version-tag on release
-          tag: ${{ env.VERSION }}
+          tag: ${{ needs.build.outputs.version }}
           artifacts: obj/*.hex
           artifactContentType: raw
-          name:  DRAFT / EmuFlight ${{ env.VERSION }} / GitHub Build ${{ github.run_number }}
+          name:  DRAFT / EmuFlight ${{ needs.build.outputs.version }} / GitHub Build ${{ github.run_number }}
           body: |
-            ## EmuFlight ${{ env.VERSION }}
+            ## EmuFlight ${{ needs.build.outputs.version }}
             ### Build ${{ github.run_number }}
             ### Commit SHA: ${{ needs.build.outputs.shortsha }} (${{ github.sha }})
             ### BuildTag: ${{ needs.build.outputs.buildtag }}

@@ -22,6 +22,9 @@
 
 #define USE_TARGET_CONFIG
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        JHEF7DUAL
+#define MANUFACTURER_ID   JHEF
 #define TARGET_BOARD_IDENTIFIER "JH7D"
 #define USBD_PRODUCT_STRING     "JHEF7DUAL"
 
@@ -60,20 +63,13 @@
 #define USE_ACC_SPI_ICM20689
 #define USE_ACC_SPI_ICM42688P
 
-#define ACC_ICM20689_1_ALIGN    CW90_DEG
-#define GYRO_ICM20689_1_ALIGN   CW90_DEG
-#define GYRO_1_ALIGN            GYRO_ICM20689_1_ALIGN
-#define ACC_1_ALIGN             ACC_ICM20689_1_ALIGN
+// per-slot alignment; a per-chip *_ALIGN macro would override these at detect
+#define GYRO_1_ALIGN            CW90_DEG
+#define ACC_1_ALIGN             CW90_DEG
+#define GYRO_2_ALIGN            CW270_DEG
+#define ACC_2_ALIGN             CW270_DEG
 
-#define ACC_MPU6000_2_ALIGN     CW90_DEG
-#define GYRO_MPU6000_2_ALIGN    CW90_DEG
-#define GYRO_2_ALIGN            GYRO_MPU6000_2_ALIGN
-#define ACC_2_ALIGN             ACC_MPU6000_2_ALIGN
-
-#define ACC_ICM42688P_ALIGN     CW90_DEG
-#define GYRO_ICM42688P_ALIGN    CW90_DEG
-
-#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_1
+#define GYRO_CONFIG_USE_GYRO_DEFAULT GYRO_CONFIG_USE_GYRO_2
 
 // *************** Baro **************************
 #define USE_I2C
@@ -146,7 +142,7 @@
 
 #define USE_ADC
 #define ADC_INSTANCE            ADC3
-#define ADC3_DMA_OPT            0  // DMA 2 Stream 0 Channel 2
+#define ADC3_DMA_OPT            1  // DMA 2 Stream 1 Channel 2
 
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
@@ -157,7 +153,7 @@
 #define DEFAULT_CURRENT_METER_SOURCE        CURRENT_METER_ADC
 
 #define DEFAULT_RX_FEATURE                  FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES                    (FEATURE_RSSI_ADC | FEATURE_TELEMETRY | FEATURE_OSD | FEATURE_LED_STRIP)
+#define DEFAULT_FEATURES                    (FEATURE_RSSI_ADC | FEATURE_LED_STRIP)
 #define SERIALRX_UART                       SERIAL_PORT_USART2
 #define SERIALRX_PROVIDER                   SERIALRX_SBUS
 
@@ -170,10 +166,24 @@
 #define PINIO2_PIN              PB9  // 2xCamera switcher
 #define USE_PINIOBOX
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(9))
+// With six-motor burst DShot, TIM8 update DMA and ADC3 both use DMA2 Stream1; ADC3 then gets no DMA.
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S1 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* S2 */ \
+    TIMER_PIN_MAP( 3, PB4 , 1,  0) /* S3 */ \
+    TIMER_PIN_MAP( 4, PB3 , 1,  0) /* S4 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* S5 */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  0) /* S6 */ \
+    TIMER_PIN_MAP( 7, PA8 , 1,  0) /* LED STRIP */ \
+    TIMER_PIN_MAP( 8, PB8 , 1,  0) /* FC CAM */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PB4
+#define MOTOR4_PIN              PB3
+#define MOTOR5_PIN              PC9
+#define MOTOR6_PIN              PC8
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA8

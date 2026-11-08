@@ -22,6 +22,9 @@
 
 //OMNIBUSF7 TARGETS-------------------------
 #define USE_TARGET_CONFIG
+#define FC_TARGET_MCU     STM32F745
+#define BOARD_NAME        OMNIBUSF7V2
+#define MANUFACTURER_ID   AIRB
 #define TARGET_BOARD_IDENTIFIER "OB72"
 #define USBD_PRODUCT_STRING "OmnibusF7V2"
 
@@ -150,7 +153,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 8 // 27MHz
 
-#define SDCARD_DMA_STREAM_TX_FULL           DMA2_Stream1
 
 //I2C---------------------------------------
 #define USE_I2C
@@ -183,7 +185,6 @@
 
 //DEFAULTS----------------------------------
 
-#define DEFAULT_FEATURES        (FEATURE_OSD)
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 #define SERIALRX_UART           SERIAL_PORT_USART2
@@ -191,12 +192,25 @@
 #define ESC_SENSOR_UART         SERIAL_PORT_USART7
 
 //PORT'S & TIMERS---------------------------
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
 
-#define USABLE_TIMER_CHANNEL_COUNT 12
 
-#define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(9) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PE13 , 1,  1) /* RC1 / PPM, unusable */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* M1 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* M2 */ \
+    TIMER_PIN_MAP( 3, PE9 , 1,  2) /* M3 */ \
+    TIMER_PIN_MAP( 4, PE11 , 1,  1) /* M4 */ \
+    TIMER_PIN_MAP( 5, PD12 , 1,  0) /* LED */ \
+    TIMER_PIN_MAP( 6, PB10 , 1,  0) /* UART3_TX, I2C2_SCL */ \
+    TIMER_PIN_MAP( 7, PB11 , 1,  0) /* UART3_RX, I2C2_SDA */ \
+    TIMER_PIN_MAP( 8, PC6 , 2,  1) /* UART6_TX */ \
+    TIMER_PIN_MAP( 9, PC7 , 2,  1) /* UART6_RX */ \
+    TIMER_PIN_MAP( 10, PA3 , 1,  0) /* UART2_RX, joined with PE13 */ \
+    TIMER_PIN_MAP( 11, PA2 , 3, -1) /* UART2_TX (unwired) */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PE9
+#define MOTOR4_PIN              PE11
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PD12

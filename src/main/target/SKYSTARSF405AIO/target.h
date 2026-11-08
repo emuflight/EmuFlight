@@ -26,8 +26,9 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "SKST"
 #define USBD_PRODUCT_STRING "SKYSTARSF405AIO"
 
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        SKYSTARSF405AIO
+#define MANUFACTURER_ID   SKST
 
 #define USE_GYRO
 #define USE_ACC
@@ -138,22 +139,29 @@
 #define CURRENT_METER_ADC_PIN PC1
 #define RSSI_ADC_PIN PC2
 #define ADC2_DMA_OPT        1
-#define ADC2_DMA_STREAM DMA2_Stream3 //# ADC 2: DMA2 Stream 3 Channel 1
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 558
 #define ADC_INSTANCE ADC2
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-// notice - masks were programmatically generated - must verify last port group for 0xffff or (BIT(2))
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA8 , 1,  -1) /* rx_ppm */ \
+    TIMER_PIN_MAP( 1, PB7 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 3, PB4 , 1,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 4, PB3 , 1,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 5, PB0 , 2,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 6, PB1 , 2,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 7, PC8 , 2,  0) /* led */ \
+    TIMER_PIN_MAP( 8, PC9 , 2,  -1) /* cam control */
+
+#define MOTOR1_PIN              PB7
+#define MOTOR2_PIN              PB6
+#define MOTOR3_PIN              PB4
+#define MOTOR4_PIN              PB3
+#define MOTOR5_PIN              PB0
+#define MOTOR6_PIN              PB1
 
 // notice - this file was programmatically generated and may be incomplete.

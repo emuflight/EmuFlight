@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        BETAFPVF411RX
 #define MANUFACTURER_ID   BEFH
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define FC_TARGET_MCU     STM32F411
 
 #define LED0_PIN                PC14
 
@@ -137,7 +136,6 @@
 #define USE_ADC
 #define ADC_INSTANCE         ADC1
 #define ADC1_DMA_OPT         1
-#define ADC1_DMA_STREAM DMA2_Stream4 //# ADC 1: DMA2 Stream 4 Channel 0
 #define VBAT_ADC_PIN            PA1
 #define CURRENT_METER_ADC_PIN   PB0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
@@ -155,12 +153,20 @@
 //#define PINIO2_PIN              PA15 // Camera switcher
 //#define USE_PINIOBOX
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE)
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS             ( TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB8 , 1,  0) /* S1   UP1-2 */ \
+    TIMER_PIN_MAP( 1, PA0 , 1,  0) /* S2   UP1-2 */ \
+    TIMER_PIN_MAP( 2, PB10 , 1,  0) /* S3   UP1-2 */ \
+    TIMER_PIN_MAP( 3, PB7 , 1,  0) /* S4   UP1-2 */ \
+    TIMER_PIN_MAP( 4, PB1 , 2,  0) /* LED DMA2-3 */ \
+    TIMER_PIN_MAP( 5, PA10 , 1,  -1) /* PPM, RX2 */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  0) /* SERIAL RX */
+
+#define MOTOR1_PIN              PB8
+#define MOTOR2_PIN              PA0
+#define MOTOR3_PIN              PB10
+#define MOTOR4_PIN              PB7
+#define RX_PPM_PIN              PA10
+#define LED_STRIP_PIN           PB1

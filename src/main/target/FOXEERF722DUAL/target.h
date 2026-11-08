@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        FOXEERF722DUAL
+#define MANUFACTURER_ID   FOXE
 #define TARGET_BOARD_IDENTIFIER "FXF7"
 #define USBD_PRODUCT_STRING  "FOXEERF722DUAL"
 
@@ -131,7 +134,7 @@
 
 #define USE_ADC
 #define ADC_INSTANCE                        ADC3
-#define ADC3_DMA_STREAM                     DMA2_Stream0
+#define ADC3_DMA_OPT 0
 
 #define VBAT_ADC_PIN                        PC0
 #define CURRENT_METER_ADC_PIN               PC2
@@ -144,15 +147,27 @@
 #define USE_LED_STRIP
 
 #define DEFAULT_RX_FEATURE                  FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES                    FEATURE_OSD
 #define SERIALRX_UART                       SERIAL_PORT_USART1
 #define SERIALRX_PROVIDER                   SERIALRX_SBUS
 
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(4) |TIM_N(8) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB7 , 1,  0) /* PPM&SBUS */ \
+    TIMER_PIN_MAP( 1, PA9 , 1,  0) /* S1 */ \
+    TIMER_PIN_MAP( 2, PA8 , 1,  0) /* S2 */ \
+    TIMER_PIN_MAP( 3, PC9 , 2,  0) /* S3 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) /* S4 */ \
+    TIMER_PIN_MAP( 5, PC6 , 2,  1) /* S5 */ \
+    TIMER_PIN_MAP( 6, PC7 , 2,  1) /* S6 */ \
+    TIMER_PIN_MAP( 7, PA15 , 1,  0) /* LED STRIP(1,5) */ \
+    TIMER_PIN_MAP( 8, PB3 , 1,  0) /* FC CAM */
+
+#define MOTOR1_PIN              PA9
+#define MOTOR2_PIN              PA8
+#define MOTOR3_PIN              PC9
+#define MOTOR4_PIN              PC8
+#define MOTOR5_PIN              PC6
+#define MOTOR6_PIN              PC7
+#define RX_PPM_PIN              PB7
+#define LED_STRIP_PIN           PA15

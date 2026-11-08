@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        FISHDRONEF4
+#define MANUFACTURER_ID   LEGA
 #define TARGET_BOARD_IDENTIFIER "FDF4"
 #define USBD_PRODUCT_STRING     "FishDroneF4"
 
@@ -111,7 +114,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
 
-#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream5
 
 // *************** RTC6705 *************************
 #define USE_VTX_RTC6705
@@ -126,7 +128,6 @@
 #define RSSI_ADC_PIN            PC1
 
 // *************** FEATURES ************************
-#define DEFAULT_FEATURES        (FEATURE_OSD)
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART3
@@ -134,10 +135,18 @@
 // *************** Others **************************
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB8 , 1,  0) /* S1_OUT - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 2, PA2 , 1,  0) /* S2_OUT - DMA1_ST1 */ \
+    TIMER_PIN_MAP( 3, PA15 , 1,  0) /* S3_OUT - DMA1_ST5 */ \
+    TIMER_PIN_MAP( 4, PA3 , 1,  1) /* S4_OUT - DMA1_ST6 */ \
+    TIMER_PIN_MAP( 5, PA0 , 2,  0) /* LED_STRIP - DMA1_ST2 */
+
+#define MOTOR1_PIN              PB8
+#define MOTOR2_PIN              PA2
+#define MOTOR3_PIN              PA15
+#define MOTOR4_PIN              PA3
+#define RX_PPM_PIN              PB0
+#define LED_STRIP_PIN           PA0

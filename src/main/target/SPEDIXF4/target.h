@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        SPEDIXF4
+#define MANUFACTURER_ID   SPDX
 #define TARGET_BOARD_IDENTIFIER "SPD4"
 #define USBD_PRODUCT_STRING     "SPEDIXF4"
 
@@ -135,9 +138,9 @@
 #define I2C_DEVICE              (I2CDEV_2)
 
 #define USE_ADC
-#define CURRENT_METER_ADC_PIN   PC1
-#define VBAT_ADC_PIN            PC2
-#define RSSI_ADC_PIN            PC3
+#define CURRENT_METER_ADC_PIN   PC3
+#define VBAT_ADC_PIN            PC1
+#define RSSI_ADC_PIN            PC2
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
@@ -146,12 +149,26 @@
 #define SBUS_TELEMETRY_UART     SERIAL_PORT_USART1
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES        ( FEATURE_OSD | FEATURE_TELEMETRY )
 
-#define TARGET_IO_PORTA         ( 0xffff )
-#define TARGET_IO_PORTB         ( 0xffff )
-#define TARGET_IO_PORTC         ( 0xffff )
-#define TARGET_IO_PORTD         ( 0x0004 )
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USED_TIMERS              ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB6 , 1,  0) /* M1 */ \
+    TIMER_PIN_MAP( 1, PB7 , 1,  0) /* M2 */ \
+    TIMER_PIN_MAP( 2, PB8 , 1,  0) /* M3 */ \
+    TIMER_PIN_MAP( 3, PB9 , 1, -1) /* M4 */ \
+    TIMER_PIN_MAP( 4, PB0 , 2,  0) /* M5 */ \
+    TIMER_PIN_MAP( 5, PB1 , 2,  0) /* M6 */ \
+    TIMER_PIN_MAP( 6, PC6 , 1,  0) /* UART6_TX, M7 */ \
+    TIMER_PIN_MAP( 7, PC7 , 1,  0) /* UART6_RX, M8 */ \
+    TIMER_PIN_MAP( 8, PA8 , 1,  0) \
+    TIMER_PIN_MAP( 9, PA15 , 1,  0) \
+    TIMER_PIN_MAP( 10, PC9 , 2,  0)
+
+#define MOTOR1_PIN              PB6
+#define MOTOR2_PIN              PB7
+#define MOTOR3_PIN              PB8
+#define MOTOR4_PIN              PB9
+#define MOTOR5_PIN              PB0
+#define MOTOR6_PIN              PB1
+#define RX_PPM_PIN              PA8
+#define LED_STRIP_PIN           PA15

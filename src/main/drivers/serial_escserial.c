@@ -638,8 +638,10 @@ static serialPort_t *openEscSerial(const motorDevConfig_t *motorConfig, escSeria
         pwmOutputPort_t *pwmMotors = pwmGetMotors();
         for (volatile uint8_t i = 0; i < MAX_SUPPORTED_MOTORS; i++) {
             if (pwmMotors[i].enabled && pwmMotors[i].io != IO_NONE) {
-                const ioTag_t tag = motorConfig->ioTags[i];
-                if (tag != IO_TAG_NONE) {
+                const uint8_t slot = motorConfig->motorOutputReordering[i];
+                const ioTag_t tag = slot < MAX_SUPPORTED_MOTORS ? motorConfig->ioTags[slot] : IO_TAG_NONE;
+                // an unsaved mapping that differs from the initialized one is skipped
+                if (tag != IO_TAG_NONE && IOGetByTag(tag) == pwmMotors[i].io) {
                     const timerHardware_t *timerHardware = timerAllocate(tag, OWNER_MOTOR, 0);
                     if (timerHardware) {
                         // Workaround to ensure that the timerHandle is configured before use, timer will be reconfigured to a different frequency below

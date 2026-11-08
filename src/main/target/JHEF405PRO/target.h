@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        JHEF405PRO
 #define MANUFACTURER_ID   JHEF
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 
 #define USE_TARGET_CONFIG
 
@@ -146,7 +145,7 @@
 #define USE_I2C_OLED_DISPLAY
 
 #define USE_ADC
-#define ADC1_DMA_STREAM             DMA2_Stream0
+#define ADC1_DMA_OPT 0
 #define VBAT_ADC_PIN PC3
 #define CURRENT_METER_ADC_PIN PC2
 #define RSSI_ADC_PIN PC0
@@ -158,12 +157,25 @@
 #define SERIALRX_UART SERIAL_PORT_USART1
 
 #define DEFAULT_RX_FEATURE FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES ( FEATURE_OSD )
 
-#define TARGET_IO_PORTA ( 0xffff )
-#define TARGET_IO_PORTB ( 0xffff )
-#define TARGET_IO_PORTC ( 0xffff )
-#define TARGET_IO_PORTD ( 0xffff )
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* MOTOR 1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* MOTOR 2 */ \
+    TIMER_PIN_MAP( 2, PA3 , 1,  1) /* MOTOR3 */ \
+    TIMER_PIN_MAP( 3, PA2 , 1,  0) /* MOTOR4 */ \
+    TIMER_PIN_MAP( 4, PB5 , 1,  0) /* MOTOR5 */ \
+    TIMER_PIN_MAP( 5, PB7 , 1,  0) /* MOTOR6 */ \
+    TIMER_PIN_MAP( 6, PC9 , 2,  0) /* MOTOR7 */ \
+    TIMER_PIN_MAP( 7, PC8 , 2,  0) /* MOTOR8 */ \
+    TIMER_PIN_MAP( 8, PA9 , 1,  0) /* LED */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA3
+#define MOTOR4_PIN              PA2
+#define MOTOR5_PIN              PB5
+#define MOTOR6_PIN              PB7
+#define MOTOR7_PIN              PC9
+#define MOTOR8_PIN              PC8
+#define LED_STRIP_PIN           PA9

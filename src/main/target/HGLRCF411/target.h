@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        HGLRCF411
 #define MANUFACTURER_ID   HGLR
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define FC_TARGET_MCU     STM32F411
 
 #define ENABLE_DSHOT_DMAR                                true
 
@@ -34,7 +33,7 @@
 #define BEEPER_PIN                                       PB2
 #define BEEPER_INVERTED
 //define camera control
-#define CAMERA_CONTROL_PIN                               PB10
+#define CAMERA_CONTROL_PIN                               PB10 // PB10 is TIM2 CH3 only; TIM2 also drives motor 5 (PB3), so no mapping row
 
 //MPU-6000
 #define USE_GYRO
@@ -119,11 +118,23 @@
 #define SERIALRX_UART                                   SERIAL_PORT_USART2
 
 // IO Ports
-#define TARGET_IO_PORTA                                 0xffff
-#define TARGET_IO_PORTB                                 0xffff
-#define TARGET_IO_PORTC                                 0xffff
-#define TARGET_IO_PORTD                                 (BIT(2))
 
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                      9                       //updated timer count to compensate for Nf Motor 4
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4)  | TIM_N(5) | TIM_N(9)   ) //update based on update CLRACINGF7 Target BF4.1+
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) \
+    TIMER_PIN_MAP( 1, PB4 , 1,  0) \
+    TIMER_PIN_MAP( 2, PB5 , 1,  0) \
+    TIMER_PIN_MAP( 3, PB6 , 1,  0) \
+    TIMER_PIN_MAP( 4, PB7 , 1,  0) \
+    TIMER_PIN_MAP( 5, PB3 , 1,  0) \
+    TIMER_PIN_MAP( 6, PA0 , 2,  0) \
+    TIMER_PIN_MAP( 7, PA2 , 2,  0) \
+    TIMER_PIN_MAP( 8, PA8 , 1,  0)
+
+#define MOTOR1_PIN              PB4
+#define MOTOR2_PIN              PB5
+#define MOTOR3_PIN              PB6
+#define MOTOR4_PIN              PB7
+#define MOTOR5_PIN              PB3
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA8

@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        TMPACERF7
+#define MANUFACTURER_ID   TMTR
 #define TARGET_BOARD_IDENTIFIER "TMFC"
 #define USBD_PRODUCT_STRING     "TMPACERF7"
 #define TARGET_MANUFACTURER_IDENTIFIER "TMTR"
@@ -128,12 +131,22 @@
 //#define SBUS_TELEMETRY_UART     SERIAL_PORT_USART1
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES        ( FEATURE_OSD | FEATURE_TELEMETRY )
 
-#define TARGET_IO_PORTA         ( 0xffff )
-#define TARGET_IO_PORTB         ( 0xffff )
-#define TARGET_IO_PORTC         ( 0xffff )
-#define TARGET_IO_PORTD         ( 0x0004 )
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USED_TIMERS              ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(8) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC9 , 2,  0) \
+    TIMER_PIN_MAP( 1, PC8 , 2,  0) \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) \
+    TIMER_PIN_MAP( 4, PA15 , 1,  0) \
+    TIMER_PIN_MAP( 5, PA8 , 1,  0) \
+    TIMER_PIN_MAP( 6, PB7 , 1,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 7, PB6 , 1,  0) /* motor 6 */
+
+#define MOTOR1_PIN              PC9
+#define MOTOR2_PIN              PC8
+#define MOTOR3_PIN              PB0
+#define MOTOR4_PIN              PB1
+#define MOTOR5_PIN              PB7
+#define MOTOR6_PIN              PB6
+#define LED_STRIP_PIN           PA15

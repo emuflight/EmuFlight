@@ -23,8 +23,9 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "HAMO"
 #define USBD_PRODUCT_STRING            "CRAZYBEEF4FR"
 
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
+#define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        CRAZYBEEF4FR
+#define MANUFACTURER_ID   HAMO
 
 #define LED0_PIN                PC13
 
@@ -133,21 +134,34 @@
 
 // *************** ADC *****************************
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PB0
 #define CURRENT_METER_ADC_PIN   PB1
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY )
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 179
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
 //#define  USE_DSHOT_DMA
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS             ( TIM_N(1)|TIM_N(2)|TIM_N(4)|TIM_N(5)|TIM_N(9))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM/RX2 */ \
+    TIMER_PIN_MAP( 1, PB10 , 1,  0) /* S1_OUT - DMA1_ST1 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* S2_OUT - DMA1_ST0 */ \
+    TIMER_PIN_MAP( 3, PB7 , 1,  0) /* S3_OUT - DMA1_ST3 */ \
+    TIMER_PIN_MAP( 4, PB8 , 1,  0) /* S4_OUT - DMA1_ST7 */ \
+    TIMER_PIN_MAP( 5, PA0 , 2,  0) /* 2812LED - DMA1_ST2 */ \
+    TIMER_PIN_MAP( 6, PA2 , 3, -1) /* TX2 */ \
+    TIMER_PIN_MAP( 7, PA9 , 1,  0) /* TX1 */ \
+    TIMER_PIN_MAP( 8, PA10 , 1,  0) /* RX1 */
+
+#define MOTOR1_PIN              PB10
+#define MOTOR2_PIN              PB6
+#define MOTOR3_PIN              PB7
+#define MOTOR4_PIN              PB8
+#define RX_PWM1_PIN             PA2
+#define RX_PWM2_PIN             PA9
+#define RX_PWM3_PIN             PA10
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA0

@@ -1,6 +1,2 @@
-F405_TARGETS   += $(TARGET)
-FEATURES       += VCP ONBOARDFLASH
-
-TARGET_SRC = stm32f4xx_crc.c \
-             drivers/accgyro/accgyro_imuf9001.c \
-             drivers/max7456.c
+# StdPeriph CRC for accgyro_imuf9001.c; EXCLUDES in make/mcu/STM32F4.mk drops it by default.
+TARGET_SRC = stm32f4xx_crc.c

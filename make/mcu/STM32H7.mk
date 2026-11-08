@@ -156,6 +156,7 @@ ifeq ($(EXST),yes)
 LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h750_exst.ld
 DEVICE_FLAGS   += -DEXST -DUSE_EXST
 TARGET_FLAGS   += -DEXST
+FIRMWARE_SIZE   := 448
 else
 LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h750_128k.ld
 endif
@@ -205,6 +206,8 @@ LD_SCRIPT       = $(LINKER_DIR)/stm32_ram_h730_exst.ld
 LD_SCRIPTS      = $(LINKER_DIR)/stm32_h730_common.ld $(LINKER_DIR)/stm32_h730_common_post.ld
 DEVICE_FLAGS   += -DEXST -DUSE_EXST
 TARGET_FLAGS   += -DEXST
+FIRMWARE_SIZE   := 1024
+EXST_ADJUST_VMA ?= 0x90100000
 else
 LD_SCRIPT       = $(LINKER_DIR)/stm32_flash_h730_128k.ld
 endif
@@ -242,6 +245,10 @@ DEVICE_FLAGS   += -DMAX_MPU_REGIONS=16
 
 else
 $(error Unknown MCU for H7 target)
+endif
+
+ifneq ($(FIRMWARE_SIZE),)
+DEVICE_FLAGS   += -DFIRMWARE_SIZE=$(FIRMWARE_SIZE)
 endif
 
 DEVICE_FLAGS    += -DHSE_VALUE=$(HSE_VALUE) -DHSE_STARTUP_TIMEOUT=1000 -DSTM32
@@ -288,24 +295,12 @@ MCU_EXCLUDES = \
 
 MSC_SRC = \
             drivers/usb_msc_h7xx.c \
-            msc/usbd_storage.c
-
-ifneq ($(filter SDCARD,$(FEATURES)),)
-MSC_SRC += \
-            msc/usbd_storage_sd_spi.c
-endif
-
-ifneq ($(filter SDCARD_SDIO,$(FEATURES)),)
-MSC_SRC += \
-            msc/usbd_storage_sdio.c
-endif
-
-ifneq ($(filter ONBOARDFLASH,$(FEATURES)),)
-MSC_SRC += \
+            msc/usbd_storage.c \
+            msc/usbd_storage_sd_spi.c \
+            msc/usbd_storage_sdio.c \
             msc/usbd_storage_emfat.c \
             msc/emfat.c \
             msc/emfat_file.c
-endif
 
 DSP_LIB := $(ROOT)/lib/main/CMSIS/DSP
 DEVICE_FLAGS += -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1 -DUNALIGNED_SUPPORT_DISABLE -DARM_MATH_CM7

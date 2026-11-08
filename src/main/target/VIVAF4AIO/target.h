@@ -19,7 +19,9 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER "S405"
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        VIVAF4AIO
+#define MANUFACTURER_ID   VIVA
 #define USBD_PRODUCT_STRING "VIVAF4AIO"
 
 #define ENABLE_DSHOT_DMAR       true
@@ -133,10 +135,23 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_UART           SERIAL_PORT_USART1
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT      9
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(12) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB15 , 3, -1) \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
+    TIMER_PIN_MAP( 2, PC6 , 2,  0) \
+    TIMER_PIN_MAP( 3, PA10 , 1,  0) \
+    TIMER_PIN_MAP( 4, PA8 , 1,  1) \
+    TIMER_PIN_MAP( 5, PC8 , 2,  0) \
+    TIMER_PIN_MAP( 6, PB1 , 2,  0) \
+    TIMER_PIN_MAP( 7, PB6 , 1,  0) \
+    TIMER_PIN_MAP( 8, PA5 , 1,  0)
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PC6
+#define MOTOR3_PIN              PA10
+#define MOTOR4_PIN              PA8
+#define MOTOR5_PIN              PC8
+#define MOTOR6_PIN              PB1
+#define RX_PPM_PIN              PB15
+#define LED_STRIP_PIN           PB6

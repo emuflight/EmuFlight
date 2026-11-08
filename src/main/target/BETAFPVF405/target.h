@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        BETAFPVF405
 #define MANUFACTURER_ID   BEFH
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 
 #define USE_BEEPER
 #define BEEPER_PIN              PB4
@@ -83,7 +82,7 @@
 
 #define USE_ADC
 #define ADC_INSTANCE            ADC2 //test 1 for ADC1
-#define ADC2_DMA_STREAM         DMA2_Stream3
+#define ADC2_DMA_OPT 1
 #define RSSI_ADC_PIN            PC0
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN            PC2
@@ -138,7 +137,6 @@
 #define SDCARD_SPI_CS_PIN             PB12
 #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER  256 // 328kHz
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER  4 // 21MHz
-#define SDCARD_DMA_CHANNEL_TX                DMA1_Stream4
 
 #define FLASH_CS_PIN            PB12
 #define FLASH_SPI_INSTANCE      SPI2
@@ -152,13 +150,26 @@
 #define SERIALRX_UART           SERIAL_PORT_USART6
 //#define SBUS_TELEMETRY_UART     SERIAL_PORT_USART2
 
-#define DEFAULT_FEATURES        ( FEATURE_TELEMETRY | FEATURE_OSD )
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
 
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(10) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB8 , 2, -1) \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) \
+    TIMER_PIN_MAP( 3, PA3 , 1,  1) \
+    TIMER_PIN_MAP( 4, PA2 , 1,  0) \
+    TIMER_PIN_MAP( 5, PC8 , 2,  0) \
+    TIMER_PIN_MAP( 6, PA8 , 1,  0) \
+    TIMER_PIN_MAP( 7, PB6 , 1,  0) \
+    TIMER_PIN_MAP( 8, PA9 , 1,  0) \
+    TIMER_PIN_MAP( 9, PA10 , 1,  0)
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA3
+#define MOTOR4_PIN              PA2
+#define MOTOR5_PIN              PC8
+#define MOTOR6_PIN              PA8
+#define RX_PPM_PIN              PB8
+#define LED_STRIP_PIN           PB6

@@ -22,6 +22,9 @@
 
 #define USE_TARGET_CONFIG
 #define TARGET_MANUFACTURER_IDENTIFIER      "TTRH"
+#define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        TRANSTECF411
+#define MANUFACTURER_ID   TTRH
 #define TARGET_BOARD_IDENTIFIER             "TT41"
 #define USBD_PRODUCT_STRING                 "TransTECF411"
 
@@ -93,19 +96,24 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE                        ADC1
-#define ADC1_DMA_OPT                        0
+#define ADC1_DMA_OPT                        1
 
 #define VBAT_ADC_PIN                        PA0
 #define CURRENT_METER_ADC_PIN               PB4
 
-#define DEFAULT_FEATURES                    (FEATURE_OSD | FEATURE_AIRMODE)
 #define DEFAULT_VOLTAGE_METER_SOURCE        VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE        CURRENT_METER_ADC
 
-#define TARGET_IO_PORTA                     0xffff
-#define TARGET_IO_PORTB                     0xffff
-#define TARGET_IO_PORTC                     0xffff
-#define TARGET_IO_PORTD                     (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT          5
-#define USED_TIMERS                         ( TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* S1_OUT */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* S2_OUT */ \
+    TIMER_PIN_MAP( 2, PB10 , 1,  0) /* S3_OUT */ \
+    TIMER_PIN_MAP( 3, PB9 , 1, -1) /* S4_OUT */ \
+    TIMER_PIN_MAP( 4, PA8 , 1,  0) /* LED_Strip */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PB10
+#define MOTOR4_PIN              PB9
+#define LED_STRIP_PIN           PA8

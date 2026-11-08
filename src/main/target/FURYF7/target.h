@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F745
+#define BOARD_NAME        FURYF7
+#define MANUFACTURER_ID   DIAT
 #define TARGET_BOARD_IDENTIFIER "FYF7"
 
 #define USBD_PRODUCT_STRING "FuryF7"
@@ -87,7 +90,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 8 // 13.5MHz
 
-#define SDCARD_DMA_STREAM_TX_FULL           DMA2_Stream1
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16
@@ -143,11 +145,16 @@
 // If PB11 is critical for this target, please resurrect this line.
 //#define SPEKTRUM_BIND_PIN       PB11
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         0xffff
-#define TARGET_IO_PORTE         0xffff
 
-#define USABLE_TIMER_CHANNEL_COUNT 5
-#define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(8))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC9 , 2,  0) /* PPM_IN */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S1_OUT */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* S2_OUT */ \
+    TIMER_PIN_MAP( 3, PA3 , 1,  1) /* S3_OUT */ \
+    TIMER_PIN_MAP( 4, PA2 , 1,  0) /* S4_OUT */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA3
+#define MOTOR4_PIN              PA2
+#define RX_PPM_PIN              PC9

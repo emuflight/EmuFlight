@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        BETAFPVF722
 #define MANUFACTURER_ID   BEFH
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define ENABLE_DSHOT_DMAR                                true
 
@@ -140,7 +139,6 @@
 #define RSSI_ADC_PIN                                     PC2
 #define DEFAULT_CURRENT_METER_SCALE                      450                   // 3.3/120A  = 25mv/A
 #define ADC1_DMA_OPT                                     0
-#define ADC1_DMA_STREAM                                  DMA2_Stream0 //# ADC 1: DMA2 Stream 0 Channel 0
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 // SPI devices
@@ -167,14 +165,23 @@
 #define DEFAULT_RX_FEATURE                              FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER                               SERIALRX_SBUS
 #define SERIALRX_UART                                   SERIAL_PORT_USART3
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE )
 
 // IO Ports
-#define TARGET_IO_PORTA                                 0xffff
-#define TARGET_IO_PORTB                                 0xffff
-#define TARGET_IO_PORTC                                 0xffff
-#define TARGET_IO_PORTD                                 (BIT(2))
 
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                      7
-#define USED_TIMERS ( TIM_N(1) |TIM_N(2) | TIM_N(3) | TIM_N(4) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* D1-ST0                   MOTOR1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* D1-ST3                   MOTOR2 */ \
+    TIMER_PIN_MAP( 2, PA1 , 1,  0) /* D1-ST7                   MOTOR3 */ \
+    TIMER_PIN_MAP( 3, PA0 , 1,  0) /* D2-ST2/D2-ST4            MOTOR4 */ \
+    TIMER_PIN_MAP( 4, PB6 , 1,  0) /* D1-ST4                   MOTOR5 */ \
+    TIMER_PIN_MAP( 5, PB7 , 1,  0) /* NONE  TIM4_UP_D1-ST6     MOTOR6 */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  0) /* D1-ST2                   LED/MOTOR5 */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA1
+#define MOTOR4_PIN              PA0
+#define MOTOR5_PIN              PB6
+#define MOTOR6_PIN              PB7
+#define LED_STRIP_PIN           PA8

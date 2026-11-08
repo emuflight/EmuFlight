@@ -17,6 +17,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        STRIXF10
+#define MANUFACTURER_ID   HESP
 #define TARGET_BOARD_IDENTIFIER "SX10"
 #define USBD_PRODUCT_STRING     "STRIX Binary F10 by Helio"
 
@@ -48,6 +51,7 @@
 #define IMUF_EXTI_PORT            GPIOB
 
 
+// DMAR masks a live TIM8 CH1/CH3 DMA2 stream collision (motors PC6-9). TIM3/DMA1 migration rejected: collides with flash DMA. Never disable or remove.
 #define USE_DSHOT_DMAR
 #define ENABLE_DSHOT_DMAR       true
 
@@ -126,20 +130,29 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_CRSF
 #define SERIALRX_UART           SERIAL_PORT_USART2
-#define DEFAULT_FEATURES        (FEATURE_TELEMETRY | FEATURE_OSD | FEATURE_AIRMODE)
 
 #define USE_GPS
 #define USE_MAG
 #define ESCSERIAL_TIMER_TX_PIN  NONE  // (HARDARE=0,PPM)
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(8) | TIM_N(4) | TIM_N(12) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB6 , 1,  0) /* CAMERA_CONTROL_PIN */ \
+    TIMER_PIN_MAP( 1, PB14 , 3, -1) \
+    TIMER_PIN_MAP( 2, PC6 , 2,  1) /* S1_OUT D1_ST7 */ \
+    TIMER_PIN_MAP( 3, PC7 , 2,  1) /* S2_OUT D1_ST2 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) /* S3_OUT D1_ST6 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* S4_OUT D1_ST1 */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  0) /* D1_ST0 */
+
+#define MOTOR1_PIN              PC6
+#define MOTOR2_PIN              PC7
+#define MOTOR3_PIN              PC8
+#define MOTOR4_PIN              PC9
+#define RX_PWM1_PIN             PB14
+#define RX_PPM_PIN              PB14
+#define LED_STRIP_PIN           PA8
 
 #define IMUF_BIT_I2C_IF_DIS              (1 << 4)
 

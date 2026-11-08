@@ -20,6 +20,9 @@
 
  #pragma once
 
+#define FC_TARGET_MCU     STM32F745
+#define BOARD_NAME        FOXEERF745_AIO_V2
+#define MANUFACTURER_ID   FOXE
  #define TARGET_BOARD_IDENTIFIER "FOXE"
  #define TARGET_MANUFACTURER_IDENTIFIER "FOXE"
 
@@ -50,9 +53,6 @@
  #define USE_EXTI
 
  #define USE_MAG
- #define USE_MAG_HMC5883
- #define USE_MAG_QMC5883
- #define USE_MAG_LIS3MDL
  #define MAG_I2C_INSTANCE           (I2CDEV_1)
  //BMI270
  #define USE_SPI_GYRO
@@ -61,8 +61,11 @@
  #define BMI270_SPI_BUS     SPIDEV_3
  #define ACC_BMI270_ALIGN        CW180_DEG
  #define GYRO_BMI270_ALIGN       CW180_DEG
- //#define MAG_HMC5883_ALIGN CW270_DEG_FLIP
- //#define MAG_ALIGN CW180_DEG  //not sure if this command will work or if should be more specific to mag
+ #define MAG_HMC5883_ALIGN CW180_DEG
+ #define MAG_QMC5883L_ALIGN CW180_DEG
+ #define MAG_LIS2MDL_ALIGN CW180_DEG
+ #define MAG_LIS3MDL_ALIGN CW180_DEG
+ #define MAG_IST8310_ALIGN CW180_DEG
 
  #define USE_BARO
  #define USE_BARO_BMP280
@@ -154,18 +157,22 @@
  #define USE_RX_MSP
 // #define RX_MSP_UART SERIAL_PORT_USART5 //default uart5 MSP on
 
- #define DEFAULT_FEATURES        (FEATURE_TELEMETRY | FEATURE_OSD)
  #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
  #define SERIALRX_PROVIDER       SERIALRX_SBUS
  #define SERIALRX_UART           SERIAL_PORT_USART1
  #define USE_DSHOT
 
- #define TARGET_IO_PORTA 0xffff
- #define TARGET_IO_PORTB 0xffff
- #define TARGET_IO_PORTC 0xffff
- #define TARGET_IO_PORTD 0xffff
- #define TARGET_IO_PORTE 0xffff
 
- #define USABLE_TIMER_CHANNEL_COUNT 6
 
- #define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(3) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA8 , 1,  0) /* LED_STRIP, */ \
+    TIMER_PIN_MAP( 1, PB3 , 1,  0) /* CAMCONTR, */ \
+    TIMER_PIN_MAP( 2, PB4 , 1,  0) /* M1 */ \
+    TIMER_PIN_MAP( 3, PB5 , 1,  0) /* M2 */ \
+    TIMER_PIN_MAP( 4, PB1 , 2,  0) /* M3 */ \
+    TIMER_PIN_MAP( 5, PB0 , 2,  0) /* M4 */
+
+#define MOTOR1_PIN              PB4
+#define MOTOR2_PIN              PB5
+#define MOTOR3_PIN              PB1
+#define MOTOR4_PIN              PB0

@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        NUCLEOF722
+#define MANUFACTURER_ID   STMI
 #define TARGET_BOARD_IDENTIFIER "NU72"
 
 #define USBD_PRODUCT_STRING "NucleoF722"
@@ -58,7 +61,6 @@
 #define USE_FAKE_BARO
 #define USE_BARO_MS5611
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
 
 #define USE_VCP
 #define USE_USB_DETECT
@@ -131,10 +133,9 @@
 // Divide to under 25MHz for normal operation:
 //#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 8 // 27MHz
 
-//#define SDCARD_DMA_STREAM_TX_FULL           DMA2_Stream1
 
 #define USE_SDCARD_SDIO
-#define SDIO_DMA          DMA2_Stream3
+#define SDCARD_SDIO_DMA_OPT 0
 #define SDCARD_SPI_CS_PIN NONE //This is not used on SDIO, has to be kept for now to keep compiler happy
 
 #define USE_I2C
@@ -153,11 +154,26 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
-#define TARGET_IO_PORTF (BIT(14))
+// Burst DShot shares one TIM_UP stream per timer, so motors need no per-channel stream
+#define ENABLE_DSHOT_DMAR true
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB15, 3, -1) /* PPM,R1 */ \
+    TIMER_PIN_MAP( 1, PC6 , 2,  0) /* R2 */ \
+    TIMER_PIN_MAP( 2, PC7 , 2,  1) /* R3 */ \
+    TIMER_PIN_MAP( 3, PB8 , 1,  0) /* M1 */ \
+    TIMER_PIN_MAP( 4, PA3 , 1,  1) /* M2 */ \
+    TIMER_PIN_MAP( 5, PB5 , 1,  0) /* M3 */ \
+    TIMER_PIN_MAP( 6, PB9 , 1, -1) /* M4 */ \
+    TIMER_PIN_MAP( 7, PE6 , 1, -1) /* M5 */ \
+    TIMER_PIN_MAP( 8, PB4 , 1,  0) /* M6 */
 
-#define USED_TIMERS  ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(12) | TIM_N(8) | TIM_N(9) | TIM_N(10) | TIM_N(11))
+#define MOTOR1_PIN              PB8
+#define MOTOR2_PIN              PA3
+#define MOTOR3_PIN              PB5
+#define MOTOR4_PIN              PB9
+#define MOTOR5_PIN              PE6
+#define MOTOR6_PIN              PB4
+#define RX_PWM1_PIN             PB15
+#define RX_PWM2_PIN             PC6
+#define RX_PWM3_PIN             PC7
+#define RX_PPM_PIN              PB15

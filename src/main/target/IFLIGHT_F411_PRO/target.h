@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        IFLIGHT_F411_PRO
 #define MANUFACTURER_ID   IFRC
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define FC_TARGET_MCU     STM32F411
 
 #define ENABLE_DSHOT_DMAR                                true
 
@@ -147,12 +146,18 @@
 #define SERIALRX_PROVIDER                               SERIALRX_SBUS
 #define SERIALRX_UART                                   SERIAL_PORT_USART2
 
-// IO Ports
-#define TARGET_IO_PORTA                                 0xffff
-#define TARGET_IO_PORTB                                 0xffff
-#define TARGET_IO_PORTC                                 (BIT(2))
-#define TARGET_IO_PORTD                                 (BIT(2))
-
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                      6                       //updated timer count to compensate for Nf Motor 4
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(4)  | TIM_N(9)   ) //update based on update CLRACINGF7 Target BF4.1+
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA0 , 1,  0) /* S1_OUT 2,1 */ \
+    TIMER_PIN_MAP( 1, PB10 , 1,  0) /* S2_OUT 2,2 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* S3_OUT 2,6 */ \
+    TIMER_PIN_MAP( 3, PB7 , 1,  0) /* S4_OUT 1,7 */ \
+    TIMER_PIN_MAP( 4, PA3 , 3, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 5, PA8 , 1,  0) /* S5_OUT 1,4 */
+
+#define MOTOR1_PIN              PA0
+#define MOTOR2_PIN              PB10
+#define MOTOR3_PIN              PB6
+#define MOTOR4_PIN              PB7
+#define LED_STRIP_PIN           PA8
+#define RX_PPM_PIN            PA3

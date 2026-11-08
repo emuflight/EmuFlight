@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        MAMBAF411
+#define MANUFACTURER_ID   DIAT
 #define TARGET_BOARD_IDENTIFIER "MB41"
 #define USBD_PRODUCT_STRING     "MAMBA411"
 
@@ -103,7 +106,7 @@
 #define USE_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define ADC_INSTANCE            ADC1  // Default added
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PA0
 #define RSSI_ADC_PIN            PB1
 #define CURRENT_METER_ADC_PIN   PA1
@@ -114,14 +117,25 @@
 #define SERIALRX_UART           SERIAL_PORT_USART1
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
+#define DEFAULT_FEATURES                (FEATURE_SOFTSERIAL)
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(10) | TIM_N(11) )
+//DEF_TIM(TIM3,   CH2,  PB5,  TIM_USE_ANY,   0, 0 ), // FC CAM – DMA1_ST5
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB9 , 2, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB3 , 1,  0) /* S1_OUT - DMA1_ST6_CH3 */ \
+    TIMER_PIN_MAP( 2, PB4 , 1,  0) /* S2_OUT - DMA1_ST4_CH5 */ \
+    TIMER_PIN_MAP( 3, PB6 , 1,  0) /* S3_OUT - DMA1_ST0_CH2 */ \
+    TIMER_PIN_MAP( 4, PB7 , 1,  0) /* S4_OUT - DMA1_ST3_CH2 */ \
+    TIMER_PIN_MAP( 5, PA15 , 1,  0) /* S5_OUT - DMA1_ST5_CH3 */ \
+    TIMER_PIN_MAP( 6, PB8 , 2, -1) /* S6_OUT - DMA NONE */ \
+    TIMER_PIN_MAP( 7, PA8 , 1,  0) /* LED_STRIP - DMA2_ST3_CH6 */
+
+#define MOTOR1_PIN              PB3
+#define MOTOR2_PIN              PB4
+#define MOTOR3_PIN              PB6
+#define MOTOR4_PIN              PB7
+#define RX_PPM_PIN              PB9
+#define LED_STRIP_PIN           PA8

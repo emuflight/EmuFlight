@@ -20,6 +20,9 @@
  #pragma once
 
 //#define USE_TARGET_CONFIG
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        VGOODRCF4
+#define MANUFACTURER_ID   VGRC
 #define TARGET_BOARD_IDENTIFIER	"VGF4"
 #define TARGET_MANUFACTURER_IDENTIFIER	"VGRC"
 #define USBD_PRODUCT_STRING	"VGOODRCF4"
@@ -73,10 +76,6 @@
 //-------------------------------------IIC1 MAG5883------------------------------
 #define MAG_I2C_INSTANCE        (I2CDEV_1)
 #define USE_MAG
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-#define USE_MAG_LIS3MDL
-#define MAG_HMC5883_ALIGN       CW90_DEG
 
 //-------------------------------------USART-----------------------------------
 #define USE_VCP
@@ -160,7 +159,6 @@
 #define I2C2_SDA                PB11
 
 //-------------------------------------FEATURES-------------------------------
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
 
 #define DEFAULT_RX_FEATURE     	FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
@@ -170,11 +168,23 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 179
 
-//--------------------------------BOARD RESOURCES-----------------------------
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0x0007
+// PB1 and TIM3 burst share DMA1 Stream 2; with DShot burst on only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC7 , 2,  0) /* PPM */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  1) /* M1 */ \
+    TIMER_PIN_MAP( 2, PA9 , 1,  1) /* M2 */ \
+    TIMER_PIN_MAP( 3, PA10 , 1,  1) /* M3 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) /* M4 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* M5 */ \
+    TIMER_PIN_MAP( 6, PB0 , 2,  0) /* M6 */ \
+    TIMER_PIN_MAP( 7, PB1 , 2,  0) /* M7 / LED_STRIP */
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USED_TIMERS    (TIM_N(1)|TIM_N(3)|TIM_N(8))
+#define MOTOR1_PIN              PA8
+#define MOTOR2_PIN              PA9
+#define MOTOR3_PIN              PA10
+#define MOTOR4_PIN              PC8
+#define MOTOR5_PIN              PC9
+#define MOTOR6_PIN              PB0
+#define MOTOR7_PIN              PB1
+#define RX_PPM_PIN              PC7
+#define LED_STRIP_PIN           PB1

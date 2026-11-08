@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        SPEDIXH743
 #define MANUFACTURER_ID   SPDX
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU     STM32H743     // not used in EmuF
+#define FC_TARGET_MCU     STM32H743
 
 #define USE_ACC
 #define USE_ACC_SPI_ICM42688P
@@ -142,9 +141,6 @@
 #define ADC1_DMA_OPT                        9
 #define ADC2_DMA_OPT                        10
 #define ADC3_DMA_OPT                        11
-#define ADC1_DMA_STREAM DMA2_Stream1 // ADC1 opt9
-#define ADC2_DMA_STREAM DMA2_Stream2 // ADC2 opt10
-#define ADC3_DMA_STREAM DMA2_Stream3 // ADC3 opt11
 #define DEFAULT_VOLTAGE_METER_SOURCE        VOLTAGE_METER_ADC
 #define DEFAULT_VOLTAGE_METER_SCALE 110
 #define DEFAULT_CURRENT_METER_SOURCE        CURRENT_METER_ADC
@@ -157,17 +153,30 @@
 #define PINIO2_CONFIG                       1
 #define PINIO2_BOX                          41
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 13
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(15) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PE9 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PE11 , 1,  1) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PE13 , 1,  2) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PE14 , 1,  3) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  4) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  5) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PA6 , 1,  6) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PA7 , 2,  7) /* motor 8 */ \
+    TIMER_PIN_MAP( 8, PA0 , 2,  8) /* led strip */ \
+    TIMER_PIN_MAP( 9, PA5 , 1,  -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 10, PB0 , 2,  -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 11, PD14 , 1,  -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 12, PA1 , 3,  -1) /* cam ctrl; dma -1 in config (input only) */
+
+#define MOTOR1_PIN              PE9
+#define MOTOR2_PIN              PE11
+#define MOTOR3_PIN              PE13
+#define MOTOR4_PIN              PE14
+#define MOTOR5_PIN              PC8
+#define MOTOR6_PIN              PC9
+#define MOTOR7_PIN              PA6
+#define MOTOR8_PIN              PA7
 
 // notice - this file was programmatically generated and may be incomplete.

@@ -23,8 +23,9 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "IFRC"
 #define USBD_PRODUCT_STRING "IFLIGHT_F745_AIO_V2"
 
-#define FC_TARGET_MCU     STM32F745     // not used in EmuF
-#define TARGET_BOARD_IDENTIFIER "S745"  // generic ID
+#define FC_TARGET_MCU     STM32F745
+#define BOARD_NAME        IFLIGHT_F745_AIO_V2
+#define MANUFACTURER_ID   IFRC
 
 #define ENABLE_DSHOT_DMAR       true
 
@@ -174,16 +175,30 @@
 
 #define USE_LED_STRIP
 
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
 
-#define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) )
+// PC8 and ADC1 share DMA2 Stream 4; with DShot burst off only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA8 , 1,  0) /* LED */ \
+    TIMER_PIN_MAP( 1, PB3 , 1,  0) /* CAM */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* M1 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* M2 */ \
+    TIMER_PIN_MAP( 4, PB4 , 1,  0) /* M3 */ \
+    TIMER_PIN_MAP( 5, PB5 , 1,  0) /* M4 */ \
+    TIMER_PIN_MAP( 6, PD12 , 1,  0) /* M5 */ \
+    TIMER_PIN_MAP( 7, PD13 , 1,  0) /* M6 */ \
+    TIMER_PIN_MAP( 8, PC8 , 2,  1) /* M7 */ \
+    TIMER_PIN_MAP( 9, PC9 , 2,  0) /* M8 */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PB4
+#define MOTOR4_PIN              PB5
+#define MOTOR5_PIN              PD12
+#define MOTOR6_PIN              PD13
+#define MOTOR7_PIN              PC8
+#define MOTOR8_PIN              PC9
+#define LED_STRIP_PIN           PA8

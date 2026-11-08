@@ -141,13 +141,11 @@ bool handleMspFrame(uint8_t *frameStart, int frameLength, uint8_t *skipsBeforeRe
     uint8_t payload[frameBytesRemaining];
     if (bufferBytesRemaining >= frameBytesRemaining) {
         sbufReadData(frameBuf, payload, frameBytesRemaining);
-        sbufAdvance(frameBuf, frameBytesRemaining);
         sbufWriteData(rxBuf, payload, frameBytesRemaining);
         lastSeq = seqNumber;
         return false;
     } else {
         sbufReadData(frameBuf, payload, bufferBytesRemaining);
-        sbufAdvance(frameBuf, bufferBytesRemaining);
         sbufWriteData(rxBuf, payload, bufferBytesRemaining);
         sbufSwitchToReader(rxBuf, mspPackage.requestBuffer);
         while (sbufBytesRemaining(rxBuf)) {
@@ -195,13 +193,11 @@ bool sendMspReply(uint8_t payloadSize, mspResponseFnPtr responseFn) {
     uint8_t frame[payloadBytesRemaining];
     if (bufferBytesRemaining >= payloadBytesRemaining) {
         sbufReadData(txBuf, frame, payloadBytesRemaining);
-        sbufAdvance(txBuf, payloadBytesRemaining);
         sbufWriteData(payloadBuf, frame, payloadBytesRemaining);
         responseFn(payloadOut);
         return true;
     } else {
         sbufReadData(txBuf, frame, bufferBytesRemaining);
-        sbufAdvance(txBuf, bufferBytesRemaining);
         sbufWriteData(payloadBuf, frame, bufferBytesRemaining);
         sbufSwitchToReader(txBuf, mspPackage.responseBuffer);
         checksum = sbufBytesRemaining(txBuf) ^ mspPackage.responsePacket->cmd;

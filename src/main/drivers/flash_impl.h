@@ -53,10 +53,7 @@ typedef struct flashDeviceIO_s {
 #ifdef USE_FLASH_SPI
         extDevice_t *dev; // Device interface dependent handle (spi/i2c)
 #endif
-#ifdef USE_FLASH_QUADSPI
-        QUADSPI_TypeDef *quadSpi;
-#endif
-#if !defined(USE_FLASH_SPI) && !defined(USE_FLASH_QUADSPI)
+#if !defined(USE_FLASH_SPI)
         extDevice_t *dev; // Default SPI device handle
 #endif
     } handle;

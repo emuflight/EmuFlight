@@ -19,6 +19,9 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        BEEROTORF4
+#define MANUFACTURER_ID   RCTI
 #define TARGET_BOARD_IDENTIFIER "BRF4"
 
 #define USBD_PRODUCT_STRING "BeeRotorF4"
@@ -29,6 +32,7 @@
 #define BEEPER_PIN              PB3
 #define BEEPER_INVERTED
 
+// Burst required: per-channel DShot puts M4 and M7 on DMA1_ST5, shared with OSD TX
 #define ENABLE_DSHOT_DMAR       true
 
 // ICM20689 interrupt
@@ -72,7 +76,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
 
-#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream4
 
 #define USE_VCP
 #define USE_USB_DETECT
@@ -132,7 +135,7 @@
 #define I2C1_SDA                PB7
 
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 0
 
 #define VBAT_ADC_PIN            PC0
 
@@ -142,7 +145,6 @@
 
 #define USE_TRANSPONDER
 
-#define DEFAULT_FEATURES        ( FEATURE_TELEMETRY | FEATURE_OSD | FEATURE_AIRMODE )
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
@@ -152,10 +154,27 @@
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4)  |  TIM_N(5) | TIM_N(8) | TIM_N(9))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB0 , 1,  0) /* M1 - DMAR: DMA2_ST5 */ \
+    TIMER_PIN_MAP( 2, PB1 , 3,  1) /* M2 - DMAR: DMA2_ST1 */ \
+    TIMER_PIN_MAP( 3, PA1 , 1,  0) /* M3 - DMAR: DMA1_ST7 */ \
+    TIMER_PIN_MAP( 4, PA0 , 1,  0) /* M4 - per-channel DMA1_ST5 (conflicts with M7, OSD TX); TIM5_UP burst is DMA1_ST0 = OSD RX */ \
+    TIMER_PIN_MAP( 5, PC6 , 1,  0) /* M5 - DMAR: DMA1_ST2 */ \
+    TIMER_PIN_MAP( 6, PC7 , 2,  0) /* M6 - */ \
+    TIMER_PIN_MAP( 7, PB5 , 1,  0) /* M7 - DMAR: DMA1_ST2 */ \
+    TIMER_PIN_MAP( 8, PB9 , 1, -1) /* M8 - DMAR: DMA1_ST6 */ \
+    TIMER_PIN_MAP( 9, PB8 , 1,  0) /* LED_STRIP / TRANSPONDER - DMA1_ST7 (can be used for DShot, conflicts with OSD TX) */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA1
+#define MOTOR4_PIN              PA0
+#define MOTOR5_PIN              PC6
+#define MOTOR6_PIN              PC7
+#define MOTOR7_PIN              PB5
+#define MOTOR8_PIN              PB9
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PB8
+#define TRANSPONDER_PIN         PB8 // EF-only: not in the reference config

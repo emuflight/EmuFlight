@@ -27,9 +27,11 @@
 extern "C" {
 
 #include "platform.h"
+#include "drivers/adc.h"
 #include "drivers/dma_reqmap.h"
 #include "drivers/serial.h"
 #include "drivers/serial_uart.h"
+#include "drivers/timer.h"
 
 }
 
@@ -97,4 +99,172 @@ TEST(DmaReqmapUnittest, RejectsUartDeviceWithNoTableEntry)
 {
     // UARTDEV_9/10 have no F4/F7 table rows at all (H7-only entries) -- must return NULL, not a stale/wrong row.
     EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_UART_RX, UARTDEV_9, 0), nullptr);
+}
+
+// --- Timer table (IT #1396): dmaGetChannelSpecByTimerValue() was a stub returning NULL
+// unconditionally on F4/F7 until this table was implemented -- verifies the real per-option
+// data, not just that a value comes back. ---
+
+TEST(DmaReqmapUnittest, Tim1Ch1AllThreeOptionsResolveToDistinctStreams)
+{
+    const dmaChannelSpec_t *opt0 = dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM1, TIM_Channel_1, 0);
+    const dmaChannelSpec_t *opt1 = dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM1, TIM_Channel_1, 1);
+    const dmaChannelSpec_t *opt2 = dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM1, TIM_Channel_1, 2);
+
+    ASSERT_NE(opt0, nullptr);
+    ASSERT_NE(opt1, nullptr);
+    ASSERT_NE(opt2, nullptr);
+    EXPECT_NE(opt0->ref, opt1->ref);
+    EXPECT_NE(opt0->ref, opt2->ref);
+    EXPECT_NE(opt1->ref, opt2->ref);
+}
+
+TEST(DmaReqmapUnittest, Tim8Ch1SameStreamDifferentChannelOptionsAreDistinguishable)
+{
+    // TIM8_CH1's two options (DMA(2,2,0) and DMA(2,2,7)) share one physical DMA2_Stream2 --
+    // only .channel (the mux selector) tells them apart. A table or lookup bug that ignores
+    // .channel would make these two options indistinguishable.
+    const dmaChannelSpec_t *opt0 = dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM8, TIM_Channel_1, 0);
+    const dmaChannelSpec_t *opt1 = dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM8, TIM_Channel_1, 1);
+
+    ASSERT_NE(opt0, nullptr);
+    ASSERT_NE(opt1, nullptr);
+    EXPECT_EQ(opt0->ref, opt1->ref);
+    EXPECT_NE(opt0->channel, opt1->channel);
+}
+
+TEST(DmaReqmapUnittest, RejectsUnmappedTimerChannel)
+{
+    // TIM3 is in the table, but a channel value past TIM_Channel_4 has no entry.
+    EXPECT_EQ(dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM3, TIM_Channel_4 + 1, 0), nullptr);
+}
+
+TEST(DmaReqmapUnittest, RejectsNegativeTimerOptIndex)
+{
+    EXPECT_EQ(dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM1, TIM_Channel_1, -1), nullptr);
+}
+
+TEST(DmaReqmapUnittest, RejectsTimerOptIndexPastTableWidth)
+{
+    EXPECT_EQ(dmaGetChannelSpecByTimerValue((TIM_TypeDef *)TIM1, TIM_Channel_1, MAX_TIMER_DMA_OPTIONS), nullptr);
+}
+
+// --- dmaGetOptionByTimer()/dmaGetChannelSpecByTimer(): exercise the actual timerHardware_t
+// matching path CodeRabbit flagged as untested -- the tests above only call
+// dmaGetChannelSpecByTimerValue() with a hand-picked option index, never resolving that index
+// from a timerHardware_t the way real call sites do. ---
+
+TEST(DmaReqmapUnittest, GetOptionByTimerDisambiguatesSameStreamDifferentChannel)
+{
+    // TIM8_CH1's two table options (DMA(2,2,0) and DMA(2,2,7)) share DMA2_Stream2 -- only
+    // .channel differs. A timer already configured with dmaChannel=7 must resolve to option 1,
+    // not option 0, even though both share the same .ref.
+    timerHardware_t timerOpt0 = {};
+    timerOpt0.tim = (TIM_TypeDef *)TIM8;
+    timerOpt0.channel = TIM_Channel_1;
+    timerOpt0.dmaRef = (DMA_Stream_TypeDef *)DMA2_Stream2;
+    timerOpt0.dmaChannel = 0;
+
+    timerHardware_t timerOpt1 = timerOpt0;
+    timerOpt1.dmaChannel = 7;
+
+    EXPECT_EQ(dmaGetOptionByTimer(&timerOpt0), 0);
+    EXPECT_EQ(dmaGetOptionByTimer(&timerOpt1), 1);
+
+    const dmaChannelSpec_t *spec0 = dmaGetChannelSpecByTimer(&timerOpt0);
+    const dmaChannelSpec_t *spec1 = dmaGetChannelSpecByTimer(&timerOpt1);
+    ASSERT_NE(spec0, nullptr);
+    ASSERT_NE(spec1, nullptr);
+    EXPECT_EQ(spec0->ref, spec1->ref);
+    EXPECT_NE(spec0->channel, spec1->channel);
+    EXPECT_EQ(spec0->channel, 0u);
+    EXPECT_EQ(spec1->channel, 7u);
+}
+
+TEST(DmaReqmapUnittest, GetOptionByTimerRejectsNullTimer)
+{
+    EXPECT_EQ(dmaGetOptionByTimer(nullptr), DMA_OPT_UNUSED);
+    EXPECT_EQ(dmaGetChannelSpecByTimer(nullptr), nullptr);
+}
+
+TEST(DmaReqmapUnittest, GetOptionByTimerIgnoresZeroInitializedSlots)
+{
+    // TIM4_CH2 has only one populated table option (DMA(1,3,2)) -- options 1 and 2 are
+    // zero-initialized (.ref == NULL, .channel == 0). A timer with dmaRef == NULL and
+    // dmaChannel == 0 must not falsely match one of those empty slots.
+    timerHardware_t timer = {};
+    timer.tim = (TIM_TypeDef *)TIM4;
+    timer.channel = TIM_Channel_2;
+    timer.dmaRef = nullptr;
+    timer.dmaChannel = 0;
+
+    EXPECT_EQ(dmaGetOptionByTimer(&timer), DMA_OPT_UNUSED);
+    EXPECT_EQ(dmaGetChannelSpecByTimer(&timer), nullptr);
+}
+
+// --- ADC entries (IT #1462): per-device two-option table, values from the DMA2 request map in the reference manual ---
+
+TEST(DmaReqmapUnittest, AdcDevicesResolveToTheirFixedStreamAndChannelPairs)
+{
+    // ADC1: ST0/ST4 ch0. ADC2: ST2/ST3 ch1. ADC3: ST0/ST1 ch2.
+    const struct { int device; int opt; dmaResource_t *ref; uint32_t channel; } expected[] = {
+        { ADCDEV_1, 0, (dmaResource_t *)DMA2_Stream0, 0 },
+        { ADCDEV_1, 1, (dmaResource_t *)DMA2_Stream4, 0 },
+        { ADCDEV_2, 0, (dmaResource_t *)DMA2_Stream2, 1 },
+        { ADCDEV_2, 1, (dmaResource_t *)DMA2_Stream3, 1 },
+        { ADCDEV_3, 0, (dmaResource_t *)DMA2_Stream0, 2 },
+        { ADCDEV_3, 1, (dmaResource_t *)DMA2_Stream1, 2 },
+    };
+
+    for (const auto &e : expected) {
+        const dmaChannelSpec_t *spec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, e.device, e.opt);
+        ASSERT_NE(spec, nullptr) << "device " << e.device << " opt " << e.opt;
+        EXPECT_EQ(spec->ref, e.ref) << "device " << e.device << " opt " << e.opt;
+        EXPECT_EQ(spec->channel, e.channel) << "device " << e.device << " opt " << e.opt;
+    }
+}
+
+TEST(DmaReqmapUnittest, AdcRejectsUnusedAndOutOfRangeOpt)
+{
+    for (int device = ADCDEV_1; device <= ADCDEV_3; device++) {
+        EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, device, DMA_OPT_UNUSED), nullptr);
+        EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, device, 2), nullptr);
+        EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, device, INT8_MAX), nullptr);
+        EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, device, INT8_MIN), nullptr);
+    }
+}
+
+TEST(DmaReqmapUnittest, AdcRejectsDeviceWithNoTableEntry)
+{
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, ADCDEV_COUNT, 0), nullptr);
+}
+
+// --- SDIO entry (IT #1477): one device (index 0), two options. Spec: DMA2 Stream3 ch4 (opt 0), DMA2 Stream6 ch4 (opt 1) ---
+
+TEST(DmaReqmapUnittest, SdioOptionsResolveToTheirFixedStreamAndChannel)
+{
+    const dmaChannelSpec_t *opt0 = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, 0);
+    ASSERT_NE(opt0, nullptr);
+    EXPECT_EQ(opt0->ref, (dmaResource_t *)DMA2_Stream3);
+    EXPECT_EQ(opt0->channel, 4u);
+
+    const dmaChannelSpec_t *opt1 = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, 1);
+    ASSERT_NE(opt1, nullptr);
+    EXPECT_EQ(opt1->ref, (dmaResource_t *)DMA2_Stream6);
+    EXPECT_EQ(opt1->channel, 4u);
+}
+
+TEST(DmaReqmapUnittest, SdioRejectsUnusedAndOutOfRangeOpt)
+{
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, DMA_OPT_UNUSED), nullptr);
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, 2), nullptr);
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, MAX_PERIPHERAL_DMA_OPTIONS), nullptr);
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, INT8_MAX), nullptr);
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 0, INT8_MIN), nullptr);
+}
+
+TEST(DmaReqmapUnittest, SdioHasOnlyDeviceIndexZero)
+{
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, 1, 0), nullptr);
+    EXPECT_EQ(dmaGetChannelSpecByPeripheral(DMA_PERIPH_SDIO, UINT8_MAX, 0), nullptr);
 }

@@ -23,8 +23,7 @@
 
 #define BOARD_NAME        FLYWOOF411_5IN1_AIO
 #define MANUFACTURER_ID   FLWO
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define FC_TARGET_MCU     STM32F411
 
 #define LED0_PIN PC13
 
@@ -173,15 +172,27 @@
 //#define PINIO2_PIN              PA15 // Camera switcher
 //#define USE_PINIOBOX
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
+#define DEFAULT_FEATURES                (FEATURE_SOFTSERIAL)
 #define DEFAULT_CURRENT_METER_SCALE         200
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USED_TIMERS             ( TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(9) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA2 , 3, -1) /* PPM, TX2 */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  1) /* S1 UP1-2 */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* S2 UP1-2 */ \
+    TIMER_PIN_MAP( 3, PB10 , 1,  0) /* S3 UP1-2 */ \
+    TIMER_PIN_MAP( 4, PB7 , 1,  0) /* S4 UP1-2 */ \
+    TIMER_PIN_MAP( 5, PB4 , 1,  0) /* SPI3_MISO */ \
+    TIMER_PIN_MAP( 6, PB3 , 1,  0) /* SPI3_SCK */ \
+    TIMER_PIN_MAP( 7, PA15 , 1,  0) /* RX_SPI_CS */ \
+    TIMER_PIN_MAP( 8, PB0 , 2,  0) /* RX_SPI_EXTI */ \
+    TIMER_PIN_MAP( 9, PA0 , 2,  0) /* LED */
+
+#define MOTOR1_PIN              PA8
+#define MOTOR2_PIN              PB6
+#define MOTOR3_PIN              PB10
+#define MOTOR4_PIN              PB7
+#define RX_PPM_PIN              PA2
+#define LED_STRIP_PIN           PA0

@@ -24,8 +24,7 @@
 
 #define BOARD_NAME        ZEUSF722_AIO
 #define MANUFACTURER_ID   HGLR
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define ENABLE_DSHOT_DMAR       true
 
@@ -157,7 +156,7 @@
 
 // *************** ADC *****************************
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PC2
 #define CURRENT_METER_ADC_PIN   PC1
 #define RSSI_ADC_PIN            PC0
@@ -169,17 +168,39 @@
 #define PINIO2_PIN              PC9 // 2xCamera switcher
 #define USE_PINIOBOX
 
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 179
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 13
-#define USED_TIMERS    (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(9))
+// PA15 and PB5 share DMA1 Stream 5; with DShot burst off only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB4 , 1,  0) /* S1   UP1-2 */ \
+    TIMER_PIN_MAP( 1, PB5 , 1,  0) /* S2   UP1-2 */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* S3   UP1-2 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* S4   UP1-2 */ \
+    TIMER_PIN_MAP( 4, PA15 , 1,  0) /* S5   UP1-7 */ \
+    TIMER_PIN_MAP( 5, PB3 , 1,  0) /* S6   UP1-7 */ \
+    TIMER_PIN_MAP( 6, PB6 , 1,  0) /* S7   UP1-6 */ \
+    TIMER_PIN_MAP( 7, PB7 , 1,  0) /* S8   UP1-6 */ \
+    TIMER_PIN_MAP( 8, PA8 , 1,  2) /* LED DMA2-3 */ \
+    TIMER_PIN_MAP( 9, PA3 , 3, -1) /* PPM, RX2 */ \
+    TIMER_PIN_MAP( 10, PA2 , 3, -1) /* TX2 */ \
+    TIMER_PIN_MAP( 11, PA1 , 2,  0) /* RX4 */ \
+    TIMER_PIN_MAP( 12, PA0 , 2,  0) /* TX4 */
+
+#define MOTOR1_PIN              PB4
+#define MOTOR2_PIN              PB5
+#define MOTOR3_PIN              PB0
+#define MOTOR4_PIN              PB1
+#define MOTOR5_PIN              PA15
+#define MOTOR6_PIN              PB3
+#define MOTOR7_PIN              PB6
+#define MOTOR8_PIN              PB7
+#define RX_PWM1_PIN             PA2
+#define RX_PWM2_PIN             PA1
+#define RX_PWM3_PIN             PA0
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA8

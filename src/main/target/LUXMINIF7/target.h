@@ -23,6 +23,9 @@
 
 #define USE_TARGET_CONFIG
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        LUXMINIF7
+#define MANUFACTURER_ID   LMNR
 #define TARGET_BOARD_IDENTIFIER "LMF7"
 #define USBD_PRODUCT_STRING     "Lux Mini F7"
 
@@ -146,17 +149,23 @@
 #define CURRENT_METER_ADC_PIN   PC1
 #define RSSI_ADC_PIN            PC2
 
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE)
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE 179
 
 #define ESCSERIAL_TIMER_TX_PIN  PA3
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USED_TIMERS             (TIM_N(1)|TIM_N(2)|TIM_N(4)|TIM_N(8))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA15 , 1,  0) /* ONBOARD LED */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  0) /* CAM CONTROL */ \
+    TIMER_PIN_MAP( 2, PB6 , 1,  0) /* S1 */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  0) /* S2 */ \
+    TIMER_PIN_MAP( 4, PB7 , 1,  0) /* S3 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* S4 */
+
+#define MOTOR1_PIN              PB6
+#define MOTOR2_PIN              PC8
+#define MOTOR3_PIN              PB7
+#define MOTOR4_PIN              PC9
+#define LED_STRIP_PIN           PA15

@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        ANYFCM7
+#define MANUFACTURER_ID   FOSS
 #define TARGET_BOARD_IDENTIFIER "ANYM"
 
 #define USBD_PRODUCT_STRING "AnyFCM7"
@@ -56,7 +59,6 @@
 #define USE_BARO
 #define USE_BARO_MS5611
 
-#define USABLE_TIMER_CHANNEL_COUNT 16
 
 #define USE_VCP
 #define USE_USB_DETECT
@@ -135,10 +137,38 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-#define TARGET_IO_PORTE 0xffff
 
-#define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(12))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB14 , 3, -1) /* S1_IN */ \
+    TIMER_PIN_MAP( 1, PB15 , 3, -1) /* S2_IN */ \
+    TIMER_PIN_MAP( 2, PC6 , 2,  1) /* S3_IN DMA2_ST2 DMA2_ST2 */ \
+    TIMER_PIN_MAP( 3, PC7 , 2,  1) /* S4_IN DMA2_ST3 DMA2_ST2 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) /* S5_IN DMA2_ST4 DMA2_ST2 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* S6_IN DMA2_ST7 */ \
+    TIMER_PIN_MAP( 6, PB8 , 1,  0) /* S10_OUT 1 DMA1_ST7 */ \
+    TIMER_PIN_MAP( 7, PA2 , 1,  0) /* S6_OUT  2 DMA1_ST1 */ \
+    TIMER_PIN_MAP( 8, PB7 , 1,  0) /* S5_OUT  3 DMA1_ST3 */ \
+    TIMER_PIN_MAP( 9, PA3 , 1,  1) /* S1_OUT  4 DMA1_ST7 DMA1_ST6 */ \
+    TIMER_PIN_MAP( 10, PA1 , 2,  0) /* S2_OUT DMA1_ST4 */ \
+    TIMER_PIN_MAP( 11, PB0 , 1,  1) /* S3_OUT DMA2_ST6 DMA2_ST2 */ \
+    TIMER_PIN_MAP( 12, PB5 , 1,  0) /* S4_OUT DMA1_ST5 */ \
+    TIMER_PIN_MAP( 13, PA0 , 2,  0) /* S7_OUT DMA1_ST2 */ \
+    TIMER_PIN_MAP( 14, PB1 , 1,  0) /* S8_OUT DMA2_ST6 */ \
+    TIMER_PIN_MAP( 15, PB4 , 1,  0) /* S9_OUT DMA1_ST4 */
+
+#define MOTOR1_PIN              PB8
+#define MOTOR2_PIN              PA2
+#define MOTOR3_PIN              PB7
+#define MOTOR4_PIN              PA3
+#define MOTOR5_PIN              PA1
+#define MOTOR6_PIN              PB0
+#define MOTOR7_PIN              PB5
+#define MOTOR8_PIN              PA0
+#define RX_PWM1_PIN             PB14
+#define RX_PWM2_PIN             PB15
+#define RX_PWM3_PIN             PC6
+#define RX_PWM4_PIN             PC7
+#define RX_PWM5_PIN             PC8
+#define RX_PWM6_PIN             PC9
+#define RX_PPM_PIN              PB14
+#define LED_STRIP_PIN           PB5

@@ -77,7 +77,7 @@ PG_RESET_TEMPLATE(mixerConfig_t, mixerConfig,
                   .crashflip_power_percent = 70,
                  );
 
-PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 1);
+PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 2);
 
 void pgResetFn_motorConfig(motorConfig_t *motorConfig) {
 #ifdef BRUSHED_MOTORS
@@ -110,10 +110,34 @@ void pgResetFn_motorConfig(motorConfig_t *motorConfig) {
 #ifdef USE_DSHOT_DMAR
     motorConfig->dev.useBurstDshot = ENABLE_DSHOT_DMAR;
 #endif
-    for (int motorIndex = 0; motorIndex < MAX_SUPPORTED_MOTORS; motorIndex++) {
-        motorConfig->dev.ioTags[motorIndex] = timerioTagGetByUsage(TIM_USE_MOTOR, motorIndex);
-    }
+#ifdef MOTOR1_PIN
+    motorConfig->dev.ioTags[0] = IO_TAG(MOTOR1_PIN);
+#endif
+#ifdef MOTOR2_PIN
+    motorConfig->dev.ioTags[1] = IO_TAG(MOTOR2_PIN);
+#endif
+#ifdef MOTOR3_PIN
+    motorConfig->dev.ioTags[2] = IO_TAG(MOTOR3_PIN);
+#endif
+#ifdef MOTOR4_PIN
+    motorConfig->dev.ioTags[3] = IO_TAG(MOTOR4_PIN);
+#endif
+#ifdef MOTOR5_PIN
+    motorConfig->dev.ioTags[4] = IO_TAG(MOTOR5_PIN);
+#endif
+#ifdef MOTOR6_PIN
+    motorConfig->dev.ioTags[5] = IO_TAG(MOTOR6_PIN);
+#endif
+#ifdef MOTOR7_PIN
+    motorConfig->dev.ioTags[6] = IO_TAG(MOTOR7_PIN);
+#endif
+#ifdef MOTOR8_PIN
+    motorConfig->dev.ioTags[7] = IO_TAG(MOTOR8_PIN);
+#endif
     motorConfig->motorPoleCount = 14;   // Most brushes motors that we use are 14 poles
+    for (int motorIndex = 0; motorIndex < MAX_SUPPORTED_MOTORS; motorIndex++) {
+        motorConfig->dev.motorOutputReordering[motorIndex] = motorIndex;
+    }
 }
 
 PG_REGISTER_ARRAY(motorMixer_t, MAX_SUPPORTED_MOTORS, customMotorMixer, PG_MOTOR_MIXER, 0);

@@ -33,6 +33,7 @@
 #include "io_impl.h"
 #include "rcc.h"
 #include "dma.h"
+#include "dma_reqmap.h"
 
 #include "drivers/sensor.h"
 
@@ -44,10 +45,6 @@
 
 #ifndef ADC_INSTANCE
 #define ADC_INSTANCE                ADC1
-#endif
-
-#ifndef ADC1_DMA_STREAM
-#define ADC1_DMA_STREAM DMA2_Stream4
 #endif
 
 // Copied from stm32f7xx_ll_adc.h
@@ -72,9 +69,9 @@
 #endif
 
 const adcDevice_t adcHardware[] = {
-    { .ADCx = ADC1, .rccADC = RCC_APB2(ADC1), .DMAy_Streamx = ADC1_DMA_STREAM, .channel = DMA_CHANNEL_0 },
-    { .ADCx = ADC2, .rccADC = RCC_APB2(ADC2), .DMAy_Streamx = ADC2_DMA_STREAM, .channel = DMA_CHANNEL_1 },
-    { .ADCx = ADC3, .rccADC = RCC_APB2(ADC3), .DMAy_Streamx = ADC3_DMA_STREAM, .channel = DMA_CHANNEL_2 }
+    { .ADCx = ADC1, .rccADC = RCC_APB2(ADC1) },
+    { .ADCx = ADC2, .rccADC = RCC_APB2(ADC2) },
+    { .ADCx = ADC3, .rccADC = RCC_APB2(ADC3) }
 };
 
 /* note these could be packed up for saving space */
@@ -263,11 +260,12 @@ void adcInit(const adcConfig_t *config) {
             /* Channel Configuration Error */
         }
     }
-    if (!dmaAllocate(dmaGetIdentifier(adc.DMAy_Streamx), OWNER_ADC, 0)) {
+    const dmaChannelSpec_t *dmaspec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, device, config->dmaopt[device]);
+    if (!dmaspec || !dmaAllocate(dmaGetIdentifier((DMA_Stream_TypeDef *)dmaspec->ref), OWNER_ADC, 0)) {
         return;
     }
-    dmaEnable(dmaGetIdentifier(adc.DMAy_Streamx));
-    adc.DmaHandle.Init.Channel = adc.channel;
+    dmaEnable(dmaGetIdentifier((DMA_Stream_TypeDef *)dmaspec->ref));
+    adc.DmaHandle.Init.Channel = dmaspec->channel;
     adc.DmaHandle.Init.Direction = DMA_PERIPH_TO_MEMORY;
     adc.DmaHandle.Init.PeriphInc = DMA_PINC_DISABLE;
     adc.DmaHandle.Init.MemInc = configuredAdcChannels > 1 ? DMA_MINC_ENABLE : DMA_MINC_DISABLE;
@@ -279,7 +277,7 @@ void adcInit(const adcConfig_t *config) {
     adc.DmaHandle.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
     adc.DmaHandle.Init.MemBurst = DMA_MBURST_SINGLE;
     adc.DmaHandle.Init.PeriphBurst = DMA_PBURST_SINGLE;
-    adc.DmaHandle.Instance = adc.DMAy_Streamx;
+    adc.DmaHandle.Instance = (DMA_Stream_TypeDef *)dmaspec->ref;
     if (HAL_DMA_Init(&adc.DmaHandle) != HAL_OK) {
         /* Initialization Error */
     }

@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        ATOMRCF405
 #define MANUFACTURER_ID   SKZO
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
+#define FC_TARGET_MCU     STM32F405
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
@@ -115,7 +114,6 @@
 #define CURRENT_METER_ADC_PIN PC1
 #define RSSI_ADC_PIN PC0
 #define ADC1_DMA_OPT        1
-#define ADC1_DMA_STREAM DMA2_Stream4 //# ADC 1: DMA2 Stream 4 Channel 0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
@@ -124,16 +122,25 @@
 #define ESCSERIAL_TIMER_TX_PIN PA3
 
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(12) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PC7 , 1,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB4 , 1,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PB15 , 3, -1) /* ppm RX_PPM_PIN; dma 0 assumed, please verify */ \
+    TIMER_PIN_MAP( 7, PB6 , 1,  0) /* led */ \
+    TIMER_PIN_MAP( 8, PB3 , 1,  0) /* cam ctrl */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PC7
+#define MOTOR4_PIN              PB4
+#define MOTOR5_PIN              PC8
+#define MOTOR6_PIN              PC9
+#define RX_PPM_PIN              PB15
 
 // notice - this file was programmatically generated and may be incomplete.

@@ -50,6 +50,9 @@
 #include "drivers/exti.h"
 #include "drivers/io.h"
 #include "drivers/rcc.h"
+
+#include "pg/bus_spi.h"
+
 static uint8_t spiRegisteredDeviceCount = 0;
 
 FAST_RAM_ZERO_INIT spiDevice_t spiDevice[SPIDEV_COUNT];
@@ -304,6 +307,24 @@ FAST_CODE static void spiTxIrqHandler(dmaChannelDescriptor_t *descriptor)
 }
 #endif
 
+#if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7)) && defined(USE_SPI)
+// A pinned option probes only itself; -1 scans every option. Out of range yields no DMA (polled bus).
+static bool spiDmaoptRange(int8_t pinned, uint8_t *first, uint8_t *last)
+{
+    if (pinned == DMA_OPT_UNUSED) {
+        *first = 0;
+        *last = MAX_PERIPHERAL_DMA_OPTIONS - 1;
+        return true;
+    }
+    if (pinned < 0 || pinned >= MAX_PERIPHERAL_DMA_OPTIONS) {
+        return false;
+    }
+    *first = pinned;
+    *last = pinned;
+    return true;
+}
+#endif
+
 void spiInitBusDMA(void)
 {
 #if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7)) && defined(USE_SPI)
@@ -323,7 +344,10 @@ void spiInitBusDMA(void)
         dmaIdentifier_e dmaTxIdentifier = DMA_NONE;
         dmaIdentifier_e dmaRxIdentifier = DMA_NONE;
 
-        for (uint8_t opt = 0; opt < MAX_PERIPHERAL_DMA_OPTIONS; opt++) {
+        uint8_t firstOpt = 0;
+        uint8_t lastOpt = 0;
+        const bool txOptValid = spiDmaoptRange(spiPinConfig(device)->txDmaopt, &firstOpt, &lastOpt);
+        for (uint8_t opt = firstOpt; txOptValid && opt <= lastOpt; opt++) {
             const dmaChannelSpec_t *dmaTxChannelSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SPI_SDO, device, opt);
             if (dmaTxChannelSpec) {
                 dmaTxIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaTxChannelSpec->ref);
@@ -339,7 +363,8 @@ void spiInitBusDMA(void)
             }
         }
 
-        for (uint8_t opt = 0; opt < MAX_PERIPHERAL_DMA_OPTIONS; opt++) {
+        const bool rxOptValid = spiDmaoptRange(spiPinConfig(device)->rxDmaopt, &firstOpt, &lastOpt);
+        for (uint8_t opt = firstOpt; rxOptValid && opt <= lastOpt; opt++) {
             const dmaChannelSpec_t *dmaRxChannelSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SPI_SDI, device, opt);
             if (dmaRxChannelSpec) {
                 dmaRxIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaRxChannelSpec->ref);

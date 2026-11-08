@@ -22,7 +22,9 @@
 
 #define USE_TARGET_CONFIG
 
-#define TARGET_BOARD_IDENTIFIER "S411"
+#define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        EMAXF411
+#define MANUFACTURER_ID   EMAX
 #define USBD_PRODUCT_STRING     "EMAXF411"
 
 #define LED0_PIN                PC13
@@ -156,7 +158,7 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE         ADC1
-#define ADC1_DMA_OPT            0  // DMA 2 Stream 0 Channel 0
+#define ADC1_DMA_OPT            1  // DMA 2 Stream 4 Channel 0
 
 #define VBAT_ADC_PIN            PA0
 #define CURRENT_METER_ADC_PIN   PA1
@@ -173,15 +175,33 @@
 //#define PINIO2_PIN              PA15 // Camera switcher
 #define USE_PINIOBOX
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL | FEATURE_LED_STRIP)
+#define DEFAULT_FEATURES                (FEATURE_SOFTSERIAL | FEATURE_LED_STRIP)
 #define DEFAULT_CURRENT_METER_SCALE         179
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 14
-#define USED_TIMERS             ( TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(9) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA2 , 3, -1) /* PWM1   1,2 */ \
+    TIMER_PIN_MAP( 1, PA8 , 1,  1) /* S1_OUT 2,1 */ \
+    TIMER_PIN_MAP( 2, PA9 , 1,  1) /* S2_OUT PWM2 2,2 */ \
+    TIMER_PIN_MAP( 3, PA10 , 1,  0) /* S3_OUT PWM3 2,6 */ \
+    TIMER_PIN_MAP( 4, PB0 , 2,  0) /* S4_OUT 1,7 */ \
+    TIMER_PIN_MAP( 5, PB4 , 1,  0) /* S5_OUT 1,4 */ \
+    TIMER_PIN_MAP( 6, PB1 , 2,  0) /* RSSI 1,1 */ \
+    TIMER_PIN_MAP( 7, PA3 , 2,  1) /* PPM IN */ \
+    TIMER_PIN_MAP( 8, PB10 , 1,  0) /* CAM CONTROL    1,5 */ \
+    TIMER_PIN_MAP( 9, PA15 , 1,  0) /* Correct LED pad    1,5 */ \
+    TIMER_PIN_MAP( 10, PB6 , 1,  0) /* TX1    1,5 */ \
+    TIMER_PIN_MAP( 11, PB7 , 1,  0) /* RX1    1,5 */ \
+    TIMER_PIN_MAP( 12, PB8 , 1,  0) /* I2C_SCL    1,5 */ \
+    TIMER_PIN_MAP( 13, PA0 , 2,  0) /* NOT ACTUALLY LED    1,5 */
+
+#define MOTOR1_PIN              PA8
+#define MOTOR2_PIN              PA9
+#define MOTOR3_PIN              PA10
+#define MOTOR4_PIN              PB0
+#define MOTOR5_PIN              PB4
+#define RX_PWM1_PIN             PA2
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA15

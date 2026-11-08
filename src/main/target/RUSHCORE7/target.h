@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        RUSHCORE7
+#define MANUFACTURER_ID   RUSH
 #define TARGET_BOARD_IDENTIFIER "RSF7"
 #define USBD_PRODUCT_STRING  "RUSHCORE7"
 
@@ -128,7 +131,7 @@
 
 #define USE_ADC
 #define ADC_INSTANCE                        ADC3
-#define ADC3_DMA_STREAM                     DMA2_Stream0
+#define ADC3_DMA_OPT 0
 
 #define VBAT_ADC_PIN                        PC1
 #define CURRENT_METER_ADC_PIN               PC3
@@ -141,7 +144,6 @@
 #define USE_LED_STRIP
 
 #define DEFAULT_RX_FEATURE                  FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES                    FEATURE_OSD
 #define SERIALRX_UART                       SERIAL_PORT_USART2
 #define SERIALRX_PROVIDER                   SERIALRX_SBUS
 
@@ -149,10 +151,24 @@
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 9
-#define USED_TIMERS  (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(8) | TIM_N(9) )
+//DEF_TIM(TIM3, CH4, PB1,  TIM_USE_BEEPER, 0, 0 ), // BEEPER PWM
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM&SBUS */ \
+    TIMER_PIN_MAP( 1, PC8 , 2,  1) /* S1 */ \
+    TIMER_PIN_MAP( 2, PC6 , 2,  1) /* S2 */ \
+    TIMER_PIN_MAP( 3, PC9 , 2,  0) /* S3 */ \
+    TIMER_PIN_MAP( 4, PC7 , 2,  1) /* S4 */ \
+    TIMER_PIN_MAP( 5, PA8 , 1,  0) /* S5 */ \
+    TIMER_PIN_MAP( 6, PA9 , 1,  0) /* S6 */ \
+    TIMER_PIN_MAP( 7, PB11 , 1,  0) /* LED STRIP */ \
+    TIMER_PIN_MAP( 8, PB0 , 2,  0) /* FC CAM */
+
+#define MOTOR1_PIN              PC8
+#define MOTOR2_PIN              PC6
+#define MOTOR3_PIN              PC9
+#define MOTOR4_PIN              PC7
+#define MOTOR5_PIN              PA8
+#define MOTOR6_PIN              PA9
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PB11

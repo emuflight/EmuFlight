@@ -19,6 +19,9 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        SPARKY2
+#define MANUFACTURER_ID   FOSS
 #define TARGET_BOARD_IDENTIFIER "SPK2"
 
 #define USBD_PRODUCT_STRING "Sparky 2.0"
@@ -124,9 +127,31 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART6
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USED_TIMERS  ( TIM_N(2) | TIM_N(3) | TIM_N(5) | TIM_N(12) | TIM_N(8) | TIM_N(9))
+// Burst DShot shares one TIM_UP stream per timer, so motors need no per-channel stream
+#define ENABLE_DSHOT_DMAR true
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC7 , 2,  0) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB14 , 3, -1) /* S2_IN */ \
+    TIMER_PIN_MAP( 2, PB15 , 3, -1) /* S3_IN - GPIO_PartialRemap_TIM3 */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  0) /* S4_IN */ \
+    TIMER_PIN_MAP( 4, PC9 , 2,  0) /* S5_IN */ \
+    TIMER_PIN_MAP( 5, PB0 , 2,  0) /* S1_OUT */ \
+    TIMER_PIN_MAP( 6, PB1 , 2,  0) /* S2_OUT */ \
+    TIMER_PIN_MAP( 7, PA3 , 1,  0) /* S3_OUT */ \
+    TIMER_PIN_MAP( 8, PA2 , 1,  0) /* S4_OUT */ \
+    TIMER_PIN_MAP( 9, PA1 , 2,  0) /* S5_OUT - GPIO_PartialRemap_TIM3 */ \
+    TIMER_PIN_MAP( 10, PA0 , 2,  0) /* S6_OUT */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PA3
+#define MOTOR4_PIN              PA2
+#define MOTOR5_PIN              PA1
+#define MOTOR6_PIN              PA0
+#define RX_PWM1_PIN             PC7
+#define RX_PWM2_PIN             PB14
+#define RX_PWM3_PIN             PB15
+#define RX_PWM4_PIN             PC8
+#define RX_PWM5_PIN             PC9
+#define RX_PPM_PIN              PC7

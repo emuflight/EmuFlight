@@ -19,6 +19,9 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        FF_FORTINIF4_REV03
+#define MANUFACTURER_ID   FFPV
 #define TARGET_BOARD_IDENTIFIER "FOR3"
 #define USBD_PRODUCT_STRING     "FortiniF4_Rev03"
 #define USE_TARGET_CONFIG
@@ -146,14 +149,23 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART3
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 /*---------------------------------*/
 
 /*--------------TIMERS-------------*/
-#define USABLE_TIMER_CHANNEL_COUNT  7
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB11 , 1,  1) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB10 , 1,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB9 , 1, -1) /* ppm RX_PPM_PIN; dma 0 assumed, please verify */ \
+    TIMER_PIN_MAP( 5, PA10 , 1,  0) /* cam ctrl */ \
+    TIMER_PIN_MAP( 6, PB6 , 1,  0) /* led */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PB11
+#define MOTOR4_PIN              PB10
+#define RX_PPM_PIN              PB9
+#define LED_STRIP_PIN           PB6
 
 /*---------------------------------*/

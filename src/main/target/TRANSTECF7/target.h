@@ -20,7 +20,9 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER         "S7X2"
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        TRANSTECF7
+#define MANUFACTURER_ID   TTRH
 #define USBD_PRODUCT_STRING             "TRANSTECF7"
 #define TARGET_MANUFACTURER_IDENTIFIER  "TTRH"
 #define USE_TARGET_CONFIG
@@ -37,7 +39,7 @@
 
 #define USE_BEEPER
 // XXX CAMERA_CONTROL_PIN is deprecated.
-// XXX Target maintainer must create a valid timerHardware[] array entry for PB8 with TIM_USE_CAMERA_CONTROL
+// XXX Target maintainer must add a TIMER_PIN_MAPPING entry for PB8 and define CAMERA_CONTROL_PIN
 //#define CAMERA_CONTROL_PIN              PB8         //Camera OSD
 
 
@@ -112,7 +114,7 @@
 
 
 #define USE_OSD
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_SOFTSERIAL)
+#define DEFAULT_FEATURES                (FEATURE_SOFTSERIAL)
 #define DEFAULT_RX_FEATURE              FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER               SERIALRX_SBUS
 #define SERIALRX_UART                   SERIAL_PORT_UART5
@@ -120,7 +122,7 @@
 // *************** ADC ****************************
 #define USE_ADC
 #define ADC_INSTANCE                    ADC1    // Default added
-#define ADC1_DMA_OPT                    0       // DMA 2 Stream 0 Channel 0
+#define ADC1_DMA_OPT                    1       // DMA 2 Stream 4 Channel 0
 
 #define VBAT_ADC_PIN                    PC0
 #define CURRENT_METER_ADC_PIN           PC1
@@ -129,10 +131,22 @@
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
-#define TARGET_IO_PORTA                 0xffff
-#define TARGET_IO_PORTB                 0xffff
-#define TARGET_IO_PORTC                 0xffff
-#define TARGET_IO_PORTD                 (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT      8
-#define USED_TIMERS                     (TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(8))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB0 , 2,  0) /* S1 */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* S2 */ \
+    TIMER_PIN_MAP( 2, PC6 , 2,  1) /* S3 */ \
+    TIMER_PIN_MAP( 3, PC7 , 2,  1) /* S4 */ \
+    TIMER_PIN_MAP( 4, PB3 , 1,  0) /* S5 */ \
+    TIMER_PIN_MAP( 5, PB4 , 1,  0) /* S6 */ \
+    TIMER_PIN_MAP( 6, PB8 , 1,  0) /* Cam Control */ \
+    TIMER_PIN_MAP( 7, PA15 , 1,  0) /* LED STRIP */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PC6
+#define MOTOR4_PIN              PC7
+#define MOTOR5_PIN PB3
+#define MOTOR6_PIN PB4
+#define RX_PWM1_PIN             PB8
+#define LED_STRIP_PIN           PA15

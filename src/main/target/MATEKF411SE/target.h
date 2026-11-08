@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        MATEKF411SE
+#define MANUFACTURER_ID   MTKS
 #define TARGET_BOARD_IDENTIFIER "MK41"
 #define USBD_PRODUCT_STRING     "MatekF411SE"
 
@@ -115,7 +118,7 @@
 
 // *************** ADC *****************************
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PB0
 #define CURRENT_METER_ADC_PIN   PB1
 #define RSSI_ADC_PIN            PA0
@@ -127,14 +130,29 @@
 #define PINIO1_PIN              PA13 //VTX switch
 #define USE_TARGET_CONFIG
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
+#define DEFAULT_FEATURES                (FEATURE_SOFTSERIAL)
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USED_TIMERS             ( TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(9)|TIM_N(11) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA3 , 3, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB4 , 1,  0) /* S1_OUT */ \
+    TIMER_PIN_MAP( 2, PB5 , 1,  0) /* S2_OUT */ \
+    TIMER_PIN_MAP( 3, PA8 , 1,  1) /* S3_OUT */ \
+    TIMER_PIN_MAP( 4, PA9 , 1,  1) /* S4_OUT */ \
+    TIMER_PIN_MAP( 5, PA10 , 1,  1) /* S5 */ \
+    TIMER_PIN_MAP( 6, PB8 , 1,  0) /* S6 */ \
+    TIMER_PIN_MAP( 7, PA1 , 2,  0) /* RSSI ADC pad */ \
+    TIMER_PIN_MAP( 8, PA2 , 3, -1) /* TX2 */ \
+    TIMER_PIN_MAP( 9, PB9 , 2, -1) /* SOFTSERIAL1 */ \
+    TIMER_PIN_MAP( 10, PB10 , 1,  0) /* LED STRIP */
+
+#define MOTOR1_PIN              PB4
+#define MOTOR2_PIN              PB5
+#define MOTOR3_PIN              PA8
+#define MOTOR4_PIN              PA9
+#define MOTOR5_PIN              PA10
+#define MOTOR6_PIN              PB8
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PB10

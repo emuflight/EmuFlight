@@ -20,6 +20,9 @@
 
  #pragma once
 
+#define FC_TARGET_MCU     STM32F745
+#define BOARD_NAME        FLYWOOF745
+#define MANUFACTURER_ID   FLWO
  #define TARGET_BOARD_IDENTIFIER "FLWO"
  #define USBD_PRODUCT_STRING "FLYWOOF745"
 
@@ -46,9 +49,6 @@
  #define USE_EXTI
 
  #define USE_MAG
- #define USE_MAG_HMC5883
- #define USE_MAG_QMC5883
- #define USE_MAG_LIS3MDL
  #define MAG_I2C_INSTANCE           (I2CDEV_1)
  //#define MAG_HMC5883_ALIGN CW270_DEG_FLIP
  //#define MAG_HMC5883_ALIGN CW90_DEG
@@ -58,7 +58,6 @@
 #define USE_BARO_DPS310
  #define BARO_I2C_INSTANCE           (I2CDEV_1)
 
- #define USABLE_TIMER_CHANNEL_COUNT 14
 
  #define USE_VCP
  #define USE_USB_DETECT
@@ -145,16 +144,30 @@
  #define USE_LED_STRIP
  #define LED_STRIP_PIN         PD12
 
- #define DEFAULT_FEATURES        (FEATURE_TELEMETRY | FEATURE_OSD )
  #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
  #define SERIALRX_PROVIDER       SERIALRX_SBUS
  #define SERIALRX_UART           SERIAL_PORT_USART3
  #define USE_DSHOT
 
- #define TARGET_IO_PORTA 0xffff
- #define TARGET_IO_PORTB 0xffff
- #define TARGET_IO_PORTC 0xffff
- #define TARGET_IO_PORTD 0xffff
- #define TARGET_IO_PORTE 0xffff
 
- #define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PD12 , 1,  0) /* LED_STRIP, DMA1_ST0 */ \
+    TIMER_PIN_MAP( 1, PE13 , 1,  1) /* PPM, DMA2_ST6 */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* M1, DMA1_ST7 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* M2, DMA1_ST2 */ \
+    TIMER_PIN_MAP( 4, PE9 , 1,  2) /* M3, DMA2_ST2 */ \
+    TIMER_PIN_MAP( 5, PE11 , 1,  1) /* M4, DMA2_ST4 */ \
+    TIMER_PIN_MAP( 6, PC9 , 2,  0) /* M5, DMA2_ST7 */ \
+    TIMER_PIN_MAP( 7, PA3 , 2,  0) /* M6, DMA1_ST1 */ \
+    TIMER_PIN_MAP( 8, PB4 , 1,  0) /* M7, DMA1_ST4 */ \
+    TIMER_PIN_MAP( 9, PB5 , 1,  0) /* M8, DMA1_ST5 */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PE9
+#define MOTOR4_PIN              PE11
+#define MOTOR5_PIN              PC9
+#define MOTOR6_PIN              PA3
+#define MOTOR7_PIN              PB4
+#define MOTOR8_PIN              PB5
+#define RX_PPM_PIN              PE13

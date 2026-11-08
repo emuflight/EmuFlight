@@ -19,7 +19,9 @@
  */
 
 #pragma once
-#define TARGET_BOARD_IDENTIFIER                          "S7X2"
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        HOBBYWING_XROTORF7CONV
+#define MANUFACTURER_ID   HOWI
 #define USBD_PRODUCT_STRING                              "HOBBYWING_XROTORF7_CONV"
 #define TARGET_MANUFACTURER_IDENTIFIER                   "HOWI"
 
@@ -164,14 +166,33 @@
 #define DEFAULT_RX_FEATURE                              FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER                               SERIALRX_SBUS
 #define SERIALRX_UART                                   SERIAL_PORT_USART3
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE )
 
 // IO Ports
-#define TARGET_IO_PORTA                                 0xffff
-#define TARGET_IO_PORTB                                 0xffff
-#define TARGET_IO_PORTC                                 0xffff
-#define TARGET_IO_PORTD                                 (BIT(2))
 
 // timers
-#define USABLE_TIMER_CHANNEL_COUNT                     12                      //updated timer count to compensate for Nf Motor 4
-#define USED_TIMERS ( TIM_N(2) | TIM_N(3) | TIM_N(1) | TIM_N(5)  | TIM_N(8)| TIM_N(10)   ) //update based on update CLRACINGF7 Target BF4.1+
+// PB10 PWM input shares TIM2 with motors 3 and 4; parallel PWM input with DShot output resets the shared timer base
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB1 , 2,  0) /* D1-ST0                   MOTOR1 */ \
+    TIMER_PIN_MAP( 1, PB4 , 1,  0) /* D1-ST3                   MOTOR2 */ \
+    TIMER_PIN_MAP( 2, PB3 , 1,  0) /* D1-ST7                   MOTOR3 */ \
+    TIMER_PIN_MAP( 3, PA15 , 1,  0) /* D2-ST2/D2-ST4            MOTOR4 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  1) /* D1-ST4                   MOTOR5 */ \
+    TIMER_PIN_MAP( 5, PC9 , 2,  0) /* NONE  TIM4_UP_D1-ST6     MOTOR6    DEF_TIM(TIM8,  CH4,  PC9, TIM_USE_MOTOR,               0, 0), // D2-ST7                   MOTOR7 */ \
+    TIMER_PIN_MAP( 6, PC6 , 2,  1) /* D1-ST2                   LED/MOTOR5 */ \
+    TIMER_PIN_MAP( 7, PB10 , 1,  0) /* D1-ST2                   LED/MOTOR5 */ \
+    TIMER_PIN_MAP( 8, PA2 , 2,  0) /* D1-ST2                   LED/MOTOR5 */ \
+    TIMER_PIN_MAP( 9, PA3 , 2,  1) /* D1-ST2                   LED/MOTOR5 */ \
+    TIMER_PIN_MAP( 10, PB8 , 2, -1) /* D1-ST2                   LED/MOTOR5 */ \
+    TIMER_PIN_MAP( 11, PA8 , 1,  0) /* D1-ST2                   LED/MOTOR5 */
+
+#define MOTOR1_PIN              PB1
+#define MOTOR2_PIN              PB4
+#define MOTOR3_PIN              PB3
+#define MOTOR4_PIN              PA15
+#define MOTOR5_PIN              PC8
+#define MOTOR6_PIN              PC9
+#define RX_PPM_PIN              PC6
+#define RX_PWM1_PIN PB10
+#define RX_PWM2_PIN PA2
+#define RX_PWM3_PIN PA3
+#define LED_STRIP_PIN           PA8

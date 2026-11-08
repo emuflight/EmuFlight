@@ -22,7 +22,9 @@
 
 #define USE_TARGET_CONFIG
 
-#define TARGET_BOARD_IDENTIFIER "S7X2"
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        SKYSTARSF7HD
+#define MANUFACTURER_ID   SKST
 #define USBD_PRODUCT_STRING     "SKYSTARSF7HD"
 
 // ******* LEDs and BEEPER ********
@@ -151,11 +153,8 @@
 // ******* ADC ********
 
 #define USE_ADC
-#define ADC_INSTANCE            ADC3           //Mambaf722 settings verified work for this fc
-#define ADC3_DMA_STREAM         DMA2_Stream0    //Mambaf722 settings verified work for this fc
-//#define ADC_INSTANCE            ADC2        //Recommended BF Config Settings
-//#define ADC2_DMA_STREAM         DMA2_Stream3    //Recommended BF Config Settings
-//#define ADC2_DMA_STREAM         DMA2_Stream2    //Based off a guys BF dump online that was used to fix timer/channels as bfconfig wrong
+#define ADC2_DMA_OPT 0
+#define ADC_INSTANCE            ADC2
 
 
 
@@ -167,7 +166,7 @@
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
-#define MAX7456_CS_PIN          PB12
+#define MAX7456_SPI_CS_PIN      PB12
 
 //******* FLASH ********
 
@@ -187,14 +186,24 @@
 #define SERIALRX_UART           SERIAL_PORT_USART1
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define DEFAULT_FEATURES                (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
+#define DEFAULT_FEATURES                (FEATURE_SOFTSERIAL)
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(8) )
+// PA8 and PA9 share DMA2 Stream 6; with DShot burst off only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB4 , 1,  -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PC8 , 2,  1) /* S1_OUT – UP2-1 */ \
+    TIMER_PIN_MAP( 2, PC9 , 2,  0) /* S2_OUT – UP2-1 */ \
+    TIMER_PIN_MAP( 3, PA8 , 1,  0) /* S3_OUT – UP2-5 */ \
+    TIMER_PIN_MAP( 4, PA9 , 1,  0) /* S4_OUT – UP2-5 */ \
+    TIMER_PIN_MAP( 5, PA10 , 1,  0) /* FC CAM – DMA1_ST7 */ \
+    TIMER_PIN_MAP( 6, PB3 , 1,  0) /* LED_STRIP – DMA1_ST6 */
+
+#define MOTOR1_PIN              PC8
+#define MOTOR2_PIN              PC9
+#define MOTOR3_PIN              PA8
+#define MOTOR4_PIN              PA9
+#define RX_PPM_PIN              PB4
+#define LED_STRIP_PIN           PB3

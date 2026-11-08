@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        HAKRCF7230D
 #define MANUFACTURER_ID   HARC
-#define TARGET_BOARD_IDENTIFIER "S7X2"  // generic ID
-#define FC_TARGET_MCU     STM32F7X2     // not used in EmuF
+#define FC_TARGET_MCU     STM32F7X2
 
 #define USE_ACC
 #define USE_ACC_SPI_MPU6000
@@ -123,7 +122,6 @@
 #define CURRENT_METER_ADC_PIN PC1
 #define RSSI_ADC_PIN PC0
 #define ADC1_DMA_OPT        0
-#define ADC1_DMA_STREAM DMA2_Stream0 //# ADC 1: DMA2 Stream 0 Channel 0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define ADC_INSTANCE ADC1
@@ -133,16 +131,35 @@
 #define PINIO1_BOX 40
 #define PINIO2_BOX 41
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 14
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(9) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB4 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB5 , 1,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PA15 , 1,  0) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PB3 , 1,  0) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PB6 , 1,  0) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PB7 , 1,  0) /* motor 8 */ \
+    TIMER_PIN_MAP( 8, PA8 , 1,  2) /* led */ \
+    TIMER_PIN_MAP( 9, PA3 , 3, -1) /* ppm RX_PPM_PIN; dma 0 assumed, please verify */ \
+    TIMER_PIN_MAP( 10, PA2 , 3, -1) /* pwm RX_PWM1_PIN; dma 0 assumed, please verify */ \
+    TIMER_PIN_MAP( 11, PA1 , 2,  0) /* pwm RX_PWM2_PIN */ \
+    TIMER_PIN_MAP( 12, PA0 , 2,  0) /* pwm RX_PWM3_PIN */ \
+    TIMER_PIN_MAP( 13, PB10 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */
+
+#define MOTOR1_PIN              PB4
+#define MOTOR2_PIN              PB5
+#define MOTOR3_PIN              PB0
+#define MOTOR4_PIN              PB1
+#define MOTOR5_PIN              PA15
+#define MOTOR6_PIN              PB3
+#define MOTOR7_PIN              PB6
+#define MOTOR8_PIN              PB7
+#define RX_PWM1_PIN             PA2
+#define RX_PWM2_PIN             PA1
+#define RX_PWM3_PIN             PA0
+#define RX_PPM_PIN              PA3
 
 // notice - this file was programmatically generated and may be incomplete.

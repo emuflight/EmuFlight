@@ -165,9 +165,22 @@ void systemResetWithoutDisablingCaches(void)
     NVIC_SystemReset();
 }
 
-void systemResetToBootloader(void)
+void systemResetToBootloader(bootloaderRequestType_e requestType)
 {
-    persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_BOOTLOADER_REQUEST_ROM);
+    switch (requestType) {
+#if defined(USE_FLASH_BOOT_LOADER)
+    case BOOTLOADER_REQUEST_FLASH:
+        persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_BOOTLOADER_REQUEST_FLASH);
+
+        break;
+#endif
+    case BOOTLOADER_REQUEST_ROM:
+    default:
+        persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_BOOTLOADER_REQUEST_ROM);
+
+        break;
+    }
+
     __disable_irq();
     NVIC_SystemReset();
 }

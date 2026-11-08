@@ -22,8 +22,7 @@
 
 #define BOARD_NAME                      AEDROXH7
 #define MANUFACTURER_ID                 AEDR
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU                   STM32H743     // not used in EmuF
+#define FC_TARGET_MCU                   STM32H743
 
 #define USE_GYRO
 #define USE_GYRO_SPI_ICM42688P
@@ -42,13 +41,17 @@
 
 #define USE_LED
 #define LED0_PIN                        PE5
-#define LED1_PIN                        PE4
+#define LED1_PIN                        PE2
 #define LED_STRIP_PIN                   PA5
 #define USE_BEEPER
 #define BEEPER_PIN                      PA7
 #define BEEPER_INVERTED
 
 #define USE_SPI
+#define USE_SPI_DEVICE_1
+#define SPI1_SCK_PIN                    PB3
+#define SPI1_MISO_PIN        PB4
+#define SPI1_MOSI_PIN        PB5
 #define USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN                    PB13
 #define SPI2_MISO_PIN        PB14
@@ -57,6 +60,10 @@
 #define SPI3_SCK_PIN                    PC10
 #define SPI3_MISO_PIN        PC11
 #define SPI3_MOSI_PIN        PB2
+
+#define USE_MAX7456
+#define MAX7456_SPI_INSTANCE  SPI1
+#define MAX7456_SPI_CS_PIN   PE4
 
 #define USE_SPI_GYRO
 #define USE_EXTI
@@ -114,8 +121,6 @@
 #define RSSI_ADC_PIN PC5
 #define ADC1_DMA_OPT                    8
 #define ADC3_DMA_OPT                    9
-#define ADC1_DMA_STREAM DMA2_Stream0 // ADC1 opt8
-#define ADC3_DMA_STREAM DMA2_Stream1 // ADC3 opt9
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
 
@@ -127,17 +132,28 @@
 #define PINIO3_BOX                      42
 #define PINIO3_CONFIG                   129
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC7 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PC6 , 2,  1) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PC9 , 2,  2) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  3) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PE9 , 1,  4) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PE11 , 1,  5) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PE13 , 1,  6) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PE14 , 1,  7) /* motor 8 */ \
+    TIMER_PIN_MAP( 8, PA5 , 1,  10) /* led strip */ \
+    TIMER_PIN_MAP( 9, PD13 , 1,  -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */ \
+    TIMER_PIN_MAP( 10, PA7 , 2,  -1) /* could not determine TIM_USE_xxxxx - please check; dma -1 in config (input only) */
+
+#define MOTOR1_PIN              PC7
+#define MOTOR2_PIN              PC6
+#define MOTOR3_PIN              PC9
+#define MOTOR4_PIN              PC8
+#define MOTOR5_PIN              PE9
+#define MOTOR6_PIN              PE11
+#define MOTOR7_PIN              PE13
+#define MOTOR8_PIN              PE14
 
 // notice - this file was programmatically generated and may be incomplete.

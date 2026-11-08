@@ -20,6 +20,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        STM32F4DISCOVERY
+#define MANUFACTURER_ID   STMI
 #define TARGET_BOARD_IDENTIFIER "SDF4"
 #define USBD_PRODUCT_STRING     "DISCF4"
 
@@ -102,7 +105,6 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 4 // 5,5MHz
 
-#define SDCARD_DMA_CHANNEL_TX                   DMA1_Stream5
 
 #define USE_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
@@ -113,10 +115,22 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         0xffff
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8))
+// PB9: the removed legacy table marked this pad TIMER_OUTPUT_INVERTED; the full table applies no inversion.
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB9 , 1, -1) /* PPM IN */ \
+    TIMER_PIN_MAP( 1, PB1 , 2,  0) /* S1_OUT - TIM3_UP - BURST */ \
+    TIMER_PIN_MAP( 2, PB0 , 2,  0) /* S2_OUT - TIM3_UP - BURST */ \
+    TIMER_PIN_MAP( 3, PA2 , 1,  0) /* S3_OUT - TIM2_UP - BURST */ \
+    TIMER_PIN_MAP( 4, PA3 , 1,  1) /* S4_OUT - TIM2_UP - BURST */ \
+    TIMER_PIN_MAP( 5, PA10 , 1,  1) /* S5_OUT - TIM1_UP - BURST */ \
+    TIMER_PIN_MAP( 6, PA8 , 1,  1) /* S6_OUT - TIM1_UP - BURST */
+
+#define MOTOR1_PIN              PB1
+#define MOTOR2_PIN              PB0
+#define MOTOR3_PIN              PA2
+#define MOTOR4_PIN              PA3
+#define MOTOR5_PIN              PA10
+#define MOTOR6_PIN              PA8
+#define RX_PPM_PIN              PB9
+#define LED_STRIP_PIN           PB9

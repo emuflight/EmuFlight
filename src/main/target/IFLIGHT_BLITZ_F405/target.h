@@ -24,8 +24,9 @@
 #define TARGET_MANUFACTURER_IDENTIFIER "IFRC"
 #define USBD_PRODUCT_STRING "IFLIGHT_BLITZ_F405"
 
-#define FC_TARGET_MCU     STM32F405     // not used in EmuF
-#define TARGET_BOARD_IDENTIFIER "S405"  // generic ID
+#define FC_TARGET_MCU     STM32F405
+#define BOARD_NAME        IFLIGHT_BLITZ_F405
+#define MANUFACTURER_ID   IFRC
 
 #define LED0_PIN                PC15
 
@@ -81,6 +82,7 @@
 //#define USE_MAG
 //#define USE_MAG_HMC5883
 //#define USE_MAG_QMC5883
+#undef USE_MAG // reference has no compass
 
 //-------------------------------------USART-----------------------------------
 #define USE_VCP
@@ -112,7 +114,7 @@
 //-------------------------------------ADC METERE------------------------------
 #define USE_ADC
 #define ADC_INSTANCE			ADC1
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 1
 #define CURRENT_METER_ADC_PIN   PC1
 #define VBAT_ADC_PIN			PC2
 //#define RSSI_ADC_PIN			NONE
@@ -149,7 +151,6 @@
 #define I2C1_SDA                PB9
 
 //-------------------------------------FEATURES-------------------------------
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
 
 #define DEFAULT_RX_FEATURE     	FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
@@ -162,10 +163,18 @@
 #define USE_LED_STRIP
 
 //--------------------------------BOARD RESOURCES-----------------------------
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 6
-#define USED_TIMERS    (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(8))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA3 , 1,  1) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB0 , 2,  0) /* S1 */ \
+    TIMER_PIN_MAP( 2, PB1 , 2,  0) /* S2 */ \
+    TIMER_PIN_MAP( 3, PC9 , 2,  0) /* S3 */ \
+    TIMER_PIN_MAP( 4, PC8 , 2,  0) /* S4 */ \
+    TIMER_PIN_MAP( 5, PA8 , 1,  0) /* LED */
+
+#define MOTOR1_PIN              PB0
+#define MOTOR2_PIN              PB1
+#define MOTOR3_PIN              PC9
+#define MOTOR4_PIN              PC8
+#define RX_PPM_PIN              PA3
+#define LED_STRIP_PIN           PA8

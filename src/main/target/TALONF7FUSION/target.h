@@ -19,6 +19,9 @@
  */
 
 #pragma once
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        TALONF7FUSION
+#define MANUFACTURER_ID   HENA
 #define TARGET_BOARD_IDENTIFIER "TALN"
 #define USBD_PRODUCT_STRING "TALONF7FUSION"
 
@@ -143,12 +146,25 @@
 #define BINDPLUG_PIN            PB2
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_UART           SERIAL_PORT_UART5
-#define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY )
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT      6
-#define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8)   )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB6 , 1,  0) /* M1 */ \
+    TIMER_PIN_MAP( 1, PB7 , 1,  0) /* M2 */ \
+    TIMER_PIN_MAP( 2, PB8 , 1,  0) /* M3 */ \
+    TIMER_PIN_MAP( 3, PC8 , 2,  0) /* M4 */ \
+    TIMER_PIN_MAP( 4, PA1 , 2,  0) /* M5 */ \
+    TIMER_PIN_MAP( 5, PB9 , 1, -1) /* M6 */ \
+    TIMER_PIN_MAP( 6, PC9 , 2,  0) /* M7 */ \
+    TIMER_PIN_MAP( 7, PB1 , 2,  0) /* LED,M8 */ \
+    TIMER_PIN_MAP( 8, PB3 , 1,  0) /* ANY */
+
+#define MOTOR1_PIN              PB6
+#define MOTOR2_PIN              PB7
+#define MOTOR3_PIN              PB8
+#define MOTOR4_PIN              PC8
+#define MOTOR5_PIN              PA1
+#define MOTOR6_PIN              PB9
+#define MOTOR7_PIN              PC9
+#define MOTOR8_PIN              PB1
+#define LED_STRIP_PIN           PB1

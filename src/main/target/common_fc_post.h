@@ -60,6 +60,26 @@
 #endif
 #endif
 
+// Compass: a board with no compass bus and no named compass driver cannot use a compass.
+#if defined(USE_MAG) && !(defined(USE_I2C) && (defined(MAG_I2C_INSTANCE) || defined(I2C_DEVICE))) \
+    && !defined(USE_MAG_HMC5883) && !defined(USE_MAG_QMC5883) && !defined(USE_MAG_LIS3MDL) \
+    && !defined(USE_MAG_LIS2MDL) && !defined(USE_MAG_IST8310) \
+    && !defined(USE_MAG_AK8963) && !defined(USE_MAG_AK8975) && !defined(USE_MAG_SPI_HMC5883) \
+    && !defined(USE_MAG_SPI_AK8963) && !defined(USE_FAKE_MAG)
+#undef USE_MAG
+#endif
+
+// A target that names an HMC5883, QMC5883, AK89xx or SPI compass driver keeps its choice; otherwise it gets the default set.
+#if defined(USE_MAG) && !defined(USE_MAG_HMC5883) && !defined(USE_MAG_QMC5883) \
+    && !defined(USE_MAG_AK8963) && !defined(USE_MAG_AK8975) && !defined(USE_MAG_SPI_HMC5883) \
+    && !defined(USE_MAG_SPI_AK8963) && !defined(USE_FAKE_MAG)
+#define USE_MAG_HMC5883
+#define USE_MAG_QMC5883
+#define USE_MAG_LIS2MDL
+#define USE_MAG_LIS3MDL
+#define USE_MAG_IST8310
+#endif
+
 #if !defined(USE_SERIAL_RX)
 #undef USE_SERIALRX_CRSF
 #undef USE_SERIALRX_IBUS
@@ -267,10 +287,13 @@
 // CONFIG_IN_RAM: firmware uses a RAM array as config storage (no flash write needed).
 // Required for EXST targets where the linker script has no FLASH_CONFIG section
 // (e.g. H730 running from OctoSPI, bootloader-managed memory-mapped mode).
+// CONFIG_IN_EXTERNAL_FLASH stages config in the same RAM array, then streams it out to a
+// partition on an external SPI flash chip (see config_eeprom.c/config_streamer.c) - it does
+// NOT define EEPROM_IN_RAM, since a real backing store exists.
 // Aliases __config_start/__config_end to eepromData[] so config_eeprom.c and
 // config_streamer.c see valid addresses without linker-script symbols.
-#if defined(CONFIG_IN_RAM)
-#ifndef EEPROM_IN_RAM
+#if defined(CONFIG_IN_RAM) || defined(CONFIG_IN_EXTERNAL_FLASH)
+#if defined(CONFIG_IN_RAM) && !defined(EEPROM_IN_RAM)
 #define EEPROM_IN_RAM
 #endif
 #ifndef EEPROM_SIZE
@@ -279,4 +302,8 @@
 extern uint8_t eepromData[EEPROM_SIZE];
 #define __config_start  (*eepromData)
 #define __config_end    (*(eepromData + EEPROM_SIZE))
+#endif
+
+#if defined(USABLE_TIMER_CHANNEL_COUNT) && (USABLE_TIMER_CHANNEL_COUNT + 0) > 0
+#error "The per-board timerHardware[] array was removed: define TIMER_PIN_MAPPING and the MOTORn_PIN, SERVOn_PIN, RX_PPM_PIN, LED_STRIP_PIN macros in target.h"
 #endif

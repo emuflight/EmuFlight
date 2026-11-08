@@ -855,6 +855,7 @@ extern "C" {
     {
         if (testData.isAllowBufferReadWrite) {
             memcpy(data, src->ptr, len);
+            src->ptr += len;
         }
     }
 

@@ -22,8 +22,7 @@
 
 #define BOARD_NAME        MAMBAH743
 #define MANUFACTURER_ID   DIAT
-#define TARGET_BOARD_IDENTIFIER "SH74"  // generic ID
-#define FC_TARGET_MCU     STM32H743     // not used in EmuF
+#define FC_TARGET_MCU     STM32H743
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
@@ -142,8 +141,6 @@
 #define RSSI_ADC_PIN PC2
 #define ADC1_DMA_OPT        8
 #define ADC3_DMA_OPT        9
-#define ADC1_DMA_STREAM DMA2_Stream0 // ADC1 opt8
-#define ADC3_DMA_STREAM DMA2_Stream1 // ADC3 opt9
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_VOLTAGE_METER_SCALE 110
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
@@ -153,17 +150,32 @@
 #define PINIO1_CONFIG 129
 #define PINIO1_BOX 0
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-#define TARGET_IO_PORTD 0xffff
-#define TARGET_IO_PORTE 0xffff
-// notice - port masks derived from config.h; single-pin ports use exact mask, multi-pin ports use 0xffff
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 11
-#define USED_TIMERS ( TIM_N(1) | TIM_N(3) | TIM_N(5) | TIM_N(8) | TIM_N(16) | TIM_N(17) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA0 , 2,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PA1 , 2,  1) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PA2 , 2,  2) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PA3 , 2,  3) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PB0 , 2,  4) /* motor 5 */ \
+    TIMER_PIN_MAP( 5, PB1 , 2,  5) /* motor 6 */ \
+    TIMER_PIN_MAP( 6, PC8 , 2,  6) /* motor 7 */ \
+    TIMER_PIN_MAP( 7, PC9 , 2,  7) /* motor 8 */ \
+    TIMER_PIN_MAP( 8, PA8 , 1,  14) /* led strip */ \
+    TIMER_PIN_MAP( 9, PB8 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 10, PB9 , 1,  0) /* ppm */
+#define TIMUP3_DMA_OPT 2
+#define TIMUP5_DMA_OPT 0
+#define TIMUP8_DMA_OPT 4
+
+#define MOTOR1_PIN              PA0
+#define MOTOR2_PIN              PA1
+#define MOTOR3_PIN              PA2
+#define MOTOR4_PIN              PA3
+#define MOTOR5_PIN              PB0
+#define MOTOR6_PIN              PB1
+#define MOTOR7_PIN              PC8
+#define MOTOR8_PIN              PC9
+#define RX_PPM_PIN              PB9
 
 // notice - this file was programmatically generated and may be incomplete.

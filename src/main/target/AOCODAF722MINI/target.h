@@ -23,6 +23,9 @@
 
 //#define USE_TARGET_CONFIG
 
+#define FC_TARGET_MCU     STM32F7X2
+#define BOARD_NAME        AOCODAF722MINI
+#define MANUFACTURER_ID   SJET
 #define TARGET_BOARD_IDENTIFIER "SBF7"
 #define USBD_PRODUCT_STRING "AOCODAF722MINI"
 #define TARGET_MANUFACTURER_IDENTIFIER "SJET"
@@ -135,7 +138,7 @@
 
 #define USE_ADC
 
-#define ADC1_DMA_STREAM             DMA2_Stream0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN PC2
 #define CURRENT_METER_ADC_PIN PC1
 #define RSSI_ADC_PIN PC0
@@ -148,12 +151,28 @@
 //#define SBUS_TELEMETRY_UART SERIAL_PORT_USART2
 
 #define DEFAULT_RX_FEATURE FEATURE_RX_SERIAL
-#define DEFAULT_FEATURES ( FEATURE_OSD )
 
-#define TARGET_IO_PORTA ( 0xffff )
-#define TARGET_IO_PORTB ( 0xffff )
-#define TARGET_IO_PORTC ( 0xffff )
-#define TARGET_IO_PORTD ( 0xffff )
 
-#define USABLE_TIMER_CHANNEL_COUNT 10
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) )
+// PA15 and PB5 share DMA1 Stream 5; with DShot burst off only one of them gets DMA
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PA10 , 1,  0) /* PPM */ \
+    TIMER_PIN_MAP( 1, PB4 , 1,  0) /* MOTOR1 */ \
+    TIMER_PIN_MAP( 2, PB5 , 1,  0) /* MOTOR2 */ \
+    TIMER_PIN_MAP( 3, PB0 , 2,  0) /* MOTOR 3 */ \
+    TIMER_PIN_MAP( 4, PB1 , 2,  0) /* MOTOR 4 */ \
+    TIMER_PIN_MAP( 5, PB6 , 1,  0) /* MOTOR6 */ \
+    TIMER_PIN_MAP( 6, PB3 , 1,  0) /* MOTOR7 */ \
+    TIMER_PIN_MAP( 7, PA15 , 1,  0) /* MOTOR7 */ \
+    TIMER_PIN_MAP( 8, PB7 , 1,  0) /* MOTOR8 */ \
+    TIMER_PIN_MAP( 9, PA8 , 1,  2) /* LED */
+
+#define MOTOR1_PIN              PB4
+#define MOTOR2_PIN              PB5
+#define MOTOR3_PIN              PB0
+#define MOTOR4_PIN              PB1
+#define MOTOR5_PIN              PB6
+#define MOTOR6_PIN              PB3
+#define MOTOR7_PIN              PA15
+#define MOTOR8_PIN              PB7
+#define RX_PPM_PIN              PA10
+#define LED_STRIP_PIN           PA8

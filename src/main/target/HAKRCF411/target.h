@@ -21,6 +21,9 @@
 
 #pragma once
 
+#define FC_TARGET_MCU     STM32F411
+#define BOARD_NAME        HAKRCF411
+#define MANUFACTURER_ID   HARC
 #define TARGET_BOARD_IDENTIFIER "HK41"
 #define USBD_PRODUCT_STRING  "HAKRCF411"
 
@@ -40,7 +43,7 @@
 #define BARO_I2C_INSTANCE       (I2CDEV_1)
 #define DEFAULT_BARO_QMP6988
 
-#define CAMERA_CONTROL_PIN  PB5
+#define CAMERA_CONTROL_PIN  PB5 // PB5 is TIM3 CH2 only; TIM3 also drives motors 3 and 4 (PB1, PB0), so no mapping row
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -111,7 +114,7 @@
 #define MAX7456_SPI_CS_PIN      PB12
 
 #define USE_ADC
-#define ADC1_DMA_STREAM         DMA2_Stream0
+#define ADC1_DMA_OPT 1
 #define VBAT_ADC_PIN            PA0
 #define CURRENT_METER_ADC_PIN   PA1
 
@@ -130,14 +133,26 @@
 
 #define INVERTER_PIN_UART1      PB4
 
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
-#define TARGET_IO_PORTD         0xffff
 
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USED_TIMERS             (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4))
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB7 , 1,  0) \
+    TIMER_PIN_MAP( 1, PA8 , 1,  0) \
+    TIMER_PIN_MAP( 2, PB10 , 1,  0) \
+    TIMER_PIN_MAP( 3, PB1 , 2,  0) \
+    TIMER_PIN_MAP( 4, PB0 , 2,  0) \
+    TIMER_PIN_MAP( 5, PA15 , 1,  0) \
+    TIMER_PIN_MAP( 6, PB3 , 1,  0) \
+    TIMER_PIN_MAP( 7, PB6 , 1,  0)
+
+#define MOTOR1_PIN              PA8
+#define MOTOR2_PIN              PB10
+#define MOTOR3_PIN              PB1
+#define MOTOR4_PIN              PB0
+#define MOTOR5_PIN              PA15
+#define MOTOR6_PIN              PB3
+#define RX_PPM_PIN              PB7
+#define LED_STRIP_PIN           PB6
 
 
 

@@ -42,8 +42,9 @@
 #define TARGET_MANUFACTURER_IDENTIFIER  "ALWH"
 
 #define USBD_PRODUCT_STRING             "ALIENWHOOPF4"
-#define FC_TARGET_MCU                   STM32F405     // not used in EmuF
-#define TARGET_BOARD_IDENTIFIER         "S405"        // generic ID
+#define FC_TARGET_MCU                   STM32F405
+#define BOARD_NAME        ALIENWHOOPF4
+#define MANUFACTURER_ID   ALWH
 
 #define USE_TARGET_CONFIG // see config.c for target specific customizations
 
@@ -187,9 +188,9 @@
 /* Defaults - What do we want out of the box?
  */
 #if defined(BREADBOARD)
-#define DEFAULT_FEATURES        (FEATURE_RX_SERIAL | FEATURE_MOTOR_STOP | FEATURE_LED_STRIP | FEATURE_OSD )
+#define DEFAULT_FEATURES        (FEATURE_MOTOR_STOP | FEATURE_LED_STRIP)
 #else
-#define DEFAULT_FEATURES        (FEATURE_RX_SERIAL | FEATURE_MOTOR_STOP )  // TODO FEATURE_OSD for V3 board ... FEATURE_TELEMETRY changes bind pin from rx to tx
+#define DEFAULT_FEATURES        (FEATURE_MOTOR_STOP)  // OSD is cleared in config.c until the V3 board
 #endif
 
 /* OLED Support
@@ -209,17 +210,23 @@
 
 /* MCU Pin Mapping - LPFQ64 Flags
  */
-#define TARGET_IO_PORTA         0xffff
-#define TARGET_IO_PORTB         0xffff
-#define TARGET_IO_PORTC         0xffff
 // STM32F405RGT
-#define TARGET_IO_PORTD         (BIT(2))
 
 #define USE_ADC
 #define ADC1_DMA_OPT        1
-#define ADC1_DMA_STREAM     DMA2_Stream4 //# ADC 1: DMA2 Stream 4 Channel 0
 
 /* Timers
  */
-#define USABLE_TIMER_CHANNEL_COUNT 5
-#define USED_TIMERS             ( TIM_N(3) | TIM_N(8) | TIM_N(5) )
+// Currently only supporting brushed quad configuration e.g. Tiny Whoop. Care must be taken to ensure functionality on both F4 and F7 (STM32F405RGT and STM32F722RET)
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PC9 , 2,  0) \
+    TIMER_PIN_MAP( 1, PC8 , 1,  0) \
+    TIMER_PIN_MAP( 2, PC7 , 1,  0) \
+    TIMER_PIN_MAP( 3, PC6 , 2,  0) \
+    TIMER_PIN_MAP( 4, PA0 , 2,  0)
+
+#define MOTOR1_PIN              PC9
+#define MOTOR2_PIN              PC8
+#define MOTOR3_PIN              PC7
+#define MOTOR4_PIN              PC6
+#define LED_STRIP_PIN           PA0

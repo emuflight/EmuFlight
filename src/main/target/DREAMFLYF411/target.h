@@ -22,8 +22,7 @@
 
 #define BOARD_NAME DREAMFLYF411
 #define MANUFACTURER_ID DFRC
-#define TARGET_BOARD_IDENTIFIER "S411"  // generic ID
-#define FC_TARGET_MCU     STM32F411     // not used in EmuF
+#define FC_TARGET_MCU     STM32F411
 
 #define USE_GYRO
 #define USE_GYRO_SPI_MPU6000
@@ -90,7 +89,6 @@
 #define SERIALRX_UART SERIAL_PORT_USART1
 #define SERIAL_PORT_COUNT 3
 
-
 #define FLASH_CS_PIN PA14
 #define FLASH_SPI_INSTANCE SPI2
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
@@ -102,21 +100,26 @@
 #define VBAT_ADC_PIN PB0
 #define CURRENT_METER_ADC_PIN PB1
 #define ADC1_DMA_OPT 0
-#define ADC1_DMA_STREAM DMA2_Stream0 //# ADC 1: DMA2 Stream 0 Channel 0
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
 
 
-#define TARGET_IO_PORTA 0xffff
-#define TARGET_IO_PORTB 0xffff
-#define TARGET_IO_PORTC 0xffff
-// notice - masks were programmatically generated - please verify last port group for 0xffff or (BIT(2))
-
-#define DEFAULT_FEATURES       (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_AIRMODE | FEATURE_RX_SERIAL)
 #define DEFAULT_RX_FEATURE     FEATURE_RX_SERIAL
 
-#define USABLE_TIMER_CHANNEL_COUNT 7
-#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(4) | TIM_N(5) )
+#define TIMER_PIN_MAPPING \
+    TIMER_PIN_MAP( 0, PB10 , 1,  0) /* motor 1 */ \
+    TIMER_PIN_MAP( 1, PB6 , 1,  0) /* motor 2 */ \
+    TIMER_PIN_MAP( 2, PB7 , 1,  0) /* motor 3 */ \
+    TIMER_PIN_MAP( 3, PB8 , 1,  0) /* motor 4 */ \
+    TIMER_PIN_MAP( 4, PA0 , 2,  0) /* led */ \
+    TIMER_PIN_MAP( 5, PA9 , 1,  0) /* could not determine TIM_USE_xxxxx - please check */ \
+    TIMER_PIN_MAP( 6, PA10 , 1,  0) /* ppm RX_PPM_PIN */
+
+#define MOTOR1_PIN              PB10
+#define MOTOR2_PIN              PB6
+#define MOTOR3_PIN              PB7
+#define MOTOR4_PIN              PB8
+#define RX_PPM_PIN              PA10
 
 // notice - this file was programmatically generated and may be incomplete.
