@@ -161,8 +161,6 @@
 
 #define USE_USB_DETECT
 #define USB_DETECT_PIN          PC5
-#define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
-#define SERIALRX_UART           SERIAL_PORT_UART5
 
 
 #define TIMER_PIN_MAPPING \
