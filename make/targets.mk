@@ -93,8 +93,8 @@ endif
 # A definition that is not an integer from 1 to 99 (MHz), or a second definition, fails the build
 # instead of falling back to the 8 MHz default.
 XTAL_HEADER := $(ROOT)/src/main/target/$(BASE_TARGET)/target.h
-XTAL_DEFS := $(strip $(shell grep -cE '^[[:space:]]*\#[[:space:]]*define[[:space:]]+(TARGET_XTAL_MHZ|SYSTEM_HSE_MHZ)([[:space:]]|$$)' $(XTAL_HEADER)))
-TARGET_XTAL_MHZ := $(strip $(shell sed -n -e 's|/\*[^*]*\*/||g' -e 's|//.*$$||' -e 's|/\*.*$$||' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([1-9][0-9]\{0,1\}\)[[:space:]]*$$/\1/p' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*SYSTEM_HSE_MHZ[[:space:]][[:space:]]*\([1-9][0-9]\{0,1\}\)[[:space:]]*$$/\1/p' $(XTAL_HEADER)))
+XTAL_DEFS := $(strip $(shell grep -cE '^[[:space:]]*\#[[:space:]]*define[[:space:]]+(TARGET_XTAL_MHZ|SYSTEM_HSE_MHZ)([[:space:]/]|$$)' $(XTAL_HEADER)))
+TARGET_XTAL_MHZ := $(strip $(shell sed -n -e 's|/\*[^*]*\*/||g' -e 's|//.*$$||' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([1-9][0-9]\{0,1\}\)[[:space:]]*$$/\1/p' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*SYSTEM_HSE_MHZ[[:space:]][[:space:]]*\([1-9][0-9]\{0,1\}\)[[:space:]]*$$/\1/p' $(XTAL_HEADER)))
 
 ifneq ($(wildcard $(XTAL_HEADER)),)
 ifneq ($(XTAL_DEFS),0)
@@ -114,7 +114,7 @@ endif
 # The F4 PLL divider reads TARGET_XTAL_MHZ (system_stm32f4xx.c), not SYSTEM_HSE_MHZ.
 # Pass the value through when the header uses the BF name, so HSE_VALUE and PLL_M agree.
 ifneq ($(TARGET_XTAL_MHZ),)
-ifneq ($(strip $(shell grep -cE '^[[:space:]]*\#[[:space:]]*define[[:space:]]+SYSTEM_HSE_MHZ([[:space:]]|$$)' $(XTAL_HEADER))),0)
+ifneq ($(strip $(shell grep -cE '^[[:space:]]*\#[[:space:]]*define[[:space:]]+SYSTEM_HSE_MHZ([[:space:]/]|$$)' $(XTAL_HEADER))),0)
 TARGET_FLAGS += -DTARGET_XTAL_MHZ=$(TARGET_XTAL_MHZ)
 endif
 endif
