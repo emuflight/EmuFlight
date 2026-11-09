@@ -89,12 +89,13 @@ $(eval $(MCU_GROUP_$(FC_TARGET_MCU))_TARGETS += $(TARGET))
 endif
 
 # TARGET_XTAL_MHZ (or SYSTEM_HSE_MHZ, the BF config name) in the target header sets the
-# crystal frequency; HSE_VALUE is that value in Hz. A header may define one of the two names.
-# A definition that is not an integer from 1 to 99 (MHz), or a second definition, fails the build
+# crystal frequency; HSE_VALUE is that value in Hz. A header may define one of the two names
+# once, as "#define NAME <1-99>" with an optional // comment. Any other #define line that
+# mentions either name (a /* */ comment, a suffix, a second definition) fails the build
 # instead of falling back to the 8 MHz default.
 XTAL_HEADER := $(ROOT)/src/main/target/$(BASE_TARGET)/target.h
-XTAL_DEFS := $(strip $(shell grep -cE '^[[:space:]]*\#[[:space:]]*define[[:space:]]+(TARGET_XTAL_MHZ|SYSTEM_HSE_MHZ)([[:space:]/]|$$)' $(XTAL_HEADER)))
-TARGET_XTAL_MHZ := $(strip $(shell sed -n -e 's|/\*[^*]*\*/||g' -e 's|//.*$$||' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([1-9][0-9]\{0,1\}\)[[:space:]]*$$/\1/p' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*SYSTEM_HSE_MHZ[[:space:]][[:space:]]*\([1-9][0-9]\{0,1\}\)[[:space:]]*$$/\1/p' $(XTAL_HEADER)))
+XTAL_DEFS := $(strip $(shell grep -cE '^[[:space:]]*\#[[:space:]]*define.*(TARGET_XTAL_MHZ|SYSTEM_HSE_MHZ)' $(XTAL_HEADER)))
+TARGET_XTAL_MHZ := $(strip $(shell sed -n -e 's|//.*$$||' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([1-9][0-9]\{0,1\}\)[[:space:]]*$$/\1/p' -e 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*SYSTEM_HSE_MHZ[[:space:]][[:space:]]*\([1-9][0-9]\{0,1\}\)[[:space:]]*$$/\1/p' $(XTAL_HEADER)))
 
 ifneq ($(wildcard $(XTAL_HEADER)),)
 ifneq ($(XTAL_DEFS),0)
@@ -102,7 +103,7 @@ ifneq ($(XTAL_DEFS),1)
 $(error $(XTAL_HEADER): define TARGET_XTAL_MHZ or SYSTEM_HSE_MHZ once, not both or twice)
 endif
 ifeq ($(TARGET_XTAL_MHZ),)
-$(error $(XTAL_HEADER): TARGET_XTAL_MHZ / SYSTEM_HSE_MHZ must be an integer from 1 to 99 (MHz))
+$(error $(XTAL_HEADER): TARGET_XTAL_MHZ / SYSTEM_HSE_MHZ must be "#define NAME <1-99>" (MHz), no /* */ comment)
 endif
 endif
 endif
