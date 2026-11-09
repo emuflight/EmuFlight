@@ -627,7 +627,7 @@ void SystemClock_Config(void)
     RCC_PeriphClkInit.PLL2.PLL2M = 5;
     RCC_PeriphClkInit.PLL2.PLL2N = 800000000 / PLL_SRC_FREQ * 5; // Oscillator Frequency / 5 (PLL2M) = 1.6 * this value (PLL2N) = 800Mhz.
     RCC_PeriphClkInit.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE; // Wide VCO range:192 to 836 MHz
-    RCC_PeriphClkInit.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_0; // PLL2 input between 1 and 2Mhz (1.6)
+    RCC_PeriphClkInit.PLL2.PLL2RGE = (PLL_SRC_FREQ / 5 > 2000000) ? RCC_PLL2VCIRANGE_1 : RCC_PLL2VCIRANGE_0; // input/5: 1.6Mhz = 1-2Mhz range, 3.2Mhz = 2-4Mhz range
     RCC_PeriphClkInit.PLL2.PLL2FRACN = 0;
 
     RCC_PeriphClkInit.PLL2.PLL2P = 2; // 800Mhz / 2 = 400Mhz
