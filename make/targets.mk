@@ -80,6 +80,9 @@ TARGET_HEADER  := $(ROOT)/src/main/target/$(BASE_TARGET)/target.h
 # $(call pp_def_value,NAME): expanded NAME from the target header; empty if undefined or no header.
 pp_def_value = $(if $(wildcard $(TARGET_HEADER)),$(strip $(shell printf '\043if defined(%s)\n%s\n\043endif\n' $(1) $(1) | $(PP_CC) -E -P -xc $(PP_FLAGS) -imacros $(TARGET_HEADER) - 2>/dev/null | tr -d '\r\n')))
 
+# $(call shq,VALUE): VALUE single-quoted for a shell command line, so header text cannot alter the command.
+shq = '$(subst ','\'',$(1))'
+
 # The MCU group comes from FC_TARGET_MCU in the target header.
 FC_TARGET_MCU := $(call pp_def_value,FC_TARGET_MCU)
 
@@ -109,8 +112,8 @@ endif
 TARGET_XTAL_MHZ := $(call pp_def_value,TARGET_XTAL_MHZ)
 
 ifneq ($(TARGET_XTAL_MHZ),)
-ifneq ($(shell printf '%s\n' '$(TARGET_XTAL_MHZ)' | grep -cE '^([2-9]|[1-5][0-9]|6[0-3])$$'),1)
-$(error TARGET_XTAL_MHZ "$(TARGET_XTAL_MHZ)" in $(TARGET_HEADER) must be a whole number of MHz from 2 to 63 (PLL input divider range))
+ifneq ($(shell printf '%s\n' $(call shq,$(TARGET_XTAL_MHZ)) | grep -cE '^([2-9]|[1-5][0-9]|6[0-3])$$'),1)
+$(error TARGET_XTAL_MHZ "$(TARGET_XTAL_MHZ)" in $(TARGET_HEADER) must be a whole number of MHz from 2 to 63)
 endif
 HSE_VALUE := $(TARGET_XTAL_MHZ)000000
 endif
@@ -119,6 +122,9 @@ endif
 FC_VMA_ADDRESS := $(call pp_def_value,FC_VMA_ADDRESS)
 
 ifneq ($(FC_VMA_ADDRESS),)
+ifneq ($(shell printf '%s\n' $(call shq,$(FC_VMA_ADDRESS)) | grep -cE '^0[xX][0-9A-Fa-f]+$$'),1)
+$(error FC_VMA_ADDRESS "$(FC_VMA_ADDRESS)" in $(TARGET_HEADER) must be a literal 0x address)
+endif
 EXST = yes
 EXST_ADJUST_VMA := $(FC_VMA_ADDRESS)
 endif
