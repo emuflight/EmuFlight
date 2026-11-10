@@ -83,6 +83,12 @@ pp_def_value = $(if $(wildcard $(TARGET_HEADER)),$(strip $(shell printf '\043if 
 # The MCU group comes from FC_TARGET_MCU in the target header.
 FC_TARGET_MCU := $(call pp_def_value,FC_TARGET_MCU)
 
+ifneq ($(wildcard $(TARGET_HEADER)),)
+ifeq ($(FC_TARGET_MCU),)
+$(error Could not read FC_TARGET_MCU from $(TARGET_HEADER) with "$(PP_CC) -E". Is a C compiler installed?)
+endif
+endif
+
 MCU_GROUP_STM32F405 := F405
 MCU_GROUP_STM32F411 := F411
 MCU_GROUP_STM32F446 := F446
@@ -103,7 +109,7 @@ endif
 TARGET_XTAL_MHZ := $(call pp_def_value,TARGET_XTAL_MHZ)
 
 ifneq ($(TARGET_XTAL_MHZ),)
-ifeq ($(shell printf '%s' '$(TARGET_XTAL_MHZ)' | grep -cE '^[1-9][0-9]?$$'),0)
+ifneq ($(shell printf '%s\n' '$(TARGET_XTAL_MHZ)' | grep -cE '^[1-9][0-9]?$$'),1)
 $(error TARGET_XTAL_MHZ "$(TARGET_XTAL_MHZ)" in $(TARGET_HEADER) must be a whole number of MHz from 1 to 99)
 endif
 HSE_VALUE := $(TARGET_XTAL_MHZ)000000
