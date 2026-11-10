@@ -27,7 +27,7 @@
 
 #define USBD_PRODUCT_STRING "Colibri"
 
-#define TARGET_XTAL_MHZ         16
+#define SYSTEM_HSE_MHZ         16
 
 #define LED0_PIN                PC14
 #define LED1_PIN                PC13

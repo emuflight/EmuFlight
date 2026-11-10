@@ -120,7 +120,7 @@
 #define VBAT_ADC_PIN            PC0
 #define CURRENT_METER_ADC_PIN   PC3
 
-#define TARGET_XTAL_MHZ         12
+#define SYSTEM_HSE_MHZ         12
 
 
 #define TIMER_PIN_MAPPING \
