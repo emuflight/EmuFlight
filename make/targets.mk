@@ -109,8 +109,8 @@ endif
 TARGET_XTAL_MHZ := $(call pp_def_value,TARGET_XTAL_MHZ)
 
 ifneq ($(TARGET_XTAL_MHZ),)
-ifneq ($(shell printf '%s\n' '$(TARGET_XTAL_MHZ)' | grep -cE '^[1-9][0-9]?$$'),1)
-$(error TARGET_XTAL_MHZ "$(TARGET_XTAL_MHZ)" in $(TARGET_HEADER) must be a whole number of MHz from 1 to 99)
+ifneq ($(shell printf '%s\n' '$(TARGET_XTAL_MHZ)' | grep -cE '^([2-9]|[1-5][0-9]|6[0-3])$$'),1)
+$(error TARGET_XTAL_MHZ "$(TARGET_XTAL_MHZ)" in $(TARGET_HEADER) must be a whole number of MHz from 2 to 63 (PLL input divider range))
 endif
 HSE_VALUE := $(TARGET_XTAL_MHZ)000000
 endif
