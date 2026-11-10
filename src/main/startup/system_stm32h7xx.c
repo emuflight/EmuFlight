@@ -251,7 +251,7 @@ pllConfig_t pll1ConfigRevV = {
 // For HCLK=200MHz with VOS1 range, ST recommended flash latency is 2WS.
 // RM0433 (Rev.5) Table 12. FLASH recommended number of wait states and programming delay
 //
-// Rev.V runs 240MHz AXI in VOS0 and needs 4WS (RM0433 Rev.9 Table 17, AN5312 Rev.1 Table 1); applied in SystemClock_Config().
+// Rev.V runs 240MHz AXI in VOS0 and needs 4WS (RM0433 Rev.9 Table 17, AN5312 Rev.1 Table 1); applied in SystemClockHSE_Config().
 
 #define MCU_FLASH_LATENCY FLASH_LATENCY_2
 
