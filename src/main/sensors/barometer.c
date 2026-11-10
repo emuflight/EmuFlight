@@ -328,9 +328,12 @@ uint32_t baroUpdate(void) {
         baro.dev.get_up(&baro.dev);
         baro.dev.start_ut(&baro.dev);
         baro.dev.calculate(&baroPressure, &baroTemperature);
-        baro.baroPressure = baroPressure;
-        baro.baroTemperature = baroTemperature;
-        baroPressureSum = recalculateBarometerTotal(baroPressureSum, baroPressure);
+        // a pressure of 0 marks an invalid sample: keep the last valid values
+        if (baroPressure > 0) {
+            baro.baroPressure = baroPressure;
+            baro.baroTemperature = baroTemperature;
+            baroPressureSum = recalculateBarometerTotal(baroPressureSum, baroPressure);
+        }
         state = BAROMETER_NEEDS_SAMPLES;
         return baro.dev.ut_delay;
         break;
