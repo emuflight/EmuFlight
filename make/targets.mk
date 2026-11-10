@@ -103,10 +103,10 @@ endif
 TARGET_XTAL_MHZ := $(call pp_def_value,TARGET_XTAL_MHZ)
 
 ifneq ($(TARGET_XTAL_MHZ),)
-HSE_VALUE := $(shell echo $$(( $(TARGET_XTAL_MHZ) * 1000000 )) 2>/dev/null)
-ifeq ($(HSE_VALUE),)
-$(error TARGET_XTAL_MHZ "$(TARGET_XTAL_MHZ)" in $(TARGET_HEADER) is not an integer number of MHz)
+ifeq ($(shell printf '%s' '$(TARGET_XTAL_MHZ)' | grep -cE '^[1-9][0-9]?$$'),0)
+$(error TARGET_XTAL_MHZ "$(TARGET_XTAL_MHZ)" in $(TARGET_HEADER) must be a whole number of MHz from 1 to 99)
 endif
+HSE_VALUE := $(TARGET_XTAL_MHZ)000000
 endif
 
 # FC_VMA_ADDRESS in the target header selects an EXST build and its load address.
