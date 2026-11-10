@@ -119,6 +119,7 @@ typedef struct gyroDev_s {
     int32_t gyroShortPeriod;
     int32_t gyroDmaMaxDuration;
     busSegment_t segments[2];
+    uint8_t dmaStallCount;
 } gyroDev_t;
 
 typedef struct accDev_s {

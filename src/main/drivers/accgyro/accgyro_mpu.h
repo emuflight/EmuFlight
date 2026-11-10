@@ -239,6 +239,9 @@ bool mpuGyroReadSPI(struct gyroDev_s *gyro);
 #if defined(MPU_INT_EXTI)
 busStatus_e mpuIntCallback(uint32_t arg);
 #endif
+#ifdef GYRO_USES_SPI
+void mpuGyroStartDmaRead(struct gyroDev_s *gyro);
+#endif
 void mpuDetect(struct gyroDev_s *gyro);
 uint8_t mpuGyroDLPF(struct gyroDev_s *gyro);
 uint8_t mpuGyroFCHOICE(struct gyroDev_s *gyro);

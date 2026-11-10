@@ -34,6 +34,11 @@
 #define USE_TX_IRQ_HANDLER
 #endif
 
+// DMA transfer-error recovery needs the DMA stream error flags of these families.
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#define USE_SPI_DMA_ERROR_RECOVERY
+#endif
+
 // Cache-line constants for DMA buffer maintenance (32-byte L1D cache lines on Cortex-M7).
 #if defined(STM32F7) || defined(STM32H7)
 #define CACHE_LINE_SIZE  32
@@ -264,6 +269,14 @@ FAST_CODE static void spiRxIrqHandler(dmaChannelDescriptor_t *descriptor)
         return;
     }
 
+#ifdef USE_SPI_DMA_ERROR_RECOVERY
+    // The stream disables itself on a transfer error, so no completion interrupt follows.
+    if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_TEIF)) {
+        spiAbortTransfer(dev);
+        return;
+    }
+#endif
+
     busDevice_t *bus = dev->bus;
 
     if (bus->curSegment->negateCS) {
@@ -285,6 +298,21 @@ FAST_CODE static void spiRxIrqHandler(dmaChannelDescriptor_t *descriptor)
     spiIrqHandler(dev);
 }
 
+#ifdef USE_SPI_DMA_ERROR_RECOVERY
+// Only the transfer error interrupt is enabled on the Tx stream of a full-duplex transfer.
+FAST_CODE static void spiTxErrorIrqHandler(dmaChannelDescriptor_t *descriptor)
+{
+    const extDevice_t *dev = (const extDevice_t *)descriptor->userParam;
+
+    if (!dev || !DMA_GET_FLAG_STATUS(descriptor, DMA_IT_TEIF)) {
+        return;
+    }
+
+    DMA_CLEAR_FLAG(descriptor, DMA_IT_TEIF);
+    spiAbortTransfer(dev);
+}
+#endif
+
 #ifdef USE_TX_IRQ_HANDLER
 // DMA Tx TC IRQ handler — used for Tx-only DMA buses (no Rx channel).
 FAST_CODE static void spiTxIrqHandler(dmaChannelDescriptor_t *descriptor)
@@ -294,6 +322,13 @@ FAST_CODE static void spiTxIrqHandler(dmaChannelDescriptor_t *descriptor)
     if (!dev) {
         return;
     }
+
+#ifdef USE_SPI_DMA_ERROR_RECOVERY
+    if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_TEIF)) {
+        spiAbortTransfer(dev);
+        return;
+    }
+#endif
 
     busDevice_t *bus = dev->bus;
 
@@ -385,6 +420,7 @@ void spiInitBusDMA(void)
             spiInternalResetStream(bus->dmaTx);
             spiInternalResetDescriptors(bus);
             dmaSetHandler(dmaRxIdentifier, spiRxIrqHandler, NVIC_PRIO_SPI_DMA, 0);
+            dmaSetHandler(dmaTxIdentifier, spiTxErrorIrqHandler, NVIC_PRIO_SPI_DMA, 0);
             bus->useDMA = true;
 #ifdef USE_TX_IRQ_HANDLER
         } else if (dmaTxIdentifier) {
@@ -505,6 +541,41 @@ void spiSequence(const extDevice_t *dev, busSegment_t *segments) {
     }
 
     spiSequenceStart(dev);
+}
+
+void spiAbortTransfer(const extDevice_t *dev) {
+    busDevice_t *bus = dev->bus;
+    const extDevice_t *nextDev = NULL;
+
+    ATOMIC_BLOCK(NVIC_PRIO_MAX) {
+        if (!spiIsBusy(dev)) {
+            return;
+        }
+
+        spiInternalAbortDMA(dev);
+
+        IOHi(dev->busType_u.spi.csnPin);
+
+        spiDevice[bus - spiBusDevice].errorCount++;
+
+        busSegment_t *endSegment = (busSegment_t *)bus->curSegment;
+        while (endSegment->len) {
+            endSegment++;
+        }
+
+        nextDev = endSegment->u.link.dev;
+        if (nextDev) {
+            bus->curSegment = (busSegment_t *)endSegment->u.link.segments;
+            endSegment->u.link.dev = NULL;
+            endSegment->u.link.segments = NULL;
+        } else {
+            bus->curSegment = (busSegment_t *)BUS_SPI_FREE;
+        }
+    }
+
+    if (nextDev) {
+        spiSequenceStart(nextDev);
+    }
 }
 
 void spiReadWriteBuf(const extDevice_t *dev, uint8_t *txData, uint8_t *rxData, int len) {
