@@ -367,6 +367,8 @@ static void SystemClockHSE_Config(void)
     if (HAL_GetREVID() == REV_ID_V) {
         flashLatency = FLASH_LATENCY_4;
     }
+    // Reset value 0b11 is not in RM0433 Table 17; 0b10 applies at these frequencies. HAL leaves the field alone.
+    MODIFY_REG(FLASH->ACR, FLASH_ACR_WRHIGHFREQ, FLASH_ACR_WRHIGHFREQ_1);
 #endif
 
     // Configure voltage scale.
