@@ -69,8 +69,19 @@ endif
 # silently ignore if the file is not present. Allows for target specific.
 -include $(ROOT)/src/main/target/$(BASE_TARGET)/target.mk
 
+# Target header macros are read with the C preprocessor, as BF mk/config.mk does (pp_def_value).
+# Host cc, not the ARM toolchain: it must work before the toolchain is installed (arm_sdk_install).
+# MCU names are defined as themselves so a header's own empty "#define STM32F405" cannot erase FC_TARGET_MCU.
+PP_CC          ?= cc
+PP_MCU_NAMES   := STM32F405 STM32F411 STM32F446 STM32F7X2 STM32F745 STM32H743 STM32H723 STM32H725 STM32H730 STM32H750 SITL
+PP_FLAGS       := $(foreach m,$(PP_MCU_NAMES),-D$(m)=$(m)) -I$(ROOT)/src/main -I$(ROOT)/src/main/target
+TARGET_HEADER  := $(ROOT)/src/main/target/$(BASE_TARGET)/target.h
+
+# $(call pp_def_value,NAME): expanded NAME from the target header; empty if undefined or no header.
+pp_def_value = $(if $(wildcard $(TARGET_HEADER)),$(strip $(shell printf '\043if defined(%s)\n%s\n\043endif\n' $(1) $(1) | $(PP_CC) -E -P -xc $(PP_FLAGS) -imacros $(TARGET_HEADER) - 2>/dev/null | tr -d '\r\n')))
+
 # The MCU group comes from FC_TARGET_MCU in the target header.
-FC_TARGET_MCU := $(strip $(shell sed -n 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*FC_TARGET_MCU[[:space:]][[:space:]]*\([A-Za-z0-9_]*\).*/\1/p' $(ROOT)/src/main/target/$(BASE_TARGET)/target.h | head -n 1))
+FC_TARGET_MCU := $(call pp_def_value,FC_TARGET_MCU)
 
 MCU_GROUP_STM32F405 := F405
 MCU_GROUP_STM32F411 := F411
@@ -89,14 +100,17 @@ $(eval $(MCU_GROUP_$(FC_TARGET_MCU))_TARGETS += $(TARGET))
 endif
 
 # TARGET_XTAL_MHZ in the target header sets the crystal frequency; HSE_VALUE is that value in Hz.
-TARGET_XTAL_MHZ := $(strip $(shell sed -n 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*TARGET_XTAL_MHZ[[:space:]][[:space:]]*\([0-9][0-9]*\).*/\1/p' $(ROOT)/src/main/target/$(BASE_TARGET)/target.h | head -n 1))
+TARGET_XTAL_MHZ := $(call pp_def_value,TARGET_XTAL_MHZ)
 
 ifneq ($(TARGET_XTAL_MHZ),)
-HSE_VALUE := $(TARGET_XTAL_MHZ)000000
+HSE_VALUE := $(shell echo $$(( $(TARGET_XTAL_MHZ) * 1000000 )) 2>/dev/null)
+ifeq ($(HSE_VALUE),)
+$(error TARGET_XTAL_MHZ "$(TARGET_XTAL_MHZ)" in $(TARGET_HEADER) is not an integer number of MHz)
+endif
 endif
 
 # FC_VMA_ADDRESS in the target header selects an EXST build and its load address.
-FC_VMA_ADDRESS := $(strip $(shell sed -n 's/^[[:space:]]*\#[[:space:]]*define[[:space:]][[:space:]]*FC_VMA_ADDRESS[[:space:]][[:space:]]*\(0[xX][0-9A-Fa-f][0-9A-Fa-f]*\).*/\1/p' $(ROOT)/src/main/target/$(BASE_TARGET)/target.h | head -n 1))
+FC_VMA_ADDRESS := $(call pp_def_value,FC_VMA_ADDRESS)
 
 ifneq ($(FC_VMA_ADDRESS),)
 EXST = yes
