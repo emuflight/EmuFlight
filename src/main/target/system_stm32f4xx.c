@@ -357,9 +357,6 @@ uint32_t hse_value = HSE_VALUE;
 /************************* PLL Parameters *************************************/
 /* HSE_VALUE comes from SYSTEM_HSE_MHZ in the target header via make; PLL input is 1 MHz. */
 #define PLL_M      (HSE_VALUE / 1000000)
-#if PLL_M < 2 || PLL_M > 63
-#error HSE_VALUE gives a PLLM outside 2..63
-#endif
 
 #if defined(STM32F446xx)
 /* PLL division factor for I2S, SAI, SYSTEM and SPDIF: Clock =  PLL_VCO / PLLR */

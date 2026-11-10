@@ -109,8 +109,8 @@ endif
 SYSTEM_HSE_MHZ := $(call pp_def_value,SYSTEM_HSE_MHZ)
 
 ifneq ($(SYSTEM_HSE_MHZ),)
-ifneq ($(shell printf '%s\n' '$(SYSTEM_HSE_MHZ)' | grep -cE '^[1-9][0-9]?$$'),1)
-$(error SYSTEM_HSE_MHZ "$(SYSTEM_HSE_MHZ)" in $(TARGET_HEADER) must be a whole number of MHz from 1 to 99)
+ifneq ($(shell printf '%s\n' '$(SYSTEM_HSE_MHZ)' | grep -cE '^([2-9]|[1-5][0-9]|6[0-3])$$'),1)
+$(error SYSTEM_HSE_MHZ "$(SYSTEM_HSE_MHZ)" in $(TARGET_HEADER) must be a whole number of MHz from 2 to 63 (PLL input divider range))
 endif
 HSE_VALUE := $(SYSTEM_HSE_MHZ)000000
 endif
