@@ -125,6 +125,19 @@ static void mpu6050FindRevision(gyroDev_t *gyro) {
 }
 #endif
 
+#ifdef GYRO_USES_SPI
+void mpuGyroStartDmaRead(gyroDev_t *gyro) {
+    if (gyro->dev.bus->curSegment == gyro->segments) {
+        if (++gyro->dmaStallCount < GYRO_DMA_STALL_LIMIT) {
+            return;
+        }
+        spiAbortTransfer(&gyro->dev);
+    }
+    gyro->dmaStallCount = 0;
+    spiSequence(&gyro->dev, gyro->segments);
+}
+#endif
+
 /*
  * Gyro interrupt service routine
  */
@@ -140,19 +153,6 @@ busStatus_e mpuIntCallback(uint32_t arg)
     gyro->dataReady = true;
     return BUS_READY;
 }
-
-#ifdef GYRO_USES_SPI
-void mpuGyroStartDmaRead(gyroDev_t *gyro) {
-    if (gyro->dev.bus->curSegment == gyro->segments) {
-        if (++gyro->dmaStallCount < GYRO_DMA_STALL_LIMIT) {
-            return;
-        }
-        spiAbortTransfer(&gyro->dev);
-    }
-    gyro->dmaStallCount = 0;
-    spiSequence(&gyro->dev, gyro->segments);
-}
-#endif
 
 FAST_CODE static void mpuIntExtiHandler(extiCallbackRec_t *cb) {
     gyroDev_t *gyro = container_of(cb, gyroDev_t, exti);
