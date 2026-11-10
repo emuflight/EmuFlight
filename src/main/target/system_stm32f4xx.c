@@ -355,18 +355,8 @@ uint32_t hse_value = HSE_VALUE;
 /******************************************************************************/
 
 /************************* PLL Parameters *************************************/
-#if defined(TARGET_XTAL_MHZ)
-#define PLL_M      TARGET_XTAL_MHZ
-#else
-#if defined(STM32F40_41xxx) || defined(STM32F427_437xx) || defined(STM32F429_439xx) || defined(STM32F401xx) || defined(STM32F469_479xx)
-#define PLL_M      8
-#elif defined (STM32F446xx)
-#define PLL_M      8
-#elif defined (STM32F410xx) || defined (STM32F411xE)
-#define PLL_M      8
-#else
-#endif /* STM32F40_41xxx || STM32F427_437xx || STM32F429_439xx || STM32F401xx || STM32F469_479xx */
-#endif
+/* HSE_VALUE comes from SYSTEM_HSE_MHZ in the target header via make; PLL input is 1 MHz. */
+#define PLL_M      (HSE_VALUE / 1000000)
 
 #if defined(STM32F446xx)
 /* PLL division factor for I2S, SAI, SYSTEM and SPDIF: Clock =  PLL_VCO / PLLR */
@@ -731,11 +721,7 @@ void SetSysClock(void) {
 // Always use PLLSAI to derive USB 48MHz clock.
 // - This also works under arbitral overclocking situations.
 // - Only handles HSE case.
-#ifdef TARGET_XTAL_MHZ
-#define PLLSAI_M      TARGET_XTAL_MHZ
-#else
-#define PLLSAI_M      8
-#endif
+#define PLLSAI_M      (HSE_VALUE / 1000000)
 #define PLLSAI_N      192
 #define PLLSAI_P      4
 #define PLLSAI_Q      2

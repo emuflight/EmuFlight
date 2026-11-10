@@ -99,14 +99,14 @@ ifneq ($(MCU_GROUP_$(FC_TARGET_MCU)),)
 $(eval $(MCU_GROUP_$(FC_TARGET_MCU))_TARGETS += $(TARGET))
 endif
 
-# TARGET_XTAL_MHZ in the target header sets the crystal frequency; HSE_VALUE is that value in Hz.
-TARGET_XTAL_MHZ := $(call pp_def_value,TARGET_XTAL_MHZ)
+# SYSTEM_HSE_MHZ in the target header sets the crystal frequency; HSE_VALUE is that value in Hz.
+SYSTEM_HSE_MHZ := $(call pp_def_value,SYSTEM_HSE_MHZ)
 
-ifneq ($(TARGET_XTAL_MHZ),)
-ifeq ($(shell printf '%s' '$(TARGET_XTAL_MHZ)' | grep -cE '^[1-9][0-9]?$$'),0)
-$(error TARGET_XTAL_MHZ "$(TARGET_XTAL_MHZ)" in $(TARGET_HEADER) must be a whole number of MHz from 1 to 99)
+ifneq ($(SYSTEM_HSE_MHZ),)
+ifeq ($(shell printf '%s' '$(SYSTEM_HSE_MHZ)' | grep -cE '^[1-9][0-9]?$$'),0)
+$(error SYSTEM_HSE_MHZ "$(SYSTEM_HSE_MHZ)" in $(TARGET_HEADER) must be a whole number of MHz from 1 to 99)
 endif
-HSE_VALUE := $(TARGET_XTAL_MHZ)000000
+HSE_VALUE := $(SYSTEM_HSE_MHZ)000000
 endif
 
 # FC_VMA_ADDRESS in the target header selects an EXST build and its load address.
