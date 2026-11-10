@@ -111,19 +111,19 @@ ifneq ($(MCU_GROUP_$(FC_TARGET_MCU)),)
 $(eval $(MCU_GROUP_$(FC_TARGET_MCU))_TARGETS += $(TARGET))
 endif
 
-# TARGET_XTAL_MHZ in the target header sets the crystal frequency; HSE_VALUE is that value in Hz.
-TARGET_XTAL_MHZ := $(call pp_def_value,TARGET_XTAL_MHZ)
-ifeq ($(TARGET_XTAL_MHZ),)
-ifneq ($(call pp_defined,TARGET_XTAL_MHZ),)
-$(error TARGET_XTAL_MHZ in $(TARGET_HEADER) is defined without a value)
+# SYSTEM_HSE_MHZ in the target header sets the crystal frequency; HSE_VALUE is that value in Hz.
+SYSTEM_HSE_MHZ := $(call pp_def_value,SYSTEM_HSE_MHZ)
+ifeq ($(SYSTEM_HSE_MHZ),)
+ifneq ($(call pp_defined,SYSTEM_HSE_MHZ),)
+$(error SYSTEM_HSE_MHZ in $(TARGET_HEADER) is defined without a value)
 endif
 endif
 
-ifneq ($(TARGET_XTAL_MHZ),)
-ifneq ($(shell printf '%s\n' $(call shq,$(TARGET_XTAL_MHZ)) | grep -cE '^([2-9]|[1-5][0-9]|6[0-3])$$'),1)
-$(error TARGET_XTAL_MHZ "$(TARGET_XTAL_MHZ)" in $(TARGET_HEADER) must be a whole number of MHz from 2 to 63)
+ifneq ($(SYSTEM_HSE_MHZ),)
+ifneq ($(shell printf '%s\n' $(call shq,$(SYSTEM_HSE_MHZ)) | grep -cE '^([2-9]|[1-5][0-9]|6[0-3])$$'),1)
+$(error SYSTEM_HSE_MHZ "$(SYSTEM_HSE_MHZ)" in $(TARGET_HEADER) must be a whole number of MHz from 2 to 63)
 endif
-HSE_VALUE := $(TARGET_XTAL_MHZ)000000
+HSE_VALUE := $(SYSTEM_HSE_MHZ)000000
 endif
 
 # FC_VMA_ADDRESS in the target header selects an EXST build and its load address.

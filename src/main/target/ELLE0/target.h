@@ -24,7 +24,7 @@
 #define MANUFACTURER_ID   LEGA
 #define TARGET_BOARD_IDENTIFIER "ELL0"
 
-#define TARGET_XTAL_MHZ         25
+#define SYSTEM_HSE_MHZ         25
 
 #define USBD_PRODUCT_STRING "Elle0"
 
