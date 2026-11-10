@@ -99,12 +99,12 @@ void vtxUpdateActivatedChannel(void) {
         locked = 1;
     }
     if (vtxCommonDevice()) {
-        static uint8_t lastIndex = -1;
+        // Apply every active condition, as updateActivatedModes() does for mode ranges: stopping at the first
+        // match starves later conditions and alternates between two overlapping ones. When two active conditions
+        // set the same field, the highest index wins.
         for (uint8_t index = 0; index < MAX_CHANNEL_ACTIVATION_CONDITION_COUNT; index++) {
             const vtxChannelActivationCondition_t *vtxChannelActivationCondition = &vtxConfig()->vtxChannelActivationConditions[index];
-            if (isRangeActive(vtxChannelActivationCondition->auxChannelIndex, &vtxChannelActivationCondition->range)
-                    && index != lastIndex) {
-                lastIndex = index;
+            if (isRangeActive(vtxChannelActivationCondition->auxChannelIndex, &vtxChannelActivationCondition->range)) {
                 if (!locked) { // once armed, do not change band or channel
                     if (vtxChannelActivationCondition->band > 0) {
                         vtxSettingsConfigMutable()->band = vtxChannelActivationCondition->band;
@@ -117,7 +117,6 @@ void vtxUpdateActivatedChannel(void) {
                 if (vtxChannelActivationCondition->power > 0) {
                     vtxSettingsConfigMutable()->power = vtxChannelActivationCondition->power;
                 }
-                break;
             }
         }
     }

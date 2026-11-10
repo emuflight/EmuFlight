@@ -207,6 +207,54 @@ TEST(VtxTest, VtxCanUpdateVtxWithActivationCondition)
     EXPECT_EQ(cac2->power, actualVtxConfig->power);
 }
 
+TEST(VtxTest, VtxAppliesEveryActiveConditionInOnePass)
+{
+    vtxCommonSetDevice(&testVtxDevice);
+    ResetVtxActivationConditions();
+    ResetVtxConfig();
+
+    // three conditions on one switch range, each setting a different field
+    for (int index = 1; index <= 3; index++) {
+        vtxChannelActivationCondition_t *cac = &vtxConfigMutable()->vtxChannelActivationConditions[index];
+        cac->auxChannelIndex = 0;
+        (&cac->range)->startStep = CHANNEL_VALUE_TO_STEP(1500);
+        (&cac->range)->endStep = CHANNEL_VALUE_TO_STEP(2000);
+    }
+    vtxConfigMutable()->vtxChannelActivationConditions[1].band = 5;
+    vtxConfigMutable()->vtxChannelActivationConditions[2].channel = 3;
+    vtxConfigMutable()->vtxChannelActivationConditions[3].power = 2;
+
+    rcData[AUX1] = 1800;
+    vtxUpdateActivatedChannel();
+
+    const vtxSettingsConfig_s *actualVtxConfig = vtxSettingsConfig();
+    EXPECT_EQ(5, actualVtxConfig->band);
+    EXPECT_EQ(3, actualVtxConfig->channel);
+    EXPECT_EQ(2, actualVtxConfig->power);
+}
+
+TEST(VtxTest, VtxOverlappingConditionsDoNotAlternateAndHighestIndexWins)
+{
+    vtxCommonSetDevice(&testVtxDevice);
+    ResetVtxActivationConditions();
+    ResetVtxConfig();
+
+    for (int index = 1; index <= 2; index++) {
+        vtxChannelActivationCondition_t *cac = &vtxConfigMutable()->vtxChannelActivationConditions[index];
+        cac->auxChannelIndex = 0;
+        cac->channel = index;
+        (&cac->range)->startStep = CHANNEL_VALUE_TO_STEP(1500);
+        (&cac->range)->endStep = CHANNEL_VALUE_TO_STEP(2000);
+    }
+
+    rcData[AUX1] = 1800;
+    const vtxSettingsConfig_s *actualVtxConfig = vtxSettingsConfig();
+    for (int pass = 0; pass < 4; pass++) {
+        vtxUpdateActivatedChannel();
+        EXPECT_EQ(2, actualVtxConfig->channel) << "pass " << pass;
+    }
+}
+
 TEST(VtxTest, VtxShouldNotUpdateBandAndChannelOnceArmed)
 {
     vtxCommonSetDevice(&testVtxDevice);
