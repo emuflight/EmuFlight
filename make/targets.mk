@@ -80,6 +80,9 @@ TARGET_HEADER  := $(ROOT)/src/main/target/$(BASE_TARGET)/target.h
 # $(call pp_def_value,NAME): expanded NAME from the target header; empty if undefined or no header.
 pp_def_value = $(if $(wildcard $(TARGET_HEADER)),$(strip $(shell printf '\043if defined(%s)\n%s\n\043endif\n' $(1) $(1) | $(PP_CC) -E -P -xc $(PP_FLAGS) -imacros $(TARGET_HEADER) - 2>/dev/null | tr -d '\r\n')))
 
+# $(call pp_defined,NAME): non-empty when NAME is defined in the target header, even with an empty value.
+pp_defined = $(if $(wildcard $(TARGET_HEADER)),$(strip $(shell printf '\043if defined(%s)\nyes\n\043endif\n' $(1) | $(PP_CC) -E -P -xc $(PP_FLAGS) -imacros $(TARGET_HEADER) - 2>/dev/null | tr -d '\r\n')))
+
 # $(call shq,VALUE): VALUE single-quoted for a shell command line, so header text cannot alter the command.
 shq = '$(subst ','\'',$(1))'
 
@@ -110,6 +113,11 @@ endif
 
 # SYSTEM_HSE_MHZ in the target header sets the crystal frequency; HSE_VALUE is that value in Hz.
 SYSTEM_HSE_MHZ := $(call pp_def_value,SYSTEM_HSE_MHZ)
+ifeq ($(SYSTEM_HSE_MHZ),)
+ifneq ($(call pp_defined,SYSTEM_HSE_MHZ),)
+$(error SYSTEM_HSE_MHZ in $(TARGET_HEADER) is defined without a value)
+endif
+endif
 
 ifneq ($(SYSTEM_HSE_MHZ),)
 ifneq ($(shell printf '%s\n' $(call shq,$(SYSTEM_HSE_MHZ)) | grep -cE '^([2-9]|[1-5][0-9]|6[0-3])$$'),1)
@@ -120,10 +128,15 @@ endif
 
 # FC_VMA_ADDRESS in the target header selects an EXST build and its load address.
 FC_VMA_ADDRESS := $(call pp_def_value,FC_VMA_ADDRESS)
+ifeq ($(FC_VMA_ADDRESS),)
+ifneq ($(call pp_defined,FC_VMA_ADDRESS),)
+$(error FC_VMA_ADDRESS in $(TARGET_HEADER) is defined without a value)
+endif
+endif
 
 ifneq ($(FC_VMA_ADDRESS),)
-ifneq ($(shell printf '%s\n' $(call shq,$(FC_VMA_ADDRESS)) | grep -cE '^0[xX][0-9A-Fa-f]+$$'),1)
-$(error FC_VMA_ADDRESS "$(FC_VMA_ADDRESS)" in $(TARGET_HEADER) must be a literal 0x address)
+ifneq ($(shell printf '%s\n' $(call shq,$(FC_VMA_ADDRESS)) | grep -cE '^0[xX][0-9A-Fa-f]{1,8}$$'),1)
+$(error FC_VMA_ADDRESS "$(FC_VMA_ADDRESS)" in $(TARGET_HEADER) must be a literal 0x address of at most 8 hex digits)
 endif
 EXST = yes
 EXST_ADJUST_VMA := $(FC_VMA_ADDRESS)
