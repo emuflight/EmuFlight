@@ -44,11 +44,12 @@ STATIC_UNIT_TESTED bmp280_calib_param_t bmp280_cal;
 // uncompensated pressure and temperature
 int32_t bmp280_up = 0;
 int32_t bmp280_ut = 0;
+STATIC_UNIT_TESTED bool bmp280SampleValid;
 
 static void bmp280_start_ut(baroDev_t *baro);
 static void bmp280_get_ut(baroDev_t *baro);
 static void bmp280_start_up(baroDev_t *baro);
-static void bmp280_get_up(baroDev_t *baro);
+STATIC_UNIT_TESTED void bmp280_get_up(baroDev_t *baro);
 
 STATIC_UNIT_TESTED void bmp280_calculate(int32_t *pressure, int32_t *temperature);
 
@@ -85,6 +86,7 @@ bool bmp280Detect(baroDev_t *baro) {
         dev->busType_u.i2c.address = BMP280_I2C_ADDR;
         defaultAddressApplied = true;
     }
+    bmp280SampleValid = false;
     busReadRegisterBuffer(dev, BMP280_CHIP_ID_REG, &bmp280_chip_id, 1);  /* read Chip Id */
     if (bmp280_chip_id != BMP280_DEFAULT_CHIP_ID) {
         bmp280BusDeinit(dev);
@@ -125,12 +127,16 @@ static void bmp280_start_up(baroDev_t *baro) {
     busWriteRegister(&baro->dev, BMP280_CTRL_MEAS_REG, BMP280_MODE);
 }
 
-static void bmp280_get_up(baroDev_t *baro) {
+STATIC_UNIT_TESTED void bmp280_get_up(baroDev_t *baro) {
     uint8_t data[BMP280_DATA_FRAME_SIZE];
+    bmp280SampleValid = false;
     // read data from sensor
-    busReadRegisterBuffer(&baro->dev, BMP280_PRESSURE_MSB_REG, data, BMP280_DATA_FRAME_SIZE);
+    if (!busReadRegisterBuffer(&baro->dev, BMP280_PRESSURE_MSB_REG, data, BMP280_DATA_FRAME_SIZE)) {
+        return;
+    }
     bmp280_up = (int32_t)((((uint32_t)(data[0])) << 12) | (((uint32_t)(data[1])) << 4) | ((uint32_t)data[2] >> 4));
     bmp280_ut = (int32_t)((((uint32_t)(data[3])) << 12) | (((uint32_t)(data[4])) << 4) | ((uint32_t)data[5] >> 4));
+    bmp280SampleValid = true;
 }
 
 // Returns temperature in DegC, resolution is 0.01 DegC. Output value of "5123" equals 51.23 DegC
@@ -165,6 +171,11 @@ static uint32_t bmp280_compensate_P(int32_t adc_P) {
 }
 
 STATIC_UNIT_TESTED void bmp280_calculate(int32_t *pressure, int32_t *temperature) {
+    if (!bmp280SampleValid) {
+        if (pressure)
+            *pressure = 0;
+        return;
+    }
     // calculate
     int32_t t;
     uint32_t p;
