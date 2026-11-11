@@ -264,6 +264,7 @@ void baroSetCalibrationCycles(uint16_t calibrationCyclesRequired) {
 }
 
 static bool baroReady = false;
+static bool baroSampleAccepted = false;
 
 #define PRESSURE_SAMPLES_MEDIAN 3
 
@@ -329,7 +330,8 @@ uint32_t baroUpdate(void) {
         baro.dev.start_ut(&baro.dev);
         baro.dev.calculate(&baroPressure, &baroTemperature);
         // a pressure of 0 marks an invalid sample: keep the last valid values
-        if (baroPressure > 0) {
+        baroSampleAccepted = baroPressure > 0;
+        if (baroSampleAccepted) {
             baro.baroPressure = baroPressure;
             baro.baroTemperature = baroTemperature;
             baroPressureSum = recalculateBarometerTotal(baroPressureSum, baroPressure);
@@ -356,6 +358,10 @@ int32_t baroCalculateAltitude(void) {
 
 void performBaroCalibrationCycle(void) {
     static int32_t savedGroundPressure = 0;
+    // calibrate only from accepted samples and a full history
+    if (!baroReady || !baroSampleAccepted) {
+        return;
+    }
     baroGroundPressure -= baroGroundPressure / 8;
     baroGroundPressure += baroPressureSum / barometerConfig()->baro_sample_count;
     baroGroundAltitude = (1.0f - pow_approx((baroGroundPressure / 8) / 101325.0f, 0.190295f)) * 4433000.0f;
