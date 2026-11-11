@@ -184,8 +184,9 @@ STATIC_UNIT_TESTED void crsfDataReceive(uint16_t c, void *data) {
                 switch (crsfFrame.frame.type) {
                     case CRSF_FRAMETYPE_RC_CHANNELS_PACKED:
                         if (crsfFrame.frame.deviceAddress == CRSF_ADDRESS_FLIGHT_CONTROLLER) {
-                            crsfFrameDone = true;
+                            // Copy before raising the flag so crsfFrameStatus() never unpacks a stale frame.
                             memcpy(&crsfChannelDataFrame, &crsfFrame, sizeof(crsfFrame));
+                            crsfFrameDone = true;
                         }
                         break;
 #if defined(USE_TELEMETRY_CRSF) && defined(USE_MSP_OVER_TELEMETRY)
