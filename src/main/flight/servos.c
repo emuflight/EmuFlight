@@ -264,8 +264,11 @@ void loadCustomServoMixer(void) {
         if (customServoMixers(i)->rate == 0) {
             break;
         }
-        currentServoMixer[i] = *customServoMixers(i);
-        servoRuleCount++;
+        // skip a saved rule whose indices the mixer would use out of range
+        if (customServoMixers(i)->targetChannel >= MAX_SUPPORTED_SERVOS || customServoMixers(i)->inputSource >= INPUT_SOURCE_COUNT) {
+            continue;
+        }
+        currentServoMixer[servoRuleCount++] = *customServoMixers(i);
     }
 }
 
