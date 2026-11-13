@@ -89,5 +89,6 @@ void spiSequenceStart(const extDevice_t *dev);
 void spiInternalInitStream(const extDevice_t *dev, bool preInit);
 void spiInternalStartDMA(const extDevice_t *dev);
 void spiInternalStopDMA(const extDevice_t *dev);
+void spiInternalAbortDMA(const extDevice_t *dev);
 void spiInternalResetStream(dmaChannelDescriptor_t *descriptor);
 void spiInternalResetDescriptors(busDevice_t *bus);

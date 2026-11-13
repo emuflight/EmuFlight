@@ -131,6 +131,10 @@ void spiInternalStartDMA(const extDevice_t *dev) {
     UNUSED(dev);
 }
 
+void spiInternalAbortDMA(const extDevice_t *dev) {
+    UNUSED(dev);
+}
+
 void spiInternalStopDMA(const extDevice_t *dev) {
     UNUSED(dev);
 }
@@ -208,8 +212,8 @@ TEST(BusSpiH7Unittest, FullDuplexEnablesDmaSameAsF4)
     EXPECT_TRUE(bus->useDMA);
     EXPECT_EQ(bus->dmaTx, &txDescriptor);
     EXPECT_EQ(bus->dmaRx, &rxDescriptor);
-    EXPECT_EQ(dmaSetHandlerCallCount, 1);
-    EXPECT_EQ(lastHandlerIdentifier, DMA1_ST1_HANDLER);
+    EXPECT_EQ(dmaSetHandlerCallCount, 2); // Rx completion handler, then Tx transfer-error handler
+    EXPECT_EQ(lastHandlerIdentifier, DMA1_ST0_HANDLER);
 }
 
 TEST(BusSpiH7Unittest, TxOnlySuccessDoesNotEnableDmaUnlikeF4F7)

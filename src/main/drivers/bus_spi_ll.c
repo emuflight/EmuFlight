@@ -558,6 +558,7 @@ void spiInternalStartDMA(const extDevice_t *dev)
 
     if (dmaRx) {
         dmaRx->userParam = (uintptr_t)dev;
+        dmaTx->userParam = (uintptr_t)dev;
 
         DMA_CLEAR_FLAG(dmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
         DMA_CLEAR_FLAG(dmaRx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
@@ -572,6 +573,8 @@ void spiInternalStartDMA(const extDevice_t *dev)
          * which fires when Tx FIFO empties while the SPI operation is still in progress.
          */
         LL_EX_DMA_EnableIT_TC(streamRegsRx);
+        LL_EX_DMA_EnableIT_TE(streamRegsRx);
+        LL_EX_DMA_EnableIT_TE(streamRegsTx);
 
         LL_DMA_Init(dmaTx->dma, dmaTx->stream, bus->initTx);
         LL_DMA_Init(dmaRx->dma, dmaRx->stream, bus->initRx);
@@ -595,6 +598,7 @@ void spiInternalStartDMA(const extDevice_t *dev)
         DMA_CLEAR_FLAG(dmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
         LL_DMA_WriteReg(streamRegsTx, CR, 0U);
         LL_EX_DMA_EnableIT_TC(streamRegsTx);
+        LL_EX_DMA_EnableIT_TE(streamRegsTx);
         LL_DMA_Init(dmaTx->dma, dmaTx->stream, bus->initTx);
 #if defined(STM32H7)
         LL_SPI_SetTransferSize(dev->bus->busType_u.spi.instance, bus->curSegment->len);
@@ -644,6 +648,29 @@ void spiInternalStopDMA(const extDevice_t *dev)
         LL_SPI_Disable(instance);
 #endif
     }
+}
+
+void spiInternalAbortDMA(const extDevice_t *dev)
+{
+    SPI_TypeDef *instance = dev->bus->busType_u.spi.instance;
+
+    spiInternalStopDMA(dev);
+
+#if defined(STM32H7)
+    LL_SPI_ClearFlag_EOT(instance);
+    LL_SPI_ClearFlag_OVR(instance);
+    LL_SPI_ClearFlag_UDR(instance);
+    LL_SPI_ClearFlag_MODF(instance);
+#else
+    while (LL_SPI_IsActiveFlag_BSY(instance));
+
+    while (LL_SPI_IsActiveFlag_RXNE(instance)) {
+        LL_SPI_ReceiveData8(instance);
+    }
+
+    // An overrun discards everything received after it until cleared.
+    LL_SPI_ClearFlag_OVR(instance);
+#endif
 }
 
 void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {

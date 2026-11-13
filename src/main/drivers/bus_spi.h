@@ -143,6 +143,8 @@ void spiSequence(const extDevice_t *dev, busSegment_t *segments);
 void spiWait(const extDevice_t *dev);
 void spiRelease(const extDevice_t *dev);
 bool spiIsBusy(const extDevice_t *dev);
+// Abandon the DMA transfer in progress for this device, then start any transfer queued behind it.
+void spiAbortTransfer(const extDevice_t *dev);
 void spiLinkSegments(const extDevice_t *dev, busSegment_t *firstSegment, busSegment_t *secondSegment);
 
 /*

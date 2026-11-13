@@ -61,6 +61,7 @@ static int8_t rxProbes[8];
 static int dmaSetHandlerCallCount;
 static dmaIdentifier_e lastHandlerIdentifier;
 static dmaCallbackHandlerFuncPtr lastHandlerCallback;
+static dmaCallbackHandlerFuncPtr rxHandlerCallback; // handler registered on the Rx stream
 
 static dmaChannelSpec_t txSpec;
 static dmaChannelSpec_t rxSpec;
@@ -158,6 +159,9 @@ void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callbac
     dmaSetHandlerCallCount++;
     lastHandlerIdentifier = identifier;
     lastHandlerCallback = callback;
+    if (identifier == DMA1_ST1_HANDLER) {
+        rxHandlerCallback = callback;
+    }
 }
 
 // spiInitBusDMA() calls these directly on its DMA-enabled paths; real versions touch LL/StdPeriph registers.
@@ -176,6 +180,10 @@ void spiInternalInitStream(const extDevice_t *dev, bool preInit) {
 }
 
 void spiInternalStartDMA(const extDevice_t *dev) {
+    UNUSED(dev);
+}
+
+void spiInternalAbortDMA(const extDevice_t *dev) {
     UNUSED(dev);
 }
 
@@ -212,6 +220,7 @@ namespace {
 
 SPI_TypeDef fakeSpi1;
 SPI_TypeDef fakeSpi2;
+DMA_TypeDef fakeDma;
 
 // spiBusDevice[]/spiDevice[]/fakeSpi{1,2} are module statics that persist across TEST() bodies otherwise.
 void resetSpiTestState()
@@ -244,6 +253,7 @@ void resetSpiTestState()
     dmaSetHandlerCallCount = 0;
     lastHandlerIdentifier = DMA_NONE;
     lastHandlerCallback = NULL;
+    rxHandlerCallback = NULL;
 
     txSpec = { 0, (dmaResource_t *)&dmaTxStreamMarker, 0 };
     rxSpec = { 0, (dmaResource_t *)&dmaRxStreamMarker, 0 };
@@ -253,6 +263,12 @@ void resetSpiTestState()
     memset(&rxDescriptor, 0, sizeof(rxDescriptor));
     memset(&txDescriptor1, 0, sizeof(txDescriptor1));
     memset(&rxDescriptor1, 0, sizeof(rxDescriptor1));
+    // The IRQ handlers read the DMA error flag through the descriptor; give it plain-RAM registers.
+    memset(&fakeDma, 0, sizeof(fakeDma));
+    txDescriptor.dma = &fakeDma;
+    rxDescriptor.dma = &fakeDma;
+    txDescriptor1.dma = &fakeDma;
+    rxDescriptor1.dma = &fakeDma;
 }
 
 } // namespace
@@ -319,8 +335,8 @@ TEST(BusSpiUnittest, InitBusDmaFullDuplexEnablesDmaOnBothChannels)
     EXPECT_TRUE(bus->useDMA);
     EXPECT_EQ(bus->dmaTx, &txDescriptor);
     EXPECT_EQ(bus->dmaRx, &rxDescriptor);
-    EXPECT_EQ(dmaSetHandlerCallCount, 1);
-    EXPECT_EQ(lastHandlerIdentifier, DMA1_ST1_HANDLER); // Rx TC handler, not Tx
+    EXPECT_EQ(dmaSetHandlerCallCount, 2); // Rx completion handler, then Tx transfer-error handler
+    EXPECT_EQ(lastHandlerIdentifier, DMA1_ST0_HANDLER);
 }
 
 TEST(BusSpiUnittest, InitBusDmaFallsBackToTxOnlyWhenNoRxChannel)
@@ -383,15 +399,15 @@ TEST(BusSpiUnittest, RxIrqHandlerPreservesDevicePointerThroughUserParam)
     extDevice_t dev = {};
     ASSERT_TRUE(spiSetBusInstance(&dev, SPI_DEV_TO_CFG(SPIDEV_1)));
     spiInitBusDMA();
-    ASSERT_EQ(dmaSetHandlerCallCount, 1);
-    ASSERT_NE(lastHandlerCallback, nullptr);
+    ASSERT_EQ(dmaSetHandlerCallCount, 2); // Rx completion and Tx transfer-error handlers
+    ASSERT_NE(rxHandlerCallback, nullptr);
 
     busSegment_t segments[2] = {}; // segments[0]: one-shot transfer; segments[1]: list terminator (len == 0)
     segments[0].len = 1;
     dev.bus->curSegment = segments;
     rxDescriptor.userParam = (uintptr_t)&dev;
 
-    lastHandlerCallback(&rxDescriptor);
+    rxHandlerCallback(&rxDescriptor);
 
     EXPECT_EQ((uintptr_t)dev.bus->curSegment, (uintptr_t)BUS_SPI_FREE);
 }
@@ -581,7 +597,7 @@ TEST(BusSpiUnittest, BusyRepeatOfFirstSegmentReassertsChipSelect)
     extDevice_t dev = {};
     ASSERT_TRUE(spiSetBusInstance(&dev, SPI_DEV_TO_CFG(SPIDEV_1)));
     spiInitBusDMA();
-    ASSERT_NE(lastHandlerCallback, nullptr);
+    ASSERT_NE(rxHandlerCallback, nullptr);
     dev.busType_u.spi.csnPin = (IO_t)0x10;
     rxDescriptor.userParam = (uintptr_t)&dev;
 
@@ -595,7 +611,7 @@ TEST(BusSpiUnittest, BusyRepeatOfFirstSegmentReassertsChipSelect)
     lastIoLo = nullptr;
     dev.bus->curSegment = &list[1];
 
-    lastHandlerCallback(&rxDescriptor);
+    rxHandlerCallback(&rxDescriptor);
 
     EXPECT_EQ(1, ioLoCallCount);
     EXPECT_EQ((IO_t)0x10, lastIoLo);
@@ -619,7 +635,7 @@ TEST(BusSpiUnittest, BusyRepeatOfSegmentWithoutNegateCsLeavesChipSelectAlone)
     ioLoCallCount = 0;
     dev.bus->curSegment = &list[1];
 
-    lastHandlerCallback(&rxDescriptor);
+    rxHandlerCallback(&rxDescriptor);
 
     EXPECT_EQ(0, ioLoCallCount);
 }
