@@ -203,8 +203,12 @@ void IOHi(IO_t io) {
     UNUSED(io);
 }
 
+static int ioLoCallCount;
+static IO_t lastIoLo;
+
 void IOLo(IO_t io) {
-    UNUSED(io);
+    ioLoCallCount++;
+    lastIoLo = io;
 }
 
 }
@@ -574,4 +578,64 @@ TEST(BusSpiUnittest, OutOfRangeTxOptionKeepsValidRxOptionWorking)
     EXPECT_EQ(bus->dmaTx, nullptr);
     EXPECT_EQ(rxProbeCount, 1);
     EXPECT_FALSE(bus->useDMA); // Tx missing and Rx present: Rx alone is not used, and the Tx-only path needs Tx
+}
+
+// --- spiIrqHandler(): chip select when a callback repeats a segment with BUS_BUSY ---
+
+namespace {
+
+static busStatus_e busyCallback(uint32_t)
+{
+    return BUS_BUSY;
+}
+
+} // namespace
+
+TEST(BusSpiUnittest, BusyRepeatOfFirstSegmentReassertsChipSelect)
+{
+    resetSpiTestState();
+    extDevice_t dev = {};
+    ASSERT_TRUE(spiSetBusInstance(&dev, SPI_DEV_TO_CFG(SPIDEV_1)));
+    spiInitBusDMA();
+    ASSERT_NE(lastHandlerCallback, nullptr);
+    dev.busType_u.spi.csnPin = (IO_t)0x10;
+    rxDescriptor.userParam = (uintptr_t)&dev;
+
+    // A status-poll list: the polling segment is first and releases CS when it completes.
+    // The element in front of the array has negateCS false; reading it after the rewind drops the CS re-assert.
+    busSegment_t list[3] = {};
+    list[0] = { { { nullptr, nullptr } }, 0, false, nullptr };
+    list[1] = { { { nullptr, nullptr } }, 4, true, busyCallback };
+    list[2] = { { { nullptr, nullptr } }, 0, true, nullptr };
+    ioLoCallCount = 0;
+    lastIoLo = nullptr;
+    dev.bus->curSegment = &list[1];
+
+    lastHandlerCallback(&rxDescriptor);
+
+    EXPECT_EQ(1, ioLoCallCount);
+    EXPECT_EQ((IO_t)0x10, lastIoLo);
+    EXPECT_EQ(&list[1], (busSegment_t *)dev.bus->curSegment); // the polling segment runs again
+}
+
+TEST(BusSpiUnittest, BusyRepeatOfSegmentWithoutNegateCsLeavesChipSelectAlone)
+{
+    resetSpiTestState();
+    extDevice_t dev = {};
+    ASSERT_TRUE(spiSetBusInstance(&dev, SPI_DEV_TO_CFG(SPIDEV_1)));
+    spiInitBusDMA();
+    dev.busType_u.spi.csnPin = (IO_t)0x10;
+    rxDescriptor.userParam = (uintptr_t)&dev;
+
+    // The element in front has negateCS true: reading it after the rewind would assert CS wrongly.
+    busSegment_t list[3] = {};
+    list[0] = { { { nullptr, nullptr } }, 0, true, nullptr };
+    list[1] = { { { nullptr, nullptr } }, 4, false, busyCallback };
+    list[2] = { { { nullptr, nullptr } }, 0, true, nullptr };
+    ioLoCallCount = 0;
+    dev.bus->curSegment = &list[1];
+
+    lastHandlerCallback(&rxDescriptor);
+
+    EXPECT_EQ(0, ioLoCallCount);
 }

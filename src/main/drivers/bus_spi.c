@@ -209,6 +209,9 @@ FAST_CODE static void spiIrqHandler(const extDevice_t *dev)
     busDevice_t *bus = dev->bus;
     busSegment_t *nextSegment;
 
+    // Read before the callback: BUS_BUSY rewinds curSegment, which for a first-in-list segment points before the array.
+    const bool negateCS = bus->curSegment->negateCS;
+
     if (bus->curSegment->callback) {
         switch (bus->curSegment->callback(dev->callbackArg)) {
         case BUS_BUSY:
@@ -242,7 +245,6 @@ FAST_CODE static void spiIrqHandler(const extDevice_t *dev)
             bus->curSegment = (busSegment_t *)BUS_SPI_FREE;
         }
     } else {
-        bool negateCS = bus->curSegment->negateCS;
         bus->curSegment = nextSegment;
 
         if (bus->initSegment) {
