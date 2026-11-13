@@ -76,6 +76,7 @@ extern "C" {
     rxRuntimeConfig_t rxRuntimeConfig = {};
 
     void vtxUpdateActivatedChannel(void);
+    extern uint8_t locked; // STATIC_UNIT_TESTED in vtx_control.c, reset per test
 }
 
 uint32_t simulationFeatureFlags = 0;
@@ -145,6 +146,8 @@ void ResetVtxConfig(void) {
     vtxConfig->band = 0;
     vtxConfig->channel = 0;
     vtxConfig->power = 0;
+    locked = 0;
+    DISABLE_ARMING_FLAG(ARMED);
 }
 
 

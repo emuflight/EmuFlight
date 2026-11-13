@@ -25,6 +25,8 @@
 
 #if defined(USE_VTX_CONTROL) && defined(USE_VTX_COMMON)
 
+#include "build/build_config.h"
+
 #include "common/maths.h"
 
 #include "config/config_eeprom.h"
@@ -53,7 +55,8 @@ PG_RESET_TEMPLATE(vtxConfig_t, vtxConfig,
                   .halfDuplex = true
                  );
 
-static uint8_t locked = 0;
+// Latched on first arm and never cleared in a session; STATIC_UNIT_TESTED lets host tests reset it.
+STATIC_UNIT_TESTED uint8_t locked = 0;
 
 
 void vtxControlInit(void) {
