@@ -597,7 +597,7 @@ TEST(BusSpiUnittest, BusyRepeatOfFirstSegmentReassertsChipSelect)
     extDevice_t dev = {};
     ASSERT_TRUE(spiSetBusInstance(&dev, SPI_DEV_TO_CFG(SPIDEV_1)));
     spiInitBusDMA();
-    ASSERT_NE(lastHandlerCallback, nullptr);
+    ASSERT_NE(rxHandlerCallback, nullptr);
     dev.busType_u.spi.csnPin = (IO_t)0x10;
     rxDescriptor.userParam = (uintptr_t)&dev;
 
@@ -611,7 +611,7 @@ TEST(BusSpiUnittest, BusyRepeatOfFirstSegmentReassertsChipSelect)
     lastIoLo = nullptr;
     dev.bus->curSegment = &list[1];
 
-    lastHandlerCallback(&rxDescriptor);
+    rxHandlerCallback(&rxDescriptor);
 
     EXPECT_EQ(1, ioLoCallCount);
     EXPECT_EQ((IO_t)0x10, lastIoLo);
@@ -635,7 +635,7 @@ TEST(BusSpiUnittest, BusyRepeatOfSegmentWithoutNegateCsLeavesChipSelectAlone)
     ioLoCallCount = 0;
     dev.bus->curSegment = &list[1];
 
-    lastHandlerCallback(&rxDescriptor);
+    rxHandlerCallback(&rxDescriptor);
 
     EXPECT_EQ(0, ioLoCallCount);
 }
