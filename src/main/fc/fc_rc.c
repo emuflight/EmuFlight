@@ -654,7 +654,7 @@ FAST_CODE static float rateDynamics(float rcCommand, const int axis, const float
     return rcCommand;
 }
 
-FAST_CODE FAST_CODE_NOINLINE void updateRcCommands(void) {
+FAST_CODE_PREF FAST_CODE_NOINLINE void updateRcCommands(void) {
     isRXDataNew = true;
     // PITCH & ROLL only dynamic PID adjustment,  depending on throttle value
     int32_t propP;
