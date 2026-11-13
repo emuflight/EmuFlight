@@ -304,6 +304,16 @@ extern uint8_t eepromData[EEPROM_SIZE];
 #define __config_end    (*(eepromData + EEPROM_SIZE))
 #endif
 
+// 16 KB ITCM MCUs are short of ITCM RAM: FAST_CODE_PREF stays empty there, so decorated functions run from flash.
+#if !defined(FAST_CODE_PREF) && (defined(STM32F722xx) || defined(STM32F745xx))
+#define FAST_CODE_PREF
+#endif
+
+// Every other target places FAST_CODE_PREF as FAST_CODE.
+#ifndef FAST_CODE_PREF
+#define FAST_CODE_PREF  FAST_CODE
+#endif
+
 #if defined(USABLE_TIMER_CHANNEL_COUNT) && (USABLE_TIMER_CHANNEL_COUNT + 0) > 0
 #error "The per-board timerHardware[] array was removed: define TIMER_PIN_MAPPING and the MOTORn_PIN, SERVOn_PIN, RX_PPM_PIN, LED_STRIP_PIN macros in target.h"
 #endif
