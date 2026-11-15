@@ -642,7 +642,7 @@ static bool gpsNewFrameNMEA(char c) {
     static gpsDataNmea_t gps_Msg;
     uint8_t frameOK = 0;
     static uint8_t param = 0, offset = 0, parity = 0;
-    static char string[15];
+    static char string[16];
     static uint8_t checksum_param, gps_frame = NO_FRAME;
     static uint8_t svMessageNum = 0;
     uint8_t svSatNum = 0, svPacketIdx = 0, svSatParam = 0;
