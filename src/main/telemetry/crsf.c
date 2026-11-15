@@ -380,6 +380,12 @@ void crsfScheduleMspResponse(void) {
     mspReplyPending = true;
 }
 
+// A request buffered while a reply is being sent can leave the flag cleared; buffered requests stay in
+// mspRxBuffer until handled, so check it too or they are stranded.
+static bool crsfMspPending(void) {
+    return mspReplyPending || mspRxBuffer.len > 0;
+}
+
 void crsfSendMspResponse(uint8_t *payload) {
     sbuf_t crsfPayloadBuf;
     sbuf_t *dst = &crsfPayloadBuf;
@@ -498,7 +504,7 @@ void handleCrsfTelemetry(timeUs_t currentTimeUs) {
     crsfRxSendTelemetryData();
     // Send ad-hoc response frames as soon as possible
 #if defined(USE_MSP_OVER_TELEMETRY)
-    if (mspReplyPending) {
+    if (crsfMspPending()) {
         mspReplyPending = handleCrsfMspFrameBuffer(CRSF_FRAME_TX_MSP_FRAME_SIZE, &crsfSendMspResponse);
         crsfLastCycleTime = currentTimeUs; // reset telemetry timing due to ad-hoc request
         return;
