@@ -251,10 +251,7 @@ pllConfig_t pll1ConfigRevV = {
 // For HCLK=200MHz with VOS1 range, ST recommended flash latency is 2WS.
 // RM0433 (Rev.5) Table 12. FLASH recommended number of wait states and programming delay
 //
-// For higher HCLK frequency, VOS0 is available on RevV silicons, with FLASH wait states 4WS
-// AN5312 (Rev.1) Section 1.2.1 Voltage scaling Table.1
-//
-// XXX Check if Rev.V requires a different value
+// Rev.V runs 240MHz AXI in VOS0 and needs 4WS (RM0433 Rev.9 Table 17, AN5312 Rev.1 Table 1); applied in SystemClockHSE_Config().
 
 #define MCU_FLASH_LATENCY FLASH_LATENCY_2
 
@@ -365,6 +362,15 @@ static void SystemClockHSE_Config(void)
 #error Unknown MCU type
 #endif
 
+    uint32_t flashLatency = MCU_FLASH_LATENCY;
+#if defined(STM32H743xx) || defined(STM32H750xx)
+    if (HAL_GetREVID() == REV_ID_V) {
+        flashLatency = FLASH_LATENCY_4;
+    }
+    // Reset value 0b11 is not in RM0433 Table 17; 0b10 applies at these frequencies. HAL leaves the field alone.
+    MODIFY_REG(FLASH->ACR, FLASH_ACR_WRHIGHFREQ, FLASH_ACR_WRHIGHFREQ_1);
+#endif
+
     // Configure voltage scale.
     // It has been pre-configured at PWR_REGULATOR_VOLTAGE_SCALE1,
     // and it may stay or overridden by PWR_REGULATOR_VOLTAGE_SCALE0 depending on the clock config.
@@ -454,7 +460,7 @@ static void SystemClockHSE_Config(void)
     RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2;
     RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
 
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, MCU_FLASH_LATENCY) != HAL_OK) {
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, flashLatency) != HAL_OK) {
         /* Initialization Error */
         ErrorHandler();
     }
