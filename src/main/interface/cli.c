@@ -1471,9 +1471,11 @@ static void cliLed(char *cmdline) {
     } else {
         ptr = cmdline;
         i = atoi(ptr);
-        if (i < LED_MAX_STRIP_LENGTH) {
+        if (i >= 0 && i < LED_MAX_STRIP_LENGTH) {
             ptr = nextArg(cmdline);
-            if (parseLedStripConfig(i, ptr)) {
+            if (!ptr) {
+                cliShowParseError();
+            } else if (parseLedStripConfig(i, ptr)) {
                 generateLedConfig((ledConfig_t *)&ledStripConfig()->ledConfigs[i], ledConfigBuffer, sizeof(ledConfigBuffer));
                 cliDumpPrintLinef(0, false, format, i, ledConfigBuffer);
             } else {
@@ -1506,9 +1508,11 @@ static void cliColor(char *cmdline) {
     } else {
         const char *ptr = cmdline;
         const int i = atoi(ptr);
-        if (i < LED_CONFIGURABLE_COLOR_COUNT) {
+        if (i >= 0 && i < LED_CONFIGURABLE_COLOR_COUNT) {
             ptr = nextArg(cmdline);
-            if (parseColor(i, ptr)) {
+            if (!ptr) {
+                cliShowParseError();
+            } else if (parseColor(i, ptr)) {
                 const hsvColor_t *color = &ledStripConfig()->colors[i];
                 cliDumpPrintLinef(0, false, format, i, color->h, color->s, color->v);
             } else {
