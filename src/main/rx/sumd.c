@@ -51,6 +51,8 @@
 #define SUMD_BUFFSIZE (SUMD_MAX_CHANNEL * 2 + 5) // 6 channels + 5 = 17 bytes for 6 channels
 
 #define SUMD_BAUDRATE 115200
+#define SUMD_BYTES_PER_CHANNEL 2
+#define SUMD_CRC_LENGTH 2
 
 static bool sumdFrameDone = false;
 static uint16_t sumdChannels[SUMD_MAX_CHANNEL];
@@ -65,10 +67,18 @@ static void sumdDataReceive(uint16_t c, void *data) {
     uint32_t sumdTime;
     static uint32_t sumdTimeLast;
     static uint8_t sumdIndex;
+    static uint16_t sumdSkipBytes;
     sumdTime = micros();
-    if ((sumdTime - sumdTimeLast) > 4000)
+    if ((sumdTime - sumdTimeLast) > 4000) {
         sumdIndex = 0;
+        sumdSkipBytes = 0;
+    }
     sumdTimeLast = sumdTime;
+    if (sumdSkipBytes > 0) {
+        // inside a rejected frame: its payload may hold a sync byte
+        sumdSkipBytes--;
+        return;
+    }
     if (sumdIndex == 0) {
         if (c != SUMD_SYNCBYTE)
             return;
@@ -77,8 +87,15 @@ static void sumdDataReceive(uint16_t c, void *data) {
             crc = 0;
         }
     }
-    if (sumdIndex == 2)
+    if (sumdIndex == 2) {
+        if (c > SUMD_MAX_CHANNEL) {
+            // drop the rest of the frame by its declared length; a gap above 4 ms ends the skip early
+            sumdSkipBytes = c * SUMD_BYTES_PER_CHANNEL + SUMD_CRC_LENGTH;
+            sumdIndex = 0;
+            return;
+        }
         sumdChannelCount = (uint8_t)c;
+    }
     if (sumdIndex < SUMD_BUFFSIZE)
         sumd[sumdIndex] = (uint8_t)c;
     sumdIndex++;
@@ -92,8 +109,6 @@ static void sumdDataReceive(uint16_t c, void *data) {
 
 #define SUMD_OFFSET_CHANNEL_1_HIGH 3
 #define SUMD_OFFSET_CHANNEL_1_LOW 4
-#define SUMD_BYTES_PER_CHANNEL 2
-
 
 #define SUMD_FRAME_STATE_OK 0x01
 #define SUMD_FRAME_STATE_FAILSAFE 0x81

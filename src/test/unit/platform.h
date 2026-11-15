@@ -30,6 +30,7 @@
 #define GCC_OPTIMIZE_SIZE
 #define FAST_CODE
 #define FAST_CODE_NOINLINE
+#define FAST_CODE_PREF
 #define FAST_IRQ_HANDLER
 #define FAST_RAM_ZERO_INIT
 #define FAST_RAM
