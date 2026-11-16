@@ -2353,6 +2353,9 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
 #if defined(USE_SIGNATURE)
         case MSP_SET_SIGNATURE:
         if (!signatureIsSet()) {
+        if (sbufBytesRemaining(src) < SIGNATURE_LENGTH) {
+            return MSP_RESULT_ERROR;
+        }
         uint8_t signature[SIGNATURE_LENGTH];
         sbufReadData(src, signature, SIGNATURE_LENGTH);
         setSignature(signature);

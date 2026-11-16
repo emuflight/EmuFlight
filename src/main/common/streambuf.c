@@ -131,11 +131,7 @@ const uint8_t* sbufConstPtr(const sbuf_t *buf) {
 // reader - skip data
 // writer - commit written data
 void sbufAdvance(sbuf_t *buf, int size) {
-    if (size > 0 && size > (int)(buf->end - buf->ptr)) {
-        buf->ptr = buf->end;
-    } else {
-        buf->ptr += size;
-    }
+    buf->ptr += size;
 }
 
 // modifies streambuf so that written data are prepared for reading

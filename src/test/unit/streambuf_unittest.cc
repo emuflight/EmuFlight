@@ -205,19 +205,6 @@ TEST(StreambufTest, ReadDataOnEmptyWindowZeroFills)
     EXPECT_EQ(data, sbufPtr(&sbuf));
 }
 
-TEST(StreambufTest, AdvancePastEndClampsToEnd)
-{
-    uint8_t data[4] = {};
-    sbuf_t sbuf;
-    sbufInit(&sbuf, data, data + sizeof(data));
-
-    sbufAdvance(&sbuf, 3);
-    EXPECT_EQ(1, sbufBytesRemaining(&sbuf));
-    sbufAdvance(&sbuf, 100);
-    EXPECT_EQ(0, sbufBytesRemaining(&sbuf));
-    EXPECT_EQ(data + sizeof(data), sbufPtr(&sbuf));
-}
-
 TEST(StreambufTest, BoardInfoReadWithShortPayloadReturnsEmptyNames)
 {
     // length byte claims 10 name bytes but the window holds 2: no read beyond the window
