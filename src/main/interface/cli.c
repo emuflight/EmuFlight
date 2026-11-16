@@ -2667,13 +2667,15 @@ void cliMsp(char *cmdline) {
         } else if (mspCommand > 9) {
             start = 3;
         }
-        uint8_t inBuff[len];
+        // payload bytes: complete hex pairs after the command number
+        const int payloadLen = len > start ? (len - start) / 2 : 0;
+        uint8_t inBuff[payloadLen + 1];
         uint8_t output;
-        for (int i = 0; i < len; i++) {
+        for (int i = 0; i < payloadLen; i++) {
             hex2byte(&cmdline[(i * 2) + start], &output);
             inBuff[i] = output;
         }
-        sbuf_t inBuf = {.ptr = inBuff, .end = &inBuff[len - 1]};
+        sbuf_t inBuf = {.ptr = inBuff, .end = inBuff + payloadLen};
         //TODO need to fill inPtr with the rest of the bytes from the command line
         buft.ptr = buft.end = bufPtr;
         if (mspCommonProcessOutCommand(mspCommand, &buft, NULL) || mspProcessOutCommand(mspCommand, &buft)

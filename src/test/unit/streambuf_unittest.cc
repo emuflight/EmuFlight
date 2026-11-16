@@ -139,3 +139,99 @@ TEST(StreambufTest, BoardInfoParseKeepsFieldsAlignedForAnyLength)
         }
     }
 }
+
+TEST(StreambufTest, ReadU8PastEndReturnsZeroAndKeepsPointer)
+{
+    uint8_t data[2] = { 7, 9 };
+    sbuf_t sbuf;
+    sbufInit(&sbuf, data, data + sizeof(data));
+
+    EXPECT_EQ(7, sbufReadU8(&sbuf));
+    EXPECT_EQ(9, sbufReadU8(&sbuf));
+    EXPECT_EQ(0, sbufReadU8(&sbuf));
+    EXPECT_EQ(0, sbufBytesRemaining(&sbuf));
+    EXPECT_EQ(data + 2, sbufPtr(&sbuf));
+}
+
+TEST(StreambufTest, ReadU32OnThreeBytesDoesNotUseNextBuffer)
+{
+    // the byte after the window is a guard that must never be read
+    uint8_t data[4] = { 0x01, 0x02, 0x03, GUARD_BYTE };
+    sbuf_t sbuf;
+    sbufInit(&sbuf, data, data + 3);
+
+    EXPECT_EQ(0x00030201u, sbufReadU32(&sbuf));
+    EXPECT_EQ(0, sbufBytesRemaining(&sbuf));
+}
+
+TEST(StreambufTest, ReadU16WithOneByteLeftReturnsLowByteOnly)
+{
+    uint8_t data[2] = { 0x34, GUARD_BYTE };
+    sbuf_t sbuf;
+    sbufInit(&sbuf, data, data + 1);
+
+    EXPECT_EQ(0x0034u, sbufReadU16(&sbuf));
+}
+
+TEST(StreambufTest, ReadDataLongerThanWindowZeroFillsAndAdvancesByCopied)
+{
+    uint8_t data[4] = { 1, 2, 3, GUARD_BYTE };
+    sbuf_t sbuf;
+    sbufInit(&sbuf, data, data + 3);
+
+    uint8_t out[6];
+    memset(out, GUARD_BYTE, sizeof(out));
+    sbufReadData(&sbuf, out, 6);
+
+    EXPECT_EQ(1, out[0]);
+    EXPECT_EQ(3, out[2]);
+    for (int i = 3; i < 6; i++) {
+        EXPECT_EQ(0, out[i]);
+    }
+    EXPECT_EQ(0, sbufBytesRemaining(&sbuf));
+}
+
+TEST(StreambufTest, ReadDataOnEmptyWindowZeroFills)
+{
+    uint8_t data[1] = { GUARD_BYTE };
+    sbuf_t sbuf;
+    sbufInit(&sbuf, data, data);
+
+    uint8_t out[2] = { GUARD_BYTE, GUARD_BYTE };
+    sbufReadData(&sbuf, out, 2);
+
+    EXPECT_EQ(0, out[0]);
+    EXPECT_EQ(0, out[1]);
+    EXPECT_EQ(data, sbufPtr(&sbuf));
+}
+
+TEST(StreambufTest, AdvancePastEndClampsToEnd)
+{
+    uint8_t data[4] = {};
+    sbuf_t sbuf;
+    sbufInit(&sbuf, data, data + sizeof(data));
+
+    sbufAdvance(&sbuf, 3);
+    EXPECT_EQ(1, sbufBytesRemaining(&sbuf));
+    sbufAdvance(&sbuf, 100);
+    EXPECT_EQ(0, sbufBytesRemaining(&sbuf));
+    EXPECT_EQ(data + sizeof(data), sbufPtr(&sbuf));
+}
+
+TEST(StreambufTest, BoardInfoReadWithShortPayloadReturnsEmptyNames)
+{
+    // length byte claims 10 name bytes but the window holds 2: no read beyond the window
+    uint8_t data[4] = { 10, 'A', 'B', GUARD_BYTE };
+    sbuf_t sbuf;
+    sbufInit(&sbuf, data, data + 3);
+
+    char name[NAME_MAX_LEN + 1];
+    char id[ID_MAX_LEN + 1];
+    parseBoardInfo(&sbuf, name, id);
+
+    EXPECT_EQ('A', name[0]);
+    EXPECT_EQ('B', name[1]);
+    EXPECT_EQ(0, name[2]);
+    EXPECT_EQ(0, sbufBytesRemaining(&sbuf));
+    EXPECT_EQ(0u, strlen(id));
+}
