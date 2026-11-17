@@ -156,6 +156,26 @@ static bool spiInternalReadWriteBufPolled(spi_type *instance, const uint8_t *txD
     return true;
 }
 
+// Blocking SPI calls for the legacy drivers (MAX7456, RX SPI, older sensors); the segment API does not use them.
+void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor)
+{
+    spi_enable(instance, FALSE);
+    spiSetDivisorBRreg(instance, divisor);
+    spi_enable(instance, TRUE);
+}
+
+uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t txByte)
+{
+    uint8_t rxByte = 0;
+    spiInternalReadWriteBufPolled(instance, &txByte, &rxByte, 1);
+    return rxByte;
+}
+
+bool spiTransfer(SPI_TypeDef *instance, const uint8_t *txData, uint8_t *rxData, int len)
+{
+    return spiInternalReadWriteBufPolled(instance, txData, rxData, len);
+}
+
 void spiInternalInitStream(const extDevice_t *dev, bool preInit)
 {
     STATIC_DMA_DATA_AUTO uint8_t dummyTxByte = 0xff;
