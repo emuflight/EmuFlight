@@ -2679,7 +2679,7 @@ void cliMsp(char *cmdline) {
         //TODO need to fill inPtr with the rest of the bytes from the command line
         buft.ptr = buft.end = bufPtr;
         if (mspCommonProcessOutCommand(mspCommand, &buft, NULL) || mspProcessOutCommand(mspCommand, &buft)
-                || mspCommonProcessInCommand(cliMspDescriptor, mspCommand, &inBuf, NULL) > -1 || mspProcessInCommand(cliMspDescriptor, mspCommand, &inBuf) > -1) {
+                || mspCommonProcessInCommand(cliMspDescriptor, mspCommand, &inBuf, NULL) > -1) {
             bufWriterAppend(cliWriter, '.');                 //"." is success
             bufWriterAppend(cliWriter, mspCommand);          //msp command sent
             bufWriterAppend(cliWriter, inBuf.ptr - inBuf.end);                  //msp command sent
