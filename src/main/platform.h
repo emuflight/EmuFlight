@@ -134,6 +134,10 @@
 #define STM32F4
 #endif
 
+#elif defined(AT32F435)
+
+#include "drivers/at32/platform_mcu.h"
+
 #elif defined(SIMULATOR_BUILD)
 
 // Nop
