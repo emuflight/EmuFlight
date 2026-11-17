@@ -116,7 +116,7 @@ TEST(DmaStm32F4xxUnittest, GetDescriptorByIdentifierReturnsMatchingStream)
     resetDmaTestState();
     dmaChannelDescriptor_t *descriptor = dmaGetDescriptorByIdentifier(DMA1_ST5_HANDLER);
     ASSERT_NE(descriptor, nullptr);
-    EXPECT_EQ(descriptor->ref, DMA1_Stream5);
+    EXPECT_EQ(descriptor->ref, (dmaResource_t *)DMA1_Stream5);
     EXPECT_EQ(descriptor->dma, DMA1);
 }
 
