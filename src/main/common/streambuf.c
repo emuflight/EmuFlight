@@ -21,6 +21,9 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "platform.h"
+
+#include "common/maths.h"
 #include "streambuf.h"
 
 sbuf_t *sbufInit(sbuf_t *sbuf, uint8_t *ptr, uint8_t *end) {
@@ -76,18 +79,22 @@ void sbufWriteStringWithZeroTerminator(sbuf_t *dst, const char *string) {
     sbufWriteData(dst, string, strlen(string) + 1);
 }
 
-uint8_t sbufReadU8(sbuf_t *src) {
-    return *src->ptr++;
+// Kept out of line: inlined, the end check would be repeated at every call site and grow the flash image.
+NOINLINE uint8_t sbufReadU8(sbuf_t *src) {
+    if (src->ptr < src->end) {
+        return *src->ptr++;
+    }
+    return 0;
 }
 
-uint16_t sbufReadU16(sbuf_t *src) {
+NOINLINE uint16_t sbufReadU16(sbuf_t *src) {
     uint16_t ret;
     ret = sbufReadU8(src);
     ret |= sbufReadU8(src) << 8;
     return ret;
 }
 
-uint32_t sbufReadU32(sbuf_t *src) {
+NOINLINE uint32_t sbufReadU32(sbuf_t *src) {
     uint32_t ret;
     ret = sbufReadU8(src);
     ret |= sbufReadU8(src) <<  8;
@@ -96,9 +103,14 @@ uint32_t sbufReadU32(sbuf_t *src) {
     return ret;
 }
 
-void sbufReadData(sbuf_t *src, void *data, int len) {
-    memcpy(data, src->ptr, len);
-    src->ptr += len;
+NOINLINE void sbufReadData(sbuf_t *src, void *data, int len) {
+    const int available = MAX((int)(src->end - src->ptr), 0);
+    const int toCopy = MIN(len, available);
+    memcpy(data, src->ptr, toCopy);
+    if (toCopy < len) {
+        memset((uint8_t *)data + toCopy, 0, len - toCopy);
+    }
+    src->ptr += toCopy;
 }
 
 // reader - return bytes remaining in buffer
