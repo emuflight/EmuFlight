@@ -55,7 +55,7 @@ endif
 STARTUP_SRC     = at32/startup_at32f435_437.s
 
 ARCH_FLAGS      = -mthumb -mcpu=cortex-m4 -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant -Wdouble-promotion
-DEVICE_FLAGS   += -DAT32F435 -DUSE_ATBSP_DRIVER -DAT32F43x -DAT32 -DUSE_OTG_HOST_MODE
+DEVICE_FLAGS   += -DTARGET_FLASH_SIZE=$(TARGET_FLASH) -DAT32F435 -DUSE_ATBSP_DRIVER -DAT32F43x -DAT32 -DUSE_OTG_HOST_MODE
 
 MCU_COMMON_SRC = \
             startup/at32/system_at32f435_437.c \
@@ -86,3 +86,8 @@ MCU_EXCLUDES = \
 
 DSP_LIB := $(ROOT)/lib/main/CMSIS/DSP
 DEVICE_FLAGS += -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1U -DUNALIGNED_SUPPORT_DISABLE -DARM_MATH_CM4
+
+# The AT32 vendor library and system file have identical branches that GCC flags.
+# Suppress -Wduplicated-branches only for those files; EF source keeps the check.
+$(OBJECT_DIR)/$(TARGET)/at32f435_437_%.o: CFLAGS += -Wno-duplicated-branches
+$(OBJECT_DIR)/$(TARGET)/startup/at32/system_at32f435_437.o: CFLAGS += -Wno-duplicated-branches

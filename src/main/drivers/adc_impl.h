@@ -30,7 +30,11 @@
 #elif defined(STM32H7)
 #define ADC_TAG_MAP_COUNT 16
 #elif defined(AT32F435)
+#ifdef USE_ADC_INTERNAL
+#define ADC_TAG_MAP_COUNT 18
+#else
 #define ADC_TAG_MAP_COUNT 16
+#endif
 #else
 #define ADC_TAG_MAP_COUNT 10
 #endif

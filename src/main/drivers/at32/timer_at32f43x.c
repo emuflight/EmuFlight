@@ -24,7 +24,7 @@
 
 #include "common/utils.h"
 
-#include "timer_def.h"
+#include "drivers/timer_def.h"
 #include "drivers/dma.h"
 #include "drivers/io.h"
 #include "drivers/rcc.h"
