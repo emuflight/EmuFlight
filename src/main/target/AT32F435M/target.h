@@ -62,6 +62,7 @@
 #define TARGET_IO_PORTH         0xffff
 
 #define USE_SPI
+#define SPI_FULL_RECONFIGURABILITY
 #define USE_SPI_DEVICE_1
 #define USE_SPI_DEVICE_2
 #define USE_SPI_DEVICE_3
@@ -73,6 +74,7 @@
 
 
 #define USE_I2C
+#define I2C_FULL_RECONFIGURABILITY
 #define USE_I2C_DEVICE_1
 #define USE_I2C_DEVICE_2
 #define USE_I2C_DEVICE_3
@@ -86,6 +88,9 @@
 //#undef USE_BEEPER
 //#undef USE_LED_STRIP
 #undef USE_TRANSPONDER
+// EF escserial and camera control drive STM32 timer registers; not ported to AT32.
+#undef USE_ESCSERIAL
+#undef USE_CAMERA_CONTROL
 
 // #undef USE_DSHOT
 // #undef USE_DSHOT_TELEMETRY
@@ -96,8 +101,8 @@
 #define USE_DSHOT_BITBAND
 
 #define USE_BEEPER
-#undef USE_RX_PPM
-#undef USE_RX_PWM
+#undef USE_PPM
+#undef USE_PWM
 #undef USE_RX_SPI
 #undef USE_RX_CC2500
 #undef USE_RX_EXPRESSLRS

@@ -27,7 +27,9 @@ DEVICE_STDPERIPH_SRC := $(STDPERIPH_SRC) \
                         $(USBDRV_SRC) \
                         $(USBMSC_SRC)
 
-INCLUDE_DIRS    := $(INCLUDE_DIRS) \
+# The EF CMSIS-DSP arm_math.h must win over the copy in the vendor core_support directory.
+INCLUDE_DIRS    := $(ROOT)/lib/main/CMSIS/DSP/Include \
+                   $(INCLUDE_DIRS) \
                    $(SRC_DIR)/startup/at32 \
                    $(SRC_DIR)/drivers/at32 \
                    $(STDPERIPH_DIR)/inc \
@@ -61,6 +63,7 @@ MCU_COMMON_SRC = \
             $(addprefix drivers/at32/,$(notdir $(wildcard $(SRC_DIR)/drivers/at32/*.c))) \
             drivers/inverter.c \
             drivers/bus_i2c_timing.c \
+            drivers/bus_i2c_utils.c \
             i2c_application.c
 
 MSC_SRC = \
@@ -77,5 +80,9 @@ VCP_SRC = \
 # STM32-only common units; drivers/at32 holds the AT32 counterparts.
 MCU_EXCLUDES = \
             drivers/timer.c \
+            drivers/serial_uart.c \
             drivers/exti.c \
             drivers/rcc.c
+
+DSP_LIB := $(ROOT)/lib/main/CMSIS/DSP
+DEVICE_FLAGS += -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1U -DUNALIGNED_SUPPORT_DISABLE -DARM_MATH_CM4

@@ -96,6 +96,16 @@
 #define USE_SPI_DMA_ENABLE_LATE
 #endif
 
+#ifdef AT32F4
+#define USE_DSHOT
+#define USE_GYRO_DATA_ANALYSE
+#define USE_ADC
+#define USE_ADC_INTERNAL
+#define USE_TIMER_UP_CONFIG
+#define USE_USB_MSC
+#define I2C3_OVERCLOCK true
+#endif
+
 #if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
 #define TASK_GYROPID_DESIRED_PERIOD     125 // 125us = 8kHz
 #define SCHEDULER_DELAY_LIMIT           10

@@ -309,7 +309,7 @@ FAST_CODE static void spiTxIrqHandler(dmaChannelDescriptor_t *descriptor)
 }
 #endif
 
-#if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7)) && defined(USE_SPI)
+#if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(AT32F4)) && defined(USE_SPI)
 // A pinned option probes only itself; -1 scans every option. Out of range yields no DMA (polled bus).
 static bool spiDmaoptRange(int8_t pinned, uint8_t *first, uint8_t *last)
 {
@@ -329,7 +329,7 @@ static bool spiDmaoptRange(int8_t pinned, uint8_t *first, uint8_t *last)
 
 void spiInitBusDMA(void)
 {
-#if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7)) && defined(USE_SPI)
+#if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(AT32F4)) && defined(USE_SPI)
     for (uint32_t device = 0; device < SPIDEV_COUNT; device++) {
 #if defined(USE_GYRO_IMUF9001)
         // SPI1 is claimed by accgyro_mpu.c's dedicated IMUF9001 DMA path; leave it alone here.

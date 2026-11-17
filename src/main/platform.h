@@ -138,6 +138,10 @@
 
 #include "drivers/at32/platform_mcu.h"
 
+#define USE_DMA
+#define USE_TIMER
+#define USE_UART
+
 #elif defined(SIMULATOR_BUILD)
 
 // Nop
@@ -146,7 +150,7 @@
 #error "Invalid chipset specified. Update platform.h"
 #endif
 
-#if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7)) && !defined(USE_TIMER_MGMT)
+#if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(AT32F4)) && !defined(USE_TIMER_MGMT)
 #define USE_TIMER_MGMT // every STM32 target resolves timers through fullTimerHardware[] + TIMER_PIN_MAPPING
 #endif
 

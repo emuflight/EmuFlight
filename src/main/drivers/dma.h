@@ -23,6 +23,10 @@
 #include <stdbool.h>
 #include "resource.h"
 
+#if defined(USE_ATBSP_DRIVER)
+#include "drivers/at32/dma_atbsp.h"
+#endif
+
 // Opaque DMA engine handle (matches BF 4.5-maintenance). DMA_ARCH_TYPE is the native type behind it.
 typedef struct dmaResource_s dmaResource_t;
 
@@ -38,7 +42,7 @@ typedef void (*dmaCallbackHandlerFuncPtr)(struct dmaChannelDescriptor_s *channel
 typedef struct dmaChannelDescriptor_s {
     DMA_TypeDef*                dma;
     dmaResource_t*              ref;
-#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(AT32F4)
     uint8_t                     stream;
     uint32_t                    channel;
 #endif
@@ -49,6 +53,9 @@ typedef struct dmaChannelDescriptor_s {
     resourceOwner_e             owner;
     uint8_t                     resourceIndex;
     uint32_t                    completeFlag;
+#if defined(USE_ATBSP_DRIVER)
+    dmamux_channel_type         *dmamux;
+#endif
 } dmaChannelDescriptor_t;
 
 #if defined(STM32F7)
@@ -59,7 +66,17 @@ typedef struct dmaChannelDescriptor_s {
 
 #define DMA_IDENTIFIER_TO_INDEX(x) ((x) - 1)
 
-#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#if defined(USE_ATBSP_DRIVER)
+
+// identifiers, descriptor macros and the xDMA_* wrappers: drivers/at32/dma_atbsp.h
+dmaIdentifier_e dmaGetIdentifier(const dmaResource_t* resource);
+bool dmaAllocate(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex);
+void dmaEnable(dmaIdentifier_e identifier);
+
+#define DMA_CCR_EN 1
+#define IS_DMA_ENABLED(reg) (((DMA_ARCH_TYPE *)(reg))->ctrl_bit.chen & DMA_CCR_EN)
+
+#elif defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
 
 typedef enum {
     DMA_NONE = 0,

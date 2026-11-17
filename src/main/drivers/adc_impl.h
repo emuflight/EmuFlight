@@ -29,6 +29,8 @@
 #define ADC_TAG_MAP_COUNT 16
 #elif defined(STM32H7)
 #define ADC_TAG_MAP_COUNT 16
+#elif defined(AT32F435)
+#define ADC_TAG_MAP_COUNT 16
 #else
 #define ADC_TAG_MAP_COUNT 10
 #endif
@@ -37,7 +39,7 @@ typedef struct adcTagMap_s {
     ioTag_t tag;
     uint8_t devices;
     uint32_t channel;
-#if defined(STM32H7)
+#if defined(STM32H7) || defined(AT32F435)
     uint8_t channelOrdinal;
 #endif
 } adcTagMap_t;
@@ -58,7 +60,7 @@ typedef struct adcDevice_s {
     DMA_HandleTypeDef DmaHandle;
     uint8_t irq;
     uint32_t channelBits;
-#elif !(defined(STM32F4) || defined(STM32F7))
+#elif !(defined(STM32F4) || defined(STM32F7) || defined(AT32F435))
     DMA_Channel_TypeDef* DMAy_Channelx;
 #endif
 #if defined(STM32F7)
@@ -75,3 +77,12 @@ extern volatile uint16_t adcValues[ADC_CHANNEL_COUNT];
 uint8_t adcChannelByTag(ioTag_t ioTag);
 ADCDevice adcDeviceByInstance(ADC_TypeDef *instance);
 bool adcVerifyPin(ioTag_t tag, ADCDevice device);
+
+#ifdef AT32F435
+#define VREFINT_EXPECTED                   (1489U)  // The raw ADC reading at 12bit resolution expected for the 1V2 internal ref
+#define VREFINT_CAL_VREF                   (3300U)  // The nominal external Vref+ for the above reading
+#define TEMPSENSOR_CAL_VREFANALOG          (3300U)
+#define TEMPSENSOR_CAL1_TEMP               (25U)
+#define TEMPSENSOR_CAL1_V                  (1.27f)
+#define TEMPSENSOR_SLOPE                   (-4.13f) //  mV/C
+#endif
