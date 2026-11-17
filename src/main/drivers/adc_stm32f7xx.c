@@ -261,10 +261,10 @@ void adcInit(const adcConfig_t *config) {
         }
     }
     const dmaChannelSpec_t *dmaspec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, device, config->dmaopt[device]);
-    if (!dmaspec || !dmaAllocate(dmaGetIdentifier((DMA_Stream_TypeDef *)dmaspec->ref), OWNER_ADC, 0)) {
+    if (!dmaspec || !dmaAllocate(dmaGetIdentifier(dmaspec->ref), OWNER_ADC, 0)) {
         return;
     }
-    dmaEnable(dmaGetIdentifier((DMA_Stream_TypeDef *)dmaspec->ref));
+    dmaEnable(dmaGetIdentifier(dmaspec->ref));
     adc.DmaHandle.Init.Channel = dmaspec->channel;
     adc.DmaHandle.Init.Direction = DMA_PERIPH_TO_MEMORY;
     adc.DmaHandle.Init.PeriphInc = DMA_PINC_DISABLE;

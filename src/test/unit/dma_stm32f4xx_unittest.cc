@@ -93,15 +93,15 @@ TEST(DmaStm32F4xxUnittest, AllocateRejectsInvalidIdentifier)
 TEST(DmaStm32F4xxUnittest, GetIdentifierResolvesRealStreamPointer)
 {
     resetDmaTestState();
-    EXPECT_EQ(dmaGetIdentifier(DMA1_Stream4), DMA1_ST4_HANDLER);
-    EXPECT_EQ(dmaGetIdentifier(DMA2_Stream6), DMA2_ST6_HANDLER);
+    EXPECT_EQ(dmaGetIdentifier((const dmaResource_t *)DMA1_Stream4), DMA1_ST4_HANDLER);
+    EXPECT_EQ(dmaGetIdentifier((const dmaResource_t *)DMA2_Stream6), DMA2_ST6_HANDLER);
 }
 
 TEST(DmaStm32F4xxUnittest, GetIdentifierRejectsUnknownStreamPointer)
 {
     resetDmaTestState();
     DMA_Stream_TypeDef unknownStream = {};
-    EXPECT_EQ(dmaGetIdentifier(&unknownStream), DMA_NONE);
+    EXPECT_EQ(dmaGetIdentifier((const dmaResource_t *)&unknownStream), DMA_NONE);
 }
 
 TEST(DmaStm32F4xxUnittest, GetDescriptorByIdentifierRejectsInvalidIdentifier)

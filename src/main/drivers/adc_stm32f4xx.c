@@ -251,10 +251,10 @@ void adcInit(const adcConfig_t *config) {
         return;
     }
     DMA_Stream_TypeDef *dmaStream = (DMA_Stream_TypeDef *)dmaspec->ref;
-    if (!dmaAllocate(dmaGetIdentifier(dmaStream), OWNER_ADC, 0)) {
+    if (!dmaAllocate(dmaGetIdentifier((dmaResource_t *)dmaStream), OWNER_ADC, 0)) {
         return;
     }
-    dmaEnable(dmaGetIdentifier(dmaStream));
+    dmaEnable(dmaGetIdentifier((dmaResource_t *)dmaStream));
     DMA_DeInit(dmaStream);
     DMA_InitTypeDef DMA_InitStructure;
     DMA_StructInit(&DMA_InitStructure);

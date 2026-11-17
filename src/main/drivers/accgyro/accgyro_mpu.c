@@ -285,8 +285,8 @@ static bool imufDmaAllocateChannels(gyroDev_t *gyro) {
         return false;
     }
 
-    const dmaIdentifier_e txId = dmaGetIdentifier((DMA_Stream_TypeDef *)txSpec->ref);
-    const dmaIdentifier_e rxId = dmaGetIdentifier((DMA_Stream_TypeDef *)rxSpec->ref);
+    const dmaIdentifier_e txId = dmaGetIdentifier(txSpec->ref);
+    const dmaIdentifier_e rxId = dmaGetIdentifier(rxSpec->ref);
     // dmaAllocate() itself guards identifier == DMA_NONE, but its return value must be
     // checked before touching the descriptor via dmaGetDescriptorByIdentifier() - matches
     // the defensive pattern spiInitBusDMA() already uses for this exact sequence.

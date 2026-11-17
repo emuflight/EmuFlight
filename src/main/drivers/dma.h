@@ -23,20 +23,24 @@
 #include <stdbool.h>
 #include "resource.h"
 
-// Opaque DMA engine handle used by dma_reqmap (matches BF 4.5-maintenance).
+// Opaque DMA engine handle (matches BF 4.5-maintenance). DMA_ARCH_TYPE is the native type behind it.
 typedef struct dmaResource_s dmaResource_t;
+
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#define DMA_ARCH_TYPE DMA_Stream_TypeDef
+#else
+#define DMA_ARCH_TYPE DMA_Channel_TypeDef
+#endif
 
 struct dmaChannelDescriptor_s;
 typedef void (*dmaCallbackHandlerFuncPtr)(struct dmaChannelDescriptor_s *channelDescriptor);
 
 typedef struct dmaChannelDescriptor_s {
     DMA_TypeDef*                dma;
+    dmaResource_t*              ref;
 #if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
-    DMA_Stream_TypeDef*         ref;
     uint8_t                     stream;
     uint32_t                    channel;
-#else
-    DMA_Channel_TypeDef*        ref;
 #endif
     dmaCallbackHandlerFuncPtr   irqHandlerCallback;
     uint8_t                     flagsShift;
@@ -86,7 +90,7 @@ typedef enum {
 
 #define DEFINE_DMA_CHANNEL(d, s, f) { \
     .dma = d, \
-    .ref = d ## _Stream ## s, \
+    .ref = (dmaResource_t *)d ## _Stream ## s, \
     .stream = s, \
     .irqHandlerCallback = NULL, \
     .flagsShift = f, \
@@ -120,7 +124,7 @@ typedef enum {
 #define DMA_IT_DMEIF        ((uint32_t)0x00000004)
 #define DMA_IT_FEIF         ((uint32_t)0x00000001)
 
-dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef* stream);
+dmaIdentifier_e dmaGetIdentifier(const dmaResource_t* resource);
 dmaChannelDescriptor_t* dmaGetDmaDescriptor(const DMA_Stream_TypeDef* stream);
 DMA_Stream_TypeDef* dmaGetRefByIdentifier(const dmaIdentifier_e identifier);
 uint32_t dmaGetChannel(const uint8_t channel);
@@ -149,7 +153,7 @@ typedef enum {
 
 #define DEFINE_DMA_CHANNEL(d, c, f) { \
     .dma = d, \
-    .ref = d ## _Channel ## c, \
+    .ref = (dmaResource_t *)d ## _Channel ## c, \
     .irqHandlerCallback = NULL, \
     .flagsShift = f, \
     .irqN = d ## _Channel ## c ## _IRQn, \
@@ -172,7 +176,7 @@ typedef enum {
 #define DMA_IT_HTIF         ((uint32_t)0x00000004)
 #define DMA_IT_TEIF         ((uint32_t)0x00000008)
 
-dmaIdentifier_e dmaGetIdentifier(const DMA_Channel_TypeDef* channel);
+dmaIdentifier_e dmaGetIdentifier(const dmaResource_t* resource);
 DMA_Channel_TypeDef* dmaGetRefByIdentifier(const dmaIdentifier_e identifier);
 
 #endif

@@ -4351,7 +4351,7 @@ static dmaoptValue_t *dmaoptAddr(const dmaoptEntry_t *entry, int index) {
 
 // Surfaces serialUART()'s, adcInit()'s and burst DShot's otherwise-silent DMA fallback/abort via dmaAllocate()'s live ownership state.
 STATIC_UNIT_TESTED void printDmaoptClaimStatus(const dmaoptEntry_t *entry, int index, const dmaChannelSpec_t *dmaChannelSpec) {
-    const dmaIdentifier_e identifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaChannelSpec->ref);
+    const dmaIdentifier_e identifier = dmaGetIdentifier(dmaChannelSpec->ref);
     if (identifier == DMA_NONE) {
         // reqmap table points at a stream absent from dmaDescriptors[] -- a map bug, not a live contention case.
         cliPrintLinef("# %s %d: DMA MAP ERROR", entry->device, index + 1);
