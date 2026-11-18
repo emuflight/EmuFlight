@@ -78,6 +78,16 @@ void uartReconfigure(uartPort_t *uartPort) {
     RCC_PeriphClkInit.Uart7ClockSelection = RCC_UART7CLKSOURCE_SYSCLK;
     RCC_PeriphClkInit.Uart8ClockSelection = RCC_UART8CLKSOURCE_SYSCLK;
     HAL_RCCEx_PeriphCLKConfig(&RCC_PeriphClkInit);*/
+    const uartDevice_t *uartDevice = container_of(uartPort, uartDevice_t, port);
+    const IRQn_Type irqn = (IRQn_Type)uartDevice->hardware->rxIrq;
+    const bool irqWasEnabled = NVIC_GetEnableIRQ(irqn) != 0;
+    // an interrupt already latched in the NVIC would re-enter the handler while the peripheral is torn down
+    HAL_NVIC_DisableIRQ(irqn);
+    CLEAR_BIT(uartPort->USARTx->CR1, USART_CR1_PEIE | USART_CR1_RXNEIE | USART_CR1_IDLEIE | USART_CR1_TXEIE | USART_CR1_TCIE);
+    CLEAR_BIT(uartPort->USARTx->CR3, USART_CR3_EIE);
+    HAL_NVIC_ClearPendingIRQ(irqn);
+    __DSB();
+    __ISB();
     HAL_UART_DeInit(&uartPort->Handle);
     uartPort->Handle.Init.BaudRate = uartPort->port.baudRate;
     // according to the stm32 documentation wordlen has to be 9 for parity bits
@@ -175,7 +185,10 @@ void uartReconfigure(uartPort_t *uartPort) {
             SET_BIT(uartPort->USARTx->CR1, USART_CR1_TXEIE);
         }
     }
-    return;
+    if (irqWasEnabled) {
+        HAL_NVIC_ClearPendingIRQ(irqn);
+        HAL_NVIC_EnableIRQ(irqn);
+    }
 }
 
 serialPort_t *uartOpen(UARTDevice_e device, serialReceiveCallbackPtr callback, void *callbackData, uint32_t baudRate, portMode_e mode, portOptions_e options) {
