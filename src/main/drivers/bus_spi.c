@@ -361,6 +361,9 @@ void spiInitBusDMA(void)
                 bus->dmaTx->stream  = DMA_DEVICE_INDEX(dmaTxIdentifier);
                 bus->dmaTx->channel = dmaTxChannelSpec->channel;
                 dmaEnable(dmaTxIdentifier);
+#if defined(AT32F4)
+                dmaMuxEnable(dmaTxIdentifier, dmaTxChannelSpec->channel);
+#endif
                 break;
             }
         }
@@ -378,6 +381,9 @@ void spiInitBusDMA(void)
                 bus->dmaRx->stream  = DMA_DEVICE_INDEX(dmaRxIdentifier);
                 bus->dmaRx->channel = dmaRxChannelSpec->channel;
                 dmaEnable(dmaRxIdentifier);
+#if defined(AT32F4)
+                dmaMuxEnable(dmaRxIdentifier, dmaRxChannelSpec->channel);
+#endif
                 break;
             }
         }
