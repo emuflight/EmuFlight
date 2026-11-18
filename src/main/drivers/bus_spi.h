@@ -62,6 +62,11 @@ typedef enum {
     SPI_CLOCK_STANDARD      = 16,  //06.57500 MHz
     SPI_CLOCK_FAST          = 8,   //13.50000 MHz
     SPI_CLOCK_ULTRAFAST     = 2    //54.00000 MHz
+#elif defined(AT32F4)
+    SPI_CLOCK_SLOW          = 256, //00.56250 MHz
+    SPI_CLOCK_STANDARD      = 16,  //09.00000 MHz
+    SPI_CLOCK_FAST          = 8,   //18.00000 MHz
+    SPI_CLOCK_ULTRAFAST     = 4    //36.00000 MHz
 #else
     SPI_CLOCK_SLOW          = 128, //00.56250 MHz
     SPI_CLOCK_STANDARD      = 4,   //09.00000 MHz
