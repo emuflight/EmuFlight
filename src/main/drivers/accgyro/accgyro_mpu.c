@@ -453,7 +453,7 @@ void mpuImufSetupDma(gyroDev_t *gyro) {
 
     LL_DMA_Init(imufDmaTx->dma, imufDmaTx->stream, &imufDmaInitTx);
     LL_DMA_Init(imufDmaRx->dma, imufDmaRx->stream, &imufDmaInitRx);
-    LL_EX_DMA_EnableIT_TC(imufDmaRx->ref);
+    LL_EX_DMA_EnableIT_TC((DMA_Stream_TypeDef *)imufDmaRx->ref);
 }
 
 // Kick off one DMA transfer. F7 has a D-cache that DMA bypasses - imufTxBuf/
