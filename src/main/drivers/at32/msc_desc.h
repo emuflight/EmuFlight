@@ -55,7 +55,7 @@ extern "C" {
 #define USBD_MSC_SIZ_STRING_SERIAL           0x1A
 
 #define USBD_MSC_DESC_MANUFACTURER_STRING    "Artery"
-#define USBD_MSC_DESC_PRODUCT_STRING         "Betaflight FC Mass Storage (FS Mode)"
+#define USBD_MSC_DESC_PRODUCT_STRING         "EmuFlight FC Mass Storage (FS Mode)"
 #define USBD_MSC_DESC_CONFIGURATION_STRING   "MSC Config"
 #define USBD_MSC_DESC_INTERFACE_STRING       "MSC Interface"
 
