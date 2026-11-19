@@ -245,6 +245,11 @@
 #undef USE_USB_MSC
 #endif
 
+// The AT32 MSC path shares the USB core and disconnect pulse with the VCP code.
+#if defined(AT32F4) && !defined(USE_VCP)
+#undef USE_USB_MSC
+#endif
+
 #if defined(USE_USB_CDC_HID) || defined(USE_USB_MSC)
 #define USE_USB_ADVANCED_PROFILES
 #endif

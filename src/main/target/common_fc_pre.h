@@ -250,7 +250,9 @@
 #define USE_CAMERA_CONTROL
 #define USE_CMS
 #define USE_EXTENDED_CMS_MENUS
-#define USE_DSHOT_DMAR
+#ifndef AT32F4
+#define USE_DSHOT_DMAR          // the AT32 DShot driver has no burst mode
+#endif
 #define USE_GYRO_OVERFLOW_CHECK
 #define USE_YAW_SPIN_RECOVERY
 #define USE_HUFFMAN
