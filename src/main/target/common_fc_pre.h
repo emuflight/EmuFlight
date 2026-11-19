@@ -97,6 +97,7 @@
 #endif
 
 #ifdef AT32F4
+#define USE_SPI_DMA_ENABLE_LATE
 #define USE_DSHOT
 #define USE_GYRO_DATA_ANALYSE
 #define USE_ADC
