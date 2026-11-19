@@ -238,10 +238,10 @@
 #undef USE_FLASHFS
 #endif
 
-// USE_USB_MSC requires a storage backend (SDCARD or FLASHFS, after auto-derivation) and F4/F7/H7 MCU.
+// USE_USB_MSC requires a storage backend (SDCARD or FLASHFS, after auto-derivation) and F4/F7/H7/AT32F4 MCU.
 // This check must come after the flash auto-derivation above so that targets using USE_FLASH_W25*
 // (which auto-derive USE_FLASHFS) are not incorrectly stripped.
-#if (!defined(USE_SDCARD) && !defined(USE_FLASHFS)) || !(defined(STM32F4) || defined(STM32F7) || defined(STM32H7))
+#if (!defined(USE_SDCARD) && !defined(USE_FLASHFS)) || !(defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(AT32F4))
 #undef USE_USB_MSC
 #endif
 

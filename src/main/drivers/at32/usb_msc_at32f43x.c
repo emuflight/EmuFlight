@@ -39,6 +39,7 @@
 
 #include "drivers/io.h"
 #include "drivers/nvic.h"
+#include "drivers/persistent.h"
 #include "drivers/system.h"
 #include "drivers/time.h"
 #include "drivers/usb_msc.h"
@@ -55,9 +56,87 @@
 #include "msc_class.h"
 #include "msc_desc.h"
 
-#include "usb_io.h"
+#include "drivers/usb_io.h"
 
 extern otg_core_type otg_core_struct;
+
+#define DEBOUNCE_TIME_MS 20
+
+static IO_t mscButton;
+
+void mscInit(void)
+{
+    if (usbDevConfig()->mscButtonPin) {
+        mscButton = IOGetByTag(usbDevConfig()->mscButtonPin);
+        IOInit(mscButton, OWNER_USB_MSC_PIN, 0);
+        if (usbDevConfig()->mscButtonUsePullup) {
+            IOConfigGPIO(mscButton, IOCFG_IPU);
+        } else {
+            IOConfigGPIO(mscButton, IOCFG_IPD);
+        }
+    }
+}
+
+bool mscCheckBootAndReset(void)
+{
+    static bool firstCheck = true;
+    static bool mscMode;
+
+    if (firstCheck) {
+        // Cache the boot-time request, then clear it so the next reset returns to normal mode.
+        const uint32_t bootModeRequest = persistentObjectRead(PERSISTENT_OBJECT_RESET_REASON);
+        if (bootModeRequest == RESET_MSC_REQUEST) {
+            mscMode = true;
+            persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_NONE);
+            firstCheck = false;
+        }
+    }
+
+    return mscMode;
+}
+
+bool mscCheckButton(void)
+{
+    bool result = false;
+    if (mscButton) {
+        const uint8_t state = IORead(mscButton);
+        if (usbDevConfig()->mscButtonUsePullup) {
+            result = state == 0;
+        } else {
+            result = state == 1;
+        }
+    }
+
+    return result;
+}
+
+void mscWaitForButton(void)
+{
+    // Leave MSC mode by disconnecting the board or pressing the button again.
+    while (mscCheckButton());
+    delay(DEBOUNCE_TIME_MS);
+    while (true) {
+        asm("NOP");
+        if (mscCheckButton()) {
+            systemResetFromMsc();
+        }
+    }
+}
+
+void systemResetToMsc(int timezoneOffsetMinutes)
+{
+    UNUSED(timezoneOffsetMinutes);
+    persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_MSC_REQUEST);
+    __disable_irq();
+    NVIC_SystemReset();
+}
+
+void systemResetFromMsc(void)
+{
+    persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_NONE);
+    __disable_irq();
+    NVIC_SystemReset();
+}
 
 void msc_usb_gpio_config(void)
 {
