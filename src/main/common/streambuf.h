@@ -22,7 +22,8 @@
 
 #include <stdint.h>
 
-// simple buffer-based serializer/deserializer without implicit size check
+// simple buffer-based serializer/deserializer.
+// Writers do not check the available space. Readers are bounded by end: a read past it returns 0 (sbufReadData zero-fills).
 
 typedef struct sbuf_s {
     uint8_t *ptr;          // data pointer must be first (sbuf_t* is equivalent to uint8_t **)
