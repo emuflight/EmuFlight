@@ -169,6 +169,11 @@
 #define ENABLE_DSHOT_DMAR false
 #endif
 
+// DShot bitbang is opt-in; AUTO stays inert
+#ifndef DEFAULT_DSHOT_BITBANG
+#define DEFAULT_DSHOT_BITBANG DSHOT_BITBANG_OFF
+#endif
+
 // Some target doesn't define USE_ADC which USE_ADC_INTERNAL depends on
 #ifndef USE_ADC
 #undef USE_ADC_INTERNAL
