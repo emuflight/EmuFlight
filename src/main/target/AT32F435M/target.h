@@ -67,11 +67,9 @@
 #define USE_SPI_DEVICE_2
 #define USE_SPI_DEVICE_3
 #define USE_SPI_DEVICE_4
-#define USE_SPI_DMA_ENABLE_LATE
 
 #define USE_EXTI
 #define USE_GYRO_EXTI
-
 
 #define USE_I2C
 #define I2C_FULL_RECONFIGURABILITY
@@ -80,30 +78,8 @@
 #define USE_I2C_DEVICE_3
 
 #define USE_USB_DETECT
-#define USE_PERSISTENT_MSC_RTC
 
-#define USE_ADC
-
-// Remove these undefines as support is added
-//#undef USE_BEEPER
-//#undef USE_LED_STRIP
-#undef USE_TRANSPONDER
-
-// #undef USE_DSHOT
-// #undef USE_DSHOT_TELEMETRY
-// bitbang not implemented yet
-// #undef USE_DSHOT_BITBANG
-// burst mode not implemented yet
-#undef USE_DSHOT_DMAR
-#define USE_DSHOT_BITBAND
 
 #define USE_BEEPER
-#undef USE_PPM
-#undef USE_PWM
-#undef USE_RX_SPI
-#undef USE_RX_CC2500
-#undef USE_RX_EXPRESSLRS
-// #undef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
-#undef USE_SERIAL_4WAY_SK_BOOTLOADER
 
 #define FLASH_PAGE_SIZE ((uint32_t)0x1000) // 4K sectors
