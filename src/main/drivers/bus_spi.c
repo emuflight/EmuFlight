@@ -352,7 +352,7 @@ void spiInitBusDMA(void)
         for (uint8_t opt = firstOpt; txOptValid && opt <= lastOpt; opt++) {
             const dmaChannelSpec_t *dmaTxChannelSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SPI_SDO, device, opt);
             if (dmaTxChannelSpec) {
-                dmaTxIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaTxChannelSpec->ref);
+                dmaTxIdentifier = dmaGetIdentifier(dmaTxChannelSpec->ref);
                 if (!dmaAllocate(dmaTxIdentifier, OWNER_SPI_SDO, device + 1)) {
                     dmaTxIdentifier = DMA_NONE;
                     continue;
@@ -369,7 +369,7 @@ void spiInitBusDMA(void)
         for (uint8_t opt = firstOpt; rxOptValid && opt <= lastOpt; opt++) {
             const dmaChannelSpec_t *dmaRxChannelSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SPI_SDI, device, opt);
             if (dmaRxChannelSpec) {
-                dmaRxIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaRxChannelSpec->ref);
+                dmaRxIdentifier = dmaGetIdentifier(dmaRxChannelSpec->ref);
                 if (!dmaAllocate(dmaRxIdentifier, OWNER_SPI_SDI, device + 1)) {
                     dmaRxIdentifier = DMA_NONE;
                     continue;
