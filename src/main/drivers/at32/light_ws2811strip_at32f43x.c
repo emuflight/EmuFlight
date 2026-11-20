@@ -43,6 +43,7 @@ static IO_t ws2811IO = IO_NONE;
 
 static dmaResource_t *dmaRef = NULL;
 static tmr_type *timer = NULL;
+static bool ws2811Initialised = false;
 
 static void WS2811_DMA_IRQHandler(dmaChannelDescriptor_t *descriptor)
 {
@@ -119,7 +120,7 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag)
     BIT_COMPARE_0 = period / 3;
 
     /* Time base configuration */
-    tmr_base_init(timer,period-1,prescaler-1);
+    tmr_base_init(timer, period - 1, prescaler);
     tmr_clock_source_div_set(timer,TMR_CLOCK_DIV1);
     tmr_cnt_dir_set(timer,TMR_COUNT_UP);
 
@@ -190,10 +191,16 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag)
     tmr_output_enable(timer, TRUE);
     tmr_counter_enable(timer, TRUE);
 
+    ws2811Initialised = true;
 }
 
 void ws2811LedStripDMAEnable(void)
 {
+    if (!ws2811Initialised) {
+        ws2811LedDataTransferInProgress = false;
+        return;
+    }
+
     xDMA_SetCurrDataCounter(dmaRef, WS2811_DMA_BUFFER_SIZE);
     tmr_counter_value_set(timer, 0);
     tmr_counter_enable(timer, TRUE);

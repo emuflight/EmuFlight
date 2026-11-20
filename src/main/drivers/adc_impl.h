@@ -81,6 +81,9 @@ extern volatile uint16_t adcValues[ADC_CHANNEL_COUNT];
 uint8_t adcChannelByTag(ioTag_t ioTag);
 ADCDevice adcDeviceByInstance(ADC_TypeDef *instance);
 bool adcVerifyPin(ioTag_t tag, ADCDevice device);
+#ifdef AT32F435
+void adcGetChannelValues(void);
+#endif
 
 #ifdef AT32F435
 #define VREFINT_EXPECTED                   (1489U)  // The raw ADC reading at 12bit resolution expected for the 1V2 internal ref
