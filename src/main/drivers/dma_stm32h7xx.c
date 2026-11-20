@@ -152,10 +152,10 @@ uint8_t dmaGetResourceIndex(dmaIdentifier_e identifier)
     return dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].resourceIndex;
 }
 
-dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef *stream)
+dmaIdentifier_e dmaGetIdentifier(const dmaResource_t *stream)
 {
     for (int i = 0; i < DMA_LAST_HANDLER; i++) {
-        if (dmaDescriptors[i].ref == stream) {
+        if (dmaDescriptors[i].ref == (const dmaResource_t *)stream) {
             return i + 1;
         }
     }
@@ -167,7 +167,7 @@ DMA_Stream_TypeDef *dmaGetRefByIdentifier(const dmaIdentifier_e identifier)
     if (!dmaIdentifierIsValid(identifier)) {
         return NULL;
     }
-    return dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].ref;
+    return (DMA_Stream_TypeDef *)dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].ref;
 }
 
 dmaChannelDescriptor_t *dmaGetDescriptorByIdentifier(const dmaIdentifier_e identifier)

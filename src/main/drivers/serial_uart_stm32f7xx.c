@@ -289,7 +289,7 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
     const dmaChannelSpec_t *rxDmaSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_UART_RX, device, serialUartConfig(device)->rxDmaopt);
     if (rxDmaSpec) {
         // hardware->rxIrq is a USARTx_IRQn (NVIC), not a DMA identifier.
-        const dmaIdentifier_e identifier = dmaGetIdentifier((DMA_Stream_TypeDef *)rxDmaSpec->ref);
+        const dmaIdentifier_e identifier = dmaGetIdentifier(rxDmaSpec->ref);
         if (uartDmaClaim(identifier, OWNER_SERIAL_RX, RESOURCE_INDEX(device))) {
             dmaEnable(identifier);
             s->rxDMAChannel = rxDmaSpec->channel;
@@ -305,7 +305,7 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
     }
     const dmaChannelSpec_t *txDmaSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_UART_TX, device, serialUartConfig(device)->txDmaopt);
     if (txDmaSpec) {
-        const dmaIdentifier_e identifier = dmaGetIdentifier((DMA_Stream_TypeDef *)txDmaSpec->ref);
+        const dmaIdentifier_e identifier = dmaGetIdentifier(txDmaSpec->ref);
         if (uartDmaClaim(identifier, OWNER_SERIAL_TX, RESOURCE_INDEX(device))) {
             dmaEnable(identifier);
             s->txDMAChannel = txDmaSpec->channel;

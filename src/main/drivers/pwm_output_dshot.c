@@ -165,7 +165,7 @@ bool pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
         if (dmaSpec) {
             dmaRef = (dmaStream_t *)dmaSpec->ref;
             dmaChannel = dmaSpec->channel;
-            dmaIrqIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaSpec->ref);
+            dmaIrqIdentifier = dmaGetIdentifier(dmaSpec->ref);
         }
     }
     if (dmaRef == NULL) {

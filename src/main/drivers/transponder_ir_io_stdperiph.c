@@ -55,7 +55,7 @@ transponder_t transponder;
 static void TRANSPONDER_DMA_IRQHandler(dmaChannelDescriptor_t* descriptor) {
     if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_TCIF)) {
         transponderIrDataTransferInProgress = 0;
-        DMA_Cmd(descriptor->ref, DISABLE);
+        DMA_Cmd((DMA_Stream_TypeDef *)descriptor->ref, DISABLE);
         DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF);
     }
 }

@@ -470,7 +470,7 @@ int tfp_sprintf(char *s, const char *fmt, ...) {
     return ret;
 }
 
-dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef *) { return fakeDmaIdentifier; }
+dmaIdentifier_e dmaGetIdentifier(const dmaResource_t *) { return fakeDmaIdentifier; }
 resourceOwner_e dmaGetOwner(dmaIdentifier_e) { return fakeDmaOwner; }
 uint8_t dmaGetResourceIndex(dmaIdentifier_e) { return fakeDmaResourceIndex; }
 const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e, uint8_t, int8_t) { return NULL; }
