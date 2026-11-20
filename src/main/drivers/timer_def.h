@@ -1049,7 +1049,7 @@
 #define DEF_TIM_AF__PC7__TCH_TMR8_CH2      D(3, 8)
 #define DEF_TIM_AF__PC8__TCH_TMR8_CH3      D(3, 8)
 #define DEF_TIM_AF__PC9__TCH_TMR8_CH4      D(3, 8)
-#define DEF_TIM_AF__PC12__TCH_TMR11_CH1N   D(3, 11)
+#define DEF_TIM_AF__PC12__TCH_TMR11_CH1    D(3, 11)
 
 // PORTD MUX 2
 #define DEF_TIM_AF__PD12__TCH_TMR4_CH1     D(2, 4)
@@ -1078,8 +1078,8 @@
 #define DEF_TIM_AF__PE6__TCH_TMR3_CH4      D(2, 3)
 
 // PORTE MUX 3
-#define DEF_TIM_AF__PE5__TCH_TMR9_CH1      D(2, 9)
-#define DEF_TIM_AF__PE6__TCH_TMR9_CH2      D(2, 9)
+#define DEF_TIM_AF__PE5__TCH_TMR9_CH1      D(3, 9)
+#define DEF_TIM_AF__PE6__TCH_TMR9_CH2      D(3, 9)
 
 // PORTE MUX 6
 #define DEF_TIM_AF__PE0__TCH_TMR20_EXT     D(6, 20)
