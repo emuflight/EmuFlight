@@ -61,9 +61,15 @@ void flashEraseSector(uint32_t address) { (void)address; }
 void flashEraseCompletely(void) {}
 void flashFlush(void) {}
 
+static int readCalls;
+static uint32_t lastReadAddress;
+static uint32_t lastReadLength;
+
 int flashReadBytes(uint32_t address, uint8_t *buffer, uint32_t length)
 {
-    (void)address;
+    readCalls++;
+    lastReadAddress = address;
+    lastReadLength = length;
     memset(buffer, 0xFF, length);
     return length;
 }
@@ -131,6 +137,9 @@ protected:
         presentedTotal = 0;
         pendingBytes = 0;
         pendingCallback = nullptr;
+        readCalls = 0;
+        lastReadAddress = 0;
+        lastReadLength = 0;
     }
 
     void TearDown() override
@@ -245,3 +254,41 @@ TEST_F(FlashfsInterlock, EmptyBufferPresentsNothing)
     EXPECT_EQ(0u, flashfsGetOffset());
 }
 
+
+// Volume size is FAKE_SECTORS * FAKE_SECTOR_SIZE = 16384 bytes.
+TEST_F(FlashfsInterlock, ReadAbsInsideVolumePassesTheRequestedLength)
+{
+    uint8_t buffer[64];
+
+    EXPECT_EQ(16, flashfsReadAbs(100, buffer, 16));
+    EXPECT_EQ(1, readCalls);
+    EXPECT_EQ(100u, lastReadAddress);
+    EXPECT_EQ(16u, lastReadLength);
+}
+
+TEST_F(FlashfsInterlock, ReadAbsTruncatesAtEndOfVolume)
+{
+    uint8_t buffer[64];
+
+    EXPECT_EQ(4, flashfsReadAbs(16380, buffer, 16));
+    EXPECT_EQ(4u, lastReadLength);
+}
+
+TEST_F(FlashfsInterlock, ReadAbsAtOrBeyondEndOfVolumeReadsNothing)
+{
+    uint8_t buffer[64];
+
+    EXPECT_EQ(0, flashfsReadAbs(16384, buffer, 16));
+    EXPECT_EQ(0, flashfsReadAbs(16385, buffer, 16));
+    EXPECT_EQ(0, flashfsReadAbs(UINT32_MAX, buffer, 16));
+    EXPECT_EQ(0, readCalls);
+}
+
+TEST_F(FlashfsInterlock, ReadAbsHugeLengthDoesNotWrapTheEndAddress)
+{
+    // address + length wraps past 2^32; the read must still stop at the end of the volume
+    static uint8_t buffer[16384];
+
+    EXPECT_EQ(16344, flashfsReadAbs(40, buffer, UINT32_MAX));
+    EXPECT_EQ(16344u, lastReadLength);
+}

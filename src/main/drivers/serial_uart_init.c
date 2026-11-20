@@ -60,6 +60,14 @@ static void usartConfigurePinInversion(uartPort_t *uartPort) {
 
 void uartReconfigure(uartPort_t *uartPort) {
     USART_InitTypeDef USART_InitStructure;
+    const uartDevice_t *uartDevice = container_of(uartPort, uartDevice_t, port);
+    const IRQn_Type irqn = (IRQn_Type)uartDevice->hardware->irqn;
+    const bool irqWasEnabled = NVIC_GetEnableIRQ(irqn) != 0;
+    // an interrupt already latched in the NVIC would re-enter the handler while the peripheral is torn down
+    NVIC_DisableIRQ(irqn);
+    NVIC_ClearPendingIRQ(irqn);
+    __DSB();
+    __ISB();
     USART_Cmd(uartPort->USARTx, DISABLE);
     USART_InitStructure.USART_BaudRate = uartPort->port.baudRate;
     // according to the stm32 documentation wordlen has to be 9 for parity bits
@@ -84,6 +92,10 @@ void uartReconfigure(uartPort_t *uartPort) {
     else
         USART_HalfDuplexCmd(uartPort->USARTx, DISABLE);
     USART_Cmd(uartPort->USARTx, ENABLE);
+    if (irqWasEnabled) {
+        NVIC_ClearPendingIRQ(irqn);
+        NVIC_EnableIRQ(irqn);
+    }
 }
 
 serialPort_t *uartOpen(UARTDevice_e device, serialReceiveCallbackPtr rxCallback, void *rxCallbackData, uint32_t baudRate, portMode_e mode, portOptions_e options) {

@@ -365,10 +365,7 @@ static void serializeDataflashReadReply(sbuf_t *dst, uint32_t address, const uin
     }
     // size will be lower than that requested if we reach end of volume
     const uint32_t flashfsSize = flashfsGetSize();
-    if (readLen > flashfsSize - address) {
-        // truncate the request
-        readLen = flashfsSize - address;
-    }
+    readLen = flashfsReadLength(flashfsSize, address, readLen);
     sbufWriteU32(dst, address);
     // legacy format does not support compression
 #ifdef USE_HUFFMAN
@@ -1709,6 +1706,9 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
         break;
 #endif
     case MSP_SET_MOTOR:
+        if (dataSize < getMotorCount() * sizeof(uint16_t)) {
+            return MSP_RESULT_ERROR;
+        }
         for (int i = 0; i < getMotorCount(); i++) {
             motor_disarmed[i] = convertExternalToMotor(sbufReadU16(src));
         }
@@ -2312,7 +2312,13 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
 #if defined(USE_BOARD_INFO)
         case MSP_SET_BOARD_INFO:
         if (!boardInformationIsSet()) {
+        if (sbufBytesRemaining(src) < 1) {
+            return MSP_RESULT_ERROR;
+        }
         uint8_t length = sbufReadU8(src);
+        if (sbufBytesRemaining(src) < length) {
+            return MSP_RESULT_ERROR;
+        }
         char boardName[MAX_BOARD_NAME_LENGTH + 1];
         sbufReadData(src, boardName, MIN(length, MAX_BOARD_NAME_LENGTH));
         if (length > MAX_BOARD_NAME_LENGTH) {
@@ -2320,7 +2326,13 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
         length = MAX_BOARD_NAME_LENGTH;
         }
         boardName[length] = '\0';
+        if (sbufBytesRemaining(src) < 1) {
+            return MSP_RESULT_ERROR;
+        }
         length = sbufReadU8(src);
+        if (sbufBytesRemaining(src) < length) {
+            return MSP_RESULT_ERROR;
+        }
         char manufacturerId[MAX_MANUFACTURER_ID_LENGTH + 1];
         sbufReadData(src, manufacturerId, MIN(length, MAX_MANUFACTURER_ID_LENGTH));
         if (length > MAX_MANUFACTURER_ID_LENGTH) {
@@ -2338,6 +2350,9 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
 #if defined(USE_SIGNATURE)
         case MSP_SET_SIGNATURE:
         if (!signatureIsSet()) {
+        if (sbufBytesRemaining(src) < SIGNATURE_LENGTH) {
+            return MSP_RESULT_ERROR;
+        }
         uint8_t signature[SIGNATURE_LENGTH];
         sbufReadData(src, signature, SIGNATURE_LENGTH);
         setSignature(signature);
@@ -2363,6 +2378,9 @@ mspResult_e mspCommonProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, s
 #ifdef USE_TRANSPONDER
     case MSP_SET_TRANSPONDER_CONFIG: {
         // Backward compatibility to BFC 3.1.1 is lost for this message type
+        if (dataSize < 1) {
+            return MSP_RESULT_ERROR;
+        }
         uint8_t provider = sbufReadU8(src);
         uint8_t bytesRemaining = dataSize - 1;
         if (provider > TRANSPONDER_PROVIDER_COUNT) {
