@@ -102,7 +102,6 @@
 #define USE_GYRO_DATA_ANALYSE
 #define USE_ADC
 #define USE_ADC_INTERNAL
-#define USE_TIMER_UP_CONFIG
 #define USE_USB_MSC
 #define I2C3_OVERCLOCK true
 #endif
@@ -208,8 +207,10 @@
 #define USE_ESCSERIAL           // fleet-wide default; per-board #undef only for a verified exception
 #endif
 #define USE_GYRO_REGISTER_DUMP  // Adds gyroregisters command to cli to dump configured register values
+#ifndef AT32F4
 #define USE_PPM
 #define USE_PWM
+#endif
 #define USE_SERIAL_RX
 #define USE_SERIALRX_CRSF       // Team Black Sheep Crossfire protocol
 #define USE_SERIALRX_GHST       // ImmersionRC Ghost Protocol
