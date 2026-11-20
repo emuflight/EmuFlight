@@ -251,7 +251,7 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
 #ifdef USE_DMA
         .rxDMAMuxId = DMAMUX_DMAREQ_ID_USART6_RX,
         .rxDMAResource = (dmaResource_t *)UART6_RX_DMA_CHANNEL,
-        .txDMAMuxId = DMAMUX_DMAREQ_ID_USART6_RX,
+        .txDMAMuxId = DMAMUX_DMAREQ_ID_USART6_TX,
         .txDMAResource = (dmaResource_t *)UART6_TX_DMA_CHANNEL,
 #endif
         .rxPins = {
