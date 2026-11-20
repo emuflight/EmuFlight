@@ -224,7 +224,8 @@ TEST(CrossFireMSPTest, WriteResponseTest)
 
 void testSendMspResponse(uint8_t *payload) {
     sbuf_t *plOut = sbufInit(&payloadOutputBuf, payloadOutput, payloadOutput + 64);
-    sbufWriteData(plOut, payload, *payload + 64);
+    // sendMspReply(64, ...) hands over exactly 64 bytes
+    sbufWriteData(plOut, payload, sizeof(payloadOutput));
     sbufSwitchToReader(&payloadOutputBuf, payloadOutput);
 }
 
