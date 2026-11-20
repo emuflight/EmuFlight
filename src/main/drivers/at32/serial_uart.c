@@ -382,6 +382,15 @@ const struct serialPortVTable uartVTable[] = {
 };
 
 #ifdef USE_DMA
+// uartOpen() re-invokes serialUART() on every reopen, so a channel already held by this owner must be re-claimable.
+static bool uartDmaClaim(dmaIdentifier_e identifier, resourceOwner_e owner, uint8_t resourceIndex)
+{
+    if (dmaGetOwner(identifier) == owner && dmaGetResourceIndex(identifier) == resourceIndex) {
+        return true;
+    }
+    return dmaAllocate(identifier, owner, resourceIndex);
+}
+
 void uartConfigureDma(uartDevice_t *uartdev)
 {
     uartPort_t *uartPort = &(uartdev->port);
@@ -438,24 +447,28 @@ void uartConfigureDma(uartDevice_t *uartdev)
 
     if (uartPort->txDMAResource) {
         dmaIdentifier_e identifier = dmaGetIdentifier(uartPort->txDMAResource);
-        if (dmaAllocate(identifier, OWNER_SERIAL_TX, RESOURCE_INDEX(hardware->device))) {
+        if (uartDmaClaim(identifier, OWNER_SERIAL_TX, RESOURCE_INDEX(hardware->device))) {
             dmaEnable(identifier);
 #if defined(AT32F4)
             dmaMuxEnable(identifier, uartPort->txDMAMuxId);
 #endif
             dmaSetHandler(identifier, uartDmaIrqHandler, hardware->txPriority, (uint32_t)uartdev);
             uartPort->txDMAPeripheralBaseAddr = (uint32_t)&UART_REG_TXD(hardware->reg);
+        } else {
+            uartPort->txDMAResource = NULL;
         }
     }
 
     if (uartPort->rxDMAResource) {
         dmaIdentifier_e identifier = dmaGetIdentifier(uartPort->rxDMAResource);
-        if (dmaAllocate(identifier, OWNER_SERIAL_RX, RESOURCE_INDEX(hardware->device))) {
+        if (uartDmaClaim(identifier, OWNER_SERIAL_RX, RESOURCE_INDEX(hardware->device))) {
             dmaEnable(identifier);
 #if defined(AT32F4)
             dmaMuxEnable(identifier, uartPort->rxDMAMuxId);
 #endif
             uartPort->rxDMAPeripheralBaseAddr = (uint32_t)&UART_REG_RXD(hardware->reg);
+        } else {
+            uartPort->rxDMAResource = NULL;
         }
     }
 }

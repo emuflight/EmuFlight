@@ -424,7 +424,8 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
     }
 
 #ifdef USE_DMA
-    if (!s->rxDMAResource)
+    // Either side can fall back to IRQ-driven mode independently; enable the NVIC line whenever either does.
+    if (!s->rxDMAResource || !s->txDMAResource)
 #endif
     {
         nvic_irq_enable(hardware->irqn,NVIC_PRIORITY_BASE(hardware->rxPriority), NVIC_PRIORITY_SUB(hardware->rxPriority));
