@@ -83,12 +83,12 @@ bool mscCheckBootAndReset(void)
     static bool mscMode;
 
     if (firstCheck) {
+        firstCheck = false;
         // Cache the boot-time request, then clear it so the next reset returns to normal mode.
         const uint32_t bootModeRequest = persistentObjectRead(PERSISTENT_OBJECT_RESET_REASON);
         if (bootModeRequest == RESET_MSC_REQUEST) {
             mscMode = true;
             persistentObjectWrite(PERSISTENT_OBJECT_RESET_REASON, RESET_NONE);
-            firstCheck = false;
         }
     }
 
