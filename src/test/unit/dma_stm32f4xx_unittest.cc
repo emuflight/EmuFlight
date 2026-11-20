@@ -43,6 +43,8 @@ void RCC_AHB1PeriphClockCmd(uint32_t periph, FunctionalState state) {
 
 }
 
+#include <type_traits>
+
 #include "unittest_macros.h"
 #include "gtest/gtest.h"
 
@@ -96,6 +98,9 @@ TEST(DmaStm32F4xxUnittest, GetIdentifierResolvesRealStreamPointer)
     EXPECT_EQ(dmaGetIdentifier((const dmaResource_t *)DMA1_Stream4), DMA1_ST4_HANDLER);
     EXPECT_EQ(dmaGetIdentifier((const dmaResource_t *)DMA2_Stream6), DMA2_ST6_HANDLER);
 }
+
+static_assert(std::is_same<decltype(dmaChannelDescriptor_t::ref), dmaResource_t *>::value,
+              "dmaChannelDescriptor_t::ref must be the opaque dmaResource_t *");
 
 TEST(DmaStm32F4xxUnittest, GetIdentifierRejectsUnknownStreamPointer)
 {
