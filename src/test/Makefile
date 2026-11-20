@@ -658,6 +658,9 @@ sdcard_dma_claim_unittest_DEFINES := \
 		STM32F4
 
 
+flashfs_bounds_unittest_SRC := \
+		$(TEST_DIR)/flashfs_bounds_test_support.c
+
 flashfs_unittest_SRC := \
 		$(USER_DIR)/io/flashfs.c
 
