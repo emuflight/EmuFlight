@@ -122,7 +122,7 @@ const timerHardware_t fullTimerHardware[FULL_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TMR8, CH2, PC7, 0, 0, 0, 0),
     DEF_TIM(TMR8, CH3, PC8, 0, 0, 0, 0),
     DEF_TIM(TMR8, CH4, PC9, 0, 0, 0, 0),
-    DEF_TIM(TMR11, CH1N, PC12, 0, 0, 0, 0),
+    DEF_TIM(TMR11, CH1, PC12, 0, 0, 0, 0),
 
 // PORTD MUX 2
     DEF_TIM(TMR4, CH1, PD12, 0, 0, 0, 0),

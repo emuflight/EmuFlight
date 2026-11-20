@@ -93,7 +93,7 @@ void uartReconfigure(uartPort_t *uartPort)
     //init
     usart_init(uartPort->USARTx,
                uartPort->port.baudRate,
-               USART_DATA_8BITS,
+               (uartPort->port.options & SERIAL_PARITY_EVEN) ? USART_DATA_9BITS : USART_DATA_8BITS,
               (uartPort->port.options & SERIAL_STOPBITS_2) ? USART_STOP_2_BIT : USART_STOP_1_BIT);
 
     //set parity
