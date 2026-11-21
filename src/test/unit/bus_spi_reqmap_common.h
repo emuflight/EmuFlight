@@ -82,6 +82,7 @@ void spiInternalResetStream(dmaChannelDescriptor_t *descriptor) { UNUSED(descrip
 void spiInternalResetDescriptors(busDevice_t *bus) { UNUSED(bus); }
 void spiInternalInitStream(const extDevice_t *dev, bool preInit) { UNUSED(dev); UNUSED(preInit); }
 void spiInternalStartDMA(const extDevice_t *dev) { UNUSED(dev); }
+void spiInternalAbortDMA(const extDevice_t *dev) { UNUSED(dev); }
 void spiInternalStopDMA(const extDevice_t *dev) { UNUSED(dev); }
 void spiInitDevice(SPIDevice device) { UNUSED(device); }
 void spiSequenceStart(const extDevice_t *dev) { UNUSED(dev); }

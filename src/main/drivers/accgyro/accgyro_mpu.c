@@ -87,6 +87,10 @@ mpuResetFnPtr mpuResetFn;
 
 #define GYRO_EXTI_DETECT_THRESHOLD 1000
 
+// A DMA read takes a small fraction of a sample period, so one still in progress this many data ready
+// interrupts later has lost its completion and will never finish.
+#define GYRO_DMA_STALL_LIMIT 4
+
 #if defined(USE_I2C)
 static void mpu6050FindRevision(gyroDev_t *gyro) {
     // There is a map of revision contained in the android source tree which is quite comprehensive and may help to understand this code
@@ -121,6 +125,19 @@ static void mpu6050FindRevision(gyroDev_t *gyro) {
 }
 #endif
 
+#ifdef GYRO_USES_SPI
+void mpuGyroStartDmaRead(gyroDev_t *gyro) {
+    if (gyro->dev.bus->curSegment == gyro->segments) {
+        if (++gyro->dmaStallCount < GYRO_DMA_STALL_LIMIT) {
+            return;
+        }
+        spiAbortTransfer(&gyro->dev);
+    }
+    gyro->dmaStallCount = 0;
+    spiSequence(&gyro->dev, gyro->segments);
+}
+#endif
+
 /*
  * Gyro interrupt service routine
  */
@@ -150,7 +167,7 @@ FAST_CODE static void mpuIntExtiHandler(extiCallbackRec_t *cb) {
     imufTransferPending = true;
 #elif defined(GYRO_USES_SPI)
     if (gyro->gyroModeSPI == GYRO_EXTI_INT_DMA) {
-        spiSequence(&gyro->dev, gyro->segments);
+        mpuGyroStartDmaRead(gyro);
     }
 #endif
     gyro->detectedEXTI++;

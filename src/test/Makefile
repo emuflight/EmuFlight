@@ -76,6 +76,7 @@ bus_spi_unittest_SRC := \
 		$(USER_DIR)/build/atomic.c
 
 bus_spi_unittest_DEFINES := \
+		UNIT_TEST_DMA_FLAG_REGS \
 		STM32F4 \
 		USE_SPI \
 		USE_SPI_DEVICE_1 \
@@ -85,11 +86,24 @@ bus_spi_unittest_DEFINES := \
 		SystemCoreClock=1000000
 
 
+bus_spi_dma_recovery_unittest_SRC := \
+		$(USER_DIR)/drivers/bus_spi.c \
+		$(USER_DIR)/build/atomic.c
+
+bus_spi_dma_recovery_unittest_DEFINES := \
+		STM32F4 \
+		UNIT_TEST_DMA_FLAG_REGS \
+		USE_SPI \
+		USE_SPI_DEVICE_1 \
+		SPI1=\(SPI_TypeDef*\)0x40013000 \
+		SystemCoreClock=1000000
+
 bus_spi_h7_unittest_SRC := \
 		$(USER_DIR)/drivers/bus_spi.c \
 		$(USER_DIR)/build/atomic.c
 
 bus_spi_h7_unittest_DEFINES := \
+		UNIT_TEST_DMA_FLAG_REGS \
 		STM32H7 \
 		USE_SPI \
 		USE_SPI_DEVICE_1 \
@@ -105,6 +119,7 @@ bus_spi_reqmap_f4_unittest_SRC := \
 		$(USER_DIR)/build/atomic.c
 
 bus_spi_reqmap_f4_unittest_DEFINES := \
+		UNIT_TEST_DMA_FLAG_REGS \
 		USE_SPI_DEVICE_1 \
 		USE_SPI_DEVICE_2 \
 		USE_SPI_DEVICE_3 \
@@ -156,6 +171,7 @@ bus_spi_reqmap_h7_unittest_SRC := \
 		$(USER_DIR)/build/atomic.c
 
 bus_spi_reqmap_h7_unittest_DEFINES := \
+		UNIT_TEST_DMA_FLAG_REGS \
 		USE_SPI_DEVICE_1 \
 		USE_SPI_DEVICE_2 \
 		USE_SPI_DEVICE_3 \
