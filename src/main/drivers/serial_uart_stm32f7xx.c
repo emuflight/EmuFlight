@@ -185,7 +185,7 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
 void uartIrqHandler(uartPort_t *s) {
     UART_HandleTypeDef *huart = &s->Handle;
     /* UART in mode Receiver ---------------------------------------------------*/
-    if ((__HAL_UART_GET_IT(huart, UART_IT_RXNE) != RESET)) {
+    if (!s->rxDMAStream && (__HAL_UART_GET_IT(huart, UART_IT_RXNE) != RESET)) {
         uint8_t rbyte = (uint8_t)(huart->Instance->RDR & (uint8_t) 0xff);
         if (s->port.rxCallback) {
             s->port.rxCallback(rbyte, s->port.rxCallbackData);
@@ -343,11 +343,9 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
             IOConfigGPIOAF(rxIO, IOCFG_AF_PP, hardware->af);
         }
     }
-    // Either side can now fall back to IRQ-driven mode independently (uartDmaClaim() conflict); enable the NVIC line whenever either does.
-    if (!s->rxDMAChannel || !s->txDMAChannel) {
-        HAL_NVIC_SetPriority(hardware->rxIrq, NVIC_PRIORITY_BASE(hardware->rxPriority), NVIC_PRIORITY_SUB(hardware->rxPriority));
-        HAL_NVIC_EnableIRQ(hardware->rxIrq);
-    }
+    // A DMA transmit ends in the USART transmission-complete interrupt, so the line is always enabled.
+    HAL_NVIC_SetPriority(hardware->rxIrq, NVIC_PRIORITY_BASE(hardware->rxPriority), NVIC_PRIORITY_SUB(hardware->rxPriority));
+    HAL_NVIC_EnableIRQ(hardware->rxIrq);
     return s;
 }
 #endif // USE_UART
