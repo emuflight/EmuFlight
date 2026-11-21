@@ -139,21 +139,21 @@ void checkForBootLoaderRequest(void)
 
 void enableGPIOPowerUsageAndNoiseReductions(void)
 {
-    //enable all needed periph
-    crm_periph_clock_enable(
-            CRM_GPIOA_PERIPH_CLOCK    |
-            CRM_GPIOB_PERIPH_CLOCK    |
-            CRM_GPIOC_PERIPH_CLOCK    |
-            CRM_GPIOD_PERIPH_CLOCK    |
-            CRM_GPIOE_PERIPH_CLOCK    |
-            CRM_DMA1_PERIPH_CLOCK     |
-            CRM_DMA2_PERIPH_CLOCK     |
-            0,TRUE);
+    // CRM_*_PERIPH_CLOCK values encode register and bit; enable each one on its own
+    static const crm_periph_clock_type clocks[] = {
+        CRM_GPIOA_PERIPH_CLOCK, CRM_GPIOB_PERIPH_CLOCK, CRM_GPIOC_PERIPH_CLOCK,
+        CRM_GPIOD_PERIPH_CLOCK, CRM_GPIOE_PERIPH_CLOCK,
+        CRM_DMA1_PERIPH_CLOCK, CRM_DMA2_PERIPH_CLOCK,
+    };
+
+    for (unsigned i = 0; i < sizeof(clocks) / sizeof(clocks[0]); i++) {
+        crm_periph_clock_enable(clocks[i], TRUE);
+    }
 }
 
 bool isMPUSoftReset(void)
 {
-    if (cachedRccCsrValue & CRM_SW_RESET_FLAG)
+    if (cachedRccCsrValue & CRM_REG_BIT(CRM_SW_RESET_FLAG))
         return true;
     else
         return false;
@@ -180,7 +180,8 @@ void systemInit(void)
     extern uint8_t isr_vector_table_base;
     nvic_vector_table_set((uint32_t)&isr_vector_table_base, 0x0);
 
-    crm_periph_clock_enable(CRM_OTGFS2_PERIPH_CLOCK|CRM_OTGFS1_PERIPH_CLOCK,FALSE);
+    crm_periph_clock_enable(CRM_OTGFS2_PERIPH_CLOCK, FALSE);
+    crm_periph_clock_enable(CRM_OTGFS1_PERIPH_CLOCK, FALSE);
 
     CRM->ctrlsts_bit.rstfc = TRUE;
 
