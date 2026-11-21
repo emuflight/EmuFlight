@@ -64,9 +64,17 @@ void unsetArmingDisabled(armingDisableFlags_e flag) {
   UNUSED(flag);
 }
 
+static void clearModeActivationConditions(void)
+{
+    for (int i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
+        memset(modeActivationConditionsMutable(i), 0, sizeof(modeActivationCondition_t));
+    }
+}
+
 class RcControlsModesTest : public ::testing::Test {
 protected:
     virtual void SetUp() {
+        clearModeActivationConditions();
     }
 };
 
@@ -96,6 +104,218 @@ TEST_F(RcControlsModesTest, updateActivatedModesWithAllInputsAtMidde)
 #endif
         EXPECT_EQ(false, IS_RC_MODE_ACTIVE((boxId_e)index));
     }
+}
+
+// Expected values follow the updateMasksForMac() logic table: an active OR mac latches true,
+// AND macs require every AND mac active, a linked mac is active while its target mode is active.
+static void setRangeMac(int index, boxId_e modeId, int auxChannel, modeLogic_e logic)
+{
+    modeActivationCondition_t *mac = modeActivationConditionsMutable(index);
+    mac->modeId = modeId;
+    mac->auxChannelIndex = auxChannel - NON_AUX_CHANNEL_COUNT;
+    mac->range.startStep = CHANNEL_VALUE_TO_STEP(1700);
+    mac->range.endStep = CHANNEL_VALUE_TO_STEP(2100);
+    mac->modeLogic = logic;
+    mac->linkedTo = (boxId_e)0;
+}
+
+static void setLinkMac(int index, boxId_e modeId, boxId_e linkedTo, modeLogic_e logic)
+{
+    modeActivationCondition_t *mac = modeActivationConditionsMutable(index);
+    memset(mac, 0, sizeof(*mac));
+    mac->modeId = modeId;
+    mac->linkedTo = linkedTo;
+    mac->modeLogic = logic;
+}
+
+TEST_F(RcControlsModesTest, linkedModeFollowsTargetMode)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_OR);
+
+    rcData[AUX1] = 2000;
+    updateActivatedModes();
+    EXPECT_TRUE(IS_RC_MODE_ACTIVE((boxId_e)1));
+    EXPECT_TRUE(IS_RC_MODE_ACTIVE((boxId_e)2));
+
+    rcData[AUX1] = 1000;
+    updateActivatedModes();
+    EXPECT_FALSE(IS_RC_MODE_ACTIVE((boxId_e)1));
+    EXPECT_FALSE(IS_RC_MODE_ACTIVE((boxId_e)2));
+}
+
+TEST_F(RcControlsModesTest, linkedOrModeActivatesWhenOwnRangeInactive)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setRangeMac(1, (boxId_e)2, AUX2, MODELOGIC_OR);
+    setLinkMac(2, (boxId_e)2, (boxId_e)1, MODELOGIC_OR);
+
+    rcData[AUX1] = 2000; // target active
+    rcData[AUX2] = 1000; // own range inactive
+    updateActivatedModes();
+    EXPECT_TRUE(IS_RC_MODE_ACTIVE((boxId_e)2));
+
+    rcData[AUX1] = 1000; // target inactive, own range inactive
+    updateActivatedModes();
+    EXPECT_FALSE(IS_RC_MODE_ACTIVE((boxId_e)2));
+
+    rcData[AUX2] = 2000; // own range active, target inactive
+    updateActivatedModes();
+    EXPECT_TRUE(IS_RC_MODE_ACTIVE((boxId_e)2));
+}
+
+TEST_F(RcControlsModesTest, linkedAndModeRequiresRangeAndTarget)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setRangeMac(1, (boxId_e)2, AUX2, MODELOGIC_AND);
+    setLinkMac(2, (boxId_e)2, (boxId_e)1, MODELOGIC_AND);
+
+    const int auxValues[2] = { 1000, 2000 };
+    for (int a = 0; a < 2; a++) {      // AUX1 drives the target mode
+        for (int b = 0; b < 2; b++) {  // AUX2 drives the own range
+            rcData[AUX1] = auxValues[a];
+            rcData[AUX2] = auxValues[b];
+            updateActivatedModes();
+            EXPECT_EQ(a == 1 && b == 1, IS_RC_MODE_ACTIVE((boxId_e)2)) << "aux1=" << a << " aux2=" << b;
+        }
+    }
+}
+
+TEST_F(RcControlsModesTest, isModeActivationConditionLinkedReportsOnlyLinkedModes)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_OR);
+
+    EXPECT_FALSE(isModeActivationConditionLinked((boxId_e)1)); // range mac only
+    EXPECT_TRUE(isModeActivationConditionLinked((boxId_e)2));  // linked mac
+    EXPECT_FALSE(isModeActivationConditionLinked((boxId_e)3)); // not configured
+}
+
+static void expectMacEquals(const modeActivationCondition_t *actual, const modeActivationCondition_t &expected)
+{
+    EXPECT_EQ(expected.modeId, actual->modeId);
+    EXPECT_EQ(expected.auxChannelIndex, actual->auxChannelIndex);
+    EXPECT_EQ(expected.range.startStep, actual->range.startStep);
+    EXPECT_EQ(expected.range.endStep, actual->range.endStep);
+    EXPECT_EQ(expected.modeLogic, actual->modeLogic);
+    EXPECT_EQ(expected.linkedTo, actual->linkedTo);
+}
+
+// Expected values follow the rule: a link may not drive ARM and may not target a linked mode;
+// an entry with a usable range loses only the link, an entry without one is cleared.
+TEST_F(RcControlsModesTest, clearInvalidModeLinksClearsLinkToLinkedMode)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_OR);
+    setLinkMac(2, (boxId_e)3, (boxId_e)2, MODELOGIC_AND); // targets mode 2, which is linked
+    modeActivationConditionsMutable(2)->auxChannelIndex = 3;
+    modeActivationConditionsMutable(2)->range.startStep = 5; // equal endpoints: not usable
+    modeActivationConditionsMutable(2)->range.endStep = 5;
+
+    clearInvalidModeLinks();
+
+    EXPECT_EQ(1, modeActivationConditions(1)->linkedTo); // valid link kept
+    const modeActivationCondition_t cleared = {};
+    expectMacEquals(modeActivationConditions(2), cleared); // every field cleared
+}
+
+TEST_F(RcControlsModesTest, clearInvalidModeLinksKeepsRangeOfEntryWithBadLink)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_OR);
+    setRangeMac(2, (boxId_e)3, AUX2, MODELOGIC_AND);
+    modeActivationConditionsMutable(2)->linkedTo = (boxId_e)2; // bad link on an entry with a range
+
+    clearInvalidModeLinks();
+
+    EXPECT_EQ(0, modeActivationConditions(2)->linkedTo);
+    EXPECT_EQ(3, modeActivationConditions(2)->modeId);
+    EXPECT_EQ(MODELOGIC_AND, modeActivationConditions(2)->modeLogic);
+    EXPECT_EQ(AUX2 - NON_AUX_CHANNEL_COUNT, modeActivationConditions(2)->auxChannelIndex);
+    EXPECT_EQ(CHANNEL_VALUE_TO_STEP(1700), modeActivationConditions(2)->range.startStep);
+    EXPECT_EQ(CHANNEL_VALUE_TO_STEP(2100), modeActivationConditions(2)->range.endStep);
+}
+
+TEST_F(RcControlsModesTest, clearInvalidModeLinksClearsLinkOnArm)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, BOXARM, (boxId_e)1, MODELOGIC_OR);
+    setRangeMac(2, BOXARM, AUX2, MODELOGIC_OR);
+    modeActivationConditionsMutable(2)->linkedTo = (boxId_e)1;
+
+    clearInvalidModeLinks();
+
+    EXPECT_EQ(0, modeActivationConditions(1)->linkedTo);
+    EXPECT_FALSE(IS_RANGE_USABLE(&modeActivationConditions(1)->range));
+    EXPECT_EQ(0, modeActivationConditions(2)->linkedTo);
+    EXPECT_EQ(BOXARM, modeActivationConditions(2)->modeId);
+    EXPECT_EQ(AUX2 - NON_AUX_CHANNEL_COUNT, modeActivationConditions(2)->auxChannelIndex);
+    EXPECT_EQ(CHANNEL_VALUE_TO_STEP(1700), modeActivationConditions(2)->range.startStep); // ARM range stays
+    EXPECT_EQ(CHANNEL_VALUE_TO_STEP(2100), modeActivationConditions(2)->range.endStep);
+}
+
+TEST_F(RcControlsModesTest, clearInvalidModeLinksCleansAdjacentInvalidEntries)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_OR);
+    setLinkMac(2, (boxId_e)3, (boxId_e)2, MODELOGIC_OR);
+    setLinkMac(3, (boxId_e)4, (boxId_e)2, MODELOGIC_OR);
+
+    clearInvalidModeLinks();
+
+    EXPECT_EQ(0, modeActivationConditions(2)->linkedTo);
+    EXPECT_EQ(0, modeActivationConditions(3)->linkedTo);
+    EXPECT_EQ(1, modeActivationConditions(1)->linkedTo);
+}
+
+TEST_F(RcControlsModesTest, clearInvalidModeLinksKeepsOtherEntriesOfSameMode)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_OR);
+    setLinkMac(2, (boxId_e)3, (boxId_e)2, MODELOGIC_OR); // invalid link of mode 3
+    setRangeMac(3, (boxId_e)3, AUX2, MODELOGIC_OR);      // valid range of mode 3
+    const modeActivationCondition_t before = *modeActivationConditions(3);
+
+    clearInvalidModeLinks();
+
+    const modeActivationCondition_t cleared = {};
+    expectMacEquals(modeActivationConditions(2), cleared);
+    expectMacEquals(modeActivationConditions(3), before);
+}
+
+TEST_F(RcControlsModesTest, clearInvalidModeLinksLeavesValidConfigUnchanged)
+{
+    clearModeActivationConditions();
+    setRangeMac(0, (boxId_e)1, AUX1, MODELOGIC_OR);
+    setLinkMac(1, (boxId_e)2, (boxId_e)1, MODELOGIC_AND);
+    const modeActivationCondition_t before0 = *modeActivationConditions(0);
+    const modeActivationCondition_t before1 = *modeActivationConditions(1);
+
+    clearInvalidModeLinks();
+
+    expectMacEquals(modeActivationConditions(0), before0);
+    expectMacEquals(modeActivationConditions(1), before1);
+}
+
+TEST_F(RcControlsModesTest, linkToModeWithNoRangeStaysInactive)
+{
+    clearModeActivationConditions();
+    setLinkMac(0, (boxId_e)2, (boxId_e)3, MODELOGIC_OR); // mode 3 has no range
+    for (int index = AUX1; index < MAX_SUPPORTED_RC_CHANNEL_COUNT; index++) {
+        rcData[index] = 2000;
+    }
+    updateActivatedModes();
+    EXPECT_FALSE(IS_RC_MODE_ACTIVE((boxId_e)2));
+    EXPECT_FALSE(IS_RC_MODE_ACTIVE((boxId_e)3));
 }
 
 TEST_F(RcControlsModesTest, updateActivatedModesUsingValidAuxConfigurationAndRXValues)
