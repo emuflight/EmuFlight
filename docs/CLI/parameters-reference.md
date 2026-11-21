@@ -77,7 +77,6 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 | `align_gyro` | uint8 | master | `DEFAULT`, `CW0`, `CW90`, `CW180`, `CW270`, `CW0FLIP`, `CW90FLIP`, `CW180FLIP`, `CW270FLIP`, `CW45`, `CW135`, `CW225`, `CW315`, `CW45FLIP`, `CW135FLIP`, `CW225FLIP`, `CW315FLIP` |  |
 | `gyro_hardware_lpf` | uint8 | master | `NORMAL`, `OPTION1`, `OPTION2`, `EXPERIMENTAL`, `EXPERIMENTAL`, `1KHZ_SAMPLING` |  |
 | `gyro_32khz_hardware_lpf` | uint8 | master | `NORMAL`, `EXPERIMENTAL` | `USE_32K_CAPABLE_GYRO` |
-| `gyro_high_range` | uint8 | master | `OFF`, `ON` | `USE_GYRO_SPI_ICM20649` |
 | `gyro_sync_denom` | uint8 | master | `1` – `32` |  |
 | `gyro_lowpass_type` | uint8 | master | `PT1`, `SVF`, `PT2`, `PT3`, `PT4` |  |
 | `gyro_lowpass_hz_roll` | uint16 | master | `0` – `16000` |  |
@@ -131,8 +130,7 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 | Parameter | Type | Scope | Range / Values | Requires |
 |-----------|------|-------|----------------|----------|
 | `align_acc` | uint8 | master | `DEFAULT`, `CW0`, `CW90`, `CW180`, `CW270`, `CW0FLIP`, `CW90FLIP`, `CW180FLIP`, `CW270FLIP`, `CW45`, `CW135`, `CW225`, `CW315`, `CW45FLIP`, `CW135FLIP`, `CW225FLIP`, `CW315FLIP` |  |
-| `acc_hardware` | uint8 | master | `AUTO`, `NONE`, `ADXL345`, `MPU6050`, `MMA8452`, `BMA280`, `LSM303DLHC`, `MPU6000`, `MPU6500`, `MPU9250`, `ICM20601`, `ICM20602`, `ICM20608G`, `ICM20649`, `ICM20689`, `ICM42605`, `ICM42688P`, `BMI160`, `BMI270`, `ACC_IMUF9001`, `FAKE` |  |
-| `acc_high_range` | uint8 | master | `OFF`, `ON` | `USE_GYRO_SPI_ICM20649` |
+| `acc_hardware` | uint8 | master | `AUTO`, `NONE`, `ADXL345`, `MPU6050`, `MMA8452`, `BMA280`, `LSM303DLHC`, `MPU6000`, `MPU6500`, `MPU9250`, `ICM20601`, `ICM20602`, `ICM20608G`, `ICM20689`, `ICM42605`, `ICM42688P`, `BMI160`, `BMI270`, `ACC_IMUF9001`, `FAKE` |  |
 | `acc_lpf_hz` | uint16 | master | `0` – `400` |  |
 | `acc_trim_pitch` | int16 | master | `-300` – `300` |  |
 | `acc_trim_roll` | int16 | master | `-300` – `300` |  |

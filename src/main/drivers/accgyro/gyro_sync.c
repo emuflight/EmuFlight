@@ -56,10 +56,6 @@ uint32_t gyroSetSampleRate(gyroDev_t *gyro, uint8_t lpf, uint8_t gyroSyncDenomin
     gyroConfigMutable()->gyroSampleRateHz = lpfNoneOr256 ? 8000 : 1000;
 
     switch (gyro->mpuDetectionResult.sensor) {
-        case ICM_20649_SPI:  //20649 is a weird gyro
-            gyro->gyroRateKHz = lpfNoneOr256 ? GYRO_RATE_9_kHz : GYRO_RATE_1100_Hz;
-            gyroConfigMutable()->gyroSampleRateHz = lpfNoneOr256 ? 9000 : 1100;
-            break;
         case BMI_160_SPI:    //brainFPV is also a weird gyro
             if (lpfNoneOr256) { gyro->gyroRateKHz = GYRO_RATE_3200_Hz; }
             gyroConfigMutable()->gyroSampleRateHz = 3200;
