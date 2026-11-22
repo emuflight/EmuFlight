@@ -28,9 +28,19 @@
 #include "rcc_types.h"
 #include "drivers/timer_def.h"
 
+#if defined(AT32F4)
+#include "drivers/dma.h" // dmaResource_t
+#endif
+
 #define CC_CHANNELS_PER_TIMER         4 // TIM_Channel_1..4
+#ifdef AT32F435
+#define CC_INDEX_FROM_CHANNEL(x)      ((uint8_t)(x) - 1)
+#define CC_CHANNEL_FROM_INDEX(x)      ((uint16_t)(x) + 1)
+#define TIM_CH_TO_SELCHANNEL(ch)      (((ch) - 1) * 2)
+#else
 #define CC_INDEX_FROM_CHANNEL(x)      ((uint8_t)((x) >> 2))
 #define CC_CHANNEL_FROM_INDEX(x)      ((uint16_t)(x) << 2)
+#endif
 
 typedef uint16_t captureCompare_t;        // 16 bit on both 103 and 303, just register access must be 32bit sometimes (use timCCR_t)
 
@@ -39,7 +49,7 @@ typedef uint32_t timCCR_t;
 typedef uint32_t timCCER_t;
 typedef uint32_t timSR_t;
 typedef uint32_t timCNT_t;
-#elif defined(STM32F7) || defined(STM32H7)
+#elif defined(STM32F7) || defined(STM32H7) || defined(AT32F4)
 typedef uint32_t timCCR_t;
 typedef uint32_t timCCER_t;
 typedef uint32_t timSR_t;
@@ -92,13 +102,16 @@ typedef struct timerHardware_s {
     uint8_t channel;
     timerUsageFlag_e usageFlags;
     uint8_t output;
-#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(AT32F4)
     uint8_t alternateFunction;
 #endif
 #if defined(USE_DSHOT) || defined(USE_LED_STRIP) || defined(USE_TRANSPONDER)
 #if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     DMA_Stream_TypeDef *dmaRef;
     uint32_t dmaChannel;
+#elif defined(AT32F4)
+    dmaResource_t *dmaRef;
+    uint32_t dmaChannel; // DMAMUX request id
 #else
     DMA_Channel_TypeDef *dmaRef;
 #endif
@@ -106,6 +119,11 @@ typedef struct timerHardware_s {
 #if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     // TIMUP
     DMA_Stream_TypeDef *dmaTimUPRef;
+    uint32_t dmaTimUPChannel;
+    uint8_t dmaTimUPIrqHandler;
+#elif defined(AT32F4)
+    // TIMUP
+    dmaResource_t *dmaTimUPRef;
     uint32_t dmaTimUPChannel;
     uint8_t dmaTimUPIrqHandler;
 #endif
@@ -126,6 +144,8 @@ typedef enum {
 #define HARDWARE_TIMER_DEFINITION_COUNT 14
 #elif defined(STM32H7)
 #define HARDWARE_TIMER_DEFINITION_COUNT 14
+#elif defined(AT32F4)
+#define HARDWARE_TIMER_DEFINITION_COUNT 15
 #endif
 
 #define MHZ_TO_HZ(x) ((x) * 1000000)

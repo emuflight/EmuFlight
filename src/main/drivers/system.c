@@ -43,6 +43,10 @@ uint32_t cachedRccCsrValue;
 void cycleCounterInit(void) {
 #if defined(USE_HAL_DRIVER)
     usTicks = HAL_RCC_GetSysClockFreq() / 1000000;
+#elif defined(USE_ATBSP_DRIVER)
+    crm_clocks_freq_type clocks;
+    crm_clocks_freq_get(&clocks);
+    usTicks = clocks.sclk_freq / 1000000;
 #else
     RCC_ClocksTypeDef clocks;
     RCC_GetClocksFreq(&clocks);
@@ -52,6 +56,8 @@ void cycleCounterInit(void) {
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
 #if defined(STM32F7)
     DWT->LAR = 0xC5ACCE55;
+#elif defined(AT32F4)
+    ITM->LAR = 0xC5ACCE55;
 #endif
     DWT->CYCCNT = 0;
     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;

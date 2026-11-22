@@ -34,6 +34,9 @@
 #define CAMERA_CONTROL_TIMER_HZ   MHZ_TO_HZ(84)
 #elif defined(STM32F7)
 #define CAMERA_CONTROL_TIMER_HZ   MHZ_TO_HZ(216)
+#elif defined(AT32F4)
+// Clock of the timer that drives the pin; used where `timerHardware` is in scope.
+#define CAMERA_CONTROL_TIMER_HZ   timerClock(timerHardware->tim)
 #else
 #define CAMERA_CONTROL_TIMER_HZ   MHZ_TO_HZ(72)
 #endif
@@ -47,7 +50,7 @@
 #define ADC_VOLTAGE 3.3f
 #endif
 
-#if !defined(STM32F411xE) && !defined(STM32F7) && !defined(STM32H7)
+#if !defined(STM32F411xE) && !defined(STM32F7) && !defined(STM32H7) && !defined(AT32F4)
 #define CAMERA_CONTROL_SOFTWARE_PWM_AVAILABLE
 #include "build/atomic.h"
 #endif

@@ -29,16 +29,25 @@
 #define I2C_LONG_TIMEOUT             ((uint32_t)(10 * I2C_SHORT_TIMEOUT))
 #define I2C_DEFAULT_TIMEOUT          I2C_SHORT_TIMEOUT
 
+#if defined(AT32F4)
+#define I2C_TIMEOUT_US               10000
+#define I2C_TIMEOUT_SYS_TICKS        (I2C_TIMEOUT_US / 1000)
+#endif
+
+#if defined(AT32F4)
+#define I2C_PIN_SEL_MAX 8
+#else
 #define I2C_PIN_SEL_MAX 4
+#endif
 
 typedef struct i2cPinDef_s {
     ioTag_t ioTag;
-#if defined(STM32F4)
+#if defined(STM32F4) || defined(AT32F4)
     uint8_t af;
 #endif
 } i2cPinDef_t;
 
-#if defined(STM32F4)
+#if defined(STM32F4) || defined(AT32F4)
 #define I2CPINDEF(pin, af) { DEFIO_TAG_E(pin), af }
 #else
 #define I2CPINDEF(pin) { DEFIO_TAG_E(pin) }
@@ -75,7 +84,7 @@ typedef struct i2cDevice_s {
     I2C_TypeDef *reg;
     IO_t scl;
     IO_t sda;
-#ifdef STM32F4
+#if defined(STM32F4) || defined(AT32F4)
     uint8_t sclAF;
     uint8_t sdaAF;
 #endif
@@ -88,6 +97,9 @@ typedef struct i2cDevice_s {
 #endif
 #ifdef USE_HAL_DRIVER
     I2C_HandleTypeDef handle;
+#endif
+#ifdef AT32F4
+    i2c_handle_type handle;
 #endif
 } i2cDevice_t;
 
