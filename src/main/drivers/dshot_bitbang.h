@@ -23,6 +23,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "common/time.h"
 #include "drivers/pwm_output.h"
 
 typedef enum {
@@ -50,6 +51,18 @@ typedef enum {
 #define MOTOR_DSHOT_STATE_PER_SYMBOL 3  // initial high, bit value, low
 #define MOTOR_DSHOT_BIT_HOLD_STATES  3  // idle states so the ESC samples the last bit
 #define MOTOR_DSHOT_BUF_LENGTH       ((MOTOR_DSHOT_FRAME_BITS * MOTOR_DSHOT_STATE_PER_SYMBOL) + MOTOR_DSHOT_BIT_HOLD_STATES)
+
+// Time one output buffer takes at the state rate [states/s]
+static inline uint32_t dshotBitbangFrameUs(uint32_t baseFrequency)
+{
+    return (uint32_t)((1000000ull * MOTOR_DSHOT_BUF_LENGTH) / baseFrequency) + 1;
+}
+
+// A frame still running after twice its duration is stuck
+static inline bool dshotBitbangFrameStalled(timeUs_t nowUs, timeUs_t startUs, uint32_t frameUs)
+{
+    return cmpTimeUs(nowUs, startUs) >= (int32_t)(2 * frameUs);
+}
 
 #ifdef USE_DSHOT
 // Bitbang makes DSHOT150/300/600 only.
@@ -109,4 +122,8 @@ void dshotBitbangWriteInt(uint8_t motorIndex, uint16_t value);
 void dshotBitbangUpdateComplete(uint8_t motorCount);
 dshotBitbangStatus_e dshotBitbangGetStatus(void);
 bool dshotBitbangIsRunning(void);
+// Frames that ended in a DMA error or never completed since init
+uint32_t dshotBitbangGetFailedFrames(void);
+// True when a running port group paces its DMA from this timer channel
+bool dshotBitbangTimerIsAllocated(int8_t timerNumber, uint16_t timerChannel, uint8_t *resourceIndex);
 void dshotBitbangRestore(void);

@@ -94,6 +94,8 @@ static int usedMotorPorts;
 static bbMotor_t bbMotors[MAX_SUPPORTED_MOTORS];
 static DMA_DATA_ZERO_INIT uint32_t bbOutputBuffer[BB_PORT_BUF_WORDS * MAX_SUPPORTED_MOTOR_PORTS];
 static dshotBitbangStatus_e bbStatus;
+static uint32_t bbDmaErrorCount; // written in the DMA interrupt only
+static uint32_t bbStallCount;    // written by the update path only
 static bool bbRunning;
 
 dshotBitbangStatus_e dshotBitbangGetStatus(void)
@@ -104,6 +106,25 @@ dshotBitbangStatus_e dshotBitbangGetStatus(void)
 bool dshotBitbangIsRunning(void)
 {
     return bbRunning;
+}
+
+uint32_t dshotBitbangGetFailedFrames(void)
+{
+    return bbDmaErrorCount + bbStallCount;
+}
+
+bool dshotBitbangTimerIsAllocated(int8_t timerNumber, uint16_t timerChannel, uint8_t *resourceIndex)
+{
+    for (int i = 0; i < usedMotorPorts; i++) {
+        const bbPort_t *bbPort = &bbPorts[i];
+
+        if (bbPort->tim && timerGetTIMNumber(bbPort->tim) == timerNumber && bbPort->timChannel == timerChannel
+            && dmaGetOwner(bbPort->dmaIdentifier) == OWNER_DSHOT_BITBANG) {
+            *resourceIndex = RESOURCE_INDEX(bbPort->portIndex);
+            return true;
+        }
+    }
+    return false;
 }
 
 bool dshotBitbangSupported(uint8_t motorPwmInversion)
@@ -228,17 +249,23 @@ static bool bbPortStop(const bbPort_t *bbPort)
 
 // True while the port's buffer and registers must stay untouched. A stream still enabled
 // after twice the frame time is stuck: it is stopped here, before anything changes.
-static bool bbPortIsBusy(const bbPort_t *bbPort)
+static bool bbPortIsBusy(bbPort_t *bbPort)
 {
     if (!bbDMAIsEnabled(bbPort)) {
         return false;
     }
-    if (cmpTimeUs(micros(), bbPort->startUs) < (int32_t)(2 * bbPort->frameUs)) {
+    if (!dshotBitbangFrameStalled(micros(), bbPort->startUs, bbPort->frameUs)) {
         return true;
+    }
+    // each stall counts once, however many updates the stop takes
+    if (!bbPort->stalled) {
+        bbPort->stalled = true;
+        bbStallCount++;
     }
     if (!bbPortStop(bbPort)) {
         return true;
     }
+    bbPort->stalled = false;
     bbDMAClearFlags(bbPort);
     return false;
 }
@@ -325,6 +352,10 @@ FAST_IRQ_HANDLER void bbDMAIrqHandler(dmaChannelDescriptor_t *descriptor)
         return;
     }
 
+    if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_TEIF)) {
+        bbDmaErrorCount++;
+    }
+
     bbDMACmd(bbPort, false);
     bbTIMDMACmd(bbPort->tim, bbPort->dmaSource, false);
     // the next frame reloads every register, so an error flag is only cleared here
@@ -353,7 +384,7 @@ static bool bbSetupPort(bbPort_t *bbPort, IO_t io, const motorDevConfig_t *motor
     bbPort->portOutputBuffer = &bbOutputBuffer[(bbPort - bbPorts) * BB_PORT_BUF_WORDS];
     const uint32_t baseFrequency = getDshotBaseFrequency(motorConfig->motorPwmProtocol);
     bbPort->outputARR = timerClock(bbPort->tim) / baseFrequency - 1;
-    bbPort->frameUs = (1000000ull * MOTOR_DSHOT_BUF_LENGTH) / baseFrequency + 1;
+    bbPort->frameUs = dshotBitbangFrameUs(baseFrequency);
 
     bbTimerChannelInit(bbPort);
     dmaEnable(bbPort->dmaIdentifier);
@@ -399,6 +430,8 @@ bool dshotBitbangMotorInit(uint8_t motorIndex, uint8_t reorderedMotorIndex, ioTa
 bool dshotBitbangPostInit(const motorDevConfig_t *motorConfig, uint8_t motorCount)
 {
     bbStatus = DSHOT_BITBANG_STATUS_OK;
+    bbDmaErrorCount = 0;
+    bbStallCount = 0;
     memset(bbOutputBuffer, 0, sizeof(bbOutputBuffer));
 
     for (int motorIndex = 0; motorIndex < MAX_SUPPORTED_MOTORS && motorIndex < motorCount; motorIndex++) {

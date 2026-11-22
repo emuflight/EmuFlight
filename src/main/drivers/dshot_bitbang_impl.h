@@ -64,6 +64,7 @@ typedef struct bbPort_s {
     dmaIdentifier_e dmaIdentifier;
     bbDmaRegs_t dmaRegs;
     timeUs_t startUs;           // last frame start
+    bool stalled;               // current stall already counted
     uint32_t frameUs;           // frame duration at the configured protocol
     uint16_t outputARR;
     uint32_t *portOutputBuffer;

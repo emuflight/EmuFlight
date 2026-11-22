@@ -222,4 +222,46 @@ TEST(DshotBitbangTest, SetNeverTouchesHoldStates)
     EXPECT_EQ(0u, buffer[HOLD + 2]);
 }
 
+
+// One frame is 16 symbols of 3 states plus 3 hold states: 51 states. Expected times come from
+// the DShot bit rates (150, 300 and 600 kbit/s, 3 states per bit), not from the helper.
+TEST(DshotBitbangTest, FrameTimeCoversTheWholeBuffer)
+{
+    struct { uint32_t bitRate; double frameUs; } cases[] = {
+        {600000, 51.0 / 1800000.0 * 1e6},
+        {300000, 51.0 / 900000.0 * 1e6},
+        {150000, 51.0 / 450000.0 * 1e6},
+    };
+    for (const auto &c : cases) {
+        const uint32_t us = dshotBitbangFrameUs(c.bitRate * MOTOR_DSHOT_STATE_PER_SYMBOL);
+        EXPECT_GE(us, c.frameUs) << c.bitRate;      // never shorter than the real frame
+        EXPECT_LT(us, c.frameUs + 2.0) << c.bitRate; // and not padded by more than rounding
+    }
+}
+
+// A frame is stuck once it runs twice its duration; DSHOT600 frame time is 29 us, so 58 us.
+TEST(DshotBitbangTest, StallRuleWaitsTwoFrameTimes)
+{
+    const uint32_t frameUs = 29;
+
+    EXPECT_FALSE(dshotBitbangFrameStalled(1000 + 0, 1000, frameUs));
+    EXPECT_FALSE(dshotBitbangFrameStalled(1000 + 57, 1000, frameUs));
+    EXPECT_TRUE(dshotBitbangFrameStalled(1000 + 58, 1000, frameUs));
+    EXPECT_TRUE(dshotBitbangFrameStalled(1000 + 59, 1000, frameUs));
+}
+
+TEST(DshotBitbangTest, StallRuleSurvivesTheTimerWrap)
+{
+    const uint32_t frameUs = 29;
+    const timeUs_t start = (timeUs_t)UINT32_MAX - 9; // 10 us before the wrap
+
+    EXPECT_FALSE(dshotBitbangFrameStalled(47, start, frameUs)); // 57 us elapsed
+    EXPECT_TRUE(dshotBitbangFrameStalled(48, start, frameUs));  // 58 us elapsed
+}
+
+TEST(DshotBitbangTest, StallRuleIgnoresAStartTimeAheadOfNow)
+{
+    EXPECT_FALSE(dshotBitbangFrameStalled(1000, 1010, 29));
+}
+
 } // namespace

@@ -3748,7 +3748,7 @@ static void cliStatus(char *cmdline) {
 #ifdef USE_DSHOT_BITBANG
     if (motorConfig()->dev.useDshotBitbang == DSHOT_BITBANG_ON) {
         if (dshotBitbangProtocolSupported(motorConfig()->dev.motorPwmProtocol)) {
-            cliPrintLinef("DShot bitbang: %s, status %d", dshotBitbangIsRunning() ? "on" : "off", dshotBitbangGetStatus());
+            cliPrintLinef("DShot bitbang: %s, status %d, failed frames %u", dshotBitbangIsRunning() ? "on" : "off", dshotBitbangGetStatus(), (unsigned)dshotBitbangGetFailedFrames());
         } else {
             cliPrintLine("DShot bitbang: off, protocol");
         }
@@ -4827,7 +4827,14 @@ static void showTimers(bool rebootNote) {
         bool timerUsed = false;
         for (unsigned channelIndex = 0; channelIndex < CC_CHANNELS_PER_TIMER; channelIndex++) {
             const timerHardware_t *timer = timerGetAllocatedByNumberAndChannel(timerNumber, CC_CHANNEL_FROM_INDEX(channelIndex));
-            const resourceOwner_e owner = timer ? timerGetOwner(timer->tag) : OWNER_FREE;
+            resourceOwner_e owner = timer ? timerGetOwner(timer->tag) : OWNER_FREE;
+            uint8_t resourceIndex = timer ? timerGetOwnerResourceIndex(timer->tag) : 0;
+#ifdef USE_DSHOT_BITBANG
+            // a bitbang pacer channel has no pin, so the pin allocator cannot see it
+            if (owner == OWNER_FREE && dshotBitbangTimerIsAllocated(timerNumber, CC_CHANNEL_FROM_INDEX(channelIndex), &resourceIndex)) {
+                owner = OWNER_DSHOT_BITBANG;
+            }
+#endif
             if (owner == OWNER_FREE) {
                 continue;
             }
@@ -4835,8 +4842,7 @@ static void showTimers(bool rebootNote) {
                 timerUsed = true;
                 cliPrintLinefeed();
             }
-            const uint8_t resourceIndex = timerGetOwnerResourceIndex(timer->tag);
-            const char *channelSuffix = (timer->output & TIMER_OUTPUT_N_CHANNEL) ? "N" : " ";
+            const char *channelSuffix = (timer && (timer->output & TIMER_OUTPUT_N_CHANNEL)) ? "N" : " ";
             if (resourceIndex > 0) {
                 cliPrintLinef("    CH%d%s: %s %d", channelIndex + 1, channelSuffix, ownerNames[owner], resourceIndex);
             } else {
