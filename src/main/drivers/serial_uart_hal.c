@@ -242,6 +242,12 @@ void uartStartTxDMA(uartPort_t *s) {
     HAL_UART_Transmit_DMA(&s->Handle, (uint8_t *)&s->port.txBuffer[fromwhere], size);
 }
 
+// Same end-of-transmit steps as the HAL's UART_EndTransmit_IT, without the HAL IRQ handler that aborts RX DMA on an error.
+void uartEndTxDma(uartPort_t *s) {
+    CLEAR_BIT(s->USARTx->CR1, USART_CR1_TCIE);
+    s->Handle.gState = HAL_UART_STATE_READY;
+}
+
 uint32_t uartTotalRxBytesWaiting(const serialPort_t *instance) {
     uartPort_t *s = (uartPort_t*)instance;
     if (s->rxDMAStream) {

@@ -218,6 +218,7 @@ extern const struct serialPortVTable uartVTable[];
 
 #if defined(USE_HAL_DRIVER)
 void uartStartTxDMA(uartPort_t *s);
+void uartEndTxDma(uartPort_t *s);
 #elif defined(AT32F4)
 void uartTryStartTxDMA(uartPort_t *s);
 #else
