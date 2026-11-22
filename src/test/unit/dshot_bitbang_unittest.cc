@@ -56,12 +56,12 @@ TEST(DshotBitbangTest, OnlyDshot150300600AreActiveWhenOn)
     }
 }
 
-TEST(DshotBitbangTest, OffAndAutoNeverActivate)
+TEST(DshotBitbangTest, OffAndRetiredAutoValueNeverActivate)
 {
     const uint8_t protocols[] = {PWM_TYPE_DSHOT150, PWM_TYPE_DSHOT300, PWM_TYPE_DSHOT600, PWM_TYPE_DSHOT1200, PWM_TYPE_PROSHOT1000};
     for (uint8_t protocol : protocols) {
         EXPECT_FALSE(dshotBitbangIsActiveFor(DSHOT_BITBANG_OFF, protocol)) << (int)protocol;
-        EXPECT_FALSE(dshotBitbangIsActiveFor(DSHOT_BITBANG_AUTO, protocol)) << (int)protocol;
+        EXPECT_FALSE(dshotBitbangIsActiveFor(2, protocol)) << (int)protocol;
     }
 }
 

@@ -717,7 +717,7 @@ const clivalue_t valueTable[] = {
 #ifdef USE_DSHOT
     { "dshot_idle_value",           VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 2000 }, PG_MOTOR_CONFIG, offsetof(motorConfig_t, digitalIdleOffsetValue) },
 #ifdef USE_DSHOT_BITBANG
-    { "dshot_bitbang",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON_AUTO }, PG_MOTOR_CONFIG, offsetof(motorConfig_t, dev.useDshotBitbang) },
+    { "dshot_bitbang",              VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_MOTOR_CONFIG, offsetof(motorConfig_t, dev.useDshotBitbang) },
     { "dshot_bitbang_timer",        VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_DSHOT_BITBANGED_TIMER }, PG_MOTOR_CONFIG, offsetof(motorConfig_t, dev.useDshotBitbangedTimer) },
 #endif
 #ifdef USE_DSHOT_DMAR
