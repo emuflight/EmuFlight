@@ -140,11 +140,13 @@ typedef struct {
     bool configured;
 #if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
     DMA_Stream_TypeDef *dmaRef;
+#elif defined(AT32F4)
+    dmaResource_t *dmaRef;
 #endif
 #endif
     motorDmaTimer_t *timer;
     volatile bool requestTelemetry;
-#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(AT32F4)
     uint32_t dmaBuffer[DSHOT_DMA_BUFFER_SIZE] __attribute__((aligned(32)));
 #else
     uint8_t dmaBuffer[DSHOT_DMA_BUFFER_SIZE];

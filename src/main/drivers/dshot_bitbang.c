@@ -255,7 +255,7 @@ static bool bbFindPacer(bbPort_t *bbPort, uint8_t timerSelect)
             }
             DMA_Stream_TypeDef *dmaRef = (DMA_Stream_TypeDef *)dmaSpec->ref;
             const uint32_t dmaChannel = dmaSpec->channel;
-            const dmaIdentifier_e dmaIdentifier = dmaGetIdentifier(dmaRef);
+            const dmaIdentifier_e dmaIdentifier = dmaGetIdentifier(dmaSpec->ref);
             if (dmaIdentifier == DMA_NONE || dmaGetOwner(dmaIdentifier) != OWNER_FREE) {
                 continue;
             }
