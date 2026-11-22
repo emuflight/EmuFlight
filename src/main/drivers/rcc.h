@@ -32,6 +32,12 @@ enum rcc_reg {
     RCC_AHB3,
     RCC_AHB4,
     RCC_APB4,
+#elif defined(AT32F4)
+    RCC_AHB1,
+    RCC_AHB2,
+    RCC_AHB3,
+    RCC_APB2,
+    RCC_APB1,
 #else
     RCC_APB2,
     RCC_APB1,
@@ -52,6 +58,12 @@ enum rcc_reg {
 // Compatibility alias: on H7, APB1 is split into L/H; most EF peripherals are on APB1L.
 // Must not delegate to RCC_APB1L() — that would macro-expand 'periph' before ## pasting.
 #define RCC_APB1(periph)  RCC_ENCODE(RCC_APB1L, RCC_APB1LENR_ ## periph ## EN)
+#elif defined(AT32F4)
+#define RCC_AHB1(periph) RCC_ENCODE(RCC_AHB1,   CRM_AHB1_ ## periph ## _PER_MASK)
+#define RCC_AHB2(periph) RCC_ENCODE(RCC_AHB2,   CRM_AHB2_ ## periph ## _PER_MASK)
+#define RCC_AHB3(periph) RCC_ENCODE(RCC_AHB3,   CRM_AHB3_ ## periph ## _PER_MASK)
+#define RCC_APB1(periph) RCC_ENCODE(RCC_APB1,   CRM_APB1_ ## periph ## _PER_MASK)
+#define RCC_APB2(periph) RCC_ENCODE(RCC_APB2,   CRM_APB2_ ## periph ## _PER_MASK)
 #else
 #define RCC_APB2(periph)  RCC_ENCODE(RCC_APB2, RCC_APB2ENR_ ## periph ## EN)
 #define RCC_APB1(periph)  RCC_ENCODE(RCC_APB1, RCC_APB1ENR_ ## periph ## EN)

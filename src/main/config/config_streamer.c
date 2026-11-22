@@ -107,6 +107,8 @@ void config_streamer_start(config_streamer_t *c, uintptr_t base, int size) {
 #if !defined(EEPROM_IN_RAM) && !defined(CONFIG_IN_EXTERNAL_FLASH)
 #if defined(STM32F7) || defined(STM32H7)
         HAL_FLASH_Unlock();
+#elif defined(AT32F4)
+        flash_unlock();
 #else
         FLASH_Unlock();
 #endif
@@ -117,6 +119,8 @@ void config_streamer_start(config_streamer_t *c, uintptr_t base, int size) {
     FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
 #elif defined(STM32F7) || defined(STM32H7)
     // NOP
+#elif defined(AT32F4)
+    flash_flag_clear(FLASH_ODF_FLAG | FLASH_PRGMERR_FLAG | FLASH_EPPERR_FLAG);
 #elif defined(UNIT_TEST) || defined(SIMULATOR_BUILD)
     // NOP
 #else
@@ -342,6 +346,17 @@ static int write_word(config_streamer_t *c, uint32_t value) {
     if (status != HAL_OK) {
         return -2;
     }
+#elif defined(AT32F4)
+    if (c->address % FLASH_PAGE_SIZE == 0) {
+        const flash_status_type status = flash_sector_erase(c->address);
+        if (status != FLASH_OPERATE_DONE) {
+            return -1;
+        }
+    }
+    const flash_status_type status = flash_word_program(c->address, value);
+    if (status != FLASH_OPERATE_DONE) {
+        return -2;
+    }
 #else
     if (c->address % FLASH_PAGE_SIZE == 0) {
 #if defined(STM32F4)
@@ -405,6 +420,8 @@ int config_streamer_finish(config_streamer_t *c) {
 #elif !defined(EEPROM_IN_RAM)
 #if defined(STM32F7) || defined(STM32H7)
         HAL_FLASH_Lock();
+#elif defined(AT32F4)
+        flash_lock();
 #else
         FLASH_Lock();
 #endif

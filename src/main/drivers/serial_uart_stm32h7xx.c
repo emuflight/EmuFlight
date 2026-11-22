@@ -461,7 +461,7 @@ void uartConfigureDma(uartDevice_t *uartdev)
 
     const dmaChannelSpec_t *rxDmaSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_UART_RX, device, serialUartConfig(device)->rxDmaopt);
     if (rxDmaSpec) {
-        const dmaIdentifier_e identifier = dmaGetIdentifier((DMA_Stream_TypeDef *)rxDmaSpec->ref);
+        const dmaIdentifier_e identifier = dmaGetIdentifier(rxDmaSpec->ref);
         if (uartDmaClaim(identifier, OWNER_SERIAL_RX, RESOURCE_INDEX(device))) {
             dmaEnable(identifier);
             s->rxDMAChannel = rxDmaSpec->channel;
@@ -478,7 +478,7 @@ void uartConfigureDma(uartDevice_t *uartdev)
 
     const dmaChannelSpec_t *txDmaSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_UART_TX, device, serialUartConfig(device)->txDmaopt);
     if (txDmaSpec) {
-        const dmaIdentifier_e identifier = dmaGetIdentifier((DMA_Stream_TypeDef *)txDmaSpec->ref);
+        const dmaIdentifier_e identifier = dmaGetIdentifier(txDmaSpec->ref);
         if (uartDmaClaim(identifier, OWNER_SERIAL_TX, RESOURCE_INDEX(device))) {
             dmaEnable(identifier);
             s->txDMAChannel = txDmaSpec->channel;

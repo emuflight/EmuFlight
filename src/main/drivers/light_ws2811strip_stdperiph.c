@@ -48,7 +48,7 @@ static TIM_TypeDef *timer = NULL;
 static void WS2811_DMA_IRQHandler(dmaChannelDescriptor_t *descriptor) {
     if (DMA_GET_FLAG_STATUS(descriptor, DMA_IT_TCIF)) {
         ws2811LedDataTransferInProgress = 0;
-        DMA_Cmd(descriptor->ref, DISABLE);
+        DMA_Cmd((DMA_Stream_TypeDef *)descriptor->ref, DISABLE);
         DMA_CLEAR_FLAG(descriptor, DMA_IT_TCIF);
     }
 }
