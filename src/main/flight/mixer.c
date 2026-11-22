@@ -78,7 +78,7 @@ PG_RESET_TEMPLATE(mixerConfig_t, mixerConfig,
                   .crashflip_power_percent = 70,
                  );
 
-PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 2);
+PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 3);
 
 void pgResetFn_motorConfig(motorConfig_t *motorConfig) {
 #ifdef BRUSHED_MOTORS
