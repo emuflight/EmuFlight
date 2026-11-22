@@ -94,8 +94,8 @@ static int usedMotorPorts;
 static bbMotor_t bbMotors[MAX_SUPPORTED_MOTORS];
 static DMA_DATA_ZERO_INIT uint32_t bbOutputBuffer[BB_PORT_BUF_WORDS * MAX_SUPPORTED_MOTOR_PORTS];
 static dshotBitbangStatus_e bbStatus;
-static uint32_t bbDmaErrorCount; // written in the DMA interrupt only
-static uint32_t bbStallCount;    // written by the update path only
+static volatile uint32_t bbDmaErrorCount; // written in the DMA interrupt only
+static volatile uint32_t bbStallCount;    // written by the update path only
 static bool bbRunning;
 
 dshotBitbangStatus_e dshotBitbangGetStatus(void)
