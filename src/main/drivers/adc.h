@@ -56,12 +56,25 @@
 #ifndef ADC3_DMA_OPT
 #define ADC3_DMA_OPT 11 // DMA2 ST3
 #endif
+#elif defined(AT32F435)
+// A board selects the DMA channel pool index; none is chosen by default.
+#ifndef ADC1_DMA_OPT
+#define ADC1_DMA_OPT (-1) // DMA_OPT_UNUSED
+#endif
+
+#ifndef ADC2_DMA_OPT
+#define ADC2_DMA_OPT (-1)
+#endif
+
+#ifndef ADC3_DMA_OPT
+#define ADC3_DMA_OPT (-1)
+#endif
 #endif
 
 typedef enum ADCDevice {
     ADCINVALID = -1,
     ADCDEV_1   = 0,
-#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(AT32F435)
     ADCDEV_2,
     ADCDEV_3,
 #endif
@@ -73,6 +86,9 @@ typedef enum ADCDevice {
 
 // H7 reads VREFINT and the temperature sensor in the ADC3 DMA scan; H7A3 has no ADC3.
 #if defined(STM32H7) && defined(USE_ADC_INTERNAL) && !(defined(STM32H7A3xx) || defined(STM32H7A3xxQ))
+#define ADC_INTERNAL_IN_SCAN
+#endif
+#if defined(AT32F435) && defined(USE_ADC_INTERNAL)
 #define ADC_INTERNAL_IN_SCAN
 #endif
 
@@ -91,7 +107,7 @@ typedef enum {
 
 typedef struct adcOperatingConfig_s {
     ioTag_t tag;
-#if defined(STM32H7)
+#if defined(STM32H7) || defined(AT32F435)
     ADCDevice adcDevice;        // ADCDEV_x serving this input
     uint32_t adcChannel;        // H7 HAL channel constant, wider than 8 bits
 #else

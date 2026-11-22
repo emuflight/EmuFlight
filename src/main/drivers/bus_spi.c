@@ -344,7 +344,7 @@ FAST_CODE static void spiTxIrqHandler(dmaChannelDescriptor_t *descriptor)
 }
 #endif
 
-#if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7)) && defined(USE_SPI)
+#if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(AT32F4)) && defined(USE_SPI)
 // A pinned option probes only itself; -1 scans every option. Out of range yields no DMA (polled bus).
 static bool spiDmaoptRange(int8_t pinned, uint8_t *first, uint8_t *last)
 {
@@ -364,7 +364,7 @@ static bool spiDmaoptRange(int8_t pinned, uint8_t *first, uint8_t *last)
 
 void spiInitBusDMA(void)
 {
-#if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7)) && defined(USE_SPI)
+#if (defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(AT32F4)) && defined(USE_SPI)
     for (uint32_t device = 0; device < SPIDEV_COUNT; device++) {
 #if defined(USE_GYRO_IMUF9001)
         // SPI1 is claimed by accgyro_mpu.c's dedicated IMUF9001 DMA path; leave it alone here.
@@ -387,7 +387,7 @@ void spiInitBusDMA(void)
         for (uint8_t opt = firstOpt; txOptValid && opt <= lastOpt; opt++) {
             const dmaChannelSpec_t *dmaTxChannelSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SPI_SDO, device, opt);
             if (dmaTxChannelSpec) {
-                dmaTxIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaTxChannelSpec->ref);
+                dmaTxIdentifier = dmaGetIdentifier(dmaTxChannelSpec->ref);
                 if (!dmaAllocate(dmaTxIdentifier, OWNER_SPI_SDO, device + 1)) {
                     dmaTxIdentifier = DMA_NONE;
                     continue;
@@ -396,6 +396,9 @@ void spiInitBusDMA(void)
                 bus->dmaTx->stream  = DMA_DEVICE_INDEX(dmaTxIdentifier);
                 bus->dmaTx->channel = dmaTxChannelSpec->channel;
                 dmaEnable(dmaTxIdentifier);
+#if defined(AT32F4)
+                dmaMuxEnable(dmaTxIdentifier, dmaTxChannelSpec->channel);
+#endif
                 break;
             }
         }
@@ -404,7 +407,7 @@ void spiInitBusDMA(void)
         for (uint8_t opt = firstOpt; rxOptValid && opt <= lastOpt; opt++) {
             const dmaChannelSpec_t *dmaRxChannelSpec = dmaGetChannelSpecByPeripheral(DMA_PERIPH_SPI_SDI, device, opt);
             if (dmaRxChannelSpec) {
-                dmaRxIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaRxChannelSpec->ref);
+                dmaRxIdentifier = dmaGetIdentifier(dmaRxChannelSpec->ref);
                 if (!dmaAllocate(dmaRxIdentifier, OWNER_SPI_SDI, device + 1)) {
                     dmaRxIdentifier = DMA_NONE;
                     continue;
@@ -413,6 +416,9 @@ void spiInitBusDMA(void)
                 bus->dmaRx->stream  = DMA_DEVICE_INDEX(dmaRxIdentifier);
                 bus->dmaRx->channel = dmaRxChannelSpec->channel;
                 dmaEnable(dmaRxIdentifier);
+#if defined(AT32F4)
+                dmaMuxEnable(dmaRxIdentifier, dmaRxChannelSpec->channel);
+#endif
                 break;
             }
         }

@@ -165,7 +165,7 @@ bool pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
         if (upSpec) {
             dmaRef = (DMA_Stream_TypeDef *)upSpec->ref;
             // Re-derive the identifier so the claim and IRQ target the stream actually used.
-            dmaUpIrqIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)upSpec->ref);
+            dmaUpIrqIdentifier = dmaGetIdentifier(upSpec->ref);
             if (dmaUpIrqIdentifier == DMA_NONE) {
                 return false;
             }
@@ -185,7 +185,7 @@ bool pwmDshotMotorHardwareConfig(const timerHardware_t *timerHardware, uint8_t m
             // the stale baked identifier no longer matches the stream actually claimed here.
             // Re-derive it from the resolved ref so ownership claim and IRQ registration
             // target the same physical stream as the DMA transfer itself.
-            dmaIrqIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaSpec->ref);
+            dmaIrqIdentifier = dmaGetIdentifier(dmaSpec->ref);
         }
 #endif
     }

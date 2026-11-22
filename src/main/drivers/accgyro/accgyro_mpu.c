@@ -302,8 +302,8 @@ static bool imufDmaAllocateChannels(gyroDev_t *gyro) {
         return false;
     }
 
-    const dmaIdentifier_e txId = dmaGetIdentifier((DMA_Stream_TypeDef *)txSpec->ref);
-    const dmaIdentifier_e rxId = dmaGetIdentifier((DMA_Stream_TypeDef *)rxSpec->ref);
+    const dmaIdentifier_e txId = dmaGetIdentifier(txSpec->ref);
+    const dmaIdentifier_e rxId = dmaGetIdentifier(rxSpec->ref);
     // dmaAllocate() itself guards identifier == DMA_NONE, but its return value must be
     // checked before touching the descriptor via dmaGetDescriptorByIdentifier() - matches
     // the defensive pattern spiInitBusDMA() already uses for this exact sequence.
@@ -470,7 +470,7 @@ void mpuImufSetupDma(gyroDev_t *gyro) {
 
     LL_DMA_Init(imufDmaTx->dma, imufDmaTx->stream, &imufDmaInitTx);
     LL_DMA_Init(imufDmaRx->dma, imufDmaRx->stream, &imufDmaInitRx);
-    LL_EX_DMA_EnableIT_TC(imufDmaRx->ref);
+    LL_EX_DMA_EnableIT_TC((DMA_Stream_TypeDef *)imufDmaRx->ref);
 }
 
 // Kick off one DMA transfer. F7 has a D-cache that DMA bypasses - imufTxBuf/

@@ -69,7 +69,7 @@ ADCDevice adcDeviceByInstance(ADC_TypeDef *instance) {
     if (instance == ADC1) {
         return ADCDEV_1;
     }
-#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(AT32F435)
     if (instance == ADC2) {
         return ADCDEV_2;
     }
@@ -81,6 +81,9 @@ ADCDevice adcDeviceByInstance(ADC_TypeDef *instance) {
 }
 
 uint16_t adcGetChannel(uint8_t channel) {
+#if defined(AT32F435)
+    adcGetChannelValues();
+#endif
 #if defined(STM32H7)
     SCB_InvalidateDCache_by_Addr((uint32_t*)adcValues, (sizeof(adcValues) + 31U) & ~31U);
 #endif

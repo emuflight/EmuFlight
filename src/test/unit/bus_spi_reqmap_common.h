@@ -50,7 +50,7 @@ static const void *const streamAddress[16] = {
 static uint32_t claimedStreams; // bit n = DMA1_ST0_HANDLER + n is owned
 static dmaChannelDescriptor_t fakeDescriptors[DMA_LAST_HANDLER + 1];
 
-dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef *stream) {
+dmaIdentifier_e dmaGetIdentifier(const dmaResource_t *stream) {
     for (int n = 0; n < 16; n++) {
         if ((const void *)stream == streamAddress[n]) {
             return (dmaIdentifier_e)(DMA1_ST0_HANDLER + n);
@@ -155,7 +155,7 @@ int referenceScan(dmaPeripheral_e periph, int device, uint32_t *claims)
         if (!spec) {
             continue;
         }
-        const int id = dmaGetIdentifier((const DMA_Stream_TypeDef *)spec->ref);
+        const int id = dmaGetIdentifier(spec->ref);
         const uint32_t bit = 1u << DMA_IDENTIFIER_TO_INDEX(id);
         if (*claims & bit) {
             continue;

@@ -1449,7 +1449,7 @@ int tfp_sprintf(char *s, const char *fmt, ...) {
     return ret;
 }
 
-dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef *) { return static_cast<dmaIdentifier_e>(1); }
+dmaIdentifier_e dmaGetIdentifier(const dmaResource_t *) { return static_cast<dmaIdentifier_e>(1); }
 resourceOwner_e dmaGetOwner(dmaIdentifier_e) { return fakeDmaOwner; }
 uint8_t dmaGetResourceIndex(dmaIdentifier_e) { return fakeDmaResourceIndex; }
 
