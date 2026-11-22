@@ -169,7 +169,7 @@
 #define ENABLE_DSHOT_DMAR false
 #endif
 
-// DShot bitbang is opt-in; AUTO stays inert
+// DShot bitbang is opt-in
 #ifndef DEFAULT_DSHOT_BITBANG
 #define DEFAULT_DSHOT_BITBANG DSHOT_BITBANG_OFF
 #endif

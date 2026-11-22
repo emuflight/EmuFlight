@@ -28,7 +28,6 @@
 typedef enum {
     DSHOT_BITBANG_OFF,
     DSHOT_BITBANG_ON,
-    DSHOT_BITBANG_AUTO,
 } dshotBitbangMode_e;
 
 typedef enum {
@@ -53,7 +52,7 @@ typedef enum {
 #define MOTOR_DSHOT_BUF_LENGTH       ((MOTOR_DSHOT_FRAME_BITS * MOTOR_DSHOT_STATE_PER_SYMBOL) + MOTOR_DSHOT_BIT_HOLD_STATES)
 
 #ifdef USE_DSHOT
-// Bitbang makes DSHOT150/300/600 only. AUTO stays inert on EF.
+// Bitbang makes DSHOT150/300/600 only.
 static inline bool dshotBitbangProtocolSupported(uint8_t protocol)
 {
     return protocol == PWM_TYPE_DSHOT150 || protocol == PWM_TYPE_DSHOT300 || protocol == PWM_TYPE_DSHOT600;

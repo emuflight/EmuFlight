@@ -123,8 +123,8 @@ TEST(PwmOutputBitbangSeam, AllThreeSupportedProtocolsUseBitbang) {
     }
 }
 
-TEST(PwmOutputBitbangSeam, OffAndAutoKeepClassicDshot) {
-    const uint8_t modes[] = {DSHOT_BITBANG_OFF, DSHOT_BITBANG_AUTO};
+TEST(PwmOutputBitbangSeam, OffAndRetiredAutoValueKeepClassicDshot) {
+    const uint8_t modes[] = {DSHOT_BITBANG_OFF, 2}; // 2 was AUTO in test builds; a saved 2 must stay classic
     for (uint8_t mode : modes) {
         resetFakes();
         initMotors(mode, PWM_TYPE_DSHOT600);
