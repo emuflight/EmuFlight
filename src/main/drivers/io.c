@@ -67,6 +67,17 @@ const struct ioPortDef_s ioPortDefs[] = {
     { RCC_AHB4(GPIOJ) },
     { RCC_AHB4(GPIOK) },
 };
+#elif defined(AT32F4)
+const struct ioPortDef_s ioPortDefs[] = {
+    { RCC_AHB1(GPIOA) },
+    { RCC_AHB1(GPIOB) },
+    { RCC_AHB1(GPIOC) },
+    { RCC_AHB1(GPIOD) },
+    { RCC_AHB1(GPIOE) },
+    { RCC_AHB1(GPIOF) },
+    { RCC_AHB1(GPIOG) },
+    { RCC_AHB1(GPIOH) },
+};
 #endif
 
 ioRec_t* IO_Rec(IO_t io) {
@@ -120,7 +131,7 @@ uint32_t IO_EXTI_Line(IO_t io) {
     if (!io) {
         return 0;
     }
-#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(AT32F4)
     return 1 << IO_GPIOPinIdx(io);
 #elif defined(SIMULATOR_BUILD)
     return 0;
@@ -135,6 +146,8 @@ bool IORead(IO_t io) {
     }
 #if defined(USE_HAL_DRIVER)
     return (LL_GPIO_ReadInputPort(IO_GPIO(io)) & IO_Pin(io));
+#elif defined(AT32F4)
+    return (IO_GPIO(io)->idt & IO_Pin(io));
 #else
     return (IO_GPIO(io)->IDR & IO_Pin(io));
 #endif
@@ -152,6 +165,8 @@ void IOWrite(IO_t io, bool hi) {
     } else {
         IO_GPIO(io)->BSRRH = IO_Pin(io);
     }
+#elif defined(AT32F4)
+    IO_GPIO(io)->scr = IO_Pin(io) << (hi ? 0 : 16);
 #else
     IO_GPIO(io)->BSRR = IO_Pin(io) << (hi ? 0 : 16);
 #endif
@@ -165,6 +180,8 @@ void IOHi(IO_t io) {
     LL_GPIO_SetOutputPin(IO_GPIO(io), IO_Pin(io));
 #elif defined(STM32F4)
     IO_GPIO(io)->BSRRL = IO_Pin(io);
+#elif defined(AT32F4)
+    IO_GPIO(io)->scr = IO_Pin(io);
 #else
     IO_GPIO(io)->BSRR = IO_Pin(io);
 #endif
@@ -178,6 +195,8 @@ void IOLo(IO_t io) {
     LL_GPIO_ResetOutputPin(IO_GPIO(io), IO_Pin(io));
 #elif defined(STM32F4)
     IO_GPIO(io)->BSRRH = IO_Pin(io);
+#elif defined(AT32F4)
+    IO_GPIO(io)->clr = IO_Pin(io);
 #else
     IO_GPIO(io)->BRR = IO_Pin(io);
 #endif
@@ -202,6 +221,11 @@ void IOToggle(IO_t io) {
     } else {
         IO_GPIO(io)->BSRRL = mask;
     }
+#elif defined(AT32F4)
+    if (IO_GPIO(io)->odt & mask) {
+        mask <<= 16;   // bit is set, shift mask to reset half
+    }
+    IO_GPIO(io)->scr = mask;
 #else
     if (IO_GPIO(io)->ODR & mask)
         mask <<= 16;   // bit is set, shift mask to reset half
@@ -322,6 +346,32 @@ void IOConfigGPIOAF(IO_t io, ioConfig_t cfg, uint8_t af) {
         .GPIO_PuPd = (cfg >> 5) & 0x03,
     };
     GPIO_Init(IO_GPIO(io), &init);
+}
+
+#elif defined(AT32F4)
+
+void IOConfigGPIO(IO_t io, ioConfig_t cfg) {
+    if (!io) {
+        return;
+    }
+    const rccPeriphTag_t rcc = ioPortDefs[IO_GPIOPortIdx(io)].rcc;
+    RCC_ClockCmd(rcc, ENABLE);
+    gpio_init_type init = {
+        .gpio_pins = IO_Pin(io),
+        .gpio_mode = (cfg >> 0) & 0x03,
+        .gpio_drive_strength = (cfg >> 2) & 0x03,
+        .gpio_out_type = (cfg >> 4) & 0x01,
+        .gpio_pull = (cfg >> 5) & 0x03,
+    };
+    gpio_init(IO_GPIO(io), &init);
+}
+
+void IOConfigGPIOAF(IO_t io, ioConfig_t cfg, uint8_t af) {
+    if (!io) {
+        return;
+    }
+    IOConfigGPIO(io, cfg);
+    gpio_pin_mux_config(IO_GPIO(io), IO_GPIO_PinSource(io), af);
 }
 #endif
 
