@@ -562,7 +562,8 @@ FAST_IRQ_HANDLER void uartIrqHandler(uartPort_t *s)
             }
         }
     }
-    if (__HAL_UART_GET_IT(huart, UART_IT_TC) != RESET) {
+    // TC stays set while the transmitter is idle. Act only when the HAL enabled TCIE for a DMA transmit.
+    if (__HAL_UART_GET_IT_SOURCE(huart, UART_IT_TC) && (__HAL_UART_GET_IT(huart, UART_IT_TC) != RESET)) {
         HAL_UART_IRQHandler(huart);
         if (s->txDMAStream) {
             handleUsartTxDma(s);
