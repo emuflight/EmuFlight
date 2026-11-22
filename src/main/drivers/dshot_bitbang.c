@@ -252,6 +252,7 @@ static bool bbPortStop(const bbPort_t *bbPort)
 static bool bbPortIsBusy(bbPort_t *bbPort)
 {
     if (!bbDMAIsEnabled(bbPort)) {
+        bbPort->stalled = false; // a late stop ends the counted stall
         return false;
     }
     if (!dshotBitbangFrameStalled(micros(), bbPort->startUs, bbPort->frameUs)) {
