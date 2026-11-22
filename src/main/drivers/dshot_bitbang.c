@@ -73,6 +73,15 @@ static const bbPacerRow_t bbPacerRows[] = {
     { TIM1, BB_CH(2), -1 },
     { TIM1, BB_CH(3), -1 },
     { TIM1, BB_CH(4), -1 },
+#elif defined(AT32F4)
+    { TMR8, BB_CH(1), -1 },
+    { TMR8, BB_CH(2), -1 },
+    { TMR8, BB_CH(3), -1 },
+    { TMR8, BB_CH(4), -1 },
+    { TMR1, BB_CH(1), -1 },
+    { TMR1, BB_CH(2), -1 },
+    { TMR1, BB_CH(3), -1 },
+    { TMR1, BB_CH(4), -1 },
 #else
 #error MCU dependent code required
 #endif
@@ -137,6 +146,33 @@ static bbPort_t *bbFindMotorPort(int portIndex)
     return NULL;
 }
 
+#if defined(AT32F4)
+static void bbDMASaveRegs(bbPort_t *bbPort)
+{
+    const DMA_ARCH_TYPE *channel = bbPort->dmaRef;
+
+    bbPort->dmaRegs.ctrl = channel->ctrl;
+    bbPort->dmaRegs.dtcnt = channel->dtcnt;
+    bbPort->dmaRegs.paddr = channel->paddr;
+    bbPort->dmaRegs.maddr = channel->maddr;
+}
+
+// The channel registers are rewritten each frame because the data count is spent and a transfer error may leave the channel half-configured
+static void bbDMALoadRegs(const bbPort_t *bbPort)
+{
+    DMA_ARCH_TYPE *channel = bbPort->dmaRef;
+
+    channel->ctrl = bbPort->dmaRegs.ctrl;
+    channel->dtcnt = bbPort->dmaRegs.dtcnt;
+    channel->paddr = bbPort->dmaRegs.paddr;
+    channel->maddr = bbPort->dmaRegs.maddr;
+}
+
+static bool bbDMAIsEnabled(const bbPort_t *bbPort)
+{
+    return IS_DMA_ENABLED(bbPort->dmaRef) != 0;
+}
+#else
 static void bbDMASaveRegs(bbPort_t *bbPort)
 {
     const DMA_Stream_TypeDef *stream = bbPort->dmaRef;
@@ -164,6 +200,7 @@ static bool bbDMAIsEnabled(const bbPort_t *bbPort)
 {
     return (bbPort->dmaRef->CR & DMA_SxCR_EN) != 0;
 }
+#endif
 
 // Every event flag must be clear before the stream is enabled again
 #ifdef DMA_IT_FEIF
@@ -244,7 +281,7 @@ static bool bbFindPacer(bbPort_t *bbPort, uint8_t timerSelect)
             continue;
         }
 
-        // a negative dmaopt tries every option: H7 DMAMUX lets any free stream serve the request
+        // a negative dmaopt tries every option: the H7 and AT32 DMAMUX lets any free channel serve the request
         const int8_t firstOpt = bbPacerRows[row].dmaopt < 0 ? 0 : bbPacerRows[row].dmaopt;
         const int8_t lastOpt = bbPacerRows[row].dmaopt < 0 ? MAX_TIMER_DMA_OPTIONS - 1 : bbPacerRows[row].dmaopt;
         for (int8_t opt = firstOpt; opt <= lastOpt; opt++) {
@@ -253,7 +290,7 @@ static bool bbFindPacer(bbPort_t *bbPort, uint8_t timerSelect)
             if (!dmaSpec || !dmaSpec->ref) {
                 continue;
             }
-            DMA_Stream_TypeDef *dmaRef = (DMA_Stream_TypeDef *)dmaSpec->ref;
+            DMA_ARCH_TYPE *dmaRef = (DMA_ARCH_TYPE *)dmaSpec->ref;
             const uint32_t dmaChannel = dmaSpec->channel;
             const dmaIdentifier_e dmaIdentifier = dmaGetIdentifier(dmaSpec->ref);
             if (dmaIdentifier == DMA_NONE || dmaGetOwner(dmaIdentifier) != OWNER_FREE) {
@@ -347,6 +384,8 @@ bool dshotBitbangMotorInit(uint8_t motorIndex, uint8_t reorderedMotorIndex, ioTa
     bbMotor->portIndex = IO_GPIOPortIdx(io);
 #if defined(STM32F4)
     bbMotor->iocfg = IO_CONFIG(GPIO_Mode_OUT, GPIO_Speed_50MHz, GPIO_OType_PP, GPIO_PuPd_DOWN);
+#elif defined(AT32F4)
+    bbMotor->iocfg = IO_CONFIG(GPIO_MODE_OUTPUT, GPIO_DRIVE_STRENGTH_STRONGER, GPIO_OUTPUT_PUSH_PULL, GPIO_PULL_DOWN);
 #else
     bbMotor->iocfg = IO_CONFIG(GPIO_MODE_OUTPUT_PP, GPIO_SPEED_FREQ_LOW, GPIO_PULLDOWN);
 #endif

@@ -32,11 +32,18 @@
 #define MAX_MOTOR_PACERS          4 // TIM1 and TIM8 at most
 
 typedef struct bbDmaRegs_s {
+#if defined(AT32F4)
+    uint32_t ctrl;
+    uint32_t dtcnt;
+    uint32_t paddr;
+    uint32_t maddr;
+#else
     uint32_t CR;
     uint32_t FCR;
     uint32_t NDTR;
     uint32_t PAR;
     uint32_t M0AR;
+#endif
 } bbDmaRegs_t;
 
 // One pacer timer: its channel DMA requests clock the BSRR writes of every port on it
@@ -52,7 +59,7 @@ typedef struct bbPort_s {
     TIM_TypeDef *tim;
     uint8_t timChannel;
     uint16_t dmaSource;
-    DMA_Stream_TypeDef *dmaRef;
+    DMA_ARCH_TYPE *dmaRef;
     uint32_t dmaChannel;
     dmaIdentifier_e dmaIdentifier;
     bbDmaRegs_t dmaRegs;
@@ -72,7 +79,7 @@ typedef struct bbMotor_s {
     bool configured;
 } bbMotor_t;
 
-// MCU specific, dshot_bitbang_ll.c (F7/H7) or dshot_bitbang_stdperiph.c (F4)
+// MCU specific, dshot_bitbang_ll.c (F7/H7), dshot_bitbang_stdperiph.c (F4) or at32/dshot_bitbang_at32.c
 void bbTimerChannelInit(const bbPort_t *bbPort);
 void bbDMAPreconfigure(bbPort_t *bbPort);
 void bbDMACmd(const bbPort_t *bbPort, bool enable);

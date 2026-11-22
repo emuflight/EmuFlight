@@ -254,7 +254,7 @@
 #ifndef AT32F4
 #define USE_DSHOT_DMAR          // the AT32 DShot driver has no burst mode
 #endif
-#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
+#if defined(STM32F4) || defined(STM32F7) || defined(STM32H7) || defined(AT32F4)
 #define USE_DSHOT_BITBANG
 #endif
 #define USE_GYRO_OVERFLOW_CHECK

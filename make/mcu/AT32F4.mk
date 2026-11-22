@@ -62,6 +62,7 @@ MCU_COMMON_SRC = \
             startup/at32/at32f435_437_clock.c \
             $(addprefix drivers/at32/,$(notdir $(wildcard $(SRC_DIR)/drivers/at32/*.c))) \
             drivers/inverter.c \
+            drivers/dshot_bitbang.c \
             drivers/bus_i2c_timing.c \
             drivers/bus_i2c_utils.c \
             i2c_application.c
