@@ -227,7 +227,7 @@ TEST(DshotBitbangTest, SetNeverTouchesHoldStates)
 // the DShot bit rates (150, 300 and 600 kbit/s, 3 states per bit), not from the helper.
 TEST(DshotBitbangTest, FrameTimeCoversTheWholeBuffer)
 {
-    struct { uint32_t bitRate; double frameUs; } cases[] = {
+    const struct { uint32_t bitRate; double frameUs; } cases[] = {
         {600000, 51.0 / 1800000.0 * 1e6},
         {300000, 51.0 / 900000.0 * 1e6},
         {150000, 51.0 / 450000.0 * 1e6},
