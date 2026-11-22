@@ -140,7 +140,7 @@ void uartReconfigure(uartPort_t *uartPort) {
             uartPort->rxDMAPos = __HAL_DMA_GET_COUNTER(&uartPort->rxDMAHandle);
             // NOTE(STM32H7): DMA RX is now active. uartRead() calls SCB_InvalidateDCache_by_Addr
             // before reading each byte so the D-cache does not return stale data after DMA writes.
-            // rxDMAStream is currently always NULL in H7 board configs (path unreachable at runtime).
+            // rxDMAStream is NULL unless the user sets dma UART_RX in the CLI; no board sets it by default.
         } else {
             /* Enable the UART Parity Error Interrupt */
             SET_BIT(uartPort->USARTx->CR1, USART_CR1_PEIE);

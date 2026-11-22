@@ -185,7 +185,7 @@ const uartHardware_t uartHardware[UARTDEV_COUNT] = {
 void uartIrqHandler(uartPort_t *s) {
     UART_HandleTypeDef *huart = &s->Handle;
     /* UART in mode Receiver ---------------------------------------------------*/
-    if (!s->rxDMAStream && (__HAL_UART_GET_IT(huart, UART_IT_RXNE) != RESET)) {
+    if (__HAL_UART_GET_IT_SOURCE(huart, UART_IT_RXNE) && (__HAL_UART_GET_IT(huart, UART_IT_RXNE) != RESET)) {
         uint8_t rbyte = (uint8_t)(huart->Instance->RDR & (uint8_t) 0xff);
         if (s->port.rxCallback) {
             s->port.rxCallback(rbyte, s->port.rxCallbackData);

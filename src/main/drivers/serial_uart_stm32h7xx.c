@@ -530,7 +530,8 @@ FAST_IRQ_HANDLER void uartIrqHandler(uartPort_t *s)
 {
     UART_HandleTypeDef *huart = &s->Handle;
 
-    if (__HAL_UART_GET_IT(huart, UART_IT_RXNE) != RESET) {
+    // RXNEIE is clear with RX DMA, so the DMA keeps the byte.
+    if (__HAL_UART_GET_IT_SOURCE(huart, UART_IT_RXNE) && (__HAL_UART_GET_IT(huart, UART_IT_RXNE) != RESET)) {
         uint8_t rbyte = (uint8_t)(huart->Instance->RDR & 0xffU);
         if (s->port.rxCallback) {
             s->port.rxCallback(rbyte, s->port.rxCallbackData);
