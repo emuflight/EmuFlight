@@ -132,7 +132,7 @@ void dmaSetHandler(dmaIdentifier_e identifier, dmaCallbackHandlerFuncPtr callbac
     RCC_AHB1PeriphClockCmd(DMA_RCC(dmaDescriptors[index].dma), ENABLE);
     dmaDescriptors[index].irqHandlerCallback = callback;
     dmaDescriptors[index].userParam = userParam;
-    dmaDescriptors[index].completeFlag = dmaFlag_IT_TCIF(dmaDescriptors[index].ref);
+    dmaDescriptors[index].completeFlag = dmaFlag_IT_TCIF((const DMA_Stream_TypeDef *)dmaDescriptors[index].ref);
     NVIC_InitStructure.NVIC_IRQChannel = dmaDescriptors[index].irqN;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NVIC_PRIORITY_BASE(priority);
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = NVIC_PRIORITY_SUB(priority);
@@ -154,9 +154,9 @@ uint8_t dmaGetResourceIndex(dmaIdentifier_e identifier) {
     return dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].resourceIndex;
 }
 
-dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef* stream) {
+dmaIdentifier_e dmaGetIdentifier(const dmaResource_t* stream) {
     for (int i = 0; i < DMA_LAST_HANDLER; i++) {
-        if (dmaDescriptors[i].ref == stream) {
+        if (dmaDescriptors[i].ref == (const dmaResource_t *)stream) {
             return i + 1;
         }
     }
@@ -165,7 +165,7 @@ dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef* stream) {
 
 dmaChannelDescriptor_t* dmaGetDescriptor(const DMA_Stream_TypeDef* stream) {
     for (int i = 0; i < DMA_LAST_HANDLER; i++) {
-        if (dmaDescriptors[i].ref == stream) {
+        if (dmaDescriptors[i].ref == (const dmaResource_t *)stream) {
             return &dmaDescriptors[i];
         }
     }
@@ -176,7 +176,7 @@ DMA_Stream_TypeDef* dmaGetRefByIdentifier(const dmaIdentifier_e identifier) {
     if (!dmaIdentifierIsValid(identifier)) {
         return NULL;
     }
-    return dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].ref;
+    return (DMA_Stream_TypeDef *)dmaDescriptors[DMA_IDENTIFIER_TO_INDEX(identifier)].ref;
 }
 
 dmaChannelDescriptor_t* dmaGetDescriptorByIdentifier(const dmaIdentifier_e identifier) {
