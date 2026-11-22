@@ -98,7 +98,7 @@ const dmaChannelSpec_t *dmaGetChannelSpecByPeripheral(dmaPeripheral_e device, ui
     return NULL;
 }
 
-dmaIdentifier_e dmaGetIdentifier(const DMA_Stream_TypeDef *stream) {
+dmaIdentifier_e dmaGetIdentifier(const dmaResource_t *stream) {
     if ((const void *)stream == (const void *)&dmaTxStreamMarker) {
         return DMA1_ST0_HANDLER;
     }

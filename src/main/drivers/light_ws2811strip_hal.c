@@ -67,7 +67,7 @@ void ws2811LedStripHardwareInit(ioTag_t ioTag) {
         dmaRef = (DMA_Stream_TypeDef *)dmaSpec->ref;
         dmaChannel = dmaSpec->channel;
         // The baked dmaIrqHandler follows the table's fixed dmaopt, not the resolved one.
-        dmaIrqIdentifier = dmaGetIdentifier((DMA_Stream_TypeDef *)dmaSpec->ref);
+        dmaIrqIdentifier = dmaGetIdentifier(dmaSpec->ref);
     }
 #endif
 

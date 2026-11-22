@@ -278,7 +278,7 @@ void adcInit(const adcConfig_t *config)
         }
 
         const dmaChannelSpec_t *dmaSpec = adcDevice[dev].ADCx ? dmaGetChannelSpecByPeripheral(DMA_PERIPH_ADC, dev, config->dmaopt[dev]) : NULL;
-        const dmaIdentifier_e dmaId = dmaSpec ? dmaGetIdentifier((DMA_Stream_TypeDef *)dmaSpec->ref) : DMA_NONE;
+        const dmaIdentifier_e dmaId = dmaSpec ? dmaGetIdentifier(dmaSpec->ref) : DMA_NONE;
         if (!dmaSpec || !dmaAllocate(dmaId, OWNER_ADC, 0)) {
             adcDisableDevice(dev);
             channelCount[dev] = 0;
