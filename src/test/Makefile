@@ -775,6 +775,18 @@ maths_unittest_SRC := \
 		$(USER_DIR)/common/maths.c
 
 
+msp_reboot_unittest_SRC := \
+		$(USER_DIR)/fc/runtime_config.c \
+		$(TEST_DIR)/msp_reboot_test_support.c
+
+# Compile the whole MSP translation unit, keep only the reboot paths.
+msp_reboot_unittest_CFLAGS := -ffunction-sections -fdata-sections
+ifdef MACOSX
+msp_reboot_unittest_LDFLAGS := -Wl,-dead_strip
+else
+msp_reboot_unittest_LDFLAGS := -Wl,--gc-sections
+endif
+
 osd_unittest_SRC := \
 		$(USER_DIR)/io/osd.c \
 		$(USER_DIR)/common/typeconversion.c \
