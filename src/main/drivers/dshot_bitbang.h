@@ -122,7 +122,7 @@ void dshotBitbangWriteInt(uint8_t motorIndex, uint16_t value);
 void dshotBitbangUpdateComplete(uint8_t motorCount);
 dshotBitbangStatus_e dshotBitbangGetStatus(void);
 bool dshotBitbangIsRunning(void);
-// Frames that ended in a DMA error or never completed since init
+// Failure events since init: DMA transfer errors and frames that never completed; one frame can count twice
 uint32_t dshotBitbangGetFailedFrames(void);
 // True when a running port group paces its DMA from this timer channel
 bool dshotBitbangTimerIsAllocated(int8_t timerNumber, uint16_t timerChannel, uint8_t *resourceIndex);
