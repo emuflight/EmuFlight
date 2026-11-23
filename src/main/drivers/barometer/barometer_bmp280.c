@@ -44,12 +44,15 @@ STATIC_UNIT_TESTED bmp280_calib_param_t bmp280_cal;
 // uncompensated pressure and temperature
 int32_t bmp280_up = 0;
 int32_t bmp280_ut = 0;
+static DMA_DATA_ZERO_INIT uint8_t sensor_data[BMP280_DATA_FRAME_SIZE];
 STATIC_UNIT_TESTED bool bmp280SampleValid;
 
-static void bmp280_start_ut(baroDev_t *baro);
-static void bmp280_get_ut(baroDev_t *baro);
-static void bmp280_start_up(baroDev_t *baro);
-STATIC_UNIT_TESTED void bmp280_get_up(baroDev_t *baro);
+static bool bmp280_start_ut(baroDev_t *baro);
+static bool bmp280_read_ut(baroDev_t *baro);
+static bool bmp280_get_ut(baroDev_t *baro);
+static bool bmp280_start_up(baroDev_t *baro);
+STATIC_UNIT_TESTED bool bmp280_read_up(baroDev_t *baro);
+STATIC_UNIT_TESTED bool bmp280_get_up(baroDev_t *baro);
 
 STATIC_UNIT_TESTED void bmp280_calculate(int32_t *pressure, int32_t *temperature);
 
@@ -100,43 +103,68 @@ bool bmp280Detect(baroDev_t *baro) {
     // set oversampling + power mode (forced), and start sampling
     busWriteRegister(dev, BMP280_CTRL_MEAS_REG, BMP280_MODE);
     // these are dummy as temperature is measured as part of pressure
+    baro->combined_read = true;
     baro->ut_delay = 0;
-    baro->get_ut = bmp280_get_ut;
     baro->start_ut = bmp280_start_ut;
+    baro->get_ut = bmp280_get_ut;
+    baro->read_ut = bmp280_read_ut;
     // only _up part is executed, and gets both temperature and pressure
     baro->start_up = bmp280_start_up;
     baro->get_up = bmp280_get_up;
+    baro->read_up = bmp280_read_up;
     baro->up_delay = ((T_INIT_MAX + T_MEASURE_PER_OSRS_MAX * (((1 << BMP280_TEMPERATURE_OSR) >> 1) + ((1 << BMP280_PRESSURE_OSR) >> 1)) + (BMP280_PRESSURE_OSR ? T_SETUP_PRESSURE_MAX : 0) + 15) / 16) * 1000;
     baro->calculate = bmp280_calculate;
     return true;
 }
 
-static void bmp280_start_ut(baroDev_t *baro) {
+static bool bmp280_start_ut(baroDev_t *baro) {
     UNUSED(baro);
     // dummy
+    return true;
 }
 
-static void bmp280_get_ut(baroDev_t *baro) {
+static bool bmp280_read_ut(baroDev_t *baro) {
     UNUSED(baro);
     // dummy
+    return true;
 }
 
-static void bmp280_start_up(baroDev_t *baro) {
+static bool bmp280_get_ut(baroDev_t *baro) {
+    UNUSED(baro);
+    // dummy
+    return true;
+}
+
+static bool bmp280_start_up(baroDev_t *baro) {
     // start measurement
     // set oversampling + power mode (forced), and start sampling
-    busWriteRegister(&baro->dev, BMP280_CTRL_MEAS_REG, BMP280_MODE);
+    return busWriteRegisterStart(&baro->dev, BMP280_CTRL_MEAS_REG, BMP280_MODE);
 }
 
-STATIC_UNIT_TESTED void bmp280_get_up(baroDev_t *baro) {
-    uint8_t data[BMP280_DATA_FRAME_SIZE];
-    bmp280SampleValid = false;
-    // read data from sensor
-    if (!busReadRegisterBuffer(&baro->dev, BMP280_PRESSURE_MSB_REG, data, BMP280_DATA_FRAME_SIZE)) {
-        return;
+STATIC_UNIT_TESTED bool bmp280_read_up(baroDev_t *baro) {
+    if (busBusy(&baro->dev, NULL)) {
+        return false;
     }
-    bmp280_up = (int32_t)((((uint32_t)(data[0])) << 12) | (((uint32_t)(data[1])) << 4) | ((uint32_t)data[2] >> 4));
-    bmp280_ut = (int32_t)((((uint32_t)(data[3])) << 12) | (((uint32_t)(data[4])) << 4) | ((uint32_t)data[5] >> 4));
+    // read data from sensor
+    const bool started = busReadRegisterBufferStart(&baro->dev, BMP280_PRESSURE_MSB_REG, sensor_data, BMP280_DATA_FRAME_SIZE);
+    if (started) {
+        bmp280SampleValid = false;
+    }
+    return started;
+}
+
+STATIC_UNIT_TESTED bool bmp280_get_up(baroDev_t *baro) {
+    bool error = false;
+    if (busBusy(&baro->dev, &error)) {
+        return false;
+    }
+    if (error) {
+        return true;
+    }
+    bmp280_up = (int32_t)((((uint32_t)(sensor_data[0])) << 12) | (((uint32_t)(sensor_data[1])) << 4) | ((uint32_t)sensor_data[2] >> 4));
+    bmp280_ut = (int32_t)((((uint32_t)(sensor_data[3])) << 12) | (((uint32_t)(sensor_data[4])) << 4) | ((uint32_t)sensor_data[5] >> 4));
     bmp280SampleValid = true;
+    return true;
 }
 
 // Returns temperature in DegC, resolution is 0.01 DegC. Output value of "5123" equals 51.23 DegC

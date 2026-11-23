@@ -47,6 +47,8 @@
 
 #include "fc/runtime_config.h"
 
+#include "scheduler/scheduler.h"
+
 #include "sensors/barometer.h"
 #include "sensors/sensors.h"
 
@@ -306,8 +308,12 @@ static uint32_t recalculateBarometerTotal(uint32_t pressureTotal, int32_t newPre
 }
 
 typedef enum {
-    BAROMETER_NEEDS_SAMPLES = 0,
-    BAROMETER_NEEDS_CALCULATION
+    BARO_STATE_PRESSURE_START = 0,
+    BARO_STATE_PRESSURE_READ,
+    BARO_STATE_PRESSURE_SAMPLE,
+    BARO_STATE_TEMPERATURE_START,
+    BARO_STATE_TEMPERATURE_READ,
+    BARO_STATE_TEMPERATURE_SAMPLE
 } barometerState_e;
 
 
@@ -316,18 +322,55 @@ bool isBaroReady(void) {
 }
 
 uint32_t baroUpdate(void) {
-    static barometerState_e state = BAROMETER_NEEDS_SAMPLES;
+    static barometerState_e state = BARO_STATE_PRESSURE_START;
+    uint32_t sleepTime = 1000; // Wait 1ms between states
+    if (busBusy(&baro.dev.dev, NULL)) {
+        // If the bus is busy, simply return to have another go later
+        schedulerIgnoreTaskStateTime();
+        return sleepTime;
+    }
     switch (state) {
     default:
-    case BAROMETER_NEEDS_SAMPLES:
-        baro.dev.get_ut(&baro.dev);
-        baro.dev.start_up(&baro.dev);
-        state = BAROMETER_NEEDS_CALCULATION;
-        return baro.dev.up_delay;
-        break;
-    case BAROMETER_NEEDS_CALCULATION:
-        baro.dev.get_up(&baro.dev);
+    case BARO_STATE_TEMPERATURE_START:
         baro.dev.start_ut(&baro.dev);
+        state = BARO_STATE_TEMPERATURE_READ;
+        sleepTime = baro.dev.ut_delay;
+        break;
+    case BARO_STATE_TEMPERATURE_READ:
+        if (baro.dev.read_ut(&baro.dev)) {
+            state = BARO_STATE_TEMPERATURE_SAMPLE;
+        } else {
+            // No action was taken as the read has not completed
+            schedulerIgnoreTaskExecTime();
+        }
+        break;
+    case BARO_STATE_TEMPERATURE_SAMPLE:
+        if (baro.dev.get_ut(&baro.dev)) {
+            state = BARO_STATE_PRESSURE_START;
+        } else {
+            // No action was taken as the read has not completed
+            schedulerIgnoreTaskExecTime();
+        }
+        break;
+    case BARO_STATE_PRESSURE_START:
+        baro.dev.start_up(&baro.dev);
+        state = BARO_STATE_PRESSURE_READ;
+        sleepTime = baro.dev.up_delay;
+        break;
+    case BARO_STATE_PRESSURE_READ:
+        if (baro.dev.read_up(&baro.dev)) {
+            state = BARO_STATE_PRESSURE_SAMPLE;
+        } else {
+            // No action was taken as the read has not completed
+            schedulerIgnoreTaskExecTime();
+        }
+        break;
+    case BARO_STATE_PRESSURE_SAMPLE:
+        if (!baro.dev.get_up(&baro.dev)) {
+            // No action was taken as the read has not completed
+            schedulerIgnoreTaskExecTime();
+            break;
+        }
         baro.dev.calculate(&baroPressure, &baroTemperature);
         // a pressure of 0 marks an invalid sample: keep the last valid values
         baroSampleAccepted = baroPressure > 0;
@@ -336,10 +379,14 @@ uint32_t baroUpdate(void) {
             baro.baroTemperature = baroTemperature;
             baroPressureSum = recalculateBarometerTotal(baroPressureSum, baroPressure);
         }
-        state = BAROMETER_NEEDS_SAMPLES;
-        return baro.dev.ut_delay;
+        if (baro.dev.combined_read) {
+            state = BARO_STATE_PRESSURE_START;
+        } else {
+            state = BARO_STATE_TEMPERATURE_START;
+        }
         break;
     }
+    return sleepTime;
 }
 
 int32_t baroCalculateAltitude(void) {
