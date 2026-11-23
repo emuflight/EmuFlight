@@ -86,6 +86,9 @@ struct {
     // Macronix MX25L6406E
     // Datasheet: https://www.macronix.com/Lists/Datasheet/Attachments/7370/MX25L6406E,%203V,%2064Mb,%20v1.9.pdf
     { 0xC22017, 86, 33, 128, 256 },
+    // Macronix MX25L12845G
+    // Datasheet: https://www.macronix.com/Lists/Datasheet/Attachments/8740/MX25L12845G,%203V,%20128Mb,%20v1.8.pdf
+    { 0xC22018, 120, 50, 256, 256 },
     // Macronix MX25L25635E
     // Datasheet: https://www.macronix.com/Lists/Datasheet/Attachments/7331/MX25L25635E,%203V,%20256Mb,%20v1.3.pdf
     { 0xC22019, 80, 50, 512, 256 },
@@ -114,9 +117,16 @@ struct {
     // Datasheet: https://www.winbond.com/resource-files/w25q64jv%20spi%20%20%20revc%2006032016%20kms.pdf
     { 0xEF4017, 133, 50, 128, 256 }, // W25Q64JV-IQ/JQ
     { 0xEF7017, 133, 50, 128, 256 }, // W25Q64JV-IM/JM*
+    // Winbond W25Q64JW
+    // Datasheet: https://www.winbond.com/resource-files/W25Q64JW%20RevE%2003102021%20Plus.pdf
+    { 0xEF6017, 104, 50, 128, 256 }, // W25Q64JW-IQ/JQ
+    { 0xEF8017, 104, 50, 128, 256 }, // W25Q64JW-IM/JM*
     // Winbond W25Q128
     // Datasheet: https://www.winbond.com/resource-files/w25q128fv%20rev.l%2008242015.pdf
     { 0xEF4018, 104, 50, 256, 256 },
+    // Winbond W25Q512
+    // Datasheet: https://www.winbond.com/resource-files/W25Q512JV%20SPI%20RevB%2006252019%20KMS.pdf
+    { 0xEF4020, 133, 50, 1024, 256 },
     // PUYA PY25Q128
     // Datasheet: https://www.puyasemi.com/download_path/%E6%95%B0%E6%8D%AE%E6%89%8B%E5%86%8C/Flash%20%E8%8A%AF%E7%89%87/PY25F128HA_datasheet_V1.1.pdf
     { 0x852018, 133, 80, 256, 256 },
