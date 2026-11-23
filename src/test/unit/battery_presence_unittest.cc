@@ -190,7 +190,10 @@ TEST_F(BatteryPresenceTest, SlowCapacitorDischargeThenReconnect)
 {
     run(2000, 0);
     run(5000, 252);
+    const unsigned callsBefore = profileCallCount;
     ramp(20000, 252, 80);    // 25.2V to 8.0V in 20 s, never reaches 6V
+    EXPECT_EQ(callsBefore, profileCallCount);  // a stable drift is not a swap
+    EXPECT_EQ(6, getBatteryCellCount());
     run(5000, 168);
     EXPECT_EQ(4, getBatteryCellCount());
     EXPECT_EQ(4, lastProfileCellCount);
@@ -279,4 +282,46 @@ TEST_F(BatteryPresenceTest, UsbPowerOnlyIsNotABattery)
     run(5000, 50);           // USB voltage window
     EXPECT_EQ(0, getBatteryCellCount());
     EXPECT_EQ(0u, profileCallCount);
+}
+
+// A slow stable drift has no step, so it never recounts mid-way to a wrong count.
+TEST_F(BatteryPresenceTest, SlowStableRampDoesNotRecountRepeatedly)
+{
+    run(2000, 0);
+    run(5000, 252);
+    const unsigned callsBefore = profileCallCount;
+    ramp(30000, 252, 168);
+    run(5000, 168);
+    EXPECT_EQ(callsBefore, profileCallCount);
+    EXPECT_EQ(6, getBatteryCellCount());
+}
+
+TEST_F(BatteryPresenceTest, SwapAfterLongDisarmedUptimeStillDetected)
+{
+    run(2000, 0);
+    run(5000, 252);
+    for (int i = 0; i < 40; i++) {
+        run(60000, 252);     // 40 min disarmed, past the 32-bit microsecond half range
+    }
+    ramp(400, 252, 180);
+    run(5000, 168);
+    EXPECT_EQ(4, getBatteryCellCount());
+    EXPECT_EQ(4, lastProfileCellCount);
+}
+
+TEST_F(BatteryPresenceTest, SwapClearsLowVoltageCutoff)
+{
+    batteryConfigMutable()->lvcPercentage = 50;
+    run(2000, 0);
+    run(5000, 168);
+    armingFlags = ARMED;
+    ramp(1000, 168, 120);    // 3.0V per cell under load
+    run(5000, 120);
+    ASSERT_TRUE(getLowVoltageCutoff()->enabled);
+    armingFlags = 0;
+    run(10000, 120);
+    ramp(400, 120, 100);
+    run(5000, 168);
+    EXPECT_FALSE(getLowVoltageCutoff()->enabled);
+    EXPECT_EQ(100, getLowVoltageCutoff()->percentage);
 }

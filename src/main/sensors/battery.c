@@ -74,8 +74,10 @@ static batteryState_e batteryState;
 static batteryState_e voltageState;
 static batteryState_e consumptionState;
 static uint16_t batteryRefVoltage; // filtered voltage of the pack when last tracked, frozen while disarmed
-static timeUs_t batteryRefHoldUntilUs;
+static int32_t batteryRefHoldRemainingUs;
+static timeUs_t batteryLastStatesUs;
 static bool batteryRefTracking;
+static bool batteryUnstableSeen; // a swap is a step, a slow discharge stays stable
 
 #ifndef DEFAULT_CURRENT_METER_SOURCE
 #ifdef USE_VIRTUAL_CURRENT_METER
@@ -179,7 +181,7 @@ static bool isVoltageFromBat(void) {
 
 static bool isBatterySwapped(void) {
     // A pack swap bridged by the filter capacitor never shows the not-present voltage window
-    return voltageState < BATTERY_NOT_PRESENT && !batteryRefTracking
+    return voltageState < BATTERY_NOT_PRESENT && !batteryRefTracking && batteryUnstableSeen
            && ABS((int)voltageMeter.filtered - (int)batteryRefVoltage) >= batteryConfig()->vbatmincellvoltage;
 }
 
@@ -207,6 +209,8 @@ void batteryUpdatePresence(void) {
         lowVoltageCutoff.percentage = 100;
         lowVoltageCutoff.startTime = 0;
         batteryRefVoltage = voltageMeter.filtered;
+        batteryUnstableSeen = false;
+        lowVoltageCutoff.enabled = false;
     } else if (
         voltageState != BATTERY_NOT_PRESENT && isVoltageStable() && !isVoltageFromBat()
     ) {
@@ -289,12 +293,21 @@ static void batteryUpdateConsumptionState(void) {
 }
 
 static void batteryUpdateSwapReference(timeUs_t currentTimeUs) {
+    const int32_t elapsedUs = cmp32(currentTimeUs, batteryLastStatesUs);
+    batteryLastStatesUs = currentTimeUs;
     if (ARMING_FLAG(ARMED)) {
-        batteryRefHoldUntilUs = currentTimeUs + BATTERY_SWAP_HOLDOFF_US;
+        batteryRefHoldRemainingUs = BATTERY_SWAP_HOLDOFF_US;
+    } else {
+        batteryRefHoldRemainingUs = MAX(batteryRefHoldRemainingUs - elapsedUs, 0);
     }
-    batteryRefTracking = ARMING_FLAG(ARMED) || cmp32(currentTimeUs, batteryRefHoldUntilUs) < 0;
-    if (batteryRefTracking && voltageState < BATTERY_NOT_PRESENT) {
-        batteryRefVoltage = voltageMeter.filtered;
+    batteryRefTracking = batteryRefHoldRemainingUs > 0;
+    if (batteryRefTracking) {
+        batteryUnstableSeen = false;
+        if (voltageState < BATTERY_NOT_PRESENT) {
+            batteryRefVoltage = voltageMeter.filtered;
+        }
+    } else if (!isVoltageStable()) {
+        batteryUnstableSeen = true;
     }
 }
 
@@ -335,8 +348,10 @@ void batteryInit(void) {
     batteryState = BATTERY_INIT;
     batteryCellCount = 0;
     batteryRefVoltage = 0;
-    batteryRefHoldUntilUs = 0;
+    batteryRefHoldRemainingUs = 0;
+    batteryLastStatesUs = 0;
     batteryRefTracking = false;
+    batteryUnstableSeen = false;
     //
     // voltage
     //
