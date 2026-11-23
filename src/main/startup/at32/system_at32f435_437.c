@@ -155,7 +155,7 @@ void system_core_clock_update(void)
         pllrcsfreq = HEXT_VALUE;
       }
 
-      system_core_clock = (pllrcsfreq * pll_ns) / (pll_ms * pll_fr);
+      system_core_clock = (uint32_t)(((uint64_t)pllrcsfreq * pll_ns) / (pll_ms * pll_fr));
       break;
     default:
       system_core_clock = HICK_VALUE;

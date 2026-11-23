@@ -26,9 +26,9 @@
 #include "at32f435_437_clock.h"
 #include "platform.h"
 
-/* 576 MHz VCO with the /2 post-divider gives 288 MHz; the first pre-divider that keeps the PLL input in 2..16 MHz and the multiplier integral in 31..500 is used. */
-#define PLL_VCO_HZ 576000000U
-#define PLL_MS_OK(ms) ((HEXT_VALUE >= 2000000U * (ms)) && (HEXT_VALUE <= 16000000U * (ms)) && \
+/* 576 MHz VCO with the /2 post-divider gives 288 MHz; the first pre-divider that keeps the PLL input in 2..16 MHz and the multiplier integral in 31..500 is used. HEXT is 4..25 MHz (DS V2.30). */
+#define PLL_VCO_HZ 576000000ULL
+#define PLL_MS_OK(ms) ((HEXT_VALUE >= 4000000U) && (HEXT_VALUE <= 25000000U) && (HEXT_VALUE >= 2000000U * (ms)) && (HEXT_VALUE <= 16000000U * (ms)) && \
                        (((PLL_VCO_HZ * (ms)) % HEXT_VALUE) == 0) && \
                        ((PLL_VCO_HZ * (ms) / HEXT_VALUE) >= 31) && ((PLL_VCO_HZ * (ms) / HEXT_VALUE) <= 500))
 #if PLL_MS_OK(1)
@@ -64,7 +64,7 @@
 #else
 #error "SYSTEM_HSE_MHZ cannot produce a 576 MHz PLL VCO frequency within the PLL limits"
 #endif
-#define PLL_NS (PLL_VCO_HZ * PLL_MS / HEXT_VALUE)
+#define PLL_NS ((uint32_t)(PLL_VCO_HZ * PLL_MS / HEXT_VALUE))
 
 /**
   * @brief  system clock config program

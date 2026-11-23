@@ -113,7 +113,9 @@ static bool updateSramConfig(flash_usd_eopb0_type sramCfg)
             // The hardware writes the inverse byte; the retry is bounded because a failed restore cannot be repaired after the reset.
             bool written = false;
             for (unsigned tries = 0; !written && tries < USD_PROGRAM_TRIES; tries++) {
-                written = flash_user_system_data_program(USD_BASE + i * sizeof(uint16_t), saved[i] & 0xFF) == FLASH_OPERATE_DONE;
+                flash_flag_clear(FLASH_PRGMERR_FLAG | FLASH_EPPERR_FLAG | FLASH_ODF_FLAG);
+                written = flash_user_system_data_program(USD_BASE + i * sizeof(uint16_t), saved[i] & 0xFF) == FLASH_OPERATE_DONE
+                    && (usd[i] & 0xFF) == (saved[i] & 0xFF);
             }
         }
         // The EOPB0 readback below decides success, so the status is not needed here.
