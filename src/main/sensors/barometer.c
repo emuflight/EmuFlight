@@ -362,6 +362,7 @@ uint32_t baroUpdate(void) {
             sleepTime = baro.dev.up_delay;
         } else {
             // the conversion did not start: a later read would return the old result
+            baroSampleAccepted = false; // stale sum must not feed calibration
             schedulerIgnoreTaskExecTime();
         }
         break;
