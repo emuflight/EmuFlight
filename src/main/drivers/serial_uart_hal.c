@@ -140,7 +140,7 @@ void uartReconfigure(uartPort_t *uartPort) {
             uartPort->rxDMAPos = __HAL_DMA_GET_COUNTER(&uartPort->rxDMAHandle);
             // NOTE(STM32H7): DMA RX is now active. uartRead() calls SCB_InvalidateDCache_by_Addr
             // before reading each byte so the D-cache does not return stale data after DMA writes.
-            // rxDMAStream is currently always NULL in H7 board configs (path unreachable at runtime).
+            // rxDMAStream is NULL unless the user sets dma UART_RX in the CLI; no board sets it by default.
         } else {
             /* Enable the UART Parity Error Interrupt */
             SET_BIT(uartPort->USARTx->CR1, USART_CR1_PEIE);
@@ -240,6 +240,12 @@ void uartStartTxDMA(uartPort_t *s) {
     s->txDMAEmpty = false;
     //HAL_CLEANCACHE((uint8_t *)&s->port.txBuffer[fromwhere],size);
     HAL_UART_Transmit_DMA(&s->Handle, (uint8_t *)&s->port.txBuffer[fromwhere], size);
+}
+
+// Same end-of-transmit steps as the HAL's UART_EndTransmit_IT, without the HAL IRQ handler that aborts RX DMA on an error.
+void uartEndTxDma(uartPort_t *s) {
+    CLEAR_BIT(s->USARTx->CR1, USART_CR1_TCIE);
+    s->Handle.gState = HAL_UART_STATE_READY;
 }
 
 uint32_t uartTotalRxBytesWaiting(const serialPort_t *instance) {
