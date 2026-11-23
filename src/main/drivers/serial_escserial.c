@@ -557,8 +557,9 @@ static void resetBuffers(escSerial_t *escSerial) {
 
 // The motor driver claimed the pin at boot; passthrough runs with motors disabled, so it takes the claim over.
 static const timerHardware_t *escTimerTakeOver(ioTag_t tag) {
+    const uint8_t resourceIndex = timerGetOwner(tag) == OWNER_MOTOR ? timerGetOwnerResourceIndex(tag) : 0;
     timerRelease(tag, OWNER_MOTOR);
-    return timerAllocate(tag, OWNER_MOTOR, 0);
+    return timerAllocate(tag, OWNER_MOTOR, resourceIndex);
 }
 
 static serialPort_t *openEscSerial(const motorDevConfig_t *motorConfig, escSerialPortIndex_e portIndex, serialReceiveCallbackPtr callback, uint16_t output, uint32_t baud, portOptions_e options, uint8_t mode) {
@@ -568,11 +569,12 @@ static serialPort_t *openEscSerial(const motorDevConfig_t *motorConfig, escSeria
         // edge-capture timebase (RX) on the timer channel at the same time; a shared
         // channel can only run one of those, so RX's setup always destroys TX's.
         // Refuse rather than open a connection that can never actually transmit.
+        const ioTag_t tag = motorConfig->ioTags[output];
+        // A TX pin equal to the RX pin is the same shared channel, so it is refused the same way.
         if ((mode == PROTOCOL_SIMONK || mode == PROTOCOL_BLHELI || mode == PROTOCOL_CASTLE)
-            && escSerialConfig()->ioTag == IO_TAG_NONE) {
+            && (escSerialConfig()->ioTag == IO_TAG_NONE || escSerialConfig()->ioTag == tag)) {
             return NULL;
         }
-        const ioTag_t tag = motorConfig->ioTags[output];
         const timerHardware_t *timerHardware = escTimerTakeOver(tag);
         if (timerHardware == NULL) {
             return NULL;
@@ -590,7 +592,7 @@ static serialPort_t *openEscSerial(const motorDevConfig_t *motorConfig, escSeria
         timerConfigure(escSerial->rxTimerHardware, 0xffff, 1);
 
         // Allocate separate TX pin if configured, otherwise use RX pin for both TX and RX
-        if (escSerialConfig()->ioTag != IO_TAG_NONE) {
+        if (escSerialConfig()->ioTag != IO_TAG_NONE && escSerialConfig()->ioTag != tag) {
             escSerial->txTimerHardware = escTimerTakeOver(escSerialConfig()->ioTag);
             if (escSerial->txTimerHardware == NULL) {
                 return NULL;
