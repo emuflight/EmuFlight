@@ -101,7 +101,6 @@ uint8_t bmi160Detect(const extDevice_t *dev) {
     IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(dev->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(dev->bus->busType_u.spi.instance, BMI160_SPI_DIVISOR); // blocking reads use the register
     /* Read this address to activate SPI (see p. 84) */
     spiReadRegMsk(dev, 0x7F);
     delay(100); // Give SPI some time to start up
