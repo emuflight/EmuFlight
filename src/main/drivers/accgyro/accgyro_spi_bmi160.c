@@ -92,6 +92,7 @@ static int32_t BMI160_Config(const extDevice_t *dev);
 static int32_t BMI160_do_foc(const extDevice_t *dev);
 
 uint8_t bmi160Detect(const extDevice_t *dev) {
+    spiSetClkDivisor(dev, BMI160_SPI_DIVISOR);
     if (BMI160Detected) {
         return BMI_160_SPI;
     }
@@ -100,7 +101,6 @@ uint8_t bmi160Detect(const extDevice_t *dev) {
     IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(dev->busType_u.spi.csnPin);
 #endif
-    spiSetClkDivisor(dev, BMI160_SPI_DIVISOR);
     spiSetDivisor(dev->bus->busType_u.spi.instance, BMI160_SPI_DIVISOR); // blocking reads use the register
     /* Read this address to activate SPI (see p. 84) */
     spiReadRegMsk(dev, 0x7F);
