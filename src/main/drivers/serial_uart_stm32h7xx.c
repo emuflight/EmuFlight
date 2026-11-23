@@ -429,15 +429,9 @@ uartPort_t *serialUART(UARTDevice_e device, uint32_t baudRate, portMode_e mode, 
         }
     }
 
-#ifdef USE_DMA
-    // Either side can fall back to IRQ-driven mode independently (uartDmaClaim()
-    // conflict); enable the shared NVIC line whenever either does, matching F4/F7.
-    if (!s->rxDMAStream || !s->txDMAStream)
-#endif
-    {
-        HAL_NVIC_SetPriority(hardware->rxIrq, NVIC_PRIORITY_BASE(hardware->rxPriority), NVIC_PRIORITY_SUB(hardware->rxPriority));
-        HAL_NVIC_EnableIRQ(hardware->rxIrq);
-    }
+    // A DMA transmit ends in the USART transmission-complete interrupt, so the line is always enabled.
+    HAL_NVIC_SetPriority(hardware->rxIrq, NVIC_PRIORITY_BASE(hardware->rxPriority), NVIC_PRIORITY_SUB(hardware->rxPriority));
+    HAL_NVIC_EnableIRQ(hardware->rxIrq);
 
     return s;
 }
@@ -530,7 +524,8 @@ FAST_IRQ_HANDLER void uartIrqHandler(uartPort_t *s)
 {
     UART_HandleTypeDef *huart = &s->Handle;
 
-    if (__HAL_UART_GET_IT(huart, UART_IT_RXNE) != RESET) {
+    // RXNEIE is clear with RX DMA, so the DMA keeps the byte.
+    if (__HAL_UART_GET_IT_SOURCE(huart, UART_IT_RXNE) && (__HAL_UART_GET_IT(huart, UART_IT_RXNE) != RESET)) {
         uint8_t rbyte = (uint8_t)(huart->Instance->RDR & 0xffU);
         if (s->port.rxCallback) {
             s->port.rxCallback(rbyte, s->port.rxCallbackData);
@@ -562,8 +557,9 @@ FAST_IRQ_HANDLER void uartIrqHandler(uartPort_t *s)
             }
         }
     }
-    if (__HAL_UART_GET_IT(huart, UART_IT_TC) != RESET) {
-        HAL_UART_IRQHandler(huart);
+    // TC stays set while the transmitter is idle, so act only when TCIE is set for a DMA transmit.
+    if (__HAL_UART_GET_IT_SOURCE(huart, UART_IT_TC) && (__HAL_UART_GET_IT(huart, UART_IT_TC) != RESET)) {
+        uartEndTxDma(s);
         if (s->txDMAStream) {
             handleUsartTxDma(s);
         }
