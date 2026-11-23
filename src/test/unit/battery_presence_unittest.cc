@@ -237,6 +237,29 @@ TEST_F(BatteryPresenceTest, NoiseAndSmallSagKeepCount)
     EXPECT_EQ(callsBefore, profileCallCount);
 }
 
+// Spec: BF 4.3 accepts |filtered - unfiltered| <= 0.2V. EF counts in 0.1V, so raw samples
+// 0.2V above and below a 25.3V pack sit on the window edge and must still count 6 cells.
+TEST_F(BatteryPresenceTest, NoiseAtStableWindowEdgeStillDetectsPack)
+{
+    run(2000, 0);
+    for (int i = 0; i < 400; i++) {
+        tick(i % 2 ? 255 : 251);   // filter settles near 253; raw sits 0.2V from it
+    }
+    EXPECT_EQ(6, getBatteryCellCount());
+    EXPECT_EQ(6, lastProfileCellCount);
+}
+
+// Noise well above the window (0.5V steps on a 22.8V reading) must not count a wrong pack.
+TEST_F(BatteryPresenceTest, NoiseFarAboveWindowDoesNotCountWrongPack)
+{
+    run(2000, 0);
+    for (int i = 0; i < 400; i++) {
+        tick(i % 2 ? 253 : 203);
+    }
+    EXPECT_EQ(0, getBatteryCellCount());
+    EXPECT_EQ(0u, profileCallCount);
+}
+
 TEST_F(BatteryPresenceTest, SagAndRecoveryAfterFlightKeepCount)
 {
     run(2000, 0);
