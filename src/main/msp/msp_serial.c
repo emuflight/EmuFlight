@@ -545,6 +545,7 @@ void mspSerialProcessOnePort(mspPort_t * const mspPort, mspEvaluateNonMspData_e 
 
             if (mspPort->c_state == MSP_COMMAND_RECEIVED) {
                 mspPostProcessFn = mspSerialProcessReceivedCommand(mspPort, mspProcessCommandFn);
+                mspPort->c_state = MSP_IDLE;
                 break; // process one command at a time so as not to block.
             }
         }
