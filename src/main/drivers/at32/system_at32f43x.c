@@ -19,9 +19,12 @@
  */
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #include "platform.h"
+
+#include "common/utils.h"
 
 #include "drivers/exti.h"
 #include "drivers/nvic.h"
@@ -82,15 +85,54 @@ static flash_usd_eopb0_type get_sram_config(void)
     }
 }
 
+// USD is 2048 bytes on 448 KB and 4032 KB parts, 256 bytes on 256 KB and 1024 KB parts (RM V2.09 Table 5-7 notes).
+#if (TARGET_FLASH_SIZE == 448) || (TARGET_FLASH_SIZE > 1024)
+#define USD_SIZE_BYTES 2048
+#else
+#define USD_SIZE_BYTES 256
+#endif
+#define USD_PROGRAM_TRIES 3
+
+static bool updateSramConfig(flash_usd_eopb0_type sramCfg)
+{
+    // Erase clears every user system data field, so save and restore all but FAP (restored by the erase) and EOPB0.
+    uint16_t saved[USD_SIZE_BYTES / sizeof(uint16_t)];
+    volatile const uint16_t *usd = (volatile const uint16_t *)USD_BASE;
+    const unsigned eopb0Index = offsetof(usd_type, eopb0) / sizeof(uint16_t);
+
+    for (unsigned i = 0; i < ARRAYLEN(saved); i++) {
+        saved[i] = usd[i];
+    }
+
+    flash_unlock();
+    if (flash_user_system_data_erase() == FLASH_OPERATE_DONE) {
+        for (unsigned i = 1; i < ARRAYLEN(saved); i++) {
+            if (i == eopb0Index || saved[i] == 0xFFFF) {
+                continue;
+            }
+            // The hardware writes the inverse byte; the retry is bounded because a failed restore cannot be repaired after the reset.
+            bool written = false;
+            for (unsigned tries = 0; !written && tries < USD_PROGRAM_TRIES; tries++) {
+                written = flash_user_system_data_program(USD_BASE + i * sizeof(uint16_t), saved[i] & 0xFF) == FLASH_OPERATE_DONE;
+            }
+        }
+        // The EOPB0 readback below decides success, so the status is not needed here.
+        flash_eopb0_config(sramCfg);
+    }
+    flash_lock();
+
+    return ((USD->eopb0) & USD_EOPB0_SRAM_CONFIG_MASK) == sramCfg;
+}
+
 static void init_sram_config(void)
 {
     // Make sure the SRAM config is correct
     const flash_usd_eopb0_type sram_cfg = get_sram_config();
     if (((USD->eopb0) & USD_EOPB0_SRAM_CONFIG_MASK) != sram_cfg) {
-        flash_unlock();
-        flash_user_system_data_erase();
-        flash_eopb0_config(sram_cfg);
-        systemReset();
+        // Reset only when the new value reads back, otherwise a failed update would reset forever.
+        if (updateSramConfig(sram_cfg)) {
+            systemReset();
+        }
     }
 }
 
