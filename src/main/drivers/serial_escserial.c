@@ -555,6 +555,14 @@ static void resetBuffers(escSerial_t *escSerial) {
     escSerial->port.txBufferHead = 0;
 }
 
+// Passthrough disables the motors first, so it may take over a pin the motor driver claimed at boot.
+static const timerHardware_t *escSerialTimerClaim(ioTag_t tag) {
+    if (timerGetOwner(tag) == OWNER_MOTOR) {
+        return timerGetByTag(tag);
+    }
+    return timerAllocate(tag, OWNER_MOTOR, 0);
+}
+
 static serialPort_t *openEscSerial(const motorDevConfig_t *motorConfig, escSerialPortIndex_e portIndex, serialReceiveCallbackPtr callback, uint16_t output, uint32_t baud, portOptions_e options, uint8_t mode) {
     escSerial_t *escSerial = &(escSerialPorts[portIndex]);
     if (mode != PROTOCOL_KISSALL) {
@@ -567,7 +575,7 @@ static serialPort_t *openEscSerial(const motorDevConfig_t *motorConfig, escSeria
             return NULL;
         }
         const ioTag_t tag = motorConfig->ioTags[output];
-        const timerHardware_t *timerHardware = timerAllocate(tag, OWNER_MOTOR, 0);
+        const timerHardware_t *timerHardware = escSerialTimerClaim(tag);
         if (timerHardware == NULL) {
             return NULL;
         }
@@ -585,7 +593,7 @@ static serialPort_t *openEscSerial(const motorDevConfig_t *motorConfig, escSeria
 
         // Allocate separate TX pin if configured, otherwise use RX pin for both TX and RX
         if (escSerialConfig()->ioTag != IO_TAG_NONE) {
-            escSerial->txTimerHardware = timerAllocate(escSerialConfig()->ioTag, OWNER_MOTOR, 0);
+            escSerial->txTimerHardware = escSerialTimerClaim(escSerialConfig()->ioTag);
             if (escSerial->txTimerHardware == NULL) {
                 return NULL;
             }
@@ -642,7 +650,7 @@ static serialPort_t *openEscSerial(const motorDevConfig_t *motorConfig, escSeria
                 const ioTag_t tag = slot < MAX_SUPPORTED_MOTORS ? motorConfig->ioTags[slot] : IO_TAG_NONE;
                 // an unsaved mapping that differs from the initialized one is skipped
                 if (tag != IO_TAG_NONE && IOGetByTag(tag) == pwmMotors[i].io) {
-                    const timerHardware_t *timerHardware = timerAllocate(tag, OWNER_MOTOR, 0);
+                    const timerHardware_t *timerHardware = escSerialTimerClaim(tag);
                     if (timerHardware) {
                         // Workaround to ensure that the timerHandle is configured before use, timer will be reconfigured to a different frequency below
                         // this prevents a null-pointer dereference in __HAL_TIM_CLEAR_FLAG called by timerChClearCCFlag and similar accesses of timerHandle without the Instance being configured first.
