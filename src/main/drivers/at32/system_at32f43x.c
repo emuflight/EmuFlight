@@ -85,11 +85,12 @@ static flash_usd_eopb0_type get_sram_config(void)
     }
 }
 
-// USD is 2048 bytes on 448 KB and 4032 KB parts, 256 bytes on 256 KB and 1024 KB parts (RM V2.09 Table 5-7 notes).
-#if (TARGET_FLASH_SIZE == 448) || (TARGET_FLASH_SIZE > 1024)
-#define USD_SIZE_BYTES 2048
+// Physical USD size: 512 bytes on 256 KB and 1024 KB parts, 4096 bytes on the others (RM V2.09 flash organization tables).
+// Each data byte takes a halfword with its inverse, so Table 5-7 notes 1 and 2 count 256 and 2048 data bytes.
+#if (TARGET_FLASH_SIZE == 256) || (TARGET_FLASH_SIZE == 1024)
+#define USD_SIZE_BYTES 512
 #else
-#define USD_SIZE_BYTES 256
+#define USD_SIZE_BYTES 4096
 #endif
 #define USD_PROGRAM_TRIES 3
 
