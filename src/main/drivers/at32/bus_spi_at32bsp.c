@@ -162,6 +162,11 @@ void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor)
     spi_enable(instance, FALSE);
     spiSetDivisorBRreg(instance, divisor);
     spi_enable(instance, TRUE);
+    // Keep the cache spiSequenceStart() compares in step with the register.
+    busDevice_t *bus = spiBusByDevice(spiDeviceByInstance(instance));
+    if (bus) {
+        bus->busType_u.spi.speed = divisor;
+    }
 }
 
 uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t txByte)
