@@ -105,22 +105,22 @@ static bool updateSramConfig(flash_usd_eopb0_type sramCfg)
     }
 
     flash_unlock();
-    if (flash_user_system_data_erase() == FLASH_OPERATE_DONE) {
-        for (unsigned i = 1; i < ARRAYLEN(saved); i++) {
-            if (i == eopb0Index || saved[i] == 0xFFFF) {
-                continue;
-            }
-            // The hardware writes the inverse byte; the retry is bounded because a failed restore cannot be repaired after the reset.
-            bool written = false;
-            for (unsigned tries = 0; !written && tries < USD_PROGRAM_TRIES; tries++) {
-                flash_flag_clear(FLASH_PRGMERR_FLAG | FLASH_EPPERR_FLAG | FLASH_ODF_FLAG);
-                written = flash_user_system_data_program(USD_BASE + i * sizeof(uint16_t), saved[i] & 0xFF) == FLASH_OPERATE_DONE
-                    && (usd[i] & 0xFF) == (saved[i] & 0xFF);
-            }
+    // The erase status may report only the FAP restore, so restoring the other fields does not depend on it.
+    flash_user_system_data_erase();
+    for (unsigned i = 1; i < ARRAYLEN(saved); i++) {
+        if (i == eopb0Index || saved[i] == 0xFFFF) {
+            continue;
         }
-        // The EOPB0 readback below decides success, so the status is not needed here.
-        flash_eopb0_config(sramCfg);
+        // The hardware writes the inverse byte; the retry is bounded because a failed restore cannot be repaired after the reset.
+        bool written = false;
+        for (unsigned tries = 0; !written && tries < USD_PROGRAM_TRIES; tries++) {
+            flash_flag_clear(FLASH_PRGMERR_FLAG | FLASH_EPPERR_FLAG | FLASH_ODF_FLAG);
+            written = flash_user_system_data_program(USD_BASE + i * sizeof(uint16_t), saved[i] & 0xFF) == FLASH_OPERATE_DONE
+                && (usd[i] & 0xFF) == (saved[i] & 0xFF);
+        }
     }
+    // The EOPB0 readback below decides success, so the status is not needed here.
+    flash_eopb0_config(sramCfg);
     flash_lock();
 
     return ((USD->eopb0) & USD_EOPB0_SRAM_CONFIG_MASK) == sramCfg;
