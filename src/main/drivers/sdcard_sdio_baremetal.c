@@ -226,7 +226,7 @@ static sdcardReceiveBlockStatus_e sdcard_receiveDataBlock(uint8_t *buffer, int c
     if (ret == SD_BUSY) {
         return SDCARD_RECEIVE_BLOCK_IN_PROGRESS;
     }
-    if (SD_GetState() != true) {
+    if (ret != SD_OK || !SD_GetState()) {
         return SDCARD_RECEIVE_ERROR;
     }
     return SDCARD_RECEIVE_SUCCESS;
@@ -275,7 +275,11 @@ static bool sdcard_fetchCSD(void) {
 static bool sdcard_checkInitDone(void) {
     if (SD_GetState()) {
         SD_CardType_t *sdtype = &SD_CardType;
-        SD_GetCardInfo();
+        SD_Error_t errorState = SD_GetCardInfo();
+        if (errorState != SD_OK) {
+            return false;
+        }
+
         sdcard.version = (*sdtype) ? 2 : 1;
         sdcard.highCapacity = (*sdtype == 2) ? 1 : 0;
         return true;
