@@ -332,9 +332,13 @@ uint32_t baroUpdate(void) {
     switch (state) {
     default:
     case BARO_STATE_TEMPERATURE_START:
-        baro.dev.start_ut(&baro.dev);
-        state = BARO_STATE_TEMPERATURE_READ;
-        sleepTime = baro.dev.ut_delay;
+        if (baro.dev.start_ut(&baro.dev)) {
+            state = BARO_STATE_TEMPERATURE_READ;
+            sleepTime = baro.dev.ut_delay;
+        } else {
+            // the conversion did not start: a later read would return the old result
+            schedulerIgnoreTaskExecTime();
+        }
         break;
     case BARO_STATE_TEMPERATURE_READ:
         if (baro.dev.read_ut(&baro.dev)) {
@@ -353,21 +357,27 @@ uint32_t baroUpdate(void) {
         }
         break;
     case BARO_STATE_PRESSURE_START:
-        baro.dev.start_up(&baro.dev);
-        state = BARO_STATE_PRESSURE_READ;
-        sleepTime = baro.dev.up_delay;
+        if (baro.dev.start_up(&baro.dev)) {
+            state = BARO_STATE_PRESSURE_READ;
+            sleepTime = baro.dev.up_delay;
+        } else {
+            // the conversion did not start: a later read would return the old result
+            schedulerIgnoreTaskExecTime();
+        }
         break;
     case BARO_STATE_PRESSURE_READ:
         if (baro.dev.read_up(&baro.dev)) {
             state = BARO_STATE_PRESSURE_SAMPLE;
         } else {
             // No action was taken as the read has not completed
+            baroSampleAccepted = false; // stale sum must not feed calibration
             schedulerIgnoreTaskExecTime();
         }
         break;
     case BARO_STATE_PRESSURE_SAMPLE:
         if (!baro.dev.get_up(&baro.dev)) {
             // No action was taken as the read has not completed
+            baroSampleAccepted = false; // stale sum must not feed calibration
             schedulerIgnoreTaskExecTime();
             break;
         }
