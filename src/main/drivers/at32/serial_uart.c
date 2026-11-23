@@ -308,7 +308,7 @@ static void uartWrite(serialPort_t *instance, uint8_t ch)
         return;
     }
 
-    // The TX completion IRQ can release the pin, so arm, enqueue and start must not be interleaved with it
+    // BASEPRI masks the USART IRQ that releases the pin on TDC; the unmasked DMA IRQ never releases it
     ATOMIC_BLOCK(NVIC_PRIO_SERIALUART_TXDMA) {
         // Check if the TX line is being pulled low by an unpowered peripheral
         if (!uartPort->checkUsartTxOutput || uartPort->checkUsartTxOutput(uartPort)) {
@@ -352,7 +352,7 @@ static void uartWriteBuf(serialPort_t *instance, const void *data, int count)
     while (count > 0) {
         bool lineLow = false;
 
-        // The TX completion IRQ can release the pin, so arm, copy and start must not be interleaved with it
+        // BASEPRI masks the USART IRQ that releases the pin on TDC; the unmasked DMA IRQ never releases it
         ATOMIC_BLOCK(NVIC_PRIO_SERIALUART_TXDMA) {
             // False means an unpowered peripheral holds a released TX pin low
             if (uartPort->checkUsartTxOutput && !uartPort->checkUsartTxOutput(uartPort)) {
