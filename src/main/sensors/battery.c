@@ -308,6 +308,8 @@ static void batteryUpdateSwapReference(timeUs_t currentTimeUs) {
         }
     } else if (!isVoltageStable()) {
         batteryUnstableSeen = true;
+    } else if (ABS((int)voltageMeter.filtered - (int)batteryRefVoltage) < batteryConfig()->vbatmincellvoltage) {
+        batteryUnstableSeen = false; // a blip that settled back near the reference is not a swap
     }
 }
 

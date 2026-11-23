@@ -325,3 +325,18 @@ TEST_F(BatteryPresenceTest, SwapClearsLowVoltageCutoff)
     EXPECT_FALSE(getLowVoltageCutoff()->enabled);
     EXPECT_EQ(100, getLowVoltageCutoff()->percentage);
 }
+
+TEST_F(BatteryPresenceTest, EarlierBlipDoesNotArmALaterSlowDrift)
+{
+    run(2000, 0);
+    run(5000, 252);
+    const unsigned callsBefore = profileCallCount;
+    run(6000, 252);          // holdoff over
+    ramp(200, 252, 240);     // brief disturbance, settles back
+    run(200, 240);
+    run(5000, 252);
+    ramp(30000, 252, 168);   // slow stable drift
+    run(5000, 168);
+    EXPECT_EQ(callsBefore, profileCallCount);
+    EXPECT_EQ(6, getBatteryCellCount());
+}
