@@ -79,6 +79,7 @@
 #include "interface/msp.h"
 #include "interface/msp_box.h"
 #include "interface/msp_protocol.h"
+#include "interface/msp_reboot.h"
 
 #include "io/asyncfatfs/asyncfatfs.h"
 #include "io/beeper.h"
@@ -255,6 +256,9 @@ static void mspFc4waySerialCommand(sbuf_t *dst, sbuf_t *src, mspPostProcessFnPtr
 
 static void mspRebootFn(serialPort_t *serialPort) {
     UNUSED(serialPort);
+    if (!mspRebootIsAllowed()) {
+        return;
+    }
     stopPwmAllMotors();
     switch (rebootMode) {
     case MSP_REBOOT_FIRMWARE:
@@ -1435,6 +1439,9 @@ static mspResult_e mspFcProcessOutCommandWithArg(mspDescriptor_t srcDesc, uint8_
     }
     break;
     case MSP_REBOOT:
+        if (!mspRebootIsAllowed()) {
+            return MSP_RESULT_ERROR;
+        }
         if (sbufBytesRemaining(src)) {
             rebootMode = sbufReadU8(src);
             if (rebootMode >= MSP_REBOOT_COUNT
