@@ -43,7 +43,8 @@ uint32_t fakeNowMs;
 uint32_t checkCalls;
 uint32_t checkBusyCalls;    // SD_Check* reports busy this many times, then done
 bool stateReady;            // SD_GetState result
-SD_Error_t checkFinalResult = SD_OK;  // SD_Check* result once no longer busy
+SD_Error_t checkFinalResult = SD_OK;  // SD_Check* result once no longer busy, reported once (H7 clears its error flag on read)
+bool finalReported;
 bool cardInserted = true;
 
 void setUpFakeCard(uint32_t startMs) {
@@ -53,6 +54,7 @@ void setUpFakeCard(uint32_t startMs) {
     checkBusyCalls = UINT32_MAX;
     stateReady = false;
     checkFinalResult = SD_OK;
+    finalReported = false;
 }
 
 uint32_t elapsed(uint32_t startMs) {
@@ -60,7 +62,14 @@ uint32_t elapsed(uint32_t startMs) {
 }
 
 SD_Error_t fakeCheck() {
-    return (checkCalls++ < checkBusyCalls) ? SD_BUSY : checkFinalResult;
+    if (checkCalls++ < checkBusyCalls) {
+        return SD_BUSY;
+    }
+    if (finalReported) {
+        return SD_OK;  // one-shot: the driver clears the error flag when it reports it
+    }
+    finalReported = true;
+    return checkFinalResult;
 }
 
 }  // namespace
