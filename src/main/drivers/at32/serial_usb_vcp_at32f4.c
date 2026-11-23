@@ -87,6 +87,7 @@ static void *baudRateCbContext;
 
 // Bytes of the IN transfer that the TX timer handler started and has not seen complete.
 static uint32_t lastBuffsize;
+static usb_sts_type (*vendorClassInit)(void *udev);
 static usb_sts_type (*vendorClassClear)(void *udev);
 static usbd_class_handler vcpClassHandler;
 
@@ -287,11 +288,23 @@ void TxTimerConfig(void)
 
 // The vendor class sets g_tx_completed on re-init and drops the pending IN transfer;
 // retire the queued bytes of the ended session so the timer handler cannot count them as sent.
-static usb_sts_type vcpClassClear(void *udev)
+static void vcpRetireTxQueue(void)
 {
     lastBuffsize = 0;
     UserTxBufPtrOut = UserTxBufPtrIn;
+}
+
+static usb_sts_type vcpClassClear(void *udev)
+{
+    vcpRetireTxQueue();
     return vendorClassClear(udev);
+}
+
+// The first configuration after enumeration reaches init without a clear.
+static usb_sts_type vcpClassInit(void *udev)
+{
+    vcpRetireTxQueue();
+    return vendorClassInit(udev);
 }
 
 void TMR7_GLOBAL_IRQHandler(void)
@@ -315,7 +328,8 @@ void TMR7_GLOBAL_IRQHandler(void)
                 return;
             }
         }
-        if (UserTxBufPtrOut != UserTxBufPtrIn) {
+        // Nothing can be sent before the host configures the device.
+        if (USB_CONN_STATE_CONFIGURED == otg_core_struct.dev.conn_state && UserTxBufPtrOut != UserTxBufPtrIn) {
             if (UserTxBufPtrOut > UserTxBufPtrIn) {
                 buffsize = APP_TX_DATA_SIZE - UserTxBufPtrOut;
             } else {
@@ -535,8 +549,10 @@ serialPort_t *usbVcpOpen(void)
 
     usbGenerateDisconnectPulse();
 
+    vendorClassInit = cdc_class_handler.init_handler;
     vendorClassClear = cdc_class_handler.clear_handler;
     vcpClassHandler = cdc_class_handler;
+    vcpClassHandler.init_handler = vcpClassInit;
     vcpClassHandler.clear_handler = vcpClassClear;
 
     usbd_init(&otg_core_struct,
