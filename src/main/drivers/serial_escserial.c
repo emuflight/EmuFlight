@@ -570,11 +570,11 @@ static serialPort_t *openEscSerial(const motorDevConfig_t *motorConfig, escSeria
         // edge-capture timebase (RX) on the timer channel at the same time; a shared
         // channel can only run one of those, so RX's setup always destroys TX's.
         // Refuse rather than open a connection that can never actually transmit.
+        const ioTag_t tag = motorConfig->ioTags[output];
         if ((mode == PROTOCOL_SIMONK || mode == PROTOCOL_BLHELI || mode == PROTOCOL_CASTLE)
-            && escSerialConfig()->ioTag == IO_TAG_NONE) {
+            && (escSerialConfig()->ioTag == IO_TAG_NONE || escSerialConfig()->ioTag == tag)) {
             return NULL;
         }
-        const ioTag_t tag = motorConfig->ioTags[output];
         const timerHardware_t *timerHardware = escSerialTimerClaim(tag);
         if (timerHardware == NULL) {
             return NULL;
