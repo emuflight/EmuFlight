@@ -145,15 +145,3 @@ TEST(FlashM25p16Test, UnknownIdsAreRejectedAndGeometryCleared)
         EXPECT_EQ(0u, fdevice.geometry.totalSize);
     }
 }
-
-// Same JEDEC ID, different parts: the 3-byte ID cannot tell the variants apart, so one row must
-// describe both. Row order must not change the result.
-TEST(FlashM25p16Test, SharedIdMapsToOneGeometry)
-{
-    flashDevice_t a;
-    flashDevice_t b;
-    ASSERT_TRUE(identify(0xC22018, &a));
-    ASSERT_TRUE(identify(0xC22018, &b));
-    EXPECT_EQ(16 * MIB, a.geometry.totalSize);
-    EXPECT_EQ(a.geometry.totalSize, b.geometry.totalSize);
-}

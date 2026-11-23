@@ -17,6 +17,9 @@
 
 // The driver casts a 32-bit callback argument to a pointer, which is exact on the 32-bit target.
 // The host build is 64-bit and the test never runs those callbacks, so only this include is exempt.
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
 
 #include "../../main/drivers/flash_m25p16.c"
+
+#pragma GCC diagnostic pop
