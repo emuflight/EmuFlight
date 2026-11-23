@@ -657,12 +657,15 @@ static bool gpsNewFrameNMEA(char c) {
         string[offset] = 0;
         if (param == 0) {       //frame identification
             gps_frame = NO_FRAME;
-            if (string[0] == 'G' && string[1] == 'P' && string[2] == 'G' && string[3] == 'G' && string[4] == 'A')
-                gps_frame = FRAME_GGA;
-            if (string[0] == 'G' && string[1] == 'P' && string[2] == 'R' && string[3] == 'M' && string[4] == 'C')
-                gps_frame = FRAME_RMC;
-            if (string[0] == 'G' && string[1] == 'P' && string[2] == 'G' && string[3] == 'S' && string[4] == 'V')
-                gps_frame = FRAME_GSV;
+            // Skip the two-letter talker ID: receivers send GP, GN, GL, GA or BD.
+            if (offset >= 5) {
+                if (strcmp(&string[2], "GGA") == 0)
+                    gps_frame = FRAME_GGA;
+                else if (strcmp(&string[2], "RMC") == 0)
+                    gps_frame = FRAME_RMC;
+                else if (strcmp(&string[2], "GSV") == 0)
+                    gps_frame = FRAME_GSV;
+            }
         }
         switch (gps_frame) {
         case FRAME_GGA:        //************* GPGGA FRAME parsing
