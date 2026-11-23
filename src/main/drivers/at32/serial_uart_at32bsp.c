@@ -104,6 +104,8 @@ void uartReconfigure(uartPort_t *uartPort)
     }
     if (uartPort->txDMAResource) {
         xDMA_Cmd(uartPort->txDMAResource, FALSE);
+        // The cancelled transfer is dropped, so the engine is empty
+        uartPort->txDMAEmpty = true;
     }
 #endif
 
@@ -297,7 +299,10 @@ static bool uartTxIdle(const uartPort_t *s)
 static void handleUsartTxDma(uartPort_t *s)
 {
     // DMA empty only means the last byte reached the data register, so the TDC interrupt releases the TX pin
-    uartTryStartTxDMA(s);
+    // A stale completion after a switch to a mode without TX must not restart the channel
+    if (s->port.mode & MODE_TX) {
+        uartTryStartTxDMA(s);
+    }
 }
 
 void uartDmaIrqHandler(dmaChannelDescriptor_t* descriptor)
@@ -337,7 +342,7 @@ void uartIrqHandler(uartPort_t *s)
         }
     }
 
-    if (!s->txDMAResource && (usart_flag_get(s->USARTx, USART_TDBE_FLAG) == SET)) {
+    if (!s->txDMAResource && (s->port.mode & MODE_TX) && (usart_flag_get(s->USARTx, USART_TDBE_FLAG) == SET)) {
         if (s->port.txBufferTail != s->port.txBufferHead) {
             usart_data_transmit(s->USARTx, s->port.txBuffer[s->port.txBufferTail]);
             s->port.txBufferTail = (s->port.txBufferTail + 1) % s->port.txBufferSize;

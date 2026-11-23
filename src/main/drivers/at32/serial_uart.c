@@ -282,6 +282,10 @@ static void uartStartTx(uartPort_t *uartPort)
 {
 #ifdef USE_DMA
     if (uartPort->txDMAResource) {
+#if defined(USE_ATBSP_DRIVER)
+        // A TDC left from the previous burst would pass for the end of this one
+        usart_flag_clear(uartPort->USARTx, USART_TDC_FLAG);
+#endif
         uartTryStartTxDMA(uartPort);
     } else
 #endif
@@ -304,21 +308,21 @@ static void uartWrite(serialPort_t *instance, uint8_t ch)
         return;
     }
 
-    // Check if the TX line is being pulled low by an unpowered peripheral
-    if (uartPort->checkUsartTxOutput && !uartPort->checkUsartTxOutput(uartPort)) {
-        // TX line is being pulled low, so don't transmit
-        return;
+    // The TX completion IRQ can release the pin, so arm, enqueue and start must not be interleaved with it
+    ATOMIC_BLOCK(NVIC_PRIO_SERIALUART_TXDMA) {
+        // Check if the TX line is being pulled low by an unpowered peripheral
+        if (!uartPort->checkUsartTxOutput || uartPort->checkUsartTxOutput(uartPort)) {
+            uartPort->port.txBuffer[uartPort->port.txBufferHead] = ch;
+
+            if (uartPort->port.txBufferHead + 1 >= uartPort->port.txBufferSize) {
+                uartPort->port.txBufferHead = 0;
+            } else {
+                uartPort->port.txBufferHead++;
+            }
+
+            uartStartTx(uartPort);
+        }
     }
-
-    uartPort->port.txBuffer[uartPort->port.txBufferHead] = ch;
-
-    if (uartPort->port.txBufferHead + 1 >= uartPort->port.txBufferSize) {
-        uartPort->port.txBufferHead = 0;
-    } else {
-        uartPort->port.txBufferHead++;
-    }
-
-    uartStartTx(uartPort);
 }
 
 static void uartBeginWrite(serialPort_t *instance)
@@ -423,7 +427,8 @@ void uartConfigureDma(uartDevice_t *uartdev)
     const uartHardware_t *hardware = uartdev->hardware;
 
     // A port reopened with a callback must not keep RX DMA from an earlier open
-    if (uartPort->port.rxCallback) {
+    if (uartPort->port.rxCallback && uartPort->rxDMAResource) {
+        xDMA_Cmd(uartPort->rxDMAResource, FALSE);
         uartPort->rxDMAResource = NULL;
     }
 
