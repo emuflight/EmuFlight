@@ -213,6 +213,7 @@ const timerHardware_t *timerGetByTagAndIndex(ioTag_t ioTag, unsigned timerIndex)
 const timerHardware_t *timerGetAllocatedByNumberAndChannel(int8_t timerNumber, uint16_t timerChannel);
 #endif
 const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8_t resourceIndex);
+void timerRelease(ioTag_t ioTag, resourceOwner_e owner);
 resourceOwner_e timerGetOwner(ioTag_t ioTag);
 uint8_t timerGetOwnerResourceIndex(ioTag_t ioTag);
 
