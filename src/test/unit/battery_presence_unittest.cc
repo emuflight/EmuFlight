@@ -249,7 +249,7 @@ TEST_F(BatteryPresenceTest, NoiseAtStableWindowEdgeStillDetectsPack)
     EXPECT_EQ(6, lastProfileCellCount);
 }
 
-// Noise well above the window (0.5V steps on a 22.8V reading) must not count a wrong pack.
+// Noise far above the window (5V peak to peak between 20.3V and 25.3V) must not count a wrong pack.
 TEST_F(BatteryPresenceTest, NoiseFarAboveWindowDoesNotCountWrongPack)
 {
     run(2000, 0);
