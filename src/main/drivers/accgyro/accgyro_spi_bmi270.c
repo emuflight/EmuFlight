@@ -189,7 +189,8 @@ uint8_t bmi270Detect(const extDevice_t *dev)
     IOHi(dev->busType_u.spi.csnPin);
 #endif
 
-    spiSetDivisor(dev->bus->busType_u.spi.instance, spiCalculateDivider(BMI270_MAX_SPI_CLK_HZ));
+    spiSetClkDivisor(dev, spiCalculateDivider(BMI270_MAX_SPI_CLK_HZ));
+    spiSetDivisor(dev->bus->busType_u.spi.instance, spiCalculateDivider(BMI270_MAX_SPI_CLK_HZ)); // blocking config upload uses the register
     bmi270EnableSPI(dev);
 
     if (bmi270RegisterRead(dev, BMI270_REG_CHIP_ID) == BMI270_CHIP_ID) {
