@@ -313,6 +313,9 @@ void TMR7_GLOBAL_IRQHandler(void)
 
     cdc_struct_type *pcdc = (cdc_struct_type *)otg_core_struct.dev.class_handler->pdata;
 
+    // Nothing can be sent before the host configures the device.
+    const bool configured = USB_CONN_STATE_CONFIGURED == otg_core_struct.dev.conn_state;
+
     if (pcdc->g_tx_completed == 1) {
         if (lastBuffsize) {
             bool needZeroLengthPacket = lastBuffsize % 64 == 0;
@@ -323,13 +326,12 @@ void TMR7_GLOBAL_IRQHandler(void)
             }
             lastBuffsize = 0;
 
-            if (needZeroLengthPacket) {
+            if (needZeroLengthPacket && configured) {
                 usb_vcp_send_data(&otg_core_struct.dev, (uint8_t*)&UserTxBuffer[UserTxBufPtrOut], 0);
                 return;
             }
         }
-        // Nothing can be sent before the host configures the device.
-        if (USB_CONN_STATE_CONFIGURED == otg_core_struct.dev.conn_state && UserTxBufPtrOut != UserTxBufPtrIn) {
+        if (configured && UserTxBufPtrOut != UserTxBufPtrIn) {
             if (UserTxBufPtrOut > UserTxBufPtrIn) {
                 buffsize = APP_TX_DATA_SIZE - UserTxBufPtrOut;
             } else {
