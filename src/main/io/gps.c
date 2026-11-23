@@ -663,7 +663,8 @@ static bool gpsNewFrameNMEA(char c) {
                     gps_frame = FRAME_GGA;
                 else if (strcmp(&string[2], "RMC") == 0)
                     gps_frame = FRAME_RMC;
-                else if (strcmp(&string[2], "GSV") == 0)
+                // Only GPGSV: the sat arrays hold one constellation, GSV numbering restarts per talker.
+                else if (strcmp(&string[2], "GSV") == 0 && string[0] == 'G' && string[1] == 'P')
                     gps_frame = FRAME_GSV;
             }
         }
@@ -731,7 +732,7 @@ static bool gpsNewFrameNMEA(char c) {
                 break;
             case 3:
                 // Total number of SVs visible
-                GPS_numCh = grab_fields(string, 0);
+                GPS_numCh = MIN(grab_fields(string, 0), GPS_SV_MAXSATS); // MSP_GPSSVINFO reads GPS_numCh array entries
                 break;
             }
             if (param < 4)

@@ -131,3 +131,19 @@ TEST_F(GpsNmeaTest, ShortSentenceIdIgnored)
     EXPECT_EQ(0, gpsSol.numSat);
     EXPECT_EQ(0, gpsSol.llh.lat);
 }
+
+// GSV: only the GP talker fills the satellite arrays; the satellite count never exceeds the array size.
+TEST_F(GpsNmeaTest, GsvOnlyFromGpTalker)
+{
+    GPS_numCh = 0;
+    testGpsNmeaFeed(frame("GLGSV,1,1,05").c_str());
+    EXPECT_EQ(0, GPS_numCh);
+    testGpsNmeaFeed(frame("GPGSV,1,1,07").c_str());
+    EXPECT_EQ(7, GPS_numCh);
+}
+
+TEST_F(GpsNmeaTest, GsvSatelliteCountCappedToArraySize)
+{
+    testGpsNmeaFeed(frame("GPGSV,3,1,18").c_str());
+    EXPECT_EQ(16, GPS_numCh);
+}
