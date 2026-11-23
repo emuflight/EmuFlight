@@ -57,7 +57,8 @@
  *
  */
 
-#define VBAT_STABLE_MAX_DELTA 20
+#define VBAT_STABLE_MAX_DELTA 2 // 0.2V in 0.1V steps
+#define BATTERY_SWAP_HOLDOFF_US 5000000 // IR sag recovery after disarm must not look like a new pack
 #define LVC_AFFECT_TIME 10000000 //10 secs for the LVC to slowly kick in
 
 // Battery monitoring stuff
@@ -72,6 +73,9 @@ static voltageMeter_t voltageMeter;
 static batteryState_e batteryState;
 static batteryState_e voltageState;
 static batteryState_e consumptionState;
+static uint16_t batteryRefVoltage; // filtered voltage of the pack when last tracked, frozen while disarmed
+static timeUs_t batteryRefHoldUntilUs;
+static bool batteryRefTracking;
 
 #ifndef DEFAULT_CURRENT_METER_SOURCE
 #ifdef USE_VIRTUAL_CURRENT_METER
@@ -173,9 +177,15 @@ static bool isVoltageFromBat(void) {
            || voltageMeter.filtered > batteryConfig()->vbatnotpresentcellvoltage * 2; // USB voltage - 2s or more check
 }
 
+static bool isBatterySwapped(void) {
+    // A pack swap bridged by the filter capacitor never shows the not-present voltage window
+    return voltageState < BATTERY_NOT_PRESENT && !batteryRefTracking
+           && ABS((int)voltageMeter.filtered - (int)batteryRefVoltage) >= batteryConfig()->vbatmincellvoltage;
+}
+
 void batteryUpdatePresence(void) {
     if (
-        (voltageState == BATTERY_NOT_PRESENT || voltageState == BATTERY_INIT) && isVoltageFromBat() && isVoltageStable()
+        (voltageState == BATTERY_NOT_PRESENT || voltageState == BATTERY_INIT || isBatterySwapped()) && isVoltageFromBat() && isVoltageStable()
     ) {
         // Battery has just been connected - calculate cells, warning voltages and reset state
         consumptionState = voltageState = BATTERY_OK;
@@ -196,6 +206,7 @@ void batteryUpdatePresence(void) {
         batteryCriticalVoltage = batteryCellCount * batteryConfig()->vbatmincellvoltage;
         lowVoltageCutoff.percentage = 100;
         lowVoltageCutoff.startTime = 0;
+        batteryRefVoltage = voltageMeter.filtered;
     } else if (
         voltageState != BATTERY_NOT_PRESENT && isVoltageStable() && !isVoltageFromBat()
     ) {
@@ -277,7 +288,18 @@ static void batteryUpdateConsumptionState(void) {
     }
 }
 
+static void batteryUpdateSwapReference(timeUs_t currentTimeUs) {
+    if (ARMING_FLAG(ARMED)) {
+        batteryRefHoldUntilUs = currentTimeUs + BATTERY_SWAP_HOLDOFF_US;
+    }
+    batteryRefTracking = ARMING_FLAG(ARMED) || cmp32(currentTimeUs, batteryRefHoldUntilUs) < 0;
+    if (batteryRefTracking && voltageState < BATTERY_NOT_PRESENT) {
+        batteryRefVoltage = voltageMeter.filtered;
+    }
+}
+
 void batteryUpdateStates(timeUs_t currentTimeUs) {
+    batteryUpdateSwapReference(currentTimeUs);
     batteryUpdateVoltageState();
     batteryUpdateConsumptionState();
     batteryUpdateLVC(currentTimeUs);
@@ -312,6 +334,9 @@ void batteryInit(void) {
     //
     batteryState = BATTERY_INIT;
     batteryCellCount = 0;
+    batteryRefVoltage = 0;
+    batteryRefHoldUntilUs = 0;
+    batteryRefTracking = false;
     //
     // voltage
     //
