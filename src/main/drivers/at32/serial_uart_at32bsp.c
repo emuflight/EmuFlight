@@ -90,6 +90,23 @@ static void uartConfigurePinSwap(uartPort_t *uartPort)
 void uartReconfigure(uartPort_t *uartPort)
 {
     usart_enable(uartPort->USARTx, FALSE);
+
+    // usart_init() leaves earlier interrupt and DMA request enables set, so clear them before the mode applies
+    usart_interrupt_enable(uartPort->USARTx, USART_RDBF_INT, FALSE);
+    usart_interrupt_enable(uartPort->USARTx, USART_IDLE_INT, FALSE);
+    usart_interrupt_enable(uartPort->USARTx, USART_TDBE_INT, FALSE);
+    usart_interrupt_enable(uartPort->USARTx, USART_TDC_INT, FALSE);
+    usart_dma_receiver_enable(uartPort->USARTx, FALSE);
+    usart_dma_transmitter_enable(uartPort->USARTx, FALSE);
+#ifdef USE_DMA
+    if (uartPort->rxDMAResource) {
+        xDMA_Cmd(uartPort->rxDMAResource, FALSE);
+    }
+    if (uartPort->txDMAResource) {
+        xDMA_Cmd(uartPort->txDMAResource, FALSE);
+    }
+#endif
+
     //init
     usart_init(uartPort->USARTx,
                uartPort->port.baudRate,
@@ -104,13 +121,8 @@ void uartReconfigure(uartPort_t *uartPort)
     usart_hardware_flow_control_set(uartPort->USARTx, USART_HARDWARE_FLOW_NONE);
 
     //set mode rx or tx
-    if (uartPort->port.mode & MODE_RX) {
-        usart_receiver_enable(uartPort->USARTx, TRUE);
-    }
-    
-    if (uartPort->port.mode & MODE_TX) {
-        usart_transmitter_enable(uartPort->USARTx, TRUE);
-    }
+    usart_receiver_enable(uartPort->USARTx, (uartPort->port.mode & MODE_RX) ? TRUE : FALSE);
+    usart_transmitter_enable(uartPort->USARTx, (uartPort->port.mode & MODE_TX) ? TRUE : FALSE);
 
     //config pin inverter
     usartConfigurePinInversion(uartPort);
@@ -271,14 +283,21 @@ void uartTryStartTxDMA(uartPort_t *s)
 #endif
 
 
+static bool uartTxIdle(const uartPort_t *s)
+{
+#ifdef USE_DMA
+    // TDC with an empty ring and a zero DMA count means the last byte has left the pin, whatever txDMAEmpty says
+    if (s->txDMAResource && xDMA_GetCurrDataCounter(s->txDMAResource) != 0) {
+        return false;
+    }
+#endif
+    return s->port.txBufferTail == s->port.txBufferHead;
+}
+
 static void handleUsartTxDma(uartPort_t *s)
 {
+    // DMA empty only means the last byte reached the data register, so the TDC interrupt releases the TX pin
     uartTryStartTxDMA(s);
-
-    if (s->txDMAEmpty) {
-        // Switch TX to an input with pullup so it's state can be monitored
-        uartTxMonitor(s);
-    }
 }
 
 void uartDmaIrqHandler(dmaChannelDescriptor_t* descriptor)
@@ -312,8 +331,10 @@ void uartIrqHandler(uartPort_t *s)
     if ((usart_flag_get(s->USARTx, USART_TDC_FLAG) != RESET)) {
         usart_flag_clear(s->USARTx, USART_TDC_FLAG);
 
-        // Switch TX to an input with pull-up so it's state can be monitored
-        uartTxMonitor(s);
+        // Switch TX to an input with pull-up so it's state can be monitored, once no queued data remains
+        if (uartTxIdle(s)) {
+            uartTxMonitor(s);
+        }
     }
 
     if (!s->txDMAResource && (usart_flag_get(s->USARTx, USART_TDBE_FLAG) == SET)) {
