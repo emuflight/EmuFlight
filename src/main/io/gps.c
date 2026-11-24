@@ -237,7 +237,7 @@ ubloxVersion_e ubloxParseVersion(const uint32_t version) {
 }
 
 // hwVersion is eight hexadecimal digits ("000A0000"). Anything else (sign, whitespace, "0x", other characters,
-// more than eight digits, empty) is not a version.
+// fewer or more than eight digits, empty) is not a version.
 static ubloxVersion_e ubloxParseHwVersion(const char *hwVersion) {
     uint32_t value = 0;
     size_t digits = 0;
@@ -258,7 +258,7 @@ static ubloxVersion_e ubloxParseHwVersion(const char *hwVersion) {
         }
         value = (value << 4) | nibble;
     }
-    return digits ? ubloxParseVersion(value) : UBX_VERSION_UNDEF;
+    return digits == 8 ? ubloxParseVersion(value) : UBX_VERSION_UNDEF;
 }
 
 #define UBLOX_RATE_SKIP 0xFF

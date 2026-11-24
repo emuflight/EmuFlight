@@ -37,6 +37,7 @@ extern "C" {
     extern bool gpsNewFrame(uint8_t c);
     extern void gpsInitUblox(void);
     extern bool testRtcHasTime;
+    extern bool testTxBusy;
     extern int testRtcSetCalls;
     extern dateTime_t testRtcSetValue;
 }
@@ -227,7 +228,8 @@ extern "C" {
     uint8_t serialRead(serialPort_t *) { return 0; }
     void serialSetBaudRate(serialPort_t *, uint32_t) {}
     void serialSetMode(serialPort_t *, portMode_e) {}
-    bool isSerialTransmitBufferEmpty(const serialPort_t *) { return true; }
+    bool testTxBusy = false;
+    bool isSerialTransmitBufferEmpty(const serialPort_t *) { return !testTxBusy; }
     void serialPrint(serialPort_t *, const char *) {}
     uint32_t serialGetBaudRate(serialPort_t *) { return 0; }
 }
@@ -400,6 +402,8 @@ TEST_F(GpsUbloxTest, MonVerValidPrefixFollowedByOtherCharactersIsIgnored)
     expectMonVer("000A0000Z", UBX_VERSION_UNDEF);
     expectMonVer("000A0000 ", UBX_VERSION_UNDEF);
     expectMonVer("", UBX_VERSION_UNDEF);
+    expectMonVer("A0000", UBX_VERSION_UNDEF);        // same value as 000A0000, but not eight digits
+    expectMonVer("0A0000", UBX_VERSION_UNDEF);
     expectMonVer("+000A0000", UBX_VERSION_UNDEF);
     expectMonVer(" 000A0000", UBX_VERSION_UNDEF);
     expectMonVer("0x0A0000", UBX_VERSION_UNDEF);
@@ -457,7 +461,7 @@ protected:
         gpsData.messageState = GPS_MESSAGE_STATE_IDLE;
         gpsData.platformVersion = UBX_VERSION_UNDEF;
     }
-    void TearDown() override { testTx = NULL; }
+    void TearDown() override { testTx = NULL; testTxBusy = false; }
     // run until the configure state is left; `answer` is delivered when the version poll has been sent
     void run(const char *hw) {
         for (int i = 0; i < 4000 && gpsData.state == 3; i++) {
@@ -612,6 +616,59 @@ TEST_F(GpsUbloxConfigTest, LateVersionReplyDoesNotChangeTheSetBeingSent)
     EXPECT_EQ(1, rateOf(0x06));
     EXPECT_EQ(5, rateOf(0x30));
     EXPECT_EQ(-1, valsetRateOf(0x20910007));
+}
+
+TEST_F(GpsUbloxConfigTest, NothingIsSentWhileTheTransmitBufferIsBusy)
+{
+    testTxBusy = true;
+    for (int i = 0; i < 100; i++) {
+        gpsInitUblox();
+        testMillis += 300;
+    }
+    EXPECT_TRUE(tx.empty());
+    EXPECT_EQ(GPS_MESSAGE_STATE_IDLE, gpsData.messageState);
+}
+
+TEST_F(GpsUbloxConfigTest, MessageSetStartsOnlyAfterTheLastPollHadItsInterval)
+{
+    for (int i = 0; i < 1000 && gpsData.messageState < GPS_MESSAGE_STATE_VERSION; i++) {
+        gpsInitUblox();
+    }
+    // polls at clock 0, 250, 500, 750; the version state ends once 250 ms have passed after the fourth poll
+    for (uint32_t t : {250u, 500u, 750u, 999u}) {
+        testMillis = t;
+        gpsInitUblox();
+        EXPECT_EQ(GPS_MESSAGE_STATE_VERSION, gpsData.messageState) << "clock " << t;
+    }
+    EXPECT_EQ(4, pollCount());
+    testMillis = 1000;
+    gpsInitUblox();   // the last interval is over: the wait is closed
+    gpsInitUblox();   // the next call leaves the version state
+    EXPECT_EQ(GPS_MESSAGE_STATE_MESSAGES, gpsData.messageState);
+    EXPECT_EQ(4, pollCount());
+}
+
+TEST_F(GpsUbloxConfigTest, LateVersionReplyLeavesTheCompleteFallbackSetUnchanged)
+{
+    for (int i = 0; i < 1000 && gpsData.messageState != GPS_MESSAGE_STATE_MESSAGES; i++) {
+        gpsInitUblox();
+        testMillis += 300;
+    }
+    feed(ubxFrame(0x0A, 0x04, monVerPayload("000A0000")));
+    for (int i = 0; i < 4000 && gpsData.state == 3; i++) {
+        gpsInitUblox();
+        testMillis += 300;
+    }
+    EXPECT_EQ(1, rateOf(0x02));
+    EXPECT_EQ(1, rateOf(0x03));
+    EXPECT_EQ(1, rateOf(0x12));
+    EXPECT_EQ(1, rateOf(0x06));
+    EXPECT_EQ(1, rateOf(0x07));
+    EXPECT_EQ(5, rateOf(0x30));
+    EXPECT_EQ(5, rateOf(0x35));
+    for (uint32_t key : {0x2091002au, 0x2091001bu, 0x20910043u, 0x20910007u, 0x20910016u}) {
+        EXPECT_EQ(-1, valsetRateOf(key));
+    }
 }
 
 TEST_F(GpsUbloxConfigTest, M8DisablesSolAndSvinfo)
