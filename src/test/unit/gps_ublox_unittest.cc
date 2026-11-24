@@ -388,6 +388,11 @@ TEST_F(GpsUbloxTest, MonVerValidPrefixFollowedByOtherCharactersIsIgnored)
     expectMonVer("000A0000Z", UBX_VERSION_UNDEF);
     expectMonVer("000A0000 ", UBX_VERSION_UNDEF);
     expectMonVer("", UBX_VERSION_UNDEF);
+    expectMonVer("+000A0000", UBX_VERSION_UNDEF);
+    expectMonVer(" 000A0000", UBX_VERSION_UNDEF);
+    expectMonVer("0x0A0000", UBX_VERSION_UNDEF);
+    expectMonVer("01000A0000", UBX_VERSION_UNDEF);   // ten digits: would narrow to the M10 value in 32 bits
+    expectMonVer("000a0000", UBX_VERSION_M10);       // lower-case digits are still hexadecimal
 }
 
 TEST_F(GpsUbloxTest, MonVerShorterThanFixedPartIsIgnored)
@@ -516,7 +521,44 @@ TEST_F(GpsUbloxConfigTest, M9UsesValsetLikeM10)
     run("00190000");
     EXPECT_EQ(1, valsetRateOf(0x20910007));
     EXPECT_EQ(5, valsetRateOf(0x20910016));
+    EXPECT_EQ(1, valsetRateOf(0x2091002a));
+    EXPECT_EQ(1, valsetRateOf(0x2091001b));
+    EXPECT_EQ(1, valsetRateOf(0x20910043));
     EXPECT_EQ(-1, rateOf(0x07));
+}
+
+TEST_F(GpsUbloxConfigTest, ValsetFramesHaveVersionZeroRamLayerAndZeroReservedBytes)
+{
+    run("000A0000");
+    int frames = 0;
+    for (size_t i = 0; i + 17 <= tx.size(); i++) {
+        if (tx[i] == 0xB5 && tx[i + 1] == 0x62 && tx[i + 2] == 0x06 && tx[i + 3] == 0x8A) {
+            frames++;
+            EXPECT_EQ(0x09, tx[i + 4]);
+            EXPECT_EQ(0x00, tx[i + 5]);   // length high byte
+            EXPECT_EQ(0x00, tx[i + 6]);   // version
+            EXPECT_EQ(0x01, tx[i + 7]);   // layers: RAM
+            EXPECT_EQ(0x00, tx[i + 8]);   // reserved
+            EXPECT_EQ(0x00, tx[i + 9]);   // reserved
+        }
+    }
+    EXPECT_EQ(5, frames);
+}
+
+TEST_F(GpsUbloxConfigTest, SecondPollWaitsForTheFullInterval)
+{
+    // the first poll goes out in the call that enters the version state, at clock 0
+    for (int i = 0; i < 1000 && gpsData.messageState < GPS_MESSAGE_STATE_VERSION; i++) {
+        gpsInitUblox();
+    }
+    ASSERT_EQ(GPS_MESSAGE_STATE_VERSION, gpsData.messageState);
+    ASSERT_EQ(1, pollCount());
+    testMillis = 249;
+    gpsInitUblox();
+    EXPECT_EQ(1, pollCount());
+    testMillis = 250;
+    gpsInitUblox();
+    EXPECT_EQ(2, pollCount());
 }
 
 TEST_F(GpsUbloxConfigTest, M5UsesSolAndSvinfoOnly)

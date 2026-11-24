@@ -236,6 +236,31 @@ ubloxVersion_e ubloxParseVersion(const uint32_t version) {
     return UBX_VERSION_UNDEF;
 }
 
+// hwVersion is eight hexadecimal digits ("000A0000"). Anything else (sign, whitespace, "0x", other characters,
+// more than eight digits, empty) is not a version.
+static ubloxVersion_e ubloxParseHwVersion(const char *hwVersion) {
+    uint32_t value = 0;
+    size_t digits = 0;
+    for (; hwVersion[digits] != '\0'; digits++) {
+        const char c = hwVersion[digits];
+        uint32_t nibble;
+        if (c >= '0' && c <= '9') {
+            nibble = c - '0';
+        } else if (c >= 'A' && c <= 'F') {
+            nibble = c - 'A' + 10;
+        } else if (c >= 'a' && c <= 'f') {
+            nibble = c - 'a' + 10;
+        } else {
+            return UBX_VERSION_UNDEF;
+        }
+        if (digits >= 8) {
+            return UBX_VERSION_UNDEF;
+        }
+        value = (value << 4) | nibble;
+    }
+    return digits ? ubloxParseVersion(value) : UBX_VERSION_UNDEF;
+}
+
 #define UBLOX_RATE_SKIP 0xFF
 
 // NAV message ids sent in this order after the version is known.
@@ -1219,10 +1244,7 @@ static bool UBLOX_parse_gps(void) {
             char hwVersion[sizeof(_buffer.monver.hwVersion) + 1];
             memcpy(hwVersion, _buffer.monver.hwVersion, sizeof(_buffer.monver.hwVersion));
             hwVersion[sizeof(_buffer.monver.hwVersion)] = '\0';
-            // the whole field must be hexadecimal: a valid prefix followed by other characters is not a version
-            char *end = NULL;
-            const unsigned long hw = strtoul(hwVersion, &end, 16);
-            gpsData.platformVersion = (end != hwVersion && *end == '\0') ? ubloxParseVersion(hw) : UBX_VERSION_UNDEF;
+            gpsData.platformVersion = ubloxParseHwVersion(hwVersion);
         }
         return false;
     }
