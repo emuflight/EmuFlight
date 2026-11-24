@@ -1148,6 +1148,13 @@ static bool UBLOX_parse_gps(void) {
             GPS_svinfo_quality[i] = _buffer.sat.sv[i].flags & 0x07;
             GPS_svinfo_cno[i] = _buffer.sat.sv[i].cno;
         }
+        // clear the entries left over from an earlier, longer message: consumers read the whole array
+        for (; i < GPS_SV_MAXSATS; i++) {
+            GPS_svinfo_chn[i] = 0;
+            GPS_svinfo_svid[i] = 0;
+            GPS_svinfo_quality[i] = 0;
+            GPS_svinfo_cno[i] = 0;
+        }
         GPS_svInfoReceivedCount++;
         break;
     }

@@ -280,3 +280,49 @@ TEST_F(GpsUbloxTest, OversizedNonSatMessageIsStillSkipped)
     feed(ubxFrame(0x01, 0x07, p));
     EXPECT_EQ(3, gpsSol.numSat);
 }
+
+TEST_F(GpsUbloxTest, NavSatShorterMessageClearsEntriesOfEarlierOne)
+{
+    feed(ubxFrame(0x01, 0x35, navSatPayload(10, 10, 1)));
+    EXPECT_EQ(10, GPS_numCh);
+    feed(ubxFrame(0x01, 0x35, navSatPayload(3, 3, 50)));
+    EXPECT_EQ(3, GPS_numCh);
+    for (int i = 3; i < 16; i++) {
+        EXPECT_EQ(0, GPS_svinfo_svid[i]);
+        EXPECT_EQ(0, GPS_svinfo_cno[i]);
+        EXPECT_EQ(0, GPS_svinfo_quality[i]);
+        EXPECT_EQ(0, GPS_svinfo_chn[i]);
+    }
+}
+
+TEST_F(GpsUbloxTest, NavSatSixteenAndSeventeenEntriesAreCappedAtSixteen)
+{
+    feed(ubxFrame(0x01, 0x35, navSatPayload(16, 16, 1)));
+    EXPECT_EQ(16, GPS_numCh);
+    feed(ubxFrame(0x01, 0x35, navSatPayload(17, 17, 1)));
+    EXPECT_EQ(16, GPS_numCh);
+    EXPECT_EQ(16, GPS_svinfo_svid[15]);
+}
+
+TEST_F(GpsUbloxTest, NavSatPayloadsOfExactlyAndJustOverBufferSize)
+{
+    feed(ubxFrame(0x01, 0x35, navSatPayload(28, 28, 1)));   // 8 + 28*12 = 344 bytes
+    EXPECT_EQ(16, GPS_numCh);
+    feed(ubxFrame(0x01, 0x35, navSatPayload(29, 29, 1)));   // 356 bytes
+    EXPECT_EQ(16, GPS_numCh);
+    // a valid frame right after the long one must still parse
+    feed(ubxFrame(0x01, 0x35, navSatPayload(2, 2, 9)));
+    EXPECT_EQ(2, GPS_numCh);
+    EXPECT_EQ(9, GPS_svinfo_svid[0]);
+}
+
+TEST_F(GpsUbloxTest, NavSatZeroEntriesAndPartialLastEntry)
+{
+    feed(ubxFrame(0x01, 0x35, navSatPayload(5, 5, 1)));
+    feed(ubxFrame(0x01, 0x35, navSatPayload(0, 0, 1)));
+    EXPECT_EQ(0, GPS_numCh);
+    std::vector<uint8_t> p = navSatPayload(3, 2, 20);
+    p.insert(p.end(), 5, 0);                                // 5 bytes of a third entry
+    feed(ubxFrame(0x01, 0x35, p));
+    EXPECT_EQ(2, GPS_numCh);
+}
