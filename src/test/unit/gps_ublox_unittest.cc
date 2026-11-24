@@ -75,6 +75,23 @@ static std::vector<uint8_t> navSolPayload(uint8_t numSV, uint16_t pDop)
     return p;
 }
 
+// NAV-SAT per the u-blox spec: 8-byte header (iTOW, version, numSvs, reserved), then 12 bytes per satellite:
+// gnssId, svId, cno, elev, azim (I2), prRes (I2), flags (U4, bits 0-2 = qualityInd).
+static std::vector<uint8_t> navSatPayload(uint8_t numSvsField, uint8_t countInPayload, uint8_t firstSvId)
+{
+    std::vector<uint8_t> p(8 + 12 * countInPayload, 0);
+    p[4] = 1;                 // version
+    p[5] = numSvsField;       // numSvs
+    for (uint8_t i = 0; i < countInPayload; i++) {
+        uint8_t *sv = &p[8 + 12 * i];
+        sv[0] = 0;                        // gnssId: GPS
+        sv[1] = firstSvId + i;            // svId
+        sv[2] = 20 + i;                   // cno
+        sv[8] = 0x0D;                     // flags low byte: qualityInd 5 (bits 0-2), svUsed (bit 3)
+    }
+    return p;
+}
+
 static void feed(const std::vector<uint8_t> &f)
 {
     for (uint8_t c : f) {
@@ -87,6 +104,11 @@ protected:
     void SetUp() override {
         gpsConfigMutable()->provider = GPS_UBLOX;
         memset(&gpsSol, 0, sizeof(gpsSol));
+        GPS_numCh = 0;
+        memset(GPS_svinfo_chn, 0, sizeof(GPS_svinfo_chn));
+        memset(GPS_svinfo_svid, 0, sizeof(GPS_svinfo_svid));
+        memset(GPS_svinfo_quality, 0, sizeof(GPS_svinfo_quality));
+        memset(GPS_svinfo_cno, 0, sizeof(GPS_svinfo_cno));
         stateFlags = 0;
         armingFlags = 0;
     }
@@ -192,4 +214,69 @@ extern "C" {
     bool isSerialTransmitBufferEmpty(const serialPort_t *) { return true; }
     void serialPrint(serialPort_t *, const char *) {}
     uint32_t serialGetBaudRate(serialPort_t *) { return 0; }
+}
+
+TEST_F(GpsUbloxTest, NavSatFillsSignalTable)
+{
+    feed(ubxFrame(0x01, 0x35, navSatPayload(3, 3, 5)));
+    EXPECT_EQ(3, GPS_numCh);
+    for (int i = 0; i < 3; i++) {
+        EXPECT_EQ(i + 1, GPS_svinfo_chn[i]);
+        EXPECT_EQ(5 + i, GPS_svinfo_svid[i]);
+        EXPECT_EQ(20 + i, GPS_svinfo_cno[i]);
+        EXPECT_EQ(5, GPS_svinfo_quality[i]);
+    }
+}
+
+TEST_F(GpsUbloxTest, NavSatLongerThanReceiveBufferKeepsFirst16)
+{
+    // 40 satellites = 488-byte payload, above the 344-byte receive buffer
+    feed(ubxFrame(0x01, 0x35, navSatPayload(40, 40, 1)));
+    EXPECT_EQ(16, GPS_numCh);
+    EXPECT_EQ(1, GPS_svinfo_svid[0]);
+    EXPECT_EQ(16, GPS_svinfo_svid[15]);
+    EXPECT_EQ(35, GPS_svinfo_cno[15]);
+}
+
+TEST_F(GpsUbloxTest, NavSatCountFieldLargerThanPayloadIsClamped)
+{
+    // header claims 10 satellites, payload holds 2
+    feed(ubxFrame(0x01, 0x35, navSatPayload(10, 2, 7)));
+    EXPECT_EQ(2, GPS_numCh);
+}
+
+TEST_F(GpsUbloxTest, NavSatBadChecksumOnLongFrameIsRejected)
+{
+    std::vector<uint8_t> f = ubxFrame(0x01, 0x35, navSatPayload(40, 40, 1));
+    f.back() ^= 0xFF;
+    GPS_numCh = 4;
+    feed(f);
+    EXPECT_EQ(4, GPS_numCh);
+    // Parser must resync on the next good frame.
+    feed(ubxFrame(0x01, 0x35, navSatPayload(2, 2, 9)));
+    EXPECT_EQ(2, GPS_numCh);
+}
+
+TEST_F(GpsUbloxTest, NavSatShorterThanHeaderIsIgnored)
+{
+    GPS_numCh = 4;
+    feed(ubxFrame(0x01, 0x35, std::vector<uint8_t>(5, 0)));
+    EXPECT_EQ(4, GPS_numCh);
+}
+
+TEST_F(GpsUbloxTest, MessageId35InOtherClassIsIgnored)
+{
+    GPS_numCh = 4;
+    feed(ubxFrame(0x02, 0x35, navSatPayload(3, 3, 5)));
+    EXPECT_EQ(4, GPS_numCh);
+}
+
+TEST_F(GpsUbloxTest, OversizedNonSatMessageIsStillSkipped)
+{
+    // only NAV-SAT may exceed the buffer; a 400-byte NAV-PVT frame must not be parsed
+    std::vector<uint8_t> p = navPvtPayload(14, 0);
+    p.resize(400, 0);
+    gpsSol.numSat = 3;
+    feed(ubxFrame(0x01, 0x07, p));
+    EXPECT_EQ(3, gpsSol.numSat);
 }
