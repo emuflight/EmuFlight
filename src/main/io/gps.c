@@ -22,6 +22,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <ctype.h>
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
@@ -68,6 +69,7 @@
 #define LOG_UBLOX_SAT 'A'
 #define LOG_UBLOX_POSLLH 'P'
 #define LOG_UBLOX_VELNED 'V'
+#define LOG_UBLOX_MONVER 'M'
 
 #define GPS_SV_MAXSATS   16
 
@@ -169,16 +171,6 @@ static const uint8_t ubloxInit[] = {
     0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0xF0, 0x02, 0x00, 0xFC, 0x13,           // GSA: GNSS DOP and Active Satellites
     0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0xF0, 0x04, 0x00, 0xFE, 0x17,           // RMC: Recommended Minimum data
 
-    // Enable UBLOX messages
-    0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x02, 0x01, 0x0E, 0x47,           // set POSLLH MSG rate
-    0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x03, 0x01, 0x0F, 0x49,           // set STATUS MSG rate
-    0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x06, 0x01, 0x12, 0x4F,           // set SOL MSG rate
-    0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x07, 0x01, 0x13, 0x51,           // set PVT MSG rate (only source of satellite count on receivers without SOL)
-    //0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x30, 0x01, 0x3C, 0xA3,           // set SVINFO MSG rate (every cycle - high bandwidth)
-    0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x30, 0x05, 0x40, 0xA7,           // set SVINFO MSG rate (evey 5 cycles - low bandwidth)
-    0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x35, 0x05, 0x45, 0xB1,           // set SAT MSG rate (every 5 cycles; replaces SVINFO on M9/M10 receivers)
-    0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x12, 0x01, 0x1E, 0x67,           // set VELNED MSG rate
-
     0xB5, 0x62, 0x06, 0x08, 0x06, 0x00, 0xC8, 0x00, 0x01, 0x00, 0x01, 0x00, 0xDE, 0x6A,             // set rate to 5Hz (measurement period: 200ms, navigation rate: 1 cycle)
 };
 
@@ -223,6 +215,59 @@ static const uint8_t ubloxGalileoInit[] = {
     0x06, 0x08, 0x0E, 0x00, 0x01, 0x00, 0x01, 0x01,     // GLONASS
     0x55, 0x47
 };
+
+// hwVersion strings reported by UBX-MON-VER, mapped to a receiver generation.
+static const uint32_t ubloxVersionHw[UBX_VERSION_COUNT] = {
+    [UBX_VERSION_UNDEF] = ~0,
+    [UBX_VERSION_M5] = 0x00040005,
+    [UBX_VERSION_M6] = 0x00040007,
+    [UBX_VERSION_M7] = 0x00070000,
+    [UBX_VERSION_M8] = 0x00080000,
+    [UBX_VERSION_M9] = 0x00190000,
+    [UBX_VERSION_M10] = 0x000A0000,
+};
+
+ubloxVersion_e ubloxParseVersion(const uint32_t version) {
+    for (size_t i = 0; i < ARRAYLEN(ubloxVersionHw); ++i) {
+        if (version == ubloxVersionHw[i]) {
+            return (ubloxVersion_e) i;
+        }
+    }
+    return UBX_VERSION_UNDEF;
+}
+
+#define UBLOX_RATE_SKIP 0xFF
+
+// NAV message ids sent in this order after the version is known.
+static const uint8_t ubloxNavMessages[] = { 0x02, 0x03, 0x12, 0x06, 0x07, 0x30, 0x35 };
+
+// NAV-SOL and NAV-SVINFO exist up to M8, NAV-PVT from M7, NAV-SAT from M8. An unknown receiver gets every message.
+static uint8_t ubloxMessageRate(ubloxVersion_e version, uint8_t msgId) {
+    switch (msgId) {
+    case 0x06: // NAV-SOL
+        if (version == UBX_VERSION_UNDEF || version < UBX_VERSION_M7) return 1;
+        return version >= UBX_VERSION_M9 ? UBLOX_RATE_SKIP : 0;
+    case 0x07: // NAV-PVT
+        return (version == UBX_VERSION_UNDEF || version >= UBX_VERSION_M7) ? 1 : 0;
+    case 0x30: // NAV-SVINFO, every 5 epochs
+        if (version == UBX_VERSION_UNDEF || version < UBX_VERSION_M8) return 5;
+        return version >= UBX_VERSION_M9 ? UBLOX_RATE_SKIP : 0;
+    case 0x35: // NAV-SAT, every 5 epochs
+        return (version == UBX_VERSION_UNDEF || version >= UBX_VERSION_M8) ? 5 : 0;
+    default:   // POSLLH, STATUS, VELNED
+        return 1;
+    }
+}
+
+#define UBLOX_CLASS_NAV 0x01
+#define UBLOX_CLASS_MON 0x0A
+#define UBLOX_MSG_MON_VER 0x04
+#define UBLOX_CFG_MSG_PAYLOAD_LENGTH 3
+// MON-VER is polled with an empty payload; a receiver answers within about 100 ms.
+#define UBLOX_VERSION_POLL_INTERVAL_MS 250
+#define UBLOX_VERSION_POLL_COUNT 4
+
+static void ubloxWriteFrame(uint8_t cls, uint8_t id, const uint8_t *payload, uint8_t length);
 #endif // USE_GPS_UBLOX
 
 typedef enum {
@@ -273,6 +318,9 @@ void gpsInit(void) {
     gpsData.baudrateIndex = 0;
     gpsData.errors = 0;
     gpsData.timeouts = 0;
+#ifdef USE_GPS_UBLOX
+    gpsData.platformVersion = UBX_VERSION_UNDEF;
+#endif
     memset(gpsPacketLog, 0x00, sizeof(gpsPacketLog));
     // init gpsData structure. if we're not actually enabled, don't bother doing anything else
     gpsSetState(GPS_UNKNOWN);
@@ -399,6 +447,38 @@ void gpsInitUblox(void) {
         if (gpsData.messageState == GPS_MESSAGE_STATE_INIT) {
             if (gpsData.state_position < sizeof(ubloxInit)) {
                 serialWrite(gpsPort, ubloxInit[gpsData.state_position]);
+                gpsData.state_position++;
+            } else {
+                gpsData.state_position = 0;
+                gpsData.messageState++;
+            }
+        }
+        if (gpsData.messageState == GPS_MESSAGE_STATE_VERSION) {
+            if (gpsData.state_position == 0) {
+                gpsData.platformVersion = UBX_VERSION_UNDEF;
+            }
+            // leave once the receiver answered, or after the last poll had its time to be answered
+            if (gpsData.platformVersion != UBX_VERSION_UNDEF || gpsData.state_position > UBLOX_VERSION_POLL_COUNT) {
+                gpsData.state_position = 0;
+                gpsData.messageState++;
+            } else if (gpsData.state_position == 0 || millis() - gpsData.state_ts >= UBLOX_VERSION_POLL_INTERVAL_MS) {
+                if (gpsData.state_position < UBLOX_VERSION_POLL_COUNT) {
+                    ubloxWriteFrame(UBLOX_CLASS_MON, UBLOX_MSG_MON_VER, NULL, 0);
+                }
+                gpsData.state_ts = millis();
+                gpsData.state_position++;
+            }
+        }
+        if (gpsData.messageState == GPS_MESSAGE_STATE_MESSAGES) {
+            // one frame per call; a message this receiver generation lacks is skipped
+            while (gpsData.state_position < ARRAYLEN(ubloxNavMessages) &&
+                   ubloxMessageRate(gpsData.platformVersion, ubloxNavMessages[gpsData.state_position]) == UBLOX_RATE_SKIP) {
+                gpsData.state_position++;
+            }
+            if (gpsData.state_position < ARRAYLEN(ubloxNavMessages)) {
+                const uint8_t msgId = ubloxNavMessages[gpsData.state_position];
+                const uint8_t payload[UBLOX_CFG_MSG_PAYLOAD_LENGTH] = { UBLOX_CLASS_NAV, msgId, ubloxMessageRate(gpsData.platformVersion, msgId) };
+                ubloxWriteFrame(0x06, 0x01, payload, sizeof(payload));
                 gpsData.state_position++;
             } else {
                 gpsData.state_position = 0;
@@ -976,6 +1056,16 @@ STATIC_ASSERT(offsetof(ubx_nav_sat_sv, flags) == 8, ubx_nav_sat_sv_flags_offset)
 STATIC_ASSERT(offsetof(ubx_nav_sat, numSvs) == 5, ubx_nav_sat_numSvs_offset);
 STATIC_ASSERT(offsetof(ubx_nav_sat, sv) == UBX_NAV_SAT_HEADER_SIZE, ubx_nav_sat_header_size);
 
+// UBX-MON-VER: swVersion[30], hwVersion[10], then 30-byte extension strings.
+typedef struct {
+    char swVersion[30];
+    char hwVersion[10];
+} ubx_mon_ver;
+
+#define UBX_MON_VER_MIN_LENGTH sizeof(ubx_mon_ver)
+
+STATIC_ASSERT(offsetof(ubx_mon_ver, hwVersion) == 30, ubx_mon_ver_hwVersion_offset);
+
 enum {
     PREAMBLE1 = 0xb5,
     PREAMBLE2 = 0x62,
@@ -1058,6 +1148,7 @@ static union {
     ubx_nav_velned velned;
     ubx_nav_svinfo svinfo;
     ubx_nav_sat sat;
+    ubx_mon_ver monver;
     uint8_t bytes[UBLOX_PAYLOAD_SIZE];
 } _buffer;
 
@@ -1069,10 +1160,42 @@ void _update_checksum(uint8_t *data, uint8_t len, uint8_t *ck_a, uint8_t *ck_b) 
     }
 }
 
+// Writes one UBX frame: sync chars, class, id, length, payload, Fletcher-8 checksum.
+static void ubloxWriteFrame(uint8_t cls, uint8_t id, const uint8_t *payload, uint8_t length) {
+    const uint8_t header[4] = { cls, id, length, 0 };
+    uint8_t ck_a = 0;
+    uint8_t ck_b = 0;
+    _update_checksum((uint8_t *)header, sizeof(header), &ck_a, &ck_b);
+    if (length) {
+        _update_checksum((uint8_t *)payload, length, &ck_a, &ck_b);
+    }
+    serialWrite(gpsPort, PREAMBLE1);
+    serialWrite(gpsPort, PREAMBLE2);
+    for (uint8_t i = 0; i < sizeof(header); i++) {
+        serialWrite(gpsPort, header[i]);
+    }
+    for (uint8_t i = 0; i < length; i++) {
+        serialWrite(gpsPort, payload[i]);
+    }
+    serialWrite(gpsPort, ck_a);
+    serialWrite(gpsPort, ck_b);
+}
+
 
 static bool UBLOX_parse_gps(void) {
     uint32_t i;
     *gpsPacketLogChar = LOG_IGNORED;
+    if (_class == UBLOX_CLASS_MON) {
+        if (_msg_id == UBLOX_MSG_MON_VER && _payload_length >= UBX_MON_VER_MIN_LENGTH) {
+            *gpsPacketLogChar = LOG_UBLOX_MONVER;
+            // hwVersion is not guaranteed to end with a NUL inside its field
+            char hwVersion[sizeof(_buffer.monver.hwVersion) + 1];
+            memcpy(hwVersion, _buffer.monver.hwVersion, sizeof(_buffer.monver.hwVersion));
+            hwVersion[sizeof(_buffer.monver.hwVersion)] = '\0';
+            gpsData.platformVersion = ubloxParseVersion(strtoul(hwVersion, NULL, 16));
+        }
+        return false;
+    }
     switch (_msg_id) {
     case MSG_POSLLH:
         *gpsPacketLogChar = LOG_UBLOX_POSLLH;
@@ -1149,7 +1272,7 @@ static bool UBLOX_parse_gps(void) {
         count = MIN(count, GPS_SV_MAXSATS);
         GPS_numCh = count;
         for (i = 0; i < count; i++) {
-            GPS_svinfo_chn[i] = i + 1;
+            GPS_svinfo_chn[i] = _buffer.sat.sv[i].gnssId;
             GPS_svinfo_svid[i] = _buffer.sat.sv[i].svId;
             GPS_svinfo_quality[i] = _buffer.sat.sv[i].flags & 0x07;
             GPS_svinfo_cno[i] = _buffer.sat.sv[i].cno;
@@ -1212,7 +1335,9 @@ static bool gpsNewFrameUBLOX(uint8_t data) {
         _ck_b += (_ck_a += data);       // checksum byte
         _payload_length += (uint16_t)(data << 8);
         // NAV-SAT lists every tracked satellite and can exceed the buffer; the parser keeps the first 16
-        if (_payload_length > UBLOX_PAYLOAD_SIZE && !(_class == CLASS_NAV && _msg_id == MSG_SAT)) {
+        // NAV-SAT and MON-VER may be longer than the buffer: only their first bytes are read, the checksum covers all
+        if (_payload_length > UBLOX_PAYLOAD_SIZE && !(_class == CLASS_NAV && _msg_id == MSG_SAT) &&
+            !(_class == UBLOX_CLASS_MON && _msg_id == UBLOX_MSG_MON_VER)) {
             _skip_packet = true;
         }
         _payload_counter = 0;   // prepare to receive payload
