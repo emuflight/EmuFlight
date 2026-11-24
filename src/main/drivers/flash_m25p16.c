@@ -26,6 +26,8 @@
 
 #include "build/debug.h"
 
+#include "common/utils.h"
+
 #ifdef USE_FLASH_M25P16
 
 #include "drivers/bus_spi.h"
@@ -60,7 +62,10 @@
 #define M25P16_STATUS_FLAG_WRITE_IN_PROGRESS 0x01
 #define M25P16_STATUS_FLAG_WRITE_ENABLED     0x02
 
-#define M25P16_TIMEOUT_MILLIS               500
+// Worst-case busy time per operation, from datasheet maxima.
+#define M25P16_TIMEOUT_PAGE_PROGRAM_MS      5
+#define M25P16_TIMEOUT_BLOCK_ERASE_MS       3000
+#define M25P16_TIMEOUT_CHIP_ERASE_MS        (400 * 1000)
 
 #define W25Q256_INSTRUCTION_ENTER_4BYTE_ADDRESS_MODE 0xB7
 
@@ -195,11 +200,17 @@ static bool m25p16_isReady(flashDevice_t *fdevice)
     return !fdevice->couldBeBusy;
 }
 
+// Mark the chip busy and bound the next wait by the maximum time of the operation just issued.
+static void m25p16_setBusy(flashDevice_t *fdevice, uint32_t timeoutMillis)
+{
+    fdevice->couldBeBusy = true;
+    fdevice->timeoutAt = millis() + timeoutMillis;
+}
+
 static bool m25p16_waitForReady(flashDevice_t *fdevice)
 {
-    uint32_t timeoutAt = millis() + M25P16_TIMEOUT_MILLIS;
     while (!m25p16_isReady(fdevice)) {
-        if (millis() >= timeoutAt) {
+        if (cmp32(millis(), fdevice->timeoutAt) >= 0) {
             return false;
         }
     }
@@ -240,8 +251,8 @@ bool m25p16_identify(flashDevice_t *fdevice, uint32_t jedecID)
     geometry->sectorSize = geometry->pagesPerSector * geometry->pageSize;
     geometry->totalSize = geometry->sectorSize * geometry->sectors;
 
-    fdevice->couldBeBusy = true; // Just for luck we'll assume the chip could be busy even though it isn't specced to be
-    fdevice->couldBeBusy = true; // Just for luck we'll assume the chip could be busy even though it isn't specced to be
+    // A reset during an erase leaves the chip busy for up to one block erase.
+    m25p16_setBusy(fdevice, M25P16_TIMEOUT_BLOCK_ERASE_MS);
 
     if (fdevice->io.mode == FLASHIO_SPI) {
         fdevice->vTable = &m25p16_vTable;
@@ -362,7 +373,7 @@ static void m25p16_eraseSector(flashDevice_t *fdevice, uint32_t address)
     fdevice->couldBeBusy = true;
 
     spiReadWriteBuf(fdevice->io.handle.dev, sectorErase, NULL, fdevice->isLargeFlash ? 5 : 4);
-    fdevice->couldBeBusy = true;
+    m25p16_setBusy(fdevice, M25P16_TIMEOUT_BLOCK_ERASE_MS);
 }
 
 #ifdef USE_QUADSPI
@@ -373,7 +384,7 @@ static void m25p16_eraseSectorQspi(flashDevice_t *fdevice, uint32_t address)
     quadSpiTransmit1LINE(fdevice->io.handle.dev, M25P16_INSTRUCTION_WRITE_ENABLE, 0, NULL, 0);
     quadSpiInstructionWithAddress1LINE(fdevice->io.handle.dev, M25P16_INSTRUCTION_SECTOR_ERASE, 0, address, fdevice->isLargeFlash ? 32 : 24);
 
-    fdevice->couldBeBusy = true;
+    m25p16_setBusy(fdevice, M25P16_TIMEOUT_BLOCK_ERASE_MS);
 }
 #endif
 
@@ -391,7 +402,7 @@ static void m25p16_eraseCompletely(flashDevice_t *fdevice)
 
     spiReadWriteBuf(fdevice->io.handle.dev, bulkErase, NULL, sizeof(bulkErase));
     // Chip is now erasing autonomously; caller polls flashIsReady()
-    fdevice->couldBeBusy = true;
+    m25p16_setBusy(fdevice, M25P16_TIMEOUT_CHIP_ERASE_MS);
 }
 
 #ifdef USE_QUADSPI
@@ -402,7 +413,7 @@ static void m25p16_eraseCompletelyQspi(flashDevice_t *fdevice)
     quadSpiTransmit1LINE(fdevice->io.handle.dev, M25P16_INSTRUCTION_WRITE_ENABLE, 0, NULL, 0);
     quadSpiTransmit1LINE(fdevice->io.handle.dev, M25P16_INSTRUCTION_BULK_ERASE, 0, NULL, 0);
 
-    fdevice->couldBeBusy = true;
+    m25p16_setBusy(fdevice, M25P16_TIMEOUT_CHIP_ERASE_MS);
 }
 #endif
 
@@ -452,7 +463,7 @@ static uint32_t m25p16_pageProgramContinue(flashDevice_t *fdevice, uint8_t const
     spiSequence(fdevice->io.handle.dev, ppSegments);
     spiWait(fdevice->io.handle.dev);
 
-    fdevice->couldBeBusy = true;
+    m25p16_setBusy(fdevice, M25P16_TIMEOUT_PAGE_PROGRAM_MS);
     fdevice->currentWriteAddress += bytesWritten;
 
     if (fdevice->callback) {
@@ -537,7 +548,7 @@ static uint32_t m25p16_pageProgramContinueQspi(flashDevice_t *fdevice, uint8_t c
         fdevice->callback(dataSize);
     }
 
-    fdevice->couldBeBusy = true;
+    m25p16_setBusy(fdevice, M25P16_TIMEOUT_PAGE_PROGRAM_MS);
 
     return dataSize;
 }

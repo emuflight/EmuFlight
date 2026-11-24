@@ -668,6 +668,13 @@ flashfs_unittest_DEFINES := \
 		USE_FLASHFS
 
 
+flash_m25p16_timeout_unittest_SRC := \
+		$(TEST_DIR)/flash_m25p16_timeout_test_support.c
+
+flash_m25p16_timeout_unittest_DEFINES := \
+		USE_FLASH_M25P16
+
+
 flash_w25m_unittest_SRC := \
 		$(USER_DIR)/drivers/flash_w25m.c
 
