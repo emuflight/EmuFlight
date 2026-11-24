@@ -65,6 +65,7 @@
 #define LOG_UBLOX_SOL    'O'
 #define LOG_UBLOX_STATUS 'S'
 #define LOG_UBLOX_SVINFO 'I'
+#define LOG_UBLOX_SAT 'A'
 #define LOG_UBLOX_POSLLH 'P'
 #define LOG_UBLOX_VELNED 'V'
 
@@ -175,6 +176,7 @@ static const uint8_t ubloxInit[] = {
     0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x07, 0x01, 0x13, 0x51,           // set PVT MSG rate (only source of satellite count on receivers without SOL)
     //0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x30, 0x01, 0x3C, 0xA3,           // set SVINFO MSG rate (every cycle - high bandwidth)
     0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x30, 0x05, 0x40, 0xA7,           // set SVINFO MSG rate (evey 5 cycles - low bandwidth)
+    0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x35, 0x05, 0x45, 0xB1,           // set SAT MSG rate (every 5 cycles; replaces SVINFO on M9/M10 receivers)
     0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x12, 0x01, 0x1E, 0x67,           // set VELNED MSG rate
 
     0xB5, 0x62, 0x06, 0x08, 0x06, 0x00, 0xC8, 0x00, 0x01, 0x00, 0x01, 0x00, 0xDE, 0x6A,             // set rate to 5Hz (measurement period: 200ms, navigation rate: 1 cycle)
@@ -947,6 +949,27 @@ typedef struct {
     ubx_nav_svinfo_channel channel[16];         // 16 satellites * 12 byte
 } ubx_nav_svinfo;
 
+typedef struct {
+    uint8_t gnssId;
+    uint8_t svId;
+    uint8_t cno;                // Carrier to Noise Ratio (Signal Strength) // dbHz, 0-55.
+    int8_t elev;                // Elevation in integer degrees
+    int16_t azim;               // Azimuth in integer degrees
+    int16_t prRes;              // Pseudo range residual in 0.1 metres
+    uint32_t flags;             // bits 0-2: signal quality indicator
+} ubx_nav_sat_sv;
+
+typedef struct {
+    uint32_t time;              // GPS Millisecond time of week
+    uint8_t version;
+    uint8_t numSvs;             // Number of satellites in the message
+    uint16_t reserved;
+    ubx_nav_sat_sv sv[16];      // the message may carry more; only the first 16 are kept
+} ubx_nav_sat;
+
+#define UBX_NAV_SAT_HEADER_SIZE 8
+#define UBX_NAV_SAT_SV_SIZE 12
+
 enum {
     PREAMBLE1 = 0xb5,
     PREAMBLE2 = 0x62,
@@ -961,6 +984,7 @@ enum {
     MSG_PVT = 0x7,
     MSG_VELNED = 0x12,
     MSG_SVINFO = 0x30,
+    MSG_SAT = 0x35,
     MSG_CFG_PRT = 0x00,
     MSG_CFG_RATE = 0x08,
     MSG_CFG_SET_RATE = 0x01,
@@ -1027,6 +1051,7 @@ static union {
     ubx_nav_pvt pvt;
     ubx_nav_velned velned;
     ubx_nav_svinfo svinfo;
+    ubx_nav_sat sat;
     uint8_t bytes[UBLOX_PAYLOAD_SIZE];
 } _buffer;
 
@@ -1107,6 +1132,25 @@ static bool UBLOX_parse_gps(void) {
         }
         GPS_svInfoReceivedCount++;
         break;
+    case MSG_SAT: {
+        if (_class != CLASS_NAV || _payload_length < UBX_NAV_SAT_HEADER_SIZE) {
+            break;
+        }
+        *gpsPacketLogChar = LOG_UBLOX_SAT;
+        // the buffer holds only the first UBLOX_PAYLOAD_SIZE bytes of a longer message
+        const uint16_t stored = MIN(_payload_length, UBLOX_PAYLOAD_SIZE);
+        uint8_t count = MIN(_buffer.sat.numSvs, (stored - UBX_NAV_SAT_HEADER_SIZE) / UBX_NAV_SAT_SV_SIZE);
+        count = MIN(count, GPS_SV_MAXSATS);
+        GPS_numCh = count;
+        for (i = 0; i < count; i++) {
+            GPS_svinfo_chn[i] = i + 1;
+            GPS_svinfo_svid[i] = _buffer.sat.sv[i].svId;
+            GPS_svinfo_quality[i] = _buffer.sat.sv[i].flags & 0x07;
+            GPS_svinfo_cno[i] = _buffer.sat.sv[i].cno;
+        }
+        GPS_svInfoReceivedCount++;
+        break;
+    }
     default:
         return false;
     }
@@ -1154,7 +1198,8 @@ static bool gpsNewFrameUBLOX(uint8_t data) {
         _step++;
         _ck_b += (_ck_a += data);       // checksum byte
         _payload_length += (uint16_t)(data << 8);
-        if (_payload_length > UBLOX_PAYLOAD_SIZE) {
+        // NAV-SAT lists every tracked satellite and can exceed the buffer; the parser keeps the first 16
+        if (_payload_length > UBLOX_PAYLOAD_SIZE && !(_class == CLASS_NAV && _msg_id == MSG_SAT)) {
             _skip_packet = true;
         }
         _payload_counter = 0;   // prepare to receive payload
