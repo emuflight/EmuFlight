@@ -762,6 +762,7 @@ gps_conversion_unittest_SRC := \
 
 gps_ublox_unittest_SRC := \
 		$(USER_DIR)/io/gps.c \
+		$(USER_DIR)/common/time.c \
 		$(USER_DIR)/pg/pg.c \
 		$(USER_DIR)/common/gps_conversion.c \
 		$(USER_DIR)/common/maths.c

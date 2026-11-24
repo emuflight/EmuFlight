@@ -1303,8 +1303,16 @@ static bool UBLOX_parse_gps(void) {
             temp_time.hours = _buffer.pvt.hour;
             temp_time.minutes = _buffer.pvt.min;
             temp_time.seconds = _buffer.pvt.sec;
-            temp_time.millis = _buffer.pvt.nano > 0 ? _buffer.pvt.nano / 1000000 : 0; // nano is signed, within +/- 1 s
+            temp_time.millis = 0;
             rtcSetDateTime(&temp_time);
+            // nano is a signed correction (about -0.5 s to +0.5 s) to the calendar fields, so 17:36:05 with -4 ms is 17:36:04.996
+            const int32_t nano = _buffer.pvt.nano;
+            const int32_t correctionMs = nano / 1000000 - ((nano % 1000000) < 0 ? 1 : 0);
+            rtcTime_t t;
+            if (correctionMs != 0 && rtcGet(&t)) {
+                t += correctionMs;
+                rtcSet(&t);
+            }
         }
 #endif
         break;
