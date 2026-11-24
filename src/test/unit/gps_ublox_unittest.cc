@@ -299,17 +299,23 @@ TEST_F(GpsUbloxTest, NavSatSixteenAndSeventeenEntriesAreCappedAtSixteen)
 {
     feed(ubxFrame(0x01, 0x35, navSatPayload(16, 16, 1)));
     EXPECT_EQ(16, GPS_numCh);
-    feed(ubxFrame(0x01, 0x35, navSatPayload(17, 17, 1)));
-    EXPECT_EQ(16, GPS_numCh);
     EXPECT_EQ(16, GPS_svinfo_svid[15]);
+    // distinct svIds: the table must come from this frame, not the previous one
+    feed(ubxFrame(0x01, 0x35, navSatPayload(17, 17, 101)));
+    EXPECT_EQ(16, GPS_numCh);
+    EXPECT_EQ(101, GPS_svinfo_svid[0]);
+    EXPECT_EQ(116, GPS_svinfo_svid[15]);
 }
 
 TEST_F(GpsUbloxTest, NavSatPayloadsOfExactlyAndJustOverBufferSize)
 {
     feed(ubxFrame(0x01, 0x35, navSatPayload(28, 28, 1)));   // 8 + 28*12 = 344 bytes
     EXPECT_EQ(16, GPS_numCh);
-    feed(ubxFrame(0x01, 0x35, navSatPayload(29, 29, 1)));   // 356 bytes
+    EXPECT_EQ(1, GPS_svinfo_svid[0]);
+    feed(ubxFrame(0x01, 0x35, navSatPayload(29, 29, 101)));   // 356 bytes, distinct svIds
     EXPECT_EQ(16, GPS_numCh);
+    EXPECT_EQ(101, GPS_svinfo_svid[0]);
+    EXPECT_EQ(116, GPS_svinfo_svid[15]);
     // a valid frame right after the long one must still parse
     feed(ubxFrame(0x01, 0x35, navSatPayload(2, 2, 9)));
     EXPECT_EQ(2, GPS_numCh);
