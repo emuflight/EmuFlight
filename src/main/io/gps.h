@@ -166,7 +166,7 @@ extern uint8_t GPS_update;                 // it's a binary toogle to distinct a
 extern uint32_t GPS_packetCount;
 extern uint32_t GPS_svInfoReceivedCount;
 extern uint8_t GPS_numCh;                  // Number of channels
-extern uint8_t GPS_svinfo_chn[16];         // Channel number
+extern uint8_t GPS_svinfo_chn[16];         // NAV-SAT: gnssId; NAV-SVINFO: channel; NMEA: satellite index
 extern uint8_t GPS_svinfo_svid[16];        // Satellite ID
 extern uint8_t GPS_svinfo_quality[16];     // Bitfield Qualtity
 extern uint8_t GPS_svinfo_cno[16];         // Carrier to Noise Ratio (Signal Strength)

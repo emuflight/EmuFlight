@@ -383,6 +383,13 @@ TEST_F(GpsUbloxTest, MonVerUnknownHardwareStaysUndefined)
     expectMonVer("ZZZZZZZZ", UBX_VERSION_UNDEF);
 }
 
+TEST_F(GpsUbloxTest, MonVerValidPrefixFollowedByOtherCharactersIsIgnored)
+{
+    expectMonVer("000A0000Z", UBX_VERSION_UNDEF);
+    expectMonVer("000A0000 ", UBX_VERSION_UNDEF);
+    expectMonVer("", UBX_VERSION_UNDEF);
+}
+
 TEST_F(GpsUbloxTest, MonVerShorterThanFixedPartIsIgnored)
 {
     gpsData.platformVersion = UBX_VERSION_UNDEF;
@@ -459,21 +466,98 @@ protected:
         }
         return -1;
     }
+    // rate for a CFG-VALSET frame (RAM layer, one key) with the given key, or -1 when none was sent
+    int valsetRateOf(uint32_t key) const {
+        for (size_t i = 0; i + 17 <= tx.size(); i++) {
+            if (tx[i] == 0xB5 && tx[i + 1] == 0x62 && tx[i + 2] == 0x06 && tx[i + 3] == 0x8A &&
+                tx[i + 4] == 0x09 && tx[i + 5] == 0x00 && tx[i + 6] == 0x00 && tx[i + 7] == 0x01) {
+                const uint32_t k = tx[i + 10] | (tx[i + 11] << 8) | (tx[i + 12] << 16) | ((uint32_t)tx[i + 13] << 24);
+                if (k != key) continue;
+                uint8_t a = 0, b = 0;
+                for (size_t n = 2; n < 15; n++) { a += tx[i + n]; b += a; }
+                EXPECT_EQ(a, tx[i + 15]);
+                EXPECT_EQ(b, tx[i + 16]);
+                return tx[i + 14];
+            }
+        }
+        return -1;
+    }
+    int pollCount() const {
+        static const uint8_t poll[] = {0xB5, 0x62, 0x0A, 0x04, 0x00, 0x00, 0x0E, 0x34};
+        int n = 0;
+        for (size_t i = 0; i + sizeof(poll) <= tx.size(); i++) {
+            if (std::equal(poll, poll + sizeof(poll), tx.begin() + i)) n++;
+        }
+        return n;
+    }
     bool polled() const {
         static const uint8_t poll[] = {0xB5, 0x62, 0x0A, 0x04, 0x00, 0x00, 0x0E, 0x34};
         return std::search(tx.begin(), tx.end(), poll, poll + sizeof(poll)) != tx.end();
     }
 };
 
-TEST_F(GpsUbloxConfigTest, M10GetsPvtAndSatOnly)
+TEST_F(GpsUbloxConfigTest, M10UsesValsetForPvtSatAndPosition)
 {
     run("000A0000");
     EXPECT_TRUE(polled());
-    EXPECT_EQ(1, rateOf(0x07));    // PVT
-    EXPECT_EQ(5, rateOf(0x35));    // SAT
-    EXPECT_EQ(-1, rateOf(0x06));   // no SOL
-    EXPECT_EQ(-1, rateOf(0x30));   // no SVINFO
+    EXPECT_EQ(1, valsetRateOf(0x20910007));   // PVT
+    EXPECT_EQ(5, valsetRateOf(0x20910016));   // SAT
+    EXPECT_EQ(1, valsetRateOf(0x2091002a));   // POSLLH
+    EXPECT_EQ(1, valsetRateOf(0x2091001b));   // STATUS
+    EXPECT_EQ(1, valsetRateOf(0x20910043));   // VELNED
+    for (uint8_t id : {0x02, 0x03, 0x12, 0x06, 0x07, 0x30, 0x35}) {
+        EXPECT_EQ(-1, rateOf(id)) << "legacy CFG-MSG for NAV id " << (int)id;
+    }
     EXPECT_EQ(UBX_VERSION_M10, gpsData.platformVersion);
+}
+
+TEST_F(GpsUbloxConfigTest, M9UsesValsetLikeM10)
+{
+    run("00190000");
+    EXPECT_EQ(1, valsetRateOf(0x20910007));
+    EXPECT_EQ(5, valsetRateOf(0x20910016));
+    EXPECT_EQ(-1, rateOf(0x07));
+}
+
+TEST_F(GpsUbloxConfigTest, M5UsesSolAndSvinfoOnly)
+{
+    run("00040005");
+    EXPECT_EQ(1, rateOf(0x06));
+    EXPECT_EQ(5, rateOf(0x30));
+    EXPECT_EQ(0, rateOf(0x07));
+    EXPECT_EQ(0, rateOf(0x35));
+    EXPECT_EQ(-1, valsetRateOf(0x20910007));
+}
+
+TEST_F(GpsUbloxConfigTest, SilentReceiverIsPolledFourTimes)
+{
+    run(NULL);
+    EXPECT_EQ(4, pollCount());
+}
+
+TEST_F(GpsUbloxConfigTest, AnsweringReceiverIsPolledOnce)
+{
+    run("00080000");
+    EXPECT_EQ(1, pollCount());
+}
+
+TEST_F(GpsUbloxConfigTest, LateVersionReplyDoesNotChangeTheSetBeingSent)
+{
+    // receiver stays silent through the polls, so the unknown-receiver set is chosen ...
+    for (int i = 0; i < 1000 && gpsData.messageState != GPS_MESSAGE_STATE_MESSAGES; i++) {
+        gpsInitUblox();
+        testMillis += 300;
+    }
+    ASSERT_EQ(GPS_MESSAGE_STATE_MESSAGES, gpsData.messageState);
+    // ... then an M10 answer arrives while the set is sent
+    feed(ubxFrame(0x0A, 0x04, monVerPayload("000A0000")));
+    for (int i = 0; i < 4000 && gpsData.state == 3; i++) {
+        gpsInitUblox();
+        testMillis += 300;
+    }
+    EXPECT_EQ(1, rateOf(0x06));
+    EXPECT_EQ(5, rateOf(0x30));
+    EXPECT_EQ(-1, valsetRateOf(0x20910007));
 }
 
 TEST_F(GpsUbloxConfigTest, M8DisablesSolAndSvinfo)

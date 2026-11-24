@@ -105,7 +105,7 @@ uint32_t GPS_svInfoReceivedCount = 0; // SV = Space Vehicle, counter increments 
 uint8_t GPS_update = 0;             // it's a binary toggle to distinct a GPS position update
 
 uint8_t GPS_numCh;                          // Number of channels
-uint8_t GPS_svinfo_chn[GPS_SV_MAXSATS];     // Channel number
+uint8_t GPS_svinfo_chn[GPS_SV_MAXSATS];     // NAV-SAT: gnssId; NAV-SVINFO: channel; NMEA: satellite index
 uint8_t GPS_svinfo_svid[GPS_SV_MAXSATS];    // Satellite ID
 uint8_t GPS_svinfo_quality[GPS_SV_MAXSATS]; // Bitfield Qualtity
 uint8_t GPS_svinfo_cno[GPS_SV_MAXSATS];     // Carrier to Noise Ratio (Signal Strength)
@@ -259,10 +259,24 @@ static uint8_t ubloxMessageRate(ubloxVersion_e version, uint8_t msgId) {
     }
 }
 
+// M9 and later take message output rates through UBX-CFG-VALSET (the legacy UBX-CFG-MSG is not documented for SPG 5.10).
+// Keys are CFG-MSGOUT-UBX_NAV_<msg>_UART1 from the u-blox M10 SPG 5.10 interface description (section 4.9.11).
+static uint32_t ubloxValsetKey(uint8_t msgId) {
+    switch (msgId) {
+    case 0x02: return 0x2091002a; // POSLLH
+    case 0x03: return 0x2091001b; // STATUS
+    case 0x12: return 0x20910043; // VELNED
+    case 0x07: return 0x20910007; // PVT
+    case 0x35: return 0x20910016; // SAT
+    default:   return 0;
+    }
+}
+
 #define UBLOX_CLASS_NAV 0x01
 #define UBLOX_CLASS_MON 0x0A
 #define UBLOX_MSG_MON_VER 0x04
 #define UBLOX_CFG_MSG_PAYLOAD_LENGTH 3
+#define UBLOX_CFG_VALSET_PAYLOAD_LENGTH 9 // version, layers, 2 reserved, 4-byte key, 1-byte value
 // MON-VER is polled with an empty payload; a receiver answers within about 100 ms.
 #define UBLOX_VERSION_POLL_INTERVAL_MS 250
 #define UBLOX_VERSION_POLL_COUNT 4
@@ -404,6 +418,7 @@ void gpsInitNmea(void) {
 
 #ifdef USE_GPS_UBLOX
 void gpsInitUblox(void) {
+    static ubloxVersion_e configVersion = UBX_VERSION_UNDEF;
     uint32_t now;
     // UBX will run at the serial port's baudrate, it shouldn't be "autodetected". So here we force it to that rate
     // Wait until GPS transmit buffer is empty
@@ -459,6 +474,8 @@ void gpsInitUblox(void) {
             }
             // leave once the receiver answered, or after the last poll had its time to be answered
             if (gpsData.platformVersion != UBX_VERSION_UNDEF || gpsData.state_position > UBLOX_VERSION_POLL_COUNT) {
+                // a reply that arrives later must not change the set that is being sent
+                configVersion = gpsData.platformVersion;
                 gpsData.state_position = 0;
                 gpsData.messageState++;
             } else if (gpsData.state_position == 0 || millis() - gpsData.state_ts >= UBLOX_VERSION_POLL_INTERVAL_MS) {
@@ -472,13 +489,23 @@ void gpsInitUblox(void) {
         if (gpsData.messageState == GPS_MESSAGE_STATE_MESSAGES) {
             // one frame per call; a message this receiver generation lacks is skipped
             while (gpsData.state_position < ARRAYLEN(ubloxNavMessages) &&
-                   ubloxMessageRate(gpsData.platformVersion, ubloxNavMessages[gpsData.state_position]) == UBLOX_RATE_SKIP) {
+                   ubloxMessageRate(configVersion, ubloxNavMessages[gpsData.state_position]) == UBLOX_RATE_SKIP) {
                 gpsData.state_position++;
             }
             if (gpsData.state_position < ARRAYLEN(ubloxNavMessages)) {
                 const uint8_t msgId = ubloxNavMessages[gpsData.state_position];
-                const uint8_t payload[UBLOX_CFG_MSG_PAYLOAD_LENGTH] = { UBLOX_CLASS_NAV, msgId, ubloxMessageRate(gpsData.platformVersion, msgId) };
-                ubloxWriteFrame(0x06, 0x01, payload, sizeof(payload));
+                const uint8_t rate = ubloxMessageRate(configVersion, msgId);
+                if (configVersion >= UBX_VERSION_M9) {
+                    const uint32_t key = ubloxValsetKey(msgId);
+                    const uint8_t payload[UBLOX_CFG_VALSET_PAYLOAD_LENGTH] = {
+                        0x00, 0x01, 0x00, 0x00, // version 0, layer RAM
+                        (uint8_t)key, (uint8_t)(key >> 8), (uint8_t)(key >> 16), (uint8_t)(key >> 24), rate
+                    };
+                    ubloxWriteFrame(0x06, 0x8A, payload, sizeof(payload));
+                } else {
+                    const uint8_t payload[UBLOX_CFG_MSG_PAYLOAD_LENGTH] = { UBLOX_CLASS_NAV, msgId, rate };
+                    ubloxWriteFrame(0x06, 0x01, payload, sizeof(payload));
+                }
                 gpsData.state_position++;
             } else {
                 gpsData.state_position = 0;
@@ -1192,7 +1219,10 @@ static bool UBLOX_parse_gps(void) {
             char hwVersion[sizeof(_buffer.monver.hwVersion) + 1];
             memcpy(hwVersion, _buffer.monver.hwVersion, sizeof(_buffer.monver.hwVersion));
             hwVersion[sizeof(_buffer.monver.hwVersion)] = '\0';
-            gpsData.platformVersion = ubloxParseVersion(strtoul(hwVersion, NULL, 16));
+            // the whole field must be hexadecimal: a valid prefix followed by other characters is not a version
+            char *end = NULL;
+            const unsigned long hw = strtoul(hwVersion, &end, 16);
+            gpsData.platformVersion = (end != hwVersion && *end == '\0') ? ubloxParseVersion(hw) : UBX_VERSION_UNDEF;
         }
         return false;
     }
