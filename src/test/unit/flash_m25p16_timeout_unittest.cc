@@ -54,6 +54,7 @@ static uint32_t busyUntilMs;
 static uint32_t blockEraseBusyMs;
 static uint32_t chipEraseBusyMs;
 static uint32_t pageProgramBusyMs;
+static uint32_t busBusyPolls;
 static int blockEraseCount;
 static int chipEraseCount;
 static int pageProgramCount;
@@ -68,7 +69,8 @@ static void chipBusyFor(uint32_t ms)
 
 static bool chipIsBusy(void)
 {
-    return busyUntilMs == FOREVER || fakeNowMs < busyUntilMs;
+    // Wrap-safe compare, as the driver uses.
+    return busyUntilMs == FOREVER || (int32_t)(fakeNowMs - busyUntilMs) < 0;
 }
 
 extern "C" {
@@ -76,7 +78,17 @@ extern "C" {
 timeMs_t millis(void) { return fakeNowMs; }
 
 void spiWait(const extDevice_t *dev) { (void)dev; }
-bool spiIsBusy(const extDevice_t *dev) { (void)dev; return false; }
+// Another device holds the shared bus for busBusyPolls polls; each poll takes 1 ms.
+bool spiIsBusy(const extDevice_t *dev)
+{
+    (void)dev;
+    if (busBusyPolls > 0) {
+        busBusyPolls--;
+        fakeNowMs++;
+        return true;
+    }
+    return false;
+}
 void spiSetClkDivisor(const extDevice_t *dev, uint16_t divider) { (void)dev; (void)divider; }
 uint16_t spiCalculateDivider(uint32_t freq) { (void)freq; return 2; }
 uint16_t spiGetErrorCounter(SPI_TypeDef *instance) { (void)instance; return 0; }
@@ -127,6 +139,7 @@ protected:
         blockEraseBusyMs = 0;
         chipEraseBusyMs = 0;
         pageProgramBusyMs = 0;
+        busBusyPolls = 0;
         blockEraseCount = chipEraseCount = pageProgramCount = 0;
         memset(&fakeBus, 0, sizeof(fakeBus));
         memset(&fakeDev, 0, sizeof(fakeDev));
@@ -230,8 +243,40 @@ TEST_F(FlashM25p16TimeoutTest, StuckChipAfterProgramTimesOutQuickly)
 
 TEST_F(FlashM25p16TimeoutTest, WaitSurvivesMillisWraparound)
 {
-    fakeNowMs = 0xFFFFFFFFu - 500u; // erase deadline crosses 2^32
+    fakeNowMs = 0xFFFFFFFFu - 500u; // the erase stays busy across the 2^32 wrap
     blockEraseBusyMs = 1500;
     fdevice.vTable->eraseSector(&fdevice, 0);
     EXPECT_EQ(sizeof(data), program());
+    EXPECT_LT(fakeNowMs, 2000u); // clock wrapped while the chip was busy
+}
+
+TEST_F(FlashM25p16TimeoutTest, ProgramAtMaximumOfFiveMilliseconds)
+{
+    pageProgramBusyMs = 5; // MX25L6406E / N25Q064A tPP max
+    EXPECT_EQ(sizeof(data), program());
+    EXPECT_EQ(sizeof(data), program());
+    EXPECT_EQ(2, pageProgramCount);
+}
+
+TEST_F(FlashM25p16TimeoutTest, IdleChipOnBusySharedBusIgnoresStaleChipDeadline)
+{
+    pageProgramBusyMs = 3;
+    EXPECT_EQ(sizeof(data), program());
+    fakeNowMs += 60000; // chip long idle: its old deadline is far in the past
+    fdevice.couldBeBusy = false;
+    fakeBus.useDMA = true;
+    busBusyPolls = 100; // another device holds the shared bus for 100 ms
+    EXPECT_EQ(sizeof(data), program());
+    EXPECT_EQ(2, pageProgramCount);
+}
+
+TEST_F(FlashM25p16TimeoutTest, StuckSharedBusStillTimesOut)
+{
+    fdevice.couldBeBusy = false; // idle chip, only the bus is stuck
+    fakeBus.useDMA = true;
+    busBusyPolls = FOREVER;
+    const uint32_t start = fakeNowMs;
+    EXPECT_EQ(0u, program());
+    EXPECT_EQ(0, pageProgramCount);
+    EXPECT_LT(fakeNowMs - start, 1000u);
 }

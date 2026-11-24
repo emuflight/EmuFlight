@@ -62,10 +62,13 @@
 #define M25P16_STATUS_FLAG_WRITE_IN_PROGRESS 0x01
 #define M25P16_STATUS_FLAG_WRITE_ENABLED     0x02
 
-// Worst-case busy time per operation, from datasheet maxima.
-#define M25P16_TIMEOUT_PAGE_PROGRAM_MS      5
+// Worst-case busy time per operation, from datasheet maxima plus one millis() tick.
+// millis() has 1 ms resolution, so a deadline can pass up to 1 ms early.
+#define M25P16_TIMEOUT_PAGE_PROGRAM_MS      (5 + 1)
 #define M25P16_TIMEOUT_BLOCK_ERASE_MS       3000
-#define M25P16_TIMEOUT_CHIP_ERASE_MS        (400 * 1000)
+#define M25P16_TIMEOUT_CHIP_ERASE_MS        ((400 * 1000) + 1)
+// Bound for a shared SPI bus held by another device while the flash itself is idle.
+#define M25P16_TIMEOUT_BUS_MS               500
 
 #define W25Q256_INSTRUCTION_ENTER_4BYTE_ADDRESS_MODE 0xB7
 
@@ -209,8 +212,13 @@ static void m25p16_setBusy(flashDevice_t *fdevice, uint32_t timeoutMillis)
 
 static bool m25p16_waitForReady(flashDevice_t *fdevice)
 {
+    // timeoutAt bounds the chip busy time and is stale while the chip is idle.
+    // Without a busy chip, only a busy SPI bus can delay the wait: use a fresh bound.
+    const uint32_t busTimeoutAt = millis() + M25P16_TIMEOUT_BUS_MS;
+
     while (!m25p16_isReady(fdevice)) {
-        if (cmp32(millis(), fdevice->timeoutAt) >= 0) {
+        const uint32_t deadline = fdevice->couldBeBusy ? fdevice->timeoutAt : busTimeoutAt;
+        if (cmp32(millis(), deadline) >= 0) {
             return false;
         }
     }
@@ -251,7 +259,7 @@ bool m25p16_identify(flashDevice_t *fdevice, uint32_t jedecID)
     geometry->sectorSize = geometry->pagesPerSector * geometry->pageSize;
     geometry->totalSize = geometry->sectorSize * geometry->sectors;
 
-    // A reset during an erase leaves the chip busy for up to one block erase.
+    // The chip could still be busy after a reset; allow one block erase time.
     m25p16_setBusy(fdevice, M25P16_TIMEOUT_BLOCK_ERASE_MS);
 
     if (fdevice->io.mode == FLASHIO_SPI) {
@@ -542,13 +550,12 @@ static uint32_t m25p16_pageProgramContinueQspi(flashDevice_t *fdevice, uint8_t c
     quadSpiTransmitWithAddress4LINES(fdevice->io.handle.dev, M25P16_INSTRUCTION_QPAGE_PROGRAM, 0,
                                      fdevice->currentWriteAddress, fdevice->isLargeFlash ? 32 : 24, pData, dataSize);
 
+    m25p16_setBusy(fdevice, M25P16_TIMEOUT_PAGE_PROGRAM_MS);
     fdevice->currentWriteAddress += dataSize;
 
     if (fdevice->callback) {
         fdevice->callback(dataSize);
     }
-
-    m25p16_setBusy(fdevice, M25P16_TIMEOUT_PAGE_PROGRAM_MS);
 
     return dataSize;
 }
