@@ -1292,6 +1292,21 @@ static bool UBLOX_parse_gps(void) {
         *gpsPacketLogChar = LOG_UBLOX_SOL;
         gpsSol.numSat = _buffer.pvt.satellites;
         gpsSol.hdop = _buffer.pvt.position_DOP;
+#ifdef USE_RTC_TIME
+        // NAV-SOL (which sets the clock) is off on M7 and later; set it from the fully resolved UTC time here.
+        // valid: bit 0 validDate, bit 1 validTime, bit 2 fullyResolved
+        if (!rtcHasTime() && (_buffer.pvt.valid & 0x07) == 0x07) {
+            dateTime_t temp_time;
+            temp_time.year = _buffer.pvt.year;
+            temp_time.month = _buffer.pvt.month;
+            temp_time.day = _buffer.pvt.day;
+            temp_time.hours = _buffer.pvt.hour;
+            temp_time.minutes = _buffer.pvt.min;
+            temp_time.seconds = _buffer.pvt.sec;
+            temp_time.millis = _buffer.pvt.nano > 0 ? _buffer.pvt.nano / 1000000 : 0; // nano is signed, within +/- 1 s
+            rtcSetDateTime(&temp_time);
+        }
+#endif
         break;
     case MSG_VELNED:
         *gpsPacketLogChar = LOG_UBLOX_VELNED;

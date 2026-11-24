@@ -32,9 +32,13 @@ extern "C" {
     #include "fc/runtime_config.h"
     #include "io/dashboard.h"
     #include "drivers/serial.h"
+    #include "common/time.h"
 
     extern bool gpsNewFrame(uint8_t c);
     extern void gpsInitUblox(void);
+    extern bool testRtcHasTime;
+    extern int testRtcSetCalls;
+    extern dateTime_t testRtcSetValue;
 }
 
 #include "unittest_macros.h"
@@ -113,6 +117,8 @@ protected:
         memset(GPS_svinfo_cno, 0, sizeof(GPS_svinfo_cno));
         stateFlags = 0;
         armingFlags = 0;
+        testRtcHasTime = false;
+        testRtcSetCalls = 0;
     }
 };
 
@@ -209,6 +215,12 @@ extern "C" {
     void waitForSerialPortToFinishTransmitting(serialPort_t *) {}
     baudRate_e lookupBaudRateIndex(uint32_t) { return BAUD_AUTO; }
     void serialPassthrough(serialPort_t *, serialPort_t *, serialConsumer *, serialConsumer *) {}
+    bool testRtcHasTime = false;
+    int testRtcSetCalls = 0;
+    dateTime_t testRtcSetValue;
+    bool rtcHasTime(void) { return testRtcHasTime; }
+    bool rtcSet(rtcTime_t *) { return true; }
+    bool rtcSetDateTime(dateTime_t *dt) { testRtcSetCalls++; testRtcSetValue = *dt; return true; }
     std::vector<uint8_t> *testTx = NULL;
     void serialWrite(serialPort_t *, uint8_t c) { if (testTx) testTx->push_back(c); }
     uint32_t serialRxBytesWaiting(const serialPort_t *) { return 0; }
@@ -645,4 +657,50 @@ TEST_F(GpsUbloxConfigTest, AutoConfigOffSendsNothing)
     gpsConfigMutable()->autoConfig = GPS_AUTOCONFIG_OFF;
     run("000A0000");
     EXPECT_TRUE(tx.empty());
+}
+
+// NAV-PVT carries UTC time at offsets 4..11 (year U2, month, day, hour, min, sec, valid) and nano (I4) at 16.
+static std::vector<uint8_t> navPvtTimePayload(uint8_t valid, int32_t nano)
+{
+    std::vector<uint8_t> p = navPvtPayload(9, 100);
+    p[4] = 2026 & 0xFF; p[5] = 2026 >> 8;
+    p[6] = 11; p[7] = 24; p[8] = 17; p[9] = 36; p[10] = 5;
+    p[11] = valid;
+    for (int i = 0; i < 4; i++) p[16 + i] = (uint32_t)nano >> (8 * i);
+    return p;
+}
+
+TEST_F(GpsUbloxTest, NavPvtSetsClockFromFullyResolvedTime)
+{
+    feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, 250000000)));
+    ASSERT_EQ(1, testRtcSetCalls);
+    EXPECT_EQ(2026, testRtcSetValue.year);
+    EXPECT_EQ(11, testRtcSetValue.month);
+    EXPECT_EQ(24, testRtcSetValue.day);
+    EXPECT_EQ(17, testRtcSetValue.hours);
+    EXPECT_EQ(36, testRtcSetValue.minutes);
+    EXPECT_EQ(5, testRtcSetValue.seconds);
+    EXPECT_EQ(250, testRtcSetValue.millis);
+}
+
+TEST_F(GpsUbloxTest, NavPvtDoesNotSetClockUnlessDateTimeAndResolvedAreValid)
+{
+    for (uint8_t valid : {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06}) {
+        feed(ubxFrame(0x01, 0x07, navPvtTimePayload(valid, 0)));
+    }
+    EXPECT_EQ(0, testRtcSetCalls);
+}
+
+TEST_F(GpsUbloxTest, NavPvtDoesNotSetClockWhenItAlreadyHasTime)
+{
+    testRtcHasTime = true;
+    feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, 0)));
+    EXPECT_EQ(0, testRtcSetCalls);
+}
+
+TEST_F(GpsUbloxTest, NavPvtNegativeNanosecondsGiveZeroMilliseconds)
+{
+    feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, -400000000)));
+    ASSERT_EQ(1, testRtcSetCalls);
+    EXPECT_EQ(0, testRtcSetValue.millis);
 }

@@ -766,7 +766,7 @@ gps_ublox_unittest_SRC := \
 		$(USER_DIR)/common/gps_conversion.c \
 		$(USER_DIR)/common/maths.c
 
-gps_ublox_unittest_CFLAGS := -DUSE_GPS_UBLOX -DUSE_GPS_NMEA
+gps_ublox_unittest_CFLAGS := -DUSE_GPS_UBLOX -DUSE_GPS_NMEA -DUSE_RTC_TIME
 
 
 io_serial_unittest_SRC := \
