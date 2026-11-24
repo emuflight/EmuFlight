@@ -970,6 +970,12 @@ typedef struct {
 #define UBX_NAV_SAT_HEADER_SIZE 8
 #define UBX_NAV_SAT_SV_SIZE 12
 
+STATIC_ASSERT(sizeof(ubx_nav_sat_sv) == UBX_NAV_SAT_SV_SIZE, ubx_nav_sat_sv_size_must_match_spec);
+STATIC_ASSERT(offsetof(ubx_nav_sat_sv, cno) == 2, ubx_nav_sat_sv_cno_offset);
+STATIC_ASSERT(offsetof(ubx_nav_sat_sv, flags) == 8, ubx_nav_sat_sv_flags_offset);
+STATIC_ASSERT(offsetof(ubx_nav_sat, numSvs) == 5, ubx_nav_sat_numSvs_offset);
+STATIC_ASSERT(offsetof(ubx_nav_sat, sv) == UBX_NAV_SAT_HEADER_SIZE, ubx_nav_sat_header_size);
+
 enum {
     PREAMBLE1 = 0xb5,
     PREAMBLE2 = 0x62,
