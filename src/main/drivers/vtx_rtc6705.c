@@ -52,6 +52,12 @@ static IO_t vtxPowerPin     = IO_NONE;
 #endif
 static IO_t vtxCSPin        = IO_NONE;
 
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
+#define RTC6705_EX_POWER_PIN_COUNT  2
+
+static IO_t exPowerPin[RTC6705_EX_POWER_PIN_COUNT] = { IO_NONE, IO_NONE };
+#endif
+
 #define DISABLE_RTC6705()   IOHi(vtxCSPin)
 
 #ifdef USE_RTC6705_CLK_HACK
@@ -70,9 +76,24 @@ static IO_t vtxCLKPin       = IO_NONE;
 #define PA_BS_MASK          0x0007 // b000000000000111
 
 #define PA_CONTROL_DEFAULT  0x4FBD
+#define PA_CONTROL_LOW      ((PA_CONTROL_DEFAULT | PD_Q5G_MASK) & (~(PA5G_PW_MASK | PA5G_BS_MASK)))
 
 #define RTC6705_RW_CONTROL_BIT      (1 << 4)
 #define RTC6705_ADDRESS             (0x07)
+
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
+typedef struct rtc6705PowerLevel_s {
+    uint8_t pins;   // bit i drives exPowerPin[i]
+    uint16_t reg;   // register 0x07 data
+} rtc6705PowerLevel_t;
+
+// index = power index = external power code
+static const rtc6705PowerLevel_t rtc6705PowerLevels[VTX_RTC6705_POWER_COUNT] = {
+    { 0,      PA_CONTROL_LOW },
+    { 1 << 0, PA_CONTROL_LOW },
+    { 1 << 1, PA_CONTROL_DEFAULT },
+};
+#endif
 
 #define ENABLE_VTX_POWER()          IOLo(vtxPowerPin)
 #define DISABLE_VTX_POWER()         IOHi(vtxPowerPin)
@@ -100,6 +121,16 @@ void rtc6705IOInit(void) {
     IOInit(vtxPowerPin, OWNER_VTX, 0);
     DISABLE_VTX_POWER();
     IOConfigGPIO(vtxPowerPin, IOCFG_OUT_PP);
+#endif
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
+    // Both pins low at init selects code 00, the lowest power.
+    static const ioTag_t exPowerTag[RTC6705_EX_POWER_PIN_COUNT] = { IO_TAG(RTC6705_EX_POWER_1_PIN), IO_TAG(RTC6705_EX_POWER_2_PIN) };
+    for (unsigned i = 0; i < RTC6705_EX_POWER_PIN_COUNT; i++) {
+        exPowerPin[i] = IOGetByTag(exPowerTag[i]);
+        IOInit(exPowerPin[i], OWNER_VTX, i + 1);
+        IOLo(exPowerPin[i]);
+        IOConfigGPIO(exPowerPin[i], IOCFG_OUT_PP);
+    }
 #endif
 #ifdef USE_RTC6705_CLK_HACK
     vtxCLKPin = IOGetByTag(IO_TAG(RTC6705_CLK_PIN));
@@ -149,10 +180,26 @@ void rtc6705SetFrequency(uint16_t frequency) {
 
 void rtc6705SetRFPower(uint8_t rf_power) {
     rf_power = constrain(rf_power, VTX_RTC6705_MIN_POWER, VTX_RTC6705_POWER_COUNT - 1);
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
+    const rtc6705PowerLevel_t *level = &rtc6705PowerLevels[rf_power];
+    // Clear the outgoing pins first so a level change never passes through code 11.
+    for (unsigned i = 0; i < RTC6705_EX_POWER_PIN_COUNT; i++) {
+        if (!(level->pins & (1 << i))) {
+            IOWrite(exPowerPin[i], false);
+        }
+    }
+    for (unsigned i = 0; i < RTC6705_EX_POWER_PIN_COUNT; i++) {
+        if (level->pins & (1 << i)) {
+            IOWrite(exPowerPin[i], true);
+        }
+    }
+    const uint32_t data = level->reg;
+#else
+    const uint32_t data = rf_power > 1 ? PA_CONTROL_DEFAULT : PA_CONTROL_LOW;
+#endif
     spiSetDivisor(RTC6705_SPI_INSTANCE, SPI_CLOCK_SLOW);
     uint32_t val_hex = RTC6705_RW_CONTROL_BIT; // write
     val_hex |= RTC6705_ADDRESS; // address
-    const uint32_t data = rf_power > 1 ? PA_CONTROL_DEFAULT : (PA_CONTROL_DEFAULT | PD_Q5G_MASK) & (~(PA5G_PW_MASK | PA5G_BS_MASK));
     val_hex |= data << 5; // 4 address bits and 1 rw bit.
     rtc6705Transfer(val_hex);
 }
