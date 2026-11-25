@@ -38,6 +38,7 @@
 #include "pg/rx.h"
 #include "interface/msp_box.h"
 
+#include "drivers/dshot_bitbang.h"
 #include "drivers/pwm_output.h"
 #include "drivers/pwm_esc_detect.h"
 #include "drivers/time.h"
@@ -77,7 +78,7 @@ PG_RESET_TEMPLATE(mixerConfig_t, mixerConfig,
                   .crashflip_power_percent = 70,
                  );
 
-PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 2);
+PG_REGISTER_WITH_RESET_FN(motorConfig_t, motorConfig, PG_MOTOR_CONFIG, 3);
 
 void pgResetFn_motorConfig(motorConfig_t *motorConfig) {
 #ifdef BRUSHED_MOTORS
@@ -110,6 +111,8 @@ void pgResetFn_motorConfig(motorConfig_t *motorConfig) {
 #ifdef USE_DSHOT_DMAR
     motorConfig->dev.useBurstDshot = ENABLE_DSHOT_DMAR;
 #endif
+    motorConfig->dev.useDshotBitbang = DEFAULT_DSHOT_BITBANG;
+    motorConfig->dev.useDshotBitbangedTimer = DSHOT_BITBANGED_TIMER_AUTO;
 #ifdef MOTOR1_PIN
     motorConfig->dev.ioTags[0] = IO_TAG(MOTOR1_PIN);
 #endif

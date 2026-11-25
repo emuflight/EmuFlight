@@ -1,7 +1,7 @@
 # CLI Reference
 
 > **Auto-generated** — do not edit manually.
-> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-10-30 | Commit: `e112aae36` | Firmware: `0.5.0` | MSP: `0.1.55`
+> Source: `src/main/interface/settings.c`, `src/main/interface/cli.c` | Generated: 2026-11-22 | Commit: `4330cd5ab` | Firmware: `0.5.0` | MSP: `0.1.55`
 
 Settings parameters (`valueTable[]`) and CLI commands that persist config through
 their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered here.
@@ -247,6 +247,8 @@ their own dedicated table instead (`cmdTable[]`, PG-backed) are both covered her
 | `max_throttle` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |  |
 | `min_command` | uint16 | master | `PWM_PULSE_MIN` – `PWM_PULSE_MAX` |  |
 | `dshot_idle_value` | uint16 | master | `0` – `2000` | `USE_DSHOT` |
+| `dshot_bitbang` | uint8 | master | `OFF`, `ON` | `USE_DSHOT`, `USE_DSHOT_BITBANG` |
+| `dshot_bitbang_timer` | uint8 | master | `AUTO`, `TIM1`, `TIM8` | `USE_DSHOT`, `USE_DSHOT_BITBANG` |
 | `dshot_burst` | uint8 | master | `OFF`, `ON` | `USE_DSHOT`, `USE_DSHOT_DMAR` |
 | `use_unsynced_pwm` | uint8 | master | `OFF`, `ON` |  |
 | `motor_pwm_protocol` | uint8 | master | `OFF`, `ONESHOT125`, `ONESHOT42`, `MULTISHOT`, `BRUSHED`, `DSHOT150`, `DSHOT300`, `DSHOT600`, `DSHOT1200`, `DSHOT2400`, `DSHOT4800`, `PROSHOT1000` |  |

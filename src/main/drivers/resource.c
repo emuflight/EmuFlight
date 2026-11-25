@@ -96,4 +96,5 @@ const char * const ownerNames[OWNER_TOTAL_COUNT] = {
     "SPI_PREINIT_IPU",
     "SPI_PREINIT_OPU",
     "SWD",
+    "DSHOT_BITBANG",
 };

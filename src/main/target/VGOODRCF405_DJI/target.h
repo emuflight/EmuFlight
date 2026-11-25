@@ -105,7 +105,7 @@
 #define VBAT_ADC_PIN PC1
 #define CURRENT_METER_ADC_PIN PC3
 #define RSSI_ADC_PIN PC2
-#define ADC3_DMA_OPT        1
+#define ADC3_DMA_OPT        0   // DMA2 ST0; ST1 is the TIM8 burst DShot stream
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define ADC_INSTANCE ADC3
@@ -124,6 +124,9 @@
     TIMER_PIN_MAP( 4, PC8 , 2,  0) /* motor 4 */ \
     TIMER_PIN_MAP( 5, PB8 , 1,  0) /* cam ctrl */ \
     TIMER_PIN_MAP( 6, PB3 , 1,  0) /* led */
+
+// PA9 and PA8 share DMA2 Stream 6, so per-channel DShot cannot run; burst DShot uses one stream per timer
+#define ENABLE_DSHOT_DMAR       true
 
 #define MOTOR1_PIN              PA9
 #define MOTOR2_PIN              PA8
