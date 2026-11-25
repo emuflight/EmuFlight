@@ -279,6 +279,20 @@ TEST(TimeUnittest, FormatRejectsInvalidDate)
     EXPECT_STREQ("2038-01-19T03:14:08.005+00:00", buf);
 }
 
+TEST(TimeUnittest, FormatChecksMonthLengthWithZeroOffset)
+{
+    resetRtc();
+    char buf[FORMATTED_DATE_TIME_BUFSIZE];
+    dateTime_t apr31 = makeDt(2024, 4, 31, 0, 0, 0);
+    EXPECT_FALSE(dateTimeFormatUTC(buf, &apr31));
+    dateTime_t apr30 = makeDt(2024, 4, 30, 0, 0, 0);
+    EXPECT_TRUE(dateTimeFormatUTC(buf, &apr30));
+    dateTime_t feb29 = makeDt(2023, 2, 29, 0, 0, 0);
+    EXPECT_FALSE(dateTimeFormatUTC(buf, &feb29));
+    dateTime_t leap = makeDt(2024, 2, 29, 0, 0, 0);
+    EXPECT_TRUE(dateTimeFormatUTC(buf, &leap));
+}
+
 TEST(TimeUnittest, RtcTimeHelpersKeep64BitSeconds)
 {
     rtcTime_t t = rtcTimeMake(2147483648LL, 7);

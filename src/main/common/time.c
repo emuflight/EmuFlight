@@ -69,13 +69,20 @@ PG_RESET_TEMPLATE(timeConfig_t, timeConfig,
 static void rtcGetDefaultDateTime(dateTime_t *dateTime);
 
 static bool rtcIsDateTimeValid(const dateTime_t *dateTime) {
-    return (dateTime->year >= REFERENCE_YEAR && dateTime->year <= LAST_YEAR) &&
-           (dateTime->month >= 1 && dateTime->month <= 12) &&
-           (dateTime->day >= 1 && dateTime->day <= 31) &&
-           (dateTime->hours <= 23) &&
-           (dateTime->minutes <= 59) &&
-           (dateTime->seconds <= 59) &&
-           (dateTime->millis <= 999);
+    if (!((dateTime->year >= REFERENCE_YEAR && dateTime->year <= LAST_YEAR) &&
+          (dateTime->month >= 1 && dateTime->month <= 12) &&
+          (dateTime->day >= 1 && dateTime->day <= 31) &&
+          (dateTime->hours <= 23) &&
+          (dateTime->minutes <= 59) &&
+          (dateTime->seconds <= 59) &&
+          (dateTime->millis <= 999))) {
+        return false;
+    }
+    // Month length from the day table, leap years included (exact for 2000 to 2099).
+    unsigned int year = dateTime->year - REFERENCE_YEAR;
+    unsigned int month = dateTime->month - 1;
+    unsigned int monthLength = (month == 11) ? 31 : days[year % 4][month + 1] - days[year % 4][month];
+    return dateTime->day <= monthLength;
 }
 
 // Convert a calendar date to rtcTime_t. Returns false and leaves *t unchanged when the date
@@ -88,10 +95,6 @@ static bool dateTimeToRtcTime(const dateTime_t *dt, rtcTime_t *t) {
     unsigned int year = dt->year - REFERENCE_YEAR; // 0-99
     unsigned int month = dt->month - 1;            // 0-11
     unsigned int day = dt->day - 1;                // 0-30
-    unsigned int monthLength = (month == 11) ? 31 : days[year % 4][month + 1] - days[year % 4][month];
-    if (day >= monthLength) {
-        return false;
-    }
     // 64-bit: the seconds exceed INT32_MAX from 2038-01-19 03:14:08 UTC.
     int64_t unixTime = (((((int64_t)(year / 4 * (365 * 4 + 1) + days[year % 4][month] + day)) * 24 + dt->hours) * 60 + dt->minutes) * 60) + dt->seconds + EPOCH_2000_OFFSET;
     *t = rtcTimeMake(unixTime, dt->millis);
