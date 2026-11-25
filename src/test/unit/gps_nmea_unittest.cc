@@ -155,6 +155,20 @@ TEST_F(GpsNmeaTest, GsvOnlyFromGpTalker)
     EXPECT_EQ(12, GPS_svinfo_svid[0]);
 }
 
+// MSP_GPSSVINFO reads GPS_numCh entries from arrays of GPS_SV_MAXSATS (16). A receiver can report more satellites in view.
+TEST_F(GpsNmeaTest, GsvSatelliteCountCappedAtArraySize)
+{
+    GPS_numCh = 0;
+    testGpsNmeaFeed(frame("GPGSV,3,1,32,12,10,100,30").c_str());
+    EXPECT_EQ(16, GPS_numCh);
+    testGpsNmeaFeed(frame("GPGSV,3,1,16,12,10,100,30").c_str());
+    EXPECT_EQ(16, GPS_numCh);
+    testGpsNmeaFeed(frame("GPGSV,3,1,15,12,10,100,30").c_str());
+    EXPECT_EQ(15, GPS_numCh);
+    testGpsNmeaFeed(frame("GPGSV,3,1,256,12,10,100,30").c_str());
+    EXPECT_EQ(16, GPS_numCh);
+}
+
 // Proprietary sentences start with 'P' (PGRMC is a Garmin configuration sentence, not RMC); IDs need two capital letters.
 TEST_F(GpsNmeaTest, ProprietaryAndMalformedIdsIgnored)
 {

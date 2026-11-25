@@ -898,7 +898,7 @@ static bool gpsNewFrameNMEA(char c) {
                 break;
             case 3:
                 // Total number of SVs visible
-                GPS_numCh = grab_fields(string, 0);
+                GPS_numCh = MIN(grab_fields(string, 0), (uint32_t)GPS_SV_MAXSATS); // MSP_GPSSVINFO reads GPS_numCh array entries
                 break;
             }
             if (param < 4)
