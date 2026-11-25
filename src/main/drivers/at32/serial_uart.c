@@ -200,10 +200,14 @@ static uint32_t uartTotalTxBytesFree(const serialPort_t *instance)
 
     uint32_t bytesUsed;
 
-    if (uartPort->port.txBufferHead >= uartPort->port.txBufferTail) {
-        bytesUsed = uartPort->port.txBufferHead - uartPort->port.txBufferTail;
+    // The TX DMA ISR advances the tail; read it once so the comparison and the subtraction agree
+    const uint32_t txBufferTail = uartPort->port.txBufferTail;
+    const uint32_t txBufferHead = uartPort->port.txBufferHead;
+
+    if (txBufferHead >= txBufferTail) {
+        bytesUsed = txBufferHead - txBufferTail;
     } else {
-        bytesUsed = uartPort->port.txBufferSize + uartPort->port.txBufferHead - uartPort->port.txBufferTail;
+        bytesUsed = uartPort->port.txBufferSize + txBufferHead - txBufferTail;
     }
 
 #ifdef USE_DMA
@@ -282,10 +286,6 @@ static void uartStartTx(uartPort_t *uartPort)
 {
 #ifdef USE_DMA
     if (uartPort->txDMAResource) {
-#if defined(USE_ATBSP_DRIVER)
-        // A TDC left from the previous burst would pass for the end of this one
-        usart_flag_clear(uartPort->USARTx, USART_TDC_FLAG);
-#endif
         uartTryStartTxDMA(uartPort);
     } else
 #endif

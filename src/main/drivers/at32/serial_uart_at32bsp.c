@@ -278,6 +278,9 @@ void uartTryStartTxDMA(uartPort_t *s)
         }
         s->txDMAEmpty = false;
 
+        // Clear a TDC left by the previous transfer only when a new one starts; an idle call keeps it pending
+        usart_flag_clear(s->USARTx, USART_TDC_FLAG);
+
     reenable:
         xDMA_Cmd(s->txDMAResource, TRUE);
     }
