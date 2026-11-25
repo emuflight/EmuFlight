@@ -291,6 +291,7 @@ cli_unittest_DEFINES := \
 # changing the define set of cli_unittest. timer_common.c is the real implementation.
 cli_timer_dma_unittest_SRC := \
 		$(USER_DIR)/interface/cli.c \
+		$(USER_DIR)/drivers/vtx_common.c \
 		$(USER_DIR)/config/feature.c \
 		$(USER_DIR)/pg/pg.c \
 		$(USER_DIR)/drivers/resource.c \
