@@ -42,7 +42,7 @@
 
 #if defined(USE_CMS) || defined(USE_VTX_COMMON)
 const char * const rtc6705PowerNames[] = {
-#ifdef RTC6705_DYNAMIC_POWER_CTRL
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
     "---", "L0", "L1", "L2"
 #else
     "OFF", "MIN", "MAX"

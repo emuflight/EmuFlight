@@ -52,7 +52,7 @@ static IO_t vtxPowerPin     = IO_NONE;
 #endif
 static IO_t vtxCSPin        = IO_NONE;
 
-#ifdef RTC6705_DYNAMIC_POWER_CTRL
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
 #define RTC6705_EX_POWER_PIN_COUNT  2
 
 static IO_t exPowerPin[RTC6705_EX_POWER_PIN_COUNT] = { IO_NONE, IO_NONE };
@@ -81,7 +81,7 @@ static IO_t vtxCLKPin       = IO_NONE;
 #define RTC6705_RW_CONTROL_BIT      (1 << 4)
 #define RTC6705_ADDRESS             (0x07)
 
-#ifdef RTC6705_DYNAMIC_POWER_CTRL
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
 typedef struct rtc6705PowerLevel_s {
     uint8_t pins;   // bit i drives exPowerPin[i]
     uint16_t reg;   // register 0x07 data
@@ -122,7 +122,7 @@ void rtc6705IOInit(void) {
     DISABLE_VTX_POWER();
     IOConfigGPIO(vtxPowerPin, IOCFG_OUT_PP);
 #endif
-#ifdef RTC6705_DYNAMIC_POWER_CTRL
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
     // Both pins low at init selects code 00, the lowest power.
     static const ioTag_t exPowerTag[RTC6705_EX_POWER_PIN_COUNT] = { IO_TAG(RTC6705_EX_POWER_1_PIN), IO_TAG(RTC6705_EX_POWER_2_PIN) };
     for (unsigned i = 0; i < RTC6705_EX_POWER_PIN_COUNT; i++) {
@@ -180,7 +180,7 @@ void rtc6705SetFrequency(uint16_t frequency) {
 
 void rtc6705SetRFPower(uint8_t rf_power) {
     rf_power = constrain(rf_power, VTX_RTC6705_MIN_POWER, VTX_RTC6705_POWER_COUNT - 1);
-#ifdef RTC6705_DYNAMIC_POWER_CTRL
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
     const rtc6705PowerLevel_t *level = &rtc6705PowerLevels[rf_power - 1];
     // Clear the outgoing pins first so a level change never passes through code 11.
     for (unsigned i = 0; i < RTC6705_EX_POWER_PIN_COUNT; i++) {
