@@ -127,23 +127,22 @@ TEST_F(Rtc6705DynamicPowerTest, PinsStartLowAtInit)
     EXPECT_FALSE(pinState[TAG_P2]);
 }
 
-TEST_F(Rtc6705DynamicPowerTest, ThreeLevelsAndNoOffSlot)
+TEST_F(Rtc6705DynamicPowerTest, ThreeLevelsFromZero)
 {
-    EXPECT_EQ(4, VTX_RTC6705_POWER_COUNT);
-    EXPECT_EQ(1, VTX_RTC6705_MIN_POWER);
+    EXPECT_EQ(3, VTX_RTC6705_POWER_COUNT);
+    EXPECT_EQ(0, VTX_RTC6705_MIN_POWER);
 }
 
 TEST_F(Rtc6705DynamicPowerTest, EachIndexSetsItsCodeAndRegister)
 {
-    expectLevel(1, false, false, REG_LOW);
-    expectLevel(2, true, false, REG_LOW);
-    expectLevel(3, false, true, REG_DEFAULT);
+    expectLevel(0, false, false, REG_LOW);
+    expectLevel(1, true, false, REG_LOW);
+    expectLevel(2, false, true, REG_DEFAULT);
 }
 
 TEST_F(Rtc6705DynamicPowerTest, IndexOutsideRangeNeverGivesCode11)
 {
-    expectLevel(0, false, false, REG_LOW);
-    for (uint8_t index : { 4, 5, 100, 255 }) {
+    for (uint8_t index : { 3, 4, 100, 255 }) {
         expectLevel(index, false, true, REG_DEFAULT);
     }
 }
@@ -166,8 +165,8 @@ TEST_F(Rtc6705DynamicPowerTest, LevelChangesNeverPassThroughCode11)
 
 TEST_F(Rtc6705DynamicPowerTest, EveryCallWritesTheRegister)
 {
+    rtc6705SetRFPower(1);
     rtc6705SetRFPower(2);
-    rtc6705SetRFPower(3);
-    rtc6705SetRFPower(3);
+    rtc6705SetRFPower(2);
     EXPECT_EQ(3, regWrites);
 }

@@ -45,13 +45,13 @@
 #if defined(USE_VTX_RTC6705_SOFTSPI)
 #error "ENABLE_RTC6705_DYNAMIC_POWER_CTRL is not supported with USE_VTX_RTC6705_SOFTSPI"
 #endif
-#define VTX_RTC6705_POWER_COUNT     4   // index 0 unused; 1 to 3 = external codes 00, 01, 10 (code 11 is undefined and unsafe)
+#define VTX_RTC6705_POWER_COUNT     3   // index 0 to 2 = external codes 00, 01, 10 (code 11 is undefined and unsafe)
 #else
 #define VTX_RTC6705_POWER_COUNT     3
 #endif
 #define VTX_RTC6705_DEFAULT_POWER   1
 
-#if defined(RTC6705_POWER_PIN)
+#if defined(RTC6705_POWER_PIN) || ENABLE_RTC6705_DYNAMIC_POWER_CTRL
 #define VTX_RTC6705_MIN_POWER   0
 #else
 #define VTX_RTC6705_MIN_POWER   1

@@ -87,8 +87,8 @@ typedef struct rtc6705PowerLevel_s {
     uint16_t reg;   // register 0x07 data
 } rtc6705PowerLevel_t;
 
-// index = power index - 1 = external power code
-static const rtc6705PowerLevel_t rtc6705PowerLevels[VTX_RTC6705_POWER_COUNT - 1] = {
+// index = power index = external power code
+static const rtc6705PowerLevel_t rtc6705PowerLevels[VTX_RTC6705_POWER_COUNT] = {
     { 0,      PA_CONTROL_LOW },
     { 1 << 0, PA_CONTROL_LOW },
     { 1 << 1, PA_CONTROL_DEFAULT },
@@ -181,7 +181,7 @@ void rtc6705SetFrequency(uint16_t frequency) {
 void rtc6705SetRFPower(uint8_t rf_power) {
     rf_power = constrain(rf_power, VTX_RTC6705_MIN_POWER, VTX_RTC6705_POWER_COUNT - 1);
 #if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
-    const rtc6705PowerLevel_t *level = &rtc6705PowerLevels[rf_power - 1];
+    const rtc6705PowerLevel_t *level = &rtc6705PowerLevels[rf_power];
     // Clear the outgoing pins first so a level change never passes through code 11.
     for (unsigned i = 0; i < RTC6705_EX_POWER_PIN_COUNT; i++) {
         if (!(level->pins & (1 << i))) {
