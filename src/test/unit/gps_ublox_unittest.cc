@@ -1319,3 +1319,83 @@ TEST_F(GpsUbloxTest, UnknownReceiverGivesOneFramePerLegacyPairAndNoneFromPvt)
     EXPECT_TRUE(feedReportsFrame(ubxFrame(0x01, 0x12, velned)));
     EXPECT_EQ(20, gpsSol.llh.lat);
 }
+
+// UBX-ACK (UBX interface description, class 0x05): ACK-ACK id 0x01, ACK-NACK id 0x00, payload = class and id of the frame.
+// The configure phase sends one CFG frame, then waits for the answer or 150 ms before it sends the next one.
+class GpsUbloxAckTest : public GpsUbloxConfigTest {
+protected:
+    // run until the first frame of the message phase is out; leaves the clock where the frame was sent
+    void toFirstMessageFrame(const char *hw) {
+        for (int i = 0; i < 4000 && gpsData.messageState != GPS_MESSAGE_STATE_MESSAGES; i++) {
+            gpsInitUblox();
+            testMillis += 300;
+            if (!tx.empty() && gpsData.messageState == GPS_MESSAGE_STATE_VERSION && gpsData.platformVersion == UBX_VERSION_UNDEF) {
+                feed(ubxFrame(0x0A, 0x04, monVerPayload(hw)));
+            }
+        }
+        ASSERT_EQ(GPS_MESSAGE_STATE_MESSAGES, gpsData.messageState);
+        // the call that entered the message phase may already have sent the first frame; move on until one is out
+        size_t before = tx.size();
+        for (int i = 0; i < 4 && tx.size() == before; i++) {
+            testMillis += 300;
+            gpsInitUblox();
+        }
+    }
+    size_t grow(uint32_t advanceMs) {
+        const size_t before = tx.size();
+        testMillis += advanceMs;
+        gpsInitUblox();
+        return tx.size() - before;
+    }
+};
+
+TEST_F(GpsUbloxAckTest, NextFrameWaitsForTheAnswerToTheLast)
+{
+    toFirstMessageFrame("00080000");   // M8: CFG-MSG, class 0x06 id 0x01
+    EXPECT_EQ(0u, grow(10));
+    EXPECT_EQ(0u, grow(100));          // 110 ms after the frame, below the 150 ms limit
+}
+
+TEST_F(GpsUbloxAckTest, AckReleasesTheNextFrame)
+{
+    toFirstMessageFrame("00080000");
+    feed(ubxFrame(0x05, 0x01, {0x06, 0x01}));
+    EXPECT_EQ(11u, grow(1));           // one CFG-MSG frame: 6 + 3 + 2 bytes
+}
+
+TEST_F(GpsUbloxAckTest, NackAlsoReleasesTheNextFrame)
+{
+    toFirstMessageFrame("00080000");
+    feed(ubxFrame(0x05, 0x00, {0x06, 0x01}));
+    EXPECT_EQ(11u, grow(1));
+}
+
+TEST_F(GpsUbloxAckTest, SilentReceiverReleasesTheNextFrameAfterTheLimit)
+{
+    toFirstMessageFrame("00080000");
+    EXPECT_EQ(0u, grow(149));
+    EXPECT_EQ(11u, grow(1));           // 150 ms after the frame
+}
+
+TEST_F(GpsUbloxAckTest, M10ValsetFrameIsAnsweredByItsOwnClassAndId)
+{
+    toFirstMessageFrame("000A0000");   // M10: CFG-VALSET, class 0x06 id 0x8A
+    feed(ubxFrame(0x05, 0x01, {0x06, 0x8A}));
+    EXPECT_EQ(17u, grow(1));           // 6 + 9 + 2 bytes
+}
+
+TEST_F(GpsUbloxAckTest, AnswerForAnotherFrameOrMalformedAnswerDoesNotRelease)
+{
+    toFirstMessageFrame("00080000");
+    feed(ubxFrame(0x05, 0x01, {0x06, 0x8A}));         // other id
+    feed(ubxFrame(0x05, 0x01, {0x01, 0x01}));         // right id, other class
+    feed(ubxFrame(0x05, 0x01, {0x06}));               // payload too short
+    feed(ubxFrame(0x05, 0x01, {0x06, 0x01, 0x00}));   // payload too long
+    feed(ubxFrame(0x05, 0x02, {0x06, 0x01}));         // not ACK or NACK
+    feed(ubxFrame(0x0A, 0x01, {0x06, 0x01}));         // right bytes, other class
+    EXPECT_EQ(0u, grow(10));
+    std::vector<uint8_t> bad = ubxFrame(0x05, 0x01, {0x06, 0x01});
+    bad[bad.size() - 1] ^= 0xFF;                      // bad checksum
+    feed(bad);
+    EXPECT_EQ(0u, grow(10));
+}

@@ -321,6 +321,15 @@ static const uint32_t ubloxNmeaOffKeys[] = {
 
 static void ubloxWriteFrame(uint8_t cls, uint8_t id, const uint8_t *payload, uint8_t length);
 
+// Each CFG frame is answered by UBX-ACK-ACK or UBX-ACK-NACK naming its class and id. The configure phase sends the next
+// frame after the answer or after UBLOX_ACK_TIMEOUT_MS, so one frame is in flight at a time (as BF does). A NACK or a
+// timeout does not stop the configuration: the receiver may lack the message, and BF also goes on.
+#define UBLOX_ACK_TIMEOUT_MS 150
+static bool ubloxAckWaiting;
+static uint8_t ubloxAckClass;
+static uint8_t ubloxAckId;
+static uint32_t ubloxAckSentMs;
+
 // Receiver generation the message set was chosen for; a late MON-VER reply does not change it.
 static ubloxVersion_e ubloxConfigVersion = UBX_VERSION_UNDEF;
 
@@ -410,6 +419,7 @@ static void gpsSetState(gpsState_e state) {
     gpsData.messageState = GPS_MESSAGE_STATE_IDLE;
 #ifdef USE_GPS_UBLOX
     ubloxSatInfoOffCount = 0;
+    ubloxAckWaiting = false;
 #endif
 }
 
@@ -575,6 +585,12 @@ void gpsInitUblox(void) {
             }
         }
         if (gpsData.messageState == GPS_MESSAGE_STATE_MESSAGES) {
+            if (ubloxAckWaiting) {
+                if (millis() - ubloxAckSentMs < UBLOX_ACK_TIMEOUT_MS) {
+                    break; // the receiver has not answered the last frame yet
+                }
+                ubloxAckWaiting = false;
+            }
             // one frame per call; a message this receiver generation lacks is skipped
             while (gpsData.state_position < ARRAYLEN(ubloxNavMessages) &&
                    ubloxMessageRate(ubloxConfigVersion, ubloxNavMessages[gpsData.state_position]) == UBLOX_RATE_SKIP) {
@@ -585,7 +601,7 @@ void gpsInitUblox(void) {
                 const uint8_t rate = ubloxMessageRate(ubloxConfigVersion, msgId);
                 ubloxSendMessageRate(ubloxConfigVersion, msgId, rate);
                 gpsData.state_position++;
-            } else if (configVersion >= UBX_VERSION_M9 &&
+            } else if (ubloxConfigVersion >= UBX_VERSION_M9 &&
                        gpsData.state_position - ARRAYLEN(ubloxNavMessages) < ARRAYLEN(ubloxNmeaOffKeys)) {
                 const uint32_t key = ubloxNmeaOffKeys[gpsData.state_position - ARRAYLEN(ubloxNavMessages)];
                 const uint8_t payload[UBLOX_CFG_VALSET_PAYLOAD_LENGTH] = {
@@ -1304,6 +1320,12 @@ static void ubloxWriteFrame(uint8_t cls, uint8_t id, const uint8_t *payload, uin
     }
     serialWrite(gpsPort, ck_a);
     serialWrite(gpsPort, ck_b);
+    if (cls == CLASS_CFG) {
+        ubloxAckWaiting = true;
+        ubloxAckClass = cls;
+        ubloxAckId = id;
+        ubloxAckSentMs = millis();
+    }
 }
 
 
@@ -1318,6 +1340,14 @@ static bool UBLOX_parse_gps(void) {
             memcpy(hwVersion, _buffer.monver.hwVersion, sizeof(_buffer.monver.hwVersion));
             hwVersion[sizeof(_buffer.monver.hwVersion)] = '\0';
             gpsData.platformVersion = ubloxParseHwVersion(hwVersion);
+        }
+        return false;
+    }
+    if (_class == CLASS_ACK) {
+        // payload: class and id of the acknowledged frame
+        if (_payload_length == 2 && ubloxAckWaiting && _buffer.bytes[0] == ubloxAckClass && _buffer.bytes[1] == ubloxAckId &&
+            (_msg_id == MSG_ACK_ACK || _msg_id == MSG_ACK_NACK)) {
+            ubloxAckWaiting = false;
         }
         return false;
     }
