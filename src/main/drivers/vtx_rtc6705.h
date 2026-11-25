@@ -39,6 +39,10 @@
 #error "RTC6705_DYNAMIC_POWER_CTRL and RTC6705_POWER_PIN cannot both be defined"
 #endif
 
+#if defined(RTC6705_DYNAMIC_POWER_CTRL) && defined(USE_VTX_RTC6705_SOFTSPI)
+#error "RTC6705_DYNAMIC_POWER_CTRL is not supported with USE_VTX_RTC6705_SOFTSPI"
+#endif
+
 #ifdef RTC6705_DYNAMIC_POWER_CTRL
 #define VTX_RTC6705_POWER_COUNT     4   // index 0 unused; 1 to 3 = external codes 00, 01, 10 (code 11 is undefined and unsafe)
 #else
