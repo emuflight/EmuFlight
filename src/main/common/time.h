@@ -91,6 +91,11 @@ bool dateTimeSplitFormatted(char *formatted, char **date, char **time);
 
 bool rtcHasTime(void);
 
+#ifdef UNIT_TEST
+// Forget the stored time so rtcHasTime() is false again.
+void rtcClearForTest(void);
+#endif
+
 bool rtcGet(rtcTime_t *t);
 bool rtcSet(rtcTime_t *t);
 

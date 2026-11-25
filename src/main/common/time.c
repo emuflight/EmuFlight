@@ -242,6 +242,12 @@ bool rtcHasTime(void) {
     return started != 0;
 }
 
+#ifdef UNIT_TEST
+void rtcClearForTest(void) {
+    started = 0;
+}
+#endif
+
 bool rtcGet(rtcTime_t *t) {
     if (!rtcHasTime()) {
         return false;
