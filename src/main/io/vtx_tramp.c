@@ -475,7 +475,10 @@ static bool vtxTrampGetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex)
     if (!vtxTrampIsReady(vtxDevice)) {
         return false;
     }
+    *pIndex = 0;
     if (trampConfiguredPower > 0) {
+        // A power above the highest table entry reports the highest level.
+        *pIndex = VTX_TRAMP_POWER_COUNT;
         for (uint8_t i = 0; i < VTX_TRAMP_POWER_COUNT; i++) {
             if (trampConfiguredPower <= trampPowerTable[i]) {
                 *pIndex = i + 1;
