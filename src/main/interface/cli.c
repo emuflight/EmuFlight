@@ -2044,6 +2044,18 @@ static void printVtx(uint8_t dumpMask, const vtxConfig_t *vtxConfig, const vtxCo
     }
 }
 
+// Highest aux power the active VTX accepts. Falls back to the build-time bound when no VTX is registered.
+// RTC6705 power indexes are zero-origin (0 to count - 1); SmartAudio, Tramp and Beesign are one-origin (1 to count).
+static int cliVtxMaxAuxPower(void)
+{
+    const vtxDevice_t *vtxDevice = vtxCommonDevice();
+    vtxDeviceCapability_t capability;
+    if (vtxDevice && vtxCommonGetDeviceCapability(vtxDevice, &capability)) {
+        return (vtxCommonGetDeviceType(vtxDevice) == VTXDEV_RTC6705) ? capability.powerCount - 1 : capability.powerCount;
+    }
+    return VTX_SETTINGS_MAX_AUX_POWER;
+}
+
 STATIC_UNIT_TESTED void cliVtx(char *cmdline) {
     const char *format = "vtx %u %u %u %u %u %u %u";
     int i, val = 0;
@@ -2091,9 +2103,8 @@ STATIC_UNIT_TESTED void cliVtx(char *cmdline) {
             ptr = nextArg(ptr);
             if (ptr) {
                 val = atoi(ptr);
-                // FIXME Use VTX API to get max
                 // We check for the min value in final validation below
-                if (val >= 0 && val <= VTX_SETTINGS_POWER_COUNT) {
+                if (val >= 0 && val <= cliVtxMaxAuxPower()) {
                     cac->power = val;
                     validArgumentCount++;
                 }
