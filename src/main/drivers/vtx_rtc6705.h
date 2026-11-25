@@ -49,7 +49,11 @@
 #else
 #define VTX_RTC6705_POWER_COUNT     3
 #endif
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
+#define VTX_RTC6705_DEFAULT_POWER   0   // lowest level: used for low power on disarm and pit mode
+#else
 #define VTX_RTC6705_DEFAULT_POWER   1
+#endif
 
 #if defined(RTC6705_POWER_PIN) || ENABLE_RTC6705_DYNAMIC_POWER_CTRL
 #define VTX_RTC6705_MIN_POWER   0

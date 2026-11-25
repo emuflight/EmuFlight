@@ -43,7 +43,7 @@
 #if defined(USE_CMS) || defined(USE_VTX_COMMON)
 const char * const rtc6705PowerNames[] = {
 #if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
-    "L0", "L1", "L2"
+    "L0", "L1", "L2", "---"   // last entry names the not-yet-set state
 #else
     "OFF", "MIN", "MAX"
 #endif
@@ -60,6 +60,10 @@ static vtxDevice_t vtxRTC6705 = {
     .bandNames = (char **)vtx58BandNames,
     .channelNames = (char **)vtx58ChannelNames,
     .powerNames = (char **)rtc6705PowerNames,
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
+    // Level 0 is a valid level, so start out of range: the first update then writes the level to the chip.
+    .powerIndex = VTX_RTC6705_POWER_COUNT,
+#endif
 };
 #endif
 
@@ -114,7 +118,8 @@ static bool vtxRTC6705IsReady(const vtxDevice_t *vtxDevice) {
 static void vtxRTC6705SetBandAndChannel(vtxDevice_t *vtxDevice, uint8_t band, uint8_t channel) {
     while (!vtxRTC6705CanUpdate());
     if (band >= 1 && band <= VTX_SETTINGS_BAND_COUNT && channel >= 1 && channel <= VTX_SETTINGS_CHANNEL_COUNT) {
-        if (vtxDevice->powerIndex > 0) {
+        // Dynamic power control has no off state, so level 0 still takes a frequency.
+        if (ENABLE_RTC6705_DYNAMIC_POWER_CTRL || vtxDevice->powerIndex > 0) {
             vtxDevice->band = band;
             vtxDevice->channel = channel;
             vtxRTC6705SetFrequency(vtxDevice, vtx58frequencyTable[band - 1][channel - 1]);
