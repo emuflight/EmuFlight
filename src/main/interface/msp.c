@@ -1489,6 +1489,20 @@ static void mspFcDataFlashReadCommand(sbuf_t *dst, sbuf_t *src) {
 }
 #endif
 
+#ifdef USE_RTC_TIME
+static mspResult_e mspSetRtc(sbuf_t *src) {
+    dateTime_t dt;
+    dt.year = sbufReadU16(src);
+    dt.month = sbufReadU8(src);
+    dt.day = sbufReadU8(src);
+    dt.hours = sbufReadU8(src);
+    dt.minutes = sbufReadU8(src);
+    dt.seconds = sbufReadU8(src);
+    dt.millis = 0;
+    return rtcSetDateTime(&dt) ? MSP_RESULT_ACK : MSP_RESULT_ERROR;
+}
+#endif
+
 mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t *src) {
     uint32_t i;
     uint8_t value;
@@ -2300,18 +2314,8 @@ mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, uint8_t cmdMSP, sbuf_t 
         }
         break;
 #ifdef USE_RTC_TIME
-        case MSP_SET_RTC: {
-    dateTime_t dt;
-    dt.year = sbufReadU16(src);
-    dt.month = sbufReadU8(src);
-    dt.day = sbufReadU8(src);
-    dt.hours = sbufReadU8(src);
-    dt.minutes = sbufReadU8(src);
-    dt.seconds = sbufReadU8(src);
-    dt.millis = 0;
-    rtcSetDateTime(&dt);
-    }
-    break;
+        case MSP_SET_RTC:
+        return mspSetRtc(src);
 #endif
         case MSP_SET_TX_INFO:
         setRssiMsp(sbufReadU8(src));
