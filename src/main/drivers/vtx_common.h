@@ -54,6 +54,7 @@
 #if defined(USE_VTX_SMARTAUDIO) || defined(USE_VTX_TRAMP) || defined(USE_VTX_BEESIGN)
 
 #define VTX_SETTINGS_POWER_COUNT        5
+#define VTX_SETTINGS_MAX_AUX_POWER      VTX_SETTINGS_POWER_COUNT    // power indexes are one-origin: 1 to count
 #define VTX_SETTINGS_DEFAULT_POWER      1
 #define VTX_SETTINGS_MIN_POWER          0
 #define VTX_SETTINGS_MIN_USER_FREQ      5000
@@ -63,6 +64,7 @@
 #elif defined(USE_VTX_RTC6705)
 
 #define VTX_SETTINGS_POWER_COUNT    VTX_RTC6705_POWER_COUNT
+#define VTX_SETTINGS_MAX_AUX_POWER  (VTX_RTC6705_POWER_COUNT - 1)   // power indexes are zero-origin: 0 to count - 1
 #define VTX_SETTINGS_DEFAULT_POWER  VTX_RTC6705_DEFAULT_POWER
 #define VTX_SETTINGS_MIN_POWER      VTX_RTC6705_MIN_POWER
 
