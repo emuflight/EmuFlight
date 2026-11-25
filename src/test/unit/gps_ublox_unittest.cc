@@ -188,8 +188,10 @@ TEST_F(GpsUbloxTest, NavPvtOneByteTooShortForPdopIsRejected)
 TEST_F(GpsUbloxTest, MessageId7InOtherClassIsIgnored)
 {
     gpsSol.numSat = 3;
+    gpsSol.hdop = 77;
     feed(ubxFrame(0x02, 0x07, navPvtPayload(14, 0)));   // class RXM, id 0x07
     EXPECT_EQ(3, gpsSol.numSat);
+    EXPECT_EQ(77, gpsSol.hdop);
 }
 
 TEST_F(GpsUbloxTest, NavSolStillSetsSatelliteCount)
@@ -300,9 +302,10 @@ TEST_F(GpsUbloxTest, OversizedNonSatMessageIsStillSkipped)
 
 TEST_F(GpsUbloxTest, NavSatShorterMessageClearsEntriesOfEarlierOne)
 {
-    feed(ubxFrame(0x01, 0x35, navSatPayload(10, 10, 1, 6)));   // nonzero gnssId: a tail entry that is not cleared stays visibly nonzero
-    EXPECT_EQ(10, GPS_numCh);
-    EXPECT_EQ(6, GPS_svinfo_chn[9]);
+    feed(ubxFrame(0x01, 0x35, navSatPayload(16, 16, 1, 6)));   // full table, nonzero gnssId: a tail entry that is not cleared stays visibly nonzero
+    EXPECT_EQ(16, GPS_numCh);
+    EXPECT_EQ(6, GPS_svinfo_chn[3]);
+    EXPECT_EQ(6, GPS_svinfo_chn[15]);
     feed(ubxFrame(0x01, 0x35, navSatPayload(3, 3, 50)));
     EXPECT_EQ(3, GPS_numCh);
     for (int i = 3; i < 16; i++) {
@@ -463,8 +466,10 @@ protected:
     }
     void TearDown() override { testTx = NULL; testTxBusy = false; }
     // run until the configure state is left; `answer` is delivered when the version poll has been sent
+    uint32_t lastCallClock = 0;   // clock of the most recent gpsInitUblox call made by run()
     void run(const char *hw) {
         for (int i = 0; i < 4000 && gpsData.state == 3; i++) {
+            lastCallClock = testMillis;
             gpsInitUblox();
             testMillis += 300;
             if (hw && !tx.empty() && gpsData.messageState == GPS_MESSAGE_STATE_VERSION && gpsData.platformVersion == UBX_VERSION_UNDEF) {
@@ -623,8 +628,9 @@ TEST_F(GpsUbloxConfigTest, ReceiveTimeoutStartsWhenConfigurationEnds)
     gpsData.lastMessage = 0;   // no frame since the start, as while configuring
     run("000A0000");
     ASSERT_NE(3, gpsData.state);   // configure state left
-    // the configure phase took over a second of clock; the timeout stamp must be renewed, not left at the start
-    EXPECT_GT(gpsData.lastMessage, 1000u);
+    // the stamp is the clock of the call that left the configure state, not the start value
+    EXPECT_GT(lastCallClock, 1000u);
+    EXPECT_EQ(lastCallClock, gpsData.lastMessage);
 }
 
 TEST_F(GpsUbloxConfigTest, NothingIsSentWhileTheTransmitBufferIsBusy)
@@ -644,15 +650,16 @@ TEST_F(GpsUbloxConfigTest, MessageSetStartsOnlyAfterTheLastPollHadItsInterval)
         gpsInitUblox();
     }
     // polls at clock 0, 250, 500, 750; the version state ends once 250 ms have passed after the fourth poll
-    for (uint32_t t : {250u, 500u, 750u, 999u}) {
+    for (uint32_t t : {250u, 500u, 750u}) {
         testMillis = t;
         gpsInitUblox();
         EXPECT_EQ(GPS_MESSAGE_STATE_VERSION, gpsData.messageState) << "clock " << t;
     }
     EXPECT_EQ(4, pollCount());
-    const size_t txBefore = tx.size();
+    const size_t txBefore = tx.size();   // taken before the first call at 999 ms
     testMillis = 999;
     gpsInitUblox();
+    EXPECT_EQ(GPS_MESSAGE_STATE_VERSION, gpsData.messageState);
     EXPECT_EQ(txBefore, tx.size()) << "no NAV frame before the last interval is over";
     testMillis = 1000;
     gpsInitUblox();   // the last interval is over: the wait is closed
