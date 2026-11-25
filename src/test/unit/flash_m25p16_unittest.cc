@@ -72,6 +72,13 @@ static const expectedChip_t expectedNewChips[] = {
     { 0xEF6017,  8 * MIB, 64 * KIB, "W25Q64JW-IQ" },
     { 0xEF8017,  8 * MIB, 64 * KIB, "W25Q64JW-IM" },
     { 0xEF4020, 64 * MIB, 64 * KIB, "W25Q512JV" },
+    { 0x684018, 16 * MIB, 64 * KIB, "BY25Q128ES" },
+    { 0xC84015,  2 * MIB, 64 * KIB, "GD25Q16E" },
+    { 0xC84018, 16 * MIB, 64 * KIB, "GD25Q128E" },
+    { 0xA14017,  8 * MIB, 64 * KIB, "FM25Q64AI3" },
+    { 0xA14018, 16 * MIB, 64 * KIB, "FM25Q128AI3" },
+    { 0xBA6016,  4 * MIB, 64 * KIB, "ZD25WQ32C" },
+    { 0xC46016,  4 * MIB, 64 * KIB, "GT25Q32A" },
 };
 
 static const expectedChip_t expectedExistingChips[] = {
@@ -135,7 +142,7 @@ TEST(FlashM25p16Test, ExpectedTablesHaveNoDuplicateIds)
 TEST(FlashM25p16Test, UnknownIdsAreRejectedAndGeometryCleared)
 {
     // Neighbours of supported IDs and the two values a floating or absent bus reads back.
-    static const uint32_t unknown[] = { 0x000000, 0xFFFFFF, 0xEF4021, 0xEF4013, 0xC22015, 0xC2201A, 0x1C7116 };
+    static const uint32_t unknown[] = { 0x000000, 0xFFFFFF, 0xEF4021, 0xEF4013, 0xC22015, 0xC2201A, 0x1C7116, 0xC84016, 0x684019, 0xA14019, 0x206019, 0x012018 };
     for (uint32_t id : unknown) {
         flashDevice_t fdevice;
         EXPECT_FALSE(identify(id, &fdevice)) << std::hex << id;

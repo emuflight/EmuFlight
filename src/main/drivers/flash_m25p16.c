@@ -124,6 +124,27 @@ struct {
     { 0xEF8017, 104, 50, 128, 256 }, // W25Q64JW-IM/JM*
     // Boya BY25Q64ES
     { 0x684017, 108, 54, 128, 256 },
+    // Boya BY25Q128ES (Rev 2.11)
+    // 120 MHz at 3.0-3.6 V, 108 MHz at 2.7-3.0 V; read (03h) 100 MHz
+    { 0x684018, 104, 50, 256, 256 },
+    // GigaDevice GD25Q16E (Rev 1.2)
+    // 133 MHz at 3.0-3.6 V (DC=1), 104 MHz otherwise; read (03h) 80 MHz
+    { 0xC84015, 104, 50, 32, 256 },
+    // GigaDevice GD25Q128E
+    // 64 KB blocks (0xD8) x 256 pages of 256 B; 133 MHz at 3.0-3.6 V (DC=1), 104 MHz otherwise; read (03h) 80 MHz
+    { 0xC84018, 104, 80, 256, 256 },
+    // Fudan FM25Q64AI3 (V1.0)
+    // 104 MHz fast read, read (03h) 66 MHz; 80 MHz used as the conservative clock
+    { 0xA14017, 80, 66, 128, 256 },
+    // Fudan FM25Q128AI3 (V1.0)
+    // 100 MHz at 2.7-3.6 V (80 MHz at 2.3-2.7 V); datasheet gives read as 50 MHz in the feature list and 66 MHz at 2.7-3.6 V, so the lower value is used
+    { 0xA14018, 80, 50, 256, 256 },
+    // Zetta ZD25WQ32C
+    // 104 MHz only at 2.3-3.6 V; 66 MHz is the limit over the full 1.65-3.6 V range, so 66 MHz is used. Read (03h) 40 MHz
+    { 0xBA6016, 66, 40, 64, 256 },
+    // Giantec GT25Q32A-U (v2.4)
+    // 104 MHz at 2.7-3.6 V grade 1, 90 MHz grade 2 (used); 60 MHz below 2.3 V
+    { 0xC46016, 90, 90, 64, 256 },
     // Winbond W25Q128
     // Datasheet: https://www.winbond.com/resource-files/w25q128fv%20rev.l%2008242015.pdf
     { 0xEF4018, 104, 50, 256, 256 },
