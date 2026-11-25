@@ -26,6 +26,7 @@
 
 #if defined(USE_CMS) && defined(USE_VTX_RTC6705)
 
+#include "common/maths.h"
 #include "common/printf.h"
 #include "common/utils.h"
 
@@ -49,9 +50,17 @@ static OSD_UINT8_t entryVtxChannel =    {&cmsx_vtxChannel, 1, VTX_SETTINGS_CHANN
 static OSD_TAB_t entryVtxPower =        {&cmsx_vtxPower, VTX_RTC6705_POWER_COUNT - 1 - VTX_RTC6705_MIN_POWER, &rtc6705PowerNames[VTX_RTC6705_MIN_POWER]};
 
 static void cmsx_Vtx_ConfigRead(void) {
-    cmsx_vtxBand = vtxSettingsConfig()->band - 1;
-    cmsx_vtxChannel = vtxSettingsConfig()->channel;
-    cmsx_vtxPower = vtxSettingsConfig()->power - VTX_RTC6705_MIN_POWER;
+    uint8_t band = vtxSettingsConfig()->band;
+    uint8_t channel = vtxSettingsConfig()->channel;
+    // Band 0 is custom-frequency mode, which this device does not offer: show the band and channel of the stored frequency.
+    if (band == 0 && !vtx58_Freq2Bandchan(vtxSettingsConfig()->freq, &band, &channel)) {
+        band = VTX_SETTINGS_DEFAULT_BAND;
+        channel = VTX_SETTINGS_DEFAULT_CHANNEL;
+    }
+    cmsx_vtxBand = band - 1;
+    cmsx_vtxChannel = channel;
+    // MSP or an aux condition can store a power this device does not offer: keep the table index in range.
+    cmsx_vtxPower = constrain(vtxSettingsConfig()->power, VTX_RTC6705_MIN_POWER, VTX_RTC6705_POWER_COUNT - 1) - VTX_RTC6705_MIN_POWER;
 }
 
 static void cmsx_Vtx_ConfigWriteback(void) {

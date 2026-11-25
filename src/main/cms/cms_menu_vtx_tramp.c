@@ -73,7 +73,7 @@ static OSD_UINT16_t trampCmsEntFreqRef = { &trampCmsFreqRef, 5600, 5900, 0 };
 
 static uint8_t trampCmsPower = 1;
 
-static OSD_TAB_t trampCmsEntPower = { &trampCmsPower, sizeof(trampPowerTable), trampPowerNames };
+static OSD_TAB_t trampCmsEntPower = { &trampCmsPower, VTX_TRAMP_POWER_COUNT, trampPowerNames };
 
 static void trampCmsUpdateFreqRef(void) {
     if (trampCmsBand > 0 && trampCmsChan > 0)

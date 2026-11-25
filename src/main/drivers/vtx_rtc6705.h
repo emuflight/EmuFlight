@@ -31,10 +31,31 @@
 
 #define VTX_RTC6705_BAND_COUNT      5
 #define VTX_RTC6705_CHANNEL_COUNT   8
-#define VTX_RTC6705_POWER_COUNT     3
-#define VTX_RTC6705_DEFAULT_POWER   1
+#ifndef ENABLE_RTC6705_DYNAMIC_POWER_CTRL
+#define ENABLE_RTC6705_DYNAMIC_POWER_CTRL 0
+#endif
 
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
+#if !defined(RTC6705_EX_POWER_1_PIN) || !defined(RTC6705_EX_POWER_2_PIN)
+#error "ENABLE_RTC6705_DYNAMIC_POWER_CTRL needs RTC6705_EX_POWER_1_PIN and RTC6705_EX_POWER_2_PIN"
+#endif
 #if defined(RTC6705_POWER_PIN)
+#error "ENABLE_RTC6705_DYNAMIC_POWER_CTRL and RTC6705_POWER_PIN cannot both be defined"
+#endif
+#if defined(USE_VTX_RTC6705_SOFTSPI)
+#error "ENABLE_RTC6705_DYNAMIC_POWER_CTRL is not supported with USE_VTX_RTC6705_SOFTSPI"
+#endif
+#define VTX_RTC6705_POWER_COUNT     3   // index 0 to 2 = external codes 00, 01, 10 (code 11 is undefined and unsafe)
+#else
+#define VTX_RTC6705_POWER_COUNT     3
+#endif
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
+#define VTX_RTC6705_DEFAULT_POWER   0   // lowest level: used for low power on disarm and pit mode
+#else
+#define VTX_RTC6705_DEFAULT_POWER   1
+#endif
+
+#if defined(RTC6705_POWER_PIN) || ENABLE_RTC6705_DYNAMIC_POWER_CTRL
 #define VTX_RTC6705_MIN_POWER   0
 #else
 #define VTX_RTC6705_MIN_POWER   1
