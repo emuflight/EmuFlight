@@ -31,7 +31,19 @@
 
 #define VTX_RTC6705_BAND_COUNT      5
 #define VTX_RTC6705_CHANNEL_COUNT   8
+#if defined(RTC6705_EX_POWER_1_PIN) && defined(RTC6705_EX_POWER_2_PIN)
+#define RTC6705_DYNAMIC_POWER_CTRL
+#endif
+
+#if defined(RTC6705_DYNAMIC_POWER_CTRL) && defined(RTC6705_POWER_PIN)
+#error "RTC6705_DYNAMIC_POWER_CTRL and RTC6705_POWER_PIN cannot both be defined"
+#endif
+
+#ifdef RTC6705_DYNAMIC_POWER_CTRL
+#define VTX_RTC6705_POWER_COUNT     4   // index 0 unused; 1 to 3 = external codes 00, 01, 10 (code 11 is undefined and unsafe)
+#else
 #define VTX_RTC6705_POWER_COUNT     3
+#endif
 #define VTX_RTC6705_DEFAULT_POWER   1
 
 #if defined(RTC6705_POWER_PIN)

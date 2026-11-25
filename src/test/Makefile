@@ -1131,6 +1131,19 @@ vtx_unittest_DEFINES := \
 		USE_VTX_CONTROL \
 		USE_VTX_SMARTAUDIO
 
+vtx_rtc6705_unittest_SRC := \
+		$(USER_DIR)/drivers/vtx_rtc6705.c
+
+vtx_rtc6705_unittest_DEFINES := \
+		USE_VTX_RTC6705= \
+		RTC6705_CS_PIN=TESTCS \
+		RTC6705_EX_POWER_1_PIN=TESTP1 \
+		RTC6705_EX_POWER_2_PIN=TESTP2 \
+		RTC6705_SPI_INSTANCE=NULL \
+		DEFIO_TAG__TESTCS=3 \
+		DEFIO_TAG__TESTP1=1 \
+		DEFIO_TAG__TESTP2=2
+
 # Please tweak the following variable definitions as needed by your
 # project, except GTEST_HEADERS, which you can use in your own targets
 # but shouldn't modify.
