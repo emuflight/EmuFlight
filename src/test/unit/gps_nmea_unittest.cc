@@ -134,22 +134,53 @@ TEST_F(GpsNmeaTest, ShortSentenceIdIgnored)
     EXPECT_EQ(0, gpsSol.llh.lat);
 }
 
-// GSV: only the GP talker fills the satellite arrays.
-TEST_F(GpsNmeaTest, GsvOnlyFromGpTalker)
-{
-    GPS_numCh = 0;
-    testGpsNmeaFeed(frame("GLGSV,1,1,05").c_str());
-    EXPECT_EQ(0, GPS_numCh);
-    testGpsNmeaFeed(frame("GPGSV,1,1,07").c_str());
-    EXPECT_EQ(7, GPS_numCh);
-}
-
 // NMEA 0183 RMC time is hhmmss.s...: the fraction has any digit count. 23 March 2026 is 230326.
 static bool rmcTime(const char *time, dateTime_t *dt)
 {
     testGpsNmeaReset();
     testGpsNmeaFeed(frame(std::string("GNRMC,") + time + ",A,4807.038,N,01131.000,E,022.4,084.4,230326,003.1,W").c_str());
     return testGpsNmeaRtc(dt);
+}
+
+// GSV: only the GP talker fills the satellite count and arrays.
+TEST_F(GpsNmeaTest, GsvOnlyFromGpTalker)
+{
+    GPS_numCh = 0;
+    GPS_svinfo_svid[0] = 0;
+    testGpsNmeaFeed(frame("GLGSV,1,1,05,71,10,100,30").c_str());
+    EXPECT_EQ(0, GPS_numCh);
+    EXPECT_EQ(0, GPS_svinfo_svid[0]);
+    testGpsNmeaFeed(frame("GPGSV,1,1,07,12,10,100,30").c_str());
+    EXPECT_EQ(7, GPS_numCh);
+    EXPECT_EQ(12, GPS_svinfo_svid[0]);
+}
+
+// Proprietary sentences start with 'P' (PGRMC is a Garmin configuration sentence, not RMC); IDs need two capital letters.
+TEST_F(GpsNmeaTest, ProprietaryAndMalformedIdsIgnored)
+{
+    testGpsNmeaFeed(frame("PGRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230326,003.1,W").c_str());
+    testGpsNmeaFeed(frame(std::string("12GGA") + GGA_FIELDS).c_str());
+    testGpsNmeaFeed(frame(std::string("gnGGA") + GGA_FIELDS).c_str());
+    dateTime_t dt;
+    EXPECT_FALSE(testGpsNmeaRtc(&dt));
+    EXPECT_EQ(0, gpsSol.groundSpeed);
+    EXPECT_EQ(0, gpsSol.numSat);
+}
+
+// A time field with more than six integer digits is not a time and must not set the clock (no wrap-around).
+TEST_F(GpsNmeaTest, OverlongTimeFieldIgnored)
+{
+    dateTime_t dt;
+    EXPECT_FALSE(rmcTime("4294968", &dt));
+}
+
+// GSV message number 64 with a fourth satellite made the global satellite index wrap to zero (write before the array, found with ASan).
+TEST_F(GpsNmeaTest, GsvMessageNumberOutOfRangeStaysInBounds)
+{
+    const char *sats = ",01,10,100,30,02,10,100,30,03,10,100,30,04,10,100,30";
+    testGpsNmeaFeed(frame(std::string("GPGSV,65,64,16") + sats).c_str());
+    testGpsNmeaFeed(frame(std::string("GPGSV,1,0,16") + sats).c_str());
+    testGpsNmeaFeed(frame(std::string("GPGSV,65,255,16") + sats).c_str());
 }
 
 TEST_F(GpsNmeaTest, RmcTimeFractionDigits)
@@ -202,7 +233,7 @@ TEST_F(GpsNmeaTest, RmcBadChecksumDoesNotSetClock)
     EXPECT_FALSE(testGpsNmeaRtc(&dt));
 }
 
-// A number field with its '.' near the end of the buffer must not write past it (ASan checks this build).
+// A number field with its '.' near the end of the buffer must not write past it; an ASan build detects it, otherwise it corrupts the next parser state.
 TEST_F(GpsNmeaTest, LateDecimalPointInFieldStaysInBounds)
 {
     for (int dot = 10; dot <= 14; dot++) {

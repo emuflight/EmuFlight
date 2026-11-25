@@ -777,6 +777,9 @@ static uint32_t grab_time(const char *src) {
     uint32_t scale = 100;
     const char *p = src;
     for (; *p >= '0' && *p <= '9'; p++) {
+        if (p - src >= 6) {
+            return 0; // more than hhmmss digits: not a time
+        }
         whole = whole * 10 + (*p - '0');
     }
     if (*p == '.') {
@@ -806,7 +809,8 @@ static bool gpsNewFrameNMEA(char c) {
     static char string[16];
     static uint8_t checksum_param, gps_frame = NO_FRAME;
     static uint8_t svMessageNum = 0;
-    uint8_t svSatNum = 0, svPacketIdx = 0, svSatParam = 0;
+    uint8_t svPacketIdx = 0, svSatParam = 0;
+    int svSatNum = 0;
     switch (c) {
     case '$':
         param = 0;
@@ -819,7 +823,8 @@ static bool gpsNewFrameNMEA(char c) {
         if (param == 0) {       //frame identification
             gps_frame = NO_FRAME;
             // Sentence ID is a two-letter talker (GP, GN, GL, GA, BD ...) plus a three-letter type.
-            if (offset == 5) {
+            // A leading 'P' marks a proprietary sentence (for example PGRMC), not a talker.
+            if (offset == 5 && string[0] >= 'A' && string[0] <= 'Z' && string[0] != 'P' && string[1] >= 'A' && string[1] <= 'Z') {
                 if (strcmp(&string[2], "GGA") == 0)
                     gps_frame = FRAME_GGA;
                 else if (strcmp(&string[2], "RMC") == 0)
@@ -901,7 +906,7 @@ static bool gpsNewFrameNMEA(char c) {
             svPacketIdx = (param - 4) / 4 + 1; // satellite number in packet, 1-4
             svSatNum    = svPacketIdx + (4 * (svMessageNum - 1)); // global satellite number
             svSatParam  = param - 3 - (4 * (svPacketIdx - 1)); // parameter number for satellite
-            if (svSatNum > GPS_SV_MAXSATS)
+            if (svSatNum < 1 || svSatNum > GPS_SV_MAXSATS)
                 break;
             switch (svSatParam) {
             case 1:

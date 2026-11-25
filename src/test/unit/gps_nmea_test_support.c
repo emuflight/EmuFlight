@@ -35,7 +35,7 @@ void testGpsNmeaReset(void)
     rtcClearForTest();
 }
 
-// Feed one NMEA text to the parser; return the count of frames it accepted.
+// Feed one NMEA text to the parser; return how many times it reported a complete GGA frame (the only type it reports).
 unsigned testGpsNmeaFeed(const char *text)
 {
     unsigned accepted = 0;
