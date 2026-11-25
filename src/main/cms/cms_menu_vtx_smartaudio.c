@@ -202,6 +202,10 @@ static long saCmsConfigChanByGvar(displayPort_t *pDisp, const void *self) {
         saCmsChan = 1;
         return 0;
     }
+    if (saCmsBand == 0) {
+        // Band 0 is custom-frequency mode: pick the first band so the table lookup stays in range.
+        saCmsBand = 1;
+    }
     if ((saCmsOpmodel == SACMS_OPMODEL_FREE) && !saDeferred)
         saSetBandAndChannel(saCmsBand - 1, saCmsChan - 1);
     saCmsFreqRef = vtx58frequencyTable[saCmsBand - 1][saCmsChan - 1];
