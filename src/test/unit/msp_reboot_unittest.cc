@@ -96,11 +96,14 @@ static mspResult_e setRtc(uint16_t y, uint8_t mo, uint8_t d, uint8_t h, uint8_t 
     return testMspSetRtc(p, sizeof(p));
 }
 
-static int64_t storedSeconds(void)
+// Stored RTC time in Unix milliseconds; -1 when no time is stored.
+static int64_t storedMillis(void)
 {
-    rtcTime_t t;
-    EXPECT_TRUE(rtcGet(&t));
-    return t / 1000;
+    rtcTime_t t = -1;
+    if (!rtcGet(&t)) {
+        return -1;
+    }
+    return t;
 }
 
 TEST(MspSetRtcTest, AcceptedDateAcksAndStores)
@@ -108,16 +111,21 @@ TEST(MspSetRtcTest, AcceptedDateAcksAndStores)
     testMillis = 0;
     // 2020-01-01T00:00:00Z = 1577836800 (calendar fact)
     EXPECT_EQ(MSP_RESULT_ACK, setRtc(2020, 1, 1, 0, 0, 0));
-    EXPECT_EQ(1577836800, storedSeconds());
+    EXPECT_EQ(1577836800000, storedMillis());
 }
 
 TEST(MspSetRtcTest, RejectedDatesReturnErrorAndKeepClock)
 {
     testMillis = 0;
     ASSERT_EQ(MSP_RESULT_ACK, setRtc(2020, 1, 1, 0, 0, 0));
+    const int64_t before = storedMillis();
+    ASSERT_EQ(1577836800000, before);
     EXPECT_EQ(MSP_RESULT_ERROR, setRtc(1970, 1, 1, 0, 0, 0));   // before 2000
+    EXPECT_EQ(before, storedMillis());
     EXPECT_EQ(MSP_RESULT_ERROR, setRtc(2100, 1, 1, 0, 0, 0));   // after 2099
+    EXPECT_EQ(before, storedMillis());
     EXPECT_EQ(MSP_RESULT_ERROR, setRtc(2023, 2, 30, 0, 0, 0));  // impossible day
+    EXPECT_EQ(before, storedMillis());
     EXPECT_EQ(MSP_RESULT_ERROR, setRtc(2023, 13, 1, 0, 0, 0));  // impossible month
-    EXPECT_EQ(1577836800, storedSeconds());
+    EXPECT_EQ(before, storedMillis());
 }
