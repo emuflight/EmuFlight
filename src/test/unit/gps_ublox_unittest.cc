@@ -318,6 +318,89 @@ TEST_F(GpsUbloxTest, NavSatShorterMessageClearsEntriesOfEarlierOne)
     }
 }
 
+// NAV-SVINFO per the u-blox 6 spec: 8-byte header (iTOW, numCh, globalFlags, reserved), then 12 bytes per channel:
+// chn, svid, flags, quality, cno, elev, azim (I2), prRes (I4).
+static std::vector<uint8_t> navSvinfoPayload(uint8_t numChField, uint8_t countInPayload, uint8_t firstSvId, uint8_t chn = 1)
+{
+    std::vector<uint8_t> p(8 + 12 * countInPayload, 0);
+    p[4] = numChField;
+    for (uint8_t i = 0; i < countInPayload; i++) {
+        uint8_t *ch = &p[8 + 12 * i];
+        ch[0] = chn;
+        ch[1] = firstSvId + i;
+        ch[3] = 4;                // quality
+        ch[4] = 30 + i;           // cno
+    }
+    return p;
+}
+
+TEST_F(GpsUbloxTest, NavSvinfoFillsSignalTable)
+{
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(3, 3, 7)));
+    EXPECT_EQ(3, GPS_numCh);
+    for (int i = 0; i < 3; i++) {
+        EXPECT_EQ(1, GPS_svinfo_chn[i]);
+        EXPECT_EQ(7 + i, GPS_svinfo_svid[i]);
+        EXPECT_EQ(4, GPS_svinfo_quality[i]);
+        EXPECT_EQ(30 + i, GPS_svinfo_cno[i]);
+    }
+    EXPECT_EQ(1, GPS_svInfoReceivedCount);
+}
+
+TEST_F(GpsUbloxTest, NavSvinfoShorterMessageClearsEntriesOfEarlierOne)
+{
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(16, 16, 1, 9)));
+    EXPECT_EQ(16, GPS_numCh);
+    EXPECT_EQ(9, GPS_svinfo_chn[15]);
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(3, 3, 50)));
+    EXPECT_EQ(3, GPS_numCh);
+    for (int i = 3; i < 16; i++) {
+        EXPECT_EQ(0, GPS_svinfo_chn[i]);
+        EXPECT_EQ(0, GPS_svinfo_svid[i]);
+        EXPECT_EQ(0, GPS_svinfo_quality[i]);
+        EXPECT_EQ(0, GPS_svinfo_cno[i]);
+    }
+}
+
+TEST_F(GpsUbloxTest, NavSvinfoCountFieldLargerThanPayloadIsClamped)
+{
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(16, 16, 1, 9)));       // leaves channel data in the receive buffer
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(12, 2, 50)));          // claims 12 channels, carries 2
+    EXPECT_EQ(2, GPS_numCh);
+    EXPECT_EQ(50, GPS_svinfo_svid[0]);
+    EXPECT_EQ(51, GPS_svinfo_svid[1]);
+    for (int i = 2; i < 16; i++) {
+        EXPECT_EQ(0, GPS_svinfo_svid[i]);
+    }
+}
+
+TEST_F(GpsUbloxTest, NavSvinfoShorterThanHeaderIsIgnored)
+{
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(3, 3, 7)));
+    const uint8_t received = GPS_svInfoReceivedCount;
+    feed(ubxFrame(0x01, 0x30, std::vector<uint8_t>(7, 0x20)));
+    EXPECT_EQ(3, GPS_numCh);
+    EXPECT_EQ(7, GPS_svinfo_svid[0]);
+    EXPECT_EQ(received, GPS_svInfoReceivedCount);
+}
+
+TEST_F(GpsUbloxTest, MessageId30InOtherClassIsIgnored)
+{
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(3, 3, 7)));
+    const uint8_t received = GPS_svInfoReceivedCount;
+    feed(ubxFrame(0x0B, 0x30, navSvinfoPayload(16, 16, 90)));
+    EXPECT_EQ(3, GPS_numCh);
+    EXPECT_EQ(7, GPS_svinfo_svid[0]);
+    EXPECT_EQ(received, GPS_svInfoReceivedCount);
+}
+
+TEST_F(GpsUbloxTest, NavSvinfoCountAboveTableSizeIsCappedAtSixteen)
+{
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(28, 28, 1)));
+    EXPECT_EQ(16, GPS_numCh);
+    EXPECT_EQ(16, GPS_svinfo_svid[15]);
+}
+
 TEST_F(GpsUbloxTest, NavSatSixteenAndSeventeenEntriesAreCappedAtSixteen)
 {
     feed(ubxFrame(0x01, 0x35, navSatPayload(16, 16, 1)));
@@ -565,7 +648,56 @@ TEST_F(GpsUbloxConfigTest, ValsetFramesHaveVersionZeroRamLayerAndZeroReservedByt
             EXPECT_EQ(0x00, tx[i + 9]);   // reserved
         }
     }
-    EXPECT_EQ(5, frames);
+    EXPECT_EQ(5 + 6, frames);   // five NAV rates and six NMEA sentences
+}
+
+// NMEA sentences off on M9 and later: CFG-VALSET, RAM layer, value 0; keys per the u-blox interface description
+// (CFG-MSGOUT-NMEA_ID_<sentence>_UART1), cross-checked against the gpsd key table and Betaflight.
+TEST_F(GpsUbloxConfigTest, M10SwitchesNmeaSentencesOffWithValset)
+{
+    run("000A0000");
+    EXPECT_EQ(0, valsetRateOf(0x209100bb));   // GGA
+    EXPECT_EQ(0, valsetRateOf(0x209100ca));   // GLL
+    EXPECT_EQ(0, valsetRateOf(0x209100c0));   // GSA
+    EXPECT_EQ(0, valsetRateOf(0x209100c5));   // GSV
+    EXPECT_EQ(0, valsetRateOf(0x209100ac));   // RMC
+    EXPECT_EQ(0, valsetRateOf(0x209100b1));   // VTG
+}
+
+TEST_F(GpsUbloxConfigTest, M9SwitchesNmeaSentencesOffWithValset)
+{
+    run("00190000");
+    for (uint32_t key : {0x209100bb, 0x209100ca, 0x209100c0, 0x209100c5, 0x209100ac, 0x209100b1}) {
+        EXPECT_EQ(0, valsetRateOf(key)) << std::hex << key;
+    }
+}
+
+TEST_F(GpsUbloxConfigTest, M8AndEarlierSendNoNmeaValset)
+{
+    for (const char *hw : {"00080000", "00070000", "00040007", "00040005", (const char *)NULL}) {
+        tx.clear();
+        gpsData.state = 3;
+        gpsData.state_position = 0;
+        gpsData.messageState = GPS_MESSAGE_STATE_IDLE;
+        gpsData.platformVersion = UBX_VERSION_UNDEF;
+        run(hw);
+        for (uint32_t key : {0x209100bb, 0x209100ca, 0x209100c0, 0x209100c5, 0x209100ac, 0x209100b1}) {
+            EXPECT_EQ(-1, valsetRateOf(key)) << (hw ? hw : "silent") << " " << std::hex << key;
+        }
+    }
+}
+
+TEST_F(GpsUbloxConfigTest, LegacyNmeaOffFramesRemainForOlderReceivers)
+{
+    run("00080000");
+    int frames = 0;
+    for (size_t i = 0; i + 11 <= tx.size(); i++) {
+        if (tx[i] == 0xB5 && tx[i + 1] == 0x62 && tx[i + 2] == 0x06 && tx[i + 3] == 0x01 &&
+            tx[i + 4] == 0x03 && tx[i + 6] == 0xF0 && tx[i + 8] == 0x00) {
+            frames++;
+        }
+    }
+    EXPECT_EQ(6, frames);   // GGA, GLL, GSA, GSV, RMC, VTG
 }
 
 TEST_F(GpsUbloxConfigTest, SecondPollWaitsForTheFullInterval)
