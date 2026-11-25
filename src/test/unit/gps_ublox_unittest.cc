@@ -777,3 +777,30 @@ TEST_F(GpsUbloxTest, NavPvtNegativeNanosecondsRoundDownToTheMillisecond)
     feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, -4500000)));
     expectClock(2026, 11, 24, 17, 36, 4, 995);
 }
+
+TEST_F(GpsUbloxTest, NavPvtWithOutOfRangeCalendarFieldsDoesNotSetClock)
+{
+    feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, 0, 2026, 0, 24)));    // month 0
+    feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, 0, 2026, 13, 24)));   // month 13
+    feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, 0, 2026, 11, 0)));    // day 0
+    feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, 0, 2026, 11, 32)));   // day 32
+    feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, 0, 1999, 11, 24)));   // year before the table base
+    feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, 0, 2100, 11, 24)));   // year after the table range
+    feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, 0, 2026, 11, 24, 24, 0, 0)));   // hour 24
+    feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, 0, 2026, 11, 24, 17, 60, 0)));   // minute 60
+    EXPECT_FALSE(rtcHasTime());
+}
+
+TEST_F(GpsUbloxTest, NavPvtLeapSecondIsSkippedAndTheNextFixSetsTheClock)
+{
+    feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, 0, 2016, 12, 31, 23, 59, 60)));
+    EXPECT_FALSE(rtcHasTime());
+    feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, 0, 2017, 1, 1, 0, 0, 1)));
+    expectClock(2017, 1, 1, 0, 0, 1, 0);
+}
+
+TEST_F(GpsUbloxTest, NavPvtCalendarBoundsAreAccepted)
+{
+    feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, 0, 2000, 1, 1, 0, 0, 0)));
+    expectClock(2000, 1, 1, 0, 0, 0, 0);
+}

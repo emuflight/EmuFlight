@@ -1295,7 +1295,13 @@ static bool UBLOX_parse_gps(void) {
 #ifdef USE_RTC_TIME
         // NAV-SOL (which sets the clock) is off on M7 and later; set it from the fully resolved UTC time here.
         // valid: bit 0 validDate, bit 1 validTime, bit 2 fullyResolved
-        if (!rtcHasTime() && (_buffer.pvt.valid & 0x07) == 0x07) {
+        // The calendar fields must be in range (time.c indexes tables with them), and a leap second (sec 60) is
+        // skipped: the next fix sets the clock, and 23:59:60 would otherwise become the next day.
+        if (!rtcHasTime() && (_buffer.pvt.valid & 0x07) == 0x07 &&
+            _buffer.pvt.year >= 2000 && _buffer.pvt.year <= 2099 &&
+            _buffer.pvt.month >= 1 && _buffer.pvt.month <= 12 &&
+            _buffer.pvt.day >= 1 && _buffer.pvt.day <= 31 &&
+            _buffer.pvt.hour <= 23 && _buffer.pvt.min <= 59 && _buffer.pvt.sec <= 59) {
             dateTime_t temp_time;
             temp_time.year = _buffer.pvt.year;
             temp_time.month = _buffer.pvt.month;
@@ -1305,7 +1311,7 @@ static bool UBLOX_parse_gps(void) {
             temp_time.seconds = _buffer.pvt.sec;
             temp_time.millis = 0;
             rtcSetDateTime(&temp_time);
-            // nano is a signed correction (about -0.5 s to +0.5 s) to the calendar fields, so 17:36:05 with -4 ms is 17:36:04.996
+            // nano is a small signed correction (milliseconds) to the calendar fields, so 17:36:05 with -4 ms is 17:36:04.996
             const int32_t nano = _buffer.pvt.nano;
             const int32_t correctionMs = nano / 1000000 - ((nano % 1000000) < 0 ? 1 : 0);
             rtcTime_t t;
