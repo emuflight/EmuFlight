@@ -347,6 +347,8 @@ static bool gpsNewFrameUBLOX(uint8_t data);
 #endif
 
 static void gpsSetState(gpsState_e state) {
+    // every state gets a full receive timeout of its own, as in BF (gpsSetState); the configure phase can take longer than GPS_TIMEOUT
+    gpsData.lastMessage = millis();
     gpsData.state = state;
     gpsData.state_position = 0;
     gpsData.state_ts = millis();

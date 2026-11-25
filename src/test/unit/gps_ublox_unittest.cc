@@ -114,6 +114,10 @@ protected:
         memset(GPS_svinfo_svid, 0, sizeof(GPS_svinfo_svid));
         memset(GPS_svinfo_quality, 0, sizeof(GPS_svinfo_quality));
         memset(GPS_svinfo_cno, 0, sizeof(GPS_svinfo_cno));
+        gpsData.errors = 0;
+        GPS_packetCount = 0;
+        GPS_svInfoReceivedCount = 0;
+        memset(gpsPacketLog, 0, sizeof(gpsPacketLog));
         stateFlags = 0;
         armingFlags = 0;
         testMillis = 0;
@@ -184,7 +188,7 @@ TEST_F(GpsUbloxTest, NavPvtOneByteTooShortForPdopIsRejected)
 TEST_F(GpsUbloxTest, MessageId7InOtherClassIsIgnored)
 {
     gpsSol.numSat = 3;
-    feed(ubxFrame(0x0A, 0x07, navPvtPayload(14, 0)));   // class MON, id 0x07
+    feed(ubxFrame(0x02, 0x07, navPvtPayload(14, 0)));   // class RXM, id 0x07
     EXPECT_EQ(3, gpsSol.numSat);
 }
 
@@ -296,8 +300,9 @@ TEST_F(GpsUbloxTest, OversizedNonSatMessageIsStillSkipped)
 
 TEST_F(GpsUbloxTest, NavSatShorterMessageClearsEntriesOfEarlierOne)
 {
-    feed(ubxFrame(0x01, 0x35, navSatPayload(10, 10, 1)));
+    feed(ubxFrame(0x01, 0x35, navSatPayload(10, 10, 1, 6)));   // nonzero gnssId: a tail entry that is not cleared stays visibly nonzero
     EXPECT_EQ(10, GPS_numCh);
+    EXPECT_EQ(6, GPS_svinfo_chn[9]);
     feed(ubxFrame(0x01, 0x35, navSatPayload(3, 3, 50)));
     EXPECT_EQ(3, GPS_numCh);
     for (int i = 3; i < 16; i++) {
@@ -613,6 +618,15 @@ TEST_F(GpsUbloxConfigTest, LateVersionReplyDoesNotChangeTheSetBeingSent)
     EXPECT_EQ(-1, valsetRateOf(0x20910007));
 }
 
+TEST_F(GpsUbloxConfigTest, ReceiveTimeoutStartsWhenConfigurationEnds)
+{
+    gpsData.lastMessage = 0;   // no frame since the start, as while configuring
+    run("000A0000");
+    ASSERT_NE(3, gpsData.state);   // configure state left
+    // the configure phase took over a second of clock; the timeout stamp must be renewed, not left at the start
+    EXPECT_GT(gpsData.lastMessage, 1000u);
+}
+
 TEST_F(GpsUbloxConfigTest, NothingIsSentWhileTheTransmitBufferIsBusy)
 {
     testTxBusy = true;
@@ -636,6 +650,10 @@ TEST_F(GpsUbloxConfigTest, MessageSetStartsOnlyAfterTheLastPollHadItsInterval)
         EXPECT_EQ(GPS_MESSAGE_STATE_VERSION, gpsData.messageState) << "clock " << t;
     }
     EXPECT_EQ(4, pollCount());
+    const size_t txBefore = tx.size();
+    testMillis = 999;
+    gpsInitUblox();
+    EXPECT_EQ(txBefore, tx.size()) << "no NAV frame before the last interval is over";
     testMillis = 1000;
     gpsInitUblox();   // the last interval is over: the wait is closed
     gpsInitUblox();   // the next call leaves the version state
