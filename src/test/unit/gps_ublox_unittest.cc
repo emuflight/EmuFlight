@@ -1324,22 +1324,24 @@ TEST_F(GpsUbloxTest, UnknownReceiverGivesOneFramePerLegacyPairAndNoneFromPvt)
 // The configure phase sends one CFG frame, then waits for the answer or 150 ms before it sends the next one.
 class GpsUbloxAckTest : public GpsUbloxConfigTest {
 protected:
-    // run until the first frame of the message phase is out; leaves the clock where the frame was sent
-    void toFirstMessageFrame(const char *hw) {
-        for (int i = 0; i < 4000 && gpsData.messageState != GPS_MESSAGE_STATE_MESSAGES; i++) {
+    // run until the call that enters the message phase; that call sends the first frame, the clock stays at its time
+    void toFirstMessageFrame(const char *hw, size_t firstFrameLength, uint8_t firstFrameId) {
+        for (int i = 0; i < 4000; i++) {
             gpsInitUblox();
+            if (gpsData.messageState == GPS_MESSAGE_STATE_MESSAGES) {
+                break;
+            }
             testMillis += 300;
             if (!tx.empty() && gpsData.messageState == GPS_MESSAGE_STATE_VERSION && gpsData.platformVersion == UBX_VERSION_UNDEF) {
                 feed(ubxFrame(0x0A, 0x04, monVerPayload(hw)));
             }
         }
         ASSERT_EQ(GPS_MESSAGE_STATE_MESSAGES, gpsData.messageState);
-        // the call that entered the message phase may already have sent the first frame; move on until one is out
-        size_t before = tx.size();
-        for (int i = 0; i < 4 && tx.size() == before; i++) {
-            testMillis += 300;
-            gpsInitUblox();
-        }
+        ASSERT_GE(tx.size(), firstFrameLength);
+        const size_t at = tx.size() - firstFrameLength;
+        EXPECT_EQ(0xB5, tx[at]);
+        EXPECT_EQ(0x06, tx[at + 2]);              // CFG
+        EXPECT_EQ(firstFrameId, tx[at + 3]);
     }
     size_t grow(uint32_t advanceMs) {
         const size_t before = tx.size();
@@ -1351,42 +1353,42 @@ protected:
 
 TEST_F(GpsUbloxAckTest, NextFrameWaitsForTheAnswerToTheLast)
 {
-    toFirstMessageFrame("00080000");   // M8: CFG-MSG, class 0x06 id 0x01
+    toFirstMessageFrame("00080000", 11, 0x01);   // M8: CFG-MSG, class 0x06 id 0x01
     EXPECT_EQ(0u, grow(10));
     EXPECT_EQ(0u, grow(100));          // 110 ms after the frame, below the 150 ms limit
 }
 
 TEST_F(GpsUbloxAckTest, AckReleasesTheNextFrame)
 {
-    toFirstMessageFrame("00080000");
+    toFirstMessageFrame("00080000", 11, 0x01);
     feed(ubxFrame(0x05, 0x01, {0x06, 0x01}));
     EXPECT_EQ(11u, grow(1));           // one CFG-MSG frame: 6 + 3 + 2 bytes
 }
 
 TEST_F(GpsUbloxAckTest, NackAlsoReleasesTheNextFrame)
 {
-    toFirstMessageFrame("00080000");
+    toFirstMessageFrame("00080000", 11, 0x01);
     feed(ubxFrame(0x05, 0x00, {0x06, 0x01}));
     EXPECT_EQ(11u, grow(1));
 }
 
 TEST_F(GpsUbloxAckTest, SilentReceiverReleasesTheNextFrameAfterTheLimit)
 {
-    toFirstMessageFrame("00080000");
+    toFirstMessageFrame("00080000", 11, 0x01);
     EXPECT_EQ(0u, grow(149));
     EXPECT_EQ(11u, grow(1));           // 150 ms after the frame
 }
 
 TEST_F(GpsUbloxAckTest, M10ValsetFrameIsAnsweredByItsOwnClassAndId)
 {
-    toFirstMessageFrame("000A0000");   // M10: CFG-VALSET, class 0x06 id 0x8A
+    toFirstMessageFrame("000A0000", 17, 0x8A);   // M10: CFG-VALSET, class 0x06 id 0x8A
     feed(ubxFrame(0x05, 0x01, {0x06, 0x8A}));
     EXPECT_EQ(17u, grow(1));           // 6 + 9 + 2 bytes
 }
 
 TEST_F(GpsUbloxAckTest, AnswerForAnotherFrameOrMalformedAnswerDoesNotRelease)
 {
-    toFirstMessageFrame("00080000");
+    toFirstMessageFrame("00080000", 11, 0x01);
     feed(ubxFrame(0x05, 0x01, {0x06, 0x8A}));         // other id
     feed(ubxFrame(0x05, 0x01, {0x01, 0x01}));         // right id, other class
     feed(ubxFrame(0x05, 0x01, {0x06}));               // payload too short
@@ -1398,4 +1400,15 @@ TEST_F(GpsUbloxAckTest, AnswerForAnotherFrameOrMalformedAnswerDoesNotRelease)
     bad[bad.size() - 1] ^= 0xFF;                      // bad checksum
     feed(bad);
     EXPECT_EQ(0u, grow(10));
+}
+
+TEST_F(GpsUbloxAckTest, ChangeOfGpsStateEndsTheWait)
+{
+    toFirstMessageFrame("00080000", 11, 0x01);
+    EXPECT_EQ(0u, grow(10));                  // still waiting
+    gpsInit();                                // gpsSetState: a new connection starts with no frame in flight
+    gpsData.state = 3;                        // GPS_CONFIGURE
+    gpsData.state_position = 0;
+    gpsData.messageState = GPS_MESSAGE_STATE_MESSAGES;
+    EXPECT_EQ(11u, grow(1));                  // 11 ms after the old frame, well below the 150 ms limit
 }
