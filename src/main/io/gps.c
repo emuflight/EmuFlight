@@ -800,7 +800,7 @@ static bool gpsNewFrameNMEA(char c) {
                         temp_time.hours = (gps_Msg.time / 1000000) % 100;
                         temp_time.minutes = (gps_Msg.time / 10000) % 100;
                         temp_time.seconds = (gps_Msg.time / 100) % 100;
-                        temp_time.millis = (gps_Msg.time & 100) * 10;
+                        temp_time.millis = (gps_Msg.time % 100) * 10;
                         rtcSetDateTime(&temp_time);
                     }
 #endif

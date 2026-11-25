@@ -54,11 +54,11 @@ typedef struct timeConfig_s {
 
 PG_DECLARE(timeConfig_t, timeConfig);
 
-// Milliseconds since Jan 1 1970
+// Milliseconds since Jan 1 1970. The RTC accepts 2000-01-01 to 2099-12-31 UTC.
 typedef int64_t rtcTime_t;
 
-rtcTime_t rtcTimeMake(int32_t secs, uint16_t millis);
-int32_t rtcTimeGetSeconds(rtcTime_t *t);
+rtcTime_t rtcTimeMake(int64_t secs, uint16_t millis);
+int64_t rtcTimeGetSeconds(rtcTime_t *t);
 uint16_t rtcTimeGetMillis(rtcTime_t *t);
 
 typedef struct _dateTime_s {
