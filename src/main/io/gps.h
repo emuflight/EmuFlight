@@ -97,9 +97,24 @@ typedef struct gpsSolutionData_s {
     uint8_t numSat;
 } gpsSolutionData_t;
 
+#ifdef USE_GPS_UBLOX
+typedef enum {
+    UBX_VERSION_UNDEF = 0,
+    UBX_VERSION_M5,
+    UBX_VERSION_M6,
+    UBX_VERSION_M7,
+    UBX_VERSION_M8,
+    UBX_VERSION_M9,
+    UBX_VERSION_M10,
+    UBX_VERSION_COUNT
+} ubloxVersion_e;
+#endif
+
 typedef enum {
     GPS_MESSAGE_STATE_IDLE = 0,
     GPS_MESSAGE_STATE_INIT,
+    GPS_MESSAGE_STATE_VERSION,
+    GPS_MESSAGE_STATE_MESSAGES,
     GPS_MESSAGE_STATE_SBAS,
     GPS_MESSAGE_STATE_GALILEO,
     GPS_MESSAGE_STATE_ENTRY_COUNT
@@ -116,10 +131,17 @@ typedef struct gpsData_s {
     uint8_t state;                  // GPS thread state. Used for detecting cable disconnects and configuring attached devices
     uint8_t baudrateIndex;          // index into auto-detecting or current baudrate
     gpsMessageState_e messageState;
+#ifdef USE_GPS_UBLOX
+    ubloxVersion_e platformVersion; // receiver generation from MON-VER, UBX_VERSION_UNDEF until it answers
+#endif
 } gpsData_t;
 
 #define GPS_PACKET_LOG_ENTRY_COUNT 21 // To make this useful we should log as many packets as we can fit characters a single line of a OLED display.
 extern char gpsPacketLog[GPS_PACKET_LOG_ENTRY_COUNT];
+
+#ifdef USE_GPS_UBLOX
+ubloxVersion_e ubloxParseVersion(const uint32_t version);
+#endif
 
 extern int32_t GPS_home[2];
 extern uint16_t GPS_distanceToHome;        // distance to home point in meters
@@ -144,7 +166,7 @@ extern uint8_t GPS_update;                 // it's a binary toogle to distinct a
 extern uint32_t GPS_packetCount;
 extern uint32_t GPS_svInfoReceivedCount;
 extern uint8_t GPS_numCh;                  // Number of channels
-extern uint8_t GPS_svinfo_chn[16];         // Channel number
+extern uint8_t GPS_svinfo_chn[16];         // NAV-SAT: gnssId; NAV-SVINFO: channel; NMEA: satellite index
 extern uint8_t GPS_svinfo_svid[16];        // Satellite ID
 extern uint8_t GPS_svinfo_quality[16];     // Bitfield Qualtity
 extern uint8_t GPS_svinfo_cno[16];         // Carrier to Noise Ratio (Signal Strength)

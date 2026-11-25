@@ -60,7 +60,7 @@ static vtxDevice_t vtxTramp = {
     .vTable = &trampVTable,
     .capability.bandCount = VTX_TRAMP_BAND_COUNT,
     .capability.channelCount = VTX_TRAMP_CHANNEL_COUNT,
-    .capability.powerCount = sizeof(trampPowerTable),
+    .capability.powerCount = VTX_TRAMP_POWER_COUNT,
     .bandNames = (char **)vtx58BandNames,
     .channelNames = (char **)vtx58ChannelNames,
     .powerNames = (char **)trampPowerNames,
@@ -185,7 +185,7 @@ bool trampCommitChanges(void) {
 
 // return false if index out of range
 static bool trampDevSetPowerByIndex(uint8_t index) {
-    if (index > 0 && index <= sizeof(trampPowerTable)) {
+    if (index > 0 && index <= VTX_TRAMP_POWER_COUNT) {
         trampSetRFPower(trampPowerTable[index - 1]);
         trampCommitChanges();
         return true;
@@ -475,8 +475,11 @@ static bool vtxTrampGetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex)
     if (!vtxTrampIsReady(vtxDevice)) {
         return false;
     }
+    *pIndex = 0;
     if (trampConfiguredPower > 0) {
-        for (uint8_t i = 0; i < sizeof(trampPowerTable); i++) {
+        // A power above the highest table entry reports the highest level.
+        *pIndex = VTX_TRAMP_POWER_COUNT;
+        for (uint8_t i = 0; i < VTX_TRAMP_POWER_COUNT; i++) {
             if (trampConfiguredPower <= trampPowerTable[i]) {
                 *pIndex = i + 1;
                 break;

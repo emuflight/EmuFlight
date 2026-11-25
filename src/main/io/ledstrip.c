@@ -549,7 +549,11 @@ static void applyLedVtxLayer(bool updateNow, timeUs_t *timer) {
         vtxCommonGetBandAndChannel(vtxDevice, &band, &channel);
         vtxCommonGetPowerIndex(vtxDevice, &power);
         vtxCommonGetPitMode(vtxDevice, &pit);
-        frequency = vtx58frequencyTable[band - 1][channel - 1]; //subtracting 1 from band and channel so that correct frequency is returned.
+        // Band or channel 0 (custom frequency, or not set yet) has no table entry: ask the device for its frequency.
+        frequency = vtx58_Bandchan2Freq(band, channel);
+        if (frequency == 0 && !vtxCommonGetFrequency(vtxDevice, &frequency)) {
+            frequency = 0;
+        }
         //might not be correct for tramp but should fix smart audio.
         // check if last vtx values have changed.
         check = pit + (power << 1) + (band << 4) + (channel << 8);
