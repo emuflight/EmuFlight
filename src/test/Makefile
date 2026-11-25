@@ -286,6 +286,7 @@ blackbox_encoding_unittest_SRC :=  \
 
 cli_unittest_SRC := \
 		$(USER_DIR)/interface/cli.c \
+		$(USER_DIR)/drivers/vtx_common.c \
 		$(USER_DIR)/config/feature.c \
 		$(USER_DIR)/pg/pg.c \
 		$(USER_DIR)/drivers/resource.c \
@@ -306,6 +307,7 @@ cli_unittest_DEFINES := \
 # changing the define set of cli_unittest. timer_common.c is the real implementation.
 cli_timer_dma_unittest_SRC := \
 		$(USER_DIR)/interface/cli.c \
+		$(USER_DIR)/drivers/vtx_common.c \
 		$(USER_DIR)/config/feature.c \
 		$(USER_DIR)/pg/pg.c \
 		$(USER_DIR)/drivers/resource.c \
@@ -643,6 +645,16 @@ pwm_output_dshot_init_unittest_DEFINES := \
 		GPIO_OType_PP=0 \
 		GPIO_PuPd_NOPULL=0
 
+# Real common/time.c: RTC date conversion limits (2000-01-01 to 2099-12-31 UTC).
+time_unittest_SRC := \
+		$(USER_DIR)/common/time.c \
+		$(USER_DIR)/common/printf.c \
+		$(USER_DIR)/common/typeconversion.c \
+		$(USER_DIR)/common/maths.c
+
+time_unittest_DEFINES := \
+		USE_RTC_TIME
+
 # Real pg/timerup.c reset function; TIMUP20 is past the 14-slot array and must be ignored.
 timerup_pg_unittest_SRC := \
 		$(USER_DIR)/pg/timerup.c \
@@ -776,6 +788,16 @@ gps_conversion_unittest_SRC := \
 		$(USER_DIR)/common/gps_conversion.c
 
 
+gps_ublox_unittest_SRC := \
+		$(USER_DIR)/io/gps.c \
+		$(USER_DIR)/common/time.c \
+		$(USER_DIR)/pg/pg.c \
+		$(USER_DIR)/common/gps_conversion.c \
+		$(USER_DIR)/common/maths.c
+
+gps_ublox_unittest_CFLAGS := -DUSE_GPS_UBLOX -DUSE_GPS_NMEA -DUSE_RTC_TIME
+
+
 io_serial_unittest_SRC := \
 		$(USER_DIR)/io/serial.c \
 		$(USER_DIR)/drivers/serial_pinconfig.c
@@ -793,10 +815,17 @@ maths_unittest_SRC := \
 
 msp_reboot_unittest_SRC := \
 		$(USER_DIR)/fc/runtime_config.c \
+		$(USER_DIR)/common/time.c \
+		$(USER_DIR)/common/printf.c \
+		$(USER_DIR)/common/typeconversion.c \
+		$(USER_DIR)/common/streambuf.c \
+		$(USER_DIR)/common/maths.c \
 		$(TEST_DIR)/msp_reboot_test_support.c
 
 # Compile the whole MSP translation unit, keep only the reboot paths.
 msp_reboot_unittest_CFLAGS := -ffunction-sections -fdata-sections
+msp_reboot_unittest_DEFINES := \
+		USE_RTC_TIME
 ifdef MACOSX
 msp_reboot_unittest_LDFLAGS := -Wl,-dead_strip
 else
@@ -1136,6 +1165,20 @@ vtx_unittest_DEFINES := \
 		USE_VTX_COMMON \
 		USE_VTX_CONTROL \
 		USE_VTX_SMARTAUDIO
+
+vtx_rtc6705_unittest_SRC := \
+		$(USER_DIR)/drivers/vtx_rtc6705.c
+
+vtx_rtc6705_unittest_DEFINES := \
+		USE_VTX_RTC6705= \
+		RTC6705_CS_PIN=TESTCS \
+		ENABLE_RTC6705_DYNAMIC_POWER_CTRL=1 \
+		RTC6705_EX_POWER_1_PIN=TESTP1 \
+		RTC6705_EX_POWER_2_PIN=TESTP2 \
+		RTC6705_SPI_INSTANCE=NULL \
+		DEFIO_TAG__TESTCS=3 \
+		DEFIO_TAG__TESTP1=1 \
+		DEFIO_TAG__TESTP2=2
 
 # Please tweak the following variable definitions as needed by your
 # project, except GTEST_HEADERS, which you can use in your own targets
