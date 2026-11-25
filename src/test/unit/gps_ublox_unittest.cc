@@ -108,6 +108,8 @@ class GpsUbloxTest : public ::testing::Test {
 protected:
     void SetUp() override {
         gpsConfigMutable()->provider = GPS_UBLOX;
+        // NAV-STATUS without a fix resets the parser's static next_fix through the real path
+        feed(ubxFrame(0x01, 0x03, std::vector<uint8_t>(16, 0)));
         memset(&gpsSol, 0, sizeof(gpsSol));
         GPS_numCh = 0;
         memset(GPS_svinfo_chn, 0, sizeof(GPS_svinfo_chn));
@@ -691,21 +693,22 @@ TEST_F(GpsUbloxConfigTest, LateVersionReplyLeavesTheCompleteFallbackSetUnchanged
     }
 }
 
-TEST_F(GpsUbloxConfigTest, M8DisablesSolAndSvinfo)
+TEST_F(GpsUbloxConfigTest, M8UsesSolAndSatWithoutPvt)
 {
+    // POSLLH + STATUS + VELNED + PVT is 1020 bytes/s at 5 Hz and does not fit 9600 baud (960 bytes/s)
     run("00080000");
-    EXPECT_EQ(1, rateOf(0x07));
+    EXPECT_EQ(1, rateOf(0x06));
+    EXPECT_EQ(0, rateOf(0x07));
     EXPECT_EQ(5, rateOf(0x35));
-    EXPECT_EQ(0, rateOf(0x06));
     EXPECT_EQ(0, rateOf(0x30));
 }
 
-TEST_F(GpsUbloxConfigTest, M7UsesPvtAndSvinfo)
+TEST_F(GpsUbloxConfigTest, M7UsesSolAndSvinfoWithoutPvt)
 {
     run("00070000");
-    EXPECT_EQ(1, rateOf(0x07));
+    EXPECT_EQ(1, rateOf(0x06));
+    EXPECT_EQ(0, rateOf(0x07));
     EXPECT_EQ(5, rateOf(0x30));
-    EXPECT_EQ(0, rateOf(0x06));
     EXPECT_EQ(0, rateOf(0x35));
 }
 

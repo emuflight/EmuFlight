@@ -267,13 +267,15 @@ static ubloxVersion_e ubloxParseHwVersion(const char *hwVersion) {
 static const uint8_t ubloxNavMessages[] = { 0x02, 0x03, 0x12, 0x06, 0x07, 0x30, 0x35 };
 
 // NAV-SOL and NAV-SVINFO exist up to M8, NAV-PVT from M7, NAV-SAT from M8. An unknown receiver gets every message.
+// NAV-SOL carries the satellite count, DOP and time up to M8, so NAV-PVT is enabled from M9 only: POSLLH, STATUS,
+// VELNED and PVT together are 204 bytes per epoch (1020 bytes/s at 5 Hz), more than the 960 bytes/s of 9600 baud.
+// M8 keeps SOL (164 bytes per epoch) and NAV-SAT every 5 epochs: 896 bytes/s with five satellites.
 static uint8_t ubloxMessageRate(ubloxVersion_e version, uint8_t msgId) {
     switch (msgId) {
     case 0x06: // NAV-SOL
-        if (version == UBX_VERSION_UNDEF || version < UBX_VERSION_M7) return 1;
-        return version >= UBX_VERSION_M9 ? UBLOX_RATE_SKIP : 0;
+        return (version != UBX_VERSION_UNDEF && version >= UBX_VERSION_M9) ? UBLOX_RATE_SKIP : 1;
     case 0x07: // NAV-PVT
-        return (version == UBX_VERSION_UNDEF || version >= UBX_VERSION_M7) ? 1 : 0;
+        return (version == UBX_VERSION_UNDEF || version >= UBX_VERSION_M9) ? 1 : 0;
     case 0x30: // NAV-SVINFO, every 5 epochs
         if (version == UBX_VERSION_UNDEF || version < UBX_VERSION_M8) return 5;
         return version >= UBX_VERSION_M9 ? UBLOX_RATE_SKIP : 0;
@@ -1295,7 +1297,7 @@ static bool UBLOX_parse_gps(void) {
         gpsSol.numSat = _buffer.pvt.satellites;
         gpsSol.hdop = _buffer.pvt.position_DOP;
 #ifdef USE_RTC_TIME
-        // NAV-SOL (which sets the clock) is off on M7 and later; set it from the fully resolved UTC time here.
+        // NAV-SOL (which sets the clock) is off on M9 and later; set it from the fully resolved UTC time here.
         // valid: bit 0 validDate, bit 1 validTime, bit 2 fullyResolved
         // The calendar fields must be in range (time.c indexes tables with them), and a leap second (sec 60) is
         // skipped: the next fix sets the clock, and 23:59:60 would otherwise become the next day.
