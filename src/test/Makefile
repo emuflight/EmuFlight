@@ -627,6 +627,16 @@ pwm_output_dshot_init_unittest_DEFINES := \
 		GPIO_OType_PP=0 \
 		GPIO_PuPd_NOPULL=0
 
+# Real common/time.c: RTC date conversion limits (2000-01-01 to 2099-12-31 UTC).
+time_unittest_SRC := \
+		$(USER_DIR)/common/time.c \
+		$(USER_DIR)/common/printf.c \
+		$(USER_DIR)/common/typeconversion.c \
+		$(USER_DIR)/common/maths.c
+
+time_unittest_DEFINES := \
+		USE_RTC_TIME
+
 # Real pg/timerup.c reset function; TIMUP20 is past the 14-slot array and must be ignored.
 timerup_pg_unittest_SRC := \
 		$(USER_DIR)/pg/timerup.c \
