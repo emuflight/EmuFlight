@@ -737,33 +737,54 @@ static uint32_t GPS_coord_to_degrees(char *coordinateString)
 
 // helper functions
 #ifdef USE_GPS_NMEA
-static uint32_t grab_fields(char *src, uint8_t mult) {
-    // convert string to uint32
+static uint32_t grab_fields(const char *src, uint8_t mult) {
+    // convert string to uint32; keep at most `mult` fractional digits, drop the rest
     uint32_t i;
     uint32_t tmp = 0;
     int isneg = 0;
+    bool inFraction = false;
+    uint8_t fractionDigits = 0;
     for (i = 0; src[i] != 0; i++) {
         if ((i == 0) && (src[0] == '-')) { // detect negative sign
             isneg = 1;
             continue; // jump to next character if the first one was a negative sign
         }
         if (src[i] == '.') {
-            i++;
             if (mult == 0) {
                 break;
-            } else {
-                src[i + mult] = 0;
             }
+            inFraction = true;
+            continue;
+        }
+        if (inFraction) {
+            if (fractionDigits >= mult) {
+                break;
+            }
+            fractionDigits++;
         }
         tmp *= 10;
         if (src[i] >= '0' && src[i] <= '9') {
             tmp += src[i] - '0';
         }
-        if (i >= 15) {
-            return 0; // out of bounds
-        }
     }
     return isneg ? -tmp : tmp;    // handle negative altitudes
+}
+
+// NMEA 0183 UTC time hhmmss[.f...] to hhmmssmmm: any count of fraction digits, ".5" is 500 ms.
+static uint32_t grab_time(const char *src) {
+    uint32_t whole = 0;
+    uint32_t millis = 0;
+    uint32_t scale = 100;
+    const char *p = src;
+    for (; *p >= '0' && *p <= '9'; p++) {
+        whole = whole * 10 + (*p - '0');
+    }
+    if (*p == '.') {
+        for (p++; *p >= '0' && *p <= '9' && scale > 0; p++, scale /= 10) {
+            millis += (*p - '0') * scale;
+        }
+    }
+    return whole * 1000 + millis;
 }
 
 typedef struct gpsDataNmea_s {
@@ -797,12 +818,16 @@ static bool gpsNewFrameNMEA(char c) {
         string[offset] = 0;
         if (param == 0) {       //frame identification
             gps_frame = NO_FRAME;
-            if (string[0] == 'G' && string[1] == 'P' && string[2] == 'G' && string[3] == 'G' && string[4] == 'A')
-                gps_frame = FRAME_GGA;
-            if (string[0] == 'G' && string[1] == 'P' && string[2] == 'R' && string[3] == 'M' && string[4] == 'C')
-                gps_frame = FRAME_RMC;
-            if (string[0] == 'G' && string[1] == 'P' && string[2] == 'G' && string[3] == 'S' && string[4] == 'V')
-                gps_frame = FRAME_GSV;
+            // Sentence ID is a two-letter talker (GP, GN, GL, GA, BD ...) plus a three-letter type.
+            if (offset == 5) {
+                if (strcmp(&string[2], "GGA") == 0)
+                    gps_frame = FRAME_GGA;
+                else if (strcmp(&string[2], "RMC") == 0)
+                    gps_frame = FRAME_RMC;
+                // GSV stays GP only: the satellite arrays hold one constellation.
+                else if (strcmp(&string[2], "GSV") == 0 && string[0] == 'G' && string[1] == 'P')
+                    gps_frame = FRAME_GSV;
+            }
         }
         switch (gps_frame) {
         case FRAME_GGA:        //************* GPGGA FRAME parsing
@@ -844,7 +869,7 @@ static bool gpsNewFrameNMEA(char c) {
         case FRAME_RMC:        //************* GPRMC FRAME parsing
             switch (param) {
             case 1:
-                gps_Msg.time = grab_fields(string, 2); // UTC time hhmmss.ss
+                gps_Msg.time = grab_time(string); // UTC time hhmmss.sss in milliseconds
                 break;
             case 7:
                 gps_Msg.speed = ((grab_fields(string, 1) * 5144L) / 1000L);    // speed in cm/s added by Mis
@@ -937,10 +962,10 @@ static bool gpsNewFrameNMEA(char c) {
                         temp_time.year = (gps_Msg.date % 100) + 2000;
                         temp_time.month = (gps_Msg.date / 100) % 100;
                         temp_time.day = (gps_Msg.date / 10000) % 100;
-                        temp_time.hours = (gps_Msg.time / 1000000) % 100;
-                        temp_time.minutes = (gps_Msg.time / 10000) % 100;
-                        temp_time.seconds = (gps_Msg.time / 100) % 100;
-                        temp_time.millis = (gps_Msg.time % 100) * 10;
+                        temp_time.hours = (gps_Msg.time / 10000000) % 100;
+                        temp_time.minutes = (gps_Msg.time / 100000) % 100;
+                        temp_time.seconds = (gps_Msg.time / 1000) % 100;
+                        temp_time.millis = gps_Msg.time % 1000;
                         rtcSetDateTime(&temp_time);
                     }
 #endif
