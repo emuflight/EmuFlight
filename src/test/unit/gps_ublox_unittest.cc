@@ -123,8 +123,7 @@ protected:
         stateFlags = 0;
         armingFlags = 0;
         testMillis = 0;
-        rtcTime_t none = 0;
-        rtcSet(&none);   // started = 0: the clock has no time
+        rtcClearForTest();   // the clock has no time
     }
 };
 
