@@ -2093,7 +2093,7 @@ STATIC_UNIT_TESTED void cliVtx(char *cmdline) {
                 val = atoi(ptr);
                 // FIXME Use VTX API to get max
                 // We check for the min value in final validation below
-                if (val >= 0 && val <= VTX_SETTINGS_POWER_COUNT) {
+                if (val >= 0 && val <= VTX_SETTINGS_MAX_AUX_POWER) {
                     cac->power = val;
                     validArgumentCount++;
                 }
