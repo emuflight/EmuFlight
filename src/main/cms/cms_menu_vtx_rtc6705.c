@@ -26,6 +26,7 @@
 
 #if defined(USE_CMS) && defined(USE_VTX_RTC6705)
 
+#include "common/maths.h"
 #include "common/printf.h"
 #include "common/utils.h"
 
@@ -51,7 +52,8 @@ static OSD_TAB_t entryVtxPower =        {&cmsx_vtxPower, VTX_RTC6705_POWER_COUNT
 static void cmsx_Vtx_ConfigRead(void) {
     cmsx_vtxBand = vtxSettingsConfig()->band - 1;
     cmsx_vtxChannel = vtxSettingsConfig()->channel;
-    cmsx_vtxPower = vtxSettingsConfig()->power - VTX_RTC6705_MIN_POWER;
+    // MSP or an aux condition can store a power this device does not offer: keep the table index in range.
+    cmsx_vtxPower = constrain(vtxSettingsConfig()->power, VTX_RTC6705_MIN_POWER, VTX_RTC6705_POWER_COUNT - 1) - VTX_RTC6705_MIN_POWER;
 }
 
 static void cmsx_Vtx_ConfigWriteback(void) {
