@@ -314,6 +314,11 @@ static void ubloxWriteFrame(uint8_t cls, uint8_t id, const uint8_t *payload, uin
 // Receiver generation the message set was chosen for; a late MON-VER reply does not change it.
 static ubloxVersion_e ubloxConfigVersion = UBX_VERSION_UNDEF;
 
+// From M9 NAV-PVT is the only position source; POSLLH, STATUS and VELNED are ignored so one epoch gives one frame.
+static bool ubloxPositionFromPvt(void) {
+    return ubloxConfigVersion >= UBX_VERSION_M9;
+}
+
 // One frame: CFG-VALSET (RAM layer) from M9, CFG-MSG before.
 static void ubloxSendMessageRate(ubloxVersion_e version, uint8_t msgId, uint8_t rate) {
     if (version >= UBX_VERSION_M9) {
@@ -1293,6 +1298,9 @@ static bool UBLOX_parse_gps(void) {
     }
     switch (_msg_id) {
     case MSG_POSLLH:
+        if (ubloxPositionFromPvt()) {
+            break;
+        }
         *gpsPacketLogChar = LOG_UBLOX_POSLLH;
         //i2c_dataset.time                = _buffer.posllh.time;
         gpsSol.llh.lon = _buffer.posllh.longitude;
@@ -1306,6 +1314,9 @@ static bool UBLOX_parse_gps(void) {
         _new_position = true;
         break;
     case MSG_STATUS:
+        if (ubloxPositionFromPvt()) {
+            break;
+        }
         *gpsPacketLogChar = LOG_UBLOX_STATUS;
         next_fix = (_buffer.status.fix_status & NAV_STATUS_FIX_VALID) && (_buffer.status.fix_type == FIX_3D);
         if (!next_fix)
@@ -1365,7 +1376,7 @@ static bool UBLOX_parse_gps(void) {
         }
 #endif
         // From M9 POSLLH, STATUS and VELNED are off and PVT carries what they carry; earlier receivers send both.
-        if (ubloxConfigVersion >= UBX_VERSION_M9) {
+        if (ubloxPositionFromPvt()) {
             // same units as the POSLLH and VELNED cases: lon/lat 1e-7 deg, altitude MSL mm to cm, ground speed mm/s to cm/s, heading 1e-5 deg to deg * 10
             next_fix = (_buffer.pvt.flags & NAV_STATUS_FIX_VALID) && (_buffer.pvt.fix_type == FIX_3D);
             gpsSol.llh.lon = _buffer.pvt.longitude;
@@ -1383,6 +1394,9 @@ static bool UBLOX_parse_gps(void) {
         }
         break;
     case MSG_VELNED:
+        if (ubloxPositionFromPvt()) {
+            break;
+        }
         *gpsPacketLogChar = LOG_UBLOX_VELNED;
         // speed_3d                        = _buffer.velned.speed_3d;  // cm/s
         gpsSol.groundSpeed = _buffer.velned.speed_2d;    // cm/s

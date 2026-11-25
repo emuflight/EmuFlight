@@ -938,7 +938,8 @@ TEST_F(GpsUbloxPvtPositionTest, NavPvtGivesTheSameFieldsAsPosllhStatusVelned)
     feed(ubxFrame(0x01, 0x07, navPvtNavPayload(lon, lat, hMslMm, gSpeedMmS, headMot)));
     const gpsSolutionData_t fromPvt = gpsSol;
     const bool fixFromPvt = stateFlags & GPS_FIX;
-    // the legacy trio on the same numbers (VELNED speed is in cm/s)
+    // the legacy trio on the same numbers (VELNED speed is in cm/s), unknown generation
+    gpsInit();
     configureReceiver(NULL);
     memset(&gpsSol, 0, sizeof(gpsSol));
     stateFlags = 0;
@@ -1145,4 +1146,44 @@ TEST_F(GpsUbloxPvtPositionTest, SilentReceiverAfterALinkInterruptionKeepsTheKnow
     EXPECT_FALSE(cfgMsg);
     feed(ubxFrame(0x01, 0x07, navPvtNavPayload(1, 521234567, 3, 4, 5)));
     EXPECT_EQ(521234567, gpsSol.llh.lat);
+}
+
+static bool feedReportsFrame(const std::vector<uint8_t> &f)
+{
+    bool any = false;
+    for (uint8_t c : f) {
+        any = gpsNewFrame(c) || any;
+    }
+    return any;
+}
+
+TEST_F(GpsUbloxPvtPositionTest, LegacyPositionMessagesAreIgnoredOnM10)
+{
+    // a receiver that keeps sending them must not produce a second position source or a second frame
+    gpsSol.llh.lat = 77;
+    std::vector<uint8_t> status(16, 0);
+    status[4] = 3;
+    status[5] = 0x01;
+    std::vector<uint8_t> posllh(28, 0);
+    put32le(posllh, 8, 521234567);
+    std::vector<uint8_t> velned(36, 0);
+    put32le(velned, 20, 999);
+    EXPECT_FALSE(feedReportsFrame(ubxFrame(0x01, 0x03, status)));
+    EXPECT_FALSE(feedReportsFrame(ubxFrame(0x01, 0x02, posllh)));
+    EXPECT_FALSE(feedReportsFrame(ubxFrame(0x01, 0x12, velned)));
+    EXPECT_EQ(77, gpsSol.llh.lat);
+    EXPECT_EQ(0, gpsSol.groundSpeed);
+    EXPECT_FALSE(stateFlags & GPS_FIX);
+    EXPECT_TRUE(feedReportsFrame(ubxFrame(0x01, 0x07, navPvtNavPayload(1, 521234567, 3, 4, 5))));
+}
+
+TEST_F(GpsUbloxTest, UnknownReceiverGivesOneFramePerLegacyPairAndNoneFromPvt)
+{
+    EXPECT_FALSE(feedReportsFrame(ubxFrame(0x01, 0x07, navPvtNavPayload(1, 521234567, 3, 4, 5))));
+    std::vector<uint8_t> posllh(28, 0);
+    put32le(posllh, 8, 20);
+    std::vector<uint8_t> velned(36, 0);
+    EXPECT_FALSE(feedReportsFrame(ubxFrame(0x01, 0x02, posllh)));
+    EXPECT_TRUE(feedReportsFrame(ubxFrame(0x01, 0x12, velned)));
+    EXPECT_EQ(20, gpsSol.llh.lat);
 }
