@@ -797,10 +797,17 @@ maths_unittest_SRC := \
 
 msp_reboot_unittest_SRC := \
 		$(USER_DIR)/fc/runtime_config.c \
+		$(USER_DIR)/common/time.c \
+		$(USER_DIR)/common/printf.c \
+		$(USER_DIR)/common/typeconversion.c \
+		$(USER_DIR)/common/streambuf.c \
+		$(USER_DIR)/common/maths.c \
 		$(TEST_DIR)/msp_reboot_test_support.c
 
 # Compile the whole MSP translation unit, keep only the reboot paths.
 msp_reboot_unittest_CFLAGS := -ffunction-sections -fdata-sections
+msp_reboot_unittest_DEFINES := \
+		USE_RTC_TIME
 ifdef MACOSX
 msp_reboot_unittest_LDFLAGS := -Wl,-dead_strip
 else

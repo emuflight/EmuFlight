@@ -30,3 +30,10 @@ uint8_t testMspRebootFirmwareMode(void)
 {
     return MSP_REBOOT_FIRMWARE;
 }
+
+mspResult_e testMspSetRtc(uint8_t *payload, int length)
+{
+    sbuf_t src;
+    sbufInit(&src, payload, payload + length);
+    return mspSetRtc(&src);
+}
