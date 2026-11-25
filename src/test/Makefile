@@ -772,6 +772,22 @@ gps_conversion_unittest_SRC := \
 		$(USER_DIR)/common/gps_conversion.c
 
 
+gps_nmea_unittest_SRC := \
+		$(USER_DIR)/common/gps_conversion.c \
+		$(USER_DIR)/fc/runtime_config.c \
+		$(TEST_DIR)/gps_nmea_test_support.c
+
+gps_nmea_unittest_DEFINES := \
+		USE_GPS_NMEA
+
+# Compile the whole GPS translation unit, keep only the NMEA parser paths.
+gps_nmea_unittest_CFLAGS := -ffunction-sections -fdata-sections
+ifdef MACOSX
+gps_nmea_unittest_LDFLAGS := -Wl,-dead_strip
+else
+gps_nmea_unittest_LDFLAGS := -Wl,--gc-sections
+endif
+
 gps_ublox_unittest_SRC := \
 		$(USER_DIR)/io/gps.c \
 		$(USER_DIR)/common/time.c \
