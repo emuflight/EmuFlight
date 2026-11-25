@@ -43,7 +43,7 @@
 #if defined(USE_CMS) || defined(USE_VTX_COMMON)
 const char * const rtc6705PowerNames[] = {
 #if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
-    "L0", "L1", "L2", "---"   // last entry names the not-yet-set state
+    "L0", "L1", "L2"
 #else
     "OFF", "MIN", "MAX"
 #endif
@@ -60,10 +60,6 @@ static vtxDevice_t vtxRTC6705 = {
     .bandNames = (char **)vtx58BandNames,
     .channelNames = (char **)vtx58ChannelNames,
     .powerNames = (char **)rtc6705PowerNames,
-#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
-    // Level 0 is a valid level, so start out of range: the first update then writes the level to the chip.
-    .powerIndex = VTX_RTC6705_POWER_COUNT,
-#endif
 };
 #endif
 
@@ -99,8 +95,18 @@ static void vtxRTC6705EnableAndConfigure(vtxDevice_t *vtxDevice) {
 #endif
 
 static void vtxRTC6705Process(vtxDevice_t *vtxDevice, timeUs_t now) {
-    UNUSED(vtxDevice);
     UNUSED(now);
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
+    // Level 0 is a valid level, so the requested power cannot tell whether the chip was written.
+    // Write the current level once, whatever is requested.
+    static bool initialPowerWritten = false;
+    if (!initialPowerWritten && vtxRTC6705CanUpdate()) {
+        rtc6705SetRFPower(vtxDevice->powerIndex);
+        initialPowerWritten = true;
+    }
+#else
+    UNUSED(vtxDevice);
+#endif
 }
 
 #ifdef USE_VTX_COMMON
@@ -155,6 +161,12 @@ static void vtxRTC6705SetPowerByIndex(vtxDevice_t *vtxDevice, uint8_t index) {
         }
     }
 #else
+#if ENABLE_RTC6705_DYNAMIC_POWER_CTRL
+    // Valid levels are 0 to VTX_RTC6705_POWER_COUNT - 1.
+    if (index >= VTX_RTC6705_POWER_COUNT) {
+        return;
+    }
+#endif
     vtxDevice->powerIndex = MAX(index, VTX_RTC6705_MIN_POWER);
     rtc6705SetRFPower(index);
 #endif
