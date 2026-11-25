@@ -36,6 +36,7 @@ void testGpsNmeaReset(void)
     gpsSol.groundCourse = 0;
     GPS_packetCount = 0;
     GPS_numCh = 0;
+    GPS_svInfoReceivedCount = 0;
     memset(GPS_svinfo_chn, 0, sizeof(GPS_svinfo_chn));
     memset(GPS_svinfo_svid, 0, sizeof(GPS_svinfo_svid));
     memset(GPS_svinfo_quality, 0, sizeof(GPS_svinfo_quality));

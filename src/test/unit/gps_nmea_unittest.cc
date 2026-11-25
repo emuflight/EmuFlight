@@ -195,6 +195,11 @@ TEST_F(GpsNmeaTest, GsvMessageNumberOutOfRangeStaysInBounds)
     testGpsNmeaFeed(frame(std::string("GPGSV,65,64,16") + sats).c_str());
     testGpsNmeaFeed(frame(std::string("GPGSV,1,0,16") + sats).c_str());
     testGpsNmeaFeed(frame(std::string("GPGSV,65,255,16") + sats).c_str());
+    // Every satellite of these messages is out of range: no array entry changes (reset cleared them).
+    for (int i = 0; i < 16; i++) {
+        EXPECT_EQ(0, GPS_svinfo_svid[i]);
+        EXPECT_EQ(0, GPS_svinfo_chn[i]);
+    }
 }
 
 TEST_F(GpsNmeaTest, RmcTimeFractionDigits)
