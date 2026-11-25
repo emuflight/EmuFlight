@@ -22,16 +22,24 @@
 
 void testGpsNmeaReset(void)
 {
+    // End any half-fed frame first: CR clears the checksum phase, '$' restarts the field state.
+    // Doing this before the state reset keeps a frame it completes from leaving data behind.
+    gpsNewFrameNMEA('\r');
+    gpsNewFrameNMEA('$');
     DISABLE_STATE(GPS_FIX);
     gpsSol.numSat = 0;
     gpsSol.llh.lat = 0;
     gpsSol.llh.lon = 0;
+    gpsSol.llh.alt = 0;
+    gpsSol.hdop = 0;
     gpsSol.groundSpeed = 0;
     gpsSol.groundCourse = 0;
     GPS_packetCount = 0;
-    // End any half-fed frame: CR clears the checksum phase, '$' restarts the field state.
-    gpsNewFrameNMEA('\r');
-    gpsNewFrameNMEA('$');
+    GPS_numCh = 0;
+    memset(GPS_svinfo_chn, 0, sizeof(GPS_svinfo_chn));
+    memset(GPS_svinfo_svid, 0, sizeof(GPS_svinfo_svid));
+    memset(GPS_svinfo_quality, 0, sizeof(GPS_svinfo_quality));
+    memset(GPS_svinfo_cno, 0, sizeof(GPS_svinfo_cno));
     rtcClearForTest();
 }
 
