@@ -40,6 +40,12 @@
 #define REFERENCE_YEAR 2000
 // Offset (seconds) from the UNIX epoch (1970-01-01) to 2000-01-01
 #define EPOCH_2000_OFFSET 946684800
+// Last supported year. The day table covers 4-year cycles from 2000 and is exact up to 2099.
+#define LAST_YEAR (REFERENCE_YEAR + 99)
+// Supported rtcTime_t range in milliseconds: 2000-01-01T00:00:00.000 up to 2100-01-01T00:00:00.000 (exclusive).
+// 100 years from 2000 hold 36525 days (25 leap years).
+#define RTC_TIME_MIN ((rtcTime_t)EPOCH_2000_OFFSET * 1000)
+#define RTC_TIME_END (((rtcTime_t)EPOCH_2000_OFFSET + 36525LL * 86400LL) * 1000)
 
 #define MILLIS_PER_SECOND 1000
 
@@ -60,19 +66,52 @@ PG_RESET_TEMPLATE(timeConfig_t, timeConfig,
                   .tz_offsetMinutes = 0,
                  );
 
-static rtcTime_t dateTimeToRtcTime(dateTime_t *dt) {
-    unsigned int second = dt->seconds;  // 0-59
-    unsigned int minute = dt->minutes;  // 0-59
-    unsigned int hour = dt->hours;      // 0-23
-    unsigned int day = dt->day - 1;     // 0-30
-    unsigned int month = dt->month - 1; // 0-11
-    unsigned int year = dt->year - REFERENCE_YEAR; // 0-99
-    int32_t unixTime = (((year / 4 * (365 * 4 + 1) + days[year % 4][month] + day) * 24 + hour) * 60 + minute) * 60 + second + EPOCH_2000_OFFSET;
-    return rtcTimeMake(unixTime, dt->millis);
+static void rtcGetDefaultDateTime(dateTime_t *dateTime);
+
+static bool rtcIsDateTimeValid(const dateTime_t *dateTime) {
+    if (!((dateTime->year >= REFERENCE_YEAR && dateTime->year <= LAST_YEAR) &&
+          (dateTime->month >= 1 && dateTime->month <= 12) &&
+          (dateTime->day >= 1 && dateTime->day <= 31) &&
+          (dateTime->hours <= 23) &&
+          (dateTime->minutes <= 59) &&
+          (dateTime->seconds <= 59) &&
+          (dateTime->millis <= 999))) {
+        return false;
+    }
+    // Month length from the day table, leap years included (exact for 2000 to 2099).
+    unsigned int year = dateTime->year - REFERENCE_YEAR;
+    unsigned int month = dateTime->month - 1;
+    unsigned int monthLength = (month == 11) ? 31 : days[year % 4][month + 1] - days[year % 4][month];
+    return dateTime->day <= monthLength;
 }
 
-static void rtcTimeToDateTime(dateTime_t *dt, rtcTime_t t) {
-    int32_t unixTime = t / MILLIS_PER_SECOND - EPOCH_2000_OFFSET;
+// Convert a calendar date to rtcTime_t. Returns false and leaves *t unchanged when the date
+// is outside 2000-01-01 to 2099-12-31 or has a field out of range. The day table below is
+// exact only in that range: 2100 is not a leap year.
+static bool dateTimeToRtcTime(const dateTime_t *dt, rtcTime_t *t) {
+    if (!rtcIsDateTimeValid(dt)) {
+        return false;
+    }
+    unsigned int year = dt->year - REFERENCE_YEAR; // 0-99
+    unsigned int month = dt->month - 1;            // 0-11
+    unsigned int day = dt->day - 1;                // 0-30
+    // 64-bit: the seconds exceed INT32_MAX from 2038-01-19 03:14:08 UTC.
+    int64_t unixTime = (((((int64_t)(year / 4 * (365 * 4 + 1) + days[year % 4][month] + day)) * 24 + dt->hours) * 60 + dt->minutes) * 60) + dt->seconds + EPOCH_2000_OFFSET;
+    *t = rtcTimeMake(unixTime, dt->millis);
+    return true;
+}
+
+static bool rtcTimeIsInRange(rtcTime_t t) {
+    return t >= RTC_TIME_MIN && t < RTC_TIME_END;
+}
+
+// Convert rtcTime_t to a calendar date. Returns false and leaves *dt unchanged when t is
+// outside 2000-01-01 to 2099-12-31.
+static bool rtcTimeToDateTime(dateTime_t *dt, rtcTime_t t) {
+    if (!rtcTimeIsInRange(t)) {
+        return false;
+    }
+    int64_t unixTime = t / MILLIS_PER_SECOND - EPOCH_2000_OFFSET; // 0 or more
     dt->seconds = unixTime % 60;
     unixTime /= 60;
     dt->minutes = unixTime % 60;
@@ -97,6 +136,7 @@ static void rtcTimeToDateTime(dateTime_t *dt, rtcTime_t t) {
     dt->month = month + 1;
     dt->day = unixTime - days[year][month] + 1;
     dt->millis = t % MILLIS_PER_SECOND;
+    return true;
 }
 
 static void rtcGetDefaultDateTime(dateTime_t *dateTime) {
@@ -109,23 +149,21 @@ static void rtcGetDefaultDateTime(dateTime_t *dateTime) {
     dateTime->millis = 0;
 }
 
-static bool rtcIsDateTimeValid(dateTime_t *dateTime) {
-    return (dateTime->year >= REFERENCE_YEAR) &&
-           (dateTime->month >= 1 && dateTime->month <= 12) &&
-           (dateTime->day >= 1 && dateTime->day <= 31) &&
-           (dateTime->hours <= 23) &&
-           (dateTime->minutes <= 59) &&
-           (dateTime->seconds <= 59) &&
-           (dateTime->millis <= 999);
+// On failure (input or result outside the supported range) dateTimeOffset is the default,
+// invalid date (year 0) and the function returns false.
+static bool dateTimeWithOffset(dateTime_t *dateTimeOffset, const dateTime_t *dateTimeInitial, int16_t minutes) {
+    rtcTime_t initialTime;
+    if (dateTimeToRtcTime(dateTimeInitial, &initialTime)) {
+        rtcTime_t offsetTime = rtcTimeMake(rtcTimeGetSeconds(&initialTime) + minutes * 60, rtcTimeGetMillis(&initialTime));
+        if (rtcTimeToDateTime(dateTimeOffset, offsetTime)) {
+            return true;
+        }
+    }
+    rtcGetDefaultDateTime(dateTimeOffset);
+    return false;
 }
 
-static void dateTimeWithOffset(dateTime_t *dateTimeOffset, dateTime_t *dateTimeInitial, int16_t minutes) {
-    rtcTime_t initialTime = dateTimeToRtcTime(dateTimeInitial);
-    rtcTime_t offsetTime = rtcTimeMake(rtcTimeGetSeconds(&initialTime) + minutes * 60, rtcTimeGetMillis(&initialTime));
-    rtcTimeToDateTime(dateTimeOffset, offsetTime);
-}
-
-static bool dateTimeFormat(char *buf, dateTime_t *dateTime, int16_t offsetMinutes, bool shortVersion) {
+static bool dateTimeFormat(char *buf, const dateTime_t *dateTime, int16_t offsetMinutes, bool shortVersion) {
     dateTime_t local;
     int tz_hours = 0;
     int tz_minutes = 0;
@@ -158,11 +196,11 @@ static bool dateTimeFormat(char *buf, dateTime_t *dateTime, int16_t offsetMinute
     return retVal;
 }
 
-rtcTime_t rtcTimeMake(int32_t secs, uint16_t millis) {
-    return ((rtcTime_t)secs) * MILLIS_PER_SECOND + millis;
+rtcTime_t rtcTimeMake(int64_t secs, uint16_t millis) {
+    return secs * MILLIS_PER_SECOND + millis;
 }
 
-int32_t rtcTimeGetSeconds(rtcTime_t *t) {
+int64_t rtcTimeGetSeconds(rtcTime_t *t) {
     return *t / MILLIS_PER_SECOND;
 }
 
@@ -204,6 +242,12 @@ bool rtcHasTime(void) {
     return started != 0;
 }
 
+#ifdef UNIT_TEST
+void rtcClearForTest(void) {
+    started = 0;
+}
+#endif
+
 bool rtcGet(rtcTime_t *t) {
     if (!rtcHasTime()) {
         return false;
@@ -213,23 +257,28 @@ bool rtcGet(rtcTime_t *t) {
 }
 
 bool rtcSet(rtcTime_t *t) {
+    if (!rtcTimeIsInRange(*t)) {
+        return false;
+    }
     started = *t - millis();
     return true;
 }
 
 bool rtcGetDateTime(dateTime_t *dt) {
     rtcTime_t t;
-    if (rtcGet(&t)) {
-        rtcTimeToDateTime(dt, t);
+    if (rtcGet(&t) && rtcTimeToDateTime(dt, t)) {
         return true;
     }
-    // No time stored, fill dt with 0000-01-01T00:00:00.000
+    // No time stored or stored time out of range, fill dt with 0000-01-01T00:00:00.000
     rtcGetDefaultDateTime(dt);
     return false;
 }
 
 bool rtcSetDateTime(dateTime_t *dt) {
-    rtcTime_t t = dateTimeToRtcTime(dt);
+    rtcTime_t t;
+    if (!dateTimeToRtcTime(dt, &t)) {
+        return false;
+    }
     return rtcSet(&t);
 }
 
