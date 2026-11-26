@@ -149,7 +149,7 @@ bool i2cWriteBuffer(I2CDevice device, uint8_t addr_, uint8_t reg_, uint8_t len_,
     }
 
     i2c_status_type status;
-    status = i2c_memory_write(pHandle, I2C_MEM_ADDR_WIDIH_8, addr_ << 1, reg_, data, len_, I2C_TIMEOUT_US);
+    status = i2c_memory_write(pHandle, I2C_MEM_ADDR_WIDIH_8, addr_ << 1, reg_, data, len_, I2C_TIMEOUT);
 
     if (status != I2C_OK) {
         i2c_wait_flag(pHandle, I2C_STOPF_FLAG, I2C_EVENT_CHECK_NONE, I2C_TIMEOUT);
