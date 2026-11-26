@@ -65,8 +65,11 @@
 // Worst-case busy time per operation, from datasheet maxima plus one millis() tick.
 // millis() has 1 ms resolution, so a deadline can pass up to 1 ms early.
 #define M25P16_TIMEOUT_PAGE_PROGRAM_MS      (5 + 1)
-#define M25P16_TIMEOUT_BLOCK_ERASE_MS       3000
-#define M25P16_TIMEOUT_CHIP_ERASE_MS        ((400 * 1000) + 1)
+// Block erase: 10.4 s is the S25FL128S 64 KB erase maximum when the address falls in the
+// 4 KB parameter-sector region (16 x 4 KB physical sectors); other parts stay below 3 s.
+// Chip erase: 1000 s is the W25Q512JV maximum.
+#define M25P16_TIMEOUT_BLOCK_ERASE_MS       (10400 + 1)
+#define M25P16_TIMEOUT_CHIP_ERASE_MS        ((1000 * 1000) + 1)
 // Bound for a shared SPI bus held by another device while the flash itself is idle.
 #define M25P16_TIMEOUT_BUS_MS               500
 
