@@ -48,6 +48,8 @@
 #include "drivers/nvic.h"
 #include "at32f435_437_tmr.h"
 
+#include "scheduler/scheduler.h"
+
 #define USB_TIMEOUT  50
 
 static vcpPort_t vcpPort;
@@ -72,13 +74,21 @@ volatile uint32_t APP_Rx_ptr_out = 0;
 volatile uint32_t APP_Rx_ptr_in = 0;
 static uint8_t APP_Rx_Buffer[APP_RX_DATA_SIZE];
 
-tmr_type * usbTxTmr= TMR20;
+// A basic timer has no pins, so no motor or LED output can claim it (TMR20 has pins).
+#define USB_TX_TMR           TMR7
+#define USB_TX_TMR_CLOCK     CRM_TMR7_PERIPH_CLOCK
+#define USB_TX_TMR_IRQn      TMR7_GLOBAL_IRQn
 #define  CDC_POLLING_INTERVAL 5
 
 static void (*ctrlLineStateCb)(void* context, uint16_t ctrlLineState);
 static void *ctrlLineStateCbContext;
 static void (*baudRateCb)(void *context, uint32_t baud);
 static void *baudRateCbContext;
+
+// Bytes of the IN transfer that the TX timer handler started and has not seen complete.
+static uint32_t lastBuffsize;
+static usb_sts_type (*vendorClassClear)(void *udev);
+static usbd_class_handler vcpClassHandler;
 
 void CDC_SetBaudRateCb(void (*cb)(void *context, uint32_t baud), void *context)
 {
@@ -241,10 +251,17 @@ uint32_t CDC_Send_FreeBytes(void)
     return freeBytes;
 }
 
+// Returns the bytes queued; less than sendLength when the host does not drain the ring.
 uint32_t CDC_Send_DATA(const uint8_t *ptrBuffer, uint32_t sendLength)
 {
+    uint32_t start = millis();
     for (uint32_t i = 0; i < sendLength; i++) {
         while (CDC_Send_FreeBytes() == 0) {
+            // A wait inside the deadline is not task execution time.
+            schedulerIgnoreTaskExecTime();
+            if (millis() - start >= 2) {
+                return i;
+            }
             delay(1);
         }
         ATOMIC_BLOCK(NVIC_BUILD_PRIORITY(6, 0)) {
@@ -257,22 +274,40 @@ uint32_t CDC_Send_DATA(const uint8_t *ptrBuffer, uint32_t sendLength)
 
 void TxTimerConfig(void)
 {
-    tmr_base_init(usbTxTmr, (CDC_POLLING_INTERVAL - 1), ((system_core_clock)/1000 - 1));
-    tmr_clock_source_div_set(usbTxTmr, TMR_CLOCK_DIV1);
-    tmr_cnt_dir_set(usbTxTmr, TMR_COUNT_UP);
-    tmr_period_buffer_enable(usbTxTmr, TRUE);
-    tmr_interrupt_enable(usbTxTmr, TMR_OVF_INT, TRUE);
-    nvic_irq_enable(TMR20_OVF_IRQn, NVIC_PRIORITY_BASE(NVIC_PRIO_USB), NVIC_PRIORITY_SUB(NVIC_PRIO_USB));
+    crm_periph_clock_enable(USB_TX_TMR_CLOCK, TRUE);
+    tmr_base_init(USB_TX_TMR, (CDC_POLLING_INTERVAL - 1), ((system_core_clock)/1000 - 1));
+    tmr_clock_source_div_set(USB_TX_TMR, TMR_CLOCK_DIV1);
+    tmr_cnt_dir_set(USB_TX_TMR, TMR_COUNT_UP);
+    tmr_period_buffer_enable(USB_TX_TMR, TRUE);
+    tmr_interrupt_enable(USB_TX_TMR, TMR_OVF_INT, TRUE);
+    nvic_irq_enable(USB_TX_TMR_IRQn, NVIC_PRIORITY_BASE(NVIC_PRIO_USB), NVIC_PRIORITY_SUB(NVIC_PRIO_USB));
 
-    tmr_counter_enable(usbTxTmr,TRUE);
+    tmr_counter_enable(USB_TX_TMR,TRUE);
 }
 
-void TMR20_OVF_IRQHandler(void)
+// The vendor class sets g_tx_completed on re-init and drops the pending IN transfer;
+// retire the queued bytes of the ended session so the timer handler cannot count them as sent.
+// The clear handler runs on every enumeration (enum-done) and before every re-init, so no init wrap is needed.
+static void vcpRetireTxQueue(void)
+{
+    lastBuffsize = 0;
+    UserTxBufPtrOut = UserTxBufPtrIn;
+}
+
+static usb_sts_type vcpClassClear(void *udev)
+{
+    vcpRetireTxQueue();
+    return vendorClassClear(udev);
+}
+
+void TMR7_GLOBAL_IRQHandler(void)
 {
     uint32_t buffsize;
-    static uint32_t lastBuffsize = 0;
 
     cdc_struct_type *pcdc = (cdc_struct_type *)otg_core_struct.dev.class_handler->pdata;
+
+    // Nothing can be sent before the host configures the device.
+    const bool configured = USB_CONN_STATE_CONFIGURED == otg_core_struct.dev.conn_state;
 
     if (pcdc->g_tx_completed == 1) {
         if (lastBuffsize) {
@@ -284,12 +319,12 @@ void TMR20_OVF_IRQHandler(void)
             }
             lastBuffsize = 0;
 
-            if (needZeroLengthPacket) {
+            if (needZeroLengthPacket && configured) {
                 usb_vcp_send_data(&otg_core_struct.dev, (uint8_t*)&UserTxBuffer[UserTxBufPtrOut], 0);
                 return;
             }
         }
-        if (UserTxBufPtrOut != UserTxBufPtrIn) {
+        if (configured && UserTxBufPtrOut != UserTxBufPtrIn) {
             if (UserTxBufPtrOut > UserTxBufPtrIn) {
                 buffsize = APP_TX_DATA_SIZE - UserTxBufPtrOut;
             } else {
@@ -305,7 +340,7 @@ void TMR20_OVF_IRQHandler(void)
             }
         }
     }
-    tmr_flag_clear(usbTxTmr, TMR_OVF_FLAG);
+    tmr_flag_clear(USB_TX_TMR, TMR_OVF_FLAG);
 }
 
 uint8_t usbIsConnected(void)
@@ -403,6 +438,11 @@ static void usbVcpWriteBuf(serialPort_t *instance, const void *data, int count)
         count -= txed;
         p += txed;
 
+        if (count > 0) {
+            // USB backpressure wait is not task execution time.
+            schedulerIgnoreTaskExecTime();
+        }
+
         if (millis() - start > USB_TIMEOUT) {
             break;
         }
@@ -428,6 +468,11 @@ static bool usbVcpFlush(vcpPort_t *port)
         uint32_t txed = CDC_Send_DATA(p, count);
         count -= txed;
         p += txed;
+
+        if (count > 0) {
+            // USB backpressure wait is not task execution time.
+            schedulerIgnoreTaskExecTime();
+        }
 
         if (millis() - start > USB_TIMEOUT) {
             break;
@@ -499,10 +544,14 @@ serialPort_t *usbVcpOpen(void)
 
     usbGenerateDisconnectPulse();
 
+    vendorClassClear = cdc_class_handler.clear_handler;
+    vcpClassHandler = cdc_class_handler;
+    vcpClassHandler.clear_handler = vcpClassClear;
+
     usbd_init(&otg_core_struct,
         USB_FULL_SPEED_CORE_ID,
         USB_ID,
-        &cdc_class_handler,
+        &vcpClassHandler,
         &cdc_desc_handler);
     s = &vcpPort;
     s->port.vTable = usbVTable;
