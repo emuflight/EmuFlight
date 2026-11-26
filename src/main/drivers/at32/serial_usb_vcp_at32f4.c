@@ -87,7 +87,6 @@ static void *baudRateCbContext;
 
 // Bytes of the IN transfer that the TX timer handler started and has not seen complete.
 static uint32_t lastBuffsize;
-static usb_sts_type (*vendorClassInit)(void *udev);
 static usb_sts_type (*vendorClassClear)(void *udev);
 static usbd_class_handler vcpClassHandler;
 
@@ -288,6 +287,7 @@ void TxTimerConfig(void)
 
 // The vendor class sets g_tx_completed on re-init and drops the pending IN transfer;
 // retire the queued bytes of the ended session so the timer handler cannot count them as sent.
+// The clear handler runs on every enumeration (enum-done) and before every re-init, so no init wrap is needed.
 static void vcpRetireTxQueue(void)
 {
     lastBuffsize = 0;
@@ -298,13 +298,6 @@ static usb_sts_type vcpClassClear(void *udev)
 {
     vcpRetireTxQueue();
     return vendorClassClear(udev);
-}
-
-// The first configuration after enumeration reaches init without a clear.
-static usb_sts_type vcpClassInit(void *udev)
-{
-    vcpRetireTxQueue();
-    return vendorClassInit(udev);
 }
 
 void TMR7_GLOBAL_IRQHandler(void)
@@ -551,10 +544,8 @@ serialPort_t *usbVcpOpen(void)
 
     usbGenerateDisconnectPulse();
 
-    vendorClassInit = cdc_class_handler.init_handler;
     vendorClassClear = cdc_class_handler.clear_handler;
     vcpClassHandler = cdc_class_handler;
-    vcpClassHandler.init_handler = vcpClassInit;
     vcpClassHandler.clear_handler = vcpClassClear;
 
     usbd_init(&otg_core_struct,
