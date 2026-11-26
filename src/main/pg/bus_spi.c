@@ -101,9 +101,6 @@ ioTag_t preinitIPUList[SPI_PREINIT_IPU_COUNT] = {
 #ifdef MPU9250_CS_PIN
     IO_TAG(MPU9250_CS_PIN),
 #endif
-#ifdef ICM20649_CS_PIN
-    IO_TAG(ICM20649_CS_PIN),
-#endif
 #ifdef ICM20689_CS_PIN
     IO_TAG(ICM20689_CS_PIN),
 #endif

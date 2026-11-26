@@ -46,7 +46,6 @@
 #include "drivers/accgyro/accgyro_mpu6500.h"
 #include "drivers/accgyro/accgyro_spi_bmi160.h"
 #include "drivers/accgyro/accgyro_spi_bmi270.h"
-#include "drivers/accgyro/accgyro_spi_icm20649.h"
 #include "drivers/accgyro/accgyro_spi_icm20689.h"
 #include "drivers/accgyro/accgyro_spi_icm426xx.h"
 #include "drivers/accgyro/accgyro_spi_mpu6000.h"
@@ -262,17 +261,6 @@ retry:
         }
 #endif
         FALLTHROUGH;
-#ifdef USE_ACC_SPI_ICM20649
-    case ACC_ICM20649:
-        if (icm20649SpiAccDetect(dev)) {
-            accHardware = ACC_ICM20649;
-#ifdef ACC_ICM20649_ALIGN
-            dev->accAlign = ACC_ICM20649_ALIGN;
-#endif
-            break;
-        }
-        FALLTHROUGH;
-#endif
 #ifdef USE_ACC_IMUF9001
     case ACC_IMUF9001:
         if (imufSpiAccDetect(dev)) {
