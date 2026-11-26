@@ -175,6 +175,9 @@ bool spiSetBusInstance(extDevice_t *dev, uint32_t device) {
     // until spiInitBusDMA enables it when channels are allocated).
     dev->useDMA = true;
 
+    // A device that never declares a divisor must not run at the fastest clock.
+    dev->busType_u.spi.speed = SPI_CLOCK_INITIALIZATION;
+
     if (dev->bus->busType == BUS_TYPE_SPI) {
         // Bus already initialised by a prior call — increment device count.
         dev->bus->deviceCount++;

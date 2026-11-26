@@ -399,6 +399,7 @@ void spiInternalStopDMA(const extDevice_t *dev)
 
 void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {
 #define BR_BITS ((BIT(5) | BIT(4) | BIT(3)))
+    const uint16_t requestedDivisor = divisor;
     if (instance == SPI2 || instance == SPI3) {
         divisor /= 2;
     }
@@ -407,6 +408,11 @@ void spiSetDivisor(SPI_TypeDef *instance, uint16_t divisor) {
     const uint16_t tempRegister = (instance->CR1 & ~BR_BITS);
     instance->CR1 = tempRegister | (divisor ? ((ffs(divisor | 0x100) - 2) << 3) : 0);
     SPI_Cmd(instance, ENABLE);
+    // Keep the cache spiSequenceStart() compares in step with the register.
+    busDevice_t *bus = spiBusByDevice(spiDeviceByInstance(instance));
+    if (bus) {
+        bus->busType_u.spi.speed = requestedDivisor;
+    }
 #undef BR_BITS
 }
 #endif

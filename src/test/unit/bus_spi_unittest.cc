@@ -277,6 +277,20 @@ TEST(BusSpiUnittest, SetBusInstanceFirstRegistrationInitializesBus)
     EXPECT_EQ((uintptr_t)dev.bus->curSegment, (uintptr_t)BUS_SPI_FREE);
 }
 
+TEST(BusSpiUnittest, SetBusInstanceDefaultsDivisorToSlowestClock)
+{
+    resetSpiTestState();
+
+    extDevice_t dev = {};
+    dev.busType_u.spi.speed = 0; // a zeroed divisor selects the fastest clock in spiSequenceStart()
+    ASSERT_TRUE(spiSetBusInstance(&dev, SPI_DEV_TO_CFG(SPIDEV_1)));
+
+    EXPECT_EQ(dev.busType_u.spi.speed, 256); // slowest divisor, the initialisation clock
+
+    spiSetClkDivisor(&dev, 8);
+    EXPECT_EQ(dev.busType_u.spi.speed, 8); // a declared divisor replaces the default
+}
+
 TEST(BusSpiUnittest, SetBusInstanceRepeatRegistrationIncrementsDeviceCount)
 {
     resetSpiTestState();

@@ -76,13 +76,13 @@ static void icm20689SpiInit(const extDevice_t *dev) {
     IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(dev->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_STANDARD);
+    spiSetClkDivisor(dev, SPI_CLOCK_STANDARD);
     hardwareInitialised = true;
 }
 
 uint8_t icm20689SpiDetect(const extDevice_t *dev) {
     icm20689SpiInit(dev);
-    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
+    spiSetClkDivisor(dev, SPI_CLOCK_INITIALIZATION);
 
     // Note that the following reset is being done repeatedly by each MPU6000
     // compatible device being probed
@@ -122,7 +122,7 @@ uint8_t icm20689SpiDetect(const extDevice_t *dev) {
     // ICM-20689 max SPI clock is 8 MHz (datasheet s6.1). SPI_CLOCK_STANDARD exceeds this on F4
     // (~10.5 MHz) only (F7/H7 STANDARD is ~6.58 MHz, already within spec). SPI_CLOCK_SLOW (~0.65 MHz)
     // is used uniformly across all MCUs for a single safe code path.
-    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_SLOW);
+    spiSetClkDivisor(dev, SPI_CLOCK_SLOW);
 
     // Disable Primary I2C Interface
     spiWriteReg(dev, MPU_RA_USER_CTRL, ICM20689_I2C_IF_DIS);
@@ -131,7 +131,7 @@ uint8_t icm20689SpiDetect(const extDevice_t *dev) {
     spiWriteReg(dev, MPU_RA_SIGNAL_PATH_RESET, ICM20689_ACCEL_RST | ICM20689_TEMP_RST);
     delay(ICM20689_PATH_RESET_DELAY_MS);
 
-    spiSetDivisor(dev->bus->busType_u.spi.instance, spiCalculateDivider(ICM20689_MAX_SPI_CLK_HZ));
+    spiSetClkDivisor(dev, spiCalculateDivider(ICM20689_MAX_SPI_CLK_HZ));
     return icmDetected;
 }
 
@@ -154,7 +154,7 @@ bool icm20689SpiAccDetect(accDev_t *acc) {
 
 void icm20689GyroInit(gyroDev_t *gyro) {
     mpuGyroInit(gyro);
-    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_SLOW);
+    spiSetClkDivisor(&gyro->dev, SPI_CLOCK_SLOW);
 
     // Device was reset and I2C_IF_DIS + SIGNAL_PATH_RESET applied during detection; proceed
     // directly with configuration. This function assumes icm20689SpiDetect() has already run.
@@ -172,7 +172,7 @@ void icm20689GyroInit(gyroDev_t *gyro) {
     spiWriteReg(&gyro->dev, MPU_RA_INT_ENABLE, MPU_RF_DATA_RDY_EN);
 #endif
 
-    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, spiCalculateDivider(ICM20689_MAX_SPI_CLK_HZ));
+    spiSetClkDivisor(&gyro->dev, spiCalculateDivider(ICM20689_MAX_SPI_CLK_HZ));
 }
 
 bool icm20689SpiGyroDetect(gyroDev_t *gyro) {

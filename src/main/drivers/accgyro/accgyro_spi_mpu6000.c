@@ -103,11 +103,11 @@ static bool mpuSpi6000InitDone = false;
 void mpu6000SpiGyroInit(gyroDev_t *gyro) {
     mpuGyroInit(gyro);
     mpu6000AccAndGyroInit(gyro);
-    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
+    spiSetClkDivisor(&gyro->dev, SPI_CLOCK_INITIALIZATION);
     // Accel and Gyro DLPF Setting
     spiWriteReg(&gyro->dev, MPU6000_CONFIG, mpuGyroDLPF(gyro));
     delayMicroseconds(1);
-    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_FAST);  // 18 MHz SPI clock
+    spiSetClkDivisor(&gyro->dev, SPI_CLOCK_FAST);  // 18 MHz SPI clock
     mpuGyroRead(gyro);
     if (((int8_t)gyro->gyroADCRaw[1]) == -1 && ((int8_t)gyro->gyroADCRaw[0]) == -1) {
         failureMode(FAILURE_GYRO_INIT_FAILED);
@@ -124,7 +124,7 @@ uint8_t mpu6000SpiDetect(const extDevice_t *dev) {
     IOConfigGPIO(dev->busType_u.spi.csnPin, SPI_IO_CS_CFG);
     IOHi(dev->busType_u.spi.csnPin);
 #endif
-    spiSetDivisor(dev->bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
+    spiSetClkDivisor(dev, SPI_CLOCK_INITIALIZATION);
     spiWriteReg(dev, MPU_RA_PWR_MGMT_1, BIT_H_RESET);
     uint8_t attemptsRemaining = 5;
     do {
@@ -162,7 +162,7 @@ static void mpu6000AccAndGyroInit(gyroDev_t *gyro) {
     if (mpuSpi6000InitDone) {
         return;
     }
-    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_INITIALIZATION);
+    spiSetClkDivisor(&gyro->dev, SPI_CLOCK_INITIALIZATION);
     // Device Reset
     spiWriteReg(&gyro->dev, MPU_RA_PWR_MGMT_1, BIT_H_RESET);
     delay(150);
@@ -192,7 +192,7 @@ static void mpu6000AccAndGyroInit(gyroDev_t *gyro) {
     spiWriteReg(&gyro->dev, MPU_RA_INT_ENABLE, MPU_RF_DATA_RDY_EN);
     delayMicroseconds(15);
 #endif
-    spiSetDivisor(gyro->dev.bus->busType_u.spi.instance, SPI_CLOCK_FAST);
+    spiSetClkDivisor(&gyro->dev, SPI_CLOCK_FAST);
     delayMicroseconds(1);
     mpuSpi6000InitDone = true;
 }

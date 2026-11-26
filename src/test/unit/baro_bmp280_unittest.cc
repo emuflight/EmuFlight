@@ -240,7 +240,7 @@ bool busReadRegisterBuffer(const extDevice_t*, uint8_t, uint8_t *data, uint8_t l
 }
 bool busWriteRegister(const extDevice_t*, uint8_t, uint8_t) {return true;}
 
-void spiSetDivisor() {
+void spiSetClkDivisor() {
 }
 
 void spiPreinitCsByIO() {
