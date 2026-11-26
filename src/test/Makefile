@@ -66,6 +66,11 @@ baro_ms5611_unittest_DEFINES := \
                 USE_BARO_MS5611 \
                 USE_BARO_SPI_MS5611
 
+battery_presence_unittest_SRC := \
+		$(USER_DIR)/sensors/battery.c \
+		$(USER_DIR)/common/filter.c \
+		$(USER_DIR)/common/maths.c
+
 battery_unittest_SRC := \
 		$(USER_DIR)/sensors/battery.c \
 		$(USER_DIR)/common/maths.c
