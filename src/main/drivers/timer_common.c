@@ -96,6 +96,22 @@ const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8
     return NULL;
 }
 
+// Clears the claim only for the named owner, so a pin held by another owner stays claimed.
+void timerRelease(ioTag_t ioTag, resourceOwner_e owner) {
+    if (!ioTag) {
+        return;
+    }
+    for (unsigned i = 0; i < MAX_TIMER_PINMAP_COUNT; i++) {
+        if (timerIOConfig(i)->ioTag == ioTag) {
+            if (timerOwners[i] == owner) {
+                timerOwners[i] = OWNER_FREE;
+                timerOwnerResourceIndices[i] = 0;
+            }
+            return;
+        }
+    }
+}
+
 const timerHardware_t *timerGetAllocatedByNumberAndChannel(int8_t timerNumber, uint16_t timerChannel) {
     for (unsigned i = 0; i < MAX_TIMER_PINMAP_COUNT; i++) {
         const timerHardware_t *timer = timerGetByTagAndIndex(timerIOConfig(i)->ioTag, timerIOConfig(i)->index);
@@ -134,6 +150,11 @@ const timerHardware_t *timerAllocate(ioTag_t ioTag, resourceOwner_e owner, uint8
     UNUSED(owner);
     UNUSED(resourceIndex);
     return timerGetByTag(ioTag);
+}
+
+void timerRelease(ioTag_t ioTag, resourceOwner_e owner) {
+    UNUSED(ioTag);
+    UNUSED(owner);
 }
 
 resourceOwner_e timerGetOwner(ioTag_t ioTag) {

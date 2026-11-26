@@ -940,6 +940,26 @@ TEST_F(CliTimerDmaTest, TimerShowListsAllocatedChannelWithOwnerAndIndex)
     EXPECT_LINE(out, "TIM1: FREE");
 }
 
+TEST_F(CliTimerDmaTest, TimerReleaseFreesOnlyTheNamedOwnersClaim)
+{
+    ASSERT_EQ(OWNER_FREE, timerGetOwner(TAG_C08));
+    ASSERT_NE(nullptr, timerAllocate(TAG_C08, OWNER_MOTOR, RESOURCE_INDEX(1)));
+    EXPECT_EQ(nullptr, timerAllocate(TAG_C08, OWNER_MOTOR, 0));         // claimed: a second claim fails
+
+    timerRelease(TAG_C08, OWNER_LED_STRIP);                             // another owner: claim stays
+    EXPECT_EQ(OWNER_MOTOR, timerGetOwner(TAG_C08));
+    timerRelease(IO_TAG_NONE, OWNER_MOTOR);                             // no pin: no effect
+    EXPECT_EQ(OWNER_MOTOR, timerGetOwner(TAG_C08));
+    timerRelease(TAG_A02, OWNER_MOTOR);                                 // pin not in the pin map: no effect
+    EXPECT_EQ(OWNER_MOTOR, timerGetOwner(TAG_C08));
+
+    timerRelease(TAG_C08, OWNER_MOTOR);
+    EXPECT_EQ(OWNER_FREE, timerGetOwner(TAG_C08));
+    EXPECT_EQ(0, timerGetOwnerResourceIndex(TAG_C08));
+    ASSERT_NE(nullptr, timerAllocate(TAG_C08, OWNER_MOTOR, 0));         // claim works again
+    timerRelease(TAG_C08, OWNER_MOTOR);                                 // restore the shared state
+}
+
 TEST_F(CliTimerDmaTest, ResourceShowAllPrintsRebootNoteOnceAndKeepsSections)
 {
     const std::string out = run("resource show all");
