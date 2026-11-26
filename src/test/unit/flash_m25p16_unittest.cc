@@ -78,6 +78,7 @@ static const expectedChip_t expectedNewChips[] = {
     { 0xA14017,  8 * MIB, 64 * KIB, "FM25Q64AI3" },
     { 0xA14018, 16 * MIB, 64 * KIB, "FM25Q128AI3" },
     { 0xBA6016,  4 * MIB, 64 * KIB, "ZD25WQ32C" },
+    { 0x012018, 16 * MIB, 64 * KIB, "S25FL128S hybrid" },
     { 0xC46016,  4 * MIB, 64 * KIB, "GT25Q32A" },
 };
 
@@ -173,7 +174,7 @@ TEST(FlashM25p16Test, S25fl128sNeedsExtendedRead)
 TEST(FlashM25p16Test, S25fl128sHybridIsAcceptedWithDatasheetGeometry)
 {
     EXPECT_TRUE(m25p16_extendedIdSupported(0x012018, s25fl128sHybridId, sizeof(s25fl128sHybridId)));
-    expectChip({ 0x012018, 16 * MIB, 64 * KIB, "S25FL128S hybrid" });
+    // Geometry for 0x012018 is covered by expectedNewChips; this test covers the extended-ID decision.
 }
 
 TEST(FlashM25p16Test, S25fl128sUniformIsRejected)
