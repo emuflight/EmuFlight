@@ -265,6 +265,8 @@ bool lpsDetect(baroDev_t *baro) {
     if (ret != true) return false;
     lpsOn(dev, (0x04 << 4) | (0x01 << 1) | (0x01 << 2) | (0x01 << 3));
     lpsReadCommand(dev, LPS_CTRL1, &temp, 1);
+    // lps_read gets temperature and pressure together: skip the dummy temperature states
+    baro->combined_read = true;
     baro->ut_delay = 1;
     baro->up_delay = 1000000 / 24;
     baro->start_ut = lps_nothing;

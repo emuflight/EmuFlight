@@ -224,6 +224,7 @@ bool qmp6988Detect(baroDev_t *baro) {
     // Set power mode and sample times
     busWriteRegister(dev, QMP6988_CTRL_MEAS_REG, QMP6988_PWR_SAMPLE_MODE);
     // these are dummy as temperature is measured as part of pressure
+    baro->combined_read = true;
     baro->ut_delay = 0;
     baro->read_ut = qmp6988_read_done;
     baro->get_ut = qmp6988_get_ut;
