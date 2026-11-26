@@ -187,6 +187,8 @@ TEST_F(FlashM25p16TimeoutTest, ProgramAfterBlockEraseOfHybridParameterRegionAtMa
     blockEraseBusyMs = 10400; // S25FL128S tSE max, 64 KB group of sixteen 4 KB sectors
     fdevice.vTable->eraseSector(&fdevice, 0);
     EXPECT_EQ(sizeof(data), program());
+    EXPECT_EQ(1, blockEraseCount);
+    EXPECT_EQ(1, pageProgramCount);
 }
 
 TEST_F(FlashM25p16TimeoutTest, ProgramAfterChipEraseOfW25q512AtMaximum)
@@ -194,6 +196,8 @@ TEST_F(FlashM25p16TimeoutTest, ProgramAfterChipEraseOfW25q512AtMaximum)
     chipEraseBusyMs = 1000u * 1000u; // W25Q512JV tCE max
     fdevice.vTable->eraseCompletely(&fdevice);
     EXPECT_EQ(sizeof(data), program());
+    EXPECT_EQ(1, chipEraseCount);
+    EXPECT_EQ(1, pageProgramCount);
 }
 
 TEST_F(FlashM25p16TimeoutTest, BackToBackBlockErasesBothReachTheChip)

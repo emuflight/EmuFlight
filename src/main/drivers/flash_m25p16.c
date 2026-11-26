@@ -66,7 +66,8 @@
 // millis() has 1 ms resolution, so a deadline can pass up to 1 ms early.
 #define M25P16_TIMEOUT_PAGE_PROGRAM_MS      (5 + 1)
 // Block erase: 10.4 s is the S25FL128S 64 KB erase maximum when the address falls in the
-// 4 KB parameter-sector region (16 x 4 KB physical sectors); other parts stay below 3 s.
+// 4 KB parameter-sector region (16 x 4 KB physical sectors); other checked parts stay at or
+// below 3 s (N25Q128A 3 s max). Maxima of some supported parts are unverified.
 // Chip erase: 1000 s is the W25Q512JV maximum.
 #define M25P16_TIMEOUT_BLOCK_ERASE_MS       (10400 + 1)
 #define M25P16_TIMEOUT_CHIP_ERASE_MS        ((1000 * 1000) + 1)
