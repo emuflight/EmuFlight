@@ -244,11 +244,6 @@ static bool m25p16_waitForReady(flashDevice_t *fdevice)
     return true;
 }
 
-/**
- * Read chip identification and geometry information (into global `geometry`).
- *
- * Returns true if we get valid ident, false if something bad happened like there is no M25P16.
- */
 // S25FL128S (0x012018): RDID bytes 04h/05h select the layout.
 // 04h = 0x01 hybrid (64 KB sectors, 256-byte page), 0x00 uniform (256 KB sectors, 512-byte page).
 // 05h = 0x80 FL-S family.
@@ -272,6 +267,11 @@ bool m25p16_extendedIdSupported(uint32_t jedecID, const uint8_t *rdid, uint8_t l
         && rdid[5] == S25FL128S_FAMILY_ID;
 }
 
+/**
+ * Read chip identification and geometry information (into global `geometry`).
+ *
+ * Returns true if we get valid ident, false if something bad happened like there is no M25P16.
+ */
 bool m25p16_identify(flashDevice_t *fdevice, uint32_t jedecID)
 {
     flashGeometry_t *geometry = &fdevice->geometry;
