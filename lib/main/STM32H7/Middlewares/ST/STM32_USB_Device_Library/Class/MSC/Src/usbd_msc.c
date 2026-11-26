@@ -334,12 +334,8 @@ uint8_t USBD_MSC_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   /* De-Init the BOT layer */
   MSC_BOT_DeInit(pdev);
 
-  /* Free MSC Class Resources */
-  if (pdev->pMSC_ClassData != NULL)
-  {
-    (void)USBD_free(pdev->pMSC_ClassData);
-    pdev->pMSC_ClassData = NULL;
-  }
+  /* Handle is the static ClassData, never heap memory: release only the pointer */
+  pdev->pMSC_ClassData = NULL;
 
   return (uint8_t)USBD_OK;
 }
