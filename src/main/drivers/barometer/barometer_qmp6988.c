@@ -90,10 +90,11 @@ STATIC_UNIT_TESTED qmp6988_calib_param_t qmp6988_cal;
 int32_t qmp6988_up = 0;
 int32_t qmp6988_ut = 0;
 
-static void qmp6988_start_ut(baroDev_t *baro);
-static void qmp6988_get_ut(baroDev_t *baro);
-static void qmp6988_start_up(baroDev_t *baro);
-static void qmp6988_get_up(baroDev_t *baro);
+static bool qmp6988_read_done(baroDev_t *baro);
+static bool qmp6988_start_ut(baroDev_t *baro);
+static bool qmp6988_get_ut(baroDev_t *baro);
+static bool qmp6988_start_up(baroDev_t *baro);
+static bool qmp6988_get_up(baroDev_t *baro);
 
 STATIC_UNIT_TESTED void qmp6988_calculate(int32_t *pressure, int32_t *temperature);
 
@@ -223,38 +224,51 @@ bool qmp6988Detect(baroDev_t *baro) {
     // Set power mode and sample times
     busWriteRegister(dev, QMP6988_CTRL_MEAS_REG, QMP6988_PWR_SAMPLE_MODE);
     // these are dummy as temperature is measured as part of pressure
+    baro->combined_read = true;
     baro->ut_delay = 0;
+    baro->read_ut = qmp6988_read_done;
     baro->get_ut = qmp6988_get_ut;
     baro->start_ut = qmp6988_start_ut;
     // only _up part is executed, and gets both temperature and pressure
     baro->start_up = qmp6988_start_up;
+    baro->read_up = qmp6988_read_done;
     baro->get_up = qmp6988_get_up;
     baro->up_delay = ((T_INIT_MAX + T_MEASURE_PER_OSRS_MAX * (((1 << QMP6988_TEMPERATURE_OSR) >> 1) + ((1 << QMP6988_PRESSURE_OSR) >> 1)) + (QMP6988_PRESSURE_OSR ? T_SETUP_PRESSURE_MAX : 0) + 15) / 16) * 1000;
     baro->calculate = qmp6988_calculate;
     return true;
 }
 
-static void qmp6988_start_ut(baroDev_t *baro) {
+// the bus calls are synchronous: nothing is pending when the state machine reads
+static bool qmp6988_read_done(baroDev_t *baro) {
     UNUSED(baro);
-    // dummy
+    return true;
 }
 
-static void qmp6988_get_ut(baroDev_t *baro) {
+static bool qmp6988_start_ut(baroDev_t *baro) {
     UNUSED(baro);
     // dummy
+    return true;
 }
 
-static void qmp6988_start_up(baroDev_t *baro) {
+static bool qmp6988_get_ut(baroDev_t *baro) {
+    UNUSED(baro);
+    // dummy
+    return true;
+}
+
+static bool qmp6988_start_up(baroDev_t *baro) {
     // start measurement
     busWriteRegister(&baro->dev, QMP6988_CTRL_MEAS_REG, QMP6988_PWR_SAMPLE_MODE);
+    return true;
 }
 
-static void qmp6988_get_up(baroDev_t *baro) {
+static bool qmp6988_get_up(baroDev_t *baro) {
     uint8_t data[QMP6988_DATA_FRAME_SIZE];
     // read data from sensor
     busReadRegisterBuffer(&baro->dev, QMP6988_PRESSURE_MSB_REG, data, QMP6988_DATA_FRAME_SIZE);
     qmp6988_up = (int32_t)((((uint32_t)(data[0])) << 16) | (((uint32_t)(data[1])) << 8) | ((uint32_t)data[2] ));
     qmp6988_ut = (int32_t)((((uint32_t)(data[3])) << 16) | (((uint32_t)(data[4])) << 8) | ((uint32_t)data[5]));
+    return true;
 }
 
 // Returns temperature in DegC, resolution is 0.01 DegC. Output value of "5123" equals 51.23 DegC

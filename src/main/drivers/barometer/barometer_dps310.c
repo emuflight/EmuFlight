@@ -248,7 +248,7 @@ static bool deviceConfigure(const extDevice_t *dev)
     return true;
 }
 
-static void dps310GetUP(baroDev_t *baro)
+static bool dps310GetUP(baroDev_t *baro)
 {
     // Read PSR_B2, PSR_B1, PSR_B0, TMP_B2, TMP_B1, TMP_B0
     // No need to poll for data ready as the conversion rate is 32Hz and this is sampling at 20Hz
@@ -291,6 +291,7 @@ static void dps310GetUP(baroDev_t *baro)
 
     // See section 4.9.2, How to Calculate Compensated Temperature Values, of datasheet
     baroState.temperature = c0 * 0.5f + c1 * Traw_sc;
+    return true;
 }
 
 static void deviceCalculate(int32_t *pressure, int32_t *temperature)
@@ -322,19 +323,22 @@ static bool deviceDetect(const extDevice_t *dev)
     return false;
 }
 
-static void dps310StartUT(baroDev_t *baro)
+static bool dps310StartUT(baroDev_t *baro)
 {
     UNUSED(baro);
+    return true;
 }
 
-static void dps310GetUT(baroDev_t *baro)
+static bool dps310GetUT(baroDev_t *baro)
 {
     UNUSED(baro);
+    return true;
 }
 
-static void dps310StartUP(baroDev_t *baro)
+static bool dps310StartUP(baroDev_t *baro)
 {
     UNUSED(baro);
+    return true;
 }
 
 static void deviceInit(const extDevice_t *dev, resourceOwner_e owner)
@@ -396,10 +400,12 @@ bool baroDPS310Detect(baroDev_t *baro)
 
     baro->ut_delay = 0;
     baro->start_ut = dps310StartUT;
+    baro->read_ut = dps310StartUT; // sync bus: nothing pending to read
     baro->get_ut = dps310GetUT;
 
     baro->up_delay = 45000; // 45ms delay plus 5 1ms cycles 50ms
     baro->start_up = dps310StartUP;
+    baro->read_up = dps310StartUT; // sync bus: nothing pending to read
     baro->get_up = dps310GetUP;
 
     baro->calculate = deviceCalculate;

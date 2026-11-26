@@ -53,10 +53,11 @@ static void ms5611_reset(extDevice_t *dev);
 static uint16_t ms5611_prom(extDevice_t *dev, int8_t coef_num);
 STATIC_UNIT_TESTED int8_t ms5611_crc(uint16_t *prom);
 static uint32_t ms5611_read_adc(extDevice_t *dev);
-static void ms5611_start_ut(baroDev_t *baro);
-static void ms5611_get_ut(baroDev_t *baro);
-static void ms5611_start_up(baroDev_t *baro);
-static void ms5611_get_up(baroDev_t *baro);
+static bool ms5611_read_done(baroDev_t *baro);
+static bool ms5611_start_ut(baroDev_t *baro);
+static bool ms5611_get_ut(baroDev_t *baro);
+static bool ms5611_start_up(baroDev_t *baro);
+static bool ms5611_get_up(baroDev_t *baro);
 STATIC_UNIT_TESTED void ms5611_calculate(int32_t *pressure, int32_t *temperature);
 
 STATIC_UNIT_TESTED uint32_t ms5611_ut;  // static result of temperature measurement
@@ -114,8 +115,10 @@ bool ms5611Detect(baroDev_t *baro) {
     baro->ut_delay = 10000;
     baro->up_delay = 10000;
     baro->start_ut = ms5611_start_ut;
+    baro->read_ut = ms5611_read_done;
     baro->get_ut = ms5611_get_ut;
     baro->start_up = ms5611_start_up;
+    baro->read_up = ms5611_read_done;
     baro->get_up = ms5611_get_up;
     baro->calculate = ms5611_calculate;
     return true;
@@ -171,20 +174,30 @@ static uint32_t ms5611_read_adc(extDevice_t *dev) {
     return (rxbuf[0] << 16) | (rxbuf[1] << 8) | rxbuf[2];
 }
 
-static void ms5611_start_ut(baroDev_t *baro) {
+// the bus calls are synchronous: nothing is pending when the state machine reads
+static bool ms5611_read_done(baroDev_t *baro) {
+    UNUSED(baro);
+    return true;
+}
+
+static bool ms5611_start_ut(baroDev_t *baro) {
     busWriteRegister(&baro->dev, CMD_ADC_CONV + CMD_ADC_D2 + ms5611_osr, 1); // D2 (temperature) conversion start!
+    return true;
 }
 
-static void ms5611_get_ut(baroDev_t *baro) {
+static bool ms5611_get_ut(baroDev_t *baro) {
     ms5611_ut = ms5611_read_adc(&baro->dev);
+    return true;
 }
 
-static void ms5611_start_up(baroDev_t *baro) {
+static bool ms5611_start_up(baroDev_t *baro) {
     busWriteRegister(&baro->dev, CMD_ADC_CONV + CMD_ADC_D1 + ms5611_osr, 1); // D1 (pressure) conversion start!
+    return true;
 }
 
-static void ms5611_get_up(baroDev_t *baro) {
+static bool ms5611_get_up(baroDev_t *baro) {
     ms5611_up = ms5611_read_adc(&baro->dev);
+    return true;
 }
 
 STATIC_UNIT_TESTED void ms5611_calculate(int32_t *pressure, int32_t *temperature) {

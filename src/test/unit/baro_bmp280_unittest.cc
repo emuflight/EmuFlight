@@ -25,7 +25,8 @@ extern "C" {
 #include "drivers/bus.h"
 
 void bmp280_calculate(int32_t *pressure, int32_t *temperature);
-void bmp280_get_up(baroDev_t *baro);
+bool bmp280_read_up(baroDev_t *baro);
+bool bmp280_get_up(baroDev_t *baro);
 
 extern uint32_t bmp280_up;
 extern uint32_t bmp280_ut;
@@ -158,16 +159,27 @@ static void setDatasheetFrame(void)
     testReadData[3] = 0x7E; testReadData[4] = 0xED; testReadData[5] = 0x00;
 }
 
+static bool testBusBusy = false;
+static bool testBusError = false;
+
+// the state machine runs read_up, then get_up only when read_up succeeded
+static bool readAndGet(baroDev_t *baro)
+{
+    return bmp280_read_up(baro) && bmp280_get_up(baro);
+}
+
 TEST(baroBmp280Test, TestBmp280GetUpValidFrame)
 {
     baroDev_t baro = {};
+    testBusBusy = false;
+    testBusError = false;
     testReadResult = true;
     setDatasheetFrame();
     setDatasheetCalibration();
     bmp280_up = 0;
     bmp280_ut = 0;
 
-    bmp280_get_up(&baro);
+    EXPECT_TRUE(readAndGet(&baro));
 
     int32_t pressure = -1, temperature = -1;
     bmp280_calculate(&pressure, &temperature);
@@ -177,37 +189,65 @@ TEST(baroBmp280Test, TestBmp280GetUpValidFrame)
     EXPECT_EQ(2508, temperature);
 }
 
-TEST(baroBmp280Test, TestBmp280FailedReadYieldsInvalidPressureAndKeepsLastRaw)
+TEST(baroBmp280Test, TestBmp280FailedReadIsReportedAndKeepsLastRaw)
 {
     baroDev_t baro = {};
+    testBusBusy = false;
+    testBusError = false;
     setDatasheetCalibration();
     // a good sample first, so stale data exists
     testReadResult = true;
     setDatasheetFrame();
-    bmp280_get_up(&baro);
+    EXPECT_TRUE(readAndGet(&baro));
 
-    // then a failed read; the buffer must not be parsed
+    // then a failed read: read_up reports false, so the state machine never parses the buffer
     testReadResult = false;
-    bmp280_get_up(&baro);
+    EXPECT_FALSE(bmp280_read_up(&baro));
+    EXPECT_EQ(415148, bmp280_up);
+    EXPECT_EQ(519888, bmp280_ut);
+}
+
+TEST(baroBmp280Test, TestBmp280ReadUpWaitsWhileBusBusy)
+{
+    baroDev_t baro = {};
+    testReadResult = true;
+    testBusBusy = true;
+    EXPECT_FALSE(bmp280_read_up(&baro));
+    EXPECT_FALSE(bmp280_get_up(&baro));
+    testBusBusy = false;
+}
+
+TEST(baroBmp280Test, TestBmp280BusErrorYieldsInvalidPressure)
+{
+    baroDev_t baro = {};
+    setDatasheetCalibration();
+    testBusBusy = false;
+    testBusError = false;
+    testReadResult = true;
+    setDatasheetFrame();
+    EXPECT_TRUE(bmp280_read_up(&baro));
+    testBusError = true;
+    EXPECT_TRUE(bmp280_get_up(&baro)); // transfer finished, but with an error
+    testBusError = false;
 
     int32_t pressure = 555, temperature = 777;
     bmp280_calculate(&pressure, &temperature);
     EXPECT_EQ(0, pressure);
     EXPECT_EQ(777, temperature); // untouched
-    EXPECT_EQ(415148, bmp280_up);
-    EXPECT_EQ(519888, bmp280_ut);
 }
 
 TEST(baroBmp280Test, TestBmp280RecoversAfterFailedRead)
 {
     baroDev_t baro = {};
     setDatasheetCalibration();
+    testBusBusy = false;
+    testBusError = false;
     testReadResult = false;
-    bmp280_get_up(&baro);
+    EXPECT_FALSE(readAndGet(&baro));
 
     testReadResult = true;
     setDatasheetFrame();
-    bmp280_get_up(&baro);
+    EXPECT_TRUE(readAndGet(&baro));
 
     int32_t pressure = 0, temperature = 0;
     bmp280_calculate(&pressure, &temperature);
@@ -238,7 +278,19 @@ bool busReadRegisterBuffer(const extDevice_t*, uint8_t, uint8_t *data, uint8_t l
     }
     return testReadResult;
 }
+bool busReadRegisterBufferStart(const extDevice_t *dev, uint8_t reg, uint8_t *data, uint8_t length)
+{
+    return busReadRegisterBuffer(dev, reg, data, length);
+}
 bool busWriteRegister(const extDevice_t*, uint8_t, uint8_t) {return true;}
+bool busWriteRegisterStart(const extDevice_t*, uint8_t, uint8_t) {return true;}
+bool busBusy(const extDevice_t*, bool *error)
+{
+    if (error) {
+        *error = testBusError;
+    }
+    return testBusBusy;
+}
 
 void spiSetDivisor() {
 }
