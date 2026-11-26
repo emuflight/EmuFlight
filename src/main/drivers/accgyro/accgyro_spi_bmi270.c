@@ -29,6 +29,7 @@
 #include "common/utils.h"
 
 #include "drivers/accgyro/accgyro.h"
+#include "drivers/accgyro/accgyro_mpu.h"
 #include "drivers/accgyro/accgyro_spi_bmi270.h"
 #include "drivers/bus_spi.h"
 #include "drivers/exti.h"
@@ -309,12 +310,11 @@ busStatus_e bmi270Intcallback(uint32_t arg)
 void bmi270ExtiHandler(extiCallbackRec_t *cb)
 {
     gyroDev_t *gyro = container_of(cb, gyroDev_t, exti);
-    extDevice_t *dev = &gyro->dev;
     uint32_t nowCycles = getCycleCounter();
     gyro->gyroSyncEXTI = gyro->gyroLastEXTI + gyro->gyroDmaMaxDuration;
     gyro->gyroLastEXTI = nowCycles;
     if (gyro->gyroModeSPI == GYRO_EXTI_INT_DMA) {
-        spiSequence(dev, gyro->segments);
+        mpuGyroStartDmaRead(gyro);
     }
     gyro->detectedEXTI++;
 }

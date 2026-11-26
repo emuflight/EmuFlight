@@ -339,6 +339,7 @@ void spiInternalStartDMA(const extDevice_t *dev)
         DMA_Stream_TypeDef *streamRegsRx = (DMA_Stream_TypeDef *)dmaRx->ref;
 
         dmaRx->userParam = (uintptr_t)dev;
+        dmaTx->userParam = (uintptr_t)dev;
 
         DMA_CLEAR_FLAG(dmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
         DMA_CLEAR_FLAG(dmaRx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
@@ -349,7 +350,8 @@ void spiInternalStartDMA(const extDevice_t *dev)
         /* Use Rx TC interrupt — fires after SPI operation completes, unlike Tx TC
          * which fires when Tx FIFO empties while the SPI operation is still in progress.
          */
-        DMA_ITConfig(streamRegsRx, DMA_IT_TC, ENABLE);
+        DMA_ITConfig(streamRegsRx, DMA_IT_TC | DMA_IT_TE, ENABLE);
+        DMA_ITConfig(streamRegsTx, DMA_IT_TE, ENABLE);
 
         DMA_Init(streamRegsTx, dev->bus->initTx);
         DMA_Init(streamRegsRx, dev->bus->initRx);
@@ -364,7 +366,7 @@ void spiInternalStartDMA(const extDevice_t *dev)
         DMA_CLEAR_FLAG(dmaTx, DMA_IT_HTIF | DMA_IT_TEIF | DMA_IT_TCIF);
 
         streamRegsTx->CR = 0U;
-        DMA_ITConfig(streamRegsTx, DMA_IT_TC, ENABLE);
+        DMA_ITConfig(streamRegsTx, DMA_IT_TC | DMA_IT_TE, ENABLE);
         DMA_Init(streamRegsTx, dev->bus->initTx);
         DMA_Cmd(streamRegsTx, ENABLE);
 
@@ -394,6 +396,23 @@ void spiInternalStopDMA(const extDevice_t *dev)
         streamRegsTx->CR = 0U;
         SPI_I2S_DMACmd(instance, SPI_I2S_DMAReq_Tx, DISABLE);
     }
+}
+
+void spiInternalAbortDMA(const extDevice_t *dev)
+{
+    SPI_TypeDef *instance = dev->bus->busType_u.spi.instance;
+
+    spiInternalStopDMA(dev);
+
+    while (SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_BSY));
+
+    while (SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_RXNE)) {
+        instance->DR;
+    }
+
+    // An overrun discards everything received after it until cleared by reading DR then SR.
+    instance->DR;
+    instance->SR;
 }
 #endif // STM32F4
 
