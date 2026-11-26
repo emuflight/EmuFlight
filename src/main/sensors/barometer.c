@@ -329,6 +329,9 @@ uint32_t baroUpdate(void) {
         schedulerIgnoreTaskStateTime();
         return sleepTime;
     }
+    // The bus calls are synchronous: a false result is a failed transfer that already
+    // blocked the loop. Retry once per conversion period, never at the 1 ms state pace.
+    const uint32_t failSleepTime = MAX(sleepTime, (uint32_t)baro.dev.up_delay);
     switch (state) {
     default:
     case BARO_STATE_TEMPERATURE_START:
@@ -338,6 +341,7 @@ uint32_t baroUpdate(void) {
         } else {
             // the conversion did not start: a later read would return the old result
             schedulerIgnoreTaskExecTime();
+            sleepTime = failSleepTime;
         }
         break;
     case BARO_STATE_TEMPERATURE_READ:
@@ -346,6 +350,7 @@ uint32_t baroUpdate(void) {
         } else {
             // No action was taken as the read has not completed
             schedulerIgnoreTaskExecTime();
+            sleepTime = failSleepTime;
         }
         break;
     case BARO_STATE_TEMPERATURE_SAMPLE:
@@ -354,6 +359,7 @@ uint32_t baroUpdate(void) {
         } else {
             // No action was taken as the read has not completed
             schedulerIgnoreTaskExecTime();
+            sleepTime = failSleepTime;
         }
         break;
     case BARO_STATE_PRESSURE_START:
@@ -364,6 +370,7 @@ uint32_t baroUpdate(void) {
             // the conversion did not start: a later read would return the old result
             baroSampleAccepted = false; // stale sum must not feed calibration
             schedulerIgnoreTaskExecTime();
+            sleepTime = failSleepTime;
         }
         break;
     case BARO_STATE_PRESSURE_READ:
@@ -373,6 +380,7 @@ uint32_t baroUpdate(void) {
             // No action was taken as the read has not completed
             baroSampleAccepted = false; // stale sum must not feed calibration
             schedulerIgnoreTaskExecTime();
+            sleepTime = failSleepTime;
         }
         break;
     case BARO_STATE_PRESSURE_SAMPLE:
@@ -380,6 +388,7 @@ uint32_t baroUpdate(void) {
             // No action was taken as the read has not completed
             baroSampleAccepted = false; // stale sum must not feed calibration
             schedulerIgnoreTaskExecTime();
+            sleepTime = failSleepTime;
             break;
         }
         baro.dev.calculate(&baroPressure, &baroTemperature);
