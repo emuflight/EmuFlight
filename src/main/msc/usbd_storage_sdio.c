@@ -248,11 +248,16 @@ static int8_t STORAGE_Read (uint8_t lun,
     if (SD_ReadBlocks_DMA(blk_addr, (uint32_t*) buf, 512, blk_len) == 0) {
         const timeMs_t start = millis();
         const timeMs_t timeout = (timeMs_t)blk_len * STORAGE_READ_TIMEOUT_MS;
-        while (SD_CheckRead()) {
+        SD_Error_t status;
+        while ((status = SD_CheckRead()) == SD_BUSY) {
             if ((timeMs_t)(millis() - start) > timeout) {
                 LED1_OFF;
                 return -1;
             }
+        }
+        if (status != SD_OK) {
+            LED1_OFF;
+            return -1;
         }
         while (SD_GetState() == false) {
             if ((timeMs_t)(millis() - start) > timeout) {
@@ -286,11 +291,16 @@ static int8_t STORAGE_Write (uint8_t lun,
     if (SD_WriteBlocks_DMA(blk_addr, (uint32_t*) buf, 512, blk_len) == 0) {
         const timeMs_t start = millis();
         const timeMs_t timeout = (timeMs_t)blk_len * STORAGE_WRITE_TIMEOUT_MS;
-        while (SD_CheckWrite()) {
+        SD_Error_t status;
+        while ((status = SD_CheckWrite()) == SD_BUSY) {
             if ((timeMs_t)(millis() - start) > timeout) {
                 LED1_OFF;
                 return -1;
             }
+        }
+        if (status != SD_OK) {
+            LED1_OFF;
+            return -1;
         }
         while (SD_GetState() == false) {
             if ((timeMs_t)(millis() - start) > timeout) {

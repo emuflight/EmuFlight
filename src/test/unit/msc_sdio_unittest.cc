@@ -43,6 +43,8 @@ uint32_t fakeNowMs;
 uint32_t checkCalls;
 uint32_t checkBusyCalls;    // SD_Check* reports busy this many times, then done
 bool stateReady;            // SD_GetState result
+SD_Error_t checkFinalResult = SD_OK;  // SD_Check* result once no longer busy, reported once (H7 clears its error flag on read)
+bool finalReported;
 bool cardInserted = true;
 
 void setUpFakeCard(uint32_t startMs) {
@@ -51,6 +53,8 @@ void setUpFakeCard(uint32_t startMs) {
     checkCalls = 0;
     checkBusyCalls = UINT32_MAX;
     stateReady = false;
+    checkFinalResult = SD_OK;
+    finalReported = false;
 }
 
 uint32_t elapsed(uint32_t startMs) {
@@ -58,7 +62,14 @@ uint32_t elapsed(uint32_t startMs) {
 }
 
 SD_Error_t fakeCheck() {
-    return (checkCalls++ < checkBusyCalls) ? SD_BUSY : SD_OK;
+    if (checkCalls++ < checkBusyCalls) {
+        return SD_BUSY;
+    }
+    if (finalReported) {
+        return SD_OK;  // one-shot: the driver clears the error flag when it reports it
+    }
+    finalReported = true;
+    return checkFinalResult;
 }
 
 }  // namespace
@@ -207,4 +218,28 @@ TEST(MscSdioTest, InitLoadsTheDetectConfigBeforeCheckingInsertion) {
     EXPECT_EQ(1, USBD_MSC_MICRO_SDIO_fops.Init(0));
     EXPECT_EQ(1u, detectConfigureCalls);
     EXPECT_EQ(1u, detectInitCalls);
+}
+
+// The H7 driver reports a failed transfer once as SD_ERROR, then clears the flag. A transfer
+// error must end the USB command with an error. Waiting on SD_ERROR as if busy would hide it.
+TEST(MscSdioTest, ReadReturnsErrorWhenTransferFails) {
+    const uint32_t start = 0;
+    setUpFakeCard(start);
+    checkBusyCalls = 3;
+    checkFinalResult = SD_ERROR;
+    stateReady = true;
+    uint8_t buf[512];
+    EXPECT_EQ(-1, USBD_MSC_MICRO_SDIO_fops.Read(0, buf, 0, 1));
+    EXPECT_LT(elapsed(start), SPEC_READ_MS_PER_BLOCK);
+}
+
+TEST(MscSdioTest, WriteReturnsErrorWhenTransferFails) {
+    const uint32_t start = 0;
+    setUpFakeCard(start);
+    checkBusyCalls = 3;
+    checkFinalResult = SD_ERROR;
+    stateReady = true;
+    uint8_t buf[512] = {};
+    EXPECT_EQ(-1, USBD_MSC_MICRO_SDIO_fops.Write(0, buf, 0, 1));
+    EXPECT_LT(elapsed(start), SPEC_WRITE_MS_PER_BLOCK);
 }
