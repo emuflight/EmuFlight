@@ -189,11 +189,16 @@ static uint8_t m25p16_readStatus(flashDevice_t *fdevice)
     return status;
 }
 
-static bool m25p16_isReady(flashDevice_t *fdevice)
+// Report whether the chip is ready. *busBusy tells that the answer is "no" because another device
+// holds the SPI bus (DMA transfer in flight), so the chip status was not polled.
+static bool m25p16_checkReady(flashDevice_t *fdevice, bool *busBusy)
 {
+    *busBusy = false;
+
     // If we're waiting on DMA completion, then SPI is busy
     if (fdevice->io.mode == FLASHIO_SPI) {
         if (fdevice->io.handle.dev->bus->useDMA && spiIsBusy(fdevice->io.handle.dev)) {
+            *busBusy = true;
             return false;
         }
     }
@@ -209,6 +214,13 @@ static bool m25p16_isReady(flashDevice_t *fdevice)
     return !fdevice->couldBeBusy;
 }
 
+static bool m25p16_isReady(flashDevice_t *fdevice)
+{
+    bool busBusy;
+
+    return m25p16_checkReady(fdevice, &busBusy);
+}
+
 // Mark the chip busy and bound the next wait by the maximum time of the operation just issued.
 static void m25p16_setBusy(flashDevice_t *fdevice, uint32_t timeoutMillis)
 {
@@ -218,12 +230,15 @@ static void m25p16_setBusy(flashDevice_t *fdevice, uint32_t timeoutMillis)
 
 static bool m25p16_waitForReady(flashDevice_t *fdevice)
 {
-    // timeoutAt bounds the chip busy time and is stale while the chip is idle.
-    // Without a busy chip, only a busy SPI bus can delay the wait: use a fresh bound.
+    // timeoutAt bounds the chip busy time. While another device holds the SPI bus the chip status
+    // is not polled, so that time gets its own fresh bound; the chip deadline applies only after
+    // a status poll showed the chip still busy.
     const uint32_t busTimeoutAt = millis() + M25P16_TIMEOUT_BUS_MS;
 
-    while (!m25p16_isReady(fdevice)) {
-        const uint32_t deadline = fdevice->couldBeBusy ? fdevice->timeoutAt : busTimeoutAt;
+    bool busBusy;
+
+    while (!m25p16_checkReady(fdevice, &busBusy)) {
+        const uint32_t deadline = busBusy ? busTimeoutAt : fdevice->timeoutAt;
         if (cmp32(millis(), deadline) >= 0) {
             return false;
         }

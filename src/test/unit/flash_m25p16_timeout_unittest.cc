@@ -58,6 +58,7 @@ static uint32_t busBusyPolls;
 static int blockEraseCount;
 static int chipEraseCount;
 static int pageProgramCount;
+static int commandWhileBusyCount; // erase or program commands issued while the fake chip is busy
 
 static busDevice_t fakeBus;
 static extDevice_t fakeDev;
@@ -104,10 +105,16 @@ void spiReadWriteBuf(const extDevice_t *dev, uint8_t *txData, uint8_t *rxData, i
         }
         break;
     case CMD_BLOCK_ERASE:
+        if (chipIsBusy()) {
+            commandWhileBusyCount++;
+        }
         blockEraseCount++;
         chipBusyFor(blockEraseBusyMs);
         break;
     case CMD_CHIP_ERASE:
+        if (chipIsBusy()) {
+            commandWhileBusyCount++;
+        }
         chipEraseCount++;
         chipBusyFor(chipEraseBusyMs);
         break;
@@ -120,6 +127,9 @@ void spiSequence(const extDevice_t *dev, busSegment_t *segments)
 {
     (void)dev;
     if (segments[0].u.buffers.txData[0] == CMD_PAGE_PROGRAM) {
+        if (chipIsBusy()) {
+            commandWhileBusyCount++;
+        }
         pageProgramCount++;
         chipBusyFor(pageProgramBusyMs);
     }
@@ -140,7 +150,7 @@ protected:
         chipEraseBusyMs = 0;
         pageProgramBusyMs = 0;
         busBusyPolls = 0;
-        blockEraseCount = chipEraseCount = pageProgramCount = 0;
+        blockEraseCount = chipEraseCount = pageProgramCount = commandWhileBusyCount = 0;
         memset(&fakeBus, 0, sizeof(fakeBus));
         memset(&fakeDev, 0, sizeof(fakeDev));
         fakeDev.bus = &fakeBus;
@@ -173,6 +183,7 @@ TEST_F(FlashM25p16TimeoutTest, ProgramAfterBlockEraseLongerThan500ms)
     fdevice.vTable->eraseSector(&fdevice, 0);
     EXPECT_EQ(sizeof(data), program());
     EXPECT_EQ(1, pageProgramCount);
+    EXPECT_EQ(0, commandWhileBusyCount);
 }
 
 TEST_F(FlashM25p16TimeoutTest, ProgramAfterBlockEraseAtDatasheetMaximum)
@@ -189,6 +200,7 @@ TEST_F(FlashM25p16TimeoutTest, ProgramAfterBlockEraseOfHybridParameterRegionAtMa
     EXPECT_EQ(sizeof(data), program());
     EXPECT_EQ(1, blockEraseCount);
     EXPECT_EQ(1, pageProgramCount);
+    EXPECT_EQ(0, commandWhileBusyCount); // the program waited for the erase to finish
 }
 
 TEST_F(FlashM25p16TimeoutTest, ProgramAfterChipEraseOfW25q512AtMaximum)
@@ -198,6 +210,7 @@ TEST_F(FlashM25p16TimeoutTest, ProgramAfterChipEraseOfW25q512AtMaximum)
     EXPECT_EQ(sizeof(data), program());
     EXPECT_EQ(1, chipEraseCount);
     EXPECT_EQ(1, pageProgramCount);
+    EXPECT_EQ(0, commandWhileBusyCount); // the program waited for the erase to finish
 }
 
 TEST_F(FlashM25p16TimeoutTest, BackToBackBlockErasesBothReachTheChip)
@@ -261,11 +274,16 @@ TEST_F(FlashM25p16TimeoutTest, StuckChipAfterProgramTimesOutQuickly)
 
 TEST_F(FlashM25p16TimeoutTest, WaitSurvivesMillisWraparound)
 {
-    fakeNowMs = 0xFFFFFFFFu - 500u; // the erase stays busy across the 2^32 wrap
+    fakeNowMs = 0xFFFFFFFFu - 500u;
+    busyUntilMs = fakeNowMs; // chip idle: the busy period below starts with the erase
     blockEraseBusyMs = 1500;
     fdevice.vTable->eraseSector(&fdevice, 0);
+    EXPECT_GT(fakeNowMs, 0xF0000000u); // the erase started before the 2^32 wrap
+    EXPECT_EQ(1, blockEraseCount);
     EXPECT_EQ(sizeof(data), program());
     EXPECT_LT(fakeNowMs, 2000u); // clock wrapped while the chip was busy
+    EXPECT_EQ(0, commandWhileBusyCount);
+    EXPECT_EQ(1, pageProgramCount);
 }
 
 TEST_F(FlashM25p16TimeoutTest, ProgramAtMaximumOfFiveMilliseconds)
@@ -297,4 +315,27 @@ TEST_F(FlashM25p16TimeoutTest, StuckSharedBusStillTimesOut)
     EXPECT_EQ(0u, program());
     EXPECT_EQ(0, pageProgramCount);
     EXPECT_LT(fakeNowMs - start, 1000u);
+}
+
+TEST_F(FlashM25p16TimeoutTest, ExpiredChipDeadlineDoesNotFailWhileOnlyTheBusIsHeld)
+{
+    pageProgramBusyMs = 3;
+    EXPECT_EQ(sizeof(data), program()); // couldBeBusy stays true, deadline is now + 6 ms
+    fakeNowMs += 100; // chip finished long ago; the 6 ms page program deadline has passed
+    fakeBus.useDMA = true;
+    busBusyPolls = 100; // another device holds the shared bus for 100 ms (below the 500 ms bound)
+    EXPECT_EQ(sizeof(data), program());
+    EXPECT_EQ(2, pageProgramCount);
+    EXPECT_EQ(0, commandWhileBusyCount);
+}
+
+TEST_F(FlashM25p16TimeoutTest, ChipStillBusyAfterBusFreesStillTimesOut)
+{
+    blockEraseBusyMs = FOREVER;
+    fdevice.vTable->eraseSector(&fdevice, 0);
+    fakeNowMs += 20000; // past the 10.4 s block erase deadline
+    fakeBus.useDMA = true;
+    busBusyPolls = 10;
+    EXPECT_EQ(0u, program()); // bus frees, status poll shows WIP, deadline already passed
+    EXPECT_EQ(0, pageProgramCount);
 }
