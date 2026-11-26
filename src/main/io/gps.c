@@ -267,9 +267,10 @@ static ubloxVersion_e ubloxParseHwVersion(const char *hwVersion) {
 static const uint8_t ubloxNavMessages[] = { 0x02, 0x03, 0x12, 0x06, 0x07, 0x30, 0x35 };
 
 // NAV-SOL and NAV-SVINFO exist up to M8, NAV-PVT from M7, NAV-SAT from M8. An unknown receiver gets every message.
-// NAV-SOL carries the satellite count, DOP and time up to M8, so NAV-PVT is enabled from M9 only: POSLLH, STATUS,
-// VELNED and PVT together are 204 bytes per epoch (1020 bytes/s at 5 Hz), more than the 960 bytes/s of 9600 baud.
-// M8 keeps SOL (164 bytes per epoch) and NAV-SAT every 5 epochs: 896 bytes/s with five satellites.
+// From M9 on NAV-PVT carries position, velocity, fix, DOP, time and satellite count, so POSLLH, STATUS and VELNED are
+// off there: PVT (100 bytes per epoch, 500 bytes/s at 5 Hz) plus NAV-SAT every 5 epochs (16 + 12n bytes per second)
+// is 516 + 12n bytes/s, within the 960 bytes/s of 9600 baud up to n = 37 satellites (with the legacy trio it was 1036 + 12n).
+// M8 keeps SOL with the legacy trio (164 bytes per epoch) and NAV-SAT every 5 epochs: 896 bytes/s with five satellites.
 static uint8_t ubloxMessageRate(ubloxVersion_e version, uint8_t msgId) {
     switch (msgId) {
     case 0x06: // NAV-SOL
@@ -281,8 +282,8 @@ static uint8_t ubloxMessageRate(ubloxVersion_e version, uint8_t msgId) {
         return version >= UBX_VERSION_M9 ? UBLOX_RATE_SKIP : 0;
     case 0x35: // NAV-SAT, every 5 epochs
         return (version == UBX_VERSION_UNDEF || version >= UBX_VERSION_M8) ? 5 : 0;
-    default:   // POSLLH, STATUS, VELNED
-        return 1;
+    default:   // POSLLH, STATUS, VELNED: NAV-PVT replaces them from M9
+        return (version != UBX_VERSION_UNDEF && version >= UBX_VERSION_M9) ? 0 : 1;
     }
 }
 
@@ -299,6 +300,16 @@ static uint32_t ubloxValsetKey(uint8_t msgId) {
     }
 }
 
+// CFG-MSGOUT-NMEA_ID_<sentence>_UART1 keys, sent with value 0 on M9 and later; M5-M8 take the CFG-MSG frames in ubloxInit.
+static const uint32_t ubloxNmeaOffKeys[] = {
+    0x209100bb, // GGA
+    0x209100ca, // GLL
+    0x209100c0, // GSA
+    0x209100c5, // GSV
+    0x209100ac, // RMC
+    0x209100b1, // VTG
+};
+
 #define UBLOX_CLASS_NAV 0x01
 #define UBLOX_CLASS_MON 0x0A
 #define UBLOX_MSG_MON_VER 0x04
@@ -309,6 +320,57 @@ static uint32_t ubloxValsetKey(uint8_t msgId) {
 #define UBLOX_VERSION_POLL_COUNT 4
 
 static void ubloxWriteFrame(uint8_t cls, uint8_t id, const uint8_t *payload, uint8_t length);
+
+// Each CFG frame is answered by UBX-ACK-ACK or UBX-ACK-NACK naming its class and id. The configure phase sends the next
+// frame after the answer or after UBLOX_ACK_TIMEOUT_MS, so one frame is in flight at a time (as BF does). A NACK or a
+// timeout does not stop the configuration: the receiver may lack the message, and BF also goes on.
+#define UBLOX_ACK_TIMEOUT_MS 150
+static bool ubloxAckWaiting;
+static uint8_t ubloxAckClass;
+static uint8_t ubloxAckId;
+static uint32_t ubloxAckSentMs;
+
+// Receiver generation the message set was chosen for; a late MON-VER reply does not change it.
+static ubloxVersion_e ubloxConfigVersion = UBX_VERSION_UNDEF;
+
+// From M9 NAV-PVT is the only position source; POSLLH, STATUS and VELNED are ignored so one epoch gives one frame.
+static bool ubloxPositionFromPvt(void) {
+    return ubloxConfigVersion >= UBX_VERSION_M9;
+}
+
+// One frame: CFG-VALSET (RAM layer) from M9, CFG-MSG before.
+static void ubloxSendMessageRate(ubloxVersion_e version, uint8_t msgId, uint8_t rate) {
+    if (version >= UBX_VERSION_M9) {
+        const uint32_t key = ubloxValsetKey(msgId);
+        const uint8_t payload[UBLOX_CFG_VALSET_PAYLOAD_LENGTH] = {
+            0x00, 0x01, 0x00, 0x00, // version 0, layer RAM
+            (uint8_t)key, (uint8_t)(key >> 8), (uint8_t)(key >> 16), (uint8_t)(key >> 24), rate
+        };
+        ubloxWriteFrame(0x06, 0x8A, payload, sizeof(payload));
+    } else {
+        const uint8_t payload[UBLOX_CFG_MSG_PAYLOAD_LENGTH] = { UBLOX_CLASS_NAV, msgId, rate };
+        ubloxWriteFrame(0x06, 0x01, payload, sizeof(payload));
+    }
+}
+
+// Satellite info is switched off on arming to keep the flight stream small (BF does the same).
+static const uint8_t ubloxSatInfoMessages[] = { 0x30, 0x35 };
+static uint8_t ubloxSatInfoOffCount;
+
+// One frame per call, only while armed and the transmit buffer is empty; gpsSetState restarts the count.
+static void ubloxSatInfoOffWhenArmed(void) {
+    if (!ARMING_FLAG(ARMED) || gpsConfig()->autoConfig == GPS_AUTOCONFIG_OFF || !isSerialTransmitBufferEmpty(gpsPort)) {
+        return;
+    }
+    while (ubloxSatInfoOffCount < ARRAYLEN(ubloxSatInfoMessages)) {
+        const uint8_t msgId = ubloxSatInfoMessages[ubloxSatInfoOffCount++];
+        const uint8_t rate = ubloxMessageRate(ubloxConfigVersion, msgId);
+        if (rate != UBLOX_RATE_SKIP && rate != 0) {
+            ubloxSendMessageRate(ubloxConfigVersion, msgId, 0);
+            return;
+        }
+    }
+}
 #endif // USE_GPS_UBLOX
 
 typedef enum {
@@ -355,6 +417,10 @@ static void gpsSetState(gpsState_e state) {
     gpsData.state_position = 0;
     gpsData.state_ts = millis();
     gpsData.messageState = GPS_MESSAGE_STATE_IDLE;
+#ifdef USE_GPS_UBLOX
+    ubloxSatInfoOffCount = 0;
+    ubloxAckWaiting = false;
+#endif
 }
 
 void gpsInit(void) {
@@ -363,6 +429,7 @@ void gpsInit(void) {
     gpsData.timeouts = 0;
 #ifdef USE_GPS_UBLOX
     gpsData.platformVersion = UBX_VERSION_UNDEF;
+    ubloxConfigVersion = UBX_VERSION_UNDEF;
 #endif
     memset(gpsPacketLog, 0x00, sizeof(gpsPacketLog));
     // init gpsData structure. if we're not actually enabled, don't bother doing anything else
@@ -447,7 +514,6 @@ void gpsInitNmea(void) {
 
 #ifdef USE_GPS_UBLOX
 void gpsInitUblox(void) {
-    static ubloxVersion_e configVersion = UBX_VERSION_UNDEF;
     uint32_t now;
     // UBX will run at the serial port's baudrate, it shouldn't be "autodetected". So here we force it to that rate
     // Wait until GPS transmit buffer is empty
@@ -503,8 +569,11 @@ void gpsInitUblox(void) {
             }
             // leave once the receiver answered, or after the last poll had its time to be answered
             if (gpsData.platformVersion != UBX_VERSION_UNDEF || gpsData.state_position > UBLOX_VERSION_POLL_COUNT) {
-                // a reply that arrives later must not change the set that is being sent
-                configVersion = gpsData.platformVersion;
+                // a reply that arrives later must not change the set that is being sent; a silent receiver keeps the
+                // generation identified earlier since power-up, so a link interruption does not turn an M10 into "unknown"
+                if (gpsData.platformVersion != UBX_VERSION_UNDEF) {
+                    ubloxConfigVersion = gpsData.platformVersion;
+                }
                 gpsData.state_position = 0;
                 gpsData.messageState++;
             } else if (gpsData.state_position == 0 || millis() - gpsData.state_ts >= UBLOX_VERSION_POLL_INTERVAL_MS) {
@@ -516,25 +585,30 @@ void gpsInitUblox(void) {
             }
         }
         if (gpsData.messageState == GPS_MESSAGE_STATE_MESSAGES) {
+            if (ubloxAckWaiting) {
+                if (millis() - ubloxAckSentMs < UBLOX_ACK_TIMEOUT_MS) {
+                    break; // the receiver has not answered the last frame yet
+                }
+                ubloxAckWaiting = false;
+            }
             // one frame per call; a message this receiver generation lacks is skipped
             while (gpsData.state_position < ARRAYLEN(ubloxNavMessages) &&
-                   ubloxMessageRate(configVersion, ubloxNavMessages[gpsData.state_position]) == UBLOX_RATE_SKIP) {
+                   ubloxMessageRate(ubloxConfigVersion, ubloxNavMessages[gpsData.state_position]) == UBLOX_RATE_SKIP) {
                 gpsData.state_position++;
             }
             if (gpsData.state_position < ARRAYLEN(ubloxNavMessages)) {
                 const uint8_t msgId = ubloxNavMessages[gpsData.state_position];
-                const uint8_t rate = ubloxMessageRate(configVersion, msgId);
-                if (configVersion >= UBX_VERSION_M9) {
-                    const uint32_t key = ubloxValsetKey(msgId);
-                    const uint8_t payload[UBLOX_CFG_VALSET_PAYLOAD_LENGTH] = {
-                        0x00, 0x01, 0x00, 0x00, // version 0, layer RAM
-                        (uint8_t)key, (uint8_t)(key >> 8), (uint8_t)(key >> 16), (uint8_t)(key >> 24), rate
-                    };
-                    ubloxWriteFrame(0x06, 0x8A, payload, sizeof(payload));
-                } else {
-                    const uint8_t payload[UBLOX_CFG_MSG_PAYLOAD_LENGTH] = { UBLOX_CLASS_NAV, msgId, rate };
-                    ubloxWriteFrame(0x06, 0x01, payload, sizeof(payload));
-                }
+                const uint8_t rate = ubloxMessageRate(ubloxConfigVersion, msgId);
+                ubloxSendMessageRate(ubloxConfigVersion, msgId, rate);
+                gpsData.state_position++;
+            } else if (ubloxConfigVersion >= UBX_VERSION_M9 &&
+                       gpsData.state_position - ARRAYLEN(ubloxNavMessages) < ARRAYLEN(ubloxNmeaOffKeys)) {
+                const uint32_t key = ubloxNmeaOffKeys[gpsData.state_position - ARRAYLEN(ubloxNavMessages)];
+                const uint8_t payload[UBLOX_CFG_VALSET_PAYLOAD_LENGTH] = {
+                    0x00, 0x01, 0x00, 0x00, // version 0, layer RAM
+                    (uint8_t)key, (uint8_t)(key >> 8), (uint8_t)(key >> 16), (uint8_t)(key >> 24), 0 // 0 = sentence off
+                };
+                ubloxWriteFrame(0x06, 0x8A, payload, sizeof(payload));
                 gpsData.state_position++;
             } else {
                 gpsData.state_position = 0;
@@ -627,6 +701,11 @@ void gpsUpdate(timeUs_t currentTimeUs) {
             sensorsClear(SENSOR_GPS);
             gpsSetState(GPS_LOST_COMMUNICATION);
         }
+#ifdef USE_GPS_UBLOX
+        else if (gpsConfig()->provider == GPS_UBLOX) {
+            ubloxSatInfoOffWhenArmed();
+        }
+#endif
         break;
     }
     if (sensors(SENSOR_GPS)) {
@@ -1085,6 +1164,12 @@ typedef struct {
     ubx_nav_svinfo_channel channel[16];         // 16 satellites * 12 byte
 } ubx_nav_svinfo;
 
+#define UBX_NAV_SVINFO_HEADER_SIZE 8
+#define UBX_NAV_SVINFO_CHANNEL_SIZE 12
+
+STATIC_ASSERT(sizeof(ubx_nav_svinfo_channel) == UBX_NAV_SVINFO_CHANNEL_SIZE, ubx_nav_svinfo_channel_size_must_match_spec);
+STATIC_ASSERT(offsetof(ubx_nav_svinfo, channel) == UBX_NAV_SVINFO_HEADER_SIZE, ubx_nav_svinfo_header_size);
+
 typedef struct {
     uint8_t gnssId;
     uint8_t svId;
@@ -1235,6 +1320,12 @@ static void ubloxWriteFrame(uint8_t cls, uint8_t id, const uint8_t *payload, uin
     }
     serialWrite(gpsPort, ck_a);
     serialWrite(gpsPort, ck_b);
+    if (cls == CLASS_CFG) {
+        ubloxAckWaiting = true;
+        ubloxAckClass = cls;
+        ubloxAckId = id;
+        ubloxAckSentMs = millis();
+    }
 }
 
 
@@ -1252,8 +1343,19 @@ static bool UBLOX_parse_gps(void) {
         }
         return false;
     }
+    if (_class == CLASS_ACK) {
+        // payload: class and id of the acknowledged frame
+        if (_payload_length == 2 && ubloxAckWaiting && _buffer.bytes[0] == ubloxAckClass && _buffer.bytes[1] == ubloxAckId &&
+            (_msg_id == MSG_ACK_ACK || _msg_id == MSG_ACK_NACK)) {
+            ubloxAckWaiting = false;
+        }
+        return false;
+    }
     switch (_msg_id) {
     case MSG_POSLLH:
+        if (ubloxPositionFromPvt()) {
+            break;
+        }
         *gpsPacketLogChar = LOG_UBLOX_POSLLH;
         //i2c_dataset.time                = _buffer.posllh.time;
         gpsSol.llh.lon = _buffer.posllh.longitude;
@@ -1267,6 +1369,9 @@ static bool UBLOX_parse_gps(void) {
         _new_position = true;
         break;
     case MSG_STATUS:
+        if (ubloxPositionFromPvt()) {
+            break;
+        }
         *gpsPacketLogChar = LOG_UBLOX_STATUS;
         next_fix = (_buffer.status.fix_status & NAV_STATUS_FIX_VALID) && (_buffer.status.fix_type == FIX_3D);
         if (!next_fix)
@@ -1289,7 +1394,7 @@ static bool UBLOX_parse_gps(void) {
 #endif
         break;
     case MSG_PVT:
-        // NAV-SOL is removed on M10; PVT supplies the satellite count there. Fix and position stay with STATUS/POSLLH.
+        // NAV-SOL is removed on M10; PVT supplies the satellite count there.
         if (_class != CLASS_NAV || _payload_length < UBX_NAV_PVT_MIN_LENGTH) {
             break;
         }
@@ -1325,27 +1430,59 @@ static bool UBLOX_parse_gps(void) {
             }
         }
 #endif
+        // From M9 POSLLH, STATUS and VELNED are off and PVT carries what they carry; earlier receivers send both.
+        if (ubloxPositionFromPvt()) {
+            // same units as the POSLLH and VELNED cases: lon/lat 1e-7 deg, altitude MSL mm to cm, ground speed mm/s to cm/s, heading 1e-5 deg to deg * 10
+            next_fix = (_buffer.pvt.flags & NAV_STATUS_FIX_VALID) && (_buffer.pvt.fix_type == FIX_3D);
+            gpsSol.llh.lon = _buffer.pvt.longitude;
+            gpsSol.llh.lat = _buffer.pvt.latitude;
+            gpsSol.llh.alt = _buffer.pvt.altitude_msl / 10;
+            gpsSol.groundSpeed = _buffer.pvt.ground_speed / 10;
+            gpsSol.groundCourse = (uint16_t) (_buffer.pvt.heading_motion / 10000);
+            if (next_fix) {
+                ENABLE_STATE(GPS_FIX);
+            } else {
+                DISABLE_STATE(GPS_FIX);
+            }
+            _new_position = true;
+            _new_speed = true;
+        }
         break;
     case MSG_VELNED:
+        if (ubloxPositionFromPvt()) {
+            break;
+        }
         *gpsPacketLogChar = LOG_UBLOX_VELNED;
         // speed_3d                        = _buffer.velned.speed_3d;  // cm/s
         gpsSol.groundSpeed = _buffer.velned.speed_2d;    // cm/s
         gpsSol.groundCourse = (uint16_t) (_buffer.velned.heading_2d / 10000);     // Heading 2D deg * 100000 rescaled to deg * 10
         _new_speed = true;
         break;
-    case MSG_SVINFO:
+    case MSG_SVINFO: {
+        if (_class != CLASS_NAV || _payload_length < UBX_NAV_SVINFO_HEADER_SIZE) {
+            break;
+        }
         *gpsPacketLogChar = LOG_UBLOX_SVINFO;
-        GPS_numCh = _buffer.svinfo.numCh;
-        if (GPS_numCh > 16)
-            GPS_numCh = 16;
-        for (i = 0; i < GPS_numCh; i++) {
+        const uint16_t stored = MIN(_payload_length, UBLOX_PAYLOAD_SIZE);
+        uint8_t count = MIN(_buffer.svinfo.numCh, (stored - UBX_NAV_SVINFO_HEADER_SIZE) / UBX_NAV_SVINFO_CHANNEL_SIZE);
+        count = MIN(count, GPS_SV_MAXSATS);
+        GPS_numCh = count;
+        for (i = 0; i < count; i++) {
             GPS_svinfo_chn[i] = _buffer.svinfo.channel[i].chn;
             GPS_svinfo_svid[i] = _buffer.svinfo.channel[i].svid;
             GPS_svinfo_quality[i] = _buffer.svinfo.channel[i].quality;
             GPS_svinfo_cno[i] = _buffer.svinfo.channel[i].cno;
         }
+        // clear the entries left over from an earlier, longer message: consumers read the whole array
+        for (; i < GPS_SV_MAXSATS; i++) {
+            GPS_svinfo_chn[i] = 0;
+            GPS_svinfo_svid[i] = 0;
+            GPS_svinfo_quality[i] = 0;
+            GPS_svinfo_cno[i] = 0;
+        }
         GPS_svInfoReceivedCount++;
         break;
+    }
     case MSG_SAT: {
         if (_class != CLASS_NAV || _payload_length < UBX_NAV_SAT_HEADER_SIZE) {
             break;

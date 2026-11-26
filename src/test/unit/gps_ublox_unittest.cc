@@ -104,10 +104,40 @@ static void feed(const std::vector<uint8_t> &f)
     }
 }
 
+static std::vector<uint8_t> monVerPayload(const char *hw, size_t extensions = 2)
+{
+    std::vector<uint8_t> p(40 + 30 * extensions, 0);
+    strncpy((char *)&p[0], "EXT CORE 1.00", 30);
+    strncpy((char *)&p[30], hw, 10);
+    return p;
+}
+
+// Runs the configure state machine to its end so the parser sees the generation the message set was chosen for
+// (hw = NULL: silent receiver, unknown generation). The frames written are discarded.
+static void configureReceiver(const char *hw)
+{
+    gpsConfigMutable()->autoConfig = GPS_AUTOCONFIG_ON;
+    gpsConfigMutable()->gps_ublox_use_galileo = false;
+    testMillis = 0;
+    gpsData.state = 3;                        // GPS_CONFIGURE
+    gpsData.state_position = 0;
+    gpsData.messageState = GPS_MESSAGE_STATE_IDLE;
+    gpsData.platformVersion = UBX_VERSION_UNDEF;
+    for (int i = 0; i < 4000 && gpsData.state == 3; i++) {
+        gpsInitUblox();
+        testMillis += 300;
+        if (hw && gpsData.messageState == GPS_MESSAGE_STATE_VERSION && gpsData.platformVersion == UBX_VERSION_UNDEF) {
+            feed(ubxFrame(0x0A, 0x04, monVerPayload(hw)));
+        }
+    }
+}
+
 class GpsUbloxTest : public ::testing::Test {
 protected:
     void SetUp() override {
         gpsConfigMutable()->provider = GPS_UBLOX;
+        gpsInit();                       // forgets the generation of an earlier test
+        configureReceiver(NULL);
         // NAV-STATUS without a fix resets the parser's static next_fix through the real path
         feed(ubxFrame(0x01, 0x03, std::vector<uint8_t>(16, 0)));
         memset(&gpsSol, 0, sizeof(gpsSol));
@@ -317,6 +347,89 @@ TEST_F(GpsUbloxTest, NavSatShorterMessageClearsEntriesOfEarlierOne)
     }
 }
 
+// NAV-SVINFO per the u-blox 6 spec: 8-byte header (iTOW, numCh, globalFlags, reserved), then 12 bytes per channel:
+// chn, svid, flags, quality, cno, elev, azim (I2), prRes (I4).
+static std::vector<uint8_t> navSvinfoPayload(uint8_t numChField, uint8_t countInPayload, uint8_t firstSvId, uint8_t chn = 1)
+{
+    std::vector<uint8_t> p(8 + 12 * countInPayload, 0);
+    p[4] = numChField;
+    for (uint8_t i = 0; i < countInPayload; i++) {
+        uint8_t *ch = &p[8 + 12 * i];
+        ch[0] = chn;
+        ch[1] = firstSvId + i;
+        ch[3] = 4;                // quality
+        ch[4] = 30 + i;           // cno
+    }
+    return p;
+}
+
+TEST_F(GpsUbloxTest, NavSvinfoFillsSignalTable)
+{
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(3, 3, 7)));
+    EXPECT_EQ(3, GPS_numCh);
+    for (int i = 0; i < 3; i++) {
+        EXPECT_EQ(1, GPS_svinfo_chn[i]);
+        EXPECT_EQ(7 + i, GPS_svinfo_svid[i]);
+        EXPECT_EQ(4, GPS_svinfo_quality[i]);
+        EXPECT_EQ(30 + i, GPS_svinfo_cno[i]);
+    }
+    EXPECT_EQ(1, GPS_svInfoReceivedCount);
+}
+
+TEST_F(GpsUbloxTest, NavSvinfoShorterMessageClearsEntriesOfEarlierOne)
+{
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(16, 16, 1, 9)));
+    EXPECT_EQ(16, GPS_numCh);
+    EXPECT_EQ(9, GPS_svinfo_chn[15]);
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(3, 3, 50)));
+    EXPECT_EQ(3, GPS_numCh);
+    for (int i = 3; i < 16; i++) {
+        EXPECT_EQ(0, GPS_svinfo_chn[i]);
+        EXPECT_EQ(0, GPS_svinfo_svid[i]);
+        EXPECT_EQ(0, GPS_svinfo_quality[i]);
+        EXPECT_EQ(0, GPS_svinfo_cno[i]);
+    }
+}
+
+TEST_F(GpsUbloxTest, NavSvinfoCountFieldLargerThanPayloadIsClamped)
+{
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(16, 16, 1, 9)));       // leaves channel data in the receive buffer
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(12, 2, 50)));          // claims 12 channels, carries 2
+    EXPECT_EQ(2, GPS_numCh);
+    EXPECT_EQ(50, GPS_svinfo_svid[0]);
+    EXPECT_EQ(51, GPS_svinfo_svid[1]);
+    for (int i = 2; i < 16; i++) {
+        EXPECT_EQ(0, GPS_svinfo_svid[i]);
+    }
+}
+
+TEST_F(GpsUbloxTest, NavSvinfoShorterThanHeaderIsIgnored)
+{
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(3, 3, 7)));
+    const uint8_t received = GPS_svInfoReceivedCount;
+    feed(ubxFrame(0x01, 0x30, std::vector<uint8_t>(7, 0x20)));
+    EXPECT_EQ(3, GPS_numCh);
+    EXPECT_EQ(7, GPS_svinfo_svid[0]);
+    EXPECT_EQ(received, GPS_svInfoReceivedCount);
+}
+
+TEST_F(GpsUbloxTest, MessageId30InOtherClassIsIgnored)
+{
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(3, 3, 7)));
+    const uint8_t received = GPS_svInfoReceivedCount;
+    feed(ubxFrame(0x0B, 0x30, navSvinfoPayload(16, 16, 90)));
+    EXPECT_EQ(3, GPS_numCh);
+    EXPECT_EQ(7, GPS_svinfo_svid[0]);
+    EXPECT_EQ(received, GPS_svInfoReceivedCount);
+}
+
+TEST_F(GpsUbloxTest, NavSvinfoCountAboveTableSizeIsCappedAtSixteen)
+{
+    feed(ubxFrame(0x01, 0x30, navSvinfoPayload(28, 28, 1)));
+    EXPECT_EQ(16, GPS_numCh);
+    EXPECT_EQ(16, GPS_svinfo_svid[15]);
+}
+
 TEST_F(GpsUbloxTest, NavSatSixteenAndSeventeenEntriesAreCappedAtSixteen)
 {
     feed(ubxFrame(0x01, 0x35, navSatPayload(16, 16, 1)));
@@ -370,14 +483,6 @@ TEST_F(GpsUbloxTest, NavSatKeepsGnssIdPerEntry)
 }
 
 // UBX-MON-VER: swVersion[30], hwVersion[10], extension strings (30 bytes each).
-static std::vector<uint8_t> monVerPayload(const char *hw, size_t extensions = 2)
-{
-    std::vector<uint8_t> p(40 + 30 * extensions, 0);
-    strncpy((char *)&p[0], "EXT CORE 1.00", 30);
-    strncpy((char *)&p[30], hw, 10);
-    return p;
-}
-
 static void expectMonVer(const char *hw, ubloxVersion_e expected)
 {
     gpsData.platformVersion = UBX_VERSION_UNDEF;
@@ -523,15 +628,15 @@ protected:
     }
 };
 
-TEST_F(GpsUbloxConfigTest, M10UsesValsetForPvtSatAndPosition)
+TEST_F(GpsUbloxConfigTest, M10UsesValsetForPvtSatAndSwitchesTheLegacyPositionMessagesOff)
 {
     run("000A0000");
     EXPECT_TRUE(polled());
     EXPECT_EQ(1, valsetRateOf(0x20910007));   // PVT
     EXPECT_EQ(5, valsetRateOf(0x20910016));   // SAT
-    EXPECT_EQ(1, valsetRateOf(0x2091002a));   // POSLLH
-    EXPECT_EQ(1, valsetRateOf(0x2091001b));   // STATUS
-    EXPECT_EQ(1, valsetRateOf(0x20910043));   // VELNED
+    EXPECT_EQ(0, valsetRateOf(0x2091002a));   // POSLLH: NAV-PVT carries position
+    EXPECT_EQ(0, valsetRateOf(0x2091001b));   // STATUS: NAV-PVT carries the fix
+    EXPECT_EQ(0, valsetRateOf(0x20910043));   // VELNED: NAV-PVT carries the velocity
     for (uint8_t id : {0x02, 0x03, 0x12, 0x06, 0x07, 0x30, 0x35}) {
         EXPECT_EQ(-1, rateOf(id)) << "legacy CFG-MSG for NAV id " << (int)id;
     }
@@ -543,9 +648,9 @@ TEST_F(GpsUbloxConfigTest, M9UsesValsetLikeM10)
     run("00190000");
     EXPECT_EQ(1, valsetRateOf(0x20910007));
     EXPECT_EQ(5, valsetRateOf(0x20910016));
-    EXPECT_EQ(1, valsetRateOf(0x2091002a));
-    EXPECT_EQ(1, valsetRateOf(0x2091001b));
-    EXPECT_EQ(1, valsetRateOf(0x20910043));
+    EXPECT_EQ(0, valsetRateOf(0x2091002a));
+    EXPECT_EQ(0, valsetRateOf(0x2091001b));
+    EXPECT_EQ(0, valsetRateOf(0x20910043));
     EXPECT_EQ(-1, rateOf(0x07));
 }
 
@@ -564,7 +669,56 @@ TEST_F(GpsUbloxConfigTest, ValsetFramesHaveVersionZeroRamLayerAndZeroReservedByt
             EXPECT_EQ(0x00, tx[i + 9]);   // reserved
         }
     }
-    EXPECT_EQ(5, frames);
+    EXPECT_EQ(5 + 6, frames);   // five NAV rates and six NMEA sentences
+}
+
+// NMEA sentences off on M9 and later: CFG-VALSET, RAM layer, value 0; keys per the u-blox interface description
+// (CFG-MSGOUT-NMEA_ID_<sentence>_UART1), cross-checked against the gpsd key table and Betaflight.
+TEST_F(GpsUbloxConfigTest, M10SwitchesNmeaSentencesOffWithValset)
+{
+    run("000A0000");
+    EXPECT_EQ(0, valsetRateOf(0x209100bb));   // GGA
+    EXPECT_EQ(0, valsetRateOf(0x209100ca));   // GLL
+    EXPECT_EQ(0, valsetRateOf(0x209100c0));   // GSA
+    EXPECT_EQ(0, valsetRateOf(0x209100c5));   // GSV
+    EXPECT_EQ(0, valsetRateOf(0x209100ac));   // RMC
+    EXPECT_EQ(0, valsetRateOf(0x209100b1));   // VTG
+}
+
+TEST_F(GpsUbloxConfigTest, M9SwitchesNmeaSentencesOffWithValset)
+{
+    run("00190000");
+    for (uint32_t key : {0x209100bb, 0x209100ca, 0x209100c0, 0x209100c5, 0x209100ac, 0x209100b1}) {
+        EXPECT_EQ(0, valsetRateOf(key)) << std::hex << key;
+    }
+}
+
+TEST_F(GpsUbloxConfigTest, M8AndEarlierSendNoNmeaValset)
+{
+    for (const char *hw : {"00080000", "00070000", "00040007", "00040005", (const char *)NULL}) {
+        tx.clear();
+        gpsData.state = 3;
+        gpsData.state_position = 0;
+        gpsData.messageState = GPS_MESSAGE_STATE_IDLE;
+        gpsData.platformVersion = UBX_VERSION_UNDEF;
+        run(hw);
+        for (uint32_t key : {0x209100bb, 0x209100ca, 0x209100c0, 0x209100c5, 0x209100ac, 0x209100b1}) {
+            EXPECT_EQ(-1, valsetRateOf(key)) << (hw ? hw : "silent") << " " << std::hex << key;
+        }
+    }
+}
+
+TEST_F(GpsUbloxConfigTest, LegacyNmeaOffFramesRemainForOlderReceivers)
+{
+    run("00080000");
+    int frames = 0;
+    for (size_t i = 0; i + 11 <= tx.size(); i++) {
+        if (tx[i] == 0xB5 && tx[i + 1] == 0x62 && tx[i + 2] == 0x06 && tx[i + 3] == 0x01 &&
+            tx[i + 4] == 0x03 && tx[i + 6] == 0xF0 && tx[i + 8] == 0x00) {
+            frames++;
+        }
+    }
+    EXPECT_EQ(6, frames);   // GGA, GLL, GSA, GSV, RMC, VTG
 }
 
 TEST_F(GpsUbloxConfigTest, SecondPollWaitsForTheFullInterval)
@@ -586,6 +740,9 @@ TEST_F(GpsUbloxConfigTest, SecondPollWaitsForTheFullInterval)
 TEST_F(GpsUbloxConfigTest, M5UsesSolAndSvinfoOnly)
 {
     run("00040005");
+    EXPECT_EQ(1, rateOf(0x02));
+    EXPECT_EQ(1, rateOf(0x03));
+    EXPECT_EQ(1, rateOf(0x12));
     EXPECT_EQ(1, rateOf(0x06));
     EXPECT_EQ(5, rateOf(0x30));
     EXPECT_EQ(0, rateOf(0x07));
@@ -700,6 +857,9 @@ TEST_F(GpsUbloxConfigTest, M8UsesSolAndSatWithoutPvt)
     EXPECT_EQ(0, rateOf(0x07));
     EXPECT_EQ(5, rateOf(0x35));
     EXPECT_EQ(0, rateOf(0x30));
+    EXPECT_EQ(1, rateOf(0x02));   // legacy position messages stay on before M9
+    EXPECT_EQ(1, rateOf(0x03));
+    EXPECT_EQ(1, rateOf(0x12));
 }
 
 TEST_F(GpsUbloxConfigTest, M7UsesSolAndSvinfoWithoutPvt)
@@ -830,4 +990,424 @@ TEST_F(GpsUbloxTest, NavPvtCalendarBoundsAreAccepted)
 {
     feed(ubxFrame(0x01, 0x07, navPvtTimePayload(0x07, 0, 2000, 1, 1, 0, 0, 0)));
     expectClock(2000, 1, 1, 0, 0, 0, 0);
+}
+
+// NAV-PVT position fields from the u-blox protocol spec: fixType @20, flags @21, lon @24, lat @28, hMSL @36 (mm),
+// gSpeed @60 (mm/s), headMot @64 (1e-5 deg).
+static std::vector<uint8_t> navPvtNavPayload(int32_t lon, int32_t lat, int32_t hMslMm, int32_t gSpeedMmS, int32_t headMot,
+                                             uint8_t fixType = 3, uint8_t flags = 0x01)
+{
+    std::vector<uint8_t> p = navPvtPayload(12, 150);
+    auto put32 = [&p](size_t off, int32_t v) {
+        for (int i = 0; i < 4; i++) p[off + i] = ((uint32_t)v >> (8 * i)) & 0xFF;
+    };
+    p[20] = fixType;
+    p[21] = flags;
+    put32(24, lon);
+    put32(28, lat);
+    put32(36, hMslMm);
+    put32(60, gSpeedMmS);
+    put32(64, headMot);
+    return p;
+}
+
+// Legacy frames carrying the same values: POSLLH lon @4, lat @8, hMSL @16 (mm); STATUS fixType @4, flags @5;
+// VELNED gSpeed @20 (cm/s), heading @24 (1e-5 deg).
+static void put32le(std::vector<uint8_t> &p, size_t off, int32_t v)
+{
+    for (int i = 0; i < 4; i++) p[off + i] = ((uint32_t)v >> (8 * i)) & 0xFF;
+}
+
+static void feedLegacyPositionSet(int32_t lon, int32_t lat, int32_t hMslMm, int32_t gSpeedCmS, int32_t headMot)
+{
+    std::vector<uint8_t> status(16, 0);
+    status[4] = 3;
+    status[5] = 0x01;
+    feed(ubxFrame(0x01, 0x03, status));
+    std::vector<uint8_t> posllh(28, 0);
+    put32le(posllh, 4, lon);
+    put32le(posllh, 8, lat);
+    put32le(posllh, 16, hMslMm);
+    feed(ubxFrame(0x01, 0x02, posllh));
+    std::vector<uint8_t> velned(36, 0);
+    put32le(velned, 20, gSpeedCmS);
+    put32le(velned, 24, headMot);
+    feed(ubxFrame(0x01, 0x12, velned));
+}
+
+class GpsUbloxPvtPositionTest : public GpsUbloxTest {
+protected:
+    void SetUp() override {
+        GpsUbloxTest::SetUp();
+        configureReceiver("000A0000");   // M10: the message set has no POSLLH, STATUS or VELNED
+        memset(&gpsSol, 0, sizeof(gpsSol));
+        stateFlags = 0;
+    }
+};
+
+TEST_F(GpsUbloxPvtPositionTest, NavPvtSetsPositionVelocityAndFix)
+{
+    // lon -0.1234567 deg, lat 52.1234567 deg, 123456 mm MSL, 5678 mm/s, heading 123.45678 deg
+    bool parsed = false;
+    for (uint8_t c : ubxFrame(0x01, 0x07, navPvtNavPayload(-1234567, 521234567, 123456, 5678, 12345678))) {
+        parsed = gpsNewFrame(c);
+    }
+    EXPECT_TRUE(parsed);   // position and speed are both new: the frame callback fires
+    EXPECT_EQ(-1234567, gpsSol.llh.lon);
+    EXPECT_EQ(521234567, gpsSol.llh.lat);
+    EXPECT_EQ(12345, gpsSol.llh.alt);          // mm to cm
+    EXPECT_EQ(567, gpsSol.groundSpeed);        // mm/s to cm/s
+    EXPECT_EQ(1234, gpsSol.groundCourse);      // 123.45678 deg to deg * 10
+    EXPECT_EQ(12, gpsSol.numSat);
+    EXPECT_EQ(150, gpsSol.hdop);
+    EXPECT_TRUE(stateFlags & GPS_FIX);
+}
+
+TEST_F(GpsUbloxPvtPositionTest, NavPvtGivesTheSameFieldsAsPosllhStatusVelned)
+{
+    const int32_t lon = 87654321, lat = -337654321, hMslMm = -4250, gSpeedMmS = 12340, headMot = 35999999;
+    feed(ubxFrame(0x01, 0x07, navPvtNavPayload(lon, lat, hMslMm, gSpeedMmS, headMot)));
+    const gpsSolutionData_t fromPvt = gpsSol;
+    const bool fixFromPvt = stateFlags & GPS_FIX;
+    // the legacy trio on the same numbers (VELNED speed is in cm/s), unknown generation
+    gpsInit();
+    configureReceiver(NULL);
+    memset(&gpsSol, 0, sizeof(gpsSol));
+    stateFlags = 0;
+    feedLegacyPositionSet(lon, lat, hMslMm, gSpeedMmS / 10, headMot);
+    EXPECT_EQ(gpsSol.llh.lon, fromPvt.llh.lon);
+    EXPECT_EQ(gpsSol.llh.lat, fromPvt.llh.lat);
+    EXPECT_EQ(gpsSol.llh.alt, fromPvt.llh.alt);
+    EXPECT_EQ(gpsSol.groundSpeed, fromPvt.groundSpeed);
+    EXPECT_EQ(gpsSol.groundCourse, fromPvt.groundCourse);
+    EXPECT_EQ(3599, fromPvt.groundCourse);
+    EXPECT_EQ(-425, fromPvt.llh.alt);
+    EXPECT_EQ(fixFromPvt, (bool)(stateFlags & GPS_FIX));
+    EXPECT_TRUE(fixFromPvt);
+}
+
+TEST_F(GpsUbloxPvtPositionTest, FixNeedsA3dFixAndTheFixOkFlag)
+{
+    feed(ubxFrame(0x01, 0x07, navPvtNavPayload(1, 2, 3, 4, 5)));
+    ASSERT_TRUE(stateFlags & GPS_FIX);
+    feed(ubxFrame(0x01, 0x07, navPvtNavPayload(1, 2, 3, 4, 5, 2, 0x01)));   // 2D fix
+    EXPECT_FALSE(stateFlags & GPS_FIX);
+    feed(ubxFrame(0x01, 0x07, navPvtNavPayload(1, 2, 3, 4, 5)));
+    ASSERT_TRUE(stateFlags & GPS_FIX);
+    feed(ubxFrame(0x01, 0x07, navPvtNavPayload(1, 2, 3, 4, 5, 3, 0x00)));   // 3D, gnssFixOK clear
+    EXPECT_FALSE(stateFlags & GPS_FIX);
+}
+
+TEST_F(GpsUbloxPvtPositionTest, NavPvtPositionIsRejectedOnBadChecksumAndShortPayload)
+{
+    gpsSol.llh.lat = 77;
+    std::vector<uint8_t> f = ubxFrame(0x01, 0x07, navPvtNavPayload(1, 521234567, 3, 4, 5));
+    f.back() ^= 0xFF;
+    feed(f);
+    EXPECT_EQ(77, gpsSol.llh.lat);
+    std::vector<uint8_t> shortPayload = navPvtNavPayload(1, 521234567, 3, 4, 5);
+    shortPayload.resize(77);   // cuts pDOP
+    feed(ubxFrame(0x01, 0x07, shortPayload));
+    EXPECT_EQ(77, gpsSol.llh.lat);
+    EXPECT_FALSE(stateFlags & GPS_FIX);
+}
+
+TEST_F(GpsUbloxTest, NavPvtPositionIsIgnoredWhenTheLegacyMessagesAreOn)
+{
+    // unknown receiver: every message is on, POSLLH/STATUS/VELNED are the position source, PVT only counts and time
+    ASSERT_EQ(UBX_VERSION_UNDEF, gpsData.platformVersion);
+    gpsSol.llh.lat = 77;
+    feed(ubxFrame(0x01, 0x07, navPvtNavPayload(1, 521234567, 3, 4, 5)));
+    EXPECT_EQ(77, gpsSol.llh.lat);
+    EXPECT_FALSE(stateFlags & GPS_FIX);
+    EXPECT_EQ(12, gpsSol.numSat);
+}
+
+TEST_F(GpsUbloxTest, M8KeepsThePositionFromTheLegacyMessages)
+{
+    configureReceiver("00080000");
+    feed(ubxFrame(0x01, 0x07, navPvtNavPayload(1, 521234567, 3, 4, 5)));
+    EXPECT_EQ(0, gpsSol.llh.lat);
+    feedLegacyPositionSet(10, 20, 30000, 40, 5000000);
+    EXPECT_EQ(20, gpsSol.llh.lat);
+    EXPECT_EQ(3000, gpsSol.llh.alt);
+}
+
+// Arming switches the satellite info messages off, one CFG frame per gpsUpdate call.
+class GpsUbloxArmTest : public GpsUbloxConfigTest {
+protected:
+    void SetUp() override {
+        GpsUbloxConfigTest::SetUp();
+    }
+    // configure as `hw`, then be in the receiving state with an empty capture
+    void receiving(const char *hw) {
+        run(hw);
+        ASSERT_EQ(4, gpsData.state);   // GPS_RECEIVING_DATA
+        tx.clear();
+    }
+    void update() {
+        gpsData.lastMessage = testMillis;   // no receive timeout
+        gpsUpdate(0);
+    }
+};
+
+TEST_F(GpsUbloxArmTest, NothingIsSentWhileDisarmed)
+{
+    receiving("000A0000");
+    for (int i = 0; i < 5; i++) update();
+    EXPECT_TRUE(tx.empty());
+}
+
+TEST_F(GpsUbloxArmTest, M10ArmingSendsOneValsetSatelliteOffAndNothingMore)
+{
+    receiving("000A0000");
+    armingFlags |= 1;   // ARMED
+    update();
+    EXPECT_EQ(17u, tx.size());
+    EXPECT_EQ(0, valsetRateOf(0x20910016));   // SAT off
+    EXPECT_EQ(-1, valsetRateOf(0x20910007));  // PVT untouched
+    for (int i = 0; i < 5; i++) update();
+    EXPECT_EQ(17u, tx.size());                // never re-sent
+}
+
+TEST_F(GpsUbloxArmTest, DisarmingSendsNothingAndArmingAgainDoesNotResend)
+{
+    receiving("000A0000");
+    armingFlags |= 1;
+    update();
+    tx.clear();
+    armingFlags &= ~1;
+    update();
+    armingFlags |= 1;
+    update();
+    EXPECT_TRUE(tx.empty());
+}
+
+TEST_F(GpsUbloxArmTest, M8UsesLegacyCfgMsgForNavSat)
+{
+    receiving("00080000");
+    armingFlags |= 1;
+    update();
+    EXPECT_EQ(11u, tx.size());
+    EXPECT_EQ(0, rateOf(0x35));
+    update();
+    EXPECT_EQ(11u, tx.size());   // SVINFO is already off on M8
+}
+
+TEST_F(GpsUbloxArmTest, M6UsesLegacyCfgMsgForSvinfo)
+{
+    receiving("00040007");
+    armingFlags |= 1;
+    update();
+    update();
+    EXPECT_EQ(11u, tx.size());
+    EXPECT_EQ(0, rateOf(0x30));
+}
+
+TEST_F(GpsUbloxArmTest, UnknownReceiverGetsBothMessagesOffOneFramePerCall)
+{
+    receiving(NULL);
+    armingFlags |= 1;
+    update();
+    EXPECT_EQ(11u, tx.size());
+    update();
+    EXPECT_EQ(22u, tx.size());
+    update();
+    EXPECT_EQ(22u, tx.size());
+    EXPECT_EQ(0, rateOf(0x30));
+    EXPECT_EQ(0, rateOf(0x35));
+}
+
+TEST_F(GpsUbloxArmTest, NothingIsWrittenWhileTheTransmitBufferIsBusy)
+{
+    receiving("000A0000");
+    armingFlags |= 1;
+    testTxBusy = true;
+    update();
+    update();
+    EXPECT_TRUE(tx.empty());
+    testTxBusy = false;
+    update();
+    EXPECT_EQ(17u, tx.size());
+}
+
+TEST_F(GpsUbloxArmTest, AutoConfigOffSendsNothing)
+{
+    receiving("000A0000");
+    gpsConfigMutable()->autoConfig = GPS_AUTOCONFIG_OFF;
+    armingFlags |= 1;
+    update();
+    EXPECT_TRUE(tx.empty());
+}
+
+TEST_F(GpsUbloxArmTest, ReconfigurationWhileArmedSwitchesTheMessagesOffAgain)
+{
+    receiving("000A0000");
+    armingFlags |= 1;
+    update();
+    ASSERT_EQ(17u, tx.size());
+    // the link is lost and configured again: the config turns SAT on, the armed aircraft turns it off again
+    gpsData.state = 3;
+    gpsData.state_position = 0;
+    gpsData.messageState = GPS_MESSAGE_STATE_IDLE;
+    gpsData.platformVersion = UBX_VERSION_UNDEF;
+    tx.clear();
+    run("000A0000");
+    ASSERT_EQ(4, gpsData.state);
+    EXPECT_EQ(5, valsetRateOf(0x20910016));
+    tx.clear();
+    update();
+    EXPECT_EQ(0, valsetRateOf(0x20910016));
+}
+
+TEST_F(GpsUbloxPvtPositionTest, SilentReceiverAfterALinkInterruptionKeepsTheKnownGeneration)
+{
+    // M10 was identified, then the link is lost and MON-VER is not answered during the next configuration
+    std::vector<uint8_t> tx;
+    testTx = &tx;
+    configureReceiver(NULL);
+    testTx = NULL;
+    // still the M10 message set: VALSET frames, no legacy CFG-MSG for NAV
+    bool valset = false, cfgMsg = false;
+    for (size_t i = 0; i + 4 <= tx.size(); i++) {
+        if (tx[i] == 0xB5 && tx[i + 1] == 0x62 && tx[i + 2] == 0x06 && tx[i + 3] == 0x8A) valset = true;
+        if (tx[i] == 0xB5 && tx[i + 1] == 0x62 && tx[i + 2] == 0x06 && tx[i + 3] == 0x01 && tx[i + 6] == 0x01) cfgMsg = true;
+    }
+    EXPECT_TRUE(valset);
+    EXPECT_FALSE(cfgMsg);
+    feed(ubxFrame(0x01, 0x07, navPvtNavPayload(1, 521234567, 3, 4, 5)));
+    EXPECT_EQ(521234567, gpsSol.llh.lat);
+}
+
+static bool feedReportsFrame(const std::vector<uint8_t> &f)
+{
+    bool any = false;
+    for (uint8_t c : f) {
+        any = gpsNewFrame(c) || any;
+    }
+    return any;
+}
+
+TEST_F(GpsUbloxPvtPositionTest, LegacyPositionMessagesAreIgnoredOnM10)
+{
+    // a receiver that keeps sending them must not produce a second position source or a second frame
+    gpsSol.llh.lat = 77;
+    std::vector<uint8_t> status(16, 0);
+    status[4] = 3;
+    status[5] = 0x01;
+    std::vector<uint8_t> posllh(28, 0);
+    put32le(posllh, 8, 521234567);
+    std::vector<uint8_t> velned(36, 0);
+    put32le(velned, 20, 999);
+    EXPECT_FALSE(feedReportsFrame(ubxFrame(0x01, 0x03, status)));
+    EXPECT_FALSE(feedReportsFrame(ubxFrame(0x01, 0x02, posllh)));
+    EXPECT_FALSE(feedReportsFrame(ubxFrame(0x01, 0x12, velned)));
+    EXPECT_EQ(77, gpsSol.llh.lat);
+    EXPECT_EQ(0, gpsSol.groundSpeed);
+    EXPECT_FALSE(stateFlags & GPS_FIX);
+    EXPECT_TRUE(feedReportsFrame(ubxFrame(0x01, 0x07, navPvtNavPayload(1, 521234567, 3, 4, 5))));
+}
+
+TEST_F(GpsUbloxTest, UnknownReceiverGivesOneFramePerLegacyPairAndNoneFromPvt)
+{
+    EXPECT_FALSE(feedReportsFrame(ubxFrame(0x01, 0x07, navPvtNavPayload(1, 521234567, 3, 4, 5))));
+    std::vector<uint8_t> posllh(28, 0);
+    put32le(posllh, 8, 20);
+    std::vector<uint8_t> velned(36, 0);
+    EXPECT_FALSE(feedReportsFrame(ubxFrame(0x01, 0x02, posllh)));
+    EXPECT_TRUE(feedReportsFrame(ubxFrame(0x01, 0x12, velned)));
+    EXPECT_EQ(20, gpsSol.llh.lat);
+}
+
+// UBX-ACK (UBX interface description, class 0x05): ACK-ACK id 0x01, ACK-NACK id 0x00, payload = class and id of the frame.
+// The configure phase sends one CFG frame, then waits for the answer or 150 ms before it sends the next one.
+class GpsUbloxAckTest : public GpsUbloxConfigTest {
+protected:
+    // run until the call that enters the message phase; that call sends the first frame, the clock stays at its time
+    void toFirstMessageFrame(const char *hw, size_t firstFrameLength, uint8_t firstFrameId) {
+        for (int i = 0; i < 4000; i++) {
+            gpsInitUblox();
+            if (gpsData.messageState == GPS_MESSAGE_STATE_MESSAGES) {
+                break;
+            }
+            testMillis += 300;
+            if (!tx.empty() && gpsData.messageState == GPS_MESSAGE_STATE_VERSION && gpsData.platformVersion == UBX_VERSION_UNDEF) {
+                feed(ubxFrame(0x0A, 0x04, monVerPayload(hw)));
+            }
+        }
+        ASSERT_EQ(GPS_MESSAGE_STATE_MESSAGES, gpsData.messageState);
+        ASSERT_GE(tx.size(), firstFrameLength);
+        const size_t at = tx.size() - firstFrameLength;
+        EXPECT_EQ(0xB5, tx[at]);
+        EXPECT_EQ(0x06, tx[at + 2]);              // CFG
+        EXPECT_EQ(firstFrameId, tx[at + 3]);
+    }
+    size_t grow(uint32_t advanceMs) {
+        const size_t before = tx.size();
+        testMillis += advanceMs;
+        gpsInitUblox();
+        return tx.size() - before;
+    }
+};
+
+TEST_F(GpsUbloxAckTest, NextFrameWaitsForTheAnswerToTheLast)
+{
+    toFirstMessageFrame("00080000", 11, 0x01);   // M8: CFG-MSG, class 0x06 id 0x01
+    EXPECT_EQ(0u, grow(10));
+    EXPECT_EQ(0u, grow(100));          // 110 ms after the frame, below the 150 ms limit
+}
+
+TEST_F(GpsUbloxAckTest, AckReleasesTheNextFrame)
+{
+    toFirstMessageFrame("00080000", 11, 0x01);
+    feed(ubxFrame(0x05, 0x01, {0x06, 0x01}));
+    EXPECT_EQ(11u, grow(1));           // one CFG-MSG frame: 6 + 3 + 2 bytes
+}
+
+TEST_F(GpsUbloxAckTest, NackAlsoReleasesTheNextFrame)
+{
+    toFirstMessageFrame("00080000", 11, 0x01);
+    feed(ubxFrame(0x05, 0x00, {0x06, 0x01}));
+    EXPECT_EQ(11u, grow(1));
+}
+
+TEST_F(GpsUbloxAckTest, SilentReceiverReleasesTheNextFrameAfterTheLimit)
+{
+    toFirstMessageFrame("00080000", 11, 0x01);
+    EXPECT_EQ(0u, grow(149));
+    EXPECT_EQ(11u, grow(1));           // 150 ms after the frame
+}
+
+TEST_F(GpsUbloxAckTest, M10ValsetFrameIsAnsweredByItsOwnClassAndId)
+{
+    toFirstMessageFrame("000A0000", 17, 0x8A);   // M10: CFG-VALSET, class 0x06 id 0x8A
+    feed(ubxFrame(0x05, 0x01, {0x06, 0x8A}));
+    EXPECT_EQ(17u, grow(1));           // 6 + 9 + 2 bytes
+}
+
+TEST_F(GpsUbloxAckTest, AnswerForAnotherFrameOrMalformedAnswerDoesNotRelease)
+{
+    toFirstMessageFrame("00080000", 11, 0x01);
+    feed(ubxFrame(0x05, 0x01, {0x06, 0x8A}));         // other id
+    feed(ubxFrame(0x05, 0x01, {0x01, 0x01}));         // right id, other class
+    feed(ubxFrame(0x05, 0x01, {0x06}));               // payload too short
+    feed(ubxFrame(0x05, 0x01, {0x06, 0x01, 0x00}));   // payload too long
+    feed(ubxFrame(0x05, 0x02, {0x06, 0x01}));         // not ACK or NACK
+    feed(ubxFrame(0x0A, 0x01, {0x06, 0x01}));         // right bytes, other class
+    EXPECT_EQ(0u, grow(10));
+    std::vector<uint8_t> bad = ubxFrame(0x05, 0x01, {0x06, 0x01});
+    bad[bad.size() - 1] ^= 0xFF;                      // bad checksum
+    feed(bad);
+    EXPECT_EQ(0u, grow(10));
+}
+
+TEST_F(GpsUbloxAckTest, ChangeOfGpsStateEndsTheWait)
+{
+    toFirstMessageFrame("00080000", 11, 0x01);
+    EXPECT_EQ(0u, grow(10));                  // still waiting
+    gpsInit();                                // gpsSetState: a new connection starts with no frame in flight
+    gpsData.state = 3;                        // GPS_CONFIGURE
+    gpsData.state_position = 0;
+    gpsData.messageState = GPS_MESSAGE_STATE_MESSAGES;
+    EXPECT_EQ(11u, grow(1));                  // 11 ms after the old frame, well below the 150 ms limit
 }
