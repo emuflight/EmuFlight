@@ -122,6 +122,10 @@ struct {
     // Datasheet: https://www.winbond.com/resource-files/W25Q64JW%20RevE%2003102021%20Plus.pdf
     { 0xEF6017, 104, 50, 128, 256 }, // W25Q64JW-IQ/JQ
     { 0xEF8017, 104, 50, 128, 256 }, // W25Q64JW-IM/JM*
+    // Cypress/Infineon S25FL128S, hybrid layout only (64 KB sectors, 256-byte page)
+    // 133 MHz fast read, 50 MHz read (03h). The uniform layout (256 KB erase, 512-byte page)
+    // shares this 3-byte ID and is rejected by m25p16_extendedIdSupported().
+    { 0x012018, 104, 50, 256, 256 },
     // Boya BY25Q64ES
     { 0x684017, 108, 54, 128, 256 },
     // Boya BY25Q128ES (Rev 2.11)
@@ -245,6 +249,29 @@ static bool m25p16_waitForReady(flashDevice_t *fdevice)
  *
  * Returns true if we get valid ident, false if something bad happened like there is no M25P16.
  */
+// S25FL128S (0x012018): RDID bytes 04h/05h select the layout.
+// 04h = 0x01 hybrid (64 KB sectors, 256-byte page), 0x00 uniform (256 KB sectors, 512-byte page).
+// 05h = 0x80 FL-S family.
+#define S25FL128S_JEDEC_ID          0x012018
+#define S25FL128S_ID_CFI_HYBRID     0x01
+#define S25FL128S_FAMILY_ID         0x80
+
+bool m25p16_idNeedsExtendedRead(uint32_t jedecID)
+{
+    return jedecID == S25FL128S_JEDEC_ID;
+}
+
+bool m25p16_extendedIdSupported(uint32_t jedecID, const uint8_t *rdid, uint8_t len)
+{
+    if (!m25p16_idNeedsExtendedRead(jedecID)) {
+        return true;
+    }
+
+    return len >= M25P16_EXT_ID_LENGTH
+        && rdid[4] == S25FL128S_ID_CFI_HYBRID
+        && rdid[5] == S25FL128S_FAMILY_ID;
+}
+
 bool m25p16_identify(flashDevice_t *fdevice, uint32_t jedecID)
 {
     flashGeometry_t *geometry = &fdevice->geometry;

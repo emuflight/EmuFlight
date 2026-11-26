@@ -142,7 +142,7 @@ TEST(FlashM25p16Test, ExpectedTablesHaveNoDuplicateIds)
 TEST(FlashM25p16Test, UnknownIdsAreRejectedAndGeometryCleared)
 {
     // Neighbours of supported IDs and the two values a floating or absent bus reads back.
-    static const uint32_t unknown[] = { 0x000000, 0xFFFFFF, 0xEF4021, 0xEF4013, 0xC22015, 0xC2201A, 0x1C7116, 0xC84016, 0x684019, 0xA14019, 0x206019, 0x012018 };
+    static const uint32_t unknown[] = { 0x000000, 0xFFFFFF, 0xEF4021, 0xEF4013, 0xC22015, 0xC2201A, 0x1C7116, 0xC84016, 0x684019, 0xA14019, 0x206019, 0x012017, 0x012019 };
     for (uint32_t id : unknown) {
         flashDevice_t fdevice;
         EXPECT_FALSE(identify(id, &fdevice)) << std::hex << id;
@@ -151,4 +151,69 @@ TEST(FlashM25p16Test, UnknownIdsAreRejectedAndGeometryCleared)
         EXPECT_EQ(0u, fdevice.geometry.sectorSize);
         EXPECT_EQ(0u, fdevice.geometry.totalSize);
     }
+}
+
+// S25FL128S (0x012018) RDID bytes from the datasheet ID table: 01h 20h 18h 4Dh (CFI length),
+// then 04h = 01h (hybrid: 64 KB sectors, 256-byte page) or 00h (uniform: 256 KB sectors, 512-byte page),
+// 05h = 80h (FL-S family). Only the hybrid layout is supported.
+static const uint8_t s25fl128sHybridId[6]  = { 0x01, 0x20, 0x18, 0x4D, 0x01, 0x80 };
+static const uint8_t s25fl128sUniformId[6] = { 0x01, 0x20, 0x18, 0x4D, 0x00, 0x80 };
+
+TEST(FlashM25p16Test, S25fl128sNeedsExtendedRead)
+{
+    EXPECT_TRUE(m25p16_idNeedsExtendedRead(0x012018));
+    EXPECT_EQ(6, M25P16_EXT_ID_LENGTH);
+    // Neighbours and other 128 Mb parts keep the 3-byte decision.
+    EXPECT_FALSE(m25p16_idNeedsExtendedRead(0x012019));
+    EXPECT_FALSE(m25p16_idNeedsExtendedRead(0x012017));
+    EXPECT_FALSE(m25p16_idNeedsExtendedRead(0xC22018));
+    EXPECT_FALSE(m25p16_idNeedsExtendedRead(0xEF4018));
+}
+
+TEST(FlashM25p16Test, S25fl128sHybridIsAcceptedWithDatasheetGeometry)
+{
+    EXPECT_TRUE(m25p16_extendedIdSupported(0x012018, s25fl128sHybridId, sizeof(s25fl128sHybridId)));
+    expectChip({ 0x012018, 16 * MIB, 64 * KIB, "S25FL128S hybrid" });
+}
+
+TEST(FlashM25p16Test, S25fl128sUniformIsRejected)
+{
+    EXPECT_FALSE(m25p16_extendedIdSupported(0x012018, s25fl128sUniformId, sizeof(s25fl128sUniformId)));
+}
+
+TEST(FlashM25p16Test, S25fl128sUnknownExtendedBytesAreRejected)
+{
+    uint8_t id[6];
+    for (unsigned b4 = 0; b4 < 256; b4++) {
+        for (unsigned b5 = 0; b5 < 256; b5++) {
+            memcpy(id, s25fl128sHybridId, sizeof(id));
+            id[4] = b4;
+            id[5] = b5;
+            const bool expected = (b4 == 0x01 && b5 == 0x80);
+            EXPECT_EQ(expected, m25p16_extendedIdSupported(0x012018, id, sizeof(id))) << b4 << " " << b5;
+        }
+    }
+}
+
+TEST(FlashM25p16Test, S25fl128sShortOrEmptyResponseIsRejected)
+{
+    // A 4-byte or 5-byte read cannot carry byte 05h; a floating bus reads all-zero or all-one.
+    EXPECT_FALSE(m25p16_extendedIdSupported(0x012018, s25fl128sHybridId, 0));
+    EXPECT_FALSE(m25p16_extendedIdSupported(0x012018, s25fl128sHybridId, 4));
+    EXPECT_FALSE(m25p16_extendedIdSupported(0x012018, s25fl128sHybridId, 5));
+    static const uint8_t zeros[6] = { 0 };
+    static const uint8_t ones[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+    EXPECT_FALSE(m25p16_extendedIdSupported(0x012018, zeros, sizeof(zeros)));
+    EXPECT_FALSE(m25p16_extendedIdSupported(0x012018, ones, sizeof(ones)));
+}
+
+TEST(FlashM25p16Test, NeighbourIdIsUnaffectedByExtendedCheck)
+{
+    // 0x012019 (not in the table) and MX25L12845G (shared 128 Mb class) never depend on bytes 04h/05h.
+    static const uint8_t junk[6] = { 0 };
+    flashDevice_t fdevice;
+    EXPECT_TRUE(m25p16_extendedIdSupported(0x012019, junk, sizeof(junk)));
+    EXPECT_FALSE(identify(0x012019, &fdevice));
+    EXPECT_TRUE(m25p16_extendedIdSupported(0xC22018, junk, 0));
+    EXPECT_TRUE(identify(0xC22018, &fdevice));
 }
