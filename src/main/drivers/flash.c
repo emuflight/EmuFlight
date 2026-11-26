@@ -216,7 +216,16 @@ static bool flashSpiInit(const flashConfig_t *flashConfig)
     uint32_t jedecID = (readIdResponse[0] << 16) | (readIdResponse[1] << 8) | (readIdResponse[2]);
 
 #ifdef USE_FLASH_M25P16
-    if (m25p16_identify(&flashDevice, jedecID)) {
+    bool m25p16LayoutSupported = true;
+    if (m25p16_idNeedsExtendedRead(jedecID)) {
+        // The 3-byte ID is shared by chips with different layouts: read the extended ID once.
+        uint8_t extendedId[M25P16_EXT_ID_LENGTH] = { 0 };
+
+        spiReadRegBuf(dev, FLASH_INSTRUCTION_RDID, extendedId, sizeof(extendedId));
+        m25p16LayoutSupported = m25p16_extendedIdSupported(jedecID, extendedId, sizeof(extendedId));
+    }
+
+    if (m25p16LayoutSupported && m25p16_identify(&flashDevice, jedecID)) {
         detected = true;
     }
 #endif

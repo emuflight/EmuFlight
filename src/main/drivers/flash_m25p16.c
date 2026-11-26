@@ -86,6 +86,10 @@ struct {
     // Macronix MX25L6406E
     // Datasheet: https://www.macronix.com/Lists/Datasheet/Attachments/7370/MX25L6406E,%203V,%2064Mb,%20v1.9.pdf
     { 0xC22017, 86, 33, 128, 256 },
+    // Macronix MX25L12845G
+    // Datasheet: https://www.macronix.com/Lists/Datasheet/Attachments/8740/MX25L12845G,%203V,%20128Mb,%20v1.8.pdf
+    // MX25L12805D shares this ID and is limited to 50 MHz (33 MHz read), so use the lower limits
+    { 0xC22018, 50, 33, 256, 256 },
     // Macronix MX25L25635E
     // Datasheet: https://www.macronix.com/Lists/Datasheet/Attachments/7331/MX25L25635E,%203V,%20256Mb,%20v1.3.pdf
     { 0xC22019, 80, 50, 512, 256 },
@@ -114,11 +118,43 @@ struct {
     // Datasheet: https://www.winbond.com/resource-files/w25q64jv%20spi%20%20%20revc%2006032016%20kms.pdf
     { 0xEF4017, 133, 50, 128, 256 }, // W25Q64JV-IQ/JQ
     { 0xEF7017, 133, 50, 128, 256 }, // W25Q64JV-IM/JM*
+    // Winbond W25Q64JW
+    // Datasheet: https://www.winbond.com/resource-files/W25Q64JW%20RevE%2003102021%20Plus.pdf
+    { 0xEF6017, 104, 50, 128, 256 }, // W25Q64JW-IQ/JQ
+    { 0xEF8017, 104, 50, 128, 256 }, // W25Q64JW-IM/JM*
+    // Cypress/Infineon S25FL128S, hybrid layout only (64 KB sectors, 256-byte page)
+    // 133 MHz fast read, 50 MHz read (03h). The uniform layout (256 KB erase, 512-byte page)
+    // shares this 3-byte ID and is rejected by m25p16_extendedIdSupported().
+    { 0x012018, 104, 50, 256, 256 },
     // Boya BY25Q64ES
     { 0x684017, 108, 54, 128, 256 },
+    // Boya BY25Q128ES (Rev 2.11)
+    // 120 MHz at 3.0-3.6 V, 108 MHz at 2.7-3.0 V; read (03h) 100 MHz
+    { 0x684018, 104, 50, 256, 256 },
+    // GigaDevice GD25Q16E (Rev 1.2)
+    // 133 MHz at 3.0-3.6 V (DC=1), 104 MHz otherwise; read (03h) 80 MHz
+    { 0xC84015, 104, 50, 32, 256 },
+    // GigaDevice GD25Q128E
+    // 64 KB blocks (0xD8) x 256 pages of 256 B; 133 MHz at 3.0-3.6 V (DC=1), 104 MHz otherwise; read (03h) 80 MHz
+    { 0xC84018, 104, 80, 256, 256 },
+    // Fudan FM25Q64AI3 (V1.0)
+    // 104 MHz fast read, read (03h) 66 MHz; 80 MHz used as the conservative clock
+    { 0xA14017, 80, 66, 128, 256 },
+    // Fudan FM25Q128AI3 (V1.0)
+    // 100 MHz at 2.7-3.6 V (80 MHz at 2.3-2.7 V); datasheet gives read as 50 MHz in the feature list and 66 MHz at 2.7-3.6 V, so the lower value is used
+    { 0xA14018, 80, 50, 256, 256 },
+    // Zetta ZD25WQ32C
+    // 104 MHz only at 2.3-3.6 V; 66 MHz is the limit over the full 1.65-3.6 V range, so 66 MHz is used. Read (03h) 40 MHz
+    { 0xBA6016, 66, 40, 64, 256 },
+    // Giantec GT25Q32A-U (v2.4)
+    // 104 MHz at 2.7-3.6 V grade 1, 90 MHz grade 2 (used); 60 MHz below 2.3 V
+    { 0xC46016, 90, 90, 64, 256 },
     // Winbond W25Q128
     // Datasheet: https://www.winbond.com/resource-files/w25q128fv%20rev.l%2008242015.pdf
     { 0xEF4018, 104, 50, 256, 256 },
+    // Winbond W25Q512
+    // Datasheet: https://www.winbond.com/resource-files/W25Q512JV%20SPI%20RevB%2006252019%20KMS.pdf
+    { 0xEF4020, 133, 50, 1024, 256 },
     // PUYA PY25Q128
     // Datasheet: https://www.puyasemi.com/download_path/%E6%95%B0%E6%8D%AE%E6%89%8B%E5%86%8C/Flash%20%E8%8A%AF%E7%89%87/PY25F128HA_datasheet_V1.1.pdf
     { 0x852018, 133, 80, 256, 256 },
@@ -206,6 +242,29 @@ static bool m25p16_waitForReady(flashDevice_t *fdevice)
         }
     }
     return true;
+}
+
+// S25FL128S (0x012018): RDID bytes 04h/05h select the layout.
+// 04h = 0x01 hybrid (64 KB sectors, 256-byte page), 0x00 uniform (256 KB sectors, 512-byte page).
+// 05h = 0x80 FL-S family.
+#define S25FL128S_JEDEC_ID          0x012018
+#define S25FL128S_ID_CFI_HYBRID     0x01
+#define S25FL128S_FAMILY_ID         0x80
+
+bool m25p16_idNeedsExtendedRead(uint32_t jedecID)
+{
+    return jedecID == S25FL128S_JEDEC_ID;
+}
+
+bool m25p16_extendedIdSupported(uint32_t jedecID, const uint8_t *rdid, uint8_t len)
+{
+    if (!m25p16_idNeedsExtendedRead(jedecID)) {
+        return true;
+    }
+
+    return len >= M25P16_EXT_ID_LENGTH
+        && rdid[4] == S25FL128S_ID_CFI_HYBRID
+        && rdid[5] == S25FL128S_FAMILY_ID;
 }
 
 /**
