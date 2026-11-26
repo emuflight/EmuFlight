@@ -113,13 +113,13 @@
 
 #define SPI1_NSS_PIN            PA4
 #define SPI1_SCK_PIN            PA5
-#define SPI1_MISO_PIN           PA6
-#define SPI1_MOSI_PIN           PA7
+#define SPI1_SDI_PIN            PA6
+#define SPI1_SDO_PIN            PA7
 
 #define SPI4_NSS_PIN            PE11
 #define SPI4_SCK_PIN            PE12
-#define SPI4_MISO_PIN           PE13
-#define SPI4_MOSI_PIN           PE14
+#define SPI4_SDI_PIN            PE13
+#define SPI4_SDO_PIN            PE14
 
 #define USE_SDCARD
 
@@ -141,8 +141,8 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE                  (I2CDEV_1)
-#define I2C1_SCL                    PB8
-#define I2C1_SDA                    PB9
+#define I2C1_SCL_PIN                PB8
+#define I2C1_SDA_PIN                PB9
 
 #define USE_ADC
 #define VBAT_ADC_PIN                PA3

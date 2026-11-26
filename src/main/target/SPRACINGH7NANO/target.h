@@ -80,27 +80,27 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN            PD3
-#define SPI2_MISO_PIN           PC2
-#define SPI2_MOSI_PIN           PC3
+#define SPI2_SDI_PIN            PC2
+#define SPI2_SDO_PIN            PC3
 #define SPI2_NSS_PIN            PB12
 #define USE_SPI_DEVICE_3
 #define SPI3_SCK_PIN            PB3
-#define SPI3_MISO_PIN           PB4
-#define SPI3_MOSI_PIN           PD6
+#define SPI3_SDI_PIN            PB4
+#define SPI3_SDO_PIN            PD6
 #define SPI3_NSS_PIN            PA15
 #define USE_SPI_DEVICE_4
 #define SPI4_SCK_PIN            PE12
-#define SPI4_MISO_PIN           PE13
-#define SPI4_MOSI_PIN           PE14
+#define SPI4_SDI_PIN            PE13
+#define SPI4_SDO_PIN            PE14
 #define SPI4_NSS_PIN            PE11
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
-#define I2C1_SCL                PB8
-#define I2C1_SDA                PB9
+#define I2C1_SCL_PIN            PB8
+#define I2C1_SDA_PIN            PB9
 #define USE_I2C_DEVICE_4
-#define I2C4_SCL                PB6 // shared with motor outputs 5 and 6
-#define I2C4_SDA                PB7
+#define I2C4_SCL_PIN            PB6 // shared with motor outputs 5 and 6
+#define I2C4_SDA_PIN            PB7
 #define I2C_DEVICE              (I2CDEV_1)
 #define MAG_I2C_INSTANCE        I2CDEV_1
 #define BARO_I2C_INSTANCE       I2CDEV_1

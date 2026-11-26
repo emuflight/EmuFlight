@@ -49,16 +49,16 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 #define SPI1_SCK_PIN PA5
-#define SPI1_MISO_PIN        PA6
-#define SPI1_MOSI_PIN        PA7
+#define SPI1_SDI_PIN         PA6
+#define SPI1_SDO_PIN         PA7
 #define USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN PB13
-#define SPI2_MISO_PIN        PB14
-#define SPI2_MOSI_PIN        PB15
+#define SPI2_SDI_PIN         PB14
+#define SPI2_SDO_PIN         PB15
 #define USE_SPI_DEVICE_4
 #define SPI4_SCK_PIN PE2
-#define SPI4_MISO_PIN        PE5
-#define SPI4_MOSI_PIN        PE6
+#define SPI4_SDI_PIN         PE5
+#define SPI4_SDO_PIN         PE6
 
 #define USE_SPI_GYRO
 #define USE_EXTI
@@ -101,13 +101,13 @@
 #define USE_I2C_DEVICE_2
 #define I2C_DEVICE_2      (I2CDEV_2)
 #define BARO_I2C_INSTANCE I2CDEV_2
-#define I2C2_SCL PB10
-#define I2C2_SDA PB11
+#define I2C2_SCL_PIN PB10
+#define I2C2_SDA_PIN PB11
 #define USE_I2C_DEVICE_4
 #define I2C_DEVICE_4      (I2CDEV_4)
 #define MAG_I2C_INSTANCE I2CDEV_4
-#define I2C4_SCL PD12
-#define I2C4_SDA PD13
+#define I2C4_SCL_PIN PD12
+#define I2C4_SDA_PIN PD13
 
 #define FLASH_CS_PIN PE4
 #define FLASH_SPI_INSTANCE SPI4

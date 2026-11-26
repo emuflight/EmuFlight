@@ -41,8 +41,8 @@
 
 #define SPI2_NSS_PIN PB12
 #define SPI2_SCK_PIN PB13
-#define SPI2_MISO_PIN PB14
-#define SPI2_MOSI_PIN PB15
+#define SPI2_SDI_PIN  PB14
+#define SPI2_SDO_PIN  PB15
 
 #define USE_GYRO
 #define USE_FAKE_GYRO
@@ -107,8 +107,8 @@
 // NUCLEO has NSS on PB6, rather than the standard PA4
 #define SPI1_NSS_PIN            RX_NSS_PIN
 #define SPI1_SCK_PIN            RX_SCK_PIN
-#define SPI1_MISO_PIN           RX_MISO_PIN
-#define SPI1_MOSI_PIN           RX_MOSI_PIN
+#define SPI1_SDI_PIN            RX_MISO_PIN
+#define SPI1_SDO_PIN            RX_MOSI_PIN
 
 #define USE_RX_NRF24
 #define USE_RX_CX10
@@ -145,12 +145,12 @@
 #define USE_I2C
 
 #define USE_I2C_DEVICE_2
-#define I2C2_SCL                NONE // PB10, shared with UART3TX
-#define I2C2_SDA                NONE // PB11, shared with UART3RX
+#define I2C2_SCL_PIN            NONE // PB10, shared with UART3TX
+#define I2C2_SDA_PIN            NONE // PB11, shared with UART3RX
 
 #define USE_I2C_DEVICE_3
-#define I2C3_SCL                NONE // PA8
-#define I2C3_SDA                NONE // PC9
+#define I2C3_SCL_PIN            NONE // PA8
+#define I2C3_SDA_PIN            NONE // PC9
 #define I2C_DEVICE              (I2CDEV_2)
 
 #define USE_ADC

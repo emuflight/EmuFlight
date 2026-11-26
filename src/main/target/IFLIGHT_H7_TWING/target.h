@@ -51,16 +51,16 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 #define SPI1_SCK_PIN         PA5
-#define SPI1_MISO_PIN        PA6
-#define SPI1_MOSI_PIN        PA7
+#define SPI1_SDI_PIN         PA6
+#define SPI1_SDO_PIN         PA7
 #define USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN         PB13
-#define SPI2_MISO_PIN        PB14
-#define SPI2_MOSI_PIN        PB15
+#define SPI2_SDI_PIN         PB14
+#define SPI2_SDO_PIN         PB15
 #define USE_SPI_DEVICE_4
 #define SPI4_SCK_PIN         PE12
-#define SPI4_MISO_PIN        PE13
-#define SPI4_MOSI_PIN        PE14
+#define SPI4_SDI_PIN         PE13
+#define SPI4_SDO_PIN         PE14
 
 #define USE_SPI_GYRO
 #define USE_EXTI
@@ -113,8 +113,8 @@
 #define MAG_I2C_INSTANCE I2CDEV_1
 #define BARO_I2C_INSTANCE I2CDEV_1
 #define DASHBOARD_I2C_INSTANCE I2CDEV_1
-#define I2C1_SCL PB8
-#define I2C1_SDA PB9
+#define I2C1_SCL_PIN PB8
+#define I2C1_SDA_PIN PB9
 
 // Note: FLASH_CS_PIN/FLASH_SPI_INSTANCE absent in BF configs (config/configs/IFLIGHT_H7_TWING)
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT

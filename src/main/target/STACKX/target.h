@@ -82,8 +82,8 @@
 #define USE_SPI_DEVICE_2
 #define SPI2_NSS_PIN            PB12
 #define SPI2_SCK_PIN            PB13
-#define SPI2_MISO_PIN           PC2
-#define SPI2_MOSI_PIN           PC3
+#define SPI2_SDI_PIN            PC2
+#define SPI2_SDO_PIN            PC3
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
@@ -92,8 +92,8 @@
 // *************** FLASH *****************************
 #define USE_SPI_DEVICE_3
 #define SPI3_SCK_PIN            PC10
-#define SPI3_MISO_PIN           PC11
-#define SPI3_MOSI_PIN           PC12
+#define SPI3_SDI_PIN            PC11
+#define SPI3_SDO_PIN            PC12
 
 #define USE_FLASH_M25P16
 #define USE_FLASHFS

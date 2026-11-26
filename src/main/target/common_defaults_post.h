@@ -58,23 +58,23 @@
 
 #ifdef I2C_FULL_RECONFIGURABILITY
 #ifdef USE_I2C_DEVICE_1
-#define I2C1_SCL NONE
-#define I2C1_SDA NONE
+#define I2C1_SCL_PIN NONE
+#define I2C1_SDA_PIN NONE
 #endif
 
 #ifdef USE_I2C_DEVICE_2
-#define I2C2_SCL NONE
-#define I2C2_SDA NONE
+#define I2C2_SCL_PIN NONE
+#define I2C2_SDA_PIN NONE
 #endif
 
 #ifdef USE_I2C_DEVICE_3
-#define I2C3_SCL NONE
-#define I2C3_SDA NONE
+#define I2C3_SCL_PIN NONE
+#define I2C3_SDA_PIN NONE
 #endif
 
 #ifdef USE_I2C_DEVICE_4
-#define I2C4_SCL NONE
-#define I2C4_SDA NONE
+#define I2C4_SCL_PIN NONE
+#define I2C4_SDA_PIN NONE
 #endif
 
 #else // I2C_FULL_RECONFIGURABILITY
@@ -82,77 +82,77 @@
 // Backward compatibility for exisiting targets
 
 #ifdef STM32F4
-#ifndef I2C1_SCL
-#define I2C1_SCL PB6
+#ifndef I2C1_SCL_PIN
+#define I2C1_SCL_PIN PB6
 #endif
-#ifndef I2C1_SDA
-#define I2C1_SDA PB7
+#ifndef I2C1_SDA_PIN
+#define I2C1_SDA_PIN PB7
 #endif
-#ifndef I2C2_SCL
-#define I2C2_SCL PB10
+#ifndef I2C2_SCL_PIN
+#define I2C2_SCL_PIN PB10
 #endif
-#ifndef I2C2_SDA
-#define I2C2_SDA PB11
+#ifndef I2C2_SDA_PIN
+#define I2C2_SDA_PIN PB11
 #endif
-#ifndef I2C3_SCL
-#define I2C3_SCL PA8
+#ifndef I2C3_SCL_PIN
+#define I2C3_SCL_PIN PA8
 #endif
-#ifndef I2C3_SDA
-#define I2C3_SDA PC9
+#ifndef I2C3_SDA_PIN
+#define I2C3_SDA_PIN PC9
 #endif
 #endif // STM32F4
 
 #ifdef STM32F7
-#ifndef I2C1_SCL
-#define I2C1_SCL PB6
+#ifndef I2C1_SCL_PIN
+#define I2C1_SCL_PIN PB6
 #endif
-#ifndef I2C1_SDA
-#define I2C1_SDA PB7
+#ifndef I2C1_SDA_PIN
+#define I2C1_SDA_PIN PB7
 #endif
-#ifndef I2C2_SCL
-#define I2C2_SCL PB10
+#ifndef I2C2_SCL_PIN
+#define I2C2_SCL_PIN PB10
 #endif
-#ifndef I2C2_SDA
-#define I2C2_SDA PB11
+#ifndef I2C2_SDA_PIN
+#define I2C2_SDA_PIN PB11
 #endif
-#ifndef I2C3_SCL
-#define I2C3_SCL PA8
+#ifndef I2C3_SCL_PIN
+#define I2C3_SCL_PIN PA8
 #endif
-#ifndef I2C3_SDA
-#define I2C3_SDA PB4
+#ifndef I2C3_SDA_PIN
+#define I2C3_SDA_PIN PB4
 #endif
-#ifndef I2C4_SCL
-#define I2C4_SCL PD12
+#ifndef I2C4_SCL_PIN
+#define I2C4_SCL_PIN PD12
 #endif
-#ifndef I2C4_SDA
-#define I2C4_SDA PD13
+#ifndef I2C4_SDA_PIN
+#define I2C4_SDA_PIN PD13
 #endif
 #endif // STM32F7
 
 #ifdef STM32H7
-#ifndef I2C1_SCL
-#define I2C1_SCL PB6
+#ifndef I2C1_SCL_PIN
+#define I2C1_SCL_PIN PB6
 #endif
-#ifndef I2C1_SDA
-#define I2C1_SDA PB7
+#ifndef I2C1_SDA_PIN
+#define I2C1_SDA_PIN PB7
 #endif
-#ifndef I2C2_SCL
-#define I2C2_SCL PB10
+#ifndef I2C2_SCL_PIN
+#define I2C2_SCL_PIN PB10
 #endif
-#ifndef I2C2_SDA
-#define I2C2_SDA PB11
+#ifndef I2C2_SDA_PIN
+#define I2C2_SDA_PIN PB11
 #endif
-#ifndef I2C3_SCL
-#define I2C3_SCL PA8
+#ifndef I2C3_SCL_PIN
+#define I2C3_SCL_PIN PA8
 #endif
-#ifndef I2C3_SDA
-#define I2C3_SDA PB4
+#ifndef I2C3_SDA_PIN
+#define I2C3_SDA_PIN PB4
 #endif
-#ifndef I2C4_SCL
-#define I2C4_SCL PD12
+#ifndef I2C4_SCL_PIN
+#define I2C4_SCL_PIN PD12
 #endif
-#ifndef I2C4_SDA
-#define I2C4_SDA PD13
+#ifndef I2C4_SDA_PIN
+#define I2C4_SDA_PIN PD13
 #endif
 #endif // STM32H7
 
@@ -178,38 +178,38 @@
 
 #ifdef USE_SPI_DEVICE_1
 #define SPI1_SCK_PIN    NONE
-#define SPI1_MISO_PIN   NONE
-#define SPI1_MOSI_PIN   NONE
+#define SPI1_SDI_PIN    NONE
+#define SPI1_SDO_PIN    NONE
 #endif
 
 #ifdef USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN    NONE
-#define SPI2_MISO_PIN   NONE
-#define SPI2_MOSI_PIN   NONE
+#define SPI2_SDI_PIN    NONE
+#define SPI2_SDO_PIN    NONE
 #endif
 
 #ifdef USE_SPI_DEVICE_3
 #define SPI3_SCK_PIN    NONE
-#define SPI3_MISO_PIN   NONE
-#define SPI3_MOSI_PIN   NONE
+#define SPI3_SDI_PIN    NONE
+#define SPI3_SDO_PIN    NONE
 #endif
 
 #ifdef USE_SPI_DEVICE_4
 #define SPI4_SCK_PIN    NONE
-#define SPI4_MISO_PIN   NONE
-#define SPI4_MOSI_PIN   NONE
+#define SPI4_SDI_PIN    NONE
+#define SPI4_SDO_PIN    NONE
 #endif
 
 #ifdef USE_SPI_DEVICE_5
 #define SPI5_SCK_PIN    NONE
-#define SPI5_MISO_PIN   NONE
-#define SPI5_MOSI_PIN   NONE
+#define SPI5_SDI_PIN    NONE
+#define SPI5_SDO_PIN    NONE
 #endif
 
 #ifdef USE_SPI_DEVICE_6
 #define SPI6_SCK_PIN    NONE
-#define SPI6_MISO_PIN   NONE
-#define SPI6_MOSI_PIN   NONE
+#define SPI6_SDI_PIN    NONE
+#define SPI6_SDO_PIN    NONE
 #endif
 
 #else
@@ -218,20 +218,20 @@
 
 #ifndef SPI1_SCK_PIN
 #define SPI1_SCK_PIN    PA5
-#define SPI1_MISO_PIN   PA6
-#define SPI1_MOSI_PIN   PA7
+#define SPI1_SDI_PIN    PA6
+#define SPI1_SDO_PIN    PA7
 #endif
 
 #ifndef SPI2_SCK_PIN
 #define SPI2_SCK_PIN    PB13
-#define SPI2_MISO_PIN   PB14
-#define SPI2_MOSI_PIN   PB15
+#define SPI2_SDI_PIN    PB14
+#define SPI2_SDO_PIN    PB15
 #endif
 
 #ifndef SPI3_SCK_PIN
 #define SPI3_SCK_PIN    PB3
-#define SPI3_MISO_PIN   PB4
-#define SPI3_MOSI_PIN   PB5
+#define SPI3_SDI_PIN    PB4
+#define SPI3_SDO_PIN    PB5
 #endif
 #endif
 

@@ -38,13 +38,13 @@
 
 #define SPI2_NSS_PIN                    PB12
 #define SPI2_SCK_PIN                    PB13
-#define SPI2_MISO_PIN                   PB14
-#define SPI2_MOSI_PIN                   PB15
+#define SPI2_SDI_PIN                    PB14
+#define SPI2_SDO_PIN                    PB15
 
 #define SPI3_NSS_PIN                    PA15
 #define SPI3_SCK_PIN                    PB3
-#define SPI3_MISO_PIN                   PB4
-#define SPI3_MOSI_PIN                   PB5
+#define SPI3_SDI_PIN                    PB4
+#define SPI3_SDO_PIN                    PB5
 
 // *************** UART *****************************
 #define USE_VCP
@@ -101,7 +101,7 @@
 #define RTC6705_SPI_INSTANCE            SPI3
 
 #define USE_VTX_RTC6705_SOFTSPI
-#define RTC6705_SPI_MOSI_PIN            SPI3_MOSI_PIN
+#define RTC6705_SPI_MOSI_PIN            SPI3_SDO_PIN
 #define RTC6705_SPICLK_PIN              SPI3_SCK_PIN
 #define USE_RTC6705_SOFTSPI_ON_HW_SPI
 #define RTC6705_POWER_PIN               PA6

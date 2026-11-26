@@ -109,23 +109,23 @@
 
 #define SPI1_NSS_PIN            PA4
 #define SPI1_SCK_PIN            PA5
-#define SPI1_MISO_PIN           PA6
-#define SPI1_MOSI_PIN           PA7
+#define SPI1_SDI_PIN            PA6
+#define SPI1_SDO_PIN            PA7
 
 #define SPI2_NSS_PIN            PB12
 #define SPI2_SCK_PIN            PB13
-#define SPI2_MISO_PIN           PB14
-#define SPI2_MOSI_PIN           PB15
+#define SPI2_SDI_PIN            PB14
+#define SPI2_SDO_PIN            PB15
 
 #define SPI3_NSS_PIN            PA15
 #define SPI3_SCK_PIN            PC10
-#define SPI3_MISO_PIN           PC11
-#define SPI3_MOSI_PIN           PC12
+#define SPI3_SDI_PIN            PC11
+#define SPI3_SDO_PIN            PC12
 
 #define SPI4_NSS_PIN            PE4
 #define SPI4_SCK_PIN            PE2
-#define SPI4_MISO_PIN           PE5
-#define SPI4_MOSI_PIN           PE6
+#define SPI4_SDI_PIN            PE5
+#define SPI4_SDO_PIN            PE6
 
 //OSD----------------------------------------
 #define USE_MAX7456
@@ -151,8 +151,8 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_2
 #define I2C_DEVICE              (I2CDEV_2)
-#define I2C2_SCL                NONE        // PB10 (UART3_TX)
-#define I2C2_SDA                NONE        // PB11 (UART3_RX)
+#define I2C2_SCL_PIN            NONE        // PB10 (UART3_TX)
+#define I2C2_SDA_PIN            NONE        // PB11 (UART3_RX)
 
 //BARO & Mag--------------------------------
 #define USE_BARO

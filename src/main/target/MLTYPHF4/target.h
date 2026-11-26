@@ -58,8 +58,8 @@
 #define USE_SPI_DEVICE_3        // MAX7456 on V1.2
 #define SPI3_NSS_PIN            PA15
 #define SPI3_SCK_PIN            PC10
-#define SPI3_MISO_PIN           PC11
-#define SPI3_MOSI_PIN           PC12
+#define SPI3_SDI_PIN            PC11
+#define SPI3_SDO_PIN            PC12
 
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI3

@@ -137,31 +137,31 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 #define SPI1_SCK_PIN            PA5
-#define SPI1_MISO_PIN           PA6
-#define SPI1_MOSI_PIN           PA7
+#define SPI1_SDI_PIN            PA6
+#define SPI1_SDO_PIN            PA7
 
 #define USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN            PB13
-#define SPI2_MISO_PIN           PB14
-#define SPI2_MOSI_PIN           PC3
+#define SPI2_SDI_PIN            PB14
+#define SPI2_SDO_PIN            PC3
 
 #define USE_SPI_DEVICE_3
 #define SPI3_SCK_PIN            PC10          // PC10, alt UART3_TX, UART4_TX
-#define SPI3_MISO_PIN           PC11          // PC11, alt UART3_RX, UART4_RX
-#define SPI3_MOSI_PIN           PC12          // PC12, alt UART5_TX
+#define SPI3_SDI_PIN            PC11          // PC11, alt UART3_RX, UART4_RX
+#define SPI3_SDO_PIN            PC12          // PC12, alt UART5_TX
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
-#define I2C1_SCL                PB8           // PB8, alt MST8
-#define I2C1_SDA                PB9           // PB9, alt MST7
+#define I2C1_SCL_PIN            PB8           // PB8, alt MST8
+#define I2C1_SDA_PIN            PB9           // PB9, alt MST7
 
 #define USE_I2C_DEVICE_2
-#define I2C2_SCL                NONE          // PB10 alt UART3TX
-#define I2C2_SDA                NONE          // PB11 alt UART3RX
+#define I2C2_SCL_PIN            NONE          // PB10 alt UART3TX
+#define I2C2_SDA_PIN            NONE          // PB11 alt UART3RX
 
 #define USE_I2C_DEVICE_3
-#define I2C3_SCL                NONE
-#define I2C3_SDA                NONE
+#define I2C3_SCL_PIN            NONE
+#define I2C3_SDA_PIN            NONE
 
 #define I2C_DEVICE              (I2CDEV_1)
 

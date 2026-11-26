@@ -77,8 +77,8 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_2
 #define I2C_DEVICE              (I2CDEV_2)
-#define I2C2_SCL                NONE        // SCL pad  PB10, shared with UART3TX
-#define I2C2_SDA                NONE        // SDA pad  PB11, shared with UART3RX
+#define I2C2_SCL_PIN            NONE        // SCL pad  PB10, shared with UART3TX
+#define I2C2_SDA_PIN            NONE        // SDA pad  PB11, shared with UART3RX
 #define BARO_I2C_INSTANCE       (I2CDEV_2)
 
 #define USE_MAG
@@ -123,20 +123,20 @@
 #define USE_SPI_DEVICE_1
 #define SPI1_NSS_PIN              PA4
 #define SPI1_SCK_PIN              PA5
-#define SPI1_MISO_PIN             PA6
-#define SPI1_MOSI_PIN             PA7
+#define SPI1_SDI_PIN              PA6
+#define SPI1_SDO_PIN              PA7
 
 #define USE_SPI_DEVICE_2
 #define SPI2_NSS_PIN              PB12
 #define SPI2_SCK_PIN              PB13
-#define SPI2_MISO_PIN             PB14
-#define SPI2_MOSI_PIN             PB15
+#define SPI2_SDI_PIN              PB14
+#define SPI2_SDO_PIN              PB15
 
 #define USE_SPI_DEVICE_3
 #define SPI3_NSS_PIN              PA15
 #define SPI3_SCK_PIN              PC10
-#define SPI3_MISO_PIN             PC11
-#define SPI3_MOSI_PIN             PB5
+#define SPI3_SDI_PIN              PC11
+#define SPI3_SDO_PIN              PB5
 
 #define USE_ADC
 #define CURRENT_METER_ADC_PIN     PC3

@@ -52,20 +52,20 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 #define SPI1_SCK_PIN            PA5
-#define SPI1_MISO_PIN        PA6
-#define SPI1_MOSI_PIN        PD7
+#define SPI1_SDI_PIN         PA6
+#define SPI1_SDO_PIN         PD7
 #define USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN            PB13
-#define SPI2_MISO_PIN        PB14
-#define SPI2_MOSI_PIN        PB15
+#define SPI2_SDI_PIN         PB14
+#define SPI2_SDO_PIN         PB15
 #define USE_SPI_DEVICE_3
 #define SPI3_SCK_PIN            PB3
-#define SPI3_MISO_PIN        PB4
-#define SPI3_MOSI_PIN        PB5
+#define SPI3_SDI_PIN         PB4
+#define SPI3_SDO_PIN         PB5
 #define USE_SPI_DEVICE_4
 #define SPI4_SCK_PIN            PE12
-#define SPI4_MISO_PIN        PE13
-#define SPI4_MOSI_PIN        PE14
+#define SPI4_SDI_PIN         PE13
+#define SPI4_SDO_PIN         PE14
 
 #define USE_SPI_GYRO
 #define USE_EXTI
@@ -108,13 +108,13 @@
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE_1      (I2CDEV_1)
 #define MAG_I2C_INSTANCE                I2CDEV_1
-#define I2C1_SCL PB6
-#define I2C1_SDA PB7
+#define I2C1_SCL_PIN PB6
+#define I2C1_SDA_PIN PB7
 #define USE_I2C_DEVICE_2
 #define I2C_DEVICE_2      (I2CDEV_2)
 #define BARO_I2C_INSTANCE               I2CDEV_2
-#define I2C2_SCL PB10
-#define I2C2_SDA PB11
+#define I2C2_SCL_PIN PB10
+#define I2C2_SDA_PIN PB11
 
 #define FLASH_CS_PIN            PE2
 #define FLASH_SPI_INSTANCE              SPI3

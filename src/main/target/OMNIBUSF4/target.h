@@ -125,16 +125,16 @@
 #define USE_SPI_DEVICE_3
 #define SPI3_NSS_PIN          PB3
 #define SPI3_SCK_PIN            PC10
-#define SPI3_MISO_PIN           PC11
-#define SPI3_MOSI_PIN           PC12
+#define SPI3_SDI_PIN            PC11
+#define SPI3_SDO_PIN            PC12
 
 #define USE_I2C
 #define USE_I2C_DEVICE_2
-#define I2C2_SCL                NONE // PB10, shared with UART3TX
-#define I2C2_SDA                NONE // PB11, shared with UART3RX
+#define I2C2_SCL_PIN            NONE // PB10, shared with UART3TX
+#define I2C2_SDA_PIN            NONE // PB11, shared with UART3RX
 #define USE_I2C_DEVICE_3
-#define I2C3_SCL                NONE // PA8, PWM6
-#define I2C3_SDA                NONE // PC9, CH6
+#define I2C3_SCL_PIN            NONE // PA8, PWM6
+#define I2C3_SDA_PIN            NONE // PC9, CH6
 #define I2C_DEVICE              (I2CDEV_2)
 
 #define USE_ADC

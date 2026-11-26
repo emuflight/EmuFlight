@@ -39,8 +39,8 @@
 #define USE_SPI_DEVICE_1
 
 #define SPI1_SCK_PIN            PA5
-#define SPI1_MISO_PIN           PA6
-#define SPI1_MOSI_PIN           PA7
+#define SPI1_SDI_PIN            PA6
+#define SPI1_SDO_PIN            PA7
 
 #define USE_EXTI
 #define USE_GYRO_EXTI
@@ -74,8 +74,8 @@
 
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE              (I2CDEV_1)
-#define I2C1_SCL                PB8        // SCL pad
-#define I2C1_SDA                PB9        // SDA pad
+#define I2C1_SCL_PIN            PB8        // SCL pad
+#define I2C1_SDA_PIN            PB9        // SDA pad
 #define BARO_I2C_INSTANCE       (I2CDEV_1)
 
 #define USE_BARO                          //External, connect to I2C1
@@ -113,8 +113,8 @@
 // *************** OSD/FLASH *****************************
 #define USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN            PB13
-#define SPI2_MISO_PIN           PB14
-#define SPI2_MOSI_PIN           PB15
+#define SPI2_SDI_PIN            PB14
+#define SPI2_SDO_PIN            PB15
 
 #define USE_OSD
 #define USE_MAX7456

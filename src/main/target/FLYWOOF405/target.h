@@ -69,8 +69,8 @@
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE              (I2CDEV_1)
 
-#define I2C1_SCL                PB8        // SCL pad
-#define I2C1_SDA                PB9        // SDA pad
+#define I2C1_SCL_PIN            PB8        // SCL pad
+#define I2C1_SDA_PIN            PB9        // SDA pad
 #define BARO_I2C_INSTANCE       I2C_DEVICE
 #define MAG_I2C_INSTANCE        I2C_DEVICE
 
@@ -131,14 +131,14 @@
 #define USE_SPI_DEVICE_1 //ICM20689
 #define SPI1_NSS_PIN            PC4
 #define SPI1_SCK_PIN            PA5
-#define SPI1_MISO_PIN           PA6
-#define SPI1_MOSI_PIN           PA7
+#define SPI1_SDI_PIN            PA6
+#define SPI1_SDO_PIN            PA7
 
 #define USE_SPI_DEVICE_3 //dataflash
 #define SPI3_NSS_PIN            PB3
 #define SPI3_SCK_PIN            PC10
-#define SPI3_MISO_PIN           PC11
-#define SPI3_MOSI_PIN           PC12
+#define SPI3_SDI_PIN            PC11
+#define SPI3_SDO_PIN            PC12
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define USE_ADC

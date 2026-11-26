@@ -130,21 +130,21 @@
 #define USE_SPI_DEVICE_2
 #define SPI2_NSS_PIN            PB12
 #define SPI2_SCK_PIN            PB13
-#define SPI2_MISO_PIN           PB14
-#define SPI2_MOSI_PIN           PB15
+#define SPI2_SDI_PIN            PB14
+#define SPI2_SDO_PIN            PB15
 
 #define USE_SPI_DEVICE_3
 #define SPI3_NSS_PIN            PB3
 #define SPI3_SCK_PIN            PC10
-#define SPI3_MISO_PIN           PC11
-#define SPI3_MOSI_PIN           PC12
+#define SPI3_SDI_PIN            PC11
+#define SPI3_SDO_PIN            PC12
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE              (I2CDEV_1)
 #define USE_I2C_PULLUP
-#define I2C1_SCL                PB6
-#define I2C1_SDA                PB7
+#define I2C1_SCL_PIN            PB6
+#define I2C1_SDA_PIN            PB7
 
 #define USE_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
