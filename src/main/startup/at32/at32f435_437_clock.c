@@ -25,6 +25,47 @@
 /* includes ------------------------------------------------------------------*/
 #include "at32f435_437_clock.h"
 #include "platform.h"
+
+/* 576 MHz VCO with the /2 post-divider gives 288 MHz; the first pre-divider that keeps the PLL input in 2..16 MHz and the multiplier integral in 31..500 is used. HEXT is 4..25 MHz (DS V2.30). */
+#define PLL_VCO_HZ 576000000ULL
+#define PLL_MS_OK(ms) ((HEXT_VALUE >= 4000000U) && (HEXT_VALUE <= 25000000U) && (HEXT_VALUE >= 2000000U * (ms)) && (HEXT_VALUE <= 16000000U * (ms)) && \
+                       (((PLL_VCO_HZ * (ms)) % HEXT_VALUE) == 0) && \
+                       ((PLL_VCO_HZ * (ms) / HEXT_VALUE) >= 31) && ((PLL_VCO_HZ * (ms) / HEXT_VALUE) <= 500))
+#if PLL_MS_OK(1)
+#define PLL_MS 1
+#elif PLL_MS_OK(2)
+#define PLL_MS 2
+#elif PLL_MS_OK(3)
+#define PLL_MS 3
+#elif PLL_MS_OK(4)
+#define PLL_MS 4
+#elif PLL_MS_OK(5)
+#define PLL_MS 5
+#elif PLL_MS_OK(6)
+#define PLL_MS 6
+#elif PLL_MS_OK(7)
+#define PLL_MS 7
+#elif PLL_MS_OK(8)
+#define PLL_MS 8
+#elif PLL_MS_OK(9)
+#define PLL_MS 9
+#elif PLL_MS_OK(10)
+#define PLL_MS 10
+#elif PLL_MS_OK(11)
+#define PLL_MS 11
+#elif PLL_MS_OK(12)
+#define PLL_MS 12
+#elif PLL_MS_OK(13)
+#define PLL_MS 13
+#elif PLL_MS_OK(14)
+#define PLL_MS 14
+#elif PLL_MS_OK(15)
+#define PLL_MS 15
+#else
+#error "SYSTEM_HSE_MHZ cannot produce a 576 MHz PLL VCO frequency within the PLL limits"
+#endif
+#define PLL_NS ((uint32_t)(PLL_VCO_HZ * PLL_MS / HEXT_VALUE))
+
 /**
   * @brief  system clock config program
   * @note   the system clock is configured as follow:
@@ -75,7 +116,7 @@ void system_clock_config(void)
   }
 
   /* config pll clock resource */
-  crm_pll_config(CRM_PLL_SOURCE_HEXT, 72, 1, CRM_PLL_FR_2);
+  crm_pll_config(CRM_PLL_SOURCE_HEXT, PLL_NS, PLL_MS, CRM_PLL_FR_2);
 
   /* enable pll */
   crm_clock_source_enable(CRM_CLOCK_SOURCE_PLL, TRUE);

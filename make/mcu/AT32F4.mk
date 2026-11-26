@@ -47,7 +47,7 @@ TARGET_FLASH    := 1024
 else ifeq ($(TARGET),$(filter $(TARGET),$(AT32F435M_TARGETS)))
 DEVICE_FLAGS    = -DAT32F435Zx -DAT32F435ZMT7
 LD_SCRIPT       = $(LINKER_DIR)/at32_flash_f43xm.ld
-TARGET_FLASH    := 4096
+TARGET_FLASH    := 4032
 else
 $(error Unknown MCU for AT32F4 target)
 endif

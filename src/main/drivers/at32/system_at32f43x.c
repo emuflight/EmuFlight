@@ -19,9 +19,12 @@
  */
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #include "platform.h"
+
+#include "common/utils.h"
 
 #include "drivers/exti.h"
 #include "drivers/nvic.h"
@@ -82,15 +85,79 @@ static flash_usd_eopb0_type get_sram_config(void)
     }
 }
 
+// Physical USD size: 512 bytes on 256 KB and 1024 KB parts, 4096 bytes on the others (RM V2.09 flash organization tables).
+// Each data byte takes a halfword with its inverse, so Table 5-7 notes 1 and 2 count 256 and 2048 data bytes.
+#if (TARGET_FLASH_SIZE == 256) || (TARGET_FLASH_SIZE == 1024)
+#define USD_SIZE_BYTES 512
+#else
+#define USD_SIZE_BYTES 4096
+#endif
+#define USD_PROGRAM_TRIES 3
+
+static bool updateSramConfig(flash_usd_eopb0_type sramCfg)
+{
+    // Erase clears every user system data field, so save and restore all but FAP (restored by the erase) and EOPB0.
+    uint16_t saved[USD_SIZE_BYTES / sizeof(uint16_t)];
+    volatile const uint16_t *usd = (volatile const uint16_t *)USD_BASE;
+    const unsigned eopb0Index = offsetof(usd_type, eopb0) / sizeof(uint16_t);
+
+    for (unsigned i = 0; i < ARRAYLEN(saved); i++) {
+        saved[i] = usd[i];
+    }
+
+    // The vendor erase restores FAP 0xA5 only when access protection was off (RM V2.09 section 5.4.1: erasing a protected chip's FAP to 0xA5 triggers a mass erase).
+    const bool fapRelieved = flash_fap_status_get() == RESET;
+    bool restored = true;
+
+    flash_unlock();
+    // The erase status may report only the FAP restore, so restoring the other fields does not depend on it.
+    flash_user_system_data_erase();
+    for (unsigned i = 1; i < ARRAYLEN(saved); i++) {
+        if (i == eopb0Index || saved[i] == 0xFFFF) {
+            continue;
+        }
+        // The hardware writes the inverse byte; the retry is bounded because a failed restore cannot be repaired after the reset.
+        bool written = false;
+        for (unsigned tries = 0; !written && tries < USD_PROGRAM_TRIES; tries++) {
+            flash_flag_clear(FLASH_PRGMERR_FLAG | FLASH_EPPERR_FLAG | FLASH_ODF_FLAG);
+            written = flash_user_system_data_program(USD_BASE + i * sizeof(uint16_t), saved[i] & 0xFF) == FLASH_OPERATE_DONE
+                && (usd[i] & 0xFF) == (saved[i] & 0xFF);
+        }
+        restored = restored && written;
+    }
+    // FAP stays 0xFF (access protection on after the next reset, RM Table 5-7) when the vendor restore failed.
+    // Only 0xA5 may be programmed into FAP (RM V2.09 section 5.3.3 note 2).
+    for (unsigned tries = 0; fapRelieved && (usd[0] & 0xFF) != 0xA5; tries++) {
+        if (tries == USD_PROGRAM_TRIES) {
+            restored = false;
+            break;
+        }
+        flash_flag_clear(FLASH_PRGMERR_FLAG | FLASH_EPPERR_FLAG | FLASH_ODF_FLAG);
+        flash_user_system_data_program(USD_BASE, 0xA5);
+    }
+    // The EOPB0 readback below decides success, so the status is not needed here.
+    flash_eopb0_config(sramCfg);
+    flash_lock();
+    // flash_lock() does not lock the USD area; RM V2.09 section 5.3.1 says software clears USDULKS.
+    FLASH->ctrl_bit.usdulks = FALSE;
+
+    return restored && ((USD->eopb0) & USD_EOPB0_SRAM_CONFIG_MASK) == sramCfg;
+}
+
 static void init_sram_config(void)
 {
     // Make sure the SRAM config is correct
     const flash_usd_eopb0_type sram_cfg = get_sram_config();
     if (((USD->eopb0) & USD_EOPB0_SRAM_CONFIG_MASK) != sram_cfg) {
-        flash_unlock();
-        flash_user_system_data_erase();
-        flash_eopb0_config(sram_cfg);
-        systemReset();
+        // The EOPB0 change is impossible while the security library is enabled (RM V2.09 Table 5-8), so keep the USD untouched.
+        if (flash_slib_state_get() != RESET) {
+            return;
+        }
+        // Reset only when every field and the new EOPB0 read back. A reset would load a damaged USD (lost field, or FAP 0xFF
+        // which blocks debug and DFU flashing) or reset forever. USD changes take effect only at reset (RM V2.09 section 5.1, user system data area).
+        if (updateSramConfig(sram_cfg)) {
+            systemReset();
+        }
     }
 }
 
