@@ -299,6 +299,16 @@ static uint32_t ubloxValsetKey(uint8_t msgId) {
     }
 }
 
+// CFG-MSGOUT-NMEA_ID_<sentence>_UART1 keys, sent with value 0 on M9 and later; M5-M8 take the CFG-MSG frames in ubloxInit.
+static const uint32_t ubloxNmeaOffKeys[] = {
+    0x209100bb, // GGA
+    0x209100ca, // GLL
+    0x209100c0, // GSA
+    0x209100c5, // GSV
+    0x209100ac, // RMC
+    0x209100b1, // VTG
+};
+
 #define UBLOX_CLASS_NAV 0x01
 #define UBLOX_CLASS_MON 0x0A
 #define UBLOX_MSG_MON_VER 0x04
@@ -535,6 +545,15 @@ void gpsInitUblox(void) {
                     const uint8_t payload[UBLOX_CFG_MSG_PAYLOAD_LENGTH] = { UBLOX_CLASS_NAV, msgId, rate };
                     ubloxWriteFrame(0x06, 0x01, payload, sizeof(payload));
                 }
+                gpsData.state_position++;
+            } else if (configVersion >= UBX_VERSION_M9 &&
+                       gpsData.state_position - ARRAYLEN(ubloxNavMessages) < ARRAYLEN(ubloxNmeaOffKeys)) {
+                const uint32_t key = ubloxNmeaOffKeys[gpsData.state_position - ARRAYLEN(ubloxNavMessages)];
+                const uint8_t payload[UBLOX_CFG_VALSET_PAYLOAD_LENGTH] = {
+                    0x00, 0x01, 0x00, 0x00, // version 0, layer RAM
+                    (uint8_t)key, (uint8_t)(key >> 8), (uint8_t)(key >> 16), (uint8_t)(key >> 24), 0 // 0 = sentence off
+                };
+                ubloxWriteFrame(0x06, 0x8A, payload, sizeof(payload));
                 gpsData.state_position++;
             } else {
                 gpsData.state_position = 0;
@@ -1085,6 +1104,12 @@ typedef struct {
     ubx_nav_svinfo_channel channel[16];         // 16 satellites * 12 byte
 } ubx_nav_svinfo;
 
+#define UBX_NAV_SVINFO_HEADER_SIZE 8
+#define UBX_NAV_SVINFO_CHANNEL_SIZE 12
+
+STATIC_ASSERT(sizeof(ubx_nav_svinfo_channel) == UBX_NAV_SVINFO_CHANNEL_SIZE, ubx_nav_svinfo_channel_size_must_match_spec);
+STATIC_ASSERT(offsetof(ubx_nav_svinfo, channel) == UBX_NAV_SVINFO_HEADER_SIZE, ubx_nav_svinfo_header_size);
+
 typedef struct {
     uint8_t gnssId;
     uint8_t svId;
@@ -1333,19 +1358,31 @@ static bool UBLOX_parse_gps(void) {
         gpsSol.groundCourse = (uint16_t) (_buffer.velned.heading_2d / 10000);     // Heading 2D deg * 100000 rescaled to deg * 10
         _new_speed = true;
         break;
-    case MSG_SVINFO:
+    case MSG_SVINFO: {
+        if (_class != CLASS_NAV || _payload_length < UBX_NAV_SVINFO_HEADER_SIZE) {
+            break;
+        }
         *gpsPacketLogChar = LOG_UBLOX_SVINFO;
-        GPS_numCh = _buffer.svinfo.numCh;
-        if (GPS_numCh > 16)
-            GPS_numCh = 16;
-        for (i = 0; i < GPS_numCh; i++) {
+        const uint16_t stored = MIN(_payload_length, UBLOX_PAYLOAD_SIZE);
+        uint8_t count = MIN(_buffer.svinfo.numCh, (stored - UBX_NAV_SVINFO_HEADER_SIZE) / UBX_NAV_SVINFO_CHANNEL_SIZE);
+        count = MIN(count, GPS_SV_MAXSATS);
+        GPS_numCh = count;
+        for (i = 0; i < count; i++) {
             GPS_svinfo_chn[i] = _buffer.svinfo.channel[i].chn;
             GPS_svinfo_svid[i] = _buffer.svinfo.channel[i].svid;
             GPS_svinfo_quality[i] = _buffer.svinfo.channel[i].quality;
             GPS_svinfo_cno[i] = _buffer.svinfo.channel[i].cno;
         }
+        // clear the entries left over from an earlier, longer message: consumers read the whole array
+        for (; i < GPS_SV_MAXSATS; i++) {
+            GPS_svinfo_chn[i] = 0;
+            GPS_svinfo_svid[i] = 0;
+            GPS_svinfo_quality[i] = 0;
+            GPS_svinfo_cno[i] = 0;
+        }
         GPS_svInfoReceivedCount++;
         break;
+    }
     case MSG_SAT: {
         if (_class != CLASS_NAV || _payload_length < UBX_NAV_SAT_HEADER_SIZE) {
             break;
