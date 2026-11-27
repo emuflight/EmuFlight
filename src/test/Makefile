@@ -782,6 +782,25 @@ gps_ublox_unittest_SRC := \
 gps_ublox_unittest_CFLAGS := -DUSE_GPS_UBLOX -DUSE_GPS_NMEA -DUSE_RTC_TIME
 
 
+gps_nmea_unittest_SRC := \
+		$(USER_DIR)/common/gps_conversion.c \
+		$(USER_DIR)/common/maths.c \
+		$(USER_DIR)/fc/runtime_config.c \
+		$(TEST_DIR)/gps_nmea_test_support.c
+
+gps_nmea_unittest_DEFINES := \
+		USE_GPS_NMEA \
+		USE_RTC_TIME
+
+# Compile the whole GPS translation unit, keep only the NMEA parser paths.
+gps_nmea_unittest_CFLAGS := -ffunction-sections -fdata-sections
+ifdef MACOSX
+gps_nmea_unittest_LDFLAGS := -Wl,-dead_strip
+else
+gps_nmea_unittest_LDFLAGS := -Wl,--gc-sections
+endif
+
+
 io_serial_unittest_SRC := \
 		$(USER_DIR)/io/serial.c \
 		$(USER_DIR)/drivers/serial_pinconfig.c
