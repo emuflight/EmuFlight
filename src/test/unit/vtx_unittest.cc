@@ -134,6 +134,71 @@ TEST(VtxTest, PitMode)
     EXPECT_EQ(5300, vtxGetSettings().freq);
 }
 
+static vtxDevType_e cycleTestType = VTXDEV_SMARTAUDIO;
+static uint8_t cycleTestPower = 0;
+static vtxDevType_e cycleTestGetDeviceType(const vtxDevice_t *) { return cycleTestType; }
+static bool cycleTestGetPowerIndex(const vtxDevice_t *, uint8_t *pIndex) { *pIndex = cycleTestPower; return true; }
+static const vtxVTable_t cycleTestVTable = {
+    .process = NULL,
+    .getDeviceType = cycleTestGetDeviceType,
+    .isReady = NULL,
+    .setBandAndChannel = NULL,
+    .setPowerByIndex = NULL,
+    .setPitMode = NULL,
+    .setFrequency = NULL,
+    .getBandAndChannel = NULL,
+    .getPowerIndex = cycleTestGetPowerIndex,
+    .getPitMode = NULL,
+    .getFrequency = NULL,
+};
+static vtxDevice_t cycleDevice = {
+    .vTable = &cycleTestVTable,
+    .capability = { .bandCount = 0, .channelCount = 0, .powerCount = 0, .filler = 0 },
+    .frequencyTable = NULL,
+    .bandNames = NULL,
+    .channelNames = NULL,
+    .powerNames = NULL,
+    .frequency = 0,
+    .band = 0,
+    .channel = 0,
+    .powerIndex = 0,
+    .pitMode = 0
+};
+
+// Runs one LED-button power cycle step from the given device power and returns the stored power.
+static int cyclePowerFrom(vtxDevType_e type, uint8_t count, uint8_t devicePower)
+{
+    cycleDevice.capability.powerCount = count;
+    cycleTestType = type;
+    cycleTestPower = devicePower;
+    vtxCommonSetDevice(&cycleDevice);
+    vtxSettingsConfigMutable()->power = 99;
+    vtxCyclePower(+1);
+    const int stored = vtxSettingsConfig()->power;
+    vtxCommonSetDevice(NULL);
+    return stored;
+}
+
+TEST(VtxTest, CyclePowerOneOriginDriversWrapToLevelOne)
+{
+    const vtxDevType_e types[] = { VTXDEV_SMARTAUDIO, VTXDEV_TRAMP, VTXDEV_BEESIGN };
+    const uint8_t counts[] = { 4, 5, 2 };
+    for (int i = 0; i < 3; i++) {
+        // top level wraps to 1, never to 0 (index 0 is ignored by these drivers)
+        EXPECT_EQ(1, cyclePowerFrom(types[i], counts[i], counts[i])) << "type " << types[i];
+        // lower levels step up by one
+        EXPECT_EQ(2, cyclePowerFrom(types[i], counts[i], 1)) << "type " << types[i];
+    }
+}
+
+TEST(VtxTest, CyclePowerRtc6705IsZeroOrigin)
+{
+    // indexes 0..2: level 2 is reachable and wraps to 0
+    EXPECT_EQ(1, cyclePowerFrom(VTXDEV_RTC6705, 3, 0));
+    EXPECT_EQ(2, cyclePowerFrom(VTXDEV_RTC6705, 3, 1));
+    EXPECT_EQ(0, cyclePowerFrom(VTXDEV_RTC6705, 3, 2));
+}
+
 void ResetVtxActivationConditions(void) {
     for (uint8_t index = 0; index < MAX_CHANNEL_ACTIVATION_CONDITION_COUNT; index++) {
         vtxChannelActivationCondition_t *cac = &vtxConfigMutable()->vtxChannelActivationConditions[index];

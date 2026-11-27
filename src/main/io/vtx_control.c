@@ -160,11 +160,14 @@ void vtxCyclePower(const uint8_t powerStep) {
         if (!haveAllNeededInfo) {
             return;
         }
+        // RTC6705 power indexes are zero-origin (0 to count - 1).
+        // SmartAudio, Tramp and Beesign are one-origin (1 to count) and ignore index 0.
+        const bool zeroOrigin = (vtxCommonGetDeviceType(vtxDevice) == VTXDEV_RTC6705);
+        const int minPower = zeroOrigin ? 0 : 1;
+        const int maxPower = zeroOrigin ? capability.powerCount - 1 : capability.powerCount;
         int newPower = power + powerStep;
-        if (newPower >= capability.powerCount) {
-            newPower = 0;
-        } else if (newPower < 0) {
-            newPower = capability.powerCount;
+        if (newPower > maxPower) {
+            newPower = minPower;
         }
         vtxSettingsConfigMutable()->power = newPower;
     }
