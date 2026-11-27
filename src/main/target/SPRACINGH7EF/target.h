@@ -50,11 +50,11 @@
 // I2C1 (PB6/PB7) shares pins with UART1 — hardware design; mutually exclusive at runtime.
 // Disable USE_I2C_DEVICE_1 if UART1 is needed, and vice versa.
 #define USE_I2C_DEVICE_1
-#define I2C1_SCL                PB6
-#define I2C1_SDA                PB7
+#define I2C1_SCL_PIN            PB6
+#define I2C1_SDA_PIN            PB7
 #define USE_I2C_DEVICE_4
-#define I2C4_SCL                PD12  // J8:5
-#define I2C4_SDA                PD13  // J8:6
+#define I2C4_SCL_PIN            PD12  // J8:5
+#define I2C4_SDA_PIN            PD13  // J8:6
 #define BARO_I2C_INSTANCE               I2CDEV_4
 #define MAG_I2C_INSTANCE                I2CDEV_4
 #define USE_PINIO
@@ -88,16 +88,16 @@
 #define BEEPER_INVERTED
 
 #define SPI2_SCK_PIN            PB13
-#define SPI2_MISO_PIN           PB14
-#define SPI2_MOSI_PIN           PB15
+#define SPI2_SDI_PIN            PB14
+#define SPI2_SDO_PIN            PB15
 #define SPI2_NSS_PIN            PB12
 #define SPI3_SCK_PIN            PC10
-#define SPI3_MISO_PIN           PC11
-#define SPI3_MOSI_PIN           PC12
+#define SPI3_SDI_PIN            PC11
+#define SPI3_SDO_PIN            PC12
 #define SPI3_NSS_PIN            PA15
 #define SPI6_SCK_PIN            PB3
-#define SPI6_MISO_PIN           PB4
-#define SPI6_MOSI_PIN           PB5
+#define SPI6_SDI_PIN            PB4
+#define SPI6_SDO_PIN            PB5
 
 // SPI6 has no DMA on H7; the SPI driver falls back to polled transfers.
 #define USE_FLASH_M25P16

@@ -92,11 +92,11 @@
  */
 #define USE_I2C_DEVICE_1        // UART1/FlexiPort (PB6,PB7)
 #define I2C_DEVICE              I2CDEV_1
-#define I2C1_SCL                NONE // Define as PB6 if required
-#define I2C1_SDA                NONE // Define as PB7 if required
+#define I2C1_SCL_PIN            NONE // Define as PB6 if required
+#define I2C1_SDA_PIN            NONE // Define as PB7 if required
 #define USE_I2C_DEVICE_3
-#define I2C3_SCL                PA8
-#define I2C3_SDA                PB4
+#define I2C3_SCL_PIN            PA8
+#define I2C3_SDA_PIN            PB4
 #define BARO_I2C_INSTANCE       I2CDEV_3
 
 #undef USE_LED_STRIP

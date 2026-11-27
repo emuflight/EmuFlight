@@ -77,8 +77,8 @@ TEST(PgBusSpiUnittest, ResetKeepsBoardPinsAndLeavesAbsentDevicePinsEmpty)
     pgResetAll();
 
     EXPECT_EQ(spiPinConfig(SPIDEV_1)->ioTagSck, IO_TAG(SPI1_SCK_PIN));
-    EXPECT_EQ(spiPinConfig(SPIDEV_1)->ioTagMiso, IO_TAG(SPI1_MISO_PIN));
-    EXPECT_EQ(spiPinConfig(SPIDEV_1)->ioTagMosi, IO_TAG(SPI1_MOSI_PIN));
+    EXPECT_EQ(spiPinConfig(SPIDEV_1)->ioTagMiso, IO_TAG(SPI1_SDI_PIN));
+    EXPECT_EQ(spiPinConfig(SPIDEV_1)->ioTagMosi, IO_TAG(SPI1_SDO_PIN));
     EXPECT_EQ(spiPinConfig(SPIDEV_2)->ioTagSck, IO_TAG(SPI2_SCK_PIN));
     EXPECT_EQ(spiPinConfig(SPIDEV_3)->ioTagSck, 0);
     EXPECT_EQ(spiPinConfig(SPIDEV_3)->ioTagMosi, 0);

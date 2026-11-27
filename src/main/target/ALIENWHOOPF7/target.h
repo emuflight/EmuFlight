@@ -73,31 +73,31 @@
 
 #define SPI1_NSS_PIN            PA4 // LQFP64 pin 20 (PA4)
 #define SPI1_SCK_PIN            PA5 // LQFP64 pin 21 (PA5)
-#define SPI1_MISO_PIN           PA6 // LQFP64 pin 22 (PA6)
-#define SPI1_MOSI_PIN           PA7 // LQFP64 pin 23 (PA7)
+#define SPI1_SDI_PIN            PA6 // LQFP64 pin 22 (PA6)
+#define SPI1_SDO_PIN            PA7 // LQFP64 pin 23 (PA7)
 
 #define SPI2_NSS_PIN            PB12 // LQFP64 pin 33 (PB12)
 #define SPI2_SCK_PIN            PB13 // LQFP64 pin 34 (PB13)
-#define SPI2_MISO_PIN           PB14 // LQFP64 pin 35 (PB14)
-#define SPI2_MOSI_PIN           PB15 // LQFP64 pin 36 (PB15)
+#define SPI2_SDI_PIN            PB14 // LQFP64 pin 35 (PB14)
+#define SPI2_SDO_PIN            PB15 // LQFP64 pin 36 (PB15)
 
 #define SPI3_NSS_PIN            PA15 // LQFP64 pin 50 (PA15)
 //#define SPI3_SCK_PIN            PC10 // LQFP64 pin 51 (PC10)
-//#define SPI3_MISO_PIN           PC11 // LQFP64 pin 52 (PC11)
-//#define SPI3_MOSI_PIN           PC12 // LQFP64 pin 53 (PC12)
+//#define SPI3_SDI_PIN           PC11 // LQFP64 pin 52 (PC11)
+//#define SPI3_SDO_PIN           PC12 // LQFP64 pin 53 (PC12)
 #define SPI3_SCK_PIN            PB3  // LQFP64 pin 55 (PB3)
-#define SPI3_MISO_PIN           PB4  // LQFP64 pin 56 (PB4)
-#define SPI3_MOSI_PIN           PB5  // LQFP64 pin 57 (PB5)
+#define SPI3_SDI_PIN            PB4  // LQFP64 pin 56 (PB4)
+#define SPI3_SDO_PIN            PB5  // LQFP64 pin 57 (PB5)
 
 //TODO: define SPI4 and SPI5 for F7 target
 //#define SPI4_NSS_PIN
 //#define SPI4_SCK_PIN
-//#define SPI4_MISO_PIN
-//#define SPI4_MOSI_PIN
+//#define SPI4_SDI_PIN
+//#define SPI4_SDO_PIN
 //#define SPI5_NSS_PIN
 //#define SPI5_SCK_PIN
-//#define SPI5_MISO_PIN
-//#define SPI5_MOSI_PIN
+//#define SPI5_SDI_PIN
+//#define SPI5_SDO_PIN
 
 /* OSD MAX7456E */
 #define USE_MAX7456
@@ -214,8 +214,8 @@
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE              (I2CDEV_1)
 #define USE_I2C_PULLUP
-#define I2C1_SCL                PB6
-#define I2C1_SDA                PB7
+#define I2C1_SCL_PIN            PB6
+#define I2C1_SDA_PIN            PB7
 #else
 //#undef USE_CMS // TODO: OSD depends upon CMS
 #undef USE_I2C

@@ -50,12 +50,12 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 #define SPI1_SCK_PIN PA5
-#define SPI1_MISO_PIN        PA6
-#define SPI1_MOSI_PIN        PA7
+#define SPI1_SDI_PIN         PA6
+#define SPI1_SDO_PIN         PA7
 #define USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN PD3
-#define SPI2_MISO_PIN        PC2
-#define SPI2_MOSI_PIN        PC3
+#define SPI2_SDI_PIN         PC2
+#define SPI2_SDO_PIN         PC3
 
 #define USE_SPI_GYRO
 #define ACC_BMI270_ALIGN         CW0_DEG
@@ -94,14 +94,14 @@
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE_1      (I2CDEV_1)
-#define I2C1_SCL PB6
-#define I2C1_SDA PB7
+#define I2C1_SCL_PIN PB6
+#define I2C1_SDA_PIN PB7
 #define USE_I2C_DEVICE_2
 #define I2C_DEVICE_2      (I2CDEV_2)
 #define BARO_I2C_INSTANCE    I2CDEV_2
 #define MAG_I2C_INSTANCE     I2CDEV_2
-#define I2C2_SCL PB10
-#define I2C2_SDA PB11
+#define I2C2_SCL_PIN PB10
+#define I2C2_SDA_PIN PB11
 
 #define USE_SDCARD_SDIO
 #define SDIO_DEVICE      SDIODEV_1

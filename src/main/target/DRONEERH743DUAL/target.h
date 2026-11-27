@@ -56,20 +56,20 @@
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 #define SPI1_SCK_PIN                    PB3  //TIM2_CH2/SPI1_SCK/SPI3_SCK/SPI6_SCK/UART7_RX
-#define SPI1_MISO_PIN        PB4
-#define SPI1_MOSI_PIN        PB5
+#define SPI1_SDI_PIN         PB4
+#define SPI1_SDO_PIN         PB5
 #define USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN                    PB13 //TIM1_CH1N/SPI2_SCK/USART3_NSS/UART5_TX
-#define SPI2_MISO_PIN        PB14
-#define SPI2_MOSI_PIN        PB15
+#define SPI2_SDI_PIN         PB14 //TIM1_CH2N/TIM12_CH1/TIM8_CH2N/USART1_TX/SPI2_MISO
+#define SPI2_SDO_PIN         PB15 //TIM1_CH3N/TIM12_CH2/TIM8_CH3N/USART1_RX/SPI2_MOSI
 #define USE_SPI_DEVICE_3
 #define SPI3_SCK_PIN                    PC10 //SPI3_SCK/USART3_TX/UART4_TX/SDMMC1_D2
-#define SPI3_MISO_PIN        PC11
-#define SPI3_MOSI_PIN        PC12
+#define SPI3_SDI_PIN         PC11 //SPI3_MISO/USART3_RX/UART4_RX/SDMMC1_D3
+#define SPI3_SDO_PIN         PC12
 #define USE_SPI_DEVICE_4
 #define SPI4_SCK_PIN                    PE2  //SPI4_SCK
-#define SPI4_MISO_PIN        PE5
-#define SPI4_MOSI_PIN        PE6
+#define SPI4_SDI_PIN         PE5
+#define SPI4_SDO_PIN         PE6
 
 #define USE_SPI_GYRO
 #define USE_EXTI
@@ -111,17 +111,14 @@
 #define PINIO2_PIN                      PA3  //TIM2_CH4/TIM5_CH4/TIM15_CH2/USART2_RX/ADC12_INP15
 #define SERIALRX_UART                   SERIAL_PORT_USART2
 #define GPS_UART                        SERIAL_PORT_USART6
-#define SPI3_SDI_PIN                    PC11 //SPI3_MISO/USART3_RX/UART4_RX/SDMMC1_D3
-#define SPI2_SDI_PIN                    PB14 //TIM1_CH2N/TIM12_CH1/TIM8_CH2N/USART1_TX/SPI2_MISO
-#define SPI2_SDO_PIN                    PB15 //TIM1_CH3N/TIM12_CH2/TIM8_CH3N/USART1_RX/SPI2_MOSI
 #define SERIAL_PORT_COUNT 7
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE_1      (I2CDEV_1)
 #define BARO_I2C_INSTANCE               I2CDEV_1
-#define I2C1_SCL PB8
-#define I2C1_SDA PB9
+#define I2C1_SCL_PIN PB8
+#define I2C1_SDA_PIN PB9
 #define USE_I2C_DEVICE_2
 #define I2C_DEVICE_2      (I2CDEV_2)
 #define USE_I2C_DEVICE_3
@@ -129,8 +126,8 @@
 #define USE_I2C_DEVICE_4
 #define I2C_DEVICE_4      (I2CDEV_4)
 #define MAG_I2C_INSTANCE                I2CDEV_4
-#define I2C4_SCL PD12
-#define I2C4_SDA PD13
+#define I2C4_SCL_PIN PD12
+#define I2C4_SDA_PIN PD13
 
 #define FLASH_CS_PIN                    PA8  //TIM1_CH1/I2C3_SCL/UART7_RX
 #define FLASH_SPI_INSTANCE              SPI3

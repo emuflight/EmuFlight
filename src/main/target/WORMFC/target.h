@@ -101,8 +101,8 @@
 
 #define USE_SPI_DEVICE_3
 #define SPI3_SCK_PIN            PB3
-#define SPI3_MISO_PIN           PB4
-#define SPI3_MOSI_PIN           PB5
+#define SPI3_SDI_PIN            PB4
+#define SPI3_SDO_PIN            PB5
 
 //OSD
 #define USE_MAX7456

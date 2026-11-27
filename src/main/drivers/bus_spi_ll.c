@@ -39,22 +39,22 @@
 #ifndef SPI2_SCK_PIN
 #define SPI2_NSS_PIN    PB12
 #define SPI2_SCK_PIN    PB13
-#define SPI2_MISO_PIN   PB14
-#define SPI2_MOSI_PIN   PB15
+#define SPI2_SDI_PIN    PB14
+#define SPI2_SDO_PIN    PB15
 #endif
 
 #ifndef SPI3_SCK_PIN
 #define SPI3_NSS_PIN    PA15
 #define SPI3_SCK_PIN    PB3
-#define SPI3_MISO_PIN   PB4
-#define SPI3_MOSI_PIN   PB5
+#define SPI3_SDI_PIN    PB4
+#define SPI3_SDO_PIN    PB5
 #endif
 
 #ifndef SPI4_SCK_PIN
 #define SPI4_NSS_PIN    PA15
 #define SPI4_SCK_PIN    PB3
-#define SPI4_MISO_PIN   PB4
-#define SPI4_MOSI_PIN   PB5
+#define SPI4_SDI_PIN    PB4
+#define SPI4_SDO_PIN    PB5
 #endif
 
 #ifndef SPI1_NSS_PIN
